@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-27",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "1395a2f54aef9b7c7ce869c7d32d809db1527e1f",
+  "run": "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45996096927",
+  "results": {
+    "linuxX64": {
+      "job": "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45996096927/job/140495742918",
+      "conclusion": "success",
+      "details": "Required GoogleTest filter passed 432/432; additional informational tests passed 153/153. Python runtime AppDir and Snap smoke passed."
+    },
+    "linuxArm64": {
+      "job": "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45996096927/job/140495742867",
+      "conclusion": "success"
+    },
+    "windowsPersistence": {
+      "job": "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45996096927/job/140495742519",
+      "conclusion": "success",
+      "details": "Bundled libdxfrw and persistence built with Qt UI disabled; job does not run the layout tests."
+    },
+    "dwgSanitizers": {
+      "job": "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45996096927/job/140495743186",
+      "conclusion": "success"
+    },
+    "planSync": {
+      "job": "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45996096968/job/140495742567",
+      "conclusion": "success"
+    }
+  },
+  "limits": [
+    "Main Windows feature-configuration job 140495743004 remains in progress and must verify the CRLF test repair; the persistence job alone does not establish it.",
+    "Other jobs, native GUI, final candidate and independent codec qualifications remain open; no gate promoted."
+  ]
+}

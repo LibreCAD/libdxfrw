@@ -1,0 +1,211 @@
+{
+  "date": "2026-11-11",
+  "scope": "Bounded observation of an audited ODA 27.1.0 AC1018 conversion of an ezdxf acad_table_simple.dxf; not native producer or semantic support qualification.",
+  "drawing_sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+  "libredwg_0_14_json_sha256": "23d17c79abb050743822552f1fb9e0db644ad43a2e9fca76db6c40a99bf4db5b",
+  "capture": "Actual reader import with base dx_iface callbacks forwarded; source publication and typed baseline matched for dictionary and XRECORD; children captured as unsupported opaque source frames. Offsets below are in decoded object buffer, not physical file offsets.",
+  "frames": {
+    "0xb9": {
+      "class": "TABLECONTENT",
+      "offset": 99999,
+      "size": 1719,
+      "sha256": "5caa9921eb02acc3efc94c6d71f90c9bc400dbb7969eb95c4dadf142064630f2"
+    },
+    "0xba": {
+      "class": "TABLEGEOMETRY",
+      "offset": 101722,
+      "size": 33,
+      "sha256": "bee29eb5b223a434febedbbd3939631821489a8a60022d3ea0ce878d47868a3c"
+    },
+    "0xbb": {
+      "class": "DICTIONARY",
+      "offset": 13420,
+      "size": 36,
+      "sha256": "1051497049c7cc9b335b0dd2b9a76b4b3300c07c678fed7fee69996047763dab"
+    },
+    "0xbc": {
+      "class": "XRECORD",
+      "offset": 14890,
+      "size": 213,
+      "sha256": "849458d8d7e0d40aa5e9c49d4f7ae0b0f9917e1cc56f8844f78b3bd077b9aa26"
+    },
+    "0xbd": {
+      "class": "DATATABLE",
+      "offset": 101759,
+      "size": 130,
+      "sha256": "1fc357e038d9e51ab8be68efe4a54f0333dfc3d5e3a4e0c03f22d55607e95ea3"
+    }
+  },
+  "source_observations": {
+    "published_frames": "226/226, zero entity/object failures",
+    "unrelated_header_offset_mismatch": {
+      "expected": 592,
+      "observed": 1331
+    },
+    "standard_facets": "0xbb and 0xbc: publication seen, payload matched, immutable typed baseline, source profile bound",
+    "xrecord_text_decode_issues": 8,
+    "source_codepage_id": 30,
+    "source_xrecord_raw_snapshot_valid": false,
+    "raw_children": [
+      "0xb9",
+      "0xba",
+      "0xbd"
+    ]
+  },
+  "graph": "TABLE 0x9c hard-owner H code 3 to dictionary 0xbb; dictionary parent soft-pointer H code 4 to TABLE and key ACAD_XREC_ROUNDTRIP entry H code 2 to XRECORD 0xbc. XRECORD parent and reactor soft-pointer H code 4 to 0xbb. Embedded group 360/361 values are data-block uint64 references, not DWG H tokens; LibreDWG reports each child owner 0xbc.",
+  "xrecord_verifier": {
+    "objectType": 79,
+    "handle": {
+      "startBit": 42,
+      "endBit": 58,
+      "role": 0,
+      "size": 1,
+      "value": 188
+    },
+    "bodyEndBit": 1667,
+    "eedBytes": 0,
+    "reactorCount": 1,
+    "xdictionaryMissing": 1,
+    "dataStartBit": 81,
+    "dataEndBit": 1657,
+    "cloning": 1,
+    "pairs": [
+      {
+        "value": [
+          102,
+          "ACAD_ROUNDTRIP_2008_TABLE_ENTITY",
+          45
+        ],
+        "startBit": 81,
+        "endBit": 377
+      },
+      {
+        "value": [
+          360,
+          185
+        ],
+        "startBit": 377,
+        "endBit": 457
+      },
+      {
+        "value": [
+          70,
+          2
+        ],
+        "startBit": 457,
+        "endBit": 489
+      },
+      {
+        "value": [
+          90,
+          1
+        ],
+        "startBit": 489,
+        "endBit": 537
+      },
+      {
+        "value": [
+          10,
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "startBit": 537,
+        "endBit": 745
+      },
+      {
+        "value": [
+          90,
+          0
+        ],
+        "startBit": 745,
+        "endBit": 793
+      },
+      {
+        "value": [
+          90,
+          2
+        ],
+        "startBit": 793,
+        "endBit": 841
+      },
+      {
+        "value": [
+          361,
+          186
+        ],
+        "startBit": 841,
+        "endBit": 921
+      },
+      {
+        "value": [
+          102,
+          "ACAD_ROUNDTRIP_PRE2007_TABLE",
+          45
+        ],
+        "startBit": 921,
+        "endBit": 1185
+      },
+      {
+        "value": [
+          90,
+          3
+        ],
+        "startBit": 1185,
+        "endBit": 1233
+      },
+      {
+        "value": [
+          91,
+          3
+        ],
+        "startBit": 1233,
+        "endBit": 1281
+      },
+      {
+        "value": [
+          102,
+          "ACAD_ROUNDTRIP_PRE2007_TABLECELL",
+          45
+        ],
+        "startBit": 1281,
+        "endBit": 1577
+      },
+      {
+        "value": [
+          360,
+          189
+        ],
+        "startBit": 1577,
+        "endBit": 1657
+      }
+    ],
+    "owner": {
+      "startBit": 1667,
+      "endBit": 1683,
+      "role": 4,
+      "size": 1,
+      "value": 187
+    },
+    "reactor": {
+      "startBit": 1683,
+      "endBit": 1699,
+      "role": 4,
+      "size": 1,
+      "value": 187
+    },
+    "paddingBits": 5,
+    "selfTest": "six mutations/truncation rejected",
+    "sourceSha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "bodySha256": "849458d8d7e0d40aa5e9c49d4f7ae0b0f9917e1cc56f8844f78b3bd077b9aa26",
+    "limitation": "Pinned body-to-source association requires a separate actual-read capture receipt."
+  },
+  "independent_walk": "tools/research/p5_ac1018_table_xrecord_source_verify.py: pinned source and body hashes, all ordered values and spans, common prefix, owner/reactor roles, body end and padding. Self-test rejects five bit mutations and one truncation. Hash pinning does not independently authenticate body-to-drawing association.",
+  "crc_provenance": "Actual reader DwgObjectFrame::readAt validates stored CRC16 when acquiring each frame before publication; callback body omits prefix and stored CRC. The independent walker does not verify CRC or establish capture association.",
+  "string_discrepancy": "The three strings have RS little-endian length then RC codepage byte 45 in this observed body. LibreDWG decode.c at commit 6d6a3398 follows RS then RC; ODA v5.4.1 section 20.4.104 text specifies RC then RC for R13\u2013R2004. The value 45 is not semantically qualified by ASCII bytes; typed output substitutes codepage 0.",
+  "writer_authority": "Existing ordered XRECORD entries are authoritative when nonempty; legacy scalar/handle views are fallback compatibility views. A global mirror-consistency requirement or forcing known pairs into raw mode would change supported consumers. Source-bound replay must separately compare every captured view and require no mutation.",
+  "limitations": "No semantic support claim, native acceptance, complete subtree graph, AC1018 descendant field decoding, output replay or general profile is established. TABLECONTENT and TABLEGEOMETRY documented introduction is later than this compatibility source; do not apply later schema blindly. Physical populated graph remains refused.",
+  "next_slice": "Build a private immutable opt-in capability from the matched completed-import standard facet and a unique generation token; bind verified frame identity/body, CRC provenance, type/version and deep typed snapshot. Exercise valid/invalid CRC, wrong generation, coincident identities, mutation, rollback and retry. Do not expose or enable physical subtree replay before opaque descendants and closure are proven."
+}

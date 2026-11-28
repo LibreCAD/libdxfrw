@@ -1,0 +1,129 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Cross-peer silent-loss, strict-consumer, and stress crosswalk",
+  "mode": "Primary-source issue and merged-PR review plus local test-owner audit; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "localRevision": "de27a33",
+  "scope": [
+    "Refresh current LibreDWG, ACadSharp, and ezdxf issue/PR evidence for silent DWG/DXF loss, strict consumer rejection, parser stress, and proxy carriers.",
+    "Correct the plan's scope descriptions for LibreDWG #1409 and #1410 and keep peer-route failures distinct from libdxfrw findings.",
+    "Check existing generated local test owners for repeated DXF records, MTEXT frame flags, proxy graphics, and legacy block/layout chains.",
+    "Refine implementation-ready checks without changing support claims, test cadence, dependencies, or fixtures."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG issues #1409, #1410, and #1411",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1409",
+        "https://github.com/LibreDWG/libredwg/issues/1410",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Issue bodies reviewed 2026-10-19; #1409/#1410/#1411 are peer reports, not reproduced locally.",
+      "observed": "#1409 reports a DXF exporter object-array iteration bug that can omit subsequent BLOCK bodies. The current #1410 body separates a HATCH zero-coordinate rejection, an ATTDEF/ATTRIB tag-drop case, and fatal handling of embedded-MTEXT fields; its code-list patch for the last case is explicitly a TODO stopgap. #1411 describes R2013+ AcDs SAB loss in LibreDWG 0.14.8593 and provides an ezdxf-generated cube/REGION reproduction recipe plus an unavailable confidential R2018 drawing.",
+      "evidenceCeiling": "Reporter/source evidence only. It does not establish a libdxfrw defect, a normative DXF rule, current release behavior beyond the named peer revisions, or ACIS semantic correctness. No peer binary was run and no drawing was downloaded."
+    },
+    {
+      "project": "ACadSharp issues #1281, #1297, #1299, and #1253",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://github.com/DomCR/ACadSharp/issues/1253"
+      ],
+      "revision": "Current issue bodies and issue index reviewed 2026-10-19. #1281/#1297/#1299/#1253 were listed open in the reviewed snapshot.",
+      "observed": "#1281 reports recursion/stack-exhaustion shapes for repeated DXF comments, XDATA application blocks, and WIPEOUT clip counts. #1297 reports AutoCAD 2025 rejecting an AC1032 MTEXT frame-only case (flag 16) while flag 17 and an AC1027 control open; the issue leaves whole-file style/section differences unresolved. #1299 reports a DWG-to-DXF spline issue with an attached source/output pair and a GDAL failure claim. #1253 reports strict AutoCAD rejection for several exact DXF group-code positions where permissive readers accept output.",
+      "evidenceCeiling": "Peer reports against named routes/artifacts only. They are not local defects, independent format definitions, or broad peer-support scores. No attachment was downloaded and no ACadSharp, GDAL, or AutoCAD binary was run."
+    },
+    {
+      "project": "ezdxf issue #1412 / merged PR #1418 and issue #1326",
+      "urls": [
+        "https://github.com/mozman/ezdxf/issues/1412",
+        "https://github.com/mozman/ezdxf/pull/1418",
+        "https://github.com/mozman/ezdxf/issues/1326"
+      ],
+      "revision": "Issue and PR pages reviewed 2026-10-19; #1418 merged to ezdxf master on 2026-10-02 and closed #1412. #1326 remained open in the reviewed issue listing.",
+      "observed": "#1412 reproduced a Binary-DXF proxy-graphic export type mismatch in ezdxf 1.4.4; merged #1418 passes raw binary chunks through the tag-writer protocol. #1326 describes a viewer-level proxy-graphic placement interaction with WIPEOUT under ProxyGraphicPolicy.PREFER.",
+      "evidenceCeiling": "The merged fix establishes peer master behavior only; formal release inclusion was not checked. The WIPEOUT report concerns rendering policy, not codec parsing/writing or libdxfrw support."
+    },
+    {
+      "project": "Local generated test-owner audit",
+      "urls": [
+        "tests/hardening_tests.cpp",
+        "tests/dwg_object_vectors_tests.cpp",
+        "tests/dxf_fixture_tests.cpp",
+        "tests/block_owner_tests.cpp",
+        "tests/dwg_reader_matrix_tests.cpp",
+        "src/drw_entities.cpp",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Shared worktree at de27a33; read-only source and test-owner inspection on 2026-10-19. The tests and plan already had uncommitted modifications from prior work; this pass did not edit test/code files.",
+      "observed": "The hardening test owner has a 20,000-record repeated-comments/XDATA/WIPEOUT vector. The DWG object-vector test checks MTEXT background flags 0/16/17 for AC1027/AC1032 at the codec boundary with a following handle sentinel and local encode/decode. The DXF fixture owner already tests explicit-zero HATCH line-edge Y and generated multiline ATTRIB/ATTDEF cases with # tags, embedded fields, XDATA, following-LINE continuity, and duplicate-scope refusal in ASCII/Binary. The proxy-graphic policy test exercises ASCII and Binary output on an ordinary entity. `block_owner_tests` checks exact BLOCK/ENDBLK identity/body closure and child ordering across named/anonymous blocks, attributed INSERT/SEQEND, model/paper-space, and ASCII/Binary output. The AC1015 layout-chain test exercises the reader walker only; it is a different route from the writer matrix.",
+      "evidenceCeiling": "Static inventory only; no local build/test was run in this research pass. Test presence establishes only the asserted route/boundary, not whole-file/native behavior."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newConfirmedCoverageGaps": 1,
+    "coverageGapDetail": "No generated test was located that composes the exact LibreDWG #1410 source profiles (explicit-zero HATCH line-edge Y, hash-bearing ATTDEF/ATTRIB tag, and multiline embedded-MTEXT fields) through libdxfrw DXF import, DWG write, and DWG readback. Existing local tests cover the DXF boundary and writer routes separately.",
+    "routeCoverageQuestionsSharpened": [
+      "Keep DWG-to-DXF BLOCK/body output assertions in block_owner_tests distinct from the AC1015 reader-side block-chain regression; both routes already have separate generated owners.",
+      "Compose the existing #1410-shaped DXF parser controls with DWG write/readback in two generated cases under the existing local-roundtrip executable; scope one fast command-mode CTest rather than a full matrix.",
+      "Keep AC1032 MTEXT codec flags separate from a whole-file/native AutoCAD acceptance result."
+    ],
+    "existingOwnersRefined": [
+      "PAR-19 / DXF HATCH and attribute parsing",
+      "PAR-28 / multiline ATTDEF and ATTRIB embedded-MTEXT handling",
+      "PAR-45 and PAR-49 / block, layout, and object-identity closure",
+      "DXF parser hardening and bounded repeated-record controls",
+      "proxy graphic ASCII/Binary carrier checks",
+      "PAR-07 / S8 ACIS carrier and independent semantic gates",
+      "composed strict/native consumer qualification",
+      "DWG local-roundtrip executable for DXF-import-to-DWG-write-to-DWG-readback closure; add one focused fast command-mode CTest"
+    ],
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsAdded": 0,
+    "newCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Update existing PAR owners and evidence boundaries only. Keep the three LibreDWG #1410 phenomena independent; retain existing ASCII/Binary DXF boundary tests and add one focused fast command mode plus CTest invocation under the existing DWG local-roundtrip executable. Use two generated ASCII cases: AC1024 for HATCH Y=0 plus hash-bearing ATTRIB, and AC1032 for multiline ATTRIB/ATTDEF embedded-MTEXT; assert import, DWG write, DWG readback, ownership/sequence, and following-LINE continuity. Keep MTEXT group-code scope context-specific under PAR-19/7E. Distinguish and reuse the existing #1409-shaped block writer matrix and AC1015 reader-chain test; retain the AC1032 MTEXT codec/native gate; reuse local repeated-record and binary proxy controls. No new finding/top-level subplan, fixture/dependency, broad test matrix, validation cadence, or support status change."
+  },
+  "implementationReadiness": [
+    "Before any parser/serializer change, check the specific DXF/DWG field profile against primary format documentation; peer fixes and permissive-reader results are not normative authority.",
+    "Add a focused command mode and one fast CTest invocation under the existing DWG local-roundtrip executable. Use only two generated ASCII inputs: AC1024 combines HATCH line-edge Y=0 and hash-bearing ATTRIB; AC1032 combines multiline ATTRIB and ATTDEF embedded-MTEXT. Assert values/ownership/sequence at DXF import, DWG write, and DWG readback, plus following-LINE continuity. Keep existing ASCII/Binary DXF tests as parser-encoding coverage; test only context-resolved MTEXT fields in PAR-19/7E, never a flat 42–49 whitelist.",
+    "For the #1409-shaped exporter path, preserve the existing block_owner_tests exact BLOCK/ENDBLK, child, INSERT, layout, and ASCII/Binary assertions; do not substitute the AC1015 reader test or aggregate entity totals.",
+    "At a composed native checkpoint, hold whole-file styles/sections constant while comparing AC1032 MTEXT flags 16 and 17 and an AC1027 control; record the exact AutoCAD build and AUDIT/open outcome.",
+    "Reuse the existing 20,000-record stress test and ASCII/Binary proxy-graphic test, extending only if their exact-byte, source-identity, or next-record assertions are absent.",
+    "After every implementation slice, update the plan and receipt with focused selector/build/owning CTest evidence, show progress only for commits that exist, and continue with the next local-ready slice without waiting on external qualification."
+  ],
+  "method": {
+    "kind": "Primary-source web research plus local read-only source/test crosswalk",
+    "webSourcesRestrictedToPrimaryProjectRepositories": true,
+    "attachmentsOpenedOrDownloaded": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "additionalToolsOrPackagesInstalled": false,
+    "testsExecuted": false
+  }
+}

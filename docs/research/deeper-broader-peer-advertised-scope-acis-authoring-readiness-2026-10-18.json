@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer-advertised scope and ACIS authoring readiness review",
+  "mode": "primary-source repository/documentation research and local plan reconciliation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare DWG/DXF peer claims against their detailed version, entity, writer, and validation caveats",
+    "Refresh the obj2cad discovery-stage ACIS/DXF authoring candidate and its DWG lineage",
+    "Separate strict parse, recovery/audit, emitted carrier, native acceptance, and semantic geometry evidence",
+    "Refine the existing composed peer checkpoint without changing implementation order or validation frequency"
+  ],
+  "method": {
+    "kind": "Read-only review of primary project manuals, repository documentation, and current local plans/tests",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "tests/dxf_fixture_tests.cpp",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp"
+    ],
+    "limitations": "Peer conclusions are based on public manuals/README/source-page descriptions and repository-visible state, not installed release binaries or runtime experiments. The obj2cad ACIS writer, dependency graph, and harness implementation were not source-audited in this pass; its stated cross-read and surface-vertex checks are therefore candidate evidence only. Mutable master documentation is not attributed automatically to a released artifact."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "revision": "Mutable master manual reviewed 2026-10-18",
+      "observed": "The overview describes approximately 99% coverage, while detailed sections list unhandled AcDs classes, families with no test coverage, and unstable/undertested classes. The manual states R2007 DWG writing is unavailable and R2010-R2018 output may fail CRC and CAD audit checks. Aggregate coverage and version labels cannot qualify a particular record, operation, or output artifact."
+    },
+    {
+      "project": "IxMilia.Dxf",
+      "urls": [
+        "https://github.com/ixmilia/dxf#compatibility",
+        "https://github.com/ixmilia/dxf/blob/main/CHANGELOG.md"
+      ],
+      "revision": "Public compatibility documentation and changelog reviewed 2026-10-18",
+      "observed": "The project describes DXF/DXB read/write through R2014, lists MESH, MLEADER, SURFACE, TABLE, and VIEWPORT as gaps, and warns that 3DSOLID/BODY/REGION and other writers may not produce AutoCAD-openable output. This supports only scoped structural comparison, not native writer acceptance or ACIS semantics."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "revision": "Mutable master documentation reviewed 2026-10-18",
+      "observed": "The drawing add-on explicitly does not render ACIS and has no 3D rendering engine; the documentation describes separate strict-read/recovery/audit workflows and an ACIS browser/export route. A recovered parse or XY projection is not a 3D semantic oracle."
+    },
+    {
+      "project": "obj2cad",
+      "url": "https://github.com/cbassuarez/obj2cad",
+      "revision": "Current README and repository page reviewed 2026-10-18; public page listed 21 commits and no GitHub release",
+      "observed": "The README calls the project pre-release, labels ASCII/Binary DXF verified and DWG/curved surfaces beta until AutoCAD acceptance, describes a SAT/SAB ACIS writer, known analytic-body controls, and readback/surface-vertex checks. Its DWG crate uses a patched ACadRust writer. The README does not establish complete closed-body validity, native acceptance, AcDs ownership, or an independent DWG route; the ACIS source and test harness were not audited or executed in this pass."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Adds an operation-specific peer-role matrix and a composed-only readiness recipe for a possible obj2cad scratch control author. It bars aggregate coverage percentages, typed entity presence, recovery success, ACIS carrier inspection, and peer self-roundtrips from promoting native or semantic support claims. The local PAR-40 / 7G.2 queue and fast per-slice validation cadence are unchanged.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Bind each peer result to the exact source commit/release, runtime, version, operation, record family, emitted artifact, and verifier.",
+    "Track source inventory through parse, output, and reopen, including owner/block/handle closure, warnings, recoveries, repairs, and explicit omissions.",
+    "Use LibreDWG only for the exact writer versions/operations whose detailed caveats and output checks permit; do not infer family support from the 99% summary.",
+    "Use IxMilia.Dxf and ezdxf only for their scoped structural/tag/carrier roles; do not count typed 3DSOLID or XY rendering as native 3D acceptance.",
+    "If obj2cad is triggered at the existing composed checkpoint, pin and audit source, dependency/license graph, ACIS profile, and harness before generating scratch-only controls.",
+    "For generated ACIS controls, compare independently specified complete-body and analytic geometry properties; treat vertex checks or raw carrier parsing as partial evidence.",
+    "Do not use the ACadRust-derived obj2cad DWG route as an independent DWG/AcDs peer; keep AcDs owner-to-payload proof separate.",
+    "Keep strict parse, recovery/audit, write success, native audit, and semantic checks as distinct results; do not run peers in every local implementation slice.",
+    "Do not add dependencies or commit third-party/customer test drawings; keep generated comparison artifacts in scratch unless independently authored locally and explicitly approved by the fixture policy."
+  ]
+}

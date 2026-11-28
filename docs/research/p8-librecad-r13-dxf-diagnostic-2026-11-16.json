@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-16",
+  "consumerBase": "b007bff6e798425aa14ae507f7e884db68916e88",
+  "candidateCommit": "6a2d0119de368ace035d11084a83ee928b5ca613",
+  "candidateParent": "fc34c14420c624f7292a76a82cc6742ca0d5e3fa",
+  "candidateStatus": "Local, unmerged LibreCAD branch codex/libdxfrw-consumer-integration-20261116.",
+  "patch": "docs/patches/librecad-p8-dxf-write-diagnostic-r13-2026-11-16.patch",
+  "patchSha256": "77fcdf6644e228f0d0a0625e30a7d787a8bd20d719da71f9ec59d21203e399a1",
+  "generator": "tools/research/generate_librecad_r13_ltype_samples.py",
+  "generatorSha256": "3b13e9bf452a5bcf17de233b208ddde781c3050b9c582b781c4f96d82fa174ed",
+  "producer": "Locally authored ezdxf 1.4.4 R2010 LTYPE/LINE converted to AC1012 ASCII and Binary by installed ODA File Converter 27.1.0.0.",
+  "sampleReceipt": {
+    "ezdxfVersion": "1.4.4",
+    "converter": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "files": {
+      "source": {
+        "path": "/private/tmp/librecad-p8-r13-recipe-20261116/input/source.dxf",
+        "sha256": "4d5fbdda5e7dbddeb9db23e1801d1acf8aee4deb1c22c5195ea60bdf64ca8c0b"
+      },
+      "ascii": {
+        "path": "/private/tmp/librecad-p8-r13-recipe-20261116/ascii/source.dxf",
+        "sha256": "38e9ba8ec2bb5299c07d8caea09a316c9ba1e2d9ff16a1ae6b7d59500bb38293"
+      },
+      "binary": {
+        "path": "/private/tmp/librecad-p8-r13-recipe-20261116/binary/source.dxf",
+        "sha256": "6aabd42b600b641dbf92a4a7ced8a45f2105ed13a110d4887e0901a44b74ba0b"
+      }
+    }
+  },
+  "publicReferences": [
+    "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/odafc.rst",
+    "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm"
+  ],
+  "findings": [
+    "Both R13 input encodings import the expected LTYPE into the actual LibreCAD adapter with both installed-current and bundled codecs.",
+    "The installed-current codec refuses re-export of the full ODA drawing at OBJECTS emission; before this change, the adapter discarded its diagnostic and falsely reported no DXF/DWG error. The bundled codec exports and passes the selected edited LTYPE and LINE readback checks; full object graph fidelity was not assessed.",
+    "An invalid SHAPE preflight independently produced the same missing-error symptom with both codecs."
+  ],
+  "change": "Capture the newer codec structured failure message when available and fall back to a generic message for bundled codecs; preserve any earlier specific error, latch a nonzero error for output and shape-preflight failure, and clear state on retry.",
+  "validation": [
+    "Both builds passed the three targeted binary-version, R13 and typed-writer failure tests: installed-current 286 assertions and bundled 292.",
+    "Failure cases preserve an existing destination, report a nonzero error and meaningful message, and the same filter succeeds and resets its error on retry.",
+    "Installed-codec LTYPE, PR #3269 and MLEADERSTYLE CTests pass; the bundled five PR #3269 cases pass.",
+    "The generator was run from scratch and both generated outputs passed the optional test with their actual header versions and encodings checked. A repeat invocation refused an existing output directory and preserved the generated hashes.",
+    "The patch replays after the preceding 40 patches; the two modified candidate files match byte-for-byte. The source-release inventory passes for 1247 files and its 18-control self-test passes. No drawings were committed."
+  ],
+  "logs": [
+    "/private/tmp/librecad-p8-dxf-error-final-system.log",
+    "/private/tmp/librecad-p8-dxf-error-final-bundled.log",
+    "/private/tmp/librecad-p8-r13-recipe-system.log",
+    "/private/tmp/librecad-p8-r13-recipe-bundled.log"
+  ],
+  "limits": "The optional R13 test is skipped unless both generated paths are supplied. The installed codec OBJECTS refusal remains unresolved; selected bundled readback does not establish whole-drawing preservation. Producer/version scope, GUI, Linux/Windows, upstream integration, and independent semantic support remain open. No phase gate or support claim is promoted."
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "R24 TABLESTYLE cell-alignment value transport",
+  "date": "2026-11-08",
+  "supportClaimEffect": "none",
+  "source": {
+    "specification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.3",
+    "finding": "BL group 94 defines nine cell alignments: top/middle/bottom crossed with left/center/right, encoded 1 through 9."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "The AC1024 TABLESTYLE DXF writer admits all documented cell-alignment values 1–9 on the table cell style and custom cell styles, while retaining the other style/profile gates. It rejects 0 and values above 9; the test specifically checks 10 before destination replacement."
+  },
+  "validation": {
+    "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4 && ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+    "result": "Build passed; focused CTest passed 1/1. Generated ASCII and Binary controls vary the custom styles across documented alignments, verify exact raw group-94 positions and typed readback, refuse 10 with destination preservation, and retry successfully on the same adapter.",
+    "fixturesAdded": 0
+  },
+  "qualificationLimits": [
+    "Generated codec controls do not qualify independent producer wire behavior.",
+    "Native TABLESTYLE alignment behavior remains unqualified.",
+    "No whole-file DWG/DXF support claim is promoted."
+  ],
+  "hashes": {
+    "src/libdxfrw.cpp": "fe9c495a31849921715e1088041ad08ba4dcde5ead2713e76db2f46a5a023f53",
+    "tests/dwg2dxf_adapter_tests.cpp": "b43cb6fb46b36e0008edf5ed1c554dcd33947f6ad78320d6e8f4152790894278"
+  }
+}

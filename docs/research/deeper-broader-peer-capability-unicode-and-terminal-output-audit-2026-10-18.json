@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer capability, Unicode-route, and terminal-output audit",
+  "mode": "primary-source web research and local read-only plan/source/test audit",
+  "scope": [
+    "Refresh DWG/DXF peer capability claims against exact reader/writer directions",
+    "Reconcile current ACadSharp MTEXT/SPLINE reports with local route owners",
+    "Refine the existing source-DWG TV/TU to target-DXF text test matrix",
+    "Audit terminal EOF assertion strength in the existing DWG sample harness"
+  ],
+  "method": {
+    "kind": "Read-only review of project capability sources, issue bodies, local source, tests, and plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testOrProductionSourceChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/run_dwg_read_test.cmake",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "src/libdxfrw.cpp",
+      "src/intern/dwgbuffer.cpp",
+      "src/intern/dxfwriter.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/gbk_codepage_tests.cpp"
+    ],
+    "limitations": "Peer issue reports are reporter-authored and are not local defect reproductions or normative format rules. ACadSharp #1299's linked drawing archive was not downloaded or inspected. The local writer comparison was source inspection only; no runtime or end-to-end CLI reproduction was performed."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwg2dxf.1"
+      ],
+      "revision": "mutable README and generated manual reviewed 2026-10-18",
+      "observed": "The repository advertises broad DWG read and conversion coverage while separately documenting advanced-object skips and version-specific writer limits. These claims apply to the named LibreDWG project/build, not libdxfrw."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299"
+      ],
+      "revision": "current README/version matrix and open issue bodies reviewed 2026-10-18",
+      "observed": "The README separates DXF and DWG reader/writer columns. #1297 reports an AC1032 whole-file AutoCAD rejection for a frame-only MTEXT flag despite reportedly matching entity bytes; #1299 reports a v3.8.0 DWG-to-DXF-to-GDAL SPLINE failure but gives no structured offending arrays or independently measured expected curve in the issue body."
+    },
+    {
+      "project": "LibreDWG issue #1414, Autodesk DXF string-storage reference, and RFC 3629",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1414",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+        "https://www.rfc-editor.org/rfc/rfc3629"
+      ],
+      "revision": "open issue and official string/UTF-8 references reviewed 2026-10-18",
+      "observed": "The peer report claims a source-DWG TV/TU route difference for escape-looking strings targeting the same modern DXF but does not settle field-specific escape interpretation. Autodesk documents target-version DXF string storage. RFC 3629 excludes UTF-8 encodings of surrogate code points."
+    },
+    {
+      "project": "LibreDWG issue #1355",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1355"
+      ],
+      "revision": "issue body reviewed 2026-10-18",
+      "observed": "The issue reports a peer conversion that may stop before ENTITIES or terminal EOF while reporting success. It does not establish an equivalent libdxfrw defect."
+    },
+    {
+      "project": "Local libdxfrw output and regression paths",
+      "urls": [],
+      "revision": "current shared worktree inspected 2026-10-18",
+      "observed": "dxfRW::write emits EOF only after sections, checks stream/writer state and finalization, then publishes through DwgDxfOutputTransaction. tests/run_dwg_read_test.cmake currently checks EOF via substring presence, not a terminal group-0 EOF record. No located generated test/receipt demonstrates a paired DWG TV/TU source-storage to one target-DXF route across the planned field scopes."
+    }
+  ],
+  "assessment": {
+    "newLocalDefectConfirmed": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "existingOwnersRefined": [
+      "PAR-49/7F.1: assert a terminal group-0 EOF record in the existing sample CTest harness; preserve the larger partial-source/outcome test for the composed CLI gate",
+      "PAR-05/7AR: make the first source-storage characterization a generated TV/TU pair to one modern DXF target, with raw bytes, UTF-8 validity, and field-scoped semantic readback kept independent"
+    ],
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Strengthen only the existing run_dwg_read_test.cmake structural check; keep its existing CTest registration and invocation count.",
+    "Use existing scratch DWG builders for TV/TU source controls and inspect ordinary text, MTEXT, and XRECORD separately.",
+    "Characterize literal backslash-U semantics before defining expected normalization; do not use LibreDWG output or global escape expansion as the oracle.",
+    "Keep lone-surrogate output invalid under strict UTF-8 admission and verify refusal without destination publication.",
+    "Retain the composed 7F.1 requirement for required-section completeness, source-loss disposition, truthful result status, and atomic strict output; terminal EOF alone does not prove those properties."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

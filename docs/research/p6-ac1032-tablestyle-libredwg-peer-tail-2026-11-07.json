@@ -1,0 +1,159 @@
+{
+  "comparison": {
+    "independentlyDecodedClasses": [
+      1,
+      1,
+      2
+    ],
+    "independentlyDecodedIds": [
+      1,
+      2,
+      3
+    ],
+    "independentlyDecodedOrder": [
+      "_TITLE",
+      "_HEADER",
+      "_DATA"
+    ],
+    "peerRecognizedTableCellAndFirstNamedStyleMatch": true,
+    "sourceDxfCellStyles": [
+      {
+        "class": 1,
+        "id": 1,
+        "name": "_TITLE"
+      },
+      {
+        "class": 1,
+        "id": 2,
+        "name": "_HEADER"
+      },
+      {
+        "class": 2,
+        "id": 3,
+        "name": "_DATA"
+      }
+    ],
+    "sourceDxfStylesMatchDecodedRepeatedStyles": true
+  },
+  "cursor": {
+    "allStreamSentinelsMatch": true,
+    "bodyEndBit": 6384,
+    "dataStreamEndBit": 6955,
+    "extendedStringSize": false,
+    "handleFieldsEndBit": 7403,
+    "handlePaddingBits": 5,
+    "handleStreamStartBit": 6955,
+    "helperSha256": "865198692368df4611006ce56989c3b367009c7958bbc4bc7deb2fd00f39dce1",
+    "repeatedCount": 3,
+    "repeatedStyles": [
+      {
+        "borderLineTypeHandles": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "class": 1,
+        "id": 1,
+        "index": 1,
+        "name": "_TITLE",
+        "recordEndBit": 3040,
+        "recordStartBit": 1336,
+        "textStyleHandle": 17
+      },
+      {
+        "borderLineTypeHandles": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "class": 1,
+        "id": 2,
+        "index": 2,
+        "name": "_HEADER",
+        "recordEndBit": 4712,
+        "recordStartBit": 3040,
+        "textStyleHandle": 17
+      },
+      {
+        "borderLineTypeHandles": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "class": 2,
+        "id": 3,
+        "index": 3,
+        "name": "_DATA",
+        "recordEndBit": 6384,
+        "recordStartBit": 4712,
+        "textStyleHandle": 17
+      }
+    ],
+    "stringEndBit": 6938,
+    "stringEndCursorBit": 6938,
+    "stringSizeBits": 554,
+    "stringStartBit": 6384,
+    "tableClass": 2,
+    "tableId": 4,
+    "tableName": "Table",
+    "tableRecordEndBit": 1326,
+    "tableRecordStartBit": 68
+  },
+  "date": "2026-11-07",
+  "independentPeer": {
+    "binaryPath": "/opt/homebrew/bin/dwgread",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "fixtureRepositoryRevision": "23c16706a555b67c4123abad4449c7cb6c7da4ed",
+    "frameBytes": 926,
+    "minJsonSha256": "244fb1dda8ce99d2efb811c5af19a119e91780cf52503b500b3b8c56b8559927",
+    "objectHandle": 107,
+    "tailBits": 7368,
+    "tailStartBit": 40,
+    "tool": "dwgread 0.14"
+  },
+  "interpretation": {
+    "confirms": "The ODA R2018 AC1032 file's LibreDWG unknown-bit carrier independently decodes to title/header/data order, IDs 1/2/3 and classes 1/1/2. Its TABLESTYLE extension repeats the tracked source DXF cell-style values. This is a second cross-version ODA-produced physical witness and not a libdxfrw parser-span input.",
+    "doesNotConfirm": "Both physical witnesses are ODA-produced; this does not settle the conflict with ODA v5.4.1's stated data/title/header order and class 1=data/class 2=label, establish native application meaning, qualify source producer breadth, or promote support. The output cursor uses LibreDWG's retained unknown_bits payload plus frame metadata, not an independently recovered compressed-page frame."
+  },
+  "schema": "libdxfrw-research-receipt-v1",
+  "source": {
+    "dwg": {
+      "path": "/Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg",
+      "sha256": "1b719034b3d65a66830db64ae65662f0c9249f8f05ce906d212f7ffd4b34473c",
+      "version": "AC1032"
+    },
+    "fixtureProvenance": "The tracked dwg-parser PROVENANCE.md identifies the DWG as an ODA R2018 export of an ACAD_TABLE scaffold from the MIT-licensed ezdxf fixture plus locally authored CJK cell text. The tracked source DXF retains the TABLESTYLE cell records; exact generation-input identity is not claimed.",
+    "sourceDxf": {
+      "parsedCellStyles": [
+        {
+          "class": 1,
+          "id": 1,
+          "name": "_TITLE"
+        },
+        {
+          "class": 1,
+          "id": 2,
+          "name": "_HEADER"
+        },
+        {
+          "class": 2,
+          "id": 3,
+          "name": "_DATA"
+        }
+      ],
+      "path": "/Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_grid.dxf",
+      "sha256": "442520445458a4d2d5ad71c17ed68ccf447459922ea1213de61c9601cc5eae51"
+    }
+  },
+  "supportClaimEffect": "none",
+  "title": "AC1032 ODA TABLESTYLE peer-tail raw cursor"
+}

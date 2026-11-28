@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Peer hostile-input crosswalk and IMAGE/WIPEOUT clip-vertex cap audit",
+  "mode": "Primary-source research and local source audit; plan update only",
+  "scope": [
+    "Refresh ACadSharp repeated-DXF stack-exhaustion and extended-data writer reports",
+    "Cross-check LibreDWG R2004 decompression allocation-capacity security evidence",
+    "Reconcile Autodesk WIPEOUT group-91/14/24 grammar with local parse, validation, and writer limits",
+    "Add an implementation-ready local cap-bypass item without adding test fixtures, dependencies, or a new top-level subplan"
+  ],
+  "sources": [
+    {
+      "name": "ACadSharp issue #1281",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1281",
+      "observed": "Open report describes process-ending recursive stack growth for long DXF comment runs, repeated XDATA application blocks, and repeated IMAGE/WIPEOUT clipping count groups. The author supplies ASCII shapes and reports that shared reader paths affect Binary DXF. This was not reproduced here."
+    },
+    {
+      "name": "ACadSharp issue #1282",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1282",
+      "observed": "Open report describes a DWG writer storing an individual application's EED byte length through signed 16-bit narrowing, corrupting payloads at 32,768 bytes and causing the object to disappear on read. This is a peer-writer report, not a local defect finding."
+    },
+    {
+      "name": "LibreDWG 0.14.1 NEWS",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "observed": "The release notes describe CVE-2026-63474: per-section decoded logical-size changes could shrink a live R2004 decompression allocation while another cursor retained a larger logical stream. The local plan already tracks the distinct fixed-allocation/page-window protections."
+    },
+    {
+      "name": "LibreDWG issue #1243",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1243",
+      "observed": "Historical report for the R2004 decompression heap-buffer-overflow later addressed by the 0.14.1 release note. Used only to trace the release evidence, not as evidence of a local issue."
+    },
+    {
+      "name": "Autodesk WIPEOUT DXF entity reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-2229F9C4-3C80-4C67-9EDA-45ED684808DC.htm",
+      "observed": "Documents group 91 as the number of following clip boundary vertices, repeated group 14/24 coordinates, two opposite corners for rectangular clipping, and at least three sequential vertices for polygonal clipping. It does not specify this project's implementation resource maximum."
+    },
+    {
+      "name": "Local IMAGE/WIPEOUT source and hardening tests",
+      "url": "local://src/drw_entities.cpp",
+      "observed": "DRW_Image::parseCode rejects declared group-91 counts above 100,000, but appends each group-14 coordinate without checking the cap. hasValidClipBoundary validates count agreement and shape without an upper bound. validatePayloadFields rejects more than 100,000 vertices on the writer path. processImage publishes without final clip-boundary validation; processWipeout validates shape but the no-declared-count state remains allowed. The existing repeated-record hardening test covers 20,000 ASCII comments, 20,000 XDATA pairs in ASCII/Binary, and repeated WIPEOUT group-91 counts in ASCII/Binary, but not over-cap group-14 vertices when group 91 is absent."
+    }
+  ],
+  "assessment": {
+    "newSourceConfirmedLocalFindings": 1,
+    "runtimeReproductionsPerformed": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalFixturesDownloadedOrAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 135,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Add PAR-135 (P2) under existing bounded-resource and 7BC/7BI payload work. Enforce the existing 100,000 clip-vertex ceiling at the shared DXF group-14 append site and add generated ASCII/Binary IMAGE/WIPEOUT max+1 cases with group 91 omitted. Keep validation local to the strict hardening target, selector, and owning CTest; no full suite, peer, or native gate is required."
+  },
+  "method": {
+    "webReview": "Primary GitHub issue/release pages and Autodesk DXF entity documentation; no peer artifact execution",
+    "localReview": "Read-only source inspection of DRW_Image parse/validation and dxfRW IMAGE/WIPEOUT dispatch, plus existing generated repeated-DXF hardening tests",
+    "localTestsRun": false,
+    "fullSuiteRun": false,
+    "externalFilesDownloaded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "nativeApplicationsOrKernelsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256": {
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "d50cd86c797fcfea02f7ddc838bf7cccdbfbfb1edf3b63f16ab2a8c87015db5a"
+    },
+    "localSourcesSha256": {
+      "src/drw_entities.cpp": "c1ca8d34e44413de63b91ab131d9aff24f9dac0e19502e5204153719c8275fb5",
+      "src/libdxfrw.cpp": "35fe40f1f8507834713d4f899995ff245bc435595d310996676c252f0983ec90",
+      "tests/hardening_tests.cpp": "aeaeee8b3dcf6517c3e27ff860e9db43152fba111f7aa5f488378f0baa81c9c4",
+      "src/intern/dxfparserlimits.h": "101a6fcc465bf6e11cd74d68036e19caaf291fc6997bff603ee5992dde312347"
+    },
+    "planSha256": "d50cd86c797fcfea02f7ddc838bf7cccdbfbfb1edf3b63f16ab2a8c87015db5a",
+    "validation": [
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md passed before receipt creation",
+      "Source locations cross-checked with rg and sed; no production or test source was edited"
+    ],
+    "limitations": "PAR-135 is source-confirmed but not runtime-reproduced in this research pass. The proposed guard preserves the current omitted-group-91 read tolerance within the implementation cap; whether that legacy form is semantically valid is deliberately left separate. Peer issue claims do not promote local or global support claims."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-15",
+  "finding": "Modern generated SUNSTUDY recovery profiles were excluded because the previously incorrect DWG common-handle order prevented their baseline from parsing.",
+  "change": "Extend the existing malformed-body CLI matrix from AC1015 and AC1018 to AC1021, AC1024, AC1027 and AC1032.",
+  "validation": [
+    "The focused SUNSTUDY CTest passes all 28 controls across six revisions.",
+    "AC1015, AC1018, AC1021, AC1024 and AC1032 test continuation, strict refusal and ASCII/Binary partial output/readback. AC1027 tests continuation and its existing strict/partial source-reference refusal.",
+    "The complete partial-read disposition CTest also passes in 29.84 seconds.",
+    "Generated files are scratch-only and are not committed."
+  ],
+  "limits": "These are generated malformed-record and disposition controls, not independent SUNSTUDY semantic or native-consumer evidence. No format support claims or phase gates are promoted."
+}

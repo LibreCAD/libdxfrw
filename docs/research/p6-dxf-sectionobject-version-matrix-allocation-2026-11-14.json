@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-14",
+  "topic": "SECTIONOBJECT DXF writer version transaction matrix",
+  "sourceRevision": "4bb613c6",
+  "sourceKind": "locally-authored generated control",
+  "files": {
+    "test": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+    "testSha256": "14cb78e366bddcf91ead600b9208d307eb81bf716b0f624e2d40471c097a43f8",
+    "cmake": "tests/CMakeLists.txt",
+    "cmakeSha256": "fbe99ab600c804d824454f9c0996d4925e317aac04d22a285d90cab7e28685c7",
+    "writer": "src/libdxfrw.cpp",
+    "writerSha256": "47fa0284f66409d50a7b970101b3036b7b25b3af090242fee84ea62b768e6197"
+  },
+  "profile": {
+    "entity": "SECTIONOBJECT",
+    "generatedFields": [
+      "state and flags",
+      "name",
+      "vertical direction",
+      "top and bottom heights",
+      "indicator alpha and ACI color",
+      "two section-line vertices",
+      "two back-line vertices"
+    ],
+    "sectionSettingsReference": "null; this profile does not exercise graph resolution",
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_3d_entity_version_allocation_tests -j4",
+    "buildResult": "PASS",
+    "ctestCommand": "ctest --test-dir build-gcc -R ^libdxfrw_sectionobject_version_allocation$ --output-on-failure",
+    "ctestResult": "PASS: 1/1 in 0.44 seconds",
+    "directCommand": "build-gcc/tests/libdxfrw_3d_entity_version_allocation_tests /private/tmp/p6-sectionobject-version-allocation --sectionobject-versions",
+    "allocationFailures": 80,
+    "allocationOffsetsPerVersionEncoding": 10,
+    "rollback": "Every injected allocation failure preserves the prior destination and caller SECTIONOBJECT.",
+    "retry": "Same-codec retry after each injected failure reproduces the clean reference bytes.",
+    "readback": "Fresh typed readback checks the generated SECTIONOBJECT fields for every version and encoding.",
+    "versionBoundary": "AC1018 ASCII and Binary refusal preserve the destination sentinel and caller model; retry on the same codec at AC1021 matches clean output and typed readback.",
+    "temporaryDrawingsCommitted": false
+  },
+  "scope": {
+    "proves": [
+      "Generated SECTIONOBJECT writer transaction behavior for the listed DXF revisions and encodings.",
+      "The explicit pre-AC1021 output refusal and same-writer upgrade retry for this profile."
+    ],
+    "doesNotProve": [
+      "Independent producer semantics or native section presentation.",
+      "Non-null SECTION_SETTINGS reference closure.",
+      "DWG SECTIONOBJECT source-layout or encoding support."
+    ]
+  },
+  "qualificationEligible": false
+}

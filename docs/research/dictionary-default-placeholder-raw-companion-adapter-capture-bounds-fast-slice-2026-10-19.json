@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "DICTIONARYWDFLT/PLACEHOLDER raw companion adapter capture bounds",
+  "mode": "Local implementation slice with generated fast tests",
+  "scope": [
+    "Bound adapter-owned raw DXF callback copies for DICTIONARYWDFLT and ACDBPLACEHOLDER.",
+    "Preserve sticky capture failure, receipt provenance, and fail-closed export behavior.",
+    "Keep typed record semantics, dictionary graph closure, DWG writing, and native acceptance separate."
+  ],
+  "implementation": {
+    "limits": {
+      "aggregateRawRecords": 100000,
+      "aggregateRawGroups": 4000000,
+      "aggregateLogicalRetainedBytes": 67108864,
+      "lifetime": "dx_data container lifetime; per-import receipt reset does not clear aggregate counters or prior failure"
+    },
+    "behavior": [
+      "Successful raw captures update callback/group/byte receipt counters and aggregate retained-data counters.",
+      "Generation, resource-budget, and allocation failures prevent raw insertion or successful import eligibility and remain sticky.",
+      "Export rejects incomplete or over-budget raw capture before publishing output.",
+      "Eligibility cross-checks stable callback/record cardinality; raw groups remain mutable for existing semantic validation and the receipt counters describe callback-time capture."
+    ],
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_dictionary_default_raw_capture_limits|libdxfrw_dictionary_default_adapter_roundtrip|dwg2dxf_visual_style_raw_capture_limits|libdxfrw_visual_style_import_evidence)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 4,
+      "failed": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md dwg2dxf/dx_data.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt",
+      "result": "PASS"
+    },
+    "fullTestSuiteRun": false,
+    "externalPeerOrNativeRuns": 0
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "repositoryDrawingFixturesAdded": 0,
+    "externalFixturesDownloaded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planEffect": "Records the bounded adapter-capture slice and fast validation. Typed callback growth, graph semantics, DWG-origin output, cross-version behavior, and native acceptance remain separate work. Continue the 7S.2c raw OBJECTS callback census with render/background/sun stores."
+  },
+  "planPath": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "b8314b0a8614325484add2bfaa4c1fce57735facc4b02e5b3a140d03dc56ee33"
+}

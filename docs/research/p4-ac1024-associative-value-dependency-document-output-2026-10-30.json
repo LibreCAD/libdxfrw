@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-associative-value-dependency-document-output-2026-10-30",
+  "date": "2026-10-30",
+  "title": "Generated AC1024 associative value-dependency document output",
+  "status": "GENERATED_PROFILE_QUALIFIED_PHYSICAL_PROFILE_OPEN",
+  "supportClaimEffect": "none",
+  "scope": {
+    "version": "AC1024",
+    "input": "Source-authored dx_data graph in tests/dwg2dxf_adapter_tests.cpp; no external DWG/DXF fixture file.",
+    "graph": "NOD -> ACAD_ASSOCNETWORK dictionary -> root ACDBASSOCNETWORK -> owner ACDBASSOCVARIABLE -> ACDBASSOCVALUEDEPENDENCY -> target ACDBASSOCVARIABLE.",
+    "owner": "The value dependency is owned by one fully consumed variable; the target variable has exactly one matching reactor backlink.",
+    "encodings": ["ASCII DXF", "Binary DXF"]
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "src/libdxfrw.cpp",
+      "tests/CMakeLists.txt",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/wave1_tests.cpp"
+    ],
+    "summary": "Routes the narrow generated AC1024 value-dependency graph through the existing strict associative planner and document writer. Requires a fully consumed dependency wire profile before output, permits the bounded positive maxDependencyIndex needed by this authored graph, and parses the DXF AcDbAssocDependency subclass for readback.",
+    "emittedProof": "The selector checks exact group-pair sequences for the root network, two variables, and value dependency, including remapped self/owner/target handles, flags, dependency order, name presence, node/body null references, and dependency body id.",
+    "readback": "Fresh fileImport checks the dictionary owner/key, root network, action membership, variable fields, dependency owner/dep_on references, target reactor backlink, and remapped identities.",
+    "failureRetry": "ASCII and Binary cases verify late variable-state mutation preserves an existing destination and allows corrected retry; missing action/dependency targets refuse atomically and allow same-adapter correction and retry.",
+    "fixturePolicy": "Generated in memory; no DWG or DXF fixture was added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j 4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_associative_dependency_writer|dwg2dxf_associative_dwg_root_network_value_dependency_export)$' --output-on-failure",
+      "result": "PASS 2/2; 0.82 seconds."
+    },
+    "physicalSourceBoundary": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -d -y -v2010 /private/tmp/p4-mechanical-value-dependency-final.dxf",
+      "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "logSha256": "6f1df6796afe19a559635d177fa4a999db230a9eeeeac17d493afa5165d384ea",
+      "result": "The DWG reader reported objectParseFailures=0. Strict complete export was refused because the full read disposition is incomplete; no physical associative output was qualified. Physical dependency body/text/handle suffixes and encoded handle-code roles remain unresolved."
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT_RUN"
+  },
+  "limits": [
+    "This qualifies only the source-authored variable-owned AC1024 value-dependency graph in the two DXF encodings.",
+    "The receipt does not qualify physical AC1024 dependency wire spans, encoded DWG handle-code roles, constraint-group-owned dependency output, or ACDBASSOCVARIABLE suffixes.",
+    "Unsupported physical records remain ineligible for strict document output; no format support claim is promoted.",
+    "This does not establish native CAD semantics, LibreCAD/FreeCAD consumer behavior, or independent 3D meaning."
+  ],
+  "nextAction": "Reconcile physical AC1024 dependency handle-code roles with the ODA layout and independent schema, decode and bound the remaining body/text/handle spans, then qualify a source-backed graph profile without weakening strict refusal for incomplete closure.",
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "c8f4767f9c39cc56f3402608f44adbbb749ff512f6c690281f7b3ec86d6fc7ad",
+    "src/drw_objects.h": "ad24122ae4f12702f33df39b35c9a014005080466cd26330d295708dd522672b",
+    "src/libdxfrw.cpp": "88a5eb71be489a69af26e2c14788d430e0d3394b81d7092397aba36d19e07cb6",
+    "dwg2dxf/dx_iface.cpp": "568ebbc5a10f4f4dd8c77300945e63b5025a392e981e86464f0a55ff4044d070",
+    "dwg2dxf/dx_iface.h": "d7e3ffdd0967119d53c2584f0eb933baa188dbd1c0db5d195e729bb1b18da546",
+    "tests/wave1_tests.cpp": "6cd455fd2bfdd1c5efed892140a0d0356ba5575de18547c37145ab17e3fc2f13",
+    "tests/dwg2dxf_adapter_tests.cpp": "88dc2502d093a400a76da538d80854f5317d6a627b2fc883fee3870514959205",
+    "tests/CMakeLists.txt": "7179567c5fd85ccb45222acff83b931cb8ec1c43447bc0d93a1b4573b1d2acd7"
+  },
+  "artifactHashesSha256": {
+    "build-gcc/dwg2dxf/dwg2dxf": "4be035ca7601f41e379a381e66646b346a024d6d94d57134babb6e9e30b0c99e",
+    "build-gcc/libdxfrw_wave1_tests": "5e3dcd51df7ad56a89cc17461854df142d36cd8425d5757cc91a7cd2f7bc898a",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "c16ed91122b4521fadc0a7de78f8ba779290ed1d46556a1b4a37b6f3ffc85f86",
+    "build-gcc/CMakeCache.txt": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+  }
+}

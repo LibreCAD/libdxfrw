@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-dwg-proxy-entity-object-id-adapter-graph-closure-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P4",
+  "status": "GENERATED_PROXY_ENTITY_GRAPH_OUTPUT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Resolve a bounded ACAD_PROXY_ENTITY object-ID profile through the dwg2dxf adapter only when the target is one unique top-level typed entity in the same retained block graph and its final DXF identity is proven during output finalization.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "profile": {
+      "sourceFormat": "DWG",
+      "handleCodes": [4, 5, 6, 8, 10, 12],
+      "dxfGroups": [330, 340],
+      "targetKinds": ["top-level typed entity"],
+      "limits": {
+        "inventoryRecords": 1000000,
+        "referenceEdges": 1000000
+      }
+    },
+    "behavior": [
+      "During writeBlockRecords, build a bounded typed entity inventory across model and named block containers, including expected output record name, section, and owner. Resolve DWG soft/hard pointer codes 4/5 and ODA §2.13 offset-based soft-pointer codes 6/8/10/12 with mapped DXF groups 330/340; owner-role and unknown code/group roles fail closed.",
+      "Reject absent or duplicate typed source targets, raw entity handle collisions, BLOCK/ENDBLK collisions, known TABLES/OBJECTS collisions, retained ACDS-history handles, collisions with standard/raster/plot-settings/opaque source-frame maps and identity sets, and collisions with retained ordinal/location indexes before allowing a proxy resolver mapping.",
+      "Collect the complete proxy reference set before comparing BLOCK/ENDBLK identities, making the non-entity collision check independent of block order.",
+      "Preallocate each admitted target output handle before any proxy is emitted. The proxy-scoped resolver returns only identities in this plan; the generic resolver used for reactors, XDATA, and other records is unchanged.",
+      "Before publication, compare the retained proxy reference snapshot and verify each proxy and each referenced target was emitted exactly once with the planned source-to-output handle, DXF type, section, and owner. A missing target emission rejects the complete output transaction.",
+      "The plan is export-scoped and cleared on success or failure. Same-adapter correction/retry rebuilds the inventory and output bindings from the live typed model."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally authored DRW_ProxyEntity and LINE records assembled in memory. Offset aliases are given source-faithful raw offsets relative to proxy handle 0x123 and checked through dwgBuffer::getOffsetHandle; all temporary DXF outputs are created under the system temp directory and removed by the test. No DWG/DXF fixture was added.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "Missing target, duplicate typed target, raw entity collision, TABLES collision, ACDS-history collision, standard/raster/plot-settings/opaque frame-map and identity-set collisions, raster/standard ordinal and location-index collisions, owner-role codes 2/group 350 and 3/group 360, and unknown code 7/group 330 each refuse atomically and preserve an existing destination.",
+      "Pointer codes 4/group 330 and 5/group 340 plus offset-based soft-pointer codes 6/8/10/12 (all group 330) resolve to preallocated output handles and match the corresponding typed LINE handles after a fresh ASCII/Binary readback. Relative controls bind code 6/offset 0 to 0x124, code 8/offset 0 to 0x122, code 10/offset 0x333 to 0x456, and code 12/offset 0x23 to 0x100 from proxy handle 0x123. DXF readback canonicalizes offset forms to group-330 code 4.",
+      "A target that is present during planning but deliberately omitted by an adapter override fails during finalization, preserves the destination, and succeeds on corrected same-adapter retry.",
+      "A proxy reference changed after graph planning is rejected before output publication; restoring the planned references allows the same adapter to retry successfully.",
+      "A locally authored two-block source-order control places a target line in an earlier named block whose BLOCK handle collides with the line, then references that line from a proxy in a later block. Both ASCII and Binary export refuse during graph preflight and preserve the existing destination.",
+      "A no-reference proxy profile still passes the existing class-ordinal/payload readback and corrected retry assertions."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_proxy_entity_output_gate$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1 in 0.59 seconds, including the source-order-independent BLOCK collision control.",
+    "asanBuildCommand": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "asanBuildResult": "PASS",
+    "asanCommand": "ASAN_OPTIONS=abort_on_error=1:detect_leaks=0 ctest --test-dir build-asan-custom -R '^dwg2dxf_proxy_entity_output_gate$' --output-on-failure",
+    "asanResult": "PASS: 1/1 in 1.07 seconds, including the source-order-independent BLOCK collision control.",
+    "diffCheck": "PASS",
+    "fixturePolicy": "No DWG/DXF fixture files were added or committed."
+  },
+  "authorities": [
+    {
+      "title": "Autodesk ACAD_PROXY_ENTITY DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-89A690F9-E859-4D57-89EA-750F3FB76C6B.htm",
+      "use": "Defines the proxy entity's object-ID DXF group-code roles; this receipt tests only the mapped 330/340 pointer profile."
+    },
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1, section 2.13",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "use": "Defines codes 6/8/10/12 as offset-based soft-pointer references; the adapter resolves their absolute targets and DXF canonicalizes them to group 330."
+    },
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1, section 20.4.90",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "use": "Identifies the proxy's trailing object IDs as handle references; parser and writer mapping are shared, but this generated control does not prove physical producer fields or semantic closure."
+    }
+  ],
+  "limitations": [
+    "Generated adapter graph transport only. It does not establish independent physical DWG producer coverage, third-party consumer acceptance, or native proxy semantics.",
+    "DWG handle codes 2/3 (owner-role groups 350/360), nested subentities, raw targets, OBJECTS targets, and recursively required target dependencies remain unqualified or refused.",
+    "Unknown proxy data slots, EED/common references, mixed proxy/ACDS graphs, complete source-document qualification, and support-claim promotion remain open."
+  ]
+}

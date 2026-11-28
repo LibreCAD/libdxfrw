@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader OpenCADKernel ACIS lift/lower source and live dependency-lineage review",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh whether OpenCADKernel has an implemented ACIS-to-B-rep path or remains only a roadmap candidate",
+    "Resolve current OpenCADStudio and OpenCADKernel dependency lineage and exact mutable-main pins",
+    "Refine the existing optional ACIS/AcDs semantic evidence gate without increasing per-slice validation"
+  ],
+  "method": {
+    "kind": "Read current project README, source modules, Cargo manifests, release pages, and issue history",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Upstream main branches and manifests are mutable. No Cargo.lock resolution, peer build, test run, kernel execution, native application run, or geometry result was obtained. Source existence and project claims do not qualify semantic correctness or native acceptance."
+  },
+  "sources": [
+    {
+      "project": "OpenCADKernel",
+      "urls": [
+        "https://github.com/HakanSeven12/opencadkernel",
+        "https://raw.githubusercontent.com/HakanSeven12/opencadkernel/main/Cargo.toml",
+        "https://raw.githubusercontent.com/HakanSeven12/opencadkernel/main/src/lib.rs",
+        "https://raw.githubusercontent.com/HakanSeven12/opencadkernel/main/src/acis/mod.rs",
+        "https://raw.githubusercontent.com/HakanSeven12/opencadkernel/main/src/acis/lift.rs"
+      ],
+      "revision": "Mutable main reviewed 2026-10-18; no release listed on repository page",
+      "observed": "The source declares optional brep/acis features and exports lift/lower/history functions. lift.rs builds topology from SatDocument, records unsupported surface/curve and broken-record loss, and contains a boundary-patch fallback. README still labels the project early and says most operations remain unwritten."
+    },
+    {
+      "project": "OpenCADCodec",
+      "urls": [
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://raw.githubusercontent.com/HakanSeven12/opencadcodec/main/Cargo.toml"
+      ],
+      "revision": "Mutable main reviewed 2026-10-18",
+      "observed": "Repository is explicitly forked from hakanaktt/acadrust. Its Cargo package is named acadrust and versioned 0.6.4. OpenCADKernel main pins it at revision cf3a040."
+    },
+    {
+      "project": "OpenCADStudio",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/README.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1078"
+      ],
+      "revision": "Mutable main manifest reviewed 2026-10-18",
+      "observed": "The current manifest pins the codec to opencadcodec revision 5d4f11a and the kernel to opencadkernel revision a60f18f with the acis feature enabled. These pins differ from the kernel main manifest's own codec revision; the exact Cargo lock resolution and runtime path were not executed. Issue #1078 describes a layered writer incident and maintainer-reported fixes, not independent native validation."
+    },
+    {
+      "project": "GNU LibreDWG comparator freshness cross-check",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/releases",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Release page reviewed 2026-10-18",
+      "observed": "The release page distinguishes formal 0.14.1 from 0.14.86xx Windows nightly prereleases, with 0.14.8612 at f860b0f as the latest listed at review time. Comparator results must name the exact release/channel and binary rather than say current/latest LibreDWG."
+    },
+    {
+      "project": "ACadRust comparator freshness cross-check",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases",
+        "https://github.com/hakanaktt/acadrust/issues/136"
+      ],
+      "revision": "Release and issue pages reviewed 2026-10-18",
+      "observed": "The latest tagged release is v0.6.4 at 8d5c46d; open issue #136 specifically names that artifact and reports Binary-DXF fixed-width mismatches. This confirms the existing PAR-39 peer lead is release-scoped, not an unqualified current-main result."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Reclassifies OpenCADKernel from prospective-only to an unreleased implementation candidate with an explicit ACIS lift/lower path and a loss/fallback contract. Adds an optional composed-checkpoint preflight for immutable pins, zero-loss geometry metrics, and strict separation of AcDs association from standalone geometry interpretation.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Do not build or install the peer during ordinary implementation slices; use only an existing composed checkpoint.",
+    "Resolve immutable OpenCADStudio, OpenCADCodec, and OpenCADKernel commits, Cargo.lock source identities, enabled features, toolchain, and platform before execution.",
+    "Record codec parsing separately from kernel lift/lower. Require zero explicit Loss and no boundary fallback for a complete-body semantic result.",
+    "Use independently authored expected geometry and predeclared topology/area/volume/bounds/placement metrics; do not use same-stack round-trip as ground truth.",
+    "Validate libdxfrw's entity-to-owner/key-to-payload AcDs association independently before passing the extracted payload to a geometry route.",
+    "OpenCADKernel is not an independent DWG/DXF/AcDs reader. If the external evidence rule requires independently maintained parser/kernel lineage, this candidate alone does not unblock the J item.",
+    "Keep findings 130/73 and J256/J260/J268/J284/J293/J295 DEFERRED_EXTERNAL; do not change support claims from source inspection alone."
+  ]
+}

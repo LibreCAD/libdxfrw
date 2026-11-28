@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-template-description-strict-output-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "IMPLEMENTED_FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Prevent strict-complete DWG-to-DXF export from treating an unsupported AcDb:Template description as complete output.",
+  "implementationReadiness": {
+    "baselineHead": "0eccd084",
+    "sourceObservation": "dwgReader::decodeDwgTemplate records TemplateDescriptionUnsupported as a warning and returns tolerant read success without publishing guessed measurement. Before this slice, strictDwgReadOutcomeIsComplete rejected Error severity and HeaderSectionUnclaimedData but ignored TemplateDescriptionUnsupported. The strict-completeness gate now rejects that exact diagnostic kind while retaining tolerant input.",
+    "compatibilityDecision": "Keep tolerant reading and the warning severity. Make strict-complete output reject the exact TemplateDescriptionUnsupported diagnostic kind, analogous to other warning-class evidence that output cannot safely discard.",
+    "scopeExclusions": [
+      "Do not change Template byte parsing, version layouts, or description decoding without the ODA Section 22 specification and a producer-backed sample.",
+      "Do not claim Template description preservation or native template semantics.",
+      "The AGENTS.md-referenced ODA PDF is absent at ~/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf in this environment; this slice changes only the strict output gate, not a DWG byte parser."
+    ],
+    "implementation": "strictDwgReadOutcomeIsComplete rejects TemplateDescriptionUnsupported alongside HeaderSectionUnclaimedData; tolerant Template decoding and warning severity are unchanged.",
+    "implementationFiles": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "validation": {
+      "build": "pending",
+      "ctest": "pending",
+      "diffCheck": "pending"
+    },
+    "baselineFiles": [
+      "src/intern/dwgreader.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "controls": {
+    "selector": "--opaque-dwg-source-capture-and-output-gate",
+    "ctest": "dwg2dxf_opaque_source_capture_and_strict_output_gate",
+    "readerSelector": "--template-fields",
+    "readerCtest": "libdxfrw_dwg_template_fields",
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "A synthetic complete DWG read outcome with a TemplateDescriptionUnsupported warning is refused by strict-complete output admission.",
+      "The existing destination sentinel is preserved and diagnostic names the strict read-disposition gate.",
+      "Existing opaque-source strict gate and legacy retry controls continue to pass.",
+      "Template decoding remains tolerant and does not guess or publish measurement for the unsupported profile."
+    ]
+  },
+  "escalation": "Build the touched adapter and run the owning fast strict-output gate selector plus the existing focused Template field selector. No full suite or external drawing fixture is needed.",
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "ctest": "PASS: ctest --test-dir build-gcc -R \"^(libdxfrw_dwg_template_fields|dwg2dxf_opaque_source_capture_and_strict_output_gate)$\" --output-on-failure (2/2, 0.84s)",
+    "diffCheck": "PASS: git diff --check",
+    "receiptJson": "PASS: parsed with Python json",
+    "sha256": {
+      "dwg2dxf/dx_iface.cpp": "c5166ee7f15e6f3972ff01f4d188611a923e3d1db1e03d634765ff980789637d",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests": "7a0e2a1aead691ae8d60fd1aac293ee1032c30bdf761a2c865ec41f3bca632ee",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "f0b799ea0322fc4bf0d7b98353198a9a07a4b7f939845ba215665f1baa5bd7b4"
+    }
+  }
+}

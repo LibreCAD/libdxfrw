@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-20",
+  "finding": "PAR-07/S8 local DataStorage boundary-index correctness refinement",
+  "scope": "Treat a bounded DataIndex-targeted record header's payload offset as a boundary sentinel even when its declared entrySize is invalid, so an earlier record cannot consume across it.",
+  "evidence": {
+    "source": "src/drw_datastorage.cpp::readDataRecords",
+    "format_reference": {
+      "name": "ODA Open Design Specification for .dwg files v5.4.1, §24.2.2.2-.3",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "relevant_rule": "DataIndex local offsets select data-record headers; each record's maxRecordSize is the difference between consecutive payload-stream offsets. The spec lists Entry size but does not define malformed Entry size behavior."
+    },
+    "pre_change_behavior": "The boundary-index prepass skipped any indexed header whose entrySize was less than DATA_RECORD_HEADER_SIZE. A generated predecessor with a payload size extending across that omitted boundary did not receive datastorage-record-payload-out-of-record.",
+    "post_change_behavior": "The prepass keeps the bounded header's recordLocalOffset independently of entrySize. The main pass rejects the malformed target with datastorage-record-entry-invalid, and the preceding payload is rejected against that retained boundary.",
+    "test_owner": "tests/dwg_reader_matrix_tests.cpp::testModelerAcDsDataIndexOrder",
+    "selector": "--acds-dataindex-order",
+    "fixture_policy": "All DataStorage bytes are generated in memory; no persistent DWG/DXF fixture is added."
+  },
+  "validation": [
+    {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --acds-dataindex-order before production change",
+      "result": "Expected failure on the new malformed-boundary assertion; this demonstrated the behavior gap."
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2",
+      "result": "passed"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --acds-dataindex-order",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_acds_dataindex_order$' --output-on-failure",
+      "result": "1/1 passed (0.02 s)"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests --parallel 2",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "1/1 passed (1.09 s)"
+    },
+    {
+      "command": "git diff --check -- src/drw_datastorage.cpp tests/dwg_reader_matrix_tests.cpp",
+      "result": "passed"
+    }
+  ],
+  "evidence_boundary": "This conservative parser invariant does not assert that ODA specifies semantics for malformed entrySize values. Structural replay remains refused for the section. No peer/native consumer, full suite, or external fixture was used.",
+  "implementation_status": "implemented in the shared uncommitted worktree; not staged or committed because Git metadata is read-only and the worktree contains extensive pre-existing changes",
+  "support_claims_promoted": false,
+  "findings": 141,
+  "top_level_subplans": 78,
+  "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "self_unblock": "Continue the local PAR-07/S8 DataStorage record-offset/owner audit at the next uncovered source-backed invariant; optional external qualification remains non-blocking."
+}

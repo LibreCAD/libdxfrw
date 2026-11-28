@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-source-release-inventory-r14-audit-fix-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "07ce4ee2c0ea9b2a84d2a6a9da573f3fbd85dfb6",
+  "implementationDigestSha256": "1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be",
+  "failure": {
+    "workflowRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/45776399246",
+    "job": "fast-regressions",
+    "step": "Check build and source-release inventories",
+    "diagnostic": "stale source-release-files.am; run --write"
+  },
+  "fix": "Regenerate the tracked inventories; both release manifests gain the previously committed tools/research/audit_r14_header_reference.py. No source files or qualification claims change.",
+  "validation": [
+    "PASS: generator --write and --check, 1407 release files.",
+    "PASS: generator --self-test, including 18 refusal controls.",
+    "PASS: clean-checkout implementation digest remains 1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be for 775 inputs."
+  ],
+  "limits": [
+    "Hosted fast-regressions and qualification workflow must run on the updated head.",
+    "Other native and platform gates remain open."
+  ]
+}

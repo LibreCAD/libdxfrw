@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4c-aps-autocad-ac1027-witness-route-2026-11-17",
+  "date": "2026-11-17",
+  "title": "APS AutoCAD cloud route for a bounded AC1027 Sweep witness",
+  "status": "ROUTE_DOCUMENTED_WITNESS_NOT_CREATED",
+  "supportClaimEffect": "none",
+  "scope": "Find a producer-backed path for one minimal AC1027 SweptSurface DWG and paired DXF when no local AutoCAD 2013/ObjectARX host is available.",
+  "officialEvidence": [
+    {
+      "source": "Autodesk Platform Services Automation API overview",
+      "url": "https://aps.autodesk.com/developer/overview/automation-api",
+      "finding": "The Automation API runs scripts and plugins against AutoCAD engines using AppBundles, Activities, and WorkItems; Autodesk publishes an AutoCAD-specific CRX walkthrough."
+    },
+    {
+      "source": "Autodesk AutoCAD 2027 Automation engine release note",
+      "url": "https://aps.autodesk.com/blog/end-autocad-2021-engine-new-autocad-2027-engine-released",
+      "finding": "The current AutoCAD engine alias is Autodesk.AutoCAD+26_0. Its plugin environment supports .NET 10 and the 2027 ObjectARX toolchain. This is a current AutoCAD producer, not AutoCAD 2013."
+    },
+    {
+      "source": "Autodesk AutoCAD .NET SweptSurface and SweepOptionsBuilder references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_SweptSurface.html",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_SweptSurface_SweepOptions.html",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_SweepOptionsBuilder.html",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_SweptSurface_CreateSweptSurface_Entity_Entity_Autodesk_AutoCAD_DatabaseServices_SweepOptions.html"
+      ],
+      "finding": "The managed API wraps AcDbSweptSurface, exposes its SweepOptions, and provides options for alignment, banking, base point, transforms, draft, scale, and twist. CreateSweptSurface accepts explicit sweep and path entities plus options."
+    },
+    {
+      "source": "Autodesk Database.SaveAs and AcDbDatabase.dxfOut references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_SaveAs_string_DwgVersion.html",
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbDatabase__dxfOut_ACHAR__int_AcDb__AcDbDwgVersion_bool.html"
+      ],
+      "finding": "The database APIs can write both DWG and DXF with an explicit version; their documented version lists include AC1027 / AutoCAD 2013."
+    },
+    {
+      "source": "APS service access and WorkItem cost notes",
+      "urls": [
+        "https://www.autodesk.com/products/autodesk-platform-services/overview",
+        "https://get-started.aps.autodesk.com/tutorials/design-automation/execute-workitem"
+      ],
+      "finding": "The free APS tier has monthly limits and requires a payment method for identity verification; the official WorkItem tutorial states that executing a job has a cost."
+    }
+  ],
+  "conditionalWorkflow": [
+    "If an APS developer app and authorized quota are already available, build a minimal AutoCAD 2027 .NET 10 AppBundle using the documented SweptSurface and SweepOptionsBuilder APIs.",
+    "Create two sweeps in one drawing: a baseline/default case and one deliberately distinct non-default option case. Record source entity geometry, handles, all option getter values, engine alias, AppBundle hash, Activity, WorkItem ID, and worker logs.",
+    "Save the database as AC1027 DWG and emit a paired AC1027 DXF. Reopen the saved AC1027 DWG in the same worker and record the getters and entity relationships again. Verify the DWG magic and DXF $ACADVER independently from API state.",
+    "Keep generated files in scratch. Compare paired DXF, ODA v5.4.1, and source-bound local/peer cursor traces for field spans, handles, suffix bytes, and following-frame alignment. Preserve unresolved suffix bytes and keep strict output refused until the wire spans are proven."
+  ],
+  "profileBoundary": {
+    "validUse": "A current AutoCAD 2027 producer writing the AC1027 file format, with source API state and a matching AC1027 DXF.",
+    "notEquivalentTo": "A drawing authored by the AutoCAD 2013 product release. Do not transfer this route's producer behavior or API defaults to that release.",
+    "gateEffect": "Can admit a separate AC1027-format/current-producer profile if all source, span, graph, output, and semantic gates pass; does not automatically close P4-C or promote a general AC1027 claim."
+  },
+  "executionBoundary": {
+    "remoteWorkItemSubmitted": false,
+    "reason": "No APS credentials or authorized service quota were available in this workspace. WorkItem execution may incur cost; no account, quota, or paid service was used.",
+    "resumeWhen": "Use only when the user has an APS developer app and authorizes the available quota/cost; otherwise continue waiting for the local AutoCAD/ObjectARX witness route."
+  },
+  "limitations": [
+    "Documentation confirms the APIs and versioned save routes but does not prove the actual cloud engine can create this exact Sweep profile; first run must verify the plugin loads and both source entities/options survive save and reopen.",
+    "A current engine saving AC1027 is a separate producer profile from AutoCAD 2013, even when both use the AC1027 file format.",
+    "No witness bytes, semantic result, parser span, or support claim was produced by this research."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "fixturesAdded": 0,
+    "remoteJobsSubmitted": 0
+  },
+  "planImpact": {
+    "completedSlice": "P4-C APS cloud-authoring route and its producer/version/cost limits are documented.",
+    "remainingP4C": "Generate and qualify a producer-bound AC1027 witness; use the APS route only with authorized credentials and quota, and preserve its current-producer profile boundary.",
+    "gateStatusChanged": false
+  }
+}

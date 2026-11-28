@@ -1,0 +1,12 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-forward-layout-viewport-2026-11-28",
+  "supportClaimEffect": "none",
+  "implementation": "Resolve R13/R14 forward-only LAYOUT/BLOCK_RECORD associations through the existing R2000 projection helper, then use the shared association map for model VPORT and ownerless current-paper VIEWPORT validation. Keep the final legacy target-projection refusal and all source and CLASS guards.",
+  "checks": [
+    "On two locally authored AC1012 sources and a regenerated AC1014 source, direct preflight exercises a model LAYOUT with a uniquely resolved VPORT, a nonexistent VPORT, an ownerless current-paper VIEWPORT, and a wrong owner. Valid cases reach the unchanged legacy target refusal; invalid cases report a last-active viewport failure. Source fields and temporary entities are restored and the bound source proof succeeds again.",
+    "The existing external controls also verify ASCII/binary destination preservation, mutated source rejection, failed-read cleanup and corrected trusted-adapter retry.",
+    "Five focused graph, association and related adapter CTests pass. The independent physical/ezdxf control verifies R2000–R2013 ASCII/binary reciprocal layout graphs and class fields with no peer audit errors or fixes."
+  ],
+  "limits": ["Generated sources and synthetic viewport mutations do not establish native R13/R14 viewport semantics.", "Writer-facing identity integration, target staged-output proof, native cloning and the three proxy-family CLASS guards remain open. No legacy output path is enabled.", "No generated drawing was committed."]
+}

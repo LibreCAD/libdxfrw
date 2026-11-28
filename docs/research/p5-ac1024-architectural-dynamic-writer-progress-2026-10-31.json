@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw-dynamic-writer-progress-v1",
+  "date": "2026-10-31",
+  "qualificationEligible": false,
+  "baseCommit": "d176a034c7d8e0b152e8b2014fe19a8c96912a61",
+  "state": "Evidence was produced from the listed base commit and is bound to the exact source, implementation, executable, and log digests below. Staged output and focused writer controls passed; the strict conversion remains blocked by one callback. This is not a support qualification.",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7"
+  },
+  "completedWriterProfiles": [
+    {
+      "family": "XRECORD",
+      "sourceHandle": "0x1F56",
+      "profile": "Ordered group codes 1070 and 1071 in the AC1021+ DWG compatibility route; ordinary XRECORD output remains restricted.",
+      "focusedCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --xrecord-dwg-compatibility-codes",
+      "result": "PASS: ASCII and Binary output, fresh readback, rejection, destination preservation, and corrected retry controls."
+    },
+    {
+      "family": "TABLESTYLE",
+      "profile": "R24 prefix value1 0 and 8 with the other admitted witnessed prefix fields.",
+      "focusedCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-r24-typed-writer",
+      "result": "PASS: generated typed writer controls exercised both prefix values in ASCII and Binary, with rejection, rollback/retry, and fresh readback. The strict source conversion passed this writer and continued into OBJECTS; whole-document output/readback is not established."
+    },
+    {
+      "family": "BLOCKGRIPLOCATIONCOMPONENT",
+      "sourceHandle": "0x1168",
+      "profile": "AC1024 source-backed value shapes: -9999 with no value groups and code 40 with a double; observed grip types preserved as signed 32-bit values.",
+      "focusedCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-grip-location",
+      "result": "PASS: latest warning-as-error build and focused selector; ASCII/Binary exact output, typed readback, refusal, destination preservation, and corrected retry controls."
+    },
+    {
+      "family": "BLOCKVISIBILITYPARAMETER",
+      "sourceHandle": "0x111E",
+      "profile": "AC1024 door profile with 11 flat block handles, five named states, and 21 state-parameter handles per state; retains and remaps group-333 references.",
+      "focusedCommand": "ctest --test-dir build-gcc --output-on-failure -R dwg2dxf_dynamic_block_visibility_parameter_door_profile",
+      "result": "PASS: exact ASCII/Binary output and fresh readback; wrong-role/out-of-profile refusal, destination preservation, and corrected retry controls pass. This is a writer profile, not native semantics or support qualification."
+    }
+  ],
+  "strictSourceConversion": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/architectural_example-imperial.dwg -y -d -v2010 /tmp/dynamic-strict-assoc.dxf",
+    "exitCode": 1,
+    "log": "/tmp/dynamic-strict-assoc.log",
+    "logSha256": "10eb9132a2c466424a56e959c882b3eb308635d860fa7e555254653dfb2ab055",
+    "lastCurrentBlocker": "Finalization refuses publication after serialization and staged OBJECTS proofs: strict opaque output qualification is 489/490. One callback remains: type 79 handle 0x4229 with standard-payload=1/0.",
+    "completedInThisSlice": "The three ACDBASSOC2DCONSTRAINTGROUP records and six ACDBASSOCDEPENDENCY records now pass exact source-to-staged-output proof; details are recorded under stagedAssociativeOutputProof."
+  },
+  "independentSameInputObservation": {
+    "tool": "LibreDWG",
+    "artifact": "/tmp/architectural-libredwg.json",
+    "sha256": "da7a939d6542a9e7ef638d331c1dd7cdc90970858493124edbff7bac9f31d39f",
+    "object": {
+      "type": "BLOCKGRIPLOCATIONCOMPONENT",
+      "handle": "0x1168",
+      "nodeId": 230,
+      "major": 29,
+      "minor": 2,
+      "valueCode": 40,
+      "value": -2.0,
+      "gripType": 227,
+      "gripExpr": "UpdatedEndY"
+    },
+    "scope": "Independent field observation only; confirm against libdxfrw's callback/model and exact writer field order before using it as the admission profile."
+  },
+  "build": {
+    "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+    "result": "PASS with configured warning-as-error build after the associative-output implementation; no full suite was run."
+  },
+  "artifactSha256": {
+    "src/intern/dxfcode.h": "eccd9e452798694d0c552371fdbe7f1d48b82818ad569db8c24fa95509c436f0",
+    "src/libdxfrw.cpp": "8f528c59dd1b2854fbd606c4f959239f1d34c8a18e6bd8d17b636ffc12c7f898",
+    "src/libdxfrw.h": "b249cddc1092332230193c0c27ea1925e4cc33810349b2b6438f35844bdd86ec",
+    "dwg2dxf/dx_iface.cpp": "403dd3f82ca449d613e3271d0f080e08bfcc8ab8ea7323f1e4e6c80d7b916320",
+    "dwg2dxf/dx_iface.h": "d90fc282a28936bf0c167305f21e172d5b0159fc21f0b3f42d80c960c818978f",
+    "dwg2dxf/dx_standard_output.h": "65f4be870d0cca8dfc48f50bb3f81f12e236b79346dd51a5bbcadbefc6793980",
+    "tests/dwg2dxf_adapter_tests.cpp": "87460a397135c361a215344489db682841c20c7e45670996d98151393ed31ffc",
+    "tests/CMakeLists.txt": "2e2117d607e430fe1acb6fa209594b91e078be7a765795828b5984b730fa45ab",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "701b9a5c9b1f92432375a089c0c238aaecce15e37e4972296325fe5ef1209fea",
+    "build-gcc/dwg2dxf/dwg2dxf": "28ccc9dc6d263d1b7b624dc8ef0a13919aa25ed71dfaf1cd50c02594128f4982",
+    "/tmp/dynamic-strict-current.log": "8bcd80e596da8d14c960896484388a9db1ba414b15fc9426eddf0014ce3b4bce"
+  },
+  "currentSourceGraphCensus": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-source-graph-census tests/samples/AC1024/architectural_example-imperial.dwg",
+    "artifact": "/tmp/dynamic-source-plan-refresh.json",
+    "sha256": "e42e7af06b2c831d67644bc9878bbbea0dd1680952045d0307946ca3ead39c8d",
+    "blockVisibilityParameter": {
+      "handle": "0x111E",
+      "blockHandleCount": 11,
+      "stateCount": 5,
+      "parameterReferencesPerState": [
+        21,
+        21,
+        21,
+        21,
+        21
+      ]
+    }
+  },
+  "stagedGraphOutput": {
+    "source": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "result": "PASS: staged OBJECTS inspection accepts both dynamic-block roots, 65 dynamic objects, both EvaluationGraphs, owner BLOCK_RECORDs, nested dictionaries, reachable block entities, and exact fields/translated references. The separate 14 dimension dependency/body pairs and their constraint group pass physical staged-output proof. This establishes staged record transport only, not fresh whole-document readback or native semantics."
+  },
+  "focusedValidation": {
+    "command": "ctest --test-dir build-gcc --output-on-failure -R 'dwg2dxf_dynamic_block_(grip_location|visibility_parameter|visibility_parameter_door_profile|visibility_composed_graph)|dwg2dxf_block_representation_data_output'",
+    "result": "PASS: 5/5 tests, 0.79 seconds total."
+  },
+  "stagedAssociativeOutputProof": {
+    "log": "/tmp/dynamic-strict-assoc.log",
+    "sourceConstraintGroups": 3,
+    "stagedConstraintGroups": 3,
+    "sourceDependencies": 6,
+    "stagedDependencies": 6,
+    "format": "ASCII",
+    "result": "PASS: exact staged record fields and source/output identities; dependency/body/group roles, owner relationships, and translated references validated for all nine callbacks. Strict opaque output qualification advanced from 480/490 to 489/490. This does not establish native dynamic-block semantics or qualify support claims."
+  },
+  "physicalOutputReadbackControl": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback tests/samples/AC1024/architectural_example-imperial.dwg",
+    "result": "PASS: ASCII and Binary physical output/readback paths, including same-adapter refusal/retry; an expected viewport-list preflight refusal also passed. This control is separate from the nine-record dynamic associative proof."
+  }
+}

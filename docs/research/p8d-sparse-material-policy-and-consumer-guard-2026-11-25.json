@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-sparse-material-policy-and-consumer-guard-2026-11-25",
+  "status": "LIBRARY_OPT_IN_ENFORCED_CONSUMER_EXPORT_GUARD_GRAPH_REPLAY_OPEN",
+  "supportClaimEffect": "none",
+  "library": {
+    "codeCommit": "4a840f84",
+    "implementationDigestSha256": "7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246",
+    "digestInputCount": 775,
+    "reproduction": "The existing minimal AC1021 MATERIAL channel-flags path published a requiresRawDxfMaterialReplay object to an interface without the raw capture policy because its marker was set after the policy check. A local non-opted probe returned success with a raw-only material callback before the fix and refusal with zero material callbacks after it.",
+    "fix": "Check both pending sparse/minimal tails and already-marked records against the existing explicit raw capture policy before publishing. No new interface virtual is added.",
+    "validation": [
+      "The ASCII and binary generated minimal profile refuses legacy and disabled-policy readers without material or raw callbacks; enabling the policy on the same reader then succeeds with the raw-only marker and channel flags preserved.",
+      "Focused release CTest: five material reader, transaction, ordering and raw-policy cases passed.",
+      "AddressSanitizer: instrumented raw-material test passed with leak detection disabled.",
+      "Clean-checkout digest verification reports 775 inputs; the frozen support-status join reports zero advertised routes and 15 experimental claims."
+    ]
+  },
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "75eb22ccd639caae17768a696211d1ccb03c15d0",
+    "dependencyUnderLocalTest": "isolated installed libdxfrw implementation digest 7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246; dylib SHA-256 ab2a007b1a220ff4c335259507e83e41817d5cd9d5dfa849b305947ab1f1f13f",
+    "fix": "Capture the raw-only material property into document metadata using an optional-method compatibility fallback. Before DXF or DWG output, reject while such a record exists; do not reconstruct the incomplete typed record. The codec interface is public so an explicitly opted-in derived filter is discoverable; the production filter itself does not opt in.",
+    "validation": [
+      "The default filter rejects a locally generated AC1021 minimal MATERIAL. A derived filter explicitly opting in imports it through the real LibreCAD filter and preserves the raw-only marker. The ordinary exporter preserves the destination while refusing three DXF versions and DWG, then successfully saves a complete material on the same filter.",
+      "System-codec focused lane: 2,071 assertions in 32 cases passed after a full consumer test-target rebuild against the isolated current shared library. DYLD_PRINT_LIBRARIES confirmed the exact library path; installed public headers and implementation code are unchanged since the test-only digest refresh.",
+      "Bundled-codec DXF round-trip lane: 4,751 assertions in 143 cases passed after rebuilding the affected target.",
+      "The independent compact-material graph CTest passed, exercising the other sparse-tail policy branch.",
+      "An earlier derived-filter test passed incorrectly because the old library failed to enforce opt-in. When enforcement was fixed it failed correctly: private interface inheritance prevented the cross-cast. Public interface inheritance now permits the explicitly opted-in real filter, with no new virtual; the earlier result is superseded."
+    ],
+    "ac1024Integration": {
+      "head": "4473cd85b667cae55d35129d24972a3dc623ac09",
+      "coverage": "A locally constructed AC1024 61-group default MATERIAL is refused by the standard filter, captured by an explicitly opted-in derived filter with the raw-only marker and all groups retained, and rejected by the same-version exporter without changing the destination. The existing AC1021 missing-carrier and corrected-retry control runs in the same focus.",
+      "result": "Two system-codec material cases passed, 26 assertions; dyld confirmed the isolated current library."
+    }
+  },
+  "limits": [
+    "The production filter does not opt in and the consumer refuses all exports containing a marked raw-only material until complete graph validation and same-version replay are implemented.",
+    "The selected graph controls do not establish general graph behavior after edits or native material semantics.",
+    "Native GUI, external semantic evidence and final platform qualification remain open.",
+    "No generated drawing was committed and no format support claim was promoted."
+  ]
+}

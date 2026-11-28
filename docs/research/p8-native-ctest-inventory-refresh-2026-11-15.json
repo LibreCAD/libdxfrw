@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-15",
+  "scope": "Refresh the exact hosted CTest name inventory; this does not run the tests or qualify format semantics.",
+  "trigger": "The hosted macOS focused job failed closed because its live CTest name inventory differed from the frozen 1,076-name contract.",
+  "reference_run": "https://github.com/dxli/libdxfrw/actions/runs/43716996602",
+  "method": "Configure a clean git-archive source tree with the declared hosted profile and no local-only DWG samples. Freeze from HEAD c25228ff with run_native_qualification.py. Compare the exact names with the macOS job inventory artifact.",
+  "result": {
+    "count": 1364,
+    "previous_count": 1076,
+    "name_digest": "1c881a1582c0353fdb9c4d152de205666ecb566b9ebb1af6cff1373131848a5f",
+    "hosted_comparison": "Exact match after removing the one unconditionally registered physical AC1024 test whose local-only sample was absent; its registration now requires that sample."
+  },
+  "checks": [
+    "Absent/present/absent scratch-sample registration controls passed.",
+    "Focused label contract unchanged; check_qualification_workflow and its self-test passed.",
+    "run_native_qualification manifest check and self-test passed; receipt emitter self-test passed.",
+    "Qualified support join passed with zero advertised routes."
+  ],
+  "limits": [
+    "Inventory membership is not a passing test result or proof of DWG/DXF semantics.",
+    "The focused and broad hosted matrices and FreeCAD native gates remain open.",
+    "No external fixture added."
+  ]
+}

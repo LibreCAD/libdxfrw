@@ -1,0 +1,46 @@
+{
+  "title": "IMAGE and WIPEOUT DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory IMAGE/WIPEOUT entity writer transaction controls; no producer or support claim.",
+  "implementation": {
+    "writers": ["DRW_Image::encodeDwg", "DRW_Wipeout::encodeDwg"],
+    "behavior": [
+      "Stage body and entity-handle output through the shared private transaction helper.",
+      "Preserve IMAGEDEF hard-pointer and IMAGEDEF_REACTOR hard-owner output roles and WIPEOUT's fixed entity type.",
+      "Infer an unset IMAGE clip boundary type locally for serialization without mutating caller state."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1018", "profile": "rectangle IMAGE with inferred type and explicit definition/reactor handles; polygon WIPEOUT", "image_failures": 16, "wipeout_failures": 16},
+    {"version": "AC1021", "profile": "rectangle IMAGE with inferred type and explicit definition/reactor handles; polygon WIPEOUT", "image_failures": 16, "wipeout_failures": 16},
+    {"version": "AC1024", "profile": "rectangle IMAGE with inferred type and explicit definition/reactor handles; polygon WIPEOUT", "image_failures": 16, "wipeout_failures": 16},
+    {"version": "AC1032", "profile": "rectangle IMAGE with inferred type and explicit definition/reactor handles; polygon WIPEOUT", "image_failures": 16, "wipeout_failures": 16}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body and handle bytes, bit counts, handle occurrences, and prior entity type remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output.",
+    "All-stream alias controls preserve state and succeed on retry.",
+    "IMAGE's inferred rectangle boundary type remains unset through successful encoding, injected failure, and retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --image-wipeout-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1018 IMAGE/WIPEOUT": [16, 16],
+      "AC1021 IMAGE/WIPEOUT": [16, 16],
+      "AC1024 IMAGE/WIPEOUT": [16, 16],
+      "AC1032 IMAGE/WIPEOUT": [16, 16]
+    },
+    "entity_writer_transaction_cohort": "31/31 passed",
+    "compound_image_transaction_ctest": "libdxfrw_dwg_image_compound_transaction: PASS",
+    "focused_ctest_cohort": "32/32 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish transaction behavior and local callback readback only.",
+    "IMAGEDEF/reactor semantic support, producer coverage, native display, and broader output support remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}

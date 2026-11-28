@@ -1,0 +1,129 @@
+{
+  "schema": "libdxfrw-acad-tablecontent-typed-capture-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Retain linked-cell metadata and ATTDEF tuples read within content records while keeping unresolved content association and graph/output profiles explicitly incomplete.",
+  "method": {
+    "kind": "ODA-field-order generated in-memory parser vectors plus DXF writer refusal guard",
+    "odaSectionsUsed": [
+      "20.4.96",
+      "20.4.97"
+    ],
+    "externalDrawingsUsed": 0,
+    "newFixtureFiles": 0,
+    "newTestTargets": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "localTests": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j4",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+        "result": "passed",
+        "passed": 2,
+        "failed": 0
+      }
+    ],
+    "localFilesChanged": [
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "src/libdxfrw.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/acad-tablecontent-r24-cellattribute-count-cursor-fast-slice-2026-10-17.json",
+      "docs/research/acad-tablecontent-typed-capture-fast-slice-2026-10-17.json"
+    ],
+    "evidenceRule": "The locally generated vectors verify parser field retention and selected output refusal behavior only; they are not producer interoperability or independent semantic support evidence."
+  },
+  "model": {
+    "linkedData": [
+      "m_hasLinkedData",
+      "m_dataLinkHandle",
+      "m_linkedDataRowCount",
+      "m_linkedDataColumnCount",
+      "m_linkedDataUnknown"
+    ],
+    "attributes": "ATTDEF handle, text, and index are retained in the cell-level DRW_TableCell::m_attributes vector, but the owning m_contents ordinal is not yet represented; any cell with these attributes remains semantically incomplete.",
+    "semantics": "The snapshot remains export-incomplete for linked data until DATALINK dispatch, object ownership, references, and writer remapping are closed. Content-item attributes remain export-incomplete until both content association and the DXF TABLE writer route are closed.",
+    "writerSafety": "The generic DXF TABLE writer refuses non-default linked fields rather than silently omitting them.",
+    "publicLayout": "DRW_TableCell public layout changed; downstream consumers must rebuild. No DRW_Interface virtual was added."
+  },
+  "controls": [
+    {
+      "sourceVersion": "AC1021",
+      "route": "direct DRW_TableContentObject::parseDwg probe",
+      "payload": "DATALINK hard pointer 0xA710, row count 2, column count 3, opaque BL96 value 0x55",
+      "assertions": [
+        "The standalone object is structurally parsed but semantically incomplete.",
+        "The DRW_TableCell retains the link flag, handle, counts, and BL96 value."
+      ]
+    },
+    {
+      "sourceVersion": "AC1021",
+      "route": "direct DRW_TableContentObject::parseDwg probe",
+      "payload": "ATTDEF handle 0xA711, UTF-8 text Attribute2007, index 1",
+      "assertions": [
+        "The typed cell attribute tuple is retained.",
+        "Cell copy preserves the fields and TABLECONTENT reset clears the payload."
+      ]
+    },
+    {
+      "sourceVersion": "AC1021 and AC1024",
+      "route": "generated standalone and inline controls",
+      "payload": "null versus malformed bounded DATALINK handle; wrong soft-pointer role for the DATALINK hard pointer; non-Boolean linked-data flag; cell attribute counts 10000 and 10001",
+      "assertions": [
+        "A null handle is distinct from a failed bounded handle read.",
+        "A DATALINK handle encoded with the ATTDEF soft-pointer role is rejected.",
+        "BL92 values other than 0/1 are rejected without invalidating the inline TABLE prefix.",
+        "The at-limit but body-impossible attribute count and over-limit count do not publish partial TABLECONTENT.",
+        "AC1024 inline parsing retains the validated prefix and cursor at TABLECONTENT start."
+      ]
+    },
+    {
+      "route": "generic DXF TABLE writer preflight",
+      "assertions": [
+        "A table populated with linked-data fields is refused before a destination file is published."
+      ]
+    },
+    {
+      "route": "dwg2dxf adapter fallback; generated ASCII and binary DXF round-trip",
+      "assertions": [
+        "An incomplete linked TABLE is exported only through its existing INSERT fallback.",
+        "Readback contains exactly one INSERT with the expected table block name and no semantic ACAD_TABLE record."
+      ]
+    }
+  ],
+  "doesNotEstablish": [
+    "producer-authored linked TABLECONTENT encoding",
+    "AC1024 inline field retention in the public DRW_Table because incomplete content is intentionally not published",
+    "DATALINK object dispatch/callback retention, owner graph, or complete conversion closure",
+    "DXF TABLECONTENT/DATALINK emission or role-aware handle remapping",
+    "native 2D/3D application behavior or all-version DWG/DXF parity"
+  ],
+  "planImpact": {
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "completedSlices": [
+      "7G.3d.3a semantic-loss guard",
+      "7G.3d.3b typed linked-cell and ATTDEF field capture (content-ordinal association remains open)"
+    ],
+    "nextSlice": "7G.3d.3c producer-backed TABLECONTENT/DATALINK owner and reference census, followed by atomic DXF graph routing"
+  }
+}

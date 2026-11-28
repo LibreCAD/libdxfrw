@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Open-source coverage claims, evidence independence, and route qualification",
+  "mode": "primary-source web research and plan-readiness reconciliation",
+  "scope": [
+    "Audit how open-source DWG/DXF projects scope version matrices, class maturity, self-roundtrip tests, diagnostics, and fuzz methods",
+    "Separate independent decoder evidence from same-family LibreCAD consumer qualification",
+    "Refine peer-admission and 7J nested INSERT implementation readiness without changing support claims"
+  ],
+  "method": {
+    "kind": "Read public project documentation and Autodesk DXF references; cross-check against existing local plan owners",
+    "researchOnly": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAddedByResearch": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "limitations": "Sources are project-authored capability/test documentation except Autodesk DXF references. Mutable repository pages were not pinned to immutable commits, no package was built or executed, and the underlying peer corpora or semantic expectations were not independently audited. Public claims qualify comparator-route selection only, not local correctness, ACIS/B-rep semantics, or native acceptance."
+  },
+  "sources": [
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING"
+      ],
+      "revision": "Mutable master documentation accessed 2026-10-18; no immutable revision pinned",
+      "observed": "Manual advertises approximately 99% DWG coverage across a broad revision range and separately classifies classes as stable, unstable, debugging, or unhandled; unstable classes can be mapped to unknown/placeholder forms and are not uniformly preserved. README states DWG writing only through R2004 and pre-R13 DXF support remains in progress. dwgrewrite re-reads with the same implementation. Project docs expose XML feature comparisons and AFL/LLVM fuzz workflows.",
+      "limits": "Headline percentages have no demonstrated per-class semantic denominator and cannot be compared across projects. Same-codec reread is internal regression evidence, not independent validation. Fuzz infrastructure documentation is not a local fuzz result."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md"
+      ],
+      "revision": "Mutable master documentation accessed 2026-10-18; no immutable revision pinned",
+      "observed": "README publishes directional DXF/DWG read/write version rows; reader documentation shows notifications for warnings and informational messages.",
+      "limits": "Version rows are not per-entity/object completeness or semantic guarantees, and notifications do not necessarily enumerate every skipped or projected-away source record. No peer binary or sample was executed."
+    },
+    {
+      "project": "LibreCAD_3 consumer policy",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Mutable master policy page accessed 2026-10-18; page describes a pinned library snapshot but this review did not resolve its immutable SHA",
+      "observed": "The page documents read-only DWG import behind WITH_DWG_IMPORT and a claim ledger with 15 read claims at its stated snapshot: 11 EXPERIMENTAL, 4 PENDING_NATIVE, and none PROMOTED. It requires separate native evidence for promotion and saves DWG-origin documents as DXF.",
+      "limits": "LibreCAD_3 uses the same libdxfrw implementation family, so it is a consumer/API/native route, not an independent decoder. The mutable page and its stated snapshot were not checked out or executed here."
+    },
+    {
+      "project": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "revision": "Published Autodesk DXF documentation pages accessed 2026-10-18",
+      "observed": "The references define DXF group-code value types/handle roles and the legacy 3DSOLID AcDbModelerGeometry carrier, with a distinct AcDb3dSolid history soft-owner handle.",
+      "limits": "These DXF references do not establish modern ACDSDATA/SAB joining, valid B-rep semantics, or application rendering; DWG byte-layout questions remain governed by the repository-pinned ODA specification and sample traces."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "routinePeerRunsAdded": false,
+    "fixturesOrDependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Treat project version matrices, headline coverage percentages, self-roundtrip, and consumer-open results as distinct evidence classes. Optional peers must be pinned and chosen for one exact operation/version/class question; same-family LibreCAD_3 is kept as consumer qualification. The immediate local slice remains strict 7J nested INSERT target-body closure using generated ASCII/Binary controls, existing CTest, atomic negative cases, and no persistent fixture. Full suites and fuzz remain at existing composed/shared-boundary gates."
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check for plan and implementation slice files)",
+    "fullSuiteRun": false
+  }
+}

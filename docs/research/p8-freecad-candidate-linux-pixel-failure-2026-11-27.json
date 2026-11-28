@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-candidate-linux-pixel-failure-2026-11-27",
+  "supportClaimEffect": "none",
+  "run": "https://github.com/dxli/libdxfrw/actions/runs/46061311398/job/140715989769",
+  "libdxfrwHead": "26e8a2c8621fc7077cb84338ab75f4cf6df7d5cb",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "status": "FAILED_INDEPENDENT_LINE_PIXEL_GUARD",
+  "observations": [
+    "Candidate build and focused headless probes passed; GUI macro reported the expected ten view-property cases.",
+    "Four 320x240 images were produced: visible-to-mesh-hidden differs by 2520 pixels, mesh-hidden-to-all-hidden by 0, restored-to-original by 0.",
+    "The visible screenshot shows both a triangular face and a separate line, but both disappear in the mesh-hidden image. Macro properties alone do not explain whether this is an event/render synchronization issue or a layer interaction.",
+    "The guard correctly rejects the missing independent-line transition; no rendered-pixel qualification follows."
+  ],
+  "imageSha256": {
+    "pixel-visible.png": "895a9e9d36dfdffa5d69fe18e37a94fb7bd3eabc621404b4e886a3562ab1fef7",
+    "pixel-mesh-hidden.png": "3241fb9d96de0613f2713d0042a5a7976eed8b418ccff94141d151f3200c6607",
+    "pixel-all-hidden.png": "96577c550d780fd1bf9bee0ed8d0886fc1164d7d7a13165e2f52c3d3e43c8df2",
+    "pixel-restored.png": "3837bf21c4febfc728a8bf31b81f73c51ce1ecebb8680532cceee86680f988a2"
+  },
+  "limits": [
+    "Linux x86_64 Xvfb, selected generated DXF candidate only.",
+    "No hardware-rendering, cross-platform or DWG support claim."
+  ],
+  "next": "Check the new candidate run: the added property guard distinguishes coupled object visibility from a framebuffer mismatch. Continue source-specific diagnostics if it fails.",
+  "localControls": {
+    "macOS": "Installed FreeCAD 1.1.4 Cocoa with generated triangular Part face and line in separate Draft layers: 2440 face pixels and 80 line pixels change independently; restoration difference zero.",
+    "linux": "Debian bookworm ARM64 container, FreeCAD 0.20.2 Xvfb/Mesa, same constructed scene and separate layers: 423 face pixels and 80 line pixels change independently; restoration difference zero.",
+    "scope": "Neither control runs the pinned patched importer; the older Linux control does not establish behavior of the candidate build.",
+    "macLogSha256": "2b60743502f374f3970179c6b23c4441d34ae1a8f072dbf24ec476728d14a079",
+    "linuxLogSha256": "80904bd36c9a70d96c772327af5111b7628d98db6314ec9a41dc2e24d6a35c72",
+    "linuxOfficial114": {
+      "release": "FreeCAD 1.1.4 Linux aarch64 official AppImage, sha256 verified against release checksum",
+      "appImageSha256": "675d1a4295b2183e0e1d816a4b5557dcb63aeced4e60aaa28d6c3686f4c71dc9",
+      "applicationCommit": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+      "platform": "Debian container ARM64, Xvfb and Mesa",
+      "separateLayerConstructedScene": "2440 face pixels, 80 line pixels, 0 restoration differences after layer toggle",
+      "importedLineAndConstructedFace": "2217 face pixels, 78 line pixels, 0 restoration differences; generated DXF also imports a polyline",
+      "importedPolylineAndLine": "423 polyline pixels, 80 line pixels, 0 restoration differences; this release imports the polyface as a polyline rather than the candidate face",
+      "logSha256": "3895bd00ad3894dec46c254cb0953d1329ae7439344879ec1450432de302636e",
+      "limits": "Different release, architecture and importer behavior from the FreeCAD 27.1.0 x86_64 candidate. These controls do not qualify that candidate."
+    }
+  },
+  "newCandidateRun": "https://github.com/dxli/libdxfrw/actions/runs/46067129908"
+}

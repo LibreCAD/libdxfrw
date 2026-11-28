@@ -1,0 +1,135 @@
+{
+  "scope": "AC1024 DWG-origin PDF underlay rotation at dwg2dxf adapter output; no public callback change.",
+  "source": "Locally authored DXF was converted by ODA to AC1024 DWG and back to AC1027 DXF. The producer returns 45 degrees for default and tilted extrusion; native parser traces read 0.785398 radians. Additional authored -30, 0, 90 and 270 degree samples show corresponding radian native traces. Conversion pairing is recorded provenance, not independently authenticated by the audit.",
+  "output": "The probe selects the physical typed callback into an independently authored minimal graph and emits DXF. ezdxf checks its position, normal, 45-degree rotation and audit errors. It does not establish full source-file conversion: strict export of the producer drawings is refused because of unrelated header remainder.",
+  "compatibility": "Public DRW_Underlay callback remains documented DWG radians versus DXF degrees. The adapter captures the DWG PDF source generation and, on successful read, binds the version to that retained entity. Only AC1024 PDF radians are converted in a temporary output copy; DXF-origin, other kinds and other revisions remain unchanged. LibreCAD consumes DWG callback radians; no direct LibreCAD_3 DRW_Underlay callback was found. The internal dwg2dxf adapter carrier layout changes; binaries directly linking that adapter must be rebuilt.",
+  "validation": {
+    "focused": "ctest --test-dir /private/tmp/underlay-angle/build -R ^dwg2dxf_underlay_definition_graph$ --output-on-failure",
+    "probe": "/private/tmp/underlay-angle/probe <source.dwg> <selected.dxf> <ODA-returned.dxf>",
+    "audit": "build/rpp5gh-evidence/peer/bin/python -B work/tools/audit_pdf_underlay_rotation.py --source <ODA-DXF> --source-sha256 <hash> --selected <selected-DXF> --selected-sha256 <hash> --normal <default|tilted>",
+    "tested": "ASCII/Binary, tilted extrusion, authored DGN/DWF, nonfinite and overflow refusal, sentinel and same-adapter retry, callback provenance, changed aggregate-version and adjacent-version controls. The retained source handle remains unchanged while an emitted handle is remapped, including after a later-record failure and retry. The physical probe reimports an ODA-returned DXF into the same dx_data and checks the prior DWG generation remains bound to AC1024 while the new DXF record has no DWG marker."
+  },
+  "artifacts": [
+    {
+      "path": "/private/tmp/underlay-angle/underlay-angle.patch",
+      "sha256": "a3275ec401e7d360d2535c0c6375645d4c0210d590e33831458f7229f88c13d4"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/work/tools/probe_pdf_underlay_rotation.cpp",
+      "sha256": "a254121f20395a35ef34aa9ef4cd4a9218bd8c3642b4d6afc98d11b77082799f"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/work/tools/audit_pdf_underlay_rotation.py",
+      "sha256": "6cdeebdb9bd0d0893ef043bcf90395b3a853b85573f75b2c6e4cf0879683ff82"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/work/tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "aec35074cd0fc4c5e3a25631679992855a684ee11c3b1996d55fb5463f564155"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/in/planar.dxf",
+      "sha256": "bd51724691dd82e355d468300ff1b9293fa7bc4ee4b06a250b4f59e2290a38fe"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/in/tilt.dxf",
+      "sha256": "eeea2606f273797765d18594a14416a23d779d468758eb75e1b94fba50792683"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/dwg/planar.dwg",
+      "sha256": "20a39b05d43bd765b5f3e4916388fb489c082e79d5a0359f7058c94180d376cc"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/dwg/tilt.dwg",
+      "sha256": "d96a9d5116cd3ce1ace6a3b34c606a23d332fe86f3e7d93c39d2955faaad826d"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/out/planar.dxf",
+      "sha256": "b86827b435a49c717c62a283bfd581989ace244328bde5aea4292f14e62be050"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/out/tilt.dxf",
+      "sha256": "bbc891ded6dbb475b8f15663d5e6e5ef1962ce4cfce6aa1c953fd7ce9be2e360"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/selected-planar.dxf",
+      "sha256": "5e39ed5225a914d3092030ade8ede4da6a3e74fe89c240780a3d7de2f0520ef2"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/selected-tilt.dxf",
+      "sha256": "c43d20922803ba9ab6c38f093450f0412c98026ef0416bffbac65a278c77f688"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-in/neg30.dxf",
+      "sha256": "a456a1e8acdee1af087b4917e9c6fd063e30c5c9e14155b54b7f3147b8a798eb"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-dwg/neg30.dwg",
+      "sha256": "dd05c744305b7bfe3feaaab021e2e12f61382e50e27ec87151af1c45eb7d37b9"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-out/neg30.dxf",
+      "sha256": "d85c6d995e11834aa5cefe4742b72438c51fde3b13e8fe1aaa56e3c3aeecfd63"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-neg30.log",
+      "sha256": "2d15f0a193b3fe367a58e9b4eb89211a9bb9c8350158df00ef8e8bb10ae4286a"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-in/zero.dxf",
+      "sha256": "b5aa9a3424308974a91d59d67c0e96d57b74fe37e3b40dd8e39e4644c544d05f"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-dwg/zero.dwg",
+      "sha256": "0a5e79ad9ad7a8262efc108d30942407e8d473abaf76a1f349fcd7e8de5bda3f"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-out/zero.dxf",
+      "sha256": "35d8d42e15f137f50fed697ee739e8d62ac1028a818ba1093749667bed4b5104"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-zero.log",
+      "sha256": "dc5c1d3c590bbdb4c38d31ac996e2ecad97e82413cbd38439dc42d42115c8fc3"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-in/right.dxf",
+      "sha256": "d357900542e53d71f05c4f8205956619a9bde77152b204a98337d94811c06b0c"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-dwg/right.dwg",
+      "sha256": "20563a7096811c069957eac5cedd06646a603b6619ed5aed445c92fbd6ed9f75"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-out/right.dxf",
+      "sha256": "7e5475d6913f216f804ea24af6cb5b867fedca4cbba9a12bcb605b3390bad86a"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-right.log",
+      "sha256": "038903a2dece3098aa3d107ef86572cba0e9588e38a8e331516e6445efbfc529"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-in/large.dxf",
+      "sha256": "6e3f5459ebb24d4662ab5cc48fb712225b8e17e23c3c9be3fc4c11354f5c8960"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-dwg/large.dwg",
+      "sha256": "92807647d0aebee34fef9be838d35fa4b989ca520d986f028a26ecdf78e4ccb4"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-out/large.dxf",
+      "sha256": "c6f5c0db69c20b65ed08e36e60f8954343f1113049f9be9256ff31a3d7c2059f"
+    },
+    {
+      "path": "/private/tmp/underlay-angle/census-large.log",
+      "sha256": "4721d5ba840988de1e1a8c68d3c7a81c9f73ada00ee5fdaa0dae90c75056e33d"
+    }
+  ],
+  "integrated_validation": "ctest --test-dir build-gcc -R '^dwg2dxf_underlay_definition_graph$' --output-on-failure: 1/1 passed.",
+  "integrated_files": {
+    "dwg2dxf/dx_data.h": "6c051eea172e2c698228936f0ac13c6fcdd893ec5142eec0e87e37b1ed50666e",
+    "dwg2dxf/dx_iface.h": "109495b8795d8c1f9688a8c69029aa2ec197d8e09e80bff7a065dd471b318992",
+    "dwg2dxf/dx_iface.cpp": "8e627e3b24690cf81473948a6146a38dde927f6373a7e2135bb2b37b3cda468d",
+    "tests/dwg2dxf_adapter_tests.cpp": "aec35074cd0fc4c5e3a25631679992855a684ee11c3b1996d55fb5463f564155",
+    "tools/probe_pdf_underlay_rotation.cpp": "a254121f20395a35ef34aa9ef4cd4a9218bd8c3642b4d6afc98d11b77082799f",
+    "tools/audit_pdf_underlay_rotation.py": "6cdeebdb9bd0d0893ef043bcf90395b3a853b85573f75b2c6e4cf0879683ff82"
+  }
+}

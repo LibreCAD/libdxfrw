@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "cad2d-ir artifact freshness and residual pydwg candidate screen",
+  "mode": "primary-source repository, package metadata, and source review",
+  "scope": [
+    "Revalidate the artifact identity of the already-listed cad2d-ir 2D route",
+    "Screen one residual standalone DWG parser candidate",
+    "Separate parser lineage from downstream IR, conversion, projection, and consumer behavior",
+    "Assess whether either route supplies 3D, ACIS/AcDs, or independent semantic evidence",
+    "Define a bounded optional comparison protocol without expanding routine validation"
+  ],
+  "sources": [
+    {
+      "name": "cad2d-ir 0.13.0 PyPI page and artifact metadata",
+      "urls": [
+        "https://pypi.org/project/cad2d-ir/"
+      ],
+      "observed": "PyPI lists version 0.13.0, released 2026-10-18, with alpha classifier. The source distribution SHA-256 is 4ec2ffb5986fd3ec20e9d6f972feaebc420b282a9acdf61a52b0eb06a2f4607d. The documented IR has a bounded common-2D entity set, separates modelspace and paper-space layouts, provides a built-in DXF parser and R12/AC1009 and R2010/AC1024 export, and discloses export loss/approximation through structured diagnostics and an entity-to-handle map. The documented surface does not claim 3DSOLID/REGION/BODY, ACIS, or general 3D semantics. The artifact was not downloaded or run."
+    },
+    {
+      "name": "cad2d-ir DWG adapter and mutable project metadata",
+      "urls": [
+        "https://github.com/neka-nat/cad2d-ir/blob/main/src/cad2d_ir/importers/dwg.py",
+        "https://github.com/neka-nat/cad2d-ir/blob/main/pyproject.toml",
+        "https://raw.githubusercontent.com/monozukuri-ai/cad2d-ir/main/src/cad2d_ir/importers/dwg.py",
+        "https://raw.githubusercontent.com/monozukuri-ai/cad2d-ir/main/pyproject.toml"
+      ],
+      "observed": "The DWG importer calls ezdwg.read(), uses ezdwg.raw for selected tables, computes the source file SHA-256, records conversion/skip/approximation counters, and projects owner/layout information into a typed 2D IR. The optional DWG dependency is ezdwg>=0.11,<1. PyPI identifies the latest package as 0.13.0, while the reviewed mutable raw main pyproject reports 0.10.6; an immutable repository commit or release binding for the exact package artifact was not established. Attribute DWG behavior to the ezdwg parser lineage, not to an independent DWG implementation."
+    },
+    {
+      "name": "mghohoo/pydwg README and parser entry point",
+      "urls": [
+        "https://github.com/mghohoo/pydwg",
+        "https://github.com/mghohoo/pydwg/blob/master/pydwg/dwg_parser.py"
+      ],
+      "observed": "The README calls the project an initial version and discloses memory-management issues. It documents R18/R21 as targets and R24/R27 as TODO. The parser rejects signatures outside R18/R21 even though its enum recognizes later signatures. The inspected route is metadata/forensics oriented; no broad entity denominator, DXF or DWG writer, ACIS route, or 3D semantic evidence was found."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refreshes the existing cad2d-ir optional 2D DXF candidate with its latest PyPI version and sdist digest while recording that mutable main metadata is still version 0.10.6, so source/package identity remains unresolved. Its DWG leg stays under ezdwg lineage. Screens mghohoo/pydwg out as an early R18/R21 metadata parser. Neither route enters normal validation or changes 3D/ACIS evidence gates."
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "GitHub main/master content is mutable and the cad2d-ir package/source version discrepancy remains unresolved. The source distribution hash is recorded for a future exact-artifact check but was not fetched, installed, or executed. The findings are route-admission guidance, not runtime qualification or support evidence."
+  }
+}

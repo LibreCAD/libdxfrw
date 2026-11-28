@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Parser-fed ACIS sphere-surface unsupported-branch boundary",
+  "mode": "Generated local S3.7c fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The shared worktree was already broadly dirty. This slice changed the graph-preservation test and the two plan documents, added this receipt, and did not stage or commit files.",
+    "changedFiles": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/acis-sab-sphere-surface-unsupported-fast-slice-2026-10-21.json"
+    ]
+  },
+  "implementation": {
+    "fixturePolicy": "Generated in-memory SAB 21800 control only; no persistent DWG, DXF, or SAB fixture was added.",
+    "change": "Clone the existing complex rooted graph, replace its face target's spline-surface EntityType with sphere-surface, serialize to SAB 21800, and exercise parse/build/rooted projection.",
+    "assertions": [
+      "The wire parser accepts the generated complete 21800 stream.",
+      "The sphere-surface node remains reachable from the body root.",
+      "The projection reports exactly one unsupported surface node.",
+      "No face surface geometry is emitted for this unsupported family.",
+      "B-rep validity remains unchecked."
+    ],
+    "claimBoundary": "This proves only the local non-promotion/unsupported-branch boundary. It does not implement sphere interpretation, qualify sphere numeric fields, or establish ACIS or 3D geometry support."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS (1/1, 1.16s)"
+      },
+      {
+        "command": "git diff --check -- tests/graph_preservation_tests.cpp <plan and receipt paths>",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "productionCodeChanged": false,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "nextAction": "Continue to the next dependency-ready local S3.7c/PAR-07 invariant without waiting on external semantic or platform qualification."
+}

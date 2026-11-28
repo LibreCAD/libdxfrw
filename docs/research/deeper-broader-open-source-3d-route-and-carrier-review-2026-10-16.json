@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw-deeper-broader-open-source-3d-route-and-carrier-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the source-backed open-source comparison for explicit DXF 3D geometry, DXF modern ASM carrier access, ezdxf ACIS subset parsing/export, LibreDWG's reported modern AcDs loss, and the boundary between carrier correctness and shape semantics.",
+  "method": {
+    "kind": "Primary project documentation and issue review",
+    "sourcesOpened": [
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html",
+      "https://github.com/LibreDWG/libredwg/issues/1411"
+    ],
+    "peerRuntimeRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "repositoriesClonedOrBuilt": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "GDAL and ezdxf statements are project documentation. LibreDWG #1411 is an open reporter account, not an independently reproduced result or a claim about current master. ODA §24 is an existing specification reference already reviewed in the plan, not a new source inspected during this pass. No peer runtime, local code behavior, DWG/DXF file, or shape semantics were tested in this research pass."
+  },
+  "evidence": [
+    {
+      "topic": "GDAL explicit-geometry projection versus modern raw ASM access",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html#supported-entities",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html#3d-extensibility"
+      ],
+      "observed": "GDAL documents explicit DXF entity support through OGR geometry projection, including 3DFACE and POLYFACE mapping, and separately states that it cannot transform 3DSOLID/REGION/BODY/SURFACE into OGR geometry. DXF_3D_EXTENSIBLE_MODE=TRUE exposes raw ASMData and a 12-real ASMTransform for DXF AC1027 and later. Curves may be tessellated, and this is not preservation of the complete CAD graph.",
+      "doesNotEstablish": [
+        "DWG read or write support through the DXF driver",
+        "ACDSDATA or DWG AcDs parsing",
+        "B-rep construction, validation, or curved-surface semantics",
+        "that binary-DXF reading and modern ASM field extraction compose on every build",
+        "exact preservation of entity owner, block, layout, and reference graph"
+      ],
+      "planUse": "Keep separate optional comparator lanes: projected explicit geometry and raw modern-DXF ASM carrier extraction. For carrier checks record handle/class, exact bytes/hash/length, ASMTransform, and owning block/reference placement separately. Pin GDAL build and independently prove binary-input capability before using that route."
+    },
+    {
+      "topic": "ezdxf's limited ACIS parse, export, and mesh profile",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html"
+      ],
+      "observed": "The ACIS tools documentation describes limited load/parse and create/export of simple known structures, explicitly says arbitrary existing ACIS editing is not a goal, and warns unsupported ACIS records are represented as NONE_ENTITY with their data lost. The API documents SAT v700 for R2000-R2010 and SAB v21800 for R2013/R2018. mesh_from_body projects only flat polygonal Face entities; curved faces and surfaces require a kernel that ezdxf does not provide.",
+      "doesNotEstablish": [
+        "arbitrary SAT/SAB parse and lossless re-export",
+        "complete body/reference closure for real producer outputs",
+        "curved B-rep validity or analytic shape correctness",
+        "the exact runtime behavior of a separately acquired package without running it",
+        "DWG AcDs association or DataStorage semantics"
+      ],
+      "planUse": "Treat ezdxf as a bounded DXF/ACIS parser-producer for exact supported profiles. Capture unsupported/NONE_ENTITY dispositions and diagnostics. Use it for controlled flat-polyhedron vectors only; do not grant carrier-preservation or curved-shape credit from an entity surviving load/save."
+    },
+    {
+      "topic": "LibreDWG reported R2013+ AcDs/SAB silent-loss route",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "Open issue #1411 reports R2013+ REGION/3DSOLID/BODY geometry stored in AcDb:AcDsPrototype_1b rather than inline. Its author describes a locally generated AC1032 DXF-to-DWG-to-DXF case where the REGION entity remains while the 5,489-byte SAB body and ACDSDATA records disappear, and mentions a non-shareable R2018 drawing. The issue body identifies LibreDWG 0.14.8593 at commit prefix 8a1ae764.",
+      "doesNotEstablish": [
+        "that the issue was reproduced in this review",
+        "behavior of current LibreDWG master or another release",
+        "a normative container or ACIS semantic rule",
+        "a libdxfrw defect or complete LibreDWG feature profile"
+      ],
+      "planUse": "Use this only as a peer-reported silent-loss test pattern. At an exact pinned peer checkpoint compare source entity inventory, carrier bytes, AcDs/modeler identity and ownership, output ACDSDATA/inline payload route, and diagnostic disposition separately. A surviving typed entity and successful exit are insufficient."
+    },
+    {
+      "topic": "Container-versus-shape authority boundary",
+      "sources": [
+        "https://www.opendesign.com/files/guestdownloads/Open_Design_Specification_for_.dwg_files.pdf"
+      ],
+      "observed": "ODA's DWG specification documents the surrounding AcDs/DataStorage organization while limiting its knowledge of detailed ACIS/SAB internals. The plan's existing source review separately tracks record/page framing, entity/modeler association, carrier bytes, and geometry semantics.",
+      "doesNotEstablish": [
+        "complete ACIS grammar or validity of SAB body topology",
+        "that one open-source parser/kernel is a complete semantic authority",
+        "native CAD acceptance of a carrier-preserved payload"
+      ],
+      "planUse": "Use separate acceptance labels for structure validity, carrier binding, carrier emission, complete ACIS parse, shape validation, and native consumer acceptance. Keep explicit mesh/polyface projection distinct from ACIS-backed solids."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 123,
+      "topLevelImplementationSubplans": 71
+    },
+    "nextActions": [
+      "Continue local implementation using existing fast targeted tests; optional peer/native checks remain composed-only.",
+      "Keep explicit 3D entity modes, inline SAT/SAB, DXF ACDSDATA, DWG AcDs association, and B-rep semantics as separate routes and evidence cells.",
+      "At the modern carrier checkpoint, assert exact source identity, owner/modeler binding, payload hash and transform independently from block/INSERT placement.",
+      "If GDAL is present, use the pinned exact build for an optional raw ASM/transform comparison and a separate explicit-geometry projection check.",
+      "If ezdxf is used, pin its exact release, record unsupported ACIS records, and restrict mesh semantics to flat polygonal faces.",
+      "Do not use the open LibreDWG issue as current-master evidence without a pinned build and reproducible run.",
+      "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL; no evidence in this review promotes support claims."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "planDiffCheckPassed": true,
+    "receiptJsonParsed": true,
+    "researchChangedSourceCode": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

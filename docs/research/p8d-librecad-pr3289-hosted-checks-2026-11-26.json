@@ -1,0 +1,79 @@
+{
+  "date": "2026-11-26",
+  "pr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "head": "187a1ee5940b822b1ae454c5dc64c8522999a149",
+  "base": "b91fbdcf1adeee764938a183018978416d0a8c90",
+  "mergeable": "MERGEABLE",
+  "checks": [
+    {
+      "name": "Analyze (cpp, none)",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS"
+    },
+    {
+      "name": "VerifyDwgDxfFast",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS"
+    },
+    {
+      "name": "build_with_pixi (windows-latest)",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS"
+    },
+    {
+      "name": "Headless (ON)",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS"
+    },
+    {
+      "name": "build_with_pixi (ubuntu-latest)",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS"
+    },
+    {
+      "name": "Headless (OFF)",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS"
+    },
+    {
+      "name": "build_with_pixi (ubuntu-24.04-arm)",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS"
+    },
+    {
+      "name": "build_with_pixi (macos-latest)",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS"
+    },
+    {
+      "name": "build_with_pixi (macos-15-intel)",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS"
+    },
+    {
+      "name": "Security scan",
+      "status": "COMPLETED",
+      "conclusion": "SKIPPED"
+    },
+    {
+      "name": "VerifyDwgDxfWindows (windows-2022, windows, win64_msvc2022_64, x64, x64, x64, qt3d qt5compat qtim...",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS"
+    },
+    {
+      "name": "VerifyDwgDxfWindows (windows-11-arm, windows_arm64, win64_msvc2022_arm64, ARM64, arm64, arm64, qt...",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS"
+    },
+    {
+      "name": "CodeQL",
+      "status": "COMPLETED",
+      "conclusion": "SUCCESS"
+    }
+  ],
+  "result": "12 completed success, Security scan skipped, no pending checks at observation",
+  "limits": [
+    "Checks apply to this consumer head and its own CI configuration; they do not qualify the later libdxfrw candidate or native GUI behavior.",
+    "No support claim or gate promotion."
+  ]
+}

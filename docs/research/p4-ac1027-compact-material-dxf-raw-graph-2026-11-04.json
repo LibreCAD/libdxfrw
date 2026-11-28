@@ -1,0 +1,63 @@
+{
+  "title": "AC1027 DXF compact default MATERIAL graph exact raw replay",
+  "date": "2026-11-04",
+  "status": "bounded compact raw-only graph implementation; no general MATERIAL support claim",
+  "base_commit": "782cd60c",
+  "authority": {
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+    "scope": "MATERIAL group 72 occurs in both diffuse and normal map contexts; group 94 carries channel flags. The abbreviated body is kept raw, without choosing a group-72 meaning."
+  },
+  "source": "An in-tree-authored DXF was converted to AC1027 DWG by ODA File Converter 27.1 and back to DXF. The ODA-returned source has root C \u2192 ACAD_MATERIAL dictionary 67, owner/reactor C; entries ByBlock\u219269, ByLayer\u219268, Global\u21926A. Each MATERIAL has owner/reactor 67 and exactly AcDbMaterial, name, 72=1, 94=127. The selected input retains the exact four subordinate records and only the ACAD_MATERIAL root entry. The projection is authored from producer output, not a producer-authored standalone drawing. ODA conversion lineage is a manually observed join, not established by hashes.",
+  "change": "Recognize only this exact AC1027 compact producer body through the existing explicit sparse-material raw facet. Preserve 72 only in raw and clear diffuse-source presence because the sparse body cannot distinguish its role. The raw-only marker continues to refuse generic typed DXF and DWG output. For adapter output, reconcile the immutable import baseline and raw groups exactly, decode the unambiguous prefix and require complete typed/common equality, then use existing source-receipt, unique NOD/dictionary/owner/reactor/target graph, target-reference, and staged raw-output checks. Existing 94=63 sparse bodies remain refused by the adapter.",
+  "tests": "Generated ASCII/Binary tests cover old consumer and non-opted-in subclass refusal, enabled facet, direct typed DXF/DWG refusal, copy/move marker, three owner/reactor and raw handle-role mutations, raw body, typed values and unsupported semantic-state mutation, missing typed/raw records, duplicate/aliased entries and root, malformed/extra/duplicate groups and adjacent version, staged typed/raw mutations, sentinel preservation, same-adapter retries and target-version refusal. Both new and old sparse-material CTests pass. The selected physical graph passes those tests and strict CLI ASCII/Binary output plus Binary\u2192ASCII repeat. The independent pinned ezdxf audit checks source projection, all raw 72/94 values, dictionary/material identities and owner/reactor graph; no errors/fixes. A malformed immutable raw-values vector is rejected before any suffix access; 94=63 remains an explicit adapter refusal in both encodings.",
+  "limits": [
+    "This is exact same-version AC1027 DXF transport, not DWG-origin MATERIAL qualification or native rendering/meaning.",
+    "Raw-only callbacks are explicitly opt-in; typed defaults and the raw-only marker must not be mistaken for complete material semantics.",
+    "The full ODA-returned source is still refused at SECTIONOBJECT proxy graphics handle 0x33 and preserves the destination; removing that record exposes a separate SECTIONMANAGER preflight failure.",
+    "The earlier 94=63 sparse-material profile remains raw-only and is not admitted by this adapter route.",
+    "No claim that channel values 63 and 127 are semantically equivalent.",
+    "The source projection and output are separate files under /private/tmp; no repository fixture is added."
+  ],
+  "artifacts_sha256": {
+    "/private/tmp/section-counts/out/source.dxf": "207d54b82638046109066894e226ecc23553096be62de0c11619bc16caa40e1c",
+    "/private/tmp/cli-graph-survey/material-selected.dxf": "ab6a36de29eb89a95fe7477087b9d278a6be5800d02b3c434b805e5cdcea6a60",
+    "/private/tmp/cli-graph-survey/material-selected-out.dxf": "d9e5d57812ff26826cf22ee0880bb3cb176bb8200c2008a9ba2653b2eee4668f",
+    "/private/tmp/cli-graph-survey/material-selected-out-b.dxf": "7220e32c1fa3c786153c10e26cfbcf62e375a54827bf4d73c17bd9d12aede340",
+    "/private/tmp/cli-graph-survey/material-reread.dxf": "b0c465561b22807a6db435a00e0b86a4804b6cd5eb7dff3094f59dd072d6a05d",
+    "/private/tmp/cli-graph-survey/compact-material.patch": "936c23d460f114134d21b00019f91fdbe853e27b717517572fa138e4ad415993",
+    "/private/tmp/cli-graph-survey/full-refused.log": "6a2cdb9c80c7d1d0d62a8beb873739024fccae002e63f3e99a42f9de501e2211",
+    "/private/tmp/cli-graph-survey/physical-test.log": "9082fb68b51355d9d1368143a362ce63e583de893eb7e4eef8fa7816e5770caa",
+    "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+  },
+  "candidate_files_sha256": {
+    "src/libdxfrw.cpp": "3fd2506e4af3ad7963ae423bbe59d74b0c8ac55232ebf728b77b9a626777eb5f",
+    "dwg2dxf/dx_iface.cpp": "a02dc941334bf582e49de0e1ca05a1742bc58b80f6fe55967b705d67b0a4ba37",
+    "dwg2dxf/dx_material_body.h": "9bd7207b5ec51ee87d39b42e2116564a8260d7d70fa25f81b8ba3069365d5fd9",
+    "tests/CMakeLists.txt": "707c0f0ecaf5cd1a2bd5d1c4b113106f32f25825d302c184989917c845f31d39",
+    "tests/dxf_compact_material_graph_tests.cpp": "482e0bd013e96d70a2c205deecdb6835a68a112ef19b7aff8e0a7b226d7749f0",
+    "tools/author_compact_material_graph.py": "2ac3e172b158ac491e29cf63f6cbb940d58be2703c3b4a51cc27b7f0261f67b1",
+    "tools/audit_compact_material_graph.py": "99474614ccbaff4f25b3ba2658cfd4588c72399d309a53e01bc92be23818acc0"
+  },
+  "commands": {
+    "build": "cmake -S . -B /private/tmp/cli-graph-survey/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_BUILD_TESTS=ON && cmake --build /private/tmp/cli-graph-survey/build --target libdxfrw_dxf_compact_material_graph_tests libdxfrw_dxf_sparse_material_raw_tests dwg2dxf -j4",
+    "test": "ctest --test-dir /private/tmp/cli-graph-survey/build -R '^libdxfrw_dxf_(compact_material_graph|sparse_material_raw)$' --output-on-failure",
+    "physical": "/private/tmp/cli-graph-survey/build/tests/libdxfrw_dxf_compact_material_graph_tests /private/tmp/cli-graph-survey/material-selected.dxf",
+    "author": "python3 tools/author_compact_material_graph.py /private/tmp/section-counts/out/source.dxf /private/tmp/cli-graph-survey/material-reproduced.dxf --sha256 207d54b82638046109066894e226ecc23553096be62de0c11619bc16caa40e1c",
+    "audit": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_compact_material_graph.py --source /private/tmp/section-counts/out/source.dxf --source-sha256 207d54b82638046109066894e226ecc23553096be62de0c11619bc16caa40e1c --selected /private/tmp/cli-graph-survey/material-selected.dxf --selected-sha256 ab6a36de29eb89a95fe7477087b9d278a6be5800d02b3c434b805e5cdcea6a60 --ascii /private/tmp/cli-graph-survey/material-selected-out.dxf --ascii-sha256 d9e5d57812ff26826cf22ee0880bb3cb176bb8200c2008a9ba2653b2eee4668f --binary /private/tmp/cli-graph-survey/material-selected-out-b.dxf --binary-sha256 7220e32c1fa3c786153c10e26cfbcf62e375a54827bf4d73c17bd9d12aede340 --repeat /private/tmp/cli-graph-survey/material-reread.dxf --repeat-sha256 b0c465561b22807a6db435a00e0b86a4804b6cd5eb7dff3094f59dd072d6a05d",
+    "cli": "dwg2dxf material-selected.dxf -o material-selected-out.dxf -v2013 -y; repeat with -b, then convert binary output to ASCII with -v2013 -y"
+  },
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_(compact_material_graph|sparse_material_raw)$' --output-on-failure: 2/2 passed; combined-branch CLI strict selected graph export succeeded.",
+  "integrated_files": {
+    "src/libdxfrw.cpp": "3fd2506e4af3ad7963ae423bbe59d74b0c8ac55232ebf728b77b9a626777eb5f",
+    "dwg2dxf/dx_iface.cpp": "a02dc941334bf582e49de0e1ca05a1742bc58b80f6fe55967b705d67b0a4ba37",
+    "dwg2dxf/dx_material_body.h": "9bd7207b5ec51ee87d39b42e2116564a8260d7d70fa25f81b8ba3069365d5fd9",
+    "tests/CMakeLists.txt": "707c0f0ecaf5cd1a2bd5d1c4b113106f32f25825d302c184989917c845f31d39",
+    "tests/dxf_compact_material_graph_tests.cpp": "482e0bd013e96d70a2c205deecdb6835a68a112ef19b7aff8e0a7b226d7749f0",
+    "tools/author_compact_material_graph.py": "2ac3e172b158ac491e29cf63f6cbb940d58be2703c3b4a51cc27b7f0261f67b1",
+    "tools/audit_compact_material_graph.py": "99474614ccbaff4f25b3ba2658cfd4588c72399d309a53e01bc92be23818acc0"
+  },
+  "integrated_cli_output": {
+    "path": "/private/tmp/compact-material-integrated.dxf",
+    "sha256": "d9e5d57812ff26826cf22ee0880bb3cb176bb8200c2008a9ba2653b2eee4668f"
+  }
+}

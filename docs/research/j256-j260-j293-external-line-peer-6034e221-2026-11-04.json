@@ -1,0 +1,146 @@
+{
+  "advisory": true,
+  "comparisonTolerance": {
+    "absolute": 1e-12,
+    "relative": 1e-12
+  },
+  "executableSha256": {
+    "adapter": "6563afabf58e80ccbda8f038bc37b8844be06d8199337a4c8b2d4801dbdf4c16",
+    "dwgread": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+  },
+  "fields": {
+    "end": {
+      "independent": [
+        0.13303111479634,
+        3.52147903511963,
+        0.0
+      ],
+      "native": [
+        0.13303111479633678,
+        3.521479035119633,
+        0
+      ]
+    },
+    "extrusion": {
+      "independent": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "native": [
+        0,
+        0,
+        1
+      ]
+    },
+    "start": {
+      "independent": [
+        0.13303111479634,
+        3.64547780034274,
+        0.0
+      ],
+      "native": [
+        0.13303111479633678,
+        3.6454778003427375,
+        0
+      ]
+    },
+    "thickness": {
+      "independent": 0,
+      "native": 0
+    }
+  },
+  "historicalItems": [
+    "J256",
+    "J260",
+    "J293"
+  ],
+  "independentJsonSha256": "bccee1259568948df2fd0e65c797932965574cc81824781864c3b34b4129d788",
+  "independentStderr": "SUCCESS",
+  "interpretation": {
+    "coverage": "Zero retained integrity rows, zero listed parser failure counters and 285/285 observed source frames published are bounded read observations, not proof of complete semantic coverage or output preservation.",
+    "line": "The unique source handle and owner and four selected geometry fields agree within the existing absolute/relative 1e-12 tolerance. Owner comparison uses LibreDWG resolved handle, not raw relative handle code.",
+    "remaining": "Artifact admission, pinned-target equivalence, independent semantic coverage for other source fields and entities, output/preservation and same-digest platform gates remain open. J256/J260/J293 remain DEFERRED_EXTERNAL."
+  },
+  "kind": "j256-j260-j293-external-line-peer-probe-v1",
+  "limitations": "One selected entity, not a complete drawing, output preservation, target parity, platform or format support claim.",
+  "lineHandle": "17e",
+  "nativeCounters": {
+    "classesCrcMismatch": 0,
+    "dataStorageLinkFailures": 0,
+    "dataStorageOrphanRecords": 0,
+    "decodedProxyPrimitives": 0,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "reader18HeaderCrcMismatch": 0,
+    "reader21CrcMismatch": 0
+  },
+  "nativeFrameCoverage": {
+    "dispositions": {
+      "deferred": 0,
+      "failed": 0,
+      "pending": 0,
+      "published": 285,
+      "quarantined": 0,
+      "staged": 0,
+      "unresolved": 0
+    },
+    "reason": null,
+    "sourceFrameCount": 285,
+    "status": "finalizedComplete",
+    "unrecognizedDispositionCount": 0
+  },
+  "nativeIntegrity": {
+    "aggregateSaturated": false,
+    "extractionOmittedCount": 0,
+    "omittedNameBytes": 0,
+    "reportedUpstreamDroppedLowerBound": 0,
+    "retainedRowCount": 0,
+    "rows": [],
+    "sourceRecordedCount": 0,
+    "truncatedRetainedNameCount": 0
+  },
+  "nativeJsonSha256": "f74cd79504f32e78646d61aa66daa5025ccfdfb54231ea1915efe4eea1fcb66a",
+  "ownerHandle": "17c",
+  "promotesSupportClaims": false,
+  "relatedFailure": {
+    "independent": "LibreDWG 0.14 returns SUCCESS and reports LINE 0x4c, but its LTYPE names and fields are visibly malformed, so it is not reliable evidence to broaden the parser.",
+    "native": "Read fails at TABLES/error 9, with 27 LTYPE record failures. Three short records contain BYBLOCK, BYLAYER and CONTINUOUS names ending exactly at object body boundary; the current parser does not admit such AC1015 tails.",
+    "next": "Obtain clean source/producer-backed LTYPE field and handle spans or a correct independent consumer before changing parser admission; do not soften structural failure based on the LINE observation.",
+    "odaAttempt": "Converter failed to start with local pasteboard/XPC session errors and produced no drawing; this is an infrastructure failure, not input rejection.",
+    "sourceSha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+    "sourceVersion": "AC1015"
+  },
+  "reproduction": {
+    "build": "Use the immutable 6034e221 archive and standalone semantic-adapter build steps recorded in docs/research/j284-mpolygon-eight-field-peer-probe-6034e221-2026-11-04.json.",
+    "run": "python3 -B tools/j256_external_line_peer_probe.py --source EXTERNAL_DWG --adapter ADAPTER --dwgread /opt/homebrew/bin/dwgread --output REPORT.json",
+    "test": "python3 -B tools/j256_external_line_peer_probe.py --self-test",
+    "verification": "Two identical runs per tool, source and executable hashes checked before and after, registry membership checked for J256/J260/J293, nonfinite, wrong-owner and duplicate-record negatives passed."
+  },
+  "schema": 1,
+  "sourceBinding": {
+    "adapterSource": "tests/semantic_differential_adapter.cpp",
+    "adapterSourceSha256": "ec61008e1cfea40b5a09104e33238479fc4ceb310563cfef0415fd41092a68e8",
+    "archive": "git archive of that exact commit",
+    "cmake": "4.4.5",
+    "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+    "currentCommit": "6034e221471df04f8b2d1f6f5835f8d87d717647",
+    "host": "macOS ARM64",
+    "independentLibrarySha256": "0dd60856c25aa0dad6ff80f6c753957d0f27cc39a29f8466637db68dbd0a8847",
+    "independentReader": "LibreDWG dwgread 0.14",
+    "limitation": "Manual adapter build is pinned by source commit and executable/library hashes, but has no sealed dependency closure or pinned target receipt.",
+    "probe": "tools/j256_external_line_peer_probe.py",
+    "probeSha256": "af990e516929f4c390fb19c575dbb731af3009163ce2a81359978507acdb4cd3",
+    "staticLibrarySha256": "f0d69bfdab7b39187fe2369a3609a16b8e6f1044b401d35177f25e5c6306f714"
+  },
+  "sourceDisposition": "external-origin-not-admitted; artifact license unconfirmed",
+  "sourceProvenance": {
+    "alias": "ET-Drawing-with-Border.dwg",
+    "license": "Artifact license is not confirmed; external-origin-not-admitted. No source drawing or derived drawing was added to the repository.",
+    "locator": "https://engineeringtechnology.org/et-curriculum-and-lecture-notes/course-notes-graphics-and-descriptive-geometry/autocad-lab-assignments/autocad-lab-4-geometric-construction/",
+    "publisher": "Engineering Technology",
+    "registry": "metadata/external-evidence-resolution-v1.json"
+  },
+  "sourceSha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+  "sourceVersion": "AC1018"
+}

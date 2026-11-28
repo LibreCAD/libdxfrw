@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-persubentmgr-raw-only-dxf-disposition-2026-11-18",
+  "date": "2026-11-18",
+  "title": "PERSUBENTMGR raw-only DXF disposition",
+  "status": "RAW_ONLY_CLASS_BODY_PRESERVATION",
+  "supportClaimEffect": "none",
+  "gate": "P6-B",
+  "activityLedgerEffect": "one local implementation slice; no package gate closed",
+  "research": {
+    "currentPeerMapping": {
+      "source": "https://github.com/LibreDWG/libredwg/blob/master/src/in_dxf.c#L7322-L7376",
+      "observation": "Current mutable LibreDWG master maps the AcDbPersSubentManager DXF body as a group-90 prefix followed by step and subentity arrays. Its NEWS says missing num_subents/subents parsing was fixed.",
+      "evidenceLimit": "This is a peer implementation mapping, not normative or producer-bound evidence."
+    },
+    "currentOpenIssue": {
+      "source": "https://github.com/LibreDWG/libredwg/issues/1398",
+      "checked": "2026-11-18",
+      "status": "OPEN",
+      "observation": "The issue's DWG trace reports num_subents=427956354 with only two bits available under the candidate order. The author says the final num_subents is not at that position, lists unresolved alternatives, and on 2026-11-16 proposes a different nested records/history-ID layout. The issue also states that the earlier merged PR concerned the distinct ASSOCPERSSUBENTMANAGER class.",
+      "evidenceLimit": "Issue comments and candidate layouts are debugging hypotheses, not a specification or independent semantic proof."
+    },
+    "independenceCheck": {
+      "receipt": "docs/research/p6-persubentmgr-local-port-lineage-screen-2026-11-18.json",
+      "finding": "The inspected local DWG parser projects share parseObjects.ts ancestry and preserve the disputed tail as raw data; their agreement is not independent confirmation."
+    },
+    "normativeBoundary": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.1",
+      "finding": "The section defines common object framing and handle streams, not the PERSUBENTMGR-specific body."
+    },
+    "decision": "Do not type either the current LibreDWG group-90 mapping or the issue's newer nested-record proposal. Keep class-specific DXF/DWG content raw until version-bound source evidence resolves the conflict."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/hardening_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "behavior": [
+      "After AcDbPersSubentManager is identified, DXF group 90 and subsequent group 330 values are not assigned to typed class fields or allowed to overwrite the common owner handle.",
+      "The associative raw-object path retains the original ordered groups for ASCII and binary DXF.",
+      "DWG parsing and its existing bounded raw-shell recovery are unchanged."
+    ],
+    "testControl": "The locally generated ASCII/Binary control checks common owner retention, absence of unqualified typed fields, exact raw group order/count, post-body group 330 retention, and a following OBJECTS record. It validates preservation and dispatch only, not PERSUBENTMGR semantics.",
+    "fixturePolicy": "No external drawing was added; the control is generated from scratch in the test source."
+  },
+  "validation": {
+    "builds": [
+      "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "PASS: cmake --build build-gcc --target libdxfrw_hardening_tests -j2"
+    ],
+    "tests": "PASS: ctest --test-dir build-gcc -R '^(dwg2dxf_associative_callback_contract|libdxfrw_persubentmgr_raw_only)$' --output-on-failure (2/2; 0.50 seconds).",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "remainingEvidence": [
+    "Native exact-class creation/eligibility, owner, selected nonzero member path, and persistence after reopen.",
+    "A source/version-bound PERSUBENTMGR body map resolving the conflicting field order and member meaning.",
+    "Independent body spans, handle roles, and next-object boundary.",
+    "Only after those gates: graph closure, strict output, fresh independent readback, corrected retry, and native semantic qualification."
+  ],
+  "nextTrigger": "Resume typed PERSUBENTMGR work only after full-AutoCAD exact-class/selected-path evidence and independent version-bound body evidence are available. Do not repeat unchanged peer scans or promote issue hypotheses."
+}

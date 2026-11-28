@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1032-rastervariables-frame1-physical-writer-bridge-2026-11-05",
+  "date": "2026-11-05",
+  "status": "BOUNDED_PHYSICAL_SOURCE_WRAPPER_AND_ASCII_BINARY_READBACK",
+  "supportClaimEffect": "none",
+  "scope": "Bind one hash-identified physical AC1032 RASTERVARIABLES frame=1 source record to a locally authored same-version wrapper, then qualify selected ASCII/Binary output, refusal/retry and typed readback. This does not qualify whole-drawing conversion or native raster behavior.",
+  "physicalWitness": {
+    "provenance": "ezdxf 1.4.5 authored an R2010 DXF from scratch with one LINE and RASTERVARIABLES frame=1, quality=1, units=3. ODA File Converter 27.1 produced the AC1032 DWG and a returned DXF; the observed conversion lineage is not authenticated by hashes alone. No sample fixture was added to the repository.",
+    "inputDxfPath": "/private/tmp/raster-frame1-witness/in/source.dxf",
+    "inputDxfSha256": "ebb8fd284c6180bf75d5d1383667ba0582beda9bf194ed95bb677213654cf5e7",
+    "dwgPath": "/private/tmp/raster-frame1-ac1032/dwg/source.dwg",
+    "dwgSha256": "416a7c99d9ae13ec5e5c289fd8fd9fe895262c89fde292fa4e8a2a216abe83a7",
+    "returnedDxfSha256": "bff9585b16bb445e84f160b3fa47079c50413a10362d05ce9367ea1bac7592e3",
+    "independentPeer": "GNU LibreDWG 0.14 reports custom class/type 512, handle 0x2F, frame=1, quality=1, units=3, class version 0, one role-4 owner and one role-4 reactor to physical NOD 0x0A, and a 14-byte body. ezdxf independently observes the same scalar values in the input and ODA-returned DXF.",
+    "sourceSpan": "The source-bound in-tree probe verifies the scalar body ends at bit 73: canonical 10-bit BS frame value 1 occupies [42,52), quality and units follow, the no-string marker is at bit 72, role-4 owner/reactor handles to 0x0A occupy [73,105), and seven trailing pad bits are zero. Page extraction and CRC verification use libdxfrw and are not independent of this repository's reader."
+  },
+  "implementation": "The physical AC1032 frame=1 test selector now checks the exact versioned source byte/bit span, typed values, NOD entry and owner/reactor roles. It seeds a local AC1032 wrapper with the captured fields while remapping the source NOD owner/reactor 0x0A to wrapper NOD 0x0C, then sends the wrapper through selected ASCII/Binary output.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "physicalFrame1": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1032-frame1-direct-nod /private/tmp/raster-frame1-ac1032/dwg/source.dwg",
+    "physicalFrame0Compatibility": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1032-direct-nod /private/tmp/p4-rastervars-1032-source/dwg/raster.dwg",
+    "focusedGeneratedControls": "ctest --test-dir build-gcc -R '^dwg2dxf_rastervariables_(ac1032_(frame1|direct_nod)|ac1024_(frame1|direct_nod))_adapter_transport$' --output-on-failure",
+    "results": "Both physical AC1032 frame selectors passed, and the four focused AC1024/AC1032 generated CTests passed. The frame=1 selected wrapper exercises ASCII/Binary invalid-value and graph-reference refusal with destination preservation, same-adapter correction/retry, and typed readback. Source hashes were unchanged after execution."
+  },
+  "limits": [
+    "The source was locally authored and converted by one ODA version; this is not broad producer coverage.",
+    "The physical file retains unrelated HEADER integrity observations. Whole-file strict export remains refused and was not qualified by the selected wrapper.",
+    "No native image rendering or other consumer behavior is established.",
+    "No DWG/DXF fixture was added; the witness remains in scratch storage."
+  ]
+}

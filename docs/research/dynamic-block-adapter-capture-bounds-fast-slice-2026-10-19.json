@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Dynamic-block adapter capture bounds fast slice",
+  "mode": "Local adapter implementation with generated focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bound adapter-owned deep copies of typed dynamic-block callbacks.",
+    "Account for the complete current DRW_DynamicBlockObject dynamic payload shape.",
+    "Verify successful capture, aggregate budget refusal, and fail-closed export when no callback was retained."
+  ],
+  "changes": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistrationChanged": true,
+    "persistentDwgDxfFixtureAdded": false,
+    "dependencyChanged": false,
+    "implementation": "dx_iface estimates common table-entry/XDATA content, record and scalar strings, flat vectors, nested vectors, fixed-array-of-vector payloads, and vector<bool> logical slots before copying. Capture admits at most 100,000 objects and DRW::kMaxDxfBinaryPayloadBytes logical retained bytes. Refusal or allocation failure sets a sticky dx_data flag; fileExport checks it before writing. The existing dynamic-block no-serializer gate remains unchanged.",
+    "limits": "Logical payload and container slots are estimated; allocator capacity, implementation-specific list-node overhead, and process RSS are not measured. The adapter aggregate budget is distinct from parser-side limits.",
+    "generatedTest": "The focused selector constructs a dynamic-block object with scalar strings, string/primitive vectors, nested state/lookup/index vectors, and table-entry XDATA. It verifies successful retention, rejects a second callback after the aggregate budget is saturated, then verifies that a separate empty capture with an over-budget first callback cannot publish output. No drawing fixture is used."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedSelectors": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_(acsh_history_capture_limits|evaluation_graph_capture_limits|dynamic_block_capture_limits|dynamic_block_fail_closed|named_object_callback_storage)$' --output-on-failure",
+      "result": "passed 5/5"
+    },
+    "fullTestSuite": "not run",
+    "scopedDiffCheck": "passed"
+  },
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "fb657d5ad135dfe4e17f744b61c367d35fbae0259f5efac89321c3aba8349e46",
+    "findings": 139,
+    "topLevelSubplans": 77
+  },
+  "nonClaims": [
+    "This bounds adapter-side logical copies, not allocator capacity or process RSS.",
+    "No dynamic-block graph semantics or DXF serializer support claim is established.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "No external drawings or repository fixtures were added.",
+    "The shared worktree is extensively dirty; no staging or commit occurred."
+  ]
+}

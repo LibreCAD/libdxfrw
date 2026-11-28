@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "date": "2026-11-11",
+  "title": "AC1018 modeler-version-1 SAT extraction and same-version DXF transport",
+  "scope": "Use the bounded SAT-v1 block decoder for AC1018 modeler-version-1 records, retain exact per-block source spans, and write the selected SAT carrier to same-revision ASCII/Binary DXF with typed readback.",
+  "authority": {
+    "title": "Open Design Specification for .dwg files, v5.4.1",
+    "section": "20.4.41 REGION (37), 3DSOLID (38), BODY (39)",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "rules_used": [
+      "Modeler version is a BS value and may be 1 or 2.",
+      "Version 1 repeats a BL SAT byte count followed by exactly that many RC bytes, ending at a zero count.",
+      "For printable source bytes in 0x20..0x7e, decode each SAT-v1 byte as 0x9f minus the stored value; convert tab to space."
+    ]
+  },
+  "source": {
+    "url": "https://trattocad.com/samples/trattocad-sample-3d-pulley.dwg",
+    "local_path": "/private/tmp/p7-trattocad-pulley.dwg",
+    "sha256": "6002b39780e7c1c3980c885f319c1b03721aa8ae216ca3c16d3a619ebaa11ad6",
+    "dwg_version": "AC1018",
+    "producer_provenance": "unverified; publisher advertises a 3D pulley DWG sample for testing/teaching",
+    "not_committed": true
+  },
+  "physical_records": [
+    {"handle": "0x27", "encoded_type": 38, "modeler_version": 1, "sat_text_bytes": 14581},
+    {"handle": "0x28", "encoded_type": 38, "modeler_version": 1, "sat_text_bytes": 1289},
+    {"handle": "0x29", "encoded_type": 38, "modeler_version": 1, "sat_text_bytes": 9986},
+    {"handle": "0x2a", "encoded_type": 38, "modeler_version": 1, "sat_text_bytes": 2417},
+    {"handle": "0x2b", "encoded_type": 38, "modeler_version": 1, "sat_text_bytes": 2430},
+    {"handle": "0x2c", "encoded_type": 38, "modeler_version": 1, "sat_text_bytes": 233110},
+    {"handle": "0x2d", "encoded_type": 38, "modeler_version": 1, "sat_text_bytes": 234503}
+  ],
+  "implementation": {
+    "files": ["src/drw_entities.cpp", "src/libdxfrw.cpp", "tests/dwg_local_roundtrip_tests.cpp", "tests/CMakeLists.txt"],
+    "change": "The bounded SAT-v1 parser now admits AC1018 alongside AC1015; the DXF writer emits a qualified SAT-v1 payload only when target revision exactly matches the source revision (AC1015 or AC1018). Incomplete terminators remain opaque and cross-version output is refused.",
+    "no_parser_layout_guess": true
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf -j4",
+    "build_result": "passed with -Werror",
+    "generated_control": "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-sat-v1-extraction",
+    "generated_control_result": "PASS; AC1015 and AC1018 valid block decoding, decoded bytes, exact span coverage, missing-terminator opacity, SAT/SAB separation, same-version ASCII/Binary DXF write/readback, and cross-version refusal",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^dwg_sat_v1_bounded_extraction$' --output-on-failure",
+    "focused_ctest_result": "1/1 passed",
+    "physical_run": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/p7-trattocad-pulley.dwg -y -d -v2010 /private/tmp/p7-trattocad-pulley-after-vx-sat.dxf",
+    "physical_result": "9,161/9,161 frames published; zero entity/object parse failures; all seven AC1018 records log SAT payload lengths equal to LibreDWG 0.14 JSON acis_data text lengths",
+    "export_result": "strict export refused before output at WIPEOUTVARIABLES source CLASS identity gate; no output was published",
+    "git_diff_check": "passed"
+  },
+  "nonclaims": [
+    "The source producer has not been independently authenticated.",
+    "Peer-projected text-length agreement does not prove SAT topology or geometry semantics.",
+    "No B-rep kernel, native CAD acceptance, or whole-document DXF output is qualified.",
+    "Other AC1018 producer profiles and AC1021/AC1024 SAT-v1 profiles remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}

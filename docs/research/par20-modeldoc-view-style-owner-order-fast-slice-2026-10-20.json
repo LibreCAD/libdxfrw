@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 ModelDocViewStyle owner order fast slice",
+  "mode": "Generated ASCII/Binary implementation and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Assert physical OBJECTS order for the existing DETAILVIEWSTYLE and SECTIONVIEWSTYLE NOD graph in ASCII and Binary DXF.",
+    "Check emitted NOD, owner dictionary, nested dictionary, and typed-child handles resolved by strict readback.",
+    "Correct stale negative-control expectations to match the earliest source-generation and generic owner-closure refusal boundaries."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "filesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par20-modeldoc-view-style-owner-order-fast-slice-2026-10-20.json"
+    ],
+    "generatedControls": [
+      "The existing ModelDocViewStyle selector exercises both ASCII and Binary DXF output and requires the actual NOD as the first OBJECTS record.",
+      "The NOD must precede DETAILVIEWSTYLE, SECTIONVIEWSTYLE, and CUSTOM_ROOT_METADATA dictionaries; each owner dictionary must precede its children.",
+      "The DETAILVIEWSTYLE dictionary must precede both detail styles and nested CUSTOM_CHILD_METADATA; the SECTIONVIEWSTYLE dictionary must precede its section style.",
+      "Wrong-owner negative controls now assert their actual earlier source-generation or generic graph-owner diagnostic and retain the seeded destination."
+    ],
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "newTestTargets": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "directSelector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks (exit 0; expected negative-control diagnostics printed)",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check on scoped changed files; JSON parses with jq; trailing-whitespace scan clean",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0
+  },
+  "assessment": {
+    "closes": "Physical NOD-first and owner-before-owned output order for the existing generated ModelDocViewStyle graph in ASCII and Binary DXF.",
+    "doesNotClose": [
+      "A generic OBJECTS scheduling algorithm or every root/owner family.",
+      "Every Detail/SectionViewStyle schema variant or external producer behavior.",
+      "Native application acceptance, broad named-resource support, or 3D semantic support."
+    ],
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "commitCreated": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

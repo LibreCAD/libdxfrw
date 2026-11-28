@@ -1,0 +1,18 @@
+{
+  "id": "p6-legacy-ocs-forward-scaled-dot-overflow-2026-11-11",
+  "scope": "HATCH and inherited MPOLYGON OCS-to-WCS boundary point/vector conversion.",
+  "finding": "The forward OCS transform used ordinary three-term sums. A generated finite input near DBL_MAX makes the first two terms of one WCS component sum to 1.0164606460748587 * DBL_MAX before a third term cancels them to a finite final value; the old expression overflows at the intermediate sum.",
+  "change": "For finite coordinates above DBL_MAX/4, the transform now attempts the validated stable OCS basis and a scale-normalized compensated dot product with fused product residuals. If the stable route cannot represent the result or validate the basis, the existing calculation remains the fallback. Ordinary-magnitude behavior retains the existing calculation.",
+  "generated_control": {
+    "normal": [-0.5598695611870558, -0.5866966310980342, 0.585092417925947],
+    "ocsVectorOverDBL_MAX": [-0.869681926769897, 0.9829157734821004, 0.14921939908714688],
+    "expectedWcsVectorOverDBL_MAX": [-0.31568660864772236, 0.9289141273359566, 0.884419023840071],
+    "purpose": "Verify finite WCS point and vector output with the expected normalized coordinates after cancellation in the Y component."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+    "test": "ctest --test-dir build -R '^libdxfrw_dxf_hatch_ocs_wcs_coordinate$' --output-on-failure",
+    "result": "Build passed; focused CTest passed 1/1."
+  },
+  "limits": "This closes a representable-intermediate-overflow case for the forward HATCH/MPOLYGON coordinate path. It does not establish exact arithmetic, behavior for every extreme input, native rendering, or producer interoperability; no drawing fixture was added."
+}

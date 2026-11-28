@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-block-owner-and-eed-bounded-controls-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Implement the latest PAR-49/7G.3 and PAR-14/PAR-26 generated controls for mixed BLOCK_RECORD ownership and bounded per-application EED spans.",
+  "implementation": {
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "behavior": [
+      "Adds a source-generated valid/missing/valid owner-list control to the lower-level BLOCK_RECORD walker and verifies both surviving entity identities and their order.",
+      "Runs the production readDwgBlocks preflight with one missing middle owned handle; verifies exact missing-handle attribution, whole-record quarantine, no partial scope callbacks, and publication of a separate valid block.",
+      "Adds a two-application EED vector with typed control/integer and binary items, an explicit zero-size terminator, and a following object sentinel.",
+      "Adds a malformed binary-item length that exceeds its declared application span while a valid next EED chunk and object sentinel remain; verifies output atomicity, exact cursor boundary, and independent next-chunk parsing.",
+      "Adds a framed AC1027 entity/block case proving malformed EED publishes no LINE callback from its block and does not prevent an independent valid block and following LINE from being processed.",
+      "All DWG bytes are generated in memory; no committed drawing fixture is added."
+    ],
+    "productionCodeChanged": false,
+    "testRegistrationsAdded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiChanged": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "git diff --check -- tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "readerMatrixExecutable": "passed",
+      "owningCTest": "passed: 1/1",
+      "scopedDiffCheck": "passed"
+    }
+  },
+  "qualification": {
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "supportClaimsPromoted": 0,
+    "findingsAndSubplans": "127/71",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing changes"
+  },
+  "nextReadinessSlice": "Implement PAR-127/7BE.10 checked DWG header timestamp conversion with generated boundary and transactional retry controls."
+}

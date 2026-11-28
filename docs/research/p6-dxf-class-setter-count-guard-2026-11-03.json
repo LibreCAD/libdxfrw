@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-class-setter-count-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bound DXF CLASS setter staging to the existing parser admission ceiling and refuse rejected class input during CLASS preflight.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "Both const-vector and rvalue setDxfClasses overloads reject more than 65,536 classes before copying or moving caller input.",
+      "The const-vector setter copies to a temporary and swaps only after successful allocation; allocation failure marks the pending class input rejected.",
+      "Rejected CLASS input causes AC1012+ CLASS preflight to fail, preventing stale class metadata from being serialized. R12 keeps its existing no-CLASSES behavior and retains the metadata for a later target revision.",
+      "A later valid setter call clears the rejection state, allowing corrected same-codec preflight retry."
+    ]
+  },
+  "validation": {
+    "build": [
+      "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4"
+    ],
+    "focused": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_class_count_bound|dwg2dxf_dxf_class_typed_capture_limits|dwg2dxf_proxy_entity_output_gate)$' --output-on-failure",
+        "result": "PASS 3/3",
+        "coverage": "ASCII/Binary setter refusal before copy/move, caller/prior-state preservation, corrected same-codec preflight retry, existing CLASS capture limits and proxy CLASS output gate."
+      }
+    ],
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The 65,536 limit is an internal resource ceiling shared with the DXF parser, not a format support claim.",
+    "The selector exercises CLASS preflight rather than serializing a full drawing; it does not qualify physical producer coverage or native consumer behavior.",
+    "Private dxfRW layout changed; downstream consumers must rebuild, and ABI compatibility remains an open P8 gate.",
+    "Other staging/assembly paths, allocation-failure injection, rollback after earlier staged records, source lifetime and platform policy remain open."
+  ],
+  "next": "Continue the safety and caller-state audit on other independently staged metadata and rollback paths."
+}

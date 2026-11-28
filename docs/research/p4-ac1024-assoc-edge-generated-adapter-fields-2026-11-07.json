@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-edge-generated-adapter-fields-2026-11-07",
+  "date": "2026-11-07",
+  "title": "Generated AC1024 Edge persistent-subentity adapter output proof",
+  "supportClaimEffect": "none",
+  "scope": "Exercise generated ASCII/Binary associative geometry dependency output, typed Edge field preservation, post-plan source mutation refusal, destination rollback and same-adapter retry.",
+  "source": {
+    "kind": "locally-authored-in-memory-control",
+    "fixtureCommitted": false,
+    "version": "AC1024",
+    "profile": {
+      "persistentSubentityClass": "AcDbAssocEdgePersSubentId",
+      "classVersion": 0,
+      "index1": 201,
+      "index2": 202,
+      "dependentOnCompoundObject": false
+    }
+  },
+  "implementation": {
+    "adapterProfileGate": "Accepts either the existing field-free SingleEdge profile or the exact generated/physical Edge shape with parsed fields, class version 0 and nonnegative indices; compound-dependent remains refused.",
+    "snapshotEquality": "Compares parsed state, class version and both indices for retained source equality.",
+    "readback": "Fresh ASCII/Binary DXF import compares all Edge fields in addition to references and the common geometry-dependency profile.",
+    "mutationControls": [
+      "Change fieldsParsed after planning; verify atomic refusal and destination sentinel preservation.",
+      "Change classVersion after planning; verify atomic refusal and destination sentinel preservation.",
+      "Change index1 after planning; verify atomic refusal and destination sentinel preservation.",
+      "Change index2 after planning; verify atomic refusal and destination sentinel preservation.",
+      "Correct each field and retry the same adapter; verify exact fresh typed readback."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j6",
+    "test": "ctest --test-dir build-gcc -R '^dwg2dxf_associative_geometry_dependency_graph_export$' --output-on-failure",
+    "result": "1/1 passed (ASCII and Binary subcases)",
+    "fullSuites": "NOT_RUN"
+  },
+  "limits": [
+    "Generated codec and transaction evidence only; no physical DWG selected-output claim.",
+    "The ten source Edge records still need selected ASCII/Binary output and exact fresh readback.",
+    "Handle 0xC55 remains excluded, the civil null LTYPE_CONTROL member still blocks whole-source output, and no native or producer-wide claim is made."
+  ]
+}

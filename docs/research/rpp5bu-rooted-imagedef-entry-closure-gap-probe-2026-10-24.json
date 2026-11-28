@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bu probe",
+  "date": "2026-10-24",
+  "parentCommit": "eb52f30860bf33fa7f591cd0beb4efbd2d2ffb69",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "ROOTED_UNSELECTED_IMAGEDEF_ENTRY_LOSS_REPRODUCED_FIX_NOT_IMPLEMENTED",
+  "implementationComplete": false,
+  "productionCodeChanged": false,
+  "newCTestRegistered": false,
+  "diagnosticMode": "--probe-rooted-imagedef-entry-closure",
+  "exitContract": {"knownGapReproduced": 2, "setupOrObservedResultChanged": 1, "isPassingSupportGate": false},
+  "causalInspection": [
+    "dwg2dxf/dx_iface.cpp: collectImageDefinitions plans only IMAGE-selected definitions",
+    "dwg2dxf/dx_iface.cpp: sourceImageDictionary collection is conditional on a nonempty selected plan",
+    "src/libdxfrw.cpp: writeObjects skips source image-dictionary entries absent from m_plannedImageDefinitions",
+    "dwg2dxf/dx_iface.cpp: inspectRasterOutput skips unplanned definitions; its selected-object proof is not full root closure"
+  ],
+  "reproduction": {
+    "authoring": "Existing native public writer/read APIs; extra IMAGEDEF with no extension/reactor common graph, owned by the same actual HEADER/NOD-rooted image dictionary under UNUSED_IMAGE",
+    "sourceRevisions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "targetVersion": "AC1032",
+    "encodings": ["ASCII", "binary"],
+    "projectionCellsPerBuild": 12,
+    "sourceImages": 1,
+    "sourceDefinitions": 2,
+    "sourceImageDictionaryEntries": 2,
+    "outputImages": 1,
+    "outputDefinitions": 1,
+    "outputImageDictionaryEntries": 1,
+    "omittedKey": "UNUSED_IMAGE",
+    "omittedDefinitionName": "rooted-unused-image.png",
+    "sourceChecks": ["Actual usable HEADER NOD reference", "Complete source image dictionary", "Unique owning dictionary and correct NOD owner", "UNUSED_IMAGE entry points to the extra typed definition", "No extension/reactor on extra definition", "Four immutable raster raw/typed frames", "Joined actual class bindings and unchanged source correlation"],
+    "existingNarrowRasterOutputInspectorStillPasses": true,
+    "meaning": "Dictionary-reachable but IMAGE-unselected source definition/entry omitted by current compatible selected-definition projection; not an unreachable orphan",
+    "notProvenByProbe": ["Full document preservation", "All target DXF versions", "Complex unselected definition graphs", "Independent producer or semantic support"]
+  },
+  "specificationBasis": {"title": "ODA Open Design Specification for .dwg files v5.4.1", "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7", "chapter": "20", "page": 103, "use": "Used objects can be reached through HEADER references; no IMAGE entity user does not make a dictionary-owned definition unreachable"},
+  "validation": {
+    "normalBuild": {"result": "PASS", "strictWarnings": true, "targets": ["libdxfrw_dwg2dxf_adapter_tests", "lc3_compat_check"], "log": "/tmp/rpp5bu-probe-build.log"},
+    "normalProbe": {"result": "KNOWN_GAP_REPRODUCED", "exitCode": 2, "cells": 12, "log": "/tmp/rpp5bu-entry-closure-probe.log"},
+    "focusedRegression": {"result": "PASS", "passed": 3, "total": 3, "wallSeconds": 7.81, "parallelism": 3, "tests": ["dwg2dxf_rooted_custom_imagedef", "dwg2dxf_raster_class_history", "dwg2dxf_raster_dwg_source_profile_eed"], "log": "/tmp/rpp5bu-probe-regression.log"},
+    "asanBuild": {"result": "PASS", "targets": ["libdxfrw_dwg2dxf_adapter_tests", "lc3_compat_check"], "log": "/tmp/rpp5bu-probe-asan-build.log"},
+    "asanProbe": {"result": "KNOWN_GAP_REPRODUCED", "exitCode": 2, "cells": 12, "log": "/tmp/rpp5bu-entry-closure-asan-probe.log"},
+    "asanRegression": {"result": "PASS", "passed": 3, "total": 3, "wallSeconds": 17.63, "parallelism": 3, "tests": ["dwg2dxf_rooted_custom_imagedef", "dwg2dxf_raster_class_history", "dwg2dxf_raster_dwg_source_profile_eed"], "log": "/tmp/rpp5bu-probe-asan-regression.log"},
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "sanitizerFinding": false,
+    "fullOrOwningSuite": "NOT_RERUN_TEST_PROBE_ONLY"
+  },
+  "implementationReadiness": [
+    "Resolve complete unique current-document image dictionary even with no selected IMAGE entities",
+    "Plan every admitted rooted definition; preserve metadata/EED, ordered entries/roles, bounded accounting and actual emitted identity",
+    "Close common extension/reactor references without silently narrowing to simple definitions or dropping unsupported targets",
+    "Extend independent output proof to the entire admitted dictionary inventory, including only-unselected and empty-root cases",
+    "Turn this nonzero gap probe into positive preservation CTest, add mutation/output-fault/refusal/retry controls and run affected owning validation after production changes"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL", "J260": "DEFERRED_EXTERNAL", "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL", "J293": "DEFERRED_EXTERNAL", "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {"newDownloadedOrCommittedDrawings": 0, "existingUntrackedDrawingsExcluded": 17, "earlierReceiptsModified": false, "unrelatedUntrackedFilesPreserved": true, "remoteMutations": false}
+}

@@ -1,0 +1,17 @@
+{
+  "topic": "SUNSTUDY declared DXF date and hour array truncation",
+  "date": "2026-11-03",
+  "authority": {
+    "title": "Autodesk AutoCAD DXF Reference: SUNSTUDY",
+    "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-1C7C073F-4CFD-4939-97D9-7AB0C1E163A3.htm",
+    "scope": "Group 91 declares date count, with two group-90 values per date; group 73 declares hour count, with one group-290 value per hour. The first group-90 value is the class version, and an additional group-290 value may specify subset use."
+  },
+  "finding": "The tolerant typed and raw callbacks could publish a declared but incomplete array. Copies reset the remaining-count state, and typed output silently serialized only the represented entries.",
+  "implementation": "Reuse existing parser counters to preserve an incomplete marker through updated inline copy and assignment, and reject typed DXF and DWG output before writing or allocating handles until the caller explicitly accepts repaired arrays. Default objects and records with missing counts retain their prior behavior. Raw callbacks and existing graph-output gates are unchanged.",
+  "validation": "Generated ASCII and binary DXF exercise complete arrays, missing and zero counts, incomplete date pairs and hour flags, callbacks, copies, raw groups, output refusal, explicit repair and retry. The DWG codec and direct writer are exercised for refusal and retry. The focused selector is libdxfrw_sunstudy_dxf_hour_count.",
+  "limitations": [
+    "Consumers compiled with an older inline copy or assignment operator can still discard the marker when copying a parsed object; rebuild consumers to obtain this protection.",
+    "Absent count fields are not classified as incomplete, preserving tolerance for producers relying on defaults.",
+    "This is generated control evidence only; it does not establish native SUNSTUDY owner-graph closure or promote DWG/DXF interoperability claims."
+  ]
+}

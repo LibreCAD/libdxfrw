@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-imagedef-reactor-count-and-reserve-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Staging, admission, and output bounds for specialized IMAGEDEF and IMAGEDEF_REACTOR DXF output.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "IMAGEDEF plans refuse selected-reactor, common-reactor, or preserved-reactor collections above dwgSafety::MaxReactorCount (1,000,000).",
+      "writeObjects validates caller-owned IMAGEDEF collections before opening its OBJECTS output transaction.",
+      "The regenerated IMAGEDEF reactor list uses DRW::reserve, enforces the aggregate emitted-reference limit, and uses a second exception-catching reservation for duplicate detection while retaining source order for output.",
+      "The selected source-reactor lookup catches allocation exceptions and fails through the existing output rollback path.",
+      "writeImageRecord refuses another generated IMAGEDEF_REACTOR once the preserved-reactor bound is reached."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+    "focused": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_image_definition_reactor_count_bound$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "ASCII/Binary IMAGEDEF records with 1,000,001 common reactor references refuse without publishing output."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_image_definition_plan_failure_retry$' --output-on-failure",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_generated_image_dictionary_source_identity$' --output-on-failure",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_rooted_image_dictionary_closure$' --output-on-failure",
+        "result": "FAIL",
+        "coverage": "The broader selector fails in the mode-1 AC1015-to-AC1015 ASCII projection during TABLES emission, before IMAGEDEF/IMAGEDEF_REACTOR output. Its adjacent FIELDLIST warning is not established as causal: the failing imported source had zero typed/raw FIELDLIST records and no NOD ACAD_FIELDLIST entry. The exact TABLES callback remains unidentified."
+      }
+    ],
+    "repositoryFixturesAdded": 0,
+    "allocationFailureInjected": false
+  },
+  "limitations": [
+    "The 1,000,000 limit is the existing internal reactor resource ceiling, not an Autodesk format maximum or support claim.",
+    "Allocation-failure injection, unrelated OBJECTS assembly collections, and other copy/work bounds remain open.",
+    "The rooted IMAGEDEF closure selector now passes; this local result does not establish native CAD semantics or promote support claims."
+  ],
+  "next": "Continue the bounded safety audit on remaining output staging paths and allocation-failure behavior; do not reopen the resolved TABLES proof issue without a new failure.",
+  "followUp": {
+    "id": "p6-dxf-rooted-imagedef-layer-control-optional-extension-fix-2026-11-03",
+    "finding": "The original rooted IMAGEDEF closure failure was caused by standard DWG TABLES proof rejecting a valid LAYER_CONTROL handle with no extension dictionary when EED table-name checks were active. The FIELDLIST warning was unrelated.",
+    "fix": "The proof now validates the control/dictionary pair only when an extension dictionary is present. A present dictionary still requires a complete, unambiguous pair.",
+    "regressionControl": "Generated AC1032 mode-1 setup asserts a captured control handle and absent extension dictionary; the rooted IMAGEDEF closure matrix now passes.",
+    "validation": {
+      "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "focused": [
+        "PASS: dwg2dxf_rooted_image_dictionary_closure",
+        "PASS: dwg2dxf_dwg_layer_table_control_dictionary"
+      ],
+      "repositoryFixturesAdded": 0
+    },
+    "receipt": "docs/research/p6-dxf-rooted-imagedef-layer-control-optional-extension-fix-2026-11-03.json"
+  }
+}

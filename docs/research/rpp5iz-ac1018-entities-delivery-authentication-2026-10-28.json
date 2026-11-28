@@ -1,0 +1,72 @@
+{
+  "schema": "ac1018-entities-delivery-authentication-v1",
+  "date": "2026-10-28",
+  "codeCommit": "d70643b20880b5dbe3cd897eb91c1c4480dc54ca",
+  "scope": "Default-off, bounded codec-owned authentication of AC1018 ENTITIES physical source and delivery-manifest publications for explicitly opted-in consumers; no compound, ownership, namespace, output or native support is established.",
+  "route": {
+    "timing": "Freeze each physical source immediately before its existing callback; complete and freeze its delivery manifest immediately before its existing later callback. Existing point/entity, physical and manifest callback order is unchanged.",
+    "authentication": "An opaque codec-owned read/section ticket is available only during its exact publication. After a successful read, adapter-retained physical and manifest values must match all frozen scalar, string, variant, span, counter and vector fields, including ignored comments, and match the same ticket owner and pointer. Source-only capture is supported; dropped, copied, duplicated, swapped, altered, exceptional or partial publications cannot establish the retained proof.",
+    "limits": "Scope, record, group, dispatch, event, bytes and work limits are checked before scans, copies and comparisons; every scope reserves work for two worst-case full ticket-scope scans. A caller-provided pointer and shared owner are compared to known tickets before the pointer is dereferenced.",
+    "compatibility": "The reader ledger and AC1018 adapter route are opt-in; default 2D behavior and the previously selectable legacy physical-only facet stay unchanged. Existing modern profile gates are unchanged."
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_entities_ledger_codec",
+      "libdxfrw_entities_ledger_adapter",
+      "libdxfrw_entities_source_transport",
+      "libdxfrw_entities_delivery_transport",
+      "libdxfrw_entities_immutable_origins",
+      "libdxfrw_entities_compound_source",
+      "libdxfrw_entities_primary_source",
+      "libdxfrw_identity_source_namespace"
+    ],
+    "normal": "PASS 8/8",
+    "asan": "PASS 8/8",
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "normalLogSha256": "6e92c32174fec16201a2c260cb60217758a5bfbe46a8f9bbb1b81343a31ecba9",
+    "asanLogSha256": "993a186531d127295107e78ab6786068d90e21042a23746445666ae6e5ba2d02",
+    "normalTestExecutableSha256": {
+      "codec": "85f82b851e7583a01011733c6ad789698a82586b20daca5c401c592f74bf6941",
+      "adapter": "059a6bfc933654f6bf9fe82b100bdcf4b084238f90ae2cb64e7d5864c09c742e",
+      "existing": "9e25304480ec4199176247b2d150915e18de325eb9aa56c9b38d8945be5320d3"
+    },
+    "asanTestExecutableSha256": {
+      "codec": "00845693488b0aa9091eecab56c511e8d4c9d1b594d60524ef2022cff259aab5",
+      "adapter": "60fc8312b887573d8358abfea08c6d9c7f72005c0c3b2ea229965678f2d07264",
+      "existing": "74db6220ce6323bef09a438521fbbbaab93f82d54ce8fe312e0cf78688843d0c"
+    },
+    "normalLibrarySha256": "cc5e4c13cabbb65170f6498ed9acf355084ddfdc056e3a017163c694aa32afd2",
+    "asanLibrarySha256": "b707a24f4efc5f606c03b3d77a475be8f517374996fb4809007b6cea244bd1a8",
+    "controls": "80 scalar, hidden-state, span and vector mutation checks; eight forged pointer/owner/empty-owner refusals; two ENTITIES sections; seven independently lowered quota boundaries and fresh-reader retries; eight injected freeze-allocation failures; three callback exception and partial-read retries; cross-reader, cross-generation and reentrant refusal; 20 ASCII/binary adapter omission, copy, duplication, tamper and exception cases with fresh-data retries; same-data retry remains refused by existing generation-1 policy; source-only, old physical-only and default opt-out controls. The source fixture is authored locally at runtime."
+  },
+  "realSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "result": "The shared normal adapter/library captures 185 original records and 165 dispatch proofs; INSERT 704, ATTRIB 705 and SEQEND 706 remain ProfileMismatch. ATTRIB group 10 raw spelling is 920.6796266627232. Control temporarily changes and restores this spelling before forwarding and passes; attack forwards the changed spelling then restores it and both retained captures fail, with no compound audit.",
+    "baselineProbeSourceSha256": "593987ce9461e5245e6b69717cf0c18b060b45ed80f6b9202adcb8d1d720a180",
+    "mutationProbeSourceSha256": "c04730389fa3889dca23ea5201d02cbd851582258b8fa9a1fdfca8a628d76a08",
+    "baselineExecutableSha256": "fff1b2d6510dbb31c29f4ee33c9649928d7c5e5d65328c2464fdee6ec36bd4e1",
+    "mutationExecutableSha256": "d2a99c8aaa4f163168c3b780f6a6afc03d7fdcd99ff1fa3d479067df55700703",
+    "baselineOutputSha256": "969885104a636a56e553af81226e492409c41d2af00fb0b5785104de5e374c8f",
+    "mutationOutputSha256": "708905b17277604fb9ccf74bd2b9397e7781124a4058d7c0c6544662570a93ed",
+    "adapterObjectSha256": "ccb202e971751ae7a8d162fc191184890ac3dda35d276888efe10692d150f9ae"
+  },
+  "bindings": {
+    "src/drw_base.h": "ea1bc6a9ee0376bef4996df5727c92e50195e48d4cda189eb4a79ed6aa70b9ac",
+    "src/libdxfrw.h": "86b8a1d16b7b39794b7f248b38f7f6a4cdfd87f5c113da77d782b02c13e659e5",
+    "src/libdxfrw.cpp": "ae3f89554008bbc5fd82ce5748e1cef9e8e3aa7685d22edc60a8052b3685ce31",
+    "src/intern/dxfentitiesauth.h": "e25160629c58687fb40cc9524e2fff1d750b582b33494d8bd1e9dcd941101a81",
+    "dwg2dxf/dx_data.h": "cc7ba632682e3ae987281523ebd7b9a1729451ce46882f17b1c0c03fd94efc1a",
+    "dwg2dxf/dx_iface.cpp": "221d4dff08694a8d2c176b5ce262af0500d446f3721a0fff72c4bae9661f3647",
+    "tests/CMakeLists.txt": "0df3acda5290180c112bdd5b99ed639a073e299a93c371bf439b329b50604248",
+    "tests/entities_ledger_codec_tests.cpp": "fde8daad465d80f90acb708c7c1eec023a730b8166124c2a0f9e48d7efd08381",
+    "tests/entities_ledger_adapter_tests.cpp": "41c12c2a33c30299aae26b726621a0979c3e057838936b84361e293338cfb81c"
+  },
+  "limits": [
+    "The AC1018 compound profiles and original membership/ownership, APPID/LAYER target roles, full document closure, output, independent CAD semantics and native platform qualification remain separate open work.",
+    "The public dxfRW class layout changes and dependent binaries must rebuild; no new DRW_Interface virtual is added.",
+    "The retained source fixture is external; no external or generated drawing fixture was committed."
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "id": "par134-hatch-gradient-opaque-cmc-retention",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": {
+    "class": "DRW_Hatch::GradientStop shared by HATCH and MPOLYGON",
+    "fields": [
+      "R2004+ gradient CMC reserved index",
+      "packed 32-bit method/color word",
+      "raw optional-name/book flags and text",
+      "exact source DWG version for opaque replay admission"
+    ],
+    "specification": "ODA Open Design Specification v5.4.1 §§2.11 and 20.4.75",
+    "semanticLimit": "C4-C8 are retained as opaque method bytes only; no HATCH color meaning or DXF mapping is asserted."
+  },
+  "evidence": {
+    "primaryReference": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "localSpecificationReview": [
+      "§2.11: R2004+ CMC has a reserved BS color index, packed BL value, and RC flags for optional TV name/book strings.",
+      "§20.4.75: HATCH repeats BD position, BS, BL, and RC fields per gradient color."
+    ],
+    "confirmedGap": "The bounded HATCH/MPOLYGON reader rejected all CMC methods beyond C0-C3, preventing exact DWG preservation despite a structurally valid bounded tuple."
+  },
+  "change": [
+    "Retain C4-C8 HATCH/MPOLYGON gradient CMC as opaque raw state with neutral RGB/ACI projection; preserve optional strings according to the original flags.",
+    "Replay opaque CMC only to the exact source DWG version, and only while method, reserved index, flags, neutral typed fields, and optional-string presence remain consistent.",
+    "Keep typed ASCII and Binary DXF output fail-closed for these unmapped methods; no semantic claim is promoted.",
+    "Add generated controls for AC1018 inline strings and AC1024 detached strings, raw packed-word replay, following-field/LINE alignment, malformed-state and cross-version refusal, and destination-preserving ASCII/Binary DXF refusal."
+  ],
+  "generated_controls": [
+    {"source_version": "AC1018", "method": "C5", "packed_word": "0xC5000007", "flags": "0x03", "expected": "parse neutral projection and re-emit exact raw tuple and strings"},
+    {"source_version": "AC1018", "method": "C8", "packed_word": "0xC8ABCDEF", "flags": "0x00", "expected": "parse neutral projection and re-emit exact raw tuple"},
+    {"source_version": "AC1024", "expected": "same-version DWG HATCH roundtrip retains both raw tuples and following LINE"},
+    {"source_version": "AC1024", "object": "MPOLYGON", "expected": "same-version DWG roundtrip retains both raw tuples and following LINE"},
+    {"source_version": "AC1024", "target_version": "AC1027", "expected": "refuse opaque replay before emitting body/handles"},
+    {"target": "ASCII and Binary DXF", "objects": ["HATCH", "MPOLYGON"], "expected": "refuse before replacing the existing destination"}
+  ],
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf lc3_compat_check -j4: PASS (-Werror)",
+    "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-gradient-cmc: PASS",
+    "build-gcc/libdxfrw_dwg_local_roundtrip --mpolygon-fill-cmc: PASS",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|libdxfrw_wave1)$' --output-on-failure: PASS (2/2)",
+    "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/dwg_local_roundtrip_tests.cpp: PASS"
+  ],
+  "fixtures_added": false,
+  "full_suite_run": false,
+  "external_producer_or_native_application_run": false,
+  "publicLayoutChanged": true,
+  "consumerRebuildRequired": true,
+  "support_claim_changed": false,
+  "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "remaining": [
+    "Producer-authored evidence for HATCH C5 and the C4/C6-C8 semantics remains open.",
+    "Continue exact field-context audit of associative variants; generated tests are not producer evidence.",
+    "Native FreeCAD Linux/Windows and independent ACIS/ACDS semantic qualification remain separate gates."
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-helix-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_HELIX_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add fast full-operation allocation rollback, same-writer retry and typed readback for the direct HELIX writer across all admitted revisions.",
+  "source": {
+    "kind": "locally generated in-memory DRW_Helix entity",
+    "profile": "One degree-2 HELIX with three control points, six knots, nondefault Helix major/maintenance versions, axis base/start/vector, radius, turns, turn height, handedness and constraint type.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-helix-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "f8302803f9612abfabd793dd5a284a978ac0807fce85e4ffc3ab7cba889eeacb",
+    "testExecutableSha256": "8e5f1762d4279253679a71bc746e0d24a6896eb0321c67bba2cecb3f56d5142c",
+    "method": "For each revision and encoding, calibrate the successful full-document write, inject std::bad_alloc at every measured allocation, require sentinel destination bytes, caller spline/Helix fields and derived identities to survive, retry on the same codec and compare exact bytes, then freshly import and verify the revision, spline control/knot vectors and Helix fields."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 86, "Binary": 86},
+    "AC1015": {"ASCII": 88, "Binary": 88},
+    "AC1018": {"ASCII": 88, "Binary": 88},
+    "AC1021": {"ASCII": 88, "Binary": 88},
+    "AC1024": {"ASCII": 95, "Binary": 95},
+    "AC1027": {"ASCII": 88, "Binary": 88},
+    "AC1032": {"ASCII": 88, "Binary": 88},
+    "totals": {"ASCII": 621, "Binary": 621, "all": 1242}
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_helix_version_allocation_transaction$' --output-on-failure: PASS 1/1 in 2.93 seconds",
+    "directRun": "build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests build-gcc/tests/helix-version-allocation helix: PASS; all 1,242 measured allocation offsets passed rollback, same-writer byte-identical retry and typed readback.",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated writer transaction and same-library self-readback evidence only; producer and native Helix behavior remain unqualified.",
+    "One degree-2 profile is covered; additional producer-specific spline/Helix profile variants remain outside this receipt.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Generated HELIX whole-operation rollback, caller-state preservation, same-writer byte-identical retry and typed readback now span AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 in ASCII and Binary.",
+    "remainingP6G": "Continue the exact public-writer inventory and uncovered version/profile variants; producer and native Helix semantics remain separate gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "274 completed slices and 35 remaining packages: 274/(274+35)=88.7%; count-based activity proxy only."
+  }
+}

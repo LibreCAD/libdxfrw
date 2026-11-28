@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw-comparator-scope-review-v1",
+  "reviewedAt": "2026-10-17",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Deepen the optional netDxf comparator profile for entity-scoped XDATA and DIMENSION display-block behavior; reconcile against Autodesk DXF rules and the existing local classic VERTEX XDATA fix.",
+  "method": {
+    "kind": "Primary Autodesk documentation plus pinned peer release/changelog/API and local-plan/source inspection",
+    "peerRevision": "netDxf v3.0.1, commit 3d24d7c",
+    "peerExecutableBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+      "https://github.com/haplokuon/netDxf/releases/tag/v3.0.1",
+      "https://github.com/haplokuon/netDxf/blob/3d24d7c/doc/Changelog.txt",
+      "https://github.com/haplokuon/netDxf/blob/3d24d7c/netDxf/DxfDocument.cs"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-79 and committed 7AS.1 ledger",
+      "tests/dxf_fixture_tests.cpp: generated classic VERTEX XDATA matrix",
+      "src/libdxfrw.cpp: generic XDATA structure, APPID length, and registration preflight"
+    ],
+    "limitations": "The netDxf changelog's explanation that AutoCAD crashes on vertex XDATA is the library author's rationale, not normative Autodesk evidence. No external runtime or native application was used to verify either peer behavior or consumer acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "Normative XDATA ownership and graph semantics",
+      "observed": "Autodesk documents XDATA as following the normal definition of each entity, preserving order, grouping data by registered application name, permitting at most one group for each application on an entity, and translating 1005 database handles along with referenced entities. AUDIT treats a handle not matching a database entity as an error.",
+      "doesNotEstablish": [
+        "that every entity class or version has identical producer behavior",
+        "that libdxfrw tolerant reading accepts every malformed XDATA stream",
+        "that an external parser preserves arbitrary raw XDATA"
+      ],
+      "planUse": "Score ordered XDATA at its actual record owner; treat APPID grouping and 1005 as structural/reference contracts rather than strings."
+    },
+    {
+      "topic": "netDxf child-vertex XDATA projection boundary",
+      "observed": "The pinned netDxf lineage states that classic PolylineVertex and PolyfaceMeshVertex XDATA are not written and attributes this policy to AutoCAD crash behavior; a later model revision replaced vertex objects with coordinate lists. The repository is archived, and these statements describe this peer's model/write route.",
+      "doesNotEstablish": [
+        "that Autodesk DXF prohibits XDATA on a VERTEX record",
+        "that all netDxf versions or consumers behave identically",
+        "a defect in libdxfrw, whose PAR-79/7AS.1 child-XDATA fix is already recorded as committed"
+      ],
+      "planUse": "Mark child VERTEX XDATA as PEER_MODEL_LIMITATION in any optional netDxf differential report; do not count peer output omission as a local mismatch."
+    },
+    {
+      "topic": "netDxf DIMENSION display-block behavior",
+      "observed": "The pinned DxfDocument API says dimension-block generation is disabled by default and the optional generated dimension graphics are limited. This is distinct from reading/writing a typed DIMENSION record or from native application rendering.",
+      "doesNotEstablish": [
+        "whether a specific source-authored dimension has a valid anonymous block",
+        "dimension rendering correctness in AutoCAD, BricsCAD, LibreCAD, or FreeCAD",
+        "semantic equivalence of generated anonymous block geometry"
+      ],
+      "planUse": "Compare typed dimension fields separately; keep display-block regeneration and rendering on the existing composed downstream/native acceptance lane."
+    },
+    {
+      "topic": "Existing local PAR-79/7AS.1 coverage",
+      "observed": "The plan records committed child-XDATA emission and a generated ASCII/binary test matrix covering 2D, 3D, and polyface VERTEX children, parent/child/next-record scope, ordered values, and round-trip parsing.",
+      "doesNotEstablish": [
+        "peer or native acceptance",
+        "DWG EED parity for the same data",
+        "all application-specific XDATA schemas"
+      ],
+      "planUse": "Keep existing local tests as the fast implementation gate; no new finding or test is required by this research."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "owners": [
+      "PAR-19/7K XDATA structure and handle handling",
+      "PAR-79/7AS.1 classic VERTEX XDATA",
+      "composed DXF comparator gate"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "Classify netDxf child VERTEX XDATA as an explicit peer model limitation, not a local mismatch.",
+      "Separate typed DIMENSION record comparison from anonymous display-block generation and rendering.",
+      "Keep generated local ASCII/binary tests as the fast gate; optional peer checks remain composed-checkpoint-only.",
+      "Interpret Autodesk's XDATA one-APPID-group-per-entity and handle rules as record-scoped structural/reference requirements."
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT_RUN",
+    "nativeQualification": "NOT_RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

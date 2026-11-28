@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p6-dxf-sun-allocation-rollback-retry-2026-11-13",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6 safety and caller-state audit",
+  "scope": "Add generated whole-operation allocation rollback/retry coverage for an OBJECTS SUN record.",
+  "profile": {
+    "targetVersion": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "fields": {
+      "classVersion": 0,
+      "isOn": true,
+      "aciColor": 7,
+      "intensity": 0.625,
+      "hasShadow": true,
+      "julianDay": 2460000,
+      "milliseconds": 43210000,
+      "daylightSavings": true,
+      "shadowType": 2,
+      "shadowMapSize": 1024,
+      "shadowSoftness": 3
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 4",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure",
+    "result": "PASS, 1/1 test",
+    "allocationOffsets": {
+      "ascii": 547,
+      "binary": 540,
+      "eachOffset": "Injected failure refused the write, preserved the previous destination and caller SUN fields, and allowed same-codec retry to reproduce clean output with typed readback."
+    }
+  },
+  "scopeLimit": "This closes generated allocation transaction coverage for one AC1027 SUN record only. It does not qualify native lighting behavior, CMC variants, or independent producer acceptance.",
+  "fixturePolicy": "The drawing is generated under a scratch directory; no DWG/DXF fixture was added.",
+  "claimEffect": "No format support claim changes."
+}

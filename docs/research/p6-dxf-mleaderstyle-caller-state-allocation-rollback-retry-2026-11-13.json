@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-mleaderstyle-caller-state-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_MLEADERSTYLE_CALLER_STATE_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Strengthen AC1027 MLEADERSTYLE ASCII/Binary allocation rollback and retry assertions for the full initialized public style profile.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW_MLeaderStyle generated during each test run",
+    "profile": "One AC1027 MLEADERSTYLE with version 2, description, default text, text height, and two EED entries with distinct application and record group codes.",
+    "versions": ["AC1027"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/mleaderstyle_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-mleaderstyle-caller-state-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Compare type, handle, parent, styleVersion, description, textDefault, textHeight, and both EED codes and values after clean calibration, every injected allocation failure, and retry. Retain destination-sentinel rollback, same-codec exact-byte retry, and fresh typed readback."
+  },
+  "allocationOffsets": {
+    "AC1027": {"ASCII": 19, "Binary": 18},
+    "total": 37
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_mleaderstyle_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_mleaderstyle_objects_allocation$' --output-on-failure: PASS 1/1 in 0.31 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_mleaderstyle_objects_allocation_tests: PASS; 19 ASCII and 18 Binary offsets",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated object transport and transaction evidence only; producer interoperability and native MLEADERSTYLE rendering are not qualified.",
+    "Only the initialized fields of one AC1027 style profile are compared; other style values and dependency graphs remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The initialized MLEADERSTYLE caller profile remains unchanged on clean write, every injected failure, and same-codec retry, with byte-identical output and typed readback.",
+    "remainingP6G": "Continue the exact public-writer inventory and caller-state audit; retain producer, dependency, and native semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "189 completed slices and 35 remaining packages: 189/(189+35)=84.4%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-dimassoc-caller-state-allocation-rollback-retry-2026-11-13.json"
+}

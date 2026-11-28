@@ -1,0 +1,44 @@
+{
+  "title": "Generated DICTIONARYWDFLT malformed-body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_DICTIONARYWDFLT_BODY_RECOVERY_AC1015_AC1032_PASS",
+  "scope": "CLI disposition for a bounded malformed DICTIONARYWDFLT OBJECTS body with a separate complete plot-style default graph at AC1015, AC1018, AC1021, AC1024, and AC1032; AC1027 is checked at the existing source-reference gate.",
+  "selection": {
+    "source": "P6-F typed OBJECTS parser and extension-graph admission inventory",
+    "reason": "The first generated candidate isolated parser failure but did not match dx_iface's admitted output profile. This follow-up retains the malformed target as a separate frame and builds the exact generated NOD plot-style dictionary/default-placeholder graph needed for partial-output admission."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer in the temporary test directory; the test runner removes the generated DWG and DXF files.",
+    "generator": "--generate-cli-malformed-dictionary-default-body-source",
+    "profile": "The malformed ACDBDICTIONARYWDFLT candidate is at 0x700, followed in OBJECTS by a valid ACAD_PLOTSTYLENAME WDFLT at 0xB100 and ACDBPLACEHOLDER at 0xB200. The NOD contains exactly ACAD_PLOTSTYLENAME -> 0xB100; the WDFLT contains exactly Normal -> 0xB200 and uses 0xB200 as its default. A LINE at 0x701 is the retained-content sentinel.",
+    "mutation": "The generated valid source supplies a typed pre-mutation body. The generator flips one bounded body bit in the 0x700 candidate while preserving the common object header and handle; the complete plot-style graph remains intact.",
+    "limits": "The source is generated from scratch for parser-recovery and partial-output disposition. The failing candidate is separate from the preserved root graph. This does not establish producer-authored prevalence or general WDFLT semantics."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 5, "output_revision": "AC1021"},
+    "AC1018": {"controls": 5, "output_revision": "AC1021"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024"},
+    "AC1027": {"controls": 3, "output": "strict and explicit-partial output refused by the existing source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "Each generated malformed source reports exactly one failed OBJECTS frame, continues to the following LINE, and balances source, published, and failed frame counts.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel at AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "Explicit-partial ASCII/Binary output and fresh DXF readback preserve the LINE at AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "AC1027 strict and explicit-partial output preserve the destination and refuse at the existing source-reference qualification gate."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j2 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py and python3 -m json.tool on both DICTIONARYWDFLT receipts passed.",
+    "diff_check": "git diff --check passed after the plan and receipt update.",
+    "targeted": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_dictionary_default_recovery$' --output-on-failure passed 1/1 in 0.90 seconds and reported 28 controls after adding AC1032.",
+    "aggregate": "The dwg2dxf_cli_partial_read_disposition aggregate was not rerun for this isolated profile."
+  },
+  "limits": [
+    "AC1027 remains behind the existing source-reference gate.",
+    "Generated recovery evidence does not qualify producer-authored dictionary membership, general WDFLT graph closure, plot-style rendering semantics, or native application acceptance.",
+    "The preserved ACAD_PLOTSTYLENAME graph qualifies only this exact generated output profile.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

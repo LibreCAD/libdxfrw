@@ -1,0 +1,71 @@
+{
+  "slice": "PAR-134 MLEADER and MLEADERSTYLE DXF CMC loss guard",
+  "date": "2026-10-21",
+  "status": "implemented_in_worktree_uncommitted",
+  "scope": {
+    "formats": ["DXF ASCII", "DXF Binary"],
+    "versions": ["AC1032"],
+    "writers": ["dxfRW::writeMultiLeader", "dxfRW::writeMLeaderStyle"]
+  },
+  "source_evidence": [
+    {
+      "source": "Autodesk Common MLeader Group Codes (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-69B9139A-48B4-48A5-B3CF-A3233ABFBE49.htm",
+      "observation": "The common class table lists scalar groups for leader-line, text, and block-content colors; it does not list per-field RGB, color-name, or color-book extensions."
+    },
+    {
+      "source": "Autodesk MLeader Context Data Group Codes (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-EC56D0DE-026D-46AB-87B1-9692393B0C22.htm",
+      "observation": "The embedded context table lists scalar text, background-fill, and block-content color groups; it does not list per-field RGB/name/book extensions."
+    },
+    {
+      "source": "Autodesk MLeader Leader Line Group Codes (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-B2E6436A-F17D-4F59-9DE8-DBDB61AD36C6.htm",
+      "observation": "The reviewed leader-line table lists geometry, break indices, and line index but omits the color field; ODA v5.4.1 §20.4.86 resolves the omission by assigning CMC DXF group 92 to R2010+ nested line color and group 93 to override flags."
+    },
+    {
+      "source": "Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "observation": "§20.4.86 assigns nested LEADER_LINE CMC group 92 to line color and group 93 to override flags, with bit 2 selecting line-color override; this resolves the scalar mapping but does not specify RGB/name/book DXF companion groups."
+    },
+    {
+      "source": "Autodesk MLEADERSTYLE DXF",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+      "observation": "The style table lists scalar leader, text, and block color groups; it does not document per-field RGB/name/book extensions."
+    }
+  ],
+  "implementation": {
+    "mleader": "Before EntityRecordScope, refuse any of the six entity/context colors or any nested leader-line color whose RGB value is not the absent sentinel or whose name/book companion is nonempty.",
+    "mleaderstyle": "Before handle remapping or record output, refuse any of the three style colors with RGB/name/book companion state.",
+    "diagnostics": [
+      "unrepresentable-mleader-dxf-cmc-color",
+      "unrepresentable-mleaderstyle-dxf-cmc-color"
+    ],
+    "unchanged": "Scalar color group emission/order is unchanged; no generic 420/430 class-field mapping was invented."
+  },
+  "generated_controls": {
+    "mleader": "7 color locations x 3 companion kinds (RGB black, name, book name) x ASCII/Binary = 42 pre-publication refusals, plus scalar-only ASCII/Binary output controls.",
+    "mleaderstyle": "3 color locations x 3 companion kinds x ASCII/Binary = 18 pre-publication refusals, plus scalar-only ASCII/Binary output controls.",
+    "destination": "Each refusal verifies the existing output prefix is unchanged.",
+    "fixtures": "No persistent DWG/DXF fixture files added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests lc3_compat_check -j4",
+    "build_result": "PASS (-Werror strict build)",
+    "focused_test": "ctest --test-dir build-gcc -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+    "focused_result": "PASS (1/1)",
+    "diff_check": "git diff --check -- src/libdxfrw.cpp tests/wave1_tests.cpp",
+    "diff_result": "PASS"
+  },
+  "evidence_limits": [
+    "Generated vectors verify local writer admission only; no native application acceptance is established.",
+    "The nested leader-line scalar group-92 mapping is supported by ODA v5.4.1 §20.4.86 despite being omitted from the reviewed Autodesk table; RGB/name/book DXF companion mappings remain unestablished.",
+    "No external producer, independent semantic reader, native CAD run, full suite, or support promotion was used."
+  ],
+  "plan_state": {
+    "findings": 144,
+    "top_level_subplans": 78,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "next_local_item": "Continue PAR-134 CMC consumer audit for remaining RGB/name/book losses and class-specific DXF mapping, then continue PAR-03/PAR-04 context classification."
+  }
+}

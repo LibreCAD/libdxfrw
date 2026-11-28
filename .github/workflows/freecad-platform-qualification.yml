@@ -2,13 +2,42 @@ name: FreeCAD native platform qualification
 
 on:
   workflow_dispatch:
+    inputs:
+      candidate:
+        description: Build and probe the pinned downstream FreeCAD candidate
+        required: false
+        type: boolean
+        default: false
+      candidate_gui:
+        description: Also build and smoke-test the candidate GUI (virtual display on Linux)
+        required: false
+        type: boolean
+        default: false
+      candidate_pixels:
+        description: Verify generated mesh and line framebuffer visibility (requires candidate_gui)
+        required: false
+        type: boolean
+        default: false
+      candidate_platform:
+        description: Platforms to qualify
+        required: false
+        type: choice
+        options:
+          - both
+          - linux
+          - windows
+        default: both
+  push:
+    branches:
+      - 'codex/freecad-platform-qualification-*'
 
 permissions:
   contents: read
 
 jobs:
   linux-freecad:
-    name: FreeCAD 1.1.3 / Linux x86_64
+    if: ${{ (github.event_name != 'workflow_dispatch' || !(inputs.candidate || inputs.candidate_gui || inputs.candidate_pixels)) && (github.event_name != 'workflow_dispatch' || inputs.candidate_platform != 'windows') }}
+    name: FreeCAD 1.1.4 / Linux x86_64
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -17,15 +46,23 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Check out pinned optional legacy DXF importer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: yorikvanhavre/Draft-dxf-importer
+          ref: e060ef0d8fe7143c2e0ce34734b686ba073f3cc1
+          path: _freecad_legacy_addon
+          persist-credentials: false
+
       - name: Download and verify pinned FreeCAD release
         shell: bash
         run: |
           set -euo pipefail
-          asset=FreeCAD_1.1.3-Linux-x86_64-py311.AppImage
-          url="https://github.com/FreeCAD/FreeCAD/releases/download/1.1.3/${asset}"
+          asset=FreeCAD_1.1.4-Linux-x86_64-py311.AppImage
+          url="https://github.com/FreeCAD/FreeCAD/releases/download/1.1.4/${asset}"
           curl --fail --location --retry 3 --retry-delay 2 "$url" --output "$RUNNER_TEMP/$asset"
           printf '%s  %s\n' \
-            3a853eb69ee595f779f2255dbf80a765926981d8ff68903cefee4dfb03a8f5ef \
+            f6dc6ba676e5ac96a565ebc8d657232f94c6158e85b4352141bd1a46f6b43434 \
             "$RUNNER_TEMP/$asset" | sha256sum --check --strict
           chmod +x "$RUNNER_TEMP/$asset"
           (cd "$RUNNER_TEMP" && ./"$asset" --appimage-extract)
@@ -40,8 +77,13 @@ jobs:
 
       - name: Build, install, and qualify the Linux handoff
         shell: bash
+        env:
+          TMPDIR: ${{ runner.temp }}
         run: |
           set -euo pipefail
+          addon="$GITHUB_WORKSPACE/_freecad_legacy_addon"
+          test "$(git -C "$addon" rev-parse HEAD)" = e060ef0d8fe7143c2e0ce34734b686ba073f3cc1
+          git -C "$addon" diff --quiet HEAD -- dxfReader.py dxfLibrary.py dxfColorMap.py dxfImportObjects.py
           cmake -S . -B build -G Ninja \
             -DCMAKE_C_COMPILER=gcc-13 \
             -DCMAKE_CXX_COMPILER=g++-13 \
@@ -51,16 +93,19 @@ jobs:
             -DLIBDXFRW_BUILD_DOC=OFF \
             -DLIBDXFRW_BUILD_DWG2DXF=ON \
             -DLIBDXFRW_BUILD_TESTS=ON
-          cmake --build build --parallel 2 --target dwg2dxf
+          cmake --build build --parallel 2 --target dwg2dxf libdxfrw_dwg_local_roundtrip
           cmake --install build --prefix "$RUNNER_TEMP/libdxfrw install"
           installed="$RUNNER_TEMP/libdxfrw install/bin/dwg2dxf"
           cmake -S . -B build \
-            -DLIBDXFRW_ENABLE_FREECAD_TRACKED_AC1027_LINE_CONTROL=ON \
+            -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_LINE_CONTROL=ON \
+            -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_PRIMITIVE_CONTROL=ON \
+            -DLIBDXFRW_ENABLE_FREECAD_LEGACY_POLYFACE_CONTROL=ON \
+            -DLIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR="$addon" \
             -DLIBDXFRW_FREECADCMD_EXECUTABLE='${{ steps.freecad.outputs.cmd }}' \
             -DLIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE="$installed"
           cmake --build build --parallel 2 --target dwg2dxf
           ctest --test-dir build \
-            -R '^dwg2dxf_freecad_tracked_ac1027_line_' \
+            -R '^dwg2dxf_freecad_(generated_ac1021_(line|primitives)_.*|generated_ac1024_primitives_.*|generated_ac1032_primitives_.*|legacy_polyface(_ac1024|_ac1032)?_(open|insert)|cli_compat|installed_cli_compat)$' \
             --output-on-failure --verbose
 
       - name: Preserve native test evidence
@@ -73,7 +118,8 @@ jobs:
           retention-days: 14
 
   windows-freecad:
-    name: FreeCAD 1.1.3 / Windows x64
+    if: ${{ (github.event_name != 'workflow_dispatch' || !(inputs.candidate || inputs.candidate_gui || inputs.candidate_pixels)) && (github.event_name != 'workflow_dispatch' || inputs.candidate_platform != 'linux') }}
+    name: FreeCAD 1.1.4 / Windows x64
     runs-on: windows-2022
     timeout-minutes: 60
     steps:
@@ -82,59 +128,85 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up qualification Python
+        id: python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - name: Check out pinned optional legacy DXF importer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: yorikvanhavre/Draft-dxf-importer
+          ref: e060ef0d8fe7143c2e0ce34734b686ba073f3cc1
+          path: _freecad_legacy_addon
+          persist-credentials: false
+
       - name: Download, verify, and unpack pinned FreeCAD release
         id: freecad
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $asset = 'FreeCAD_1.1.3-Windows-x86_64-py311.7z'
+          $asset = 'FreeCAD_1.1.4-Windows-x86_64-py311.7z'
           $archive = Join-Path $env:RUNNER_TEMP $asset
-          $url = "https://github.com/FreeCAD/FreeCAD/releases/download/1.1.3/$asset"
+          $url = "https://github.com/FreeCAD/FreeCAD/releases/download/1.1.4/$asset"
           Invoke-WebRequest -Uri $url -OutFile $archive
-          $expected = '9c6959dc9c4dba64dd818a62447e3dfedb4221d776fb044b239d462f150bcec4'
+          $expected = '4828741fc91ee37fafcdb97a1abacb18b04ba451ac4372d9ff7a7349b36f4d6d'
           $actual = (Get-FileHash -Path $archive -Algorithm SHA256).Hash.ToLowerInvariant()
           if ($actual -ne $expected) {
             throw "FreeCAD archive SHA-256 mismatch: $actual != $expected"
           }
           $sevenZip = Join-Path $env:ProgramFiles '7-Zip\7z.exe'
           if (-not (Test-Path $sevenZip)) { throw "7-Zip not found: $sevenZip" }
-          $destination = Join-Path $env:RUNNER_TEMP 'FreeCAD 1.1.3'
+          $destination = Join-Path $env:RUNNER_TEMP 'FreeCAD 1.1.4'
           New-Item -ItemType Directory -Path $destination | Out-Null
           & $sevenZip x $archive "-o$destination" -y
           if ($LASTEXITCODE -ne 0) { throw "7-Zip extraction failed: $LASTEXITCODE" }
-          $commands = @(Get-ChildItem -Path $destination -Filter FreeCADCmd.exe -File -Recurse)
-          if ($commands.Count -ne 1) {
-            throw "Expected one FreeCADCmd.exe in the pinned archive, found $($commands.Count)"
+          # The pinned archive also contains a root launcher. Use the actual
+          # console executable in bin, whose layout is fixed by the hash above.
+          $command = Join-Path $destination 'FreeCAD_1.1.4-Windows-x86_64-py311/bin/freecadcmd.exe'
+          if (-not (Test-Path -Path $command -PathType Leaf)) {
+            throw "FreeCAD console executable missing from pinned archive: $command"
           }
-          "cmd=$($commands[0].FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "cmd=$command" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Build, install, and qualify the Windows handoff
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          $addon = Join-Path $env:GITHUB_WORKSPACE '_freecad_legacy_addon'
+          if ((git -C $addon rev-parse HEAD) -ne 'e060ef0d8fe7143c2e0ce34734b686ba073f3cc1') {
+            throw 'Unexpected legacy DXF importer revision'
+          }
+          git -C $addon diff --quiet HEAD -- dxfReader.py dxfLibrary.py dxfColorMap.py dxfImportObjects.py
+          if ($LASTEXITCODE -ne 0) { throw 'Legacy DXF importer files differ from the pinned revision' }
           cmake -S . -B build -G 'Visual Studio 17 2022' -A x64 `
-            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 `
+            '-DCMAKE_POLICY_VERSION_MINIMUM=3.5' `
             -DCMAKE_BUILD_TYPE=Release `
             -DBUILD_SHARED_LIBS=OFF `
             -DLIBDXFRW_BUILD_DOC=OFF `
             -DLIBDXFRW_BUILD_DWG2DXF=ON `
+            "-DLIBDXFRW_PYTHON_EXECUTABLE=${{ steps.python.outputs.python-path }}" `
             -DLIBDXFRW_BUILD_TESTS=ON
           if ($LASTEXITCODE -ne 0) { throw "CMake configure failed: $LASTEXITCODE" }
-          cmake --build build --config Release --parallel 2 --target dwg2dxf
+          cmake --build build --config Release --parallel 2 --target dwg2dxf libdxfrw_dwg_local_roundtrip libdxfrw_batch_output_names_tests libdxfrw_consumer_cxx17_contract
           if ($LASTEXITCODE -ne 0) { throw "CMake build failed: $LASTEXITCODE" }
           $prefix = Join-Path $env:RUNNER_TEMP 'libdxfrw install'
           cmake --install build --config Release --prefix $prefix
           if ($LASTEXITCODE -ne 0) { throw "CMake install failed: $LASTEXITCODE" }
           $installed = Join-Path $prefix 'bin/dwg2dxf.exe'
           cmake -S . -B build `
-            -DLIBDXFRW_ENABLE_FREECAD_TRACKED_AC1027_LINE_CONTROL=ON `
+            -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_LINE_CONTROL=ON `
+            -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_PRIMITIVE_CONTROL=ON `
+            -DLIBDXFRW_ENABLE_FREECAD_LEGACY_POLYFACE_CONTROL=ON `
+            "-DLIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR=$addon" `
             "-DLIBDXFRW_FREECADCMD_EXECUTABLE=${{ steps.freecad.outputs.cmd }}" `
             "-DLIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE=$installed"
           if ($LASTEXITCODE -ne 0) { throw "CMake reconfigure failed: $LASTEXITCODE" }
           cmake --build build --config Release --parallel 2 --target dwg2dxf
           if ($LASTEXITCODE -ne 0) { throw "CMake rebuild failed: $LASTEXITCODE" }
           ctest --test-dir build -C Release `
-            -R '^dwg2dxf_freecad_tracked_ac1027_line_' `
+            -R '^(dwg2dxf_freecad_(generated_ac1021_(line|primitives)_.*|generated_ac1024_primitives_.*|generated_ac1032_primitives_.*|legacy_polyface(_ac1024|_ac1032)?_(open|insert)|cli_compat|installed_cli_compat)|libdxfrw_batch_output_names)$' `
             --output-on-failure --verbose
           if ($LASTEXITCODE -ne 0) { throw "FreeCAD CTest qualification failed: $LASTEXITCODE" }
 
@@ -144,5 +216,153 @@ jobs:
         with:
           name: freecad-platform-windows-${{ github.run_id }}-${{ github.run_attempt }}
           path: build/Testing/Temporary/LastTest.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  candidate-headless:
+    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.candidate || inputs.candidate_gui || inputs.candidate_pixels) }}
+    name: FreeCAD candidate headless / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.candidate_platform == 'linux' && '["ubuntu-24.04"]' || inputs.candidate_platform == 'windows' && '["windows-2022"]' || '["ubuntu-24.04","windows-2022"]') }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    steps:
+      - name: Validate framebuffer profile
+        if: ${{ inputs.candidate_pixels && !inputs.candidate_gui }}
+        shell: pwsh
+        run: throw 'candidate_pixels requires candidate_gui'
+
+      - name: Use repository line endings for both checkouts
+        shell: pwsh
+        run: |
+          git config --global core.autocrlf false
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot configure checkout line endings' }
+
+      - name: Check out libdxfrw qualification tools
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check GUI diagnostic and renderer guards
+        if: ${{ inputs.candidate_gui }}
+        shell: pwsh
+        run: |
+          python -m unittest discover -s tools/research -p test_freecad_candidate_gui_diagnostics.py -v
+          if ($LASTEXITCODE -ne 0) { throw 'GUI qualification guard tests failed' }
+
+      - name: Check out pinned FreeCAD and submodules
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: FreeCAD/FreeCAD
+          ref: 477a7041803823a1fcae528133cb07ee5533b1b2
+          path: _freecad_candidate
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Verify source and apply candidate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $source = Join-Path $env:GITHUB_WORKSPACE '_freecad_candidate'
+          $evidence = Join-Path $env:RUNNER_TEMP 'freecad-candidate-evidence'
+          New-Item -ItemType Directory -Force -Path $evidence | Out-Null
+          $modules = @(git -C $source submodule status --recursive)
+          if ($LASTEXITCODE -ne 0 -or $modules.Count -lt 5 -or @($modules | Where-Object { $_ -match '^[-+U]' }).Count -ne 0) {
+            throw 'FreeCAD submodules do not match their recorded gitlinks'
+          }
+          $modules | Out-File -FilePath (Join-Path $evidence 'submodules.txt') -Encoding utf8
+          $archive = Join-Path $env:RUNNER_TEMP 'freecad-477a704.tar.gz'
+          Invoke-WebRequest -Uri 'https://codeload.github.com/FreeCAD/FreeCAD/tar.gz/477a7041803823a1fcae528133cb07ee5533b1b2' -OutFile $archive
+          (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant() | Out-File -FilePath (Join-Path $evidence 'archive-sha256.txt') -Encoding utf8
+          python (Join-Path $env:GITHUB_WORKSPACE 'tools/research/apply_freecad_import_candidate.py') --source-root $source --source-archive $archive
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate replay or application failed' }
+
+      - name: Install pinned FreeCAD build environment
+        uses: prefix-dev/setup-pixi@ad1da6449d9e506fd127fd67ab2d054a769f6a94 # v0.11.2
+        with:
+          pixi-version: v0.82.1
+          working-directory: _freecad_candidate
+          cache: false
+          locked: true
+
+      - name: Build and probe the candidate
+        shell: pwsh
+        working-directory: _freecad_candidate
+        env:
+          CANDIDATE_GUI: ${{ inputs.candidate_gui }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $build = Join-Path $env:RUNNER_TEMP 'freecad-candidate-build'
+          $preset = if ($env:RUNNER_OS -eq 'Windows') { 'conda-windows-release' } else { 'conda-linux-release' }
+          $configureArgs = @('--preset', $preset, '-B', $build)
+          if ($env:RUNNER_OS -eq 'Windows') { $configureArgs += @('-DCMAKE_GENERATOR_PLATFORM=', '-DCMAKE_GENERATOR_TOOLSET=') }
+          pixi run cmake @configureArgs
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate configuration failed' }
+          pixi run cmake --build $build --parallel 2 --target FreeCADMainCmd Import ImportScripts ImportPy Part PartScripts MaterialLib MaterialModelLib AppearanceLib PatternLib FluidMaterialLib
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate build failed' }
+          if ($env:CANDIDATE_GUI -eq 'true') {
+            pixi run cmake --build $build --parallel 2 --target FreeCADMain ImportGui pivy_coin MaterialLib MaterialModelLib AppearanceLib MaterialScripts Draft DraftUtils
+            if ($LASTEXITCODE -ne 0) { throw 'Candidate GUI build failed' }
+          }
+          $name = if ($env:RUNNER_OS -eq 'Windows') { 'FreeCADCmd.exe' } else { 'FreeCADCmd' }
+          $command = Join-Path (Join-Path $build 'bin') $name
+          $source = Join-Path $env:GITHUB_WORKSPACE '_freecad_candidate'
+          $archive = Join-Path $env:RUNNER_TEMP 'freecad-477a704.tar.gz'
+          $evidence = Join-Path $env:RUNNER_TEMP 'freecad-candidate-evidence'
+          pixi run python (Join-Path $env:GITHUB_WORKSPACE 'tools/research/run_freecad_candidate_probe.py') `
+            --source-archive $archive --expected-source-commit 477a7041803823a1fcae528133cb07ee5533b1b2 `
+            --require-git-base --source-root $source --build-root $build --freecadcmd $command --output-dir $evidence
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate headless probe failed' }
+
+      - name: Probe candidate GUI view properties
+        if: ${{ inputs.candidate_gui }}
+        shell: pwsh
+        working-directory: _freecad_candidate
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $build = Join-Path $env:RUNNER_TEMP 'freecad-candidate-build'
+          $name = if ($env:RUNNER_OS -eq 'Windows') { 'FreeCAD.exe' } else { 'FreeCAD' }
+          $command = Join-Path (Join-Path $build 'bin') $name
+          $runner = Join-Path $env:GITHUB_WORKSPACE 'tools/research/run_freecad_candidate_gui_probe.py'
+          $source = Join-Path $env:GITHUB_WORKSPACE '_freecad_candidate'
+          $archive = Join-Path $env:RUNNER_TEMP 'freecad-477a704.tar.gz'
+          $evidence = Join-Path $env:RUNNER_TEMP 'freecad-candidate-evidence'
+          $probeArgs = @($runner, '--source-archive', $archive, '--expected-source-commit', '477a7041803823a1fcae528133cb07ee5533b1b2',
+                         '--require-git-base', '--source-root', $source, '--build-root', $build, '--freecad', $command, '--output-dir', $evidence)
+          if ('${{ inputs.candidate_pixels }}' -eq 'true') { $probeArgs += '--require-pixels' }
+          if ($env:RUNNER_OS -eq 'Linux') {
+            if (-not (Get-Command xvfb-run -ErrorAction SilentlyContinue)) { throw 'xvfb-run is required for the Linux GUI smoke test' }
+            xvfb-run -a pixi run python @probeArgs
+          } else {
+            # Hosted Windows lacks a usable hardware OpenGL context. Install the
+            # pinned Mesa software renderer beside the candidate executable.
+            $mesaArchive = Join-Path $env:RUNNER_TEMP 'mesa3d-23.3.5-release-msvc.7z'
+            Invoke-WebRequest -Uri 'https://github.com/pal1000/mesa-dist-win/releases/download/23.3.5/mesa3d-23.3.5-release-msvc.7z' -OutFile $mesaArchive
+            $mesaHash = (Get-FileHash -Algorithm SHA256 $mesaArchive).Hash.ToLowerInvariant()
+            if ($mesaHash -ne 'ce42bee2034f3dbd272f1d658040dfa678c0d8e653f260be8808f4e80f34c06a') { throw "Mesa archive SHA-256 mismatch: $mesaHash" }
+            $mesaDir = Join-Path $env:RUNNER_TEMP 'freecad-mesa'
+            $sevenZip = Join-Path $env:ProgramFiles '7-Zip/7z.exe'
+            & $sevenZip x $mesaArchive "-o$mesaDir" -y 'x64/opengl32.dll' 'x64/libglapi.dll' 'x64/libgallium_wgl.dll'
+            if ($LASTEXITCODE -ne 0) { throw 'Mesa extraction failed' }
+            $bin = Join-Path $build 'bin'
+            foreach ($file in @('opengl32.dll', 'libglapi.dll', 'libgallium_wgl.dll')) {
+              $sourceFile = Join-Path $mesaDir "x64/$file"
+              if (-not (Test-Path -Path $sourceFile -PathType Leaf)) { throw "Mesa component missing: $file" }
+              Copy-Item -Path $sourceFile -Destination $bin -Force
+            }
+            $env:GALLIUM_DRIVER = 'llvmpipe'
+            $probeArgs += @('--require-windows-opengl', (Join-Path $bin 'opengl32.dll'))
+            pixi run python @probeArgs
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate GUI smoke probe failed' }
+
+      - name: Preserve candidate evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: freecad-candidate-${{ matrix.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/freecad-candidate-evidence
           if-no-files-found: warn
           retention-days: 14

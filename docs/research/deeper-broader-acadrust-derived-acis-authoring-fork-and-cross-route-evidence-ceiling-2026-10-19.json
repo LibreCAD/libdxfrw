@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader ACadRust-derived ACIS authoring fork and cross-route evidence ceiling",
+  "mode": "Read-only review of primary project documentation, source tests, peer issue/PR state, and local plan reconciliation",
+  "scope": [
+    "Screen a newly surfaced open-source ACIS SAT/SAB authoring candidate.",
+    "Separate derivative authoring claims from independent parser, kernel, semantic, and native-consumer evidence.",
+    "Refresh the existing PAR-07/S8 gates for source-to-output payload disposition and entity-family-specific consumers without adding routine validation work."
+  ],
+  "sources": [
+    {
+      "project": "GiorgioBurbanelli89/acadrust",
+      "urls": [
+        "https://github.com/GiorgioBurbanelli89/acadrust"
+      ],
+      "observed": "The README describes an ACadRust-derived fork for the Hekatan viewer and advertises SAT text writing for R2000-R2007, SAB binary writing for R2013+, selected analytic primitives, and 208/208 round-trip integrity. The reviewed GitHub repository page exposed no release. Source/test subpages were unavailable to this pass, and the project was not acquired or executed.",
+      "evidenceCeiling": "Discovery-only, lineage-correlated authoring claim. No immutable artifact, test behavior, independent parser/kernel result, or semantic/native acceptance was established."
+    },
+    {
+      "project": "hakanaktt/acadrust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "observed": "The current README advertises SAT/SAB and B-rep facilities. The visible roundtrip source contains a synthetic marker SAB helper and a generated planar cube DWG roundtrip whose inspected assertions check entity/payload presence and has_ds_data, not independent topology, B-rep validity, analytic metrics, or native CAD acceptance.",
+      "evidenceCeiling": "Same-codec/transport evidence for the inspected assertions; not independent solid semantics or validation of the derivative fork."
+    },
+    {
+      "project": "DomCR/ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": "Issue #1195 reports silent 3DSOLID/REGION omission by the DXF writer in version 3.4.9, including solids inside blocks. PR #1240 remained a proposal in the reviewed PR listing; this pass did not establish the behavior of a released artifact.",
+      "evidenceCeiling": "Version-specific peer failure report and unmerged proposal, not a libdxfrw defect or current released-peer result."
+    },
+    {
+      "project": "FreeCAD documentation and ezdxf",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": "FreeCAD documents distinct C++ and legacy importer entity sets, names 3DFACE only in its legacy list, does not name MESH in either published list, and says stock FreeCAD cannot read embedded ACIS/SAT solids. ezdxf says ACIS data creation requires an external library and documents limited ACIS parsing/projection rather than general B-rep semantics.",
+      "evidenceCeiling": "Documentation-defined consumer/authoring boundary; no runtime qualification was performed."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newRequiredPeerOrRuntime": 0,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsOrIssueAttachmentsDownloaded": 0,
+    "localTestsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planEffect": "Registers the newly surfaced ACadRust-derived authoring fork as DISCOVERY_ONLY / ACADRUST_LINEAGE / ARTIFACT_AND_TESTS_UNBOUND; prohibits promotion from README claims or same-codec readback; preserves the existing per-handle/block/INSERT carrier ledger, independent analytic semantic gate, FreeCAD entity-family/backend boundary, and fast implementation cadence.",
+    "supportClaimsPromoted": 0
+  },
+  "limitations": [
+    "GitHub source/test subpages for the derivative fork were unavailable to this review; its README claims were not independently verified.",
+    "No peer artifact, repository, application, external drawing, or kernel was executed.",
+    "The upstream ACadRust test source is mutable main; its assertions were reviewed as test-design evidence, not as a pinned release qualification."
+  ],
+  "planPath": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "a34cefd95e23de51b750a0f7c0babd8afd4325857b94b9c536e9144f35d2ec46"
+}

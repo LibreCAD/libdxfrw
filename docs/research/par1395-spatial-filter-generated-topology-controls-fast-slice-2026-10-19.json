@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-139.5 generated SPATIAL_FILTER field and topology controls",
+  "mode": "Generated local ASCII/Binary fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Broaden the existing adapter selector with generated rectangle/polygon, clipping-plane, header-frame, and OBJECTS-order controls",
+    "Assert exact INSERT transforms, filter fields, boundary order, 12+12 matrices, group-40 counts, dictionary ownership, remapped handles, and following XRECORD payload",
+    "Exercise invalid Boolean flags and fail-closed transactional graph/matrix/count controls with corrected retry"
+  ],
+  "localEvidence": [
+    "Sixteen generated success profiles cover ASCII/Binary, rectangle/polygon, separate/both clip planes, and ordered/reversed OBJECTS records",
+    "Two INSERTs of block B retain distinct nonzero translations, rotations, and nonuniform scales; their filter paths and matrices remain separate",
+    "Group 71 flags remain distinct from parsed and rewritten $XCLIPFRAME; first/second filter code-40 sequences contain 25/24 values",
+    "Non-Boolean group 71/72/73 controls are rejected as BAD_CODE_PARSED",
+    "Target mismatch, dangling/wrong-kind/cross-owned/cyclic dictionary edges, duplicate keys/handles, callback-range mismatch, and partial matrix are rejected without replacing the sentinel destination",
+    "After restoring each mutation, the same adapter/writer successfully emits and reimports the complete graph and exact following XRECORD values"
+  ],
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes generated local SPATIAL_FILTER field/topology and transactional refusal controls. It establishes neither visible clipping nor inversion semantics, DWG-origin export qualification, or downstream consumer support."
+  },
+  "validation": {
+    "strictBuildTargets": [
+      "libdxfrw_dwg2dxf_adapter_tests"
+    ],
+    "strictBuildPassed": true,
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --spatial-filter-graph-roundtrip",
+      "passed": true
+    },
+    "ctest": {
+      "name": "dwg2dxf_named_object_callback_storage",
+      "passed": true,
+      "passedCount": 1,
+      "failedCount": 0,
+      "elapsedSeconds": 0.32
+    },
+    "scopedDiffCheckPassed": true,
+    "fullSuiteRun": false
+  },
+  "method": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "planUpdated": true,
+    "temporaryGeneratedAsciiBinaryInputs": true,
+    "temporaryOutputsDeleted": true,
+    "sourceFixturesCommitted": false,
+    "workCommitted": false,
+    "limitations": [
+      "The semantic checkpoint PAR-139.6 remains optional/composed and was not run in this slice",
+      "No geometry clipping, inversion interpretation, renderer, native CAD application, FreeCAD, or external peer result was used",
+      "Generated acceptance controls do not promote feature support claims"
+    ]
+  }
+}

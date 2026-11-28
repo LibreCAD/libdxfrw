@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "ODA/peer spec currency and end-to-end failure chain",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile public ODA DWG specification currency against the new peer-maintained LibreDWG specification-diff reference",
+    "Crosswalk ODA v5.4.1 AcDs DataStorage container semantics with current peer-reported payload-loss behavior",
+    "Recheck entity/carrier distinctions and downstream consumer limits across Autodesk, ezdxf, ACadSharp, LibreDWG, and FreeCAD sources",
+    "Refine the existing plan's implementation-ready evidence chain without adding findings or validation cadence"
+  ],
+  "sources": [
+    {
+      "project": "Open Design Alliance DWG specification v5.4.1",
+      "reference": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "status": "official_public_spec_reviewed_2026-10-21",
+      "observation": "ODA v5.4.1 remains the public normative source reviewed here. Sections 20.4.41 and 24 distinguish modeler object shells, the AcDs byte-stream container, segment/data indexes, handle-bearing data records, optional blob pages, and SAB payload markers. The document explicitly excludes detailed ACIS/SAB semantics; its AcDs section names REGION and 3DSOLID for SAB records."
+    },
+    {
+      "project": "LibreDWG README, NEWS, and ODA spec diff",
+      "references": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/ODA-5.4.2-libredwg-diff.pdf"
+      ],
+      "status": "current_peer_documentation_reviewed_2026-10-21",
+      "observation": "LibreDWG describes a peer-maintained fixed ODA-5.4.2 diff against the project's ODA-5.4.1 specification. This indicates a source-currency check opportunity, but the peer diff is not itself a newly published ODA specification and was not treated as normative."
+    },
+    {
+      "project": "LibreDWG issue #1411",
+      "reference": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "status": "open_version-pinned_peer_report_reviewed_2026-10-21",
+      "observation": "The report pins a generated AC1032 DXF REGION SAB loss to LibreDWG 0.14.8593 at 8a1ae764 and describes DXF-to-DWG-to-DXF conversion where the REGION shell survives while carrier bytes/ACDSDATA do not. The recipe is scratch-generatable; its 5,489-byte count is an observation, not a format constant. No attachment or peer output was downloaded or run."
+    },
+    {
+      "project": "Autodesk 3DSOLID DXF reference and ezdxf ACIS browser documentation",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "status": "primary-format-and-peer-route-docs-reviewed_2026-10-21",
+      "observation": "Autodesk's entity reference documents generic 3DSOLID groups 1/3, modeler version 70, and history owner 350. ezdxf documents raw SAT/SAB browsing/export and its version split. These clarify carrier syntax and inspection roles but do not define DWG AcDs or general ACIS geometry semantics."
+    },
+    {
+      "project": "ACadSharp issues #1195, #1240, #1297, and #1281",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1281"
+      ],
+      "status": "current_peer_failure_reports_reviewed_2026-10-21",
+      "observation": "The sources report separate writer omission of modeler entities, an open writer proposal, unresolved AC1032 whole-file AutoCAD rejection despite an entity-byte comparison, and process-fatal recursive DXF parser paths. These are peer failure shapes only; they are not local reproductions or proof of current released behavior."
+    },
+    {
+      "project": "FreeCAD Draft DXF guide",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "status": "archived_consumer_route_documentation_reviewed_2026-10-21",
+      "observation": "The guide describes distinct C++ and legacy Python importer profiles, DWG-to-DXF conversion followed by the configured importer, and no stock embedded ACIS/SAT import. GitHub indicates that the documentation repository was archived in April 2026, so it is treated as profile documentation rather than current runtime qualification."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "S0/PAR-07: ODA v5.4.1 remains normative; peer-maintained spec diffs are secondary review aids",
+      "PAR-07/S8: distinguish AcDs container/index/record/blob/entity closure from opaque carrier and semantic geometry evidence",
+      "PAR-06/PAR-14/PAR-49: separate parser progress, complete output structure, per-source dispositions, and consumer acceptance"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Add a spec-currency check for LibreDWG's peer-maintained ODA 5.4.2 diff while preserving ODA v5.4.1 as normative. Refine AcDs readiness around segment/data indexes, handle-bearing records, large blob-page closure, entity association, and independent output/consumer checks. Keep peer-only failures advisory and reuse existing local owners."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "repositoryClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-oda-acds-authority-and-peer-failure-chain-2026-10-21.json"
+    ],
+    "limitations": "The LibreDWG 5.4.2 diff was identified in project documentation but not adopted as normative. GitHub issue statements are peer reports; no peer source was built, no attachment was fetched, and no local defect was established. FreeCAD documentation is archived and does not qualify an installed runtime."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on plan; new receipt verified as valid JSON)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

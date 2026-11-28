@@ -1,0 +1,21 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 section 20.4.68: DIMSTYLE owner, reactors, conditional xdictionary, xref, text style and block handles, with versioned linetype handles.",
+  "problems":["The DIMSTYLE encoder always wrote a null xdictionary slot and omitted declared reactors, regardless of the common metadata already written in its preamble.","The internally synthesized STANDARD DIMSTYLE had an absent xdictionary encoded as present, and its null xref and dimension references lacked the specified hard-pointer codes."],
+  "changes":"Write the existing caller reactor vector and the xdictionary handle only when the version/flag requires it; R2000 always retains the slot. For synthetic AC1018+ STANDARD DIMSTYLE only, set missing-xdictionary=1 and write typed-null hard references through a private writer-only encoder path. Keep the public encoder signature, class layout, caller-specific DIMSTYLE values, and the default null DIMTXSTY reference.",
+  "independent_evidence":"LibreDWG 0.14 decodes ODA-produced AC1018 STANDARD DIMSTYLE with missing=1 and typed hard-pointer nulls. Existing locally decoded source DIMSTYLE records also include nonzero reactor lists with missing=1. LibreDWG independently reads current production AC1018/1021/1024/1027/1032 synthetic DIMSTYLE flags and typed nulls and a following LINE; AC1015 retains its old default wire role.",
+  "oda_factorial":{
+    "reader":"ODA File Converter 27.1.0 ACAD2013 DXF with audit=0; examine .err and actual output, not exit status",
+    "prerequisite":"Locally authored AC1018 LINE scratch files include the previously verified source-backed plotstyle default graph and HEADER reference. That graph is not yet automatic production behavior.",
+    "bits":"1=missing xdictionary flag with omitted slot; 2=typed null xref and dimension handles; 4=nonzero DIMTXSTY pointing at emitted STANDARD STYLE",
+    "failed_masks":[0,1,2,4,5,6],
+    "failed_result":"Each failed with Object improperly read: <AcDbDimStyleTableRecord> (15), previous error .dwg file needs recovery; no DXF.",
+    "successful_controls":[
+      {"mask":3,"dwg_sha256":"76e1b41249c763b359d06a5a8999b6b060d8791e3addc4c172a92bcfef0c194e","dxf_sha256":"e3b9e69fd57ef7724301344266383713d665864722c8630752f4ef98bb563344","dimtxsty":"typed null"},
+      {"mask":7,"dwg_sha256":"08b1daa8d58f0ddd098ef8a0e916ea02967d06ce23b133ae2d338b528d7a2350","dxf_sha256":"159e6c64bafef405d1ed4750cd93cf044a15ba6a0fc9b36149ab4d2af750ca2a","dimtxsty":"hard pointer to emitted STANDARD STYLE"}
+    ],
+    "output_check":"Both successful variants produced actual AC1027 DXF files with no .err. A direct DXF tag walk found one model-space LINE on layer 0, from (1,2,3) to (4,5,6). The current production library with a scratch HEADER override and explicit scratch plotstyle graph generated a file byte-identical to mask 3."
+  },
+  "tests":"PASS libdxfrw_dwg_header_writer_sealing: six-version exact synthetic typed-null bytes; caller flag=0 and flag=1 exact reactor/xdictionary/following-handle alignment; full-file caller nonzero reactor and xdictionary readback; caller STANDARD style target; invalid DIMSTYLE no-output rollback and same-writer retry; following LINE.",
+  "qualification":"This establishes one locally generated AC1018 LINE conversion through ODA with an explicitly registered scratch plotstyle graph, not production-default interoperability or DWG/DXF parity. The meaning and interoperability of a null DIMTXSTY beyond this control are not qualified. No generated DWG or DXF fixture is committed."
+}

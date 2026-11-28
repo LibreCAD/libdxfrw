@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader source-lineage-qualified peer independence",
+  "mode": "Primary-source documentation and repository review; local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Distinguish repository, codebase, algorithm, semantic-oracle, and native-consumer independence claims.",
+    "Reconcile historical QCAD/LibreCAD product ancestry with the current LibreDWG and libdxfrw codebases without inferring source reuse.",
+    "Refresh the provenance treatment of the PAR-138 LibreDWG decode and other open-source peer routes.",
+    "Refine the existing PAR-07/S8 optional peer manifest without increasing routine validation cost."
+  ],
+  "sources": [
+    {
+      "name": "GNU LibreDWG overview",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/Overview.html"
+      ],
+      "observed": "The overview says LibreDWG came out of code from QCAD Community Edition. This is historical project-lineage evidence; it does not identify the current DWG reader files or establish present-day code reuse with libdxfrw."
+    },
+    {
+      "name": "LibreCAD project history and libdxfrw README",
+      "urls": [
+        "https://docs.librecad.org/en/latest/appx/licenses.html",
+        "https://github.com/LibreCAD/libdxfrw"
+      ],
+      "observed": "LibreCAD documents its QCAD Community Edition fork history. The libdxfrw project describes itself as developed by LibreCAD contributors. Together these support possible common product ancestry with LibreDWG's reported origin, but do not prove code-level decoder sharing or a clean-room relationship."
+    },
+    {
+      "name": "dwg-rs provenance and ACadSharp algorithm cross-check disclosure",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "observed": "dwg-rs describes itself as spec-first and discloses that its LZ77 offset interpretation was cross-checked against ACadSharp algorithm comments, without importing executable source. The comparison must therefore qualify independence by algorithm: a separate container implementation does not make that particular LZ77 algorithm witness independent."
+    },
+    {
+      "name": "acad-ts project provenance",
+      "urls": [
+        "https://github.com/node-projects/acad-ts"
+      ],
+      "observed": "The project identifies acad-ts as a TypeScript port of ACadSharp. It is a separate package/runtime artifact, not a second parser lineage for format-semantic evidence."
+    },
+    {
+      "name": "ezdxf ODA File Converter route and LibreCAD_3 consumer policy",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/odafc.rst",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "observed": "ezdxf's odafc add-on invokes an installed external ODA File Converter for DWG conversion; the result belongs to that exact converter artifact, not ezdxf's DXF parser. LibreCAD_3 documents experimental read-only DWG through libdxfrw, so its import/build behavior is a downstream consumer check rather than an independent codec result."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-07/S8 optional-peer comparator and composed checkpoint",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-138 LibreDWG decode of children-room-decoration.dwg",
+    "Current plan totals: 138 findings and 77 top-level subplans",
+    "J256, J260, J268, J284, J293, and J295 are DEFERRED_EXTERNAL"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Qualifies peer independence by codebase, consulted algorithm/helper, converter/backend, and expected-value provenance. The prior PAR-138 LibreDWG result remains useful source-distinct structural corroboration but is not treated as a clean-room or normative semantic oracle. No implementation, support, fixture, or validation-cadence claim changes."
+  },
+  "method": {
+    "kind": "Read-only primary-source documentation/repository review and local plan reconciliation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-source-lineage-qualified-peer-independence-2026-10-19.json"
+    ],
+    "limitations": "The source pages are mutable, and product-history documentation does not establish code-level overlap between the current LibreDWG and libdxfrw DWG readers. No peer build or execution, native CAD qualification, sample download, or source-code ancestry audit was performed. The update is provenance/readiness guidance only and cannot promote support claims."
+  }
+}

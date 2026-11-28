@@ -1,0 +1,43 @@
+{
+  "id": "p5-ac1018-table-zero-mask-extension-dictionary-reencode-2026-11-11",
+  "scope": "generated AC1018 TABLE with empty retained override ranges and an empty extension dictionary",
+  "status": "implemented-generated-roundtrip-passed",
+  "implementation": [
+    "The extension-dictionary TABLE path no longer rejects all nonempty retained ranges before codec validation.",
+    "The codec permits the exact known AC1018 zero-mask ranges and canonically emits the typed empty-mask bits; it does not replay source offsets or opaque bytes.",
+    "The profile continues to reject nonzero table override flags when retained empty-mask ranges are present, nonempty cell/edge override masks, unrecognized range layouts, and incomplete or handle-bearing ranges."
+  ],
+  "generated_profile": {
+    "cell_override_ranges": 7,
+    "cell_range_name": "r2007-table-cell-overrides",
+    "cell_range_bit_size": 10,
+    "table_override_range_name": "r2007-table-overrides",
+    "table_override_range_bit_size": 4,
+    "extension_dictionary": "one empty child dictionary owned by the TABLE",
+    "fixture": "runtime-authored; no DWG/DXF fixture file committed"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "tests": "ctest --test-dir build-gcc -R '^libdxfrw_table_ac1018_(whole_file|empty_extension|zero_mask_extension)_roundtrip$' --output-on-failure",
+    "result": "3/3 passed",
+    "coverage": [
+      "whole-file AC1018 TABLE output and fresh typed readback",
+      "existing extension-dictionary plus row-override profile remains covered",
+      "empty extension dictionary owner/reference closure",
+      "all seven 10-bit cell ranges and final 4-bit table range read back",
+      "invalid retained-range refusal, destination preservation, transaction rollback and corrected retry"
+    ]
+  },
+  "limitations": [
+    "Generated codec and graph interoperability evidence only; no physical producer source binding is established.",
+    "LibreDWG does not decode the TABLE body semantically, and native AutoCAD/ODA rendering remains unqualified.",
+    "Unknown/unmatched retained subrecords and ranges with handle-role codes remain refused; the separate raw replay path still needs exact reference-role closure."
+  ],
+  "files": [
+    "src/libdwgr.cpp",
+    "src/drw_entities.cpp",
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ]
+}

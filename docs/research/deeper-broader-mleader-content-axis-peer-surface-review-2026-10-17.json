@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw-deeper-broader-mleader-content-axis-peer-surface-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reconcile MLEADER content, nested context, coordinates, and override semantics against current Autodesk DXF documentation and maintained peer documentation; update implementation readiness without promoting support.",
+  "method": {
+    "kind": "Read-only primary-source web research plus local plan/source/test inspection",
+    "peerRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "implementationChanged": false,
+    "odaDwgSpecificationConsulted": false,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-69B9139A-48B4-48A5-B3CF-A3233ABFBE49.htm",
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-EC56D0DE-026D-46AB-87B1-9692393B0C22.htm",
+      "https://ezdxf.readthedocs.io/en/stable/dxfentities/mleader.html",
+      "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mleader.html",
+      "https://github.com/ixmilia/dxf",
+      "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md MLEADER implementation-ready sequence and current progress entries",
+      "src/drw_entities.h DRW_MLeader content/context model and field comments",
+      "src/drw_entities.cpp MLEADER DXF nested parser and model defaults",
+      "src/libdxfrw.cpp writeMultiLeader low-level DXF writer",
+      "tests/wave1_tests.cpp focused MLEADER writer validation and reference tests",
+      "tests/hardening_tests.cpp generated MLEADER DXF payload/readback coverage",
+      "CMakeLists.txt existing libdxfrw_mleader_writer_version focused CTest"
+    ],
+    "evidenceRule": "Autodesk tables establish documented DXF group meanings, not every valid combination or native acceptance. Peer API/docs establish only that peer's documented model and observations. Mutable branch-head sources are not pinned runtime results. Generated wire, parser readback, independent peer parsing, and native application acceptance remain separate evidence stages."
+  },
+  "evidence": [
+    {
+      "topic": "MLEADER entity-level and context-level group meanings are distinct and context-sensitive",
+      "observed": "Autodesk's common MLeader table assigns group 172 to content type. Its separate context-data table assigns 290 to hasMText and 296 to HasBlock, and assigns 172 within that context to text flow direction. The tables do not provide a full legal combination matrix or TOLERANCE payload contract.",
+      "doesNotEstablish": [
+        "that every Cartesian combination of the entity and context values is valid",
+        "that content type must equal exactly one context boolean",
+        "complete TOLERANCE content representation",
+        "producer/version-specific behavior beyond the documented fields"
+      ],
+      "planUse": "Assert tag values in the correct parser grammar state; derive allowed combinations from ODA plus producer-authored controls; keep unsupported TOLERANCE output fail-closed."
+    },
+    {
+      "topic": "ezdxf provides a useful, bounded MLEADER semantic field inventory",
+      "observed": "ezdxf 1.4.5 documents values 0=None, 1=BLOCK, 2=MTEXT, 3=TOLERANCE; states that leader vertices are WCS including BLOCK cases; recommends specialized builders; and warns property-override flags may not reflect the stored overridden fields.",
+      "doesNotEstablish": [
+        "normative precedence for inconsistent override flags and values",
+        "that every peer-supported content type is supported by libdxfrw",
+        "native application acceptance of libdxfrw output",
+        "the correct transform for every block-context or version profile"
+      ],
+      "planUse": "Keep content type, context booleans, payload, stored style/entity values, and override bits as separate test dimensions. Preserve authored WCS points pending producer/source confirmation; test context transforms separately."
+    },
+    {
+      "topic": "Cross-project surface inventories and README status are not semantic parity results",
+      "observed": "The current LibreCAD bundled-fork inventory labels itself a deterministic source inventory rather than byte-level conformance and marks routes fixture-needed where evidence is absent. IxMilia.Dxf's current README excludes MLEADER from its advertised R10-R2014 entity set and separately cautions about native acceptance for some typed entities.",
+      "doesNotEstablish": [
+        "an independently reproduced result for a pinned peer executable",
+        "that the current checkout has the same route or behavior as a bundled fork",
+        "that typed dispatch, API declaration, or entity-name counts prove complete serialization"
+      ],
+      "planUse": "Use source inventories only for route/gap discovery. Keep parser, typed model, wire writer, independent semantic readback, and native acceptance as separate rows."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "existingOwners": ["PAR-20", "7F", "7AA", "MLEADER implementation-ready step 5"],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "localSourceChanged": false,
+    "testsChanged": false,
+    "supportClaimsPromoted": 0,
+    "findingCount": 125,
+    "topLevelSubplanCount": 71,
+    "externalDispositionsChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextReadinessSlice": "MLEADER step 5: producer-backed content-type/context-flag matrix and WCS-coordinate checks; preserve fail-closed adapter export until local semantics and independent consumer gates close"
+  }
+}

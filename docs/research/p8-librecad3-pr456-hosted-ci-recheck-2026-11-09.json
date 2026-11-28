@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "purpose": "Recheck the current LibreCAD_3 PR #456 hosted workflows and validate the local Homebrew runtime-origin repair candidate.",
+  "pull_request": {
+    "url": "https://github.com/LibreCAD/LibreCAD_3/pull/456",
+    "state": "open",
+    "base": "master",
+    "base_sha": "5cf435f4a5a57d8dba1599c720917b902e74b25b",
+    "remote_head": "7e81275b71038d4a42fa580842e661ddcee7adbf"
+  },
+  "hosted_workflows": [
+    {"run_id": 42573888375, "name": "Librecad3 Builders", "conclusion": "success"},
+    {"run_id": 42573888513, "name": "CodeQL", "conclusion": "success"},
+    {"run_id": 42573888469, "name": "Python Binding Plan Sync", "conclusion": "success"},
+    {
+      "run_id": 42573888467,
+      "name": "Python binding macOS",
+      "conclusion": "failure",
+      "jobs": [
+        {
+          "job_id": 129017172588,
+          "architecture": "x86_64",
+          "failed_step": "Install native dependencies",
+          "finding": "Homebrew reported that --force-bottle was passed but the requested CMake formula had no bottle. It attempted a long source build and the job still exited nonzero; no app build or platform qualification resulted."
+        },
+        {
+          "job_id": 129017172754,
+          "architecture": "arm64",
+          "failed_step": "Install LibreCAD",
+          "finding": "Runtime relocation rejected the selected Homebrew cached bottle because the installed dependency table no longer matched the expected build fields. Application build and binding regression steps had passed earlier in the job."
+        }
+      ]
+    }
+  ],
+  "local_candidate": {
+    "checkout": "/private/tmp/librecad3-p8",
+    "commit": "1a012ff6e036bbbec6b0056dc7d6f36f752c519d",
+    "summary": "Validate Homebrew dependency-table schemas without treating mutable package-level tables as the runtime load graph; resolve and verify each copied dependency through its actual Mach-O load edge.",
+    "validation": {
+      "command": "python3 -m unittest scripts.tests.test_native_origins -q",
+      "result": "PASS, 41 tests"
+    },
+    "plan_validation": "python3 scripts/validate_python_binding_plan.py --full: PASS",
+    "whitespace": "git diff --check: PASS"
+  },
+  "disposition": "The local candidate directly addresses the arm64 failure and its focused tests pass, but it is not the remote PR head and has not received hosted validation. The x86_64 runner has a separate missing-bottle/provider problem; do not accept source-build fallback as qualification. No Mac platform gate is promoted. The local consumer checkout also has three pre-existing untracked build/configure/test logs, excluded from the receipt and preserved.",
+  "publication": "The isolated checkout contains the local code and plan commit. The prior automatic review blocked uploading the large plan artifact and prohibited alternate upload routes; publication remains pending explicit user approval for that disclosure."
+}

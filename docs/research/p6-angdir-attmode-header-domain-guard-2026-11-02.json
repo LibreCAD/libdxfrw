@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-p6-angdir-attmode-header-domain-guard-v1",
+  "completedAt": "2026-11-02",
+  "status": "ANGDIR_ATTMODE_DOMAINS_ENFORCED",
+  "supportClaimEffect": "none",
+  "fields": {
+    "$ANGDIR": {
+      "groupCode": 70,
+      "validValues": [0, 1],
+      "meaning": "0 counterclockwise; 1 clockwise."
+    },
+    "$ATTMODE": {
+      "groupCode": 70,
+      "validValues": [0, 1, 2],
+      "meaning": "0 all attributes invisible; 1 preserve each attribute's visibility; 2 all visible."
+    }
+  },
+  "implementation": {
+    "dxfOutput": "HEADER preflight validates canonical dollar/bare aliases, integer variant type, group code 70, and each documented value domain before output. Invalid values are refused atomically; tolerant input remains unchanged.",
+    "unresolvedAdjacentField": "$MIRRTEXT is excluded: Autodesk's 2018 system-variable page enumerates 0/1, while its 2023 DXF HEADER table describes mirroring for any nonzero value. Resolve this source discrepancy before imposing a writer range.",
+    "semanticLimit": "Scalar admission only; angle interpretation and attribute display behavior are not qualified in a native application."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_orientation_attribute_header_domains$' --output-on-failure",
+    "result": "PASS (1/1)",
+    "coverage": [
+      "ASCII/Binary output and typed readback for all ANGDIR and ATTMODE valid values.",
+      "Out-of-domain values, wrong variant types, wrong group codes, and duplicate dollar/bare aliases fail atomically.",
+      "Failed writes permit corrected same-writer retries for both variables and encodings.",
+      "Tolerant ASCII input preserves unsupported integer values for both variables."
+    ]
+  },
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+    "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-LT/files/GUID-D6DE0459-AE5C-4FFF-9E1C-2468D532C49D.htm",
+    "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-LT/files/GUID-D55D2D18-B26E-4525-B5E4-03A2A07FB5F6.htm",
+    "https://help.autodesk.com/cloudhelp/2023/ESP/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm"
+  ],
+  "inputFixturesAdded": 0,
+  "supportClaimsPromoted": 0
+}

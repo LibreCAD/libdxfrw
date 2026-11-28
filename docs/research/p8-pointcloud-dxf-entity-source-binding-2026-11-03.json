@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pointcloud-dxf-entity-source-binding-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "BOUNDED_DXF_POINTCLOUDEX_ENTITY_SOURCE_BINDING_PASS",
+  "supportClaimEffect": "none",
+  "scope": "At the time of this receipt, bind imported DXF POINTCLOUDEX callbacks in ENTITIES and named BLOCKS to exact physical records and the retained output entity; imported graph output remained refused.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "DXF ENTITIES delivery events are joined through their dispatch span to the exact complete POINTCLOUDEX physical record and parser-produced typed model snapshot.",
+      "Named BLOCK POINTCLOUDEX callbacks retain an additional bounded typed snapshot keyed by the actual dispatch; the block callback, physical child record and current output entity must agree on identity, owner and the complete modeled entity state.",
+      "Physical spans, source revision/encoding, generation/container ownership, one-to-one record/callback/output counts and duplicate source/output identities are checked before graph preparation.",
+      "The extra POINTCLOUDEX BLOCK snapshots include nested point/cropping payload sizes in their retained-byte and work budget accounting.",
+      "Imported DXF output remains refused after source binding until full physical-field-to-writer projection and source-derived DefinitionEx/ReactorEx graph output are qualified. An authored standalone zero-reference POINTCLOUDEX transport route remains permitted."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally generated point-cloud graph written to temporary files by the adapter test; no repository or external DWG/DXF fixtures were added.",
+    "revisions": ["AC1027"],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "Imported generated POINTCLOUDEX has a complete source-binding report with exactly one bound entity in each encoding.",
+      "The source-bound imported graph is still refused for output and the pre-existing destination sentinel remains byte-identical.",
+      "The authored graph, reference-refusal, destination-preservation, corrected-retry and typed-readback controls continue to pass."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_wave1_tests -j4",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_pointcloud_definition_source_spans|dwg2dxf_point_cloud_adapter_transport)$' --output-on-failure",
+    "focusedTestResult": "PASS: 2/2",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "This joins a parser callback/model to a physical record; it does not independently adjudicate POINTCLOUDEX field meanings or prove that all accepted physical fields survive serialization.",
+    "Imported DXF graph output, DWG source CLASS/frame/output binding, recursive graph closure, physical producer breadth, external asset loading, native 3D consumer behavior and platform qualification remain open."
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "scope": "Sampled AC1021 generated LINE, ELLIPSE, LWPOLYLINE and TEXT standalone and mixed-order interchange after c6572193; both default MATERIAL and plotstyle graph providers explicitly enabled. This is bounded evidence, not a whole-format qualification.",
+  "source": "Locally authored five AC1021 DXFs using ezdxf 1.4.5, converted to AC1021 DWG by ODA, then to AC1027 DXF. Matching library-generated AC1021 DWGs were independently converted to AC1027 DXF by ODA. No fixtures added.",
+  "contracts": {
+    "line": "WCS (1,2,3) to (4,5,6)",
+    "ellipse": "WCS center (2,3,4), major vector (4,0,0), ratio 0.5, parameters 0.2 and 2.4, normal +Z",
+    "lwpolyline": "OCS vertices (0,0),(5,0),(5,3), elevation 2, normal +Z",
+    "text": "OCS insertion (3,4,0), HELLO, height 2, rotation 30 degrees, STANDARD, normal +Z",
+    "mixed": "LINE, ELLIPSE, LWPOLYLINE, TEXT in that order"
+  },
+  "inputs_and_outputs_sha256": {
+    "source-in": {
+      "line": "55ba4e0df125b928444995231a9f4a38ecf31c9647eaba4aec2a4b3434eb9142",
+      "ellipse": "8ac0fb79ada4f7eb086a501a452b2c9e3c4387025c2fcf23173a43ff3d87a864",
+      "lwpolyline": "64f934a9e6dde07e04f0fe447772e648e908931df24efc2229fa25d5db3f0a8d",
+      "text": "627a14e27279256a0f11dfb875b590c5ac3871e6e2250582e3bba031c206b794",
+      "mixed": "253378c099a7b7934ee67a52d38698a7922c7ea7632b998e6e6ebbca23745e9e"
+    },
+    "source-dwg": {
+      "line": "4430abe3a409285df74e04940e8c4365f46495ded4d85b9d38c2470e8305d989",
+      "ellipse": "6fca8ce5dd19b3d02f2900118cbf2809e0fdea525fedda825bc6228497099f5f",
+      "lwpolyline": "f70fa2a7feb5536a197c1447b28ae7cacd19847c5db1c7ae8761a00a37154940",
+      "text": "f1722da681b8ac0793cc927b93c051392aa1cdf3e552e9cabda9b3e3a2ebc4b2",
+      "mixed": "8a6fa001a70fa58db9ee4711541a9ff931a3a327af6b4228cedef04eaeede7a1"
+    },
+    "source-out": {
+      "line": "785053a641158841c35147261bb2e48e78949334dda32b97b7f8b3eca3aac9be",
+      "ellipse": "372e8d37a91ee59599f01bfb2d6100632fe36d28843aafd0cf1eed668155ed80",
+      "lwpolyline": "d3bcd90889f9bd0b207edee43ff7558ab8af08a8cd18c2206de7f52cfb894992",
+      "text": "85e060bf6c002ce8d1876119723a06f7f54b1e87419e84020d9e61a3b0b5da7f",
+      "mixed": "01429f9b631a17b54604d4ecc7a8adf733eb3330122eac146a642b11da8aaae7"
+    },
+    "gen-in": {
+      "line": "aac8f6cae5f5abc3e932ff172be94b523e2a9a3bbe0739368eb716498a0af639",
+      "ellipse": "e7ffcf6c6752fcb188d8e95a3fbe72908bb8c69220a46d88b851443d3f989925",
+      "lwpolyline": "1d7ff27d1bddcd20cf9e51440489f6cc74c192f755b48d2be530b1f69f37d2d6",
+      "text": "f023f644427ac5ad290725b57e2a8f91096bb9ec0a0f7165f243473a9f368e7b",
+      "mixed": "933be9fb8ce70ef216e631337e0bcd8a8bb58049bec0a8ecc7140eaf0eae3616"
+    },
+    "gen-out": {
+      "line": "e827860c5b474edead1b02523e39dcf8a47c26f4520f149ecbb6ced4bf8ce9a9",
+      "ellipse": "695716a9281f785d07f77240e3cc816c96394b4802b94267bce65af0a6cf11fc",
+      "lwpolyline": "aabb81fc8c65f81a510fe4f6eac1dfa962e4f1f8656237c3510b3c26d6c42b69",
+      "text": "15763832dc5c6d4ba22f55cc74f86f82e9a870d1b1463719b95008f0041ae56d",
+      "mixed": "4222259336f6fb7c43fa5bdb5202a7b241d9886adb02a17d43074befc7626ebf"
+    }
+  },
+  "converters": {
+    "oda": "ODA File Converter 27.1.0; SHA256 21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "peer": "LibreDWG 0.14 dwgread SHA256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "ezdxf": "1.4.5"
+  },
+  "procedure": [
+    "Compile: c++ -std=c++17 -I. -Isrc -Isrc/intern -Itests tools/probe_ac1021_varied_geometry.cpp build-gcc/libdxfrw.a -o /private/tmp/ac1021-varied-matrix/producer",
+    "Author: build/rpp5gh-evidence/peer/bin/python tools/author_ac1021_varied_geometry.py /private/tmp/ac1021-varied-matrix/source-in (destination must be empty)",
+    "Generate: for mode in line ellipse lwpolyline text mixed; do /private/tmp/ac1021-varied-matrix/producer \"$mode\" \"/private/tmp/ac1021-varied-matrix/gen-in/$mode.dwg\"; done (destination must be empty)",
+    "ODA: ODAFileConverter source-in source-dwg ACAD2007 DWG 0 1 *.dxf; ODAFileConverter source-dwg source-out ACAD2013 DXF 0 1 *.dwg; ODAFileConverter gen-in gen-out ACAD2013 DXF 0 1 *.dwg (quote each wildcard; use absolute scratch directories)."
+  ],
+  "observation": "All five library writes returned success; each source and generated DWG produced a DXF; no .err files and all three captured converter stdout/stderr files had zero bytes. Independent LibreDWG and ezdxf field/graph checks are recorded separately. Output DXFs are AC1027 as requested, not AC1021.",
+  "limits": [
+    "Only the enumerated defaults and values are sampled; no claim for arbitrary geometry, rotations, normal vectors, style graphs or malformed inputs.",
+    "Default MATERIAL and plotstyle graph opt-ins were both enabled for generated files; this experiment does not establish universal prerequisites or behavior without them.",
+    "ODA output pairing is the recorded local conversion batch; the hash list alone does not independently establish converter lineage.",
+    "Source and output hashes are run-specific: DXF timestamps and generated files may vary. No inference of native AutoCAD interoperability or full-document semantic preservation."
+  ],
+  "evidence_tools": {
+    "tools/probe_ac1021_varied_geometry.cpp": "5d923e4006805bc0e589b96ea8fa97c5f73b0049753e90162cb4e8232e04647c",
+    "tools/author_ac1021_varied_geometry.py": "5ae236687c05b3b9c4f3ebd75f69078cfa849a0e28cdf730419229334c5f5d44",
+    "tools/audit_ac1021_varied_geometry_peer.py": "f0f88e69244520801dfb2d1680783a68413c9f611478c0d15152d321a3389cb3",
+    "tests/ac1021_varied_geometry_peer_audit_tests.py": "0e231f878a815ce575e3a8793dd467eeaebe9616a118fa5f6878f32b97e7c8ad"
+  },
+  "independent_peer": {
+    "audit": "tools/audit_ac1021_varied_geometry_peer.py",
+    "sha256": "f0f88e69244520801dfb2d1680783a68413c9f611478c0d15152d321a3389cb3",
+    "negative_controls": "tests/ac1021_varied_geometry_peer_audit_tests.py; four fixture-free groups pass under Python and Python -O",
+    "command": "build/rpp5gh-evidence/peer/bin/python -B tools/audit_ac1021_varied_geometry_peer.py --mode MODE --dwgread /opt/homebrew/bin/dwgread --dwg DWG --dwg-sha256 SHA_DWG --dxf DXF --dxf-sha256 SHA_DXF (use mode-specific hashes above for the recorded DWG and paired DXF)",
+    "result": "All five generated and five ODA-authored source DWG/DXF pairs pass. LibreDWG 0.14 and ezdxf 1.4.5 check graph edges, model inventory and order, layers and text style, exact fields and sampled WCS geometry. ezdxf audit reports no errors or fixes. Standard and STANDARD style names compare case-insensitively.",
+    "ctest": "ctest --test-dir build-gcc -R ^libdxfrw_ac1021_varied_geometry_peer_audit$ --output-on-failure: 1/1 passed"
+  }
+}

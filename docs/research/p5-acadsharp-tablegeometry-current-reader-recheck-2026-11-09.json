@@ -1,0 +1,134 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "id": "p5-acadsharp-tablegeometry-current-reader-recheck-2026-11-09",
+  "date": "2026-11-09",
+  "status": "AC1027_AC1032_TYPED_READ_CONFIRMED_OUTPUT_STILL_GATED",
+  "scope": "Recheck the current reader against the pinned ACadSharp AC1027 and AC1032 samples containing standalone TABLEGEOMETRY objects; distinguish typed parsing from whole-file output qualification.",
+  "currentLibdxfrwHead": "fde93349150732abad85a8377026907cc9674435",
+  "sourceSamples": {
+    "AC1027": {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg",
+      "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6",
+      "sourceFrames": 865,
+      "tableGeometryCallbackCount": 2,
+      "cellCountsFromProductionTrace": [
+        20,
+        21
+      ],
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "strictOutputRefusal": "AC1027 DWG source references are not fully qualified",
+      "peerJsonSha256": "502bdef67435a424e744e4e9b28d2d5d1e4a3d5e09134031e6267d3cf6bfd212",
+      "peerLogSha256": "0d3e4f61f0ef6e4d75937ac2df11c8a3e93ee93a16765e054d8c7571ef6967af"
+    },
+    "AC1032": {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+      "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+      "sourceFrames": 842,
+      "tableGeometryCallbackCount": 2,
+      "cellCountsFromProductionTrace": [
+        20,
+        21
+      ],
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "strictOutputRefusal": "standalone DWG OBJECTCONTEXTDATA has no qualified replay path",
+      "peerJsonSha256": "06061271abeeeb717c6ed572ed79ef64cd07531cdeb0d36d883fc386b810f970",
+      "peerLogSha256": "3936ca8f79c5641959f407039d7e52c9880705bbc64c8b145410b206ceb2274b"
+    }
+  },
+  "independentPeer": {
+    "tool": "LibreDWG dwgread 0.14",
+    "command": "dwgread -v5 -O JSON <sample.dwg>",
+    "results": {
+      "AC1027": {
+        "json": "/private/tmp/sample_AC1027-libredwg.json",
+        "log": "/private/tmp/sample_AC1027-libredwg.log",
+        "jsonSha256": "502bdef67435a424e744e4e9b28d2d5d1e4a3d5e09134031e6267d3cf6bfd212",
+        "logSha256": "0d3e4f61f0ef6e4d75937ac2df11c8a3e93ee93a16765e054d8c7571ef6967af",
+        "cellsPerObject": [
+          20,
+          21
+        ]
+      },
+      "AC1032": {
+        "json": "/private/tmp/sample_AC1032-libredwg.json",
+        "log": "/private/tmp/sample_AC1032-libredwg.log",
+        "jsonSha256": "06061271abeeeb717c6ed572ed79ef64cd07531cdeb0d36d883fc386b810f970",
+        "logSha256": "3936ca8f79c5641959f407039d7e52c9880705bbc64c8b145410b206ceb2274b",
+        "cellsPerObject": [
+          20,
+          21
+        ]
+      }
+    }
+  },
+  "currentLibdxfrwRead": {
+    "tool": "build-gcc/dwg2dxf/dwg2dxf with -d and target matching source version",
+    "AC1027": {
+      "trace": "/private/tmp/sample_AC1027-libdxfrw.log",
+      "traceSha256": "ef158caa550aa45965b76af0832484be6461fda4f8209a1346b29b949a507ddc",
+      "operationSucceeded": true,
+      "sourceFrames": 865,
+      "publishedFrames": 865,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "tableGeometryCallbacks": 2,
+      "cellsPerObjectFromTrace": [
+        20,
+        21
+      ],
+      "output": "Refused at the independent whole-source reference qualification gate."
+    },
+    "AC1032": {
+      "trace": "/private/tmp/sample_AC1032-libdxfrw.log",
+      "traceSha256": "ec37df836342d843e07e32e4ac57b4c9d8f576fcdea9869f85f1c6330b6adaa4",
+      "operationSucceeded": true,
+      "sourceFrames": 842,
+      "publishedFrames": 842,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "tableGeometryCallbacks": 2,
+      "cellsPerObjectFromTrace": [
+        20,
+        21
+      ],
+      "output": "Refused at standalone OBJECTCONTEXTDATA replay qualification."
+    }
+  },
+  "odaBasis": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.103 TABLEGEOMETRY",
+    "versionBoundary": "Introduced in AutoCAD 2008 (AC1021). AC1018 occurrences are out-of-version; the production parser correctly keeps those only as raw frames after common-shell validation.",
+    "fieldSpanLimit": "This receipt verifies current typed callback delivery and counts, not an independent byte-span trace for every body field."
+  },
+  "decision": "The historical 2026-11-01 note that current libdxfrw failed to complete the AC1027/AC1032 samples is stale. Current code completes both frame censuses and emits two typed TABLEGEOMETRY callbacks matching the peer object counts. This closes only this parser-delivery observation. It does not qualify physical field spans, nonzero unknown content values, non-null soft-pointer targets, complete TABLE/TABLECONTENT graphs, whole-source output, or native TABLE rendering.",
+  "fixturePolicy": "Only existing ACadSharp samples were read; no DWG/DXF fixtures were added or modified.",
+  "followupCurrentCodeAudit": {
+    "auditHead": "8554b992",
+    "dwgWriterApi": "None; this repository reads DWG and writes DXF.",
+    "dxfWriter": "dxfRW::writeTableGeometry already emits a bounded AC1021+ planar/null-cell-reference TABLEGEOMETRY profile. It refuses unsupported flags, nonzero cell references, unmodeled common metadata, nonplanar content and nonzero unknown values.",
+    "focusedValidation": {
+      "command": "cmake --build build --target libdxfrw_table_geometry_dxf_tests --parallel 4; ctest --test-dir build -R '^libdxfrw_table_geometry_dxf_projection$' --output-on-failure",
+      "result": "PASS (1/1)",
+      "testExecutableSha256": "0bc60c546660d0264e75260f4ce1d0711704bef6143bacb03700ac12413451d5"
+    },
+    "decision": "The prior nextAction named a DWG writer route that does not exist in this codebase and was stale. Do not create a DWG writer. The actual gap is independent physical span/role evidence for AC1027/AC1032 TABLEGEOMETRY bodies and non-null cell soft-pointer targets; retain current null-reference and whole-source refusal until that evidence supports a bounded DXF profile expansion."
+  },
+  "physicalSpanRecheck": {
+    "receipt": "docs/research/p5-acadsharp-tablegeometry-ac1027-ac1032-physical-spans-2026-11-09.json",
+    "result": "Independent Python bit walk and separately sequenced C++ source walk now agree on exact body/string boundaries, per-field bit intervals and handle roles for all four hash-pinned AC1027/AC1032 TABLEGEOMETRY records. The typed callbacks and LibreDWG 0.14 agree on all decoded values; the captured object bytes after the five-byte type prefix equal LibreDWG unknown_bits byte-for-byte.",
+    "profileLimit": "All 41 cell soft pointers are encoded as null absolute soft pointers (code 4), and all 37 standalone unknown BD values are zero. This does not prove non-null pointer graph semantics, nonzero unknown-value semantics, or wider output eligibility."
+  },
+  "nextAction": "The current local corpus search is exhausted and found no non-null cell soft-pointer target or nonzero standalone unknown BD. Seek a new traceable producer sample for independent semantics; a generated-from-scratch vector may test implementation paths but cannot promote producer support. Keep the bounded null-reference DXF profile and whole-source refusal unchanged until physical spans, roles, target graph, and peer semantics support a scoped expansion.",
+  "localCorpusSweep": {
+    "receipt": "docs/research/p5-tablegeometry-local-nonnull-reference-corpus-scan-2026-11-09.json",
+    "paths": 397,
+    "uniqueFiles": 177,
+    "tableGeometryObjects": 18,
+    "filesWithTableGeometry": 11,
+    "objectsWithNonNullCellSoftPointer": 0,
+    "objectsWithNonZeroStandaloneUnknownBD": 0,
+    "decision": "No current local candidate advances the disputed profile."
+  }
+}

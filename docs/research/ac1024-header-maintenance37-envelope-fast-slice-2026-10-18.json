@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "AC1024 maintenance-37 HEADER envelope compatibility profile",
+  "mode": "Deeper source review plus local implementation fast slice",
+  "authority": [
+    {
+      "source": "ODA Open Design Specification for .dwg files v5.4.1, section 9, pp. 72-73",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "finding": "The optional 32-bit HEADER word is present in R2010/R2013 when APP maintenance is greater than 3 and in R2018+; the specification calls it unknown and says it might be part of a 64-bit size, without defining whether the low RL includes it."
+    },
+    {
+      "source": "LibreDWG current decode_r2007.c read_2007_section_header",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c#L1555-L1582",
+      "finding": "The peer reads the HEADER RL; the optional high-word read is present only as commented-out code described as unused, so this implementation does not independently resolve low-RL accounting."
+    }
+  ],
+  "localEvidence": {
+    "sourceCorpus": "Existing user-local /Users/dli/doc/dwg corpus; files were read only and remain outside the repository.",
+    "files": [
+      "visualization_-_aerial.dwg",
+      "visualization_-_condominium_with_skylight.dwg",
+      "visualization_-_conference_room.dwg",
+      "visualization_-_sun_and_sky_demo.dwg"
+    ],
+    "profile": "All four are AC1024 with APP maintenance 37 and a zero optional high-size word. Their decoded HEADER section has exact span 16 + 4 + RL + 4 + 2 + 16; the canonical profile stops four bytes before the valid CRC/end-sentinel trailer.",
+    "afterChange": "All four DWG reads complete with operationSucceeded=true and legacyError=0. Each records the four-byte HEADER compatibility diagnostic and a separate CLASSES CRC warning. CLI export still refuses because semanticCoverage is partial-observed; no conversion-completeness claim is made."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgheadersection.h",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Allow the excluded-high-word alternate only for AC1024 with APP maintenance >3, in addition to the existing AC1032 compatibility profile.",
+      "Require a zero high word, matching CRC, exact end sentinel, and zero unclaimed bytes for AC1024; canonical exact-length admission remains preferred.",
+      "Keep AC1027 canonical-only until a real excluded-word witness is traced.",
+      "Generated controls cover retained fields/diagnostic, suffix, nonzero word, bad CRC, AC1024 maintenance <=3, and AC1027 refusal."
+    ],
+    "persistentDrawingFixtureAdded": false,
+    "externalFixtureImported": false,
+    "ctestRegistrationChanged": false,
+    "publicApiChanged": false,
+    "writerBytesChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "result": "passed"
+    },
+    "focusedExecutable": {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests",
+      "result": "passed"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "result": "passed (1/1)"
+    },
+    "cliProbes": {
+      "commandPattern": "build-gcc/dwg2dxf/dwg2dxf <existing local AC1024/MV37 input> -y -d -v2010 <unique /private/tmp output.dxf>",
+      "result": "4/4 DWG reads complete; strict export refuses partial semantic coverage"
+    },
+    "scopedDiffCheck": "git diff --check -- src/intern/dwgheadersection.h tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md passed",
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "sanitizerRun": false
+  },
+  "planStatus": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimsPromoted": 0,
+    "findings": 132,
+    "topLevelSubplans": 75,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": "The compatibility rule is local-witness-bounded and not a universal R2010/R2013 rule. The input DWGs were not committed or copied; temporary conversion outputs/logs remain under /private/tmp. Successful DWG parsing with partial semantic coverage is not successful DXF export, application acceptance, or broad version support. The shared worktree is broadly modified, so this slice remains uncommitted and unstaged."
+}

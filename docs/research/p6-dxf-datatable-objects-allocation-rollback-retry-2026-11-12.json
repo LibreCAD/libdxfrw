@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-dxf-datatable-objects-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "GENERATED_DXF_OBJECTS_CALLBACK_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": ["tests/dxf_datatable_read_tests.cpp"],
+    "behavior": "The focused DATATABLE projection test now injects allocation failure at every measured allocation during dxfRW::writeDataTable preparation/emission. Each failure preserves the previous whole-file destination and caller records; a same-codec retry writes DATATABLE plus its two XRECORD children and reproduces clean bytes and typed graph readback."
+  },
+  "generatedProfile": {
+    "version": "AC1024",
+    "table": {
+      "handle": "0x115",
+      "owner": "0x114",
+      "tableName": "TABLE_NAME",
+      "columns": 4,
+      "rows": 2,
+      "cellTypes": ["double", "integer", "string", "integer"],
+      "rowHandles": ["0x116", "0x117"]
+    },
+    "children": [
+      {"type": "XRECORD", "handle": "0x116", "owner": "0x115"},
+      {"type": "XRECORD", "handle": "0x117", "owner": "0x115"}
+    ],
+    "allocationOffsets": {"ASCII": 12, "Binary": 11},
+    "totalAllocationOffsets": 23,
+    "scope": "The fault injector is scoped to writeDataTable only; whole-file publication and retry include the existing child XRECORD writes.",
+    "failureChecks": [
+      "write returns failure and OBJECTS callback reports failure",
+      "pre-existing destination bytes remain unchanged",
+      "caller DATATABLE handle, owner, name, four columns, row-handle vector and both XRECORD identities remain unchanged",
+      "same-codec retry reproduces the no-fault file byte-for-byte",
+      "fresh typed readback verifies table cells, row references and both XRECORD owners"
+    ]
+  },
+  "validation": {
+    "normalBuild": "cmake --build build --target libdxfrw_dxf_datatable_read_tests -j4",
+    "normalTest": "ctest --test-dir build -R '^libdxfrw_dxf_datatable_read$' --output-on-failure",
+    "normalResult": "PASS (1/1; 0.46 seconds)",
+    "measuredRun": "build/tests/libdxfrw_dxf_datatable_read_tests",
+    "measuredRunResult": "PASS; ASCII 12/12 and Binary 11/11 allocation offsets",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_datatable_read_tests -j4",
+    "asanTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_datatable_read$' --output-on-failure",
+    "asanResult": "PASS (1/1; 0.80 seconds)"
+  },
+  "limitations": [
+    "Generated AC1024 transaction and typed-readback evidence only; physical producer behavior, independent interoperability, and native data-table semantics remain open.",
+    "This scopes injected failures to the DATATABLE writer, not the subsequent XRECORD child encoders, which retain their separate existing controls.",
+    "No DWG/DXF fixture was added; no support claim is promoted."
+  ]
+}

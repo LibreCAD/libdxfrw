@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mesh-dxf-allocation-failure-retry-2026-11-02",
+  "date": "2026-11-02",
+  "status": "FOCUSED_GENERATED_DXF_ALLOCATION_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Transactional allocation handling for the bounded typed DRW_Mesh DXF parser profiles already covered by local generated transport controls.",
+  "implementation": {
+    "source": "src/drw_entities.cpp",
+    "changes": [
+      "Reserve the declared edge vector before publishing MESH parser state 94.",
+      "Reserve the declared crease vector before publishing MESH parser state 95.",
+      "Reserve the declared property-override vector before publishing state 96, so each subsequent group-91 record appends without allocating."
+    ],
+    "failureBehavior": "Injected allocation failure returns false without advancing the relevant parser phase or publishing a partial edge, crease, or property-override record. Retrying the same count field on the same object succeeds after the failure injection is removed.",
+    "testSource": "tests/dxf_fixture_tests.cpp",
+    "testSelector": "--mesh-dxf-allocation-failure",
+    "sourceSha256": {
+      "src/drw_entities.cpp": "b2d0098973b31e75624b854c38469d8d9e2db7e3dfc815f07366c1045fec90e8",
+      "tests/dxf_fixture_tests.cpp": "0f9b5f270673468d62145a31973f291cd251ad447b3e5d2d401736b86bf07b8a"
+    }
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "buildResult": "PASS",
+    "focusedCommand": "build-gcc/libdxfrw_dxf_fixture_tests --mesh-dxf-allocation-failure",
+    "focusedResult": "PASS; vertex/face, edge-count, crease-count and property-override allocation failure/retry assertions passed.",
+    "diffCheck": "PASS",
+    "fullSuite": "Not run; the focused selector covers the changed parser boundaries."
+  },
+  "fixturePolicy": {
+    "generatedInMemory": true,
+    "newDwgOrDxfFilesAdded": 0
+  },
+  "limitations": [
+    "This is local allocation and parser-state evidence for generated DXF records, not physical producer coverage.",
+    "It does not qualify MESH topology semantics, DWG MESH encoding, native rendering, or 3D consumer behavior."
+  ],
+  "next": "Continue the P6 safety and P8 consumer work from their remaining source-backed gates; keep MESH support claims bounded to existing typed transport evidence."
+}

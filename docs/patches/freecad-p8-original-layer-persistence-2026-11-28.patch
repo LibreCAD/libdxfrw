@@ -1,0 +1,23 @@
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -1808 +1808 @@
+-            App::Property::Hidden
++            App::Prop_Hidden
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1056,0 +1057,15 @@
++            self.document.recompute()
++            saved_path = os.path.join(self.temp_dir, "block-layers.FCStd")
++            self.document.saveAs(saved_path)
++            FreeCAD.closeDocument(self.document.Name)
++            self.document = None
++            self.document = FreeCAD.openDocument(saved_path)
++            outer = [obj for obj in self.document.Objects if obj.Name.startswith("Link_OUTER")]
++            self.assertEqual(len(outer), 2)
++            self.assertTrue(all(obj.OriginalLayer == "A" for obj in outer))
++            self.assertEqual(outer[0].LinkedObject, outer[1].LinkedObject)
++            nested = outer[0].LinkedObject.Links
++            self.assertEqual(len(nested), 1)
++            self.assertEqual(nested[0].OriginalLayer, "B")
++            self.assertEqual(sorted(child.OriginalLayer for child in nested[0].LinkedObject.Links),
++                             ["0", "A", "B"])

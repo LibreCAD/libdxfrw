@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-empty-layerstates-root-output-2026-11-05",
+  "date": "2026-11-05",
+  "status": "AC1024_ONE_ROOT_EMPTY_LAYERSTATES_PROFILE_ADMITTED_AND_READ_BACK",
+  "supportClaimEffect": "none",
+  "question": "Can the exact observed AC1024 LAYER_CONTROL → one-root ACAD_LAYERSTATES → empty dictionary profile be source-bound, emitted, and read back without accepting unrelated AC1024 LayerStates graphs?",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "fixturePolicy": "Existing local corpus file; not added or modified."
+  },
+  "observedSourceGraph": {
+    "version": "AC1024",
+    "layerControlHandle": "0x2",
+    "extensionDictionary": {
+      "handle": "0x2A2",
+      "parent": "0x2",
+      "hardOwner": 1,
+      "cloning": 1,
+      "entryCount": 1,
+      "entry": {
+        "name": "ACAD_LAYERSTATES",
+        "target": "0x2A3"
+      }
+    },
+    "childDictionary": {
+      "handle": "0x2A3",
+      "parent": "0x2A2",
+      "hardOwner": 0,
+      "cloning": 1,
+      "entryCount": 0,
+      "reactors": ["0x2A2"]
+    },
+    "sourceFrames": "Both dictionaries bind to unique, payload-matched AC1024 object-type-42 source frames without entity/DataStorage flags."
+  },
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "change": "Admit the AC1024 one-root empty-child profile. Preserve the existing exact three-root/one-XRECORD branch; continue to require unique dictionary identities, matching source frames, unchanged snapshots, exact owners/reactors and complete emitted-body inspection.",
+    "sourceSha256": "442b454019eff50d36b8a5bc0d096443d58e6334a11252a856800a9b5b018ee8",
+    "testFile": "tests/dwg2dxf_adapter_tests.cpp",
+    "testSourceSha256": "46dfddb1425155c6eedf4d244a9193191c6cd696aa19bb65e7afe9fdd238027d"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS",
+      "dwg2dxfSha256": "7c76c6ebddbe72d822c153e18a2ac2ad822fcc88e87f33dcddb190d1dd14c99b",
+      "adapterTestExecutableSha256": "7eed69e75bc658fe9ad0e6c5a1c6fc299a28e12bbbb596bfcb48d72df792990d"
+    },
+    "focusedControl": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1024-output-readback tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+      "result": "PASS for ASCII and Binary. Exact source frame admission and queued dictionary identities are asserted. Changing the child owner to NoHandle is refused with destination sentinel preserved; restoring it and retrying the same writer succeeds. Fresh typed readback verifies the one-root extension, empty child dictionary and remapped reactor role.",
+      "fixtureCommitted": false
+    },
+    "strictConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/mechanical_example-imperial-alt.dwg -y -d -v2010 /private/tmp/libdxfrw-mechanical-alt-layerstates.dxf",
+      "exitCode": 0,
+      "outputBytes": 449945,
+      "outputSha256": "f75dbf3683385f7a7deee8874e267e15ef3b2c54d0057c083bf5c78e3903671a",
+      "diagnostic": "No LayerStates profile-skipped or staged-output-rejected diagnostic."
+    },
+    "freecad": {
+      "application": "FreeCAD 1.1.4 revision 4fd3bf320d9566a27e60069fc8387448aaa3a094",
+      "platform": "macOS 27.0.1 arm64",
+      "importer": "Native C++ DXF importer, mode 2; isolated preferences; exactly one current dwg2dxf child process, whose output path is the file imported by FreeCAD.",
+      "result": "PASS; 96 entities read and 75 objects created, matching the prior selected-profile audit. The prior LayerStates output-profile-skipped diagnostic is absent.",
+      "remainingUnsupported": [
+        "Two VIEWPORT records",
+        "Two aligned dimensions"
+      ],
+      "freecadCmdSha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60"
+    },
+    "neighboringProfileCheck": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-xrecord-physical-source-admission tests/samples/AC1024/visualization_-_aerial.dwg",
+      "result": "PASS after correcting the test-only projection to carry the physical LTYPE_CONTROL membership publication required by current partial-output preflight. ASCII and Binary production projected-graph output/readback pass, including the three LayerStates roots, nested XRECORD/SCALE dependency and ACAD_SCALELIST closure. The one-root admission branch remains false for this source. Strict whole-file conversion of the aerial witness is still refused independently by the SUN owner graph (owner 0x242, SUN 0x24c, parent 0x246).",
+      "testProjectionCorrection": "Copy m_dwgLtypeControlPublication, m_dwgLtypeControlGeneration, m_dwgLtypeControlPublicationSeen, and m_dwgLtypeControlCaptureFailed along with the LTYPE table; this preserves the existing source evidence rather than weakening partial-output admission."
+    }
+  },
+  "limits": [
+    "This qualifies one AC1024 empty LayerStates root graph only; it does not qualify other root keys, nonempty records, producer breadth or native LayerStates restoration/evaluation.",
+    "The neighboring three-root route needs a fresh successful projected-graph control; its current whole-source strict conversion is independently blocked by the SUN owner graph.",
+    "The FreeCAD run is one selected macOS handoff, not semantic verification of every emitted record or platform qualification.",
+    "No external drawing fixture was added, and no support claim was promoted."
+  ]
+}

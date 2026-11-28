@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "DWG callback null-writer guard and HATCH gradient CMC fast test",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": "Prevent the DXF-only dx_iface object-emission callback from dereferencing a null DXF writer when invoked during DWG serialization; register focused generated gradient-CMC regressions covering inline and detached strings.",
+  "evidence": {
+    "reproducer": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-gradient-cmc",
+    "diagnosis": "AddressSanitizer located the null read in dx_iface::writeObjects() at resolvedBackgroundHandles(); dwgRW::write() invokes this callback, while dx_iface::dxfW is intentionally null in DWG context.",
+    "invariant": "DXF object-record projection is a no-op when no DXF writer is attached; the DWG writer owns and emits its separate object stream.",
+    "semanticLimit": "The C4-C8 gradient CMC cases remain opaque same-version preservation only; this guard does not establish CMC producer semantics, ACIS/ACDS semantics, or consumer support."
+  },
+  "change": {
+    "opaqueMethodFlagCombinationsCovered": 20,
+    "opaqueMethodCodes": ["0xC4", "0xC5", "0xC6", "0xC7", "0xC8"],
+    "opaqueFlagValues": ["0x00", "0x01", "0x02", "0x03"],
+    "matrixRoutes": [
+      "AC1018 direct-reader parse and byte-identical same-version replay",
+      "AC1024 DWG write/readback through the detached string stream"
+    ],
+    "files": [
+      "dwg2dxf/dx_iface.h",
+      "tests/CMakeLists.txt",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "publicLayoutChanged": false,
+    "interfaceVtableChanged": false,
+    "wireGrammarChanged": false,
+    "persistentFixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip lc3_compat_check -j4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg_hatch_gradient_cmc$' --output-on-failure",
+      "result": "PASS (1/1; 0.45 s)"
+    },
+    {
+      "command": "cmake --build /private/tmp/libdxfrw-asan --target libdxfrw_dwg_local_roundtrip -j4 && ASAN_OPTIONS=symbolize=1:halt_on_error=1 /private/tmp/libdxfrw-asan/libdxfrw_dwg_local_roundtrip --hatch-gradient-cmc",
+      "result": "PASS (AddressSanitizer; selector completed without memory errors)"
+    },
+    {
+      "command": "git diff --check -- dwg2dxf/dx_iface.h tests/CMakeLists.txt tests/dwg_local_roundtrip_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "externalGates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "freecadLinuxWindowsQualification": "OPEN",
+    "independentAcisAcdsSemanticEvidence": "OPEN"
+  },
+  "repositoryState": {
+    "commitStatus": "UNCOMMITTED",
+    "reason": "The shared worktree is broadly dirty, and the callback depends on surrounding in-progress DXF object-handle projection changes; staging the full files would include unrelated work."
+  },
+  "selfUnblockingContinuation": "Continue with the next exact evidence-backed HATCH, PAR-03/PAR-04, or DWG semantic gap; keep unproven CMC method semantics opaque and do not promote support claims."
+}

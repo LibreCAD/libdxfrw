@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mesh-dwg-face-record-reserve-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "BOUNDED_FACE_RECORD_ALLOCATION_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Prevent an unguarded outer-vector allocation while parsing a bounded DWG MESH face stream; do not alter or qualify the wire layout.",
+  "change": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "After readCount validates the face stream item count, reserve parsedFaces to that count before constructing faces. Since each face consumes at least its count item, this bounds the maximum outer-vector element count. DRW::reserve catches allocation failure and the existing record failure path invalidates the frame and clears typed state.",
+    "testControl": "The generated AC1024 MESH vector now includes an optional triangle and verifies the face index sequence after parsing. Existing malformed crease-count refusal and corrected same-object retry remain in the focused selector."
+  },
+  "specReview": {
+    "authority": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf (ODA v5.4.1)",
+    "check": "Extracted searchable text and searched for SubDMesh / sub-d mesh / mesh entity; no matching layout entry was found.",
+    "effect": "No DWG field order, count semantics, or support claim is changed based on an undocumented layout."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+    "buildResult": "PASS",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_mesh_dwg_crease_count_guard$' --output-on-failure",
+    "focusedTestResult": "PASS (1/1, 0.27 s)",
+    "coverage": [
+      "Generated AC1024 triangle face stream decodes to ordered indices {0,1,2}.",
+      "Existing one-edge/one-crease physical-layout vector still reads successfully.",
+      "Existing over-edge crease-count frame is refused, clears partial state, and permits corrected same-object retry.",
+      "No allocation-failure injection was performed; the guard uses the shared exception-catching reserve helper before any face push."
+    ]
+  },
+  "inputHashesBeforeEdit": {
+    "src/drw_entities.cpp": "3aae71eeab4b30e371caa2ded90bdcb3744077b7a7bb27bb6394ca58c5d64fe6",
+    "tests/dwg_object_vectors_tests.cpp": "72524f37ccbc704fbd397e4619ee77fbf07721d0311a48c48957b9c6baac0cc4",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "45f2a00c016bbb5b2853472dfaa4e0d62b10f85b51f100938f784c6283cafdeb"
+  },
+  "inputHashesAfterEdit": {
+    "src/drw_entities.cpp": "44a782d9bf606cf7032927e6dd5a00cfbc34629d51f92895b3e5396e3a8701a3",
+    "tests/dwg_object_vectors_tests.cpp": "0f11f63da1298711c428906deb203ca4e9252f2d9e38e4d4390515ccac1159ce",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "7377e35f61312423a5aa1a90b39d803d0a02b417edc7666518d80da3b581588e"
+  },
+  "inputFixturesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "This is a bounded allocation-safety improvement, not an independently verified MESH DWG-layout result.",
+    "Native subdivision, crease behavior, rendering, and 3D semantic meaning remain unqualified."
+  ],
+  "currentTurnValidation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests --parallel 4",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mesh_crease_value_domains|libdxfrw_mesh_dwg_crease_count_guard|libdxfrw_mesh_dxf_allocation_failure)$' --output-on-failure",
+    "passed": 3,
+    "failed": 0,
+    "elapsedSeconds": 0.41
+  },
+  "stagedInputHashes": {
+    "src/drw_entities.cpp": "90444975aea47189d45bc0ca752c834a49a9d4cdfa9444e16960df687bc581b2",
+    "tests/dwg_object_vectors_tests.cpp": "437da8f7bc00df9f817aae47172731cbd4864b11402a2885a98bf7dc0645b3b1",
+    "tests/hardening_tests.cpp": "82516e1a3059d1d47836c5682a7c8fde9e660f8e5864af0a4549de3e1612ae2b",
+    "tests/dwg_local_roundtrip_tests.cpp": "8e051681e201c34b11a180584fc1dc8b66f6fba152d2433ab1a367001c020a9d",
+    "CMakeLists.txt": "d1c8714988f9cd41e787983cd28586c1495f1aa07ecfe883a4e34151a539fb33",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ca6184dc175f0fa7feb8e069f75b53dc8ee78a271fb0117ef5ee259d37e49ce7"
+  },
+  "repositoryState": {
+    "baseHead": "a49c90a3",
+    "stagedScope": "bounded MESH DWG parse/output profile; DXF loss guards; generated vectors",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

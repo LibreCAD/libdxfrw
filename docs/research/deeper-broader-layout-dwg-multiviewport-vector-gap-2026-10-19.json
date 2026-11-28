@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader LAYOUT viewport-list and last-active audit",
+  "mode": "Research-only plan/readiness update",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "900ef2e184a8f23641ebbd7c97f20733dd886105650011f20bd0fa79e45b604d",
+  "scope": [
+    "Reconcile DWG and DXF LAYOUT viewport-list/last-active field contracts against primary format documentation.",
+    "Cross-check current open-source peer work for route and test-design risks without treating peer behavior as normative or independently qualified.",
+    "Trace the local parser/writer/adapter/test ownership and refine the existing PAR-40/7G.3e implementation sequence."
+  ],
+  "sources": [
+    "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf#page=204",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm",
+    "https://github.com/HakanSeven12/OpenCADStudio/issues/1670",
+    "https://github.com/HakanSeven12/OpenCADStudio/commit/2c329b2",
+    "https://github.com/HakanSeven12/opencadcodec/commit/d57097c",
+    "https://github.com/DomCR/ACadSharp/pull/1024",
+    "https://github.com/DomCR/ACadSharp/pull/1068",
+    "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.spec",
+    "src/drw_objects.cpp: DRW_Layout::parseDwg and writeDwg",
+    "tests/dwg_object_vectors_tests.cpp: testLayoutVectors",
+    "tests/dwg_local_roundtrip_tests.cpp: generated LAYOUT round-trip",
+    "tests/dxf_fixture_tests.cpp: multi-layout adapter viewport-list controls"
+  ],
+  "crosswalk": [
+    {
+      "topic": "Normative field distinction",
+      "evidence": "ODA v5.4.1 §20.4.84 labels the R2004+ viewport count RL; §2 defines RL as raw long. It then specifies a repeated handle list, and separately lists common handle 331 as last-active viewport. Autodesk DXF LAYOUT docs define 331 as the viewport last active when the layout was current.",
+      "disposition": "Keep count/list and 331 as separately asserted fields. The format references do not support replacing the list with 331, inferring list-order meaning such as overall viewport, or equating 331 with the live editor pane. The ODA RL vs local/LibreDWG BL wire-type conflict remains unresolved; do not change production encoding until direct sample-bit evidence or authoritative correction resolves it."
+    },
+    {
+      "topic": "OpenCADStudio issue #1670",
+      "evidence": "The report distinguishes persisted LAYOUT linkage from live active viewport/UCS context. The maintainer states that its DWG codec had used the last-active link as the overall viewport and changed that derivation to use the layout viewport list.",
+      "disposition": "Useful peer-reported route-specific risk and test-design signal only. It is not evidence of a libdxfrw defect or independent native-format qualification."
+    },
+    {
+      "topic": "ACadSharp PRs #1024 and #1068",
+      "evidence": "The merged work adds Layout last-active viewport mapping, preserves a paper viewport, expands layout tests, and separately introduces DXF VIEWPORT code-68 ActiveStatus support.",
+      "disposition": "Corroborates separation of layout linkage, paper viewport, and status projection as implementation concerns. Peer implementation/tests are not a conformance oracle."
+    },
+    {
+      "topic": "Local route, sample corroboration, and coverage",
+      "evidence": "The local parser/writer use BitLong; current comments cite LibreDWG FIELD_BL, while ODA says RL. On the existing AC1024 architectural_example-imperial.dwg sample (SHA-256 52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7), the local debug reader reports Layout1 viewportCount=2 and LibreDWG dwgread 0.14 verbose JSON reports num_viewports=2 [BL] with two viewport handles. The local debug command later exits 1 after the reader stage; no full conversion claim is made. Existing generated DWG object round-trip and encoder tests each use one list handle; DXF adapter controls use two but do not exercise the DWG object body path.",
+      "disposition": "The sample and peer reader corroborate the current decoded count but do not expose the exact source bits independently of BL interpretation. Record the conflict and resolve with a bounded raw-bit/sample trace or authoritative ODA correction before changing parser/writer encoding. After resolution, add a two-entry generated DWG vector under existing 7G.3e; keep it structural-only unless actual VIEWPORT target objects are added."
+    }
+  ],
+  "planChanges": {
+    "updatedFinding": "PAR-40 / 7G.3e DWG LAYOUT viewport-count/list implementation readiness",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "implementationPerformed": false
+  },
+  "validation": {
+    "localCodeTests": "NOT_RUN: this was a research and plan-only pass.",
+    "localPeerReaderDiagnostic": "PASS: installed LibreDWG dwgread 0.14 read the existing AC1024 sample with -v9 -O JSON and reported the two viewport handles; this is corroborative parser output, not an external/native acceptance test.",
+    "nativeApplicationExecution": "NOT_RUN",
+    "downloadedDrawingSamples": "NONE",
+    "planDiffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "receiptJson": "Validated with jq empty."
+  },
+  "limitations": [
+    "Peer issue reports and maintainer-linked changes are not independently reproduced here.",
+    "The local and peer readers report the same count, but the exact raw bits at the field were not independently dumped; the ODA RL versus implementation BL discrepancy remains open.",
+    "A local structural vector cannot establish target-object ownership, overall viewport selection, application state restoration, or native CAD acceptance.",
+    "No external DWG/DXF was added; only repository-local scratch/in-memory test data is proposed."
+  ],
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commitCreated": false,
+  "worktree": "Shared worktree broadly modified; no unrelated changes staged or committed."
+}

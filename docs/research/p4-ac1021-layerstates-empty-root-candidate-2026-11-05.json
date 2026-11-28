@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-05",
+  "title": "AC1021 empty LayerStates root candidate and projection blockers",
+  "source": {
+    "path": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "version": "AC1021",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "repository_fixture": false
+  },
+  "observed_graph": {
+    "l_control_extension": "one source-bound DICTIONARY owned by LAYER_CONTROL",
+    "root_entries": [
+      "ACAD_LAYERFILTERS",
+      "ACAD_LAYERSTATES",
+      "ACLYDICTIONARY"
+    ],
+    "layerstates_target": "one source-bound empty DICTIONARY with the extension dictionary as parent and reactor",
+    "companion_targets": "two empty source-bound DICTIONARY records, one for each other root",
+    "evidence": "LibreDWG 0.14 minJSON identifies the three root names and handles. The local libdxfrw typed import and source-frame check in the opt-in adapter harness confirmed the AC1021 versions, DICTIONARY types, parent/reactor roles, empty bodies, and unique source identities before the projection attempt."
+  },
+  "qualification_attempts": {
+    "whole_source": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg -y -v2010 /private/tmp/libdxfrw-layerstates-arch.dxf",
+      "result": "strict output refused before file creation",
+      "reason": "typed-proxy-graphics-not-preserved count=36"
+    },
+    "selected_projection": {
+      "result": "not qualified",
+      "experiments": [
+        "The existing broad test projection retains unrelated FIELD/FIELDLIST carriers and production export refuses at 'FIELD/FIELDLIST carriers have no qualified DXF serializer'.",
+        "A narrower experiment retained only the four source-bound LayerStates dictionaries and the ACAD_SCALELIST dictionary/SCALE records, cleared unrelated XRECORDs and source-frame receipts, and kept only STANDARD DIMSTYLE/TEXTSTYLE rows. It passed the FIELD/FIELDLIST gate but failed at BLOCK_RECORD planning callbacks because the test projection lacks a bounded source BLOCK_RECORD/BLOCK graph. No output/readback was produced."
+      ],
+      "decision": "Do not admit the AC1021 LayerStates profile. A future projection must include a dependency-closed block-record graph and prove same-writer retry plus fresh ASCII/Binary readback while retaining strict full-source refusal."
+    },
+    "alternate_sample": {
+      "path": "/Users/dli/doc/dwg/Pool_Detail.dwg",
+      "version": "AC1021",
+      "sha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+      "result": "same three-root extension and empty LayerStates child observed, but libdxfrw reports one object parse failure; strict output is therefore ineligible"
+    }
+  },
+  "decision": "Do not broaden the AC1021 LayerStates production admission yet. Build a test-only projection that closes and verifies only the selected LayerStates graph and its required table/NOD dependencies, preserve strict whole-source refusal, then prove atomic failure/retry and fresh ASCII/Binary readback. Neither candidate drawing is copied into the repository. No support claim is promoted."
+}

@@ -1,0 +1,34 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "scope": "Bind typed TABLEGEOMETRY source identity inside the existing DXF output transaction.",
+  "result": "PASS",
+  "supportClaimEffect": "none",
+  "change": "writeTableGeometry now binds the source handle to the emitted handle before committing its existing record/state scopes.",
+  "validation": {
+    "normal_projection": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_geometry_dxf_projection$' --output-on-failure",
+      "result": "PASS, 1/1"
+    },
+    "normal_dependencies": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_geometry_dependencies$' --output-on-failure",
+      "result": "PASS, 1/1"
+    },
+    "normal_allocation": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_tablegeometry_objects_allocation$' --output-on-failure",
+      "result": "PASS, 1/1; generated rollback/retry and typed readback"
+    },
+    "address_sanitizer_allocation": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_tablegeometry_objects_allocation$' --output-on-failure",
+      "result": "PASS, 1/1"
+    }
+  },
+  "limitations": [
+    "The tested candidate retains its existing unknown-reference refusal and bounded table-geometry profile.",
+    "This identity binding does not qualify unmodeled producer fields, native rendering, or whole-document output.",
+    "No support claim is promoted."
+  ],
+  "source_sha256": {
+    "src/libdxfrw.cpp": "440b9adbf6a33f55514e76da106f18c3832245f1e9ee200359b3029404ce60f7"
+  }
+}

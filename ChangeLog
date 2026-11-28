@@ -1,3 +1,8 @@
+2026-11-16
+----------
+* Assign development version and shared-library ABI major 3 after comparison
+  with the 2.0.0 origin/master public class layouts.
+
 2026-09-18
 ----------
 * Prepared the 2.0.0 C++17/public-ABI release boundary.

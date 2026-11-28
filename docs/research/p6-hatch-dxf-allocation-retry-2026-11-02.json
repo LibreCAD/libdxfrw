@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-hatch-dxf-allocation-retry-2026-11-02",
+  "date": "2026-11-02",
+  "status": "IMPLEMENTED_FAST_TESTS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Transactional DXF HATCH boundary-loop creation and count parsing for boundary edges, polyline vertices, pattern dash arrays, pattern lines, gradient stops, and seed points. Evidence is generated in-memory and does not qualify DWG HATCH support or native application semantics.",
+  "changes": [
+    "HATCH loop (91), pattern dash (79), polyline vertex (93), edge (93), and gradient-stop (453) counts reserve storage and validate existing prefixes before committing expected-count state.",
+    "HATCH pattern line count (78) is validated against previously parsed lines before updating its expected-count state, so a corrected same-group retry remains possible.",
+    "HATCH seed-point count (98) reserves before clearing transient parser state or publishing the count; each seed coordinate also reserves before append when necessary.",
+    "HATCH boundary-loop (92) construction allocates the loop, optional polyline, and destination capacity before publishing the loop or changing parser state.",
+    "HATCH boundary-edge (72) construction reserves and allocates the selected line, arc, ellipse, or spline before appending it and publishing the active parser pointer.",
+    "HATCH coordinate-pair cursor changes are committed only after successful group parsing; polyline vertex reserve/object failures leave group 10 eligible for exact retry.",
+    "HATCH gradient-stop (463) reserve and append complete before recording that the stop field has been observed.",
+    "Reject declared counts smaller than already parsed loop, edge, vertex, dash, or seed prefixes."
+  ],
+  "allocationFailureCoverage": {
+    "countGroups": [
+      91,
+      79,
+      93,
+      98,
+      453
+    ],
+    "boundaryLoopConstructionGroup": 92,
+    "boundaryLoopAllocationFailureSites": 4,
+    "boundaryEdgeConstructionGroup": 72,
+    "boundaryEdgeTypes": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "boundaryEdgeAllocationFailureSites": 2,
+    "polylineVertexPointXGroup": 10,
+    "polylinePointAllocationFailureSites": 2,
+    "gradientStopGroup": 463,
+    "nonAllocationStateRetryGroup": 78,
+    "retry": "After injected reserve failure or invalid count, resend the same group and verify state acceptance and subsequent data parsing."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+    "buildResult": "passed",
+    "focusedCTestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_(hatch_inactive_gradient_guard|hatch_spline_dxf_allocation_failure|hatch_dxf_allocation_failure|hatch_spline_point_component_order|spline_dxf_allocation_failure|leader_dxf_allocation_failure|leader_point_component_order|mline_dxf_allocation_failure|mline_vector_component_order|dxf_underlay_ocs_extrusion|underlay_dxf_allocation_failure))$' --output-on-failure",
+    "focusedCTestResult": {
+      "passed": 11,
+      "failed": 0,
+      "elapsedSeconds": 0.75
+    },
+    "directSelector": "build-gcc/libdxfrw_dxf_fixture_tests --hatch-dxf-allocation-failure",
+    "diffCheck": "git diff --cached --check passed for the staged HATCH slice"
+  },
+  "inputHashes": {
+    "src/drw_entities.cpp": "d1c65cffea0b31d85c08739e678a40a089c3bc68693b74a7e4771b66ccb4592b",
+    "tests/dxf_fixture_tests.cpp": "b90b5647cbc8e10f1e1b4edc0ff7a4ae788a5a9ce52bb470e904c2e7f87bcc10",
+    "CMakeLists.txt": "2aff03eca6887c3553954f39ab2754f35f4985a3a653012e1877d075fcd9a2e5"
+  },
+  "fixtures": {
+    "investigationDwgOrDxfFilesAddedToRepository": 0,
+    "testData": "Generated group-code records in memory."
+  },
+  "limitations": [
+    "No source-authored DWG/DXF producer mapping or independent implementation comparison was performed.",
+    "No complete HATCH entity or whole-document support claim is established."
+  ],
+  "next": "Continue P6 safety and semantic work; retain current conservative support limits until producer-backed end-to-end evidence is complete.",
+  "repositoryState": {
+    "baseHead": "a0db3c54",
+    "inputSnapshot": "staged blobs built from HEAD plus selected HATCH changes; focused build/CTest ran against the corresponding worktree sources",
+    "stagedScope": "HATCH parser, selectors, CTest registrations, receipts, and plan note only",
+    "fixtureFilesAdded": 0
+  }
+}

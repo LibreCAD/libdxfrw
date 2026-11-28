@@ -1,0 +1,49 @@
+{
+  "title": "Arc and ordinate DIMENSION DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory ARC_DIMENSION/ORDINATE writer transaction controls only; no producer or support claim.",
+  "implementation": {
+    "writers": ["DRW_DimArc::encodeDwg", "DRW_DimOrdinate::encodeDwg"],
+    "behavior": [
+      "Stage common dimension data, strings, body fields, and DIMSTYLE/block handle output through the shared private entity transaction helper.",
+      "Preserve custom ARC_DIMENSION code 500, ORDINATE code 20, unconditional arc leader-point fields, and existing field order.",
+      "Restore the previous subtype code and caller buffers on any failed staged encode."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1018", "profile": "UTF-8 ARC_DIMENSION with leader fields and DIMSTYLE/block references", "arc_failures": 17},
+    {"version": "AC1021", "profile": "UTF-8 ARC_DIMENSION with leader fields and DIMSTYLE/block references", "arc_failures": 22},
+    {"version": "AC1024", "profile": "UTF-8 ARC_DIMENSION with leader fields and DIMSTYLE/block references", "arc_failures": 22},
+    {"version": "AC1015", "profile": "UTF-8 ORDINATE x-axis profile with DIMSTYLE/block references", "ordinate_failures": 17},
+    {"version": "AC1018", "profile": "UTF-8 ORDINATE x-axis profile with DIMSTYLE/block references", "ordinate_failures": 17},
+    {"version": "AC1021", "profile": "UTF-8 ORDINATE x-axis profile with DIMSTYLE/block references", "ordinate_failures": 22},
+    {"version": "AC1024", "profile": "UTF-8 ORDINATE x-axis profile with DIMSTYLE/block references", "ordinate_failures": 22}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body, string, and handle bytes, bit counts, handle occurrences, and prior subtype code remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output and restores the expected subtype code.",
+    "All-stream alias controls preserve state and succeed on retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --arc-ordinate-dim-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1018 ARC_DIMENSION": 17,
+      "AC1021 ARC_DIMENSION": 22,
+      "AC1024 ARC_DIMENSION": 22,
+      "AC1015 ORDINATE": 17,
+      "AC1018 ORDINATE": 17,
+      "AC1021 ORDINATE": 22,
+      "AC1024 ORDINATE": 22
+    },
+    "entity_writer_transaction_cohort": "30/30 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish transaction behavior only.",
+    "Dimension field semantics, DIMSTYLE/block graph closure, producer coverage, native behavior, and broader support remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}

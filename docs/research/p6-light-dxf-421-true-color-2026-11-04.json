@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_DXF_TRUE_COLOR_TRANSPORT",
+  "base_commit": "26253e2b",
+  "scope": "Preserve a single DXF LIGHT AcDbLight group 421 as 24-bit RGB independently of its group 63 ACI, via existing m_colorRgb when DWG CMC metadata is absent. No DWG CMC-to-DXF mapping or LIGHTLIST graph admission is introduced.",
+  "authority": "Autodesk DXF group-code reference https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm identifies 420-429 as 24-bit true color; its LIGHT table https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-1A23DB42-6A92-48E9-9EB2-A7856A479930.htm does not list 421. ODA producer observation supplies the record-specific evidence rather than an inferred authoritative LIGHT mapping.",
+  "producer": "ezdxf 1.4.5 authored a LIGHT and nonempty LIGHTLIST scene; a local raw-tag step added LIGHT group 63=7 and group 421 black 0, RGB 0x123456, or white 0xffffff. ODA File Converter 27.1 converted each AC1027 DXF to DWG and back to AC1027 DXF without .err. ODA returned group 421 values unchanged and recomputed group 63 to 18, 148 and 7 respectively. Conversion lineage is a locally observed join, not established by hashes.",
+  "implementation": "Store a single 0..0xffffff group 421 in existing m_colorRgb (-1 remains absent), reject duplicate or out-of-range source values, emit group 421 if present and preserve group 63 independently. Only method=0 with no DWG CMC metadata/name/book/flags is admitted with RGB. Existing DWG CMC-source color profiles remain refused for DXF; no API or class layout changes.",
+  "tests": "Isolated focused CTest passed ASCII/Binary absent, black, nonwhite and white readback; duplicate and out-of-range input refusal; unsupported method/metadata and invalid values; destination preservation and same-DXF-writer retry. DXF-read RGB plus non-256 ACI is refused before DWG encoding; registered-class facade ignores failed write callback, still refuses whole output with sentinel intact, and the same facade retries successfully once RGB is cleared. Three ODA-return pairs and six generated ASCII/Binary samples pass hash-bound ezdxf raw-tag LIGHT and geometry audit.",
+  "graph_limit": "Before this change ODA RGB scene fails LIGHT group 421 parsing. With only this candidate it reaches LIGHTLIST, then fails because its in-subclass group-5 light target is treated as a duplicate self-handle; destination is preserved. LIGHTLIST graph closure/output remains unsupported. Scratch investigation identified but did not include a separate candidate for that second blocker. Even with both exploratory changes the scene encounters MATERIAL parsing; no whole-file or native rendering qualification is asserted.",
+  "commands": [
+    "cmake --build /private/tmp/light421-color/build --target libdxfrw_dxf_light_rgb_421_tests -j4",
+    "ctest --test-dir /private/tmp/light421-color/build -R '^libdxfrw_dxf_light_rgb_421$' --output-on-failure",
+    "Compile tools/probe_light_dxf_421.cpp against candidate libdxfrw with -std=c++17 -I<source> -I<source>/src; run PROBE OUTPUT.dxf ascii|binary 0|1193046|16777215.",
+    "PYTHONPATH=<source>/tools build/rpp5gh-evidence/peer/bin/python -O <source>/tools/audit_light_dxf_421.py /private/tmp/light421-color --manifest-sha256 40dd54cb6a4ee51dbbe889c0c8c450fb0bc45f2637a1d610ea3be5b962ec04e8",
+    "Use tools/author_light_dxf_421.py EMPTY_DIR, then ODA-convert each authored DXF to ACAD2013 DWG and back to ACAD2013 DXF. Generated timestamps can change artifact hashes."
+  ],
+  "tools_sha256": {
+    "tests/dxf_light_rgb_421_tests.cpp": "d0262a22245f1f61b9774789378cc2126e4ff41c15878f9443366affd1fead5d",
+    "tools/probe_light_dxf_421.cpp": "b0b742241e0db901c1db41b9be99e2ee8438084ee09fefbcf35dc62d65c96b66",
+    "tools/author_light_dxf_421.py": "dbe9c7bce1b62a68b6ef756df97dc736a48d330264be4283a3a4e664320bb8bb",
+    "tools/audit_light_dxf_421.py": "96379cfbb53d9309b72fa7d5a489d50d2879fbe1846cf3612bb101a49ecd85d5",
+    "tools/lightlist_physical_graph_probe.py": "9308ac57bf52171c23413ab4d76382ad8d763a8cb3333af09f9aaf2fdbb03998"
+  },
+  "manifest_path": "docs/research/p6-light-dxf-421-producer-manifest-2026-11-04.json",
+  "manifest_sha256": "40dd54cb6a4ee51dbbe889c0c8c450fb0bc45f2637a1d610ea3be5b962ec04e8",
+  "patch_sha256": "159be8b8800cd564c2624c4a131c82fca102e14e6ca90cdc50f203ef579979a1",
+  "limits": [
+    "No binary fixtures, shared-tree edits, graph output promotion or native light rendering claims.",
+    "Typed DXF input and caller-provided RGB are covered; unqualified DWG CMC payload remains refused.",
+    "ODA changes ACI in the selected samples; this slice preserves separate fields exactly and does not model precedence or native appearance."
+  ],
+  "integrated_validation": "The integrated DXF RGB, existing adapter and DWG CMC tests passed 3/3. The adapter control now accepts source DXF group 421 while continuing to reject unqualified DWG CMC metadata."
+}

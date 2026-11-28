@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 R2010+ zero-fit HATCH and MPOLYGON spline tangents",
+  "mode": "ODA-spec-backed parser correction with generated fast controls",
+  "scope": [
+    "Read R2010+ HATCH and MPOLYGON spline-boundary tangent vectors after the fit-point array when fit count is zero",
+    "Retain bounded reads and finite-value validation for both tangent vectors",
+    "Keep R2004/R2007 boundary spline layouts unchanged"
+  ],
+  "evidence": {
+    "odaDwgSpecification": {
+      "document": "Open Design Specification for .dwg files v5.4.1, local copy /Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "section": "20.4.75 HATCH (varies), R24 spline boundary fields",
+      "finding": "After the BL fit-point count and repeated 2RD fit points, the specification lists 2RD start and end tangent vectors without making them conditional on a nonzero fit-point count."
+    },
+    "reproduction": "The generated AC1024 MPOLYGON gradient case had a spline boundary with zero fit points, followed by a second edge and a LINE entity sentinel. The writer emitted the tangents as specified; the shared parser skipped them and consequently read tangent bytes as the next edge type.",
+    "decision": "Follow ODA v5.4.1: consume both tangent vectors for every R2010+ HATCH-family spline boundary, including fit-count zero. No writer change was needed."
+  },
+  "changes": {
+    "reader": "src/drw_entities.cpp now reads both bounded 2RD tangent vectors after the R2010+ fit-point array, regardless of fit count, and rejects truncated or non-finite vectors.",
+    "generatedTests": "tests/dwg_local_roundtrip_tests.cpp now encodes the zero-fit tangent fields in its independent HATCH boundary wire control. Existing generated HATCH/MPOLYGON spline writer-reader controls verify zero-fit and populated-fit cases, boundary continuation, and following-entity alignment. The CMC gradient selector also exercises an AC1024 MPOLYGON zero-fit boundary with a following LINE.",
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicLayoutOrVtableChanged": false,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-gradient-cmc",
+        "result": "PASS (generated AC1024 MPOLYGON zero-fit boundary and following LINE)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-dwg-spline-weights",
+        "result": "PASS (HATCH/MPOLYGON R2010+ spline wire and file roundtrips)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc --output-on-failure -R '^(libdxfrw_wave1|libdxfrw_dxf_code_type_boundaries|dwg_hatch_rational_spline_weight_handoff)$'",
+        "result": "PASS (3/3)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc --output-on-failure -R 'dwg_read'",
+        "result": "PARTIAL (12/19 passed; seven failures at AC1021 header/CRC or AC1024 class/object integrity stages; reported entityParseFailures=0; failures remain unresolved and are not attributed to this change)"
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.cpp tests/dwg_local_roundtrip_tests.cpp tests/wave1_tests.cpp",
+        "result": "PASS"
+      }
+    ]
+  },
+  "limits": [
+    "The vectors are generated locally and agree with the ODA layout; no independent producer sample qualified the zero-fit tangent form in this slice.",
+    "The broader dwg_read sample lane has seven unresolved failures outside reported entity parsing; no baseline comparison was performed.",
+    "This does not qualify HATCH/MPOLYGON support or promote any external/platform support claim.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "No persistent DWG/DXF fixture was added; the worktree is broadly dirty and this slice is uncommitted."
+  ],
+  "next": "Self-unblock to another locally evidenced plan item. Resume associative-action dwgResbufValueKind changes only with its exact ODA consumer field layout. Keep remaining CMC methods and external/platform semantic qualification separate."
+}

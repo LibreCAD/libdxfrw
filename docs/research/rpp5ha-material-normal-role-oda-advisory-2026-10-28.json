@@ -1,0 +1,3028 @@
+{
+  "schema": "material-normal-role-oda-advisory-v1",
+  "date": "2026-10-28",
+  "state": "ADVISORY_CONTROL_FAILED_NO_ROLE_PROMOTION",
+  "purpose": "Try an independent converter on an explicit-boundary control and omitted-boundary source with distinguishing diffuse and normal values.",
+  "producer": {
+    "name": "ezdxf",
+    "version": "1.4.5",
+    "executable": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python",
+    "executableSha256": "15c72833c1ffc09bc4e05d1e1866784d126721ad548d9c4d8f943641262535cb",
+    "sourceSchemaAdapter": {
+      "attribute": "specular_color_method",
+      "oldCode": 73,
+      "code": 76,
+      "appliedBeforeDocumentCreation": true,
+      "rationale": "Autodesk MATERIAL specular color method is code76; pinned producer has code73"
+    },
+    "loadedModules": {
+      "ezdxf": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/__init__.py",
+        "sha256": "6fb6ce1e3b4066825af46ae40bb1ba2aa64e05860e8bb95e7f1dcd6e1fd39ff0"
+      },
+      "ezdxf._options": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/_options.py",
+        "sha256": "120de38a90e7a90b838e9005379db424470c14feacdc9faa71c328d326979ae6"
+      },
+      "ezdxf.acc": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/__init__.py",
+        "sha256": "e80e7bc0ea6ad20a1949cbd98422ac5089a46a95c1851682343a2ac2e9d81636"
+      },
+      "ezdxf.acc.bezier3p": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/bezier3p.cpython-315-darwin.so",
+        "sha256": "173e683da53d7e94c2db71372a7d71b4ad56778fa1044aa7d659ac5b36fdf957"
+      },
+      "ezdxf.acc.bezier4p": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/bezier4p.cpython-315-darwin.so",
+        "sha256": "5efc7eb1e09ec0cb7c886620b4f98eb17428bfc375fb235cce713f008fd91d47"
+      },
+      "ezdxf.acc.bspline": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/bspline.cpython-315-darwin.so",
+        "sha256": "e2ca3be17a27daddba8e252343d82e4026bd44c6b5455c0c10151f996b21c869"
+      },
+      "ezdxf.acc.construct": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/construct.cpython-315-darwin.so",
+        "sha256": "782842dceb8df36f32ac5367c94b2ecfa95abb01971ab1cf35b72fd32f36755c"
+      },
+      "ezdxf.acc.mapbox_earcut": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/mapbox_earcut.cpython-315-darwin.so",
+        "sha256": "38599fde078818b665f43476300a3342ef0c7991f8dee21c1513c4d804472713"
+      },
+      "ezdxf.acc.matrix44": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/matrix44.cpython-315-darwin.so",
+        "sha256": "eb0c608b4bc79a1e201016da536496e10ca1cf4948e3e12ccc12979d09dda84d"
+      },
+      "ezdxf.acc.np_support": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/np_support.cpython-315-darwin.so",
+        "sha256": "d830e474cbb81cf6ac46eeb7f4a00f172ae99693f18881234da735f09f38b748"
+      },
+      "ezdxf.acc.vector": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/vector.cpython-315-darwin.so",
+        "sha256": "7c36cc371f9b27a14867f79a1f965d2c0b071b2753c5880699662f2c6ae0aae6"
+      },
+      "ezdxf.audit": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/audit.py",
+        "sha256": "96c5cef57d3fda1c8230554ba4fae38e8feee36c18a38b3d0ba8c813572d5773"
+      },
+      "ezdxf.colors": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/colors.py",
+        "sha256": "2dc20b764a7ca766f9719f954974e46348595669a4ae8eb7dd4da512e0ed16fb"
+      },
+      "ezdxf.document": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/document.py",
+        "sha256": "1d501ebac64ef299c5555cf2f7bd85dd8b5b7a4ab85c769679e062729a05d350"
+      },
+      "ezdxf.entities": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/__init__.py",
+        "sha256": "0029d37f1f0d954d011213a3468871bd8a81a91b011e4ba9c829e4ed5c967c9f"
+      },
+      "ezdxf.entities.acad_proxy_entity": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/acad_proxy_entity.py",
+        "sha256": "9344f19f0dc9c2b372add73e49ad044b11471bbaaf694ed7d9273927db35579b"
+      },
+      "ezdxf.entities.acad_table": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/acad_table.py",
+        "sha256": "66209d150937008f0bc387c9caa5418c26af4e201750ab2ff9fbca4e4af49fff"
+      },
+      "ezdxf.entities.acis": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/acis.py",
+        "sha256": "7ba98c1e44b9da137d29250dd2cebb63c3bceed4ef59da36f2c8fcb77b87b340"
+      },
+      "ezdxf.entities.appdata": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/appdata.py",
+        "sha256": "2c91a688841501d9951c6d49d05baa69b7753557689209d405b01172816b87f2"
+      },
+      "ezdxf.entities.appid": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/appid.py",
+        "sha256": "e5ef5c80507b542bbe582d71aba5e42b85982389380ce055d00132cc26cbd414"
+      },
+      "ezdxf.entities.arc": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/arc.py",
+        "sha256": "8d3b15790825d19256e37e60a88471fa1ae7faee220e139a3be1d246f65dc025"
+      },
+      "ezdxf.entities.attrib": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/attrib.py",
+        "sha256": "5b6f6ba3776e8ec4b4418782f9207f567c76b8e3f19c1f7292347793e437b843"
+      },
+      "ezdxf.entities.block": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/block.py",
+        "sha256": "28c9eba0dc48ed386732a8d76c3315407351a951f4191989abe68268ae81d16e"
+      },
+      "ezdxf.entities.blockrecord": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/blockrecord.py",
+        "sha256": "ffd9006fdd99e7b863ac33c800894ff19060ec9577cd6d380dabe52917be0c75"
+      },
+      "ezdxf.entities.boundary_paths": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/boundary_paths.py",
+        "sha256": "5b1cd54669a0b04b3bca80e5d852b4efa5fb4e992956b1cdc3c4f270e2784618"
+      },
+      "ezdxf.entities.circle": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/circle.py",
+        "sha256": "8362513f37049ef53dff29a690de290f21ae8c9bc6b178580ac3b76619d7769d"
+      },
+      "ezdxf.entities.copy": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/copy.py",
+        "sha256": "c1e0104a9baeb0033fc096ad874b27988c053bf98027a22eaf18f776a096dafe"
+      },
+      "ezdxf.entities.dictionary": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dictionary.py",
+        "sha256": "91bef1d012a5ee294d5e221daec7d39b327fc37366600d7f7d3c2de7b0baf9c8"
+      },
+      "ezdxf.entities.dimension": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dimension.py",
+        "sha256": "2d8c77aa74b612a5c4ce303d5a35f557c0f6f9cd019966b29f7588ffe5998043"
+      },
+      "ezdxf.entities.dimstyle": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dimstyle.py",
+        "sha256": "9586dbe5759f58c571bb7d32b589c529ed03703e5146a877eacf30ca098e435f"
+      },
+      "ezdxf.entities.dimstyleoverride": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dimstyleoverride.py",
+        "sha256": "ab2f330333279b2bb0903295b17513098d9bf07c2a317fe9de93105a81c8c4b4"
+      },
+      "ezdxf.entities.dxfclass": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dxfclass.py",
+        "sha256": "aac6e2e3e06b9ec784e016e0818dbbe14d8727bd1562a1b7a9f3f33194cfeed6"
+      },
+      "ezdxf.entities.dxfentity": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dxfentity.py",
+        "sha256": "fddd3c4331be2be4a00da769e6368ce2ee3621710f0536ad2f65be2f71a568b1"
+      },
+      "ezdxf.entities.dxfgfx": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dxfgfx.py",
+        "sha256": "416ee3a85f5cbf9bc891da2489b6491c310c9dc22c5cc1457b81ffffecc121ec"
+      },
+      "ezdxf.entities.dxfgroups": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dxfgroups.py",
+        "sha256": "25917e507350c0c9d02865d683ea93532bfb430b8c45839d9aa435e6cb6c3a80"
+      },
+      "ezdxf.entities.dxfns": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dxfns.py",
+        "sha256": "9d752495a91e864dd13141a7a3c8d783850f5eeff8105e61027b607511afbae0"
+      },
+      "ezdxf.entities.dxfobj": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dxfobj.py",
+        "sha256": "4426fcbc0f9106ffde248d43e9aebcbb4a50e9db034e27478ab4e0988f0cc59c"
+      },
+      "ezdxf.entities.ellipse": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/ellipse.py",
+        "sha256": "82e7c70cd585d89340fcccb2dcc5806f396baa4dca614eee7c9c8baf6580f61b"
+      },
+      "ezdxf.entities.factory": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/factory.py",
+        "sha256": "279abcd9a1c7dc4019de83991b3f8b1b485ca1cc1eef7a0b455f7a09b4c8b871"
+      },
+      "ezdxf.entities.geodata": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/geodata.py",
+        "sha256": "98b276796f1cb1427e9edfbd979019bc611cb5fff050a6634d7330f389e4e455"
+      },
+      "ezdxf.entities.gradient": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/gradient.py",
+        "sha256": "6a2af106a10e31ddf5549128bf51e5a31e9f2f77a3fd6a7b1d303d0884b4c3a1"
+      },
+      "ezdxf.entities.hatch": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/hatch.py",
+        "sha256": "9fffed475879d238a5f869121ab1b7ed53d44e004193394282a0e4d269b6eb1f"
+      },
+      "ezdxf.entities.helix": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/helix.py",
+        "sha256": "9434adba63c4185d2af62f4ef959a929082684123b1b1dd283dc02079c02bd1e"
+      },
+      "ezdxf.entities.idbuffer": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/idbuffer.py",
+        "sha256": "2dc173f54e0909d86e4edc2337e74a44e7edd9bf496e185d6e42bf365f257457"
+      },
+      "ezdxf.entities.image": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/image.py",
+        "sha256": "aba9c3a84492e0cc47736971bd7066c875c24934169f858a68e8d177fe45cb2f"
+      },
+      "ezdxf.entities.insert": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/insert.py",
+        "sha256": "511f29c6ec9642803c122fcb1ddb6d2c3347c0d2ba668197ce330c607862544a"
+      },
+      "ezdxf.entities.layer": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/layer.py",
+        "sha256": "3c3a1296eae99577f3484bad73e12cd41706a33e88bb3999992001d254ddd796"
+      },
+      "ezdxf.entities.layout": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/layout.py",
+        "sha256": "ad4c80e88f5e6bdc650b55a7e76fcb74056b5ad702798c311030ed4a7b5eeb81"
+      },
+      "ezdxf.entities.leader": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/leader.py",
+        "sha256": "918e20a1c3142f7393d69114ff9bd42065a33c9857fde7238bf864737ed1823c"
+      },
+      "ezdxf.entities.light": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/light.py",
+        "sha256": "e79eca0dd3c224fd261720b89afabad3cd6fe97ae02b6d6459318a34c5800372"
+      },
+      "ezdxf.entities.line": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/line.py",
+        "sha256": "f5ed5f336896c0f70396662b402aea89304a800e8fd41f9ee1125bf4ec16d264"
+      },
+      "ezdxf.entities.ltype": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/ltype.py",
+        "sha256": "93824c3611f76505a16e15e1c920418161155de09b5bae2534294be2bb89dd59"
+      },
+      "ezdxf.entities.lwpolyline": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/lwpolyline.py",
+        "sha256": "172397caccce5ada23692b84d3840886b0886274782ab27d7510af8e8b5afd7c"
+      },
+      "ezdxf.entities.material": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/material.py",
+        "sha256": "d590f51cf29e2c7efd5dc51ac530646ced8e159a47a99c5233d89a2da4ff8565"
+      },
+      "ezdxf.entities.mesh": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mesh.py",
+        "sha256": "3d2f5ee3becedbb8e91667de8c781325d29711fd83e56b64259307158dc6f544"
+      },
+      "ezdxf.entities.mleader": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mleader.py",
+        "sha256": "9303d33c49ab200f22e2f659c05f7c2f61a197c821618b8e6e2012183ab05a59"
+      },
+      "ezdxf.entities.mline": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mline.py",
+        "sha256": "eee46cda3d1d2e3fa053cf4478f0bc0ed8b3df8d856b38490b2c446f57bc6038"
+      },
+      "ezdxf.entities.mpolygon": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mpolygon.py",
+        "sha256": "e2c82ff5ac65953414d54358d689368aa3e85e6a92d8e0722c7efe6cf866fa37"
+      },
+      "ezdxf.entities.mtext": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mtext.py",
+        "sha256": "6c1532f89782e4939dfd799c85cfe666b3a509ab5468fe245eb130f2274f790e"
+      },
+      "ezdxf.entities.mtext_columns": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mtext_columns.py",
+        "sha256": "509fa52e7bff7429dd1b262087769e33058811af54052da948ac51375d7e66aa"
+      },
+      "ezdxf.entities.objectcollection": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/objectcollection.py",
+        "sha256": "1f7eb2443ef8c511d116e94fb6ccbbb189490fb629b640539753a1f3d23ae748"
+      },
+      "ezdxf.entities.oleframe": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/oleframe.py",
+        "sha256": "a3c31b79cecba088a5ac7e42e5fe7075e69e3d444fad10f3cf57f213960ed765"
+      },
+      "ezdxf.entities.pattern": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/pattern.py",
+        "sha256": "58e380ea044dc1a7a99b50cf84c8e57177b23418e6949de9beb8b818f22bb492"
+      },
+      "ezdxf.entities.point": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/point.py",
+        "sha256": "28499b3ed1e75e185253c8c13dafc32685c87af508ab2b931d5f169396bdbddf"
+      },
+      "ezdxf.entities.polygon": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/polygon.py",
+        "sha256": "0fa19ccbabcd4a978041d553443a379730395c8076aa8873c13ed0ff2133dcaf"
+      },
+      "ezdxf.entities.polyline": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/polyline.py",
+        "sha256": "53f679785023d8a0ff0d14ea47f0f2617a0f6b0e945c3d98a07520c2a3e3d70f"
+      },
+      "ezdxf.entities.shape": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/shape.py",
+        "sha256": "edc987551cbc996ec4270e1e1221d6ba8b5828138b853ee608cfa12d6331bd05"
+      },
+      "ezdxf.entities.solid": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/solid.py",
+        "sha256": "aa5e7c49dbb09a3a29ea2a3af5b094e42426e35a6a40fc6149dcc90a43c685ae"
+      },
+      "ezdxf.entities.spatial_filter": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/spatial_filter.py",
+        "sha256": "90b09163877bd0760d0c6df8fe877099427a256d556955bd92a81f41753272d5"
+      },
+      "ezdxf.entities.spline": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/spline.py",
+        "sha256": "ded0d4ed638aeb04585589ed3755230d422734221ef45e23dc66ace4e47a8321"
+      },
+      "ezdxf.entities.subentity": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/subentity.py",
+        "sha256": "ab59db31396378c0148b114723cdfd30ce0c1464a807e0e1f3e86b7a9ded00e9"
+      },
+      "ezdxf.entities.sun": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/sun.py",
+        "sha256": "02c855b02a65c8e67f397db10220d452e99727080cc5ce80d2c1deb8174ca273"
+      },
+      "ezdxf.entities.table": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/table.py",
+        "sha256": "915b7ca998cd56a37250ac9762b19030ec60068a34cd2b72640a79d5d9dd3c48"
+      },
+      "ezdxf.entities.temporary_transform": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/temporary_transform.py",
+        "sha256": "fdff3176c3f8e683e7afabbef9d16b2c9ae1f971878caf1726278b896685a299"
+      },
+      "ezdxf.entities.text": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/text.py",
+        "sha256": "2fd0e80488240359241a6534031d7f0bb071b516cfb167f16fb8f9249cdc9ee0"
+      },
+      "ezdxf.entities.textstyle": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/textstyle.py",
+        "sha256": "af01686b00b7b6e763be955094dc2ca5cef129f6961b7107c6171166871fdb90"
+      },
+      "ezdxf.entities.tolerance": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/tolerance.py",
+        "sha256": "a19d6f2a63bedf3606ad6bf740d5931adcf3ed0c764d4868b6b09cd2c2068bac"
+      },
+      "ezdxf.entities.ucs": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/ucs.py",
+        "sha256": "cfa9ec73d565ed95ac29ef8a92d6400b81c3666d933412105a17659f98a0b4e7"
+      },
+      "ezdxf.entities.underlay": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/underlay.py",
+        "sha256": "9c715c4d4dff5c4a94baa6cfd1059f4d424cd14d3bd66e6f6573082d37c83064"
+      },
+      "ezdxf.entities.view": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/view.py",
+        "sha256": "9910ee61aead8e1845fb9d8c012f89f658454cdd8215cfb143c8d39a773224c3"
+      },
+      "ezdxf.entities.viewport": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/viewport.py",
+        "sha256": "756ec5b4d4600a63c7f64dd57583ec538cf4f0fe4832e630702239e987618851"
+      },
+      "ezdxf.entities.visualstyle": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/visualstyle.py",
+        "sha256": "445d5a19e95a19817ab531e7c373e8d6f2793ee82e43f0e6e9aead8684bf8090"
+      },
+      "ezdxf.entities.vport": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/vport.py",
+        "sha256": "5272d421b1f64027faa9313d60e2d1f5d2c53e7f3d488b9e450d0c3550006dc8"
+      },
+      "ezdxf.entities.xdata": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/xdata.py",
+        "sha256": "9bd850abf882e13d435cc2ebe131e842aaf4e24f2d900d64e1cbeb8b83016482"
+      },
+      "ezdxf.entities.xdict": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/xdict.py",
+        "sha256": "1e968781752ac12ae9f44f64acbade71c6637dc74c5fc36f6432f9b194fa822e"
+      },
+      "ezdxf.entities.xline": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/xline.py",
+        "sha256": "63fd028686b61a5f7dcd6132bcaa7d3c202ce0893cb93c1e856cf6ddc29485f0"
+      },
+      "ezdxf.entitydb": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entitydb.py",
+        "sha256": "bd79c6d0f084cd67355ab27c830f007322a019cbc34c096a8bafd1dbb10b0912"
+      },
+      "ezdxf.enums": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/enums.py",
+        "sha256": "cfdf4630e0a7b1b253640b4cf58184329419267f6844d8706a789e2f2cb60a83"
+      },
+      "ezdxf.explode": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/explode.py",
+        "sha256": "bd774b26fb968209d88d7801f6e747a77635c787a6952f1a1ebf80746051aea3"
+      },
+      "ezdxf.filemanagement": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/filemanagement.py",
+        "sha256": "46d3b5657389de88c899c34e7c361ce349f0df6caccd3fdaa4661d9c3b6f9e77"
+      },
+      "ezdxf.fonts": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/__init__.py",
+        "sha256": "aca0c115a04d2d6a8adcbbd0c981403ea74b01d31cb9d3c882f0171c30d83e7a"
+      },
+      "ezdxf.fonts.font_face": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/font_face.py",
+        "sha256": "eb9ecb7a7174439812b8a355693b741feb8b7e3ae8a9fc3efe5bd78507205849"
+      },
+      "ezdxf.fonts.font_manager": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/font_manager.py",
+        "sha256": "e5ca0e4cbc200a65948efc995f69a1f26e6a4c4b9a5ce5f27e9df7b0791700ef"
+      },
+      "ezdxf.fonts.font_measurements": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/font_measurements.py",
+        "sha256": "df395fcc9381e39abcf048c4f512a83d820e6cb2ac45787fd1ec2cb1989b90eb"
+      },
+      "ezdxf.fonts.font_synonyms": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/font_synonyms.py",
+        "sha256": "33bcde66c09548906d1783dbfe05ec17fa8e07c725ebfb9221bc54050f55bf21"
+      },
+      "ezdxf.fonts.fonts": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/fonts.py",
+        "sha256": "7fe8fa289e19fb3694a51725b9c7ce0fdbadd46e9c4628d778c44164fd77a90a"
+      },
+      "ezdxf.fonts.glyphs": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/glyphs.py",
+        "sha256": "0e6315f6647604cced158df4fd7e762e50d9dbb621e0f91b536e1e7165ddcc48"
+      },
+      "ezdxf.fonts.lff": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/lff.py",
+        "sha256": "5779b5fd60aadcd2eaa23d36c1ed2945ded489ed18248696f4af4f97c09f1269"
+      },
+      "ezdxf.fonts.shapefile": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/shapefile.py",
+        "sha256": "0c09ae74851d347396556cfaed3117cf325e81351e4971ea0c514ad0b80c3fe0"
+      },
+      "ezdxf.graphicsfactory": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/graphicsfactory.py",
+        "sha256": "9e620196a2527ca302b739a172f97f9ace0e65d11cc6f63c7c709a03e6b5f8b8"
+      },
+      "ezdxf.groupby": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/groupby.py",
+        "sha256": "2cbdc9e55f858fa99f5da2f85979e907a115c7127fad35275a32f133484a02d7"
+      },
+      "ezdxf.layouts": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/layouts/__init__.py",
+        "sha256": "cb7163b9438c5d4c4e5dbfa77cdfa9dcc4c5d3dd17cba20970ab180ffbc4687a"
+      },
+      "ezdxf.layouts.base": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/layouts/base.py",
+        "sha256": "b73bac0a3dc06e151fe71782b89ca187e6f0b4415502a5de6416cbd3a2c53f83"
+      },
+      "ezdxf.layouts.blocklayout": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/layouts/blocklayout.py",
+        "sha256": "786098061f1fb8d30a4a178258725d5c29f047666958ffba8bf19bb7fe10ee1f"
+      },
+      "ezdxf.layouts.layout": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/layouts/layout.py",
+        "sha256": "fd6d045130d84b1cc26f98ec63defd1d60b008f0edd14497c981eb6d3d2c896c"
+      },
+      "ezdxf.layouts.layouts": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/layouts/layouts.py",
+        "sha256": "acaf21336a154c55934793b0ec1cfa9ca551ea7162945a0a652f5434378da829"
+      },
+      "ezdxf.lldxf": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/__init__.py",
+        "sha256": "5f298cec121527bdf5e5eaee879ae8b1b12362f6001ea73594e3b39e27e43dab"
+      },
+      "ezdxf.lldxf.attributes": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/attributes.py",
+        "sha256": "feb678af8efc4896b797ebd380893b6ee1b3f8762ee43e55ca4d20ab3f800fe2"
+      },
+      "ezdxf.lldxf.const": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/const.py",
+        "sha256": "23e8b0380ebdeb05b6627613c401ba89303816a83f047d44fcc4124dbb763e95"
+      },
+      "ezdxf.lldxf.encoding": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/encoding.py",
+        "sha256": "3604c0443fa1593e770b6205c8e6a45e9a48629fea4ecd86c4679498656ac8ae"
+      },
+      "ezdxf.lldxf.extendedtags": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/extendedtags.py",
+        "sha256": "a93b50c5512a971f0dae18e66db2e027b12e6c1c7d3a0f0e806072a6b24178a9"
+      },
+      "ezdxf.lldxf.hdrvars": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/hdrvars.py",
+        "sha256": "2b92bd6e00bda1ab0bae38c785ed460f5320d631fd805da51ea6df18270262ac"
+      },
+      "ezdxf.lldxf.loader": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/loader.py",
+        "sha256": "3eab9568db58fd8d9f09c02724a2cc8aea47f05ca61f9785d2747e88900df373"
+      },
+      "ezdxf.lldxf.packedtags": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/packedtags.py",
+        "sha256": "65a6c9f2ab1fb8cf8a5f9c498a4869b2ef9d864666c397fd8ee39a903576c889"
+      },
+      "ezdxf.lldxf.repair": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/repair.py",
+        "sha256": "903f2b02e7c8b1e4b646234a34846a6653f6c42c0cf194dcec210aae0b7d9425"
+      },
+      "ezdxf.lldxf.tagger": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/tagger.py",
+        "sha256": "03c5eafad5f5e82570ab72815bb107e5a9ef404da36e046cdcc9742eb594e97d"
+      },
+      "ezdxf.lldxf.tags": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/tags.py",
+        "sha256": "f53074f8eb651ca2ca797f6ff70f9532c98d3a2a38b6fc9f5cc25395a6fe5c2e"
+      },
+      "ezdxf.lldxf.tagwriter": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/tagwriter.py",
+        "sha256": "92f60a2adb6efbcdb7d6e69950410625b640c898e1433f47c7996d4729a6600c"
+      },
+      "ezdxf.lldxf.types": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/types.py",
+        "sha256": "6b2d73b9194190ec06deb8f68879c07bceabc31fed3271ba175a2aab9b749b44"
+      },
+      "ezdxf.lldxf.validator": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/validator.py",
+        "sha256": "c96d39f078500ab5ca5c3cff1339341c50467ab2989011e5cdc27f9eee9e6d19"
+      },
+      "ezdxf.math": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/__init__.py",
+        "sha256": "146a7e993457b8600eb2d6266692e679bd43d3d881082b1815638588add275c1"
+      },
+      "ezdxf.math._ctypes": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/_ctypes.py",
+        "sha256": "5614a44e0e283d2bfb5b81b69436ca6bc83146bd6f81fb8639ce703f70828537"
+      },
+      "ezdxf.math._mapbox_earcut": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/_mapbox_earcut.py",
+        "sha256": "cd3cb56498cb80487018c7233c17b197d48a6ce954cb298baffba55882471689"
+      },
+      "ezdxf.math.arc": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/arc.py",
+        "sha256": "43523acdfbfd1924a200700fedd672cbfde56d71e7bb46ecd08a6916e727df79"
+      },
+      "ezdxf.math.bbox": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/bbox.py",
+        "sha256": "3e1e5f4f7e5c9f902529b65c621612395beb4a77dc6a1981fa7c2ecaa2a61474"
+      },
+      "ezdxf.math.bezier": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/bezier.py",
+        "sha256": "2d7aa88b6cc7117e1a724e275515788f06087fbeb3c61f169735d36b9efe34b8"
+      },
+      "ezdxf.math.bezier_interpolation": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/bezier_interpolation.py",
+        "sha256": "9f70cfcdca081f8d53523972c17db72a4613903042a3735bbc39e8de97766c53"
+      },
+      "ezdxf.math.box": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/box.py",
+        "sha256": "f2fa0a39fed2e070fe3f5746bb34fa8d6e97d9b5114da2dd6aa0879e6a65ff7c"
+      },
+      "ezdxf.math.bspline": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/bspline.py",
+        "sha256": "9908c6428edf30535ec8aac6c68393890349668e391906adff6946d03be914ef"
+      },
+      "ezdxf.math.bulge": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/bulge.py",
+        "sha256": "af18f1f45744539bddbc48e14430129661c35688e4496847bab7e8682c1866dd"
+      },
+      "ezdxf.math.circle": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/circle.py",
+        "sha256": "bb7602b6b13ac05cc2009ff650a8bd0d55c72a97747df489e48b35bcf234069c"
+      },
+      "ezdxf.math.construct2d": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/construct2d.py",
+        "sha256": "075357f3993b721cd7a658cc4be09a47bacde7e95dd76e5107417485fd57a66e"
+      },
+      "ezdxf.math.construct3d": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/construct3d.py",
+        "sha256": "19b08b46b806aa71b753777299eb6b0a06f403c1b4c4b38b289afc1014d43bdd"
+      },
+      "ezdxf.math.curvetools": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/curvetools.py",
+        "sha256": "47240ac4a45ddd2d5b59bc2773ec1640a704d4d09dfc46dd979cd07c3634e74e"
+      },
+      "ezdxf.math.ellipse": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/ellipse.py",
+        "sha256": "535685163b4e1e1fb4fc5833508d04c0857425d9a460240b7a5c484e794ffa08"
+      },
+      "ezdxf.math.eulerspiral": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/eulerspiral.py",
+        "sha256": "13c9b5f819a84dfc45ea916bb33c91602f8ab6b9aaf629f42c4de09c9fb7699a"
+      },
+      "ezdxf.math.linalg": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/linalg.py",
+        "sha256": "ab033271e2261232859772c43190b8a1b54f54b5496dc4fd774072537df416a2"
+      },
+      "ezdxf.math.line": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/line.py",
+        "sha256": "9e8c1c8665f83a9dff58b9632ff58666b611e471a3880bfd41e1fefbca214570"
+      },
+      "ezdxf.math.offset2d": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/offset2d.py",
+        "sha256": "63f72eb34f547f8192c83cbe9cfc9b242fdc7671b34b7aa1ff55b7072ef63b3c"
+      },
+      "ezdxf.math.parametrize": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/parametrize.py",
+        "sha256": "8214c7ed2ee46559d5a9dc3627967a7cdd545453203779d6ef54072aee5358a7"
+      },
+      "ezdxf.math.perlin": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/perlin.py",
+        "sha256": "320b6fa8c4324708352a4253aebfe4c45b27e7c7753c3f45435ee8f96a60cea5"
+      },
+      "ezdxf.math.polyline": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/polyline.py",
+        "sha256": "48142aac1c5998310bf0a0abdea824d5b5d767ef8d1d7c222b7214344737d28e"
+      },
+      "ezdxf.math.shape": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/shape.py",
+        "sha256": "70d8bc1250b9e5d72ae940e96ac4caab38062df887eeae74b62523baddad997f"
+      },
+      "ezdxf.math.transformtools": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/transformtools.py",
+        "sha256": "a6efd4ff6180ef2c3c734b156fb29984e245b539ba85cdf6fcbd1a77f2230242"
+      },
+      "ezdxf.math.triangulation": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/triangulation.py",
+        "sha256": "92c238fab2051bb96a439404e0c50f1ad325decb1a45172ff453d7dd1de83e4a"
+      },
+      "ezdxf.math.ucs": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/ucs.py",
+        "sha256": "a4d710808959a3a503ad379a40c4d1d54d57671087834ba12ac733357aabf4ec"
+      },
+      "ezdxf.messenger": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/messenger.py",
+        "sha256": "7482cf6f192e3fe4a8ed0fab71a56685a8cf85ba6ae3f48972c64361dce5913c"
+      },
+      "ezdxf.msgtypes": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/msgtypes.py",
+        "sha256": "233f8ef8ac1cd5bbdcd24593d14e9af6d17f6045f819d26f6ed12a82784073b2"
+      },
+      "ezdxf.npshapes": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/npshapes.py",
+        "sha256": "8da141a7275a1195c8abb956c9537080f3593473a57973acd4a7ab14111664d5"
+      },
+      "ezdxf.path": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/__init__.py",
+        "sha256": "207325a855ffabf573be549c799c1af292f2a0865fa0946180e5ea094b0e5614"
+      },
+      "ezdxf.path.commands": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/commands.py",
+        "sha256": "b21aacb1c9146a5a8d1f53555c6e2edffeaca01607e4def52cada7597ec0c6c8"
+      },
+      "ezdxf.path.converter": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/converter.py",
+        "sha256": "ce3f02f7ec059aad4a72d856c969f8bdb3f26743a36108afcd29ebd5f7b0d8f2"
+      },
+      "ezdxf.path.nesting": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/nesting.py",
+        "sha256": "1941f3e458b88db1a3df673c1ddd54be325117e75deee3f7be29dabb44a94f4b"
+      },
+      "ezdxf.path.path": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/path.py",
+        "sha256": "94a69b57f0c08737d88a406621e915226f143e78716dbd13f89500ece6d92f01"
+      },
+      "ezdxf.path.shapes": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/shapes.py",
+        "sha256": "29dc532b5ede9ec4f4b82bf81cbe263622ff702a8245177af715803dd57dabc6"
+      },
+      "ezdxf.path.tools": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/tools.py",
+        "sha256": "a5078589f0e605ab86dcfc6e610379114daf70447e1334e54189850486a00324"
+      },
+      "ezdxf.protocols": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/protocols.py",
+        "sha256": "5d7f840db7e9d95f130af8f82a84f9afda8afe533ac0315689e9d7027afa5b31"
+      },
+      "ezdxf.proxygraphic": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/proxygraphic.py",
+        "sha256": "381cb40f0e3ecfce3eac5d2ac89ecf69d25e98f9644251c22bcac066e08461de"
+      },
+      "ezdxf.query": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/query.py",
+        "sha256": "ab2e8779f3d0e61c421ade50cda8917c3075402cd6b206f21698080e3edff4a7"
+      },
+      "ezdxf.queryparser": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/queryparser.py",
+        "sha256": "4b9db93bb5533cf30d65e0d61672534c8327c2d77cadff771e9127a4787de8a3"
+      },
+      "ezdxf.render": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/__init__.py",
+        "sha256": "5980457d8fe9afc61237d24ef60ba11d904181c09d4a9fe0c9e5973be92b60c4"
+      },
+      "ezdxf.render.abstract_mtext_renderer": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/abstract_mtext_renderer.py",
+        "sha256": "197858c341ff161e4816c777e40cde9d766ea29df62eed0add9232af938620a6"
+      },
+      "ezdxf.render.arrows": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/arrows.py",
+        "sha256": "5b4327d95717ce9c6c2ddd352a2789a4dca203375f09485fe9ae2c855383d9f8"
+      },
+      "ezdxf.render.curves": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/curves.py",
+        "sha256": "97ea3b8fe5ae437000c77b41ae42dcca0e9ca59b74fb512dc4df632eff9e718f"
+      },
+      "ezdxf.render.dim_base": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dim_base.py",
+        "sha256": "2cfd34a0369707c1661457b0094d67426b96b41d4b4014a05cca9447d046dc40"
+      },
+      "ezdxf.render.dim_curved": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dim_curved.py",
+        "sha256": "1c180436e454650d7dd0cef75af8fe9fded22e73e0a4fb52c2ac52d22bd09645"
+      },
+      "ezdxf.render.dim_diameter": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dim_diameter.py",
+        "sha256": "c60f86946baf4342584f3eccdd1063b4a9a3c90df46d72d86c76542228b0703e"
+      },
+      "ezdxf.render.dim_linear": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dim_linear.py",
+        "sha256": "b3983a8b8fa820cf614872f28d5478bc83d60c29c4c9fab2f1318983763239ab"
+      },
+      "ezdxf.render.dim_ordinate": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dim_ordinate.py",
+        "sha256": "22dd6d320ec5c9faaa87e87b19f1cd7b7182ccc3440a176810a3ac7c499cbd0d"
+      },
+      "ezdxf.render.dim_radius": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dim_radius.py",
+        "sha256": "f9dbb70b2b13d211f2d9fc5462d5d0fee4b7b1dab2938e8ef22ece273a29a3e0"
+      },
+      "ezdxf.render.dimension": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dimension.py",
+        "sha256": "04306af042e5cddce5ad337e041951e9ca572b4791e3e810e7a9ec4052adf200"
+      },
+      "ezdxf.render.forms": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/forms.py",
+        "sha256": "5f01f1f45feb9b95a528111036b18e9dc86c00fa8cbf0546492e3b2585ad423d"
+      },
+      "ezdxf.render.mesh": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/mesh.py",
+        "sha256": "a56b1105bdeb6cf2af16efba70b6738ebd85634c8048068bfb4d1e21867a4673"
+      },
+      "ezdxf.render.mleader": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/mleader.py",
+        "sha256": "5879cadf58ae09f3fcca2af1434818a86ee07911307ad8ba1692f75c743d3a39"
+      },
+      "ezdxf.render.polyline": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/polyline.py",
+        "sha256": "fe30ce2b3e84be51ce4dab2ec8be0afb1ed31892c9ce4aaf01d9bd09ebc29ba6"
+      },
+      "ezdxf.render.r12spline": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/r12spline.py",
+        "sha256": "3951bde376bfd01722e02f2b8cba747493f3e81dc6bd21fc820b4f012f204320"
+      },
+      "ezdxf.render.trace": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/trace.py",
+        "sha256": "b7ef1d7df9672c545f5aa8e822e9aa8963a7b20511205eaf584129e006ce9827"
+      },
+      "ezdxf.sections": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/__init__.py",
+        "sha256": "e8d4b6ffabe8fd1da23781fe425218222fc1a0bbc91dda398e18b1d6e09a1250"
+      },
+      "ezdxf.sections.acdsdata": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/acdsdata.py",
+        "sha256": "ec6b9ab917bbbfd0731fc140ffab71a97a5988aff7b5c3f50a178fbb17bdc241"
+      },
+      "ezdxf.sections.blocks": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/blocks.py",
+        "sha256": "af0fd6eb81cafc7e02c6beb8f0cb9568eedc1a1ccdde075bb5895fe1d3edc9a8"
+      },
+      "ezdxf.sections.classes": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/classes.py",
+        "sha256": "51f48788c5391cf60662be03072c94a83608e53c37a037d9f1764aeaacd82a81"
+      },
+      "ezdxf.sections.entities": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/entities.py",
+        "sha256": "a4be25ba3bf7ddd8340a1cc0cf59e7e0294adbd2051763a76a8c09151fd50148"
+      },
+      "ezdxf.sections.header": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/header.py",
+        "sha256": "18ac20145da1285fab1d4db2c19a07f8ec905956467dfb633def9a7fbe547bf4"
+      },
+      "ezdxf.sections.headervars": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/headervars.py",
+        "sha256": "476a4e9aa5c816e70ac35941611c06cad609881172cd31c95ba7c7da35d6e12a"
+      },
+      "ezdxf.sections.objects": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/objects.py",
+        "sha256": "8b8d7ddb5aca1c2fac0e3709a0f4de779727ffee4d6bb1520d630a1b01659b25"
+      },
+      "ezdxf.sections.table": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/table.py",
+        "sha256": "e3ebe96f2c0f417c3cd7f899b74618eaa08a0a95a7d8d58d13cb757cc6faea63"
+      },
+      "ezdxf.sections.tables": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/tables.py",
+        "sha256": "a0bfd9c0efec61d66cd36661d4b8fee917b74726af103e2df5cb86cb6a131e04"
+      },
+      "ezdxf.tools": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/__init__.py",
+        "sha256": "10ea75aa17d15683bbfdc043fb592f963a207378268cda89be6fbdd14389fc75"
+      },
+      "ezdxf.tools._iso_pattern": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/_iso_pattern.py",
+        "sha256": "ff7ad10ec9c9cc4201bcb98a0f6a3b08eb780b12ea837bc7e22a9806eb9b9a9b"
+      },
+      "ezdxf.tools.binarydata": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/binarydata.py",
+        "sha256": "29a13645df67360900f24ebdce6cdaf6a76331b35913d50a736b71acc99cee50"
+      },
+      "ezdxf.tools.codepage": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/codepage.py",
+        "sha256": "c7ab6255d42b1fe2763807e39f0eb18b7da1219ac7fab49bdc4c4e8b70d5f3b1"
+      },
+      "ezdxf.tools.complex_ltype": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/complex_ltype.py",
+        "sha256": "d3bc0136918a964ef9ca1432225b5c21a41df98b1675ee4ec50a5266d0b3cf6c"
+      },
+      "ezdxf.tools.crypt": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/crypt.py",
+        "sha256": "4eb68651eaabe46c566590c568602df8e38268adeb8aceeccac5cdf98d0b01c6"
+      },
+      "ezdxf.tools.handle": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/handle.py",
+        "sha256": "dae41117264828abae8a48d83eebf8f8753a6ebc955ac3e0e80bc8b870e26ddf"
+      },
+      "ezdxf.tools.indexing": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/indexing.py",
+        "sha256": "0b5b1f2c9d6764efcdd2d5eae3cc04140b1306d9d00f9e136dcca8562441e7e9"
+      },
+      "ezdxf.tools.juliandate": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/juliandate.py",
+        "sha256": "37a84742c7356661a1b4135d7447321bb493b92ff11e22fb58766ab2d888701f"
+      },
+      "ezdxf.tools.pattern": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/pattern.py",
+        "sha256": "f0e3f40a583f649cc35fc0ee119a6bfb4f196a8743df413c4a7cbcd52d155f6c"
+      },
+      "ezdxf.tools.standards": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/standards.py",
+        "sha256": "f3b64bf6a8d623109258fe6a75eb8e1d1f86b3d7f65b6234297faa78004c5340"
+      },
+      "ezdxf.tools.text": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/text.py",
+        "sha256": "a5d342bed0f49708e3d766668e0620d4d087469bd78588ac91138bf026e509de"
+      },
+      "ezdxf.tools.text_layout": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/text_layout.py",
+        "sha256": "e3d758912c2bd58d9be94c840ce8b63b713187e8090126a8fc359070ec085045"
+      },
+      "ezdxf.tools.text_size": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/text_size.py",
+        "sha256": "14c9aca084ddfec6de792fef96b225fa97f04e58e186ad96e00e9d1b047dfae7"
+      },
+      "ezdxf.units": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/units.py",
+        "sha256": "9a9e8d3fffd9e23d4280665ad7e4faadb980dd206f318890c32d78c2a27e63fc"
+      },
+      "ezdxf.version": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/version.py",
+        "sha256": "05341ffa5f77a6ebc7cef1d5385240c6955a8bf762532ca8cba6ad8c38388281"
+      }
+    }
+  },
+  "references": [
+    "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+    "https://www.opendesign.com/guestfiles/oda_file_converter"
+  ],
+  "priorLineage": {
+    "originalWrong73": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/original-peer/peer-AC1027-asc.dxf",
+    "originalWrong73Sha256": "6fc2bbf216bf46a49c952887920ce5d56a4b25dc9cde70c4d9fa0b5c03a5b5b2",
+    "wrongRoleValue1Workaround": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer-AC1027-asc.dxf",
+    "wrongRoleValue1WorkaroundSha256": "9bcc7df6e33dc748a2d5d1fb292c835e851dbd491be0bbdffe2262f289ca4bbc",
+    "preserved": true,
+    "newSourceIsSeparateNormativeGeneration": true
+  },
+  "sourceAuthoring": "Pinned ezdxf 1.4.5; its in-memory specular_color_method DXFAttr was corrected 73 to 76 before document creation and first/only source save. Both diffuse and normal tuples were set with distinct values before save. This is a separate adapted-producer lineage, not repair of previous inputs.",
+  "originals": [
+    {
+      "label": "explicit465",
+      "selectedName": "PeerRole-explicit465",
+      "materialHandle": "2F",
+      "materialOwner": "E",
+      "typedStoredBeforeSave": {
+        "diffuse_map_blend_factor": 0.25,
+        "diffuse_map_source": 0,
+        "diffuse_map_file_name": "peer-diffuse-sentinel.png",
+        "diffuse_map_projection_method": 2,
+        "diffuse_map_tiling_method": 2,
+        "diffuse_map_auto_transform_method": 2,
+        "normal_map_blend_factor": 0.75,
+        "normal_map_source": 1,
+        "normal_map_file_name": "peer-normal-sentinel.png",
+        "normal_map_projection_method": 4,
+        "normal_map_tiling_method": 3,
+        "normal_map_auto_transform_method": 4,
+        "specular_color_method": 0
+      },
+      "normalStrengthStored": true,
+      "normalStrength": 0.625,
+      "normalMethodStored": false,
+      "luminanceStored": false,
+      "refractionMatrixPresent": false,
+      "authoring": "typed attributes before first and only source save",
+      "imageFilesCreated": false,
+      "textureRenderingClaim": false,
+      "source": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gx-evidence/next-material-oda/originals/explicit465.dxf",
+        "sha256": "2144f58a412081769cf10f2936729959ad22bfb9ff778c3b8ccf4c85350b7a9d",
+        "bytes": 15954,
+        "handle": "2F",
+        "owner": "E",
+        "literalTags": [
+          [
+            0,
+            "MATERIAL"
+          ],
+          [
+            5,
+            "2F"
+          ],
+          [
+            102,
+            "{ACAD_REACTORS"
+          ],
+          [
+            330,
+            "E"
+          ],
+          [
+            102,
+            "}"
+          ],
+          [
+            330,
+            "E"
+          ],
+          [
+            100,
+            "AcDbMaterial"
+          ],
+          [
+            1,
+            "PeerRole-explicit465"
+          ],
+          [
+            2,
+            ""
+          ],
+          [
+            70,
+            0
+          ],
+          [
+            40,
+            1.0
+          ],
+          [
+            71,
+            1
+          ],
+          [
+            41,
+            1.0
+          ],
+          [
+            91,
+            -1023410177
+          ],
+          [
+            42,
+            0.25
+          ],
+          [
+            72,
+            0
+          ],
+          [
+            3,
+            "peer-diffuse-sentinel.png"
+          ],
+          [
+            73,
+            2
+          ],
+          [
+            74,
+            2
+          ],
+          [
+            75,
+            2
+          ],
+          [
+            44,
+            0.5
+          ],
+          [
+            76,
+            0
+          ],
+          [
+            45,
+            1.0
+          ],
+          [
+            46,
+            1.0
+          ],
+          [
+            77,
+            1
+          ],
+          [
+            4,
+            ""
+          ],
+          [
+            78,
+            1
+          ],
+          [
+            79,
+            1
+          ],
+          [
+            170,
+            1
+          ],
+          [
+            48,
+            1.0
+          ],
+          [
+            171,
+            1
+          ],
+          [
+            6,
+            ""
+          ],
+          [
+            172,
+            1
+          ],
+          [
+            173,
+            1
+          ],
+          [
+            174,
+            1
+          ],
+          [
+            140,
+            1.0
+          ],
+          [
+            141,
+            1.0
+          ],
+          [
+            175,
+            1
+          ],
+          [
+            7,
+            ""
+          ],
+          [
+            176,
+            1
+          ],
+          [
+            177,
+            1
+          ],
+          [
+            178,
+            1
+          ],
+          [
+            143,
+            1.0
+          ],
+          [
+            179,
+            1
+          ],
+          [
+            8,
+            ""
+          ],
+          [
+            270,
+            1
+          ],
+          [
+            271,
+            1
+          ],
+          [
+            272,
+            1
+          ],
+          [
+            145,
+            1.0
+          ],
+          [
+            146,
+            1.0
+          ],
+          [
+            273,
+            1
+          ],
+          [
+            9,
+            ""
+          ],
+          [
+            274,
+            1
+          ],
+          [
+            275,
+            1
+          ],
+          [
+            276,
+            1
+          ],
+          [
+            465,
+            0.625
+          ],
+          [
+            42,
+            0.75
+          ],
+          [
+            72,
+            1
+          ],
+          [
+            3,
+            "peer-normal-sentinel.png"
+          ],
+          [
+            73,
+            4
+          ],
+          [
+            74,
+            3
+          ],
+          [
+            75,
+            4
+          ],
+          [
+            94,
+            63
+          ]
+        ],
+        "rawSpans": {
+          "kind": "MATERIAL",
+          "begin": 15315,
+          "fields": [
+            {
+              "code": 5,
+              "value": "2F",
+              "begin": 15328,
+              "end": 15335,
+              "codeLine": 3065,
+              "valueLine": 3066
+            },
+            {
+              "code": 102,
+              "value": "{ACAD_REACTORS",
+              "begin": 15335,
+              "end": 15354,
+              "codeLine": 3067,
+              "valueLine": 3068
+            },
+            {
+              "code": 330,
+              "value": "E",
+              "begin": 15354,
+              "end": 15360,
+              "codeLine": 3069,
+              "valueLine": 3070
+            },
+            {
+              "code": 102,
+              "value": "}",
+              "begin": 15360,
+              "end": 15366,
+              "codeLine": 3071,
+              "valueLine": 3072
+            },
+            {
+              "code": 330,
+              "value": "E",
+              "begin": 15366,
+              "end": 15372,
+              "codeLine": 3073,
+              "valueLine": 3074
+            },
+            {
+              "code": 100,
+              "value": "AcDbMaterial",
+              "begin": 15372,
+              "end": 15389,
+              "codeLine": 3075,
+              "valueLine": 3076
+            },
+            {
+              "code": 1,
+              "value": "PeerRole-explicit465",
+              "begin": 15389,
+              "end": 15414,
+              "codeLine": 3077,
+              "valueLine": 3078
+            },
+            {
+              "code": 2,
+              "value": "",
+              "begin": 15414,
+              "end": 15419,
+              "codeLine": 3079,
+              "valueLine": 3080
+            },
+            {
+              "code": 70,
+              "value": "0",
+              "begin": 15419,
+              "end": 15425,
+              "codeLine": 3081,
+              "valueLine": 3082
+            },
+            {
+              "code": 40,
+              "value": "1.0",
+              "begin": 15425,
+              "end": 15433,
+              "codeLine": 3083,
+              "valueLine": 3084
+            },
+            {
+              "code": 71,
+              "value": "1",
+              "begin": 15433,
+              "end": 15439,
+              "codeLine": 3085,
+              "valueLine": 3086
+            },
+            {
+              "code": 41,
+              "value": "1.0",
+              "begin": 15439,
+              "end": 15447,
+              "codeLine": 3087,
+              "valueLine": 3088
+            },
+            {
+              "code": 91,
+              "value": "-1023410177",
+              "begin": 15447,
+              "end": 15463,
+              "codeLine": 3089,
+              "valueLine": 3090
+            },
+            {
+              "code": 42,
+              "value": "0.25",
+              "begin": 15463,
+              "end": 15472,
+              "codeLine": 3091,
+              "valueLine": 3092
+            },
+            {
+              "code": 72,
+              "value": "0",
+              "begin": 15472,
+              "end": 15478,
+              "codeLine": 3093,
+              "valueLine": 3094
+            },
+            {
+              "code": 3,
+              "value": "peer-diffuse-sentinel.png",
+              "begin": 15478,
+              "end": 15508,
+              "codeLine": 3095,
+              "valueLine": 3096
+            },
+            {
+              "code": 73,
+              "value": "2",
+              "begin": 15508,
+              "end": 15514,
+              "codeLine": 3097,
+              "valueLine": 3098
+            },
+            {
+              "code": 74,
+              "value": "2",
+              "begin": 15514,
+              "end": 15520,
+              "codeLine": 3099,
+              "valueLine": 3100
+            },
+            {
+              "code": 75,
+              "value": "2",
+              "begin": 15520,
+              "end": 15526,
+              "codeLine": 3101,
+              "valueLine": 3102
+            },
+            {
+              "code": 44,
+              "value": "0.5",
+              "begin": 15526,
+              "end": 15534,
+              "codeLine": 3103,
+              "valueLine": 3104
+            },
+            {
+              "code": 76,
+              "value": "0",
+              "begin": 15534,
+              "end": 15540,
+              "codeLine": 3105,
+              "valueLine": 3106
+            },
+            {
+              "code": 45,
+              "value": "1.0",
+              "begin": 15540,
+              "end": 15548,
+              "codeLine": 3107,
+              "valueLine": 3108
+            },
+            {
+              "code": 46,
+              "value": "1.0",
+              "begin": 15548,
+              "end": 15556,
+              "codeLine": 3109,
+              "valueLine": 3110
+            },
+            {
+              "code": 77,
+              "value": "1",
+              "begin": 15556,
+              "end": 15562,
+              "codeLine": 3111,
+              "valueLine": 3112
+            },
+            {
+              "code": 4,
+              "value": "",
+              "begin": 15562,
+              "end": 15567,
+              "codeLine": 3113,
+              "valueLine": 3114
+            },
+            {
+              "code": 78,
+              "value": "1",
+              "begin": 15567,
+              "end": 15573,
+              "codeLine": 3115,
+              "valueLine": 3116
+            },
+            {
+              "code": 79,
+              "value": "1",
+              "begin": 15573,
+              "end": 15579,
+              "codeLine": 3117,
+              "valueLine": 3118
+            },
+            {
+              "code": 170,
+              "value": "1",
+              "begin": 15579,
+              "end": 15585,
+              "codeLine": 3119,
+              "valueLine": 3120
+            },
+            {
+              "code": 48,
+              "value": "1.0",
+              "begin": 15585,
+              "end": 15593,
+              "codeLine": 3121,
+              "valueLine": 3122
+            },
+            {
+              "code": 171,
+              "value": "1",
+              "begin": 15593,
+              "end": 15599,
+              "codeLine": 3123,
+              "valueLine": 3124
+            },
+            {
+              "code": 6,
+              "value": "",
+              "begin": 15599,
+              "end": 15604,
+              "codeLine": 3125,
+              "valueLine": 3126
+            },
+            {
+              "code": 172,
+              "value": "1",
+              "begin": 15604,
+              "end": 15610,
+              "codeLine": 3127,
+              "valueLine": 3128
+            },
+            {
+              "code": 173,
+              "value": "1",
+              "begin": 15610,
+              "end": 15616,
+              "codeLine": 3129,
+              "valueLine": 3130
+            },
+            {
+              "code": 174,
+              "value": "1",
+              "begin": 15616,
+              "end": 15622,
+              "codeLine": 3131,
+              "valueLine": 3132
+            },
+            {
+              "code": 140,
+              "value": "1.0",
+              "begin": 15622,
+              "end": 15630,
+              "codeLine": 3133,
+              "valueLine": 3134
+            },
+            {
+              "code": 141,
+              "value": "1.0",
+              "begin": 15630,
+              "end": 15638,
+              "codeLine": 3135,
+              "valueLine": 3136
+            },
+            {
+              "code": 175,
+              "value": "1",
+              "begin": 15638,
+              "end": 15644,
+              "codeLine": 3137,
+              "valueLine": 3138
+            },
+            {
+              "code": 7,
+              "value": "",
+              "begin": 15644,
+              "end": 15649,
+              "codeLine": 3139,
+              "valueLine": 3140
+            },
+            {
+              "code": 176,
+              "value": "1",
+              "begin": 15649,
+              "end": 15655,
+              "codeLine": 3141,
+              "valueLine": 3142
+            },
+            {
+              "code": 177,
+              "value": "1",
+              "begin": 15655,
+              "end": 15661,
+              "codeLine": 3143,
+              "valueLine": 3144
+            },
+            {
+              "code": 178,
+              "value": "1",
+              "begin": 15661,
+              "end": 15667,
+              "codeLine": 3145,
+              "valueLine": 3146
+            },
+            {
+              "code": 143,
+              "value": "1.0",
+              "begin": 15667,
+              "end": 15675,
+              "codeLine": 3147,
+              "valueLine": 3148
+            },
+            {
+              "code": 179,
+              "value": "1",
+              "begin": 15675,
+              "end": 15681,
+              "codeLine": 3149,
+              "valueLine": 3150
+            },
+            {
+              "code": 8,
+              "value": "",
+              "begin": 15681,
+              "end": 15686,
+              "codeLine": 3151,
+              "valueLine": 3152
+            },
+            {
+              "code": 270,
+              "value": "1",
+              "begin": 15686,
+              "end": 15692,
+              "codeLine": 3153,
+              "valueLine": 3154
+            },
+            {
+              "code": 271,
+              "value": "1",
+              "begin": 15692,
+              "end": 15698,
+              "codeLine": 3155,
+              "valueLine": 3156
+            },
+            {
+              "code": 272,
+              "value": "1",
+              "begin": 15698,
+              "end": 15704,
+              "codeLine": 3157,
+              "valueLine": 3158
+            },
+            {
+              "code": 145,
+              "value": "1.0",
+              "begin": 15704,
+              "end": 15712,
+              "codeLine": 3159,
+              "valueLine": 3160
+            },
+            {
+              "code": 146,
+              "value": "1.0",
+              "begin": 15712,
+              "end": 15720,
+              "codeLine": 3161,
+              "valueLine": 3162
+            },
+            {
+              "code": 273,
+              "value": "1",
+              "begin": 15720,
+              "end": 15726,
+              "codeLine": 3163,
+              "valueLine": 3164
+            },
+            {
+              "code": 9,
+              "value": "",
+              "begin": 15726,
+              "end": 15731,
+              "codeLine": 3165,
+              "valueLine": 3166
+            },
+            {
+              "code": 274,
+              "value": "1",
+              "begin": 15731,
+              "end": 15737,
+              "codeLine": 3167,
+              "valueLine": 3168
+            },
+            {
+              "code": 275,
+              "value": "1",
+              "begin": 15737,
+              "end": 15743,
+              "codeLine": 3169,
+              "valueLine": 3170
+            },
+            {
+              "code": 276,
+              "value": "1",
+              "begin": 15743,
+              "end": 15749,
+              "codeLine": 3171,
+              "valueLine": 3172
+            },
+            {
+              "code": 465,
+              "value": "0.625",
+              "begin": 15749,
+              "end": 15759,
+              "codeLine": 3173,
+              "valueLine": 3174
+            },
+            {
+              "code": 42,
+              "value": "0.75",
+              "begin": 15759,
+              "end": 15768,
+              "codeLine": 3175,
+              "valueLine": 3176
+            },
+            {
+              "code": 72,
+              "value": "1",
+              "begin": 15768,
+              "end": 15774,
+              "codeLine": 3177,
+              "valueLine": 3178
+            },
+            {
+              "code": 3,
+              "value": "peer-normal-sentinel.png",
+              "begin": 15774,
+              "end": 15803,
+              "codeLine": 3179,
+              "valueLine": 3180
+            },
+            {
+              "code": 73,
+              "value": "4",
+              "begin": 15803,
+              "end": 15809,
+              "codeLine": 3181,
+              "valueLine": 3182
+            },
+            {
+              "code": 74,
+              "value": "3",
+              "begin": 15809,
+              "end": 15815,
+              "codeLine": 3183,
+              "valueLine": 3184
+            },
+            {
+              "code": 75,
+              "value": "4",
+              "begin": 15815,
+              "end": 15821,
+              "codeLine": 3185,
+              "valueLine": 3186
+            },
+            {
+              "code": 94,
+              "value": "63",
+              "begin": 15821,
+              "end": 15828,
+              "codeLine": 3187,
+              "valueLine": 3188
+            }
+          ],
+          "end": 15828
+        },
+        "beforeOrdinaryDocumentSetup": true,
+        "roleInterpretation": "none"
+      },
+      "outputExists": false,
+      "sourceUnchangedAfterOda": true
+    },
+    {
+      "label": "omitted-boundary",
+      "selectedName": "PeerRole-omitted-boundary",
+      "materialHandle": "2F",
+      "materialOwner": "E",
+      "typedStoredBeforeSave": {
+        "diffuse_map_blend_factor": 0.25,
+        "diffuse_map_source": 0,
+        "diffuse_map_file_name": "peer-diffuse-sentinel.png",
+        "diffuse_map_projection_method": 2,
+        "diffuse_map_tiling_method": 2,
+        "diffuse_map_auto_transform_method": 2,
+        "normal_map_blend_factor": 0.75,
+        "normal_map_source": 1,
+        "normal_map_file_name": "peer-normal-sentinel.png",
+        "normal_map_projection_method": 4,
+        "normal_map_tiling_method": 3,
+        "normal_map_auto_transform_method": 4,
+        "specular_color_method": 0
+      },
+      "normalStrengthStored": false,
+      "normalStrength": null,
+      "normalMethodStored": false,
+      "luminanceStored": false,
+      "refractionMatrixPresent": false,
+      "authoring": "typed attributes before first and only source save",
+      "imageFilesCreated": false,
+      "textureRenderingClaim": false,
+      "source": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5gx-evidence/next-material-oda/originals/omitted-boundary.dxf",
+        "sha256": "73dde2657340ba362c79b9d49439f6296008aefa24a2ce433033c23465adbab8",
+        "bytes": 15954,
+        "handle": "2F",
+        "owner": "E",
+        "literalTags": [
+          [
+            0,
+            "MATERIAL"
+          ],
+          [
+            5,
+            "2F"
+          ],
+          [
+            102,
+            "{ACAD_REACTORS"
+          ],
+          [
+            330,
+            "E"
+          ],
+          [
+            102,
+            "}"
+          ],
+          [
+            330,
+            "E"
+          ],
+          [
+            100,
+            "AcDbMaterial"
+          ],
+          [
+            1,
+            "PeerRole-omitted-boundary"
+          ],
+          [
+            2,
+            ""
+          ],
+          [
+            70,
+            0
+          ],
+          [
+            40,
+            1.0
+          ],
+          [
+            71,
+            1
+          ],
+          [
+            41,
+            1.0
+          ],
+          [
+            91,
+            -1023410177
+          ],
+          [
+            42,
+            0.25
+          ],
+          [
+            72,
+            0
+          ],
+          [
+            3,
+            "peer-diffuse-sentinel.png"
+          ],
+          [
+            73,
+            2
+          ],
+          [
+            74,
+            2
+          ],
+          [
+            75,
+            2
+          ],
+          [
+            44,
+            0.5
+          ],
+          [
+            76,
+            0
+          ],
+          [
+            45,
+            1.0
+          ],
+          [
+            46,
+            1.0
+          ],
+          [
+            77,
+            1
+          ],
+          [
+            4,
+            ""
+          ],
+          [
+            78,
+            1
+          ],
+          [
+            79,
+            1
+          ],
+          [
+            170,
+            1
+          ],
+          [
+            48,
+            1.0
+          ],
+          [
+            171,
+            1
+          ],
+          [
+            6,
+            ""
+          ],
+          [
+            172,
+            1
+          ],
+          [
+            173,
+            1
+          ],
+          [
+            174,
+            1
+          ],
+          [
+            140,
+            1.0
+          ],
+          [
+            141,
+            1.0
+          ],
+          [
+            175,
+            1
+          ],
+          [
+            7,
+            ""
+          ],
+          [
+            176,
+            1
+          ],
+          [
+            177,
+            1
+          ],
+          [
+            178,
+            1
+          ],
+          [
+            143,
+            1.0
+          ],
+          [
+            179,
+            1
+          ],
+          [
+            8,
+            ""
+          ],
+          [
+            270,
+            1
+          ],
+          [
+            271,
+            1
+          ],
+          [
+            272,
+            1
+          ],
+          [
+            145,
+            1.0
+          ],
+          [
+            146,
+            1.0
+          ],
+          [
+            273,
+            1
+          ],
+          [
+            9,
+            ""
+          ],
+          [
+            274,
+            1
+          ],
+          [
+            275,
+            1
+          ],
+          [
+            276,
+            1
+          ],
+          [
+            42,
+            0.75
+          ],
+          [
+            72,
+            1
+          ],
+          [
+            3,
+            "peer-normal-sentinel.png"
+          ],
+          [
+            73,
+            4
+          ],
+          [
+            74,
+            3
+          ],
+          [
+            75,
+            4
+          ],
+          [
+            94,
+            63
+          ]
+        ],
+        "rawSpans": {
+          "kind": "MATERIAL",
+          "begin": 15320,
+          "fields": [
+            {
+              "code": 5,
+              "value": "2F",
+              "begin": 15333,
+              "end": 15340,
+              "codeLine": 3065,
+              "valueLine": 3066
+            },
+            {
+              "code": 102,
+              "value": "{ACAD_REACTORS",
+              "begin": 15340,
+              "end": 15359,
+              "codeLine": 3067,
+              "valueLine": 3068
+            },
+            {
+              "code": 330,
+              "value": "E",
+              "begin": 15359,
+              "end": 15365,
+              "codeLine": 3069,
+              "valueLine": 3070
+            },
+            {
+              "code": 102,
+              "value": "}",
+              "begin": 15365,
+              "end": 15371,
+              "codeLine": 3071,
+              "valueLine": 3072
+            },
+            {
+              "code": 330,
+              "value": "E",
+              "begin": 15371,
+              "end": 15377,
+              "codeLine": 3073,
+              "valueLine": 3074
+            },
+            {
+              "code": 100,
+              "value": "AcDbMaterial",
+              "begin": 15377,
+              "end": 15394,
+              "codeLine": 3075,
+              "valueLine": 3076
+            },
+            {
+              "code": 1,
+              "value": "PeerRole-omitted-boundary",
+              "begin": 15394,
+              "end": 15424,
+              "codeLine": 3077,
+              "valueLine": 3078
+            },
+            {
+              "code": 2,
+              "value": "",
+              "begin": 15424,
+              "end": 15429,
+              "codeLine": 3079,
+              "valueLine": 3080
+            },
+            {
+              "code": 70,
+              "value": "0",
+              "begin": 15429,
+              "end": 15435,
+              "codeLine": 3081,
+              "valueLine": 3082
+            },
+            {
+              "code": 40,
+              "value": "1.0",
+              "begin": 15435,
+              "end": 15443,
+              "codeLine": 3083,
+              "valueLine": 3084
+            },
+            {
+              "code": 71,
+              "value": "1",
+              "begin": 15443,
+              "end": 15449,
+              "codeLine": 3085,
+              "valueLine": 3086
+            },
+            {
+              "code": 41,
+              "value": "1.0",
+              "begin": 15449,
+              "end": 15457,
+              "codeLine": 3087,
+              "valueLine": 3088
+            },
+            {
+              "code": 91,
+              "value": "-1023410177",
+              "begin": 15457,
+              "end": 15473,
+              "codeLine": 3089,
+              "valueLine": 3090
+            },
+            {
+              "code": 42,
+              "value": "0.25",
+              "begin": 15473,
+              "end": 15482,
+              "codeLine": 3091,
+              "valueLine": 3092
+            },
+            {
+              "code": 72,
+              "value": "0",
+              "begin": 15482,
+              "end": 15488,
+              "codeLine": 3093,
+              "valueLine": 3094
+            },
+            {
+              "code": 3,
+              "value": "peer-diffuse-sentinel.png",
+              "begin": 15488,
+              "end": 15518,
+              "codeLine": 3095,
+              "valueLine": 3096
+            },
+            {
+              "code": 73,
+              "value": "2",
+              "begin": 15518,
+              "end": 15524,
+              "codeLine": 3097,
+              "valueLine": 3098
+            },
+            {
+              "code": 74,
+              "value": "2",
+              "begin": 15524,
+              "end": 15530,
+              "codeLine": 3099,
+              "valueLine": 3100
+            },
+            {
+              "code": 75,
+              "value": "2",
+              "begin": 15530,
+              "end": 15536,
+              "codeLine": 3101,
+              "valueLine": 3102
+            },
+            {
+              "code": 44,
+              "value": "0.5",
+              "begin": 15536,
+              "end": 15544,
+              "codeLine": 3103,
+              "valueLine": 3104
+            },
+            {
+              "code": 76,
+              "value": "0",
+              "begin": 15544,
+              "end": 15550,
+              "codeLine": 3105,
+              "valueLine": 3106
+            },
+            {
+              "code": 45,
+              "value": "1.0",
+              "begin": 15550,
+              "end": 15558,
+              "codeLine": 3107,
+              "valueLine": 3108
+            },
+            {
+              "code": 46,
+              "value": "1.0",
+              "begin": 15558,
+              "end": 15566,
+              "codeLine": 3109,
+              "valueLine": 3110
+            },
+            {
+              "code": 77,
+              "value": "1",
+              "begin": 15566,
+              "end": 15572,
+              "codeLine": 3111,
+              "valueLine": 3112
+            },
+            {
+              "code": 4,
+              "value": "",
+              "begin": 15572,
+              "end": 15577,
+              "codeLine": 3113,
+              "valueLine": 3114
+            },
+            {
+              "code": 78,
+              "value": "1",
+              "begin": 15577,
+              "end": 15583,
+              "codeLine": 3115,
+              "valueLine": 3116
+            },
+            {
+              "code": 79,
+              "value": "1",
+              "begin": 15583,
+              "end": 15589,
+              "codeLine": 3117,
+              "valueLine": 3118
+            },
+            {
+              "code": 170,
+              "value": "1",
+              "begin": 15589,
+              "end": 15595,
+              "codeLine": 3119,
+              "valueLine": 3120
+            },
+            {
+              "code": 48,
+              "value": "1.0",
+              "begin": 15595,
+              "end": 15603,
+              "codeLine": 3121,
+              "valueLine": 3122
+            },
+            {
+              "code": 171,
+              "value": "1",
+              "begin": 15603,
+              "end": 15609,
+              "codeLine": 3123,
+              "valueLine": 3124
+            },
+            {
+              "code": 6,
+              "value": "",
+              "begin": 15609,
+              "end": 15614,
+              "codeLine": 3125,
+              "valueLine": 3126
+            },
+            {
+              "code": 172,
+              "value": "1",
+              "begin": 15614,
+              "end": 15620,
+              "codeLine": 3127,
+              "valueLine": 3128
+            },
+            {
+              "code": 173,
+              "value": "1",
+              "begin": 15620,
+              "end": 15626,
+              "codeLine": 3129,
+              "valueLine": 3130
+            },
+            {
+              "code": 174,
+              "value": "1",
+              "begin": 15626,
+              "end": 15632,
+              "codeLine": 3131,
+              "valueLine": 3132
+            },
+            {
+              "code": 140,
+              "value": "1.0",
+              "begin": 15632,
+              "end": 15640,
+              "codeLine": 3133,
+              "valueLine": 3134
+            },
+            {
+              "code": 141,
+              "value": "1.0",
+              "begin": 15640,
+              "end": 15648,
+              "codeLine": 3135,
+              "valueLine": 3136
+            },
+            {
+              "code": 175,
+              "value": "1",
+              "begin": 15648,
+              "end": 15654,
+              "codeLine": 3137,
+              "valueLine": 3138
+            },
+            {
+              "code": 7,
+              "value": "",
+              "begin": 15654,
+              "end": 15659,
+              "codeLine": 3139,
+              "valueLine": 3140
+            },
+            {
+              "code": 176,
+              "value": "1",
+              "begin": 15659,
+              "end": 15665,
+              "codeLine": 3141,
+              "valueLine": 3142
+            },
+            {
+              "code": 177,
+              "value": "1",
+              "begin": 15665,
+              "end": 15671,
+              "codeLine": 3143,
+              "valueLine": 3144
+            },
+            {
+              "code": 178,
+              "value": "1",
+              "begin": 15671,
+              "end": 15677,
+              "codeLine": 3145,
+              "valueLine": 3146
+            },
+            {
+              "code": 143,
+              "value": "1.0",
+              "begin": 15677,
+              "end": 15685,
+              "codeLine": 3147,
+              "valueLine": 3148
+            },
+            {
+              "code": 179,
+              "value": "1",
+              "begin": 15685,
+              "end": 15691,
+              "codeLine": 3149,
+              "valueLine": 3150
+            },
+            {
+              "code": 8,
+              "value": "",
+              "begin": 15691,
+              "end": 15696,
+              "codeLine": 3151,
+              "valueLine": 3152
+            },
+            {
+              "code": 270,
+              "value": "1",
+              "begin": 15696,
+              "end": 15702,
+              "codeLine": 3153,
+              "valueLine": 3154
+            },
+            {
+              "code": 271,
+              "value": "1",
+              "begin": 15702,
+              "end": 15708,
+              "codeLine": 3155,
+              "valueLine": 3156
+            },
+            {
+              "code": 272,
+              "value": "1",
+              "begin": 15708,
+              "end": 15714,
+              "codeLine": 3157,
+              "valueLine": 3158
+            },
+            {
+              "code": 145,
+              "value": "1.0",
+              "begin": 15714,
+              "end": 15722,
+              "codeLine": 3159,
+              "valueLine": 3160
+            },
+            {
+              "code": 146,
+              "value": "1.0",
+              "begin": 15722,
+              "end": 15730,
+              "codeLine": 3161,
+              "valueLine": 3162
+            },
+            {
+              "code": 273,
+              "value": "1",
+              "begin": 15730,
+              "end": 15736,
+              "codeLine": 3163,
+              "valueLine": 3164
+            },
+            {
+              "code": 9,
+              "value": "",
+              "begin": 15736,
+              "end": 15741,
+              "codeLine": 3165,
+              "valueLine": 3166
+            },
+            {
+              "code": 274,
+              "value": "1",
+              "begin": 15741,
+              "end": 15747,
+              "codeLine": 3167,
+              "valueLine": 3168
+            },
+            {
+              "code": 275,
+              "value": "1",
+              "begin": 15747,
+              "end": 15753,
+              "codeLine": 3169,
+              "valueLine": 3170
+            },
+            {
+              "code": 276,
+              "value": "1",
+              "begin": 15753,
+              "end": 15759,
+              "codeLine": 3171,
+              "valueLine": 3172
+            },
+            {
+              "code": 42,
+              "value": "0.75",
+              "begin": 15759,
+              "end": 15768,
+              "codeLine": 3173,
+              "valueLine": 3174
+            },
+            {
+              "code": 72,
+              "value": "1",
+              "begin": 15768,
+              "end": 15774,
+              "codeLine": 3175,
+              "valueLine": 3176
+            },
+            {
+              "code": 3,
+              "value": "peer-normal-sentinel.png",
+              "begin": 15774,
+              "end": 15803,
+              "codeLine": 3177,
+              "valueLine": 3178
+            },
+            {
+              "code": 73,
+              "value": "4",
+              "begin": 15803,
+              "end": 15809,
+              "codeLine": 3179,
+              "valueLine": 3180
+            },
+            {
+              "code": 74,
+              "value": "3",
+              "begin": 15809,
+              "end": 15815,
+              "codeLine": 3181,
+              "valueLine": 3182
+            },
+            {
+              "code": 75,
+              "value": "4",
+              "begin": 15815,
+              "end": 15821,
+              "codeLine": 3183,
+              "valueLine": 3184
+            },
+            {
+              "code": 94,
+              "value": "63",
+              "begin": 15821,
+              "end": 15828,
+              "codeLine": 3185,
+              "valueLine": 3186
+            }
+          ],
+          "end": 15828
+        },
+        "beforeOrdinaryDocumentSetup": true,
+        "roleInterpretation": "none"
+      },
+      "outputExists": false,
+      "sourceUnchangedAfterOda": true
+    }
+  ],
+  "firstSandboxAttempt": {
+    "reportPath": "/Users/dli/dev/libdxfrw/build/rpp5gx-evidence/next-material-oda/experiment.json",
+    "reportSha256": "28c57dd2650c41cabd2b724ffb68ae7c1c8168483bedb3e9a78cbd48ce92818e",
+    "exitCode": -6,
+    "stderr": "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]\nPasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]\n2026-10-28 16:28:46.256 ODAFileConverter[85524:19152068] Connection Invalid error for service com.apple.hiservices-xpcservice.\n2026-10-28 16:28:46.256 ODAFileConverter[85524:19152066] Error received in message reply handler: Connection invalid\n",
+    "reason": "Native-service startup aborted in sandbox; no semantic result."
+  },
+  "nativeRetry": {
+    "reportPath": "/Users/dli/dev/libdxfrw/build/rpp5gx-evidence/next-material-oda/native-services-retry.json",
+    "reportSha256": "6def59638b855677ae5e1ed96c9f06e1e0c1ab54273af650248b47b2c5c25e55",
+    "argv": [
+      "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "/Users/dli/dev/libdxfrw/build/rpp5gx-evidence/next-material-oda/originals",
+      "/Users/dli/dev/libdxfrw/build/rpp5gx-evidence/next-material-oda/oda-canonical-native-services",
+      "ACAD2013",
+      "DXF",
+      "0",
+      "0",
+      "*.dxf"
+    ],
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "exitCode": 0,
+    "seconds": 0.43038812500890344,
+    "stdout": "",
+    "stderr": "",
+    "auditRequested": false,
+    "explicitRecovery": false,
+    "outputs": [
+      {
+        "label": "explicit465",
+        "exists": true,
+        "sourceUnchanged": true,
+        "physical": {
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gx-evidence/next-material-oda/oda-canonical-native-services/explicit465.dxf",
+          "sha256": "9f37cef3e6542fe65a1ce2628b2302aa3d59ced7cb4f51b3177db1411f5bf290",
+          "bytes": 75970,
+          "handle": "2F",
+          "owner": "E",
+          "literalTags": [
+            [
+              0,
+              "MATERIAL"
+            ],
+            [
+              5,
+              "2F"
+            ],
+            [
+              102,
+              "{ACAD_REACTORS"
+            ],
+            [
+              330,
+              "E"
+            ],
+            [
+              102,
+              "}"
+            ],
+            [
+              330,
+              "E"
+            ],
+            [
+              100,
+              "AcDbMaterial"
+            ],
+            [
+              1,
+              "PeerRole-explicit465"
+            ],
+            [
+              71,
+              1
+            ],
+            [
+              91,
+              -1023410177
+            ],
+            [
+              42,
+              0.75
+            ],
+            [
+              72,
+              1
+            ],
+            [
+              3,
+              "peer-normal-sentinel.png"
+            ],
+            [
+              73,
+              4
+            ],
+            [
+              74,
+              3
+            ],
+            [
+              75,
+              4
+            ],
+            [
+              273,
+              1
+            ],
+            [
+              94,
+              63
+            ]
+          ],
+          "rawSpans": {
+            "kind": "MATERIAL",
+            "begin": 20599,
+            "fields": [
+              {
+                "code": 5,
+                "value": "2F",
+                "begin": 20614,
+                "end": 20623,
+                "codeLine": 2977,
+                "valueLine": 2978
+              },
+              {
+                "code": 102,
+                "value": "{ACAD_REACTORS",
+                "begin": 20623,
+                "end": 20644,
+                "codeLine": 2979,
+                "valueLine": 2980
+              },
+              {
+                "code": 330,
+                "value": "E",
+                "begin": 20644,
+                "end": 20652,
+                "codeLine": 2981,
+                "valueLine": 2982
+              },
+              {
+                "code": 102,
+                "value": "}",
+                "begin": 20652,
+                "end": 20660,
+                "codeLine": 2983,
+                "valueLine": 2984
+              },
+              {
+                "code": 330,
+                "value": "E",
+                "begin": 20660,
+                "end": 20668,
+                "codeLine": 2985,
+                "valueLine": 2986
+              },
+              {
+                "code": 100,
+                "value": "AcDbMaterial",
+                "begin": 20668,
+                "end": 20687,
+                "codeLine": 2987,
+                "valueLine": 2988
+              },
+              {
+                "code": 1,
+                "value": "PeerRole-explicit465",
+                "begin": 20687,
+                "end": 20714,
+                "codeLine": 2989,
+                "valueLine": 2990
+              },
+              {
+                "code": 71,
+                "value": "     1",
+                "begin": 20714,
+                "end": 20727,
+                "codeLine": 2991,
+                "valueLine": 2992
+              },
+              {
+                "code": 91,
+                "value": "-1023410177",
+                "begin": 20727,
+                "end": 20745,
+                "codeLine": 2993,
+                "valueLine": 2994
+              },
+              {
+                "code": 42,
+                "value": "0.75",
+                "begin": 20745,
+                "end": 20756,
+                "codeLine": 2995,
+                "valueLine": 2996
+              },
+              {
+                "code": 72,
+                "value": "     1",
+                "begin": 20756,
+                "end": 20769,
+                "codeLine": 2997,
+                "valueLine": 2998
+              },
+              {
+                "code": 3,
+                "value": "peer-normal-sentinel.png",
+                "begin": 20769,
+                "end": 20800,
+                "codeLine": 2999,
+                "valueLine": 3000
+              },
+              {
+                "code": 73,
+                "value": "     4",
+                "begin": 20800,
+                "end": 20813,
+                "codeLine": 3001,
+                "valueLine": 3002
+              },
+              {
+                "code": 74,
+                "value": "     3",
+                "begin": 20813,
+                "end": 20826,
+                "codeLine": 3003,
+                "valueLine": 3004
+              },
+              {
+                "code": 75,
+                "value": "     4",
+                "begin": 20826,
+                "end": 20839,
+                "codeLine": 3005,
+                "valueLine": 3006
+              },
+              {
+                "code": 273,
+                "value": "     1",
+                "begin": 20839,
+                "end": 20852,
+                "codeLine": 3007,
+                "valueLine": 3008
+              },
+              {
+                "code": 94,
+                "value": "       63",
+                "begin": 20852,
+                "end": 20868,
+                "codeLine": 3009,
+                "valueLine": 3010
+              }
+            ],
+            "end": 20868
+          },
+          "beforeOrdinaryDocumentSetup": true,
+          "roleInterpretation": "none"
+        }
+      },
+      {
+        "label": "omitted-boundary",
+        "exists": true,
+        "sourceUnchanged": true,
+        "physical": {
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5gx-evidence/next-material-oda/oda-canonical-native-services/omitted-boundary.dxf",
+          "sha256": "2a128793cfcaab1fa966f656c93e44fc5652b9785889fd235ea96991fc83e168",
+          "bytes": 75981,
+          "handle": "2F",
+          "owner": "E",
+          "literalTags": [
+            [
+              0,
+              "MATERIAL"
+            ],
+            [
+              5,
+              "2F"
+            ],
+            [
+              102,
+              "{ACAD_REACTORS"
+            ],
+            [
+              330,
+              "E"
+            ],
+            [
+              102,
+              "}"
+            ],
+            [
+              330,
+              "E"
+            ],
+            [
+              100,
+              "AcDbMaterial"
+            ],
+            [
+              1,
+              "PeerRole-omitted-boundary"
+            ],
+            [
+              71,
+              1
+            ],
+            [
+              91,
+              -1023410177
+            ],
+            [
+              42,
+              0.75
+            ],
+            [
+              72,
+              1
+            ],
+            [
+              3,
+              "peer-normal-sentinel.png"
+            ],
+            [
+              73,
+              4
+            ],
+            [
+              74,
+              3
+            ],
+            [
+              75,
+              4
+            ],
+            [
+              273,
+              1
+            ],
+            [
+              94,
+              63
+            ]
+          ],
+          "rawSpans": {
+            "kind": "MATERIAL",
+            "begin": 20605,
+            "fields": [
+              {
+                "code": 5,
+                "value": "2F",
+                "begin": 20620,
+                "end": 20629,
+                "codeLine": 2977,
+                "valueLine": 2978
+              },
+              {
+                "code": 102,
+                "value": "{ACAD_REACTORS",
+                "begin": 20629,
+                "end": 20650,
+                "codeLine": 2979,
+                "valueLine": 2980
+              },
+              {
+                "code": 330,
+                "value": "E",
+                "begin": 20650,
+                "end": 20658,
+                "codeLine": 2981,
+                "valueLine": 2982
+              },
+              {
+                "code": 102,
+                "value": "}",
+                "begin": 20658,
+                "end": 20666,
+                "codeLine": 2983,
+                "valueLine": 2984
+              },
+              {
+                "code": 330,
+                "value": "E",
+                "begin": 20666,
+                "end": 20674,
+                "codeLine": 2985,
+                "valueLine": 2986
+              },
+              {
+                "code": 100,
+                "value": "AcDbMaterial",
+                "begin": 20674,
+                "end": 20693,
+                "codeLine": 2987,
+                "valueLine": 2988
+              },
+              {
+                "code": 1,
+                "value": "PeerRole-omitted-boundary",
+                "begin": 20693,
+                "end": 20725,
+                "codeLine": 2989,
+                "valueLine": 2990
+              },
+              {
+                "code": 71,
+                "value": "     1",
+                "begin": 20725,
+                "end": 20738,
+                "codeLine": 2991,
+                "valueLine": 2992
+              },
+              {
+                "code": 91,
+                "value": "-1023410177",
+                "begin": 20738,
+                "end": 20756,
+                "codeLine": 2993,
+                "valueLine": 2994
+              },
+              {
+                "code": 42,
+                "value": "0.75",
+                "begin": 20756,
+                "end": 20767,
+                "codeLine": 2995,
+                "valueLine": 2996
+              },
+              {
+                "code": 72,
+                "value": "     1",
+                "begin": 20767,
+                "end": 20780,
+                "codeLine": 2997,
+                "valueLine": 2998
+              },
+              {
+                "code": 3,
+                "value": "peer-normal-sentinel.png",
+                "begin": 20780,
+                "end": 20811,
+                "codeLine": 2999,
+                "valueLine": 3000
+              },
+              {
+                "code": 73,
+                "value": "     4",
+                "begin": 20811,
+                "end": 20824,
+                "codeLine": 3001,
+                "valueLine": 3002
+              },
+              {
+                "code": 74,
+                "value": "     3",
+                "begin": 20824,
+                "end": 20837,
+                "codeLine": 3003,
+                "valueLine": 3004
+              },
+              {
+                "code": 75,
+                "value": "     4",
+                "begin": 20837,
+                "end": 20850,
+                "codeLine": 3005,
+                "valueLine": 3006
+              },
+              {
+                "code": 273,
+                "value": "     1",
+                "begin": 20850,
+                "end": 20863,
+                "codeLine": 3007,
+                "valueLine": 3008
+              },
+              {
+                "code": 94,
+                "value": "       63",
+                "begin": 20863,
+                "end": 20879,
+                "codeLine": 3009,
+                "valueLine": 3010
+              }
+            ],
+            "end": 20879
+          },
+          "beforeOrdinaryDocumentSetup": true,
+          "roleInterpretation": "none"
+        }
+      }
+    ]
+  },
+  "analysis": {
+    "schema": "libdxfrw-material-oda-field-role-analysis-v1",
+    "qualificationEligible": false,
+    "supportClaimsPromoted": false,
+    "parserWideningReady": false,
+    "reason": "Independent converter lost the distinct original diffuse tuple in both control and omission sources; positive normal-boundary control did not preserve two roles.",
+    "canonicalizationResult": "Both canonical selected MATERIALs have one42/72/3/73/74/75 tuple equal to original intended normal tuple; no464/465 survives, diffuse sentinel absent from entire output.",
+    "interpretationLimit": "Physical canonical output does not identify whether ODA intentionally reclassified repeated fields, ignored normal fields, or canonicalized a rejected/unmodeled profile. No native rendering/normal semantics claim.",
+    "retainedFirstAttempt": "experiment.json",
+    "retainedSuccessfulNativeServicesRetry": {
+      "path": "build/rpp5gx-evidence/next-material-oda/native-services-retry.json",
+      "sha256": "6def59638b855677ae5e1ed96c9f06e1e0c1ab54273af650248b47b2c5c25e55"
+    },
+    "sourcesPreserved": true,
+    "rows": [
+      {
+        "label": "explicit465",
+        "sourceSha256": "2144f58a412081769cf10f2936729959ad22bfb9ff778c3b8ccf4c85350b7a9d",
+        "outputSha256": "9f37cef3e6542fe65a1ce2628b2302aa3d59ced7cb4f51b3177db1411f5bf290",
+        "literalTagCount": 18,
+        "duplicate42Count": 1,
+        "normalBoundary464465Count": 0,
+        "diffuseSentinelOccurrencesInEntireOutput": 0,
+        "normalSentinelOccurrencesInEntireOutput": 1,
+        "remainingSixFieldTuple": [
+          [
+            42,
+            0.75
+          ],
+          [
+            72,
+            1
+          ],
+          [
+            3,
+            "peer-normal-sentinel.png"
+          ],
+          [
+            73,
+            4
+          ],
+          [
+            74,
+            3
+          ],
+          [
+            75,
+            4
+          ]
+        ]
+      },
+      {
+        "label": "omitted-boundary",
+        "sourceSha256": "73dde2657340ba362c79b9d49439f6296008aefa24a2ce433033c23465adbab8",
+        "outputSha256": "2a128793cfcaab1fa966f656c93e44fc5652b9785889fd235ea96991fc83e168",
+        "literalTagCount": 18,
+        "duplicate42Count": 1,
+        "normalBoundary464465Count": 0,
+        "diffuseSentinelOccurrencesInEntireOutput": 0,
+        "normalSentinelOccurrencesInEntireOutput": 1,
+        "remainingSixFieldTuple": [
+          [
+            42,
+            0.75
+          ],
+          [
+            72,
+            1
+          ],
+          [
+            3,
+            "peer-normal-sentinel.png"
+          ],
+          [
+            73,
+            4
+          ],
+          [
+            74,
+            3
+          ],
+          [
+            75,
+            4
+          ]
+        ]
+      }
+    ],
+    "missingEvidence": "A source producer/independent ordinary reader or SDK with implemented normal-map semantics that preserves both distinct diffuse and normal roles on a control before testing omission grammar."
+  },
+  "analysisSha256": "e11d0444a9955f7d9048a0d3c648b1ed5f42f613edabba3a5459af64b824b5f8",
+  "driverSource": "\"\"\"Two scratch originals and a bounded audit-disabled ODA canonicalization.\n\nThis is advisory producer/field-role research, not support qualification.\nNo saved source is mutated, repaired, or resaved.\n\"\"\"\nimport hashlib\nimport json\nimport logging\nimport os\nfrom pathlib import Path\nimport plistlib\nimport sys\nimport time\n\nroot = Path.cwd()\nout = Path(__file__).resolve().parent\nsys.pycache_prefix = str(out / \"absent-bytecode-cache\")\nassert not Path(sys.pycache_prefix).exists()\nsys.dont_write_bytecode = True\nsys.path.insert(0, str(root / \"tools\"))\nimport ezdxf\nfrom ezdxf.entities.material import Material, acdb_material\nfrom bounded_process import run_bounded\nfrom qualify_material_source_order import selected_physical_records\n\n\ndef digest(path):\n    return hashlib.sha256(Path(path).read_bytes()).hexdigest()\n\n\ndef physical(path, selected_name):\n    \"\"\"Reuse peer tag loader; attach raw ASCII byte spans without assigning roles.\"\"\"\n    selected = [record for scope, record in selected_physical_records(path, False)\n                if scope == \"OBJECTS\" and record[0].value == \"MATERIAL\"\n                and record.get_first_value(1) == selected_name]\n    assert len(selected) == 1\n    tags = [[t.code, t.value] for t in selected[0]]\n    data = path.read_bytes()\n    lines = data.splitlines(keepends=True)\n    assert len(lines) % 2 == 0\n    offset, raw, records, current = 0, [], [], None\n    for i in range(0, len(lines), 2):\n        code = int(lines[i].strip())\n        value = lines[i + 1].rstrip(b\"\\r\\n\").decode(\"utf-8\", \"strict\")\n        end = offset + len(lines[i]) + len(lines[i + 1])\n        pair = dict(code=code, value=value, begin=offset, end=end,\n                    codeLine=i + 1, valueLine=i + 2)\n        if code == 0:\n            if current:\n                current[\"end\"] = offset\n                records.append(current)\n            current = dict(kind=value, begin=offset, fields=[])\n        elif current is not None:\n            current[\"fields\"].append(pair)\n        offset = end\n    if current:\n        current[\"end\"] = offset\n        records.append(current)\n    matches = [r for r in records if r[\"kind\"] == \"MATERIAL\"\n               and any(p[\"code\"] == 1 and p[\"value\"] == selected_name for p in r[\"fields\"])]\n    assert len(matches) == 1\n    raw = matches[0]\n    assert [p[\"code\"] for p in raw[\"fields\"]] == [p[0] for p in tags[1:]]\n    return dict(path=str(path), sha256=digest(path), bytes=len(data),\n                handle=selected[0].get_first_value(5),\n                owner=selected[0].get_first_value(330, None),\n                literalTags=tags, rawSpans=raw,\n                beforeOrdinaryDocumentSetup=True, roleInterpretation=\"none\")\n\n\nassert ezdxf.__version__ == \"1.4.5\"\nsource_dir, target_dir = out / \"originals\", out / \"oda-canonical\"\nsource_dir.mkdir()\ntarget_dir.mkdir()\nadapter = Material.DXFATTRIBS.get(\"specular_color_method\")\nassert adapter is acdb_material.attribs[\"specular_color_method\"]\nassert adapter.code == 73\nadapter.code = 76  # normative generation schema, before document creation/save\nintent = {\n    \"diffuse_map_blend_factor\": 0.25, \"diffuse_map_source\": 0,\n    \"diffuse_map_file_name\": \"peer-diffuse-sentinel.png\",\n    \"diffuse_map_projection_method\": 2, \"diffuse_map_tiling_method\": 2,\n    \"diffuse_map_auto_transform_method\": 2,\n    \"normal_map_blend_factor\": 0.75, \"normal_map_source\": 1,\n    \"normal_map_file_name\": \"peer-normal-sentinel.png\",\n    \"normal_map_projection_method\": 4, \"normal_map_tiling_method\": 3,\n    \"normal_map_auto_transform_method\": 4,\n    \"specular_color_method\": 0,\n}\nreport = dict(schema=\"libdxfrw-material-independent-role-readiness-v1\",\n    qualificationEligible=False, supportClaimsPromoted=False,\n    producer=dict(name=\"ezdxf\", version=ezdxf.__version__,\n        executable=sys.executable, executableSha256=digest(sys.executable),\n        sourceSchemaAdapter=dict(attribute=\"specular_color_method\", oldCode=73,\n            code=76, appliedBeforeDocumentCreation=True,\n            rationale=\"Autodesk MATERIAL specular color method is code76; pinned producer has code73\")),\n    exclusions=dict(trackedEdits=False, libraryBuilds=False, sourcePostSaveMutation=False,\n        explicitAudit=False, explicitRecovery=False, ordinaryDocumentRead=False,\n        nativeRenderingQualified=False),\n    priorLineage=dict(originalWrong73=str(root / \"build/rpp5gh-evidence/original-peer/peer-AC1027-asc.dxf\"),\n        originalWrong73Sha256=\"6fc2bbf216bf46a49c952887920ce5d56a4b25dc9cde70c4d9fa0b5c03a5b5b2\",\n        wrongRoleValue1Workaround=str(root / \"build/rpp5gh-evidence/peer-AC1027-asc.dxf\"),\n        wrongRoleValue1WorkaroundSha256=\"9bcc7df6e33dc748a2d5d1fb292c835e851dbd491be0bbdffe2262f289ca4bbc\",\n        preserved=True, newSourceIsSeparateNormativeGeneration=True),\n    primaryReferences=[\n        \"https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm\",\n        \"https://www.opendesign.com/guestfiles/oda_file_converter\"],\n    sources=[])\nfor explicit in (True, False):\n    label = \"explicit465\" if explicit else \"omitted-boundary\"\n    name = \"PeerRole-\" + label\n    doc = ezdxf.new(\"R2013\")\n    material = doc.materials.new(name)\n    material.dxf.update(intent)\n    if explicit:\n        material.dxf.normal_map_strength = 0.625\n    assert not material.dxf.hasattr(\"luminance\")\n    assert not material.dxf.hasattr(\"normal_map_method\")\n    assert material.refraction_mapper_matrix is None\n    doc.modelspace().add_line((1, 2, 3), (4, 5, 6), dxfattribs={\n        \"material_handle\": material.dxf.handle})\n    frozen = dict(label=label, selectedName=name, materialHandle=material.dxf.handle,\n        materialOwner=material.dxf.owner,\n        typedStoredBeforeSave={key: material.dxf.get(key) for key in intent},\n        normalStrengthStored=material.dxf.hasattr(\"normal_map_strength\"),\n        normalStrength=material.dxf.get(\"normal_map_strength\"),\n        normalMethodStored=False, luminanceStored=False,\n        refractionMatrixPresent=False,\n        authoring=\"typed attributes before first and only source save\",\n        imageFilesCreated=False, textureRenderingClaim=False)\n    (out / (label + \"-intent-before-save.json\")).write_text(json.dumps(frozen, indent=2) + \"\\n\")\n    source = source_dir / (label + \".dxf\")\n    doc.saveas(source, fmt=\"asc\")\n    frozen[\"source\"] = physical(source, name)\n    taglist = frozen[\"source\"][\"literalTags\"]\n    assert [t for t in taglist if t[0] == 76] == [[76, 0]]\n    assert not any(t[0] in (147, 464) for t in taglist)\n    assert [t for t in taglist if t[0] == 465] == ([[465, 0.625]] if explicit else [])\n    assert [t[1] for t in taglist if t[0] == 42] == [0.25, 0.75]\n    report[\"sources\"].append(frozen)\n\noda = Path(\"/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter\")\nbundle = oda.parent.parent\nplist = plistlib.loads((bundle / \"Info.plist\").read_bytes())\nargv = [str(oda), str(source_dir), str(target_dir), \"ACAD2013\", \"DXF\", \"0\", \"0\", \"*.dxf\"]\nreport[\"oda\"] = dict(executable=str(oda), executableSha256=digest(oda),\n    version=plist.get(\"CFBundleShortVersionString\"),\n    buildStamp=(bundle / \"tx/build.txt\").read_text().strip(),\n    argv=argv, auditFlag=0, recursionFlag=0, timeoutSeconds=20, outputLimitPerStream=65536,\n    sourceFormat=\"DXF ASCII AC1027\", outputFormat=\"DXF ASCII AC1027\",\n    conversionRole=\"independent canonicalization; output is separate producer lineage\")\nstart = time.monotonic()\ntry:\n    result = run_bounded(argv, timeout=20, output_limit=65536)\n    report[\"oda\"].update(returncode=result.returncode, seconds=time.monotonic() - start,\n        stdout=result.stdout.decode(\"utf-8\", \"replace\"),\n        stderr=result.stderr.decode(\"utf-8\", \"replace\"))\nexcept Exception as exc:\n    report[\"oda\"].update(exceptionType=type(exc).__name__, exception=str(exc),\n        seconds=time.monotonic() - start)\nfor row in report[\"sources\"]:\n    source = Path(row[\"source\"][\"path\"])\n    assert digest(source) == row[\"source\"][\"sha256\"]\n    path = target_dir / source.name\n    row[\"outputExists\"] = path.is_file()\n    if path.is_file():\n        try:\n            row[\"output\"] = physical(path, row[\"selectedName\"])\n        except Exception as exc:\n            row[\"outputProjectionFailure\"] = dict(type=type(exc).__name__, reason=str(exc),\n                sha256=digest(path), bytes=path.stat().st_size)\n    row[\"sourceUnchangedAfterOda\"] = True\nreport[\"producer\"][\"loadedModules\"] = {\n    name: dict(path=str(Path(module.__file__).resolve()), sha256=digest(module.__file__))\n    for name, module in sorted(sys.modules.items())\n    if name.startswith(\"ezdxf\") and getattr(module, \"__file__\", None)\n    and Path(module.__file__).is_file()}\nreport[\"bindings\"] = {str(path): digest(path) for path in (\n    Path(__file__), root / \"tools/qualify_material_source_order.py\", root / \"tools/bounded_process.py\")}\nfor old in (\"originalWrong73\", \"wrongRoleValue1Workaround\"):\n    assert digest(report[\"priorLineage\"][old]) == report[\"priorLineage\"][old + \"Sha256\"]\npath = out / \"experiment.json\"\npath.write_text(json.dumps(report, indent=2) + \"\\n\")\nprint(json.dumps(dict(report=str(path), sha256=digest(path),\n    oda=report[\"oda\"], outputs=[dict(label=r[\"label\"], exists=r[\"outputExists\"],\n        projected=\"output\" in r, projectionFailure=r.get(\"outputProjectionFailure\"))\n        for r in report[\"sources\"]]), indent=2))\n",
+  "driverSha256": "defa7cc3fee14239e058ef93cb374dae26bc6474877ae54eb9d366cce25d6b02",
+  "retryDriverSource": "\"\"\"One bounded ODA retry with unchanged originals and retained first failure.\"\"\"\nimport ast\nimport hashlib\nimport json\nfrom pathlib import Path\nimport sys\nimport time\n\nroot = Path.cwd()\nout = Path(__file__).resolve().parent\nsys.pycache_prefix = str(out / \"absent-bytecode-cache\")\nassert not Path(sys.pycache_prefix).exists()\nsys.dont_write_bytecode = True\nsys.path.insert(0, str(root / \"tools\"))\nfrom bounded_process import run_bounded\nfrom qualify_material_source_order import selected_physical_records\n\n# Reuse exactly the original scratch observer functions without rerunning authoring.\ndriver = out / \"experiment.py\"\nmodule = ast.parse(driver.read_text())\nfunctions = ast.Module(body=[node for node in module.body if isinstance(node, ast.FunctionDef)\n                            and node.name in (\"digest\", \"physical\")], type_ignores=[])\nexec(compile(functions, str(driver), \"exec\"), globals())\nfirst_path = out / \"experiment.json\"\nfirst = json.loads(first_path.read_text())\nassert digest(driver) == first[\"bindings\"][str(driver)]\nfor row in first[\"sources\"]:\n    assert digest(row[\"source\"][\"path\"]) == row[\"source\"][\"sha256\"]\ntarget = out / \"oda-canonical-native-services\"\ntarget.mkdir()\nargv = first[\"oda\"][\"argv\"].copy()\nargv[2] = str(target)\nreport = dict(schema=\"libdxfrw-material-independent-role-native-services-retry-v1\",\n    qualificationEligible=False, supportClaimsPromoted=False,\n    firstAttempt=dict(path=str(first_path), sha256=digest(first_path),\n                      returncode=first[\"oda\"].get(\"returncode\")),\n    reason=\"Cocoa pasteboard/hiservices process abort in sandbox; same original inputs, separate output directory\",\n    originalSourceReauthored=False, sourceMutation=False, auditRequested=False,\n    explicitRecovery=False, trackedEdits=False, libraryBuilds=False,\n    argv=argv, timeoutSeconds=20, outputLimitPerStream=65536,\n    odaSha256=digest(argv[0]), originalSources=first[\"sources\"], outputs=[])\nassert report[\"odaSha256\"] == first[\"oda\"][\"executableSha256\"]\nstart = time.monotonic()\ntry:\n    result = run_bounded(argv, timeout=20, output_limit=65536)\n    report.update(returncode=result.returncode,\n        stdout=result.stdout.decode(\"utf-8\", \"replace\"),\n        stderr=result.stderr.decode(\"utf-8\", \"replace\"), seconds=time.monotonic() - start)\nexcept Exception as exc:\n    report.update(exceptionType=type(exc).__name__, exception=str(exc), seconds=time.monotonic() - start)\nfor row in first[\"sources\"]:\n    source = Path(row[\"source\"][\"path\"])\n    assert digest(source) == row[\"source\"][\"sha256\"]\n    path = target / source.name\n    observation = dict(label=row[\"label\"], exists=path.is_file(), sourceUnchanged=True)\n    if path.is_file():\n        try:\n            observation[\"physical\"] = physical(path, row[\"selectedName\"])\n        except Exception as exc:\n            observation[\"projectionFailure\"] = dict(type=type(exc).__name__, reason=str(exc),\n                sha256=digest(path), bytes=path.stat().st_size)\n    report[\"outputs\"].append(observation)\nreport[\"retryDriverSha256\"] = digest(__file__)\npath = out / \"native-services-retry.json\"\npath.write_text(json.dumps(report, indent=2) + \"\\n\")\nprint(json.dumps(dict(report=str(path), sha256=digest(path),\n    returncode=report.get(\"returncode\"), exception=report.get(\"exception\"),\n    seconds=report[\"seconds\"], outputs=[dict(label=r[\"label\"], exists=r[\"exists\"],\n        projected=\"physical\" in r, failure=r.get(\"projectionFailure\")) for r in report[\"outputs\"]]), indent=2))\n",
+  "retryDriverSha256": "9efb36913c984b4c2a60df3826757a291f96e352b642b85bd801b1350c9c17fe",
+  "limitations": [
+    "The failed positive control disqualifies this particular ODA conversion route as a distinguishing role oracle; it does not establish why ODA produced these tags or generalize to all ODA workflows.",
+    "No native rendering or normal-map semantic qualification, parser widening, whole-document support or claim promotion follows.",
+    "Original from-scratch drawings and converted output stay in scratch and are not committed."
+  ],
+  "gates": {
+    "parserWideningReady": false,
+    "qualificationEligible": false,
+    "supportClaimsPromoted": false,
+    "fullObjectiveComplete": false
+  }
+}

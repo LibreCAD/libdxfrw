@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-ac1018-ac1021-attributed-insert-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_AC1018_AC1021_STANDALONE_ATTRIB_SEQEND_ASCII_BINARY_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend P6-G whole-write transaction coverage for standalone ATTRIB/SEQEND INSERTs across intermediate legacy DXF writer revisions AC1018 and AC1021.",
+  "source": {
+    "kind": "deterministic locally-authored records generated during the test",
+    "profile": "One INSERT with two non-MTEXT ATTRIB children, distinct handles, tags, text and geometry; AC1018 and AC1021 output, each in ASCII and Binary DXF.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-ac1018-ac1021-attributed-insert-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "Expanded the standalone attributed INSERT transaction selector to AC1015, AC1018, AC1021 and AC1024. This follow-up closes the intermediate AC1018/AC1021 version points between the earlier AC1015/AC1024 coverage.",
+    "method": "Calibrate reached allocations in a successful write, then inject std::bad_alloc at every reached offset. Verify export failure, sentinel destination preservation, unchanged caller INSERT/ATTRIB fields, no staged output, same-codec retry to byte-identical output, and fresh typed readback of both attributes."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dxf_legacy_attributed_insert_allocation_transaction$' --output-on-failure: PASS 1/1 in 5.66 seconds; selector runs all four legacy revisions.",
+    "ac1018Ascii": "115/115 allocation failures pass rollback/retry/typed-readback.",
+    "ac1018Binary": "113/113 allocation failures pass rollback/retry/typed-readback.",
+    "ac1021Ascii": "114/114 allocation failures pass rollback/retry/typed-readback.",
+    "ac1021Binary": "112/112 allocation failures pass rollback/retry/typed-readback.",
+    "diffCheck": "PASS: git diff --check on the implementation, plan and receipt paths"
+  },
+  "limitations": [
+    "Generated AC1018 and AC1021 transaction evidence only; producer interoperability and native consumer behavior are not qualified.",
+    "Only one INSERT with two standalone ATTRIB children is covered; other compound-record field profiles remain in P6-G inventory.",
+    "No support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "AC1018 and AC1021 standalone ATTRIB/SEQEND ASCII and Binary allocation rollback, same-codec retry and typed readback.",
+    "remainingP6G": "Continue with distinct public-writer overloads, other compound-record variants, variable-size OBJECTS builders, and uncovered caller-state combinations.",
+    "phaseStatusesChanged": false
+  },
+  "previousReceipt": "docs/research/p6-dxf-ac1015-ac1024-attributed-insert-allocation-rollback-retry-2026-11-13.json"
+}

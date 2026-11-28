@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "id": "s8-1a-camera-block-adapter-2026-11-02",
+  "date": "2026-11-02",
+  "status": "COMMITTED_IMPLEMENTATION",
+  "repositoryHead": "de016bce2d0751e25d915b94968a32860940c21a",
+  "scope": {
+    "plan": "DWG_DXF_3D_SUPPORT_PLAN.md S8.1a / PAR-118",
+    "operation": "Preserve CAMERA callback data through the concrete dx_iface adapter and named-BLOCK DXF serialization.",
+    "behavior": [
+      "dx_iface::addCamera retains a typed DRW_Camera copy using the existing non-pure DRW_Interface callback.",
+      "The dx_iface entity writer dispatches DRW::CAMERA to dxfRW::writeCamera and refuses runtime-type mismatches.",
+      "The generated named-BLOCK control exports and re-imports a CAMERA in ASCII and Binary DXF through fileImport and applyExtrusion-enabled direct reading."
+    ],
+    "supportClaimEffect": "none"
+  },
+  "implementation": {
+    "files": {
+      "dwg2dxf/dx_iface.h": "2ff61a38760684bc36280ab4f110a3dc4549c8a8a3328e2626b0ceeb08cf4f0a",
+      "dwg2dxf/dx_iface.cpp": "38a24b87ea1c9d13b5acb80de6ac8a1fb9e58c240a80801728f41799a4f22460",
+      "tests/dwg_local_roundtrip_tests.cpp": "ebcebdc8a4b95e625d17a7c2e733b74b003cee3b5d5294efa757ef8cd83e032c"
+    },
+    "committedBlobSha256": {
+      "dwg2dxf/dx_iface.h": "2737e5d5976e8f29a5a7642be29098f6ac86b8ac112d2f877c9b3dcd93cbbac9",
+      "dwg2dxf/dx_iface.cpp": "35ca77bc1228dfb727fdb5b3b77b33ef619459564ec202c4038da7f49040181c",
+      "tests/dwg_local_roundtrip_tests.cpp": "d5898c703de3e475f9f7fa3964d4d5a7b7d11cd917c660c03e21d2f9aa2f5fd2",
+      "DWG_DXF_3D_SUPPORT_PLAN.md": "e7fa15cf1e54a9681fa9e7072067f19310e3f33749efb5f2a850365b465e6ac2"
+    },
+    "artifacts": {
+      "build-gcc/dwg2dxf/dwg2dxf": "e805d4a2501c2b0574b6e4c4cc27a2e4c76b069e9061544a32d1cef312984fbd",
+      "build-gcc/libdxfrw_dwg_local_roundtrip": "4e12cc60827fc025e7cec28e61c24cde311dd749fb78cf20cbe621e6f04da44c"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j4",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS (1/1; 6.87 seconds)",
+      "coverage": [
+        "Generated named-BLOCK CAMERA retention and serialization in ASCII and Binary DXF.",
+        "Concrete camera callback capture and typed readback in fileImport and applyExtrusion direct-read paths.",
+        "The test's CAMERA uses the optional no-VIEW-reference form; reference resolution is not covered."
+      ]
+    },
+    "compatibilityBuild": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    "diffCheck": {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    "fullSuiteRun": false,
+    "asanRun": false,
+    "persistentFixtureAdded": false
+  },
+  "limitations": [
+    "This is generated callback and transport evidence only. It does not qualify physical producer breadth, CAMERA code 340 VIEW target roles/remapping, camera semantics, native application behavior, full BLOCK callback coverage, or 3D geometry support.",
+    "No new virtual callback, public data layout, persistent fixture, or support claim was added."
+  ],
+  "repositoryState": {
+    "commitStatus": "COMMITTED",
+    "implementationCommit": "140b58fdaa5e48389b99395d8e6c7a7fab5765c0",
+    "reason": "The verified CAMERA capture/write path, corrected complete surface round-trip control, scoped plan update, and receipt were committed; unrelated worktree changes remain unstaged."
+  }
+}

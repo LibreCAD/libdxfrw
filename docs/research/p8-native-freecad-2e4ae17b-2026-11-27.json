@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-27",
+  "candidate_commit": "2e4ae17b5404c0733f1360c4a3fb6a6775735a8c",
+  "workflow": "https://github.com/dxli/libdxfrw/actions/runs/45994216741",
+  "freecad_version": "1.1.4",
+  "scope": "Installed converter and pinned legacy Python DXF addon: generated line, selected primitives and legacy polyface open/insert, plus CLI controls; Windows additionally tests batch naming.",
+  "platforms": {
+    "linux_x86_64": {
+      "result": "16/16 passed",
+      "job": "https://github.com/dxli/libdxfrw/actions/runs/45994216741/job/140489426247",
+      "converter_sha256": "2cbdb638a77d02c63160a824957c51d33ac47fb48f146634d598c63db2270cf6",
+      "last_test_log_sha256": "6eee857d7a130651766dcb0294a7ff7d1d97de07e4cd7615187990ee147ec0d3"
+    },
+    "windows_x64": {
+      "result": "17/17 passed",
+      "job": "https://github.com/dxli/libdxfrw/actions/runs/45994216741/job/140489426623",
+      "converter_sha256": "5207c23e21e5774990c9bf6dff751e011d0107040381314a6e94d4cbfb7f26ac",
+      "last_test_log_sha256": "534195cd85dec959cddba7385d3710a82b633e71d952ab6abd076659b5668588"
+    }
+  },
+  "limitations": "Not a GUI test, candidate FreeCAD rebuild, general DWG/DXF parity, or broad 3D qualification. Revalidate profiles impacted by later changes at candidate freeze."
+}

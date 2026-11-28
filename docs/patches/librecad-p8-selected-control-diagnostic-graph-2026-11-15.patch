@@ -1,0 +1,113 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 764e7b9..07b9d29 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -6566,8 +6566,27 @@ public:
+         m_dwgFramePublications, m_dwgDictionaryMemberships,
+         m_dwgGroupMemberships, m_dwgSortEntsMemberships,
+         m_dwgFieldListMemberships, m_dwgTypedReferences,
+-        m_dwgBlockReachabilities, m_dwgFramePublicationConflicts);
++        m_dwgBlockReachabilities, m_dwgFramePublicationConflicts, std::nullopt);
+   }
++#if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++  // Diagnostic source graph only. Its additional selected control edge does
++  // not establish unknown-body references or grant export permission.
++  DwgSourceGraphResult buildDwgSourceGraphWithSelectedControlEvidence() const {
++    if (!m_layerControlSource)
++      return buildDwgSourceGraph();
++    const auto control = m_layerControlSource->m_raw.m_handle;
++    const auto dictionary = m_layerControlSource->m_raw.m_xDictHandle;
++    if (!matchesAc1024LayerControlExtensionSource(control, dictionary))
++      return buildDwgSourceGraph();
++    return buildDwgSourceGraphInventory(
++        m_dwgFrameCoverageReport, m_dwgClassCoverageReport,
++        m_dwgFramePublications, m_dwgDictionaryMemberships,
++        m_dwgGroupMemberships, m_dwgSortEntsMemberships,
++        m_dwgFieldListMemberships, m_dwgTypedReferences,
++        m_dwgBlockReachabilities, m_dwgFramePublicationConflicts,
++        std::make_pair(control, dictionary));
++  }
++#endif
+   bool hasDwgFramePublicationForHandle(std::uint32_t handle) const {
+     return std::any_of(m_dwgFramePublications.cbegin(),
+                        m_dwgFramePublications.cend(),
+@@ -8879,7 +8898,9 @@ private:
+       const std::vector<DRW_DwgFieldListMembership> &fieldListMemberships,
+       const std::vector<DRW_DwgTypedReference> &typedReferences,
+       const std::vector<DRW_DwgBlockReachability> &blockReachabilities,
+-      const std::vector<std::uint32_t> &publicationConflicts) {
++      const std::vector<std::uint32_t> &publicationConflicts,
++      const std::optional<std::pair<std::uint32_t, std::uint32_t>> &
++          verifiedControlExtension) {
+     try {
+       if (frameReport.m_status !=
+               DRW_DwgFrameCoverageStatus::FinalizedComplete ||
+@@ -9555,10 +9576,15 @@ private:
+               publication.m_parentHandle != DRW::NoHandle ||
+               !publication.m_reactorHandles.empty() ||
+               publication.m_numReactors != 0 ||
+-              publication.m_xDictHandle != DRW::NoHandle) {
++              (publication.m_xDictHandle != DRW::NoHandle &&
++               (!verifiedControlExtension ||
++                verifiedControlExtension->first != publication.m_handle ||
++                verifiedControlExtension->second != publication.m_xDictHandle))) {
+             return refuseDwgSourceGraph(
+                 DwgSourceGraphRefusal::InvalidControlReceipt, source);
+           }
++          if (publication.m_xDictHandle != DRW::NoHandle && !addEdgeCapacity(1u))
++            return refuseDwgSourceGraph(DwgSourceGraphRefusal::AllocationFailure, source);
+           if (!addEdgeCapacity(publication.m_controlHandles.size())) {
+             return refuseDwgSourceGraph(
+                 DwgSourceGraphRefusal::AllocationFailure, source);
+@@ -9787,6 +9813,12 @@ private:
+           }
+           break;
+         case DRW_DwgCommonLinkEvidence::NotApplicable:
++          if (publication.m_xDictHandle != DRW::NoHandle) {
++            if (const auto failure = addHandleEdge(
++                    publication.m_xDictHandle,
++                    DwgSourceGraphEdgeKind::ExtensionDictionary))
++              return *failure;
++          }
+           for (const std::uint32_t child : publication.m_controlHandles) {
+             if (const auto failure = addHandleEdge(
+                     child, DwgSourceGraphEdgeKind::ControlChild)) {
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index b712a60..047f9e2 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9646,6 +9646,26 @@ TEST_CASE("Empty AC1024 sort tables match live adapter source observations",
+   REQUIRE(metadata.matchesAc1024LayerControlExtensionSource(0x10u, 0x107u));
+   CHECK_FALSE(metadata.matchesAc1024LayerControlExtensionSource(0x10u, 0xF2u));
+   CHECK_FALSE(metadata.matchesAc1024LayerControlExtensionSource(0x11u, 0x107u));
++  const auto baselineGraph = metadata.buildDwgSourceGraph();
++  REQUIRE_FALSE(baselineGraph.complete());
++  CHECK(baselineGraph.refusal == LC_DwgAdvancedMetadata::DwgSourceGraphRefusal::InvalidControlReceipt);
++  const auto graph = metadata.buildDwgSourceGraphWithSelectedControlEvidence();
++  REQUIRE(graph.complete());
++  auto nodeIndex = [&graph](std::uint32_t handle) {
++    for (std::size_t i = 0; i < graph.nodes.size(); ++i)
++      if (graph.nodes[i].kind == LC_DwgAdvancedMetadata::DwgSourceGraphNodeKind::Frame
++          && graph.nodes[i].source.handle == handle) return i;
++    return graph.nodes.size();
++  };
++  const auto controlNode = nodeIndex(0x10u);
++  const auto dictionaryNode = nodeIndex(0x107u);
++  REQUIRE(controlNode < graph.nodes.size());
++  REQUIRE(dictionaryNode < graph.nodes.size());
++  CHECK(std::count_if(graph.edges.begin(), graph.edges.end(), [&](const auto &edge) {
++    return edge.sourceNode == controlNode && edge.targetNode == dictionaryNode
++        && edge.kind == LC_DwgAdvancedMetadata::DwgSourceGraphEdgeKind::ExtensionDictionary;
++  }) == 1);
++
+ #endif
+   const std::uint32_t blocks[] = {0x2u, 0x20A8u, 0x127u, 0x225Bu};
+   const std::uint32_t dictionaries[] = {0xF2u, 0x2120u, 0x21CDu, 0x22D3u};
+@@ -9666,6 +9686,7 @@ TEST_CASE("Empty AC1024 sort tables match live adapter source observations",
+   metadata.setSourceDwgVersion(DRW::AC1027);
+ #if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
+   CHECK_FALSE(metadata.matchesAc1024LayerControlExtensionSource(0x10u, 0x107u));
++  CHECK_FALSE(metadata.buildDwgSourceGraphWithSelectedControlEvidence().complete());
+ #endif
+   CHECK_FALSE(metadata.selectedDwgSourceCaptureSessionSealed());
+   CHECK_FALSE(metadata.matchesSelectedAc1024SortEntsOwnerChain(0x20A8u, 0x2120u, target));

@@ -1,0 +1,45 @@
+{
+  "title": "Generated SUNSTUDY body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_SUNSTUDY_BODY_RECOVERY_PASS_LEGACY_REVISIONS",
+  "scope": "CLI disposition for a malformed generated SUNSTUDY body at AC1015 and AC1018, including continuation, strict refusal, and explicit-partial ASCII/Binary output readback.",
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-sunstudy-body-source",
+    "profile": "One SUNSTUDY with conditional sheet strings, one date pair, three hour flags, range values, plot settings, four non-null resource handles, and a following LINE. A bounded one-bit mutation is selected only after the valid generated object frame is captured and its common prologue parses."
+  },
+  "qualified_revisions": {
+    "AC1015": {
+      "controls": 5,
+      "output_revision": "AC1021"
+    },
+    "AC1018": {
+      "controls": 5,
+      "output_revision": "AC1021"
+    }
+  },
+  "assertions": [
+    "The valid generated source is read before mutation search.",
+    "A bounded one-bit SUNSTUDY body mutation fails that typed object frame while the following LINE remains readable.",
+    "Source frames equal published plus failed frames, with exactly one failed object frame and no failed entity frames.",
+    "Strict ASCII and Binary conversion refuse atomically and preserve the destination sentinel.",
+    "Explicit-partial ASCII and Binary conversion to AC1021 succeeds, preserves the following content, and reopens through the local DXF reader."
+  ],
+  "validation": {
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
+    "diff_check": "git diff --check passed.",
+    "focused_test": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure passed; runtime 28.07 seconds.",
+    "dedicated_test": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_sunstudy_recovery$' passed 1/1 and reported 10 controls.",
+    "cohort": "863 controls, up from 853."
+  },
+  "modern_revision_exclusions": {
+    "AC1021": "The generated scratch baseline fails common-owner role validation: raw handle code 5, reference 0xA603, which is the seeded page-setup handle. No malformed-body mutation profile is admitted from this baseline.",
+    "AC1024_AC1027_AC1032": "Generator eligibility attempts did not produce capturable valid baselines; these revisions are excluded.",
+    "next_step": "Resolve the generated modern source's common/type-specific handle span and role with source or authoritative format evidence before adding modern SUNSTUDY disposition controls."
+  },
+  "limits": [
+    "Generated local CLI recovery evidence only; no producer-authored SUNSTUDY source, native rendering behavior, or external interoperability is qualified.",
+    "The profile qualifies AC1015 and AC1018 only and must not be generalized to modern revisions.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

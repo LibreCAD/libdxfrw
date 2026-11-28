@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-elevated-circle-arc-bounds-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPR": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "7a727b40",
+  "problem": "Circle bounds discarded elevation; Area::merge discarded both Z endpoints and arc extrema were constructed at Z=0. The initial circle/arc bounds control failed on positive and negative elevations.",
+  "change": "Preserve Z extrema in shared area/point merges, construct circle bounds from the actual center, and construct arc extrema relative to its center. Area containment and intersection predicates remain planar.",
+  "verification": [
+    "PASS 61 focused macOS headless builder, canvas and geometry tests.",
+    "PASS circle bounds and arc cardinal-extrema bounds at elevations -70, 0 and 70; shared area and point merges retain their complete Z range.",
+    "PASS elevated circle and arc planar selection and entity snapping, including the resulting snap elevation.",
+    "Hosted PR checks pending."
+  ],
+  "limits": [
+    "Horizontal circle and arc profiles only; tilted planes, native GUI, other entity bounds and mixed-elevation intersection snapping remain unqualified.",
+    "No DWG/DXF codec or general 3D interoperability claim follows from these local controls."
+  ]
+}

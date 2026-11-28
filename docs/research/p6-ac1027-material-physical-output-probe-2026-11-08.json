@@ -1,0 +1,55 @@
+{
+  "schema": 3,
+  "date": "2026-11-08",
+  "scope": "Bounded physical AC1027 Cover MATERIAL-to-DXF output and local readback",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "committed_as_fixture": false,
+    "read_version": "AC1027",
+    "typed_material_records": 3
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_ac1027_material_wire.h",
+      "tests/dwg_ac1027_material_dictionary_wire_tests.cpp",
+      "tests/CMakeLists.txt",
+      "source-release-files.am",
+      "source-release-files.txt"
+    ],
+    "changes": [
+      "Validate the AC1027 dictionary's one NOD-owner reactor in both the object metadata and ordered common handle stream.",
+      "Read the BL reactor count as 1 after the empty EED marker, matching ODA v5.4.1 §20.4.44 field order.",
+      "Admit only the exact ByLayer/ByBlock/Global member set while checking each raw detached name and following soft-owner handle against the preserved source entry order.",
+      "Expose bounded refusal reasons for identity, metadata, body, name-stream, and handle-stream mismatches.",
+      "Add a locally generated 520-bit object frame test covering both valid member orders, duplicate keys, typed/wire order mismatch, and a corrupted reactor role."
+    ]
+  },
+  "commands": [
+    "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_default_material_optin_tests -j4",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --material-ac1027-physical-output-readback /Users/dli/doc/dwg/Cover.dwg",
+    "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "cmake --build build-gcc --target libdxfrw_dwg_ac1027_material_dictionary_wire_tests -j4",
+    "ctest --test-dir build-gcc -R 'libdxfrw_dwg_ac1027_material_dictionary_wire|libdxfrw_dwg_default_material_optin|dwg2dxf_material_ac1024_typed_graph_output' --output-on-failure"
+  ],
+  "results": {
+    "build": "passed",
+    "physical_probe_exit_status": 0,
+    "ascii_output_and_local_readback": "passed",
+    "binary_output_and_local_readback": "passed",
+    "same_adapter_retry_after_mutation_refusal": "passed",
+    "destination_preservation_on_refusal": "passed",
+    "focused_generated_tests": "3 passed: AC1027 dictionary wire, AC1024 typed graph output, and generated default MATERIAL opt-in"
+  },
+  "bounded_selection": [
+    "Three source MATERIAL records and their ACAD_MATERIAL owner dictionary.",
+    "The rooted RASTERVARIABLES object needed to close this source's unrelated ACAD_IMAGE_VARS NOD edge.",
+    "Immutable same-import CLASS and object-frame receipts required by AC1027 output admission."
+  ],
+  "evidence_limits": [
+    "The physical source is not a committed test fixture; it remains in the user's local DWG corpus.",
+    "Readback uses libdxfrw itself; it is not independent semantic or native-CAD evidence.",
+    "Only the selected same-version Cover graph is exercised. Whole-file AC1027 strict conversion, other AC1027 dictionary profiles, cross-version output, and external application interoperability remain unqualified.",
+    "No full suite was run."
+  ]
+}

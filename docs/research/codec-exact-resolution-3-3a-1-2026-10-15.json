@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "date": "2026-10-15",
+  "planSlice": "Slice3.3a.1",
+  "state": "LOCAL_RESOLUTION_CONTRACT_COMPLETE",
+  "parentSlice3_3a": "IN_PROGRESS",
+  "parentCommit": "7c677bc34d393b03272fa33e0093ec07b0ce8297",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "scope": "Allocation-free internal explicit named-mapping resolution contract and compatible production selection. Not an ISO table repair, active ExactNamed decoder, public reader setting or format/support qualification.",
+  "sourceHashes": {
+    "src/intern/drw_textcodec.cpp": "b6c206477b3efe8f54c90e393f55ab5cf594627da1e9ae8cfd2e14a9bbb8d806",
+    "src/intern/drw_textcodec.h": "5bedafcded6c304b002765232fa7cc8a34efc5f67d81ea242a58e490b5ce7e2e",
+    "tests/gbk_codepage_tests.cpp": "6439c134c3152f8b9cba652a0a4cf077d25c8a57f47a6b2ad35c12588df06755"
+  },
+  "artifactHashes": {
+    "build/libdxfrw.a": "f20b76199c0ed2fb74de533168b392337fd7c804822348971d16b44ae98fc410",
+    "build/libdxfrw_gbk_codepage_tests": "e007b8c6d6cc8650fb90e68d2ba544f0fa6fcb8450e36630e0de6831e205da30",
+    "build/dwg2dxf/dwg2dxf": "67dd9845391ce5a6f4bc354d23726a6e1626054e13157f3f3b8a55ee37761e9f",
+    "/private/tmp/libdxfrw-exact-resolution.J0VywK/focused-ctest.xml": "350925bb54be18ab738910fae2dc007f6a3b8cd292e53e9db119aea56480fb4a",
+    "/private/tmp/libdxfrw-exact-resolution.J0VywK/compat-probe": "36df67bd9be74a6207801cbac78f8b06a5e3d6f65a6d15a02104026789adb9d5"
+  },
+  "contract": {
+    "policies": "Internal DRW_CodePageMappingPolicy::{Compatible,ExactNamed}; explicit argument required, no implicit exact selection",
+    "identities": "DRW_CodePageResolution separates historical declaration classification/selection, static requested mapping-family name, eligible decoder name and availability status; original full bytes stay in existing owned HEADER provenance",
+    "compatible": "configureCodePage explicitly uses Compatible resolution; all historical normalized selections, decoding/encoding and byte-codepage behavior remain unchanged",
+    "exact": "Canonical/ExactAlias names can identify their existing implementation; inexact/missing families return null decoderName, never a similar Windows fallback. Availability is selection identity, not exhaustive mapping truth or DXF revision admission",
+    "unavailable": "ISO8859-4 compact/hyphen share requested family but retain distinct historical declarations and both remain unavailable until the table/factory is implemented. ISO8859-10/13, EUC-JP/Shift_JIS/Windows932, GB18030/GBK/GB2312/Windows936, BIG5-HKSCS/Windows950 and TIS620/ISO8859-11/Windows874 remain distinct",
+    "unknown": "Empty, contaminated, embedded-NUL, nonASCII and unknown-policy inputs do not become valid prefixes or silently select a decoder",
+    "ambiguous": "CSISO, X-EUC and X-X-BIG5 keep historical compatibility classification/selection with requestedName null rather than fabricated exact-family identity",
+    "ownership": "Static pointers only; no borrowed caller storage, allocation, object-state mutation or throwing conversion; common ASCII-only name comparison retains prior locale-independent behavior",
+    "publicBoundary": "No installed API, reader policy setter, pure callback, source observation layout or consumer ABI changed. Public input selection will be introduced with functional table/reader handoff, not a dormant public promise.",
+    "residual": "Actual exact table decode/inverse, input-policy snapshot, per-field observation/HEADER finalization and owned import/CLI admission remain3.3b/c. This substep does not close parent3.3a or charset support."
+  },
+  "tests": {
+    "focusedMode": {
+      "command": "build/libdxfrw_gbk_codepage_tests --codepage-resolution",
+      "exitCode": 0,
+      "selections": 84,
+      "availableRows": 9,
+      "unavailableRows": 33,
+      "unknownControls": 6,
+      "invalidPolicyOwnershipAllocationControls": 3,
+      "historicalAliasSelections": 178,
+      "summary": "Exact codepage resolution: selections=84, unknown controls=6, invalid-policy/ownership/allocation controls=3"
+    },
+    "allocatorFailure": "Resolver called under test executable's forced allocator failure; available and unavailable results remain correct without allocation. No global production allocator change.",
+    "build": {
+      "command": "cmake --build build --target libdxfrw_gbk_codepage_tests dwg2dxf lc3_compat_check --parallel 2",
+      "exitCode": 0,
+      "operations": 33,
+      "scope": "Affected codec/library/test/CLI build; private header causes dependent recompilation; lc3 target remains valid, not a fresh native consumer run"
+    },
+    "strict": {
+      "command": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -I. -fsyntax-only src/intern/drw_textcodec.cpp tests/gbk_codepage_tests.cpp",
+      "exitCode": 0
+    },
+    "ctest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_gbk_codepage|dwg2dxf_cli_contract)$' --output-on-failure --output-junit /private/tmp/libdxfrw-exact-resolution.J0VywK/focused-ctest.xml",
+      "tests": 2,
+      "failures": 0,
+      "skipped": 0,
+      "wallSeconds": 9.4,
+      "cliSeconds": 9.07,
+      "codecSeconds": 0.33,
+      "scope": "Existing full codec executable and composed501-control CLI contract only; no full160-suite or native qualifier"
+    },
+    "frozenCompatibility": {
+      "unchangedCells": 140,
+      "profiles": [
+        {
+          "locale": "C",
+          "cells": 70
+        },
+        {
+          "locale": "tr_TR.ISO8859-9",
+          "cells": 70
+        }
+      ],
+      "fields": [
+        "selected",
+        "decoded_utf8_hex",
+        "reencoded_hex",
+        "redecoded_utf8_hex"
+      ],
+      "source": "docs/research/broader-codec-policy-research-2026-10-15.json result.vectors and reproduction.probe_cpp",
+      "compile": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc /private/tmp/libdxfrw-broader-codec.YMVBfJ/probe.cpp src/intern/drw_textcodec.cpp -o /private/tmp/libdxfrw-exact-resolution.J0VywK/compat-probe",
+      "recipe": "Reconstruct the hash-pinned original probe_cpp from the frozen research receipt if its scratch file is gone. Run the current-source executable in C and tr_TR.ISO8859-9, both dxf=false/true. Join every returned row by(alias,input_hex) to frozen result.vectors and compare all four named fields exactly;70rows per locale. Child timeout15s and output asserted below1MiB. No locale change is imposed on the product or test runner.",
+      "limit": "Unchanged wrong/inexact historical outputs remain wrong/inexact; this is preservation evidence, not named mapping support."
+    },
+    "notRun": [
+      "full suite",
+      "ASan/UBSan (nonallocating metadata-only contract; no unsafe ownership/parser change)",
+      "native LibreCAD/LC3/FreeCAD",
+      "external CAD/ACIS producer qualification"
+    ]
+  },
+  "authority": [
+    {
+      "url": "https://www.iana.org/assignments/character-sets/character-sets.xhtml",
+      "scope": "Read2026-10-15; IANA Shift_JIS/MS_Kanji/csShiftJIS and distinct EUC-JP/csEUCPkdFmtJapanese family identities, not Windows932 equivalence or DXF support"
+    },
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-4.TXT",
+      "scope": "Already hash-pinned exhaustive source research distinguishes ISO8859-4 from Windows1257; table remains next implementation slice"
+    },
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-10.TXT",
+      "scope": "Separate family, not same mapping"
+    },
+    {
+      "url": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-13.TXT",
+      "scope": "Separate family, not same mapping"
+    }
+  ],
+  "fixturePolicy": "No external/generated CAD payload, new test registration, dependency, support metadata or remote write.",
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ],
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "ledger": 149,
+    "committed": 128,
+    "blocked": 6,
+    "inProgress": 3,
+    "other": 12,
+    "readyParents": 0
+  },
+  "next": "3.3b hash-pinned offline ISO8859-4 table plus exact codec factory/inverse controls; then3.3c functional input snapshot/HEADER/observation/converter handoff. Parent3.3a public-policy delivery remains open until functional."
+}

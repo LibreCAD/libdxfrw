@@ -1,0 +1,91 @@
+{
+  "scope": "Default DWG HATCH patterned-fill overall angle and definition-line angles only: public/DXF groups 52/53 remain degrees; HATCH DWG BD fields are converted to/from radians. Solid HATCH and gradient/boundary angle fields retain their existing semantics. MPOLYGON's DWG parser, encoder and shared validation behavior remain unchanged pending independent evidence.",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.75 lists the HATCH overall angle BD (DXF 52) and each definition-line angle BD (DXF 53); the listed fields do not explicitly state their units. ODA-produced AC1021 plus LibreDWG and ODA DXF observations independently establish radians for the selected DWG and degrees for its DXF. Existing libdxfrw and LibreCAD DXF interfaces preserve the two fields in degrees.",
+  "physical_source": "Scratch ezdxf 1.4.5 authored an AC1027 DXF with one ANSI31 patterned HATCH, 30-degree overall angle, one 75-degree pattern line, and a four-corner closed polyline boundary. `author-source.py OUTPUT` reproduces this geometry, though DXF document metadata can differ. ODA File Converter 27.1.0 produced an AC1021 DWG; GNU LibreDWG 0.14 decodes overall=0.5235987755983 rad and line=1.30899693899575 rad. ODA's AC1027 DXF return reports 30 and 75 degrees and the same boundary. Original native callback exposed 0.5235987755983 and 1.30899693899575; corrected callback exposes 29.999999999999996 and 75. The ODA lineage is the recorded scratch invocation, not authenticated by the hashes alone.",
+  "generated_output": "Scratch author.cpp uses existing material/plotstyle graph opt-ins and authors the same model-space HATCH geometry. Existing writer emits 30 and 75 radians, and ODA DXF returns 1718.87338539247 and 4297.183463481174 degrees. Corrected writer emits pi/6 and 75*pi/180 radians; ODA DXF returns 30 and 75 degrees. Independent LibreDWG and ezdxf verifier checks hashes, angles, flags and exact boundary vertices; the final post-facade-guard build reproduces the corrected DWG byte-for-byte.",
+  "mpolygon_limit": "A separate ezdxf-authored MPOLYGON with the same pattern converts through ODA, but ODA returns its overall DXF angle as 0 rather than the authored 30 while the line remains 75; LibreDWG reports inconsistent leading fields and the existing native reader emits no typed callback. This is not producer evidence for changing MPOLYGON. Its old and corrected-build encoded frames compare byte-for-byte for six revisions.",
+  "validation": "test.cpp passes AC1015/1018/1021/1024/1027/1032 native HATCH encode/readback with 30/75, exact structural AC1021 pattern BDs plus following counts, HATCH and MPOLYGON direct controls, ARC/ELLIPSE boundary field preservation, parser truncation/reset/retry, corrupted 1e308-radian source at both pattern angle positions with reset/retry, direct partial-bit buffer atomic refusal of nonfinite and zero/subnormal converted angles, and corrected retries. It exercises ignored-return destination sentinel and same-writer retry through writeHatch and writePoint; derived custom HATCH codec keeps its earlier skip behavior. `compare.cpp` gives byte-identical pre/post streams for MPOLYGON patterned, solid HATCH and gradient HATCH with ARC/ELLIPSE boundaries for all six revisions. A previous library fails the new exact-radian test. Final output was relinked against the final scratch library and reproduces the ODA-tested DWG hash.",
+  "limits": "Changing the DWG HATCH callback fields from raw radians to degrees corrects their long-standing DXF API contract; DWG consumers that compensated for the old radians must remove that workaround. Only selected patterned HATCH fields and boundary are externally qualified; not full rendering, arbitrary source versions, native application, gradient/MPOLYGON, or whole-file interoperability. New rejection latches only exact built-in HATCH; a derived subclass that inherits its guarded codec and ignores false retains legacy skip behavior. Nonzero degree values producing zero/subnormal radians conservatively refuse. Solid HATCH's unused pattern angles are unchanged.",
+  "commands": {
+    "build": "cmake -S /private/tmp/hatch-angle/work -B /private/tmp/hatch-angle/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release; cmake --build /private/tmp/hatch-angle/build --target dxfrw -j6",
+    "test": "c++ -std=c++17 -Wall -Wextra -Werror -I/private/tmp/hatch-angle/work/src -I/private/tmp/hatch-angle/work/tests /private/tmp/hatch-angle/test.cpp /private/tmp/hatch-angle/build/libdxfrw.a -o /private/tmp/hatch-angle/test && /private/tmp/hatch-angle/test",
+    "source": "ODAFileConverter /private/tmp/hatch-angle/in /private/tmp/hatch-angle/dwg ACAD2007 DWG 0 1 '*.dxf'; ODAFileConverter /private/tmp/hatch-angle/dwg /private/tmp/hatch-angle/out ACAD2013 DXF 0 1 '*.dwg'",
+    "generated": "ODAFileConverter /private/tmp/hatch-angle/gen-in /private/tmp/hatch-angle/gen-out ACAD2013 DXF 0 1 '*.dwg'",
+    "audit": "For each audit_pairs entry, run python -O tools/audit_dwg_hatch_pattern_angles.py --dwg <dwg> --dwg-sha256 <dwg_sha256> --dxf <dxf> --dxf-sha256 <dxf_sha256> --overall <overall> --line <line> --dwgread /opt/homebrew/bin/dwgread after verifying independent_reader.sha256.",
+    "audit_source": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_hatch_pattern_angles.py --dwg /private/tmp/hatch-angle/dwg/source.dwg --dwg-sha256 754e786cab0a1db6d81f5268a3aeed039a63685626af6d09e657edcf109499c8 --dxf /private/tmp/hatch-angle/out/source.dxf --dxf-sha256 a6e73b0bca222edb6ac5a15eee5ec72e76f2bff2452f2fc0d9f742ac7ffa0826 --overall 30 --line 75",
+    "audit_corrected": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_hatch_pattern_angles.py --dwg /private/tmp/hatch-angle/gen-in/new.dwg --dwg-sha256 f654c61102e4ac6f29b59bf1bd8ed894515a665fe010e6cb858d51e32799ad5a --dxf /private/tmp/hatch-angle/gen-out/new.dxf --dxf-sha256 f97eaae75cc03e245bec857e05ee4f05bf166c0885275dec1729f059d3e26f3c --overall 30 --line 75",
+    "audit_baseline": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_hatch_pattern_angles.py --dwg /private/tmp/hatch-angle/gen-in/old.dwg --dwg-sha256 6161122d8632b57f5002a62d2f45b8519e7657b7ec63a67ef9e5fb59eb710886 --dxf /private/tmp/hatch-angle/gen-out/old.dxf --dxf-sha256 2cf69628990fb8a6cfdaaa73df1edc92bb8352df770d662eff0b1be9f12a4152 --overall 1718.87338539247 --line 4297.183463481174"
+  },
+  "tools": {
+    "hatch-angle.patch": "c3536d38b813fe16a10bbadbe440a4ddf3d2ebb8e029ac6f0836d4225fce6da2",
+    "test.cpp": "7668028594e0e4afa7c2832fd730d874044cf0290883a3630e834a3a639a7fc5",
+    "audit.py": "5eb4c9a3fc658a004a4518d0edd729d7d3d24ee97c2921cd67acd1908e2ef5e6",
+    "author-source.py": "99168350d3bdf2b6c28ecbba7237227d682122edfb3557944dcdb124991a1774",
+    "author.cpp": "a3ff0eea2fb07dfe93a76a1569980536c75717944e62f55c4ddcc6ebc50c9bb0",
+    "probe.cpp": "0818a6d6cf459e66043b62a1e7d23c1f7bcd0d6a010e92572295baf7a6fdea12",
+    "compare.cpp": "4d8f691a044f8047cad68ac5f71ae99862c1d40d94998dc8de518c3cd9791c7d"
+  },
+  "artifacts": {
+    "in/source.dxf": "97dd9a5b35d59b9a7fcb050a0159ccbb576467d7457cf44c3314b85b94cd4b47",
+    "dwg/source.dwg": "754e786cab0a1db6d81f5268a3aeed039a63685626af6d09e657edcf109499c8",
+    "out/source.dxf": "a6e73b0bca222edb6ac5a15eee5ec72e76f2bff2452f2fc0d9f742ac7ffa0826",
+    "gen-in/old.dwg": "6161122d8632b57f5002a62d2f45b8519e7657b7ec63a67ef9e5fb59eb710886",
+    "gen-in/new.dwg": "f654c61102e4ac6f29b59bf1bd8ed894515a665fe010e6cb858d51e32799ad5a",
+    "gen-out/old.dxf": "2cf69628990fb8a6cfdaaa73df1edc92bb8352df770d662eff0b1be9f12a4152",
+    "gen-out/new.dxf": "f97eaae75cc03e245bec857e05ee4f05bf166c0885275dec1729f059d3e26f3c",
+    "mp/in/source.dxf": "16fc3d3f955f23c503936db19235943660947ddb90688e99ebe3ca9218bcc6eb",
+    "mp/dwg/source.dwg": "d578e984e9cf75e9ee071eb7862ea94d8526680ae2033f764c9b0d87b960cde6",
+    "mp/out/source.dxf": "58811040a99fb2e131c1a90a013935cd45eb1f5b587730c511c623feb2619c68",
+    "mp/source.json": "2c397caa58533fc9ad32cbb08d70b0f580c8a6db5cf8a29868c986d6d1d5df87",
+    "old-comparison.txt": "09c9856fa88936623cfd0668e4cb2a8e5d9d724760ca3cc8ee7d6e54a3cf95a8",
+    "final-comparison.txt": "09c9856fa88936623cfd0668e4cb2a8e5d9d724760ca3cc8ee7d6e54a3cf95a8"
+  },
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_hatch_pattern_angle_units$' --output-on-failure: 1/1 passed.",
+  "integrated_files": {
+    "src/drw_entities.cpp": "19744a6a84aff335173e77d29227705426e2860f52f2eef554f7042eb3d037e3",
+    "src/drw_entities.h": "fae01f1b17183aafff484b85e5794d48ff33b4aeb0a6ad8d50f13cc67f780ec0",
+    "src/libdwgr.cpp": "26c16da0291a71f6d0894cc5767af1f2ec91815c093291aea796d79c1d4ade77",
+    "tests/dwg_hatch_pattern_angle_units_tests.cpp": "7668028594e0e4afa7c2832fd730d874044cf0290883a3630e834a3a639a7fc5",
+    "tools/audit_dwg_hatch_pattern_angles.py": "5eb4c9a3fc658a004a4518d0edd729d7d3d24ee97c2921cd67acd1908e2ef5e6",
+    "tools/author_dwg_hatch_pattern_source.py": "99168350d3bdf2b6c28ecbba7237227d682122edfb3557944dcdb124991a1774",
+    "tools/author_dwg_hatch_pattern.cpp": "a3ff0eea2fb07dfe93a76a1569980536c75717944e62f55c4ddcc6ebc50c9bb0",
+    "tools/probe_dwg_hatch_pattern.cpp": "0818a6d6cf459e66043b62a1e7d23c1f7bcd0d6a010e92572295baf7a6fdea12",
+    "tools/compare_dwg_hatch_pattern.cpp": "4d8f691a044f8047cad68ac5f71ae99862c1d40d94998dc8de518c3cd9791c7d"
+  },
+  "independent_reader": {
+    "tool": "/opt/homebrew/bin/dwgread",
+    "version": "GNU LibreDWG 0.14",
+    "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+  },
+  "audit_pairs": [
+    {
+      "dwg": "/private/tmp/hatch-angle/dwg/source.dwg",
+      "dwg_sha256": "754e786cab0a1db6d81f5268a3aeed039a63685626af6d09e657edcf109499c8",
+      "dxf": "/private/tmp/hatch-angle/out/source.dxf",
+      "dxf_sha256": "a6e73b0bca222edb6ac5a15eee5ec72e76f2bff2452f2fc0d9f742ac7ffa0826",
+      "overall": 30,
+      "line": 75
+    },
+    {
+      "dwg": "/private/tmp/hatch-angle/gen-in/old.dwg",
+      "dwg_sha256": "6161122d8632b57f5002a62d2f45b8519e7657b7ec63a67ef9e5fb59eb710886",
+      "dxf": "/private/tmp/hatch-angle/gen-out/old.dxf",
+      "dxf_sha256": "2cf69628990fb8a6cfdaaa73df1edc92bb8352df770d662eff0b1be9f12a4152",
+      "overall": 1718.87338539247,
+      "line": 4297.183463481174
+    },
+    {
+      "dwg": "/private/tmp/hatch-angle/gen-in/new.dwg",
+      "dwg_sha256": "f654c61102e4ac6f29b59bf1bd8ed894515a665fe010e6cb858d51e32799ad5a",
+      "dxf": "/private/tmp/hatch-angle/gen-out/new.dxf",
+      "dxf_sha256": "f97eaae75cc03e245bec857e05ee4f05bf166c0885275dec1729f059d3e26f3c",
+      "overall": 30,
+      "line": 75
+    }
+  ],
+  "external_tools": {
+    "dwgread": "/opt/homebrew/bin/dwgread; GNU LibreDWG 0.14; SHA-256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "oda": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter; 27.1.0; SHA-256 21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "python": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python; SHA-256 6cc907e4a022fefc843bcd93954eaf5a2cbfc77a095640bfadeeed96154190c5; ezdxf 1.4.5"
+  }
+}

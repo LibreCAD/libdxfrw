@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-sortents-owner-chain-2026-11-15.patch",
+  "patchSha256": "9caf7f97ebb73d16031017c08bde71e9d8cfdaa6c1bf03841b8ebbbabe49dcde",
+  "implementation": "A twenty-third unmerged LibreCAD patch checks one selected source path using the sealed callback session: observed BLOCK_RECORD links against its unique typed frame publication and coverage row, separately verified dictionary and SORTENTSTABLE source frames, reciprocal parent/extension/block-owner links, and exactly one ACAD_SORTENTS dictionary entry targeting that table. Other dictionary entries remain untouched. The helper makes no output decision.",
+  "validation": [
+    "A standalone C++17 -Werror source-callback harness on the workspace-local AC1024 title-block fixture accepted the four observed source chains, including the model-space control, and rejected all 60 crossed block/dictionary/table combinations.",
+    "An allocation harness refused 128 single-allocation failures during the title-block chain comparison and each immediate retry succeeded. A post-seal callback invalidated the observation. The pre-existing source census independently identified the same owner paths with LibreDWG.",
+    "The patch forward-applies after the previous 22 and its macro-excluded translation unit compiles with the older bundled codec. Source-release inventory and 18 refusal controls pass with 1215 files and unchanged 721-input digest.",
+    "The installed-codec LibreCAD application rebuilt and all three focused CTests passed (1.24 seconds). The optional title-fixture case passed 95 assertions, including all 64 chain combinations and the two additional named-block dictionary entries."
+  ],
+  "limits": "The chain is a selected correlation, not complete BLOCK_RECORD raw-body proof, a universal document edit detector, proof that unknown references are absent, complete dictionary/owner graph closure, authorization to omit a table, output readback, native semantics, or a support claim. No code path uses it to change export."
+}

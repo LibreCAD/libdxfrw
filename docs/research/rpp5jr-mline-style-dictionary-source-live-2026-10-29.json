@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5jr selected MLINESTYLE dictionary source/live evidence",
+  "date": "2026-10-29",
+  "codeCommit": "39db4579296dbd39953f28fd98ea00571e1c37ce",
+  "scope": "A selected AC1027 child DICTIONARY source/live relation for the bounded MLINE dependency profile. The proof authenticates the ACAD_MLINESTYLE dictionary and its one selected style-name entry in current memory; it is not export, dependency-closure, geometry, or support authorization.",
+  "contract": {
+    "sourceBinding": "Requires the accepted same-read whole-source observer and legacy identity capture, complete identity records, matching version/binary/context, the selected structural audit and owning vectors, matched physical spans, and exact physical/raw/decoded group agreement. The source classifier and selected root-dictionary proof are included in the caller-visible logical work charge before successful return.",
+    "liveBinding": "Joins the captured child DICTIONARY to exactly one live data.dictionaries model by the root ACAD_MLINESTYLE handle. Compares common fields, dictionary name, cloning/hard-owner state, complete selected entry state, parser-private completion state, and excluded metadata/reactor/reference state. Mutations refuse and the untouched same adapter succeeds after restoration.",
+    "compatibility": "Adds one private dx_iface proof method and a focused CTest selector. No public callback, virtual, or object-layout change.",
+    "limits": "Only the selected one-child AC1027 profile is covered in ASCII and binary DXF. It does not bind MLINESTYLE bodies, other dictionaries/providers/blocks/entities, actual output, consumed geometry, alternate source grammars, native rendering, or full document closure. No support claim is promoted."
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "0e2b9841c0b3efdc97c4f9cae91c0e3aeecd7699d14642d13f751cad5f5a1ad9",
+    "dwg2dxf/dx_iface.h": "6b8a0d0f9201faec74e4bd973593d9a16df7890132d0b5bf8edf0fb87007d485",
+    "tests/dxf_mline_source_dependency_tests.cpp": "fd64231ab17bc92a3ff4bce47727c4a6b1799810ab63a55839dfa96e56684b16",
+    "tests/CMakeLists.txt": "aa984e250848a57da53b8a725f4ce445d2a314a82656196c268442f3959ea031"
+  },
+  "controls": {
+    "profiles": 2,
+    "encodings": ["ASCII", "binary DXF"],
+    "liveMutationsRefused": 20,
+    "copiedRawBodyTamperingRefused": 2,
+    "parserPrivateIncompleteStateRefused": 2,
+    "exactAndOneUnderWorkLimits": 2,
+    "dictionaryListRefusals": 2,
+    "sameAdapterCorrectedRetries": 20,
+    "unobservedImportsRefused": 2,
+    "inputGeneration": "Test source is generated from the existing in-test authored DXF text, encoded to ASCII and binary under temporary scratch paths, and removed by test cleanup. No DWG/DXF fixture was added to Git."
+  },
+  "validation": {
+    "build": {
+      "result": "PASS",
+      "normal": "cmake --build build --target libdxfrw_mline_source_dependency_tests libdxfrw_whole_source_tests libdxfrw_legacy_blockref_relation_tests -j4",
+      "asan": "cmake --build build/rpp5fa-evidence.4xKADX/asan-build --target libdxfrw_mline_source_dependency_tests libdxfrw_whole_source_tests libdxfrw_legacy_blockref_relation_tests -j4"
+    },
+    "normal": {
+      "result": "PASS",
+      "count": "7/7",
+      "seconds": 1.94,
+      "selectors": [
+        "libdxfrw_mline_source_dependency",
+        "libdxfrw_mline_layer_source_live",
+        "libdxfrw_mline_ltype_source_live",
+        "libdxfrw_mline_root_dictionary_source_live",
+        "libdxfrw_mline_style_dictionary_source_live",
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_legacy_blockref_relation"
+      ]
+    },
+    "asan": {
+      "result": "PASS",
+      "count": "7/7",
+      "seconds": 1.40,
+      "selectors": [
+        "libdxfrw_mline_source_dependency",
+        "libdxfrw_mline_layer_source_live",
+        "libdxfrw_mline_ltype_source_live",
+        "libdxfrw_mline_root_dictionary_source_live",
+        "libdxfrw_mline_style_dictionary_source_live",
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_legacy_blockref_relation"
+      ],
+      "sanitizer": "AddressSanitizer-instrumented targets"
+    },
+    "directSelector": "Both normal and ASan executables report profiles=2, mutations=20, raw-tamper=2, hidden-state=2, limits=2, list-refusals=2, retries=20.",
+    "inventory": "Build inventory check passes with 631 released files; self-test passes 18 refusal controls.",
+    "fixtureAdmission": "PASS; no drawing fixture was added or staged.",
+    "diffCheck": "PASS (git diff --check).",
+    "toolchain": "CMake 4.4.4; Apple clang 21.0.0 (clang-2100.3.34.2)."
+  },
+  "binaryBindings": {
+    "normalMlineTest": "d4b240e651bdb6b216959ad2c6a1cb2af520ae6a93ac6f265de4c243d325cdf3",
+    "normalWholeSourceTest": "0e9a0186cd5f108b66fcbe0637b07810531b635791d4d58a44bfcb36f459432b",
+    "normalLegacyRelationTest": "bad7e91deb576a58ff9eaf3c414e9f216f9be6a8df5439bbabdd31676e05b488",
+    "asanMlineTest": "45e7c0815b2a92a2f56ead5d45c5ca578e71db7c9e4e222e8801a0d515e9f8cf",
+    "asanWholeSourceTest": "ab13c0b02cd553615de606948586b3183ad25eb7355e53527232710ba35dfb7a",
+    "asanLegacyRelationTest": "f0c09f1356f03e47a4608de84fd831ebb6bb884d838b44eeb59ee1b4e7f40fc6"
+  },
+  "next": "Bind the selected MLINESTYLE object body and then remaining live graph carriers; verify staged/final emitted output before considering consumed-style geometry. The child-dictionary proof alone is insufficient."
+}

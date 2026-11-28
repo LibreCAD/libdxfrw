@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-block-header-selected-graph-closure-v1",
+  "date": "2026-11-09",
+  "supportClaimEffect": "none",
+  "source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "path": "samples/sample_AC1018.dwg",
+    "sha256": "7d26f908516ec5fb89cc8054af33aff233b68a7b63208bbc5b7f9f4d9bff9866",
+    "provenanceLimit": "Tracked ACadSharp sample; producer release is not certified."
+  },
+  "peer": {
+    "implementation": "LibreDWG 0.14 dwgread",
+    "command": "dwgread -v5 -O JSON <sample.dwg>",
+    "tracePath": "/private/tmp/acadsharp-ac1018-libredwg.log",
+    "traceSha256": "1e8c15fd9931bac6579c3731e80a9e740107c058e26c1dba7f8a20380b8b9da4",
+    "jsonPath": "/private/tmp/acadsharp-ac1018-libredwg.json",
+    "scope": "Peer-decoded object references and reciprocal graph edges for BLOCK_HEADER handle 0x58."
+  },
+  "profile": {
+    "version": "AC1018",
+    "handle": "0x58",
+    "peerName": "*Paper_Space",
+    "physicalSpanReceipt": "docs/research/p6-ac1015plus-block-header-physical-peer-spans-2026-11-09.json",
+    "edges": [
+      {"field": "blockControl", "target": "0x1", "targetType": "BLOCK_CONTROL", "reciprocalMembership": true},
+      {"field": "block", "target": "0x5a", "targetType": "BLOCK", "ownerBacklink": "0x58"},
+      {"field": "endBlock", "target": "0x5b", "targetType": "ENDBLK", "ownerBacklink": "0x58"},
+      {"field": "ownedEntity[0]", "target": "0x240", "ownerBacklink": "0x58"},
+      {"field": "ownedEntity[1]", "target": "0x245", "ownerBacklink": "0x58"},
+      {"field": "layout", "target": "0x59", "targetType": "LAYOUT", "blockHeaderBacklink": "0x58"}
+    ],
+    "insertCount": 0,
+    "allSelectedReferencesResolve": true,
+    "allApplicableReciprocalEdgesMatch": true
+  },
+  "limitations": [
+    "This closes only the selected AC1018 Paper Space reference graph; it does not establish other BLOCK_HEADER profiles, general entity graph closure, writer output, or consumer behavior.",
+    "LibreDWG reports the BLOCK_HEADER name as *Paper_Space while the production callback's paired record is named *Paper_Space0; names were not used as graph-edge evidence and this discrepancy remains unresolved.",
+    "The separately scanned AC1015/AC1018 my_block profile lists INSERT targets 0xD17, 0xD18, 0xD40, 0xD41, 0xD95, and 0xD96 that are absent from the peer object map; keep that profile physical-span-only and do not infer whether the source or peer is at fault.",
+    "Strict output and support claims remain gated by broader source, dependency, version, and consumer evidence."
+  ]
+}

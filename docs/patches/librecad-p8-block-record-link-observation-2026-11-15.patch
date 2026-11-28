@@ -1,0 +1,200 @@
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -4941,6 +4941,11 @@
+  *
+  * @todo Adding blocks to blocks (stack for m_currentContainer)
+  */
++void RS_FilterDXFRW::addBlockRecord(const DRW_Block_Record &data) {
++  if (m_graphic != nullptr)
++    m_graphic->dwgAdvancedMetadata().observeBlockRecordLinks(data);
++}
++
+ void RS_FilterDXFRW::addBlock(const DRW_Block &data) {
+   RS_DEBUG->print("RS_FilterDXF::addBlock");
+   RS_DEBUG->print("  adding block: %s", data.name.c_str());
+--- a/librecad/src/lib/filters/rs_filterdxfrw.h
++++ b/librecad/src/lib/filters/rs_filterdxfrw.h
+@@ -2072,6 +2072,13 @@
+ 
+   void addTextStyle(const DRW_Textstyle &data) override;
+   void addAppId(const DRW_AppId &data) override;
++  // Older bundled codecs have no BLOCK_RECORD callback. Keep this ordinary
++  // method there; use the advertised override when the callback is present.
++#ifdef LIBDXFRW_HAS_BLOCK_RECORD_CALLBACK
++  void addBlockRecord(const DRW_Block_Record &data) override;
++#else
++  void addBlockRecord(const DRW_Block_Record &data);
++#endif
+   void addBlock(const DRW_Block &data) override;
+   void setBlock(int handle) override;
+   void endBlock() override;
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3435,9 +3435,73 @@
+     bool hasDsData = false;
+     bool typedPayloadComplete = true;
+     ReplayState replayState = ReplayState::ReplayAllowed;
++  };
++
++  // A bounded copy of the BLOCK_RECORD links as received by the adapter.
++  // These values are correlation evidence only: they are not source-frame
++  // validation and must never by themselves authorize output.
++  struct BlockRecordLinkObservation {
++    std::uint32_t handle = 0;
++    std::uint32_t parentHandle = 0;
++    std::uint32_t extensionDictionaryHandle = 0;
++    std::string name;
++    std::vector<std::uint32_t> reactorHandles;
++    std::int32_t reactorCount = 0;
++    std::uint8_t extensionDictionaryFlag = 0;
+   };
+ 
++  void observeBlockRecordLinks(const DRW_Block_Record &record) noexcept {
++    constexpr std::size_t maxRecords = 100000u;
++    constexpr std::size_t maxBytes = 32u * 1024u * 1024u;
++    if (m_blockRecordLinkCaptureFailed)
++      return;
++    const auto reject = [this]() noexcept {
++      m_blockRecordLinks.clear();
++      m_blockRecordLinkBytes = 0;
++      m_blockRecordLinkCaptureFailed = true;
++    };
++    if (record.handle == 0u || record.handle == DRW::NoHandle
++        || m_blockRecordLinks.size() >= maxRecords
++        || record.name.size() > maxBytes
++        || record.reactorHandles.size() > maxBytes / sizeof(std::uint32_t)) {
++      reject();
++      return;
++    }
++    const std::size_t estimate = sizeof(BlockRecordLinkObservation)
++        + record.name.size() + record.reactorHandles.size() * sizeof(std::uint32_t);
++    if (estimate > maxBytes || m_blockRecordLinkBytes > maxBytes - estimate) {
++      reject();
++      return;
++    }
++    try {
++      BlockRecordLinkObservation observed;
++      observed.handle = record.handle;
++      observed.parentHandle = static_cast<std::uint32_t>(record.parentHandle);
++      observed.extensionDictionaryHandle = record.xDictHandle;
++      observed.name = record.name;
++      observed.reactorHandles = record.reactorHandles;
++      observed.reactorCount = record.reactorCount();
++      observed.extensionDictionaryFlag = record.extensionDictionaryFlag();
++      if (!m_blockRecordLinks.emplace(record.handle, std::move(observed)).second) {
++        reject();
++        return;
++      }
++      m_blockRecordLinkBytes += estimate;
++    } catch (...) {
++      reject();
++    }
++  }
++
++  const std::map<std::uint32_t, BlockRecordLinkObservation> &
++  blockRecordLinks() const noexcept { return m_blockRecordLinks; }
++  bool blockRecordLinkCaptureFailed() const noexcept {
++    return m_blockRecordLinkCaptureFailed;
++  }
++
+   void clear() {
++    m_blockRecordLinks.clear();
++    m_blockRecordLinkBytes = 0;
++    m_blockRecordLinkCaptureFailed = false;
+     m_sourceDwgVersion = DRW::UNKNOWNV;
+     m_rawObjects.clear();
+     m_dwgFramePublications.clear();
+@@ -13380,6 +13444,9 @@
+   std::map<std::string, DRW_LType> m_lineTypeTableEntries;
+   std::map<std::string, DRW_Textstyle> m_textStyleTableEntries;
+   std::map<std::string, DRW_Layer> m_layerTableEntries;
++  std::map<std::uint32_t, BlockRecordLinkObservation> m_blockRecordLinks;
++  std::size_t m_blockRecordLinkBytes = 0;
++  bool m_blockRecordLinkCaptureFailed = false;
+   std::map<std::uint32_t, std::string> m_spaceBlockRecords;
+   std::map<std::string, DRW_Dimstyle> m_dimStyleTableEntries;
+   std::map<std::string, DRW_AppId> m_appIdTableEntries;
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9515,6 +9515,81 @@
+   }
+ }
+ 
++template <typename T, typename = void>
++struct HasBlockRecordReadCallback : std::false_type {};
++template <typename T>
++struct HasBlockRecordReadCallback<T, std::void_t<decltype(
++    std::declval<T&>().addBlockRecord(
++        std::declval<const DRW_Block_Record&>()))>> : std::true_type {};
++
++TEST_CASE("Block record link observations retain copies and reject ambiguity",
++          "[dxf][dwg][roundtrip][blockrecord][source]") {
++  LC_DwgAdvancedMetadata metadata;
++  DRW_Block_Record record;
++  record.handle = 0x123u;
++  record.parentHandle = 0x10;
++  record.xDictHandle = 0x456u;
++  record.name = "SOURCE_BLOCK";
++  record.reactorHandles = {0x789u};
++  metadata.observeBlockRecordLinks(record);
++  REQUIRE_FALSE(metadata.blockRecordLinkCaptureFailed());
++  REQUIRE(metadata.blockRecordLinks().size() == 1u);
++  record.name = "CHANGED";
++  record.xDictHandle = 0x999u;
++  record.reactorHandles[0] = 0x999u;
++  const auto &saved = metadata.blockRecordLinks().at(0x123u);
++  CHECK(saved.name == "SOURCE_BLOCK");
++  CHECK(saved.parentHandle == 0x10u);
++  CHECK(saved.extensionDictionaryHandle == 0x456u);
++  CHECK(saved.reactorHandles == std::vector<std::uint32_t>{0x789u});
++  metadata.observeBlockRecordLinks(record);
++  CHECK(metadata.blockRecordLinkCaptureFailed());
++  CHECK(metadata.blockRecordLinks().empty());
++  metadata.clear();
++  CHECK_FALSE(metadata.blockRecordLinkCaptureFailed());
++  record.handle = DRW::NoHandle;
++  metadata.observeBlockRecordLinks(record);
++  CHECK(metadata.blockRecordLinkCaptureFailed());
++  CHECK(metadata.blockRecordLinks().empty());
++  metadata.clear();
++  CHECK_FALSE(metadata.blockRecordLinkCaptureFailed());
++}
++
++TEST_CASE("DWG block-record callback records source link observations",
++          "[dwg][roundtrip][blockrecord][source]") {
++  if (!HasBlockRecordReadCallback<DRW_Interface>::value)
++    return; // The older bundled reader has no such optional callback.
++  ensureSettings();
++  struct Source {
++    const char *file;
++    const char *modelName;
++    std::uint32_t modelDictionary;
++    std::uint32_t paperHandle;
++    const char *paperName;
++  };
++  for (const Source &sample : {
++       Source{"ordinary_enc_AC1018.dwg", "*Model_Space", 0u,
++              0x18u, "*Paper_Space"},
++       Source{"lc_layer_flags_ac1014.dwg", "*MODEL_SPACE", 0x97u,
++              0x1Bu, "*PAPER_SPACE"}}) {
++    const std::string source = std::string(LIBRECAD_TEST_DIR) + "/" + sample.file;
++    INFO(sample.file);
++    REQUIRE(std::filesystem::exists(source));
++    RS_Graphic graphic;
++    RS_FilterDXFRW reader;
++    REQUIRE(reader.fileImport(graphic, QString::fromStdString(source),
++                              RS2::FormatDWG));
++    const auto &metadata = graphic.dwgAdvancedMetadata();
++    REQUIRE_FALSE(metadata.blockRecordLinkCaptureFailed());
++    const auto &records = metadata.blockRecordLinks();
++    REQUIRE(records.count(0x17u) == 1u);
++    CHECK(records.at(0x17u).name == sample.modelName);
++    CHECK(records.at(0x17u).extensionDictionaryHandle == sample.modelDictionary);
++    REQUIRE(records.count(sample.paperHandle) == 1u);
++    CHECK(records.at(sample.paperHandle).name == sample.paperName);
++  }
++}
++
+ #ifdef DWGSUPPORT
+ // DWG carries group 40 as the double it was given (DRW_LType::encodeDwg and
+ // parseDwg, no update()), and the import parks the record as read, so the

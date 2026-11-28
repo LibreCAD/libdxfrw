@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-btr-assocnetwork-source-bound-graph-2026-11-14",
+  "date": "2026-11-14",
+  "title": "AC1024 block-record associative-network ownership graph admission recheck",
+  "supportClaimEffect": "none",
+  "scope": "Admit only a fully reciprocal, source-bound BTR extension-dictionary path for an ACDBASSOCNETWORK, while retaining strict refusal for unqualified named-block SORTENTSTABLE and every unclosed source graph.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "version": "AC1024",
+    "provenanceLimit": "Existing local research drawing; it is not a committed fixture or an authenticated AutoCAD producer witness."
+  },
+  "sourceGraph": {
+    "namedObjectDictionary": "0xC",
+    "rootDictionary": {
+      "handle": "0x1BCA",
+      "parent": "0xC",
+      "entry": "ACAD_ASSOCNETWORK -> 0x1BCB"
+    },
+    "rootNetwork": {
+      "handle": "0x1BCB",
+      "parent": "0x1BCA",
+      "reactors": ["0x1BCA"],
+      "owningNetwork": "0",
+      "nonOwnedActions": ["0x1148", "0x1F26", "0x2034", "0x208D"]
+    },
+    "blockRecord": {
+      "handle": "0x1145",
+      "name": "Window - Imperial",
+      "extensionDictionary": "0x1146"
+    },
+    "extensionDictionary": {
+      "handle": "0x1146",
+      "parent": "0x1145",
+      "entry": "ACAD_ASSOCNETWORK -> 0x1147",
+      "otherEntries": [
+        "ACAD_ENHANCEDBLOCK -> 0x1155",
+        "ACAD_SORTENTS -> 0x1BBA",
+        "AcDbDynamicBlockRoundTripPurgePreventer -> 0x116A"
+      ]
+    },
+    "networkDictionary": {
+      "handle": "0x1147",
+      "parent": "0x1146",
+      "reactors": ["0x1146"],
+      "entry": "ACAD_ASSOCNETWORK -> 0x1148"
+    },
+    "blockNetwork": {
+      "handle": "0x1148",
+      "parent": "0x1147",
+      "reactors": ["0x1147"],
+      "owningNetwork": "0x1BCB",
+      "rootActionIsNonOwned": true,
+      "ownedActionTargets": ["0x1153", "0x1154", "0x1149"]
+    }
+  },
+  "independentPeer": {
+    "name": "LibreDWG dwgread minJSON",
+    "version": "0.14",
+    "path": "/private/tmp/architectural-libredwg.json",
+    "sha256": "32a04f8e1b4679c4c397fbedd9c7c20f7eaec487045dda9a53f7aed6fac7c4e3",
+    "matchedObjects": ["BLOCK_HEADER 0x1145", "DICTIONARY 0x1146", "DICTIONARY 0x1147", "ASSOCNETWORK 0x1148", "ASSOCNETWORK 0x1BCB"],
+    "observation": "The peer independently exposes the BTR extension dictionary handle, both dictionary owner handles and entries, the nested network owner/reactor, the owning root network, and the reciprocal non-owned root action.",
+    "limitation": "LibreDWG shares lineage with this implementation; its minJSON corroborates this file's encoded relations, not general producer prevalence or associative semantics."
+  },
+  "authority": {
+    "autodeskObjectARX2018": [
+      "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-DevGuide/files/GUID-BD833D49-DD90-4815-B576-8E7B5831A5BC.htm",
+      "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbAssocNetwork__getInstanceFromObject_AcDbObjectId__bool_bool_AcString_.html"
+    ],
+    "observation": "Autodesk documents a top-level network under the NOD, BTR networks physically owned by BTR extension-dictionary subdictionaries, and logical ownership/action membership by the top-level network. The source-bound rule requires this precise dictionary chain and a single reciprocal non-owned root action.",
+    "limitation": "These API docs establish the object-ownership arrangement, not full DWG byte semantics or support for all associative action classes."
+  },
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "change": "Permit this nested-network profile only when the network dictionary and BTR extension dictionary have complete bounded entries, exact parent/reactor relations, a unique ACAD_ASSOCNETWORK edge, a matching block-record xDictHandle, and exactly one non-owned action from the owning root network. The cycle exception applies only to that reciprocal BTR subdictionary relation.",
+    "strictRefusalPreserved": "The source contains named-block SORTENTSTABLE 0x1BBA under BTR 0x1145. It is not in the validated output profile, so export remains refused before output publication."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "passed"
+    },
+    "focusedGeneratedControl": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --associative-dwg-nested-network-sortents-output",
+      "exitCode": 0,
+      "logPath": "/private/tmp/nested-network-source-profile.log",
+      "logSha256": "2eca0d0b6dd04b98de830448877a4d1f29bc29acedd06a8dfab8a3288cc7bdd5",
+      "result": "Existing ASCII/Binary generated nested-network/SORTENTSTABLE controls pass, including refusal and corrected retry. This covers the bounded neighboring route; the source drawing below independently exercises the BTR network path."
+    },
+    "sourceConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/architectural_example-imperial.dwg -y -d -v2010 /private/tmp/architectural-current-debug.dxf",
+      "executableSha256": "9a57ae9268c9f64d0a4031c5779291e0eb1bf3eb67ed01c785ef29a7dab64fbf",
+      "logPath": "/private/tmp/architectural-current-debug.log",
+      "logSha256": "8488a821da96eb67a5269dcca03e40965e99b081a15cfece8b1619919493cffd",
+      "exitCode": 1,
+      "observed": {
+        "sourceFrames": 663,
+        "publishedFrames": 663,
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "firstOutputRefusal": "ACAD_SORTENTS 0x1BBA under BTR 0x1145 is outside the validated SORTENTSTABLE output profile"
+      },
+      "interpretation": "The BTR associative-network ownership cycle no longer blocks graph planning. Strict export still refuses at a separately known unsupported named-block SORTENTSTABLE route; no output file or support claim is produced."
+    }
+  }
+}

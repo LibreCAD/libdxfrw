@@ -1,0 +1,129 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Cross-project support-claim and consumer-route reconciliation",
+  "mode": "Primary-source cross-project research and plan refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Compare current public capability claims with operation-specific documentation and issue evidence for LibreDWG, ACadSharp, ezdxf, FreeCAD, and LibreCAD_3.",
+    "Refine existing comparator and downstream-consumer evidence gates without adding findings, tests, fixtures, dependencies, or routine external validation.",
+    "Preserve existing fast local implementation cadence and the six deferred external items."
+  ],
+  "sources": [
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "revision": "Mutable repository README and Texinfo manual source inspected 2026-10-20; no source commit or executable was pinned or run.",
+      "observed": "The repository README gives approximate 90% DWG-to-DXF and 80% DXF-to-DWG figures, says DXF-to-DWG is R2000-only, and documents DWG writing through R2004. The manual separately describes approximately 99% read/mostly-write coverage through R2018, while stating R2007 writing is not implemented and the default writer uses R2004 or earlier.",
+      "limits": "The pages do not publish a common per-entity denominator or reconciled operation/version matrix. Percentages are descriptive only and do not establish any exact binary's behavior."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues/1253"
+      ],
+      "revision": "Mutable README and issue report inspected 2026-10-20; issue #1253 names ACadSharp 3.6.35 and AutoCAD 2027; no package or executable was run.",
+      "observed": "The README declares DWG/DXF read and write availability separately by AC version. Issue #1253 reports that AutoCAD rejected peer-generated DXF that more permissive readers accepted and describes an accoreconsole check; follow-up discussion qualifies the HATCH group-47 observation for derived boundaries.",
+      "limits": "The report is not a libdxfrw result or a universal DXF rule. Its proposed field changes must be checked against normative/profile evidence and the exact output version."
+    },
+    {
+      "project": "FreeCAD documentation and libdxfrw converter profile",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/LibreCAD/libdxfrw/blob/master/README.md#using-dwg2dxf-from-freecad"
+      ],
+      "revision": "FreeCAD documentation page and libdxfrw README inspected 2026-10-20; the documentation repository reports archived status since 2026-04-01. The README describes FreeCAD 1.1.3 revision 145529fe741292ff0b3977a01195bf0247425794 on macOS 27 arm64; no native run was performed in this research pass.",
+      "observed": "The FreeCAD guide distinguishes C++ and legacy Python DXF importers, lists different entity scopes, and states stock FreeCAD cannot read ACIS/SAT solid blobs. The current libdxfrw README documents one narrow macOS/C++ importer/PATH converter route using a generated AC1015 nonzero-Z LINE and leaves Linux/Windows unqualified.",
+      "limits": "Archived documentation is a route-selection aid, not current-binary qualification. The guide's general file-format statement about 1:1 conversion cannot establish the behavior of a specific converter/importer route or override its stated importer limits."
+    },
+    {
+      "project": "LibreCAD_3 downstream DWG policy",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/README.md#build-from-source"
+      ],
+      "revision": "Mutable master documentation inspected 2026-10-20; the DWG policy refers to its pinned libdxfrw revision, which was not resolved to a commit in this research pass.",
+      "observed": "The policy describes DWG import as opt-in, off by default, experimental and read-only; the stated pinned ledger has 15 read-direction claims (11 EXPERIMENTAL, 4 PENDING_NATIVE, zero PROMOTED) and no write claims. DWG-origin documents remain non-writable and are saved as DXF.",
+      "limits": "This is downstream product policy and a claim-ledger snapshot, not independent codec or DWG-writer evidence."
+    },
+    {
+      "project": "ezdxf XREF route",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst"
+      ],
+      "revision": "Mutable master documentation inspected 2026-10-20; no release or runtime was pinned or run.",
+      "observed": "The XREF importer documents a bounded copyable/transformable subset and states that ACAD_TABLE, preserved unknown/proxy content, and many document features may be unsupported or ignored without an exception.",
+      "limits": "XREF transfer behavior does not establish ordinary strict parser behavior, whole-document preservation, or ACIS/B-rep semantics."
+    },
+    {
+      "project": "Local plan reconciliation",
+      "urls": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Shared worktree plan inspected and updated 2026-10-20.",
+      "observed": "PAR-05/7BQ.5 already owns strict output-profile checks, PAR-07/S8 owns exact comparator admission and per-source disposition, and existing consumer gates separate converter, importer, modeler-carrier, and semantic results. This update sharpens those existing gates rather than creating duplicate work.",
+      "limits": "No code, test, fixture, external package, peer executable, native CAD app, or geometry kernel was run."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-05/7BQ.5: keep strict output syntax acceptance separate from self-readback and avoid universalizing issue-specific group-code recommendations.",
+      "PAR-07/S8: bind comparator results to immutable source/release, version, direction, operation, options, and per-source dispositions; do not score aggregate coverage percentages.",
+      "Consumer gates: distinguish converter output, selected importer/backend, imported source-handle outcomes, raw modeler-carrier retention, independent semantic geometry, and native acceptance.",
+      "LibreCAD_3: preserve default 2D/API compatibility and optional read-only DWG import; do not infer DWG write or 3D application requirements from library implementation work.",
+      "Validation cadence: retain focused local tests per slice and external/native gates at existing composed milestones only."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-cross-project-support-claims-consumer-routes-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Documented the mismatch in scope/provenance between LibreDWG's public operation-specific percentage claims and versioned manual, and prohibited scoring by project-wide percentages.",
+    "Mapped ACadSharp's version/direction matrix and AutoCAD-rejection report to the existing strict-output gate without importing peer issue recommendations as format rules.",
+    "Recorded that FreeCAD's archived importer documentation is a route-selection aid and kept its narrow macOS converter/importer qualification separate from Linux/Windows and ACIS claims.",
+    "Made LibreCAD_3's read-only, opt-in policy and read-only claim-ledger status explicit as product governance rather than codec qualification.",
+    "Specified the implementation-ready comparator envelope and per-source handle disposition while preserving current test cadence and self-unblocking behavior."
+  ],
+  "limitations": [
+    "Public repository documentation and issue states are mutable; exact releases, source commits, binary hashes, and platform routes must be pinned at any future composed checkpoint.",
+    "No peer or native program was executed and no external drawing or fixture was fetched.",
+    "ODA v5.4.1 remains authoritative for DWG byte layout; Autodesk references remain authoritative for published DXF group schemas.",
+    "No new local defect, numbered finding, implementation-order change, dependency, or support promotion was established.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq schema/totals/deferred-item invariants)",
+    "planUpdaterCheck": "PASS (python3 tools/update_upgrade_plan.py --check for LIBRECAD_DXFRW_UPGRADE_PLAN.md)",
+    "diffCheck": "PASS (git diff --check on tracked plan; receipt parsed by jq)",
+    "testsRun": []
+  }
+}

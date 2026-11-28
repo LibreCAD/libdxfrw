@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-sortents-owner-scope-qualification-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Restrict SORTENTSTABLE output qualification to documented DXF owner scope",
+  "status": "MODEL_PAPER_SPACE_PROFILE_QUALIFIED_NAMED_BLOCK_PROFILES_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "source": "Autodesk AutoCAD DXF Reference — SORTENTSTABLE",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm",
+    "relevantRule": "Group code 330 owner is currently only the *MODEL_SPACE or *PAPER_SPACE blocks; DRAWORDER stores the table under ACAD_SORTENTS in the space block extension dictionary.",
+    "interpretation": "A source table owned by a named block is not eligible for this DXF output qualification, even when source graph and emitted record comparisons pass."
+  },
+  "source": {
+    "path": "tests/samples/AC1024/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "trackedFixture": false,
+    "note": "Existing local investigation input. It was not added to Git and no DWG/DXF fixture was committed.",
+    "sortEntsTables": [
+      {
+        "handle": "0x00F3",
+        "ownerBlockRecord": "0x0002",
+        "ownerName": "*Model_Space",
+        "dxfOwnerScope": true
+      },
+      {
+        "handle": "0x106A",
+        "ownerBlockRecord": "0x0FF1",
+        "ownerName": "*U",
+        "dxfOwnerScope": false
+      },
+      {
+        "handle": "0x111C",
+        "ownerBlockRecord": "0x0127",
+        "ownerName": "Title_Block-ARCH",
+        "dxfOwnerScope": false
+      },
+      {
+        "handle": "0x121D",
+        "ownerBlockRecord": "0x11A4",
+        "ownerName": "*U",
+        "dxfOwnerScope": false
+      }
+    ],
+    "independentProfileSource": {
+      "tool": "LibreDWG JSON decoder output",
+      "path": "/tmp/title-block-arch-libre.json",
+      "sha256": "1494365d7a28f64c0ee154832d46dac5029e01853ac73cdc7a04bc669327d719",
+      "scope": "Corroborates the four table handles, owning BLOCK_HEADER handles and names; not used as normative DXF authority."
+    }
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "The AC1024 SORTENTSTABLE output-capture predicate now admits only source BLOCK_RECORD names matching *MODEL_SPACE or *PAPER_SPACE. The existing ASCII-insensitive identifier helper requires uppercase comparison literals. A manual selector verifies physical table callback identities against that scope in ASCII and Binary output.",
+    "scope": "The source Model Space SORTENTSTABLE callback 0x00F3 qualifies. Named-block table callbacks 0x106A, 0x111C and 0x121D remain unqualified. This does not establish native draw order semantics or whole-document conversion."
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "fdd4806dbd749500f5622c71590fb2dd6d561a4fe893ca813d524078bc668359",
+    "tests/dwg2dxf_adapter_tests.cpp": "1c07fb19dfeb87481b9487ed894e82d5cee3e8d45d83906ece8496048ae155a0",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "5f6b46ef2cc65f6b31e6dec1e218394bc9b5e2c75bc430841ca05c3d030dd0f7"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with warning-as-error flags."
+    },
+    "ownerScope": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-owner-scope-qualification tests/samples/AC1024/title_block-arch.dwg",
+      "result": "PASS for ASCII and Binary: only 0x00F3 qualified; named-block tables remained unqualified."
+    },
+    "physicalReadbackRollbackRetry": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary, including 88 ordered pairs, atomic refusal with sentinel preservation, same-adapter retry and fresh readback. Negative-control refusal diagnostics are expected."
+    },
+    "focusedCohort": {
+      "command": "ctest --test-dir build-gcc -R 'sortents|nested_network_sortents' --output-on-failure",
+      "result": "PASS 3/3."
+    },
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "planImpact": {
+    "completedItemsRemoved": [],
+    "remaining": "P4 stays open. Named-block owner profiles remain unresolved for output qualification unless an authoritative DXF route or independent semantic evidence establishes an eligible representation. The broader source/graph closure and strict conversion gate remain open.",
+    "priorEvidenceDisposition": "The earlier multi-table receipt remains historical proof of emitted bytes and readback. Its named-block callbacks are not counted as support-eligible output qualification under the Autodesk owner schema."
+  }
+}

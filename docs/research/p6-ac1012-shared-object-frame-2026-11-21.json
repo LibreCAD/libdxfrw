@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-shared-object-frame-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_REFACTOR_AND_FOCUSED_CONTROLS_PASS",
+  "supportClaimEffect": "none",
+  "sourceAuthority": {
+    "title": "ODA Open Design Specification v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.1",
+      "20.4.44",
+      "20.4.73"
+    ],
+    "layout": "R13/R14 object bit size follows EED; R2000 size precedes the self handle. The common tail has a soft-pointer parent, soft-pointer reactors and a hard-owner extension dictionary."
+  },
+  "scope": "Extract shared version-aware framing and common handle-tail observer for the existing R13/R14 dictionary and R13/R14/R2000 MLINESTYLE source profiles. Profile-specific EED, body, entry, graph and output conditions remain separate. No new profile is admitted.",
+  "files": {
+    "dwg2dxf/dx_legacy_dwg_wire.h": "f86eeac0a4d47291085fdfc6e3e7e4e2455586cd5c08a4b7890fd771e3bab626",
+    "dwg2dxf/dx_legacy_mlinestyle_wire.h": "df5328675fa146cbed296d380fafa4a6b7eb92961662816b1c8767713362379f",
+    "tests/dwg_ac1014_dictionaryvar_tests.cpp": "3c175fae212a3273192f00c3b2971beda768ae13dad5a889c0cd1faf9d2fa4fe"
+  },
+  "validation": {
+    "release": "Focused CTest: libdxfrw_dwg_ac1014_dictionaryvar, dwg2dxf_ac1012_partial_generated, dwg2dxf_ac1012_ownership_generated: 3/3 pass.",
+    "controls": "Generated R13/R14/R2000 framing: version size location, wrong-version, body-end bounds, wrong owner role, every byte truncation and corrected retry; existing dictionary bit mutation, EED controls, model rollback and MLINESTYLE mutation controls also pass.",
+    "generatedAc1012": "The existing R13 partial and ownership tests create DWGs in temporary directories; they exercise strict refusal, destination preservation, ASCII/Binary partial output, source and graph failures and retry as described by their individual assertions.",
+    "fullyInstrumentedAsan": "Debug library and focused dictionary test built with -fsanitize=address; 1/1 test passed.",
+    "mixedInstrumentationNote": "A preliminary ASan-instrumented test linked against an unsanitized library reported a container overflow in std::vector during dictionary parsing. This does not reproduce when library and test are both instrumented; the mixed run is not used as a memory-safety qualification.",
+    "candidateDwg2dxfSha256": "ae792f29bf52885e27c411d22d39272de5bf2fc21da5db6e94d780d9479d23f2"
+  },
+  "limits": [
+    "Generated controls do not establish native clone, duplicate, or WBLOCK semantics.",
+    "Strict AC1012 output, native consumer behavior and other unqualified object profiles remain gated.",
+    "No DWG or DXF fixture added."
+  ]
+}

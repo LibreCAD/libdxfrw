@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-header-material-physical-binding-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "0f9bd6de7",
+  "implementationDigestSha256": "58dad684a3d7462791c10f98d4c5f3b55aa024fce91dba2474451a95e065709c",
+  "librecadCommit": "b25f463bb529305a9248801b1e18752791ad2365",
+  "runtimeLibrarySha256": "eee4421563bc8e30bd39397b9097bb6b210051240cfaf76b9290dd74efa1d4e7",
+  "scope": "For the existing opt-in small-source policy, retain the library's bounded physical HEADER observation and bind its version, encoding, presence, spelling, offsets and original handle lexeme to the parsed $CMATERIAL snapshot. Malformed, missing, duplicate or repeated observations remain unavailable.",
+  "validation": [
+    "PASS: system-codec material selector, 773 assertions in 6 cases; includes ASCII and Binary source-byte span checks, present, absent, null, bare name, duplicate and repeated HEADER cases, and destination-preserving refusals.",
+    "PASS: system-codec linetype selector, 4967 assertions in 56 cases; bundled-codec selector, 1282 assertions in 52 cases.",
+    "PASS: IMAGE WCS frame selector, system codec 84 assertions and bundled codec 46 assertions.",
+    "PASS: macOS dyld diagnostic identifies the installed current-candidate libdxfrw.3.0.0.dylib used for system tests."
+  ],
+  "limits": [
+    "The physical observations are from the same reader operation; they are not a whole-file immutable snapshot or independent consumer readback.",
+    "Raw-only material replay remains refused until complete graph, staged HEADER, independent readback and native/platform evidence are qualified.",
+    "Consumer outputs exercised here are ASCII; the Binary source test does not qualify Binary output."
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-15",
+  "source": "tests/samples/AC1024/title_block-iso.dwg",
+  "sourceSha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+  "scope": "Scratch-instrumented incremental macOS LibreCAD build with the unmerged bounded BLOCK_RECORD observation; installed older upstream archive and a header with the compile-only feature macro. No instrumented code or drawing was committed.",
+  "blockRecords": [
+    {
+      "handle": "225B",
+      "parent": "0001",
+      "xdict": "22D3",
+      "publicationOffset": 32306
+    },
+    {
+      "handle": "0127",
+      "parent": "0001",
+      "xdict": "21CD",
+      "publicationOffset": 5304
+    },
+    {
+      "handle": "20A8",
+      "parent": "0001",
+      "xdict": "2120",
+      "publicationOffset": 19980
+    },
+    {
+      "handle": "0002",
+      "parent": "0001",
+      "xdict": "00F2",
+      "publicationOffset": 32
+    }
+  ],
+  "observations": [
+    "For all four blocks, the captured typed parent and extension dictionary matched the publication receipt; each publication reported resolved type 49, source location present, validated common handles and Typed carrier. The scratch test passed six assertions.",
+    "The adapter raw-object shelf had no BLOCK_RECORD record for these four handles. Do not require a raw BLOCK_RECORD callback that this path did not publish; use the captured typed observation and independently bound publication/common-link evidence, subject to the remaining generation and mutation checks.",
+    "For the three named blocks, the adapter did retain raw DICTIONARY and SORTENTSTABLE frames, matching TypedAndRaw publication identities and source offsets; its overall frame-publication coverage was reported complete. The retained parser membership collections contained 24 dictionary receipts and four sort-table receipts. Receipt existence alone does not prove decoded bodies equal retained raw frames."
+  ],
+  "next": "On each import generation, correlate the typed BLOCK_RECORD observation with its exact publication and source location, and independently reparse the retained raw DICTIONARY/SORTENTSTABLE bodies against their typed baselines and membership receipts. Freeze copies and verify they and inbound references are unchanged before output, then stage each projected dictionary while retaining the non-sort entries and dependencies. Reject missing/duplicate/mutated records, unknown incoming references and nonempty tables.",
+  "limits": "This is one source and a diagnostic scratch build using an older upstream archive, not an independently producer-authenticated corpus, complete raw-payload proof, output-graph proof or native application qualification. No output admission or support claim is promoted."
+}

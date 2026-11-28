@@ -1,0 +1,24 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 sections 9, 20.4.44, 20.4.45 and 20.4.54: HEADER plotstyle dictionary hard pointer; dictionary and default-entry roles; layer plotstyle hard pointer. Placeholder ownership is witnessed in the producer controls. The LAYER section says its default points to a PLACEHOLDER.",
+  "independent_producer":"ODA File Converter 27.1.0 converted a locally authored LINE DXF to DWG. LibreDWG 0.14 independently decoded the resulting graph. No resulting drawing is committed.",
+  "source_controls":[
+    {"version":"AC1015","sha256":"43e86b11010b68f7e46fe229a7bf3c373d4544492acda950ec0c106c14f4cec6"},
+    {"version":"AC1018","sha256":"5ea10bccd692850c548e3ef9126acfb5414d4e012edd2179244f5775fad63850"},
+    {"version":"AC1021","sha256":"e3b717509c386e07baceb9cc9073392999af9144c6c2aae4139120b755b59d91"},
+    {"version":"AC1024","sha256":"283fe2a2959c7bf501a2f2388edce65d4b8241f258d3b0bbd911a5a73a2677f8"},
+    {"version":"AC1027","sha256":"3aaa3ccff83ad8e5280ad810ae0b66d9f0c825105ed46c1e3f40a321d26aaaf9"},
+    {"version":"AC1032","sha256":"ef442a26ad5bd6caf8473f9a7c177e7efb7c869fb316008bbb493be3b52a78d3"}
+  ],
+  "graph":"HEADER hard pointer and NOD ACAD_PLOTSTYLENAME soft-owner entry both target DICTIONARYWDFLT; it has a Normal soft-owner entry and default hard pointer to ACDBPLACEHOLDER; placeholder owner soft-points back to the dictionary; LAYER plotstyle hard-points to the placeholder.",
+  "null_plotstyle_search":"LibreDWG decoded 20 local source drawings and 172 LAYER plotstyle references; all were nonzero hard pointers. This sample search does not prove null plotstyle impossible. Do not promote the typed-null scratch candidate as source-backed behavior.",
+  "scratch_graph":{"sha256":"9f01cb6bbdb326d99bfd48a6a13e9d83b40aa7b4b5b5dccfc2438de947559034","reader_result":"LibreDWG decoded matching HEADER, NOD, dictionary, default, placeholder, parent, and LAYER references; ODA produced no DXF and reported Object improperly read: <AcDbLinetypeTableRecord> (F), previous error .dwg file needs recovery.","limits":"The candidate explicitly registers the class and allocates scratch identities; it is not an automatic production writer implementation."},
+  "remaining_implementation_work":[
+    "Admit default graph only after caller class/NOD registrations and explicit handle reservations, but before class manifest freeze and HEADER emission; safely skip synthesis when a validated source/caller plotstyle graph is provided.",
+    "Allocate and reserve distinct output identities transactionally, register the DICTIONARYWDFLT class instance, account for class ordinal conflicts, and fail closed on case-insensitive name or identity ambiguity.",
+    "Encode HEADER and default synthetic layer references to the selected graph only when that graph is complete; do not replace explicit caller/source layer values.",
+    "Emit and validate NOD dictionary edge, DICTIONARYWDFLT Normal and default edges, and PLACEHOLDER parent; integrate graph state with existing class-count, handle-map, rollback, retry, and adapter retention checks.",
+    "Test all six versions, supplied-graph override, unknown or malformed source graph, collision/late-registration failures, no-output rollback and same-writer retry, exact wire roles, LibreCAD-compatible consumers, independent physical readback, and final ODA output/error."
+  ],
+  "qualification":"This graph evidence advances one ODA failure boundary but does not establish successful DWG conversion or full support."
+}

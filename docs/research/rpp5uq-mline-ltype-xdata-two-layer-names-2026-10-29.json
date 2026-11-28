@@ -1,0 +1,73 @@
+{
+  "id": "RPP-5uq",
+  "title": "MLINE-referenced simple LTYPE with two source-bound XDATA layer names",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "ebe62679",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated LTYPE and APPID records plus source LAYER 0 and MLINE_XDATA_LAYER; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "layer_providers": [
+      { "name": "0", "source_handle": "0x1E1", "source_table": "0x1E0" },
+      { "name": "MLINE_XDATA_LAYER", "source_handle": "0x1E2", "source_table": "0x1E0" }
+    ],
+    "xdata": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1003, "layer_name": "0" },
+      { "code": 1003, "layer_name": "MLINE_XDATA_LAYER" },
+      { "code": 1000, "value": "provider-owned-xdata" }
+    ],
+    "admission_limit": "At most two ordered group-1003 layer references per selected simple-LTYPE record."
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "document": "About Extended Data (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+    "relevant_rule": "XDATA code 1003 carries the name of the layer associated with the extended data."
+  },
+  "proof": {
+    "source": "The runtime-generated source contains two ordered group-1003 names and unique source LAYER rows. Original resource capture binds both names to complete raw/typed LAYER source records and their source origin audits. Live models must match both captured providers.",
+    "output": "For all four ASCII/binary source/output combinations, an independent physical observer checks the ordered XDATA names and fresh import checks typed extData. The output inspector binds each source LAYER handle to exactly one emitted row with the expected name, mapped identity, LAYER table owner and emitted body; both source-provider checks pass.",
+    "failure_retry": "Removing the second referenced LAYER from the live model refuses export and preserves a pre-existing destination sentinel; restoring it succeeds on the same adapter with both mappings and output rows checked again.",
+    "slice_counts": {
+      "positive_profiles": 4,
+      "successful_readbacks": 8,
+      "refusals_with_destination_preservation": 4,
+      "same_adapter_retries": 4
+    },
+    "cumulative_test_counts": {
+      "positive_profiles": 44,
+      "successful_readbacks": 96,
+      "refusals_with_destination_preservation": 52,
+      "same_adapter_retries": 52
+    }
+  },
+  "validation": {
+    "build_command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2",
+    "build_result": "PASS",
+    "focused_command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+    "focused_result": "PASS (1/1, 2.67 seconds)",
+    "runtime_counts_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "runtime_counts_result": "profiles=44; readbacks=96; refusals=52; retries=52",
+    "diff_check": "PASS",
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineLtypeAppIdXdataControls",
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This qualifies exactly two ordered, distinct layer names under one source-bound APPID for one AC1027 simple-LTYPE profile. It does not qualify other name/encoding profiles, more than two references, other XDATA layouts or source versions.",
+    "The group-1003 names are transported and bound to source/emitted LAYER identities; application-specific layer semantics and native rendering are not established.",
+    "Other XDATA values/ranges/compositions, code-1005 object-handle dependencies, three-or-more APPID groups, APPID metadata and broader LTYPE schemas remain open.",
+    "This receipt establishes selected transport and provider-output binding only. It does not establish recursive document closure, native CAD semantics or a broader format-support claim."
+  ]
+}

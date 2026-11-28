@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_head": "9b3f3ad80a4cea20a1a75a3ba40452dc34ac67a4",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "procedure": "In the isolated instrumented app, opened the locally generated AC1018 ASCII MPOLYGON source, accepted the MPOLYGON-as-HATCH editing notice, activated Model, selected all (one entity), invoked Move and entered origin (0,0) and destination (10,0). Saved as AC1018 ASCII under a new name and reopened that file with the same notice.",
+  "independent_readback": "ezdxf 1.4.5 read one MPOLYGON in each file: common color BYLAYER, fill ACI 3, vertices (1,2), (4,2), (3,5) unchanged, offset (2,5,0) changed to (12,5,0). Both files audited with zero errors and zero fixes.",
+  "artifacts": {
+    "source_sha256": "34ef69a2b128dd084458e7efb92b03a12190efb848c677c9963a64271fe7dae3",
+    "output_sha256": "963f05497496426ae97e4ca46444c070acf91931640e443a252a73d816d06d5b",
+    "instrumented_app_sha256": "e1f9eb6a0d35e4244d2ce28f005b2b21e51fb5f89ef613dc163de77b83d983db",
+    "persistence_library_sha256": "bac412743c0879eccf660f336ccc258016120ac9a7122281ad73c48083623d4e",
+    "viewer_library_sha256": "6e42707fb0e3338649c9576524b727d07aee5f8fadc4494fe93873e6f16ebec0",
+    "kernel_library_sha256": "5741caaa8288451d130996ddf3fb7a1ddab974d5cc150d02257d791f556b037d"
+  },
+  "limits": [
+    "App uses scratch GL tracing, isolated title and identity, and project Lua action scripts attached to its scratch bundle; it is not a release binary. Loaded persistence, viewer and kernel libraries were verified via lsof.",
+    "The window screenshot remained black; no uninstrumented visible-display claim or post-reopen framebuffer capture is made.",
+    "One locally generated solid, explicit-ACI, default-normal AC1018 source and one translation are covered. Other edit types, independent producers, Linux and Windows remain open."
+  ],
+  "supportClaimEffect": "none"
+}

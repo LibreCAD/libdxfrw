@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-layer-control-cli-session-continuity-2026-11-17",
+  "date": "2026-11-17",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P4-A integration follow-up",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "revision": "AC1024",
+    "provenanceLimit": "Existing local sample used by prior workspace receipts; it remains outside the repository and was not staged."
+  },
+  "finding": {
+    "before": "dwg2dxf imported through one dx_iface and exported through a fresh dx_iface. The source-bound AC1024 LAYER_CONTROL proof was correctly rejected as foreign to the output adapter session.",
+    "after": "Import and strict export now use the same dx_iface instance. The LAYER_CONTROL session-proof refusal no longer occurs; preflight proceeds and independently refuses the source's ACAD_SCALELIST owner/entry snapshot mismatch.",
+    "remainingRefusal": "The CLI conversion remains fail-closed and does not publish an output file. The SCALE snapshot mismatch is a separate unresolved graph condition and is not treated as evidence to relax validation."
+  },
+  "implementation": {
+    "file": "dwg2dxf/main.cpp",
+    "change": "Use the importing dx_iface for fileExport so private proof captured during fileImport remains bound to the same adapter, dx_data address, and import generation.",
+    "scope": "CLI lifecycle only; no proof is copied to dx_data, no public callback or ABI changes, and no graph/output allowlist is widened."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf -j2: PASS",
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_ac1024_layer_control_source|dwg2dxf_ac1024_layer_control_source_session)$' --output-on-failure",
+      "result": "PASS 2/2"
+    },
+    "ac1024Cli": "The full DWG read succeeds. Strict export passes the LAYER_CONTROL source-session proof and then refuses at the ACAD_SCALELIST snapshot mismatch; no destination is published.",
+    "dxfCli": "A tracked AC1015 ellipse DXF converts successfully to DXF through the reused adapter."
+  },
+  "limits": [
+    "P4-A and the overall AC1024 profile are not closed by this integration correction.",
+    "The remaining SCALE snapshot refusal requires its own source/graph evidence and implementation slice.",
+    "No DWG/DXF fixture was added or committed; no support claim is promoted."
+  ]
+}

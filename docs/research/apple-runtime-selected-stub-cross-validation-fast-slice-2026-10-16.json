@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw-apple-runtime-selected-stub-cross-validation-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Bind Mach-O runtime SDK stub candidates to exact Darwin linker-map inputs and independently validate the selected-stub evidence in semantic-adapter receipts.",
+  "implementation": {
+    "builder": "Apple runtime schema 2 records selected stubs only when SDK root, SDK-relative path, size, and SHA-256 match an exact external linker-map input; records unmatched direct runtime install-name count.",
+    "runner": "Recomputes selected rows from runtime candidates plus appleLinkInputs, validates selected-row digest/count/reason consistency, and requires link-input evidence for schema 2.",
+    "compatibility": "Schema-1 historical Apple runtime profiles remain accepted without the new cross-profile assertion.",
+    "claimBoundary": "A selected SDK .tbd is link-input provenance, not proof of shared-cache/runtime byte identity, complete runtime closure, or native OS qualification. Runtime remains partial and receipts remain non-qualifying."
+  },
+  "validation": {
+    "pythonBytecodeCompilation": "PASS",
+    "runnerSelfTest": "PASS; selected candidate match, stale selected digest rejection, unmatched direct install-name disposition, stale unmatched-count rejection",
+    "builderSelfTest": "PASS; synthetic selected and unmatched SDK stub candidates against generated linker-map inputs",
+    "gitDiffCheck": "PASS for changed tracked files; new JSON receipts parsed and checked for trailing whitespace",
+    "fullTestSuite": "NOT RUN",
+    "nativeCadOrPeerRun": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "implementationReadiness": {
+    "existingOwner": "7AG.4 effective build/runtime profile and receipt validation",
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "newTestRegistration": false,
+    "planUpdated": true,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

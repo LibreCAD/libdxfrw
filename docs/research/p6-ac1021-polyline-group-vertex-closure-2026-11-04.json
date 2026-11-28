@@ -1,0 +1,39 @@
+{
+  "status": "BOUNDED_AC1021_MODELSPACE_POLYLINE_VERTEX_GROUP_CLOSURE",
+  "scope": "Restore a narrow AC1021 GROUP reference to one emitted ordinary model-space 2D/3D POLYLINE VERTEX when the vertex has exactly one matching, pre-registered GROUP reactor and the GROUP itself matches the independently observed single-member metadata profile. The child remains absent from BLOCK_HEADER ownership. Parent targets and all non-profile GROUP paths retain their existing behavior; SEQEND remains refused by the new path.",
+  "authority": "ODA Open Design Specification v5.4.1 \u00a7\u00a720.4.16\u201317 define the POLYLINE's R2004+ VERTEX/SEQEND hard-owned references; \u00a720.4.52 defines BLOCK_HEADER-owned entities; \u00a720.4.72 defines GROUP member hard pointers. These layouts alone do not qualify an arbitrary GROUP/object graph.",
+  "source_controls": {
+    "provenance": "Locally authored ezdxf 1.4.5 R2007 POLYLINE and GROUP; to exercise child targeting, the scratch DXF GROUP 340 tag was explicitly retargeted from the parent to a VERTEX or SEQEND and its persistent reactor moved to that child. ODA File Converter 27.1.0 converted these scratch DXFs to DWG and back to DXF without .err. This is a controlled producer/reader observation, not a claim about a native CAD user's authoring workflow. No DWG/DXF fixtures are added.",
+    "vertex_input_dxf_sha256": "966f3256e48bc5312d8a5712137efba85589e3b9d7d910230d2ae5b2e430b584",
+    "vertex_dwg_sha256": "31ede584c2745986326c24999ded50834f4e646bfc2024a49295def2a1363fec",
+    "vertex_oda_dxf_sha256": "5828d7749dde29043b1e8818c841084ebc145640acb25181ca76ab52f8557aa2",
+    "seqend_input_dxf_sha256": "b9e5c47f40feb15901d4596433822f113ffbfcfc7667d4dce49867b509fffc65",
+    "seqend_dwg_sha256": "6b11f9608ef48a554572c29d41bcd06a7ea45cd66d3833087984f14fbc3b9931",
+    "seqend_oda_dxf_sha256": "7838b1733ba8778bb1bcc4f9afbc01a458771dc3060df1837feace8615cd4509",
+    "independent_observation": "GNU LibreDWG 0.14 reports the GROUP's hard-pointer role 5 to VERTEX 0x32, that child's owner role 4 to POLYLINE 0x2F and reciprocal reactor role 4 to GROUP 0x34; the model BLOCK_HEADER contains the POLYLINE parent only. GROUP owner and single reactor are the containing dictionary and the XDictionary is absent. ODA-returned raw DXF preserves the same GROUP 340 target and child owner/reactor. The analogous SEQEND control also preserves its target, but the current writer synthesizes SEQEND without source metadata, so it is deliberately not admitted by this change.",
+    "consumer_limit": "ezdxf 1.4.5's high-level GROUP loader filters the child member as not being a layout entity, even though ODA's raw DXF contains the correct 340 reference. The peer audit intentionally parses raw DXF tags and does not claim high-level ezdxf GROUP membership support."
+  },
+  "implementation": "For the existing bounded AC1021 ordinary model-space compound path, the writer accepts only pre-registered GROUP identities and exactly one vertex reactor. It verifies the committed parent frame's hard-owner child/SEQEND tail and the committed vertex frame's owner/reactor handle prefix against the actual identities before staging a (vertex,GROUP) pair. A bounded ledger/index is restored by compound and outer transaction rollback; caller edits after emission cannot refresh this evidence. GROUP admission additionally requires one member, empty description, named/selectable defaults, zero flags, its dictionary owner as the sole reactor, missing XDictionary, and no app-data/EED/storage. Only that new GROUP profile selects bit-exact AC1021 GROUP string/footer and handle assembly; all other GROUP paths retain their prior framing. The exact committed frame receipt check also prevents qualifying a reactor when common-header emission is compiled out.",
+  "generated_outputs": {
+    "provenance": "The fixture-free C++ test writer generated the final production AC1021 2D and 3D DWGs with the existing opt-in material and plotstyle graphs. ODA File Converter 27.1.0 produced both DXFs without .err.",
+    "dwg_2d_sha256": "1515ffd18a4ebf6be9a9e705fe05f9b39fb34892018ed6a0b4ee0dd29653566d",
+    "dxf_2d_sha256": "266cf08b43d1b4b341c63b35789482219eb0e6071fcaecd1af43eb1542cf689a",
+    "dwg_3d_sha256": "7f96a9b2a7d6c53c7a35ca651af6407bcce7b5066fe65ed976511b4c17f11535",
+    "dxf_3d_sha256": "a502c17bd34fa9bca91ef295d3b3340e2285eaffc49915f8c9238c4d19e86197",
+    "independent_audit": "tools/audit_ac1021_polyline_group_peer.py hash-checks each DWG and DXF before/after audit, invokes LibreDWG JSON, and verifies source version, unique identities, GROUP role-5 member, role-3 parent-owned ordered vertices/SEQEND, role-4 vertex owner/reactor, parent-only BLOCK_HEADER membership, and coordinates. It also verifies the raw ODA DXF GROUP member, GROUP owner/reactor, child owner/reactor and 2D/3D coordinates. The source2d, generated2d and generated3d profiles pass.",
+    "audit_sha256": "a0abf1ebf8cc1e77dd231d1e16980a1bae956c9b294a72510ad16eebd366ed1d",
+    "commands": [
+      "python3 tools/audit_ac1021_polyline_group_peer.py source2d /private/tmp/ac1021-group-child/dwg/vertex.dwg /private/tmp/ac1021-group-child/out/vertex.dxf --dwg-sha256 31ede584c2745986326c24999ded50834f4e646bfc2024a49295def2a1363fec --dxf-sha256 5828d7749dde29043b1e8818c841084ebc145640acb25181ca76ab52f8557aa2",
+      "python3 tools/audit_ac1021_polyline_group_peer.py generated2d /private/tmp/ac1021-group-child/production-in/vertex2d.dwg /private/tmp/ac1021-group-child/production-out/vertex2d.dxf --dwg-sha256 1515ffd18a4ebf6be9a9e705fe05f9b39fb34892018ed6a0b4ee0dd29653566d --dxf-sha256 266cf08b43d1b4b341c63b35789482219eb0e6071fcaecd1af43eb1542cf689a",
+      "python3 tools/audit_ac1021_polyline_group_peer.py generated3d /private/tmp/ac1021-group-child/production-in/vertex3d.dwg /private/tmp/ac1021-group-child/production-out/vertex3d.dxf --dwg-sha256 7f96a9b2a7d6c53c7a35ca651af6407bcce7b5066fe65ed976511b4c17f11535 --dxf-sha256 a502c17bd34fa9bca91ef295d3b3340e2285eaffc49915f8c9238c4d19e86197"
+    ]
+  },
+  "validation": {
+    "focused_command": "ctest --test-dir build-gcc -R '^libdxfrw_(ac1021_polyline_group_peer_audit|dwg_(ac1021_polyline_group_targets|polyline_owned_handle_roles|polyline_owner_facade|legacy_polyline_chain))$' --output-on-failure",
+    "result": "5/5 passed. 2D/3D controls cover matching single reactor, parent target, immutable post-write mutation, missing/wrong/duplicate/additional reactor, metadata mismatches, SEQEND refusal, identity collision, compound and outer rollback, early/late exceptions, required failure latch, prior-destination preservation and retry. Existing paper-space acceptance is regression-tested as unchanged; it is not newly qualified. Peer audit positive and corrupted-target/owner/reactor/role/coordinate/block-list controls pass.",
+    "cpp_test_sha256": "82085e526958334e35a2c78976806203c8174bd65c7ad1bbc6f6f05d6d82ce16",
+    "audit_test_sha256": "1192ee0249a28c52b913c67a3ba962d944987e4a2911e8e93d0a80a3864514f8",
+    "addressSanitizer": "ctest --test-dir build-asan-custom -R '^libdxfrw_dwg_ac1021_polyline_group_targets$' --output-on-failure: 1/1 passed after rebuilding the final production and C++ test candidate."
+  },
+  "remaining": "Qualify SEQEND metadata retention, GROUP with multiple members or reactors, late group registration, paper/named-block and other-version graph closure independently. The later paper/named membership change supersedes the historical paper-space acceptance mentioned in validation: GROUP references to paper/named POLYLINE vertices now fail closed; see p6-ac1021-polyline-paper-named-membership-2026-11-04.json. Native application semantics and general complete-file DWG support remain open. The evidence and admission validate the selected target vertex reactor and the GROUP member tail; they do not assert that no other emitted object carries a reactor referencing the same GROUP."
+}

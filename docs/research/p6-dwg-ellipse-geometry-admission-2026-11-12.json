@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-dwg-ellipse-geometry-admission-2026-11-12",
+  "purpose": "Refuse DWG ELLIPSE writer inputs whose ratio or plane geometry cannot be represented as a valid AutoCAD ellipse.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.39 ELLIPSE (object type 35)",
+    "page": 140,
+    "localPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "wireMapping": "DWG carries WCS center and semi-major-axis vector, extrusion, minor/major ratio, and eccentric-anomaly start/end parameters.",
+    "nativeContract": {
+      "source": "Autodesk ObjectARX AcDbEllipse::setRadiusRatio and AcDbEllipse::set references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbEllipse__setRadiusRatio_double.html",
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbEllipse__set_AcGePoint3d__AcGeVector3d__AcGeVector3d__double_double_double.html"
+      ],
+      "requirements": "Radius ratio is in [1e-6, 1.0]; major axis and normal are nondegenerate; major axis is perpendicular to normal within 1e-6."
+    }
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "Before staging output, the DWG ELLIPSE encoder requires finite center, axis, normal, ratio and parameters; ratio in [1e-6, 1.0]; axis and normal magnitudes above the documented degeneracy threshold; and normalized axis/normal alignment within 1e-6. Vector checks scale before normalization to avoid overflow/underflow artifacts.",
+    "scope": "DWG writer admission; DWG reader behavior remains tolerant and unchanged."
+  },
+  "generatedControls": {
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "refusedProfiles": [
+      "zero ratio",
+      "ratio below 1e-6",
+      "ratio above 1.0",
+      "NaN ratio",
+      "non-finite center",
+      "zero major axis",
+      "major axis parallel to normal",
+      "degenerate major-axis magnitude",
+      "zero normal",
+      "non-finite start parameter"
+    ],
+    "acceptedBoundaries": [1.0e-6, 1.0],
+    "failureRetry": "Each refused output preserves a seeded destination; corrected ratio-0.5 output succeeds through the same dwgRW instance and reads back all modeled fields with zero entity/object parse failures. Separate boundary outputs read back at ratios 1e-6 and 1.0.",
+    "fixturePolicy": "All source records are authored by the test in scratch storage; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j6 PASS",
+    "focusedSelector": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_ellipse_geometry_admission$' --output-on-failure PASS 1/1 in 0.48 seconds"
+  },
+  "limitations": [
+    "This proves generated writer admission and readback only; physical producer prevalence, native rendering and whole-document qualification remain open.",
+    "The broader P6 version/schema/no-loss gate remains open."
+  ],
+  "supportClaimEffect": "Closes a bounded DWG ELLIPSE writer geometry-admission gap; no broad DWG/DXF support claim is promoted."
+}

@@ -1,0 +1,62 @@
+{
+  "title": "Deeper/broader current DXF consumer and candidate-admission refresh",
+  "date": "2026-10-19",
+  "method": "Primary-source repository/documentation review plus local source-owner search. No peer was cloned, installed, or executed. No drawings or fixtures were downloaded.",
+  "sources": [
+    {
+      "project": "Zephyr",
+      "url": "https://github.com/joseph-montanez/zephyr",
+      "evidence": [
+        "Current README describes the application as a 2D CAD consumer.",
+        "Current README identifies its Swift DXF module as a port of libdxfrw.",
+        "Current README documents ODA FileConverter for DWG import/export.",
+        "README advertises DXF R2007 round-trip and calls out group-440 transparency, SPLINE weights, HATCH gradients, and ATTRIB/ATTDEF."
+      ],
+      "classification": "OPTIONAL_DOWNSTREAM_2D_DXF_CONSUMER / LIBDXFRW_DESCENDANT / DWG_RUNTIME_UNVERIFIED",
+      "evidence_ceiling": "App-level DXF consumption or rendering only; not an independent DXF codec vote, DWG parser result, or 3D semantic witness.",
+      "plan_action": "Add a conditional direct-DXF consumer smoke procedure; do not schedule it in routine validation or count it as independent parser/writer evidence."
+    },
+    {
+      "project": "Sea-DXF-Core / SeaCad",
+      "url": "https://github.com/seaflower205/Sea-DXF-Core",
+      "evidence": [
+        "README advertises a lossless, resource-bounded ASCII/Binary DXF core.",
+        "The same README states that visible source is under a proprietary license and does not grant permission to use, copy, modify, or redistribute it.",
+        "Repository page showed no release artifact at review time."
+      ],
+      "classification": "EXCLUDED_NOT_OPEN_SOURCE / NO_SOURCE_OR_ARTIFACT_USE",
+      "evidence_ceiling": "No peer evidence admitted.",
+      "plan_action": "Exclude from open-source comparator, test-corpus, code-port, and dependency consideration unless licensing and provenance change."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp",
+      "evidence": [
+        "Current README matrix marks DXF writing unavailable for AC1009 and AC1012.",
+        "Current README matrix marks DWG writing unavailable for AC1021.",
+        "Generic project read/write descriptions therefore must not substitute for direction/version-specific route admission."
+      ],
+      "classification": "OPTIONAL_VERSION_AND_DIRECTION_SPECIFIC_COMPARATOR",
+      "evidence_ceiling": "Only exact implemented version/direction/entity routes; not a format authority or local defect report.",
+      "plan_action": "Strengthen comparator admission metadata and preserve existing per-record loss accounting."
+    }
+  ],
+  "cross_route_result": {
+    "new_local_findings": 0,
+    "new_top_level_subplans": 0,
+    "new_dependencies": 0,
+    "new_fixtures": 0,
+    "new_ctest_registrations": 0,
+    "routine_validation_cadence_changed": false,
+    "support_claims_promoted": false,
+    "finding_subplan_counts": "134/76",
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

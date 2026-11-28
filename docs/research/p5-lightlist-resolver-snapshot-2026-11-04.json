@@ -1,0 +1,55 @@
+{
+  "title": "LIGHTLIST DXF resolver snapshot and identity consistency",
+  "status": "BOUNDED_LOW_LEVEL_DXF_CORRECTION_NON_PROMOTING",
+  "baseline": "a957ba4ae6d5e09ba2cb6958b4f1eacb7a080e5f",
+  "problem": "A resolver could clear or edit caller-owned LIGHTLIST data during validation or emission. The prior implementation iterated the live lists and could report success while replacing two named references with a zero count; app-data/reactor changes could invalidate iteration. An independent resolver result on a later occurrence of the same source could also disagree with the preflight identity.",
+  "change": "When a resolver exists, take a deep DRW_LightList snapshot before the first resolver call, verify public variant payloads survive the copy, and emit solely from that snapshot. Per-thread per-writer scoped ledger requires repeated resolutions of each source identity to agree; nested writes on the same writer from its resolver fail atomically. Different writers may nest. Callback exceptions, snapshot/ledger allocation failures and inconsistent results fail the record. Without a resolver the existing no-copy route remains. Callback mutations to the original caller object remain caller-owned and are not undone. During resolver execution the existing inspector flag blocks setup functions using preflightDxfSetup, including handle remaps, dictionaries, raw-section setters and reservations; the unguarded inline binary and ellipse-parts settings are restored and cause failure if changed. At each resolver return, the raw-section and GROUP vector storage identity, size and capacity are compared; a changed signature fails the write, including calls through old inlined transfer APIs.",
+  "compatibility": "No public vtable, class layout or signature change. Stable resolver output preserves ordinary behavior; a stateful resolver that changes the result for the same source within this record is newly refused. Public DRW_Variant pointers redirected to values differing from owned backing storage are refused in resolver mode rather than silently changed by the copy. Copying adds memory proportional to the original LIGHTLIST and common metadata when a resolver is configured; count limits are checked before copying and allocation failures are caught. This scoped guard does not claim to block arbitrary in-flight callback mutation: the existing inline raw-section and GROUP return operations bypass setup preflight. Their changed vector signature is detected, but a transfer out and back with in-place edits or allocator address reuse may leave the same signature. Callback-owned returned carriers are not rolled back; the caller must restore/re-adopt them before retry. Arbitrary mutation of other unsnapshotted objects is outside this local-record guarantee.",
+  "physical_source": "ODA File Converter 27.1 AC1027 producer-returned DXF from p5-ac1027-lightlist-physical-inline-role-conflict-2026-11-04.json, generated from locally authored DXF. The selected LIGHTLIST only is projected into a minimal DXF. Its exact source record and ASCII/Binary outputs are independently compared by ezdxf 1.4.5 low-level taggers. This is selected DXF record evidence; it does not qualify the full source, LIGHTLIST DWG handle role, target graph closure, native lighting or strict adapter output.",
+  "validation": [
+    "Scratch CTest libdxfrw_dxf_lightlist_resolver_snapshot: ASCII/Binary output and native readback; resolver mutation during dictionary, member, app-data, owner and xdict resolution; deep EED, handle/name and emitted handle-remap binding; inconsistent results; callback throws, replacement/clear of active resolver, same/different LIGHTLIST and LINE recursion, independent writer nesting and A\u2192B\u2192A; sentinel preservation and same-writer corrected retry.",
+    "The unmodified baseline executable fails the early mutation control; independently reproduced original success and zero-member output.",
+    "No-resolver generated ASCII before and after the patch is byte-identical, SHA-256 20712805ce0623b4a5a558cff3d0fba3035887fcc667c652fee5a150769baba3.",
+    "Hash-bound source projection physical-selected.dxf and its two emitted outputs match all selected ODA LIGHTLIST tags with ezdxf 1.4.5, including dictionary pointer, owner, class, count, target and name.",
+    "Existing libdxfrw_lightlist_reference_remapping selector passed 1/1 against the isolated candidate.",
+    "Earlier LINE XDATA references retain the original LIGHTLIST mapping when a resolver tries to replace the remap; the write refuses with destination sentinel intact and same-writer retry. Setup-family and direct inline binary/ellipse changes are refused and output is preserved.",
+    "Existing and new LIGHTLIST selectors pass 2/2; the physical ASCII/Binary selected outputs are byte-identical to the previously audited outputs.",
+    "Old-inline raw-section swap and GROUP move/clear are detected on return; the destination is preserved and the caller re-adopts the returned carrier before successful retry, in both encodings. The observation is signature-based, not a deep-content proof."
+  ],
+  "commands": [
+    "cmake -S /private/tmp/lightlist-mutation/work -B /private/tmp/lightlist-mutation/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_BUILD_TESTS=ON",
+    "cmake --build /private/tmp/lightlist-mutation/build --target libdxfrw_dxf_lightlist_resolver_snapshot_tests -j4",
+    "ctest --test-dir /private/tmp/lightlist-mutation/build -R ^libdxfrw_dxf_lightlist_resolver_snapshot$ --output-on-failure",
+    "python3 tools/author_selected_ac1027_lightlist.py /private/tmp/lightlist-graph/out/scene.dxf /private/tmp/lightlist-mutation/physical-selected.dxf --sha256 151a0d4b2d12ff7f9ed55e017adcf98054c184e0f5c0ff29e675f96d09493ffb",
+    "/private/tmp/lightlist-mutation/build/tests/libdxfrw_dxf_lightlist_resolver_snapshot_tests /private/tmp/lightlist-mutation/physical-selected.dxf /private/tmp/lightlist-mutation/physical-out",
+    "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_ac1027_lightlist_snapshot.py --source /private/tmp/lightlist-graph/out/scene.dxf --source-sha256 151a0d4b2d12ff7f9ed55e017adcf98054c184e0f5c0ff29e675f96d09493ffb --selected /private/tmp/lightlist-mutation/physical-selected.dxf --selected-sha256 f135abce27de9f6b343b021bd965d7d312fabcb5833ca0d47c1fba099d26a342 --ascii /private/tmp/lightlist-mutation/physical-out/ascii.dxf --ascii-sha256 53dd1afa18fd18599b9f5583440b30e9a6390ca48bafbe4b279560bb59f90e7a --binary /private/tmp/lightlist-mutation/physical-out/binary.dxf --binary-sha256 1a727fcfe651a0bd896d5717b24efd1fcf4c377e2c7834d7eed4ee16e53a38ad"
+  ],
+  "patch_sha256": "277d69caf4b2f89b9d2a076ab62797317e549799adab85cb60f3f06ffb77afca",
+  "files": {
+    "src/libdxfrw.cpp": "8779d02ea34a8eb4dc614fc6f3cee6493bf9da557c72f54d785d00e3e4dc99d3",
+    "tests/CMakeLists.txt": "6369dc59c55c8855daad1ddfeec34627f0e62d68deae0187cb39096bafd8a367",
+    "tests/dxf_lightlist_resolver_snapshot_tests.cpp": "aa98208da7593369676e0b9ac6a44fe5b68f5a922975a11e6f92e5aadb14805d",
+    "tools/author_selected_ac1027_lightlist.py": "7c7b461126dfd345066c6ae349ecd717f442c780a76d770e545720b84f742e00",
+    "tools/audit_ac1027_lightlist_snapshot.py": "9db01118385938beba5b81f0611680beb8776b29bb6d2e7a75f38713a264e40d"
+  },
+  "artifacts": {
+    "/private/tmp/lightlist-graph/out/scene.dxf": "151a0d4b2d12ff7f9ed55e017adcf98054c184e0f5c0ff29e675f96d09493ffb",
+    "/private/tmp/lightlist-mutation/physical-selected.dxf": "f135abce27de9f6b343b021bd965d7d312fabcb5833ca0d47c1fba099d26a342",
+    "/private/tmp/lightlist-mutation/physical-out/ascii.dxf": "53dd1afa18fd18599b9f5583440b30e9a6390ca48bafbe4b279560bb59f90e7a",
+    "/private/tmp/lightlist-mutation/physical-out/binary.dxf": "1a727fcfe651a0bd896d5717b24efd1fcf4c377e2c7834d7eed4ee16e53a38ad",
+    "/private/tmp/lightlist-mutation/no-resolver-before.dxf": "20712805ce0623b4a5a558cff3d0fba3035887fcc667c652fee5a150769baba3",
+    "/private/tmp/lightlist-mutation/repro.dxf": "20712805ce0623b4a5a558cff3d0fba3035887fcc667c652fee5a150769baba3",
+    "/private/tmp/lightlist-mutation/repro.cpp": "7bbf16da0180e4112f8042e4895e619bc184c2e933313a24a6e34d6edae946e7",
+    "/private/tmp/lightlist-mutation/no-resolver.cpp": "d229cbe5a6ec45c0e2d0ffa84804475627f2f4664fec2f38deacf62b4b032fdd",
+    "/private/tmp/lightlist-mutation/baseline-test": "83059dd2850249d118ea8fc049f0d01bc9cdb4cc2eee9940a176e7bb78d87bfc"
+  },
+  "integrated_validation": "ctest --test-dir build-gcc -R ^libdxfrw_(dxf_lightlist_resolver_snapshot|lightlist_reference_remapping)$ --output-on-failure: 2/2 passed.",
+  "integration_note": "The integrated CMakeLists also contains unrelated earlier and subsequent test registrations.",
+  "scratch_file_hashes": {
+    "src/libdxfrw.cpp": "2e05324f062634c83477f3239c798cd29e28fb4dccdb7f69fa0448ea429c2074",
+    "tests/CMakeLists.txt": "248bc5291cb990f40e82b7628df3b7c184af4e1f650a4cd05c8b48e8f0832b76",
+    "tests/dxf_lightlist_resolver_snapshot_tests.cpp": "aa98208da7593369676e0b9ac6a44fe5b68f5a922975a11e6f92e5aadb14805d",
+    "tools/author_selected_ac1027_lightlist.py": "7c7b461126dfd345066c6ae349ecd717f442c780a76d770e545720b84f742e00",
+    "tools/audit_ac1027_lightlist_snapshot.py": "9db01118385938beba5b81f0611680beb8776b29bb6d2e7a75f38713a264e40d"
+  }
+}

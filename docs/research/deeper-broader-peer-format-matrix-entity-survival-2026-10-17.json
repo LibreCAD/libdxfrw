@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader peer format matrix versus entity survival",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Format-version compatibility claims versus entity- and operation-specific coverage",
+    "ACIS-bearing DWG-to-DXF output preservation and silent omission reports",
+    "DXF target-version export behavior and cross-document XREF copy boundaries",
+    "Source-to-model-to-destination inventory requirements for implementation readiness"
+  ],
+  "method": {
+    "kind": "Current public primary-source repository, source, issue, and pull-request review",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "ACadSharp README/source branches are mutable. Issue #1195 is a reporter account, and PR #1150 discussion is not an independent verification of either peer behavior or a proposed fix. The review characterizes route and evidence boundaries only; it does not establish local libdxfrw behavior."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp",
+      "revision": "mutable master reviewed 2026-10-17",
+      "observed": "README lists DWG/DXF reader/writer availability by AC code. It does not present that table as an entity/object/carrier coverage matrix."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "revision": "open issue status checked 2026-10-17; report names ACadSharp 3.4.9",
+      "observed": "Reporter says DWG-to-DXF omitted 3DSOLID/REGION entities, including block children, without notification; the report cites LibreDWG census results on customer files unavailable for reproduction."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1150",
+      "revision": "open pull request status checked 2026-10-17; conversation reviewed through 2026-10-01",
+      "observed": "The proposal writes ACIS payloads to DXF and DWG. Its author reports a post-refactor DXF 2013+ ACDSDATA path where only the last repeated group-310 chunk was retained by the reader; the maintainer says they prefer a schema-driven writer over raw replay and plans to revisit after the refactor. This remains unmerged peer work and a peer-specific report."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+      "revision": "mutable master source reviewed 2026-10-17",
+      "observed": "DXFEntity source says unsupported features for the selected DXF version may be ignored on export and that ezdxf does not convert between DXF versions."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst#supported-entities",
+      "revision": "mutable master documentation reviewed 2026-10-17",
+      "observed": "The XREF helper documents a restricted copyable/transformable set and says unsupported ACAD_TABLE and unknown-storage entities are ignored without raising exceptions; it separately limits the operation to copying entities/resources."
+    }
+  ],
+  "assessment": {
+    "coreConclusion": "Version-level format availability, successful parse/write, and successful strict reopen are distinct from feature-level source-to-output preservation.",
+    "requiredInventory": "For an admitted composed comparison, bind each source item to a destination disposition with type, stable identity/handle, owner, layout/space, nested block path, target version, payload state, and diagnostic. Distinguish typed preservation, exact opaque preservation, declared projection, explicit refusal, and omission.",
+    "acisBoundary": "For ACIS/AcDs, nested block reachability, complete carrier chunks and owner association remain separate from independent solid semantics; a DXF reopen or byte match alone is not semantic proof.",
+    "operationBoundary": "Base parse, same-document save, cross-document copy/XREF, target-version export, strict reopen, recovery/audit, and native/kernel acceptance must be reported as separate operations and outcomes.",
+    "speedRule": "Apply the manifest/disposition check at the existing focused local writer slice or composed peer/consumer checkpoint. Do not add peer installs, CI dependencies, or routine per-slice full validation."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-peer-format-matrix-entity-survival-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-peer-format-matrix-entity-survival-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

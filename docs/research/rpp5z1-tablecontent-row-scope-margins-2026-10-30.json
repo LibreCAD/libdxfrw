@@ -1,0 +1,60 @@
+{
+  "id": "RPP-5z1",
+  "date": "2026-10-30",
+  "title": "Bounded TABLECONTENT row-scope margin writer",
+  "scope": {
+    "operation": "Serialize one row-scope TABLEFORMAT margin override in a rectangular TABLECONTENT grid.",
+    "profile": "Generated 2x2 AC1027 scalar table: the first row carries one type-2 margin-only style; the second row and all cells use default scopes. ASCII and binary DXF.",
+    "source_basis": "The current decoder in src/intern/dxftablecontent.h retains a separate type-2 formatted-row scope and the six-value CELLMARGIN payload. Before this change the multi-cell writer rejected every nondefault row scope and emitted writeStyle(2, nullptr). This receipt qualifies only the selected generated serializer profile; it is not a producer-authored source or native-rendering witness.",
+    "ordered_margins": {
+      "vertical": 0.125,
+      "horizontal": 0.25,
+      "bottom": 0.375,
+      "right": 0.5,
+      "horizontal_spacing": 0.625,
+      "vertical_spacing": 0.75
+    },
+    "limits": [
+      "One row with one type-2 margin-only scope",
+      "All six margins are finite and nonnegative",
+      "No row border, content-format, custom-data, CELLSTYLEMAP, column-scope or table-scope edit"
+    ],
+    "claim_boundary": "Selected DXF serializer and typed readback evidence only; no independent producer, native CAD rendering, or DWG output claim."
+  },
+  "implementation": [
+    "Generalize the existing selected margin-scope admission to accept a type-2 row scope while retaining the type-1 cell border profile and default-profile behavior.",
+    "Validate each row scope with the multi-cell writer's complete metadata checks.",
+    "Emit the selected row style in ROWTABLEFORMAT, including its exact six-value CELLMARGIN block."
+  ],
+  "evidence": {
+    "generated_runtime_input": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary": true,
+    "physical_wire": [
+      "Both rows emit TABLEFORMAT type 2; the selected first row emits has-data=1 and margin override flag 1, while the second row remains has-data=0.",
+      "The first row emits exactly six ordered group-40 values: 0.125, 0.25, 0.375, 0.5, 0.625 and 0.75."
+    ],
+    "typed_readback": "Fresh import preserves the first row's type-2 style, has-data state, override flag and all six margins; the second row stays default.",
+    "failure_control": "A negative horizontal row margin is refused; an existing destination sentinel, caller metadata and table collection remain unchanged.",
+    "retry_control": "Restoring the original positive margin permits export on the same adapter; fresh readback returns the selected margin value."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focused_selector": "build/tests/libdxfrw_table_content_dxf_tests --table-row-margin-write",
+    "focused_ctest": "ctest --test-dir build -R '^(libdxfrw_table_content_grid_write|libdxfrw_table_content_linked_grid_write|libdxfrw_table_content_row_margin_write|libdxfrw_table_content_cell_style_border_alignment)$' --output-on-failure",
+    "focused_ctest_result": "4/4 passed",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "tests/table_content_dxf_tests.cpp",
+    "tests/CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "The parent P5 rendering/TABLE phase remains open.",
+    "This receipt does not qualify other row-style properties, other rows or compositions, column/table/CELLSTYLEMAP margins, native rendering, or DWG output."
+  ]
+}

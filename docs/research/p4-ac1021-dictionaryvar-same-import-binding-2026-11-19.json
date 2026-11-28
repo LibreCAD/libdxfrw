@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1021-dictionaryvar-same-import-binding-2026-11-19",
+  "date": "2026-11-19",
+  "status": "SOURCE_ONLY_SAME_IMPORT_BOUND_TARGET_AND_NATIVE_OPEN",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "ced5ad8708ea9929e1f66330f435834b7fd870b45efb64d5a25cfceaee9749cf",
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "version": "AC1021",
+    "provenance": "Local sample; producer and author unauthenticated. The sample and derivatives are not committed."
+  },
+  "implementation": {
+    "files": [
+      {
+        "path": "dwg2dxf/dx_iface.cpp",
+        "sha256": "edc958e10f11e63137b0fc722dcd81addfe9c5ca172c5e3ea89ed268b96c1d0f"
+      },
+      {
+        "path": "dwg2dxf/dx_iface.h",
+        "sha256": "909e5320e1ea3e6b4695009d93e1f42d8468cf47f387614fbf5ad5c977566720"
+      },
+      {
+        "path": "tests/dwg2dxf_adapter_tests.cpp",
+        "sha256": "c166489d41bb726994821d09beaaba0e180b151b9c41be9a7f4006595cee0f0f"
+      }
+    ],
+    "scope": "Capture the exact DICTIONARYVAR publication only during its original actual class-read attempt; match the closed class row, raw frame and typed owner/variable membership using the source-wire observers. This source-only check is not used for output admission."
+  },
+  "validation": [
+    "Fresh AppleClang -Werror build of dwg2dxf and adapter controls: PASS.",
+    "Source-binding selector on the local exact source: PASS for baseline, wrong reader, capture failure, generation, class-read attempt, offset, class ordinal, parent/control references, entity flag, class name, owner/variable wire mutations, class receipt mutations, typed value, owner alias, late callback, restored state and fresh same-reader import.",
+    "Focused source-wire generated CTest: 1/1 PASS.",
+    "Physical AC1021 selected legacy graph: ASCII/Binary output/readback, destination preservation and same-writer retry PASS on the distinct local children-room sample; not a strict or cross-version claim.",
+    "Physical AC1024 selected variable dictionary and generated mixed AC1024 graph: PASS including selected writer refusal/retry controls.",
+    "AddressSanitizer fresh build and exact-source source-binding selector: PASS.",
+    "GCC 16.2 -Wall -Wextra -Werror syntax check on dwg2dxf/dx_iface.cpp: PASS."
+  ],
+  "next": [
+    "Join the bound source CTABLESTYLE value to its unique source style and prove target-version staged TABLESTYLE graph and semantics.",
+    "Complete separate VISUALSTYLE/LAYOUT target, native and consumer evidence before admitting AC1024 whole-source output.",
+    "Replay fast and focused-native qualification for the new implementation digest."
+  ],
+  "limits": [
+    "The source binding is deliberately disconnected from output admission and is not independent native semantics.",
+    "No fixture was added; the physical selector requires the specific local sample and is not an automatic CI test.",
+    "P4-D remains open; the implementation digest changed, reopening P8-F."
+  ]
+}

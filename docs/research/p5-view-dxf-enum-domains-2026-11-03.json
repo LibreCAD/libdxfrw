@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-view-dxf-enum-domains-2026-11-03",
+  "date": "2026-11-03",
+  "parentCommit": "6db581b5 Validate VPORT DXF enum domains",
+  "status": "COMPLETED_LOCAL_DXF_WRITER_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Refuse VIEW typed DXF output when render mode group 281 is outside Autodesk's published domain, without changing DWG parsing or encoding.",
+  "authority": {
+    "source": "Autodesk VIEW DXF table",
+    "fields": {
+      "group281_renderMode": "0..6"
+    },
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm"
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "DRW_View::validateDxf now requires renderMode <= 6. DWG parsing/encoding continues to use validatePayloadFields and retains its existing wire-width behavior.",
+    "failureBehavior": "ASCII and Binary VIEW writes reject renderMode=7 before record emission and preserve an existing destination prefix. The documented upper bound 6 is serialized and read back exactly."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "result": "PASS"
+    },
+    "focused": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_view_reference_remapping$' --output-on-failure",
+      "result": "PASS 1/1",
+      "coverage": "Both ASCII and Binary: renderMode=7 refusal preserves an existing destination; renderMode=6 serializes and reads back exactly. Existing VIEW reference mapping, refusal and fresh-writer retry controls in the same selector pass."
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "sourceFingerprints": {
+    "src/drw_objects.cpp": "7ed8c74040021a07232ee2c3016b21b8d4f3bf7b95b27d43876d4b89056ec95a",
+    "tests/wave1_tests.cpp": "cee4fa9f785416ef5744c8aa1cd56288af60051591461e76e776d923b37fb27b",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "c2f4be197fa2192414e9c7fff1aff916526d91a920e0d771f552c0b7fd6b32f7",
+    "build-gcc/libdxfrw_wave1_tests": "c9abca956fd504815933cd0b9f51f620603cc412acd5705e5d30f4dc1c68650b"
+  },
+  "limits": [
+    "No physical VIEW producer or native rendering evidence was used.",
+    "The guard establishes published enum-domain output correctness only; it does not qualify VIEW rendering, graph closure, or whole-document DWG-to-DXF conversion.",
+    "No DWG parser/encoder behavior changed and no support claim was promoted."
+  ],
+  "next": "Continue source-backed implementation and whole-document graph work; keep native VIEW rendering and physical producer qualification open."
+}

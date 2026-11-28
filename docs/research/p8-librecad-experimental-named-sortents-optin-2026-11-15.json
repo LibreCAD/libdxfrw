@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-experimental-named-sortents-optin-2026-11-15.patch",
+  "patchSha256": "f6827cd9e86a9f4af69a20f6995ede9b881eb126a7dff474d58c69b65a630957",
+  "implementation": "The twenty-seventh unmerged LibreCAD patch adds a default-off, programmatic-only opt-in for a bounded AC1024-to-AC1024 empty named-block SORTENTSTABLE profile. It requires a sealed selected source session, matched block/dictionary/table evidence, an empty source block, bounded unambiguous block observations and default-only block properties. It supplies source block identities to the codec and preserves the extension-dictionary owner and every entry, refusing when an entry is not emitted. Strict conversion resolves DIMSTYLE text style by emitted name instead of passing a minted output handle as a source identity. The option is never enabled by the GUI.",
+  "validation": [
+    "Installed-codec LibreCAD focused CTests passed 3/3, including default refusal and destination preservation, explicit opt-in success, fresh LibreCAD readback of the block/dictionary/table chain, disabling and re-enabling with same-filter retries, and refusal of a source dictionary with an additional unsupported OTHER XRECORD followed by a clean-source retry.",
+    "Direct observation controls reject nondefault base point, xref index/reference, insertion units, flags, preview and INSERT references, with reset controls.",
+    "The older bundled-codec consumer passed librecad_filter_compile_check with the experimental code excluded. The patch applies after the prior 26 patches.",
+    "The locally authored input passed through ODA to create a scratch AC1024 DWG (SHA-256 b23f896841cc503e762bd33d67f98a38a3d44b97ed3b376b14b48393511059d3). The LibreCAD output DXF (SHA-256 2305e41f7e9ec0488fc16d2b8fb4ef71a9b85ffa44cadb452222c43d63676f1d) has named block B17B, extension dictionary B003 owned by B17B, and empty SORTENTSTABLE B100 owned by B003 and pointing to B17B. ezdxf 1.4.5 reported zero errors or fixes; Standard DIMSTYLE resolves to the emitted Standard STYLE.",
+    "ODA File Converter 27.1.0 converted that LibreCAD DXF to AC1024 DWG and back to DXF (SHA-256 9eee542497c72dccec2c993306044dbaf6a65e164f0331d431e49946788054dd). ezdxf independently confirms the same chain, empty entries, Standard text style, zero errors and zero fixes.",
+    "Source-release inventory passes with 1222 files and 18 refusal controls; the 723-input implementation digest remains 53c54d443b8f6c3688c8312689e940203cc6fa401e77bf33f1593005a47e5eb6."
+  ],
+  "limits": "Only one locally authored, ODA-produced minimal source is qualified by this test. Other dictionary dependencies, nonempty source blocks, nondefault block metadata, arbitrary live edits, title-block dynamic data, the GUI, native AutoCAD/FreeCAD and other platforms remain open. Autodesk documents only model/paper-space table owners and LibreDWG drops the table in its conversion. This is not whole-document graph closure or an upgraded support claim. No DWG or DXF fixture is committed."
+}

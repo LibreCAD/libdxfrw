@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-06",
+  "slice": "P4 AC1021 generated GROUP parent/reactor root closure",
+  "status": "implemented_bounded_planner_profile",
+  "scope": "The locally authored libdxfrw AC1021 one-member GROUP source has a GROUP whose parent and persistent reactor both target the rooted ACAD_GROUP dictionary. The extension-graph planner now accepts this reciprocal rooted relation and still rejects an unresolved reactor target.",
+  "source": {
+    "recipe": "tests/dwg_ac1021_polyline_group_targets_tests.cpp writes vertex2d.dwg locally from scratch; no binary or DXF fixture is committed",
+    "pathDuringValidation": "/private/tmp/group-ac1021-rebuilt/vertex2d.dwg",
+    "sha256": "f361ef0b536324cc7134449ff52323fd49b4f576af18fb6e9d4776996d40502f",
+    "profile": "AC1021; 36 observed frames; one GROUP; two-member 2D polyline with one vertex included by the GROUP; source handle 0x0D is the ACAD_GROUP dictionary"
+  },
+  "authority": {
+    "odaSpecification": "Open Design Specification for .dwg files v5.4.1, section 20.4.72 GROUP (72)",
+    "relevantLayout": "parent handle is a soft pointer; reactor handles are soft pointers; extension dictionary is a hard owner; group member handles are hard pointers",
+    "limitation": "The specification establishes handle-field roles, not broad producer or native semantic acceptance. This receipt is limited to the locally authored source profile."
+  },
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "behavior": "Retain the uniquely validated NOD ACAD_GROUP dictionary during graph preparation. For DWG-origin data, admit a GROUP reactor to that dictionary only when the GROUP parent is the same dictionary and the group is already joined through its unique dictionary key. Other targets continue through normal bounded graph traversal and fail closed when unresolved."
+  },
+  "regression": {
+    "files": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/run_ac1021_group_reactor_closure_test.cmake",
+      "tests/CMakeLists.txt"
+    ],
+    "selector": "--generated-group-ac1021-reactor-closure",
+    "test": "dwg2dxf_generated_ac1021_group_parent_reactor_closure",
+    "checks": [
+      "Generate the DWG in a build-directory scratch folder using the locally authored GROUP writer control.",
+      "Import it with the rebuilt adapter and assert the AC1021 group owner, reactor and member profile.",
+      "Accept the valid rooted parent/reactor relation in extension-graph preparation.",
+      "Reject a reactor to missing handle 0xDEAD with InvalidGraph.",
+      "Restore the source relation and successfully retry with the same planner instance."
+    ],
+    "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4 && ctest --test-dir build-gcc -R '^dwg2dxf_generated_ac1021_group_parent_reactor_closure$' --output-on-failure",
+    "result": "passed; 1/1 CTest, 0.73 seconds on the final configured run",
+    "sourceWriterExecutableSha256": "48a96ef152ca244bf300800639e14e87fe84ca816c43528272ee81e46cb6ebc3",
+    "adapterTestExecutableSha256": "a5aad3d367401ce120d5f4780d2e3dcca938da9f99549aff4bbe674579325b9e"
+  },
+  "strictWholeSourceRecheck": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/group-ac1021-rebuilt/vertex2d.dwg -y -d -v2007 /private/tmp/group-ac1021-rebuilt/strict-after-graph-fix.dxf",
+    "converterSha256": "7b6dac36972ee62ebeff42f9e49285e76dbf56f961aa9696e70bf3a7bead6019",
+    "result": "The read published all 36 observed frames with zero entity/object parse failures. The previous GROUP extension/reactor root failure is gone. Strict finalization still refuses output: only 7/9 opaque DWG callbacks are qualified.",
+    "remainingOpaqueFrames": [
+      "handle 2305, type 513, ACDBDICTIONARYWDFLT / AcDbDictionaryWithDefault",
+      "handle 2306, type 80, unnamed class"
+    ],
+    "supportClaimPromoted": false
+  },
+  "next": "Continue P4 source/output work on the next source-ready graph or one of the two unqualified opaque records. Do not call this a strict whole-document conversion, native consumer qualification, or producer-wide GROUP result."
+}

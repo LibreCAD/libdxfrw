@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-mpolygon-projection-precision-2026-11-15",
+  "date": "2026-11-15",
+  "status": "bounded_projection_precision_guard",
+  "supportClaimEffect": "none",
+  "finding": "The initial line/arc projection used only coordinate-scale endpoint tolerance. For large coordinates that could bridge a representable gap or round arc endpoints enough to materially change the reconstructed circle.",
+  "change": "Bound connection tolerance by the shorter adjacent chord, and require projected arc offsets and chord to retain 1e-10 relative precision at the arc's own scale; otherwise keep the original edge path.",
+  "verification": [
+    "Generated 1e12-coordinate gap and 1e16-coordinate small-arc cases each failed the fallback assertion in ASCII and Binary before the change, and pass after it with original edge data retained.",
+    "A 1e6-coordinate translated quarter arc still projects in ASCII and Binary.",
+    "The 64-profile arc and failure/retry matrix, adjacent HATCH and MPOLYGON controls, seven-revision allocation transaction, and independent ezdxf reconstruction of 16 profiles all pass.",
+    "The LibreCAD upstream-linked arc projection case passes eight assertions after the precision guard."
+  ],
+  "limits": [
+    "The 1e-10 tolerance is an admission threshold, not an exhaustive numerical proof for all finite inputs; unqualified cases keep the existing edge representation.",
+    "Native application rendering, mixed-edge full-circle projection, and native extended-geometry behavior remain open.",
+    "No DWG or DXF fixture files were added."
+  ]
+}

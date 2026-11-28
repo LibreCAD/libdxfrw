@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "CELLSTYLEMAP low-level DXF wire writer",
+  "mode": "ODA and LibreDWG schema cross-check plus generated ASCII/Binary DXF writer tests",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "bf7510ce3e5bb447e577a29d898a4586d834dfb5cee2069f751f9b8e51b8f754",
+  "authoritativeReferences": [
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sections": ["20.4.101 TABLESTYLE", "20.4.102 CELLSTYLEMAP"],
+      "pages": "244-246",
+      "finding": "The specification defines CELLSTYLEMAP cell-style identity and content fields, plus its TABLESTYLE extension-dictionary relationship through ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP."
+    },
+    {
+      "title": "LibreDWG DXF marker mapping and importer",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec",
+      "finding": "Peer schema maps CELLSTYLE, TABLEFORMAT_BEGIN, CONTENTFORMAT, margin/grid format boundaries, and CELLSTYLE identity markers to concrete DXF group codes. This is comparator evidence for the marker spelling/order, not native CAD acceptance."
+    }
+  ],
+  "researchConclusion": {
+    "resolved": "A bounded low-level writer can emit the documented CELLSTYLEMAP object body and the cross-implementation marker mapping in ASCII and Binary DXF, including versioned style-ID checks and optional-reference remapping.",
+    "unresolved": "The complete emitted object graph is not implemented: source-to-emitted identity closure, the TABLESTYLE extension-dictionary edge, NOD/root reachability, and independent-reader semantic acceptance remain unqualified. The concrete adapter must continue refusing all captured CELLSTYLEMAP objects before publication."
+  },
+  "implementation": {
+    "changes": [
+      "Added dxfRW::writeCellStyleMap as a low-level object-body writer with validation for versioned style identities, enum/flag domains, finite numeric values, safe strings, CMC data, border slots, and optional references.",
+      "Emitted CELLSTYLEMAP and AcDbCellStyleMap framing plus cell-style, content, margin, grid, color, value, and identity/name marker groups.",
+      "Resolved optional text-style and linetype handles through the active writer remap; zero NoHandle values remain null optional references.",
+      "Added generated ASCII/Binary tests for ordered marker sequences, representative values, true-color CMC strings, remapped references, zero-edge border slots, and AC1021 refusal/retry for R24 built-in style ID 4.",
+      "Registered a focused fast CTest. No persistent test drawing was added."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/cellstylemap-low-level-dxf-writer-fast-slice-2026-10-22.json",
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2 (-Werror)",
+    "focusedWriter": "PASS: generated ASCII/Binary CELLSTYLEMAP writer selector, including AC1021 refusal and corrected retry",
+    "focusedCtest": "PASS: libdxfrw_cellstylemap_dxf_writer (1/1)",
+    "failClosedAdapter": "PASS: existing typed CELLSTYLEMAP capture/export-refusal selector",
+    "compatibility": "PASS: cmake --build build-gcc --target lc3_compat_check --parallel 2",
+    "diffCheck": "PASS: git diff --check scoped to writer, generated tests, CMake registration, and plan",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "independentDxfReaderRun": 0,
+    "publicLowLevelWriterApiAdded": true,
+    "cellStyleMapLowLevelBodyWriterImplemented": true,
+    "cellStyleMapObjectGraphSerializerImplemented": false,
+    "adapterExportGateRemainsFailClosed": true,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "Implement the TABLESTYLE extension-dictionary owner edge and CELLSTYLEMAP publication only after validating one-to-one source/emitted identity, root reachability, handle remapping, and independent-reader interpretation of the emitted graph."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

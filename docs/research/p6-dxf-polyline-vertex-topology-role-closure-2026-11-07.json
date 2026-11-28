@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Classic POLYLINE and VERTEX DXF topology-role closure",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Make typed POLYLINE output keep the parent topology, child VERTEX role bits, and child subclass markers consistent.",
+  "formatEvidence": {
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+      "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm"
+    ],
+    "observation": "Autodesk assigns VERTEX group-70 bits 32, 64, and 128 to 3D-polyline, polygon-mesh, and polyface roles, respectively; polyface coordinates use 64+128 while face records use 128 without 64. POLYLINE group 70 identifies the parent topology.",
+    "implementationInference": "The parent record supplies a role for child vertices. Missing 3D-polyline or polygon-mesh role bits can be restored from that parent; conflicting child role bits and mutually conflicting parent topology bits are refused."
+  },
+  "implementation": {
+    "files": ["src/drw_entities.h", "src/drw_entities.cpp", "src/libdxfrw.cpp", "src/intern/dxfcompound.h"],
+    "behavior": "validateVertexTypesDxf rejects conflicting parent topology bits and child VERTEX roles. Typed output adds the expected role bit for 3D-polyline and polygon-mesh vertices when absent, then writes the matching type-specific subclass. Existing polyface coordinate/face checks remain in force.",
+    "inputPolicy": "Tolerant DXF parsing is unchanged; the role gate applies to typed output and compound write admission."
+  },
+  "control": {
+    "test": "libdxfrw_polyline_vertex_role_closure",
+    "selector": "libdxfrw_dxf_fixture_tests --polyline-vertex-role-closure",
+    "profiles": ["AC1021 ASCII", "AC1021 Binary"],
+    "assertions": [
+      "a 3D-polyline vertex incorrectly marked as polygon mesh refuses atomically",
+      "corrected children retry on the same adapter and receive group-70 bit 32",
+      "raw output pairs bit 32 with AcDb3dPolylineVertex",
+      "typed readback preserves WCS vertices and the canonical role",
+      "polygon-mesh vertices receive group-70 bit 64 and AcDbPolygonMeshVertex",
+      "a 3D-polyline child role inside a polygon mesh refuses atomically",
+      "corrected polygon-mesh vertices retry on the same adapter",
+      "conflicting 3D-polyline and polygon-mesh parent bits refuse with destination preservation",
+      "restoring the valid parent topology retries on the same adapter"
+    ],
+    "result": "PASS",
+    "fullSuites": "NOT RUN",
+    "fixturePolicy": "The controls author all model records in test code and write temporary outputs; no DWG/DXF fixture was added."
+  },
+  "limitations": [
+    "No physical producer or native consumer semantics are established.",
+    "This generated role-closure control does not establish general 3D polyline, polygon-mesh, or polyface support."
+  ]
+}

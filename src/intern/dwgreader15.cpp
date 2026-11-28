@@ -24,6 +24,7 @@
 #include "dwgreader15.h"
 #include "drw_textcodec.h"
 #include "dwgsafety.h"
+#include "dwgtemplate.h"
 #include "../libdwgr.h"
 
 bool dwgReader15::readMetaData() {
@@ -158,12 +159,31 @@ bool dwgReader15::readDwgHeader(DRW_Header& hdr){
         return false;
     dwgBuffer buff(tmpByteStr.data(), si.size, &decoder);
     DRW_DBG("Header section sentinel= ");
-    if (!checkSentinel(&buff, secEnum::HEADER, true))
-        return false;
-    bool ret = dwgReader::readDwgHeader(hdr, &buff, &buff);
+    // The shared HEADER admission reports precise sentinel/bounds diagnostics
+    // for AC1012 through AC1015. Keep this read to position the parser after
+    // the beginning sentinel even when it is malformed.
+    (void)checkSentinel(&buff, secEnum::HEADER, true);
+    bool ret = dwgReader::readDwgHeader(hdr, &buff, &buff,
+        DwgIntegrityAddressSpace::PhysicalFile, si.Id, si.address);
     return ret;
 }
 
+
+bool dwgReader15::readDwgTemplate(DRW_Header& hdr) {
+    const auto found = sections.find(secEnum::TEMPLATE);
+    if (found == sections.end() || found->second.Id < 0
+        || (found->second.address == 0 && found->second.size == 0))
+        return missingDwgTemplate();
+    const auto& section = found->second;
+    if (section.size > dwgTemplate::MaxSectionSize
+        || !dwgSafety::range(section.address, section.size, fileBuf->size())
+        || !fileBuf->setPosition(section.address))
+        return decodeDwgTemplate(hdr, nullptr, 0, section.Id);
+    std::vector<std::uint8_t> data(static_cast<std::size_t>(section.size));
+    if (!data.empty() && !fileBuf->getBytes(data.data(), data.size()))
+        return decodeDwgTemplate(hdr, nullptr, 0, section.Id);
+    return decodeDwgTemplate(hdr, data.data(), data.size(), section.Id);
+}
 
 bool dwgReader15::readDwgClasses(){
     DRW_DBG("\ndwgReader15::readDwgClasses\n");
@@ -178,6 +198,7 @@ bool dwgReader15::readDwgClasses(){
     if (!fileBuf->setPosition(si.address))
         return false;
 
+    capturePhysicalDwgClassSource(*fileBuf, si.address, si.size, si.Id);
     DRW_DBG("classes section sentinel= ");
     if (!checkSentinel(fileBuf.get(), secEnum::CLASSES, true))
         return false;

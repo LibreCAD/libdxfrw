@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 MATERIAL key and OBJECTS identity closure",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Audit generated MATERIAL output for exact root/dictionary edges and section-wide handle identity.",
+    "Require one NOD ACAD_MATERIAL key, the exact Paint key to remapped MATERIAL handle, an owner-0 NOD, and unique OBJECTS handles.",
+    "Reuse the current ASCII/Binary material capture selector without persistent fixture or test registration."
+  ],
+  "sourceChange": {
+    "file": "tests/dxf_fixture_tests.cpp",
+    "change": "The MATERIAL output round-trip now counts ACAD_MATERIAL root keys, verifies the one Paint dictionary entry targets the remapped typed MATERIAL handle, and checks owner-0 NOD identity plus unique nonempty OBJECTS handles.",
+    "reason": "Previous output checks verified dictionary entry count and owner but did not prove the dictionary key resolved to the emitted MATERIAL; root lookup was presence-only and the OBJECTS scan did not verify section-wide uniqueness.",
+    "productionBehaviorChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --material-raw-capture",
+      "result": "PASS"
+    },
+    "scopedDiffCheck": "PASS (git diff --check -- tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

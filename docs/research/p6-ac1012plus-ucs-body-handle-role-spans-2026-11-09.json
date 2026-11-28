@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw-dwg-handle-role-evidence-v1",
+  "date": "2026-11-09",
+  "slice": "AC1012+ UCS common and versioned handle roles/spans",
+  "supportClaimEffect": "none",
+  "normativeAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "§20.4.62, pp. 176–177",
+    "roleSummary": {
+      "control": "soft pointer",
+      "reactors": "soft pointers",
+      "xdict": "hard owner",
+      "xrefBlock": "hard pointer",
+      "baseUcs/namedUcs": "hard pointers, R2000+",
+      "handleOrder": "control, reactors, xdict when present, xrefBlock, baseUcs, namedUcs"
+    }
+  },
+  "sourceCensus": {
+    "tool": "LibreDWG dwgread 0.14 minJSON",
+    "commandTemplate": "/opt/homebrew/bin/dwgread -O minJSON <source.dwg> -o <scratch.json>",
+    "inputs": [
+      {
+        "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "jsonSha256": "32a04f8e1b4679c4c397fbedd9c7c20f7eaec487045dda9a53f7aed6fac7c4e3",
+        "validJson": true,
+        "ucsRecords": 0,
+        "ucsControls": 1
+      },
+      {
+        "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+        "version": "AC1024",
+        "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+        "jsonSha256": "4f5ed5ca697d5b4628ce8aa91ffb7a73330d3356a2ca732c7721e1ad34ef9c71",
+        "validJson": true,
+        "ucsRecords": 0,
+        "ucsControls": 1
+      },
+      {
+        "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+        "version": "AC1021",
+        "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+        "jsonSha256": "8947d321b784a3eab81a7fe1336c19fde04f37588ce476d7546e7eef3fd42a3f",
+        "validJson": true,
+        "ucsRecords": 0,
+        "ucsControls": 1
+      },
+      {
+        "path": "/Users/dli/doc/dwg/Pool_Detail.dwg",
+        "version": "AC1021",
+        "sha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+        "jsonSha256": "24a62eabc2f8cf8baf1ef1484b7109e45449bb3e98d8b8226246df0bceafeeaa",
+        "validJson": true,
+        "ucsRecords": 0,
+        "ucsControls": 1
+      },
+      {
+        "path": "/Users/dli/doc/dwg/tablet.dwg",
+        "version": "AC1021",
+        "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+        "jsonSha256": "1aa767cd3d0290dee8bcc4d2428ed4e101fa70ee79ab4cedbd14c39096911e07",
+        "validJson": true,
+        "ucsRecords": 0,
+        "ucsControls": 1
+      },
+      {
+        "path": "/Users/dli/doc/dwg/visualization_-_condominium_with_skylight.dwg",
+        "version": "AC1024",
+        "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+        "jsonSha256": "1636a7699809f3a69bfcefed85566b98e1c916eeeaa521ae3f84108a71d84bf2",
+        "validJson": false,
+        "jsonError": "Expecting value at byte 2297368",
+        "eligibleForRecordCount": false
+      }
+    ],
+    "outcome": "Five valid minJSON outputs contain a UCS_CONTROL but no UCS table-record object; one malformed JSON output was excluded. No physical non-null base/named-UCS field witness was available.",
+    "limit": "This local source-availability census does not establish parser correctness or interoperability."
+  },
+  "implementation": {
+    "productionChanges": [
+      "DRW_UCS::parseDwg validates control/reactor soft pointers, optional xdictionary hard owner, xref-block hard pointer, and AC1015+ base/named-UCS hard pointers",
+      "only the expected role or canonical raw code-0/target-0 null is accepted",
+      "ordered handle-field spans retain exact start bit, bit size, DWG version, and raw role code",
+      "reset clears span metadata; copy and assignment preserve it"
+    ],
+    "versionGates": {
+      "baseUcs/namedUcs": "AC1015+"
+    }
+  },
+  "generatedControls": {
+    "versions": ["AC1012", "AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027"],
+    "checks": [
+      "expected roles and resolved targets for every handle field",
+      "each handle role independently changed to a wrong role and atomically rejected",
+      "corrected same-object retry after every wrong-role failure",
+      "canonical code-0/target-0 null accepted for every field",
+      "independent wire walk matches exact ordered span, role code, and target",
+      "following hard-pointer sentinel remains aligned",
+      "copy, assignment, and reset of span metadata",
+      "final-handle truncation clears object state and permits corrected same-object retry"
+    ],
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+      "compiler": "/usr/bin/g++",
+      "result": "passed",
+      "testExecutableSha256": "8d04190b69fdf8778a7d0a7517ae792dc96d6bd4fd524ac6487de29c61bb63cb"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_(ac1012plus_ucs_handle_roles|ac1012plus_vport_handle_roles|dwg_object_vectors)$' --output-on-failure",
+      "passed": 3,
+      "failed": 0,
+      "tests": [
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_ac1012plus_vport_handle_roles",
+        "libdxfrw_ac1012plus_ucs_handle_roles"
+      ]
+    }
+  },
+  "limits": [
+    "generated codec controls do not substitute for an independently decoded physical UCS record",
+    "physical UCS role/span evidence and target-graph closure remain open",
+    "no producer-wide or native application qualification",
+    "no DWG/DXF fixture was added"
+  ]
+}

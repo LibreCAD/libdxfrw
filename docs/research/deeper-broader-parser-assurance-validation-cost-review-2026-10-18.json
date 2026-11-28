@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader parser-assurance methods and validation cost",
+  "mode": "Primary-source review of open-source DWG/DXF test, fuzz, diagnostic, and recovery methods",
+  "scope": [
+    "Compare route separation in LibreDWG's corpus and fuzz workflows",
+    "Review peer diagnostics and sample-corpus evidence boundaries",
+    "Refine fast per-slice and composed-checkpoint validation sequencing"
+  ],
+  "method": {
+    "kind": "Read current primary repository documentation and build/test metadata; no peer execution",
+    "sourcesReviewed": 7,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "fuzzersRun": false,
+    "sanitizersRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localDwgFilesAddedOrModified": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0
+  },
+  "sources": [
+    {
+      "project": "LibreDWG developer fuzzing guidance",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+      "revision": "Mutable master source reviewed 2026-10-18",
+      "observed": "Documents AFL, honggfuzz, and LLVM libFuzzer approaches, sanitizer configurations, and seeded corpus use. The guidance is methodology, not evidence of current libdxfrw defects or semantic correctness."
+    },
+    {
+      "project": "LibreDWG corpus and route-specific checks",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/Makefile.am",
+      "revision": "Mutable master source reviewed 2026-10-18",
+      "observed": "Defines separate DWG-read, DXF, Binary-DXF, JSON, SVG, and OSS-Fuzz corpus checks. This supports route separation, not importing its corpus, limits, or CI cadence."
+    },
+    {
+      "project": "LibreDWG CI workflow",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/.github/workflows/main.yml",
+      "revision": "Mutable master workflow reviewed 2026-10-18",
+      "observed": "The workflow includes platform-specific build and test jobs and configuration-specific coverage steps. It does not establish that the documented fuzz workflows run on every change; no claim about its runtime or cadence is transferred."
+    },
+    {
+      "project": "ACadSharp reader diagnostics",
+      "url": "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+      "revision": "Mutable master documentation reviewed 2026-10-18",
+      "observed": "Reader examples expose an OnNotification event for warnings and information, so a peer comparison can capture diagnostics beyond a success/failure result."
+    },
+    {
+      "project": "ACadSharp sample corpus discussion #520",
+      "url": "https://github.com/DomCR/ACadSharp/discussions/520",
+      "revision": "Maintainer response dated 2025-01-09; reviewed 2026-10-18",
+      "observed": "The maintainer says the samples directory contains files used by the Tests project. This does not establish independent authoring or a normative expected result for every sample."
+    },
+    {
+      "project": "ezdxf recovery documentation",
+      "url": "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+      "revision": "Stable docs identifying ezdxf 1.4.5, reviewed 2026-10-18",
+      "observed": "Strict reading is distinguished from slower ASCII-only recovery; recovery repairs structural flaws, runs audit, and warns that some decode/rewrite paths may lose information or yield invalid DXF."
+    },
+    {
+      "project": "ezdxf audit launcher and feature documentation",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/index.rst"
+      ],
+      "revision": "Mutable master docs reviewed 2026-10-18",
+      "observed": "The CLI exposes a separate audit/recovery operation; the feature summary documents direct ASCII and Binary DXF read/write. A peer audit is the peer's own model and does not replace independent expected-value checks."
+    }
+  ],
+  "assessment": {
+    "newConfirmedFormatClaims": 0,
+    "newLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationCadenceChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planUpdates": [
+      "Keep strict valid-input parsing separate from malformed ASCII recovery and repair/audit outcomes.",
+      "Capture peer notifications and source-to-output disposition rather than treating no exception as semantic success.",
+      "Retain focused generated checks and one owning CTest per slice; reserve bounded corpus, fuzz, and sanitizer work for composed security checkpoints.",
+      "Restrict fuzzer seeds and minimized reproducers to existing allowed fixtures or scratch-generated local data."
+    ],
+    "limitations": "Sources are mutable project docs and implementation guidance; no peer, fuzzer, sanitizer, CAD application, or external file was run. No defect or support claim follows from this review."
+  }
+}

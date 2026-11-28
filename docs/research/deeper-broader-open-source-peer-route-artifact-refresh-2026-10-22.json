@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "Deeper/broader open-source peer route and artifact-status refresh",
+  "mode": "Primary-source web research and local plan reconciliation; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh open-source DWG/DXF peer release identity and route boundaries.",
+    "Distinguish DWG reader/writer, DXF parser/writer, OGR projection, raw-carrier, geometry-kernel, and native consumer evidence.",
+    "Disambiguate LibreDWG 0.14 and 0.14.1 milestone states and preserve fast local implementation cadence."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/releases/tag/0.14",
+        "https://github.com/LibreDWG/libredwg/releases",
+        "https://github.com/LibreDWG/libredwg/milestone/22",
+        "https://github.com/LibreDWG/libredwg/milestone/23",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "0.14 release tag d9468ae; mutable release/NEWS pages accessed 2026-10-22; latest listed prerelease 0.14.8612 at f860b0f",
+      "observed": "The 0.14 release says R2004 DWG writing is supported and R2010/R2013/R2018 writing is experimental with CRC errors on import. The 0.14 milestone closed Sep 8, 2026, while the separate 0.14.1 milestone remains open at 67% with 13 open issues. The 0.14.1 NEWS is beta and the latest listed 0.14.8612 artifact is a prerelease/nightly.",
+      "limits": "The two milestone states, beta NEWS, mutable master, pre-release artifacts, and the stable 0.14 release are distinct identities. No artifact was downloaded, built, or executed."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "revision": "Latest formal release page accessed 2026-10-22; v3.8.0 signed commit 3a1c66b; issue #1195 report states ACadSharp 3.4.9",
+      "observed": "v3.8.0 remains the latest formal release. Its v3.7.1 predecessor release notes include reading ACIS payloads from 3DSOLID/REGION/BODY and reading the AcDs payload-area offset. Issue #1195 remains open and reports silent modeler-entity omission against 3.4.9, not a reproduced result for v3.8.0.",
+      "limits": "No package or peer source was run. Old issue behavior cannot be projected onto a newer release without route-matched reproduction."
+    },
+    {
+      "project": "libopencad and GDAL CAD/DWG",
+      "urls": [
+        "https://github.com/nextgis-borsch/lib_opencad",
+        "https://gdal.org/en/stable/drivers/vector/cad.html"
+      ],
+      "revision": "Mutable primary project/documentation pages accessed 2026-10-22",
+      "observed": "libopencad states support for DWG R2000 only. GDAL's CAD driver is based on libopencad, is read-only, and exposes a small OGR geometry subset; inferring that it is not a complete DWG object-graph interface follows from the projected schema and documented entity list.",
+      "limits": "This route is not useful as a broad post-AC1015 DWG reader, writer, AcDs, or solid-semantics oracle. No build/run occurred."
+    },
+    {
+      "project": "GDAL DXF",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Mutable stable documentation accessed 2026-10-22",
+      "observed": "GDAL 3.12 adds Binary-DXF read. The DXF driver projects source records into OGR geometry and documents tessellation, merged/inlined blocks by default, omitted styling/schema details, and AC1027+ optional raw ASMData/ASMTransform without converting ASM to OGR geometry.",
+      "limits": "OGR projection is not full document preservation, a DWG route, ACIS/B-rep semantics, or native CAD acceptance. No GDAL build or output was inspected."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/glossary.html",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/introduction.html"
+      ],
+      "revision": "Mutable stable documentation accessed 2026-10-22",
+      "observed": "ezdxf documents versioned ASCII/Binary DXF support and ACIS tools for simple known structures, but explicitly excludes loading/editing arbitrary ACIS and states it has no ACIS kernel. Its DXF interface is not a DWG codec or format converter; external DWG conversions belong to the separately installed converter.",
+      "limits": "No DWG codec or arbitrary-solid geometry-kernel result follows from ezdxf. No package/tool was run."
+    },
+    {
+      "project": "FreeCAD native consumer",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "docs/3D_SUPPORT_STATUS.md"
+      ],
+      "revision": "Mutable source/docs accessed 2026-10-22; current local support-status file",
+      "observed": "The DWG route converts through a selected external converter to DXF and then runs the selected DXF importer. The current wrapper's LibreDWG path checks output-file existence after subprocess completion and automatic mode can attempt other converters.",
+      "limits": "Native qualification must pin and separately measure converter and importer stages; wrapper success or entity count alone does not establish exact converter attribution or geometry validity. No native application was run."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8 route-matched optional peer selection and per-source dispositions",
+      "PAR-14 release/source/artifact identity pinning and no per-slice peer runtime",
+      "Native FreeCAD converter/importer/platform stages remain separately attributable",
+      "Clarified distinct LibreDWG 0.14 and 0.14.1 milestone states and retained stable-release writer limits"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Confirmed that the previously reported 0.14.1 milestone remains open, distinguished it from the closed 0.14 milestone, and kept the latest 0.14.8612 artifact identified as prerelease/nightly while preserving stable 0.14 writer limitations.",
+    "Recorded libopencad/GDAL CAD as an AC1015-limited read-only geometry projection route, not a broad DWG/3D peer.",
+    "Tightened GDAL DXF use to exact-version configured OGR projection/raw-carrier observation; Binary-DXF support is not DWG support and raw ASM is not modeler semantics.",
+    "Kept ACadSharp issue #1195 scoped to its reported 3.4.9 route and did not infer current v3.8.0 behavior from it.",
+    "Reaffirmed FreeCAD converter/importer separation, strict route attribution, the no-external-fixture policy, focused-test cadence, and non-promoting J gates.",
+    "Corrected the most recent PAR-134 self-unblock text so completed PAR-140/7N.4 work is not queued a second time."
+  ],
+  "limitations": [
+    "GitHub release, milestone, issue, and source pages are mutable; all observations are timestamped and no peer artifact was pinned or executed here.",
+    "Peer documentation/source establishes route classification only; it is not ODA byte-layout authority, a local reproduction, independent semantic evidence, or native CAD acceptance.",
+    "The research did not resolve any of J256, J260, J268, J284, J293, or J295."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (tracked plan diff; receipt JSON parsed separately with jq)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

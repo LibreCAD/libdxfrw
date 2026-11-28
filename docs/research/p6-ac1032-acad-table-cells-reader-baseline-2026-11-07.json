@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1032 ACAD_TABLE sample current-reader baseline",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg",
+    "sha256": "1b719034b3d65a66830db64ae65662f0c9249f8f05ce906d212f7ffd4b34473c",
+    "version": "AC1032",
+    "repositoryRevision": "23c16706a555b67c4123abad4449c7cb6c7da4ed",
+    "provenance": "The tracked dwg-parser PROVENANCE.md identifies this as an ODA R2018 export of an ACAD_TABLE scaffold from an ezdxf MIT fixture plus locally authored CJK cell text. It is external to this repository and is not copied into libdxfrw."
+  },
+  "localRun": {
+    "repositoryRevision": "9171a5af3a7d16d18923ed2de883691501efd103",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg -y -d -v2018 /private/tmp/acad-table-cells-ac1032-baseline.dxf",
+    "binarySha256": "7a93ff9a9f2e3b75c17580d79ec38c1c97730bc730ebb23e23bd3944a2f97120",
+    "logPath": "/private/tmp/acad-table-cells-ac1032-baseline.log",
+    "logSha256": "9f8e43ac937fa464b6b59920371b3e1afa2c6b7333c0f2e7f09b10490b60489c",
+    "exitCode": 1,
+    "sourceFrames": 182,
+    "publishedFrames": 181,
+    "entityParseFailures": 0,
+    "objectParseFailures": 1,
+    "failedFrame": {
+      "handle": "0x7B",
+      "offset": 2772,
+      "type": 509,
+      "ordinal": 98,
+      "recordName": "MENTALRAYRENDERSETTINGS",
+      "className": "AcDbMentalRayRenderSettings"
+    },
+    "strictOutput": "Refused because the DWG read disposition is incomplete."
+  },
+  "independentPeer": {
+    "tool": "LibreDWG 0.14 dwgread",
+    "binaryPath": "/opt/homebrew/bin/dwgread",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "minJsonPath": "/private/tmp/acad-table-cells-libredwg-minjson-current.json",
+    "minJsonSha256": "244fb1dda8ce99d2efb811c5af19a119e91780cf52503b500b3b8c56b8559927",
+    "sameObjectHandle": "0x7B",
+    "objectSizeBytes": 133,
+    "objectDataBits": 1029,
+    "reportedFields": [
+      "class_version=2",
+      "name=Medium",
+      "mr_version=2",
+      "sampling1=0",
+      "sampling2=1",
+      "sampling_filter1=3.0",
+      "sampling_filter2=3.0",
+      "energy_multiplier=1.0"
+    ],
+    "peerReadStatus": "SUCCESS"
+  },
+  "headerIntegrity": {
+    "firstBoundary": {"fileOffset": 16, "expected": 808, "observed": 812},
+    "secondBoundary": {"fileOffset": 830, "expected": 830, "observed": 1569},
+    "unclaimedBytes": 739,
+    "disposition": "Keep both integrity rows and strict-output refusal; the unclaimed bytes are not classified as padding."
+  },
+  "nextAction": "Trace the failed MentalRay body field against the ODA R2018 layout and this source frame, correct only a proven version/layout discrepancy, then add a generated locally authored regression vector and rerun the source diagnostic. Keep HEADER envelope work separate and gated on independent evidence.",
+  "scopeLimit": "LibreDWG's successful typed decode is a structural comparator, not native semantic or support qualification. The companion source DXF is not claimed as the exact ODA input. Neither this receipt nor the peer result establishes complete AC1032 conversion."
+}

@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-p6-mesh-crease-value-domain-v2",
+  "completedAt": "2026-11-02",
+  "status": "SUBDMESH_CREASE_VALUE_DOMAIN_ENFORCED",
+  "supportClaimEffect": "none",
+  "field": {
+    "dxfGroup": 140,
+    "domain": "Finite values equal to -1 or greater than or equal to 0.",
+    "meaning": {
+      "-1": "Always retain the crease.",
+      "0": "Never apply the crease.",
+      "positive": "Begin applying the crease at the specified subdivision level."
+    }
+  },
+  "implementation": {
+    "dxfRead": "Reject an invalid crease value before adding it to the MESH model.",
+    "dxfCreaseCount": "Reject group 95 when its value count exceeds the already parsed level-0 edge count.",
+    "dxfWrite": "Shared MESH geometry validation refuses invalid values or a crease vector longer than the edge vector before emitting the entity record.",
+    "dwgRead": "Reject a bounded decoded crease count larger than the parsed level-0 edge count before reserving or reading values; invalid crease scalars are still rejected before publication.",
+    "dwgWrite": "Shared MESH geometry validation refuses invalid values or a crease vector longer than the edge vector before emitting the object body.",
+    "semanticLimit": "The same-index prefix mapping is corroborated by the independent reader and the generated libdxfrw parser/writer controls. This does not establish physical producer breadth, native crease effect, subdivision evaluation, rendering, or 3D solid meaning."
+  },
+  "evidence": [
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+      "supports": "DXF group 95 is the level-0 edge-crease count; group 140 carries edge-crease values. The reference does not specify sparse or prefix semantics."
+    },
+    {
+      "source": "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+      "supports": "The current independent ACadSharp reader loops over the crease count and assigns each value to mesh.Edges[l], so a count greater than the parsed edge count would address a nonexistent edge. This is peer interoperability/safety evidence, not a normative definition of all producer behavior."
+    }
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_mesh_crease_value_domains$' --output-on-failure",
+    "result": "PASS (1/1)",
+    "coverage": [
+      "Generated MESH parse accepts and retains -1, 0, and positive values.",
+      "Generated DXF parser accepts and retains one crease value for a three-edge level-0 mesh; ASCII/Binary writers accept and emit that shorter vector.",
+      "Generated DXF parser rejects four crease values for three level-0 edges.",
+      "Generated ASCII/Binary DXF writer refusal for excess crease count is atomic.",
+      "Generated DWG writer refusal for excess crease count is atomic across AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032.",
+      "Generated ASCII/Binary DXF writer controls accept the documented values and atomically refuse -2, -0.5, and a negative subnormal value.",
+      "Generated DWG encoder controls refuse invalid crease values before writing any body, handle, or string bits for AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032.",
+      "The DWG parser count guard was compiled but has no dedicated malformed-DWG runtime vector in this slice.",
+      "No DWG/DXF fixture files or dependencies were added."
+    ]
+  },
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2017/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbSubDMesh__setCrease_AcDbFullSubentPathArray__double.html",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm"
+  ],
+  "inputFixturesAdded": 0,
+  "supportClaimsPromoted": 0
+}

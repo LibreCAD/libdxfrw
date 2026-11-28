@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE DXF boolean fields reject non-boolean values",
+  "mode": "P2 local parser correctness slice with generated ASCII/Binary controls",
+  "baselineCommit": "f7d8bed2",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "15e16d591a2b120d44dbfff0a32ccf164ee22dc62ae661502b594efb24af844b",
+  "scope": [
+    "Reject MLEADERSTYLE boolean group values outside 0 and 1 instead of coercing every nonzero integer to true.",
+    "Cover the represented boolean fields at group codes 290 through 298, including the locally modeled R2013 textExtended field at 298.",
+    "Exercise recovery through the same dx_iface after malformed records and keep authored inputs in temporary scratch storage."
+  ],
+  "evidence": {
+    "sources": [
+      {
+        "title": "Autodesk MLEADERSTYLE DXF group-code reference",
+        "url": "https://help.autodesk.com/cloudhelp/2021/CHS/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+        "supports": "The MLEADERSTYLE table identifies groups 290-297 as enable/boolean fields, alongside their other scalar and handle fields."
+      },
+      {
+        "title": "Open Design Specification for .dwg files v5.4.1, §20.4.87",
+        "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "supports": "MLEADERSTYLE fields corresponding to groups 290-297 are encoded as B bit values in DWG. The inference that DXF boolean values must be exactly 0 or 1 follows the boolean group-code type; it is not a native-producer observation."
+      },
+      {
+        "title": "libdxfrw DXF binary value-kind classifier and boolean reader/writer",
+        "url": "src/intern/dxfreader.cpp; src/intern/dxfwriter.cpp",
+        "supports": "The local classifier routes boolean group codes through one-byte binary boolean decoding and the binary writer emits 0 or 1. Binary invalid-value controls mutate that one-byte field to 2 before import."
+      }
+    ],
+    "sourceCreation": "The test authors a valid minimal rooted MLEADERSTYLE DXF locally, mutates the requested ASCII value or corresponding binary boolean byte, imports it, and removes the temporary directory after success. No persistent drawing fixtures were added."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "DRW_MLeaderStyle::parseCode now validates the decoded integer for groups 290-298 before assigning the bool model field. Values below 0 or above 1 fail source parsing instead of being silently normalized to true.",
+    "behaviorChanges": [
+      "Valid 0 and 1 values preserve their prior parsed meanings.",
+      "Malformed ASCII values 2 and -1 are rejected for group 290; value 2 is rejected for every represented boolean group 290-298 in both ASCII and Binary DXF.",
+      "A corrected valid source imports through the same adapter after the invalid-source attempts."
+    ],
+    "publicApiOrLayoutChanged": false,
+    "persistentFixturesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "ctest --test-dir build -R '^(libdxfrw_mleaderstyle_boolean_source_domain|libdxfrw_mleaderstyle_writer_closure)$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS with Apple clang 21.0.0, -Wall -Wextra -pedantic -Werror.",
+      "focusedCTest": "PASS 2/2 in 2.41 seconds.",
+      "fullSuite": "NOT_RUN per fast-validation plan.",
+      "nativeCadOrIndependentConsumer": "NOT_RUN."
+    }
+  },
+  "limitations": [
+    "This closes local value-domain handling for represented boolean fields only; it does not qualify duplicate field order, all MLEADERSTYLE integer domains, handle-role closure, absent/default semantics, or native annotation behavior.",
+    "Group 298 is modeled locally as a boolean textExtended field; the cited Autodesk table does not list group 298, so this receipt makes no external support claim for that extension.",
+    "No whole-document, platform, ABI, LibreCAD, LibreCAD_3, FreeCAD, native-producer or rendered-semantics claim is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "The P2 MLEADERSTYLE boolean value-domain check for represented groups 290-298.",
+    "remainingP2Scope": "Non-boolean integer domains, reference roles, optional/repeated/default/version-specific fields and MLINESTYLE/LTYPE/XDATA gaps remain open.",
+    "nextImplementationPacket": "Reproduce one current MLINESTYLE or LTYPE/XDATA refusal and implement the shared source/planner/output rule; do not extend count-only matrices.",
+    "phaseStatusesChanged": false,
+    "validationFrequencyChanged": false,
+    "externalDeferredItemsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "145356f54614de24622d41ca975d4f897baa194f4b5cadb99fe7e1a297e3cd14",
+    "tests/dwg2dxf_adapter_tests.cpp": "2de612089fa4d4c69c245e9ec4ad1c39765eb04c4c932d5ddaeff6cbfdaa6184",
+    "tests/CMakeLists.txt": "ff237f8a2994844f47a34b75790468a8b8a04a700ff3ab8c859d96fb4fc8cd89"
+  },
+  "commitCreated": false,
+  "worktree": "Shared worktree broadly dirty; unrelated files were not staged or included."
+}

@@ -105,11 +105,18 @@ def _read_json(path: Path) -> dict[str, Any]:
     def reject_constant(token: str) -> Any:
         raise SupportError("non-finite JSON token %s in %s" % (token, path))
 
+    def finite_float(token: str) -> float:
+        value = float(token)
+        if not math.isfinite(value):
+            reject_constant(token)
+        return value
+
     try:
         value = json.loads(
             path.read_text(encoding="utf-8"),
             object_pairs_hook=reject_pairs,
             parse_constant=reject_constant,
+            parse_float=finite_float,
         )
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise SupportError("cannot read %s: %s" % (path, exc)) from exc
@@ -133,6 +140,17 @@ def _is_hex64(value: object) -> bool:
 
 def _is_hex40(value: object) -> bool:
     return isinstance(value, str) and len(value) == 40 and set(value) <= HEX40
+
+
+def _is_finite_tolerance(value: object) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return value >= 0 and math.isfinite(value)
+    except OverflowError:
+        # Integers outside the floating-point comparison domain are not
+        # usable tolerances, even though JSON can represent them exactly.
+        return False
 
 
 def _string_list(value: object, label: str, *, nonempty: bool = False) -> list[str]:
@@ -477,6 +495,24 @@ def validate_claims(
             raise SupportError("claim %s lacks an evidence field ID" % claim_id)
         if any(field_id not in evidence_fields[item] for item in evidence_ids):
             raise SupportError("claim %s field is absent from its evidence" % claim_id)
+        normalization = claim.get("normalization")
+        tolerance = claim.get("tolerance")
+        if not isinstance(normalization, str) or not normalization:
+            raise SupportError("claim %s lacks a normalization" % claim_id)
+        # Validate numeric shape before exact evidence equality: bool equals
+        # 0/1 in Python, and NaN/Infinity must never be usable tolerances.
+        if normalization == "floatTolerance":
+            if (
+                not isinstance(tolerance, dict)
+                or set(tolerance) != {"absolute", "relative"}
+                or any(not _is_finite_tolerance(value) for value in tolerance.values())
+            ):
+                raise SupportError("claim %s has an invalid float tolerance" % claim_id)
+        elif normalization in {"finiteNumber", "degreesFromRadians"}:
+            if not _is_finite_tolerance(tolerance):
+                raise SupportError("claim %s has an invalid numeric tolerance" % claim_id)
+        elif tolerance is not None:
+            raise SupportError("claim %s has a tolerance without float normalization" % claim_id)
         for evidence_id in evidence_ids:
             evidence_row = evidence[evidence_id]
             source_claim = evidence_details[evidence_id][field_id]
@@ -503,27 +539,6 @@ def validate_claims(
             if pair in used_evidence_fields:
                 raise SupportError("evidence field %s is reused by multiple claims" % field_id)
             used_evidence_fields.add(pair)
-        normalization = claim.get("normalization")
-        tolerance = claim.get("tolerance")
-        if normalization == "floatTolerance":
-            if (
-                not isinstance(tolerance, dict)
-                or set(tolerance) != {"absolute", "relative"}
-                or any(not isinstance(tolerance[key], (int, float)) or tolerance[key] < 0 for key in tolerance)
-            ):
-                raise SupportError("claim %s has an invalid float tolerance" % claim_id)
-        elif normalization in {"finiteNumber", "degreesFromRadians"}:
-            if (
-                not isinstance(tolerance, (int, float))
-                or isinstance(tolerance, bool)
-                or not math.isfinite(float(tolerance))
-                or tolerance < 0
-            ):
-                raise SupportError("claim %s has an invalid numeric tolerance" % claim_id)
-        elif tolerance is not None:
-            raise SupportError("claim %s has a tolerance without float normalization" % claim_id)
-        if not isinstance(normalization, str) or not normalization:
-            raise SupportError("claim %s lacks a normalization" % claim_id)
         by_id[claim_id] = claim
         for route in route_ids:
             route_membership.setdefault(route, set()).add(claim_id)
@@ -788,6 +803,25 @@ def self_test() -> None:
             changed, root=ROOT, inputs=inputs, routes=routes, matrix=matrix,
             allow_draft=True,
         )
+
+    invalid_numeric = copy.deepcopy(claims)
+    float_claim = next(row for row in invalid_numeric["claims"]
+                       if row["normalization"] == "floatTolerance")
+    float_claim["tolerance"]["absolute"] = False
+    try:
+        validate_claims(
+            invalid_numeric, root=ROOT, inputs=inputs, routes=routes,
+            matrix=matrix, allow_draft=True,
+        )
+    except SupportError as exc:
+        if "invalid float tolerance" not in str(exc):
+            raise AssertionError("invalid tolerance did not reach numeric validation") from exc
+    else:
+        raise AssertionError("Boolean float tolerance was accepted")
+    with tempfile.TemporaryDirectory(prefix="libdxfrw-claims-numeric-") as directory:
+        encoded = Path(directory) / "overflow.json"
+        encoded.write_text('{"nested":[{"number":1e999}]}', encoding="utf-8")
+        _expect_rejected(lambda: _read_json(encoded), "nested exponent overflow")
 
     _expect_rejected(lambda: invalid_claims(lambda d: d["evidence"][0].update(authorityKind="self-read")), "self-read authority")
     _expect_rejected(lambda: invalid_claims(lambda d: d["evidence"][0].update(fixtureAdmission="external-only")), "external-only evidence")

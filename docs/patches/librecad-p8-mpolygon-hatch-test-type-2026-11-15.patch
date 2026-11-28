@@ -1,0 +1,24 @@
+From 15e3a7af03f0765ab1a4cc50b7dc3803936f28e7 Mon Sep 17 00:00:00 2001
+From: dxli <dongxuli2011@gmail.com>
+Date: Sun, 15 Nov 2026 05:56:17 -0500
+Subject: [PATCH] Set the sliced HATCH runtime type in MPOLYGON test
+
+---
+ librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp b/librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp
+index 4879ce0..bdaa56a 100644
+--- a/librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp
++++ b/librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp
+@@ -463,6 +463,7 @@ TEST_CASE("DXF MPOLYGON writer rejects unsupported geometry and versions",
+             // A valid HATCH spline/ellipse must reach the MPOLYGON-specific
+             // refusal rather than failing the generic edge validator first.
+             DRW_Hatch hatch = mp;
++            hatch.eType = DRW::HATCH;
+             genericOk = m_writer->writeHatch(&hatch);
+             m_ok = m_writer->writeMPolygon(&mp);
+         }
+-- 
+2.54.0 (Apple Git-157)
+

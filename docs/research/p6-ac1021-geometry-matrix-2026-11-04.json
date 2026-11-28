@@ -1,0 +1,155 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_INTEROPERABILITY_MATRIX_ONLY",
+  "supportClaimEffect": "none",
+  "scope": "Nine generated single-entity or mixed AC1021 scratch files with the explicit default material and plotstyle providers, plus four sampled LINE provider combinations. No general DWG writer support claim.",
+  "producer": {
+    "source_revision": "6f294fc7 (same src tree as 882350c8; latter only changes README.md)",
+    "probe": "tools/probe_ac1021_geometry_matrix.cpp",
+    "probe_sha256": "ba06bf9b75c8dcf13fd7efa725d3c1369e14d0eb4724a30104d34de05f76ec91",
+    "executable_sha256": "9df954038a6a12b16b21bde0e815dc4a777acf3f6132d27ba5bdc60a8bcc4d5b",
+    "library_sha256": "4719d6c363043366beb38dfd16da2c3a4ea9829909364fe89f2e6151558f451c",
+    "reproduction": "Compile with c++ -std=c++17 -Wall -Wextra -pedantic -Werror -Isrc -Itests tools/probe_ac1021_geometry_matrix.cpp build-gcc/libdxfrw.a -o <scratch>/producer. Run producer <mode> <new-path.dwg>; the optional third and fourth arguments select material and plotstyle opt-ins as 0 or 1. All nine files were regenerated after the VPORT commit and matched the converted originals byte for byte."
+  },
+  "geometry_contract": {
+    "LINE": "(1,2,3) to (4,5,6)",
+    "POINT": "(3,4,5)",
+    "CIRCLE": "OCS center (7,8,2), radius 2.5",
+    "ARC": "OCS center (10,11,3), radius 4, angles 20 and 115 degrees",
+    "normals": "default (0,0,1), tilt (0,1,0), negative (0,0,-1); tilted and negative circles thickness 1.25 and arcs 0.5",
+    "mixed": "one LINE, one default CIRCLE, one default ARC"
+  },
+  "producer_source_control": {
+    "author": "tools/author_ac1021_geometry_matrix.py",
+    "author_sha256": "ba6b7f8e5aec2f9f06bae04f523770ac4790a11f7a320ea12a8dad01662ff346",
+    "ezdxf_version": "1.4.5",
+    "dxf_sha256": "96b6d8d3be6e9a985341ac87a02ba174e7013d0eac583c28a4694feb804f3721",
+    "oda_dwg_sha256": "8f37620c081c0b9a365e4712608ee70ecc6e3ddd3845b468aefe7fbc00ac4681",
+    "oda_back_dxf_sha256": "6ef119369a4f89a1c5d4a5d35e992370437ac663944790c335f74b90cf9620b0",
+    "result": "ODA scratch DXF to AC1021 DWG to DXF succeeded with no .err and no captured warnings. Source contains all eight entity/normal variants and independent semantic checks passed. The author was subsequently hardened to refuse overwriting an existing destination; drawing values are unchanged."
+  },
+  "conversion": {
+    "oda_executable_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "tool": "ODA File Converter 27.1.0",
+    "command": "ODAFileConverter <in-dir> <out-dir> ACAD2007 DXF 0 1 '*.dwg'",
+    "batch_exit_code": 0,
+    "batch_stdout_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "interpretation": "A zero process status is not acceptance: inspect DXF, .err and captured log. The four successful files had DXF and no .err or captured warning output. The five unsuccessful files had only .err; all listed earlier object warnings before fatal failure. Physical ODA conversion lineage is the separately observed scratch run, not established by the peer audit tool."
+  },
+  "generated_modes": {
+    "line": {
+      "dwg_sha256": "aac8f6cae5f5abc3e932ff172be94b523e2a9a3bbe0739368eb716498a0af639",
+      "outcome": "DXF",
+      "output_sha256": "a5c605421bfe4a1aae164c4dd1319a345d8159b4e62a336e1a85a28cd6cbd498",
+      "native_peer": "LibreDWG 0.14 verified geometry, entity inventory and default material/plotstyle graph",
+      "dxf_peer": "ezdxf 1.4.5 verified revision, audit, fields, and for ARC calculated WCS center/endpoints"
+    },
+    "point": {
+      "dwg_sha256": "2baa4602d47536752843cebfed594256efdb92d55c824ca3416fce636789d474",
+      "outcome": "ERR_ONLY",
+      "output_sha256": "666916e29f1c77421a929f9787efb423239bf47a7e8dbb84137295be10ddc315",
+      "native_peer": "LibreDWG 0.14 verified geometry, entity inventory and default material/plotstyle graph",
+      "fatal": "AcDbPoint (36)"
+    },
+    "circle": {
+      "dwg_sha256": "62ee0868869e4e466411f04fa81178a9f79b7bbdfaffe71ce13205eb9c37d7b0",
+      "outcome": "ERR_ONLY",
+      "output_sha256": "49563eff459c4ae81512c493f692a6c7023faf5f352a62a21125366b840a7ad1",
+      "native_peer": "LibreDWG 0.14 verified geometry, entity inventory and default material/plotstyle graph",
+      "fatal": "AcDbCircle (36)"
+    },
+    "circle_tilt": {
+      "dwg_sha256": "01a2df5e616f6c6622c56f221d4fc0af1dec4452ca1695384385164201eb6294",
+      "outcome": "ERR_ONLY",
+      "output_sha256": "4362f334d4ad4b08115d2292bfc87b1ad43275dea982192ace501957d67eed8b",
+      "native_peer": "LibreDWG 0.14 verified geometry, entity inventory and default material/plotstyle graph",
+      "fatal": "AcDbCircle (36)"
+    },
+    "circle_negative": {
+      "dwg_sha256": "ef9bad04eca0ac6633bd5d95d53e6d16d2e6354b17393ca17c8207a0ee6f0249",
+      "outcome": "ERR_ONLY",
+      "output_sha256": "7c17ff797cad9696631784d7bfac8e5cc14fa08ace69a65624d30c6414953baf",
+      "native_peer": "LibreDWG 0.14 verified geometry, entity inventory and default material/plotstyle graph",
+      "fatal": "Out of range"
+    },
+    "arc": {
+      "dwg_sha256": "22eb7d13b724052bbfc00cae282efc61d746a4f4d138ac89bb25267e6a8f5b0a",
+      "outcome": "DXF",
+      "output_sha256": "97f15e5a8ca67f086a0da17118b5deacc7420c92ab52eef8fdd00e9e56059414",
+      "native_peer": "LibreDWG 0.14 verified geometry, entity inventory and default material/plotstyle graph",
+      "dxf_peer": "ezdxf 1.4.5 verified revision, audit, fields, and for ARC calculated WCS center/endpoints"
+    },
+    "arc_tilt": {
+      "dwg_sha256": "1c49b3f058e0d888cec2bf5a18b336f40ed25290713cb7c3c4d66465f4208ea2",
+      "outcome": "DXF",
+      "output_sha256": "3d23f080835018609a759ec35ecc9c9c8810438a0c903d82d6a399898c0bf54a",
+      "native_peer": "LibreDWG 0.14 verified geometry, entity inventory and default material/plotstyle graph",
+      "dxf_peer": "ezdxf 1.4.5 verified revision, audit, fields, and for ARC calculated WCS center/endpoints"
+    },
+    "arc_negative": {
+      "dwg_sha256": "b553fab9dfeb80ad24f6ce81e7a2fe60eca25a29a988854fb7bafcb8c9fdfa23",
+      "outcome": "DXF",
+      "output_sha256": "ccd9584fe5402bfe5dd81dc0d90cbb270f21574a127865d5d670d9b9dd8ecb17",
+      "native_peer": "LibreDWG 0.14 verified geometry, entity inventory and default material/plotstyle graph",
+      "dxf_peer": "ezdxf 1.4.5 verified revision, audit, fields, and for ARC calculated WCS center/endpoints"
+    },
+    "mixed": {
+      "dwg_sha256": "96a44011adbccfa1f1bed602ad126ff374614e218c00b69cc183c58a1e9b5d34",
+      "outcome": "ERR_ONLY",
+      "output_sha256": "4b96830003ceda76bc015b0452a81b15d993fe663d60d47ff81e373d9cb89b49",
+      "native_peer": "LibreDWG 0.14 verified geometry, entity inventory and default material/plotstyle graph",
+      "fatal": "AcDbCircle (37)"
+    }
+  },
+  "line_optin_controls": {
+    "00": {
+      "material": false,
+      "plotstyle": false,
+      "dwg_sha256": "7dbcb968ba3f0a044564cfeb344386ef95b33378da49901152e08f3ae0763875",
+      "outcome": "ERR_ONLY",
+      "output_sha256": "9863d66b3bca87512b58ccb0aba555a5672578b8f965d1e2f6a888e86fd2dd6f",
+      "fatal": "AcDbLayerTableRecord (12)"
+    },
+    "01": {
+      "material": false,
+      "plotstyle": true,
+      "dwg_sha256": "c0325aa43f755b5254edc695c18e2d42f8c2fe123cc1e45541449c695244a005",
+      "outcome": "ERR_ONLY",
+      "output_sha256": "f31af9d8e7b7236763b028b1f89290882d542db144edf82956ab54992c06de5a",
+      "fatal": "AcDbLayerTableRecord (12)"
+    },
+    "10": {
+      "material": true,
+      "plotstyle": false,
+      "dwg_sha256": "7f607769b46c921e4ef8515589899730f45bff7e567cbbd846d558953f2c9422",
+      "outcome": "ERR_ONLY",
+      "output_sha256": "447c37b7c076dbc4bc89559acf8ba72e3e4627e7d4e0217f8b87c91600ba15ed",
+      "fatal": "AcDbLayerTableRecord (12)"
+    },
+    "11": {
+      "material": true,
+      "plotstyle": true,
+      "dwg_sha256": "aac8f6cae5f5abc3e932ff172be94b523e2a9a3bbe0739368eb716498a0af639",
+      "outcome": "DXF",
+      "output_sha256": "622af9e36012b86e9a4775aca568b6a43d0e463e8622b6941e8f1d0f8313da2f"
+    }
+  },
+  "peer": {
+    "tool": "tools/audit_ac1021_geometry_peer.py",
+    "tool_sha256": "b63c80a28160d069e4250a9731e821bfeb666a76443df13379ad233f58a99cf0",
+    "synthetic_test": "tests/ac1021_geometry_peer_audit_tests.py",
+    "test_sha256": "62f0f19bc7f5d9261c67b6b81e5b7747e27c06dc2235810336eec2a0936623a8",
+    "ctest": "libdxfrw_ac1021_geometry_peer_audit",
+    "dwgread_version": "0.14",
+    "dwgread_sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "ezdxf_version": "1.4.5",
+    "run": "python -B tools/audit_ac1021_geometry_peer.py --mode <mode> --dwgread <dwgread-0.14> --dwg <file> --dwg-sha256 <exact-sha> [--dxf <file> --dxf-sha256 <exact-sha>]. Use mode source for the physical producer control; include DXF for the four successful generated modes. All nine generated DWGs and the source graph/geometry checks passed."
+  },
+  "limits": [
+    "Scratch files live under /private/tmp/ac1021-geometry-matrix; no DWG or DXF fixtures are committed.",
+    "These are observed results for explicitly selected geometry, flags and one tool version. The LINE opt-in factorial is not proof that those settings are necessary for all drawings.",
+    "The separately investigated POINT/CIRCLE absent-string footer correction is in progress. This receipt records pre-fix behavior at 6f294fc7; failed objects remain peer-readback observations, not ODA acceptance.",
+    "The hash-bound audit validates artifacts but cannot independently prove ODA conversion lineage."
+  ]
+}

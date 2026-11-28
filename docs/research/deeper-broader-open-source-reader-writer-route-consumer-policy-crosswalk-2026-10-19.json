@@ -1,0 +1,122 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader open-source reader-writer route and consumer-policy crosswalk",
+  "mode": "Primary project documentation and issue review cross-checked against existing local plan owners",
+  "scope": [
+    "Compare current open-source DWG/DXF implementation routes by format, direction, and evidence ceiling.",
+    "Refresh the ACadSharp and ACadRust peer issue signals most relevant to local table, spline, ownership, and auxiliary-object work.",
+    "Reconcile peer claims with LibreCAD 3's read-only DWG product policy and current DXF/3D consumer boundaries.",
+    "Refine only existing PAR-06, PAR-07, PAR-49, PAR-119, and PAR-126 implementation/evidence owners."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_saved_to_workspace": 0,
+    "peer_fixtures_committed": 0,
+    "full_suite_run": false,
+    "local_tests_run": false,
+    "remote_review": "Read-only review of primary project documentation, release notes, and issue pages; no mutable peer sample was treated as a pinned artifact.",
+    "local_checks": [
+      "Mapped LibreDWG, ACadSharp, ACadRust, ezdxf, GDAL, and LibreCAD 3 to the current PAR owners and kept direction/version/route distinctions.",
+      "Reconciled ACadSharp #1253, #1261, and #1299 with existing HATCH, GEODATA, and SPLINE evidence; no issue was treated as a local reproduction.",
+      "Reconciled ACadRust #130, #133, and #134 with existing TABLE, owner-closure, and bounded auxiliary-object work; private corpus and candidate fixes remain unverified.",
+      "Updated only DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md and this research receipt; no production code, test code, fixtures, dependencies, metadata, or support claims changed."
+    ],
+    "limitations": "Peer issue bodies are reporter evidence and do not establish local behavior or normative format rules. ACadRust #133/#134 rely on private customer corpora; #134 candidate changes lack a public corpus retest. ACadSharp #1253 contains a producer/profile-dependent HATCH group-47 discussion and remains unresolved. GDAL and ezdxf expose projected or explicitly partial semantics. No peer binary, drawing, native CAD application, or geometry kernel was executed."
+  },
+  "sources": [
+    {
+      "name": "LibreDWG 0.14.1 NEWS",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "observed": "Release notes enumerate concrete DWG/DXF fixes, including R2004 page/decompression safety, HATCH handling, table/style fields, handle ownership, and the final inline-SAT chunk. These are route- and release-specific changes, not proof of broad semantic support.",
+      "evidence_ceiling": "Project release notes only. Pin release, commit, build, direction, format version, and per-record result for comparator use; keep GPL-3.0 source-port compatibility separate."
+    },
+    {
+      "name": "ACadSharp issue #1253",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1253",
+      "observed": "The report describes AutoCAD 2027 rejection of output from ACadSharp 3.6.35 and lists CLASSES, HATCH, and DIMSTYLE table-header concerns. A later comment refines the HATCH group-47 claim to derived paths; the issue page still does not establish a universal presence rule or a local defect.",
+      "evidence_ceiling": "Version/producer-specific peer report. Existing local HATCH characterization and version-scoped DIMSTYLE evidence remain the applicable gates."
+    },
+    {
+      "name": "ACadSharp issue #1261",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1261",
+      "observed": "The issue reports an ACadSharp DWG writer GEODATA CIVIL-tail omission and AutoCAD failure but does not identify the exact source/output magic needed to establish the target-version branch.",
+      "evidence_ceiling": "Peer-only trigger. The local PAR-119/7BP gate follows ODA's versioned target contract and generated boundary controls."
+    },
+    {
+      "name": "ACadSharp issue #1299",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "observed": "The v3.8.0 report says a DWG-to-DXF result contains SPLINE data rejected by a later GDAL conversion, but provides no public exact failing handle, curve arrays, diagnostic options, or independent expected curve in the issue text.",
+      "evidence_ceiling": "Discovery lead only. Keep under existing PAR-22/7H/7I; do not infer a spline grammar or expected geometry from the report title."
+    },
+    {
+      "name": "ACadRust issue #130",
+      "url": "https://github.com/hakanaktt/acadrust/issues/130",
+      "observed": "The report separates DWG merged-cell ranges and table-style suppression flags from the corresponding DXF per-cell and per-field representation, describing a cross-format transfer gap in the peer.",
+      "evidence_ceiling": "Peer route evidence only. Local TABLE/TABLECONTENT remains scoped to PAR-126/7G.3d and preserves tagged alternatives rather than synthesizing values."
+    },
+    {
+      "name": "ACadRust issue #133",
+      "url": "https://github.com/hakanaktt/acadrust/issues/133",
+      "observed": "The reporter describes orphaned anonymous dimension-block children being re-homed into model space, creating phantom geometry; the comparison uses a private 351-DWG corpus and an ODA File Converter DWG-to-DXF route.",
+      "evidence_ceiling": "High-value owner-disposition test shape, not an independently inspectable corpus or local failure. Keep missing/ambiguous owners unresolved; do not infer model-space membership."
+    },
+    {
+      "name": "ACadRust issue #134",
+      "url": "https://github.com/hakanaktt/acadrust/issues/134",
+      "observed": "The report says ACadRust 0.6.4 rejects 70 of 351 private AC1032 files that 0.6.3 opened; 65 failures map to MLEADER context data and the remainder to associative objects/table parsing. Candidate commit 0e46236 is linked, but no public corpus retest is recorded.",
+      "evidence_ceiling": "Peer regression and bounded-record diagnostic shape only. Do not weaken local record bounds or treat a candidate commit as verified behavior."
+    },
+    {
+      "name": "ezdxf 1.4.5 ACIS API",
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "observed": "Documentation states that arbitrary ACIS load/edit/re-export is not a goal, unsupported entities may be lost, and mesh conversion only represents flat polygonal faces without an ACIS kernel.",
+      "evidence_ceiling": "Useful exact-profile DXF/carrier comparator; not a DWG codec, arbitrary ACIS validator, or curved B-rep semantic oracle."
+    },
+    {
+      "name": "GDAL DXF driver documentation",
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "observed": "The driver documents Binary DXF reading from GDAL 3.12 and an optional AC1027+ mode that exposes ASM bytes and transform rather than constructing 3D geometry. OGR projection omits or simplifies CAD-specific information by design.",
+      "evidence_ceiling": "Use only for exact projection/consumer questions; the separate DWG driver dependency and operation must not be attributed to the DXF route."
+    },
+    {
+      "name": "LibreCAD 3 DWG support policy",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "observed": "Current policy says DWG import is opt-in and read-only, the pinned library ledger is frozen with 15 read claims (11 experimental and 4 pending-native), none promoted, and no DWG write claim exists. The document requires separate promoted write claims, independent reopen, and a project decision before enabling save.",
+      "evidence_ceiling": "Downstream product policy and pinned-ledger summary, not a second parser implementation or runtime result."
+    }
+  ],
+  "assessment": {
+    "new_confirmed_local_defects": 0,
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "implementation_order_changed": false,
+    "validation_frequency_changed": false,
+    "new_tests_or_ctest_registrations": 0,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "peer_repositories_cloned_or_built": false,
+    "peer_executables_run": 0,
+    "native_cad_or_kernel_runs": 0,
+    "external_drawings_downloaded": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 134,
+      "top_level_subplans": 77
+    },
+    "deferred_external": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "plan_impact": "Refines peer admission and identity/owner disposition under the existing associative, object-graph, TABLE, GEODATA, SPLINE, and 3D evidence owners. The next local slices remain non-blocked by peer availability. LibreCAD/LibreCAD_3 2D consumer compatibility is preserved; no DWG write product claim is inferred from library implementation."
+  },
+  "plan_sha256": "f1ae4fee80200c7dd6b1e92aa4b4b73cb9c44f3f92feca360b2f71814904db4a",
+  "plan_validation": "jq empty on receipt passed; git diff --check on plan and receipt passed"
+}

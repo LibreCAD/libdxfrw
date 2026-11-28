@@ -1,0 +1,97 @@
+{
+  "date": "2026-11-16",
+  "scope": "Fresh native macOS ARM64 FreeCAD GUI and headless checks of the twenty-patch current-upstream candidate.",
+  "sourceCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+  "candidateCommit": "a9bf9c8259b094f7922ff104b9de563a8a1b1d5f",
+  "sourceArchiveSha256": "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4",
+  "sourceRoot": "/private/tmp/freecad-main-157-source",
+  "buildRoot": "/private/tmp/freecad-main-157-gui-build",
+  "runtime": {
+    "platform": "macOS 27.2.1 build 26B131, arm64",
+    "freecad": "27.1.0 dev, source archive has no Git metadata",
+    "python": "3.12.16",
+    "qtAndPySide": "6.12.0; one image of each loaded Qt framework. The QtPdf image comes from Homebrew qtwebengine 6.11.2, so this is not a claim of complete cross-component version alignment.",
+    "guiUp": 1,
+    "qtFrameworkImages": {
+      "QtConcurrent.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtConcurrent.framework/Versions/A/QtConcurrent"
+      ],
+      "QtCore.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtCore.framework/Versions/A/QtCore"
+      ],
+      "QtDBus.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtDBus.framework/Versions/A/QtDBus"
+      ],
+      "QtGui.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtGui.framework/Versions/A/QtGui"
+      ],
+      "QtNetwork.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtNetwork.framework/Versions/A/QtNetwork"
+      ],
+      "QtOpenGL.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtOpenGL.framework/Versions/A/QtOpenGL"
+      ],
+      "QtOpenGLWidgets.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtOpenGLWidgets.framework/Versions/A/QtOpenGLWidgets"
+      ],
+      "QtPdf.framework": [
+        "/opt/homebrew/Cellar/qtwebengine/6.11.2_1/lib/QtPdf.framework/Versions/A/QtPdf"
+      ],
+      "QtPrintSupport.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtPrintSupport.framework/Versions/A/QtPrintSupport"
+      ],
+      "QtSvg.framework": [
+        "/opt/homebrew/Cellar/qtsvg/6.12.0_1/lib/QtSvg.framework/Versions/A/QtSvg"
+      ],
+      "QtSvgWidgets.framework": [
+        "/opt/homebrew/Cellar/qtsvg/6.12.0_1/lib/QtSvgWidgets.framework/Versions/A/QtSvgWidgets"
+      ],
+      "QtUiTools.framework": [
+        "/opt/homebrew/Cellar/qttools/6.12.0_1/lib/QtUiTools.framework/Versions/A/QtUiTools"
+      ],
+      "QtWidgets.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtWidgets.framework/Versions/A/QtWidgets"
+      ],
+      "QtXml.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtXml.framework/Versions/A/QtXml"
+      ]
+    },
+    "artifactSha256": {
+      "/private/tmp/freecad-main-157-gui-build/bin/FreeCAD": "eaef0a9296bfb569011e08d6f07f60896932e90c27868055eb85b34244c97694",
+      "/private/tmp/freecad-main-157-gui-build/bin/FreeCADCmd": "65692d75f7ef51e7ccdfeafb42d0b07588b50ad47f774d0fdaea655eaf42c96f",
+      "/private/tmp/freecad-main-157-gui-build/Mod/Import/Import.so": "ccbe2615668b6783ad47da0fc41c541d6e08abb4cba30e085795a8938a06df29",
+      "/private/tmp/freecad-main-157-gui-build/Mod/Import/ImportGui.so": "b05c7cfec8b6b070fef5f2a57002e5da78839ca45908d495ca339d448ae52c74",
+      "/private/tmp/freecad-main-157-source/src/Mod/Import/App/dxf/dxf.cpp": "b40d3fbab00ec760229e775aafec5f29466c42de5505a50a0719b2866d74c934",
+      "/private/tmp/freecad-main-157-source/src/Mod/Draft/Draft.py": "72c03a089baca13a55d7f3051988005c3e1005b532b3944b279d407dc122a9a9",
+      "/private/tmp/freecad-pyside612-20261116/Draft_rc.py": "e8d2ed84e4b003fc8e3d5b7cec68207598ec2b7ad718de5a49d6c72f09a7e468"
+    }
+  },
+  "build": {
+    "description": "Fresh Ninja GUI build from the current hash-bound source archive with the five replay-verified candidate files and matching pinned Coin/Pivy/GSL source dependencies; FreeCAD, ImportGui, Import, FreeCADCmd, pivy_coin and Material resources built.",
+    "sourceReplay": "All five affected source and test files match the clean twenty-commit sparse candidate and patch replay.",
+    "logs": [
+      "/private/tmp/freecad-polyface-layer-20261116/current-gui-config.log",
+      "/private/tmp/freecad-polyface-layer-20261116/current-gui-build.log",
+      "/private/tmp/freecad-polyface-layer-20261116/current-freecadcmd-build.log",
+      "/private/tmp/freecad-polyface-layer-20261116/current-full-source-replay.log"
+    ]
+  },
+  "validation": {
+    "gui": "67 fixture-free native GUI controls pass with real Draft and ImportGui, including direct and nested 2D/3D geometry, color, layer visibility, malformed input and recovery.",
+    "guiUnit": "Two downstream GUI tests pass for off-layer ACI color and grouped frozen-layer initial visibility.",
+    "headless": "Seven focused tests pass for ordinary 2D LINE, DIMENSION, SOLID, classic POLYLINE and layer-boundary controls. An additional strict layer-color syntax test passes.",
+    "logs": [
+      "/private/tmp/freecad-polyface-layer-20261116/current-native-gui-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/current-native-gui-unit.log",
+      "/private/tmp/freecad-polyface-layer-20261116/current-consumer-2d-3d-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/current-layer-color-syntax-final.log"
+    ],
+    "sandboxNote": "Headless tests logged inability to create a user-cache directory under the sandbox, but the assertions completed successfully."
+  },
+  "limits": [
+    "The twenty downstream FreeCAD patches remain unmerged. This is a focused macOS ARM64 candidate build, not full FreeCAD test-suite or release qualification.",
+    "Visibility without layer grouping, frozen viewport/block semantics, mixed layers and unsupported geometry/styles remain open.",
+    "No pixel-rendering comparison, independent producer/ACIS semantics, Linux/Windows qualification, phase gate or external-only support claim is established.",
+    "No FreeCAD source archive, external binaries or drawing fixtures are committed."
+  ]
+}

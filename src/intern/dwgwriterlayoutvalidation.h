@@ -191,6 +191,8 @@ using Snapshot = std::variant<R2004Snapshot, R2007Snapshot>;
 
 ValidationResult validate(const R2004Snapshot& snapshot);
 ValidationResult validate(const R2007Snapshot& snapshot);
+// Validates the bounded raw-header envelope emitted by the R2007 writer.
+bool validateR2007HeaderEnvelope(const std::uint8_t* data, std::size_t size) noexcept;
 
 #ifdef DWG_LAYOUT_VALIDATION_TESTS
 using TestSnapshotObserver = void (*)(Snapshot& snapshot);

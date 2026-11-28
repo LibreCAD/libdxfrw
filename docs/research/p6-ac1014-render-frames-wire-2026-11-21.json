@@ -1,0 +1,935 @@
+{
+  "schema": 1,
+  "gate": "P6-F and AC1012 dictionary witness",
+  "supportClaimEffect": "none",
+  "source": {
+    "url": "https://github.com/kurema/BookViewerApp3/blob/b8e1dcbf26183e96d199499e491c368c935fb0b0/res/Explorer/history/3d.dwg",
+    "sha256": "ab655649e8a1059d0557fb167eeb8d9a5d802afc8313d60d4bcabdce790bac4c",
+    "version": "AC1014",
+    "producer": "unknown",
+    "codepage": "ANSI_932"
+  },
+  "reference": {
+    "odaVersion": "5.4.1",
+    "odaPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "scope": "Sections 20.1 and 20.4.104 define object framing and XRECORD; render class bodies are not specified there. Render interpretation is a peer-guided, source-specific observation.",
+    "libredwgVersion": "0.14",
+    "dwgreadSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "peerTraceSha256": "0faeeb381c03dd48da1e4894f97633e4301b75925e80b9141f79be57d42f7d97"
+  },
+  "verifier": {
+    "path": "tools/research/verify_r14_render_frames_source.py",
+    "sha256": "35d739b793c562337942a58a12d8968b157569812095bd26c3b2aaf563a69552",
+    "outputSha256": "39c1c0fddcc40b37c3941a80f9252b53fc3f6770da42e2fa4a3a85dee7600a01",
+    "negativeControlsRejected": 10,
+    "wrongSourceRejected": true
+  },
+  "sourceObservations": {
+    "rapidrt": {
+      "kind": "rapidrt",
+      "frameOffset": 1242831,
+      "frameSize": 87,
+      "bodySha256": "3099629fd59f4744cc4327e2ac316663b5b19b73f99144e43f5cc19ab7e069f5",
+      "fields": [
+        {
+          "name": "type",
+          "startBit": 0,
+          "endBit": 18,
+          "value": 517
+        },
+        {
+          "name": "self",
+          "startBit": 18,
+          "endBit": 42,
+          "value": [
+            0,
+            2,
+            534
+          ]
+        },
+        {
+          "name": "eedSize",
+          "startBit": 42,
+          "endBit": 44,
+          "value": 0
+        },
+        {
+          "name": "objectDataEnd",
+          "startBit": 44,
+          "endBit": 76,
+          "value": 653
+        },
+        {
+          "name": "reactorCount",
+          "startBit": 76,
+          "endBit": 86,
+          "value": 1
+        },
+        {
+          "name": "classVersion",
+          "startBit": 86,
+          "endBit": 96,
+          "value": 2
+        },
+        {
+          "name": "name",
+          "startBit": 96,
+          "endBit": 282,
+          "value": "コーヒー ブレイク品質"
+        },
+        {
+          "name": "fog",
+          "startBit": 282,
+          "endBit": 283,
+          "value": 1
+        },
+        {
+          "name": "fogBackground",
+          "startBit": 283,
+          "endBit": 284,
+          "value": 0
+        },
+        {
+          "name": "backfaces",
+          "startBit": 284,
+          "endBit": 285,
+          "value": 1
+        },
+        {
+          "name": "environmentImage",
+          "startBit": 285,
+          "endBit": 286,
+          "value": 1
+        },
+        {
+          "name": "environmentFilename",
+          "startBit": 286,
+          "endBit": 288,
+          "value": ""
+        },
+        {
+          "name": "description",
+          "startBit": 288,
+          "endBit": 458,
+          "value": "10 分のレンダリング"
+        },
+        {
+          "name": "displayIndex",
+          "startBit": 458,
+          "endBit": 460,
+          "value": 0
+        },
+        {
+          "name": "version",
+          "startBit": 460,
+          "endBit": 470,
+          "value": 3
+        },
+        {
+          "name": "target",
+          "startBit": 470,
+          "endBit": 480,
+          "value": 1
+        },
+        {
+          "name": "level",
+          "startBit": 480,
+          "endBit": 490,
+          "value": 1
+        },
+        {
+          "name": "time",
+          "startBit": 490,
+          "endBit": 500,
+          "value": 10
+        },
+        {
+          "name": "lighting",
+          "startBit": 500,
+          "endBit": 510,
+          "value": 1
+        },
+        {
+          "name": "filter",
+          "startBit": 510,
+          "endBit": 520,
+          "value": 2
+        },
+        {
+          "name": "filterWidth",
+          "startBit": 520,
+          "endBit": 586,
+          "value": 3.0
+        },
+        {
+          "name": "filterHeight",
+          "startBit": 586,
+          "endBit": 652,
+          "value": 3.0
+        },
+        {
+          "name": "predefined",
+          "startBit": 652,
+          "endBit": 653,
+          "value": 1
+        },
+        {
+          "name": "owner",
+          "startBit": 653,
+          "endBit": 669,
+          "value": [
+            4,
+            1,
+            12
+          ]
+        },
+        {
+          "name": "reactor",
+          "startBit": 669,
+          "endBit": 685,
+          "value": [
+            4,
+            1,
+            12
+          ]
+        },
+        {
+          "name": "extensionDictionary",
+          "startBit": 685,
+          "endBit": 693,
+          "value": [
+            3,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "mentalray": {
+      "kind": "mentalray",
+      "frameOffset": 1242922,
+      "frameSize": 133,
+      "bodySha256": "53c7b894d1e052336b5f6edc0c995b3b60f6b28b540189c34a41b3d1635328d3",
+      "fields": [
+        {
+          "name": "type",
+          "startBit": 0,
+          "endBit": 18,
+          "value": 518
+        },
+        {
+          "name": "self",
+          "startBit": 18,
+          "endBit": 42,
+          "value": [
+            0,
+            2,
+            1512
+          ]
+        },
+        {
+          "name": "eedSize",
+          "startBit": 42,
+          "endBit": 44,
+          "value": 0
+        },
+        {
+          "name": "objectDataEnd",
+          "startBit": 44,
+          "endBit": 76,
+          "value": 1002
+        },
+        {
+          "name": "reactorCount",
+          "startBit": 76,
+          "endBit": 86,
+          "value": 1
+        },
+        {
+          "name": "classVersion",
+          "startBit": 86,
+          "endBit": 96,
+          "value": 2
+        },
+        {
+          "name": "name",
+          "startBit": 96,
+          "endBit": 130,
+          "value": "高"
+        },
+        {
+          "name": "fog",
+          "startBit": 130,
+          "endBit": 131,
+          "value": 1
+        },
+        {
+          "name": "fogBackground",
+          "startBit": 131,
+          "endBit": 132,
+          "value": 1
+        },
+        {
+          "name": "backfaces",
+          "startBit": 132,
+          "endBit": 133,
+          "value": 1
+        },
+        {
+          "name": "environmentImage",
+          "startBit": 133,
+          "endBit": 134,
+          "value": 1
+        },
+        {
+          "name": "environmentFilename",
+          "startBit": 134,
+          "endBit": 136,
+          "value": ""
+        },
+        {
+          "name": "description",
+          "startBit": 136,
+          "endBit": 138,
+          "value": ""
+        },
+        {
+          "name": "displayIndex",
+          "startBit": 138,
+          "endBit": 140,
+          "value": 0
+        },
+        {
+          "name": "version",
+          "startBit": 140,
+          "endBit": 150,
+          "value": 2
+        },
+        {
+          "name": "sampling1",
+          "startBit": 150,
+          "endBit": 152,
+          "value": 0
+        },
+        {
+          "name": "sampling2",
+          "startBit": 152,
+          "endBit": 162,
+          "value": 2
+        },
+        {
+          "name": "filter",
+          "startBit": 162,
+          "endBit": 172,
+          "value": 3
+        },
+        {
+          "name": "filterWidth",
+          "startBit": 172,
+          "endBit": 238,
+          "value": 4.0
+        },
+        {
+          "name": "filterHeight",
+          "startBit": 238,
+          "endBit": 304,
+          "value": 4.0
+        },
+        {
+          "name": "contrast1",
+          "startBit": 304,
+          "endBit": 370,
+          "value": 0.05000000074505806
+        },
+        {
+          "name": "contrast2",
+          "startBit": 370,
+          "endBit": 436,
+          "value": 0.05000000074505806
+        },
+        {
+          "name": "contrast3",
+          "startBit": 436,
+          "endBit": 502,
+          "value": 0.05000000074505806
+        },
+        {
+          "name": "contrast4",
+          "startBit": 502,
+          "endBit": 568,
+          "value": 0.05000000074505806
+        },
+        {
+          "name": "shadowMode",
+          "startBit": 568,
+          "endBit": 570,
+          "value": 0
+        },
+        {
+          "name": "shadowMaps",
+          "startBit": 570,
+          "endBit": 571,
+          "value": 0
+        },
+        {
+          "name": "rayTracing",
+          "startBit": 571,
+          "endBit": 572,
+          "value": 1
+        },
+        {
+          "name": "rayDepth1",
+          "startBit": 572,
+          "endBit": 582,
+          "value": 7
+        },
+        {
+          "name": "rayDepth2",
+          "startBit": 582,
+          "endBit": 592,
+          "value": 7
+        },
+        {
+          "name": "rayDepth3",
+          "startBit": 592,
+          "endBit": 602,
+          "value": 7
+        },
+        {
+          "name": "globalIllumination",
+          "startBit": 602,
+          "endBit": 603,
+          "value": 0
+        },
+        {
+          "name": "giSampleCount",
+          "startBit": 603,
+          "endBit": 637,
+          "value": 500
+        },
+        {
+          "name": "giRadiusEnabled",
+          "startBit": 637,
+          "endBit": 638,
+          "value": 0
+        },
+        {
+          "name": "giRadius",
+          "startBit": 638,
+          "endBit": 640,
+          "value": 1.0
+        },
+        {
+          "name": "photonsPerLight",
+          "startBit": 640,
+          "endBit": 674,
+          "value": 10000
+        },
+        {
+          "name": "photonDepth1",
+          "startBit": 674,
+          "endBit": 684,
+          "value": 5
+        },
+        {
+          "name": "photonDepth2",
+          "startBit": 684,
+          "endBit": 694,
+          "value": 5
+        },
+        {
+          "name": "photonDepth3",
+          "startBit": 694,
+          "endBit": 704,
+          "value": 5
+        },
+        {
+          "name": "finalGathering",
+          "startBit": 704,
+          "endBit": 705,
+          "value": 0
+        },
+        {
+          "name": "finalGatheringRays",
+          "startBit": 705,
+          "endBit": 739,
+          "value": 500
+        },
+        {
+          "name": "radiusState1",
+          "startBit": 739,
+          "endBit": 740,
+          "value": 0
+        },
+        {
+          "name": "radiusState2",
+          "startBit": 740,
+          "endBit": 741,
+          "value": 0
+        },
+        {
+          "name": "radiusState3",
+          "startBit": 741,
+          "endBit": 742,
+          "value": 0
+        },
+        {
+          "name": "radius1",
+          "startBit": 742,
+          "endBit": 808,
+          "value": 0.1
+        },
+        {
+          "name": "radius2",
+          "startBit": 808,
+          "endBit": 810,
+          "value": 1.0
+        },
+        {
+          "name": "luminance",
+          "startBit": 810,
+          "endBit": 876,
+          "value": 1500.0
+        },
+        {
+          "name": "diagnosticsMode",
+          "startBit": 876,
+          "endBit": 878,
+          "value": 0
+        },
+        {
+          "name": "diagnosticsGridMode",
+          "startBit": 878,
+          "endBit": 880,
+          "value": 0
+        },
+        {
+          "name": "diagnosticsGridFloat",
+          "startBit": 880,
+          "endBit": 946,
+          "value": 10.0
+        },
+        {
+          "name": "diagnosticsPhotonMode",
+          "startBit": 946,
+          "endBit": 948,
+          "value": 0
+        },
+        {
+          "name": "diagnosticsBspMode",
+          "startBit": 948,
+          "endBit": 950,
+          "value": 0
+        },
+        {
+          "name": "exportMi",
+          "startBit": 950,
+          "endBit": 951,
+          "value": 0
+        },
+        {
+          "name": "mentalDescription",
+          "startBit": 951,
+          "endBit": 953,
+          "value": ""
+        },
+        {
+          "name": "tileSize",
+          "startBit": 953,
+          "endBit": 963,
+          "value": 32
+        },
+        {
+          "name": "tileOrder",
+          "startBit": 963,
+          "endBit": 965,
+          "value": 0
+        },
+        {
+          "name": "memoryLimit",
+          "startBit": 965,
+          "endBit": 999,
+          "value": 1048
+        },
+        {
+          "name": "diagnosticsSamples",
+          "startBit": 999,
+          "endBit": 1000,
+          "value": 0
+        },
+        {
+          "name": "energyMultiplier",
+          "startBit": 1000,
+          "endBit": 1002,
+          "value": 1.0
+        },
+        {
+          "name": "owner",
+          "startBit": 1002,
+          "endBit": 1018,
+          "value": [
+            4,
+            1,
+            12
+          ]
+        },
+        {
+          "name": "reactor",
+          "startBit": 1018,
+          "endBit": 1034,
+          "value": [
+            4,
+            1,
+            12
+          ]
+        },
+        {
+          "name": "extensionDictionary",
+          "startBit": 1034,
+          "endBit": 1058,
+          "value": [
+            3,
+            2,
+            1513
+          ]
+        }
+      ]
+    },
+    "renderglobal": {
+      "frameOffset": 1243059,
+      "frameSize": 27,
+      "bodySha256": "f31a565b4c24006a7abbcbba67dbd07887dddf3789e664a39cb09f809af1becc",
+      "fields": [
+        {
+          "name": "type",
+          "startBit": 0,
+          "endBit": 18,
+          "value": 539
+        },
+        {
+          "name": "self",
+          "startBit": 18,
+          "endBit": 42,
+          "value": [
+            0,
+            2,
+            1123
+          ]
+        },
+        {
+          "name": "eedSize",
+          "startBit": 42,
+          "endBit": 44,
+          "value": 0
+        },
+        {
+          "name": "objectDataEnd",
+          "startBit": 44,
+          "endBit": 76,
+          "value": 173
+        },
+        {
+          "name": "reactorCount",
+          "startBit": 76,
+          "endBit": 86,
+          "value": 1
+        },
+        {
+          "name": "classVersion",
+          "startBit": 86,
+          "endBit": 96,
+          "value": 2
+        },
+        {
+          "name": "procedure",
+          "startBit": 96,
+          "endBit": 98,
+          "value": 0
+        },
+        {
+          "name": "destination",
+          "startBit": 98,
+          "endBit": 100,
+          "value": 0
+        },
+        {
+          "name": "saveEnabled",
+          "startBit": 100,
+          "endBit": 101,
+          "value": 0
+        },
+        {
+          "name": "filenameLength",
+          "startBit": 101,
+          "endBit": 103,
+          "value": 0
+        },
+        {
+          "name": "imageWidth",
+          "startBit": 103,
+          "endBit": 137,
+          "value": 500
+        },
+        {
+          "name": "imageHeight",
+          "startBit": 137,
+          "endBit": 171,
+          "value": 500
+        },
+        {
+          "name": "predefinedPresetsFirst",
+          "startBit": 171,
+          "endBit": 172,
+          "value": 1
+        },
+        {
+          "name": "highLevelInfo",
+          "startBit": 172,
+          "endBit": 173,
+          "value": 1
+        },
+        {
+          "name": "owner",
+          "startBit": 173,
+          "endBit": 189,
+          "value": [
+            4,
+            1,
+            12
+          ]
+        },
+        {
+          "name": "reactor",
+          "startBit": 189,
+          "endBit": 205,
+          "value": [
+            4,
+            1,
+            12
+          ]
+        },
+        {
+          "name": "extensionDictionary",
+          "startBit": 205,
+          "endBit": 213,
+          "value": [
+            3,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "followingFrame": {
+      "offset": 1243090,
+      "size": 255,
+      "type": 42,
+      "handle": 182
+    },
+    "rootDictionary": {
+      "frameOffset": 1240933,
+      "frameSize": 647,
+      "bodySha256": "be1448de7196f7100fd710599884871b6f8239b165113def3d70fa62b87a3d3f",
+      "handle": 12,
+      "owner": {
+        "role": 4,
+        "length": 0,
+        "value": 0
+      },
+      "extensionDictionary": {
+        "role": 3,
+        "length": 2,
+        "value": 1426
+      },
+      "entryCount": 28,
+      "selectedEntries": {
+        "ACAD_RENDER_ACTIVE_RAPIDRT": 534,
+        "ACAD_RENDER_ACTIVE_SETTINGS": 1512,
+        "ACAD_RENDER_GLOBAL": 1123
+      },
+      "r14Byte": 0
+    },
+    "mentalExtensionDictionary": {
+      "frameOffset": 1504068,
+      "frameSize": 50,
+      "bodySha256": "583e5891b9277a4590b6a6e5231b7185c9003140108a8d8efc691352591a7f12",
+      "handle": 1513,
+      "owner": {
+        "role": 8,
+        "length": 0,
+        "value": 1512
+      },
+      "extensionDictionary": {
+        "role": 3,
+        "length": 0,
+        "value": 0
+      },
+      "entryCount": 1,
+      "selectedEntries": {
+        "ADSK_XREC_MENTALRAYSETTINGSINFO": 1514
+      },
+      "r14Byte": 1
+    },
+    "mentalExtensionXrecord": {
+      "frameOffset": 1512884,
+      "frameSize": 29,
+      "bodySha256": "a341a01a5166173cca0909d1e268134142fc46b3012434ee05e409aaf2f30c9f",
+      "tags": [
+        [
+          70,
+          2
+        ],
+        [
+          71,
+          4
+        ],
+        [
+          72,
+          0
+        ]
+      ],
+      "owner": {
+        "role": 8,
+        "length": 0,
+        "value": 1513
+      },
+      "reactor": {
+        "role": 4,
+        "length": 2,
+        "value": 1513
+      },
+      "extensionDictionary": {
+        "role": 3,
+        "length": 0,
+        "value": 0
+      }
+    }
+  },
+  "generatedControls": {
+    "generator": "tools/research/generate_ac1012_dictionary_witness.py",
+    "generatorSha256": "755cddf04244ae94aae9e8a755ac75e9c994bf0e45004cd03dd09658953e4bb5",
+    "producer": "GNU LibreDWG dwgadd 0.14",
+    "toolIdentities": {
+      "dwgadd": {
+        "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgadd",
+        "sha256": "66c435deb0f081ab72be21bb9ba36e5d149f9352d71ddf1e83ac95b3fc07f282"
+      },
+      "dwgread": {
+        "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+        "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+      },
+      "candidate": {
+        "path": "/private/tmp/libdxfrw-p6j-asan/dwg2dxf/dwg2dxf",
+        "sha256": "0f3e18df2a6b4057de1e6d927224855cf01b3fea1ef2955fd1bf9ca41324cf10"
+      }
+    },
+    "scratchReceiptSha256": "dc8da05fdaa28b8c4cf983537f3086e81ae9132088286f7c1e2a096e53fd8186",
+    "samples": {
+      "r13-cloning-0": {
+        "sha256": "c07e9ac45caa61ce7e7092079b154635900f3b5a5a43dcc5d1b5bfc9203e75c7",
+        "frameSha256": "4036547657589ec54edcaf98dfedcf6866c4e234991f2cef8cd10e0112abb269",
+        "cloning": null,
+        "candidate": {
+          "exit": 1,
+          "destinationPreservedOnFailure": true,
+          "diagnostics": [
+            "DXF export finalization failed: strict-complete conversion requires output qualification for every opaque DWG callback (qualified=5/6)",
+            "Unqualified opaque DWG callback: handle=24 type=73 record= class=",
+            "DXF export failed: dxf-finalize-rejected: the consumer did not accept the completed DXF write"
+          ]
+        }
+      },
+      "r13-cloning-1": {
+        "sha256": "c07e9ac45caa61ce7e7092079b154635900f3b5a5a43dcc5d1b5bfc9203e75c7",
+        "frameSha256": "4036547657589ec54edcaf98dfedcf6866c4e234991f2cef8cd10e0112abb269",
+        "cloning": null,
+        "candidate": {
+          "exit": 1,
+          "destinationPreservedOnFailure": true,
+          "diagnostics": [
+            "DXF export finalization failed: strict-complete conversion requires output qualification for every opaque DWG callback (qualified=5/6)",
+            "Unqualified opaque DWG callback: handle=24 type=73 record= class=",
+            "DXF export failed: dxf-finalize-rejected: the consumer did not accept the completed DXF write"
+          ]
+        }
+      },
+      "r14-cloning-0": {
+        "sha256": "894e9a84e4aba659c61ea4e4c81cdd927f59aaa916716ac396f689e23a3f4e8a",
+        "frameSha256": "70773bda8a49614351e40a8fe8f4d602d769fc14b3fe0f71efd8920f868a1ce6",
+        "cloning": null,
+        "candidate": {
+          "exit": 0,
+          "destinationPreservedOnFailure": false,
+          "diagnostics": [],
+          "outputSha256": "b77ea363abfff4931f559d6a6a861edc39c33c9e0d1c995163e9f223f9c055b5",
+          "cloningFieldCounts": {
+            "absent": 5
+          },
+          "selectedDictionary": {
+            "handle": "2F",
+            "owner": "C",
+            "cloning": null,
+            "entries": []
+          }
+        }
+      },
+      "r14-cloning-1": {
+        "sha256": "894e9a84e4aba659c61ea4e4c81cdd927f59aaa916716ac396f689e23a3f4e8a",
+        "frameSha256": "70773bda8a49614351e40a8fe8f4d602d769fc14b3fe0f71efd8920f868a1ce6",
+        "cloning": null,
+        "candidate": {
+          "exit": 0,
+          "destinationPreservedOnFailure": false,
+          "diagnostics": [],
+          "outputSha256": "b77ea363abfff4931f559d6a6a861edc39c33c9e0d1c995163e9f223f9c055b5",
+          "cloningFieldCounts": {
+            "absent": 5
+          },
+          "selectedDictionary": {
+            "handle": "2F",
+            "owner": "C",
+            "cloning": null,
+            "entries": []
+          }
+        }
+      },
+      "r2000-cloning-0": {
+        "sha256": "40a15077410cbc5e1c97ccdb15fee71581fed5b8a82ffbd097b6b29a1f340b83",
+        "frameSha256": "df76c860b560a8d37918751b358327322b588fd1ba1cd193c0cdfb6c829bdb60",
+        "cloning": 0,
+        "candidate": {
+          "exit": 1,
+          "destinationPreservedOnFailure": true,
+          "diagnostics": [
+            "DXF OBJECTS output inspection failed: DICTIONARYWDFLT/PLACEHOLDER DWG physical source/output binding",
+            "DXF export failed: emit-failure: DXF output generation failed during OBJECTS emission"
+          ]
+        }
+      },
+      "r2000-cloning-1": {
+        "sha256": "6f7c7170d7bf88a43935936a39b5847668a9510bebd248d342750e4dab2308d9",
+        "frameSha256": "f68da5cf985b761e5effa7336fbcc4e480cdfe3b01cd157353013a0ac70312ef",
+        "cloning": 1,
+        "candidate": {
+          "exit": 1,
+          "destinationPreservedOnFailure": true,
+          "diagnostics": [
+            "DXF OBJECTS output inspection failed: DICTIONARYWDFLT/PLACEHOLDER DWG physical source/output binding",
+            "DXF export failed: emit-failure: DXF output generation failed during OBJECTS emission"
+          ]
+        }
+      }
+    },
+    "interpretation": "Generated controls bind field presence and observed conversion behavior, not native duplicate-merge semantics. R13 failures preserve the destination."
+  },
+  "limitations": [
+    "One external drawing has unknown producer; peer-guided field names are not independently established class semantics.",
+    "Only selected dictionary references and XRECORD are checked; full dependency graph and output closure remain unqualified.",
+    "Generated files cannot determine native AutoCAD duplicate-merge behavior.",
+    "Render typed parsing remains rejected for AC1014; no strict or partial output support is promoted."
+  ],
+  "nextSteps": [
+    "Establish render class semantics from authoritative producer or independent semantic evidence, then validate the full graph and strict output/readback before considering admission.",
+    "Use generated R13 controls as inputs to the documented native duplicate-merge witness and qualify both output encodings, failure preservation, and retry."
+  ]
+}

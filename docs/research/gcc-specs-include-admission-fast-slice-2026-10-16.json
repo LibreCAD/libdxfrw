@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw-gcc-specs-include-admission-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Conservatively surface unresolved GCC specs include directives in controlled semantic-adapter build identities without promoting compiler closure.",
+  "implementation": {
+    "filesChanged": [
+      "tools/build_semantic_adapter.py",
+      "tools/run_qualified_differential_v2.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "profile": {
+      "name": "compilerBuiltinSpecs",
+      "newSchema": 2,
+      "historicalSchema": 1,
+      "includeObservation": "Counts known file-level %include/%include_noerr and conditional %:include(...) spellings in the captured built-in specs dump and digest-bound main external specs file.",
+      "statuses": {
+        "no-includes-detected": "Both inspected sources are bound and no known include spelling was found; this is not a complete effective compiler contract.",
+        "partial": "At least one include spelling exists; targets are not resolved or content-bound.",
+        "unavailable": "The main external specs identity or source capture is unavailable."
+      },
+      "externalSpecsLimitBytes": 16777216,
+      "externalSpecsRecheck": "Re-read and compare against the previously captured main-specs SHA-256 at each existing controlled-build profile verification."
+    },
+    "receiptCompatibility": "The v2 runner retains exact validation for historical schema-1 profiles and validates the schema-2 includeClosure fields and bounded statuses.",
+    "syntheticControls": [
+      "plain %include",
+      "nested %:include",
+      "optional-missing %include_noerr",
+      "multilib-conditioned include",
+      "conditional %:include",
+      "escaped-percent false-positive control",
+      "digest-bound external specs with no includes",
+      "unbound external specs identity remains unavailable",
+      "changed external specs bytes rejected",
+      "malformed/negative include counts rejected",
+      "target/standalone profile mismatch rejected"
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "productionParserChanges": 0
+  },
+  "validation": {
+    "pythonSyntax": "passed",
+    "builderSelfTest": "passed; includes fresh controlled target and standalone builds plus synthetic GCC specs controls",
+    "runnerSelfTest": "passed; includes legacy schema-1 and new schema-2 validation, malformed profile, and pair mismatch controls",
+    "diffCheck": "passed for both tooling files and the plan",
+    "nativeGccExecution": false,
+    "nativeMsvcExecution": false
+  },
+  "qualificationDisposition": {
+    "implicitConfiguration": "partial",
+    "compileContractMode": "direct-options-only",
+    "compileContractEnforced": false,
+    "pairedReceiptEligibilityChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 124,
+      "topLevelSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": [
+    "The detector recognizes known GCC syntax but is not a specs-language parser and does not resolve include targets.",
+    "GCC startfile-prefix/multilib resolution was established by prior research, but no native GNU driver was available for runtime qualification.",
+    "This does not close compiler subprocesses, linker-consumed inputs, SDK/sysroot content, or runtime images.",
+    "The host's gcc/g++ identify as AppleClang; GNU controls are synthetic only."
+  ],
+  "nextGate": "On a native GNU/Linux runner, observe or resolve actual effective specs includes using GCC's startfile-prefix and multilib semantics, then content-bind every selected target. Keep direct-only pair refusal until all compiler, linker, SDK, runtime, and typed capability gates close."
+}

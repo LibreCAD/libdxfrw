@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader current peer reports, downstream workarounds, and representation seams",
+  "mode": "primary-source research only",
+  "scope": [
+    "Refresh current ACadRust cross-format reports and compare their status with downstream CADCraft workarounds",
+    "Cross-check ACadSharp numeric precision and LibreDWG Unicode route reports against Autodesk DXF transport guidance",
+    "Reconcile every issue shape with existing libdxfrw finding, subplan, source, and test owners"
+  ],
+  "method": {
+    "kind": "Read-only web review of project-owned issue/source pages, Autodesk documentation, and local plan/source/test inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "researchLocalTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Peer issue reports and mutable source are leads, not normative format rules. CADCraft consumes the ACadRust codec lineage. ACadRust candidate commits for #130/#131 do not establish released behavior or reporter retest. No external input or peer runtime was used."
+  },
+  "sources": [
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/127",
+      "revision": "issue index and title reviewed 2026-10-19",
+      "observed": "Open report names seven HEADER variables omitted by the reported 0.6.3 DXF writer: ANGBASE, ANGDIR, FILLETRAD, CHAMFERA, CHAMFERB, ELEVATION, and THICKNESS."
+    },
+    {
+      "project": "CADCraft",
+      "url": "https://github.com/storytold/cadcraft/blob/main/crates/dwg/src/lib.rs",
+      "revision": "mutable main source reviewed 2026-10-19",
+      "observed": "The downstream integration contains an unwritten_header_vars helper listing the same header name/group/value triples and table merge/style synchronization logic. Because CADCraft consumes ACadRust, these are application workarounds within the same codec lineage, not independent parser evidence."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/130",
+      "revision": "open issue body and activity reviewed 2026-10-19",
+      "observed": "The report separates AC1024+ DWG merged_ranges from per-cell DXF groups 173/175/176, and DWG TABLESTYLE suppression flags from DXF groups 280/281. Candidate commits are linked, and the maintainer requested reporter retest; no retest was observed."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/131",
+      "revision": "open issue body reviewed 2026-10-19",
+      "observed": "The report gives named pre-R2007 code-page-to-byte/scalar mismatches, including DOS437, other DOS pages, MAC-ROMAN, and JOHAB. Its expected values are to be checked against vendor mapping tables; candidate status is not a release result."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues",
+      "revision": "live open issue index reviewed 2026-10-19",
+      "observed": "Issues #132, #133, and #134 remain visible as separate reports for custom-class/XDATA/color-name loss, unresolved-owner rehoming, and AC1032 auxiliary MLEADER-context read failures."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1186",
+      "revision": "merged PR state reviewed 2026-10-19",
+      "observed": "PR #1186 merged on 2026-08-18 and added configurable ASCII DXF writer decimal precision, closing issue #1179. This is historical peer confirmation, not a current libdxfrw defect."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1414",
+      "revision": "open issue body reviewed 2026-10-19",
+      "observed": "The reporter describes different VALUE_TV and VALUE_TU Unicode escape expansion in DWG-to-DXF output and notes that ordinary/MTEXT/XRECORD contexts may not share one interpretation. The report does not settle the intended rule."
+    },
+    {
+      "project": "Autodesk DXF documentation",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "revision": "group-code and string-storage reference reviewed 2026-10-19",
+      "observed": "The reference identifies UTF-8 as the storage form for AutoCAD 2007+ DXF and also documents Unicode control sequences. Target DXF version is therefore a distinct transport axis; the treatment of escape-looking literal text remains field-specific."
+    }
+  ],
+  "assessment": {
+    "existingLocalOwners": {
+      "ACadRust127": "PAR-27 / 7L.4 HEADER inventory",
+      "ACadRust130": "7G.3d TABLE merge and TABLESTYLE projection",
+      "ACadRust131": "PAR-05 codepage mapping and byte/scalar checks",
+      "ACadRust132": "existing custom/raw/refusal, named-color, and table-record XDATA owners",
+      "ACadRust133": "PAR-49 / 7G owner and orphan disposition",
+      "ACadRust134": "PAR-07 / S8 bounded object failure policy",
+      "ACadSharp1179": "PAR-43 / 7Y exact binary64 output invariant",
+      "LibreDWG1414": "PAR-05/PAR-74/PAR-85/7AR source-storage × target-version × field-context matrix"
+    },
+    "implementationRefinement": "For writer changes, assert literal destination tags and source identity/owner disposition before parse-back. For cross-format conversion, test each direction and canonical-to-projection field mapping separately; treat ordinary readback as a consistency check, not the sole oracle.",
+    "peerEvidenceRule": "Pin package/release/commit and distinguish OPEN, CANDIDATE_FIX, REPORTER_RETESTED, and RELEASED. Same-codec read/write and downstream workarounds do not count as independent semantic evidence."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-current-peer-reports-and-representation-seams-2026-10-19.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-current-peer-reports-and-representation-seams-2026-10-19.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

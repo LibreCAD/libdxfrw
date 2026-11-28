@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Peer failure taxonomy and fastest evidence path",
+  "mode": "Primary-source project documentation and open issue review; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Compare peer handling of unknown DWG classes and route-specific test organization.",
+    "Review current peer parser failure reports for bounded-progress and record-isolation lessons.",
+    "Refine the local implementation plan's per-slice test selection without increasing validation cadence."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/CMakeLists.txt",
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING"
+      ],
+      "revision": "Current primary documentation/source pages reviewed 2026-10-19; no commit hash pinned or project executed.",
+      "observed": "The manual says unhandled classes/invalid types are non-critical and unknown types may be stored as binary blobs without DXF codes. CMake registers shell converter tests and unit tests separately. HACKING describes dedicated parser fuzz routes.",
+      "limitation": "Unknown binary preservation is not typed support or necessarily DXF re-emission. Test architecture is a project design observation, not evidence that any peer result qualifies libdxfrw."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/setup.rst"
+      ],
+      "revision": "Current repository and setup documentation reviewed 2026-10-19; no package checksum/source commit resolved or executed.",
+      "observed": "The README declares named ASCII/Binary DXF version support and read-only legacy inputs that are upgraded on write. Test instructions separate tests and integration_tests. The project is DXF-specific, not a DWG codec or ACIS kernel.",
+      "limitation": "A broad DXF matrix does not supply DWG coverage or independent solid semantics. Same-library readback is not independent evidence."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1279"
+      ],
+      "revision": "Issue bodies reviewed 2026-10-19. #1281 identifies 3.8.0 and says affected code remains on master; #1279 identifies 3.8.0 and says the same code is on master. No peer code or input was downloaded/run.",
+      "observed": "#1281 reports stack exhaustion from recursive advancement over repeated comments, XDATA app blocks, and WIPEOUT clip groups. #1279 reports whole-file failure on an AC1014 POLYLINE with VERTEX records containing AcDbVertex but no more-specific subtype marker.",
+      "limitation": "These are peer-reported shapes and versions, not reproduced behavior here or format rules. Reported byte/item thresholds and the proposed parent-based type inference are not normative."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "localBuildOrTestsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds an implementation-ready local test-selection sequence and explicit evidence distinctions for unknown-class retention, parser progress, record isolation, writer completeness, strict reopen, semantics, and native acceptance. Existing owners and validation cadence remain unchanged."
+  },
+  "implementationReadiness": [
+    "Use a tiny locally generated parser control with a suffix sentinel; test both encodings only when they share the changed path.",
+    "For adapter changes, assert ownership closure, callback isolation, rollback, and retry only where promised by the operation contract.",
+    "For writers, assert target-version framing and per-source disposition before strict local reopen; successful exit and entity count are not completeness proofs.",
+    "Pin one independent peer/native route only at its existing composed checkpoint for a claim that requires independence.",
+    "Reserve sanitizer/fuzz and broad suite execution for planned composed checkpoints, except when a slice directly changes the relevant security boundary.",
+    "Do not copy peer crash thresholds or infer malformed-record type from container context without authoritative format support."
+  ],
+  "method": {
+    "kind": "Read-only primary-source documentation and issue review plus local plan crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Issue reports and repository documentation can change and were not reproduced. External observations remain advisory and cannot promote local or DEFERRED_EXTERNAL support rows."
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18",
+  "date": "2026-11-18",
+  "title": "macOS FreeCAD generated AC1021/AC1024/AC1032 open/insert consumer smoke",
+  "status": "PASS_MACOS_GENERATED_MULTI_VERSION_OPEN_INSERT_CONTROL",
+  "supportClaimEffect": "none",
+  "packageGateEffect": "none; P8-A/B/C remain open",
+  "activityLedgerEffect": "one completed local consumer-evidence slice; no package gate closed",
+  "scope": "Exercise the current libdxfrw build and installed dwg2dxf through the pinned FreeCAD C++ DXF importer for locally generated AC1021 LINE and AC1021/AC1024/AC1032 mixed primitive drawings, using both document open and insert handoffs.",
+  "candidate": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "commit": "0a9db804f331ae4daa34b99e687a7c217d63bb34",
+    "buildDirectory": "build-gcc",
+    "buildType": "Release",
+    "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2), target arm64-apple-darwin27.2.0",
+    "buildDwg2dxfSha256": "940d602976c01b11ea4e3ea2fa16326ef8b657eaa6ef7948a994e2190758d8d1",
+    "installedDw2dxf": "/private/tmp/libdxfrw-freecad-2d-install/bin/dwg2dxf",
+    "installedDw2dxfSha256": "940d602976c01b11ea4e3ea2fa16326ef8b657eaa6ef7948a994e2190758d8d1"
+  },
+  "consumer": {
+    "application": "FreeCAD",
+    "version": "1.1.4",
+    "versionTuple": [
+      "1",
+      "1",
+      "4",
+      "20260928 (Git shallow)",
+      "Unknown",
+      "2026/09/28 13:46:34",
+      "(HEAD detached at 4fd3bf320)",
+      "4fd3bf320d9566a27e60069fc8387448aaa3a094"
+    ],
+    "pinnedRevision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "freecadcmd": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+    "freecadcmdSha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60"
+  },
+  "platform": {
+    "system": "macOS 27.2.1",
+    "architecture": "arm64",
+    "desktopDispatch": false,
+    "consumerMode": "headless FreeCADCmd"
+  },
+  "validation": {
+    "initialPreflightFailure": {
+      "configuredInstalledDwg2dxfSha256": "c9cbe735291d9e8b329ad3300fc354d704bd2e94bc9bc3f2b3f419947c4f81be",
+      "buildTargetSha256": "940d602976c01b11ea4e3ea2fa16326ef8b657eaa6ef7948a994e2190758d8d1",
+      "result": "The first attempt stopped before import because the configured installed dwg2dxf hash did not match the current build target.",
+      "correction": [
+        "cmake --install build-gcc --prefix /private/tmp/libdxfrw-freecad-2d-install",
+        "cmake -S . -B build-gcc -DLIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE=/private/tmp/libdxfrw-freecad-2d-install/bin/dwg2dxf"
+      ],
+      "retryCondition": "The installed executable and this build's target have identical SHA-256 values before FreeCAD is launched."
+    },
+    "command": "ctest --test-dir build-gcc -R '^dwg2dxf_freecad_generated_ac1021_(line|primitives)_(open|insert)$' --output-on-failure",
+    "result": "PASS: 8/8 selectors across two focused CTest invocations; reported CTest elapsed times total 7.36 seconds",
+    "testRuns": [
+      {
+        "scope": "AC1021 LINE and mixed primitive open/insert",
+        "result": "PASS: 4/4 selectors; 3.86 seconds",
+        "logSha256": "9ef644e0fbf9312f6960ff071d3a79f0f9236b7ad17d8b01a609f9139c6799d6"
+      },
+      {
+        "scope": "AC1024 and AC1032 mixed primitive open/insert",
+        "result": "PASS: 4/4 selectors; 3.50 seconds",
+        "logSha256": "8456f8d61d93a5a012fd1cc332cd3134e85323d03130df057c94a2eaf9fa12d9"
+      }
+    ],
+    "selectors": [
+      "dwg2dxf_freecad_generated_ac1021_line_open",
+      "dwg2dxf_freecad_generated_ac1021_line_insert",
+      "dwg2dxf_freecad_generated_ac1021_primitives_open",
+      "dwg2dxf_freecad_generated_ac1021_primitives_insert",
+      "dwg2dxf_freecad_generated_ac1024_primitives_open",
+      "dwg2dxf_freecad_generated_ac1024_primitives_insert",
+      "dwg2dxf_freecad_generated_ac1032_primitives_open",
+      "dwg2dxf_freecad_generated_ac1032_primitives_insert"
+    ],
+    "generatedInputs": [
+      {
+        "profile": "AC1021 generated 3D LINE",
+        "sha256": "562e063eea7c71e2869d080bc4341d2d9bd0019c5f6954653e30b702816a68e5",
+        "convertedDxfSha256": "7fc549c8e3870c9bf6661d58347c2fa92d81f0891cf03a60f272615b87effff4",
+        "outcome": "open and insert pass; line endpoints and bounds match the control"
+      },
+      {
+        "profile": "AC1021 generated mixed 2D/3D primitives",
+        "sha256": "995b7217d926f145428d81c1b63bd8d32ee16a4b4eb4ccfb9337faa311cde1a8",
+        "convertedDxfSha256": "02bf344eeaec3bbd4a07c0f3da1f0b611f5ac271421eb78eab701666d26cc095",
+        "outcome": "open and insert pass; primitive counts/shapes, polyface wireframe, and spline samples match the control"
+      },
+      {
+        "profile": "AC1024 generated mixed 2D/3D primitives",
+        "sha256": "271dad6302b3d537dacad68bead31952cc4dff74b9c1c6010f647d2b1385eaa3",
+        "convertedDxfSha256": "165b46c1cff5f9c89c8c75679d7553ffa557f32c200aa219fc44b965038bc32a",
+        "outcome": "open and insert pass; primitive counts/shapes, polyface wireframe, and spline samples match the control"
+      },
+      {
+        "profile": "AC1032 generated mixed 2D/3D primitives",
+        "sha256": "7df817c97a68064cf2df6823ca5b4a1b0b6c47b427d66de8d8fb5bc77fcd69f8",
+        "convertedDxfSha256": "793748e5656c1573f657eac96bf473ebf9595148d32e21980d9e9afc6bd0d556",
+        "outcome": "open and insert pass; primitive counts/shapes, polyface wireframe, and spline samples match the control"
+      }
+    ],
+    "expectedUnsupported": [
+      "3DFACE",
+      "SOLID"
+    ],
+    "lastTestLog": {
+      "path": "build-gcc/Testing/Temporary/LastTest.log",
+      "sha256": "8456f8d61d93a5a012fd1cc332cd3134e85323d03130df057c94a2eaf9fa12d9"
+    }
+  },
+  "fixturePolicy": "Both DWGs and their converted DXFs were generated in temporary storage from scratch. No fixture or external drawing was added to the repository.",
+  "limits": [
+    "This is native macOS consumer evidence only for the listed generated profiles; it does not substitute for native Linux FreeCAD or Windows FreeCAD qualification.",
+    "The controls are generated parser/consumer vectors, not source-derived interoperability evidence or broad format support.",
+    "3DFACE and SOLID remain explicitly unsupported by this pinned FreeCAD importer in the tested profile.",
+    "No GUI, native rendering, external source semantics, or DWG 3D solid support is qualified."
+  ],
+  "next": "Reuse this macOS control only while the candidate, converter, and FreeCAD identities remain unchanged. Run the base-2D profile on native Linux and Windows; do not treat this result as either platform's evidence."
+}

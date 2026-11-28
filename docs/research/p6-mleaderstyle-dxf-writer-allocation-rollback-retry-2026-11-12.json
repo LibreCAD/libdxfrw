@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-mleaderstyle-dxf-writer-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "GENERATED_DXF_WRITER_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": [
+      "tests/mleaderstyle_objects_allocation_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "sourceSha256": {
+      "tests/mleaderstyle_objects_allocation_tests.cpp": "732d17a0c8a5ca5e7d51b34dee454ace560177d0a156d958deac32be2204e1c1",
+      "tests/CMakeLists.txt": "e219dc760ca2ddfedeb314c7308d8dce4d1c35aeb22c2f6332afc20b5b225175",
+      "src/libdxfrw.cpp": "4c33846873a75b6020364cfa43a886abbe08f6a259d3b81b4475e265a13dd029"
+    },
+    "behavior": "The typed writer stages each MLEADERSTYLE record and its source-object identity binding in rollback scopes. The generated whole-file DXF writer control measures every operator new attempt in the callback, injects failure at each offset, and checks exact offset reach. Each failure returns false, retains pre-existing destination bytes and the source object fields, and permits same-codec retry with byte-identical output and typed readback."
+  },
+  "generatedProfile": {
+    "version": "AC1027",
+    "encodings": {
+      "ASCII": {
+        "allocationOffsets": 19
+      },
+      "Binary": {
+        "allocationOffsets": 18
+      }
+    },
+    "fields": [
+      "handle",
+      "NOD owner",
+      "style version",
+      "description",
+      "default text",
+      "text height",
+      "two EED values including APPID"
+    ],
+    "result": "All 37 injected failures are reached at their requested offset; each preserves the existing destination and caller data. Same-codec retries match clean encoded file bytes and recover the expected typed record and EED values. This corrects the earlier 11/11 count, which counted one thrown failure per run rather than all callback allocation attempts."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_mleaderstyle_objects_allocation_tests -j6",
+    "normalTest": "ctest --test-dir build-gcc -R '^libdxfrw_mleaderstyle_objects_allocation$' --output-on-failure",
+    "normalResult": "PASS (1/1); direct selector reports 19 ASCII and 18 Binary offsets",
+    "asanConfiguration": "Debug; -fsanitize=address -fno-omit-frame-pointer; -fsanitize=address linker flag",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_mleaderstyle_objects_allocation_tests -j6",
+    "asanTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_mleaderstyle_objects_allocation$' --output-on-failure",
+    "asanResult": "PASS (1/1); direct selector reports 19 ASCII and 18 Binary offsets",
+    "focusedRegressionCohort": "Six MLEADERSTYLE writer, source-domain, closure, and allocation CTests passed 6/6.",
+    "fullSuites": "not run",
+    "testExecutableSha256": {
+      "normal": "3d2ef20a8a7325fb403a396e9fee5129511ad95eaef721dab282d697ec63d364",
+      "asan": "ea561561f6116f26aad058563920597391a59e6cf43475e09511f818367bd211"
+    }
+  },
+  "limitations": [
+    "Generated AC1027 ASCII/Binary whole-file transaction evidence only; no physical producer or native consumer qualification.",
+    "Does not establish source graph closure, all MLEADERSTYLE fields, or whole-file output support.",
+    "No DWG/DXF fixture file was added and no support claim is promoted."
+  ]
+}

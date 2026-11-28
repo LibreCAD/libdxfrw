@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 TABLE trailing-stream truncation and same-object retry",
+  "date": "2026-11-24",
+  "supportClaimEffect": "none",
+  "scope": "Add a generated-vector failure/reset/retry control for the classified AutoCAD 2007 AC1021 TABLE parser after the alignment-span implementation.",
+  "implementation": {
+    "file": "tests/dwg_object_vectors_tests.cpp",
+    "vectorSource": "The existing makeR2007TableFrame helper authors the AC1021 TABLE body, R2007 string stream, and handle stream in memory. No DWG or DXF fixture was added.",
+    "control": "The test gives the parser only the byte prefix through tableDataEndBit, omitting the appended sentinel and trailing object streams. It requires parse refusal, invalidated input, cleared TABLE semantic/model state, then parses the complete frame on the same DRW_Table probe and checks alignment value 6 plus the original body cursor boundary.",
+    "test": "libdxfrw_dwg_table_cell_overrides",
+    "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_table_cell_overrides$'",
+    "result": "Build succeeded; 1 of 1 focused tests passed."
+  },
+  "limitations": [
+    "This is generated-vector parser transaction evidence, not an independent producer witness.",
+    "It does not bind additional TABLE fields or graph links, and does not qualify DXF output or readback.",
+    "Selected TABLE output remains dependent on the separate P5-B FIELD/FIELDLIST serialization gap."
+  ],
+  "closure": "The AC1021 TABLE generated-vector suite now verifies trailing-stream truncation refusal, state reset, and corrected same-object retry. P5-I remains open; no broader TABLE or AC1021 support claim follows."
+}

@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-material-appid-parent-guard-2026-11-20",
+  "date": "2026-11-20",
+  "status": "BOUNDED_PARENT_GUARD_PASS_WIRE_AND_NATIVE_OPEN",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local untracked reference source; producer provenance remains unqualified."
+  },
+  "finding": "The AC1024 aerial MATERIAL APPID qualification compared retained raw and publication parents but did not compare the live APPID parent to the retained APPID_CONTROL identity. Changing the live parent from 0x09 to 0x0A left the predicate qualified.",
+  "change": "Require the unique live APPID 0x12 parent to equal its retained source parent, and require that source parent to equal the retained APPID_CONTROL handle 0x09. Existing generation, name, publication, and control membership checks remain in force.",
+  "validation": {
+    "red": {
+      "log": "/private/tmp/libdxfrw-aerial-appid-parent-red.log",
+      "sha256": "3ce674b539fd8fb75a893ff325ea15cb87743104bf804387aaabbb10b46c524b",
+      "result": "Expected failure: changed live parent was not rejected."
+    },
+    "sourceControls": {
+      "log": "/private/tmp/libdxfrw-aerial-appid-parent-final-source.log",
+      "sha256": "a9b5cae5f726002fb1e9bd87cb9b2791f2fa2218c98389f83b817697e78e5f8d",
+      "result": "PASS: changed live parent and jointly changed raw/publication parents refuse, and restored state requalifies on the same adapter; existing source profile controls pass."
+    },
+    "selectedOutput": {
+      "log": "/private/tmp/libdxfrw-aerial-appid-parent-final-writer.log",
+      "sha256": "6e60e1ec560b9ef9cd21cc69af40206134e6639f0713c0157bfbf3a7fb24174c",
+      "result": "PASS: ASCII and binary selected Global MATERIAL output and fresh readback; mutating the APPID parent after its writer callback refuses at the tables boundary, preserves the existing destination and succeeds on corrected same-writer retry, alongside six existing fault controls."
+    },
+    "completeRoot": {
+      "log": "/private/tmp/libdxfrw-aerial-appid-parent-final-root.log",
+      "sha256": "cbea32a72d63cabe1fe3f778cc7bac92412fa33fd13d5267404820328761bbaa",
+      "result": "PASS: existing selected complete material-root ASCII/Binary readback, refusal and retry controls."
+    }
+  },
+  "files": {
+    "dwg2dxf/dx_iface.cpp": "02f47229c12d9e8712742fda3e945b46f31fb8fa8f575f14cbd62ec60f8cec1b",
+    "tests/dwg2dxf_adapter_tests.cpp": "b52abdd190f744f126aee0a03b25d318ad7d6e112906e0fab5213cbcb67c301f",
+    "tests/p4_layerstates_real_writer_controls.h": "37cc544af3fdd1da76bdcec50d2cdce76e3259a2de06449b259885af9b88d7f0"
+  },
+  "implementationDigestSha256": "05e68df2d9d3e4ed167e3341a06a677faa2af674aec5e3d73ab51c3f156ba99e",
+  "digestMethod": "Computed over a clean scratch checkout with exactly these three changed tracked files staged; local untracked user files and external fixture were not included.",
+  "limits": [
+    "This is a bounded same-import identity check, not independent proof of retained APPID/APPID_CONTROL wire bytes, complete source graph, whole-file output or native semantics.",
+    "The LayerStates-specific APPID graph and staged output ticket remain open; no whole-source support claim is promoted.",
+    "The unrelated source HEADER envelope discrepancy remains recorded by the reader.",
+    "The converter source and tests changed, so package, FreeCAD and focused native qualifications must be revalidated on the final candidate.",
+    "No DWG or DXF fixture was committed."
+  ]
+}

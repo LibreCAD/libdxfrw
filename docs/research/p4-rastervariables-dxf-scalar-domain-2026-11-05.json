@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "RASTERVARIABLES DXF scalar-domain enforcement",
+  "date": "2026-11-05",
+  "status": "LOW_LEVEL_DXF_DOMAIN_GUARD_AND_ASCII_BINARY_RETRY_PASSED",
+  "scope": "The low-level DXF writer now enforces the published RASTERVARIABLES scalar domains before reserving output identity. DXF input remains tolerant and preserves values outside those output domains. This does not widen the DWG-origin adapter's source/owner profiles or establish native image behavior.",
+  "normativeSource": {
+    "title": "Autodesk RASTERVARIABLES (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-DDCC21A4-822A-469B-9954-1E1EC4F6DF82.htm",
+    "domains": {
+      "group90ClassVersion": [0],
+      "group70ImageFrame": [0, 1],
+      "group71ImageQuality": [0, 1],
+      "group72InsertionUnits": [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    }
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": "writeRasterVariables rejects invalid class-version, frame, quality or units before table-entry preflight can reserve handles or alter output state. Valid group-72 upper-bound value 8 is emitted and read back in both encodings.",
+    "inputBehavior": "parseCode remains permissive. A generated ASCII DXF with class version 1, frame 2, quality 2 and units 9 is read with those exact values preserved."
+  },
+  "regressionControl": {
+    "file": "tests/wave1_tests.cpp",
+    "selector": "--raster-wipeout-variables-identity-remapping",
+    "coverage": "For ASCII and Binary, class-version 1, frame -1/2, quality -1/2, and units -1/9 are refused before emitting bytes. Each refusal is corrected on the same writer; the retry emits one identity and has typed readback. A valid units=8 profile also has typed readback."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "buildResult": "passed",
+    "focusedTest": "build-gcc/libdxfrw_wave1_tests --raster-wipeout-variables-identity-remapping",
+    "focusedTestResult": "passed",
+    "diffCheck": "git diff --check passed",
+    "adapterBaseline": "The earlier generated-DWG adapter selector incorrectly required whole-source reference qualification for its selected-record control, which failed on unrelated unqualified references in Binary output. The harness now applies the same selected-graph scope to ASCII and Binary. Both --rastervariables-dwg-adapter-transport-direct-nod and --rastervariables-dwg-adapter-transport pass, including deliberate atomic refusal and same-adapter corrected retry. This does not qualify whole-source output."
+  },
+  "sourceBinding": {
+    "baseRevision": "fdc35473",
+    "files": {
+      "src/libdxfrw.cpp": "5ae487a1ddc16044b57d7508a8b744d7b9000cc9188d7da138783d39686ab23d",
+      "tests/wave1_tests.cpp": "b683c408f7a5a0db539c154d141e703d89b07131c4b76def6d81bf31d34be372",
+      "tests/dwg2dxf_adapter_tests.cpp": "c3dae8f0592344a4afbb83a174a6013ad3e3ffb4f06c52cc314eb1f3696c24bc",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "d9ef5cd5e8682e7af327bd74a37e79d92451e8d9f6a2217338c2a02af96df664"
+    }
+  },
+  "fixturePolicy": {
+    "newDwgOrDxfFixtureCommitted": false,
+    "generatedInputs": "ASCII and Binary DXF records are generated in memory by the focused test."
+  },
+  "nonClaims": [
+    "No physical producer with every image-unit value was tested.",
+    "No whole-document DWG conversion or native image rendering claim follows.",
+    "The DWG-origin adapter remains restricted to its separately evidenced profiles."
+  ]
+}

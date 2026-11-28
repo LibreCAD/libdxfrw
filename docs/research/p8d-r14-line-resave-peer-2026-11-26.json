@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r14-line-resave-peer-2026-11-26",
+  "supportClaimEffect": "none",
+  "libraryBase": "588e8bb72",
+  "implementationDigestSha256": "f8ce008f49a41767446842b8e47a95a8c4aca847bae194337fc18cae6c598784",
+  "inputCount": 775,
+  "consumerCommit": "a21b508edd32685b44f6a196eb0913c6c672abc7",
+  "scope": "Locally authored one-LINE R14 and LibreCAD legacy INSERT save/import/resave/reopen controls after the five Boolean field gates. No native or general R14 support claim.",
+  "validation": {
+    "headerPackedFlags": "PASS: optimized focused matrix, including ASCII/binary one-LINE save/import/resave/reopen, five-field destination-preserving refusal and corrected retry.",
+    "libreCADSystem": "PASS: upgraded legacy INSERT regression, 28 assertions; wider system-codec linetype selector 4905 assertions in 52 cases. dyld loaded the scratch library linked from the current library archive.",
+    "libreCADBundled": "PASS: same legacy INSERT regression, 22 assertions.",
+    "ezdxf": "Version 1.4.5 reads the LINE coordinates on all four first/second ASCII/binary files and the INSERT B at (0,160,0) from both consumer outputs. It upgrades AC1014 inputs to AC1015 in memory, so this is not a native R14 reader qualification. Its audit repairs the first LINE outputs root dictionary owner and reports no fixes for the second LINE outputs. It repairs the LibreCAD R14 INSERT resave root dictionary owner; the R12 INSERT output has no fixes.",
+    "physicalRoot": "For the generated ASCII LINE output, the first named-object dictionary C has no owner group 330; the second has 330=0. The independent auditor reports code 202 for the former. The consumer R14 resave likewise has an owner repair; do not assume this proves either physical form valid in R14."
+  },
+  "scratchSha256": {
+    "lineAsciiFirst": "695af31b4cd808b1a9aa97e9bf4996310ca680696506f2ee379381b7b5125dad",
+    "lineAsciiSecond": "a4b54f4cfd9515733c72c7b5b894d2f7a3958aa96c32070f68cab52b4641d69d",
+    "lineBinaryFirst": "a089a57cbc1ec3f60819eeaf8756ec0b6c56e0eb54e9c48ef81dbeae9ecccc82",
+    "lineBinarySecond": "40e8b3f888f53da1b557e665d82db0830428ad383f37a29b193206e07b9fa71a",
+    "consumerR12Second": "847a2ef5428940d61f73f4ea28f66ecfbb5e16aa8f7821f616ddf8a51959e4cc",
+    "consumerR14Second": "624c306d6e537bd3c40b46fb3486e3f46c2d3dc8b5d03bd03e7fa2e9520b4446"
+  },
+  "limits": [
+    "One generated entity and one selected INSERT do not establish general R14 resave semantics.",
+    "R14-specific authority and independent native controls are still required for root dictionary owner encoding and all remaining later-version header fields.",
+    "Other versions, full consumer/UI, and final platform qualification remain open.",
+    "All drawings remain locally authored scratch files; no fixtures are added."
+  ]
+}

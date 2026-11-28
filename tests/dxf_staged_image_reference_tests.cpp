@@ -1,0 +1,609 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+#include "lc3_compat_check.cpp"
+#include "intern/dxf_raster_output.h"
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+namespace {
+using References = dxfRW::DxfImageOutputReferences;
+struct Exporter : LC3CompatCheck {
+    Exporter(dxfRW& output, DRW::Version version, unsigned polygonVertices)
+        : output(output), version(version), polygonVertices(polygonVertices) {}
+    dxfRW& output;
+    DRW::Version version;
+    unsigned polygonVertices;
+    std::vector<References> references;
+    std::vector<DRW_Image> imageFields;
+    std::vector<DRW_ImageDef> definitionFields;
+    std::vector<DRW_RawDxfObject> rawPlot;
+    bool ok = false;
+    void writeEntities() override {
+        references.clear();
+        imageFields.clear();
+        definitionFields.clear();
+        ok = true;
+        for (unsigned i = 0; i != 2; ++i) {
+            DRW_Image image;
+            image.sizeu = 16;
+            image.sizev = 12;
+            image.secPoint = {1, 0, 0};
+            image.vVector = {0, 1, 0};
+            image.m_clipBoundaryType = i ? 1 : 2;
+            image.clipPath = i ? std::vector<DRW_Coord>{{-0.5, -0.5, 0}, {15.5, 11.5, 0}}
+                               : std::vector<DRW_Coord>{{1, 1, 0}, {12, 2, 0}, {7, 9, 0}};
+            if (!i)
+                for (unsigned j = 3; j < polygonVertices; ++j)
+                    image.clipPath.push_back({static_cast<double>(j), static_cast<double>(j + 1), 0});
+            auto* definition = output.writeImage(&image, i ? "second.png" : "first.png");
+            if (!definition || definition->reactors.empty()) { ok = false; return; }
+            const auto& pair = *definition->reactors.begin();
+            definitionFields.push_back(*definition);
+            imageFields.push_back(image);
+            references.push_back({static_cast<std::uint32_t>(std::stoul(pair.second, nullptr, 16)),
+                                  version == DRW::AC1014 ? 0u : DRW::DxfModelSpaceBlockRecordHandle, definition->handle,
+                                  static_cast<std::uint32_t>(std::stoul(pair.first, nullptr, 16))});
+        }
+    }
+    void writeObjects() override {
+        for (auto& object : rawPlot) ok = output.writeRawDxfObject(&object) && ok;
+    }
+    bool finalizeDxfWrite() override { return ok; }
+};
+struct Reader : LC3CompatCheck {
+    std::vector<DRW_Image> images;
+    void addImage(const DRW_Image* image) override { if (image) images.push_back(*image); }
+};
+std::string read(const std::filesystem::path& path) {
+    std::ifstream input(path, std::ios::binary);
+    return {std::istreambuf_iterator<char>(input), {}};
+}
+bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
+         dxfRW::DxfCompatibilityProfile profile, unsigned polygonVertices = 3) {
+    dxfRW writer(path.string().c_str());
+    writer.setDxfCompatibilityProfile(profile);
+    Exporter adapter(writer, version, polygonVertices);
+    if (version >= DRW::AC1015) {
+        DRW_RawDxfObject dictionary, placeholder;
+        dictionary.name = "ACDBDICTIONARYWDFLT"; dictionary.handle = 0xA0u;
+        dictionary.parentHandle = 0xCu; dictionary.m_version = version;
+        dictionary.groups.emplace_back(5, std::string("A0"));
+        dictionary.groups.emplace_back(330, std::string("C"));
+        dictionary.groups.emplace_back(100, std::string("AcDbDictionary"));
+        dictionary.groups.emplace_back(281, 1);
+        dictionary.groups.emplace_back(3, std::string("Normal"));
+        dictionary.groups.emplace_back(350, std::string("A1"));
+        dictionary.groups.emplace_back(100, std::string("AcDbDictionaryWithDefault"));
+        dictionary.groups.emplace_back(340, std::string("A1"));
+        placeholder.name = "ACDBPLACEHOLDER"; placeholder.handle = 0xA1u;
+        placeholder.parentHandle = 0xA0u; placeholder.m_version = version;
+        placeholder.groups.emplace_back(5, std::string("A1"));
+        placeholder.groups.emplace_back(330, std::string("A0"));
+        adapter.rawPlot = {dictionary, placeholder};
+        writer.setRootDictEntries({{"ACAD_PLOTSTYLENAME", "A0"}});
+    }
+    unsigned mode = 0;
+    if (!writer.setDxfEntitySectionsWriteInspector([&](const auto& view, std::string_view section) {
+        auto expected = section == "ENTITIES" ? adapter.references : std::vector<References>{};
+        if (section == "ENTITIES")
+            for (std::size_t i = 0; i < expected.size(); ++i) {
+                expected[i].scalarFields = &adapter.imageFields[i];
+                expected[i].canonicalCommon = version >= DRW::AC1015;
+            }
+        auto changedImage = section == "ENTITIES" ? adapter.imageFields.front() : DRW_Image{};
+        if (section == "ENTITIES" && ((mode >= 26 && mode <= 34) || (mode >= 52 && mode <= 55))) {
+            if (mode == 26) ++changedImage.m_classVersion;
+            if (mode == 27) ++changedImage.basePoint.z;
+            if (mode == 28) ++changedImage.secPoint.x;
+            if (mode == 29) ++changedImage.vVector.y;
+            if (mode == 30) ++changedImage.sizeu;
+            if (mode == 31) ++changedImage.brightness;
+            if (mode == 32) ++changedImage.clipPath.front().x;
+            if (mode == 33) changedImage.clipMode = !changedImage.clipMode;
+            if (mode == 34) changedImage.clipPath.pop_back();
+            if (mode == 52) ++changedImage.clipPath.back().y;
+            if (mode == 53) changedImage.clipPath.resize(LIBDXFRW_DXF_STAGED_IMAGE_MAX_CLIP_VERTICES + 1u);
+            if (mode == 54) changedImage.m_clipBoundaryType = 1;
+            if (mode == 55) changedImage.clipPath.push_back({2, 3, 0});
+            expected.front().scalarFields = &changedImage;
+        }
+        if (section == "ENTITIES" && mode == 1) ++expected.front().owner;
+        if (section == "ENTITIES" && mode == 2) ++expected.front().definition;
+        if (section == "ENTITIES" && mode == 3) ++expected.front().reactor;
+        if (section == "ENTITIES" && mode == 4) expected.pop_back();
+        if (section == "ENTITIES" && mode == 5) expected.push_back(expected.front());
+        if (section == "ENTITIES" && mode == 7) {
+            auto extra = expected.front(); extra.image = 0xFEEDu;
+            expected.push_back(extra);
+        }
+        if (section == "ENTITIES" && (mode == 6 || mode == 8 || (mode >= 46 && mode <= 51))) {
+            std::string changed(view.bytes);
+            const auto profile = view.compatibilityProfile == dxfRW::DxfCompatibilityProfile::StandaloneSafe
+                ? dx_raster_output::Profile::StandaloneSafe : dx_raster_output::Profile::LibreCadMasterLegacy;
+            dx_raster_output::Cursor cursor(changed, binary, profile);
+            dx_raster_output::Token token;
+            bool mutated = false;
+            std::string firstHandle;
+            while (!cursor.done()) {
+                const auto start = cursor.position();
+                if (!cursor.next(token)) return false;
+                if (mode == 8 && token.code == 5 && firstHandle.empty()) {
+                    firstHandle = token.text;
+                    continue;
+                }
+                if (mode >= 46) {
+                    if (mode == 51) {
+                        if (token.code != 100 || token.text != "AcDbEntity") continue;
+                        const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                        changed[offset] = 'X';
+                        mutated = true;
+                        break;
+                    }
+                    if (mode == 50) {
+                        if (token.code != 370) continue;
+                        if (binary) changed[start] ^= 1;
+                        else {
+                            const auto end = changed.find('\n', start);
+                            const auto digit = changed.find('0', start);
+                            if (end == std::string::npos || digit == std::string::npos || digit >= end) return false;
+                            changed[digit] = '1';
+                        }
+                        mutated = true;
+                        break;
+                    }
+                    const int target = mode == 46 ? 8 : mode == 47 ? 6 : mode == 48 ? 62 : 370;
+                    if (token.code != target) continue;
+                    if (token.type == dx_raster_output::Kind::Text && !token.text.empty()) {
+                        const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                        changed[offset] = 'X';
+                    } else if (binary) {
+                        const auto offset = cursor.position() - 2u;
+                        changed[offset] ^= 1;
+                    } else {
+                        const auto end = cursor.position();
+                        auto pos = changed.rfind('\n', end - 2u);
+                        if (pos == std::string::npos) return false;
+                        while (++pos < end && (changed[pos] == ' ' || changed[pos] == '-')) {}
+                        if (pos >= end) return false;
+                        changed[pos] = changed[pos] == '1' ? '2' : '1';
+                    }
+                    mutated = true;
+                    break;
+                }
+                if (token.text.empty()) continue;
+                if ((mode == 6 && token.code != 340) ||
+                    (mode == 8 && (token.code != 5 || token.text.size() != firstHandle.size()))) continue;
+                const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                if (mode == 6) changed[offset] = changed[offset] == 'A' ? 'B' : 'A';
+                else changed.replace(offset, token.text.size(), firstHandle);
+                mutated = true;
+                break;
+            }
+            if (!mutated) return false;
+            auto altered = view;
+            altered.bytes = changed;
+            return writer.inspectDxfImageOutputReferences(altered, expected);
+        }
+        const bool valid = writer.inspectDxfImageOutputReferences(view, expected);
+        if (!valid && mode == 0) {
+            std::cerr << "inspection failed in " << section << " count=" << expected.size() << '\n';
+        }
+        return valid;
+    })) return false;
+    if (!writer.setDxfObjectsWriteInspector([&](const auto& view) {
+        const auto dictionary = writer.dxfWriteImageDictionaryHandle();
+        std::vector<dxfRW::DxfImageDefinitionOutputLinks> definitions;
+        std::vector<dxfRW::DxfImageReactorOutputLinks> reactors;
+        for (std::size_t i = 0; i < adapter.references.size(); ++i) {
+            const auto& reference = adapter.references[i];
+            definitions.push_back({reference.definition, version == DRW::AC1014 ? 0u : dictionary,
+                                   {reference.reactor}, &adapter.definitionFields[i]});
+            reactors.push_back({reference.reactor, reference.image});
+        }
+        auto changedFields = adapter.definitionFields.front();
+        if (mode == 16) { changedFields.u += 1; definitions.front().scalarFields = &changedFields; }
+        if (mode == 18) { changedFields.name = "unsafe\\path"; definitions.front().scalarFields = &changedFields; }
+        if (mode >= 19 && mode <= 24) {
+            if (mode == 19) ++changedFields.imgVersion;
+            if (mode == 20) ++changedFields.v;
+            if (mode == 21) ++changedFields.up;
+            if (mode == 22) ++changedFields.vp;
+            if (mode == 23) changedFields.loaded = 1 - changedFields.loaded;
+            if (mode == 24) ++changedFields.resolution;
+            definitions.front().scalarFields = &changedFields;
+        }
+        if (mode == 9) ++definitions.front().owner;
+        if (mode == 10) ++reactors.front().image;
+        if (mode == 11) definitions.pop_back();
+        if (mode == 12) definitions.front().reactors.clear();
+        if (mode == 13) reactors.push_back(reactors.front());
+        if (mode == 14 || mode == 15 || mode == 17 || mode == 25) {
+            std::string changed(view.bytes);
+            const auto profile = view.compatibilityProfile == dxfRW::DxfCompatibilityProfile::StandaloneSafe
+                ? dx_raster_output::Profile::StandaloneSafe : dx_raster_output::Profile::LibreCadMasterLegacy;
+            dx_raster_output::Cursor cursor(changed, binary, profile);
+            dx_raster_output::Token token;
+            std::string name;
+            bool inReactors = false, mutated = false;
+            while (!cursor.done()) {
+                const auto start = cursor.position();
+                if (!cursor.next(token)) return false;
+                if (token.code == 0) { name = token.text; inReactors = false; }
+                else if (token.code == 102 && name == "IMAGEDEF") {
+                    if (token.text == "{ACAD_REACTORS") inReactors = true;
+                    else if (token.text == "}") inReactors = false;
+                } else if (mode == 14 && name == "IMAGEDEF_REACTOR" && token.code == 90) {
+                    if (binary) changed[start + 2] = 3;
+                    else {
+                        auto pos = changed.find('\n', start);
+                        if (pos == std::string::npos) return false;
+                        ++pos;
+                        while (pos < changed.size() && changed[pos] == ' ') ++pos;
+                        if (pos == changed.size()) return false;
+                        changed[pos] = '3';
+                    }
+                    mutated = true;
+                    break;
+                } else if (mode == 15 && name == "IMAGEDEF" && inReactors && token.code == 330 && !token.text.empty()) {
+                    const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                    changed[offset] = changed[offset] == 'A' ? 'B' : 'A';
+                    mutated = true;
+                    break;
+                } else if (mode == 17 && name == "IMAGEDEF" && token.code == 1 && !token.text.empty()) {
+                    const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                    changed[offset] = changed[offset] == 'x' ? 'y' : 'x';
+                    mutated = true;
+                    break;
+                } else if (mode == 25 && name == "IMAGEDEF" && token.code == 20) {
+                    if (binary) changed[start] = 10;
+                    else {
+                        const auto end = changed.find('\n', start);
+                        const auto digit = changed.find('2', start);
+                        if (end == std::string::npos || digit == std::string::npos || digit >= end) return false;
+                        changed[digit] = '1';
+                    }
+                    mutated = true;
+                    break;
+                }
+            }
+            if (!mutated) return false;
+            auto altered = view;
+            altered.bytes = changed;
+            return writer.inspectDxfImageOutputObjects(altered, definitions, reactors);
+        }
+        bool valid = writer.inspectDxfImageOutputObjects(view, definitions, reactors);
+        if (valid && version >= DRW::AC1015) {
+            std::vector<dxfRW::DxfDictionaryOutputExpectation> root{{"ACAD_GROUP", 0xDu, 350}};
+            const auto plot = writer.dxfWriteDefaultPlotStyleDictionaryHandle();
+            if (plot) root.push_back({"ACAD_PLOTSTYLENAME", plot, 350});
+            root.push_back({"ACAD_IMAGE_DICT", dictionary, 350});
+            if (!adapter.rawPlot.empty()) root.push_back({"ACAD_PLOTSTYLENAME", 0xA0u, 350});
+            std::vector<dxfRW::DxfDictionaryOutputExpectation> images{
+                {"first", adapter.references[0].definition, 350},
+                {"second", adapter.references[1].definition, 350}};
+            if (mode == 35) ++root.back().target;
+            if (mode == 36) ++images.front().target;
+            if (mode == 37) images.pop_back();
+            if (mode == 38) images.front().role = 360;
+            if (mode == 41) images.front().name.assign(1025u, 'x');
+            if (mode == 42) images.back().name = "FIRST";
+            const int cloning = mode == 39 ? 2 : 1;
+            if (mode == 40) {
+                std::string changed(view.bytes);
+                const auto position = changed.find("first");
+                if (position == std::string::npos) return false;
+                changed[position] = 'x';
+                auto altered = view;
+                altered.bytes = changed;
+                return writer.inspectDxfDictionaryOutput(altered, dictionary, 0xCu, 0, cloning, images);
+            }
+            valid = writer.inspectDxfDictionaryOutput(view, 0xCu, 0u, 0, 1, root) &&
+                    writer.inspectDxfDictionaryOutput(view, dictionary, 0xCu, 0, cloning, images);
+            if (valid && !adapter.rawPlot.empty()) {
+                auto changedPlot = adapter.rawPlot;
+                if (mode == 43) changedPlot.front().groups[3] = DRW_Variant(281, 2);
+                std::vector<const DRW_RawDxfObject*> expectedPlot{&changedPlot[0], &changedPlot[1]};
+                if (mode == 44 || mode == 45) {
+                    std::string changed(view.bytes);
+                    const auto position = changed.find(mode == 44 ? "Normal" : "ACDBDICTIONARYWDFLT");
+                    if (position == std::string::npos) return false;
+                    changed[position] = 'X';
+                    auto altered = view;
+                    altered.bytes = changed;
+                    return writer.inspectDxfRawObjectRecords(altered, expectedPlot);
+                }
+                valid = writer.inspectDxfRawObjectRecords(view, expectedPlot);
+            }
+        }
+        if (!valid && mode == 0) std::cerr << "IMAGE object inspection failed\n";
+        return valid;
+    })) return false;
+    if (!writer.write(&adapter, version, binary) || !adapter.ok || adapter.references.size() != 2u) {
+        std::cerr << "baseline write failed, ok=" << adapter.ok << " references=" << adapter.references.size() << '\n';
+        return false;
+    }
+    for (mode = 1; mode <= 55; ++mode) {
+        if (mode == 33 && version < DRW::AC1024) continue;
+        if (mode >= 35 && mode <= 51 && version < DRW::AC1015) continue;
+        { std::ofstream destination(path, std::ios::binary | std::ios::trunc); destination << "sentinel"; }
+        if (writer.write(&adapter, version, binary) || read(path) != "sentinel") {
+            std::cerr << "refusal failed, mode=" << mode << '\n'; return false;
+        }
+    }
+    mode = 0;
+    if (!writer.write(&adapter, version, binary) || !adapter.ok) { std::cerr << "retry failed\n"; return false; }
+    Reader reader;
+    dxfRW input(path.string().c_str());
+    input.setDxfCompatibilityProfile(profile);
+    if (!input.read(&reader, false) || reader.images.size() != 2u) { std::cerr << "readback failed: " << reader.images.size() << '\n'; return false; }
+    for (std::size_t i = 0; i < reader.images.size(); ++i)
+        if (reader.images[i].handle != adapter.references[i].image ||
+            reader.images[i].ref != adapter.references[i].definition ||
+            reader.images[i].m_imageDefReactorHandle != adapter.references[i].reactor ||
+            reader.images[i].m_clipBoundaryType != adapter.imageFields[i].m_clipBoundaryType ||
+            reader.images[i].clipPath.size() != adapter.imageFields[i].clipPath.size()) return false;
+    for (std::size_t i = 0; i < reader.images.size(); ++i)
+        for (std::size_t j = 0; j < reader.images[i].clipPath.size(); ++j)
+            if (reader.images[i].clipPath[j].x != adapter.imageFields[i].clipPath[j].x ||
+                reader.images[i].clipPath[j].y != adapter.imageFields[i].clipPath[j].y) return false;
+    return true;
+}
+
+bool runLayoutReferences(const std::filesystem::path& path, DRW::Version version, bool binary) {
+    struct LayoutAdapter : LC3CompatCheck, DRW_DxfFixedPaperSpaceWriter {
+        dxfRW& writer;
+        bool ok = true;
+        unsigned failure = 0;
+        explicit LayoutAdapter(dxfRW& writer) : writer(writer) {}
+        bool writeDxfFixedPaperSpaceContents() override {
+            DRW_Line line; line.basePoint = {2, 3, 0}; line.secPoint = {7, 11, 0};
+            if (!writer.writeLine(&line)) return false;
+            if (failure == 1) return false;
+            if (failure == 2) { DRW_Block nested; nested.name = "BAD"; writer.writeBlock(&nested); }
+            if (failure == 3) writer.writeBlockEnd();
+            if (failure == 4) writer.writeBlockRecord("BAD");
+            if (failure == 5) throw std::runtime_error("paper callback failure");
+            return true;
+        }
+        void writeBlockRecords() override { ok = writer.writeBlockRecord("*Paper_Space0") && ok; }
+        void writeBlocks() override {
+            DRW_Block block; block.name = "*Paper_Space0";
+            ok = writer.writeBlock(&block) && ok;
+        }
+        void writeObjects() override {
+            for (unsigned i = 0; i < 3; ++i) {
+                DRW_Layout layout; layout.handle = 0x901u + i; layout.parentHandle = 0x900u;
+                layout.name = i == 0 ? "Model" : i == 1 ? "Layout1" : "Layout2";
+                layout.tabOrder = static_cast<int>(i);
+                layout.paperSpaceBlockRecordHandle.ref = 0xA01u + i;
+                ok = writer.writeLayout(&layout) && ok;
+            }
+        }
+        bool finalizeDxfWrite() override {
+            const auto extra = writer.getBlockRecordHandleToWrite("*Paper_Space0");
+            return ok && writer.dxfWriteRecordHasIdentity(0x900u, "DICTIONARY", "OBJECTS") &&
+                writer.dxfWriteRecordHasOwner(0x900u, 0xCu) &&
+                writer.dxfWriteRecordHasIdentity(0x903u, "LAYOUT", "OBJECTS") &&
+                writer.dxfWriteRecordHasOwner(0x903u, 0x900u) &&
+                writer.dxfWriteRecordHasIdentity(extra, "BLOCK_RECORD", "TABLES");
+        }
+    };
+    dxfRW writer(path.string().c_str());
+    LayoutAdapter adapter(writer);
+    writer.setDxfWriteRecordInventoryEnabled(true);
+    for (std::uint32_t handle = 0x900u; handle <= 0x903u; ++handle)
+        if (!writer.reserveHandle(handle)) return false;
+    DRW_Dictionary dictionary;
+    dictionary.handle = 0x900u; dictionary.parentHandle = 0xCu;
+    dictionary.hardOwner = 1; dictionary.cloning = 1;
+    dictionary.m_entries = {{"Model", 0x901u}, {"Layout1", 0x902u}, {"Layout2", 0x903u}};
+    writer.setRootDictEntries({{"ACAD_LAYOUT", "900"}});
+    writer.setNamedDictObjects({dictionary});
+    std::vector<DRW_Block_Record> records;
+    for (unsigned i = 0; i < 3; ++i) {
+        DRW_Block_Record block; block.handle = 0xA01u + i; block.layoutHandle = 0x901u + i;
+        block.name = i == 0 ? "*Model_Space" : i == 1 ? "*Paper_Space" : "*Paper_Space0";
+        records.push_back(block);
+    }
+    writer.setSourceBlockRecords(records);
+    unsigned mode = 0;
+    const auto links = [&] {
+        return std::vector<dxfRW::DxfLayoutOutputLinks>{
+            {"Model", "*Model_Space", 0x901u, 0x1Fu, 0},
+            {"Layout1", "*Paper_Space", 0x902u, 0x1Eu, 1},
+            {"Layout2", "*Paper_Space0", 0x903u,
+             writer.getBlockRecordHandleToWrite("*Paper_Space0"), 2}};
+    };
+    if (!writer.setDxfTablesWriteInspector([&](const auto& view) {
+        auto expected = links();
+        if (mode == 1) ++expected.front().layout;
+        if (mode == 2) ++expected.back().blockRecord;
+        if (mode == 3) expected.back().blockName = "OTHER";
+        if (mode == 6) expected.pop_back();
+        if (mode == 7) expected.push_back(expected.front());
+        if (mode == 10) {
+            std::string changed(view.bytes);
+            dx_raster_output::Cursor cursor(changed, binary, dx_raster_output::Profile::StandaloneSafe);
+            dx_raster_output::Token token;
+            bool block = false, altered = false;
+            while (!cursor.done()) {
+                if (!cursor.next(token)) return false;
+                if (token.code == 0) block = token.text == "BLOCK_RECORD";
+                else if (block && token.code == 340 && !token.text.empty()) {
+                    const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                    changed[offset] = changed[offset] == '9' ? '8' : '9'; altered = true; break;
+                }
+            }
+            if (!altered) return false;
+            auto alteredView = view; alteredView.bytes = changed;
+            return writer.inspectDxfLayoutBlockRecords(alteredView, expected);
+        }
+        return writer.inspectDxfLayoutBlockRecords(view, expected);
+    })) return false;
+    if (!writer.setDxfObjectsWriteInspector([&](const auto& view) {
+        auto expected = links();
+        if (mode == 4) ++expected.front().tabOrder;
+        if (mode == 5) expected.front().name = "Other";
+        if (mode == 8) return writer.inspectDxfLayoutObjects(view, 0x999u, expected);
+        if (mode == 9) {
+            std::string changed(view.bytes);
+            dx_raster_output::Cursor cursor(changed, binary, dx_raster_output::Profile::StandaloneSafe);
+            dx_raster_output::Token token;
+            bool inLayout = false, body = false, altered = false;
+            while (!cursor.done()) {
+                if (!cursor.next(token)) return false;
+                if (token.code == 0) { inLayout = token.text == "LAYOUT"; body = false; }
+                else if (inLayout && token.code == 100 && token.text == "AcDbLayout") body = true;
+                else if (inLayout && body && token.code == 330 && !token.text.empty()) {
+                    const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                    changed[offset] = changed[offset] == '1' ? '2' : '1'; altered = true; break;
+                }
+            }
+            if (!altered) return false;
+            auto alteredView = view; alteredView.bytes = changed;
+            return writer.inspectDxfLayoutObjects(alteredView, 0x900u, expected);
+        }
+        return writer.inspectDxfLayoutObjects(view, 0x900u, expected);
+    })) return false;
+    if (!writer.write(&adapter, version, binary)) return false;
+    for (mode = 1; mode <= 15; ++mode) {
+        adapter.failure = mode > 10 ? mode - 10 : 0;
+        { std::ofstream output(path, std::ios::binary | std::ios::trunc); output << "layout sentinel"; }
+        if (writer.write(&adapter, version, binary) || read(path) != "layout sentinel") {
+            std::cerr << "layout refusal failed, mode=" << mode << '\n'; return false;
+        }
+    }
+    mode = 0;
+    adapter.failure = 0;
+    if (!writer.write(&adapter, version, binary) || !adapter.ok) return false;
+    struct LineReader : LC3CompatCheck {
+        std::vector<DRW_Line> lines;
+        void addLine(const DRW_Line& line) override { lines.push_back(line); }
+    } reader;
+    dxfRW input(path.string().c_str());
+    return input.read(&reader, false) && reader.lines.size() == 1 &&
+           reader.lines[0].parentHandle == DRW::DxfPaperSpaceBlockRecordHandle &&
+           reader.lines[0].basePoint.x == 2 && reader.lines[0].basePoint.y == 3 &&
+           reader.lines[0].secPoint.x == 7 && reader.lines[0].secPoint.y == 11;
+}
+
+bool runMaterialReferences(const std::filesystem::path& path, DRW::Version version,
+                           bool binary, dxfRW::DxfCompatibilityProfile profile) {
+    struct Lines : LC3CompatCheck {
+        dxfRW& writer;
+        bool ok = false;
+        explicit Lines(dxfRW& output) : writer(output) {}
+        void writeEntities() override {
+            DRW_Line line;
+            line.handle = 0x600u;
+            line.material = 0xA1u;
+            line.basePoint = {1, 2, 3};
+            line.secPoint = {4, 5, 6};
+            ok = writer.writeLine(&line);
+            DRW_Line ordinary;
+            ordinary.handle = 0x601u;
+            ok = writer.writeLine(&ordinary) && ok;
+        }
+        bool finalizeDxfWrite() override { return ok; }
+    };
+    struct LineReader : LC3CompatCheck {
+        std::vector<std::uint32_t> materials;
+        void addLine(const DRW_Line& line) override { materials.push_back(line.material); }
+    };
+    dxfRW writer(path.string().c_str());
+    writer.setDxfCompatibilityProfile(profile);
+    writer.setHandleRemap({{0xA1u, 0xB1u}});
+    Lines adapter(writer);
+    unsigned mode = 0;
+    if (!writer.setDxfEntitySectionsWriteInspector([&](const auto& view, std::string_view section) {
+        std::vector<dxfRW::DxfEntityMaterialReference> expected;
+        if (section == "ENTITIES") {
+            const auto* context = writer.getWritingContext();
+            if (!context) return false;
+            const auto entity = context->sourceHandleToMintedMap.find(0x600u);
+            if (entity == context->sourceHandleToMintedMap.end()) return false;
+            expected.push_back({entity->second, 0xB1u});
+            if (mode == 1) ++expected.front().material;
+            if (mode == 2) expected.clear();
+            if (mode == 3) expected.push_back(expected.front());
+            if (mode == 4) ++expected.front().entity;
+            if (mode == 5) {
+                std::string changed(view.bytes);
+                const auto outputProfile = profile == dxfRW::DxfCompatibilityProfile::StandaloneSafe
+                    ? dx_raster_output::Profile::StandaloneSafe : dx_raster_output::Profile::LibreCadMasterLegacy;
+                dx_raster_output::Cursor cursor(changed, binary, outputProfile);
+                dx_raster_output::Token token;
+                bool changedReference = false;
+                while (!cursor.done()) {
+                    if (!cursor.next(token)) return false;
+                    if (token.code != 347 || token.text.empty()) continue;
+                    const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                    changed[offset] = changed[offset] == 'B' ? 'C' : 'B';
+                    changedReference = true;
+                    break;
+                }
+                if (!changedReference) return false;
+                auto altered = view;
+                altered.bytes = changed;
+                return writer.inspectDxfEntityMaterialReferences(altered, expected);
+            }
+        } else if (section != "BLOCKS") return false;
+        return writer.inspectDxfEntityMaterialReferences(view, expected);
+    })) return false;
+    if (!writer.write(&adapter, version, binary)) return false;
+    for (mode = 1; mode <= 5; ++mode) {
+        { std::ofstream destination(path, std::ios::binary | std::ios::trunc); destination << "sentinel"; }
+        if (writer.write(&adapter, version, binary) || read(path) != "sentinel") return false;
+    }
+    mode = 0;
+    if (!writer.write(&adapter, version, binary)) return false;
+    LineReader reader;
+    dxfRW input(path.string().c_str());
+    input.setDxfCompatibilityProfile(profile);
+    return input.read(&reader, false) && reader.materials.size() == 2u &&
+           reader.materials[0] == 0xB1u && reader.materials[1] == DRW::MaterialByLayer;
+}
+}
+int main() {
+    const auto directory = std::filesystem::temp_directory_path() /
+        ("staged-image-refs-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directories(directory);
+    struct Cleanup { std::filesystem::path path; ~Cleanup() { std::error_code error; std::filesystem::remove_all(path, error); } } cleanup{directory};
+    for (const auto version : {DRW::AC1014, DRW::AC1015, DRW::AC1018, DRW::AC1021,
+                               DRW::AC1024, DRW::AC1027, DRW::AC1032})
+        for (const bool binary : {false, true})
+          for (const auto profile : {dxfRW::DxfCompatibilityProfile::StandaloneSafe,
+                                     dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy})
+            if (!run(directory / "output.dxf", version, binary, profile)) {
+                std::cerr << "staged IMAGE references failed for version " << static_cast<int>(version)
+                          << " binary=" << binary << " profile=" << static_cast<int>(profile) << '\n';
+                return 1;
+            }
+    for (const bool binary : {false, true})
+        if (!run(directory / "polygon-limit.dxf", DRW::AC1024, binary,
+                 dxfRW::DxfCompatibilityProfile::StandaloneSafe, LIBDXFRW_DXF_STAGED_IMAGE_MAX_CLIP_VERTICES)) {
+            std::cerr << "staged IMAGE polygon limit failed, binary=" << binary << '\n';
+            return 1;
+        }
+    for (const auto version : {DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032})
+        for (const bool binary : {false, true})
+          for (const auto profile : {dxfRW::DxfCompatibilityProfile::StandaloneSafe,
+                                     dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy})
+            if (!runMaterialReferences(directory / "material.dxf", version, binary, profile)) {
+                std::cerr << "staged entity MATERIAL references failed for version " << static_cast<int>(version)
+                          << " binary=" << binary << " profile=" << static_cast<int>(profile) << '\n';
+                return 1;
+            }
+    for (const auto version : {DRW::AC1015, DRW::AC1018, DRW::AC1021, DRW::AC1024,
+                               DRW::AC1027, DRW::AC1032})
+        for (const bool binary : {false, true})
+            if (!runLayoutReferences(directory / "layouts.dxf", version, binary)) {
+                std::cerr << "staged layout references failed, version=" << static_cast<int>(version)
+                          << " binary=" << binary << '\n'; return 1;
+            }
+}

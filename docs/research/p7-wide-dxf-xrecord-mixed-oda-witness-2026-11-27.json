@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-27",
+  "scope": "One generated AC1027 XRECORD has ordered body references 330, 331, 349 and 341, targeting a selected sibling dictionary and XRECORD.",
+  "implementationDigestSha256": "31042294e6ebc544fdb2894e8fff382256052a47f0b3382c6bce7bba63193e71",
+  "codeBasis": "8b310c729; this follow-up changes tests and evidence only",
+  "converterSha256": "8df3de3760ce5e9e74a2d0753418da767c1add56a943f2d4d0455558a2b48b03",
+  "hashes": {
+    "ascii": {
+      "source": "5ead003efb649fe099f1eecc0981d869b851c50c965dc4d60c26f89ea05bbee8",
+      "output": "d905abcb1894a5fa224eff6c5ccf6b8f6afc7fea67d130d035147c38a9a8b4bc",
+      "odaRoundtrip": "e024209891d4640f5b2e4b87ab381011041e36e3a87ad662b033c8c19d2681f9"
+    },
+    "binary": {
+      "source": "48bac24eb022ed4b756055c58caa222d64827b32eb8c1294ca699b6618bee826",
+      "output": "969d98ba90db718bc1533ded37a3791f862cae348637a70005cc1aa3420fcd04",
+      "odaRoundtrip": "eb7cb4d82d0cc69b87155ddd23e95c8601392c6e36ae27fbb00c1e076bf85fa2"
+    }
+  },
+  "peers": "ezdxf 1.4.5 matches 28 objects, 27 entries, owner/reactor links and all values, with no source/output audit errors or fixes. ODA File Converter 27.1.0.0 converts each output to ACAD2013 DWG and back, preserving both owners and all four ordered reference codes and targets.",
+  "regression": "The focused compact-material graph suite checks mixed groups including 330 plus four pointers and 331 plus sixteen pointers, handle collisions, order/code/owner mutation, destination preservation and retry; it passes in both encodings.",
+  "limits": [
+    "Locally generated profile and selected graph only; no native application or broad support claim.",
+    "LibreDWG 0.14 drops body group 330/331 in this graph; that peer remains incompatible.",
+    "No external DWG/DXF fixture committed."
+  ]
+}

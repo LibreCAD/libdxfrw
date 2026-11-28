@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-02",
+  "gate": "S8.8",
+  "result": "COMMITTED_RECHECK_PASSED",
+  "scope": "Generated DXF writer/readback callback fields only; this does not qualify independent PFACE topology, DWG child ownership, target interoperability, or general PFACE support.",
+  "implementation": {
+    "source": "src/libdxfrw.cpp",
+    "sha256": "372596cc65f4c65bac710df1a6ebff1efa56f17063b54dc8ff78436fe0ba7850",
+    "probe_source": "tests/semantic_differential_adapter.cpp",
+    "probe_source_sha256": "ec61008e1cfea40b5a09104e33238479fc4ceb310563cfef0415fd41092a68e8",
+    "test_registration": "tests/CMakeLists.txt",
+    "test_registration_sha256": "98edece68366f96a7b56106c8eabffab763de4dc684fd8f4c77cf7f911c05538",
+    "probe_binary": "build-gcc/tests/libdxfrw_3d_consumer_probe",
+    "probe_binary_sha256": "591a04ffe81fa06bcc7e2170216b4d4eb47fef18b1958ba2ab0a4e2c11684d7d"
+  },
+  "generated_profile": {
+    "versions": ["AC1027"],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "parent": "PFACE POLYLINE; flag 64; four vertices and one face",
+    "vertices": "Four nonzero-Z vertex records with source flags 192",
+    "face": "Typed PolyfaceFace record with default source flags 0 and signed indices 1,-2,3,-4",
+    "readback_modes": ["ext=false", "ext=true"],
+    "assertions": [
+      "PFACE declaration and counts",
+      "first and last vertex XYZ",
+      "writer-emitted DXF face-record group-70 marker bit 128",
+      "all four signed one-based face indices"
+    ],
+    "fixtures_committed": false
+  },
+  "validation": {
+    "build_command": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "build_result": "PASS",
+    "focused_test_command": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "focused_test_result": "PASS 1/1; 0.36 seconds",
+    "scoped_diff_check": "PASS"
+  }
+}

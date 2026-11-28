@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c background/SUN write-handle ownership transfer",
+  "scope": "Remove duplicate resolved-background and resolved-SUN handle vectors at the adapter-to-codec synchronous DXF write boundary.",
+  "files": {
+    "src/libdxfrw.h": "d4f162fb344a7f6c27e53fa86e3df4d70a2cb93f6afaf5001fed0d3ecc07054f",
+    "dwg2dxf/dx_iface.h": "0fafc14fb262eafce83f9600aa8d18157773655affbda01c8fd9c2da89cf3fa6",
+    "dwg2dxf/dx_iface.cpp": "970fc9733e06b1cbce014ebfe0076fc654a4d19c5cada4c290101b565f83bce5"
+  },
+  "change": {
+    "summary": "The adapter now transfers its temporary resolved-handle vectors through the existing rvalue setters; dx_iface::writeObjects reads const views from the codec's shared vectors during the same synchronous write.",
+    "existingCopySettersChanged": false,
+    "publicApiMethodsAdded": true,
+    "publicDataMembersAdded": false,
+    "virtualMethodsAdded": false,
+    "classLayoutChanged": false,
+    "wireGrammarChanged": false,
+    "outputPolicyChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_fixtures|dwg2dxf_background_sun_typed_capture_limits|dwg2dxf_render_background_sun_raw_capture_limits)$' --output-on-failure",
+      "result": "PASS (3/3; 4.71 s)"
+    },
+    {
+      "command": "git diff --check -- src/libdxfrw.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/7s2c-background-sun-write-handle-transfer-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    }
+  ],
+  "fullSuiteRun": false,
+  "externalProducerOrNativeApplicationRun": false,
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "planTotals": {
+    "findings": 144,
+    "topLevelSubplans": 78
+  },
+  "selfUnblockingContinuation": "Continue the 7S.2c exact-source audit for remaining compound/class registries, parser staging owners, and writer-side copies. Then take the next locally demonstrated PAR-03/PAR-04, HATCH, or DWG semantic issue. Native FreeCAD Linux/Windows and independent ACIS/ACDS qualification remain separate and do not pause local work."
+}

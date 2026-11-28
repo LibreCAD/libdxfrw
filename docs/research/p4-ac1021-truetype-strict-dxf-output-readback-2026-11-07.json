@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 truetype strict whole-source output and DXF readback",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "supersedes": "The historical strict-output attempt in p4-ac1021-truetype-layerstates-view-xrecord-selected-output-2026-11-07.json, which recorded 46/53 callback qualification before the current full-source selector was added.",
+  "followUp": "The group-370 replay boundary below was resolved in p4-ac1021-truetype-layerstate-dxf-group370-replay-2026-11-07.json. This receipt remains the evidence for strict whole-source output and first fresh import readback.",
+  "scope": "Verify strict AC1021 whole-source ASCII/Binary DXF output and fresh whole-file typed import readback for the existing truetype drawing; validate its rooted LayerStates XRECORD's group-330/331 table targets; test atomic unresolved-target refusal and same-adapter correction/retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; producer and author are not independently authenticated. The source and generated derivatives remain outside the repository."
+  },
+  "sourceGraph": {
+    "scope": "Strict source import publishes 173/173 handle-map frames with zero entity/object parse failures and zero retained source-integrity rows.",
+    "layerState": "LAYER_CONTROL extension dictionary -> ACAD_LAYERSTATES -> ACAD_VIEWS_default XRECORD. The typed source record has 27 ordered data entries and eight handle values: four group-330 references to LAYER records, four group-331 references to LTYPE records, plus four group-370 values.",
+    "priorEvidence": "The source-bound fields and target identities were independently cross-checked against LibreDWG 0.14 minJSON and ODA v5.4.1 §20.4.104 in p4-ac1021-truetype-layerstates-view-xrecord-selected-output-2026-11-07.json."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "Extension-graph validation now resolves XRECORD group-330 targets when they uniquely identify emitted LAYER rows and group-331 targets when they uniquely identify emitted LTYPE rows. This permits a valid emitted DXF to pass fresh full-file import without a DWG-only LayerStates receipt. Generated admission controls require present correctly typed targets and reject a missing target. Added a source-bound physical selector that exercises RequireComplete output, fresh complete typed readback, destination preservation and same-adapter retry in both encodings.",
+    "productionCodecChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS with -Werror",
+      "testSourceSha256": "b1f8247912587aea3822fa9c53dc938c8680b7d6856fa2fd96b1983fccdf1008",
+      "adapterExecutableSha256": "61655ed695308128e5fe22595a3da3a01dd8ba67dd0994d2ee4ee5116d518804",
+      "dwg2dxfExecutableSha256": "027567b5fc78118fc96cf5a35203c95c66be50996613d9a29244c0201477a90c"
+    },
+    "generatedAdmission": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --xrecord-group-reference-admission",
+      "result": "PASS; group-330 to a present LAYER and group-331 to a present LTYPE are admitted; a dangling target is rejected. Existing rooted GROUP reference and resource-limit refusal/retry cases pass."
+    },
+    "physicalWholeSource": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --truetype-ac1021-strict-output-readback /Users/dli/doc/dwg/truetype.dwg /private/tmp/truetype-strict-selector-verified",
+      "result": "PASS in ASCII and Binary using RequireComplete. Each run verifies 173 source frames, FinalizedComplete coverage, 173 Published frames, zero parse failures and zero integrity rows. The full DXF freshly imports; all XRECORDs, LAYERs and LTYPEs are present; the exact XRECORD owner, four group-330 LAYER targets, four group-331 LTYPE targets and four group-370 values are preserved. An unresolved handle refuses without replacing a destination sentinel; correcting it and retrying the same adapter succeeds."
+    },
+    "outputs": {
+      "asciiSha256": "78806f866e72316fcfa14477a99ef973c36663f0260d04de53a7ce91d6f58583",
+      "binarySha256": "baabd1758c4df8d85ce90acefeeb1bbec1b9ac692885ba0b18ebf7c243ca296b"
+    },
+    "selectedRegression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/truetype.dwg",
+      "result": "PASS in ASCII and Binary; the existing selected VIEWPORT profile still qualifies 53/53 source callbacks and preserves its readback/refusal/retry controls."
+    },
+    "DXFOriginResaveBoundary": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/truetype-strict-selector-verified/truetype-strict-ascii.dxf -y -v2007 /private/tmp/truetype-dxf-origin-resave.dxf",
+      "result": "At this slice, the emitted DXF imported through full graph preparation, including group-330/331 references, then XRECORD output refused group-370 because it lacked the DWG LayerStates receipt. This boundary was closed by the source-bound DXF replay follow-up linked above; keep that route limited to its exact profile."
+    },
+    "diffCheck": "PASS; git diff --check passed."
+  },
+  "limits": [
+    "This qualifies one unauthenticated local AC1021 source and does not promote producer-wide, native application, or DWG/DXF support claims.",
+    "The initial DXF-origin group-370 replay gap in this receipt is resolved only by the exact profile in the linked follow-up. Do not generalize that route to other XRECORDs, payloads, or versions.",
+    "No DWG/DXF fixture was added to the repository."
+  ],
+  "next": "Continue P4 with a distinct physically evidenced OBJECTS graph from the existing inventory. Keep the exact group-370 replay route limited to this AC1021 LayerStates profile."
+}

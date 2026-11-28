@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-116 AC1024 HATCH zero-fit tangent witness screen",
+  "mode": "local corpus research",
+  "scope": [
+    "Reconcile the ODA R2010 HATCH spline field sequence with the local nfit-gated tangent parser",
+    "Screen locally present AC1024 drawings under tests/samples for a traceable HATCH spline boundary witness",
+    "Avoid promoting external or same-stack evidence into a support claim"
+  ],
+  "evidence": {
+    "normativeSource": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.75",
+      "pages": "196-197",
+      "observation": "R24 lists Numfitpoints, the repeated fit-point payload, Start tangent, and End tangent in sequence; the published pseudocode does not condition the two tangent fields on a nonzero fit count."
+    },
+    "localParser": {
+      "file": "src/drw_entities.cpp",
+      "observation": "The R2010+ parser reads the fit count and reads both 2RD tangents only when nfit > 0. Its comment cites ACadSharp behavior and a zero-fit spline boundary in svg/export_sample.dwg as the compatibility reason."
+    },
+    "corpusScreen": {
+      "locallyPresentAc1024Drawings": 10,
+      "gitTrackingState": "The ten files under tests/samples/AC1024 are untracked in this worktree; their repository provenance is not inferred.",
+      "eligibleHatchSplineBoundaryWitnesses": 0,
+      "traceObservation": "The ten debug conversions produced no HATCH boundary-spline/tangent trace marker. The condominium sample showed a general spline parser marker, not a HATCH boundary-spline record. All ten dwg2dxf attempts declined strict-complete export because unsupported custom classes were observed; this does not imply the DWG parser itself failed.",
+      "userLocalAc1024Inventory": "Nine files under ~/doc/dwg were identified by their AC1024 header; they were not rerun in this screen.",
+      "inputsModified": false,
+      "temporaryOutputsOnly": true
+    }
+  },
+  "disposition": {
+    "finding": "PAR-116 / 7N.3 remains unresolved for zero-fit HATCH spline tangent presence.",
+    "statusChanged": false,
+    "supportPromotion": false,
+    "parserChanged": false,
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "nextAction": "Do not change the nfit gate based on the schema alone or on same-stack peer behavior. Resume only with a locally generated or provenance-cleared AC1024 producer witness whose tangent bytes and record boundary are independently verified; keep other local-ready work moving in parallel."
+}

@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "PAR-05 Apple/Mac OS Roman exact mapping",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "04491f42a692c8aefc626a9bc4b2c0fbfe9f5e05fc1c0872ec9b138411529d9e",
+  "research": [
+    {
+      "source": "https://www.unicode.org/Public/MAPPINGS/VENDORS/APPLE/ROMAN.TXT",
+      "role": "Apple's vendor mapping defines Mac OS Roman byte-to-Unicode values; its current mapping uses U+20AC at byte 0xDB and U+F8FF at 0xF0."
+    },
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+      "role": "Autodesk identifies $DWGCODEPAGE as the drawing code-page field but does not enumerate or qualify the Macintosh labels; producer/native support is therefore not inferred."
+    },
+    {
+      "source": "https://www.gnu.org/software/libredwg/refman/globals_c.html",
+      "role": "LibreDWG's public code-page API includes CP_MACINTOSH, corroborating a DWG code-page family but not certifying AutoCAD DXF header spellings or native acceptance."
+    },
+    {
+      "source": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/fileencoding.html",
+      "role": "The DXF-specific legacy encoding table lists supported ANSI_* declarations but not Macintosh; its R2007+ section says the continuing $DWGCODEPAGE meaning is uncertain."
+    }
+  ],
+  "scope": {
+    "change": "Added the exact MacRoman decode table, corrected APPLE ROMAN/MACINTOSH selection, appended a per-consumption MacRoman source profile, and registered fast all-byte regression coverage.",
+    "testedBytes": "Every byte from 0x80 through 0xFF, decoded and inverse-encoded through both labels in legacy DXF and DWG codec paths.",
+    "modernBehavior": "R2007+ DWG remains UTF-16 with a separate byte-string codec; modern DXF text remains UTF-8 with legacy declaration metadata retained.",
+    "sourceAdmission": "MacRoman remains outside the exact-source allowlist and returns UnsupportedProfile.",
+    "fixturesAdded": false,
+    "publicApiChanged": true,
+    "supportClaimChanged": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests --parallel 2",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --mac-roman-codepage",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --consumed-text-profiles",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --codepage-alias-audit 'APPLE ROMAN'",
+      "result": "PASS (2 cases; zero mismatches)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mac_roman_codepage$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check --parallel 2",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_base.h src/intern/drw_cptables.h src/intern/drw_textcodec.cpp tests/gbk_codepage_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "sourceSha256": {
+    "CMakeLists.txt": "92481c58626dfdaa3d5ee41d1fea7112f05f78237af8a3e13480e9661a89e34f",
+    "src/drw_base.h": "a8e88449f42ec80497bf74fc5b21fe1ab6282ec5cb3c09770433810f86b9ae15",
+    "src/intern/drw_cptables.h": "af716a707a2963b4ed6c79a6c69aa50d8070dcf6b82ac79c4862a4cb6115392b",
+    "src/intern/drw_textcodec.cpp": "2f12a2fcc462f3595fd775f740adf829d10e88f9149c6d422969c4369859a069",
+    "tests/gbk_codepage_tests.cpp": "378ed5850114245c679dd1f8602a57f867e7b52d81829fefc7d724160071a99a"
+  },
+  "evidenceLimits": [
+    "The Unicode vendor table establishes byte mapping only; it does not establish that a CAD producer writes either label or that native applications accept the output.",
+    "MacRoman DXF source-profile qualification remains unsupported and must not be promoted based on generated local controls.",
+    "No persistent fixture, peer executable, native CAD consumer, or full test suite was run."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; the shared worktree is broadly dirty and this slice remains unstaged"
+}

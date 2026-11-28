@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-wide-dxf-inventory-2026-11-25",
+  "supportClaimEffect": "none",
+  "sourceCommit": "4e5c5c4e0397515d4499630645e2139bac048462",
+  "implementationDigestSha256": "f547e3aad18f3c17600427765ad5318f761ddccb3d33fd2f017c7d8e1ac01037",
+  "selectedInputCount": 775,
+  "scope": "Internal emitted DXF record identity inventory supports 64-bit self and owner handles, with unchanged public 32-bit semantic handle API. Output paths with active inventory refuse wide self/owner identities until a 64-bit seed and graph policy are implemented.",
+  "validation": [
+    "Focused real-workspace writer inventory CTest passes for ASCII and binary, 64-bit owners and self handles, rollback, leading-zero numeric duplicate detection, maximal uint64 inventory, destination-preserving wide-self and wide-owner refusals, and same-writer corrected retry.",
+    "Five fast writer and raw application/proxy CTests pass (5/5).",
+    "Isolated release shared-library build and install succeeds; SHA-256 da0f761cf5fb0a352dc28f1b878c23fce0f37ef167bc921afc5e704ae7a3c3f2.",
+    "LibreCAD system-codec HATCH/identity controls pass 53 assertions in 5 cases against that library; dyld confirms the loaded path. Named-linetype and property-sheet controls pass 109 assertions in 10 cases."
+  ],
+  "limitations": [
+    "This does not enable wide-handle output, 64-bit semantic remapping or independent wide graph support.",
+    "The explicit full-file guard applies to paths with active emitted-record inventory; existing non-inventory behavior is not qualified by these tests.",
+    "Previously qualified platform and native evidence belongs to earlier source digests and does not transfer.",
+    "The first attempted inventory validation used a build directory from another checkout and is excluded."
+  ],
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+    "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_Handseed.html"
+  ]
+}

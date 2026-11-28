@@ -32,6 +32,13 @@ public:
     virtual bool addMesh(const DRW_Mesh& value) = 0;
     virtual bool addPolyline(const DRW_Polyline& value) = 0;
     virtual bool addText(const DRW_Text& value) = 0;
+
+    //! Notify the sink that the marker applies to subsequently emitted
+    //! primitives in this proxy stream. Returns true when the sink retains it.
+    virtual bool setSubentityMarker(std::uint32_t marker) {
+        (void)marker;
+        return false;
+    }
 };
 
 enum class DRW_ProxyGraphicStopReason : unsigned char {
@@ -62,6 +69,10 @@ struct DRW_ProxyGraphicDecodeResult {
     std::size_t emittedPrimitiveCount {0};
     std::size_t recognizedPrimitiveChunkCount {0};
     std::size_t skippedUnsupportedChunkCount {0};
+    std::size_t recognizedControlChunkCount {0};
+    std::size_t subentityMarkerCount {0};
+    std::size_t unhandledSubentityMarkerCount {0};
+    std::size_t unresolvedResourceReferenceCount {0};
     std::size_t consumedByteCount {0};
     DRW_ProxyGraphicStopReason stopReason {
         DRW_ProxyGraphicStopReason::Complete};
@@ -92,15 +103,34 @@ public:
         const std::string &bytes,
         const DRW_ProxyGraphicLimits &limits = {});
 
+    //! Remap the four-byte resource indices in ATTRIBUTE_LAYER and
+    //! ATTRIBUTE_LINETYPE chunks from their DWG source control-table slots to
+    //! the target DXF table row order. Sentinel linetype values are preserved.
+    //! Unknown chunks and all unmodified bytes are copied verbatim. The output
+    //! string is changed only when the complete stream and every referenced
+    //! resource are valid.
+    static bool remapResourceIndices(
+        const std::string &bytes,
+        const std::vector<std::string> &sourceLayerNames,
+        const std::vector<std::string> &targetLayerNames,
+        const std::vector<std::string> &sourceLinetypeNames,
+        const std::vector<std::string> &targetLinetypeNames,
+        std::string &output,
+        std::size_t &remappedLayerCount,
+        std::size_t &remappedLinetypeCount,
+        const DRW_ProxyGraphicLimits &limits = {});
+
     //! Decode @p bytes and emit each recovered primitive through @p sink,
     //! inheriting layer / space / handle from @p parent (the owning custom
     //! entity) and the decoder's accumulated colour / layer / linetype /
     //! lineweight draw-state.  @p layerNames / @p ltypeNames are the file's
     //! layer / linetype names in storage order — the index space the proxy's
     //! ATTRIBUTE_LAYER (16) / ATTRIBUTE_LINETYPE (18) opcodes reference; pass
-    //! empty to leave those attributes inherited from @p parent. A malformed
-    //! stream stops decoding and is reported in the result. A sink may decline
-    //! an event; exceptions from a sink are intentionally not swallowed.
+    //! empty to leave those attributes inherited from @p parent. If a supplied
+    //! table lacks an index or its record, the result counts that unresolved
+    //! reference and decoding retains the legacy rendering fallback. Malformed
+    //! streams stop and are reported in the result. A sink may decline an
+    //! event; exceptions from a sink are intentionally not swallowed.
     static DRW_ProxyGraphicDecodeResult decode(
         const std::string &bytes, DRW::Version version,
         DRW_ProxyGraphicSink &sink, const DRW_Entity &parent,

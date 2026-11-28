@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-15",
+  "scope": "Explicit zero LAYER group-390 handle during strict DXF source/output preflight.",
+  "trigger": "The Linux FreeCAD CLI controls generated AC1021 DWG, converted it to DXF, then rejected its own LAYER group 390 value 0 during DXF readback.",
+  "source_run": "https://github.com/dxli/libdxfrw/actions/runs/43718064913/job/132823796362",
+  "change": "After validating the hexadecimal handle token, treat numeric zero as an explicit null without an object graph edge; preserve the existing checks for nonzero references and the writer\u2019s explicit zero output.",
+  "validation": [
+    "Scratch-generated AC1021 DWG -> ASCII DXF -> ASCII DXF readback preserves LAYER 390=0.",
+    "ASCII DXF -> Binary DXF -> ASCII DXF readback preserves LAYER 390=0.",
+    "ezdxf 1.4.5 independently reads all four outputs and reports plotstyle_handle 0 with one model-space entity.",
+    "dwg2dxf_default_plotstyle_layer_graph: explicit null admission, malformed 0G refusal, corrected retry, existing nondefault target rejection, existing ASCII/Binary graph output controls.",
+    "dwg2dxf_freecad_cli_compat and dwg2dxf_freecad_installed_cli_compat pass locally."
+  ],
+  "limits": [
+    "Synthetic same-writer source and independent peer parsing are not native plotting semantics.",
+    "The bounded Linux rerun subsequently passed; native Windows qualification remains open.",
+    "No DWG/DXF fixture added."
+  ],
+  "hosted_linux_rerun": "https://github.com/dxli/libdxfrw/actions/runs/43719385171/job/132827848723"
+}

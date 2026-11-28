@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-block-record-adjacent-handle-collision-2026-11-25",
+  "supportClaimEffect": "none",
+  "libraryCommit": "d2250c4a",
+  "consumerCommit": "d99d480632002df37414327adbb3d7fd179f86dc",
+  "implementationDigestSha256": "0c90642a63bb7bbb08ce74324e952a7675207d1812563cea1715efa300f4dc03",
+  "digestInputCount": 775,
+  "problem": "The DXF BLOCK_RECORD allocator reserved its adjacent BLOCK and ENDBLK identities after selecting the record handle without checking whether either identity was already planned. A remapped LINE at 0x32 collided with a generated ENDBLK at 0x32 and inventory finalization correctly refused publication.",
+  "change": "Reuse the allocator availability check while choosing a contiguous three-handle range, skipping any candidate whose adjacent block identities are already reserved or minted.",
+  "validation": [
+    "Focused ASCII/binary block-reference and adjacent-handle controls pass for collisions at both record+1 and record+2. Whole-file tests reject at finalization while preserving the destination, retry on the same codec and confirm typed block/LINE readback.",
+    "The focused selector also passes under AddressSanitizer with leak detection disabled. The full Wave 1 executable passes.",
+    "A locally built shared library SHA-256 3db03855d7b7dd6af8c364c33ed2ebf5eaee2c54d0aec610e6f298eff982e36e was confirmed loaded by dyld; the LibreCAD reproduction passes 13 assertions. The system [filter][linetype] selector passes 50/52 cases and 1255/1292 assertions.",
+    "Independent ezdxf 1.4.5 reads generated ASCII SHA-256 fc44f5684b0ddab42a5247d8d37bd392ef9ffa41ed79236ec558f91a9a9621b6 and binary SHA-256 6f5d68296c9560e1b28a454699f6c0c41bdd7fbb8c5d358a36a623ecc695fffb with BLOCK_RECORD 33, BLOCK 34, ENDBLK 35, LINE 32 owned by 33, expected endpoint and zero audit errors or repairs."
+  ],
+  "limits": [
+    "All digest-bound hosted, platform and native qualifications must be rechecked for the new candidate.",
+    "The two remaining linetype selector cases concern built-in table wire expectations and exact DWG length values; investigate without suppressing failures.",
+    "No generated DWG or DXF fixture was committed."
+  ]
+}

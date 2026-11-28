@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P4 selected AC1018 compound LAYER source providers",
+  "date": "2026-10-28",
+  "codeCommit": "e39f4de19f980a207e6e6112466cbf5396d45e3a",
+  "scope": "Private source-only lookup of the original group-8 layer names of the selected same-import AC1018 INSERT/ATTRIB/SEQEND compound. It returns each unique original LAYER provider handle under a specified printable ASCII case-fold policy.",
+  "contract": {
+    "operation": "Require the authenticated prior source relation, one TABLES section and LAYER table, complete selected-table record census and source spans, unique canonical table/self identities and owners, expected subclass and outer group-2 name. Refuse unknown selected-table rows, foreign-scope LAYER records, invalid names, collisions or missing providers; publish no handles on failure.",
+    "resource": "Use separate conservative halves of the work and retained-byte limits for the prior relation and new census. Require one repeated self admission only for this observed raw-plus-typed capture route.",
+    "unqualified": "Native collation, layer semantics, BLOCK target and XDICTIONARY, graph, output or general support."
+  },
+  "sourceBindings": {
+    "adapterSourceSha256": "6e6578bc460bb859b222dad586a1b8e074a31fc0281402add8388962eb522e07",
+    "adapterHeaderSha256": "c138f79d5ab57e9061d882d46e93aa64c09bf89e3f1f0fac6cbc9bb88bf407c2",
+    "testSourceSha256": "6f8712866225c7fc60845153aee132a568ad769332ef46d542a5db2d6aca677c",
+    "normalAdapterObjectSha256": "563b0a454e8560ca62836d464b65cba55c62abdc3a06aada931abffaf66b9f05",
+    "normalLibrarySha256": "12e971994cf8c7ff7dc63fc2f190ae0ed575a7e46407a67570f4b80abefa0214",
+    "normalTestExecutableSha256": "1c1890338b66a8b475d351215c18351e75c3bb8beeba2a4279fe8105f8a50205",
+    "asanAdapterObjectSha256": "56a7c3b1986f0f09c029b46647a2e39ea78081caa9bb0002e6bb33f63550399c",
+    "asanLibrarySha256": "50878d1e08494db643e9b13cfc52d44ffc7b388d90d77b5288575b451e2beb2a",
+    "asanTestExecutableSha256": "314b0978d5f6dd43b7778fdf6622c4e6cddb5105d93ed7789fa84c7628d13ef1"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_legacy_blockref_relation",
+        "libdxfrw_legacy_entities_compound_join",
+        "libdxfrw_whole_source_capture"
+      ],
+      "result": "PASS 3/3"
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_legacy_blockref_relation",
+        "libdxfrw_legacy_entities_compound_join",
+        "libdxfrw_whole_source_capture"
+      ],
+      "result": "PASS 3/3",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "Generated ASCII/binary: selected-name duplicates, case variants and invalid names; missing or duplicate tables and provider handles; wrong owner and foreign scope; missing, duplicate and wrong-scope group 8; context substitution; work/byte boundaries and corrected fresh-data retries. These are route-level no-provider controls, not proof that each reaches the final census. Unknown selected-table row handling uses a synthetic owner-consistent census, not an accepted physical unknown-row witness.",
+    "chronology": "Final normal and ASan tests ran the shared frozen code; actual original and derivative probes were refreshed against the rebuilt shared normal adapter and library."
+  },
+  "independentPeer": {
+    "version": "ezdxf 1.4.5",
+    "reportPath": "build/p4-layer/peer.json",
+    "reportSha256": "6c9a948a9b9aa07de39f65b4c9c2eb519309a9b084cce3430f164c79a37e536e",
+    "reportScriptSha256": "40107b9d0c801daea610fa0fd504d899833b69514b18724eaea7b804581542d8",
+    "sharedLinkedProbeSha256": "17d9c7f4801d80540dbb190f9c7de3fabd7b145d1275a222f44febb83a9a730a",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "originalSourceSha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "derivedSourceSha256": "e431ae777ff1adfa9dc7ac2139f9ce6fdedbfc54b7704aa35fc9782bb08e90c9",
+    "derivation": "Locally change the unrelated LAYER group-2 name Layer2 to layer1.",
+    "originalStdoutSha256": "a9acdfda36e298aacc7b1f9d25ac287f5bb895219ff57b57fd7b190103a393d3",
+    "duplicateStdoutSha256": "0c8565f61c922fa125fff9492dff5f88e36e9e5382aaee1674540e96215d35e1",
+    "observations": "Independent pre-setup physical projection finds INSERT 704 and SEQEND 706 on Layer1 and ATTRIB 705 on 0, with 21 original LAYER records. Layer1 resolves to 275, 0 to 10, both owned by TABLE 2. The derivative has two ASCII-folded Layer1 matches. The actual shared-linked probe resolves only the original while prior source relation, block-name and APPID checks remain true for both."
+  },
+  "references": [
+    {
+      "title": "Autodesk common entity group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm"
+    },
+    {
+      "title": "Autodesk LAYER DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm"
+    }
+  ],
+  "limitations": [
+    "ASCII matching is an explicitly selected policy, not native name collation. Non-ASCII, control-character and backslash names refuse.",
+    "No layer flags, rendering semantics, live graph or output are qualified.",
+    "Neither the independent sample nor its local derivative is committed."
+  ]
+}

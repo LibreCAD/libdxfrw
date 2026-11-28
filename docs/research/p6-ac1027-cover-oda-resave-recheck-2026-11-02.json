@@ -1,0 +1,181 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1027-cover-oda-resave-recheck-2026-11-02",
+  "date": "2026-11-02",
+  "status": "ODA_ACCEPTED_REWRITE; SUFFIX_UNRESOLVED; AC1032_READBACK_REFUSED",
+  "supportClaimEffect": "none",
+  "scope": "Independent ODA File Converter resave of the local AC1027 Cover drawing to AC1032, followed by a current local reader attempt. This checks converter acceptance only and does not assign semantics to the HEADER suffix.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "repositoryFixture": false,
+    "scratchCopy": "/private/tmp/libdxfrw-cover-oda-20261102/input/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "bytes": 18880
+  },
+  "converter": {
+    "name": "ODA File Converter",
+    "sdkVersion": "27.1.0",
+    "route": "Native macOS GUI",
+    "inputFolder": "/private/tmp/libdxfrw-cover-oda-20261102/input",
+    "outputFolder": "/private/tmp/libdxfrw-cover-oda-20261102/output",
+    "selectedOutput": "2018 DWG",
+    "result": "UI progress reached Done and produced Cover.dwg",
+    "settingsRestoredAfterRun": {
+      "inputFolder": "/private/tmp/offset-W200-oda-input",
+      "outputFolder": "/private/tmp/offset-W200-oda-output"
+    }
+  },
+  "output": {
+    "path": "/private/tmp/libdxfrw-cover-oda-20261102/output/Cover.dwg",
+    "version": "AC1032",
+    "bytes": 18888,
+    "sha256": "2cde86d3971860a1177e1123b8bf7d5a648ff865c75d7ecff5899de3124ca535"
+  },
+  "localReadback": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-cover-oda-20261102/output/Cover.dwg -y -v2018 /private/tmp/libdxfrw-cover-oda-20261102/output/libdxfrw-readback.dxf",
+    "executableSha256": "24e405da8f9f5a18737c861b075315dcb8a579cc01b5f82b4bcf84bf7b698115",
+    "exitCode": 1,
+    "firstError": "BAD_READ_CLASSES (error 9)",
+    "readerObservation": "The parser reports the AC1032 source version, an AcDb:Header suffix at byte 844 with expected end 844 and observed end 1583 (739 bytes), and failure at CLASSES. AC1032 is currently a pass-through reader stub; this failure does not adjudicate the suffix layout."
+  },
+  "interpretation": {
+    "whatThisShows": "ODA File Converter 27.1.0 completed its conversion of the AC1027 input and produced an AC1032 output file in the selected GUI workflow.",
+    "whatThisDoesNotShow": "The output revision changed, file size changed by eight bytes, and no source-to-output field or byte association was established. ODA acceptance/resave does not explain whether the original suffix is meaningful, preserved, transformed, or discarded.",
+    "disposition": "Keep bytes 844-1575 of the original source classified as unclaimed; retain strict-complete output refusal until producer-backed or normative layout evidence closes the suffix. Do not infer padding or corruption."
+  },
+  "binding": {
+    "relatedSourceReceipt": "docs/research/p6-ac1027-cover-reader-success-output-refusal-2026-11-01.json",
+    "newFixtureFilesAdded": 0,
+    "outputFilesCommitted": 0
+  },
+  "limitations": [
+    "The converter output is outside the repository and is not an eligible committed DWG fixture.",
+    "The shell CLI for ODA File Converter still aborts with macOS PasteBoard/XPC errors; the GUI workflow completed.",
+    "No output DXF inspection, native CAD display check, or source-to-output semantic join was performed.",
+    "A post-unlock shell retry found the currently installed ODA File Converter bundle fails strict codesign verification and aborts on PasteBoard/XPC errors; no new resave was produced."
+  ],
+  "next": "Compare original and same-revision resave decoded HEADER suffixes and obtain producer-backed or normative evidence before changing strict output admission.",
+  "currentRetest": {
+    "date": "2026-11-02",
+    "userStateUpdate": "User reported unlocking the Mac session; a fresh retry at 2026-11-02 09:55:14 EST produced the same failure.",
+    "applicationBundle": "/Applications/ODAFileConverter.app",
+    "bundleVersion": "27.1.0.0",
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "signatureCheck": {
+      "command": "codesign --verify --strict --verbose=2 /Applications/ODAFileConverter.app",
+      "result": "FAIL: invalid signature (code or signature have been modified), arm64"
+    },
+    "shellCheck": {
+      "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter -h",
+      "exitCode": 134,
+      "result": "Fresh invocation at 2026-11-02 09:55:14 EST aborted with SIGABRT after PasteBoard clipboard and find errors (-4960), followed by an invalid hiservices XPC reply. No conversion was run and no output was produced."
+    },
+    "qualificationEffect": "No change to the prior GUI conversion receipt. The currently installed executable cannot be used to reproduce or extend it; do not bypass signature verification."
+  },
+  "postUnlockSessionCheck": {
+    "date": "2026-11-02",
+    "time": "21:56:23 EST",
+    "userStateUpdate": "User reported unlocking the Mac session again.",
+    "signatureCheckCommand": "codesign --verify --strict --verbose=2 /Applications/ODAFileConverter.app",
+    "signatureCheckResult": "FAIL: invalid signature (code or signature have been modified), arm64.",
+    "converterInvocation": "Not run because the strict signature gate failed.",
+    "qualificationEffect": "The unlocked session does not alter the installed bundle integrity result. No conversion was attempted and no support claim changed."
+  },
+  "latestIntegrityCheck": {
+    "date": "2026-11-03",
+    "time": "2026-11-03 05:21:16 UTC",
+    "userStateUpdate": "User reported unlocking the Mac session again.",
+    "signatureCheckCommand": "codesign --verify --strict --verbose=2 /Applications/ODAFileConverter.app",
+    "signatureCheckResult": "FAIL: invalid signature (code or signature have been modified), arm64.",
+    "converterInvocation": "Not run because strict signature verification failed.",
+    "qualificationEffect": "No conversion attempted; the prior GUI result remains unchanged and the AC1027 suffix remains unresolved."
+  },
+  "userUnlockRetry": {
+    "date": "2026-11-03",
+    "time": "2026-11-03 08:00:37 UTC",
+    "userStateUpdate": "User reported unlocking the Mac session; strict signature verification was repeated.",
+    "signatureCheckCommand": "codesign --verify --strict --verbose=2 /Applications/ODAFileConverter.app",
+    "signatureCheckResult": "FAIL: invalid signature (code or signature have been modified), arm64.",
+    "converterInvocation": "Not run because strict signature verification failed.",
+    "qualificationEffect": "No conversion attempted; no support claim changed. The AC1027 suffix remains unresolved."
+  },
+  "latestUnlockedSessionVerification": {
+    "date": "2026-11-03",
+    "time": "2026-11-03 12:46:46 UTC",
+    "userStateUpdate": "User reported unlocking the Mac session; strict signature verification was repeated.",
+    "applicationBundle": "/Applications/ODAFileConverter.app",
+    "bundleVersion": "27.1.0.0",
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "signatureCheckCommand": "codesign --verify --strict --verbose=2 /Applications/ODAFileConverter.app",
+    "signatureCheckExitCode": 1,
+    "signatureCheckResult": "FAIL: invalid signature (code or signature have been modified), arm64.",
+    "converterInvocation": "Not run because strict signature verification failed.",
+    "qualificationEffect": "No conversion attempted; no support claim changed. The AC1027 suffix remains unresolved."
+  },
+  "latestUserUnlockCheck": {
+    "date": "2026-11-03",
+    "time": "2026-11-03 11:24:02 UTC",
+    "userStateUpdate": "User reported unlocking the Mac session; strict signature verification was repeated.",
+    "applicationBundle": "/Applications/ODAFileConverter.app",
+    "bundleVersion": "27.1.0.0",
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "signatureCheckCommand": "codesign --verify --strict --verbose=2 /Applications/ODAFileConverter.app",
+    "signatureCheckResult": "FAIL: invalid signature (code or signature have been modified), arm64.",
+    "converterInvocation": "Not run because strict signature verification failed.",
+    "qualificationEffect": "No conversion attempted; no support claim changed. The AC1027 suffix remains unresolved."
+  },
+  "latestUserUnlockRetry": {
+    "date": "2026-11-03",
+    "time": "2026-11-03 12:58:17 UTC",
+    "userStateUpdate": "User reported unlocking the Mac session; strict signature verification was repeated.",
+    "applicationBundle": "/Applications/ODAFileConverter.app",
+    "bundleVersion": "27.1.0.0",
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "signatureCheckCommand": "codesign --verify --strict --verbose=2 /Applications/ODAFileConverter.app",
+    "signatureCheckExitCode": 1,
+    "signatureCheckResult": "FAIL: invalid signature (code or signature have been modified), arm64.",
+    "converterInvocation": "Not run because strict signature verification failed.",
+    "qualificationEffect": "No conversion attempted; no support claim changed. The AC1027 suffix remains unresolved."
+  },
+  "latestPostUnlockRetry": {
+    "date": "2026-11-03",
+    "time": "13:22:49 UTC",
+    "userStateUpdate": "User reported unlocking the Mac session; strict signature verification was repeated.",
+    "applicationBundle": "/Applications/ODAFileConverter.app",
+    "bundleVersion": "27.1.0.0",
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "signatureCheckCommand": "codesign --verify --strict --verbose=2 /Applications/ODAFileConverter.app",
+    "signatureCheckExitCode": 1,
+    "signatureCheckResult": "FAIL: invalid signature (code or signature have been modified), arm64.",
+    "converterInvocation": "Not run because strict signature verification failed.",
+    "qualificationEffect": "No conversion attempted; no support claim changed. The AC1027 suffix remains unresolved."
+  },
+  "nativeVerificationCorrection20261103": {
+    "finding": "The installed 27.1 bundle passed strict deep signature verification outside the sandbox; the prior sandboxed failures do not establish an invalid signature. The verified CLI ran successfully outside the sandbox on a scratch source.",
+    "receipt": "docs/research/p6-ac1027-cover-oda-same-version-resave-2026-11-03.json",
+    "effect": "Prior sandboxed invocation and signature failures remain historical observations; the converter is available outside that sandbox. The original and resaved HEADER suffixes remain unclaimed."
+  },
+  "latestUserUnlockRetry20261105": {
+    "date": "2026-11-05",
+    "time": "2026-11-06 03:25:44 UTC",
+    "userStateUpdate": "User reported unlocking the Mac session; a fresh CLI help invocation was attempted.",
+    "applicationBundle": "/Applications/ODAFileConverter.app",
+    "bundleVersion": "27.1.0.0",
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "toolContext": "Sandboxed shell invocation",
+    "signatureCheckCommand": "codesign --verify --strict --verbose=2 /Applications/ODAFileConverter.app",
+    "signatureCheckExitCode": 1,
+    "signatureCheckResult": "FAIL in this sandboxed invocation: invalid signature (code or signature have been modified), arm64. An earlier outside-sandbox verification passed; this result does not supersede it.",
+    "converterCommand": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter -h",
+    "converterExitCode": 134,
+    "converterResult": "After the user unlock update, invocation still aborted with PasteBoard clipboard/find errors (-4960), followed by an invalid hiservices XPC reply. No conversion was run and no new resave was produced.",
+    "qualificationEffect": "No support claim changed. The user unlock did not make this sandboxed CLI route usable; do not bypass signature verification or infer anything about the AC1027 suffix."
+  }
+}

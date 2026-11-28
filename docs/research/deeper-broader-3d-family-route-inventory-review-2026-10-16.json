@@ -1,0 +1,136 @@
+{
+  "schema": "libdxfrw-deeper-broader-3d-family-route-inventory-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the 3D DXF open-source comparison and refine the existing implementation matrix for mode-sensitive POLYLINE families, explicit face/filled primitives, inventory evidence, and downstream projections.",
+  "method": {
+    "kind": "Primary Autodesk DXF entity references, LibreCAD bundled-fork generated source inventory, ezdxf entity documentation, GDAL DXF driver documentation, and local source/test-owner cross-check",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "Autodesk references are versioned documentation. LibreCAD master, ezdxf stable/master, and GDAL stable documentation are mutable; this review does not establish commits, executable hashes, or exact runtime builds. Pin source/release before composed comparisons.",
+    "evidenceRule": "Source registration, callback presence, file open, projected geometry, opaque payload retention, and semantic 3D geometry are separate evidence layers. No peer inventory or projection is a conformance or support claim."
+  },
+  "evidence": [
+    {
+      "topic": "LibreCAD bundled-fork deterministic route census",
+      "sources": [
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md"
+      ],
+      "observed": "The inventory says it is a deterministic source inventory, not byte-level conformance. Its published snapshot reports 264 named/custom DWG routes, 91 named fixed entity/object cases, 20 validated fixed entity shells, zero validated fixed object shells, and 158 DXF entity names. 3DFACE, POLYLINE, MESH, surface, and modeler entries remain marked fixture-needed. Its inputs describe LibreCAD's bundled fork/reference sources rather than this upstream checkout.",
+      "doesNotEstablish": [
+        "behavior of the current upstream libdxfrw checkout",
+        "field-level correctness or a successful runtime route",
+        "semantic support, native acceptance, or byte-level parity",
+        "that the published mutable master snapshot is the exact consumer revision in use"
+      ],
+      "planUse": "At a composed inventory checkpoint, pin both upstream and LibreCAD fork revisions and compare route/name coverage by format, direction, version, callback, writer, and class alias. Use the inventory as a cheap completeness denominator, never as support evidence."
+    },
+    {
+      "topic": "Legacy DXF POLYLINE modes and vertex roles",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/polyline.html"
+      ],
+      "observed": "One DXF POLYLINE name covers 2D and 3D polylines, polygon meshes, and polyface meshes. Parent flags, child VERTEX flags/subclasses, and mode determine whether child locations are 2D OCS or 3D WCS, whether M/N mesh dimensions and closure flags apply, and whether child values are face indices. Polyface indices are signed one-based values, zero-terminated, and negative values encode invisible edges. Autodesk warns that ordinary group order can vary while requiring readers to tolerate odd polyface child ordering.",
+      "doesNotEstablish": [
+        "DWG binary field layout or version deltas",
+        "mesh manifoldness or closed-solid validity",
+        "native rendering or consumer import success",
+        "that one generic POLYLINE callback proves every mode"
+      ],
+      "planUse": "Maintain separate feature-direction rows and generated assertions for 2D POLYLINE, 3D POLYLINE, POLYMESH, and POLYFACE; keep writer canonicalization separate from tolerant reader controls. Use the ODA specification, not DXF references, for DWG parseDwg layout changes."
+    },
+    {
+      "topic": "3DFACE versus SOLID/TRACE versus modeler solids",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E0C5F04E-D0C5-48F5-AC09-32733E8848F2.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-EA6FBCA8-1AD6-4FB2-B149-770313E93511.htm"
+      ],
+      "observed": "3DFACE is an explicit WCS polygonal face with four corners and optional edge-visibility bits; a triangular face convention repeats the third corner in the fourth slot. SOLID and TRACE are distinct filled primitive records with their own corner, thickness, and extrusion fields. None is interchangeable with 3DSOLID/REGION/BODY ACIS modeler geometry.",
+      "doesNotEstablish": [
+        "ACIS/ASM B-rep semantics",
+        "surface tessellation or manifold validity",
+        "exact rendering behavior in every CAD consumer"
+      ],
+      "planUse": "Keep explicit faces/filled primitives and ACIS modeler carriers in separate matrix rows; test entity-specific coordinates, corners, extrusion/thickness and edge flags without inferring solid semantics from the word SOLID."
+    },
+    {
+      "topic": "GDAL as a geometry projection, not a wire or solid oracle",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observed": "GDAL projects LINE/POLYLINE/LWPOLYLINE to line strings, tessellates bulged curves and curve entities, maps polyface mesh to polyhedral surface, and maps 3DFACE/SOLID/TRACE to polygon features with degenerate point/line cases. INSERT inline/merge options and documented OCS/elevation limitations affect the result.",
+      "doesNotEstablish": [
+        "exact DXF tag/order fidelity",
+        "full CAD object graph or owner/handle closure",
+        "face visibility/style preservation or exact curve semantics",
+        "ACIS shape reconstruction or DWG support"
+      ],
+      "planUse": "Use only a pinned, configured GDAL run for eligible normalized geometry projections. Keep tags, handles/owners, topology, ACIS carrier, B-rep, and consumer evidence in separate lanes."
+    },
+    {
+      "topic": "Local implementation/test-owner cross-check",
+      "sources": [
+        "src/drw_entities.h",
+        "src/drw_entities.cpp",
+        "tests/dxf_fixture_tests.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp"
+      ],
+      "observed": "Local source branches on POLYLINE flags 8/16/64 and validates matching DWG vertex subtypes. Existing generated test owners include mode/subclass emission, flag precedence, polyface pool/index/visibility and polygon-mesh state controls. This review inspected source/tests but did not execute them.",
+      "doesNotEstablish": [
+        "that each discovered control currently passes",
+        "complete coverage across every DXF/DWG version and writer route",
+        "independent peer or native consumer acceptance"
+      ],
+      "planUse": "Reuse existing focused test owners; add only demonstrably missing mode/route assertions after inventorying current tests. Do not register a new suite for this research refinement."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "PAR-07",
+      "PAR-60",
+      "7V",
+      "7H",
+      "7AS",
+      "7G"
+    ],
+    "modeRows": [
+      "2D POLYLINE with OCS/elevation",
+      "3D POLYLINE with WCS vertices",
+      "POLYMESH carried by POLYLINE with M/N counts and closure flags",
+      "POLYFACE carried by POLYLINE with coordinate/face child roles, signed indices, and invisible edges",
+      "standalone MESH",
+      "standalone 3DFACE",
+      "SOLID and TRACE filled primitives",
+      "3DSOLID/REGION/BODY/SURFACE modeler-carrier entities"
+    ],
+    "fastValidation": "Pin/source-diff route inventory at a composed completeness checkpoint. Per code slice, use the strict touched-target build, existing focused generated CTest(s), lc3_compat_check when adapter/API changes, and git diff --check. External/native comparisons occur only after relevant local routes compose.",
+    "fixturePolicy": "Use generated in-memory or temporary-directory controls authored locally; add no external or generated drawing fixture files.",
+    "nonPromotion": "No support claim or external J disposition changes; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 122,
+      "topLevelSubplans": 70
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

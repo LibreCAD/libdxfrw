@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-embedded-attribute-duplicate-marker-refusal-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Prevent a second embedded-MTEXT marker from silently merging into or overwriting an ATTRIB/ATTDEF's first embedded scope.",
+  "change": {
+    "productionFile": "src/drw_entities.cpp",
+    "testFile": "tests/dxf_fixture_tests.cpp",
+    "invariant": "One ATTRIB or ATTDEF record has at most one parsed Embedded Object scope until a bounded carrier or explicit retention model exists.",
+    "behavior": "DRW_Attrib::parseCode rejects a second code-100 or code-101 Embedded Object marker when mtext already exists.",
+    "test": "Generated ASCII and Binary DXF ATTRIB inputs add a second canonical marker followed by distinct point/text sentinels and require import refusal. Existing single-marker canonical and legacy cases continue to pass."
+  },
+  "validation": {
+    "strictFixtureTarget": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedFixtureCTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "libreCADCompatibility": {
+      "command": "cmake --build build --target lc3_compat_check -j2",
+      "result": "PASS (no work required)"
+    },
+    "focusedHardeningCTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "scopedDiffCheck": "PASS",
+    "fullTestSuite": "NOT_RUN",
+    "externalPeersOrNativeCad": "NOT_RUN"
+  },
+  "limitations": [
+    "Duplicate-marker input is refused; no producer-validity claim is made.",
+    "No dedicated user-facing loss diagnostic or opaque retention was added.",
+    "Caller-created nested-MTEXT XDATA, DWG host-XDATA conversion, CLI conversion, independent producer evidence, and native consumer acceptance remain open."
+  ],
+  "impact": {
+    "parserBehaviorChanged": true,
+    "writerBehaviorChanged": false,
+    "publicApiOrLayoutChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "qualificationOrSupportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktree": {
+    "preexistingBroadChanges": true,
+    "gitMetadataReadOnly": true,
+    "stagedOrCommitted": false
+  }
+}

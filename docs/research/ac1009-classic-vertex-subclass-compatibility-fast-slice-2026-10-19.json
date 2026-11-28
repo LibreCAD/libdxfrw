@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "AC1009 classic POLYLINE/VERTEX subclass-marker compatibility fast slice",
+  "mode": "generated local test-only implementation slice",
+  "scope": [
+    "Exercise the ACadSharp #1278 R12 marker shape with generated ASCII and Binary DXF",
+    "Verify ordered child values, compound-record closure, following-record sentinels, and marker-free AC1009 re-export",
+    "Correct test codec selection so AC1009 uses the R12 one-byte binary group-code format and AC1014 uses the generic two-byte format"
+  ],
+  "method": {
+    "generatedInputs": 2,
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "productionCodeChanged": false,
+    "newCtestRegistrations": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "limitations": "The extra AC1009 group-100 subclass markers are an out-of-profile compatibility input. The test verifies permissive import and canonical output; it does not establish that marked R12 input is conforming or broaden POLYLINE support."
+  },
+  "implementation": {
+    "sourceFile": "tests/dxf_fixture_tests.cpp",
+    "selector": "--classic-vertex-subclass-omission",
+    "ac1009Input": "POLYLINE with three ordered VERTEX children carrying AcDbEntity, AcDbVertex, and AcDb2dVertex group-100 markers, followed by SEQEND and LINE sentinels",
+    "assertions": [
+      "Source group-100 marker presence is inspected through the R12 ASCII/Binary framing",
+      "Import retains the POLYLINE, all three vertex coordinates in order, SEQEND boundary, and both surrounding LINE sentinels",
+      "AC1009 re-export contains no group-100 subclass markers on the classic POLYLINE/VERTEX records",
+      "Canonical output re-import preserves all vertices and surrounding LINE records",
+      "The AC1014 omitted-specific-subtype companion continues to use the generic two-byte Binary-DXF codec"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --classic-vertex-subclass-omission",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "git diff --check -- tests/dxf_fixture_tests.cpp"
+    ],
+    "results": {
+      "build": "PASS",
+      "focusedSelector": "PASS",
+      "owningCTest": "PASS (1/1, 3.95 seconds)",
+      "scopedDiffCheck": "PASS",
+      "fullSuiteRun": false
+    }
+  },
+  "planImpact": {
+    "findingCountChanged": false,
+    "subplanCountChanged": false,
+    "implementationQueueChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    }
+  }
+}

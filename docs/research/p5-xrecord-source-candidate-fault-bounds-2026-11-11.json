@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-11",
+  "scope": "Generated controls for optional selected XRECORD frame acquisition only; no output or semantic qualification.",
+  "test": "libdxfrw_dwg_xrecord_verified_source",
+  "command": "ctest --test-dir build -R '^libdxfrw_dwg_xrecord_verified_source$' --output-on-failure -V",
+  "result": "1/1 passed",
+  "allocation_faults": "The test-only global allocation injector is armed at the selected sink query. Opt-in and opt-out allocation counts before the following callback differ by eight; all eight consecutive offsets fail once, leave the import successful and selected generated XRECORD unchanged, with no source capability, and permit same-adapter retry.",
+  "size_limit": "A locally generated AC1015 source with 1,060,932-byte selected XRECORD body is imported without sealing. Its selected raw body and modeled string/binary values match an opt-out import and both have zero entity/object parse failures. Maximum observed allocation from the selected query until the following callback is 152 bytes; this checks preflight for this sample, not whole-import peak allocation.",
+  "limits": "The fault sweeps cover the candidate-stage window, measured adapter snapshot allocations and the observed shared-owner sealing allocation for the generated profiles; they do not cover every ordinary whole-import allocation or every profile. Generated inputs do not qualify producer semantics, output, or the populated TABLE subtree. No DWG fixture was committed.",
+  "adapter_faults": "A test-only wrapper forwards the genuine reader-delivered ticket and injects both measured allocations in adapter snapshot capture. A predicate armed on the final matched selected baseline fails the next 480-byte shared-owner allocation during sealing. Each fault preserves a successful import, zero entity/object parse failures and selected modeled data, with no sealed capability; the same adapter succeeds on retry."
+}

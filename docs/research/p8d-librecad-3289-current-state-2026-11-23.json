@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-3289-current-state-2026-11-23",
+  "date": "2026-11-23",
+  "status": "OPEN_DRAFT_CHECKS_GREEN_BASE_ADVANCED_AFTER_TESTED_COMMIT",
+  "supportClaimEffect": "none",
+  "repository": "LibreCAD/LibreCAD",
+  "pullRequest": {
+    "number": 3289,
+    "url": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "state": "open",
+    "draft": true,
+    "mergeableAtFetch": true,
+    "headBranch": "codex/libdxfrw-consumer-compat",
+    "headSha": "f5477f98a051f2e9e41ffaf9858a9e8c153821fe",
+    "baseBranch": "master",
+    "baseSha": "78014ecde2f53fdd8c06453f3854b1cae1a3fd0d",
+    "headUpdatedAt": "2026-11-22T05:20:35Z"
+  },
+  "currentBase": {
+    "branch": "master",
+    "sha": "954217a719f7fff1f54bdf4ee894a0e462e21934",
+    "commitMessage": "Add batch trim for selected entities (#3301)",
+    "parentSha": "78014ecde2f53fdd8c06453f3854b1cae1a3fd0d",
+    "commitDate": "2026-11-23T03:54:03Z"
+  },
+  "checks": {
+    "headSha": "f5477f98a051f2e9e41ffaf9858a9e8c153821fe",
+    "total": 13,
+    "success": 12,
+    "skipped": 1,
+    "failure": 0,
+    "pending": 0,
+    "skippedChecks": ["Security scan"],
+    "scope": "GitHub check runs returned for the PR head; all results are bound to the old base/head combination above."
+  },
+  "interpretation": "The PR head's available checks are green or skipped, but current master advanced by the commit that merged #3301 after the PR base. Rebase or merge current master into the PR branch, then rerun the checks and revalidate the targeted consumer profile before using this PR as final P8-D/P8-F evidence.",
+  "limitations": [
+    "This is repository/PR metadata and CI status, not native LibreCAD GUI evidence.",
+    "The PR remains draft and unmerged.",
+    "The checks do not qualify libdxfrw output semantics, MLINE Copy, named LTYPE persistence, or LibreCAD_3 MPOLYGON behavior.",
+    "No external PR or branch was modified by this receipt."
+  ]
+}

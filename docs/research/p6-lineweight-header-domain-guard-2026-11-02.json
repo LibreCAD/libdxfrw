@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-p6-lineweight-header-domain-guard-v1",
+  "completedAt": "2026-11-02",
+  "status": "HEADER_SCALAR_DOMAINS_ENFORCED",
+  "supportClaimEffect": "none",
+  "fields": {
+    "$CELWEIGHT": {
+      "groupCode": 370,
+      "validValues": [-3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211],
+      "evidence": "Autodesk documents -3 as DEFAULT, -2 as BYBLOCK, -1 as BYLAYER and the listed fixed lineweights in hundredths of a millimeter. ObjectARX marks -4 ByDIPs as internal use only; it is not admitted."
+    },
+    "$ENDCAPS": {
+      "groupCode": 280,
+      "validValues": [0, 1, 2, 3],
+      "evidence": "0 none, 1 round, 2 angle, 3 square."
+    },
+    "$JOINSTYLE": {
+      "groupCode": 280,
+      "validValues": [0, 1, 2, 3],
+      "evidence": "0 none, 1 round, 2 angle, 3 flat."
+    },
+    "$LWDISPLAY": {
+      "groupCode": 290,
+      "validValues": [0, 1],
+      "evidence": "Switch: 0 hides lineweights; 1 displays them."
+    },
+    "$XEDIT": {
+      "groupCode": 290,
+      "validValues": [0, 1],
+      "evidence": "0 disables and 1 enables in-place editing of a referenced drawing."
+    }
+  },
+  "implementation": {
+    "dxfOutput": "Validate canonical dollar/bare aliases, integer type, exact group code, and each documented field domain before writing the HEADER. Refuse invalid values atomically; parsing remains tolerant.",
+    "lineweightScope": "CELWEIGHT uses Autodesk's enumerated fixed lineweight values rather than accepting every integer from 0 through 211.",
+    "semanticLimit": "Scalar admission only. This does not qualify lineweight rendering, plotting, or native application behavior."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_lineweight_header_domains$' --output-on-failure",
+    "result": "PASS (1/1)",
+    "coverage": [
+      "ASCII/Binary output and typed readback for every enumerated CELWEIGHT value and all ENDCAPS, JOINSTYLE, LWDISPLAY, and XEDIT values.",
+      "Out-of-domain values, wrong group codes, wrong variant types, and duplicate dollar/bare aliases are refused atomically.",
+      "A failed write is followed by a corrected value through the same writer for each field and both encodings.",
+      "Tolerant ASCII input preserves an unsupported integer value for each of CELWEIGHT, ENDCAPS, JOINSTYLE, LWDISPLAY, and XEDIT."
+    ]
+  },
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-LT/files/GUID-E1B15CA7-C45D-4845-B1A6-2520F6F911F3.htm",
+    "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OREF-AcDb__LineWeight.html",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-LT/files/GUID-18CA6E8F-0008-402E-9F6B-2F9ED8A0A7DD.htm",
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-Core/files/GUID-5DA336A1-59BE-4E1E-899C-9349724414E0.htm"
+  ],
+  "inputFixturesAdded": 0,
+  "supportClaimsPromoted": 0
+}

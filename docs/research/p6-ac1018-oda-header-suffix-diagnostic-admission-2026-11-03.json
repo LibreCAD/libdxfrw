@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1018-oda-header-suffix-diagnostic-admission-2026-11-03",
+  "date": "2026-11-03",
+  "status": "BOUNDED_HEADER_READ_WITH_UNCLAIMED_SUFFIX",
+  "supportClaimEffect": "none",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "4.5 2004 Data section map",
+      "9 AcDb:Header"
+    ],
+    "finding": "The section directory defines logical size and the HEADER envelope has a size, CRC and end sentinel. The specification does not establish the meaning of bytes after that envelope."
+  },
+  "producer": {
+    "application": "ODA File Converter 27.1.0.0, verified native code signature",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "settings": "ACAD2004 DWG, recursion 0, audit 0; separate scratch input and output"
+  },
+  "witnesses": [
+    {
+      "name": "ET Border resave",
+      "dwgSha256": "99f261cf43273013e3cac4182abd2acf34f7a1679acab28d26ab34f34eb9e94d",
+      "appMaintenance": 55,
+      "sectionBytes": 1273,
+      "payloadEnd": 516,
+      "trailerEnd": 534,
+      "unclaimedBytes": 739,
+      "crc": "0x2d9b",
+      "decodedSectionSha256": "2be028456de703558d01862c6c3d26d68e6bde4a33e7c3a8a680bd0064e22e2e",
+      "suffixSha256": "3a9dba531ebed81a8ceb767238dfed7f804bcc35d3ffa0076f0ef10986f25a5a",
+      "logSha256": "cda762f77af3e4050664dc9eb9d493c95561cae28f94fac49a96ebf103ecfd92",
+      "disposition": "read operation succeeded, 409/410 source frames published, one CELLSTYLEMAP failed; strict conversion refused"
+    },
+    {
+      "name": "locally authored STYLE resave",
+      "dwgSha256": "acb962732fe5a1ed17b405b8316bd290471c919614724ea39bf198981ed6053e",
+      "appMaintenance": 55,
+      "sectionBytes": 1367,
+      "payloadEnd": 610,
+      "trailerEnd": 628,
+      "unclaimedBytes": 739,
+      "crc": "0x02bc",
+      "decodedSectionSha256": "8e1a5f5edfecc3a1834918c3fc9561987f50c5da500a8a507e561733f6d1d680",
+      "suffixSha256": "2dd97af4b965ddfde821b19d3ae54b184a5449521447b5df6cb461d7176c65f0",
+      "logSha256": "17aeb1e0ab24ba150e5f29057f560cb21dd483e1404bab098b027680628face9",
+      "disposition": "read operation succeeded, 243/244 source frames published, one CELLSTYLEMAP failed; strict conversion refused"
+    }
+  ],
+  "independentDecompression": "LibreDWG 0.14 decompress_R2004_section decoded each physical HEADER page; the envelope CRC and end sentinel were independently computed/checked. This verifies the reported source bytes, not their semantic meaning.",
+  "implementation": "For AC1018 app maintenance 55 only, admit a bounded canonical envelope with an unknown suffix if its CRC and both sentinels validate. Report HeaderSectionUnclaimedData; the strict output path continues to reject the incomplete read disposition. Exact canonical envelopes preserve their existing CRC warning behavior.",
+  "validation": {
+    "selector": "libdxfrw_dwg_header_version_envelopes",
+    "result": "PASS 1/1",
+    "controls": [
+      "validated 739-byte suffix and diagnostic with original bytes unchanged",
+      "other maintenance rejected",
+      "bad CRC rejected for suffix profile",
+      "bad end sentinel rejected",
+      "existing exact profiles and CRC warnings retained"
+    ]
+  },
+  "limitations": [
+    "Suffix bytes remain unclassified and no output or support claim is promoted.",
+    "Both witnesses use the same ODA converter, so producer breadth remains open.",
+    "The actual DWG files remain outside the repository; no fixture added.",
+    "The logged CLI executable included other concurrent uncommitted changes; its hash is 30af1fd1cb27cde61be7a3eaeb3a55b55381de4df4474afb9e0b7301a1b8d699."
+  ]
+}

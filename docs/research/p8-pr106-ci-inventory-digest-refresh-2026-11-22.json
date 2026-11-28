@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-ci-inventory-digest-refresh-2026-11-22",
+  "date": "2026-11-22",
+  "sourceCommit": "06e427c3fab4536ed7bb34ba9b9fad10de7c78b6",
+  "supportClaimEffect": "none",
+  "failures": {
+    "fast-regressions": "GitHub Actions run 44989563734 job 137107445709 stopped at a stale source-release inventory.",
+    "qualification-workflow-contract": "GitHub Actions run 44989563767 job 137107445753 stopped at a stale implementation digest."
+  },
+  "repair": {
+    "method": "In a clean shared clone of the exact source commit, regenerate and stage both release inventories, compute the implementation digest from the staged index, and update only the digest-excluded status overlay.",
+    "inventory": "1400 tracked release files; the regenerated inventories add five already-tracked test and research files and no drawing fixtures.",
+    "implementationDigestSha256": "6c3742c30f632b46536f5e2620794112bfd6829d559ff14664c36fe44a48f9ce",
+    "implementationInputs": 774,
+    "claims": "The immutable claims and their statuses are unchanged: 11 EXPERIMENTAL, four PENDING_NATIVE, zero PROMOTED, no native or broad receipts."
+  },
+  "validation": [
+    "Clean-clone generate_build_inventory.py --check passes.",
+    "Clean-clone check_qualification_digest.py passes with the refreshed status.",
+    "Qualification workflow contract and qualified-format-support self-test and join pass; zero claims are advertised."
+  ],
+  "ctestInventoryFollowup": {
+    "failedRun": "GitHub Actions run 44989905757 job 137108462322 passed source inventory but stopped because the frozen broad CTest inventory was stale.",
+    "sourceCommit": "cc773d52dc292cdf1c98e7a8922422debd065bfb",
+    "method": "Configure a clean checkout with the hosted profile, regenerate its CTest inventory, compare its names with the prior inventory, and bind the changed manifest into a new implementation digest.",
+    "testCount": 1398,
+    "testNameDigestSha256": "3aae4b7a34f86ca0a8154406242aebca91ae8ab2448bb3dcdefba63e7bd6eaf6",
+    "addedTests": ["libdxfrw_block_record_relative_handles", "libdxfrw_layout_associations", "libdxfrw_legacy_layout_handles", "libdxfrw_raster_legacy_owner_wire", "libdxfrw_table_legacy_prefix"],
+    "removedTests": [],
+    "implementationDigestSha256": "03a189133cf0c601e492bc5b01fb4cf917f1c45119455ab6b47784a1546a1a98",
+    "validation": "Clean-checkout check-inventory, qualification digest, support join and release inventory pass. This inventory is not a broad-suite execution or a platform receipt."
+  },
+  "limits": ["This refresh does not qualify a final candidate or replace the pending platform, broad-suite, and independent semantic receipts.", "Hosted CI on the resulting commit must still finish."]
+}

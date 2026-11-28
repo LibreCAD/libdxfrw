@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw-deeper-cross-project-writer-safety-and-binary-dxf-route-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden current peer research across DWG writer maturity, parser/writer security regression classes, Unicode text transport, and binary-DXF projection/carrier routes; reconcile the bounded local FIELD candidate-graph progress without promoting support.",
+  "method": {
+    "kind": "Primary peer project README, release notes, generated man page, milestone, stable GDAL DXF driver documentation, and read-only local plan/source inspection",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "newDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "researchBoundary": "Mutable project documentation and NEWS establish project-reported route limits and fixes only. No external peer output was generated or independently read. The local FIELD graph implementation/build/test is documented separately in the plan and is not peer evidence."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG DWG writer route and version identity",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/libredwg/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgwrite.1",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/milestone/22"
+      ],
+      "observed": "LibreDWG 0.14.1 beta NEWS reports R2004/AC1018 write support and says R2007 output falls back to R2010/AC1024 because direct R2007 encoding is unsupported. The project README limits reliable writer claims to earlier releases; generated dwgwrite.1 says only R2000 for now; the online Texinfo manual says all formats except R2007 but notes R2010-R2018 still fail CRC and audit checks. These published source surfaces disagree and are mutable.",
+      "doesNotEstablish": [
+        "that a specific peer binary can encode every advertised target",
+        "that successful self-read or exit status means an independent CAD reader accepts the file",
+        "that R2010-R2018 output passes CRC/audit checks or has correct graph semantics and target magic",
+        "any libdxfrw writer defect or support parity"
+      ],
+      "planUse": "Use no peer writer as an oracle from its matrix alone. At one composed run pin the exact source SHA/build profile, record requested and actual six-byte DWG version, hashes, diagnostics/repairs, and independent acceptance. Treat R2007 fallback output as AC1024 when verified."
+    },
+    {
+      "topic": "LibreDWG safety and progress failure classes",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/security/advisories"
+      ],
+      "observed": "The 0.14.1 notes include peer fixes for decompressed logical-size versus allocation-capacity divergence; unvalidated R2004 section-page-map offsets; overflowing section-count times decompressed-size arithmetic; R2007 page-offset subtraction underflow; ACIS block-size arithmetic overflow; non-finite angle loops; stale object pointers across reallocating insertion; signed counts bypassing bounds; and pre-R13 no-progress/OOM behavior.",
+      "doesNotEstablish": [
+        "that libdxfrw contains the same bugs",
+        "that peer fixes should be copied without matching ODA-backed local evidence",
+        "that a full fuzz or sanitizer run is required after every code slice"
+      ],
+      "planUse": "Map only touched analogous code to existing checked-arithmetic, allocation-capacity, offset/progress, finite-number, pointer-lifetime and transaction owners. Add the smallest generated focused negative test per modified path; keep broad fuzz/sanitizer/full suites at composed or scheduled gates."
+    },
+    {
+      "topic": "GDAL binary-DXF, raw-code, and 3D carrier boundaries",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html#binary-dxf-to-ascii-dxf-direct-translation"
+      ],
+      "observed": "GDAL 3.12 documents binary-DXF reading and direct binary-to-ASCII translation. Optional RawCodeValues report group codes not handled by the OGR reader, not a complete ordered file archive. AC1027+ extensible mode exposes raw ASM bytes and a transform but does not construct solid geometry.",
+      "doesNotEstablish": [
+        "DWG parsing or DWG writer behavior",
+        "full ordered DXF tag preservation or CAD document graph round-trip",
+        "ACIS decoding, B-rep validity, or solid geometry correctness",
+        "that a binary-to-ASCII direct conversion is an independent semantic writer oracle"
+      ],
+      "planUse": "Keep GDAL optional and composed-only for a specific binary-DXF syntax or unhandled-code question. Record version/options and separate direct conversion, OGR projection, raw unhandled values, and ASM carrier exposure. Do not treat it as a required per-slice test or 3D semantic gate."
+    },
+    {
+      "topic": "Peer Unicode source-version versus output-version behavior",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1414",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+        "https://www.rfc-editor.org/rfc/rfc3629"
+      ],
+      "observed": "Open LibreDWG issue #1414 reports different \\U+XXXX treatment in its pre-R2007 TV and R2007+ TU conversion paths when exporting to the same modern DXF target, and flags lone-surrogate escapes as invalid UTF-8. Its author reports a 43-drawing patch comparison, but neither the report nor patch was reproduced in this task.",
+      "doesNotEstablish": [
+        "the intended normative escaping behavior for all DXF string contexts",
+        "that libdxfrw has the same version-path defect",
+        "that text equivalence implies byte-level or strict-UTF8 equivalence",
+        "native consumer acceptance of malformed surrogate output"
+      ],
+      "planUse": "Refine existing text-transport tests with paired runtime-generated/unit-level controls for source TV and TU paths targeting the same modern DXF, assert emitted bytes separately from decoded text, and reject lone-surrogate output under strict UTF-8. Use only a locally authored DWG integration control if needed at a composed gate; do not download or commit a fixture. Keep peer patch measurements advisory and do not create a new finding without local evidence."
+    },
+    {
+      "topic": "Local generalized FIELD graph gate",
+      "sources": [
+        "local:dwg2dxf/dx_data.h:dx_data::hasCompleteAutoCadFieldGraph",
+        "local:dwg2dxf/dx_iface.cpp:dx_data::hasCompleteAutoCadFieldGraph",
+        "local:tests/dwg2dxf_adapter_tests.cpp:validateAutoCadFieldGraph",
+        "local:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md:Implementation progress — generalized FIELD graph candidate closure"
+      ],
+      "observed": "The bounded graph precheck now covers TABLE and non-TABLE extension-dictionary roots, global FIELDLIST membership, owner-matching child links, and object/CadValue references whose target handles exist in the adapter's candidate inventory. Strict targets and the focused named-object callback CTest pass.",
+      "doesNotEstablish": [
+        "producer-origin graph profile acceptance",
+        "that every candidate handle is emitted and remapped exactly once",
+        "FIELD root wire semantics, FIELD serialization, or post-write closure",
+        "support parity or a native CAD acceptance result"
+      ],
+      "planUse": "Keep FIELD/FIELDLIST export refusal. Next establish producer-origin graph evidence, enumerate actual emitted target handles, verify one-time remapping and readback closure, and resolve the Autodesk/ODA root-code conflict before serializer work."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "perSliceValidationExpanded": false,
+    "nextActions": [
+      "Pin the exact comparator revision and build profile at the existing composed checkpoint; record requested and actual output version.",
+      "Tie any local safety test to a changed arithmetic, bounds, progress, pointer-lifetime, or transaction path; do not add routine full-suite runs.",
+      "Run GDAL only if a concrete binary-DXF syntax/unhandled-tag question remains; do not use its projection as document or solid semantics.",
+      "Use the LibreDWG Unicode issue only to sharpen the existing TV/TU same-target transport test; do not promote the report or patch as a normative rule.",
+      "Continue FIELD graph work through producer evidence and actual writer output/remapping closure while keeping serialization fail-closed."
+    ],
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "supportClaimsPromoted": 0
+  }
+}

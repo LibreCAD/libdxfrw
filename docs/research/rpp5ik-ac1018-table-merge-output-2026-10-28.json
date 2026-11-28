@@ -1,0 +1,125 @@
+{
+  "schema": "ac1018-table-merge-output-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "codeCommit": "9dc1686da1900679575f9d3b13655b6da83e21e6",
+  "supportClaimsPromoted": false,
+  "scope": "Selected AC1018 TABLE writer path for the inferred 173=0 spanning-anchor and 173=1 covered-unit-cell geometry, validating the live model and its rectangles before publishing. Existing explicit-anchor, border, visibility, unknown override and target-version guards remain separate.",
+  "priorResearch": [
+    "docs/research/rpp5ie-ac1018-table-merge-visibility-2026-10-28.json",
+    "docs/research/rpp5ih-ac1018-table-merge-2026-10-28.json",
+    "docs/research/rpp5ij-ac1018-table-merge-review-fixes-2026-10-28.json"
+  ],
+  "preFixWitness": {
+    "authoredInputSha256": "62c65b12f3c7646cd6220924d50fb4a435f06fc8944a0f1e62b4182f0961089f",
+    "probeSourceSha256": "b9bf98479cc1be6bc285e6a1f19c2ef2981e86242f56cf5a09fad8eeae9aab5e",
+    "probeExecutableSha256": "e50bfd340ac09b03be2dd1e195d8c148d2367277a474f5acb2c8354f95f8540d",
+    "librarySha256AtLink": "5c694af4e3c04aabba69ec01acf7adea5c0214d5864ec22bda72f45a214dc21b",
+    "adapterObjectSha256AtLink": "a4e81e4c1e9f05a25833339c4fc30d6978340731b97b0eb5bd4575219453bd66",
+    "result": "A locally authored 1\u00d72 anchor/covered model imported complete with one range; writer refused and preserved a destination sentinel. Clearing the range and resetting to unmerged unit cells allowed same-writer retry."
+  },
+  "implementation": "A bounded occupancy pass validates every inferred rectangle and every covered cell against live model fields, requires the selected AC1018 target and rejects inconsistent/mixed/overlapping ranges, orphan coverage and out-of-bounds cells. Emission retains 173/175/176 descriptors; the previous explicit-anchor grammar remains supported.",
+  "bindings": {
+    "writerSource": {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "9ca915133b19c12bb04e77947cfdb6d86141d365ba4197317b3b80066db15fad"
+    },
+    "testControls": {
+      "path": "tests/table_legacy_merge_controls.h",
+      "sha256": "b6e68654bb78d465d35f34de103fe33f52d16d36bfc9b52929c3f65495852a28"
+    },
+    "normalLibraryAtPeerLink": {
+      "path": "build/libdxfrw.a",
+      "sha256": "9a7babaf49ef0f2c20392ffa6f7053303042482bd295f49147a9601d67c298a9"
+    },
+    "adapterObjectAtPeerLink": {
+      "path": "build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "6855fb035c20c9d3a27dee93dd6ee2b7dd08b54b174a3d5e6e2edbd39e7ceaa0",
+      "note": "The shared normal build included the frozen then-uncommitted MATERIAL and BLOCK profile headers recorded in simultaneousWork; their separate commits followed the TABLE code commit."
+    }
+  },
+  "independentPhysicalOutput": {
+    "tool": "ezdxf 1.4.5 ordinary read; module hashes in reports",
+    "fieldReport": {
+      "path": "build/table-merge-output-peer/independent.json",
+      "sha256": "761149c19c6a32dea76c2e70a0ee3f4848bfb3347f17c71d385e3f2526148102",
+      "observerSha256": "4da4ba783bdf1bb2190f66158cd4bfeca3ba3935420a605d3d0e81080b60ffb2",
+      "result": "Original TABLE 528 first three cells and the authored input and actual ASCII/binary outputs share selected (171,173,175,176) tuples [(1,0,3,1),(1,1,1,1),(1,1,1,1)]."
+    },
+    "compositionReport": {
+      "path": "build/table-merge-output-peer/composition-independent.json",
+      "sha256": "b1b8a9408b36f24811d0d9ebabea265562a0d21d8a22e677bdc90c55849475c2",
+      "observerSha256": "2ca0b8e24206167630040110964d898cc28595b280ca4e612e6a700646e0a2f7",
+      "result": "Original first anchor and selected outputs share 173=0,175=3,176=1,177=32 and 140=4. A separately authored covered cell with 0x21, alignment 5 and height 4 is physically preserved in both outputs. The authored third cell contains explicit 177=0; both outputs omit 177 there. Presence differs and default equivalence is not independently established."
+    },
+    "producerProbeSourceSha256": "64addb773b30a7369033a91467723116a2fc380f661af2e6f1f5d8cc5f7813d3",
+    "producerProbeExecutableSha256": "d6609f4bd433e23b66557fb78e43f589283cd331550f83dc1567921086d47d02",
+    "limitations": "ezdxf retains raw ACAD_TABLE tags and does not interpret native merge geometry or rendering. The original table is 7\u00d73 with other masks, border settings and another merge; the emitted 1\u00d73 model is authored from scratch. Exact 0x21 covered-cell native source is not shown."
+  },
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_(table_(legacy_merge|content_dxf_projection|original_inputs)|material_normal_roles|block_(legacy_capture|source_proof)|attdef_(source_profile|legacy_adapter_capture))$' --output-on-failure",
+    "result": "8/8 passed as reported; no retained test-log hash asserted",
+    "testExecutable": {
+      "path": "build/tests/libdxfrw_table_content_dxf_tests",
+      "sha256": "712e078e246b5c127b9a5c847d765d9bb70fc00a60a3ec006a303fcf15260af8"
+    },
+    "selectedOutputControls": {
+      "positiveProfiles": 8,
+      "atomicRefusals": 92,
+      "correctedRetries": 96,
+      "explicitAnchorControls": 8,
+      "compatibleIncompleteInsertFallbacks": 4
+    },
+    "compositionControls": {
+      "positiveProfiles": 8,
+      "atomicRefusals": 32,
+      "correctedRetries": 32
+    },
+    "coverage": [
+      "ASCII and binary source and target, strict and compatible routes",
+      "Physical output 173/175/176 and composition fields plus typed readback",
+      "Range deletion, duplicate, stale bounds, out-of-bounds and inconsistent anchor/covered mutations",
+      "Unsupported mask, visibility and non-AC1018 target refusal with destination and caller preservation",
+      "Incomplete snapshot retains existing INSERT projection in compatible mode; the authored unresolved target is refused in strict mode",
+      "Same-writer corrected retries and existing explicit-anchor compatibility"
+    ],
+    "chronology": "An initial combined run failed the intermediate test assumption that strict and compatible incomplete snapshots behave identically. The corrected source-frozen cohort above passed; earlier test runs are not final evidence."
+  },
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^libdxfrw_(table_(legacy_merge|content_dxf_projection|original_inputs)|material_normal_roles|block_(legacy_capture|source_proof)|attdef_(source_profile|legacy_adapter_capture))$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "8/8 passed as reported; ASan does not establish native semantics",
+    "testExecutable": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_table_content_dxf_tests",
+      "sha256": "52a1abf81a1b8ef96c108f51366aa67835483ff5b8b29670bb9ef4c99fd1d0b5"
+    },
+    "library": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw.a",
+      "sha256": "bd36b9bbbf30f4df0e6c631f4dfd88686556c329a560baf8d93f8839c49aa939"
+    },
+    "adapterObject": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "de01b913a4b7266d4721194f5b995cac97fb7f8fdc68210a33b817027e3b3639"
+    }
+  },
+  "limitations": [
+    "No full original TABLE or document conversion, native rendering, LibreCAD/FreeCAD application or 3D qualification follows.",
+    "Anchor/covered polarity is source-specific inference, not a universal 173 rule.",
+    "Original cell-level 289 absence, 0x4460 and other unsupported border/mask semantics remain unresolved.",
+    "The prior DRW_Table layout change still requires consumer rebuild and formal ABI/API qualification.",
+    "All independent external samples are existing read-only repository files; authored sources and outputs remain in ignored scratch."
+  ],
+  "simultaneousWork": {
+    "materialHeader": {
+      "path": "dwg2dxf/dx_material_body.h",
+      "sha256": "a259b2664904fe35f2154f19585e16a356798e2672256d3c6331b422199c4aa9",
+      "subsequentCommit": "27fd83a0"
+    },
+    "blockProfileHeader": {
+      "path": "dwg2dxf/dx_block_source_profile.h",
+      "sha256": "2e360abe36c648581465d717267ff1cba15b70868ddfde334233273a0df0723d",
+      "subsequentCommit": "db5de940"
+    },
+    "chronology": "Both headers were frozen and uncommitted during normal and ASan builds, then committed separately after the TABLE code commit."
+  }
+}

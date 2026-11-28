@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-layer-material-dictionary-targets-2026-11-25",
+  "supportClaimEffect": "none",
+  "consumerCommit": "b2e5de74",
+  "libraryCommit": "58cab886d2ac652f91dc88ab53d372a14a199acd",
+  "implementationDigestSha256": "b274f634af9aeb2ca0e8a3b6ddc907a2429f391d6f9c5bfed6b2cbf200ffe44b",
+  "problem": "The layer-material preflight validated only the selected dictionary entry. The retained ACAD_MATERIAL dictionary could also replay missing, inconsistent or corrupt sibling targets.",
+  "change": "Before replay, require unique named dictionary entries, matching raw and typed entries, retained emitted same-version MATERIAL targets, and matching typed owner/name/replay state. Reuse the material/dictionary visitor to validate identity, owner, name and reactor framing for every target.",
+  "validation": [
+    "The focused system-codec material, HATCH, proxy and R12 lane passed 328 assertions in 8 cases. Generated single- and two-material cases cover missing dictionary entries, missing sibling carriers, a corrupt sibling self handle, destination preservation, correction and retry, remapping, and reread/resave.",
+    "The adjacent bundled-codec HATCH, proxy and live-identity lane passed 42 assertions in 3 cases.",
+    "A separate scratch-only diagnostic used an explicitly opted-in derived filter and disabled the raw-only replay marker. Its locally generated AC1024 source SHA-256 e32176333101a243ac5968a8e551096d1e9d872ad8f348f82b0f0bba72f10acc and output SHA-256 4e917ce4bdb009ced40002caa3414d46ca238570e7a0afa955af4baefd037ec4 had three physical LAYER group-347 references to the remapped Global material and matching material record bodies after excluding self and owner group codes. This is not a production-path or independent semantic qualification."
+  ],
+  "limitations": [
+    "The regular consumer still does not opt in to sparse-material capture and still refuses raw-only export. The scratch bypass is not production behavior.",
+    "Complete sparse graph admission must still prove immutable raw payload, current-material and all other references, edit invalidation, collisions, versions, failure/retry and independent semantics.",
+    "The check covers the bounded same-version system-codec ASCII layer-material path. It does not prove arbitrary material payload semantics, other application groups, wider reference types, DWG or bundled layer-material output, renamed layers, or native and platform qualification.",
+    "No DWG or DXF fixture was committed; this slice does not close an open package gate."
+  ]
+}

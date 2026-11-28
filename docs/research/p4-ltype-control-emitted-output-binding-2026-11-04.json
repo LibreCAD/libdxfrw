@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ltype-control-emitted-output-binding-2026-11-04",
+  "date": "2026-11-04",
+  "base_commit": "2bfb69f4",
+  "status": "GENERATED_TYPED_OUTPUT_IDENTITY_GATE",
+  "supportClaimEffect": "none",
+  "scope": "Bind each accepted source LTYPE_CONTROL member and typed LTYPE row to exactly one serialized output LTYPE identity, and retain that binding through DXF write finalization.",
+  "implementation": {
+    "table_inspection": "The TABLES inspector scans the exact staged body and requires each expected emitted handle to name exactly one LTYPE row with exact expected spelling, table handle 0x5, and the version-appropriate owner. Duplicate/missing/unexpected rows, duplicate names, unqualified records, wrong scope, or ambiguous source targets refuse output.",
+    "finalization": "The adapter retains source handle, emitted handle, and normalized builtin/output spelling after inspection. The write finalizer rechecks complete source LTYPE_CONTROL membership, source row ordering/names, and the writer's source-target registry; post-inspection alias mutation refuses the whole write.",
+    "activation": "fileExport clears prior attempt state at entry and enables the gate after MLINE preparation, for imported DWG models using strict-complete or bounded-partial output policy. Legacy output and programmatically constructed models without a DWG read receipt retain their prior behavior.",
+    "semantics": "The check proves primary output record identity and scope only. It does not qualify linetype dash-pattern meaning, entity-to-LTYPE reference closure, producer ordering, or native rendering.",
+    "compatibility": "No public callback or virtual was added. The output inspector is bounded by the existing adapter LTYPE record limit and the symbol-output decoder's record, token, string, and retained-byte budgets."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_symbol_output_tests -j3",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_source_table_identities$' --output-on-failure",
+    "result": "The focused fast CTest passed 1/1 in 0.72 seconds. A regression control verifies MLINE preparation no longer clears the LTYPE gate, which fileExport now enables after that preparation. Generated AC1024 source membership is checked against seven DXF target revisions (AC1014, AC1015, AC1018, AC1021, AC1024, AC1027, AC1032) in ASCII and Binary. For all 14 cells, six negative profiles preserve an existing destination and the same codec then retries successfully: wrong row spelling, omitted expected row, unexpected row, duplicate name, ambiguous source alias, and source-target registry mutation after TABLES inspection. Direct scanner controls also reject a wrong expected name, wrong emitted handle, or missing expected binding.",
+    "source_attempt": "A strict dwg2dxf attempt using the existing ordinary_enc_AC1015.dwg fixture failed its earlier complete-read-disposition preflight and did not reach the TABLES output inspector; this is not a successful physical source qualification.",
+    "fixtures": "No DWG/DXF fixture was added or modified. Generated outputs use temporary paths and are removed by the test."
+  },
+  "limitations": [
+    "The source profile in this matrix is locally generated AC1024 adapter state; physical producer interoperability is not established.",
+    "LTYPE membership and emitted primary identity do not close entity references to LTYPE rows or resolve the observed producer-order disagreement for BYBLOCK/BYLAYER.",
+    "Dash arrays, complex linetype elements, native rendering, cross-version source-to-output semantic fidelity, and full strict fileExport integration remain unqualified.",
+    "This generated control does not promote DWG, DXF, LibreCAD, LibreCAD_3, FreeCAD, or 3D-consumer support claims."
+  ],
+  "files": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "records the bounded output identity result, residual gates, and continuing implementation loop",
+    "dwg2dxf/dx_symbol_output.h": "adds exact staged LTYPE binding inspection",
+    "dwg2dxf/dx_iface.h": "retains adapter source-to-output bindings and finalizer declarations",
+    "dwg2dxf/dx_iface.cpp": "activates the inspector for strict/partial imported-DWG output and verifies retained bindings at finalization",
+    "tests/dxf_symbol_output_tests.cpp": "adds target-version/encoding identity, refusal, rollback, post-inspection mutation, and retry controls"
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Semantic-adapter capability profile receipt propagation and callback inventory correction",
+  "mode": "Local tooling self-tests plus exact locked-target and fresh standalone builds",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bind per-side compile-time semantic-adapter capabilities into build receipts.",
+    "Require closed, typed capability profiles for controlled-driver receipt-pair admission while preserving older receipt schemas.",
+    "Reconcile the current standalone addBlockEnd callback with the immutable target interface without widening the target profile or lock."
+  ],
+  "changes": [
+    {
+      "file": "tests/semantic_differential_adapter.cpp",
+      "detail": "Added a bounded --capability-profile JSON probe and compiled API/type checks for target versus standalone. Captures standalone addBlockEnd as a typed ENDBLK semantic record; target compilation does not declare that absent virtual callback."
+    },
+    {
+      "file": "tools/build_semantic_adapter.py",
+      "detail": "Probes and validates exact capability JSON from target and standalone executables, includes it in each receipt config identity, tests malformed capability profiles, and upgrades the active callback profile to common170-standalone174-callbacks-v1. The synthetic builder adapter now implements the probe protocol."
+    },
+    {
+      "file": "tools/run_qualified_differential_v2.py",
+      "detail": "Accepts additive config-identity shapes carrying capabilityProfile, validates side-specific exact Boolean maps, and requires symmetric profiles for controlled receipt pairs. Retains validation for historical common170-standalone173 receipts while preventing mixed-profile pairs."
+    },
+    {
+      "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "detail": "Recorded current 170/174 callback inventory, receipt propagation, qualification holdbacks, and the still-red 3D consumer-probe runtime test."
+    }
+  ],
+  "inventoryCorrection": {
+    "target": {
+      "lockedCommit": "2043e5254fbf71729e97bd54e48a184153161ff2",
+      "callbackCount": 170,
+      "extraCallbacks": []
+    },
+    "standalone": {
+      "previousProfileCallbackCount": 173,
+      "currentCallbackCount": 174,
+      "currentExtraCallbacks": [
+        "addBlockEnd",
+        "addBlockRecord",
+        "addNamedObjectDictionary",
+        "finalizeDxfWrite"
+      ]
+    },
+    "activeProfile": "common170-standalone174-callbacks-v1",
+    "historicalProfileAccepted": "common170-standalone173-callbacks-v1"
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "python3 -B tools/build_semantic_adapter.py --self-test",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 -B tools/run_qualified_differential_v2.py --self-test",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 -m py_compile tools/build_semantic_adapter.py tools/run_qualified_differential_v2.py",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 -B tools/build_semantic_adapter.py build-target --target-git-dir ../LibreCAD/.git --build-dir build-gcc/semantic-adapter-target-profile-check --lock metadata/libdxfrw-target-lock.json --manifest metadata/libdxfrw-target-source-manifest.txt --semantic-manifest metadata/qualified-differential-v2.json --adapter-source tests/semantic_differential_adapter.cpp --adapter-support-input tests/generated_raw_dwg_object.h --configuration Release --parallel 4 --interface-profile common170-standalone174-callbacks-v1",
+        "result": "PASS; exact target lock/archive and source manifest verified"
+      },
+      {
+        "command": "python3 -B tools/build_semantic_adapter.py build-standalone --source-root . --source-list libdxfrw_sources.cmake --build-dir build-gcc/semantic-adapter-profile-check --adapter-source tests/semantic_differential_adapter.cpp --adapter-support-input tests/generated_raw_dwg_object.h --semantic-manifest metadata/qualified-differential-v2.json --configuration Release --parallel 4 --interface-profile common170-standalone174-callbacks-v1",
+        "result": "PASS; fresh standalone build and capability probe completed"
+      },
+      {
+        "command": "python3 validate both generated receipts and call _validate_receipt_pair",
+        "result": "Receipt schemas/profiles validate; pair is correctly rejected because both receipts use direct-options-only and do not attest the effective compiler driver"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe -j4",
+        "result": "PASS; current semantic adapter compiled and linked against standalone source"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+        "result": "FAIL; executable exited 1 without diagnostic; cause not isolated in this slice"
+      },
+      {
+        "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/semantic_differential_adapter.cpp tools/build_semantic_adapter.py tools/run_qualified_differential_v2.py",
+        "result": "PASS"
+      }
+    ],
+    "receiptCapabilityProfiles": {
+      "target": "All seven capability fields false; profile side target; callback inventory 170.",
+      "standalone": "All seven capability fields true; profile side standalone; callback inventory 174 including addBlockEnd."
+    }
+  },
+  "planImpact": {
+    "findingCount": 134,
+    "topLevelSubplanCount": 76,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "qualificationClaimChanged": false,
+    "supportClaimChanged": false,
+    "full7F1bMigrationComplete": false,
+    "effectiveDriverPlatformQualified": false
+  },
+  "repositoryState": "Shared worktree remains broadly modified; no persistent drawing fixture was added, and this slice is unstaged and uncommitted."
+}

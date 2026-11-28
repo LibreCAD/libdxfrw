@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-candidate-windows-pixel-2026-11-27",
+  "supportClaimEffect": "none",
+  "run": "https://github.com/dxli/libdxfrw/actions/runs/46070632893",
+  "baseCommit": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidateArchiveSha256": "efd717b80f82d6c4ba10debc3c4fca5408cf57cb63fc9cccd8c594fb4fb040e7",
+  "headlessReceiptSha256": "7f0c4ee81f5556e87405761c950d77a1faa5248ac2893ddddb0fffac74b96ef4",
+  "guiReceiptSha256": "47ffd4a5ad76328356d3473ca07e9d97535644eb2c5f2eaf8a9e58b090444a0f",
+  "validation": [
+    "Hosted Windows 2022 x64 candidate build and hash-checked 21-patch replay passed 16 focused headless tests and ten GUI view-property cases.",
+    "The 320 by 240 framebuffer control measured 2440 mesh-changed pixels, 80 separate line-changed pixels and zero restoration-changed pixels. The captured visible frame was inspected.",
+    "The Windows Qt platform used the verified build-local software OpenGL module."
+  ],
+  "limits": [
+    "This tests the patched FreeCAD source candidate and locally generated selected profiles, not a released or upstream-merged FreeCAD version or arbitrary DWG sources.",
+    "The earlier Linux framebuffer failure is still unexplained despite two guarded passing reruns. Broader platform, rendering, user-edit and DWG-to-DXF handoff qualification remains open."
+  ]
+}

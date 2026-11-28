@@ -1,0 +1,167 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-06/7BV.1-7BV.3 associative DXF inventory, strict-loss gate, and bounded capture",
+  "mode": "Source-audited inventory plus generated local ASCII/Binary DXF fast slices; implementation progress",
+  "baselineCommit": "de27a33",
+  "sourceInventory": {
+    "dispatch": {
+      "normalization": "Incoming DXF record names are uppercased before dispatch.",
+      "exactAliases": [
+        "PERSISTENTSUBENTITYMANAGER",
+        "PERSUBENTMGR",
+        "ACDBPERSSUBENTMANAGER"
+      ],
+      "prefixes": ["ACDBASSOC", "ASSOC"],
+      "classRegistryCount": 44,
+      "classRegistryNames": [
+        "ACDBASSOCPERSSUBENTMANAGER",
+        "ACDBPERSSUBENTMANAGER",
+        "ACDBASSOCNETWORK",
+        "ACDBASSOCACTION",
+        "ACDBASSOCALIGNEDDIMACTIONBODY",
+        "ACDBASSOCOSNAPPOINTREFACTIONPARAM",
+        "ACDBASSOCVERTEXACTIONPARAM",
+        "ACDBASSOCGEOMDEPENDENCY",
+        "ACDBASSOCDEPENDENCY",
+        "ACDBASSOCDIMDEPENDENCYBODY",
+        "ACDBASSOC3POINTANGULARDIMACTIONBODY",
+        "ACDBASSOCALIGNEDIMACTIONBODY",
+        "ACDBASSOCORDINATEDIMACTIONBODY",
+        "ACDBASSOCROTATEDDIMACTIONBODY",
+        "ACDBASSOCARRAYMODIFYACTIONBODY",
+        "ACDBASSOCARRAYACTIONBODY",
+        "ACDBASSOCEDGECHAMFERACTIONBODY",
+        "ACDBASSOCEDGEFILLETACTIONBODY",
+        "ACDBASSOCMLEADERACTIONBODY",
+        "ACDBASSOCBLENDSURFACEACTIONBODY",
+        "ACDBASSOCEXTENDSURFACEACTIONBODY",
+        "ACDBASSOCEXTRUDEDSURFACEACTIONBODY",
+        "ACDBASSOCFILLETSURFACEACTIONBODY",
+        "ACDBASSOCLOFTEDSURFACEACTIONBODY",
+        "ACDBASSOCNETWORKSURFACEACTIONBODY",
+        "ACDBASSOCOFFSETSURFACEACTIONBODY",
+        "ACDBASSOCPLANESURFACEACTIONBODY",
+        "ACDBASSOCPATCHSURFACEACTIONBODY",
+        "ACDBASSOCRESTOREENTITYSTATEACTIONBODY",
+        "ACDBASSOCREVOLVEDSURFACEACTIONBODY",
+        "ACDBASSOCSWEPTSURFACEACTIONBODY",
+        "ACDBASSOCTRIMSURFACEACTIONBODY",
+        "ACDBASSOCACTIONPARAM",
+        "ACDBASSOCASMBODYACTIONPARAM",
+        "ACDBASSOCCOMPOUNDACTIONPARAM",
+        "ACDBASSOCEDGEACTIONPARAM",
+        "ACDBASSOCFACEACTIONPARAM",
+        "ACDBASSOCPATHACTIONPARAM",
+        "ACDBASSOCOBJECTACTIONPARAM",
+        "ACDBASSOCPOINTREFACTIONPARAM",
+        "ACDBASSOCARRAYMODIFYPARAMETERS",
+        "ACDBASSOCARRAYPATHPARAMETERS",
+        "ACDBASSOCARRAYPOLARPARAMETERS",
+        "ACDBASSOCARRAYRECTANGULARPARAMETERS"
+      ]
+    },
+    "parserAndAdapterDisposition": {
+      "generic": "DRW_AssociativeObject uses common DRW_TableEntry DXF fields while processAssociativeObject also captures the ordered raw group stream; parser invokes typed callback then raw callback at record boundary.",
+      "persistentSubentitySpecialCase": "The AcDbPersSubentManager subclass marker enables partial group-90 and repeated group-330 decoding; this is not complete class semantics.",
+      "adapterBeforeSlice": "Neither typed shell nor raw payload was stored; raw callback fell through the adapter allow-list.",
+      "adapterAfter7BV3": "Per-import typed/raw ranges retain paired source records under 100,000-record, 4,000,000-group, and 64-MiB estimated-value limits; repeated generations, mismatched identities, duplicate handles, and failed captures remain incomplete.",
+      "writer": "No associative serializer exists; strict complete-output refuses captured records until graph closure and serializer qualification are implemented."
+    }
+  },
+  "scope": [
+    "Freeze the actual DXF dispatch aliases, open prefixes, and 44-name class registry inventory without treating prefixes as exhaustive",
+    "Verify DXF associative-object dispatch publishes one typed shell and one complete raw companion",
+    "Verify source identity, ordered repeated raw groups, ASCII source spellings, and Binary DXF framing",
+    "Verify a following known OBJECTS record is delivered after the associative boundary",
+    "Verify malformed and truncated records do not publish the associative record or later callbacks",
+    "Verify the PERSUBENTMGR-specific partial DXF field path without treating it as complete semantics",
+    "Verify bounded owned typed/raw retention, source identity pairing, duplicate/mismatch rejection, and mixed-generation refusal",
+    "Verify generation-scoped strict complete-output refusal, bounded diagnostics, destination preservation, and corrected same-adapter retry",
+    "Keep all drawing controls generated locally in scratch and avoid full-suite or peer/native runs"
+  ],
+  "changes": {
+    "files": [
+      {
+        "path": "dwg2dxf/dx_data.h",
+        "sha256": "3ea61a668724652948620b66fe310c99a7494c5b384a2c62fd1226e3e9589802",
+        "change": "Added import-generation ranges plus owned typed/raw associative records and explicit completeness/qualification receipt state."
+      },
+      {
+        "path": "dwg2dxf/dx_iface.h",
+        "sha256": "054379607f1a2dc8a372a54d31594c59070e5b45dc65d1a71f684b18adee4dd7",
+        "change": "Declared the concrete adapter's defaulted-interface associative callback override."
+      },
+      {
+        "path": "dwg2dxf/dx_iface.cpp",
+        "sha256": "937cd7b8a6870788015aab7d5ead228511fc2c01dfc36cb075e7bb2d9ad54fcf",
+        "change": "Bounded per-import record/group/value estimates; retained typed/raw pairs only when name, handle, owner, version, and unique-handle checks pass; strict complete-output remains closed for unqualified associations and mixed generations."
+      },
+      {
+        "path": "tests/dwg2dxf_adapter_tests.cpp",
+        "sha256": "e76ecbbfee1294198d3b5795217920e8ab0549853fcb470991039b77e0f4c756",
+        "change": "Added generated ASCII/Binary associative controls, PERSUBENTMGR partial-field check, malformed/truncated boundaries, bounded capture verification, strict destination preservation/retry, mismatched/duplicate rejection, and mixed-generation refusal."
+      },
+      {
+        "path": "tests/CMakeLists.txt",
+        "sha256": "7153990d3c027d4194edafd98812d00fffb4a99560f5f6b07914e2543c20f9e3",
+        "change": "Registered focused fast callback-contract and strict-loss-gate adapter CTests."
+      }
+    ],
+    "productionCodeChanged": true,
+    "persistentFixturesAdded": 0,
+    "externalFixturesDownloaded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build -DLIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE=OFF",
+        "result": "passed",
+        "note": "Only the local build-directory option changed; the optional pinned ezdxf interpreter was unavailable and is not required for this local adapter slice."
+      },
+      {
+        "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "passed",
+        "note": "Strict affected source and test translation units compiled and linked."
+      },
+      {
+        "command": "ctest --test-dir build -R '^dwg2dxf_associative_(callback_contract|strict_loss_gate)$' --output-on-failure",
+        "result": "passed",
+        "testsPassed": 2,
+        "testsFailed": 0,
+        "elapsedSeconds": 0.73,
+        "note": "Covers record/group limits in the capture path, strict refusal before destination mutation, counts-only diagnostics, exact pairing, mismatch/duplicate and mixed-generation rejection, and corrected same-adapter retry."
+      },
+      {
+        "command": "cmake --build build --target dwg2dxf lc3_compat_check -j2",
+        "result": "passed",
+        "note": "Rebuilt the CLI against the adapter changes; compatibility target was up to date."
+      }
+    ],
+    "fullTestSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0
+  },
+  "planProgress": {
+    "completed": "7BV.1 source-frozen dispatch inventory/callback contract; 7BV.2 bounded receipt/strict loss gate; 7BV.3 bounded typed/raw capture, exact identity pairing, and stale-generation refusal",
+    "next": "7BV.4 owner/reference graph closure and same-profile serializer admission; keep strict output closed until all checks pass",
+    "remaining7BVChildren": ["7BV.4", "7BV.5"],
+    "findings": 134,
+    "topLevelSubplans": 77,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportClaimsPromoted": 0
+  },
+  "repositoryState": {
+    "commitCreated": false,
+    "reason": "The active workspace filesystem policy exposes .git as read-only, and the repository contains overlapping user changes that cannot safely be staged as a slice.",
+    "worktreeContainsPreexistingChanges": true
+  }
+}

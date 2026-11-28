@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader SPLINE diagnostic and 3D projection route refresh",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile open ACadSharp DWG-to-DXF spline and whole-file acceptance reports with Autodesk DXF semantics",
+    "Characterize the current GDAL DXF route's projection limits for SPLINE and 3D modeler entities",
+    "Refine existing PAR-22 and PAR-07/S8 comparator gates without adding fixtures or dependencies"
+  ],
+  "method": {
+    "kind": "Read-only review of current public issue/documentation/source pages and local plan owners",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "externalIssueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Issue #1299 supplies no published offending spline arrays, handle, exact GDAL diagnostic/options, or independent expected curve; its attachment and linked AI explanation were not reviewed. GDAL mutable stable documentation/master source describes its current route, not an independently executed result."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://github.com/DomCR/ACadSharp/issues/1297"
+      ],
+      "revision": "Public issue pages reviewed 2026-10-18; #1299 names NuGet v3.8.0, #1297 names master v3.8.14 and v3.8.0",
+      "observed": "The still-open #1299 report says an AutoCAD-authored DWG converted by ACadSharp to DXF yields SPLINE data rejected by GDAL during GeoJSON conversion, but publishes no offending entity handle, ordered arrays, exact GDAL diagnostic/options, or independent curve expectation. The still-open #1297 reports whole-file AutoCAD 2025 rejection for an AC1032 MTEXT frame-only flag case while 0x11 and AC1027 cases reportedly open; its proposed missing-style cause is unproved."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm"
+      ],
+      "revision": "Current public page reviewed 2026-10-18",
+      "observed": "The SPLINE reference distinguishes degree 71, knot count/values 72/40, control count/points 73/10/20/30, optional fit count/points 74/11/21/31, weights 41, and optional WCS start/end tangents."
+    },
+    {
+      "project": "GDAL",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp"
+      ],
+      "revision": "Stable documentation and mutable master source reviewed 2026-10-18",
+      "observed": "The driver projects SPLINE as a tessellated LINESTRING and documents eight output vertices per control point. It can expose entity handles and optional raw code values. By default it skips 3DSOLID/REGION/BODY/SURFACE; optional AC1027+ DXF_3D_EXTENSIBLE_MODE exposes raw ASM data and a transform but does not construct OGR solid geometry."
+    },
+    {
+      "project": "Local libdxfrw plan",
+      "urls": [],
+      "revision": "Working tree at baseline commit de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+      "observed": "The plan already assigns generated field/curve validation to PAR-22/7H/7I/7AB and modeler carrier/semantic separation to PAR-07/S8. The update adds only route-specific comparator interpretation and focused readiness."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "nestedReadinessActionsAdded": 1,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies that GDAL's spline tessellation is diagnostic/projection evidence, not an exact NURBS oracle; separates whole-file DWG acceptance and raw ASM transport from B-rep semantics. All work stays under existing owners and gates."
+  },
+  "implementationReadyChecks": [
+    "On any touched local spline path, use small generated positive/negative cases in the existing owner and assert ordered fields, independently computed curve sentinels, refusal or diagnostics, and next-record alignment.",
+    "Pin GDAL version/options at the existing composed checkpoint; record status, diagnostics, source/output hashes, per-handle disposition, optional raw tag observations, and feature counts.",
+    "Do not equate GDAL's eight-vertices-per-control-point spline projection with the source curve definition or infer semantic correctness from successful projection.",
+    "Treat GDAL's AC1027+ raw ASMData/ASMTransform route as carrier observation only, not solid decoding or ACIS/B-rep semantic qualification.",
+    "Do not download issue/customer drawings or add fixtures, dependencies, CTest registrations, or per-slice full-suite runs."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-spline-diagnostic-and-3d-projection-route-refresh-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-spline-diagnostic-and-3d-projection-route-refresh-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed"
+  }
+}

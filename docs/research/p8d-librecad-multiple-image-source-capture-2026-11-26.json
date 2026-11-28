@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-multiple-image-source-capture-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwImplementationDigestSha256": "63e6c7f77b863b7aa2495970b3193ef90517553c5bde6717d0438eb09a186183",
+  "librecadCommit": "92c501cfb826245d4692af4386e0b31381f01ae8",
+  "change": "Capture bounded IMAGE and IMAGEDEF source frames by handle for small inputs; reject duplicate, invalid, excessive or unavailable source capture while keeping unrelated dictionary provenance separate. Selected single-image validation now retrieves its exact source by handle.",
+  "checks": [
+    "PASS macOS ARM64 system codec: focused IMAGE cases, 143 assertions across two cases, including locally generated two-IMAGE and two-IMAGEDEF parser callbacks, bounds, failure, clear and corrected retry; existing single-image save/reopen and negative controls pass.",
+    "PASS macOS ARM64 system codec: focused MATERIAL cases, 845 assertions across six cases.",
+    "PASS bundled-codec compilation of the LibreCAD filter with the updated metadata layout.",
+    "PASS macOS AddressSanitizer standalone metadata ownership exercise, repeated capture, overflow, duplicate, clear and retry."
+  ],
+  "limits": [
+    "Multi-image export is still refused; complete graph admission, staged output inspection, independent readback, rollback/retry and native/platform qualification remain open.",
+    "The two-source parser inputs are created locally in the test; no DWG or DXF fixture was committed.",
+    "Bundled verification is a focused compile, not a full bundled application test or ABI guarantee."
+  ]
+}

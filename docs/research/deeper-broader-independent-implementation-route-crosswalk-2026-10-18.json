@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader independent implementation and consumer route crosswalk",
+  "mode": "primary-source documentation and repository review",
+  "scope": [
+    "Reconcile DWG/DXF peer support claims by exact reader, writer, projection, and consumer route",
+    "Separate GDAL's libopencad-backed DWG route from its independent DXF driver",
+    "Clarify FreeCAD's external-converter-to-DXF-to-importer stages and stock ACIS non-applicability",
+    "Resolve codelibs/libdxfrw as a same-lineage fork unless a specific delta is source-audited",
+    "Translate the route review into implementation-ready, non-blocking evidence rules"
+  ],
+  "sources": [
+    {
+      "name": "LibreDWG README, manual, and NEWS",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "The project describes broad DWG decode coverage but says advanced R2010+ objects can be skipped; its README/manual give qualified and not fully aligned writer limits, and its manual says unknown object classes can remain raw blobs without DXF codes. The project is GPL-3.0-or-later. These are scope and licensing observations, not per-entity runtime results or format authority."
+    },
+    {
+      "name": "GDAL CAD/DWG and DXF drivers",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/cad.html",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://gdal.org/en/stable/development/building_from_source.html"
+      ],
+      "observed": "GDAL's read-only CAD/DWG route is based on libopencad and documents a narrow explicit-geometry projection. The separate DXF driver has independent read/write and version behavior, including Binary DXF input beginning with GDAL 3.12 and AC2004 output. Neither route claims complete object-graph or ACIS B-rep semantics."
+    },
+    {
+      "name": "FreeCAD DWG route",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observed": "FreeCAD uses an external DWG converter to produce DXF and then its selected DXF importer; converter choices and C++ versus legacy Python importer coverage differ. The stock route does not read ACIS solids. Mutable source and documentation do not qualify an exact installed build."
+    },
+    {
+      "name": "ACadSharp published matrix, API docs, and current issue index",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "observed": "The published version matrix and notifications describe project-level capability but are not per-feature results. The current AC1032 INSERT count report has a possible TableEntity-derived-from-Insert aggregate-count confound and no public source drawing sufficient to resolve root cause."
+    },
+    {
+      "name": "codelibs/libdxfrw fork lineage",
+      "urls": [
+        "https://github.com/codelibs/libdxfrw",
+        "https://github.com/LibreCAD/libdxfrw"
+      ],
+      "observed": "The codelibs README self-identifies as a fork of original SourceForge libdxfrw and advertises R14 through V2015 DWG reading. This indicates shared ancestry but does not establish its exact code delta, test provenance, or behavior of current upstream."
+    },
+    {
+      "name": "ezdxf recovery and Autodesk modeler entity references",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "observed": "ezdxf recovery is separate from strict loading and can repair data or report unrecoverable errors; the documented ACIS drawing route is limited. Autodesk's DXF modeler entity contract describes the carrier fields, not B-rep validity."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds operation- and lineage-specific peer/consumer admission rules, separates the two GDAL routes, requires stage-by-stage FreeCAD evidence, and rejects same-lineage libdxfrw forks as independent votes without a source-delta audit. No local implementation defect or support claim was inferred."
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Documentation and public source pages include mutable branch references; all capability statements remain route discovery rather than execution evidence. No repository snapshots or peer source deltas were locally audited."
+  }
+}

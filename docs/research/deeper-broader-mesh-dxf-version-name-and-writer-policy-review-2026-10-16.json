@@ -1,0 +1,134 @@
+{
+  "schema": "libdxfrw-deeper-broader-mesh-dxf-version-name-and-writer-policy-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Compare Autodesk's versioned DXF SubDMesh record names with local MESH reader/writer/class metadata and conflicting open-source older-version claims; refine implementation readiness without making a DWG or consumer support claim.",
+  "method": {
+    "kind": "Versioned Autodesk DXF reference review plus local source/test inspection",
+    "sourcesOpened": [
+      "https://images.autodesk.com/adsk/files/acad_dxf1.pdf",
+      "https://images.autodesk.com/adsk/files/autocad_2013_pdf_dxf_reference_enu.pdf",
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+      "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm",
+      "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mesh.html",
+      "https://github.com/LibreDWG/libredwg/blob/master/examples/alldxf_MESH.inc",
+      "https://github.com/LibreDWG/libredwg/tree/master/test/test-data/2004"
+    ],
+    "sourcesAttemptedButInaccessible": [
+      "https://github.com/LibreDWG/libredwg/blob/master/test/test-data/2004/Surface.dxf"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalledOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFilesReviewed": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "evidenceBoundary": "Autodesk's versioned DXF references directly establish the documented record spelling and common AcDbSubDMesh fields for AC1024 and AC1027, not the earliest possible release. Open-source sources surface an older-version claim/sample lead, but the exact sample header, entity bytes, producer and provenance were not verified. Local self-readback does not establish version validity or independent conformance. This evidence does not establish an AcDbSubDMesh DWG layout, evaluated subdivision geometry, consumer geometry, or ACIS/B-rep semantics."
+  },
+  "evidence": [
+    {
+      "topic": "Autodesk documents two version-specific DXF names for the same subdivision-surface class",
+      "sources": [
+        "https://images.autodesk.com/adsk/files/acad_dxf1.pdf",
+        "https://images.autodesk.com/adsk/files/autocad_2013_pdf_dxf_reference_enu.pdf"
+      ],
+      "observed": [
+        "The AutoCAD 2010 DXF Reference maps AC1024 to AutoCAD 2010 and names the subdivision-surface entity record SUBDIVISION with subclass AcDbSubDMesh.",
+        "The AutoCAD 2010 reference lists the version, blend-crease, subdivision level, level-0 vertices, face-list, edges, crease values, and property-override framing for SUBDIVISION.",
+        "The AutoCAD 2013 DXF Reference maps AC1027 to AutoCAD 2013 and names the entity MESH with subclass AcDbSubDMesh and the same principal field family."
+      ],
+      "doesNotEstablish": [
+        "the earliest AutoCAD release that accepts MESH/AcDbSubDMesh",
+        "that MESH is valid or invalid in AC1021 DXF",
+        "the class-specific DWG binary layout",
+        "complete property-override payload grammar",
+        "subdivision evaluation or B-rep semantics"
+      ],
+      "planUse": "Define explicit documented AC1024 SUBDIVISION and AC1027/AC1032 MESH writer profiles and read both spellings into DRW_Mesh. Do not infer the earliest release or change older-target behavior until conflicting peer evidence is audited."
+    },
+    {
+      "topic": "Open-source sources conflict on older MESH availability but do not provide a verified older conformance witness",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mesh.html",
+        "https://github.com/LibreDWG/libredwg/blob/master/examples/alldxf_MESH.inc",
+        "https://github.com/LibreDWG/libredwg/tree/master/test/test-data/2004",
+        "https://github.com/LibreDWG/libredwg/blob/master/test/test-data/2004/Surface.dxf",
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm"
+      ],
+      "observed": [
+        "The stable ezdxf MESH internals page (version shown as 1.4.4 when opened) says MESH was introduced in DXF R13/R14 and describes it as a compact PolyFaceMesh form.",
+        "LibreDWG's generated unknown-field census labels MESH field captures from test/test-data/2004/Surface.dxf; the directory contains a Surface.dxf link, but its contents could not be retrieved in this review.",
+        "Autodesk documents classic polygon/PFACE mesh as a POLYLINE variant separately from the AcDbSubDMesh MESH/SUBDIVISION entity family.",
+        "The Surface.dxf $ACADVER, raw source bytes, AcDbSubDMesh subclass/CLASS metadata, producer, source-file hash and generation provenance were not independently inspected; the folder label and generated field census are not a verified format-version witness.",
+        "The ezdxf page says edge/crease data matter when subdivision is applied, reinforcing that control-cage parsing does not demonstrate evaluated smooth-surface semantics."
+      ],
+      "doesNotEstablish": [
+        "that the LibreDWG Surface.dxf file is AC1018 or any specific DXF version",
+        "that an R13/R14 MESH claim refers to AcDbSubDMesh rather than a terminology or entity-family distinction",
+        "that a target CAD application accepts pre-AC1024 MESH/AcDbSubDMesh output",
+        "evaluated subdivision surfaces, DWG MESH layout, ACIS/B-rep support, or consumer geometry"
+      ],
+      "planUse": "Preserve existing old-target writer behavior for compatibility but label it UNQUALIFIED. Add a bounded audit of the already-published sample before any older-version reject/allow policy change; if the sample cannot be verified, leave the minimum unresolved and make no support claim."
+    },
+    {
+      "topic": "Current local route and control do not implement or prove the documented version profile",
+      "sources": [
+        "src/libdxfrw.cpp",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "observed": [
+        "The writer emits MESH for every supported target newer than AC1009.",
+        "The DXF entity dispatch recognizes MESH but not SUBDIVISION.",
+        "The custom CLASS metadata table contains MESH/AcDbSubDMesh but no SUBDIVISION record mapping.",
+        "The generated ASCII/binary MESH round-trip sets AC1021 as its file version; self-readback verifies codec consistency only and cannot validate that target spelling/version."
+      ],
+      "doesNotEstablish": [
+        "that current output is accepted by AutoCAD, ODA, LibreDWG, or another independent reader",
+        "that AC1024 and AC1027 class-table metadata are correct",
+        "any DWG MESH support"
+      ],
+      "planUse": "Replace the current single-version-spelling positive with ASCII/binary AC1024 and AC1027 controls that assert $ACADVER, raw entity name, AcDbSubDMesh subclass, emitted CLASS metadata, typed readback, and following-record framing. Retain AC1021 only as an unqualified compatibility characterization; do not add a pre-AC1024 negative before the older-profile audit."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "MESH DXF reader/writer and class-metadata routes",
+      "existing MESH raw-wire fast test",
+      "PAR-07 / S5 / S8 MESH version and consumer evidence rows"
+    ],
+    "readyLocalSlice": "Add target-version-aware record-name selection for the documented profiles (AC1024 SUBDIVISION; AC1027/AC1032 MESH), accept both input names, verify matching CLASS metadata, and add ASCII/binary controls for both profiles. Keep pre-AC1024 behavior unchanged but UNQUALIFIED, characterize it without treating it as conformance, and audit the existing LibreDWG Surface.dxf lead before deciding whether to reject or support older writes.",
+    "validation": {
+      "plannedBuild": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 2",
+      "plannedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "additionalIfCliPolicyChanges": "Run the affected dwg2dxf/DXF version-policy CTest only if shared version selection or CLI behavior changes.",
+      "gitDiffCheck": true,
+      "validationExecutedInThisResearchPass": false,
+      "fullSuiteRun": false,
+      "externalPeerRun": false
+    },
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "supportClaimsPromoted": 0
+  }
+}

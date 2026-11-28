@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "AcDs modeler ownership-transfer callback fast slice",
+  "mode": "local implementation and focused fast verification",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-07 / S8.3 / 7S.3 / DWG modeler callback staging",
+  "scope": [
+    "Avoid deep-copying completed DWG REGION/3DSOLID/BODY values into journal events and then into the in-tree dwg2dxf block model",
+    "Preserve the existing const-reference callback for current consumers and verify move dispatch on generated AC1027 inputs"
+  ],
+  "implementation": {
+    "productionFiles": [
+      "src/drw_interface.h",
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader.cpp",
+      "dwg2dxf/dx_iface.h"
+    ],
+    "testFiles": [
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "changes": [
+      "Added a trailing, non-pure DRW_Interface rvalue callback that forwards to the existing const-reference callback by default; existing consumer source implementations need not add an override.",
+      "Added a single-delivery owned modeler event and changed the REGION, 3DSOLID, and BODY dispatch paths to move parsed entities into it.",
+      "Materialized each paired DRW_UnsupportedObject raw view from the complete parsed entity before moving the typed value, preserving common-link flags and reactor vectors.",
+      "Changed the in-tree dx_iface adapter to move the completed modeler entity into its block storage; legacy const-reference consumers continue to receive the callback through the default forwarding implementation.",
+      "Extended generated dispatch tests to verify move-callback delivery, paired raw-view identity/owner/reactor/AcDs/frame state, an exact two-page AcDs payload, and default forwarding to a legacy const-reference override."
+    ],
+    "copyBoundary": "Removes the journal-event deep copy and in-tree adapter deep copy for the selected typed modeler entity. The paired raw callback remains independently materialized. The separately budgeted DataStorage-record-to-entity payload copy, arbitrary consumer copies, allocator overhead, and process RSS are unchanged and out of scope.",
+    "compatibility": "The new virtual is trailing and non-pure and preserves the existing const-reference callback behavior for source-compatible consumers. Downstream binaries must rebuild; binary ABI compatibility is not claimed.",
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --acds-modeler-move-callback",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeler-geometry-move-callback-fallback",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-plotsettings-callback-and-fail-closed",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --plotsettings-visualstyle-shade-reference",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-render-settings-callback-and-fail-closed",
+      "git diff --check -- src/drw_interface.h src/intern/dwgreader.h src/intern/dwgreader.cpp dwg2dxf/dx_iface.h tests/dwg_reader_matrix_tests.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/datastorage-modeler-move-callback-fast-slice-2026-10-18.json"
+    ],
+    "results": {
+      "strictBuild": "PASS",
+      "focusedReaderSelector": "PASS; typed/raw companion views preserve owner, reactor, AcDs flag and exact carrier frame/payload.",
+      "owningReaderCtest": "PASS (1/1, 1.54 s)",
+      "legacyCallbackFallback": "PASS",
+      "plotSettingsRegressionSelectors": "PASS (3 selectors)",
+      "libreCadCompatibilityBuild": "PASS",
+      "scopedDiffCheck": "PASS",
+      "fullSuite": "NOT RUN",
+      "peerOrNativeRun": "NOT RUN"
+    },
+    "physicalDrawingFixture": "NOT CREATED; source DWG/control bytes are generated in memory."
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelImplementationSubplans": 73
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commitCreated": false,
+    "worktree": "Uncommitted shared worktree; staging and commit were not attempted."
+  }
+}

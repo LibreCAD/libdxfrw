@@ -1,0 +1,77 @@
+{
+  "id": "par119-geodata-civil-tail-target-matrix-fast-gate",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "specification": {
+    "title": "Open Design Specification for .dwg files",
+    "version": "5.4.1",
+    "section": "20.4.78 GEODATA",
+    "local_copy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "target_rule": "R21 and earlier, plus the explicit AutoCAD 2010 CIVIL-tail exception",
+    "mapped_targets": ["AC1021", "AC1024"],
+    "no_tail_targets_tested": ["AC1027", "AC1032"]
+  },
+  "scope": [
+    "Provide a dedicated fast selector and CTest for the existing GEODATA CIVIL-tail target matrix.",
+    "Synchronize the status table with the shared parse/write target predicate and generated vectors already in the worktree."
+  ],
+  "implementation": {
+    "files_changed": [
+      "CMakeLists.txt",
+      "tests/dwg_object_vectors_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "selector": "--geodata-civil-tail-target-matrix",
+    "ctest": "libdxfrw_geodata_civil_tail_target_matrix",
+    "production_code_changed": false,
+    "public_api_changed": false,
+    "fixture_added": false,
+    "support_claim_changed": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j2",
+        "result": "PASS",
+        "notes": "Strict configured compiler flags; compatibility target succeeds."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_geodata_civil_tail_target_matrix|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS",
+        "tests_passed": 2,
+        "tests_total": 2,
+        "elapsed_seconds": 0.40
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq -e . docs/research/geodata-civil-tail-target-matrix-fast-slice-2026-10-22.json",
+        "result": "PASS"
+      }
+    ],
+    "full_suite_run": false,
+    "native_cad_run": false,
+    "external_producer_run": false
+  },
+  "assessment": {
+    "evidence_ceiling": "ODA-v5.4.1-bound local structural vectors and fast-test registration; not independent producer or native-consumer acceptance.",
+    "remaining": [
+      "Independent producer/native acceptance for GEODATA remains open.",
+      "Continue the next locally evidenced DWG/DXF semantic implementation item without waiting for external qualification."
+    ],
+    "deferred_external": [
+      "J256", "J260", "J268", "J284", "J293", "J295",
+      "FreeCAD Linux qualification",
+      "FreeCAD Windows qualification",
+      "independent ACIS/ACDS semantic qualification"
+    ]
+  },
+  "commit": "not created; no files were staged"
+}

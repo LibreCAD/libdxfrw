@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw-deeper-broader-native-dxf-consumer-shape-evidence-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh downstream DXF 3D-consumer evidence and clarify topology-level acceptance without creating a local defect finding or promoting support.",
+  "method": {
+    "kind": "Current primary project source, issue report, and Autodesk DXF reference",
+    "sourcesOpened": [
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/FreeCAD/FreeCAD/issues/31716",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+    ],
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "fixturesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "FreeCAD main source is mutable route evidence, not a pinned-binary result. Issue #31716 has no attached DXF, entity inventory, or converter/importer trace and does not identify a libdxfrw defect. Autodesk's 3DSOLID group-code reference describes the DXF carrier boundary but not ACIS/SAB internals or shape validity."
+  },
+  "findings": [
+    {
+      "topic": "Import success, object presentation, and shape topology are distinct outcomes",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD/issues/31716"
+      ],
+      "observed": [
+        "The current FreeCAD C++ DXF importer constructs a TopoDS_Edge for a LINE callback and can publish generic shapes; successful object creation therefore does not itself establish a face, shell, or solid result.",
+        "Open FreeCAD issue #31716 reports that a user on development build 26.3.0dev.20260728 at commit 63af5cb2f saw many lines after importing a file described as 3D-DXF despite a solid-like tree icon.",
+        "The issue provides no DXF, source entity census, converter trace, or selected importer details, so neither its cause nor the relevant entity family can be independently determined."
+      ],
+      "doesNotEstablish": [
+        "a defect in libdxfrw or a failure on any known source entity",
+        "a defect in the pinned FreeCAD release already tested in this repository",
+        "that FreeCAD accepted or rejected ACIS payload data",
+        "that every generic FreeCAD shape callback has equivalent topology semantics"
+      ],
+      "planUse": "At the composed consumer checkpoint, record parser/callback delivery, document object count, and topology counts independently. Require source-family-specific expected geometry; do not count an icon, label, nonempty feature, or successful import as 3D geometry evidence. Treat issue #31716 as an unresolved diagnostic lead only."
+    },
+    {
+      "topic": "3DSOLID carrier is separate from explicit DXF geometry and solid semantics",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "observed": [
+        "The 3DSOLID DXF entity includes the AcDbModelerGeometry subclass, a modeler format version, proprietary group-1/group-3 data, the AcDb3dSolid subclass, and an optional soft-owner history handle in group 350.",
+        "These carrier fields are distinct from explicit SOLID, 3DFACE, mesh, and line entities and do not by themselves prove payload decoding or a valid B-rep."
+      ],
+      "doesNotEstablish": [
+        "the internal ACIS/SAB schema or version-specific compatibility",
+        "a complete entity-to-history-object or AcDs owner graph",
+        "shape validity, closedness, exact surfaces, or dimensions"
+      ],
+      "planUse": "Keep entity/carrier association and payload disposition separate from B-rep reconstruction. Solid claims require topology, validity/closedness, coordinates/bounds, and area/volume where applicable; byte retention alone remains carrier-only evidence."
+    }
+  ],
+  "implementationReadiness": {
+    "consumerReceiptFields": [
+      "input hash and source entity/owner/block-path census",
+      "converter identity, options, status, and output DXF version/hash",
+      "selected importer/backend, open-versus-insert operation, and effective preferences",
+      "warnings, skipped/unsupported disposition, parser/callback and object counts",
+      "topology counts for vertices, edges, wires, faces, shells, solids, and compounds",
+      "entity-specific expected coordinates, frame/winding, bounds, and topology",
+      "B-rep validity/closedness and analytic area/volume for solid claims"
+    ],
+    "fastVsComposed": "Keep per-slice validation on touched strict targets, focused generated tests, applicable compatibility builds, and diff checks. Run FreeCAD/native peer qualification only at the existing composed checkpoint; do not add routine CTest registrations or external dependencies.",
+    "issue31716Disposition": "UNRESOLVED_DIAGNOSTIC_LEAD; no source file supplied; no local or support finding; do not add as a fixture. Re-evaluate only if an admissible source artifact and exact route are provided."
+  },
+  "planDelta": {
+    "filesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "existingOwnersOnly": [
+      "S8 native DXF/FreeCAD consumer qualification",
+      "S3/S4 modeler and B-rep acceptance",
+      "7AG peer/evidence admission"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "dependenciesAdded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "researchOnly": true,
+    "planTextEdited": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "localBuildOrTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

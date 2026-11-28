@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Semantic-adapter synthetic DataStorage setup and failing-probe diagnosis",
+  "mode": "Generated local test-only fast slice with exact target/standalone rebuilds",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Isolate the previously red semantic-adapter and 3D consumer self-test.",
+    "Correct the synthetic DRW_ModelerGeometry state to match its assertions and the public hasDataStorageBinaryData() contract.",
+    "Rebuild both receipt-bound adapter sides after changing the shared adapter source."
+  ],
+  "diagnosis": {
+    "failingControl": "modeler semantic self-test carrier/field contract",
+    "rootCause": "The synthetic modeler populated dataStorageData and set hasDataStorageRecord=true but left hasDsData false. The assertion expected hasDataStorageBinaryData() to be true; that accessor reads the separate hasDsData bit.",
+    "productionDefect": false,
+    "resolution": "Call setHasDataStorageBinaryData(true) when constructing the positive in-memory test record.",
+    "diagnosticImprovement": "Self-test failures now report their source line; the modeler assertion reports field values, carrier count, and expected carrier-presence booleans."
+  },
+  "changes": [
+    {
+      "file": "tests/semantic_differential_adapter.cpp",
+      "detail": "Made the positive synthetic DataStorage record internally consistent with its advertised binary-data bit and expected semantic output; retained actionable failure diagnostics."
+    },
+    {
+      "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "detail": "Marked the previous red probe as resolved and recorded the focused diagnosis, validation, and remaining receipt/qualification gates."
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+        "result": "PASS; 1/1"
+      },
+      {
+        "command": "build-target against exact lock 2043e525 with current adapter source and common170-standalone174 profile",
+        "result": "PASS"
+      },
+      {
+        "command": "fresh build-standalone with current adapter source and common170-standalone174 profile",
+        "result": "PASS"
+      },
+      {
+        "command": "run target and standalone linked adapter binaries with --self-test",
+        "result": "PASS; both exit 0 with no diagnostics"
+      },
+      {
+        "command": "python3 -B tools/build_semantic_adapter.py --self-test",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 -B tools/run_qualified_differential_v2.py --self-test",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 -m py_compile tools/build_semantic_adapter.py tools/run_qualified_differential_v2.py",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check on changed plan/tool/adapter sources",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "newFixture": false,
+    "newCTestRegistration": false
+  },
+  "planImpact": {
+    "findingCount": 134,
+    "topLevelSubplanCount": 76,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "qualificationClaimChanged": false,
+    "supportClaimChanged": false,
+    "effectiveDriverGateClosed": false,
+    "full7F1bMigrationComplete": false
+  },
+  "repositoryState": "Shared worktree remains broadly modified; no fixture was added, and this slice is unstaged and uncommitted."
+}

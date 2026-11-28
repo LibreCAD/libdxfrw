@@ -1,0 +1,417 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-oda-legacy-xrecord-string-lengths-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_INDEPENDENT_PRODUCER_WIRE_AND_REOPEN_PASSED",
+  "supportClaimEffect": "none",
+  "purpose": "Resolve the legacy XRECORD string-length ambiguity for locally generated ODA R13/R14 codepage-45 controls.",
+  "specificationConflict": "ODA DWG specification v5.4.1 section 20.4.104 describes a one-byte length followed by a one-byte codepage for legacy strings. These observed ODA File Converter files encode the length as a little-endian two-byte short followed by a one-byte codepage; the 256 and 300-byte controls distinguish the layouts. This is producer-specific evidence, not a claim that the specification or other producers use this encoding.",
+  "generation": "Create DXF locally with ezdxf, convert to AC1012 and AC1014 with ODA File Converter, inspect LibreDWG-discovered object frames and their class records, then reopen each DWG with ODA and inspect resulting DXF with ezdxf. All files and mutations stay in scratch storage.",
+  "verification": [
+    "Physical type, EED terminator, length, codepage, string bytes, following group-90, object boundary, ownership, reactor and extension handles, CRC and following frame are checked.",
+    "Malformed 300-byte count is changed to 65535 with a repaired frame CRC; candidate adapter records an object parse failure and successfully retries the original source on the same adapter.",
+    "Fast generated controls cover both revisions and five counts, preserve the following value and handles, and verify reset and retry under ASan."
+  ],
+  "limits": [
+    "Only the tested ODA producer and ASCII page-45 payloads are evidenced; no AutoCAD/ObjectARX producer, native dictionary cloning behavior, whole-source guards or output qualification is established.",
+    "The ODA reopen is the same producer family; LibreDWG supplies independent object discovery and the research script separately inspects physical bytes."
+  ],
+  "researchScript": {
+    "path": "tools/research/verify_oda_legacy_xrecord_lengths.py",
+    "sha256": "3bc88b7b6db1790ec7c26b5ae391dee52ed7049bd3915a6834705afed88f1407"
+  },
+  "results": {
+    "oda": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "candidateTest": {
+      "path": "/private/tmp/libdxfrw-p6j-asan/tests/libdxfrw_dwg_ac1014_output_external_tests",
+      "sha256": "35e23bef1351b3cecf1e6d974e66e416aa2c7dcf2c6536ae56b27bafbde204e0"
+    },
+    "ezdxfVersion": "1.4.5",
+    "seedSha256": "18b8c3ce5f263ff97e5ebdefc4cd53138676eebe65bc5a7d4cbefa78a8b79d20",
+    "versions": {
+      "r13": {
+        "sourceSha256": "77b4217647f0b9d29c9c1c10705c0b27dfbf5d73bf1dbba6cebb1407ba89f4ff",
+        "badLengthSha256": "898b5239ed86b8d2f2abceffddb80ec96b24cf0c1cf3e9b34e91c057fd082e62",
+        "odaReadbackSha256": "b36f826a7b180bec440997d8c3d267ebe5139ee5fc04520bb745da7ad6422beb",
+        "classFrame": {
+          "sectionOffset": 1327,
+          "sectionSize": 988,
+          "sectionSha256": "52c26afa8e66c087fdfdb1274e305cc86b145fb651599c64f87177c80a0da1f4",
+          "crcValid": true,
+          "classCount": 18,
+          "selected": {
+            "number": 515,
+            "flags": 32768,
+            "app": "ObjectDBX Classes",
+            "cpp": "AcDbXrecord",
+            "dxf": "XRECORD",
+            "zombie": 0,
+            "itemClassId": 499,
+            "physicalStartBit": 17275,
+            "physicalEndBit": 17640,
+            "physicalDxfValueStartBit": 17565
+          }
+        },
+        "frames": {
+          "1": {
+            "handle": 49,
+            "type": 515,
+            "offset": 12350,
+            "size": 25,
+            "frameSha256": "0f79f6a2c33846f1e8824de993c117e13bc72d37443d46d77d631ee11d1b520c",
+            "crcValid": true,
+            "bodyEndBit": 176,
+            "dataStartBit": 80,
+            "lengthBit": 96,
+            "length": 1,
+            "lengthBytes": "0100",
+            "codepage": 45,
+            "followingGroup90": 1,
+            "nextFrame": {
+              "offset": 12379,
+              "size": 281,
+              "type": 515,
+              "crcValid": true
+            },
+            "owner": {
+              "role": 4,
+              "length": 1,
+              "value": 48
+            },
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 0,
+              "value": 0
+            }
+          },
+          "254": {
+            "handle": 50,
+            "type": 515,
+            "offset": 12379,
+            "size": 281,
+            "frameSha256": "f4fac46a1fdaebb674c774b1b9ff91038c8d532cccf03a0ba961bb938ceb7eba",
+            "crcValid": true,
+            "bodyEndBit": 2224,
+            "dataStartBit": 104,
+            "lengthBit": 120,
+            "length": 254,
+            "lengthBytes": "fe00",
+            "codepage": 45,
+            "followingGroup90": 254,
+            "nextFrame": {
+              "offset": 12664,
+              "size": 282,
+              "type": 515,
+              "crcValid": true
+            },
+            "owner": {
+              "role": 4,
+              "length": 1,
+              "value": 48
+            },
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 0,
+              "value": 0
+            }
+          },
+          "255": {
+            "handle": 51,
+            "type": 515,
+            "offset": 12664,
+            "size": 282,
+            "frameSha256": "937cf8ac2d906cd3437a30703d4c38653ce27bca55fa0fc6065e084c6b0d2555",
+            "crcValid": true,
+            "bodyEndBit": 2232,
+            "dataStartBit": 104,
+            "lengthBit": 120,
+            "length": 255,
+            "lengthBytes": "ff00",
+            "codepage": 45,
+            "followingGroup90": 255,
+            "nextFrame": {
+              "offset": 12950,
+              "size": 283,
+              "type": 515,
+              "crcValid": true
+            },
+            "owner": {
+              "role": 4,
+              "length": 1,
+              "value": 48
+            },
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 0,
+              "value": 0
+            }
+          },
+          "256": {
+            "handle": 52,
+            "type": 515,
+            "offset": 12950,
+            "size": 283,
+            "frameSha256": "8619f3573ae9d0ea477ac22c2f9d8dd00b59573b0bfd77f27ae631102e0f82dc",
+            "crcValid": true,
+            "bodyEndBit": 2240,
+            "dataStartBit": 104,
+            "lengthBit": 120,
+            "length": 256,
+            "lengthBytes": "0001",
+            "codepage": 45,
+            "followingGroup90": 256,
+            "nextFrame": {
+              "offset": 13237,
+              "size": 327,
+              "type": 515,
+              "crcValid": true
+            },
+            "owner": {
+              "role": 4,
+              "length": 1,
+              "value": 48
+            },
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 0,
+              "value": 0
+            }
+          },
+          "300": {
+            "handle": 53,
+            "type": 515,
+            "offset": 13237,
+            "size": 327,
+            "frameSha256": "59dff7c44f7c54bebc625180cd114c887b9aa68171843e6196b4cf38adf299df",
+            "crcValid": true,
+            "bodyEndBit": 2592,
+            "dataStartBit": 104,
+            "lengthBit": 120,
+            "length": 300,
+            "lengthBytes": "2c01",
+            "codepage": 45,
+            "followingGroup90": 300,
+            "nextFrame": {
+              "offset": 13568,
+              "size": 35,
+              "type": 42,
+              "crcValid": true
+            },
+            "owner": {
+              "role": 4,
+              "length": 1,
+              "value": 48
+            },
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 0,
+              "value": 0
+            }
+          }
+        },
+        "candidateMalformedRefusedAndSameAdapterRetryPassed": true,
+        "odaReadbackMatched": true
+      },
+      "r14": {
+        "sourceSha256": "4ca2541253435472c373ebd6d1598a7bae7c6fed7423efc3925333b399223bee",
+        "badLengthSha256": "65f532b05d0f52368f8a7d7326e44ae18e533064b9bd5e666c0039f6dfa1cf3c",
+        "odaReadbackSha256": "234adaf9ad67e9cf6830efd2660e96b9e5f5a360605ef18cda3d3623182f0bef",
+        "classFrame": {
+          "sectionOffset": 1459,
+          "sectionSize": 978,
+          "sectionSha256": "3329a6b78227565a7f0ec343f9ed7f18b53f90cfc7bdeae3967951f65e8e2a54",
+          "crcValid": true,
+          "classCount": 18,
+          "selected": {
+            "number": 515,
+            "flags": 0,
+            "app": "ObjectDBX Classes",
+            "cpp": "AcDbXrecord",
+            "dxf": "XRECORD",
+            "zombie": 0,
+            "itemClassId": 499,
+            "physicalStartBit": 18299,
+            "physicalEndBit": 18648,
+            "physicalDxfValueStartBit": 18573
+          }
+        },
+        "frames": {
+          "1": {
+            "handle": 49,
+            "type": 515,
+            "offset": 12423,
+            "size": 25,
+            "frameSha256": "0f79f6a2c33846f1e8824de993c117e13bc72d37443d46d77d631ee11d1b520c",
+            "crcValid": true,
+            "bodyEndBit": 176,
+            "dataStartBit": 80,
+            "lengthBit": 96,
+            "length": 1,
+            "lengthBytes": "0100",
+            "codepage": 45,
+            "followingGroup90": 1,
+            "nextFrame": {
+              "offset": 12452,
+              "size": 281,
+              "type": 515,
+              "crcValid": true
+            },
+            "owner": {
+              "role": 4,
+              "length": 1,
+              "value": 48
+            },
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 0,
+              "value": 0
+            }
+          },
+          "254": {
+            "handle": 50,
+            "type": 515,
+            "offset": 12452,
+            "size": 281,
+            "frameSha256": "f4fac46a1fdaebb674c774b1b9ff91038c8d532cccf03a0ba961bb938ceb7eba",
+            "crcValid": true,
+            "bodyEndBit": 2224,
+            "dataStartBit": 104,
+            "lengthBit": 120,
+            "length": 254,
+            "lengthBytes": "fe00",
+            "codepage": 45,
+            "followingGroup90": 254,
+            "nextFrame": {
+              "offset": 12737,
+              "size": 282,
+              "type": 515,
+              "crcValid": true
+            },
+            "owner": {
+              "role": 4,
+              "length": 1,
+              "value": 48
+            },
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 0,
+              "value": 0
+            }
+          },
+          "255": {
+            "handle": 51,
+            "type": 515,
+            "offset": 12737,
+            "size": 282,
+            "frameSha256": "937cf8ac2d906cd3437a30703d4c38653ce27bca55fa0fc6065e084c6b0d2555",
+            "crcValid": true,
+            "bodyEndBit": 2232,
+            "dataStartBit": 104,
+            "lengthBit": 120,
+            "length": 255,
+            "lengthBytes": "ff00",
+            "codepage": 45,
+            "followingGroup90": 255,
+            "nextFrame": {
+              "offset": 13023,
+              "size": 283,
+              "type": 515,
+              "crcValid": true
+            },
+            "owner": {
+              "role": 4,
+              "length": 1,
+              "value": 48
+            },
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 0,
+              "value": 0
+            }
+          },
+          "256": {
+            "handle": 52,
+            "type": 515,
+            "offset": 13023,
+            "size": 283,
+            "frameSha256": "8619f3573ae9d0ea477ac22c2f9d8dd00b59573b0bfd77f27ae631102e0f82dc",
+            "crcValid": true,
+            "bodyEndBit": 2240,
+            "dataStartBit": 104,
+            "lengthBit": 120,
+            "length": 256,
+            "lengthBytes": "0001",
+            "codepage": 45,
+            "followingGroup90": 256,
+            "nextFrame": {
+              "offset": 13310,
+              "size": 327,
+              "type": 515,
+              "crcValid": true
+            },
+            "owner": {
+              "role": 4,
+              "length": 1,
+              "value": 48
+            },
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 0,
+              "value": 0
+            }
+          },
+          "300": {
+            "handle": 53,
+            "type": 515,
+            "offset": 13310,
+            "size": 327,
+            "frameSha256": "59dff7c44f7c54bebc625180cd114c887b9aa68171843e6196b4cf38adf299df",
+            "crcValid": true,
+            "bodyEndBit": 2592,
+            "dataStartBit": 104,
+            "lengthBit": 120,
+            "length": 300,
+            "lengthBytes": "2c01",
+            "codepage": 45,
+            "followingGroup90": 300,
+            "nextFrame": {
+              "offset": 13641,
+              "size": 36,
+              "type": 42,
+              "crcValid": true
+            },
+            "owner": {
+              "role": 4,
+              "length": 1,
+              "value": 48
+            },
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 0,
+              "value": 0
+            }
+          }
+        },
+        "candidateMalformedRefusedAndSameAdapterRetryPassed": true,
+        "odaReadbackMatched": true
+      }
+    }
+  }
+}

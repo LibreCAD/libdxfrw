@@ -1,0 +1,541 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-populated-style-wire-2026-11-27",
+  "supportClaimEffect": "none",
+  "scope": "Locally generated AC1012 collision/unique-entry pair with explicit two-element MLINESTYLE records and explicit LINE links.",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1 sections 20.4.1, 20.4.2 and 20.4.73",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+  },
+  "priorLimitation": "In the earlier explicit-link pair, the selected source MLINESTYLE records had zero elements; ODA conversion emitted one. That output cannot be used as proof that those element bodies were preserved.",
+  "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py",
+  "generatorSha256": "92a15af39e538585902f207b887dbadfc15e5271b7e9f92919105384a2f95b1c",
+  "generatorReceiptSha256": "e2a04922e502030b5081286c987f044e0ec4e9803c6e4e74fe92d52fbf157fcd",
+  "scratchDirectory": "/private/tmp/ac1012-two-element-wire-20261127",
+  "candidateCommit": "3e9d2525d",
+  "implementationDigestSha256": "f5a373b6adbce3a1a181b62734b6223eadd3931fbbb265b41cb1913713640467",
+  "samples": {
+    "destination": {
+      "dwgSha256": "269e05d515446e240d5165803458fb5330d5f1b5711e9d747a23431e7b061ea0",
+      "odaDxfSha256": "f8a58fae795ab8c50099bba9e7574da57c5e745315150b4aa1c1ce9f3fb5d609",
+      "styles": {
+        "SAME_KEY": 15.0,
+        "DEST_ONLY": 22.0
+      },
+      "line": {
+        "handle": 44,
+        "originalNoLinks": 1,
+        "frameOffset": 2294,
+        "wire": {
+          "dataEndBit": 93,
+          "noLinksBit": 66,
+          "previousHandleBit": 117,
+          "extension": {
+            "role": 3,
+            "length": 0,
+            "value": 0
+          },
+          "layer": {
+            "role": 5,
+            "length": 1,
+            "value": 16
+          },
+          "previous": {
+            "role": 4,
+            "length": 0,
+            "value": 0
+          },
+          "next": {
+            "role": 4,
+            "length": 0,
+            "value": 0
+          },
+          "frameSha256": "44096a17d66d965c042a8e509412d1de8aba88ceae1e780b63b88497e7850f6a"
+        },
+        "noLinksAndRoleMutationsRejected": true
+      },
+      "styleFrames": {
+        "Standard": {
+          "handle": 24,
+          "frameSha256": "19b1cddc74c28c33f1ed9737ef699fea99cc8867a0265cf27156da02520d739c",
+          "startAngleRadians": 1.5707963267949,
+          "wrongRoleRejectedAndRetryPassed": true
+        },
+        "SAME_KEY": {
+          "handle": 46,
+          "frameSha256": "8110748e392c09e288b8f97842c736ded5178d6e28d364c45f24e0a4e2e00d10",
+          "startAngleRadians": 0.26179938779915,
+          "wrongRoleRejectedAndRetryPassed": true
+        },
+        "DEST_ONLY": {
+          "handle": 47,
+          "frameSha256": "9a0266f91463a5dd74c54a2a1d8fae993af61db47a845dc36832701c65380b9f",
+          "startAngleRadians": 0.38397243543875,
+          "wrongRoleRejectedAndRetryPassed": true
+        }
+      },
+      "outputs": {
+        "oda": {
+          "sha256": "f8a58fae795ab8c50099bba9e7574da57c5e745315150b4aa1c1ce9f3fb5d609",
+          "auditErrors": 0,
+          "auditFixes": 0
+        },
+        "partialAscii": {
+          "sha256": "dedd035eaf87383114f09913c7fb5a0bdeff05569e39a6af7193e7670d7dd5f6",
+          "auditErrors": 0,
+          "auditFixes": 0
+        },
+        "partialBinary": {
+          "sha256": "62cb0e2889a910c929c63e4d328457303293962173388aedfd06d8dc597973aa",
+          "auditErrors": 0,
+          "auditFixes": 0
+        }
+      },
+      "selectedStyleWireSpans": {
+        "type": {
+          "startBit": 0,
+          "endBit": 10,
+          "value": 73
+        },
+        "self": {
+          "startBit": 10,
+          "endBit": 26,
+          "value": {
+            "role": 0,
+            "length": 1,
+            "value": 46
+          }
+        },
+        "eedSize": {
+          "startBit": 26,
+          "endBit": 28,
+          "value": 0
+        },
+        "dataEndBit": {
+          "startBit": 28,
+          "endBit": 60,
+          "value": 462
+        },
+        "reactorCount": {
+          "startBit": 60,
+          "endBit": 70,
+          "value": 1
+        },
+        "name": {
+          "startBit": 70,
+          "endBit": 144,
+          "value": "SAME_KEY"
+        },
+        "description": {
+          "startBit": 144,
+          "endBit": 146,
+          "value": ""
+        },
+        "flags": {
+          "startBit": 146,
+          "endBit": 148,
+          "value": 0
+        },
+        "fillColor": {
+          "startBit": 148,
+          "endBit": 150,
+          "value": 256
+        },
+        "startAngle": {
+          "startBit": 150,
+          "endBit": 216,
+          "value": 0.26179938779915
+        },
+        "endAngle": {
+          "startBit": 216,
+          "endBit": 282,
+          "value": 1.5707963267949
+        },
+        "elementCount": {
+          "startBit": 282,
+          "endBit": 290,
+          "value": 2
+        },
+        "offset0": {
+          "startBit": 290,
+          "endBit": 356,
+          "value": 0.5
+        },
+        "color0": {
+          "startBit": 356,
+          "endBit": 358,
+          "value": 256
+        },
+        "linetypeIndex0": {
+          "startBit": 358,
+          "endBit": 376,
+          "value": 32767
+        },
+        "offset1": {
+          "startBit": 376,
+          "endBit": 442,
+          "value": -0.5
+        },
+        "color1": {
+          "startBit": 442,
+          "endBit": 444,
+          "value": 256
+        },
+        "linetypeIndex1": {
+          "startBit": 444,
+          "endBit": 462,
+          "value": 32767
+        },
+        "owner": {
+          "startBit": 462,
+          "endBit": 478,
+          "value": {
+            "role": 12,
+            "length": 1,
+            "value": 23
+          }
+        },
+        "reactor": {
+          "startBit": 478,
+          "endBit": 494,
+          "value": {
+            "role": 4,
+            "length": 1,
+            "value": 23
+          }
+        },
+        "extension": {
+          "startBit": 494,
+          "endBit": 502,
+          "value": {
+            "role": 3,
+            "length": 0,
+            "value": 0
+          }
+        }
+      },
+      "rootFrameSha256": "c7aa9f29a2507b1103b3bcb11f435ffe7a42a08df4ad926d85ca01373164f61d",
+      "emptyChildFrameSha256": {
+        "ACAD_GROUP": "c11640d98831f0f38e48be8bb11949f6eb2e61434cdbeb8657f65fe574fb5e99",
+        "ACAD_PLOTSETTINGS": "bc942a4061d8b03c36c888a223c9a98ff66d3f1841a4e93ad5df740934910601"
+      }
+    },
+    "source": {
+      "dwgSha256": "3a9dd2858b9d86d226fb4d704a5a396b4af04041bd034473ae7b022524f62173",
+      "odaDxfSha256": "82d59daa9161a457aa1b6b1c171461b04f2fa4d14c85431cbe6a6320ad276607",
+      "styles": {
+        "SAME_KEY": 37.0,
+        "SOURCE_ONLY": 51.0
+      },
+      "line": {
+        "handle": 44,
+        "originalNoLinks": 1,
+        "frameOffset": 2296,
+        "wire": {
+          "dataEndBit": 93,
+          "noLinksBit": 66,
+          "previousHandleBit": 117,
+          "extension": {
+            "role": 3,
+            "length": 0,
+            "value": 0
+          },
+          "layer": {
+            "role": 5,
+            "length": 1,
+            "value": 16
+          },
+          "previous": {
+            "role": 4,
+            "length": 0,
+            "value": 0
+          },
+          "next": {
+            "role": 4,
+            "length": 0,
+            "value": 0
+          },
+          "frameSha256": "44096a17d66d965c042a8e509412d1de8aba88ceae1e780b63b88497e7850f6a"
+        },
+        "noLinksAndRoleMutationsRejected": true
+      },
+      "styleFrames": {
+        "Standard": {
+          "handle": 24,
+          "frameSha256": "19b1cddc74c28c33f1ed9737ef699fea99cc8867a0265cf27156da02520d739c",
+          "startAngleRadians": 1.5707963267949,
+          "wrongRoleRejectedAndRetryPassed": true
+        },
+        "SAME_KEY": {
+          "handle": 46,
+          "frameSha256": "3e15b2b9539b5e134baf1945ea256ae848e0c56a8b45818427d04ecaa7d70939",
+          "startAngleRadians": 0.6457718232379,
+          "wrongRoleRejectedAndRetryPassed": true
+        },
+        "SOURCE_ONLY": {
+          "handle": 47,
+          "frameSha256": "53cff76aebe0d9ed721439f892fffdd83c4537fa46ee110c6e66050bb1cd5785",
+          "startAngleRadians": 0.89011791851711,
+          "wrongRoleRejectedAndRetryPassed": true
+        }
+      },
+      "outputs": {
+        "oda": {
+          "sha256": "82d59daa9161a457aa1b6b1c171461b04f2fa4d14c85431cbe6a6320ad276607",
+          "auditErrors": 0,
+          "auditFixes": 0
+        },
+        "partialAscii": {
+          "sha256": "1f4648e3f3257f390eb610085f7623835eec697f851fe7c266b8944b4f8db3e0",
+          "auditErrors": 0,
+          "auditFixes": 0
+        },
+        "partialBinary": {
+          "sha256": "66b531759340746d20129f8b68dc3189a0c53f1a7541905a1b8991a0770ef31e",
+          "auditErrors": 0,
+          "auditFixes": 0
+        }
+      },
+      "selectedStyleWireSpans": {
+        "type": {
+          "startBit": 0,
+          "endBit": 10,
+          "value": 73
+        },
+        "self": {
+          "startBit": 10,
+          "endBit": 26,
+          "value": {
+            "role": 0,
+            "length": 1,
+            "value": 46
+          }
+        },
+        "eedSize": {
+          "startBit": 26,
+          "endBit": 28,
+          "value": 0
+        },
+        "dataEndBit": {
+          "startBit": 28,
+          "endBit": 60,
+          "value": 462
+        },
+        "reactorCount": {
+          "startBit": 60,
+          "endBit": 70,
+          "value": 1
+        },
+        "name": {
+          "startBit": 70,
+          "endBit": 144,
+          "value": "SAME_KEY"
+        },
+        "description": {
+          "startBit": 144,
+          "endBit": 146,
+          "value": ""
+        },
+        "flags": {
+          "startBit": 146,
+          "endBit": 148,
+          "value": 0
+        },
+        "fillColor": {
+          "startBit": 148,
+          "endBit": 150,
+          "value": 256
+        },
+        "startAngle": {
+          "startBit": 150,
+          "endBit": 216,
+          "value": 0.6457718232379
+        },
+        "endAngle": {
+          "startBit": 216,
+          "endBit": 282,
+          "value": 1.5707963267949
+        },
+        "elementCount": {
+          "startBit": 282,
+          "endBit": 290,
+          "value": 2
+        },
+        "offset0": {
+          "startBit": 290,
+          "endBit": 356,
+          "value": 0.5
+        },
+        "color0": {
+          "startBit": 356,
+          "endBit": 358,
+          "value": 256
+        },
+        "linetypeIndex0": {
+          "startBit": 358,
+          "endBit": 376,
+          "value": 32767
+        },
+        "offset1": {
+          "startBit": 376,
+          "endBit": 442,
+          "value": -0.5
+        },
+        "color1": {
+          "startBit": 442,
+          "endBit": 444,
+          "value": 256
+        },
+        "linetypeIndex1": {
+          "startBit": 444,
+          "endBit": 462,
+          "value": 32767
+        },
+        "owner": {
+          "startBit": 462,
+          "endBit": 478,
+          "value": {
+            "role": 12,
+            "length": 1,
+            "value": 23
+          }
+        },
+        "reactor": {
+          "startBit": 478,
+          "endBit": 494,
+          "value": {
+            "role": 4,
+            "length": 1,
+            "value": 23
+          }
+        },
+        "extension": {
+          "startBit": 494,
+          "endBit": 502,
+          "value": {
+            "role": 3,
+            "length": 0,
+            "value": 0
+          }
+        }
+      },
+      "rootFrameSha256": "c7aa9f29a2507b1103b3bcb11f435ffe7a42a08df4ad926d85ca01373164f61d",
+      "emptyChildFrameSha256": {
+        "ACAD_GROUP": "c11640d98831f0f38e48be8bb11949f6eb2e61434cdbeb8657f65fe574fb5e99",
+        "ACAD_PLOTSETTINGS": "bc942a4061d8b03c36c888a223c9a98ff66d3f1841a4e93ad5df740934910601"
+      }
+    }
+  },
+  "checks": [
+    "PASS physical CRC, complete selected MLINESTYLE body/element spans, parent/reactor/extension roles, and wrong-extension-role refusal followed by clean frame retry for all six style frames.",
+    "PASS selected LINE and dictionary frame controls, current candidate strict ASCII/binary refusal with destination preservation, and selected partial ASCII/binary output.",
+    "PASS ODA audited conversion and independent ezdxf selected-graph checks on ODA, partial ASCII and partial binary outputs: expected style names, 15/37 and 22/51 degree starts, 90 degree ends, two offsets +0.5/-0.5, BYLAYER color/linetype, owner links and one model LINE; zero ezdxf audit errors or fixes.",
+    "No DWG or DXF fixture was committed.",
+    "PASS selected root and empty-child physical frames and role-mutation rejection with corrected retry for both sources."
+  ],
+  "limits": [
+    "ODA conversion may perform repairs and selected-field comparison is not whole-source fidelity or AutoCAD normal-open proof.",
+    "Both inputs come from one locally generated producer profile; no native clone/WBLOCK operation or general support claim follows."
+  ],
+  "rootAuditSha256": "6b9f68e4e50c27539614cd44424225966a46c45b4c550c5a47ffd4dadd65693b",
+  "independentCadkitCommonAndDictionaryReadback": {
+    "binarySha256": "0cb592694a50c7503391a23d302c67f2c3c754a5ccc40ea0f4abcef42cb31351",
+    "samples": {
+      "destination": {
+        "dwgSha256": "269e05d515446e240d5165803458fb5330d5f1b5711e9d747a23431e7b061ea0",
+        "objects": {
+          "C": {
+            "logSha256": "ad97dd682a0e8cce0e1b459d7265e5d74b10cfe700c812b439486c5c6d5bd0de",
+            "body": "dictionary"
+          },
+          "17": {
+            "logSha256": "1de94d1fb9c8b44eedac5719a1f178f63af780ea966d9f1b1ee51c4f137f2e06",
+            "body": "dictionary"
+          },
+          "18": {
+            "logSha256": "ddfbc99e58b66a9113a32051e01c64ca422be6dbafb094b15ac3e0b19e0f2da5",
+            "body": "unparsed"
+          },
+          "2E": {
+            "logSha256": "1e41b8128e6ccaa68da85999da30616c3b6dbfa4b7c78fd6fcc23a82e6cc33bc",
+            "body": "unparsed"
+          },
+          "2F": {
+            "logSha256": "2489dab9298965e50302d1ae07cf6e27d5c91af0ef3ad415093c5d789abf0023",
+            "body": "unparsed"
+          }
+        }
+      },
+      "source": {
+        "dwgSha256": "3a9dd2858b9d86d226fb4d704a5a396b4af04041bd034473ae7b022524f62173",
+        "objects": {
+          "C": {
+            "logSha256": "ad97dd682a0e8cce0e1b459d7265e5d74b10cfe700c812b439486c5c6d5bd0de",
+            "body": "dictionary"
+          },
+          "17": {
+            "logSha256": "aa06be7d29b3ec5ee253d91424850605afd99bba4d2c3987de5e6b1e1c7436fa",
+            "body": "dictionary"
+          },
+          "18": {
+            "logSha256": "186723e05b46b0b5c834bd672b1c2c60c82b082fc082194eee947a6e02159ef3",
+            "body": "unparsed"
+          },
+          "2E": {
+            "logSha256": "baa0991fabbee79746fe0072fda00fe2a54336e4b301956eab77bcced9e5b56c",
+            "body": "unparsed"
+          },
+          "2F": {
+            "logSha256": "c37bfd91c403c6e2451e4776236ff31ba957e095dd3b1b50ec5c570701b33217",
+            "body": "unparsed"
+          }
+        }
+      }
+    },
+    "name": "TNYCL/cadkit cadkit-dwg 0.5.4",
+    "commit": "965567ac854c37b04d2325fe130367b3dea09d03",
+    "command": "dwgdump <drawing> --handle <C|17|18|2E|2F>",
+    "findings": [
+      "Both R13 drawings contain 32 mapped frames; cadkit reports no CRC failures on either original.",
+      "Each root decodes exactly three named entries with the expected targets; the style dictionaries decode Standard, SAME_KEY and the side-specific unique entry with expected targets.",
+      "All six style frames report matching identity, valid CRC, style-dictionary owner and reactor, no EED or extension.",
+      "Cadkit marks each MLINESTYLE data body Unparsed: no independent element, angle or color decode is claimed.",
+      "A one-byte body mutation reports one MLINESTYLE CRC failure and crc_ok=false; a repeat on the original returns the identical successful output."
+    ],
+    "damagedLogSha256": "d986d1dcf91e5d80d7048ada092a722d44d9cf28c0f9a6f9c2d425184b8b1a6d",
+    "limits": [
+      "Cadkit lists MLINESTYLE as zero decode errors even when it leaves the body unparsed.",
+      "The peer is a specification-directed decoder, labels R13 untested, and is not AutoCAD. Numeric handle values do not prove wire roles or clone semantics.",
+      "No native open, native merging, target export, complete graph semantics or broad support is established."
+    ]
+  },
+  "libredwgSameFamilyReadback": {
+    "tool": "GNU LibreDWG dwgread 0.14, minJSON",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "commandTemplate": "dwgread -O minJSON <drawing> -o <scratch.json>",
+    "outputSha256": {
+      "destination": "ade8c0945fb31479b6ee6d0e6f7099cccbadf31bdb3235dc2a99e6620e96ea12",
+      "source": "86cde967ec44082746e3306961f4ecdd408a4ca4b335e29f4605d4c10c1b96cd"
+    },
+    "checks": [
+      "Both reads returned success. All six style records have the expected names, start/end angles, two offsets, default colors/linetypes, and selected owner/reactor targets."
+    ],
+    "limits": [
+      "LibreDWG also helped generate these samples; this is a same-family decoder check, not independent producer evidence or native AutoCAD clone semantics."
+    ]
+  },
+  "macOdaCrossReleaseReadback": {
+    "converter": "ODA File Converter 27.1.0.0, macOS ARM64",
+    "binarySha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "sourceDxfSha256": "6a644e02a7ab584e7231ae13ea78937a39c6cfe915c4995e4e0cd924ee25ff3a",
+    "destinationDxfSha256": "7fa27b545979179002b87717ffe0837081e34323dd4ae174f426877a99da33ea",
+    "auditSha256": "095aadd18d156b6a43233ed534c3033b1b02395050f638faa69a1dce64652b8a",
+    "checks": [
+      "Both generated AC1012 drawings converted successfully. ezdxf 1.4.5 reports zero audit errors and fixes for both macOS outputs.",
+      "The selected SAME_KEY and side-specific styles match the Linux ODA 27.10 outputs in angles, two elements, handles and owners; selected model-space LINE handles and geometry also match."
+    ],
+    "limits": [
+      "ODA releases are related producers; their agreement does not prove native AutoCAD normal-open or cloning semantics, or whole-file preservation. No fixture is committed."
+    ]
+  }
+}

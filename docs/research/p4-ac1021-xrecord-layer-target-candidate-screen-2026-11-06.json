@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "title": "Screen AC1021 XRECORD-to-LAYER source candidates",
+  "date": "2026-11-06",
+  "scope": "Local corpus triage only. No reader/output behavior or support claim is changed.",
+  "tool": {
+    "path": "build/dwg2dxf/dwg2dxf",
+    "sha256": "cbe1474b97de3786234d33f7be6c1287e2102b44023885626a94ead2b3d678e5",
+    "command": "dwg2dxf <source.dwg> -y -d -v2010 <temporary-output.dxf>"
+  },
+  "corpusProvenance": "Files under /Users/dli/doc/dwg are local user-corpus inputs; provenance is unauthenticated and they are not committed.",
+  "observations": [
+    {
+      "input": "/Users/dli/doc/dwg/truetype.dwg",
+      "inputBytes": 70464,
+      "inputSha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+      "readerTraceSha256": "2193d008fd281079dcd1ade200614e294d5b3d03bca0cf39f019156e36d6cd7b",
+      "typedProbeSha256": "85e4ecd5a5610e9faf7d376ceb546ba0fd7260ec91950dbaf4b5fc75ed8d29e1",
+      "instrumentedGraphTraceSha256": "2edf789538a9f946a03db24be2c407b95fcfcc486a172216ddb225c9c87f5844",
+      "read": "AC1021; entityParseFailures=0; objectParseFailures=0. Strict output stops at XRECORD 0x5E3 payload code 330 target 0x18C.",
+      "xrecord": {
+        "handle": "0x5E3",
+        "owner": "0x59C",
+        "reactors": ["0x59C"],
+        "orderedEntries": 27,
+        "scalarValues": 19,
+        "handleValues": 8,
+        "code330LayerTargets": ["0x18C", "0x2D", "0x2C", "0x10"],
+        "code331LtypeTargets": ["0x16", "0x2B", "0x16", "0x16"]
+      },
+      "ownerPath": "LAYER_CONTROL 0x02 has extension dictionary 0x59B; dictionary 0x59B contains ACAD_LAYERSTATES -> 0x59C; dictionary 0x59C contains ACAD_VIEWS_default -> XRECORD 0x5E3. The existing versioned LayerStates gate declines this AC1021 LAYER_CONTROL extension-root profile.",
+      "decision": "Do not admit this XRECORD-to-LAYER route until the AC1021 owner root and output contract are qualified. The layer targets being present and group 330 being a soft-pointer code do not close that gap."
+    },
+    {
+      "input": "/Users/dli/doc/dwg/plot_screening_and_fill_patterns.dwg",
+      "inputBytes": 85952,
+      "inputSha256": "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71",
+      "readerTraceSha256": "27dc4143556c35fb2237bb66ea4a15307b788d2ce11d0bc678f911f1ae2d7353",
+      "read": "AC1021; entityParseFailures=0; objectParseFailures=0. Strict output stops at XRECORD handle 0x67F, group 330 target 0x179; this record has 240 handle payloads.",
+      "decision": "Defer as a larger graph. Its complete owner and target-role inventory was not qualified in this screen."
+    },
+    {
+      "input": "/Users/dli/doc/dwg/Cover.dwg",
+      "inputBytes": 18880,
+      "inputSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "readerTraceSha256": "edc74708f6ae7b81710d8053dba7a423bc4f0b43d961ff82bf65e9b7f00d38c2",
+      "read": "AC1027; frame coverage reports 111/111 published, entityParseFailures=0, objectParseFailures=0. Strict output stops at AC1027 DWG source references are not fully qualified.",
+      "decision": "Defer until the unresolved source-reference set and owner roles are scoped."
+    },
+    {
+      "input": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "inputBytes": 142267,
+      "inputSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "conversionLogSha256": "70b8a1aafe31c5d9f95aedf02c8ca458f723406fc0e78e0a56b67192dd3cba33",
+      "outputSha256": "56ac05749960ccefc02f2049b4852a4e61e4cb55b575f2fc7797041677365376",
+      "read": "Strict AC1024-to-AC1024 conversion succeeds.",
+      "decision": "Not a new source candidate; this is the already-profiled mechanical witness."
+    }
+  ],
+  "methodLimitations": [
+    "The truetype owner/payload inventory used temporary callback diagnostics and a temporary typed probe; these were removed and no source change remains from the probe.",
+    "The candidate traces establish local parser observations and strict refusal points only, not producer provenance, native consumer behavior, or general support."
+  ],
+  "nextAction": "Continue screening for a distinct dependency-closed OBJECTS graph with a supported owner root and emitted target route."
+}

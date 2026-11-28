@@ -1,0 +1,32 @@
+{
+  "title": "AC1015 simple.dwg LAYER bounded parser refusal",
+  "date": "2026-11-12",
+  "status": "source-specific malformed or unresolved record; parser retained fail-closed",
+  "source": {
+    "path": "/Users/dli/doc/dwg/simple.dwg",
+    "sha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+    "version": "AC1015",
+    "objectType": 51,
+    "objectHandle": "0x12",
+    "declaredBodyBits": 80
+  },
+  "observation": {
+    "commonHeaderEndBit": 62,
+    "parsedName": "0",
+    "nameEndBit": 80,
+    "failure": "The declared body ends immediately after the table-entry name, before the mandatory LAYER flags and color fields. The parser refuses at the boundary when reading the following xref flags.",
+    "peer": "LibreDWG 0.14 minJSON also projects an empty LAYER name and empty LAYER fields for this exact input; this malformed projection is not independent semantic evidence."
+  },
+  "specification": {
+    "authority": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.54 LAYER (51)",
+    "requiredFieldsAfterName": "xref flags and versioned layer flags, CMC color, and handle references"
+  },
+  "disposition": "No parser change. Do not add a name-only LAYER rule from this source. Keep the read failure visible until a valid producer witness or authoritative explanation resolves the discrepancy.",
+  "validation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/simple.dwg -y -d -v2000 /tmp/ac1015-simple-layer-diagnostic.dxf",
+    "result": "All 25 LTYPE entries are passed; LAYER handle 0x12 is refused and the overall read returns BAD_READ_TABLES.",
+    "temporaryInstrumentation": "Cursor/name diagnostics were removed after the observation."
+  },
+  "fixtures": "No DWG/DXF fixture was added."
+}

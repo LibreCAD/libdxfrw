@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-minsert-grid-transform-2026-11-12",
+  "purpose": "Extend the generated nested INSERT/MINSERT matrix oracle to a selected non-origin MINSERT array cell.",
+  "changes": [
+    "Calculated the second column cell offset from column spacing 7 and row spacing 11, rotated by the inner INSERT angle 0.3 radians in OCS, without applying the referenced block scale.",
+    "Composed the selected cell through the child block base-point transform and the parent INSERT's mirrored/nonuniform scale, rotation, and oblique OCS.",
+    "Checked selected child LINE endpoints for the selected cell under both native OCS and legacy WCS outer insertion-point representations."
+  ],
+  "arrayOffset": {
+    "column": 1,
+    "row": 0,
+    "ocs": [3.436633150604507, 12.577342827011043, 0.0],
+    "rule": "Rotate row/column spacing by INSERT rotation; do not apply the referenced block scale."
+  },
+  "expectedSecondCellWcs": {
+    "start": [-31.3266287411441, 10.5, -28.7756380263298],
+    "end": [-40.1026876109896, 9.0, -32.3740908052080],
+    "tolerance": 1e-11
+  },
+  "independentCrossCheck": {
+    "project": "ezdxf",
+    "source": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/insert.py#L2881-L2895",
+    "observedRule": "Insert.multi_insert forms OCS row/column offsets, rotates by the block-reference rotation, and explicitly does not apply scaling to the grid.",
+    "evidenceLimit": "Implementation analogy only; not normative format authority or native consumer evidence."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.42 seconds"
+  },
+  "scopeLimit": "Generated matrix-model consistency only. No native consumer array expansion, independent DXF interoperability, DWG layout, or broader support is established.",
+  "fixturePolicy": "No drawing fixture was added; the control is computed from runtime-authored test values.",
+  "claimEffect": "No support claim changes."
+}

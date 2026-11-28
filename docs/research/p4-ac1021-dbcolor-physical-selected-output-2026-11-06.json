@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Selected physical AC1021 DBCOLOR graph output and readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify one AC1021 color-book DBCOLOR rooted under ACAD_COLOR for same-version ASCII and Binary DXF output, source EED/APPID binding, graph-role readback, atomic mutation refusal, and same-adapter retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. No DWG/DXF fixture or derivative is committed."
+  },
+  "sourceGraph": {
+    "root": "The NOD contains one ACAD_COLOR edge to dictionary 0x6B.",
+    "color": "Dictionary 0x6B contains one key RAL CLASSIC$RAL 7047 targeting DBCOLOR 0x369B0. The typed record names book RAL CLASSIC and color RAL 7047, has owner and sole reactor 0x6B, and is bound to its unique raw AC1021 DBCOLOR source frame (object type 551).",
+    "dependencies": "The selected DBCOLOR EED contains all 13 tuples, each with application name DBColXD, group 254, integer -1026567985, and string RAL CLASSIC$RAL 7047. The source-bound ACAD APPID row is included to resolve the EED application.",
+    "projection": "The adapter selector constructs a selected projection containing only the ACAD_COLOR root, owner dictionary, DBCOLOR, source APPID dependency and associated source metadata; whole-source preparation remains refused."
+  },
+  "implementation": {
+    "files": {
+      "dwg2dxf/dx_iface.cpp": "The production adapter admits the bounded single-record AC1021 DBCOLOR graph after validating source identity, raw frame class/type, EED dependencies, root and owner dictionary, exact book/name key, owner/reactor and emitted record identity. Other versions and profiles remain refused.",
+      "dwg2dxf/dx_iface.h": "Tracks selected DBCOLOR handles through output finalization.",
+      "tests/dwg2dxf_adapter_tests.cpp": "The physical selector exercises actual dx_iface fileExport in ASCII and Binary, mutation and dictionary-key refusal, destination preservation, same-writer retry, and fresh DXF readback of typed RGB/book/name, graph roles, APPID and all 13 EED tuples."
+    }
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS."
+    },
+    "physicalSelectedGraph": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dbcolor-physical-eed-source /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS for ASCII and Binary selected output and fresh readback. Late typed color and ACAD_COLOR dictionary mutation plus wrong-key states refuse atomically; destination sentinel is preserved and the same writer retries after restoration."
+    },
+    "focusedCtests": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dbcolor_' --output-on-failure",
+      "result": "PASS, 3/3."
+    },
+    "diffCheck": "git diff --check passed after the DBCOLOR code/test changes."
+  },
+  "limits": [
+    "One local AC1021 source only; author and producer are not independently authenticated.",
+    "Whole-source output remains blocked by other unqualified source frames and graph gates.",
+    "The selected source has no explicit DXF group-62 ACI fallback. The route does not derive one from DWG CMC metadata or EED integers.",
+    "DWG-only CMC metadata normalizes/drops in DXF; native color-book behavior, producer prevalence, other versions and profiles remain unqualified.",
+    "No support claim changes and no drawing fixture or derivative is committed."
+  ],
+  "nextAction": "Continue with another inventory-backed record profile; keep whole-source and unsupported DBCOLOR profiles refused until their independent source and dependency evidence closes."
+}

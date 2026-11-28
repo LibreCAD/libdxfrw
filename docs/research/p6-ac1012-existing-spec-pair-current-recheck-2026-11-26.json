@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-existing-spec-pair-current-recheck-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateCommit": "9989c66ecd520324c7da85b0ade8e0d021d789ef",
+  "implementationDigestSha256": "29a5f8c0f06114a7216607292666ce04b19035a18be7eb2a81df7f8ecb56b833",
+  "candidateSha256": "f2193d42a20714492a445ef98167596dcf3d2fc7e3a66c8672dcaae63e55be66",
+  "samples": "Previously locally authored AC1012 destination/source pair from p6-ac1012-spec-pair-root-owner-recheck-2026-11-26.json; no regeneration.",
+  "reason": "Recheck the requested AC1012 controls after current dimension, PELLIPSE, and earlier HEADER preflight changes.",
+  "checks": {
+    "destination-False-False": {
+      "exitCode": 1,
+      "destinationPreservedOnRefusal": true,
+      "outputSha256": null,
+      "independentAuditPassed": false
+    },
+    "destination-False-True": {
+      "exitCode": 1,
+      "destinationPreservedOnRefusal": true,
+      "outputSha256": null,
+      "independentAuditPassed": false
+    },
+    "destination-True-False": {
+      "exitCode": 0,
+      "destinationPreservedOnRefusal": null,
+      "outputSha256": "e18937157970a88ecef7a223274653911eac1b32377493da618b47e81dd8fdfb",
+      "independentAuditPassed": true
+    },
+    "destination-True-True": {
+      "exitCode": 0,
+      "destinationPreservedOnRefusal": null,
+      "outputSha256": "8f11bea669e9ac7221e15cdc257fe62fcf8dd0df2979d43668bac3eaa83c7f4e",
+      "independentAuditPassed": true
+    },
+    "source-False-False": {
+      "exitCode": 1,
+      "destinationPreservedOnRefusal": true,
+      "outputSha256": null,
+      "independentAuditPassed": false
+    },
+    "source-False-True": {
+      "exitCode": 1,
+      "destinationPreservedOnRefusal": true,
+      "outputSha256": null,
+      "independentAuditPassed": false
+    },
+    "source-True-False": {
+      "exitCode": 0,
+      "destinationPreservedOnRefusal": null,
+      "outputSha256": "0dd760309ec3fdaa0ded4872c161042bc5c91d1341af773442e79ac9e86e8022",
+      "independentAuditPassed": true
+    },
+    "source-True-True": {
+      "exitCode": 0,
+      "destinationPreservedOnRefusal": null,
+      "outputSha256": "c9c897fa47c75689bc876e3f2e84f3e078b9d084719e1909081a56a60472b2c7",
+      "independentAuditPassed": true
+    }
+  },
+  "detailReceiptSha256": "c1526df4ad76727b4ed6d609bc1a0ff84edea742ee56dca526cd0b14ccdbaddb",
+  "limits": [
+    "Strict output remains refused because native AC1012 duplicate-key merge semantics are unqualified.",
+    "Explicit-partial results are bounded graph checks and do not establish full-source or native interoperability.",
+    "The drawings and conversion outputs remain scratch-only."
+  ]
+}

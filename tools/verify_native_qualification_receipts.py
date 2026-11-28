@@ -15,6 +15,7 @@ import copy
 import hashlib
 import json
 import os
+import re
 import stat
 import sys
 import tempfile
@@ -23,6 +24,7 @@ import warnings
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
+from unittest.mock import patch
 
 import emit_native_qualification_receipt as receipt_tool
 import run_native_qualification as native_runner
@@ -52,6 +54,7 @@ API_CONCLUSIONS = {
 }
 REF_KEYS = {
     "id", "suite", "matrixKey", "repository", "workflowPath", "headSha",
+    "checkedOutCommit",
     "runId", "runAttempt", "logicalJobKey", "apiJobId", "apiJobName",
     "artifactId", "artifactName", "receiptContentSha256", "runApiUrl",
     "runApiPath", "runApiSha256", "jobsApiUrl", "jobsApiPath",
@@ -145,12 +148,13 @@ def endpoint_urls(repository: str, ref: dict[str, Any]) -> dict[str, str]:
     api = "https://api.github.com/repos/%s" % repository
     run_id = ref["runId"]
     attempt = ref["runAttempt"]
-    head = ref["headSha"]
     return {
         "runApiUrl": "%s/actions/runs/%d/attempts/%d" % (api, run_id, attempt),
         "jobsApiUrl": "%s/actions/runs/%d/attempts/%d/jobs?per_page=100" % (api, run_id, attempt),
         "artifactsApiUrl": "%s/actions/runs/%d/artifacts?per_page=100" % (api, run_id),
-        "workflowApiUrl": "%s/contents/.github/workflows/build.yml?ref=%s" % (api, head),
+        "workflowApiUrl": "%s/contents/.github/workflows/build.yml?ref=%s" % (
+            api, ref["checkedOutCommit"],
+        ),
     }
 
 
@@ -172,11 +176,13 @@ def fetch_authenticated(url: str, token: str) -> bytes:
         url,
         headers={
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer " + token,
             "X-GitHub-Api-Version": "2022-11-28",
             "User-Agent": "libdxfrw-qualification-verifier-v1",
         },
     )
+    # GitHub's artifact endpoint redirects to a signed storage URL. The
+    # bearer credential is for the initial GitHub API request only.
+    request.add_unredirected_header("Authorization", "Bearer " + token)
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
             return response.read()
@@ -355,6 +361,81 @@ def _one(rows: list[dict[str, Any]], label: str) -> dict[str, Any]:
     return rows[0]
 
 
+def validate_event_ref(ref: dict[str, Any], run_api: dict[str, Any],
+                       receipt: dict[str, Any], token: str | None) -> None:
+    """Bind event-specific refs to the authenticated run and, for PRs, current GitHub state."""
+    event = run_api["event"]
+    receipt_ref = receipt["run"]["ref"]
+    expected_workflow_ref = f"{ref['repository']}/{ref['workflowPath']}@{receipt_ref}"
+    if receipt["run"]["workflowRef"] != expected_workflow_ref:
+        raise VerificationError("workflow ref differs from the bound repository, path and ref")
+    if "ref" in run_api and run_api["ref"] != receipt_ref:
+        raise VerificationError("workflow-run API ref differs from the receipt")
+    path = run_api["path"]
+    _, separator, suffix = path.partition("@")
+    if separator and suffix != receipt_ref:
+        raise VerificationError("workflow-run API @ref differs from the receipt")
+    if event in {"push", "workflow_dispatch"}:
+        branch = run_api.get("head_branch")
+        if (not isinstance(branch, str) or not branch or branch.startswith("-")
+                or branch.startswith("/") or branch.endswith(("/", "."))
+                or ".." in branch or "@{" in branch or "//" in branch
+                or any(ord(c) < 32 or ord(c) == 127 or c in " ~^:?*[\\" for c in branch)
+                or any(p.startswith(".") or p.endswith(".lock") for p in branch.split("/"))):
+            raise VerificationError("workflow-run branch is not a valid branch ref")
+        if receipt_ref != "refs/heads/" + branch or ref["checkedOutCommit"] != ref["headSha"]:
+            raise VerificationError("branch checkout/ref differs from workflow head")
+        return
+
+    match = re.fullmatch(r"refs/pull/([1-9][0-9]*)/merge", receipt_ref)
+    if not match:
+        raise VerificationError("pull-request checkout is not a merge ref")
+    if not token:
+        raise VerificationError("pull-request verification requires live authenticated PR evidence")
+    number = int(match.group(1))
+    base = "https://api.github.com/repos/" + ref["repository"]
+    pr_url = "%s/pulls/%d" % (base, number)
+    merge_url = "%s/git/ref/pull/%d/merge" % (base, number)
+    commit_url = "%s/git/commits/%s" % (base, ref["checkedOutCommit"])
+
+    def fetch(url: str) -> dict[str, Any]:
+        return _json_bytes(fetch_authenticated(url, token), "authenticated GitHub response")
+
+    def current(pr: dict[str, Any], merge: dict[str, Any]) -> tuple[str, str]:
+        head = pr.get("head")
+        base_info = pr.get("base")
+        run_head_repo = run_api.get("head_repository")
+        if (pr.get("number") != number or pr.get("state") != "open"
+                or not isinstance(head, dict) or not isinstance(base_info, dict)
+                or not isinstance(head.get("repo"), dict)
+                or not isinstance(base_info.get("repo"), dict)
+                or not isinstance(run_head_repo, dict)
+                or base_info["repo"].get("full_name") != ref["repository"]
+                or not head["repo"].get("full_name")
+                or head["repo"].get("full_name") != run_head_repo.get("full_name")
+                or head.get("ref") != run_api.get("head_branch")
+                or head.get("sha") != ref["headSha"]
+                or pr.get("merge_commit_sha") != ref["checkedOutCommit"]):
+            raise VerificationError("current PR identity, head, base or merge differs")
+        base_sha = hex_digest(base_info.get("sha"), {40}, "PR base SHA")
+        target = merge.get("object")
+        if (merge.get("ref") != receipt_ref or not isinstance(target, dict)
+                or target.get("type") != "commit"
+                or target.get("sha") != ref["checkedOutCommit"]):
+            raise VerificationError("current PR merge ref differs")
+        return base_sha, head["sha"]
+
+    before = current(fetch(pr_url), fetch(merge_url))
+    commit = fetch(commit_url)
+    parents = commit.get("parents")
+    if (commit.get("sha") != ref["checkedOutCommit"] or not isinstance(parents, list)
+            or len(parents) != 2 or any(not isinstance(row, dict) for row in parents)
+            or [row.get("sha") for row in parents] != list(before)):
+        raise VerificationError("PR merge commit parents differ from current base/head")
+    if current(fetch(pr_url), fetch(merge_url)) != before:
+        raise VerificationError("PR moved during verification")
+
+
 def validate_reference(
     ref: dict[str, Any], *, root: Path, status: dict[str, Any],
     contract: dict[str, Any], contract_path: Path, schema_path: Path,
@@ -367,9 +448,10 @@ def validate_reference(
     if ref.get("suite") not in {"focused", "final-broad"} or ref.get("matrixKey") not in MATRIX_KEYS:
         raise VerificationError("receipt reference suite/matrix differs")
     repository = nonempty(ref.get("repository"), "repository")
-    if repository.count("/") != 1 or ref.get("workflowPath") != ".github/workflows/build.yml":
+    if re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository) is None or ref.get("workflowPath") != ".github/workflows/build.yml":
         raise VerificationError("receipt reference repository/workflow differs")
     hex_digest(ref.get("headSha"), {40}, "headSha")
+    hex_digest(ref.get("checkedOutCommit"), {40}, "checkedOutCommit")
     for key in ("runId", "runAttempt", "apiJobId", "artifactId"):
         positive(ref.get(key), key)
     for key in ("logicalJobKey", "apiJobName", "artifactName", "requiredStepName"):
@@ -413,7 +495,7 @@ def validate_reference(
     run_path = run_api.get("path")
     if not isinstance(run_path, str):
         raise VerificationError("workflow-run API path is missing")
-    bare_path, separator, run_ref = run_path.partition("@")
+    bare_path = run_path.partition("@")[0]
     if bare_path != ref["workflowPath"]:
         raise VerificationError("workflow-run API path differs")
 
@@ -472,10 +554,9 @@ def validate_reference(
         raise VerificationError("receipt: %s" % exc) from exc
     _validate_artifact_contents(files, receipt, contract, ref)
 
-    if receipt["repository"]["githubRepository"] != repository or receipt["repository"]["checkedOutCommit"] != ref["headSha"] or receipt["run"]["id"] != str(ref["runId"]) or receipt["run"]["attempt"] != str(ref["runAttempt"]) or receipt["run"]["eventName"] != run_api["event"] or receipt["run"]["job"] != ref["logicalJobKey"]:
+    if receipt["repository"]["githubRepository"] != repository or receipt["repository"]["checkedOutCommit"] != ref["checkedOutCommit"] or receipt["run"]["githubSha"] != ref["checkedOutCommit"] or receipt["run"]["id"] != str(ref["runId"]) or receipt["run"]["attempt"] != str(ref["runAttempt"]) or receipt["run"]["eventName"] != run_api["event"] or receipt["run"]["job"] != ref["logicalJobKey"]:
         raise VerificationError("receipt and API/overlay run identity differ")
-    if separator and run_ref not in {receipt["run"]["ref"], receipt["run"]["workflowRef"].rsplit("@", 1)[-1]}:
-        raise VerificationError("workflow-run API @ref differs from the receipt")
+    validate_event_ref(ref, run_api, receipt, live_token)
     if receipt["workflow"]["gitBlobAtHead"] != workflow_blob or receipt["workflow"]["sha256"] != sha256_bytes(workflow_bytes):
         raise VerificationError("receipt workflow bytes/blob differ from contents API")
     if receipt["platform"]["key"] != ref["matrixKey"] or receipt["platform"]["declaredRunnerLabel"] not in labels or receipt["suite"] != ref["suite"] or receipt["qualificationConclusion"] != ref["qualificationConclusion"]:
@@ -566,7 +647,9 @@ def write_json(path: Path, value: Any) -> None:
     path.write_bytes(native_runner.canonical_bytes(value))
 
 
-def _fixture(root: Path) -> tuple[dict[str, Any], dict[str, Any], Path, Path, Path, Path]:
+def _fixture(
+        root: Path, *, pull_request: bool = False
+) -> tuple[dict[str, Any], dict[str, Any], Path, Path, Path, Path]:
     contract = receipt_tool._fixture_contract()
     contract_path = root / "metadata/qualification-required-tests-v1.json"
     write_json(contract_path, contract)
@@ -574,6 +657,17 @@ def _fixture(root: Path) -> tuple[dict[str, Any], dict[str, Any], Path, Path, Pa
     inputs_path.parent.mkdir(parents=True, exist_ok=True)
     inputs_path.write_bytes(b"fixture implementation inputs\n")
     observation = receipt_tool._fixture_observation(contract)
+    head_sha = "b" * 40 if pull_request else "3" * 40
+    checked_out_commit = "3" * 40
+    if pull_request:
+        observation["run"].update({
+            "eventName": "pull_request",
+            "ref": "refs/pull/103/merge",
+            "workflowRef": (
+                "LibreCAD/libdxfrw/.github/workflows/build.yml@"
+                "refs/pull/103/merge"
+            ),
+        })
     observation["contracts"]["requiredTestsSha256"] = sha256_file(contract_path)
     observation_bytes = native_runner.canonical_bytes(observation)
     receipt = receipt_tool.build_receipt(
@@ -623,8 +717,21 @@ def _fixture(root: Path) -> tuple[dict[str, Any], dict[str, Any], Path, Path, Pa
     archive_sha = sha256_file(archive)
     artifact_name = "native-qualification-101-1-focused-linux-gcc"
     download_url = "https://api.github.com/repos/LibreCAD/libdxfrw/actions/artifacts/303/zip"
-    artifact = {"id": 303, "name": artifact_name, "expired": False, "size_in_bytes": archive.stat().st_size, "digest": "sha256:" + archive_sha, "archive_download_url": download_url, "workflow_run": {"id": 101, "head_sha": "3" * 40}}
-    run_api = {"id": 101, "run_attempt": 1, "head_sha": "3" * 40, "path": ".github/workflows/build.yml@refs/heads/master", "event": "workflow_dispatch", "conclusion": "success", "repository": {"full_name": "LibreCAD/libdxfrw"}}
+    artifact = {"id": 303, "name": artifact_name, "expired": False, "size_in_bytes": archive.stat().st_size, "digest": "sha256:" + archive_sha, "archive_download_url": download_url, "workflow_run": {"id": 101, "head_sha": head_sha}}
+    run_api = {
+        "id": 101,
+        "run_attempt": 1,
+        "head_sha": head_sha,
+        "path": ".github/workflows/build.yml" if pull_request
+            else ".github/workflows/build.yml@refs/heads/master",
+        "head_branch": "topic" if pull_request else "master",
+        "head_repository": {"full_name": "contributor/libdxfrw"} if pull_request
+            else {"full_name": "LibreCAD/libdxfrw"},
+        "pull_requests": [],
+        "event": observation["run"]["eventName"],
+        "conclusion": "success",
+        "repository": {"full_name": "LibreCAD/libdxfrw"},
+    }
     jobs_api = {"total_count": 1, "jobs": [{"id": 202, "run_id": 101, "name": "focused / linux-gcc", "conclusion": "success", "labels": ["ubuntu-24.04"], "steps": [{"name": "Run focused native qualification", "conclusion": "success"}]}]}
     artifacts_api = {"total_count": 1, "artifacts": [artifact]}
     workflow_api = {"path": ".github/workflows/build.yml", "sha": workflow_blob, "type": "file", "encoding": "base64", "content": base64.b64encode(workflow_bytes).decode("ascii")}
@@ -632,7 +739,7 @@ def _fixture(root: Path) -> tuple[dict[str, Any], dict[str, Any], Path, Path, Pa
         write_json(evidence / name, value)
     relative = lambda path: path.relative_to(root).as_posix()
     ref = {
-        "id": "receipt:focused:linux-gcc:101:1:202", "suite": "focused", "matrixKey": "linux-gcc", "repository": "LibreCAD/libdxfrw", "workflowPath": ".github/workflows/build.yml", "headSha": "3" * 40,
+        "id": "receipt:focused:linux-gcc:101:1:202", "suite": "focused", "matrixKey": "linux-gcc", "repository": "LibreCAD/libdxfrw", "workflowPath": ".github/workflows/build.yml", "headSha": head_sha, "checkedOutCommit": checked_out_commit,
         "runId": 101, "runAttempt": 1, "logicalJobKey": "native-focused", "apiJobId": 202, "apiJobName": "focused / linux-gcc", "artifactId": 303, "artifactName": artifact_name, "receiptContentSha256": sha256_bytes(receipt_bytes),
         "runApiUrl": "", "runApiPath": relative(evidence / "run.json"), "runApiSha256": sha256_file(evidence / "run.json"), "jobsApiUrl": "", "jobsApiPath": relative(evidence / "jobs.json"), "jobsApiSha256": sha256_file(evidence / "jobs.json"),
         "artifactsApiUrl": "", "artifactsApiPath": relative(evidence / "artifacts.json"), "artifactsApiSha256": sha256_file(evidence / "artifacts.json"), "workflowApiUrl": "", "workflowApiPath": relative(evidence / "workflow.json"), "workflowApiSha256": sha256_file(evidence / "workflow.json"),
@@ -700,6 +807,15 @@ def _rewrite_zip(source: Path, mutation: str) -> Path:
 
 
 def self_test() -> None:
+    with patch.object(urllib.request, "urlopen") as open_request:
+        open_request.return_value.__enter__.return_value.read.return_value = b"archive"
+        assert fetch_authenticated("https://api.github.com/artifact", "test-token") == b"archive"
+        initial = open_request.call_args.args[0]
+        assert initial.get_header("Authorization") == "Bearer test-token"
+        redirected = urllib.request.HTTPRedirectHandler().redirect_request(
+            initial, None, 302, "Found", {}, "https://storage.example/artifact.zip",
+        )
+        assert not redirected.has_header("Authorization")
     with tempfile.TemporaryDirectory(prefix="libdxfrw-api-receipt-") as directory:
         root = Path(directory)
         status, ref, claims, contract_path, schema_path, inputs_path = _fixture(root)
@@ -709,6 +825,97 @@ def self_test() -> None:
             contract_path=contract_path, schema_path=schema_path,
             implementation_inputs_path=inputs_path, live_token=None,
         )
+        branch_run = read_json(root / ref["runApiPath"])
+        branch_receipt = _json_bytes(
+            extract_artifact(root / ref["artifactArchivePath"])["native-qualification-receipt-v1.json"],
+            "fixture receipt",
+        )
+        for field, value, label in (
+            ("head_branch", "other", "wrong authenticated branch"),
+            ("head_branch", "master..evil", "invalid branch"),
+            ("head_branch", None, "missing branch"),
+            ("ref", "refs/tags/master", "conflicting supplied ref"),
+            ("path", ".github/workflows/build.yml@refs/heads/other", "conflicting API path"),
+        ):
+            changed_run = copy.deepcopy(branch_run)
+            changed_run[field] = value
+            expect_error(lambda: validate_event_ref(ref, changed_run, branch_receipt, None), label)
+        tag_receipt = copy.deepcopy(branch_receipt)
+        tag_receipt["run"]["ref"] = "refs/tags/master"
+        tag_receipt["run"]["workflowRef"] = tag_receipt["run"]["workflowRef"].split("@")[0] + "@refs/tags/master"
+        run_without_api_ref = dict(branch_run, path=ref["workflowPath"])
+        expect_error(lambda: validate_event_ref(ref, run_without_api_ref, tag_receipt, None), "unsupported tag")
+        wrong_workflow = copy.deepcopy(branch_receipt)
+        wrong_workflow["run"]["workflowRef"] = "other/repo/.github/workflows/build.yml@refs/heads/master"
+        expect_error(lambda: validate_event_ref(ref, branch_run, wrong_workflow, None), "wrong workflow provenance")
+        with tempfile.TemporaryDirectory(prefix="libdxfrw-api-receipt-pr-") as pr_directory:
+            pr_root = Path(pr_directory)
+            pr_status, pr_ref, _, pr_contract_path, pr_schema_path, pr_inputs_path = _fixture(
+                pr_root, pull_request=True,
+            )
+            pr_contract = receipt_tool._fixture_contract()
+            pr_api = {
+                "number": 103, "state": "open", "merge_commit_sha": "3" * 40,
+                "head": {"sha": "b" * 40, "ref": "topic", "repo": {"full_name": "contributor/libdxfrw"}},
+                "base": {"sha": "a" * 40, "repo": {"full_name": "LibreCAD/libdxfrw"}},
+            }
+            merge_api = {"ref": "refs/pull/103/merge", "object": {"type": "commit", "sha": "3" * 40}}
+            commit_api = {"sha": "3" * 40, "parents": [{"sha": "a" * 40}, {"sha": "b" * 40}]}
+            pr_responses = [pr_api, merge_api, commit_api, pr_api, merge_api]
+            def encoded_responses(rows: list[dict[str, Any]]) -> list[bytes]:
+                return [json.dumps(row).encode("utf-8") for row in rows]
+
+            def verify_pr() -> None:
+                validate_reference(
+                    pr_ref, root=pr_root, status=pr_status, contract=pr_contract,
+                    contract_path=pr_contract_path, schema_path=pr_schema_path,
+                    implementation_inputs_path=pr_inputs_path, live_token="fake-token",
+                )
+
+            expect_error(
+                lambda: validate_reference(
+                    pr_ref, root=pr_root, status=pr_status, contract=pr_contract,
+                    contract_path=pr_contract_path, schema_path=pr_schema_path,
+                    implementation_inputs_path=pr_inputs_path, live_token=None,
+                ), "PR evidence without live authentication",
+            )
+            with patch(__name__ + ".live_check_reference"), patch(
+                __name__ + ".fetch_authenticated", side_effect=encoded_responses(pr_responses),
+            ):
+                verify_pr()
+            for position, key, wrong, label in (
+                (0, "number", 104, "wrong PR"),
+                (0, "merge_commit_sha", "d" * 40, "wrong PR merge"),
+                (1, "ref", "refs/pull/104/merge", "wrong merge ref"),
+                (2, "parents", [{"sha": "b" * 40}, {"sha": "a" * 40}], "wrong parents"),
+                (3, "merge_commit_sha", "d" * 40, "moving PR"),
+                (4, "object", {"type": "commit", "sha": "d" * 40}, "moving merge ref"),
+                (0, "head", {"sha": "b" * 40, "ref": "topic", "repo": {"full_name": "other/fork"}}, "wrong head repository"),
+                (0, "base", {"sha": "a" * 40, "repo": {"full_name": "other/base"}}, "wrong base repository"),
+                (0, "head", {"sha": "b" * 40, "ref": "other", "repo": {"full_name": "contributor/libdxfrw"}}, "wrong head branch"),
+                (0, "head", {"sha": "d" * 40, "ref": "topic", "repo": {"full_name": "contributor/libdxfrw"}}, "wrong head SHA"),
+                (0, "state", "closed", "closed PR"),
+                (1, "object", {"type": "tag", "sha": "3" * 40}, "non-commit merge ref"),
+            ):
+                changed_responses = copy.deepcopy(pr_responses)
+                changed_responses[position][key] = wrong
+                with patch(__name__ + ".live_check_reference"), patch(
+                    __name__ + ".fetch_authenticated", side_effect=encoded_responses(changed_responses),
+                ):
+                    expect_error(verify_pr, label)
+            bad_pr_ref = copy.deepcopy(pr_ref)
+            bad_pr_ref["checkedOutCommit"] = bad_pr_ref["headSha"]
+            bad_pr_ref.update(endpoint_urls(bad_pr_ref["repository"], bad_pr_ref))
+            expect_error(
+                lambda: validate_reference(
+                    bad_pr_ref, root=pr_root, status=pr_status,
+                    contract=pr_contract, contract_path=pr_contract_path,
+                    schema_path=pr_schema_path,
+                    implementation_inputs_path=pr_inputs_path,
+                    live_token=None,
+                ),
+                "PR source SHA cannot replace the merge checkout SHA",
+            )
         pre = copy.deepcopy(status)
         pre["nativeReceiptRefs"] = []
         validate_receipt_set(

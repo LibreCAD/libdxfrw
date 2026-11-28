@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p7-modeler-wireframe-dxf-loss-guard-2026-11-12",
+  "date": "2026-11-12",
+  "scope": "Fail closed when a DWG modeler declares separate wireframe/silhouette data that the current DXF projection does not model. This does not decode those records or qualify ACIS geometry.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.41",
+    "finding": "A true wireframe-presence bit is followed by optional wireframe and silhouette records after the ACIS carrier.",
+    "availableExtract": "/private/tmp/oda-spec-p7.txt",
+    "note": "The PDF path listed in AGENTS.md was unavailable in this workspace; no DWG parser layout was changed."
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": "writeModelerGeometry refuses m_hasWireframe=true before publishing DXF output, with an explicit unqualified-wireframe mapping diagnostic.",
+    "reason": "The writer currently maps only the admitted ACIS SAT/SAB carrier and has no typed mapping for the separate DWG display wireframe/silhouette fields.",
+    "test": "dwg_ac1024_acis700_sat_dxf_roundtrip",
+    "testFile": "tests/dwg_local_roundtrip_tests.cpp",
+    "fixturePolicy": "Uses a from-scratch AC1024 SAB vector; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "buildResult": "passed with -Werror",
+    "ctest": "ctest --test-dir build-gcc -R '^dwg_ac1024_acis700_sat_dxf_roundtrip$' --output-on-failure",
+    "ctestResult": "passed 1/1 in 0.59 seconds",
+    "coverage": "ASCII and Binary tests set the source wireframe flag, require refusal with the prior destination unchanged, clear the unrepresented flag, retry through the same exporter, then verify typed SAT-carrier readback and subsequent read-write-read preservation.",
+    "sourceSha256": "0c903868b8242c941f44399af62d945f471e96b6b98627a39f6dcb3816fc24c4",
+    "testSha256": "e1361723970b9a0954d8271d6bd0053622a4f1803a413c646914b70706e7a424",
+    "executableSha256": "48eb1c9195cdfa34afcc3f348bb03cfc71439e175230dd558e8a843ff04a6661"
+  },
+  "limitations": [
+    "Only the explicit true-bit output-loss case is guarded; the DWG wireframe and silhouette bodies remain opaque.",
+    "The guard does not establish whether every consumer can regenerate equivalent display data from ACIS.",
+    "This generated vector does not qualify physical producer behavior, 3D semantics, native CAD acceptance, or a broad support claim."
+  ]
+}

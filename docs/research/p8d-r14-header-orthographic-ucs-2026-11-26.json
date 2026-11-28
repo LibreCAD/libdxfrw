@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r14-header-orthographic-ucs-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "ac81ee04",
+  "implementationDigestSha256": "0a93f4a5061f928af3e5104eee5a0e7e8abf4b90594cdcebc642c0d805c6fabb",
+  "inputCount": 775,
+  "consumerCommit": "16132a8b009ed728b2a65a4b068c40ff660f5f6c",
+  "authority": [
+    {
+      "url": "https://filemonger.com/specs/dxf/wotsit.org/dxf_r14/header_section_al_u05_c.htm",
+      "scope": "Original R14 HEADER table lists ordinary UCS/PUCS names, origins and axes but does not list the eighteen orthographic fields."
+    },
+    {
+      "url": "https://www.codil.or.kr/filebank/original/RK/OTMCRK500947/OTMCRK500947.pdf",
+      "scope": "Secondary reproduction of the attributed R14-to-R2000 DXF change history lists the orthographic UCS/PUCS additions."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+      "scope": "Current Autodesk header variable names and group codes."
+    }
+  ],
+  "change": "For pre-R2000 output, omit unprovided orthographic UCS/PUCS defaults and refuse any explicit values before writing. Ordinary UCS/PUCS name, origin and axis fields remain available. R2000+ emission stays unchanged.",
+  "validation": {
+    "physical": "PASS: optimized header selector checks eighteen newer field names absent in R14 and present in R2000, and ordinary UCS/PUCS fields present in both. Generated R14 LINE and non-default UCS/PUCS origins survive ASCII/binary save/import/resave/reopen.",
+    "transaction": "PASS: 36 ASCII/binary full-adapter refusals for the eighteen explicit newer fields preserve destinations and retry successfully after correction, alongside earlier guarded field controls.",
+    "modern": "PASS: library R2000 ASCII/binary save/reimport preserves all eighteen non-default selected fields; ezdxf 1.4.5 independently reads all values without audit errors or repairs.",
+    "legacyPeer": "ezdxf reads both non-default R14 origins and the LINE after first and second ASCII/binary saves with zero audit repairs, but upgrades AC1014 to AC1015 in memory.",
+    "consumer": "PASS: system-codec LibreCAD linetype selector, 4941 assertions in 54 cases.",
+    "image": "PASS: imported-common and two-layer matrices.",
+    "referenceAudit": "The generated R14 header has 14 names absent from the original R14 table, compared with 32 before this slice; absence is a review lead, not automatic proof of invalidity.",
+    "scratchSha256": {
+      "r2000Ascii": "264f70ef00f17e26b4633fa945b3201a717f3c1e9dbfc2b853ee62dca6374679",
+      "r2000Binary": "bff2788b8963fed3744a4290f7fd884ecf0b2434f6643eb249bdafa6f17ad86b",
+      "r14AsciiFirst": "f1b59bb48a552c4c0e48b9bd1d66ff3abf584ba8dd339880317560c7210bbb81",
+      "r14AsciiSecond": "b586f3034975611d7a36ef0e6935e62886ca5fbb7f82edf7474f9e7030d43a4d",
+      "r14BinaryFirst": "1dd05b10a01e832172000fde12caeb0d8b3505eaf281dd9b23b53c97a1f0d731",
+      "r14BinarySecond": "d74ba4f89d34561f57168f1e4de8ffe001d55aa05840081b8e01013f6e7b4641"
+    },
+    "qualification": "PASS: clean-checkout digest, 1403-test inventory, required-test and workflow contracts."
+  },
+  "limits": [
+    "Explicit newer orthographic settings still refuse for legacy output; no approximate projection or lossless claim is made.",
+    "Native R14 application behavior, broader reference graphs and final platform qualification remain open.",
+    "All generated drawings and downloaded references remain scratch-only."
+  ]
+}

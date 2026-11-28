@@ -1,0 +1,32 @@
+{
+  "title": "RASTERVARIABLES DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated local RASTERVARIABLES direct-codec transaction control across legacy, detached-handle, and aliased stream layouts",
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "method": "DRW_RasterVariables::encodeDwg",
+    "behavior": "Stage the effective body and, when detached, the handle destination. Preserve AC1012 inline common handles and AC1018+ detached/aliased routing. Publish only after body fields and common handles succeed."
+  },
+  "control": {
+    "file": "tests/dimassoc_dwg_encoder_allocation_tests.cpp",
+    "profile": "Locally generated RASTERVARIABLES with parent, two reactors, extension dictionary, and valid scalar fields.",
+    "tested_route": "Public encodeDwg",
+    "cases": [
+      {"version": "AC1012", "mode": "inline common handles; separate handle argument ignored by version routing", "reached_allocation_offsets": 7},
+      {"version": "AC1018", "mode": "separate body and detached handle stream", "reached_allocation_offsets": 9},
+      {"version": "AC1021", "mode": "body-aliased handle stream", "reached_allocation_offsets": 7}
+    ],
+    "failure_assertions": "Every reached one-shot allocation failure leaves caller body, strings, handles, cursors, health, and handle-occurrence ledgers unchanged. The same RASTERVARIABLES object and buffers then retry to the clean encoding.",
+    "fixtures_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests -j2",
+    "focused_tests": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_encoder_allocation_retry|libdxfrw_dwg_object_vectors|libdxfrw_rastervariables_dwg_scalar_domain|libdxfrw_rastervariables_objects_allocation_retry)$' --output-on-failure",
+    "result": "The combined allocation, object-vector, RasterVariables scalar-domain, and RasterVariables OBJECTS allocation CTests passed 4/4. Generated controls swept 23 allocation offsets. git diff --check passed. The broader libdxfrw_dxf_fixtures test was also run and failed 827 assertions across unrelated DXF fixture checks; no baseline comparison was performed, so this result is recorded without attributing it to the encoder change."
+  },
+  "limits": [
+    "Generated local transaction evidence only; it does not qualify RasterVariables producer coverage or whole-document output.",
+    "The broader DXF fixture failure remains untriaged and is outside this DWG encoder slice.",
+    "Source/reference graph closure and broad DWG/DXF output qualification remain open."
+  ]
+}

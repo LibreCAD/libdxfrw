@@ -1,0 +1,1188 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "slice": "RPP-5fj",
+  "date": "2026-10-27",
+  "dateTimezone": "America/Toronto",
+  "state": "VERIFIED_SELECTED_ORIGINAL_TABLE_GEOMETRY_COUPLING",
+  "title": "Original TABLE geometry name and handle coupling",
+  "parentCommit": "349f261a9e743769b2b65174e95251a1608823eb",
+  "fileSha256": {
+    "dwg2dxf/dx_data.h": "3773a7c2b8e5bf9a053f8cbb9664205fd24da1f7b6cd61045a4ddf1734420af7",
+    "dwg2dxf/dx_dependency_audit.h": "1daf4fb343b9d0385d9b3b4c5cb503b682e639a6686fc8e204db324d5e92de65",
+    "dwg2dxf/dx_iface.h": "19944db56379b6c69270ef31d04f922cad65c451cf4351e11621fc6c87ca7e8b",
+    "tests/CMakeLists.txt": "fc46bac568c6ac8d507bb5172578c12cbef60bb5a3e2acd608a35924270902aa",
+    "tests/table_content_dxf_tests.cpp": "8230d6a641d4680c775ad43d45b45cc5c36c26f89b42959061569d6db13fc30c",
+    "tests/table_geometry_dependency_controls.h": "dae82c04af9c2f01f1eb6a9c06a4373496e49732d2fea0d1f78f9314ce4074bb"
+  },
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "role": "Official DXF TABLE group2 block name, group343 BLOCK_RECORD hard pointer and separate cell340/attribute331 roles. Owning wording alone is not treated as a join to enclosing330."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/entities/acad_table.py",
+      "role": "Pinned clean primary source distinguishes graphical BLOCK_RECORD343 from geometry name2; independent scalar inventories below join each sample to that record and distinguish owner330."
+    }
+  ],
+  "peerSourceScreen": {
+    "scope": "Pinned primary source and independent scalar inventory only; no native execution or support promotion. No drawing copied into repository.",
+    "inputs": [
+      {
+        "repository": "https://github.com/mozman/ezdxf",
+        "revision": "dd7f6cc34983fdbf0b2b910f2497e0720d06dd16",
+        "path": "src/ezdxf/entities/acad_table.py",
+        "sha256": "66209d150937008f0bc387c9caa5418c26af4e201750ab2ff9fbca4e4af49fff"
+      },
+      {
+        "repository": "https://github.com/mozman/ezdxf",
+        "revision": "dd7f6cc34983fdbf0b2b910f2497e0720d06dd16",
+        "path": "integration_tests/data/acad_table_with_blk_ref.dxf",
+        "sha256": "7c42eac2e0c21b386273294b7937845ddda3da58f85c30fe130db229570f8015",
+        "inventory": [
+          {
+            "self": "CF",
+            "owner330": "1F",
+            "geometry2": "*T2",
+            "geometry343": "D0",
+            "targetName": "*T2",
+            "nameEqualsTarget": true,
+            "ownerDiffers": true
+          }
+        ],
+        "acadVersion": "AC1032"
+      },
+      {
+        "repository": "https://github.com/mozman/ezdxf",
+        "revision": "dd7f6cc34983fdbf0b2b910f2497e0720d06dd16",
+        "path": "examples_dxf/acad_table_simple.dxf",
+        "sha256": "2fc8d0e9517b36dd13db95740b37bc2f534005f16abc222faab036c3407d9e8d",
+        "inventory": [
+          {
+            "self": "9C",
+            "owner330": "1F",
+            "geometry2": "*T1",
+            "geometry343": "9D",
+            "targetName": "*T1",
+            "nameEqualsTarget": true,
+            "ownerDiffers": true
+          }
+        ],
+        "acadVersion": "AC1027"
+      }
+    ]
+  },
+  "scope": "Fix reproduced optional original-dependency false qualification when TABLE AcDbBlockReference2 resolves to one original BLOCK_RECORD but AcDbTable343 resolves to another. Join selected original targets using frozen source context and preserve both physical fields, original target values and specific refusal reasons. This does not qualify graphical contents, full recursive/owner/live/emitted/native dependencies or a broader producer/version profile.",
+  "implementation": {
+    "audit": "dwg2dxf/dx_dependency_audit.h",
+    "originalPair": "TABLE parent only; linked ATTRIB/SEQEND and cell/application/XDATA lookalikes cannot supply the partner role. Name lookup uses existing original typed/raw producer-backed namespace census and conservative codec/name matching. Handle lookup uses the existing actual original target provider.",
+    "coupling": "Only two independently Matched, nonzero equal original target IDs match. Preserve each row role/code/group/target and record reciprocal coupled group/target metadata. Unequal resolved targets become CoupledTargetMismatch; a matched side with an absent/unqualified partner becomes CoupledTargetUnavailable. Preserve existing wrong-kind/missing/null/name refusals.",
+    "reports": [
+      "geometryPairs",
+      "geometryMatched",
+      "geometryMismatches",
+      "geometryUnavailable"
+    ],
+    "linearAndAllocationFree": "Scan only the current node rows after ordinary lookup. No join allocation or repeated whole-graph search; existing row-size accounting includes new private metadata. Query controls reach allocation-failure0 without allocating.",
+    "libraryParserWriterPublicModelFacadeCallbackChanged": false,
+    "nativeDwgParserOrByteLayoutChanged": false,
+    "writerOutputAdmissionChanged": false,
+    "generalAbsent343NativeSemanticsQualified": false,
+    "graphicalContentsQualified": false
+  },
+  "controls": {
+    "selector": "libdxfrw_table_geometry_dependencies",
+    "timeoutSeconds": 30,
+    "runtimeAuthoredDrawingsOnly": true,
+    "profiles": 72,
+    "revisions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "LF",
+      "CRLF",
+      "binary"
+    ],
+    "scopes": [
+      "ENTITIES",
+      "BLOCKS"
+    ],
+    "nameForms": [
+      "literal anonymous name",
+      "ASCII case alias",
+      "same Unicode spelling through DXF escape"
+    ],
+    "originalMarkers": 144,
+    "physicalPairAndTargetNameSpans": 216,
+    "liveNameAndAdvisoryIndependence": 72,
+    "refusals": 72,
+    "resolvedMismatchedPairs": 18,
+    "unavailablePairs": 42,
+    "earlierPrerequisiteRefusals": 12,
+    "refusalCases": [
+      "343 points to enclosing B0 while name selects B8",
+      "name selects Definition while343 selects B8",
+      "343 absent",
+      "343 null",
+      "343 missing handle",
+      "343 wrong target kind",
+      "geometry name missing",
+      "duplicate original block-name namespace",
+      "opaque application343 cannot replace absent physical table343",
+      "unqualified native non-ASCII collation alias",
+      "name selects model-space block while343 selects B8",
+      "duplicate physical343"
+    ],
+    "exactAndOneUnderRowByteWorkLimits": 36,
+    "contextCopyAliasTransplantOrTargetOwnerRefusals": 24,
+    "sourceAndTypedCallbackThrows": 12,
+    "correctedImports": 144,
+    "finalizationFaultSchedule": {
+      "routes": 6,
+      "offsetsPerRoute": 64,
+      "total": 384,
+      "exhaustive": false,
+      "correctedFinalizations": 384,
+      "reached": 384,
+      "unreached": 0
+    }
+  },
+  "development": {
+    "redProductionCommit": "349f261a",
+    "red": "Ordinary import succeeds but originalTargetsMatched=true for group2 -> B8 and group343 -> B0; owning red test fails as intended.",
+    "retainedFailures": [
+      "Initial -Werror misleading-indentation test compile failure; fixed statement layout.",
+      "Initial duplicate-name controls expected the coupled pass, but original-body prerequisites already return SourceNotReady with no pair; retain explicit earlier-refusal checks. Both duplicate-definition and unused-competitor recipes demonstrated the prerequisite refusal.",
+      "Initial callback exception test failed to catch the established propagated runtime_error and aborted; corrected the test to require caught exception, ImportFailed evidence and successful same-adapter retry."
+    ],
+    "owningFinalLog": "build/rpp5fj-evidence/owning-test6.log",
+    "owningFinalSeconds": 1.94,
+    "logHashes": {
+      "build/rpp5fj-evidence/owning-build.log": "9916f2273e68515d72c75d1097b00fa61b55aa82b44646ba0cbdf85f68a863b4",
+      "build/rpp5fj-evidence/owning-build2.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "build/rpp5fj-evidence/owning-build3.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "build/rpp5fj-evidence/owning-build4.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "build/rpp5fj-evidence/owning-build5.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "build/rpp5fj-evidence/owning-build6.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "build/rpp5fj-evidence/owning-build7.log": "100dbb3998b87c8436c88e5e91a70834326fe8e4fd78f9b2a16c5dc8fca6c31b",
+      "build/rpp5fj-evidence/owning-test.log": "4e3088cf3be98b19904f089a394cd5fbf6d77c776a2221b4e3e4d6694b1ce973",
+      "build/rpp5fj-evidence/owning-test2.log": "93baeded4a61ac9e6fb0e2e4b8ee918e80904e0f8f5e603f83104be458781a57",
+      "build/rpp5fj-evidence/owning-test3.log": "9138a416fa84e80b30f37143d9722a0675a71ae87a3337dd0c8af14f3272ef82",
+      "build/rpp5fj-evidence/owning-test4.log": "3867e5c90452b7a1de1f10f2a79bab067dd03a0e60adbfa630f842cfc8cc533d",
+      "build/rpp5fj-evidence/owning-test5.log": "737a344fc1170fdd6b6446861f65dff62469abd8c4f7986bc6f5ce55998f3e4f",
+      "build/rpp5fj-evidence/owning-test6.log": "d2af85f770bdc5e38c1015de4b59d9c7dd0978c24da9fc913100659e634e6a63",
+      "build/rpp5fj-evidence/red-build.log": "6590e45c525f4fc13ac5e60ddc95372e46a4953f05476ff2ebd1fe8e13331395",
+      "build/rpp5fj-evidence/red-test.log": "9379290ab64e131593fd7e36046067ea4f2e59e88d40bfeee983607440415bfe"
+    }
+  },
+  "gates": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "selectedOriginalTableGeometryPairCanMatch": true,
+    "fullObjectiveComplete": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxFreecad": "NOT_RUN",
+    "nativeWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN"
+  },
+  "next": [
+    "Complete remaining original producer and field/reference profiles, including material/visual-style/reactor/IMAGE/document/control/owner families, omitted dictionary flags and HEADER CEPSNID/CEPSNTYPE.",
+    "Complete recursive target dependencies, whole-document ownership and remaining TABLE/linked metadata coupling. Selected geometry2/343 identity does not qualify graphical contents, original full BLOCKS closure or native defaults/collation.",
+    "Complete live/edited/emitted dependencies, handle remapping and exact output/readback, rollback/retry/destination safety, TABLE Value/multiple-content/linked-data/format/units/border output.",
+    "Retain full B2b/B3/C, native bit/decimal/carrier/schema/owner, version/corpus, memory/performance, source-release and LibreCAD/LibreCAD_3/dwg2dxf/FreeCAD qualification requirements.",
+    "Keep fast owning edits, risk-based affected integration, frozen compiled sources, ordered normal/ASan runtimes, retained failures and per-slice plan updates/commits; no external drawing payloads/conversions/derivatives."
+  ],
+  "validation": {
+    "scope": "Affected integration cohort; no full suite, formal ABI/native applications or measured memory/performance qualification.",
+    "targets": [
+      "libdxfrw_table_content_dxf_tests",
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_field_retained_budget_tests",
+      "libdxfrw_table_geometry_dxf_tests",
+      "libdxfrw_3d_consumer_probe",
+      "dwg2dxf",
+      "lc3_compat_check",
+      "libdxfrw_dxf_fixture_tests",
+      "libdxfrw_hardening_tests",
+      "libdxfrw_symbol_output_tests",
+      "libdxfrw_gbk_codepage_tests"
+    ],
+    "builds": {
+      "normal": {
+        "start": "2026-10-27T05:14:31.661515+00:00",
+        "end": "2026-10-27T05:15:04.403530+00:00",
+        "seconds": 32.74161458299932,
+        "exitCode": 0,
+        "targets": [
+          "libdxfrw_table_content_dxf_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_field_retained_budget_tests",
+          "libdxfrw_table_geometry_dxf_tests",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check",
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_symbol_output_tests",
+          "libdxfrw_gbk_codepage_tests"
+        ]
+      },
+      "asan": {
+        "start": "2026-10-27T05:14:31.662708+00:00",
+        "end": "2026-10-27T05:18:10.378467+00:00",
+        "seconds": 218.71343129199886,
+        "exitCode": 0,
+        "targets": [
+          "libdxfrw_table_content_dxf_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_field_retained_budget_tests",
+          "libdxfrw_table_geometry_dxf_tests",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check",
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_symbol_output_tests",
+          "libdxfrw_gbk_codepage_tests"
+        ]
+      }
+    },
+    "registeredSelectedNamesAndOrder": [
+      "libdxfrw_symbol_name_wire_inspection",
+      "libdxfrw_symbol_unicode_keys",
+      "libdxfrw_xrecord_xdata_channels",
+      "libdxfrw_xrecord_normal_string_codes",
+      "libdxfrw_xrecord_legacy_double_codes",
+      "libdxfrw_xrecord_legacy_boolean_codes",
+      "libdxfrw_appid_name_source",
+      "libdxfrw_layer_name_source",
+      "libdxfrw_dxf_layer_text_owner_budget",
+      "libdxfrw_dxf_appdata_retained_owner_budget",
+      "libdxfrw_dxf_xdata_string_owner_budget",
+      "libdxfrw_dxf_ltype_retained_owner_budget",
+      "libdxfrw_dxf_xrecord_string_owner_budget",
+      "libdxfrw_datalink_text_owner_budget",
+      "libdxfrw_classic_vertex_xdata",
+      "libdxfrw_legacy_mtext_xdata_identity",
+      "libdxfrw_layer_dwg_cmc_roundtrip",
+      "libdxfrw_dictionary_with_default_writer",
+      "libdxfrw_field_graph_export_refusal",
+      "libdxfrw_table_callback_owner_order",
+      "libdxfrw_tablestyle_nested_raw_net",
+      "dwg2dxf_dictionary_default_raw_capture_limits",
+      "dwg2dxf_basic_table_typed_capture_limits",
+      "dwg2dxf_dictionary_default_typed_capture_limits",
+      "dwg2dxf_field_carrier_raw_capture_limits",
+      "dwg2dxf_table_style_typed_capture_limits",
+      "dwg2dxf_field_carrier_typed_capture_limits",
+      "dwg2dxf_datalink_typed_capture_limits",
+      "dwg2dxf_xrecord_typed_capture_limits",
+      "libdxfrw_dictionary_default_adapter_roundtrip",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_table_content_source_proof",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_table_block_source_bindings",
+      "libdxfrw_table_block_name_bindings",
+      "libdxfrw_entities_source_transport",
+      "libdxfrw_entities_delivery_transport",
+      "libdxfrw_entities_immutable_origins",
+      "libdxfrw_entities_compound_source",
+      "libdxfrw_entities_primary_source",
+      "libdxfrw_layout_source_proof",
+      "libdxfrw_identity_source_namespace",
+      "libdxfrw_structural_source_origins",
+      "libdxfrw_dictionary_source_origins",
+      "libdxfrw_original_layout_roles",
+      "libdxfrw_original_entities_roles",
+      "libdxfrw_original_block_roles",
+      "libdxfrw_original_attdef_roles",
+      "libdxfrw_table_block_source_transport",
+      "libdxfrw_table_original_inputs",
+      "libdxfrw_table_original_bodies",
+      "libdxfrw_table_original_profiles",
+      "libdxfrw_table_value_metadata_scopes",
+      "libdxfrw_table_export_reuse",
+      "libdxfrw_table_value_payload",
+      "libdxfrw_table_value_inventory_selftest",
+      "libdxfrw_table_value_original_profiles",
+      "libdxfrw_table_original_reference_targets",
+      "libdxfrw_resource_original_publications",
+      "libdxfrw_symbol_original_publications",
+      "libdxfrw_original_dependency_targets",
+      "libdxfrw_style_font_xdata_scopes",
+      "libdxfrw_plotstyle_original_sources",
+      "libdxfrw_dictionary_effective_ownership",
+      "libdxfrw_table_geometry_dependencies",
+      "libdxfrw_layout_graph_read_contract",
+      "libdxfrw_cellstylemap_source_profiles",
+      "libdxfrw_cellstylemap_source_proof",
+      "libdxfrw_tablestyle_source_proof",
+      "libdxfrw_symbol_source_proof",
+      "libdxfrw_complex_symbol_bindings",
+      "libdxfrw_auxiliary_source_proof",
+      "libdxfrw_spine_source_proof",
+      "libdxfrw_block_record_source_proof",
+      "libdxfrw_field_retained_owner_budget",
+      "dwg2dxf_field_dxf_multichunk_value",
+      "dwg2dxf_standard_dwg_appid_dependencies",
+      "dwg2dxf_standard_dwg_layer_dependencies",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe"
+    ],
+    "addedAffectedNames": [
+      "libdxfrw_table_geometry_dependencies"
+    ],
+    "prior82NamesAndOrderPreserved": true,
+    "identicalRegisteredNamesOrderLabelsAndTimeouts": true,
+    "exactExecutedNameSetsMatchSelection": true,
+    "normal": {
+      "start": "2026-10-27T05:18:18.759452+00:00",
+      "end": "2026-10-27T05:19:31.743278+00:00",
+      "seconds": 72.98296304199903,
+      "exitCode": 0,
+      "executed": [
+        {
+          "name": "libdxfrw_style_font_xdata_scopes",
+          "status": "Passed    8.20 sec"
+        },
+        {
+          "name": "libdxfrw_tablestyle_source_proof",
+          "status": "Passed   20.21 sec"
+        },
+        {
+          "name": "libdxfrw_table_export_reuse",
+          "status": "Passed    5.35 sec"
+        },
+        {
+          "name": "libdxfrw_cellstylemap_source_proof",
+          "status": "Passed   20.42 sec"
+        },
+        {
+          "name": "libdxfrw_symbol_original_publications",
+          "status": "Passed    6.13 sec"
+        },
+        {
+          "name": "libdxfrw_table_original_bodies",
+          "status": "Passed    6.56 sec"
+        },
+        {
+          "name": "libdxfrw_table_original_reference_targets",
+          "status": "Passed    4.78 sec"
+        },
+        {
+          "name": "libdxfrw_resource_original_publications",
+          "status": "Passed    3.07 sec"
+        },
+        {
+          "name": "libdxfrw_original_dependency_targets",
+          "status": "Passed    5.25 sec"
+        },
+        {
+          "name": "libdxfrw_table_value_original_profiles",
+          "status": "Passed    2.73 sec"
+        },
+        {
+          "name": "libdxfrw_auxiliary_source_proof",
+          "status": "Passed    8.92 sec"
+        },
+        {
+          "name": "libdxfrw_spine_source_proof",
+          "status": "Passed    6.22 sec"
+        },
+        {
+          "name": "libdxfrw_table_geometry_dependencies",
+          "status": "Passed    1.60 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_effective_ownership",
+          "status": "Passed    2.06 sec"
+        },
+        {
+          "name": "libdxfrw_plotstyle_original_sources",
+          "status": "Passed    2.98 sec"
+        },
+        {
+          "name": "libdxfrw_xrecord_legacy_double_codes",
+          "status": "Passed    1.53 sec"
+        },
+        {
+          "name": "libdxfrw_table_original_profiles",
+          "status": "Passed    1.50 sec"
+        },
+        {
+          "name": "libdxfrw_symbol_source_proof",
+          "status": "Passed    3.34 sec"
+        },
+        {
+          "name": "libdxfrw_table_value_metadata_scopes",
+          "status": "Passed    1.09 sec"
+        },
+        {
+          "name": "libdxfrw_original_attdef_roles",
+          "status": "Passed    1.61 sec"
+        },
+        {
+          "name": "libdxfrw_table_value_payload",
+          "status": "Passed    1.47 sec"
+        },
+        {
+          "name": "libdxfrw_block_record_source_proof",
+          "status": "Passed    4.22 sec"
+        },
+        {
+          "name": "libdxfrw_datalink_text_owner_budget",
+          "status": "Passed    0.97 sec"
+        },
+        {
+          "name": "libdxfrw_table_content_source_proof",
+          "status": "Passed    3.05 sec"
+        },
+        {
+          "name": "libdxfrw_xrecord_normal_string_codes",
+          "status": "Passed    1.02 sec"
+        },
+        {
+          "name": "libdxfrw_xrecord_legacy_boolean_codes",
+          "status": "Passed    0.94 sec"
+        },
+        {
+          "name": "libdxfrw_complex_symbol_bindings",
+          "status": "Passed    2.11 sec"
+        },
+        {
+          "name": "libdxfrw_table_block_name_bindings",
+          "status": "Passed    2.50 sec"
+        },
+        {
+          "name": "libdxfrw_table_original_inputs",
+          "status": "Passed    1.11 sec"
+        },
+        {
+          "name": "libdxfrw_table_content_bindings",
+          "status": "Passed    1.65 sec"
+        },
+        {
+          "name": "libdxfrw_table_compound_source",
+          "status": "Passed    1.47 sec"
+        },
+        {
+          "name": "libdxfrw_cellstylemap_source_profiles",
+          "status": "Passed    0.90 sec"
+        },
+        {
+          "name": "libdxfrw_xrecord_xdata_channels",
+          "status": "Passed    0.27 sec"
+        },
+        {
+          "name": "libdxfrw_table_block_source_transport",
+          "status": "Passed    0.54 sec"
+        },
+        {
+          "name": "dwg2dxf_field_carrier_typed_capture_limits",
+          "status": "Passed    0.34 sec"
+        },
+        {
+          "name": "libdxfrw_layer_dwg_cmc_roundtrip",
+          "status": "Passed    0.27 sec"
+        },
+        {
+          "name": "libdxfrw_structural_source_origins",
+          "status": "Passed    0.52 sec"
+        },
+        {
+          "name": "libdxfrw_table_block_source_bindings",
+          "status": "Passed    0.67 sec"
+        },
+        {
+          "name": "dwg2dxf_freecad_installed_cli_compat",
+          "status": "Passed    1.02 sec"
+        },
+        {
+          "name": "libdxfrw_table_geometry_dxf_projection",
+          "status": "Passed    0.75 sec"
+        },
+        {
+          "name": "libdxfrw_table_content_dxf_projection",
+          "status": "Passed    0.67 sec"
+        },
+        {
+          "name": "libdxfrw_entities_compound_source",
+          "status": "Passed    0.42 sec"
+        },
+        {
+          "name": "libdxfrw_layout_source_proof",
+          "status": "Passed    0.35 sec"
+        },
+        {
+          "name": "libdxfrw_original_block_roles",
+          "status": "Passed    0.31 sec"
+        },
+        {
+          "name": "libdxfrw_table_callback_owner_order",
+          "status": "Passed    0.29 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_xrecord_string_owner_budget",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_source_origins",
+          "status": "Passed    0.26 sec"
+        },
+        {
+          "name": "libdxfrw_entities_primary_source",
+          "status": "Passed    0.32 sec"
+        },
+        {
+          "name": "libdxfrw_entities_source_transport",
+          "status": "Passed    0.35 sec"
+        },
+        {
+          "name": "libdxfrw_layout_graph_read_contract",
+          "status": "Passed    0.24 sec"
+        },
+        {
+          "name": "libdxfrw_identity_source_namespace",
+          "status": "Passed    0.22 sec"
+        },
+        {
+          "name": "libdxfrw_symbol_name_wire_inspection",
+          "status": "Passed    0.30 sec"
+        },
+        {
+          "name": "libdxfrw_layer_name_source",
+          "status": "Passed    0.30 sec"
+        },
+        {
+          "name": "libdxfrw_entities_immutable_origins",
+          "status": "Passed    0.24 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_with_default_writer",
+          "status": "Passed    0.09 sec"
+        },
+        {
+          "name": "libdxfrw_original_entities_roles",
+          "status": "Passed    0.16 sec"
+        },
+        {
+          "name": "libdxfrw_tablestyle_nested_raw_net",
+          "status": "Passed    0.14 sec"
+        },
+        {
+          "name": "libdxfrw_symbol_unicode_keys",
+          "status": "Passed    0.05 sec"
+        },
+        {
+          "name": "libdxfrw_table_value_inventory_selftest",
+          "status": "Passed    0.03 sec"
+        },
+        {
+          "name": "libdxfrw_original_layout_roles",
+          "status": "Passed    0.13 sec"
+        },
+        {
+          "name": "dwg2dxf_basic_table_typed_capture_limits",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "dwg2dxf_xrecord_typed_capture_limits",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_classic_vertex_xdata",
+          "status": "Passed    0.11 sec"
+        },
+        {
+          "name": "dwg2dxf_standard_dwg_layer_dependencies",
+          "status": "Passed    0.03 sec"
+        },
+        {
+          "name": "libdxfrw_legacy_mtext_xdata_identity",
+          "status": "Passed    0.05 sec"
+        },
+        {
+          "name": "libdxfrw_entities_delivery_transport",
+          "status": "Passed    0.12 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_default_adapter_roundtrip",
+          "status": "Passed    0.06 sec"
+        },
+        {
+          "name": "dwg2dxf_standard_dwg_appid_dependencies",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_3d_consumer_probe",
+          "status": "Passed    0.07 sec"
+        },
+        {
+          "name": "libdxfrw_field_retained_owner_budget",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "dwg2dxf_dictionary_default_typed_capture_limits",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "dwg2dxf_table_style_typed_capture_limits",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "dwg2dxf_field_dxf_multichunk_value",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_field_graph_export_refusal",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "dwg2dxf_dictionary_default_raw_capture_limits",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "dwg2dxf_field_carrier_raw_capture_limits",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "dwg2dxf_datalink_typed_capture_limits",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_appid_name_source",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "dwg2dxf_freecad_cli_compat",
+          "status": "Passed    0.86 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_ltype_retained_owner_budget",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_layer_text_owner_budget",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_xdata_string_owner_budget",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_appdata_retained_owner_budget",
+          "status": "Passed    0.01 sec"
+        }
+      ],
+      "passed": 83,
+      "failed": 0,
+      "ctestSeconds": 72.97,
+      "counters": [
+        "CELLSTYLEMAP proof: 8 routes; 387 typed mutation kinds; 3096 mismatch/recovery pairs; 88 raw refusals/recoveries; 64 boundaries; 24 callback/recovery controls; exact roles and immutable cache",
+        "Effective dictionary ownership profiles=192; original markers=192; flag/reference spans=384; live-state independence=192; owner controls=48; owner refusals=36; cycle controls=24; cycle refusals=18; absent/opaque policy controls=18; unknown policies=6; exact/one-under limits=36; reached finalization failures=384; unreached offsets=0; corrected imports=126; corrected finalizations=384",
+        "Original dependency profiles=144; original markers=2664; physical reference spans=6648; resource-only profiles=12; field/name/owner/producer refusals=174; exact/one-under limits=36; immutable/cross-import refusals=42; advisory/live independence=144; reached finalization failures=384; unreached offsets=0; corrected imports=636",
+        "Plot source profiles=120; original markers=336; reference spans=1368; field/graph refusals=45; parser refusals=6; callback refusals=45; exact/one-under limits=24; immutable owner controls=21; live-state independence=120; reached allocation failures=85; proof failures=56; adjacent capture failures=29; unreached offsets=131; public lifetime controls=6; corrected imports=330",
+        "Resource original profiles=288; original markers=1152; callback/cursor/throw refusals=60; immutable/cross-import refusals=30; pending-state refusals=6; raw-only fallbacks=6; exact/one-under limits=36; reached finalization failures=48; unreached offsets=144; public lifetimes=10; corrected imports=330",
+        "STYLE scoped font profiles=216; copy/assignment controls=216; original profiles=168; withheld profiles=48; output/readbacks=432; edited font/readbacks=432; source opt-out controls=6; callback throw/retries=6; escaped APPID profiles=3; empty family profiles=3; valid INTEGER64 flags=2; legacy ASCII/Binary profiles=8; invalid output/retries=12; unsupported target/retries=2; reached writer allocation failures=41; unreached offsets=87; integer-node limits=2; physical integer spans=4032; corrected retries=148",
+        "Symbol original profiles=768; original markers=6144; callback/cursor/throw refusals=72; pre-staging pending refusals=24; field/owner refusals=48; default-off controls=6; exact/one-under limits=36; immutable/cross-import refusals=30; reached finalization failures=96; unreached offsets=96; public lifetimes=48; APPID flag domains=8; corrected imports=402; APPID physical output/readbacks=16; invalid output/corrected retries=4",
+        "TABLE Value inventory: 9 positives; 18 refusals; no payload/support promotion",
+        "TABLE geometry dependency profiles=72; original markers=144; physical pair/target spans=216; live-state independence=72; refusals=72; mismatched pairs=18; unavailable pairs=42; prerequisite refusals=12; exact/one-under limits=36; context refusals=24; callback throws=12; reached finalization failures=384; unreached offsets=0; corrected imports=144; corrected finalizations=384",
+        "TABLE independent Value profiles=432; physical spans=30816; owner/FIELD/value roles=48; mistyped=876; missing=870; duplicate=852; unknown=876; grammar refusal/corrections=180; immutable/cross-import refusals=42; exact/one-under proof limits=36; reached allocation faults=96; unreached offsets=0; corrected retries=246",
+        "TABLE original reference profiles=408; original target markers=816; missing/null/kind/producer/cell-block refusals=66; replay-only target refusals=12; duplicate target refusals=6; bounded mutual-reference controls=6; immutable/cross-import refusals=132; exact/one-under limits=36; reached allocation failures=222; unreached offsets=162; corrected imports=594",
+        "TABLE structured value profiles=216; canonical marker refusals/corrections=8; exact/one-under value byte limits=28; reached value allocation faults=14; unreached offsets=98; node limits=24; malformed envelope retries=76; associated empty block values=4; cell/LINE alignment retries=4; producer-shaped Value controls=264"
+      ]
+    },
+    "asan": {
+      "start": "2026-10-27T05:19:31.771419+00:00",
+      "end": "2026-10-27T05:20:18.141610+00:00",
+      "seconds": 46.36970516600195,
+      "exitCode": 0,
+      "executed": [
+        {
+          "name": "libdxfrw_tablestyle_source_proof",
+          "status": "Passed   13.53 sec"
+        },
+        {
+          "name": "libdxfrw_cellstylemap_source_proof",
+          "status": "Passed   13.65 sec"
+        },
+        {
+          "name": "libdxfrw_style_font_xdata_scopes",
+          "status": "Passed    4.33 sec"
+        },
+        {
+          "name": "libdxfrw_auxiliary_source_proof",
+          "status": "Passed    5.68 sec"
+        },
+        {
+          "name": "libdxfrw_table_original_bodies",
+          "status": "Passed    4.13 sec"
+        },
+        {
+          "name": "libdxfrw_spine_source_proof",
+          "status": "Passed    3.98 sec"
+        },
+        {
+          "name": "libdxfrw_symbol_original_publications",
+          "status": "Passed    3.64 sec"
+        },
+        {
+          "name": "libdxfrw_original_dependency_targets",
+          "status": "Passed    3.17 sec"
+        },
+        {
+          "name": "libdxfrw_table_original_reference_targets",
+          "status": "Passed    2.85 sec"
+        },
+        {
+          "name": "libdxfrw_table_export_reuse",
+          "status": "Passed    2.75 sec"
+        },
+        {
+          "name": "libdxfrw_resource_original_publications",
+          "status": "Passed    1.84 sec"
+        },
+        {
+          "name": "libdxfrw_block_record_source_proof",
+          "status": "Passed    2.68 sec"
+        },
+        {
+          "name": "libdxfrw_symbol_source_proof",
+          "status": "Passed    2.09 sec"
+        },
+        {
+          "name": "libdxfrw_table_content_source_proof",
+          "status": "Passed    1.97 sec"
+        },
+        {
+          "name": "libdxfrw_plotstyle_original_sources",
+          "status": "Passed    1.77 sec"
+        },
+        {
+          "name": "libdxfrw_table_block_name_bindings",
+          "status": "Passed    1.56 sec"
+        },
+        {
+          "name": "libdxfrw_complex_symbol_bindings",
+          "status": "Passed    1.35 sec"
+        },
+        {
+          "name": "libdxfrw_table_value_original_profiles",
+          "status": "Passed    1.62 sec"
+        },
+        {
+          "name": "libdxfrw_table_content_bindings",
+          "status": "Passed    1.09 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_effective_ownership",
+          "status": "Passed    1.16 sec"
+        },
+        {
+          "name": "libdxfrw_original_attdef_roles",
+          "status": "Passed    1.00 sec"
+        },
+        {
+          "name": "libdxfrw_table_compound_source",
+          "status": "Passed    0.96 sec"
+        },
+        {
+          "name": "libdxfrw_xrecord_legacy_double_codes",
+          "status": "Passed    0.91 sec"
+        },
+        {
+          "name": "libdxfrw_datalink_text_owner_budget",
+          "status": "Passed    0.63 sec"
+        },
+        {
+          "name": "libdxfrw_table_value_payload",
+          "status": "Passed    0.89 sec"
+        },
+        {
+          "name": "libdxfrw_table_original_profiles",
+          "status": "Passed    0.92 sec"
+        },
+        {
+          "name": "libdxfrw_table_original_inputs",
+          "status": "Passed    0.72 sec"
+        },
+        {
+          "name": "dwg2dxf_freecad_installed_cli_compat",
+          "status": "Passed    0.86 sec"
+        },
+        {
+          "name": "libdxfrw_xrecord_normal_string_codes",
+          "status": "Passed    0.56 sec"
+        },
+        {
+          "name": "libdxfrw_table_value_metadata_scopes",
+          "status": "Passed    0.66 sec"
+        },
+        {
+          "name": "libdxfrw_cellstylemap_source_profiles",
+          "status": "Passed    0.60 sec"
+        },
+        {
+          "name": "libdxfrw_xrecord_legacy_boolean_codes",
+          "status": "Passed    0.47 sec"
+        },
+        {
+          "name": "dwg2dxf_freecad_cli_compat",
+          "status": "Passed    0.57 sec"
+        },
+        {
+          "name": "libdxfrw_table_geometry_dxf_projection",
+          "status": "Passed    0.54 sec"
+        },
+        {
+          "name": "libdxfrw_table_content_dxf_projection",
+          "status": "Passed    0.42 sec"
+        },
+        {
+          "name": "libdxfrw_table_block_source_bindings",
+          "status": "Passed    0.43 sec"
+        },
+        {
+          "name": "libdxfrw_table_block_source_transport",
+          "status": "Passed    0.33 sec"
+        },
+        {
+          "name": "libdxfrw_table_callback_owner_order",
+          "status": "Passed    0.50 sec"
+        },
+        {
+          "name": "libdxfrw_structural_source_origins",
+          "status": "Passed    0.35 sec"
+        },
+        {
+          "name": "libdxfrw_entities_compound_source",
+          "status": "Passed    0.28 sec"
+        },
+        {
+          "name": "libdxfrw_layout_graph_read_contract",
+          "status": "Passed    0.15 sec"
+        },
+        {
+          "name": "libdxfrw_entities_source_transport",
+          "status": "Passed    0.24 sec"
+        },
+        {
+          "name": "libdxfrw_symbol_unicode_keys",
+          "status": "Passed    0.31 sec"
+        },
+        {
+          "name": "libdxfrw_appid_name_source",
+          "status": "Passed    0.27 sec"
+        },
+        {
+          "name": "libdxfrw_layout_source_proof",
+          "status": "Passed    0.22 sec"
+        },
+        {
+          "name": "libdxfrw_entities_primary_source",
+          "status": "Passed    0.22 sec"
+        },
+        {
+          "name": "libdxfrw_xrecord_xdata_channels",
+          "status": "Passed    0.18 sec"
+        },
+        {
+          "name": "libdxfrw_original_block_roles",
+          "status": "Passed    0.20 sec"
+        },
+        {
+          "name": "libdxfrw_entities_immutable_origins",
+          "status": "Passed    0.17 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_source_origins",
+          "status": "Passed    0.17 sec"
+        },
+        {
+          "name": "libdxfrw_identity_source_namespace",
+          "status": "Passed    0.14 sec"
+        },
+        {
+          "name": "libdxfrw_3d_consumer_probe",
+          "status": "Passed    0.08 sec"
+        },
+        {
+          "name": "libdxfrw_layer_dwg_cmc_roundtrip",
+          "status": "Passed    0.15 sec"
+        },
+        {
+          "name": "libdxfrw_original_entities_roles",
+          "status": "Passed    0.11 sec"
+        },
+        {
+          "name": "libdxfrw_entities_delivery_transport",
+          "status": "Passed    0.09 sec"
+        },
+        {
+          "name": "libdxfrw_tablestyle_nested_raw_net",
+          "status": "Passed    0.09 sec"
+        },
+        {
+          "name": "libdxfrw_field_retained_owner_budget",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_symbol_name_wire_inspection",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_original_layout_roles",
+          "status": "Passed    0.08 sec"
+        },
+        {
+          "name": "libdxfrw_classic_vertex_xdata",
+          "status": "Passed    0.07 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_xrecord_string_owner_budget",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_default_adapter_roundtrip",
+          "status": "Passed    0.04 sec"
+        },
+        {
+          "name": "libdxfrw_layer_name_source",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_dictionary_with_default_writer",
+          "status": "Passed    0.05 sec"
+        },
+        {
+          "name": "libdxfrw_table_value_inventory_selftest",
+          "status": "Passed    0.04 sec"
+        },
+        {
+          "name": "dwg2dxf_field_dxf_multichunk_value",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_legacy_mtext_xdata_identity",
+          "status": "Passed    0.04 sec"
+        },
+        {
+          "name": "libdxfrw_field_graph_export_refusal",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "dwg2dxf_datalink_typed_capture_limits",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "dwg2dxf_standard_dwg_layer_dependencies",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "dwg2dxf_field_carrier_raw_capture_limits",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "dwg2dxf_standard_dwg_appid_dependencies",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_ltype_retained_owner_budget",
+          "status": "Passed    0.02 sec"
+        },
+        {
+          "name": "dwg2dxf_xrecord_typed_capture_limits",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "dwg2dxf_table_style_typed_capture_limits",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "dwg2dxf_basic_table_typed_capture_limits",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "dwg2dxf_field_carrier_typed_capture_limits",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "dwg2dxf_dictionary_default_typed_capture_limits",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_xdata_string_owner_budget",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_appdata_retained_owner_budget",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "dwg2dxf_dictionary_default_raw_capture_limits",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "libdxfrw_dxf_layer_text_owner_budget",
+          "status": "Passed    0.01 sec"
+        },
+        {
+          "name": "libdxfrw_table_geometry_dependencies",
+          "status": "Passed    0.90 sec"
+        }
+      ],
+      "passed": 83,
+      "failed": 0,
+      "ctestSeconds": 46.36,
+      "counters": [
+        "CELLSTYLEMAP proof: 8 routes; 387 typed mutation kinds; 3096 mismatch/recovery pairs; 88 raw refusals/recoveries; 64 boundaries; 24 callback/recovery controls; exact roles and immutable cache",
+        "Effective dictionary ownership profiles=192; original markers=192; flag/reference spans=384; live-state independence=192; owner controls=48; owner refusals=36; cycle controls=24; cycle refusals=18; absent/opaque policy controls=18; unknown policies=6; exact/one-under limits=36; reached finalization failures=384; unreached offsets=0; corrected imports=126; corrected finalizations=384",
+        "Original dependency profiles=144; original markers=2664; physical reference spans=6648; resource-only profiles=12; field/name/owner/producer refusals=174; exact/one-under limits=36; immutable/cross-import refusals=42; advisory/live independence=144; reached finalization failures=384; unreached offsets=0; corrected imports=636",
+        "Plot source profiles=120; original markers=336; reference spans=1368; field/graph refusals=45; parser refusals=6; callback refusals=45; exact/one-under limits=24; immutable owner controls=21; live-state independence=120; reached allocation failures=85; proof failures=56; adjacent capture failures=29; unreached offsets=131; public lifetime controls=6; corrected imports=330",
+        "Resource original profiles=288; original markers=1152; callback/cursor/throw refusals=60; immutable/cross-import refusals=30; pending-state refusals=6; raw-only fallbacks=6; exact/one-under limits=36; reached finalization failures=48; unreached offsets=144; public lifetimes=10; corrected imports=330",
+        "STYLE scoped font profiles=216; copy/assignment controls=216; original profiles=168; withheld profiles=48; output/readbacks=432; edited font/readbacks=432; source opt-out controls=6; callback throw/retries=6; escaped APPID profiles=3; empty family profiles=3; valid INTEGER64 flags=2; legacy ASCII/Binary profiles=8; invalid output/retries=12; unsupported target/retries=2; reached writer allocation failures=41; unreached offsets=87; integer-node limits=2; physical integer spans=4032; corrected retries=148",
+        "Symbol original profiles=768; original markers=6144; callback/cursor/throw refusals=72; pre-staging pending refusals=24; field/owner refusals=48; default-off controls=6; exact/one-under limits=36; immutable/cross-import refusals=30; reached finalization failures=96; unreached offsets=96; public lifetimes=48; APPID flag domains=8; corrected imports=402; APPID physical output/readbacks=16; invalid output/corrected retries=4",
+        "TABLE Value inventory: 9 positives; 18 refusals; no payload/support promotion",
+        "TABLE geometry dependency profiles=72; original markers=144; physical pair/target spans=216; live-state independence=72; refusals=72; mismatched pairs=18; unavailable pairs=42; prerequisite refusals=12; exact/one-under limits=36; context refusals=24; callback throws=12; reached finalization failures=384; unreached offsets=0; corrected imports=144; corrected finalizations=384",
+        "TABLE independent Value profiles=432; physical spans=30816; owner/FIELD/value roles=48; mistyped=876; missing=870; duplicate=852; unknown=876; grammar refusal/corrections=180; immutable/cross-import refusals=42; exact/one-under proof limits=36; reached allocation faults=96; unreached offsets=0; corrected retries=246",
+        "TABLE original reference profiles=408; original target markers=816; missing/null/kind/producer/cell-block refusals=66; replay-only target refusals=12; duplicate target refusals=6; bounded mutual-reference controls=6; immutable/cross-import refusals=132; exact/one-under limits=36; reached allocation failures=222; unreached offsets=162; corrected imports=594",
+        "TABLE structured value profiles=216; canonical marker refusals/corrections=8; exact/one-under value byte limits=28; reached value allocation faults=14; unreached offsets=98; node limits=24; malformed envelope retries=76; associated empty block values=4; cell/LINE alignment retries=4; producer-shaped Value controls=264"
+      ]
+    },
+    "owningCounterLines": [
+      "CELLSTYLEMAP proof: 8 routes; 387 typed mutation kinds; 3096 mismatch/recovery pairs; 88 raw refusals/recoveries; 64 boundaries; 24 callback/recovery controls; exact roles and immutable cache",
+      "Effective dictionary ownership profiles=192; original markers=192; flag/reference spans=384; live-state independence=192; owner controls=48; owner refusals=36; cycle controls=24; cycle refusals=18; absent/opaque policy controls=18; unknown policies=6; exact/one-under limits=36; reached finalization failures=384; unreached offsets=0; corrected imports=126; corrected finalizations=384",
+      "Original dependency profiles=144; original markers=2664; physical reference spans=6648; resource-only profiles=12; field/name/owner/producer refusals=174; exact/one-under limits=36; immutable/cross-import refusals=42; advisory/live independence=144; reached finalization failures=384; unreached offsets=0; corrected imports=636",
+      "Plot source profiles=120; original markers=336; reference spans=1368; field/graph refusals=45; parser refusals=6; callback refusals=45; exact/one-under limits=24; immutable owner controls=21; live-state independence=120; reached allocation failures=85; proof failures=56; adjacent capture failures=29; unreached offsets=131; public lifetime controls=6; corrected imports=330",
+      "Resource original profiles=288; original markers=1152; callback/cursor/throw refusals=60; immutable/cross-import refusals=30; pending-state refusals=6; raw-only fallbacks=6; exact/one-under limits=36; reached finalization failures=48; unreached offsets=144; public lifetimes=10; corrected imports=330",
+      "STYLE scoped font profiles=216; copy/assignment controls=216; original profiles=168; withheld profiles=48; output/readbacks=432; edited font/readbacks=432; source opt-out controls=6; callback throw/retries=6; escaped APPID profiles=3; empty family profiles=3; valid INTEGER64 flags=2; legacy ASCII/Binary profiles=8; invalid output/retries=12; unsupported target/retries=2; reached writer allocation failures=41; unreached offsets=87; integer-node limits=2; physical integer spans=4032; corrected retries=148",
+      "Symbol original profiles=768; original markers=6144; callback/cursor/throw refusals=72; pre-staging pending refusals=24; field/owner refusals=48; default-off controls=6; exact/one-under limits=36; immutable/cross-import refusals=30; reached finalization failures=96; unreached offsets=96; public lifetimes=48; APPID flag domains=8; corrected imports=402; APPID physical output/readbacks=16; invalid output/corrected retries=4",
+      "TABLE Value inventory: 9 positives; 18 refusals; no payload/support promotion",
+      "TABLE geometry dependency profiles=72; original markers=144; physical pair/target spans=216; live-state independence=72; refusals=72; mismatched pairs=18; unavailable pairs=42; prerequisite refusals=12; exact/one-under limits=36; context refusals=24; callback throws=12; reached finalization failures=384; unreached offsets=0; corrected imports=144; corrected finalizations=384",
+      "TABLE independent Value profiles=432; physical spans=30816; owner/FIELD/value roles=48; mistyped=876; missing=870; duplicate=852; unknown=876; grammar refusal/corrections=180; immutable/cross-import refusals=42; exact/one-under proof limits=36; reached allocation faults=96; unreached offsets=0; corrected retries=246",
+      "TABLE original reference profiles=408; original target markers=816; missing/null/kind/producer/cell-block refusals=66; replay-only target refusals=12; duplicate target refusals=6; bounded mutual-reference controls=6; immutable/cross-import refusals=132; exact/one-under limits=36; reached allocation failures=222; unreached offsets=162; corrected imports=594",
+      "TABLE structured value profiles=216; canonical marker refusals/corrections=8; exact/one-under value byte limits=28; reached value allocation faults=14; unreached offsets=98; node limits=24; malformed envelope retries=76; associated empty block values=4; cell/LINE alignment retries=4; producer-shaped Value controls=264"
+    ],
+    "owningCountersMatchAcrossConfigurations": true,
+    "evidenceDirectory": "build/rpp5fj-evidence",
+    "sourceManifest": "build/rpp5fj-evidence/sources-before.sha256",
+    "sourceManifestFiles": 407,
+    "sourceManifestSha256": "765813674cf71fc3cf4ec3b0c16144d67165dfc5ffffa4f3fc44badef978ab40",
+    "sourceManifestUnchangedThroughBothRuntimes": true,
+    "buildsCompletedBeforeFinalRuntimes": true,
+    "normalRuntimeCompletedBeforeAsanRuntime": true,
+    "workers": 2,
+    "configurations": {
+      "normal": {
+        "path": "/Users/dli/dev/libdxfrw/build",
+        "cache": [
+          "CMAKE_BUILD_TYPE:STRING=",
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_CXX_FLAGS:STRING=",
+          "CMAKE_CXX_FLAGS_DEBUG:STRING=-g"
+        ],
+        "actualCompileCommands": [
+          "/usr/bin/clang++  -I/Users/dli/dev/libdxfrw/dwg2dxf -I/Users/dli/dev/libdxfrw/src -std=c++17 -Wall -Wextra -pedantic -Werror -MD -MT tests/CMakeFiles/libdxfrw_table_content_dxf_tests.dir/table_content_dxf_tests.cpp.o -MF tests/CMakeFiles/libdxfrw_table_content_dxf_tests.dir/table_content_dxf_tests.cpp.o.d -o tests/CMakeFiles/libdxfrw_table_content_dxf_tests.dir/table_content_dxf_tests.cpp.o -c /Users/dli/dev/libdxfrw/tests/table_content_dxf_tests.cpp",
+          "/usr/bin/clang++  -I/Users/dli/dev/libdxfrw/dwg2dxf -I/Users/dli/dev/libdxfrw/src -std=c++17 -Wall -Wextra -pedantic -Werror -MD -MT tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o -MF tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o.d -o tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o -c /Users/dli/dev/libdxfrw/dwg2dxf/dx_iface.cpp"
+        ],
+        "ninjaSha256": "b94decfde95387ba26d641e03985e59e0170fc024a2bfcb31150b1a8a5e9da00"
+      },
+      "asan": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build",
+        "cache": [
+          "CMAKE_BUILD_TYPE:STRING=Debug",
+          "CMAKE_CXX_COMPILER:STRING=/usr/bin/clang++",
+          "CMAKE_CXX_FLAGS:STRING=-O1 -fsanitize=address -fno-omit-frame-pointer",
+          "CMAKE_CXX_FLAGS_DEBUG:STRING=-g"
+        ],
+        "actualCompileCommands": [
+          "/usr/bin/clang++  -I/Users/dli/dev/libdxfrw/dwg2dxf -I/Users/dli/dev/libdxfrw/src -O1 -fsanitize=address -fno-omit-frame-pointer -g -std=c++17 -Wall -Wextra -pedantic -Werror -MD -MT tests/CMakeFiles/libdxfrw_table_content_dxf_tests.dir/table_content_dxf_tests.cpp.o -MF tests/CMakeFiles/libdxfrw_table_content_dxf_tests.dir/table_content_dxf_tests.cpp.o.d -o tests/CMakeFiles/libdxfrw_table_content_dxf_tests.dir/table_content_dxf_tests.cpp.o -c /Users/dli/dev/libdxfrw/tests/table_content_dxf_tests.cpp",
+          "/usr/bin/clang++  -I/Users/dli/dev/libdxfrw/dwg2dxf -I/Users/dli/dev/libdxfrw/src -O1 -fsanitize=address -fno-omit-frame-pointer -g -std=c++17 -Wall -Wextra -pedantic -Werror -MD -MT tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o -MF tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o.d -o tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o -c /Users/dli/dev/libdxfrw/dwg2dxf/dx_iface.cpp"
+        ],
+        "ninjaSha256": "593be48be2814a1bf45039b576578c80dccc0ef0b0bf5a60a7d6a350101ca884"
+      }
+    },
+    "asanEnvironment": "halt_on_error=1:detect_leaks=0",
+    "originalDebugO0AsanUnchanged": true,
+    "warningPolicy": "-Werror retained in actual normal/ASan compile commands",
+    "fullSuiteRun": false,
+    "formalAbiOrNativeApplicationQualification": false,
+    "controlledMemoryOrPerformanceComparison": false,
+    "packaging": {
+      "start": "2026-10-27T05:14:31.812133+00:00",
+      "end": "2026-10-27T05:14:46.361601+00:00",
+      "seconds": 14.549222417001147,
+      "steps": [
+        {
+          "step": "autoreconf",
+          "exitCode": 0
+        },
+        {
+          "step": "configure",
+          "exitCode": 0
+        },
+        {
+          "step": "dist",
+          "exitCode": 0
+        }
+      ],
+      "sourceDirectory": "/Users/dli/dev/libdxfrw/build/rpp5fj-evidence/autotools-source",
+      "archives": [
+        {
+          "name": "libdxfrw-2.0.0.tar.bz2",
+          "members": 270,
+          "headers": [
+            {
+              "path": "dwg2dxf/dx_dependency_audit.h",
+              "sha256": "1daf4fb343b9d0385d9b3b4c5cb503b682e639a6686fc8e204db324d5e92de65"
+            },
+            {
+              "path": "dwg2dxf/dx_plotstyle_source.h",
+              "sha256": "2a3327ed5130f84a72e8ae7a2c3eed64744a5afe3625073ac359cae26423f7ef"
+            },
+            {
+              "path": "src/intern/dxfstylefont.h",
+              "sha256": "8b9a21371c37a4c6012a95e82f624050e0767fdcbb93d454e3de4e6203de1b99"
+            }
+          ],
+          "archiveSha256": "a404588ebc5f7100d167e7bcc056a49c89eecaa38adcd322032aad18bc0e92c4"
+        },
+        {
+          "name": "libdxfrw-2.0.0.tar.gz",
+          "members": 270,
+          "headers": [
+            {
+              "path": "dwg2dxf/dx_dependency_audit.h",
+              "sha256": "1daf4fb343b9d0385d9b3b4c5cb503b682e639a6686fc8e204db324d5e92de65"
+            },
+            {
+              "path": "dwg2dxf/dx_plotstyle_source.h",
+              "sha256": "2a3327ed5130f84a72e8ae7a2c3eed64744a5afe3625073ac359cae26423f7ef"
+            },
+            {
+              "path": "src/intern/dxfstylefont.h",
+              "sha256": "8b9a21371c37a4c6012a95e82f624050e0767fdcbb93d454e3de4e6203de1b99"
+            }
+          ],
+          "archiveSha256": "6c1b87d94eb3e0a84842f8c9ad00518eeba3459004fd4c5a27679fa808795826"
+        }
+      ],
+      "fullAutotoolsBuildQualified": false
+    },
+    "packagingCompletedBeforeFinalRuntimes": true
+  }
+}

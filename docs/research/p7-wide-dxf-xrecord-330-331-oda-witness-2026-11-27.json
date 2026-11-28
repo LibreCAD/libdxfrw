@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-27",
+  "scope": "Generated AC1027 ASCII and binary XRECORD graphs with body-level group 330 or 331 referencing a selected XRECORD; ODA-qualified profile distinct from LibreDWG.",
+  "implementationDigestSha256": "73883917edd685e37514afa80b887f809a1072a3a1baf5a199870b34f6311cb9",
+  "converterSha256": "8df3de3760ce5e9e74a2d0753418da767c1add56a943f2d4d0455558a2b48b03",
+  "primaryReference": {
+    "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm",
+    "finding": "Groups 330\u2013339 are valid XRECORD soft-pointer IDs; 330/331 after AcDbXrecord must be distinguished from common ownership."
+  },
+  "change": "Extend selected 330\u2013349 source pointer closure to body groups 330/331, retaining source order, exact code, target identity, bounded count and staged output checks.",
+  "oda": {
+    "version": "ODA File Converter 27.1.0.0 macOS ARM64",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "procedure": "Convert both original generated DXF inputs and libdxfrw output to ACAD2013 DWG, then back to ACAD2013 DXF; ezdxf independently inspects root membership, both XRECORD owners, exact body group code and target.",
+    "outputRoundtripSha256": {
+      "330-ascii": "bc12cd739f0f47d951310b9fcea4896d18d8ca1be5ac698f97b883480afd37ce",
+      "330-binary": "0c8d68e4d91f91b73834d27cb712054bcf24b464d282a1a520771cb16858bd07",
+      "331-ascii": "3731d24551b3e5e56c6d2797f7b47db260f31551403c1e3ead4a0a2c868a2d57",
+      "331-binary": "49acd59e55f91671a2eb182f5dfee944341dceccd96a7e3cb79ce14626b38eac"
+    }
+  },
+  "libdxfrwOutputs": {
+    "330-ascii": "9ce6439e736d37c1bac4a923adef341a983dec76203882e853f03df9c3e695f0",
+    "330-binary": "bc24924b3633490ea82fad6d23c65cd57041b363463a4a0e4ee76ec8eed744f8",
+    "331-ascii": "f2e1b23ea7390681975f0607ce614bcd03a9e8dded5261839f2a3b795ad9b8a9",
+    "331-binary": "eb5167b9221d64d57009f41075c27b8fddc5c1007d3138eb3f5b8a56505e856b"
+  },
+  "ezdxf": "1.4.5 independently compared source and converter output for 28 mapped objects, 27 entries, 14 root entries, two layers, owners/reactors, payloads/references, materials and dictionary values; zero audit errors or fixes.",
+  "peerLimit": "LibreDWG 0.14 dxf2dwg/dwgread drops 330/331 XRECORD body references in the same generated cases, so no LibreDWG interoperability is claimed. The earlier soft-pointer receipt records the source-level investigation.",
+  "checks": [
+    "Both encodings and group 330/331 for selected cross-record targets, including handle collisions",
+    "Wrong owner, unselected or unrelated target, dangling target, unsupported group 351 and cross-version/encoding refusal preserve destination",
+    "Pointer code/order and late payload mutations refuse; restored state retries successfully",
+    "Focused whole-source, compact-material graph and AC1024 plot-style CTests pass",
+    "GCC 16 strict syntax check passes"
+  ],
+  "limits": [
+    "At most 16 selected 330\u2013349 pointers per XRECORD and eight selected chains, with selected dictionary or XRECORD targets",
+    "Strict same-version/same-encoding AC1027 bounded plot/material profile; ODA conversion evidence does not establish all native application semantics",
+    "No LibreDWG 0.14 compatibility or broad format support claim",
+    "No external DWG/DXF fixtures committed"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "schema": "ac1018-block-record-observational-replay-v1",
+  "date": "2026-10-28",
+  "codeCommit": "edf69bd8efc000e401b63615bb724257f733a943",
+  "supportClaimsPromoted": false,
+  "scope": "Test-local replay and comparison of captured original source/typed BLOCK_RECORD callbacks, not adapter-owned replay, source grammar, authority or output proof.",
+  "originalObservation": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "provenance": "Independent repository sample; native authoring not independently certified.",
+    "record": "ASCII AC1018 BLOCK_RECORD 6F2 [30381,30685), owner 1, name MyBlock, XDICTIONARY 360=6F3, 340=0, BLKREFS 331=704, XDATA APPIDs AcDbDynamicBlockGUID and ACAD, 20 fields.",
+    "baseline": "Prior normal adapter observed retained raw/model, rawTypedMatched=false, rawTypedMismatch=true, zero references and structural input absent; no replay or target closure is inferred from this observation.",
+    "probeSourceSha256": "e206ea40484aec525564345b5ed72b21f73a1462a74a40049eb0ddf1c7fd8e4c",
+    "probeBinarySha256": "7d7d49dbe347272cdfae1c406b0e0ff04102cff18b186340aa4ed7040b8f5fcb",
+    "stdoutSha256": "1270f78d8ec3a3933fabeffcdcbbd4ef4e4411617f7ae2316c76b9f9edd9930a",
+    "adapterObjectSha256": "6855fb035c20c9d3a27dee93dd6ee2b7dd08b54b174a3d5e6e2edbd39e7ceaa0",
+    "librarySha256": "9a7babaf49ef0f2c20392ffa6f7053303042482bd295f49147a9601d67c298a9",
+    "artifacts": "build/agent-attribute-profile/ac1018-block-record/"
+  },
+  "authoredControls": {
+    "result": "PASS",
+    "inputs": "Two locally authored AC1018 controls (ASCII and binary) with ASCII symbol/APPID names, XDICTIONARY, BLKREFS, explicit null layout, and ANSI_1252 non-ASCII XDATA.",
+    "counts": {
+      "observations": 2,
+      "optouts": 2,
+      "capturedReplays": 2,
+      "wrongCodepages": 2,
+      "rawMutations": 4
+    },
+    "method": "Observational source and typed callback with live reader structural view, active codec context, source cursor; test-local raw reconstruction and shared dxfBlockRecord decoder replay. Wrong page and altered raw XDICTIONARY/XDATA cannot reproduce selected decoded model.",
+    "comparatorScope": "Explicitly compares the fields used by blockRecordSourceEqual and its common comparison, including common/link flags, base point, xref handles and indices, insert data, preview, XDATA/application variants and no-native-link state; compares borrowed original decoder cursor separately. It is not a complete physical scalar/profile audit."
+  },
+  "bindings": {
+    "testControlSha256": "df1a9ff8a299a3323c4b32d60f3c035a27906e669ff02219705e3e22dabfc2b5",
+    "testDriverSha256": "1f1d37e4c72bd5fa3b698074f038c0cda617c5e3ba0bde41b93654613d9dc2c3",
+    "registrySha256": "13e02cc1eda0f7de18168915588fd94fa8bb2d06c0fb2c510bc8d9d506286ea6",
+    "normalBinarySha256": "da3d94321eab219fbb8e8afc3603a92a2d4f76d54bc11ee053ae02e659c2f349",
+    "normalAdapterObjectSha256": "7d60560ea1694d6ba62cde3b3ea6fe26d0ecb7ba2567fd5bc0b45360569e62dd",
+    "normalLibrarySha256": "b2b91d755e8d02d83629854730e00ba75eedb97216a9e61355ee11c3928a7c4a",
+    "note": "Initial normal 9/9 cohort ran before the selected-model comparator was strengthened; the final strengthened observation passed separately 1/1 with the recorded normal binary. The final ASan cohort ran 9/9 with strengthened source and simultaneous TABLE/MATERIAL work later committed as 67c7674a/2d17db67 before edf69bd8. Original real-source observation used the earlier adapter/library stated separately."
+  },
+  "validation": {
+    "selector": "libdxfrw_block_record_legacy_observation",
+    "normal": {
+      "result": "PASS 1/1",
+      "log": "build/Testing/Temporary/LastTest.log",
+      "sha256": "69297cc1fd547c0a2ffd7ff4341f8f78e9b29f7ad1d72eb977bf848831dedc46",
+      "scope": "Final strengthened selector 1/1; an earlier 9/9 cohort included an earlier comparator and is not claimed as an integrated final-source normal cohort."
+    },
+    "asan": {
+      "result": "PASS 9/9 focused cohort with strengthened source",
+      "selectors": [
+        "libdxfrw_attdef_source_profile",
+        "libdxfrw_attdef_legacy_adapter_capture",
+        "libdxfrw_block_legacy_capture",
+        "libdxfrw_block_record_legacy_observation",
+        "libdxfrw_block_source_proof",
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ],
+      "options": "halt_on_error=1:detect_leaks=0",
+      "attdefBinarySha256": "669873380114a87a2f1062c2ee75849c41f2b8af9fbd6be4a896a96a4c30d9fa",
+      "librarySha256": "91b882e9ef6b82e535b595ea3e9f227be00f50109ec4202a0b859042cf406fa7",
+      "log": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+      "logSha256": "cc1709853ee79461a0a429fd76228551e6a0debba0f298361cf4e809884e31f6"
+    }
+  },
+  "limitations": [
+    "The independent source was observed under a prior adapter build; only locally authored controls were replayed in this test.",
+    "BLOCK_RECORD source capture is already requested on the default legacy adapter, but the AC1018 production rawTyped proof remains gated; observational replay here adds no optional default budget burden.",
+    "Unknown field accounting, physical role grammar, null-versus-absent policy, source/typed origin authority, reference target closure, output and native semantics remain unqualified.",
+    "No drawing fixtures were committed."
+  ]
+}

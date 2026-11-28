@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-mechanical-alt-freecad-readback-2026-11-05",
+  "date": "2026-11-05",
+  "status": "FREECAD_CPP_IMPORTER_ACCEPTED_SELECTED_AC1024_OUTPUT",
+  "supportClaimEffect": "none",
+  "question": "Does FreeCAD's native C++ DXF importer open the current strict conversion of the existing AC1024 mechanical-alt drawing?",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "fixturePolicy": "Existing local corpus input; not added or changed."
+  },
+  "converter": {
+    "path": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "9b757361e17985fac4c3f4d0755b1163c9f6c3bf2c5a23d130fe0872e4c92c0d",
+    "argv": [
+      "/Users/dli/dev/libdxfrw/build-gcc/dwg2dxf/dwg2dxf",
+      "/private/tmp/libdxfrw-mechanical-alt-freecad-audit-clean-20261105/mechanical_example-imperial-alt.dwg",
+      "-o",
+      "/private/tmp/libdxfrw-mechanical-alt-freecad-audit-clean-20261105/temp/tmp_uq2nv1h/mechanical_example-imperial-alt.dxf"
+    ],
+    "exitCode": 0,
+    "outputSha256": "f75dbf3683385f7a7deee8874e267e15ef3b2c54d0057c083bf5c78e3903671a",
+    "outputBytes": 449945
+  },
+  "consumer": {
+    "application": "FreeCAD",
+    "version": "1.1.4",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "macOS 27.0.1 arm64",
+    "executable": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+    "executableSha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60",
+    "importer": "C++",
+    "importMode": 2,
+    "dwgConversionPreference": 0,
+    "resolvedConverter": "/Users/dli/dev/libdxfrw/build-gcc/dwg2dxf/dwg2dxf",
+    "isolatedConfiguration": true,
+    "exactConverterProcessCount": 1,
+    "importedTheConverterOutputPath": true
+  },
+  "observations": {
+    "dxfRecordCounts": {
+      "LINE": 59,
+      "ARC": 7,
+      "CIRCLE": 8,
+      "DIMENSION": 17,
+      "VIEWPORT": 2,
+      "ACDBASSOCVALUEDEPENDENCY": 30,
+      "MATERIAL": 3,
+      "LAYER": 6,
+      "DICTIONARY": 24,
+      "XRECORD": 8
+    },
+    "freecadEntityCounts": {
+      "ARC": 7,
+      "CIRCLE": 8,
+      "DIMENSION": 17,
+      "LINE": 59,
+      "VIEWPORT": 2,
+      "ENTITIES_IN_PAPERSPACE": 2,
+      "BLOCK": 1
+    },
+    "totalEntitiesRead": 96,
+    "objectsCreated": 75,
+    "objectTypes": {
+      "App::DocumentObjectGroup": 1,
+      "App::DocumentObjectGroupPython": 1,
+      "App::FeaturePython": 6,
+      "Part::Compound": 1,
+      "Part::Feature": 74
+    },
+    "unsupportedFeatures": {
+      "Dimension type '3'": 2,
+      "Entity type 'VIEWPORT'": 2
+    },
+    "settings": {
+      "Import hidden blocks": "No",
+      "Import layout objects": "No",
+      "Import points": "Yes",
+      "Import texts and dimensions": "No",
+      "Join geometry": "No",
+      "Manual scaling factor": "1.000000",
+      "Use colors from the DXF file": "Yes",
+      "Use layers": "Yes"
+    },
+    "converterDiagnostic": "LayerStates DWG output profile skipped: LAYER_CONTROL extension dictionary is outside its versioned LayerStates root profile"
+  },
+  "limits": [
+    "The FreeCAD run establishes open/import handoff for this one current AC1024 source/output profile only.",
+    "Text and dimension import and layout-object import were disabled; two aligned dimensions and two VIEWPORTs were explicitly reported unsupported.",
+    "No per-entity semantic comparison against the source DWG was performed in this run.",
+    "The LayerStates diagnostic identifies an output omission for this source profile; its root graph remains unqualified.",
+    "This does not close producer breadth, full document support, platform qualification, or any support claim."
+  ]
+}

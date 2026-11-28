@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p6-cli-wipeoutvariables-incomplete-graph-refusal-2026-11-13",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6-F CLI disposition matrix",
+  "source": {
+    "kind": "deterministic from-scratch AC1027 DWG generated in a temporary directory by the existing WIPEOUTVARIABLES writer test executable",
+    "profile": "One Named-Objects-Dictionary-owned WIPEOUTVARIABLES record; broader source-reference closure is intentionally insufficient for strict CLI output.",
+    "fixtureFilesAdded": 0
+  },
+  "cases": [
+    {
+      "route": "default strict CLI output",
+      "expected": "Conversion fails with the source-reference qualification diagnostic and preserves pre-existing destination bytes."
+    },
+    {
+      "route": "--allow-partial-dwg-read",
+      "expected": "Conversion still fails the independent source-reference gate and preserves pre-existing destination bytes."
+    }
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_wipeoutvariables_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_wipeoutvariables_incomplete_graph_refusal$' --output-on-failure: PASS 1/1 in 0.10 seconds",
+    "fixturePolicy": "Scratch-generated DWG and DXF are removed by the temporary-directory owner; no fixture committed."
+  },
+  "limitations": [
+    "This is strict CLI source-reference refusal evidence, not a successful same-revision conversion or retry proof.",
+    "The test does not attribute refusal to the target-version gate; that gate is covered separately at the adapter level.",
+    "No DWG/DXF semantic support claim changes."
+  ],
+  "supportClaimEffect": "none"
+}

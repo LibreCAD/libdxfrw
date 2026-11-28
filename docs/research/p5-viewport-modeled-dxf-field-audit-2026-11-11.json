@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p5-viewport-modeled-dxf-field-audit-2026-11-11",
+  "purpose": "Audit and correct stale broad TODO comments that incorrectly implied the modeled VIEWPORT DXF fields were unimplemented.",
+  "scope": {
+    "sourceFiles": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp"
+    ],
+    "implementationFinding": "DRW_Viewport::parseCode handles the modeled center/view/snap/grid, clipping, UCS, rendering, lighting, frozen-layer, background, shade-plot, visual-style, sun, and layer-override fields. dxfRW::writeViewport emits those modeled fields with reference remapping and validation.",
+    "unresolvedField": "VIEWPORT group 91 remains rejected pending an authenticated native ASCII/Binary witness resolving its conflict with generic DXF group typing. No group-91 parsing or output behavior changed.",
+    "change": "Removed the two stale 'complete in dxf' TODO comments and replaced the class comment with the actual group-91 evidence boundary. The plan now states the modeled-field coverage explicitly."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dxf_viewport_ambient_color_order_tests libdxfrw_dxf_viewport_status_domain_tests libdxfrw_dwg_object_vectors_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_viewport_reference_remapping|libdxfrw_dxf_viewport_ambient_color_order|libdxfrw_dxf_viewport_status_domain|libdxfrw_viewport_ambient_color_method)$' --output-on-failure",
+      "result": "PASS 4/4"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "limitations": [
+    "This is a code-readiness correction, not a behavior change or producer qualification.",
+    "Native VIEWPORT group-91 carrier/remapping and layer-override rendering remain open.",
+    "No drawing fixture was added."
+  ],
+  "claimEffect": "No support claim changes."
+}

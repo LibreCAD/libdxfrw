@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-circle-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "title": "CIRCLE DWG encoder allocation rollback and retry",
+  "scope": "Generated local transaction evidence for DRW_Circle::encodeDwg; no physical producer or output-support claim.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The encoder stages body, string and handle buffers, preserves caller aliases, and publishes only after successful writes. A scoped rollback guard restores the original oType on failure and retains oType=18 on success.",
+    "versions": ["AC1021", "AC1024"],
+    "profile": "Generated CIRCLE with nonzero center, radius, extrusion, thickness, common owner/reactor/extension handles and seeded caller buffers."
+  },
+  "allocationSweep": {
+    "mechanism": "One-shot global allocation failure countdown in the generated object-vector test",
+    "result": "15 reached allocation-failure offsets per version returned false without throwing, preserved seeded body/string/handle bytes, bit counts, handle occurrences and original oType, and succeeded on same-object retry with output equal to clean encoding and oType=18.",
+    "aliasControl": "Failure at the first reached allocation preserved the all-streams-aliased destination and original oType; same-object retry matched the clean aliased encoding."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --circle-dwg-encode-allocation-rollback",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_(mtext|text|line|circle)_dwg_encode_allocation_rollback$' --output-on-failure",
+    "result": "PASS: CIRCLE selector; combined focused CTest cohort passed (4/4); git diff --check passed."
+  },
+  "limitations": [
+    "Generated vectors establish local failure/retry behavior only; they do not qualify CIRCLE wire semantics or physical producer interoperability.",
+    "No native consumer rendering, complete-document output, or broad DWG support claim follows."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added."
+}

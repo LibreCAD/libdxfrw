@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-144 generated non-default current Paper layout fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The worktree was broadly dirty before this slice. This change touched the existing generated DWG roundtrip test and the plan; no existing edits were reverted or broadly staged.",
+    "changedFiles": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par144-nondefault-current-paper-layout-fast-slice-2026-10-21.json"
+    ]
+  },
+  "slice": {
+    "finding": "PAR-144",
+    "scope": "Generated AC1024 serialization/readback of a non-default current Paper layout association.",
+    "implementation": "The canonical *Paper_Space BLOCK_RECORD is associated with LOCAL_LAYOUT_DPI; Layout1 is associated with a distinct *Paper_Space7 record. The canonical active Paper owner carries generated LINE/TEXT/two-VIEWPORT sentinels, while the second inactive Paper layout remains a separate block owner. The test checks reciprocal layout/block-record links, viewport references, parsed entity space, exact handles, and writer-ledger membership.",
+    "evidenceBoundary": "This proves the local serialized selection relation and same-library structural roundtrip only. It does not prove native CTAB/current-tab state, independent-reader acceptance, or general multi-layout support."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$' --output-on-failure",
+        "result": "passed",
+        "testsPassed": 1,
+        "testsFailed": 0,
+        "elapsedSeconds": 0.32
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixtureAdded": false,
+    "downloadedDrawingAdded": false
+  },
+  "commit": {
+    "created": false,
+    "reason": "The test source and plan contain broad pre-existing uncommitted changes. Whole-file staging would include unrelated user work; no broad staging was performed."
+  },
+  "assessment": {
+    "productionCodeChanged": false,
+    "supportClaimsPromoted": 0,
+    "nextLocalAction": "Add generated atomic-refusal controls for duplicate/missing layout-dictionary graph edges, then directly inspect the AC1015 VIEWPORT frame boundary.",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

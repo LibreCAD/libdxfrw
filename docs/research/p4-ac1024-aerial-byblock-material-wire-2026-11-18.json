@@ -1,0 +1,144 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-byblock-material-wire-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SOURCE_WIRE_AND_PEER_BYTES_OBSERVED_SELECTED_OUTPUT_PENDING",
+  "supportClaimEffect": "none",
+  "source": {
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "format": "AC1024",
+    "libreDwgJsonSha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832",
+    "libreDwgTraceSha256": "9bead9945a7e9b78c541e73d9ab4c0fe461c8e3ba4105e95bcd3103fe7f9603c",
+    "odaDxfSha256": "911acff2824c5d75043a074381aea9d2274601ca62391b14786a224444f6c0eb",
+    "reference": "ODA DWG v5.4.1 \u00a7\u00a72.12, 2.13, 20.1, 20.4.44 and 20.4.104; the PDF does not contain a detailed MATERIAL body section. The MATERIAL body field sequence is reconciled with pinned LibreDWG."
+  },
+  "frames": {
+    "72": {
+      "family": "DICTIONARY",
+      "bytes": 272,
+      "sha256": "6a20e00498234966e6d6a44f9d7f5d83bf9b7f192e8e45b3bdd9c9ab5f029f54",
+      "body": [
+        0,
+        67
+      ],
+      "string": [
+        67,
+        1933
+      ],
+      "footer": [
+        1933,
+        1950
+      ],
+      "owner": "4.1.C",
+      "reactor": "4.1.C",
+      "items": "nine role-2 handles in complete source order including 2.1.97 for ByBlock",
+      "terminalBits": "11"
+    },
+    "97": {
+      "family": "MATERIAL",
+      "bytes": 96,
+      "sha256": "7d4a77a761e7e8066001455bafc6898ae9d719f29568102a9eea89b07120617d",
+      "commonPrefix": [
+        0,
+        39
+      ],
+      "materialBody": [
+        39,
+        555
+      ],
+      "string": [
+        555,
+        689
+      ],
+      "footer": [
+        689,
+        706
+      ],
+      "owner": "12.1.25 resolved to 72",
+      "reactor": "4.1.72",
+      "extension": "3.2.295",
+      "terminalBits": "111111",
+      "eedCount": 0
+    },
+    "295": {
+      "family": "DICTIONARY",
+      "bytes": 33,
+      "sha256": "fcb201025a3e6a4666b3d4cf2017ee5503234092aa41a94a972a227fbde07d47",
+      "body": [
+        0,
+        67
+      ],
+      "string": [
+        67,
+        205
+      ],
+      "footer": [
+        205,
+        222
+      ],
+      "owner": "4.1.97",
+      "item": "FBXASSET: 2.2.296",
+      "hardOwner": 1,
+      "terminalBits": "11"
+    },
+    "296": {
+      "family": "XRECORD",
+      "bytes": 24611,
+      "sha256": "d62851ef231a1655fcf154870e7a63821e2b2762f920ef9b1a292934210ca292",
+      "payloadBits": [
+        81,
+        196841
+      ],
+      "payloadBytes": 24595,
+      "cloningAndAbsentStringFooter": [
+        196841,
+        196852
+      ],
+      "owner": "8.0 resolved to 295",
+      "reactor": "4.2.295",
+      "terminalBits": "1111",
+      "orderedEntries": 193,
+      "binaryChunks": 189,
+      "binaryBytes": 23938,
+      "binaryConcatSha256": "1a3d2cc6e5906e8cf2be1822d0a0bf0a5259bd327eaa94111803468cc78e789c"
+    }
+  },
+  "independentComparison": {
+    "result": "All ordered 193 XRECORD codes and values including all 189 binary chunk boundaries and bytes agree with pinned LibreDWG and ODA 27.10 DXF. The ODA selected graph preserves the named key and common owners/reactors, and uses DXF group 360 for FBXASSET; source DWG item token is role 2 while dictionary hardOwner is 1. No native FBX interpretation was established.",
+    "typedModelCensus": "All nine material root entries and 53 extension XRECORD group-code sequences match the LibreDWG JSON. Both imported typed XRECORD 296 lists additionally match all 193 values and every byte of all 189 binary chunks against the pinned peer, using a header restored from commit 15cf4b2a and the matching saved adapter object."
+  },
+  "scratchEvidence": {
+    "path": "/private/tmp/p4-aerial-material-census",
+    "sha256": {
+      "byblock_trace.py": "7200ed9061b44f6d8fe0050d09d7944326a333034555fcf598e2e26ef1e3eb17",
+      "byblock_trace.log": "5af3bd6fe8cf3cb7fbf0b49b759c9ab7f8468877a6b09d5280209d44797811e6",
+      "byblock-spans.json": "f8467f0c0529e10a2e3c13c34e06ffb4444518ccba5fffe031236ff0a6c2f6f5",
+      "byblock_oda.py": "735a88e140cc66f415bea6c32cdd259e422cfb17c03f837b1a28bc5f0bba83cf",
+      "byblock_oda.log": "44c5fc4d16c2b6fd05984709536cd419b03600e6149ac144050392ac96ba87d8",
+      "census.cpp": "df44a6b39edea92071558443c9fbd1ae06fa3a9e7c222c38885d15cb4ec096ae",
+      "census.out": "d00313d6d65f1482df5215cf3247ad28cf8bb2a5d2063f5dbd3bd6647972e18e",
+      "compare_graph.py": "9c90eb21df1114a6c11e897b254d429166f9294811c5f3901ec890993b70221d",
+      "compare_graph.log": "b04b556d9c25e4c33f8481223749709c289b2185296f23bcf1d6fe576d33af74",
+      "xrecord.cpp": "8e313f69abb55ccccfd3f7cb052bdb7c02abf81b6792d10da89c7cda319ddcc6",
+      "xrecord-matched.out": "7d58a981a9165c226e77c501b5aceb38db8a04ebdeb8900fbce4441c6b13d6db",
+      "xrecord-matched.log": "066cdf21fdecec66a0cc75a0d209abb7de13991b2508d80138dfa8216e686f4b",
+      "compare_typed.py": "997518be609fd9d0e6c854fab81ac9db7f9d05ec3bd98fa07f09859aa28b6645",
+      "compare_typed.log": "987616c6e4ebb0701f663e765b4dae69bc84f308324e2de1fa93f81eb603b839",
+      "dx_iface.h": "cef8b6b536718e415879b86f1023633ea6db60aebc29aef40557c91b449d3255",
+      "adapter.o": "c54ce921df32268cb3ae57d95db553991b2cf1e57c35021e3bf970cc944df9ff",
+      "libdxfrw.a": "008861d3d378e9fe2a6e0fcf40175a69647848c300033fa469db11ac207f5654"
+    },
+    "privacy": "Raw captures and typed hex strings are scratch-only and may contain source text. No drawings, binary payloads, or captured paths are committed."
+  },
+  "nextImplementationReadiness": [
+    "Bind exact original import generation, class, immutable complete raw and typed source for the selected ByBlock material, root, extension dictionary, and XRECORD.",
+    "Implement source observer for the full 24,611-byte XRECORD, with a fixed bounds-checked maximum, exact payload entry and byte equality, roles/footer, and corruption/truncation/extension/refusal and restored retry controls. Existing generic LayerStates XRECORD observer caps raw frames at 4,096 bytes and cannot simply be reused.",
+    "Use existing standard XRECORD staged transport to validate each source binary value and output chunk, plus source dictionaries and MATERIAL against actual writer ledger and nonidentity handle mapping; compare selected ASCII and Binary with independent reader.",
+    "The original root contains nine materials; a selected ByBlock-only writer experiment is a projection and must not be described as strict whole-file closure. Qualify the other eight materials, EED APPID dependencies and descendants before complete-root admission."
+  ],
+  "limitations": [
+    "No production code or support gate was changed by this research.",
+    "No destination-preserving output transaction, failure/retry, or native MATERIAL/FBX semantics were proven.",
+    "A mismatched-header diagnostic attempt was discarded; the reported typed comparison used the matching saved header and object. Typed value comparison is not a same-import publication or callback-stage immutability proof."
+  ]
+}

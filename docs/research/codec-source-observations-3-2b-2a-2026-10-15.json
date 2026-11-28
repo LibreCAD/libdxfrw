@@ -1,0 +1,154 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "plan_slice": "Slice3.2b.2a",
+  "parent_commit": "a804daebcf745eeb2b0afc3557bbe1ca79121d9d",
+  "scope": "Bounded source-text observations for completed semantic DXF decode calls, with owned public facade snapshots. No new refusal, decoder mapping, output, CLI handoff, native or support policy. Parent Slice3.2 remains in progress.",
+  "source_sha256": {
+    "src/drw_base.h": "b49160096407e807c04f151b406dc17e3056f91c0d0de9e9f30055f08d4bf15c",
+    "src/intern/drw_textcodec.h": "80a1b53daac6eaa0e7f8a51fc83fb1506054121fdd48a810759894c5d9e18691",
+    "src/intern/drw_textcodec.cpp": "40083823672fd7b2212906e5d1b6134eac725424c41fbf58e6a41e7a85f238f8",
+    "src/intern/dxfreader.h": "474c8bd8c9903a39f100bfa1ab939d645580460d9d91657e60d26116ba13118b",
+    "src/intern/dxfreader.cpp": "2d90ab3b943d6a459314ffc4fdd20af419971882b248ec3b1843e57eaeac155f",
+    "src/drw_header.cpp": "8deb51d51d234f1b059a81cf776e9fbf9806c5a8353b86d50d7a80377e75dd07",
+    "src/libdxfrw.h": "3766f5ee5e1f1a976c4e554e32b39b58fe69120b340c8f5604a8cd28b5fbaf5e",
+    "src/libdxfrw.cpp": "9519c050b3439b9a1b248a13f7960588818b40725c0eca023c8cb3afabc2be08",
+    "tests/gbk_codepage_tests.cpp": "7ac839880770dba842e33715aa24e2e49703162103aed96114563ca0aca8ee1f"
+  },
+  "artifact_sha256": {
+    "build/libdxfrw.a": "f6124c88ab8be5df076dff9d527a6382112c3cf392867dce879366d3b41de112",
+    "build/libdxfrw_gbk_codepage_tests": "57627c7cd04ac032fac08f472b4c7e5168b8b57e81ff93b1ce2f5e9556030ca1",
+    "build/dwg2dxf/dwg2dxf": "49f0f7fd1f06faad401d102933fe05efcb6a9755878467ccd3a7f996c2b7ba9a",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests": "fcee02e9c92b8f1c784bf0affb7b1e1e693fd0fcdcd72c6a96000d915b1ba89a"
+  },
+  "implementation": {
+    "api": [
+      "DRW::DxfTextIssue / DRW_DxfTextIssue",
+      "DRW::DxfTextReadObservations / DRW_DxfTextReadObservations",
+      "dxfRW::getTextReadObservations() const noexcept"
+    ],
+    "issue_kinds": [
+      "UnspecifiedCodePage",
+      "CompatibilityCodePage",
+      "UnavailableCodePage",
+      "UnknownCodePage",
+      "ReappliedCodePage",
+      "InvalidUtf8",
+      "UndefinedByteSequence",
+      "ReplacedSource",
+      "DiscardedSource",
+      "MalformedEscape",
+      "UnrepresentedEscape",
+      "InvalidUnicodeOutput",
+      "MalformedUtf16"
+    ],
+    "storage": "Fixed-size trivially copyable public counters/masks/context; no strings, pointer views or per-event allocation. Per-converter events reset each decode; reader aggregation is monotonic across version/codepage changes.",
+    "counters": "Completed semantic decode calls, non-ASCII input calls, legacy-byte-converter calls (including ASCII), actual opt-in recovery calls, issue-bearing calls, and overlapping per-issue call counters. Saturating uint64 with explicit flag; not character/entity/unique-record coverage.",
+    "source": "Piggyback converter branches for zero-table deletion, unmatched DBCS replacement, malformed UTF8/scalars/UTF16 and unresolved escape-looking tokens. Independent input/decode events, not inference from result string length or '?' / U+FFFD.",
+    "selection": "Only non-ASCII bytes actually using a legacy decoder receive page-selection issues. Modern UTF8/inert metadata and actual recovery path do not use an ignored legacy mapping. Original category survives existing reapply policy; mismatched normalized/reapplied decoder gets separate issue.",
+    "context": "First observed issue: group code when known, one-based physical record and bytes consumed through its value/delimiter when physical. Binary end offset includes sentinel. End is not offending code-unit/start position. Assembled/deferred values do not fabricate record/end offsets; deferred order need not be physical source order.",
+    "exclusions": "$ACADVER/$DWGCODEPAGE declaration metadata, structural markers/controls, handles, binary payloads and raw carrier access are not semantic observations. Raw bytes and old decoding behavior remain unchanged.",
+    "lifecycle": "Live read getter sees active reader; normal completion and noexcept scope unwind copy fixed observations before reader disposal. Admitted file read clears even on early argument/open failure. readAscii(nullptr), rejected nesting and writes preserve last-read snapshot. Ordinary next read resets. Prefix observations survive later failure and callback exceptions, including file stream destruction.",
+    "utf8_shared_check": "Existing scalar/one-byte-invalid-consumption rules factored into an allocation-free helper, reused by encode decodeNum and typed-XDATA scalar preflight; no mapping or fallback output changes.",
+    "compatibility": "No new pure callbacks or external dependencies/private includes in installed API. Public facade/base layouts change; consumers rebuild. No binary ABI, concurrency, full-memory, full-parser safety or charset support certificate."
+  },
+  "tests": {
+    "literal_decoder_rows": 33,
+    "utf16_controls": 4,
+    "reader_role_cases": 16,
+    "saturation_controls": 1,
+    "facade_handoffs": 84,
+    "facade_axes": "14 literal source/page/expected-output rows x two metadata orders x memory ASCII/file ASCII/file binary.",
+    "lifecycle_context_controls": 15,
+    "covered": [
+      "zero-table deletion versus genuine empty string",
+      "inexact/unavailable/unknown/missing/reapplied metadata actually used",
+      "ASCII/CIF independent of unknown legacy page",
+      "modern UTF8 with inert legacy metadata",
+      "all five malformed UTF8 shapes",
+      "unmatched/truncated DBCS",
+      "supported and unavailable/malformed MIF, nested decoder events",
+      "invalid CIF/scalars and shortened escape-looking tokens",
+      "valid two-scalar HKSCS",
+      "valid '?' and U+FFFD do not fabricate replacement events",
+      "counter saturation without wrap",
+      "exact physical value end for role controls",
+      "deferred HEADER no invented position",
+      "copy/destruction/reuse",
+      "later primary record failure",
+      "write snapshot preservation",
+      "live callback/rejected nested read and write",
+      "memory/file callback exception unwind and corrected retry",
+      "early file argument/open failure reset",
+      "later canonical metadata cannot erase earlier loss",
+      "full16-advisory cap cannot erase source issues",
+      "actual recovery path"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_gbk_codepage_tests libdxfrw_dxf_fixture_tests libdxfrw_hardening_tests libdxfrw_diagnostic_tests dwg2dxf lc3_compat_check --parallel 2; exit0; later affected-test incremental build exit0.",
+    "strict": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -I. -DLIBDXFRW_DWG_FIXTURE_DIR=quoted-absolute-fixture-root -fsyntax-only src/intern/drw_textcodec.cpp src/intern/dxfreader.cpp src/drw_header.cpp src/libdxfrw.cpp tests/gbk_codepage_tests.cpp; exit0.",
+    "main_mode": {
+      "command": "build/libdxfrw_gbk_codepage_tests --text-read-observations",
+      "exit_code": 0,
+      "output": "Text decoder observations: literal rows=33, UTF16 controls=4\nText observation reader roles: cases=16, saturation controls=1\nText observation facade handoffs=84, lifecycle/context controls=15\n"
+    },
+    "ctest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_gbk_codepage|libdxfrw_dxf_fixtures|libdxfrw_hardening|libdxfrw_diagnostic|libdxfrw_public_header_hygiene)$' --output-on-failure --output-junit /private/tmp/libdxfrw-text-observations.2jPLpE/complete-ctest.xml",
+      "exit_code": 0,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "wall_seconds": 22.13,
+      "junit_sha256": "0cf6ed99a862089e31c587f97e1c7002edd0c7aaaaa109266a7cada177732806"
+    },
+    "sanitizer": {
+      "build_root": "/private/tmp/libdxfrw-hatch-asan.Nc6BqC",
+      "target": "libdxfrw_gbk_codepage_tests only",
+      "flags": "-fsanitize=address,undefined -fno-omit-frame-pointer -O1; Debug",
+      "environment": "ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1",
+      "mode": "--text-read-observations",
+      "exit_code": 0,
+      "output": "Text decoder observations: literal rows=33, UTF16 controls=4\nText observation reader roles: cases=16, saturation controls=1\nText observation facade handoffs=84, lifecycle/context controls=15\n",
+      "limits": "Focused new decoder/reader/lifecycle controls, not full-suite/leak/native qualification. Apple runtime leak detection disabled."
+    },
+    "consumer_scope": "lc3 compile and public header hygiene pass; actual X11 unavailable/not requested, no full native LibreCAD/LC3 runtime.",
+    "full_suite_run": false
+  },
+  "frozen_output_comparison": {
+    "baseline_receipt": "docs/research/broader-codec-policy-research-2026-10-15.json",
+    "recipe_cpp_sha256": "79cbba78c6000a043782933d1f97fe5eed7682211cb2a398aefdd12d8d92f901",
+    "oracle_script_sha256": "f439ce8bc28433ee8a7c1fe128504054a53cbe913292bfeea69c103be1fd55b5",
+    "probe_executable": "/private/tmp/libdxfrw-text-observations.2jPLpE/output-probe",
+    "probe_executable_sha256": "9a65382b531352ca0fde337da9d3ab36ef238c5e646f89ab152fa993ca09b26f",
+    "result": "/private/tmp/libdxfrw-text-observations.2jPLpE/output-comparison.json",
+    "result_sha256": "de01cb55cbe8cfb9332593cb9d9a1d59551f7e87b598ea94f8137050ebce5224",
+    "command": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc DIRECTORY/output-probe.cpp src/intern/drw_textcodec.cpp -o DIRECTORY/output-probe; python3 DIRECTORY/compare.py DIRECTORY/output-probe; compare_frozen.py verifies35 frozen vectors across both format-flag configurations and C/tr_TR.ISO8859-9.",
+    "cells": 140,
+    "changed_selection_decode_encode_redecode_cells": 0,
+    "named_anchor_matches": 48,
+    "named_anchor_mismatches": 92,
+    "byte_stable_but_wrong": 72,
+    "empty_decode_cells": 16,
+    "limits": "Same authored unit probe source, current codec compiled directly; not a DWG/DXF whole-file or native comparison. Old alias mismatches intentionally remain; observations are not mapping repairs."
+  },
+  "remaining": [
+    "Slice3.2b.2b owned converter DXF outcome before facade deletion",
+    "Slice3.2b.2c strict required-text admission/no-publication policy",
+    "Slice3.2b.2d target scalar/escape transport guard",
+    "Slice3.3 mapping repairs under explicit compatibility policy",
+    "Slice3.4 version-witnessed DWG numeric codepages"
+  ],
+  "non_claims": {
+    "findings": 122,
+    "top_level_subplans": 70,
+    "three_d_ledger": "149 items:128 committed/6 blocked/3 in progress/12 other/0 ready parents unchanged",
+    "external_j": "J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL and non-promoting",
+    "fixtures_added": false,
+    "new_registration": false,
+    "new_dependency": false,
+    "new_native_evidence": false,
+    "support_promotion": false,
+    "remote_writes": false
+  }
+}

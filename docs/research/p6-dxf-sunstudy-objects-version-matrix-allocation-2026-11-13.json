@@ -1,0 +1,70 @@
+{
+  "id": "p6-dxf-sunstudy-objects-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "scope": "Generated AC1024, AC1027, and AC1032 SUNSTUDY OBJECTS callback allocation failure, whole-output rollback, same-adapter retry, and typed graph readback at matching output revisions.",
+  "source": {
+    "kind": "deterministic local-from-scratch DXF source; generated during CTest and removed after each revision",
+    "author": "tools/audit_sunstudy_dxf_graph.py author --version <AC1024|AC1027|AC1032>",
+    "authorSha256": "4f001fa5acf2f6056dd3a6117db0d0954f3d64f6c37a776e9408f8ad73531cba",
+    "revisionSha256": {
+      "AC1024": "cbc4049f68e0582f38d270fbf5018e5d7b3ef9d5d3885dda5db2160f3e39b1f0",
+      "AC1027": "74c3f3af3a227fb27a47339bf8569fe8e5787cbcc3901ecf88b806221b18639d",
+      "AC1032": "1eaa1e149a8f4de09aedb0be593929b1163f58d611976406a320dead0d9a7839"
+    },
+    "repositoryFixtureAdded": false,
+    "implementationBaseRevision": "efb6415ec763db9a1b00102f06ce0616448127c7"
+  },
+  "implementation": {
+    "test": "tests/sunstudy_objects_allocation_tests.cpp",
+    "testSha256": "74181baf11a18f69687db33e2f096ec7cd7d8401f15e888ba53bd29cd6bcb00d",
+    "runner": "tests/run_sunstudy_objects_allocation_test.cmake",
+    "runnerSha256": "983d7198ceb0698b2560132b19e6582ec0b87b755aba96e47167fa484fa77ae0",
+    "cmakeSha256": "ecc992a038e6bd89742e83a7e87aedafd487f2f7e95bedfb34a53697f89a725b",
+    "normalBinarySha256": "13cd897444bd4f7eb0107d73a2d23704160e979c1b65f4e24355a8df9119b064"
+  },
+  "environment": {
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "build": "build-gcc",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_sunstudy_objects_allocation_tests -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_sunstudy_objects_allocation_retry$' --output-on-failure",
+      "ctest --test-dir build-gcc -R '^libdxfrw_sunstudy_objects_allocation_retry$' -V"
+    ]
+  },
+  "result": {
+    "status": "PASS",
+    "selector": "libdxfrw_sunstudy_objects_allocation_retry",
+    "durationSeconds": 0.62,
+    "versions": {
+      "AC1024": {
+        "asciiAllocationOffsets": 22,
+        "binaryAllocationOffsets": 20,
+        "destinationSentinelPreservedAtEveryOffset": true,
+        "sameAdapterRetryAtEveryOffset": true,
+        "typedGraphReadbackAtEveryRetry": true
+      },
+      "AC1027": {
+        "asciiAllocationOffsets": 22,
+        "binaryAllocationOffsets": 20,
+        "destinationSentinelPreservedAtEveryOffset": true,
+        "sameAdapterRetryAtEveryOffset": true,
+        "typedGraphReadbackAtEveryRetry": true
+      },
+      "AC1032": {
+        "asciiAllocationOffsets": 22,
+        "binaryAllocationOffsets": 20,
+        "destinationSentinelPreservedAtEveryOffset": true,
+        "sameAdapterRetryAtEveryOffset": true,
+        "typedGraphReadbackAtEveryRetry": true
+      }
+    },
+    "totalAllocationOffsets": 126,
+    "suite": "focused normal CTest selector only; no full suite or ASan rerun"
+  },
+  "limits": [
+    "Generated DXF writer transaction evidence only; it does not qualify physical DWG producer data or native SUNSTUDY behavior.",
+    "Covers the bounded SUNSTUDY OBJECTS graph and its callback allocations, not other OBJECTS builders or shared-instance concurrency.",
+    "Does not close P6-G's full public-writer inventory."
+  ],
+  "next": "Continue the P6-G writer-route inventory and select the next admitted transaction gap from current writer/version gates."
+}

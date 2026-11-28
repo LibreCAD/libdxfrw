@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACIS shared pointer-row validation cache fast slice",
+  "mode": "local implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Avoid rebuilding and rescanning resolved ACIS pointer rows during rooted body projection",
+    "Preserve per-use owner/type checks, graph-link order, and output accounting",
+    "Add a tight-budget generated shared-graph regression without external files"
+  ],
+  "changes": {
+    "files": [
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "implementation": "drw_extractAcisBodyWireframes now validates each immutable source node's Pointer-token to resolved refs correspondence once per node, admits the validation-cache entry through the existing extraction-item budget, and returns a lightweight view over DRW_AcisNode::refs. Per-owner checks and emitted graph links remain evaluated per use. This avoids repeated token scans and temporary pointer-vector copies on shared graphs.",
+    "test": "A generated two-body/shared-lump graph runs under maxOutputItems=50 and compares body/root counts, reachable-node order, and graph-link rows against the default-budget projection.",
+    "generatedDwgDxfFixturesAdded": 0,
+    "newCTestRegistrations": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "stagingAttempted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_graph_preservation_tests",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "passed; 1/1 tests"
+      },
+      {
+        "command": "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "limitations": "The change removes repeated pointer-row validation/copy work only; it is not a whole-process memory bound or ACIS semantic support promotion. The local tree contains broad pre-existing uncommitted goal work, so this slice is documented but not committed or staged."
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextLocalBoundary": "Continue the existing 7S.3/S3.7 bounded retention/accounting queue with one repeated or unaccounted owner at a time; run only its owning focused test and update the tracker after that slice."
+  }
+}

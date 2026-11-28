@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader ACIS comparator release/artifact split and semantic-evidence ceiling",
+  "mode": "Read-only review of primary project releases, documentation, and source/tests",
+  "scope": [
+    "Refresh exact open-source DWG/DXF and ACIS comparator release/artifact identities.",
+    "Separate document codec, payload parser, ACIS model validation, kernel conversion, and native-consumer evidence.",
+    "Update only the existing PAR-07/S8 comparator manifest and optional composed checkpoint."
+  ],
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Claims are from public project release/documentation/source pages. No exact artifact was acquired or executed, so this updates peer freshness and evidence eligibility rather than qualifying parser behavior or proving a local defect."
+  },
+  "sources": [
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases",
+        "https://github.com/hakanaktt/acadrust",
+        "https://docs.rs/crate/acadrust/latest",
+        "https://docs.rs/acadrust/latest/acadrust/entities/acis/index.html",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "observed": "GitHub lists v0.6.5 at short commit 289a616, released 2026-10-18, with ACIS/modeler changes and project-suite validation. docs.rs/crates.io latest still identifies v0.6.4. Visible ACIS round-trip tests check payload retention and same-codec behavior, not independent topology metrics or native acceptance.",
+      "evidenceCeiling": "v0.6.5 source-release claims are not transferable to the 0.6.4 published crate; a peer codec run is structural/differential evidence only unless separately backed by expected geometry and independent consumer results."
+    },
+    {
+      "project": "cq-acis / acis-core",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/releases",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://docs.rs/acis-core/latest/acis_core/"
+      ],
+      "observed": "The latest listed cq-acis release is v0.3.12 at short commit e05a8f4, released 2026-10-16. It documents selected SAT/SAB/ASM profiles and geometry subsets. acis-core latest docs identify 0.3.11 and explicitly limit reference-closure claims; the cq-acis conversion route uses CadQuery/OCCT.",
+      "evidenceCeiling": "One experimental parser/converter lineage; bounded profile and shared OCCT kernel lineage do not qualify arbitrary SAT/SAB, DWG AcDs ownership, native acceptance, or independent kernel correctness."
+    },
+    {
+      "project": "Open CASCADE",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT/wiki",
+        "https://github.com/Open-Cascade-SAS/OCCT-Samples"
+      ],
+      "observed": "Current project materials put STEP/IGES and general open data-exchange formats in OCCT core, while ACIS SAT and DXF are listed as Advanced Data Exchange Components/commercial extensions.",
+      "evidenceCeiling": "Stock OCCT or FreeCAD cannot be assumed to include an open-source ACIS reader. A commercial component requires exact artifact, license, and test-use preflight."
+    },
+    {
+      "project": "obj2cad",
+      "urls": [
+        "https://github.com/cbassuarez/obj2cad"
+      ],
+      "observed": "The repository describes a pre-release SAT/SAB author, a DXF R2018 writer, and a DWG route using patched ACadRust. Its stated ezdxf/ACadRust readback is not itself a B-rep semantic oracle.",
+      "evidenceCeiling": "Watchlist for scratch-only authoring; not an independent DWG writer, general ACIS reader, or native acceptance result."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwner": "PAR-07/S8",
+    "planEffect": "Require exact release/package/source/dependency binding and report codec, carrier parser, AcDs join, kernel, and native consumer as distinct evidence stages. Use ACadRust only at an exact pinned route; use cq-acis only for its admitted payload profile with full loss/topology accounting and analytic expected values. Keep obj2cad optional as a scratch author, not as an oracle.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planSha256": "370980b8522ecbdb763930aa8b749cd9473a2f51e0fcf775269c1e1807db0358"
+}

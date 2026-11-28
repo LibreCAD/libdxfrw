@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-hatch-loss-r12-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "73e3e0b7",
+  "finding": "An empty HATCH was silently omitted from DXF and DWG; R12 also silently omitted solid hatches and generated an empty block and INSERT for an empty patterned hatch.",
+  "change": "Report omitted DXF HATCH records; refuse incomplete DWG output before publication. For R12 generate a patterned fallback only when it contains a live atomic hatch pattern piece; otherwise report the omission.",
+  "validation": {
+    "redBefore": "The empty HATCH and empty R12 patterned controls failed before their fixes.",
+    "focused": "Bundled: 60 assertions in 3 cases; standalone: 63 assertions in 3 cases. Tests cover omission counts, nonempty R12 fallback, boundary and unrelated reactors, destination preservation, same-filter retry and DWG reopen/readback.",
+    "independent": "ezdxf 1.4.5 read the selected scratch DXF: two LINEs, correct retained reactor, zero audit errors or fixes.",
+    "peerOutputSha256": "0ffb9ce8d37a5edc1c254b91694ebdb479a02ca51ccd26cb3e8873d43af232b7",
+    "qualification": "macOS ARM64 headless only; no external producer, native GUI, broader hatch association, nested pattern or platform qualification. No drawing fixture committed."
+  },
+  "additionalFinding": "A separate imported-document R12 standalone export failed in the LTYPE table, before HATCH output; it is not treated as a passing HATCH test or a proven HATCH defect."
+}

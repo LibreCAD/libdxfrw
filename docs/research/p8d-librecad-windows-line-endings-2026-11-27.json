@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-windows-line-endings-2026-11-27",
+  "supportClaimEffect": "none",
+  "scope": "LibreCAD PR #3289 test control portability; not a Windows qualification result.",
+  "failure": {
+    "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/46053097977/job/140689016967",
+    "platform": "windows-11-arm",
+    "consumerHead": "a5c8b3e5",
+    "summary": "16/17 CTests passed; librecad_dxf_fast_tests had three failing cases and four failing assertions. Binary sentinel comparisons saw text-mode CRLF translation and a fixture token replacement assumed LF checkout."
+  },
+  "fix": {
+    "consumerCommit": "bc2a523c",
+    "description": "Write supplied test text bytes in binary mode; normalize CRLF record boundaries before neutral fixture substitutions while preserving isolated carriage returns."
+  },
+  "verification": [
+    "Focused bundled-codec fast-test target rebuilt on macOS ARM64.",
+    "Three affected cases passed with 111 assertions, including CRLF and isolated-carriage-return control, failure/retry and destination checks.",
+    "The hosted Windows ARM64 and x64 fast lanes passed on consumer head 3c52f0ba."
+  ],
+  "limits": [
+    "No format, hardware or native consumer support claim follows."
+  ],
+  "linuxFastRerun": {
+    "consumerHead": "3c52f0ba74175d6783403c5fedc9c016f2b5c3ba",
+    "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/46064052931/job/140725106368",
+    "result": "Bounded DWG/DXF fast lane passed; Windows ARM64 and x64 also passed."
+  },
+  "windowsArm64FastRerun": {
+    "consumerHead": "3c52f0ba74175d6783403c5fedc9c016f2b5c3ba",
+    "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/46064052931/job/140725106820",
+    "result": "success"
+  },
+  "windowsX64FastRerun": {
+    "consumerHead": "3c52f0ba74175d6783403c5fedc9c016f2b5c3ba",
+    "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/46064052931/job/140725106993",
+    "result": "success"
+  }
+}

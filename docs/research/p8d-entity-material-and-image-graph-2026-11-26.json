@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "librecadPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "90694451877ec4554e79596dff217fa3c63831dc",
+  "libdxfrwPrerequisite": "bca80f1ea",
+  "problem": "Entity-only typed MATERIAL references were excluded from the consumer staged graph audit; a late material edit was published over a sentinel destination. The existing bounded multi-IMAGE profile also refused a material dictionary root.",
+  "change": "Snapshot live non-default entity MATERIAL references and source identities, require a complete typed graph, inspect their emitted BLOCKS and ENTITIES group-347 references, and recheck before publication. Compose the entity and OBJECTS inspectors with the IMAGE checks. Admit the material dictionary in the bounded IMAGE profile only when its separate graph audit is active. Track implicit layers and check the TABLES body even without source-handle layers.",
+  "verification": [
+    "Focused system-codec material and image tests passed: 1895 assertions in 13 cases. Generated AC1021 ASCII controls cover model and block LINE references, handle collisions/remapping, missing targets, missing source identity, late entity/material/layer changes, destination preservation and retry.",
+    "The bounded IMAGE tests cover five shapes with and without a typed MATERIAL/LINE graph; a late material mutation in each mixed graph refuses atomically and corrected retry succeeds.",
+    "Bundled-codec filter compile check passed.",
+    "ezdxf 1.4.5 independently resolved the LINE material, each IMAGE definition and reactor, with zero audit errors or fixes in six output files.",
+    "Shared inspector and empty-layer controls passed focused CTests normally and under AddressSanitizer. A separate consumer ASan rebuild was stopped because it required a full rebuild; no consumer-ASan result is claimed."
+  ],
+  "readbackSha256": {
+    "block_line": "53a4ec897d645a9ab8f24c6bb2d4e4dda33535149ee456e9e3d975fa6fb03a2f",
+    "mixed_shape0": "4f12d8fc50779c9a195c06e39e29c9886fca9ee2db8c36b4a45637692e123a42",
+    "mixed_shape1": "a800dd9856b2f8d7412df5eeb38e71c273b76ede918c2db5bbcd7c98708ed04f",
+    "mixed_shape2": "de89391d335bd70c37d198d19b60140257ebcdeeecf8f0651711c23f04da2d79",
+    "mixed_shape3": "6be9a9f3922a60d94f4b8dc77651119333ebe88df712a4f6f0a6924b96536970",
+    "mixed_shape4": "8955fb1a0c78494f6a26ce290f484d757f6f32dbb9ffd1072c0942eb5cd2a5a9"
+  },
+  "limits": [
+    "Generated AC1021 ASCII LINE/typed-MATERIAL cases and the prior bounded IMAGE shapes only; this does not qualify sparse raw MATERIAL replay or arbitrary entities, versions, output encodings or platforms.",
+    "Entities with explicit materials but no stable source handle refuse this audited path; copy/new-entity support requires a distinct identity strategy.",
+    "No general format or platform support claim is promoted."
+  ]
+}

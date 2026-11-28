@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "title": "AcDs schema property-type range negative controls",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "slice": {
+    "owner": "Existing DataStorage default-schema generated regression in tests/graph_preservation_tests.cpp",
+    "purpose": "Lock the existing schema property-type bounds check against the invalid array-index shape identified during peer-source research.",
+    "changes": [
+      "Record generated schema property-type field offsets while constructing the existing valid in-memory profile.",
+      "Keep property type 15 as a legal upper-bound control.",
+      "Mutate that field to 16 and UINT32_MAX in separate generated section copies.",
+      "Assert the existing invalid-type diagnostic at the field offset, structurally-invalid/non-replayable disposition, and preservation of later bounded schema 4 parsing."
+    ],
+    "productionParserChanged": false,
+    "persistentDwgdxfFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS",
+        "testsPassed": 1,
+        "testsFailed": 0,
+        "elapsedSeconds": 0.92
+      },
+      {
+        "command": "git diff --check -- tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/acds-schema-property-type-range-negative-controls-fast-slice-2026-10-19.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "recommendationImplemented": true,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "worktreeCommitState": "Uncommitted; pre-existing edits in the shared test and source files were preserved and no changes were staged."
+  }
+}

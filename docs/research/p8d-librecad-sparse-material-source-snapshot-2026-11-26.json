@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-source-snapshot-2026-11-26",
+  "supportClaimEffect": "none",
+  "consumerCommit": "368c6f17117923847247fe9dd03a724e8d989818",
+  "libraryCommit": "4e41aaa5ce0fbc04e26b495bd1ae920963dd3493",
+  "implementationDigestSha256": "1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be",
+  "change": "For the explicitly opted-in raw-only MATERIAL path, retain immutable source copies only for small files and bounded records, with at most three total materials. Reject ambiguous identity, unknown version, excessive group counts, inconsistent ASCII raw-value cardinality, or snapshot allocation failure. The existing consumer export refusal remains unchanged.",
+  "limitsApplied": {
+    "fileBytes": 262144,
+    "recordGroups": 64,
+    "totalMaterialRecords": 3,
+    "recordRetainedPayloadBytes": 65536
+  },
+  "validation": {
+    "system": "PASS: focused system-codec MATERIAL selector, 427 assertions in 6 cases; checks source immutability, preserved ASCII spelling, duplicate source/handle conflicts, record and file limits, and destination-preserving refusal.",
+    "consumerCompatibility": "PASS: system-codec linetype selector 4967 assertions in 56 cases; rebuilt bundled-codec linetype selector 1282 assertions in 52 cases.",
+    "parserSmoke": "PASS: an independent small harness connected the current libdxfrw opt-in reader to the same metadata API and captured three 61-group raw MATERIALs from the locally generated ASCII source and one from a separately locally generated binary source. This does not exercise the real LibreCAD filter for binary input.",
+    "asan": "PASS: focused snapshot copy/conflict/clear smoke with its header code instrumented by AddressSanitizer; the linked library archive was not instrumented.",
+    "scratchSha256": {
+      "asciiSource": "e32176333101a243ac5968a8e551096d1e9d872ad8f348f82b0f0bba72f10acc",
+      "binarySource": "bdc39db30469824098f0a957dcd12679856e0c5fbc1b3b1f888f275036ee1c36"
+    }
+  },
+  "limits": [
+    "The production filter does not opt in and all marked raw-only material export remains refused.",
+    "Compare live payloads and typed fields with the retained snapshot and validate the complete root/material dictionary, layer and current-material references, output and retry before admission.",
+    "Native behavior, broader sources, actual LibreCAD binary capture and platform qualification remain open.",
+    "Generated drawings remain scratch-only."
+  ]
+}

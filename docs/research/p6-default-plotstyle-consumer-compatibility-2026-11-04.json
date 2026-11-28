@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-default-plotstyle-consumer-compatibility-2026-11-04",
+  "commit_reviewed": "5a2ba92eae562e07321199540d9ffd910000bbc5",
+  "host": "macOS ARM64",
+  "consumer_contract": {
+    "application": "FreeCAD 1.1.4, CFBundleVersion in /Applications/FreeCAD.app/Contents/Info.plist",
+    "script": "/Applications/FreeCAD.app/Contents/Resources/Mod/Draft/importDWG.py",
+    "script_sha256": "08b7b22354cfce638f9730b3c9c9d1e51d899254c56ff03282882ccf80da2043",
+    "observed_invocation": "subprocess.Popen([libredwg, dwgfilename, '-o', result]); checks resulting file presence",
+    "test_scope": "Harness uses that argument order with local input/output paths, including spaces and non-ASCII paths, and checks successful source-version retention, strict refusals, existing-output atomicity and installed CLI loader behavior."
+  },
+  "build": {
+    "targets": ["lc3_compat_check", "libdxfrw_dwg_default_plotstyle_optin_tests", "libdxfrw_dwg_local_roundtrip", "dwg2dxf"],
+    "result": "PASS",
+    "consumer_guard_scope": "lc3_compat_check mirrors a LibreCAD_3 DRW_Interface subclass and includes selected LibreCAD facade signature checks; compilation checks source compatibility only. Review of the committed header diff found no change to the existing DRW_Interface declaration, base-class layout or vtable; the provider is a separate opt-in interface."
+  },
+  "focused_ctest": {
+    "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_default_plotstyle_optin|dwg2dxf_freecad_cli_compat|dwg2dxf_freecad_installed_cli_compat)$' --output-on-failure",
+    "result": "3/3 PASS",
+    "selectors": ["libdxfrw_dwg_default_plotstyle_optin", "dwg2dxf_freecad_cli_compat", "dwg2dxf_freecad_installed_cli_compat"],
+    "inputs": [
+      "Locally generated AC1027 DWG from libdxfrw_dwg_local_roundtrip --generate-cli-batch-source, including FreeCAD-form DXF readback",
+      "tests/fixtures/dwg/rtext_arctext.dwg (SHA-256 db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511), expected strict refusal",
+      "tests/fixtures/dwg/mpolygon_solid.dwg (SHA-256 66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29), expected strict refusal",
+      "Provider test's locally generated six-version drawings and collision/failure/retry controls"
+    ]
+  },
+  "limits": [
+    "The FreeCAD script was inspected, not executed inside the FreeCAD application. Tests exercise its converter subprocess contract, not native FreeCAD DXF import/rendering.",
+    "The installed CLI test uses a temporary prefix. It does not validate deployment on Linux or Windows.",
+    "The compile-only LibreCAD_3 mirror and selected LibreCAD signatures do not prove full external application builds, existing-binary ABI compatibility or cross-platform qualification.",
+    "Provider default/no-provider and opt-in roundtrips, failure sentinel and same-facade retry are covered by the selected provider test; this does not promote general DWG support or guarantee opaque ownership closure."
+  ]
+}

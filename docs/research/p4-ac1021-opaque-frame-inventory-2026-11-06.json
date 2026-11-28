@@ -1,0 +1,430 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 children-room source-frame inventory",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Separate the aggregate AC1021 source-frame observer count into retained opaque carriers and standard-object frames, then identify a concrete class-specific profile boundary.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "inventory": {
+    "reader": "1,673/1,673 observed source frames published; zero entity/object parse failures and zero reader CRC mismatches.",
+    "aggregateObserverFrames": 186,
+    "opaqueCarrierRecords": {
+      "count": 74,
+      "customClassCount": 68,
+      "fixedTypeCount": 6,
+      "outputQualified": 74,
+      "outputQualifiedByRecord": {
+        "VISUALSTYLE": 25,
+        "SCALE": 17,
+        "DICTIONARYVAR": 12,
+        "MATERIAL": 3,
+        "DBCOLOR": 1,
+        "ACDBDICTIONARYWDFLT": 1,
+        "ACDBPLACEHOLDER": 1,
+        "ACDBSECTIONVIEWSTYLE": 2,
+        "ACDBDETAILVIEWSTYLE": 2,
+        "MLEADERSTYLE": 1,
+        "TABLESTYLE": 1,
+        "CELLSTYLEMAP": 1,
+        "MLINESTYLE": 1,
+        "LAYOUT": 2,
+        "VIEWPORT": 2,
+        "RASTERVARIABLES": 1,
+        "SORTENTSTABLE": 1
+      },
+      "byRecord": {
+        "VISUALSTYLE": 25,
+        "SCALE": 17,
+        "DICTIONARYVAR": 12,
+        "MATERIAL": 3,
+        "ACDBSECTIONVIEWSTYLE": 2,
+        "ACDBDETAILVIEWSTYLE": 2,
+        "ACDBDICTIONARYWDFLT": 1,
+        "TABLESTYLE": 1,
+        "MLEADERSTYLE": 1,
+        "RASTERVARIABLES": 1,
+        "SORTENTSTABLE": 1,
+        "DBCOLOR": 1,
+        "CELLSTYLEMAP": 1,
+        "fixed unclassified records": 4
+      }
+    },
+    "standardObjectFrames": {
+      "count": 112,
+      "types": {
+        "42": 64,
+        "79": 48
+      },
+      "typedPayloadMatches": 112,
+      "opaquePayloadMatches": 0,
+      "outputQualified": 112,
+      "remainingUnqualified": 0,
+      "qualifiedByNewSlice": {
+        "record": "DICTIONARY",
+        "count": 2,
+        "handles": [
+          "0x1FF",
+          "0x200"
+        ],
+        "profile": "LAYER_CONTROL extension dictionary -> one empty ACAD_LAYERSTATES dictionary"
+      },
+      "qualifiedByRecentSlices": [
+        {
+          "record": "DICTIONARY",
+          "count": 2,
+          "handles": [
+            "0x1FF",
+            "0x200"
+          ],
+          "profile": "LAYER_CONTROL extension -> one empty ACAD_LAYERSTATES child"
+        },
+        {
+          "record": "DICTIONARY",
+          "count": 1,
+          "handles": [
+            "0x3B3D4"
+          ],
+          "profile": "One empty LAYER extension dictionary owned by layer 0x3B3D3"
+        },
+        {
+          "record": "DICTIONARY",
+          "count": 1,
+          "handles": [
+            "0x13C"
+          ],
+          "profile": "One empty LAYER extension dictionary owned by layer 0x10; finalized output proof asserted by the ACDB_RECOMPOSE_DATA selected-output selector"
+        },
+        {
+          "record": "XRECORD",
+          "count": 2,
+          "handles": [
+            "0x268",
+            "0x26C"
+          ],
+          "profile": "Two VIEWPORT annotation-scale XRECORDs; group-340 references resolve through the inspected SCALE output snapshot"
+        },
+        {
+          "record": "DICTIONARY + XRECORD",
+          "count": 3,
+          "handles": [
+            "0x7E",
+            "0x162",
+            "0x3C3F8"
+          ],
+          "profile": "TABLESTYLE/Recompose Data graph: NOD ACAD_TABLESTYLE dictionary, TABLESTYLE extension dictionary with CELLSTYLEMAP, and ACDB_RECOMPOSE_DATA XRECORD"
+        }
+      ],
+      "interpretation": "All 112 standard-object frames match typed callbacks and now have bounded selected-output qualification for this one source. Applicable routes include physical ASCII/Binary output, fresh readback, dependency closure, mutation refusal, destination preservation and retry. Source-byte capture and callback parity alone do not qualify serialization."
+    },
+    "interpretation": "The 186 aggregate AC1021 source-frame observer callbacks are 74 opaque carriers plus 112 standard-object frames. Bounded physical selected-output routes now qualify all 74 opaque carriers and all 112 standard-object frames for this one source. The Recompose Data TABLESTYLE/CELLSTYLEMAP graph closes the final three standard-object proof identities. Applicable routes verify ASCII/Binary output, fresh readback, dependency closure, refusal and retry. Source-byte capture or matching typed callbacks alone do not qualify serialization."
+  },
+  "candidateBoundary": {
+    "record": "VISUALSTYLE",
+    "observedCount": 25,
+    "selector": "--visual-style-ac1021-physical-extension-graph /Users/dli/doc/dwg/children-room-decoration.dwg /private/tmp/children-room-vs-xdict-output",
+    "result": "PASS. All 25 source styles have one extension dictionary owned by the style; each dictionary has one ACAD_XREC_ROUNDTRIP entry to an XRECORD owned by that dictionary and reacting back to it. The selector emits ASCII and Binary DXF, reads back 25 styles, 26 selected dictionaries plus the NOD, and 25 XRECORDs; it checks each style's XDictionary link and 3-group ACAD EED, every dictionary edge, XRECORD owner/reactor, and all 252 ordered values per XRECORD. Mutation refusal preserves a destination sentinel and the same writer succeeds after source restoration. This is selected-graph evidence only.",
+    "logPath": "/private/tmp/children-room-vs-xdict-output.log",
+    "logSha256": "a12b48e9b4f0fe2c99ce2cd8081a30a2455b9cdc8bb88ba73d3320025df72098"
+  },
+  "plotSettingsCandidateBoundary": {
+    "record": "DICTIONARY",
+    "handle": "0x19",
+    "root": "NOD/ACAD_PLOTSETTINGS",
+    "receipt": "docs/research/p4-ac1021-plotsettings-physical-selected-output-2026-11-06.json",
+    "result": "PASS for physical AC1021 ASCII/Binary output and fresh typed readback; exact NOD key role, unique DICTIONARY target, empty body, owner/reactor, mutation refusal, destination preservation, same-adapter retry and standard source-frame output qualification are checked.",
+    "limit": "Selected output from one unauthenticated local source under AllowPartial. This does not qualify the other NOD entries, strict whole-source output, native plot behavior, or producer-wide support."
+  },
+  "groupCandidateBoundary": {
+    "record": "DICTIONARY",
+    "handle": "0xD",
+    "root": "NOD/ACAD_GROUP",
+    "groupCallbacks": 0,
+    "receipt": "docs/research/p4-ac1021-group-physical-selected-output-2026-11-06.json",
+    "result": "PASS for the physical zero-GROUP AC1021 profile through the source-backed generated-root path. ASCII/Binary output and fresh readback verify the unique NOD key, soft-owner role, DICTIONARY type/identity, empty membership, NOD owner/reactor, both generated-root proofs, source-frame qualification, late-mutation refusal, destination preservation and same-adapter retry.",
+    "limit": "Selected output from one unauthenticated local source under AllowPartial. Populated GROUP membership, other NOD entries, strict whole-source output, native group semantics and producer-wide support remain unqualified."
+  },
+  "imageDictionaryCandidateBoundary": {
+    "record": "DICTIONARY",
+    "handle": "0x2D1",
+    "root": "NOD/ACAD_IMAGE_DICT",
+    "imageDefinitionCallbacks": 0,
+    "imageDefinitionReactorCallbacks": 0,
+    "receipt": "docs/research/p4-ac1021-image-dict-physical-selected-output-2026-11-06.json",
+    "result": "PASS for the physical zero-image AC1021 profile through the image-generated-root path. ASCII/Binary output and fresh readback verify the unique NOD key, soft-owner output role, DICTIONARY identity/type, empty membership, NOD owner/reactor, generated-root and standard-frame proofs, late-mutation refusal, destination preservation and same-adapter retry.",
+    "limit": "Selected output from one unauthenticated local source under AllowPartial. The source NOD includes unresolved ACAD_IMAGE_VARS and other unqualified entries; populated image graphs, strict whole-source output, native image semantics and producer-wide support remain unqualified."
+  },
+  "aecPropertySetDefsCandidateBoundary": {
+    "record": "DICTIONARY",
+    "handle": "0x745",
+    "root": "NOD/AEC_PROPERTY_SET_DEFS",
+    "receipt": "docs/research/p4-ac1021-aec-property-set-defs-physical-selected-output-2026-11-06.json",
+    "result": "PASS for bounded physical AC1021 ASCII/Binary output and fresh typed readback through the regular source-backed DICTIONARY route. The unique NOD key, soft-owner output role, target identity/type, empty membership, NOD owner/reactor, generated-root and standard-frame proofs, late-mutation refusal, destination preservation and same-adapter retry are checked.",
+    "limit": "Selected output from one unauthenticated local source under AllowPartial. Other NOD entries, strict whole-source output, native AEC semantics and producer-wide support remain unqualified."
+  },
+  "aseIndexDictionaryCandidateBoundary": {
+    "record": "DICTIONARY + XRECORD",
+    "handles": [
+      "0x3B3C8",
+      "0x3B3C9"
+    ],
+    "root": "NOD/ASE_INDEX_DICTIONARY",
+    "receipt": "docs/research/p4-ac1021-ase-index-dictionary-physical-selected-output-2026-11-06.json",
+    "result": "PASS for the selected two-record physical AC1021 ASCII/Binary output and fresh typed readback. The unique NOD edge, one-entry dictionary, empty XRECORD, reciprocal owner/reactor links, both physical source-frame proofs, DCO15 APPID-backed EED, exact code-1040 value preservation, late mutation refusal, destination preservation and same-adapter retry are checked.",
+    "limit": "One unauthenticated local source under AllowPartial. The output test does not establish the original DWG dictionary edge wire role or ASE semantics; other NOD entries, strict whole-source output, native behavior and producer-wide coverage remain unqualified."
+  },
+  "cipPreviousProductInfoCandidateBoundary": {
+    "record": "XRECORD",
+    "handle": "0x216",
+    "root": "NOD/ACAD_CIP_PREVIOUS_PRODUCT_INFO",
+    "receipt": "docs/research/p4-ac1021-cip-physical-selected-output-2026-11-06.json",
+    "result": "PASS for selected physical AC1021 ASCII/Binary output and fresh typed readback. The unique NOD edge, three ordered code-300 strings, XRECORD owner/reactor, source-frame proof, generated-root proofs, late-mutation refusal, destination preservation and same-adapter retry are checked.",
+    "limit": "One unauthenticated local source under AllowPartial; this does not establish CIP semantics, original DWG edge wire role, strict whole-source output or producer-wide support."
+  },
+  "scaleCandidateBoundary": {
+    "record": "SCALE",
+    "observedCount": 17,
+    "selector": "--scale-ac1021-physical-selected-graph /Users/dli/doc/dwg/children-room-decoration.dwg /private/tmp/children-room-ac1021-scale-final",
+    "result": "PASS. The selector qualifies all 17 rooted records in selected ASCII/Binary output and fresh typed/raw readback, including NOD membership, unique dictionary ownership/reactors, exact scalar fields, late-mutation atomic refusal, destination preservation, and same-writer retry. This is selected-graph evidence only; see the dedicated SCALE receipt.",
+    "logPath": "/private/tmp/scale-ac1021-result.log",
+    "logSha256": "f4eec9b8dc7b4daf6741f704f39ff6adec64cff1e89fd4b67a59c04a341d72e8"
+  },
+  "dictionaryVarCandidateBoundary": {
+    "record": "DICTIONARYVAR",
+    "observedCount": 12,
+    "selector": "--dictionaryvar-ac1021-physical-selected-graph /Users/dli/doc/dwg/children-room-decoration.dwg /private/tmp/children-room-ac1021-dictionaryvar",
+    "result": "PASS. The selected graph contains the unique AcDbVariableDictionary NOD edge, its complete 12-entry dictionary, and all 12 typed source records. ASCII/Binary output and fresh typed/raw readback verify exact handle, owner/reactor, schema, value, entry order and membership; late-mutation refusal preserves the destination and the same writer retries after restoration. Selected-source evidence only; see the dedicated receipt.",
+    "logPath": "/private/tmp/dictionaryvar-ac1021-result.log",
+    "logSha256": "6f2677a485d923381e47c429cd8bb7836818856ae5f11670d875013ac2f060af"
+  },
+  "recomposeDataCandidateBoundary": {
+    "record": "ACDB_RECOMPOSE_DATA XRECORD",
+    "handle": "0x3C3F8",
+    "root": "NOD/ACDB_RECOMPOSE_DATA",
+    "sourceProfile": "The unique standard type-79 frame is at offset 7794, size 34. The body contains scalar group 90 = 1 and one group-330 handle pair to TABLESTYLE:Standard handle 0x7F; owner and reactor are NOD 0xC, cloning is 1, common-link tail is validated, and no EED, extension dictionary, or raw XRECORD payload is present. The compatibility values view omits the separately modeled handle value.",
+    "result": "PASS for bounded selected AC1021 ASCII/Binary output and fresh typed readback. The selected graph contains the NOD root, XRECORD, Standard TABLESTYLE, its extension DICTIONARY/CELLSTYLEMAP graph, and the source layer extension dictionaries. Readback verifies ordered values, mapped target, ownership and reactor links; late-mutation refusal preserves the destination and same-adapter retry succeeds.",
+    "receipt": "docs/research/p4-ac1021-recompose-data-physical-selected-output-2026-11-06.json",
+    "limit": "One unauthenticated local source profile. This does not qualify strict whole-source output, native semantics, independent DWG edge-role encoding or producer-wide support."
+  },
+  "acDsDecomposeDataCandidateBoundary": {
+    "record": "AcDsDecomposeData schema graph",
+    "rootHandle": "0x3C3FE",
+    "root": "NOD/AcDsDecomposeData",
+    "schemaDictionary": "0x3C3FF",
+    "recordDictionary": "0x3C400",
+    "xrecordHandles": [
+      "0x3C3F9",
+      "0x3C3FA",
+      "0x3C3FB",
+      "0x3C3FC",
+      "0x3C3FD"
+    ],
+    "result": "PASS for selected physical ASCII/Binary output and fresh typed readback. Both NOD/dictionary levels, all five ordered schema XRECORDs and four remapped group-341 references are verified. Mutation refusal preserves the destination and same-adapter retry succeeds. DXF's generated {ACAD_REACTORS} appData wrapper is checked as the only synthesized application group, with exact decoded reactor identity.",
+    "receipt": "docs/research/p4-ac1021-acds-decompose-data-physical-selected-output-2026-11-06.json",
+    "sourceProfileReceipt": "docs/research/p4-ac1021-acds-decompose-data-source-profile-2026-11-06.json",
+    "limit": "One selected graph from an unauthenticated local source only. This does not establish native ACDS semantics, independent DWG wire-role encoding, whole-source output, or producer-wide support."
+  },
+  "siberiaCandidateBoundary": {
+    "record": "Siberia nested DICTIONARY graph",
+    "rootHandle": "0x38F4B",
+    "childHandle": "0x38F4C",
+    "root": "NOD/Siberia -> Styles -> empty child dictionary",
+    "sourceProfile": "Both source frames are standard type 42. Root owner is NOD 0xC, child owner is 0x38F4B; each has one reciprocal reactor. NOD hardOwner is 0, root and child dictionary hardOwner are 1. Root has one ordered Styles entry; child is empty. Neither exposes EED, appData, xdictionary, data-storage payload or a common-link tail through the typed model.",
+    "result": "PASS for selected physical ASCII/Binary output and fresh typed readback. The test checks the remapped root/child ownership and reactors, NOD and nested 350/360 roles from the respective owner hardOwner flags, late-mutation refusal, destination preservation and same-adapter retry.",
+    "receipt": "docs/research/p4-ac1021-siberia-dictionary-physical-selected-output-2026-11-06.json",
+    "limit": "One local selected profile only. This does not establish independent DWG wire-role encoding, whole-source output, or producer-wide support."
+  },
+  "standardOutputProofCensus": {
+    "selector": "--layout-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "outputProofHandles": 112,
+    "logPath": "/tmp/p4-standard-proof-census-final-2026-11-06.log",
+    "logSha256": "6984e254e501518d50aeb06060df11df62152d8b031f28eed0b8797273218105",
+    "residualFrames": [],
+    "interpretation": "The layout selector emitted and freshly read the selected AC1021 output and finalized all 112/112 standard-frame proofs in ASCII and Binary. It verifies only this selected source graph and does not establish whole-source, native-consumer or producer-wide qualification."
+  },
+  "diagnostic": {
+    "testSource": "tests/dwg2dxf_adapter_tests.cpp",
+    "testSourceSha256": "032e9f978e4c6deda7bc515865a8ea297ccacd921f585b4d4070228117493277",
+    "executable": "build/tests/libdxfrw_dwg2dxf_adapter_tests",
+    "executableSha256": "0c4d867027278fff3ec73e5869d1a7551b49880712244cec866199f40fc66f99",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --opaque-dwg-source-inventory /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS; prints per-handle source type, class and carrier records for all 74 opaque carrier records and all 112 standard-object source frames, including DICTIONARY/XRECORD payloads, ordered key/target edges, NOD root keys and target handles, and GROUP callback count.",
+    "logPath": "/tmp/p4-ac1021-opaque-inventory-post-proof-census-2026-11-06.log",
+    "logSha256": "26568efae6219f75419ee2f31bcea322f9245e33631a8a3eb59debf38d4f8499"
+  },
+  "limits": [
+    "The output route is a selected graph from one local source whose author and producer are not independently authenticated.",
+    "No whole-drawing conversion, native semantic, or producer-wide support claim is established.",
+    "No fixture or derivative is committed."
+  ],
+  "nextAction": "The 112-frame standard-object proof census is complete for this selected AC1021 source. Continue with the next independent P4 source/output gap; keep whole-source output, native semantics, producer-wide coverage, populated GROUP and image graphs, and named-block SORTENTSTABLE profiles open. This local census does not promote any format-support claim.",
+  "sortEntsCandidateBoundary": {
+    "record": "SORTENTSTABLE",
+    "handle": "0x2DF",
+    "ownerScope": "*Model_Space",
+    "receipt": "docs/research/p4-ac1021-sortents-physical-selected-output-2026-11-06.json",
+    "result": "PASS for bounded selected AC1021 ASCII/Binary output and fresh typed/raw readback; source mapping/order, dictionary and block-owner roles, refusal, destination preservation, retry, and table/dictionary source-frame qualification are checked.",
+    "limit": "This does not qualify named-block profiles, the AC1024 comparator, whole-source output, native ordering, independent encoder interoperability, or producer-wide support."
+  },
+  "materialCandidateBoundary": {
+    "record": "MATERIAL",
+    "observedCount": 3,
+    "selector": "--material-ac1021-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS. The selected ACAD_MATERIAL root, three MATERIAL records, owner and extension dictionaries, and seven XRECORDs pass ASCII/Binary output and fresh readback. Typed material fields/common links, dictionary keys/targets and available roles, XRECORD owners/payloads, late-mutation and invalid-owner-key atomic refusal, destination preservation and same-adapter retry are checked. Source DWG edge-code annotations are incomplete, so no independent 350/360 source-role claim is made where the annotation is absent. Selected graph only; see the dedicated MATERIAL receipt.",
+    "receipt": "docs/research/p4-ac1021-material-physical-selected-output-2026-11-06.json"
+  },
+  "dbColorCandidateBoundary": {
+    "record": "DBCOLOR",
+    "observedCount": 1,
+    "selector": "--dbcolor-physical-eed-source /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS. The selected projection includes the NOD ACAD_COLOR root, its one-entry dictionary, one typed color-book DBCOLOR, the source-bound ACAD APPID row, and all 13 source EED tuples. ASCII/Binary output and fresh readback verify RGB/book/name, key and target, owner/reactor roles, APPID and EED payload. Late color and dictionary mutation plus an invalid key refuse atomically with destination preservation; the same writer retries after restoration. DWG-only CMC metadata is not claimed as DXF-preserved semantics. Selected graph only; see the dedicated DBCOLOR receipt.",
+    "receipt": "docs/research/p4-ac1021-dbcolor-physical-selected-output-2026-11-06.json"
+  },
+  "modelDocViewStyleCandidateBoundary": {
+    "record": "ACDBDETAILVIEWSTYLE / ACDBSECTIONVIEWSTYLE",
+    "observedCount": 4,
+    "handles": [
+      "0x18081",
+      "0x18082",
+      "0x21A",
+      "0x21C"
+    ],
+    "selector": "--modeldoc-view-style-ac1021-source-profile /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS for the selected AC1021 graph in ASCII and Binary. The exact projection contains two NOD-rooted style dictionaries, four DETAIL/SECTIONVIEWSTYLE records, four extension dictionaries and four XRECORDs. Fresh typed readback checks NOD keys, style identities/owners/xDict links, all dictionary key/target edges, XRECORD owner/reactor and payload values, and CMC NONE -> DXF 257 projection. A post-OBJECTS std::bad_alloc preserves the destination sentinel; the same adapter then retries successfully. Source graph and field provenance remain one unauthenticated local producer profile only.",
+    "receipt": "docs/research/p4-ac1021-modeldoc-view-style-physical-source-profile-2026-11-06.json"
+  },
+  "dictionaryDefaultCandidateBoundary": {
+    "record": "ACDBDICTIONARYWDFLT / ACDBPLACEHOLDER",
+    "observedCount": 2,
+    "handles": [
+      "0xE",
+      "0xF"
+    ],
+    "selector": "--dictionary-default-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS for the selected AC1021 source graph to AC1024 DXF in ASCII and Binary. Exact source identity, unique ACAD_PLOTSTYLENAME root, Normal/default target, owner/reactor roles, output qualification, fresh readback, destination-preserving refusal, and same-adapter retry pass. Unrelated source records are excluded only by a test projection; whole-source output remains unqualified.",
+    "receipt": "docs/research/p4-ac1021-dictionary-default-physical-selected-output-2026-11-06.json"
+  },
+  "mLeaderStyleCandidateBoundary": {
+    "record": "MLEADERSTYLE",
+    "observedCount": 1,
+    "handle": "0x12E",
+    "selector": "--mleaderstyle-ac1021-eed-source-profile /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS for the bounded AC1021 selected graph to AC1024 DXF in ASCII and Binary. Deep EED snapshots detect in-place mutation; the source APPID is verified through its emitted table binding; exact XDATA order/value, owner/key/reference roles, fresh readback, destination-preserving refusal and same-adapter retry pass. Adds one opaque MLEADERSTYLE carrier and its owner dictionary frame to the bounded output inventory only.",
+    "receipt": "docs/research/p4-ac1021-mleaderstyle-eed-selected-output-2026-11-06.json",
+    "next": "Broaden producer/version coverage; whole-source output, native MLEADERSTYLE semantics and unmodeled EED profiles remain open."
+  },
+  "tableStyleCellStyleMapCandidateBoundary": {
+    "record": "TABLESTYLE + CELLSTYLEMAP",
+    "observedHandles": [
+      "0x7F",
+      "0x3C3F7"
+    ],
+    "selector": "--tablestyle-ac1021-cellstylemap-selected-output /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS selected ASCII/Binary output and fresh readback for the source NOD/owner/extension/map graph. Preserves cell identities and values, 1.5 margins, 6.0/4.5 heights, 1.125 border spacing, no-color C8->257, text-style bindings and border LTYPE dependencies. A dangling STYLE reference is refused with destination preservation and same-adapter correction/retry succeeds.",
+    "receipt": "docs/research/p4-ac1021-children-room-tablestyle-cellstylemap-selected-output-2026-11-06.json",
+    "limit": "Second unauthenticated local AC1021 sample; selected graph only, no independent native or whole-source qualification."
+  },
+  "remainingOpaqueFrames": {
+    "source": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sourceSha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "evidence": "Current source inventory selector output reconciled with selected-source output qualification. Handles 0xF (ACDBPLACEHOLDER), 0x18 (MLINESTYLE), 0x22 (Model LAYOUT), 0xD7 (dwgmodels.com LAYOUT), 0x266/0x26A (VIEWPORT), 0x2D2 (RASTERVARIABLES), and 0x2DF (ModelSpace SORTENTSTABLE) have bounded selected-output qualification; no opaque source-frame identity remains unqualified in this source inventory.",
+    "frames": [],
+    "inventorySelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --opaque-dwg-source-inventory /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "inventoryLogSha256": "8dd77c4f8e73e024c495c3c9bf29dbb40581c69489b8f528c7f0d9da5123b0b4",
+    "mlineStyleTrace": "dwg2dxf -d on the same source; parser trace around object 0x18 identifies STANDARD, flags 0 and two elements; not an independent wire-layout oracle.",
+    "mlineStyleTraceLogSha256": "5f8ae476e5febb539ef46a8511662840c0411cc21a3dbf9dcbf85c9a0fa157e7",
+    "limit": "This is a source-inventory and bounded selected-output update only. All 74 opaque source frames and all 112 standard-object frames have selected-output qualification for this one local profile. Selected projection output does not qualify the whole source drawing, native semantics, or producer-wide support."
+  },
+  "mLineStyleCandidateBoundary": {
+    "record": "MLINESTYLE",
+    "handle": "0x18",
+    "selector": "--mline-style-ac1021-source-probe /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sourceProfile": "STANDARD; owner dictionary 0x17; NOD key ACAD_MLINESTYLE; no extension dictionary; one owner entry Standard -> 0x18; owner reactor to NOD and MLINESTYLE reactor to owner; two inline ByLayer elements at offsets +0.5 and -0.5.",
+    "implementation": "Admitted AC1021 in the existing exact STANDARD profile allowlist for DWG MLINESTYLE output preparation and frozen-source verification. Other profile guards remain unchanged.",
+    "result": "PASS selected AC1024 DXF output and fresh typed readback in ASCII/Binary, including source-frame qualification, exact style/element fields and NOD/owner/reactor closure. A nonzero retained CMC index is refused with the existing destination preserved; corrected retry succeeds on the same adapter.",
+    "wholeSourceLimit": "The full children-room conversion remains refused before selected output preparation at the unrelated exact-version ModelDocViewStyle gate. This receipt qualifies one selected MLINESTYLE graph only.",
+    "receipt": "docs/research/p4-ac1021-mline-style-physical-selected-output-2026-11-06.json"
+  },
+  "layoutCandidateBoundary": {
+    "record": "LAYOUT",
+    "observedCount": 2,
+    "handles": [
+      "0x22",
+      "0xD7"
+    ],
+    "selector": "--layout-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS for the exact Model/dwgmodels.com AC1021 profile in same-version ASCII/Binary output and fresh typed readback. Checks ACAD_LAYOUT and reciprocal BLOCK_RECORD membership, plot/layout values, selected extension dictionary/XRECORD owners, last-active roles, source callback qualification, destination-preserving bad-owner refusal, and same-adapter retry.",
+    "receipt": "docs/research/p4-ac1021-layout-physical-selected-output-2026-11-06.json",
+    "limit": "One unauthenticated local source. No fixture, whole-source claim, producer-wide support, or native semantic claim."
+  },
+  "viewportCandidateBoundary": {
+    "record": "VIEWPORT",
+    "observedCount": 2,
+    "handles": [
+      "0x266",
+      "0x26A"
+    ],
+    "sourceProfile": "AC1021 source children-room-decoration.dwg (SHA-256 cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce); both entities are stored in the main *U0 container, are PaperSpace, and appear exactly once in the dwgmodels.com LAYOUT viewport list (0xD7). The LAYOUT paper-space BLOCK_RECORD backlink resolves to *Paper_Space (0xD6). Each VIEWPORT has an XDICTIONARY (0x267/0x26B) with ASDK_XREC_ANNOTATION_SCALE_INFO to XRECORD (0x268/0x26C); visual-style and layer targets resolve uniquely. ODA v5.4.1 \u00a720.4.38 governs versioned viewport-specific handles.",
+    "selector": "--viewport-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS for selected AC1021 same-version ASCII and Binary output with fresh DXF readback. Checks both typed viewport projections, LAYOUT list and output owner linkage, layer/visual-style references, XDICTIONARY key/target and XRECORD owner plus ordered typed payload, derived groups 68/69, invalid-field refusal preserving destination and successful same-adapter retry. Both viewport opaque callbacks and two DICTIONARY plus two XRECORD standard frames qualify. The run observes 174/186 source opaque callbacks qualified as aggregate transport accounting; this is not semantic or whole-document support evidence.",
+    "validation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "buildAndSelector": "PASS, exit 0; both ASCII and Binary paths passed",
+      "executableSha256": "207130b4f4564698f5619bdee6879b9e3e63311bb1daa90b940b955aaef66ce2",
+      "testSourceSha256": "aeb57b27c598af3f448395bf32554b3c20d2929040061b500fc05585faf6d052"
+    },
+    "receipt": "docs/research/p4-ac1021-viewport-physical-selected-output-2026-11-06.json",
+    "limit": "One unauthenticated local source and a selected graph only. No fixture or derivative is committed; no whole-source conversion, native behavior, producer-wide support, or independent semantic claim."
+  },
+  "rasterVariablesCandidateBoundary": {
+    "record": "RASTERVARIABLES",
+    "observedCount": 1,
+    "handle": "0x2D2",
+    "selector": "--rastervariables-physical-ac1021-direct-nod /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sourceProfile": "The imported physical AC1021 object is directly rooted by NOD key ACAD_IMAGE_VARS; its owner and sole reactor resolve to NOD handle 0xC. The selected projection retains the authentic source object frame and typed record at handle 0x2D2, plus unchanged source CLASS evidence. It excludes unrelated source objects and layer graphs.",
+    "result": "PASS selected AC1021 same-version ASCII/Binary DXF output and fresh typed readback. The writer publishes output qualification for the original 0x2D2 source identity; readback verifies handle, NOD owner and key, reactor, class version, display frame, quality and units. Invalid typed fields and owner metadata preserve a destination sentinel; corrected state retries successfully on the same adapter.",
+    "validation": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "selectorCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1021-direct-nod /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS, exit 0; ASCII and Binary output/readback paths both pass.",
+      "testSourceSha256": "3334c18021137740e03a3dac71fa35e11c3bbab5bae99814d09639289338f769",
+      "executableSha256": "4657e9124e5d5aa1bfb8b5c9175096b73c539ee7c56c7b387cf5fdcb838100d9"
+    },
+    "receipt": "docs/research/p4-ac1021-rastervariables-physical-selected-output-2026-11-06.json",
+    "limit": "One unauthenticated local source and selected graph only. The projection intentionally excludes unrelated source objects and layer graphs. It does not establish whole-source conversion, native raster-image semantics, producer-wide support, or independent application interoperability."
+  },
+  "layerStatesCandidateBoundary": {
+    "record": "DICTIONARY",
+    "handles": [
+      "0x1FF",
+      "0x200"
+    ],
+    "root": "LAYER_CONTROL extension dictionary / ACAD_LAYERSTATES",
+    "sourceGraph": "Source inventory reports 0x1FF owner=0x2 with one ACAD_LAYERSTATES entry to 0x200; 0x200 is empty, owned by 0x1FF, and has one reactor to 0x1FF. Both are typed, payload-matched standard object frames.",
+    "receipt": "docs/research/p4-ac1021-layerstates-one-root-physical-selected-output-2026-11-06.json",
+    "result": "PASS for source admission and selected ASCII/Binary output with fresh typed readback; mutation refusal preserves the destination and the same adapter retries successfully.",
+    "limit": "The test-only projection removes unrelated object families to reach selected output. One unauthenticated local source profile only; no independent DWG edge-role proof, whole-source output, native LayerStates semantics or producer-wide support."
+  },
+  "layerExtensionCandidateBoundary": {
+    "record": "DICTIONARY",
+    "handle": "0x3B3D4",
+    "owner": {
+      "record": "LAYER",
+      "handle": "0x3B3D3"
+    },
+    "sourceGraph": "The source layer row has xDictHandle 0x3B3D4; the unique dictionary has parent 0x3B3D3, hardOwner 1, cloning 1, zero entries/reactors, and no appData, EED, xdictionary, data storage, common-link tail or pending name references. The matching standard type-42 source frame is payload-matched and non-opaque.",
+    "receipt": "docs/research/p4-ac1021-layer-empty-extension-physical-selected-output-2026-11-06.json",
+    "result": "PASS for selected AC1024-target ASCII/Binary output and fresh typed readback. The finalized standard-object output proof names the DICTIONARY source frame. Invalid owner mutation refuses without changing a destination sentinel; same-adapter corrected retry passes.",
+    "limit": "Test-only projection retains one layer-owned empty extension dictionary plus required existing base projection data. One unauthenticated local AC1021 source only; no independent DWG wire-role proof, whole-source output or support-claim promotion."
+  },
+  "sourceInventoryLog": {
+    "path": "/private/tmp/p4-ac1021-opaque-inventory-post-layerstates-2026-11-06.log",
+    "sha256": "8dd77c4f8e73e024c495c3c9bf29dbb40581c69489b8f528c7f0d9da5123b0b4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --opaque-dwg-source-inventory /Users/dli/doc/dwg/children-room-decoration.dwg"
+  }
+}

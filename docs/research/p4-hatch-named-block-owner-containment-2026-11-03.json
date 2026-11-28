@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-hatch-named-block-owner-containment-2026-11-03",
+  "date": "2026-11-03",
+  "title": "HATCH/MPOLYGON boundary graph named-block containment",
+  "status": "GENERATED_NAMED_BLOCK_GRAPH_CLOSURE_GUARD",
+  "supportClaimEffect": "none",
+  "authority": [
+    {
+      "title": "Autodesk DXF BLOCKS section",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-9DDFC343-6C87-4AF8-B3B9-77E0AB5A3031.htm",
+      "finding": "Each named block definition consists of its entities between BLOCK and ENDBLK."
+    },
+    {
+      "title": "Autodesk DXF common entity group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "finding": "Entity group 330 identifies the owner BLOCK_RECORD."
+    }
+  ],
+  "problem": "HATCH and MPOLYGON graph validation previously assigned a selected entity to the block named by its explicit parent without comparing that owner against the named block whose BLOCK/ENDBLK physically contains the record. A selected hatch or referenced boundary physically in block B but declaring block A could pass the common-owner and final BLOCKS-section checks.",
+  "implementation": "For selected entities inside a non-fixed named block, require any explicit parent BLOCK_RECORD name to match the containing block symbol. Preserve the existing fixed-space and ownerless paths. Refusal occurs during graph preflight before file mutation.",
+  "validation": {
+    "reproduction": "Before the production fix, the admission selector accepted a boundary physically in block B with the same explicit owner A as the hatch: all four ASCII/Binary HATCH/MPOLYGON controls unexpectedly succeeded.",
+    "controls": "Generated ASCII/Binary HATCH and MPOLYGON drawings independently put either the hatch or a referenced boundary in the wrong named block while both declare owner A. Eight malformed graphs are refused, preserving the existing destination. After moving the record into A, the same adapter retries and fresh DXF import verifies the enclosing named block and all three remapped boundary references. Existing graph admission, output publication, reference and group-47 controls also pass.",
+    "resolverHarnessCorrection": "The existing low-level HATCH reference test used an identity-returning custom resolver but preallocated its entity outputs only in writeHeader, after BLOCK_RECORD table planning had already allocated destination 0x31. On second-write inputs this created an identity collision. Reserving those final entity IDs in the earlier writeBlockRecords callback fixes the test setup; the codec collision refusal remains unchanged. This failure was reproduced with the committed baseline adapter before changing the harness.",
+    "fixtures": "All drawings are generated locally in temporary directories; no DWG/DXF fixtures were committed.",
+    "committedBaseline": {
+      "revision": "b9152b04627cdf511d9129ab82e73949ab00f6f7",
+      "method": "Scratch-linked local-roundtrip binary using HEAD adapter, HEAD HATCH tests and HEAD dwgutil compiled separately with other unchanged build objects and library; the locally modified dwgutil symbol is overridden by its HEAD object.",
+      "binarySha256": "95e866e0af6953a18d2f4bdd5ec371298bc7657b1030150cfe786546c0ada193",
+      "log": "/private/tmp/libdxfrw-head-baseline-general.log",
+      "logSha256": "090695b68202f8b4ea5a6c256218f4c270ad7ed3bf9cae096c034d7ce47d59ef",
+      "observation": "HEAD baseline independently reproduces the stale HATCH reference harness failure plus both SURFACE subtype and both VIEWPORT lighting/width failures seen in the general local-roundtrip run. These broader failures are separate from the named-block preflight change."
+    },
+    "finalControls": "Build libdxfrw_dwg_local_roundtrip; --hatch-admission PASS (28 accepted, 86 rejected), CTest dwg_hatch_reference_graph PASS, --hatch-publication PASS, --hatch-adapter PASS, and --hatch-pixel-presence PASS."
+  },
+  "limits": [
+    "This guards physical named-block/owner consistency only. It does not prove boundary geometry, associative update semantics, native rendering, physical-producer breadth or whole-document graph closure.",
+    "Fixed-space and ownerless resolution behavior is unchanged."
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw-research-p5-tablecontent-scratch-libredwg-decoder-limits-v1",
+  "recordedAt": "2026-11-02",
+  "status": "NOT_AN_INDEPENDENT_ADJUDICATOR",
+  "scope": "A scratch-only attempt to enable LibreDWG's unstable standalone TABLECONTENT schema decoder for the AC1027 source already covered by the TABLECONTENT span receipt.",
+  "source": {
+    "path": "/private/tmp/dwg-example-2013.dwg",
+    "version": "AC1027",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "committedFixture": false
+  },
+  "specification": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sha256": "fa7d94932897c65887b1b6eb8b43a8c6f7a0567192f4483db98b9f4f856fce2e",
+    "relevantSection": "20.4.97 TABLECONTENT"
+  },
+  "peer": {
+    "repository": "/Users/dli/dev/libredwg",
+    "sourceCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "sourceDate": "2026-04-09",
+    "scratchSource": "/tmp/libredwg-tablecontent-probe-src",
+    "scratchBuild": "/tmp/libredwg-tablecontent-probe-build",
+    "binary": "/tmp/libredwg-tablecontent-probe-build/dwgread",
+    "binarySha256": "93ffd97e2419f4953b5b7fd2874333b443026d1a227d0b21ac2ec0026a9cfa34",
+    "trace": "/tmp/libredwg-tablecontent-independent-columns-fixed.log",
+    "traceSha256": "d5459aa6415602a493a4b6ed8fc2946c644b657d33e11ccbef5306f9cbc1868c",
+    "publishedPackageVersionExcluded": "The scratch build's generated PACKAGE_VERSION was LC2.2.0-2075-gef413dc7 and is build-environment contamination, not the peer source identity."
+  },
+  "scratchChanges": [
+    "Built from a git archive of the recorded LibreDWG source commit; the LibreDWG checkout itself was not changed by this probe.",
+    "Enabled the DEBUG_CLASSES TABLECONTENT schema route and added a direct class-name dispatch in decode.c because the ordinary dispatcher did not call the unstable decoder.",
+    "Added ODA-guided column custom-item-count, style-id, and width fields to the scratch dwg2.spec schema; these edits were only to investigate the peer decoder and are not an accepted peer implementation."
+  ],
+  "observations": [
+    "The scratch decoder recognized object handle 0xC94 as TABLECONTENT and printed nine columns and 20 rows.",
+    "The scratch trace's string stream positions for ldata.name and column names wrapped to values near UINT64_MAX; the corresponding strings printed empty. This does not provide valid independent string-span evidence.",
+    "At row 0/cell 0 the scratch decoder printed has_linked_data=38105602 at body position @116.0, although the field is consumed as a Boolean branch, then printed six cell contents and ten attributes. The linked-data value is not Boolean and shows that the schema decode is already misaligned or otherwise invalid before the disputed ATTDEF target.",
+    "The first printed ATTDEF reference was hard-pointer code 0x05, absolute handle 0x11, displayed by the peer as STYLE Standard. The existing paired-DXF evidence independently identifies handle 0x11 as STYLE and finds no ATTDEF at that handle, but this scratch decode does not identify the intended target or independently establish the preceding span."
+  ],
+  "currentMaskFollowUp": {
+    "date": "2026-11-02",
+    "purpose": "Re-run the stale scratch decoder after changing only its CadValue payload-suppression mask to match the ODA rule and current LibreDWG master source.",
+    "officialMasterSourcesChecked": [
+      {
+        "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/dwg_spec_shared.h",
+        "observation": "TABLE_value_fields suppresses the type-specific payload only when the R2007+ format_flags low bit is set (format_flags & 1)."
+      },
+      {
+        "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/classes.inc",
+        "observation": "AcDbTableContent remains routed as UNSTABLE_CLASS_CPP, so current master does not establish this as an independently qualified standalone decoder."
+      },
+      {
+        "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/dwg2.spec",
+        "observation": "The current schema includes the standalone TABLECONTENT body fields, but the class stability route above still limits its evidentiary weight."
+      }
+    ],
+    "scratchDelta": {
+      "baseCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "baseDate": "2026-04-09",
+      "file": "/tmp/libredwg-tablecontent-probe-src/src/dwg_spec_shared.h",
+      "changedExpression": "(FIELD_VALUE (value.format_flags) & 3) -> (FIELD_VALUE (value.format_flags) & 1)",
+      "resultingFileSha256": "6eab360539033bda9e75261c2148a670ef9316dd22ad6d98217cf34f0a944792",
+      "scratchBinarySha256": "6964fe98924601e39cd8dedce948af1889ad7fda3bac3d3a16217e7d7b570450"
+    },
+    "run": {
+      "command": "/tmp/libredwg-tablecontent-probe-build/dwgread -v5 -O DXF -o /tmp/libredwg-tablecontent-current-mask.dxf /private/tmp/dwg-example-2013.dwg",
+      "exitCode": 133,
+      "result": "Stopped by Trace/BPT trap (signal 5); no output DXF was produced.",
+      "trace": "/tmp/libredwg-tablecontent-current-mask.log",
+      "traceSha256": "6f1386a359489765929c4f922e0d7be5a5bb738db8141cefe172c0542053cf74"
+    },
+    "observations": [
+      "With the low-bit mask, the previously nonsensical linked-data value becomes Boolean 0. This resolves that specific stale-mask divergence and agrees with ODA plus the current master source; it does not validate the rest of the scratch schema.",
+      "The decoder still reports 208 attributes for the first cell, uses wrapped string-stream positions, resolves the disputed hard-pointer reference 0x11 as STYLE, and logs repeated handle-buffer overflows at the object end before the process traps.",
+      "The scratch route still required forced dispatch and schema edits and was built from the stale April commit, not current master."
+    ],
+    "assessment": "The initial non-Boolean linked-data observation was caused by the scratch copy's stale &3 mask and must not be attributed to current LibreDWG master. Correcting that mask removes the symptom, but the scratch result remains malformed and cannot adjudicate the physical TABLECONTENT span, the intended ATTDEF target, or producer conformance."
+  },
+  "assessment": {
+    "adjudication": "The peer class is deliberately routed through an unstable/debugging decoder in its source tree. The scratch route needed dispatcher and ODA-guided schema edits. Its initial non-Boolean linked-data field came from a stale &3 mask that differs from current master and ODA; with the mask corrected, invalid string offsets, a 208-attribute count, the unrelated STYLE handle, handle-buffer overflows, and a process trap remain. The scratch route cannot adjudicate the TABLECONTENT body/string/handle spans or establish a producer violation of ODA.",
+    "implementationBoundary": "Keep TABLECONTENT 0xC94 incomplete and strict output refused. Do not change accepted handle roles or support claims based on this scratch result.",
+    "nextWork": "Use an eligible independent implementation that natively decodes standalone type 529, or independently reconstruct and cross-check the exact physical field spans against ODA before changing the parser."
+  },
+  "doesNotEstablish": [
+    "a producer deviation from ODA §20.4.97",
+    "that handle 0x11 is the intended ATTDEF target",
+    "a valid LibreDWG standalone TABLECONTENT decode",
+    "complete TABLECONTENT or AC1027 support",
+    "native TABLE rendering or strict whole-document output qualification"
+  ]
+}

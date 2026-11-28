@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-134 simple HATCH gradient CMC read/write slice",
+  "mode": "generated local fast test slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Correct R2004+ HATCH/MPOLYGON gradient stop decoding and encoding for the simple C2 true-color and C3 ACI methods.",
+    "Preserve the DXF projection distinction: C2 populates group-421 RGB; C3 populates per-stop group-63 ACI.",
+    "Keep all test DWG/DXF data generated locally at runtime and remove temporary outputs; add no committed drawing fixture."
+  ],
+  "sourceCrosswalk": {
+    "planOwner": "PAR-134 / 7Q",
+    "normativeSource": "Open Design Specification for .dwg files v5.4.1, §§2.11 and 20.4.75, local copy",
+    "codePaths": [
+      "readBoundedHatchGradient",
+      "DRW_Hatch::encodeDwgGradientData",
+      "dwgBufferW::putCmColor",
+      "dxfRW::validateHatchPayload",
+      "dwgRW::writeHatch",
+      "dwgRW::writeMPolygon"
+    ],
+    "evidenceBoundary": "Simple C2/C3 writer bytes are independently walked and the generated AC1024 output is parsed by libdxfrw to verify normalized stop values and following-entity alignment. A direct in-memory AC1018 body control verifies malformed nonzero reserved-BS/RC rejection and keeps the parser cursor/sentinel unconsumed. The reader vectors are local-writer-authored/mutated, not an independent third-party producer; AC1024 detached-string malformed bounds, named/book or other CMC methods, full gradient semantics, and external/native acceptance remain unqualified."
+  },
+  "implementation": {
+    "filesChanged": [
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "src/libdwgr.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/hatch-gradient-cmc-readwrite-fast-slice-2026-10-18.json"
+    ],
+    "reader": "Requires the R2004+ stop short to be zero and the RC continuation flags to be zero. C2 retains low-24-bit RGB only; C3 retains low-byte ACI only and refuses unrepresentable zero. Unsupported methods fail closed. Direct AC1018 malformed controls exercise both nonzero reserved-short and nonzero-RC refusal without advancing the publishing cursor.",
+    "writer": "Uses the shared CMC writer for supported C2/C3 values. Active gradient output rejects unmapped methods, simultaneous non-default ACI/RGB, and named/book values on the unqualified DWG route.",
+    "publication": "Failed active-gradient HATCH/MPOLYGON emission marks the staged DWG operation failed; non-gradient skipped-entity behavior is unchanged.",
+    "dxfProjection": "Allows recognized C2/C3 DWG metadata only when it agrees with normalized stop fields; emits DXF groups 421/63 and does not map group 431."
+  },
+  "verification": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_wave1_tests -j4",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-gradient-cmc",
+      "build-gcc/libdxfrw_wave1_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_wave1$|^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "git diff --check -- src/drw_entities.cpp src/libdxfrw.cpp src/libdwgr.cpp tests/dwg_local_roundtrip_tests.cpp tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/hatch-gradient-cmc-readwrite-fast-slice-2026-10-18.json",
+      "jq empty docs/research/hatch-gradient-cmc-readwrite-fast-slice-2026-10-18.json"
+    ],
+    "strictTargetBuilds": "passed",
+    "focusedSelector": "passed",
+    "wave1Executable": "passed",
+    "directMalformedReaderControls": "passed for AC1018 nonzero reserved-BS and RC cases; source cursor remains at object start and the following raw sentinel remains intact",
+    "refusalControls": "Unsupported method, unrepresentable C3 ACI zero, simultaneous ACI/RGB, color name, and color-book name each preserve the destination and pass a corrected same-writer retry.",
+    "owningCTest": {
+      "names": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "elapsedSeconds": 3.71
+    },
+    "checks": "Scoped git diff --check and jq empty passed."
+  },
+  "assessment": {
+    "productionFilesChanged": true,
+    "publicApiChanged": false,
+    "newCommittedDrawingFixtures": 0,
+    "newCTestRegistrations": 0,
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planDelta": {
+      "newFindings": 0,
+      "newTopLevelSubplans": 0,
+      "ownerStatus": "PAR-134 partially implemented; simple C2/C3 read/write forms locally verified",
+      "totals": {
+        "findings": 134,
+        "topLevelSubplans": 76
+      }
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "remaining": [
+    "Add an AC1024 malformed-reader vector to qualify nonzero reserved BS/RC rejection with the detached R2007 string-stream bounds.",
+    "Qualify named/book CMC string continuation and mappings before adding them to the DWG HATCH route.",
+    "Keep unsupported C0/C1/other CMC methods and simultaneous ACI/RGB inputs fail-closed until a format-backed precedence rule exists.",
+    "Broader HATCH/MPOLYGON gradient semantics and independent producer/native-consumer acceptance remain separate gates."
+  ],
+  "workingTree": {
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "The worktree already contains broad user changes. This uncommitted slice is limited to PAR-134 source, tests, plan progress, and this receipt; unrelated changes were preserved."
+  }
+}

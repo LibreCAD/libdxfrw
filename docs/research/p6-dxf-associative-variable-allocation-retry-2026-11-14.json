@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-dxf-associative-variable-allocation-retry-2026-11-14",
+  "date": "2026-11-14",
+  "status": "AC1024_ASSOCIATIVE_VARIABLE_TRANSACTION_CONTROL_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Generated direct-writer allocation rollback, failed-session reset, same-writer retry, and bounded raw-group readback for the AC1024 ACDBASSOCVARIABLE profile.",
+  "source": {
+    "format": "locally generated in-memory DRW_AssociativeObject",
+    "revision": "AC1024",
+    "record": "ACDBASSOCVARIABLE",
+    "profile": "AcDbAssocVariable v2 with real value, owner and network links",
+    "fixtureFilesAdded": 0,
+    "testSource": {
+      "path": "tests/associative_constraint_group_allocation_tests.cpp",
+      "sha256": "1b622c4dae87cefe623d09a176d2383ca6de0ff2145130b12a4bc1c577ec04ea"
+    }
+  },
+  "coverage": {
+    "writerRoute": "dxfRW::writeAssociativeVariable",
+    "encodings": ["ASCII", "Binary"],
+    "allocationFailureOffsets": {
+      "ASCII": 8,
+      "Binary": 7
+    },
+    "transactionAssertions": [
+      "Every injected failure is observed and returns failure.",
+      "The preallocated destination sink remains empty after every injected failure.",
+      "The caller's modeled variable, owner, network and prefix profile remain unchanged.",
+      "The source-handle remap context is rolled back.",
+      "After resetting the failed write session and writer error state, the same dxfRW and writer retry successfully.",
+      "Retry bytes are identical to clean output.",
+      "A fresh low-level DXF reader finds the variable, remapped identity/owner/network handles, name, expression, and following sentinel."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_associative_constraint_group_allocation_tests -j4",
+      "result": "PASS",
+      "executableSha256": "efdabfa70b2b517f825a4ad7b75adb5bab3a951c8e1acd037b982ca3cac857ec"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_associative_constraint_group_allocation_retry$' --output-on-failure",
+      "result": "PASS (1/1, 0.02 seconds); shared executable also reran the constraint-group matrix."
+    },
+    "directRun": {
+      "command": "build-gcc/tests/libdxfrw_associative_constraint_group_allocation_tests",
+      "result": "PASS; associative variable passed 8 ASCII and 7 Binary allocation offsets, rollback, same-writer retry, byte identity, and bounded raw-group readback."
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated AC1024 transaction/self-readback evidence only; no producer, native consumer, graph-closure, or variable-evaluation semantic claim is established.",
+    "The direct writer's failed-session error state is explicitly reset before retry; this does not test a full dxfRW::write facade retry.",
+    "No DWG or DXF fixture was committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The direct ACDBASSOCVARIABLE route now has allocation rollback/retry/readback coverage in both encodings.",
+    "remaining": "P6-G remains open for the complete public-writer inventory and its remaining untested overloads and variable-size routes."
+  }
+}

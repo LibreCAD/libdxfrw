@@ -1,0 +1,34 @@
+{
+  "title": "DICTIONARYVAR DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated local DICTIONARYVAR direct-codec transaction control across inline and detached stream layouts",
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "method": "DRW_DictionaryVar::encodeDwg",
+    "behavior": "Stage each distinct effective body, value-string, and handle destination. Publish only after the schema byte, value text, and common handle prefix all succeed; preserve version and alias routing."
+  },
+  "control": {
+    "file": "tests/dimassoc_dwg_encoder_allocation_tests.cpp",
+    "profile": "Locally generated DICTIONARYVAR with heap-backed value text, schema, parent, reactors, and extension dictionary.",
+    "cases": [
+      {"version": "AC1012", "mode": "inline body", "reached_allocation_offsets": 9},
+      {"version": "AC1018", "mode": "inline text and detached handles", "reached_allocation_offsets": 12},
+      {"version": "AC1021", "mode": "separate body/string/handle streams", "reached_allocation_offsets": 21},
+      {"version": "AC1021", "mode": "shared string and handle stream", "reached_allocation_offsets": 18},
+      {"version": "AC1021", "mode": "all streams resolve to body", "reached_allocation_offsets": 16},
+      {"version": "AC1021", "mode": "body string and detached handles", "reached_allocation_offsets": 19},
+      {"version": "AC1021", "mode": "detached string and body handles", "reached_allocation_offsets": 19}
+    ],
+    "failure_assertions": "Every reached one-shot allocation failure leaves caller stream bytes, cursors, health, and handle-occurrence ledgers unchanged. The same DICTIONARYVAR and buffers then retry to output matching the clean encoding.",
+    "fixtures_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j2",
+    "focused_tests": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_encoder_allocation_retry|libdxfrw_dwg_object_vectors|libdxfrw_dictionaryvar_legacy|libdxfrw_dictionaryvar_transactions|libdxfrw_dictionaryvar_custom_owners)$' --output-on-failure",
+    "result": "All 114 reached DICTIONARYVAR allocation offsets passed rollback and same-object retry. The combined encoder allocation test passed, as did the object-vector and three DICTIONARYVAR behavior/transaction CTests (4/4). git diff --check passed."
+  },
+  "limits": [
+    "Generated local codec transaction evidence only; no new field, producer, or support profile is established.",
+    "This does not close dictionary graph dependency, source-reference, or whole-drawing publication gates."
+  ]
+}

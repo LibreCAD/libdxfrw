@@ -1,0 +1,235 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-forum-constraint-registry-candidate-2026-11-10",
+  "date": "2026-11-10",
+  "status": "PARTIAL_BOUNDED_REGISTRY_CANDIDATE_NO_OUTPUT_ADMISSION",
+  "supportClaimEffect": "none",
+  "source": {
+    "previousReceipt": "docs/research/p4-ac1032-forum-constraint-group-prefix-candidate-2026-11-10.json",
+    "path": "/private/tmp/p4-autodesk-forum-constraints.dwg",
+    "sha256": "685bf22ed533121238c62c07357bf03fa6ddb40983cff7967c481fbb244b6b4f",
+    "objectsSha256": "0d76bd5ae9e762cae2b8c972874d3cc908e41639501b8100e5eea5580175a5fb",
+    "object": "ACDBASSOC2DCONSTRAINTGROUP 0x2A8",
+    "integrity": "The same LTYPE_CONTROL integrity error and HEADER/BLOCK_CONTROL warnings persist; full output remains refused."
+  },
+  "schemaEvidence": {
+    "oda": "ODA Open Design Specification v5.4.1 defines DWG B, BS, BL and TU primitives, but has no class-specific ACDBASSOC2DCONSTRAINTGROUP layout.",
+    "acadrustRevision": "ce8a148568e7a80a80f50797bf287a651d1259c7",
+    "acadrustVersion": "0.6.8",
+    "peerGrammar": "ACadRust treats the BL at bit 121 as next-node-ID seed, followed in AC1027+ by a root, detached class string table and registry. Its strict read of this exact source reports seed 13, root ID 0 and 13 registered nodes; LibreDWG interprets the first BL as node count and fails while parsing node data.",
+    "reportedNativeEvidence": "Pinned peer repository tests/support/issue135_autocad/RESULTS.md reports AutoCAD 2027 native evaluation, audit and roundtrip for generated AC1024/27/32 groups, including registered nodes, but the native DWG files and complete logs are not in that repository; this is peer-reported evidence, not an independently rerun native proof.",
+    "physicalSpanLimit": "The separate bounded Python walker verifies the observed primitive values and UTF-16 strings against exact source/decompressed-section hashes. The section decoder is libdxfrw, and field meaning/order comes from the ACadRust peer grammar."
+  },
+  "witness": {
+    "source_sha256": "685bf22ed533121238c62c07357bf03fa6ddb40983cff7967c481fbb244b6b4f",
+    "objects_sha256": "0d76bd5ae9e762cae2b8c972874d3cc908e41639501b8100e5eea5580175a5fb",
+    "handle": "0x2A8",
+    "fields": [
+      {
+        "field": "next_node_id_candidate",
+        "kind": "BL",
+        "start_bit": 121,
+        "end_bit": 131,
+        "value": 13
+      },
+      {
+        "field": "root_id_candidate",
+        "kind": "BL",
+        "start_bit": 131,
+        "end_bit": 133,
+        "value": 0
+      },
+      {
+        "field": "root_connection_count_candidate",
+        "kind": "BL",
+        "start_bit": 133,
+        "end_bit": 135,
+        "value": 0
+      },
+      {
+        "field": "root_flag_candidate",
+        "kind": "B",
+        "start_bit": 135,
+        "end_bit": 136,
+        "value": 0
+      },
+      {
+        "field": "class_type_count_candidate",
+        "kind": "BL",
+        "start_bit": 136,
+        "end_bit": 146,
+        "value": 6
+      },
+      {
+        "field": "registered_count_candidate",
+        "kind": "BL",
+        "start_bit": 146,
+        "end_bit": 156,
+        "value": 13
+      }
+    ],
+    "strings": [
+      {
+        "start_bit": 2418,
+        "end_bit": 2812,
+        "units": 24,
+        "value": "AcConstrainedBoundedLine"
+      },
+      {
+        "start_bit": 2812,
+        "end_bit": 3238,
+        "units": 26,
+        "value": "AcConstrainedImplicitPoint"
+      },
+      {
+        "start_bit": 3238,
+        "end_bit": 3600,
+        "units": 22,
+        "value": "AcPointCurveConstraint"
+      },
+      {
+        "start_bit": 3600,
+        "end_bit": 3866,
+        "units": 16,
+        "value": "AcConstrainedArc"
+      },
+      {
+        "start_bit": 3866,
+        "end_bit": 4244,
+        "units": 23,
+        "value": "AcCenterPointConstraint"
+      },
+      {
+        "start_bit": 4244,
+        "end_bit": 4558,
+        "units": 19,
+        "value": "AcTangentConstraint"
+      }
+    ],
+    "registry": [
+      {
+        "start_bit": 156,
+        "end_bit": 177,
+        "flag": 0,
+        "class_index": 1,
+        "node_id": 1,
+        "class_name": "AcConstrainedBoundedLine"
+      },
+      {
+        "start_bit": 177,
+        "end_bit": 198,
+        "flag": 0,
+        "class_index": 2,
+        "node_id": 2,
+        "class_name": "AcConstrainedImplicitPoint"
+      },
+      {
+        "start_bit": 198,
+        "end_bit": 219,
+        "flag": 0,
+        "class_index": 3,
+        "node_id": 3,
+        "class_name": "AcPointCurveConstraint"
+      },
+      {
+        "start_bit": 219,
+        "end_bit": 240,
+        "flag": 0,
+        "class_index": 2,
+        "node_id": 4,
+        "class_name": "AcConstrainedImplicitPoint"
+      },
+      {
+        "start_bit": 240,
+        "end_bit": 261,
+        "flag": 0,
+        "class_index": 3,
+        "node_id": 5,
+        "class_name": "AcPointCurveConstraint"
+      },
+      {
+        "start_bit": 261,
+        "end_bit": 282,
+        "flag": 0,
+        "class_index": 4,
+        "node_id": 6,
+        "class_name": "AcConstrainedArc"
+      },
+      {
+        "start_bit": 282,
+        "end_bit": 303,
+        "flag": 0,
+        "class_index": 2,
+        "node_id": 7,
+        "class_name": "AcConstrainedImplicitPoint"
+      },
+      {
+        "start_bit": 303,
+        "end_bit": 324,
+        "flag": 0,
+        "class_index": 3,
+        "node_id": 8,
+        "class_name": "AcPointCurveConstraint"
+      },
+      {
+        "start_bit": 324,
+        "end_bit": 345,
+        "flag": 0,
+        "class_index": 2,
+        "node_id": 9,
+        "class_name": "AcConstrainedImplicitPoint"
+      },
+      {
+        "start_bit": 345,
+        "end_bit": 366,
+        "flag": 0,
+        "class_index": 3,
+        "node_id": 10,
+        "class_name": "AcPointCurveConstraint"
+      },
+      {
+        "start_bit": 366,
+        "end_bit": 387,
+        "flag": 0,
+        "class_index": 2,
+        "node_id": 11,
+        "class_name": "AcConstrainedImplicitPoint"
+      },
+      {
+        "start_bit": 387,
+        "end_bit": 408,
+        "flag": 0,
+        "class_index": 5,
+        "node_id": 12,
+        "class_name": "AcCenterPointConstraint"
+      },
+      {
+        "start_bit": 408,
+        "end_bit": 429,
+        "flag": 0,
+        "class_index": 6,
+        "node_id": 13,
+        "class_name": "AcTangentConstraint"
+      }
+    ]
+  },
+  "change": "For a previously admitted AC1032 version-2 two-action fixed prefix, use independent body and text cursors and a fixed 256-entry stack array to validate a candidate seed, root-zero/zero-connections/false flag, bounded nonempty UTF-16 slots, bounded registered count, false registry flags, valid class indexes, and unique positive node IDs no greater than the candidate seed. Class slots are skipped as bounded opaque bytes, not decoded or semantically validated by production. Publish m_constraintNextNodeIdRead/seed and the Partial prefix status decoded-value count only after the entire registry validates. Leave m_constraintNodeCount and m_constraintNodes untouched because the 13 registered nodes exclude the root; leave bodyParsed/nodesParsed false, real cursors unadvanced and exact raw carrier retained. This introduces no registry heap allocations.",
+  "validation": {
+    "focusedBuild": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests libdxfrw_assoc_group_registry_allocation_tests -j4",
+    "focusedTests": "libdxfrw_assoc_group_registry_allocation, libdxfrw_constraint_group_ac1032_candidate_generated, libdxfrw_assocnetwork_ac1032_candidate_generated, libdxfrw_assocnetwork_ac1032_multi_action_generated, libdxfrw_associative_constraint_group_generated: 5/5 pass",
+    "malformed": "Wrong action role; truncated group body or handle; duplicate, zero or above-seed node ID; invalid class index; truncated string slot or registry entry; count over stack bound; nonzero root/registry flag. Each preserves raw bytes, withholds unvalidated seed and succeeds on corrected same-reader retry.",
+    "allocation": "Direct generated parser sweep injected faults at all 164 observed allocation offsets; every failure returned false, invalidated the failed cursor and reset action/seed/prefix state, then the same object succeeded on retry. This covers full-parser allocations; registry-specific staging uses fixed stack storage.",
+    "physical": "Current dwg2dxf debug run reports candidate seed/classes/registry=13/6/13, 145/145 published frames, zero entity/object parse failures, and strict conversion refusal at existing gates.",
+    "physicalLogSha256": "8317a24838b36128b078ccab43c4291eaf55b9bb0ffed8ea1dff8601aaac89cc",
+    "peer": "ACadRust 0.6.8 strict read (failsafe=false) reports stream_completed=true, 145 source records, 136 decoded source records, zero skipped, recovered errors or diagnostics; group 0x2A8 contains 14 peer nodes including root 0 and IDs 1\u201313. These counters do not certify whole-source graph integrity.",
+    "peerLogSha256": "bff7ca57158fa39182d37f9090b2946ae6acbf6438c6f819af09630781b1dc6f",
+    "peerExecutableSha256": "08a143487d309ec1981419a7451c4ae700d092338506ebddfcbea07e63ce09f9",
+    "peerHarness": "tools/research/acadrust_constraint_group_probe.rs",
+    "peerHarnessSha256": "50f51a2393ab215bfa299c217b134bda10d377122ced1f10a470783fecbe8797",
+    "walker": "tools/research/ac1032_forum_constraint_registry_spans.py",
+    "walkerSha256": "4a64e621341d34f80fb5eb0768fbb5229afccd06d0176d9cebbe7f32b92c1f82",
+    "walkerOutputSha256": "08da2db5729913000c0e1f1bb3ba31cb244663fc337b87c54f40bd7f8b233e7f",
+    "noFixtureAdded": true
+  },
+  "remaining": "Class names, registry flag semantics and each node body are not validated or published by production; source/target graph closure, native consumer behavior, whole-source integrity and class-specific specification remain open. No output or support promotion."
+}

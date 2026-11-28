@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-oriented-grip-record-output-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 alignment, flip, and linear grip DXF record profiles",
+  "status": "AC1024_ORIENTED_GRIP_RECORD_OUTPUT_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "version": "AC1024",
+    "fixturePolicy": "Existing local input was read in place. No DWG/DXF fixture was added to Git; per-record DXF outputs were temporary and removed by the test selector."
+  },
+  "independentStructuralComparison": {
+    "implementation": "GNU LibreDWG dwgread/dwg2dxf 0.14",
+    "commands": [
+      "/opt/homebrew/bin/dwgread -O JSON tests/samples/AC1024/architectural_example-imperial.dwg",
+      "/opt/homebrew/bin/dwg2dxf -y --as r2010 -o /private/tmp/arch-libredwg-reference.dxf tests/samples/AC1024/architectural_example-imperial.dwg"
+    ],
+    "observedRecords": {
+      "BLOCKALIGNMENTGRIP": 2,
+      "BLOCKFLIPGRIP": 3,
+      "BLOCKLINEARGRIP": 4
+    },
+    "fieldOrder": "All three records use AcDbEvalExpr, AcDbBlockElement, and AcDbBlockGrip prefixes. Alignment and linear append AcDbBlockAlignmentGrip or AcDbBlockLinearGrip plus groups 140/141/142. Flip appends AcDbBlockFlipGrip, groups 140/141/142, then group 93 combined_state.",
+    "limits": "Used as structural field-order and typed-field comparison only. The LibreDWG converter reports unrelated unstable associative-class warnings and is not a semantic or native-application oracle."
+  },
+  "implementation": {
+    "dxfRead": "AC1024-only exact group sequence; bounded signed 32-bit integers, 0/1 cycling flag, finite location/orientation, exact subclass tail, and retained element-name budget. Extra or malformed body groups remain raw-only.",
+    "dxfWrite": "AC1024-only typed profile; source handle/owner retained, 29/2 source EvalExpr and element versions projected to 33/29, class-specific orientation and flip combined-state fields emitted in the observed order.",
+    "notQualified": "The architectural source still has nine other dynamic-block class families and two EvaluationGraph roots. This per-record proof does not admit the full source graph or qualify native dynamic-block behavior."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS with warning-as-error enabled."
+    },
+    "authoredProfiles": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_oriented_grips$' --output-on-failure",
+      "result": "PASS, 1/1; ASCII and Binary exact groups, typed readback, non-finite refusal preserving destination, and corrected same-writer retry for each grip class."
+    },
+    "physicalProfiles": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-oriented-grips tests/samples/AC1024/architectural_example-imperial.dwg",
+      "result": "PASS; all 2 alignment, 3 flip, and 4 linear grips emitted individually in ASCII and Binary and freshly reimported with typed field comparisons."
+    },
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN; focused warning-as-error build and fast record-level test used."
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "c8030a81ab60637f47fb1bbec01a3596e1520ff057ae1c6121ab10fa17fd52b0",
+    "dwg2dxf/dx_iface.cpp": "96b388ac5f8896f4e8199db03e2bbb653be4903a7282ddda53fc3481ae77265a",
+    "src/libdxfrw.cpp": "8f9e7de7f71684809995ab3f8f6a2e0ec8ae2b87b37ccb81109d83b351e51d76",
+    "tests/CMakeLists.txt": "6528ee996f8bf9339ecf490d0418c0b6fd3238c71151e3b8f0c626e943f0ba47",
+    "tests/dwg2dxf_adapter_tests.cpp": "e19c1263354803696d7f185ebcef340fd6245007a2a759ba036e4451559b87cf"
+  },
+  "externalItemsPromoted": 0
+}

@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw-mleader-low-level-reference-handle-remap-fast-slice-v1",
+  "completedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Apply source-to-emitted handle remapping to modeled MLEADER DXF references and reject non-null references mapped to zero before publishing the entity record.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "b3df6aaa1c47b5bd8c31c7b8f03440f7b55458742b25334ce37cee663c21d90a",
+      "tests/wave1_tests.cpp": "048f62eb6fce785fbba5c8c9d7cecce400f2e3f02bfa0901c0e00006d672c04d"
+    },
+    "referenceScopes": [
+      "Entity style, linetype, arrowhead, text-style, and content-block references.",
+      "Context text-style and block-record references.",
+      "Leader-line linetype and arrowhead references.",
+      "AC1021 legacy arrowhead and block-label ATTDEF references."
+    ],
+    "behavior": [
+      "All emitted nonzero reference groups use remapObjectHandle() results.",
+      "Any emitted nonzero reference mapped to zero refuses before EntityRecordScope publishes bytes.",
+      "Generated ASCII/binary controls retain following-record framing and parity."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_mleader_writer_version|dwg2dxf_mleader_fail_closed|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "build-gcc/libdxfrw_wave1_tests --mleader-writer-validation",
+      "git diff --check"
+    ],
+    "results": [
+      "Both focused targets built successfully.",
+      "Focused CTest set passed 3/3.",
+      "Expanded MLEADER writer validation passed.",
+      "Scoped whitespace check passed."
+    ],
+    "fullSuiteRun": false,
+    "generatedControls": "Constructed from scratch and deleted; no external drawing fixture was committed.",
+    "dependencyAdded": false,
+    "testRegistrationAdded": false,
+    "gitCommitCreated": false,
+    "gitMetadataWritable": false
+  },
+  "evidenceLimits": {
+    "targetKindUniqueness": "NOT_ESTABLISHED; handles are mapped but not joined against a typed emitted-object inventory.",
+    "ownerLayoutBlockClosure": "NOT_ESTABLISHED",
+    "styleRootClosure": "NOT_ESTABLISHED",
+    "adapterMLeaderSerializer": "NOT_IMPLEMENTED",
+    "independentProducerReadback": "NOT_RUN",
+    "nativeConsumerQualification": "NOT_RUN",
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "nextReadySlice": "Build typed target-kind and uniqueness closure against the adapter's final emitted object inventory; keep adapter export fail-closed until entity serialization and all object/owner edges are integrated transactionally."
+}

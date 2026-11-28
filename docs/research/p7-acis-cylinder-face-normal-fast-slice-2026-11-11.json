@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-acis-cylinder-face-normal-fast-slice-2026-11-11",
+  "purpose": "Record a local parser-fed normal evaluation for the canonical untrimmed ACIS cylinder surface profile.",
+  "implementation": {
+    "api": "drw_evaluateAcisCylinderFaceNormal",
+    "profile": "Canonical circular cylinder represented by the ACIS cone-surface fields accepted by acisCylinderSurfaceFrame (ratio=1, sineAngle=0, cosineAngle=1).",
+    "behavior": [
+      "Requires a finite point, finite nonnegative caller-supplied linear tolerance, and known face sense.",
+      "Requires the point to lie within that explicit tolerance of the untrimmed cylinder locus.",
+      "Returns the radial unit direction with the retained face-sense orientation.",
+      "Rejects points on the axis because the radial normal is not unique.",
+      "Leaves the caller output unchanged on every failure."
+    ],
+    "numerics": "Uses an axis-aligned radial path that isolates perpendicular coordinates and a scaled delta/projection path for general axes; extreme point-origin subtraction uses coordinate scaling.",
+    "claimBoundary": "Local geometry utility only; it does not establish native ACIS face-orientation semantics, trims, placement, units, B-rep validity, or consumer support."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_graph_preservation_tests -j4",
+    "test": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "result": "PASS: 1/1 focused graph-preservation CTest.",
+    "generatedCases": [
+      "forward and reversed face sense",
+      "non-unit axis with an oblique radial direction",
+      "oblique axis where finite point-origin subtraction overflows near DBL_MAX",
+      "axis singularity refusal",
+      "just-outside-tolerance refusal",
+      "unknown face-sense refusal",
+      "non-finite point refusal",
+      "output preservation on failure"
+    ]
+  },
+  "fixturePolicy": "No DWG, DXF, or SAT fixture was added; the test uses the existing in-memory parser-fed SAB control.",
+  "supportEffect": "No format, consumer, native semantic, or support claim was promoted."
+}

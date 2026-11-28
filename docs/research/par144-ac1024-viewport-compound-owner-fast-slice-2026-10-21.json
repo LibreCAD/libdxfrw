@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-21",
+  "type": "implementation-fast-slice",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "owner": "7G.3 / PAR-144 multi-layout DWG ownership graph",
+  "slice": "Generated exact-layout viewport and compound INSERT/ATTRIB/SEQEND ownership",
+  "sources": [
+    {
+      "project": "Open Design Alliance DWG specification v5.4.1",
+      "reference": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sections": [
+        "20.4.38 VIEWPORT ENTITY",
+        "20.4.69 VIEWPORT ENTITY CONTROL",
+        "20.4.70 VIEWPORT ENTITY HEADER"
+      ],
+      "observation": "The DWG VIEWPORT entity section specifies geometry/view fields and common handles but does not list DXF group 69 vpID. VIEWPORT ENTITY CONTROL type 70 and VIEWPORT ENTITY HEADER type 71 are separate objects.",
+      "disposition": "Do not assert DXF vpID values in DWG entity tests. Compare DWG viewport entity handles, owners, LAYOUT last-active references, and R2004+ count/list. Keep ID 1/2 profiles in DXF-only tests."
+    },
+    {
+      "project": "Local libdxfrw viewport codec",
+      "references": [
+        "src/drw_entities.cpp: DRW_Viewport::parseDwg",
+        "src/drw_entities.cpp: DRW_Viewport::encodeDwg",
+        "src/drw_entities.cpp: DRW_Viewport::parseCode / DXF group 69 handling",
+        "src/libdxfrw.cpp: DXF group 69 write"
+      ],
+      "observation": "The DWG parse/encode functions do not read/write vpID; DXF parse/write does. A generated AC1015 experiment emitted type-34 viewport frames that the local reader reported as failed entities; AC1024 exposed viewport entities but not DXF vpID values.",
+      "disposition": "AC1015 warning remains an unresolved writer-vs-reader boundary pending direct chain/handle-stream and independent parser inspection. Do not attribute cause or promote support from this same-codec experiment."
+    }
+  ],
+  "implementation": {
+    "changedFiles": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Extended the generated DWG test with separate line/text markers in two paper-layout owners, two AC1024 viewport entities per layout with exact LAYOUT references, a distinct ordinary block, and a ModelSpace INSERT/ATTRIB/SEQEND chain. AC1015 uses the legacy chain line/text case without viewport entities while the type-34 warning remains unresolved.",
+    "productionCodeChanged": false,
+    "fixtureFilesAdded": 0,
+    "dependencyAdded": false,
+    "supportClaimPromoted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "buildPassed": true,
+    "testCommand": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$' --output-on-failure",
+    "testsPassed": 1,
+    "testsFailed": 0,
+    "elapsedSeconds": 0.36,
+    "fullSuiteRun": false,
+    "peerExecutableRun": false,
+    "nativeCadRun": false
+  },
+  "remaining": [
+    "Direct AC1015 entity-chain and type-34 viewport frame inspection",
+    "Direct AC1024 BLOCK_HEADER owned-list byte-stream inspection",
+    "Active/current layout selection and non-default current layout",
+    "Malformed duplicate/missing/nonreciprocal graph controls",
+    "One composed exact-pinned independent structural/native qualification"
+  ],
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "limitations": "The generated same-codec roundtrip is fast internal evidence, not independent acceptance. No external sample, persistent fixture, peer, or native CAD application was used. The source/test worktree remains broadly dirty from prior implementation; changes were not committed or broadly staged."
+}

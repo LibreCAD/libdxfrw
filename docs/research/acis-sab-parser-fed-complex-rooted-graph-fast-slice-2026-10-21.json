@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw-acis-sab-parser-fed-complex-rooted-graph-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "slice": "S3.7c parser-fed multi-lump/shell/loop graph",
+  "change": {
+    "files": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "Added a test-local serializer for generated ACIS BinaryFile 21800 graph tokens and exercised the complex rooted graph through parse/build/project. Compared semantic pointer rows and projection reachability, graph links, loop order, cycle counters, unsupported branch counters, and exact outside-root counts for an unreachable vertex/edge/face against the in-memory control. Accounted for the explicit terminal node in the parsed graph.",
+    "persistentDwgDxfSabFixtureAdded": false,
+    "productionParserChanged": false,
+    "dependencyOrTestRegistrationChanged": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS 1/1"
+    }
+  ],
+  "evidenceCeiling": "Generated 21800 transport, shared-prefix alignment, graph-reference rows, ordered rooted topology traversal, cycles, unsupported-branch accounting, outside-root counts, and terminal-marker retention only. This does not validate arbitrary SAB grammar, ACIS B-rep semantics, units/transforms, DWG AcDs association, or native consumers.",
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "next": "Generate a wire-fed defined-owner mismatch negative and assert transactional OwnerMismatch failure with exact node and pointer ordinal diagnostics."
+}

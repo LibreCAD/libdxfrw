@@ -1,0 +1,36 @@
+{
+  "title": "UCS DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated local UCS direct-codec transaction control across legacy inline, detached, separate, and aliased stream layouts",
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "method": "DRW_UCS::encodeDwg",
+    "behavior": "Stage the body, detached string destination, and detached handle destination while preserving aliasing and the existing version-specific UCS coordinate, orthographic-option, common-handle, xref, base-UCS, and named-UCS encoding. Publish only after each staged buffer remains healthy."
+  },
+  "control": {
+    "file": "tests/dimassoc_dwg_encoder_allocation_tests.cpp",
+    "profile": "Locally generated UCS with two reactors, extension dictionary, nondefault origin/axes/elevation, two orthographic options, and xref/base/named UCS handles.",
+    "tested_route": "Protected direct encodeDwg exposed through a test-only derived probe",
+    "cases": [
+      {"version": "AC1012", "mode": "inline", "reached_allocation_offsets": 9},
+      {"version": "AC1018", "mode": "inline text with detached handles", "reached_allocation_offsets": 15},
+      {"version": "AC1021", "mode": "separate string and handle streams", "reached_allocation_offsets": 25},
+      {"version": "AC1021", "mode": "shared string and handle stream", "reached_allocation_offsets": 22},
+      {"version": "AC1021", "mode": "all body", "reached_allocation_offsets": 16},
+      {"version": "AC1021", "mode": "body-aliased string and detached handles", "reached_allocation_offsets": 20},
+      {"version": "AC1021", "mode": "separate string and body-aliased handles", "reached_allocation_offsets": 21}
+    ],
+    "failure_assertions": "Every reached one-shot allocation failure leaves caller body, strings, handles, cursors, health, and handle-occurrence ledgers unchanged. The same object and buffers then retry to clean output.",
+    "fixtures_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j2",
+    "focused_tests": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_encoder_allocation_retry|libdxfrw_dwg_object_vectors|libdxfrw_ac1012plus_ucs_handle_roles|libdxfrw_ucs_base_header_fields|libdxfrw_ucs_base_name_target_closure|libdxfrw_view_ucs_original_sources)$' --output-on-failure",
+    "result": "The allocation control reports all seven layouts passing rollback/retry across 128 offsets. All six focused CTests passed, including the original-source UCS/view cohort."
+  },
+  "limits": [
+    "Generated local transaction evidence only; it does not establish additional UCS wire layouts or producer support profiles.",
+    "The tests verify local output invariants and existing bounded source behavior, not native CAD acceptance or whole-document qualification.",
+    "Source/reference graph closure beyond the exercised UCS cases remains open."
+  ]
+}

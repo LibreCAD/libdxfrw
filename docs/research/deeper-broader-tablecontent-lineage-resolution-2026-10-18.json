@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw-deeper-broader-tablecontent-lineage-resolution-v1",
+  "reviewedAt": "2026-10-18",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "baselineQualification": "The shared worktree was already dirty; local observations describe the visible worktree, not a clean commit.",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Resolve ACadSharp #1264's TABLE block-cell value discrepancy against ODA v5.4.1 and current local generated coverage; broaden the open-source route-lineage screen without promoting downstream wrappers to parser evidence.",
+  "method": {
+    "kind": "Primary-source repository/spec research plus local source and generated-test inspection",
+    "testsRun": false,
+    "implementationChanged": false,
+    "planChanged": true,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sources": [
+      "https://github.com/DomCR/ACadSharp/issues/1264",
+      "https://github.com/DrunkOnJava/dwg-rs",
+      "https://github.com/iyulab/uncad",
+      "https://github.com/milkway/dwg2geo",
+      "https://github.com/diskd-ai/dwg2png",
+      "https://github.com/hhcme/ft_model",
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "local ODA v5.4.1 specification §§20.4.96.2, 20.4.97, 20.4.99"
+    ],
+    "localInspection": [
+      "src/drw_entities.cpp: AC1024 TABLE/TABLECONTENT block-content parsing",
+      "tests/dwg_object_vectors_tests.cpp: testR2010EmbeddedTableContentVector generated block hard-pointer control",
+      "tests/dwg2dxf_adapter_tests.cpp: generated ASCII/Binary ambiguous empty CELL_VALUE control",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-126/7G.3d and existing peer-lineage routes"
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "ODA TABLECONTENT tagged-content grammar",
+      "observed": "ODA §20.4.97 defines a counted content list. Type Value carries the common Value payload; type Block carries a hard pointer to a BLOCK_RECORD and may carry ATTDEF attributes. The Block branch has no Value payload. ODA §20.4.96.2 places AC1024+ TABLE data on the new TABLECONTENT route, and §20.4.99 defines the common Value representation.",
+      "interpretation": "A block-content record should be represented by its block reference and associated attributes, not by a synthesized empty-string Value. This is a schema inference from the mutually exclusive type branches.",
+      "doesNotEstablish": [
+        "the meaning or validity of every AutoCAD DXF CELL_VALUE/group-300 sequence",
+        "native AutoCAD acceptance of libdxfrw output",
+        "complete TABLE or TABLECONTENT read/write support"
+      ]
+    },
+    {
+      "topic": "ACadSharp #1264 discrepancy",
+      "observed": "The issue reports a DWG block cell with default/unknown CadValue and an AutoCAD-saved DXF representation with an empty string for paired AC1024/AC1027/AC1032 samples.",
+      "interpretation": "The report is a useful API/model/projection discrepancy lead, but the DXF representation is not a DWG wire-layout oracle. It does not overturn the ODA tagged-content branch.",
+      "doesNotEstablish": [
+        "raw DWG/DXF hashes or complete record context in the public issue body",
+        "that libdxfrw reproduces an ACadSharp reader defect",
+        "that DWG block content should contain a Value-type entry"
+      ]
+    },
+    {
+      "topic": "Existing local generated coverage",
+      "observed": "The AC1024 generated TABLE vector asserts one type-4 content entry, block handle 0xA720, and the exact cursor boundary after the following table data. The separate generated ASCII/Binary DXF ambiguity control preserves the block reference, refuses to invent an ATTDEF, marks the TABLE incomplete, and checks following-cell/entity alignment.",
+      "interpretation": "The exact type-4 DWG branch and the ambiguous DXF projection already have separate conservative controls; no duplicate test or implementation change is needed from this research pass.",
+      "doesNotEstablish": [
+        "native producer interoperability",
+        "full TABLE writer qualification",
+        "complete support for all cell-content types or versions"
+      ]
+    },
+    {
+      "topic": "Broader current open-source route screen",
+      "observed": "Current project sources still identify dwg-rs as a pre-alpha ODA-spec-derived reader, uncad as LibreDWG-backed for DWG with a separate DXF crate, dwg2geo as an ACadRust or LibreDWG/GDAL backend composition, dwg2png as ACadRust-backed, and ft_model as a source-distinct but low-maturity 2D candidate with reference correlation.",
+      "interpretation": "The reviewed wrappers and renderers add no distinct DWG parser lineage or independent ACIS/B-rep kernel result. Existing route-specific admission limits remain sufficient.",
+      "doesNotEstablish": [
+        "runtime behavior of any peer artifact",
+        "new independent DWG/DXF semantic evidence",
+        "ACIS/AcDs/B-rep or native FreeCAD qualification"
+      ]
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "fixturesOrDependenciesAdded": false,
+    "findingCount": 134,
+    "topLevelSubplanCount": 76,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

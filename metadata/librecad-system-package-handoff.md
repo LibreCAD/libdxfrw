@@ -6,10 +6,16 @@ clean target commit `6969e0a003414f9a7084349ac54bc2b32515e16b` on branch
 `codex/libdxfrw-system-package`. The user's dirty LibreCAD checkout was not
 modified.
 
+The current standalone development package has ABI major 3. The previously
+verified target commit requests major 2 and therefore cannot select the new
+package; update its version requirement to 3.0 and rebuild/requalify it before
+claiming system-package support for this candidate. The historical results
+below apply to the earlier major-2 package only.
+
 The LibreCAD integration change should add an opt-in
 `LIBRECAD_USE_SYSTEM_LIBDXFRW` CMake option. When enabled it must:
 
-1. call `find_package(libdxfrw 2.0 CONFIG REQUIRED)` and link
+1. call `find_package(libdxfrw 3.0 CONFIG REQUIRED)` and link
    `libdxfrw::libdxfrw` to `librecad_lib`, `librecad_filter_compile_check`, and
    the `libdxfrw_system_fast_tests` target;
 2. omit `libraries/libdxfrw/src` and `libraries/libdxfrw/src/intern` from

@@ -1,0 +1,64 @@
+{
+  "title": "DXF VIEWPORT ambient color name ordering",
+  "date": "2026-11-04",
+  "status": "bounded implementation with focused validation; no broader support claim",
+  "base_commit": "922b7b5af6ba862ea28ff0bc5c81ec5fce6f5ccc",
+  "problem": "A VIEWPORT with group 431 before 63 or 421 silently loses its ambient color-book name: parsing those later fields clears the independently retained name. DXF group order is not guaranteed.",
+  "change": "Remove only the 63/421 ambientColorName clear and corresponding retained-byte release. Those cases still reset all DWG CMC provenance fields. Group 431 still replaces and accounts for the name, and processViewport constructs a new DRW_Viewport per record. No public class, API, ABI, writer or DWG wire layout change.",
+  "authority": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "scope": "VIEWPORT ambient color uses groups 63, 421 and 431."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+      "scope": "DXF group order must not be assumed."
+    }
+  ],
+  "physical_source": "ezdxf 1.4.5 authored a paper-space VIEWPORT with ambient groups 63=7, 421=1193046 and 431=TEST$BLUE. ODA File Converter 27.1 converted it to AC1027 DWG and back to AC1027 DXF; the return carried 63=148, 421=1193046 and 431=TEST$BLUE, preserving true color and color-book name but changing ACI fallback. Hashes bind supplied files; the converter lineage is an observed manual join. Source and returned files each have zero ezdxf audit errors and fixes.",
+  "controlled_reordering": "The tool moves only the selected VIEWPORT 431 immediately ahead of its 63/421 fields in the ODA-returned DXF. The audit verifies every other group in the full DXF is unchanged; this reordered document is our controlled edit, not ODA output. The same selected record is placed in a minimal AC1027 wrapper, which does not claim whole-source graph closure.",
+  "baseline": "A probe linked to the pre-fix 156b3946 static library read the selected reordered projection successfully with ACI 148 and RGB 1193046 but an empty name. The fixed 922b7b5a scratch build reads the same projection successfully and returns TEST$BLUE. The only drw_entities.cpp differences between those revisions are the unrelated VERTEX tangent conversion.",
+  "validation": "The new focused test checks six permutations of 63/421/431 on ASCII and binary DXF, typed output/readback, explicit 421=0 versus absent, duplicate groups as existing per-field last-value behavior, record-to-record isolation, invalid RGB then same-reader retry, and direct invalidation of seeded DWG CMC provenance for each color field. It includes selected reordered physical record readback. Existing DWG viewport ambient CMC test and lc3_compat_check compile pass. Independent ezdxf 1.4.5 checks full source/controlled reordered DXF and generated ASCII/Binary outputs with zero audit errors/fixes; the selected projection is checked for exact record equality but not independently claimed as a valid whole drawing.",
+  "limits": [
+    "The full ODA-returned DXF invokes the selected callback but the native complete-file read fails later; this fix does not claim complete physical file or graph conversion.",
+    "No color-book rendering or full LibreCAD application qualification is claimed. Duplicate group behavior is only the library behavior exercised synthetically, not a claim about vendor interpretation of duplicates.",
+    "No fixture files are added to the shared repository."
+  ],
+  "candidate_files_sha256": {
+    "src/drw_entities.cpp": "d580a5d072ef7c47f4c68e758994f8b7c3d45ccb4bf9bcb16db5dde2d6654cc6",
+    "tests/CMakeLists.txt": "af93c8f883f5f74e76897e2358c784f19879284074074ed6c3525042e5792eb1",
+    "tests/dxf_viewport_ambient_color_order_tests.cpp": "a6c4ac880096321da7df3d26fd50c56905b757bd716fb2d6c426612a519d9346",
+    "tools/author_selected_viewport_color.py": "caba158b8eb489e6509753a5bc49e2fafd71552964eeddeab07775d74b5d6203",
+    "tools/audit_viewport_ambient_color_order.py": "3081a92657e73238ac9d3d5db01951ec735bac31210020104ee14ee343967baf"
+  },
+  "patch": {
+    "path": "/private/tmp/viewport-color-order/viewport-color-order.patch",
+    "sha256": "587058f314cce726ce83c1f113cef8fb36ea8b8a16d8e0663649bf4c03376964"
+  },
+  "artifacts_sha256": {
+    "/private/tmp/viewport-color-order/in/source.dxf": "984548bea9f5088f7ed81fe1d930c795f0e6f84b6216a969910d2674a0f412cd",
+    "/private/tmp/viewport-color-order/dwg/source.dwg": "541ad484b4608a89addc3da891c68617c6953289d26e8f7598aeb6a07f566573",
+    "/private/tmp/viewport-color-order/out/source.dxf": "d9eb3fc2827c2a5487b736a474b297dca9600d56cc8eccef8efe3367acbdf85d",
+    "/private/tmp/viewport-color-order/reordered.dxf": "8091ae34edf683a29fc4ed957a4bede6f83f5517f65a84a7554c7f4ee2104de2",
+    "/private/tmp/viewport-color-order/project-reordered.dxf": "f18f51e6afd64b2e527a487bf0fc0c47351bb432ec0961d7215142b765e58c0c",
+    "/private/tmp/viewport-color-order/emitted/ascii.dxf": "3f5c8068786af296cfaaf5b3fc3b2a0a34dd02b6cd8987d4568cd889a9d08bde",
+    "/private/tmp/viewport-color-order/emitted/binary.dxf": "afa04578e6f93882dfa6c43e4d2ec21d73bde2445738daf2d7e53072affafdcc"
+  },
+  "commands": {
+    "configure": "cmake -S . -B /private/tmp/viewport-color-order/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_BUILD_TESTS=ON",
+    "build": "cmake --build /private/tmp/viewport-color-order/build --target libdxfrw_dxf_viewport_ambient_color_order_tests libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+    "test": "ctest --test-dir /private/tmp/viewport-color-order/build -R '^(libdxfrw_dxf_viewport_ambient_color_order|libdxfrw_viewport_ambient_color_method)$' --output-on-failure",
+    "project": "python3 tools/author_selected_viewport_color.py /private/tmp/viewport-color-order/out/source.dxf /private/tmp/viewport-color-order/reordered.dxf /private/tmp/viewport-color-order/project-reordered.dxf --sha256 d9eb3fc2827c2a5487b736a474b297dca9600d56cc8eccef8efe3367acbdf85d",
+    "emit": "VIEWPORT_COLOR_OUTPUT=/private/tmp/viewport-color-order/emitted /private/tmp/viewport-color-order/build/tests/libdxfrw_dxf_viewport_ambient_color_order_tests",
+    "physical_selected": "/private/tmp/viewport-color-order/build/tests/libdxfrw_dxf_viewport_ambient_color_order_tests /private/tmp/viewport-color-order/project-reordered.dxf",
+    "peer_audit": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_viewport_ambient_color_order.py --input /private/tmp/viewport-color-order/in/source.dxf --input-sha256 984548bea9f5088f7ed81fe1d930c795f0e6f84b6216a969910d2674a0f412cd --source /private/tmp/viewport-color-order/out/source.dxf --source-sha256 d9eb3fc2827c2a5487b736a474b297dca9600d56cc8eccef8efe3367acbdf85d --reordered /private/tmp/viewport-color-order/reordered.dxf --reordered-sha256 8091ae34edf683a29fc4ed957a4bede6f83f5517f65a84a7554c7f4ee2104de2 --projection /private/tmp/viewport-color-order/project-reordered.dxf --projection-sha256 f18f51e6afd64b2e527a487bf0fc0c47351bb432ec0961d7215142b765e58c0c --ascii /private/tmp/viewport-color-order/emitted/ascii.dxf --ascii-sha256 3f5c8068786af296cfaaf5b3fc3b2a0a34dd02b6cd8987d4568cd889a9d08bde --binary /private/tmp/viewport-color-order/emitted/binary.dxf --binary-sha256 afa04578e6f93882dfa6c43e4d2ec21d73bde2445738daf2d7e53072affafdcc"
+  },
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_(dxf_viewport_ambient_color_order|viewport_ambient_color_method)$' --output-on-failure: 2/2 passed.",
+  "scratch_candidate_files_sha256": {
+    "src/drw_entities.cpp": "d580a5d072ef7c47f4c68e758994f8b7c3d45ccb4bf9bcb16db5dde2d6654cc6",
+    "tests/CMakeLists.txt": "af93c8f883f5f74e76897e2358c784f19879284074074ed6c3525042e5792eb1",
+    "tests/dxf_viewport_ambient_color_order_tests.cpp": "a6c4ac880096321da7df3d26fd50c56905b757bd716fb2d6c426612a519d9346",
+    "tools/author_selected_viewport_color.py": "caba158b8eb489e6509753a5bc49e2fafd71552964eeddeab07775d74b5d6203",
+    "tools/audit_viewport_ambient_color_order.py": "3081a92657e73238ac9d3d5db01951ec735bac31210020104ee14ee343967baf"
+  }
+}

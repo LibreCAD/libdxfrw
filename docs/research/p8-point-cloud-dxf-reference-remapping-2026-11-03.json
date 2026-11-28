@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-point-cloud-dxf-reference-remapping-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "LOW_LEVEL_REFERENCE_TRANSLATION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Correct final identity emission for nonzero POINTCLOUD and POINTCLOUDEX definition/reactor references in the public low-level DXF serializers.",
+  "issue": {
+    "before": "The serializers wrote source definitionHandle/reactorHandle values directly even when a source-handle remap or caller reference resolver was configured.",
+    "impact": "Low-level write callers could emit stale references after changing output object identities.",
+    "groupRoles": {
+      "330": "soft pointer / definition reference",
+      "360": "hard-owner / reactor reference"
+    }
+  },
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Both serializers use the configured reference resolver when present; resolver results are treated as final output identities and are not remapped again.",
+      "Without a resolver, both serializers use the established source-handle remap fallback.",
+      "The concrete dwg2dxf adapter continues to refuse nonzero definition/reactor references until P4 graph closure qualifies them."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed in-memory POINTCLOUD and POINTCLOUDEX records; no DWG/DXF fixture files.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "cases": [
+      "source-handle remap fallback for both references on both record types",
+      "reference-resolver final IDs override the configured remap without double remapping"
+    ],
+    "validation": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "buildResult": "PASS",
+      "focusedTestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_pointcloud_reference_remapping$' --output-on-failure",
+      "focusedTestResult": "PASS: 1/1; all four ASCII/Binary x resolver/remap cases, 0.43 seconds",
+      "diffCheck": "PASS: git diff --check"
+    }
+  },
+  "limitations": [
+    "Generated low-level DXF reference translation only; it does not prove target existence, object kind, owner role, graph closure, physical producer coverage, external asset availability, or native consumer behavior.",
+    "The adapter graph gate remains fail-closed for nonzero point-cloud definition/reactor references.",
+    "No support claim is promoted; P8 remains open."
+  ],
+  "next": "Continue P4 source-bound provider/output binding work for point-cloud definition/reactor graphs, then qualify physical producers and native 3D consumers independently."
+}

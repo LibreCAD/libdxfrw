@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-table-fallback-runtime-dispatch-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "TABLE_FALLBACK_RUNTIME_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Prevent TABLE fallback graph preflight from reading INSERT payload fields through a public eType tag when the actual runtime object is unrelated.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "guard": "prepareTableFallbackGraph now uses exactEntityForDxfWrite<DRW_Insert>(entity, DRW::INSERT) after matching the source handle and tag. The existing fallback is admitted only when its runtime class is exactly DRW_Insert and its common INSERT projection matches the typed TABLE.",
+    "test": "A locally authored one-cell semantic TABLE retains its normal DRW_Insert projection. The test substitutes a DRW_Point carrying the same handle and INSERT tag, checks refusal and destination preservation, restores the original projection, retries on the same dx_iface and reads back the TABLE text in ASCII and Binary DXF."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_table_fallback_runtime_dispatch$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1 CTest; selector covers ASCII and Binary DXF, refusal, destination preservation, same-adapter retry and typed readback.",
+    "diffCheck": "PASS",
+    "fixturePolicy": "Generated from local objects; no DWG/DXF fixture was added."
+  },
+  "limitations": [
+    "This proves adapter preflight runtime-type integrity and generated DXF transport only; it does not qualify ACAD_TABLE producer breadth, cell semantics, native rendering or consumer behavior.",
+    "P8 and the parent P5 TABLE gates remain open. No DWG/DXF support claim is promoted."
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-associative-dependency-dxf-writer-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative dependency DXF writer slice",
+  "status": "LOCAL_AC1024_DEPENDENCY_DXF_RECORD_WRITER_VERIFIED_GRAPH_OUTPUT_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "0a1d5096",
+  "scope": "Add the AC1024 DXF record writer for the shared AcDbAssocDependency base prefix used by ACDBASSOCDEPENDENCY and ACDBASSOCVALUEDEPENDENCY. The method binds the source object identity transactionally and remaps its owner and four typed references. This does not integrate the record into complete DWG-to-DXF graph output.",
+  "implementation": {
+    "files": [
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/wave1_tests.cpp"
+    ],
+    "recordProfiles": [
+      "ACDBASSOCDEPENDENCY",
+      "ACDBASSOCVALUEDEPENDENCY"
+    ],
+    "targetVersion": "AC1024 only",
+    "fieldOrder": [
+      "0 record name",
+      "5 emitted self handle",
+      "330 emitted owner",
+      "100 AcDbAssocDependency",
+      "90 class version",
+      "90 status",
+      "290 read flag",
+      "290 write flag",
+      "290 attached flag",
+      "290 delegating flag",
+      "90 dependency order",
+      "330 dep_on handle",
+      "290 name-present flag",
+      "1 optional name when present",
+      "330 readdep handle",
+      "330 node handle",
+      "360 dep_body handle",
+      "90 depbodyid"
+    ],
+    "nullReferences": "Emit group 330/360 value 0 for null references, matching the independent converter output.",
+    "nodeAlias": "Use the dedicated node handle; accept the historical writeDependencyHandle alias only when it agrees or the dedicated field is unset.",
+    "classMetadata": "Register ACDBASSOCDEPENDENCY as AcDbAssocDependency and ACDBASSOCVALUEDEPENDENCY as AcDbAssocValueDependency; fallback class flags are 1025 for this witnessed AC1024 profile.",
+    "transaction": "DxfWriterRecordScope stages the entire object and RecordStateScope rolls back source identity binding on validation, remap, text, EED or output failure. The writer rejects incomplete prefixes, unsupported names/versions and unresolved non-null references.",
+    "adapterGate": "No adapter route was enabled. The existing complete-DWG export preflight still refuses with dwg-associative-graph-not-serialized and publishes no DXF."
+  },
+  "independentSchemaWitness": {
+    "repository": "../libredwg",
+    "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "tool": "/opt/homebrew/bin/dwg2dxf",
+    "toolVersion": "dwg2dxf 0.14",
+    "inputPath": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "inputSha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "command": "/opt/homebrew/bin/dwg2dxf -y --as r2010 -o /private/tmp/libredwg-assoc-civil-0.14.dxf /Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "outputPath": "/private/tmp/libredwg-assoc-civil-0.14.dxf",
+    "outputSha256": "b19a6c760c6539e5e0b768125c4bfbf710a8e323f158b53b314d2556d3d30855",
+    "observed": [
+      "Both dependency record types use the shared group-code order asserted by the generated ASCII/binary test.",
+      "Absent references are emitted as 330 0 or 360 0; absent names omit group 1 while has_name remains group 290.",
+      "The value-dependency CLASS record uses AcDbAssocValueDependency; both observed class rows report flag 1025 (0x401)."
+    ],
+    "limitation": "LibreDWG output is an independent open-source schema witness, not native CAD semantic acceptance or independent 3D meaning."
+  },
+  "generatedProof": {
+    "selector": "--associative-dependency-writer",
+    "profiles": [
+      "ASCII and Binary DXF output for both dependency record names",
+      "all 16 read/write/attached/delegating flag combinations",
+      "absent, present-empty and present-nonempty dependency name",
+      "remapped self, owner, dep_on, readdep, node and dep_body handles",
+      "signed status, order and depbodyid field values",
+      "incomplete-prefix, unsupported-version, unsupported-class and conflicting-alias refusal",
+      "unresolved non-null reference rollback",
+      "late invalid EED failure after record fields, empty published bytes, unchanged model and successful corrected retry on the same object"
+    ],
+    "fixturePolicy": "Generated in memory; no DWG/DXF fixture files were added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_wave1_tests -j 4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_associative_dependency_writer|libdxfrw_dxf_objects_write_inspection)$' --output-on-failure",
+      "result": "PASS 2/2; 0.10 seconds total."
+    },
+    "strictExportCheck": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/civil_example-imperial.dwg -y -d -v2010 /private/tmp/libdxfrw-assoc-dependency-writer-check.dxf",
+      "exitCode": 1,
+      "logPath": "/private/tmp/libdxfrw-assoc-dependency-writer-check.log",
+      "logSha256": "e3cb94bea1b138e34eb33cf13dd9c519c0d49109296d30043db0191ec62c7951",
+      "result": "Strict preflight reported dwg-associative-graph-not-serialized; no DXF output was published."
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT_RUN"
+  },
+  "remainingP4Scope": "Integrate this serializer with the complete source-bound associative graph planner; bind identities before output, serialize audited constraint-node records, remap all required edges, close descendants, and verify actual staged output by independent inspection and readback. Keep full-graph refusal active.",
+  "nextAction": "Integrate the dependency writer into an admitted AC1024 associative graph output profile; prove complete required closure before enabling emission, then add constraint-node output and staged-file readback.",
+  "sourceHashesSha256": {
+    "CMakeLists.txt": "32e689ff73ec2ebcf6d3a653195a83598a4484105a8e10209cae2c290e2d5a82",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "3b074a4978501715f1766a9bbc9fbe1933ae06bd2b31fdb4c5596d8d42b1e847",
+    "src/libdxfrw.cpp": "f29191c7c8c6d53f443ebb7298878bd70260940d4a2d7e79aae9d50f190eaa23",
+    "src/libdxfrw.h": "9ac8d565aa0649a59e9ed7a8c315c0fe4cb41c9e985ad0bdac013d237f45c1c9",
+    "tests/wave1_tests.cpp": "910038fb0963714679c99be347536a526d050d4dec791e280ec40e6fc1362574",
+    "build/dwg2dxf/dwg2dxf": "c6cb9289b47734e381aa0a16dadaf6ed04df3d811beb380f0c401e4bb242635e",
+    "build/libdxfrw_wave1_tests": "46b0e65f5a2b0488c386f1cf620613f62d47dbf61af91ae7ec638add01457648"
+  },
+  "referenceHashesSha256": {
+    "/Users/dli/doc/dwg/civil_example-imperial.dwg": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "/private/tmp/libredwg-assoc-civil-0.14.dxf": "b19a6c760c6539e5e0b768125c4bfbf710a8e323f158b53b314d2556d3d30855",
+    "/private/tmp/libdxfrw-assoc-dependency-writer-check.log": "e3cb94bea1b138e34eb33cf13dd9c519c0d49109296d30043db0191ec62c7951"
+  }
+}

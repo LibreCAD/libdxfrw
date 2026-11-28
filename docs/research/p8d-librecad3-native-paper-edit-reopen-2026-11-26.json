@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "01e82b84b49a34f8bc9bcfebb4c5f782fdab6691",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "status": "INSTRUMENTED_NATIVE_AC1018_EDIT_SAVE_REOPEN_PARTIAL",
+  "test_build": "Current consumer persistence, viewer and hook-manager sources, with scratch-only GL logging/framebuffer capture and app identity/title isolation. Not a release binary.",
+  "process_id": 69210,
+  "instrumented_executable_sha256": "ca4fdfa98ec68b5fd64e4f5d887d1a5515a996c6f014fde2f23f01584525f119",
+  "loaded_persistence_sha256": "dfbd803cf2667d556d31f8b946c1fd5286c1e5c704543d72bd04f2e0344c1522",
+  "source_sha256": "bb82db25c8191aa79f11bea5e366c2af276f432fa7d76b845b831873cce302e0",
+  "output_sha256": "dcd81658ccc4727a3c81ecb2549e93627550b1d4fe383f011ca30a8a972ed2ba",
+  "paper1_framebuffer_sha256": "a7e5da28127226cedb9be1eb2cf429a4ddd25e7b2c87bd9fd07e92a23521c177",
+  "observations": [
+    "Opened locally generated binary AC1018 with a LINE in each paper space.",
+    "OpenGL initialized; paper paint saw one entity. A framebuffer capture showed its diagonal line; GL center read returned RGBA 243,243,243,232 and error 0, while the automation screenshot showed a black canvas.",
+    "Selected Paper 1 line and changed endpoint x from 7 to 8 in the property editor; saved as AC1018 ASCII.",
+    "Reopened the saved file in the same instrumented native app; Paper 1 property editor showed (8,11) and Paper 2 showed the original (7,11).",
+    "ezdxf 1.4.5 confirmed both lines and clean output audit."
+  ],
+  "limits": [
+    "One generated source and one host; the viewer executable is instrumented.",
+    "Framebuffer readback differs from the black window screenshot; actual user-visible compositor behavior is not qualified.",
+    "No MPOLYGON edit/render, additional source profiles, native independent producer, Windows or Linux qualification."
+  ],
+  "supportClaimEffect": "none"
+}

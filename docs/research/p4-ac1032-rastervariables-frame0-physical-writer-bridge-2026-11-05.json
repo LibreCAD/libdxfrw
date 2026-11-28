@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1032-rastervariables-frame0-physical-writer-bridge-2026-11-05",
+  "date": "2026-11-05",
+  "status": "BOUNDED_PHYSICAL_SOURCE_WRAPPER_AND_STRICT_SELECTED_OUTPUT",
+  "supportClaimEffect": "none",
+  "scope": "Bind one hash-identified physical AC1032 RASTERVARIABLES frame=0 source record to a locally authored same-version wrapper, then qualify selected ASCII/Binary output under RequireComplete and resolved-owner policies, refusal/retry and typed readback. This does not qualify whole-drawing conversion or native raster behavior.",
+  "physicalWitness": {
+    "provenance": "A locally authored R2010 DXF was converted by ODA File Converter 27.1 to an AC1032 DWG and returned DXF. The observed conversion lineage is not authenticated by hashes alone. No sample fixture was added to the repository.",
+    "dwgPath": "/private/tmp/p4-rastervars-1032-source/dwg/raster.dwg",
+    "dwgSha256": "47917bfd9708371e8fddc436a5650f7cbc9a7b9d565759b1c6c1ea8b5c13184c",
+    "independentPeer": "GNU LibreDWG 0.14 reports type 512, handle 0x2F, a 13-byte object body, frame=0, quality=1, units=3, missing XDictionary, no data-storage payload, and role-4 owner/reactor handles to physical NOD 0x0A. The source is locally authored and one ODA version; this does not broaden producer qualification.",
+    "sourceSpan": "The physical AC1032 frame verifier checks the 13-byte retained body, 39-bit body-size field, class version, canonical 2-bit BS frame=0, quality and units through bit 64, absent-string marker at bit 64, role-4 owner and reactor handles to 0x0A at bits [65,81) and [81,97), and seven zero pad bits. This matches the existing source receipt and frame-one verifier profile. Page extraction and CRC use the in-tree reader."
+  },
+  "implementation": "The AC1032 frame=0 physical selector now binds the checked physical fields into a local wrapper. The wrapper remaps source NOD owner/reactor 0x0A to wrapper NOD 0x0C and goes through RequireComplete, resolved-owner ASCII and Binary output. Invalid fields and graph/reference mutations preserve the destination; correction succeeds on the same adapter with fresh typed readback.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "physicalFrame0": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1032-direct-nod /private/tmp/p4-rastervars-1032-source/dwg/raster.dwg",
+    "physicalFrame1Regression": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1032-frame1-direct-nod /private/tmp/raster-frame1-ac1032/dwg/source.dwg",
+    "focusedGeneratedControls": "ctest --test-dir build-gcc -R '^dwg2dxf_rastervariables_' --output-on-failure",
+    "results": "Both physical AC1032 frame=0 and frame=1 wrapper selectors passed, and all nine focused generated raster-variable CTests passed. Both physical source hashes remained unchanged after execution."
+  },
+  "limits": [
+    "The source has two unrelated AC1032 HEADER integrity observations and another image-definition owner-role conflict; this wrapper does not qualify or bypass whole-file conversion.",
+    "The source was locally authored and converted by one ODA version; no producer breadth is established.",
+    "No native image rendering, downstream application behavior or general AC1032 reader support is claimed.",
+    "No DWG/DXF fixture was added; the physical witness remains in scratch storage."
+  ]
+}

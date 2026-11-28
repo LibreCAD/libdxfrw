@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Multi-layout DWG writer re-audit and peer-boundary refresh",
+  "mode": "Deeper/broader primary-source research and implementation-readiness update",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "worktreeState": "Broadly modified and uncommitted. The prior PAR-144 gap receipt described an intermediate worktree state; this receipt records a later current-worktree re-audit and does not rewrite the historical receipt.",
+    "sourcesInspected": [
+      "src/intern/dwgwriter15.cpp: defineBlock, emitBlockRecord, emitDeferredBlockControl, writeLayout association validation",
+      "src/libdwgr.cpp: dwgRW::writeLayout",
+      "tests/dwg_local_roundtrip_tests.cpp: LayoutPlotDpiProbe, runLayoutPlotDpiReadControls, runLayoutAssociationAtomicRefusal",
+      "tests/CMakeLists.txt: dwg_block_record_layout_association and dwg_layout_compound_insert_owner_roundtrip"
+    ],
+    "currentBehavior": "The current worktree retains/emits reciprocal LAYOUT-to-BLOCK_RECORD associations, validates ACAD_LAYOUT dictionary names and child identities, and covers generated whole-file roundtrips across AC1015/AC1018/AC1021/AC1024/AC1027/AC1032. This is local implementation and same-library readback evidence only.",
+    "focusedValidation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "buildResult": "PASS",
+      "ctest": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$|^dwg_layout_compound_insert_owner_roundtrip$' --output-on-failure",
+      "ctestResult": "PASS: 2/2, 0.63 seconds total"
+    },
+    "authoritativeSpecAvailability": "The expected local ODA v5.4.1 PDF was not found at /Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf during this pass. No DWG byte-layout changes were made."
+  },
+  "peerEvidence": [
+    {
+      "project": "ACadRust",
+      "references": [
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observation": "The README advertises DWG R13-R2018 read/write, but its multi-layout viewport example explicitly instantiates DxfWriter and calls write_to_file; the separate DWG example is a model-space LINE.",
+      "disposition": "Do not count the DXF example as DWG multi-layout writer evidence. A future comparator must explicitly use DwgWriter and bind exact source/release and output observations."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1023",
+        "https://github.com/DomCR/ACadSharp/pull/1068",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.12"
+      ],
+      "observation": "Issue #1023's linked PR #1068 merged May 13, 2026 and adds Viewport.ActiveStatus serialized as DXF group 68; release v3.6.12 lists that change. This is not independent proof of complete multi-layout DWG graph or native acceptance.",
+      "disposition": "Treat #1023 as historical test-design evidence. Any optional ACadSharp comparison must pin an artifact containing the change and separately check layout, owner, viewport and diagnostic outcomes."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwner": "PAR-144 under the existing 7G.3 layout graph/DWG writer owner ledger",
+    "newFinding": false,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "nextLocalSlice": "Test-only bounded walk over generated serialized DWG object frames: AC1015 BLOCK_HEADER first/last entity chains; AC1018+ owned-object counts/lists; reciprocal BLOCK_RECORD/LAYOUT handles and exact viewport references; uniqueness and following-frame alignment.",
+    "externalQualification": "One exact-pinned independent DWG reader at the existing composed checkpoint only; if it cannot expose per-layout identities and diagnostics, record NOT_QUALIFIED and self-unblock.",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

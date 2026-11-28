@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-peer-cross-layer-loss-and-kernel-admission-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Cross-check the DWG/DXF 3D route from parsed entity through modeler carrier and writer output to a downstream ACIS-capable kernel/consumer; refine implementation-readiness gates only where evidence changes them.",
+  "method": {
+    "kind": "Current project-authored documentation, release notes, and issue reports",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": false,
+    "localBuildOrTestsRun": false,
+    "limitations": [
+      "LibreDWG and ACadSharp issue observations are reports, not independently reproduced results.",
+      "Mutable documentation and repository branches are not version-pinned runtime evidence.",
+      "No support claim or external-only J disposition may be promoted from this review."
+    ]
+  },
+  "evidence": [
+    {
+      "route": "LibreDWG DWG/DXF AcDs carrier",
+      "source": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "reportedObservation": "Issue #1411, opened 2026-09-02, pins the reporter's build to LibreDWG 0.14.8593. It reports a generated AC1032 DXF REGION with 5,489 SAB bytes surviving DXF-to-DWG-to-DXF as an entity while AcDs/ACDSDATA bytes and records are lost; it also describes an unattached real R2018 file observation.",
+      "evidenceGrade": "EXTERNAL_ISSUE_REPORT_UNREPRODUCED",
+      "planningUse": "Add explicit carrier-presence checks beside entity counts; do not call this a confirmed libdxfrw defect or general LibreDWG result."
+    },
+    {
+      "route": "ACadSharp DXF/DWG 3D-solid reader and DXF writer",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "reportedObservation": "Release notes list ACIS payload reading for 3DSOLID/REGION/BODY in DXF and DWG, AcDs payload offset reading, and Prototype1b parsing. Open issue #1195 separately reports DWG input solids omitted by its DXF writer; the issue links writer work that was still open in the inspected state.",
+      "evidenceGrade": "RELEASE_NOTES_PLUS_OPEN_ISSUE_REPORT",
+      "planningUse": "Require direction-specific and per-handle writer closure evidence; do not infer writer support from reader support or release headlines."
+    },
+    {
+      "route": "ezdxf ACIS DXF control authoring",
+      "source": "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+      "reportedObservation": "Project documentation says creation of required ACIS data must be done by an external library.",
+      "evidenceGrade": "PROJECT_AUTHORED_API_DOCUMENTATION",
+      "planningUse": "Keep ezdxf as optional carrier/control author or bounded projection tool, not independent ACIS-kernel proof."
+    },
+    {
+      "route": "Open CASCADE ACIS exchange",
+      "source": "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "reportedObservation": "Official OCCT-Components preview describes ACIS SAT/SAB import-export among commercial extensions and directs users to the components store for full components.",
+      "evidenceGrade": "OFFICIAL_PRODUCT_COMPONENT_CATALOG",
+      "planningUse": "Do not assume base open-source OCCT or a standard FreeCAD build has an ACIS reader; keep a licensed kernel route optional and separately approved."
+    },
+    {
+      "route": "FreeCAD DXF consumer",
+      "source": "https://wiki.freecad.org/Draft_DXF",
+      "reportedObservation": "The project documentation distinguishes built-in C++ and legacy Python DXF importers and describes ACIS-solid limitations; documentation can lag code and backend selection.",
+      "evidenceGrade": "PROJECT_DOCUMENTATION_VERSION_UNPINNED",
+      "planningUse": "Any future consumer result must name exact FreeCAD release, importer backend, runtime, and shape/projection outcome."
+    },
+    {
+      "route": "ODA File Converter",
+      "source": "https://www.opendesign.com/guestfiles/oda_file_converter?language=en",
+      "reportedObservation": "ODA documents a tool that loads matching DWG/DXF files and saves them to a requested output version/type, with optional audit/repair.",
+      "evidenceGrade": "OFFICIAL_TRANSLATOR_DESCRIPTION",
+      "planningUse": "A successful conversion is a translator result only; require independent payload and geometry checks before semantic claims."
+    }
+  ],
+  "planDelta": {
+    "existingGatesRefined": ["S2.3 modeler carrier", "S5 peer/composed comparator", "S8 publication and read-modify-write"],
+    "newFindingOrSubplan": false,
+    "requiredPerHandleObservations": [
+      "source entity identity and version/direction",
+      "inline SAT/SAB or AcDs/ACDSDATA carrier presence, length, and hash",
+      "owner/history and nested-block/INSERT association",
+      "exact destination output presence and graph closure",
+      "named consumer shape or derived projection disposition"
+    ],
+    "failurePolicy": "Unsupported writer output with missing modeler bytes/links must fail transactionally; an entity-only shell is explicitly incomplete, never semantic support.",
+    "existingS2_2_5bLocalControls": "The existing focused matrix already covers 254/255/256 and 509/510/511 character boundaries, whitespace and indivisible-token cuts, explicit/implicit chunk metadata, and preserved-destination/corrected-retry negatives. Do not duplicate these synthetic controls; the same-profile legacy Binary-DXF SAT positive remains an external acceptance gate because the recorded ODA screen rejects both libdxfrw binary subjects and the ezdxf binary baseline.",
+    "validationCadence": "Retain fast local generated tests per implementation slice. Run pinned peer and native/kernel comparison only at an existing composed milestone; unavailable optional tools leave that evidence lane open without blocking local implementation.",
+    "supportClaimsChanged": false,
+    "externalJItemsChanged": false,
+    "externalJItems": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "totals": {
+      "findings": 125,
+      "topLevelSubplans": 71
+    }
+  }
+}

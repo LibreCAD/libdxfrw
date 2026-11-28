@@ -1,0 +1,221 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-assocnetwork-acadrust-independent-reader-2026-11-13",
+  "date": "2026-11-13",
+  "status": "INDEPENDENT_READER_AGREEMENT_ON_CANDIDATE_FIELDS_ONLY",
+  "supportClaimEffect": "none",
+  "purpose": "Check whether an independent open-source DWG implementation decodes the bounded AC1032 ACDBASSOCNETWORK candidates into the same typed fields and reference roles as libdxfrw.",
+  "sources": [
+    {
+      "path": "/private/tmp/p4-autodesk-forum-constraints.dwg",
+      "sha256": "685bf22ed533121238c62c07357bf03fa6ddb40983cff7967c481fbb244b6b4f",
+      "version": "AC1032",
+      "provenance": "Public Autodesk ObjectARX forum attachment. Embedded APPINFO reports AutoCAD 2024 build U.61.0.0(x64); this is not signed or independently verified producer attestation.",
+      "typedObjectCount": 106,
+      "networks": [
+        {
+          "handle": "0x2A7",
+          "owner": "0x2A6",
+          "classVersion": 2,
+          "owningNetwork": "null",
+          "baseActionIndex": 0,
+          "networkVersion": 0,
+          "networkActionIndex": 1,
+          "actions": [
+            {
+              "owned": false,
+              "handle": "0x2A5"
+            }
+          ],
+          "ownedActions": []
+        },
+        {
+          "handle": "0x2A5",
+          "owner": "0x2A4",
+          "classVersion": 2,
+          "owningNetwork": "0x2A7",
+          "baseActionIndex": 1,
+          "networkVersion": 0,
+          "networkActionIndex": 1,
+          "actions": [
+            {
+              "owned": true,
+              "handle": "0x2A8"
+            }
+          ],
+          "ownedActions": []
+        }
+      ],
+      "constraintGroup": {
+        "handle": "0x2A8",
+        "owner": "0x2A5",
+        "classVersion": 2,
+        "groupVersion": 2,
+        "flag": false,
+        "workPlane": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ]
+        ],
+        "dependency": "null",
+        "actions": [
+          "0x2AA",
+          "0x2A9"
+        ],
+        "nextNodeId": 13,
+        "nodeCountIncludingRoot": 14,
+        "registeredNodeClasses": [
+          "AcConstrainedBoundedLine",
+          "AcConstrainedImplicitPoint",
+          "AcPointCurveConstraint",
+          "AcConstrainedImplicitPoint",
+          "AcPointCurveConstraint",
+          "AcConstrainedArc",
+          "AcConstrainedImplicitPoint",
+          "AcPointCurveConstraint",
+          "AcConstrainedImplicitPoint",
+          "AcPointCurveConstraint",
+          "AcConstrainedImplicitPoint",
+          "AcCenterPointConstraint",
+          "AcTangentConstraint"
+        ],
+        "registeredNodeStatuses": [
+          1,
+          0,
+          0,
+          1,
+          0,
+          1,
+          1,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0
+        ],
+        "geometryDependencyNodes": [
+          {
+            "nodeId": 1,
+            "handle": "0x2A9",
+            "kind": "AcConstrainedBoundedLine"
+          },
+          {
+            "nodeId": 6,
+            "handle": "0x2AA",
+            "kind": "AcConstrainedArc"
+          }
+        ],
+        "remainingTypedValues": "Acadrust emits typed node bodies, including points, curves, connections, and scalar parameters. Its source layout is independent implementation evidence; these values are not producer-authenticated semantic truth."
+      }
+    },
+    {
+      "path": "/Users/dli/dev/libredwg/test/test-data/example_2018.dwg",
+      "sha256": "7bc7721224003062b237845842b7a976e46771c37eba6833b9ed3712e7a5a65a",
+      "version": "AC1032",
+      "provenance": "LibreDWG repository test drawing; producer provenance is not established.",
+      "typedObjectCount": 167,
+      "networks": [
+        {
+          "handle": "0x390",
+          "owner": "0x38F",
+          "classVersion": 2,
+          "owningNetwork": "null",
+          "baseActionIndex": 0,
+          "networkVersion": 0,
+          "networkActionIndex": 1,
+          "actions": [
+            {
+              "owned": false,
+              "handle": "0x38E"
+            }
+          ],
+          "ownedActions": []
+        },
+        {
+          "handle": "0x38E",
+          "owner": "0x38D",
+          "classVersion": 2,
+          "owningNetwork": "0x390",
+          "baseActionIndex": 1,
+          "networkVersion": 0,
+          "networkActionIndex": 1,
+          "actions": [
+            {
+              "owned": true,
+              "handle": "0x391"
+            }
+          ],
+          "ownedActions": []
+        }
+      ]
+    }
+  ],
+  "independentReader": {
+    "project": "hakanaktt/acadrust",
+    "release": "0.6.8",
+    "license": "MPL-2.0",
+    "crateSha256": "eb201e11e1c75584e4deefc2b30afb83e2f34d16338733439d38664cb9599929",
+    "readerImplementation": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs; typed AssocNetwork fields in src/objects/associative.rs",
+    "probeExecutableSha256": "5e6304284385d2fc55ef874b494f7e6e1aec1c2328ac155c30687e6a5ecae69a",
+    "probeSource": "/private/tmp/acadrust_probe/src/main.rs",
+    "result": "DwgReader returned AC1032 CadDocument values; each listed network was ObjectType::Associative with AssociativeData::Network, rather than a raw Unknown object. The listed typed values agree with the source-bound libdxfrw candidates and the previously recorded LibreDWG comparison.",
+    "constraintGroupProbeOutput": "/private/tmp/acadrust_forum_full.txt",
+    "constraintGroupProbeOutputSha256": "3a8cc575d8c1359a2b8747fc6928736acb569f4bed8f42b9e96af42f853d1721",
+    "constraintGroupComparison": {
+      "handle": "0x2A8",
+      "nodesCompared": 13,
+      "fields": [
+        "registered node IDs, class indexes and names, statuses, registry flags, connections, and exact bounded body spans",
+        "group root ID, connection count, and flag",
+        "bounded-line dependency handle role, node ID, point, direction, ray flag, and endpoints",
+        "arc dependency handle role, node ID, center, normal, direction, radius, curve parameters, reserved value, and trim points",
+        "all implicit-point dependency roles, handles, optional-point states, point types and indexes, and curve IDs",
+        "point-curve, center-point, and tangent owner/implied/active values"
+      ],
+      "result": "All values exposed by the current candidate model for the observed node classes match the independent typed acadrust output. This is one source comparison and not source-profile, semantic, or output qualification."
+    }
+  },
+  "comparison": {
+    "libdxfrwSourceReceipt": "docs/research/p4-ac1032-forum-assocnetwork-source-spans-2026-11-10.json",
+    "libdxfrwGraphReceipt": "docs/research/p4-ac1032-forum-associative-graph-closure-2026-11-11.json",
+    "libredwgCandidateReceipt": "docs/research/p4-ac1032-assocnetwork-candidate-fields-2026-11-09.json",
+    "odaSpecification": "Open Design Specification for .dwg files v5.4.1, SHA-256 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7; local text extraction contains no class-specific ACDBASSOCNETWORK layout.",
+    "agreement": "The same distinct base and network action indexes are retained for both AC1032 class-version-2 network records. Network version, action index/count, owned flags, action handles, owning-network handles and dictionary owners agree across typed source observations."
+  },
+  "procedure": {
+    "command": "CARGO_HOME=/private/tmp/acadrust-cargo cargo run --manifest-path /private/tmp/acadrust_probe/Cargo.toml --release -- /private/tmp/p4-autodesk-forum-constraints.dwg /Users/dli/dev/libredwg/test/test-data/example_2018.dwg",
+    "sourceFixturePolicy": "Both DWGs were read in place and were not copied into or committed to libdxfrw. The probe source, crate cache and executable remain under /private/tmp.",
+    "validation": "cmake --build build-gcc --target libdxfrw_constraint_group_candidate_api_tests -j4; ctest --test-dir build-gcc -R ^libdxfrw_constraint_group_candidate_api$ --output-on-failure; build-gcc/tests/libdxfrw_constraint_group_candidate_api_tests --physical /private/tmp/p4-autodesk-forum-constraints.dwg",
+    "validationResult": "Focused CTest passed 1/1 in 0.18 seconds; the hash-bound physical candidate selector exited 0 against the forum source. The separate libdxfrw associative graph-closure selector also passed against that source."
+  },
+  "limits": [
+    "The independent reader's schema is implementation evidence, not the ODA specification or a controlled producer witness.",
+    "The forum attachment's embedded AutoCAD metadata is not authenticated provenance; the LibreDWG test drawing's producer is unknown.",
+    "The reader comparison does not establish native constraint evaluation, complete graph semantics, output compatibility, or general AC1032 support.",
+    "Keep m_networkFieldsParsed false and AC1032 network output refused until the source-profile and semantic gates in P4 pass."
+  ],
+  "implementation": {
+    "productionCodeChanged": true,
+    "test": "tests/constraint_group_candidate_api_tests.cpp",
+    "testSha256": "6b1a0a021c818e617cced08c63ab79b498190e0b344272fd02f9bdffae806a15",
+    "cmakeTarget": "libdxfrw_constraint_group_candidate_api_tests",
+    "ctestName": "libdxfrw_constraint_group_candidate_api",
+    "testExecutableSha256": "71645df76425f976fc2004c3c99703f98bae7402cdc8654e16d9946e7875feb2",
+    "change": "Compare all fields exposed by the bounded candidate model for this source against the independent typed acadrust output. Fix the omitted Geometrical data-kind classification for AC1032 point-curve, center-point and tangent candidate nodes; keep their class bodies partial and output refused.",
+    "productionFile": "src/drw_objects.cpp",
+    "productionSha256": "a2998a89ef1c860c6c77fa86ef0e66702d940874f81f58a83b44e00436e36056"
+  }
+}

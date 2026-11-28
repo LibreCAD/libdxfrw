@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-point-3d-queries-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "f74b995cda379942aae951d55fba35d70ebdd898",
+  "change": "Use the stored POINT coordinate for its bounds, nearest-point results, logical snap and drag handle so a drag-handle round trip retains elevation.",
+  "validation": [
+    "Pre-change focused test reproduced zeroed nearest-point Z, drag round-trip loss and failure to snap at the actual 3D point.",
+    "58 BuilderTest and EntityBuilderTest cases pass, including 3D nearest/bounds/drag/snap and a planar snapping control.",
+    "17 selection and canvas tests pass on macOS ARM64."
+  ],
+  "logsSha256": {
+    "red": "692e02596b15059581cc73fca5b5fb46b99380194df5733c8b3ac8ff80c4dac0",
+    "build": "99bcf493603f9ce3904c3c6a844b5b6a21d41ad87fcfec84f47fd305b018f3e3",
+    "operations": "1a24ec67ed89beaafad55f16deb77ae2a8862a579a668ead8fc4ec91d95f992f",
+    "viewer": "07cf95c847adcd4356f3d4ba62b04fe386cc79842fbfb5eba8b0edca43d852f3"
+  },
+  "limitations": [
+    "Snap-distance filtering now uses actual POINT elevation, as for other snap coordinates; native 2D viewer interaction with elevated source points requires separate qualification.",
+    "No claim is made for arbitrary 3D rendering, producer interoperability or other platforms."
+  ]
+}

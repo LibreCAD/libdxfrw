@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "scope": "AC1021 POLYLINE_3D absent-string marker; combined with the separately evidenced model-space compound membership fix, this recovers sampled 2D/3D polyline output. No other revision or entity framing changed.",
+  "authority": "ODA v5.4.1 \u00a720.1 puts the string-present marker as the final pre-handle bit. Producer source (hash below) encodes count ending at bit 120 followed by absent bit, with RL boundary 121. The old generated frame declared RL=120 and LibreDWG reported a -1-bit handle-stream overshoot.",
+  "change": "For AC1021 POLYLINE_3D with no string data, append a zero absent-string bit before existing byte alignment and handle assembly; the pre-existing POINT/CIRCLE handling remains unchanged.",
+  "factorial": "Role-only factorial did not prevent 3D fatal. Marker-only scratch removed fatal but left two zero vertices. Independent membership-only scratch also left 3D fatal; membership plus marker recovered all three expected 3D vertices. The source-like exact footer, xdictionary and BYLAYER scratch alternatives were diagnostic only.",
+  "combined_oda": "Both default MATERIAL and plotstyle opt-ins enabled. AC1021 generated DWGs converted with ODA File Converter 27.1.0 to AC1027 DXF, audit=1. All six modes (LINE, SPLINE, HATCH, 2D/3D POLYLINE and mixed) produced DXF, no .err and empty captured stdout/stderr. 2D output has the three original XY vertices and 3D has (0,0,0),(5,0,1),(5,3,2). The hash-bound LibreDWG/ezdxf peer audit passes all six pairs, including exact 2D/3D vertices and ownership. No broad interoperability or arbitrary profile claim.",
+  "artifacts": {
+    "combined-in/hatch.dwg": "8d01c88d7d24659229632a7e34da6c4104bcd6ecf951808a80e08604ef60a7b8",
+    "combined-in/line.dwg": "aac8f6cae5f5abc3e932ff172be94b523e2a9a3bbe0739368eb716498a0af639",
+    "combined-in/mixed.dwg": "a56f43b1dd3a87084206a69af570d20704d69811dcf1b06be99586b005c35289",
+    "combined-in/polyline2d.dwg": "5195afc89b5064e4796d226036a6471ce649f7b1d415d7627fd0536d4a2c74c5",
+    "combined-in/polyline3d.dwg": "aa2bcd6fa3015ed550d0dcb9b9f9110a1380dc4dd8b644c1c2f9d7bb5749dfec",
+    "combined-in/spline.dwg": "83c26c8dd1cfc37e3ef5171b46163e02eea2b364f710745b35ee75d8e6fe4a80",
+    "combined-out/hatch.dxf": "0e534a982777f1da4a8bc2d74fa731846b823270dda6f2e0714807064eb7bd82",
+    "combined-out/line.dxf": "23ad8faf9e575ed9552b2f6576a41a13523d7f92f338175d3539421509598667",
+    "combined-out/mixed.dxf": "74f27efd5872b20c364842492e4931db3be2f5cf3a607f15384e47bb2f741251",
+    "combined-out/polyline2d.dxf": "44858767364afd9bb4f24fb234b44471c9c90048d2bd88b8ebed42f0c9226c5b",
+    "combined-out/polyline3d.dxf": "cc8e410caac08fc0c5e4fc07143e0e135bdb60df25602c626f9e8cfcb543a3a6",
+    "combined-out/spline.dxf": "e44eac8c349bffdfc176f6f622c825d6dd9bbbe0efff31ff526361cd2ab889ad",
+    "marker-in/marker-role3.dwg": "403bd39e90e603670af00b5da35e9e46b6e9bec4195c9e0f0d80b92302d868f0",
+    "marker-in/marker.dwg": "6840f93690fa87f98faef4ac68d742bb6067bab4eb2f73ea72bc9d9a08478b92",
+    "marker-out/marker-role3.dxf": "a235521c6d1311327b60968f5f551e016c2d2c80ce3ea1e19ca89a4ab9797f4f",
+    "marker-out/marker.dxf": "bfd170debe1207ec90c70ceb83f779d90438d64f231e19a1cd79dad5ea542fbe"
+  },
+  "source_3d_dwg_sha256": "4f96c477b47399b3a244fc87e26521feef9d3688311b3e50db2d2be211b07d2b",
+  "source_3d_dxf_sha256": "c52154692968de827e1877f0abdd4c7bcbc9f9bdb0127db8e84f95f850c4161b",
+  "converter_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+  "validation": "Coherent final library relink and ctest --test-dir build-gcc -R '^libdxfrw_dwg_r2007_(polyline3d_footer|primitive_footers)$|^libdxfrw_dwg_polyline_(owned_handle_roles|owner_facade)$|^libdxfrw_dwg_ac1021_polyline_block_membership$' --output-on-failure: 5/5 passed. The footer control checks scalar end and zero footer, old aligned frame parse, truncation/retry, following LINE decoded coordinates, failed entity retry, immutable frame receipt and object CRC.",
+  "reproduction": "Compile tools/probe_ac1021_curve_geometry.cpp against the coherent library; generate six modes into an empty directory. ODAFileConverter IN OUT ACAD2013 DXF 0 1 '*.dwg'; use tools/audit_ac1021_curve_geometry_peer.py with recorded source/DXF SHA, LibreDWG 0.14 and ezdxf 1.4.5. Manual ODA invocation establishes pairing, not the hashes alone.",
+  "limits": [
+    "Only the enumerated default-normal and geometry profiles are qualified; text, line, hatch and spline cases are included as following/mixed controls.",
+    "The matching role-3 ownership fix is separately committed. No fixtures added.",
+    "Source producer uses exact unaligned RL boundary 121; this fix keeps the existing writer handle alignment, producing the required absence bit plus zero alignment."
+  ],
+  "final_library_replay": {
+    "method": "After exception hardening and final exclusion of mesh/polyface, recompiled the producer against that final library. All six DWGs exactly match the earlier ODA-converted combined-in inputs by SHA-256.",
+    "sha256": {
+      "hatch.dwg": "8d01c88d7d24659229632a7e34da6c4104bcd6ecf951808a80e08604ef60a7b8",
+      "line.dwg": "aac8f6cae5f5abc3e932ff172be94b523e2a9a3bbe0739368eb716498a0af639",
+      "mixed.dwg": "a56f43b1dd3a87084206a69af570d20704d69811dcf1b06be99586b005c35289",
+      "polyline2d.dwg": "5195afc89b5064e4796d226036a6471ce649f7b1d415d7627fd0536d4a2c74c5",
+      "polyline3d.dwg": "aa2bcd6fa3015ed550d0dcb9b9f9110a1380dc4dd8b644c1c2f9d7bb5749dfec",
+      "spline.dwg": "83c26c8dd1cfc37e3ef5171b46163e02eea2b364f710745b35ee75d8e6fe4a80"
+    }
+  },
+  "address_sanitizer": "Final combined candidate: libdxfrw_dwg_ac1021_polyline_block_membership and libdxfrw_dwg_r2007_polyline3d_footer passed 2/2 under AddressSanitizer."
+}

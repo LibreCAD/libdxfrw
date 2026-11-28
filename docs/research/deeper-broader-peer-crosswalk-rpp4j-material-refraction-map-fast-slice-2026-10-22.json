@@ -1,0 +1,136 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-4j MATERIAL refraction fields and map generated fast slice",
+  "mode": "Local implementation and generated ASCII/Binary validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "5c43765cb1ccaec6d76ed6ba73c5f61df6e9fc5e70d52478c50f033bbe31926f",
+  "authoritativeReference": {
+    "title": "Autodesk MATERIAL DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36D-5C739878B272.htm",
+    "accessed": "2026-10-22",
+    "fields": [
+      {
+        "group": 145,
+        "description": "Refraction index",
+        "default": 1.0,
+        "validation": "finite real; reference states no explicit numeric range"
+      },
+      {
+        "group": 146,
+        "description": "Refraction map blend factor",
+        "default": 1.0,
+        "validation": "finite real; reference states no explicit numeric range"
+      },
+      {
+        "group": 273,
+        "description": "Refraction map source",
+        "default": 1,
+        "validValues": [0, 1],
+        "context": "Only before the 464/465 Normal Map boundary; later reused as Final Gather Mode"
+      },
+      {
+        "group": 9,
+        "description": "Refraction map file name",
+        "default": ""
+      },
+      {
+        "group": 274,
+        "description": "Refraction mapper projection",
+        "default": 1,
+        "validValues": [1, 2, 3, 4]
+      },
+      {
+        "group": 275,
+        "description": "Refraction mapper tiling",
+        "default": 1,
+        "validValues": [1, 2, 3]
+      },
+      {
+        "group": 276,
+        "description": "Refraction mapper auto-transform bitset",
+        "default": 1,
+        "validMask": 7
+      },
+      {
+        "group": 147,
+        "description": "Refraction mapper transform",
+        "format": "16 real values, row-major",
+        "default": "identity"
+      }
+    ]
+  },
+  "crossReference": {
+    "title": "LibreDWG MATERIAL object schema",
+    "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+    "use": "Peer schema corroborates DWG scalar widths only; its self_illumination field maps to DXF 149 while Autodesk's current DXF table lists 90. This disagreement remains unresolved and is not used to type either field."
+  },
+  "implementation": {
+    "typedModel": [
+      "DRW_Material retains refraction index/map fields with documented defaults and individual presence flags.",
+      "Group-9 filename retention has an independent bounded text lease; the 16-value transform has independent cardinality state.",
+      "Copy/reset behavior preserves authored values and restores defaults/identity with presence false."
+    ],
+    "parser": [
+      "Types groups 145/146/273/9/274/275/276/147 before the 464/465 boundary.",
+      "Later group 273 is left opaque as Final Gather Mode and cannot overwrite the typed refraction source.",
+      "Validates finite scalar/matrix values, documented source/projection/tiling/auto-transform domains, and exactly 16 contiguous matrix values."
+    ],
+    "writer": [
+      "Emits refraction groups in documented order, with all 16 group-147 values when the transform is present.",
+      "Rejects invalid authored domains and non-finite refraction values before output replacement."
+    ],
+    "boundedTextRegression": [
+      "The focused MATERIAL retained-owner CTest checks exact-cap group-9 filename replacement in ASCII and Binary DXF.",
+      "At one byte under the cap, the previous refraction filename remains intact while earlier replacements remain admitted; copy/reset accounting releases the retained lease correctly."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp4j-material-refraction-map-fast-slice-2026-10-22.json",
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ]
+  },
+  "generatedControls": [
+    "Generated ASCII/Binary MATERIAL records carry all five map families with distinct values and a following LINE sentinel.",
+    "Group 273 appears once as refraction source before the boundary and again after 465 as an opaque context-specific value; tests verify raw order and unchanged typed source.",
+    "Tests assert same-/cross-encoding replay, copy/reset/defaults, matrix endpoints, and valid source-zero typed-writer output.",
+    "Invalid domains, temporary ASCII non-finite scalar/matrix values, and 15-/17-value matrices are rejected before callback publication.",
+    "Typed writer tests assert schema order and transactional refusal/retry for invalid domains and non-finite authored values.",
+    "No persistent drawing fixture is added; malformed non-finite values are applied only to locally generated temporary ASCII inputs."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: libdxfrw_dxf_material_text_owner_budget, libdxfrw_dxf_fixtures, and libdxfrw_dxf_binary_group_width_guard (3/3)",
+    "diffCheck": "PASS: git diff --check on changed slice files and plan",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "dwgMaterialBodyChanged": false,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-4k: audit later MATERIAL physical/procedural fields and reused group-code contexts",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

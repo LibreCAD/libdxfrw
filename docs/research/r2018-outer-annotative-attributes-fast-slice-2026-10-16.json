@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw-r2018-outer-annotative-attributes-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "finding": "PAR-125",
+  "scope": "Implement and fast-validate the ODA v5.4.1 R2018 outer annotative-data branch for multiline ATTRIB/ATTDEF while preserving separate nested-MTEXT state and refusing unsupported DXF projection.",
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/intern/dwgreader.cpp",
+      "src/intern/dwgwriter24.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "observed": [
+      "ATTRIB and ATTDEF models carry separate outer annotative bytes, the associated unknown BS value, the registered-application numeric handle, and a separate APPID-name identity; copy/move/assignment/reset preserve or clear these fields.",
+      "AC1032 ATTRIB type 2 and ATTDEF type 4 parsers consume bounded conditional outer payload and hard-pointer data separately from embedded MTEXT; wrong sibling type and malformed/truncated framing fail closed.",
+      "DWG encoders emit the conditional size/payload/unknown value and registered-application hard pointer before style handle, and reject the state on older targets or incompatible attribute types.",
+      "The DWG reader resolves the source hard-pointer through the parsed APPID table. The R2007+ writer maps the APPID name to the emitted APPID handle and restores the caller's source numeric handle after encoding.",
+      "Generated full DWG round-trip asserts ATTRIB and ATTDEF APPID name/target identity, following-record alignment, style/prompt and flags/lock. A missing output APPID causes destination-preserving refusal.",
+      "The object-vector target asserts ATTRIB/ATTDEF copy construction, assignment, move, nested-MTEXT deep copy, and reset of the complete outer annotation state.",
+      "ASCII and binary DXF export refuses this DWG-only outer state before publishing output instead of silently dropping the payload."
+    ],
+    "limitations": [
+      "No real AC1032 producer drawing or independent reader/consumer was available; generated writer/readback controls establish local behavior only.",
+      "A malformed full-file case with the outer hard pointer aimed at a non-APPID object has not been injected with enclosing integrity fields recomputed.",
+      "No claim is made for native CAD acceptance, complete multiline attributes, or general DWG/DXF support."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --r2018-outer-annotation-dxf-refusal",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|libdxfrw_dxf_fixtures)$' --output-on-failure",
+      "git diff --check -- src/drw_entities.cpp src/drw_entities.h src/libdxfrw.cpp tests/dwg_object_vectors_tests.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "results": {
+      "strictBuild": "passed",
+      "focusedDxfRefusalMode": "passed",
+      "libdxfrw_dwg_object_vectors": "passed",
+      "libdxfrw_dxf_fixtures": "passed",
+      "gitDiffCheck": "passed",
+      "fullSuite": "not run"
+    },
+    "externalFilesDownloaded": 0,
+    "externalPeerOrNativeRuns": 0,
+    "newTestFixtures": 0,
+    "newDependencies": 0,
+    "supportClaimsPromoted": 0
+  },
+  "nextActions": [
+    "Resolve the registered-application handle to APPID identity during DWG entity publication after APPID tables are available; retain the name separately from the raw handle.",
+    "Before DWG output, map the source APPID identity to the target APPID record/handle or refuse if identity/closure is unavailable; do not write an unvalidated source numeric handle into a rebuilt graph.",
+    "Add generated source-to-target handle-remap and missing/wrong-target controls, retaining following-record and style-handle assertions.",
+    "Use a pinned AC1032 producer/consumer only at the planned composed checkpoint if a route exposes this exact outer state; do not add third-party fixtures."
+  ],
+  "planState": {
+    "findingCount": 125,
+    "topLevelImplementationSubplanCount": 71,
+    "findingComplete": false,
+    "sixExternalOnlyItemsRemainDeferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "followupValidation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+      "git diff --check -- tests/dwg_object_vectors_tests.cpp"
+    ],
+    "results": {
+      "localRoundtrip": "passed (1/1, 3.97s)",
+      "objectVectorsStrictBuild": "passed",
+      "objectVectors": "passed (1/1, 0.22s)",
+      "changedTestDiffCheck": "passed"
+    },
+    "fullSuite": "not run",
+    "independentProducerConsumer": "not run",
+    "wrongKindFullFileMutation": "not run"
+  }
+}

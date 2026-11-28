@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Valid ACAD_LAYOUT graph in local DWG round-trip carrier matrix",
+  "mode": "Generated fast-test fixture correction",
+  "scope": [
+    "Replace the ownerless LAYOUT synthetic carrier with a layout owned by a registered ACAD_LAYOUT dictionary",
+    "Associate the generated layout with the canonical paper-space BLOCK_RECORD",
+    "Verify the ACAD_LAYOUT root entry and layout dictionary relationship on self-read"
+  ],
+  "evidence": {
+    "localWriterContract": {
+      "source": "src/intern/dwgwriter15.cpp:dwgWriter15::writeLayout and validateDwgLayoutBlockAssociations",
+      "finding": "The writer refuses DRW::NoHandle (zero) as a layout's paper-space block owner and validates the emitted ACAD_LAYOUT dictionary and owner associations."
+    },
+    "generatedMatrix": {
+      "test": "tests/dwg_local_roundtrip_tests.cpp:libdxfrw_dwg_local_roundtrip",
+      "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+      "readback": "Checks root ACAD_LAYOUT entry, one-entry layout dictionary, layout parent handle, and canonical paper-space BLOCK_RECORD owner."
+    }
+  },
+  "changes": {
+    "productionCodeChanged": false,
+    "testFixture": "The layout is emitted under ACAD_LAYOUT with the built-in paper-space BLOCK_RECORD owner; optional plot/viewport references remain null in this carrier test. The custom carrier dictionary retains a named null-handle placeholder, preserving its other entry-order controls.",
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "fullSuiteRun": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+        "result": "PASS (1/1; six generated DWG versions)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp",
+        "result": "PASS"
+      }
+    ]
+  },
+  "limits": [
+    "This validates a locally generated self-roundtrip graph only; it is not independent producer, native CAD, or external compatibility evidence.",
+    "No production parser/writer implementation changed in this slice.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "next": "Continue the PAR-03/PAR-04 exact code-context audit without guessing associative-action dwgResbufValueKind widths; self-unblock to another locally evidenced implementation item if the exact ODA layout is unavailable."
+}

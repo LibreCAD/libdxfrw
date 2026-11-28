@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "date": "2026-11-10",
+  "purpose": "Source-bound selected AC1024 MATERIAL DWG replay, dictionary/XRECORD dependency closure, and independent peer readback.",
+  "source": {
+    "repository": "https://github.com/nextgis/dwg_samples",
+    "file": "arc_2010.dwg",
+    "file_url": "https://github.com/nextgis/dwg_samples/blob/master/arc_2010.dwg",
+    "producer_claim": "Repository README identifies trial AutoCAD 2016 M.49.0.0.",
+    "format": "AC1024",
+    "local_path": "/private/tmp/nextgis-arc_2010.dwg",
+    "committed": false,
+    "size_bytes": 51549,
+    "sha256": "fd87187b435062cb15e0f6a88c2b23546768162f54ffae83a3f51788503ec262",
+    "qualification": "AC1024 format witness, not a verified AutoCAD 2010 RTM witness."
+  },
+  "selected_profile": {
+    "materials": [
+      "ByBlock",
+      "ByLayer",
+      "Global"
+    ],
+    "raw_body_bits_each": 1284,
+    "semantic": "Default colors use method 0/factor 1 with no explicit value; all six maps have source 0, empty file name, projection 2, tiling 1, auto-transform 1, and transform diag(1/48,1/48,1,1); channel flags 127.",
+    "class_metadata": {
+      "dxfname": "MATERIAL",
+      "cppname": "AcDbMaterial",
+      "dwg_version": 23,
+      "maint_version": 14,
+      "item_class_id": 499,
+      "proxyflag": 1153,
+      "instances": 3
+    },
+    "dependency_graph": {
+      "named_root": "ACAD_MATERIAL -> selected dictionary",
+      "materials": 3,
+      "material_extension_dictionaries": 3,
+      "dictionary_entries_each": 6,
+      "tile_xrecords": 18,
+      "xrecord_payload_each": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "reference_roles": "Material owner/reactor -> ACAD_MATERIAL dictionary; material xDictionary -> extension dictionary; extension dictionary owner -> material; dictionary entries -> TILE XRECORD; XRECORD owner/reactor -> extension dictionary."
+    }
+  },
+  "implementation": {
+    "profile_gate": "Exact AC1024 AutoCAD 2016 default-body predicate; unsupported semantic and retained-tail variants remain refused.",
+    "writer_fix": "R2007+ detached string stream appends only logical bits and pads the combined data/string stream at its trailer boundary.",
+    "output_path": "/private/tmp/nextgis-arc_2010-libdxfrw-replay.dwg",
+    "output_committed": false,
+    "output_size_bytes": 179911,
+    "output_sha256": "407fd876715209ee4d92ef8c0a6b495570525e9d6430f15dc21fc515bba5d51c",
+    "source_to_output_handles": {
+      "material.ByBlock": "0x19 -> 0xB101",
+      "material.ByLayer": "0x11 -> 0xB102",
+      "material.Global": "0x21 -> 0xB103",
+      "extension_dictionary.ByBlock": "0x1A -> 0xB200",
+      "extension_dictionary.ByLayer": "0x12 -> 0xB201",
+      "extension_dictionary.Global": "0x22 -> 0xB202",
+      "tile_xrecords": "18 source references remapped to 0xB210..0xB221"
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_default_material_optin_tests -j4",
+    "test_binary_sha256": "f60f584e417baca2cc672737a4d944cc4e4c5eb1d8e65b2d2a18776515bbb6bc",
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_default_material_optin$' --output-on-failure",
+      "result": "1/1 passed"
+    },
+    "source_fed_replay": {
+      "command": "build-gcc/tests/libdxfrw_dwg_default_material_optin_tests --physical-ac1024-autocad-material-replay /private/tmp/nextgis-arc_2010.dwg",
+      "result": "PASS; fresh libdxfrw readback checks all selected materials, xDictionary handles, dictionary owners/entries, XRECORD owner/reactor links and tile payloads.",
+      "failure_retry": {
+        "injected_allocation_offset": 0,
+        "failure_result": "The first reached allocation failed inside the source-fed graph emission.",
+        "destination": "Pre-existing sentinel bytes were unchanged after the failed attempt.",
+        "retry": "The same writer and adapter then retried without the fault; finalization and fresh readback passed."
+      }
+    },
+    "independent_peer": {
+      "tool": "LibreDWG dwgread 0.14",
+      "binary": "/opt/homebrew/bin/dwgread",
+      "binary_sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "command": "dwgread -v9 -O JSON <output.dwg> -o <output.json>",
+      "result": "Exit 0; AC1024; 51 objects; exact MATERIAL semantic fields and source class capabilities; all 3 owner/reactor/xDictionary relations; 3 six-entry tile dictionaries; 18 tile XRECORDs with exact owner/reactor roles and (270,1),(271,1) payloads."
+    },
+    "peer_json_graph_assertions": "Source/output JSON comparison passed for selected material fields after drawing-local handle remapping, owner/reactor/xDictionary edges, dictionary keys/targets, all XRECORD owner/reactor edges and tile payloads, and MATERIAL capability metadata. File-local class number and object handles are allowed to change.",
+    "git_diff_check": "passed"
+  },
+  "limitations": [
+    "The online corpus producer claim is AutoCAD 2016, not AutoCAD 2010 RTM.",
+    "This is selected graph replay and readback, not whole-source rewrite or general AC1024 MATERIAL output support.",
+    "No native AutoCAD/ODA acceptance or render was performed on the generated DWG.",
+    "No downloaded DWG/DXF fixture was added to the repository."
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1032 LibreDWG Line fixture HEADER suffix triage",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/dev/drawing-parser-editor/dwg-parser/tests/fixtures/committed/libredwg/line_2018.dwg",
+    "sha256": "1f4edd4c11aaf28b3295fd69fa59376f9cb911c637aa47a6073408ecac4797a3",
+    "version": "AC1032",
+    "repositoryRevision": "3b536f7ae16391e02fbdf7802c55c11a9a3ad117",
+    "provenance": "The sibling repository's committed-fixture provenance identifies this byte stream as LibreDWG test/test-data/2018/Line.dwg, GPL-3.0-or-later. The fixture was read in place and was not copied into libdxfrw."
+  },
+  "localRun": {
+    "repositoryRevision": "b181c8a4ff30b8f280269ac6534ea41ddab3f94a",
+    "command": "build/dwg2dxf/dwg2dxf /Users/dli/dev/drawing-parser-editor/dwg-parser/tests/fixtures/committed/libredwg/line_2018.dwg -y -d -v2018 /private/tmp/libdxfrw-line-2018.dxf",
+    "binarySha256": "c70617cb0601a903d7ccae87ed6918b5cba75f7f394ac906bc523666bf180362",
+    "logPath": "/private/tmp/libdxfrw-line-2018.log",
+    "logSha256": "73d77e6155ec66bdb82972f3920f1de4cba23049d7fe9dbd97f6b771691f77c2",
+    "exitCode": 1,
+    "sourceFrames": 143,
+    "publishedFrames": 143,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "strictOutput": "Refused before output because the DWG read disposition is incomplete. No DXF was produced."
+  },
+  "headerIntegrity": {
+    "firstBoundary": { "fileOffset": 16, "expected": 764, "observed": 768 },
+    "secondBoundary": { "fileOffset": 786, "expected": 786, "observed": 1529 },
+    "unclaimedBytes": 743,
+    "disposition": "Retain both integrity rows and strict-output refusal. The suffix is not classified as padding or assigned semantics."
+  },
+  "nextAction": "Keep this fixture as an AC1032 cross-version suffix witness only. Do not retry the unchanged ODA launch path or infer a shared AC1027/AC1032 suffix schema. Reopen suffix implementation work only with a changed converter invocation environment or eligible evidence that assigns the bytes and versioned boundaries.",
+  "scopeLimit": "LibreDWG test-data provenance makes this a useful structural cross-check, not an independent semantic or native consumer oracle. It does not establish that the AC1027 Cover suffix and AC1032 Line suffix share a format. No support claim changes."
+}

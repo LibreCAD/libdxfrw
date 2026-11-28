@@ -1,0 +1,198 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-ac1018-oda-table-physical-peer-profile-2026-11-09",
+  "date": "2026-11-09",
+  "question": "What physical AC1018 TABLE body and anonymous-block profile does the available ODA conversion route produce for a simple text table, and does an independent reader agree on the table contents and owned geometry?",
+  "source": {
+    "path": "/Users/dli/doc/dwg6/acad_table_simple.dxf",
+    "format": "ASCII DXF",
+    "version": "AC1027",
+    "sha256": "2fc8d0e9517b36dd13db95740b37bc2f534005f16abc222faab036c3407d9e8d",
+    "provenance": "Byte-identical to ezdxf examples_dxf/acad_table_simple.dxf at pinned source revision dd7f6cc34983fdbf0b2b910f2497e0720d06dd16. Copied to private scratch before conversion; repository source was not modified."
+  },
+  "conversion": {
+    "tool": "ODA File Converter",
+    "version": "27.1.0.0",
+    "operation": "ACAD2004 DWG output, model/paper selection 0, audit enabled, input glob *.dxf",
+    "outputPath": "/private/tmp/libdxfrw-table-ac1018-oda/out/acad_table_simple.dwg",
+    "outputVersion": "AC1018",
+    "outputSha256": "aa88b0bd66694008db8aaaa6548cd30192e1a500a093d72859f8d45a918951ab",
+    "fixtureDisposition": "Scratch-only conversion output; no drawing fixture added to the repository."
+  },
+  "observations": {
+    "class": {
+      "name": "AcDbTable",
+      "dxfName": "ACAD_TABLE",
+      "ordinalForThisFileOnly": 513,
+      "proxyCapabilities": 1025,
+      "classVersion": 25,
+      "maintenanceVersion": 20,
+      "warning": "Other observed AC1018 drawings use different AcDbTable ordinals. Do not hardcode 513."
+    },
+    "libdxfrw": {
+      "tableHandle": "0x9c",
+      "blockRecordHandle": "0x9d",
+      "tableStyleHandle": "0x6b",
+      "semanticContentComplete": true,
+      "dimensions": {
+        "rows": 3,
+        "columns": 3,
+        "columnWidths": [152, 152, 152],
+        "rowHeights": [11, 9, 9]
+      },
+      "peerReadbackGeometry": {
+        "observer": "GNU LibreDWG dwgread 0.14 JSON, scratch output",
+        "jsonSha256": "1e53974f83286b46a595c191543c21ff4cdce6dc7c2c00b4ab5090fc4e7a7cd0",
+        "blockRecordHandle": "0x9d",
+        "ownedEntityCount": 15,
+        "childHandlesByType": {
+          "mtext": ["0x9e", "0x9f", "0xa0", "0xa1", "0xa2", "0xa3", "0xa4"],
+          "line": ["0xa5", "0xa8", "0xa9", "0xaa", "0xab", "0xac", "0xad", "0xae"],
+          "block": "0xa6",
+          "endBlock": "0xa7"
+        },
+        "lineSegments": [
+          [[0, 0, 0], [456, 0, 0]],
+          [[0, -11, 0], [456, -11, 0]],
+          [[0, -20, 0], [456, -20, 0]],
+          [[0, -29, 0], [456, -29, 0]],
+          [[0, 0, 0], [0, -29, 0]],
+          [[456, 0, 0], [456, -29, 0]],
+          [[152, -11, 0], [152, -29, 0]],
+          [[304, -11, 0], [304, -29, 0]]
+        ],
+        "mtext": [
+          {"insert": [228, -5.5, 0], "width": 453, "height": 6, "attachment": 5, "text": "Title", "styleHandle": "0x11"},
+          {"insert": [76, -15.5, 0], "width": 149, "height": 4.5, "attachment": 5, "text": "1", "styleHandle": "0x11"},
+          {"insert": [228, -15.5, 0], "width": 149, "height": 4.5, "attachment": 5, "text": "2", "styleHandle": "0x11"},
+          {"insert": [380, -15.5, 0], "width": 149, "height": 4.5, "attachment": 5, "text": "3", "styleHandle": "0x11"},
+          {"insert": [76, -21.5, 0], "width": 149, "height": 4.5, "attachment": 2, "text": "4", "styleHandle": "0x11"},
+          {"insert": [228, -21.5, 0], "width": 149, "height": 4.5, "attachment": 2, "text": "5", "styleHandle": "0x11"},
+          {"insert": [380, -21.5, 0], "width": 149, "height": 4.5, "attachment": 2, "text": "6", "styleHandle": "0x11"}
+        ],
+        "ownership": "Every listed LINE and MTEXT has owner BLOCK_RECORD 0x9d; handles, insertion points, extents, text, and style handles are direct JSON fields.",
+        "limits": "This is one ODA-converted AC1018 source profile. The observed last-row MTEXT attachment differs from the first two rows and must be preserved by a bounded profile; it is not a general alignment rule or native-rendering proof."
+      },
+      "rowMajorText": ["Title", "", "", "1", "2", "3", "4", "5", "6"],
+      "tableValueFlag": 22,
+      "cellMergeEncodingObserved": {
+        "anchorAt": [0, 0],
+        "anchorMerged": false,
+        "anchorSpan": [3, 1],
+        "coveredCells": [[0, 1], [0, 2]],
+        "coveredCellMerged": true,
+        "coveredCellSpan": [1, 1]
+      },
+      "subrecordRanges": {
+        "complete": true,
+        "cellOverrideRanges": 7,
+        "cellOverrideBitSizes": [10, 10, 10, 10, 10, 10, 10],
+        "tableOverrideRanges": 1,
+        "tableOverrideBitSize": 4,
+        "offsetSpace": "bit positions in the decompressed DWG object-body buffer; not file offsets",
+        "ranges": [
+          {"kind": "cell-overrides", "startBit": 17626, "bitSize": 10, "overrideFlags": 0, "virtualEdgeFlags": 0, "parseComplete": true},
+          {"kind": "cell-overrides", "startBit": 17787, "bitSize": 10, "overrideFlags": 0, "virtualEdgeFlags": 0, "parseComplete": true},
+          {"kind": "cell-overrides", "startBit": 17858, "bitSize": 10, "overrideFlags": 0, "virtualEdgeFlags": 0, "parseComplete": true},
+          {"kind": "cell-overrides", "startBit": 17929, "bitSize": 10, "overrideFlags": 0, "virtualEdgeFlags": 0, "parseComplete": true},
+          {"kind": "cell-overrides", "startBit": 18000, "bitSize": 10, "overrideFlags": 0, "virtualEdgeFlags": 0, "parseComplete": true},
+          {"kind": "cell-overrides", "startBit": 18071, "bitSize": 10, "overrideFlags": 0, "virtualEdgeFlags": 0, "parseComplete": true},
+          {"kind": "cell-overrides", "startBit": 18142, "bitSize": 10, "overrideFlags": 0, "virtualEdgeFlags": 0, "parseComplete": true},
+          {"kind": "table-overrides", "startBit": 18152, "bitSize": 4, "enabledMaskCount": 0, "parseComplete": true}
+        ],
+        "interpretation": "The typed parser records exact consumed spans and reports zero cell override masks/virtual-edge values and zero enabled TABLE masks. These are source-bound libdxfrw observations, not independent bit-offset proof from a second decoder."
+      },
+      "anonymousBlock": {
+        "name": "*T1",
+        "blockRecordHandle": "0x9d",
+        "blockHandle": "0xa6",
+        "endBlockHandle": "0xa7",
+        "entityCount": 15,
+        "types": {
+          "MTEXT": 7,
+          "LINE": 8
+        },
+        "allEntityOwnersMatchBlockRecord": true,
+        "geometry": "Four horizontal and four vertical grid lines; seven MTEXT records carry the nonempty cells. Exact handles and coordinates were inspected in the scratch reader probe."
+      },
+      "readDisposition": {
+        "sourceFrames": 226,
+        "publishedFrames": 226,
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "integrityWarning": "The file has an unrelated HEADER integrity offset mismatch (expected 592, observed 1331); strict whole-source DXF export is refused."
+      }
+    },
+    "independentReader": {
+      "name": "ACadSharp",
+      "sourceRevision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "tableHandle": "0x9c",
+      "blockName": "*T1",
+      "blockEntityCount": 15,
+      "blockEntityTypes": {
+        "MText": 7,
+        "Line": 8
+      },
+      "dimensions": {
+        "rows": 3,
+        "columns": 3,
+        "columnWidths": [152, 152, 152],
+        "rowHeights": [11, 9, 9]
+      },
+      "rowMajorText": ["Title", "", "", "1", "2", "3", "4", "5", "6"],
+      "instrumentedWirePositions": {
+        "source": "ACadSharp DwgObjectReader.Entities.cs, scratch-instrumented copy at source revision 3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+        "cellOverridePresentBits": [53513, 53568, 53613, 53674, 53745, 53816, 53887, 53958, 54029],
+        "cellOverrideDataStarts": [53514, 53675, 53746, 53817, 53888, 53959, 54030],
+        "cellOverrideMasks": [0, 0, 0, 0, 0, 0, 0],
+        "virtualEdgeFlags": [0, 0, 0, 0, 0, 0, 0],
+        "tableOverrideMaskBits": [54040, 54041, 54042, 54043],
+        "tableOverrideMaskPresent": [false, false, false, false],
+        "libdxfrwToACadSharpBitBias": 35888,
+        "crossCheck": "For all seven override records, ACadSharp data-start bit minus 35888 equals libdxfrw m_startBit; the four ACadSharp table-mask positions minus 35888 equal libdxfrw's 18152 start bit plus offsets 0..3. The same constant aligns all eight ranges."
+      },
+      "limitation": "ACadSharp retains the string values but reports ContentType.Unknown for these cells; this does not independently qualify cell-type semantics or native rendering."
+    }
+  },
+  "authority": {
+    "source": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.96", "20.4.96.1"],
+    "facts": [
+      "The TABLE entity inherits INSERT; its geometric results are stored in an anonymous *T block.",
+      "The AC1018-era body specifies row/column dimensions and per-cell type, merge flag, merged width/height, rotation, text and overrides.",
+      "ODA marks parts of post-R2007 cell data TODO/unknown and explicitly leaves the AcDbTableContent/AcDbTableGeometry round-trip relationship undocumented."
+    ]
+  },
+  "decision": {
+    "status": "physical-peer-profile-cross-checked; merge-and-zero-override-codec-implemented",
+    "implementationImpact": "The AC1018 parser now validates complete, non-overlapping anchor/covered-cell merge layouts and marks orphaned or invalid layouts semantically incomplete while preserving their bounded source frame. The direct generated AC1018 body encoder emits merge flags/spans and reproduces the peer's zero-mask empty override record for populated text cells plus its four absent TABLE-mask bits. Independent instrumented ACadSharp cursor positions cross-check all eight source spans. The public dwgRW::writeTable route remains refused: parsed source subrecord ranges are deliberately not admitted by the direct writer, and no compound *T geometry graph is emitted."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp"
+    ],
+    "profile": "AC1018 only; the bounded merge validator and direct body encoder accept both (a) the physically observed legacy form with an unmerged anchor carrying a non-unit span and merged=true covered cells with unit spans and (b) the explicit-anchor form with a merged=true anchor carrying a non-unit span and unmerged covered cells with zero or unit spans. The physical ODA peer confirms only form (a); R24 TABLECONTENT merge ranges remain unchanged.",
+    "generatedControls": [
+      "A generated 2x2 single-anchor merge encodes and reads back the anchor span, covered-cell flags, one populated-cell zero-mask override span, and the 4-bit all-absent TABLE override span, with a following body sentinel.",
+      "A separate generated explicit-anchor 2x2 merge encodes and reads back the anchor flag/span and unmerged covered-cell flags.",
+      "An orphaned merged-cell role is rejected by the direct encoder without changing seeded body/handle buffers; correcting the same object allows retry.",
+      "A malformed AC1018 reader frame retains its bounded typed grid but sets semantic completeness false; the same parser then accepts a corrected frame."
+    ],
+    "validation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_table_dwg_codec_allocation_tests -j4",
+      "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+      "allocationRetryControl": "build-gcc/libdxfrw_table_dwg_codec_allocation_tests",
+    "result": "The focused selector passes for both merge-role forms and zero-mask override spans; the TABLE direct codec allocation sweep covers all 26 reached allocations with rollback and same-object retry. git diff --check passes."
+    },
+    "physicalPeerRecheck": "After rebuilding, libdxfrw still reads the scratch AC1018 peer table as semantically complete and retains the 3x1 title anchor plus the two 1x1 covered cells. This confirms parser compatibility with that profile; it does not qualify output."
+  },
+  "limitations": [
+    "ODA converted an AC1027 DXF example; this is not a native AutoCAD AC1018 source witness.",
+    "The TABLE source contains an unrelated HEADER integrity warning and cannot qualify strict whole-source output.",
+    "The exact subrecord offsets are decompressed object-body bit positions. An instrumented ACadSharp reader independently reproduces the spans under a constant 35,888-bit cursor-origin bias, but this is still one ODA-converted source profile, not native AutoCAD qualification.",
+    "ACadSharp and libdxfrw agree on rows, columns, dimensions, strings, block name, and block entity census, but this does not establish table rendering or native semantic acceptance.",
+    "The direct writer still refuses parsed physical source subrecord ranges, and dwgRW::writeTable still refuses all TABLE output because the compound *T graph transaction is not implemented.",
+    "The source profile is one file and does not authorize broader TABLE support claims."
+  ]
+}

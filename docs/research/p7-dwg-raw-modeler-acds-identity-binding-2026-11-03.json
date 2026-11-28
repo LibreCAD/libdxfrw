@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-dwg-raw-modeler-acds-identity-binding-2026-11-03",
+  "date": "2026-11-03",
+  "status": "RAW_REPLAY_IDENTITY_GUARD",
+  "supportClaimEffect": "none",
+  "problem": "The raw DWG modeler replay path accepted a typed peer whose AcDs numeric handle and lexical key agreed with each other but identified another object. The retained entity frame has only the DataStorage presence bit, so ordinary reread looks up the record using the entity handle and cannot reconstruct the submitted alternate association.",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "section": "24.2.2.3",
+    "scope": "A data record carries the ACIS entity data and a handle. The raw-frame reader has no separate encoded AcDs identifier; the existing dx_iface projection requires the modeler and record handles to match."
+  },
+  "change": "On fixed modeler raw-frame replay, require the linked AcDs handle to equal the raw entity handle; finalization independently checks the pending modeler and record identities. This restriction does not change typed entity remapping or other DataStorage records.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "selector": "ctest --test-dir build-gcc -R ^libdxfrw_raw_modeler_acds_replay$ --output-on-failure",
+    "result": "PASS 1/1",
+    "control": "A typed 0x708 modeler with internally consistent AcDs handle/key 0x709/709 is rejected before frame publication; the valid 0x708/708 modeler then succeeds on the same writer. Inline and paged AcDs replay scenarios exercise corrected replay and readback. Before the guard, the wrong-identity call succeeded and occupied the object identity, causing the subsequent correct write to fail."
+  },
+  "limits": [
+    "Generated controls establish the bounded raw replay association and retry, not physical producer breadth, arbitrary remapping, complete source graph closure, or native ACIS geometry semantics.",
+    "No DWG or DXF fixture was added."
+  ]
+}

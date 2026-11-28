@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-16",
+  "scope": "Mandatory tenth ordered FreeCAD default-importer patch correcting the parent ACI color profile.",
+  "localCandidateCommit": "082744183b86b61508f16e6d1e066eaccc6a826a",
+  "patch": "docs/patches/freecad-p8-default-mesh-color-consistency-2026-11-16.patch",
+  "patchSha256": "1c0311d8f372ee847f36dbd8ef1fec9aa2d0c5937b6a84784e3757d7e08dbe7b",
+  "references": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PolyFaceMeshVertex.html",
+    "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-Core/files/GUID-4B0667EF-D8E3-4BD2-A3EE-06CFF164A0A6.htm"
+  ],
+  "finding": "DXF group 62 defaults to BYLAYER; coordinate vertices are expected to share their parent properties, while face records can have distinct layer and color. Original peer controls specified parent ACI only, leaving coordinate and face colors BYLAYER; their grouping did not prove color preservation. The common group-code table gives the omitted value as BYLAYER, but this does not by itself prove its effective appearance as a polyface subentity.",
+  "change": "Admit bounded meshes only when each coordinate vertex and face has the same supported explicit ACI or BYLAYER value as the parent, treating absent group 62 as BYLAYER. Refuse differing, duplicate or invalid child colors. Preserve existing explicit-color-in-block refusal.",
+  "validation": {
+    "before": "The new test reproduced acceptance of parent-only color and rejection of matching explicit child colors in the preceding patch.",
+    "focused": "Seven focused importer tests pass for both mesh types, matching and mismatched parent/vertex/face colors, invalid and duplicate values, default BYLAYER, same-file recovery, block guards, fused grouping and existing layer controls.",
+    "peer": "Independently ezdxf-generated same- and different-parent-color drawings were regenerated with explicit matching vertex and face colors; headless fused groups and total areas match expectations with color preservation enabled/disabled.",
+    "replay": "Zero-context correction applies with git apply --unidiff-zero immediately after the parent-color patch and matches tested source/test files byte-for-byte.",
+    "logs": [
+      "/private/tmp/freecad-polyface-layer-20261116/color-consistency-before.log",
+      "/private/tmp/freecad-polyface-layer-20261116/color-consistency-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/color-consistent-peer-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/color-mismatch-peer-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/color-modes.log"
+    ],
+    "peerRefusal": "The original ezdxf parent-only color files are refused for both same/different colors with preservation enabled or disabled; no mesh geometry leaks.",
+    "independentPeerDisagreement": {
+      "repository": "https://github.com/mozman/ezdxf",
+      "commit": "dd7f6cc34983fdbf0b2b910f2497e0720d06dd16",
+      "source": "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/render/polyline.py#L192-L224",
+      "observation": "For the generated parent-only ACI 1 and 2 controls, the face records omit group 62 and report a default of 256, but virtual_entities emits 3DFACE colors 1 and 2 by combining parent properties with explicit face properties. Matching parent/face profiles produce the same virtual colors.",
+      "disposition": "Keep parent-only profiles refused until native producer/renderer evidence resolves effective color inheritance; ezdxf behavior is independent implementation evidence, not a native semantic decision."
+    },
+    "importModes": "The matching-color ezdxf control also produces two 6-square-millimetre shapes and no unsupported record in each of the four FreeCAD import modes, with layers disabled and colors enabled. This is headless geometry only."
+  },
+  "scratchHashes": {
+    "color-consistent-same.dxf": "c97e81f743ce159fbfff2270d19919b43c869e001c5d5af00dd0534126f983ad",
+    "color-consistent-different.dxf": "3650cee5bacefaf8a12e87c2f798f47e315848f414f1d74b2f2b49efb17bdbc1"
+  },
+  "limits": [
+    "Matching-color profiles are conservative; different face colors, BYBLOCK, truecolor and color books remain refused.",
+    "Only headless grouping and geometry are checked; native GUI appearance and other platforms remain unqualified.",
+    "No generated fixture is committed; no phase gate or external-only claim is promoted.",
+    "The bounded equality check is deliberately conservative; the effective color of an omitted face group 62 is disputed by ezdxf virtual-face inheritance and still requires native evidence."
+  ],
+  "followup": "The next ordered uniform-face ACI patch admits a shared explicit face ACI that differs from the parent, based on Autodesk PFACE semantics and ezdxf virtual-face agreement. Coordinate vertices must still match their parent; mixed face colors and the omitted-face-color ambiguity remain refused."
+}

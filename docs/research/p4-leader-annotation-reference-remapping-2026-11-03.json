@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-leader-annotation-reference-remapping-2026-11-03",
+  "date": "2026-11-03",
+  "status": "LOW_LEVEL_REFERENCE_TRANSLATION_VERIFIED; GRAPH_CLOSURE_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "scope": "Complete the low-level DXF writer identity translation for a typed LEADER group-340 annotation reference while preserving the whole-file adapter's source-bound forward-reference behavior.",
+  "baselineCommit": "56e2e8161b11515df3860c7f088d1ca20cffda0b",
+  "field": {
+    "record": "LEADER",
+    "group": 340,
+    "model": "DRW_Leader::annotHandle",
+    "role": "Hard reference to the associated annotation",
+    "preexistingRoute": "Whole-file dx_iface output preplans a unique typed annotation target and resolves the source handle through sourceHandleToMintedMap. Ambiguous or missing targets are refused."
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "priority": [
+      "Use the whole-file planned source-to-minted annotation identity when available.",
+      "Otherwise use the configured reference resolver's final output identity.",
+      "Otherwise use an explicit source-handle remap only when that source key exists."
+    ],
+    "failureBehavior": "A nonzero source reference that resolves or remaps to zero/DRW::NoHandle, an ambiguous whole-file source identity, or an unmapped direct reference refuses the staged LEADER record. A zero source annotHandle retains the existing optional-no-reference path. The resolver result is not remapped again.",
+    "compatibility": "No public data layout or virtual interface changed. Existing whole-file planned forward-reference behavior remains the highest-priority path."
+  },
+  "validation": {
+    "generatedControlsOnly": true,
+    "fixtureFilesAdded": 0,
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "controls": [
+      "explicit source remap emits the mapped group-340 identity",
+      "configured resolver takes precedence over an explicit remap",
+      "zero resolver result refuses without changing an existing destination prefix",
+      "NoHandle remap result refuses without changing an existing destination prefix",
+      "nonzero reference with no planned target, resolver, or explicit remap remains refused",
+      "existing dx_iface forward-reference integration emits and re-reads the annotation target identity"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dxf_fixture_tests --parallel 4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_leader_annotation_reference_remapping$' --output-on-failure",
+      "build-gcc/libdxfrw_dxf_fixture_tests --leader-annotation-reference",
+      "git diff --check"
+    ],
+    "result": "PASS; focused CTest 1/1 and adapter integration selector PASS"
+  },
+  "limits": [
+    "This proves final output-ID selection for the bounded field, not target existence or uniqueness for the direct low-level route.",
+    "No source owner role, recursive dependency closure, physical DWG producer profile, native annotation evaluation, or rendering semantics are established.",
+    "No DWG encoder behavior changes."
+  ],
+  "sourceFingerprints": {
+    "src/libdxfrw.cpp": "0ed6cd9667fccd77ec3c37d1812103d331bac4edaeadf1bc5e4d5f65a845ff03",
+    "tests/wave1_tests.cpp": "3b27e41189ca7df24aab9f5168c8abc80181b2ece22a50c0baa130e6f64881ab",
+    "CMakeLists.txt": "48b7c87bd957545b3047ccb29eae34b11922832687bccca647a3fbef8c980820",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "5f9b73605a81206d0ce1e401abdb91cfeed72cc6cc872bdca142e838426a8994"
+  },
+  "next": "Continue the source/parser-contract-backed typed reference-ID audit for supported records. Add output-ID projection only where the field role and correct mapping are established; defer target-kind, owner, and graph claims until qualified source/output providers close them."
+}

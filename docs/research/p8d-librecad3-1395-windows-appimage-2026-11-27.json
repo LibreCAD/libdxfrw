@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-1395-windows-appimage-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerHead": "1395a2f54aef9b7c7ce869c7d32d809db1527e1f",
+  "jobs": {
+    "windows": {
+      "url": "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45996096927/job/140495743004",
+      "conclusion": "SUCCESS",
+      "scope": "Windows hosted build and NSIS package; required test filters include 189 and 123 tests with zero skipped, and 17 LayoutGraph tests in Python-off build; installed package Python runtime smoke exercises document undo/redo and DXF roundtrip.",
+      "logSha256": "3b1979ddc14b42eadf1b7c06043110022698071425d7fa8346f15148c0f98c9a"
+    },
+    "appimage": {
+      "url": "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45996096927/job/140495742952",
+      "conclusion": "SUCCESS",
+      "scope": "AppImage packaging and Python runtime smoke under hosted and container runtimes, including document undo/redo and DXF roundtrip.",
+      "logSha256": "6241ac59b778c092f8f4095554210eadffbe908326c94281cc912be19e8e9d30"
+    }
+  },
+  "limits": [
+    "Results are tied to the recorded PR head and job configurations, not the later POINT integration head or native interactive GUI.",
+    "No package gate or broad compatibility claim is promoted."
+  ]
+}

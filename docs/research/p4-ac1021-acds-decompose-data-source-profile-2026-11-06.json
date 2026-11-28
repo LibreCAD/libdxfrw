@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1021-acds-decompose-data-source-profile-2026-11-06",
+  "date": "2026-11-06",
+  "status": "SOURCE_PROFILE_SCREENED_OUTPUT_NOT_YET_QUALIFIED",
+  "supportClaimEffect": "none",
+  "question": "Does the physical AC1021 AcDsDecomposeData NOD graph provide a bounded, typed XRECORD graph suitable for selected ASCII/Binary output qualification?",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "producerProvenance": "Existing local source; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "graph": {
+    "namedObjectDictionary": {
+      "handle": "0xC",
+      "key": "AcDsDecomposeData",
+      "targetHandle": "0x3C3FE",
+      "occurrences": 1
+    },
+    "dictionaries": [
+      {
+        "handle": "0x3C3FE",
+        "owner": "0xC",
+        "frameOffset": 8432,
+        "frameSize": 82,
+        "entries": [
+          {"key": "AcDsRecords", "target": "0x3C400"},
+          {"key": "AcDsSchemas", "target": "0x3C3FF"}
+        ]
+      },
+      {
+        "handle": "0x3C3FF",
+        "owner": "0x3C3FE",
+        "frameOffset": 1995753,
+        "frameSize": 178,
+        "entries": [
+          {"key": "8796087808528", "target": "0x3C3F9"},
+          {"key": "8796087808544", "target": "0x3C3FA"},
+          {"key": "8796087808560", "target": "0x3C3FB"},
+          {"key": "8796087808576", "target": "0x3C3FC"},
+          {"key": "8796087808592", "target": "0x3C3FD"}
+        ]
+      },
+      {
+        "handle": "0x3C400",
+        "owner": "0x3C3FE",
+        "frameOffset": 1995729,
+        "frameSize": 20,
+        "entries": []
+      }
+    ],
+    "records": [
+      {
+        "handle": "0x3C3F9",
+        "key": "8796087808528",
+        "owner": "0x3C3FF",
+        "frameOffset": 2124306,
+        "frameSize": 587,
+        "dataEntries": 31,
+        "handleValues": ["0x3C3FA", "0x3C3FB", "0x3C3FC", "0x3C3FD"],
+        "schemaName": "AcDb_Thumbnail_Schema"
+      },
+      {
+        "handle": "0x3C3FA",
+        "key": "8796087808544",
+        "owner": "0x3C3FF",
+        "frameOffset": 2124897,
+        "frameSize": 157,
+        "dataEntries": 4,
+        "handleValues": [],
+        "schemaName": "AcDbDs::TreatedAsObjectDataSchema"
+      },
+      {
+        "handle": "0x3C3FB",
+        "key": "8796087808560",
+        "owner": "0x3C3FF",
+        "frameOffset": 2125058,
+        "frameSize": 105,
+        "dataEntries": 4,
+        "handleValues": [],
+        "schemaName": "AcDbDs::LegacySchema"
+      },
+      {
+        "handle": "0x3C3FC",
+        "key": "8796087808576",
+        "owner": "0x3C3FF",
+        "frameOffset": 2125167,
+        "frameSize": 123,
+        "dataEntries": 4,
+        "handleValues": [],
+        "schemaName": "AcDbDs::IndexedPropertySchema"
+      },
+      {
+        "handle": "0x3C3FD",
+        "key": "8796087808592",
+        "owner": "0x3C3FF",
+        "frameOffset": 1995935,
+        "frameSize": 144,
+        "dataEntries": 5,
+        "handleValues": [],
+        "schemaName": "AcDbDs::HandleAttributeSchema"
+      }
+    ],
+    "commonOwnership": "Each dictionary frame is uniquely typed and source-eligible; the NOD owns 0x3C3FE, which owns 0x3C3FF and 0x3C400. Each XRECORD is owned by and reciprocally reacts to 0x3C3FF. All five XRECORD payloads are typed and source-eligible; no selected node has EED, APPDATA, an extension dictionary, or raw payload."
+  },
+  "implementation": {
+    "files": ["tests/dwg2dxf_adapter_tests.cpp"],
+    "change": "Added a bounded physical source-profile inspector for the AcDsDecomposeData dictionary and its five typed XRECORD children. Output qualification remains the next slice."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "PASS",
+    "selector": "--ac1021-acds-decompose-data-source-profile /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1021-acds-decompose-data-source-profile /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS; confirms unique direct NOD root; complete two-level dictionaries and empty records dictionary; five ordered schema keys; unique eligible type-79 source frames, reciprocal owners/reactors and common-link tails; and the exact ordered four group-341 targets from the first schema XRECORD.",
+    "logPath": "/private/tmp/p4-ac1021-acds-decompose-data-source-profile-2026-11-06.log",
+    "logSha256": "fc7c5a62433ba3058eb69f089382cbc06cae1c1b3a67c0e57a7d51ca9f29681f",
+    "testSourceSha256": "db225df84a3ab4ce89dd48bd21b90d31975eb5c6a35cbedf7b37f17d90537c11",
+    "executableSha256": "34d7b6f25f374df2addeb416de0222e0b1790dfdce8297fb465361ca51abd082"
+  },
+  "limits": [
+    "This is source-profile evidence only; it does not establish output preservation, native ACDS behavior, or support claims.",
+    "The group-341 source references are decoded typed values; an independent DWG wire-role proof is not included.",
+    "The source author and producer are not independently authenticated; no fixture or derivative is committed."
+  ],
+  "nextAction": "Emit this exact selected graph in ASCII/Binary DXF and verify exact mapped readback, mutation rollback, and same-adapter retry."
+}

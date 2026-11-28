@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-material-xdict-transport-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 MATERIAL common-header flag to DXF link mapping",
+  "status": "LOCAL_TYPED_MATERIAL_LINK_PROOF_PARTIAL_EXPORT_ADVANCED_STRICT_CALLBACK_GATE_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "9189ee3a",
+  "implementationCommit": "1d124568",
+  "sourceProfile": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "outputInspectionFailure": {
+      "record": "MATERIAL",
+      "handle": "0x97",
+      "diagnostic": "typed MATERIAL extension-dictionary flag",
+      "finding": "The local readback decoded the mapped xdictionary handle and related ACAD_XDICTIONARY group, then rejected because the DWG-only common-header xDictFlag did not equal the DXF parser's internal flag."
+    }
+  },
+  "formatBinding": {
+    "source": "src/drw_objects.cpp readObjectCommonHandles",
+    "finding": "For the relevant object common handle stream, xDictFlag == 1 omits the extension-dictionary handle slot; other values consume the slot. It is a DWG framing bit, not a standalone DXF field.",
+    "dxfTransport": "DXF records an extension-dictionary relationship using the ACAD_XDICTIONARY application group and group 360. The exact remapped xDictHandle and application-group references remain compared by the output inspector."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/material_dwg_test_helpers.h"
+    ],
+    "summary": "Removed the comparison between the DWG framing bit and the DXF readback model while retaining exact owner, remapped extension-dictionary handle, reactor, application-data and extended-data comparisons. Added an in-memory AC1024 source variant where xDictFlag omits the xdictionary handle slot, then proved ASCII and Binary output and fresh DXF readback without inventing a DXF copy of the DWG bit.",
+    "failureAndRetry": "The existing typed MATERIAL graph selector still checks invalid procedural/truncated source refusal, destination preservation after late mutation and corrected retry. The added no-xdictionary profile exports and reads back in both encodings; no extension dictionary is synthesized.",
+    "fixturePolicy": "The source variant is authored in memory. DXF outputs are temporary and removed. The mechanical DWG and partial export remain outside the repository; no investigation DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS; dwg2dxf built, then the adapter test target built after correcting a missing source argument in the test lambda."
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_material_ac1024_typed_graph_output$' --output-on-failure",
+      "result": "PASS 1/1; 0.53 seconds. Covers mapped extension-dictionary links with and without an extension-dictionary handle slot in ASCII and Binary DXF."
+    },
+    "physicalPartialExport": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/mechanical-material-xdict-fix.dxf",
+      "exitCode": 0,
+      "outputBytes": 161368,
+      "outputSha256": "dda770ca833f7a6abb945e920e6d99483b1a29e7364b21b6e9067b607032c0d0",
+      "log": "/private/tmp/mechanical-material-xdict-fix.log",
+      "logSha256": "bee5931a83d0e500cc6267e755a10743b02c545b50b4703e8abdbc84a78b513d",
+      "result": "The explicit-partial physical conversion completed and published a DXF after the MATERIAL inspector stopped comparing the nonportable DWG framing bit. This command is diagnostic only; the resulting physical DXF was not independently read back in this slice."
+    },
+    "strictExport": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/mechanical-material-strict.dxf",
+      "exitCode": 1,
+      "outputPublished": false,
+      "log": "/private/tmp/mechanical-material-strict.log",
+      "logSha256": "6f1df6796afe19a559635d177fa4a999db230a9eeeeac17d493afa5165d384ea",
+      "diagnostic": "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition",
+      "readState": {
+        "operationSucceeded": true,
+        "legacyError": 0,
+        "frameCoverageStatus": "FinalizedComplete",
+        "sourceFrames": 366,
+        "publishedFrames": 366,
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "opaqueViewCallbacks": 228,
+        "opaqueFramesRetainedForCorrelation": 0
+      }
+    },
+    "fullSuites": "NOT_RUN"
+  },
+  "sourceBindingsSha256": {
+    "dwg2dxf/dx_iface.cpp": "36631fbabe05d47480aa7752613f20cccd26106969f232223c38285593181722",
+    "tests/dwg2dxf_adapter_tests.cpp": "2382a5cd814d34b4fe054e2072675f0519e0a2301e155c65eb9b928c1b8a6067",
+    "tests/material_dwg_test_helpers.h": "1aa44ba51a64707d16b2dd4f54ee146b5cd3b41233a5feda2d66a22efee044a5"
+  },
+  "artifactsSha256": {
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "5b25e7ca83c519bdd0f4905939b4bd68045102b9d3a282d0196f6ee95a86a6d4",
+    "build-gcc/dwg2dxf/dwg2dxf": "731672ad19689d635fa0a217a9ba1112c922e514f0b988ef17b7f6fe9a504581"
+  },
+  "limits": [
+    "This closes one AC1024 MATERIAL output-inspection mismatch and advances the physical partial export; it does not prove complete output for the source document.",
+    "Strict complete export remains correctly refused because 228 opaque callback views have no retained correlation frames. Do not weaken this gate based on a successful partial export.",
+    "The physical partial DXF was not independently inspected or semantically accepted by a CAD consumer in this slice.",
+    "No broader DWG/DXF support, LibreCAD/LibreCAD_3 or FreeCAD qualification, ABI/packaging qualification, or 3D semantic claim is established."
+  ],
+  "remainingP4Scope": "Join all 228 opaque callback identities to complete typed source-to-output evidence or a proven replay provider, close required descendants, and pass strict complete-export admission.",
+  "nextAction": "Bind the 54 ACDBASSOCGEOMDEPENDENCY source identities to actual staged output, exact body fields/references and fresh readback. The physical partial DXF record count is 54 and matches the census, but count agreement is not semantic proof. Reuse the existing source-profile and generated writer/graph receipts; keep strict admission blocked until the other opaque callback families also close."
+}

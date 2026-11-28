@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-mtext-frame-flag-version-vectors-v1",
+  "completedAt": "2026-10-17",
+  "status": "PASS_LOCAL_FAST_SLICE",
+  "scope": "Add generated AC1027 and AC1032 DWG MTEXT background-flag vectors under the existing object-vector target, including local decode/re-encode and following-handle checks.",
+  "implementation": {
+    "filesChanged": [
+      "tests/dwg_object_vectors_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionCodeChanged": false,
+    "newTestTarget": false,
+    "newCTestRegistration": false,
+    "committedFixtureFiles": 0,
+    "dependenciesAdded": 0,
+    "generatedProfiles": [
+      { "version": "AC1027", "backgroundFlags": [0, 16, 17] },
+      { "version": "AC1032", "backgroundFlags": [0, 16, 17] }
+    ],
+    "assertions": [
+      "generated entity encodes under each version/flag profile",
+      "parser retains handle, text, insertion coordinates, and exact background flag value",
+      "version-gated background scale, color, and transparency survive when payload is present",
+      "following hard-pointer handle remains aligned",
+      "decoded MTEXT re-encodes and reopens with the same flags and text"
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+        "result": "PASS",
+        "passed": 1,
+        "failed": 0,
+        "elapsedSeconds": 0.21
+      },
+      {
+        "command": "git diff --check -- tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mtext-frame-flag-version-vectors-fast-slice-2026-10-17.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuitesRun": false,
+    "peerRuntimesRun": 0,
+    "nativeCadRuns": 0,
+    "externalFilesDownloaded": 0
+  },
+  "limits": {
+    "resolvesAcadSharp1297": false,
+    "promotesAc1032WriterCompatibility": false,
+    "qualifiesNativeAutoCADAcceptance": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

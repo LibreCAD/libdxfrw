@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-03",
+  "scope": "Decode the LIGHTLIST ACAD_LIGHT owner-dictionary pointer as a reference role, not as a persistent reactor.",
+  "schema": {
+    "source": "Autodesk LIGHTLIST DXF group-code table",
+    "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-C4E7FFF8-C3ED-43DD-854D-304F87FFCF06.htm",
+    "field_order": "The ACAD_REACTORS app-data group carries a soft pointer to the ACAD_LIGHT entry in the named object dictionary; a following group 330 carries the owner-object pointer."
+  },
+  "implementation": {
+    "behavior": "The source-aware DXF parser preserves the complete ACAD_REACTORS app-data group and exposes its first group-330 value through DRW_LightList::getAcLightDictionaryHandle. The first value is removed from reactorHandles; the following owner-object group 330 remains in parentHandle.",
+    "layout": "No DRW_LightList data member or virtual method was added; the public accessor does not change object layout.",
+    "limits": "This corrects the DXF typed reference role only. It does not establish a physical DWG crosswalk, ACAD_LIGHT dictionary graph closure, LIGHT target resolution, adapter output, or native lighting behavior. The adapter keeps LIGHTLIST output fail-closed."
+  },
+  "validation": {
+    "input": "Locally authored in-memory ASCII DXF text; no fixture file was added.",
+    "control": "The focused selector verifies the ACAD_LIGHT handle, following owner handle, named LIGHT handle/name, absence of a falsely classified reactor, and exact retained app-data group.",
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "ctest --test-dir build -R '^(dwg2dxf_action_path_object_capture_limits|dwg2dxf_sunstudy_callback_capture_limits|dwg2dxf_lightlist_callback_capture_limits|dwg2dxf_geomapimage_callback_capture_limits)$' --output-on-failure",
+      "cmake --build build --target dwg2dxf -j4",
+      "git diff --check"
+    ],
+    "result": "PASS: all four focused callback selectors passed and the dwg2dxf executable rebuilt."
+  }
+}

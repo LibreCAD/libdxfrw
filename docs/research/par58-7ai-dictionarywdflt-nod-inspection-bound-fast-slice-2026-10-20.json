@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "plan_owner": "PAR-58/7AI",
+  "related_owner": "7S.2 retained data/work",
+  "slice": "DICTIONARYWDFLT-specific NOD root inspection bound",
+  "status": "implemented_locally_uncommitted",
+  "problem": "The special DICTIONARYWDFLT validation scanned the complete NOD entry list for its canonical root before the later general NOD edge pre-scan, leaving an earlier potentially large pass without a remaining-budget check.",
+  "implementation": {
+    "files_changed": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "Added a shared checked edge-candidate preflight helper for NOD entry scans.",
+      "Applied it to the DICTIONARYWDFLT canonical-root alias scan before iterating NOD entries.",
+      "Kept examinedEdges unchanged on preflight; actual accepted references remain charged during graph traversal.",
+      "Extended the generated imported DICTIONARYWDFLT route to assert its specific zero-edge early refusal before node/edge work."
+    ],
+    "diagnostic": "Over-budget special-root inspection reports DICTIONARYWDFLT NOD entry inspection limit.",
+    "wire_behavior": "No serialized fields, graph meaning, public API, or support claim changed."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 2",
+      "result": "PASS (GCC -Werror)"
+    },
+    "focused_selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --extension-graph-limits",
+      "result": "PASS"
+    },
+    "focused_ctests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_extension_graph_limits|libdxfrw_named_resource_import_evidence|libdxfrw_dictionary_default_adapter_roundtrip)$' --output-on-failure",
+      "passed": 3,
+      "failed": 0,
+      "result": "PASS"
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par58-7ai-dictionarywdflt-nod-inspection-bound-fast-slice-2026-10-20.json",
+      "result": "PASS"
+    },
+    "not_run": [
+      "full test suite",
+      "sanitizers or fuzzing",
+      "peer executable or independent producer",
+      "native CAD application"
+    ]
+  },
+  "assessment": {
+    "new_format_findings": 0,
+    "new_top_level_subplans": 0,
+    "production_code_changed": true,
+    "tests_added_or_registered": false,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 141,
+      "top_level_subplans": 78
+    },
+    "deferred_external": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "next_local_work": "Continue reviewing PAR-58/7AI pre-traversal payload/root scans for work not charged or bounded before iteration; then proceed to the next local 7S retained-byte/work owner.",
+  "repository_state": "Broadly dirty shared worktree; .git metadata is read-only, so the slice remains uncommitted."
+}

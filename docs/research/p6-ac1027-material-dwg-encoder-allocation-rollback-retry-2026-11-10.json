@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1027-material-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "status": "SELECTED_PROFILE_ENCODER_AND_GRAPH_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Verify transactional allocation-failure behavior of DRW_Material::encodeDwg for the exact source-derived AC1027 default MATERIAL profile and its selected-object graph replay.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "selectedRecords": ["ByBlock", "ByLayer", "Global"],
+    "producer": "Not independently certified by this receipt"
+  },
+  "implementation": {
+    "productionFile": "src/drw_objects.cpp",
+    "productionChange": "DRW_Material::encodeDwg stages every distinct body/string/handle destination, retains intentional stream aliases, checks all staged streams, and publishes with no-throw swaps only after a complete successful encode. Allocation or encoding exceptions return false without changing caller buffers.",
+    "testFile": "tests/dwg_default_material_optin_tests.cpp",
+    "testChange": "Direct source-derived record controls inject failure at each reached encoder allocation for five layouts (separate streams, shared strings/handles, body/string alias, body/handles alias, and all aliased). They compare bytes, bit cursors, good state and handle occurrence ledgers before/after failure, then retry the same object against the same buffers and compare with clean output. The existing selected graph sweep injects failure at each reached allocation in the MATERIAL/dictionary callback, verifies destination preservation, retries the same writer, and performs fresh typed readback.",
+    "selector": "build-gcc/tests/libdxfrw_dwg_default_material_optin_tests --physical-ac1027-material-dwg-replay /Users/dli/doc/dwg/Cover.dwg"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_default_material_optin_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_default_material_optin$' --output-on-failure",
+      "result": "PASS 1/1; fast label"
+    },
+    "directEncoderAllocationSweep": {
+      "result": "PASS; 318 injected allocation offsets across three physical-source records and five stream layouts; every failed encode preserved caller state and same-object/same-buffer retry matched clean output"
+    },
+    "selectedGraphAllocationSweep": {
+      "result": "PASS; 295 injected allocation offsets; every failed graph write preserved the seeded destination and same-writer retry passed fresh typed graph readback"
+    },
+    "physicalSourceSelector": {
+      "result": "PASS; all three records replayed and read back from one generated selected-object graph"
+    },
+    "fixturePolicy": "No DWG/DXF fixtures committed; the physical source is external to the repository and generated outputs are temporary."
+  },
+  "limitations": [
+    "This proves transaction rollback and retry for the selected AC1027 default-material source profile only.",
+    "It does not independently validate the physical record field layout or broaden MATERIAL semantic, producer, graph, native-consumer or platform qualification.",
+    "The selected graph is not a full-source Cover.dwg rewrite.",
+    "No support claim is promoted."
+  ]
+}

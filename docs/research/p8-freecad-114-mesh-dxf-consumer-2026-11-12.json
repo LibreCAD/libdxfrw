@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-12",
+  "profile": "FreeCAD Draft DXF import of locally authored AC1027 MESH",
+  "consumer": {
+    "application": "FreeCAD",
+    "version": "1.1.4",
+    "revision": "20260928 (Git shallow)",
+    "entrypoint": "FreeCADCmd",
+    "platform": "macOS ARM64"
+  },
+  "input": {
+    "origin": "locally authored from scratch; temporary; not committed",
+    "path": "/private/tmp/libdxfrw-mesh-native.dxf",
+    "format": "ASCII DXF AC1027",
+    "sha256": "910f64825562f162f704ebee72fe694fdab5056a6914c98f22c412e06effe9e8",
+    "entity": "MESH",
+    "profile": {
+      "vertices": 3,
+      "faces": [[0, 1, 2]],
+      "edges": [[0, 1], [1, 2], [2, 0]],
+      "creases": [0.25, 0.5, 0.75]
+    }
+  },
+  "importer": {
+    "module": "FreeCAD Draft importDXF",
+    "optionalLibrarySource": "yorikvanhavre/Draft-dxf-importer master, downloaded through FreeCAD's documented preference",
+    "sourceRevision": "not pinned",
+    "downloadedModuleSha256": {
+      "dxfColorMap.py": "4b4a66749c68944502c4ba4c981427563b2adb8e125877626710c585d07de4b0",
+      "dxfImportObjects.py": "4f897ec54f5669cedf42274574a0d38cdf543333e25f7452075c00be8a7365b5",
+      "dxfLibrary.py": "0bae42b630a9797ea56dcbe9a6dfa648369a089289f7fb33ab928c9784cac7c8",
+      "dxfReader.py": "7c61f540a4b0a484097c2ef1b42fa9f692babe59f45be9541b32cfb1805bc445"
+    },
+    "result": "successfully imported",
+    "documentObjects": [
+      { "name": "Layer", "typeId": "App::FeaturePython" },
+      { "name": "LayerContainer", "typeId": "App::DocumentObjectGroupPython" }
+    ],
+    "meshGeometryObjects": 0,
+    "shapeGeometryObjects": 0
+  },
+  "observation": "The importer completed without an exception but created no geometry object for the MESH entity. This does not show that the DXF is malformed or that libdxfrw's MESH writer is defective. It bounds only this FreeCAD Draft importer route and does not qualify native 3D MESH support.",
+  "execution": {
+    "command": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd /private/tmp/libdxfrw-freecad-mesh.FCMacro",
+    "exitCode": 0,
+    "cpuFeatureAccess": "Host CPU features required; sandboxed launch failed with a Qt NEON requirement, host launch succeeded.",
+    "initialCondition": "DXF helper modules were absent; the macro temporarily enabled FreeCAD's dxfAllowDownload preference and restored its previous value after import.",
+    "cleanup": "The four helper modules downloaded to the user's FreeCAD macro directory solely for this run were removed, restoring the prior state."
+  },
+  "limits": [
+    "The downloaded importer revision is floating and not independently pinned.",
+    "This observation is not a complete semantic DXF conformance check.",
+    "No DWG producer behavior, alternative FreeCAD importer, LibreCAD rendering, or independent CAD consumer is qualified.",
+    "No DWG/DXF fixture was added to the repository."
+  ]
+}

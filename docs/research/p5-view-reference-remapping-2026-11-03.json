@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-03",
+  "scope": "Generated VIEW table-record reference-identity transport for admitted reference fields.",
+  "fields": [
+    { "member": "m_backgroundHandle", "group_code": 332 },
+    { "member": "m_visualStyleHandle", "group_code": 348 },
+    { "member": "namedUCS_ID", "group_code": 345 },
+    { "member": "baseUCS_ID", "group_code": 346 }
+  ],
+  "source": {
+    "title": "Autodesk VIEW (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+    "supports": "The documented Background, VisualStyle, named UCS, and base UCS handle fields and their optionality."
+  },
+  "mapping_policy": "For nonzero source handles emitted in this target version, use the configured reference resolver when present; otherwise use remapObjectHandle. Refuse zero or NoHandle results before writing the VIEW record. Existing Background source-registration and SUN/live-section refusal gates are unchanged.",
+  "validation": {
+    "input": "Generated in-memory VIEW with a locally authored Background registration and reference handles; no DWG/DXF fixture was added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "selectors": ["libdxfrw_wave1_tests --view-reference-remapping"],
+    "result": "PASS for exact reference groups/values under resolver precedence and remap fallback, remapped VIEW group-5 identity, unresolved target atomic refusal for each emitted edge, and corrected fresh-writer retry in ASCII/Binary.",
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4"
+  },
+  "qualification_limits": [
+    "Generated low-level transport only; Background registration is not proof that a physical target record was emitted.",
+    "Does not establish physical producer field spans, target roles/owners, recursive graph closure, or native rendering.",
+    "Nonzero SUN and live-section references remain refused by the writer."
+  ]
+}

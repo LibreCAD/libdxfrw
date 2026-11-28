@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Modern GEODATA DWG UnitsValue domain",
+  "date": "2026-11-05",
+  "status": "MODERN_DWG_UNIT_DOMAIN_GUARD_VERIFIED",
+  "scope": "For GEODATA object versions 2 and 3, DWG output accepts horizontal and vertical UnitsValue values 0 through 24. Invalid values fail before low-level body/string/handle buffers mutate and before dwgWriter15 prepares caller identity or stages a custom class. Version 1 remains on its distinct layout and is not constrained by the modern pair of unit fields.",
+  "normativeSources": [
+    {
+      "title": "Autodesk GEODATA (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm",
+      "groups": "Groups 91 and 92 use the UnitsValue enumeration."
+    },
+    {
+      "title": "Autodesk UnitsValue Enumeration",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_UnitsValue.html",
+      "domain": "Undefined through USSurveyMile are contiguous enum values 0 through 24."
+    },
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1, §20.4.78",
+      "scope": "The GEODATA v2/v3 body serializes horizontal and vertical unit fields; this change validates their value domain without changing the encoding layout."
+    }
+  ],
+  "implementation": {
+    "files": ["src/drw_objects.cpp", "src/intern/dwgwriter15.cpp"],
+    "behavior": "DRW_GeoData::encodeDwg rejects modern unit values outside 0..24 before touching output buffers. dwgWriter15::writeGeoData repeats the check before handle/class staging."
+  },
+  "regressionControl": {
+    "file": "tests/dwg_object_vectors_tests.cpp",
+    "test": "libdxfrw_geodata_dwg_unit_domain",
+    "coverage": "For v2 and v3, each horizontal and vertical field rejects -1 and 25 with sentinel-prefilled body, string and handle buffers unchanged; retry with the same object/buffers at valid endpoints 0 or 24 succeeds. A concrete AC1027 dwgWriter27 control rejects an invalid unit before identity staging, then writes the corrected object on the same writer. Controls are authored in memory.",
+    "fixturePolicy": "No DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "buildResult": "passed",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_geodata_dwg_unit_domain$' --output-on-failure",
+    "focusedTestResult": "passed",
+    "physicalSelectedGraphRegression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --physical-geodata-dictionary-graph /private/tmp/geodata-probe-dwg/local_grid.dwg <empty-output-dir>",
+      "inputSha256": "8e4c46cb724d8c66c52eeef3b64ddd8a4b40ea36fd12cb6c69ae8f40186d3bae",
+      "selectorResult": "passed; selected ASCII/Binary graph outputs were emitted with fresh typed readback and the existing refusal/retry controls",
+      "asciiSha256": "25baa32ab925a204bc29866feb7a7c0152673bfdb24b843f2a68807b3dd014c3",
+      "binarySha256": "e97e0517e4ea8ecc43e2480e4bfd2157aa6f677ce35896f88d1323807abd34d3",
+      "sourceQualification": "ODA 27.1-derived local source; 109/109 observed frames published, with two retained HEADER integrity observations and strict whole-source refusal. This confirms only the selected GEODATA graph profile."
+    },
+    "diffCheck": "git diff --check passed"
+  },
+  "sourceBinding": {
+    "baseRevision": "02ec61350e41a71f09d6e96d1842fd5bc00ed2b4",
+    "files": {
+      "src/drw_objects.cpp": "af61ccd1a4325de146791144a43a40d071141136dcd262a95f4a3c656e6287b1",
+      "src/intern/dwgwriter15.cpp": "728185281cf96173525d5336efcf0bdd02482389a432d5e9802af54671fc71b3",
+      "tests/dwg_object_vectors_tests.cpp": "52d849c34838341effdb57139085a613d72c6a3f073f1befc0fb60d03007437f",
+      "CMakeLists.txt": "7563c0b3d1e8a187b56fcf12104c3cf80cd13993fd621b0f0cf00e7f19d07d68"
+    }
+  },
+  "nonClaims": [
+    "No physical producer or native geospatial consumer was qualified.",
+    "This does not qualify graph closure, map projection behavior or DWG output semantics beyond the tested enum domains and existing GEODATA vectors."
+  ]
+}

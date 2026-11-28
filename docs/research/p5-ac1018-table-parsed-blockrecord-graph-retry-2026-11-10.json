@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-ac1018-table-parsed-blockrecord-graph-retry-2026-11-10",
+  "date": "2026-11-10",
+  "question": "Does AC1018 compound TABLE graph closure accept the exact parsed BLOCK_RECORD hard-pointer metadata already admitted by the direct body codec, while retaining full graph validation and retry behavior?",
+  "implementation": {
+    "files": [
+      "src/intern/dwgwriter15.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "behavior": "hasClosedAc1018TableBlockGraph accepts normalized generated metadata or the same canonical parsed hard-pointer shape enforced by the direct TABLE body encoder: hard-pointer code/rawCode, nonzero target, exact ref64 match, and minimal handle-byte width. Other role/metadata shapes still fail closed. The whole-file control first refuses a deliberately mismatched ACAD_TABLESTYLE NOD key and preserves the destination and caller TABLE state, then retries the same writer with parsed hard-pointer metadata, an explicitly authorized generated parsed-DWG proxy cache, and the corrected key.",
+    "readback": "A fresh libdxfrw reader confirms the TABLE hard-pointer role/ref/ref64, exact proxy-cache bytes/count, TABLESTYLE/NOD graph, typed 3x3 values and merge roles, and all 15 *T1 cached children (eight LINE and seven MTEXT) with exact geometry/text fields."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_local_roundtrip -j4",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "ctest": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_table_cell_overrides|libdxfrw_table_ac1018_whole_file_roundtrip)$' --output-on-failure",
+    "result": "Both targets built; the focused vector passed; both focused CTests passed 2/2; git diff --check passed. The extended whole-file TABLE CTest passes with exact proxy-byte readback."
+  },
+  "disposition": "Closes generated whole-file graph admission for canonical parsed BLOCK_RECORD hard-pointer metadata on the existing bounded AC1018 TABLE profile. This is not a physical source whole-file rewrite, does not qualify native acceptance/rendering or broader producer behavior, and promotes no support claim. No drawing fixture was added."
+}

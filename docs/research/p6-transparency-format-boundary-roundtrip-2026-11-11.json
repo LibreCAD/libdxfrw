@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "date": "2026-11-11",
+  "purpose": "Normalize DXF group-440 alpha values and DWG ENC alpha_raw values at format boundaries without changing DRW_Entity layout or its established DWG-form transparency value.",
+  "sources": [
+    {
+      "title": "Autodesk AutoCAD DXF common group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "supports": "Group 440 is an AcDbEntity transparency field and is a 32-bit integer group-code value."
+    },
+    {
+      "title": "Autodesk AcCmTransparency methods",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcCmTransparency.html",
+      "supports": "Transparency methods are ByLayer, ByBlock, and ByAlpha; alpha 0 is fully transparent and 255 is fully opaque."
+    },
+    {
+      "title": "Autodesk AcCmTransparency method values",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcCmTransparency__transparencyMethod.html",
+      "supports": "ObjectARX method values are kByLayer=0, kByBlock=1, and kByAlpha=2."
+    },
+    {
+      "title": "LibreDWG common_entity_data.spec",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec",
+      "supports": "DWG ENC alpha_raw stores alpha_type in the high byte and alpha in the low byte; DWG alpha_type 0/1/3 represents ByLayer/ByBlock/explicit alpha. Its DXF branch emits explicit alpha as the group-440 alpha field."
+    },
+    {
+      "title": "ezdxf transparency documentation",
+      "url": "https://ezdxf.readthedocs.io/en/stable/concepts/transparency.html",
+      "supports": "DXF explicit alpha uses the 0x02 high-byte marker with an 8-bit alpha; alpha 0 is transparent and 255 opaque. The DXF ByBlock marker is 0x01000000 and ByLayer is absence."
+    }
+  ],
+  "representation": {
+    "entityField": "DRW_Entity::transparency remains the DWG ENC alpha_raw convention for source compatibility: 0x00000000 ByLayer, 0x01000000 ByBlock, and 0x030000TT with the low byte carrying explicit alpha.",
+    "dxfGroup440": "ByLayer is omitted; ByBlock is 0x01000000; explicit alpha is 0x020000TT.",
+    "conversion": "DXF parser normalizes 0x020000TT to entity 0x030000TT. DXF writers map either accepted explicit-alpha internal marker 0x02 or canonical 0x03 back to 0x020000TT. DWG writers map accepted marker 0x02 or canonical 0x03 to DWG alpha_type 3. ByBlock remains type 1; ByLayer remains zero/omitted. The legacy DRW::Transparent sentinel maps to explicit alpha zero. Unknown methods fail output; DXF parsing retains unknown values tolerantly."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dxftransparency.h",
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "src/libdxfrw.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "abi": "No public data-member or virtual-interface layout change."
+  },
+  "validation": {
+    "build": "Passed: libdxfrw_dwg_object_vectors_tests, libdxfrw_dxf_fixture_tests, and libdxfrw_dwg_fixture_tests built with the project warning policy.",
+    "focused": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_dxf_transparency_boundaries$' --output-on-failure",
+        "result": "Passed 1/1; covers DWG alpha type 3 ↔ DXF type 2 conversion, ByBlock, ByLayer, the legacy transparent sentinel, and unknown-method refusal. It also invokes the production DRW_Line::encodeDwg path with DXF-form explicit alpha and verifies that an unknown-method refusal preserves pre-seeded body/string/handle destinations."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_transparency_xref_roundtrip$' --output-on-failure",
+        "result": "Passed 1/1; existing XREF ASCII/Binary read/write/readback control confirms group 440 remains 33554560 (0x02000080) while the internal field is normalized to 0x03000080."
+      }
+    ],
+    "broaderRuns": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+        "result": "Failed with 817 assertions in the broad legacy fixture executable, including finalizer lifetime, VIEWPORT handle, and TABLE border cases. The isolated XREF transparency selector passes; this run does not establish that the unrelated failures predate this change."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_fixtures$' --output-on-failure",
+        "result": "Failed with 21 assertions. The ordinary ENC fixture imports stop at DWG error 9 with LTYPE_CONTROL integrity observations before transparency output is exercised. No fixture was modified."
+      }
+    ],
+    "fixturePolicy": "No DWG/DXF fixture was added or changed."
+  },
+  "scopeLimit": "This closes the selected representation conversion gap only. It does not establish native rendering, all producer encodings, transparency inheritance behavior in each consumer, or broader DWG/DXF support."
+}

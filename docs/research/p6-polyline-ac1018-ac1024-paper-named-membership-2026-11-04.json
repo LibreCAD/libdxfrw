@@ -1,0 +1,130 @@
+{
+  "status": "BOUNDED_PRODUCER_AND_OUTPUT",
+  "base_commit": "bbfa98901528891e57132e478f88f282e400a9c8",
+  "scope": "AC1018/AC1024 2D/3D ordinary paper-space and ordinary named-block POLYLINE membership with implicit or matching owner. Active named owner must have OrdinaryBlock kind. Nonmatching owner/space, PaperLayout, mesh/polyface and other revisions retain prior path; GROUP references to these children now fail closed; the old duplicate block membership could previously admit those unqualified targets.",
+  "authority": "ODA v5.4.1 \u00a7\u00a720.4.16\u201317 and 20.4.52: POLYLINE owns VERTEX/SEQEND; BLOCK_HEADER owns direct entities. The source controls establish selected per-owner topology.",
+  "implementation": "Extend the existing exact-child one-shot permit and full guarded compound checkpoint to two new owner scopes for AC1018/AC1024; keep AC1021 GROUP qualification model-only. Source patch touches only src/libdwgr.cpp. Compatibility narrowing: previously indexed paper/named VERTEX and SEQEND targets may have been admitted by GROUP; removal of their duplicate block membership makes those unqualified references fail closed.",
+  "producer": "ezdxf 1.4.5 authored R2007 scratch DXFs using tools/author_ac1021_polyline_owner_scopes.py; ODA 27.1.0 produced AC1018 and AC1024 DWGs, then AC1027 DXFs. Source graph independently checked via LibreDWG 0.14 and source DXF via ezdxf.",
+  "output": "Scratch writer built from bbfa9890 and the candidate patch; output includes default plotstyle graph and, for AC1024, default material graph. ODA converted to AC1027 DXF. The 8-way audit verifies block order, parent/child owner and role, exact 2D/3D coordinates, and compares baseline/candidate entity records. Baseline ODA DXFs contain two zero vertices while candidate and source preserve all three.",
+  "source_dxf_sha256": {
+    "named2d.dxf": "8131797c16c5a4d027ebe387719f7e289272575098baf4d409eb5fb3dd6ce3f9",
+    "named3d.dxf": "508dabe37c7567497de83e725a2139ca34f23ee2b1c5fa8f4f0ab57d58b8983d",
+    "paper2d.dxf": "03b3c9315ab8f1060e566152a178cba57d8727a131ac19dcf4b2c22ba673a68b",
+    "paper3d.dxf": "56742c8f4251cacf4e5721c6f781e689f88f3ce021e9976967e8f9319f306df3"
+  },
+  "bound_artifact_hashes": {
+    "AC1018": {
+      "paper2d": {
+        "source_dwg": "816cdc9922f7cced9f31b3fe4697d7f1823af284b8d5165c5a194d6f8b187d1f",
+        "source_dxf": "6650c1b07c28c7c90e2d162761debc7c31212bd8b9e94d022ff513c2447bb211",
+        "baseline_dwg": "1a157e925d3b66f7276a0b17af456878255dc60dfd00c170db516d348c374d9a",
+        "baseline_dxf": "1c67be325655dd55558c8740d9e4b2e53103f99dcf3c86338524beaaa2ddcc4a",
+        "candidate_dwg": "b6507d15c48e710965fa6a42759cb49d4357f0e25350289debfaf864d106c813",
+        "candidate_dxf": "a0a2bb6b61c18ed1a295780208d84f7d79128295b1737f96d3d77fd05be90d36"
+      },
+      "paper3d": {
+        "source_dwg": "74b10dacdb5c2a90e50f9069dbb16d3b44c1380c4d7811f577156f366853d1ff",
+        "source_dxf": "6385dac4809526272d219e84e6a77cc71600a711b6275330c97f293e6ce98064",
+        "baseline_dwg": "148f8102b6a00b5d4310ee91f5e3c5573bd219dd7fe19429f5dd2f60de92a4ad",
+        "baseline_dxf": "1bb1692e8e41067de5c212f050733169e1cdcd5a492734e8b0eae1a4e9550cf1",
+        "candidate_dwg": "e32ab818f4074d0a8a0c62da9000f8fd3293f08e5fa3e8e218d8da0b870c5557",
+        "candidate_dxf": "aa01b2b0c51d6cab9eb4fe4734515a7e0f1de3276587fb769e378412181e805c"
+      },
+      "named2d": {
+        "source_dwg": "91546aea15f61aed2e327404a66d10eecc3ff0cff9ed1b3426068264c384b88e",
+        "source_dxf": "cd0380b2ef84d75172e340172aae4abbcfa0edd4f67132cd7c7180faea967120",
+        "baseline_dwg": "26b5fe4692bd7d53d75d9a7bb3e57dbef497c04cd5e4ea40ee2bf6a895cbfecc",
+        "baseline_dxf": "df31da1821d7b36b4e4ff5ab082ba7f8a2d3e4fc62c26d789aafce02ddd36445",
+        "candidate_dwg": "20c96ff8d09d135e0b95670fb0e08fc3cab1db0e8ea3d708140094408c729c45",
+        "candidate_dxf": "d84e08d83656729c9ef4580ec5f3f732a89dd93923f6362785d80ee8fda1b3ee"
+      },
+      "named3d": {
+        "source_dwg": "9a59d57f72f97c6ae2ab658b31b7ed06bb4a06dfb3626330a9ad4f523e46ec9a",
+        "source_dxf": "ecd45134ff773f2d5108d8fa7477f8fbd600c587c459a14268a8275cd74b2a9a",
+        "baseline_dwg": "d54bcf3da22c4c216cfd3c84c8cae23e23623a3c8ee3b84b5c41298e902aa81c",
+        "baseline_dxf": "ceb9b22b340f13da6c205bfbb2deaf8fc2759501dfa895480afe2342bfe42bd2",
+        "candidate_dwg": "e8f943d1c00b73e27efdbb2c1c175b8783106805bc1143a5317c14a5964b60f9",
+        "candidate_dxf": "92cef15a2bd80ede51ed83bae0108e16a2af2c76648fcc6610535b2d6d02e41f"
+      }
+    },
+    "AC1024": {
+      "paper2d": {
+        "source_dwg": "e3f8f639308e62d30cc2b516da2040d163d0a2bd77e0eac0970d9baa10c431d5",
+        "source_dxf": "27568d34d44b704e7cd4a5cc1976adf0919c55f0f1e8c7b3dace13e803d87d9b",
+        "baseline_dwg": "c107be10a9637a001acdeff7704fededf8ae19097414c65edbb3f63bd797bdc1",
+        "baseline_dxf": "4d09fc7be5d7a1ef1501ad4b6112a05935381e462e34a46f151b2b7b783d9762",
+        "candidate_dwg": "d316f46a37db0b5000912eb6e2cd38095c24d942b2c8f3d3e0139abb1934574d",
+        "candidate_dxf": "0b8e9bfdc3bb5d9d5a9eec3907a9765497a39c55e98f9fa6bca8ff418b7345e9"
+      },
+      "paper3d": {
+        "source_dwg": "2542004ce750e508be0c00b0ff8a65775b9e8eba5ab21676c03f52694eee7da9",
+        "source_dxf": "7c2cee8c0f449e14eb1f7158a8b9276999c41e57e16cd187dfaab192ad0b7a05",
+        "baseline_dwg": "9ae43fe29d98dd4a938dc37324820befd2434c222a5e56468e6e5c5beebec179",
+        "baseline_dxf": "57aebbce8e05cb473bfb9f41f1bd28879201d973f0f29f6309e2e94538667382",
+        "candidate_dwg": "18c54c4e6b9a6d3a7976e506c98792a52ae99084cdbb42c7396e692fea68b642",
+        "candidate_dxf": "afa0c69ed019b5412f0e9daf22b40b7b6ea4652f3b7092426b5540a1337d844d"
+      },
+      "named2d": {
+        "source_dwg": "7a390a35595430db3f4010dedd32dea7b2fd5cc8cec81809f83b298e44d19852",
+        "source_dxf": "52422b5ffc477f454bd80b352dcbbdec38a6d9ba8a74cc574391db2e9a610b61",
+        "baseline_dwg": "a78a5cb5eeec0b81e1378f8896c7e275b279bdd4ee60d23689751391fc60565b",
+        "baseline_dxf": "bfc3f2f587512d38434f3ae09a5396c43c7178100aaed2e9cf614fde24e98a3b",
+        "candidate_dwg": "053f7fd288c240658e123861488071bae68095d794d99ec26216f6def8179696",
+        "candidate_dxf": "fdad8dd6f28fd99c7c9dbc1df911a104d9e00a7933ce76837dcf734bd5385cbe"
+      },
+      "named3d": {
+        "source_dwg": "d543243af96b7196d522f615ba38976b8c168b2bc86e9693140b025483647137",
+        "source_dxf": "957f5357d3e03c8742e831482660da69be5c4974115cb280cf991a8d24f20729",
+        "baseline_dwg": "174521a192b435f700734337b882c79178c426e0e4b29f08258960ccfd068e3b",
+        "baseline_dxf": "4c21e64512cdf4da8882d2b6e92d237b0fefca6afc13a60dd9a9baf3e7aeb629",
+        "candidate_dwg": "a91c07a75a2b6d034c9f24414628a9b9cc3cd9a9df85a2a86c77062834f75b70",
+        "candidate_dxf": "8a24c796b7cab7ccb6523370b067287939c9602388bcdb504f91b44b36de686c"
+      }
+    }
+  },
+  "scratch_tools_sha256": {
+    "candidate.patch": "6c62a3a3daee0e58614b0c39a8c3538b664d909b26e1ad9fe80364f415a83706",
+    "producer.cpp": "309d0b54ceee52dcd73fa9868aa8b856c531da18ab77114962643b056587583a",
+    "audit.py": "4792946184ac60fa132bc145ec06e5a1a886b2d6b40c1c2da9d46961721f7c92",
+    "audit_all.py": "09e5fd3538b95ae469ded1343f80b4f07c30818a0e3ba4d435e2d1af12af2342",
+    "audit_tests.py": "fa558a96b7db967e74b5452a79ff0afdc0a9c041b5a26530fe2385715ea45c67",
+    "hashes.json": "36c07a460ce68fca340167e6e6d38260062c033a6d2e7bb0f64d91e78a89723e",
+    "registration.cmake": "b1b8d61c7587dc9db55b5bcc81dc78f5e944580ad692239c568f3aea538ce3c3",
+    "src/tests/dwg_polyline_cross_scope_tests.cpp": "3007dda1aa81ba542d0573e30d6dab4471cc9913aee7e8a04362886c0bb3bb8d",
+    "src/tests/dwg_polyline_cross_scope_group_tests.cpp": "1d0a6861e4d4370c16f791fe106b1e4dc752ddbf9a80e038732bce2a70a0fa5e"
+  },
+  "in_tree_tool_sha256": {
+    "tools/author_ac1021_polyline_owner_scopes.py": "50c10a69e2c96d51b41b8a17efe553b473ea9c121f7445fef28c55594d3afcce",
+    "tools/audit_ac1021_geometry_peer.py": "b63c80a28160d069e4250a9731e821bfeb666a76443df13379ad233f58a99cf0",
+    "tools/bounded_process.py": "42b73b0599fab5da291c601c5da78526f885d627450d845ce6608deb8513991d"
+  },
+  "validation": {
+    "normal": "2/2 focused CTests passed",
+    "asan": "2/2 focused CTests passed with AppleClang 21 address sanitizer",
+    "faults": "Implicit/explicit owner, 2D/3D, SEQEND failure, early/late allocation exceptions, caller state, raw EED, destination sentinel and same-facade retry; reciprocal paper/named GROUP child refusal and parent target native readback retry; conflicting owner/space and PaperLayout unchanged.",
+    "audit": "PYTHONPATH=tools build/rpp5gh-evidence/peer/bin/python -O /private/tmp/polyline-owner-cross/audit_all.py: 8/8 source/baseline/candidate comparisons; audit_tests.py: five synthetic graph-corruption rejections.",
+    "oda": "Four source conversion batches plus two baseline and two candidate batches exited 0 with no .err and zero-byte captured logs. Local conversion lineage is observed separately and not proven by hashes.",
+    "portable_audit": "The repository-relative portable audit ran all 8 physical sources and 8 candidate pairs; optional baseline comparison checks silent two-zero-vertex loss and identical decoded entity frames. The source producer and audit use only CLI-supplied paths and hashes. The fixture-free negative test rejects five graph corruptions under Python and -O.",
+    "integrated": "The integrated candidate passed six focused CTests covering both new scopes, GROUP refusal, prior model and AC1021 paths, and following-entity facade readback. Both new scoped tests passed under AddressSanitizer, 2/2."
+  },
+  "limits": [
+    "The eight selected samples are not general AC1018/AC1024 support or proof of native application semantics.",
+    "Plotstyle/material settings are recorded as enabled for selected outputs and are not claimed universally necessary.",
+    "AC1027/AC1032 and GROUP\u2192child closure remain unqualified; no external fixtures added.",
+    "Physical DWG/DXF witnesses remain scratch-only; no fixtures were added."
+  ],
+  "portable_tools_sha256": {
+    "tools/probe_polyline_cross_scope.cpp": "309d0b54ceee52dcd73fa9868aa8b856c531da18ab77114962643b056587583a",
+    "tools/audit_polyline_cross_scope_peer.py": "3f091deeba3c5b84711540c0f843797fd17a9255c3ba7b817194c28576ade333",
+    "tests/polyline_cross_scope_peer_audit_tests.py": "8d9395ae870fe11d46be9be7ff635b52202624765d37fce631fbbd281feadc71"
+  },
+  "portable_peer_registration_sha256": "1f0127c3d88b9d48e4d2908cb10c60b5b6558f7ef482680695e5feb01fce6d28",
+  "reproduction": [
+    "Compile tools/probe_polyline_cross_scope.cpp against the candidate libdxfrw. Run MODE AC1018|AC1024 OUTPUT.dwg; modes paper2d,paper3d,named2d,named3d.",
+    "Use tools/author_ac1021_polyline_owner_scopes.py to author producer controls. Convert via ODA 27.1 ACAD2004/ACAD2010 DWG and ACAD2013 DXF, with audit enabled.",
+    "Run tools/audit_polyline_cross_scope_peer.py --version VERSION --mode MODE --dwgread READER --dwg CANDIDATE --dwg-sha256 SHA --dxf ODA_DXF --dxf-sha256 SHA; for candidate comparison also supply --baseline-dwg, --baseline-dwg-sha256, --baseline-dxf and --baseline-dxf-sha256.",
+    "Run ctest --test-dir BUILD -R '^libdxfrw_(dwg_polyline_cross_scope(_group)?|polyline_cross_scope_peer_audit)$' --output-on-failure."
+  ],
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04"
+}

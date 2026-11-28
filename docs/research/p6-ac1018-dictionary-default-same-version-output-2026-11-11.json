@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "date": "2026-11-11",
+  "title": "AC1018 same-version plot-style default graph output",
+  "scope": "Qualify only the bounded AC1018 DICTIONARYWDFLT-to-PLACEHOLDER graph for same-revision ASCII and Binary DXF partial output, including refusal, rollback, retry and readback.",
+  "source": {
+    "url": "https://trattocad.com/samples/trattocad-sample-3d-pulley.dwg",
+    "local_path": "/private/tmp/p7-trattocad-pulley.dwg",
+    "sha256": "6002b39780e7c1c3980c885f319c1b03721aa8ae216ca3c16d3a619ebaa11ad6",
+    "dwg_version": "AC1018",
+    "producer_provenance": "unverified; publisher advertises a 3D pulley DWG sample for testing/teaching",
+    "not_committed": true
+  },
+  "graph": {
+    "root_key": "ACAD_PLOTSTYLENAME",
+    "dictionary": {
+      "handle": "0x242C",
+      "record": "ACDBDICTIONARYWDFLT",
+      "class": "AcDbDictionaryWithDefault",
+      "owner": "NOD",
+      "entry": "Normal"
+    },
+    "placeholder": {
+      "handle": "0x242D",
+      "source_frame_type": 80,
+      "role": "fixed PLACEHOLDER",
+      "owner": "0x242C",
+      "reactor": "0x242C"
+    },
+    "default_target": "0x242D",
+    "source_callback_census": 20
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "Allow the exact AC1018 source revision as target in inspectDwgDictionaryDefaultOutput for the already-validated DICTIONARYWDFLT/fixed type-80 PLACEHOLDER graph. Add a physical selector for the AC1018 pulley graph; no source identity, role, owner or handle gate is relaxed.",
+    "whole_file_policy_changed": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "build_result": "passed with -Werror",
+    "physical_control": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-ac1018-pulley-output-readback /private/tmp/p7-trattocad-pulley.dwg",
+    "physical_control_result": "PASS for ASCII and Binary output; invalid reactor graph refused atomically with destination and qualification ledger preserved; corrected graph succeeded on the same adapter; fresh DXF readback verified NOD entry, dictionary/default target, owner and reactor roles",
+    "opaque_qualification": "2 of 20 callbacks; only the selected dictionary and placeholder callbacks qualify",
+    "strict_complete_export": "still refused because the other 18 opaque callbacks are unqualified; no whole-file output was published",
+    "git_diff_check": "passed"
+  },
+  "nonclaims": [
+    "The sample producer provenance is unverified.",
+    "This is selected partial-output evidence and does not establish whole-file conversion or general AC1018 support.",
+    "No 3D geometry, modeler semantics, native CAD acceptance or platform qualification is established.",
+    "No DWG or DXF fixture was added."
+  ]
+}

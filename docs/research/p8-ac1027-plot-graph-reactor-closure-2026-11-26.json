@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-ac1027-plot-graph-reactor-closure-2026-11-26",
+  "date": "2026-11-26",
+  "baseCommit": "bb589057f",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "993262664a93937c103ca3b53046b0bdd4a5328b949507bb63e27f76f156bdc1",
+  "inputCount": 781,
+  "change": "For the source-bound AC1027 multi-layer plot graph, require each selected leaf to have at most one reactor to its owning dictionary. Inspect staged ACAD_REACTORS groups and resolve each reference to exactly one emitted remapped owner; reject extra application groups, malformed or dangling reactor references, extensions, and XDATA. Index selected leaf models once. This further restricts only the new profile.",
+  "validation": {
+    "focused": "PASS compact MATERIAL graph, sparse MATERIAL raw, default plot-style graph. The compact graph exercises both encodings, mapped handle collision, invalid reactor and extension mutation, preservation of the destination and corrected same-adapter retry.",
+    "peer": "The previously generated AC1027 graph round-trips in ASCII and binary. ezdxf 1.4.5 independently compares all selected reactors under the source/output handle map, 25 objects, 24 dictionary entries, 13 root entries, two layers, owner and XRECORD references, and complete MATERIAL bodies; no peer audit errors or fixes. Scratch peer inputs and outputs retain the hashes in p8-ac1027-audited-multilayer-plot-2026-11-26.json.",
+    "peerScriptSha256": "14cbc2fd65a01c28ca275eb30ff4673bdd49d197f9eb507c8cd8afac24cb4498",
+    "candidateSha256": "35c84251cc341958b31835a697a21d46b9d7038db4fc0f5fb76627186dd95df6",
+    "freshControl": {
+      "ezdxfVersion": "1.4.5",
+      "candidateSha256": "35c84251cc341958b31835a697a21d46b9d7038db4fc0f5fb76627186dd95df6",
+      "controls": [
+        {
+          "profile": "narrow",
+          "encoding": "asc",
+          "sourceSha256": "c701fe2d0ef7c5733a50a3711e8e811ca338ef4af18e0816fe99c6dbf18f2fda",
+          "dictionaryHandle": "2F",
+          "dictionaryOwner": "A",
+          "recordHandle": "30",
+          "recordOwner": "2F",
+          "reference340": "2F",
+          "handseed": "34",
+          "peerAuditErrors": 0,
+          "peerAuditFixes": 0,
+          "candidate": {
+            "exitCode": 0,
+            "destinationPreserved": false,
+            "logSha256": "38ea0b402745d64b64e8a332a237e38fdee46e97cd836a049a58c5e8cf46d413"
+          }
+        },
+        {
+          "profile": "narrow",
+          "encoding": "bin",
+          "sourceSha256": "249441bb9b30411e817d470528c60e195b538f8aa7e8eab5efce02179c6fa435",
+          "dictionaryHandle": "2F",
+          "dictionaryOwner": "A",
+          "recordHandle": "30",
+          "recordOwner": "2F",
+          "reference340": "2F",
+          "handseed": "34",
+          "peerAuditErrors": 0,
+          "peerAuditFixes": 0,
+          "candidate": {
+            "exitCode": 0,
+            "destinationPreserved": false,
+            "logSha256": "7368e737091069b58cbfc7b91991fbb59756588974377116f6ff8caa249b29fa"
+          }
+        },
+        {
+          "profile": "wide",
+          "encoding": "asc",
+          "sourceSha256": "91d7775a4eb27b3b79d550bce1abaa19df9169bd866e759d151ec67a3b968a00",
+          "dictionaryHandle": "100000010",
+          "dictionaryOwner": "A",
+          "recordHandle": "100000011",
+          "recordOwner": "100000010",
+          "reference340": "100000010",
+          "handseed": "100000012",
+          "peerAuditErrors": 0,
+          "peerAuditFixes": 0,
+          "candidate": {
+            "exitCode": 1,
+            "destinationPreserved": true,
+            "logSha256": "239aa73f194b8be8459cff5560e0e1aff14cfa6a693362d203de1b5e3a0338d6"
+          }
+        },
+        {
+          "profile": "wide",
+          "encoding": "bin",
+          "sourceSha256": "06cdded38a8b69869dd52cd621a2854f1d211fddae4610d7573a652059102d1a",
+          "dictionaryHandle": "100000010",
+          "dictionaryOwner": "A",
+          "recordHandle": "100000011",
+          "recordOwner": "100000010",
+          "reference340": "100000010",
+          "handseed": "100000012",
+          "peerAuditErrors": 0,
+          "peerAuditFixes": 0,
+          "candidate": {
+            "exitCode": 1,
+            "destinationPreserved": true,
+            "logSha256": "d81370e9f305470fc0a8c5bcebd5e62a68b4861bcfb43220c1ed139c337fd1bf"
+          }
+        }
+      ]
+    }
+  },
+  "limits": [
+    "Locally generated DXF only; this does not establish native producer or consumer behavior.",
+    "Wide group-350 references and broader application groups remain refused; no support claim is promoted."
+  ]
+}

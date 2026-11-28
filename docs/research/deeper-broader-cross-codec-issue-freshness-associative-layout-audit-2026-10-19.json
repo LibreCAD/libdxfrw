@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader cross-codec issue freshness and associative-layout evidence eligibility audit",
+  "mode": "Primary-source issue, documentation, and local-code reconciliation",
+  "scope": [
+    "Refresh selected LibreDWG issue reports and linked fixes, and reconcile them with existing generated local controls.",
+    "Reassess ACadRust issue #135's proposed AcDbAssocGeomDependency layout against the actual local ODA v5.4.1 PDF and current bounded parser path.",
+    "Check what ACadSharp and dwg-rs capability disclosures establish about operation- and version-specific parity.",
+    "Refine evidence eligibility and implementation readiness without creating duplicate findings, fixtures, dependencies, or recurring validation cost."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "geometry_kernels_run": false,
+    "issue_attachments_downloaded": 0,
+    "peer_drawings_downloaded": 0,
+    "local_tests_run": false,
+    "full_suite_run": false,
+    "local_source_files_inspected": [
+      "src/drw_objects.cpp: DRW_AssociativeObject::parseDwg bounded ACDBASSOCGEOMDEPENDENCY prefix path",
+      "src/drw_entities.cpp: DRW_Attrib embedded-MTEXT group-101 scope handling",
+      "src/libdxfrw.cpp: dxfRW::writeObjects positional root-dictionary emission",
+      "src/intern/dwgbuffer.cpp: getCmColor packed C2/C3 distinction",
+      "tests/dxf_fixture_tests.cpp: HATCH/attribute, text framing, NOD ordering, and generated color controls",
+      "tests/dwg_local_roundtrip_tests.cpp: generated HATCH color controls",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing issue owners, evidence boundaries, and deferred external items"
+    ],
+    "local_checks": [
+      "Refreshed LibreDWG issues #1410, #1412, #1413, and #1415 and the linked #1412 commits; matched each reported shape to the existing HATCH/attribute, explicit-length sink, positional NOD, and CMC color owners.",
+      "Checked local generated controls for explicit-zero HATCH coordinates, unusual ATTDEF tags, embedded-MTEXT scoping/refusal, lower-handle owned dictionary versus positional NOD, and distinct C3 ACI/C2 RGB handling.",
+      "Inspected ACadRust issue #135 and confirmed its persistent-subentity byte-layout explanation is explicitly a hypothesis and its drawing is not public.",
+      "Located the ODA v5.4.1 PDF at /Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf and searched extracted text for AcDbAssocGeomDependency, AssocGeomDependency, and persistent-subentity terms; no class-specific grammar was found. The sole generic Associative hit is the unrelated HATCH associative flag in section 20.4.75.",
+      "Compared the local bounded associative-object parser prefix with the peer hypothesis; the existing prefix/status behavior does not establish the remaining class-specific grammar.",
+      "Refreshed ACadSharp's compatibility matrix and dwg-rs README; retained version, direction, typed-decoding, and corpus boundaries instead of promoting generic support labels.",
+      "Updated the plan with a corrected evidence prerequisite and bounded implementation-readiness decisions; no production/test code, fixture, dependency, or support-claim change was made."
+    ],
+    "limitations": "Issue reports and mutable peer repositories are route- and revision-specific, not normative format specifications or local reproductions. LibreDWG issue shapes do not establish a libdxfrw defect. ACadRust #135 provides no public DWG and labels its proposed persistent-subentity layout as a hypothesis. The local ODA v5.4.1 text contains no class-specific AcDbAssocGeomDependency grammar, so this document cannot resolve that layout. No peer runtime, external artifact, or native consumer qualification was performed; this pass is research-only."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG issue #1410 and Autodesk HATCH/MTEXT DXF references",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1410",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm"
+      ],
+      "observed": "The open peer report combines explicit-zero HATCH endpoint Y, hash-bearing ATTDEF tags, and embedded-MTEXT field handling. Its own proposed broad field skip is described as a stopgap; Autodesk's field references remain the relevant public DXF contract.",
+      "evidence_ceiling": "Peer writer/parser issue shapes only; matching generated local cases already exist, and no libdxfrw defect or new feature requirement was demonstrated."
+    },
+    {
+      "project": "LibreDWG issue #1412 and linked commits",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1412",
+        "https://github.com/LibreDWG/libredwg/commit/5abbe5dc25208c87e7c2da2b6aa402d54f2193b1",
+        "https://github.com/LibreDWG/libredwg/commit/aafb376e0bd0b75b5b06a2e04a7c7dd65a741474"
+      ],
+      "observed": "The report describes a C string helper reading beyond its logical text due to NUL termination assumptions and a zero-length transformed-value framing case. Linked fixes are visible in mutable master but do not prove inclusion in a released artifact.",
+      "evidence_ceiling": "Peer-specific C implementation issue; the local writer uses explicit lengths, so the peer mechanism is not transferred as a local defect."
+    },
+    {
+      "project": "LibreDWG issue #1413, Autodesk OBJECTS ordering reference, and local writer",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1413",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm"
+      ],
+      "observed": "The issue distinguishes the positional Named Objects Dictionary from a lower-handle owned extension dictionary. The local writer already emits the generated root dictionary first, and generated ASCII/Binary tests exercise the lower-handle case.",
+      "evidence_ceiling": "Peer report is not a local reproduction; existing local ordering and identity controls are reused without support promotion."
+    },
+    {
+      "project": "LibreDWG issue #1415 and local CMC/HATCH color coverage",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1415"
+      ],
+      "observed": "The corrected report separates C3 indexed ACI from C2 true RGB. Local generated cases retain packed C3 ACI independently from exact C2 RGB, including existing LAYER and HATCH routes.",
+      "evidence_ceiling": "Peer report is not a color-appearance oracle; raw method, ACI, true RGB, and native rendering remain distinct evidence."
+    },
+    {
+      "project": "ACadRust issue #135 and local ODA v5.4.1 specification copy",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/135"
+      ],
+      "local_reference": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "observed": "The peer report describes AC1024 AcDbAssocGeomDependency failures and proposes a persistent-subentity layout as a hypothesis; no drawing is public. Search of the local ODA v5.4.1 extracted text found no class-specific AcDbAssocGeomDependency or persistent-subentity grammar. A generic HATCH associative flag mention is unrelated.",
+      "evidence_ceiling": "Neither the issue nor this ODA PDF establishes the disputed byte sequence. Require a version-pinned producer trace/sample or another primary source that actually specifies those bytes before changing parser grammar."
+    },
+    {
+      "project": "ACadSharp compatibility matrix and dwg-rs README",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp#compatible-dwgdxf-versions",
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "observed": "ACadSharp's matrix includes operation-specific limits such as unavailable AC1021 DWG writing; dwg-rs labels itself pre-alpha and separates container/object enumeration from partial typed decoding with corpus-dependent counts.",
+      "evidence_ceiling": "Generic compatibility labels and corpus counts do not prove full semantic preservation or external writer acceptance."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

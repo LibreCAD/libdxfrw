@@ -1,0 +1,127 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Active peer writer lifecycle and local gate crosswalk",
+  "mode": "Primary-source web research and read-only local source/test crosswalk",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh ACadSharp ACIS DXF/DWG writer issue and pull-request status, including the effects of the Prototype_1b reader refactor.",
+    "Reconcile peer PlotSettings, EED-length, parser-depth, MTEXT-writer, and SPLINE conversion reports against current local generated-test owners and primary format documentation.",
+    "Refine implementation readiness for the existing PAR-07/S8 writer route without changing findings, top-level subplans, local execution order, dependencies, or test cadence."
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp ACIS writer issue and pull requests",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "revision": "Public issue/PR pages accessed 2026-10-20. #1150 and #1240 are open with no deployment shown; #1195 remains open.",
+      "observed": "#1150 describes legacy DXF group-1/3 SAT, newer DXF ACDSDATA/SAB, legacy DWG inline payloads, and modern DWG AcDs writing. Its author reported a post-#1174 reader conflict and that DXF ACDSDATA readback retained only the last group-310 line; the maintainer preferred a schema-aware writer and left the branch as a reference. #1240 is also open/undeployed and its visible ModelerGeometry serialization commit is in DwgObjectWriter. #1195 reports silent DXF omission of modeler entities, including block-contained solids.",
+      "limits": "PR descriptions, branch tests, and author-reported TrueView results are not released behavior or independently reproduced results. The issue reports are version/profile-specific and do not establish a libdxfrw defect."
+    },
+    {
+      "project": "ACadSharp PlotSettings report and Autodesk contract",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1184",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettings_ShadePlotCustomDpi.html"
+      ],
+      "revision": "Issue page refreshed 2026-10-20; reporter names ACadSharp 3.6.35 and 3.6.51. Autodesk current managed reference accessed 2026-10-20.",
+      "observed": "The report describes stored group-78 zero reaching a validating setter and dropping layout objects or losing/aborting DXF reads. Autodesk specifies that the custom DPI field is used only when shade-plot resolution is Custom.",
+      "limits": "The peer issue is not a normative range definition. Local generated controls already exercise inactive zero, active Custom limits, record graph/identity, ASCII/Binary, and following-data survival; no new local gap was confirmed."
+    },
+    {
+      "project": "ACadSharp EED and parser/writer issue reports",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299"
+      ],
+      "revision": "Public issue pages refreshed 2026-10-20. The #1282 report names peer master v3.8.10; #1297 names ACadSharp master v3.8.14/3.8.0; #1299 names package 3.8.0.",
+      "observed": "#1281 reports recursive stack exhaustion for long comment/XDATA/clip-boundary runs; #1282 reports a signed-short EED size overflow above 32767; #1297 is an AC1032 MTEXT native-open failure with unresolved cause; #1299 reports a DWG-to-DXF spline that later fails GDAL conversion without a separately evaluated expected curve in the issue body.",
+      "limits": "These are reporter observations, not local reproductions or universal format rules. Local EED controls use ODA's unsigned bit-short profile and cover 32767/32768/65535/65536 plus cursor alignment; other issue shapes remain routed to existing local and optional consumer owners. No attached customer files were retrieved."
+    },
+    {
+      "project": "ezdxf and GDAL route boundaries",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Current stable documentation accessed 2026-10-20.",
+      "observed": "ezdxf explicitly limits arbitrary ACIS parsing/export and loses unsupported typed ACIS records; its mesh path only handles planar faces and is not an ACIS kernel. GDAL documents DXF projection, tessellation, raw-field options, and versioned Binary-DXF reading, not full CAD-document preservation or B-rep semantics.",
+      "limits": "These tools answer bounded route-specific questions; neither is a universal DXF/3D semantic oracle."
+    },
+    {
+      "project": "ODA specification and local source/test crosswalk",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "src/drw_objects.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dxf_fixture_tests.cpp",
+        "tests/dwg_object_vectors_tests.cpp"
+      ],
+      "revision": "Repository source and generated-test owners inspected 2026-10-20. No production/test code was changed or executed for this research-only pass.",
+      "observed": "Local PlotSettings code stores group 78 as an integer and has generated inactive-zero/Custom-boundary controls. Local DWG EED boundary tests inspect unsigned encoded lengths, continuation, suffix alignment, and indivisible over-limit refusal. Existing PAR-07/S8 planning already separates inline/modern carriers, AcDs identity association, bytes, and semantic-body evidence.",
+      "limits": "Source/test inspection is not a test run, external producer result, native application result, or support qualification. ODA v5.4.1 remains authoritative for DWG byte layout."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: per-format/version modeler carrier matrix with complete chunk reconstruction, block/owner identity, schema-aware AcDs association, and explicit preserve-or-refuse writer disposition",
+      "PAR-111/7BM PlotSettings owner: retain inactive group-78 zero separately from active Custom-DPI validation and preserve the rooted LAYOUT graph/suffix controls",
+      "PAR-14 parser-safety owner: retain unsigned EED count/width semantics and existing boundary/alignment tests; do not adopt the peer signed-short ceiling",
+      "Optional composed peer/native gate: pin exact artifact, route, version, options, and output disposition; do not run peers per local slice"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Updated the newest plan summary with a fresh ACadSharp ACIS-writer branch lifecycle check: #1150 is not a current/released positive after the #1174 refactor and #1240 remains undeployed; do not treat either as a resolved #1195 DXF-writer capability.",
+    "Added an implementation-ready PAR-07/S8 matrix for legacy/newer DXF and DWG carriers, complete ordered chunk reconstruction, per-source-handle/block identity, AcDs schema/index/search mapping, and no-silent-loss publication policy.",
+    "Cross-checked PlotSettings and EED reports against local generated controls; explicitly preserve inactive DPI behavior and ODA unsigned EED widths without duplicate tests or a peer-derived range limit.",
+    "Reaffirmed issue reports and GDAL/ezdxf projection/parsing as bounded comparison leads only; no customer attachment, external fixture, routine peer run, or 3D support claim is admitted."
+  ],
+  "limitations": [
+    "Research inspected public issue/PR bodies and current documentation; it did not reproduce peer outputs or test the local binaries.",
+    "ACadSharp #1150/#1240 are mutable, unmerged branches. Current branch state and author comments do not establish a release capability.",
+    "No external/private/customer drawing was downloaded, and no peer package, native CAD application, or geometry kernel was run.",
+    "The six external-only J items remain DEFERRED_EXTERNAL; this research cannot promote their support claims."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check; receipt parsed by jq)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit was requested; the shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

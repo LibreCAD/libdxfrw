@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-datalink-vector-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DATALINK_VECTOR_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend DATALINK OBJECTS transaction evidence from two custom-target references to a generated sixteen-target variable-size reference vector.",
+  "source": {
+    "kind": "deterministic locally-authored records generated during each test run",
+    "profile": "AC1027 main DATALINK with sixteen ordered custom-data entries and sixteen distinct typed target DATALINK records owned by the rooted DATALINK dictionary.",
+    "versions": ["AC1027"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/datalink_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-datalink-vector-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Calibrate complete whole-file writes, inject std::bad_alloc at every measured allocation, require unchanged destination sentinel and caller graph, retry using the same codec, compare exact retry bytes with clean bytes, and fresh-read all seventeen typed links, owner roles, dictionary membership, and ordered target/text references."
+  },
+  "allocationOffsets": {
+    "AC1027": {"ASCII": 136, "Binary": 119},
+    "total": 255
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_datalink_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_datalink_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 1.02 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_datalink_objects_allocation_tests /tmp/libdxfrw-datalink-16-target-check: PASS; ASCII 136 and Binary 119 offsets",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated DXF allocation transaction and typed readback evidence only; producer-profile breadth and native consumer semantics are not qualified.",
+    "Only one AC1027 DATALINK vector profile is tested; arbitrary counts, distinct producer schemas, and external application interpretation remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "A sixteen-target DATALINK custom-data vector passes ASCII/Binary allocation rollback, same-codec retry, clean-byte equality, and typed graph readback.",
+    "remainingP6G": "Continue inventorying other uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "187 completed slices and 35 remaining packages: 187/(187+35)=84.2%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-polygon-mesh-rectangular-allocation-rollback-retry-2026-11-13.json"
+}

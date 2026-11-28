@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-04",
+  "authority": "Open Design Specification for .dwg files v5.4.1 sections 20.1, 20.2, 20.4.9 and 20.4.16\u201317 specify non-entity ownership, AC1015 nolinks and entity neighbor references, and compound child framing.",
+  "scope": "Explicit DRW_DwgLegacyModelChainProvider for AC1015 only: a nonempty predeclared model-space ordered sequence of concrete LINE/CIRCLE/ARC with unique unreserved handles in [0x30, UINT32_MAX). The default plotstyle graph is a separate opt-in. Neighbor values are known before each entity frame and its handle occurrence receipt is emitted. Unplanned/unsupported geometry, user blocks, paper space, raw replay, invalid identities and ownership aliases fail the output; default non-opt-in behavior is unchanged.",
+  "source_evidence": {
+    "oda_single_line_ac1015_sha256": "43e86b11010b68f7e46fe229a7bf3c373d4544492acda950ec0c106c14f4cec6",
+    "polyline_source_ac1015_sha256": "a720e29e86627f12469da90fd92d2144d1136d030c43833816972e31b93e80ae",
+    "compound_insert_source_ac1015_sha256": "b17ed4dba4e2b521037769f73938e22b6bc671f10a5bd7788ad89d0a19c1ed68",
+    "finding": "ODA producer places top-level geometry in the model BLOCK_RECORD chain, POLYLINE vertices and INSERT ATTRIBs in separate per-parent chains, and SEQEND in an isolated null-ended frame. Current opt-in intentionally refuses those compound forms."
+  },
+  "oda_output": {
+    "reader": "ODA File Converter 27.1.0 ACAD2013 DXF; all three generated AC1015 inputs use both the explicit chain and default plotstyle providers; no .err files were produced.",
+    "ascending": {
+      "dwg_sha256": "10861f45f7b45017d1795f5c601a56e5b9e57609bee153a4912d58ca0c10be8f",
+      "dxf_sha256": "a8af7e889589c5449c001341094bec2d49b719b91dba572b5f4325fc49913896"
+    },
+    "nonmonotonic": {
+      "dwg_sha256": "88427065caf1af8834c70f207134f2e56bc4371492645f4d59a5dc3773d105a0",
+      "dxf_sha256": "b7f11b5682c5bb362b5f3f070ed771b9c2f92695fd39f4755b176d219be7e1a5"
+    },
+    "singleton": {
+      "dwg_sha256": "513e00cacc2f14e980ee51162440327f6ca752fbf4dd85a8205e78682f4d1de2",
+      "dxf_sha256": "8863a8bbe318a00523bcda3cc14f1af446dcc3190184132489139edb0e0b2602"
+    },
+    "geometry": "Both three-entity conversions retain LINE (1,2,3)\u2013(4,5,6), CIRCLE center (7,8,0) radius 2.5 and ARC center (10,11,0), radius 4, start/end 0.25/1.25 radians. Singleton retains the LINE."
+  },
+  "validation": "PASS focused legacy chain, HEADER sealing and default plotstyle CTests and LibreCAD 3 compile guard. Focused suite checks exact immutable per-frame occurrence receipts, concrete types/handles/order, missing/extra/paper/compound/unplanned failures, NOD/GROUP/typed dictionary alias rejection, code-3 IMAGEDEF and code-4 XRECORD owner rejection, legitimate GROUP member pointer, unchanged destination and same-facade retries, and nested/reentrant/exception/concurrent TLS scopes. GNU LibreDWG independently verifies exact BLOCK_RECORD endpoints, soft-pointer neighbors and geometry for ascending, nonmonotonic and singleton output. A pre-change dwgBufferW header object (size 72 on this host) links and runs against the current library; installed class layout is unchanged.",
+  "limits": "This bounded opt-in does not implement compounds, named blocks, paper-space chains, raw replay, general AC1015 output compatibility, native Windows/Linux qualification or broad DWG/DXF feature parity. No generated drawing fixture is committed."
+}

@@ -1,0 +1,80 @@
+{
+  "id": "p6-dxf-underlay-objects-allocation-failure-retry-2026-11-05",
+  "date": "2026-11-05",
+  "scope": "Generated PDF/DGN/DWF underlay definition OBJECTS callback allocation failure, destination rollback, same-adapter retry and typed graph readback.",
+  "source": {
+    "kind": "created-from-scratch control; no DWG/DXF fixture committed",
+    "revision": "fa59bb07dd41786e5aded73e9bccf6fb18fa9b92",
+    "input": "The test authors one AC1027 DXF graph with ACAD_PDFDEFINITIONS, ACAD_DGNDEFINITIONS and ACAD_DWFDEFINITIONS root entries, each with an owned child dictionary, definition and referencing underlay entity."
+  },
+  "implementation": {
+    "test": "tests/underlay_objects_allocation_tests.cpp",
+    "testSha256": "0fc57f61e9523fc26cca1a13d54c73b3628221ceb075646813ccaec552ba89dd",
+    "cmakeSha256": "f40ca2fc4a247baa3b89a5f5b90fe62253e77fe169ec1bbf671ed43de23c54e4",
+    "target": "libdxfrw_underlay_objects_allocation_tests",
+    "binarySha256": "ffc22d1551f1615653185035047309675339b95931c433c4b0f060a44ffd1ea2",
+    "asanBinarySha256": "885d25106ac8c7507ba835eaf43354fffa0d84a379f2310f2adc2cb669551f7f"
+  },
+  "environment": {
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "configuration": "build-gcc; CMake policy minimum override 3.5; normal build; C++17 test target",
+    "commands": [
+      "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "cmake --build build-gcc --target libdxfrw_underlay_objects_allocation_tests -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_underlay_objects_allocation_retry$' -V",
+      "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "cmake --build build-asan-custom --target libdxfrw_underlay_objects_allocation_tests -j4",
+      "ctest --test-dir build-asan-custom -R '^libdxfrw_underlay_objects_allocation_retry$' --output-on-failure"
+    ]
+  },
+  "result": {
+    "status": "PASS",
+    "ascii": {
+      "reachedCallbackAllocations": 60,
+      "injectedFailureOffsets": 60,
+      "destinationSentinelPreserved": true,
+      "sameAdapterRetries": 21,
+      "typedGraphReadbacks": 21
+    },
+    "binary": {
+      "reachedCallbackAllocations": 53,
+      "injectedFailureOffsets": 53,
+      "destinationSentinelPreserved": true,
+      "sameAdapterRetries": 19,
+      "typedGraphReadbacks": 19
+    },
+    "selector": "libdxfrw_underlay_objects_allocation_retry",
+    "durationSeconds": 2.47,
+    "asanSelector": "ctest --test-dir build-asan-custom -R '^libdxfrw_underlay_objects_allocation_retry$' --output-on-failure: PASS (1/1, 4.82 seconds)",
+    "suite": "focused normal and ASan selectors only; no full suite"
+  },
+  "limits": [
+    "Generated writer transaction evidence only; does not qualify physical producer data or native underlay semantics.",
+    "Covers this PDF definition graph's allocations reached in dx_iface::writeObjects; other OBJECTS builders and whole-drawing caller-state cases remain open.",
+    "Failure injection confirms destination rollback and same-adapter retry for each reached allocation, not shared-instance concurrency."
+  ],
+  "next": "Continue P6 safety/caller-state work with a different locally ready OBJECTS builder or staged family.",
+  "recheck_2026_11_12": {
+    "testSha256": "893ab480325f0fe9002b64df66243caf3336b6b21e23d4417b8d8272d2e464b2",
+    "cmakeSha256": "e219dc760ca2ddfedeb314c7308d8dce4d1c35aeb22c2f6332afc20b5b225175",
+    "normalBinarySha256": "fd99e9012bcc58f4e77529ca56e0cd832744a5c208a715c0411ee070c6f987fd",
+    "asanBinarySha256": "e10c447a0c40f2c2394cd904bbe2aba77e1edbd873da21f9579ca9690d69ac8f",
+    "failureOffsetAssertion": "Each callback allocation fault was reached at exactly offset+1; the failed write preserved the sentinel, then same-adapter retry and typed graph readback passed.",
+    "ascii": {
+      "reachedCallbackAllocations": 66,
+      "injectedFailureOffsets": 66,
+      "sameAdapterRetries": 66,
+      "typedGraphReadbacks": 66
+    },
+    "binary": {
+      "reachedCallbackAllocations": 59,
+      "injectedFailureOffsets": 59,
+      "sameAdapterRetries": 59,
+      "typedGraphReadbacks": 59
+    },
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_underlay_objects_allocation_tests -j6: PASS",
+    "normalCTest": "ctest --test-dir build-gcc -R '^libdxfrw_underlay_objects_allocation_retry$' --output-on-failure: PASS 1/1",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_underlay_objects_allocation_tests -j6: PASS",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_underlay_objects_allocation_retry$' --output-on-failure: PASS 1/1"
+  }
+}

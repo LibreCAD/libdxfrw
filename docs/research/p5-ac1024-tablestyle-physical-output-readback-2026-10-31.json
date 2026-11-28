@@ -1,0 +1,138 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-tablestyle-physical-output-readback-2026-10-31",
+  "date": "2026-11-01",
+  "title": "Physical AC1024 R24 TABLESTYLE source-to-output/readback profile",
+  "status": "ONE_PHYSICAL_R24_TABLESTYLE_PROFILE_OUTPUT_READBACK_PROVED",
+  "supportClaimEffect": "none",
+  "supersedesSelectedProfileGapIn": "docs/research/p5-ac1024-tablestyle-r24-output-2026-10-31.json",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "opaqueCensusIdentity": {
+      "sourceOffset": 14411,
+      "objectType": 504,
+      "handle": "87",
+      "class": "AcDbTableStyle",
+      "recordName": "Standard"
+    },
+    "fixturePolicy": "Reused the existing local DWG witness; ASCII/Binary outputs were temporary and removed; no DWG/DXF fixture was added."
+  },
+  "independentProjection": {
+    "receipt": "docs/research/p5-ac1024-tablestyle-r24-output-2026-10-31.json",
+    "tool": "LibreDWG dwg2dxf",
+    "scope": "Same-input peer projection corroborates the R24 marker grammar, Table/title/header/data identities, color projection, margins, text heights and border masks; it is not native semantic acceptance."
+  },
+  "implementation": {
+    "change": "Physical AC1024 TABLESTYLE source-to-output/readback coverage now requires one fresh typed R24 TABLESTYLE import and compares the default plus three nested cell styles, including semantic color normalization and remapped text-style references.",
+    "sourcePath": "tests/dwg2dxf_adapter_tests.cpp",
+    "sourceSha256": "afd8f463d2a3634398d7935d8a89343619637c99981fc8ca140d1034ed26d225",
+    "selector": "--tablestyle-physical-output-readback",
+    "sourceModel": {
+      "prefix": {
+        "classVersion": 0,
+        "unknownValue1": 8,
+        "unknownValue2": 101,
+        "unknownHandle": 0
+      },
+      "legacyRowStyles": 0,
+      "cellStyles": [
+        {
+          "id": 1,
+          "class": 1,
+          "name": "_TITLE",
+          "mergeFlags": 32768,
+          "alignment": 5,
+          "textHeight": 0.25,
+          "borders": 6
+        },
+        {
+          "id": 2,
+          "class": 1,
+          "name": "_HEADER",
+          "mergeFlags": 0,
+          "alignment": 5,
+          "textHeight": 0.18,
+          "borders": 6
+        },
+        {
+          "id": 3,
+          "class": 2,
+          "name": "_DATA",
+          "mergeFlags": 0,
+          "alignment": 2,
+          "textHeight": 0.18,
+          "borders": 6
+        }
+      ],
+      "tableCellStyle": {
+        "id": 4,
+        "class": 2,
+        "name": "Table",
+        "hasData": true,
+        "borders": 0,
+        "backgroundColor": 256,
+        "contentLayout": 1,
+        "valueDataType": 512,
+        "valueUnitType": 0,
+        "cellAlignment": 1,
+        "textHeight": 0.18,
+        "marginOverrideFlags": 1
+      },
+      "textStyleReference": "All three named cell styles point to the same source STYLE handle; fresh output references resolve by the emitted STYLE symbol identity."
+    }
+  },
+  "outputReadback": {
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "route": "Import the physical DWG, export the full source in explicit AllowPartial mode, then freshly import each exact DXF output.",
+    "identityJoin": "Unique source handle 0x87 and ACAD_TABLESTYLE Standard key/parent map to one emitted TABLESTYLE record and a fresh raw plus typed readback record through the output key and handle.",
+    "checked": [
+      "Source R24 prefix and exact typed Standard Table/title/header/data model are in the admitted writer profile.",
+      "Named Object Dictionary ACAD_TABLESTYLE key, dictionary owner, Standard key uniqueness and TABLESTYLE record owner remain closed on fresh output/readback.",
+      "Raw R24 nested record has the four expected cell-style identities in order, all TABLEFORMAT/CONTENTFORMAT/CELLMARGIN markers, 18 GRIDFORMAT spans, and matching border masks.",
+      "Content text heights, six margins, double-line spacing, CMC to DXF color projection and all three remapped text-style references match the source typed fields.",
+      "Fresh typed import returns exactly one TABLESTYLE with the default Table cell style and three ordered custom styles; all decoded fields, border values, margins, text heights and remapped STYLE handles match the physical source profile. DXF BYLAYER color semantics are checked after DXF's canonical method normalization."
+    ]
+  },
+  "failureAndRetry": {
+    "negativeControls": [
+      "Change the unknown R24 prefix value from 8 to 9.",
+      "Replace one source text-style handle with unresolved handle 0x999."
+    ],
+    "refusal": "Both edits are rejected and preserve a pre-existing destination sentinel byte-for-byte.",
+    "retry": "Restore source values and export with the same adapter; ASCII and Binary outputs freshly import and pass the profile checks.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary; fresh typed import verifies one physical TABLESTYLE, default and three nested styles, exact typed values, canonical DXF BYLAYER color semantics, raw wire markers, dictionary key/owner, borders/margins, remapped text-style references, atomic refusal and same-adapter retry.",
+      "executableSha256": "6688ddb65a8288ca2e76beee099feba8cb2bacbdd1adf94fe252d3093fa7add7"
+    },
+    "strictCheckpoint": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -v2010 /private/tmp/libdxfrw-strict-physical-current-20261031.dxf",
+      "result": "REFUSED before output publication: strict-complete conversion requires successful, complete DWG read disposition. No DXF was created.",
+      "opaqueCallbackViews": 228,
+      "retainedCorrelationFrames": 0
+    },
+    "fullSuites": "NOT RUN; warning-as-error target build, focused physical profile selector and strict CLI checkpoint were used."
+  },
+  "limitations": [
+    "Export uses AllowPartial; strict complete-export remains closed by 228 opaque callback views and zero retained correlation frames.",
+    "This receipt proves the selected R24 TABLESTYLE source profile and typed/raw DXF output/readback only; it does not prove full-document preservation, native rendering or CAD semantic acceptance.",
+    "No format support claim or external item is promoted."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Bind physical AC1024 TABLESTYLE handle 0x87 to ASCII/Binary output and fresh raw plus typed readback, including unique dictionary key/owner, R24 nested style order and fields, canonical DXF color semantics, border masks, remapped text-style references, atomic refusal and retry.",
+    "nextAction": "All 228 census profiles now have selected-profile receipts. Close the exact source-body or retained-replay gap reported by strict complete-export; do not infer whole-document completeness from these profiles.",
+    "externalItemsPromoted": 0
+  }
+}

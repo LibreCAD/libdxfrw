@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "date": "2026-11-11",
+  "title": "AC1032 associative-network and constraint dependency graph closure",
+  "scope": "Verify the source-bound owner and action-reference closure for the selected AC1032 NOD, nested networks, constraint group and geometry-dependency objects without promoting their candidate body semantics or output eligibility.",
+  "source": {
+    "url": "https://forums.autodesk.com/t5/objectarx-forum/how-to-give-constrains-with-c-net/td-p/11874110",
+    "attachment": "https://forums.autodesk.com/autodesk/attachments/autodesk/objectarx-forum-en/1817/1/constraints.dwg",
+    "local_path": "/private/tmp/p4-autodesk-forum-constraints.dwg",
+    "sha256": "685bf22ed533121238c62c07357bf03fa6ddb40983cff7967c481fbb244b6b4f",
+    "dwg_version": "AC1032",
+    "producer_provenance": "unverified; embedded APPINFO names AutoCAD 2024 build U.61.0.0(x64)",
+    "not_committed": true
+  },
+  "graph": {
+    "named_object_dictionary": "0xC",
+    "root_dictionary": {
+      "handle": "0x2A6",
+      "owner": "0xC",
+      "entry": "ACAD_ASSOCNETWORK -> 0x2A7"
+    },
+    "root_network": {
+      "handle": "0x2A7",
+      "owner": "0x2A6",
+      "owning_network": null,
+      "action": {
+        "target": "0x2A5",
+        "role": "unowned action / soft pointer"
+      }
+    },
+    "model_space_dictionary_chain": [
+      {
+        "handle": "0x1CE",
+        "owner": "0x1F"
+      },
+      {
+        "handle": "0x2A4",
+        "owner": "0x1CE",
+        "entry": "ACAD_ASSOCNETWORK -> 0x2A5"
+      }
+    ],
+    "child_network": {
+      "handle": "0x2A5",
+      "owner": "0x2A4",
+      "owning_network": "0x2A7",
+      "action": {
+        "target": "0x2A8",
+        "role": "owned action / hard ownership"
+      }
+    },
+    "constraint_group": {
+      "handle": "0x2A8",
+      "owner": "0x2A5",
+      "owning_network": "0x2A5",
+      "geometry_dependency_targets": ["0x2AA", "0x2A9"]
+    },
+    "geometry_dependencies": [
+      {"handle": "0x2A9", "owner": "0x2A8", "record": "ACDBASSOCGEOMDEPENDENCY"},
+      {"handle": "0x2AA", "owner": "0x2A8", "record": "ACDBASSOCGEOMDEPENDENCY"}
+    ]
+  },
+  "implementation": {
+    "files": ["tests/dwg2dxf_adapter_tests.cpp"],
+    "change": "Add a physical source selector that checks exact NOD/dictionary entries, dictionary owner links, network owner and owning-network fields, action ownership and target types, constraint-group owner, and both present geometry-dependency targets. It requires the AC1032 network complete flags and constraint-group body/node complete flags to remain false.",
+    "output_admission_changed": false
+  },
+  "authority_and_limits": {
+    "autodesk_network_api": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbAssocNetwork.html",
+    "autodesk_constraint_group_api": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbAssoc2dConstraintGroup.html",
+    "autodesk_semantics": "ObjectARX documents networks as action groupings, constraint groups as owners of geometric/value dependencies, and higher-level network hierarchies. These API semantics do not specify DWG byte order or prove this source's producer provenance.",
+    "wire_schema": "ODA v5.4.1 has no class-specific ACDBASSOCNETWORK or ACDBASSOC2DCONSTRAINTGROUP schema. AC1032 class-version-2 network and constraint-node fields remain candidate-only.",
+    "source_integrity": "145/145 source frames published with zero entity/object parse failures; LTYPE_CONTROL integrity error and HEADER/BLOCK_CONTROL warnings remain."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "build_result": "passed with -Werror",
+    "focused_selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocnetwork-ac1032-graph-closure /private/tmp/p4-autodesk-forum-constraints.dwg",
+    "focused_result": "PASS; NOD/dictionary/network/action/dependency graph closes at the recorded handles",
+    "existing_candidate_api": "build-gcc/tests/libdxfrw_constraint_group_candidate_api_tests --physical /private/tmp/p4-autodesk-forum-constraints.dwg passed; verifies all 13 candidate nodes, class indexes, status bytes, body spans, and selected line/arc dependencies",
+    "git_diff_check": "passed"
+  },
+  "nonclaims": [
+    "The public attachment producer is not independently authenticated.",
+    "The ACDBASSOCNETWORK and ACDBASSOC2DCONSTRAINTGROUP class-version-2 wire schemas and native constraint behavior remain unqualified.",
+    "The graph has not passed whole-source integrity or complete dependency semantics; no AC1032 output route or support claim is enabled.",
+    "No DWG or DXF fixture was added."
+  ]
+}

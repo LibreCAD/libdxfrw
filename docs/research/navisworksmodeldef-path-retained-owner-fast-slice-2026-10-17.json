@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-navisworksmodeldef-path-retained-owner-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Account the DXF NAVISWORKSMODELDEF path as a typed retained string and verify direct parsing plus the full OBJECTS callback boundary.",
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "field": "DRW_NavisworksModelDef::m_path",
+    "dxfCode": 1,
+    "accounting": "Dedicated live-byte counter on the shared DRW_TableEntry retained-string lease; reserve before replacement and preserve the old path/charge on refusal.",
+    "existingPathLimit": "One MiB remains unchanged.",
+    "reset": "Clears the derived path counter before the base reset releases the shared lease.",
+    "copyAssignment": "Explicit copy constructor and assignment preserve the derived counter and shared lease.",
+    "contractLimits": [
+      "Logical parsed DXF path bytes only; not allocator capacity, RSS, or a total process-memory cap.",
+      "Public post-callback edits, DWG string storage, and writer/projection copies remain outside this owner.",
+      "DRW_NavisworksModelDef public layout changed; downstream consumers must rebuild and binary ABI compatibility is not claimed."
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-navisworks-path-owner-budget",
+        "result": "PASS"
+      }
+    ],
+    "selectorCoverage": [
+      "Generated ASCII/Binary direct parser streams cover replacement, exact/one-byte-under admission, prior-path preservation, copy/assignment after source reset, and final reset release.",
+      "Generated full ASCII/Binary OBJECTS records exercise addNavisworksModelDef; cap-minus-one refuses before callback with ResourceLimit/dxf-retained-byte-budget.",
+      "The same facade retries at the exact cap and publishes a following NAVISWORKSMODELDEF sentinel.",
+      "Binary input is generated in temporary storage and removed; no persistent fixture or CTest was added."
+    ],
+    "receiptJsonParsed": true,
+    "planLinkChecked": true,
+    "scopedDiffCheck": true,
+    "ctestRun": false,
+    "fullSuiteRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeCadQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "externalJItemsRemainDeferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commit": "NOT CREATED: the shared checkout has broad existing edits in touched files; unrelated hunks were not staged."
+  }
+}

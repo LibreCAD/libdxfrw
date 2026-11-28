@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader HATCH group-47 presence and strict-writer boundary review",
+  "mode": "primary-source DXF specification and peer-issue research with scoped local parser/writer/test audit",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile Autodesk's HATCH group-47 field definition with conflicting observations in ACadSharp issue #1253",
+    "Audit local HATCH and MPOLYGON group-47 parsing, state, output, and current generated test coverage",
+    "Screen adjacent ACadSharp reports for existing local test/plan ownership and avoid duplicate work",
+    "Refine the existing 7AH/7Z implementation-ready gate without changing the code queue or validation cadence"
+  ],
+  "method": {
+    "kind": "Read-only primary-source issue/spec review and scoped source/test inspection",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "src/libdxfrw.cpp",
+      "tests/hatch_reference_tests.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "limitations": "Autodesk's reference does not specify the conditional group-47 presence rule. The ACadSharp #1253 observations refer to different versions/profiles and referenced samples were not independently acquired or inspected. Static local inspection is not a runtime or strict-consumer reproduction. Adjacent peer issues #1282 and #1283 were treated as title-level leads only."
+  },
+  "sources": [
+    {
+      "project": "Autodesk DXF Reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "revision": "Official HATCH/MPOLYGON reference reviewed 2026-10-18",
+      "observed": "Group 47 is described as pixel size for associative/flood hatch computations and appears between pattern-line data and group-98 seed-point count. The reference does not define an always-optional/mandatory rule, a derived-path predicate, or the semantics of explicit zero versus omission."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1253",
+      "revision": "Issue body and later activity reviewed 2026-10-18",
+      "observed": "The original reporter, measuring ACadSharp 3.6.35 against AutoCAD 2027 and an AC1024 DXFOUT comparison, says zero-valued group 47 was omitted in observed native output and reports rejection when the peer writer emitted it. A later contributor cites a different AC1032 sample and says AutoCAD-saved code 47 appears exactly for derived-boundary paths (flag 92=7), with TrueView requiring it for a derived hatch. The samples and outputs were not independently inspected, so these observations are not reconciled or elevated to a universal rule."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1280",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1283"
+      ],
+      "revision": "#1280 and #1281 bodies plus current issue index reviewed 2026-10-18; #1282/#1283 title-level leads only",
+      "observed": "#1280 reports culture-sensitive codepage-token lookup under Turkish/Azeri locales. #1281 reports peer stack overflow for repeated comments, XDATA application blocks, and clip boundary groups, with reported ASCII thresholds; these are not local results or format limits. #1282/#1283 were treated as title-level leads only, without a root-cause claim. Existing local codepage and robustness owners already cover the relevant test classes."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1186",
+      "revision": "Merged PR reviewed 2026-10-18; merged commit 8a52782 on 2026-08-18",
+      "observed": "The PR adds configurable decimal precision to the ASCII writer and closes issue #1179. This reinforces pinning exact peer artifact/configuration for numeric comparison; it adds no local finding."
+    }
+  ],
+  "localAudit": {
+    "parser": "DRW_Hatch::parseCode(47) reads the double into pixelSize and does not retain a presence bit; DRW_Hatch initializes pixelSize to 0.0.",
+    "writer": "writeHatch and writeMPolygon both emit group 47 only when pixelSize != 0.0.",
+    "existingTest": "The generated HATCH reference owner includes a derived loop with flags 7 and default zero pixelSize, but local round-trip coverage does not establish the strict consumer's required group-47 presence rule.",
+    "runtimeReproduction": false
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines the existing 7AH/7Z group-47 question into a generated profile matrix and a composed strict-consumer gate. It records the conflict between zero-value and derived-boundary observations, identifies the local absent-versus-zero model collapse, and defers any writer/API change until the conditional presence contract is evidenced. Nearby peer reports remain mapped to existing local robustness, codepage, and numeric owners.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep HATCH and MPOLYGON grammar/results distinct even though the Autodesk page documents group 47 for both.",
+    "Before changing output, identify valid cases that vary fill kind, derived-path state, and pixel-size absent/zero/nonzero one factor at a time.",
+    "Use the existing generated HATCH test owner for ASCII/Binary raw ordered-tag checks and a group-98/next-record sentinel; do not add downloaded or persistent fixtures or a CTest registration.",
+    "Resolve required/omitted group-47 behavior from a primary producer artifact or pinned strict-consumer result with exact app/build, AC version, hashes, path flags, fill kind, value/presence, diagnostic, and readback captured.",
+    "Add a public presence field only if absent and explicit zero are proven semantically or round-trip distinct; include copy/reset and both writer routes if needed.",
+    "On an implementation slice, limit validation to the touched strict target, focused HATCH selector, relevant LibreCAD compatibility check, and owning focused CTest; keep native/peer runs and broad safety suites at existing composed checkpoints.",
+    "Reuse existing local codepage, repeated-record robustness, and exact numeric owners for ACadSharp #1280/#1281/#1179; do not copy peer thresholds or infer local defects from peer issue titles."
+  ]
+}

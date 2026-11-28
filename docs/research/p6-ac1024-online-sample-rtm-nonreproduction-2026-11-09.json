@@ -1,0 +1,304 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "purpose": "Find and check a publicly available AC1024 DWG against the reported AutoCAD 2010 RTM CLASSES high-bit string-size failure.",
+  "source": {
+    "repository": "https://github.com/nextgis/dwg_samples",
+    "file": "arc_2010.dwg",
+    "file_url": "https://github.com/nextgis/dwg_samples/blob/master/arc_2010.dwg",
+    "producer_claim": "The repository README says its drawings were produced with trial AutoCAD 2016 M.49.0.0.",
+    "qualification": "AC1024-format online sample; not an AutoCAD 2010 RTM-produced witness."
+  },
+  "local_copy": {
+    "path": "/private/tmp/nextgis-arc-2010.dwg",
+    "committed": false,
+    "size_bytes": 51549,
+    "magic": "AC1024",
+    "sha256": "fd87187b435062cb15e0f6a88c2b23546768162f54ffae83a3f51788503ec262"
+  },
+  "oda_pair": {
+    "operation": "ODA File Converter GUI, audited conversion to 2010 ASCII DXF",
+    "output_path": "/private/tmp/libdxfrw-nextgis-arc-2010-oda-20261109/nextgis-arc-2010.dxf",
+    "output_bytes": 195074,
+    "output_sha256": "88b094c08ba6361b3d4caf93223f7d14672a001a78366295d453ba42119b44e0",
+    "output_version": "AC1024 / 2010 ASCII DXF",
+    "committed": false
+  },
+  "reader": {
+    "tool": "build-gcc/dwg2dxf/dwg2dxf",
+    "trace_observation": "dwgReader24::readDwgClasses END",
+    "operationSucceeded": true,
+    "sourceVersion": "AC1024",
+    "legacyError": 0,
+    "classes_crc_mismatch": false,
+    "header_envelope": "The canonical size profile ends four bytes early (expected 830, observed 834); the CRC/sentinel-validated zero high-size-word-excluded compatibility profile is accepted with a warning. This warning is not the strict-output blocker.",
+    "table_control_errors": [
+      {
+        "kind": "TableControlNullMember",
+        "control": "LTYPE_CONTROL",
+        "handle": "0x5",
+        "file_offset": 53,
+        "expected_role": 2,
+        "observed_role": 2
+      },
+      {
+        "kind": "TableControlNullMember",
+        "control": "BLOCK_CONTROL",
+        "handle": "0x1",
+        "file_offset": 4,
+        "expected_role": 2,
+        "observed_role": 2
+      }
+    ],
+    "published_frames": 181,
+    "entity_parse_failures": 0,
+    "object_parse_failures": 0,
+    "strict_dxf_output": "Not produced; strict preflight refused the two null table-control members after the complete read. No output file exists. The CLI returned failure. This is unrelated to CLASSES parsing."
+  },
+  "interpretation": "The online sample adds an independently sourced AC1024-format input and an ODA-generated DXF pair; it does not reproduce the reported CLASSES error. Its HEADER uses the already admitted four-byte compatibility profile with a warning, while strict output is correctly refused on null BLOCK_CONTROL/LTYPE_CONTROL members. Because the source was produced by AutoCAD 2016, it cannot resolve an AutoCAD 2010 RTM-specific failure. Keep the issue open pending one of the exact failing RTM files, the missing tenth input, or hashes plus a reproducible BAD_READ_CLASSES trace. Do not infer general AC1024 support from this result. A public-source search rechecked Autodesk's sample listing and the nextgis corpus: Autodesk says its set applies to AutoCAD 2010 and later but does not identify the originating release per file, while nextgis explicitly identifies AutoCAD 2016 as producer. Neither establishes an RTM-origin witness. A direct download of the contemporaneously listed Autodesk visualization_-_aerial.dwg was also checked: it is AC1024 and reaches the Classes END marker, but its SHA-256 is identical to the repository fixture. This authenticates the download origin without adding distinct bytes or proving an RTM producer build; four other Autodesk collection downloads checked in the same pass were AC1021.",
+  "fixture_policy": "The DWG and ODA-generated DXF were used only under /private/tmp and are not added to the repository.",
+  "online_search_recheck": {
+    "date": "2026-11-09",
+    "sources": [
+      {
+        "url": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/6XGQklp3ZcBFqljLPjrnQ9.html",
+        "finding": "Autodesk lists sample DWGs and says the set applies to AutoCAD 2010 and later; the page does not identify which release first authored each file, so it is not by itself an AutoCAD 2010 RTM producer witness."
+      },
+      {
+        "url": "https://github.com/nextgis/dwg_samples",
+        "finding": "Public repository includes arc_2010.dwg and explicitly says its DWGs were produced with trial AutoCAD 2016 M.49.0.0; therefore it is AC1024-format evidence but not an AutoCAD 2010 RTM witness."
+      }
+    ],
+    "result": "The historical Autodesk-hosted AutoCAD 2010 sample list yielded six AC1024 files. All pass CLASSES parsing with operationSucceeded=true and classesCrcMismatch=0. Their embedded product metadata is AutoCAD 2009 D.40.0.200 / Gator Beta 2, so they are not RTM witnesses. The nextgis AC1024 samples are AutoCAD 2016. No exact failing AutoCAD 2010 RTM source was found."
+  },
+  "additionalOnlineAc1024Inventory": {
+    "repository": "https://github.com/nextgis/dwg_samples",
+    "treeCommit": "ff05d5a89ce123da511ed93c5fe5e6df85e02ab8",
+    "provenance": "The repository README says all samples were produced with trial AutoCAD 2016 M.49.0.0. The repository has matching DWG/DXF pairs for the listed 2010 profiles. These are AC1024-format candidates, not AutoCAD 2010 RTM witnesses. Four pairs (line, circle, point3d, polyline2d_line) have now been downloaded and checked through CLASSES; arc_2010 also has the prior reader/ODA run. Other entries remain inventory leads.",
+    "profiles": [
+      {
+        "name": "arc_2010",
+        "dwgBytes": 51549,
+        "dwgGitBlob": "b0d66b291082da3d0c6e5048a65e88902f5152d7",
+        "dxfBytes": 114618,
+        "dxfGitBlob": "7a44bf1a16414b0b9af134133a8d433fff07171e"
+      },
+      {
+        "name": "circle_2010",
+        "dwgBytes": 51805,
+        "dwgGitBlob": "fb186bab5b418c057f477f7a0ca6bd5d6122b93c",
+        "dxfBytes": 114614,
+        "dxfGitBlob": "1e92a75e590be6b33eb7ab61709aa60cef4ad8ce"
+      },
+      {
+        "name": "ellipse_2010",
+        "dwgBytes": 51773,
+        "dwgGitBlob": "f006f5f06265aebc9a90e20438a1496776384946",
+        "dxfBytes": 114741,
+        "dxfGitBlob": "67df8074cbcf09d98f83d82c467a3f087aadae87"
+      },
+      {
+        "name": "line_2010",
+        "dwgBytes": 51741,
+        "dwgGitBlob": "a49465d4f4a4bf4acf859173810d10d9bb8a75d0",
+        "dxfBytes": 114619,
+        "dxfGitBlob": "f3075b07af20a042ae6c129465ef8e1a79e5de0a"
+      },
+      {
+        "name": "point2d_2010",
+        "dwgBytes": 51482,
+        "dwgGitBlob": "559e11b5d0cfadc30c5942398a789834edda0d43",
+        "dxfBytes": 114431,
+        "dxfGitBlob": "8a4cb5fafc09531f467466ed394b563d203f717b"
+      },
+      {
+        "name": "point3d_2010",
+        "dwgBytes": 51834,
+        "dwgGitBlob": "f38b7430c6b7eecb0a553c4d9b734b10aef67f17",
+        "dxfBytes": 114434,
+        "dxfGitBlob": "3bd23d32ff9db242de6d8fab0defe94d4ba2b6cd"
+      },
+      {
+        "name": "polyline2d_line_2010",
+        "dwgBytes": 51773,
+        "dwgGitBlob": "5f1e25298a6b6db4e80493ec9c83ec8f86a8ddad",
+        "dxfBytes": 114653,
+        "dxfGitBlob": "0d431443d33a01cd8285b9387768657e51ebbaad"
+      }
+    ],
+    "fixturePolicy": "All newly fetched DWG/DXF pairs are stored only under /tmp/nextgis_ac1024 and are not committed. The generated output paths are separate from downloaded source DXFs. No repository fixture was added.",
+    "checkedOnlinePairs": [
+      {
+        "name": "circle_2010",
+        "dwgBytes": 51805,
+        "dwgSha256": "4244fd138b749584003a071b085a879848e0ab6f71fbc6ab4fc14193a37f9900",
+        "dwgGitBlob": "fb186bab5b418c057f477f7a0ca6bd5d6122b93c",
+        "dxfBytes": 114614,
+        "dxfSha256": "6b6da34f81d2c98cb72e8ae07d99d65e04c631c4b6d96e776458c7927d6f3ca3",
+        "dxfGitBlob": "1e92a75e590be6b33eb7ab61709aa60cef4ad8ce",
+        "magic": "AC1024",
+        "readerCheck": {
+          "tool": "build-gcc/dwg2dxf/dwg2dxf -y -d -v2010",
+          "trace": "dwgReader24::readDwgClasses END",
+          "operationSucceeded": true,
+          "legacyError": 0,
+          "classesCrcMismatch": false,
+          "entityParseFailures": 0,
+          "objectParseFailures": 0,
+          "strictOutput": "refused after read; strict-complete conversion requires complete DWG read disposition"
+        }
+      },
+      {
+        "name": "line_2010",
+        "dwgBytes": 51741,
+        "dwgSha256": "60e06849a90e6724a495e3a05d867a8621f19a876ec3bcdb8af4c731cba6f214",
+        "dwgGitBlob": "a49465d4f4a4bf4acf859173810d10d9bb8a75d0",
+        "dxfBytes": 114619,
+        "dxfSha256": "7ff15d083bde220ac90ac994db5ee4f78455dedf9eb7b67a1a6e04d8c4447141",
+        "dxfGitBlob": "f3075b07af20a042ae6c129465ef8e1a79e5de0a",
+        "magic": "AC1024",
+        "readerCheck": {
+          "tool": "build-gcc/dwg2dxf/dwg2dxf -y -d -v2010",
+          "trace": "dwgReader24::readDwgClasses END",
+          "operationSucceeded": true,
+          "legacyError": 0,
+          "classesCrcMismatch": false,
+          "entityParseFailures": 0,
+          "objectParseFailures": 0,
+          "strictOutput": "refused after read; strict-complete conversion requires complete DWG read disposition"
+        }
+      },
+      {
+        "name": "point3d_2010",
+        "dwgBytes": 51834,
+        "dwgSha256": "9819e04c3ae5e75fb4aa0c6265e77421faa833acec0ebbb60feb34f019259b19",
+        "dwgGitBlob": "f38b7430c6b7eecb0a553c4d9b734b10aef67f17",
+        "dxfBytes": 114434,
+        "dxfSha256": "1bccc1155424d48fe7d79de991db9d3dd5b9e818298e50c1e73a6579d6132cdf",
+        "dxfGitBlob": "3bd23d32ff9db242de6d8fab0defe94d4ba2b6cd",
+        "magic": "AC1024",
+        "readerCheck": {
+          "tool": "build-gcc/dwg2dxf/dwg2dxf -y -d -v2010",
+          "trace": "dwgReader24::readDwgClasses END",
+          "operationSucceeded": true,
+          "legacyError": 0,
+          "classesCrcMismatch": false,
+          "entityParseFailures": 0,
+          "objectParseFailures": 0,
+          "strictOutput": "refused at extension-object graph validation; VISUALSTYLE carrier coverage"
+        }
+      },
+      {
+        "name": "polyline2d_line_2010",
+        "dwgBytes": 51773,
+        "dwgSha256": "0438fa332d881996b79cc58e3d9e2008e1326cda9881051251c49cf9855eca84",
+        "dwgGitBlob": "5f1e25298a6b6db4e80493ec9c83ec8f86a8ddad",
+        "dxfBytes": 114653,
+        "dxfSha256": "1275317903f05ab7267e179c6ee4915e67ab1e6def4594984bba3082723d98fd",
+        "dxfGitBlob": "0d431443d33a01cd8285b9387768657e51ebbaad",
+        "magic": "AC1024",
+        "readerCheck": {
+          "tool": "build-gcc/dwg2dxf/dwg2dxf -y -d -v2010",
+          "trace": "dwgReader24::readDwgClasses END",
+          "operationSucceeded": true,
+          "legacyError": 0,
+          "classesCrcMismatch": false,
+          "entityParseFailures": 0,
+          "objectParseFailures": 0,
+          "strictOutput": "refused after read; strict-complete conversion requires complete DWG read disposition"
+        }
+      }
+    ]
+  },
+  "historicalAutodeskSampleSet": {
+    "catalogSource": "https://blog.jtbworld.com/2009/06/where-are-sample-dwg-files-for-autocad.html",
+    "downloadHost": "https://images.autodesk.com/adsk/files/",
+    "catalogDate": "2009-06-18",
+    "catalogClaim": "Contemporaneous listing titled AutoCAD 2010 Sample Files; direct file URLs point to Autodesk-hosted DWGs.",
+    "producerMetadata": "All six AC1024 files contain ProductInformation name=AutoCAD, build_version=D.40.0.200, registry_version=18.0. Embedded property metadata identifies AutoCAD 2009; stored font paths include AutoCAD Gator Beta 2. This is beta/pre-RTM metadata and does not establish an AutoCAD 2010 RTM save.",
+    "files": [
+      {
+        "name": "architectural_example-imperial.dwg",
+        "size_bytes": 148638,
+        "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7"
+      },
+      {
+        "name": "civil_example-imperial.dwg",
+        "size_bytes": 169592,
+        "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc"
+      },
+      {
+        "name": "mechanical_example-imperial.dwg",
+        "size_bytes": 142267,
+        "sha256": "854c8ebed8726add72ba4a9a19ba0d010372f5cadefb40e648cdf881cad858"
+      },
+      {
+        "name": "title_block-ansi.dwg",
+        "size_bytes": 125896,
+        "sha256": "907398897552a090182f5446f18ad1ef82b91176764c8ccf08b5c5799546eeba"
+      },
+      {
+        "name": "title_block-arch.dwg",
+        "size_bytes": 126985,
+        "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d"
+      },
+      {
+        "name": "title_block-iso.dwg",
+        "size_bytes": 128233,
+        "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2"
+      }
+    ],
+    "readerCheck": {
+      "tool": "build-gcc/dwg2dxf/dwg2dxf",
+      "operation": "dwg2dxf <source> -y -d -v2010 <temporary-output>",
+      "results": "All six have AC1024 magic, reach dwgReader24::readDwgClasses END, report operationSucceeded=true, legacyError=0, classesCrcMismatch=0, entityParseFailures=0, and objectParseFailures=0. Five hashes duplicate the existing repository sample corpus; title_block-ansi is an additional unique public source. Nonzero CLI exits on five files happen after read completion at later strict-output gates.",
+      "fixturePolicy": "All downloaded DWGs and generated outputs remain under /private/tmp; no fixture was added."
+    },
+    "result": "Expanded public AC1024 corpus evidence, but did not locate or reproduce the reported AutoCAD 2010 RTM CLASSES failure. The original failure still needs the exact RTM sample/hash or another independently verified RTM-produced source."
+  },
+  "autodesk2010DirectDownloadRecheck": {
+    "catalogSource": "https://blog.jtbworld.com/2009/06/where-are-sample-dwg-files-for-autocad.html",
+    "directFileUrl": "https://download.autodesk.com/us/samplefiles/acad/visualization_-_aerial.dwg",
+    "catalogClaim": "The contemporaneous June 2009 AutoCAD 2010 sample listing names this Autodesk-hosted file as an AutoCAD 2010 sample.",
+    "localCopy": {
+      "path": "/private/tmp/autodesk-2010-visualization-aerial-online.dwg",
+      "committed": false,
+      "sizeBytes": 473112,
+      "magic": "AC1024",
+      "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1"
+    },
+    "existingCorpusComparison": {
+      "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+      "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+      "result": "Byte-identical to the existing repository fixture; no new unique sample coverage."
+    },
+    "readerCheck": {
+      "tool": "build-gcc/dwg2dxf/dwg2dxf",
+      "operation": "dwg2dxf <download> -y -d -v2010 <temporary-output>",
+      "trace": "dwgReader24::readDwgClasses END",
+      "operationSucceeded": true,
+      "sourceVersion": "AC1024",
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "traceSha256": "ea1d16f5af9d9041d1a2bb93dafbbca6925412326c99861a5391e186e43a353e",
+      "fixturePolicy": "Input and output kept under /private/tmp; no DWG/DXF added to the repository."
+    },
+    "qualification": "Original Autodesk-hosted AutoCAD 2010 sample-list input, but the per-file producing executable/build is not independently established. It is not a verified AutoCAD 2010 RTM witness."
+  },
+  "additionalAutodeskUrlVersionSpotChecks": {
+    "purpose": "Check that filenames from the historical Autodesk sample collection do not imply AC1024 format.",
+    "result": "Four additional direct Autodesk downloads (lineweights.dwg, tablet.dwg, plot_screening_and_fill_patterns.dwg, blocks_and_tables_-_metric.dwg) have AC1021 headers; excluded from AC1024 evidence.",
+    "fixturePolicy": "All files remained under /private/tmp and were not committed."
+  },
+  "latestAc1024OnlinePairRun": {
+    "date": "2026-11-09",
+    "source": "https://github.com/nextgis/dwg_samples",
+    "producerClaim": "AutoCAD 2016 M.49.0.0 per repository README",
+    "result": "Four additional distinct AC1024 DWGs were downloaded with their paired source DXFs. Each DWG reaches the dwgReader24 CLASSES END marker with operationSucceeded=true, legacyError=0, zero CLASSES CRC mismatch, and zero entity/object parse failures. Strict output is refused by later read-completeness or extension-graph gates. This corpus therefore does not reproduce the reported AutoCAD 2010 RTM class-size error and cannot qualify strict AC1024 output. External source files remain under /tmp only.",
+    "limitations": [
+      "AutoCAD 2016 producer claim is not an AutoCAD 2010 RTM producer witness.",
+      "Paired source DXFs were hash-pinned but not used to assert semantic equivalence in this pass.",
+      "Later strict-output failures are unrelated to CLASSES and do not constitute an output qualification."
+    ]
+  }
+}

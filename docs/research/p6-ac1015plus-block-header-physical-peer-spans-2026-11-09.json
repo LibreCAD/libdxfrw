@@ -1,0 +1,1812 @@
+{
+  "schema": "libdxfrw-block-header-physical-peer-span-v1",
+  "date": "2026-11-09",
+  "purpose": "Independently compare physical BLOCK_HEADER body handle references, roles, and exact bit spans against the production reader on hash-bound AC1015 and AC1018 DWGs.",
+  "supportClaimEffect": "none",
+  "normativeSource": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.52 BLOCK HEADER",
+    "pages": [
+      164,
+      165
+    ],
+    "roles": {
+      "blockControl": "soft pointer (code 4)",
+      "xrefBlock": "null hard pointer (code 5)",
+      "block": "hard owner (code 3)",
+      "firstEntity": "soft pointer (code 4), R13-R2000 when non-XREF/non-overlaid",
+      "lastEntity": "soft pointer (code 4), R13-R2000 when non-XREF/non-overlaid",
+      "ownedEntity": "hard owner (code 3), repeats Owned Object Count times in R2004+",
+      "endBlock": "hard owner (code 3)",
+      "insert": "soft pointer (code 4), count from terminated RC sequence in R2000+",
+      "layout": "hard pointer (code 5), R2000+"
+    }
+  },
+  "samples": [
+    {
+      "repository": "https://github.com/DomCR/ACadSharp",
+      "path": "samples/sample_AC1015.dwg",
+      "localPath": "/Users/dli/dev/ACadSharp/samples/sample_AC1015.dwg",
+      "version": "AC1015",
+      "sha256": "8ffbdc713f5838cbbb1596a8422e2b607e5c9e79921e852cbb5abee4af76ea4e",
+      "provenanceLimit": "Tracked ACadSharp sample; this receipt does not certify which AutoCAD release authored it."
+    },
+    {
+      "repository": "https://github.com/DomCR/ACadSharp",
+      "path": "samples/sample_AC1018.dwg",
+      "localPath": "/Users/dli/dev/ACadSharp/samples/sample_AC1018.dwg",
+      "version": "AC1018",
+      "sha256": "7d26f908516ec5fb89cc8054af33aff233b68a7b63208bbc5b7f9f4d9bff9866",
+      "provenanceLimit": "Tracked ACadSharp sample; this receipt does not certify which AutoCAD release authored it."
+    }
+  ],
+  "independentPeer": {
+    "implementation": "LibreDWG 0.14 (dwgread)",
+    "executable": "/opt/homebrew/bin/dwgread",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -v5 -O JSON <sample.dwg>",
+    "logs": [
+      {
+        "path": "/private/tmp/acadsharp-ac1015-libredwg.log",
+        "sha256": "4d6ef91f721e7ca9e2b4710b625574341165a853712d80321d00bfae8314cab4"
+      },
+      {
+        "path": "/private/tmp/acadsharp-ac1018-libredwg.log",
+        "sha256": "1e8c15fd9931bac6579c3731e80a9e740107c058e26c1dba7f8a20380b8b9da4"
+      }
+    ],
+    "projectionMethod": "For each selected BLOCK_HEADER object, read the peer-decoded H role, target handle, and exact byte.bit cursor. H tuple payload-length plus its one-byte role/length prefix independently establishes encoded handle span size. Convert byte.bit to a bit offset and compare to production DRW_DwgSubrecordRange."
+  },
+  "productionReader": {
+    "entry": "dx_iface::fileImport using the current dwgR/dwgRW reader and addBlockRecord callback",
+    "probeSource": "/private/tmp/block_header_span_probe.cpp",
+    "probeSourceSha256": "68dc67bf519e22c01be956bc5e4a596097116325b751f8d280c1f21154166243",
+    "probeExecutable": "/private/tmp/block_header_span_probe",
+    "probeExecutableSha256": "577c5906720a69af16d1dff0e8f524341a4702b287657b724603f309079f36c9",
+    "compileCommand": "/usr/bin/g++ -std=c++17 -Wall -Wextra -pedantic -Werror -Isrc -Idwg2dxf <probe.cpp> build-gcc/dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o build-gcc/libdxfrw.a -framework CoreFoundation -o <probe>",
+    "commands": [
+      "/private/tmp/block_header_span_probe /Users/dli/dev/ACadSharp/samples/sample_AC1015.dwg",
+      "/private/tmp/block_header_span_probe /Users/dli/dev/ACadSharp/samples/sample_AC1018.dwg"
+    ],
+    "sourceBindings": {
+      "src/drw_objects.cpp": "a2ce7a901ccb464d6bf7af4b192ca9e550807801a24a6681f55395d0483932c8",
+      "src/drw_objects.h": "aae016b05457ce2333b61bf95c6300049f0fc5a6f9ef4f4933eba91bc71ac1a8",
+      "dwg2dxf/dx_iface.cpp": "0ec561f0a756b5455fb77718b14703a468316b33f72ba36c75281c5ba0b7854a",
+      "build-gcc/libdxfrw.a": "a6ff7b830c79ece128749b5eeaabf88d9af5a8df8eb17d2f792659908f723c86",
+      "build-gcc/dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o": "1427ae76081833aca8fd1c3ca42fdcc38710a7be88778e29f30bd3408537cf53"
+    },
+    "logs": [
+      {
+        "path": "/private/tmp/block_header_span_probe-ac1015.err",
+        "sha256": "5b8f459d84d4c18ce1a459d61e0e0ea753ca767e9312435c618157f17e206b8b",
+        "readResult": "read=1 sourceVersion=13"
+      },
+      {
+        "path": "/private/tmp/block_header_span_probe-ac1018.err",
+        "sha256": "162e32bd03fe9addf8461d05735c9098765652a489b59aef2c7c87b9f8abac35",
+        "readResult": "read=1 sourceVersion=14"
+      }
+    ]
+  },
+  "comparison": {
+    "script": "/private/tmp/compare_block_header_physical.py",
+    "scriptSha256": "39349fe5b34e95129c49912293ad4dafa05493a865c8864cf65cacf27c3adb8f",
+    "fullComparison": "/private/tmp/block_header_physical_comparison.json",
+    "fullComparisonSha256": "6e8bfd40c9a8e6a2210d7138a68bbdf375042b613967183d33f98ec72a8eb1b1",
+    "allPhysicalFieldValuesRolesPositionsAndWidthsMatched": true,
+    "selectedObjects": [
+      {
+        "version": "AC1015",
+        "handle": "0xa0b",
+        "name": "my_block",
+        "fieldCount": 17,
+        "fields": [
+          {
+            "field": "blockControl",
+            "sourceField": "ownerhandle",
+            "bitStart": 535,
+            "bitSize": 16,
+            "role": 4,
+            "reference": "0x1"
+          },
+          {
+            "field": "xrefBlock",
+            "sourceField": "xref",
+            "bitStart": 575,
+            "bitSize": 8,
+            "role": 5,
+            "reference": "0x0"
+          },
+          {
+            "field": "block",
+            "sourceField": "block_entity",
+            "bitStart": 583,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xa0e"
+          },
+          {
+            "field": "firstEntity",
+            "sourceField": "first_entity",
+            "bitStart": 607,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xa0f"
+          },
+          {
+            "field": "lastEntity",
+            "sourceField": "last_entity",
+            "bitStart": 631,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xa0f"
+          },
+          {
+            "field": "endBlock",
+            "sourceField": "endblk_entity",
+            "bitStart": 655,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xa10"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[0]",
+            "bitStart": 679,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd17"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[1]",
+            "bitStart": 703,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd18"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[2]",
+            "bitStart": 727,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd2f"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[3]",
+            "bitStart": 751,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd40"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[4]",
+            "bitStart": 775,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd41"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[5]",
+            "bitStart": 799,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xa43"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[6]",
+            "bitStart": 823,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd95"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[7]",
+            "bitStart": 847,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd96"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[8]",
+            "bitStart": 871,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0x1033"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[9]",
+            "bitStart": 895,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0x1034"
+          },
+          {
+            "field": "layout",
+            "sourceField": "layout",
+            "bitStart": 919,
+            "bitSize": 8,
+            "role": 5,
+            "reference": "0x0"
+          }
+        ],
+        "peerHandleDataEndBit": 928,
+        "sourceLogSha256": "4d6ef91f721e7ca9e2b4710b625574341165a853712d80321d00bfae8314cab4",
+        "productionCaptureSha256": "5b8f459d84d4c18ce1a459d61e0e0ea753ca767e9312435c618157f17e206b8b"
+      },
+      {
+        "version": "AC1018",
+        "handle": "0x1f",
+        "name": "*Model_Space",
+        "fieldCount": 168,
+        "fields": [
+          {
+            "field": "blockControl",
+            "sourceField": "ownerhandle",
+            "bitStart": 216,
+            "bitSize": 16,
+            "role": 4,
+            "reference": "0x1"
+          },
+          {
+            "field": "xrefBlock",
+            "sourceField": "xref",
+            "bitStart": 256,
+            "bitSize": 8,
+            "role": 5,
+            "reference": "0x0"
+          },
+          {
+            "field": "block",
+            "sourceField": "block_entity",
+            "bitStart": 264,
+            "bitSize": 16,
+            "role": 3,
+            "reference": "0x20"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[0]",
+            "bitStart": 280,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x28e"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[1]",
+            "bitStart": 304,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x298"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[2]",
+            "bitStart": 328,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x299"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[3]",
+            "bitStart": 352,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x29a"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[4]",
+            "bitStart": 376,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x29b"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[5]",
+            "bitStart": 400,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x29c"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[6]",
+            "bitStart": 424,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x2c7"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[7]",
+            "bitStart": 448,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x2cf"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[8]",
+            "bitStart": 472,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x2e2"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[9]",
+            "bitStart": 496,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x2e3"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[10]",
+            "bitStart": 520,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x2e4"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[11]",
+            "bitStart": 544,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x2e5"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[12]",
+            "bitStart": 568,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x31f"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[13]",
+            "bitStart": 592,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x320"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[14]",
+            "bitStart": 616,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x321"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[15]",
+            "bitStart": 640,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x322"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[16]",
+            "bitStart": 664,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x343"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[17]",
+            "bitStart": 688,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x353"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[18]",
+            "bitStart": 712,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x35a"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[19]",
+            "bitStart": 736,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x35b"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[20]",
+            "bitStart": 760,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x36c"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[21]",
+            "bitStart": 784,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x36e"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[22]",
+            "bitStart": 808,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x36f"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[23]",
+            "bitStart": 832,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x371"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[24]",
+            "bitStart": 856,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x372"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[25]",
+            "bitStart": 880,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x376"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[26]",
+            "bitStart": 904,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x380"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[27]",
+            "bitStart": 928,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x389"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[28]",
+            "bitStart": 952,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x38a"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[29]",
+            "bitStart": 976,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x38b"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[30]",
+            "bitStart": 1000,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x3a5"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[31]",
+            "bitStart": 1024,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x3a6"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[32]",
+            "bitStart": 1048,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x3b9"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[33]",
+            "bitStart": 1072,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x3ba"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[34]",
+            "bitStart": 1096,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x3cf"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[35]",
+            "bitStart": 1120,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x3d0"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[36]",
+            "bitStart": 1144,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x3ec"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[37]",
+            "bitStart": 1168,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x3f5"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[38]",
+            "bitStart": 1192,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x3f6"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[39]",
+            "bitStart": 1216,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x422"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[40]",
+            "bitStart": 1240,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x42b"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[41]",
+            "bitStart": 1264,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x432"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[42]",
+            "bitStart": 1288,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x433"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[43]",
+            "bitStart": 1312,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x434"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[44]",
+            "bitStart": 1336,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x44d"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[45]",
+            "bitStart": 1360,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x512"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[46]",
+            "bitStart": 1384,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x513"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[47]",
+            "bitStart": 1408,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x514"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[48]",
+            "bitStart": 1432,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x515"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[49]",
+            "bitStart": 1456,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x516"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[50]",
+            "bitStart": 1480,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x517"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[51]",
+            "bitStart": 1504,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x518"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[52]",
+            "bitStart": 1528,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x519"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[53]",
+            "bitStart": 1552,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x51a"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[54]",
+            "bitStart": 1576,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x51b"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[55]",
+            "bitStart": 1600,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x51c"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[56]",
+            "bitStart": 1624,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x51d"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[57]",
+            "bitStart": 1648,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x51e"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[58]",
+            "bitStart": 1672,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x51f"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[59]",
+            "bitStart": 1696,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x522"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[60]",
+            "bitStart": 1720,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x525"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[61]",
+            "bitStart": 1744,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x526"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[62]",
+            "bitStart": 1768,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x527"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[63]",
+            "bitStart": 1792,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x528"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[64]",
+            "bitStart": 1816,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x694"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[65]",
+            "bitStart": 1840,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x695"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[66]",
+            "bitStart": 1864,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x696"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[67]",
+            "bitStart": 1888,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x697"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[68]",
+            "bitStart": 1912,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x698"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[69]",
+            "bitStart": 1936,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x699"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[70]",
+            "bitStart": 1960,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x69a"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[71]",
+            "bitStart": 1984,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x69b"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[72]",
+            "bitStart": 2008,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x69c"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[73]",
+            "bitStart": 2032,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x69d"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[74]",
+            "bitStart": 2056,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x69f"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[75]",
+            "bitStart": 2080,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x6a0"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[76]",
+            "bitStart": 2104,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x6a1"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[77]",
+            "bitStart": 2128,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x6a2"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[78]",
+            "bitStart": 2152,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x6a3"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[79]",
+            "bitStart": 2176,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x6a4"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[80]",
+            "bitStart": 2200,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x704"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[81]",
+            "bitStart": 2224,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x756"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[82]",
+            "bitStart": 2248,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x757"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[83]",
+            "bitStart": 2272,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x75c"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[84]",
+            "bitStart": 2296,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x75d"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[85]",
+            "bitStart": 2320,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x779"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[86]",
+            "bitStart": 2344,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x783"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[87]",
+            "bitStart": 2368,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x79c"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[88]",
+            "bitStart": 2392,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x7b8"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[89]",
+            "bitStart": 2416,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x822"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[90]",
+            "bitStart": 2440,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x823"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[91]",
+            "bitStart": 2464,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x824"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[92]",
+            "bitStart": 2488,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x889"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[93]",
+            "bitStart": 2512,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x8c6"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[94]",
+            "bitStart": 2536,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x915"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[95]",
+            "bitStart": 2560,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x916"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[96]",
+            "bitStart": 2584,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x917"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[97]",
+            "bitStart": 2608,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x918"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[98]",
+            "bitStart": 2632,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x919"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[99]",
+            "bitStart": 2656,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x91a"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[100]",
+            "bitStart": 2680,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x91b"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[101]",
+            "bitStart": 2704,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x91c"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[102]",
+            "bitStart": 2728,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x91d"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[103]",
+            "bitStart": 2752,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x91e"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[104]",
+            "bitStart": 2776,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x91f"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[105]",
+            "bitStart": 2800,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x920"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[106]",
+            "bitStart": 2824,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x921"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[107]",
+            "bitStart": 2848,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x923"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[108]",
+            "bitStart": 2872,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x924"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[109]",
+            "bitStart": 2896,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x993"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[110]",
+            "bitStart": 2920,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x99e"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[111]",
+            "bitStart": 2944,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x99f"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[112]",
+            "bitStart": 2968,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x9a0"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[113]",
+            "bitStart": 2992,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x9cd"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[114]",
+            "bitStart": 3016,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x9ce"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[115]",
+            "bitStart": 3040,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xa35"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[116]",
+            "bitStart": 3064,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xa54"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[117]",
+            "bitStart": 3088,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xa55"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[118]",
+            "bitStart": 3112,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xa7a"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[119]",
+            "bitStart": 3136,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xa7b"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[120]",
+            "bitStart": 3160,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xaba"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[121]",
+            "bitStart": 3184,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xac5"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[122]",
+            "bitStart": 3208,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb1a"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[123]",
+            "bitStart": 3232,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb1b"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[124]",
+            "bitStart": 3256,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb1c"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[125]",
+            "bitStart": 3280,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb1d"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[126]",
+            "bitStart": 3304,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb1e"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[127]",
+            "bitStart": 3328,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb1f"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[128]",
+            "bitStart": 3352,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb20"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[129]",
+            "bitStart": 3376,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb21"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[130]",
+            "bitStart": 3400,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb22"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[131]",
+            "bitStart": 3424,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb23"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[132]",
+            "bitStart": 3448,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb24"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[133]",
+            "bitStart": 3472,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb25"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[134]",
+            "bitStart": 3496,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb26"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[135]",
+            "bitStart": 3520,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb27"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[136]",
+            "bitStart": 3544,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb28"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[137]",
+            "bitStart": 3568,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xb29"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[138]",
+            "bitStart": 3592,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xbbb"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[139]",
+            "bitStart": 3616,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xbbf"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[140]",
+            "bitStart": 3640,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xbc0"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[141]",
+            "bitStart": 3664,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xbc1"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[142]",
+            "bitStart": 3688,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xbc2"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[143]",
+            "bitStart": 3712,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xbc3"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[144]",
+            "bitStart": 3736,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xbc4"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[145]",
+            "bitStart": 3760,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xbc5"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[146]",
+            "bitStart": 3784,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xbc6"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[147]",
+            "bitStart": 3808,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xbc7"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[148]",
+            "bitStart": 3832,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xc96"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[149]",
+            "bitStart": 3856,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xca4"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[150]",
+            "bitStart": 3880,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xd07"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[151]",
+            "bitStart": 3904,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xd2f"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[152]",
+            "bitStart": 3928,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xd65"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[153]",
+            "bitStart": 3952,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xd69"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[154]",
+            "bitStart": 3976,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xd6a"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[155]",
+            "bitStart": 4000,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xd70"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[156]",
+            "bitStart": 4024,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xd71"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[157]",
+            "bitStart": 4048,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xdfc"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[158]",
+            "bitStart": 4072,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xdfd"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[159]",
+            "bitStart": 4096,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xe00"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[160]",
+            "bitStart": 4120,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xe01"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[161]",
+            "bitStart": 4144,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xe02"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[162]",
+            "bitStart": 4168,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xe03"
+          },
+          {
+            "field": "endBlock",
+            "sourceField": "endblk_entity",
+            "bitStart": 4192,
+            "bitSize": 16,
+            "role": 3,
+            "reference": "0x21"
+          },
+          {
+            "field": "layout",
+            "sourceField": "layout",
+            "bitStart": 4208,
+            "bitSize": 16,
+            "role": 5,
+            "reference": "0x22"
+          }
+        ],
+        "peerHandleDataEndBit": 4224,
+        "sourceLogSha256": "1e8c15fd9931bac6579c3731e80a9e740107c058e26c1dba7f8a20380b8b9da4",
+        "productionCaptureSha256": "162e32bd03fe9addf8461d05735c9098765652a489b59aef2c7c87b9f8abac35"
+      },
+      {
+        "version": "AC1018",
+        "handle": "0x58",
+        "name": "*Paper_Space0",
+        "fieldCount": 7,
+        "fields": [
+          {
+            "field": "blockControl",
+            "sourceField": "ownerhandle",
+            "bitStart": 216,
+            "bitSize": 16,
+            "role": 4,
+            "reference": "0x1"
+          },
+          {
+            "field": "xrefBlock",
+            "sourceField": "xref",
+            "bitStart": 232,
+            "bitSize": 8,
+            "role": 5,
+            "reference": "0x0"
+          },
+          {
+            "field": "block",
+            "sourceField": "block_entity",
+            "bitStart": 240,
+            "bitSize": 16,
+            "role": 3,
+            "reference": "0x5a"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[0]",
+            "bitStart": 256,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x240"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[1]",
+            "bitStart": 280,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0x245"
+          },
+          {
+            "field": "endBlock",
+            "sourceField": "endblk_entity",
+            "bitStart": 304,
+            "bitSize": 16,
+            "role": 3,
+            "reference": "0x5b"
+          },
+          {
+            "field": "layout",
+            "sourceField": "layout",
+            "bitStart": 320,
+            "bitSize": 16,
+            "role": 5,
+            "reference": "0x59"
+          }
+        ],
+        "peerHandleDataEndBit": 336,
+        "sourceLogSha256": "1e8c15fd9931bac6579c3731e80a9e740107c058e26c1dba7f8a20380b8b9da4",
+        "productionCaptureSha256": "162e32bd03fe9addf8461d05735c9098765652a489b59aef2c7c87b9f8abac35"
+      },
+      {
+        "version": "AC1018",
+        "handle": "0xa0b",
+        "name": "my_block",
+        "fieldCount": 16,
+        "fields": [
+          {
+            "field": "blockControl",
+            "sourceField": "ownerhandle",
+            "bitStart": 546,
+            "bitSize": 16,
+            "role": 4,
+            "reference": "0x1"
+          },
+          {
+            "field": "xrefBlock",
+            "sourceField": "xref",
+            "bitStart": 586,
+            "bitSize": 8,
+            "role": 5,
+            "reference": "0x0"
+          },
+          {
+            "field": "block",
+            "sourceField": "block_entity",
+            "bitStart": 594,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xa0e"
+          },
+          {
+            "field": "ownedEntity",
+            "sourceField": "entities[0]",
+            "bitStart": 618,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xa0f"
+          },
+          {
+            "field": "endBlock",
+            "sourceField": "endblk_entity",
+            "bitStart": 642,
+            "bitSize": 24,
+            "role": 3,
+            "reference": "0xa10"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[0]",
+            "bitStart": 666,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd17"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[1]",
+            "bitStart": 690,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd18"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[2]",
+            "bitStart": 714,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd2f"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[3]",
+            "bitStart": 738,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd40"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[4]",
+            "bitStart": 762,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd41"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[5]",
+            "bitStart": 786,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xa43"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[6]",
+            "bitStart": 810,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd95"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[7]",
+            "bitStart": 834,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xd96"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[8]",
+            "bitStart": 858,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xf78"
+          },
+          {
+            "field": "insert",
+            "sourceField": "inserts[9]",
+            "bitStart": 882,
+            "bitSize": 24,
+            "role": 4,
+            "reference": "0xf79"
+          },
+          {
+            "field": "layout",
+            "sourceField": "layout",
+            "bitStart": 906,
+            "bitSize": 8,
+            "role": 5,
+            "reference": "0x0"
+          }
+        ],
+        "peerHandleDataEndBit": 920,
+        "sourceLogSha256": "1e8c15fd9931bac6579c3731e80a9e740107c058e26c1dba7f8a20380b8b9da4",
+        "productionCaptureSha256": "162e32bd03fe9addf8461d05735c9098765652a489b59aef2c7c87b9f8abac35"
+      }
+    ],
+    "totalMatchedBodyFields": 208
+  },
+  "interpretation": "The production parser spans and decoded references match LibreDWG 0.14 on 208 physical body-handle fields: AC1015 my_block (legacy first/last, ten INSERTs), AC1018 *Model_Space (163 owned entities), AC1018 *Paper_Space0 (two owned entities and LAYOUT), and AC1018 my_block (one owned entity, ten INSERTs). The exact source positions, H payload widths, role codes, and targets all agree. This supports these selected sample layouts and the ODA-specified role interpretation; it does not establish producer-wide prevalence, authoring-version provenance, target graph closure, strict output, native application behavior, or broader DWG support.",
+  "fixturePolicy": "No DWG/DXF fixture was copied into or committed to libdxfrw. All peer outputs, logs, probe artifacts, and comparison data remain under /private/tmp.",
+  "next": "Physical source-role/span evidence is complete for these selected AC1015/AC1018 objects. Keep target-graph closure and strict output qualification open; continue with the next source-ready P4/P6 gap without broadening support claims."
+}

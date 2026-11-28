@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Peer-release freshness, failure-domain separation, and optional-oracle readiness",
+  "mode": "Primary-source issue/release review plus local plan crosswalk; research-only",
+  "scope": [
+    "Refresh ezdxf binary proxy-graphic issue/fix/release artifact state.",
+    "Reconcile current ACadSharp and LibreDWG issue shapes with existing local owners.",
+    "Separate peer parser, writer, object-model, and consumer/native failure domains.",
+    "Refine the one-time optional peer checkpoint without adding routine dependencies or validation cost."
+  ],
+  "method": {
+    "kind": "Read-only review of primary project issue pages, release metadata, and existing local plan/code references",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "packagesDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The PyPI 1.4.5 release postdates ezdxf PR #1418, but the reviewed metadata does not bind the published artifact to that exact source commit. ACadSharp #1278 was visible only by issue title in this pass; #1283 details were available from an earlier primary-source review recorded in the plan. Issue-board status is not release behavior or a local reproduction."
+  },
+  "sources": [
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/issues/1412",
+        "https://github.com/mozman/ezdxf/pull/1418",
+        "https://github.com/mozman/ezdxf/commit/c87c87e",
+        "https://pypi.org/project/ezdxf/"
+      ],
+      "revision": "Issue/PR status reviewed 2026-10-19; PyPI lists 1.4.5 uploaded 2026-10-16",
+      "observed": "Issue #1412 is closed via merged #1418 (Oct 2), which routes raw proxy bytes through the tag-writer protocol. PyPI lists 1.4.5 after that merge; its py3-none-any wheel SHA-256 is 70a79ec7d40990f60453e3c87ffe9f668907ee061cf6f4c0a3794d032ec2b40e and source archive SHA-256 is a6c3bbc1a65ce764d97c5beafe6ae693d8ed14c6cdae366b50e1974a79d4a00.",
+      "evidenceCeiling": "Issue/fix/release metadata only. Artifact chronology and hashes do not prove source inclusion or runtime behavior; the old issue is scoped to ezdxf 1.4.4 and is not a libdxfrw defect."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/DomCR/ACadSharp/issues/1278",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1283"
+      ],
+      "revision": "Mutable issue index and issue pages reviewed 2026-10-19",
+      "observed": "The index lists #1278, #1281, #1282, and #1283 as open. #1281 is repeated-token parser stack exhaustion; #1282 documents an APPID EED length wrapping a signed-short field at 32,768 bytes, with 32,764 as the reporter's positive control; #1283 is recursive object-model cloning via Insert(BlockRecord), distinct from DWG decoding. #1278's exact sequence was unavailable in the reviewed page. The detailed #1283 report was captured in the earlier plan section on peer issue mechanisms.",
+      "evidenceCeiling": "Version/API-specific issue reports and issue-index status; not local repros, format limits, or current peer release qualification."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues",
+        "https://github.com/LibreDWG/libredwg/issues/1408",
+        "https://github.com/LibreDWG/libredwg/issues/1409",
+        "https://github.com/LibreDWG/libredwg/issues/1410",
+        "https://github.com/LibreDWG/libredwg/issues/1413",
+        "https://github.com/LibreDWG/libredwg/issues/1414",
+        "https://github.com/LibreDWG/libredwg/issues/1415"
+      ],
+      "revision": "Current public issue index/pages reviewed 2026-10-19",
+      "observed": "The open issue horizon covers TEXT/MTEXT CR framing, block-body loss, DXF→DWG HATCH/ATTRIB/embedded-MTEXT handling, NOD selection, R2007+ string/codepage behavior, and CMC color-index behavior. The #1408 author reports a private real-file failure and was unable to construct a minimal public reproducer.",
+      "evidenceCeiling": "Issue reports/status only; not a test of current master or evidence of analogous libdxfrw defects."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds artifact/source binding to the existing optional ezdxf check, corrects the stale #1283 title-only summary by linking the already-captured detailed report, and reaffirms that peer parser, writer, model-copy, carrier, and native-acceptance failures remain separate. It adds no feature work or validation cost to individual slices."
+  },
+  "implementationReadyChecks": [
+    "At the existing composed peer checkpoint only, record peer artifact SHA-256, source/tag/commit, runtime, optional features, OS, operation/direction, format versions, source/output hashes, and diagnostics.",
+    "Before using ezdxf 1.4.5 as current Binary-DXF proxy evidence, verify that the pinned artifact contains merged commit c87c87e and run the generated ASCII/Binary proxy-byte control with strict reopen.",
+    "Keep ACadSharp #1283 classified as API/model-copy complexity; do not infer parser or DWG byte-layout work from it.",
+    "Reuse existing local repeated-record, EED boundary, block/owner closure, proxy-byte, and strict-publication controls; do not copy peer thresholds or add duplicate stress tests.",
+    "Keep external/customer drawings and unavailable private issue attachments out of repository fixtures."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-peer-release-freshness-failure-domain-and-oracle-readiness-2026-10-19.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-peer-release-freshness-failure-domain-and-oracle-readiness-2026-10-19.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "9f76b6d81e96c0cf4c2ba42872ae026cb555fc11d70cebfba154d77a13784f04"
+}

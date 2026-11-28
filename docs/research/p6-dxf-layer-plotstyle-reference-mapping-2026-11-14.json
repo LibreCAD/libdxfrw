@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.dxf.writer-reference-closure-receipt.v1",
+  "slice": "P6-D LAYER group-390 PlotStyleName mapping and loss refusal",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "authority": {
+    "autodeskLayerSchema": {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+      "finding": "LAYER group 390 is the hard-pointer ID/handle of a PlotStyleName object."
+    },
+    "autodeskObjectARX": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbLayerTableRecord__setPlotStyleName_ACHAR_.html",
+      "finding": "AutoCAD resolves a layer plot-style name through the plot-style name dictionary and stores the resulting object reference in group 390."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/layer_table_allocation_tests.cpp"
+    ],
+    "change": "DRW_Layer now exposes a non-consuming group-390 handle validator parallel to its group-347 material helper. The writer preserves explicit null, uses the historical F placeholder for absent/default input, resolves other explicit pointers through the caller resolver, and refuses unresolved nondefault handles instead of discarding them. AC1014 and earlier also refuse a supplied nondefault pointer because group 390 is unavailable there. Generated tests check destination rollback on refusal, then install a resolver on the same codec and verify AC1015 same-writer retry and fresh DXF readback of the mapped target in ASCII and Binary; a separate vector checks explicit null readback."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_layer_table_allocation_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_layer_table_allocation$' --output-on-failure",
+      "result": "PASS (1/1, 0.56 seconds)",
+      "coverage": "Existing seven-revision ASCII/Binary allocation rollback/retry and pre-R2000 refusal controls pass. New generated cases refuse AC1014 group-390 handle 0x123 without replacing a destination sentinel, retry at AC1015 using a resolver mapping 0x123 to 0x456, then read back group 390 as 456 in ASCII and Binary. The AC1027 case also checks unresolved-refusal, destination rollback, same-writer resolver retry, mapped-handle readback, and explicit-null preservation."
+    },
+    "compatibilityTarget": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "The generated resolver callback is trusted to map into an emitted object graph; this test proves handle mapping and DXF readback, not target-object existence or ownership closure.",
+    "No native AutoCAD, BricsCAD, LibreCAD, or LibreCAD_3 plot-style semantic qualification was run.",
+    "Default absent-input F behavior is retained for compatibility and is not newly qualified against an independent consumer."
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw-deeper-broader-acds-peer-reproduction-and-carrier-evidence-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Reconcile primary DXF 3DSOLID fields, ACIS sample-generation boundaries, the pinned LibreDWG AcDs loss report, current peer-source state, and implementation-ready parity controls.",
+  "method": {
+    "kind": "Primary documentation/source/issue/PR review and local plan reconciliation",
+    "sourcesOpened": [
+      "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://ezdxf.readthedocs.io/en/stable/tasks/add_dxf_entities.html",
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1150",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "evidenceRule": "Issue, PR, release, and source observations are bounded by their exact revision and route. Static source presence does not establish successful current runtime behavior. ODA v5.4.1 remains authoritative for DWG layout; Autodesk DXF references remain authoritative for published DXF group fields."
+  },
+  "evidence": [
+    {
+      "topic": "Autodesk DXF 3DSOLID carrier fields",
+      "observed": [
+        "The published 3DSOLID table lists AcDbModelerGeometry, modeler format code 70, proprietary payload text in code 1 with optional continuation lines in code 3, then AcDb3dSolid and soft-owner history handle code 350.",
+        "The table does not define the embedded SAT/SAB grammar or DWG AcDs layout."
+      ],
+      "planUse": "Test subclass ordering, version-gated history handle, group-1/group-3 boundaries, bounded chunk length, and following-entity framing as distinct assertions. Do not treat code 70 as ACIS version or payload validity."
+    },
+    {
+      "topic": "ezdxf 1.4.5 parser and generator boundary",
+      "observed": [
+        "Documentation warns that unsupported ACIS entity types load as NONE_ENTITY and cannot be arbitrarily re-exported losslessly.",
+        "Documented SAT 700 and SAB 21800 support follows DXF version bands; body_from_mesh() can create a polyhedral control from a local mesh.",
+        "mesh_from_body() returns only flat polygonal faces and loses curved boundaries; ACIS body creation is identified as an external-library task."
+      ],
+      "planUse": "A locally generated cube can check carrier framing and structural behavior only. It cannot prove curved B-rep support, general ACIS semantics, or independent kernel correctness."
+    },
+    {
+      "topic": "LibreDWG issue #1411 as version-specific evidence",
+      "observed": [
+        "The still-open issue reports that a locally generated AC1032 REGION with a 5,489-byte SAB payload lost its ACDSDATA path when processed by the named LibreDWG build 8a1ae764.",
+        "Current master source contains an AcDs section decode function/schema, so the older issue cannot establish that current master has no reader path.",
+        "No current master executable was run; static source does not establish that the reproduced payload, owner mappings, DWG writer, or DXF writer now round-trip."
+      ],
+      "planUse": "Preserve the issue as a pinned failure report and reproducible local-control recipe. Re-test only with exact current source/release pins and separate read, write, and conversion results; otherwise record NOT_RUN."
+    },
+    {
+      "topic": "ACadSharp ACIS writer readiness",
+      "observed": [
+        "Issue #1195 remains open; PR #1150 and PR #1240 are also open in the reviewed pages.",
+        "PR #1150 contains author-reported versioned DXF/DWG output and TrueView/ODA checks, but the maintainer deferred writer review while the AcDs schema/writer direction is reworked after upstream changes.",
+        "PR #1240 is an issue-linked route dependent on the AcDs schema work; neither open PR is a merged-release capability result."
+      ],
+      "planUse": "Do not use ACadSharp as a currently released ACIS writer oracle. Require exact merged pin, per-entity owner/block disposition, and separately recorded diagnostics if later compared."
+    },
+    {
+      "topic": "GDAL DXF 3D projection boundary",
+      "observed": [
+        "The documented DXF 3D extensibility option exposes raw ASMData and a 12-real transform for AC1027+; it does not create OGR solid geometry.",
+        "The DWG driver relies on ODA and is not an independent open-source DWG parser route."
+      ],
+      "planUse": "Keep GDAL at one optional, exact-pinned composed DXF structure/raw-carrier checkpoint, not a semantic solid or open-source DWG vote."
+    }
+  ],
+  "implementationReadiness": {
+    "refinesExistingOwners": [
+      "PAR-05",
+      "PAR-07",
+      "PAR-14",
+      "PAR-49",
+      "PAR-65",
+      "7AR",
+      "7BE",
+      "S2.3.9.4.29",
+      "S3.7",
+      "S6",
+      "S8.9.5"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "perSliceExternalRuns": false,
+    "locallyGeneratedControlsOnly": true,
+    "sourceEntityOwnerPayloadDispositionRequired": true,
+    "rawPayloadAndTypedGeometryChecksSeparate": true,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "At changed local code paths, use a touched strict build and generated fast test; no peer runtime or full-suite run is a prerequisite.",
+      "Use separate SAT/code-1+3 controls through AC1024, SAB/ACDSDATA controls from AC1027 onward, and DWG AcDs graph controls; include final-chunk and following-record sentinels.",
+      "At one composed checkpoint, pin exact peer commits, replay only locally regenerated controls, and record source handle, owner/block path, payload digest/length, diagnostics, and unsupported disposition.",
+      "Require eligible independent analytic-kernel evidence only after entity-to-AcDs/prototype/history and raw SAB closure; a mesh-generated cube remains structural evidence only."
+    ]
+  },
+  "validation": {
+    "parityPlanUpdated": true,
+    "3dPlanUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "peerRuntimeRun": false,
+    "nativeRuntimeRun": false,
+    "productionBehaviorChangedByResearch": false,
+    "supportClaimsPromoted": 0
+  }
+}

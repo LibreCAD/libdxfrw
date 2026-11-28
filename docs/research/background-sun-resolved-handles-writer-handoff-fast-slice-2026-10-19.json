@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Background/SUN resolved-handle writer handoff",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Avoid copying adapter-owned Background and SUN handle vectors into the DXF writer before the adapter has finished using them.",
+    "Preserve existing copy-setter behavior, owner validation, collision planning, retries, and emitted references."
+  ],
+  "sourceChange": {
+    "header": "src/libdxfrw.h",
+    "adapter": "dwg2dxf/dx_iface.cpp",
+    "api": [
+      "dxfRW::setResolvedBackgroundHandles",
+      "dxfRW::setResolvedSunHandles"
+    ],
+    "before": "fileExport copied both validated handle vectors into the writer early, then continued reading them during reserved-handle and fixed-collision planning.",
+    "after": "Add rvalue overloads and defer ownership transfer until immediately before dxfRW::write(), after the adapter's final reads. Keep const-reference overloads unchanged.",
+    "effect": "Removes two full vector copies without changing owner-graph decisions or writer-visible source handle sets. Each fileExport call rebuilds the derived vectors before transfer, including retries."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+        "result": "passed",
+        "count": "1/1",
+        "elapsedSeconds": 4.18,
+        "coverageNote": "Fixture target includes generated ASCII/Binary VIEW/VPORT/VIEWPORT Background/SUN closure, owner-remap, rejection, retry, and output controls."
+      }
+    ],
+    "diffCheck": "passed for src/libdxfrw.h, dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes two adapter-to-writer handle-vector copies after proving the adapter has no post-transfer reads. The public const-reference setter APIs and external qualification gates remain intact."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict DXF fixture-test and adapter-test target builds",
+      "Focused existing generated DXF fixture CTest"
+    ],
+    "limitations": "This removes source-confirmed vector copies; it does not measure allocator overhead, peak RSS, or general throughput. The CTest is a combined fixture executable, not an isolated Background/SUN-only selector."
+  }
+}

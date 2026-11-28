@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "p5-ac1021-mleader-proxy-resource-index-remap-2026-11-05",
+  "date": "2026-11-05",
+  "status": "GENERATED_AND_PHYSICAL_CACHE_WRAPPER_ROUNDTRIP_PASS__WHOLE_DOCUMENT_UNQUALIFIED",
+  "scope": "Correctly classify and remap AC1021 MLEADER proxy-cache layer indices from DWG control-record order to the emitted DXF LAYER table order; prove exact generated DXF cache output/readback and keep physical whole-document gates separate.",
+  "source": {
+    "path": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "version": "AC1021",
+    "classificationCorrection": "The 36 cached records in block *U0 are MLEADER (DRW::MLEADER == 28), not MLINE (DRW::MLINE == 27). Earlier p5 proxy sentinel, layer-slot and DIMASSOC receipts that call these MLINE caches are corrected by this receipt."
+  },
+  "sourceResourceOrder": {
+    "evidence": "The optional DRW_DwgProxyGraphicsResourceOrderHandler receives the reader's layer and linetype name order after table parsing; dx_iface retains bounded copies and the physical transport helper compares both vectors exactly with dwgRW's source vectors.",
+    "observedLayerSlots": {
+      "51": "Mleader @ 48",
+      "52": "Mleader @ 24",
+      "53": "Mleader @ 4"
+    },
+    "mappedOutputRows": {
+      "Mleader @ 48": 6,
+      "Mleader @ 24": 35,
+      "Mleader @ 4": 32
+    },
+    "linetypeSentinel": "Opcode 18 payload 32767 is retained as its validated BYLAYER sentinel and is not treated as an ordinary table index."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_interface.h",
+      "src/libdwgr.cpp",
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "src/intern/proxygraphicdecoder.h",
+      "src/intern/proxygraphicdecoder.cpp",
+      "src/drw_entities.h",
+      "src/libdxfrw.cpp",
+      "tests/graph_preservation_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/dimassoc_physical_transport_tests.cpp"
+    ],
+    "behavior": "For parsed AC1021 DWG MLEADER caches only, preflight validates that every indexed resource resolves and that at least one layer index can be mapped. Entity output clones the caller model, remaps opcode-16 layer indices to the current DXF LAYER row order, preserves sentinel linetypes and unknown well-framed chunks, and authorizes only the transformed AC1021 MLEADER cache for same-revision DXF output. Failed remaps leave the cache/output unchanged.",
+    "limitation": "The physical cache control wraps each source cache in a generated rooted MLEADER document and bypasses only document-wide adapter preflight; it uses production table/entity callbacks and serializer. This does not qualify original-document output, native rendering, all opcode/resource roles, or complete physical MLEADER document conversion."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_graph_preservation_tests libdxfrw_dimassoc_physical_transport_tests dwg2dxf -j4",
+      "result": "PASS"
+    },
+    "focusedControls": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mleader-adapter-writer",
+        "result": "PASS; generated ASCII/Binary dxfRW callback output remaps source layer slot 51 to the emitted row, reads back the exact proxy cache and byte count, and retains AcDbMLeader style text color 37 (subclass group 92). An unresolved source-layer name refuses atomically with the prior destination intact; correcting the mapping succeeds on the same dxfRW writer. Existing rooted MLEADER typed graph controls also pass."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mleader-physical-proxy-roundtrip tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+        "result": "PASS; all 36 physically parsed AC1021 MLEADER caches remap and roundtrip byte-for-byte in generated rooted wrappers: 36/36 ASCII and 36/36 Binary. Each output also preserves the proxy byte count and AcDbMLeader style text-color group 92 value. No fixture was added. This is cache-level transport evidence, not original-document conversion or native-rendering evidence."
+      },
+      {
+        "command": "build-gcc/libdxfrw_graph_preservation_tests",
+        "result": "PASS; generated proxy resource remapper and atomic missing-target control"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_read_AC1021_architectural_-_annotation_scaling_and_multileaders$' --output-on-failure",
+        "result": "PASS 1/1"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dimassoc_physical_transport_tests tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+        "result": "PASS; exact source resource-order callback comparison; zero entity/object parse failures; 7/7 selected DIMASSOC ASCII/Binary readbacks"
+      }
+    ],
+    "strictWholeFileProbe": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg -y -v2007 /private/tmp/libdxfrw-mleader-remap-check.dxf",
+      "exitCode": 1,
+      "result": "Preflight passed the typed proxy-graphics gate and refused at FIELD/FIELDLIST carriers have no qualified DXF serializer. No whole-file DXF was published."
+    },
+    "diffCheck": "PASS"
+  },
+  "claimBoundary": [
+    "The stale MLINE classification and proxy-cache blocker are corrected.",
+    "Source index-to-layer-name evidence and generated remapper mechanics are present, and current strict preflight no longer stops at the 36 caches.",
+    "Generated remapped MLEADER cache output/readback and the group-92 collision are proven for the controlled byte stream.",
+    "All 36 source caches have exact readback in generated rooted wrappers, but original-document export remains refused at FIELD/FIELDLIST serialization. No support claim is promoted: whole-document output, broader opcode/resource roles, and native rendering remain open."
+  ],
+  "supportClaimEffect": "none"
+}

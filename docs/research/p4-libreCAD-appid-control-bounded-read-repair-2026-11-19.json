@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-libreCAD-appid-control-bounded-read-repair-2026-11-19",
+  "date": "2026-11-19",
+  "title": "Restore bounded APPID_CONTROL reads for historical LibreCAD ENC fixtures",
+  "status": "BOUNDED_HISTORICAL_READ_COMPATIBILITY; STRICT_OUTPUT_BLOCKED",
+  "supportClaimEffect": "none",
+  "sourceProfile": {
+    "historicalWriter": "LibreCAD bundled libdxfrw ENC writer; see docs/research/p4-libreCAD-historical-control-read-profile-2026-11-05.json",
+    "versions": [
+      "AC1021",
+      "AC1027"
+    ],
+    "fixtures": [
+      {
+        "path": "tests/fixtures/dwg/ordinary_enc_AC1021.dwg",
+        "sha256": "25685bec2d9d537a2f04dfd081f2a0933078cc19c59ebc3473dc011dfad970c8"
+      },
+      {
+        "path": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+        "sha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83"
+      }
+    ],
+    "frameGuard": "Only APPID_CONTROL type at root handle 0x09, AC1021 or AC1027, empty reactors/EED/XDictionary/data-storage prefix, and exact version-specific object-size/body-stream relation enter the historical bounded BitShort count path. Existing count limits, frame bounds, handle decoding and uniqueness checks remain active."
+  },
+  "formatBasis": {
+    "reference": "Open Design Specification for .dwg files v5.4.1, §20.4.65 (APPID_CONTROL)",
+    "normativeCount": "BL",
+    "legacyReadPolicy": "The historical source fixtures are tolerated with the prior bounded BitShort interpretation only for the exact profile above; this is not normative conformance or writer qualification."
+  },
+  "observations": {
+    "AC1021": "The tracked historical fixture produces no APPID_CONTROL unclaimed-data diagnostic. Generated inline controls separately verify the parser's exact tail-bit accounting and retry behavior.",
+    "AC1027": "The bounded reader preserves the historical import and records 173 unclaimed object-data bits as TableControlUnclaimedData severity Error. Strict output remains refused for this source disposition.",
+    "fixturePolicy": "No DWG or DXF fixture was added or modified."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_fixture_tests libdxfrw_dwg_reader_matrix_tests --parallel 4",
+      "result": "PASS with -Werror."
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_fixtures|libdxfrw_dwg_reader_matrix)$' --output-on-failure",
+      "result": "PASS: 2/2 tests; fixture regression 0.21 s and reader matrix 0.67 s."
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_block_control_reactor_tests --parallel 4 && ctest --test-dir build-gcc -R '^libdxfrw_dwg_block_control_reactors$' --output-on-failure",
+      "result": "PASS: generated AC1021/AC1027 historical APPID_CONTROL controls cover accepted bounded frames, exact tail-bit accounting, truncation reset and corrected retry; an AC1027 five-bit suffix remains observable."
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_fixture_tests libdxfrw_dwg_reader_matrix_tests libdxfrw_block_control_reactor_tests --parallel 4 && ctest --test-dir build-gcc -R '^(libdxfrw_dwg_fixtures|libdxfrw_dwg_reader_matrix|libdxfrw_dwg_block_control_reactors)$' --output-on-failure",
+      "result": "PASS: 3/3 focused selectors after adding generated failure/reset/retry controls."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS."
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_block_control_reactor_tests libdxfrw_dwg_reader_matrix_tests libdxfrw_diagnostic_tests libdxfrw_dwg_fixture_tests --parallel 4; ctest --test-dir build-gcc -R '^(libdxfrw_dwg_local_roundtrip|libdxfrw_dwg_reader_matrix|libdxfrw_diagnostic|libdxfrw_dwg_fixtures|libdxfrw_qualified_differential_v2|libdxfrw_qualified_semantic_fields|libdxfrw_qualified_support_metadata)$' --output-on-failure",
+      "result": "PASS: focused 7-test selector 7/7 (4.78 s); the normal AC1027 APPID_CONTROL footer is boundary-checked before the historical BS fallback."
+    },
+    {
+      "command": "GitHub Actions focused-native run 44550267531 on head 1a9cc5c7ef890feb04781d511f79a8782895fbc3",
+      "result": "FAIL on Linux and Windows: the 7-test selector passed 6/7 because a valid generated AC1027 29-bit absent-string footer was misclassified as unclaimed APPID_CONTROL data. This failure triggered the local fix above; no source fixtures were added."
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_local_roundtrip|libdxfrw_dwg_reader_matrix|libdxfrw_diagnostic|libdxfrw_dwg_fixtures|libdxfrw_qualified_differential_v2|libdxfrw_qualified_semantic_fields|libdxfrw_qualified_support_metadata|libdxfrw_dwg_block_control_reactors)$' --output-on-failure",
+      "result": "PASS: focused 8-test selector 8/8 (4.02 s). The clean AC1027 frame uses the strict boundary path; the generated 5-bit suffix still uses the historical fallback and truncation retry resets state."
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4; ctest --test-dir build-gcc -R '^libdxfrw_material_root_output_compatibility$' --output-on-failure",
+      "result": "PASS: the Werror-triggering adapter test translation unit builds locally and the focused complete MATERIAL-root compatibility test passes 1/1."
+    },
+    {
+      "command": "GitHub Actions fast parity run 44554412763 on head 739884369a7613b08b6fbacf190bbaf55f8a63ce",
+      "result": "FAIL during compilation before tests: GCC 13 -Werror=range-loop-construct at tests/p4_advmaterial_writer_controls.h:2122 copied a pair from a fixed initializer list. Changed the loop variable to const auto&; the new implementation digest requires fresh fast and focused-native CI."
+    },
+    {
+      "command": "GitHub Actions focused-native run 44559207086 and fast parity run 44559207089 on PR head d69109e83e777a2776944771d8c9a3b8dcee569a; checked-out merge 802071d921fea0a2d9c0fc06309624d086262dce; implementation digest 150b3e950db4c8851de1dc9f66ff03bca04defd420e6d8733c863058580f558a",
+      "result": "Focused native passed on Linux, macOS and Windows (7/7 tests each), with successful receipt sealing, upload and post-upload enforcement. Receipt SHA-256 values: Linux b51a349530e1e583f420f23ae7c73f831e4ca77a30eaeda4965c38754a602ac9; Windows 8acce2dbf573a1ac94913ea1d2b14482754d5a04e5178566cc0d8b579d0b773e; macOS dce08cc1bd46d7033d6139123df8ba1c0b21ea664bdd36b39786078b99b75a50. Artifact IDs/digests: Linux 14550665115 / 576c53a7227bc75b78f48e945043650fa77ba603a65250a0cb7e357e7d2a915a; Windows 14549301281 / 6666e20e496409d17e1462eb9ef435efeb3a579609290151a3afb67dd9db6872; macOS 14548332140 / f36636d721229021c3dc1134c9c595415a2bc19d915d190a1b333578635600eb. Fast build succeeded and 44/45 tests passed; the sole failure was a stale historical AC1021 assertion expecting 9 omitted integrity rows, although the receipt correctly reports 26 source rows, 16 retained rows and 10 omitted rows. The historical role defects remained visible and strict output preserved its destination. This was a test expectation defect; no parser relaxation or support promotion is justified."
+    },
+    {
+      "command": "cmake --build build --config Release --parallel 2 --target dwg2dxf; python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build/dwg2dxf/dwg2dxf --historical-ac1021-only",
+      "result": "PASS after correcting the expected extractionOmitted value from 9 to 10. The exact tracked AC1021 strict-refusal control still checks all four role rows, the separate LTYPE role error, strict-complete refusal, and destination/source preservation. No fixture changed."
+    },
+    {
+      "command": "GitHub Actions focused-native run 44564025121 and fast parity run 44564025101 on PR head ea9e22c1336f05caf1db280843431ab631665e52; checked-out merge 3a3eabcfd0e52d69c0cd21f4d09dae8aa402bf62; implementation digest 482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086",
+      "result": "Fast CI passed all 45 required CTests (one platform-locale case skipped by design); dwg2dxf_cli_contract passed. Linux and Windows focused-native each passed 7/7 tests with receipt sealing, upload and post-upload enforcement. Receipt hashes: Linux 955d377e9b867ef17e7777a2bde52a50ea9efdaed1b029d1dae2572ab66e733c; Windows 0685a9878a95c34fca97b971166390ac3d89500c09442b00046e1fcab2c38a90. Artifact IDs/digests: Linux 14549669990 / 52e91c4a404baf3529d505ade5be4da8684207862513bccea3b87d1ff910234f; Windows 14550314485 / 311953a148a2fb123fd2d30ea1dddf1cdcc4fcaffbd00412c4fc371ea4b72243. The macOS job was cancelled while queued, so the native workflow concluded failure despite the other platform passes. The GitHub integration denied a single-job rerun with HTTP 403 (Resource not accessible by integration). Retain P8-F until a fresh exact-digest native run passes macOS too; no code or claim issue was observed."
+    },
+    {
+      "command": "GitHub Actions focused-native run 44568400317 and fast parity run 44568400315 on PR head 2fcd4d18eeb2fbb7a13e83c760ac088b16f48c52; checked-out merge af3d40ce6909fb1af45650f07316c7453bc3f36b; implementation digest 482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086",
+      "result": "Fast CI passed all 45 required CTests; one process-locale test was skipped by design and 0 tests failed. Focused-native passed 7/7 on Linux, macOS and Windows; receipt sealing, upload and post-upload enforcement passed on all three. Receipt hashes: Linux 756c348af2efb91370f631e05f33bb5e6e56f1da87ddddc8e33a57306e455457; macOS 59503247aa41ceb46e7deb9a13dd3392ab0c97e0509274aa90333da27b93b771; Windows 544aa98e47c686b6ee2f6d63f9347e50e666e5501d2b2f872bd49a1258b8615c. Artifact IDs/digests: Linux 14552803334 / 82b041ac82972d8e75c75e2b9d98edcb5fa0f8b74321528e335aec0d5c8c3e97; macOS 14554381683 / b491677161f78a5d0c27dbdb4aa6c4ae8af259ff453da800f56424a732709016; Windows 14553039151 / 367b28ef9a70baa862510e6f1eb652a9d0782630e4ee65076fd30f067793b54d. No DWG/DXF fixture or support claim changed. P8-F is closed for this exact 750-input digest."
+    }
+  ],
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.cpp",
+      "src/intern/dwgreader.h",
+      "src/libdwgr.h",
+      "tests/dwg_fixture_tests.cpp",
+      "tests/block_control_reactor_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py"
+    ],
+    "sha256": {
+      "src/intern/dwgreader.cpp": "7117424575e413b1e5774a5a9a471ebfcc347d68cf0a81760f6c46b00ef07f1e",
+      "src/intern/dwgreader.h": "1f27499abd20871090b7179656757591ca477819a15ea4e663fea66f2e263d19",
+      "src/libdwgr.h": "5d432362d4c5ef3cd109651793d3657eb8ef9f9834aca2b32582d962cbd64a14",
+      "tests/dwg_fixture_tests.cpp": "de039fba4af25ea3e4922e6e23d14c4157dea2c68b6390578f9066d12de2db51",
+      "tests/block_control_reactor_tests.cpp": "58ba0b95cd337478725674308f7ab57c84d322b0f085bfa80e18161e619c41e1",
+      "tests/dwg2dxf_cli_contract_tests.py": "0da04b46642df618e431651811c6e4fb93e4182b1a13e1ad74c16df52f98bb4f",
+      "tests/p4_advmaterial_writer_controls.h": "d3ef4d80cf5a4cc5a66e6a6084113d3460fb2d1eee96656c0ac6f6a5882cff66"
+    },
+    "qualificationDigestSha256": "482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086",
+    "qualificationInputCount": 750,
+    "behavior": "Use the normal boundary-checked AC1027 APPID_CONTROL count and valid absent-string footer first. Only when that exact interpretation fails, admit the narrow historical BS profile and report unclaimed object-data bits as an integrity error; the historical AC1027 173-bit suffix remains strict-output-blocking."
+  },
+  "remaining": [
+    "Keep remote ObjectARX producer and native consumer gates open until the host product/build, Windows version, SDK/toolchain and artifact-return route are recorded and their exact witness packets run.",
+    "Do not promote DWG/DXF support claims from this compatibility repair or its parser tests."
+  ]
+}

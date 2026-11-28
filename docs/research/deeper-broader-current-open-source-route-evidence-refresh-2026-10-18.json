@@ -1,0 +1,146 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Current open-source DWG/DXF route evidence and validation-boundary refresh",
+  "mode": "Primary-source research plus plan update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "baselineQualification": "The shared worktree was broadly dirty at review start. Local plan/source observations refer to the shared worktree, not a clean checkout at baselineCommit.",
+  "scope": [
+    "Reconcile route, version, direction, and evidence limits across LibreDWG, ACadSharp, ezdxf, GDAL, FreeCAD, and ACIS/kernel candidates.",
+    "Identify only implementation-ready refinements that are not already represented as local findings.",
+    "Keep peer and native qualification at existing composed checkpoints and preserve reduced per-slice validation cadence."
+  ],
+  "method": {
+    "kind": "Current primary-source web review and local plan cross-check",
+    "worktreeDirtyAtStart": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "testCodeChangedInSeparateFastSlice": true,
+    "productionCodeChanged": false,
+    "localGeneratedTestRun": true,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Project documentation and issue reports are source evidence, not current peer runtime results. Mutable main/master pages are not release pins. The ODA Open Design Specification v5.4.1 remains authoritative for DWG byte layouts."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "0.14.1 NEWS and issue #1411 page reviewed 2026-10-18; no peer artifact run",
+      "observed": "Issue #1411 describes R2013+ AcDs/SAB loss against LibreDWG 0.14.8593 at 8a1ae764. Current mutable source has an AcDs reader path, while project history describes incomplete AcDs handling. Neither establishes current-release outcome, writer preservation, owner association, or ACIS semantics."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "revision": "Current repository matrix, reader guide, and issue board reviewed 2026-10-18; no release artifact run",
+      "observed": "The public compatibility matrix is version- and direction-specific (including a DWG-writer exclusion for AC1021). Current issue reports concern distinct cases such as missing inserts, omitted solids, layout/plot fields, codepage handling, and malformed DXF output; these are peer issue leads, not results for the current release or evidence of matching local defects."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html",
+        "https://github.com/mozman/ezdxf"
+      ],
+      "revision": "Current stable documentation and repository reviewed 2026-10-18; no package run",
+      "observed": "Recovery repairs malformed ASCII DXF structures and returns auditor errors; documentation warns that recovered files with decoding errors may be invalid or lossy if rewritten. ACIS tools inspect/export SAT/SAB payloads but do not constitute a general ACIS geometry kernel or DWG decoder."
+    },
+    {
+      "project": "GDAL DXF",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Current stable driver documentation reviewed 2026-10-18; no GDAL binary run",
+      "observed": "The driver is a projected GIS reader/writer. RawCodeValues holds unhandled codes, not complete raw record retention. Binary DXF reading is documented starting in GDAL 3.12. AC1027+ 3D-extensible mode can expose ASM bytes and transform but does not build solid geometry."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "Current project documentation reviewed 2026-10-18; no platform runtime run",
+      "observed": "FreeCAD documents separate C++ and legacy Python DXF importers with different coverage, lists 3DFACE under the legacy path, and routes DWG through an external converter before the selected DXF importer. Stock DXF import does not read embedded ACIS solids."
+    },
+    {
+      "project": "ACIS geometry candidates",
+      "urls": [
+        "https://github.com/HakanSeven12/opencadkernel",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/monozukuri-ai/cq-acis"
+      ],
+      "revision": "Current READMEs/documentation reviewed 2026-10-18; no build or run",
+      "observed": "OpenCADKernel describes itself as early and its ACIS SatDocument lift/lower route is a geometry stage within the ACadRust-related OpenCADStudio family. cq-acis documents experimental, profile-bounded SAT/SAB parsing into the OCCT family also used by FreeCAD. Neither establishes an independent complete DWG/AcDs parser plus semantic kernel and native-consumer result."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersRetained": true,
+    "recommendedEvidenceOutcomeStates": [
+      "CLEAN_TYPED",
+      "TYPED_WITH_WARNINGS",
+      "RECOVERED",
+      "PARTIAL_OR_UNHANDLED",
+      "REJECTED",
+      "NOT_RUN"
+    ],
+    "rules": [
+      "Do not count a recovered parse as clean acceptance; capture auditor errors separately.",
+      "Do not count a GDAL raw-code list as full-source retention or its ASM projection as solid semantics.",
+      "Qualify FreeCAD by platform, converter, importer backend, intermediate format, record disposition, and resulting geometry.",
+      "Keep ACIS parser, payload/owner association, kernel topology, analytic metrics, and application acceptance separate.",
+      "Use generated local vectors and one owning CTest for ordinary slices; peer, full-suite, sanitizer, fuzz, and native work remain composed checkpoints."
+    ]
+  },
+  "localCrosswalk": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "focusedAc1024HatchSelector": "PASSED in separate PAR-134 fast test slice",
+    "owningCTest": "PASSED 1/1 in 3.17 s in separate PAR-134 fast test slice",
+    "fullSuiteRun": false,
+    "receiptJsonSyntaxChecked": "passed",
+    "scopedMarkdownDiffCheck": "passed"
+  },
+  "workingTree": {
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "The plan and test files already contain extensive user changes. This update was applied without staging or committing shared changes."
+  }
+}

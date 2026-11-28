@@ -1,0 +1,30 @@
+{
+  "id": "par134-ac1024-table-row-range-count-domain",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": {
+    "class": "DRW_Table",
+    "version": "AC1024",
+    "field": "R2010 TABLE row-range count",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.96.2"
+  },
+  "change": "Require at least one row range and a count within the existing 100000-record cap. Preserve TABLECONTENT but mark the optional tail incomplete for zero, negative, or over-cap counts.",
+  "regression": "Before the change, generated zero, negative, and over-cap counts were recorded or skipped without clearing semantic-complete state.",
+  "generated_controls": [
+    {"row_range_count": 1, "expected": "complete semantic parse with one range"},
+    {"row_range_count": 0, "expected": "retain TABLECONTENT and mark tail incomplete"},
+    {"row_range_count": -1, "expected": "retain TABLECONTENT and mark tail incomplete"},
+    {"row_range_count": 100001, "expected": "retain TABLECONTENT and mark tail incomplete"}
+  ],
+  "validation": [
+    "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4: PASS (-Werror)",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_table_break_.*|libdxfrw_table_row_range_count_domain|libdxfrw_tablestyle_.*|libdxfrw_dwg_object_vectors)$' --output-on-failure: PASS (14/14; 0.35 s)",
+    "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp: PASS"
+  ],
+  "fixtures_added": false,
+  "full_suite_run": false,
+  "external_producer_or_native_application_run": false,
+  "support_claim_changed": false,
+  "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+}

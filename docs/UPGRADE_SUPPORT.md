@@ -1,4 +1,4 @@
-# libdxfrw 2.0 support and release notes
+# libdxfrw 3.0 support and release notes
 
 This branch converges standalone libdxfrw with the pinned LibreCAD master
 implementation. The 2.0 boundary requires C++17 and is an ABI-breaking release
@@ -48,12 +48,12 @@ LibreCAD is recorded in `metadata/librecad-system-package-handoff.md`; the
 downstream sibling CMake change and hosted native-platform run remain external
 release follow-ups.
 
-CMake 3.28 is the supported 2.0.0 build and requires C++17. The historical
-Autotools, MinGW, and Conan recipes do not consume the canonical imported
-source manifest and are deprecated for the 2.x convergence until they gain a
-maintained C++17/CI lane; no qmake recipe is shipped. `DRW_VERSION` and the
-package/ABI release version are both 2.0.0, so consumers should rebuild across
-this public ABI boundary.
+CMake 3.28 is the supported 3.0.0 build and requires C++17. The historical
+Autotools and Conan source builds use the canonical source manifest; their
+native package and platform qualification remains separate from CMake's.
+The MinGW recipe remains deprecated; no qmake recipe is shipped. `DRW_VERSION` and the
+package/ABI release version are both 3.0.0. Consumers must rebuild across this
+public ABI boundary; 2.x public class layouts differ from this version.
 
 The public `dxfRW::getLastDiagnostic()` and `dwgRW::getLastDiagnostic()`
 snapshots retain the legacy `DRW::error` code while exposing the operation,

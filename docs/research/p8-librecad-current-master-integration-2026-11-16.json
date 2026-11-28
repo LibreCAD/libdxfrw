@@ -1,0 +1,102 @@
+{
+  "date": "2026-11-16",
+  "consumerRepository": "LibreCAD/LibreCAD",
+  "consumerBase": "b007bff6e798425aa14ae507f7e884db68916e88",
+  "localCandidateCommit": "1894f6b8cfbab32417b75db2153b10f9f7f81cb9",
+  "localCandidateBranch": "codex/libdxfrw-consumer-integration-20261116",
+  "localCheckout": "/private/tmp/librecad-p8-rebased-20261116",
+  "candidateStatus": "Local only; unmerged and not published.",
+  "upstreamCodecSourceCommit": "93ede70e418b17fbc3fe2741ad61c23469c5c8cf",
+  "baseRecheck": "Current GitHub master was b007bff6e798425aa14ae507f7e884db68916e88 at verification; its only change from prior base 8a82e35965d8d56a8f8608abd739fbb2c0de2f3e is CI documentation and workflow.",
+  "patchReplay": "All 39 ordered patches applied with git apply --unidiff-zero --check in a second clean checkout at the exact consumer base. The 19 modified candidate files match that replay byte-for-byte.",
+  "correctedSkipMessagePatches": {
+    "librecad-p8-dwg-block-preview-import-test-2026-11-15.patch": "2b4431126b053408ad504feb48f2374f33a169ea1b7c20ca491a1619eda1219a",
+    "librecad-p8-empty-sortents-source-correlation-2026-11-15.patch": "4b6d7d8c8055bbe202a4db37961ceaa0f04678d14d5c348c472778db47020cf6",
+    "librecad-p8-empty-xrecord-dxf-output-2026-11-15.patch": "972961a023d10503f2bbaa6eaaf6226b620577936595a6044f938988815ca9fa"
+  },
+  "historicalPatchHashNote": "Earlier receipts record the patch bytes used at their test time; the three current patch hashes above differ only in corrected messages for an optional local sample.",
+  "build": "macOS ARM64 clean Release configure, BUILD_TESTS=OFF, LIBRECAD_USE_SYSTEM_LIBDXFRW=ON, LIBRECAD_BUILD_SYSTEM_CODEC_TESTS=ON, LIBRECAD_ENABLE_OPENTYPE=OFF; built librecad_system_codec_tests against the current installed static library.",
+  "linkedArchive": "/private/tmp/libdxfrw-consumer-current-20261116/lib/libdxfrw.a",
+  "linkedArchiveSha256": "d9e3f868de861b9661536586476f10abb4605a7aa86df475d8a04754234dd845",
+  "archiveObjectComparison": "All 47 object names and contents match build-gcc/libdxfrw.a; archive container hashes differ. The focused test link command names the installed archive.",
+  "testResults": {
+    "ltype": "15 cases, 3812 assertions, passed",
+    "blockRecordAndSourceGraph": "24 cases, 1145 assertions, passed, no skips when all 16 fixture variables were set",
+    "pr3269": "5 cases, 49 assertions, passed",
+    "mleaderstyle": "1 case, 9 assertions, passed",
+    "initialRun": "All four CTests passed; initial block/source run without generated fixtures skipped 16 cases. A subsequent source-group run used all locally available fixtures and passed all cases."
+  },
+  "fixtureInputs": {
+    "generated_sortents": {
+      "path": "/private/tmp/p8-named-sort-oda/output/ascii.dwg",
+      "sha256": "02c8a7dc65d6517e57211adb596ce546130fb3ad651eada8363c1f2a496545e8"
+    },
+    "minimal_sortents": {
+      "path": "/private/tmp/p8-named-sort-minimal-oda/output/one.dwg",
+      "sha256": "b23f896841cc503e762bd33d67f98a38a3d44b97ed3b376b14b48393511059d3"
+    },
+    "128_lines": {
+      "path": "/private/tmp/p8-named-sort-line-limits/output/lines128.dwg",
+      "sha256": "9c52c9a3d2ccdb42fa628cef84c4a2eab236ac30aefcb91cf9a40c335b72d71f"
+    },
+    "129_lines": {
+      "path": "/private/tmp/p8-named-sort-line-limits/output/lines129.dwg",
+      "sha256": "2a384e0ef487e7818b9712c843e01fc560c8ab9ac9bfbcdbc1b188d5c19fc282"
+    },
+    "arc_3d": {
+      "path": "/private/tmp/p8-named-sort-arc-3d/output/arc-3d.dwg",
+      "sha256": "2ac225165ee605e0c6bfc1727c3515f81ab43531b9d475257a42e1bf6695ef7b"
+    },
+    "arc_wrap": {
+      "path": "/private/tmp/p8-named-sort-arc-wrap/output/arc-wrap.dwg",
+      "sha256": "d870895a78c193880f5cb8bb4868d76e6061550349108ba2bf14409a024909e0"
+    },
+    "circle_3d": {
+      "path": "/private/tmp/p8-named-sort-circle-3d/output/circle-3d.dwg",
+      "sha256": "15f4cc62bd3847d3308c2e963d90dc80715e7f777bf517df0da8221345080cde"
+    },
+    "line_3d": {
+      "path": "/private/tmp/p8-named-sort-line-3d/output/line3d.dwg",
+      "sha256": "cf403a68c04de0c63c48957e1f8e3bee9c7ed0e00c75bbe2156d20098662ca3a"
+    },
+    "line_arc": {
+      "path": "/private/tmp/p8-named-sort-line-arc/output/line-arc.dwg",
+      "sha256": "c77c7cee2c11555a6fd133388e58b98665343df46e2e111281d8b6a694c47c69"
+    },
+    "line_circle": {
+      "path": "/private/tmp/p8-named-sort-line-circle/output/line-circle.dwg",
+      "sha256": "76e5db811599924d4eae260eff8f5d93ab64c10aae56083d9dcaefa053e4c2a7"
+    },
+    "line": {
+      "path": "/private/tmp/p8-named-sort-line/output/line.dwg",
+      "sha256": "968d5f7cb409f94b76461fef3f09f8f1ebdf36b84f5667a79a68de92d5621a1d"
+    },
+    "mixed_lines": {
+      "path": "/private/tmp/p8-named-sort-mixed-lines/output/mixed.dwg",
+      "sha256": "3a7e2d88e9bc8b41928bb58ff7e49b12cac1e3fbd9a95a1f2302d9694d0c5acc"
+    },
+    "preview": {
+      "path": "/private/tmp/p8-named-sort-preview/output/preview.dwg",
+      "sha256": "6bddd4a506002493563133175e69ab65dfb701584b478d9a6be0e482d9897b8c"
+    },
+    "two_lines": {
+      "path": "/private/tmp/p8-named-sort-two-lines/output/two.dwg",
+      "sha256": "8eeb867599aa28b5a60c8a5ce0e9f7ebced938d1a810e16dc589fba041f62ac2"
+    },
+    "units": {
+      "path": "/private/tmp/p8-named-sort-units/output/units.dwg",
+      "sha256": "dcb77ae45f2c6dc6b465b71af72bb95ec043af309b7b316e82c842046f7000bc"
+    },
+    "title_block_workspace_local": {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/title_block-iso.dwg",
+      "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2"
+    }
+  },
+  "logs": [
+    "/private/tmp/librecad-p8-rebased-system-configure.log",
+    "/private/tmp/librecad-p8-rebased-system-final-build.log",
+    "/private/tmp/librecad-p8-rebased-system-final-tests.log",
+    "/private/tmp/librecad-p8-rebased-all-source-tests.log"
+  ],
+  "limits": "Local test inputs are not added to Git. The title drawing is workspace-local and untracked; its upstream origin is not established. Generated controls and current macOS installed static consumer tests do not establish complete DWG/DXF parity, full current bundled-codec testing, full suite, GUI or native Linux/Windows behavior, LibreCAD_3 integration, external semantic support, or closure of any phase gate. No support claim is promoted."
+}

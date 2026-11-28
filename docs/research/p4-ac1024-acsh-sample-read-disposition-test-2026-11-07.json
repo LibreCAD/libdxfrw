@@ -1,0 +1,63 @@
+{
+  "title": "AC1024 sample reader accepts only the qualified raw-only AcSh failure profile",
+  "date": "2026-11-07",
+  "status": "implemented; focused AC1024 reader and raw-retention cohort passed",
+  "supportClaimsPromoted": false,
+  "scope": [
+    "Make the sample-reader expectation match the existing bounded raw-only recovery contract for the two AC1024 AcSh samples.",
+    "Keep zero parse failures as the default for every other sample.",
+    "Retain visible parser failures and require each permitted failure to correspond to a valid raw source frame with complete frame disposition."
+  ],
+  "implementation": {
+    "files": [
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/run_dwg_read_test.cmake",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "exceptions": [
+      {
+        "sample": "visualization_-_condominium_with_skylight.dwg",
+        "expectedObjectParseFailures": 3,
+        "expectedUntypedLoftFrames": 2,
+        "expectedUntypedRevolveFrames": 1,
+        "requiredRawOnlyClasses": ["ACSH_LOFT_CLASS/AcDbShLoft", "ACSH_REVOLVE_CLASS/AcDbShRevolve"]
+      },
+      {
+        "sample": "visualization_-_conference_room.dwg",
+        "expectedObjectParseFailures": 3,
+        "expectedUntypedLoftFrames": 0,
+        "expectedUntypedRevolveFrames": 3,
+        "requiredRawOnlyClasses": ["ACSH_REVOLVE_CLASS/AcDbShRevolve"]
+      }
+    ],
+    "guardConditions": [
+      "No entity parse failures.",
+      "Observed object parse failure count equals the declared sample-specific count.",
+      "Every untyped AcSh frame is AC1024, custom-class defined, object-shaped, bounded by its retained raw bytes, and one of the exact LOFT/REVOLVE class pairs.",
+      "Untyped AcSh frame count equals the visible object parse failure count.",
+      "The sample-specific LOFT/REVOLVE frame census matches its source receipt; unexpected AcSh classes or a nonzero raw-only census on other samples fails the probe.",
+      "For the raw-only exception, source frame coverage is FinalizedComplete with zero failed frame dispositions and no AcDs history capture failure.",
+      "Samples without the explicit exception continue to require zero entity and object parse failures."
+    ],
+    "unchangedBehavior": "Typed parser results are not changed; the unparsed AcSh bodies remain raw-only and strict semantic/output claims remain open."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+    "buildResult": "passed",
+    "focusedTest": "ctest --test-dir build-gcc -R '^(dwg_read_AC1024_|dwg_acsh_)' --output-on-failure",
+    "focusedResult": "passed: 13/13 in 3.71 seconds with exact per-sample LOFT/REVOLVE census enforcement",
+    "coverage": [
+      "11 AC1024 sample/custom-object reader tests",
+      "conference-room three-frame Revolve raw capture",
+      "condominium two-Loft/one-Revolve raw-only recovery"
+    ],
+    "diffCheck": "git diff --check passed"
+  },
+  "limits": [
+    "This is a regression-test contract correction, not a change to the DWG parser or semantic support.",
+    "The body field layouts and meanings for AcDbShLoft and AcDbShRevolve remain unqualified; strict output and native 3D claims remain open.",
+    "The samples remain external/local inputs and are not committed."
+  ],
+  "fixturePolicy": "No DWG or DXF fixture was added to the repository."
+}

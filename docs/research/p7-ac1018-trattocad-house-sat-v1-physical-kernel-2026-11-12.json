@@ -1,0 +1,3305 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p7-ac1018-trattocad-house-sat-v1-physical-kernel-2026-11-12",
+  "purpose": "Qualify source-bound SAT-v1 projection and independent parser/non-OCCT kernel lift for every parsed AC1018 3DSOLID carrier in a second public 3D sample.",
+  "sourceBinding": {
+    "dwgUrl": "https://trattocad.com/samples/trattocad-sample-3d-house.dwg",
+    "samplePage": "https://trattocad.com/samples",
+    "dwgPath": "/private/tmp/trattocad-sample-3d-house.dwg",
+    "dwgBytes": 48744,
+    "dwgSha256": "894d2c8b19000d39e2d1819ef9eacf87481dd3bb58718ec32bf4deb688a8150b",
+    "dwgVersion": "AC1018",
+    "publisherStatement": "The official sample page describes all six drawings as drawn by the TrattoCAD team and identifies the house as a 3D drawing built from solids. It says three of the six drawings were drawn and saved with TrattoCAD but does not identify which files; the creation software for this exact DWG is therefore unverified."
+  },
+  "scope": {
+    "typedSatV1Carriers": 48,
+    "sourceHandleRange": [
+      "0x2a",
+      "0x59"
+    ],
+    "totalSatBytes": 227591,
+    "projection": "Each exact source handle was projected alone to same-version AC1018 ASCII and Binary DXF. The existing selector freshly imported both encodings and compared decoded normalized SAT text byte-for-byte to the source SAT payload, including remapped identity and layer/EED field shape.",
+    "wholeDocument": "Not qualified; complete DWG-to-DXF conversion remains refused by unrelated opaque callbacks."
+  },
+  "independentRoute": {
+    "repository": "https://github.com/HakanSeven12/OpenCADStudio",
+    "revision": "36981c6abe76e4b69d0a8ac5e210c35a0e8f681c",
+    "crate": "ocs_acis",
+    "satParser": "ACadRust",
+    "parserRevision": "ce8a148568e7a80a80f50797bf287a651d1259c7",
+    "kernel": "OpenCADKernel",
+    "kernelRevision": "802f75134a5606d34bd34dac0d3508565537b067",
+    "normalization": "None; each exact source SAT-v1 payload was parsed directly and lifted."
+  },
+  "carriers": [
+    {
+      "sourceHandle": "0x2a",
+      "satBytes": 3372,
+      "satSha256": "a87018c52eddd04ef69158dbe260a5efd39b15ee40cf717ae694b4110ed8d396",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x2b",
+      "satBytes": 6439,
+      "satSha256": "f80d2946b13cbc23ef5859ec2ca293aa8b45f4480676f76bc6598132e2c05280",
+      "satVersion": "4.0.0",
+      "recordCount": 163,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 10,
+        "loop": 12,
+        "coedge": 48,
+        "edge": 24,
+        "vertex": 16
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 10,
+        "loops": 12,
+        "coedges": 48,
+        "edges": 24,
+        "vertices": 16,
+        "surfaces": 10,
+        "curves": 24,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x2c",
+      "satBytes": 28368,
+      "satSha256": "103a1badf44bed260c8a73e3e0621b99302e89e4395cf447f410d95995d676d8",
+      "satVersion": "4.0.0",
+      "recordCount": 703,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 37,
+        "loop": 50,
+        "coedge": 216,
+        "edge": 108,
+        "vertex": 72
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 37,
+        "loops": 50,
+        "coedges": 216,
+        "edges": 108,
+        "vertices": 72,
+        "surfaces": 37,
+        "curves": 108,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x2d",
+      "satBytes": 28537,
+      "satSha256": "e60ec0841b206cc24b750b00dea870fc3face6fc98c4554f6ed1ba917f0680a8",
+      "satVersion": "4.0.0",
+      "recordCount": 703,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 37,
+        "loop": 50,
+        "coedge": 216,
+        "edge": 108,
+        "vertex": 72
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 37,
+        "loops": 50,
+        "coedges": 216,
+        "edges": 108,
+        "vertices": 72,
+        "surfaces": 37,
+        "curves": 108,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x2e",
+      "satBytes": 6380,
+      "satSha256": "98bdb48f7e4a9d921eabfbf8c27225d155bacda343d731f2a88c7a0d5d99f66e",
+      "satVersion": "4.0.0",
+      "recordCount": 161,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 10,
+        "loop": 10,
+        "coedge": 48,
+        "edge": 24,
+        "vertex": 16
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 10,
+        "loops": 10,
+        "coedges": 48,
+        "edges": 24,
+        "vertices": 16,
+        "surfaces": 10,
+        "curves": 24,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x2f",
+      "satBytes": 6458,
+      "satSha256": "53e1e3ea367b55efbbaa2d5a3842b5915d7bfd1f7ff094af477aa8761338a6e6",
+      "satVersion": "4.0.0",
+      "recordCount": 161,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 10,
+        "loop": 10,
+        "coedge": 48,
+        "edge": 24,
+        "vertex": 16
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 10,
+        "loops": 10,
+        "coedges": 48,
+        "edges": 24,
+        "vertices": 16,
+        "surfaces": 10,
+        "curves": 24,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x30",
+      "satBytes": 3358,
+      "satSha256": "307c00c84b0ae969fe1b3e2ad5b0f0640af1ec3cdac933a5f8daba19c00719ca",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x31",
+      "satBytes": 3384,
+      "satSha256": "4d4835ea3685f0ab501aed446dbd39e86e0d2e7220cee36a4ba0f8c824ace5e3",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x32",
+      "satBytes": 3384,
+      "satSha256": "bbea0fb8c081f217205dd3c3fabfe1b1ee89471a8888e3ffe3b83ded30376a47",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x33",
+      "satBytes": 3404,
+      "satSha256": "651abfc9fa2bc0dc01c39d4fd3ab6d8dac528d6e9333e24092405d73e4d0f521",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x34",
+      "satBytes": 3404,
+      "satSha256": "dd268d75a43a7634e6c39d89054d07091a916a6a02c8258fb94c1fa9b344fa77",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x35",
+      "satBytes": 3404,
+      "satSha256": "b7cc0168de01408b9f1629b2e1e9ae2f28bc4c9be85305fa56a373d2a860195a",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x36",
+      "satBytes": 3384,
+      "satSha256": "bb355ae3dcf1086b7500249efef1b920e037f0ce0ef499e6cb82113f3807e40a",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x37",
+      "satBytes": 3397,
+      "satSha256": "efa55c5e261dc6da46a4289be9ed47ec5147aa6f87f4df9248c3a355465fe958",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x38",
+      "satBytes": 3367,
+      "satSha256": "ad04c081f51930dec0e43cb2de6c1c4db0f9ea8ab28f5f6a7a53c120d848dc5a",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x39",
+      "satBytes": 3397,
+      "satSha256": "76d253076d3339e67f6b945edeccd75c38eb7a041310933ea8d917bd85c76e21",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x3a",
+      "satBytes": 3417,
+      "satSha256": "58bf887dc5fadacae06dc9ab84b1ec9e89a4e136dd902f6f803b6329d6256fb7",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x3b",
+      "satBytes": 3417,
+      "satSha256": "7b567873beac6fd9bb07559e3ddc4eaf79d7efb27c9e18a5181130fc6342ac47",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x3c",
+      "satBytes": 3417,
+      "satSha256": "c9b5029988af4ab77ca6d6672ffecde12ce489938084fbef7e6343cf7b4eaf9d",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x3d",
+      "satBytes": 3397,
+      "satSha256": "b77b53d5c409dab858114e4e033c0af9d1c3f89bb236ce9958f650abdf69b012",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x3e",
+      "satBytes": 3357,
+      "satSha256": "b327bb03978fa0d1914cf10a88976419e1e57b6dc5bf3398e9fe5466458a9114",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x3f",
+      "satBytes": 3369,
+      "satSha256": "c9218a9fb87e96789ef57b5e5040056e4259403776230ab13969ff229dd3d0dc",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x40",
+      "satBytes": 3341,
+      "satSha256": "260bb59b3a54223b3edc4e41d23fc9666a4cc7b0f474ac29bf917fc2a910425c",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x41",
+      "satBytes": 3369,
+      "satSha256": "312ef1d8f4d61b3b67f5797ed250d77a965ba24fe059a00eeebf1ba997ae2ed9",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x42",
+      "satBytes": 3341,
+      "satSha256": "f0dd32fbec279d1212996cf02c3d18df2837db74d932320d835dc03b9ff69f61",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x43",
+      "satBytes": 3350,
+      "satSha256": "2276b8370baf714bb3abe8223024925059b2eafca1dab679f6f177a7eb902b2e",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x44",
+      "satBytes": 3378,
+      "satSha256": "55cc8619f8e29ee34dbc54b5172e6f73b7eb080ec43a9240d32327dbb9806a5f",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x45",
+      "satBytes": 3378,
+      "satSha256": "c842a32131fba7425cbcc915b6dd5114818f1ebf9b2b7113cc394afa31f312ba",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x46",
+      "satBytes": 3350,
+      "satSha256": "2d93a527b8f3461f76fbb6987c4f9735b0068c846dfc841a58f749c3a171c8fc",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x47",
+      "satBytes": 3350,
+      "satSha256": "c3a614004fa0dcb776151e29a2ffcec6e6b31bebf8871838b62479f82e6e7857",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x48",
+      "satBytes": 3350,
+      "satSha256": "02f1ea0734cf3d579e31193011d50bdbaddb40b5b7cad4354d8cfc13a445ff77",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x49",
+      "satBytes": 3350,
+      "satSha256": "45e0b138cd83916dd3a49d1c5c7848d1816b94d660ce914127bcc3b370ea5694",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x4a",
+      "satBytes": 3350,
+      "satSha256": "3035ffe5209fe406d7e5d8b36bea7dce619380d11ab86e2a8000da66ca087165",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x4b",
+      "satBytes": 3350,
+      "satSha256": "a0f7f45f5c4fb1603ef276fb8a7b7f911df523b022463fe0c13dc47a3cb13d9e",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x4c",
+      "satBytes": 3350,
+      "satSha256": "d0df811db75ce7a0d34785296e7af36a1cd7f55f422b78e22031336141d929ba",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x4d",
+      "satBytes": 3350,
+      "satSha256": "25d529acf678182aa4215aec90aa42b05be6f6dbe251e70f51b8ce1bf93aba9f",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x4e",
+      "satBytes": 3350,
+      "satSha256": "089cf90c3d67b26b114bd8e34d19ee7bea1cba8076d82637aac0788d87678b44",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x4f",
+      "satBytes": 3371,
+      "satSha256": "cb14966d6eacd23114281b681b9e00cdd1f164f576af815063513935edfeaac8",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x50",
+      "satBytes": 3439,
+      "satSha256": "87489d05295115f2836a40bf264c6257775a96a5a1c57354c020abd979bd7d00",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x51",
+      "satBytes": 3399,
+      "satSha256": "b7025223ab1b5e5e7562e264bc1eba61895e450ef3645caf2791229ae425d300",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x52",
+      "satBytes": 3399,
+      "satSha256": "3a229cdbdc636b8cd5a17fa6a894d3bf6f54f18df4f3b99ae28887a3702ba0ca",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x53",
+      "satBytes": 2935,
+      "satSha256": "33ceea9ab898aa86cfd5f08813014cb10c3c211a052c74bb7ec0c2050f0e0923",
+      "satVersion": "4.0.0",
+      "recordCount": 66,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 5,
+        "loop": 5,
+        "coedge": 18,
+        "edge": 9,
+        "vertex": 6
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 5,
+        "loops": 5,
+        "coedges": 18,
+        "edges": 9,
+        "vertices": 6,
+        "surfaces": 5,
+        "curves": 9,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x54",
+      "satBytes": 2979,
+      "satSha256": "e1b7b08f84816b0b9cb096d5d19625ff4133eae78f978e9f47fe2b40907afbd1",
+      "satVersion": "4.0.0",
+      "recordCount": 66,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 5,
+        "loop": 5,
+        "coedge": 18,
+        "edge": 9,
+        "vertex": 6
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 5,
+        "loops": 5,
+        "coedges": 18,
+        "edges": 9,
+        "vertices": 6,
+        "surfaces": 5,
+        "curves": 9,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x55",
+      "satBytes": 3389,
+      "satSha256": "0d8b0948c61d8db17e9c33c315d152494e622bea4ceb4f413b76e2366d495afe",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x56",
+      "satBytes": 10339,
+      "satSha256": "4834b6bb8c3f75e09eefab539ddae387b99471ec5fcad19155ff5985147cf860",
+      "satVersion": "4.0.0",
+      "recordCount": 201,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 12,
+        "loop": 14,
+        "coedge": 60,
+        "edge": 30,
+        "vertex": 20
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 12,
+        "loops": 14,
+        "coedges": 60,
+        "edges": 30,
+        "vertices": 20,
+        "surfaces": 12,
+        "curves": 30,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x57",
+      "satBytes": 3417,
+      "satSha256": "ae6f7d2d11d585efd315714b74996a7d9226ac5e902d66163b24db6aa6f7f817",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x58",
+      "satBytes": 3417,
+      "satSha256": "51bde15f738f15c311daec9d237fa8c3c15f122c703c09691906b10694b274e4",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    },
+    {
+      "sourceHandle": "0x59",
+      "satBytes": 3389,
+      "satSha256": "9a95673da3653eaae14009b08f5951e7c5b897d8b7907778afa9c4701de37703",
+      "satVersion": "4.0.0",
+      "recordCount": 85,
+      "recordInventory": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 6,
+        "loop": 6,
+        "coedge": 24,
+        "edge": 12,
+        "vertex": 8
+      },
+      "liftedBody": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "surfaces": 6,
+        "curves": 12,
+        "validationFlaws": 0
+      },
+      "loss": {
+        "surfaces": 0,
+        "curves": 0,
+        "brokenReferences": 0
+      },
+      "result": "PASS"
+    }
+  ],
+  "validation": {
+    "inventorySelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeler-ac1018-physical-sat-v1-inventory /private/tmp/trattocad-sample-3d-house.dwg",
+    "inventoryResult": "PASS: 48 unique typed AC1018 3DSOLID SAT-v1 carriers, handles 0x2a\u20130x59, 227591 total SAT bytes.",
+    "projectionSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeler-ac1018-physical-sat-v1-projection <source.dwg> <source-handle>",
+    "projectionResult": "PASS: all 48 exact handles pass same-version ASCII/Binary projection, fresh readback, byte-exact normalized SAT comparison, remapped handle consistency, and layer/EED checks. For each encoding and handle, a deliberately incorrect declared-size field is refused while preserving a seeded destination; correcting the field and retrying through the same adapter succeeds.",
+    "kernelCommand": "For each extracted /private/tmp/trattocad-house-<handle>.sat, set LIBDXFRW_SAT_PATH and run cargo test -q --manifest-path /private/tmp/opencadstudio-p7/Cargo.toml -p ocs_acis --test libdxfrw_ac1018_sat1_probe -- --nocapture with CARGO_TARGET_DIR=/private/tmp/opencad-p7-target.",
+    "kernelResult": "PASS: 48/48 SAT 4.0 payloads parsed and lifted to one body each; zero surface/curve/reference loss and zero OpenCADKernel validation flaws.",
+    "artifacts": "DWG, extracted SAT payloads and DXFs remain under /private/tmp and the system temp directory. No DWG/DXF/SAT fixture was added to libdxfrw.",
+    "pairedDxfResult": "PASS: the official paired AC1024 (AutoCAD 2010) ASCII DXF contains exactly matching normalized SAT-v1 payloads for all 48 selected source handles; both files and all extracted payloads remain in /private/tmp.",
+    "geometryResult": "PASS: all 48 lifted bodies have finite kernel bounds and kernel mass properties; conservative AABBs, adaptive mesh-integrated volumes/centroids, and fixed-tolerance tessellated areas are recorded. Handle 0x2d spans exactly 10000 x 8000 mm in X/Y, matching the publisher stated 10 x 8 m dimensions and the paired DXF $INSUNITS=4 declaration. All metrics remain uncorroborated except this bounded dimensional agreement.",
+    "transactionControl": {
+      "fault": "Increment the first selected SAT payload range declaredByteSize without changing payload bytes.",
+      "expected": "Writer refuses; pre-existing destination remains byte-identical.",
+      "retry": "Restore the original range and call fileExport again on the same dx_iface adapter; same-version export and fresh readback pass.",
+      "coverage": "48 source handles \u00d7 ASCII/Binary = 96 injected refusal and same-adapter retry pairs."
+    }
+  },
+  "limitations": [
+    "This is a second source-distinct AC1018 drawing from the same public publisher as the pulley sample, not an independently authenticated second producer/toolchain.",
+    "The website describes five true solids, but this receipt does not independently compare these 48 SAT bodies with native-source expected geometry, drawing placement, units, assembly membership, or displayed component count.",
+    "The independent SAT route does not validate DWG entity-to-AcDs association; the exact per-entity SAT payloads are bounded by the libdxfrw source reader and projection selector.",
+    "No native AutoCAD/ODA rewrite, native CAD import/measurement, platform qualification, or whole-document output proof was performed.",
+    "The paired DWG and DXF are both published by TrattoCAD and do not constitute independent producer implementations or native semantic validation.",
+    "The 10 m \u00d7 8 m comparison uses the publisher description and its own paired DXF unit declaration; per-body mass properties and mesh areas are independent kernel calculations but do not yet have external per-object expected values or native source measurements."
+  ],
+  "claimEffect": "Adds selected source-distinct AC1018 SAT-v1 transport, per-carrier rollback/retry, independent parser/kernel lift for 48 carriers, and one bounded X/Y dimension agreement with the publisher description. It does not qualify an independent producer, exact per-body mass/area semantics, native 3D acceptance, whole-document closure, or general DWG/DXF/ACIS support.",
+  "pairedDxfBinding": {
+    "dxfUrl": "https://trattocad.com/samples/trattocad-sample-3d-house.dxf",
+    "dxfPath": "/private/tmp/trattocad-sample-3d-house.dxf",
+    "dxfBytes": 334575,
+    "dxfSha256": "703ec49ec6a26773ceb835fc062a7d942c6d0e36d031118572d59474599b7ff7",
+    "format": "AC1024 ASCII DXF (ACADVER=AC1024)",
+    "result": "All 48 source-handle 3DSOLID SAT-v1 payloads at handles 0x2a\u20130x59 decode byte-for-byte equal to the SAT extracted from the paired DWG. The published pair and output of the libdxfrw selector therefore agree on each exact normalized SAT body.",
+    "method": "tools/research/decode_dxf_sat1.py selected each unique exact handle and reversed the group 1/3 SAT-v1 transform; cmp compared each extracted file against the corresponding hash-bound DWG SAT extracted for the kernel checks."
+  },
+  "geometryEvidence": {
+    "publishedDimension": {
+      "claim": "TrattoCAD describes the house as 10 by 8 m.",
+      "publisherUrl": "https://trattocad.com/samples",
+      "dxfHeaderVariable": "$INSUNITS",
+      "dxfHeaderValue": 4,
+      "unitDefinition": "Millimeters",
+      "unitAuthority": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-Core/files/GUID-A58A87BB-482B-4042-A00A-EEF55A2B4FD8.htm"
+    },
+    "selectedDimensionComparison": {
+      "sourceHandle": "0x2d",
+      "entityType": "3DSOLID",
+      "layer": "A-WALL",
+      "kernelBoundsMm": {
+        "min": [
+          0.0,
+          0.0,
+          3000.0
+        ],
+        "max": [
+          10000.0,
+          8000.0,
+          5700.0
+        ],
+        "size": [
+          10000.0,
+          8000.0,
+          2700.0
+        ]
+      },
+      "comparison": "The exact 10,000 mm \u00d7 8,000 mm X/Y carrier bounds agree with the publisher-reported 10 m \u00d7 8 m plan dimensions after applying the paired DXF millimeter unit declaration.",
+      "scope": "This checks one body AABB against a publisher statement. It does not independently verify the publisher statement, whole-assembly dimensions, native rendering, placement, or all geometry."
+    },
+    "measurementMethod": {
+      "kernel": "Pinned OpenCADKernel 802f751 body_bounds and mass_properties; ACadRust SAT parser ce8a148.",
+      "bounds": "Conservative per-body AABB from the independent kernel. These are not exact face-by-face extrema certificates for every surface class.",
+      "volumeCentroid": "Kernel mass_properties returned values for all 48 bodies; analytic_mass_properties returned None for all 48, so volume/centroid came from the kernel adaptive mesh-integral path and are estimates, not independently matched exact values.",
+      "surfaceArea": "Computed as the sum of triangle areas from kernel mesh_body with max_angle=0.05 radians and chord tolerance=1e-5 drawing units; this is tessellated area, not exact surface area.",
+      "triangleCountRange": [
+        8,
+        168
+      ],
+      "overlapWarning": "Per-carrier volumes overlap in the assembly and must not be summed as whole-model volume."
+    },
+    "perCarrierMeasurements": [
+      {
+        "sourceHandle": "0x2a",
+        "bounds": {
+          "min": [
+            -300.0,
+            -300.0,
+            -300.0
+          ],
+          "max": [
+            10300.0,
+            8300.0,
+            0.0
+          ],
+          "size": [
+            10600.0,
+            8600.0,
+            300.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 27348000000.0,
+          "centroid": [
+            5000.0,
+            4000.0,
+            -150.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 193840000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x2b",
+        "bounds": {
+          "min": [
+            0.0,
+            0.0,
+            2700.0
+          ],
+          "max": [
+            10000.0,
+            8000.0,
+            3000.0
+          ],
+          "size": [
+            10000.0,
+            8000.0,
+            300.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 22829999999.999996,
+          "centroid": [
+            4907.752956636005,
+            4028.1865965834427,
+            2850.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 165940000.0,
+        "meshTriangleCount": 32
+      },
+      {
+        "sourceHandle": "0x2c",
+        "bounds": {
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            10000.0,
+            8000.0,
+            2700.0
+          ],
+          "size": [
+            10000.0,
+            8000.0,
+            2700.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 24504000000.00005,
+          "centroid": [
+            5000.0,
+            4103.69735553379,
+            1325.8814887365334
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 194920000.0,
+        "meshTriangleCount": 168
+      },
+      {
+        "sourceHandle": "0x2d",
+        "bounds": {
+          "min": [
+            0.0,
+            0.0,
+            3000.0
+          ],
+          "max": [
+            10000.0,
+            8000.0,
+            5700.0
+          ],
+          "size": [
+            10000.0,
+            8000.0,
+            2700.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 24372000000.000076,
+          "centroid": [
+            4999.999999999997,
+            4125.110782865583,
+            4327.104874446086
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 194040000.0,
+        "meshTriangleCount": 168
+      },
+      {
+        "sourceHandle": "0x2e",
+        "bounds": {
+          "min": [
+            3500.0,
+            300.0,
+            0.0
+          ],
+          "max": [
+            3620.0,
+            7700.0,
+            2700.0
+          ],
+          "size": [
+            120.0,
+            7400.0,
+            2700.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 2170800000.0,
+          "centroid": [
+            3560.0,
+            3744.029850746269,
+            1381.3432835820895
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 39108000.0,
+        "meshTriangleCount": 28
+      },
+      {
+        "sourceHandle": "0x2f",
+        "bounds": {
+          "min": [
+            3500.0,
+            300.0,
+            3000.0
+          ],
+          "max": [
+            3620.0,
+            7700.0,
+            5700.0
+          ],
+          "size": [
+            120.0,
+            7400.0,
+            2700.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 2170800000.0,
+          "centroid": [
+            3560.0,
+            3744.0298507462694,
+            4381.3432835820895
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 39108000.0,
+        "meshTriangleCount": 28
+      },
+      {
+        "sourceHandle": "0x30",
+        "bounds": {
+          "min": [
+            4500.0,
+            125.0,
+            0.0
+          ],
+          "max": [
+            5500.0,
+            175.0,
+            2200.0
+          ],
+          "size": [
+            1000.0,
+            50.0,
+            2200.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 110000000.00000001,
+          "centroid": [
+            5000.0,
+            150.0,
+            1100.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 4720000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x31",
+        "bounds": {
+          "min": [
+            1500.0,
+            125.0,
+            900.0
+          ],
+          "max": [
+            2700.0,
+            175.0,
+            2300.0
+          ],
+          "size": [
+            1200.0,
+            50.0,
+            1400.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 84000000.0,
+          "centroid": [
+            2100.0,
+            150.0,
+            1600.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x32",
+        "bounds": {
+          "min": [
+            7300.0,
+            125.0,
+            900.0
+          ],
+          "max": [
+            8500.0,
+            175.0,
+            2300.0
+          ],
+          "size": [
+            1200.0,
+            50.0,
+            1400.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 84000000.0,
+          "centroid": [
+            7900.0,
+            150.0,
+            1600.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x33",
+        "bounds": {
+          "min": [
+            2000.0,
+            7825.0,
+            900.0
+          ],
+          "max": [
+            3200.0,
+            7875.0,
+            2300.0
+          ],
+          "size": [
+            1200.0,
+            50.0,
+            1400.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 84000000.0,
+          "centroid": [
+            2600.0,
+            7850.0,
+            1600.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x34",
+        "bounds": {
+          "min": [
+            6800.0,
+            7825.0,
+            900.0
+          ],
+          "max": [
+            8000.0,
+            7875.0,
+            2300.0
+          ],
+          "size": [
+            1200.0,
+            50.0,
+            1400.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 84000000.0,
+          "centroid": [
+            7400.0,
+            7850.0,
+            1600.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x35",
+        "bounds": {
+          "min": [
+            9825.0,
+            3400.0,
+            900.0
+          ],
+          "max": [
+            9875.0,
+            4600.0,
+            2300.0
+          ],
+          "size": [
+            50.0,
+            1200.0,
+            1400.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 84000000.0,
+          "centroid": [
+            9850.0,
+            4000.0,
+            1600.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x36",
+        "bounds": {
+          "min": [
+            125.0,
+            3400.0,
+            900.0
+          ],
+          "max": [
+            175.0,
+            4600.0,
+            2300.0
+          ],
+          "size": [
+            50.0,
+            1200.0,
+            1400.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 84000000.0,
+          "centroid": [
+            150.0,
+            4000.0,
+            1600.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x37",
+        "bounds": {
+          "min": [
+            1500.0,
+            125.0,
+            3900.0
+          ],
+          "max": [
+            2700.0,
+            175.0,
+            5300.0
+          ],
+          "size": [
+            1200.0,
+            50.0,
+            1400.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 84000000.0,
+          "centroid": [
+            2100.0,
+            150.0,
+            4600.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x38",
+        "bounds": {
+          "min": [
+            4400.0,
+            125.0,
+            3000.0
+          ],
+          "max": [
+            5600.0,
+            175.0,
+            5200.0
+          ],
+          "size": [
+            1200.0,
+            50.0,
+            2200.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 132000000.0,
+          "centroid": [
+            5000.0,
+            150.0,
+            4100.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 5620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x39",
+        "bounds": {
+          "min": [
+            7300.0,
+            125.0,
+            3900.0
+          ],
+          "max": [
+            8500.0,
+            175.0,
+            5300.0
+          ],
+          "size": [
+            1200.0,
+            50.0,
+            1400.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 84000000.0,
+          "centroid": [
+            7900.0,
+            150.0,
+            4600.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x3a",
+        "bounds": {
+          "min": [
+            2000.0,
+            7825.0,
+            3900.0
+          ],
+          "max": [
+            3200.0,
+            7875.0,
+            5300.0
+          ],
+          "size": [
+            1200.0,
+            50.0,
+            1400.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 84000000.0,
+          "centroid": [
+            2600.0,
+            7850.0,
+            4600.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x3b",
+        "bounds": {
+          "min": [
+            6800.0,
+            7825.0,
+            3900.0
+          ],
+          "max": [
+            8000.0,
+            7875.0,
+            5300.0
+          ],
+          "size": [
+            1200.0,
+            50.0,
+            1400.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 84000000.0,
+          "centroid": [
+            7400.0,
+            7850.0,
+            4600.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x3c",
+        "bounds": {
+          "min": [
+            9825.0,
+            3400.0,
+            3900.0
+          ],
+          "max": [
+            9875.0,
+            4600.0,
+            5300.0
+          ],
+          "size": [
+            50.0,
+            1200.0,
+            1400.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 84000000.0,
+          "centroid": [
+            9850.0,
+            4000.0,
+            4600.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x3d",
+        "bounds": {
+          "min": [
+            125.0,
+            3400.0,
+            3900.0
+          ],
+          "max": [
+            175.0,
+            4600.0,
+            5300.0
+          ],
+          "size": [
+            50.0,
+            1200.0,
+            1400.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 84000000.0,
+          "centroid": [
+            150.0,
+            4000.0,
+            4600.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3620000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x3e",
+        "bounds": {
+          "min": [
+            6300.0,
+            900.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            1170.0,
+            177.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            177.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 47790000.0,
+          "centroid": [
+            6800.0,
+            1035.0,
+            88.5
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 989580.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x3f",
+        "bounds": {
+          "min": [
+            6300.0,
+            1170.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            1440.0,
+            354.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            354.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 95580000.0,
+          "centroid": [
+            6800.0,
+            1305.0,
+            177.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 1439160.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x40",
+        "bounds": {
+          "min": [
+            6300.0,
+            1440.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            1710.0,
+            531.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            531.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 143370000.0,
+          "centroid": [
+            6800.0,
+            1575.0,
+            265.5
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 1888740.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x41",
+        "bounds": {
+          "min": [
+            6300.0,
+            1710.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            1980.0,
+            708.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            708.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 191160000.0,
+          "centroid": [
+            6800.0,
+            1845.0,
+            354.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 2338320.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x42",
+        "bounds": {
+          "min": [
+            6300.0,
+            1980.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            2250.0,
+            885.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            885.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 238950000.0,
+          "centroid": [
+            6800.0,
+            2115.0,
+            442.5
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 2787900.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x43",
+        "bounds": {
+          "min": [
+            6300.0,
+            2250.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            2520.0,
+            1062.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            1062.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 286740000.0,
+          "centroid": [
+            6800.0,
+            2385.0,
+            531.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3237480.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x44",
+        "bounds": {
+          "min": [
+            6300.0,
+            2520.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            2790.0,
+            1239.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            1239.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 334530000.0,
+          "centroid": [
+            6800.0,
+            2655.0,
+            619.5
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3687060.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x45",
+        "bounds": {
+          "min": [
+            6300.0,
+            2790.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            3060.0,
+            1416.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            1416.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 382320000.0,
+          "centroid": [
+            6800.0,
+            2925.0,
+            708.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 4136640.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x46",
+        "bounds": {
+          "min": [
+            6300.0,
+            3060.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            3330.0,
+            1592.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            1592.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 429840000.0,
+          "centroid": [
+            6800.0,
+            3195.0,
+            796.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 4583680.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x47",
+        "bounds": {
+          "min": [
+            6300.0,
+            3330.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            3600.0,
+            1768.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            1768.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 477360000.0,
+          "centroid": [
+            6800.0,
+            3465.0,
+            884.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 5030720.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x48",
+        "bounds": {
+          "min": [
+            6300.0,
+            3600.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            3870.0,
+            1944.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            1944.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 524880000.0,
+          "centroid": [
+            6800.0,
+            3735.0,
+            972.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 5477760.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x49",
+        "bounds": {
+          "min": [
+            6300.0,
+            3870.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            4140.0,
+            2120.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            2120.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 572400000.0,
+          "centroid": [
+            6800.0,
+            4005.0,
+            1060.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 5924800.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x4a",
+        "bounds": {
+          "min": [
+            6300.0,
+            4140.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            4410.0,
+            2296.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            2296.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 619920000.0,
+          "centroid": [
+            6800.0,
+            4275.0,
+            1148.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 6371840.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x4b",
+        "bounds": {
+          "min": [
+            6300.0,
+            4410.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            4680.0,
+            2472.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            2472.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 667440000.0,
+          "centroid": [
+            6800.0,
+            4545.0,
+            1236.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 6818880.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x4c",
+        "bounds": {
+          "min": [
+            6300.0,
+            4680.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            4950.0,
+            2648.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            2648.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 714960000.0,
+          "centroid": [
+            6800.0,
+            4815.0,
+            1324.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 7265920.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x4d",
+        "bounds": {
+          "min": [
+            6300.0,
+            4950.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            5220.0,
+            2824.0
+          ],
+          "size": [
+            1000.0,
+            270.0,
+            2824.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 762480000.0,
+          "centroid": [
+            6800.0,
+            5085.0,
+            1412.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 7712960.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x4e",
+        "bounds": {
+          "min": [
+            6300.0,
+            5220.0,
+            0.0
+          ],
+          "max": [
+            7300.0,
+            5400.0,
+            3000.0
+          ],
+          "size": [
+            1000.0,
+            180.0,
+            3000.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 540000000.0,
+          "centroid": [
+            6800.0,
+            5310.0,
+            1500.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 7440000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x4f",
+        "bounds": {
+          "min": [
+            4100.0,
+            -1200.0,
+            2800.0
+          ],
+          "max": [
+            5900.0,
+            0.0,
+            3000.0
+          ],
+          "size": [
+            1800.0,
+            1200.0,
+            200.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 432000000.0,
+          "centroid": [
+            5000.0,
+            -600.0,
+            2900.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 5520000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x50",
+        "bounds": {
+          "min": [
+            4100.0,
+            -1200.0,
+            3000.0
+          ],
+          "max": [
+            5900.0,
+            -1160.0,
+            4000.0
+          ],
+          "size": [
+            1800.0,
+            40.0,
+            1000.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 72000000.0,
+          "centroid": [
+            5000.0,
+            -1180.0,
+            3500.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 3824000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x51",
+        "bounds": {
+          "min": [
+            4100.0,
+            -1160.0,
+            3000.0
+          ],
+          "max": [
+            4140.0,
+            0.0,
+            4000.0
+          ],
+          "size": [
+            40.0,
+            1160.0,
+            1000.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 46399999.99999999,
+          "centroid": [
+            4120.0,
+            -580.0,
+            3500.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 2492800.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x52",
+        "bounds": {
+          "min": [
+            5860.0,
+            -1160.0,
+            3000.0
+          ],
+          "max": [
+            5900.0,
+            0.0,
+            4000.0
+          ],
+          "size": [
+            40.0,
+            1160.0,
+            1000.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 46399999.99999999,
+          "centroid": [
+            5880.0,
+            -580.0,
+            3500.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 2492800.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x53",
+        "bounds": {
+          "min": [
+            0.0,
+            0.0,
+            5700.0
+          ],
+          "max": [
+            300.0,
+            8000.0,
+            7478.0
+          ],
+          "size": [
+            300.0,
+            8000.0,
+            1778.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 2133599999.9999998,
+          "centroid": [
+            150.0,
+            4000.0,
+            6292.666666666667
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 19250416.235100597,
+        "meshTriangleCount": 8
+      },
+      {
+        "sourceHandle": "0x54",
+        "bounds": {
+          "min": [
+            9700.0,
+            0.0,
+            5700.0
+          ],
+          "max": [
+            10000.0,
+            8000.0,
+            7478.0
+          ],
+          "size": [
+            300.0,
+            8000.0,
+            1778.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 2133599999.9999998,
+          "centroid": [
+            9850.0,
+            4000.0,
+            6292.666666666667
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 19250416.235100597,
+        "meshTriangleCount": 8
+      },
+      {
+        "sourceHandle": "0x55",
+        "bounds": {
+          "min": [
+            8000.0,
+            5800.0,
+            3000.0
+          ],
+          "max": [
+            8600.0,
+            6400.0,
+            8100.0
+          ],
+          "size": [
+            600.0,
+            600.0,
+            5100.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 1836000000.0,
+          "centroid": [
+            8300.0,
+            6100.0,
+            5550.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 12960000.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x56",
+        "bounds": {
+          "min": [
+            -500.00000000000006,
+            -500.0000000000009,
+            5478.0
+          ],
+          "max": [
+            10500.0,
+            8500.0,
+            7728.0
+          ],
+          "size": [
+            11000.0,
+            9000.0,
+            2250.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 24660000000.000004,
+          "centroid": [
+            4987.956204379561,
+            3992.335766423358,
+            6602.756690997568
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 226486963.01537058,
+        "meshTriangleCount": 40
+      },
+      {
+        "sourceHandle": "0x57",
+        "bounds": {
+          "min": [
+            6260.0,
+            1460.0,
+            3000.0
+          ],
+          "max": [
+            6300.0,
+            5400.0,
+            4000.0
+          ],
+          "size": [
+            40.0,
+            3940.0,
+            1000.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 157600000.0,
+          "centroid": [
+            6280.0,
+            3430.0,
+            3500.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 8275200.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x58",
+        "bounds": {
+          "min": [
+            7300.0,
+            1460.0,
+            3000.0
+          ],
+          "max": [
+            7340.0,
+            5400.0,
+            4000.0
+          ],
+          "size": [
+            40.0,
+            3940.0,
+            1000.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 157600000.0,
+          "centroid": [
+            7320.0,
+            3430.0,
+            3500.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 8275200.0,
+        "meshTriangleCount": 12
+      },
+      {
+        "sourceHandle": "0x59",
+        "bounds": {
+          "min": [
+            6300.0,
+            1460.0,
+            3000.0
+          ],
+          "max": [
+            7300.0,
+            1500.0,
+            4000.0
+          ],
+          "size": [
+            1000.0,
+            40.0,
+            1000.0
+          ]
+        },
+        "kernelMass": {
+          "volume": 40000000.0,
+          "centroid": [
+            6800.0,
+            1480.0,
+            3500.0
+          ],
+          "analytic": false
+        },
+        "meshSurfaceArea": 2160000.0,
+        "meshTriangleCount": 12
+      }
+    ],
+    "aggregateBoundsOfAll48CarriersMm": {
+      "min": [
+        -500.00000000000006,
+        -1200.0,
+        -300.0
+      ],
+      "max": [
+        10500.0,
+        8500.0,
+        8100.0
+      ],
+      "size": [
+        11000.0,
+        9700.0,
+        8400.0
+      ],
+      "scope": "Union of independent kernel body bounds across the 48 projected SAT carriers; includes eaves, porch and other projecting bodies, not the publisher stated 10 m \u00d7 8 m footprint."
+    }
+  }
+}

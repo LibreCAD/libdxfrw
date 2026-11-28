@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-bounded-capture-2026-11-08",
+  "date": "2026-11-08",
+  "status": "IMPLEMENTED_STRUCTURAL_CAPTURE_PARTIAL_OPAQUE_TAIL",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/ac1027_acds_source_probe.cpp"
+    ],
+    "behavior": "DRW_AcShHistoryObject now parses the ACadRust-pinned AcDbShSweepBase order with bounded BL/BS/B/BD/3BD reads. It transactionally retains sweep/path matrices, option fields, entity type codes and meaningful embedded-body bits. Unclassified remainder bits are retained exactly and keep the production action-body status Partial. Special polyline modeler-body type codes 15/16 are preserved as an opaque bounded tail pending their separate codec. No Sweep DXF writer or strict-output admission was added."
+  },
+  "physicalSource": {
+    "path": "/private/tmp/example_2013.dwg",
+    "version": "AC1027",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "objectHandle": "0x2e2",
+    "class": "ACSH_SWEEP_CLASS",
+    "actionBodyStartBit": 228,
+    "actionBodyEndBitExclusive": 2571,
+    "productionProbe": "ACSH_PREFIX handle=0x2e2 kind=9 status=Partial startBit=228 bitSize=2343; SWEEP_CAPTURE handle=0x2e2 major=33 minor=29 profileType=77 profileBits=744 pathType=77 pathBits=480 opaqueTailStartBit=2570 opaqueTailBitSize=1 structuralFieldsComplete=false exactBodyEnd=false tail=00",
+    "interpretation": "The production decoder consumes and preserves the entire bounded span. The final bit is retained as opaque data, not interpreted as a field or padding. The embedded type-77 bodies remain raw payloads; their geometry/semantics are not validated."
+  },
+  "generatedControls": {
+    "selector": "libdxfrw_hardening_tests --acsh-action-body-exact-span",
+    "result": "PASS",
+    "coverage": [
+      "candidate field and transform capture",
+      "ordinary type-plus-bit-length entity framing and exact raw bits",
+      "one-bit opaque suffix retention with Partial status",
+      "type-15 modeler-wire profile stays opaque and Partial",
+      "exact-bound no-suffix body reaches Complete structural status",
+      "truncated body atomic refusal and same-buffer corrected retry",
+      "oversized embedded bit count refusal without cursor movement"
+    ]
+  },
+  "buildAndValidation": {
+    "buildTargets": "cmake --build build --target libdxfrw_hardening_tests libdxfrw_ac1027_acds_source_probe dwg2dxf -j4",
+    "buildResult": "PASS",
+    "focusedTestResult": "PASS",
+    "physicalProbeResult": "PASS; retained graph and prefix dispositions, action body remains Partial",
+    "diffCheck": "PASS",
+    "fullTestSuites": "not run"
+  },
+  "limitations": [
+    "ACadRust is an implementation peer, not normative ODA authority; its corrective commit reports checking field order against reference DWG/DXF output, but that independent producer experiment was not reproduced in this slice.",
+    "The one-bit zero suffix has no established field or framing identity.",
+    "Embedded type-77 entities are captured as exact raw bit strings but not decoded into line/polyline semantics.",
+    "Special type-15/16 modeler wire-body profiles are retained opaquely; SAT/SAB framing and semantics remain unimplemented here.",
+    "No Sweep writer, complete ACDS graph route, native consumer qualification or support claim follows. Strict output remains refused."
+  ],
+  "nextAction": "Resolve the final-bit source field or framing profile, then decode the supported embedded entity profiles with bounded transactional codecs. Keep unsupported variants opaque and output refused until the full graph, writer/readback and independent semantic gates pass."
+}

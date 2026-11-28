@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-header-current-table-reference-binding-2026-11-03",
+  "date": "2026-11-03",
+  "status": "GENERATED_HEADER_TABLE_BINDING_IMPLEMENTED_ODA_REJECTION_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1, sections 2.13 and 9",
+    "requirement": "CLAYER, TEXTSTYLE, CELTYPE and DIMSTYLE in the DWG HEADER are hard-pointer references to their selected table records."
+  },
+  "finding": "The DWG writer previously emitted zero references for all four current table fields, ignoring even explicitly supplied current names, despite emitting standard records and accepting caller-provided named records.",
+  "change": "The writer emits fixed-width code-5 placeholder handles for the four references. At existing HEADER finalization it resolves caller-provided or documented default names against completed typed table maps and emitted-record identities, validates all slots and targets before mutating the buffer, patches the four handles and HANDSEED, and reseals HEADER CRC. Missing targets, wrong table kinds, malformed values and ambiguous aliases fail without publishing a partial output. Handle allocation and table callback order remain unchanged.",
+  "validation": {
+    "selector": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_header_writer_sealing|libdxfrw_dwg_header_current_references)$' --output-on-failure: PASS 2/2",
+    "coverage": "Generated AC1015/18/21/24/27/32 test default and four custom names, case-insensitive record matching, exact encoded target handles, idempotent finalization and local reader acceptance. AC1021 negative controls verify unchanged HEADER bytes and HANDSEED for missing or wrong-kind records, wrong value type/group and ambiguous aliases, with same-writer correction and retry. A public dwgRW control verifies preservation of a pre-existing destination when a selected layer is missing and successful same-writer retry after adding the target. Separate all-six-version HEADER sealing and negative controls verify CRC, unaligned neighboring bits, high-water HANDSEED, idempotence and subsequent full-file readback.",
+    "independentRead": "LibreDWG 0.14 minJSON reports the generated AC1021 file's hard-pointer references and target objects: CLAYER 0x31 -> LAYER custom-layer; TEXTSTYLE 0x32 -> STYLE custom-style; CELTYPE 0x30 -> LTYPE custom-type; DIMSTYLE 0x33 -> DIMSTYLE custom-dim. Each handle uses code 5 and a four-byte payload.",
+    "generatedDwgSha256": "0cbf46fa64f449ddc8ae1000412eb2b908002f188881a73db53f221b185e3e49"
+  },
+  "independentConverter": {
+    "tool": "ODA File Converter 27.1.0",
+    "operation": "ACAD2013 DXF, recursion disabled, audit disabled",
+    "result": "For the same generated custom-name AC1021 file, exit status zero with only an .err reporting Invalid input; no DXF was produced.",
+    "interpretation": "This semantic reference fix does not resolve the broader ODA input rejection."
+  },
+  "limits": [
+    "The existing DWG reader does not yet retain/publish the source current-reference identities as HEADER names, so fresh/API-supplied names are covered but DWG-source preservation is not established.",
+    "Fixed-width code-5 handle payloads are read by LibreDWG but no independent native acceptance is claimed.",
+    "No full-document interoperability or semantic claim follows; no fixture was committed."
+  ]
+}

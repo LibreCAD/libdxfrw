@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-14",
+  "title": "DIMSTYLE DIMJOGANG typed DXF projection and downgrade guard",
+  "scope": [
+    "Parse and emit typed DIMJOGANG group 50 for the bounded R2007+ profile",
+    "Retain zero as the unset/default state; validate nonzero angles against Autodesk's 5-to-90 setting range",
+    "Reject nondefault typed or dynamic values when targeting pre-R2007 DXF, before writing record bytes"
+  ],
+  "evidence": {
+    "formatReferences": [
+      {
+        "title": "Open Design Specification for .dwg files v5.4.1, §20.4.68",
+        "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "finding": "The R2007+ DIMSTYLE DWG field inventory assigns DIMJOGANG a BD body field and group-code identity 50; this confirms DWG layout, not the DXF projection."
+      },
+      {
+        "title": "Autodesk DIMJOGANG system variable",
+        "url": "https://help.autodesk.com/view/ACD/2027/ENU/?caas=caas%2Fdocumentation%2FACD%2F2014%2FENU%2Ffiles%2FGUID-9C23D722-0792-4585-A40A-B8E3A191999A-htm.html",
+        "finding": "DIMJOGANG controls the transverse segment of a jogged radius dimension; Autodesk documents valid settings from 5 through 90."
+      },
+      {
+        "title": "LibreDWG manual, DIMSTYLE fields",
+        "url": "https://www.gnu.org/software/libredwg/manual/LibreDWG.html",
+        "finding": "The independent open-source implementation documents DIMJOGANG as DXF group 50."
+      },
+      {
+        "title": "ezdxf DIMSTYLE table documentation",
+        "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/tables/dimstyle_table.html",
+        "finding": "The R2007+ group-50 mapping is explicitly classified as unofficial and describes the value as the jog angle."
+      },
+      {
+        "title": "Autodesk DIMSTYLE DXF reference",
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+        "finding": "The published DIMSTYLE record schema does not list group 50; the new projection is peer-documented compatibility, not an Autodesk-documented DXF guarantee."
+      }
+    ],
+    "localSource": {
+      "files": [
+        "src/drw_objects.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dimstyle_table_allocation_tests.cpp"
+      ],
+      "finding": "DIMSTYLE parsing and typed synchronization retain group 50. AC1021+ output emits the typed double unless a dynamic override exists; zero remains omitted. Nonzero values outside 5..90 and nonfinite values fail. Typed and dynamic nonzero values are atomically refused for older targets. Dynamic checks run before the version-specific skip, closing the discovered fail-open."
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dimstyle_table_allocation_tests -j4",
+      "result": "PASS (-Werror build)"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure",
+      "result": "PASS (1/1; ASCII/Binary typed output/readback, typed/dynamic downgrade refusal/retry, and atomic refusal/retry for out-of-range and nonfinite angles)"
+    },
+    "persistentDwgDxfFixturesAdded": 0,
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "supportClaimsPromoted": false
+  },
+  "remaining": [
+    "Autodesk's published DIMSTYLE DXF schema omits group 50; producer-authored and native-consumer validation remain necessary before any broader claim."
+  ]
+}

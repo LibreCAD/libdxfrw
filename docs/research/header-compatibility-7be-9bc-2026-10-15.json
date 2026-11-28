@@ -1,0 +1,330 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "baseline": "2063b501ccc1827d8914c0de6a450b3d694e62cc",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "planSlice": "7BE.9bc",
+  "status": "LOCAL_IMPLEMENTATION_COMPLETE",
+  "parentStatus": "7BE.9d / FULL_CLI_ACCEPTANCE_PENDING",
+  "qualificationEligible": false,
+  "scope": "Bounded DWG HEADER alternate-size compatibility and full-section DATA/string/handle parsing. Preserve canonical warning behavior, compact callers, existing 2D callbacks, source fixtures and writer layout/sealing.",
+  "sourceArtifacts": {
+    "CMakeLists.txt": "d8ba0b02a5b50fc84787f95dcad8d1b05bc0d43358bb035f27f17309378d3f79",
+    "src/drw_header.cpp": "0380fb42c2006221a4cc72741c8ad7d7c81cc9b6be2d6d2c875aff7b57521435",
+    "src/intern/dwgheadersection.h": "64e87bc726db90eb3c5a7fa0b3bf5d4a5c50ad5b79bc3cf30463befa7b86806b",
+    "src/intern/dwgreader.cpp": "e68b84f779794469236f67992385928020a8143658dffbf37ab3b87a0ea971b2",
+    "src/libdwgr.h": "5377cedcb1599f83bbc3a2cfce9a86ecff5bf9015a3a27ddeddd2d03b65b2940",
+    "tests/dwg_reader_matrix_tests.cpp": "b4291c15b044a59ab5d9ca3b5da14b89bc47aa2486782d051ed86fc9cfb7f8a3",
+    "dwg2dxf/dx_iface.cpp": "02fa3cdcb6e6ba191e58f0b37973e87ea44419f5d75319b6591b2ee61db9237a",
+    "build/libdxfrw.a": "4922d3b2fbcbe9c4b999e4187b96aabe2686b07774bafea1b37d0bc9738be45a",
+    "build/libdxfrw_dwg_reader_matrix_tests": "cfc02dbd4ace496bb0ddfc830e01692b541094b94642ebdc4d106c86f475fb99",
+    "build/dwg2dxf/dwg2dxf": "042dfb4d322a0d5da052d4cdb45ab8a74c9fa93093b7a92e9b72c276b21444da"
+  },
+  "authoritativeReference": {
+    "version": "ODA5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "read": "Section4 pp23-35 complete; section9 pp72-85 complete; bit codes7-19 completed",
+    "renderedReviewedPages": [
+      29,
+      72,
+      83
+    ]
+  },
+  "decisions": [
+    "Canonical full-section length and warn-only CRC contract are unchanged.",
+    "Only the witnessed AC1032 alternate excludes the optional word from RL; unknown word must be zero, the independently computed CRC must match, and the ending sentinel must match at the one fixed +4 offset. No hash allowlist, arbitrary scan, producer/build guess or version extrapolation.",
+    "The two 16-byte candidate end markers overlap by12 bytes. Canonical byte4=0x02 conflicts with alternate byte0=0x30, so both cannot match. No trial parsing chooses among ambiguous valid layouts.",
+    "Unclaimed logical suffix bytes are excluded from HEADER body parsing and reported as unresolved coverage, not zero padding or copied opaque payload. Consumers requiring complete preservation must not treat compatible read success as completeness.",
+    "Full HEADER DATA/handle forks stop before the admitted CRC; modern string reads have their own ceiling and exact bit-end guard. Impossible footers, prefix rewinds, body overrun and missing handles fail without publishing variables.",
+    "ODA p83 makes the four trailing unknown type5/6 shorts optional. Full modern parsing no longer reads TU bytes as those debug-only unknown shorts. Legacy/compact layout behavior remains unchanged.",
+    "Append optional diagnostic categories24/25; preserve existing categories0-23 and schema1. No pure virtual or projection option is added; no ABI/native/support claim."
+  ],
+  "controls": {
+    "existing": "AC1015 bounds/CRC-zero/corruption/compact/reuse, six generated writer envelopes, R13/R14 envelope partners, bounded-fork lifecycle, writer-sealing and local roundtrip/hardening remain enabled.",
+    "newPositiveSuffixProfiles": [
+      0,
+      1,
+      739
+    ],
+    "malformedProfiles": [
+      "crc",
+      "begin",
+      "end",
+      "nonzero-unknown-word",
+      "declared-short",
+      "declared-max",
+      "bits-zero",
+      "bits-max"
+    ],
+    "stringMutations": [
+      "BS65535 exceeding string stream",
+      "absent string flag",
+      "oversized footer"
+    ],
+    "additional": [
+      "AC1024/AC1027 alternate exclusion",
+      "distant sentinel does not trigger scan",
+      "CRC-valid truncated inner body cannot borrow739-byte suffix",
+      "same-reader failed replacement/corrected retry",
+      "two dropped warnings with a full diagnostic cap"
+    ],
+    "permanentTrackedInputs": [
+      "rtext_arctext.dwg",
+      "mpolygon_solid.dwg",
+      "large_radial.dwg",
+      "ordinary_enc_AC1027.dwg"
+    ],
+    "publicFieldKeys": [
+      "LUNITS",
+      "INSUNITS",
+      "LUPREC",
+      "DIMDEC"
+    ],
+    "physicalFrameDenominators": [
+      267,
+      95,
+      110,
+      26
+    ],
+    "callbacks": "RTEXT1 and ARCALIGNEDTEXT1, MPOLYGON1; field/frame/callback evidence only, not geometry/native conformance"
+  },
+  "finalPackets": {
+    "acceptance-wide.xml": {
+      "sha256": "a2d44028388aed0a62662b01d6f6fdcbb0fcbfa6c8cf62c98472f973dd413bdd",
+      "attributes": {
+        "name": "(empty)",
+        "tests": "4",
+        "failures": "1",
+        "disabled": "0",
+        "skipped": "0",
+        "hostname": "",
+        "time": "4",
+        "timestamp": "2026-10-15T17:24:44"
+      },
+      "cells": [
+        {
+          "name": "libdxfrw_dwg_local_roundtrip",
+          "time": "2.55884",
+          "failed": false,
+          "skipped": false
+        },
+        {
+          "name": "libdxfrw_dwg_reader_matrix",
+          "time": "1.524",
+          "failed": false,
+          "skipped": false
+        },
+        {
+          "name": "libdxfrw_hardening",
+          "time": "0.0792258",
+          "failed": false,
+          "skipped": false
+        },
+        {
+          "name": "dwg2dxf_freecad_cli_compat",
+          "time": "0.124041",
+          "failed": true,
+          "skipped": false
+        }
+      ]
+    },
+    "acceptance-sanitizer.xml": {
+      "sha256": "c3ea281880ac916d8e10e72f8f535af43d2fe90c0f16c73f945d2cc58029bea3",
+      "attributes": {
+        "name": "(empty)",
+        "tests": "1",
+        "failures": "0",
+        "disabled": "0",
+        "skipped": "0",
+        "hostname": "",
+        "time": "1",
+        "timestamp": "2026-10-15T17:24:53"
+      },
+      "cells": [
+        {
+          "name": "libdxfrw_dwg_reader_matrix",
+          "time": "1.19383",
+          "failed": false,
+          "skipped": false
+        }
+      ]
+    }
+  },
+  "finalCommands": [
+    {
+      "role": "affected build/LC3 source compatibility",
+      "command": "cmake --build build --target libdxfrw_dwg_reader_matrix_tests dwg2dxf libdxfrw_hardening_tests libdxfrw_dwg_local_roundtrip lc3_compat_check --parallel 2",
+      "exit": 0
+    },
+    {
+      "role": "strict syntax",
+      "command": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -Isrc/intern -Idwg2dxf -DLIBDXFRW_READER_FIXTURE_DIR='\"/Users/dli/dev/libdxfrw/tests/fixtures/dwg\"' -fsyntax-only src/drw_header.cpp src/intern/dwgreader.cpp tests/dwg_reader_matrix_tests.cpp",
+      "exit": 0
+    },
+    {
+      "role": "retained wider gate",
+      "command": "ctest --test-dir build -R '^(libdxfrw_dwg_reader_matrix|libdxfrw_hardening|libdxfrw_dwg_local_roundtrip|dwg2dxf_freecad_cli_compat)$' --output-on-failure --output-junit /private/tmp/libdxfrw-header-7be9.vZm8aJ/acceptance-wide.xml",
+      "exit": 8,
+      "result": "3/4; three reader regressions pass, CLI fails later export"
+    },
+    {
+      "role": "final sanitizer",
+      "command": "ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 ctest --test-dir /private/tmp/libdxfrw-hatch-asan.Nc6BqC -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure --output-junit /private/tmp/libdxfrw-header-7be9.vZm8aJ/acceptance-sanitizer.xml",
+      "exit": 0,
+      "result": "1/1"
+    }
+  ],
+  "sanitizerArtifacts": {
+    "librarySha256": "007f0fc9deb689cfca430a01a470e45e126bb169c0359c0c4d4f23c10cb1291f",
+    "testSha256": "6cda9a38b28f89350dc02bbf8adff512a04f6cdaf2433aa6f452772979978dcc",
+    "buildType": "Debug",
+    "cxxFlags": "-fsanitize=address,undefined -fno-omit-frame-pointer -O1",
+    "cliEnabled": false,
+    "cacheToggled": false
+  },
+  "diagnosticCandidateAPI": [
+    {
+      "read": true,
+      "error": 0,
+      "headerVars": 224,
+      "lineTypes": 27,
+      "dictionaries": 13,
+      "xrecords": 0,
+      "visualStyles": 24,
+      "rawVisualStyles": 0,
+      "evaluationGraphs": 0,
+      "hasNamedRoot": false,
+      "extensionSourceHandleCollisions": 0,
+      "LUNITS": 2,
+      "INSUNITS": 4,
+      "LUPREC": 4,
+      "DIMDEC": 2,
+      "sample": "rtext_arctext",
+      "exit": 0,
+      "peerFields": {
+        "LUNITS": 2,
+        "INSUNITS": 4,
+        "LUPREC": 4,
+        "DIMDEC": 2
+      }
+    },
+    {
+      "read": true,
+      "error": 0,
+      "headerVars": 224,
+      "lineTypes": 3,
+      "dictionaries": 13,
+      "xrecords": 0,
+      "visualStyles": 24,
+      "rawVisualStyles": 0,
+      "evaluationGraphs": 0,
+      "hasNamedRoot": false,
+      "extensionSourceHandleCollisions": 0,
+      "LUNITS": 2,
+      "INSUNITS": 0,
+      "LUPREC": 4,
+      "DIMDEC": 4,
+      "sample": "mpolygon_solid",
+      "exit": 0,
+      "peerFields": {
+        "LUNITS": 2,
+        "INSUNITS": 0,
+        "LUPREC": 4,
+        "DIMDEC": 4
+      }
+    },
+    {
+      "read": true,
+      "error": 0,
+      "headerVars": 224,
+      "lineTypes": 3,
+      "dictionaries": 13,
+      "xrecords": 0,
+      "visualStyles": 24,
+      "rawVisualStyles": 0,
+      "evaluationGraphs": 0,
+      "hasNamedRoot": false,
+      "extensionSourceHandleCollisions": 0,
+      "LUNITS": 2,
+      "INSUNITS": 0,
+      "LUPREC": 4,
+      "DIMDEC": 4,
+      "sample": "large_radial",
+      "exit": 0,
+      "peerFields": {
+        "LUNITS": 2,
+        "INSUNITS": 0,
+        "LUPREC": 4,
+        "DIMDEC": 4
+      }
+    },
+    {
+      "read": true,
+      "error": 0,
+      "headerVars": 224,
+      "lineTypes": 3,
+      "dictionaries": 0,
+      "xrecords": 0,
+      "visualStyles": 0,
+      "rawVisualStyles": 0,
+      "evaluationGraphs": 0,
+      "hasNamedRoot": false,
+      "extensionSourceHandleCollisions": 0,
+      "LUNITS": 2,
+      "INSUNITS": 0,
+      "LUPREC": 4,
+      "DIMDEC": 4,
+      "sample": "ordinary_enc_AC1027",
+      "exit": 0,
+      "peerFields": {
+        "LUNITS": 2,
+        "INSUNITS": 0,
+        "LUPREC": 4,
+        "DIMDEC": 4
+      }
+    }
+  ],
+  "diagnosticCandidateBindings": {
+    "read_probe.cpp": "ece96ee60fc2c2b094dc4170d7f8f6aa5c4f4dc51de6b148c8d23d8753e110ae",
+    "read_probe": "c5537de24003adb9fb99f83a7dda4c8fad18ff855188b94b5cfa1d4867b6ccdb",
+    "rtext-v2010-debug.log": "6cdcf79b930fef62743c968cea6c43c36500e81ea23166c16aee5e118212bc16"
+  },
+  "diagnosticCandidateRecipe": "#include \"dx_iface.h\"\n#include <iostream>\n#include <map>\n\nint main(int argc, char** argv) {\n    if (argc != 2) return 2;\n    dx_data data;\n    dx_iface input;\n    const bool read = input.fileImport(argv[1], &data, false);\n    std::map<std::uint32_t, unsigned> handles;\n    for (const auto& x : data.lineTypes) if (x.handle != 0) ++handles[x.handle];\n    for (const auto& x : data.dictionaries) if (x.handle != 0) ++handles[x.handle];\n    for (const auto& x : data.xRecords) if (x.handle != 0) ++handles[x.handle];\n    for (const auto& x : data.visualStyles) if (x.handle != 0) ++handles[x.handle];\n    unsigned collisions = 0;\n    for (const auto& x : handles) if (x.second > 1u) ++collisions;\n    std::cout << \"{\\\"read\\\":\" << (read ? \"true\" : \"false\")\n              << \",\\\"error\\\":\" << static_cast<int>(data.dwgReadOutcome.error)\n              << \",\\\"headerVars\\\":\" << data.headerC.vars.size()\n              << \",\\\"lineTypes\\\":\" << data.lineTypes.size()\n              << \",\\\"dictionaries\\\":\" << data.dictionaries.size()\n              << \",\\\"xrecords\\\":\" << data.xRecords.size()\n              << \",\\\"visualStyles\\\":\" << data.visualStyles.size()\n              << \",\\\"rawVisualStyles\\\":\" << data.rawVisualStyleObjects.size()\n              << \",\\\"evaluationGraphs\\\":\" << data.evaluationGraphs.size()\n              << \",\\\"hasNamedRoot\\\":\" << (data.hasNamedObjectDictionary ? \"true\" : \"false\")\n              << \",\\\"extensionSourceHandleCollisions\\\":\" << collisions;\n    for (const char* key : {\"LUNITS\", \"INSUNITS\", \"LUPREC\", \"DIMDEC\"}) {\n        const auto found = data.headerC.vars.find(key);\n        if (found != data.headerC.vars.end() && found->second != nullptr\n            && found->second->type() == DRW_Variant::INTEGER)\n            std::cout << \",\\\"\" << key << \"\\\":\" << found->second->content.i;\n    }\n    std::cout << \"}\\n\";\n    return read ? 0 : 1;\n}\n",
+  "diagnosticScope": "Earlier same-parser candidate scratch probe; final acceptance uses the permanent fresh-built tracked-file cases, not a claim that this scratch binary was relinked after test/comment-only edits.",
+  "residual": {
+    "cli": "Reader now succeeds/error0 with complete physical ledger and retained CRC/layout/suffix warnings. Exact original FreeCAD CLI harness still fails output preflight and remains unchanged.",
+    "firstExportBlocker": "prepareExtensionObjectGraph requires rawVisualStyles.size()==visualStyles.size(). All three advanced DWGs produce24 typed styles and zero raw DXF companions; source-format handoff needs an exact serializer/closure decision, not a fabricated companion.",
+    "rtextSourceRecords": "27 linetypes +13 dictionaries +24 styles=64, zero duplicate source handles, traversal nodes/edges0 at first rejection.",
+    "otherObserved": "hasNamedObjectDictionary=false on advanced DWG imports; this is not yet established as the only subsequent graph blocker.",
+    "next": "Existing7G/7F typed-DWG VISUALSTYLE→DXF representation, version/property/color/handle and rooted closure controls; retain DXF raw replay invariants and output/retry atomicity. Then rerun the full exact CLI harness through MPOLYGON and large-radial output.",
+    "external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "corrections": [
+    "Initial build used the CTest name rather than the executable target; corrected to libdxfrw_dwg_reader_matrix_tests.",
+    "First bounded-reader candidate exposed existing debug-only optional shorts consuming string bytes; ODA p83 and tracked trace justified omitting that optional uninterpreted modern tail, not relaxing the string boundary.",
+    "New permanent test sink initially derived from a final test class; corrected to an independent initialized dx_iface subclass. No production assertion, reader guard or existing test was weakened.",
+    "An intermediate four-cell CTest ran the previous matrix binary while that test-only build had failed. final-wide.xml is retained as interim/stale context, not acceptance; acceptance-wide.xml runs after successful final rebuild and includes all new cases.",
+    "Earlier sanitizer.xml precedes the permanent tracked-case addition; acceptance-sanitizer.xml binds the rebuilt final target."
+  ],
+  "unchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "threeDLedgerItems": 149,
+    "newFixtures": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "remoteWrites": 0,
+    "fullSuites": 0,
+    "nativeRuns": 0,
+    "supportPromotions": 0
+  },
+  "scratchDirectory": "/private/tmp/libdxfrw-header-7be9.vZm8aJ"
+}

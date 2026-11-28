@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 consumed-style twelve-to-eleven removal",
+  "date": "2026-10-29",
+  "status": "SOURCE_COUNT_TWELVE_ELEVEN_SURVIVOR_UNDECUPLES_QUALIFIED",
+  "codeCommit": "c2608968",
+  "scope": "Qualify all 12 ordered choices of eleven surviving tuples when reducing a consumed twelve-element AC1027 MLINESTYLE to eleven elements. Combined with the existing 12-to-1 through 12-to-10 receipts, every nonzero target count for this selected source-count-twelve profile is now qualified; this does not establish universal MLINE support.",
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "change": "Register the source-count-twelve, target-count-eleven runtime-generated test and reuse the bounded all-subset enumerator and exact output inspector for all 12 survivor undecuples. The test verifies source-derived parameter projection, ASCII/binary input/output, fresh readback, refusal rollback, late-mutation rollback and corrected retries.",
+    "productionBehavior": "No writer change was required; the selected 12-to-11 model transactions use existing source-bound consumer projection and atomic output admission."
+  },
+  "validation": {
+    "configureCommand": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configureResult": "PASS",
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_style_eleven_from_twelve_removal$' --output-on-failure",
+    "ctestResult": "PASS: survivorSets=12; profiles=48; readbacks=52; refusals=2; late=2; retries=4",
+    "diffCheck": "PASS (git diff --check)",
+    "fullSuite": "NOT_RUN"
+  },
+  "fixturePolicy": "DXF source/output files are generated at runtime in a system temporary directory and removed after success. No test drawing was committed.",
+  "limits": [
+    "This receipt newly qualifies only source count twelve and target count eleven, across all 12 survivor positions.",
+    "The aggregate 12-to-1..11 matrix remains selected AC1027 evidence; source counts above twelve, zero-element handling, native rendering and complete-document closure remain open.",
+    "Selected AC1027 compatible output does not establish native MLINE rendering or cross-version support."
+  ],
+  "next": "Qualify source-count-thirteen to one-element removal across all 13 survivor positions with the same exact projection, output/readback, refusal, late-mutation rollback and retry controls."
+}

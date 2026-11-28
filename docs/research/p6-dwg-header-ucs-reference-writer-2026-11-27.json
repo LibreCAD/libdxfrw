@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-header-ucs-reference-writer-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": [
+    "ODA Open Design Specification v5.4.1 section 9 specifies paper/model UCSNAME and R2000+ orthographic/base UCS hard pointers."
+  ],
+  "change": "Reuse the version-aware HEADER reference planner, emitted-table validation, fixed-width patch and CRC sealing for six UCS names; preserve compact nulls when absent and refuse missing, wrong-kind, malformed or ambiguous target names before publication.",
+  "generatedScratchOnly": {
+    "path": "/private/tmp/p6-header-ucs-20261127/writer-distinct.dwg",
+    "sha256": "bb6c0c45e5c356f1fb2e255dbb556bd97a28fec458f2ae12a9482ea2dc0a2708",
+    "libredwg014": "All six HEADER hard pointers independently resolve to six distinct emitted UCS records P6_UCS0 through P6_UCS5 in the correct field order."
+  },
+  "checks": [
+    "Five focused HEADER groups pass for generated AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 controls, including six distinct targets, internal readback, nulls and CRC sealing.",
+    "Missing targets for each field refuse before header mutation; corrected same-writer retry passes. Public writer preserves an existing destination for missing UCS and publishes the selected record after retry.",
+    "LibreDWG 0.14 independently decodes the locally authored AC1021 writer output."
+  ],
+  "limits": [
+    "The independent writer observation does not establish native UCS activation or cross-version producer compatibility. The non-null paper-space source profile still needs a producer witness.",
+    "ODA does not currently reopen the generated AC1021 baseline due to existing object-record failures; no support claim was promoted and no drawing fixture was committed."
+  ]
+}

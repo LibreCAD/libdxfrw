@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mline-ltype-finalizer-late-mutation-atomic-retry-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_MLINE_LTYPE_FINALIZER_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Revalidate captured DXF MLINE LTYPE providers at write finalization so late source mutation refuses publication atomically and permits a corrected retry.",
+  "implementationReadiness": {
+    "baselineHead": "8a561bf8cd5aa9c54200033cb94e43074b4995d6",
+    "sourceObservation": "The DXF finalizer rechecked MLINE styles and consumers but did not recheck captured MLINE LTYPE providers after serialization callbacks. A live provider mutation after its TABLES inspection could therefore reach the staged-output completion boundary without a final provider-integrity check.",
+    "change": "dx_iface::finalizeDxfWrite now requires hasUnchangedDxfMLineLinetypes() before accepting the completed DXF operation. The referenced-flag control was aligned with the current LTYPE group-70 domain: valid flag profiles 16 and 48 exercise refusal on unsafe MLINE retargeting, while the valid entity-referenced flag-64 edit remains covered by the positive edit profiles above it. Unsupported standalone flag values are covered by the dedicated LTYPE domain controls."
+  },
+  "binding": {
+    "sourceSha256": {
+      "dwg2dxf/dx_iface.cpp": "0180f73f737eec01ae567a1636195dd40afbc9ec220ddc4fbc8a2bd166cfa7fe",
+      "tests/dxf_fixture_tests.cpp": "b9c558d85c3b17c9bfd6b2867871ec67952fad53c54e77b2fc398e8706b32c32"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+      "platform": "Darwin arm64"
+    },
+    "testExecutableSha256": "5861bd4a1df0dcd1ae079a43698745f2c12c18cc24326ea2504e3f5f97bc43d6"
+  },
+  "controls": {
+    "ctestSelectors": [
+      "libdxfrw_mline_ltype_referenced_flags",
+      "libdxfrw_mline_ltype_provider_profiles"
+    ],
+    "broaderCohort": "libdxfrw_mline_ltype_* and libdxfrw_ltype_* CTest selectors",
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "The referenced-flag selector exercises 24 late provider mutations across ASCII/Binary output and four callback phases; each failed operation preserves the sentinel destination and leaves the callback mutation observable in caller data, then restoring the provider allows a same-adapter retry with caller-state and readback checks.",
+      "The provider-profile selector covers provider changes before output and at serializer callback boundaries, atomic refusal, caller-state checks, and corrected retry.",
+      "The referenced-flag selector retains positive edit/readback coverage for flag 64 and refusal/readback coverage for valid profiles 16 and 48; invalid flag domains remain covered by dedicated LTYPE tests."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_mline_ltype_(referenced_flags|provider_profiles)' --output-on-failure",
+      "result": "PASS 2/2"
+    },
+    "affectedCohort": {
+      "command": "ctest --test-dir build-gcc -R ltype --output-on-failure",
+      "result": "PASS 17/17 in 33.98 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated adapter transaction controls only; no physical drawing producer or native CAD acceptance was established.",
+    "The finalizer check is scoped to preserving the captured MLINE LTYPE provider state and does not establish broader MLINE rendering or support parity.",
+    "No DWG/DXF fixture files were added, and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue with the next independently actionable source-backed P4-P6 item; preserve external/native qualification gates and select a focused owning selector before implementation."
+}

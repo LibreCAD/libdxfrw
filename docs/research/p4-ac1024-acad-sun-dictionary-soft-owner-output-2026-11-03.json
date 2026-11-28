@@ -1,0 +1,133 @@
+{
+  "id": "p4-ac1024-acad-sun-dictionary-soft-owner-output-2026-11-03",
+  "status": "PARTIALLY_SUPERSEDED_FOR_GENERAL_DWG_ITEM_WIRE_ROLE",
+  "scope": "One AC1024 DWG-origin ACAD_SUN dictionary profile, with same-revision typed DXF output and fresh readback",
+  "claim_effect": "Closes this bounded source/graph/output profile only. It does not qualify strict whole-file output from the physical sample, other producer/version profiles, or native lighting semantics.",
+  "supersession": {
+    "replacementReceipt": "docs/research/p4-dictionary-item-wire-code-independent-of-hardowner-2026-11-03.json",
+    "supersededConclusions": [
+      "The DWG item-handle wire code follows hardOwner.",
+      "A code-3 DWG item handle is valid when hardOwner is 1, and code 2 is invalid in that case."
+    ],
+    "retainedEvidence": [
+      "The physical AC1024 ACAD_SUN source has hardOwner=0 and item wire code 2.",
+      "The bounded DXF output profile emits and reads the ACAD_SUN item as group 350."
+    ],
+    "reason": "ODA v5.4.1 §20.4.44 labels DICTIONARY itemhandles as soft owner; LibreDWG's DWG schema writes all DICTIONARY itemhandles with wire code 2. The hardOwner flag controls DXF entry ownership and does not change the DWG item field's wire code."
+  },
+  "authority": {
+    "document": "Open Design Specification for .dwg files, v5.4.1",
+    "sections": [
+      {
+        "section": "2.13",
+        "finding": "Handle codes 2/3 denote soft/hard ownership. Relative handle encodings represent soft pointers; the parser resolves these to code 7."
+      },
+      {
+        "section": "20.1",
+        "finding": "The common parent handle of a non-entity object is a soft pointer."
+      },
+      {
+        "section": "20.4.44",
+        "finding": "A DICTIONARY has a soft-pointer parent and its DWG itemhandles are soft-owner references. The hardOwner flag controls DXF entry ownership; it does not change the DWG item's wire code."
+      }
+    ],
+    "local_extract": "/private/tmp/libdxfrw-oda-spec-2026-11-03.txt",
+    "printed_pages": [15, 16, 103, 104, 152, 153],
+    "secondary_authority": {
+      "document": "AutoCAD 2024 DXF Reference, DICTIONARY",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "finding": "Group 280 set to 1 means dictionary elements are treated as hard-owned; group 350 is the soft-owner entry handle in the ACAD_SUN hardOwner=0 profile."
+    }
+  },
+  "physical_source_observation": {
+    "path": "tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+    "repository_tracked": false,
+    "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+    "observed_edges": [
+      {
+        "from": "NOD 0x0C",
+        "key": "ACAD_SUN",
+        "to": "DICTIONARY 0x35F",
+        "wireHandleCode": 2,
+        "role": "soft owner"
+      },
+      {
+        "from": "DICTIONARY 0x35F",
+        "key": "360",
+        "to": "SUN 0x360",
+        "dictionaryHardOwner": 0,
+        "wireHandleCode": 2,
+        "role": "soft owner"
+      },
+      {
+        "from": "SUN 0x360",
+        "field": "common parent handle",
+        "to": "DICTIONARY 0x35F",
+        "parserResolvedHandleCode": 7,
+        "role": "relative soft pointer resolved by the parser"
+      }
+    ],
+    "temporary_debug_logs": [
+      "/private/tmp/sun-owner-role-postchange.log",
+      "/private/tmp/sun-owner-role-debug.log"
+    ],
+    "limits": "These parser observations establish the source graph and roles. The sample's strict CLI conversion still stops at the global incomplete DWG read-disposition gate before output graph validation; no physical whole-file output is claimed."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": [
+      "Historical behavior before the correction receipt: DICTIONARY DWG parsing required the item wire code to match hardOwner. This was incorrect and is no longer the current implementation.",
+      "The generic extension graph admits the canonical 360 edge only when it is rooted at the NOD ACAD_SUN dictionary and the typed SUN has a reciprocal parent handle.",
+      "The dedicated SUN owner validator requires one unaliased ACAD_SUN root, a complete one-entry 360 dictionary with hardOwner=0, and a unique typed SUN whose parentHandle names that dictionary.",
+      "The dictionary route is limited to same-revision AC1024 DWG input/output; VIEW, VPORT, and VIEWPORT hard-owner routes retain their existing gates."
+    ]
+  },
+  "generated_controls": {
+    "adapter_selector": "--dwg-typed-sun-output",
+    "ctest": "dwg2dxf_dwg_typed_sun_output",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "checks": [
+      "ACAD_SUN root and 360 dictionary item are emitted and remapped.",
+      "The item is read back as group 350 soft ownership, and the SUN's group 330 parent points back to the dictionary.",
+      "The typed SUN and dictionary graph survive fresh readback alongside VIEW, VPORT, and VIEWPORT-owned SUN records.",
+      "An unsupported CMC color preserves a pre-existing destination before the same writer is corrected and retried."
+    ],
+    "fixture_added": false
+  },
+  "dictionary_role_vector": {
+    "version": "AC1024",
+    "valid_cases": [
+      "Historical vector: a code-2 item under hardOwner=0 parses and leaves the following sentinel handle aligned.",
+      "Historical code-3/hardOwner=1 case is superseded; it encoded the incorrect assumption and is not normative evidence."
+    ],
+    "invalid_cases": [
+      "Historical mismatch cases are superseded by the correction receipt, which accepts code 2 for either hardOwner value and rejects code 3 for both."
+    ],
+    "selector": "libdxfrw_dwg_object_vectors_tests"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_object_vectors_tests -j2",
+    "build_result": "Passed",
+    "focused_adapter_test": "ctest --test-dir build-gcc -R '^dwg2dxf_dwg_typed_sun_output$' --output-on-failure",
+    "focused_adapter_test_result": "Passed: 1/1 in 0.54 seconds.",
+    "object_vectors_result": "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS after code-2/hardOwner-0, code-3/hardOwner-1, both mismatch refusals, and following-sentinel alignment controls.",
+    "physical_sample_read_test": "ctest --test-dir build-gcc -R '^dwg_read_AC1024_visualization_-_sun_and_sky_demo$' --output-on-failure",
+    "physical_sample_read_result": "Passed: 1/1 in 0.22 seconds.",
+    "strict_physical_export": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg -y -d -v2010 /private/tmp/sun-owner-graph-closed.dxf",
+      "result": "Exit 1 at strict-complete conversion requires successful, complete DWG read disposition; the output file was absent."
+    },
+    "whitespace_check": "git diff --check: passed",
+    "full_suite_run": false
+  },
+  "remaining": [
+    "Other SUN producer/version and dictionary-owner profiles remain unqualified.",
+    "The physical source drawing still lacks strict whole-file read completeness; this slice does not bypass that refusal.",
+    "Native SUN lighting/rendering and composed whole-document compatibility remain open."
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "title": "AC1024+ TABLE merged-range projection fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-126 / 7G.3d.3e",
+  "scope": "Project canonical AC1024+ DWG TABLECONTENT merged-range rectangles into the per-cell fields required by the existing DXF ACAD_TABLE writer, while refusing malformed typed content and retaining the raw-frame path.",
+  "changes": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionBehaviorChanged": true,
+    "versionScope": "AC1024 and later TABLECONTENT parsing",
+    "projection": "Canonical inclusive top/left/bottom/right ranges set only the top-left cell m_isMerged flag and inclusive m_mergedWidth/m_mergedHeight.",
+    "validation": [
+      "Require a nonempty rectangular cell grid when ranges are present.",
+      "Validate coordinate ordering and row/column bounds before index or span arithmetic.",
+      "Detect overlap with a checked, bounded 2D difference grid rather than pairwise range scans.",
+      "Malformed ranges mark the semantic tail incomplete, preserve raw-frame handling and withhold the typed content grid.",
+      "Keep the DXF writer's existing range-to-anchor preflight unchanged."
+    ],
+    "generatedControls": {
+      "ac1024ValidRanges": [
+        "horizontal",
+        "vertical",
+        "rectangular",
+        "multiple disjoint",
+        "untouched cells and payload retention"
+      ],
+      "malformedRanges": [
+        "inverted coordinates",
+        "out-of-bounds endpoint",
+        "overlapping rectangles"
+      ],
+      "ac1024BodyTailSentinel": true,
+      "asciiAndBinaryDxfLiteralGroups173175176": true,
+      "asciiAndBinaryDxfReadback": true
+    },
+    "newCtestRegistration": false,
+    "repositoryFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "peerOrNativeRun": false,
+    "fullSuiteRun": false,
+    "commitAttempted": false
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedParserSelector": {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-merged-range-projection",
+      "result": "PASS"
+    },
+    "focusedAdapterSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-table-callback",
+      "result": "PASS; covers ASCII and Binary DXF"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    "compatibilityCompile": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+      "result": "PASS"
+    },
+    "scopedDiffCheck": {
+      "command": "git diff --check -- src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "fullSuite": "NOT_RUN",
+    "peerRuntime": "NOT_RUN",
+    "nativeCad": "NOT_RUN"
+  },
+  "evidenceLimits": [
+    "The AC1024 vectors are generated in memory and are not producer-authored DWG samples.",
+    "The immediate BitLong sentinel is a generated body-tail boundary control, not a following independent DWG object.",
+    "ASCII/Binary output inspection and same-library readback establish local serialization behavior only, not independent DWG/DXF interoperability or native table rendering/editability.",
+    "Linked DATALINK/field graph closure and R24 TABLESTYLE suppression semantics remain outside this slice."
+  ],
+  "planImpact": {
+    "existingFindingAndSubplanOnly": true,
+    "findingCount": 138,
+    "topLevelSubplanCount": 77,
+    "sliceStatus": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / UNCOMMITTED",
+    "broaderPAR126": "REMAINS_IN_PROGRESS",
+    "implementationQueueChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

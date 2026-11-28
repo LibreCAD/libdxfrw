@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg2dxf-forced-cli-rebuild-2026-11-13",
+  "date": "2026-11-13",
+  "status": "MACOS_ARM64_CLI_REBUILD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Recheck the previously documented macOS _Nullable warning by forcing recompilation of the affected CLI source, rebuilding dwg2dxf, and running the focused batch output-name test.",
+  "environment": {
+    "platform": "macOS ARM64",
+    "compiler": "Apple Clang 21.0.0 through /usr/bin/g++",
+    "buildDirectory": "build-gcc",
+    "buildType": "Release"
+  },
+  "implementation": {
+    "parentCommit": "e69ed28d",
+    "files": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dwg2dxf-forced-cli-rebuild-2026-11-13.json"
+    ],
+    "method": "Forced recompilation by refreshing the source timestamp without changing file contents, then built the complete dwg2dxf target and batch output-name test target; ran the focused test executable."
+  },
+  "validation": {
+    "forcedCliBuild": "touch dwg2dxf/dx_batch_output_names.cpp && cmake --build build-gcc --target dwg2dxf -j4: PASS; affected object recompiled and CLI linked.",
+    "focusedTestBuild": "cmake --build build-gcc --target libdxfrw_batch_output_names_tests -j4: PASS",
+    "focusedTest": "build-gcc/tests/libdxfrw_batch_output_names_tests: PASS; duplicate refusal, distinct admission, case-insensitive filesystem behavior, and scratch cleanup.",
+    "crossPlatform": "NOT QUALIFIED"
+  },
+  "limitations": [
+    "This proves the warning does not reproduce in the current macOS ARM64 Apple Clang 21 Release build; it does not qualify other compiler versions, SDK configurations, or platforms.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6 implementation and retain remaining platform qualification gates."
+}

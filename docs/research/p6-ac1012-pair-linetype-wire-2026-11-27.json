@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-linetype-wire-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "f8ec349f7",
+  "implementationDigestSha256": "6adc57729f04a31c47bddf2fab648ff658b14f4432b15107a2d14bf8b6840f46",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.57 and 20.4.58",
+  "scope": "LTYPE_CONTROL 0x5 and standard LTYPE records BYBLOCK 0x14, BYLAYER 0x15 and CONTINUOUS 0x16 in the locally generated AC1012 collision pair.",
+  "checks": [
+    "Both control frames bind one role-2 CONTINUOUS entry followed by hard-owned BYBLOCK and BYLAYER. The three source frames bind exact names, description, zero dash count and pattern, all 256 zero text-area bytes, relative control owners, null extension and xref, boundaries and padding.",
+    "Each wrong-role mutation and byte-prefix truncation is rejected by the shared-bit observer, followed by successful original-frame retry. The adapter's source-bound linetype membership rejects a changed row owner, then passes after correction; the two source controls and shared vector CTest pass.",
+    "Independent cadkit-dwg 0.5.4 decodes the selected CONTINUOUS name, description, zero-dash body and the LTYPE_CONTROL's counted and two extra identities. The peer labels R13 untested. The updated handoff packet includes all four frame hashes. No drawing fixture was committed."
+  ],
+  "scratchPacket": "/private/tmp/ac1012-native-two-element-linetype-20261127",
+  "hashes": {
+    "observer": "4902080fc559ae4b6a41661a3b0916172ed0c8b4eff781ecff453e679e3da44e",
+    "observerResults": "032bab87eacf50de7f8fc4543c39271f132272ce92df69e6b24f952fd9c82ce7",
+    "ctestLog": "f5836e11531e8a69794e3ec3436cd066b1ed623ba3c7d9e3da6ad039230a96f9",
+    "cadkitLinetypeLog": "eee06e8d221ec044e7ef4df20cfd8ec6d7ebbe06f0a07926d6a2f1afeff25b55",
+    "cadkitControlLog": "c1cf39fdc17538f738e04e45c307730c3e63cef33507c4ab11f5fb6bd418b300",
+    "packetManifest": "c33a6a69b1759ae88cce31497832c8f964acf7959c37547bae591bb57429bae7"
+  },
+  "limits": [
+    "The generated frames place BYBLOCK before BYLAYER, while the specification lists the names in the other order. This observation does not establish a universal slot order; the adapter checks the identities of both slots without assuming one.",
+    "Only selected zero-dash generated R13 records are checked. Complete graph closure, AutoCAD normal-open, cloning semantics, native output and general support remain unqualified."
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-assocnetwork-multi-action-generated-2026-11-10",
+  "date": "2026-11-10",
+  "status": "GENERATED_AC1032_CANDIDATE_COUNT_AND_ROLE_CONTROL",
+  "supportClaimEffect": "none",
+  "scope": "Exercise AC1032 class-version-2 associative-network candidate parsing for multiple logical actions and a separately serialized owned-action list.",
+  "candidateBasis": {
+    "peer": "LibreDWG 0.14",
+    "source": "DomCR/ACadSharp samples/aec_objects/AecObjects.dwg",
+    "sourceSha256": "dc196e99b8944d169493c9f3205d45f8a579c0c96e81dbc7fc2f90cd971f7a7e",
+    "observation": "LibreDWG JSON reports a class-version-2 ACDBASSOCNETWORK with network_action_index 3 and three logical action references. The sample's producer provenance is unknown and libdxfrw cannot reach its OBJECTS section because of earlier handle-map/header integrity discrepancies; these are candidate values only, not a qualified wire profile."
+  },
+  "generatedProfile": {
+    "createdFromScratch": true,
+    "fixtureCommitted": false,
+    "version": "AC1032",
+    "classNumber": 768,
+    "classVersion": 2,
+    "baseActionIndex": 7,
+    "networkVersionCandidate": 0,
+    "networkActionIndexCandidate": 3,
+    "logicalActions": [
+      {
+        "owned": false,
+        "handle": "0xA015"
+      },
+      {
+        "owned": true,
+        "handle": "0xA016"
+      },
+      {
+        "owned": false,
+        "handle": "0xA017"
+      }
+    ],
+    "separateOwnedActionList": [
+      "0xA018"
+    ],
+    "networkFieldsParsed": false
+  },
+  "implementation": {
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "selector": "--assocnetwork-ac1032-multi-action-generated",
+    "change": "Add an in-memory DWG dispatch control for three logical references, mixed ownership flags, and one distinct owned-action handle. The test asserts exact typed candidates, complete bounded network prefix, and m_networkFieldsParsed=false. Production parser behavior is unchanged."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+    "buildResult": "PASS",
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_assocnetwork_ac1032_(candidate|multi_action)_generated$' --output-on-failure",
+      "result": "PASS 2/2"
+    },
+    "fixturePolicy": "No DWG/DXF fixture was added; test bytes are constructed in memory from scratch."
+  },
+  "limitations": [
+    "This is parser regression coverage for a candidate shape, not independent physical-span proof.",
+    "The AC1032 writer and graph route remain refused pending qualified source schema, producer/native evidence, and complete dependencies.",
+    "The ACadSharp AEC sample remains ineligible because the current libdxfrw reader refuses before OBJECTS."
+  ]
+}

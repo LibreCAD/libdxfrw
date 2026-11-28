@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-136 ASCII DXF semantic caret/control transport",
+  "mode": "Generated local ASCII/Binary DXF implementation fast slices",
+  "worktreeState": "Dirty shared worktree; unrelated changes preserved; this slice is uncommitted",
+  "scope": [
+    "Encode semantic ASCII-DXF literal carets and supported control scalars as documented caret spellings.",
+    "Decode recognized caret spellings once on semantic ASCII reads without confusing legacy DBCS trail bytes.",
+    "Keep raw carrier paths and Binary DXF unchanged, preserve NUL/CR/LF policy, and preflight encoded XDATA size."
+  ],
+  "implementation": {
+    "writer": [
+      "Typed ASCII paths encode literal caret as caret-space, C0 controls other than NUL/CR/LF as caret plus the corresponding ASCII character, and DEL as caret-question-mark.",
+      "Strict single-value and chunked paths treat an expanded caret pair as one scalar atom, so chunk boundaries cannot split it.",
+      "Compatible text paths transform source ASCII before codepage conversion of non-ASCII runs; the uppercase-symbol shortcut bypasses only values needing no transform.",
+      "Typed XDATA round-trip/length verification and the GeoData field-size preflight include caret expansion."
+    ],
+    "reader": [
+      "Caret decoding runs only for semantic ASCII DXF values and inside the active converter's ASCII branch.",
+      "Unknown caret spellings remain literal; caret-at decodes to its visible spelling and records UnrepresentedEscape rather than introducing NUL.",
+      "Raw spelling getters and Binary-DXF read/write remain unchanged."
+    ],
+    "generatedControls": [
+      "AC1018 and AC1021, strict and compatible output, group 1 and XDATA 1000",
+      "BEL, ESC, tab, unit-separator, DEL, literal/adjacent caret, unknown caret spelling, and NUL refusal",
+      "Physical value spelling, following LINE and EOF framing, and DBCS trail byte equal to caret",
+      "ASCII/Binary MTEXT group-3 chunk boundary, Binary-DXF byte preservation, and public TEXT/XDATA/ATTRIB/ATTDEF round trips",
+      "XDATA value whose ASCII caret expansion exceeds the group byte limit, with existing destination preservation"
+    ]
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "commitCreated": false
+  },
+  "assessment": {
+    "planFinding": "PAR-136 local implementation slice complete; AutoCAD/consumer qualification and C1-byte behavior remain open",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 136,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "limitations": [
+      "Local generated readback is not independent AutoCAD or other-CAD acceptance.",
+      "No C1-byte semantics are inferred from the ASCII control rule.",
+      "NUL remains unsupported; TEXT CR/LF refusal and MTEXT paragraph normalization remain unchanged."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check --parallel 4",
+      "build-gcc/libdxfrw_gbk_codepage_tests --target-text-transport",
+      "ctest --test-dir build-gcc -R '^libdxfrw_gbk_codepage$' --output-on-failure",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/intern/drw_textcodec.h src/intern/drw_textcodec.cpp src/intern/dxfreader.cpp src/intern/dxfwriter.h src/intern/dxfwriter.cpp src/libdxfrw.cpp tests/gbk_codepage_tests.cpp"
+    ],
+    "buildPassed": true,
+    "focusedSelectorPassed": true,
+    "focusedCtestPassed": true,
+    "focusedCtestCount": "1/1",
+    "lc3CompatCheckPassed": true,
+    "scopedDiffCheckPassed": true,
+    "fullSuiteRun": false,
+    "fixturesAdded": 0
+  },
+  "sourceSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "c928edb50e86c5583824b09bbcec355f765ca21318e4c1b601ec36ce60f74557",
+    "src/intern/drw_textcodec.h": "7cf43eff45a9550393674b2f3772b213328770895dfb4c668935f15ed7a3c30c",
+    "src/intern/drw_textcodec.cpp": "d5f09e8dbf7c314dce2e9d4e56807cf34690dbf0ae272dea2d55c1a6c2618283",
+    "src/intern/dxfreader.cpp": "ce8e45e32f1ad8266a6a544addfdcecb2fa2600b74f31dd7e38a120d0a0a9370",
+    "src/intern/dxfwriter.h": "b8b3b8b0c99a7a19cf2f6f8450c071d4d52a45cab90e18d0309687f9ff902f9b",
+    "src/intern/dxfwriter.cpp": "41f032f64244b75dfa5cecea0c1e6a165c7024170efbca524e39e81487d7037c",
+    "src/libdxfrw.cpp": "e6a2e73c966cb423a238d15ba40ecf280c40d075c351c65c235b9445bcbb8a13",
+    "tests/gbk_codepage_tests.cpp": "f72a5356ab947666dcdac53419d3a8804dab992afa9df834758ee88edef1f429"
+  },
+  "planSha256": "c928edb50e86c5583824b09bbcec355f765ca21318e4c1b601ec36ce60f74557"
+}

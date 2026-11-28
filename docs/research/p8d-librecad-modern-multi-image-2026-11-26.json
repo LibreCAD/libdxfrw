@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-modern-multi-image-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "bounded-generated-dxf-consumer-profile-only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "097c21e9280e23331316b33e8657bb15e440a60f",
+  "codecCommit": "985a48c89",
+  "codecImplementationDigestSha256": "53fbd21f428eb2cfa15b347083c19460630649f7d00b769adeedd5104378818d",
+  "scope": "Reuse the existing guarded multi-IMAGE graph for same-version AC1024, AC1027 and AC1032 ASCII DXF, retaining the AC1021 profile and its bounded source and staged-output checks.",
+  "authority": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3A2FF847-BE14-4AC5-9BD4-BD3DCAEF2281.htm",
+  "validation": [
+    "PASS: macOS ARM64 system-codec IMAGE and MATERIAL focused selection: 6796 assertions in 17 test cases; the existing two-to-32-image, distinct/shared definition, mixed MATERIAL, model and named-block controls now exercise AC1021, AC1024, AC1027 and AC1032.",
+    "PASS: generated modern controls retain group 290 values 0 and 1, refuse a cross-version save and a late coordinated typed/raw clip-mode mutation without replacing the destination, and allow corrected retry and fresh library readback. The nondefault control has clipping disabled.",
+    "PASS: ezdxf 1.4.5 independently reopens the generated AC1024, AC1027 and AC1032 sources and outputs, agrees on image geometry, paths, clip mode, IMAGEDEF ownership, reactor ownership and reciprocal reactor links; all six audits report zero errors and fixes.",
+    "PASS: ezdxf 1.4.5 independently verifies a four-image/two-definition graph in model space and two named blocks, with two INSERTs, for each of AC1021, AC1024, AC1027 and AC1032; source and output graph geometry agree, and all eight audits report zero errors and fixes.",
+    "PASS: LibreCAD bundled-codec filter object compilation; the new route remains gated on availability of the shared staged inspectors."
+  ],
+  "scratchOnly": {
+    "ac1024SourceSha256": "3ffb98d89b34c91170ee09b19ee614230f0f1c3061dbe1db4e85e67b9789cec1",
+    "ac1024OutputSha256": "a4f7ccf2f682ba837b528e68fe9ccb3c95e7582c012b5990a9a43a12f423a71b",
+    "ac1027SourceSha256": "a434a2071c8568a62c14c89fe0206bef960552646f0893b6cc0271fe3f700aa1",
+    "ac1027OutputSha256": "a794501d7cb35a06ba1c81dbbd1aff7ea9760bea9e5c1a44dc6560241f4fe0c4",
+    "ac1032SourceSha256": "32a25149ed77602cddd3850b8c60007f3b39fc31ec9b1c7d3be06050a0021979",
+    "ac1032OutputSha256": "c29e391bb582dbcd7f9d30ac598eaf8cba1e7515d3d93f9acb5d5fbcc7551e26",
+    "fixturesCommitted": false
+  },
+  "limits": "Generated ASCII DXF only. Binary output, external producer/native GUI qualification, clipping rendering and polygonal boundaries, cross-version output, other entity attributes, wider source graphs, DWG and other platforms remain open."
+}

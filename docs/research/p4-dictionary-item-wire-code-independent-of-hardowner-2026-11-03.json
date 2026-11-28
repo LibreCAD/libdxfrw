@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-dictionary-item-wire-code-independent-of-hardowner-2026-11-03",
+  "date": "2026-11-03",
+  "title": "DICTIONARY DWG item wire code is independent of hardOwner",
+  "status": "WIRE_ROLE_CORRECTED_PHYSICAL_PARSE_PASSES_OUTPUT_ADVANCED_TO_STYLE_GATE",
+  "scope": "Correct and verify DICTIONARY item-handle parsing and encoding without changing the separate DXF group-code ownership policy. This closes a bounded DWG field-role defect only; no document-output or semantic support claim is promoted.",
+  "normativeSource": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "section": "20.4.44 DICTIONARY",
+    "finding": "The section identifies DICTIONARY itemhandles as soft owner references. Its hardOwner flag is a separate body field.",
+    "localTextExtract": "/private/tmp/libdxfrw-oda-spec.txt",
+    "textLines": "8017-8055"
+  },
+  "independentPeer": {
+    "project": "GNU LibreDWG",
+    "version": "0.14",
+    "repository": "/Users/dli/dev/libredwg",
+    "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "schemaFile": "src/dwg.spec",
+    "schemaLines": "3143-3234",
+    "sourceRules": [
+      "The DWG object decoder/encoder uses HANDLE_VECTOR_N(itemhandles, numitems, 2, 0), encoding dictionary itemhandles with wire code 2.",
+      "The DXF writer separately derives group 350 or 360 from hardOwner and recognizes special hard-owner dictionary keys."
+    ],
+    "physicalJsonEvidence": {
+      "path": "/private/tmp/libdxfrw-et-border-libre.json",
+      "sha256": "bccee1259568948df2fd0e65c797932965574cc81824781864c3b34b4129d788",
+      "dictionaryHandles": ["0xE8", "0x2CD"],
+      "observations": [
+        "Handle 0xE8 has hardOwner=1 and ACAD_LAYERSTATES item tuple [2,1,233,233].",
+        "Handle 0x2CD has hardOwner=1 and ACAD_SORTENTS item tuple [2,2,718,718]."
+      ]
+    }
+  },
+  "physicalSource": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "repositoryFixture": false,
+    "priorDisposition": "The two DICTIONARY records at handles 0xE8 and 0x2CD failed parsing because the parser required a code-3 item when hardOwner=1.",
+    "currentDisposition": "Both records parse with one complete item each; DWG read observations report objectParseFailures=0. The named-block SORTENTSTABLE owner remains outside the qualified DXF owner scope."
+  },
+  "implementation": {
+    "files": {
+      "src/drw_objects.cpp": "ecd6038f7a983de0bfcc7f158643baa133522bc7973cbc7c887e96228d748e1e",
+      "src/drw_objects.h": "b05578d0db9778fead1a359018a21bdf2a859e8f390745b1c2bf04ee4abeffdb",
+      "tests/dwg_object_vectors_tests.cpp": "432f3069f5f95abedad76d02c48941efbe0a0445182b89d6049dad2fb92dec90",
+      "CMakeLists.txt": "35c3383263c3b44f8385af1953335b7ccce26e063b7e7fd77f167cde008e5a3e"
+    },
+    "behavior": [
+      "The parser and writer use DWG soft-owner code 2 for every non-null DICTIONARY item handle, independent of hardOwner.",
+      "hardOwner remains available to the DXF layer for group-350/group-360 ownership policy.",
+      "The existing dwgItemHandleCode API is retained; only its role mapping changed."
+    ]
+  },
+  "validation": {
+    "configure": {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests -j4",
+      "result": "PASS",
+      "dwg2dxfSha256": "b87aa7fbb74d626e3399f814857d45262e566a0c05654a29257453e32a63afe2",
+      "objectVectorTestSha256": "50b6954fe2dda4bea9bf987a958b13111175445689801079e1f10d65e0879f03"
+    },
+    "fastControl": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dictionary_item_wire_role$' --output-on-failure",
+      "result": "PASS",
+      "coverage": [
+        "Exact emitted item wire code is 2 for both hardOwner values across all six supported DWG writer revisions.",
+        "Generated AC1024 frames parse code-2 items with hardOwner=0 and hardOwner=1 and preserve a following sentinel handle.",
+        "Generated code-3 item handles are rejected for either flag and partial typed entries are cleared."
+      ]
+    },
+    "dxfOwnershipCompatibility": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dictionaryvar_custom_owners$' --output-on-failure",
+      "result": "PASS",
+      "coverage": "Existing generated custom-owner DICTIONARYVAR graphs preserve entry ownership and typed values through DXF import/output; this confirms the separate DXF group-role path remains intact."
+    },
+    "physicalTrace": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf '/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg' -y -d -v2010 /private/tmp/libdxfrw-et-border-after-dictionary-role-ac1024.dxf",
+      "exitStatus": 1,
+      "log": "/private/tmp/libdxfrw-et-border-after-dictionary-role-ac1024.log",
+      "logSha256": "813433fc4499ced53aea79717de7d1735ee2e215969a1c56800c2b32fc656bff",
+      "result": "The first AC1024-target run completes DWG reading with objectParseFailures=0; handles 0xE8 and 0x2CD each report one parsed dictionary entry. Output stops during BLOCK_RECORD planning callbacks. The nearby FIELDLIST line is a generic profile warning and is not the failure cause. The earlier -v2000 attempt selected AC1015 and is excluded because this adapter route requires AC1024."
+    },
+    "followUpPhysicalTrace": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf '/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg' -y -d -v2010 /private/tmp/et-border-final.dxf",
+      "exitStatus": 1,
+      "log": "/private/tmp/et-border-final.log",
+      "logSha256": "259d5129baa02da185821df26bb90de25b15f5157490b7c45afc7a589f58b7b1",
+      "result": "After the block-footer, ownerless fixed-space INSERT, and inventory-setup changes, the AC1024-target read still reports objectParseFailures=0 and the SORTENTSTABLE source graph is fully parsed. Output passes BLOCK_RECORD planning and reaches TABLES emission, then refuses at the known empty-name STYLE 0xDF boundary. A short-lived local stage trace identified the STYLE callback as the last reached table; those temporary markers were removed. SORTENTSTABLE output is not reached. The generic FIELDLIST warning is not the failure cause."
+    },
+    "broaderAdapterAttempts": [
+      {
+        "selector": "--layout-physical-ac1018-output-readback",
+        "result": "No output qualification. Its earlier run also printed the generic FIELDLIST warning, which is not itself evidence of the failure cause; rerun this selector before attributing a current blocker."
+      },
+      {
+        "selector": "--dictionary-default-physical-ac1018-output-readback",
+        "result": "No output qualification: the current run is blocked by the DICTIONARYWDFLT import-receipt gate."
+      },
+      {
+        "selector": "--named-resource-import-evidence",
+        "result": "No new evidence accepted: the broader generated cohort currently fails at a typed DICTIONARYVAR readback condition after the ASCII hardOwner group-code and owner-closure checks; the binary hardOwner case was not reached."
+      }
+    ]
+  },
+  "limitations": [
+    "The physical AC1018 file is inspected locally and is not added as a repository fixture.",
+    "No full physical DWG-to-DXF output/readback or native application acceptance is established by this correction.",
+    "The AC1018 named-block SORTENTSTABLE dictionary/table graph remains refused under the existing DXF owner-scope rule.",
+    "DXF 350/360 ownership behavior remains a separate projection and is not changed by the DWG item wire-code correction.",
+    "No support claims are promoted."
+  ],
+  "supersedes": {
+    "receipt": "docs/research/p4-ac1024-acad-sun-dictionary-soft-owner-output-2026-11-03.json",
+    "scope": "Its general statement that DWG item-handle wire role follows hardOwner and its hardOwner=1/code-3 generated vector. The AC1024 hardOwner=0 ACAD_SUN physical observation and bounded group-350 DXF output evidence remain valid."
+  },
+  "nextAction": "Continue P4 source/graph closure using the corrected per-field wire role. Resolve the AC1018 STYLE bit-order/source-disposition disagreement and the separate named-block SORTENTSTABLE DXF owner-scope gate. Keep both profiles refused until their source and consumer evidence is resolved."
+}

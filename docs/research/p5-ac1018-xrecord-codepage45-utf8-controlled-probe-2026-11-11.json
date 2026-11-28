@@ -1,0 +1,79 @@
+{
+  "id": "p5-ac1018-xrecord-codepage45-utf8-controlled-probe-2026-11-11",
+  "date": "2026-11-11",
+  "scope": "A locally authored three-string XRECORD inserted in a pinned existing ODA DXF, converted by ODA to AC1018 DWG and then AC1021 DXF. Only the inserted XRECORD is locally authored; the base drawing is not. No sample fixture is committed and no cross-producer support claim is made.",
+  "base": {
+    "oda_2004_dxf_sha256": "2c182a1f735af71a52cae7c5406e29ffecfc1b63d06eadf5114a7540f67879f3",
+    "provenance": "See p5-ac1018-table-descendant-graph-wire-2026-11-11.json; this same-vendor 2004 DXF came from audited ODA conversion of the pinned AC1018 TABLE source."
+  },
+  "authored_input": {
+    "sha256": "0661a2661ecdc09f5b5b2d3fe4bc489f0817ee2fdf44b26b24bb470bee01c002",
+    "encoding": "ANSI_1252 header and CP1252 bytes; actual code-1 value caf\u00e9\u2014\u20ac bytes 63 61 66 e9 97 80. Code-2 and code-3 use ASCII DXF Unicode escapes \\U+0416 and \\U+6F22.",
+    "object": "Locally inserted NOD entry CODEPAGE_PROBE soft-points to XRECORD 0x7ffe; groups 1, 2 and 3 carry the controlled values."
+  },
+  "producer": {
+    "tool": "ODA File Converter 27.1.0",
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "drawing_sha256": "39d94194e86473276b9a8bf3164e2f90c78cf67ac4d6a1afa4669f18479701ed",
+    "header": "AC1018, file codepage 30 (ANSI_1252), from bytes 0x13..0x14.",
+    "stored_xrecord_body_sha256": "5881e3e2498dcd5d0d6e2709a25340d00ce72d12fc4313d85f7e0315a5e853af",
+    "source_values": [
+      {
+        "group": 1,
+        "codepage": 45,
+        "rawHex": "636166c3a9e28094c280",
+        "utf8": "caf\u00e9\u2014\u0080"
+      },
+      {
+        "group": 2,
+        "codepage": 45,
+        "rawHex": "d096",
+        "utf8": "\u0416"
+      },
+      {
+        "group": 3,
+        "codepage": 45,
+        "rawHex": "e6bca2",
+        "utf8": "\u6f22"
+      }
+    ],
+    "raw_layout": "Each source string uses RS length, RC codepage 45 and exactly that many UTF-8 bytes; XRECORD common owner H code 4 points to NOD 0xc. The bit walk reaches declared body end bit 331 and owner end bit 347.",
+    "output_dxf_sha256": "4fffb221e84714f1759fb98987531fc1875e694125577a7ca69edea5bda905d1",
+    "output_values": [
+      [
+        "1",
+        "caf\u00e9\u2014\u0080"
+      ],
+      [
+        "2",
+        "\u0416"
+      ],
+      [
+        "3",
+        "\u6f22"
+      ]
+    ],
+    "observed_caveat": "Input group 1 includes U+20AC as CP1252 byte 0x80, but producer decoded it as U+0080 and stored c2 80; the roundtrip returns U+0080. The ODA producer thus does not preserve that input value. The raw DWG values and ODA DXF output do agree under UTF-8 for this one producer profile."
+  },
+  "independent": {
+    "libredwg_version": "0.14",
+    "peer_json_sha256": "86657ed2b301701a1769c3ca6d5b8b9f7bc7d2dfe02bcb9b75eda6a2d7e559f1",
+    "result": "LibreDWG independently identifies the XRECORD and owner but its minJSON text projection gives mojibake/truncation, including group 2 \u00d0\u2013 for actual UTF-8 \u0416; it does not qualify text semantics.",
+    "source_code": "https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/decode.c reads RS length and RC codepage but retains raw pre-2007 string bytes. https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/codepages.h declares header UTF8=0 and lists through 44, with no numeric 45. This enum is for header codepage; it does not resolve XRECORD value-byte 45.",
+    "acadsharp": "https://github.com/DomCR/ACadSharp/blob/3a52a52047e84670759c1f9ad3916ec3ce85ff56/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgStreamReaderBase.cs reads RS length and RC encoding key, but directly casts the byte to its separate Windows-codepage enum; no 45 mapping is established. Its indexed codepage array stops at 44.",
+    "zuken_registry": "https://www.zuken.com/doc/e3/series/en/Content/reference/dialogs/project_mode/export/IDD_FILESPECIAL_DXFEXPORT.htm documents value 45 as utf8 in its own DXF/DWG export registry; adjacent values align with 30/43/44 mappings, but that is an application setting and does not define the DWG XRECORD value-byte contract.",
+    "bentley_note": "https://bentleysystems.service-now.com/community?id=kb_article&sysparm_article=KB0109717 ties a DWG codepage-45 diagnostic to the Windows UTF-8 system-locale setting; it does not specify the XRECORD value-byte meaning.",
+    "oda_docs": "ODA v5.4.1 section 20.4.104 identifies a codepage byte for pre-R2007 XRECORD strings but neither maps 45 nor establishes that 0 inherits the file codepage. ODA IFC documentation https://www.opendesign.com/faq/ifc names CP_UTF_8 but does not give its numeric enum value or assert DWG on-wire meaning."
+  },
+  "commands": {
+    "author": "python3 tools/research/p5_xrecord_codepage45_verify.py author --base-dxf /private/tmp/p5-desc-dxf-2004/input.dxf --output /private/tmp/p5-cp45-authored-repro.dxf",
+    "oda_dwg": "Place authored input in an otherwise empty input directory, then invoke ODAFileConverter <input-dir> <dwg-output-dir> ACAD2004 DWG 0 1 '*.dxf'.",
+    "oda_dxf": "Invoke ODAFileConverter <dwg-output-dir> <dxf-output-dir> ACAD2007 DXF 0 1 '*.dwg'.",
+    "peer": "dwgread -O minJSON -o <peer.json> <drawing.dwg>",
+    "capture": "Build tools/research/p5_xrecord_codepage_capture.cpp against the isolated e5341dd31d686c529ba2f8172de56868bc3551b9 adapter and library using the same recipe as the descendant graph receipt; pass the source DWG and a new raw-body output file.",
+    "verify": "python3 tools/research/p5_xrecord_codepage45_verify.py verify --input-dxf /private/tmp/p5-cp45-authored-repro.dxf --dwg /private/tmp/p5-cp45-dwg-output2/input.dwg --body /private/tmp/p5-codepage-repro-body.bin --output-dxf /private/tmp/p5-cp45-dxf-output2/input.dxf --peer-json /private/tmp/p5-cp45-source-peer2.json",
+    "result": "PASS; report sha256 345e30859642d29e38c03a51e864344eb732eddd0f2cb236d5d7dbb8b7a34191. Pinned hashes bind this one run; ODA output may contain changing metadata, so regenerations require new hash receipts rather than assuming byte identity."
+  },
+  "remaining": "Treat 45-as-UTF-8 as a discriminating ODA-selected-producer observation, not a general DWG XRECORD rule; retain unknown-codepage fail-closed behavior pending authoritative XRECORD mapping or independent producer/consumer with non-ASCII witness. Codepage 0 inheritance is unresolved. Any later implementation must bind exact source bytes, validate UTF-8 including invalid/truncated/overlong sequences, preserve raw values/codepage, distinguish file codepage, test failures/retries and avoid silent fallback or mutation. Do not broaden support or TABLE output from the probe."
+}

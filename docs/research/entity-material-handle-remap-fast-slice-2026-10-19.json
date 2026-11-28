@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw-entity-material-handle-remap-fast-slice-v1",
+  "completedAt": "2026-10-19",
+  "status": "PASS_LOCAL_FAST_SLICE",
+  "scope": "Apply the established object-handle remap to non-default R2007+ common-entity MATERIAL group 347.",
+  "evidence": {
+    "formatContract": "Autodesk common entity codes define group 347 as the material hard-pointer reference; the writer gates it to DXF 2007 and later.",
+    "planOwner": "PAR-20/7G.3f.4b.2 entity material reference mapping; this slice closes only record-level identity remapping.",
+    "productionChange": "Common entity emission now writes remapObjectHandle(ent->material) for group 347."
+  },
+  "implementation": {
+    "filesChanged": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "ebbd53529f68c136eaf133470403a06f033a72d549c50c7a4c04073ec5e4f8e1",
+      "tests/dxf_fixture_tests.cpp": "eae905db4027ff48c63955ad37874a5ca3437e17055f999a1c76606c4ddeb019"
+    },
+    "productionCodeChanged": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "newTestTarget": false,
+    "newCTestRegistration": false,
+    "committedFixtureFiles": 0,
+    "dependenciesAdded": 0,
+    "generatedProfiles": [
+      "ASCII AC1021 LINE with material source handle 0x901 remapped to 0xA01 and parsed back",
+      "Binary AC1021 LINE with material source handle 0x901 remapped to 0xA01 and parsed back"
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --entity-material-handle-remap",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+        "result": "PASS",
+        "summary": "1/1 passed in 3.87 seconds"
+      },
+      {
+        "command": "git diff --check -- src/libdxfrw.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/entity-material-handle-remap-fast-slice-2026-10-19.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuitesRun": false,
+    "peerRuntimesRun": 0,
+    "nativeCadRuns": 0,
+    "externalFilesDownloaded": 0
+  },
+  "limits": {
+    "provesMaterialTargetEmission": false,
+    "provesAcadMaterialRootClosure": false,
+    "provesFullMaterialPayloadFidelity": false,
+    "provesNativeAcceptanceOrRendering": false,
+    "promotes3dConsumerSupport": false,
+    "promotesSupportClaims": false,
+    "findings": 137,
+    "topLevelImplementationSubplans": 77,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

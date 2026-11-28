@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "DWG 3DFACE invisible-edge flag domain and retry",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Prevent DWG 3DFACE writer narrowing from silently changing invalid edge masks and verify bounded versioned output/readback.",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.32 3DFACE",
+    "field": "Invis flags, BS group 70",
+    "dxfDomain": "Four edge-visibility bits, values 0 through 15"
+  },
+  "implementation": {
+    "file": "src/libdwgr.cpp",
+    "behavior": "The DWG facade rejects base DRW_3Dface values below NoEdge or above AllEdges before entity encoding and latches the write failure, preserving derived custom codec behavior.",
+    "invalidValues": [-1, 16, 65536]
+  },
+  "generatedControl": {
+    "source": "Locally authored at test runtime; output DWGs are written to scratch and removed.",
+    "writerVersions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "validMasks": [5, 15, 0],
+    "geometry": "One tilted planar WCS face, one flat zero-Z face, and one following LINE; readback compares all corner coordinates, masks, and LINE coordinates.",
+    "failureAndRetry": "For every writer version, each invalid mask is rejected without changing the existing destination bytes; the same dwgRW and adapter then write a corrected drawing which is read back successfully.",
+    "parseFailures": {
+      "entities": 0,
+      "objects": 0
+    }
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "buildResult": "PASS under the configured warning-as-error policy",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_3dface_flag_domain$' --output-on-failure",
+    "testResult": "PASS (1/1, 0.84 seconds)",
+    "diffCheck": "PASS",
+    "testExecutableSha256": "00e927f69ccb71d0170c51a77c8ee13055718a5be8f88cdf18b2bc64ab7eb708",
+    "sourceFileSha256": {
+      "src/libdwgr.cpp": "362239feef15f9bc3c2575c475eaf8d1ec2c116231e954974192b1bfbf95512f",
+      "tests/dwg_local_roundtrip_tests.cpp": "2855a3cd0ef8eb510dd3b712442111d91782b97acb24be16220f257d91adb50d",
+      "tests/CMakeLists.txt": "85cbf4216602b2b5d576ab7aaee98a2f4afbf19ad6089ea92741b37105e7bacd"
+    },
+    "fullSuites": "NOT RUN"
+  },
+  "evidenceCeiling": "Generated writer/parser consistency and failure atomicity only. No independent producer, native application, or family-wide 3DFACE support claim is established. No DWG/DXF fixture is committed."
+}

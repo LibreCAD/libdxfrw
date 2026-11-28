@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Cross-project failure-shapes and local gate crosswalk",
+  "mode": "Primary-source issue and documentation review with local source/test inventory; no peer runtime",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen recent LibreDWG and OpenCADStudio reports for source-backed failure shapes relevant to DXF/DWG reader, writer, resource, and consumer boundaries.",
+    "Crosswalk reports against existing local fast tests and PAR owners without inferring matching defects or support claims.",
+    "Refine implementation-ready gates while preserving scratch/repository-owned fixture policy and reduced validation cadence."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG issue #1408",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1408",
+      "revision": "Issue opened 2026-09-01; mutable issue thread reviewed 2026-10-20.",
+      "observed": "The reporter describes a released dwg2dxf path that exits successfully but emits malformed ASCII DXF for some CR-bearing TEXT/MTEXT strings, with a dropped character; a simple CR input did not reproduce the reported complex case.",
+      "limits": "Peer issue evidence only; the complex drawing was not available or independently reproduced, and it does not establish a libdxfrw defect."
+    },
+    {
+      "project": "LibreDWG issue #1409",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1409",
+      "revision": "Issue opened 2026-09-02; mutable issue thread reviewed 2026-10-20.",
+      "observed": "The reporter attributes missing block contents in dwg2dxf to a helper advancing its caller's object-array loop index, and reports per-block/count differences against the same-tree JSON reader on real drawings.",
+      "limits": "Peer source diagnosis and reported comparison; no customer drawing was obtained or run locally and no libdxfrw defect was confirmed."
+    },
+    {
+      "project": "LibreDWG issue #1410",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1410",
+      "revision": "Issue opened 2026-09-02; mutable issue thread reviewed 2026-10-20.",
+      "observed": "The issue reports DXF importer edge cases involving zero-valued HATCH coordinates, unusual ATTDEF/ATTRIB tags, and embedded-MTEXT fields on multiline attributes.",
+      "limits": "Issue-author repro and proposed patch only; the embedded-field workaround is explicitly marked a stopgap, and source drawings/native behavior were not independently verified."
+    },
+    {
+      "project": "LibreDWG issue #1395",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1395",
+      "revision": "Issue opened 2026-08-14; mutable issue thread reviewed 2026-10-20.",
+      "observed": "The reporter identifies repeated exact-size reallocations in LibreDWG's public block entity insertion path and presents normal-versus-batched timing measurements.",
+      "limits": "This concerns a separate library's construction API and cannot set libdxfrw performance thresholds."
+    },
+    {
+      "project": "OpenCADStudio issue #1837",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/1837",
+      "revision": "Issue opened and closed 2026-10-16; mutable issue thread reviewed 2026-10-20.",
+      "observed": "The maintainer reports an application-side heuristic that treated a polyline with at least 100,000 vertices as structurally invalid, causing recovery; the heuristic was removed in commit 04b2c07.",
+      "limits": "The linked public drawing was not fetched. This is evidence about that application's heuristic, not normative proof that every large polyline is valid or resource-safe."
+    },
+    {
+      "project": "OpenCADStudio issue #1896",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/1896",
+      "revision": "Issue opened 2026-10-19; mutable issue thread reviewed 2026-10-20.",
+      "observed": "The reporter describes one AC1027 drawing with an ACIS-based 3DSOLID rejected as type_code 37 with an invalid array count.",
+      "limits": "The source drawing is not public and OpenCADStudio shares the ACadRust codec lineage already represented in the plan; this is not independent parser evidence."
+    },
+    {
+      "project": "OpenCADStudio issue #1872",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/1872",
+      "revision": "Issue opened 2026-10-17; mutable issue thread reviewed 2026-10-20.",
+      "observed": "A user reports slow window selection and orbiting on a large drawing, with a linked peer test archive.",
+      "limits": "The archive was not downloaded. The report does not isolate codec, scene construction, selection, renderer, or hardware costs."
+    },
+    {
+      "project": "OpenCADStudio issue #1923",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/1923",
+      "revision": "Issue opened and reviewed 2026-10-20; mutable issue thread.",
+      "observed": "The maintainer attributes a repair prompt to DGN-derived records retained raw rather than typed and reports decode/display timings; the reporter says interaction remained sluggish.",
+      "limits": "The source drawing is confidential, only a repair log is attached, and the observations were not independently reproduced."
+    },
+    {
+      "project": "FreeCAD DWG import documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "revision": "Mutable main-branch documentation reviewed 2026-10-20.",
+      "observed": "The documentation describes stock DWG interoperability as an external DWG-to-DXF converter followed by FreeCAD's standard DXF importer and notes incomplete entity coverage for LibreDWG.",
+      "limits": "Documentation is not a pinned runtime observation and includes conservative/older statements; it does not establish native Linux/Windows results or ACIS semantics."
+    },
+    {
+      "project": "Local libdxfrw source and fast-test inventory",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md; tests/dxf_fixture_tests.cpp; tests/hardening_tests.cpp; tests/dwg_reader_matrix_tests.cpp; src/drw_entities.cpp",
+      "revision": "Working tree reviewed 2026-10-20.",
+      "observed": "The inventory contains ASCII/Binary HATCH zero-Y controls, embedded-MTEXT ATTRIB/ATTDEF controls, text framing/refusal controls, bounded POLYLINE ownership/staging tests, and an LWPOLYLINE count cap of 1,000,000. PAR-141 already covers linearized attributed-INSERT staging concerns.",
+      "limits": "Source/test inventory is not a test execution or a complete performance audit; no local tests were run in this research pass."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-05 text and DXF output-integrity controls: separate process success, atomic publication, strict syntax, and semantic text retention.",
+      "PAR-06/PAR-49 source-to-output disposition: compare source and output identities by owner/block; aggregate counts are insufficient.",
+      "PAR-07/S8 composed-consumer evidence: distinguish codec acceptance, native importer capability, scene preparation, and interactive latency.",
+      "PAR-14 and POLYLINE resource gates: distinguish structural corruption from explicit resource-limit refusal and keep stress checks infrequent."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a newest-research summary and detailed cross-project failure-shape/local-gate crosswalk.",
+    "Refined existing writer, source-to-output identity, resource-policy, and optional consumer-stage gates without adding a finding or top-level subplan.",
+    "Kept external fixtures out of the repository, fast-test cadence unchanged, and all six deferred external items non-promoting."
+  ],
+  "limitations": [
+    "GitHub issue threads are mutable and provide peer-reported evidence; no peer executable was built or run.",
+    "No linked issue drawing/archive was downloaded; no independent strict-DXF parser or native CAD application was invoked.",
+    "Local conclusions are a source/test inventory only, not a full code audit or runtime qualification."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (plan diff check; new receipt whitespace check produced no diagnostics)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

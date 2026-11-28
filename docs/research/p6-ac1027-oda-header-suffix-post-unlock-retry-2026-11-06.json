@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1027 HEADER suffix ODA retry after unlock request",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Retry the existing controlled AC1027 ODA resave after the user again reported unlocking the Mac session; establish whether a current converter output is available for independent HEADER suffix analysis.",
+  "source": {
+    "path": "/private/tmp/libredwg-tablecontent-probe-src/test/test-data/2013/Line.dwg",
+    "sha256": "351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1",
+    "provenanceLimit": "Existing local LibreDWG test-data copy; repository revision and original producer remain unauthenticated. No fixture was committed."
+  },
+  "converter": {
+    "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "directCliCommand": "ODAFileConverter /private/tmp/libdxfrw-cover-unlock-1106/in /private/tmp/libdxfrw-cover-unlock-1106/out ACAD2013 DWG 0 0",
+    "directCliResult": "ABORT (exit 134) during pasteboard/XPC initialization; output directory remained empty.",
+    "desktopLaunchCommand": "open -a /Applications/ODAFileConverter.app --args /private/tmp/libdxfrw-cover-unlock-1106/in /private/tmp/libdxfrw-cover-unlock-1106/out ACAD2013 DWG 0 0",
+    "desktopLaunchResult": "Launch Services returned kLSNoExecutableErr (-10827); no output was produced.",
+    "postAttemptOutputFiles": [],
+    "latestRetryAfterUnlockReport": {
+      "command": "ODAFileConverter /private/tmp/libdxfrw-cover-unlock-1106/in /private/tmp/libdxfrw-cover-unlock-1106/out ACAD2013 DWG 0 0",
+      "result": "ABORT (SIGABRT, return code -6) during pasteboard/XPC initialization; stdout empty; stderr reports clipboard/find pasteboard creation errors and invalid com.apple.hiservices-xpcservice connections.",
+      "sourceSha256": "351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1",
+      "converterSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+      "postAttemptOutputFiles": [],
+      "observedAtMacLocalLog": "2026-11-06 06:30 UTC local system log timestamp"
+    },
+    "latestRetryAfterSecondUnlockReport": {
+      "command": "ODAFileConverter /private/tmp/libdxfrw-cover-unlock-1106/in /private/tmp/libdxfrw-cover-unlock-1106/out ACAD2013 DWG 0 0",
+      "result": "ABORT (exit 134) during pasteboard/XPC initialization; stdout empty; stderr reports pasteboard clipboard/find errors and invalid com.apple.hiservices-xpcservice connections.",
+      "sourceSha256": "351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1",
+      "converterSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+      "postAttemptOutputFiles": [],
+      "observedAtUtc": "2026-11-06 10:23 UTC"
+    },
+    "sourceCopySha256": "351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1",
+    "latestRetryAfterThirdUnlockReport": {
+      "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/libdxfrw-oda-retry-after-unlock-1106b/in /private/tmp/libdxfrw-oda-retry-after-unlock-1106b/out ACAD2013 DWG 0 0",
+      "result": "ABORT (SIGABRT, return code -6) during pasteboard/XPC initialization; stdout empty; stderr reports clipboard/find pasteboard creation errors and invalid com.apple.hiservices-xpcservice connections.",
+      "sourceSha256": "351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1",
+      "converterSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+      "postAttemptOutputFiles": [],
+      "boundedSeconds": 25,
+      "observedAtLocal": "2026-11-06 16:35:12 America/Toronto"
+    },
+    "latestRetryAfterFourthUnlockReport": {
+      "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/libdxfrw-oda-retry-after-unlock-1106c/in /private/tmp/libdxfrw-oda-retry-after-unlock-1106c/out ACAD2013 DWG 0 0",
+      "result": "ABORT (SIGABRT, return code -6) during pasteboard/XPC initialization; stdout empty; stderr reports clipboard/find pasteboard creation errors and invalid com.apple.hiservices-xpcservice connections.",
+      "sourceSha256": "351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1",
+      "converterSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+      "postAttemptOutputFiles": [],
+      "boundedSeconds": 25,
+      "observedAtLocal": "2026-11-06 17:11:24 America/Toronto"
+    },
+    "latestRetryAfterFifthUnlockReport": {
+      "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/libdxfrw-cover-unlock-1106/in /private/tmp/libdxfrw-cover-unlock-1106/out ACAD2013 DWG 0 0",
+      "result": "ABORT (SIGABRT, return code -6) during pasteboard/XPC initialization; stdout empty; stderr reports clipboard/find pasteboard creation errors and invalid com.apple.hiservices-xpcservice connections.",
+      "sourceSha256": "351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1",
+      "converterSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+      "postAttemptOutputFiles": [],
+      "boundedSeconds": 25,
+      "observedAtLocal": "2026-11-06 19:27:20 America/Toronto"
+    },
+    "latestRetryAfterSixthUnlockReport": {
+      "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/libdxfrw-cover-unlock-1107/in /private/tmp/libdxfrw-cover-unlock-1107/out ACAD2013 DWG 0 0",
+      "result": "ABORT (SIGABRT, return code -6) during pasteboard/XPC initialization; stdout empty; stderr reports clipboard/find pasteboard creation errors and invalid com.apple.hiservices-xpcservice connections.",
+      "sourcePath": "/Users/dli/doc/dwg/Cover.dwg",
+      "sourceSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "converterSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+      "postAttemptOutputFiles": [],
+      "boundedSeconds": 30,
+      "observedAtLocal": "2026-11-07 01:34:58 America/Toronto"
+    },
+    "latestRetryAfterSeventhUnlockReport": {
+      "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter <fresh-input-dir> <fresh-output-dir> ACAD2013 DWG 0 0",
+      "result": "ABORT (SIGABRT, return code -6) during pasteboard/XPC initialization; stdout empty; stderr reports pasteboard clipboard/find errors and invalid com.apple.hiservices-xpcservice connections.",
+      "sourcePath": "/Users/dli/doc/dwg/Cover.dwg",
+      "sourceSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "converterSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+      "postAttemptOutputFiles": [],
+      "boundedSeconds": 30,
+      "observedAtLocal": "2026-11-07 03:02 America/Toronto",
+      "stderrExcerpt": "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]; PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]; invalid com.apple.hiservices-xpcservice connection."
+    },
+    "latestRetryAfterEighthUnlockReport": {
+      "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/libdxfrw-cover-unlock-current/in /private/tmp/libdxfrw-cover-unlock-current/out ACAD2013 DWG 0 0",
+      "result": "ABORT (SIGABRT, return code -6) during pasteboard/XPC initialization; stdout empty; stderr reports clipboard/find pasteboard creation errors and invalid com.apple.hiservices-xpcservice connections.",
+      "sourcePath": "/Users/dli/doc/dwg/Cover.dwg",
+      "sourceSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "converterSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+      "postAttemptOutputFiles": [],
+      "boundedSeconds": 35,
+      "observedAtLocal": "2026-11-07 06:06:21 America/Toronto",
+      "stderrExcerpt": "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]; PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]; invalid com.apple.hiservices-xpcservice connection."
+    }
+  },
+  "decision": "No fresh resave exists to analyze. An eighth bounded direct launch after the user again reported unlocking the Mac session used the exact AC1027 Cover source and a fresh input/output directory, but aborted during pasteboard/XPC initialization before document processing. Source and converter hashes match prior attempts and output remained empty. Do not repeat the unchanged direct launch. Suffix analysis needs a changed launch environment or method that reaches document processing, or another eligible independent source. Continue local implementation work meanwhile.",
+  "nextAction": "Do not repeat the unchanged direct CLI launch. Use a changed, functioning GUI/launch environment or an eligible independent native/semantic source for the suffix; continue independent local implementation work meanwhile.",
+  "validation": {
+    "sourceHashRechecked": true,
+    "converterHashRechecked": true,
+    "outputDirectoryChecked": true,
+    "fullSuites": "NOT RUN",
+    "postUnlockUserReportedRetry": "An eighth bounded direct launch after the latest unlock report used Cover.dwg in a fresh directory and aborted with SIGABRT before producing output. Source and converter hashes matched the prior receipt; Python subprocess enforced the 35-second timeout and captured the abort."
+  }
+}

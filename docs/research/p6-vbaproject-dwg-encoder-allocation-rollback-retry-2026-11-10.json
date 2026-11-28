@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-vbaproject-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "status": "GENERATED_DWG_ENCODER_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dimassoc_dwg_encoder_allocation_tests.cpp"
+    ],
+    "behavior": "DRW_VbaProject::encodeDwg stages the body and effective handle stream, preserving legacy inline handles and later detached or aliased handle streams. Caller buffers are published only after the full payload and common handle prefix succeed."
+  },
+  "generatedProfiles": [
+    {"version": "AC1015", "streams": "separate handles", "allocationOffsets": 11},
+    {"version": "AC1015", "streams": "body-aliased handles", "allocationOffsets": 8},
+    {"version": "AC1018", "streams": "separate handles", "allocationOffsets": 11},
+    {"version": "AC1018", "streams": "body-aliased handles", "allocationOffsets": 8},
+    {"version": "AC1021", "streams": "separate handles", "allocationOffsets": 11},
+    {"version": "AC1021", "streams": "body-aliased handles", "allocationOffsets": 8}
+  ],
+  "totalAllocationOffsets": 57,
+  "result": "Every injected failure preserves caller bytes, cursors, and handle-occurrence state; retrying the same object into the same streams matches clean output.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests -j2",
+    "test": "libdxfrw_dwg_object_encoder_allocation_retry",
+    "result": "PASS (1/1; target includes all six generated VBA_PROJECT profiles)",
+    "fullSuites": "not run"
+  },
+  "limitations": [
+    "Generated transaction evidence only; no physical producer or consumer qualification.",
+    "Does not establish VBA payload meaning, graph closure, or whole-file support.",
+    "No drawing fixture was added and no support claim is promoted."
+  ]
+}

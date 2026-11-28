@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "title": "AutoCAD-authored POINT read-field matrix across six DWG versions",
+  "scope": "Compare one POINT's handle, WCS coordinates and extrusion across hash-pinned DWGs, paired source DXFs where available, the current-source libdxfrw semantic adapter, and LibreDWG 0.14.",
+  "corpus": {
+    "repository": "https://github.com/nextgis/dwg_samples",
+    "revision": "ff05d5a89ce123da511ed93c5fe5e6df85e02ab8",
+    "producer": "AutoCAD 2016 M.49.0.0, blank metric drawings authored with _POINT 50,50,50",
+    "adapterSourceRevision": "e598615cffdf1bfe3c27912a63ebe2c4a369c8cd",
+    "adapterSha256": "209f41351e8704ea015e6bf59be72b63f1efcbab40d809ae351bc819688f48b8",
+    "independentReader": "LibreDWG dwgread 0.14"
+  },
+  "layoutAuthority": "ODA Open Design Specification v5.4.1, section 20.4.31 (POINT)",
+  "results": [
+    {
+      "file": "point3d_R14.dwg",
+      "version": "AC1014",
+      "dwgSha256": "7e6b1378b053f20de2cf9d153da3485e6475d0cd5845d5a8144b09cfe17cdc46",
+      "pairedDxf": null,
+      "pointHandle": "0x7c",
+      "wcsXYZ": [50.0, 50.0, 50.0],
+      "extrusion": [0.0, 0.0, 1.0],
+      "libdxfrwMatchesLibreDWG": true
+    },
+    {
+      "file": "point3d_2000.dwg",
+      "version": "AC1015",
+      "dwgSha256": "af51e9d5c75a9fd2a014a80bb03633faca93de2a54278e0b403a17ee1b3d7083",
+      "pairedDxf": {"file": "point3d_2000.dxf", "sha256": "3ef77eb893b58d0e96f903f3ebad93f5cf4b5d60994c00ca0d2f943a3931cc34"},
+      "pointHandle": "0x7c",
+      "wcsXYZ": [50.0, 50.0, 50.0],
+      "extrusion": [0.0, 0.0, 1.0],
+      "libdxfrwMatchesLibreDWG": true,
+      "libdxfrwMatchesPairedDxf": true
+    },
+    {
+      "file": "point3d_2004.dwg",
+      "version": "AC1018",
+      "dwgSha256": "ba256436ee4bb1e777296699654d9ad872c5c27fcda0e9b535868c584f4cfde5",
+      "pairedDxf": {"file": "point3d_2004.dxf", "sha256": "c2f40fbb2e362c2eeb86bcc4fb9989eea445d4740334d79623bfa99cfea43085"},
+      "pointHandle": "0x7c",
+      "wcsXYZ": [50.0, 50.0, 50.0],
+      "extrusion": [0.0, 0.0, 1.0],
+      "libdxfrwMatchesLibreDWG": true,
+      "libdxfrwMatchesPairedDxf": true
+    },
+    {
+      "file": "point3d_2007.dwg",
+      "version": "AC1021",
+      "dwgSha256": "4d46ed43787fe97f8eef17e529396a4c33fef7c1d22c40816b2e61bfc6e89474",
+      "pairedDxf": {"file": "point3d_2007.dxf", "sha256": "2afd335ab2364e16bffef8c7640c8a5399ca25926f4f0a6af27fe04e5de35eb7"},
+      "pointHandle": "0x7c",
+      "wcsXYZ": [50.0, 50.0, 50.0],
+      "extrusion": [0.0, 0.0, 1.0],
+      "libdxfrwMatchesLibreDWG": true,
+      "libdxfrwMatchesPairedDxf": true
+    },
+    {
+      "file": "point3d_2010.dwg",
+      "version": "AC1024",
+      "dwgSha256": "9819e04c3ae5e75fb4aa0c6265e77421faa833acec0ebbb60feb34f019259b19",
+      "pairedDxf": {"file": "point3d_2010.dxf", "sha256": "1bccc1155424d48fe7d79de991db9d3dd5b9e818298e50c1e73a6579d6132cdf"},
+      "pointHandle": "0x7c",
+      "wcsXYZ": [50.0, 50.0, 50.0],
+      "extrusion": [0.0, 0.0, 1.0],
+      "libdxfrwMatchesLibreDWG": true,
+      "libdxfrwMatchesPairedDxf": true
+    },
+    {
+      "file": "point3d_2013.dwg",
+      "version": "AC1027",
+      "dwgSha256": "839297daa100c318d5afbfa128145d2c4782300650c86b2ab58b34cf6fe1aba4",
+      "pairedDxf": {"file": "point3d_2013.dxf", "sha256": "bf1e050ecc8aa9cf09471f5bcac75f0c7844bbc895b7eb76f72489bde2567fbb"},
+      "pointHandle": "0x7c",
+      "wcsXYZ": [50.0, 50.0, 50.0],
+      "extrusion": [0.0, 0.0, 1.0],
+      "libdxfrwMatchesLibreDWG": true,
+      "libdxfrwMatchesPairedDxf": true
+    }
+  ],
+  "implementation": {
+    "file": "tests/semantic_differential_adapter.cpp",
+    "change": "Fixed named-summary JSON row serialization by composing prefix fields inside exactly one object. AC1015 and AC1018 samples had exposed a doubled object opener that made adapter output invalid JSON.",
+    "effect": "Unblocks the existing independent POINT comparison for all six pinned version profiles; no production library parser behavior changed."
+  },
+  "validation": {
+    "controlledCurrentSourceStandaloneBuild": "PASS",
+    "buildSemanticAdapterSelfTest": "PASS",
+    "runQualifiedDifferentialV2SelfTest": "PASS",
+    "sixVersionReadFieldMatrix": "PASS: all six DWGs match LibreDWG for handle 0x7c, WCS XYZ and extrusion; all five available paired source DXFs match.",
+    "fixturePolicy": "Downloaded samples and DXFs remain outside the repository; no fixture was committed."
+  },
+  "claimBoundary": "One POINT read-field witness per pinned sample. This does not qualify other entities, general version support, DWG writing, native CAD geometry, FreeCAD, or whole-file conversion."
+}

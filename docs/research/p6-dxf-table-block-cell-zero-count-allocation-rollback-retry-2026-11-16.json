@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-table-block-cell-zero-count-allocation-rollback-retry-2026-11-16",
+  "date": "2026-11-16",
+  "status": "GENERATED_BLOCK_CELL_ZERO_COUNT_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Cover the AC1018 typed TABLE block-cell source-presence spelling that retains a physical group 179 value of zero, including allocation rollback, same-writer retry, readback, and overload-specific refusal.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One-row/one-column AC1018 TABLE with one typed block cell, one matching TABLE_CELL_BLOCK record, cell override/alignment values, and source-presence mask 2 selecting group 179=0.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/table_legacy_height_controls.h",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-table-block-cell-zero-count-allocation-rollback-retry-2026-11-16.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "Extended legacyTablePresenceAllocationTests() with a block-cell group-179=0 profile. The zero-override overload is checked to refuse mask 2 atomically; changing to the source-presence overload on the same writer succeeds.",
+    "method": "For the source-presence overload, inject std::bad_alloc at each of 10 reached allocations in both ASCII and Binary output. Require prior destination sentinel, caller identities, and full TABLE body to remain unchanged. Retry on the same adapter/writer; compare exact output bytes and freshly read the block-cell target identity and exactly one physical 179=0."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests -j 4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_table_legacy_presence_allocation$' --output-on-failure: PASS 1/1 in 1.76 seconds",
+    "directSelector": "build/tests/libdxfrw_table_content_dxf_tests --legacy-table-presence-allocation: PASS; new block-cell profile reached 10 allocation offsets in ASCII and 10 in Binary; overload refusal/corrected retry/readback passed in both encodings.",
+    "existingMatrix": "The selector also reran the existing 1x1 and 2x2 text-cell profiles for both public overloads and encodings; all prior allocation rollback/retry/readback controls passed."
+  },
+  "limitations": [
+    "The table is generated in memory; this does not establish producer prevalence, original source-field provenance, native rendering, or overall TABLE support.",
+    "The block reference target is checked by its emitted/read-back block-record identity; this does not qualify arbitrary nested block graphs or consumer semantics.",
+    "No support claim is promoted and no DWG/DXF fixture was added."
+  ],
+  "planImpact": {
+    "completedSlice": "AC1018 block-cell 179=0 source-presence writer allocation rollback, same-writer retry, ASCII/Binary byte equality, typed readback, and zero-override overload refusal boundary.",
+    "remainingP6G": "Continue the public-writer inventory; choose a different route only after checking its route-specific tests and exact-profile receipts.",
+    "phaseStatusesChanged": false
+  },
+  "nextAction": "Select one next locally actionable public-writer assertion gap; do not repeat the TABLE block-cell zero-count profile or infer native TABLE semantics.",
+  "verificationRefresh": {
+    "date": "2026-11-16",
+    "repositoryHead": "110e99c5",
+    "build": "cmake --build build-gcc --target libdxfrw_proxy_entity_object_id_allocation_tests libdxfrw_table_content_dxf_tests -j4: PASS",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^(libdxfrw_proxy_entity_object_id_allocation|libdxfrw_table_legacy_presence_allocation)$' --output-on-failure: PASS 2/2 (1.58 sec)",
+    "profileResult": "AC1018 block-cell 179=0 profile passed in ASCII and Binary; no fixture files added."
+  }
+}

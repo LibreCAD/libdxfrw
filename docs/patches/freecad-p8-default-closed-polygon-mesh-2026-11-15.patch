@@ -1,0 +1,176 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index 1d02ec2..d9efd8a 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2417,7 +2417,7 @@ void CDxfRead::ProcessPolyfaceInteger(CDxfRead* object, void* target)
+ 
+ bool CDxfRead::ReadBoundedMesh(
+     bool profileValid, const std::string& parentHandle, const std::string& containerHandle,
+-    bool polygonMesh, int mCount, int nCount
++    bool polygonMesh, int mCount, int nCount, bool closedM, bool closedN
+ )
+ {
+     // Handles are optional in this geometry profile, but if supplied they
+@@ -2588,17 +2588,22 @@ bool CDxfRead::ReadBoundedMesh(
+         repeat_last_record();
+     }
+     if (polygonMesh) {
+-        if (mCount < 2 || nCount < 2
++        if (mCount < (closedM ? 3 : 2) || nCount < (closedN ? 3 : 2)
+             || static_cast<std::size_t>(mCount) > recordLimit / static_cast<std::size_t>(nCount)
+             || vertices.size() != static_cast<std::size_t>(mCount) * static_cast<std::size_t>(nCount)) {
+             profileValid = false;
+         }
+         if (profileValid) {
++            const auto rows = static_cast<std::size_t>(mCount);
+             const auto columns = static_cast<std::size_t>(nCount);
+-            for (std::size_t m = 0; m + 1 < static_cast<std::size_t>(mCount); ++m) {
+-                for (std::size_t n = 0; n + 1 < columns; ++n) {
+-                    const std::size_t i = m * columns + n;
+-                    faces.push_back({i, i + columns, i + columns + 1, i + 1});
++            const auto mCells = closedM ? rows : rows - 1;
++            const auto nCells = closedN ? columns : columns - 1;
++            for (std::size_t m = 0; m < mCells; ++m) {
++                for (std::size_t n = 0; n < nCells; ++n) {
++                    const auto nextM = (m + 1) % rows;
++                    const auto nextN = (n + 1) % columns;
++                    faces.push_back({m * columns + n, nextM * columns + n,
++                                     nextM * columns + nextN, m * columns + nextN});
+                 }
+             }
+         }
+@@ -2703,7 +2708,7 @@ bool CDxfRead::ReadPolyLine()
+     if ((polylineFlags & (16 | 64)) != 0) {
+         const bool polygonMesh = (polylineFlags & 16) != 0 && (polylineFlags & 64) == 0;
+         const bool polyface = polylineFlags == 64;
+-        const bool plainPolygon = polygonMesh && polylineFlags == 16;
++        const bool plainPolygon = polygonMesh && (polylineFlags & ~(16 | 1 | 32)) == 0;
+         const bool matchingSubclass = meshSubclass.empty()
+             || meshSubclass == (polygonMesh ? "AcDbPolygonMesh" : "AcDbPolyFaceMesh");
+         const bool noSmoothing = (mDensity == -1 || mDensity == 0)
+@@ -2711,7 +2716,9 @@ bool CDxfRead::ReadPolyLine()
+         const bool validAdvisoryCounts = mCount >= -1 && nCount >= -1;
+         const bool valid = polyfaceProfile && matchingSubclass && noSmoothing
+             && validAdvisoryCounts && (polyface || plainPolygon);
+-        return ReadBoundedMesh(valid, parentHandle, containerHandle, polygonMesh, mCount, nCount);
++        return ReadBoundedMesh(valid, parentHandle, containerHandle, polygonMesh, mCount, nCount,
++                               polygonMesh && (polylineFlags & 1) != 0,
++                               polygonMesh && (polylineFlags & 32) != 0);
+     }
+ 
+     // We are now followed by a series of VERTEX entities followed by ENDSEQ.
+diff --git a/src/Mod/Import/App/dxf/dxf.h b/src/Mod/Import/App/dxf/dxf.h
+index 9461cff..7312a2e 100644
+--- a/src/Mod/Import/App/dxf/dxf.h
++++ b/src/Mod/Import/App/dxf/dxf.h
+@@ -660,7 +660,7 @@ private:
+     bool ReadPolyLine();
+     bool ReadBoundedMesh(
+         bool profileValid, const std::string& parentHandle, const std::string& containerHandle,
+-        bool polygonMesh, int mCount, int nCount
++        bool polygonMesh, int mCount, int nCount, bool closedM, bool closedN
+     );
+ 
+     void OnReadArc(
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index 56a7b83..924a9cf 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -436,7 +436,7 @@ class TestImportDXF(TestImportBase):
+         cases = [
+             ("grid", True), ("zero_smoothing", True), ("missing_count", False),
+             ("bad_count", False), ("bad_header_flags", False), ("duplicate_count", False), ("short_grid", False),
+-            ("long_grid", False), ("closed_m", False), ("closed_n", False),
++            ("long_grid", False), ("closed_m", False),
+             ("smooth_type", False), ("smooth_density", False), ("bad_smooth", False),
+             ("header_subclass", False), ("vertex_subclass", False),
+             ("bad_vertex_flag", False), ("wrong_owner", False), ("vertex_color", False),
+@@ -529,3 +529,88 @@ class TestImportDXF(TestImportBase):
+         self.assertEqual(len(meshes[0].Shape.Faces), 2)
+         self.assertAlmostEqual(meshes[0].Shape.Area, 14.0)
+         self.assertTrue(any(obj.Name.startswith("Shape") for obj in self.document.Objects))
++
++    def test_closed_polygon_mesh_seams_and_refusals(self):
++        """Create closed M/N seams and reject ambiguous or unsupported grids."""
++        cases = [
++            ("closed_m", 3, 2, 17, True, 3), ("closed_n", 2, 3, 48, True, 3),
++            ("closed_both", 3, 3, 49, True, 9), ("m_too_small", 2, 2, 17, False, 0),
++            ("n_too_small", 2, 2, 48, False, 0), ("nonplanar_seam", 3, 2, 17, False, 0),
++            ("degenerate_seam", 3, 2, 17, False, 0), ("smooth_closed", 3, 2, 17, False, 0),
++            ("extra_flag", 3, 2, 145, False, 0),
++        ]
++        for name, m_count, n_count, flags, accepted, expected_count in cases:
++            with self.subTest(profile=name):
++                points = []
++                for m in range(m_count):
++                    for n in range(n_count):
++                        if name == "closed_both":
++                            ax, ay = [(0, 0), (3, 0), (1, 3)][m]
++                            bx, by = [(0, 0), (0, 2), (-2, 1)][n]
++                            point = (ax + bx, ay + by, 0)
++                        elif n_count == 3 and m_count == 2:
++                            x, y = [(0, 0), (3, 0), (1, 2)][n]
++                            point = (x, y, 2 * m)
++                        else:
++                            x, y = [(0, 0), (3, 0), (1, 2)][m]
++                            if name == "degenerate_seam" and m == 2: x, y = 0, 0
++                            point = (x, y, 2 * n)
++                        if name == "nonplanar_seam" and m == 2 and n == 1:
++                            point = (point[0] + 1, point[1], point[2])
++                        points.append(point)
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                        (0, "SECTION"), (2, "ENTITIES"), (0, "POLYLINE"),
++                        (5, "A"), (8, "0"), (66, 1), (70, flags), (71, m_count), (72, n_count)]
++                if name == "smooth_closed": tags.append((75, 5))
++                for x, y, z in points:
++                    tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, z), (70, 64)])
++                tags.extend([(0, "SEQEND"), (0, "LINE"), (8, "0"), (10, 20), (20, 20), (30, 0),
++                             (11, 21), (21, 20), (31, 0), (0, "ENDSEC"), (0, "EOF")])
++                path = os.path.join(self.temp_dir, f"closed-polygon-mesh-{name}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                before = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                objects = [obj for obj in self.document.Objects
++                           if obj not in before and obj.isDerivedFrom("Part::Feature")]
++                meshes = [obj for obj in objects if obj.Name.startswith("PolygonMesh")]
++                lines = [obj for obj in objects if obj.Name.startswith("Shape")]
++                self.assertEqual(len(lines), 1)
++                self.assertEqual(sorted((v.Point.x, v.Point.y, v.Point.z)
++                                        for v in lines[0].Shape.Vertexes),
++                                 [(20, 20, 0), (21, 20, 0)])
++                if accepted:
++                    self.assertEqual(stats["unsupportedFeatures"], {})
++                    self.assertEqual(len(meshes), 1)
++                    self.assertEqual(len(meshes[0].Shape.Faces), expected_count)
++                    self.assertTrue(all(face.isValid() for face in meshes[0].Shape.Faces))
++                else:
++                    self.assertEqual(meshes, [])
++                    self.assertTrue(stats["unsupportedFeatures"])
++
++    def test_closed_polygon_mesh_invalid_then_valid_same_file(self):
++        """A bad seam must not leak partial faces or prevent the next mesh."""
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")]
++        for handle, invalid in (("A", True), ("B", False)):
++            tags.extend([(0, "POLYLINE"), (5, handle), (8, "0"), (66, 1),
++                         (70, 17), (71, 3), (72, 2)])
++            for m, (x, y) in enumerate(((0, 0), (3, 0), (1, 2))):
++                if invalid and m == 2: x, y = 0, 0
++                for n in range(2):
++                    tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 2 * n), (70, 64)])
++            tags.append((0, "SEQEND"))
++        tags.extend([(0, "LINE"), (8, "0"), (10, 20), (20, 20), (30, 0),
++                     (11, 21), (21, 20), (31, 0), (0, "ENDSEC"), (0, "EOF")])
++        path = os.path.join(self.temp_dir, "closed-polygon-mesh-recovery.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++        self.assertEqual(stats["entityCounts"].get("POLYLINE"), 2)
++        self.assertEqual(stats["entityCounts"].get("LINE"), 1)
++        self.assertEqual(len(stats["unsupportedFeatures"]["POLYGON MESH nonplanar or invalid geometry"]), 1)
++        meshes = [obj for obj in self.document.Objects if obj.Name.startswith("PolygonMesh")]
++        self.assertEqual(len(meshes), 1)
++        self.assertEqual(len(meshes[0].Shape.Faces), 3)
++        self.assertTrue(any(obj.Name.startswith("Shape") for obj in self.document.Objects))

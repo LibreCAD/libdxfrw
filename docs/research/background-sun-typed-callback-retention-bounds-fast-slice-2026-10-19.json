@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Background/SUN typed callback retention bounds",
+  "mode": "Generated local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "planSha256": "7e912ae23bcac9b5ccd2521d55c1b99ad9a603f78fe1d5792c7541c856f14903",
+  "scope": [
+    "Bound typed DRW_Background and DRW_Sun callback copies over the dx_data container lifetime",
+    "Keep typed retention admission separate from the existing raw DXF companion budget and graph pairing",
+    "Make typed capture failure fail closed before DXF output publication",
+    "Add generated fast coverage for combined exact admission, copy independence, over-budget refusal, and destination preservation"
+  ],
+  "implementation": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistered": true,
+    "limits": {
+      "combinedRecords": 100000,
+      "logicalRetainedBytes": "DRW::kMaxDxfBinaryPayloadBytes (64 MiB)"
+    },
+    "controls": [
+      "Shared aggregate accounting covers Background and SUN base table-entry state; Background adds file and IBL name payloads",
+      "Exact-fit combined record/byte limits admit both generated typed callbacks",
+      "The next record and one-over byte budget fail closed without retaining an over-budget callback",
+      "Capture failure stops export before an existing destination is replaced"
+    ],
+    "limitations": "This is adapter retention accounting only; it does not qualify Background/SUN graph pairing, raw replay, lighting semantics, serializer completeness, or native consumer support."
+  },
+  "localEvidence": [
+    "Typed callbacks were direct list copies while raw Background/SUN carriers had their own existing aggregate guard.",
+    "The generated control uses in-memory C++ objects and a temporary output sentinel; no persistent or downloaded drawing fixture was added."
+  ],
+  "planImpact": {
+    "existingOwnerRefined": "7S.2c typed persistent TABLES/OBJECTS callback capture census",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "remainingCensus": "LTYPE, DIMSTYLE, BLOCK_RECORD, and LAYOUT direct callback stores remain to audit.",
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/background-sun-typed-callback-retention-bounds-fast-slice-2026-10-19.json"
+    ],
+    "stagedOrCommitted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^(dwg2dxf_background_sun_typed_capture_limits|dwg2dxf_render_background_sun_raw_capture_limits|dwg2dxf_render_settings_typed_capture_limits|dwg2dxf_xrecord_typed_capture_limits|dwg2dxf_material_typed_capture_limits|dwg2dxf_datalink_typed_capture_limits|dwg2dxf_dictionary_default_typed_capture_limits|libdxfrw_dictionary_default_adapter_roundtrip|dwg2dxf_named_object_callback_storage|libdxfrw_extension_graph_limits)$' --output-on-failure",
+      "git diff --check -- src/drw_objects.h dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq empty docs/research/background-sun-typed-callback-retention-bounds-fast-slice-2026-10-19.json",
+      "shasum -a 256 DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "strictTargetsBuilt": true,
+    "focusedCTestPassed": "10/10",
+    "planDiffCheck": true,
+    "receiptJsonValidation": true,
+    "planSha256Matches": true,
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "backgroundSunTypedCallbackCaptureBounded": true,
+    "full7S2cCensusComplete": false,
+    "serializerOrSemanticSupportPromoted": false
+  }
+}

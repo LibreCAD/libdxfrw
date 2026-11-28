@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-assocnetwork-generated-candidate-control-2026-11-09",
+  "date": "2026-11-09",
+  "status": "GENERATED_CANDIDATE_PARSE_AND_RETRY_CONTROL",
+  "supportClaimEffect": "none",
+  "scope": "Protect bounded AC1032 class-version-2 ACDBASSOCNETWORK candidate parsing and preserve the existing writer-ineligible state.",
+  "generatedProfile": {
+    "createdFromScratch": true,
+    "fixtureCommitted": false,
+    "objectType": "ACDBASSOCNETWORK",
+    "classVersion": 2,
+    "baseActionIndex": 4,
+    "networkVersionCandidate": 0,
+    "networkActionIndexCandidate": 3,
+    "actions": [
+      {"owned": false, "handle": "0xA011"},
+      {"owned": true, "handle": "0xA012"}
+    ],
+    "prefixes": ["AcDbAssocAction: Complete", "AcDbAssocNetwork: Complete"],
+    "networkFieldsParsed": false,
+    "wireConstruction": "AC1032 extended object-type encoding, false DataStorage flag, byte-aligned data/string end, and a distinct trailing object handle stream"
+  },
+  "failureRetry": {
+    "mutation": "Increase the declared handle-stream size by one bit while retaining the same generated payload and rebuilding the frame CRC.",
+    "expected": "Reader rejects the malformed frame and publishes no typed associative-network callback.",
+    "retry": "The same reader instance accepts the corrected frame, reports zero object failures, and publishes the bounded candidate fields."
+  },
+  "implementation": {
+    "files": ["tests/dwg_reader_matrix_tests.cpp", "tests/CMakeLists.txt"],
+    "productionParserChanged": false,
+    "change": "Add an in-memory AC1032 dispatch regression that verifies separate base/network candidate values, action ownership flags, complete bounded prefixes, fail-closed malformed handle-boundary handling, and same-reader corrected-frame retry. The assertion requires m_networkFieldsParsed to remain false."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 4",
+    "buildResult": "PASS",
+    "generatedSelector": "build-gcc/libdxfrw_dwg_reader_matrix_tests --assocnetwork-ac1032-candidate-generated",
+    "generatedSelectorResult": "PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_(assocnetwork_ac1032_candidate_generated|associative_network_action_index_generated)$' --output-on-failure",
+    "focusedCTestResult": "PASS 2/2",
+    "physicalSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocnetwork-ac1032-candidate-profile /Users/dli/dev/libredwg/test/test-data/example_2018.dwg",
+    "physicalSelectorResult": "PASS for the two candidate network records, owner/action graph, and complete local prefix spans; the whole sample still has one unrelated object parse failure and an earlier HEADER integrity blocker."
+  },
+  "remainingGates": [
+    "ACDBASSOCNETWORK class-version-2 schema and producer provenance remain unqualified; the ODA v5.4.1 document has no class-specific schema section located for this class.",
+    "AC1032 networkFieldsParsed remains false and the writer/graph route remains version-gated; this generated control does not enable output.",
+    "Physical selected output remains blocked by unresolved DIMASSOC/network dependencies and the source's unrelated read/integrity failures; require exact graph closure, staged identity inspection, ASCII/Binary readback, rollback/retry, and consumer evidence after schema qualification."
+  ]
+}

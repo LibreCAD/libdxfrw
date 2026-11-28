@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-08",
+  "workstream": "P7 / selected AC1021 inline SAB → AC1024 SAT v1 native FreeCAD geometry check",
+  "status": "PASS_BOUNDED_NATIVE_FREECAD_TORUS_BREP",
+  "source": {
+    "repository": "dwg-writer public committed LibreDWG fixture",
+    "inputPath": "/Users/dli/dev/dwg-writer/tests/fixtures/committed/libredwg/atmos_dc22s_2007.dwg",
+    "inputSha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+    "version": "AC1021",
+    "selectedHandles": {
+      "solid": "0x452",
+      "history": "0x453",
+      "evaluationGraph": "0x454",
+      "torus": "0x455"
+    }
+  },
+  "satInput": {
+    "path": "/private/tmp/acsh-semantic-probe/torus-precision.sat",
+    "bytes": 1057,
+    "sha256": "4917d971df23651987e01f18cf8635d19dab7ec2c306c910734ba0093641da08",
+    "sourceSabBytes": 1059,
+    "target": "AC1024 SAT v1"
+  },
+  "runtime": {
+    "host": "Mac14,6 Apple M2 Max",
+    "architecture": "arm64",
+    "macOS": "27.2 (26B123)",
+    "freecadCommand": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+    "freecadVersion": "1.1.4, Libs 1.1.4R20260928, commit 4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "invocation": "FreeCADCmd <native_freecad_torus_qualification.FCMacro>, executed outside the macOS sandbox so Qt could query hw.optional.neon",
+    "exit": 0
+  },
+  "parserAndGeometryPath": {
+    "repository": "https://github.com/jmplonka/InventorLoader",
+    "revision": "e94bdf5e29052a0dc7ce6fdf755e956ae507caec",
+    "parserFile": "Acis.py",
+    "parserFileSha256": "ec84f9528355f0df2e28bd94eecf7d9e4be89c5b9f7a77eef9b9cccbc21366bb",
+    "operation": "The pinned Acis.py AcisReader.readText parser and typed entity builders were run with FreeCAD's native Part module. The harness follows the pinned importerSAT buildFaces path (face.build, Part.Shell) and additionally calls Part.makeSolid on the resulting closed shell to measure its solid topology.",
+    "scratchHarness": "/private/tmp/acsh-semantic-probe/native_freecad_torus_qualification.FCMacro",
+    "scratchHarnessSha256": "e4330a5983854189c4c4ae6eea32766f16b02f7bd2f036e201f8f9cec65a3436",
+    "scratchOutput": "/private/tmp/acsh-semantic-probe/native-freecad-torus-qualification.json",
+    "scratchOutputSha256": "2d25aa83230572a66c556d2262f7d63889b2d18b5ee11c6aac519b5c2f1a1fa2"
+  },
+  "result": {
+    "readText": true,
+    "recordSlots": 14,
+    "typedEntities": 13,
+    "builtBodies": 1,
+    "builtFaces": 1,
+    "shell": {
+      "valid": true,
+      "closed": true,
+      "faces": 1,
+      "edges": 2,
+      "vertices": 1
+    },
+    "solid": {
+      "valid": true,
+      "solids": 1,
+      "area": 2092.738510431738,
+      "volume": 2919.352914703419,
+      "centroid": [1383.6151200595348, 418.5000000000007, 1158.755189492682],
+      "bounds": [1364.386302007853, 396.7156937382162, 1146.4447430729351, 1402.8373492054907, 440.28430626178533, 1171.0722248181544]
+    },
+    "analyticTorusCrossCheck": {
+      "majorRadius": 19.0,
+      "minorRadius": 2.7899834596164137,
+      "surfaceAreaFormula": "4*pi^2*R*r",
+      "expectedArea": 2092.738510431747,
+      "relativeAreaError": 4.128657079598676e-15,
+      "volumeFormula": "2*pi^2*R*r^2",
+      "expectedVolume": 2919.352914703433,
+      "relativeVolumeError": 4.673097403840197e-15
+    }
+  },
+  "disposition": "This qualifies native FreeCAD Part/OpenCASCADE reconstruction for this exact selected SAT torus payload and matches analytic area/volume to floating-point precision. It does not validate the complete source DWG, other carrier/version profiles, UI import behavior, or all InventorLoader paths.",
+  "limitations": [
+    "InventorLoader uses FreeCAD Part/OpenCASCADE, so this is not an independent-kernel check.",
+    "The 1,057-byte SAT was emitted from the selected inline SAB graph; it is not a committed test fixture.",
+    "Source-native AutoCAD semantic acceptance and whole-source output remain unqualified.",
+    "No DWG or DXF fixture was added to the repository."
+  ],
+  "supportClaimEffect": "bounded selected torus geometry evidence only; no broad DWG, DXF, ACIS/ACDS, native-consumer, or release support claim promoted"
+}

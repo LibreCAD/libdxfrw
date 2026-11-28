@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-basepoint-parameter-record-profile-2026-10-31",
+  "date": "2026-10-31",
+  "phase": "P5",
+  "title": "AC1024 BLOCKBASEPOINTPARAMETER exact DXF record profile",
+  "status": "EXACT_RECORD_PARSE_AND_SERIALIZATION_PASS_GRAPH_OPEN",
+  "supportClaimEffect": "none",
+  "profile": {
+    "recordName": "BLOCKBASEPOINTPARAMETER",
+    "dxfSubclassChain": [
+      "AcDbEvalExpr",
+      "AcDbBlockElement",
+      "AcDbBlockParameter",
+      "AcDbBlock1PtParameter",
+      "AcDbBlockBasepointParameter"
+    ],
+    "dxfFields": [
+      [100, "AcDbEvalExpr"], [90, "nodeId"], [98, 33], [99, 29],
+      [100, "AcDbBlockElement"], [300, "Base Point"], [98, 33],
+      [99, 29], [1071, "eed1071"], [100, "AcDbBlockParameter"],
+      [280, "showProperties"], [281, "chainActions"],
+      [100, "AcDbBlock1PtParameter"], [1010, "defPoint.x"],
+      [1020, "defPoint.y"], [1030, "defPoint.z"], [93, "value93"],
+      [170, "value170"], [171, "value171"],
+      [100, "AcDbBlockBasepointParameter"], [1011, "point.x"],
+      [1021, "point.y"], [1031, "point.z"], [1012, "basePoint.x"],
+      [1022, "basePoint.y"], [1032, "basePoint.z"]
+    ],
+    "acceptedEvalExprAndElementVersions": {
+      "AC1024 DWG source": [29, 2],
+      "AC1024 DXF representation": [33, 29]
+    },
+    "guards": [
+      "exact record/kind/version and subclass/group sequence",
+      "signed 32-bit node and value ranges; Boolean groups are 0 or 1",
+      "finite coordinates and exact outer handle header",
+      "no unsupported app-data, extension data, reactors or trailing groups"
+    ]
+  },
+  "schemaEvidence": {
+    "independentSource": "../ACadSharp/src/ACadSharp/Objects/Evaluations/BlockBasePointParameter.cs and Block1PtParameter.cs",
+    "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "corroboratedMappings": [
+      "Block1PtParameter location maps to 1010/1020/1030; its value fields map to 93/170/171.",
+      "BlockBasePointParameter points map to 1011/1021/1031 and 1012/1022/1032."
+    ],
+    "scope": "Independent source-code schema corroboration; no native dynamic-block semantic qualification."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "Add an exact bounded AC1024 DXF parser and writer profile for BLOCKBASEPOINTPARAMETER, include its typed output projection and DXF class instance count, and retain any extra or malformed body as raw-only. The adapter's composed dynamic-block graph/output gate remains closed for the architectural source."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_(purge_preventer|grip_location|visibility_grip|visibility_parameter|visibility_composed_graph|parameter_dependency_body_writer|basepoint_parameter_writer)$' --output-on-failure",
+      "result": "PASS, 7/7 in 0.42 seconds.",
+      "basePointSelectorChecks": [
+        "runtime-authored complete record writes in ASCII and Binary for DWG 29/2 and DXF 33/29 source profiles",
+        "non-finite coordinate refusal preserves the prior destination",
+        "corrected record retries on the same writer",
+        "fresh DXF import returns the exact typed fields and raw group order",
+        "an injected trailing group remains raw-only and is not marked fully decoded"
+      ]
+    },
+    "neighborControl": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-proxy-node-dxf-writer",
+      "result": "PASS for ASCII/Binary, rollback, same-writer retry and typed/raw readback."
+    },
+    "addressSanitizer": {
+      "build": {
+        "command": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+        "result": "PASS with -fsanitize=address -fno-omit-frame-pointer."
+      },
+      "focusedCtest": {
+        "command": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 ctest --test-dir build-asan-custom -R '^dwg2dxf_dynamic_block_(purge_preventer|grip_location|visibility_grip|visibility_parameter|visibility_composed_graph|parameter_dependency_body_writer|basepoint_parameter_writer)$' --output-on-failure",
+        "result": "PASS, 7/7; LastTest.log records seven passed tests."
+      },
+      "directControls": [
+        "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-proxy-node-dxf-writer",
+        "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-basepoint-parameter-dxf-writer tests/samples/AC1024/architectural_example-imperial.dwg"
+      ],
+      "result": "PASS for proxy control and physical base-point ASCII/Binary round-trip; no ASan diagnostics."
+    },
+    "physicalStrictCli": {
+      "input": "tests/samples/AC1024/architectural_example-imperial.dwg",
+      "sourceSha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/architectural_example-imperial.dwg -y -d -v2010 <temporary-output>",
+      "result": "Expected refusal remains at dynamic-block objects being outside the closed output profiles; this record-only slice does not close the 65-object graph."
+    },
+    "physicalBasePointRecord": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-basepoint-parameter-dxf-writer tests/samples/AC1024/architectural_example-imperial.dwg",
+      "result": "PASS: exactly one fully decoded source record serialized and freshly read back in ASCII and Binary with matching typed fields.",
+      "fixtureAdded": false
+    },
+    "diffCheck": "PASS",
+    "drawingsAdded": 0
+  },
+  "sourceHashesSha256": {
+    "src/libdxfrw.cpp": "a02e285ad61bcf64c785ecb5b8de459f01e8e0c8f4f4d6ce6db149b756566901",
+    "dwg2dxf/dx_iface.cpp": "748f4357732cc41b4834f6125f7902db5ab83f42fc32e7c3ab11e2e2cb595ad7",
+    "tests/dwg2dxf_adapter_tests.cpp": "c773d8ceed0a2ae6a9b3fa6445c5a83edf26141095419a23864424b8c348af8a",
+    "tests/CMakeLists.txt": "59f1b3b35122c57c945db5116762c4633523e1ff2e1ef5161fcebcba37260239",
+    "build-gcc/dwg2dxf/dwg2dxf": "09992a6ba21352f660d8cafb4fec7801bceb03abb10ec3b10cf698c160390367",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "532e1461d68761d1c30836119772b473de1ccb44931807bc848e2d659c92c6c3",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "d934a58b43c6fc652c39e30bee97b4f6c257b55bc9ff987d71b5697b5406fb7f",
+    "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "161657ffcbc32e635dd6d2bf13a90f98fc305e808173854b07844d8aa0fd5a6a"
+  },
+  "next": "Continue exact source-required dynamic-block subclasses and emitted-reference binding, then close both EvaluationGraph/owner routes and complete strict output without weakening refusal."
+}

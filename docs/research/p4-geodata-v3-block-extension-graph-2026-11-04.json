@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "title": "AC1027 GEODATA v3 model-space extension dictionary selected graph",
+  "status": "BOUNDED_PHYSICAL_SOURCE_SELECTED_GRAPH_ONLY",
+  "supportClaimEffect": "none",
+  "source": {
+    "receipt": "docs/research/p4-geodata-v3-oda-source-selected-output-2026-11-04.json",
+    "provenance": "Locally authored ezdxf 1.4.5 AC1027 DXF -> ODA File Converter 27.1.0 AC1027 DWG -> ODA DXF. No DWG/DXF fixture committed.",
+    "inputDxfSha256": "a3ad38c95899c325e702cbef525fc8415c6a0f6d648328d6a4e095b24b1b0c93",
+    "inputDwgSha256": "8e4c46cb724d8c66c52eeef3b64ddd8a4b40ea36fd12cb6c69ae8f40186d3bae",
+    "odaDxfSha256": "05cb27a27d0d583fa1a32d37fcc0ca2b588b111b020caa685e2a57f25d6b4489",
+    "sourceGraph": "model BLOCK_RECORD 0x17 -> extension DICTIONARY 0x2F -> entry ACAD_GEOGRAPHICDATA -> GEODATA 0x30. Dictionary owner is the block; GEODATA owner and sole reactor are the dictionary; GEODATA host soft pointer is the block. The dictionary has hardOwner 1, cloning 1, one complete entry, no extensions, reactors, EED or app data.",
+    "blockRecordProfile": "Source has flags 64, units 0, default explode/scaling, base point 0, absent xref, preview, inserts, reactors, application data, EED, and data storage. Admission requires this bounded profile because the fixed-space output writer does not preserve arbitrary source BLOCK_RECORD metadata.",
+    "limits": "109 observed source frames were published; two independent HEADER integrity observations include 739 unclaimed bytes. Unmodified whole-file output remains refused at the independent VISUALSTYLE source-carrier gate."
+  },
+  "implementation": {
+    "sourceBinding": "A private generation-keyed import-time model-space handle/parent/extension link is captured with duplicate detection; editable BLOCK_RECORD rows cannot manufacture this edge. The host must be the unique model-space row and a member of the complete, source-matched BLOCK_CONTROL. The dictionary must be the unique complete one-entry graph, match its private standard-DWG parser baseline and owner receipt, and have no alias or unsupported metadata. The GEODATA callback is bound to unchanged CLASS evidence and its raw common owner/reactor/extension links. The same private capture records whether the original model-block metadata was within the supported profile; editing an originally unsupported row into defaults cannot manufacture eligibility.",
+    "scope": "Only source AC1027 GEODATA version 3 with this model-space extension graph, written to AC1027 DXF. Existing direct-owner v1/v2 route remains. Other owner kinds, unrelated extension entries, other versions and unrepresented metadata remain refused.",
+    "output": "The adapter stages the proven dictionary as the selected model-space BLOCK_RECORD extension and writes the typed GEODATA separately. TABLES output inspection requires one ACAD_XDICTIONARY group before the first subclass marker and the exact dictionary target, then typed-decodes that row. OBJECTS output inspection type-decodes GEODATA and checks all modeled modern scalar/text/mesh fields and its remapped owner, sole reactor and host. Finalization requires unique emitted BLOCK_RECORD, DICTIONARY and GEODATA identities and reciprocal object owners; standard dictionary output inspection authenticates the dictionary entry.",
+    "blockRecordOrdering": "Previously the generated BLOCK_RECORD extension group appeared after subclass/name tags, so ezdxf could not resolve it. The writer now emits the common application group after group 5 and before owner/subclass for model, paper and named block records. Autodesk's common symbol table entries reference lists the extension group among common fields before owner and subclass: https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-5926A569-3E40-4ED2-AE06-6ACCE0EFC813.htm"
+  },
+  "selectedProjection": {
+    "scope": "The physical source is imported unchanged, then the test-only helper retains the witnessed graph, its private source receipts, and needed table state while omitting unrelated source families and their frame identities. The output is an explicitly selected graph projection, not a conversion or qualification of the whole source drawing.",
+    "asciiSha256": "25baa32ab925a204bc29866feb7a7c0152673bfdb24b843f2a68807b3dd014c3",
+    "binarySha256": "e97e0517e4ea8ecc43e2480e4bfd2157aa6f677ce35896f88d1323807abd34d3",
+    "independentReadback": "ezdxf 1.4.5 opened both adapter outputs and resolved BLOCK_RECORD 0x1F -> dictionary 0x2F -> GEODATA 0x30. It confirmed dictionary owner 0x1F, GEODATA owner/reactor 0x2F and host 0x1F, object version 3, design/reference points, and exact 2607-character XML against ODA's paired DXF."
+  },
+  "negativeControls": "For each ASCII/Binary output, the physical-source selected projection rejects a changed block xdictionary, nonzero block units, preview data, unexpected block reactor, changed explode flag, wrong GEODATA host, owner or reactor, wrong dictionary key, added dictionary entry, unsupported object version and pre-AC1027 target. Existing destination bytes survive each rejection; correction and retry on the same adapter emits a fresh file read back through libdxfrw. An additional test toggles the private source-profile evidence to simulate an unsupported original row and confirms that a currently default-valued row is still refused.",
+  "validation": [
+    "Physical selector: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --physical-geodata-dictionary-graph <ODA-DWG> <new-empty-output-directory>; ASCII and Binary selected outputs, refusal/rollback/retry and typed fresh graph readback pass.",
+    "ezdxf 1.4.5 independent readback resolves both saved selected output graphs and compares the fields with the ODA paired DXF.",
+    "libdxfrw_block_owners includes generated model/paper/named BLOCK_RECORD extension group order controls for ASCII and Binary.",
+    "Focused CTest selectors: libdxfrw_block_owners, libdxfrw_legacy_attdef_scope_join, dwg2dxf_geodata_dwg_adapter_transport, libdxfrw_geodata_versioned_writer.",
+    "Earlier focused compatibility checks: dwg2dxf_block_owners_ascii_cli and dwg2dxf_block_owners_binary_cli."
+  ],
+  "reproduction": [
+    "build/rpp5gh-evidence/peer/bin/python -B tools/geodata_physical_v3_probe.py <new-input-dir>/local_grid.dxf",
+    "<ODA File Converter> <new-input-dir> <new-DWG-dir> ACAD2013 DWG 0 0",
+    "<ODA File Converter> <new-DWG-dir> <new-ODA-DXF-dir> ACAD2013 DXF 0 0",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --physical-geodata-dictionary-graph <new-DWG-dir>/local_grid.dwg <new-empty-output-dir>",
+    "Read both geodata-selected-*.dxf outputs with ezdxf and compare modelspace.get_geodata() and its extension dictionary with <new-ODA-DXF-dir>/local_grid.dxf."
+  ],
+  "remaining": [
+    "Broader producer, revisions, object versions, nondefault BLOCK_RECORD metadata and extension dictionary contents remain gated.",
+    "The complete original source, unrelated graph families and native geospatial semantics are not qualified by this projection."
+  ]
+}

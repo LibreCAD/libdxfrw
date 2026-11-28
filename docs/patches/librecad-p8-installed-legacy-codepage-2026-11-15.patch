@@ -1,0 +1,76 @@
+diff --git a/librecad/src/lib/filters/rs_filterjww.cpp b/librecad/src/lib/filters/rs_filterjww.cpp
+index ec07aae..70f77c3 100644
+--- a/librecad/src/lib/filters/rs_filterjww.cpp
++++ b/librecad/src/lib/filters/rs_filterjww.cpp
+@@ -32,7 +32,10 @@
+ #include "dl_attributes.h"
+ #include "dl_codes.h"
+ #include "dl_writer_ascii.h"
++#include "drw_base.h"
++#ifndef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
+ #include "intern/drw_textcodec.h"
++#endif
+ #include "lc_containertraverser.h"
+ #include "rs_arc.h"
+ #include "rs_block.h"
+@@ -90,10 +93,17 @@ QChar toJisSymbol(QChar c) {
+  * 0x5C (95 5C is U+8868): that byte is not a backslash.
+  */
+ QString fromJwwString(const std::string& text) {
++#ifdef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
++    DRW_LegacyCodePageDecoder shiftJis(932);
++    const auto decode = [&shiftJis](const std::string_view run) {
++        return QString::fromStdString(shiftJis.toUtf8(run).value());
++    };
++#else
+     DRW_Conv932Table shiftJis;
+     const auto decode = [&shiftJis](const std::string_view run) {
+         return QString::fromStdString(shiftJis.toUtf8(run));
+     };
++#endif
+     QString res;
+     std::size_t runStart = 0;
+     for (std::size_t i = 0; i < text.size(); ++i) {
+diff --git a/librecad/src/lib/filters/rs_filtershp.cpp b/librecad/src/lib/filters/rs_filtershp.cpp
+index 464e00f..1912c18 100644
+--- a/librecad/src/lib/filters/rs_filtershp.cpp
++++ b/librecad/src/lib/filters/rs_filtershp.cpp
+@@ -41,7 +41,10 @@
+ 
+ #include "shapefil.h"
+ 
++#include "drw_base.h"
++#ifndef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
+ #include "intern/drw_textcodec.h"
++#endif
+ #include "lc_colornumbers.h"
+ #include "lc_linetypenames.h"
+ #include "rs_color.h"
+@@ -231,17 +234,27 @@ int windowsCodePage(const QString& codepage) {
+ // character, and a single-byte one byte by byte: a dropped byte stays as
+ // ISO-8859-1 has it.
+ std::optional<QString> decodeCodePage(const QByteArray& bytes, int codePage) {
++#ifdef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
++    DRW_LegacyCodePageDecoder codec(codePage);
++    if (!codec.supported()) return std::nullopt;
++#else
+     const std::string name = "ANSI_" + std::to_string(codePage);
+     DRW_TextCodec codec;
+     codec.setCodePage(name, false);
+     if (codec.getCodePage() != name) return std::nullopt; // no table for it
++#endif
+     const bool twoByte = codePage >= 932 && codePage <= 950;
+     std::string utf8;
+     for (qsizetype start = 0, end = 0; start < bytes.size(); start = end) {
+         end = twoByte ? bytes.indexOf('\\', start) + 1 : start + 1;
+         if (end == 0) end = bytes.size();
++#ifdef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
++        const std::string part = codec.toUtf8(
++            {bytes.constData() + start, static_cast<std::size_t>(end - start)}).value();
++#else
+         const std::string part = codec.toUtf8(
+             {bytes.constData() + start, static_cast<std::size_t>(end - start)});
++#endif
+         utf8 += part.empty() ? QString(QLatin1Char(bytes[start])).toStdString()
+                              : part;
+     }

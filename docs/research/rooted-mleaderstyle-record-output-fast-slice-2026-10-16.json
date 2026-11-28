@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-rooted-mleaderstyle-record-output-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Integrate MLEADERSTYLE record output into the existing bounded NOD-rooted extension-object graph, preserving DXF raw replay and typed-origin writing with exact class counts.",
+  "sourceHashes": {
+    "dwg2dxf/dx_iface.cpp": "3e9400512664074294bc9bb548cca7cd108bcfa3f8ffd6d51f1c8e31a1498ca1",
+    "dwg2dxf/dx_iface.h": "463f76c87ac1e26e34f6eaf8d67c3e99af84bedd7fc74077c0f81aa3731627ce",
+    "tests/dwg2dxf_adapter_tests.cpp": "f83bc586ecd1f448d43a1796fb2572765eed810b375b615f4239b9d076531f6a"
+  },
+  "implementation": {
+    "namedObjectGraph": "Index and stage MLEADERSTYLE only as a uniquely identified leaf reachable under the validated ACAD_MLEADERSTYLE dictionary; require parent-owner agreement and reject duplicate/invalid identities.",
+    "sourceAdmission": "Require a single successful named-resource import. DXF uses one-to-one raw carrier/typed identity-owner pairing; DWG-origin uses typed-only records.",
+    "writerRoute": "DXF-origin emits the matched raw object; the typed DWG-origin branch calls writeMLeaderStyle. The test's typed-origin route is synthesized from a DXF import and is not a real DWG witness.",
+    "classMetadata": "Normalize to one canonical AcDbMLeaderStyle/MLEADERSTYLE class row and set instanceCount from the rooted staged output count before writer entry.",
+    "handlePolicy": "Reserve MLEADERSTYLE handles before output allocation and include them in fixed-handle collision remapping.",
+    "referenceBoundary": "Non-null style references 340-343 remain transactionally refused until target-kind and unique-target closure is implemented; MLEADER entities also remain refused until entity-to-style closure is implemented.",
+    "frameSafety": "Reject an extension graph frame with no typed record variant instead of dereferencing an absent fallback record."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R named_resource_import_evidence --output-on-failure",
+      "result": "passed",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "elapsedSeconds": 0.36
+    },
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, dwg2dxf/dx_iface.h, and tests/dwg2dxf_adapter_tests.cpp",
+    "generatedControls": [
+      "ASCII and binary NOD -> ACAD_MLEADERSTYLE dictionary -> STANDARD style ownership",
+      "raw DXF replay retains opaque group 302 and readback confirms style owner/root linkage",
+      "one canonical MLEADERSTYLE CLASS row with instanceCount one",
+      "synthesized typed-origin route writes an edited textHeight and preserves rooted ownership",
+      "typed/raw parent-owner mismatch is refused without replacing sentinel destination bytes",
+      "unresolved nonzero group-340 LTYPE reference is refused without replacing sentinel destination bytes"
+    ],
+    "fullSuiteRun": false,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0
+  },
+  "evidenceLimits": {
+    "realDwgOriginMLeaderStyle": "not qualified; typed-route test constructs DWG-origin receipt state from a successful generated DXF import",
+    "nonNullStylePropertyReferences": "not emitted; 340-343 target-kind/uniqueness closure remains pending",
+    "mleaderEntityToStyleClosure": "not implemented; MLEADER entities remain refused",
+    "contentTypeAndSourcePresence": "not fully admitted; matrix remains pending",
+    "correctedRetry": "not covered in this slice",
+    "fixedCollisionRemap": "implemented through existing reservation/map path but no MLEADERSTYLE-specific collision control in this slice",
+    "consumerSemantics": "not evaluated",
+    "supportClaimsPromoted": 0,
+    "externalJStatusChanged": 0,
+    "gitCommitCreated": false,
+    "gitMetadataWritable": false
+  }
+}

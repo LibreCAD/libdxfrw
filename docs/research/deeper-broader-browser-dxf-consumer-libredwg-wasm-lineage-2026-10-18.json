@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Browser DXF consumer and LibreDWG WASM lineage screen",
+  "mode": "Deeper/broader primary-source research; research-only plan update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen the newly surfaced CADView browser viewer and optional DWG package against the existing DWG/DXF implementation and consumer-route matrix.",
+    "Trace the exact declared DWG-to-DXF-to-render pipeline and distinguish a downstream application observation from an independent DWG parser or semantic oracle.",
+    "Add a bounded, optional composed-check recipe without changing implementation order, fixture policy, dependencies, or validation cadence."
+  ],
+  "method": {
+    "kind": "Read-only review of public project README, package documentation, and source-tree metadata",
+    "sourcePagesMutableUnlessPinned": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "browserApplicationRun": false,
+    "externalDrawingsDownloaded": 0,
+    "peerCorpusFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localTestsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "CADView documentation and mutable main source metadata describe candidate behavior but were not built or executed. The declared AC1012–AC1032 map is not an independently measured compatibility matrix. No fixture provenance or reuse permission was established. Renderer output cannot establish whole-document retention, object graph closure, 3D semantics, or native CAD acceptance."
+  },
+  "sources": [
+    {
+      "project": "CADView",
+      "urls": [
+        "https://github.com/wiscaksono/cadview",
+        "https://github.com/wiscaksono/cadview/blob/main/README.md",
+        "https://github.com/wiscaksono/cadview/tree/main/packages"
+      ],
+      "revision": "Mutable main branch reviewed 2026-10-18; no release or immutable source revision was pinned",
+      "observed": "The root README describes an MIT TypeScript DXF parser and Canvas 2D viewer, lists 13 supported DXF entity types, and advertises nested INSERT/MINSERT rendering, selection, and measurement. The optional DWG package is listed separately and is not required by the core viewer.",
+      "evidenceClass": "primary project README and source-tree metadata; no build or runtime tested"
+    },
+    {
+      "project": "CADView @cadview/dwg",
+      "urls": [
+        "https://github.com/wiscaksono/cadview/tree/main/packages/dwg",
+        "https://github.com/wiscaksono/cadview/blob/main/packages/dwg/README.md"
+      ],
+      "revision": "Mutable main branch package documentation reviewed 2026-10-18; exact npm package artifact and LibreDWG submodule commit not pinned",
+      "observed": "The documented route converts DWG buffers to DXF text using LibreDWG compiled to WebAssembly, then hands that text to @cadview/core. The page advertises in-browser operation, a default timeout, lazy WASM loading, and a minimum listed AC1012 version, with versions through AC1032. It instructs users to compile LibreDWG with Emscripten. These are project claims, not a measured per-version compatibility result.",
+      "evidenceClass": "primary package README; no package, WASM artifact, browser, or DWG run"
+    },
+    {
+      "project": "CADView fixture-tree and licensing metadata",
+      "urls": [
+        "https://github.com/wiscaksono/cadview/blob/main/README.md",
+        "https://github.com/wiscaksono/cadview/tree/main/packages/dwg/test-fixtures"
+      ],
+      "revision": "Mutable main source tree reviewed 2026-10-18; fixture provenance was not inspected",
+      "observed": "The root README declares MIT for the viewer core and framework wrappers and GPL-3.0-only for the optional DWG package due to LibreDWG. A test-fixtures directory exists, but no file was downloaded and no reuse license was established.",
+      "evidenceClass": "primary project licensing statement and file-tree metadata; no fixture examined or reused"
+    }
+  ],
+  "planCrosswalk": [
+    {
+      "route": "CADView @cadview/core parsing and Canvas 2D rendering of DXF",
+      "classification": "OPTIONAL_BROWSER_2D_CONSUMER / NARROW_PROJECTION / NOT_RUN",
+      "planUse": "At most a composed browser-consumer observation for a locally generated, already-supported 2D control. A rendered canvas, viewer load, or measurement is not full DXF structural preservation or general entity support."
+    },
+    {
+      "route": "CADView @cadview/dwg DWG-to-DXF conversion",
+      "classification": "LIBREDWG_DWG_INPUT_LINEAGE / DXF_PROJECTION / NOT_RUN",
+      "planUse": "Do not count as an independent DWG parser alongside LibreDWG. If used, pin the exact package, LibreDWG source, Emscripten build, browser, and input; record conversion, intermediate DXF, parser, and viewer outcomes independently."
+    },
+    {
+      "route": "CADView repository fixtures",
+      "classification": "PROVENANCE_NOT_REVIEWED / NOT_ADMITTED",
+      "planUse": "Do not download, copy, vendor, or commit its fixtures. Use locally generated controls or existing admitted repository fixtures only."
+    }
+  ],
+  "assessment": {
+    "localDefectsConfirmed": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "testsRun": false,
+    "peerExecutablesRun": 0,
+    "browserRuns": 0,
+    "externalDrawingsOrIssueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds CADView as an optional downstream browser 2D viewer candidate, explicitly attributes its DWG decoder path to LibreDWG/WASM, and records a composed-only check recipe. It adds no independent DWG codec, local defect, mandatory peer, or support claim."
+  },
+  "implementationReadyChecks": [
+    "Do not build or install CADView on the routine per-slice validation path.",
+    "At a composed checkpoint, pin source/package, LibreDWG submodule/source commit, Emscripten options, browser, and input hash before scoring any outcome.",
+    "Use only a scratch-generated control composed of locally admitted 2D entities; do not reuse unreviewed external fixtures or route private drawings through a remote service.",
+    "Separate libdxfrw output/local readback, LibreDWG-WASM conversion, intermediate DXF parse, browser rendering, and any stable per-entity measurements.",
+    "If stable per-entity values are not exposed, classify canvas output as visual-only; unsupported families and unobserved fields remain NOT_OBSERVED.",
+    "Keep LibreCAD, LibreCAD_3, FreeCAD platform, 3D, ACIS/AcDs, independent semantic, and all six deferred external gates unchanged."
+  ],
+  "verification": {
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "receiptAdded": "docs/research/deeper-broader-browser-dxf-consumer-libredwg-wasm-lineage-2026-10-18.json",
+    "diffCheck": "pending",
+    "jsonValidation": "pending"
+  }
+}

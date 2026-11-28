@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c SAB 21800 face-to-shell incidence",
+  "mode": "Generated parser-fed fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Expose the exact parent-shell node identity on each projected face",
+    "Preserve unresolved face-shell relationships as -1",
+    "Classify missing face-shell identity as a known structural gap"
+  ],
+  "implementation": {
+    "profile": "ACIS BinaryFile SAB 21800 exact pointer ordinal; existing typed-reference fallback for other admitted profiles",
+    "pointerOrdinalZeroBased": 3,
+    "expectedTargetType": "shell",
+    "unknownDisposition": "Absent, null, unresolved, or untyped shell references remain -1; record order is not used to infer membership.",
+    "resourceAccounting": "Pointer resolution uses the existing extraction-work budget; projected faces use the existing output accounting.",
+    "compatibility": "Public DRW_AcisFace layout changes and requires downstream rebuild; DRW_Interface vtable and the 2D callback lane are unchanged."
+  },
+  "tests": {
+    "positive": [
+      "Generated complex rooted graph preserves the expected shell node identity for its face",
+      "Parser-fed/in-memory projection equivalence includes face shell identity"
+    ],
+    "negative": [
+      "Parser-fed face with its exact shell pointer absent retains shellNodeIndex -1",
+      "Unresolved face-shell identity classifies rooted coverage as having a known gap"
+    ],
+    "validation": {
+      "build": "PASS (libdxfrw_graph_preservation_tests and lc3_compat_check)",
+      "ctest": "PASS (libdxfrw_graph_preservation, 1/1)",
+      "scopedDiffCheck": "PASS (git diff --check on changed source/test/contract/plan files; jq empty on receipt)"
+    }
+  },
+  "assessment": {
+    "semanticClaimsPromoted": 0,
+    "shellClosureChecked": false,
+    "faceOrientationSemanticsValidated": false,
+    "trimEvaluation": false,
+    "fullBrepValidity": false,
+    "nativeConsumerQualification": false,
+    "externalSemanticEvidence": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "fullSuiteRun": false,
+    "dependenciesAdded": 0,
+    "productionFilesChanged": [
+      "src/drw_acis.cpp",
+      "src/drw_acis.h"
+    ],
+    "testFilesChanged": [
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "documentationFilesChanged": [
+      "docs/3D_CONSUMER_CONTRACT.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "This preserves structural face grouping only; it does not establish shell closure, manifoldness, face orientation semantics, trim evaluation, B-rep validity, or application acceptance."
+  },
+  "plan": {
+    "findings": 144,
+    "topLevelSubplans": 78,
+    "selfUnblock": "Continue with the next dependency-ready local S3.7c semantic-identity field without waiting for external qualification."
+  }
+}

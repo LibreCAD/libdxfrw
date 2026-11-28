@@ -1,0 +1,209 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p7-imported-sat-torus-optimal-bounds-2026-11-10",
+  "date": "2026-11-10",
+  "status": "SELECTED_IMPORTED_SOLID_BOUNDS_METHOD_COMPARISON_RESOLVED",
+  "scope": "Measure the selected source-derived SAT torus imported through the pinned InventorLoader into native FreeCAD Part, including non-triangulated optimal bounds before and after tessellation.",
+  "input": {
+    "sat": "/private/tmp/p7-recovered-source-torus.sat",
+    "sha256": "4917d971df23651987e01f18cf8635d19dab7ec2c306c910734ba0093641da08",
+    "bytes": 1057,
+    "lineage": "Source-derived inline SAB to selected SAT v1 payload for AC1021 DWG 3DSOLID 0x452; see p7-ac1021-freecad-native-torus-brep-2026-11-08.json.",
+    "inventorLoaderRepository": "https://github.com/jmplonka/InventorLoader",
+    "inventorLoaderRevision": "e94bdf5e29052a0dc7ce6fdf755e956ae507caec",
+    "AcisPySha256": "ec84f9528355f0df2e28bd94eecf7d9e4be89c5b9f7a77eef9b9cccbc21366bb",
+    "inventorLoaderCheckoutClean": true,
+    "importerDependencies": {
+      "Acis": {
+        "path": "/private/tmp/p7-inventorloader/Acis.py",
+        "sha256": "ec84f9528355f0df2e28bd94eecf7d9e4be89c5b9f7a77eef9b9cccbc21366bb"
+      },
+      "importerUtils": {
+        "path": "/private/tmp/p7-inventorloader/importerUtils.py",
+        "sha256": "ce95b3dd5cd1c5a69adf61a03549e196a88e14b254dc3f482d694e3e78404715"
+      },
+      "importerConstants": {
+        "path": "/private/tmp/p7-inventorloader/importerConstants.py",
+        "sha256": "f7db288e42fdd1653caccbdc2b4f3e73c13d0dcf41b2a0856dc71f6b1d65807e"
+      }
+    }
+  },
+  "runtime": {
+    "application": "FreeCAD 1.1.4 / OpenCASCADE",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "macOS ARM64",
+    "executable": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+    "route": "Executed outside the sandbox because Qt requires the hardware capability query; no drawing fixture committed.",
+    "freecadCommandSha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60",
+    "partModuleSha256": "fbea9c0a5c847932a43bca51d9aec7804d66623d140966843baaa07b1a51a91c",
+    "modulePaths": {
+      "Acis": "/private/tmp/p7-inventorloader/Acis.py",
+      "Part": "/Applications/FreeCAD.app/Contents/Resources/lib/Part.so",
+      "PySide": "/Applications/FreeCAD.app/Contents/Resources/Ext/PySide/__init__.py",
+      "importerConstants": "/private/tmp/p7-inventorloader/importerConstants.py",
+      "importerUtils": "/private/tmp/p7-inventorloader/importerUtils.py",
+      "olefile": "/Applications/FreeCAD.app/Contents/Resources/lib/python3.11/site-packages/olefile/__init__.py"
+    }
+  },
+  "probe": {
+    "path": "tools/research/freecad_imported_sat_torus_bound_probe.py",
+    "sha256": "e5694ea2d15f706d630542585110db89eed3ea1cd2da74d45f7f1b5d918c438c",
+    "command": "Set P7_SAT_PATH and P7_INVENTORLOADER_PATH to the hash-matched SAT and checkout, then pipe exec(open(absolute_probe_path).read()) into freecadcmd -c.",
+    "log": "/private/tmp/p7-imported-sat-optimal-bounds.log",
+    "logSha256": "93954a9425c3b9c1b89556be440347d4bf98b6a4d2e3f6d4ebc02f85f782c3d4",
+    "checks": "Checks SAT and all three importer module hashes and paths, one untransformed body, one built face, valid closed shell and solid, topology, and optimal no-mesh bounds within 2e-7 of the source-derived analytic box. A one-byte modified SAT was rejected before import; freecadcmd console returns zero even for Python errors, so verify the single P7_IMPORTED_SAT_BOUNDS_JSON success marker and absence of traceback."
+  },
+  "observation": {
+    "0.005": {
+      "default": [
+        1364.3863216135746,
+        396.7106806718685,
+        1146.438504665361,
+        1402.8433884351994,
+        440.2896660708577,
+        1171.0722248181544
+      ],
+      "optimal_mesh": [
+        1364.376036571601,
+        396.70039562989473,
+        1146.4282196233873,
+        1402.853673477173,
+        440.2999511128315,
+        1171.082509860128
+      ],
+      "optimal_no_mesh": [
+        1364.3863019078528,
+        396.71001644038415,
+        1146.4381540672089,
+        1402.8439382112167,
+        440.28998355961727,
+        1171.0722249181545
+      ]
+    },
+    "0.05": {
+      "default": [
+        1364.3871691849297,
+        396.71133710081693,
+        1146.4405522145416,
+        1402.8396893690635,
+        440.2886628991846,
+        1171.0722248181544
+      ],
+      "optimal_mesh": [
+        1364.329132332658,
+        396.65330024854524,
+        1146.38251536227,
+        1402.8977262213352,
+        440.3466997514563,
+        1171.130261670426
+      ],
+      "optimal_no_mesh": [
+        1364.3863019078528,
+        396.71001644038415,
+        1146.4381540672089,
+        1402.8439382112167,
+        440.28998355961727,
+        1171.0722249181545
+      ]
+    },
+    "0.5": {
+      "default": [
+        1364.3871691849297,
+        396.71679303234663,
+        1146.438169263496,
+        1402.84392301493,
+        440.2832069676549,
+        1171.0722248181544
+      ],
+      "optimal_mesh": [
+        1364.3716716876877,
+        396.7012955351047,
+        1146.422671766254,
+        1402.859420512172,
+        440.29870446489684,
+        1171.0877223153964
+      ],
+      "optimal_no_mesh": [
+        1364.3863019078528,
+        396.71001644038415,
+        1146.4381540672089,
+        1402.8439382112167,
+        440.28998355961727,
+        1171.0722249181545
+      ]
+    },
+    "analytic": [
+      1364.386302007853,
+      396.71001654038434,
+      1146.4381541672094,
+      1402.8439381112166,
+      440.28998345961713,
+      1171.0722248181544
+    ],
+    "area": 2092.738510431738,
+    "before": {
+      "default": [
+        1364.386302007853,
+        396.7156937382162,
+        1146.4447430729351,
+        1402.8373492054907,
+        440.28430626178533,
+        1171.0722248181544
+      ],
+      "optimal_mesh": [
+        1364.3863019078528,
+        396.71001644038415,
+        1146.4381540672089,
+        1402.8439382112167,
+        440.28998355961727,
+        1171.0722249181545
+      ],
+      "optimal_no_mesh": [
+        1364.3863019078528,
+        396.71001644038415,
+        1146.4381540672089,
+        1402.8439382112167,
+        440.28998355961727,
+        1171.0722249181545
+      ]
+    },
+    "body_count": 1,
+    "freecad_version": [
+      "1",
+      "1",
+      "4",
+      "20260928 (Git shallow)",
+      "Unknown",
+      "2026/09/28 13:46:34",
+      "(HEAD detached at 4fd3bf320)",
+      "4fd3bf320d9566a27e60069fc8387448aaa3a094"
+    ],
+    "importer_sha256": "ec84f9528355f0df2e28bd94eecf7d9e4be89c5b9f7a77eef9b9cccbc21366bb",
+    "max_optimal_no_mesh_analytic_error": 1.0000053407566156e-07,
+    "module_paths": {
+      "Acis": "/private/tmp/p7-inventorloader/Acis.py",
+      "Part": "/Applications/FreeCAD.app/Contents/Resources/lib/Part.so",
+      "PySide": "/Applications/FreeCAD.app/Contents/Resources/Ext/PySide/__init__.py",
+      "importerConstants": "/private/tmp/p7-inventorloader/importerConstants.py",
+      "importerUtils": "/private/tmp/p7-inventorloader/importerUtils.py",
+      "olefile": "/Applications/FreeCAD.app/Contents/Resources/lib/python3.11/site-packages/olefile/__init__.py"
+    },
+    "python_version": "3.11.14 | packaged by conda-forge | (main, Oct 13 2025, 14:32:40) [Clang 19.1.7 ]",
+    "sat_sha256": "4917d971df23651987e01f18cf8635d19dab7ec2c306c910734ba0093641da08",
+    "shell_closed": true,
+    "topology": [
+      1,
+      2,
+      1
+    ],
+    "valid": true,
+    "volume": 2919.352914703419
+  },
+  "interpretation": "The imported solid, not a newly constructed torus, has non-triangulated optimal bounds within 1.000006e-7 per bound of the analytic full-torus box at baseline and after each tessellation; its optimal box is unchanged. The default BoundBox reproduces the earlier measurement and changes after tessellation. This resolves the selected observed bounds difference as method/mesh-state dependent for this comparison. It does not establish the internal OpenCASCADE implementation root cause.",
+  "limitations": [
+    "One selected SAT payload and FreeCAD 1.1.4 arm64 only.",
+    "InventorLoader and FreeCAD Part share OpenCASCADE; this is not an independent kernel qualification.",
+    "OpenCADKernel source-carrier body count and boundary topology, native source acceptance, ACDS closure, other sources/platforms and broad support claims remain open.",
+    "No DWG/DXF fixture added."
+  ]
+}

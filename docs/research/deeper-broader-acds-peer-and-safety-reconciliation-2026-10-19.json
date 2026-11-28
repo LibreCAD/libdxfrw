@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "AcDs peer, specification-discrepancy, and parser-safety reconciliation",
+  "mode": "Official ODA specification review, current open-source primary-source comparison, and local source/test crosswalk",
+  "scope": [
+    "Reconcile the DWG AcDsPrototype_1b data-start/alignment contract with current peer parser and writer evidence.",
+    "Audit current peer-reported AcDs identity/index and parser-safety failure shapes against existing local owners.",
+    "Distinguish DXF syntax/raw ACIS preservation from B-rep and native 3D semantics."
+  ],
+  "method": {
+    "official_oda_pdf_version": "5.4.1",
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_downloaded": 0,
+    "peer_fixtures_copied": 0,
+    "local_code_or_tests_changed": false,
+    "full_suite_run": false,
+    "local_files_reviewed": [
+      "src/drw_datastorage.cpp",
+      "src/drw_datastorage.h",
+      "src/drw_entities.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Peer corpus sizes and reported fixes are contributor statements, not independently reproduced here. The ACadSharp claim that the ODA last-record maximum-size formula is erroneous is unresolved: no ODA erratum or independently rerun minimal producer file was inspected. Local source guards were reviewed statically; no new fuzzing or dynamic peer validation was run."
+  },
+  "sources": [
+    {
+      "name": "Official ODA Open Design Specification v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "observed": "Section 24.2.1 defines system/object alignment offsets in 16-byte units from the segment start. Section 24.2.2.3 places the data-start marker after data-record headers, defines record starts using the marker plus local offsets, and states the maximum-record-size calculation for the final record.",
+      "evidence_ceiling": "Authoritative for the cited DWG byte-layout contract. A public peer discussion disputes part of the final-record coordinate formula, but that does not itself establish an erratum."
+    },
+    {
+      "name": "ACadSharp merged Prototype1b reader PR #1154 and issue #1152",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/issues/1152"
+      ],
+      "observed": "The merged reader models the whole DataStorage section and exposes handle/schema data; discussion records a data-start alignment failure, stale segment-index bounds case, and later contributor-reported per-handle payload matches after revisions.",
+      "evidence_ceiling": "Implementation and contributor corpus reports for one peer; not independently reproduced, normative, or a blanket producer-profile guarantee."
+    },
+    {
+      "name": "ACadSharp Blob01 follow-up #1156",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1156",
+      "observed": "The Blob01 reassembly proposal was closed because the later whole-section reader offered a generic resolver; discussion reports successful resolution of large multi-page records through that accessor.",
+      "evidence_ceiling": "Peer implementation lineage and reported validation only; the PR is not a separate deployed parser vote."
+    },
+    {
+      "name": "ACadSharp modeler writer PR #1150",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1150",
+      "observed": "The proposal remains unmerged. Its contributor reports finding that a search-segment per-handle entry must use the rank in sorted-handle order rather than directory order; subsequent discussion identifies rebasing and schema-refactor/readback issues.",
+      "evidence_ceiling": "Unmerged writer branch and contributor-reported test shape; not a released writer result or an independent application check."
+    },
+    {
+      "name": "LibreDWG 0.14.1 NEWS and fuzz harness",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg-fuzz"
+      ],
+      "observed": "The release documents distinct decompression-size, page-offset, integer-overflow, 3DSOLID block-size, non-finite-angle loop, pointer-lifetime, and progress/OOM hardening fixes, plus separate fuzz routes and crash replay.",
+      "evidence_ceiling": "Current peer security/robustness evidence; not a local defect report or semantic support proof."
+    },
+    {
+      "name": "ezdxf repository and documentation",
+      "urls": [
+        "https://github.com/mozman/ezdxf",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "observed": "The project documents ASCII/Binary DXF read/write and third-party tag retention; ACIS data creation depends on an external library, the drawing add-on does not render ACIS, and its DWG option is via ODA File Converter.",
+      "evidence_ceiling": "Published feature and limitation boundaries; not a libdxfrw peer runtime result, 3D semantic oracle, or independent DWG parser route."
+    },
+    {
+      "name": "Local DataStorage, modeler, and MLINE source/tests",
+      "paths": [
+        "src/drw_datastorage.cpp",
+        "src/drw_entities.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/wave1_tests.cpp"
+      ],
+      "observed": "The local DataStorage parser uses checked offset arithmetic and bounds against the segment's object-data anchor; generated local cases cover record-count/alignment and Blob01 shapes. The local SAT-v1 modeler reader bounds signed block sizes and aggregate bytes. MLINESTYLE output rejects non-finite angles with ASCII/Binary no-publication controls.",
+      "evidence_ceiling": "Static source and existing generated test-owner review; not new dynamic validation or proof of complete parser hardening."
+    }
+  ],
+  "plan_impact": {
+    "data_storage_formula": "Keep ODA v5.4.1 authoritative and mark the ACadSharp-reported last-record formula discrepancy unresolved. On future edits, document each coordinate origin explicitly and require exact-profile independent evidence before adopting an erratum interpretation.",
+    "peer_reader": "Treat ACadSharp #1154 as a current merged structural/raw-payload route, with contributor-reported corpus evidence only. Keep full-section parse, reachable record identity, entity association, exact payload, and B-rep semantics as separate evidence rows.",
+    "peer_writer": "Keep #1150 unmerged and non-authoritative. Preserve existing locally generated permuted-handle/search-index tests; do not create a writer task because local raw-section replay does not synthesize a schema-aware search index.",
+    "hardening": "Map LibreDWG's release-note bug classes to existing local checked arithmetic, bounded allocations/progress, SAT block parsing, and non-finite writer-refusal owners. Keep fuzz/sanitizer campaigns at scheduled composed gates; no new per-slice campaign.",
+    "ezdxf": "Keep DXF tag retention, raw ACIS carrier, 3D rendering, and DWG conversion route separate; do not count ezdxf rendering as B-rep semantics or ODA-mediated DWG conversion as an independent parser.",
+    "implementation_speed": "Reuse current focused selectors and tests; no new dependency, fixture, CTest, full-suite run, peer runtime, support promotion, or queue/cadence change. Continue the dependency-ready local implementation queue."
+  },
+  "finding_subplan_totals": {
+    "findings": 134,
+    "top_level_subplans": 76
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Shared worktree is broadly dirty. This research receipt and plan update are uncommitted; no unrelated files were staged or committed."
+}

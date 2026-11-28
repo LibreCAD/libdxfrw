@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-freecad-ac1021-tilted-spline-open-insert-2026-11-12",
+  "purpose": "Qualify the generated AC1021 tilted planar control-point SPLINE through installed dwg2dxf and FreeCAD's native C++ DXF importer.",
+  "source": {
+    "provenance": "Generated from scratch under the system temporary directory; no DWG/DXF fixture is committed.",
+    "generator": "tests/dwg_local_roundtrip_tests.cpp --generate-freecad-primitives-source",
+    "generatorExecutableSha256": "eff2243b60636cdec4cff5ce3837f43a003ece0f3923bcbc8afde1894482daea",
+    "version": "AC1021",
+    "sha256": "edfc5778a5ea70b7312bffb163e7de3071b4c31c2dd56a4af7edba24aa86221b",
+    "spline": {
+      "degree": 2,
+      "knotVector": [0, 0, 0, 1, 1, 1],
+      "controlPointsWcs": [[31, 32, 33], [33, 37, 35], [35, 32, 37]],
+      "normalWcs": [0.7071067811865476, 0, -0.7071067811865476],
+      "entityCount": 1
+    }
+  },
+  "converter": {
+    "buildPath": "build-gcc/dwg2dxf/dwg2dxf",
+    "installedPath": "/private/tmp/libdxfrw-freecad-current-install/bin/dwg2dxf",
+    "sha256": "36ccaf73892eba809aed7316272d5e02d1ce2f4b645c4d3057109df391f506f1",
+    "buildAndInstalledBytesMatch": true
+  },
+  "convertedDxf": {
+    "sha256": "246623f7b6dc7525a0836e9a53f5af66494a5a551fc8709dbce41bc20b5eb4d8",
+    "splineInspection": "The emitted SPLINE retains degree 2, the six authored knots, all three group-10 WCS control points and the calculated group-210 plane normal."
+  },
+  "consumer": {
+    "application": "FreeCAD 1.1.4",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "macOS 27.2.1 arm64",
+    "importer": "C++ DXF importer",
+    "route": "FreeCAD Draft DWG open/insert -> hash-checked installed dwg2dxf -> C++ DXF importer",
+    "operations": {"open": "PASS", "insert": "PASS"},
+    "entityCounts": {
+      "POINT": 1,
+      "LINE": 1,
+      "CIRCLE": 1,
+      "ARC": 1,
+      "ELLIPSE": 1,
+      "LWPOLYLINE": 1,
+      "SPLINE": 1
+    },
+    "unsupportedFeatures": {},
+    "splineShape": {
+      "edges": 1,
+      "vertices": 2,
+      "length": 7.880049135263712,
+      "normalizedParameterSamples": [
+        {"fraction": 0, "point": [31, 32, 33]},
+        {"fraction": 0.5, "point": [33, 34.5, 35]},
+        {"fraction": 1, "point": [35, 32, 37]}
+      ]
+    },
+    "splineBoundBox": {
+      "boundsWcs": [31, 32, 33, 35, 35.4375, 37],
+      "tightBoundComparison": "not used; the same conservative Y bound occurs for a direct Part.BSplineCurve construction even though its sampled geometry matches the quadratic"
+    }
+  },
+  "directConstructionCrossCheck": {
+    "application": "FreeCAD Part/OpenCASCADE",
+    "method": "Part.BSplineCurve.buildFromPolesMultsKnots with poles, multiplicities [3,3], knots [0,1], nonperiodic degree 2",
+    "probeSha256": "08e085805520d2725fb3d741c049f9089be81fec79811ef42e08be093eb13091",
+    "samplePoints": [[31, 32, 33], [33, 34.5, 35], [35, 32, 37]],
+    "length": 7.880049135263712,
+    "boundBox": [31, 32, 33, 35, 35.4375, 37],
+    "interpretation": "The matching direct construction shows the failed initial assertion was caused by using a non-tight kernel BoundBox as the exact curve oracle; it does not indicate an imported curve mismatch."
+  },
+  "validation": {
+    "focusedCtest": "dwg2dxf_freecad_generated_ac1021_primitives_open/insert: PASS 2/2 in 2.48 seconds",
+    "converterSha256": "36ccaf73892eba809aed7316272d5e02d1ce2f4b645c4d3057109df391f506f1",
+    "generatorAndMacro": "Local source generator, installed converter handoff and FreeCAD import assertions completed for both operations.",
+    "fixturePolicy": "All generated DWG/DXF files stayed in isolated temporary directories; none was committed."
+  },
+  "authority": {
+    "autodeskDxfSpline": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+    "relevantField": "Autodesk documents SPLINE group 10 control points as WCS values."
+  },
+  "limitations": [
+    "This qualifies one generated AC1021 spline profile and FreeCAD 1.1.4 macOS ARM64 only.",
+    "The conservative BoundBox is not used as a tight curve bound; semantic checks use normalized parameter samples, edge topology and length.",
+    "Hosted FreeCAD 1.1.3 Linux/Windows execution, other spline profiles/revisions, physical producer breadth and broad native support remain open."
+  ],
+  "supportClaimEffect": "Adds bounded local FreeCAD geometry evidence for this generated AC1021 SPLINE profile only; no broad format-support claim is promoted."
+}

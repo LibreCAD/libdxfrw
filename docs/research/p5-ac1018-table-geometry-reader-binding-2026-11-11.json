@@ -1,0 +1,36 @@
+{
+  "scope": "Opt-in same-import observation of CRC-checked selected AC1018 TABLECONTENT, DATATABLE, TABLEGEOMETRY and XRECORD source frames. No replay or output support is conferred.",
+  "physical_source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "source_policy": "scratch-only, not committed; previous ODA audited source workflow",
+    "probe": "tools/research/p5_ac1018_table_geometry_binding_probe.cpp",
+    "result": "PASS: selected 10 XRECORDs 0xbc,0xbe-0xc6; content 0xb9, data 0xbd and geometry 0xba; all owners 0xbc; nine DATATABLE child links, zero geometry cell handles; geometry data end 173 and handle end 261 bits. Whole reader recorded an unrelated HEADER integrity observation."
+  },
+  "generated_control": {
+    "command": "cmake --build build --target libdxfrw_dwg_table_candidate_binding_tests -j 3 && ctest --test-dir build -R ^libdxfrw_dwg_table_candidate_binding$ --output-on-failure",
+    "result": "PASS 1/1",
+    "coverage": [
+      "existing two-candidate selection and query compatibility",
+      "exact three-candidate selection, invalid or missing handles, duplicate aliases",
+      "same import identity, copied ticket mismatch, source mutation invalidates entire bundle",
+      "same-adapter and cross-adapter reentrant imports with same data and retry",
+      "reader candidate and ticket allocation failures at selected geometry and three final sealing/validation allocations; failures are representative, not exhaustive",
+      "callback exception, spoofed record/class/number metadata",
+      "wrong geometry handle role, selected geometry object CRC corruption with recomputed intact page checksums, missing selected object, and same-adapter retry",
+      "strict DXF export refusal preserves sentinel file",
+      "geometry body over 4096 bytes is offered for selection but delivers no geometry ticket, no partial publication, clean retry",
+      "existing combined 2 MiB aggregate quota test remains passing"
+    ]
+  },
+  "probe_build": "c++ -std=c++17 -Wall -Wextra -Werror -I src -I dwg2dxf tools/research/p5_ac1018_table_geometry_binding_probe.cpp build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build/libdxfrw.a -o /private/tmp/p5_ac1018_table_geometry_binding_probe",
+  "probe_run": "/private/tmp/p5_ac1018_table_geometry_binding_probe /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+  "limitations": [
+    "Geometry profile only observes the source-evidenced AC1018 3x3 zero geometry/null reference variant, not general TABLEGEOMETRY.",
+    "Source classification and numeric class/name are reader-bound; other class metadata is callback-provided.",
+    "Root XRECORD outgoing 360/361 roles, other graph closure, codepage and downstream dependencies remain unresolved in this binding.",
+    "Input is an out-of-version TABLEGEOMETRY producer profile; this and generated test controls do not independently establish specification semantics, interoperability or write capability.",
+    "The aggregate 2 MiB adversarial control covers the prior two-candidate path; the geometry-specific negative is the 4 KiB per-frame limit.",
+    "The physical file has a separately reported HEADER integrity observation and does not establish a pristine whole-file read."
+  ]
+}

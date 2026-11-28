@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mpolygon-degenerate-count-domain-2026-11-02",
+  "date": "2026-11-02",
+  "status": "IMPLEMENTED_FAST_TESTS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Validate MPOLYGON DXF group 99, the number of degenerate boundary paths, at the reader and typed-writer admission boundaries.",
+  "sourceWitness": {
+    "reader": "DRW_MPolygon::parseCode currently assigns group 99 directly to degenerateLoops without checking its domain.",
+    "completion": "DRW_MPolygon::validateDxf currently omits degenerateLoops, so processMPolygon can publish a negative value to the callback.",
+    "writer": "dxfRW::preflightEntity rejects negative degenerateLoops, but does not apply the existing bounded item-count policy.",
+    "autodeskDefinition": "Group 99 is the count of degenerate boundary paths, defined as borders ignored by the hatch. The documentation does not establish a relation to group 91's retained path count or a format-specific numerical maximum."
+  },
+  "authoritativeReference": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+  "implementationBrief": {
+    "parserRule": "Require a nonnegative count within the existing kMaxHatchItems budget before assigning degenerateLoops.",
+    "writerRule": "Require the same bounded count in DRW_MPolygon::validateDxf so reader and writer admission agree.",
+    "doNotInfer": "Do not require group 99 to be less than or equal to group 91; Autodesk does not document that relation. Do not advertise semantic support from this scalar-domain check."
+  },
+  "owningSelector": "libdxfrw_dxf_fixture_tests --mpolygon-degenerate-count-domain",
+  "inputHashesBeforeEdit": {
+    "src/drw_entities.cpp": "11973c5f8e7dade082cf41bc1c0837dd2dfc889a84c47322f826f630205d96ae",
+    "tests/dxf_fixture_tests.cpp": "b02dd23d79c7e59e8a3597a23361934c5e286f560b7e794b992b2f987f49fdbc",
+    "CMakeLists.txt": "c2e8554f5845edad7aa2e2260f3f720d1f15407382a57d32980c6213a215ac08"
+  },
+  "validationPlan": [
+    "Generated in-memory parser controls for negative, over-budget and valid group 99 values; invalid records preserve model state and permit corrected retry.",
+    "Typed writer admission refuses negative and over-budget values and accepts a valid positive count without mutating the destination on refusal.",
+    "Build only the affected fixture executable; run the owning selector and affected MPOLYGON cohort."
+  ],
+  "validation": {
+    "buildCommands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4"
+    ],
+    "buildResult": "passed",
+    "owningSelector": "build-gcc/libdxfrw_dxf_fixture_tests --mpolygon-degenerate-count-domain",
+    "focusedCTestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mpolygon_degenerate_count_domain|libdxfrw_mpolygon_fill_cmc|libdxfrw_hatch_mpolygon_inactive_gradient_guard|dxf_mpolygon_metadata_boundary_roundtrip)$' --output-on-failure",
+    "focusedCTestResult": {
+      "passed": 4,
+      "failed": 0,
+      "elapsedSeconds": 0.43
+    },
+    "verifiedBehavior": [
+      "Negative and over-budget reader values do not mutate the typed model; corrected group-99 values parse and validate.",
+      "The count ceiling 10000 is accepted; 10001 is refused.",
+      "Typed writer refusal preserves existing destination bytes for negative and over-budget counts; the same writer then emits a valid count and typed readback returns group 99 value 3.",
+      "Existing MPOLYGON fill-CMC, inactive-gradient transaction, and metadata/boundary readback controls pass."
+    ],
+    "diffCheck": "git diff --cached --check passed"
+  },
+  "inputHashesAfterEdit": {
+    "src/drw_entities.cpp": "f7676fff09b207ee2308aab34beb55e67759cc205ff2062ff13d7a0a657aa3de",
+    "tests/dxf_fixture_tests.cpp": "d12d278b88a7a0fc386f93cd75728cd6b0af1ce9e9c8e0c298f2be8a5665d5ea",
+    "CMakeLists.txt": "29edc33e90e50aa8d85d7668852eb3e53cc9af9f778bee3373c8ed73a4ef3191",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "6a673b32e9f18d443b8362d8e7920b95d6c099e3af481ae6e321081cf24f5281"
+  },
+  "fixtures": {
+    "repositoryDwgDxfAdded": 0,
+    "testInput": "Locally generated in-memory DXF group records and typed objects."
+  },
+  "repositoryState": {
+    "baseHead": "f8615700",
+    "inputSnapshot": "staged group-99-only blobs composed from HEAD; fast CTest cohort ran against corresponding worktree source",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-mpolygon-legacy-hatch-callback-compat-2026-11-12",
+  "purpose": "Verify the public interface's default MPOLYGON callback forwards a derived polygon to a legacy consumer's addHatch callback without losing its boundary loop.",
+  "contract": {
+    "source": "DRW_Interface::addMPolygon in src/drw_interface.h",
+    "behavior": "Default implementation calls addHatch(data); a consumer may override addMPolygon when it supports the subtype explicitly.",
+    "productionCodeChanged": false
+  },
+  "source": {
+    "kind": "runtime-generated-in-memory-control",
+    "entity": "MPOLYGON",
+    "trackedDrawing": false,
+    "boundary": {
+      "loopType": 2,
+      "closed": true,
+      "verticesOCS": [[2.0, 3.0, 0.0], [5.0, 3.0, 0.0], [5.0, 7.0, 0.0]]
+    }
+  },
+  "capture": {
+    "sinkImplements": ["addHatch"],
+    "invocation": "DRW_Interface::addMPolygon(&polygon)",
+    "assertions": [
+      "exactly the legacy HATCH record path is observed",
+      "no typed MPOLYGON record is published",
+      "one closed boundary loop and its vertices remain available to the callback"
+    ]
+  },
+  "validation": {
+    "normalBuild": "cmake --build build --target libdxfrw_3d_consumer_probe -j4",
+    "normalBuildResult": "PASS",
+    "normalCTest": "ctest --test-dir build -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "normalCTestResult": "PASS, 1/1, 0.40 seconds",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_3d_consumer_probe -j4",
+    "asanBuildResult": "PASS",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "asanCTestResult": "PASS, 1/1, 0.81 seconds",
+    "diffCheck": "PASS"
+  },
+  "sourceBindings": {
+    "tests/semantic_differential_adapter.cpp": "585f22b365e7f03968aa0d88d82bf40fac653d57c11160584af2d4d38540cef7",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "5d0a9296959cd16b1bbaf339a3617bbc87d71ed2eeff461efdf630f0d3e4a8d4",
+    "DWG_DXF_3D_SUPPORT_PLAN.md": "f1a25a5566e230d8e6b4b067a3459cc5a8d4a063f51ef69b2833305d56e08d61"
+  },
+  "scopeLimit": "Generated callback-contract evidence only. It does not execute LibreCAD or another native 2D application and does not establish geometry rendering or independent format interoperability.",
+  "claimEffect": "No support claim changes."
+}

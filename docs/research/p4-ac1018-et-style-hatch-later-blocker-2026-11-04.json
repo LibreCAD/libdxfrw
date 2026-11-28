@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "ADVISORY_SPEC_CONFLICT_STRICT_REFUSAL_UNCHANGED",
+  "supportClaimEffect": "none",
+  "source": {
+    "input": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "fixture_committed": false
+  },
+  "oda_output": {
+    "tool": "ODA File Converter 27.1.0 macOS ARM64",
+    "command": "ODAFileConverter <scratch-input-directory> <scratch-output-directory> ACAD2010 DXF 0 0 *.dwg",
+    "output_sha256": "061cd79cb3a0a7a6971f0d1874a4e0367693d4287c27a49e49e955e36d6b0812",
+    "diagnostics": "Process exited 0; one DXF output and no .err file. The conversion input and output remain outside the repository.",
+    "selected_style_DF": {
+      "group5": "DF",
+      "group2": "",
+      "group70": 1,
+      "group3": "ltypeshp.shx",
+      "interpretation": "ODA output treats the source STYLE as an unnamed shape-file record. The current source parser uses the authoritative ODA DWG specification bit order and sees flags=68, i.e. non-shape and vertical; see p4-ac1018-style-oda-factorial-and-fieldlist-diagnostic-2026-11-04.json. No spec-conflicting bit-order change is made."
+    },
+    "selected_hatch_2BA": {
+      "location": "BLOCKS, block ET Border block, source block-record 0x24C",
+      "groups": [
+        [
+          450,
+          0
+        ],
+        [
+          451,
+          0
+        ],
+        [
+          460,
+          0.0
+        ],
+        [
+          461,
+          0.0
+        ],
+        [
+          452,
+          0
+        ],
+        [
+          462,
+          1.0
+        ],
+        [
+          453,
+          2
+        ],
+        [
+          463,
+          0.0
+        ],
+        [
+          63,
+          154
+        ],
+        [
+          421,
+          281247
+        ],
+        [
+          463,
+          1.0
+        ],
+        [
+          63,
+          133
+        ],
+        [
+          421,
+          4641275
+        ],
+        [
+          470,
+          "INVCURVED"
+        ]
+      ],
+      "interpretation": "ODA emitted both inactive gradient stops even though 450=0. Its pair 450=0 / 453=2 conflicts with the Autodesk HATCH DXF reference, which specifies zero colors for solid hatches. ODA production is not proof of conforming or lossless external-consumer roundtrip."
+    }
+  },
+  "authorities": {
+    "dwg": "ODA Open Design Specification v5.4.1 section 20.4.56 lists the STYLE vertical bit before the shape-file bit; AGENTS.md says this PDF is authoritative for DWG byte layout.",
+    "dxf": "Autodesk AutoCAD DXF Reference HATCH, https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm: gradient group 453 is zero for solid hatches and two for gradients."
+  },
+  "independent_source_decode": {
+    "tool": "GNU LibreDWG dwgread 0.14",
+    "selected_hatch": "0x2BA is_gradient_fill=0, two stops at 0 and 1, RGB 0x044A9F and 0x46D1FB, name INVCURVED, 16-vertex closed polyline path; owner 0x24C. This independently corroborates source data without superseding ODA layout authority."
+  },
+  "diagnostic_only_probe": {
+    "base_commit": "80fd4a96",
+    "mechanism": "Disposable scratch source derived from this commit was modified solely to skip the empty STYLE 0xDF and log block/entity failure sites. This intentionally drops a source record and is not a proposed implementation or valid output. Source, binary and trace stay outside the repository.",
+    "trace_sha256": "f94f19d635d7b3db362b5c032de4f3bffb489550f2ee3317ac12300cdf82b623",
+    "binary_sha256": "1688ec340c256c0425bc99c899f30f6f3131d96fb4c82481d8ac1bcb8e33bb0d",
+    "result": "With STYLE skipped only for diagnosis, TABLES completed and typed HATCH 0x2BA failed validation in BLOCKS because its gradient is disabled but its two stops are retained. ENDBLK observed the subsequently latched error. The original, unmodified conversion continues to refuse STYLE first.",
+    "reproduction": "Recreate the scratch build at 80fd4a96, add logging and a temporary early return for only the STYLE with handle 0xDF and empty name, then run dwg2dxf -y -v2010 on the SHA-verified input. Never use this diagnostic output as a deliverable."
+  },
+  "advisory_reader_observation": {
+    "adapter_source_commit": "6034e221471df04f8b2d1f6f5835f8d87d717647",
+    "adapter_sha256": "6563afabf58e80ccbda8f038bc37b8844be06d8199337a4c8b2d4801dbdf4c16",
+    "invocation": "semantic_differential_adapter --input <ODA output> --facade dxfRW --direction read",
+    "result": "failure at BLOCKS (firstFailure code 10); this whole-file result alone does not prove which DXF record caused the failure.",
+    "report_sha256": "d016b472926cd9f9e49c154c0d3cd3758cc19ddd3edef4629886a22cf4186a99"
+  },
+  "decision": "Retain the empty non-shape STYLE and inactive-stop HATCH strict guards. Do not omit records, silently drop stops, or admit the contradictory DXF producer profile without an explicitly qualified lossless policy and authoritative resolution. Refer also to p6-ac1018-hatch-inactive-gradient-stop-dxf-loss-guard-2026-11-02.json.",
+  "limits": [
+    "The scratch STYLE omission makes downstream probe results diagnostic only; neither the original drawing nor a full output is qualified.",
+    "The independent HATCH input projection and ODA output are local observations, not a native DWG reader/rendering equivalence test.",
+    "No DWG or DXF fixture, generated payload, binary, or screenshot is committed."
+  ]
+}

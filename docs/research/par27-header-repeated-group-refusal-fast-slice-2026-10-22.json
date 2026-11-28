@@ -1,0 +1,43 @@
+{
+  "id": "par27-header-repeated-group-refusal",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Detect repeated ordinary HEADER variable records and repeated group codes within one HEADER variable while keeping tolerant parse behavior.",
+    "Refuse HEADER rewrite/publication until the caller explicitly repairs or accepts the final value; preserve refusal state across copy and move.",
+    "Audit documented HEADER object-reference variables against the official Autodesk table and confirm existing dedicated retention/graph-remap paths cover them."
+  ],
+  "source": {
+    "title": "Autodesk HEADER Section Group Codes (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+    "use": "Confirms HEADER CEPSNID group 390 and VisualStyle references INTERFEREOBJVS 345, INTERFEREVPVS 346, and DRAGVS 349; HANDSEED group 5 is a next-available handle rather than an object-reference edge."
+  },
+  "implementation": {
+    "files_changed": [
+      "CMakeLists.txt",
+      "src/drw_header.h",
+      "src/drw_header.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par27-header-repeated-group-refusal-fast-slice-2026-10-22.json"
+    ],
+    "tests": [
+      "Generated ASCII/Binary controls cover one unique HEADER variable, a duplicate variable record, and a repeated group value.",
+      "Malformed sources remain readable and expose the last parsed value, but cannot be directly serialized or exported through the adapter until explicit replacement/acknowledgment.",
+      "Refusal survives copy/move, preserves a sentinel destination, and a same-adapter retry succeeds after repair."
+    ],
+    "validation": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2: PASS (-Werror)",
+      "ctest --test-dir build-gcc -R '^libdxfrw_header_(repeated_groups|cepsnid|required_versions|custom_property_roundtrip)$' --output-on-failure: PASS (4/4)",
+      "ASAN_OPTIONS=detect_leaks=0:abort_on_error=1 build-asan-custom/libdxfrw_dxf_fixture_tests --header-repeated-groups: PASS",
+      "git diff --check on touched implementation/test/plan files: PASS"
+    ]
+  },
+  "limitations": [
+    "Unknown HEADER variable preservation and unsupported compound field shapes remain open; this change only prevents repeated-group last-value normalization from being silently rewritten.",
+    "No persistent drawing fixture, full suite, independent producer/native acceptance, or support-claim promotion was added.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL; FreeCAD Linux/Windows and independent ACIS/ACDS semantic qualification remain open."
+  ]
+}

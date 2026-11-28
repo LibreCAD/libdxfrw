@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-geodata-dwg-adapter-transport-2026-11-02",
+  "date": "2026-11-02",
+  "title": "Generated AC1027 GEODATA adapter transport",
+  "status": "GENERATED_DWG_ORIGIN_GEODATA_ADAPTER_TRANSPORT_PASSED",
+  "supportClaimEffect": "none",
+  "scope": "Bounded generation-keyed typed GEODATA capture, source CLASS/frame/common-owner binding, strict DXF output, transaction failure/retry, and fresh ASCII/Binary readback for a locally authored AC1027 DWG version-2 object.",
+  "fixture": {
+    "kind": "locally-authored-from-scratch",
+    "generator": "tests/dwg2dxf_adapter_tests.cpp:geodataDwgAdapterTransport",
+    "repositoryFixtureAdded": false,
+    "artifacts": "The test writes a temporary DWG and ASCII/Binary DXFs under the system temporary directory and removes them with RAII cleanup.",
+    "sourceProfile": {
+      "dwgVersion": "AC1027",
+      "geoDataVersion": 2,
+      "handle": "0xD7A0",
+      "parentAndHostBlock": "0x17 (*Model_Space)",
+      "designPoint": [100.0, 200.0, 0.0],
+      "referencePoint": [10.0, 20.0, 0.0],
+      "coordinateSystemDefinition": "LOCAL_GRID_PROFILE",
+      "geoRssTag": "LOCAL_GEODATA_TAG"
+    }
+  },
+  "implementation": {
+    "behavior": "The adapter retains only bounded DWG-origin typed GEODATA keyed by import generation and source handle. Before output it requires complete unchanged CLASS evidence, a unique published canonical GEODATA class row, exact CLASS instance/raw-frame/typed-count agreement, a matching typed/raw class and common-owner binding, an unchanged owner-to-host relation, and one *Model_Space BLOCK_RECORD target. It registers the output CLASS, reserves source identities, writes selected objects, and records per-frame output qualification only after successful serialization.",
+    "limits": [
+      "The output profile currently requires version 1 or 2, a model-space host equal to the common owner, no reactors, extension dictionary, EED or XDATA, and fields accepted by the low-level GEODATA writer.",
+      "A successful selected GEODATA frame does not qualify unrelated source frames or whole-document output.",
+      "Physical producer breadth, geospatial unit/projection meaning, native-consumer acceptance and complete document closure remain unqualified."
+    ]
+  },
+  "regressionControl": {
+    "selector": "--geodata-dwg-adapter-transport",
+    "behavior": "For ASCII and Binary DXF, an invalid host pointer is refused without changing sentinel destination bytes; the same adapter then retries successfully after correction. Fresh typed readback checks object identity and fields and resolves both the common owner and GEODATA host pointer to the emitted (remapped) *Model_Space BLOCK_RECORD.",
+    "outputQualification": "The test checks the selected GEODATA source frame's output binding and does not assert whole-source opaque output qualification."
+  },
+  "sourceBinding": {
+    "baseRevision": "7bf63556e150deffbc3ef83153d43a3d0e0d0005",
+    "files": {
+      "dwg2dxf/dx_data.h": "9f4c60eca8135907323fc48eb3fb8b034ed7eac1bc5b628156ce32f03a546585",
+      "dwg2dxf/dx_iface.h": "afd6be7ebd9d06e2e23e69c5d7c65fafe71c57fb09ed476c9e531691b9fdea51",
+      "dwg2dxf/dx_iface.cpp": "b0b8dcebc959842a01c1881bac456a89bdf1379f1bc1270698683a9a704b0fce",
+      "tests/dwg2dxf_adapter_tests.cpp": "fdf7e87faf55256da33b197eecf389afbcd23a285143f5e4d0be6051a48dc286",
+      "tests/CMakeLists.txt": "e22eccacdae0c88e1559728d2509aabc9c64942a11eb6eb0aaa90180fb5a9487"
+    },
+    "executables": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "02eec0a4de913e983d04093d47d72814a42d0013a7cac901287f7e94fedb8244",
+      "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "09425a2abe3b4141d5518690b624ee2f24ac7f0b32df6925f9d6444fe338070a"
+    }
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "normalBuildResult": "passed",
+    "normalTest": "ctest --test-dir build-gcc -R '^dwg2dxf_geodata_dwg_adapter_transport$' --output-on-failure",
+    "normalTestResult": "1/1 passed in 0.55 seconds",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "asanBuildResult": "passed",
+    "asanTest": "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --geodata-dwg-adapter-transport",
+    "asanTestResult": "passed",
+    "diffCheck": "git diff --check passed"
+  }
+}

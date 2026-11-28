@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-network-action-index-preservation-2026-10-30",
+  "date": "2026-10-30",
+  "title": "Preserve distinct AC1024 associative action and network indexes",
+  "status": "LOCAL_AC1024_NETWORK_INDEX_FIELDS_PRESERVED_FOCUSED_VALIDATED",
+  "supportClaimEffect": "none",
+  "baselineCommit": "43fe74f6",
+  "scope": "Preserve the distinct AcDbAssocAction.action_index and AcDbAssocNetwork.network_action_index fields currently read by DRW_AssociativeObject::parseDwg. Do not enable associative output or promote a support claim.",
+  "failingProfile": {
+    "record": "ACDBASSOCNETWORK",
+    "version": "AC1024",
+    "sourcePath": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "sourceSha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "handle": "2493",
+    "expected": {
+      "AcDbAssocAction.action_index": 4,
+      "AcDbAssocNetwork.network_version": 0,
+      "AcDbAssocNetwork.network_action_index": 3
+    },
+    "currentDefect": "Before this slice, the parser assigned network_action_index to m_actionIndex, replacing the already parsed action_index; network_version was discarded."
+  },
+  "independentWitness": {
+    "repository": "../libredwg",
+    "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "tool": "/opt/homebrew/bin/dwg2dxf",
+    "version": "0.14",
+    "projectionPath": "/private/tmp/civil-assoc-dependency.json",
+    "projectionSha256": "ef33f2eb73fbf0f9f74d0a4b99d63b347fb01554e788be71d02989688774c5de",
+    "outputPath": "/private/tmp/libredwg-assoc-civil-0.14.dxf",
+    "outputSha256": "b19a6c760c6539e5e0b768125c4bfbf710a8e323f158b53b314d2556d3d30855",
+    "observed": "The same AC1024 source has an ACDBASSOCNETWORK at handle 2493 with action_index 4, network_version 0 and network_action_index 3. The independent DXF output retains the action base and network subclass fields in distinct positions."
+  },
+  "specificationReview": {
+    "authority": "Open Design Alliance Open Design Specification for .dwg files v5.4.1, chapter 20, AcDb:AcDbObjects",
+    "source": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "reviewed": "The object chapter documents the common object envelope, common handles and type-specific payload boundary. It does not specify the associative action/network subclass fields; those are independently corroborated against the source-matched LibreDWG projection."
+  },
+  "implementationBrief": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "change": "For the source-qualified AC1024 profile, retain network_version and network_action_index in separate fields and leave m_actionIndex bound to the base AcDbAssocAction field. Preserve legacy index projection for other versions until source-matched evidence binds those layouts. Copy/reset all new state and test a generated AC1024 network object with intentionally different base and subclass indexes.",
+    "focusedSelector": "--associative-network-action-index-generated",
+    "physicalWitnessCheck": "Run the existing dwg2dxf against the exact civil source in debug mode and compare the parsed handle 2493 fields to the independent witness. Do not add or commit the source DWG/DXF.",
+    "build": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+    "focusedValidation": "ctest --test-dir build -R '^(libdxfrw_associative_network_action_index_generated|libdxfrw_associative_constraint_group_generated|libdxfrw_persistent_manager_prefix_dispatch)$' --output-on-failure",
+    "escalation": "Run broader associative reader coverage only if the generated selector or physical-source comparison fails; no full suite is implied."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "Added distinct AC1024 network version/index fields, preserved the shared action index, copied/reset the new fields, and emitted the parsed values in debug traces. Other versions retain their legacy projection pending source-matched proof.",
+    "generatedProfile": "AC1024 ACDBASSOCNETWORK; base action index 4, network version 0, network action index 3; two action references exercise soft and owned roles; copy construction and assignment preserve all fields.",
+    "independentPhysicalResult": "The local reader reports handle 2493 as self/parent/owningNetwork/actions=2493/2492/1769/3 and action indexes base/network-version/network-index/parsed=4/0/3/1, matching the independent witness.",
+    "strictExport": "Still refused with dwg-associative-graph-not-serialized; no DXF was published."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_associative_network_action_index_generated|libdxfrw_associative_constraint_group_generated|libdxfrw_persistent_manager_prefix_dispatch)$' --output-on-failure",
+      "result": "PASS 3/3; 0.09 seconds total."
+    },
+    "physicalSource": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/civil_example-imperial.dwg -y -d -v2010 /private/tmp/libdxfrw-p4-network-index-check.dxf",
+      "exitCode": 1,
+      "logPath": "/private/tmp/libdxfrw-p4-network-index-check.log",
+      "logSha256": "070c1fe05ec8c6c7855ceca40d2734b5f59755378a78ae22f2db227caaedce7a",
+      "result": "Expected strict whole-graph refusal; handle 2493 fields matched and no DXF output was published."
+    },
+    "diffCheck": "PASS.",
+    "fullSuites": "NOT_RUN"
+  },
+  "remainingP4Scope": "Complete source-bound associative graph serialization, recursive closure, identity remapping, staged output proof and independent readback. Strict refusal remains active.",
+  "nextAction": "Implement a source-bound AC1024 associative-network output profile using the now-distinct base and network indexes and audited action references; keep whole-graph refusal active until all required descendants are emitted and read back.",
+  "sourceHashesSha256": {
+    "src/drw_objects.h": "d8abb742bca961c9fa00767f277710e9b23aed971226479a8bca407dec6ada3e",
+    "src/drw_objects.cpp": "1161f9df1d987f2824f604085a677741be3b43fd29abe16090436bd598237aec",
+    "tests/dwg_reader_matrix_tests.cpp": "a3bd9f45a438a7efe1ab73e29237b16ef644d3c7ca34d0d378f8a423a7ceeaf8",
+    "tests/CMakeLists.txt": "a5e03e177038b94a10ec586b864c118e6dceabc5eab2b05ae1aaf35562ad0502",
+    "build/dwg2dxf/dwg2dxf": "c778b0fc8387faee6a21d34410cfb04aa5432832a2149d68e148a32e4365c3b1",
+    "build/libdxfrw_dwg_reader_matrix_tests": "9e582823f448a2973809ee143c3702a074e42a0f9d4479800c52ac87b03e6ec3"
+  },
+  "supportClaimEffectReason": "Field retention fixes local typed-source fidelity only. Complete associative graph output, independent readback and consumer qualification remain open."
+}

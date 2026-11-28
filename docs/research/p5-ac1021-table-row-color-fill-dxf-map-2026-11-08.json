@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "date": "2026-11-08",
+  "status": "GENERATED_TABLE_ROW_COLOR_FILL_DXF_MAP_BOUNDED",
+  "workstream": "P5 / AC1018-AC1021 TABLE title/header/data row color and fill overrides",
+  "authority": {
+    "dwgDocument": "Open Design Specification for .dwg files v5.4.1",
+    "dwgSection": "20.4.96.1, TABLE until R21",
+    "slotOrder": "title, header, data",
+    "dxfReference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+    "dxfFields": {
+      "63": "background/fill color, repeated per cell type",
+      "64": "cell-content color, repeated per cell type",
+      "283": "background-color enabled, repeated per cell type"
+    },
+    "limitation": "Autodesk's group-code reference does not establish the order of repeated cell-type values. The implementation uses ODA's DWG title/header/data order; generated controls do not qualify physical DXF producer order or native precedence."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/table_content_dxf_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "TABLE entity-level group 64 text colors, group 63 fill colors, and group 283 fill-enabled values now map to/from the three modeled title/header/data slots. Group 283 is inverted from DWG fillNone. CMC output is admitted only for exact ByLayer (C0/index 256), ByBlock (C1/index 0), or indexed ACI (C3/index 1..255), with no extra flags, RGB payload, color name, or color book. Unsupported true-color/name/book companions, invalid indices, malformed/missing/excess selected values, and orphaned values fail closed. Cell-level overrides remain distinct."
+  },
+  "generatedControl": "From-scratch TABLE tags exercise all three selected slots with cell-level and entity-level values interleaved, verify group-code order and exact values, parseback typed fields, and reject missing, excess, malformed, invalid, true-color, and color-book cases without partial state publication.",
+  "outputControl": "ASCII and Binary adapter output verify exact group 63/64/283 values, fresh typed readback, atomic destination preservation on unsupported CMC, and corrected same-writer retry.",
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_table_content_dxf_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedRegression": "PASS: ctest --test-dir build -R '^(libdxfrw_table_row_alignment_override_parse|libdxfrw_table_scalar_override_output|libdxfrw_table_content_dxf_projection|libdxfrw_table_legacy_override_177|libdxfrw_table_legacy_text_height|libdxfrw_table_legacy_merge)$' --output-on-failure, 6/6",
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated codec mapping only; no physical DXF repeated-value order witness, producer breadth, native precedence, or rendering qualification.",
+    "Only exact CMC index methods are represented; other color methods and group 420/430 companions remain unsupported.",
+    "No broader TABLE, whole-drawing, or product support claim is promoted."
+  ],
+  "supportClaimsPromoted": 0,
+  "fixtureFilesAdded": 0,
+  "next": "Resolve selected row text-style hard pointers to unique emitted STYLE names through a staged registry; retain fail-closed behavior for missing, duplicate, wrong-type, or un-emitted targets. Keep group 140 text height, row heights, and borders output-refused absent exact mapping and ordering proof."
+}

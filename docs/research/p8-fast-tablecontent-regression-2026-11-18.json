@@ -1,0 +1,233 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-fast-tablecontent-regression-2026-11-18",
+  "date": "2026-11-18",
+  "title": "P8-F fast regression corrections, qualification, and policy closure",
+  "status": "P8F_CLOSED_FAST_NATIVE_AND_BRANCH_POLICY_OBSERVED",
+  "candidate": {
+    "repository": "dxli/libdxfrw",
+    "failureCommit": "f0f87e7f9f93a040e38da8ca6424ef55abcca76e",
+    "correctedCommit": "85876393",
+    "pullRequest": "LibreCAD/libdxfrw#106"
+  },
+  "supportClaimEffect": "none",
+  "packageGateEffect": "P8-F closed after source-matched fast and focused three-platform native workflows passed and the authenticated branch-protection required-status policy was observed.",
+  "activityLedgerEffect": "One hosted-fast correction slice and one package gate completed after TABLE and CLASSES. The 75 completed implementation/research slices are unchanged. Activity progress is 84/108 (77.8%); gate readiness is 9/33 (27.3%).",
+  "workflow": {
+    "name": "libdxfrw fast parity regressions",
+    "runId": 44259323444,
+    "runUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44259323444",
+    "jobId": 134648676035,
+    "jobUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44259323444/job/134648676035",
+    "runner": "GitHub Actions ubuntu-24.04"
+  },
+  "passedBeforeFailure": [
+    "source/build inventory check",
+    "ordinary regression configuration",
+    "bounded fast target build and source compatibility check"
+  ],
+  "failure": {
+    "step": "Run fast vectors and required CLI regressions",
+    "executable": "build/libdxfrw_dwg_object_vectors_tests",
+    "result": "Historical failure: 19 assertion failures; the vector executable returned non-zero. The same focused target passes locally after the correction below.",
+    "assertionGroups": [
+      "AC1021 TABLECONTENT: omitted content-format CMC and cell-style CMCs must remain semantically incomplete.",
+      "AC1021 TABLECONTENT: skipping complete styled borders must preserve alignment.",
+      "AC1024 TABLE: preserve the validated entity prefix while withholding incomplete or multi-content TABLECONTENT; distinguish a null DATALINK from malformed handle encoding.",
+      "AC1024 TABLE: withhold incomplete cell semantics for value-unit types 3, 5, 12, 16, 32, 65536, -1, and 2147483647.",
+      "AC1024 TABLE: kUnknown must withhold typed content without advancing the public body cursor into the optional content.",
+      "AC1024 TABLE: inverted, out-of-bounds, and overlapping merged ranges must withhold typed content and preserve cursor rollback."
+    ]
+  },
+  "followupWorkflow": {
+    "head": "8f36d9abd30d819d01c65b94597c08daa624c9b5",
+    "runId": 44266356782,
+    "runUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44266356782",
+    "jobId": 134671747433,
+    "jobUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44266356782/job/134671747433",
+    "step": "Run fast vectors and required CLI regressions",
+    "result": "The corrected DWG object vectors passed; the next selector, libdxfrw_writer_version_matrix_tests, failed 65 CLASSES exact-text assertions. No native qualification job failed."
+  },
+  "latestWorkflow": {
+    "head": "3e9d856d32b2608c7b0fc7dbb6451fef12ab0707",
+    "runId": 44270990203,
+    "runUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44270990203",
+    "runner": "GitHub Actions ubuntu-24.04",
+    "passedBeforeFailure": [
+      "workflow contract",
+      "fixture policy",
+      "source inventory",
+      "ordinary regression configuration",
+      "bounded target build"
+    ],
+    "failure": [
+      "dwg2dxf_cli_contract rejected the generated SUNSTUDY readback root because the writer also emits ACAD_PLOTSTYLENAME and the repeated pass uses the DICTIONARYWDFLT class alias.",
+      "libdxfrw_3d_consumer_probe expected three total carriers but observed three inline modeler carriers plus two unrelated rawDxfObject carriers."
+    ],
+    "nativeWorkflow": {
+      "runId": 44270990230,
+      "result": "PASS: workflow contract, Linux GCC, macOS Clang, and Windows MSVC focused qualification; broad and extended lanes skipped."
+    }
+  },
+  "currentWorkflow": {
+    "head": "d9a42111b3857e505693bd156b5717653749d292",
+    "fastRunId": 44281248757,
+    "fastRunUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44281248757",
+    "fastStatusAtReceiptUpdate": "success",
+    "fastJob": {
+      "name": "fast-regressions",
+      "status": "success",
+      "completedSteps": [
+        "workflow setup",
+        "byte-stable checkout",
+        "source checkout",
+        "fixture policy",
+        "source inventory",
+        "ordinary regression configuration",
+        "bounded fast targets and source compatibility build",
+        "fast vectors and required CLI regressions"
+      ],
+      "conclusion": "All required fast-regression steps passed."
+    },
+    "nativeRunId": 44281248595,
+    "nativeRunUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44281248595",
+    "nativeStatusAtReceiptUpdate": "success",
+    "nativeJobs": {
+      "workflowContract": "PASS",
+      "linuxGcc": "PASS",
+      "windowsMsvc": "PASS",
+      "macosClang": "PASS",
+      "broadAndExtendedFuzz": "skipped"
+    },
+    "checkRunSummary": {
+      "total": 8,
+      "success": [
+        "fast-regressions",
+        "qualification workflow contract",
+        "focused / linux-gcc",
+        "focused / macos-clang",
+        "focused / windows-msvc"
+      ],
+      "skipped": [
+        "source-release",
+        "final broad",
+        "extended deterministic fuzz"
+      ]
+    },
+    "implementationDigest": "5946b6c7aaaf2d8b8d829bd855a0aace6ed7c380fe5228b301c0458d7b2ab7f1",
+    "branchProtection": {
+      "command": "gh api repos/LibreCAD/libdxfrw/branches/master/protection/required_status_checks",
+      "result": {
+        "strict": true,
+        "contexts": [],
+        "checks": []
+      },
+      "interpretation": "The protected branch must be up to date with its base; no named status checks are configured. The empty required-check list is now directly observable through the authenticated CLI."
+    },
+    "interpretation": "Fast and all focused native platform checks are source-matched to the unchanged implementation digest. Broad and extended fuzz jobs were deliberately skipped. P8-F is closed; no support claim is promoted by these runs."
+  },
+  "latestPlanHead": {
+    "head": "f86de4407afdf540b0687ce7ce31596a97c5f2a3",
+    "changedFromValidatedCodeHead": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p8-fast-tablecontent-regression-2026-11-18.json",
+      "docs/research/p8d-post-unlock-preflight-2026-11-18.json"
+    ],
+    "implementationDigestUnchanged": "5946b6c7aaaf2d8b8d829bd855a0aace6ed7c380fe5228b301c0458d7b2ab7f1",
+    "fastRunId": 44285863245,
+    "nativeRunId": 44285863224,
+    "statusAtReceiptUpdate": "Fresh checks were running on the documentation-only PR head; their implementation inputs match the source-identical passing runs above.",
+    "interpretation": "P8-F closure is based on passing checks for the same frozen implementation digest plus the now-visible branch-protection policy. Observe the already-triggered current-head runs for failures, but do not repeat successful native/platform work without changed implementation inputs."
+  },
+  "latestLocalCorrection": {
+    "commit": "85876393",
+    "scope": "Fix the exact generated-output graph profile and the aggregate-count assumption in its modeler consumer probe; no DWG byte parser or support claim changed.",
+    "behavior": [
+      "SUNSTUDY source qualification now admits only the closed NOD shape containing the SUNSTUDY owner edge, optional ACAD_GROUP edge, and optional ACAD_PLOTSTYLENAME edge; the plot-style dictionary, Normal default, raw placeholder receipt, class declarations, and repeated class alias are checked.",
+      "The output observer accounts for the writer-generated default plot-style root entry while retaining exact owner, ACAD_GROUP, payload, and readback checks.",
+      "The modeler probe counts exactly three dxfModelerEntityInlinePayload carriers while leaving unrelated rawDxfObject carriers outside that count."
+    ],
+    "validation": {
+      "build": "cmake --build build --target dwg2dxf libdxfrw_3d_consumer_probe libdxfrw_dwg2dxf_adapter_tests --parallel 8",
+      "buildResult": "PASS",
+      "owningCTestSelectors": "ctest --test-dir build -R '^(dwg2dxf_sunstudy_dxf_graph(_AC1024|_AC1032)?|libdxfrw_3d_consumer_probe)$' --output-on-failure",
+      "owningCTestResult": "PASS: 4/4 (AC1024, AC1027, AC1032 SUNSTUDY graph controls and 3D consumer probe).",
+      "observationCLI": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build/dwg2dxf/dwg2dxf --sunstudy-observation-only",
+      "observationCLIResult": "PASS: 42 route/refusal controls, ASCII/Binary and AC1024/AC1027/AC1032 repeated readback.",
+      "diffCheck": "PASS",
+      "fastOnlyCLI": "The full local fast-only CLI CTest hit its 25-second TIMEOUT; its focused SUNSTUDY selector passed separately."
+    },
+    "implementationDigest": "5946b6c7aaaf2d8b8d829bd855a0aace6ed7c380fe5228b301c0458d7b2ab7f1",
+    "implementationDigestInputCount": 733,
+    "implementationDigestProvenance": "Clean tracked clone at commit 85876393; untracked DWG/DXF samples excluded."
+  },
+  "localCorrection": {
+    "commit": "a6fd3de1",
+    "behavior": [
+      "AC1024 inline TABLECONTENT that parses but has incomplete semantics now leaves the validated entity prefix committed and rolls body/string/handle cursors back to the optional-content boundary.",
+      "Null references with no target are accepted as null while non-null references still require the exact expected handle role.",
+      "TABLECONTENT cell-style border payloads are read conditionally by ODA v5.4.1 §20.4.101.4 override bits; unknown override bits fail closed.",
+      "The generated sparse-border vector now encodes only the fields selected by its 0x22 lineweight/double-spacing override mask."
+    ],
+    "sourceEvidence": [
+      "ODA v5.4.1 §20.4.97 defines TABLECONTENT rows, cells, contents, attributes, and trailing fields.",
+      "ODA v5.4.1 §20.4.99 limits documented unit types to 0, 1, 2, 4, and 8; other scalar values remain semantically incomplete.",
+      "ODA v5.4.1 §20.4.101.4 places border fields under property-override bits: type 0x01, color 0x08, lineweight 0x02, linetype 0x04, invisibility 0x10, and double spacing 0x20.",
+      "ODA v5.4.1 §2.13 defines typed handle relation codes and their counters; the shared bounded-role helper in this source accepts zero-target null references without relaxing non-null role validation."
+    ],
+    "validation": {
+      "build": "cmake --build build --target libdxfrw_dwg_object_vectors_tests --parallel 8",
+      "buildResult": "PASS",
+      "directVector": "./build/libdxfrw_dwg_object_vectors_tests",
+      "directVectorResult": "PASS: DWG object vectors",
+      "owningSelector": "ctest --test-dir build -R dwg_object_vectors --output-on-failure",
+      "owningSelectorResult": "PASS: 1/1",
+      "buildInventory": "python3 -B tools/generate_build_inventory.py --check",
+      "buildInventoryResult": "PASS: 1,296 released files",
+      "implementationDigest": "132293d7850eadba1c6ad3b6845391c5a059e80b0301066e4d6381d645919913",
+      "implementationDigestInputCount": 733,
+      "implementationDigestProvenance": "Clean tracked clone at corrected implementation commit a6fd3de1; untracked local DWG/DXF samples excluded."
+    },
+    "nonValidation": [
+      "Hosted corrected-head fast workflow has not yet run.",
+      "No native or broad suite was repeated."
+    ]
+  },
+  "localFollowup": {
+    "scope": "Test-profile correction only; no production DWG writer, reader, or observer behavior changed.",
+    "finding": "The AC1027 and AC1032 writer profiles place a high-size RL before the bitSize RL, while dwgWriter24::writeDwgClasses computes the low RL without that high-size word. The matrix had left the independent observer's IncludesHighWord default active, locating the CRC four bytes early and making its footer checks fail.",
+    "correction": "Select ExcludesHighWord for AC1027 and AC1032 in the generated-writer profile. Add a negative control requiring the IncludesHighWord alternative to refuse the same frames.",
+    "validation": {
+      "build": "cmake --build build --target libdxfrw_writer_version_matrix_tests --parallel 8",
+      "buildResult": "PASS",
+      "directSelector": "./build/libdxfrw_writer_version_matrix_tests",
+      "directSelectorResult": "PASS: 128 CLASSES exact-bit cases; 44 short and 68 extended footers; alignment mask 0x55; alternate high-size profiles refused.",
+      "diffCheck": "PASS"
+    },
+    "limits": [
+      "This resolves an incorrectly configured generated-output observer profile, not a production writer defect.",
+      "Hosted fast CI must be rerun on the corrected head before P8-F can close.",
+      "No full suite or native platform qualification was repeated because production code did not change."
+    ],
+    "commit": "5f244cfb",
+    "implementationDigest": "e9ed8370fd963787c00e4e94c6eaef5fafdafb72ba9012269c03b4074532713c",
+    "implementationDigestInputCount": 733,
+    "implementationDigestProvenance": "Clean tracked clone at source commit 5f244cfb; unrelated untracked local samples excluded."
+  },
+  "sourceInspection": {
+    "testFile": "tests/dwg_object_vectors_tests.cpp",
+    "dispatchFile": "src/intern/dwgreader.cpp",
+    "codecFile": "src/drw_objects.cpp",
+    "scope": "The 19 assertions came from incomplete semantic projection being published for inline AC1024 TABLECONTENT, null pointer fields being rejected, and the cell-style parser consuming border fields unconditionally despite the ODA override mask. The sparse-border vector also emitted fields not selected by its mask; it now follows ODA's conditional field order."
+  },
+  "nextAction": [
+    "Continue with the next independent producer/source evidence packet in the active plan; P8-F is closed for this implementation digest.",
+    "Do not rerun passing fast/native jobs unless implementation inputs change or the current PR-head checks report a failure.",
+    "Do not rerun the already-passing focused native or FreeCAD jobs unless the changed source/runtime can affect them; continue unrelated producer/authority acquisition."
+  ],
+  "limits": [
+    "This generated-vector failure is not a producer-authored DWG witness and cannot establish wire semantics.",
+    "Do not weaken strict-output refusal, cursor rollback, destination preservation, or raw-retention behavior to make the vector pass.",
+    "The native focused three-platform run passed on this same candidate; that result does not override this fast-regression failure."
+  ]
+}

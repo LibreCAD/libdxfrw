@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-ray-xline-wcs-fields-2026-11-12",
+  "purpose": "Verify generated RAY/XLINE callback delivery of their WCS origin and direction fields through both DXF encodings and extrusion modes.",
+  "authority": [
+    {
+      "source": "Autodesk AutoCAD DXF Reference",
+      "entity": "RAY",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-638B9F01-5D86-408E-A2DE-FA5D6ADBD415.htm",
+      "fields": "Groups 10/20/30 are the start point in WCS; 11/21/31 are the unit direction vector in WCS."
+    },
+    {
+      "source": "Autodesk AutoCAD DXF Reference",
+      "entity": "XLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-55080553-34B6-40AA-9EE2-3F3A3A2A5C0A.htm",
+      "fields": "Groups 10/20/30 are the first point in WCS; 11/21/31 are the unit direction vector in WCS."
+    }
+  ],
+  "source": {
+    "kind": "runtime-generated-from-scratch-DXF",
+    "version": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "trackedFixture": false
+  },
+  "profiles": [
+    {
+      "entity": "RAY",
+      "layer": "probe_ray_wcs",
+      "startWcs": [3.5, -2.0, 9.0],
+      "unitDirectionWcs": [0.0, 0.0, 1.0]
+    },
+    {
+      "entity": "XLINE",
+      "layer": "probe_xline_wcs",
+      "startWcs": [-4.0, 6.5, -8.0],
+      "unitDirectionWcs": [0.0, 1.0, 0.0]
+    }
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "ctestResult": "PASS, 1/1, 0.42 seconds",
+    "extrusionModes": ["ext=false", "ext=true"],
+    "diffCheck": "PASS"
+  },
+  "scopeLimit": "Generated same-library DXF transport only. Does not qualify independent interoperability, DWG RAY/XLINE parsing, or native consumer behavior.",
+  "claimEffect": "No format or consumer support claim changes."
+}

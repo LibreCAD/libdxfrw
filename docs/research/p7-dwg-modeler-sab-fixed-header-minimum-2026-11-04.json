@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-dwg-modeler-sab-fixed-header-minimum-2026-11-04",
+  "date": "2026-11-04",
+  "status": "DWG_ASSOCIATED_SAB_FIXED_HEADER_LENGTH_GUARD",
+  "supportClaimEffect": "none",
+  "problem": "The DWG-associated modeler paths admitted a carrier as SAB when it contained only the 15-byte signature, even if the four following fixed-width header words were truncated. A prefix alone cannot contain the binary header.",
+  "evidence": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 section 24.2.2.3 specifies the ACIS BinaryFile SAB prefix but defers detailed SAB format. Its terminal-marker statement is explicitly conditional on streams created from SAT; it is not a universal trailer requirement.",
+    "independent_reader": "The independently implemented LibreDWG src/out_dxf.c reads four little-endian 32-bit words (version, number of records, number of entities, history/flags) directly after ACIS BinaryFile. Reviewed source SHA-256 91c12ce650f9c072b6e487418247bd8ed6075e55cfac0510d885faaf61b4f079.",
+    "in_tree_reader": "src/drw_acis.cpp readHeader independently uses the same 15-byte signature and four 32-bit values before tagged header fields.",
+    "physical_control": "The three AC1027 source records and their identical ODA DXF carrier bytes are identified in p7-ac1027-physical-modeler-acds-sab-oda-byte-join-2026-11-03.json. All exceed 31 bytes. Their observed tagged terminal marker is End-of-ASM-data; this observation is not treated as a universal framing rule."
+  },
+  "implementation": "The shared private minimum-header predicate requires signature at offset zero and at least 31 bytes. It is used for DWG raw-modeler replay before publication and during finalization, for the adapter's DWG-to-DXF AcDs projection, and for the low-level writer's source-version-qualified DWG AcDs binding. It does not parse or validate header values or body content. Generic opaque DataStorage and DXF-origin raw ACDSDATA replay remain separate.",
+  "validation": {
+    "build": "Separate /private/tmp/p7-uid-current-build configured with LIBDXFRW_BUILD_TESTS=ON and -Werror retained; libdxfrw_dwg_local_roundtrip target built.",
+    "boundary": "Generated AC1027 raw DWG and DXF-projection controls refuse a 30-byte carrier, preserve an existing destination, explicitly restore a 31-byte fixed header on the same writer/adapter and verify readback. These inputs test transport and header length only; their bodies are not claimed to be valid SAB.",
+    "compatibility": "An AC1027 DXF-origin raw ACDSDATA record is shortened to 30 bytes in a locally produced input, freshly imported, replayed, reimported, and compared byte-for-byte. Separate 30-byte DXF text carrier controls round-trip through AC1021 ASCII and Binary.",
+    "focused_ctests": "libdxfrw_raw_modeler_acds_replay; dwg2dxf_modeler_acds_r2013plus_projection; dwg2dxf_acds_multi_record_projection; dwg2dxf_modeler_acds_block_projection; libdxfrw_acds_schema_shell_guards; dwg2dxf_acds_history_reexport_faults; dwg2dxf_acds_strict_material_closure; dwg2dxf_modeler_acds_blob_projection; dwg2dxf_modeler_acds_blob_faults; dwg2dxf_modeler_dxf_writer_matrix.",
+    "low_level_direct": "libdxfrw_hardening_tests --dxf-acds-qualification-hex-view passed both ASCII and Binary 31-byte admission, 30-byte pre-publication refusal and malformed-hex refusal."
+  },
+  "limitations": [
+    "Length and signature alone do not prove a well-formed SAB, a complete record graph, native geometry, or support parity.",
+    "No universal trailing marker is enforced: ODA's stated requirement is conditional, and LibreDWG documents record-count framed streams.",
+    "Other unqualified profiles and the DWG modeler shell flag/UID guard remain unchanged. No DWG/DXF fixtures were added."
+  ]
+}

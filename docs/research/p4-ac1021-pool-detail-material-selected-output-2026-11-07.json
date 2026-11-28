@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Pool_Detail AC1021 MATERIAL selected graph output and readback",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the Pool_Detail AC1021 ACAD_MATERIAL root and its three MATERIAL records through selected ASCII/Binary DXF output, fresh typed readback, destination-preserving refusal, and same-adapter retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Pool_Detail.dwg",
+    "sha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. The input and derivatives are not committed."
+  },
+  "sourceGraph": {
+    "root": "The NOD ACAD_MATERIAL key resolves uniquely to its complete owner dictionary, which contains exactly three unique keys for the three typed MATERIAL records.",
+    "records": "Each MATERIAL has a complete typed body, the expected owner and reactor role, and no extension dictionary. The selected graph has zero reachable extension XRECORDs.",
+    "contrast": "The existing children-room AC1021 profile has seven reachable extension XRECORDs; its compatibility selector still passes."
+  },
+  "implementation": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "change": "Removed the selector's fixed seven-XRECORD expectation. It now compares fresh output XRECORD count and identities against the exact dependency set reached from the selected MATERIAL extension dictionaries, allowing both the children-room seven-record graph and Pool_Detail's zero-record graph without weakening per-edge payload, owner, or role checks.",
+    "productionCodecChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS",
+      "testSourceSha256": "7ca3323c19c976fd9784e97d57e0647a31e14dc535836211fdaa71ba3b770fad",
+      "executableSha256": "b47b8b5f11d7f8ace26288b0686408596a93b04ebc5e8c1dc0ef26648845fa08"
+    },
+    "poolDetailAc1021": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --material-ac1021-physical-output-readback /Users/dli/doc/dwg/Pool_Detail.dwg",
+      "result": "PASS in ASCII and Binary; all three MATERIAL identities, ACAD_MATERIAL keys, typed body/common links, zero-XRECORD dependency closure, refusal, destination preservation, and same-adapter retry verified."
+    },
+    "childrenRoomAc1021Regression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --material-ac1021-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS in ASCII and Binary; the existing three-MATERIAL/seven-XRECORD graph remains intact, including payload and owner readback, refusal, destination preservation, and retry."
+    },
+    "mechanicalAc1024Regression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --material-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS in ASCII and Binary; existing AC1024 behavior remains intact."
+    },
+    "diffCheck": "PASS; git diff --check passed."
+  },
+  "limits": [
+    "This proves selected graph transport for one unauthenticated local AC1021 source and preserves two existing profile regressions; it does not qualify whole-source conversion or producer-wide support.",
+    "No independent encoder comparison, native rendering, or application acceptance is established.",
+    "No DWG/DXF fixture was added to the repository."
+  ],
+  "next": "Choose a distinct source/profile from the existing inventory for the next P4 packet. Prioritize a populated GROUP or IMAGE graph only if source identity, owner roles, and recursive dependencies are already evidenced; otherwise record the exact missing evidence and continue with an independently produced sample. Keep the Pool_Detail SORTENTSTABLE null-target graph refused."
+}

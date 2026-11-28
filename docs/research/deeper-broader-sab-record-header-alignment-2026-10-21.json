@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw-sab-shared-record-header-research-v1",
+  "title": "SAB shared-record-header and type-field alignment research",
+  "date": "2026-10-21",
+  "status": "research_only",
+  "repository": "LibreCAD/libdxfrw",
+  "plans": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "method": {
+    "kind": "Primary-source web review plus local source/test inspection",
+    "peerSourceRevisionPinned": true,
+    "peerSource": "mozman/ezdxf dd7f6cc34983fdbf0b2b910f2497e0720d06dd16",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalledOrRun": false,
+    "peerOrNativeRuntimeRun": false,
+    "localCodeModified": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "scratchGeneratedFiles": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sources": [
+      "https://www.opendesign.com/blog/2017/october/working-sat-and-sab-files-teigha",
+      "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf#page=246",
+      "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/sab.py#L307-L325",
+      "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/sab.py#L265-L286",
+      "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/entities.py#L203-L229",
+      "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/entities.py#L337-L365",
+      "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/entities.py#L48-L66",
+      "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.2",
+      "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/format-support.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/formats/asm.md",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/corpus/manifest.jsonl",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+      "https://www.occt3d.com/components/acis-exchange/",
+      "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.5",
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    ],
+    "evidenceRule": "ODA v5.4.1 remains authoritative for DWG AcDs container layout. Pinned ezdxf source is implementation corroboration for one SAB profile, not normative ACIS authority. Project matrices, mutable peer sources, and same-codec tests do not establish arbitrary SAB semantics or consumer acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "Pinned ezdxf SAB entity-record framing",
+      "observed": "read_record() retains the leading EntityType at raw token index 0. For non-marker records, build_entities expects the common attribute pointer at raw index 1 and (for its version >=700 branch) an integer entity ID at raw index 2; type-specific data begins at raw token index 3. ODA maps R27/2013 to 21800 and says versions 20800+ are Autodesk-modified, not native Spatial ACIS.",
+      "doesNotEstablish": [
+        "A normative ACIS specification",
+        "That this record form applies to every SAT/SAB/ASM version",
+        "DWG AcDs section framing or entity-handle association",
+        "B-rep validity or native application acceptance"
+      ],
+      "planUse": "For the currently projected Autodesk-modified ACIS BinaryFile 21800 profile only, validate [0]=EntityType matching the record name, [1]=Pointer, [2]=Int, preserve all raw tokens, and privately derive semantic start=3 without changing the installed DRW_SabRecord layout. Keep other profiles raw or fail closed; do not generalize the peer's >=700 branch."
+    },
+    {
+      "topic": "21800 stream terminator and candidate profile-name boundary",
+      "observed": "ODA v5.4.1 §24.2.2.3 specifies End-of-ASM-data at save version >=21800 and End-of-ACIS-data below that threshold. The pinned ezdxf R2013+ export path sets asm_end_marker=true and appends its profile-selected marker. CADMPEG v0.6.2 documents ACIS 217/218 as verified Spatial ACIS bands, but that wording plus the numeric version does not itself prove equivalence to every Autodesk-modified 21800 record profile.",
+      "doesNotEstablish": [
+        "Detailed SAB entity-field grammar from ODA §24",
+        "That every ACIS BinaryFile 21800 producer emits identical records",
+        "That CADMPEG accepts this exact Autodesk-modified 21800 payload",
+        "B-rep validity, native DWG ownership association, or consumer acceptance"
+      ],
+      "planUse": "Generate 21800 test controls with End-of-ASM-data, retain version-1 End-of-ACIS-data controls, and admit CADMPEG only after an exact-byte parser/profile run. A parser that recognizes both markers does not imply all signature/version/terminator combinations are producer-valid."
+    },
+    {
+      "topic": "Local decoder/model alignment risk",
+      "observed": "DRW_SabRecord currently stores the leading type marker and all later tokens in one vector without a semantic offset. The graph model counts every Pointer token as a node reference, and rooted pointer-row checks walk all raw tokens. Existing hand-built graph tests omit the wire-level shared prefix.",
+      "doesNotEstablish": [
+        "A failing real-file result",
+        "That every produced 21800 stream violates current projection expectations",
+        "A general ACIS entity grammar"
+      ],
+      "planUse": "Add an in-memory, from-scratch 21800 wire-form test through the real parser. Validate the prefix, derive start=3 internally, leave the raw sequence unchanged, and apply the semantic suffix consistently to all field cursors and pointer ordinals. The source-audit risk is not a native-file failure reproduction."
+    },
+    {
+      "topic": "External corpus and geometry-route boundary",
+      "observed": "cq-acis publishes a manifest with source revision/blob/hash and separate source licenses; its test corpus is not in the wheel. Its shape output, like InventorLoader through FreeCAD Part, uses OCCT. ACadRust is a distinct structural parser lineage but its declared support and same-codec tests do not independently qualify geometry semantics.",
+      "doesNotEstablish": [
+        "A second independent geometry kernel",
+        "DWG AcDs parsing or owner-to-payload mapping",
+        "Support in LibreCAD, LibreCAD_3, or stock FreeCAD DXF import",
+        "Permission to redistribute all peer corpus files without per-file license review"
+      ],
+      "planUse": "Treat any source corpus as an optional composed-stage probe with exact input/source hashes and license provenance. Do not vendor it or commit it as a regression fixture; do not add peer packages to the fast path."
+    }
+  ],
+  "planImpact": {
+    "existingOwner": "PAR-07 / S3.7",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationReadinessUpdated": true,
+    "newTestsOrRegistrations": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": [
+    "No peer repository was cloned, built, installed, or run.",
+    "No generated SAB, DWG, or DXF file was created or committed in this research-only pass.",
+    "The common-header behavior is pinned-source implementation evidence, not format authority.",
+    "The local pointer-ordinal mismatch is a source-audit risk pending a parser-fed generated regression.",
+    "No B-rep semantics, independent-kernel result, native FreeCAD qualification, or external support claim was acquired.",
+    "The shared worktree is broadly dirty; no files were staged or committed."
+  ]
+}

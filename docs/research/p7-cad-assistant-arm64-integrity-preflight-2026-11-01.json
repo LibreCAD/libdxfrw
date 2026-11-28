@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p7-cad-assistant-arm64-integrity-preflight-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Official CAD Assistant ARM64 package integrity preflight",
+  "status": "NATIVE_SIGNATURE_AND_GATEKEEPER_VERIFIED_SEMANTIC_OBSERVATION_UNCONFIRMED",
+  "supportClaimEffect": "none",
+  "scope": "Preflight the previously selected official macOS ARM64 ACIS reader without launching it, and determine whether this host can safely produce independent P7 semantics evidence.",
+  "officialSources": [
+    {
+      "url": "https://www.occt3d.com/products/cad-assistant/",
+      "findings": [
+        "Official page lists CAD Assistant 1.6.0, dated 2021-10-05, and an Apple silicon ARM64 DMG.",
+        "The page says ACIS SAT/SAB import is provided by commercial OCCT XDE components and export/conversion is disabled for those imported formats.",
+        "The page says selected parts expose geometric properties including area, volume and centroid; no machine-readable batch interface is documented."
+      ]
+    }
+  ],
+  "download": {
+    "url": "https://www.occt3d.com/downloads/products/cad-assistant/cad_assistant_1.6.0_2021-10-06_arm64.dmg",
+    "path": "/private/tmp/cad-assistant-arm64.dmg",
+    "sha256": "a1a21d2b3294ca556b7a0172df8ed1a8046450894033147be09a9fd1549f2b2d",
+    "sizeBytes": 45435791,
+    "hdiutilVerify": "PASS; all disk-image CRC checks verified",
+    "sevenZipTest": "PASS; all 438 files and 94 directories passed archive checks"
+  },
+  "extractedCandidate": {
+    "path": "/private/tmp/cad-assistant-extract/CAD Assistant [arm64]/CAD Assistant.app",
+    "bundleIdentifier": "org.opencascade.cadassistant",
+    "bundleVersion": "1.6.0",
+    "executablePath": "/private/tmp/cad-assistant-extract/CAD Assistant [arm64]/CAD Assistant.app/Contents/MacOS/CADAssistant",
+    "executableArchitecture": "arm64",
+    "executableSha256": "aeb1cb18e53193dbf502e34986e7e2047cedf61cf0895fb237caed1be63b91aa",
+    "codesignBundle": "FAIL: invalid signature (code or signature have been modified)",
+    "codesignExecutable": "FAIL: invalid signature (code or signature have been modified)",
+    "spctl": "Not assessed: internal error in Code Signing subsystem",
+    "launchAttempted": false
+  },
+  "hostLimitations": [
+    "hdiutil verify works, but hdiutil attach returns Device not configured.",
+    "diskutil image attach/imageinfo cannot access the DiskManagement framework in this environment.",
+    "Because the disk image could not be mounted natively, the 7-Zip extraction may have altered HFS metadata or links; the extracted signature failure cannot be attributed conclusively to the published DMG contents.",
+    "The app was not launched, and no SAT/SAB semantic observation was made."
+  ],
+  "disposition": "Native mounted app integrity is verified. Repeat with observable import and exact geometry measurements; no ACIS semantic or support claim follows from the launch.",
+  "fixturePolicy": "No DWG/DXF fixtures or application files were added to the repository; the package and extracted files remain under /private/tmp.",
+  "nativeRecheck20261103": {
+    "diskImageSha256": "a1a21d2b3294ca556b7a0172df8ed1a8046450894033147be09a9fd1549f2b2d",
+    "method": "Read-only native hdiutil mount outside sandbox; strict deep codesign verification and spctl execute assessment outside sandbox",
+    "bundle": "/Volumes/CAD Assistant [arm64]/CAD Assistant.app",
+    "executableSha256": "aeb1cb18e53193dbf502e34986e7e2047cedf61cf0895fb237caed1be63b91aa",
+    "codesign": "PASS: valid on disk, satisfies designated requirement",
+    "spctl": "PASS: accepted, Notarized Developer ID",
+    "correction": "Sandboxed codesign and spctl reports in the original preflight were not reliable for artifact integrity. The original extracted bundle has not been requalified; this result applies to the native mounted bundle.",
+    "launch": "The native mounted app was launched via macOS open with a locally authored SAB. Its window title showed the input filename, but its visible screen showed the file browser. Import and geometry measurements remain unconfirmed. The app was closed and the image unmounted.",
+    "witness": "Locally generated ezdxf 1.4.5 box; SAB SHA-256 f41a0094ae98e6d31e7d55142f233c90dad14140744be628fef9fcceefe73d5b; authored dimensions 5 x 7 x 11, expected volume 385 and area 334 in model units. No producer or AcDs evidence follows."
+  }
+}

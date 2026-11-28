@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-03",
+  "scope": "Generated LAYER material-reference identity transport.",
+  "field": {
+    "record": "LAYER",
+    "member": "handleMaterialS / materialHandle",
+    "group_code": 347,
+    "role": "Material hard-pointer reference"
+  },
+  "mapping_policy": "For nonzero source handles, use the configured reference resolver when present; otherwise use remapObjectHandle. Preserve an explicit null group-347 value as zero and reject unresolved or invalid nonzero targets.",
+  "validation": {
+    "input": "Generated in-memory DRW_Layer; no DWG/DXF fixture was added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "selectors": ["libdxfrw_wave1_tests --layer-material-reference-remapping"],
+    "result": "PASS for exact group-347 values under resolver precedence and remap fallback.",
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4"
+  },
+  "qualification_limits": [
+    "Generated low-level transport only; it does not prove the target MATERIAL record exists or has a valid role.",
+    "Does not establish owner validity, recursive graph closure, physical producer breadth, native-consumer semantics, or support-claim eligibility."
+  ]
+}

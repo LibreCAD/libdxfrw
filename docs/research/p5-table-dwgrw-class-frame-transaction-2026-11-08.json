@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-08",
+  "slice": "AC1018 TABLE dwgRW class/frame transaction regression registration",
+  "source": {
+    "test": "tests/dwg_object_vectors_tests.cpp",
+    "selector": "--table-cell-overrides",
+    "ctest": "libdxfrw_dwg_table_cell_overrides"
+  },
+  "control": [
+    "Begins a caller-tracking dwgRW write transaction and registers an AC1018 ACAD_TABLE class instance.",
+    "Writes the generated TABLE entity frame and a placeholder *T BLOCK_RECORD with block-owned geometry.",
+    "Injects a late failure after block geometry has been emitted, then verifies outer rollback restores bytes, object-map entries, class definition and instance ledgers, write counters, and caller-owned records.",
+    "Retries on the same adapter and commits the frame and class-instance count."
+  ],
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+    "result": "PASS; 1/1 focused fast CTest passed in 0.02 seconds"
+  },
+  "limitations": [
+    "The test geometry is hand-authored and does not prove a semantically complete TABLE *T block graph.",
+    "The public dwgRW::writeTable route remains fail-closed.",
+    "Physical AC1018 TABLE body spans, source-to-output equivalence, independent-reader acceptance, and native rendering remain unqualified.",
+    "No DWG/DXF fixture was added."
+  ],
+  "supportClaim": "unchanged"
+}

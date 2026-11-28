@@ -1,0 +1,371 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "slice": "RPP-5ew",
+  "date": "2026-10-26",
+  "state": "VERIFIED",
+  "title": "Independent TABLE physical profiles and original common-role joins",
+  "parentCommit": "35036400c58c1d87fa0665f3fe094a7bfdced46c",
+  "scope": "Admitted original DXF ACAD_TABLE scalar/subclass/reference profiles and selected ENTITIES/BLOCKS structural owner, space and layout joins. Not full TABLE payload/dependency/live/output, native collation, CAD semantics or whole-document qualification.",
+  "implementation": [
+    "Inventory original parent physical scalars independently of dxfReader/TABLE decoder/model replay, with exact original indexes, ignored comments, subclass, cell/value/override/application/XDATA scopes.",
+    "Keep structural owner330 distinct from TABLESTYLE342, geometry BLOCK_RECORD343, cell BLOCK_RECORD340, FIELD344, cell ATTDEF331, names and opaque application references.",
+    "Pin profiles to bounded original source/typed model and pre-copy state replay certificates; precharge profile/control/vector/span retention and work before allocations.",
+    "Join original TABLE and ATTRIB/SEQEND chains to original namespace/dispatch/member/publisher owners and actual67/410 targets; validate wire owners separately from logical sequence parents.",
+    "Keep absent versus explicit layout, ordinary definitions versus associated LAYOUT targets, and unsupported/omitted original census records distinct.",
+    "Refuse unmodeled CadValue and table-global schemas, nonstring declarations overwritten by existing text parsing, unknown subclasses and schema substitutions; no production parser acceptance or public callback/vtable changes.",
+    "Keep reports allocation-free and container/generation/owner bound; live edits do not rewrite immutable original evidence; no support/output gate promotion."
+  ],
+  "controls": {
+    "transportProfiles": 96,
+    "originalScalarSpans": 8208,
+    "scalarTypeAndStandaloneSchemaRefusals": 328,
+    "originalGrammarAndScopeRefusals": 96,
+    "nonstringDatatypeDeclarationsIncluded": 32,
+    "originalOwnerSpaceLayoutLinkedOwnerGeometryControls": 40,
+    "unsupportedCensusControls": 12,
+    "bodyInputContextContainerOptOutQueryAndLiveEditGuards": 36,
+    "exactAndOneUnderRoleBytesAndWork": 16,
+    "roleFinalizerAllocationSchedule": {
+      "offsetsPerScopeEncoding": 16,
+      "totalOffsets": 64,
+      "reachedFailures": 52,
+      "unreachedOffsets": 12,
+      "correctedFinalizerAndFreshDestinationImports": true,
+      "limit": "Finite reached schedule, not exhaustive allocation-site/order coverage; unreached offsets are not counted as failures."
+    },
+    "extendedApplicationXdataCommentProxyProfiles": 14,
+    "extendedScalarSpans": 1572,
+    "actual127And128ByteProxyBoundaryControls": 4,
+    "parentOnlyEmptyFooterRawStubShapes": 12,
+    "shapeScalarSpans": 308,
+    "matrix": {
+      "versions": [
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII LF",
+        "ASCII CRLF",
+        "Binary"
+      ],
+      "scopes": [
+        "ENTITIES",
+        "BLOCKS"
+      ],
+      "spaces": [
+        "model",
+        "paper"
+      ],
+      "bodies": [
+        "simple",
+        "rich"
+      ]
+    },
+    "independentWireWalker": "Reads original authored ASCII/binary bytes and verifies physical offsets/types/values/roles without calling dxfReader, TABLE decoder or profile classifier.",
+    "malformedBlocksIdentity": "A missing/malformed AcDbEntity marker can fail earlier original membership and therefore does not receive a fabricated modeled match.",
+    "rawStubs": "Source profiles/common roles may match while semanticComplete stays false.",
+    "authoredRuntimeRecipesOnly": true,
+    "externalDrawingPayloadsOrDerivativesCommitted": false
+  },
+  "bounds": {
+    "records": 100000,
+    "bytes": 67108864,
+    "work": 67108864,
+    "accounting": "Separate conservative logical retained/control/wire/replay/state/node/span/work limits, not RSS/allocator-capacity/timing guarantees."
+  },
+  "validation": {
+    "scope": "Exact 91-test affected cohort, not full-project suite. Fast owning tests per edit; broad affected cohort only at integration.",
+    "host": "Darwin arm64; Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "language": "C++17 in existing build configurations",
+    "targets": [
+      "libdxfrw_attdef_source_tests",
+      "libdxfrw_hardening_tests",
+      "libdxfrw_block_owner_tests",
+      "libdxfrw_table_content_dxf_tests",
+      "libdxfrw_table_geometry_dxf_tests",
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_3d_consumer_probe",
+      "dwg2dxf",
+      "lc3_compat_check",
+      "libdxfrw_dwg_local_roundtrip",
+      "libdxfrw_dxf_fixture_tests",
+      "libdxfrw_field_retained_budget_tests",
+      "libdxfrw_dimstyle_optional_handle_tests"
+    ],
+    "normalBuildPassed": true,
+    "asanO1BuildPassed": true,
+    "normal": {
+      "passed": 91,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 117.64,
+      "parallelism": 2,
+      "log": "/tmp/rpp5ew-final-normal-ctest.log",
+      "exitCode": 0,
+      "exactExecutedNameSetMatches": true
+    },
+    "asan": {
+      "passed": 91,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 47.33,
+      "parallelism": 4,
+      "log": "/tmp/rpp5ew-final-asan-ctest.log",
+      "exitCode": 0,
+      "exactExecutedNameSetMatches": true,
+      "optimization": "-O1",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "asanBuildDirectory": "/tmp/rpp5ew-asan-o1-kioC8h",
+    "asanConfiguration": "Separate Debug build; -O1 -fsanitize=address -fno-omit-frame-pointer plus -g. Existing build-asan-custom Debug/O0 configuration left unchanged.",
+    "warningPolicy": "Owning library/adapter/tests/LibreCAD_3 compile targets retain -Wall -Wextra -pedantic -Werror; no suppression or time-limit increase.",
+    "normalRuntimeCompletedBeforeAsanRuntime": true,
+    "identicalRegisteredNamesAndOrderAcrossConfigurations": true,
+    "prior90NamesAndOrderPreserved": true,
+    "registeredSelectedNamesAndOrder": [
+      "libdxfrw_dxf_operation_admission",
+      "libdxfrw_dxf_entity_boundary_token_transfer",
+      "libdxfrw_dxf_appdata_retained_owner_budget",
+      "libdxfrw_dxf_block_record_parser_retained_budget",
+      "libdxfrw_dxf_raw_carrier_retention_budget",
+      "libdxfrw_dxf_proxy_subclass_marker_view",
+      "libdxfrw_dxf_proxy_retained_budget",
+      "libdxfrw_dxf_proxy_object_id_terminator",
+      "libdxfrw_dxf_proxy_graphic_loss_policy",
+      "libdxfrw_dictionary_default_adapter_roundtrip",
+      "libdxfrw_block_owners",
+      "dwg2dxf_block_owner_rejection_cli",
+      "dwg2dxf_block_owners_ascii_cli",
+      "dwg2dxf_block_owners_binary_cli",
+      "dwg2dxf_dynamic_block_fail_closed",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_attdef_source_transport",
+      "libdxfrw_nested_mtext_common_owner_budget",
+      "libdxfrw_attdef_immutable_capture",
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_block_source_capture",
+      "libdxfrw_block_source_proof",
+      "libdxfrw_block_children_source",
+      "libdxfrw_raw_application_identity",
+      "libdxfrw_raw_proxy_application_scope",
+      "libdxfrw_raw_application_writer",
+      "libdxfrw_raw_shell_application_scope",
+      "libdxfrw_acsh_projection_application_scope",
+      "libdxfrw_block_child_delivery",
+      "libdxfrw_attdef_original_origin",
+      "libdxfrw_block_original_membership",
+      "libdxfrw_compound_body_replay",
+      "libdxfrw_compound_source_profile",
+      "libdxfrw_application_handle_width",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_table_content_source_proof",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_table_block_source_bindings",
+      "libdxfrw_table_block_name_bindings",
+      "libdxfrw_entities_source_transport",
+      "libdxfrw_entities_delivery_transport",
+      "libdxfrw_entities_immutable_origins",
+      "libdxfrw_entities_compound_source",
+      "libdxfrw_entities_primary_source",
+      "libdxfrw_layout_source_proof",
+      "libdxfrw_identity_source_namespace",
+      "libdxfrw_structural_source_origins",
+      "libdxfrw_dictionary_source_origins",
+      "libdxfrw_original_layout_roles",
+      "libdxfrw_original_entities_roles",
+      "libdxfrw_block_primary_source",
+      "libdxfrw_block_producer_origins",
+      "libdxfrw_block_empty_polyline_source",
+      "libdxfrw_original_block_roles",
+      "libdxfrw_original_attdef_roles",
+      "libdxfrw_table_block_source_transport",
+      "libdxfrw_table_original_inputs",
+      "libdxfrw_table_original_bodies",
+      "libdxfrw_table_original_profiles",
+      "libdxfrw_layout_graph_read_contract",
+      "libdxfrw_cellstylemap_source_profiles",
+      "libdxfrw_cellstylemap_source_proof",
+      "libdxfrw_tablestyle_source_proof",
+      "libdxfrw_symbol_source_proof",
+      "libdxfrw_complex_symbol_bindings",
+      "libdxfrw_auxiliary_source_proof",
+      "libdxfrw_spine_source_proof",
+      "libdxfrw_block_record_source_proof",
+      "libdxfrw_field_retained_owner_budget",
+      "dwg2dxf_acsh_history_capture_limits",
+      "dwg2dxf_rooted_image_dictionary_closure",
+      "dwg2dxf_raw_dxf_entity_capture_limits",
+      "dwg2dxf_raw_dxf_section_capture_limits",
+      "dwg2dxf_plotsettings_capture_limits",
+      "libdxfrw_plotsettings_visualstyle_shade_reference",
+      "dwg2dxf_dynamic_block_capture_limits",
+      "dwg2dxf_proxy_object_capture_limits",
+      "dwg2dxf_raw_dxf_object_list_node_accounting",
+      "dxf_polyface_completed_pool",
+      "dwg_block_record_layout_association",
+      "dwg_layout_compound_insert_owner_roundtrip",
+      "dwg2dxf_mtext_orientation_ascii_cli",
+      "dwg2dxf_mtext_orientation_binary_cli",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_dimstyle_optional_handles",
+      "libdxfrw_dimstyle_compatible_resource_remap",
+      "dwg2dxf_dimstyle_optional_handles_ascii_cli",
+      "dwg2dxf_dimstyle_optional_handles_binary_cli"
+    ],
+    "normalAndAsanExecutedNameSetsExactlyMatchSelection": true,
+    "noFailedSkippedOrDisabledSelectedTests": true,
+    "finalCompiledSourceManifestUnchanged": true,
+    "manifest": "/tmp/rpp5ew-sources-before.sha256",
+    "sourceHashCheck": "/tmp/rpp5ew-final-source-check.log",
+    "notAPerformanceComparison": "Normal uses two CTest workers; ASan/O1 uses four. Different flags/scheduling and uncontrolled host conditions do not establish throughput improvement or absence of regression.",
+    "normalNewSelectorSeconds": 3.05,
+    "existingTimeoutsAndAssertionsUnchanged": true
+  },
+  "diagnostics": [
+    {
+      "kind": "new-join omission, reproduced and fixed",
+      "log": "/tmp/rpp5ew-linked-owner-red.log",
+      "observation": "The introduced ENTITIES TABLE join could match a wrong ATTRIB owner after matching individual fields; original linked-owner validation now refuses it. Not a pre-existing reader defect."
+    },
+    {
+      "kind": "unaccepted Debug/O0 ASan cohort",
+      "log": "/tmp/rpp5ew-debug-asan-cohort-timeouts.log",
+      "passed": 89,
+      "failed": 2,
+      "seconds": 122.61,
+      "failures": [
+        {
+          "test": "libdxfrw_cellstylemap_source_proof",
+          "result": "timeout",
+          "seconds": 60.02
+        },
+        {
+          "test": "libdxfrw_tablestyle_source_proof",
+          "result": "timeout",
+          "seconds": 90.02
+        }
+      ],
+      "scope": "Before final standalone parser-limits include; contains late datatype guard. No assertion failure or ASan error shown; timeouts remain failed validation, not reported green."
+    },
+    {
+      "kind": "isolated Debug/O0 ASan",
+      "log": "/tmp/rpp5ew-asan-heavy-isolation.log",
+      "observation": "Serial CELLSTYLEMAP timed out at60.03s; TABLESTYLE passed69.77s; total129.81s, exit8. No assertions or CTest caps removed."
+    },
+    {
+      "kind": "direct Debug/O0 ASan diagnostic",
+      "log": "/tmp/rpp5ew-asan-map-direct-diagnostic.log",
+      "observation": "CELLSTYLEMAP completed all assertions outside CTest at real67.95s,user63.13s,sys1.34s. Does not erase the timeout result."
+    },
+    {
+      "kind": "archived-parent diagnostic",
+      "parentCommit": "35036400c58c1d87fa0665f3fe094a7bfdced46c",
+      "directory": "/tmp/rpp5ew-parent-9fOW4j",
+      "log": "/tmp/rpp5ew-parent-map-direct.log",
+      "observation": "Fresh parent Debug/O0 ASan direct CELLSTYLEMAP passed real52.07s,user50.00s,sys1.15s. Single uncontrolled runs, not a regression benchmark; no causal or no-regression claim."
+    },
+    {
+      "kind": "standalone strict header probe",
+      "log": "/tmp/rpp5ew-audit-cost.log",
+      "observation": "Explicit parser-limits include makes the new profile header self-contained. Strict ASan/O0 compilation passes;6500 incomplete-parent audits take about0.042s, not whole-import throughput evidence."
+    },
+    {
+      "kind": "historical pre-final-header cohort",
+      "log": "/tmp/rpp5ew-pre-standalone-include-normal-ctest.log",
+      "observation": "91 normal tests passed52.31s with datatype guard but before standalone include. Historical only; final accepted runs rebuilt current frozen source."
+    },
+    {
+      "kind": "test-oracle and authored-positive corrections",
+      "observation": "Positive rich recipe removes invalid text-cell attributes and duplicate merge flag, uses ACVALUE_END; ordinary definition410=Model remains unqualified without a LAYOUT; allocation schedule distinguishes unreached offsets; strict compilation indentation warning fixed without bypass."
+    }
+  ],
+  "research": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "use": "Distinct parent/cell/table-property roles, block-cell attributes and versioned text forms; not complete CadValue or producer/version semantics."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "use": "Numerical binary127-byte/254-hex-character limit conflicts with TABLE page256-character wording; preserve parser limits and one-over refusals rather than widen acceptance."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/entities/acad_table.py",
+      "commit": "dd7f6cc34983fdbf0b2b910f2497e0720d06dd16",
+      "sha256": "66209d150937008f0bc387c9caa5418c26af4e201750ab2ff9fbca4e4af49fff",
+      "use": "Local clean pinned source matches git-show content; tag retention/text extraction, not complete independent semantic decoder."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/dwg2.spec",
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "sha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "use": "Local clean pinned source matches git-show content; TABLE and TABLECONTENT schema separation. No GPL3 code copied."
+    },
+    {
+      "url": "https://clang.llvm.org/docs/AddressSanitizer.html#usage",
+      "use": "Official -O1-or-higher and frame-pointer guidance for practical ASan validation; no assertion, warning or test timeout relaxation."
+    }
+  ],
+  "gates": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "outputEligible": false,
+    "nativeLinuxFreecad": "NOT_RUN",
+    "nativeWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticsAndKernel": "NOT_RUN",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "supportClaimPromotion": false,
+    "remoteMutation": false
+  },
+  "next": [
+    "Independently establish full TABLE CELL_VALUE and row-type override boundaries; preserve flags/units/coordinates/object/binary values rather than reuse header fields or silently drop data.",
+    "Reuse bounded primitive/state mechanics from dxfTableContent::Decoder::value and dxfField::Decoder only where matching the actual TABLE envelope and producer/version evidence; do not conflate schemas.",
+    "Close TABLESTYLE/geometry and cell BLOCK_RECORD/FIELD/cell ATTDEF/common STYLE/APPID/LAYER/object/application/proxy/codepage/nested INSERT dependencies, with missing/wrong-kind/ambiguous/cycle/cross-import controls.",
+    "Complete full B2b/B3/C source/live/edited/emitted values/names/references, remapping/readback, atomic rollback/retry/destination safety, IMAGE/document/native-bit/decimal/carrier/schema/owner/memory/performance and2D/3D consumers.",
+    "Keep local implementation progressing, commit/report each verified slice, retain failed evidence, commit no external fixtures, and require native platform/independent semantic qualification before support promotion."
+  ],
+  "fileSha256": {
+    "dwg2dxf/dx_attdef_source_profile.h": "63bc0deb0cb6da0c98bd563bff090465afc7b218a8df764efc4a35d47518b6db",
+    "dwg2dxf/dx_table_source_profile.h": "0029c5a6986661a8a598e2743bd1bff1979398dc2422c00df6c75fae38d8b085",
+    "dwg2dxf/dx_data.h": "f0f83d7add3517e02babceb4bd22da143b9465d3abe32242aef8ad865dc0d4dc",
+    "dwg2dxf/dx_iface.cpp": "e83fc353d06384d347a554bb87ce17eba4a3ab38326b194f48f08b2aefa96e03",
+    "dwg2dxf/dx_iface.h": "fdd847c563af95dd2fb021cc656765f131b2be778c62af2a06cd46cce51e32c5",
+    "tests/CMakeLists.txt": "346cf7c10e21d270dcdbc16f08c0ceca391ad496ec1541d521183dfa77072d92",
+    "tests/table_block_source_controls.h": "3f66d2df8ef5c6ba53db11aaac3688e43a08853d2c4d5d7d80fa7057350599dc",
+    "tests/table_body_controls.h": "8a32cb05025223596f668e8903d19e8b6b8e3610e16e8763f325a649c0ef0c82",
+    "tests/table_content_dxf_tests.cpp": "3546c7488feba07af1e29de14fb9285926d832093a9a41a773335eb40b5ba378",
+    "tests/table_profile_controls.h": "6d18847e4beaf0c3027157fad693084916f5a551a135cfb17e08fe1714b20032",
+    "/tmp/rpp5ew-linked-owner-red.log": "a1bd37f166813684931ddbe3ee75d00e54385b90a0a11ca9029cbb535bffea50",
+    "/tmp/rpp5ew-debug-asan-cohort-timeouts.log": "a50fbba6faaa3ceb6aa3240c72b828a6251ac5ad311d4b56fa0670a2c26cb5e4",
+    "/tmp/rpp5ew-asan-heavy-isolation.log": "62cc12bccaa24eaa0a35d1feadb19826196a5ae3e7e2d925156c80ee71bbc3d9",
+    "/tmp/rpp5ew-asan-map-direct-diagnostic.log": "e5a622d1cae5516b7c233f73e49d43db6585b1d389eb9b8bae1a75f749488456",
+    "/tmp/rpp5ew-parent-map-direct.log": "9f560548abd84b50133a363ce8dfdfc57d285ad75fe0dd422be0345b69a333bb",
+    "/tmp/rpp5ew-parent-build.log": "380b8971f0742ac238ad62a153ebb73a475cad598ad424e16076a25cb24c08bc",
+    "/tmp/rpp5ew-parent-configure.log": "1a719fb7d5ac9a2e78e0e5e2010f48e8996558c28212ae1799b31cbb39c0d155",
+    "/tmp/rpp5ew-audit-cost.log": "c1da7ff4abcb9fea570545308318b5bc686c5f76c165333918385e4bc6b04bf1",
+    "/tmp/rpp5ew-audit-cost-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/tmp/rpp5ew-pre-standalone-include-normal-ctest.log": "edbed029c631414805c2a439fa87612f9a3d7c1895660f850946e9567f442707",
+    "/tmp/rpp5ew-final-normal-build.log": "06b7c4403cb7f14a225655df6f50c5918a9ca07e8d80634d42393d5e6d1f0cb8",
+    "/tmp/rpp5ew-final-asan-build.log": "02d4b338eff0e2cda7726bc55605993cf02ab3d9139a377be7a6a1b98e3230dc",
+    "/tmp/rpp5ew-fast-asan-configure.log": "ad6e0ed2b676533870e3860750cded584075a3d2aeb442f0e4b7d94365d4c694",
+    "/tmp/rpp5ew-final-normal-ctest.log": "c37ac9bfa76daeb7778aa60dc320dd86cca599b28f21a1e588894c4e66b82e22",
+    "/tmp/rpp5ew-final-source-check.log": "1159dddc4d9559385e24f715af84b49ccdebfd9244f939558f747726d1492f89",
+    "/tmp/rpp5ew-sources-before.sha256": "0f9a80f24bc639ba1f9fb929bc2d983c0f719a322970e477ff719933087eed70",
+    "/tmp/rpp5ew-final-asan-ctest.log": "d783da5480c433bfafc4cb342763826503bd9946626e8c5e852d5ce98137e605"
+  }
+}

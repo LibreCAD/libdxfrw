@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw-scale-alternate-code-name-retained-owner-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Account the SCALE name parsed from DXF group 300 through the same owner/counter used for inherited group-2 name parsing.",
+  "sourceFinding": {
+    "record": "DRW_Scale",
+    "field": "DRW_TableEntry::name",
+    "alternateDxfCode": 300,
+    "baseDxfCode": 2,
+    "observation": "DRW_Scale::parseCode maps group 300 to the inherited name member; DRW_TableEntry::parseCode maps group 2 to that same member.",
+    "resolution": "Add a protected base helper that reserves replacements against the existing m_dxfRetainedNameBytes counter and shared lease; route SCALE group 300 through it."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "accounting": "Both group-2 base parsing and group-300 SCALE parsing use the same live-name counter and reserve-before-replacement semantics.",
+    "layout": "No per-object data member or class layout change was added.",
+    "contractLimits": [
+      "Logical parsed DXF name length only; not allocator capacity, RSS, or a total process-memory cap.",
+      "Public post-callback edits, DWG string storage, and writer/projection copies remain outside this owner."
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-scale-name-owner-budget",
+        "result": "PASS"
+      }
+    ],
+    "selectorCoverage": [
+      "Generated direct parser streams cover ASCII and Binary DXF, with group 2 setting an old name before group 300 replaces it.",
+      "Exact replacement-peak cap succeeds; one-byte-under preserves the previous name and charge.",
+      "Copy/assignment lifetime and final reset release are verified against the common base name lease.",
+      "Generated full ASCII and Binary OBJECTS input refuses before addScale callbacks at cap-minus-one with ResourceLimit/dxf-retained-byte-budget, then succeeds on same-facade exact-cap retry through a following SCALE sentinel.",
+      "Binary input is generated in temporary storage and removed; no persistent fixture or CTest was added."
+    ],
+    "receiptJsonParsed": true,
+    "planLinkChecked": true,
+    "scopedDiffCheck": true,
+    "ctestRun": false,
+    "fullSuiteRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeCadQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "externalJItemsRemainDeferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commit": "NOT CREATED: the shared checkout has broad existing edits in touched files; unrelated hunks were not staged."
+  }
+}

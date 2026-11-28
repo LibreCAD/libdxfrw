@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw-deeper-broader-mleader-cross-carrier-branch-retention-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "originMasterCommitObserved": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "scope": "Deep cross-carrier MLEADER content-branch research and plan-readiness update without support promotion.",
+  "method": {
+    "kind": "Primary-source research plus local source/test/sample-trace inspection",
+    "odaSpecification": "Open Design Specification for .dwg files v5.4.1, local copy, §§20.4.48 and 20.4.86, pages 158-159 and 214-216",
+    "peerRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "newFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "implementationCodeChanged": false,
+    "planUpdated": true,
+    "sources": [
+      "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-69B9139A-48B4-48A5-B3CF-A3233ABFBE49.htm",
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-EC56D0DE-026D-46AB-87B1-9692393B0C22.htm",
+      "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-ManagedRefGuide/files/OREFNET-Autodesk_AutoCAD_DatabaseServices_ContentType.html",
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/mleader.py",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in"
+    ],
+    "localInspection": [
+      "src/drw_entities.cpp: DRW_MLeader::parseDxfContextCode, parseMLeaderAnnotContext, encodeMLeaderAnnotContext, and DRW_MLeader::validateDxf",
+      "src/libdxfrw.cpp: dxfRW::writeMultiLeader",
+      "tests/hardening_tests.cpp: testMLeaderDxfContextRoundTrip",
+      "tests/wave1_tests.cpp: MLEADER no-content, MTEXT, BLOCK, and coordinate/wire controls",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-20/7F/7AA MLEADER readiness and recent progress",
+      "Local AC1021 architectural_-_annotation_scaling_and_multileaders.dwg trace; sample bytes were not edited"
+    ],
+    "sampleQualification": {
+      "path": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+      "entityParseFailures": 0,
+      "objectParseFailures": 36,
+      "reader21Ac1021CrcMismatches": 13,
+      "semanticWitness": false
+    }
+  },
+  "evidence": [
+    {
+      "topic": "ODA DWG branch grammar and context-sensitive code roles",
+      "observed": "MLEADER is introduced at DWG version 21 and embeds MLeaderAnnotContext. Entity-level group 172 is content type 0=None, 1=Block, 2=MTEXT, 3=TOLERANCE. Within context, group 172 means text flow direction; nested group 290 meanings depend on root versus context scope, and context group 296 is Has contents block. The DWG context payload follows a conditional text-or-block branch; no TOLERANCE payload grammar appears in the cited context layout.",
+      "doesNotEstablish": [
+        "the complete legal group-172 by context-290/296 cross-product for DXF",
+        "that dual-enabled DXF context flags are always invalid",
+        "complete TOLERANCE serialization or native rendering",
+        "DXF MLEADER support from DWG body-layout rules"
+      ]
+    },
+    {
+      "topic": "Autodesk DXF descriptions versus tuple validity",
+      "observed": "Autodesk documents entity content type separately from context hasMText and HasBlock. The ObjectARX enum names None, Block, MText, and Tolerance content types. The inspected pages do not define a full legality matrix or stale-branch-field rule.",
+      "doesNotEstablish": [
+        "every enum value having a complete libdxfrw payload model",
+        "that exactly one of the context flags must be true",
+        "native acceptance of generated output"
+      ]
+    },
+    {
+      "topic": "Independent ezdxf branch behavior",
+      "observed": "Current ezdxf source creates/parses MText and Block context payloads independently from group 290 and 296 and writes both flags independently. Its block matrix storage is transposed relative to its Matrix44 model, and its source documents transform limitations.",
+      "doesNotEstablish": [
+        "a normative DXF rule for dual flags",
+        "a pinned executable result",
+        "AutoCAD, BricsCAD, FreeCAD, or other native consumer acceptance",
+        "complete 3D geometry semantics"
+      ]
+    },
+    {
+      "topic": "Local DXF branch retention risk",
+      "observed": "The local DXF parser stores branch field values without requiring the associated context flag, while the local writer emits text/block branch fields only when the corresponding flag is set. The existing generated hardening round-trip includes style content type 1 with both context flags true and preserves that tuple locally.",
+      "doesNotEstablish": [
+        "that branch fields without flags occur in valid producer files",
+        "that the existing dual-enabled control is a semantically valid MLEADER",
+        "a producer/native support result"
+      ],
+      "planUse": "Add a fast generated loss guard: reject before publication or retain payload/handles exactly when branch fields are present under a false flag. Until decided and tested, refuse adapter admission for that state."
+    },
+    {
+      "topic": "DWG writer boundary and peer maturity",
+      "observed": "The local DWG parser selects text or else block payload; the local DWG encoder explicitly rejects block-content context. LibreDWG marks MULTILEADER entity registry stable but MLEADEROBJECTCONTEXTDATA object registry debugging.",
+      "doesNotEstablish": [
+        "complete DWG MLEADER block-context writing",
+        "standalone annotative-context object closure",
+        "a broad peer parity or support claim"
+      ]
+    },
+    {
+      "topic": "Local sample trace reliability",
+      "observed": "The available AC1021 drawing produces MLEADER debug traces, but the full read has 36 object parse failures and 13 AC1021 CRC mismatches.",
+      "doesNotEstablish": [
+        "producer-authored tuple validity",
+        "semantic geometry correctness",
+        "native consumer acceptance"
+      ]
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "existingOwners": ["PAR-20", "7F", "7AA", "MLEADER implementation-ready sequence"],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "sourceChanged": false,
+    "testsChanged": false,
+    "supportClaimsPromoted": 0,
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "externalDispositionsChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextReadinessSlice": "Use the existing focused MLEADER tests to close DXF inactive-branch payload loss with a fail-closed or exact-retention control; keep dual flags as an ambiguity control, preserve type/group scope, and maintain separate DWG block-content refusal until its versioned body/handle route is implemented and independently qualified."
+  }
+}

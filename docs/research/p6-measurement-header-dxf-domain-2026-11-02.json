@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-measurement-header-dxf-domain-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_MEASUREMENT_HEADER_DOMAIN_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Require explicit DXF HEADER $MEASUREMENT values to use Autodesk's documented imperial/metric scalar domain while preserving tolerant input, omission, and independence from $INSUNITS.",
+  "implementationReadiness": {
+    "baselineHead": "e2b4e4850c26167badcad0b739fb4dd948247f5e",
+    "sourceObservation": "DRW_Header::write emitted any integer $MEASUREMENT value through group 70 and omitted the variable when absent. The DXF parser retains arbitrary integer values. The existing INSUNITS/MEASUREMENT path preserves each variable's presence independently and does not derive one from the other; the new preflight keeps that contract while rejecting invalid typed output.",
+    "normativeEvidence": [
+      {
+        "source": "Autodesk AutoCAD 2027 MEASUREMENT System Variable",
+        "url": "https://help.autodesk.com/cloudhelp/2027/ENG/AutoCAD-Core/files/GUID-1D074C55-0B63-482E-8A37-A52AC0C7C8FE.htm",
+        "relevantRule": "MEASUREMENT is an integer saved in the drawing. Value 0 selects imperial hatch/linetype resources; value 1 selects metric resources."
+      }
+    ],
+    "change": "The non-consuming HEADER preflight accepts absence or exactly one canonical-case dollar/bare MEASUREMENT key whose value is INTEGER group 70 with value 0 or 1. It rejects wrong group/type, other integer values, duplicate dollar/bare aliases, and case-folded aliases that would collide with the canonical writer. Parsing remains tolerant and retains an explicit unsupported value for diagnosis and caller repair. Absence remains absence, and no value is inferred from INSUNITS."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_header.cpp": "e1752cc1141fff8821cdfa081288cb567e8f4adbf44be86178cd8bb7df2d85aa",
+      "src/drw_header.h": "3770500b9b85743ac025984d4978346376063ac512da8959a773aab4aee962df",
+      "src/libdxfrw.cpp": "05eabf3c014f0a392c8a2a0afa718f2519e1dc4954e5c12275ec5b9bba41d976",
+      "tests/hardening_tests.cpp": "d3e7b86763ac6f007ea26547e897ffe6f1350806206a76d32e4f0ae353020934",
+      "CMakeLists.txt": "098a3e232e55a7cf3ec8146f2c64a3954a5bce4fe1ce52202d4d4fc988799af7",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "663c4fa68a1bb58bf285477a8b31475497292be442d57abe0376fe2933f7feff"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2), invoked as /usr/bin/g++",
+      "platform": "Darwin arm64"
+    },
+    "testExecutableSha256": {
+      "build-gcc/libdxfrw_hardening_tests": "228f74214d00e4514d5e7f2da4afe60cde499b667f1c7ea62e95674c5657ab64",
+      "build-gcc/libdxfrw_dxf_fixture_tests": "cab2ec70fa79b267ddda4760751dd7d8c76a0c3a9b87566701a63fbe5bb3c5a8"
+    }
+  },
+  "controls": {
+    "selector": "--dxf-measurement-header-domain",
+    "ctest": "libdxfrw_measurement_header_domain",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF", "Generated AC1015/AC1032 INSUNITS and MEASUREMENT presence controls"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "Explicit values 0 and 1 write and read back in ASCII and Binary DXF.",
+      "Absent MEASUREMENT remains omitted even when the header writer emits its other defaults; no value is inferred from INSUNITS.",
+      "Values -1, 2, 4 and INT_MAX, wrong variant type, wrong group code, duplicate aliases, and a case-folded alias are atomically refused.",
+      "Input parsing retains an explicit out-of-domain value 4.",
+      "Invalid output rolls back without leaving the writer failed; the same writer accepts and reads back corrected value 1.",
+      "The existing AC1015/AC1032 INSUNITS presence selector passes after relinking against the changed library and continues to verify variable-presence independence and unchanged entity coordinates/transforms."
+    ]
+  },
+  "validation": {
+    "build": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "result": "PASS"
+      }
+    ],
+    "affectedFastCohort": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_(measurement_header_domain|linetype_display_scale_domains|ltype_scale_header_domain|scale_units_dxf_domain)$' --output-on-failure",
+      "result": "PASS 4/4"
+    },
+    "presenceRegression": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --insunits-presence-wire-policy",
+      "result": "PASS"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "This proves scalar admission, omission, and local typed readback only. It does not execute native hatch or linetype resource lookup, file-path selection, or rendering.",
+    "No support claim is promoted; explicit resource and display semantics remain an independent consumer gate."
+  ],
+  "nextReadyPacket": "The P6 UCS base-UCS link remains blocked on independent producer and native evidence because Autodesk's UCS record reference conflicts about group 79 and group 346. Continue with a separate source-backed units/inheritance packet only after recording an exact eligible witness and fast selector; do not enable nonzero base-UCS output from synthetic field agreement alone."
+}

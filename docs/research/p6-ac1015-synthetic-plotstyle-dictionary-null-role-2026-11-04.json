@@ -1,0 +1,9 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 sections 20.4.44 and 20.4.45: DICTIONARYWDFLT inherits the common xdictionary hard-owner slot, always present in R2000, followed by item and default handles.",
+  "change":"For the internally synthesized opt-in AC1015 plotstyle DICTIONARYWDFLT only, emit a typed hard-owner null xdictionary slot. Caller-supplied DICTIONARYWDFLT encoding remains unchanged.",
+  "source":"LibreDWG 0.14 decodes the independently ODA-produced AC1015 plotstyle dictionary with a typed hard-owner null xdictionary. Verbose trace of the updated opt-in production probe shows owner (4.1.C), xdictionary (3.0.0), Normal soft-owner and default hard-pointer to the same placeholder.",
+  "oda_result":"ODA File Converter 27.1.0 ACAD2013 DXF output for updated opt-in AC1015 probe SHA-256 bd41013c51f8fb0855dde3a68b06c96c7a290e9aa350485d6d442159679bc419 advances past DICTIONARY and DICTIONARYWDFLT to AcDbLayerTableRecord(12), previous error .dwg file needs recovery; no DXF is produced.",
+  "tests":"Six-version exact synthetic versus caller DICTIONARYWDFLT handle bytes including default-entry alignment, plus graph admission, allocation, collision, rollback and reader tests in the opt-in suite.",
+  "limits":"The change depends on the separately staged opt-in plotstyle graph. No general AC1015 interoperability claim or fixture commit."
+}

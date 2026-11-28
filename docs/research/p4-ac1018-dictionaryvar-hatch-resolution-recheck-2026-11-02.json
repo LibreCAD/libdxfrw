@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-02",
+  "profile": "AC1018 ET-Drawing-with-Border DICTIONARYVAR output recheck with unrelated HATCH resolution",
+  "classification": "BOUNDED_DICTIONARYVAR_GRAPH_RECHECK_PASS; HATCH_STOPS_REMAIN_REFUSED; NO_CLAIM_PROMOTION",
+  "support_claim_effect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08b2b3bf983472f7b",
+    "version": "AC1018",
+    "committed_as_fixture": false,
+    "prior_dictionaryvar_receipt": "docs/research/p4-ac1018-dictionaryvar-ac1024-output-binding-2026-10-31.json"
+  },
+  "format_evidence": {
+    "oda": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.75 HATCH",
+      "local_path": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "relevance": "The AC1018+ HATCH body carries the gradient-fill flag and a declared number of gradient-color records. This confirms the source fields and framing; it does not assign active gradient meaning when the flag is clear."
+    },
+    "dxf": {
+      "document": "Autodesk AutoCAD 2024 HATCH (DXF) reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "relevance": "When group 450 is present, groups 451, 452, 453, 460, 461, 462 and 470 are required. For 450=0 the remaining values are ignored but present; group 453 identifies zero colors for a solid hatch and two for a gradient. The current typed writer keeps refusing retained stops under a disabled gradient rather than emitting a conflicting 450=0/453=2 representation."
+    }
+  },
+  "unrelated_hatch_blocker": {
+    "block": "ET Border block",
+    "entity": "HATCH",
+    "handle": "0x2BA",
+    "source_fields": {
+      "isGradient": 0,
+      "gradientStopCount": 2,
+      "gradientStopValues": [
+        0.0,
+        1.0
+      ]
+    },
+    "writer_behavior": "With both stops retained, the ASCII and Binary AC1024 output attempts fail during BLOCKS emission and preserve the existing destination bytes. This HATCH is outside the DICTIONARYVAR owner/dependency graph.",
+    "test_resolution": "The selector explicitly clears only the imported local copy of those HATCH stops, retries through the same adapter, verifies group-450/453 zero-stop output and fresh typed DXF readback, then restores the original source stop vector. This test-only resolution does not qualify the HATCH stops."
+  },
+  "qualified_dictionaryvar_scope": {
+    "target": "AC1024 DXF",
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "source_values": {
+      "CTABLESTYLE": "STANDARD",
+      "DIMASSOC": "2",
+      "HIDETEXT": "1"
+    },
+    "output_proof": "The targeted OBJECTS scan binds the emitted NOD AcDbVariableDictionary edge, the rooted owner dictionary, its three keys, and each DICTIONARYVAR schema/value to emitted bytes. The output is freshly imported as typed DXF; the zero-stop HATCH and DICTIONARYVAR records are read back.",
+    "opaque_callback_qualification": "21 of 23 identities qualify in this bounded output attempt. Remaining unqualified callback handles are 0x2CD and 0x2CE; the latter is the named-block SORTENTSTABLE. Strict whole-source output remains refused."
+  },
+  "failure_retry_and_state": {
+    "invalid_owner": "The pre-existing owner-link mutation still refuses and preserves a seeded destination.",
+    "strict_whole_source": "Strict output still refuses and preserves its seeded destination.",
+    "retained_hatch_stops": "Both encodings refuse atomically and preserve a seeded destination while the HATCH has its original two inactive stops.",
+    "corrected_retry": "The same adapter then succeeds in both encodings after the test explicitly clears the unrelated HATCH stops. The test restores the complete original stop vectors after each output attempt and checks their count and endpoint values.",
+    "fixture_policy": "No external DWG/DXF fixtures were added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS",
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)"
+    },
+    "focused_hatch_guard": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_hatch_inactive_gradient_guard$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "physical_dictionaryvar_selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+      "result": "PASS for ASCII and Binary output, owner/value wire binding, HATCH stop refusal, same-adapter resolution retry, destination rollback, source stop restoration, and typed output readback"
+    },
+    "diff_check": "PASS: git diff --check",
+    "sha256": {
+      "tests/dwg2dxf_adapter_tests.cpp": "2388f8d2e51228b1605e2cdfa735fca3cd624491d1124c81e32ef80cae47fc31",
+      "tests/wave1_tests.cpp": "f292a3e77be16659c2641d16bc27e50076253e1288a8dc1000d9b3749bc26213",
+      "CMakeLists.txt": "8ee2f43eaeae02325d4c695cbe4f1c3c7bb130b71b05ebde4c13814cdc4b59d8",
+      "focused_adapter_executable": "bd413c2a5d1c1688fcd75333d97eb0af372d84ce489073491f772eb605382ddc",
+      "focused_hatch_guard_executable": "d6283a949f9793eebfcb8fdf628121a966b7f96a57d2630b5168fd9dfce86504"
+    }
+  },
+  "limitations": [
+    "This rechecks only the three DICTIONARYVAR values and rooted owner graph for the exact AC1018 source and AC1024 ASCII/Binary output profile.",
+    "The test-only STYLE rename and HATCH stop clearing do not qualify those source fields or the full document.",
+    "The HATCH stop profile remains refused. This does not establish gradient rendering semantics, general HATCH/MPOLYGON support, native consumer behavior, or whole-source conversion.",
+    "Handles 0x2CD and 0x2CE remain unqualified; full source/graph closure and support claims remain open."
+  ],
+  "next_actions": [
+    "Continue P4 owner/dependency qualification for 0x2CD/0x2CE without admitting named-block SORTENTSTABLEs absent owner-scope evidence.",
+    "Continue P6 HATCH inactive-stop source/consumer semantics work only with an authoritative representable output route; retain refusal otherwise."
+  ],
+  "currentRecheck": {
+    "baseCommit": "98c4113550673ff9aa69d24ff2ca78b69c8415b1",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "result": "PASS for ASCII and Binary output, owner/value wire binding, strict retained-stop refusal, corrected same-adapter retry, exact typed output readback, and source-stop restoration",
+    "sourceSha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "adapterExecutableSha256": "95d1d12246e15b2d355caefca1b29f1177053f4662e9929391d46d89290d8ae5",
+    "testedWorktreeSourceSha256": "a75c0255d2154ed43827d059706c5435ef7e25cdb320fdd282dbd911f7b6a4b5",
+    "stagedSourceBlobSha256": "09992f5027ad2a454ebc0745c39df8a868050eed756e5b75870481c0b126b475",
+    "noFixtureFilesAdded": true
+  }
+}

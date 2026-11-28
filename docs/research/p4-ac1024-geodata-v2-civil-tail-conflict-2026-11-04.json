@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "title": "AC1024 GEODATA version-2 CIVIL tail specification conflict",
+  "status": "PARTIAL_AC1024_V2_NO_TAIL_READER; AUTHORITY_CONFLICT_WRITER_GATE_CLOSED",
+  "supportClaimEffect": "none",
+  "provenance": {
+    "author": "Locally authored from scratch with ezdxf 1.4.5; same mesh author tool as p4-ac1027-geodata-mesh-selected-graph-2026-11-04.json. ODA File Converter 27.1.0 wrote the ACAD2010 DWG and DXF pair. No fixture added.",
+    "inputDxfSha256": "8c67198d05bc24377c15bcaef414b8d55241e1f495a54c5ed9e200d5abfe139b",
+    "dwgSha256": "ffd2467a34165a2bc6ccbe438a81073a780f082079790e24dd959c8fb1302a2c",
+    "odaDxfSha256": "fa06cffeb77779a85c4bcbcdf1e533090558f2e644cb712d726ecb96bd7ed1d3",
+    "libreDwgVersion": "0.14",
+    "verboseTraceSha256": "ab8a53505be2d07be55d2229876839a488a4269afd82009df655cefd9ed9c656"
+  },
+  "authority": "ODA v5.4.1 section 20.4.78 describes the CIVIL block under the condition DWG version R21 or lower but also says AutoCAD 2010 always writes civil data. AutoCAD 2010 is AC1024/R24 and is excluded by the first statement but included by the second. The source shows the former profile; this evidence alone cannot choose authoritative semantics. The same section calls north direction 3RD while LibreDWG reports 2RD for this source; that discrepancy is not resolved here.",
+  "observedPhysicalFrame": {
+    "graph": "BLOCK_RECORD 0x17 owns extension dictionary 0x2F; dictionary entry ACAD_GEOGRAPHICDATA points to GEODATA 0x30; GEODATA owner and reactor point to 0x2F, and host soft pointer to 0x17. LibreDWG, ODA DXF and ezdxf agree on class version 2 and the three-point, one-face mesh.",
+    "frame": "LibreDWG verbose trace: GEODATA body 5392 bytes, 53 handle bits, handle boundary bit 43083; extended split-string payload length 41738 bits with 33-bit length/presence footer, giving start bit 1312 (byte 164 bit 0).",
+    "meshBoundary": "The peer reports the mesh count ending at byte 64 bit 0, followed by three source/destination point pairs, each four raw 64-bit coordinates; their 96-byte span therefore ends at byte 160 bit 0. The peer displays unsigned-wrapped individual point offsets, so that endpoint is a derivation, not a directly printed point offset. The face count BL ends at byte 161 bit 2; face indices end at byte 161 bit 4, byte 162 bit 6, and byte 164 bit 0. Thus the peer-observed scalar end meets the calculated split-string start at bit 1312, leaving no scalar span for the documented CIVIL tail. Trace offsets are peer observations, not a separate certified bit parser."
+  },
+  "currentLibrary": "Historical baseline: the production parser required a CIVIL tail for AC1024 and rejected this source. Follow-up 2026-11-05: the parser now accepts only the observed AC1024/version-2 no-tail variant when the bounded body ends exactly after the mesh; AC1024/version-2 with a tail remains accepted, and AC1024/version-1 retains its tail requirement. This is a source-profile accommodation; no writer or strict-output gate changed.",
+  "reproduce": [
+    "build/rpp5gh-evidence/peer/bin/python tools/geodata_mesh_physical_probe.py <scratch>/in/mesh.dxf",
+    "ODAFileConverter <scratch>/in <scratch>/dwg ACAD2010 DWG 0 0 '*.dxf'",
+    "/opt/homebrew/bin/dwgread -v5 -O JSON -o <scratch>/decoded.json <scratch>/dwg/mesh.dwg > <scratch>/trace.log 2>&1",
+    "g++ -std=c++17 -I. -Isrc -Idwg2dxf tools/probe_geodata_physical_capture.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o <scratch>/probe",
+    "<scratch>/probe <scratch>/dwg/mesh.dwg; verify the input SHA-256 before and after the probe."
+  ],
+  "readerFollowup20261105": {
+    "implementation": {
+      "file": "src/drw_objects.cpp",
+      "rule": "For AC1024 object version 2 only, an exact body end after mesh faces denotes the witnessed no-tail profile. A nonempty remainder follows the existing fixed-tail decoder; a truncated tail still fails. AC1021 and AC1024 object version 1 behavior is unchanged.",
+      "writerChanged": false,
+      "strictOutputGateChanged": false
+    },
+    "generatedControl": {
+      "test": "libdxfrw_geodata_civil_tail_target_matrix",
+      "change": "Added an independently literalized AC1024 object-version-2 frame with no Civil tail alongside the existing AC1024 v1/v2 present-tail vectors and later-version no-tail vectors.",
+      "result": "PASS 1/1"
+    },
+    "physicalWitness": {
+      "path": "/private/tmp/geodata-mesh-source/dwg2010/mesh.dwg",
+      "sha256": "ffd2467a34165a2bc6ccbe438a81073a780f082079790e24dd959c8fb1302a2c",
+      "format": "AC1024, GEODATA object version 2",
+      "producer": "ODA File Converter 27.1.0 converted a locally authored ezdxf 1.4.5 ACAD2010 input; source and output pair hashes are in the provenance fields above.",
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/geodata-mesh-source/dwg2010/mesh.dwg -y -d -v2010 /private/tmp/geodata-mesh-source/libdxfrw-reparse.dxf",
+      "result": "The local reader reports GEODATA version 2 with 3 mesh points and 1 face, publishes 157/157 source frames, and reports zero entity/object parse failures. Strict DXF output remains atomically refused because the source has a separate unclaimed 739-byte HEADER suffix beginning at offset 843; no DXF was created. The input SHA-256 is unchanged.",
+      "fixtureCommitted": false
+    },
+    "qualificationEffect": "The exact AC1024 v2 no-tail reader profile is now supported by a physical producer witness plus literal boundary control. The ODA-spec contradiction, AC1024 v1/version breadth, native application behavior, writer fidelity, whole-document output, and geospatial semantics remain open; no support claim is promoted."
+  },
+  "next": "Resolve the AC1024 v1/v2 CIVIL-tail cross-product with an authoritative erratum or additional producer spans. Keep writer output and strict output for this source unchanged until that evidence is available; native geospatial semantics and the independent HEADER suffix gate also remain open."
+}

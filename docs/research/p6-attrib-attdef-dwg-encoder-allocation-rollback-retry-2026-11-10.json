@@ -1,0 +1,77 @@
+{
+  "title": "ATTRIB and ATTDEF DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory writer transaction controls only; no DWG/DXF fixture or producer-support claim.",
+  "implementation": {
+    "writers": [
+      "DRW_Attrib::encodeDwg",
+      "DRW_Attdef::encodeDwg"
+    ],
+    "behavior": [
+      "Stage body, detached string, and handle buffers before publication.",
+      "Preserve destination alias routing, including all streams sharing one buffer.",
+      "Restore the previous object type on refusal or allocation failure; retain ATTRIB/ATTDEF dispatch on success.",
+      "Catch std::bad_alloc and leave caller-owned stream state unchanged."
+    ]
+  },
+  "generated_profiles": [
+    {
+      "version": "AC1021",
+      "profile": "plain ATTRIB",
+      "reached_allocation_failures": 26
+    },
+    {
+      "version": "AC1021",
+      "profile": "plain ATTDEF",
+      "reached_allocation_failures": 31
+    },
+    {
+      "version": "AC1024",
+      "profile": "plain ATTRIB",
+      "reached_allocation_failures": 26
+    },
+    {
+      "version": "AC1024",
+      "profile": "plain ATTDEF",
+      "reached_allocation_failures": 31
+    },
+    {
+      "version": "AC1032",
+      "profile": "embedded-MTEXT ATTRIB with outer annotative EED and APPID handle",
+      "reached_allocation_failures": 43
+    },
+    {
+      "version": "AC1032",
+      "profile": "embedded-MTEXT ATTDEF with outer annotative EED and APPID handle",
+      "reached_allocation_failures": 45
+    }
+  ],
+  "assertions": [
+    "Every injected allocation failure returns false without throwing.",
+    "Seeded body, string, handle bytes and bit counts remain unchanged on failure.",
+    "Handle occurrence state and the prior object type remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output.",
+    "All-stream alias failure and retry preserve buffer bytes, type, and bit count.",
+    "Successful output matches a clean reference across body, string, and handle streams."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --attrib-attdef-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1021 ATTRIB": 26,
+      "AC1021 ATTDEF": 31,
+      "AC1024 ATTRIB": 26,
+      "AC1024 ATTDEF": 31,
+      "AC1032 multiline ATTRIB": 43,
+      "AC1032 multiline ATTDEF": 45
+    },
+    "entity_writer_transaction_cohort": "17/17 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish transaction and retry behavior only.",
+    "No producer wire-layout, attribute graph, semantic preservation, native consumer, or support claim is established.",
+    "No DWG or DXF fixture was added."
+  ]
+}

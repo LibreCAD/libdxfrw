@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "date": "2026-11-05",
+  "topic": "AC1021 FIELD format-flags=4 string-root physical profile",
+  "support_claim_effect": "none; malformed records remain incomplete and refused",
+  "source": {
+    "path": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "version": "AC1021",
+    "committed_as_fixture": false
+  },
+  "independent_peer": {
+    "implementation": "LibreDWG dwgread 0.14",
+    "executable_sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "method": "dwgread -v5 physical decode",
+    "trace_sha256": "d667016cb3af5b4704acfb2b7c36e1f5d57610592c9afab0546974d401a3daa2"
+  },
+  "observations": [
+    {
+      "handle": "0x2392",
+      "format_flags": 4,
+      "data_type": 4,
+      "value": "%fn6",
+      "decoded_child_count": 2416361477,
+      "peer_disposition": "Invalid FIELD.num_childval"
+    },
+    {
+      "handle": "0x2394",
+      "format_flags": 4,
+      "data_type": 4,
+      "value": "%tc4",
+      "decoded_child_count": 1610903557,
+      "peer_disposition": "Invalid FIELD.num_childval"
+    },
+    {
+      "handle": "0x2395",
+      "format_flags": 4,
+      "data_type": 4,
+      "value": "%tc4",
+      "decoded_child_count": 1344016740,
+      "peer_disposition": "Invalid FIELD.num_childval"
+    },
+    {
+      "handle": "0x2396",
+      "format_flags": 4,
+      "data_type": 4,
+      "value": "%tc4",
+      "decoded_child_count": 1074221063,
+      "peer_disposition": "Invalid FIELD.num_childval"
+    },
+    {
+      "field_handle": "0x21C9",
+      "child_key": "SheetSetPropertyName",
+      "format_flags": 76,
+      "peer_decoded_data_type": 1342603270,
+      "peer_disposition": "Invalid data type in TABLE_value_fields; following unit type is also invalid",
+      "local_disposition": "unsupported child CadValue flags retain the containing FIELD as incomplete/raw"
+    }
+  ],
+  "local_probe": {
+    "result": "Allowing the observed root type past the format-flag check does not produce complete typed records; parsing reaches the following child-count fields, which are out of range. The code change and temporary selector were reverted.",
+    "disposition": "Do not add an AC1021 flags=4/type=4 typed profile from root-value evidence alone. Preserve raw/incomplete handling until a source with valid downstream framing is found."
+  },
+  "limitations": [
+    "LibreDWG field values establish observed root transport, not validity of the enclosing records or application semantics.",
+    "The same physical source has malformed downstream child framing for both flags=4/type=4 roots and a flags=76 child; these are not ready typed-output profiles.",
+    "No parser change, fixture, or support claim was added."
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p4-ltype-control-null-counted-oda-diagnostic-2026-11-12",
+  "purpose": "Align counted-null LTYPE_CONTROL integrity severity with ODA v5.4.1 while keeping output admission closed until proxy-graphic linetype ordinal behavior is qualified.",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.57 LINETYPE CONTROL",
+    "printedPage": 171,
+    "relevantLayout": "Numentries counts soft-owner entries; handle refs include NULL soft pointers; BYLAYER and BYBLOCK are the final hard-owner phantom entries."
+  },
+  "sourceBinding": {
+    "repositoryHeadBeforeChange": "e112dc18f9739e1293940df0bc74a6b240f941f7",
+    "repository": "https://github.com/nextgis/dwg_samples",
+    "repositoryRevision": "ff05d5a89ce123da511ed93c5fe5e6df85e02ab8",
+    "path": "arc_2010.dwg",
+    "url": "https://github.com/nextgis/dwg_samples/blob/ff05d5a89ce123da511ed93c5fe5e6df85e02ab8/arc_2010.dwg",
+    "provenance": "Repository README identifies its sample drawings as produced by trial AutoCAD 2016 M.49.0.0; this is an AC1024 input, not an AutoCAD 2010 RTM witness.",
+    "sha256": "fd87187b435062cb15e0f6a88c2b23546768162f54ffae83a3f51788503ec262",
+    "header": "AC1024",
+    "temporaryPath": "/tmp/libdxfrw-arc_2010.dwg",
+    "committedFixture": false
+  },
+  "changes": [
+    "Counted zero-valued LTYPE_CONTROL soft-owner slots now produce a warning when their source handle role is correct; wrong roles remain errors.",
+    "A null final BYBLOCK/BYLAYER phantom remains an error.",
+    "The reader keeps the current compact non-null proxy linetype-name order. No assertion is made about how a null source slot affects proxy indices.",
+    "The writer's complete LTYPE_CONTROL membership predicate still rejects null slots; no strict or bounded-partial output profile was admitted."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf --parallel 2 && cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "focusedTests": [
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_control_null_member_diagnostic$' --output-on-failure",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_dwg_ltype_table_control_membership$' --output-on-failure"
+    ],
+    "result": "PASS, both focused CTests (2/2); total 0.65 seconds",
+    "dwg2dxfSha256": "79f059a05d1ff2dfd6820f74787610f42a069bbdd2ca52ec4ae4015a2fc5a7d8",
+    "sourceSha256": {
+      "src/intern/dwgreader.cpp": "d67b966ddf6d45892d41e0f6da03889849946cb77c378d0f91153f4eedeb8f3c",
+      "src/intern/dwgreader.h": "12dec20a56fbd4162164c6a60f26a13a843718c7763912719f6cdcfc4dbcbc6b",
+      "tests/dwg_reader_matrix_tests.cpp": "8e694259664e177f2bf0e306d22263ea2c9a52c7e52e98464ab8848965ad8c49"
+    },
+    "sampleRead": "dwgReader24::readDwgClasses END; operationSucceeded=true; sourceVersion=AC1024; legacyError=0; 181/181 frames published; zero entity/object parse failures; retained integrity is 0 errors and 3 warnings after the change.",
+    "strictOutput": "Refused before output preparation because strict-complete conversion requires complete DWG read disposition; no DXF output was published."
+  },
+  "scopeLimit": "Diagnostic severity correction only. Strict output, proxy ordinal mapping, external interoperability, producer-wide behavior, and support claims remain unresolved.",
+  "fixturePolicy": "The downloaded sample and conversion logs remain in /tmp and are not committed.",
+  "claimEffect": "No support claim changes."
+}

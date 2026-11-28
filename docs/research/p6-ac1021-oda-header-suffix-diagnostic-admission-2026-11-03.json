@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1021-oda-header-suffix-diagnostic-admission-2026-11-03",
+  "date": "2026-11-03",
+  "title": "AC1021 ODA maintenance-55 HEADER suffix diagnostic admission",
+  "status": "BOUNDED_READER_ADMISSION_STRICT_OUTPUT_REFUSED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "5.9",
+      "9"
+    ],
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "scope": "Specifies R2007 HEADER body/string/handle separation, envelope CRC and sentinels. The post-trailer bytes remain unidentified and are not described as valid padding or semantic data."
+  },
+  "physicalWitness": {
+    "input": "ODA 27.1 audit-disabled same-version resave of local untracked AC1021 tablet drawing; see p6-ac1021-oda-crc-table-and-remainders-2026-11-03.json",
+    "originalSha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+    "resave": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-tablet-oda-26d6553f/out/tablet.dwg",
+    "resaveSha256": "5c3bf5bb8b2565387259430f4c49d83c96553f85334c068a300799efe5f57931",
+    "appMaintenance": 55,
+    "decodedHeaderPath": "/private/tmp/libdxfrw-tablet-oda-r2007-header.bin",
+    "decodedHeaderSha256": "15d0f150763b3f36d830f4567c5889b4b52f3216073a531921607c56ee7d2e87",
+    "logicalSectionBytes": 1572,
+    "declaredSize": 795,
+    "payloadEnd": 815,
+    "trailerEnd": 833,
+    "unclaimedBytes": 739,
+    "storedCrc16": "0x4EAE",
+    "independentBitwiseCrc": "0x4EAE using seed 0xC0C1 and reflected polynomial 0xA001 over bytes [16,815)",
+    "endSentinelHex": "3084e0dc0221c756a0839747b192cca0"
+  },
+  "change": "Extend existing unclaimed-suffix envelope admission to AC1021 app-maintenance exactly 55, canonical size only. A nonempty suffix remains gated by matching HEADER CRC and both sentinels. The shared HEADER parser forks body and handle buffers bounded by payloadEnd, publishes a HeaderSectionUnclaimedData warning, and strict conversion refuses incomplete read disposition. Other maintenance versions and high-size-word alternatives remain gated.",
+  "validation": {
+    "focused": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j4; ctest --test-dir build-gcc -R ^libdxfrw_dwg_header_version_envelopes$ --output-on-failure",
+    "result": "PASS 1/1",
+    "controls": [
+      "An authored 739-byte opaque suffix is diagnosed with exact offset and length and leaves source bytes unchanged.",
+      "Other maintenance versions 54 and 56 refuse the suffix.",
+      "Invalid CRC, begin sentinel, end sentinel, and truncated trailer refuse and clear state.",
+      "A CRC-resealed maximum body bit-length cannot borrow bytes from the suffix."
+    ],
+    "physicalCli": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf <resave> -y -d -v2007 <pre-existing scratch destination>",
+      "executableSha256": "fe129db0d6ef85dd78e843316588c347caffb13b5c415efdb09c31e2d848cd78",
+      "log": "/private/tmp/libdxfrw-tablet-oda-ac1021-diagnostic.log",
+      "logSha256": "95975780a593dc8be1b9c93ef9e45a085281a87a9d46971787f192679117a577",
+      "readObservation": "operationSucceeded=true; 6473/6473 observed frames published; zero entity/object parse failures and zero R2007 data/system page CRC mismatch reports; one HeaderSectionUnclaimedData warning, offset and expected 833, observed 1572.",
+      "export": "Strict CLI exits 1 at completeness preflight and preserves the pre-existing destination sentinel."
+    }
+  },
+  "limits": [
+    "This is diagnostic read admission, not proof of suffix framing, semantics, discardability, complete graph output or external consumer behavior.",
+    "It is one ODA back-save of a local drawing, not a native AutoCAD producer profile.",
+    "No DWG/DXF fixture was added or support claim promoted."
+  ]
+}

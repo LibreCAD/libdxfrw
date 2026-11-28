@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DXF viewer parser lineage and projection boundary",
+  "mode": "Primary-source open-source viewer and parser dependency research",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen a newer open-source DXF viewer for genuinely independent parser lineage and useful projection evidence.",
+    "Refresh the existing vagran/dxf-viewer route and compare declared renderer scope and evidence limits.",
+    "Refine PAR-07/S8 and PAR-14 without adding routine peer builds, persistent fixtures, or support claims."
+  ],
+  "sources": [
+    {
+      "project": "opendxfviewer",
+      "urls": [
+        "https://github.com/conol-ai/opendxfviewer",
+        "https://github.com/conol-ai/opendxfviewer/blob/main/packaging/THIRD-PARTY-NOTICES.md"
+      ],
+      "revision": "Mutable main README and notices inspected 2026-10-20; no commit hash, release artifact, or runtime was pinned or run.",
+      "observed": "The project declares a DXF-only, read-only viewer with no CAD kernel. It lists rendered 2D entities and transformations; states HATCH is not parsed by its dxf crate, fit-point-only splines are approximated, MLINE is centerline-only, and unsupported types are counted; and documents separate hostile-input budgets plus generated fixtures and tests that do not require a GPU.",
+      "limits": "The third-party notice lists the Rust dxf crate. Its published 0.6.1 manifest identifies https://github.com/ixmilia/dxf-rs as the crate repository, so this app is not an independent parser lineage from IxMilia. Its custom reader/encoding path means the precise delegation boundary must be inspected if ever run. Viewer output cannot establish DWG, ACIS/AcDs, 3D CAD semantics, exact DXF field preservation, or native application acceptance."
+    },
+    {
+      "project": "IxMilia dxf-rs",
+      "urls": [
+        "https://docs.rs/crate/dxf/0.6.1/source/Cargo.toml",
+        "https://github.com/ixmilia/dxf-rs"
+      ],
+      "revision": "Published dxf 0.6.1 manifest and mutable repository README inspected 2026-10-20; no package installed or executed.",
+      "observed": "The crate manifest names ixmilia/dxf-rs as the source repository; the project describes a Rust DXF/DXB reader/writer and documents Windows-only ODA File Converter integration tests.",
+      "limits": "A crate description or integration-test declaration does not prove current package behavior, peer runtime results, complete entity support, or native acceptance."
+    },
+    {
+      "project": "vagran/dxf-viewer",
+      "urls": [
+        "https://github.com/vagran/dxf-viewer",
+        "https://raw.githubusercontent.com/vagran/dxf-viewer/master/README.md"
+      ],
+      "revision": "Mutable master README inspected 2026-10-20; no source commit, npm package, browser, or GPU runtime was pinned or run.",
+      "observed": "The project declares a JavaScript/WebGL 2D viewer route over dxf-parser and lists incomplete features including styles/MTEXT, hatching, OCS, legacy encoding, dimensions, and layouts. Its README identifies Autodesk Viewer as its primary rendering reference and describes sample-driven verification and private local corpora.",
+      "limits": "This is a renderer/projection route, not a CAD kernel or DWG reader. Its own documented incomplete features and external reference/oracle process preclude treating its display as definitive semantic or support evidence."
+    },
+    {
+      "project": "Local plan reconciliation",
+      "urls": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Shared worktree plan inspected and updated 2026-10-20.",
+      "observed": "PAR-07/S8 now distinguishes optional pinned 2D scene/render observation from parser, exact field/graph preservation, writer disposition, strict readback, native import, and 3D semantics. It requires a predeclared supported subset, exact revision/runtime metadata, and explicit unsupported counts.",
+      "limits": "No viewer, parser package, CAD application, external drawing, or renderer was executed. This plan update does not close a local defect or external qualification item."
+    }
+  ],
+  "assessment": {
+    "newIndependentParserLineages": 0,
+    "newOptionalRendererRoutes": 1,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: permit at most one pinned 2D viewer only for an unresolved composed-checkpoint projection question; separate viewer parser lineage from its scene/render implementation.",
+      "PAR-07/S8: use fixed-view, predeclared projection observables for only the selected viewer's supported entity subset; report unsupported/ignored counts and avoid pixel-perfect comparisons across tessellation/font stacks.",
+      "PAR-14: re-use existing hostile-input controls and audit amplification dimensions independently; do not infer safety from a single aggregate output count or peer benchmark."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-dxf-viewer-parser-lineage-projection-boundary-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added opendxfviewer to the comparator map as a renderer route that reuses the IxMilia dxf crate lineage, not as an independent parser.",
+    "Refined vagran/dxf-viewer as a dxf-parser-based 2D projection route with explicit feature/encoding/OCS/layout limitations and no semantic-oracle role.",
+    "Specified a conditional, single-viewer composed checkpoint with pinned revision/runtime, predeclared supported subset, fixed-view observables, explicit unsupported counts, and NOT_RUN/NOT_APPLICABLE handling.",
+    "Kept current fast-slice cadence and local generated/eligible-fixture policy; no viewer build, test, dependency, fixture, or support claim was introduced."
+  ],
+  "limitations": [
+    "Repository, README, notices, and package manifest are mutable or published snapshots; exact source and runtime artifacts must be pinned before any future execution.",
+    "No peer executable/package, native CAD application, GPU renderer, external drawing, or fixture corpus was run or downloaded.",
+    "Viewer output is projected display evidence only and cannot establish exact DXF syntax/field retention, document graph preservation, DWG decoding, ACIS/AcDs semantics, or native acceptance.",
+    "ODA v5.4.1 and Autodesk DXF references remain authoritative for their respective format-layout questions; viewer behavior is not normative."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "planUpdaterCheck": "Not run; research-only parity plan update",
+    "scopedDiffCheck": "PASS (git diff --check on plan; no whitespace diagnostics for new receipt under --no-index)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree contains extensive pre-existing changes and Git metadata is read-only in this session."
+  }
+}

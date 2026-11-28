@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-pointcloud-entity-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_POINTCLOUD_ENTITY_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the public writePointCloud entity entry point and its definition/reactor handle edges within whole-operation AC1027 ASCII and Binary allocation rollback/retry sweeps.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One POINTCLOUD entity with two source-file names, a saved filename, nondefault origin/extents/point count/UCS, and references to generated POINTCLOUDDEFINITION and POINTCLOUDDEFREACTOR records; no external or committed drawing fixture is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "b5806d1b",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "method": "Add a generated DRW_PointCloud to the existing whole-operation ENTITIES writer and invoke writePointCloud directly. Its definitionHandle and reactorHandle target two separately emitted typed definition records in OBJECTS. Compare caller identity, source names/count, saved filename, origin/extents, point count, UCS and source references after each injected allocation failure and retry. Require prior destination preservation, same-writer retry, and typed entity readback with both edges equal to the emitted target handles."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure: PASS 1/1",
+    "directRun": "PASS; ASCII 975/975 and Binary 955/955 allocation offsets injected; destination/caller rollback, same-writer retry and typed readback passed",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated DXF transaction and typed-codec evidence only; no independent producer or consumer semantics are established.",
+    "The POINTCLOUD entity's two handles resolve to the intended emitted records, but ACAD_POINTCLOUD dictionary membership and broader ownership graph closure are not qualified.",
+    "No RCS asset is loaded; external point-cloud asset resolution, rendering and native consumer behavior are not qualified.",
+    "This is one generated POINTCLOUD profile; POINTCLOUDEX cropping and its extended fields remain outside this transaction control.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's inventory with remaining extended point-cloud and other uncovered public writer profiles."
+}

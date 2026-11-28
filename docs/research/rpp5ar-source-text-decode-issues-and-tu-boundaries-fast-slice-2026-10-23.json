@@ -1,0 +1,824 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5ar",
+  "date": "2026-10-23",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": "DIRTY_UNCOMMITTED_UNSTAGED",
+  "status": "KNOWN_SOURCE_TEXT_ISSUES_EXCLUDED_FROM_MODELED_OUTPUT_PROOF_FULL_SCHEMA_AND_STRICT_ADMISSION_OPEN",
+  "predecessor": "docs/research/rpp5aq-staged-objects-proof-rooted-xrecord-and-codepage-fast-slice-2026-10-23.json",
+  "implemented": [
+    "Fixed-size accumulated text-decode issue mask spanning primary/exact-named/recovery/CP8 returns, explicit per-frame reset and swap/move ownership.",
+    "Unprofiled CP8 high bytes recorded without changing historical tolerant output or last-value snapshot.",
+    "Raw/typed correlation freezes observed mask alongside immutable source model; revalidation reproduces rather than refreshes the evidence.",
+    "Actual staged-output candidate selection excludes frames with observed text issues even when resulting public scalar/text values match.",
+    "Ordinary framed TU excludes exactly one complete terminal NUL code unit from conversion view, preserving cursor/tolerant text while observing embedded/repeated NUL loss.",
+    "GROUP name-budget diagnostics validated with corrected same-adapter retries.",
+    "RPP-5aq missing receipt completed and all 30 bindings verified at its historical checkpoint before this slice."
+  ],
+  "controls": {
+    "literalCodecRows": 40,
+    "utf16LiteralControls": 4,
+    "framedTuCells": 11,
+    "rawTypedSourceTextCells": 8,
+    "sourceFrames": 16,
+    "adjacentCleanFrames": 8,
+    "nativeAsciiBinaryEvidenceFaultCells": 2,
+    "nativeRestoredEvidenceRetries": 2,
+    "groupReferenceAdmissionCells": 15,
+    "groupNameBudgetCorrectedRetries": 3
+  },
+  "validation": {
+    "fast": {
+      "result": "PASS",
+      "passed": 10,
+      "failed": 0,
+      "seconds": 0.38,
+      "tests": [
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_dwg_codepage_snapshot",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_text_decode_issue_accumulation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "libdxfrw_rooted_standard_dwg_output_proof"
+      ]
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 10,
+      "failed": 0,
+      "seconds": 0.89,
+      "options": "halt_on_error=1",
+      "flags": "-fsanitize=address -fno-omit-frame-pointer",
+      "tests": [
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_xrecord_writer_codepage",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "libdxfrw_dwg_codepage_snapshot",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_rooted_standard_dwg_output_proof"
+      ]
+    },
+    "strictSyntax": {
+      "result": "PASS",
+      "flags": "-std=c++17 -Wall -Wextra -pedantic -Werror",
+      "translationUnits": [
+        "src/intern/drw_textcodec.cpp",
+        "src/intern/dwgbuffer.cpp",
+        "dwg2dxf/dx_iface.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/gbk_codepage_tests.cpp"
+      ]
+    },
+    "build": {
+      "result": "PASS",
+      "targets": [
+        "libdxfrw_dwg2dxf_adapter_tests",
+        "libdxfrw_gbk_codepage_tests",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_reader_matrix_tests",
+        "libdxfrw_wave1_tests",
+        "libdxfrw_dxf_fixture_tests",
+        "dwg2dxf",
+        "lc3_compat_check"
+      ]
+    },
+    "compatibilityCheckpoint": {
+      "result": "FAIL_THREE_CORPUS_SAMPLES_RETAINED_OPEN",
+      "passed": 17,
+      "failed": 3,
+      "total": 20,
+      "seconds": 9.16,
+      "scope": "Three owning aggregates and 17 existing repository DWG samples; not full project suite or native CAD application qualification",
+      "passedTests": [
+        "libdxfrw_wave1",
+        "dwg_read_AC1024_visualization_-_aerial",
+        "dwg_read_AC1021_architectural_-_annotation_scaling_and_multileaders",
+        "dwg_read_AC1021_blocks_and_tables_-_imperial",
+        "dwg_read_AC1021_lineweights",
+        "dwg_read_AC1021_plot_screening_and_fill_patterns",
+        "dwg_read_AC1021_blocks_and_tables_-_metric",
+        "dwg_read_AC1021_truetype",
+        "dwg_read_AC1024_architectural_example-imperial",
+        "dwg_read_AC1024_civil_example-imperial",
+        "dwg_read_AC1021_tablet",
+        "dwg_read_AC1024_mechanical_example-imperial-alt",
+        "dwg_read_AC1024_mechanical_example-imperial",
+        "dwg_read_AC1024_title_block-arch",
+        "dwg_read_AC1024_title_block-iso",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "failedTests": [
+        "dwg_read_AC1024_visualization_-_condominium_with_skylight",
+        "dwg_read_AC1024_visualization_-_conference_room",
+        "dwg_read_AC1024_visualization_-_sun_and_sky_demo"
+      ]
+    },
+    "whitespace": "PASS"
+  },
+  "referenceComparison": {
+    "purpose": "Isolate the TU normalization adjustment; do not assert a whole pre-slice baseline",
+    "method": "Compile only a temporary dwgbuffer.cpp with the exact-one-terminal-unit view normalization reverted, replace its object in a copy of the current static archive, link current reader/adapter objects; checkout and main builds untouched.",
+    "compilerFlags": "-std=c++17 -Wall -Wextra -pedantic -Werror",
+    "referenceDirectory": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3",
+    "compared": 17,
+    "identicalExitAndByteDiagnostics": 17,
+    "passedBoth": 14,
+    "failedBoth": 3,
+    "results": [
+      {
+        "test": "dwg_read_AC1021_architectural_-_annotation_scaling_and_multileaders",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_architectural_-_annotation_scaling_and_multileaders-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_architectural_-_annotation_scaling_and_multileaders-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1021_blocks_and_tables_-_imperial",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_blocks_and_tables_-_imperial-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_blocks_and_tables_-_imperial-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1021_blocks_and_tables_-_metric",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/blocks_and_tables_-_metric.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_blocks_and_tables_-_metric-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_blocks_and_tables_-_metric-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1021_lineweights",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/lineweights.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_lineweights-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_lineweights-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1021_plot_screening_and_fill_patterns",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/plot_screening_and_fill_patterns.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_plot_screening_and_fill_patterns-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_plot_screening_and_fill_patterns-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1021_tablet",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/tablet.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_tablet-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_tablet-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1021_truetype",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/truetype.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_truetype-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_truetype-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1024_architectural_example-imperial",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/architectural_example-imperial.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_architectural_example-imperial-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_architectural_example-imperial-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1024_civil_example-imperial",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/civil_example-imperial.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_civil_example-imperial-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_civil_example-imperial-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1024_mechanical_example-imperial-alt",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_mechanical_example-imperial-alt-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_mechanical_example-imperial-alt-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1024_mechanical_example-imperial",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/mechanical_example-imperial.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_mechanical_example-imperial-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_mechanical_example-imperial-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1024_title_block-arch",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/title_block-arch.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_title_block-arch-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_title_block-arch-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1024_title_block-iso",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/title_block-iso.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_title_block-iso-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_title_block-iso-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1024_visualization_-_aerial",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/visualization_-_aerial.dwg",
+        "currentExitCode": 0,
+        "referenceExitCode": 0,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_aerial-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_aerial-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1024_visualization_-_condominium_with_skylight",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+        "currentExitCode": 1,
+        "referenceExitCode": 1,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_condominium_with_skylight-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_condominium_with_skylight-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1024_visualization_-_conference_room",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/visualization_-_conference_room.dwg",
+        "currentExitCode": 1,
+        "referenceExitCode": 1,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_conference_room-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_conference_room-reference.log"
+      },
+      {
+        "test": "dwg_read_AC1024_visualization_-_sun_and_sky_demo",
+        "sample": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+        "currentExitCode": 1,
+        "referenceExitCode": 1,
+        "byteIdenticalDiagnostics": true,
+        "currentLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_sun_and_sky_demo-current.log",
+        "referenceLog": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_sun_and_sky_demo-reference.log"
+      }
+    ]
+  },
+  "openCorpusFailures": [
+    {
+      "test": "dwg_read_AC1024_visualization_-_condominium_with_skylight",
+      "entityParseFailures": 0,
+      "objectParseFailures": 3,
+      "classesCrcMismatch": 1
+    },
+    {
+      "test": "dwg_read_AC1024_visualization_-_conference_room",
+      "entityParseFailures": 0,
+      "objectParseFailures": 3,
+      "classesCrcMismatch": 1
+    },
+    {
+      "test": "dwg_read_AC1024_visualization_-_sun_and_sky_demo",
+      "entityParseFailures": 0,
+      "objectParseFailures": 2,
+      "classesCrcMismatch": 1
+    }
+  ],
+  "specification": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "version": "5.4.1",
+    "section": "2",
+    "visualPage": 7,
+    "scope": "T/TU/TV length and UTF16 code-unit boundaries; existing implementation's terminator normalization separately inspected. No DWG length, dispatch or parseDwg body changed."
+  },
+  "evidenceCeiling": {
+    "strictAdmission": "CLOSED",
+    "sourceSchemaAndTextCompleteness": "OPEN",
+    "importOpaqueRetentionIncrement": 0,
+    "newInspectorFinalizationAndGroupPlannerAllocationSweeps": "NOT_RUN",
+    "fixtureFilesAdded": 0,
+    "nativeFreeCadLinuxWindows": "NOT_RUN",
+    "independentAcisAcdsSemanticsKernel": "NOT_RUN"
+  },
+  "remainingLocal": [
+    "Common EED versus XRECORD application-body distinction",
+    "Unmodeled CMC/layer metadata",
+    "GROUP extension/reactor graph handoff",
+    "Source-image alias qualification",
+    "Legacy TV/trailing-NUL normalization and legacy XRECORD per-value codepage/RC-versus-RS question",
+    "Conservative speculative-decoder observations",
+    "New output-inspector/finalization/index and GROUP-planner allocation sweeps",
+    "Strict per-attempt composed admission/refusal/retry",
+    "Three independent AC1024 visualization sample object-parse failures",
+    "Legacy TABLE integration and separate AC1024+ inline authoring"
+  ],
+  "externalGates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "notRun": [
+    "Full project suite",
+    "Whole pre-slice/origin-master baseline comparison",
+    "UBSan",
+    "LeakSanitizer",
+    "Native FreeCAD Linux/Windows",
+    "Independent ACIS/ACDS semantic/kernel qualification",
+    "New independent drawing/producer qualification"
+  ],
+  "limitations": [
+    "No support promotion, commit, push or PR mutation.",
+    "Native evidence-fault tests inject private receipt state; they are not malformed external DWG qualification.",
+    "Zero observed codec issues is not an exhaustive source/profile/schema certificate.",
+    "Three broader corpus sample failures remain genuine open work; current/reference invariance only isolates the TU adjustment."
+  ],
+  "bindings": [
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "529ad2396dda8e88f39416536a000823add79bf8dc8380de468f470209ee905f"
+    },
+    {
+      "path": "tests/CMakeLists.txt",
+      "sha256": "0642e7f96fff1901df0ae1f9f891c7604667ccf64cf846d0ff00870017d581ff"
+    },
+    {
+      "path": "src/intern/drw_textcodec.h",
+      "sha256": "c57c45e57d4a431597b7f70cb33c69d22e9af3d02ee57936490f6336a03eda0a"
+    },
+    {
+      "path": "src/intern/drw_textcodec.cpp",
+      "sha256": "c62d52996912341e8b052723285e84bab7d3f38cbe0f7ba78cece49f3bc64492"
+    },
+    {
+      "path": "src/intern/dwgbuffer.cpp",
+      "sha256": "8f2cce04c4070dc7e07d72bd3ff5df03e0a23570353bdcee75cb81f0f73622c9"
+    },
+    {
+      "path": "src/drw_objects.cpp",
+      "sha256": "2a5960d97bb4924f626f536bf928c20843ff655574d751ff2b290f2a4583845f"
+    },
+    {
+      "path": "dwg2dxf/dx_data.h",
+      "sha256": "1265613bbb3f0b143144c185bb35f75dcf1f55ad9c1914d300b0101835fe226e"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "87bfe5856de48b812aecebd48dae7c636a980d9b127a008498505a96ba0fb74d"
+    },
+    {
+      "path": "dwg2dxf/dx_standard_output.h",
+      "sha256": "46d81a3a59191da00a6db3a69a22bbcdd94e0d7f0a44c2b5ad078061ee57029d"
+    },
+    {
+      "path": "tests/gbk_codepage_tests.cpp",
+      "sha256": "5c65e5b194195c115e3926adb9437f2212764dd33bfda9051d85cacb9cb657b5"
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "458fad70e33fd1a6febd734149958674bbf62fbba0aff7aab115fc093fbfe515"
+    },
+    {
+      "path": "tests/dwg_local_roundtrip_tests.cpp",
+      "sha256": "a66c2bb0bffa5144065d3611ec86022bbc3879eee7badc4318c1eadce7e84633"
+    },
+    {
+      "path": "tests/xrecord_test_helpers.h",
+      "sha256": "7cba9a7a3f425ffc76f56b36c36af7a4503ff55471f592352f272f0a771bc8f5"
+    },
+    {
+      "path": "docs/3D_CONSUMER_CONTRACT.md",
+      "sha256": "4bae3fd8b0171de2e2d22805964e76c61f24a2c894ed17ad1b4abd3c3b6811d6"
+    },
+    {
+      "path": "build/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "5f54f48987fdb0fd4448774556f7c0a036f579694f51a049554fc0f3f328b093"
+    },
+    {
+      "path": "build/libdxfrw_gbk_codepage_tests",
+      "sha256": "1a14c2919a97cd10eb092d42058dffd04b43327419d71ede5d98554a0bde97cb"
+    },
+    {
+      "path": "build/libdxfrw_dwg_local_roundtrip",
+      "sha256": "dc4d49cbe41d2e61ed6c12ded97281c2cfa499b221bc09613b542df09860f3cf"
+    },
+    {
+      "path": "build/libdxfrw_dwg_reader_matrix_tests",
+      "sha256": "6597564fbf7937917f7368d4d91c97a74891bcd555f44297f1721c54dc84e699"
+    },
+    {
+      "path": "build/libdxfrw_wave1_tests",
+      "sha256": "00cae04a8ea3a6983efe8b8e7be0028de8f56122d6f4aa0b2dab0b43988d58f2"
+    },
+    {
+      "path": "build/libdxfrw_dxf_fixture_tests",
+      "sha256": "d4ad71ae49b3619563a62598951ace2362e9b535280bb5c78220529308bd40de"
+    },
+    {
+      "path": "build/dwg2dxf/dwg2dxf",
+      "sha256": "09b117b5a67e9c6350a185999c26da3b81ae3b068fc6efe4c1c88232096c5870"
+    },
+    {
+      "path": "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "d9657dbb95c0253e1213c860824345db41164849565b9402986de13d993767ee"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_gbk_codepage_tests",
+      "sha256": "6993833b7a4a6548fa3f499cec0ae774ba39411fe0a9d65e8de8c0bc0049248c"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_dwg_local_roundtrip",
+      "sha256": "c56acfd78fb25893d30c7ea6710a6128686cb92b3df48644338062a7674df1cf"
+    },
+    {
+      "path": "/tmp/rpp5ar-fast-ctest.log",
+      "sha256": "668339679db8b9cd1e75d93bf21dec87f30e3888e25cc9ff0dbb1b9ddc37681e"
+    },
+    {
+      "path": "/tmp/rpp5ar-asan-ctest.log",
+      "sha256": "a8d5a0c449e9169e93bd541630350b5ca1580eccee4ab6579dacc13db3c4b0c2"
+    },
+    {
+      "path": "/tmp/rpp5ar-compat-ctest.log",
+      "sha256": "b6f2fce9cdd626d848a9ec1f4f600f30a5292690c1aa2fa707e4c9dea65c56d3"
+    },
+    {
+      "path": "/tmp/rpp5ar-text-literals.log",
+      "sha256": "5a35686353415007e0bcffb1384c689187ea091c20df1f23d55cea54ca7c5abf"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwgbuffer.cpp",
+      "sha256": "aed51e74a283f8d5d46677f7432b05aae5cb05fa10b7f31055bafd8689208fc4"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwgbuffer.cpp.o",
+      "sha256": "b546f5eff77fc2c4d7f39f4b031c2b3a6b713bbb84603e1985ae710c25bc55fd"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/libdxfrw.a",
+      "sha256": "3edd94d546277c2b08b127bbd9915f4241e4cb33d74eb2f3847da88b484f0b55"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/reader",
+      "sha256": "39906a422bb4beb17f1393463b9294b061e67f23877dd591f8feea733311e0d7"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_architectural_-_annotation_scaling_and_multileaders-current.log",
+      "sha256": "1d62e824d5fca1b7d8a3650bfcb4582826ce676c927437e1959b402f4e787129"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_architectural_-_annotation_scaling_and_multileaders-reference.log",
+      "sha256": "1d62e824d5fca1b7d8a3650bfcb4582826ce676c927437e1959b402f4e787129"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+      "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_blocks_and_tables_-_imperial-current.log",
+      "sha256": "48369f8950aab8483cd310333d2aea4fb7e441ac87b4b6f3551f418b81c84a2b"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_blocks_and_tables_-_imperial-reference.log",
+      "sha256": "48369f8950aab8483cd310333d2aea4fb7e441ac87b4b6f3551f418b81c84a2b"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/blocks_and_tables_-_metric.dwg",
+      "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_blocks_and_tables_-_metric-current.log",
+      "sha256": "f30382583daab9b5968fbe891a667d709c7a622ac0f2ebf98f32259f4f3756b4"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_blocks_and_tables_-_metric-reference.log",
+      "sha256": "f30382583daab9b5968fbe891a667d709c7a622ac0f2ebf98f32259f4f3756b4"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/lineweights.dwg",
+      "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_lineweights-current.log",
+      "sha256": "397005656ffeefc3485affd7363b597045b5201a807e9f582c4175b2fbdc6fc1"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_lineweights-reference.log",
+      "sha256": "397005656ffeefc3485affd7363b597045b5201a807e9f582c4175b2fbdc6fc1"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/plot_screening_and_fill_patterns.dwg",
+      "sha256": "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_plot_screening_and_fill_patterns-current.log",
+      "sha256": "100bcc83a24d9ddcefc39dc4a108c8b8be54bc8c7f705d24339e39b5274ace23"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_plot_screening_and_fill_patterns-reference.log",
+      "sha256": "100bcc83a24d9ddcefc39dc4a108c8b8be54bc8c7f705d24339e39b5274ace23"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/tablet.dwg",
+      "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_tablet-current.log",
+      "sha256": "262d9a57b6f2ffe9216e9d327b97e3bd394285ab48b7e062b47c7a26a948834e"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_tablet-reference.log",
+      "sha256": "262d9a57b6f2ffe9216e9d327b97e3bd394285ab48b7e062b47c7a26a948834e"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/truetype.dwg",
+      "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_truetype-current.log",
+      "sha256": "f0b96a71ab1ba2116fb9343dcf4e76c51a723e259f4784bfa4bfbd2ebbca8ab1"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1021_truetype-reference.log",
+      "sha256": "f0b96a71ab1ba2116fb9343dcf4e76c51a723e259f4784bfa4bfbd2ebbca8ab1"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/architectural_example-imperial.dwg",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_architectural_example-imperial-current.log",
+      "sha256": "328af8b77b3d75cb9cbbbd70251d48aa89479825c1ca319828765043b4f3d843"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_architectural_example-imperial-reference.log",
+      "sha256": "328af8b77b3d75cb9cbbbd70251d48aa89479825c1ca319828765043b4f3d843"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/civil_example-imperial.dwg",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_civil_example-imperial-current.log",
+      "sha256": "23db7deb9a3bff63fd5a9685006b9275fa9118c9e065d0ac68c67d135da70eb4"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_civil_example-imperial-reference.log",
+      "sha256": "23db7deb9a3bff63fd5a9685006b9275fa9118c9e065d0ac68c67d135da70eb4"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_mechanical_example-imperial-alt-current.log",
+      "sha256": "6bc8dddf1661a60c363d11514e0097dda8515676ae76fe383fc7e1d288b2584d"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_mechanical_example-imperial-alt-reference.log",
+      "sha256": "6bc8dddf1661a60c363d11514e0097dda8515676ae76fe383fc7e1d288b2584d"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_mechanical_example-imperial-current.log",
+      "sha256": "6bc8dddf1661a60c363d11514e0097dda8515676ae76fe383fc7e1d288b2584d"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_mechanical_example-imperial-reference.log",
+      "sha256": "6bc8dddf1661a60c363d11514e0097dda8515676ae76fe383fc7e1d288b2584d"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/title_block-arch.dwg",
+      "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_title_block-arch-current.log",
+      "sha256": "2e56f4dee2bf430d8db4db6ff607a12ff5308f3a58546ba70bde31528855df3f"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_title_block-arch-reference.log",
+      "sha256": "2e56f4dee2bf430d8db4db6ff607a12ff5308f3a58546ba70bde31528855df3f"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/title_block-iso.dwg",
+      "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_title_block-iso-current.log",
+      "sha256": "2e56f4dee2bf430d8db4db6ff607a12ff5308f3a58546ba70bde31528855df3f"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_title_block-iso-reference.log",
+      "sha256": "2e56f4dee2bf430d8db4db6ff607a12ff5308f3a58546ba70bde31528855df3f"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/visualization_-_aerial.dwg",
+      "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_aerial-current.log",
+      "sha256": "cf260d8bb2e5123d2cb99120751e09d28995a436d1fcc98fbaa63da38b5d6816"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_aerial-reference.log",
+      "sha256": "cf260d8bb2e5123d2cb99120751e09d28995a436d1fcc98fbaa63da38b5d6816"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_condominium_with_skylight-current.log",
+      "sha256": "338597ee0cbc868857606afbec35c8800172c278476c3ec28a07b65ae3b80a47"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_condominium_with_skylight-reference.log",
+      "sha256": "338597ee0cbc868857606afbec35c8800172c278476c3ec28a07b65ae3b80a47"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/visualization_-_conference_room.dwg",
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_conference_room-current.log",
+      "sha256": "6946d931bbf9871315eebbc714287a4d4054eb1e816620113c9222a7cddfb0a8"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_conference_room-reference.log",
+      "sha256": "6946d931bbf9871315eebbc714287a4d4054eb1e816620113c9222a7cddfb0a8"
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+      "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_sun_and_sky_demo-current.log",
+      "sha256": "fd32a5a9cf5402f9b01e0e9e6bc48fecf1a1f015bc5f110a6fe79aa67109db30"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/dwg_read_AC1024_visualization_-_sun_and_sky_demo-reference.log",
+      "sha256": "fd32a5a9cf5402f9b01e0e9e6bc48fecf1a1f015bc5f110a6fe79aa67109db30"
+    },
+    {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+    },
+    {
+      "path": "/tmp/rpp5ar-oda-text-types.png",
+      "sha256": "6fba0e39bc32c867734020335eb6c1ac9499beb0c0d03c36a20f8f3adee8ea38"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/failed-sample-0-debug.log",
+      "sha256": "d773920ae1ab32b6ab9e55d34aa15fe30e2081352f9e69b5282753a837024282"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/failed-sample-1-debug.log",
+      "sha256": "05c1cad0b2badc8bf35e3d533d3973c0821145113c10eac1152f64e778f9d6cf"
+    },
+    {
+      "path": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/failed-sample-2-debug.log",
+      "sha256": "02289e6c672d42a0e97cd5293784dc1ec84d17bd419a7d4eaccaa609acd62000"
+    }
+  ],
+  "diagnosticTraces": {
+    "command": "dwg2dxf <existing-repository-sample> -y -d --allow-partial-dwg-read -v2010 <unique-temporary-output>; output/debug log capped at 128 MiB by ulimit -f",
+    "result": "All three CLI conversions refused; no output completeness claimed",
+    "traces": [
+      {
+        "test": "dwg_read_AC1024_visualization_-_condominium_with_skylight",
+        "trace": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/failed-sample-0-debug.log",
+        "output": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/failed-sample-0.dxf",
+        "exitCode": 1
+      },
+      {
+        "test": "dwg_read_AC1024_visualization_-_conference_room",
+        "trace": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/failed-sample-1-debug.log",
+        "output": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/failed-sample-1.dxf",
+        "exitCode": 1
+      },
+      {
+        "test": "dwg_read_AC1024_visualization_-_sun_and_sky_demo",
+        "trace": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/failed-sample-2-debug.log",
+        "output": "/tmp/libdxfrw-rpp5ar-reference.FH0jQ3/failed-sample-2.dxf",
+        "exitCode": 1
+      }
+    ],
+    "failedFrames": [
+      {
+        "sample": "visualization_-_condominium_with_skylight.dwg",
+        "record": "ACSH_LOFT_CLASS",
+        "className": "AcDbShLoft",
+        "handle": 3577,
+        "fileLocalType": 533,
+        "offset": 2373737,
+        "ordinal": 870
+      },
+      {
+        "sample": "visualization_-_condominium_with_skylight.dwg",
+        "record": "ACSH_LOFT_CLASS",
+        "className": "AcDbShLoft",
+        "handle": 3566,
+        "fileLocalType": 533,
+        "offset": 2704930,
+        "ordinal": 859
+      },
+      {
+        "sample": "visualization_-_condominium_with_skylight.dwg",
+        "record": "ACSH_REVOLVE_CLASS",
+        "className": "AcDbShRevolve",
+        "handle": 3180,
+        "fileLocalType": 532,
+        "offset": 2704286,
+        "ordinal": 793,
+        "fieldFailure": "revolve angle at body bit 1045"
+      },
+      {
+        "sample": "visualization_-_conference_room.dwg",
+        "record": "ACSH_REVOLVE_CLASS",
+        "className": "AcDbShRevolve",
+        "handle": 1788,
+        "fileLocalType": 526,
+        "offset": 1540229,
+        "ordinal": 282,
+        "fieldFailure": "revolve angle at body bit 1301"
+      },
+      {
+        "sample": "visualization_-_conference_room.dwg",
+        "record": "ACSH_REVOLVE_CLASS",
+        "className": "AcDbShRevolve",
+        "handle": 1747,
+        "fileLocalType": 526,
+        "offset": 1498769,
+        "ordinal": 245,
+        "fieldFailure": "revolve angle at body bit 1301"
+      },
+      {
+        "sample": "visualization_-_conference_room.dwg",
+        "record": "ACSH_REVOLVE_CLASS",
+        "className": "AcDbShRevolve",
+        "handle": 1706,
+        "fileLocalType": 526,
+        "offset": 1457309,
+        "ordinal": 208,
+        "fieldFailure": "revolve angle at body bit 1301"
+      },
+      {
+        "sample": "visualization_-_sun_and_sky_demo.dwg",
+        "record": "BLOCKLOOKUPACTION",
+        "className": "AcDbBlockLookupAction",
+        "handle": 559,
+        "fileLocalType": 528,
+        "offset": 408513,
+        "ordinal": 188,
+        "fieldFailure": "dataBit=301 objectSizeBit=72891 handleBits=21 handleStreamEndBit=72912 rows=41 columns=7 expressionsRead=0 connectionSetsRead=0"
+      },
+      {
+        "sample": "visualization_-_sun_and_sky_demo.dwg",
+        "record": "ACDBPERSSUBENTMANAGER",
+        "className": "AcDbPersSubentManager",
+        "handle": 363,
+        "fileLocalType": 515,
+        "offset": 4542,
+        "ordinal": 110
+      }
+    ],
+    "independentExportFailure": "SUN owner graph closure: SUN typed/raw carrier coverage is incomplete",
+    "typeCodePolicy": "Empirical per-file dynamic type ordinals only. Future dispatch/fixes must resolve class identity, not hardcode these numbers.",
+    "scope": "Diagnostic capture only; no source parser/layout changes, no integrity waiver and no newly-qualified drawing."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-object-census-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "a1394e3c7",
+  "implementationDigestSha256": "af2d9e8a1f4866db44def162e69f1c974fc3b08dbd0f263a4100431460e473ea",
+  "scope": "Census the mapped objects in each locally generated two-element AC1012 collision drawing against the previously audited source packet.",
+  "checks": [
+    "Each input has exactly 32 unique decoded handles with the expected object types. Every mapped physical frame passes source location, length and CRC checks; 30 frame hashes per drawing match the audited packet and two BLOCK_HEADER frames per drawing pass the shared source/version/handle-role adapter probe.",
+    "Changed source bytes and a changed expected frame hash are both rejected before a result is printed; restoring the inputs and retrying at the same packet path succeeds.",
+    "The new reusable census tool is included in the source-release inventory; the inventory check and self-test pass. No drawing fixture was committed."
+  ],
+  "priorEvidence": [
+    "docs/research/p6-ac1012-pair-block-wire-2026-11-27.json",
+    "docs/research/p6-ac1012-pair-block-entity-wire-2026-11-27.json",
+    "docs/research/p6-ac1012-pair-layer-wire-2026-11-27.json",
+    "docs/research/p6-ac1012-pair-linetype-wire-2026-11-27.json",
+    "docs/research/p6-ac1012-pair-style-appid-wire-2026-11-27.json",
+    "docs/research/p6-ac1012-pair-other-controls-wire-2026-11-27.json",
+    "docs/research/p6-ac1012-pair-dimstyle-wire-2026-11-27.json",
+    "docs/research/p6-ac1012-pair-vport-wire-2026-11-27.json"
+  ],
+  "hashes": {
+    "tool": "531470faf1bdd8e344ffe3b556cc9204688dab8b12d0dd76501bba012f21bf99",
+    "censusResults": "c24bad5de4154cb1ec4c53d052958d82f5b29dfcec4663a5e20b4f664ae9a30b",
+    "packetManifest": "1b4247c588a34410274c6f1b0a81699a3f850ee0ce48a4ded0230ece7cee2205",
+    "adapterProbe": "d0e16d5fbe2734721d9204d3b3691ada89075b402db4fee4c054097157aacae6"
+  },
+  "limits": [
+    "Census membership and source framing do not prove the HEADER, complete graph closure, full output, AutoCAD normal-open or native clone semantics. The packet's ODA DIMSTYLE divergence remains open.",
+    "Object identities are checked against the specific generated pair and source packet; no general AC1012 support claim follows."
+  ]
+}

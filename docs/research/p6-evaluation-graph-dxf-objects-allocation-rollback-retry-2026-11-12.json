@@ -1,0 +1,47 @@
+{
+  "title": "Generated EVALUATIONGRAPH DXF OBJECTS allocation rollback and retry",
+  "date": "2026-11-13",
+  "scope": "One locally authored two-node, one-edge EVALUATIONGRAPH with null expression handles, written through the public OBJECTS callback at AC1021, AC1024, AC1027, and AC1032 in ASCII and Binary DXF.",
+  "source": {
+    "kind": "generated-from-scratch-in-test",
+    "fixtureCommitted": false,
+    "temporaryOutputRemoved": true,
+    "testSource": "tests/evaluation_graph_objects_allocation_tests.cpp",
+    "testSourceSha256": "b3d40bd4655bc2326258d2d56a3923179bedc1d4e6ddf372a709e2349de927c7",
+    "cmakeSource": "tests/CMakeLists.txt",
+    "cmakeSourceSha256": "e219dc760ca2ddfedeb314c7308d8dce4d1c35aeb22c2f6332afc20b5b225175"
+  },
+  "checks": {
+    "targetVersions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "asciiAllocationFailureOffsetsPerVersion": 10,
+    "binaryAllocationFailureOffsetsPerVersion": 9,
+    "totalAllocationFailureOffsets": 76,
+    "eachFailurePreservesPreexistingDestination": true,
+    "eachFailurePreservesCallerGraph": true,
+    "sameCodecRetryAfterEachFailure": true,
+    "retryBytesMatchCleanCalibrationExactly": true,
+    "freshTypedReadbackChecksGraphHeaderNodesAndEdge": true,
+    "onlyGeneratedScratchFilesUsed": true,
+    "eachFailureInjectedAtRequestedOffset": true
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_evaluation_graph_objects_allocation_tests -j6",
+    "build": "cmake --build build-gcc --target libdxfrw_evaluation_graph_objects_allocation_tests -j2: PASS",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_evaluation_graph_objects_allocation$' --output-on-failure: PASS 1/1 in 0.45 seconds",
+    "directSelectorResult": "Explicit offset assertions passed for four target versions and both encodings: 76 allocation-failure offsets, rollback, retry, and typed readback",
+    "diffCheck": "git diff --check passed",
+    "testExecutableSha256": "0f53096b97fe7c7bac5529a3660c04cc34e54819c5263499856b7745b8e2fadb"
+  },
+  "limitations": [
+    "Generated transaction evidence only; no physical producer or independent semantic evidence.",
+    "Null expression handles avoid target-closure assertions; expression semantics and non-null target closure remain unqualified.",
+    "Does not establish whole-source output, native behavior, or EVALUATIONGRAPH feature support."
+  ],
+  "planImpact": {
+    "completedSlice": "Generated OBJECTS allocation rollback/retry and typed readback now cover AC1021, AC1024, AC1027, and AC1032 in both encodings.",
+    "remainingP6G": "Continue the public-writer inventory; expression target semantics and graph closure remain independently gated.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "243 completed slices and 35 remaining packages: 243/(243+35)=87.4%; count-based activity proxy only."
+  }
+}

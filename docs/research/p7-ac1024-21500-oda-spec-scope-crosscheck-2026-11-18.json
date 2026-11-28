@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p7-ac1024-21500-oda-spec-scope-crosscheck-2026-11-18",
+  "date": "2026-11-18",
+  "title": "ODA DWG specification scope check for ACIS 21500 SAB header",
+  "status": "NO_21500_HEADER_WORD_SEMANTICS_AUTHORITY",
+  "supportClaimEffect": "none",
+  "sliceEffect": "One bounded authority/source-code audit completed; P7-D remains open and no package gate closed.",
+  "source": {
+    "authority": "Open Design Alliance, Open Design Specification for .dwg files, Version 5.4.1",
+    "officialUrl": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "localCopyNote": "The AGENTS.md canonical filename was absent; this local copy identifies itself as ODA Version 5.4.1 and matches the official ODA-hosted specification used for this scope check."
+  },
+  "authoritativeFindings": [
+    {
+      "section": "§20.4.41 REGION / 3DSOLID / BODY",
+      "page": 144,
+      "finding": "ODA documents how a DWG entity embeds SAT/SAB, the version-1 block path, the version-2 stream path, wireframe metadata, and the ACIS history handle, while explicitly stating that the entities are not completely decrypted. It does not define the ACIS 21500 third header word."
+    },
+    {
+      "section": "§24.2.2.3 Data file segment",
+      "page": 255,
+      "finding": "ODA states that each REGION/3DSOLID data record contains the SAB stream and that detailed ACIS/SAB data is outside the DWG specification's scope. It documents only the ACIS BinaryFile prefix and version-dependent terminal string; no 21500 header field map is supplied."
+    }
+  ],
+  "crossVersionBoundary": {
+    "nativeAcis70": "The SAT 7.0 source in the prior authority-screen receipt assigns its third text-header integer a native entity-list meaning, but it is not a schema for Autodesk-modified 21500 SAB.",
+    "acis217218": "The cadmpeg 217/218 documentation assigns its binary word a RecordTable boundary meaning, but that version-specific meaning cannot be transferred to 21500.",
+    "conclusion": "Neither neighboring-format interpretation resolves the selected 21500 profile."
+  },
+  "localImplementationAudit": {
+    "files": [
+      "src/drw_acis.h",
+      "src/drw_acis.cpp",
+      "tests/acis_sat_allocation_tests.cpp",
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "findings": [
+      "DRW_SabHeader documents numEntities as the raw third header integer with version-specific semantics unresolved.",
+      "readHeader stores that integer without interpretation; parseSabPrefix does not use it as a record count or body-count limit.",
+      "The SAT v1 converter preserves the raw third integer in output.",
+      "The existing ACIS 21500 control uses third word 2 with five parsed records, and separately checks the one-body graph result; this is a mismatch observation, not independent proof of the word's meaning."
+    ],
+    "existingControl": "tests/acis_sat_allocation_tests.cpp checks header.numEntities == 2, records.size() == 5, and SAT prefix `21500 4 2 0`; no production code change was needed.",
+    "codeChange": false,
+    "fixtureAdded": false
+  },
+  "decision": {
+    "p7dDisposition": "WAITING_FOR_ACIS_21500_HEADER_WORD_AUTHORITY",
+    "productionRule": "Keep the third word raw; do not call it a body count, use it to admit/reject geometry, or transfer SAT 7.0 / SAB 217-218 semantics.",
+    "requiredNextEvidence": "A 21500-specific primary field map or a provenance-qualified independent interpretation of the same payload with a complete top-level record census and a state that distinguishes candidate meanings.",
+    "retryTrigger": "A new version-qualified specification, eligible 21500 producer artifact, or independent reader that accepts and correctly interprets the exact payload becomes available."
+  },
+  "validation": {
+    "method": "Read-only authority PDF scope review and local parser/converter/test audit.",
+    "tests": "Not run; no code changed.",
+    "supportClaimEffect": "none"
+  },
+  "planImpact": {
+    "completedSlice": "The authoritative ODA v5.4.1 specification is confirmed not to define the ACIS 21500 third header word, and the implementation audit confirms raw preservation without semantic use.",
+    "remainingP7D": "Await only 21500-specific primary authority or provenance-qualified independent interpretation; do not repeat neighboring-version searches.",
+    "phaseStatusesChanged": false,
+    "activityProgressAfterSlice": "85/109 (78.0%); 9/33 package gates closed (27.3%)."
+  },
+  "previousReceipts": [
+    "docs/research/p7-ac1024-21500-header-third-word-cross-version-authority-screen-2026-11-13.json",
+    "docs/research/p7-ac1024-21500-sab-sat-cuboid-crosscheck-2026-11-11.json",
+    "docs/research/p7-acis-21500-local-header-profile-screen-2026-11-12.json"
+  ]
+}

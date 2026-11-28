@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_SOURCE_BACKED_MINIMAL_GRAPH_OUTPUT",
+  "base_commit": "5d6d3b30",
+  "scope": "AC1018 RASTERVARIABLES direct-NOD frame=1 quality=1 units=3, with canonical 10-bit BS, same-revision output and all existing minimal root/group graph, source class and capture bindings. Frame=0 remains supported.",
+  "authority": "ODA DWG v5.4.1 sections 10.2, 20.1, 20.4.44 and 20.4.91 specify R2004 boundaries, dictionary reference roles and raster class/frame/quality/units fields.",
+  "physical_source": {
+    "provenance": "ezdxf 1.4.5 authored R2010 scratch input; ODA File Converter 27.1 converted to AC1018 DWG and then AC1018 DXF without .err. Conversion lineage is locally observed, not established by hashes.",
+    "input_dxf": "/private/tmp/raster-frame1-witness/in/source.dxf",
+    "input_sha256": "ebb8fd284c6180bf75d5d1383667ba0582beda9bf194ed95bb677213654cf5e7",
+    "source_dwg": "/private/tmp/raster-frame1-ac1018/dwg/source.dwg",
+    "source_sha256": "bdcff6c9679496f3d4cf5f5a7441faadcb4b4b013f905b9765c0924b2151f649",
+    "returned_dxf": "/private/tmp/raster-frame1-ac1018/out/source.dxf",
+    "returned_dxf_sha256": "0403703ca07e2ec6937dc59c1d161afd2fd2b42d0b4e4bff7a376cb52342786d",
+    "independent": "LibreDWG 0.14 independently reports type 512, handle 0x2F, 18-byte body, RL boundary 111, class/frame/quality/units 0/1/1/3, owner [111,127) and reactor [127,143) role-4 to NOD 0xA, one zero pad bit and CRC 9E79 verified. ezdxf reads 1/1/3 in both input and returned DXF.",
+    "local": "The SHA-bound local C++ callback probe validates class, source frame, canonical frame BS [81,91), decoded fields, both handle roles and NOD key. In-tree decomposition, object CRC and typed parser are not independent implementations.",
+    "tool_digests": "Local LibreDWG dwgread SHA-256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff; ODA executable SHA-256 21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783. The audit checks version and data hashes, not executable hashes."
+  },
+  "implementation": "Extend AC1018 graph traversal, source proof and output preflight to accept typed frame 1 only when raw source frame matches the exact 10-bit producer encoding. Existing frame=0 encoding, other scalar values, class, identity, direct owner/reactor and source-capture checks remain unchanged.",
+  "generated_validation": "5/5 isolated CTests pass for AC1018 frame=0 and 1, AC1024 frame=0 and 1, and AC1032 frame=0. AC1018 frame=1 tests strict ASCII/Binary with resolved owners and same-adapter typed output re-import; changed typed frame/quality/units, class/capture/root, raw frame payload, long 18-bit alternative, owner/reactor and revision reject with preserved sentinel, followed by retry. Reconstructed long-form mutation updates RL and retains both handle tokens/padding, and requires owner proof refusal. This validates a generated minimal graph; typed output readback is in-tree.",
+  "whole_source_limit": "The physical source has a larger NOD than the admitted minimal graph and HEADER integrity warning. Strict CLI exits 1 before publication at complete-read preflight and preserves PRIOR_RASTER_DEST. Full physical-source output, physical NOD mapping, rendering and native application semantics remain unqualified.",
+  "commands": [
+    "cmake --build /private/tmp/raster-frame1-ac1018/build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "ctest --test-dir /private/tmp/raster-frame1-ac1018/build -R '^dwg2dxf_rastervariables_(ac1018_(frame1|direct_nod)|ac1024_(frame1|direct_nod)|ac1032_direct_nod)_adapter_transport$' --output-on-failure",
+    "Compile the probe with c++ -std=c++17 -Wall -Wextra -Werror -I<source> -I<source>/src -I<source>/dwg2dxf <source>/tools/probe_rastervariables_ac1018_frame1_source.cpp <build>/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o <build>/libdxfrw.a -o /private/tmp/raster-frame1-ac1018/probe",
+    "PYTHONPATH=<source>/tools build/rpp5gh-evidence/peer/bin/python <source>/tools/audit_rastervariables_ac1018_frame1_source.py --input-dxf /private/tmp/raster-frame1-witness/in/source.dxf --dwg /private/tmp/raster-frame1-ac1018/dwg/source.dwg --output-dxf /private/tmp/raster-frame1-ac1018/out/source.dxf --probe /private/tmp/raster-frame1-ac1018/probe --dwgread /opt/homebrew/bin/dwgread"
+  ],
+  "patch_sha256": "ed97afc017b4ada59777f8670a7ab92afeb51fb2ef5288d7e520f9b4b1989534",
+  "tool_sha256": {
+    "tools/probe_rastervariables_ac1018_frame1_source.cpp": "b622bc11b6ed91206b682687594b04940274c9f230e3d0abed29d5cbcb4558de",
+    "tools/audit_rastervariables_ac1018_frame1_source.py": "ac483c9d10d5fa6596577885ace5f85d10d1347025abc96d661db6ae1637baee"
+  },
+  "limits": [
+    "No DWG/DXF fixture files were added; physical samples remain scratch-only.",
+    "No general AC1018 RASTERVARIABLES or whole-drawing support claimed."
+  ],
+  "integrated_validation": "The integrated adapter passed all five focused frame and direct-NOD selectors.",
+  "scratch_source_and_test_sha256": {
+    "dwg2dxf/dx_iface.cpp": "d64f86fc2cb862c927e7a780b57c03c643e3eb6633d1b56c996e154b902ad5ca",
+    "tests/dwg2dxf_adapter_tests.cpp": "96b6cf8e8c6caa3ea6d1d28aa70807d9b66cb0fc3af8355d74650752ef885583",
+    "tests/CMakeLists.txt": "022b28a8d323a4f81650cd502cdfb6733860a6dce991460625fcf40dbdcb1b86"
+  }
+}

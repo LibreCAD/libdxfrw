@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-libreCAD-historical-control-read-profile-2026-11-05",
+  "date": "2026-11-05",
+  "title": "Restore adapter reads for the historical bundled LibreCAD AC1021/AC1027 ENC writer profile",
+  "status": "BOUNDED_READ_COMPATIBILITY_QUALIFIED; STRICT_OUTPUT_UNCHANGED",
+  "supportClaimEffect": "none",
+  "scope": {
+    "sourceProfiles": [
+      "AC1021",
+      "AC1027"
+    ],
+    "fixtures": [
+      {
+        "path": "tests/fixtures/dwg/ordinary_enc_AC1021.dwg",
+        "sha256": "25685bec2d9d537a2f04dfd081f2a0933078cc19c59ebc3473dc011dfad970c8"
+      },
+      {
+        "path": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+        "sha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83"
+      },
+      {
+        "path": "tests/fixtures/dwg/ordinary_enc_ac1027_ansi932.dwg",
+        "sha256": "449a386ccc677dcb93848f583d812afcfd0194631973406394e782233c463aba"
+      }
+    ],
+    "historicalSource": {
+      "repository": "LibreCAD/LibreCAD",
+      "revision": "9807333b5e9c2204b7ecade0e7c18bf9a9eda1ba",
+      "writer": "libraries/libdxfrw/src/intern/dwgwriter15.cpp",
+      "fixtureGenerator": "librecad/src/lib/filters/tests/dwg_write_smoke_tests.cpp"
+    }
+  },
+  "wireProfile": {
+    "ltype": "Accept the identified writer's AC1021 inline BL count and AC1027 detached BL count; require control handle 0x05, zero reactors/EED, absent XDictionary flag, null owner, null hard-owner XDictionary, unique code-4 members beginning BYBLOCK/BYLAYER/CONTINUOUS, and exact zero padding/trailer boundary.",
+    "block": "For the bounded AC1021 inline BLOCK_CONTROL frame, retain the exact control handle, full-frame object-size, no-reactor/EED, null XDictionary, fixed model/paper-space target and zero-padding checks; accept the historical raw-null owner and code-4 child references alongside the previously accepted role form.",
+    "limitation": "The source role mismatch remains observable. This is tolerant read compatibility for the identified writer profile, not ODA role conformance or output qualification."
+  },
+  "checks": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_fixture_tests -j 2 && build-gcc/libdxfrw_dwg_fixture_tests",
+      "result": "PASS: DWG target ENC fixtures; AC1021, AC1027 and ANSI-932 adapter imports publish the expected three LINE records and retain LTYPE_CONTROL/BLOCK_CONTROL role-mismatch diagnostics."
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg_ltype_multiversion_count_tests",
+      "result": "PASS: multi-version LTYPE_CONTROL count and legacy retry."
+    },
+    {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/fixtures/dwg/ordinary_enc_AC1021.dwg -y -v2010 <fresh output>",
+      "result": "Refused before output creation at output preparation because strict-complete conversion does not accept this source read disposition. Exit 1; no output file."
+    },
+    {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/fixtures/dwg/ordinary_enc_AC1027.dwg -y -v2013 <fresh output>",
+      "result": "Refused before output creation: AC1027 DWG source references are not fully qualified. Exit 1; no output file."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS."
+    }
+  ],
+  "implementation": {
+    "path": "src/intern/dwgreader.cpp",
+    "sha256": "e5d4217904583fcabd9ea75b922eea0eb845e0e7cf152737c97dd00176c32fdb",
+    "change": "Add exact historical bundled-LibreCAD LTYPE handle-tail validation and AC1021 BL-count fallback; decode the bounded AC1021 inline BLOCK_CONTROL raw-null owner and code-4 children while retaining its fixed target/frame checks; record non-ODA LTYPE and BLOCK_CONTROL member roles as integrity errors.",
+    "testsPath": "tests/dwg_fixture_tests.cpp",
+    "testsSha256": "8b7c5a3fdea5fa8813dc492014932a017216ebf717f660eb0e89a605ccda996e"
+  },
+  "remaining": [
+    "Replace the authored dangling AC1027 ENC references 0x35-0x38 with a separately provenance-qualified producer fixture containing real color, reactor and extension-dictionary targets; until then retain strict refusal.",
+    "The AC1021 ordinary ENC fixture is import-qualified only; its role diagnostics and strict-complete/output gates remain open.",
+    "ODA or native producer qualification of these legacy control roles remains open.",
+    "No fixture was added or modified; no semantic or platform support claim is promoted."
+  ],
+  "priorEvidence": "docs/research/p4-ac1027-enc-fixture-authored-dangling-references-2026-11-03.json"
+}

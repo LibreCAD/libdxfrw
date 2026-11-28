@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader DIMENSION DSTYLE, picture-block, and consumer-route review",
+  "mode": "primary documentation and current public-source review",
+  "scope": [
+    "Reconcile 7J DSTYLE serialization with Autodesk's DXF contract",
+    "Inspect independent ezdxf dimension override, resource, and geometry-block paths",
+    "Refine dimension picture-block and constraint-candidate closure criteria",
+    "Bind FreeCAD consumer evidence to importer backend and effective settings",
+    "Separate LibreDWG field mapping from semantic and native evidence"
+  ],
+  "sources": [
+    {
+      "name": "Autodesk DXF DIMENSION, DSTYLE, and DIMSTYLE references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-EDD54EAC-A339-4EBA-AEA6-EC8066505E2B.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6A4C31C0-4988-499C-B5A4-15582E433B0F.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm"
+      ],
+      "observed": "The public reference assigns group 2 to the picture block name, distinguishes dimension line spacing, actual measurement, and text rotation in groups 41/42/53, and specifies ACAD DSTYLE as typed XDATA inside control-string boundaries. It does not define DWG anonymous-block insertion scale/rotation as those DXF fields or equate a named target to a complete block graph."
+    },
+    {
+      "name": "ezdxf dimension documentation and current implementation",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/dimension.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dimension.py"
+      ],
+      "observed": "The documented writer renders the dimension into an anonymous content BLOCK and writes overrides into ACAD:DSTYLE. The implementation maps version-sensitive resource names/handles, registers an existing geometry block when present, and its audit removes an ordinary dimension lacking a valid geometry block. It recognizes a constraint candidate by layer *ADSK_CONSTRAINTS plus absent geometry/group 2 and comments on a dependency reactor. Its AutoCAD/BricsCAD missing-block statements are project documentation, not independent native runs or normative DXF grammar."
+    },
+    {
+      "name": "FreeCAD current DXF importer, preferences, and DWG route documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "observed": "The current importer identifies *D anonymous blocks as dimension-related system blocks, can skip hidden/anonymous block contents according to settings, and composes collected block definitions separately from parsing. Annotation import is separately configurable. FreeCAD DWG import is a selected external converter followed by a selected DXF importer. Source inspection and documentation do not establish exact dimension rendering or released-build acceptance."
+    },
+    {
+      "name": "LibreDWG current dimension model and DXF mapping generator",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.h",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/gen-dynapi.pl"
+      ],
+      "observed": "The public data model keeps DWG dimension block association, insertion scale, and insertion rotation as distinct fields; the generator maps the dimension block to DXF group 2. This informs field separation but is not runtime, closure, rendering, or native evidence."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplanRefined": "7J / PAR-23, coordinated with 7G and 7O.3",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies ordinary versus constraint-candidate versus unclassified DIMENSION handling; defines group-2 block closure beyond a BLOCK_RECORD/name; binds FreeCAD qualification to annotation/block settings and converter stages; schedules ezdxf semantic comparison only at the optional composed checkpoint; keeps legacy behavior and unrelated implementation slices unblocked."
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The review uses mutable current upstream source/documentation endpoints and is route-discovery evidence only. ezdxf's constraint recognition is a project heuristic; FreeCAD's source path does not prove user-visible dimension semantics; LibreDWG field declarations do not prove complete decode/write interoperability. Bind exact revisions and execute the named optional gates before promoting any claim."
+  }
+}

@@ -1,0 +1,222 @@
+From f8ef2f44c7637a44f4c9687ff87ddda71c298e0e Mon Sep 17 00:00:00 2001
+From: dxli <dongxuli2011@gmail.com>
+Date: Sun, 15 Nov 2026 05:26:11 -0500
+Subject: [PATCH] Preserve legacy DXF text and insertion units safely
+
+---
+ librecad/src/lib/filters/rs_filterdxfrw.cpp   | 34 +++++++-
+ .../lib/filters/tests/dxf_roundtrip_tests.cpp | 81 ++++++++++++++++---
+ 2 files changed, 105 insertions(+), 10 deletions(-)
+
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index fefcf30..b60bfe2 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -4288,7 +4288,7 @@ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
+     }
+   } stackGuard{&m_xrefStack, thisFileAbs, stackInsertedSelf};
+   // add some variables that need to be there for DXF drawings:
+-  m_graphic->addVariable("$DIMSTYLE", "Standard", 2);
++  m_graphic->addVariable("$DIMSTYLE", QStringLiteral("Standard"), 2);
+   m_dimStyle = "Standard";
+   m_codePage = "ANSI_1252";
+   m_textStyle = "Standard";
+@@ -4454,6 +4454,9 @@ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
+     if (m_dxfTextEncoding == RS2::DxfTextEncoding::LegacyLibreCadUtf8)
+       m_graphic->setDxfRecoverySourceFile(QFileInfo(file).absoluteFilePath());
+     m_dxfR = new dxfRW(QFile::encodeName(file));
++#if defined(LIBDXFRW_HAS_DECLARED_UTF8_POLICY)
++    m_dxfR->setDxfCodePagePolicy(DRW::DxfCodePagePolicy::DeclaredUtf8);
++#endif
+     m_dxfR->setDxfTextEncoding(
+         m_dxfTextEncoding == RS2::DxfTextEncoding::LegacyLibreCadUtf8
+             ? DRW::DxfTextEncoding::LegacyLibreCadUtf8
+@@ -4477,6 +4480,13 @@ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
+       success = m_dxfR->read(this, true);
+     }
+     RS_DEBUG->print("RS_FilterDXFRW::fileImport: reading file: OK");
++#if defined(LIBDXFRW_HAS_DECLARED_UTF8_POLICY)
++    if (success && m_dxfR->getTextReadObservations().issueCount(
++                       DRW::DxfTextIssue::UnsupportedEncodingProfile) != 0) {
++      RS_DIALOGFACTORY->commandMessage(QObject::tr(
++          "This DXF uses a legacy Unicode text profile; check imported text before saving."));
++    }
++#endif
+     if (success) {
+       std::cout << "DXF file version: "
+                 << printDwgVersion(m_dxfR->getSourceVersion()).toStdString() << "\n";
+@@ -11672,6 +11682,7 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+   }
+ 
+   this->m_graphic = &g;
++  m_errorCode = DRW::BAD_NONE;
+   m_writeFailed = false;
+   m_dxfLeftOutRawRecords = 0;
+   m_writeLeftOut.clear();
+@@ -12185,6 +12196,19 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+     m_exactColor = true;
+   }
+   m_dxfExportVersion = exportVersion;
++  if (exportVersion <= DRW::AC1014) {
++    const auto &variables = g.getVariableDict();
++    const auto units = variables.constFind(QStringLiteral("$INSUNITS"));
++    if (units != variables.cend() &&
++        (units->getType() != RS2::VariableInt || units->getCode() != 70 ||
++         units->getInt() != 0)) {
++      m_writeFailed = true;
++      m_errorCode = DRW::BAD_UNKNOWN;
++      RS_DIALOGFACTORY->commandMessage(QObject::tr(
++          "Cannot save as R12/R14 because the drawing's insertion units cannot be represented."));
++      return false;
++    }
++  }
+   /**
+    * fixme - sand - files - RESTORE!!! Under win, encodeName() prevents using
+    * unicode file names!!! Due to that, blocks/files may be saved incorrectly if
+@@ -18328,6 +18352,14 @@ void RS_FilterDXFRW::writeHeader(DRW_Header &data) {
+     auto value = it.value();
+     int code = value.getCode();
+     auto key = it.key().toStdString();
++    // R12/R14 have no INSUNITS. A unitless value was checked before opening
++    // the output file; omit only that representational default.
++    if (m_dxfW != nullptr && m_dxfExportVersion <= DRW::AC1014 &&
++        key == "$INSUNITS" && value.getType() == RS2::VariableInt &&
++        value.getCode() == 70 && value.getInt() == 0) {
++      ++it;
++      continue;
++    }
+     switch (value.getType()) {
+     case RS2::VariableInt:
+       data.addInt(key, value.getInt(), code);
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index e76ad6f..5cda0f4 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -166,29 +166,47 @@ std::string dstyleDirectionVariant(const std::string &path,
+   return {};
+ }
+ 
+-// Returns the group-`code` values of the LTYPE table record named `ltypeName`.
+-// libdxfrw writes the name (2) before the pattern groups (3/73/40/49), so the
+-// name is matched first and the values are collected until the next record.
++// Return group values from the named LTYPE, including application data
++// that precedes the group-2 name in a valid table record.
+ std::vector<std::string> ltypeRecordGroupValues(const std::string &path,
+                                                 const std::string &ltypeName,
+                                                 const std::string &code) {
+   std::ifstream in(path);
+   std::string codeLine, valueLine;
+   std::vector<std::string> values;
++  std::vector<std::string> recordValues;
+   bool inLtype = false;
+   bool nameMatched = false;
++  bool nameSeen = false;
++  unsigned applicationDepth = 0;
+   while (std::getline(in, codeLine) && std::getline(in, valueLine)) {
+     const std::string groupCode = trimDxfToken(codeLine);
+     const std::string value = trimDxfToken(valueLine);
+     if (groupCode == "0") {
++      if (inLtype && nameMatched)
++        values.insert(values.end(), recordValues.begin(), recordValues.end());
+       inLtype = value == "LTYPE";
+       nameMatched = false;
+-    } else if (inLtype && groupCode == "2") {
+-      nameMatched = value == ltypeName;
+-    } else if (inLtype && nameMatched && groupCode == code) {
+-      values.push_back(value);
++      nameSeen = false;
++      applicationDepth = 0;
++      recordValues.clear();
++    } else if (inLtype) {
++      if (groupCode == code)
++        recordValues.push_back(value);
++      if (groupCode == "2" && applicationDepth == 0 && !nameSeen) {
++        nameMatched = value == ltypeName;
++        nameSeen = true;
++      }
++      if (groupCode == "102" && !value.empty()) {
++        if (value.front() == '{')
++          ++applicationDepth;
++        else if (value == "}" && applicationDepth != 0)
++          --applicationDepth;
++      }
+     }
+   }
++  if (inLtype && nameMatched)
++    values.insert(values.end(), recordValues.begin(), recordValues.end());
+   return values;
+ }
+ 
+@@ -9546,6 +9564,51 @@ TEST_CASE("DXF import fills the line type list from its LTYPE records only",
+   std::filesystem::remove(out);
+ }
+ 
++TEST_CASE("LTYPE group helper reads metadata before the record name",
++          "[dxf][roundtrip][filter][linetype][helper]") {
++  const std::string path = tmpFile("ltype_pre_name_metadata.dxf");
++  writeText(path, "0\nLTYPE\n102\n{APP\n2\nDECOY\n310\nCAFE\n"
++                  "102\n}\n2\nACTUAL\n70\n0\n0\nEOF\n");
++  CHECK(ltypeRecordGroupValues(path, "ACTUAL", "310") ==
++        std::vector<std::string>{"CAFE"});
++  CHECK(ltypeRecordGroupValues(path, "DECOY", "310").empty());
++  std::filesystem::remove(path);
++}
++
++TEST_CASE("R12 and R14 exports refuse non-unitless insertion units safely",
++          "[dxf][roundtrip][filter][legacy][units]") {
++  ensureSettings();
++  for (const auto format : {RS2::FormatDXFRW12, RS2::FormatDXFRW14}) {
++    RS_Graphic graphic;
++    const std::string output = tmpFile("legacy_insunits_guard.dxf");
++    const std::string sentinel = "previous drawing\n";
++    writeText(output, sentinel);
++    graphic.addVariable("$INSUNITS", 4, 70);
++    RS_FilterDXFRW filter;
++    REQUIRE_FALSE(filter.fileExport(graphic, QString::fromStdString(output), format));
++    CHECK(filter.lastErrorCode() != DRW::BAD_NONE);
++    CHECK(graphic.getVariableInt("$INSUNITS", -1) == 4);
++    std::ifstream input(output, std::ios::binary);
++    CHECK(std::string(std::istreambuf_iterator<char>(input), {}) == sentinel);
++    input.close();
++
++    graphic.addVariable("$INSUNITS", QStringLiteral("4"), 70);
++    REQUIRE_FALSE(filter.fileExport(graphic, QString::fromStdString(output), format));
++    std::ifstream malformed(output, std::ios::binary);
++    CHECK(std::string(std::istreambuf_iterator<char>(malformed), {}) == sentinel);
++    malformed.close();
++
++    graphic.addVariable("$INSUNITS", 0, 70);
++    REQUIRE(filter.fileExport(graphic, QString::fromStdString(output), format));
++    CHECK(filter.lastErrorCode() == DRW::BAD_NONE);
++    std::ifstream saved(output, std::ios::binary);
++    const std::string bytes(std::istreambuf_iterator<char>(saved), {});
++    CHECK(bytes.find("$INSUNITS") == std::string::npos);
++    saved.close();
++    std::filesystem::remove(output);
++  }
++}
++
+ TEST_CASE("DXF LTYPE twins fill one list entry whichever comes first",
+           "[dxf][roundtrip][filter][linetype][named][table]") {
+   ensureSettings();
+@@ -10150,7 +10213,7 @@ TEST_CASE("DXF a record that only names a line type takes the list's dashes",
+             "0\nTABLE\n2\nLTYPE\n70\n1\n"
+             "0\nLTYPE\n5\n40\n330\n5\n"
+             "100\nAcDbSymbolTableRecord\n100\nAcDbLinetypeTableRecord\n"
+-            "2\nSAVED_LTYPE\n70\n0\n3\nSaved linetype\n72\n66\n73\n0\n40\n0\n"
++            "2\nSAVED_LTYPE\n70\n0\n3\nSaved linetype\n72\n65\n73\n0\n40\n0\n"
+             "102\n{LTYPE_APP\n310\nCAFE\n102\n}\n"
+             "102\n{ACAD_REACTORS\n330\nA1\n102\n}\n"
+             "102\n{ACAD_XDICTIONARY\n360\nA2\n102\n}\n"
+@@ -10179,7 +10242,7 @@ TEST_CASE("DXF a record that only names a line type takes the list's dashes",
+   CHECK(ltypeRecordGroupValues(out, "SAVED_LTYPE", "3") ==
+         std::vector<std::string>{"Saved linetype"});
+   CHECK(ltypeRecordGroupValues(out, "SAVED_LTYPE", "72") ==
+-        std::vector<std::string>{"66"});
++        std::vector<std::string>{"65"});
+   CHECK(recordGroupValues(out, "LTYPE", "310") ==
+         std::vector<std::string>{"CAFE"});
+   const auto reactors = recordGroupValues(out, "LTYPE", "330");
+-- 
+2.54.0 (Apple Git-157)
+

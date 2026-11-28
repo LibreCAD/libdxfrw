@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "scope": "Native macOS ARM64 LibreCAD_3 persistence library using a pinned libdxfrw archive, with limited planar DXF open/save/reopen and existing export tests. This is not full application, DWG, ABI, or general format qualification.",
+  "platform": {"os": "Darwin 27.0.0, macOS 27.0.1", "arch": "arm64", "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)", "cmake": "4.4.5", "independent_dxf": "ezdxf 1.4.5"},
+  "libdxfrw": {
+    "git_commit": "639c16e83ff96a2cbc1fc8a8abbe34be969daa2c",
+    "source": "git archive of that exact commit, separate scratch configure/build, Release and PIC",
+    "archive_sha256": "df28d8bb2dce4a4643f56ea150462b4b090caf8a4f81c8fc34750e9306a8f543",
+    "link_binding": "The CMake persistence link.txt ends with this scratch libdxfrw.a; the linked dylib exports dxfRW symbols. No bundled libdxfrw library was linked."
+  },
+  "consumer": {
+    "checkout_revision": "132265a0573253980451facf9109678f8bffe743",
+    "working_snapshot": "Heavily modified local working tree, including untracked files; copied read-only into scratch with .git, build directories and objects excluded. It is not a clean or upstream-release checkout. The original checkout was not modified.",
+    "snapshot_manifest_sha256": "570d422731a1b332d3432dc54767b948b9eadfeba51fa706899d6f27130dcee9",
+    "snapshot_manifest_file_count": 32278,
+    "snapshot_manifest_path": "/private/tmp/libdxfrw-lc3-native.rvyVAz/lc3-source-sha256.txt",
+    "file_cpp_sha256": "41df2f735a63f7ea287c21a4b2943d0ba0835e5d4397a39fc35b253a49649243",
+    "dxfimpl_cpp_sha256": "6759c21a97a0a30e6c920ba04d266b071ceb4ac3ba3872814bfd0d45d24f9080",
+    "dxfexporttest_cpp_sha256": "374d05bf3352cfec68a5ccfd97ee9f88b3c34b6675f6022639269ecb07cd85de",
+    "persistence_dylib_sha256": "c8f2652c4245bfc923b1b17b0e6a4e4ae5c5e718c78809ccafb6cf2d4ff55694"
+  },
+  "integration_gap": "The consumer project sets C++14 and its custom Findlibdxfrw.cmake imported target does not propagate C++17; a normal persistence build fails on std::optional in current libdxfrw public headers. In scratch only, add target_compile_features(libdxfrw::libdxfrw INTERFACE cxx_std_17) to both persistence and unittest finder modules, matching libdxfrw's exported CMake target, then regenerate. The actual persistence sources compile as gnu++17 and the persistence shared library links. This is a downstream integration change, not a change to the user's checkout.",
+  "full_test_target": "The checkout's full lcunittest target still fails separately: its Kaguya FunctionSignature does not handle C++17 noexcept member-function types. The native evidence below compiles the unmodified persistence test source into a separate GoogleTest executable, avoiding that unrelated Lua target. The command uses the consumer's existing -Wno-missing-template-arg-list-after-template-kw setting for its vendored nano-signal-slot on Apple clang.",
+  "existing_consumer_tests": {
+    "source": "unittest/persistence/dxfexporttest.cpp",
+    "runner_sha256": "1ba6854f424781097104fe51e7e92bb2be7526fd08b504169b3bd698a9e50c5b",
+    "result": "3/3 DxfExportTest cases passed: entity output, table/header output, and selected Z/text attributes. These tests inspect output tags; they do not alone establish readback or all entity semantics."
+  },
+  "planar_native_probe": {
+    "probe_sha256": "fd9e879bbe2e0579f530f596137d4a8ba759d69b7e28977e59e08d86c1e71b1c",
+    "author_audit_sha256": "6c9dc3c73fc36db2cb9f1d97c371e5e6f8da8ff53f580bd5e5f7bc9b4d26e0ba",
+    "runner_sha256": "4a131aa539efd478634ce250bad414ccb4a2602f649f2f97bcae5888282e55f9",
+    "source_sha256": "135c7327471c6f91df5cdc6e43241df3777bcb1cd5224f09ec38b4a6c279c2a2",
+    "saved_sha256": "5e18501cb56559cd9ff5c096a7011d0bcfda5e78ec0dafe7ace93a8d62cbf8d9",
+    "result": "1/1 passed: scratch ezdxf-authored AC1015 LINE and CIRCLE opened through LibreCAD_3 File::open, saved as AC1015, reopened into a fresh native document, and retained the tested planar coordinates and radius. Independent ezdxf readback confirmed the two entities, values, AC1015 and zero audit errors; changing the saved LINE start to (99,2,0) is rejected by the oracle. Input and output files are scratch-only."
+  },
+  "nonplanar_control": {
+    "source_sha256": "1e6fe0604ff5521a85d2c53c7c033b30f1fd787c894276a8fcc03333f60be47e",
+    "observation": "A scratch AC1015 LINE from (1,2,3) to (4,5,6), with planar circle, reaches the consumer callbacks and throws `Points describe a volume, not a area.` from the consumer's 2D geometry path. This is an observed downstream nonplanar import limitation, not a qualified libdxfrw parsing defect. The volume-exception log and input remain scratch-only."
+  },
+  "reproduction": [
+    "Build libdxfrw 639c16e83ff96a2cbc1fc8a8abbe34be969daa2c with CMake Release and PIC in scratch.",
+    "Copy the exact LibreCAD_3 working snapshot to scratch, correct its two finder targets to propagate cxx_std_17, and configure WITH_PERSISTENCE=ON, WITH_UNITTESTS=ON, WITH_LIBOPENCAD=OFF and Qt, Lua CLI, Python and legacy/RHI renderers OFF. Set LIBDXFRW_INCLUDE_DIR and LIBDXFRW_LIBRARY to the pinned scratch build, and build target persistence.",
+    "Compile tools/probe_librecad3_native_dxf.cpp as C++17 and link the scratch persistence/kernel dylibs, Boost filesystem and GoogleTest. With ezdxf 1.4.5, run tools/audit_librecad3_native_dxf.py author <fresh-dir>/authored.dxf; set LC3_NATIVE_PROBE_DIR to that directory and run the probe, then run the helper's check action on saved.dxf.",
+    "Compile the checkout's unmodified unittest/persistence/dxfexporttest.cpp into a separate GoogleTest runner against the same dylibs and run DxfExportTest.*. The exact observed build commands and logs are under /private/tmp/libdxfrw-lc3-native.rvyVAz."
+  ],
+  "limits": [
+    "The consumer checkout is dirty and user-specific; its full file manifest is retained in scratch, not published as an upstream identity.",
+    "The local consumer exposes DXF via libdxfrw and optional DWG only through libopencad; WITH_LIBOPENCAD was OFF and no libdxfrw DWG open/save path was tested.",
+    "No GUI rendering, full lcunittest pass, Linux/Windows result, additional DXF entities, or native 3D support is claimed. No DWG/DXF fixture was added."
+  ]
+}

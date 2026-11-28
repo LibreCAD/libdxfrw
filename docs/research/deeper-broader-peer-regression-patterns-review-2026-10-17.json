@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-regression-patterns-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden primary-source comparison of DWG/DXF parser and writer regressions; map concrete peer reproductions to existing local safety, locale, graph, and qualification owners without adding unsupported claims.",
+  "method": {
+    "kind": "Read-only review of peer project manuals, source-linked issue reports and release notes, plus targeted inspection of the current local code and plan",
+    "peerSourceRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "localInspection": [
+      "DRW_TextCodec::codePageNameEquals uses explicit ASCII-only folding, avoiding the Turkish-culture lookup defect described by ACadSharp #1280.",
+      "dx_iface.cpp still has a filesystem-extension uppercase call using ::toupper on plain char; this call site needs explicit ASCII/path policy review and was not changed in this research-only pass.",
+      "The current plan already has owners for recursion/work bounds, locale-independent symbols, malformed VERTEX recovery, graph closure, MLEADER serialization, and scheduled sanitizer/fuzz checkpoints."
+    ],
+    "evidenceRule": "Issue reports describe the reporter's route/build and are discovery leads only. Peer fixes, source breadth, and self-roundtrips are not local reproductions, normative format definitions, or support qualification."
+  },
+  "evidence": [
+    {
+      "topic": "Repeated DXF constructs can become call-stack exhaustion",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1281"
+      ],
+      "observed": "The open ACadSharp 3.8.0 report identifies recursive advancement for comment runs, repeated XDATA application blocks, and repeated WIPEOUT/IMAGE clipping-boundary groups. The reporter gives process-crash examples at tens of kilobytes and says shared reader paths affect ASCII and binary DXF.",
+      "doesNotEstablish": [
+        "the same recursion or thresholds in libdxfrw",
+        "format limits for valid DXF inputs",
+        "that peer thresholds should be copied as local acceptance limits"
+      ],
+      "planUse": "Refine PAR-14/PAR-26/7BA/7S route audits: inspect exact local advancement paths for recursive-per-item behavior, bound node/work/allocation separately, use small generated repeated-group controls with progress and following-record checks, and use subprocess isolation only where a process-level crash must be detected. Keep long fuzz/sanitizer runs at scheduled composed gates."
+    },
+    {
+      "topic": "Locale-sensitive code-page lookup and local path casing",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1280"
+      ],
+      "observed": "The open ACadSharp report gives a tr-TR/az-Latn-AZ failure mode for ANSI_1254 lookup using culture-sensitive lowercasing, with a source-byte Turkish text reproduction. Local codePageNameEquals already uses explicit ASCII folding, and existing tests cover the ANSI_1254 canonical name and aliases; the DXF facade has a separate filesystem-extension uppercase call requiring role-safe review.",
+      "doesNotEstablish": [
+        "a local ANSI_1254 lookup defect",
+        "complete Unicode symbol-name equivalence",
+        "that filesystem paths should be case-folded like DXF keywords"
+      ],
+      "planUse": "Keep PAR-52/7AE ownership. Preserve the already-fixed ASCII code-page-name classifier; add or confirm one end-to-end source-authored ANSI_1254 read/control under an available Turkish locale, comparing exact Unicode scalars and deterministic output bytes. Audit path suffix handling separately, preserve non-ASCII path bytes, and never fold arbitrary UTF-8 as a symbol key."
+    },
+    {
+      "topic": "Same-codec no-op DWG roundtrip can corrupt annotative MLEADER context objects",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1277"
+      ],
+      "observed": "The open ACadSharp report describes standalone MultiLeaderObjectContextData instances under annotation-scale extension dictionaries being discarded or written with an invalid object layout; the reporter says AutoCAD AUDIT found errors after a no-op AC1032 roundtrip. The reported correction combines object-layout and leader-root-count changes.",
+      "doesNotEstablish": [
+        "a libdxfrw MLEADER writer defect",
+        "a shareable/regression DWG fixture or independent reproduction",
+        "DXF MULTILEADER serialization parity"
+      ],
+      "planUse": "Keep PAR-07/S8 gates distinct: when/if the DWG object-context route is implemented, require generated standalone annotative contexts, extension-dictionary ownership, leader-root counts, all referenced-object identities, same-version no-op output, and independent AUDIT/reader acceptance. Do not use current DXF entity output as evidence for DWG object-context support."
+    },
+    {
+      "topic": "Malformed or incomplete POLYLINE child subtype must not become whole-file failure by accident",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1279"
+      ],
+      "observed": "The open ACadSharp report supplies an AC1014 POLYLINE/VERTEX sequence where the child has AcDbVertex but no more-specific subtype marker; that peer route leaves a placeholder which later fails a cast. The plan already assigns absent/ambiguous child-type behavior to the legacy compound-record policy.",
+      "doesNotEstablish": [
+        "whether the sequence is standards-conforming",
+        "whether parent POLYLINE flags are sufficient to infer every child subtype",
+        "that libdxfrw fails on the sequence"
+      ],
+      "planUse": "Retain the existing 7BS/PAR-14 generated malformed-input row; make the disposition explicit (infer only if supported by the authoritative contract, otherwise report/refuse the record), assert no wrong typed callback and preserve following-record alignment. Do not infer a broader compatibility claim from one peer's repair policy."
+    },
+    {
+      "topic": "Independent DWG-reader hardening regressions reinforce boundary-specific invariants",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+        "https://github.com/LibreDWG/libredwg/issues/1261"
+      ],
+      "observed": "LibreDWG 0.14.1 NEWS records fixes involving decompression-buffer capacity shrinkage, stale object pointers across reallocations, unchecked/signed counts, invalid offsets, and no-progress/OOM loops. HACKING describes distinct DWG, DXF, and rewrite fuzz entry points. Issue #1261 reports attacker-sized class-count allocation work and is now closed; it is retained only as a historical regression pattern.",
+      "doesNotEstablish": [
+        "any matching local vulnerability",
+        "that peer fuzzing should run after each local slice",
+        "that decode-encode-decode or fuzz-corpus coverage proves semantics"
+      ],
+      "planUse": "Refine existing DWG bounds/resource owners with checked capacity arithmetic, allocation/count caps before growth, pointer reacquisition after container mutation, explicit forward-progress conditions, and transactional failure controls. Run a single scheduled sanitizer/fuzz checkpoint when the relevant shared decoder boundary stabilizes, not on each leaf edit."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

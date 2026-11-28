@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-40 / 7G.2 Background and SUN typed/raw callback retention",
+  "mode": "local generated DXF implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Retain existing typed DRW_Background and DRW_Sun callbacks in dx_data",
+    "Retain paired raw DXF object carriers separately from typed callback values",
+    "Inventory new object identities and prevent export from silently dropping unqualified objects",
+    "Keep object-root/owner serialization, DWG byte layouts, external evidence, and support claims separate"
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "dx_iface::addBackground and addSun now retain typed callback values in dx_data.",
+      "addRawDxfObject routes recognized Background and SUN record names into dedicated raw carrier lists.",
+      "The existing object identity inventories include typed and raw Background/SUN handles.",
+      "DXF export rejects typed or raw Background/SUN data before publication until ACAD_BACKGROUND root and carrier-specific SUN owner graphs are writable."
+    ],
+    "generatedControls": [
+      "Generated AC1027 ASCII and Binary OBJECTS streams contain one SOLIDBACKGROUND and one SUN with asymmetric typed values.",
+      "Import asserts typed model values, handles, raw record names, and one-to-one raw/typed callback retention.",
+      "Export refusal preserves a pre-existing destination; clearing the unsupported Background/SUN carriers permits same-adapter retry."
+    ],
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "dwgParseOrEncodeChanged": false,
+    "drwInterfaceVirtualContractChanged": false,
+    "dxDataFieldsAdded": true
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+    "buildPassed": true,
+    "focusedCommands": [
+      "build/libdxfrw_dxf_fixture_tests --background-sun-callback-retention",
+      "build/libdxfrw_dxf_fixture_tests --view-background-sun-fail-closed",
+      "build/libdxfrw_dxf_fixture_tests --viewport-background-sun-fail-closed",
+      "build/libdxfrw_dxf_fixture_tests --vport-background-sun-fail-closed",
+      "build/libdxfrw_dxf_fixture_tests --vport-shadeplot-retention",
+      "build/libdxfrw_dxf_fixture_tests --header-visual-style-references",
+      "build/libdxfrw_dxf_fixture_tests --vport-visual-style-reference",
+      "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dxf_fixture_tests.cpp"
+    ],
+    "focusedResults": [
+      "Background/SUN typed and raw callback retention: PASS",
+      "VIEW Background/SUN fail-closed export: PASS",
+      "VIEWPORT Background/SUN fail-closed export: PASS",
+      "VPORT Background/SUN fail-closed export: PASS",
+      "VPORT shade-plot retention and fail-closed output: PASS; malformed negative controls print expected diagnostics",
+      "HEADER VisualStyle hard-reference closure: PASS",
+      "VPORT code-348 rooted VisualStyle reference closure: PASS",
+      "Scoped diff whitespace check: PASS"
+    ],
+    "fullFixtureCTestRun": false,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "assessment": {
+    "closedScope": "Concrete adapter no longer drops typed Background/SUN callbacks or their raw DXF companions; generated ASCII/Binary controls verify retention and destination-preserving fail-closed export.",
+    "remaining": "Typed/raw pairing validation is not yet comprehensive; ACAD_BACKGROUND root serialization, unique/nonshared Background graph rules, IBL/Skylight secondary edges, SUN exact owner closure, and positive serializer/readback remain open.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "repositoryState": {
+      "worktreeBroadlyDirty": true,
+      "staged": false,
+      "committed": false
+    }
+  }
+}

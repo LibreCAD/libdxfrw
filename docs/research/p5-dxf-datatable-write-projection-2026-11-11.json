@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "topic": "bounded DATATABLE DXF writer projection",
+  "status": "local_generated_codec_control",
+  "implementation": {
+    "entry_point": "dxfRW::writeDataTable",
+    "admitted_profile": "typed model with supported column types 1/2/6, exact column and row counts, finite doubles, and one unique non-null group-360 handle per row",
+    "references_remapped": true,
+    "record_transaction": true,
+    "existing_destination_preserved_on_refusal": true,
+    "same_codec_corrected_retry": true,
+    "graph_target_emission_verified": false,
+    "graph_closure_verified": false,
+    "native_semantics_verified": false,
+    "support_promotion": false
+  },
+  "generated_controls": {
+    "ascii_full_write_and_readback": true,
+    "binary_full_write_and_readback": true,
+    "record_owner_and_child_handle_remapping_readback": true,
+    "two_row_xrecords_written_and_owner_checked": true,
+    "incomplete_child_handles_refused": true,
+    "destination_sentinel_preserved": true,
+    "corrected_same_codec_retry": true,
+    "temporary_files_removed": true,
+    "fixture_files_committed": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_datatable_read_tests -j4",
+    "build_result": "passed",
+    "consumer_build": "cmake --build build-gcc --target dwg2dxf -j4",
+    "consumer_build_result": "passed",
+    "focused_test": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_datatable_read$' --output-on-failure",
+    "focused_test_result": "1/1 passed",
+    "diff_check": "git diff --check passed"
+  },
+  "limitations": [
+    "The source class group mapping is based on the previously observed producer DXF profile plus generated controls; no independent schema proof is claimed.",
+    "The writer emits only the DATATABLE record. The caller must emit the referenced XRECORDs and prove their exact identities, owner roles, and recursive closure.",
+    "No whole-drawing source export, native application acceptance, or DWG encoding claim follows."
+  ]
+}

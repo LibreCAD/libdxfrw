@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "82c7cafec217409fa738cce1047d0c023711fe62",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "finding": "Before the fix, a group that added a layer and then directly replaced a locked entity left the added layer behind, consumed an undo entry and discarded redo history. The red regression failed four assertions.",
+  "change": [
+    "A Builder preflights already-staged direct EntityBuilder replacements and removals against the initial document lock state. On refusal it applies no child operation and reports blockedByLockedLayer; the undo manager preserves history.",
+    "Builder undo/redo uses the last committed operation list. EntityBuilder undo/redo uses its committed journal while retaining a refused pending edit for an in-place retry after explicit override or unlock.",
+    "Expose Builder refusal status in Lua and Python. Lua Builder, DocumentImpl and StorageManagerImpl callable constructors now use shared ownership; null storage remains rejected. Document the supported preflight and its limits."
+  ],
+  "validation": [
+    "The red-before group control now verifies no partial layer, preserved redo, no empty undo, same-group override/retry and undo/redo. A second control verifies a reused group retains its earlier undo journal after a refused later edit; a direct EntityBuilder retry also passes.",
+    "A macOS ARM64 focused compatibility run passed 176 kernel, builder, layer, selection, canvas, DXF/DWG and Lua/Python tests. Runtime scripting tests exercise the refusal status and Lua callable constructors.",
+    "Full binding-plan validation, the 31 checker tests, worktree coverage (excluding pre-existing sample.log) and actual PR-base coverage passed."
+  ],
+  "limits": [
+    "This preflight covers direct or already-staged EntityBuilder edits. Queued transform stacks, nested groups, changes to lock state during a group and generic custom operations are not guaranteed atomic. A group that deliberately unlocks before a direct edit requires an explicit override or separate operations.",
+    "Complex repeated successful operation stacks, native GUI and other platforms remain open. No support claim or generated fixture was added."
+  ],
+  "supportClaimEffect": "none"
+}

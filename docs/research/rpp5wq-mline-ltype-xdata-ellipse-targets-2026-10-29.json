@@ -1,0 +1,111 @@
+{
+  "id": "RPP-5wq",
+  "title": "MLINE LTYPE XDATA code-1005 ELLIPSE targets in ENTITIES and named BLOCKS",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "b99f5db0b477e9b92a1d4b78b858719ac2022f68",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII/binary DXF records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One selected ELLIPSE profile was exercised for all four ASCII/binary source and output combinations in each of two source sections.",
+    "linetype": "EditDash with two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0 and alignment 65.",
+    "xdata": "One source-bound APPID, one group-1000 payload, then one ordered group-1005 soft pointer.",
+    "targets": [
+      {
+        "type": "ELLIPSE",
+        "source_handle": "0xA900",
+        "source_section": "ENTITIES",
+        "block_name": "*Model_Space",
+        "block_record_handle": "0x201",
+        "owner_handle": "0x201",
+        "center": [50, 60, 7],
+        "major_axis_vector": [8, 0, 0],
+        "ratio": 0.5,
+        "start_parameter": 0,
+        "end_parameter_radians": 6.283185307179586
+      },
+      {
+        "type": "ELLIPSE",
+        "source_handle": "0xA900",
+        "source_section": "BLOCKS",
+        "block_name": "AuthorityBlock",
+        "block_record_handle": "0x203",
+        "owner_handle": "0x203",
+        "center": [50, 60, 7],
+        "major_axis_vector": [8, 0, 0],
+        "ratio": 0.5,
+        "start_parameter": 0,
+        "end_parameter_radians": 6.283185307179586
+      }
+    ],
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    }
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "documents": [
+      {
+        "title": "DXF Group Codes in Numerical Order Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "relevant_rule": "Group 1005 is an entity handle in extended data, encoded as a hexadecimal string of up to 16 digits."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 handles behave as soft pointers and translate when referenced objects are copied or inserted."
+      }
+    ]
+  },
+  "proof": {
+    "source": "The physical LTYPE XDATA sequence is bound to its APPID. Each ELLIPSE target is uniquely identified by source handle, physical section, block-record owner, parsed callback, exact DRW_Ellipse dynamic type, center, major axis, ratio and parameter sentinels.",
+    "output": "For both source sections and all four encoding pairs, emitted physical XDATA is checked in order against the remapped ELLIPSE handle. The model-space target is emitted in ENTITIES under *Model_Space; the named target remains in BLOCKS under AuthorityBlock. Fresh typed readback verifies exact owner and ELLIPSE geometry. The binary group-42 end parameter is decoded directly from its emitted eight IEEE-754 bytes and compared with 2π within 1e-12; ASCII output is checked from its physical group value.",
+    "failure_retry": "For each section and encoding pair, removing the ELLIPSE target refuses export and preserves the prior destination; restoring it permits same-adapter retry. Separate late-mutation probes change the target handle after APPID emission in ENTITIES and BLOCKS; finalization refuses without replacing the destination, and restoring the original handle permits same-adapter retry with physical output and typed readback.",
+    "counts": {
+      "selected_positive_profiles": 8,
+      "selected_successful_readbacks_including_retries": 18,
+      "selected_refusals_with_destination_preservation": 10,
+      "selected_same_adapter_retries": 10,
+      "whole_focused_test_profiles": 244,
+      "whole_focused_test_readbacks": 546,
+      "whole_focused_test_refusals": 302,
+      "whole_focused_test_retries": 302
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "configured_build": {
+      "command": "cmake --build build-gcc -j2",
+      "result": "PASS"
+    },
+    "focused_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' -V",
+      "result": "PASS (1/1, 14.68 seconds); selector asserts whole-test counts listed above"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds bounded entity target routing and generated proof, with no ownership-transfer change. Revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "implementation_commit": "b99f5db0b477e9b92a1d4b78b858719ac2022f68",
+      "dx_iface_cpp_sha256": "7ad787e5c59c8e0e3ce22a5eb15c251b36808e7b7253cc62984409187b1b39c3",
+      "test_source_sha256": "4f9be7a429b06d1a0a8ff6e40a8ece2a1150c509121f12eeb5d98b6abe94e695",
+      "normal_executable_sha256": "18243a4c4fde4f3c7b39a1f562d77ebe075dbdcbb8b588c7d8efda7c97c9b167",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+    }
+  },
+  "limits": [
+    "This qualifies one AC1027 ELLIPSE source target in model-space ENTITIES and one in named AuthorityBlock BLOCKS, each with one ordered code-1005 XDATA reference. It does not qualify other ELLIPSE sections, target entity types, larger reference counts, versions, provider schemas or application meanings.",
+    "This is selected transport, source identity, output, typed readback and transaction evidence only; it does not establish recursive document closure, native rendering or format support claims."
+  ],
+  "next": "Select one current source-backed P2 target type, section route, XDATA composition or MLINE consumer operation that resolves a distinct unsupported behavior. Preserve exact source/output identity, fresh readback and rollback/retry controls without expanding reference-count matrices absent a distinguishing need."
+}

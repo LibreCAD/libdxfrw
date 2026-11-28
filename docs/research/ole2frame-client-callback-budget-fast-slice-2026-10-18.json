@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "OLE2FRAME client callback publication boundary",
+  "mode": "local generated test implementation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Extend the existing OLE2FRAME client-name retained-owner test from direct parsing to full ENTITIES callback publication",
+    "Cover generated ASCII and Binary DXF refusal, same-facade retry, callback order, and following-record alignment",
+    "Use focused validation only"
+  ],
+  "method": {
+    "generatedInputVersions": ["AC1027"],
+    "generatedInputFormats": ["ASCII DXF", "Binary DXF"],
+    "temporaryBinaryInputRemoved": true,
+    "persistentFixturesAdded": 0,
+    "productionCodeChanged": false,
+    "publicApiOrLayoutChanged": false,
+    "testRegistrationAdded": false,
+    "dependenciesAdded": 0,
+    "peerOrNativeRuns": 0,
+    "fullSuiteRun": false
+  },
+  "test": {
+    "selector": "--dxf-ole2frame-client-callback-budget",
+    "recordSequence": ["OLE2FRAME", "LINE"],
+    "retainedClientBytes": 256,
+    "oneByteUnder": "Read refused before either callback and emitted the retained-byte ResourceLimit diagnostic",
+    "exactBudgetRetry": "Same dxfRW facade retried successfully and published OLE2FRAME then LINE with the client name intact"
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-ole2frame-client-callback-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check -- tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "result": "PASS"
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "status": "Implemented and locally verified in the shared worktree; not committed. No files were staged."
+  }
+}

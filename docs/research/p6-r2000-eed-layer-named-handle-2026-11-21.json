@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-r2000-eed-layer-named-handle-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_GENERATED_R2000_OUTPUT_CONTROL",
+  "supportClaimEffect": "none",
+  "previous": "docs/research/p6-r2000-eed-layer-write-order-2026-11-21.json",
+  "generator": "tools/research/verify_dwg_eed_layer_writer.py",
+  "generatorSha256": "5700e5e4bdf135a61dba5413db1a571f424c67c83f16af487d220a4620ba0ef7",
+  "testSource": "tests/dwg_eed_layer_write_tests.cpp",
+  "testSourceSha256": "aa84264107f697eb788e25db27487abbe2b747c15ba3277d0a8c5b5a54d1b81b",
+  "candidateBinarySha256": "5144600a43dcd59314433e37ff645bc82c3456603dc30fb306a6f8a20aece4ee",
+  "peerTools": {
+    "oda": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "ezdxfVersion": "1.4.5"
+  },
+  "profile": {
+    "dwgSha256": "4ba5600929ac0eeca4a25544cc142fedcd23ae2eb9e0a9bd06a4958fb85d578e",
+    "lineFrame": {
+      "frameSha256": "1a2156a185c0c420dcd2d23cc11877a07bd55129dc93a05ce626f99adada3e6c",
+      "frameOffset": 5445,
+      "frameSize": 78,
+      "bodyEndBit": 583,
+      "frameCrcValid": true,
+      "eedHex": "030000000000000125"
+    },
+    "tableHandle": 293,
+    "tableFrame": {
+      "frameSha256": "d3f95005a7227ca9fe1ee0e803d636f6872ce082752e2fa28cd0dccd9a680971",
+      "frameOffset": 4764,
+      "frameSize": 45,
+      "bodyEndBit": 290,
+      "frameCrcValid": true,
+      "eedHex": "030000000000000125"
+    },
+    "dxfSha256": "6af54d99f17e26a655d0858b62da52bd589fcf8536b4deb7c9bd1d51a774e426",
+    "lineXdata": [
+      [
+        1003,
+        "EED_TABLE"
+      ]
+    ],
+    "tableXdata": [
+      [
+        1003,
+        "EED_TABLE"
+      ]
+    ],
+    "lineGeometryMatched": true
+  },
+  "checks": [
+    "The from-scratch writer reserves handles 0x32 through 0x122 to exercise allocator collision avoidance. The generated named LAYER is assigned 0x125; LINE and LAYER both reference it through group 1003.",
+    "The independent frame walker checks type, sizes, CRC, own handle, APPID and exact big-endian EED bytes. ODA File Converter 27.1.0 reopens the drawing, and ezdxf finds EED_TABLE as the reference on both records and the expected 3D LINE endpoints.",
+    "The AddressSanitizer fast test checks correct explicit-order readback and wrong-order unresolved handling for the named target, in addition to the preceding failure/retry controls."
+  ],
+  "limits": [
+    "The reserved handles are allocator controls, not a proof of all real object graph collisions. The table targets itself for one EED reference; no native producer or AutoCAD semantics are established.",
+    "The control is limited to this generated R2000 graph with the explicit predeclared entity chain and default plotstyle graph. No drawings or peer output files were committed."
+  ],
+  "correction": "The originally generated named drawing used a hard-coded plotstyle reference 0x31 after reservations had moved the actual placeholder to 0x124. ODA accepted the drawing, but this did not prove plot-style graph closure. Use the corrected successor receipt for the named profile.",
+  "supersededBy": "docs/research/p6-r2000-eed-layer-graph-closure-2026-11-21.json"
+}

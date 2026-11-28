@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-ac1018-table-empty-extension-graph-2026-11-11",
+  "date": "2026-11-11",
+  "scope": "Generated AC1018 TABLE plus one empty, non-NOD fixed DICTIONARY extension graph",
+  "implementation": [
+    "The direct TABLE codec still refuses a nonzero extension dictionary; an internal writer-only codec stages a generated, range-empty base TABLE. Consumer-derived TABLE codecs and retained parsed ranges refuse this route.",
+    "The writer retains a separate receipt for eligible empty fixed dictionaries, including handle and parent, and snapshots receipt count for compound and single-frame rollback. Final TABLE graph validation requires a unique emitted dictionary with exact target and TABLE owner, distinct from TABLE, cached block and style identities.",
+    "The temporary TABLE codec is not retained as a rollback target: the facade captures the stable caller, copies back resulting common state only after emission, and checkpoints the writer for exceptions. TABLE graph entries are trimmed on explicit or last-entity rollback.",
+    "Common-frame duplicate handles and fixed-object failures with known identity are recorded in a bounded ledger. Unidentified normal false-return failures reaching recordWriteResult, and failed begin/end block content calls, conservatively block TABLE extension admission; explicit transaction rollback restores the ledger and failure state. Known unrelated fixed-object soft failures remain soft."
+  ],
+  "validation": {
+    "focused": "Six CTests passed: generated empty-extension whole-file roundtrip, facade allocation sweep, original TABLE and TABLE/DBCOLOR whole-file readbacks, direct TABLE override vectors, and TABLE codec allocation retry.",
+    "negativeAndRetry": "The generated control rejects missing, wrong-owner, wrong-type, populated and duplicate dictionary targets, parsed-range and derived TABLE inputs, a prior duplicate dictionary, a later XRECORD collision, rejected entity preflights and failed block-control calls before and after TABLE staging. The destination and caller TABLE state are restored; subsequent valid output succeeds on the same facade. A nested rolled-back TABLE with an unresolved target and a rolled-back duplicate do not poison the corrected graph. An unrelated known fixed-dictionary soft failure remains allowed.",
+    "allocation": "The TABLE codec sweep passes 26/26 allocation failures with retry. The separate extension facade sweep injects each of 115 tracked fail-once operator-new allocations during the TABLE write; destination and caller state are preserved and the same facade/adapter retries into fresh readback of the TABLE and its 15 previously emitted block entities. The rejected-handle ledger also passes injected first-allocation failure, its 100000-entry cap, fail-closed overflow and restoration checks.",
+    "asan": "AddressSanitizer with detect_stack_use_after_return=1 passes the generated extension nested-rollback/retry selector.",
+    "disabledCommonHeader": "A scratch binary linked with drw_entities.cpp compiled using LIBDXFRW_FULL_COMMON_HEADER=0 refuses extension output and preserves destination and caller state; a null xdictionary cannot be mistaken for the requested nonzero link.",
+    "independentPeer": {
+      "tool": "GNU LibreDWG dwgread 0.14 minJSON",
+      "dwgSha256": "6b3735e143af83356de7fa58fa5097b312ad52cacc61dcfb04aa9822baeae7f5",
+      "jsonSha256": "d1825117705366222ecfa1190047df2945d8994a6a08ea1b0f90e3e193ebf113",
+      "observed": "TABLE 0xA720 has xdictionary-present bit zero and hard-owner code 3 reference to DICTIONARY 0xA740, followed by layer hard-pointer code 5 to 0x12; the empty DICTIONARY reports owner soft-pointer code 4 back to 0xA720."
+    }
+  },
+  "abi": "No public DRW_Interface virtual slot or public entity object data member was added. The internal writer checkpoint/ledger and private nonvirtual TABLE helper changed; the generated profile does not authorize subclass slicing. The new facade checkpoint uses a value and readiness flag rather than std::optional; this change alone does not certify the entire repository as C++14-compatible.",
+  "limits": [
+    "The ODA-converted physical TABLE has a populated extension subtree and remains refused; its TABLECONTENT, TABLEGEOMETRY, DATATABLE and XRECORD dependencies and source identity are not qualified by this generated empty dictionary.",
+    "LibreDWG confirms the generated common-handle roles and empty dictionary graph, not native TABLE rendering or independent TABLE cell semantics.",
+    "This is not exhaustive public-API failure accounting: registerTableEntityClass, unsuccessful administrative transaction-token operations, reserveHandle and observational/provenance helpers can return failure without recording a rejected handle. These operations do not themselves emit a frame or prove a dictionary receipt; reserveHandle failure during a callback remains sticky and is checked on a later write. Unidentified failures that do reach common accounting conservatively prevent this extension profile even if unrelated.",
+    "The earlier caught-frame-exception gap is addressed for the scoped public frame entries in p5-table-extension-caught-exception-2026-11-11.json; the unwind flag refuses extension output but does not itself roll back partial frames. Inline reservation and non-emitting observational helpers remain outside that scope. Exact source-bound parsed re-encoding, native producer/consumer interoperability and broader version support remain open."
+  ]
+}

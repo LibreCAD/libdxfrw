@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw-mleader-independent-flow-direction-content-axis-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Preserve context-level flow direction when the MTEXT branch is absent and test the modeled entity-content/context-flag axes without asserting producer legality.",
+  "research": {
+    "primarySource": "Autodesk MLeader Context Data Group Codes (DXF), https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-EC56D0DE-026D-46AB-87B1-9692393B0C22.htm",
+    "sourceFinding": "Autodesk identifies context group 172 as Text Flow Direction and separately lists hasMText (290) and HasBlock (296); its table does not enumerate the full legal tuple matrix.",
+    "localCandidate": {
+      "name": "architectural_-_annotation_scaling_and_multileaders.dwg",
+      "version": "AC1021",
+      "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+      "provenance": "Unknown; filename is not producer provenance.",
+      "traceObservations": {
+        "mleaderParserEntries": 36,
+        "objectParseFailures": 36,
+        "readerCrcMismatches": 13,
+        "conversionExit": 1,
+        "dxfPublished": false
+      },
+      "admission": "Candidate only. Do not use for tuple validity or support claims until exact producer provenance and a clean independent read are established."
+    }
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": "The low-level writer emits context group 172 outside the MTEXT conditional when hasTextContents is false, preserving the modeled context value. A non-default flow direction also causes an otherwise rootless, branchless context wrapper to be emitted. MTEXT-bearing output keeps its established group ordering."
+  },
+  "tests": {
+    "file": "tests/hardening_tests.cpp",
+    "coverage": [
+      "Generated ASCII and binary read-write-read controls cross entity content types 0/1/2 with context flag pairs 00/10/01/11 and rooted/rootless contexts (48 cases).",
+      "Checks distinct entity content type, context flags, context flow direction, active-branch payload, raw context/root/leader coordinate values, and a following-record sentinel.",
+      "Cases are representational preservation controls only; no legal producer tuple is inferred.",
+      "No DXF/DWG fixture, CTest registration, or dependency was added."
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_hardening_tests -j4",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_hardening|libdxfrw_mleader_writer_version)$' --output-on-failure",
+      "build-gcc/libdxfrw_hardening_tests --mleader-context-roundtrip",
+      "build-gcc/libdxfrw_hardening_tests --mleader-group172-validation",
+      "build-gcc/libdxfrw_wave1_tests --mleader-writer-validation",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargets": "passed",
+      "focusedCtests": "passed 2/2",
+      "focusedSelectors": "passed 3/3",
+      "diffCheck": "passed"
+    }
+  },
+  "limits": {
+    "producerAuthoredTupleMatrix": false,
+    "independentSemanticReadback": false,
+    "nativeCadAcceptance": false,
+    "adapterSerializerQualified": false,
+    "dwgAcdbMLeaderContextQualified": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains other user changes"
+  },
+  "nextReadinessSlice": "Continue implementation on other local-ready plan slices while obtaining exact producer provenance and clean independent semantic evidence for MLEADER content tuples; keep adapter export fail-closed."
+}

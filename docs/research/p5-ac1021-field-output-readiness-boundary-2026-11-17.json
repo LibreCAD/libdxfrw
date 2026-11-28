@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 FIELD output readiness and complete-list preservation boundary",
+  "date": "2026-11-17",
+  "phase": "P5-B",
+  "supportClaimEffect": "none",
+  "scope": "Trace the strict DXF output refusal for the exact AutoCAD 2007 FIELD source and determine whether the selected 30 table-linked FIELDs can be emitted without dropping other source FIELD records.",
+  "source": {
+    "path": "/private/tmp/autodesk_blocks_and_tables_metric.dwg",
+    "sizeBytes": 258848,
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "headerVersion": "AC1021",
+    "producer": "AutoCAD 2007, AppInfo version 17.0.48.0",
+    "sourceReceipt": "docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json"
+  },
+  "evidenceInputs": {
+    "independentMinJson": {
+      "path": "/private/tmp/autodesk_blocks_and_tables_metric.minjson",
+      "sha256": "8947d321b784a3eab81a7fe1336c19fde04f37588ce476d7546e7eef3fd42a3f",
+      "tool": "GNU LibreDWG 0.14 dwgread minJSON",
+      "fieldFrames": 162,
+      "evaluatorCounts": {
+        "_text": 81,
+        "AcExpr": 15,
+        "AcObjProp.16.2": 38,
+        "AcObjProp": 19,
+        "AcSm": 9
+      }
+    },
+    "localFieldCarrierProbe": {
+      "source": "/private/tmp/field_carrier_diag.cpp",
+      "binary": "/private/tmp/field_carrier_diag",
+      "binarySha256": "b03cf8c5650778324a0f45af4e123672f6f615f14467dc9882d5b824a412a808",
+      "linkedDxIfaceObjectSha256": "720a3d90bb361da86bdf236f0df5171959fb7a9409bfd4c6c2eaf10f84c2843f",
+      "linkedLibdxfrwArchiveSha256": "6fcc9bfed8d29cda810bcc61a234836607540ace52a7f8aaecce817a8896c49d",
+      "command": "/private/tmp/field_carrier_diag /private/tmp/autodesk_blocks_and_tables_metric.dwg",
+      "exitStatus": 0,
+      "outputSha256": "d73f4f2ba27305dbff222e141e301aeb5aebe44986354a2dd0f3eef75ffad242",
+      "sourceVersion": "AC1021",
+      "typedFields": 96,
+      "rawFieldCallbacks": 162,
+      "rawOnlyFieldFrames": 66,
+      "fieldLists": 1,
+      "fieldListMembers": 162
+    },
+    "localStrictConversion": {
+      "binary": "build-gcc/dwg2dxf/dwg2dxf",
+      "binarySha256": "9aa5f6bda39be8ec293e8207d97440546ee6311e1275eb6cd9d3306c4fef9279",
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/autodesk_blocks_and_tables_metric.dwg -y -d -v2007 /private/tmp/p5-field-current.dxf",
+      "exitStatus": 1,
+      "trace": "/private/tmp/p5-field-current.trace",
+      "traceSha256": "bb53dcbb59512e6f93425c8a13844821da737c96dcd12eb1864f16a58310ce43",
+      "refusal": "FIELD/FIELDLIST carriers have no qualified DXF serializer",
+      "refusalStage": "before-output-preflight"
+    },
+    "primaryAuthority": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        {"section": "20.1", "use": "AC1021 object body, string stream, and handle stream framing."},
+        {"section": "20.4.76", "use": "FIELD object and child-value sequence."},
+        {"section": "20.4.77", "use": "FIELDLIST membership and NOD publication."},
+        {"section": "20.4.99", "use": "CadValue flags, types, and versioned payload forms."}
+      ]
+    },
+    "fieldValueStringLengthConflict": {
+      "odaSection": "20.4.76",
+      "odaTableSays": "TV group 98",
+      "libreDwgSourceCheckout": "/Users/dli/dev/libredwg",
+      "libreDwgHead": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "libreDwgHistoricalFix": {
+        "commit": "ba92a543df5e2e7e26990cf8717b10a40bd34ab6",
+        "date": "2018-06-27",
+        "subject": "FIELD: fix ODA bug",
+        "change": "FIELD.value_string_length changed from TV to BL; comments identify the ODA group-98 type as a specification bug.",
+        "currentSourceLocations": [
+          "src/dwg.spec:6373",
+          "include/dwg.h:5108"
+        ]
+      },
+      "sourceTraceObservation": "The installed LibreDWG 0.14 trace decodes group 98 as BL on this source (for example FIELD 0x151d0 has value_string_length=88 at cursor 19.5); for table-linked fields the S30 body/handle cursors and following-object boundaries also match the libdxfrw BL parser.",
+      "disposition": "Do not change the current BL wire handling based on the ODA table alone. Keep the discrepancy explicit and resolve only with stronger primary/source-bound evidence. The four raw-only classes in this receipt are not attributed to group-98 type disagreement."
+    }
+  },
+  "findings": {
+    "strictRoute": {
+      "adapterGate": "dx_iface::hasTableContentFieldOutputProfile rejects sourceFormat=DWG. Its current admitted sources are adapter-authored data or an exact successful DXF carrier import.",
+      "graphShape": "The bounded AC1021 source has two 9-row/10-row TABLEs, zero TABLECONTENT objects, and zero direct TABLE group-344 field references. S29 records 15 root/child FIELD pairs reached through FIELD -> DICTIONARY -> DICTIONARY -> MTEXT -> TABLE anonymous BLOCK_HEADER.",
+      "fieldListClosure": "The single FIELDLIST contains 162 unique FIELD identities, while the local adapter has typed models for 96 and raw-only callback carriers for the other 66. The typed subset is not a complete substitute for the source list."
+    },
+    "rawOnlyDispositionCounts": {
+      "AcObjProp": 57,
+      "AcSm": 9,
+      "total": 66
+    },
+    "localParserSoftFallbacks": [
+      {"count": 42, "diagnostic": "FIELD has an unmodeled object-data tail; keeping raw shell; bits=258", "sourceFamily": "AcObjProp.16.2 and AcObjProp", "sourceFamilyCounts": {"AcObjProp.16.2": 23, "AcObjProp": 19}, "classificationReceipt": "docs/research/p5-ac1021-metric-field-repeated-tail-2026-11-17.json"},
+      {"count": 14, "diagnostic": "unsupported FIELD CadValue format flags: 17302012; child value payload unsupported", "sourceFamily": "AcObjProp.16.2"},
+      {"count": 1, "diagnostic": "FIELD child value count out of range", "sourceFamily": "AcObjProp.16.2"},
+      {"count": 9, "diagnostic": "FIELD child value count out of range", "sourceFamily": "AcSm"}
+    ],
+    "tableLinkedSubset": {
+      "fieldRecords": 30,
+      "rootChildPairs": 15,
+      "typedAndLinked": true,
+      "sourceReceipt": "docs/research/p5-ac1021-autodesk-field-table-graph-screen-2026-11-17.json",
+      "spanReceipt": "docs/research/p5-ac1021-autodesk-field-source-cursors-2026-11-17.json"
+    },
+    "result": "The strict gate is correct to refuse the current full-drawing export. Enabling the selected 30-record serializer by pruning the other 132 FIELDLIST members or silently omitting 66 raw-only FIELDs would lose source data. The existing code already has typed FIELD/FIELDLIST DXF encoders for bounded supported values; the missing work is complete AC1021 FIELD carrier preservation and the legacy TABLE/MTEXT owner/reference publication route."
+  },
+  "limits": [
+    "The 66-frame classification and parser diagnostics are local reader observations on one producer-bound source; they do not prove that every raw-only CadValue can be decoded from the current evidence.",
+    "LibreDWG minJSON field identities and the S29/S30 cursor receipts provide independent object/graph evidence but do not qualify DXF output or native FIELD evaluation.",
+    "No FIELD/FIELDLIST graph output or DXF readback is established by this receipt.",
+    "No DWG/DXF fixture or derivative was added to the repository."
+  ],
+  "implementationReadiness": {
+    "closed": [
+      "P5-A source-span evidence for the 30 TABLE-linked FIELD records (S29/S30).",
+      "Trace strict refusal to the source-format and graph-shape admission gate.",
+      "Count and classify the 66 source FIELD frames not represented by complete typed records."
+    ],
+    "remaining": [
+      "Use ODA §20.4.99 plus source-bound cursors to resolve the four raw-only categories without guessing CadValue or tail layouts.",
+      "Preserve all 162 FIELDLIST identities and every source owner/object reference in the typed model or an explicit lossless output route; do not prune the FIELDLIST to force admission.",
+      "Add the AC1021 legacy embedded TABLE/MTEXT FIELD-index and nested-dictionary graph closure after complete FIELD carrier coverage exists.",
+      "Then qualify strict ASCII and Binary output, destination-preserving refusal, same-adapter retry, and fresh ACadSharp graph/value readback."
+    ],
+    "nextAction": "Map one raw-only category at a time against ODA and the already captured source cursors. Add no serializer admission for this DWG until all 162 FIELDLIST members and their live references have a lossless output disposition.",
+    "fixturePolicy": "Keep the hash-bound DWG and all generated DXF outputs in scratch; commit no new DWG/DXF fixtures."
+  }
+}

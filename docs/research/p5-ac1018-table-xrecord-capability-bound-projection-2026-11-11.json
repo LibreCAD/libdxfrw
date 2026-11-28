@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-11",
+  "scope": "Adapter-level source revalidation for projected ordered values from the selected AC1018 TABLE root XRECORD. No output eligibility, mapped-target role validation, recursive closure, or semantic qualification.",
+  "implementation": {
+    "entry_point": "dx_iface::projectVerifiedTableRoundtripReferences",
+    "flow": [
+      "Call readVerifiedTableRoundtripCandidates for the requested same-import XRECORD and TABLECONTENT/DATATABLE/TABLEGEOMETRY selection.",
+      "Retrieve the immutable typed XRECORD baseline matching the validated root identity from the sealed source bundle.",
+      "Run the bounded raw/typed candidate inspector and project only the three ordered 360/361/360 targets.",
+      "Publish the projected vector only after all source validation and projection succeeds."
+    ],
+    "failure_contract": "Clear the output source result and retain the caller's previous projected vector on stale source, wrong selection, malformed input, or exception."
+  },
+  "focused_validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_table_candidate_binding_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_candidate_binding$' --output-on-failure",
+    "result": "Build passed; 1/1 focused CTest passed.",
+    "controls": [
+      "The generated physical AC1018 import's sealed TABLE bundle projects the three mapped values with their ordered group codes.",
+      "Mutating the live typed root makes the source capability and projection refuse; the old projected vector remains intact.",
+      "Restoring the typed source permits the same adapter/data pair to project successfully again.",
+      "First and last measured allocation failures in the adapter projection preserve the caller's prior vector, clear the source result, and permit a clean retry.",
+      "The existing whole-file strict export still refuses and preserves the pre-existing destination sentinel."
+    ]
+  },
+  "limitations": [
+    "Mapped targets are caller inputs and are checked only for null/self/owner/duplicate values by the candidate projection; their emitted identity, type, role, owner and recursive dependencies are not proven.",
+    "The API is a projection/readiness primitive and is not called by production file output.",
+    "Physical TABLE subtree output remains refused; descendants, text/codepage meaning, output transaction/CRC/readback and native acceptance remain open."
+  ],
+  "next": "Add output-target identity and role closure, then connect the projected XRECORD to a transactionally staged writer that revalidates the sealed source at both staging and finalization. Keep output refused until recursive graph and source semantics close."
+}

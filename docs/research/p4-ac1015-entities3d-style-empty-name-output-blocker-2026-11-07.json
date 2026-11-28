@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1015 entities-3d empty-name shape STYLE output blocker",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg6/entities-3d.dwg",
+    "sha256": "7b06770ed5532f447f9a2d170af953df8067a6786e592963c39edf5c5d188ef2",
+    "bytes": 23955,
+    "version": "AC1015",
+    "provenance": "Existing local corpus candidate. Producer and redistribution status are unverified; the drawing remains outside the repository."
+  },
+  "libdxfrw": {
+    "sourceRevision": "bda4702f11cf9749804d0fcde6e6c7f6bc2a4fb1",
+    "binarySha256": "317ae163e9ae748472b53e87ccf6280abc3fed7ce6aaefcc088a9e768643fa1a",
+    "read": {
+      "publishedFrames": 75,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "skippedUnsupportedObjects": 0,
+      "integrityRows": 0
+    },
+    "strictOutput": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg6/entities-3d.dwg -y -v2000 /private/tmp/libdxfrw-entities-3d-2000-probe.dxf",
+      "exitCode": 1,
+      "failureStage": "STYLE table",
+      "destinationPublished": false,
+      "secondTarget": "AC1024 output selection produced the same STYLE-table failure"
+    },
+    "sourceBoundRows": {
+      "style": {
+        "handle": "0x38",
+        "owner": "0x03",
+        "name": "",
+        "shapeFlag": 1,
+        "fontFile": "es.shx",
+        "bigFontFile": ""
+      },
+      "shape": {
+        "handle": "0x39",
+        "styleHandle": "0x38",
+        "shapeId": 131,
+        "shapeName": "",
+        "insertionPoint": [6.0, 6.0, 0.0],
+        "scale": 1.0
+      },
+      "namedStyleControl": ["0x11", "0x38"]
+    },
+    "diagnosticChange": "writeTables now reports the exact TABLES stage (VPORT, LTYPE, LAYER, STYLE, VIEW, UCS, APPID, DIMSTYLE, or BLOCK_RECORD) through the existing emit-failure diagnostic. It does not alter table output or failure behavior."
+  },
+  "independentPeer": {
+    "tool": "LibreDWG 0.14",
+    "binaryPath": "/opt/homebrew/bin/dwgread",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "minJsonSha256": "616aa225293013568ee457de6f1250d870032a1a281b0c8ebc1576810486e063",
+    "decoded": "LibreDWG reports STYLE 0x38 with empty name, shape flag set, font es.shx; SHAPE 0x39 references style 0x38 with shapeId 131 and empty shape name.",
+    "dxfOutput": {
+      "sha256": "df5896c6200109b890079438338d62d31d34d96c4803aa2d77547569e19dc984",
+      "observation": "The peer DXF has only the Standard STYLE row and emits SHAPE 0x39 with empty group-7 style and group-2 shape-name values. This is peer output behavior, not semantic acceptance proof."
+    }
+  },
+  "formatReferences": [
+    {
+      "authority": "Autodesk DXF reference: STYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-EF68AF7C-13EF-45A1-8175-ED6CE66C8FC9.htm",
+      "finding": "Documents group 2 as the style name, bit 1 of group 70 as a shape entry, and group 3 as the shape font filename. It does not specify whether an empty style name is valid."
+    },
+    {
+      "authority": "Autodesk DXF reference: SHAPE",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0988D755-9AAB-4D6C-8E26-EC636F507F2C.htm",
+      "finding": "Documents group 2 as the shape name; it does not resolve the meaning or consumer behavior of this empty-name pair."
+    }
+  ],
+  "assessment": {
+    "finding": "The generic TABLES failure is localized to STYLE. The source contains an empty-name shape STYLE that is referenced by a SHAPE entity. It cannot be safely dropped as unreferenced, and inventing a symbol name or accepting empty names would change or assume semantics.",
+    "nextAction": "Keep strict conversion refused for this source until a producer-backed example or an independent native consumer establishes the validity and meaning of the empty STYLE/SHAPE pair. If accepted, bind its source fields and exact emitted rows/handles, then add focused round-trip and consumer controls.",
+    "fixturePolicy": "No source DWG or peer-generated DXF fixture was added.",
+    "scopeLimit": "Stage-level diagnostics shorten triage and identify this candidate's blocker. The peer's output alone does not establish a valid DXF profile, native shape rendering, complete AC1015 support, or promotion of any support claim."
+  },
+  "validation": {
+    "build": [
+      "cmake --build build --target dwg2dxf -j 4 — passed",
+      "cmake --build build --target libdxfrw_wave1_tests -j 4 — passed",
+      "cmake --build build --target libdxfrw_symbol_output_tests -j 4 — passed"
+    ],
+    "focusedChecks": [
+      "/opt/homebrew/bin/python3.12 -B tests/dwg2dxf_cli_contract_tests.py --converter build/dwg2dxf/dwg2dxf --options-only — passed (103 controls)",
+      "ctest --test-dir build -R '^libdxfrw_dxf_tables_write_inspection$' --output-on-failure — passed (1/1); generated failures in both encodings report STYLE table, preserve the destination, and allow corrected same-codec retry"
+    ],
+    "testExecutableSha256": "4277c4e64546fccc361f336b2cf7354dc803fc953fa39d583321b410584e6b0a",
+    "broaderCliCheck": "ctest --test-dir build -R '^dwg2dxf_cli_contract$' --output-on-failure — timed out at 25 seconds; it reported /bin/ps: Operation not permitted. This timeout is not treated as a passing validation.",
+    "sourceReplay": "Direct strict replay exited 1 and reported 'DXF output generation failed during STYLE table'; no output file was published."
+  }
+}

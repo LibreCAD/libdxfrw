@@ -1,0 +1,393 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 1360a27..2b9fc6e 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3444,6 +3444,9 @@ public:
+     std::uint32_t handle = 0;
+     std::uint32_t parentHandle = 0;
+     std::uint32_t extensionDictionaryHandle = 0;
++    std::uint32_t layoutHandle = 0;
++    std::size_t sourceEntityCount = 0u;
++    bool hasUnsupportedOutputState = false;
+     std::string name;
+     std::vector<std::uint32_t> reactorHandles;
+     std::int32_t reactorCount = 0;
+@@ -3481,6 +3484,24 @@ public:
+       observed.handle = record.handle;
+       observed.parentHandle = static_cast<std::uint32_t>(record.parentHandle);
+       observed.extensionDictionaryHandle = record.xDictHandle;
++      observed.layoutHandle = record.layoutHandle;
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++      observed.sourceEntityCount = record.entityMapCount();
++      observed.hasUnsupportedOutputState =
++          (record.flags & ~64) != 0 || record.insUnits != 0
++          || record.xrefUnloaded || record.xrefIndex != -1
++          || record.xrefBlockHandle.ref != 0u || record.xrefBlockHandle.ref64 != 0u
++          || record.basePoint.x != 0.0 || record.basePoint.y != 0.0
++          || record.basePoint.z != 0.0 || !record.xrefPath.empty()
++          || !record.description.empty() || !record.previewData.empty()
++          || !record.canExplode || record.blockScaling != 0u
++          || !record.appData.empty() || !record.extData.empty()
++          || !record.pendingAppIdResolutions.empty()
++          || !record.pendingLayerRefResolutions.empty()
++          || record.reactorCount() != 0 || !record.reactorHandles.empty()
++          || record.hasDataStorageBinaryData() || record.insertCount != 0u
++          || !record.insertHandles.empty();
++#endif
+       observed.name = record.name;
+       observed.reactorHandles = record.reactorHandles;
+       observed.reactorCount = record.reactorCount();
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.h b/librecad/src/lib/filters/rs_filterdxfrw.h
+index 89db809..3c2135f 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.h
++++ b/librecad/src/lib/filters/rs_filterdxfrw.h
+@@ -1969,6 +1969,9 @@ class RS_FilterDXFRW : public RS_FilterInterface,
+ #if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
+     , public DRW_DwgAc1024LayerControlSourceHandler
+ #endif
++#ifdef LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS
++    , public DRW_DxfEmptyNamedSortEntsProvider
++#endif
+ #ifdef DWGSUPPORT
+     ,
+                        private RS_FilterDXFRW_DwgWriteIdentityRegistry
+@@ -2002,6 +2005,22 @@ public:
+ 
+   RS_FilterDXFRW();
+   ~RS_FilterDXFRW() override;
++#ifdef LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS
++  // Explicit programmatic opt-in; Autodesk DXF documents only space owners.
++  bool setExperimentalEmptyNamedSortEnts(bool enabled) noexcept {
++    if (m_dxfW != nullptr)
++      return false;
++#ifdef DWGSUPPORT
++    if (m_dwgW != nullptr)
++      return false;
++#endif
++    m_experimentalEmptyNamedSortEnts = enabled;
++    return true;
++  }
++  bool allowDxfEmptyNamedSortEnts() const noexcept override {
++    return m_experimentalEmptyNamedSortEnts;
++  }
++#endif
+   RS_FilterDXFRW(const RS_FilterDXFRW &) = delete;
+   RS_FilterDXFRW &operator=(const RS_FilterDXFRW &) = delete;
+   RS_FilterDXFRW(RS_FilterDXFRW &&) = delete;
+@@ -3342,6 +3361,10 @@ private:
+ #endif
+   // DRW_Interface write callbacks are void. Preserve callback failures until
+   // fileExport can return them to the caller instead of reporting success.
++#ifdef LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS
++  bool m_experimentalEmptyNamedSortEnts{false};
++  bool m_dxfExperimentalSourceBlocksPrepared{false};
++#endif
+   bool m_writeFailed{false};
+   QString m_exportFailureDetail;
+   /** Latch a typed DXF writer failure across the void callback boundary. */
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index e5a8e2f..ad22486 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -11724,6 +11724,9 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+   this->m_graphic = &g;
+   m_errorCode = DRW::BAD_NONE;
+   m_writeFailed = false;
++#ifdef LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS
++  m_dxfExperimentalSourceBlocksPrepared = false;
++#endif
+   m_exportFailureDetail.clear();
+   m_dxfLeftOutRawRecords = 0;
+   m_writeLeftOut.clear();
+@@ -12269,6 +12272,78 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+   // fixme - sand - save to binary format enabling/disabling!!
+   const bool binary = false;
+ 
++#if defined(LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++  std::map<std::uint32_t, std::uint32_t> experimentalSortDictionaryOwners;
++  bool experimentalSourceBlocksPrepared = false;
++  const auto refuseExperimentalSort = [this]() {
++    m_writeFailed = true;
++    m_errorCode = DRW::BAD_UNKNOWN;
++    m_exportFailureDetail = QObject::tr(
++        "Cannot preserve named-block draw order because its source links or referenced objects are incomplete.");
++    return false;
++  };
++  if (m_experimentalEmptyNamedSortEnts) {
++    const auto &metadata = m_graphic->dwgAdvancedMetadata();
++    const auto &links = metadata.blockRecordLinks();
++    if (!metadata.selectedDwgSourceCaptureSessionSealed()
++        || metadata.sourceDwgVersion() != DRW::AC1024
++        || exportVersion != DRW::AC1024 || metadata.blockRecordLinkCaptureFailed()
++        || links.empty() || links.size() > 128u)
++      return refuseExperimentalSort();
++    bool hasNamed = false;
++    for (const auto &sort : metadata.sortEntsTables()) {
++      const auto block = links.find(sort.blockOwnerHandle);
++      if (sort.replayState != LC_DwgAdvancedMetadata::ReplayState::ReplayAllowed
++          || block == links.end() || !sort.entityHandles.empty() || !sort.sortHandles.empty()
++          || !metadata.matchesSelectedAc1024SortEntsOwnerChain(
++                 sort.blockOwnerHandle, sort.parentHandle, sort.handle))
++        return refuseExperimentalSort();
++      const QString name = QString::fromUtf8(block->second.name.c_str());
++      const bool space = name.compare(QStringLiteral("*Model_Space"), Qt::CaseInsensitive) == 0
++          || name.compare(QStringLiteral("*Paper_Space"), Qt::CaseInsensitive) == 0;
++      if (!space) {
++        hasNamed = true;
++        if (block->second.sourceEntityCount != 0u)
++          return refuseExperimentalSort();
++      }
++      if (!experimentalSortDictionaryOwners.emplace(sort.parentHandle, sort.blockOwnerHandle).second)
++        return refuseExperimentalSort();
++    }
++    if (hasNamed) {
++      std::vector<DRW_Block_Record> sourceBlocks;
++      sourceBlocks.reserve(links.size());
++      for (const auto &item : links) {
++        const auto &observed = item.second;
++        if (observed.hasUnsupportedOutputState
++            || (observed.extensionDictionaryHandle != 0u
++                && experimentalSortDictionaryOwners.count(observed.extensionDictionaryHandle) == 0u))
++          return refuseExperimentalSort();
++        if (observed.layoutHandle != 0u) {
++          std::size_t count = 0u;
++          for (const auto &layout : metadata.layouts())
++            if (layout.handle == observed.layoutHandle
++                && layout.replayState == LC_DwgAdvancedMetadata::ReplayState::ReplayAllowed)
++              ++count;
++          if (count != 1u)
++            return refuseExperimentalSort();
++        }
++        DRW_Block_Record block;
++        block.handle = observed.handle;
++        block.parentHandle = observed.parentHandle;
++        block.name = observed.name;
++        block.xDictHandle = observed.extensionDictionaryHandle;
++        block.layoutHandle = observed.layoutHandle;
++        sourceBlocks.push_back(std::move(block));
++      }
++      m_dxfW->setSourceBlockRecords(std::move(sourceBlocks), true);
++      experimentalSourceBlocksPrepared = true;
++      m_dxfExperimentalSourceBlocksPrepared = true;
++    } else {
++      experimentalSortDictionaryOwners.clear();
++    }
++  }
++#endif
++
+   // Before write(): (1) reserve every verbatim code-5 handle preserved in the
+   // raw-passthrough net (rawDxfObjects/rawDxfEntities re-emit their original
+   // handle) in the codec's HandleAllocator so a minted handle can never
+@@ -12848,6 +12923,18 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+       // emitted dict, keep it (remapped); otherwise fall back to C so the
+       // dict is never itself a dangling-owner object.
+       std::uint32_t parent = static_cast<std::uint32_t>(d.parentHandle);
++#if defined(LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++      const auto experimentalOwner = experimentalSortDictionaryOwners.find(d.handle);
++      const bool preserveBlockOwner = experimentalSourceBlocksPrepared
++          && experimentalOwner != experimentalSortDictionaryOwners.end();
++      if (preserveBlockOwner) {
++        if (experimentalOwner->second != parent)
++          return refuseExperimentalSort();
++        // The writer resolves this original BLOCK_RECORD identity after its
++        // block plan is built; pre-remapping it here loses that identity.
++        dict.parentHandle = static_cast<int>(parent);
++      } else
++#endif
+       if (parent == sourceRootHandle || neededParents.count(parent) == 0)
+         dict.parentHandle = 0;
+       else
+@@ -12857,6 +12944,12 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+       std::vector<DRW_Dictionary::Entry> keptEntries;
+       keptEntries.reserve(dict.m_entries.size());
+       for (auto &entry : dict.m_entries) {
++#if defined(LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++        if (preserveBlockOwner &&
++            (emittedObjectHandles.count(entry.m_handle) == 0u ||
++             m_dxfSuppressedObjectHandles.count(entry.m_handle) != 0u))
++          return refuseExperimentalSort();
++#endif
+         if (emittedObjectHandles.count(entry.m_handle) == 0)
+           continue;
+         entry.m_handle = remapOf(entry.m_handle);
+@@ -12873,7 +12966,11 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+       std::string entryName = nameIt != rootEntryName.end()
+                                   ? nameIt->second
+                                   : (!d.name.empty() ? d.name : std::string());
++#if defined(LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++      if (!preserveBlockOwner && !entryName.empty())
++#else
+       if (!entryName.empty())
++#endif
+         rootEntries.emplace_back(entryName,
+                                  m_dxfW->toHexStrHandle(remapOf(d.handle)));
+     }
+@@ -21320,11 +21417,21 @@ void RS_FilterDXFRW::prepareDRWDimStyleText(DRW_Dimstyle &d,
+ 
+   if (text->checkModifyState(LC_DimStyle::Text::$DIMTXSTY)) {
+     auto styleName = text->style().toStdString();
+-    std::uint32_t styleHandle = m_dxfW != nullptr
+-                                    ? m_dxfW->getTextStyleHandle(styleName)
+-                                    : DRW::NoHandle;
+-    if (styleHandle != DRW::NoHandle) {
+-      d.add("$DIMTXSTY", 340, toHexStr(styleHandle).toStdString());
++#ifdef LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS
++    if (m_dxfExperimentalSourceBlocksPrepared) {
++      // Strict source-block output resolves this name against the emitted
++      // STYLE table. A handle already minted by the writer is not a source
++      // handle and must not be submitted as a source reference.
++      d.add("$DIMTXSTY", 340, styleName);
++    } else
++#endif
++    {
++      std::uint32_t styleHandle = m_dxfW != nullptr
++                                      ? m_dxfW->getTextStyleHandle(styleName)
++                                      : DRW::NoHandle;
++      if (styleHandle != DRW::NoHandle) {
++        d.add("$DIMTXSTY", 340, toHexStr(styleHandle).toStdString());
++      }
+     }
+   }
+   if (text->checkModifyState(LC_DimStyle::Text::$DIMTOH)) {
+@@ -27228,7 +27335,10 @@ void RS_FilterDXFRW::writeObjects() {
+       se.handle = m_dxfW->remapHandle(se.handle);
+       se.parentHandle = resolveOwner(record.parentHandle);
+       // The block record whose entities it orders, under its written handle.
+-      se.m_blockOwnerHandle = m_dxfW->remapHandle(se.m_blockOwnerHandle);
++#if defined(LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++      if (!m_dxfExperimentalSourceBlocksPrepared)
++#endif
++        se.m_blockOwnerHandle = m_dxfW->remapHandle(se.m_blockOwnerHandle);
+       noteDxfWrite(m_dxfW->writeSortEntsTable(&se));
+     }
+     // FIELD/FIELDLIST are custom objects. Emit FIELD first so FIELDLIST 330
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index aee59cc..344aa01 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9748,6 +9748,125 @@ TEST_CASE("ODA generated empty sort table without reactors retains source chain"
+ }
+ #endif
+ 
++#if defined(LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++TEST_CASE("Explicit named block sort export preserves verified source chain",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_MINIMAL_SORTENTS_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_MINIMAL_SORTENTS_FIXTURE to a locally generated ODA AC1024 DWG");
++  REQUIRE(std::filesystem::exists(fixture));
++  ensureSettings();
++  RS_Graphic graphic;
++  RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  REQUIRE(graphic.dwgAdvancedMetadata().matchesSelectedAc1024SortEntsOwnerChain(0x30u, 0xB003u, 0xB100u));
++  const char *keepPath = std::getenv("LIBRECAD_KEEP_NAMED_SORTENTS_DXF");
++  const std::string path = keepPath && *keepPath ? keepPath : tmpFile("named_sort_optin.dxf");
++  const std::string sentinel = "previous destination\n";
++  writeText(path, sentinel);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  RS_Graphic reread;
++  RS_FilterDXFRW rereader;
++  REQUIRE(rereader.fileImport(reread, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  const auto &readMetadata = reread.dwgAdvancedMetadata();
++  REQUIRE(readMetadata.sortEntsTables().size() == 1u);
++  const auto &table = readMetadata.sortEntsTables().front();
++  CHECK(table.entityHandles.empty());
++  CHECK(table.sortHandles.empty());
++  const auto block = readMetadata.blockRecordLinks().find(table.blockOwnerHandle);
++  REQUIRE(block != readMetadata.blockRecordLinks().end());
++  CHECK(block->second.name == "Named");
++  CHECK(block->second.extensionDictionaryHandle == table.parentHandle);
++  const auto dict = std::find_if(readMetadata.dictionaries().begin(), readMetadata.dictionaries().end(),
++      [&table](const auto &d) { return d.handle == table.parentHandle; });
++  REQUIRE(dict != readMetadata.dictionaries().end());
++  CHECK(dict->parentHandle == table.blockOwnerHandle);
++  CHECK(std::count_if(dict->entries.begin(), dict->entries.end(), [&table](const auto &entry) {
++    return entry.name == "ACAD_SORTENTS" && entry.handle == table.handle;
++  }) == 1);
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(false));
++  writeText(path, sentinel);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  if (!(keepPath && *keepPath))
++    std::filesystem::remove(path);
++}
++
++TEST_CASE("Named block export refuses an unhandled dictionary dependency",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_GENERATED_SORTENTS_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_GENERATED_SORTENTS_FIXTURE to an ODA AC1024 DWG with OTHER XRECORD");
++  REQUIRE(std::filesystem::exists(fixture));
++  ensureSettings();
++  RS_Graphic graphic;
++  RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  const auto &dicts = graphic.dwgAdvancedMetadata().dictionaries();
++  const auto dict = std::find_if(dicts.begin(), dicts.end(), [](const auto &d) {
++    return d.handle == 0xB003u;
++  });
++  REQUIRE(dict != dicts.end());
++  REQUIRE(std::count_if(dict->entries.begin(), dict->entries.end(), [](const auto &e) {
++    return e.name == "OTHER" && e.handle == 0xB200u;
++  }) == 1);
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  const std::string path = tmpFile("named_sort_extra_dependency.dxf");
++  const std::string sentinel = "previous destination\n";
++  writeText(path, sentinel);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  CHECK(filter.lastError().contains("referenced objects are incomplete"));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  const char *minimal = std::getenv("LIBRECAD_ODA_MINIMAL_SORTENTS_FIXTURE");
++  if (minimal && *minimal) {
++    RS_Graphic clean;
++    REQUIRE(filter.fileImport(clean, QString::fromUtf8(minimal), RS2::FormatDWG));
++    REQUIRE(filter.fileExport(clean, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  }
++  std::filesystem::remove(path);
++}
++#endif
++
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++TEST_CASE("Block source observations refuse unsupported output properties",
++          "[dwg][roundtrip][blockrecord][source]") {
++  LC_DwgAdvancedMetadata metadata;
++  DRW_Block_Record record;
++  record.handle = 0x123u;
++  record.parentHandle = 0x10;
++  record.name = "Named";
++  const auto observedUnsupported = [&]() {
++    metadata.clear();
++    metadata.observeBlockRecordLinks(record);
++    REQUIRE_FALSE(metadata.blockRecordLinkCaptureFailed());
++    return metadata.blockRecordLinks().at(record.handle).hasUnsupportedOutputState;
++  };
++  CHECK_FALSE(observedUnsupported());
++  record.basePoint.x = 1.0; CHECK(observedUnsupported()); record.basePoint.x = 0.0;
++  record.xrefIndex = 0; CHECK(observedUnsupported()); record.xrefIndex = -1;
++  record.xrefBlockHandle.ref = 1u; CHECK(observedUnsupported()); record.xrefBlockHandle.ref = 0u;
++  record.insUnits = 4; CHECK(observedUnsupported()); record.insUnits = 0;
++  record.flags = 1; CHECK(observedUnsupported()); record.flags = 0;
++  record.previewData.push_back(1u); CHECK(observedUnsupported()); record.previewData.clear();
++  record.insertHandles.push_back(0x456u); CHECK(observedUnsupported()); record.insertHandles.clear();
++  CHECK_FALSE(observedUnsupported());
++}
++#endif
++
+ template <typename T, typename = void>
+ struct HasBlockRecordReadCallback : std::false_type {};
+ template <typename T>

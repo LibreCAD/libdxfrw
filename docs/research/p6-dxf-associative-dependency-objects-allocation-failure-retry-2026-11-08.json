@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-associative-dependency-objects-allocation-failure-retry-2026-11-08",
+  "date": "2026-11-08",
+  "status": "GENERATED_AC1024_BASE_DIM_BODY_PAIR_REAL_INTEGER_AND_GEOMETRY_DEPENDENCY_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep allocations reached inside the AC1024 OBJECTS callback while emitting typed base, dimension-body pair, real/integer value, and geometry associative dependency records.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW_AssociativeObject",
+    "profile": "The base dependency profile has class version 3, status -7, read/attached flags, dependency order -2, present name allocation-retry, body id -9, and a non-null body handle to the paired dimension body. The paired ASSOCDIMDEPENDENCYBODY has handle 0xE902, parent 0xE901, name BOLTHOLE, version-1 body/base/class fields, and one complete 30-bit dependency-body prefix with four decoded values. The real value-dependency profile adds class version 0, name VALUE_DEPENDENCY, and real value 12.5. The integer value-dependency profile adds class version 0, name VALUE_DEPENDENCY, and signed int32 value 17. The geometry profile adds class version 0, enabled state, AcDbAssocSingleEdgePersSubentId, and dependent-on-compound-object state; dependency references and subentity indices remain null/default.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "30f55094",
+    "files": {
+      "tests/associative_dependency_allocation_tests.cpp": "1a11044cc73442139228fde3ad2cbb6b02cb6536ffc51e500c7eca811ecf6a4b",
+      "tests/CMakeLists.txt": "4bd71e4d6dadadfd865415a2dba371d6edd5116ce9fb6ec174d86b4c338b9b12"
+    },
+    "method": "Warm and calibrate each record profile in ASCII and Binary. For the base profile, emit the dependency and linked dimension body in one OBJECTS callback. Inject std::bad_alloc at every reached callback offset; require failed whole-file publication, byte-identical destination sentinel preservation, caller-record preservation, same-codec retry, and fresh DXF typed readback of the dependency/body links and fields plus both value variants and geometry fields.",
+    "productionCodeChanged": false
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_ENABLE_FREECAD_DESKTOP_CONTROL=OFF -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_LINE_CONTROL=OFF: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_associative_dependency_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_associative_dependency_allocation_retry$' --output-on-failure: PASS 1/1",
+    "ascii": "Base dependency + dimension body pair: 12/12; real value dependency: 8/8; integer value dependency: 8/8; geometry dependency: 8/8 callback allocation offsets injected. Destination and source records were preserved; same-codec retry and typed readback passed.",
+    "binary": "Base dependency + dimension body pair: 12/12; real value dependency: 7/7; integer value dependency: 7/7; geometry dependency: 7/7 callback allocation offsets injected. Destination and source records were preserved; same-codec retry and typed readback passed.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated serialization and transaction evidence only; no physical producer prevalence or native associative semantics are established.",
+    "The DWG prefix bit span and decoded-count metadata used to admit the generated body are not DXF fields; typed DXF readback asserts only serialized body versions/name/owner and the dependency handle link.",
+    "The paired dependency/body route closes only its generated body-handle and owner link. It has no actual dimension entity, constraint group, node, value-dependency edge, source-backed profile, or native constraint semantics. The generated value profiles cover one real value and one signed int32 value. Geometry coverage is limited to a generated default-index SingleEdge profile.",
+    "No support claim is promoted."
+  ],
+  "nextAction": "Continue rooted dimension-constraint transaction work from the hash-bound AC1024 physical source profile. First measure the OBJECTS callback allocation count for the existing physical output/readback route; keep the generated-only strict-output refusal and source-lineage gates intact, and split the work into a bounded fast selector if the whole physical callback sweep is too expensive."
+}

@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw-polyline-reverse-claims-orphan-index-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "status": "PARTIAL_LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Continue PAR-92/7BA by removing pending-parent claim scans and child-first orphan duplicate scans while charging retained claim-index nodes to the existing bounded staging ledger.",
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "declaredMembership": "A sorted per-parent handle-to-source-slot index and staged-slot bitmap provide logarithmic membership and constant-time duplicate-slot checks while preserving the authoritative declaration list and callback order.",
+    "reverseClaims": "An ordered map from child handle to ordered set of every pending parent that declares it replaces a full pending-parent scan. Deterministic tree lookup is logarithmic; handling a conflicting handle visits each actual claimant so existing group rejection can terminalize all involved owners.",
+    "orphanMembership": "Each child-first orphan owner uses an ordered handle set for duplicate detection instead of scanning the staged orphan vertex vector.",
+    "rollback": "Reverse claims are registered after parent state insertion and before source-frame staging. Partial claim registration rolls back on allocation/budget failure; pre-frame injection, frame-staging refusal, successful commit, terminalization, and orphan adoption release their corresponding modeled charges.",
+    "budgetModel": {
+      "aggregateLimitBytes": 268435456,
+      "preparationScratchLimitBytes": 67108864,
+      "charged": [
+        "declared-handle list nodes using sizeof(handle)+3 pointer widths as a conservative allocator-independent model",
+        "actual capacities of per-parent sorted handle indexes, staged-slot bitmaps, pending vertex vectors, and orphan vertex vectors",
+        "per-orphan ordered handle-set nodes",
+        "ordered reverse-claim map-key and owner-set node estimates",
+        "preparation scratch capacity bounded by both its local ceiling and remaining aggregate allowance"
+      ],
+      "notCharged": [
+        "pending/orphan unordered-map buckets and node overhead",
+        "allocator metadata and implementation-specific tree-node overhead beyond the charged model",
+        "process RSS"
+      ],
+      "qualification": "The allowance is a retained-state budget estimate, not an RSS cap. Orphan vector growth preflights the old retained state plus planned new vector capacity and the incoming handle-set node as a transient peak."
+    }
+  },
+  "focusedControls": {
+    "selector": "--polyline-staging-growth",
+    "cases": [
+      "scrambled 512-child declaration order, exact slot lookup, and duplicate/missing refusal",
+      "four competing parents claim each of 512 child handles; all owners are queryable and removal returns the ordered index to zero bytes",
+      "reverse-index comparison envelope below 4*512*80 comparisons",
+      "one-byte reverse-index budget refuses without partial claims or changing the output byte counter",
+      "duplicate declared child slots create one owner claim per handle",
+      "existing vector/map growth and allocation-failure/retry controls"
+    ],
+    "fixtureFilesAdded": 0,
+    "testRegistrationsAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+      "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_(dwg_reader_matrix|dwg_local_roundtrip)$'",
+      "git diff --check -- src/intern/dwgreader.cpp src/intern/dwgreader.h tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "strictTargetBuild": "PASS",
+    "focusedSelector": "PASS",
+    "owningCTest": {
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        "libdxfrw_dwg_reader_matrix",
+        "libdxfrw_dwg_local_roundtrip"
+      ]
+    },
+    "scopedDiffCheck": "PASS",
+    "fullSuite": "NOT RUN",
+    "sanitizer": "NOT RUN",
+    "externalPeerOrNativeRuntime": "NOT RUN"
+  },
+  "remaining": [
+    "Index already-staged orphan identities globally so a later parent declaration can detect a foreign-owner orphan before final staged-state validation.",
+    "Decide whether to charge top-level pending/orphan unordered-map buckets and nodes and allocator overhead, or explicitly keep these outside the 256 MiB estimate.",
+    "Add complete stage/adopt/terminalize/lease rollback transcripts and verify all claims and charges survive retries without leaking or releasing another owner's claim.",
+    "No whole-reader speed, sanitizer, file-level support, native consumer, or external semantic claim is established."
+  ],
+  "planImpact": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "findingCount": 127,
+    "implementationSubplanCount": 71,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commit": "NOT CREATED: shared worktree contains broad mixed, uncommitted changes; this slice was left recoverable without staging unrelated hunks."
+  }
+}

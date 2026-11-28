@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Open-source DWG/DXF peer artifact freshness and semantic evidence ceilings",
+  "mode": "Deeper/broader primary-source research and local applicability audit",
+  "repository": "LibreCAD/libdxfrw",
+  "localHead": "de27a33",
+  "scope": [
+    "Verify current peer release versus development-source artifact identities",
+    "Reconcile selected current peer reports with existing local finding and test owners",
+    "Check whether any reviewed open-source route closes the DWG/AcDs/ACIS/native semantic chain",
+    "Update peer admission and self-unblocking guidance without duplicating covered work"
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/releases/latest",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/milestone/23"
+      ],
+      "observation": "The latest non-prerelease GitHub release resolves to 0.14 at d9468ae. The leading NEWS entry labels 0.14.1 as beta, and the 0.14.1 milestone remains open. Development fixes cannot be attributed to the 0.14 stable artifact without verifying the exact candidate revision."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/releases/latest",
+        "https://github.com/DomCR/ACadSharp/issues/1234",
+        "https://github.com/DomCR/ACadSharp/issues/1250"
+      ],
+      "observation": "Latest formal release is signed v3.8.0 at 3a1c66b, with 184 commits to master since the tag. Issue #1234 reports SummaryInfo loss/corruption on 3.6.51, 3.7.1, and then-master 91ae384a; it does not report a v3.8.0 run and demonstrates a same-reader round-trip blind spot. Issue #1250 describes ARC/ELLIPSE transform behavior on 3.7.1/then-current master, not a serialized field-layout rule. Both reports map to existing PAR-26 and PAR-21 owners."
+    },
+    {
+      "project": "ezdxf",
+      "references": [
+        "https://pypi.org/project/ezdxf/1.4.5/",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/index.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/acis.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "observation": "PyPI lists ezdxf 1.4.5 uploaded 2026-10-16 and source archive SHA-256 a6c3bbc1a65ce764d97c5beafe6ae693d8ed14c6cdae366b50e1974a79d4a00. Project documentation declares ASCII/Binary DXF read/write for R12-R2018 and third-party content retention, while ACIS tooling is constrained and the drawing add-on lacks ACIS and 3D rendering."
+    },
+    {
+      "project": "ACadRust and FreeCAD consumer route",
+      "references": [
+        "https://github.com/hakanaktt/acadrust/tree/289a616",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observation": "Existing source audit binds ACadRust v0.6.5 to source 289a616 and classifies its generated/self-roundtrip cases separately from independent semantic truth. FreeCAD documentation describes DWG as converter-to-DXF followed by a selected DXF importer and states that stock DXF import does not consume embedded ACIS solids. No new source closes DWG decoding through AcDs owner/key association, independent B-rep semantics, and native acceptance."
+    },
+    {
+      "project": "Local implementation/plan crosswalk",
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-21/7H analytic transform owner",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-26 SummaryInfo/string boundary owner",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-07/S8 peer and consumer qualification",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md S3.7c ACIS rooted graph projection"
+      ],
+      "observation": "The refreshed peer observations map to existing owners or unsupported/inapplicable local routes. No uncovered local defect or duplicate test was identified."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8: record peer release, beta, prerelease, package, and mutable-source identities separately",
+      "PAR-21/7H: keep ARC/ELLIPSE geometric transform expectations on independent analytic calculations",
+      "PAR-26: keep generic string length boundaries separate from unsupported typed SummaryInfo authoring",
+      "S3.7c/S8: maintain distinct graph, carrier-association, B-rep-semantic, and consumer-acceptance evidence"
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies the distinction between LibreDWG stable 0.14 and the 0.14.1 beta/development state; pins ACadSharp's issue reports to their stated pre-v3.8.0 baselines; records ezdxf 1.4.5 package identity; reinforces that no reviewed open-source route closes the complete DWG/AcDs/ACIS/native semantic evidence chain."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "localSourcePlanAuditPerformed": true,
+    "peerRepositoriesCloned": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-artifact-freshness-semantic-evidence-ceilings-2026-10-21.json"
+    ],
+    "limitations": "Release/status pages and issue reports are time-sensitive. Peer report contents are not independent reproductions. No peer binary, native CAD application, ACIS kernel, external drawing, or new local test was used. The six DEFERRED_EXTERNAL items remain non-promoting."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on the plan and receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

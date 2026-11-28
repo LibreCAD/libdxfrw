@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c orphan DIMASSOC XREF no-copy path",
+  "scope": "Avoid materializing a discarded DIMASSOC XREF string when no osnap-reference owner exists, while preserving unrepresentable-detail handling and parser alignment.",
+  "files": {
+    "CMakeLists.txt": "d515b4bdc7b993634738ee0a348bf9fce7876efc05463bbe708343a8aa9fa26b",
+    "src/drw_objects.cpp": "ced8147a3a9ec22c3851dedc8aa1f6c4c12005595f1d17827e3aa50cd6560ba1",
+    "tests/hardening_tests.cpp": "acfdf3dd75411f6656cdcc92f5a577bf9c4d2722949dd3373fea0c594dc86b37",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ed4f9347580bc01984b974df992183abc0a7f8782737e497f8a32b608458849f"
+  },
+  "evidence": {
+    "sourceAudit": "The no-owner branch previously called getString() and discarded the returned allocation. Record parsing has already loaded the current token, and the outer read loop advances independently, so omitting this read has no semantic or alignment effect; the parser still sets m_hasUnrepresentableDetail.",
+    "generatedControls": "Generated ASCII and Binary records place an orphan XREF before AcDbOsnapPointRef and an attached XREF after it. Tests verify unrepresentable-detail status, following reference class/XREF association, and that only the class plus attached XREF are charged as retained owner bytes. Existing replacement and one-byte-under controls also pass.",
+    "noPersistentFixture": "Both wire sequences are generated in memory; no persistent fixture was added."
+  },
+  "change": {
+    "publicApiChanged": false,
+    "publicModelLayoutChanged": false,
+    "wireBehaviorChanged": false,
+    "retainedByteBudgetChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror build; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-dimassoc-xref-text-owner-budget",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_dimassoc_xref_token_transfer$' --output-on-failure",
+      "result": "PASS (1/1; 0.01 s)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_objects.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    {
+      "command": "shasum -a 256 CMakeLists.txt src/drw_objects.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS; hashes recorded in files"
+    }
+  ],
+  "fullSuiteRun": false,
+  "persistentFixtureAdded": false,
+  "worktreeState": "Broad shared worktree remains dirty; slice is uncommitted and unstaged.",
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "externalQualification": [
+    "Native FreeCAD Linux qualification",
+    "Native FreeCAD Windows qualification",
+    "Independent ACIS/ACDS semantic evidence"
+  ],
+  "selfUnblockingContinuation": "Continue auditing parser source for unnecessary string materialization and other retained-owner/resource issues. Keep DWG parser changes fail-closed absent normative or traceable class-frame evidence."
+}

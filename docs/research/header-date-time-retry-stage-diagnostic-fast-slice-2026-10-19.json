@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-19",
+  "type": "generated local fast slice",
+  "plan_owner": "PAR-127 / 7BE.10 HEADER date-time representation and write transaction",
+  "changes": [
+    "src/libdwgr.cpp records first-failing DWG emission stage diagnostics while preserving an existing more-specific diagnostic.",
+    "tests/dwg_local_roundtrip_tests.cpp isolates the date-time transaction in a minimal dx_iface adapter with no custom-class inventory and asserts the dwg-header diagnostic."
+  ],
+  "observations": [
+    "The isolated invalid-date case is refused before output publication and preserves the prior destination bytes.",
+    "Correcting the date value and retrying on the same dwgRW writes an AC1027 file successfully.",
+    "The prior broad LocalDwgInterface probe's retry reached the separate dwg-class-counts stage; this remains an independent unresolved class-inventory integration issue and is not attributed to date-time conversion."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+    "focused_header_selector": "./build-gcc/libdxfrw_dwg_local_roundtrip --header-date-time-publication",
+    "focused_mline_selector": "./build-gcc/libdxfrw_hardening_tests --repeated-dxf-record-robustness",
+    "result": "PASS",
+    "broad_local_roundtrip_ctest": "NOT_RERUN"
+  },
+  "non_changes": {
+    "fixture_files": false,
+    "new_ctest_registration": false,
+    "external_or_native_execution": false,
+    "support_claim_promotion": false,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "working_tree": "Uncommitted; preserve unrelated changes."
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ltype-entity-reference-output-closure-2026-11-04",
+  "date": "2026-11-04",
+  "base_commit": "0363e3b",
+  "status": "GENERATED_TYPED_ENTITY_REFERENCE_GATE",
+  "supportClaimEffect": "none",
+  "scope": "Close typed DWG entity linetype-name references against same-import source LTYPE rows and their retained emitted DXF identity before entity serialization.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.1 Common Entity Data", "20.4.2 Common Entity Handle Data"],
+    "sourceModes": "AC1015+ linetype flags 00/01/10 select BYLAYER/BYBLOCK/CONTINUOUS, while 11 indicates a hard-pointer LTYPE handle. AC1012/AC1014 use Isbylayerlt: true selects BYLAYER and false means an LTYPE handle is present.",
+    "localCopy": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf"
+  },
+  "implementation": {
+    "explicitReferences": "For each typed entity with a non-null DWG linetype handle, require a unique binding from that source handle to the complete typed LTYPE_CONTROL membership, require the entity's resolved lineType spelling to equal the typed source row name, and require the writer registry to still resolve to the retained emitted target.",
+    "implicitModes": "For AC1012/AC1014 source revisions, a null handle accepts BYLAYER only. For AC1015+, a null handle accepts only BYLAYER, BYBLOCK or CONTINUOUS. Empty names, custom names without a target handle, NoHandle, unknown targets and source-name mismatches refuse the write.",
+    "nestedRecords": "The check covers typed parent entities and their embedded POLYLINE VERTEX/SEQEND and INSERT ATTRIB/SEQEND records before the entity writer serializes their common group-6 names.",
+    "workBounds": "The source-handle lookup uses an index built once from the already bounded emitted LTYPE bindings. Each reference uses indexed lookup plus a bounded name comparison; embedded child lists are already bounded by parser/adaptor capture limits.",
+    "compatibility": "No public virtual callback or public entity layout changed. Tolerant reads remain unchanged; the guard is enabled only for imported DWG strict-complete or bounded-partial export."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_symbol_output_tests -j3",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_source_table_identities$' --output-on-failure",
+    "result": "Build passed with -Werror. Focused fast CTest passed 1/1 in 0.66 seconds. A generated AC1024 source model is emitted to seven DXF revisions (AC1014, AC1015, AC1018, AC1021, AC1024, AC1027, AC1032) in ASCII and Binary. Four positive profiles per cell (explicit CustomDash plus each modern implicit mode) are read back and retain the exact group-6 linetype name. Ten negative profiles per cell preserve a preexisting destination and retry successfully on the same codec: wrong table spelling, missing table row, extra row, duplicate row name, ambiguous source alias, alias mutation after TABLES inspection, entity/source-row name mismatch, missing source handle target, custom name without a handle, and empty implicit name. Separate source-AC1014 helper controls admit implicit BYLAYER and reject implicit BYBLOCK; direct nested-entity controls reject unresolved VERTEX and ATTRIB targets.",
+    "fixtures": "No DWG/DXF fixture was added or modified. Generated outputs are temporary and removed by the test."
+  },
+  "limitations": [
+    "The source is generated AC1024 adapter state; no physical DWG whole-source strict conversion reached this output path.",
+    "Raw preserved entity group-6 references are not covered by this typed-entity guard and remain a separate P4 residual.",
+    "This does not qualify source producer ordering, line pattern/dash semantics, native rendering, LibreCAD, LibreCAD_3, FreeCAD or 3D-consumer behavior.",
+    "The current plan still requires full graph closure for all other entity references before a selected document profile can qualify."
+  ],
+  "files": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "records the typed LTYPE-reference result and remaining raw/physical/native gates",
+    "dwg2dxf/dx_iface.h": "retains source-name and emitted-target index for accepted LTYPE rows",
+    "dwg2dxf/dx_iface.cpp": "checks explicit and versioned implicit references immediately before typed entity output",
+    "tests/dxf_symbol_output_tests.cpp": "adds multi-version/multi-encoding entity admission, rollback, retry and DXF readback coverage"
+  }
+}

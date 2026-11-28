@@ -1,0 +1,24 @@
+{
+  "id": "p4-ac1024-two-root-dynamic-graph-closure-2026-10-31",
+  "date": "2026-10-31",
+  "scope": "Close the existing-input AC1024 architectural example's two-root dynamic-block graph output/readback slice for P4.",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7"
+  },
+  "implementationBinding": {
+    "dwg2dxf/dx_iface.cpp": "aa131de36fe49721ef3d784104d5fc1a225d327b8c7aec717a0aab20c1b8ddc2",
+    "tests/dwg2dxf_adapter_tests.cpp": "28844e7e2b72c36ffc589cd43a33129588cc8681c5ed6cfff6778140ffff823b"
+  },
+  "validation": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-graph-failure-readback tests/samples/AC1024/architectural_example-imperial.dwg",
+    "testExecutableSha256": "70594cee0b97b0b78f8b6f180218b0b125d59622b547bcc42fab69964cd83d43",
+    "exitCode": 0,
+    "result": "PASS in ASCII and Binary. The real two-root source graph freshly reads back with 3 constraint groups, 6 parameter dependencies and 65 dynamic objects; strict conversion qualifies all 490 opaque callbacks.",
+    "failureRetry": "Negative controls reject incomplete constraint-group profiles, wrong dependency ownership, late source mutation and changed XRECORD data. Destination sentinels and callback qualification state remain unchanged on refusal; corrected same-adapter retries succeed.",
+    "dxfOriginReplay": "ASCII and Binary typed/raw dynamic and associative replay pass staged identity/field checks and fresh readback.",
+    "knownLimit": "EvalExpr parentId source sentinel 0xFFFFFFFF reads back as the model default 0. This slice does not establish semantic equivalence, native evaluation, or consumer support."
+  },
+  "disposition": "The source-required AC1024 dynamic graph, owner/dependency edges and strict output/readback gate are closed for this input/code binding. Reopen only if the source or relevant implementation changes. P4 remains open for other reproduced source-closure failures, including the AC1018 ET-Drawing-with-Border source recorded in the plan.",
+  "supportClaim": "No format-wide or native dynamic-block support claim is promoted."
+}

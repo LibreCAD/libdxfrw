@@ -1,0 +1,200 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-21500-sab-sat-cuboid-crosscheck-2026-11-11",
+  "purpose": "Qualify a narrowly observed AC1024 inline SAB 21500 zero-record-count framing profile and validate its bounded SAT v1 projection against independent readers and a non-OCCT kernel primitive.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "version": "AC1024",
+    "producerProvenance": "Not independently authenticated",
+    "selection": {
+      "entity": "3DSOLID",
+      "handle": "0x183",
+      "dwgread": "LibreDWG 0.14; dwgread -v9 -O JSON",
+      "sourceSabBytes": 7048,
+      "sourceSabSha256": "00f7dd11b8993d066a25e33a05dd97fb14f8b35eb7a4d7614c596b6b41d6d79b",
+      "header": {
+        "signature": "ACIS BinaryFile",
+        "version": 21500,
+        "declaredRecordCount": 0,
+        "declaredBodyCount": 2,
+        "flags": 24,
+        "terminalMarker": "End-of-ACIS-data"
+      },
+      "sourceFilesRemainOutsideRepository": true,
+      "thirdHeaderInteger": {
+        "fieldNameInLibdxfrw": "numEntities",
+        "value": 2,
+        "semantics": "Unqualified for this ACIS 21500 profile; do not relabel as a body count."
+      }
+    }
+  },
+  "implementation": {
+    "framing": "Version-scoped zero record counts are admitted for ACIS 21200, 21500 and 21800 only when the complete explicit terminal marker is present.",
+    "satProjection": "For ACIS 21200/21500 sources, SAT v1 output uses the parsed nonterminal record count. AC1024+ history output is normalized to the source flags' bit 0. ACIS 21500 Unknown0x17 carries an eight-byte double and is emitted as a numeric SAT token.",
+    "scopeLimit": "No additional 21500 record layouts, modeler associations, DXF/DWG output routes, or support claims are inferred from this selected solid."
+  },
+  "localReaderResult": {
+    "command": "A scratch inspector linked against build-gcc/libdxfrw.a called drw_parseSabWithOutcome, drw_buildAcisModel, drw_extractAcisWireframe, and drw_convertSabToSatV1 on the exact selected SAB.",
+    "framing": {
+      "parse": true,
+      "complete": true,
+      "consumedBytes": 7048,
+      "decodedRecordsIncludingTerminator": 116,
+      "terminalSeen": true
+    },
+    "projection": {
+      "vertices": 8,
+      "allVerticesResolved": 8,
+      "edges": 12,
+      "allEndpointPairsResolved": 12,
+      "faces": 6,
+      "allSurfacesResolved": 6,
+      "oneParsedLoopPerFace": true,
+      "diagnostics": 0,
+      "rawCoordinateBounds": {
+        "min": [
+          -3.4302003006968818,
+          12.345324004815772,
+          0.0
+        ],
+        "max": [
+          5.73083910048274,
+          23.500849948488835,
+          7.69587968201278
+        ]
+      },
+      "claimLimit": "Inventory projection only; it does not establish body/shell/loop incidence closure, B-rep validity, or native CAD meaning."
+    },
+    "satProjection": {
+      "converted": true,
+      "targetVersion": "AC1024",
+      "satHeader": "21500 115 2 0",
+      "bytes": 6983,
+      "sha256": "b7a6cad6a6714f02ac36832d5767041c606b31258b6a9b8cebd2b1ccf8e1e971"
+    },
+    "topLevelInventory": {
+      "record0": "asmheader",
+      "record1": "body",
+      "bodyRecord1PointerTargets": [
+        2,
+        -1,
+        3,
+        -1,
+        -1
+      ],
+      "record2": "ref_vt-eye-attrib",
+      "record3": "lump",
+      "interpretation": "The body at index 1 points to record index 2, matching the ACIS 217/218 entity-count-boundary description for this source shape. This is a cross-version structural match, not proof of the 21500 header field semantics."
+    }
+  },
+  "independentReader": {
+    "library": "hakanaktt/acadrust",
+    "version": "0.6.8",
+    "revision": "ce8a148568e7a80a80f50797bf287a651d1259c7",
+    "operations": [
+      {
+        "input": "Exact source SAB bytes",
+        "result": "115 nonterminal records; record-type histogram agrees with the libdxfrw parse."
+      },
+      {
+        "input": "libdxfrw SAT projection",
+        "result": "ACIS 215.0; SAT header values are version 21500, 115 records, third integer 2, flags 0; ACadRust exposes the third integer through its num_bodies field, but this does not establish ACIS 21500 semantics or body-record correspondence. The parsed record-type histogram agrees with the source SAB parse."
+      }
+    ],
+    "semanticLimit": "This is independent ACIS record parsing, not a B-rep kernel or native CAD application acceptance."
+  },
+  "independentKernel": {
+    "library": "HakanSeven12/opencadkernel",
+    "revision": "802f75134a5606d34bd34dac0d3508565537b067",
+    "operation": "Read the eight point records from the exact SAT projection with ACadRust; construct an OpenCADKernel cuboid from their min/max coordinates.",
+    "result": {
+      "topology": {
+        "vertices": 8,
+        "edges": 12,
+        "faces": 6,
+        "loops": 6,
+        "shells": 1,
+        "lumps": 1,
+        "validationFlaws": 0
+      },
+      "bounds": {
+        "min": [
+          -3.4302003006968818,
+          12.345324004815772,
+          0.0
+        ],
+        "max": [
+          5.73083910048274,
+          23.500849948488835,
+          7.69587968201278
+        ]
+      },
+      "volume": 786.4897569802437,
+      "axisAlignedBoxVolume": 786.4897569802437,
+      "centroid": [
+        1.150319399892929,
+        17.923086976652304,
+        3.84793984100639
+      ]
+    },
+    "claimLimit": "The kernel constructed a cuboid from source-derived points; it did not lift the SAT face/edge/coedge graph. This is not a direct SAT-to-B-rep interoperability result."
+  },
+  "unresolved": [
+    "Establish the ACIS 21500 third-header-integer semantics and reconcile its value with a complete top-level record census using version-qualified evidence.",
+    "Prove source body/lump/shell/face/loop/coedge incidence and orientation closure against a direct non-OCCT SAT-to-B-rep lift.",
+    "FreeCAD 1.1.4 console Part.insert rejected the SAT extension as unknown; ImportGui is unavailable in the console application. Native FreeCAD acceptance remains unqualified.",
+    "ODA File Converter 27.1.0.0 aborted before reading the file because macOS PasteBoard services were unavailable; no conversion evidence was produced.",
+    "No whole-source DWG/DXF graph, other AC1024 producers, or broad 3D support claim is qualified."
+  ],
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests libdxfrw_acis_sat_allocation_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTests": [
+      {
+        "command": "build-gcc/libdxfrw_graph_preservation_tests",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^acis_sat_allocation_rollback_retry$' --output-on-failure",
+        "result": "PASS: 1/1"
+      }
+    ],
+    "generatedControl": "The allocation test now covers generated ACIS 21500 zero-count framing, numeric Unknown0x17 double serialization, SAT record-count output and history-bit normalization, in addition to its existing 21200 allocation-failure rollback/retry sweep.",
+    "fixtures": "No DWG/DXF fixture was committed; the sample and all probes remain in local or temporary paths."
+  },
+  "sourceFiles": {
+    "src/drw_acis.cpp": "3400f57dbf674c7c7edc9a3a89b5936324e67398330f6a4811be55c1da13948a",
+    "tests/graph_preservation_tests.cpp": "f139d80e493514d5a493015c7bbbea1f0a40497d3a05a3e78f00e81db266c374",
+    "tests/acis_sat_allocation_tests.cpp": "9f4a3dcf751a9d4bce82a4324ed08c40b1e08b4a1c131de70e3a04f604e9bb29"
+  },
+  "testBinaries": {
+    "build-gcc/libdxfrw_graph_preservation_tests": "154c6b008c52356038f177b59164a8fe705ceee8e161d3d1d8101bffe6309df8",
+    "build-gcc/tests/libdxfrw_acis_sat_allocation_tests": "047b9d09a46ba9bbbed1bd0723ed7f77b9c1919b0983dd4c7dcb2e853f0c5a06"
+  },
+  "claimEffect": "A bounded AC1024 ACIS 21500 framing and SAT projection gap is closed for the selected profile. Record parsing and source-point primitive comparison improve implementation evidence only; version-specific header semantics, full source B-rep lift, native acceptance, graph/output closure and support qualification remain open.",
+  "headerSemanticsReview": {
+    "odaDwgSpec": "Open Design Specification v5.4.1 \u00a720.4.41 says detailed ACIS/SAB data is outside its scope; it does not define the third SAB header integer for this profile.",
+    "independentReferences": [
+      {
+        "source": "CADMPEG ASM format documentation, ACIS 217/218 BinaryFile header",
+        "url": "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md",
+        "finding": "Documents an entity-count word in the ACIS 217/218 31-byte header, but its stated record-table semantics are not established for ACIS 21500."
+      },
+      {
+        "source": "ACadRust SAT parser documentation",
+        "url": "https://docs.rs/acadrust/latest/src/acadrust/entities/acis/parser.rs.html",
+        "finding": "Parses the third SAT header integer into a num_bodies field; this parser interpretation alone does not prove the 21500 SAB producer semantics."
+      },
+      {
+        "source": "Spatial ACIS SAT Save File Format 7.0, Save File Header",
+        "url": "https://paulbourke.net/dataformats/sat/sat.pdf",
+        "finding": "Defines header integer 3 as the count of entities in the original entity list saved to the part file. This is authoritative ACIS-format evidence for SAT Format 7.0, but does not by itself prove the ACIS 21500 SAB profile uses the same definition."
+      }
+    ],
+    "conclusion": "The former two-bodies-versus-one-body discrepancy was an unsupported relabeling of numEntities. ACIS SAT Format 7.0 defines the corresponding third header integer as a saved entity-list count. In this source the body at index 1 points first to record 2, matching the later ACIS 217/218 entity-count-boundary description. These sources and this observed structure reject the body-count interpretation, but do not establish the exact 21500 SAB definition; preserve the raw field and record census separately pending version-qualified evidence."
+  }
+}

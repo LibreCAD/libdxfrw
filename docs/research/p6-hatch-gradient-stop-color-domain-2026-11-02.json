@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-hatch-gradient-stop-color-domain-2026-11-02",
+  "date": "2026-11-02",
+  "status": "IMPLEMENTED_FAST_TESTS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Reject out-of-domain explicit HATCH gradient-stop RGB and ACI values before parser mutation, and enforce the same scalar bounds in HATCH typed-model validation.",
+  "sourceWitness": {
+    "parser": "DRW_Hatch::parseCode currently stores group 421 into GradientStop::rgb and group 63 into GradientStop::aciColor without checking the explicit value domains.",
+    "readerCompletion": "processHatch calls DRW_Hatch::validateDxf before publishing the callback, but validateDxf currently does not validate gradient-stop color scalar ranges.",
+    "writerControl": "dxfRW::validateHatchPayload already bounds stop.rgb to 0..0xFFFFFF and stop.aciColor to 0..256, so this closes the reader/model admission mismatch without changing writer behavior.",
+    "autodeskTrueColorDefinition": "Autodesk's common DXF color group documentation describes true color as a 24-bit value, with each RGB byte 0..255 and a zero top byte.",
+    "autodeskAciDefinition": "Autodesk AcCmColor::setColorIndex accepts 0..256, with 0 BYBLOCK, 256 BYLAYER and 1..255 indexed ACI colors."
+  },
+  "authoritativeReferences": [
+    "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+    "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcCmColor.html"
+  ],
+  "implementationBrief": {
+    "rgbRule": "Explicit gradient group 421 values must be in 0..0xFFFFFF; the absent sentinel -1 remains a model-only state and is not accepted as an explicit group value.",
+    "aciRule": "Gradient group 63 values must be in 0..256, including the documented BYBLOCK/BYLAYER endpoint indices.",
+    "stateRule": "Check each local parsed scalar before assigning it; corrected values for the same group must be retryable. Validate the stop color scalar ranges before callback publication.",
+    "tests": "Generated parser selector covers negative/over-range values, valid endpoints, state preservation and corrected same-group retry for RGB and ACI stops.",
+    "doNotInfer": "These scalar checks do not qualify HATCH gradient rendering, producer breadth or native semantic support."
+  },
+  "owningSelector": "libdxfrw_dxf_fixture_tests --hatch-gradient-stop-color-domain",
+  "inputHashesBeforeEdit": {
+    "src/drw_entities.cpp": "8aa3d8a92eb733d1a7f2c5b4c10b7a7bc1f03b9d65a0e6b390195a40a5bea8e4",
+    "tests/dxf_fixture_tests.cpp": "94295ec4d5d50d3e9e4dbea16f061f4dbec65792e7fd4a42ab6473f60330711d",
+    "CMakeLists.txt": "e1d04403fb313a4a0fbcdb6ac3b8793ff6bc78fe94eeaa08c302b51a48619b00"
+  },
+  "validationPlan": [
+    "Build only libdxfrw_dxf_fixture_tests.",
+    "Run the owning selector and affected HATCH/MPOLYGON gradient cohort.",
+    "Run git diff --check; do not add DWG/DXF sample fixtures."
+  ],
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+    "buildResult": "passed",
+    "owningSelector": "build-gcc/libdxfrw_dxf_fixture_tests --hatch-gradient-stop-color-domain",
+    "owningSelectorResult": "passed",
+    "focusedCTestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_hatch_gradient_stop_color_domain|libdxfrw_hatch_mpolygon_inactive_gradient_guard|libdxfrw_mpolygon_aci_domain|libdxfrw_mpolygon_fill_cmc|dxf_mpolygon_metadata_boundary_roundtrip)$' --output-on-failure",
+    "focusedCTestResult": {
+      "passed": 5,
+      "failed": 0,
+      "elapsedSeconds": 0.82
+    },
+    "diffCheck": "git diff --cached --check passed",
+    "verifiedBehavior": [
+      "HATCH group 421 rejects negative and over-24-bit explicit RGB values before changing the current gradient stop; same-group retry with 0xFFFFFF succeeds.",
+      "HATCH group 421 accepts RGB endpoints 0 and 0xFFFFFF.",
+      "HATCH gradient group 63 rejects negative and greater-than-256 indices before mutation; corrected same-group retry with 256 succeeds.",
+      "HATCH gradient group 63 accepts 0, 1, 255, and 256.",
+      "Typed-model validation rejects out-of-range RGB and ACI scalars on otherwise valid two-stop gradients."
+    ]
+  },
+  "inputHashesAfterEdit": {
+    "src/drw_entities.cpp": "3aae71eeab4b30e371caa2ded90bdcb3744077b7a7bb27bb6394ca58c5d64fe6",
+    "tests/dxf_fixture_tests.cpp": "85e7a59b6718684366e23c7d6ed76c7abed84a9b18d44710a60bf8756e7b3532",
+    "CMakeLists.txt": "b2de5275bfac44e05ad410c4e9d55eacd92562884ac883656aa2bf0afa36315a"
+  },
+  "fixtures": {
+    "repositoryDwgDxfAdded": 0,
+    "testInput": "Generated in-memory DXF group records; no sample files."
+  },
+  "finalHashes": {
+    "src/drw_entities.cpp": "cb3cc1a30dfbdfa33fcbf18066d935995055e4ae7ea3232d677240ecf3217947",
+    "tests/dxf_fixture_tests.cpp": "4d7249d0532deefa2cdd9b1fdbcb03d6e54686d18f1177cc9ee23960fe6b1ad4",
+    "CMakeLists.txt": "72834839bd4bf9df1fe582dee98c8f03d2edfb01cd953f7abca63c7cc77e991e",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "bb79f491f41ff77c48bfb7179dd7d590d1c3668964fba0f21dcd4ad715f9ec94"
+  },
+  "repositoryState": {
+    "baseHead": "c2486a16",
+    "inputSnapshot": "staged HATCH color-domain blobs composed from HEAD plus color-only changes; fast cohort ran against corresponding worktree source",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

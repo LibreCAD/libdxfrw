@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-ac1027-audited-multilayer-plot-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "baseCommit": "06d4c8de8",
+  "implementationDigestSha256": "5b05412039f1a6ab56f7db1379bc8bd5721a1bd4a2a32205319ea74fa20b7f42",
+  "inputCount": 781,
+  "change": "Permit an unchanged, source-bound AC1027 default plot-style graph shared by multiple layers. Bind layers, root and child dictionaries, raw default dictionary and placeholder to source audits; inspect staged layer references, dictionary order and roles, leaf identities and owners, retained raw plot objects, and XRECORD data and remapped references. Reuse existing dictionary and raw-object output inspectors, index selected leaf models, and fail closed on unsupported leaf types or extension data.",
+  "scope": "Same-version AC1027 only; 2 to 64 layers, at most 16 root entries and 256 child entries, at most 8 MiB staged OBJECTS; exact observed plain default dictionary/placeholder and selected leaf types. Unknown nested extension and XDATA relationships and cross-version output remain refused. This locally generated profile does not establish producer-wide or native application support.",
+  "validation": {
+    "focused": "PASS libdxfrw_dxf_sparse_material_raw, libdxfrw_dxf_compact_material_graph, libdxfrw_dxf_default_plotstyle_graph, writer emitted-handle inventory, standard object identities, generated dictionary source metadata, and OBJECTS write inspection. Generated controls cover ASCII/Binary, remapping/collision, wrong and mixed layer references, altered default and raw bodies, duplicate/changed dictionary entries and roles, extension mutation, late XRECORD and layer mutation, destination preservation and same-adapter corrected retry.",
+    "independentPeer": "ezdxf 1.4.5 independently reads locally generated ASCII and binary inputs and output; each maps 25 objects, 24 dictionary entries, 13 root entries and two layers, checks ownership and references including XRECORD 340, compares MATERIAL payload groups and reports zero audit errors or fixes. Source and output are locally generated scratch files and are not committed.",
+    "peerFiles": {
+      "asciiInputSha256": "d2127764444c5c07e20d4cb1845f723555d71807b534a495437434ff3e0b71e0",
+      "asciiOutputSha256": "50a5bf1a3405f92090e9a1d3c7f6532a63ecb392813aa02955d41c151c02241a",
+      "binaryInputSha256": "d4d5e7298a27e6685095c7a094fb1db21791df81d2417d16d3de8ff355661a09",
+      "binaryOutputSha256": "4c90fb2eacc12700771a207a1a2ef8dff3f47e0075773fe09b1d8b38bd2e7d08"
+    },
+    "peerAuditScriptSha256": "762a39556083ebc75b679951686796a12bf2d57168fe5f01103bc407ed505da4",
+    "controlGenerator": "tools/research/generate_wide_dictionary_xrecord_control.py",
+    "controlGeneratorSha256": "0ccb8f6f89e16a0ffab1e9ab86c8a01d6af67431dd7992dbb657722edfe52b6d",
+    "candidateSha256": "2660614383b5eedc3dc155b3feab5dec673357930b4536485f421026879dbb51",
+    "freshControl": {
+      "ezdxfVersion": "1.4.5",
+      "candidateSha256": "2660614383b5eedc3dc155b3feab5dec673357930b4536485f421026879dbb51",
+      "controls": [
+        {
+          "profile": "narrow",
+          "encoding": "asc",
+          "sourceSha256": "f4052c85d70c99eca32d8cf3af7de4c3ff40d65621776ba4a025cde23215c5ae",
+          "dictionaryHandle": "2F",
+          "dictionaryOwner": "A",
+          "recordHandle": "30",
+          "recordOwner": "2F",
+          "reference340": "2F",
+          "handseed": "34",
+          "peerAuditErrors": 0,
+          "peerAuditFixes": 0,
+          "candidate": {
+            "exitCode": 0,
+            "destinationPreserved": false,
+            "logSha256": "9e61ed7e307f3224479fd8af5fe1d1546432e34e9766adce81e239fdb9117acc"
+          }
+        },
+        {
+          "profile": "narrow",
+          "encoding": "bin",
+          "sourceSha256": "795d848cd4c713d920ecdde6997779d08291467dcec3b8319cf66fc9f3c4c601",
+          "dictionaryHandle": "2F",
+          "dictionaryOwner": "A",
+          "recordHandle": "30",
+          "recordOwner": "2F",
+          "reference340": "2F",
+          "handseed": "34",
+          "peerAuditErrors": 0,
+          "peerAuditFixes": 0,
+          "candidate": {
+            "exitCode": 0,
+            "destinationPreserved": false,
+            "logSha256": "7ed9ca59970813f4044127922d65a469733b548486e432e86cce61d41e496b82"
+          }
+        },
+        {
+          "profile": "wide",
+          "encoding": "asc",
+          "sourceSha256": "36d70cdb2f6f3da57d3f2b4e1d96c2d3e75807a5c7fdf7c7c7a3460e2f796d38",
+          "dictionaryHandle": "100000010",
+          "dictionaryOwner": "A",
+          "recordHandle": "100000011",
+          "recordOwner": "100000010",
+          "reference340": "100000010",
+          "handseed": "100000012",
+          "peerAuditErrors": 0,
+          "peerAuditFixes": 0,
+          "candidate": {
+            "exitCode": 1,
+            "destinationPreserved": true,
+            "logSha256": "e4483826703df47bcea947024b5f0e29f8fdae6338cf59ef57637521c2f398fb"
+          }
+        },
+        {
+          "profile": "wide",
+          "encoding": "bin",
+          "sourceSha256": "5c77d38900169133d2a4fad468590ae4482741039d0a3f0498772d5f28120826",
+          "dictionaryHandle": "100000010",
+          "dictionaryOwner": "A",
+          "recordHandle": "100000011",
+          "recordOwner": "100000010",
+          "reference340": "100000010",
+          "handseed": "100000012",
+          "peerAuditErrors": 0,
+          "peerAuditFixes": 0,
+          "candidate": {
+            "exitCode": 1,
+            "destinationPreserved": true,
+            "logSha256": "2a617f139ce402d05ecf890c4fbb1f78eaae00c870999f71cacfef87fc94459e"
+          }
+        }
+      ]
+    },
+    "inventory": "Build inventory check passed. Qualification digest and status checks are run separately in a clean staged checkout."
+  }
+}

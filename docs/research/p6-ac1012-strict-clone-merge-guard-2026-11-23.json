@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-strict-clone-merge-guard-2026-11-23",
+  "status": "STRICT_SEMANTIC_GUARD_AND_PARTIAL_COMPATIBILITY_CONTROLS_PASS_NATIVE_MERGE_OPEN",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "revision": "8e2a4c39",
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tools/research/generate_ac1012_dictionary_merge_samples.py"
+    ],
+    "behavior": "For complete DWG-to-DXF export, refuse only AC1012 sources whose NOD has a unique ACAD_MLINESTYLE root, the rooted child DICTIONARY is unique, and that dictionary contains a matching typed MLINESTYLE owned by it. The guard remains active if opaque callback output becomes qualified. Explicit AllowPartial does not trigger this guard."
+  },
+  "candidate": {
+    "path": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "e7870dd650ee0b421ffc3d2b76a6fe15c01068971a12654dee323d9acbb27229",
+    "focusedTest": {
+      "path": "build-gcc/tests/libdxfrw_dwg_ac1014_dictionaryvar_tests",
+      "sha256": "a4d62c37c21290ffaa53fa11da857902656161628efc667f26f8adf253647bc6",
+      "result": "PASS"
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf -j2: PASS with project warning policy",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_ac1014_dictionaryvar$' --output-on-failure: PASS 1/1; AC1012/AC1014/AC1015 labels",
+    "generatedPair": {
+      "scratchDirectory": "/private/tmp/ac1012-strict-guard-final-20261123/ac1012-dictionary-merge-ejpkpvrl",
+      "generatorSha256": "9b2a86e379f6676d51c9ba3efb0cfdbd7e1e0c2215bb957ec9e2e308b76a089e",
+      "destinationDwgSha256": "5b25494e2f944621560bdc254765d698c3796b84b8d789e2b3760d3dcb379e28",
+      "sourceDwgSha256": "cb2024b108f00edbbf2270d85101bf3f6dc365e1d5d4afdf56a71fa71efe619d",
+      "dictionaryFrameSha256": "f742211bff5f5da8008ca8dbf2c1fd61a128fabe657b4f1ddc2d86e51c8fb75a",
+      "sameKeyValues": "destination 15 degrees; source 37 degrees",
+      "strictAsciiAndBinary": "REFUSED_WITH_DESTINATIONS_PRESERVED_AND_SPECIFIC_MERGE_SEMANTICS_DIAGNOSTIC",
+      "partialAsciiSha256": [
+        "7ac27029bfe7d3e155189a35ef33f592d9eb5b61a45ab7778feae0f7d8c37a8d",
+        "ea2536b7110a5373ad600a18d325b3f6a7958ab652b70aaa1d72fca5a686a224"
+      ],
+      "partialBinarySha256": [
+        "c7c5f9c020bbe1cdf3354ec6c115ff35317bc638d9d5c1e348970ec2571850bb",
+        "db110b9f1d57ae8266eee7d8beb79d5ac7932867ffb741eb656d4577a8e90836"
+      ],
+      "partialResult": "ASCII and Binary bounded dictionary/style wire audits pass; selected dictionary targets retain the expected identity and value"
+    },
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "The scratch DWGs are specification-directed LibreDWG outputs, not AutoCAD-authored producer evidence.",
+    "No AutoCAD normal-open or duplicate-key clone/merge operation was run; native merge semantics remain unqualified.",
+    "The guard does not establish complete AC1012 output support, interoperability, or a support claim.",
+    "Generated DWG/DXF files remain outside the repository."
+  ]
+}

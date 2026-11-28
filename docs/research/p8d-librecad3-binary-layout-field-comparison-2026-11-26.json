@@ -1,0 +1,159 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "0869ec2d22611b45b840e47e9538f1649bdfd990",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "independent_reader": "ezdxf 1.4.5",
+  "tool": "tools/research/check_lc3_binary_layout_pair.py",
+  "tool_sha256": "524ed661b8437f801fcb34a240882fb57952afd7923fd37ab619503b3a7f7331",
+  "persistence_library_sha256": "1f22291a13e0914c74f9e30e651f7cf07bafcd4838e998f4c6cff9bf08f9a2fa",
+  "evidence_scope": "For each generated same-version source/replay pair: all reader-exposed LAYOUT and BLOCK_RECORD fields, excluding remapped identities, match; NOD, layout dictionary, reciprocal block links, Normal plot-style ownership and LINE geometry are checked; audits have no errors or fixes.",
+  "results": [
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 0,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "a141c4976f5cf2cad36095c1e727a3a28321b682b2d9cc13f654ac9c01b55d22",
+      "source_sha256": "814afa292c71ca19549cc885a00bfed60fd2d020123647f81671fab0f5e2c696",
+      "version": "AC1015"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 0,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "cbeec845e53a29e2d2e33acb922ab1533ac41159cbb8dd9b92e48d2f2673e526",
+      "source_sha256": "503adb8f8befcd783052d75fa2b910e5d03118f0b72bf57f83ccd4b6b6029efd",
+      "version": "AC1015"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 0,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "957492a1a8594c613b1f4dc8b10b23e59716c3b494909951b3375d1eb979af4f",
+      "source_sha256": "84b4354363004b449cb29d49413ce29e8525868877b61fd234403d5390e2f83e",
+      "version": "AC1018"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 0,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "d72aba084d4ccad3806010d9a3475670499c6a8bbf26231bef8fd861982a72c0",
+      "source_sha256": "f4d3417db2eb970c014cbf140b45b14b48efda210c60465e8fd1f736618fbb49",
+      "version": "AC1018"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 0,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "f1eb02cd9e292397c6d249847694b435da6b96ee24686f72298b5f8f1b3df52b",
+      "source_sha256": "d726aac08d29f8578df262898ceb4199ead1240e02066fb80fc458b75f363f52",
+      "version": "AC1021"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 0,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "58134f6d042a20a4bca18c431e23cdd8bd27c18e9982eee0fd2f393a12a83a16",
+      "source_sha256": "6e1704f478a37c2ff8de719ab684ede07b7f2e155290c4adaf3b63cafe11b317",
+      "version": "AC1021"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 0,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "f561e4e051150fe6eaf8b06ae82fb18718846d673763fd7cac79ffaf4004d499",
+      "source_sha256": "200eb86c91a2a65b62029b62d696df3720dfd09d89be0e9432013fc7bab3d9ac",
+      "version": "AC1024"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 0,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "1b9591b115df322a72af733c9b4fe693429a024283963203158961b6c5b9c2eb",
+      "source_sha256": "e489f71e4a95ed3eb97a30df77aeb0dbca725b65898189d9b4d46deb4d931f54",
+      "version": "AC1024"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 0,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "ce69ebfeec0b3afb11ea147ec217db4006ece9117a60c0f3183531a94a6e55e9",
+      "source_sha256": "0506c14e354583a7b5fcb6ce9f6d0e34d5d678058a2a92c25e51fff47a94901c",
+      "version": "AC1027"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 0,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "ab60fc9be87f999f090ae16bb94905cd23d76b44da995d734ac6204a1f4b3cb3",
+      "source_sha256": "95eb2611a0c5c00719fb00f32ff535d71a21f97ced5a98aeceb04e54d104001b",
+      "version": "AC1027"
+    }
+  ],
+  "negative_control": "{\"error\": \"LINE geometry differs for Layout1\", \"ok\": false}",
+  "limitations": [
+    "The locally generated inputs are not independent-producer evidence.",
+    "Raw byte fidelity, other entity types, broader source graphs, native rendering and platform qualification are not established."
+  ]
+}

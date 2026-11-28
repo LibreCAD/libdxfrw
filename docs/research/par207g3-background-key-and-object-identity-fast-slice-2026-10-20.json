@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 Background key and OBJECTS identity closure",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Audit the generated six-kind ACAD_BACKGROUND round-trip for duplicate root or child dictionary targets.",
+    "Require one NOD key, one dictionary entry per retained Background handle, and unique nonempty OBJECTS handles.",
+    "Reuse the existing generated ASCII/Binary selector without adding CTest inventory or persistent fixtures."
+  ],
+  "sourceChange": {
+    "file": "tests/dxf_fixture_tests.cpp",
+    "change": "The Background round-trip now counts the ACAD_BACKGROUND root key, requires exactly one dictionary entry targeting each re-imported Background handle, and rejects duplicate or missing OBJECTS handles in the emitted-record scan.",
+    "reason": "Previous presence checks could permit duplicate dictionary keys to point at one Background while another child was not uniquely reachable; the order scan also did not verify section-wide handle uniqueness.",
+    "productionBehaviorChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --background-sun-callback-retention",
+      "result": "PASS"
+    },
+    "scopedDiffCheck": "PASS (git diff --check -- tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

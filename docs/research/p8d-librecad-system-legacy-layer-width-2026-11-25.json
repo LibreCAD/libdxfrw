@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-legacy-layer-width-2026-11-25",
+  "status": "LOCAL_LEGACY_LAYER_COMPATIBILITY_WITH_LOSS_REPORT_OTHER_GATES_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "742a1f1850aea1f4c9a6b2cd243be1f5b5b68b68",
+    "previousHead": "a4794a3ece1d1087e3502c09b85a89ca54af3d42"
+  },
+  "dependencyImplementationDigest": "2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21",
+  "authority": [
+    "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_r12_dxf.pdf: TABLES section lists the R12 LAYER fields without lineweight",
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm: later LAYER records define group 370 for lineweight"
+  ],
+  "finding": "A newly initialized LibreCAD drawing has layer 0 width Width07. The standalone writer refused R12/R14 LAYER output because the target cannot carry that lineweight, while LibreCAD's bundled path saves after omitting it.",
+  "change": "The system-codec consumer supplies the representable default to the writer for legacy DXF, counts each omitted layer lineweight, and reports it via the existing exportReport path. This does not mutate the source drawing or relax the library's no-loss admission. Failed exports clear the new report count; unsupported plot-off state still refuses.",
+  "validation": {
+    "host": "macOS ARM64 AppleClang Release",
+    "systemFocused": "PASS: 1861 assertions in 24 tagged cases; R12/R14 controls check two widths, reported loss, absence of group 370, source preservation, sentinel preservation for plot-off refusal, corrected same-filter retry, reimport and report reset.",
+    "systemTestSha256": "3b728fc82c8534b8f7407b9d26e1cd12bb5c032e16e43e56e5249e660667e60c",
+    "bundledFocused": "PASS: 1500 assertions in 17 matching tagged cases and librecad_dxf_fast_tests CTest.",
+    "bundledTestSha256": "e98829021da01ab5bb5a39c221cf177d33ee87ad5748a38e7968a97fedfd7c39",
+    "systemBroad": "Exploratory filter: 110/132 cases pass with 27 failed assertions; the previous run was 106/131 with 27 failed assertions. Later assertions now expose R12 POLYLINE VERTEX/SEQEND layer and linetype discrepancies, which remain open."
+  },
+  "limits": [
+    "This is a disclosed lossy legacy consumer export, not lineweight preservation or a new format support claim.",
+    "Independent native CAD reopen, R14 producer/version authority, GUI report visibility and current-head hosted platform checks remain open.",
+    "No drawing fixtures were committed."
+  ]
+}

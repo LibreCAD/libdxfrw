@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-tablecontent-semantic-incomplete-callback-guard-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Keep semantically incomplete TABLECONTENT on the raw-only route",
+  "status": "IMPLEMENTED_BUILD_AND_FAST_SELECTOR_PASS",
+  "supportClaimEffect": "none",
+  "trigger": "The existing fast object-dispatch selector showed that a bounded TABLECONTENT parse could return true with m_semanticContentComplete=false, yet the dispatcher still emitted a typed addTableContent callback for a profile explicitly marked raw-only.",
+  "authority": {
+    "source": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "version": "ODA Open Design Specification v5.4.1",
+    "sections": {
+      "20.4.96.2": "R24 and later store table content as part of the TABLE entity data; it is not a separate TABLECONTENT DWG object.",
+      "20.4.97": "Describes the standalone TABLECONTENT object and field families for the R21-era representation. It does not qualify the observed incomplete standalone payload or its unsupported semantics."
+    },
+    "layoutChange": false
+  },
+  "change": {
+    "file": "src/intern/dwgreader.cpp",
+    "behavior": "For a versioned raw-only TABLECONTENT profile, a successful bounded parse is emitted through addTableContent only if m_semanticContentComplete is true. Incomplete or rejected content uses the pristine common-shell probe and exact raw frame with typedPayloadValidated=false.",
+    "preserves": "No DWG byte interpretation, modeled field, or support claim changed."
+  },
+  "testCorrections": {
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "behavior": "The AC1027/AC1032 truncated common-handle retry controls now expect readObjects to return true when record-level failure is softened, while asserting one object parse failure, source-frame withholding, following-frame publication, and corrected-input recovery.",
+    "reason": "The established reader policy is to continue and report record-level failures without failing the entire OBJECTS read."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "result": "PASS"
+    },
+    "fastSelector": {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --persistent-manager-prefix-dispatch",
+      "result": "PASS"
+    },
+    "focusedIncompleteTailSelector": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_persistent_manager_incomplete_body_tail$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "fullSuite": "Not run."
+  },
+  "disposition": {
+    "TABLECONTENT": "The modeled-but-semantically-incomplete AC1032 body remains raw-only, does not mutate the caller's preexisting typed destination, and preserves the following complete OBJECT frame.",
+    "P5 producer/span gates": "Remain open; this change does not resolve field spans, standalone-R21 producer provenance, native display, or R24 inline TABLE semantics.",
+    "P6-B": "Remains open; S45 is independent of PERSUBENTMGR member-schema evidence."
+  },
+  "next": "Keep incomplete TABLECONTENT on the raw-only route. Continue the remaining source/span and native-qualification gates; do not treat this selector pass as TABLE format support."
+}

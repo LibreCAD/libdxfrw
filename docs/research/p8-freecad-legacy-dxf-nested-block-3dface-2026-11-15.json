@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-15",
+  "scope": "unmerged FreeCAD legacy DXF importer ordered follow-up patch",
+  "base": "FreeCAD main d956ec561639cfa83f755504b1b3358ea799428e with freecad-p8-legacy-dxf-surface-mesh-unit-scaling-2026-11-15.patch applied",
+  "patch": "docs/patches/freecad-p8-legacy-dxf-block-3dface-2026-11-15.patch",
+  "patch_sha256": "b9ac1da15914ab12e254eec983ed69328eb38db5d85e663d8d443f66cee71251",
+  "problem": "Legacy drawBlock iterates supported entity families but omits 3DFACE, discarding its geometry inside block references.",
+  "change": "Route block-contained 3DFACE through the existing drawFace and append successful shapes to the block compound; preserve that function\u2019s existing failure behavior.",
+  "validation": {
+    "test": "Actual proposed FreeCAD DraftDXF unit test fails on unit-scaling-only importer (0 faces), passes with both patches (one valid tilted face, exact scaled vertices).",
+    "nested_generated_dxf": "On FreeCAD 1.1.4 macOS ARM64 with optional parser e060ef0d8fe7143c2e0ce34734b686ba073f3cc1, open and insert of metric and inch two-level 90-degree-rotated block controls: baseline lacks the face; both patches yield three expected faces. Four tilted-face runs verify all transformed vertices against analytic coordinates.",
+    "unit_scaling_nested": "In a separate line/SOLID/POLYFACE nested control, metric original/patched and inch patched vertices match analytically; inch baseline mismatch reproduced, both open and insert."
+  },
+  "scratch_source_sha256": {
+    "tilted_face_metric_dxf": "5d471c2714b3e4a29d0427dc9b4e0e1cfe2eac60c044d4b25718193330ecc32c",
+    "tilted_face_inch_dxf": "13c9137bc82ed818f12782d9f08fc92f1caea86698358db6ad3614abe3f5d218",
+    "units_metric_dxf": "8d8db4fcafee24d6e2bf476a983917639b9ebd973abc578421a633387229736b",
+    "units_inch_dxf": "d813d581ccb96723bac8f7ea92247412456f1a4ef1127ce2533b605564bff337"
+  },
+  "limitations": [
+    "Both FreeCAD patches remain unmerged; tested native importer is FreeCAD 1.1.4 with corresponding local edits, not a build of main.",
+    "Only the legacy optional importer and generated DXF controls are covered; FreeCAD default C++ importer is unchanged.",
+    "No native Linux/Windows test of the patches, producer-authored DWG/DXF pair, generalized nested INSERT transform, invisible edges, ACIS, or broader 3DFACE profile is qualified.",
+    "Scratch fixtures are not committed."
+  ]
+}

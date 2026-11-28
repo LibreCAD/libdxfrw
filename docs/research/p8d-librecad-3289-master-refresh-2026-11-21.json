@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-3289-master-refresh-2026-11-21",
+  "date": "2026-11-21",
+  "status": "CONSUMER_REFRESH_HOSTED_BOUNDED_CHECKS_PASSED",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "repository": "LibreCAD/LibreCAD",
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "previousHead": "c5a9380c16347eef5003178a84501fedbf77cfe9",
+    "newHead": "195dc2cd142dd1205761de4b38c6b96e3216b316",
+    "mergedMaster": "78014ecde2f53fdd8c06453f3854b1cae1a3fd0d",
+    "mergeParents": [
+      "c5a9380c16347eef5003178a84501fedbf77cfe9",
+      "78014ecde2f53fdd8c06453f3854b1cae1a3fd0d"
+    ],
+    "mergeConflicts": 0,
+    "state": "draft, mergeable when observed"
+  },
+  "hostedPriorRun": {
+    "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/44697376827",
+    "failedJobs": [
+      "Linux fast",
+      "Windows x64",
+      "Windows ARM64"
+    ],
+    "failures": [
+      "librecad_colorbox_ui_tests was registered but omitted from build targets",
+      "Hungarian and Ukrainian angle-label translations were inconsistent"
+    ]
+  },
+  "upstreamFixes": [
+    "Current master adds librecad_colorbox_ui_tests to both Linux and Windows workflow build target lists.",
+    "Current master reconciles the Hungarian and Ukrainian angle-label catalog entries; the Python catalog suite passed locally (4 tests)."
+  ],
+  "local": {
+    "checkout": "isolated scratch checkout; existing user checkout left untouched",
+    "merge": "clean history-preserving merge, no forced update",
+    "catalogTest": "PASS: python3 -B scripts/test_angle_translation_catalogs.py",
+    "uiBuild": "PASS: built librecad_colorbox_ui_tests from the refreshed checkout (983 build steps); Qt offscreen CTest colorbox UI and angle catalog checks passed (2/2)."
+  },
+  "hostedNewRuns": {
+    "dwgDxf": "https://github.com/LibreCAD/LibreCAD/actions/runs/44952335912",
+    "stateWhenRecorded": "PASS: Linux fast, Windows x64, and Windows ARM64 jobs on consumer head 195dc2cd142dd1205761de4b38c6b96e3216b316."
+  },
+  "limits": [
+    "The upstream workflow fixes are inherited from master, not new fixes claimed by the consumer PR.",
+    "Native GUI, Linux/Windows final consumer qualification and updated library candidate remain open. Recheck hosted run outcomes and exact source identities after candidate freeze."
+  ]
+}

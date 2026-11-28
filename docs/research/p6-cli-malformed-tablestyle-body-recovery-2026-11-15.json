@@ -1,0 +1,43 @@
+{
+  "title": "Generated TABLESTYLE legacy and R24 body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_TABLESTYLE_BODY_RECOVERY_AC1015_AC1018_AC1024_PASS",
+  "scope": "CLI disposition for bounded malformed legacy and R24 TABLESTYLE OBJECTS bodies at AC1015, AC1018, and AC1024, including continued reading, strict refusal, and explicit-partial output readback.",
+  "selection": {
+    "source": "P6-F typed OBJECTS parser and writer inventory",
+    "reason": "DRW_TableStyle has typed legacy and R24 DWG parse/write routes. The legacy generated profile uses three rows; R24 requires a distinct prefix, embedded table-cell style, cell styles, and a hard-owner handle token."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-tablestyle-body-source",
+    "profile": "Legacy controls contain one TABLESTYLE at handle 0x700 with three rows and six visible borders per row. The AC1024 control contains the R24 prefix, embedded Table style, three named styles, and hard-owner handle token 0x702. Each is followed by a LINE at handle 0x701.",
+    "mutation": "The generator searches the bounded object frame for a one-bit mutation rejected by DRW_TableStyle::parseDwg while preserving the object handle and common prologue.",
+    "provenance_limit": "The AC1024 source is generated from scratch for parser-disposition testing. The target of the synthetic R24 hard-owner handle is not materialized or independently qualified; the test makes no TABLESTYLE graph-closure claim."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 5, "output_revision": "AC1021"},
+    "AC1018": {"controls": 5, "output_revision": "AC1021"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021", "status": "legacy TABLESTYLE body recovery only"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024", "status": "R24 body recovery only; generated handle target and TABLESTYLE graph semantics remain unqualified"},
+    "AC1027": {"controls": 0, "status": "not qualified"},
+    "AC1032": {"controls": 0, "status": "not qualified"}
+  },
+  "assertions": [
+    "Each admitted source records one failed OBJECTS frame, continues to the following LINE, and balances source/published/failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel at AC1015, AC1018, AC1021, and AC1024.",
+    "Explicit-partial ASCII/Binary conversion and fresh DXF readback retain the LINE at all four admitted source revisions."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py and python3 -m json.tool on this receipt passed.",
+    "diff_check": "git diff --check passed.",
+    "targeted": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_tablestyle_recovery$' passed 1/1 in 0.65 seconds and reported 20 controls: five each at AC1015, AC1018, AC1021, and AC1024.",
+    "aggregate": "The dwg2dxf_cli_partial_read_disposition aggregate was not rerun for this isolated profile."
+  },
+  "limits": [
+    "Generated parser recovery and disposition evidence only; TABLESTYLE dictionary membership, table formatting semantics, and native rendering are not qualified.",
+    "AC1027 and AC1032 malformed TABLESTYLE body recovery are unqualified.",
+    "The AC1024 synthetic hard-owner target, TABLESTYLE dictionary closure, formatting semantics, and native rendering are unqualified.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

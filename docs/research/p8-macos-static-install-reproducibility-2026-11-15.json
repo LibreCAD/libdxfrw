@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-15",
+  "platform": "macOS 27.2.1 ARM64, Apple clang 21.0.0, CMake 4.4.5, Release static library",
+  "finding": "Two CMake installs of the same built archive differed in the archive index timestamp. CMake invokes ranlib without deterministic mode after copying a static archive on this host; the two installed archives otherwise differed only in timestamp bytes.",
+  "change": "For macOS static-library installs, run the configured ranlib with -D after the standard install step. Resolve relative or absolute libdir, install-time --prefix and DESTDIR, and fail installation if deterministic indexing fails. Shared-library installations do not use this hook.",
+  "sources": [
+    "https://fuchsia.googlesource.com/third_party/cmake/+/6658e260d481f5e51537cffefcd3aac6844d529d/Source/cmInstallTargetGenerator.cxx",
+    "https://www.sourceware.org/binutils/docs/binutils.html"
+  ],
+  "validation": [
+    "The new opt-in check_macos_repeat_static_install control fails against the previous generated install script, then passes after reconfiguration. It waits across an index timestamp boundary, installs to a prefix containing spaces and separately through DESTDIR, compares archive SHA-256 values, and compiles and runs a consumer against each archive.",
+    "A staged package check including relocated-prefix consumer routes passes on this host; the source and relocated original archive hashes matched before the deterministic-index change.",
+    "An injected ranlib wrapper that fails only on -D produces a fatal install error. Configure-only controls verify shared builds omit the hook and absolute libdir retains install-time DESTDIR handling.",
+    "The package checker self-test passes."
+  ],
+  "limits": "This proves repeated installs of the same local built archive, not bit-for-bit reproducibility across clean builds, toolchains or platforms. ABI, distribution, and native platform qualification remain open; no format support claim is promoted."
+}

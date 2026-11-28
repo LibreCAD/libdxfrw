@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-16",
+  "scope": "Optional ten-case early GUI view-property smoke profile for the existing FreeCAD candidate probe.",
+  "sourceCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+  "platform": "macOS ARM64",
+  "macroSha256": "008596f02a1dcc6306bfd2b154d3c6ef1266e886f91ff282e9e11d2f0668f14c",
+  "guiUp": 1,
+  "profile": "smoke",
+  "ok": true,
+  "cases": [
+    "polyface",
+    "polygon",
+    "mixed",
+    "nested_nolayers",
+    "layer_on_2",
+    "layer_off_2",
+    "layer_frozen_2",
+    "color",
+    "color_mixed",
+    "color_mixed_nocolor"
+  ],
+  "checks": [
+    "Native GUI smoke profile passed ten cases.",
+    "Unknown profile returns an explicit failure result.",
+    "The default full profile still declares 67 distinct cases."
+  ],
+  "limitations": [
+    "The full profile was not rerun for this selection-only change.",
+    "These are view-property checks, not pixel-rendering evidence.",
+    "Linux and Windows GUI behavior remains open.",
+    "The FreeCAD candidate patches remain unmerged."
+  ]
+}

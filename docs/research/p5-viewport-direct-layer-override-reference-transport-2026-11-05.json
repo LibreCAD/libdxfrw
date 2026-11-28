@@ -1,0 +1,57 @@
+{
+  "date": "2026-11-05",
+  "scope": "Generated DXF VIEWPORT direct layer-override reference transport for group codes 335, 343 and 344.",
+  "research": {
+    "sources": [
+      {
+        "title": "Autodesk VIEWPORT DXF reference",
+        "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+        "finding": "The VIEWPORT-specific table identifies codes 335, 343 and 344 as soft-pointer references to VIEWPORT objects for layer VP property overrides. The same table identifies code 91 as a soft pointer."
+      },
+      {
+        "title": "Autodesk DXF group-code ranges",
+        "url": "https://help.autodesk.com/cloudhelp/2021/ENU/OARX-DevGuide/files/GUID-A0E46BAC-ECE3-4E31-854A-3616A532C826.htm",
+        "finding": "The generic table classifies codes 90-99 as int32, 330-339 as soft pointers and 340-349 as hard pointers. This conflicts with the VIEWPORT-specific meaning for code 91 and pointer roles for 343/344; the context-specific VIEWPORT table provides the implemented roles for 335/343/344, while code 91 remains fail-closed."
+      },
+      {
+        "title": "Autodesk DxfCode reference",
+        "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DxfCode.html",
+        "finding": "DXF code meanings are contextual; identical integer codes can have different meanings in different record contexts. This supports keeping VIEWPORT entity fields separate from Layer-owned XRECORD payload tags."
+      }
+    ],
+    "separation": "The generated ezdxf-described Layer-owned XRECORD profile remains separate: its group 335 is a VIEWPORT handle, group 343 is an LTYPE handle, and group 91 is lineweight data. This implementation applies only to the direct VIEWPORT entity fields."
+  },
+  "fields": [
+    { "member": "layerOverrideReferences", "group_code": 335, "target_role": "VIEWPORT entity" },
+    { "member": "layerOverrideReferences", "group_code": 343, "target_role": "VIEWPORT entity" },
+    { "member": "layerOverrideReferences", "group_code": 344, "target_role": "VIEWPORT entity" }
+  ],
+  "implementation": {
+    "model": "Retain ordered code/64-bit-handle pairs, bounded to 512 entries; parse DXF hexadecimal handle lexemes; refuse code 91; refuse encoding these DXF-only fields through the DWG VIEWPORT encoder.",
+    "writer": "Translate references through the adapter resolver or preallocated/remapped entity identity. The adapter preallocates forward target identities before writing and binds emitted VIEWPORT identities. Graph validation requires one unique retained VIEWPORT target for each edge.",
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp"
+    ]
+  },
+  "validation": {
+    "input": "Generated in-memory VIEWPORT graph and locally authored parser strings; no DWG/DXF fixtures were added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "selectors": [
+      "build-gcc/libdxfrw_dxf_fixture_tests --viewport-typed-handle-remap",
+      "build-gcc/libdxfrw_dxf_fixture_tests --dwg-viewport-projection"
+    ],
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j4",
+    "result": "PASS. Parser controls retain ordered codes 335/343/344 and refuse code 91. Low-level writer controls verify remapped values. Adapter controls verify forward references resolve to the output VIEWPORT identity after ASCII/Binary readback; a LINE target is refused with destination preservation, then the same adapter succeeds after correction."
+  },
+  "qualification_limits": [
+    "Generated transport and graph-closure evidence only; no eligible physical producer carrying these direct VIEWPORT fields was available.",
+    "Does not qualify native layer override activation, rendering, dictionary-key collation, or wider producer/version coverage.",
+    "Group 91 remains unmodeled and refused until its DXF value representation and binary encoding are independently resolved.",
+    "The local AC1024 corpus census found no such fields and therefore supplies no producer corroboration.",
+    "No support claim is promoted by this receipt."
+  ]
+}

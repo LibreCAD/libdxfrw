@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-revolved-swept-surface-fields-2026-11-12",
+  "purpose": "Extend the headless DXF 3D consumer probe with selected REVOLVEDSURFACE and SWEPTSURFACE callback-field and opaque-payload identity checks.",
+  "changes": [
+    "Added runtime-authored AC1027 REVOLVEDSURFACE and SWEPTSURFACE records with distinct fields and transforms.",
+    "Asserted REVOLVEDSURFACE axis point/vector, angle, transform, draft, twist, and solid/close-to-axis fields under ext=false and ext=true.",
+    "Asserted SWEPTSURFACE modeler/isolines, sweep/path IDs and payload sizes, four distinct matrix slots, draft/scale/align fields, alignment/Boolean controls, and reference vector under ext=false and ext=true.",
+    "Verified exact size, SHA-256 digest, and preserved disposition for both SWEPTSURFACE group-310 payload chunks in the neutral consumer carrier ledger.",
+    "Excluded nonzero DWG classVersion and group-71 pathFlags from DXF roundtrip expectations: the official Autodesk SWEPTSURFACE DXF table does not list either field. Their mapping remains unqualified."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.40 seconds"
+  },
+  "scopeLimit": "Generated same-library DXF callback and carrier-identity evidence only. It does not qualify surface evaluation, independent interoperability, DWG field layouts, or native consumers.",
+  "fixturePolicy": "DXF files and payloads are generated from source literals at runtime and removed; no drawing fixture file was added.",
+  "claimEffect": "No support claim changes. The S8.3 consumer probe now checks selected REVOLVEDSURFACE/SWEPTSURFACE data and tracks the two swept payload carriers separately from typed fields."
+}

@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Common DICTIONARY typed callback retention bounds",
+  "mode": "Generated local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "planSha256": "7e912ae23bcac9b5ccd2521d55c1b99ad9a603f78fe1d5792c7541c856f14903",
+  "scope": [
+    "Bound the common DRW_Dictionary list callback and named-object-root callback under one aggregate adapter budget",
+    "Account for base table-entry dynamic state, dictionary entry slots, and entry-name payloads",
+    "Mark incomplete active DXF associative capture when a common dictionary callback cannot be retained",
+    "Fail export before output publication on any common dictionary capture failure",
+    "Add generated fast coverage for exact shared admission, deep-copy independence, per-dimension over-budget refusal, and destination preservation"
+  ],
+  "implementation": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistered": true,
+    "limits": {
+      "combinedRecords": 100000,
+      "dictionaryEntries": 1000000,
+      "logicalRetainedBytes": "DRW::kMaxDxfBinaryPayloadBytes (64 MiB)"
+    },
+    "controls": [
+      "The ordinary dictionary list and named-object root consume the same lifetime record/entry/byte budget",
+      "Exact-fit aggregate limits admit both destination types",
+      "Over-budget record, entry, and byte attempts refuse further copies and preserve previously admitted state",
+      "The DXF export guard reports typed dictionary capture failure and preserves an existing destination sentinel"
+    ],
+    "limitations": "This admission bound does not establish dictionary ownership/reference closure, source graph completeness, serializer fidelity, or native application acceptance."
+  },
+  "localEvidence": [
+    "The common callbacks previously copied directly to dx_data::dictionaries and dx_data::namedObjectDictionary without a shared adapter admission budget.",
+    "The new guard is generated entirely from in-memory C++ dictionary values and a temporary output sentinel; no persistent or downloaded drawing fixture was added.",
+    "Existing extension graph and DICTIONARYWDFLT/PLACEHOLDER focused tests passed with the new guard."
+  ],
+  "planImpact": {
+    "existingOwnerRefined": "7S.2c typed persistent TABLES/OBJECTS callback capture census",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "remainingCensus": "LTYPE, DIMSTYLE, BLOCK_RECORD, and LAYOUT direct callback stores remain to audit.",
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/dictionary-typed-callback-retention-bounds-fast-slice-2026-10-19.json"
+    ],
+    "stagedOrCommitted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^(dwg2dxf_dictionary_typed_capture_limits|dwg2dxf_dictionary_default_typed_capture_limits|dwg2dxf_dictionary_default_raw_capture_limits|libdxfrw_dictionary_default_adapter_roundtrip|dwg2dxf_visual_style_typed_capture_limits|dwg2dxf_visual_style_raw_capture_limits|libdxfrw_visual_style_import_evidence|dwg2dxf_background_sun_typed_capture_limits|dwg2dxf_render_background_sun_raw_capture_limits|dwg2dxf_render_settings_typed_capture_limits|dwg2dxf_xrecord_typed_capture_limits|dwg2dxf_material_typed_capture_limits|dwg2dxf_datalink_typed_capture_limits|dwg2dxf_named_object_callback_storage|libdxfrw_extension_graph_limits)$' --output-on-failure",
+      "git diff --check -- src/drw_objects.h dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq empty docs/research/dictionary-typed-callback-retention-bounds-fast-slice-2026-10-19.json",
+      "shasum -a 256 DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "strictTargetsBuilt": true,
+    "focusedCTestPassed": "15/15",
+    "planDiffCheck": true,
+    "receiptJsonValidation": true,
+    "planSha256Matches": true,
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "commonDictionaryTypedCallbacksBounded": true,
+    "full7S2cCensusComplete": false,
+    "serializerOrSemanticSupportPromoted": false
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-lwpolyline-dwg-vertex-allocation-guard-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P6",
+  "status": "BOUNDED_DWG_AND_DXF_LWPOLYLINE_VERTEX_ALLOCATION_FAILURE_FAILS_CLOSED",
+  "supportClaimEffect": "none",
+  "scope": "Catch allocation exceptions from DWG and DXF LWPOLYLINE vertex shared-object allocation so they return through each parser's existing failure path.",
+  "implementation": {
+    "source": "src/drw_entities.cpp",
+    "sourceSha256": "da9c7bf94ba5b47c96e356a4b0dff5a4d8180d1ef335cb6feffc939ed05ef65e",
+    "behavior": "An internal noexcept factory catches std::make_shared failures. DWG parsing routes a null vertex through fail(), which invalidates the source buffer and resets the entity. DXF parseCode returns false on a null vertex, and now increments the field occurrence only after allocation/insertion succeeds so a failed allocation leaves parser state retryable. Both paths reserve their pointer vectors through DRW::reserve before appending; the DWG loop therefore does not allocate vector capacity per vertex.",
+    "failureInjection": "Not available in these parser paths; exception handling and each return route were source-reviewed, not fault-injected."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests --parallel 4",
+      "result": "PASS"
+    },
+    "physicalDwgReadPath": {
+      "source": "/Users/dli/doc/dwg/tablet.dwg",
+      "sourceSha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+      "fixturePolicy": "User's existing AC1021 corpus sample; outputs and trace remain under /private/tmp; no fixture added.",
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/tablet.dwg -y -d -v2007 /private/tmp/dxfrw-lwpolyline-tablet-final-out.dxf",
+      "result": "DWG read reached and published all 6371 source frames with entityParseFailures=0; debug trace contains 1272 LWPOLYLINE parser invocations. CLI exit 1 and strict output refused because 23 AC1021 page CRC mismatches make the source disposition incomplete.",
+      "tracePath": "/private/tmp/dxfrw-lwpolyline-tablet-final.log",
+      "traceSha256": "646b37d7dc2dd2cf40f7fab2b8a5fc673c2a010afa81635983d79058a794d924"
+    },
+    "dxfReadAndWritePath": {
+      "source": "tests/fixtures/dxf/ac1015_lwpolyline_freecad_control.dxf",
+      "sourceSha256": "ccc9d3c55e0860e93ab7e1cb3d7704221b2fdd8100c468012972d11c1b8760ed",
+      "fixturePolicy": "Existing tracked control fixture; both generated outputs are under /private/tmp.",
+      "commands": [
+        "build-gcc/dwg2dxf/dwg2dxf tests/fixtures/dxf/ac1015_lwpolyline_freecad_control.dxf -y -v2000 /private/tmp/lwpolyline-fixture-final-1.dxf",
+        "build-gcc/dwg2dxf/dwg2dxf /private/tmp/lwpolyline-fixture-final-1.dxf -y -v2000 /private/tmp/lwpolyline-fixture-final-2.dxf"
+      ],
+      "result": "Both conversions exit 0; each output contains one LWPOLYLINE record. The CLI also reports an unqualified FIELDLIST profile warning, so this is a narrow parser round-trip control rather than whole-document output qualification.",
+      "outputSha256": [
+        "8a2811f9d589f53c0bfd1954c79d8547983d37d57b0cd077f51c9e622daf1ab8",
+        "1e38d6ea45e76a8bd85f0854ad3093299a5bb29cee2b8302aa142dd30d574365"
+      ]
+    },
+    "diffCheck": "PASS: git diff --check -- src/drw_entities.cpp",
+    "focusedFastRegression": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_lwpolyline_point_component_order$' --output-on-failure",
+      "result": "PASS 1/1 in 0.08 seconds; labeled fast/dxf/reader/lwpolyline/geometry/allocation"
+    }
+  },
+  "limitations": [
+    "This closes only per-vertex shared allocations in DRW_LWPolyline::parseDwg and parseCode; other DWG/DXF parser allocation paths remain in P6 safety scope.",
+    "No allocation failure was injected. The physical AC1021 source remains strict-output-refused due to its existing CRC mismatches.",
+    "No DWG or DXF fixture was added and no format support claim is promoted."
+  ],
+  "next": "Continue auditing bounded DWG/DXF parser paths for uncaught allocations; preserve the existing fail-closed frame and publication contracts."
+}

@@ -1,0 +1,51 @@
+{
+  "id": "p4-dimension-dimstyle-reference-fail-closed-2026-11-03",
+  "date": "2026-11-03",
+  "status": "PASS",
+  "source_profile": {
+    "format": "DWG",
+    "revision": "AC1024",
+    "provenance": "Locally authored from scratch by the focused C++ selector at runtime; generated drawings are removed with the temporary directory.",
+    "fixture_committed": false
+  },
+  "contract": {
+    "dwg": "ODA v5.4.1 §20.4.22 defines the common DIMENSION DIMSTYLE field as a hard pointer.",
+    "dxf": "Autodesk Common Dimension Group Codes defines group 3 as the dimension style name.",
+    "required_projection": "Resolve a non-null DWG DIMSTYLE pointer to the exact table name. Preserve STANDARD for a null model pointer. If a non-null pointer has no table target, keep the group-3 name unresolved and refuse strict full conversion rather than emitting an empty or substituted style."
+  },
+  "implementation": {
+    "reader": "dwgReader::resolveDimensionTableReferences retains STANDARD for a null DIMSTYLE handle and maps other handles through the DIMSTYLE table; an absent non-null target remains an empty style name.",
+    "writer": "dxfRW::preflightDimensionStyle now rejects an empty style name during strict full conversion before opening the DIMENSION record scope. Direct standalone writer behavior remains outside this strict check.",
+    "test": "The focused selector runtime-authors valid and missing-target AC1024 DWGs, imports both, checks exact custom-name resolution or unresolved empty name, then verifies ASCII/Binary strict refusal, destination preservation, same-adapter correction retry, and typed readback."
+  },
+  "results": {
+    "resolved_custom_style": "PASS: ANSI-25 survives AC1024 DWG import and ASCII/Binary DXF output/readback.",
+    "missing_target": "PASS: the generated non-null missing DIMSTYLE target remains unresolved after adapter retention and strict output refuses it.",
+    "rollback_and_retry": "PASS: existing destination sentinels survive both refusals; setting the resolved DIMSTYLE name allows the same adapter to write and read back ANSI-25 in both encodings.",
+    "normal": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "focused_test": "ctest --test-dir build-gcc -R '^libdxfrw_dimension_dimstyle_reference_binding$' --output-on-failure",
+      "result": "PASS"
+    },
+    "regression_cohort": {
+      "test": "ctest --test-dir build-gcc -R '^(libdxfrw_dimension_dimstyle_reference_binding|libdxfrw_tolerance_dimstyle_reference_binding|libdxfrw_dimension_picture_block_full_conversion)$' --output-on-failure",
+      "result": "PASS: 3/3 focused controls"
+    },
+    "asan": {
+      "build": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "focused_test": "ctest --test-dir build-asan-custom -R '^libdxfrw_dimension_dimstyle_reference_binding$' --output-on-failure",
+      "result": "PASS"
+    }
+  },
+  "sources": [
+    {
+      "title": "ODA Open Design Specification for .dwg files v5.4.1 §20.4.22 Common Dimension Data",
+      "uri": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    },
+    {
+      "title": "Autodesk Common Dimension Group Codes (DXF)",
+      "uri": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-EDD54EAC-A339-4EBA-AEA6-EC8066505E2B.htm"
+    }
+  ],
+  "claim_boundary": "Generated AC1024 DIMENSION DIMSTYLE name transport and fail-closed behavior only. No physical producer breadth, dimension rendering, native-consumer behavior, or general support claim is established."
+}

@@ -1,0 +1,51 @@
+{
+  "evidenceId": "p6-arcalignedtext-d2t-complete-token-guard-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P6",
+  "status": "GENERATED_D2T_TRAILING_BYTES_REFUSED",
+  "qualificationEligible": false,
+  "supportClaimsPromoted": false,
+  "scope": "Prevent strict ARCALIGNEDTEXT DXF output from silently accepting only a numeric prefix of a retained D2T string. Preserve the existing prefix behavior of the read-only text-height approximation.",
+  "implementation": {
+    "baselineHead": "961d4fa5fc6a12d5b6138980d80fff459c077fb5",
+    "changes": [
+      "Added DxfNumeric::parseFiniteToken, which requires the parsed numeric token to consume the entire std::string except surrounding ASCII whitespace, rejects embedded-NUL suffixes, non-finite values, overflow and underflow-to-zero, and leaves the caller's output value unchanged on refusal.",
+      "Strict ARCALIGNEDTEXT DXF writing now uses complete-token parsing; applyArcApproximation retains parseFinitePrefix for its existing tolerant projection behavior.",
+      "Extended generated adapter refusal/retry coverage for all six D2T fields in ASCII and Binary DXF with values such as 2.25trailing. Each refusal preserves the existing destination and caller model; correction through the same adapter succeeds and typed readback matches.",
+      "Added direct numeric controls for surrounding whitespace, existing C-locale hexadecimal strtod compatibility, trailing text, embedded NUL, non-finite/overflow/underflow values, output preservation, and representable subnormal acceptance."
+    ],
+    "lexicalBoundary": "This guards against prefix truncation only. It does not establish Autodesk's or all producers' complete ARCALIGNEDTEXT D2T lexical grammar; the existing strtod token syntax remains accepted.",
+    "fixturePolicy": "All new cases are generated in memory or under the test temporary directory. No DWG/DXF fixture was added.",
+    "sourceSha256": {}
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_numeric_locale_tests libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_numeric_locale|libdxfrw_numeric_process_locale|dwg2dxf_arcalignedtext_d2t_output_guard)$' --output-on-failure",
+    "focusedResult": "PASS 3/3; D2T adapter 0.61s, numeric 0.55s, process-locale 0.08s",
+    "initialFailure": "The first direct numeric run exposed that a C-string terminator check could accept a std::string with bytes after an embedded NUL. The helper was corrected to compare the parse end against the string's actual byte limit; all focused selectors then passed.",
+    "workspaceNote": "Tests ran on the integrated worktree with other in-progress changes; source hashes identify only this slice."
+  },
+  "binding": {
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0, arm64-apple-darwin27.0.0"
+    },
+    "sourceSha256": {
+      "src/intern/dxfnumber.h": "e26c95a2c658fae5e1cb7d5184abfa2e901a4162ab2cfdcbf4afe34f23003b80",
+      "src/libdxfrw.cpp": "d339610e5a71c23c0dd4e30a739227537c5a9cbd6c31cd4e7b720bd68ae9473f",
+      "tests/numeric_locale_tests.cpp": "ad21205ebfae3e678967af53dec0d6053e402912f3a3dc65f3d5915381c31b1f",
+      "tests/dwg2dxf_adapter_tests.cpp": "28dca31c20d612303aa2f97dbb75d7ca339b8c3fd2792d21d29618bbea58f738"
+    },
+    "executableSha256": {
+      "build-gcc/tests/libdxfrw_numeric_locale_tests": "a97bf1c8ea56e49cd8c3db282e97cb0ec41017b77b192560512a103fceca96ca",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "1067e8a2afb43f1f151eb8fad743f0f08a217fc793df561c1c180ba219840120"
+    },
+    "commitState": "Included in the D2T precision/range/full-token implementation slice."
+  },
+  "limitations": [
+    "Generated conversion and rollback evidence only; no physical ARCALIGNEDTEXT producer or independent semantic/native consumer was exercised.",
+    "The guard does not define the producer's numeric lexical grammar or establish source-to-output fidelity for a physical DWG.",
+    "No DWG/DXF, FreeCAD, LibreCAD, LibreCAD_3, or general ARCALIGNEDTEXT support claim is promoted."
+  ]
+}

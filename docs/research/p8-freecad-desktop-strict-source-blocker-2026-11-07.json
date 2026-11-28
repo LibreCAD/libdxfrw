@@ -1,0 +1,68 @@
+{
+  "title": "FreeCAD desktop open/insert smoke blocked by strict source eligibility",
+  "date": "2026-11-07",
+  "status": "native FreeCAD launched; positive handoff not qualified because converter correctly refused the selected DWG",
+  "scope": [
+    "Run the opt-in actual FreeCAD desktop open/insert CTest on the unlocked macOS host.",
+    "Determine whether the failure is in FreeCAD startup/dispatch or in the selected source-to-DXF handoff.",
+    "Probe existing repository-owned candidates for strict-complete conversion readiness without adding fixtures."
+  ],
+  "environment": {
+    "host": "macOS ARM64",
+    "freecad_bundle": "/Applications/FreeCAD.app",
+    "freecad_version": "1.1.4",
+    "freecad_executable_sha256": "a535464ece9a6175a3b15f385b35818402007eb3a8853384dacd65f128b50b1e",
+    "installed_dwg2dxf": "/private/tmp/libdxfrw-plan-freecad-desktop-2026-11-07/bin/dwg2dxf",
+    "installed_dwg2dxf_sha256": "c0bc594b14ba4c245fcfe74198de1b19816c04a4189c9c7328058d3f805ae096"
+  },
+  "desktop_test": {
+    "command": "ctest --test-dir build-gcc -R '^dwg2dxf_freecad_desktop_open_insert$' --output-on-failure --verbose",
+    "input_fixture": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+    "input_sha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83",
+    "sandbox_attempt": "FreeCAD aborted before macro execution because this Qt build could not detect ARM NEON in the sandbox; this attempt is not application evidence.",
+    "unlocked_host_attempt": {
+      "result": "failed at the positive open assertion",
+      "freecad_process": "launched and executed the desktop macro",
+      "normal_open_documents": 0,
+      "converter_result": "installed dwg2dxf exited before producing DXF",
+      "converter_reason": "DXF export preflight failed: AC1027 DWG source references are not fully qualified",
+      "interpretation": "The configured FreeCAD import route reached the converter. The selected source is ineligible for strict output; this does not demonstrate a FreeCAD dispatch defect."
+    }
+  },
+  "replacement_candidate_probes": [
+    {
+      "source": "tests/fixtures/dwg/ordinary_enc_AC1015.dwg",
+      "command_shape": "dwg2dxf <source> -o <temporary-output.dxf>",
+      "result": "refused: strict-complete conversion requires successful, complete DWG read disposition"
+    },
+    {
+      "source": "tests/fixtures/dwg/ordinary_enc_AC1018.dwg",
+      "command_shape": "dwg2dxf <source> -o <temporary-output.dxf>",
+      "result": "refused: strict-complete conversion requires successful, complete DWG read disposition"
+    },
+    {
+      "source": "tests/fixtures/dwg/ordinary_enc_AC1021.dwg",
+      "command_shape": "dwg2dxf <source> -o <temporary-output.dxf>",
+      "result": "refused: strict-complete conversion requires successful, complete DWG read disposition"
+    },
+    {
+      "source_recipe": "tests/fixtures/dwg/ac1015_3d_line_control.dwgadd",
+      "generated_source": "/private/tmp/freecad-ac1015-3d-line.dwg",
+      "generation": "dwgadd --as r2000",
+      "result": "generated successfully, but strict-complete conversion was refused because the DWG read disposition was incomplete"
+    }
+  ],
+  "next_slice": [
+    "Trace the strict-complete disposition failure on the existing AC1015 generated control using focused read-disposition diagnostics.",
+    "Fix only a spec-backed parser or graph-closure defect supported by the locally generated source; do not weaken strict output preflight.",
+    "Require strict conversion to create a temporary DXF before launching FreeCAD.",
+    "Extend the opt-in desktop test to generate from an existing tracked .dwgadd recipe inside its temporary root, stage Unicode paths, and run actual open and insert checks.",
+    "Keep generated DWG/DXF artifacts and failure logs outside the repository."
+  ],
+  "limits": [
+    "No positive native FreeCAD open/insert result was obtained.",
+    "Native Linux/Windows FreeCAD qualification remains pending.",
+    "No implementation change to DWG layout, strict output policy, or support claims is justified by this failure."
+  ],
+  "fixture_policy": "No DWG or DXF fixture was added to the repository. The locally generated DWG and any converter output are scratch artifacts."
+}

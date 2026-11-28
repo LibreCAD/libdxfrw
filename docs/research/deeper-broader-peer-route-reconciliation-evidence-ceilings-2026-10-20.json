@@ -1,0 +1,165 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Broad peer-route reconciliation and evidence ceilings",
+  "mode": "Primary-source review and existing plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Re-screen independent DXF parsers, DWG readers, ACIS parsers, and native consumers by the exact stage they implement.",
+    "Reconcile new/current route observations with the existing PAR-07/S8 comparator and consumer gates.",
+    "Preserve the non-promoting DEFERRED_EXTERNAL status of J256, J260, J268, J284, J293, and J295."
+  ],
+  "method": {
+    "kind": "Public primary project documentation/source pages, versioned package metadata, issue report, and official DXF reference",
+    "peerRepositoriesBuiltOrRun": false,
+    "peerPackagesInstalledOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "mutableSourcePolicy": "Branch documentation is capability context only; any future comparator execution must pin source/artifact, route, version, and entity profile.",
+    "evidenceRule": "Parsing, typed decode, raw-record retention, object ownership, rendered projection, ACIS shape validity, analytic geometry semantics, and native-consumer behavior are distinct outcomes."
+  },
+  "evidence": [
+    {
+      "project": "gdsestimating/dxf-parser",
+      "sources": [
+        "https://github.com/gdsestimating/dxf-parser"
+      ],
+      "observed": "The README describes a DXF text-in/object-model-out parser, lists most 2D entities with partial MTEXT/XData, and explicitly lists 3DSolids and all leader types among unsupported areas.",
+      "limits": "The published support list is not a full drawing-retention contract or evidence for binary DXF, DWG, or ACIS semantics; no package or sample was run.",
+      "planUse": "Optional field/entity-specific DXF structural differential only; retain per-entity disposition and do not use parse success or output counts as whole-document parity."
+    },
+    {
+      "project": "Kabeja",
+      "sources": [
+        "https://github.com/jpgiance/Kabeja/blob/master/README"
+      ],
+      "observed": "The README describes a Java DXF-to-SVG parser/converter, states that entity support is incomplete and text entities have problems, and lists a set of supported 2D-oriented records.",
+      "limits": "A render/conversion projection cannot establish preservation of source records, uncommon object data, binary DXF, DWG, or 3D modeler bodies.",
+      "planUse": "Not admitted as a general codec comparator; at most use for a named 2D rendering question with explicit projection limits."
+    },
+    {
+      "project": "QCAD dxflib",
+      "sources": [
+        "https://github.com/qcad/qcad/blob/master/src/3rdparty/dxflib/src/dl_entities.h",
+        "https://github.com/qcad/qcad/blob/master/src/3rdparty/dxflib/src/dl_dxf.cpp"
+      ],
+      "observed": "The public source exposes entity data records and callback-style processing, including traditional geometry records.",
+      "limits": "This API shape is not a retained whole-document model; the source review does not establish complete record-family or version support and no executable was run.",
+      "planUse": "Keep the existing narrow QCAD/dxflib route; compare only explicitly represented fields and do not infer graph or serialization fidelity."
+    },
+    {
+      "project": "DrunkOnJava/dwg-rs",
+      "sources": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "observed": "The current README labels the reader pre-alpha, reports a 19-file corpus with 3,911 decoded, 525 skipped, and 9 errored records, and documents per-record data-stream boundary checks plus named decoder gaps.",
+      "limits": "The per-version corpus is small and self-selected; the README says aggregate rates change as the denominator changes. Boundary validation does not establish semantic correctness or native acceptance.",
+      "planUse": "Use only an exact pinned route for container, record-boundary, or named typed-decoder differential; report per-version denominators and decoded/skipped/errored dispositions."
+    },
+    {
+      "project": "unitedrhino/go-cad",
+      "sources": [
+        "https://pkg.go.dev/github.com/unitedrhino/go-cad%40v0.0.0-20261001090957-ddd91eea9618",
+        "https://pkg.go.dev/github.com/unitedrhino/go-cad%40v0.0.0-20261001090957-ddd91eea9618/internal/testsupport"
+      ],
+      "observed": "The versioned package documentation reports 37 DWG inputs, 34 strict comparison rows, and field-level comparison against LibreDWG JSON output.",
+      "limits": "The claim is project-reported and the expected values derive from LibreDWG, so this is not an independent ground-truth or geometry-semantic oracle; the corpus provenance requires separate review before execution.",
+      "planUse": "A candidate only for a pinned, question-specific structural differential, with LibreDWG explicitly recorded as the shared oracle and corpus artifact hashes/provenance captured."
+    },
+    {
+      "project": "cq-acis",
+      "sources": [
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md"
+      ],
+      "observed": "The project describes an experimental SAT/SAB reader and conversion of selected geometry to CadQuery/OCCT; unknown or unsupported records remain raw or fail conversion.",
+      "limits": "It is not a DWG container or AcDs ownership reader; supported profiles and geometry subsets are bounded, and a valid kernel shape alone is not an independently authored semantic expectation.",
+      "planUse": "Only use after exact carrier/profile selection and source-lineage pinning; report parser, reference closure, shape validity, analytic checks, and consumer behavior separately."
+    },
+    {
+      "project": "FreeCAD DXF consumer",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/22214"
+      ],
+      "observed": "The documentation distinguishes C++ and legacy Python importers, lists a bounded C++ entity set, and says stock import cannot read ACIS solids. Confirmed issue #22214 reports a multi-layout limitation for a named C++ importer route/build.",
+      "limits": "Documentation and an issue report do not establish behavior of an arbitrary current binary, converter, platform, or importer option; consumer omissions do not by themselves prove malformed DXF output.",
+      "planUse": "Keep native qualification exact to importer/backend, application build, platform, options, and entity family; test layout and ACIS outcomes separately from file-structure checks."
+    },
+    {
+      "project": "Autodesk 3DSOLID DXF reference",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "observed": "The published entity reference separates modeler-format version and proprietary modeler data from the AcDb3dSolid subclass and lists group 350 as a soft-owner handle to the history object.",
+      "limits": "This is a DXF entity contract, not a DWG AcDs byte-layout definition or proof that a peer interprets the modeler payload correctly.",
+      "planUse": "Keep serialized carrier bytes, history reference/ownership, and geometry semantics as separate assertions under PAR-07/S8."
+    },
+    {
+      "project": "Local plan reconciliation",
+      "sources": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "Reconciled the route-specific evidence grades and clarified the use of DXF projection parsers, per-record DWG coverage, shared-oracle comparisons, bounded ACIS readers, and native consumer results under existing plan owners.",
+      "limits": "No production source or test changed; no external drawing, peer executable, package, native application, or kernel was run.",
+      "planUse": "Use existing generated fast controls per local slice; execute a composed external route only when exact route identity and independent expected values are available."
+    }
+  ],
+  "assessment": {
+    "newPeerCandidates": 0,
+    "newEligibleIndependentEndToEndRoutes": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: separate container/record bounds, object/owner association, exact modeler carrier, parser profile, geometric semantics, and consumer acceptance.",
+      "Peer route register: constrain DXF callback/rendering tools to represented fields and projections; label LibreDWG-derived JSON as a shared comparator oracle.",
+      "Consumer qualification: pin FreeCAD importer route/build/platform and distinguish multi-layout or unsupported-ACIS consumer limitations from source DXF structure."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-route-reconciliation-evidence-ceilings-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsOrGeometryKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a source-grounded route matrix for DXF object-model parsers, callback and render-only readers, spec-led DWG decoders, ACIS-only readers, and application consumers.",
+    "Clarified that per-version decode accounting and record-boundary checks are structural evidence, not semantic-geometry acceptance; changing aggregate denominators must not be used as a direct peer benchmark.",
+    "Explicitly labelled LibreDWG JSON as go-cad's comparison oracle rather than independent ground truth, and limited the route to question-specific structural differentials.",
+    "Tightened the readiness handoff and self-unblocking rule without creating new findings, tests, fixtures, dependencies, or external gates."
+  ],
+  "limitations": [
+    "This pass reconciles screened candidates and is not an exhaustive census of all open-source CAD projects.",
+    "Mutable branch pages are current-source observations, not immutable release guarantees.",
+    "No peer implementation, sample corpus, external drawing, native application, or geometry kernel was executed or downloaded.",
+    "No native/platform qualification or independent 3D semantic oracle was established; all six J items remain advisory and deferred."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Research-only plan update; shared worktree remains dirty and Git metadata is read-only in this session."
+  }
+}

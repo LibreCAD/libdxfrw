@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1018-table-codec-allocation-rollback-2026-11-08",
+  "date": "2026-11-08",
+  "title": "Generated AC1018 TABLE direct-codec allocation rollback and retry",
+  "status": "PASS_BOUNDED_GENERATED_CONTROL",
+  "supportClaimEffect": "none",
+  "profile": {
+    "version": "AC1018",
+    "cell": "one row, one column, one inline plain-text value-content cell",
+    "classNumber": 562,
+    "classNumberDisposition": "synthetic test dispatch value; not a production or version-wide class ordinal",
+    "provenance": "generated entirely in the test process; no DWG/DXF fixture file"
+  },
+  "implementation": {
+    "codec": "DRW_Table::encodeDwg stages body and handle streams in private copies, catches emission exceptions, and swaps only on success",
+    "test": "tests/table_dwg_codec_allocation_tests.cpp",
+    "testTarget": "libdxfrw_table_dwg_codec_allocation_tests",
+    "registeredTest": "libdxfrw_table_dwg_codec_allocation_retry",
+    "sourceReleaseManifest": "source-release-files.am"
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configureResult": "PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_table_dwg_codec_allocation_tests -j4",
+    "buildResult": "PASS",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_table_dwg_codec_allocation_retry$' --output-on-failure",
+    "testResult": "PASS; 1/1 test in 0.16 seconds",
+    "allocationSweep": {
+      "observedAllocationPoints": 19,
+      "injectedFailures": 19,
+      "failureAssertions": [
+        "Each injected bad_alloc is caught and reported as codec refusal.",
+        "Pre-seeded body bytes, handle bytes, and bit counts are unchanged after each refusal.",
+        "The same DRW_Table instance and output buffers successfully retry after every failure.",
+        "Successful retries preserve the pre-existing body and handle prefixes."
+      ]
+    },
+    "diffCheck": "PASS"
+  },
+  "interpretation": "This closes the direct generated AC1018 TABLE codec's observed allocation-exception rollback path only. It does not exercise public dwgRW::writeTable, class-instance publication, the *T geometry/reference graph, physical source-to-output parity, an independent reader, or native TABLE behavior. Keep public TABLE output refused.",
+  "next": "Obtain a complete source-supported AC1018 cell/body profile or producer-generated control, then implement the complete *T graph through the public dwgRW compound transaction. Keep AC1021+ and R24 TABLE profiles separately gated."
+}

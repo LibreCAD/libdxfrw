@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 physical LAYOUT selected output and readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Bind the two observed AC1021 LAYOUT callbacks to their physical source records and qualify selected same-version DXF output, graph roles, readback, atomic refusal, and retry. This is one unauthenticated local source profile only.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenance": "Existing local DWG; author/producer unauthenticated. No fixture or derivative committed."
+  },
+  "sourceGraph": {
+    "layouts": [
+      {
+        "handle": "0x22",
+        "name": "Model",
+        "record": "LAYOUT",
+        "class": "AcDbLayout"
+      },
+      {
+        "handle": "0xD7",
+        "name": "dwgmodels.com",
+        "record": "LAYOUT",
+        "class": "AcDbLayout"
+      }
+    ],
+    "dictionaryRoles": "Both LAYOUTs are members of the unique NOD-rooted ACAD_LAYOUT dictionary. Each has a reciprocal paper-space BLOCK_RECORD association; selected extension dictionaries and XRECORD children are checked where present.",
+    "imageDictionaryReactor": {
+      "dictionary": "0x0D",
+      "owner": "NOD 0x0C",
+      "reactor": "NOD 0x0C",
+      "evidence": "The physical source reader retained one NOD-owned ACAD_IMAGE_DICT whose common reactor target is the same NOD. Graph traversal now admits this exact AC1021 reciprocal root role; other unresolved reactor targets remain rejected."
+    }
+  },
+  "implementation": {
+    "changes": [
+      "Admitted the exact two-layout AC1021 profile for AC1021 DXF output, keyed to Model 0x22 and dwgmodels.com 0xD7, and added staged BLOCK_RECORD and OBJECTS output proofs at that target version.",
+      "Accepted the AC1021 rooted image dictionary's observed NOD reactor only when the dictionary itself is the unique rooted ACAD_IMAGE_DICT and its NOD owner is reciprocal.",
+      "Allowed AC1021 DICTIONARYWDFLT/PLACEHOLDER proof at AC1021 only when the same exact AC1021 LAYOUT profile is selected; the existing AC1024/AC1027 routes remain unchanged."
+    ],
+    "limits": "The profile does not certify every AC1021 layout name, NOD shape, object graph, or consumer. Whole-source support and native semantic acceptance remain unqualified."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4; -Werror configuration.",
+    "physicalSelector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg.",
+    "encodings": "PASS ASCII and Binary AC1021 output and fresh local typed readback. The selector verifies Model/dwgmodels.com plot and layout fields, ACAD_LAYOUT and BLOCK_RECORD links, extension dictionary/XRECORD ownership, last-active target roles, source callback qualification, and destination-preserving refusal after corrupting the paper-space BLOCK_RECORD backlink followed by same-adapter retry. An explicit standard-frame proof audit also passes for extension DICTIONARY/XRECORD handles 0x205, 0x288, 0x3BF and 0x3C0; these four are already represented in the aggregate 106/112 standard-object count.",
+    "focusedCtests": "PASS: libdxfrw_layout_source_proof and libdxfrw_dictionary_default_adapter_roundtrip (2/2).",
+    "broaderImageCtests": "NOT PASS: dwg2dxf_generated_image_dictionary_source_identity and dwg2dxf_rooted_image_dictionary_closure reach an AC1027 physical-source gate and fail with 'AC1027 DWG source references are not fully qualified'; no AC1021 LAYOUT selector failure was reported. Recheck against the corresponding AC1027 source baseline before attributing these failures.",
+    "diffCheck": "PASS: git diff --check.",
+    "fullSuites": "NOT RUN.",
+    "selectorLogPath": "/tmp/p4-layout-proof-selector.log",
+    "selectorLogSha256": "5a4f451b84143d2739911356fb6681bbb18422c01a7341d01b071b5842ac3fb9",
+    "testSourceSha256": "d694fe953105972ce533efe4271ef8c54d5f113135c19c058486993c53a32fb2",
+    "productionSourceSha256": "a3f2980d84033b03b1de68771f297f6375702e1dfc6dcb4c5cd4d44f8355ad21",
+    "executableSha256": "85d016ad7de369d2482298ba0daedf63a9ce745d2052e24b6deb24a42cd62bc6"
+  },
+  "limits": [
+    "One local AC1021 file whose author and producer are unauthenticated.",
+    "Same-version typed readback is local transport evidence, not independent native application acceptance.",
+    "This does not qualify the full 1,673-frame source or promote a DWG/DXF support claim.",
+    "No new drawing fixture or derivative is committed."
+  ],
+  "nextAction": "Classify the two remaining fixed-type-34 source frames 0x266 and 0x26A; keep RASTERVARIABLES 0x2D2 and SORTENTSTABLE 0x2DF unqualified until their original physical frames pass exact source/output binding and fresh readback."
+}

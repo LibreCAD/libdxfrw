@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Remove redundant parse-peer AcDs payload copy during raw modeler validation",
+  "mode": "local implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Remove the temporary parse-peer copy of DataStorage payload bytes absent from the raw entity frame",
+    "Preserve the pending owned payload copy required across the callback-to-finalize lifetime",
+    "Preserve exact section-span validation, ownership checks, and writer replay behavior"
+  ],
+  "implementation": {
+    "files": [
+      "src/intern/dwgwriter15.cpp",
+      "src/intern/dwgwriter15.h",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "The raw-frame parse-peer comparison no longer copies DRW_ModelerGeometry::dataStorageData into a temporary peer object. Those AcDs bytes are absent from the raw entity frame; the former comparison compared the source with an identical copy. Exact payload equality remains enforced at finalization against validated inline/Blob01 section spans using the pending writer-owned payload copy.",
+    "copyRemoved": "One temporary parsedPeer.dataStorageData vector copy per storage-backed modeler frame validation.",
+    "copyRetained": "PendingModelerDataStorageReplay continues to own a payload copy because callback-based writers may receive short-lived modeler objects and finalization occurs after callback return.",
+    "preservedControls": [
+      "8 MiB aggregate pending-payload admission",
+      "exact handle/key/schema/owner and byte-span association",
+      "ACIS marker detection across Blob01 page boundaries",
+      "orphan marker-bearing record refusal"
+    ],
+    "limitations": [
+      "pending writer payload ownership remains",
+      "raw AcDs section storage remains owned by the writer/source data model",
+      "this does not bound allocator capacity or whole-process RSS",
+      "the slice is not independent reader or semantic solid evidence"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --raw-modeler-acds-replay",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "cmake --build build-gcc --target dwg2dxf -j2"
+    ],
+    "results": {
+      "strictRoundtripTargetBuild": "passed",
+      "focusedInlineAndBlobReplaySelector": "passed",
+      "orphanMarkerNegativeControl": "passed",
+      "owningCTest": "1/1 passed in 3.12 seconds",
+      "converterTargetBuild": "passed",
+      "fullSuite": "not run"
+    }
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerOrNativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "workingTree": {
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "reasonNotCommitted": "The shared worktree is broadly dirty with user-owned changes; the slice was kept isolated and uncommitted."
+  }
+}

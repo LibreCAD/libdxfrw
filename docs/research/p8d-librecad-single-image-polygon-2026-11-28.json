@@ -1,0 +1,145 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-single-image-polygon-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "cfa1c832045f2e496a86fe757c0f57211b7dc041",
+  "codecTestInclusiveDigest": "af2d9e8a1f4866db44def162e69f1c974fc3b08dbd0f263a4100431460e473ea",
+  "change": "Use the existing multi-image source, graph and staged-output audit for the newly admitted single polygon-image profile; single rectangular images keep their existing route.",
+  "checks": [
+    "Before the change the locally authored single-image 18-vertex source was refused on corrected export.",
+    "Locally authored single-image 3-vertex polygons pass AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032 ASCII, including staged late-mutation refusal, destination preservation and corrected retry. Existing multiple-image controls pass in the same tests.",
+    "The AC1024 1-, 2- and 384-image controls pass 18 and 256 vertices; 257 vertices is refused with destination preserved and corrected retry. Single-image wrong-reactor-owner and cross-version exports are refused. The final combined case passes 1747 assertions.",
+    "Independent ezdxf reads all six 3-vertex single-image source/output pairs and six 18/256-vertex source/output pairs, checking ownership, reactor and definition closure, geometry, clip state and vertices with clean audits.",
+    "A selected AC1021 single polygon image in a named block retains its block-record owner, definition and reactor links, three vertices, insertion (1,2,3) and pixel basis; an independent ezdxf audit is clean.",
+    "The existing bounded multi-image, named-block, legacy and modern focused controls pass; the bundled-codec library target builds successfully. No generated drawing fixture was committed."
+  ],
+  "evidence": {
+    "logs": {
+      "final": {
+        "path": "/private/tmp/librecad-single-polygon-final-20261128.log",
+        "sha256": "0e4f2f652b129037031d6eb5c1eebb18a9cce2084fad72f62ae3b3880ef28b09"
+      },
+      "modern-versions-final": {
+        "path": "/private/tmp/librecad-single-polygon-modern-versions-final-20261128.log",
+        "sha256": "6edf038fd38605564bf54183091309890d4e67e220eacd1a26c0fd29f7a4f34c"
+      },
+      "legacy-versions-final": {
+        "path": "/private/tmp/librecad-single-polygon-legacy-versions-final-20261128.log",
+        "sha256": "c7238a32c95e77924cfae32dd4f49530aad47e7dee9224e467a540f406565062"
+      },
+      "bounded": {
+        "path": "/private/tmp/librecad-single-polygon-bounded-20261128.log",
+        "sha256": "0ab76115114f46d5781384d1fc5742444dfa4088e1192b16da715f7bc6e64020"
+      },
+      "named": {
+        "path": "/private/tmp/librecad-single-polygon-named-20261128.log",
+        "sha256": "d12ab23e482695046821fbefe7373a0521dfd1b2550aed782b52a67d3ec4b806"
+      },
+      "bundled": {
+        "path": "/private/tmp/librecad-single-polygon-bundled-20261128.log",
+        "sha256": "33b366fa1b796685fcad8ca85434ce908ccf3af7ef470ed601123ba9f7f2e18c"
+      },
+      "single-block": {
+        "path": "/private/tmp/librecad-single-block-polygon-20261128.log",
+        "sha256": "6bdd3bb35514b48f996c923a0a02fd0f3eeaa37b6f022b067a353e5d751ce7d0"
+      }
+    },
+    "peer": {
+      "final-peer": {
+        "sha256": "a1c31d8544e05ea85dabfc71cd651a0307f10beae99d655a6b94d5781c8b7128",
+        "observations": [
+          {
+            "images": 1,
+            "vertices": 18,
+            "sourceSha256": "99f0f7a19ee46385b3e5453941d228e0ff359c29bfd3dda858c68a73bf848eff",
+            "outputSha256": "28d6ad92066da8b7972c66160ad9d8ee34f0eaa1c4ec7de861b0120701c50720",
+            "audit": "clean"
+          },
+          {
+            "images": 1,
+            "vertices": 256,
+            "sourceSha256": "03c5dc73cd28babd06ff68af30c4419f47b7bf510f9b0cc87b667378e1738f92",
+            "outputSha256": "88bc41f436085e43802989fae63f992f90ef96f456c69505c5ca16cafcb2f686",
+            "audit": "clean"
+          },
+          {
+            "images": 2,
+            "vertices": 18,
+            "sourceSha256": "8f914666a936467816e8d26fab099c9c0cc143201632fe796f2d5d3236e39964",
+            "outputSha256": "db61121668186aa4d9ceaa2efdf7c880810075080542977bb0af8cc8a1a39e69",
+            "audit": "clean"
+          },
+          {
+            "images": 2,
+            "vertices": 256,
+            "sourceSha256": "392b063f20b062c5090489229bf783e631687db15e8a058fe9e59229d7e82d17",
+            "outputSha256": "5b0f75e66c5613216a728263ecfcf36feed4e56bcc2158be8009735c451f2433",
+            "audit": "clean"
+          },
+          {
+            "images": 384,
+            "vertices": 18,
+            "sourceSha256": "710a37f74f14f290a88eca749c0adb048da77d7b85ed1bfca222acf3abdb40a9",
+            "outputSha256": "68f8b2cd44450bd4fd7c8b5e0d8ed59d84f6757a45acc432a9be892fb39f438b",
+            "audit": "clean"
+          },
+          {
+            "images": 384,
+            "vertices": 256,
+            "sourceSha256": "3b6c66683d428aea6c002754b1a78f7f713c7712cb20f71a19334e0ff4cc1609",
+            "outputSha256": "463ab23ef5568db4e07d793fdedd4fb5619e1816939e17a17c1b1e9ea38c2303",
+            "audit": "clean"
+          }
+        ]
+      },
+      "version-peer": {
+        "sha256": "cf8c2e4f3150b821a4a707c845c3041835f456aa3a085b997c212ba2a7955a65",
+        "observations": [
+          {
+            "version": "AC1021",
+            "input": "8b49cc77927ce76e9e1af4d10bc410248f654c29d44119546d66b7cb4827c243",
+            "output": "942f67d48ad87d7eacb108be983f80be5cd0281dce3c899d601fc49210c9194d",
+            "audit": "clean"
+          },
+          {
+            "version": "AC1018",
+            "input": "f8031f81cc4cd56aaa7bc922238cf45dbecaff25a36541074fe8c7510394041c",
+            "output": "e9787a1ac9c282cc04f1211a70762103504dcb6c37fa17ca3e5c973ca0936d6a",
+            "audit": "clean"
+          },
+          {
+            "version": "AC1015",
+            "input": "7624783988ab7629106c1aaa3d9bab4e805d5c9500b5713b8bbb3a48c3e3db22",
+            "output": "94544a7704276f93b7701d83f78854f6ce1613ec645c09ee62ec71f11c172167",
+            "audit": "clean"
+          },
+          {
+            "version": "AC1024",
+            "input": "aaab7dc7625cea535cd83bb32d1429ebaddb5a8e21fc0706ba9aa548c89f3d3f",
+            "output": "04efdf9dc04741315d53920df79b9a8bebfb2533c70740981e481f21b2470710",
+            "audit": "clean"
+          },
+          {
+            "version": "AC1032",
+            "input": "25f06ca8528ddf927526298b030cc2471c4c54ccf330f845dab09aee4a34bc19",
+            "output": "08756d3a877f0e24c0bc89d3678cea4610b9f51deba0376da99bc216e2c1c150",
+            "audit": "clean"
+          },
+          {
+            "version": "AC1027",
+            "input": "da461ddad337ddb241f635f9b2fad45a87c692a8d56b569f2389bf84cae17cc9",
+            "output": "6c69b58baf186940f7d598fc9d762c024d461d1f5eb5ac98057573221b9c2045",
+            "audit": "clean"
+          }
+        ]
+      }
+    },
+    "blockSourceSha256": "dcbe2aa01674edb761ed4cda03b731e2b4d4c0ca64ea97f38e5f4d153cba766d",
+    "blockOutputSha256": "fc247ee727a8e1975c4555215caf4248413c5ccd4d41c5ece79fc63e84ae6c83"
+  },
+  "limits": [
+    "Locally generated headless controls only; native rendering, edits, other producers and platforms remain unqualified.",
+    "The 256-vertex inspector limit and 385-image refusal remain, as do graph, source-size and aggregate-memory guards.",
+    "This supersedes the earlier receipt statement that all single-image polygons are guarded; admission remains limited to the new audited profile."
+  ]
+}

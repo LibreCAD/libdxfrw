@@ -1,0 +1,286 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 metric corpus strict refusal on typed proxy graphics",
+  "date": "2026-11-05",
+  "status": "STRICT_OUTPUT_REFUSED_NO_DXF",
+  "scope": "Track the physical AC1021 strict-output gate and the bounded same-version TABLE proxy cache writer. Generated controls prove exact byte transport only; this receipt does not qualify proxy-graphics semantics or whole-document support.",
+  "source": {
+    "path": "tests/samples/AC1021/blocks_and_tables_-_metric.dwg",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "version": "AC1021",
+    "fixturePolicy": "Existing local corpus input; not modified or committed by this investigation."
+  },
+  "converter": {
+    "path": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "42d1df19822c82d8766d6668d3886b84a11c06e0f6163efbb6c0ce2559951188",
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1021/blocks_and_tables_-_metric.dwg -y -v2007 /private/tmp/ac1021-table-proxy-current.dxf",
+    "exitCode": 1,
+    "diagnostic": "DXF export preflight failed: FIELD/FIELDLIST carriers have no qualified DXF serializer",
+    "outputCreated": false,
+    "logPath": "/private/tmp/ac1021-table-proxy-current.log",
+    "logSha256": "06afc0e9b036237b43deaf74a41eb8370f63904befb09c9e1c7cc89b838066ac"
+  },
+  "interpretation": "Two typed AcDbTable proxy caches are bound to source hosts 0x2856E and 0x2A974. A bounded same-revision writer now emits authorized complete ParsedDwg TABLE cache bytes through the existing group-92/310 serializer. The physical source CLI passes the proxy preflight gate but stops before serialization at FIELD/FIELDLIST output. A generated one-cell TABLE separately proves exact ASCII/Binary proxy-byte roundtrip, wrong-version atomic refusal and same-adapter retry. Native marker-to-geometry behavior and physical-source group-310 output remain unqualified; strict whole-document output remains refused.",
+  "nextAction": "Qualify native marker-to-geometry behavior and native TABLE cache semantics. Both physical source cache byte streams now pass exact group-310 ASCII and Binary readback inside generated valid TABLE wrappers, but the original whole source still refuses before serialization at FIELD/FIELDLIST; do not claim full-source output.",
+  "supportClaimEffect": "none",
+  "nonClaims": [
+    "No proxy-graphics semantic or replay support is established.",
+    "No whole-document AC1021 conversion support is established.",
+    "No source fixture was added or modified."
+  ],
+  "inspectedEntities": [
+    {
+      "handle": "0x2856E",
+      "type": "AcDbTable",
+      "proxyBytes": 32980,
+      "declaredBytes": 32980,
+      "framingComplete": true,
+      "recognizedPrimitiveChunks": 231,
+      "unresolvedResourceReferencesReportedByScanner": 0,
+      "chunkOpcodeCounts": {
+        "19": 7,
+        "22": 231,
+        "23": 231,
+        "29": 1,
+        "31": 1,
+        "32": 165,
+        "38": 66
+      },
+      "scanClassificationNote": "The legacy pre-change non-primitive count includes handled controls. The updated inspector separates recognizedControlChunkCount from skippedUnsupportedChunkCount.",
+      "legacyNonPrimitiveChunkCountBeforeControlClassification": 471,
+      "unsupportedChunksAfterControlClassification": 0,
+      "recognizedControlChunksAfterUpdate": 471,
+      "subentityMarkerChunkCount": 7,
+      "resolvedClass": "AcDbTable",
+      "encodedType": 506,
+      "graphFlag": 1,
+      "entityMode": 1,
+      "blockParent": null,
+      "hostClassificationCorrection": "The DWG trace identifies this proxy cache inside the AcDbTable common entity body; it is not an INSERT record."
+    },
+    {
+      "handle": "0x2A974",
+      "type": "AcDbTable",
+      "proxyBytes": 37080,
+      "declaredBytes": 37080,
+      "framingComplete": true,
+      "recognizedPrimitiveChunks": 259,
+      "unresolvedResourceReferencesReportedByScanner": 0,
+      "chunkOpcodeCounts": {
+        "19": 8,
+        "22": 259,
+        "23": 259,
+        "29": 1,
+        "31": 1,
+        "32": 184,
+        "38": 75
+      },
+      "scanClassificationNote": "The legacy pre-change non-primitive count includes handled controls. The updated inspector separates recognizedControlChunkCount from skippedUnsupportedChunkCount.",
+      "legacyNonPrimitiveChunkCountBeforeControlClassification": 528,
+      "unsupportedChunksAfterControlClassification": 0,
+      "recognizedControlChunksAfterUpdate": 528,
+      "subentityMarkerChunkCount": 8,
+      "resolvedClass": "AcDbTable",
+      "encodedType": 506,
+      "graphFlag": 1,
+      "entityMode": 1,
+      "blockParent": null,
+      "hostClassificationCorrection": "The DWG trace identifies this proxy cache inside the AcDbTable common entity body; it is not an INSERT record."
+    }
+  ],
+  "probe": {
+    "method": "A temporary local C++ probe imported the exact source through dx_iface and enumerated typed entities, provenance and DRW_ProxyGraphicDecoder::inspect results.",
+    "sourcePath": "/private/tmp/probe_ac1021_proxy.cpp",
+    "sourceSha256": "d551ee39b90fa7baf80cf43aa5d9f59e6a2525f712c277e07de8a1bd10505d80",
+    "binaryPath": "/private/tmp/probe_ac1021_proxy",
+    "binarySha256": "3bc8bf9593b4aa02072356603db5440a9c6e9c6926732eb5d63b2df97825a8f0",
+    "result": "Chunk histogram: handle 0x2856E has opcode counts 19:7, 22:231, 23:231, 29:1, 31:1, 32:165, 38:66; handle 0x2A974 has 19:8, 22:259, 23:259, 29:1, 31:1, 32:184, 38:75. Opcodes 19, 22/23 and 29/31 are recognized controls; 32/38 are recognized primitive types. The updated source probe reports zero skipped unknown chunks and 471/528 recognized control chunks.",
+    "rawExtractedProxyFiles": [
+      {
+        "handle": "0x2856E",
+        "path": "/private/tmp/proxy-165230.bin",
+        "bytes": 32980,
+        "sha256": "ad678b6ba91fdd318fcba934f1ff6be9a6a2525f712c277e07de8a1bd10505d80"
+      },
+      {
+        "handle": "0x2A974",
+        "path": "/private/tmp/proxy-174452.bin",
+        "bytes": 37080,
+        "sha256": "9afce916bb4f69035de8957a8708d65b70c8a698ed636b0855b8e832f04fc2c4"
+      }
+    ]
+  },
+  "specificationEvidence": {
+    "source": "Open Design Specification for .dwg files v5.4.1, \u00a729, Proxy Entity Graphics",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "finding": "Type 19 is SUBENT_MARKER and its payload is one RL marker index. The spec also defines proxy graphic chunks as RL size, RL type, then type-specific bytes.",
+    "scopeLimit": "This defines the chunk role and wire payload, not whether INSERT proxy caches may be replayed as DXF proxy graphics or how a native consumer should display them."
+  },
+  "markerImplementationGap": {
+    "odaMeaning": "ODA \u00a729 says SUBENT items indicate changes for subsequently drawn items; opcode 19 supplies the marker index as RL.",
+    "currentDecoder": "DRW_ProxyGraphicDecoder reads the 32-bit RL marker, reports marker/control counts, and calls setSubentityMarker before subsequent primitives. The DWG output journal records addProxySubentityMarker(sourceHostHandle, marker) in stream order. Sinks that do not retain markers are counted as unhandled; DWG block decoding refuses that projection.",
+    "effect": "The local decode/journal path now transports marker identity, but the AC1021 cache's source association and native marker-to-geometry behavior remain unqualified. Strict output remains refused.",
+    "requiredEvidence": "Bind marker events to their affected following primitives in a consumer, establish the source cache's owner/block role, and verify exact DXF output/readback plus native subentity behavior."
+  },
+  "independentDecoderEvidence": {
+    "implementation": "ezdxf proxygraphic.py",
+    "repositoryCommit": "dd7f6cc34983fdbf0b2b910f2497e0720d06dd16",
+    "fileSha256": "facdb0bb5f04dec47036bd5f8d927b444f7706d61044e4240350ba74fc293a05",
+    "pinnedSourceUrl": "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/proxygraphic.py",
+    "version": "1.4.5",
+    "exactExtractedInputs": [
+      {
+        "path": "/private/tmp/proxy-165230.bin",
+        "sha256": "ad678b6ba91fdd318fcba934f1ff6be9a6a2525f712c277e07de8a1bd10505d80",
+        "handle": "0x2856E",
+        "markerChunks": 7,
+        "decodedVirtualEntities": 231,
+        "types": [
+          "POLYLINE",
+          "TEXT"
+        ]
+      },
+      {
+        "path": "/private/tmp/proxy-174452.bin",
+        "sha256": "9afce916bb4f69035de8957a8708d65b70c8a698ed636b0855b8e832f04fc2c4",
+        "handle": "0x2A974",
+        "markerChunks": 8,
+        "decodedVirtualEntities": 259,
+        "types": [
+          "POLYLINE",
+          "TEXT"
+        ]
+      }
+    ],
+    "finding": "The independent decoder names type 19 ATTRIBUTE_MARKER and reads a 32-bit marker index; both extracted streams decode completely to virtual entities.",
+    "scopeLimit": "This is byte-stream decoding only. It does not prove source INSERT-to-proxy semantic association, DXF writer preservation, or native application behavior.",
+    "validationCommand": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python with ezdxf 1.4.5: ProxyGraphic(bytes, dxfversion=AC1021/DXF2007).info() and virtual_entities()"
+  },
+  "implementationEvidence": {
+    "generatedControls": [
+      {
+        "selector": "libdxfrw_graph_preservation_tests --proxy-subentity-markers",
+        "result": "PASS",
+        "checks": "RL marker transitions bind to subsequent primitives; unhandled sinks are reported; control/primitive counts and malformed payload refusal."
+      },
+      {
+        "selector": "libdxfrw_dwg_reader_matrix_tests --proxy-subentity-marker-journal",
+        "result": "PASS",
+        "checks": "The DWG output journal replays host-scoped marker events in order."
+      },
+      {
+        "selector": "libdxfrw_dwg2dxf_adapter_tests --table-dwg-proxy-graphics-roundtrip",
+        "result": "PASS (ASCII and Binary)",
+        "checks": "Generated 84-byte ParsedDwg TABLE proxy cache is emitted and read back byte-for-byte; group-92 count matches; mismatched AC1024 output revision is atomically refused without changing the destination; same dx_iface retries successfully and reads back exact bytes."
+      }
+    ],
+    "sourceDecodeProbe": [
+      {
+        "handle": "0x2856E",
+        "result": "complete",
+        "primitives": 231,
+        "markers": 7,
+        "unhandledMarkers": 0,
+        "skippedUnknownChunks": 0
+      },
+      {
+        "handle": "0x2A974",
+        "result": "complete",
+        "primitives": 259,
+        "markers": 8,
+        "unhandledMarkers": 0,
+        "skippedUnknownChunks": 0
+      }
+    ],
+    "writerRoute": "Bounded to an explicitly authorized, exact-version ParsedDwg AcDbTable cache with complete declared chunk framing. The dx_iface source run passed this proxy preflight gate.",
+    "strictOutput": "Physical AC1021 source preflight passes the TABLE proxy-cache gate and is still refused before serialization by FIELD/FIELDLIST carriers with no qualified DXF serializer; no DXF created.",
+    "fixturePolicy": "No fixture added or modified.",
+    "generatedPhysicalOutputScope": "The generated one-cell TABLE test proves serializer mechanics with a scratch-generated 84-byte cache in ASCII and Binary. A separate physical-source probe copied exact caches from both AcDbTable source records into valid generated TABLE wrappers, emitted strict AC1021 ASCII and Binary DXF, and freshly read back all bytes exactly: 32,980 and 37,080 bytes in both encodings. This proves raw-cache byte transport for those two caches, not preservation of the original source TABLE records, whole-file conversion or marker semantics.",
+    "focusedValidation": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_(table_dwg_proxy_graphics_roundtrip|proxy_subentity_markers|proxy_subentity_marker_journal)$' --output-on-failure",
+      "result": "PASS 3/3"
+    }
+  },
+  "hostBindingEvidence": {
+    "sourcePath": "tests/samples/AC1021/blocks_and_tables_-_metric.dwg",
+    "sourceSha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "tracePath": "/private/tmp/ac1021-proxy-association.log",
+    "traceSha256": "2817597f664c624e777809363596c96bdc0ca2e853fd7aaccda2bcd624cf9e4a",
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1021/blocks_and_tables_-_metric.dwg -y -d -v2010 /private/tmp/ac1021-proxy-association.dxf",
+    "records": [
+      {
+        "handle": "0x2856E",
+        "resolvedClass": "AcDbTable",
+        "encodedType": 506,
+        "graphFlag": 1,
+        "graphDataBytes": 32980,
+        "entityMode": 1,
+        "blockParent": null
+      },
+      {
+        "handle": "0x2A974",
+        "resolvedClass": "AcDbTable",
+        "encodedType": 506,
+        "graphFlag": 1,
+        "graphDataBytes": 37080,
+        "entityMode": 1,
+        "blockParent": null
+      }
+    ],
+    "finding": "Both proxy streams are read from the common body of their AcDbTable host entities, not from INSERT records or referenced block records.",
+    "scopeLimit": "The trace establishes host attachment for these two source records only; it does not establish DXF replay or native behavior."
+  },
+  "outputFormatEvidence": {
+    "dwgSource": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf#page=270",
+    "dxfTable": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+    "finding": "ODA \u00a729 defines DWG proxy graphics as RL-sized chunks followed by RL type and type-specific bytes. Autodesk lists group 92 byte count and group 310 proxy data for AcDbTable.",
+    "scopeLimit": "The definitions motivate an opaque same-revision byte route but do not replace output/readback evidence or prove native marker semantics."
+  },
+  "physicalSourceCacheReadback": {
+    "sourceSha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "probeSourcePath": "/private/tmp/probe_ac1021_table_proxy_roundtrip.cpp",
+    "probeSourceSha256": "05a7c4c160c46d367102798ffc4e192232332f9a493229296b7e3f883a4563bc",
+    "probeBinaryPath": "/private/tmp/probe_ac1021_table_proxy_roundtrip",
+    "probeBinarySha256": "984c862b6c170f373a9560dbd7a5fc7c1f6f72546445f63dc12b582f69b8a063",
+    "command": "/private/tmp/probe_ac1021_table_proxy_roundtrip",
+    "result": "PASS",
+    "targetVersion": "AC1021",
+    "encoding": "ASCII and Binary DXF",
+    "wrapper": "Locally generated valid one-cell TABLE; only the proxy cache bytes and parsed-DWG provenance were copied from the physical source record.",
+    "records": [
+      {
+        "sourceHandle": "0x2856E",
+        "encoding": "ASCII",
+        "sourceBytes": 32980,
+        "readbackBytes": 32980,
+        "exactByteMatch": true,
+        "outputSha256": "b22f8a8a621913b3cda64a9b35d9b8214a855aac02159642e64c24c786507773"
+      },
+      {
+        "sourceHandle": "0x2856E",
+        "encoding": "Binary",
+        "sourceBytes": 32980,
+        "readbackBytes": 32980,
+        "exactByteMatch": true,
+        "outputSha256": "dca64c5cc9486ca24f1c087573928c3d0ee34675e09b757d3514922c55c942db"
+      },
+      {
+        "sourceHandle": "0x2A974",
+        "encoding": "ASCII",
+        "sourceBytes": 37080,
+        "readbackBytes": 37080,
+        "exactByteMatch": true,
+        "outputSha256": "dc6b1783c74966e0d6171a94187ece0001a469c20885105eac48b16d722dcd49"
+      },
+      {
+        "sourceHandle": "0x2A974",
+        "encoding": "Binary",
+        "sourceBytes": 37080,
+        "readbackBytes": 37080,
+        "exactByteMatch": true,
+        "outputSha256": "c670eb62fb1cdc9aad75c2eff60e11147ff152250c26aed952229c9681fbcc3b"
+      }
+    ],
+    "scopeLimit": "This is exact opaque byte transport for two source caches in generated TABLE wrappers, in ASCII and Binary DXF. It does not establish source TABLE semantic output, native cache display or whole-document conversion."
+  }
+}

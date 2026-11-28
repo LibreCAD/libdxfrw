@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-hatch-spline-dxf-allocation-retry-2026-11-02",
+  "date": "2026-11-02",
+  "status": "IMPLEMENTED_FAST_TESTS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "DXF parser allocation-failure safety for HATCH spline boundary data. This is local parser hardening and generated regression evidence; it does not qualify DWG HATCH support or native application semantics.",
+  "changes": [
+    "Reserve HATCH spline knot and weight vectors before consuming their DXF values, so a failed allocation leaves the same group retryable.",
+    "Reject spline knot, control, and fit count declarations smaller than data already parsed; retain count and active-boundary state until required reserves succeed.",
+    "Advance HATCH spline control and fit coordinate component ordinals only after the coordinate object is available and assigned.",
+    "Reserve boundary-handle storage before ending the active spline edge or committing the handle count."
+  ],
+  "allocationFailureCoverage": {
+    "arrayCountGroups": [
+      95,
+      96,
+      97
+    ],
+    "knotAndWeightGroups": [
+      40,
+      42
+    ],
+    "splinePointGroups": [
+      10,
+      20,
+      11,
+      21
+    ],
+    "pointFailureSites": [
+      "point-vector reserve",
+      "coordinate shared-object allocation"
+    ],
+    "boundaryHandleCountGroup": 97,
+    "retry": "Retry the identical failed group and verify count, coordinate/value, active-edge state, or handle list."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+    "buildResult": "passed",
+    "focusedCTestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_(hatch_inactive_gradient_guard|hatch_spline_dxf_allocation_failure|hatch_dxf_allocation_failure|hatch_spline_point_component_order|spline_dxf_allocation_failure|leader_dxf_allocation_failure|leader_point_component_order|mline_dxf_allocation_failure|mline_vector_component_order|dxf_underlay_ocs_extrusion|underlay_dxf_allocation_failure))$' --output-on-failure",
+    "focusedCTestResult": {
+      "passed": 11,
+      "failed": 0,
+      "elapsedSeconds": 0.75
+    },
+    "directSelector": "build-gcc/libdxfrw_dxf_fixture_tests --hatch-spline-dxf-allocation-failure",
+    "diffCheck": "git diff --cached --check passed for the staged HATCH slice"
+  },
+  "inputHashes": {
+    "src/drw_entities.cpp": "d1c65cffea0b31d85c08739e678a40a089c3bc68693b74a7e4771b66ccb4592b",
+    "tests/dxf_fixture_tests.cpp": "b90b5647cbc8e10f1e1b4edc0ff7a4ae788a5a9ce52bb470e904c2e7f87bcc10",
+    "CMakeLists.txt": "2aff03eca6887c3553954f39ab2754f35f4985a3a653012e1877d075fcd9a2e5"
+  },
+  "fixtures": {
+    "investigationDwgOrDxfFilesAddedToRepository": 0,
+    "testData": "In-memory group-code records; the registered ASCII/Binary point-order test creates its test drawings at runtime."
+  },
+  "limitations": [
+    "No DWG binary HATCH parser or writer behavior is qualified by this receipt.",
+    "No whole-document conversion, independent producer, native CAD consumer, or semantic support claim is established."
+  ],
+  "next": "Continue the remaining P6 safety and semantic residuals; keep broader HATCH support claims open until source-backed output and independent consumer evidence exist.",
+  "repositoryState": {
+    "baseHead": "a0db3c54",
+    "inputSnapshot": "staged blobs built from HEAD plus selected HATCH changes; focused build/CTest ran against the corresponding worktree sources",
+    "stagedScope": "HATCH parser, selectors, CTest registrations, receipts, and plan note only",
+    "fixtureFilesAdded": 0
+  }
+}

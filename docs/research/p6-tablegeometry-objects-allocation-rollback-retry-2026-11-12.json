@@ -1,0 +1,42 @@
+{
+  "title": "Generated TABLEGEOMETRY DXF OBJECTS allocation rollback and retry",
+  "date": "2026-11-12",
+  "scope": "One locally authored AC1027 TABLEGEOMETRY object with a 2x2 cell grid, admitted flags 3/4/7, and varied zero/one/two content-geometry counts; ASCII and Binary DXF OBJECTS callback writes.",
+  "source": {
+    "kind": "generated-from-scratch-in-test",
+    "fixtureCommitted": false,
+    "temporaryOutputRemoved": true,
+    "testSource": "tests/tablegeometry_objects_allocation_tests.cpp",
+    "testSourceSha256": "bd922a91ea4a09309a91aa963c6d0eaa7da1df890b1d81300075d490861c620e",
+    "cmakeSource": "tests/CMakeLists.txt",
+    "cmakeSourceSha256": "e219dc760ca2ddfedeb314c7308d8dce4d1c35aeb22c2f6332afc20b5b225175"
+  },
+  "checks": {
+    "asciiAllocationFailureOffsets": 11,
+    "binaryAllocationFailureOffsets": 11,
+    "eachFailurePreservesPreexistingDestination": true,
+    "eachFailurePreservesCallerTableGeometry": true,
+    "sameCodecRetryAfterEachFailure": true,
+    "retryBytesMatchCleanCalibrationExactly": true,
+    "freshTypedReadbackChecksCellAndContentFields": true,
+    "onlyGeneratedScratchFilesUsed": true,
+    "eachFailureInjectedAtRequestedOffset": true
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_tablegeometry_objects_allocation_tests -j6",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_tablegeometry_objects_allocation$' --output-on-failure",
+    "testResult": "passed 1/1 in normal and ASan builds",
+    "directSelectorResult": "Explicit offset assertions passed: ASCII and Binary each reached all 11 allocation-failure offsets, rollback, retry, and typed readback",
+    "diffCheck": "git diff --check passed",
+    "testExecutableSha256": {
+      "normal": "d973f85b961593840ca248a9e4bac431559661dc5794ef52ab6c6ede6e59610f",
+      "asan": "c01404fab00d55180f147a3f43f6c74947229d8d2406c14d4277d82b4a17f494"
+    }
+  },
+  "limitations": [
+    "Generated transaction evidence only; no physical producer or independent semantic evidence.",
+    "Does not qualify non-null TABLEGEOMETRY cell references, extension graphs, native rendering, strict whole-drawing output, or feature support.",
+    "Other OBJECTS builders and broader whole-drawing failure states remain open."
+  ]
+}

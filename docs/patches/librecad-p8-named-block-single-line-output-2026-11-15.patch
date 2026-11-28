@@ -1,0 +1,388 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 660e782..cf47f50 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -17,6 +17,7 @@
+ #include <algorithm>
+ #include <array>
+ #include <cctype>
++#include <cmath>
+ #include <cstddef>
+ #include <cstdint>
+ #include <fstream>
+@@ -3448,6 +3449,10 @@ public:
+     std::size_t sourceEntityCount = 0u;
+     int insertionUnits = 0;
+     std::vector<std::uint8_t> previewData;
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++    std::shared_ptr<const DRW_Block_Record> singleEntitySource;
++    std::shared_ptr<const DRW_Line> singleLineSource;
++#endif
+     bool hasUnsupportedOutputState = false;
+     std::string name;
+     std::vector<std::uint32_t> reactorHandles;
+@@ -3483,10 +3488,27 @@ public:
+         ? record.previewData.size() : 0u;
+ #else
+     constexpr std::size_t previewBytes = 0u;
++#endif
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++    // Retain only the small dependency-free, single-entity profile. The
++    // copied record lets the adapter compare membership without exposing the
++    // parser-owned entity map or trusting current UI contents as source data.
++    const bool retainSingle = record.entityMapCount() == 1u
++        && record.previewData.empty() && record.appData.empty() && record.extData.empty()
++        && record.pendingAppIdResolutions.empty() && record.pendingLayerRefResolutions.empty()
++        && record.reactorCount() == 0 && record.reactorHandles.empty()
++        && record.xrefPath.empty() && record.description.empty() && record.insertHandles.empty()
++        && record.dwgHandleFieldSpans().size() <= 32u;
++    const std::size_t snapshotBytes = retainSingle
++        ? sizeof(DRW_Block_Record) + sizeof(std::uint32_t) + record.name.size()
++            + record.dwgHandleFieldSpans().size() * sizeof(DRW_DwgSubrecordRange)
++        : 0u;
++#else
++    constexpr std::size_t snapshotBytes = 0u;
+ #endif
+     const std::size_t estimate = sizeof(BlockRecordLinkObservation)
+         + record.name.size() + record.reactorHandles.size() * sizeof(std::uint32_t)
+-        + previewBytes;
++        + previewBytes + snapshotBytes;
+     if (estimate > maxBytes || m_blockRecordLinkBytes > maxBytes - estimate) {
+       reject();
+       return;
+@@ -3501,6 +3523,8 @@ public:
+ #if defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
+       if (record.previewData.size() <= maxPreview)
+         observed.previewData = record.previewData;
++      if (retainSingle)
++        observed.singleEntitySource = std::make_shared<const DRW_Block_Record>(record);
+       observed.sourceEntityCount = record.entityMapCount();
+       observed.hasUnsupportedOutputState =
+           (record.flags & ~64) != 0 || (record.insUnits != 0 && record.insUnits != 4)
+@@ -3531,6 +3555,59 @@ public:
+     }
+   }
+ 
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++  void observeSelectedSingleBlockLine(const DRW_Line &line) noexcept {
++    noteSelectedSourceCallback();
++    const auto found = m_blockRecordLinks.find(line.parentHandle);
++    if (m_blockRecordLinkCaptureFailed || found == m_blockRecordLinks.end()
++        || found->second.sourceEntityCount != 1u || !found->second.singleEntitySource)
++      return;
++    // Restrict the first profile to unextended planar default-style LINEs.
++    // A richer source requires separate evidence, even if LibreCAD can show it.
++    if (line.eType != DRW::LINE || line.layer != "0" || line.lineType != "BYLAYER"
++        || line.color != DRW::ColorByLayer || line.color24 != -1 || !line.colorName.empty()
++        || line.lWeight != DRW_LW_Conv::widthByLayer || line.ltypeScale != 1.0
++        || !line.visible || line.material != DRW::MaterialByLayer
++        || line.plotStyle != DRW::DefaultPlotStyle || line.transparency != DRW::Opaque
++        || line.shadow != DRW::CastAndReceieveShadows || line.shadowHandle != 0u
++        || line.fullVisualStyleHandle != 0u || line.faceVisualStyleHandle != 0u
++        || line.edgeVisualStyleHandle != 0u || line.numProxyGraph != 0 || !line.proxyGraphics.empty()
++        || line.dwgReactorCount() != 0 || !line.reactorHandles.empty()
++        || line.dwgXDictionaryFlag() != 1u || line.xDictHandle != 0u
++        || !line.hasDwgCommonLinkTail() || line.hasDataStorageBinaryData()
++        || line.hasDataStorageRecord || line.dataStorageHandle != 0u
++        || !line.dataStorageHandleKey.empty() || !line.dataStorageData.empty()
++        || line.dataStorageSegmentIndex != 0u || line.dataStorageSchemaIndex != 0u
++        || line.hasDataStoragePayloadMarker || line.dataStoragePayloadMarkerOffset != 0u
++        || line.dataStoragePayloadMarkerLength != 0u || !line.dataStoragePayloadMarkerSection.empty()
++        || !line.appData.empty() || !line.extData.empty()
++        || !line.pendingAppIdResolutions.empty() || !line.pendingLayerRefResolutions.empty()
++        || line.basePoint.z != 0.0 || line.secPoint.z != 0.0 || line.thickness != 0.0
++        || line.extPoint.x != 0.0 || line.extPoint.y != 0.0 || line.extPoint.z != 1.0
++        || line.xAxisAngle != 0.0 || !std::isfinite(line.basePoint.x)
++        || !std::isfinite(line.basePoint.y) || !std::isfinite(line.secPoint.x)
++        || !std::isfinite(line.secPoint.y))
++      return;
++    try {
++      const std::vector<std::uint32_t> handles{line.handle};
++      if (!found->second.singleEntitySource->matchesEntityMap(handles))
++        return;
++      constexpr std::size_t maxBytes = 32u * 1024u * 1024u;
++      constexpr std::size_t charge = sizeof(DRW_Line) + 32u;
++      if (found->second.singleLineSource || m_blockRecordLinkBytes > maxBytes - charge) {
++        m_blockRecordLinks.clear(); m_blockRecordLinkBytes = 0u;
++        m_blockRecordLinkCaptureFailed = true;
++        return;
++      }
++      found->second.singleLineSource = std::make_shared<const DRW_Line>(line);
++      m_blockRecordLinkBytes += charge;
++    } catch (...) {
++      m_blockRecordLinks.clear(); m_blockRecordLinkBytes = 0u;
++      m_blockRecordLinkCaptureFailed = true;
++    }
++  }
++#endif
++
+   const std::map<std::uint32_t, BlockRecordLinkObservation> &
+   blockRecordLinks() const noexcept { return m_blockRecordLinks; }
+   bool blockRecordLinkCaptureFailed() const noexcept {
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index 9c7eff3..8d151d2 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -5757,6 +5757,10 @@ void RS_FilterDXFRW::addPoint(const DRW_Point &data) {
+  * Implementation of the method which handles line entities.
+  */
+ void RS_FilterDXFRW::addLine(const DRW_Line &data) {
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++  if (m_graphic != nullptr)
++    m_graphic->dwgAdvancedMetadata().observeSelectedSingleBlockLine(data);
++#endif
+   RS_DEBUG->print("RS_FilterDXF::addLine");
+ 
+   RS_Vector v1(data.basePoint.x, data.basePoint.y);
+@@ -11691,6 +11695,81 @@ double RS_FilterDXFRW::importedHatchAngle(double drwAngle, bool legacyRadians,
+  * @param file Full path to the DXF file that will be written.
+  * @param type
+  */
++#if defined(LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY)
++// One source-owned LINE is the first nonempty-block profile. This only
++// matches membership; staged output identity is checked during finalization.
++static bool selectedSingleSourceLine(RS_Graphic &graphic, std::uint32_t blockHandle,
++                                     std::uint32_t &lineHandle, std::string &blockName) noexcept {
++  try {
++    const auto &metadata = graphic.dwgAdvancedMetadata();
++    const auto found = metadata.blockRecordLinks().find(blockHandle);
++    if (found == metadata.blockRecordLinks().end() || found->second.sourceEntityCount != 1u
++        || !found->second.singleEntitySource || !found->second.singleLineSource)
++      return false;
++    const auto &source = found->second;
++    const RS_Block *block = nullptr;
++    const QString expected = QString::fromUtf8(source.name.c_str());
++    for (unsigned i = 0; i < graphic.countBlocks(); ++i) {
++      const RS_Block *candidate = graphic.blockAt(i);
++      if (candidate->isDeleted() || candidate->getName().compare(expected, Qt::CaseInsensitive) != 0)
++        continue;
++      if (block != nullptr) return false;
++      block = candidate;
++    }
++    if (block == nullptr || block->sourceHandle() != blockHandle)
++      return false;
++    lc::LC_ContainerTraverser walk{*block, RS2::ResolveNone};
++    RS_Entity *line = walk.first();
++    if (line == nullptr || line->isDeleted() || line->rtti() != RS2::EntityLine
++        || line->sourceHandle() == 0u || line->sourceHandle() == DRW::NoHandle
++        || walk.next() != nullptr)
++      return false;
++    const std::vector<std::uint32_t> sourceHandles{line->sourceHandle()};
++    const auto &original = *source.singleLineSource;
++    const auto *current = static_cast<const RS_Line *>(line);
++    const RS_Layer *layer = current->getLayer(false);
++    const RS_Pen pen = current->getPen(false);
++    if (layer == nullptr || layer->getName() != QStringLiteral("0")
++        || pen.getLineType() != RS2::LineByLayer || pen.getWidth() != RS2::WidthByLayer
++        || !pen.getColor().isByLayer())
++      return false;
++    if (!source.singleEntitySource->matchesEntityMap(sourceHandles)
++        || original.handle != line->sourceHandle() || original.parentHandle != blockHandle
++        || current->getStartpoint().x != original.basePoint.x
++        || current->getStartpoint().y != original.basePoint.y
++        || current->getEndpoint().x != original.secPoint.x
++        || current->getEndpoint().y != original.secPoint.y)
++      return false;
++    const DRW_DwgFramePublication *publication = nullptr;
++    const DRW_DwgFrameCoverageEntry *coverage = nullptr;
++    for (const auto &item : metadata.dwgFramePublications())
++      if (item.m_handle == original.handle) { if (publication) return false; publication = &item; }
++    for (const auto &item : metadata.dwgFrameCoverageReport().m_entries)
++      if (item.m_handle == original.handle) { if (coverage) return false; coverage = &item; }
++    if (!publication || !coverage || !publication->m_hasSourceLocation
++        || (publication->m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
++            && publication->m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
++        || publication->m_encodedType != 19 || publication->m_resolvedType != 19
++        || !publication->m_isEntity || publication->m_isCustomClass
++        || publication->m_carrier != DRW_DwgFramePublication::Carrier::Typed
++        || !publication->m_commonHandleDataValidated
++        || !drwDwgCommonLinkEvidenceValidated(publication->m_commonLinkEvidence)
++        || publication->m_parentHandle != blockHandle
++        || coverage->m_sourceOffset != publication->m_sourceOffset
++        || coverage->m_sourceMapOrdinal != publication->m_sourceMapOrdinal
++        || coverage->m_sourceOffsetSpace != publication->m_sourceOffsetSpace
++        || coverage->m_disposition != DRW_DwgFrameDisposition::Published
++        || coverage->m_publicationCount != 1u)
++      return false;
++    lineHandle = sourceHandles.front();
++    blockName = source.name;
++    return true;
++  } catch (...) {
++    return false;
++  }
++}
++#endif
++
+ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+                                 const RS2::FormatType type) {
+   // Also protect callers using the filter directly rather than RS_FileIO.
+@@ -12278,6 +12357,9 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+   std::set<std::uint32_t> experimentalEmptyXRecords;
+ #endif
+   bool experimentalSourceBlocksPrepared = false;
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY)
++  bool experimentalNeedsLineInventory = false;
++#endif
+   const auto refuseExperimentalSort = [this]() {
+     m_writeFailed = true;
+     m_errorCode = DRW::BAD_UNKNOWN;
+@@ -12306,8 +12388,17 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+           || name.compare(QStringLiteral("*Paper_Space"), Qt::CaseInsensitive) == 0;
+       if (!space) {
+         hasNamed = true;
+-        if (block->second.sourceEntityCount != 0u)
++        if (block->second.sourceEntityCount != 0u) {
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY)
++          std::uint32_t lineHandle = 0u;
++          std::string blockName;
++          if (!selectedSingleSourceLine(*m_graphic, sort.blockOwnerHandle, lineHandle, blockName))
++            return refuseExperimentalSort();
++          experimentalNeedsLineInventory = true;
++#else
+           return refuseExperimentalSort();
++#endif
++        }
+       }
+       if (!experimentalSortDictionaryOwners.emplace(sort.parentHandle, sort.blockOwnerHandle).second)
+         return refuseExperimentalSort();
+@@ -12377,6 +12468,10 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+         sourceBlocks.push_back(std::move(block));
+       }
+       m_dxfW->setSourceBlockRecords(std::move(sourceBlocks), true);
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY)
++      if (experimentalNeedsLineInventory)
++        m_dxfW->setDxfWriteRecordInventoryEnabled(true);
++#endif
+       experimentalSourceBlocksPrepared = true;
+       m_dxfExperimentalSourceBlocksPrepared = true;
+     } else {
+@@ -28225,7 +28320,30 @@ void RS_FilterDXFRW::writeAppId() {
+ bool RS_FilterDXFRW::finalizeDxfWrite() {
+   // A failure latched in any DXF write callback reaches dxfRW here, before
+   // it replaces the destination.
+-  return !m_writeFailed;
++  if (m_writeFailed) return false;
++#if defined(LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY)
++  if (m_dxfExperimentalSourceBlocksPrepared) {
++    const auto &metadata = m_graphic->dwgAdvancedMetadata();
++    for (const auto &sort : metadata.sortEntsTables()) {
++      const auto source = metadata.blockRecordLinks().find(sort.blockOwnerHandle);
++      if (source == metadata.blockRecordLinks().end()) return false;
++      if (source->second.sourceEntityCount == 0u) continue;
++      std::uint32_t lineHandle = 0u;
++      std::string blockName;
++      if (!metadata.matchesSelectedAc1024SortEntsOwnerChain(
++              sort.blockOwnerHandle, sort.parentHandle, sort.handle)
++          || !selectedSingleSourceLine(*m_graphic, sort.blockOwnerHandle, lineHandle, blockName))
++        return false;
++      const auto emittedLine = m_dxfW->remapEntityHandle(lineHandle);
++      const auto emittedOwner = m_dxfW->getBlockRecordHandleToWrite(blockName);
++      if (emittedOwner == 0u || emittedOwner == DRW::NoHandle
++          || !m_dxfW->dxfWriteSourceEntityHasIdentity(
++                 lineHandle, emittedLine, "LINE", "BLOCKS", emittedOwner))
++        return false;
++    }
++  }
++#endif
++  return true;
+ }
+ 
+ bool RS_FilterDXFRW::finalizeDwgWrite() {
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 428a984..22f6aeb 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9962,6 +9962,93 @@ TEST_CASE("Named block export preserves source millimetre units",
+     std::filesystem::remove(path);
+ }
+ 
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY
++TEST_CASE("Named block export preserves one verified source line",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_LINE_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_NAMED_BLOCK_LINE_FIXTURE to a locally generated ODA AC1024 DWG");
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  const auto &md = graphic.dwgAdvancedMetadata();
++  REQUIRE(md.matchesSelectedAc1024SortEntsOwnerChain(0x30u, 0xB003u, 0xB100u));
++  REQUIRE(md.blockRecordLinks().at(0x30u).sourceEntityCount == 1u);
++  RS_Block *block = nullptr;
++  for (unsigned i = 0; i < graphic.countBlocks(); ++i)
++    if (graphic.blockAt(i)->getName() == QStringLiteral("Named")) block = graphic.blockAt(i);
++  REQUIRE(block != nullptr);
++  lc::LC_ContainerTraverser sourceWalk{*block, RS2::ResolveNone};
++  RS_Entity *entity = sourceWalk.first();
++  REQUIRE(entity != nullptr); REQUIRE(entity->rtti() == RS2::EntityLine);
++  REQUIRE(sourceWalk.next() == nullptr);
++  const auto sourceHandle = entity->sourceHandle();
++  REQUIRE(sourceHandle != 0u);
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  const char *keepPath = std::getenv("LIBRECAD_KEEP_NAMED_BLOCK_LINE_DXF");
++  const std::string path = keepPath && *keepPath ? keepPath : tmpFile("named_sort_line.dxf");
++  const std::string sentinel = "previous destination\n";
++  writeText(path, sentinel);
++  entity->setSourceHandle(sourceHandle ^ 1u);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  entity->setSourceHandle(sourceHandle);
++  auto *sourceLine = static_cast<RS_Line *>(entity);
++  const auto originalEnd = sourceLine->getEndpoint();
++  sourceLine->setEndpoint(RS_Vector(originalEnd.x + 1.0, originalEnd.y));
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  sourceLine->setEndpoint(originalEnd);
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  RS_Graphic reread; RS_FilterDXFRW rereader;
++  REQUIRE(rereader.fileImport(reread, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  const RS_Block *readBlock = nullptr;
++  for (unsigned i = 0; i < reread.countBlocks(); ++i)
++    if (reread.blockAt(i)->getName() == QStringLiteral("Named")) readBlock = reread.blockAt(i);
++  REQUIRE(readBlock != nullptr);
++  lc::LC_ContainerTraverser readWalk{*readBlock, RS2::ResolveNone};
++  const RS_Entity *out = readWalk.first();
++  REQUIRE(out != nullptr); REQUIRE(out->rtti() == RS2::EntityLine);
++  CHECK(readWalk.next() == nullptr);
++  const auto *line = static_cast<const RS_Line *>(out);
++  CHECK(line->getStartpoint().x == Catch::Approx(1.0));
++  CHECK(line->getStartpoint().y == Catch::Approx(2.0));
++  CHECK(line->getEndpoint().x == Catch::Approx(3.0));
++  CHECK(line->getEndpoint().y == Catch::Approx(4.0));
++  REQUIRE(reread.dwgAdvancedMetadata().sortEntsTables().size() == 1u);
++  if (!(keepPath && *keepPath)) std::filesystem::remove(path);
++}
++#endif
++
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY
++TEST_CASE("Named block export refuses an unqualified nonplanar line",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_LINE_3D_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_NAMED_BLOCK_LINE_3D_FIXTURE to a locally generated ODA AC1024 DWG");
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  const auto &md = graphic.dwgAdvancedMetadata();
++  REQUIRE(md.blockRecordLinks().at(0x30u).sourceEntityCount == 1u);
++  CHECK_FALSE(md.blockRecordLinks().at(0x30u).singleLineSource);
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  const std::string path = tmpFile("named_sort_line_3d_refusal.dxf");
++  const std::string sentinel = "previous destination\n";
++  writeText(path, sentinel);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  std::filesystem::remove(path);
++}
++#endif
++
+ TEST_CASE("Named block export preserves a bounded source preview",
+           "[dwg][roundtrip][sortentssource][source]") {
+   const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_PREVIEW_FIXTURE");

@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-point-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "title": "POINT DWG encoder allocation rollback and retry",
+  "scope": "Generated local transaction evidence for DRW_Point::encodeDwg; no physical producer or output-support claim.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The encoder stages body, string and handle destinations with alias-aware publication. A scoped rollback guard restores the original oType on failure and publishes oType=27 only after all writes succeed.",
+    "versions": ["AC1021", "AC1024"],
+    "profile": "Generated POINT with nonzero coordinates, thickness, extrusion, X-axis angle, common owner/reactor/extension handles and seeded caller buffers."
+  },
+  "allocationSweep": {
+    "mechanism": "One-shot global allocation failure countdown in the generated object-vector test",
+    "result": "Each version reached 15 allocation-failure offsets. Every failure returned false without throwing, preserved seeded body/string/handle bytes, bit counts, handle occurrences and original oType, and succeeded on same-object retry with output equal to clean encoding and oType=27.",
+    "aliasControl": "For each version, failure at the first reached allocation preserved the all-streams-aliased destination and original oType; same-object retry matched the clean aliased encoding."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --point-dwg-encode-allocation-rollback",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_point_dwg_encode_allocation_rollback$' --output-on-failure",
+    "result": "PASS: POINT selector; six-test core entity writer allocation cohort passed (6/6); git diff --check passed."
+  },
+  "limitations": [
+    "Generated vectors establish local failure/retry behavior only; they do not qualify POINT wire semantics or physical producer interoperability.",
+    "No native consumer rendering, complete-document output, or broad DWG support claim follows."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added."
+}

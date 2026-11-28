@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-p6-attdia-attreq-legacy-header-domain-guard-v1",
+  "completedAt": "2026-11-02",
+  "status": "LEGACY_ATTDIA_ATTREQ_DOMAINS_ENFORCED",
+  "supportClaimEffect": "none",
+  "fields": {
+    "$ATTDIA": {
+      "groupCode": 70,
+      "validValues": [0, 1],
+      "meaning": "0 uses command prompts; 1 uses an attribute-entry dialog."
+    },
+    "$ATTREQ": {
+      "groupCode": 70,
+      "validValues": [0, 1],
+      "meaning": "0 assumes attribute defaults; 1 prompts for attribute values as specified by ATTDIA."
+    }
+  },
+  "implementation": {
+    "dxfOutput": "HEADER preflight validates canonical dollar/bare aliases, integer variant type, group code 70, and each documented 0/1 domain only when the selected target is below AC1012, matching the existing writer emission branch. Invalid legacy values are refused atomically; tolerant input remains unchanged.",
+    "nonEmittingTargets": "AC1012, AC1014, and AC1027 generated controls verify that these variables are neither rejected nor emitted when the writer does not persist them.",
+    "semanticLimit": "Scalar admission and legacy header transport only; no native INSERT, prompt, or attribute-editing behavior is qualified."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_attribute_prompt_header_domains$' --output-on-failure",
+    "adjacentTests": "ctest --test-dir build-gcc -R '^libdxfrw_(attribute_prompt_header_domains|orientation_attribute_header_domains|lineweight_header_domains)$' --output-on-failure",
+    "result": "PASS (focused 1/1; adjacent cohort 3/3)",
+    "coverage": [
+      "AC1009 ASCII output and typed readback for all documented ATTDIA/ATTREQ values.",
+      "Out-of-domain values, wrong variant types, wrong group codes, and duplicate dollar/bare aliases fail atomically.",
+      "Failed writes permit corrected same-writer retries.",
+      "Tolerant AC1009 ASCII input retains unsupported integer values.",
+      "Invalid stored values do not block or appear in AC1012, AC1014, and AC1027 output."
+    ]
+  },
+  "sources": [
+    "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_r12_dxf.pdf",
+    "https://help.autodesk.com/cloudhelp/2022/ENU/AutoCAD-Core/files/GUID-DD7AE7D3-D9D7-49E7-948E-079D8451FFA2.htm",
+    "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-Core/files/GUID-7A7229F8-C99D-42C5-8784-4231767611F8.htm",
+    "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbDatabase__setAttdia_bool.html",
+    "https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbDatabase__setAttreq_bool.html"
+  ],
+  "inputFixturesAdded": 0,
+  "supportClaimsPromoted": 0
+}

@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-acds-candidate-frame-disposition-census-2026-11-05",
+  "date": "2026-11-05",
+  "status": "COMPLETE_LOCAL_FRAME_ACCOUNTING_OUTPUT_PROFILE_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "question": "Do the existing AC1024 Aerial and Sun and Sky sources provide additional ACDS-bearing candidates with complete reader frame disposition and zero record parse failures?",
+  "method": {
+    "reader": "current local libdxfrw build",
+    "readerExecutable": "build-gcc/dwg2dxf/dwg2dxf",
+    "readerExecutableSha256": "c2dc5d6a13aea3cb4a87cd9736df2da3492cc76f4f97fdd2182c889f36446736",
+    "readerCommit": "2bdad900",
+    "commandTemplate": "build-gcc/dwg2dxf/dwg2dxf <source.dwg> -y -d -v2010 <scratch-output.dxf>",
+    "interpretationLimit": "This measures this reader's record disposition and strict DXF preflight only. It is not an independent semantic comparison, a complete ACDS-to-DXF output profile, or native-consumer evidence."
+  },
+  "sources": [
+    {
+      "name": "visualization_-_aerial.dwg",
+      "path": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+      "version": "AC1024",
+      "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+      "debugLogSha256": "1d8127b982f052acb4e81ef54df6e5ad89f59e7416550a2841a584f9b9dde43c",
+      "recordFailures": {
+        "entities": 0,
+        "objects": 0
+      },
+      "frameDisposition": {
+        "sourceFrames": 337,
+        "published": 337,
+        "pending": 0,
+        "deferred": 0,
+        "staged": 0,
+        "quarantined": 0,
+        "failed": 0,
+        "unresolved": 0,
+        "unrecognizedDispositions": 0
+      },
+      "opaqueFrameTransport": {
+        "callbacks": 300,
+        "sourceFramesCaptured": 300,
+        "outputQualified": 0,
+        "retainedForCorrelation": 15
+      },
+      "strictOutput": {
+        "exitCode": 1,
+        "blocker": "SUN owner graph closure: SUN must have exactly one matching VIEW, VPORT, VIEWPORT, or validated dictionary owner",
+        "outputPublished": false
+      }
+    },
+    {
+      "name": "visualization_-_sun_and_sky_demo.dwg",
+      "path": "/Users/dli/doc/dwg/visualization_-_sun_and_sky_demo.dwg",
+      "version": "AC1024",
+      "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+      "debugLogSha256": "796d178b618b7987b71120f23f45ffad5ad1b8351289caa224d1875b0ab6913b",
+      "recordFailures": {
+        "entities": 0,
+        "objects": 0
+      },
+      "frameDisposition": {
+        "sourceFrames": 395,
+        "published": 395,
+        "pending": 0,
+        "deferred": 0,
+        "staged": 0,
+        "quarantined": 0,
+        "failed": 0,
+        "unresolved": 0,
+        "unrecognizedDispositions": 0
+      },
+      "opaqueFrameTransport": {
+        "callbacks": 342,
+        "sourceFramesCaptured": 342,
+        "outputQualified": 0,
+        "retainedForCorrelation": 50
+      },
+      "strictOutput": {
+        "exitCode": 1,
+        "blocker": "dynamic-block objects are outside the closed output profiles",
+        "outputPublished": false
+      }
+    }
+  ],
+  "conclusion": "Both sources are additional complete-reader-disposition candidates, but neither establishes closed physical output. Qualify source ownership/dependencies and exact opaque output bindings before using either to promote P4 support. Do not infer ACDS semantics from frame counts or proxy bytes.",
+  "fixturePolicy": "The source DWGs were read-only local corpus inputs. No DWG/DXF fixture was added or committed."
+}

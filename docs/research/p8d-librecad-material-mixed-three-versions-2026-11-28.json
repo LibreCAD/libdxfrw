@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-material-mixed-three-versions-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "7d175ccf5c611bbaa07e5e45b1b5303bcbbf582d",
+  "codecCommit": "1e8cd41fc",
+  "scope": "Locally authored ASCII same-version AC1024, AC1027 and AC1032 sources containing one planar POINT, LINE, CIRCLE, ARC, ELLIPSE and LWPOLYLINE, each referencing one selected sparse material.",
+  "checks": [
+    "The selected mixed regression passes 75 assertions across the three versions. It translates all six entities, reopens and repeats the save, checks every material reference, rejects a physical ELLIPSE source/delivery mismatch while preserving the destination, and retries with the same adapter.",
+    "The material selector passes 4867 assertions in 26 cases, including the existing selected AC1021 geometry, malformed-input and recovery controls. The bundled-codec filter translation unit compiles.",
+    "ezdxf 1.4.5 independently checks each source, edited output and ODA File Converter 27.1.0 resave: all six entity geometries, material links, model-space ownership, material dictionary membership and ownership, LAYER and current-material links. All nine audits have zero errors or fixes. Floating-point geometric comparisons use absolute tolerance 1e-10 and relative tolerance 1e-12 where appropriate."
+  ],
+  "independentFiles": [
+    {
+      "version": "AC1024",
+      "stage": "source",
+      "sha256": "fffecc8569f94e5174424b316254c413acee8d61dadf3207fff2475c5f1aa08c",
+      "bytes": 1075,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1024",
+      "stage": "output",
+      "sha256": "8e4b1518f5b686a1364f5b9b875a5affedba223f0ab0e1247d79bb89aab0d684",
+      "bytes": 22468,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1024",
+      "stage": "oda-resave",
+      "sha256": "0ec9d9dab40a2dd67e7f52790b0f02cfb89dafee27a8f20261d86ac3757be8f0",
+      "bytes": 132198,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1027",
+      "stage": "source",
+      "sha256": "4393a60ac0ea7e2a114ddc7b9b008c83e6a4f0cb3b9a2f4b24d3df0e78b3117b",
+      "bytes": 1075,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1027",
+      "stage": "output",
+      "sha256": "279188fb0f21b854181dc86fe4cc0609fdaa1aefb748cb90b7ef29dc8650fbb5",
+      "bytes": 22461,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1027",
+      "stage": "oda-resave",
+      "sha256": "d7b98b3dbda62695c25fad5b3baec338989105fde237e5f1f507b306c6d09505",
+      "bytes": 85714,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1032",
+      "stage": "source",
+      "sha256": "5ea03cfd5d0ca736ac6e3a055eebedcafe8282503b3ecda290baa269ef2b4c27",
+      "bytes": 1075,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1032",
+      "stage": "output",
+      "sha256": "4aebfe342a2738c881186b776b86aa7cfc15b56d63b1dcd39e7b65850d18288e",
+      "bytes": 22461,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1032",
+      "stage": "oda-resave",
+      "sha256": "c6136a03736784abcdc079aa560556601e983f6fb744e3f11b33a6a726105d76",
+      "bytes": 85125,
+      "audit": "clean"
+    }
+  ],
+  "hashes": {
+    "focusedLog": "81813a9215cb5309c6209f60ba1724f62f96bf1e98e6024f1c8c050509b56bef",
+    "materialSuiteLog": "7d4044cf613d07ad2942e330108049e2b4ae5cc1b8c39fca20dac0e8f13860ac",
+    "testExecutable": "c44d7da3e294c4c6c248ed4ae0bbed939f2b8529d9a424df2270b267b4fccb17",
+    "sharedCodec": "af4e1c1f040c11be32fe8ae449d77d4d77098c82acf7b2f80870f9b4118bfe7c"
+  },
+  "limits": [
+    "Only the selected same-version ASCII geometry, edit and graph are independently checked; other entity profiles, sources, binary consumer paths, native mixed editing, 3D material rendering and other platforms remain open.",
+    "ODA resaves validate selected locally authored inputs, not independent native AutoCAD producer semantics; no drawing fixture is committed."
+  ]
+}

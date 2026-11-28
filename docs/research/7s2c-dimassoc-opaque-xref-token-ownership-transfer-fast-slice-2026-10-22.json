@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c DIMASSOC opaque XREF token ownership transfer",
+  "scope": "Transfer group-301 and group-302 external-database XREF spellings directly into DIMASSOC retained fields without a temporary getString() copy.",
+  "files": {
+    "CMakeLists.txt": "4a92eb66ed8b629d8ea001a9b15129c20966e03767a9af8c627917af6b4ed9be",
+    "src/drw_objects.cpp": "6fa574cf53f39c3367e88839dc0763645b70f5691074add6572fc6fa0094d6ff",
+    "tests/hardening_tests.cpp": "4cfd7da82e412454c0903f6fa0793e4133c9b2b3fcb635c8250fa5c7423e4391",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "dbe2f17d3efffac9c3d500a1ea5b31fb2a95cc2bcf4b6eddeda06440b8ebddc6"
+  },
+  "evidence": {
+    "sourceAudit": "DIMASSOC group-301/302 values are raw external-database handle spellings, not host-DWG handles. The parser moves the exact token into the destination while retaining existing atomic byte-budget replacement semantics; no normalization or semantic decoder applies to these group codes.",
+    "generatedControls": "The existing in-memory ASCII and Binary DIMASSOC generated control covers group-301 repeated-value replacement, group-302 intersection XREF spelling, exact retained values, copy/assignment/reset owner accounting, and one-byte-under refusal.",
+    "focusedRegistration": "A dedicated fast CTest invokes the existing focused DIMASSOC XREF-owner selector."
+  },
+  "change": {
+    "publicApiChanged": false,
+    "publicModelLayoutChanged": false,
+    "wireBehaviorChanged": false,
+    "retainedByteBudgetChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror build; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-dimassoc-xref-text-owner-budget",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_dimassoc_xref_token_transfer$' --output-on-failure",
+      "result": "PASS (1/1; 0.01 s)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_objects.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "fullSuiteRun": false,
+  "persistentFixtureAdded": false,
+  "worktreeState": "Broad shared worktree remains dirty; slice is uncommitted and unstaged.",
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "externalQualification": [
+    "Native FreeCAD Linux qualification",
+    "Native FreeCAD Windows qualification",
+    "Independent ACIS/ACDS semantic evidence"
+  ],
+  "selfUnblockingContinuation": "Continue the exact-source retained-value audit where owner and raw-versus-semantic contracts are explicit. Keep each slice generated and fast; DWG parser changes still require normative or traceable class-frame evidence."
+}

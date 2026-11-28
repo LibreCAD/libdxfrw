@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 consumed-style fourteen-to-five removal",
+  "date": "2026-10-29",
+  "status": "SOURCE_COUNT_FOURTEEN_SURVIVOR_QUINTUPLES_QUALIFIED",
+  "codeCommit": "cb40a4bf",
+  "scope": "Qualify all 2,002 ordered choices of five surviving tuples when reducing a consumed fourteen-element AC1027 MLINESTYLE to five elements. This is a selected removal profile, not complete source-count-fourteen removal or universal MLINE support.",
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "change": "The runtime-generated test registered in aaf8c06e reuses each imported ASCII or binary source for both output encodings while still exercising and reading back the full four-cell input/output matrix for every survivor quintuplet. Refusal rollback, late-mutation rollback and corrected retry controls remain enabled.",
+    "performance": "The focused run passed in 110.75 seconds versus 119.78 seconds before source-import reuse, about 7.5% faster with the same 2,002 survivor sets, 8,008 profiles and 8,012 readbacks.",
+    "productionBehavior": "No writer behavior changed; this commit optimizes the runtime test harness without reducing its selected output/readback matrix."
+  },
+  "validation": {
+    "configureCommand": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configureResult": "PASS",
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_style_five_from_fourteen_removal$' --output-on-failure",
+    "ctestResult": "PASS: survivorSets=2002; profiles=8008; readbacks=8012; refusals=2; late=2; retries=4; elapsed=110.75s",
+    "diffCheck": "PASS (git diff --check)",
+    "fullSuite": "NOT_RUN"
+  },
+  "fixturePolicy": "DXF source/output files are generated at runtime in a system temporary directory and removed after success. No test drawing was committed.",
+  "limits": [
+    "Only source count fourteen and target count five, across all 2,002 survivor quintuplets, are newly qualified here.",
+    "Source-count-fourteen target counts 6..13, larger source counts, zero-element handling, native rendering and complete-document closure remain open.",
+    "Selected AC1027 compatible output does not establish native MLINE rendering or cross-version support."
+  ],
+  "next": "Qualify source-count-fourteen to six-element removal across all 3,003 survivor sextuplets with the same exact projection, output/readback, refusal, late-mutation rollback and retry controls."
+}

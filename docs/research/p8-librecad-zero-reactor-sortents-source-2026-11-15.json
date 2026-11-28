@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-zero-reactor-sortents-source-2026-11-15.patch",
+  "patchSha256": "197eabb891b79bd9de556782c2c2b8543e462d763285065b0e27c2f0c58aa6af",
+  "implementation": "A twenty-sixth unmerged LibreCAD patch extends its bounded empty SORTENTSTABLE source snapshot to the upstream zero-reactor profile, while retaining the existing count, vector and parent-reactor validation. It adds an optional locally generated ODA fixture importer control; no fixture file is added and export is unchanged.",
+  "validation": [
+    "A standalone C++17 -Werror consumer imported the locally generated ODA AC1024 drawing (DWG SHA-256 02c8a7dc65d6517e57211adb596ce546130fb3ad651eada8363c1f2a496545e8). Its sealed source snapshot matched the zero-reactor sort table B100 and exact block 30 / dictionary B003 owner chain; a crossed target was refused.",
+    "The patch applies after the previous 25, and its macro-excluded metadata source compiles with older bundled headers. Source-release inventory and 18 refusal controls pass with 1221 files; the 723-input implementation digest is unchanged.",
+    "The installed-codec LibreCAD focused CTests passed 3/3; the optional ODA-fixture importer test passed all 13 assertions, including the exact source chain, duplicate invalidation and same-filter reset/reimport."
+  ],
+  "limits": "This is selected source correlation for one locally generated ODA file, not whole-document closure, output admission, native AutoCAD/FreeCAD qualification or a support claim. The ODA fixture is local and is not committed."
+}

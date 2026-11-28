@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "slice": "RPP-5ae",
+  "date": "2026-10-22",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.101.4",
+  "finding": "TABLECONTENT style skipper omitted border lineweight BL between CMC and invisibility/double-spacing data",
+  "implementation": "Consume the bounded BL; retain the incomplete-semantic disposition for skipped style properties",
+  "generatedRegression": {
+    "name": "libdxfrw_table_content_cell_style_border_alignment",
+    "beforeFix": "FAIL",
+    "afterFix": "PASS",
+    "lineweights": [129, -2],
+    "zeroEdgeSlot": true,
+    "separateLinetypeHandles": true,
+    "followingFieldsChecked": ["cell style ID", "row style ID", "row height", "TABLESTYLE handle"]
+  },
+  "validation": {
+    "strictBuildAndCompatibility": "PASS",
+    "aggregateObjectVectors": "PASS",
+    "finalSharedFocusedCohort": {"passed": 9, "failed": 0, "seconds": 1.38},
+    "sourceDwgProbe": {
+      "repository": "DomCR/ACadSharp",
+      "path": "samples/sample_AC1021.dwg",
+      "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+      "beforeObjectParseFailures": 3,
+      "afterObjectParseFailures": 3,
+      "remainingTableContentFailures": 2,
+      "observedLinkedDataFlags": [3, 49913345],
+      "reader21Ac1021CrcMismatch": 29,
+      "cliExitCode": 1,
+      "cliRefusal": "GROUP callback capture or ACAD_GROUP name resolution incomplete",
+      "disposition": "UNRESOLVED; missing-field regression does not qualify this drawing"
+    },
+    "fullSuiteRun": false,
+    "sanitizersRun": false
+  },
+  "nextAction": "Trace the earliest source prefix/cursor divergence against ODA and pinned peer reader; keep Boolean linked-data rule",
+  "externalDrawingsCopiedOrCommitted": 0,
+  "persistentGeneratedFixturesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "worktree": "uncommitted and unstaged; pre-existing overlapping edits preserved"
+}

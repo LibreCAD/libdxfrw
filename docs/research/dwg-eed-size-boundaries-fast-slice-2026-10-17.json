@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw-dwg-eed-size-boundaries-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Close the local DWG EED unsigned-size and following-field regression gap under 7K without adding a drawing fixture or promoting external support claims.",
+  "formatReference": {
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sections": [
+      "§2.2 bit-short (BS)",
+      "§20.4.1 common entity data",
+      "§28 extended entity data"
+    ],
+    "observation": "EED application records use a BS length that excludes the length prefix and application handle. R2007+ string items have their own 16-bit character length and UTF-16 data; the local encoder may split only between complete items."
+  },
+  "method": {
+    "kind": "Generated AC1021 object-vector and full-file writer/reader controls",
+    "externalDrawingsUsed": 0,
+    "newFixtureFiles": 0,
+    "newTestTargets": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "localTests": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_local_roundtrip -j2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --dwg-eed-size-boundaries",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --dwg-eed-size-boundaries",
+        "result": "passed"
+      }
+    ],
+    "localFilesChanged": [
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/dwg-eed-size-boundaries-fast-slice-2026-10-17.json"
+    ],
+    "temporaryOutput": "The generated full AC1021 DWG is written under the system temporary directory and removed by RAII cleanup."
+  },
+  "controls": [
+    {
+      "encodedEedDataBytes": 32767,
+      "expectedChunkBytes": [32767],
+      "assertions": [
+        "The encoder accepts the exact boundary without treating it as a format maximum.",
+        "Raw envelope uses an unsigned BS length, the expected APPID handle, and a zero terminator.",
+        "All typed string values preserve exact order/content, and the following field sentinel is readable."
+      ]
+    },
+    {
+      "encodedEedDataBytes": 32768,
+      "expectedChunkBytes": [32768],
+      "assertions": [
+        "The unsigned BS length remains valid above signed 16-bit range.",
+        "Raw envelope and local reader agree on the chunk boundary and next-field cursor."
+      ]
+    },
+    {
+      "encodedEedDataBytes": 65535,
+      "expectedChunkBytes": [65535],
+      "assertions": [
+        "The maximum unsigned BS payload is represented exactly.",
+        "All 257 complete string items are retained in order and the following field sentinel remains aligned."
+      ]
+    },
+    {
+      "encodedEedDataBytes": 65536,
+      "expectedChunkBytes": [65407, 129],
+      "assertions": [
+        "Chunking occurs only between complete items; the final 129-byte item is not split.",
+        "All item strings and APPID handles are recovered by the local EED reader.",
+        "A generated full AC1021 DWG reads both the EED-bearing LINE and the following LINE with correct coordinates; the latter has no XDATA."
+      ]
+    },
+    {
+      "encodedEedDataBytes": 65582,
+      "indivisibleItemBytes": 65537,
+      "assertions": [
+        "A 32,767-character string whose encoded item cannot fit in one BS chunk is refused before emitting bytes.",
+        "Corrected data succeeds using the same writer buffer; local decode and following-field sentinel pass."
+      ]
+    }
+  ],
+  "doesNotEstablish": [
+    "independent producer or native CAD acceptance",
+    "same-APPID continuation semantics beyond the local writer/reader projection",
+    "a 32,767-byte per-APPID or drawing-wide EED format limit",
+    "resolution of ACadSharp or LibreDWG peer issue root causes",
+    "broader DWG/DXF feature completeness or support parity"
+  ],
+  "planImpact": {
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextGate": "Independent producer/native EED acceptance and same-APPID continuation semantics at the existing composed interoperability checkpoint; if unavailable, retain EXTERNAL_ACCEPTANCE_PENDING and continue the next local implementation-ready slice."
+  }
+}

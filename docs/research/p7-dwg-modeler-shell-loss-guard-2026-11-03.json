@@ -1,0 +1,48 @@
+{
+  "id": "p7-dwg-modeler-shell-loss-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "DWG_ASSOCIATED_SAB_REQUIRES_EXPLICIT_DXF_SHELL",
+  "supportClaimEffect": "none",
+  "finding": "The R2013+ modeler DXF writer could emit an exact DWG-associated SAB while omitting group 290 and group 2, even though the DWG parser had not qualified those source shell fields. An ODA round trip produced different values for both fields. Correct carrier bytes alone do not prove preservation of the modeler shell or its native meaning.",
+  "physical_source": {
+    "source": "public AC1027 example_2013.dwg, provenance and source/AcDs bindings in p7-ac1027-physical-modeler-acds-sab-oda-byte-join-2026-11-03.json",
+    "source_sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "region": "0x176, model-space BLOCK_RECORD 0x1F, source layer Tavolo 3",
+    "sab_bytes": 1709,
+    "sab_sha256": "596d37aaf81ebe9662bd22ba199bce876403dec8da71dd3287b0255adb354782",
+    "oda_direct_dxf": "For the source REGION, ODA File Converter 27.1.0 direct ACAD2013 DXF output contains group 290=0 and group 2={00000000-0000-0000-0000-000000000000}.",
+    "current_typed_model": "The source read exposes m_isEmpty=false and retained DWG frame bytes, but m_hasDxfModelerFlag and m_hasDxfModelerUid are false. The R2013 revision identifier is not decoded and the DXF shell mapping is not established. LibreDWG maps its acis_empty bit to DXF 290 and separately decodes an R2013 revision GUID; this peer evidence does not settle the undocumented ODA DWG source layout."
+  },
+  "experimental_selected_region": {
+    "selection": "Explicit partial experiment selected the physical REGION, source layers Tavolo 3 and 0, their extension dictionaries 0x2BB/0x2B7 and XRECORD children 0x2BC/0x2B8, plus the source thumbnail and selected AcDs record. It was not a whole-drawing conversion.",
+    "uncommitted_candidate": "A temporary experimental eight-property-name AcDs schema admission was applied only to an isolated snapshot for diagnosis; it was removed from the worktree and is not part of the change. The original source remains refused at the strict completeness and eight-name schema gates.",
+    "strict_refusal": "RequireComplete preserved the existing destination; an explicit AllowPartial selected-subset request was needed for the experiment. The complete source has three object parse failures and one orphan DataStorage record.",
+    "writer_ascii_sha256": "e0c78a4bc6d704a249dc69078ea41ee83321cb7f474d0bf439966bff5bb4d811",
+    "writer_binary_sha256": "6bf6d3547defe9c24561fb81bdd0982b4a2d987271f670f3e111b12560f54cf2",
+    "output_observation": "The candidate outputs had REGION handle 0x2C1, owner 0x1F, layer Tavolo 3 and a matching 0x2C1 ACDS key with the exact source SAB, but omitted group 290 and group 2.",
+    "oda_acceptance": "ODA File Converter 27.1.0 accepted both outputs into AC1027 DWG without .err; its subsequent AC1027 DXF exports retained one REGION, owner/layer/key and all SAB bytes. The readback shells instead had group 290=1 and new nonzero UUIDs. Acceptance and byte agreement do not prove shell or geometric equivalence.",
+    "oda_ascii_dwg_sha256": "d34246e6acbbe36c824d168a8cc970449ddfbe8434f8601c9e40fbd3e1011d42",
+    "oda_binary_dwg_sha256": "03cdef122b22a988c7b22ccc3f040829a765d37df45e65ed1394d6279b77a93e",
+    "oda_ascii_readback_dxf_sha256": "4a2b2666b3e581abab90c5eeedde68aee9376098dd7996690091ed05bcd5e07c",
+    "oda_binary_readback_dxf_sha256": "82abceb37001a2e71c82f3adcc69c03903e819fa86cbd82e343cbb916178e708",
+    "probe_source_sha256": "5ca2a5aba15c4d4ff9e2fa3e18d3c217597747615188fd283b99542a7d6ba1ad",
+    "probe_executable_sha256": "26e7ddfde917f3509a3c925a933b1ee46d5a493721d3436dd7926029b86f2c5e"
+  },
+  "implementation": {
+    "guard": "The low-level DXF modeler writer refuses a qualified DWG-associated R2013+ SAB carrier unless the caller explicitly supplies both the modeler flag and a nonempty UID. The check covers both retained-frame and caller-built DWG-associated carriers, so clearing frame metadata does not bypass it.",
+    "compatibility": "True DXF-origin replay and older modeler versions use separate paths and are unaffected. Caller-provided fields are explicit repair input, not evidence that they match the source DWG. No virtual or public object-layout change is made.",
+    "future_work": "Determine the physical R2013+ revision UID and flag mapping against authoritative and independent source/consumer evidence, then bind it to source frames before promoting any automatic conversion profile."
+  },
+  "validation": {
+    "build": "Separate clean snapshot build at df7d6017 plus this guard and test changes; CMake Debug, -Werror retained.",
+    "focused_ctests": "9 passed: libdxfrw_acds_schema_shell_guards, dwg2dxf_native_paged_datastorage, dwg2dxf_native_paged_datastorage_faults, dwg2dxf_native_historyless_solid_inline, dwg2dxf_native_historyless_solid_inline_faults, dwg2dxf_modeler_acds_blob_projection, dwg2dxf_modeler_acds_r2013plus_projection, dwg2dxf_modeler_dxf_writer_matrix, and dwg2dxf_acds_typed_historyless_companion.",
+    "direct_control": "libdxfrw_hardening_tests --dxf-acds-qualification-hex-view passed.",
+    "combined_source_recheck": "After the intervening HEADER and DBCOLOR changes, the current build-gcc library, local roundtrip and hardening targets built successfully; the same nine focused CTests passed and the direct hex-view control passed.",
+    "coverage": "ASCII and Binary controls check missing flag, missing UID and empty UID before publication, existing-destination preservation, explicit caller correction, same-facade retry and typed shell/SAB readback. Both frame-backed and authored no-frame DWG-associated profiles are exercised; generated controls explicitly author shell values and do not infer them from DWG."
+  },
+  "limits": [
+    "No physical DWG shell is newly admitted by this guard. The rejected eight-name schema profile, modeler revision fields, full source graph and independent geometry semantics remain open.",
+    "ODA acceptance is one converter operation and does not qualify native FreeCAD, LibreCAD, or an independent kernel.",
+    "No DWG, DXF or SAB fixtures were added."
+  ]
+}

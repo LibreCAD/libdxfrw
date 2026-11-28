@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-14 wide DWG writer bit-count accounting",
+  "mode": "Bounded source arithmetic audit and generated writer fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Classify the remaining non-pointer multiplication expressions in the selected shared DWG reader/buffer files.",
+    "Fix the adjacent internal writer bit-count truncation without changing the DWG wire representation.",
+    "Test arithmetic boundaries without allocating a 512 MiB buffer and run only the owning fast writer/object tests."
+  ],
+  "localEvidence": [
+    "src/intern/dwgbuffer.cpp::getUModularChar and getModularChar consume at most five 7-bit groups; their largest magnitude is bounded below 2^35.",
+    "src/intern/dwgbuffer.cpp::getModularShort consumes at most two 15-bit words; the largest shift count is 15.",
+    "src/intern/dwgreader.cpp::readDwgEed widens the uint16 UTF-16 code-unit count before multiplying by two and checks the product against the bounded chunk before allocating.",
+    "src/intern/dwgreader.cpp staging-capacity products use quotient prechecks or counts constrained by existing resource caps.",
+    "src/intern/dwgbufferw.cpp::dwgBufferW::bitCount previously cast byte size to uint32_t before multiplying by eight; at 2^29 bytes it returned zero although the exact count is 2^32 bits.",
+    "src/intern/dwgsafety.h general MaxBufferSize is 0x2f000000 bytes, greater than the 2^29-byte bit-count wrap boundary.",
+    "DWG writer header handseed offsets and legacy object bit-size fields remain 32-bit wire fields and require explicit checked narrowing."
+  ],
+  "assessment": {
+    "confirmedLocalDefects": 1,
+    "existingPlanOwner": "PAR-14 arithmetic and cursor-bound audit; adjacent writer bit-count accounting",
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "fixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0,
+    "buildTargetsPassed": [
+      "libdxfrw_writer_primitives_tests",
+      "libdxfrw_dwg_object_vectors_tests",
+      "libdxfrw_dwg_local_roundtrip"
+    ],
+    "directTestsPassed": [
+      "libdxfrw_writer_primitives_tests",
+      "libdxfrw_dwg_object_vectors_tests"
+    ],
+    "ctestPassed": [
+      "libdxfrw_writer_primitives",
+      "libdxfrw_dwg_object_vectors",
+      "libdxfrw_dwg_local_roundtrip"
+    ],
+    "ctestResult": "3/3 passed; 3.63 seconds",
+    "fullTestSuitesRun": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementation": {
+    "sourceFiles": [
+      "src/intern/dwgsafety.h",
+      "src/intern/dwgbufferw.h",
+      "src/intern/dwgbufferw.cpp",
+      "src/drw_entities.cpp",
+      "src/drw_header.cpp",
+      "src/intern/dwgwriter.h",
+      "src/intern/dwgwriter15.cpp",
+      "src/intern/dwgwriter24.cpp",
+      "tests/writer_primitives_tests.cpp"
+    ],
+    "behavior": [
+      "Add a checked buffer-size/partial-byte cursor to total-bit helper using 64-bit multiply/add.",
+      "Return uint64_t from dwgBufferW::bitCount and widen bit-copy iteration accordingly.",
+      "Check header handseed and legacy object bit counts before writing them to existing 32-bit fields.",
+      "Validate patchRawBytesAtBit ranges against the checked full bit count and platform indexing width.",
+      "Add integer-only boundaries for the 2^32-bit transition, largest partial-byte u32 count, invalid cursor states, multiplication overflow, and ordinary writer output."
+    ],
+    "wireFormatChanged": false,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_writer_primitives_tests --parallel 2 — passed; cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_local_roundtrip --parallel 2 — passed",
+    "focusedExecutable": "build-gcc/libdxfrw_writer_primitives_tests — passed",
+    "adjacentExecutable": "build-gcc/libdxfrw_dwg_object_vectors_tests — passed",
+    "owningCtest": "ctest --test-dir build-gcc -R '^libdxfrw_(writer_primitives|dwg_object_vectors|dwg_local_roundtrip)$' --output-on-failure — 3/3 passed in 3.63 seconds",
+    "diffCheck": "Scoped git diff --check for changed source and test files — passed",
+    "fullTestSuiteRun": false,
+    "largeBufferAllocated": false,
+    "externalFixtureUsed": false
+  },
+  "planChanges": [
+    "Record and fix the writer-side 32-bit bitCount truncation while preserving all existing serialized 32-bit field limits.",
+    "Classify the reviewed parser multiplication sites as fixed-iteration-bounded, budget-prechecked, or already capped; do not add redundant parser tests for proven bounds.",
+    "Self-unblock to the direct object-body bit-position multiplication sites in src/drw_objects.cpp for the next PAR-14 audit slice."
+  ],
+  "limitations": [
+    "The exact 512 MiB storage vector was not allocated; the arithmetic helper was tested at that boundary directly.",
+    "The source audit was bounded to the named shared reader/buffer paths and does not close all project-wide arithmetic review.",
+    "No full suite, peer implementation, native CAD application, or ACIS kernel was run.",
+    "No external drawing fixture was downloaded or added."
+  ]
+}

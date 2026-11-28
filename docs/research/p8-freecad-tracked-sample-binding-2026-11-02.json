@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-tracked-sample-binding-2026-11-02",
+  "date": "2026-11-02",
+  "status": "CMAKE_GATE_REGISTERED",
+  "supportClaimEffect": "none",
+  "scope": "Repair the FreeCAD desktop and native Linux/Windows qualification CMake gates so they bind to the existing tracked AC1027 three-LINE fixture.",
+  "sourceWitness": {
+    "configurationFailure": "With LIBDXFRW_ENABLE_FREECAD_TRACKED_AC1027_LINE_CONTROL=ON and existing executable paths supplied, CMake fails at tests/CMakeLists.txt:3305 because _freecad_cli_sample is undefined.",
+    "additionalAffectedGate": "The opt-in FreeCAD desktop open/insert control uses the same undefined _freecad_cli_sample variable.",
+    "existingFixture": {
+      "path": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+      "sha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83",
+      "trackedInRepository": true,
+      "bytes": 179710
+    },
+    "workflow": ".github/workflows/freecad-platform-qualification.yml pins the Linux and Windows FreeCAD 1.1.3 archives by SHA-256 and invokes the opt-in CTest gate."
+  },
+  "implementationBrief": {
+    "fix": "Define _freecad_cli_sample once relative to the tests directory as fixtures/dwg/ordinary_enc_AC1027.dwg before either optional FreeCAD gate references it.",
+    "preserve": "Use the already tracked sample only; do not add or modify any drawing fixture.",
+    "validation": "Reconfigure the native platform option using an existing executable placeholder and the built dwg2dxf path, then confirm both open/insert CTests are registered. This verifies the setup gate, not native FreeCAD behavior."
+  },
+  "reproductionCommand": "cmake -S . -B /private/tmp/libdxfrw-p8-freecad-before -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_BUILD_TESTS=ON -DLIBDXFRW_BUILD_DWG2DXF=ON -DLIBDXFRW_ENABLE_FREECAD_TRACKED_AC1027_LINE_CONTROL=ON -DLIBDXFRW_FREECADCMD_EXECUTABLE=/usr/bin/true -DLIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE=<built dwg2dxf>",
+  "reproductionResult": "failed at tests/CMakeLists.txt:3305 with 'The tracked ordinary_enc_AC1027.dwg fixture is required' despite the tracked sample existing at tests/fixtures/dwg/ordinary_enc_AC1027.dwg.",
+  "inputHashesBeforeEdit": {
+    "tests/CMakeLists.txt": "98edece68366f96a7b56106c8eabffab763de4dc684fd8f4c77cf7f911c05538",
+    ".github/workflows/freecad-platform-qualification.yml": "eb47446f7aaf358698c0498ec72a3cf4522beb2678cd02bec7315696a1a78501",
+    "tests/fixtures/dwg/ordinary_enc_AC1027.dwg": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83"
+  },
+  "validationPlan": [
+    "Configure the opt-in tracked-AC1027 FreeCAD test route with /usr/bin/true as a registration-only FreeCADCmd placeholder.",
+    "List the desktop and two native-platform open/insert CTests without running the placeholder as FreeCAD.",
+    "Run git diff --check and verify the tracked fixture hash is unchanged."
+  ],
+  "validation": {
+    "configureCommand": "cmake -S . -B /private/tmp/libdxfrw-p8-freecad-current-20261102 -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_BUILD_TESTS=ON -DLIBDXFRW_BUILD_DWG2DXF=ON -DLIBDXFRW_ENABLE_FREECAD_TRACKED_AC1027_LINE_CONTROL=ON -DLIBDXFRW_FREECADCMD_EXECUTABLE=/usr/bin/true -DLIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE=/Users/dli/dev/libdxfrw/build-gcc/dwg2dxf/dwg2dxf -DLIBDXFRW_ENABLE_FREECAD_DESKTOP_CONTROL=ON -DLIBDXFRW_FREECAD_APP_BUNDLE=/Applications/FreeCAD.app",
+    "configureResult": "passed; CMake configuration and generation completed in under one second",
+    "registrationCommand": "ctest --test-dir /private/tmp/libdxfrw-p8-freecad-current-20261102 -N -R '^(dwg2dxf_freecad_desktop_open_insert|dwg2dxf_freecad_tracked_ac1027_line_(open|insert))$'",
+    "registeredTests": [
+      "dwg2dxf_freecad_desktop_open_insert",
+      "dwg2dxf_freecad_tracked_ac1027_line_open",
+      "dwg2dxf_freecad_tracked_ac1027_line_insert"
+    ],
+    "executionScope": "Registration only using /usr/bin/true as FreeCADCmd and the existing /Applications/FreeCAD.app path. No FreeCAD process was launched; native platform qualification remains open.",
+    "fixtureSha256AfterEdit": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83",
+    "diffCheck": "git diff --check passed"
+  },
+  "inputHashesAfterEdit": {
+    "tests/CMakeLists.txt": "f281e68bc060b15bd4f7146bac164ef270355019c9ce125e3e8dec3a8c10f18f",
+    ".github/workflows/freecad-platform-qualification.yml": "eb47446f7aaf358698c0498ec72a3cf4522beb2678cd02bec7315696a1a78501"
+  },
+  "fixtures": {
+    "repositoryDwgDxfAdded": 0,
+    "existingTrackedFixtureUsed": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg"
+  }
+}

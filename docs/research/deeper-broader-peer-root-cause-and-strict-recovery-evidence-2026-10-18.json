@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer root-cause and strict-versus-recovery evidence review",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Verify whether selected peer failure reports distinguish symptom from confirmed cause and merged correction",
+    "Audit count-based evidence for entity inheritance and owner identity confounds",
+    "Compare strict DXF decoding, recovery/audit, raw structural inspection, and native acceptance evidence",
+    "Update the plan with a lightweight, implementation-ready peer-evidence triage protocol"
+  ],
+  "method": {
+    "kind": "Read-only review of current public issue, pull-request, and project documentation pages",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Issue bodies and PR validation summaries are reporter/maintainer evidence, not an independent rerun in this review. Mutable master docs are route descriptions, not pinned runtime results. No local codec defect or format rule was inferred from peer reports."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp issue #1074 and merged PR #1077",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1074",
+        "https://github.com/DomCR/ACadSharp/pull/1077"
+      ],
+      "revision": "Issue opened 2026-05-15; PR merged to master 2026-05-19; pages reviewed 2026-10-18",
+      "observed": "The issue title/body suspected omitted VisualStyle, Material, and placeholder objects. The merged PR records a minimal AC1027 TrueView reproduction and identifies the actual cause as active VPORT AmbientColor defaulting to ByBlock; defaulting the property to black reportedly resolves the same native failure. The object-omission hypothesis is not the demonstrated cause."
+    },
+    {
+      "project": "ACadSharp issue #1172 and discussion of #1001",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1172",
+        "https://github.com/DomCR/ACadSharp/issues/1001"
+      ],
+      "revision": "Issue #1172 opened 2026-07-31; discussion reviewed 2026-10-18",
+      "observed": "The reporter uses OfType<Insert>() counts for an AC1032 round-trip. A commenter notes TableEntity derives from Insert, so a distinct TABLE loss can affect the census; the commenter also notes a notification difference, leaving that alternate explanation unproven for #1172."
+    },
+    {
+      "project": "ACadSharp issue #1161",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1161",
+      "revision": "Issue opened 2026-07-25; issue body cites ACadSharp commit 82f89217494e62ce0b02e9208572b4a708dd8c40; reviewed 2026-10-18",
+      "observed": "The issue presents a generated explicit-LTYPE writer case that fails only in the R13/R14 AC1014 code branch, contrasts AC1015+, and reports readback/native audit results after a one-condition correction. This is peer test-design evidence only, not a libdxfrw finding or normative rule."
+    },
+    {
+      "project": "ACadSharp issue #1297",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1297",
+      "revision": "Issue opened 2026-10-14; page reviewed 2026-10-18",
+      "observed": "The reporter says an AC1032 native rejection persists after MTEXT object bytes became identical to a native object; the suspected missing VisualStyle cause is unproven, so this remains whole-file unresolved evidence."
+    },
+    {
+      "project": "ezdxf strict/recovery and launcher documentation",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/usage_for_beginners.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "revision": "Mutable master documentation reviewed 2026-10-18",
+      "observed": "Documentation distinguishes strict readfile use on structurally sound files from recovery for flawed files; audit is described as audit/recovery, info may differ from original content, and a raw structure browser is provided for diagnosis. These describe ezdxf's methods, not another implementation's conformance."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds an evidence-triage protocol that separates peer symptoms, reproduction, root cause, merged fix, strict parse, recovery, structural inspection, and native acceptance. It sharpens existing identity/version/owner checks without changing implementation scope or validation cadence."
+  },
+  "implementationReadyChecks": [
+    "Pin exact peer revision, version, direction, operation, and route; treat project matrices and issue titles as discovery only.",
+    "Record issue symptom, reproduction status, root-cause status, linked fix status, and actual validation separately.",
+    "Use exact runtime/entity type, handle/source identity, owner, and output disposition; derived-type aggregate counts are insufficient.",
+    "For touched version branches, prefer locally generated present/absent controls adjacent to the version boundary, plus a following-record or handle sentinel.",
+    "Report strict parse, recovery/audit, raw structural inspection, and native open/audit as independent outcomes.",
+    "Keep ordinary implementation slices on the existing strict target, focused selector, compatibility check when relevant, and owning CTest; use peer/native and larger robustness lanes at existing composed checkpoints.",
+    "Admit no peer/customer DWG/DXF fixture; locally authored scratch controls remain subject to the repository fixture policy."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-peer-root-cause-and-strict-recovery-evidence-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-peer-root-cause-and-strict-recovery-evidence-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed"
+  }
+}

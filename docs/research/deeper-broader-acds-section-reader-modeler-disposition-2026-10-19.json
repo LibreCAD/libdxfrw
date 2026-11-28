@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader AC1027+ DataStorage reader and modeler-disposition cross-check",
+  "mode": "Primary-source open-source project review plus local plan audit; research-only plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reassess the optional independent structural-reader route for R2013+ DWG AcDsPrototype_1b DataStorage.",
+    "Separate whole-section parsing, entity-to-payload association, DXF/DWG writer behavior, opaque payload preservation, and ACIS geometry semantics.",
+    "Translate peer-reported section edge cases into bounded, fast local test requirements without adding fixtures or changing support claims."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review and local plan review; research receipt and plan edited",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localBuildRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "All comparator behavior is based on public release, source, pull-request, issue, and documentation statements. The exact ACadSharp package/source artifact was not installed or executed. Peer corpus comparisons are contributor-reported and were not independently reproduced. No sample payload was downloaded."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/issues/1152",
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": "PR #1154 merged on 2026-07-28 and is listed in the v3.6.51 release history. It replaces the earlier DWG ACIS signature-extraction route with a structured Prototype1b section reader. The PR author describes the model as a low-level full-section parser whose entries are not yet straightforward to edit because related schema/search/index records must remain linked. A contributor reported a 423-DWG corpus comparison and refined it from total extracted counts to referenced per-handle payload hashes; the thread reports an offset-anchor correction and a stale secondary segment-index exception case. ACadSharp issue #1195 reports DXF writer omission of 3DSOLID/REGION in v3.4.9, while linked writer PR #1240 remains branch-level in the inspected pull-request/release views.",
+      "evidenceCeiling": "A distinct implementation family and a candidate for pinned structural comparison of AcDs records. Public reports do not independently qualify current package behavior, complete entity wiring, writer support, arbitrary payloads, B-rep semantics, or native consumer acceptance."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html#browse-acis",
+        "https://ezdxf.readthedocs.io/en/stable/tasks/add_dxf_entities.html#acis-entities"
+      ],
+      "observed": "The documentation distinguishes DXF SAT payloads for R2000-R2010 from SAB payloads for R2013 and later, provides raw ACIS inspection/export, and says creation of ACIS payloads requires an external library.",
+      "evidenceCeiling": "A bounded version-matched DXF carrier inspection route, not a general ACIS kernel or DWG AcDs ownership validator. API documentation was not exercised against a pinned package."
+    },
+    {
+      "project": "Open Design Alliance DWG specification",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/ODA-5.4.2-libredwg.patch"
+      ],
+      "observed": "The public LibreDWG-maintained spec diff identifies AcDb:AcDsPrototype_1b as a new R2013 data-storage section containing ACIS-related information; repository AGENTS.md designates local ODA v5.4.1 as authoritative for DWG byte-layout decisions.",
+      "evidenceCeiling": "The public diff is contextual corroboration only. No DWG field-layout conclusion or change to the authoritative local spec was made in this plan-only pass."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "PAR-07/S8 comparator qualification",
+      "PAR-20 ACIS/AcDs modeler data preservation"
+    ],
+    "planEffect": "Add ACadSharp v3.6.51-or-later as an optional pinned structural reader for one composed AC1027+ comparison; compare referenced owner/handle records and bytes rather than global payload counts; add fast generated DataStorage controls for bounds/index/page and missing-entity-association cases; retain separate carrier, structural, semantic, and native evidence gates.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCTestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "verification": {
+    "localSourceAuditOnly": true,
+    "buildRun": false,
+    "testRun": false,
+    "peerExecutableRun": false,
+    "nativeCadRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "commitAttempted": false
+  }
+}

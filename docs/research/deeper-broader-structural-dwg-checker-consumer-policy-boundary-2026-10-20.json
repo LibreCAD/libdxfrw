@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Structural DWG checker and consumer write-policy boundary",
+  "mode": "Primary-source web research and read-only local plan crosswalk; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen a newly surfaced open-source DWG structural checker for a possible bounded, optional role in the existing writer evidence ladder.",
+    "Separate container integrity from object semantics, strict independent reading, and native CAD acceptance.",
+    "Cross-check LibreCAD_3 downstream DWG write policy without treating product policy as a codec capability result.",
+    "Preserve the fast per-slice validation cadence and prohibit imported or mutated peer fixture files from entering the repository."
+  ],
+  "sources": [
+    {
+      "project": "realDragonium/dwg-verifier",
+      "urls": [
+        "https://github.com/realDragonium/dwg-verifier",
+        "https://github.com/realDragonium/dwg-verifier/tree/main/src/dwgcheck"
+      ],
+      "revision": "Mutable main branch reviewed 2026-10-20; no immutable commit or release artifact pinned and no code executed",
+      "observed": "The README describes a pure-Python Tier 1 structural validator for AC1024, AC1027, and AC1032, based on ODA DWG specification chapter 4, checking header, page/section maps, data pages, checksums, decompression, required sections, and exact EOF. Tier 1 does not parse drawing objects. Its self-reported corruption table uses 22 LibreDWG test-data drawings and generated corruption variants. Optional Tier 2 invokes ODA File Converter with audit enabled and recovery disabled, then ezdxf.recover.readfile; it records converter errors and recovery/audit fixes. The README states audit can silently repair without a fix count, conversion output is nondeterministic, only macOS arm64 with ODA 27.9 was exercised, and Linux/Windows paths remain untested. The checker also documents unsupported versions, unprotected bytes, and missing object-level checks."
+    },
+    {
+      "project": "LibreCAD_3",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Mutable master documentation reviewed 2026-10-20",
+      "observed": "The document states DWG import is optional and read-only, its pinned libdxfrw claim ledger contains read-direction claims only with none promoted, and any future DWG writing requires promoted write claims, acceptance by an implementation LibreCAD does not control, and a project-level risk decision. This is product policy, not a measurement of the library writer."
+    },
+    {
+      "project": "LibreCAD/libdxfrw local evidence",
+      "urls": [
+        "docs/3D_SUPPORT_STATUS.md",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Shared local worktree as inspected 2026-10-20",
+      "observed": "The plan already requires a fast local loop and a separate composed external/native evidence checkpoint; the status document separates writer/callback routes from consumer capability and keeps support claims conservative. No local coverage conclusion was inferred solely from peer documentation."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07 composed writer checkpoint: optional structural-only check for exact supported DWG targets",
+      "PAR-14 malformed-input test design: use corruption categories only where source audit finds a reachable uncovered boundary",
+      "Downstream consumer policy versus library writer evidence: maintain separate claims and ownership"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fullTestSuitesRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Classify dwg-verifier Tier 1 as a candidate optional structural check for exact AC1024/AC1027/AC1032 writer outputs; require an immutable source revision and output hash if used, and never count it as object-semantic or native acceptance evidence.",
+    "Exclude Tier 2 from strict/no-repair qualification because it uses ODA audit and ezdxf recovery, while its own documentation reports silent audit repairs, nondeterministic output, and untested Linux/Windows execution paths.",
+    "Use the peer corruption dimensions as a conditional source-audit checklist, not a new required campaign; generated mutations stay temporary and only use scratch-created or repository-owned seeds.",
+    "Separate downstream LibreCAD_3 product policy from libdxfrw writer capability and qualification."
+  ],
+  "limitations": [
+    "The checker source page was mutable and not pinned to an immutable commit in this review; no release artifact was identified.",
+    "The checker's detection rates and corpus measurements are self-reported and were not independently reproduced.",
+    "Tier 1 covers only AC1024, AC1027, and AC1032 and does not parse objects or all CRC-covered structures.",
+    "Tier 2 depends on the ODA File Converter and ezdxf recovery and is not a strict independent semantic oracle.",
+    "No local production source was changed, no tests were run, and no external drawing or peer runtime was obtained."
+  ]
+}

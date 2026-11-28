@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P4 selected AC1018 BLOCK/ENDBLK source endpoints",
+  "date": "2026-10-29",
+  "codeCommit": "5573c0d1aa3e77093754f2ce9763fe14978a11d5",
+  "scope": "Private source-only endpoint proof for the selected same-import AC1018 INSERT compound. An authenticated source relation and unique original BLOCK_RECORD name under the selected ASCII policy precede a bounded original BLOCKS-section endpoint census.",
+  "contract": {
+    "operation": "Count and frame BLOCK/ENDBLK pairs in the single source BLOCKS section, require unique selected-name and selected-owner agreement, self and owner handle identities, subclass roles and mutually agreeing group-2/group-3 BLOCK names; publish both endpoints only after success. Each endpoint uses its observed one repeated self admission for this raw-plus-typed capture route.",
+    "resource": "Prior name uniqueness uses one half of work and retained-byte limits; separate relation and endpoint scans each use one quarter. Failure or quota exhaustion publishes no endpoints.",
+    "unqualified": "Native collation, block child completeness or content meaning, live graph, geometry, export and general support."
+  },
+  "sourceBindings": {
+    "adapterSourceSha256": "548032ac2afffcb28ad42756139b8a8ee4626c6e3cc597a6dc7ef8729a51378a",
+    "adapterHeaderSha256": "720d6dd4f7820aa3cca14dfcd338ce6c7f826edb66fab786cccda516d9ac24ba",
+    "testSourceSha256": "0faf1f3600d718cf2dc50bf6d3d4e28cb38646d30d90c40e34e0b6d1d983fed7",
+    "normalAdapterObjectSha256": "071e1003579d0cf90b40ec8d812c82f461582619077859e7ae802b8dc4884be2",
+    "normalLibrarySha256": "753ad0aaba11ccb3ba0298199cd7ee4a29d0c6bcca4112756121c60033bee1eb",
+    "normalTestExecutableSha256": "9077a31df4aa1fdea4f9b5de517eb4f2a6b7e782aee8f2b10dc910ba83d1212d",
+    "asanAdapterObjectSha256": "de4df33db110f2a002aca331971b54f232918ff00dc48a1a97cc4ac27f8c7aa5",
+    "asanLibrarySha256": "50878d1e08494db643e9b13cfc52d44ffc7b388d90d77b5288575b451e2beb2a",
+    "asanTestExecutableSha256": "4f03a318b47a7a940fc545c649e09d90fd6a877e3aa3842e39c407938ba49476"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_legacy_blockref_relation",
+        "libdxfrw_legacy_entities_compound_join",
+        "libdxfrw_whole_source_capture"
+      ],
+      "result": "PASS 3/3"
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_legacy_blockref_relation",
+        "libdxfrw_legacy_entities_compound_join",
+        "libdxfrw_whole_source_capture"
+      ],
+      "result": "PASS 3/3",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "Generated ASCII/binary tests include selected BLOCK with an ordinary LINE child and unrelated BLOCK/ENDBLK pairs before and after it; modified names, owners, missing or duplicate endpoints, competing names/owners, context substitutions, work/byte boundaries and same-adapter fresh-data retries. Mutations are route-level no-endpoint evidence; the import or an earlier gate may reject before reaching this census. Child presence exercises framing only and does not qualify child completeness or meaning.",
+    "chronology": "Final shared normal/ASan tests passed and independent original/changed probes were refreshed against the rebuilt shared normal adapter/library."
+  },
+  "independentPeer": {
+    "version": "ezdxf 1.4.5",
+    "reportPath": "build/p4-block-target/peer.json",
+    "reportSha256": "45d86538c81a2393845874e3a4d68c32897521fed3d6c9daa3fcc606fdb49cff",
+    "reportScriptSha256": "22cff7a9d216719774be1b827e6e6faa9d0d920f080decf658b86e35eee37200",
+    "sharedLinkedProbeSha256": "b95d7cb6521baaf13537240f613e4d4fe27b9ce44e4b4088e92a06464c738bdf",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "originalSourceSha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "derivedSourceSha256": "c4934e042b6611114357adee14117c3b0c1f1e487a408e3fcc6ea493d55bd085",
+    "derivation": "Locally change only the BLOCK 6F4 group-2 name from MyBlock to OtherBlock.",
+    "originalStdoutSha256": "c65c1f40c10b2eac1bb07179c12e543f1d8ca2e3377ee281e7d086cba49f06ac",
+    "changedStdoutSha256": "de7858f93d5fced43da50ce606ffa3852a9bcba46f0f3a9234ae301c4ade17d6",
+    "observations": "Independent pre-setup physical projection finds BLOCK_RECORD 6F2 and INSERT 704 name MyBlock, BLOCK 6F4 owned by 6F2 with group 2/3 MyBlock, and ENDBLK 6F9 owned by 6F2. The locally changed BLOCK group 2 differs while group 3 and other selected records remain unchanged. The shared-linked probe returns endpoints only for original; earlier relation, unique-name, APPID and LAYER source checks remain true for both."
+  },
+  "references": [
+    {
+      "title": "Autodesk BLOCK DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm"
+    },
+    {
+      "title": "Autodesk ENDBLK DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-27F7CC8A-E340-4C7F-A77F-5AF139AD502D.htm"
+    },
+    {
+      "title": "Autodesk BLOCKS section framing",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A3E4F1D3-79C9-489C-B7EC-3924DA7F25C9.htm"
+    }
+  ],
+  "limitations": [
+    "Matching uses an explicitly admitted printable-ASCII policy and does not certify native name collation.",
+    "The selected endpoint proof does not qualify complete block children, geometry, document graph, XDICTIONARY or regenerated output.",
+    "The sample and its locally derived changed-name file are not committed."
+  ]
+}

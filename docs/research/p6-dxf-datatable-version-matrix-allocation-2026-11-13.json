@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-datatable-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DATATABLE_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the generated DATATABLE plus row-XRECORD allocation transaction proof across all seven DXF writer revisions.",
+  "source": {
+    "kind": "deterministic locally-authored records generated during each test run",
+    "profile": "Four-column, two-row DATATABLE with numeric/text cells, two ordered row XRECORD children, source-to-output handle remap, and exact owner relationships. At AC1014 the row XRECORD cloning fields use the required zero value; later target revisions retain cloning value 1.",
+    "versions": [
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_datatable_read_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-datatable-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For every version and encoding, calibrate the complete file write, inject std::bad_alloc at every measured DATATABLE callback allocation, require unchanged destination sentinel and caller graph, retry on the same codec, compare exact bytes with clean output, and freshly read the typed table and both XRECORD children. The AC1014 lane uses cloning=0 for row XRECORDs because the writer rejects the later-version cloning header at that target; readback checks that version-specific field."
+  },
+  "allocationOffsets": {
+    "AC1014": {
+      "ASCII": 12,
+      "Binary": 11
+    },
+    "AC1015": {
+      "ASCII": 12,
+      "Binary": 11
+    },
+    "AC1018": {
+      "ASCII": 12,
+      "Binary": 11
+    },
+    "AC1021": {
+      "ASCII": 12,
+      "Binary": 11
+    },
+    "AC1024": {
+      "ASCII": 12,
+      "Binary": 11
+    },
+    "AC1027": {
+      "ASCII": 12,
+      "Binary": 11
+    },
+    "AC1032": {
+      "ASCII": 12,
+      "Binary": 11
+    },
+    "totals": {
+      "ASCII": 84,
+      "Binary": 77,
+      "all": 161
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_datatable_read_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_datatable_read$' --output-on-failure: PASS 1/1 in 0.49 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_dxf_datatable_read_tests: PASS; seven versions each cover ASCII 12 and Binary 11 allocation offsets, with version-aware XRECORD cloning readback",
+    "diffCheck": "git diff --check: PASS",
+    "testSourceSha256": "e94ca43a4d2d2b8aadcb244e2f87eff5069ca540952b63ca8549cd3b3335b48b",
+    "testExecutableSha256": "581e2c15ac4cda54bf46d941546b28a9f19b4c91e2ef493107cf29630372a3d9"
+  },
+  "limitations": [
+    "Generated DXF codec transaction and typed readback evidence only; this does not qualify producer-authored DATATABLE schemas or native table behavior.",
+    "P6-C remains open for independent source profiles, physical field spans, full owner/target closure, and consumer semantics.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Generated DATATABLE and two child XRECORDs pass allocation rollback, exact retry, and typed readback across AC1014, AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032. AC1014 uses and verifies the required zero XRECORD cloning value.",
+    "remainingP6G": "Continue the public-writer inventory diff for other exact uncovered routes and variants; keep generated transaction evidence separate from source and semantic closure.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "267 completed slices and 35 remaining packages: 267/(267+35)=88.4%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-rastervariables-source-version-allocation-2026-11-13.json"
+}

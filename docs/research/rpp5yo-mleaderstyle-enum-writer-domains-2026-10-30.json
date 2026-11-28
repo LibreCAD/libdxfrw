@@ -1,0 +1,56 @@
+{
+  "id": "RPP-5yo",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE binary enum writer-domain validation",
+  "scope": {
+    "operation": "Refuse unsupported values for the selected MLEADERSTYLE enum fields before emitting the record.",
+    "target_version": "AC1027",
+    "fields": [
+      {
+        "group_code": 171,
+        "name": "draw multi-leader order",
+        "valid_values": [0, 1],
+        "specification_meaning": "0 draws content first; 1 draws the leader first."
+      },
+      {
+        "group_code": 172,
+        "name": "draw leader order",
+        "valid_values": [0, 1],
+        "specification_meaning": "0 draws the leader head first; 1 draws the leader tail first."
+      },
+      {
+        "group_code": 177,
+        "name": "block content connection type",
+        "valid_values": [0, 1],
+        "specification_meaning": "0 connects to block extents; 1 connects to the block base point."
+      }
+    ],
+    "authority": "ODA Open Design Specification for .dwg files v5.4.1, §20.4.87, pp. 217-218; Autodesk MLEADERSTYLE DXF group-code table.",
+    "claim_boundary": "Writer-domain validation and emitted DXF fields only; no native MLeader rendering or whole-document support claim."
+  },
+  "implementation": [
+    "Validate groups 171, 172 and 177 against their documented 0..1 domains before the MLEADERSTYLE writer emits any bytes.",
+    "Preserve the existing field representations and valid values."
+  ],
+  "evidence": {
+    "input": "Runtime-generated typed MLEADERSTYLE objects; no fixture files committed.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "invalid_values": [2, 65535],
+    "refusal": "Each invalid field value refuses before publication; the destination sentinel and caller model value remain unchanged.",
+    "retry": "The same dx_iface retries after correcting the field to 0 or 1; the AC1027 output contains the exact selected group code/value.",
+    "matrix": "Three independently mutated fields × two invalid values × two encodings; 12 destination-safe refusals and 12 successful retries."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_wave1_tests --parallel 4",
+    "focused_test": "ctest --test-dir build -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+    "result": "Passed, 1/1 test in 0.41 seconds.",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "tests/wave1_tests.cpp"
+  ],
+  "remaining": [
+    "Other MLEADERSTYLE integer, source-presence, repeated-field, version, dependency and native-rendering profiles remain open."
+  ]
+}

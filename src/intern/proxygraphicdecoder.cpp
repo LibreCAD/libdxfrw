@@ -5,6 +5,7 @@
 #include <cstring>
 #include <limits>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "../drw_entities.h"
@@ -39,6 +40,7 @@ enum OpCode {
     OP_PUSH_MATRIX           = 29,
     OP_PUSH_MATRIX2          = 30,
     OP_POP_MATRIX            = 31,
+    OP_SUBENT_MARKER         = 19,
     OP_POLYLINE_NORMALS      = 32,
     OP_LWPOLYLINE            = 33,
     OP_UNICODE_TEXT2         = 38,
@@ -621,9 +623,27 @@ bool isPrimitiveOpcode(std::uint32_t type) noexcept {
     }
 }
 
+bool isSupportedControlOpcode(std::uint32_t type) noexcept {
+    switch (type) {
+    case OP_ATTRIBUTE_COLOR:
+    case OP_ATTRIBUTE_LAYER:
+    case OP_ATTRIBUTE_LINETYPE:
+    case OP_ATTRIBUTE_TRUE_COLOR:
+    case OP_ATTRIBUTE_LINEWEIGHT:
+    case OP_PUSH_MATRIX:
+    case OP_PUSH_MATRIX2:
+    case OP_POP_MATRIX:
+    case OP_SUBENT_MARKER:
+        return true;
+    default:
+        return false;
+    }
+}
+
 class InterfaceSink final : public DRW_ProxyGraphicSink {
 public:
-    explicit InterfaceSink(DRW_Interface& target) noexcept : m_target(target) {}
+    InterfaceSink(DRW_Interface& target, std::uint32_t sourceHostHandle) noexcept
+        : m_target(target), m_sourceHostHandle(sourceHostHandle) {}
 
     bool addArc(const DRW_Arc& value) override { m_target.addArc(value); return true; }
     bool addCircle(const DRW_Circle& value) override { m_target.addCircle(value); return true; }
@@ -632,9 +652,13 @@ public:
     bool addMesh(const DRW_Mesh& value) override { m_target.addMesh(value); return true; }
     bool addPolyline(const DRW_Polyline& value) override { m_target.addPolyline(value); return true; }
     bool addText(const DRW_Text& value) override { m_target.addText(value); return true; }
+    bool setSubentityMarker(std::uint32_t marker) override {
+        return m_target.addProxySubentityMarker(m_sourceHostHandle, marker);
+    }
 
 private:
     DRW_Interface& m_target;
+    std::uint32_t m_sourceHostHandle;
 };
 
 } // namespace
@@ -685,6 +709,10 @@ DRW_ProxyGraphicDecodeResult DRW_ProxyGraphicDecoder::inspect(
                 break;
             }
             ++result.recognizedPrimitiveChunkCount;
+        } else if (isSupportedControlOpcode(type)) {
+            ++result.recognizedControlChunkCount;
+            if (type == OP_SUBENT_MARKER)
+                ++result.subentityMarkerCount;
         } else {
             ++result.skippedUnsupportedChunkCount;
         }
@@ -692,6 +720,133 @@ DRW_ProxyGraphicDecodeResult DRW_ProxyGraphicDecoder::inspect(
         result.consumedByteCount = index;
     }
     return result;
+}
+
+bool DRW_ProxyGraphicDecoder::remapResourceIndices(
+    const std::string& bytes,
+    const std::vector<std::string>& sourceLayerNames,
+    const std::vector<std::string>& targetLayerNames,
+    const std::vector<std::string>& sourceLinetypeNames,
+    const std::vector<std::string>& targetLinetypeNames,
+    std::string& output, std::size_t& remappedLayerCount,
+    std::size_t& remappedLinetypeCount,
+    const DRW_ProxyGraphicLimits& limits) {
+    remappedLayerCount = 0u;
+    remappedLinetypeCount = 0u;
+    constexpr std::size_t maxResourceNames = 100000u;
+    constexpr std::size_t maxProxyBytes = 16u * 1024u * 1024u;
+    if (bytes.empty() || bytes.size() > maxProxyBytes
+        || sourceLayerNames.size() > maxResourceNames
+        || targetLayerNames.size() > maxResourceNames
+        || sourceLinetypeNames.size() > maxResourceNames
+        || targetLinetypeNames.size() > maxResourceNames)
+        return false;
+    const DRW_ProxyGraphicDecodeResult inspected = inspect(bytes, limits);
+    if (!inspected.completed() || inspected.consumedByteCount != bytes.size())
+        return false;
+
+    try {
+        const auto makeTargetIndex = [](
+                const std::vector<std::string>& names,
+                std::unordered_map<std::string, std::uint32_t>& index) {
+            index.reserve(names.size());
+            for (std::size_t i = 0; i < names.size(); ++i) {
+                if (names[i].empty()
+                    || i >= static_cast<std::size_t>(0xFFFFFFFEu)
+                    || !index.emplace(names[i],
+                                      static_cast<std::uint32_t>(i)).second)
+                    return false;
+            }
+            return true;
+        };
+        std::unordered_map<std::string, std::uint32_t> targetLayers;
+        std::unordered_map<std::string, std::uint32_t> targetLinetypes;
+        if (!makeTargetIndex(targetLayerNames, targetLayers)
+            || !makeTargetIndex(targetLinetypeNames, targetLinetypes))
+            return false;
+
+        const auto read32 = [](const char* data) {
+            const auto* bytes = reinterpret_cast<const std::uint8_t*>(data);
+            return static_cast<std::uint32_t>(bytes[0])
+                | (static_cast<std::uint32_t>(bytes[1]) << 8u)
+                | (static_cast<std::uint32_t>(bytes[2]) << 16u)
+                | (static_cast<std::uint32_t>(bytes[3]) << 24u);
+        };
+        const auto write32 = [](char* data, std::uint32_t value) {
+            data[0] = static_cast<char>(value & 0xFFu);
+            data[1] = static_cast<char>((value >> 8u) & 0xFFu);
+            data[2] = static_cast<char>((value >> 16u) & 0xFFu);
+            data[3] = static_cast<char>((value >> 24u) & 0xFFu);
+        };
+        const auto translate = [](std::uint32_t sourceIndex,
+                                  const std::vector<std::string>& sourceNames,
+                                  const std::unordered_map<std::string,
+                                      std::uint32_t>& targetIndex,
+                                  std::uint32_t& target) {
+            if (sourceIndex >= sourceNames.size()
+                || sourceNames[sourceIndex].empty())
+                return false;
+            const auto found = targetIndex.find(sourceNames[sourceIndex]);
+            if (found == targetIndex.end())
+                return false;
+            target = found->second;
+            return true;
+        };
+
+        std::string staged(bytes);
+        std::size_t index = 8u;
+        std::size_t layerCount = 0u;
+        std::size_t linetypeCount = 0u;
+        const auto* original = reinterpret_cast<const std::uint8_t*>(
+            bytes.data());
+        while (index < bytes.size()) {
+            const std::uint32_t chunkSize = read32(
+                reinterpret_cast<const char*>(original + index));
+            const std::uint32_t type = read32(
+                reinterpret_cast<const char*>(original + index + 4u));
+            if (chunkSize < 8u || chunkSize > bytes.size() - index)
+                return false;
+            if (type == OP_ATTRIBUTE_LAYER
+                || type == OP_ATTRIBUTE_LINETYPE) {
+                if (chunkSize != 12u)
+                    return false;
+                const std::uint32_t sourceIndex = read32(
+                    bytes.data() + index + 8u);
+                if (type == OP_ATTRIBUTE_LAYER) {
+                    std::uint32_t target = 0u;
+                    if (!translate(sourceIndex, sourceLayerNames,
+                                   targetLayers, target))
+                        return false;
+                    write32(&staged[index + 8u], target);
+                    ++layerCount;
+                } else if (sourceIndex == 0xFFFFFFFEu
+                           || sourceIndex == 0xFFFFFFFFu
+                           || sourceIndex == 32766u
+                           || sourceIndex == 32767u) {
+                    // ODA's full-width sentinels and the independently
+                    // observed AC1021 low-16-bit forms are index-free.
+                } else {
+                    std::uint32_t target = 0u;
+                    if (!translate(sourceIndex, sourceLinetypeNames,
+                                   targetLinetypes, target))
+                        return false;
+                    write32(&staged[index + 8u], target);
+                    ++linetypeCount;
+                }
+            }
+            index += chunkSize;
+        }
+        if (index != bytes.size())
+            return false;
+        output.swap(staged);
+        remappedLayerCount = layerCount;
+        remappedLinetypeCount = linetypeCount;
+        return true;
+    } catch (...) {
+        remappedLayerCount = 0u;
+        remappedLinetypeCount = 0u;
+        return false;
+    }
 }
 
 DRW_ProxyGraphicDecodeResult DRW_ProxyGraphicDecoder::decode(
@@ -757,11 +912,29 @@ DRW_ProxyGraphicDecodeResult DRW_ProxyGraphicDecoder::decode(
                 break;
             }
             ++result.recognizedPrimitiveChunkCount;
+        } else if (isSupportedControlOpcode(type)) {
+            ++result.recognizedControlChunkCount;
         } else {
             ++result.skippedUnsupportedChunkCount;
         }
 
         switch (type) {
+        case OP_SUBENT_MARKER: {
+            if (payloadLength != sizeof(std::uint32_t)) {
+                context.fail(DRW_ProxyGraphicStopReason::InvalidChunkSize);
+                break;
+            }
+            ByteStream markerStream(payload, payloadLength);
+            const std::uint32_t marker = markerStream.readLong();
+            if (markerStream.bad) {
+                context.fail(DRW_ProxyGraphicStopReason::TruncatedChunk);
+                break;
+            }
+            ++result.subentityMarkerCount;
+            if (!sink.setSubentityMarker(marker))
+                ++result.unhandledSubentityMarkerCount;
+            break;
+        }
         case OP_ATTRIBUTE_COLOR:
             if (payloadLength >= 4) {
                 std::uint32_t color = 0;
@@ -800,19 +973,36 @@ DRW_ProxyGraphicDecodeResult DRW_ProxyGraphicDecoder::decode(
             if (payloadLength >= 4) {
                 std::uint32_t layer = 0;
                 std::memcpy(&layer, payload, sizeof(layer));
-                if (layer < layerNames.size() && !layerNames[layer].empty())
+                if (layerNames.empty()) {
+                    state.layer.clear();
+                } else if (layer < layerNames.size()
+                           && !layerNames[layer].empty()) {
                     state.layer = layerNames[layer];
+                } else {
+                    ++result.unresolvedResourceReferenceCount;
+                }
             }
             break;
         case OP_ATTRIBUTE_LINETYPE:
             if (payloadLength >= 4) {
                 std::uint32_t lineType = 0;
                 std::memcpy(&lineType, payload, sizeof(lineType));
-                if (lineType == 32766u) state.lineType = "BYBLOCK";
-                else if (lineType == 32767u) state.lineType = "BYLAYER";
-                else if (lineType < ltypeNames.size() && !ltypeNames[lineType].empty())
+                // ODA §29 defines the 32-bit sentinel values. Keep the
+                // observed AC1021 low-16-bit 0x7FFF value and existing
+                // 0x7FFE counterpart without conflating BYBLOCK with BYLAYER.
+                if (lineType == 0xFFFFFFFEu || lineType == 32766u)
+                    state.lineType = "BYBLOCK";
+                else if (lineType == 0xFFFFFFFFu || lineType == 32767u)
+                    state.lineType = "BYLAYER";
+                else if (ltypeNames.empty())
+                    state.lineType.clear();
+                else if (lineType < ltypeNames.size()
+                         && !ltypeNames[lineType].empty()) {
                     state.lineType = ltypeNames[lineType];
-                else state.lineType = "BYLAYER";
+                } else {
+                    ++result.unresolvedResourceReferenceCount;
+                    state.lineType = "BYLAYER";
+                }
             }
             break;
         case OP_PUSH_MATRIX:
@@ -872,9 +1062,11 @@ int DRW_ProxyGraphicDecoder::decode(const std::string& bytes,
                                     const DRW_Entity& parent,
                                     const std::vector<std::string>& layerNames,
                                     const std::vector<std::string>& ltypeNames) {
-    InterfaceSink sink(iface);
+    InterfaceSink sink(iface, parent.handle);
     const DRW_ProxyGraphicDecodeResult result = decode(
         bytes, version, sink, parent, layerNames, ltypeNames);
+    if (result.unhandledSubentityMarkerCount != 0u)
+        return -1;
     return result.emittedPrimitiveCount
         > static_cast<std::size_t>(std::numeric_limits<int>::max())
         ? std::numeric_limits<int>::max()

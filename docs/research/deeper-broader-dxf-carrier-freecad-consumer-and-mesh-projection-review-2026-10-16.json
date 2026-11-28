@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw-dxf-carrier-freecad-projection-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reconcile official DXF 3DSOLID carrier fields, FreeCAD documentation/source/runtime evidence boundaries, and mesh projection versus solid semantics; refine existing consumer gates only.",
+  "method": {
+    "kind": "Read-only primary documentation and source review",
+    "sourcesReviewed": [
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export.md",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Mesh.md",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://ezdxf.readthedocs.io/en/stable/dxfinternals/filestructure.html"
+    ],
+    "applicationsBuiltOrRun": false,
+    "peerPackagesDownloadedOrRun": false,
+    "drawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "evidenceBoundary": "Documentation and mutable source establish declared or implemented routes only. No current FreeCAD runtime, DXF file, ACIS payload, or native application behavior was qualified. Current-main documentation/source are not immutable release evidence."
+  },
+  "findings": [
+    {
+      "route": "Autodesk DXF 3DSOLID outer record",
+      "observed": [
+        "The documented record contains an AcDbModelerGeometry subclass, modeler format version, proprietary group 1 data with optional group 3 continuation chunks, then AcDb3dSolid and a soft-owner history handle.",
+        "This public entity table does not specify the embedded SAT/SAB grammar or establish semantic validity."
+      ],
+      "planUse": "Keep ordered carrier chunks, payload, and history ownership independently checked; do not infer B-rep support from outer-record parsing."
+    },
+    {
+      "route": "FreeCAD DXF/DWG import",
+      "observed": [
+        "Current documentation labels DWG and DXF support as 2D-only.",
+        "The current mutable C++ DXF importer source contains explicit shape-construction paths, but source inspection does not identify a reproducible application version, backend selection, or runtime result.",
+        "This documentation/source scope mismatch does not supersede the repository's already pinned FreeCAD runtime outcomes for their exact inputs."
+      ],
+      "planUse": "At the existing optional composed consumer checkpoint, qualify a pinned runtime/backend using separate locally-generated planar, tilted, and non-planar 3DFACE controls, and inspect geometry/topology and warnings rather than file-open success. If unavailable, record NOT_RUN and continue."
+    },
+    {
+      "route": "FreeCAD MeshObject and ezdxf mesh-derived ACIS",
+      "observed": [
+        "FreeCAD documentation distinguishes a MeshObject from a solid Shape and notes that a surface mesh does not itself carry solid mass semantics.",
+        "ezdxf can create a polyhedral ACIS body from a mesh and project only flat polygonal faces back to meshes; curved faces require a kernel and are lost by that projection.",
+        "The DXF file-structure notes do not define the internals of the R2013+ ACDSDATA section."
+      ],
+      "planUse": "Keep mesh/tessellation as a derived projection axis. Preserve the original ACIS carrier separately or refuse transactionally; record source mapping, transforms/units, tolerance, and open/closed disposition."
+    }
+  ],
+  "planDelta": {
+    "filesUpdated": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-dxf-carrier-freecad-consumer-and-mesh-projection-review-2026-10-16.json"
+    ],
+    "existingOwnersOnly": [
+      "PAR-07 source/evidence admission",
+      "S3.7 carrier versus projection separation",
+      "S8.15/S8.9.5 optional consumer qualification"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "fixturesAdded": 0,
+    "codeChanged": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanges": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue the existing local implementation queue without waiting for current FreeCAD or external kernel availability.",
+      "At the composed S8 consumer checkpoint, run explicit-face controls only under an exact pinned FreeCAD runtime/backend; keep mesh projection and ACIS/B-rep claims separate.",
+      "Do not replace or silently downgrade an ACIS carrier to a mesh in default output; preserve it independently or fail transactionally."
+    ],
+    "validation": "Passed python3 -m json.tool and git diff --check for both updated plan files; no code or tests changed."
+  }
+}

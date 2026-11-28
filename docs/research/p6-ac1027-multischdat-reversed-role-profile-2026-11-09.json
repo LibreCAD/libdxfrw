@@ -1,0 +1,78 @@
+{
+  "receipt": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1027-multischdat-reversed-role-profile-2026-11-09",
+  "date": "2026-11-09",
+  "status": "AC1027_DATASTORAGE_MULTI_SCHDAT_PROFILE_ACCEPTED",
+  "scope": "Admit the bounded AC1027 reversed schema-index table-role profile when its roots and unknown-property headers are partitioned across two schdat segments.",
+  "supportClaimEffect": "none",
+  "authority": {
+    "name": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "§24.2.2.5: schema-index references identify schema-data segment indexes and local offsets for unknown-property headers and schema roots.",
+      "§24.2.2.6: schema data contains the referenced unknown-property headers, schemas, and property-name table."
+    ],
+    "limits": "The specification does not define this producer's reversed table roles; the admitted compatibility layout is selected only by bounded, self-consistent references."
+  },
+  "physicalSource": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg",
+    "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6",
+    "provenance": "Existing tracked ACadSharp sample; read-only and not copied into this repository.",
+    "schemaIndexSegment": 630,
+    "schemaRootReferences": [
+      {"index": 0, "segment": 5, "localOffset": 32},
+      {"index": 1, "segment": 5, "localOffset": 96},
+      {"index": 2, "segment": 5, "localOffset": 114},
+      {"index": 3, "segment": 5, "localOffset": 132},
+      {"index": 4, "segment": 5, "localOffset": 150},
+      {"index": 5, "segment": 631, "localOffset": 32}
+    ],
+    "schemaDataSegments": [
+      {"index": 5, "offset": 1920, "size": 384, "payloadOffset": 1968, "systemDataAlignmentOffset": 14, "systemDataEnd": 2144},
+      {"index": 631, "offset": 1408, "size": 256, "payloadOffset": 1456, "systemDataAlignmentOffset": 9, "systemDataEnd": 1632}
+    ],
+    "unknownPropertyHeaderReferences": [
+      {"index": 1, "segment": 5, "localOffset": 0},
+      {"index": 2, "segment": 5, "localOffset": 8},
+      {"index": 3, "segment": 5, "localOffset": 16},
+      {"index": 4, "segment": 5, "localOffset": 24},
+      {"index": 2, "segment": 631, "localOffset": 0},
+      {"index": 4, "segment": 631, "localOffset": 8},
+      {"index": 1, "segment": 631, "localOffset": 16},
+      {"index": 3, "segment": 631, "localOffset": 24}
+    ],
+    "boundsResult": "Each segment's four 8-byte unknown-property headers end at local offset 32, exactly the first schema root offset; both header ranges and roots are within the segment's system-data boundary."
+  },
+  "implementation": {
+    "files": ["src/drw_datastorage.cpp", "tests/graph_preservation_tests.cpp"],
+    "behavior": "The existing reversed-role detector now allows the multi-schdat profile for AC1027 and AC1032 after validating each segment index, schema-root ordering, contiguous unknown-header offsets, per-segment first-root boundary, and system-data alignment. No weakened bounds check or raw-section fallback was added.",
+    "generatedControls": "An in-memory two-schdat AC1027 vector verifies two roots and two header ranges; malformed out-of-segment root references remain rejected for both AC1027 and AC1032.",
+    "fixturesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_graph_preservation_tests dwg2dxf -j4",
+    "focusedTest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_datastorage_bounds$' --output-on-failure (1/1)",
+    "physicalRead": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg -y -d -v2013 /tmp/ac1027-datastorage-after-multischdat.dxf",
+      "executableSha256": "bc31dd0df6bc4ebb130df5db0647279567ebaa4855e44f0fcf3b68e9eeb11ce0",
+      "tracePath": "/tmp/ac1027-datastorage-after-multischdat.log",
+      "traceSha256": "a9964ddd5d011ae1883796ebb5248c7993decf6eed41b2c25f1ece5503e3b2e9",
+      "dataStorageDiagnostic": "DataStorage alternate AC1027 schema-table profile accepted: schemas=6 unknown-properties=8",
+      "publishedFrames": 865,
+      "sourceFrames": 865,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "dataStorageLinkFailures": 0,
+      "dataStorageOrphanRecords": 0,
+      "strictExport": "Still refused before output: AC1027 DWG source references are not fully qualified."
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limits": [
+    "This qualifies one structurally self-consistent DataStorage profile and whole-file frame publication for this source; it does not establish ACIS/SAB semantics, graph/output closure, or broad AC1027 support.",
+    "Strict DXF export remains blocked by the independent AC1027 source-reference qualification gate.",
+    "No drawing fixture was added."
+  ],
+  "next": "Continue with the strict AC1027 source-reference/output gate or the unresolved AC1014 PERSUBENTMGR paired semantic projection; keep unsupported PERSUBENTMGR bodies raw-only."
+}

@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader peer release claims, artifact identity, and regression-family crosswalk",
+  "mode": "Primary-source release/issue review with local plan/source-owner audit; research-only plan update",
+  "scope": [
+    "Refresh ACadRust source-release versus published-crate identity after v0.6.5 publication.",
+    "Reconcile ACadRust issues #130 and #132 release-note claims and #133/#134 recovery claims with local owners.",
+    "Cross-check current ACadSharp issue families and IxMilia.Dxf declared scope to prevent comparator overreach.",
+    "Update only existing PAR-07/S8, PAR-49, PAR-14/PAR-26, PAR-126, and existing DXF color/XDATA/custom-record owners."
+  ],
+  "method": {
+    "kind": "Read-only review of primary project release, README, package documentation, issue, and local source/plan records",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Public release notes and issue reports are evidence about the named artifact/reporter, not independently reproduced behavior. ACadRust v0.6.5's full commit was not resolved or built; docs.rs/crates.io still expose v0.6.4. Private DWG corpora and issue attachments were not obtained."
+  },
+  "sources": [
+    {
+      "project": "ACadRust release channels",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases",
+        "https://github.com/hakanaktt/acadrust",
+        "https://docs.rs/crate/acadrust/latest"
+      ],
+      "observed": "GitHub lists v0.6.5 at short commit 289a616, released 2026-10-18, and reports project test totals and platform checks. The current repository README uses 0.6.5. docs.rs latest remains 0.6.4, so source release and packaged crate are distinct artifacts.",
+      "evidenceCeiling": "Release notes, project test totals, and a compatibility matrix are not independent coverage or semantic acceptance evidence. A v0.6.5 source build cannot be described as a v0.6.4 crate run or vice versa."
+    },
+    {
+      "project": "ACadRust table, custom-data, and recovery issues",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/130",
+        "https://github.com/hakanaktt/acadrust/issues/132",
+        "https://github.com/hakanaktt/acadrust/issues/133",
+        "https://github.com/hakanaktt/acadrust/issues/134"
+      ],
+      "observed": "v0.6.4 release notes list #130/#132 among fixed interoperability reports; v0.6.5 notes claim orphan-geometry and bounded-auxiliary-record recovery improvements associated with #133/#134. The issue pages remained open/requested retest at research time; #133/#134 rely on private production corpora.",
+      "evidenceCeiling": "Maintainer release claims do not equal reporter retest, normative format evidence, or a local libdxfrw reproduction. The #132 DXF-to-DWG writer losses are not directly applicable to this library, which has no DWG writer."
+    },
+    {
+      "project": "ACadSharp regression families",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "observed": "The issue board includes an omitted AC1014 VERTEX subtype marker report, recursive DXF comment/XDATA/WIPEOUT handling reports, and a DWG-to-DXF spline report with an attached pair but no published expected curve/ordered spline data in the issue body.",
+      "evidenceCeiling": "Peer-version issue reports are adversarial test prompts only; they do not justify importing peer thresholds or treating a GIS projection as a NURBS semantic oracle."
+    },
+    {
+      "project": "IxMilia.Dxf scope",
+      "urls": [
+        "https://github.com/ixmilia/dxf"
+      ],
+      "observed": "The README declares a DXF-only reader/writer through R2014, identifies several unsupported entity families including TABLE, MLEADER, MESH, SURFACE, and VIEWPORT, and documents AutoCAD acceptance caveats for some output entities.",
+      "evidenceCeiling": "Useful only for exact supported DXF route comparisons; not DWG, whole-document preservation, or broad 3D/ACIS/native acceptance."
+    },
+    {
+      "project": "Local implementation-plan owners",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "tests/block_owner_tests.cpp",
+        "src/drw_entities.cpp",
+        "src/drw_objects.cpp",
+        "src/libdxfrw.cpp"
+      ],
+      "observed": "Existing plan owners cover explicit orphan-owner disposition, bounded object-record policy, AC1024+ merged-range projection and literal DXF groups, and separate color-name/XDATA/custom-record routes. R24 TABLESTYLE suppression semantics remain explicitly raw/unresolved.",
+      "evidenceCeiling": "This was a read-only plan/source crosswalk; no tests or local behavior were re-executed in this pass."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "PAR-07/S8",
+      "PAR-49",
+      "PAR-14/PAR-26",
+      "PAR-126/7G.3d",
+      "existing DXF color-name/XDATA/custom-record owners"
+    ],
+    "planEffect": "Correct comparator artifact freshness; classify release-note fixes as unretired until independently retested; keep current local implementation order and use source-identity/owner/disposition manifests at the existing composed checkpoint.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findings": 138,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

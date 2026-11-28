@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw-deeper-broader-current-peer-status-and-comparator-provenance-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Refresh current open-source DWG/DXF issue status and exact optional comparator provenance; reconcile peer failure patterns with existing local fast-test evidence without duplicating work or promoting support claims.",
+  "method": {
+    "kind": "Read-only source review of GitHub issue bodies, ACadSharp issue inventory, official PyPI artifact metadata, current local source, plan entries, and prior local test receipts",
+    "peerSourceRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "implementationChanged": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/issues/1415",
+      "https://github.com/LibreDWG/libredwg/issues/1408",
+      "https://github.com/LibreDWG/libredwg/issues/1409",
+      "https://github.com/LibreDWG/libredwg/issues/1357",
+      "https://github.com/DomCR/ACadSharp/issues",
+      "https://github.com/DomCR/ACadSharp/issues/1281",
+      "https://github.com/DomCR/ACadSharp/issues/1282",
+      "https://github.com/DomCR/ACadSharp/issues/1283",
+      "https://pypi.org/project/ezdxf/1.4.5/"
+    ],
+    "localInspection": [
+      "dwgBuffer::getCmColor distinguishes R2004+ CMC method 0xC2 RGB from method 0xC3 indexed ACI; existing generated CMC vectors cover ACI 104/255 and zero-blue RGB.",
+      "Existing plan receipts cover a generated AC1024/AC1032 DWG LAYER CMC-to-ASCII/binary-DXF path and group 62/420 fallback policy; no tests were rerun in this research pass.",
+      "Existing local progress entry covers ASCII refusal and binary framing/alignment for generated CR/LF/CRLF strings, plus destination preservation.",
+      "Existing block-owner tests and plan receipts cover consecutive named block ownership and per-owner child inventories; this review adds no test.",
+      "Existing PAR-49/7G.3 plan entries distinguish unresolved-child traversal from successful complete conversion and retain per-owner identity requirements."
+    ],
+    "evidenceRule": "Peer issue status and author measurements describe specific routes and revisions. A GitHub issue left open may contain a later master-verification comment. Peer results are not local reproductions, format authority, or semantic support evidence. Package hashes pin only the named artifact, not the runtime or dependency environment."
+  },
+  "evidence": [
+    {
+      "topic": "R2004+ CMC color method and peer-proposal correction",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1415"
+      ],
+      "observed": "The issue remains open. Its author corrected an initial guard after measuring that the separately read R2004+ BS index is vestigial; method 0xC3 carries an ACI in the packed word's low byte, whereas 0xC2 is RGB and must not be treated as an ACI. The report includes palette-collision and low-byte fallback symptoms.",
+      "doesNotEstablish": [
+        "a new local defect or a current LibreDWG release result",
+        "that palette reverse lookup is valid for explicit ACI source values",
+        "a universal nearest-ACI metric or native CAD display behavior"
+      ],
+      "planUse": "Reuse existing ODA-shaped CMC controls and generated AC1024/AC1032 LAYER-to-DXF tests. Do not add duplicate cases or copy the superseded guard. Preserve the distinction between source ACI, truecolor, and compatibility group-62 fallback."
+    },
+    {
+      "topic": "Peer output-survival reports and already-existing local gates",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1408",
+        "https://github.com/LibreDWG/libredwg/issues/1409"
+      ],
+      "observed": "#1408 reports CR-induced ASCII physical-line corruption in a complex TEXT/MTEXT value and lacks a reduced reproducer. #1409 attributes empty later block bodies to a mutable index passed from a block-header loop into a child writer. Both remain peer-specific reports.",
+      "doesNotEstablish": [
+        "an analogous libdxfrw defect",
+        "that ASCII refusal is equivalent to preserving peer text semantics",
+        "that total entity counts alone prove block ownership parity"
+      ],
+      "planUse": "Reuse existing local generated control-character framing and destination-preservation checks, and existing ASCII/binary per-owner block census tests. Add no duplicate test."
+    },
+    {
+      "topic": "Open issue page versus master-verified regression status",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1357"
+      ],
+      "observed": "GitHub still displays #1357 as open, while its author reports that master restored expected counts on three AC1021 drawings and notes intervening R2007 decode fixes as a likely cause.",
+      "doesNotEstablish": [
+        "an immutable fix revision or a release containing the change",
+        "identity/owner/payload parity from aggregate count equality",
+        "that local unresolved-child hardening is unnecessary"
+      ],
+      "planUse": "Classify as a historical/master-verified peer regression pattern, not a currently confirmed peer failure. Retain local per-owner identity and explicit partial/failure disposition gates."
+    },
+    {
+      "topic": "ACadSharp current hostile-input and performance reports",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1283"
+      ],
+      "observed": "The current issue list continues to show recursive DXF advancement/stack exhaustion, per-application XDATA size overflow, and recursive deep-copy work for nested blocks as distinct reports.",
+      "doesNotEstablish": [
+        "the same algorithms or thresholds in libdxfrw",
+        "a normative DXF/DWG field limit from a peer-reported threshold",
+        "that one resource metric can substitute for another"
+      ],
+      "planUse": "Keep existing parser recursion/work, encoded-size, graph traversal, allocation and progress owners separate; use small generated boundaries and sentinel checks in touched fast targets, with crash/sanitizer/fuzz checks at scheduled composed gates."
+    },
+    {
+      "topic": "Exact ezdxf 1.4.5 comparator artifact provenance",
+      "sources": [
+        "https://pypi.org/project/ezdxf/1.4.5/"
+      ],
+      "observed": "PyPI records ezdxf 1.4.5 released 2026-10-16. The universal wheel SHA-256 is 70a79ec7d40990f60453e3c87ffe9f668907ee061cf6f4c0a3794d032ec2b40e; the source archive SHA-256 is a6c3bbc1a65ce764d97c5beafe6ae693d8ed14c6cdae366b50e1974a79d4a00a.",
+      "doesNotEstablish": [
+        "Python runtime or transitive dependency identity",
+        "whether optional C extensions are present or loaded",
+        "platform-specific behavior or semantic correctness"
+      ],
+      "planUse": "If ezdxf is used at the already-planned optional composed comparison, bind the selected artifact hash, Python implementation/version, locked transitive dependency hashes, platform and extension status. Do not install it as a routine fast-test dependency."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 125,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

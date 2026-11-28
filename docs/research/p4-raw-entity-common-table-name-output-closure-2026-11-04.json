@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-raw-entity-common-table-name-output-closure-2026-11-04",
+  "date": "2026-11-04",
+  "base_commit": "3f76088b",
+  "status": "GENERATED_RAW_ENTITY_COMMON_SYMBOL_REFERENCE_OUTPUT_CLOSURE",
+  "supportClaimEffect": "none",
+  "scope": "Bind raw-preserved DXF entity common group-8 LAYER and group-6 LTYPE names to a unique qualified row in the TABLES body staged by the same output attempt.",
+  "implementation": {
+    "fieldScope": "Inspect group 8 and group 6 only in the raw entity common AcDbEntity scope. Application groups and XDATA are excluded because their group-code meanings are not established as entity symbol references.",
+    "textIdentity": "Decode the exact string bytes selected for output with source and target DRW_TextCodec profiles. Require valid text and the same conservative symbol key: ASCII letters compare case-insensitively, while non-ASCII UTF-8 must match byte-for-byte. Unknown source versions admit ASCII-only names. No raw group bytes are rewritten.",
+    "targetIdentity": "Inspect the staged TABLES body and require exactly one qualified emitted LAYER or LTYPE row for each referenced case-folded symbol key. Missing, duplicate, malformed, unqualified, or codepage-shifted targets refuse the file transaction before publication.",
+    "transaction": "The table inspector is enabled whenever raw entity carriers exist and runs before entity sections. A corrected source carrier can retry on the same adapter after a refused attempt."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j3",
+    "ctest": "ctest --test-dir build-gcc -R '^(dwg2dxf_raw_dxf_entity_(capture_limits|table_name_references)|libdxfrw_dxf_source_table_identities)$' --output-on-failure",
+    "result": "Build passed with -Werror. The three focused tests passed (3/3, 1.72 seconds total). The generated AC1027 control ran in ASCII and Binary: missing common LAYER and LTYPE names refused while preserving a sentinel destination; correcting group 8 then group 6 on the same adapter succeeded; the ASCII-case-insensitive source spelling `continuous` resolved to the emitted Continuous row; readback preserved both common names and unresolved nested application-group values. Existing raw-carrier capture-limit and source-table identity controls also passed.",
+    "matrix": {
+      "sourceRevision": "AC1027",
+      "outputRevision": "AC1027",
+      "encodings": ["ASCII", "Binary"],
+      "missingTargetRefusalsPerEncoding": 2,
+      "sameAdapterRetriesPerEncoding": 1,
+      "positiveReadbacksPerEncoding": 1
+    },
+    "fixtures": "No DWG/DXF fixture was added or modified. Generated output lived in a temporary directory and was removed by the test."
+  },
+  "limitations": [
+    "Generated AC1027 adapter evidence only; no physical whole-source DWG/DXF conversion is qualified.",
+    "The carrier has name references rather than source symbol handles; this proves unique emitted name-row closure, not source-handle identity or table membership provenance.",
+    "Application-group and XDATA fields, broader source codepages/revisions, producer ordering, Unicode case-insensitive matching, native linetype rendering, and whole-document completeness remain open.",
+    "No support claim is promoted by this generated control."
+  ],
+  "files": {
+    "dwg2dxf/dx_iface.cpp": "collects raw common entity group-8/group-6 names and checks them against qualified emitted TABLES rows under the source and target text profiles",
+    "tests/dwg2dxf_adapter_tests.cpp": "adds generated ASCII/Binary missing-reference refusal, atomic retry and readback controls, including application-group preservation",
+    "tests/CMakeLists.txt": "registers the focused fast raw-entity table-name reference test",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "records the bounded closure and retains physical, broader-profile and native-semantic gates"
+  }
+}

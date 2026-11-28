@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-block-multi-image-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "652a5679",
+  "codecCommit": "985a48c89",
+  "codecImplementationDigestSha256": "53fbd21f428eb2cfa15b347083c19460630649f7d00b769adeedd5104378818d",
+  "scope": "Allow the existing bounded AC1021 ASCII multi-IMAGE graph in named blocks and model space when block source identities, owners, definitions and reactors are unambiguous.",
+  "change": "For each image inside a block, require its source owner to equal that block's unique nonzero source handle; reject a collision with model/paper-space handles, selected graph identities, other entity identities or another live block. Reuse existing per-section staged entity/reference, scalar, dictionary, object and reactor checks and the same 32-image capture bound.",
+  "validation": [
+    "PASS: macOS ARM64 system-codec MATERIAL and IMAGE selection, 2896 assertions in 16 cases, including a generated four-image graph spanning model space and two named blocks, two definitions shared across spaces, and two INSERTs.",
+    "PASS: changed block source identity, duplicate block identity and late block-image coordinate mutation each refuse without replacing a sentinel destination; corrected same-filter retries succeed and the final file reimports.",
+    "PASS: bundled-codec LibreCAD filter object compilation.",
+    "PASS: ezdxf 1.4.5 independently resolves all image owners against the proper BLOCK_RECORD, all definitions and IMAGEDEF_REACTOR owners/references, reciprocal reactor lists, INSERT ownership and geometry. Source and output geometry agree and both audits report zero errors or fixes."
+  ],
+  "scratchOnly": {
+    "sourceSha256": "10ba920916fb320a687f50ff33eda7c7339c240204a4788fec451ddcb2b7c8c6",
+    "outputSha256": "73c944cf6443b1de3e288e4159c6e4cd851cb3f6966e36887469c7d1eb6011e6",
+    "fixturesCommitted": false
+  },
+  "limits": "One locally authored four-image/two-block profile; 32-image coverage is separately model-space tested. Other versions, binary output, clipping variants, XREFs, native rendering and other platforms require separate evidence."
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2.4 authenticated-source live-carrier consumed geometry counterexample",
+  "date": "2026-10-28",
+  "status": "SCRATCH_ONLY_BLOCKED",
+  "codeCommit": null,
+  "baseline": "Uncommitted geometry prototype ported onto scratch source based on b12817ec (which contains source classifier 68705659), linked to the shared library. The committed adapter is separately tested with the same inputs.",
+  "witness": {
+    "sources": {
+      "ascii": "34b45aedbf4a12cb3eb9afa796453e96151e9486648b09f09e8135a9a534d83a",
+      "binary": "5e0e20fc568dc707c5ca0ff3bf6289de168441dc2a766bc96d34f35aa5ff7848"
+    },
+    "generatorSha256": "22b1b74d6ac5a68fd83211c690727db90c675acb3ca1557dfdc325814d57d1ad",
+    "angleCorrectionSha256": "cf8902e0da22d5e70a1870921c29a4bf3a93da8dbff5d306e44bac20a6982b98",
+    "description": "Locally authored AC1027, matching MLINE/style/dictionary names, two uncut open three-vertex consumers in distinct 3D planes with scales 1.25/2.5 and zero/bottom justification. Style 70=2, offsets 1.25/-0.75 and cap angles 37.5/142.5 match the inherited geometric miter vectors. The proposed edit changes the first offset to 1.5."
+  },
+  "unsafePrototype": {
+    "profiles": "ASCII and binary imports, each exported as ASCII and binary; clean, post-import LAYER application scope, and post-import TEST_PRIVATE raw-section variants (12 cases).",
+    "results": "SourceCandidate in all cases. The uncommitted experimental adapter accepts the offset edit and emits both hidden 340 carriers referencing the remapped emitted style D4. The clean projection also writes; byte-level inspection verifies both carrier types and selected style handle for all 12 outputs.",
+    "outputAudit": {
+      "ascii-to-ascii-clean": {
+        "sha256": "eed2a90736ecc2a197c5814bede2a55f6f92689176f1232646926f2797c08b65",
+        "layer340": false,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "ascii-to-ascii-layer": {
+        "sha256": "1d02b0631190927bf0010f428e1473c6298fffd0b59c651877d2ffe9418388a2",
+        "layer340": true,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "ascii-to-ascii-raw-section": {
+        "sha256": "ce9a81a0ec8743ae2a30dcbeb06ccab4a15e470516e7b92548d568bb018e8231",
+        "layer340": false,
+        "rawSection340": true,
+        "outputStyleHandle": "D4"
+      },
+      "ascii-to-binary-clean": {
+        "sha256": "4a3e40d52f996dd171243afe64eedaedd9730567d6b4d7d318b25804331439cb",
+        "layer340": false,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "ascii-to-binary-layer": {
+        "sha256": "4e2c8f7191992d15e010599db8b393b26184e0c5519449f1122d2dcf15f6a109",
+        "layer340": true,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "ascii-to-binary-raw-section": {
+        "sha256": "7f3a6ccbf5ef3b37fb89e23af9611d9b57cdd4a7742057394fe0af86b8531ce8",
+        "layer340": false,
+        "rawSection340": true,
+        "outputStyleHandle": "D4"
+      },
+      "binary-to-ascii-clean": {
+        "sha256": "13306d90d7e431f2f879af7303b567d8b49b8758dd7ff5b7a9f1af7283dbb48f",
+        "layer340": false,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "binary-to-ascii-layer": {
+        "sha256": "6c575e6bc32a1ba06c491e68cd5de186aad7263f3890a225747bcecfb8c2aeb0",
+        "layer340": true,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "binary-to-ascii-raw-section": {
+        "sha256": "311bf2c89d3b8ab70f3e8fda84c9a867afea1c141118294b1d5944a71b99d7e9",
+        "layer340": false,
+        "rawSection340": true,
+        "outputStyleHandle": "D4"
+      },
+      "binary-to-binary-clean": {
+        "sha256": "a7aa226bc60afdc4a0306c2a07fee541323421bd39fc10f0c52e14fb9ed67a0e",
+        "layer340": false,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "binary-to-binary-layer": {
+        "sha256": "d2c100da54691ffa25a959c1192021d4e4276dc71787902eed8760e10c10f6c5",
+        "layer340": true,
+        "rawSection340": false,
+        "outputStyleHandle": "D4"
+      },
+      "binary-to-binary-raw-section": {
+        "sha256": "b93f64fa84b11996107744018ca42dda7229063039714a0802efa81b6a722c74",
+        "layer340": false,
+        "rawSection340": true,
+        "outputStyleHandle": "D4"
+      }
+    },
+    "auditSha256": "6f033ba48176df87cc56e74ddd5755345e4080258623e92566ba651a59227949",
+    "auditScriptSha256": "4719e93bb33c8efa80d6859e0b5aee471ba9097462eff1e09ed4620bb85e4063",
+    "logSha256": "a4806146c2e8172a71dab8a0179a1a6ae24e4a18cd45cc8b7087cc83f78c4d89",
+    "probeSourceSha256": "66e4be0caec25c61c7165c73d77fe4f9ae0022e4e26389dfc2390464c3ebaae2",
+    "adapterSourceSha256": "2e11291630e592b79e545c5e453048fa255d6cc4ca3e1202b8c5af7a2880a6fe",
+    "adapterHeaderSha256": "0e207c88eef86ec6a461217f4afafaf4c3cef2977f2bfe01e7720c063d7af512",
+    "adapterObjectSha256": "220c6ac35802251c74b933fc107741bbe24b22a74220d063933a6f76ad791635"
+  },
+  "currentAdapter": "With the exact same input and edits, the committed adapter rejects all 12 cases in preflight and preserves the destination sentinel. This is not an unsafe committed consumed-geometry export. Log SHA-256: ea01625126503fce339c84aa5caef589499357229ba9a568eb4cbe4b7429941d",
+  "limitation": "Byte checks are structural and do not establish native CAD rendering or qualify the compound transaction. The derived witness uses geometry from the prior independently checked authored example, but no new native or independent geometry-support claim is made.",
+  "nextWork": "Keep prototype unintegrated. Bind the accepted-read source, complete original/live graph and staged output under a strict admitted grammar. Reject new unqualified live appData/XDATA, sections, objects, dependencies and deleted/moved/duplicated consumers; account and bound every visited item and emitted carrier, including writer-owned raw sections and late mutations. Verify failure atomicity, same-adapter corrected retry and compatibility before integrating the projection.",
+  "fixtures": "All drawings, probe code and outputs remain in ignored scratch; no drawing fixtures are committed.",
+  "claimsPromoted": false
+}

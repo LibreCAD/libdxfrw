@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1021-cip-physical-selected-output-2026-11-06",
+  "date": "2026-11-06",
+  "status": "PASS_BOUNDED_PHYSICAL_SOURCE_OUTPUT_READBACK",
+  "supportClaimEffect": "none",
+  "question": "Can the direct-NOD ACAD_CIP_PREVIOUS_PRODUCT_INFO XRECORD be emitted with its complete source body and ownership/reactor links, with atomic refusal and readback?",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "producerProvenance": "Existing local source; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceGraph": {
+    "namedObjectDictionary": {
+      "handle": "0xC",
+      "hardOwner": 0,
+      "cloning": 1
+    },
+    "root": {
+      "key": "ACAD_CIP_PREVIOUS_PRODUCT_INFO",
+      "targetHandle": "0x216",
+      "occurrences": 1,
+      "outputDxfHandleRole": "soft-owner"
+    },
+    "xrecord": {
+      "type": "XRECORD (standard object type 79)",
+      "handle": "0x216",
+      "ownerHandle": "0xC",
+      "frameOffset": 1990278,
+      "frameSize": 57,
+      "cloning": 1,
+      "values": [
+        {"code": 300, "type": "string", "value": "ACD"},
+        {"code": 300, "type": "string", "value": "2016"},
+        {"code": 300, "type": "string", "value": "ACD_F_S"}
+      ],
+      "orderedDataEntriesMatchValues": true,
+      "handleValues": 0,
+      "reactors": ["0xC"],
+      "extensionDictionary": "0x0",
+      "appData": 0,
+      "extData": 0,
+      "dataStorage": false,
+      "rawDataValid": false,
+      "rawDataBytes": 0,
+      "commonLinkTailValidated": true,
+      "typedPayloadMatched": true,
+      "standardSourceEligible": true
+    }
+  },
+  "implementation": {
+    "files": ["tests/dwg2dxf_adapter_tests.cpp"],
+    "change": "Added a focused physical-source selector for this direct-NOD XRECORD profile. No production writer change was required."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "selector": "--ac1021-cip-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1021-cip-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS for ASCII and Binary output and fresh typed readback. The unique NOD edge has soft-owner role; the remapped XRECORD has NOD owner/reactor and all three ordered source strings. The physical standard-frame proof and generated NOD/GROUP proofs finalize. Late reactor mutation refuses without replacing the destination sentinel; source restoration allows same-adapter retry.",
+    "outputPolicy": "AllowPartial; unresolved-owner strictness disabled. This does not qualify strict whole-source output.",
+    "logPath": "/private/tmp/p4-ac1021-cip-physical-selected-output-2026-11-06.log",
+    "logSha256": "312df6fc77e5d80f2b714b95f2ac04f40b06e91941249f2ab9cbec66eb5b5997",
+    "testSourceSha256": "1bcc010400e45328a3d7e258c2d2fde194e6ed0df321f739c1477c63e85459e8",
+    "executableSha256": "a46e5f7033dc41424fd39b04f6283a8cfeb6fe6d2bdfc160f386a243f8668bd7"
+  },
+  "limits": [
+    "One unauthenticated local source profile is covered; this does not establish native CIP semantics or producer-wide support.",
+    "The output role is verified after DXF conversion and is not an independent source-DWG edge-code role proof.",
+    "Other NOD entries and strict whole-source output remain unqualified; no independent encoder roundtrip is established.",
+    "The DWG source and generated DXF outputs are not committed as fixtures."
+  ],
+  "nextAction": "Screen ACDB_RECOMPOSE_DATA XRECORD handle 246776: reconcile one typed value with two ordered data-block entries and determine the referenced handle's role/target before deciding whether selected output is closed."
+}

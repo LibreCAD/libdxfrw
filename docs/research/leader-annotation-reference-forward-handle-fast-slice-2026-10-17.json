@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-leader-annotation-reference-forward-handle-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Preserve DXF LEADER group-340 hard-reference identity for forward and backward references, rejecting unresolved or ambiguous associations before output publication.",
+  "implementation": {
+    "changedFiles": [
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "behavior": [
+      "pre-inventory typed output entities and nonzero LEADER annotation handles",
+      "validate one MTEXT, TOLERANCE, or INSERT target per referenced source handle",
+      "preallocate output target handles so forward references are retained",
+      "refuse unresolved/ambiguous target serialization instead of silently omitting group 340"
+    ],
+    "fixturePolicy": "All DXF test records are generated at runtime in scratch. No test DWG/DXF file was added, downloaded, or committed. No CTest registration or dependency was added."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "passed": true
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --leader-annotation-reference",
+      "passed": true,
+      "output": "DXF LEADER annotation reference identity: PASS",
+      "coverage": [
+        "ASCII and binary DXF",
+        "annotation serialized before and after LEADER",
+        "literal group-340 matches annotation entity handle",
+        "typed reimport retains target identity and text metrics",
+        "following LINE sentinel remains aligned",
+        "unresolved target is rejected and pre-existing destination sentinel is unchanged"
+      ]
+    },
+    "gitDiffCheck": true,
+    "fullSuiteOrCtestRun": false,
+    "testedAnnotationTypes": [
+      "MTEXT"
+    ],
+    "untestedAcceptedAnnotationTypes": [
+      "TOLERANCE",
+      "INSERT"
+    ],
+    "dwgAnnotHChanged": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0
+  },
+  "remainingChecks": [
+    "guard annotation targets against source-handle collisions with non-entity objects and modeler records",
+    "add generated ASCII/binary TOLERANCE and INSERT annotation-target cases",
+    "keep DWG AnnotH changes behind ODA layout review and a valid producer sample"
+  ],
+  "qualificationBoundary": "This is DXF hard-reference identity preservation for the tested MTEXT route only. It does not establish DWG annotation-reference support, all target types, native consumer acceptance, or a support claim."
+}

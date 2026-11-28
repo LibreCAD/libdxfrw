@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 TABLESTYLE source/output handle preallocation fix",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Reproduce and fix an AC1021 TABLESTYLE/STYLE output-handle collision in a locally generated control; do not enable physical AC1021 TABLESTYLE output from this control alone.",
+  "control": {
+    "origin": "Created locally from scratch in tests/dwg2dxf_adapter_tests.cpp for the specific collision control; no DWG/DXF fixture file was committed.",
+    "sourceVersion": "AC1021",
+    "highestExistingGraphHandle": "0x700",
+    "tableStyleSourceHandle": "0x701",
+    "tableStyleReference": "The generated TABLE points to the unique TABLESTYLE source handle; its legacy row styles name TABLE_FONT.",
+    "fixtureNormalization": "Non-merged cells use unit span values so the TABLE serializer reaches the handle-identity assertions."
+  },
+  "baseline": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-source-output-identity-collision",
+    "result": "FAIL at record-inventory finalization: duplicate emitted handle 0x701 for STYLE and TABLESTYLE.",
+    "cause": "fileExport moved m_tableStylesToEmit into dxfRW before writeTables; the later adapter preallocation loop therefore saw an empty selection. The unbound TABLESTYLE source identity could alias the next TEXTSTYLE record handle."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h"
+    ],
+    "change": "Retain the adapter's selected TABLESTYLE handles when registering TABLE code-342 validation, and preallocate fallback and extension TABLESTYLE handles before TEXTSTYLE table-record handles are minted.",
+    "failClosed": "Any failed or ambiguous preallocation still aborts the write before destination publication."
+  },
+  "verification": {
+    "focusedBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "generatedAsciiBinaryControl": "PASS: --tablestyle-source-output-identity-collision; both encodings reimport with distinct TABLESTYLE/TEXTSTYLE handles, three TABLE_FONT row-style names, and three typed legacy rows.",
+    "existingFastCtests": "PASS: libdxfrw_dxf_tables_write_inspection and libdxfrw_table_content_dwg_object_roundtrip (2/2, 0.21 seconds total). The TABLESTYLE collision control is also invoked for ASCII and Binary by the existing table-writer inspection cohort.",
+    "diffCheck": "PASS: git diff --check",
+    "fullSuites": "NOT RUN",
+    "physicalSource": "NOT QUALIFIED"
+  },
+  "nextAction": "Apply the corrected identity preallocation to the exact selected projection of existing AC1021 lineweights.dwg. Preserve immutable STYLE/TABLESTYLE/dictionary source baselines; require ASCII and Binary output/readback, bad-reference atomic refusal, same-adapter correction/retry, and unchanged strict whole-source refusal. Keep the AC1021 support gate closed until that physical-source proof passes.",
+  "qualificationLimits": [
+    "Generated adapter consistency is not independent producer evidence.",
+    "This does not qualify the AC1021 physical TABLESTYLE source, its complete dependency graph, native semantics, the architectural CELLSTYLEMAP profile, or whole-document output.",
+    "No support claim or version allowlist was changed."
+  ]
+}

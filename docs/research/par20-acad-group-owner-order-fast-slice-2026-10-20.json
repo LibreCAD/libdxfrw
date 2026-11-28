@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 ACAD_GROUP dictionary owner order fast slice",
+  "mode": "Locally generated ASCII/Binary implementation and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Assert the generated GROUP's NOD root key, dictionary owner, GROUP owner, and key/handle identity through the existing adapter control.",
+    "Assert NOD-first and ACAD_GROUP-dictionary-before-GROUP physical OBJECTS order in ASCII and Binary output.",
+    "Reuse the existing fast selector and CTest; add no persistent fixtures or dependencies."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "filesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par20-acad-group-owner-order-fast-slice-2026-10-20.json"
+    ],
+    "generatedControls": [
+      "The generated GROUP resolves through NOD ACAD_GROUP key to a NOD-owned DICTIONARY, then through the dictionary's name/handle entry to a GROUP whose parentHandle points back to that dictionary.",
+      "ASCII and Binary output record scans require the actual NOD first and the ACAD_GROUP DICTIONARY before its GROUP child, using output/readback handles."
+    ],
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "directSelector": "PASS (exit 0): build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --group-adapter-roundtrip; expected negative-control refusal diagnostics printed",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_group_adapter_roundtrip$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check on plan and adapter test; receipt parsed by jq and trailing-whitespace scanned",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0
+  },
+  "assessment": {
+    "closes": "Root/key/owner identity and physical owner-before-owned output for the existing generated one-member GROUP route in ASCII and Binary DXF.",
+    "doesNotClose": [
+      "A generic OBJECTS ordering scheduler or every root/owner family.",
+      "Arbitrary GROUP variants, all-version interoperability, or native application acceptance.",
+      "Broad DWG/DXF or 3D semantic support."
+    ],
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "commitCreated": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

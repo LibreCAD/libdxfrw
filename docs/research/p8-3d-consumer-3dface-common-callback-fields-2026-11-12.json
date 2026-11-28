@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-3dface-common-callback-fields-2026-11-12",
+  "purpose": "Extend generated 3DFACE DXF callback checks to common entity presentation fields and both consumer sinks.",
+  "authority": {
+    "source": "Autodesk AutoCAD DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+    "relevantFields": "3DFACE corners (groups 10-13) are WCS points; group 70 contains the four invisible-edge flags. The generated test additionally exercises common entity fields through the existing callback projection."
+  },
+  "source": {
+    "kind": "runtime-generated-from-scratch-DXF",
+    "version": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "trackedFixture": false
+  },
+  "profile": {
+    "layer": "probe_3dface_wcs",
+    "cornersWcs": [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0], [10.0, 11.0, 12.0]],
+    "invisibleEdgeFlags": 5,
+    "commonFields": {
+      "lineType": "DASHED",
+      "color": 5,
+      "color24": 2386092,
+      "visible": false,
+      "space": "PaperSpace"
+    }
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_3d_consumer_probe -j4",
+    "result": "PASS",
+    "ctest": "ctest --test-dir build -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "ctestResult": "PASS, 1/1, 0.49 seconds",
+    "extrusionModes": ["ext=false", "ext=true"],
+    "consumerSinks": ["semantic", "legacy"],
+    "diffCheck": "PASS"
+  },
+  "scopeLimit": "Generated same-library DXF callback transport only. It does not establish independent interoperability, DWG producer semantics, or native rendering; FreeCAD's importer is separately observed as not supporting 3DFACE.",
+  "claimEffect": "No format or consumer support claim changes."
+}

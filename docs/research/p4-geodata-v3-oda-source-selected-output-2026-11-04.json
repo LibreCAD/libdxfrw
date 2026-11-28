@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "title": "ODA-produced AC1027 GEODATA v3 selected-record output and text controls",
+  "status": "BOUNDED_SELECTED_RECORD_AND_DIRECT_WRITER_ONLY",
+  "supportClaimEffect": "none",
+  "sourceEvidence": {
+    "authoring": "Locally generated from scratch using ezdxf 1.4.5 R2013 modelspace.new_geodata() and setup_local_grid(), with the separate host block handle explicitly set to the actual model-space BLOCK_RECORD. No drawing fixtures were committed.",
+    "generator": "tools/geodata_physical_v3_probe.py",
+    "generatorSha256": "6e96e6770cd6d89340231ab575f3ab62fb764cf7844da2a343abcbb5b04aec15",
+    "inputDxfSha256": "a3ad38c95899c325e702cbef525fc8415c6a0f6d648328d6a4e095b24b1b0c93",
+    "odaDwgSha256": "8e4c46cb724d8c66c52eeef3b64ddd8a4b40ea36fd12cb6c69ae8f40186d3bae",
+    "odaReadbackDxfSha256": "05cb27a27d0d583fa1a32d37fcc0ca2b588b111b020caa685e2a57f25d6b4489",
+    "producer": "macOS ARM64 ODA File Converter 27.1.0, executable SHA256 21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "conversion": "DXF -> ACAD2013 DWG -> ACAD2013 ASCII DXF; two separate converter runs returned zero, both outputs existed and no error files were produced.",
+    "independentReadback": "ezdxf independently reads the ODA output DXF: GEODATA 0x30, class version 3, owner extension dictionary 0x2F, host block record 0x17, 2607-character coordinate system XML, 100/200 design point, 1718030/5921664 reference point, and meter unit fields. The source model-space BLOCK_RECORD 0x17 owns extension dictionary 0x2F, whose ACAD_GEOGRAPHICDATA entry names object 0x30. ODA's DXF also has one reactor from GEODATA to its dictionary owner 0x2F.",
+    "physicalDwGReader": "The selected DWG object callback reports the same object identity, version, owner, host, reactor and checked coordinates/units. The reader reports 109/109 observed frames published and no entity/object/CRC failures, but also reports two HEADER integrity observations including 739 unclaimed suffix bytes; strict whole-source export remains refused."
+  },
+  "referenceSpecifications": [
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1 section 20.4.78",
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "finding": "Object version 3 is associated with R2013 and has the same field layout as version 2. The host is a separate soft pointer to the model-space layout owner block."
+    },
+    {
+      "title": "Autodesk GEODATA DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm",
+      "finding": "Published object-version table lists versions 1 and 2; it does not document 3. The ODA-produced version-3 DXF is an independently observed narrower producer profile, not proof of general Autodesk support."
+    }
+  ],
+  "changes": {
+    "v3": "The low-level DXF writer accepts object version 3 only for DXF AC1027 or newer, using the modern field map. Other unknown versions still fail, as does v3 on older output revisions. The dwg2dxf graph admission remains unchanged and still refuses the observed owner-dictionary profile.",
+    "binaryDefinition": "For object versions 1, 2 and 3, binary DXF now emits an LF in the coordinate-system definition as an LF byte, rather than the ASCII caret-J spelling. Binary semantic text does not decode caret controls, so the previous output read back with different XML content. Strings with LF and literal caret-J together also preserve both values in binary.",
+    "asciiDefinition": "For a definition with LF but no literal caret-J, ASCII output represents LF as caret-J and the version-initialized DXF reader restores LF. For literal caret-J with no LF, the ASCII writer encodes the caret as caret-space, so e.g. Alpha^JBeta appears on the wire as Alpha^ JBeta and reads back exactly as Alpha^JBeta. When both LF and literal caret-J occur, the existing newline chunk encoder cannot distinguish source literal caret-J from its normalized newline spelling; the writer now refuses before output instead of changing the literal. A caller may correct the value and retry on the same writer, or select binary output.",
+    "testCoverage": "The fast versioned writer selector tests v1/v2/v3 ASCII/Binary direct wire values, typed readback, literal caret-J, LF, mixed ASCII refusal and same-writer retry, unsupported v4, older-revision v3 refusal and invalid-field refusal. It also checks modern field order and selected typed fields in ASCII/Binary. The opt-in physical selector imports the ODA DWG then writes a selected typed record with distinct owner and host remaps, checks its owner/reactor and host references, and type-reads all modeled nonmesh fields including the full XML. It is a selected record, not an output drawing."
+  },
+  "validation": [
+    {"command": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_hardening_tests -j4", "result": "PASS"},
+    {"command": "ctest --test-dir build-gcc -R '^libdxfrw_geodata_(versioned_writer|identity_remapping)$' --output-on-failure", "result": "2/2 PASS"},
+    {"command": "build-gcc/libdxfrw_hardening_tests --dxf-geodata-modern-text-preflight", "result": "PASS; includes v2 Binary and ASCII chunk boundaries in compatible and lossless policies"},
+    {"command": "build-gcc/libdxfrw_wave1_tests --geodata-physical-v3 <locally-generated-ODA-DWG>", "result": "PASS for ASCII and Binary selected-record output/readback"},
+    {"command": "git diff --check", "result": "PASS"}
+  ],
+  "reproduction": [
+    "build/rpp5gh-evidence/peer/bin/python -B tools/geodata_physical_v3_probe.py <new-input-directory>/local_grid.dxf",
+    "<ODA File Converter> <new-input-directory> <new-DWG-directory> ACAD2013 DWG 0 0",
+    "<ODA File Converter> <new-DWG-directory> <new-output-directory> ACAD2013 DXF 0 0",
+    "build-gcc/libdxfrw_wave1_tests --geodata-physical-v3 <new-DWG-directory>/local_grid.dwg"
+  ],
+  "remaining": [
+    "Establish adapter closure for model-space BLOCK_RECORD -> extension dictionary -> GEODATA and its owner/reactor/host references; current adapter requires owner equal to host and does not admit this profile.",
+    "Resolve the independent source HEADER integrity observations before claiming whole-drawing conversion.",
+    "Obtain native georeferencing semantic validation and broader producer/revision evidence; the selected record and cross-reader comparison do not prove application geolocation behavior."
+  ]
+}

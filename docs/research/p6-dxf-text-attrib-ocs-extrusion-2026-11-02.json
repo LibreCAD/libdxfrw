@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-02",
+  "status": "GENERATED_DXF_TEXT_ATTRIB_OCS_TRANSFORM_PASS_NATIVE_SEMANTICS_OPEN",
+  "baselineHead": "9bf21a9ea72fd85448f134ea4e53fc804bdae285",
+  "scope": "DXF reader callback coordinate preparation when dxfRW::read is explicitly called with applyExtrusion=true; no source-profile or support claim",
+  "authority": [
+    {
+      "title": "Autodesk TEXT (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-62E5383D-8A14-47B4-BFC4-35824CAE8363.htm",
+      "rule": "TEXT first and second alignment points (groups 10 and 11) are in OCS; group 210 is the extrusion direction; group 50 is text rotation."
+    },
+    {
+      "title": "Autodesk Object Coordinate Systems (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm",
+      "rule": "2D text entities use OCS coordinates; the arbitrary-axis algorithm defines the OCS basis from the extrusion vector."
+    }
+  ],
+  "implementation": {
+    "files": [
+      {
+        "path": "src/drw_entities.cpp",
+        "sha256": "9867332a5928d74811f7bd4561b2d010191cc2e0cac6f51d09d2f4dc8699ca31"
+      },
+      {
+        "path": "src/drw_entities.h",
+        "sha256": "f099f9666dc3ca823cb729472a351f32e921053a37d3b735f6d8c921875c0001"
+      },
+      {
+        "path": "src/libdxfrw.cpp",
+        "sha256": "5c23c92a46c0d239f07dc7d30afc203219e5fb069db5812076bdc18dcc9bfca0"
+      }
+    ],
+    "behavior": [
+      "DRW_Text::applyExtrusion transforms the insertion point and alignment point through the existing entity arbitrary-axis basis when an extrusion was explicitly present.",
+      "The local rotation angle and extrusion normal remain unchanged; the angle remains relative to the OCS X axis.",
+      "The processText and INSERT-owned processAttrib paths invoke the transform only when dxfRW::read(..., applyExtrusion=true) is selected. Existing ATTDEF finalization uses the same DRW_Text implementation.",
+      "The default false option leaves parsed coordinates in OCS, preserving existing consumers' behavior."
+    ]
+  },
+  "generatedControl": {
+    "generator": "writeTextOcsExtrusionControl in tests/dxf_fixture_tests.cpp",
+    "generatorSha256": "65dc7c18e0aa868ad262c6a5403bc946ea0ceca89b9c02e73ff620de038c544c",
+    "sourceRevision": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "entities": ["TEXT", "INSERT-owned ATTRIB"],
+    "extrusion": [1.0, 0.0, 0.0],
+    "textOcsInsertion": [2.0, 3.0, 4.0],
+    "textOcsAlignment": [5.0, 6.0, 7.0],
+    "attributeOcsInsertion": [8.0, 9.0, 10.0],
+    "attributeOcsAlignment": [11.0, 12.0, 13.0],
+    "expectedWcs": {
+      "textInsertion": [4.0, 2.0, 3.0],
+      "textAlignment": [7.0, 5.0, 6.0],
+      "attributeInsertion": [10.0, 8.0, 9.0],
+      "attributeAlignment": [13.0, 11.0, 12.0]
+    },
+    "optionStates": [
+      "false preserves all original OCS coordinates",
+      "true delivers transformed insertion/alignment points and preserves angle 30 degrees and normal (1,0,0)"
+    ],
+    "fixtureDisposition": "Generated in a temporary directory by the test and deleted; no DWG/DXF fixture committed."
+  },
+  "validation": {
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.3",
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --text-ocs-extrusion",
+      "result": "PASS"
+    },
+    "ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_text_ocs_extrusion$' --output-on-failure",
+      "result": "PASS, 1/1 in 0.04 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated parser/callback controls only; no physical producer or paired-source evidence was used.",
+    "No native LibreCAD, LibreCAD_3, FreeCAD or other consumer orientation check was performed.",
+    "This does not qualify text rendering, glyph placement, text style/font semantics, MTEXT, non-AC1027 profiles, or whole-document conversion.",
+    "The test proves one non-default normal in the general arbitrary-axis branch; broader source/version and native semantic qualification remains open."
+  ]
+}

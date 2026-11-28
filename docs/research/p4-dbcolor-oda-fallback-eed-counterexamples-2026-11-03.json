@@ -1,0 +1,389 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "ODA DBCOLOR group-62 fallback versus EED counterexamples",
+  "date": "2026-11-03",
+  "status": "EED_TO_ACI_INFERENCE_DISPROVED_COMPLETE_GRAPH_GATE_CLOSED",
+  "scope": "Test whether the matching 254 in the physical AC1021 DBCOLOR EED and ODA DXF group 62 establishes a source mapping; this does not qualify native color-book semantics or generalize to other producers.",
+  "origin": "A real existing local drawing children-room-decoration.dwg (SHA256 cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce) contained RGB 0xCFD0CF, RAL CLASSIC$RAL 7047, and 13 repeated DBColXD EED tuples whose group 1070 was 254. ODA output group 62 was also 254. The six controls below are authored from scratch to test that apparent relationship.",
+  "generator": {
+    "path": "tools/dbcolor_fallback_differential.py",
+    "sha256": "f0ac788d0f7999e182b052a3e124f1fcb43249bcf4a8c290a8f7e683fbb6070b",
+    "scaffold": "ezdxf 1.4.5 creates a fresh empty AC1021 DXF; the tool authors the DBCOLOR record, dictionary entry and 13 EED tuples locally.",
+    "commands": [
+      "build/rpp5gh-evidence/peer/bin/python -B tools/dbcolor_fallback_differential.py prepare <new-input-directory>",
+      "ODAFileConverter <new-input-directory> <new-output-directory> ACAD2007 DXF 0 0",
+      "python3 -B tools/dbcolor_fallback_differential.py compare <new-input-directory> <new-output-directory>",
+      "python3 -B tools/dbcolor_fallback_differential.py self-test"
+    ],
+    "limitations": "Scaffold generation needs ezdxf; comparison and self-test require only Python standard library. Inputs and outputs remain scratch-only; paths and executable are not hard-coded in the tool."
+  },
+  "tool": {
+    "name": "ODA File Converter 27.1.0, verified native macOS ARM64 app",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "target": "ACAD2007 ASCII DXF, recursion 0, audit 0",
+    "process": "exit 0, six output files, no .err files"
+  },
+  "results": [
+    {
+      "name": "none_254",
+      "inputSha256": "561288ab58514a461ef8cef8406c99fc592e27a5de281e253b149956317455b4",
+      "outputSha256": "17cb2c7fab20134a73e0512b53110e02c5151c68c1a7011444cecb25aab96266",
+      "input": {
+        "group62": [],
+        "group420": [
+          "13619407"
+        ],
+        "group430": [
+          "RAL CLASSIC$RAL 7047"
+        ],
+        "eed1070": [
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254"
+        ],
+        "dbcolxdCount": 13,
+        "otherTagCount": 0
+      },
+      "output": {
+        "group62": [
+          "254"
+        ],
+        "group420": [
+          "13619407"
+        ],
+        "group430": [
+          "RAL CLASSIC$RAL 7047"
+        ],
+        "eed1070": [
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254"
+        ],
+        "dbcolxdCount": 12,
+        "otherTagCount": 0
+      }
+    },
+    {
+      "name": "none_1",
+      "inputSha256": "9dc4720b7483ab3adf8827623dd0e3bb6c5a130c4de27f5fc95c62cab1485901",
+      "outputSha256": "9aa1fd98440eeefdf3a5a19b73cc1179d84297193216d961948e4fc6e3265418",
+      "input": {
+        "group62": [],
+        "group420": [
+          "13619407"
+        ],
+        "group430": [
+          "RAL CLASSIC$RAL 7047"
+        ],
+        "eed1070": [
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "dbcolxdCount": 13,
+        "otherTagCount": 0
+      },
+      "output": {
+        "group62": [
+          "254"
+        ],
+        "group420": [
+          "13619407"
+        ],
+        "group430": [
+          "RAL CLASSIC$RAL 7047"
+        ],
+        "eed1070": [
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "dbcolxdCount": 12,
+        "otherTagCount": 0
+      }
+    },
+    {
+      "name": "none_0",
+      "inputSha256": "9ca03060a0fc70fa909847dbb1ad647befb97e58db16ce7bc33f96b07925eced",
+      "outputSha256": "369ace10f9227b3f183f520837b591f215590914d37339f01edacc8b289ad3f3",
+      "input": {
+        "group62": [],
+        "group420": [
+          "13619407"
+        ],
+        "group430": [
+          "RAL CLASSIC$RAL 7047"
+        ],
+        "eed1070": [
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "dbcolxdCount": 13,
+        "otherTagCount": 0
+      },
+      "output": {
+        "group62": [
+          "254"
+        ],
+        "group420": [
+          "13619407"
+        ],
+        "group430": [
+          "RAL CLASSIC$RAL 7047"
+        ],
+        "eed1070": [
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "dbcolxdCount": 12,
+        "otherTagCount": 0
+      }
+    },
+    {
+      "name": "aci1_254",
+      "inputSha256": "2b61c3cdfc8a140fd102fafae2d05fcf0bfe6caf95a3d16306569dcdcd913d23",
+      "outputSha256": "94c776b97c973a0e5f864764ab3e6629e2fde64f02c406eb771ed775561da6bb",
+      "input": {
+        "group62": [
+          "1"
+        ],
+        "group420": [
+          "13619407"
+        ],
+        "group430": [
+          "RAL CLASSIC$RAL 7047"
+        ],
+        "eed1070": [
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254"
+        ],
+        "dbcolxdCount": 13,
+        "otherTagCount": 0
+      },
+      "output": {
+        "group62": [
+          "254"
+        ],
+        "group420": [
+          "13619407"
+        ],
+        "group430": [
+          "RAL CLASSIC$RAL 7047"
+        ],
+        "eed1070": [
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254"
+        ],
+        "dbcolxdCount": 12,
+        "otherTagCount": 0
+      }
+    },
+    {
+      "name": "aci254_1",
+      "inputSha256": "a6fc992c476002c201c5cbdcced012123415bd512ec7feb984993a4125d93128",
+      "outputSha256": "6dc6b8fd01ea3dfc4ec8dd4042a964b538d0dd77ae4a5ff8f239e32af936cdd2",
+      "input": {
+        "group62": [
+          "254"
+        ],
+        "group420": [
+          "13619407"
+        ],
+        "group430": [
+          "RAL CLASSIC$RAL 7047"
+        ],
+        "eed1070": [
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "dbcolxdCount": 13,
+        "otherTagCount": 0
+      },
+      "output": {
+        "group62": [
+          "254"
+        ],
+        "group420": [
+          "13619407"
+        ],
+        "group430": [
+          "RAL CLASSIC$RAL 7047"
+        ],
+        "eed1070": [
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+        ],
+        "dbcolxdCount": 12,
+        "otherTagCount": 0
+      }
+    },
+    {
+      "name": "none_tagother",
+      "inputSha256": "45d7f36e70634e9d8d666def1d8f2757c497f8cec1973a9d1278ae5496240061",
+      "outputSha256": "53570b1c89934158fe81ea9f7cb8f1516df11695b97044aa3eccb77954b0171f",
+      "input": {
+        "group62": [],
+        "group420": [
+          "13619407"
+        ],
+        "group430": [
+          "RAL CLASSIC$RAL 7047"
+        ],
+        "eed1070": [
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254"
+        ],
+        "dbcolxdCount": 0,
+        "otherTagCount": 13
+      },
+      "output": {
+        "group62": [
+          "254"
+        ],
+        "group420": [
+          "13619407"
+        ],
+        "group430": [
+          "RAL CLASSIC$RAL 7047"
+        ],
+        "eed1070": [
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254",
+          "254"
+        ],
+        "dbcolxdCount": 0,
+        "otherTagCount": 13
+      }
+    }
+  ],
+  "findings": [
+    "For this fixed RGB/name profile ODA writes group 62 = 254 even if all 13 EED group-1070 values are changed to 1 or 0, the input group 62 is explicitly 1, or DBColXD is renamed throughout. The EED 254 coincidence therefore does not establish a mapping; do not synthesize group 62 from that EED item.",
+    "The five DBColXD cases each lost one of the 13 input tuples in ODA output; the renamed-tag case retained 13. No assertion is made about why ODA changes this opaque application data or whether it is semantically redundant. Preserve original EED instead of copying ODA output.",
+    "ODA normalized the conflicting explicit group 62 = 1 to 254 for this fixed color. The experiment does not establish the general algorithm, whether the ACI is computed from RGB, or the effect in an independent native color-book consumer."
+  ],
+  "nextAction": "Keep complete DBCOLOR adapter output closed. Obtain authoritative/native independent evidence for source CMC-to-DXF fallback behavior, and prove exact emitted graph/APPID/LAYER/readback binding while preserving all required EED.",
+  "fixturePolicy": "No generated input, output, or source drawing is committed.",
+  "supportClaimEffect": "none"
+}

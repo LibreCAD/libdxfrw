@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw-broader-named-root-readiness-v1",
+  "reviewedAt": "2026-10-15",
+  "basisCommit": "f6fb033",
+  "qualificationEligible": false,
+  "scope": "Static contract review of the existing named-object root/resource path. No test, converter, native CAD application, or kernel was run in this pass.",
+  "primaryReferences": [
+    {
+      "topic": "DXF object ownership and group-code ordering",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "observation": "Autodesk warns that common group-code tables show usual order, not a stable required order; graphical-object material references use hard-pointer code 347."
+    },
+    {
+      "topic": "DICTIONARY",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "observation": "Code 280 is the hard-owner flag, 281 is duplicate-record cloning policy, and each dictionary entry is a repeated name code 3 plus handle code 350."
+    },
+    {
+      "topic": "ACDBDICTIONARYWDFLT",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A6605C05-1CF4-42A4-95EC-42190B2424EE.htm",
+      "observation": "The derived AcDbDictionaryWithDefault subclass adds code 340, a hard pointer to the default object; this is a distinct edge from the dictionary's repeated code-350 entries."
+    },
+    {
+      "topic": "LAYOUT",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm",
+      "observation": "LAYOUT embeds an AcDbPlotSettings prefix and separately references its paper-space BLOCK_RECORD (330), last active VIEWPORT (331), optional named/base UCS (345/346), and shade plot (333)."
+    },
+    {
+      "topic": "MATERIAL",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+      "observation": "MATERIAL contains many typed color, map, transform, illumination, and procedural fields and is owned by the NOD ACAD_MATERIAL entry."
+    },
+    {
+      "topic": "TABLESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+      "observation": "TABLESTYLE repeats cell-level text, height, alignment, colors, data/unit types, and border state; scalar header retention is not the complete object."
+    },
+    {
+      "topic": "ACDBPLACEHOLDER",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3BC75FF1-6139-49F4-AEBB-AE2AB4F437E4.htm",
+      "observation": "The DXF placeholder record consists of its object identity and common ownership/reactor fields; its significance here is the typed default-pointer target and identity, not a large property body."
+    },
+    {
+      "topic": "DICTIONARYVAR",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D305303C-F9CE-4714-9C92-607BFDA891B4.htm",
+      "observation": "A DICTIONARYVAR stores one schema value and a string value under ACDBVARIABLEDICTIONARY; it is not merely an arbitrary untyped dictionary child."
+    },
+    {
+      "topic": "VISUALSTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm",
+      "observation": "The published DXF table places the AcDbVisualStyle marker before description/type and lists the internal-use flag at code 291; the separate modern 58-property profile still requires producer-witnessed grammar."
+    }
+  ],
+  "localSourceSha256": {
+    "src/drw_objects.h": "84013a41a793c0085056060b54f253d71494a0108aa87c9a6d1da7e0def061c1",
+    "src/drw_objects.cpp": "a13ea4f02b4eb335c5179402493da37f011fc2e10e78b62c676694247917707e",
+    "src/libdxfrw.cpp": "1b62a9b68d055c3a6e5887f209cabb94e1779995f5e1048abfd1ca0f031609aa",
+    "dwg2dxf/dx_data.h": "59a2052a45978e1a9e96ddcbbf437cab38513ef70f6bf48d692eeea58bff7547",
+    "dwg2dxf/dx_iface.h": "6928d97836cfdc089336bb03f6ae04b15e2aab0abe8fc03794e026a7f67d4c8c",
+    "dwg2dxf/dx_iface.cpp": "463d7faf9e7fd1ce77e137a38f3141a72e3700d01d9a5cbe6b71d173c93c4a4b"
+  },
+  "localFindings": [
+    {
+      "id": "existing-7G.3f.4-resource-retention",
+      "finding": "The nine observed inherited no-op callback families still have no concrete dx_data collection: DictionaryWithDefault, AcDbPlaceholder, MLineStyle, MLeaderStyle, TableStyle, DetailViewStyle, SectionViewStyle, Scale, and DictionaryVar."
+    },
+    {
+      "id": "existing-7G.3f.4-default-pointer-copy",
+      "finding": "DRW_DictionaryWithDefault copy construction/assignment copies the default handle but resets m_dxfDefaultEntrySeen; hasCompleteDxfPayload can therefore become false after the adapter's required owned copy."
+    },
+    {
+      "id": "existing-7G.3f.4-dictionary-output",
+      "finding": "The current routed named-DICTIONARY writer emits code 281 and repeated code-3/code-350 entries but does not emit the modeled hardOwner/code-280 flag."
+    },
+    {
+      "id": "existing-7G.3f.4-material-projection",
+      "finding": "DRW_Material::parseCode decodes only name/description; writeMaterial emits only those fields. The raw-net preserves DXF-origin records, but a DWG-origin material has no raw DXF record to replay."
+    },
+    {
+      "id": "existing-7G.3f.4-tablestyle-projection",
+      "finding": "DRW_TableStyle::parseCode decodes only top-level scalar fields and explicitly leaves row/cell subrecords to the raw-net; the current dxfRW API/source has no writeTableStyle method."
+    },
+    {
+      "id": "existing-7G.3f.4-layout-links",
+      "finding": "The typed LAYOUT model/writer already covers the documented plot-settings prefix and multiple references, and the writer remaps those references. Its coverage still requires focused graph joins and version-specific checks before admission."
+    },
+    {
+      "id": "existing-7G.3f.4-mline-mleader-output",
+      "finding": "SCALE/DICTIONARYVAR/MLINESTYLE/MLEADERSTYLE writers exist. MLINESTYLE's public element model contains RGB and newer linetype-handle fields not emitted by the current code. MLEADERSTYLE's 340-343 references are currently written from stored values directly, so handle-remap behavior must be checked before graph closure."
+    },
+    {
+      "id": "existing-7G.3f.4-unsupported-writers",
+      "finding": "No typed DXF writer is declared for DICTIONARYWDFLT, ACDBPLACEHOLDER, TABLESTYLE, DETAILVIEWSTYLE, or SECTIONVIEWSTYLE."
+    }
+  ],
+  "planChanges": [
+    "Keep f.4a as owned callback storage, and preserve DICTIONARYWDFLT's source-completeness evidence across copies; do not add interface pure virtuals.",
+    "Make one source-field to model-field to output-tag to graph-edge matrix the first f.4b deliverable; do not start the composed CLI gate from callback counts.",
+    "Prioritize families with existing writers only after mapping their full stored fields and handle remaps; SCALE/DICTIONARYVAR are the shortest candidates.",
+    "Treat MATERIAL, TABLESTYLE, DICTIONARYWDFLT/default PLACEHOLDER, DETAILVIEWSTYLE, and SECTIONVIEWSTYLE as explicit full-root blockers until their payload and writers are complete or the conversion refuses before publication.",
+    "Include DICTIONARY code-280 ownership policy, default code-340 hard-pointer role, LAYOUT's separate 330/331/333/345/346 edges, and entity-to-MATERIAL code-347 edges in graph closure.",
+    "Add reordered DXF group-code controls because published Autodesk tables describe usual order rather than a parser-required sequence."
+  ],
+  "unchangedBoundaries": {
+    "newPlanFindingIds": 0,
+    "topLevelSubplanCount": 70,
+    "findingCount": 122,
+    "threeDLedgerCount": 149,
+    "fixturePayloadsAdded": 0,
+    "newCTestRegistrations": 0,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

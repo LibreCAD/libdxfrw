@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-rooted-imagedef-layer-control-optional-extension-fix-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_CORRECTNESS_FIX",
+  "supportClaimEffect": "none",
+  "scope": "Correct TABLES source proof when a DWG LAYER_CONTROL exists without an extension dictionary and another captured object requires standard EED table-name inspection.",
+  "finding": {
+    "reproduction": "The generated AC1032 mode-1 IMAGEDEF closure case captures LAYER_CONTROL handle 2 with no extension dictionary. Its IMAGEDEF and root-dictionary EED dependencies enable inspectStandardDwgTablesOutput(), which incorrectly treated any nonzero control handle as a required control/dictionary pair and rejected the TABLES section.",
+    "diagnosis": "A control object without an extension dictionary is valid for this output path. The existing output-admission gate requires both handles before emitting a LAYER_CONTROL extension, but the shared standard-name proof rejected the normal no-extension profile. The adjacent FIELDLIST warning was unrelated."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": [
+      "The standard DWG table-name proof now validates and records the layer-control extension only when its extension-dictionary handle is present.",
+      "A nonzero control handle with no extension dictionary remains valid; a present dictionary still requires the complete, unambiguous control/dictionary association.",
+      "The rooted IMAGEDEF closure control asserts the generated AC1032 input has a captured control handle and no extension dictionary before exercising the ASCII/Binary output matrix."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "diffCheck": {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    "focused": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_rooted_image_dictionary_closure$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "Generated IMAGEDEF root and reactor closure matrix; readback, failure, retry and target-revision projections."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dwg_layer_table_control_dictionary$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "Existing layer-table control extension dictionary output control."
+      }
+    ],
+    "repositoryFixturesAdded": 0,
+    "generatedDrawings": "Created in unique temporary test directories and removed by the test harness."
+  },
+  "limitations": [
+    "This fixes local output preflight consistency only; it does not qualify native CAD interpretation or promote a DWG/DXF support claim.",
+    "Other writer staging bounds, injected allocation-failure paths, rollback after earlier staged records, source lifetime, platform policies and scoped concurrency remain open."
+  ],
+  "next": "Continue the bounded P6 safety and caller-state audit; do not reopen this control unless a new failure appears."
+}

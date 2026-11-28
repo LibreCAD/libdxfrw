@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-15",
+  "scope": "AC1018 and AC1024 R2004-family writer repeated-file-header correction. AC1027/AC1032 keep their existing copy behavior; AC1021 uses a separate R2007 container.",
+  "authority": "ODA Open Design Specification v5.4.1 section 4.1 requires the file-header data to be repeated at EOF and the 0x34 absolute pointer to identify the copy; sections 6-8 reuse the R2004 container for AC1024/1027/1032.",
+  "independentSources": "A locally authored DXF converted by ODA File Converter 27.1 to AC1018 and a separate local ODA-derived AC1024 polyface drawing both contain equal 108-byte encrypted file-header copies at their declared EOF positions.",
+  "implementation": "Emit the encrypted header copy after the section-page map for every R2004-family writer version; store its absolute offset and account for the copy in the layout receipt. The pre-publication layout validator verifies the address, EOF extent, byte equality and decrypted CRC for the older profiles too.",
+  "validation": "The existing generated control and instrumented fault test exercise AC1018, AC1024, AC1027 and AC1032. They reject modified copy, independently resealed incorrect address, bad CRC and truncation while retaining the original destination, then retry successfully. LibreDWG 0.14 reads one LINE with endpoints (1,2,3) and (4,5,6) in each newly generated version. GCC 16 -Wall -Wextra -pedantic -Werror syntax check passed.",
+  "peerContainer": "The public dwg-verifier at commit 5a7dc5c6790cd8fece1494c710585019a253dbba reports neither T1.header.copy nor T1.trailing on generated AC1024/1027/1032 after the fix. It reports eight T1.page.header size mismatches on each, requiring investigation; it does not support AC1018. Its check equates a page-header field to a physical page-map size while ODA v5.4.1 section 4.6 calls that field decompressed page size, so these findings are not yet established defects.",
+  "odaLimitation": "ODA File Converter 27.1 rejected each of the four generated control drawings with object-read warnings/errors; AC1018 and AC1024 reach AcDbLayerTableRecord errors and require recovery. A different pre-fix AC1024 generated graph also fails at AcDbLayerTableRecord. The header change therefore does not establish complete ODA writer interoperability.",
+  "generatedFilesSha256": {
+    "AC1018": "137d83b0b29a1fd0cf94fef261c676ff20a51bcdb5d58071ebee53150c19506b",
+    "AC1024": "8be7650fc28d414409c1500f2dcdc27ceddeccacd3fba0ef4c10c00356afe66a",
+    "AC1027": "127e175572048f7d9538844065c1224e4c0234892141ad41d0d8881770ab902e",
+    "AC1032": "a793e69bde33965fc1288d1f7f8188f7ba174ac9a0b58d951c36679cc98dda9b"
+  },
+  "qualificationDigest": "3880d8ef593c372f732fe993c7c7efa3cec03e89f959f45f7be7279fcf2c52d1",
+  "limits": "Fixtures are generated locally and not committed. This fix does not qualify HEADER trailing suffix semantics, arbitrary DWG object layouts, native consumer behavior, ODA acceptance or any phase gate."
+}

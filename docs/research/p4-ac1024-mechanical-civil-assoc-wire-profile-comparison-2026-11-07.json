@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-mechanical-civil-assoc-wire-profile-comparison-2026-11-07",
+  "date": "2026-11-07",
+  "title": "AC1024 mechanical and civil associative geometry-dependency wire-profile comparison",
+  "supportClaimEffect": "none",
+  "scope": "Compare diagnostic typed-profile counts for existing AC1024 mechanical and civil sources to bound the next associative dependency investigation; do not infer wire compatibility between named subentity classes.",
+  "sources": [
+    {
+      "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "provenanceLimit": "Existing local sample; not an independently authenticated producer witness."
+    },
+    {
+      "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "provenanceLimit": "Existing local sample; not an independently authenticated producer witness."
+    }
+  ],
+  "mechanical": {
+    "diagnosticCommand": "/private/tmp/inspect_assoc_civil /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "diagnosticLog": "/private/tmp/p4-ac1024-mechanical-assoc-profile-2026-11-07.log",
+    "diagnosticSourceSha256": "2f3f835c38aa0f708a472b15d340b6dc276ae2554a7a210e54c4162f5eb48cf9",
+    "diagnosticExecutableSha256": "f5febe5dd0c232a81bc3c24031258a781bdf628df6983d24c4d62d893c06275b",
+    "diagnosticLogSha256": "d93123678e04f242c6bfe773b315626c1f7cc09e45247016209c8de75b358d6b",
+    "profile": {
+      "dependencyRecords": 71,
+      "genericDependencies": 17,
+      "geometryDependencies": 54,
+      "geometryDependencyBodiesParsed": 54,
+      "geometryDependencyBodiesWireComplete": 54,
+      "geometrySubentityClass": "AcDbAssocSingleEdgePersSubentId",
+      "constraintGroups": 1,
+      "constraintActions": 88,
+      "constraintNodes": 399
+    },
+    "limits": [
+      "Diagnostic typed state is not an independent decode or exact physical field-span proof.",
+      "The existing selected-output route proves only its 17 linked generic dependency/body pairs and 399 nodes; it does not output the 54 geometry dependencies or establish whole-document closure.",
+      "SingleEdge and Edge persistent-subentity class names do not prove identical serialized bodies."
+    ]
+  },
+  "civil": {
+    "profileReceipt": "docs/research/p4-ac1024-civil-assoc-output-readiness-2026-11-07.json",
+    "profile": {
+      "genericDependencies": 17,
+      "geometryDependencies": 29,
+      "dimensionDependencyBodies": 13,
+      "geometryDependencyBodiesWireIncomplete": 11,
+      "geometryDependencyWithPresentName": 1,
+      "constraintGroups": 3
+    },
+    "limits": [
+      "The existing mechanical-only selector refuses before serialization.",
+      "Strict whole-source output also remains blocked by the null counted LTYPE_CONTROL member recorded in the referenced civil readiness receipt.",
+      "Peer schema fields and parser-produced class names do not independently bind the missing source byte spans."
+    ]
+  },
+  "implementationReadiness": {
+    "readyCodeChange": false,
+    "nextSequence": [
+      "Trace the 11 civil incomplete geometry-dependency bodies to exact body and detached-string spans, preserving source frame boundaries and version/class identity.",
+      "Obtain independent field-span and handle-role evidence for the Edge persistent-subentity payload; reconcile ODA v5.4.1 and peer schemas without treating peer conventions as authority.",
+      "Use generated in-memory boundary/sentinel controls for each evidence-backed candidate layout; require ambiguous or truncated alternatives to fail transactionally.",
+      "Only after those gates pass, decode one bounded class/profile and verify graph action/member closure, then add selected ASCII/Binary output, fresh typed readback, wrong-kind refusal and same-adapter retry.",
+      "Keep mechanical selected output and strict civil whole-source refusal unchanged until their separate gates pass."
+    ]
+  },
+  "validation": {
+    "fullSuites": "NOT_RUN",
+    "fixturePolicy": "No DWG/DXF fixtures were created or committed; diagnostics used existing local source files and scratch outputs."
+  }
+}

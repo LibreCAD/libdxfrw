@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-tablestyle-inherited-margin-output-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 TABLESTYLE inherited-margin field presence and output",
+  "status": "GENERATED_ASCII_BINARY_AND_PHYSICAL_PARSE_PROFILE_QUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "format": "DWG",
+    "repositoryStatus": "pre-existing untracked worktree sample; read in place and not added",
+    "tableStyle": {
+      "handle": "0x96",
+      "dictionaryHandle": "0x95",
+      "dictionaryKey": "Standard",
+      "textStyleHandle": "0x12",
+      "cellStyles": [
+        {"name": "Table", "marginOverrideFlags": 1, "margins": [0.06, 0.06, 0.06, 0.06, 0.18, 0.18]},
+        {"name": "_TITLE", "marginOverrideFlags": 0, "marginsPresent": false},
+        {"name": "_HEADER", "marginOverrideFlags": 0, "marginsPresent": false},
+        {"name": "_DATA", "marginOverrideFlags": 0, "marginsPresent": false}
+      ],
+      "otherAdmittedFields": "R24 prefix 8/101, Table default and title/header/data identities, content formats, text-style role, six border records on each custom style"
+    },
+    "fixturePolicy": "No DWG/DXF fixture was added or staged. Generated outputs were written under /private/tmp or the system temporary directory."
+  },
+  "schemaEvidence": {
+    "authority": "Open Design Specification for .dwg files v5.4.1, section 20.4.101.4, page 245",
+    "finding": "BS 171 states whether margin overrides are present. The six BD 40 values are conditional on that flag; with flag zero, their absence is part of the record layout.",
+    "localSpecPath": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf"
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "The R24 nested DXF parser now accepts group 94 immediately after group 171 only when margin override flags are zero; explicit-marker ordering and border-count bounds remain enforced. The DWG-to-DXF writer admits the witnessed all-explicit or all-inherited custom-cell margin profile, omits MARGIN/CELLMARGIN and six group-40 values for flag-zero cells, and still rejects mixed or other values. The default Table style remains in its witnessed explicit-margin profile.",
+    "failureBehavior": "Generated ASCII and Binary controls reject mixed margin profiles and preserve the existing destination, then restore the witnessed profile and succeed on the same adapter. Existing invalid-prefix and unresolved-text-style rollback controls remain active.",
+    "semanticScope": "Field-presence and serializer/readback behavior only; margin inheritance/rendered appearance is not independently established."
+  },
+  "peerObservation": {
+    "tool": "LibreDWG 0.14",
+    "outputPath": "/private/tmp/libredwg-title-block-arch.dxf",
+    "outputSha256": "dea419cf73dc1a135918d76f6a4bfc422b8fab6e3aeebbc43fe18c0c54188678",
+    "observation": "The TABLESTYLE _TITLE record has group 171=0 and proceeds directly to group 94, with no MARGIN/CELLMARGIN markers or six margin group-40 values.",
+    "limitation": "This peer output omits the source _HEADER and _DATA records. It corroborates conditional absence for one emitted cell style only; it is incomplete and is not used as full TABLESTYLE support or semantic evidence."
+  },
+  "validation": {
+    "builds": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 4",
+        "result": "PASS with configured warning-as-error flags"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+        "result": "PASS after adding mixed-profile refusal and inherited-margin physical source assertions"
+      }
+    ],
+    "generatedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+      "result": "PASS, 1/1, approximately 0.5 seconds",
+      "coverage": "ASCII and Binary generated explicit/inherited margin profiles; exact ordered group-171, group-40 and marker assertions; fresh typed/raw readback; mixed-profile and existing prefix/reference refusal; destination preservation and same-adapter retry."
+    },
+    "physicalExplicitMarginReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary physical-source field, identity, owner, border/color/margin, text-style remap, refusal and retry checks.",
+      "scope": "Explicit-margin profile; not the inherited-margin case.",
+      "source": {
+        "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+        "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858"
+      }
+    },
+    "physicalInheritedMarginCheckpoint": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/title_block-arch.dwg -y -v2010 /private/tmp/title-block-arch-next.dxf",
+      "result": "Expected strict failure now advances past XRECORD 0x121F and the R24 TABLESTYLE profile to BLOCKREPRESENTATIONDATA source/reference/output binding.",
+      "exitCode": 1,
+      "publishedOutput": false
+    },
+    "physicalSelectorLimitation": "The title_block-arch physical output/readback selector reaches the same later BLOCKREPRESENTATIONDATA graph gate; full physical output is not published, so this run is not counted as TABLESTYLE readback. The title_block-iso variant is independently blocked earlier by SORTENTSTABLE validation.",
+    "diffCheck": "PASS",
+    "persistentTestFixturesAdded": false
+  },
+  "planImpact": {
+    "completedActionsRemoved": [
+      "Admit and serialize the source-witnessed AC1024 R24 TABLESTYLE all-inherited custom-cell margin profile, including conditional field omission and generated ASCII/Binary readback/refusal controls."
+    ],
+    "remainingP4Scope": "Strict conversion of title_block-arch now advances to physical BLOCKREPRESENTATIONDATA source/reference/output binding. The P4 phase remains OPEN; its umbrella source/graph closure gate is not complete.",
+    "externalItemsPromoted": 0
+  },
+  "limitations": [
+    "The physical inherited-margin source did not complete full-document output/readback because the next BLOCKREPRESENTATIONDATA graph gate fails later in OBJECTS inspection.",
+    "The peer LibreDWG output is incomplete for this TABLESTYLE and is only a narrow field-presence corroboration.",
+    "No native CAD rendering, DXF-to-DWG acceptance, margin inheritance semantics, broad TABLESTYLE, or format/version support claim is established.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "f7d3bda886e7aad9310a8b1bd837b2b334d9a3ecda2d0653d9750d3b516ec871",
+    "src/libdxfrw.cpp": "e7142a4c3ae56750a3a904d3df30af2d80ce12280ecc2ce5538236800019d04e",
+    "tests/dwg2dxf_adapter_tests.cpp": "56b92a5f08ac4a538a36cc387ee410e9110848116f0e94d920a16d954b0fa82a",
+    "build-gcc/dwg2dxf/dwg2dxf": "c7f724c40473e01bd24fbde75b3d882eac4c7414db4f3222c133f5d3a8f2a997",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "19d51a2233989729752de01f4b6c1260c0a05d712d206cd5f31dd1c43cc1fee7"
+  }
+}

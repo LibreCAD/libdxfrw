@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-layout-output-prerequisites-2026-11-19",
+  "date": "2026-11-19",
+  "status": "SELECTED_OUTPUT_PREREQUISITES_REFINED",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local aerial DWG; producer identity is not authenticated.",
+    "layoutInventoryReceipt": "p4-ac1024-aerial-background-layout-root-inventory-2026-11-19.json",
+    "exactLayoutProfile": [
+      {"handle": "0x22", "name": "Model"},
+      {"handle": "0x59", "name": "Layout1"},
+      {"handle": "0x5E", "name": "Layout2"}
+    ],
+    "root": "NOD 0x0C -> ACAD_LAYOUT dictionary 0x1A; three reciprocal BLOCK_RECORD links were observed."
+  },
+  "readinessFindings": {
+    "fullFileAttempt": {
+      "result": "Refused during output preflight before writing.",
+      "firstFailure": "SUN owner graph closure: SUN parent mismatch: owner 0x242, SUN 0x24C, parent 0x246.",
+      "destination": "The existing destination sentinel remained unchanged."
+    },
+    "layoutPreparationDependency": {
+      "result": "A direct prepareDwgLayouts probe refuses the source at LAYOUT extension dictionary closure.",
+      "reason": "The routine requires each nonempty LAYOUT extension dictionary to be present in the export pipeline's validated m_extensionDictionaryHandles set, then requires its XRECORD children in the corresponding staged set. Calling the routine before extension-graph preparation is not a valid output test."
+    },
+    "extensionGraphHarness": {
+      "result": "Calling prepareExtensionObjectGraph alone also does not reproduce the exporter preparation pipeline.",
+      "observedFailure": "invalid-graph: RenderSettings typed/raw carrier coverage.",
+      "reason": "The full exporter primes typed/raw family captures and output state before graph traversal. A selected test harness must preserve or recreate those prerequisites instead of calling internal methods out of order."
+    }
+  },
+  "nextActions": [
+    "Construct an AC1024 selected dx_data projection rooted only at ACAD_LAYOUT, retaining original import generation and source-frame evidence for NOD, the layout dictionary, all three LAYOUT records, reciprocal BLOCK_RECORDs, and every required extension dictionary/XRECORD dependency.",
+    "Run the normal exporter preparation pipeline on that projection so extension graph validation, handle staging and source snapshots execute in production order; keep unrelated SUN and Background objects outside the projection and fail closed on any selected edge that cannot be proven.",
+    "Add source-bound key, field-span, handle-role and owner/reactor checks for any LAYOUT extension dictionary and children exposed by the source; then verify ASCII and Binary fresh readback, destination-preserving refusal, and corrected retry.",
+    "Keep whole-file AC1024 output blocked until the separate SUN ownership mismatch and other whole-source graph gates are resolved."
+  ],
+  "limits": [
+    "This investigation establishes output ordering and harness prerequisites only; no LAYOUT DXF bytes were written or read back.",
+    "The ACAD_BACKGROUND root remains fail-closed because of the null perspective key, an unrooted typed child and unresolved SUN edges.",
+    "The local DWG is not an authenticated AutoCAD/ObjectARX producer witness and is not committed as a fixture."
+  ]
+}

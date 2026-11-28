@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw-embedded-mtext-shared-chunking-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "status": "PASS_LOCAL_FAST_SLICE_UNCOMMITTED",
+  "scope": "Share MTEXT group-3/group-1 chunk emission between standalone MTEXT and embedded ATTRIB/ATTDEF while preserving target encoding, character and transport bounds, and outer record framing.",
+  "method": {
+    "kind": "Local implementation with generated in-memory/tag-stream controls",
+    "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "productionCodeChanged": true,
+    "testsChanged": true,
+    "planChanged": true,
+    "drawingsAdded": 0,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "nativeCadApplicationsRun": false,
+    "peerExecutablesRun": false,
+    "fullTestSuiteRun": false,
+    "gitCommitCreated": false,
+    "gitCommitLimitation": "The shared worktree was already broadly dirty and Git metadata is read-only in this environment."
+  },
+  "implementation": [
+    {
+      "file": "src/intern/dxfwriter.h",
+      "change": "Added writeUtf8MTextChunks with independent encoded-byte and source-character limits; extended the internal strict encoder with optional source-character accounting and short-final-chunk behavior."
+    },
+    {
+      "file": "src/intern/dxfwriter.cpp",
+      "change": "Implemented one MTEXT chunking path for strict and compatibility text-write policies. It emits group-3 continuations followed by exactly one group 1, preserves encoded scalar boundaries, keeps an exactly-250-character input in group 1, and moves the last complete scalar to a short group-1 tail when continuation output would otherwise end with a full 250-character group."
+    },
+    {
+      "file": "src/libdxfrw.cpp",
+      "change": "Replaced the standalone MTEXT strict/compatibility duplicate loops and embedded-MTEXT single-group-1 write with the shared helper."
+    },
+    {
+      "file": "tests/dxf_fixture_tests.cpp",
+      "change": "Added generated helper boundary controls and composed standalone MTEXT, ATTRIB and ATTDEF output checks for ASCII and Binary DXF, including a following LINE sentinel."
+    }
+  ],
+  "coverage": {
+    "asciiCharacterLengths": [
+      249,
+      250,
+      251,
+      499,
+      500,
+      501
+    ],
+    "encodings": [
+      "UTF-8",
+      "CP932 / ANSI_932"
+    ],
+    "additionalCases": [
+      "caret pair reconstructed across a tag boundary",
+      "empty text emits one empty group 1",
+      "both compatible and require-lossless writer policies",
+      "standalone MTEXT, embedded ATTRIB, embedded ATTDEF",
+      "ASCII and Binary DXF physical group sequence",
+      "following LINE record preserved"
+    ],
+    "exact500Shape": [
+      "group 3: 250 characters",
+      "group 3: 249 characters",
+      "group 1: 1 character"
+    ],
+    "transportCeilingBytesPerTag": 250
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --mtext-column-object-scope",
+      "result": "PASS",
+      "notes": "The selector printed expected parse-rejection diagnostics from existing negative column-profile controls; all assertions passed."
+    },
+    "consumerCompileCheck": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+      "result": "PASS"
+    },
+    "scopedDiffCheck": {
+      "command": "git diff --check -- src/intern/dxfwriter.h src/intern/dxfwriter.cpp src/libdxfrw.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "receiptJsonParsed": true,
+    "fullCtestSuite": "NOT_RUN"
+  },
+  "remainingIn7M": [
+    "Define and implement logical newline behavior for LF, CRLF, bare CR, and literal caret-escaped controls across ASCII and Binary DXF.",
+    "Complete explicit downgrade/loss outcomes for multiline attributes and unsupported embedded-MTEXT profiles.",
+    "Complete and qualify the CLI conversion route and publication diagnostics.",
+    "At the composed text/consumer checkpoint, verify exact-multiple output against a pinned native producer/consumer if the compatibility boundary remains material."
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingFindingOnly": "PAR-28",
+    "existingImplementationSubplanOnly": "7M",
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

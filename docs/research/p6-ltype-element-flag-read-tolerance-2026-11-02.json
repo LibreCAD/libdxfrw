@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ltype-element-flag-read-tolerance-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_LTYPE_ELEMENT_FLAG_READ_TOLERANCE_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Retain nonnegative signed-16-bit LTYPE DXF group-74 values on input while preserving the existing modeled-output limit and DWG validation path.",
+  "implementationReadiness": {
+    "baselineHead": "7b7defe0",
+    "sourceObservation": "DRW_LType::parseCode previously rejected group-74 values above 0x0F and assigned the field before completing validation. The DXF group-code type table places group 74 in the 60-79 range, encoded as a 16-bit integer. DRW_LType::validateDxf independently limits typed output to the currently modeled 0x0F range.",
+    "normativeEvidence": [
+      {
+        "source": "Autodesk AutoCAD 2024 DXF Group Code Value Types Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+        "relevantRule": "Group codes 60-79 use a 16-bit integer value."
+      },
+      {
+        "source": "Autodesk AutoCAD 2020 DXF LTYPE Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+        "relevantRule": "LTYPE group 74 is the complex-element type and the reference documents bits 1, 2 and 4; it does not define the higher group-74 values implemented by this generated tolerance control."
+      }
+    ],
+    "change": "The DXF parser validates group 74 into a temporary, accepts values 0 through INT16_MAX, and assigns only after validation. Existing DXF typed validation and writer admission remain limited to 0x0F. DWG parsing and validation were not changed."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_objects.cpp": "dc171ca9ba6061f5b56eca39430224412f85ce88d4cd798729ced76649444db4",
+      "tests/hardening_tests.cpp": "9d1e3aee00967be6a368e742f9266735b0198caab5ebfd66b9e0a06b9a6ca6dc",
+      "CMakeLists.txt": "5d813ee4f7afb47c80c3342173f3b8b5688eb107af43d5524b1464a2a85a6721"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+      "platform": "Darwin arm64"
+    },
+    "testExecutableSha256": "c64fd178e1a0130b9c270120d6e5f81b9ea9d4ffca8a9bf27ceb73b6c32d4a15"
+  },
+  "controls": {
+    "selector": "--ltype-element-flag-read-tolerance",
+    "ctest": "libdxfrw_ltype_element_flag_read_tolerance",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "ASCII and Binary readers retain group-74 values 0, 8, 15, 16 and 32767 without changing their value.",
+      "The typed LTYPE model and writer continue admitting the existing 0..15 range and refuse 16 and 32767 before emitting bytes.",
+      "Negative values are rejected without mutating the previous typed value in ASCII and Binary DXF.",
+      "ASCII group-74 value 32768 is rejected without mutating the previous typed value."
+    ]
+  },
+  "validation": {
+    "builds": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "result": "PASS"
+      }
+    ],
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_ltype_alignment_dxf_domain|libdxfrw_ltype_shape_number_dxf_width|libdxfrw_ltype_standard_flag_dxf_domain|libdxfrw_ltype_element_flag_read_tolerance|libdxfrw_dxf_ltype_retained_owner_budget)$' --output-on-failure",
+      "result": "PASS 5/5 in 0.32 seconds"
+    },
+    "broaderCohort": {
+      "command": "ctest --test-dir build-gcc -R ltype --output-on-failure",
+      "result": "The new LTYPE selector and directly related domain/retained-owner tests passed. Two MLINE/LTYPE adapter selectors failed at the same source lines and with the same counters when rebuilt and run with src/drw_objects.cpp restored from baseline HEAD 7b7defe0; classified as pre-existing and unrelated."
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated parser-tolerance controls only; values above 0x0F are retained but not interpreted or writable through the typed LTYPE path.",
+    "No physical producer or native CAD acceptance was established for higher group-74 values.",
+    "No DWG LTYPE layout or validation behavior was changed.",
+    "No support claim is promoted; broader LTYPE profiles and P6 semantics remain open."
+  ],
+  "nextReadyPacket": "Continue with an independently source-backed local P6 gap. Keep unknown DXF values readable only when their group-code encoding is valid, and preserve fail-closed typed output for unmodeled semantics."
+}

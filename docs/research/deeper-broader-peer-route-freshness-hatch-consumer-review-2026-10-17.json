@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-route-freshness-hatch-consumer-review-v1",
+  "reviewedAt": "2026-10-17",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Refresh exact peer release, issue, PR, and application-engine lineage evidence for plot settings, ACIS DXF writing, and HATCH/polyline DWG consumer acceptance; update only existing plan owners.",
+  "method": {
+    "kind": "Primary-source web review plus read-only local plan/source/test inspection",
+    "peerRepositoriesCloned": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/libdxfrw.cpp",
+      "src/drw_objects.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "limitations": "Peer issue and PR content is reporter/contributor evidence, not a libdxfrw reproduction. The strict third-party reader named in OpenCADStudio issue #570 is not identified in the issue report. No external attachment was downloaded and no peer release was tested."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1184",
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1150"
+      ],
+      "observed": "Issue #1184 remains open and its detailed reproductions identify 3.6.35 and 3.6.51; the release page lists v3.8.0, but this review did not establish a repro or fix status for that version. PR #1240 remains open without review/deployment evidence on the page, depends on #1174, and reports an ACDSDATA multi-310 readback problem after the refactor. #1195 is a writer-side omission report, not a released ACIS writer capability.",
+      "planUse": "Retain mode-aware plot-DPI handling under PAR-111/7BM; do not project the old-version issue onto v3.8.0. Keep #1240 experimental and the ACIS entity/carrier/owner/semantic/native evidence lanes separate."
+    },
+    {
+      "project": "Autodesk DXF/ObjectARX documentation",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-1113675E-AB07-4567-801A-310CDE0D56E9.htm",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettings_ShadePlotCustomDpi.html"
+      ],
+      "observed": "DXF code 78 is only applied when code 77 is Custom (5); the documented active Custom DPI range is 100 through 32767.",
+      "planUse": "Preserve inactive/raw values on import, validate only active Custom output, and keep the existing destination-preservation/retry controls."
+    },
+    {
+      "project": "OpenCADStudio / ACadRust",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/570",
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "OpenCADStudio issue #570 was closed after its maintainer reported that a current-main R2018/2026.41 output opened without recovery in an unnamed strict third-party reader and produced no LibreDWG errors. OpenCADStudio identifies ACadRust as its native DWG/DXF engine, so the app is not an independent parser lineage; the independent reader is unnamed and its report was not reproduced.",
+      "planUse": "Use the scenario only to sharpen the optional composed test: locally create closed-polyline plus HATCH controls; separate associative/non-associative variants; bind app and engine revisions; record a named independent reader, recovery/audit/erasure, identity/owner closure, and repeated save/reopen behavior. Do not use or commit the attached customer DWG."
+    }
+  ],
+  "planDelta": {
+    "existingOwners": [
+      "PAR-111 / 7BM",
+      "PAR-20 / 7G.3e",
+      "PAR-35 / 7R",
+      "composed writer and native-consumer checkpoint"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTests": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "validationCadenceChanged": false,
+    "supportClaimsPromoted": false,
+    "ledgerTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

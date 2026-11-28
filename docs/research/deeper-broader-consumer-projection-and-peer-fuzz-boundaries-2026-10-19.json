@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Consumer projection boundaries and operation-specific peer evidence",
+  "mode": "Primary-source documentation review and local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile FreeCAD's documented importer profiles against the existing native consumer gate.",
+    "Separate GDAL Binary-DXF transport from OGR projection and writer-version evidence.",
+    "Use LibreDWG class-status and fuzz-target documentation to refine peer-result and scheduled hardening evidence.",
+    "Keep external work at composed checkpoints and preserve the plan's fast per-slice validation and fixture policy."
+  ],
+  "sources": [
+    {
+      "name": "FreeCAD Draft DXF and DWG route documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "observed": "The documentation page distinguishes C++ and legacy DXF importer profiles, both starting at R12. The C++ profile lists 2D geometry, text, dimensions, leaders, layers and paper space, but skips text/dimensions/attributes inside blocks; the legacy profile differs and includes 3DFACE. Stock FreeCAD cannot read ACIS/SAT solids and DWG uses an external converter followed by the selected DXF importer. The documentation repository page is archived/read-only, and its broad no-loss sentence conflicts with its own explicit limitations.",
+      "evidenceCeiling": "Documentation defines candidate route profiles and scope only. The exact FreeCAD build, source revision, preferences, converter and runtime result must decide behavior; no application was run."
+    },
+    {
+      "name": "GDAL DXF driver documentation",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observed": "Binary-DXF reading starts in GDAL 3.12. The driver documents a direct Binary-DXF-to-ASCII translation path distinct from OGR projection. OGR projections may tessellate curves, simplify text, omit MLINE styling and HATCH fill, inline/merge blocks, and skip modeler entities by default; AC1027+ 3D-extensible mode exposes raw ASM bytes and a transform rather than geometry. Raw unhandled group values are opt-in, and the documented writer targets AutoCAD 2004.",
+      "evidenceCeiling": "Driver documentation establishes available routes and known projection limits, not exact runtime behavior for a local build or a general DXF round trip. No GDAL executable or drawing was run."
+    },
+    {
+      "name": "LibreDWG manual and fuzz setup",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg-fuzz"
+      ],
+      "observed": "The manual separates stable, unstable, debugging and unhandled classes, notes that unknown types may remain binary blobs without DXF codes, and says R2007 DWG writing is unavailable while pre-R13 DXF is in progress. The fuzz setup separates input, rewrite and output targets and triages crashes, hangs and leaks for regression replay.",
+      "evidenceCeiling": "Project documentation and workflow description only. It does not establish libdxfrw defects or runtime parity, and no peer campaign was run."
+    }
+  ],
+  "localEvidence": [
+    "The existing PAR-07/S8 route ledger already separates source identity, carrier/owner closure, output, semantic evidence, and consumer acceptance; the new evidence sharpens denominator and projection-route rules rather than adding a parallel gate.",
+    "The existing validation policy uses focused local controls per slice and defers cross-platform FreeCAD, peer comparisons, and long fuzz to composed/scheduled checkpoints.",
+    "The FreeCAD documentation's generic 1:1/no-loss statement must not override the same source's explicit importer/converter limitations or observed runtime behavior."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "existingOwners": [
+      "PAR-07/S8",
+      "existing FreeCAD composed consumer checkpoint",
+      "existing 7S scheduled parser/conversion/writer hardening lanes"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines only existing PAR-07/S8 and 7S owners. FreeCAD evidence is backend/profile-specific; GDAL direct Binary-DXF translation is separate from lossy OGR projection and its AutoCAD-2004 writer is not a modern target-version oracle; LibreDWG results are class-status and operation-specific. External comparisons and long fuzz remain at existing composed/scheduled gates."
+  },
+  "method": {
+    "kind": "Read-only web research plus append-only plan update",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-consumer-projection-and-peer-fuzz-boundaries-2026-10-19.json"
+    ],
+    "limitations": "Documentation and mutable project pages establish declared route boundaries, not runtime behavior. No result establishes a new libdxfrw defect, native acceptance, or DWG/DXF/3D support promotion."
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonSyntaxChecked": false,
+    "planDiffCheckPassed": false,
+    "localTestsRun": false
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-10",
+  "id": "p5-ac1018-table-layer-linetype-graph-closure-2026-11-10",
+  "title": "AC1018 TABLE layer and linetype identity closure",
+  "question": "Does compound TABLE graph admission tie the common-header layer and explicit linetype handles to the writer's actual named table-record identities?",
+  "finding": {
+    "before": "The TABLE graph gate validated the anonymous BLOCK_RECORD and TABLESTYLE graphs but did not compare the TABLE's common-header layer/linetype handles to the normalized name→handle maps or emitted table-record ledger.",
+    "change": "The gate now resolves table.layer and an explicit lineType through the writer maps, requires exact handle equality, and, once deferred table records are complete, requires those target handles in the emitted table-record set.",
+    "control": "Generated graph vectors mutate the layer handle and named linetype name/handle to unresolved values and require refusal; corrected values preserve the existing graph transaction controls.",
+    "scope": "Exact identity and record-existence closure for the bounded AC1018 TABLE profile. No producer-wide semantic or native rendering claim follows.",
+    "fixtures": "No DWG/DXF fixture was added; the control uses generated in-memory objects."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused": "./build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS: AC1018 TABLE encoder allocation failures injected=19 rollback=PASS retry=PASS; AC1018/AC1021 TABLE cell override vectors: PASS"
+  },
+  "limitations": [
+    "Generated mutation controls prove rejection of stale identities; a separate full-file custom layer/linetype TABLE readback profile is not established here.",
+    "Native appearance and physical producer breadth remain open.",
+    "No support claim is promoted."
+  ]
+}

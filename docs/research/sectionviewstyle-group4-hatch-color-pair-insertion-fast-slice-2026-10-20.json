@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "SectionViewStyle group-4 hatch color pair insertion",
+  "mode": "generated local implementation slice",
+  "scope": [
+    "Insert omitted SectionViewStyle hatch and background group-4 code-62 colors from the typed model",
+    "Preserve repeated color occurrence order and enforce the signed 16-bit DXF group-62 value domain",
+    "Verify same-version ASCII and Binary raw-carrier insertion and typed readback"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "The SectionViewStyle overlay now inserts absent group-4 hatch and background colors. It inserts hatch color first when the second occurrence is edited and rejects values outside signed 16-bit group-62 range.",
+    "generatedControl": "The existing --modeldoc-view-style-callbacks selector removes both group-4 colors before import, confirms typed defaults 256/257, changes them to 43/44, and checks exact ordered raw output, typed readback, raw DetailViewStyle companion, resource-reference closure, and following POINT continuity in ASCII and Binary DXF.",
+    "persistentFixtureAdded": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2 — passed",
+    "focusedSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks — passed for ASCII and Binary",
+    "owningCtest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure — passed, 1/1",
+    "fullSuite": false,
+    "peerOrNativeRun": false,
+    "scopedDiffCheck": "git diff --check passed for the plan, adapter, and focused adapter test",
+    "jsonValidation": "jq empty passed"
+  },
+  "planImpact": {
+    "findingAdded": false,
+    "topLevelSubplanAdded": false,
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "next": "Continue with the next local-ready implementation slice; external qualification and full-suite testing are not prerequisites for this generated field-insertion work."
+  },
+  "limitations": [
+    "Generated in-process read/write tests do not establish independent DXF parser acceptance or behavior in a native CAD application.",
+    "The worktree is broadly dirty; unrelated changes were preserved.",
+    "Git metadata is read-only, so no staging or commit was possible."
+  ]
+}

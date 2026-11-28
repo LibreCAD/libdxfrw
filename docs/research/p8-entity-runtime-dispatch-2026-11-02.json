@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-entity-runtime-dispatch-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "ENTITY_WRITER_RUNTIME_DISPATCH_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Remove unchecked entity downcasts from dx_iface::writeEntity and fail closed when the public eType does not identify the exact built-in payload type.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "guardedWriterRoutes": [
+      "POINT, LINE, THREEDLINE, RAY, XLINE, CIRCLE, ARC, SOLID, DXF_TRACE, E3DFACE, ELLIPSE, LWPOLYLINE and POLYLINE",
+      "MLINE",
+      "SPLINE",
+      "ATTDEF, MTEXT, TOLERANCE and TEXT",
+      "DIMLINEAR, DIMALIGNED, DIMANGULAR, DIMANGULAR3P, DIMRADIAL, DIMDIAMETRIC, DIMORDINATE and DIMARC",
+      "LEADER and MLEADER",
+      "IMAGE fallback and WIPEOUT"
+    ],
+    "compatibilityCases": [
+      "DRW_DimLargeRadial remains admitted through the DIMRADIAL route because it is a supported modeled subtype with additional writer fields.",
+      "dx_ifaceImg remains admitted through the IMAGE route so its path and source-definition identity continue to reach the image writer.",
+      "All other typed routes require both the expected public eType and the exact built-in runtime class before accessing payload fields."
+    ],
+    "failureBehavior": "Mismatched runtime type or tag refuses the entity through the existing raw-writer failure path before typed serialization; fileExport preserves an existing destination."
+  },
+  "validationProfile": {
+    "source": "The new dispatch failure/retry selector uses locally constructed POINT and CIRCLE entities retained through dx_iface callbacks; it does not load a drawing fixture.",
+    "mismatches": [
+      "DRW_Point tagged as LINE exercises a base-to-derived mismatch that previously reached an unchecked downcast.",
+      "DRW_Circle tagged as POINT exercises derived-to-base truncation within the POINT inheritance family."
+    ],
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "assertions": [
+      "Both mismatches are refused atomically and preserve pre-existing destination bytes.",
+      "Corrected tags permit a retry on the same adapter.",
+      "Readback retains the POINT coordinates and the CIRCLE subtype, center and radius."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4; cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_fixture_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_entity_runtime_dispatch$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1 in ASCII and Binary DXF.",
+    "regressionTestCommand": "ctest --test-dir build-gcc -R '^(dwg2dxf_(entity_runtime_dispatch|insert_runtime_dispatch|hatch_mpolygon_runtime_dispatch|viewport_runtime_dispatch|point_cloud_adapter_transport|light_adapter_transport|mleader_adapter_writer|3dline_adapter_cli|3dline_binary_adapter_cli|dimension_frames_ascii_cli|dimension_frames_binary_cli|arc_dimension_flags_ascii_cli|arc_dimension_flags_binary_cli|leader_advisory_count_ascii_cli|leader_advisory_count_binary_cli)|libdxfrw_attdef_legacy_adapter_capture|libdxfrw_mleader_writer_version)$' --output-on-failure",
+    "regressionTestResult": "PASS: 17/17 focused adapter, primitive, annotation, dimension, MLeader, cloud/light and subtype-dispatch tests.",
+    "fixtureRegressionTestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_fixtures$' --output-on-failure",
+    "fixtureRegressionTestResult": "PASS: 1/1 using only the existing repository DWG fixtures, including the LARGE_RADIAL_DIMENSION ASCII/Binary output/readback path.",
+    "combinedRegressionResult": "PASS: 18/18 after rebuilding both dwg2dxf and the root test adapter so all CLI and fixture checks used the modified dx_iface.cpp.",
+    "rawCastAudit": "No active static_cast<DRW_...>(e) remains in dx_iface::writeEntity; the only remaining matching text there is a disabled legacy comment.",
+    "diffCheck": "PASS",
+    "fixturePolicy": "No drawing fixture was added or committed."
+  },
+  "fixturePolicy": "The new failure/retry control is generated locally. The supplementary fixture regression uses repository-owned samples; no DWG/DXF fixture was added or committed.",
+  "limitations": [
+    "This establishes adapter runtime-type safety and selected generated transport only; it does not qualify physical producer breadth, entity semantics, BLOCK graph closure, or native consumer behavior.",
+    "P8 remains open and no DWG/DXF support claim is promoted."
+  ]
+}

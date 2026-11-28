@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-image-layer-edit-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "9ea6e34c",
+  "scope": "Selected IMAGE builder transforms and same-name layer rebind in LibreCAD_3.",
+  "reproduction": "A forced edit made from a stale IMAGE retained its former layer rather than the current locked layer.",
+  "implementation": "Admit exact IMAGE entities to the existing known projection and forced same-name layer-rebind logic; admitted built-in preflight operations preserve the source ID and layer.",
+  "validation": [
+    "The stale-layer regression fails before the fix.",
+    "51 focused builder, layer, IMAGE geometry and transform tests pass.",
+    "IMAGE is included in 18 existing nested/flat compound preflight variants covering copy, rotate, scale, move, loop, removal, refusal, corrected retry, and undo/redo.",
+    "The selected stale IMAGE retains the current locked layer, 3D axes and metadata across forced move/rotate and undo/redo."
+  ],
+  "testLogSha256": "0fe4f445e21fc2bfa01fc497559fa53c60a02f150dacc7fea5fdc7ae20b81780",
+  "limits": [
+    "This is model and operation testing; it does not qualify native image rendering, save/reopen or unknown subclasses."
+  ]
+}

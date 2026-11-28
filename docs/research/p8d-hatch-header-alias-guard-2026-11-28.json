@@ -1,0 +1,26 @@
+{
+  "kind": "librecad-hatch-header-alias-guard",
+  "date": "2026-11-28",
+  "consumerCommit": "54d95f12c6fe6e9f54874c3abbe995815a91ecc2",
+  "codecCommit": "0e5f5c407",
+  "scope": "Require selected source HEADER names to use the literal dollar-prefixed canonical form, so unprefixed custom-property aliases cannot bypass the opaque-property guard.",
+  "checks": {
+    "systemCodec": {
+      "cases": 6,
+      "assertions": 433,
+      "result": "pass",
+      "logSha256": "49aeb531acf3262a3f9da8cc64f770e559d1d2d15b76304dbf7fb4ab6be2c7b2"
+    },
+    "bundledCodec": {
+      "cases": 4,
+      "assertions": 225,
+      "result": "pass",
+      "logSha256": "943c6839001a30345d9fd516b569cb2858be74c38f8d198f22797bf2cb62bcc1"
+    }
+  },
+  "limits": [
+    "Only the source isolation witness changes; import remains available.",
+    "This is not graph or native-semantics qualification and does not enable replay."
+  ],
+  "supportClaimsPromoted": false
+}

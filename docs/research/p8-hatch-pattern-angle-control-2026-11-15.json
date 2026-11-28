@@ -1,0 +1,10 @@
+{
+  "date": "2026-11-15",
+  "finding": "The generated HATCH fixture supplied 17, 30 and 120 as radians while its independent DXF tag check expected those numbers in degrees. The writer correctly multiplied the API values by 180/pi, so the resulting physical pattern did not match the intended angles.",
+  "change": "Author the intended degree values as radians, compare readback API angles with a 1e-12 tolerance, and compare physical group-52/53 degree values with the same tolerance. All counts, tag order, dash values, owner identities and geometry remain checked exactly. Add diagnostics identifying export versus source-state failures.",
+  "validation": [
+    "The focused HATCH pattern preservation control passes ASCII and binary source output, independent tag checks, source-state checks and two successive import/export/readback cycles.",
+    "The full local roundtrip now has one remaining assertion, the unrelated partial-read/export observation."
+  ],
+  "limits": "The change corrects generated test units and floating-point comparison only; it does not alter the writer or promote support claims."
+}

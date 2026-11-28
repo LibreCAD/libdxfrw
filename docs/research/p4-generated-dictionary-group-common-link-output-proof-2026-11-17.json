@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-generated-dictionary-group-common-link-output-proof-2026-11-17",
+  "date": "2026-11-17",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md; generated implementation sub-slice only",
+  "status": "implementation_slice_complete",
+  "supportClaimEffect": "none",
+  "scope": "Bounded common-link evidence and strict DXF output comparison for generated DICTIONARY/GROUP profiles. This does not close P4-B or P4-C.",
+  "specification": {
+    "authority": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.1 Common non-entity object format",
+      "20.4.44 DICTIONARY",
+      "20.4.72 GROUP"
+    ],
+    "provenanceLimit": "The workspace specification copy was used; it is not the canonical path recorded in AGENTS.md."
+  },
+  "source": {
+    "kind": "locally generated test source",
+    "generator": "libdxfrw dwgRW / DwgGroupDictionaryProbe",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "largeGroupProfile": "AC1021 source with 128 GROUP members, converted to AC1032 ASCII and Binary DXF",
+    "fixtureDisposition": "All generated DWG/DXF files are temporary test outputs and are removed after each selector; no fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/intern/dwgreader.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/writer_primitives_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "changes": [
+      "Mark the DICTIONARY common-link tail validated only after its counted item list parses completely for R2007+ and the separately qualified R13/R14 path.",
+      "Mark the GROUP common-link tail validated only after all declared member handles and their roles parse for R2007+ and the separately qualified R13/R14 path.",
+      "For modern DICTIONARY/GROUP objects, reconcile the typed common links with the independently parsed common handle stream before publishing link evidence.",
+      "Compare staged GROUP output against its typed source model and references; use the generated-root proof for the exact NOD projection."
+    ],
+    "compatibilityBoundary": "R2000/R2004 link-tail qualification remains unknown. AC1027 sources failing the existing source-reference guard and unsupported down-version targets remain refused."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg2dxf_adapter_tests libdxfrw_writer_primitives_tests dwg2dxf -j2: PASS",
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_group_dictionary_controls|libdxfrw_rooted_standard_dwg_output_proof|libdxfrw_standard_dwg_group_metadata|libdxfrw_writer_primitives|libdxfrw_generated_group_dictionary_objects_allocation_retry)$' --output-on-failure",
+      "result": "PASS 5/5"
+    },
+    "coverage": [
+      "Modern DICTIONARY body/handle-stream boundary, one- and two-entry controls, and truncation reset.",
+      "Generated 128-GROUP ASCII/Binary output, ordered member edges, dictionary membership, and proof coverage for every emitted GROUP frame.",
+      "GROUP owner, extension dictionary, reactor and EED output facts, fresh readback, refusal controls, and corrected retry.",
+      "Unsupported down-version and AC1027 source-reference routes preserve the prior destination."
+    ]
+  },
+  "limitations": [
+    "These are generated encoder/parser and libdxfrw readback checks, not independent physical producer spans or independent semantic evidence.",
+    "No broader DICTIONARY/GROUP profile or DWG/DXF support claim is promoted.",
+    "P4-B associative-network class-version-2 and P4-C AC1027 Sweep suffix witnesses remain open."
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-acds-search-index-modeler-output-2026-11-03",
+  "date": "2026-11-03",
+  "status": "BOUNDED_ODA_SEARCH_PROFILE_ADMITTED",
+  "supportClaimEffect": "none",
+  "problem": "Raw DWG modeler replay checked payload and object handles but did not inspect the AcDs schema-search table. ODA v5.4.1 \u00a724.2.2.7.1 states that AutoCAD ignores an entity when its schema-search data is absent.",
+  "implementation": "The finalizer now checks the bounded ODA sequential per-schema data-index-order profile for every schema containing a replayed modeler. It resolves each data-index row by exact segment/local-offset identity, requires unique records and handles, a complete sequential sorted table, and exactly one search index equal to each handle's source ordinal. Missing, malformed, duplicated, reordered, and mismatched associations refuse output atomically. Unsupported index permutations remain refused. Reader tolerance and raw sections without replayed modelers are unchanged.",
+  "physicalProducerWitness": {
+    "source": "locally authored ezdxf 1.4.5 AC1027 DXF with three axis-aligned polyhedra",
+    "sourceSha256": "a439ca94e3b1d3c2f1cfbb582859ecea1dc303ef7e3ad4bd61bb34eb1e3df69d",
+    "producer": "verified ODA File Converter 27.1.0; ACAD2013 DWG; recursion 0; audit 0",
+    "dwgSha256": "cfd73d6087205af28d6e56cb113368e895a8fafa0a224f36fc4c5e4760d4567d",
+    "decodedAcDsSha256": "273ee9b32c59fed8b67a169cd261b56ad2b6b73940155e0a51b93ef97782a96f",
+    "observation": "The three data-index rows under schema 1 identify handles 8A, 8B, 8C; its search table sorted indices are 0,1,2 and its entries map 8A\u21920, 8B\u21921, 8C\u21922. Schema 0 is empty.",
+    "exactValidatorProof": {
+      "method": "A temporary standalone C++ harness compiled the exact current validator function from dwgwriter15.cpp and linked the current libdxfrw DataStorage parser.",
+      "validatorFunctionSha256": "e51ca72c7b2a9ef8bc5b6b60995fe7f566e7be8b6d45c661d3ee3fbaa97441dd",
+      "harnessSourceSha256": "25bc0e6e899c6e444c14ade246d3e1c9293fc4e6a86f70854c9cc27d1676b5b1",
+      "harnessExecutableSha256": "5e7bcc09646d165eb5fe5e4c823ff34f1235fb089867bb798f9add017c46e08c",
+      "result": "Original physical AcDs passes; swapping search indices or reordering data-index rows while retaining search mapping is rejected. This is validation of extracted section bytes, not a whole-DWG writer replay or native CAD acceptance."
+    }
+  },
+  "generatedWriterValidation": {
+    "command": "ctest --test-dir build-gcc -R ^(libdxfrw_raw_modeler_acds_replay|dwg2dxf_modeler_acds_blob_projection|dwg2dxf_modeler_acds_r2013plus_projection|dwg2dxf_modeler_acds_block_projection)$ --output-on-failure",
+    "result": "PASS 4/4",
+    "controls": "Raw writer uses explicitly generated search segments. Missing search, wrong search handle, wrong sorted index, oversized search count, swapped/duplicate per-record ordinals and reordered source data-index rows refuse without altering destination; corrected section retries on the same writer and typed payloads read back. Inline and blob sections are exercised."
+  },
+  "limits": [
+    "Only the observed sequential data-index-order search profile is admitted; other valid producer permutations need independent evidence.",
+    "Physical input was extracted and validated, not replayed end-to-end by the raw DWG writer or checked by a native CAD consumer.",
+    "The witness proves search framing only, not ACIS geometry, search semantics for other schemas, complete graph closure, or format support.",
+    "No DWG/DXF fixture committed."
+  ]
+}

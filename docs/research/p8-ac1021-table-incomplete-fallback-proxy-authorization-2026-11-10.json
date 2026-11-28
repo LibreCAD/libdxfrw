@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-10",
+  "phase": "P8",
+  "finding": "For an incomplete TABLE callback, dx_iface retains an INSERT-shaped compatibility projection. The typed TABLE snapshot was authorized, but the copied projection retained replayAuthorized=false. Callback-time dx_data sourceFormat/sourceVersion are also unset until DWG import completes.",
+  "change": "Authorize only the unchanged INSERT projection copy when its parser provenance is ParsedDwg. Existing output preflight continues to require exact same-revision output and complete proxy chunk framing.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "version": "AC1021"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4 && cmake --build build-gcc --target dwg2dxf -j4",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_table_dwg_proxy_graphics_roundtrip$' --output-on-failure",
+    "focusedResult": "1/1 passed; covers ASCII and Binary generated proxy transport",
+    "sourceRead": "4,408/4,408 frames published; zero entity/object parse failures; no class CRC mismatch",
+    "sourceStrictExport": "Passed the typed-proxy-graphics-not-preserved gate; refused at FIELD/FIELDLIST carriers have no qualified DXF serializer",
+    "outputPublished": false,
+    "diffCheck": "git diff --check passed"
+  },
+  "limitations": [
+    "No physical TABLE cache was exported; only the generated callback test establishes this adapter authorization route.",
+    "The physical source FIELD/FIELDLIST graph and semantics remain unqualified and strict output remains refused.",
+    "This does not qualify TABLE rendering or native consumer behavior."
+  ]
+}

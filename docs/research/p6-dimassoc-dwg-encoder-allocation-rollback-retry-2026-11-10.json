@@ -1,0 +1,40 @@
+{
+  "title": "DIMASSOC DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated local AC1024 DIMASSOC direct-codec transaction control",
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "method": "DRW_DimensionAssociation::encodeDwg",
+    "behavior": "Encode body, detached text, and handle occurrences into staged stream copies; route intentional destination aliases to one staging buffer; publish only after all streams report success; catch exceptions and preserve caller streams."
+  },
+  "control": {
+    "file": "tests/dimassoc_dwg_encoder_allocation_tests.cpp",
+    "profile": "Locally generated AcDbOsnapPointRef with two main object handles, an XREF path, osnap point, near parameter, common owner, and reactor.",
+    "stream_alias_modes": [
+      {
+        "mode": "separate body, string, and handle streams",
+        "reached_allocation_offsets": 33
+      },
+      {
+        "mode": "shared string and handle streams",
+        "reached_allocation_offsets": 29
+      },
+      {
+        "mode": "all streams alias the body",
+        "reached_allocation_offsets": 23
+      }
+    ],
+    "failure_assertions": "At each reached one-shot allocation fault, encoding fails and all caller buffers retain their bytes, bit cursors, good state, and handle-occurrence ledger. The same association and buffers then retry successfully and match clean output.",
+    "fixtures_added": false
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dimassoc_dwg_encoder_allocation_tests -j2",
+    "focused_tests": "ctest --test-dir build-gcc -R '^libdxfrw_dimassoc_dwg_encoder_allocation_retry$|^libdxfrw_dimassoc_dwg_detail_readback$' --output-on-failure",
+    "result": "2/2 focused CTests passed; allocation control passed all 85 reached offsets across three alias modes; git diff --check passed."
+  },
+  "limits": [
+    "Generated codec-level transaction evidence only; no physical DWG schema, producer prevalence, output qualification, native application behavior, or support claim is established.",
+    "Does not close allocation-failure paths in other DWG encoders, OBJECTS callback builders, or whole-drawing writes."
+  ]
+}

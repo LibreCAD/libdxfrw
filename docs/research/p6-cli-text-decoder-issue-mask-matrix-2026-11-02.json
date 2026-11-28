@@ -1,0 +1,197 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-text-decoder-issue-mask-matrix-2026-11-02",
+  "date": "2026-11-02",
+  "status": "ALL_15_ISSUE_FLAGS_FAST_VALIDATED_ACROSS_14_PROFILES",
+  "supportClaimEffect": "none",
+  "scope": "Pin exact strict-CLI decoder issue-mask projections for 14 locally authored DXF text profiles whose masks collectively exercise every defined DxfTextIssue flag, including refusal atomicity.",
+  "generatedInputs": {
+    "recipe": "tests/dwg2dxf_cli_contract_tests.py check_source_disposition_projection",
+    "storage": "All inputs are authored from scratch in the focused test's temporary directory; no DXF fixture was added.",
+    "profiles": [
+      {
+        "case": "invalid UTF-8",
+        "revision": "AC1021",
+        "codePage": "ANSI_1252",
+        "valueHex": "c0af",
+        "issueMask": "0x0000000000000820",
+        "issues": [
+          "InvalidUtf8",
+          "InvalidUnicodeOutput"
+        ]
+      },
+      {
+        "case": "malformed CIF",
+        "revision": "AC1021",
+        "codePage": "ANSI_1252",
+        "value": "\\U+xyz0",
+        "issueMask": "0x0000000000000600",
+        "issues": [
+          "MalformedEscape",
+          "UnrepresentedEscape"
+        ]
+      },
+      {
+        "case": "undefined ANSI_1252 byte",
+        "revision": "AC1015",
+        "codePage": "ANSI_1252",
+        "valueHex": "4c8152",
+        "issueMask": "0x0000000000000140",
+        "issues": [
+          "UndefinedByteSequence",
+          "DiscardedSource"
+        ]
+      },
+      {
+        "case": "unrepresented MIF",
+        "revision": "AC1015",
+        "codePage": "ANSI_1252",
+        "value": "\\M+48861",
+        "issueMask": "0x0000000000000400",
+        "issues": [
+          "UnrepresentedEscape"
+        ]
+      },
+      {
+        "case": "invalid scalar CIF",
+        "revision": "AC1015",
+        "codePage": "ANSI_1252",
+        "value": "\\U+D800",
+        "issueMask": "0x0000000000000c00",
+        "issues": [
+          "InvalidUnicodeOutput",
+          "UnrepresentedEscape"
+        ]
+      },
+      {
+        "case": "unknown codepage with exact mapping",
+        "revision": "AC1015",
+        "codePage": "unknown-local",
+        "policy": "exact-named",
+        "valueHex": "e9",
+        "issueMask": "0x0000000000000084",
+        "issues": [
+          "UnavailableCodePage",
+          "ReplacedSource"
+        ]
+      },
+      {
+        "case": "absent codepage with high byte",
+        "revision": "AC1015",
+        "codePage": null,
+        "policy": "exact-named",
+        "valueHex": "e9",
+        "issueMask": "0x0000000000000001",
+        "issues": [
+          "UnspecifiedCodePage"
+        ]
+      },
+      {
+        "case": "legacy UTF-16 metadata",
+        "revision": "AC1015",
+        "codePage": "UTF16",
+        "policy": "exact-named",
+        "value": "AB",
+        "issueMask": "0x0000000000005100",
+        "issues": [
+          "MalformedUtf16",
+          "DiscardedSource",
+          "UnsupportedEncodingProfile"
+        ]
+      },
+      {
+        "case": "legacy UTF-8 metadata",
+        "revision": "AC1015",
+        "codePage": "UTF8",
+        "policy": "exact-named",
+        "valueHex": "c3a9",
+        "issueMask": "0x0000000000004000",
+        "issues": [
+          "UnsupportedEncodingProfile"
+        ]
+      },
+      {
+        "case": "compatibility codepage alias",
+        "revision": "AC1015",
+        "codePage": "ISO8859-4",
+        "policy": "compatible",
+        "valueHex": "4ca152",
+        "issueMask": "0x0000000000000142",
+        "issues": [
+          "CompatibilityCodePage",
+          "UndefinedByteSequence",
+          "DiscardedSource"
+        ]
+      },
+      {
+        "case": "unspecified source revision",
+        "revision": null,
+        "codePage": "ANSI_1252",
+        "policy": "exact-named",
+        "valueHex": "4ce952",
+        "issueMask": "0x0000000000002000",
+        "issues": [
+          "UnspecifiedSourceVersion"
+        ]
+      },
+      {
+        "case": "unknown codepage with compatible mapping",
+        "revision": "AC1015",
+        "codePage": "unknown-local",
+        "policy": "compatible",
+        "valueHex": "e9",
+        "issueMask": "0x0000000000000008",
+        "issues": [
+          "UnknownCodePage"
+        ]
+      },
+      {
+        "case": "malformed legacy UTF-16",
+        "revision": "AC1015",
+        "codePage": "UTF16",
+        "policy": "exact-named",
+        "valueHex": "00d8",
+        "issueMask": "0x0000000000005180",
+        "issues": [
+          "MalformedUtf16",
+          "ReplacedSource",
+          "DiscardedSource",
+          "UnsupportedEncodingProfile"
+        ]
+      },
+      {
+        "case": "reapplied UTF-8 codepage",
+        "revision": "AC1015",
+        "codePage": "UTF8",
+        "policy": "compatible",
+        "valueHex": "c3a9",
+        "issueMask": "0x0000000000000010",
+        "issues": [
+          "ReappliedCodePage"
+        ]
+      }
+    ]
+  },
+  "expectedDisposition": {
+    "perCaseCodePagePolicy": "Explicitly recorded in each case; both compatible and exact-named routes are covered.",
+    "forEachProfile": "Exit 1; projected mask exactly matches the case; existing destination sentinel and input bytes remain unchanged; no output is published.",
+    "unionIssueMask": "0x0000000000007fff"
+  },
+  "validation": {
+    "focusedControl": {
+      "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter /Users/dli/dev/libdxfrw/build-gcc/dwg2dxf/dwg2dxf --writer /Users/dli/dev/libdxfrw/build-gcc/libdxfrw_dwg_local_roundtrip --source-disposition-only",
+      "result": "PASS (27 repair/skip/mask controls; rerun 2026-11-02)"
+    },
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "tests/dwg2dxf_cli_contract_tests.py": "4e5c2c877bcd74e3e91f70ea96a5cb739de0499f30d1b1192364721442b36195",
+      "build-gcc/dwg2dxf/dwg2dxf": "ba6cb3c8f63c18818dee5f1a04383a0398c55025a9969742e95d7dd430c5602b",
+      "build-gcc/libdxfrw_dwg_local_roundtrip": "79466e171d8908b7a3b45dfa332734b8107f282f81bac87f206eb6340b0f140a"
+    }
+  },
+  "qualificationBoundary": [
+    "These 14 generated profiles exercise the 15 defined DxfTextIssue flags at the CLI projection boundary and verify atomic refusal.",
+    "Physical source completeness, all possible text/codepage combinations, native consumer semantics, and DWG/DXF format support remain open.",
+    "No support claim was promoted."
+  ]
+}

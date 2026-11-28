@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-02",
+  "gate": "P6_AC1024_CLASSES_CURRENT_CORPUS_RECHECK",
+  "result": "HISTORICAL_CLASSES_FAILURE_NOT_REPRODUCED",
+  "scope": "Current local AC1024 input corpus only. This does not qualify broad AC1024 support, strict whole-file DXF conversion, or native consumer behavior.",
+  "tool": {
+    "path": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "8b91a651e100ffb2432ce97a57af79db03535ec677a5a43a06226e1736e78bf4",
+    "sources": {
+      "src/intern/dwgreader.cpp": "116d644801fefee557683beb7db98fc8ba2da48fb3bfae5abe0bc77ee9bacaa4",
+      "src/intern/dwgreader18.cpp": "232741fdc78628aec0c77d34e5d1e22d65c027ffec30cd85b9512d8c449f7b80",
+      "src/intern/dwgheadersection.h": "45c38ba5277d98be33177f9fcb7e060b44497f45fc36f29bbeda13bc31e1b89e"
+    }
+  },
+  "command_template": "build-gcc/dwg2dxf/dwg2dxf <input.dwg> -y -d -v2010 <temporary-output.dxf>",
+  "input_count": 9,
+  "read_result": "All nine files report operationSucceeded=true and legacyError=0; each reaches dwgReader24::readDwgClasses END. The historical CLASSES high-size-extension failure does not reproduce in this current corpus.",
+  "strict_output_result": "Only mechanical_example-imperial.dwg published a DXF. The other eight exited with strict output refusal and published no DXF. These output failures occur after CLASSES parsing and do not reinstate the historical class-reader defect.",
+  "inputs": [
+    {"name": "architectural_example-imperial.dwg", "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7", "readSucceeded": true, "classesEndReached": true, "strictDxfPublished": false},
+    {"name": "civil_example-imperial.dwg", "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc", "readSucceeded": true, "classesEndReached": true, "strictDxfPublished": false},
+    {"name": "mechanical_example-imperial.dwg", "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858", "readSucceeded": true, "classesEndReached": true, "strictDxfPublished": true},
+    {"name": "title_block-arch.dwg", "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d", "readSucceeded": true, "classesEndReached": true, "strictDxfPublished": false},
+    {"name": "title_block-iso.dwg", "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2", "readSucceeded": true, "classesEndReached": true, "strictDxfPublished": false},
+    {"name": "visualization_-_aerial.dwg", "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1", "readSucceeded": true, "classesEndReached": true, "strictDxfPublished": false},
+    {"name": "visualization_-_condominium_with_skylight.dwg", "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4", "readSucceeded": true, "classesEndReached": true, "strictDxfPublished": false},
+    {"name": "visualization_-_conference_room.dwg", "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4", "readSucceeded": true, "classesEndReached": true, "strictDxfPublished": false},
+    {"name": "visualization_-_sun_and_sky_demo.dwg", "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881", "readSucceeded": true, "classesEndReached": true, "strictDxfPublished": false}
+  ],
+  "fixture_policy": "Inputs remained in ~/doc/dwg. Outputs were written under a temporary directory and removed. No DWG/DXF fixture was added to the repository."
+}

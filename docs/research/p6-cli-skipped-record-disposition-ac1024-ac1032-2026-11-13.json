@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p6-cli-skipped-record-disposition-ac1024-ac1032-2026-11-13",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6-F CLI disposition matrix",
+  "source": {
+    "kind": "deterministic from-scratch DWGs generated in temporary storage by libdxfrw_dwg_local_roundtrip",
+    "versions": ["AC1024", "AC1027", "AC1032"],
+    "profiles": [
+      {"name": "single custom object", "customClassInstances": 1, "unsupportedObjectInstances": 1},
+      {"name": "three same-class objects", "customClassInstances": 3, "unsupportedObjectInstances": 3},
+      {"name": "three distinct custom classes", "customClassInstances": 3, "unsupportedObjectInstances": 3, "distinctSourceNames": 3}
+    ],
+    "targetVersion": "AC1027",
+    "fixtureFilesAdded": 0
+  },
+  "observations": {
+    "cliExitStatus": 1,
+    "strictOutput": "Every case is refused before output publication; a pre-existing destination sentinel and source bytes remain unchanged.",
+    "projection": "CLI source disposition output reports exact custom-class and unsupported-object instance counts for each profile and revision.",
+    "distinctNames": "The three-class profile reports three source names and three observed instances in both skipped-record summaries.",
+    "versionSpecificRefusal": {
+      "AC1024": "strict-complete conversion requires successful, complete DWG read disposition",
+      "AC1027": "AC1027 DWG source references are not fully qualified",
+      "AC1032": "strict-complete conversion requires successful, complete DWG read disposition"
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_skipped_record_disposition$' --output-on-failure: PASS 1/1 in 0.36 seconds",
+    "broaderSelector": "--source-disposition-only fails earlier in its historical AC1021 ordinary_enc_AC1021.dwg integrity probe, before the skipped-record matrix; isolated selector passes.",
+    "fixturePolicy": "Generated source DWGs and output DXFs are temporary and removed; no sample fixture was added."
+  },
+  "limits": [
+    "The raw custom-object generator rejects the same profile at AC1015, AC1018 and AC1021; no coverage is claimed for those revisions.",
+    "Strict refusal confirms disposition accounting and atomicity, not successful export or semantic support for skipped custom objects.",
+    "This slice does not resolve other CLI recovery categories, producer-authored profiles, or native consumer behavior."
+  ],
+  "supportClaimEffect": "none"
+}

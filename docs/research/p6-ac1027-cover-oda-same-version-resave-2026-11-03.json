@@ -1,0 +1,244 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1027-cover-oda-same-version-resave-2026-11-03",
+  "date": "2026-11-03",
+  "status": "SAME_REVISION_RESAVE_SUCCEEDED_SUFFIX_REMAINS_UNCLAIMED",
+  "supportClaimEffect": "none",
+  "input": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "committedFixture": false
+  },
+  "converter": {
+    "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "version": "27.1.0.0",
+    "integrity": "deep strict signature check passed outside sandbox",
+    "arguments": [
+      "<scratch input>",
+      "<scratch output>",
+      "ACAD2013",
+      "DWG",
+      "0",
+      "0",
+      "Cover.dwg"
+    ],
+    "recursive": false,
+    "audit": false,
+    "exit": 0
+  },
+  "output": {
+    "sha256": "e33c3509703bb3a47397bad98324163471c415d6458350d2592987c3f453f827",
+    "bytes": 19274,
+    "version": "AC1027",
+    "scratchOnly": true
+  },
+  "localReader": {
+    "executableSha256": "ff4bd4c3001419399c9f2c5778ffd95e33f5b260de29bbd553332c5b78086fac",
+    "logSha256": "0f1b7d97f7f3fd969344b9094510aaed868cf446a5e0866b4caaf224d4618bbb",
+    "result": "Successful read, zero entity/object parse failures, 119 frames published. The HEADER envelope ends at byte 844 with 739 unclaimed bytes. Strict DXF export refuses incomplete read disposition.",
+    "comparison": "Original source has 731 unclaimed bytes after its validated trailer; same-revision resave has 739. Length comparison does not establish content identity, meaning, or semantic preservation."
+  },
+  "next": "Obtain producer-backed or normative evidence for suffix framing and meaning before changing admission.",
+  "limits": [
+    "No native semantic validation or complete output support claim.",
+    "No drawing fixture committed."
+  ],
+  "decodedHeaderComparison": {
+    "method": "Temporary dwgReader27 probe invokes the current libdxfrw parseDataPage, then writes exactly the logical HEADER section size; both output sections retain the validated trailer ending at offset 844.",
+    "independence": "A scratch driver calls LibreDWG 0.14 decompress_R2004_section on the original and resaved physical compressed HEADER page payloads. Both peer decodes match the local logical section bytes exactly, including both suffixes.",
+    "originalSectionSha256": "9963f027fac0daada9cbab9f3b2af56c73540534fd6a2e47ba8c0568e0571ab1",
+    "originalSuffixSha256": "7472357c307226b9a9dd0405bae1a533cef13ce4c9f3c6c59c9f4e365d3ab5b3",
+    "resavedSectionSha256": "55551135612baa4deee22c2d740ca386f3e786c08d81f4a99dfec30401cba1f3",
+    "resavedSuffixSha256": "6737be156086ce40761e00e7e595383dcea844680cdb73bb72b374336e42e0db",
+    "samePositionMatchingBytes": 6,
+    "longestCommonContiguousRunBytes": 3,
+    "interpretation": "Suffixes differ substantially; this does not establish their meaning, whether they are padding, or semantic preservation.",
+    "independentDecoder": {
+      "archive": "/opt/homebrew/lib/libredwg.a",
+      "archiveSha256": "340d6166b974005d816ec88dd1fff70accfda978d8e618c56258854660bd97e7",
+      "driver": "/private/tmp/libredwg-header-decompress.c",
+      "executableSha256": "a4f5420fc20ca3045831911bbe338e38c3de8a2983538b32e01288a715054c0e",
+      "originalCompressedOffset": "0x40a0",
+      "originalCompressedBytes": 1538,
+      "resaveCompressedOffset": "0x41e0",
+      "resaveCompressedBytes": 1546,
+      "status": "both returned 0; all 1575/1583 logical section bytes match the local decoder",
+      "window": "Each peer output is 29696 bytes with zeros beyond the logical section length; these buffer contents do not establish suffix semantics."
+    }
+  },
+  "repeatResave": {
+    "inputSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "tool": "ODA File Converter 27.1.0.0 verified native binary",
+    "settings": "ACAD2013 DWG; recursion 0; audit 0; separate processes and output directories",
+    "outputs": [
+      {
+        "dwgSha256": "933aa934d2926be419207d2e3c4801c23b0dfa8b8b6e0be5dbb77d091f2f6b78",
+        "decodedHeaderSha256": "dd7307e9181a24b0dcea31d396ea2c9c2f8786d28420c9c17c2e37c8e64fa7fd",
+        "suffixSha256": "56f76f165e93638b82f1bd6eb5d80cd6a4e4da252415853cf21582f1cb3bc326"
+      },
+      {
+        "dwgSha256": "9eb8b77cae07230f11604a9a8f75cd46af1a7e34653f6c6f9b086c757f84f8b7",
+        "decodedHeaderSha256": "3e8860cdc0dd57f9365ea475337614636ff8563e1eac000bfa620516182307f0",
+        "suffixSha256": "d38cc7a280cd4496b1192043d72fab0c61cb2f466677330cd939c4942d99b973"
+      }
+    ],
+    "method": "The existing scratch dwgReader27-based section extractor uses the libdxfrw parseDataPage to write the exact 1583-byte logical HEADER for each output; no independent decoder was rerun on these two additional files.",
+    "observation": "Both repeat saves carry 739 bytes after offset 844, but each suffix and each full DWG differ from the prior resave and from each other. Prior versus repeat 1 has no identical positions; XOR of each paired suffix byte is either 0x40 or 0xC0 (the lower seven bits of the XOR are always 0x40). Prior versus repeat 2 also has no identical positions and every paired XOR has low bit 1.",
+    "interpretation": "The runs reveal structured variation across saves of the same source. These observations do not identify the generator, establish semantic equivalence or prove padding; the suffix remains unclaimed and strict output is refused."
+  },
+  "userUnlockRetry20261104": {
+    "date": "2026-11-04",
+    "userStateUpdate": "User unlocked the Mac session and requested the suffix reproduction retry.",
+    "integrity": {
+      "command": "codesign --verify --strict --verbose=2 /Applications/ODAFileConverter.app",
+      "route": "outside sandbox",
+      "exitCode": 0,
+      "result": "Bundle is valid on disk and satisfies its Designated Requirement.",
+      "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "converter": {
+      "version": "27.1.0.0",
+      "arguments": [
+        "/private/tmp/libdxfrw-cover-oda-20261104-unlock/input",
+        "/private/tmp/libdxfrw-cover-oda-20261104-unlock/output",
+        "ACAD2013",
+        "DWG",
+        "0",
+        "0",
+        "Cover.dwg"
+      ],
+      "exitCode": 0,
+      "inputSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "outputSha256": "144fa0e7f9954d6d5a45df651fae348629d28b1c25fa077c606f4b759e923610",
+      "outputBytes": 19274,
+      "outputVersion": "AC1027",
+      "outputScratchOnly": true
+    },
+    "decodedHeader": {
+      "method": "The existing local dwgReader27 parseDataPage probe extracted the exact logical HEADER section; the existing suffix audit checked its sentinel and CRC and compared it with the original and prior same-revision resaves.",
+      "sectionBytes": 1583,
+      "sectionSha256": "e1b5e7dda15786ce756044cb49655b230c51857f0dbe5cf1ffd3d934aedfc422",
+      "trailerEnd": 844,
+      "unclaimedSuffixBytes": 739,
+      "suffixSha256": "5ed6b275b3e447bea2a7e47d720c338b43b61dab6bba21afc098af20b0db9c2d",
+      "sameRevisionPriorSuffixes": [
+        "56f76f165e93638b82f1bd6eb5d80cd6a4e4da252415853cf21582f1cb3bc326",
+        "6737be156086ce40761e00e7e595383dcea844680cdb73bb72b374336e42e0db"
+      ],
+      "finding": "All three same-revision outputs have 739 suffix bytes; their suffix hashes differ. The current sample does not establish the bytes' meaning or whether the variation is semantic, generated metadata, or padding. Keep the suffix unclaimed."
+    },
+    "localReader": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf <output>/Cover.dwg -y -d -v2013 <output>/libdxfrw-readback.dxf",
+      "executableSha256": "76e5f3168cbef69cac118bb8887d29c2f5ae773cf88a0a9d72377bcb1b5b53f8",
+      "logSha256": "46682d063aa33d01b618b20178e53ac893ce2fea0b6ad4d56a6a7f2d40725cd7",
+      "exitCode": 1,
+      "read": "AC1027 read completed with legacyError=0; 119 of 119 source frames were published, with zero entity/object parse failures and zero DataStorage failures.",
+      "header": "The valid trailer ends at byte 844; the decoder reports 739 unclaimed bytes through byte 1583.",
+      "output": "Strict DXF preparation refused because AC1027 DWG source references are not fully qualified. No DXF was created."
+    },
+    "qualificationEffect": "This confirms reproducible same-revision resaving and the 739-byte suffix extent only. It does not resolve the suffix, promote support claims, or qualify strict output. No DWG/DXF fixture was added to the repository."
+  },
+  "postUserUnlockSecondRetry20261104": {
+    "date": "2026-11-04",
+    "userStateUpdate": "User reported unlocking the Mac after the retry was requested.",
+    "integrity": {
+      "sandboxedPreflight": {
+        "command": "codesign --verify --strict --verbose=2 /Applications/ODAFileConverter.app",
+        "result": "Sandboxed check reported invalid signature / Code Signing subsystem error; the converter was not launched in this attempt."
+      },
+      "outsideSandbox": {
+        "command": "codesign --verify --strict --verbose=2 /Applications/ODAFileConverter.app",
+        "exitCode": 0,
+        "result": "Bundle is valid on disk and satisfies its Designated Requirement.",
+        "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+      }
+    },
+    "converter": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "version": "27.1.0.0",
+      "arguments": [
+        "/private/tmp/libdxfrw-cover-oda-20261104-after-unlock/input",
+        "/private/tmp/libdxfrw-cover-oda-20261104-after-unlock/output",
+        "ACAD2013",
+        "DWG",
+        "0",
+        "0",
+        "Cover.dwg"
+      ],
+      "exitCode": 0,
+      "inputSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "outputSha256": "540ab3acc41aed918967eb4525a8ec486b53b82ecc2bb5ff8c9e3bee8221edf8",
+      "outputBytes": 19274,
+      "outputVersion": "AC1027",
+      "outputScratchOnly": true
+    },
+    "decodedHeader": {
+      "method": "The existing dwgReader27 parseDataPage extractor wrote the exact logical HEADER section. The local audit verified the documented sentinels, declared size and CRC before measuring the suffix.",
+      "extractorSha256": "ad53fc82b570004821c8bee6bf55fbee6a73078e3148db31532e57c2f4be118b",
+      "sectionBytes": 1583,
+      "sectionSha256": "9b0b0b40cb436ad6bd5319c3e157348727cbfa5263b92628df5147a58d62dcc6",
+      "headerSizeWord": 802,
+      "payloadEnd": 826,
+      "storedCrc": 8173,
+      "trailerEnd": 844,
+      "unclaimedSuffixBytes": 739,
+      "suffixSha256": "1a3d503b43346f52da941273d0480f14d73ef0a7e3be6826011d887f6f5867f3",
+      "priorSameSourceComparisons": [
+        {
+          "suffixSha256": "6737be156086ce40761e00e7e595383dcea844680cdb73bb72b374336e42e0db",
+          "samePositions": 0,
+          "xorLowBit": 0,
+          "xorLowTwoBitCounts": {
+            "2": 739
+          }
+        },
+        {
+          "suffixSha256": "56f76f165e93638b82f1bd6eb5d80cd6a4e4da252415853cf21582f1cb3bc326",
+          "samePositions": 0,
+          "xorLowBit": 0,
+          "xorLowTwoBitCounts": {
+            "2": 739
+          }
+        },
+        {
+          "suffixSha256": "d38cc7a280cd4496b1192043d72fab0c61cb2f466677330cd939c4942d99b973",
+          "samePositions": 0,
+          "xorLowBit": 1,
+          "xorLowTwoBitCounts": {
+            "1": 370,
+            "3": 369
+          }
+        },
+        {
+          "suffixSha256": "5ed6b275b3e447bea2a7e47d720c338b43b61dab6bba21afc098af20b0db9c2d",
+          "samePositions": 0,
+          "xorLowBit": 0,
+          "xorLowTwoBitCounts": {
+            "2": 739
+          }
+        },
+        {
+          "suffixSha256": "76331dab9c1e0c7c42474490b5f8c6c1d5cacbd6c3e3d4e24d6dea8d9cb4b5f0",
+          "samePositions": 0,
+          "xorLowBit": 0,
+          "xorLowTwoBitCounts": {
+            "0": 739
+          }
+        }
+      ],
+      "finding": "No byte matches at any position in the five previously compared same-source Cover outputs. Each pair has a uniform XOR least-significant bit, while the lower-two-bit relation varies. These patterns do not identify the suffix generator or establish framing, meaning, padding or semantic equivalence."
+    },
+    "localReader": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf <output>/Cover.dwg -y -d -v2013 <output>/libdxfrw-readback.dxf",
+      "executableSha256": "1cff94a67f574851f980d6debd920f362f9699768bed487207134a321fd09157",
+      "logSha256": "923a2b1f0f3eb43da9d61813b29e7e12396e771b0ca7c3a43d8a3e927864b642",
+      "exitCode": 1,
+      "read": "AC1027 read completed with legacyError=0; 119 of 119 source frames were published, with zero entity/object parse failures and zero DataStorage failures.",
+      "header": "The validated trailer ends at byte 844; the reader reports 739 unclaimed bytes through byte 1583.",
+      "output": "Strict DXF preparation refused because AC1027 DWG source references are not fully qualified. No DXF was created."
+    },
+    "qualificationEffect": "This confirms another successful same-revision resave and the 739-byte suffix extent only. The suffix remains unexplained; strict output remains refused. No support claim changed and no fixture was added."
+  }
+}

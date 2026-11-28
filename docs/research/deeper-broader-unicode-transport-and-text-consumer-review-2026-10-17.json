@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw-deeper-broader-unicode-transport-and-text-consumer-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reconcile current open-source DXF/DWG string and renderer observations with the official target-version text contract and local text-codec coverage; refine existing implementation owners without asserting peer defects locally or promoting support.",
+  "method": {
+    "kind": "Primary documentation and issue/release review plus targeted local source/test audit",
+    "peerSourceRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrRenderersRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "localFilesInspected": [
+      "src/intern/drw_textcodec.cpp",
+      "tests/gbk_codepage_tests.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "localInspection": [
+      "asciiHex() accepts both upper- and lower-case ASCII hexadecimal digits; the conversion path uses hexadecimal parsing.",
+      "testMifEscapePolicy() contains lower-case MIF hex controls, while no explicit lower-case CIF \\U+abcd positive was found in the inspected test corpus.",
+      "The existing local zero-height MTEXT test asserts explicit zero-value presence but does not exercise a rendering backend.",
+      "Existing PAR-05/7AR, PAR-19/29, PAR-22/7H/7I/7AB and composed consumer owners already cover the relevant route families; no new PAR finding or top-level subplan is required."
+    ],
+    "evidenceRule": "Official Autodesk DXF documentation constrains target-version string serialization. Peer issues and release notes provide version-scoped test leads only; they are not local reproductions, general format rules, or support qualification."
+  },
+  "evidence": [
+    {
+      "topic": "DXF string encoding is selected by target version",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm"
+      ],
+      "observed": "Autodesk's group-code reference documents plain ASCII and CIF for pre-R2007 DXF output and UTF-8 for R2007 and later. Its examples show Unicode control sequences but do not define how every arbitrary application/object string containing a backslash escape must be interpreted.",
+      "planUse": "Keep source-DWG decoding separate from target-DXF serialization. For text controls, assert physical emitted bytes, declared target version, semantic scalar and strict UTF-8 validity independently. Keep MTEXT inline controls distinct from generic/XRECORD string payloads until field semantics are established."
+    },
+    {
+      "topic": "Source DWG TV/TU path may affect Unicode escape output",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1414"
+      ],
+      "observed": "The open report describes different handling of stored \\U+XXXX sequences through pre-R2007 TV and R2007+ TU source paths when targeting the same modern DXF version. The author reports a 43-file patch comparison, but frames intended behavior as unresolved; the peer patch and measurements were not independently reproduced.",
+      "doesNotEstablish": [
+        "a matching libdxfrw defect",
+        "the required interpretation of every backslash-U sequence in every DXF string field",
+        "that the author's patch or file corpus is a normative oracle"
+      ],
+      "planUse": "Retain the existing source-storage-path × target-version matrix under PAR-05/7AR. Use locally generated controls, inspect raw DXF tags and semantic output separately, and avoid globally expanding every escape substring. Include BMP and lone-surrogate negatives in the existing focused codec/text targets."
+    },
+    {
+      "topic": "Lower-case CIF/MIF hex is a useful fast compatibility sentinel",
+      "sources": [
+        "https://github.com/mozman/ezdxf/issues/1380",
+        "https://github.com/mozman/ezdxf/discussions/1384"
+      ],
+      "observed": "ezdxf 1.4.4 records a fix for lower-case hexadecimal digits in CIF/MIF strings. Local source inspection shows ASCII hex classification and numeric conversion accept lower-case; current tests explicitly cover lower-case MIF but not a lower-case CIF positive. This is a test-coverage gap, not a reproduced parser defect. PyPI lists ezdxf 1.4.5 released on 2026-10-16; the 1.4.4 release note is historical evidence, not a 1.4.5 runtime result.",
+      "sourcesForReleasePin": [
+        "https://pypi.org/project/ezdxf/1.4.5/"
+      ],
+      "planUse": "Add one lowercase \\U+abcd -> U+ABCD scalar control and suffix-consumption assertion to the existing codec test owner. Do not add a new CTest or production code absent a failing vector. Pin the exact 1.4.5 package/runtime if a later composed peer comparison uses ezdxf."
+    },
+    {
+      "topic": "Text rendering hazards are not file-parser failures",
+      "sources": [
+        "https://github.com/mozman/ezdxf/discussions/1384",
+        "https://github.com/mozman/ezdxf/issues/1372",
+        "https://github.com/mozman/ezdxf/issues/1383"
+      ],
+      "observed": "The ezdxf 1.4.4 release notes identify fixes for rendering zero-height TEXT/MTEXT without an infinite loop and for clipping-depth handling. Local libdxfrw does not render drawings; existing zero-height MTEXT coverage observes input presence/value only.",
+      "planUse": "Preserve parser/writer value and presence behavior independently of rendering. If rendering is in an existing composed consumer checkpoint, isolate a zero-height case with a bounded timeout and keep clipping recursion with the renderer that owns it. Do not add renderer work or full-suite runs per format slice."
+    },
+    {
+      "topic": "Whole-file AC1032 MTEXT rejection remains under-specified",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1297"
+      ],
+      "observed": "The reporter distinguishes frame-only flag 90=16 from 17 and reports version-dependent AutoCAD acceptance, but notes that matching the MTEXT object bytes did not make the whole AC1032 file open. Omitted VisualStyle/detail-view objects are a hypothesis only.",
+      "planUse": "Keep the existing PAR-19/29 and 7D/7E/7M field/version controls. Do not rewrite flag values or synthesize unrelated objects from this report. Any future whole-file writer change needs exact output-version, complete object-root inventory and application audit in addition to entity-byte assertions."
+    },
+    {
+      "topic": "Reported DWG-to-DXF spline failure lacks an independently established curve case",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1299"
+      ],
+      "observed": "The report describes a GDAL GeoJSON conversion failure but does not provide structured offending spline arrays or an independently verified expected curve in its issue text; its linked explanation is an AI chat.",
+      "planUse": "Continue the existing spline owner using exact source/emitted control points, knots and weights plus an analytic curve point and exact consumer diagnostics. Do not infer a format rule from that report or use generic conversion success as semantic proof."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "fastNextAction": "Add one lower-case CIF scalar and following-text control to the existing codec test owner, run only its strict focused target, then continue the current implementation queue.",
+    "qualificationBoundary": "No peer/native runtime or full test suite was run. Renderer tests remain optional and composed-only."
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "AC1024 associative network dictionary membership audit",
+  "mode": "P4 source-matched dictionary entry closure slice",
+  "baselineCommit": "39dd1153",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Verify each associative network's common owner handle identifies an import-matched fixed DICTIONARY with exactly one ACAD_ASSOCNETWORK entry to that network.",
+    "Require source publication, parser membership, typed callback and import-time payload equality for the dictionary before counting the entry edge.",
+    "Keep the dictionary's own enclosing-owner chain and full associative output closure separate."
+  ],
+  "evidence": {
+    "runtimeSources": [
+      {
+        "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "logPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/architectural_example-imperial-assoc-dict-audit.log",
+        "logSha256": "490261432e457c01a6a1329bc5a2770ad3ed248d2df2466ccc5e4ec07903edcd",
+        "callbacks": 120,
+        "networkRecords": 5,
+        "networkDictionaryEntryReferences": 5,
+        "networkDictionaryEntriesVerified": 5,
+        "networkDictionaryEntryClosureComplete": true,
+        "networkActionReferences": 28,
+        "networkActionTargetsVerified": 28,
+        "networkParentEdgesVerified": 4,
+        "networkRootRecords": 1,
+        "networkParentChainsComplete": true,
+        "result": "Expected strict refusal: dwg-associative-graph-not-serialized."
+      },
+      {
+        "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "logPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/civil_example-imperial-assoc-dict-audit.log",
+        "logSha256": "9ae18ba1bcf2d489c58a0b8486289dbd1f0009cc4528dc7b434b43920f96094c",
+        "callbacks": 104,
+        "networkRecords": 4,
+        "networkDictionaryEntryReferences": 4,
+        "networkDictionaryEntriesVerified": 4,
+        "networkDictionaryEntryClosureComplete": true,
+        "networkActionReferences": 23,
+        "networkActionTargetsVerified": 23,
+        "networkParentEdgesVerified": 3,
+        "networkRootRecords": 1,
+        "networkParentChainsComplete": true,
+        "result": "Expected strict refusal: dwg-associative-graph-not-serialized."
+      },
+      {
+        "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "logPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/mechanical_example-imperial-assoc-dict-audit.log",
+        "logSha256": "52e6866348fea12907f00edc2a2574e99c26e6c83f73bfdcc796637afac0bff6",
+        "callbacks": 138,
+        "networkRecords": 2,
+        "networkDictionaryEntryReferences": 2,
+        "networkDictionaryEntriesVerified": 2,
+        "networkDictionaryEntryClosureComplete": true,
+        "networkActionReferences": 19,
+        "networkActionTargetsVerified": 19,
+        "networkParentEdgesVerified": 1,
+        "networkRootRecords": 1,
+        "networkParentChainsComplete": true,
+        "result": "Expected strict refusal: dwg-associative-graph-not-serialized."
+      }
+    ],
+    "independentPeerProfile": {
+      "repository": "https://github.com/LibreDWG/libredwg",
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "sourceProjection": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+      "sourceProjectionSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+      "matchingInputSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "observed": [
+        "Dictionary 0x421 contains ACAD_ASSOCNETWORK → 0x422; its owner is handle 12.",
+        "Dictionary 0x423 contains ACAD_ASSOCNETWORK → 0x424; its owner is handle 349.",
+        "Both dictionaries and targets are source objects; this receipt validates their membership in the local reader's retained, payload-matched dictionary frames."
+      ],
+      "scopeLimit": "Peer evidence corroborates exact key/target roles for the matching mechanical drawing. The local runtime audit checks every network dictionary entry in three AC1024 inputs."
+    }
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Added a read-only dx_data query for one exact import-matched DWG dictionary entry and included ACAD_ASSOCNETWORK entry checks in the associative network receipt.",
+    "queryRequirements": [
+      "Successful current DWG import generation and matching source version",
+      "No standard-object capture or payload failure",
+      "Complete parser membership matched against the typed dictionary callback and raw source frame",
+      "Exactly one requested entry name with the exact target handle"
+    ],
+    "supportClaimPromoted": false,
+    "persistentFixturesAdded": 0
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+    "buildResult": "PASS for both touched executables with configured warning settings.",
+    "focusedTestCommand": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1.",
+    "runtimeCommand": "build/dwg2dxf/dwg2dxf <AC1024 source> -y -d -v2010 <temporary DXF>",
+    "runtimeResult": "Every associative network's exact dictionary entry was verified in all three investigation inputs. Associative conversion remains strictly refused.",
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "The dictionary object's enclosing owner chain is not checked. In the mechanical peer projection, the two network dictionaries have different owners (12 and 349), and that ancestor graph needs separate source-role validation.",
+    "The local DWGs are investigation inputs only and are not committed fixtures.",
+    "Other associative descendants, constraint-group node semantics, complete document closure, DXF serialization, handle remapping, output readback and native consumer semantics remain unqualified.",
+    "Strict associative export refusal remains active; no support claim is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Exact ACAD_ASSOCNETWORK dictionary-key → network-handle membership, bound to source-published and payload-matched dictionary frames, for all observed networks in three AC1024 inputs.",
+    "remainingP4Scope": "Validate each network dictionary's enclosing owner chain; resolve constraint-group node tails; close other required associative descendants; implement complete graph output/remap/readback or retain strict refusal.",
+    "nextImplementationPacket": "Trace each network dictionary's owner handle to its expected root/control/entity owner using retained standard-object memberships and independent same-source evidence.",
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_data.h": "2c62a66bdceb4db7229302a81081d4cf216d67ea34d0cc5e5cd5e219be02f6ad",
+    "dwg2dxf/dx_iface.cpp": "dc9708b6c35cceed57811d67be62c1bafe43f09121da64a947cc4ba92ced7612",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "257c6a0f95afb67193d14296afda5c4fff8e6b895a5bc4751369b19f05e781d0",
+    "build/dwg2dxf/dwg2dxf": "d4af150e4132c82afec502996c609a58f11dfd0656ad655fafe5037847a4cea8",
+    "build/libdxfrw_dwg_reader_matrix_tests": "eac416c9aca62c469de435da2781113a676e18cd71003c2932d158a6a0ce040d"
+  },
+  "commitCreated": true,
+  "worktree": "Only the dictionary membership audit, plan and this receipt are in scope; unrelated untracked workspace files and DWG samples remain excluded."
+}

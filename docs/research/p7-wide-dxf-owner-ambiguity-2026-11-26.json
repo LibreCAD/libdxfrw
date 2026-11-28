@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-wide-dxf-owner-ambiguity-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "a935ef97828c05bebd4a3028036022304a853c986520be7d70829ac8543e6c1f",
+  "inputCount": 781,
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+    "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm"
+  ],
+  "finding": "The emitted-record inventory previously stopped observing common-header owner fields after the first 330, so a duplicate 330 outside an application group and before the first subclass could leave the owner query true.",
+  "change": "Keep observing until the first subclass marker or record boundary. Multiple common-header owner fields make owner queries false, even for equal values. Ignore reactor/application 330s and post-subclass body references. Preserve ambiguity in record checkpoints and restore it on rollback. Retain the maximum observed owner for the conservative wide-owner guard.",
+  "validation": {
+    "platform": "macOS ARM64",
+    "command": "ctest --test-dir /private/tmp/libdxfrw-wide-identity-build-20261126 -R '^libdxfrw_(dxf_writer_emitted_handle_inventory|dxf_standard_object_identities|generated_dictionary_source_metadata|dxf_objects_write_inspection)$' --output-on-failure",
+    "result": "PASS: 4/4 focused tests",
+    "controls": "ASCII and binary: equal and different duplicate owners; wide second owner; reactor and body references; transactional rollback; finalized public 64-bit query. The initial test-probe failure was corrected by clearing its deliberately latched prior error before reuse.",
+    "qualificationChecks": "Official implementation digest and qualified-format support checks pass in a clean staged checkout (15 claims, 2 candidate routes, 0 advertised)."
+  },
+  "limits": [
+    "Queries remain tentative and do not establish source identity or document graph closure. Ambiguity alone does not reject an otherwise unguarded write.",
+    "Wide-owner and translated-reference publication remain refused; no support claim is promoted.",
+    "The Linux and Windows FreeCAD receipts on digest 151623ec636cffc0b2a63dd8c2bb9f1f8014d2cc5c0953cce5cdc32d2c60d23a predate this implementation change."
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "id": "p7-oda-ac1021-dwg-to-dxf-opaque-solid-2026-11-09",
+  "purpose": "Retry native ODA peer conversion after the user unlocked the macOS session, using the exact existing AC1021 source that contains the selected inline-SAB torus graph.",
+  "converter": {
+    "name": "ODA File Converter",
+    "version": "27.1.0.0",
+    "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "startupProbe": {
+      "command": "ODAFileConverter --help",
+      "exitStatus": 0,
+      "stdout": "empty",
+      "stderr": "empty"
+    }
+  },
+  "source": {
+    "repository": "dwg-writer",
+    "path": "tests/fixtures/committed/libredwg/atmos_dc22s_2007.dwg",
+    "localPath": "/Users/dli/dev/dwg-writer/tests/fixtures/committed/libredwg/atmos_dc22s_2007.dwg",
+    "sha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+    "sizeBytes": 398400,
+    "version": "AC1021",
+    "selectedGraph": ["3DSOLID 0x452", "history 0x453", "EvaluationGraph 0x454", "torus 0x455"]
+  },
+  "conversions": [
+    {
+      "command": "ODAFileConverter /private/tmp/p7-oda-native-input /private/tmp/p7-oda-native-output ACAD2010 DXF 0 1",
+      "exitStatus": 0,
+      "outputPath": "/private/tmp/p7-oda-native-output/atmos_dc22s_2007.dxf",
+      "sha256": "308d858078e18bf3d15408e84890e20b614db0b5a7b2af839c1dbaa760eb62ff",
+      "sizeBytes": 1350178
+    },
+    {
+      "command": "ODAFileConverter /private/tmp/p7-oda-native-input /private/tmp/p7-oda-2007-output ACAD2007 DXF 0 1",
+      "exitStatus": 0,
+      "outputPath": "/private/tmp/p7-oda-2007-output/atmos_dc22s_2007.dxf",
+      "sha256": "b2784b2749540530e71fb3ed8e0ec8093d67cafbd12bdbf19a93a4d3459c06c2",
+      "sizeBytes": 1393572
+    }
+  ],
+  "selectedEntity": {
+    "dxfHandle": "0x452",
+    "class": "3DSOLID",
+    "historyHandleGroup350": "0x453",
+    "modelerFormatGroup70": 1,
+    "payloadGroups": {"group1": 17, "group3": 1},
+    "concatenatedCharacters": 1058,
+    "prefix": "mnmoo nl m mi",
+    "interpretation": "Both peer exports retain the selected entity and its history handle. The payload is opaque proprietary modeler data in these outputs; it is not decoded as SAT/SAB and is not compared field-by-field with source SAB."
+  },
+  "result": "The unlocked native converter route now starts and completes both exports. This resolves the local desktop-access/CLI initialization blocker and provides an ODA-produced carrier for the selected graph, but does not resolve the independent semantic/kernel evidence gate or qualify broad source/output support.",
+  "fixturePolicy": "The source is an existing committed DWG in the separate dwg-writer repository. ODA DXFs and logs remain in /private/tmp; no drawing fixture was added to libdxfrw.",
+  "supportClaimEffect": "none"
+}

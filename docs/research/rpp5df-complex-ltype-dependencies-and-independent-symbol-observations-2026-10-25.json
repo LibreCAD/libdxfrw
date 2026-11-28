@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5df complex LTYPE dependencies and independent symbol observations",
+  "date": "2026-10-25",
+  "parentCommit": "8df06e6155ac8159c4b9072e593ebd192f4b1d77",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "SELECTED_COMPLEX_SYMBOL_CLOSURE_IMPLEMENTED_FULL_COMMON_SOURCE_FAMILIES_LIVE_OUTPUT_AND_PARITY_OPEN",
+  "previousGoalTurn": "PROGRESS: 8df06e61 implemented actual STYLE/LTYPE source proof",
+  "scope": {
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "binary"],
+    "newClosure": "Every selected complex LTYPE element requires its own nonnull, source-proved STYLE with matching flag-1 text/shape kind",
+    "sourceRolesAdded": {"12": "LTypeTextStyle", "13": "LTypeShapeStyle"},
+    "sourceProfile": "Distinct physical per-element role positions, required/duplicate fields and declared counts; current production normalization and tolerant reads unchanged",
+    "worklist": "Deduplicated selected source-proved LTYPE rows; charge work before indexed queue insertion/allocation and per-row edge traversal; source record/proof limits bound resident identities",
+    "allocationFailure": "Noexcept report catches allocation failure as CaptureFailed; immutable evidence remains reusable for corrected inspection",
+    "unselectedDependenciesBlockSelectedGraph": false,
+    "mapNullInheritanceChanged": false,
+    "complexNullTargetInherited": false,
+    "fullCommonTransitiveClosure": false,
+    "fullSymbolSchemaQualified": false,
+    "fontGlyphRenderingQualified": false,
+    "rotationSemanticsQualified": false,
+    "completeLiveEquality": false,
+    "outputEligible": false,
+    "nativeDwgLayoutParserWriterChanged": false,
+    "publicLibraryModelOrDrwInterfaceVtableChanged": false,
+    "globalCodecChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "research": {
+    "primarySources": [
+      "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-EF68AF7C-13EF-45A1-8175-ED6CE66C8FC9.htm",
+      "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm"
+    ],
+    "independentReader": {
+      "ezdxfVersion": "1.4.4",
+      "python": "/private/tmp/libdxfrw-rpp5cq-runtime.eu0KY0/venv/bin/python",
+      "authority": "Original scalar source tags plus independently retained pattern fields and observed STYLE target kinds; reported package version is not loaded-dependency attestation",
+      "firstHandleLimitation": "Installed convenience accessor/registry uses first STYLE handle; observer instead checks every per-element retained tag and target",
+      "sourceHashes": {
+        "ezdxf/entities/ltype.py": "93824c3611f76505a16e15e1c920418161155de09b5bae2534294be2bb89dd59",
+        "ezdxf/lldxf/tagger.py": "03c5eafad5f5e82570ab72815bb107e5a9ef404da36e046cdcc9742eb594e97d"
+      }
+    },
+    "unresolvedGroup50Units": "Autodesk's LTYPE page says radians; its general group-code table says DXF angle groups 50-58 are degrees. Current conversion is unchanged. Original/retained scalar equality is not nonzero-angle rendering/semantic evidence"
+  },
+  "generatedControls": {
+    "provenance": "Locally authored from scratch; no external drawing payload copied or committed",
+    "revisionEncodingRoutes": 8,
+    "faultKinds": 25,
+    "faultRecoveryPairs": 200,
+    "positiveVariants": 56,
+    "callbackCorrections": 24,
+    "exactBelowWorkBoundaries": 16,
+    "allocationRefusalInspectionRetries": 16,
+    "destinationPreservingOutputRefusalCorrectedReadbacks": 16,
+    "coverage": [
+      "Later/shape element missing, null, wrong family, self target and text/shape kind mismatch",
+      "Missing target row/source/typed callback, changed raw revision and mutated typed target",
+      "Duplicate and missing physical element identity/rotation/text fields, declared count and existing malformed read behavior",
+      "Absolute/bit-8 flags retained, source field order and optional defaults",
+      "Map-only selection, repeated selections deduplicated, unselected dangling row and named/unnamed shape identity",
+      "Immutable proof versus live edits; source-independent inspection allocation sweep",
+      "Both export policies refuse incomplete table output, preserve destination and allow same-exporter corrected line readback"
+    ],
+    "finalNormalLog": "/tmp/rpp5df-final-normal-owning.log",
+    "finalAsanLog": "/tmp/rpp5df-final-asan-owning.log"
+  },
+  "independentObserver": {
+    "schemaVersion": 3,
+    "originalRowsNeverReexported": true,
+    "families": ["STYLE", "LTYPE", "TABLESTYLE", "CELLSTYLEMAP"],
+    "dependencyFreeSelftest": {"positives": 4, "corruptions": 18, "originalScopeAndApplicationExpansion": true},
+    "optimizedPythonRefused": true,
+    "generatedRoutes": 8,
+    "symbolRowsPerGeneratedRoute": 3,
+    "symbolHandleEventsPerGeneratedRoute": 8,
+    "complexElementsPerGeneratedRoute": {"text": 1, "shape": 1},
+    "normalGeneratedLog": "/tmp/rpp5df-final-independent-generated.json",
+    "asanGeneratedLog": "/tmp/rpp5df-asan-independent-generated.json",
+    "qualificationEligible": false,
+    "limits": "Scoped positions, flags, per-element shape codes/STYLE handles and target kinds only; no full schema, decoded name, glyph/font/rotation, common/transitive, output, native or modeler qualification",
+    "optionalCmake": {
+      "gate": "Existing LIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE and explicitly supplied ezdxf 1.4.4 Python; no automatic installation",
+      "test": "libdxfrw_independent_symbol_source",
+      "registration": "PASS",
+      "buildDirectory": "/private/tmp/libdxfrw-rpp5df-optional.WythA2",
+      "configureLog": "/tmp/rpp5df-optional-configure.log",
+      "registrationLog": "/tmp/rpp5df-optional-registration.log",
+      "executionScope": "Registered optional test uses the same generated-check entry point manually executed against both built C++ probes; no second full optional build"
+    }
+  },
+  "externalObservations": {
+    "sourceRoot": "/private/tmp/libdxfrw-rpp5cs-history-sources.O5TTcC",
+    "drawingsUnchanged": true,
+    "files": [
+      {"file": "example-AC1027.dxf", "sha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3", "inspectionLog": "/tmp/rpp5df-ac1027-inspect.log", "independentLog": "/tmp/rpp5df-ac1027-independent.json"},
+      {"file": "example-AC1032.dxf", "sha256": "e64b0cfb6e1587f9d2bb4387d59064efa5bc667cda9ecbc00313459b304bb997", "inspectionLog": "/tmp/rpp5df-ac1032-inspect.log", "independentLog": "/tmp/rpp5df-ac1032-independent.json"}
+    ],
+    "sameResultPerSource": {
+      "bindingState": "Bound",
+      "independentlyObservedResources": 6,
+      "independentlyObservedReferenceEvents": 43,
+      "symbolHandleEvents": 8,
+      "tableStyleReferenceEvents": 8,
+      "cellStyleMapReferenceEvents": 27,
+      "sourceProofRecords": 6,
+      "sourceProofGroups": 464,
+      "sourceProofLogicalBytes": 100835,
+      "sourceProofWorkSlots": 29696,
+      "selectedSymbolProofUses": 13,
+      "selectedLineTypeDependencyRows": 0,
+      "boundMapFormatUses": 6,
+      "inheritedMapFormatUses": 18
+    },
+    "limitation": "Observed external LTYPEs are three simple rows per source, not complex-target semantic evidence",
+    "cliRefusals": {"actualConversionsRefused": 2, "publishedDestinations": 0, "logRoot": "/private/tmp/libdxfrw-rpp5df-cli.Ae3or6"}
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang; build-gcc is a directory name, not Linux/GCC evidence",
+    "normalCohort": {"passed": 35, "total": 35, "elapsedSeconds": 40.82, "log": "/tmp/rpp5df-normal-cohort.log"},
+    "asanCohort": {"passed": 35, "total": 35, "elapsedSeconds": 103.08, "log": "/tmp/rpp5df-asan-cohort.log", "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0"},
+    "cohortScope": "Final production code; cohorts precede diagnostic-only frozen-resource enumeration instead of public-row resource assumptions. Final owning and independent routes rerun afterward",
+    "preDiagnosticTestSourceSha256": "24d3a07d915eacbba4155ee210fd0483381c7f5ccbe587ef47948ba60b179e89",
+    "finalNormalOwning": {"passed": 1, "total": 1, "elapsedSeconds": 1.96, "log": "/tmp/rpp5df-final-normal-owning.log"},
+    "finalAsanOwning": {"passed": 1, "total": 1, "elapsedSeconds": 4.02, "log": "/tmp/rpp5df-final-asan-owning.log"},
+    "lc3CompileGates": {"normal": "PASS", "asan": "PASS", "scope": "Source-compile gates, not native application runtime"},
+    "strictWarningsRetained": true,
+    "cliOptionalBuildRegistration": {"passed": 1, "total": 1, "elapsedSeconds": 3.12, "log": "/tmp/rpp5df-cli-optional.log"},
+    "fullSuiteRepeated": false,
+    "leakCheckRun": false,
+    "buildLogs": ["/tmp/rpp5df-normal-build.log", "/tmp/rpp5df-asan-build.log", "/tmp/rpp5df-final-normal-probe-build.log", "/tmp/rpp5df-final-asan-probe-build.log"],
+    "tests": [
+      "dwg2dxf_basic_table_typed_capture_limits", "dwg2dxf_sort_table_style_raw_capture_limits",
+      "dwg2dxf_table_base_style_id_dxf_refusal", "dwg2dxf_table_content_style_reference_census",
+      "dwg2dxf_table_style_typed_capture_limits", "libdxfrw_3d_consumer_probe",
+      "libdxfrw_cellstylemap_dwg_encode_roundtrip", "libdxfrw_cellstylemap_dxf_writer",
+      "libdxfrw_cellstylemap_identity_domains", "libdxfrw_cellstylemap_source_profiles",
+      "libdxfrw_cellstylemap_source_proof", "libdxfrw_complex_symbol_bindings",
+      "libdxfrw_dxf_ltype_retained_owner_budget", "libdxfrw_dxf_shape_style_name_owner_budget",
+      "libdxfrw_dxf_source_table_identities", "libdxfrw_dxf_table_cell_text_owner_budget",
+      "libdxfrw_dxf_tables_write_inspection", "libdxfrw_extension_graph_limits",
+      "libdxfrw_linetype_extension_graph", "libdxfrw_ltype_mirror_authority",
+      "libdxfrw_symbol_source_proof", "libdxfrw_table_callback_owner_order", "libdxfrw_table_compound_source",
+      "libdxfrw_table_content_bindings", "libdxfrw_table_content_dwg_object_roundtrip",
+      "libdxfrw_table_content_dwg_payload_encoder", "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_content_reference_observer_selftest", "libdxfrw_table_content_source_proof",
+      "libdxfrw_table_content_style_id_domains", "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_table_geometry_observer_selftest", "libdxfrw_table_resource_reference_observer_selftest",
+      "libdxfrw_tablestyle_nested_raw_net", "libdxfrw_tablestyle_source_proof"
+    ]
+  },
+  "sourceSha256": {
+    "dwg2dxf/dx_iface.cpp": "656d82fcf58dec60e5916ceea8d654c7cc663652cfb2f08bcbf3ce877311b3a0",
+    "dwg2dxf/dx_data.h": "6e34ad92a4cd7b2c3ac9a65b6d7d71e792d3c0bb8209651d14aac859a2bfdb9f",
+    "dwg2dxf/dx_iface.h": "1489a83408a11a8423829f3935e81ae5a216643aea980f737441cec90b9b04dd",
+    "tests/table_content_dxf_tests.cpp": "613e8366e0e052a75e7e4b06e8b552778c9b054be4c0e29a8cd4190d76605b93",
+    "tests/table_resource_reference_observer.py": "a74097bd119e8b84c4c056ba03c752c01b0dc9905c9ddf682f2e7557435b5889",
+    "tests/CMakeLists.txt": "8a23c49775ef2ca1d6a38841b1778f36a414b15c18b0ed9c92a8533741bc5876"
+  },
+  "remaining": [
+    "FIELD/DATALINK/dictionary/XRECORD/ATTDEF/block exact source proof using production decoders",
+    "Explicit APPID/LAYER/table-owner source evidence and full common/transitive closure, including bounded fan-out/growth and role-specific back-references",
+    "Complete TABLE parent/wrapper/cache and editable/frozen equality",
+    "Independent nonzero LTYPE rotation semantic resolution and complete font/glyph requirements",
+    "Atomic fully proved compound output and original native/document/2D/3D consumer parity objective"
+  ],
+  "qualification": {
+    "supportLedger": "CLOSED",
+    "externalOnlyItems": {"J256": "DEFERRED_EXTERNAL", "J260": "DEFERRED_EXTERNAL", "J268": "DEFERRED_EXTERNAL", "J284": "DEFERRED_EXTERNAL", "J293": "DEFERRED_EXTERNAL", "J295": "DEFERRED_EXTERNAL"},
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "externalDrawingFixturesCommitted": false,
+    "remoteWrites": false,
+    "fullImplementationGoalComplete": false
+  }
+}

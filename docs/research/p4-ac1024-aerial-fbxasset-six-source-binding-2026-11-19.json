@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-fbxasset-six-source-binding-2026-11-19",
+  "date": "2026-11-19",
+  "status": "ALL_SIX_FBXASSET_FRAMES_SAME_IMPORT_SOURCE_BOUND",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local aerial DWG. Its producer is not authenticated. The source frame bytes and cursor census are recorded with the selected MATERIAL investigation receipt.",
+    "peer": "Pinned LibreDWG JSON agrees on the ordered XRECORD values, binary bytes, owner deltas and absolute reactor targets for all six handles. This is independent parser agreement on this file, not producer or consumer qualification."
+  },
+  "profiles": [
+    {"material": "0x2C2", "extension": "0x2C3", "handle": "0x2C5", "frameBytes": 37537, "payloadBytes": 37520, "entryCount": 292, "binaryChunks": 288, "binaryBytes": 36566, "chunkMin": 117, "chunkMax": 127, "sha256": "db73d400dadbfbade976ac8eb7a19ce3a925d4083a9d350300f6563cda5d550c"},
+    {"material": "0x2CC", "extension": "0x2CD", "handle": "0x2CF", "frameBytes": 38092, "payloadBytes": 38075, "entryCount": 297, "binaryChunks": 293, "binaryBytes": 37106, "chunkMin": 22, "chunkMax": 127, "sha256": "cb616b0d30c2bccf5482f8e350e7bfc755a3f5f118fe6172bf548a39403f0121"},
+    {"material": "0x2D6", "extension": "0x2D7", "handle": "0x2D9", "frameBytes": 40486, "payloadBytes": 40469, "entryCount": 315, "binaryChunks": 311, "binaryBytes": 39446, "chunkMin": 76, "chunkMax": 127, "sha256": "3180e507fc5e57e0939cc083fff1e3b7aa1e6b63478fee16be1298e91fbdfcb0"},
+    {"material": "0x2E0", "extension": "0x2E1", "handle": "0x2E3", "frameBytes": 33200, "payloadBytes": 33183, "entryCount": 259, "binaryChunks": 255, "binaryBytes": 32328, "chunkMin": 70, "chunkMax": 127, "sha256": "579a9e7ed43a9dd07e63c6c03617f84f15b7fc4d3a30dc4a6cec425a795be569"},
+    {"material": "0x2EA", "extension": "0x2EB", "handle": "0x2ED", "frameBytes": 53578, "payloadBytes": 53561, "entryCount": 416, "binaryChunks": 412, "binaryBytes": 52235, "chunkMin": 38, "chunkMax": 127, "sha256": "48f9e146aa905e087765000b87bc197c6aa3df4c3fa91eabf1d38f27dce507f4"},
+    {"material": "0x32E", "extension": "0x32F", "handle": "0x331", "frameBytes": 25556, "payloadBytes": 25539, "entryCount": 200, "binaryChunks": 196, "binaryBytes": 24861, "chunkMin": 96, "chunkMax": 127, "sha256": "3dd9a357ed9dd398d157e432328c6bae4c140ceef489953b74191cae3489505f"}
+  ],
+  "wireProfile": {
+    "objectType": 79,
+    "version": "AC1024",
+    "bodyBitSizeCommonTail": 44,
+    "payloadStartBit": 81,
+    "payloadEndFormula": "81 + payloadBytes * 8",
+    "entryOrder": "group 70 Int16, group 90 Int32, group 71 Int16, group 1 36-character UTF-16 string, then the profile's ordered group 310 binary chunks",
+    "group310Length": "one byte; 1..127; each chunk's exact length and every payload byte are compared to both same-import typed lists",
+    "footer": "compressed BS value 1 followed by cloning bit 0; common handle tail begins at totalBits - 44",
+    "links": "owner H(12,1,delta=2) resolves to the extension dictionary; reactor H(4,2,absolute) resolves to that same dictionary; final four bits are 1111",
+    "payloadSizeEquation": "binaryBytes + 3 * binaryChunks + 90 = payloadBytes"
+  },
+  "binding": {
+    "sourceIdentity": "Each raw standard-object frame is joined by import generation and handle to its unique DRW_XRecord model and source publication. The common source-binding checks require the captured source profile, payload match, typed baseline equality, source offset/ordinal identity and original class-read attempt.",
+    "graph": "Each FBXASSET key is unique in its complete same-import MATERIAL extension dictionary; the dictionary parent and MATERIAL extension link are checked, and the six MATERIAL EED profiles plus 36 TILE branches must already qualify.",
+    "scope": "Source spans and handle roles only. No FBX semantics, staging, output admission, or MATERIAL-root closure is claimed."
+  },
+  "implementation": {
+    "observerHeaderSha256": "59fde505e749b1f8953b5a0863582f729b8251ef6f5da0dc4235ad4a0625d70e",
+    "adapterCppSha256": "4367ccc9809c70dc1ab27f5971bec5db3455e2e34ffefbaac2a27c6495dd11ba",
+    "adapterHeaderSha256": "9137c9938ed6ba7de1c40358d178e8ee0fec4571062696fb48229d9877f9a438",
+    "selectorTestsSha256": "940471ba62761f37f40b43a3d1da58ec08649eadf276ee67fac0e9e5dcd40934"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-material-appid-source-capture tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS. The owning selector imports the existing local DWG and binds all six source records.",
+    "controls": "For each profile, header, payload-start, payload-midpoint, payload-end and owner-link bit changes are rejected by the bounded observer and recover after restoration. Publication-offset, failed-payload-capture, typed parent and typed payload mutations reject through the graph predicate and recover. A different adapter instance cannot reuse the proof.",
+    "sourceFixture": "The selector reads the existing untracked local sample. No DWG or DXF fixture was added to the repository."
+  },
+  "limits": [
+    "This corpus has no authenticated AutoCAD/ObjectARX producer provenance.",
+    "Source binding does not stage the six records, prove atomic refusal/retry during output, or establish ASCII/Binary readback.",
+    "FBX/texture interpretation and full MATERIAL, BACKGROUND, and LAYOUT graph closure remain open."
+  ]
+}

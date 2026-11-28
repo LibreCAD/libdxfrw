@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "id": "p5-ac1021-metric-table-current-type48-cursor-recheck-2026-11-09",
+  "date": "2026-11-09",
+  "scope": "Reconcile the saved claim that the local AC1021 metric TABLE stops on types 16/92 against the current parser and exact pinned source.",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "provenance": "Pre-existing local corpus input; not added to the repository."
+  },
+  "implementation": {
+    "sourceFile": "src/drw_entities.cpp",
+    "sourceSha256": "10970cf3f43103c620f9fba00f1f4b31e811d92db4d3f28357e7c19eea955839",
+    "readerExecutable": "build-gcc/dwg2dxf/dwg2dxf",
+    "readerExecutableSha256": "6d15c65bc7809a15c78600017a4cf29a8f4c79e882f7545be6100db5839dc82a",
+    "observation": "The current TABLE CadValue reader explicitly handles data type 16 as a 2D point (and 32 as a 3D point). It reaches a candidate flags/type pair 18137348/48 at body bit 278726 and another 18141444/48 at bit 312907."
+  },
+  "trace": {
+    "path": "/private/tmp/current-metric-table.trace",
+    "sha256": "624a2fe86afdd775df34997012ad03e9254b8571b55521de41510db6e25b39a3",
+    "read": "operationSucceeded=true, AC1021; entityParseFailures=0, objectParseFailures=0.",
+    "table": "Both observed type-48 candidates are refused as unsupported, and each TABLE retains an incomplete content snapshot.",
+    "strictOutput": "Preflight later refuses at the unrelated FIELD/FIELDLIST serializer gate; no DXF is published."
+  },
+  "authority": {
+    "specification": "ODA Open Design Specification v5.4.1 \u00a720.4.99, pp. 241\u2013242",
+    "documentedTypes": [
+      0,
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64,
+      128,
+      256,
+      512
+    ],
+    "interpretation": "48 is not a documented CadValue data type. The very large adjacent format-flags values and absent source-matched payload spans mean these observations may result from an earlier cursor misalignment; they do not establish that the producer stores a valid type 48."
+  },
+  "decision": "This receipt is the pre-fallback diagnostic. The raw-RS parse saw candidate type 48 at two offsets. A bounded AC1021 text-cell mask-0x01 BitShort fallback now parses all 171 CadValues in both existing metric and imperial sources while marking the TABLE semantics incomplete. The candidate is not a support/output claim; resolve the ODA RS conflict independently. See docs/research/p5-ac1021-metric-table-bitshort-fallback-2026-11-09.json.",
+  "fixturePolicy": "No DWG/DXF fixture was added or changed. The trace and all outputs remain in /private/tmp.",
+  "supersededBy": "docs/research/p5-ac1021-metric-table-bitshort-fallback-2026-11-09.json"
+}

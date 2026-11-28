@@ -15,8 +15,10 @@
 #define DWGBUFFERW_H
 
 #include <algorithm>
+#include <optional>
 #include <vector>
 #include <string>
+#include <utility>
 #include "../drw_base.h"
 
 class DRW_Coord;
@@ -43,6 +45,17 @@ public:
     explicit dwgBufferW(DRW_TextCodec *decoder = nullptr);
     ~dwgBufferW() = default;
 
+    /// Publish a staged stream without allocation, including its cursor,
+    /// codec, error state and handle-occurrence ledger.
+    void swap(dwgBufferW& other) noexcept {
+        m_buf.swap(other.m_buf);
+        m_handleOccurrences.swap(other.m_handleOccurrences);
+        std::swap(m_bitPos, other.m_bitPos);
+        std::swap(m_decoder, other.m_decoder);
+        std::swap(m_good, other.m_good);
+        std::swap(m_eedLayerByteOrder, other.m_eedLayerByteOrder);
+    }
+
     // ---- accessors ------------------------------------------------------
 
     /// Accumulated bytes. After a partial byte (bitPos != 0) the trailing
@@ -54,6 +67,9 @@ public:
     /// Replace the text codec used by subsequent CP8/ENC string writes.
     /// The caller owns the codec and must keep it alive for this buffer.
     void setDecoder(DRW_TextCodec *decoder) { m_decoder = decoder; }
+    // Configuration follows staged copies and swaps; reset keeps it intact.
+    void setEedLayerByteOrder(DRW::DwgEedLayerByteOrder order) noexcept { m_eedLayerByteOrder = order; }
+    DRW::DwgEedLayerByteOrder eedLayerByteOrder() const noexcept { return m_eedLayerByteOrder; }
 
     /// Current write position in bytes (size of accumulator).  When
     /// bitPos() != 0 the last byte is partially filled.
@@ -186,10 +202,13 @@ public:
     /// unicode is true.
     std::string encodeTextAreaString(const std::string& utf8,
                                      bool unicode) const;
+    /// Byte-oriented value using the bound file CP8 profile, including when
+    /// the primary R2007+ codec is Unicode. Null-codec callers supply bytes.
+    std::string encodeCodePageText(const std::string& utf8) const;
 
     /// Bit count of data written so far (total bits, accounting for a
     /// partial trailing byte when bitPos() != 0).
-    std::uint32_t bitCount() const;
+    std::uint64_t bitCount() const;
 
     /// Append raw bytes at the current bit position.  Handles
     /// non-byte-aligned writes via per-byte bit shifting.
@@ -223,6 +242,23 @@ public:
     void putCmColor(DRW::Version v, std::uint16_t colorIndex, std::int32_t rgb24,
                     const UTF8STRING& colorName,
                     const UTF8STRING& bookName,
+                    dwgBufferW* strBuf = nullptr);
+
+    /// Explicit R2004+ CMC color method. Supports C0 ByLayer, C1 ByBlock,
+    /// C2 truecolor, and C3 indexed color, with optional name/book strings;
+    /// invalid method/value pairs fail the writer before emitting bytes.
+    void putCmColor(DRW::Version v, std::uint8_t method,
+                    std::uint16_t colorIndex, std::int32_t rgb24,
+                    const UTF8STRING& colorName,
+                    const UTF8STRING& bookName,
+                    dwgBufferW* strBuf = nullptr);
+
+    /// R2004+ CMC with source flags preserved. Only the two ODA §2.11
+    /// name/book bits are accepted; either flagged string may be empty.
+    void putCmColorWithFlags(DRW::Version v, std::uint8_t method,
+                    std::uint16_t colorIndex, std::int32_t rgb24,
+                    const UTF8STRING& colorName,
+                    const UTF8STRING& bookName, std::uint8_t flags,
                     dwgBufferW* strBuf = nullptr);
 
     /// ENC color (R2000): emits BS color index.  Matches reader's
@@ -288,6 +324,53 @@ private:
     std::uint8_t m_bitPos {0};
     DRW_TextCodec *m_decoder {nullptr};
     bool m_good {true};
+    DRW::DwgEedLayerByteOrder m_eedLayerByteOrder {DRW::DwgEedLayerByteOrder::LegacyLittleEndian};
+};
+
+// Ephemeral encoding context; neither buffer nor public entity layout changes.
+// The scope is thread-local and restores any enclosing encoding on unwind.
+class ScopedDwgLegacyEntityLinks {
+public:
+    ScopedDwgLegacyEntityLinks(const dwgBufferW* body, const dwgBufferW* handles,
+                               std::uint32_t previous, std::uint32_t next) noexcept;
+    ~ScopedDwgLegacyEntityLinks();
+    ScopedDwgLegacyEntityLinks(const ScopedDwgLegacyEntityLinks&) = delete;
+    ScopedDwgLegacyEntityLinks& operator=(const ScopedDwgLegacyEntityLinks&) = delete;
+    static bool lookup(const dwgBufferW* buffer, std::uint32_t& previous,
+                       std::uint32_t& next) noexcept;
+private:
+    const dwgBufferW* m_body;
+    const dwgBufferW* m_handles;
+    std::uint32_t m_previous;
+    std::uint32_t m_next;
+    const ScopedDwgLegacyEntityLinks* m_enclosing;
+};
+
+
+// Preserve an enclosing legacy link context when a codec encodes into
+// independent staged buffers. Conflicting body/handle contexts fail closed.
+class ScopedDwgStagedLegacyEntityLinks {
+public:
+    ScopedDwgStagedLegacyEntityLinks(const dwgBufferW* sourceBody,
+                                     const dwgBufferW* sourceHandles,
+                                     const dwgBufferW* stagedBody,
+                                     const dwgBufferW* stagedHandles) noexcept {
+        std::uint32_t bodyPrevious = 0u, bodyNext = 0u;
+        std::uint32_t handlePrevious = 0u, handleNext = 0u;
+        const bool body = ScopedDwgLegacyEntityLinks::lookup(sourceBody, bodyPrevious, bodyNext);
+        const bool handles = ScopedDwgLegacyEntityLinks::lookup(sourceHandles, handlePrevious, handleNext);
+        if (body && handles && (bodyPrevious != handlePrevious || bodyNext != handleNext)) {
+            m_valid = false;
+        } else if (body || handles) {
+            m_scope.emplace(stagedBody, stagedHandles,
+                            body ? bodyPrevious : handlePrevious,
+                            body ? bodyNext : handleNext);
+        }
+    }
+    bool valid() const noexcept { return m_valid; }
+private:
+    bool m_valid{true};
+    std::optional<ScopedDwgLegacyEntityLinks> m_scope;
 };
 
 #endif // DWGBUFFERW_H

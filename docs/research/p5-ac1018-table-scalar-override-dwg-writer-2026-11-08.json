@@ -1,0 +1,86 @@
+{
+  "date": "2026-11-08",
+  "slice": "AC1018 TABLE scalar override direct body codec",
+  "status": "implemented_generated_codec_self_consistency_only",
+  "authority": "Open Design Specification for .dwg files v5.4.1, section 20.4.96.1",
+  "scope": {
+    "version": "AC1018",
+    "mask": "0x0000001f",
+    "fields": [
+      {
+        "flag": "0x01",
+        "field": "title suppressed",
+        "encoding": "B"
+      },
+      {
+        "flag": "0x02",
+        "field": "header suppressed",
+        "encoding": "implicit true; no payload value"
+      },
+      {
+        "flag": "0x04",
+        "field": "flow direction",
+        "encoding": "BS; admitted values 0 and 1"
+      },
+      {
+        "flag": "0x08",
+        "field": "horizontal cell margin",
+        "encoding": "BD; finite and nonnegative"
+      },
+      {
+        "flag": "0x10",
+        "field": "vertical cell margin",
+        "encoding": "BD; finite and nonnegative"
+      }
+    ],
+    "field_order": "ascending mask-bit order, omitting unselected payload fields",
+    "unsupported": [
+      "all other table-level override bits",
+      "all table border color, lineweight, and visibility override masks"
+    ]
+  },
+  "generated_control": {
+    "authenticity": "locally generated codec vector; not a producer DWG fixture",
+    "values": {
+      "mask": "0x1f",
+      "title_suppressed": true,
+      "header_suppressed": true,
+      "flow_direction": 1,
+      "horizontal_cell_margin": 1.25,
+      "vertical_cell_margin": 2.5
+    },
+    "checks": [
+      "typed parse readback matches all selected values",
+      "parser cursor equals the encoded body boundary",
+      "following body sentinel remains readable",
+      "all 32 subsets of mask 0x1f round-trip with selected and default values, exact cursor, and mask-specific sentinel",
+      "unsupported mask, unflagged value residue, invalid flow, negative margin, and unflagged margin residue fail before output changes"
+    ]
+  },
+  "supplemental_control_2026_11_10": {
+    "case": "AC1018 TABLE override mask 0x01 with title_suppressed=false",
+    "checks": [
+      "encoder admits the selected false Boolean payload",
+      "fresh parser readback retains mask 0x01 and false title-suppression value",
+      "parser cursor equals the encoded body boundary",
+      "following body sentinel remains readable"
+    ],
+    "validation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+      "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+      "result": "passed; 1/1 focused CTest"
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+    "result": "passed; 1/1 focused CTest",
+    "diff_check": "git diff --check passed"
+  },
+  "limitations": [
+    "No external producer or native CAD readback evidence was collected.",
+    "No DWG/DXF fixture file was added.",
+    "This does not establish physical field-span proof, source-to-output semantic equivalence, complete TABLE graph closure, or general TABLE writer support.",
+    "The public dwgRW::writeTable route remains fail-closed; do not promote support claims from this generated control."
+  ]
+}

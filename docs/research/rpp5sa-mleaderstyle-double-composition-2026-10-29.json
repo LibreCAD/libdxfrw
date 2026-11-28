@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE composed DOUBLE edits",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "b6bf04ff4f1401c89a6c42b4b4e586663a5288e4",
+  "scope": "A runtime-authored AC1027 MLEADERSTYLE source with all thirteen mapped DOUBLE groups admits their simultaneous typed edits. Each selected physical group is unique and source-bound; all raw groups outside the edited DOUBLE values and all other typed payload values remain unchanged.",
+  "fieldEvidence": {
+    "groupCodes": [40, 41, 42, 43, 44, 45, 46, 47, 49, 140, 141, 142, 143],
+    "fieldRoles": "The existing mapped MLEADERSTYLE scalar DOUBLE roles, previously exercised individually by RPP-5li and related receipts.",
+    "sourceEvidence": "The runtime-authored source provides one unique physical DOUBLE group for each mapped code. Existing Autodesk DXF references used by the individual field receipts remain the cited field-role evidence.",
+    "classification": "Authored source-bound AC1027 transport, output, readback and transaction evidence. Not independent producer variation, native annotation meaning, DWG editing, cross-version qualification or a format support claim."
+  },
+  "contract": {
+    "admission": "The existing root-reachable MLEADERSTYLE source/body and immutable baseline must match. One or more mapped DOUBLE fields may change together only for source and target AC1027. Every edited value must be finite and have exactly one existing physical source group with the expected DOUBLE type and baseline value. Changes involving multiple field types remain refused; all existing one-field routes retain their previous admission rules.",
+    "projection": "Restore all selected typed fields to their original values in a normalized copy and require the remaining encoded typed payload to equal the original. Then project each requested DOUBLE into its source-matched unique physical group. Preserve group order and every untouched raw or opaque field.",
+    "outputAndReadback": "Runtime-authored ASCII and binary sources are exported to both ASCII and binary targets. The test checks each of the thirteen exact emitted group values, one occurrence per code, typed readback, and preservation of the opaque group-302 sentinel. No test drawing is committed.",
+    "failureAndRetry": "For all four source/output encoding combinations, a conflicting raw group-45 value refuses and preserves a sentinel destination; restoring the captured body permits the same adapter to retry after a separate mixed DOUBLE/INT32 group-90 edit is also refused. A late group-42 mutation after preparation separately refuses without replacing its sentinel; restoring the selected values allows the same adapter to retry successfully.",
+    "compatibility": "Untouched MLEADERSTYLE bodies continue raw replay. Multiple non-DOUBLE or mixed-type edits remain refused, as do missing/repeated fields and unqualified versions/routes. Single-field non-DOUBLE transactions, DWG-origin writes, consumer behavior and support claims are unchanged."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp authored all thirteen mapped DOUBLE fields at runtime; temporary inputs and outputs were removed by the focused test.",
+    "implementationCommit": "b6bf04ff4f1401c89a6c42b4b4e586663a5288e4",
+    "dwg2dxf/dx_iface.cpp": "f297373d73ee7e808b74d913424557139a5632a3a42ced0779dfe5464a248449",
+    "dwg2dxf/dx_iface.h": "825e77b93f8a6d22a3fe4983eb7ca5adcc4843a71bf1ec7a3964489c91743275",
+    "tests/dwg2dxf_adapter_tests.cpp": "1d23128567b9e15e31e08b3d196301c0086ce33c66406006a6670aafc2acf9d3",
+    "adapterTestExecutableSha256": "42704fd28a394465d4e406ac9d413d5b60e8e65c079dd25e6b94513bdb5b15c2"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "CMake 4.4.4, Unix Makefiles, /usr/bin/g++ (Apple clang 21.0.0), -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mleaderstyle_writer_closure$' --output-on-failure",
+      "summary": "1/1 passed. The selector includes the thirteen-field composition in the ASCII/binary input/output cross-product, exact group/readback checks, opaque-body retention, raw and mixed-type refusal, destination rollback, late-mutation refusal and same-adapter retries."
+    },
+    "diffCheck": "git diff --check HEAD^ HEAD; PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "The profile is limited to mapped DOUBLE groups on authored AC1027 DXF sources. It does not prove native annotation behavior, independent producer acceptance, semantic relationships among values, other versions, DWG editing, whole-document closure or 3D support.",
+    "Mixed-type multi-field edits and multi-field integer/string/handle edits remain outside the admitted transaction.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select the next current distinguishing geometry/schema witness in P2; keep mixed-type MLEADERSTYLE composition and native annotation evidence as separate future profiles."
+}

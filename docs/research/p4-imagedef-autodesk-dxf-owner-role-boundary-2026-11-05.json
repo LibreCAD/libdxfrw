@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-imagedef-autodesk-dxf-owner-role-boundary-2026-11-05",
+  "date": "2026-11-05",
+  "status": "DXF_DICTIONARY_ROLE_CONFIRMED_DWG_WIRE_CONFLICT_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "question": "Does Autodesk's public IMAGEDEF contract resolve the DWG wire parent-role conflict between ODA's common-object and IMAGEDEF-specific sections?",
+  "authoritativeDxfEvidence": {
+    "objectArxClassReference": {
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbRasterImageDef.html",
+      "statement": "AcDbRasterImageDef objects are stored in the special AcDbDictionary named ISM_RASTER_IMAGE_DICT."
+    },
+    "dxfReference": {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-EFE5319F-A71A-4612-9431-42B6C7C3941F.htm",
+      "statement": "IMAGEDEF uses group 330 soft-pointer references to the ACAD_IMAGE_DICT and IMAGEDEF_REACTOR objects."
+    },
+    "scope": "These sources establish the dictionary relationship and DXF reference representation. They do not specify the wire role of the DWG common parent handle."
+  },
+  "dwgEvidence": {
+    "odaSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "version": "5.4.1",
+      "conflict": "§20.1 describes the common object parent as a soft pointer; §20.4.81 labels IMAGEDEF parenthandle a hard owner."
+    },
+    "physicalSources": [
+      {
+        "receipt": "docs/research/p4-ac1024-imagedef-owner-role-diagnostic-2026-11-04.json",
+        "profile": "ODA File Converter 27.1 output from a locally authored DXF; AC1024 IMAGEDEF parent token has role 4. This is a producer observation, not native AutoCAD evidence."
+      },
+      {
+        "receipt": "docs/research/p4-imagedef-owner-role-ac1021-independent-source-2026-11-04.json",
+        "profile": "Attributed AC1021 source ATMOS-DC22S has four IMAGEDEF parent tokens decoded as relative soft pointers to the image dictionary. Provenance is not authenticated."
+      }
+    ],
+    "peerImplementationLimit": "The examined LibreDWG 0.14 source has dwg_add_IMAGE create IMAGEDEF with a role-4 parent pointing to the IMAGE entity and comments that normally a dictionary owns IMAGEDEF. This constructor is explicitly incomplete and is excluded as a correct graph/role oracle."
+  },
+  "decision": "Do not change DWG IMAGEDEF handle-role parsing or output admission from the Autodesk DXF references. They constrain the DXF projection, not the conflicting DWG wire type. Keep source-bound AC1021/AC1024 role-4 diagnostics refused until ODA clarifies the discrepancy or an authenticated native producer sample plus authoritative wire evidence resolves it.",
+  "nextEvidence": [
+    "Written ODA clarification or a superseding specification for IMAGEDEF parent role by version.",
+    "Authenticated AutoCAD-produced DWGs with exact IMAGEDEF, IMAGEDEF_REACTOR, IMAGE entity and ACAD_IMAGE_DICT identities and literal parent handle spans.",
+    "Only after role resolution: exact source graph closure, ASCII/Binary output and fresh independent native readback."
+  ],
+  "scopeLimits": [
+    "No code or public API changed.",
+    "DXF group 330 semantics do not prove DWG handle-stream role.",
+    "No fixture or dependency was added and no support claim was promoted."
+  ]
+}

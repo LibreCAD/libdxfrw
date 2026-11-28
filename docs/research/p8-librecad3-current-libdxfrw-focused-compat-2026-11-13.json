@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad3-current-libdxfrw-focused-compat-2026-11-13",
+  "date": "2026-11-13",
+  "status": "LIBRECAD3_CURRENT_LIBDXFRW_BUILD_AND_FOCUSED_DXF_TESTS_PASS_PARTIAL_P8D",
+  "supportClaimEffect": "none",
+  "scope": "Build LibreCAD_3's persistence adapter and focused DXF consumer tests against the current libdxfrw commit.",
+  "source": {
+    "consumerSource": "/private/tmp/p8-lc3-current-src",
+    "consumerBuild": "/private/tmp/p8-lc3-current-build",
+    "consumerSourceLimit": "The consumer source is an existing temporary snapshot, not a newly cloned or cleanly fingerprinted LibreCAD_3 checkout.",
+    "libdxfrwCommit": "898fdc0dddb2a04ab7f428a53729b922f856898c",
+    "libdxfrwTransfer": "git archive of the recorded commit extracted into the consumer's third_party/libdxfrw directory before CMake reconfiguration and build.",
+    "fixturesAdded": 0
+  },
+  "implementation": {
+    "productionCodeChanged": false,
+    "consumerAdapterCompiled": "persistence/file.cpp and persistence/libdxfrw/dxfimpl.cpp compiled and linked against the refreshed libdxfrw target.",
+    "dwgImportEnabled": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build /private/tmp/p8-lc3-current-build --target lcunittest -j4",
+    "buildResult": "PASS; rebuilt libdxfrw, LibreCAD_3 persistence, and lcunittest.",
+    "testCommand": "lcunittest --gtest_filter='DxfExportTest.*:DxfRoundTripTest.AsciiRoundTripStaysAscii:DxfRoundTripTest.BinaryAndAsciiCarryTheSameText:FormatTest.LibdxfrwApiIsUnchanged'",
+    "testResult": "PASS: 6 tests from 3 suites.",
+    "cases": [
+      "DxfExportTest.EveryReaderProducibleKindReachesTheFile",
+      "DxfExportTest.Phase3TablesAndHeaderFidelity",
+      "DxfExportTest.Phase2PreservesZAndTextAttributes",
+      "DxfRoundTripTest.AsciiRoundTripStaysAscii",
+      "DxfRoundTripTest.BinaryAndAsciiCarryTheSameText",
+      "FormatTest.LibdxfrwApiIsUnchanged"
+    ]
+  },
+  "limitations": [
+    "Partial P8-D compatibility evidence only; the consumer source/build were not a clean checkout/build pair.",
+    "DWG import was disabled, so this does not qualify LibreCAD_3 DWG input or DWG-to-DXF behavior.",
+    "Focused generated DXF tests do not qualify native application behavior, ABI stability, other platforms, or the complete consumer test suite.",
+    "No DWG/DXF fixture was added and no support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "Current libdxfrw commit compiles into the LibreCAD_3 persistence/test target and passes six focused DXF export, ASCII/Binary round-trip, and API fingerprint tests.",
+    "remainingP8D": "Repeat with a clean LibreCAD_3 source/build pair; enable and qualify DWG import; complete focused entity and import/export compatibility, ABI/source, and platform checks.",
+    "phaseStatusesChanged": false
+  }
+}

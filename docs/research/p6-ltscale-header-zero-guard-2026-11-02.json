@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ltscale-header-zero-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_LTSCALE_ZERO_OUTPUT_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Refuse explicitly invalid DXF HEADER $LTSCALE values on typed output while preserving tolerant input and the existing absent-value default.",
+  "implementationReadiness": {
+    "baselineHead": "da043b72b89740f5e9160c4c04995f75d02dffda",
+    "sourceObservation": "DRW_Header::write serialized an explicit $LTSCALE value directly, while the shared DXF entity writer already rejects non-positive per-entity ltypeScale. Header parsing retains generic scalar values and remains tolerant. The previous getDouble fallback would silently replace a wrong-typed explicit $LTSCALE with 1.0; the new non-consuming preflight rejects wrong group type and conflicting dollar/bare aliases before HEADER bytes are emitted.",
+    "normativeEvidence": [
+      {
+        "source": "Autodesk AutoCAD 2027 LTSCALE System Variable",
+        "url": "https://help.autodesk.com/view/ACD/2027/ENU/?caas=caas%2Fdocumentation%2FACD%2F2014%2FENU%2Ffiles%2FGUID-88787AE5-957B-483C-9EEF-51564114181F-htm.html",
+        "relevantRule": "The global linetype scale factor cannot equal zero."
+      },
+      {
+        "source": "Autodesk About Linetypes",
+        "url": "https://help.autodesk.com/cloudhelp/2027/ENG/AutoCAD-Core/files/GUID-20B4D4B3-1220-426A-847B-5BBE36EC6FDF.htm",
+        "relevantRule": "LTSCALE controls global pattern scaling; CELTSCALE supplies the current object scale; PSLTSCALE/MSLTSCALE and paper/model space also affect display. Linetype definitions are selected from imperial acad.lin or metric acadiso.lin resources."
+      }
+    ],
+    "change": "A non-consuming DRW_Header preflight accepts absence or exactly one group-40 finite nonzero $LTSCALE/LTSCALE value. Explicit zero, non-finite, wrong-type/group, and conflicting aliases refuse before HEADER emission; missing $LTSCALE still emits the existing default 1.0. Input retains zero for diagnosis and caller repair. Header record output remains transactional, so refused bytes are discarded and a corrected value can be written with the same writer."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_header.cpp": "7d6e4ba52285ace66fe8a2c31ca7857bf83a24d108e9aff39552324465fcfdb8",
+      "src/drw_header.h": "8fc142c85c0a77981b8a05e2b63ad2970865a59e83ba2c7ecf2b23fde5358a32",
+      "src/libdxfrw.cpp": "c1c287c7d0c4c59eae00a3be06a4b684ce6d2d00bb326583c767721a6a1aeb8f",
+      "tests/hardening_tests.cpp": "d5df0bb3dd005b8b3e9e179e094ead8af97a77f7e83e5f707fed8f5b97ed0e5d",
+      "CMakeLists.txt": "190ababc7d4dfcacd944a5705fc3607f0b1f174f968ce8a5c595fcae9598c401",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "0136f610be71916e5ff0cb6d348f14617d103c13ad1f21a44709555cf0f08fa5"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 via /usr/bin/g++",
+      "platform": "Darwin arm64"
+    },
+    "testExecutableSha256": "4732f517f33767036c06fd41823be13365b799a34d44a5782f77b10277e514f7"
+  },
+  "controls": {
+    "selector": "--ltype-scale-header-domain",
+    "ctest": "libdxfrw_ltype_scale_header_domain",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "Typed output writes a finite nonzero LTSCALE and emits the existing default 1.0 when absent.",
+      "Explicit zero, positive infinity, negative infinity and NaN are atomically refused in both encodings.",
+      "Wrong variant type, wrong group code, and simultaneous dollar/bare aliases refuse before HEADER record publication.",
+      "Input parsing retains explicit zero without interpreting it as an absent value.",
+      "After refusal, the staged output and writer error state roll back; the same writer succeeds with a corrected value."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_ltype_scale_header_domain$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "affectedFastCohort": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_(ltype_group9_encoded_length|ltype_scale_header_domain|scale_units_dxf_domain)$' --output-on-failure",
+      "result": "PASS 3/3"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Only the documented zero prohibition is enforced for finite values; other CELTSCALE and per-version scale policies remain unqualified.",
+    "This tests field admission and byte preservation only. No native linetype rendering, plot scaling, imperial/metric resource selection, or consumer application behavior was run.",
+    "No support claim is promoted; native resource/profile and display behavior remains open."
+  ],
+  "nextReadyPacket": "Continue P6 linetype/units readiness by qualifying CELTSCALE, MEASUREMENT resource selection and native pattern display as separate behaviors; do not convert drawing coordinates or LTYPE element lengths from header metadata without source and consumer evidence."
+}

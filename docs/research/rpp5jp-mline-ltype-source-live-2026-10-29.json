@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2.4 selected original-to-live empty-pattern LTYPE binding",
+  "date": "2026-10-29",
+  "status": "IMPLEMENTED_PREREQUISITE",
+  "codeCommit": "7629d518fd12791fe2aac8d1828d68ca2a770873",
+  "scope": "Private source/live evidence for the selected parsed DXF LTYPE profile with an empty pattern. The proof is not called by the writer and does not authorize consumed MLINE geometry or broader LTYPE editing.",
+  "method": "After accepted-read, selected source-grammar and resource-origin checks, bind the same read identity and context; compare each complete captured LTYPE body with the accepted whole-source decoded values and physical raw record; reconcile every source LTYPE to a unique live handle and pinned parsed model. Admit only parsed synchronized empty-pattern state, compare the private path index, declared element count, synchronized vector, retained segment text and description state, and refuse live or original application data, XDATA, reactors, pending references, dash paths, segments, shape handles or source count changes. Precharge bounded source, field, resource and typed-byte work; these logical units do not promise a CPU-time or allocator/RSS limit.",
+  "witness": {
+    "sourceRecipe": "The focused test creates an AC1027 DXF in a temporary test directory from its local sourceText() recipe, then exercises ASCII and binary encodings. The recipe and test implementation are bound by the test source digest below; no drawing fixture is committed.",
+    "testSourceSha256": "d435b24a4be8313f5a7c944fc25fd3a495007a78b70a101866add271e8fb4583",
+    "adapterSourceSha256": "35f4175b531827c21cdbde23a6a34985f1023593b4476b4c8d83c82179a3b0f1",
+    "helperHeaderSha256": "9cd6cf018d7ba3c517f3bfe30d7083337be0faf781fa111291a37dea186d510e",
+    "independentReview": "The production patch was checked against current HEAD before integration. Review found no concrete defect in the narrow empty-pattern source/live scope; the reviewer did not build or run tests."
+  },
+  "controls": {
+    "registeredTest": "libdxfrw_mline_ltype_source_live",
+    "encodings": 2,
+    "liveMutationAndCountControls": 36,
+    "sourceBodyAndSpellingTamperControls": 30,
+    "exactAndBelowBudgetControls": 4,
+    "restoredOrFreshRetries": 38,
+    "details": "The source/live test rejects coordinated callback spoofing, changes to identity and typed fields, application data, hidden parser state reset, duplicate handles, removed source rows and additional live rows. Boundary controls cover exact and one-below work limits. Corrected/fresh retries pass for ASCII and binary. Existing ordinary unchanged-style exports pass in both encodings; the proof is not wired into those writes."
+  },
+  "validation": {
+    "platform": "Darwin arm64",
+    "normalBuildTargets": "libdxfrw_mline_source_dependency_tests, libdxfrw_legacy_blockref_relation_tests, libdxfrw_whole_source_tests",
+    "normalCtest": "5/5 focused selectors passed: libdxfrw_mline_source_dependency, libdxfrw_mline_layer_source_live, libdxfrw_mline_ltype_source_live, libdxfrw_whole_source_capture and libdxfrw_legacy_blockref_relation.",
+    "normalLibrarySha256": "0249cc9961876121a926529e6f7a71586787ac40d0049af0ee83f73bcafc6911",
+    "normalAdapterSha256": "ca02b40affc8139f87a6f82959905dbaf729cbe6524d61c50aeccccc10de6fe5",
+    "normalLtypeTestSha256": "646c0c1234ff39bf9abc77fb7818b468a1168f8bccb501ff768a94e5a1933bc3",
+    "normalLtypeDirectResult": "ltype source/live profiles=2 mutations=36 body-tamper=30 limits=4 retries=38",
+    "asanFlags": "CMAKE_CXX_FLAGS=-O1 -fsanitize=address -fno-omit-frame-pointer; ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "asanCtest": "5/5 same focused selectors passed.",
+    "asanLibrarySha256": "d8daf9627791c619d045ecc50d8a30b191c4145337d6aa4ea653dee6ab1a44a2",
+    "asanAdapterSha256": "fc665a60c53aa83a677147a948f3c31d298e24332ffb8e9abafeb0e468c16de5",
+    "asanLtypeTestSha256": "180e22cdb1e14827ed892a9f47cb78710760b9b3aea73ef98e9d3163314ec707",
+    "asanLtypeDirectResult": "ltype source/live profiles=2 mutations=36 body-tamper=30 limits=4 retries=38",
+    "sourceReleaseInventory": "PASS: 630 released files; complete core/CLI sources and headers."
+  },
+  "limits": "This is a narrow AC1027 source/live prerequisite. It does not qualify patterned LTYPEs, alternate source orderings or versions, STYLE/text/shape dependencies, native units/font identity/collation/rendering, emitted output, complete document closure, or a consumed MLINE edit. The inline DRW_LType method adds no data members, but the public header changed and dependent binaries must rebuild; formal ABI qualification remains open.",
+  "nextWork": "Bind additional live dependency carriers and original/live affected consumers, authenticate staged output including generated CLASSES and the final HANDSEED backpatch, then revisit consumed geometry and its output/rollback controls. Continue remaining LTYPE source profiles separately with witnessed output expectations.",
+  "fixtures": "Inputs are created locally by the focused test in temporary scratch and removed on completion; no DWG or DXF fixture was added to the repository.",
+  "claimsPromoted": false
+}

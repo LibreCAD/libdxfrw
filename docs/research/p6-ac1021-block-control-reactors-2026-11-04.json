@@ -1,0 +1,50 @@
+{
+  "scope": "AC1021 BLOCK_CONTROL common-handle reactors; reader preservation and conservative DXF export refusal",
+  "specification": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "2.13 handle references",
+      "20.1 common object data",
+      "20.4.51 BLOCK_CONTROL"
+    ],
+    "claim": "Common object reactor references precede the optional extension dictionary in the handles stream; BLOCK_CONTROL then contains the declared block-record handles and model/paper block references. Relative H6/H8/HA/HC forms resolve as soft pointers."
+  },
+  "witness": {
+    "source_repo_file": "tests/fixtures/dxf/ac1015_ellipse_freecad_control.dxf",
+    "source_sha256": "078a9982f049ee4c669f878b6cc8cc6dfcd292b72d8f394fe7c2c258b9fa7cc7",
+    "generator": "tools/make_ac1021_block_control_reactor_witness.py",
+    "authored_dxf_sha256": "f10f7dca01c9319d41e97e562ead83d500312d1b9c8cc214ab6458cef8a64fd0",
+    "authored_change": "BLOCK_RECORD TABLE handle F0, ACAD_REACTORS reference 33 (existing named object dictionary)",
+    "producer": "ODA File Converter 27.1.0 macOS ARM64, ACAD2007 DWG output",
+    "produced_dwg_sha256": "0032c67e1dcde85ae5ecda44225891e1f47700f3e222db6901921ff412cc4aab",
+    "external_reader": "LibreDWG dwgread -v4",
+    "physical_record": {
+      "object_type": 48,
+      "handle_hex": "F0",
+      "body_handle_boundary_bits": 74,
+      "num_reactors": 1,
+      "owner": "4.0",
+      "reactors": [
+        "4.1.33"
+      ],
+      "extension_dictionary_missing": true,
+      "model_space": "3.1.1",
+      "paper_space": "3.1.2",
+      "padding_bits": 6
+    },
+    "before": "libdxfrw read failed at BAD_READ_TABLES (9)",
+    "after": "libdxfrw read succeeded, operationSucceeded=true, BAD_NONE (0); DXF output refused before write because the source reactor graph has no validated output route",
+    "sentinel": "An existing output file containing preserve-sentinel remained byte-identical after failed CLI export; exit status 1."
+  },
+  "focused_checks": {
+    "test": "libdxfrw_dwg_block_control_reactors",
+    "cases": "Generated aligned and unaligned handle boundaries; zero and two reactors; optional extension dictionary; declared and model/paper references; invalid reactor role, oversized and truncated handle, 64-bit value outside uint32; reset and same-instance retry; H6/H8/HA/HC relative reference resolution. Oversized declared count with insufficient remaining bits is rejected before allocation, followed by same-instance retry.",
+    "result": "passed"
+  },
+  "compatibility_and_limits": [
+    "Reactor capture and export gate are scoped to AC1021 BLOCK_CONTROL; no new public interface virtual or object data member is added.",
+    "The optional existing frame-publication channel carries the bounded reactor vector. dx_iface conservatively refuses output when the captured graph has nonzero reactors or capture failed; this is not a claim of reactor graph closure.",
+    "The no-reactor ODA physical control imports successfully; its strict CLI export independently fails the existing complete-read-disposition gate, so this witness does not establish complete-file output support.",
+    "The local generated witness and ODA DWG are scratch artifacts and are not committed. Producer output bytes may vary by application version or save session."
+  ]
+}

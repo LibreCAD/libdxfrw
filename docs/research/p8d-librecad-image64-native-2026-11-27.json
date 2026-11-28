@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-image64-native-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "97475fb8ff1052651a47a5949399e996bd3bf350",
+  "platform": "macOS 27.2.1 build 26B131 arm64; native Qt application",
+  "build": "App built from consumer head with only startup organization name changed to isolate settings; source file restored after build. App and codec were copied to a scratch bundle and ad-hoc signed. Codec unsigned source dylib SHA-256 a18e2367e0bc5727c7e8021ef7694230446c52972e0a7ae1856700c58bb1a099; lsof confirmed the signed scratch bundle codec was loaded.",
+  "binarySha256": "e2ba520753f6e26c04da64000b2820117221240de6e2e67360bc81908f8956c0",
+  "signedCodecSha256": "2d52817ca23950139538d00d3148d669fe58b64ae119232ede9dd7b7c0487fc7",
+  "source": "Locally generated AC1021 DXF with 64 IMAGEs, 4 shared IMAGEDEFs and 4 locally generated 16x12 solid-color PNGs. Scratch copy; no files committed.",
+  "observations": [
+    "Native canvas displayed the colored images from the generated source.",
+    "Using native image properties, changed the insertion X from 116 to 120, saved as a separate AC1021 DXF and reopened it. The canvas displayed the images and the reopened properties reported X=120, Y=2 and the same image file.",
+    "ezdxf 1.4.5 independently verified 64 images, 4 definitions, 64 unique reactors and reciprocal owner links; 63 image geometries and properties remain unchanged and exactly one moved from (116,2,0) to (120,2,0). Source and output audits report zero errors and fixes."
+  ],
+  "hashes": {
+    "inputSha256": "cb47c49a6e81bc649b4cd5c92127fa52d21347e673fa22960744ff7004eb7b2b",
+    "outputSha256": "e70dc53bc84b3f4ee5b89ebe69d58c59ebebc6d87a7b746b34e1c0b63378e1db"
+  },
+  "limits": [
+    "This is one generated AC1021 native macOS profile, not external producer, other versions or platforms, general raster semantics, or broad DWG/DXF support.",
+    "A separate application launch and reopened document were used; reopening occurred within the same application process, not a fresh process."
+  ]
+}

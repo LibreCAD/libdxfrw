@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dynamic-block-alignment-parameter-allocation-rollback-2026-11-12",
+  "date": "2026-11-12",
+  "status": "ALIGNMENT_PARAMETER_DIRECT_ALLOCATION_SWEEP_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add direct AC1024 ASCII/Binary allocation-failure coverage for the dynamic-block AlignmentParameter writer's nested property connections, including source rollback and fresh-writer retry/readback.",
+  "binding": {
+    "repositoryHead": "86d62e75cbab867c1d7b05ebcaca886979871665",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "27ac70a55b86da086ad484392b099de2b2777c7c9acb80b61f84b0061185cae3",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "tests/dynamic_block_objects_allocation_tests.cpp": "f80a92f1a117ec74808d380ec563e3ecd2540e25413ecdda0b7e30febfc6b517",
+      "tests/CMakeLists.txt": "7a6d869bd778a362a1552bb5c8c48c6a0b8d5b7e0fac8bc7aa24a9fd5b171469",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "77e6182b3b6662db602244d15989e0733dbef6ee25dd74ff9806f4391c640219"
+    },
+    "artifactSha256": {
+      "build/libdxfrw.a": "87bac49173b4d27017ee41870fa642fbfc37a6cf332eea503fc41a027eabf7b1",
+      "build/tests/libdxfrw_dynamic_block_objects_allocation_tests": "cb09a0cf4e162d9bcd817fa9ec2917dcf9676176365976c1adba8042a9b3dcd4",
+      "build-asan-custom/libdxfrw.a": "a143a4e14823ee2ebe06bc6bde6251faff4e128ea8443985b547df02122dc4e2",
+      "build-asan-custom/tests/libdxfrw_dynamic_block_objects_allocation_tests": "d28d4716fe672e37e3d14227f592f2d62734657a5222092529f3494611d912e2"
+    }
+  },
+  "change": {
+    "testCoverage": "Extended the generated dynamic-block allocation target with the admitted AlignmentParameter connection profile: four property-state values, two-point geometry, and nested code/name arrays in properties 0, 1 and 3.",
+    "perEncoding": "ASCII and Binary each exercise 14 allocation offsets. Every injected failure preserves coordinates, property states, nested codes/names, and leaves no sourceHandleToWrittenObjectMap entry. Each source then succeeds through a fresh writer. Clean wire readback checks record/owner identity, node id, property counts/states, all named connections, and alignment subclass/location fields.",
+    "existingAdapterControl": "The existing dwg2dxf_dynamic_block_alignment_parameter_writer control checks complete group order, typed output, validation refusal, and corrected retry behavior."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS"
+    },
+    "normalFocusedTests": {
+      "command": "ctest --test-dir build -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_visibility_parameter$|dwg2dxf_dynamic_block_basepoint_parameter_writer$|dwg2dxf_dynamic_block_alignment_parameter_writer$' --output-on-failure",
+      "result": "PASS 4/4; 0.68 seconds total"
+    },
+    "asanFocusedTests": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_visibility_parameter$|dwg2dxf_dynamic_block_basepoint_parameter_writer$|dwg2dxf_dynamic_block_alignment_parameter_writer$' --output-on-failure",
+      "result": "PASS 4/4; 1.83 seconds total"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Fault injection is at the low-level record writer and does not qualify the enclosing whole-file transaction.",
+    "Retries use fresh writers because failed writers may contain partial bytes and retain sticky write errors.",
+    "This is generated transaction evidence for one bounded AC1024 alignment-property profile. Physical producer breadth, graph closure, and native meaning remain open.",
+    "No fixture is added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue the P6 transaction and no-loss audit for another concrete uncovered writer/profile; preserve the format, graph, and native-consumer gates."
+}

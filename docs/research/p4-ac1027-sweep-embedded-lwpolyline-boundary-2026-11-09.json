@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-embedded-lwpolyline-boundary-2026-11-09",
+  "date": "2026-11-09",
+  "status": "CANDIDATE_PREFIX_DECODE_WITH_UNRESOLVED_SUFFIX",
+  "supportClaimEffect": "none",
+  "sources": {
+    "dwg": {
+      "path": "/private/tmp/example_2013.dwg",
+      "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+      "version": "AC1027",
+      "sweepHandle": "0x2e2",
+      "profile": {
+        "type": 77,
+        "declaredBits": 744,
+        "capturedHex": "02408e1d7f27d2e7cbfc02f91c0d519a7fb2fcc6470287239edcbf9040b4a7039d4bec5c000000000000000000d4a7039f4bec5c000000000000000000d4a7039f4bec5c002000000000010400b4a7039d4bec5c00200000000001040c",
+        "candidatePrefix": {
+          "flags": 521,
+          "elevation": -8060.1816093232201,
+          "normal": [-0.89445797356369616, -0.44715202507461205, 0],
+          "vertexCount": 4,
+          "verticesXY": [
+            [-11133.658002887872, 0],
+            [-11133.908002887876, 0],
+            [-11133.908002887876, 4.0000000000000018],
+            [-11133.658002887872, 4.0000000000000018]
+          ],
+          "consumedBits": 740,
+          "unresolvedSuffixBits": "1100"
+        }
+      },
+      "path": {
+        "type": 77,
+        "declaredBits": 480,
+        "capturedHex": "01008000000000000d03f40d82bc683001ba85026117a7ada5f729030292fb37d39aa900931a5ca5eeb32d01839c5a5d0232c100931a5ca5eeb32d00",
+        "candidatePrefix": {
+          "flags": 516,
+          "constantWidth": 0.25,
+          "vertexCount": 3,
+          "verticesXY": [
+            [2231.0000923480111, 13562.827511939031],
+            [3443.4781322074996, 14168.962206813572],
+            [4236.2523054423218, 14168.962206813572]
+          ],
+          "consumedBits": 478,
+          "unresolvedSuffixBits": "00"
+        }
+      }
+    },
+    "formatReferences": [
+      {
+        "title": "Open Design Specification for .dwg files v5.4.1",
+        "sections": ["2", "2.12"],
+        "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "use": "ODA identifies fixed type 0x4D as LWPOLYLINE and describes a modeler body beginning at flags without common entity data. It does not explain the observed trailing bits."
+      },
+      {
+        "title": "ACadRust embedded_entity.rs",
+        "url": "https://docs.rs/acadrust/latest/src/acadrust/io/dwg/embedded_entity.rs.html",
+        "use": "Routes type 0x4D through the embedded LWPOLYLINE reader; its encoding path writes the type-specific body. Peer implementation only, not semantic or normative evidence."
+      },
+      {
+        "title": "ACadRust object_reader/entities.rs",
+        "url": "https://docs.rs/acadrust/latest/src/acadrust/io/dwg/dwg_stream_readers/object_reader/entities.rs.html",
+        "use": "The embedded reader selects raw XY doubles for every vertex; the ordinary AC1027 LWPOLYLINE path selects first-raw/rest-default-delta coordinates. Peer implementation only."
+      }
+    ],
+    "pairedDxf": {
+      "path": "/Users/dli/dev/libredwg/test/test-data/example_2013.dxf",
+      "sha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3",
+      "provenance": "Co-located LibreDWG corpus companion; no authenticated AutoCAD/ODA lineage.",
+      "use": "Earlier receipt p4-ac1027-sweep-dxf-candidate-field-differential-2026-11-08 establishes that each captured body equals the declared leading group-310 bytes. This pair does not establish producer-wide semantics."
+    }
+  },
+  "method": {
+    "candidateProfile": "ODA type/body boundary plus ACadRust embedded-LWPOLYLINE field order; raw XY doubles; no common entity prefix or handle stream.",
+    "measurement": "The opt-in test-only source probe has a separate candidate-field decoder that shares dwgBuffer bit primitives with production code. It reads the BS flags, optional BD/3BD values, BL counts, raw 2RD vertices and optional arrays with declared-bit bounds. It reports parsed fields and exact suffix bits; it does not call or publish a DRW entity.",
+    "probeCommand": "cmake --build build-gcc --target libdxfrw_ac1027_acds_source_probe -j4 && build-gcc/libdxfrw_ac1027_acds_source_probe /private/tmp/example_2013.dwg",
+    "probeResult": "PASS: drawing read completed with 481/481 published source frames and zero entity/object parse failures; profile and path candidate outputs recorded above.",
+    "productionChange": false,
+    "fixtureAdded": false
+  },
+  "observations": [
+    "The candidate order reads the profile prefix through 740 of 744 declared bits and the path prefix through 478 of 480 declared bits.",
+    "Profile suffix is four nonzero bits (1100); path suffix is two zero bits (00). Neither suffix is established as padding or as a defined extension.",
+    "The temporary exact-span parser rejected both payloads. Experimental production changes were removed; current production retention remains bounded/raw and Partial.",
+    "The ACadRust source supports the raw-point field-order candidate, but its parser/source does not provide a source-native exact-consumption proof for these bytes. Its reference-output checks are not an independent geometry oracle."
+  ],
+  "limitations": [
+    "One hash-pinned AC1027 sample only.",
+    "No authenticated producer, independent semantic geometry result, complete embedded record decode, DWG-to-DXF output, or native consumer qualification.",
+    "No promotion of Sweep, DWG, DXF, ACIS, ACDS, or FreeCAD support claims."
+  ],
+  "nextAction": "Resolve the child suffix with primary or independently observable producer evidence; otherwise preserve the embedded profile/path opaquely and continue another ready implementation slice. ODA File Converter retry requires a fresh desktop inventory that confirms the Mac session is accessible."
+}

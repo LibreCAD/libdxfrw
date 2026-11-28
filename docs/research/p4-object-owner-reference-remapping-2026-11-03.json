@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-03",
+  "scope": "Generated common OBJECTS owner-reference identity transport.",
+  "field": {
+    "member": "writeObjectOwner(parentHandle)",
+    "group_code": 330,
+    "role": "Owner soft-pointer ID/handle"
+  },
+  "format_evidence": {
+    "source": "Autodesk DXF Group Codes in Numerical Order Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+    "supports": "Group codes 330–339 are soft-pointer handles to objects in the same drawing. The library's OBJECTS owner helper emits the supplied parent handle using group 330."
+  },
+  "mapping_policy": "For a nonzero object parent handle on R14+ DXF, use the configured reference resolver when present; otherwise use remapObjectHandle. Refuse a zero or NoHandle result for a nonzero source. The existing root-dictionary fallback for absent owners and pre-R14 omission are unchanged.",
+  "validation": {
+    "input": "Generated in-memory owner handle; no DWG/DXF fixture was added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "selector": "libdxfrw_wave1_tests --object-owner-reference-remapping",
+    "controls": [
+      "Exact group-330 output under resolver precedence and source-handle-remap fallback",
+      "Unresolved nonzero owner refuses before writing bytes",
+      "Corrected output succeeds with a fresh writer"
+    ],
+    "result": "PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4"
+  },
+  "qualification_limits": [
+    "Generated low-level transport only; it does not prove target existence or that the target is the correct owner for the object.",
+    "Does not establish recursive graph closure, physical producer breadth, native consumer behavior, or support-claim eligibility."
+  ]
+}

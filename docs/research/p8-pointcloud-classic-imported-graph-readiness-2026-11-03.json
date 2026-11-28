@@ -1,0 +1,42 @@
+{
+  "id": "p8-pointcloud-classic-imported-graph-readiness-2026-11-03",
+  "date": "2026-11-03",
+  "status": "IMPLEMENTED_GENERATED_TRANSPORT_ONLY",
+  "topic": "Imported classic POINTCLOUD definition/reactor graph output",
+  "existing_providers": [
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "evidence": "Physical classic POINTCLOUD entity fields and callback/source joins are already bounded for modelspace, but the profile explicitly requires zero definition/reactor references."
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "evidence": "Classic and Ex definition/reactor callbacks already retain bounded raw OBJECTS records and exact physical spans; the strict raw-to-model projector currently implements only DefinitionEx/ReactorEx."
+    },
+    {
+      "path": "dwg2dxf/dx_data.h",
+      "evidence": "The import receipt retains root and child DICTIONARY typed/raw sources, physical identity audits, and resource-origin audits for same-generation unchanged-source checks."
+    }
+  ],
+  "bounded_scope": {
+    "admit": "Imported DXF AC1027-AC1032 classic POINTCLOUD + POINTCLOUDDEFINITION + POINTCLOUDDEFREACTOR, exact source revision, modelspace entity, complete physical source/model projection, one directly NOD-owned dictionary with its source-observed root key, and closed reciprocal references/ownership.",
+    "exclude": [
+      "DWG source CLASS/frame routes",
+      "Named-BLOCK and paper-space POINTCLOUD entities",
+      "Mixed classic/Ex/NAVISWORKS/COLORMAP graphs",
+      "Cross-revision output, physical producer breadth, external asset loading, native semantics, and support claims"
+    ]
+  },
+  "implementation_steps": [
+    "Extend the classic entity physical profile to admit exactly one nonzero definition and reactor reference only when the graph route requests it; keep the existing reference-free route unchanged.",
+    "Extend the existing physical definition/reactor raw-to-model projection to classic record and subclass names, including exact ACAD_REACTORS order and owner handles.",
+    "Require same-generation physical/origin-bound NOD and child DICTIONARY source records, unchanged typed/root key state, and existing complete graph closure before imported output.",
+    "Add generated ASCII/Binary same-revision import, changed-reference refusal with destination preservation, corrected same-adapter retry, and fresh graph readback under the current point-cloud selector."
+  ],
+  "validation": {
+    "normal": "PASS: build the adapter test target and run dwg2dxf_point_cloud_adapter_transport; generated ASCII/Binary imports cover exact-revision AC1027 and AC1032 graph output.",
+    "asan": "PASS: run the same ownership/reference selector on the rebuilt ASan target.",
+    "fixture_policy": "Generate all DXF sources and destinations at runtime under the temporary directory; add no fixture files."
+  },
+  "implementation_receipt": "docs/research/p8-pointcloud-classic-imported-graph-transport-2026-11-03.json",
+  "claim_boundary": "Generated same-revision imported DXF transport only. No physical producer interoperability, DWG support, native semantic support, asset loading, or support claim promotion."
+}

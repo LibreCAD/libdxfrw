@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-10",
+  "id": "p5-ac1018-table-plotstyle-graph-closure-2026-11-10",
+  "title": "AC1018 TABLE exact default plot-style graph closure",
+  "question": "Can an AC1018 TABLE's non-default plot-style handle be admitted only when the emitted object is the exact placeholder in the writer's staged default plot-style graph?",
+  "finding": {
+    "before": "The TABLE direct codec serialized a positive plot-style handle, but hasClosedAc1018TableBlockGraph did not verify its identity or target graph. A preceding guard rejected all positive handles, which unnecessarily excluded the writer's existing opt-in default plot-style graph.",
+    "change": "Direct TABLE encoding again preserves the common-header hard pointer. Compound graph admission accepts a non-default plotStyle only when it equals m_defaultPlotStylePlaceholderHandle, the default graph is marked emitted, and that exact placeholder handle has an emitted object frame. Other positive handles are refused.",
+    "control": "The generated whole-file graph vector sets a dangling plot-style handle and verifies graph-closure refusal, then restores the original value. The direct-codec vector confirms a positive plot-style handle remains serializable for outer graph validation.",
+    "scope": "This connects the TABLE gate to the existing staged default plot-style provider graph. It does not authorize arbitrary plot-style objects or establish native semantics.",
+    "fixtures": "No DWG/DXF fixture was added; controls use generated in-memory objects."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused": "./build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS: AC1018 TABLE encoder allocation failures injected=19 rollback=PASS retry=PASS; AC1018/AC1021 TABLE cell override vectors: PASS"
+  },
+  "limitations": [
+    "The test proves refusal of an arbitrary dangling plot-style handle, not successful full-document TABLE output using the provider graph.",
+    "Exact provider-graph success and native consumer semantics remain qualification work.",
+    "No support claim is promoted."
+  ]
+}

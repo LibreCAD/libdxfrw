@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r12-pellipse-nonzero-refusal-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "b56f8dd8",
+  "implementationDigestSha256": "0984c3931bc926841efa3938e691914221602d96b57857f373b4f6a747e0f170",
+  "inputCount": 775,
+  "consumerCommit": "d574254f28ade16119d4f4a9511f8cfc5934a804",
+  "problem": "Before this change, an explicit PELLIPSE=1 was accepted for R12 ASCII and binary output but omitted; the loss is reproduced in the associated display-header receipt.",
+  "change": "R12 preflight rejects nonzero PELLIPSE, including bare and dollar-prefixed source names, before destination replacement. Missing and zero values retain the prior path; R14 and newer behavior remains unchanged.",
+  "validation": {
+    "focused": "Optimized HEADER selector covers nonzero refusal, zero acceptance, invalid group and duplicate alias rejection, ASCII/binary atomic destination preservation and same-adapter corrected retry; nonzero R14 save/import/resave/reopen and R2000 save/reimport pass.",
+    "existing": "Existing dimension migration and header alias fixtures pass.",
+    "consumer": "LibreCAD system-codec linetype selector passes 4957 assertions in 55 cases; bundled-codec selector passes 1282 assertions in 52 cases.",
+    "image": "Imported-common 144 metadata reexports and 176 wire retries pass; legacy two-layer 120 cells and 600 atomic retries pass."
+  },
+  "limits": [
+    "Zero PELLIPSE is still omitted by the existing R12 path; default semantics and omission reporting remain unresolved, so no lossless R12 claim is made.",
+    "R14/R2000 checks are library self-readback, not native application qualification.",
+    "Platform and native qualification remain open."
+  ]
+}

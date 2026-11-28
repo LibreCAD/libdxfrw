@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1027-cover-reader-success-output-refusal-2026-11-01",
+  "date": "2026-11-01",
+  "title": "AC1027 Cover full reader pass; HEADER suffix still blocks strict output",
+  "status": "FULL_DWG_READ_PASSES; STRICT_DXF_OUTPUT_REFUSED",
+  "supportClaimEffect": "none",
+  "scope": "One local AC1027 source profile. Records successful full read after bounded HEADER, DataStorage, and DICTIONARY parser updates. It does not establish complete DXF export or support qualification.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "appMaintenanceVersion": 4,
+    "repositoryFixture": false
+  },
+  "headerEnvelope": {
+    "decodedSectionBytes": 1575,
+    "declaredSizeAtOffset16": 802,
+    "highSizeWord": 0,
+    "acceptedProfile": "declared size excludes the optional high-size word",
+    "validatedPayloadEnd": 826,
+    "validatedTrailerEnd": 844,
+    "unclaimedSuffixBytes": 731,
+    "validation": "Alternate candidate passes CRC and ending-sentinel checks. The suffix is reported as unclaimed data and is not treated as padding. Strict-complete output rejects HeaderSectionUnclaimedData."
+  },
+  "suffixAssessment": {
+    "normativeSource": "ODA Open Design Specification v5.4.1 sections 5.9 and 9: header handles use a separate stream; the documented HEADER section includes a CRC and ending sentinel.",
+    "normativeSourceUrl": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "independentReader": "LibreDWG 0.14 parses Cover's known HEADER handle stream through logical byte 815; the CRC begins at byte 826 and the ending sentinel completes at byte 844. Its trace does not assign meaning to bytes 844\u20131575.",
+    "implementationSourceUrl": "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+    "disposition": "No producer-backed or normative meaning is established for the 731-byte suffix. Keep it unclaimed and fail strict-complete output closed; do not infer padding or corruption from absence of a known interpretation."
+  },
+  "dataStorage": {
+    "segmentCount": 8,
+    "schemaDataSegment": {
+      "index": 5,
+      "offset": 23424,
+      "size": 448
+    },
+    "schemaIndexSegment": {
+      "index": 6,
+      "offset": 23872,
+      "size": 448
+    },
+    "acceptedProfile": "AC1027 bounded alternate schema-table roles: first schidx table supplies six schema roots; second supplies eight unknown-property header references",
+    "readerTrace": "DataStorage alternate AC1027 schema-table profile accepted: schemas=6 unknown-properties=8",
+    "readerFailures": {
+      "linkFailures": 0,
+      "orphanRecords": 0
+    },
+    "scope": "The alternate selector requires the bounded contiguous layout and is limited to AC1027. ODA-described table order remains the default. Acceptance proves local parsing of this profile, not downstream semantic support."
+  },
+  "dictionary": {
+    "observedCase": "empty dictionary name paired with a valid null child handle",
+    "parserBehavior": "Retain this counted DWG pair. Reject an empty name paired with a non-null handle, clear failed parser state, and allow a subsequent valid retry.",
+    "outputQualification": "DXF dictionary completeness remains false for the empty key; this parser change does not admit lossy output."
+  },
+  "binding": {
+    "baseCommit": "7554195dc378b70bc07c0de8c826129f41eda2f7",
+    "worktreeSourceSha256": {
+      "src/drw_datastorage.cpp": "9dedb752b98dafe052766dc11973e3a45bec4b6271c24adf216cf6defb665c02",
+      "src/drw_datastorage.h": "9737017d1e6a4b879ecc56cb1f75f514ad8c343d9eb518e277717517cbf7d0b6",
+      "src/drw_objects.cpp": "20285b7799b6ee29437e50fe9b3fd36526b06a60c15adf2667ed75516f673776",
+      "src/drw_objects.h": "f130fdc992b0557184fe940a61c582b511fdca66196b860152286c6b1c336531",
+      "src/intern/dwgreader18.cpp": "232741fdc78628aec0c77d34e5d1e22d65c027ffec30cd85b9512d8c449f7b80",
+      "tests/graph_preservation_tests.cpp": "18714aa281b2196429aadac9dd1c5aa36f7cbb3a035bf6743bf49638a8b123d9",
+      "tests/writer_primitives_tests.cpp": "c0b3c7d8100ffb92296c9dddb3712ba05de0bfb45ba9343c28b301334feeba82",
+      "src/intern/dwgheadersection.h": "e21268257d388d1b1edd849187e7ad61dfe37e15a85bcc6a79a427596891cab9",
+      "dwg2dxf/dx_iface.cpp": "5d30e2612cc931a667baae2ce6f67e06fea5a9f392a0b4ba138e37f697724d68",
+      "tests/dwg_reader_matrix_tests.cpp": "81dd4f4adb686d2899bb8ac481fb04fc62333d844aef79e39166d69799067941",
+      "tests/dwg2dxf_adapter_tests.cpp": "229754a63b4e378b10f7cb8903aee5a09440da45839afe681f3d6a1bc58d001d",
+      "src/intern/dwgreader.cpp": "5ae1236220cf35da91f933d0f8e34b482e06d9b24e08cd56ead258cd1c60cec9"
+    },
+    "executable": "build-gcc/dwg2dxf/dwg2dxf",
+    "executableSha256": "809c6957c51f5b7a5083a485303be643fbb32ebdc7203a28b65c71e2f1d29fea",
+    "tracePath": "/private/tmp/libdxfrw-cover-after-classes-profile.log",
+    "traceSha256": "b275a301f9ad212d7c15352aaa72e6ef44f90b3c274fc83610be3b667ca679bf",
+    "independentReader": {
+      "executable": "/opt/homebrew/bin/dwgread",
+      "version": "0.14",
+      "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "tracePath": "/private/tmp/libredwg-cover-v5.log",
+      "traceSha256": "5fd0b63edc6ba18b767805223b5fb411fb2522689938fa648f91edec8d810f7b",
+      "result": "SUCCESS 0x0; known HEADER handles end at logical byte 815, before the section CRC/sentinel. This does not explain the trailing suffix."
+    }
+  },
+  "readerResult": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Cover.dwg -y -d -v2013 <scratch output path>; verbose trace is bound separately above",
+    "firstFailure": "DXF export preflight during output preparation",
+    "error": "Reader operationSucceeded=true; CLI conversion exits failure at strict output preflight",
+    "result": "All 111 observed physical frames publish; entityParseFailures=0, objectParseFailures=0, classesCrcMismatch=0, dataStorageLinkFailures=0, and dataStorageOrphanRecords=0. Standard-object capture is complete for this observed source set (13 frames, 13 source receipts, 13 typed payload matches). Strict output preflight still refuses conversion because the 731-byte HeaderSectionUnclaimedData suffix makes the DWG read disposition incomplete; retain the suffix as unclassified and do not treat it as padding.",
+    "standardObjectCapture": {
+      "framesCaptured": 13,
+      "sourceReceiptsMatched": 13,
+      "typedPayloadsMatched": 13,
+      "opaquePayloadsMatched": 0,
+      "captureFailed": false,
+      "payloadValidationFailed": false,
+      "interpretation": "The source-membership capture gate now correlates and validates all 13 observed standard-object frames. This removes the former capture failure from the implementation queue; it does not qualify strict output or semantic support."
+    },
+    "headerIntegrity": "The 731-byte HEADER suffix remains unclaimed (expected end 844, observed end 1575) and is not accepted as padding."
+  },
+  "focusedValidation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests libdxfrw_graph_preservation_tests libdxfrw_writer_primitives_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+    "buildResult": "passed",
+    "standardObjectSourceCaptureSelector": "ctest --test-dir build-gcc -R '^dwg2dxf_standard_dwg_object_source_capture$' --output-on-failure",
+    "standardObjectSourceCaptureResult": "passed; generated empty-name/null-handle membership is retained, while empty-name/non-null-handle membership remains rejected",
+    "matrixSelector": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_reader_matrix|libdxfrw_graph_preservation|libdxfrw_writer_primitives|dwg2dxf_standard_dwg_object_source_capture)$' --output-on-failure",
+    "matrixResult": "all four focused CTest selectors passed; the three ordinary_enc_AC1027 exact HEADER, physical-frame accounting and root-identity assertions now pass",
+    "newFixtureFiles": 0
+  },
+  "next": "Find producer-backed or normative meaning for the 731-byte HEADER suffix before changing admission; otherwise retain it as unclaimed and keep strict-complete output refused. Continue reader/container/HEADER/CLASSES qualification only for uncovered version and producer profiles.",
+  "limitations": [
+    "The source DWG is outside the repository and was not added as a fixture.",
+    "No full test suite, native consumer, or independent semantic qualification was run.",
+    "The independent LibreDWG decode and local reader success do not explain the HEADER suffix or qualify strict output."
+  ]
+}

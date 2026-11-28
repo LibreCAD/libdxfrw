@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-02",
+  "status": "GENERATED_ASCII_BINARY_STANDARD_DIMENSION_SUBTYPE_OCS_TRANSPORT_PASS_NATIVE_SEMANTICS_OPEN",
+  "baselineHead": "f593874f",
+  "scope": "Fast generated ASCII/Binary DXF reader coverage for applyExtrusion across all standard DIMENSION subtype values 0 through 6; existing production conversion code is unchanged",
+  "authority": [
+    {
+      "title": "Autodesk Common Dimension Group Codes (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-EDD54EAC-A339-4EBA-AEA6-EC8066505E2B.htm",
+      "rules": [
+        "Dimension subtype values 0 through 6 identify rotated/linear, aligned, angular, diameter, radius, angular-3-point, and ordinate dimensions; bit 32 is set in R13 and later records.",
+        "Groups 10, 13, 14, and 15 are WCS points; groups 11, 12, and 16 are OCS points."
+      ]
+    },
+    {
+      "title": "Autodesk Object Coordinate Systems (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm",
+      "rule": "The OCS basis is calculated from the extrusion direction using the arbitrary-axis algorithm."
+    }
+  ],
+  "implementation": {
+    "files": [
+      {
+        "path": "tests/dxf_fixture_tests.cpp",
+        "sha256": "9322cc28b6b991a20bd10eed3bb56497e0f79321960e60eb05a9f5c8344064ff"
+      },
+      {
+        "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "sha256": "72d833bac1e5b1595269722ea75f2d6862708929bc035fac2972823af7c8b007"
+      }
+    ],
+    "behaviorCovered": [
+      "Generated R2013 DXF records use group-70 subtype values with the documented bit-32 flag.",
+      "The reader dispatches typed callbacks for all seven subtype values in ASCII and Binary DXF.",
+      "For every subtype, group-10 WCS definition and the tested subtype-specific group-13/14/15 WCS points remain unchanged in both extrusion modes.",
+      "For every subtype, group-11 OCS text point remains OCS by default and maps to WCS under applyExtrusion using an arbitrary X-axis normal.",
+      "The existing focused control continues to verify group-12 clone conversion for linear dimensions and group-16 arc-point conversion for two-line angular dimensions."
+    ]
+  },
+  "control": {
+    "generator": "writeDimensionOcsControl in tests/dxf_fixture_tests.cpp",
+    "selector": "--dimension-ocs-extrusion",
+    "subtypes": [
+      {"group70LowNibble": 0, "callback": "addDimLinear"},
+      {"group70LowNibble": 1, "callback": "addDimAlign"},
+      {"group70LowNibble": 2, "callback": "addDimAngular"},
+      {"group70LowNibble": 3, "callback": "addDimDiametric"},
+      {"group70LowNibble": 4, "callback": "addDimRadial"},
+      {"group70LowNibble": 5, "callback": "addDimAngular3P"},
+      {"group70LowNibble": 6, "callback": "addDimOrdinate"}
+    ],
+    "fixtureDisposition": "Inputs are generated in a temporary directory and deleted; no DWG/DXF fixture is committed."
+  },
+  "validation": {
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.0 (arm64-apple-darwin27.0.0)",
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --dimension-ocs-extrusion",
+      "result": "PASS",
+      "executableSha256": "f445cfa7b9d81cb639e73aaf495c0e3af58ba8529e723ad6c40f3cfc5204b3b3"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_dimension_ocs_extrusion$' --output-on-failure",
+      "result": "PASS, 1/1 in 0.04 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated parser/callback coordinate evidence only; no physical-producer pair or native CAD consumer was used.",
+    "No dimension text rendering, orientation, measurement, or associative semantic qualification follows.",
+    "ARC_DIMENSION and LARGE_RADIAL_DIMENSION are separate nonstandard/custom carriers and are not included.",
+    "No format-support claim is promoted."
+  ]
+}

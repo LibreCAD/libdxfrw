@@ -1,0 +1,189 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dimassoc-corpus-cardinality-2026-11-05",
+  "date": "2026-11-05",
+  "title": "DIMASSOC main and intersection handle cardinality in available local corpus",
+  "status": "BOUNDED_CORPUS_SCAN_NO_INTERSECTION_VECTOR_WITNESS",
+  "supportClaimEffect": "none",
+  "question": "Does the currently available physical DWG corpus provide a source witness for DIMASSOC intersection handle vectors beyond one handle, or main vectors beyond the two-handle AC1021 case?",
+  "method": {
+    "command": "/opt/homebrew/bin/dwgread -O minJSON -o <scratch-json> <source.dwg>",
+    "toolVersion": "dwgread 0.14",
+    "toolSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "jsonHandling": "LibreDWG minJSON emitted NaN for unrelated fields in one source. The scan normalized standalone NaN/Inf tokens to null before parsing; DIMASSOC handle counts and handles were parsed unchanged.",
+    "inventory": [
+      "/Users/dli/doc/dwg",
+      "tests/samples"
+    ],
+    "allPathCount": 46,
+    "uniqueByteIdentities": 28,
+    "orderedInventoryDigestSha256": "b0a5575e695235518960c322ee06b0cc9ced4a7c46a1b44e7e49011694fa5795",
+    "inputFiles": [
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+        "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+        "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/blocks_and_tables_-_metric.dwg",
+        "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/lineweights.dwg",
+        "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/plot_screening_and_fill_patterns.dwg",
+        "sha256": "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/tablet.dwg",
+        "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/truetype.dwg",
+        "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/architectural_example-imperial.dwg",
+        "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/civil_example-imperial.dwg",
+        "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+        "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/title_block-arch.dwg",
+        "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/title_block-iso.dwg",
+        "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/visualization_-_aerial.dwg",
+        "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+        "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/visualization_-_conference_room.dwg",
+        "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+        "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/#Pool_Detail.dwg",
+        "sha256": "8cfad4e4090ce5fead86c8fd4ed17020f6d13a4dda86f67d92953f10e8bf04ca",
+        "peerRead": "exit-1"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/#blocks_and_tables_-_metric.dwg",
+        "sha256": "e22c24d315c9f5819b2e8c3763c6dbb2a8d3ee450754f0f180763fd581a1ac17",
+        "peerRead": "exit-1"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/#mechanical_example-imperial.dwg",
+        "sha256": "57ec80c861976ea8b100033f2f92fcaf230e134a3a40d3ec9f3417bb173c6fcc",
+        "peerRead": "exit-1"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/#title_block-iso.dwg",
+        "sha256": "47bb4c784621b50b4b5395c8374a9e7c8cb9ad4886fd7f901aa25019a1a53987",
+        "peerRead": "exit-1"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/Cover.dwg",
+        "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/Extruder2.dwg",
+        "sha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/Pool_Detail.dwg",
+        "sha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+        "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/colorwh.dwg",
+        "sha256": "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+        "peerRead": "minJSON parsed"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/dwgreader21_230.dwg",
+        "sha256": "21b49e383cc43171fd13e2bbcd1c235bc1a57804be97f63a0d581fb944e743ff",
+        "peerRead": "exit-1"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/simple.dwg",
+        "sha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+        "peerRead": "minJSON parsed"
+      }
+    ]
+  },
+  "result": {
+    "peerExitZero": 23,
+    "peerExitOne": 5,
+    "jsonParseFailuresAfterNormalization": 0,
+    "dimassocObjectCount": 30,
+    "maximumMainHandleCount": 2,
+    "maximumIntersectionHandleCount": 1,
+    "multiMainReferences": 1,
+    "multiIntersectionReferences": 0,
+    "onlyMultiMainWitness": {
+      "path": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+      "dimassocHandle": "958E",
+      "osnapType": 1,
+      "mainHandles": [
+        "A86",
+        "112"
+      ],
+      "intersectionHandleCount": 0
+    }
+  },
+  "interpretation": "This finite local corpus supports the bounded two-main-handle transport slice and supplies no evidence to expand the intersection model. Corpus absence does not establish a format maximum or prove producer-wide cardinality. The five rejected inputs are excluded from the peer-decoded sample count. This scan does not qualify target roles, native associative semantics, or output support.",
+  "nextAction": "Keep intersection counts other than one loss-guarded until a physical producer witness and target-role evidence support a typed vector path. Preserve the current bounded main-handle vector support.",
+  "inputFilesModified": false,
+  "fixturesCommitted": 0
+}

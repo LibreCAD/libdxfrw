@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "upstreamLibdxfrwCommit": "4279a90377f3c4c158229980f4e6c9c94342e55f",
+  "scope": "Headless dwg2dxf command of clean macOS LibreCAD application with 14 unmerged patches and a temporary installed-upstream CMake overlay. A separate scratch rebuild added callback logging only for diagnosis.",
+  "source": "tests/samples/AC1024/title_block-iso.dwg",
+  "sourceSha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+  "observations": [
+    "The clean bundled LibreCAD application converts this source to a nonempty DXF. The clean installed-upstream-linked application returned exit 1 without creating an output for R2007 and R2010 targets; an AC1021 lineweights control succeeded.",
+    "The first reported callback failure in an instrumented upstream-linked scratch build was writeMLeaderStyle for R2007. Its emitted style had version 2, attachment direction 0 and R2010 top/bottom attachments 9/9. The writer explicitly refuses nonzero R2010 attachment data for pre-R2010 output; do not silently discard it.",
+    "For R2010, the first reported failed callback was writeSortEntsTable. The first selected table source 22D4 had zero entity/sort pairs and a named-block owner (source 225B, mapped 22D7), outside the writer's model/paper-space owner admission. Additional callbacks after the first failure may reflect the writer's sticky error.",
+    "The libdxfrw dwg2dxf adapter on this same source and R2010 target independently refused during its LAYER output stage; it uses distinct qualification logic. This is not a proof that projecting the SORTENTSTABLE alone would complete conversion."
+  ],
+  "next": "Trace each source-bound empty table through its block record, extension dictionary, ACAD_SORTENTS entry, reactor and other references. Adapt the existing strictly validated no-op projection only if the complete source and remaining output graph close; otherwise retain refusal. Then address the next actual failure and add destination-preservation, retry and independent readback controls.",
+  "limits": "The callback trace records the first reported failure, not proof that no earlier internal sticky error occurred. The source is an existing repository fixture, not an authenticated producer witness. Bundled conversion success alone does not prove semantic preservation. Diagnostic instrumentation and generated DXF remain scratch-only; no support claim is promoted."
+}

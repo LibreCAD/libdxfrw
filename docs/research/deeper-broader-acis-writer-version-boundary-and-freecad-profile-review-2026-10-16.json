@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "date": "2026-10-16",
+  "title": "Deeper/broader ACIS writer version-boundary and FreeCAD consumer-profile review",
+  "scope": "Public-source research to refine existing S8.4/S8.5 ACIS carrier and FreeCAD consumer gates. No peer checkout/build/run, native CAD/kernel run, fixture, or local test was performed.",
+  "sources": [
+    {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1150",
+      "kind": "open_pull_request",
+      "observations": [
+        "PR remains open and is not a released capability result.",
+        "Author describes pre-2013 inline SAT and R2013+ ACDSDATA/AcDs SAB routes for DXF/DWG.",
+        "Author reports a directory-position versus sorted-handle-rank defect found with unsorted records.",
+        "Author reports SAT chunks split at whitespace so a token does not span group 1/3 values.",
+        "Author reports AcDb3dSolid subclass/history field begins at R2007, and says DXF targets R2000/R2004/R2007/R2010/R2013 opened in TrueView.",
+        "The branch does not support R2007 DWG writing; its described DWG header handling includes AC1018+ empty AcDs section behavior."
+      ],
+      "limits": [
+        "These are branch-author reports, not normative ODA conclusions or independently reproduced runs.",
+        "No branch build, code diff audit, output artifact, or consumer run was performed in this research pass."
+      ]
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+      "kind": "open_pull_request",
+      "observations": [
+        "Separate maintainer proposal for Region, CadBody, and Solid3D ACIS writing.",
+        "PR page identifies schema/storage work #1174 as a dependency and shows no deployment."
+      ],
+      "limits": [
+        "Not a released writer, deployed build, or semantic result."
+      ]
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "kind": "versioned_documentation",
+      "observations": [
+        "DWG import/export is delegated through an external converter and then shares DXF settings.",
+        "Converter selection includes LibreDWG, ODA File Converter, and QCAD Professional.",
+        "DXF import selects a C++ or legacy Python backend and exposes import filters, object creation choices, scale, joining, and grouping settings."
+      ],
+      "limits": [
+        "Documentation repository is archived; treat as a versioned profile reference, not proof about an arbitrary current FreeCAD binary.",
+        "No FreeCAD application was run."
+      ]
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "kind": "maintainer_issue_response",
+      "observations": [
+        "Issue is closed as not planned; maintainer distinguishes explicit DXF entities from proprietary ACIS blobs and says stock FreeCAD cannot interpret the blobs."
+      ],
+      "limits": [
+        "Does not establish behavior of optional add-ons, commercial translators, or future builds."
+      ]
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "kind": "peer_release_notes",
+      "observations": [
+        "LibreDWG 0.14.1 notes describe decompression capacity/logical-size, section/page offset, integer arithmetic, 3DSOLID block-size, and non-finite angle writer failure classes."
+      ],
+      "limits": [
+        "Peer-specific release notes do not demonstrate analogous local defects."
+      ]
+    }
+  ],
+  "plan_changes": [
+    "Treat AC1021/R2007 as a test hypothesis for the DXF AcDb3dSolid subclass boundary and reconcile against ODA plus independently reopened outputs before production changes.",
+    "Strengthen existing generated group-1/3 SAT tests with exact chunk-limit, token-adjacent split, escape-boundary, exact reconstruction, and following-record cases.",
+    "Retain adversarial AcDs tests where directory position, sorted-handle rank, and entity traversal order differ.",
+    "Record exact FreeCAD converter, importer backend, relevant filters, object-creation mode, and unit scale at the composed consumer checkpoint; do not count stock FreeCAD as an ACIS semantic oracle.",
+    "Keep LibreDWG-inspired arithmetic/resource checks within current PAR-14/7BE and 7S.2/7S.3 owners; add local regressions only after mapping an analogous local path."
+  ],
+  "disposition": {
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "new_tests_or_fixtures": 0,
+    "support_claims_promoted": 0,
+    "plan_findings": 123,
+    "top_level_subplans": 71,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

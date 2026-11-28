@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-assocnetwork-action-handle-role-guard-2026-11-10",
+  "date": "2026-11-10",
+  "status": "CANDIDATE_ROLE_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "question": "For the bounded AC1032 class-version-2 associative-network parser candidate, do each action's ownership flag and encoded handle role agree?",
+  "reference": {
+    "repository": "/Users/dli/dev/libredwg",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "file": "src/dwg2.spec",
+    "lines": "3192-3210",
+    "evidence": "The stable ASSOCNETWORK grammar writes each action's is_owned bit followed by a hard-owner reference when true or soft-pointer reference when false. Its separately listed owned_actions vector also uses soft-pointer references. This is an implementation grammar reference, not the authoritative ODA DWG specification or producer proof."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "behavior": "The parser now validates AC1032 class-version-2 action handle roles against each is_owned bit and validates the separately listed owned_actions vector as soft-pointer references. It still leaves m_networkFieldsParsed false and does not qualify AC1032 writer output."
+  },
+  "generatedControls": {
+    "test": "libdxfrw_assocnetwork_ac1032_multi_action_generated",
+    "profiles": [
+      "three mixed-ownership action entries with matching role codes and a soft-pointer owned_actions entry",
+      "non-owned action encoded with hard-owner role is rejected; corrected input succeeds on the same reader",
+      "owned action encoded with soft-pointer role is rejected; corrected input succeeds on the same reader",
+      "owned_actions entry encoded with hard-owner role is rejected; corrected input succeeds on the same reader"
+    ],
+    "result": "PASS"
+  },
+  "physicalSourceRecheck": {
+    "repository": "/Users/dli/dev/libredwg",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "path": "test/test-data/example_2018.dwg",
+    "sha256": "7bc7721224003062b237845842b7a976e46771c37eba6833b9ed3712e7a5a65a",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocnetwork-ac1032-candidate-profile /Users/dli/dev/libredwg/test/test-data/example_2018.dwg",
+    "result": "PASS for associative-network candidate: source AC1032, objects 0x390 and 0x38e each retain complete bounded Action and Network prefixes (class version 2), separate action-index candidates, and action ownership roles. The whole file has one unrelated TABLECONTENT parse failure, 473/474 frames published, and no CLASSES/data-section CRC mismatch. No output was written."
+  },
+  "remainingBlockers": [
+    "The cited grammar is from LibreDWG and does not replace ODA's authoritative specification.",
+    "The ACadSharp AecObjects.dwg candidate still fails the libdxfrw handle-map gate before OBJECTS and has unresolved producer/integrity provenance.",
+    "AC1032 associative-network physical spans, complete source graph, writer eligibility, and consumer meaning remain unqualified."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+    "focusedTest": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_assocnetwork_ac1032_multi_action_generated$'",
+    "result": "PASS (1/1)",
+    "fullSuites": "not run"
+  },
+  "fixturePolicy": "No DWG/DXF fixture was added; generated vectors are constructed in memory."
+}

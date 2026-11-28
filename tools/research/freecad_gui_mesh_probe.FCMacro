@@ -1,0 +1,324 @@
+"""Exercise a patched FreeCAD GUI importer with scratch DXF controls.
+
+Run this macro with a GUI-enabled FreeCAD build and disposable --user-cfg and
+--system-cfg paths. Set FREECAD_RESEARCH_TOOLS_DIR to this directory; the
+headless companion provides the scratch layer drawings.
+Set FREECAD_PART_MODULE_DIR, FREECAD_DRAFT_MODULE_DIR, FREECAD_3RDPARTY_DIR,
+and FREECAD_PYSIDE_DIR when these modules are not installed in the build.
+The build also needs its MaterialLib, MaterialModelLib and AppearanceLib
+resources. A successful run prints FREECAD_GUI_MESH_PROBE with ok=true.
+Set FREECAD_GUI_MESH_PROFILE=smoke for a focused subset; the default is full.
+This checks view-provider properties. FREECAD_GUI_CAPTURE_DIR additionally
+captures visibility frames for independent pixel analysis by the runner.
+"""
+import ctypes
+import json
+import os
+from pathlib import Path
+import platform
+import runpy
+import sys
+import tempfile
+import traceback
+import uuid
+
+for name in ("FREECAD_PYSIDE_DIR", "FREECAD_3RDPARTY_DIR", "FREECAD_DRAFT_RESOURCE_DIR", "FREECAD_DRAFT_MODULE_DIR",
+             "FREECAD_PART_MODULE_DIR", "FREECAD_RESEARCH_TOOLS_DIR"):
+    if os.environ.get(name):
+        sys.path.insert(0, os.environ[name])
+
+import FreeCAD as App
+from PySide import QtCore, QtGui
+
+
+def windows_opengl_module():
+    if sys.platform != "win32":
+        return None
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.GetModuleHandleW.argtypes = [ctypes.c_wchar_p]
+    kernel.GetModuleHandleW.restype = ctypes.c_void_p
+    kernel.GetModuleFileNameW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_uint32]
+    kernel.GetModuleFileNameW.restype = ctypes.c_uint32
+    handle = kernel.GetModuleHandleW("opengl32.dll")
+    if not handle:
+        return None
+    buffer = ctypes.create_unicode_buffer(32768)
+    length = kernel.GetModuleFileNameW(handle, buffer, len(buffer))
+    if not length or length >= len(buffer):
+        raise OSError("could not resolve loaded OpenGL module")
+    return buffer.value
+
+
+def color_drawing(mixed):
+    tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
+            (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")]
+    for offset, parent, faces in ((0, 1, (2, 3) if mixed else (2, 2)),
+                                  (10, 2, (2, 2))):
+        tags.extend([(0, "POLYLINE"), (8, "0"), (66, 1), (70, 64), (62, parent)])
+        for x, y in ((offset, 0), (offset + 4, 0), (offset + 4, 3), (offset, 3)):
+            tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0),
+                         (70, 192), (62, parent)])
+        for indices, color in zip(((1, 2, 3), (1, 3, 4)), faces):
+            tags.extend([(0, "VERTEX"), (8, "0"), (10, 0), (20, 0), (30, 0),
+                         (70, 128), (71, indices[0]), (72, indices[1]),
+                         (73, indices[2]), (62, color)])
+        tags.extend([(0, "SEQEND"), (8, "0")])
+    tags.extend([(0, "LINE"), (8, "0"), (62, 3), (10, 30), (20, 0), (30, 0),
+                 (11, 32), (21, 0), (31, 0), (0, "ENDSEC"), (0, "EOF")])
+    return "".join(f"{code}\n{value}\n" for code, value in tags)
+
+
+def run():
+    parent = None
+    option_name = "CodexGuiMeshProbe_" + uuid.uuid4().hex
+    result = {"ok": False}
+    try:
+        if not __debug__:
+            raise RuntimeError("The probe requires Python assertions to be enabled")
+        import Draft
+        import ImportGui
+        tools_dir = os.environ.get("FREECAD_RESEARCH_TOOLS_DIR")
+        if not tools_dir:
+            raise RuntimeError("FREECAD_RESEARCH_TOOLS_DIR is required")
+        controls = runpy.run_path(str(Path(tools_dir) / "freecad_real_draft_mesh_layer_probe.py"),
+                                  run_name="freecad_mesh_control_library")
+
+        qt_frameworks = {}
+        if sys.platform == "darwin":
+            dyld = ctypes.CDLL(None)
+            dyld._dyld_image_count.restype = ctypes.c_uint32
+            dyld._dyld_get_image_name.argtypes = [ctypes.c_uint32]
+            dyld._dyld_get_image_name.restype = ctypes.c_char_p
+            for index in range(dyld._dyld_image_count()):
+                image = dyld._dyld_get_image_name(index).decode()
+                for component in image.split("/"):
+                    if component.startswith("Qt") and component.endswith(".framework"):
+                        qt_frameworks.setdefault(component, []).append(image)
+            if "QtCore.framework" not in qt_frameworks or any(len(p) != 1 for p in qt_frameworks.values()):
+                raise RuntimeError(f"Missing QtCore or duplicate Qt frameworks: {qt_frameworks}")
+
+        if not App.GuiUp:
+            raise RuntimeError("A GUI-enabled FreeCAD session is required")
+        parent = App.ParamGet("User parameter:BaseApp/Preferences/Mod/Import")
+        options = parent.GetGroup(option_name)
+        options.SetInt("DxfImportMode", 2)
+        source = "User parameter:BaseApp/Preferences/Mod/Import/" + option_name
+        results = []
+        layer_colors = {}
+        with tempfile.TemporaryDirectory(prefix="freecad-gui-mesh-probe-") as scratch:
+            cases = ("polyface", "polygon", "mixed", "nested", "nested_polygon",
+                         "nested_nolayers", "nested_polygon_nolayers", "nested_inches_nolayers",
+                         "nested_polygon_inches_nolayers", "vertex_polyface_nocolor", "vertex_polygon_nocolor",
+                         "vertex_polyface_color", "vertex_polygon_color",
+                         "byblock_parent_polyface_nocolor", "byblock_parent_polyface_color",
+                         "byblock_parent_polygon_nocolor", "byblock_parent_polygon_color",
+                         "byblock_vertex_polyface_nocolor", "byblock_vertex_polyface_color",
+                         "byblock_vertex_polygon_nocolor", "byblock_vertex_polygon_color",
+                         "byblock_face_polyface_nocolor", "byblock_face_polyface_color",
+                         "byblock_all_polyface_nocolor", "byblock_all_polyface_color",
+                         "byblock_all_polygon_nocolor", "byblock_all_polygon_color",
+                         "nested_byblock_parent_nolayers", "nested_byblock_vertex_nolayers",
+                         "nested_byblock_face_nolayers", "nested_byblock_all_nolayers",
+                         "layer_on_1", "layer_off_1", "layer_on_2", "layer_off_2", "layer_on_7", "layer_off_7",
+                         "layer_on_10", "layer_off_10",
+                         "layer_on_250", "layer_off_250", "layer_on_255", "layer_off_255",
+                         "layer_on_2_nogroups", "layer_off_2_nogroups", "layer_frozen_2", "layer_newviewport_2",
+                         "layer_frozenoff_2", "layer_frozen_2_nogroups", "layer_frozenoff_2_nogroups",
+                         "layer_invalidnegative_256", "layer_invalidpositive_257",
+                         "layer_invalidnegative_2147483648", "layer_invalidpositive_2147483647",
+                         "layer_invalidnegative_2147483648_nogroups",
+                         "layer_syntaxnegative_1", "layer_syntaxpositive_1", "layer_syntaxdupenegative_1",
+                         "layer_syntaxdupepositive_1", "layer_syntaxnegoverflow_1", "layer_syntaxposoverflow_1",
+                         "layer_syntaxnegative_1_nogroups", "layer_syntaxformfeed_1", "layer_syntaxverticaldup_1",
+                         "color", "color_mixed",
+                         "color_mixed_nocolor")
+            profile = os.environ.get("FREECAD_GUI_MESH_PROFILE", "full")
+            if profile == "smoke":
+                selected = {"polyface", "polygon", "mixed", "nested_nolayers",
+                            "layer_on_2", "layer_off_2", "layer_frozen_2",
+                            "color", "color_mixed", "color_mixed_nocolor"}
+                cases = tuple(case for case in cases if case in selected)
+                if set(cases) != selected:
+                    raise RuntimeError("The GUI smoke profile references an unknown case")
+            elif profile != "full":
+                raise RuntimeError("Unknown GUI mesh profile: " + profile)
+            for case in cases:
+                pixel_files = None
+                is_color = case.startswith("color")
+                is_vertex = case.startswith("vertex_")
+                is_byblock = case.startswith("byblock_")
+                nested_byblock = case.startswith("nested_byblock_")
+                is_layer = case.startswith("layer_")
+                no_layers = is_color or case.endswith("_nolayers") or case.endswith("_nogroups")
+                options.SetBool("dxfUseDraftVisGroups", not no_layers)
+                options.SetBool("dxfGetOriginalColors", (is_color and not case.endswith("_nocolor"))
+                                or ((is_vertex or is_byblock) and case.endswith("_color")) or is_layer)
+                path = Path(scratch) / (case + ".dxf")
+                drawing_case = case[:-len("_nolayers")] if case.endswith("_nolayers") else case
+                inches = drawing_case.endswith("_inches")
+                if inches:
+                    drawing_case = drawing_case[:-len("_inches")]
+                if is_vertex or is_byblock:
+                    drawing_case = "polygon" if "polygon" in case else "polyface"
+                if nested_byblock:
+                    drawing_case = "nested"
+                if is_layer:
+                    drawing_case = "polyface"
+                byblock_at = case.split("_")[2] if nested_byblock else case.split("_")[1] if is_byblock else ""
+                drawing_text = (color_drawing(case.startswith("color_mixed")) if is_color
+                                else controls["drawing"](drawing_case, 1 if inches else 4, is_vertex, byblock_at))
+                if is_layer:
+                    mode = case.split("_")[1]
+                    aci = int(case.split("_")[2]) * (-1 if mode in ("off", "frozenoff", "invalidnegative") else 1)
+                    flags = 1 if mode in ("frozen", "frozenoff") else 2 if mode == "newviewport" else 0
+                    syntax_values = {"syntaxnegative": ("-oops",), "syntaxpositive": ("2junk",),
+                                     "syntaxdupenegative": ("-2", "2"), "syntaxdupepositive": ("2", "1"),
+                                     "syntaxnegoverflow": ("-2147483649",), "syntaxposoverflow": ("2147483648",),
+                                     "syntaxformfeed": ("\f-oops",), "syntaxverticaldup": ("\v-2", "2")}
+                    raw_colors = syntax_values.get(mode, (str(aci),))
+                    if mode in syntax_values:
+                        aci = -7 if any(value.lstrip(" \t\r\n\v\f").startswith("-") for value in raw_colors) else 7
+                    layer_tag = "0\nLAYER\n2\nMESH\n70\n0\n62\n1\n"
+                    assert drawing_text.count(layer_tag) == 1
+                    color_tags = "".join(f"62\n{value}\n" for value in raw_colors)
+                    drawing_text = drawing_text.replace(layer_tag, f"0\nLAYER\n2\nMESH\n70\n{flags}\n{color_tags}")
+                    line_tag = "0\nLINE\n8\n0\n"
+                    assert drawing_text.count(line_tag) == 1
+                    drawing_text = drawing_text.replace(line_tag, "0\nLINE\n8\nMESH\n")
+                path.write_text(drawing_text, encoding="ascii")
+                doc = App.newDocument("GuiMeshProbe")
+                try:
+                    stats = ImportGui.readDXF(str(path), doc.Name, True, source)
+                    doc.recompute()
+                    shapes = [obj for obj in doc.Objects
+                              if hasattr(obj, "Shape") and not obj.Shape.isNull()]
+                    lines = [obj for obj in shapes if obj.Name.startswith("Shape")
+                             and len(obj.Shape.Edges) == 1]
+                    assert len(lines) == 1, (case, [o.Name for o in shapes])
+                    if is_layer:
+                        meshes = [obj for obj in shapes if obj.Name.startswith("Polyface")]
+                        initial = aci >= 0 and mode not in ("frozen", "frozenoff")
+                        invalid_color = mode in ("invalidnegative", "invalidpositive")
+                        invalid_syntax = mode in syntax_values
+                        assert len(meshes) == 1
+                        assert ("Layer color index out of range" in stats["unsupportedFeatures"]) == invalid_color
+                        assert ("Invalid or duplicate layer color" in stats["unsupportedFeatures"]) == invalid_syntax
+                        if no_layers:
+                            reason = "Off-layer visibility without layer grouping"
+                            assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
+                            assert (reason in stats["unsupportedFeatures"]) == (aci < 0)
+                            if aci < 0:
+                                assert len(stats["unsupportedFeatures"][reason]) == 2
+                            assert ("Frozen layers" in stats["unsupportedFeatures"]) == bool(flags & 1)
+                            detail = {"aci": aci, "flags": flags, "initialVisible": True,
+                                      "offVisibilityReported": aci < 0}
+                        else:
+                            layer = next(obj for obj in doc.Objects if obj.Label == "MESH"
+                                         and getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer")
+                            assert set(layer.Group) == {meshes[0], lines[0]}
+                            assert ("Frozen layers" in stats["unsupportedFeatures"]) == bool(flags & 1)
+                            assert set(stats["unsupportedFeatures"]) <= {"Frozen layers", "Layer color index out of range",
+                                                                         "Invalid or duplicate layer color"}
+                            assert layer.ViewObject.Visibility == initial
+                            assert meshes[0].ViewObject.Visibility == initial and lines[0].ViewObject.Visibility == initial
+                            layer.ViewObject.Visibility = True
+                            assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
+                            colors = (tuple(layer.ViewObject.LineColor), tuple(lines[0].ViewObject.LineColor),
+                                      tuple(meshes[0].ViewObject.ShapeColor))
+                            index = 7 if invalid_color or invalid_syntax else abs(aci)
+                            if initial and not invalid_color and not invalid_syntax:
+                                layer_colors[index] = colors
+                            else:
+                                assert colors == layer_colors[index], (case, colors, layer_colors[index])
+                            detail = {"aci": aci, "initialVisible": initial, "colorsAfterShow": colors}
+                    elif is_color:
+                        meshes = [o for o in shapes if o.Name.startswith("Polyface")]
+                        assert len(meshes) == (1 if case == "color_mixed" else 2)
+                        assert all(len(m.Shape.Faces) == 2 and abs(m.Shape.Area - 12) < 1e-9 for m in meshes)
+                        if not case.endswith("_nocolor"):
+                            assert all(tuple(round(x, 5) for x in m.ViewObject.ShapeColor[:3])
+                                       == (1.0, 1.0, 0.0) for m in meshes)
+                            assert tuple(round(x, 5) for x in lines[0].ViewObject.LineColor[:3]) == (0.0, 1.0, 0.0)
+                        if case == "color_mixed":
+                            assert "POLYFACE unsupported or invalid profile" in stats["unsupportedFeatures"]
+                        else:
+                            assert not stats["unsupportedFeatures"]
+                        detail = {"meshColors": [list(m.ViewObject.ShapeColor) for m in meshes],
+                                  "followingLineColor": list(lines[0].ViewObject.LineColor)}
+                    elif case.endswith("_nolayers"):
+                        links = [obj for obj in shapes if obj.TypeId == "App::Link"]
+                        assert len(links) == 1 and links[0].ViewObject.Visibility
+                        assert lines[0].ViewObject.Visibility and not stats["unsupportedFeatures"]
+                        assert len(links[0].Shape.Faces) == 1
+                        scale = 25.4 if inches else 1.0
+                        area = (12 if case.startswith("nested_polygon") else 6) * scale * scale
+                        assert abs(links[0].Shape.Area - area) < 1e-8
+                        assert abs(lines[0].Shape.Length - 2 * scale) < 1e-8
+                        assert abs(stats["finalScalingFactor"] - scale) < 1e-8
+                        bounds = links[0].Shape.BoundBox
+                        assert all(abs(a - b * scale) < 1e-8 for a, b in zip(
+                            (bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax), (1, 2, 5, 5)))
+                        detail = {"link": links[0].Name, "area": links[0].Shape.Area,
+                                  "bounds": [bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax],
+                                  "scale": scale, "followingLineLength": lines[0].Shape.Length}
+                    else:
+                        groups = {obj.Label: [member.Name for member in obj.Group]
+                                  for obj in doc.Objects if hasattr(obj, "Group")
+                                  and getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer"}
+                        assert lines[0].Name in groups["0"]
+                        accepted_colorless = (is_vertex or is_byblock) and case.endswith("_nocolor")
+                        if case in ("polyface", "polygon") or accepted_colorless:
+                            is_polygon = case == "polygon" or (accepted_colorless and "polygon" in case)
+                            name = "PolygonMesh" if is_polygon else "Polyface"
+                            meshes = [obj for obj in shapes if obj.Name.startswith(name)]
+                            assert len(meshes) == 1 and meshes[0].Name in groups["MESH"]
+                            assert meshes[0].OriginalLayer == "MESH"
+                            assert len(meshes[0].Shape.Faces) == 1
+                            assert abs(meshes[0].Shape.Area - (12 if is_polygon else 6)) < 1e-9
+                            assert not stats["unsupportedFeatures"]
+                            layer = next(obj for obj in doc.Objects if obj.Label == "MESH"
+                                         and getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer")
+                            assert layer.ViewObject.Visibility and meshes[0].ViewObject.Visibility
+                            assert lines[0].ViewObject.Visibility
+                            layer.ViewObject.Visibility = False
+                            assert not meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
+                            layer.ViewObject.Visibility = True
+                            assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
+                            if case == "polyface" and os.environ.get("FREECAD_GUI_CAPTURE_DIR"):
+                                import FreeCADGui as Gui
+                                framebuffer = runpy.run_path(str(Path(tools_dir) / "freecad_framebuffer_capture.py"))
+                                pixel_files = framebuffer["capture"](
+                                    Gui.activeDocument().activeView(), meshes[0].ViewObject,
+                                    lines[0].ViewObject, os.environ["FREECAD_GUI_CAPTURE_DIR"],
+                                    QtCore.QCoreApplication.processEvents)
+                        else:
+                            reason = ("POLYGON MESH unsupported or invalid profile" if (is_vertex or is_byblock) and "polygon" in case
+                                      else "POLYFACE nondefault layer in block" if case == "nested"
+                                      else "POLYGON MESH nondefault layer in block" if case == "nested_polygon"
+                                      else "POLYFACE unsupported or invalid profile")
+                            assert reason in stats["unsupportedFeatures"] and not groups["MESH"]
+                        detail = {"groups": groups}
+                    if pixel_files is not None:
+                        detail["pixelFiles"] = pixel_files
+                    results.append({"case": case, "detail": detail,
+                                    "unsupported": stats["unsupportedFeatures"]})
+                finally:
+                    App.closeDocument(doc.Name)
+        result = {"ok": True, "profile": profile, "guiUp": App.GuiUp, "importModule": ImportGui.__file__,
+                  "executable": sys.executable, "platform": sys.platform, "machine": platform.machine(),
+                  "freecadVersion": list(App.Version()), "pythonVersion": sys.version,
+                  "qtPlatform": QtGui.QGuiApplication.platformName(),
+                  "draftResourceModule": getattr(sys.modules.get("Draft_rc"), "__file__", None),
+                  "draftModule": Draft.__file__, "qtFrameworkImages": qt_frameworks,
+                  "windowsOpenGLModule": windows_opengl_module(),
+                  "results": results}
+    except Exception:
+        result["error"] = traceback.format_exc()
+    finally:
+        if parent is not None:
+            parent.RemGroup(option_name)
+        print("FREECAD_GUI_MESH_PROBE=" + json.dumps(result, sort_keys=True, default=str), flush=True)
+        QtCore.QCoreApplication.quit()
+
+
+QtCore.QTimer.singleShot(0, run)

@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-native-hatch-move-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "76f265bbe3465fdc66771784d028fe979d68bc31",
+  "scope": "One locally authored AC1024 model-space solid HATCH and closed straight LWPOLYLINE on macOS ARM64.",
+  "host": {"os": "macOS 27.2.1", "build": "26B131", "architecture": "arm64"},
+  "procedure": [
+    "Build the current consumer with the installed shared codec, changing only the scratch application's QSettings organization name to isolate user preferences; restore the source after the build and ad-hoc-sign the scratch app.",
+    "Open the authored source in the native GUI, observe the filled contour, save a separate AC1024 copy, and reopen it.",
+    "Select both entities using the native Select All command, use Move / Copy with originals disabled and reference (0,0) to target (1,2), save another AC1024 copy and reopen it. The moved filled contour is visible after reopen.",
+    "ezdxf independently reads source, native save and native moved save: one associative HATCH and one closed LWPOLYLINE, reciprocal boundary/reactor identities, matching model-space owner and contour edges, exact expected coordinates and zero audit errors or fixes."
+  ],
+  "sha256": {
+    "source": "1e24eac2a25d4bf21c1ba1cefa7f81bd3fde4fdd91e8337d5db62d4d95c08f55",
+    "nativeSave": "46bf8c6b4441ee2e5f9d3985156f610b2a50cfc44137d91924ec90cfb60d6df1",
+    "nativeMovedSave": "f7af99dbe1cf00902d92d537b62a370505b23b42754bfbbe6bfb8da199eb417c",
+    "peerAudit": "0bed391e0eae615142a1244309439293be6d5452ab38bdba9c357b412cbdda98",
+    "isolatedAppBinary": "be24cd4a290fca4933a30b18787104da99fd7924e7ca17abfd2bd25a89481be1",
+    "sharedCodecBinary": "c69aa4c72c5a2113d73a822be8782f8ccfe53a85473b935acf353bf5ca90aa02"
+  },
+  "limits": [
+    "This tests one local source, one move and one macOS ARM64 GUI configuration. It does not qualify arbitrary edits, copying, other producer graphs, Linux/Windows or general HATCH support.",
+    "The isolated application binary differs from the candidate only in its settings organization. No source or saved drawing fixture is committed."
+  ]
+}

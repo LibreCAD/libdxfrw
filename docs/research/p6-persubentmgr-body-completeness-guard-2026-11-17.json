@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-persubentmgr-body-completeness-guard-2026-11-17",
+  "date": "2026-11-17",
+  "title": "Require full body consumption for complete PERSUBENTMGR prefix status",
+  "status": "IMPLEMENTED_BUILD_AND_FOCUSED_SELECTOR_PASS",
+  "supportClaimEffect": "none",
+  "trigger": "S42's source-bound AC1021 trace stopped at body bit 243 with a body bound of 205099, while the PERSUBENTMGR status path used bodyFits() alone to select Complete. bodyFits() proves the cursor remains within the limit; it does not prove the body was consumed. The status feeds the raw carrier's typedPayloadValidated disposition.",
+  "change": {
+    "file": "src/drw_objects.cpp",
+    "behavior": "PERSUBENTMGR receives Complete only when bodyFits() is true, the decoded cursor equals bodyEndBit, and the profile is not one of the already bounded abbreviated-prefix cases. An unconsumed tail remains Partial and therefore follows the existing raw/unvalidated carrier route.",
+    "scope": "Status and raw-validation classification only. No field order, vector meaning, handle role, serialization, or support claim changed."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target dwg2dxf -j2",
+    "buildResult": "PASS: [100%] Built target dxfrw; [100%] Built target dwg2dxf.",
+    "focusedRegression": {
+      "date": "2026-11-18",
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "buildResult": "PASS",
+      "selector": "ctest --test-dir build-gcc -R '^libdxfrw_persistent_manager_incomplete_body_tail$' --output-on-failure",
+      "result": "PASS (1/1, 0.25 seconds)",
+      "control": "Generated AC1021 common OBJECT frames from scratch: a valid decoded prefix followed by 64 opaque body bits, then a complete following manager frame. The test checks Partial status, exact raw-frame retention, typedPayloadValidated=false, raw-only publication, and complete following-frame publication. No DWG/DXF fixture is added.",
+      "files": [
+        "tests/persistent_manager_test_helpers.h",
+        "tests/dwg_reader_matrix_tests.cpp",
+        "tests/CMakeLists.txt"
+      ]
+    },
+    "broaderSelector": {
+      "selector": "build-gcc/libdxfrw_dwg_reader_matrix_tests --persistent-manager-prefix-dispatch",
+      "result": "PASS after S45. The first run exposed two test expectations that treated a softened record-level failure as a failed OBJECTS read, and one TABLECONTENT typed-callback leak for semantically incomplete content. S45 corrected the record-level expectations and guarded the TABLECONTENT callback; see docs/research/p5-tablecontent-semantic-incomplete-callback-guard-2026-11-18.json."
+    },
+    "postChangeSampleRun": {
+      "date": "2026-11-18",
+      "source": "/Users/dli/dev/libredwg/test/test-data/2007/ATMOS-DC22S.dwg",
+      "sourceSha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+      "traceLog": "/private/tmp/ATMOS-DC22S-libdxfrw-post-S43.log",
+      "traceLogSha256": "aeb4be36a9979fb5394a655177d70855f485672bf87f7519f7f86fe2560040a7",
+      "observation": "The same 14 bounded bitlongs stop at bit 243 of the 205099-bit body limit. All 424 source frames publish with zero object/entity parse failures. Strict DXF output still refuses before publication on IMAGEDEF handle 0x7b owner-back-reference qualification, so this is not a PERSUBENTMGR output result."
+    }
+  },
+  "disposition": {
+    "P6B": "OPEN; the manager tail, member semantics, producer/API operation, and selected path remain unqualified.",
+    "wholeFileOutput": "S42's strict CLI attempt stopped before output on an unrelated IMAGEDEF owner-back-reference check at handle 0x7b; that blocker remains separate.",
+    "sourceCompatibility": "Existing abbreviated AC1021/AC1024/AC1027/AC1032 profiles retain their explicit Partial disposition; ordinary fully consumed bodies retain Complete."
+  },
+  "next": "Keep P6-B waiting for native API-state evidence and independent field/role proof. Do not generalize the source's flat-vector observations. Triage the three unrelated failures reported by the combined selector before using it as a readiness signal; the new focused regression selector is green. Continue unrelated ready profiles."
+}

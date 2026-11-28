@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw-class-emission-contract-readiness-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "8cb0a4537cfa455c3ff5b87b62ea5ae656355f7a",
+  "scope": "Broader source audit of custom DXF CLASS instance-count boundaries and the FreeCAD DWG-to-DXF consumer handoff",
+  "method": {
+    "kind": "static source review of local peer checkouts plus Autodesk/FreeCAD primary documentation",
+    "runtimeTestsRun": false,
+    "networkPinning": "Peer repository trees were inspected locally and bound to their HEAD commit IDs and source SHA-256 values. FreeCAD main source/documentation is mutable and was not pinned to a commit in this environment; pin exact FreeCAD build/revision before execution.",
+    "principle": "A source-derived divergence is a test/design risk, not evidence that a particular peer output failed or that libdxfrw has a reproduced defect."
+  },
+  "peerSnapshots": {
+    "ACadSharp": {
+      "commit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "workingTree": "clean at review",
+      "files": {
+        "src/ACadSharp/CadDocument.cs": "85fa8dc3d0c5cff741c35f2a96926f9cd12e2c1cb0395aba360af8e9ea8522a0",
+        "src/ACadSharp/IO/CadWriterBase.cs": "f566ca8c31b14b550b5b65bb9e421f05207f0a295a40c6b4ba531b16a3f7f2a2",
+        "src/ACadSharp/Classes/DxfClassCollection.cs": "dd40fdd69f02de596c59a6dd1476f186288bfec23f422c7f58780b8f2d761446",
+        "src/ACadSharp/IO/DXF/DxfStreamWriter/DxfClassesSectionWriter.cs": "969007b7645ed926ad1a578a0fcaf3c66f02917f0b369b86cf8468ee2a5d1808",
+        "src/ACadSharp/IO/DXF/DxfStreamWriter/DxfObjectsSectionWriter.cs": "c20424ec09b19c87f8b8c146530f54eece12b24c5fc686bb9822d223210020b4",
+        "src/ACadSharp/IO/DxfWriter.cs": "90a14995aa058bb4d0374094bba0238cfea9f2c6a3774b90ae8567f5c3c1576f"
+      }
+    },
+    "LibreCAD_bundled_libdxfrw": {
+      "commit": "41678d97626c05ab652ceaa02cf0ac7f7f6205cf",
+      "workingTree": "dirty/untracked unrelated files observed; inspected source file hash binds evidence",
+      "files": {
+        "libraries/libdxfrw/src/libdxfrw.cpp": "e25899f21a51ff1c4ffe03d0660902315b4d7a117337b664798ca2b15d4a3219"
+      }
+    },
+    "ezdxf": {
+      "commit": "dd7f6cc34983",
+      "files": {
+        "src/ezdxf/sections/classes.py": "51f48788c5391cf60662be03072c94a83608e53c37a037d9f1764aeaacd82a81"
+      }
+    }
+  },
+  "findings": [
+    {
+      "id": "ACADSHARP_CLASS_COUNT_SCOPE",
+      "evidence": [
+        "CadWriterBase.Write invokes CadDocument.UpdateDxfClasses before DXF section output.",
+        "CadDocument.GetInstanceCount counts matching ObjectName values across the full _cadObjects collection.",
+        "DxfClassesSectionWriter emits group 91 in CLASSES before DxfObjectsSectionWriter emits OBJECTS.",
+        "DxfObjectsSectionWriter.isObjectSupported explicitly filters MATERIAL, VISUALSTYLE, DIMASSOC, EVALUATION_GRAPH and several other classes."
+      ],
+      "assessment": "Source code establishes differing count and emission scopes. It implies an instance-count mismatch for any filtered class whose input count is nonzero, but no peer runtime or concrete malformed output was produced in this review.",
+      "planUse": "Treat peer class counting as an architecture example, not an oracle. Count custom-class instances from the complete final emitted cross-section selection after graph admission, unsupported-record refusal/filter decisions, and raw/typed dedup.",
+      "pinnedFiles": [
+        "src/ACadSharp/IO/CadWriterBase.cs:42-46",
+        "src/ACadSharp/CadDocument.cs:576-582",
+        "src/ACadSharp/Classes/DxfClassCollection.cs:224-249",
+        "src/ACadSharp/IO/DXF/DxfStreamWriter/DxfClassesSectionWriter.cs:9-24",
+        "src/ACadSharp/IO/DXF/DxfStreamWriter/DxfObjectsSectionWriter.cs:369-375,581-603"
+      ]
+    },
+    {
+      "id": "LIBRECAD_CLASS_HELPER_CALLER_COUNT",
+      "evidence": "Pinned LibreCAD bundled libdxfrw helper dxfClassForRecordName fills class identity/flags, initializes instanceCount to zero, and explicitly documents that the caller fills group 91.",
+      "assessment": "Useful metadata shape reference; not a count implementation or output qualification.",
+      "planUse": "Do not mistake class registration for count derivation; bind counts to libdxfrw's final admitted record manifest."
+    },
+    {
+      "id": "FREECAD_CONVERTER_AND_IMPORT_PROFILE",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md"
+      ],
+      "evidence": "Current main's DWG-to-DXF wrapper waits for the converter but accepts output-file existence without checking return code; its preferences select converter mode and C++ versus optional Python import and alter several imported-feature/geometry settings. Official format documentation describes stock FreeCAD DXF/DWG import as 2D-only for ACIS-carried 3D data.",
+      "assessment": "Mutable-branch static source/documentation review only; no native FreeCAD process was run.",
+      "planUse": "For FreeCAD qualification, capture requested/effective converter, child argv/status, fresh output hash, DXF parse/sanity, fallback children, exact handoff path, importer mode, and relevant effective preferences. Keep stock FreeCAD outside the ACIS B-rep oracle lane."
+    }
+  ],
+  "implementationReadiness": {
+    "classCountManifest": "Compute group-91 counts from the complete immutable set of records guaranteed to be emitted across ENTITIES, BLOCKS, and OBJECTS. A refusal/filter or raw/typed dedup decision must occur before class metadata freezes and CLASSES is written.",
+    "requiredGeneratedControls": [
+      "two source records of one custom class where only one is admitted; output group 91 must be 1",
+      "same record represented by raw and typed routes; exactly one output record and group 91 must be 1",
+      "class whose all instances are refused; no stale class registration/count contribution",
+      "ASCII and binary output parse-back for AC1018+ instance counts"
+    ],
+    "freecadGate": "Keep explicit LibreDWG mode separate from Automatic fallback. Verify exact converter invocation, successful status, fresh complete output, independent DXF parse and semantic handoff before assessing FreeCAD open/insert results. Snapshot effective importer and feature-changing preferences."
+  },
+  "validation": {
+    "build": "NOT RUN",
+    "tests": "NOT RUN",
+    "peerRuntimes": "NOT RUN",
+    "nativeFreeCAD": "NOT RUN",
+    "drawingFixturesAdded": 0,
+    "newCTestRegistrations": 0,
+    "supportClaimsPromoted": false
+  },
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "localSourceSha256": {
+    "src/libdxfrw.cpp": "1b62a9b68d055c3a6e5887f209cabb94e1779995f5e1048abfd1ca0f031609aa",
+    "src/libdxfrw.h": "2baa52bc1d20ec8bf4229eb13aee19468c3733b3a983536266d39f4ebded2c2b",
+    "dwg2dxf/dx_iface.cpp": "a173c10979ebf3a84e064ab7ba18addb4cd913347bbd32308f4dd86cc3c373f3"
+  }
+}

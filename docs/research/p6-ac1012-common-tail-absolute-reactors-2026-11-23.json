@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-common-tail-absolute-reactors-2026-11-23",
+  "date": "2026-11-23",
+  "status": "FAST_ROLE_CONTROL_PASS_SPEC_PAIR_RECHECKED_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["2.13", "20.1", "20.4.44", "20.4.73"],
+    "contract": "The legacy object owner is a soft pointer and may use relative soft-pointer encodings; common persistent reactors are absolute soft pointers; the extension dictionary is a hard owner, including a typed null. DICTIONARY item handles are soft owners."
+  },
+  "change": {
+    "implementation": "dwg2dxf/dx_legacy_dwg_wire.h",
+    "regressionControl": "tests/dwg_ac1014_dictionaryvar_tests.cpp",
+    "behavior": "The shared common-tail observer now keeps relative soft-pointer decoding on the owner only. Reactor references must retain absolute role 4; the extension dictionary retains role 3. Tests call the shared legacy dictionary observer directly.",
+    "versions": ["AC1012", "AC1014", "AC1015"],
+    "relativeReactorCases": ["role 6, length 0", "role 8, length 0", "role 10, offset 1", "role 12, offset 1"],
+    "ownerCompatibility": "The generated AC1012 pair and existing control retain valid role-12 relative owner decoding."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_ac1014_dictionaryvar_tests dwg2dxf -j4 && ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+    "result": "PASS; the -Werror target build is current and the focused CTest passed 1/1 at implementation revision ecc6eb28162b61da510f9546a521d8c904c62b84. The test exercises all four relative reactor encodings across AC1012/AC1014/AC1015, rejects them as reactor roles, and retains valid owner offsets.",
+    "implementationRevisionFocusedCtest": "PASS; 1/1 in 0.00 seconds, labels AC1012/AC1014/AC1015, dictionaryvar, dwg, fast, generated, transaction.",
+    "implementationDigestSha256": "2f53ecf6c97862e374ad37095e14576cc2835a6647bf39970eafb9998b1232c7",
+    "implementationDigestInputCount": 774
+  },
+  "specDirectedPair": {
+    "producer": "GNU LibreDWG 0.14; local specification-directed generation, not AutoCAD-authored",
+    "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py",
+    "scratchDirectory": "/private/tmp/ac1012-spec-pairs-20261123/ac1012-dictionary-merge-hf64tzsv",
+    "graph": "NOD -> ACAD_MLINESTYLE -> SAME_KEY; the target MLINESTYLE owner points back to ACAD_MLINESTYLE; HEADER DIMSTYLE points to Standard.",
+    "commonDictionaryFrameSha256": "f742211bff5f5da8008ca8dbf2c1fd61a128fabe657b4f1ddc2d86e51c8fb75a",
+    "samples": {
+      "destination": {
+        "dwgSha256": "aa59899dc5053ef6f11a68667d93f0056f50125d68d4438d0edc8faf5d5fc865",
+        "dictionaryHandle": 23,
+        "rootHandle": 12,
+        "sameKeyTargetHandle": 46,
+        "startAngleRadians": 0.26179938779915,
+        "partialAsciiSha256": "e28f870f5e3acb3e67d398dc14abb4bec7e7ed76575d4abbc2b0d1174944502f",
+        "partialBinarySha256": "c601dffb3234421275d23dd8f1a27818ad87bb136663f7d72110ca022cd08129"
+      },
+      "source": {
+        "dwgSha256": "00e05bf7705df49c2a307bb9a56de916b75d9761e712206e38f8829f1059d1d5",
+        "dictionaryHandle": 23,
+        "rootHandle": 12,
+        "sameKeyTargetHandle": 46,
+        "startAngleRadians": 0.6457718232379,
+        "partialAsciiSha256": "a240f23f1c76c71906cd19176f0f84c8aa0d9185895f67f1e49daea620153238",
+        "partialBinarySha256": "d993e01b2eeb7d11dcdf86ecc6d704dc66a78430f86edbc80d378257276b4e46"
+      }
+    },
+    "libdxfrw": {
+      "dwg2dxfSha256": "207eed01c1518cd9458e65b11093b8ecb35acf5ef6acb8d08d741eabf93bc1eb",
+      "focusedTestSha256": "d9a901587fa6a9342aa8f7add0853cdcb12fcf663b56bb0f9bbe67a800b4af67",
+      "physicalFrameResult": "PASS for both AC1012 dictionary frames; parser reset and corrected retry pass.",
+      "strictOutput": "Refused for both samples while preserving the destination; six unrelated opaque VIEW callbacks remain unqualified.",
+      "explicitPartialOutput": "ASCII and Binary outputs for both samples pass the bounded local dictionary/style audit and retain the selected 15-degree or 37-degree target."
+    }
+  },
+  "limits": [
+    "Generated files remain in scratch storage and are not repository fixtures.",
+    "The paired files demonstrate source graph and value discrimination, not native normal-open, duplicate-merge, clone, or WBLOCK behavior.",
+    "Strict AC1012 output remains guarded and no DWG/DXF support claim is promoted."
+  ]
+}

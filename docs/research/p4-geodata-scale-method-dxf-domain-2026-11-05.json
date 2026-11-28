@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Modern GEODATA DXF scale-estimation method domain",
+  "date": "2026-11-05",
+  "status": "MODERN_DXF_WRITER_SCALE_METHOD_DOMAIN_GUARD_VERIFIED",
+  "scope": "For GEODATA object versions 2 and 3, DXF group 95 now writes only documented values 1 through 4. The model default and reset value are 1 (no scale adjustment), so default modern output uses a valid value. Version 1 remains on its distinct map and accepts this modern-field default while refusing nondefault modern-only values. DXF input parsing remains tolerant.",
+  "normativeSources": [
+    {
+      "title": "Autodesk GEODATA (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm",
+      "group95": "1 none; 2 user-specified scale factor; 3 grid scale at reference point; 4 prismoidal."
+    },
+    {
+      "title": "Open Design Alliance DbGeoData API reference",
+      "url": "https://docs.dev.graebert.com/html/2025.0.1/cfx/d7/d0f/_db_geo_data_8h_source.html",
+      "enum": "ScaleEstimationMethod starts at kScaleEstMethodUnity = 1, then user-defined, reference-point and prismoidal methods in order."
+    }
+  ],
+  "implementation": {
+    "files": ["src/libdxfrw.cpp", "src/drw_objects.cpp", "src/drw_objects.h"],
+    "behavior": "Modern DXF output rejects group-95 values below 1 or above 4 during preflight. DRW_GeoData default construction/reset now selects documented method 1. The v1 output guard treats that value as the default modern-only field and continues rejecting other values so v1 data is not silently dropped."
+  },
+  "regressionControl": {
+    "file": "tests/wave1_tests.cpp",
+    "test": "libdxfrw_geodata_versioned_writer",
+    "coverage": "For v2 and v3 in ASCII and Binary, values -1, 0 and 5 preserve a prior output prefix and caller identity; corrected same-writer retries use valid values 1 or 4 and typed readback verifies the method. The default modern writer emits group 95 value 1. Existing v1 and v2/v3 roundtrip controls still pass.",
+    "fixturePolicy": "All controls are authored locally in memory; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "buildResult": "passed",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_geodata_versioned_writer$' --output-on-failure",
+    "focusedTestResult": "passed",
+    "diffCheck": "git diff --check passed"
+  },
+  "sourceBinding": {
+    "baseRevision": "86900edffcbae5ecb918b4d4ffd5744d52ccf18d",
+    "files": {
+      "src/libdxfrw.cpp": "4fcd156901d9aa7f1505baa8fff3a5cd92acd83032fd83012c286fbb53ed9801",
+      "src/drw_objects.cpp": "a00149d5982d41706b7952b7eb6e2395b0be3705e9a5264fe42c92ea37ee288c",
+      "src/drw_objects.h": "4174a13f41e7330d3d8606f40885a4d0218f9c0dbfb7cd96d58a63f37cd0785c",
+      "tests/wave1_tests.cpp": "9112d6f617ca7ae3cda509fc2ef6776f3dcfb61385782e149c208df41d3d4abc"
+    }
+  },
+  "nonClaims": [
+    "No physical producer or native geospatial consumer was qualified.",
+    "This does not qualify GEODATA ownership, whole-document graph closure, map projection behavior or DWG encoding semantics."
+  ]
+}

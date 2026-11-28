@@ -1,0 +1,86 @@
+{
+  "id": "RPP-5us",
+  "title": "MLINE-referenced simple LTYPE with ordered string and entity-handle XDATA",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "49ca40b6b4883e40d0ee60627afa03cdcbc12cec",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated DXF; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "entity_provider": {
+      "type": "LINE",
+      "source_handle": "0xA900",
+      "source_section": "ENTITIES",
+      "source_owner": "0x201",
+      "source_owner_name": "*Model_Space"
+    },
+    "xdata": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1000, "value": "provider-owned-xdata" },
+      { "code": 1005, "value": "A900", "role": "soft-pointer entity handle" }
+    ]
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "documents": [
+      {
+        "title": "DXF Group Codes in Numerical Order Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "relevant_rule": "Group 1000 is a string value in extended data; group 1005 is an entity handle encoded as a hexadecimal string of up to 16 digits."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 handles behave as soft pointers and translate when referenced objects are copied or inserted."
+      }
+    ]
+  },
+  "proof": {
+    "source": "Exact ordered physical XDATA groups 1001/1000/1005 bind one bare APPID, the string payload, and the captured code-1005 object identity. The target handle binds to one typed LINE in ENTITIES owned by model space; raw and typed XDATA agree.",
+    "output": "For both source encodings and both output encodings, staged bytes contain the exact ordered XDATA payload with the translated LINE handle. Fresh import verifies typed order/value, one emitted LINE, model-space BLOCK_RECORD ownership, and the handle reference. Existing LTYPE source binding is also asserted.",
+    "failure_retry": "Removing the target LINE refuses export and preserves a destination sentinel; restoring it succeeds on the same adapter. A late LINE-handle mutation after APPID emission also refuses atomically; restoring the handle succeeds on the same adapter. Both retries pass exact physical and typed readback.",
+    "counts": {
+      "composition_positive_profiles": 4,
+      "composition_successful_readbacks_including_retries": 6,
+      "composition_refusals_with_destination_preservation": 2,
+      "composition_same_adapter_retries": 2,
+      "whole_focused_test_profiles": 52,
+      "whole_focused_test_readbacks": 108,
+      "whole_focused_test_refusals": 56,
+      "whole_focused_test_retries": 56
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focused_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "focused_result": "PASS",
+    "runtime_counts": "profiles=52; readbacks=108; refusals=56; retries=56",
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_bindings": {
+      "commit": "49ca40b6b4883e40d0ee60627afa03cdcbc12cec",
+      "test_source_sha256": "60dc4abe8f76e1da509a6ee9953e0021a050eeb1de1b3df91de26f0ebdddab7a",
+      "focused_executable_sha256": "a60737894a8daeac41188ff75cdbac7f95262b02ac25f51a57efe23ddbc50fe4",
+      "cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+    },
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This receipt covers only one AC1027 simple-LTYPE XDATA sequence, one APPID, one group-1000 value, and one group-1005 soft pointer to a unique model-space LINE in ENTITIES. Other values, orders, target types/sections/multiplicities, list or multi-chunk compositions, APPID metadata, LTYPE schemas and versions remain unqualified.",
+    "This is transport and identity-remapping evidence. It does not establish application-specific XDATA meaning, MLINE rendering, recursive document closure, or broader LTYPE support."
+  ]
+}

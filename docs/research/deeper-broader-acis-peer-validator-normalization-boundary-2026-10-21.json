@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "ACIS peer validator and normalization boundary",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Inspect the actual ACadRust ACIS validation and mutating normalization API boundaries",
+    "Separate peer self-roundtrip and generated primitive evidence from independent geometry evidence",
+    "Reconcile acis-core/cq-acis parser and OpenCascade kernel lineage",
+    "Keep FreeCAD explicit-entity import separate from embedded ACIS consumption",
+    "Turn optional structural comparison into a bounded, self-unblocking implementation recipe"
+  ],
+  "sources": [
+    {
+      "project": "ACadRust versioned ACIS API",
+      "references": [
+        "https://docs.rs/acadrust/0.5.5/acadrust/entities/acis/types/struct.SatDocument.html",
+        "https://docs.rs/acadrust/0.5.5/acadrust/entities/acis/sab/struct.SabReader.html",
+        "https://docs.rs/acadrust/0.5.5/acadrust/entities/acis/index.html"
+      ],
+      "observation": "The published 0.5.5 API describes structural pointer/topology validation; separate mutating APIs fill missing vertex-edge/edge-coedge links or remove non-core records and remap references. SabReader maps bytes into a SatDocument. This supports a candidate structural parser comparison but not geometric-kernel validity. The docs version must not be assigned to the moving repository's 0.6.5 release without artifact/source reconciliation."
+    },
+    {
+      "project": "ACadRust moving repository test source",
+      "reference": "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+      "observation": "The current test file includes generated planar geometry passed through the same project's DWG writer and reader, as well as marker-shaped fake SAB bytes used in a transport test helper. These tests are useful self-consistency and preservation evidence only; the moving branch must be pinned before release-specific attribution."
+    },
+    {
+      "project": "cq-acis and acis-core",
+      "references": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+        "https://docs.rs/acis-core/latest/acis_core/"
+      ],
+      "observation": "acis-core documents its own typed model and bounded SAB/ASM parsing while explicitly not constructing OCCT solids. cq-acis documents conversion of a supported subset through CadQuery/OpenCascade. Count these as one parser-plus-kernel lineage, not independent votes or general ACIS coverage."
+    },
+    {
+      "project": "FreeCAD current DXF/DWG routes",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observation": "The current guide documents separate C++ and legacy DXF entity subsets and says stock DXF import cannot read embedded binary ACIS/SAT. DWG helper routes invoke a selected converter before DXF import; converter completion is not evidence that a solid body was consumed."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S3/S8: separate raw SAT/SAB parsing, untouched graph validation, repair/normalization, shape construction, independent geometric measurement, and native acceptance",
+      "PAR-07/S8: pin peer artifact and API identity; preserve raw/unsupported records and source-reference occurrence before any mutating helper",
+      "S2/S8: distinguish FreeCAD converter completion, strict DXF parse, explicit-entity import, and ACIS body semantics"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "geometryKernelsRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Only optional structural-peer admission details were sharpened. Validate an untouched peer model before invoking helpers that complete topology links or strip/remap records. Neither peer self-roundtrip nor structural validation promotes geometry support; independent kernel/application evidence remains separately required."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "repositoryClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "geometryKernelsRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-acis-peer-validator-normalization-boundary-2026-10-21.json"
+    ],
+    "limitations": "ACadRust docs.rs pages identify v0.5.5, while the repository has a newer release; current moving tests were not bound to an immutable source artifact. Peer API/test claims were not executed. The FreeCAD documentation constrains documented importer capability but is not a runtime qualification. No new geometry truth or support evidence was obtained."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on both plans)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

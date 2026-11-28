@@ -1,0 +1,19 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 section 20.4.44: R2004+ DICTIONARY has a missing-xdictionary flag; 1 omits the xdictionary handle and 0 stores it.",
+  "scope":"Only the writer's two internally constructed NOD and ACAD_GROUP dictionaries, which have no extension dictionary. AC1018 and later set the missing flag to 1. AC1015 and all source/caller-specified object metadata are unchanged.",
+  "witness":"Independent ODA-produced AC1018 LINE source root and GROUP dictionaries have missing flag 1; before the change the generated root and GROUP had flag 0 and a null xdictionary handle. LibreDWG 0.14 reads both corrected synthetic flags as 1 with no xdictionary handle in generated AC1018/1021/1024/1027/1032 files. AC1015 has no such flag.",
+  "controlled_oda_differential": {
+    "reader":"ODA File Converter 27.1.0; ACAD2013 DXF output; inspect .err and absent DXF, not exit status",
+    "controls":"All four locally generated AC1018 scratch files use the corrected typed null root owner and nonzero HEADER GROUP reference; no extra NOD entries. Only the two generated-dictionary missing flags differ.",
+    "cases":[
+      {"root_flag":0,"group_flag":0,"sha256":"67eb20b341500b5d01834f91a152205ef609998fd771c22b299d4ff3f01df5b1","result":"Object improperly read: <AcDbDictionary> (C); previous error .dwg file needs recovery"},
+      {"root_flag":1,"group_flag":0,"sha256":"fcf1b72e3cddae87d12c281a5f86b54f9812d24f5c9e195fc6020870ffbb4404","result":"Object improperly read: <AcDbTextStyleTableRecord> (13); previous error .dwg file needs recovery"},
+      {"root_flag":0,"group_flag":1,"sha256":"6bc5730c55705dd20a429a96021dec70ef7374c781c58983ac1642032380248b","result":"Object improperly read: <AcDbDictionary> (C); previous error .dwg file needs recovery"},
+      {"root_flag":1,"group_flag":1,"sha256":"85d7d5b05d35344e05f41ffa4ff26ed36150be154fcc02e62ea00cab7435ae2d","result":"Object improperly read: <AcDbTextStyleTableRecord> (13); previous error .dwg file needs recovery"}
+    ],
+    "result":"All four emit .err files and no DXF. The corrected production AC1018 file is byte-identical to the root=1, group=1 control. The observed error boundary moves when the root flag is 1; it does not establish the root cause of the later text-style failure. An expanded six-dictionary scratch graph also reached the same text-style error, but the four-way control shows those additional dictionaries are unnecessary for this advancement."
+  },
+  "tests": ["libdxfrw_dwg_group_dictionary_controls: all six writer versions, root/group flag callbacks, following GROUP/XRECORD alignment, failure with no output and same-writer valid retry", "libdxfrw_dwg_header_writer_sealing: PASS", "libdxfrw_standard_dwg_group_metadata: PASS, including source-specific extension metadata"],
+  "limits":"ODA still does not accept the generated AC1018 example, so no broad support claim is made. All DWGs used here are locally generated scratch artifacts; no fixture is committed."
+}

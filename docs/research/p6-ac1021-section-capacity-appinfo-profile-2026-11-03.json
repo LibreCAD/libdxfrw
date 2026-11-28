@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1021-section-capacity-appinfo-profile-2026-11-03",
+  "date": "2026-11-03",
+  "status": "SECTION_PROFILE_CORRECTED_ODA_REJECTION_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1, sections 5.2 and 5.4",
+    "requirement": "R2007 section-map capacities are 0xf800 for AcDbObjects, ObjFreeSpace, Handles and Classes; 0x1000 for RevHistory; 0x400 for Template; 0x800 for Header and AuxHeader; and 0x300 for AppInfo. AppInfo uses section encoding 1 and is not marked as compressed."
+  },
+  "physicalProducer": {
+    "producer": "ODA File Converter 27.1.0, locally authored one-LINE DXF converted to AC1021",
+    "dwgSha256": "f3bb8e438a7df7ecb2a45535f548e8b035af253272d8b70cfa6056e7ec32dae3",
+    "observation": "The producer's section map uses the documented capacities, and its AppInfo page uses encoding 1 with equal compressed and uncompressed byte counts."
+  },
+  "finding": "The AC1021 writer previously applied the R2004 0x7400 capacity to almost all sections and compressed AppInfo with encoding 4. These values differ from the documented and independently witnessed R2007 profile.",
+  "change": "Use the R2007 default and section-specific capacities for locally generated sections and emit the built-in AppInfo uncompressed with encoding 1. Explicit raw-section capacity overrides remain supported.",
+  "validation": {
+    "readerSelectors": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_r2007_section_map_page_extent|libdxfrw_dwg_r2007_crc_spec_vectors|libdxfrw_dwg_r2007_data_page_crc_profiles)$' --output-on-failure: PASS 3/3",
+    "writerSelectors": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_fixed_metadata_pointer|libdxfrw_dwg_local_roundtrip)$' --output-on-failure: PASS 2/2",
+    "physicalMap": "The actual generated AC1021 file is decoded through the system pages and each mandatory locally generated section descriptor is checked for its literal capacity and encoding; AppInfo also requires equal compressed and uncompressed sizes.",
+    "independentRead": "LibreDWG 0.14 minJSON reads the generated profile with all listed descriptor capacities, encoding-1 AppInfo and one LINE with endpoints (1,2,3) to (4,5,6). LibreDWG also reports its known diagnostic for the unnamed empty map descriptor."
+  },
+  "independentConverter": {
+    "tool": "ODA File Converter 27.1.0",
+    "input": "Locally authored minimal single-LINE AC1021 scratch output with the earlier header/name corrections and this section profile",
+    "dwgSha256": "8dcfd0fcaf1d5079dadd624d12d9cf5941f3745f1442338399bc1945bf406c9b",
+    "operation": "ACAD2013 DXF, recursion disabled, audit disabled",
+    "result": "Exit status zero with only an .err reporting Invalid input; no DXF was produced.",
+    "interpretation": "The section profile correction is documented and witnessed, but it does not resolve the rejection."
+  },
+  "limits": [
+    "The profile and readback tests do not establish ODA whole-file compatibility or native semantics.",
+    "No fixture was committed."
+  ]
+}

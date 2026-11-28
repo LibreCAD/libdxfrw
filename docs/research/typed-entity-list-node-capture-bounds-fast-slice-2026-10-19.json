@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-19",
+  "type": "generated-fast-implementation-slice",
+  "owner": "7S.2c typed entity callback list-node retention",
+  "scope": [
+    "Account the dx_ifaceBlock::ent std::list node for each retained typed entity",
+    "Preflight IMAGE entity and lookup-list nodes together before typed callback publication"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "Typed callback admission adds the stored DRW_Entity pointer plus two link-pointer slots to each concrete entity estimate.",
+      "IMAGE admission preflights both its block entity-list node and separate images lookup-list node before retaining either.",
+      "Generated exact-accounting and byte-refusal controls were adjusted so the IMAGE clip-path and lookup-node boundaries remain independently exercised."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focused_selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --typed-entity-capture-limits",
+    "ctests": [
+      {
+        "name": "dwg2dxf_typed_entity_capture_limits",
+        "result": "passed"
+      },
+      {
+        "name": "dwg2dxf_image_path_cli",
+        "result": "passed"
+      }
+    ],
+    "diff_check": "passed for implementation, adapter test, plan, and receipt",
+    "full_suite": "not run"
+  },
+  "disposition": {
+    "new_finding": false,
+    "new_top_level_subplan": false,
+    "new_fixture_or_registration": false,
+    "new_dependency": false,
+    "support_claims_promoted": false,
+    "counts": {
+      "findings": 139,
+      "top_level_subplans": 77
+    },
+    "external_only_items_promoted": [],
+    "external_only_items_still_deferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limits": [
+    "The node estimate is logical pointer/link slot accounting, not implementation-specific list-node allocation or RSS measurement.",
+    "This closes dx_ifaceBlock::ent node accounting and combined IMAGE preflight only; the broader 7S.2c ownership census remains open."
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Autodesk AC1021 FIELD/FIELDLIST graph and TABLE value screen",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "scope": "Screen the exact producer-attributed AutoCAD 2007 AC1021 source for linked FIELD/FIELDLIST identities, the two table-owned field graphs, and expected field results. Determine whether P5-A can reuse this source and what evidence still blocks body-span qualification.",
+  "source": {
+    "path": "/private/tmp/autodesk_blocks_and_tables_metric.dwg",
+    "sizeBytes": 258848,
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "headerVersion": "AC1021",
+    "producerReceipt": "docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json",
+    "producer": "AutoCAD 2007, AppInfo version 17.0.48.0"
+  },
+  "evidenceInputs": {
+    "libreDwg": {
+      "tool": "GNU LibreDWG dwgread 0.14, minJSON output",
+      "path": "/private/tmp/autodesk_blocks_and_tables_metric.minjson",
+      "sha256": "8947d321b784a3eab81a7fe1336c19fde04f37588ce476d7546e7eef3fd42a3f"
+    },
+    "libdxfrwTrace": {
+      "path": "/private/tmp/autodesk_blocks_and_tables_metric.log",
+      "sha256": "eda8049de54d282fb6bc2dfac84e9e38869aa2db5f753fa317a05744f4af739b"
+    },
+    "independentTableReadback": {
+      "tool": "ACadSharp",
+      "sourceCommit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "assemblySha256": "99f24d71403ecdbda2272473ebd995d5d2e773b4a6e887bcdb404293cbf18b77",
+      "path": "/private/tmp/acadsharp-autodesk-table-output.txt",
+      "sha256": "6069633fe984a476433706c5053745accbf7be52da3d60226a3aa6b67541f799"
+    },
+    "primaryAuthority": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        {
+          "section": "20.4.76",
+          "use": "FIELD object sequence, child ownership handles, object references, flags, values, and child-value sequence."
+        },
+        {
+          "section": "20.4.77",
+          "use": "FIELDLIST membership sequence and root-dictionary placement."
+        },
+        {
+          "section": "20.4.99",
+          "use": "Versioned CadValue layout used by FIELD values."
+        },
+        {
+          "section": "20.4.96.1",
+          "use": "AutoCAD 2007 TABLE profile and legacy cell representation."
+        }
+      ]
+    }
+  },
+  "findings": {
+    "fieldList": {
+      "handle": "0xdbd3",
+      "ownerHandle": "0xc",
+      "memberCount": 162,
+      "uniqueMemberCount": 162,
+      "resolvedFieldObjectCount": 162,
+      "memberSetEqualsFieldObjectSet": true
+    },
+    "crossDecoderObjectLengths": {
+      "libreDwgFieldObjectCount": 162,
+      "libdxfrwTraceFieldHandleCount": 162,
+      "sameHandleSet": true,
+      "bitSizeMatches": 162,
+      "bitSizeMismatches": 0,
+      "limit": "This compares decoded object bit lengths. It does not provide per-object starting bit offsets, internal field spans, or the following-object boundary."
+    },
+    "tableOwnedFieldGraphs": [
+      {
+        "tableHandle": "0x2856e",
+        "tableSize": "9 rows x 9 columns",
+        "anonymousBlockHeader": "0x28497",
+        "rootChildFieldPairCount": 7,
+        "ownerPath": "FIELD -> DICTIONARY -> DICTIONARY -> MTEXT -> BLOCK_HEADER",
+        "pairs": [
+          {"root": "0x36768", "child": "0x36769", "expression": "G3*H3", "cachedValue": "$378.00", "cachedDouble": 378.0},
+          {"root": "0x36c17", "child": "0x36c18", "expression": "G4*H4", "cachedValue": "$1323.00", "cachedDouble": 1323.0},
+          {"root": "0x36c19", "child": "0x36c1a", "expression": "G5*H5", "cachedValue": "$329.00", "cachedDouble": 329.0},
+          {"root": "0x36c1b", "child": "0x36c1c", "expression": "G6*H6", "cachedValue": "$329.00", "cachedDouble": 329.0},
+          {"root": "0x36c1d", "child": "0x36c1e", "expression": "G7*H7", "cachedValue": "$189.00", "cachedDouble": 189.0},
+          {"root": "0x36c1f", "child": "0x36c20", "expression": "G8*H8", "cachedValue": "$476.00", "cachedDouble": 476.0},
+          {"root": "0x36f10", "child": "0x36f11", "expression": "Sum(I3:I8)", "cachedValue": "$3024.00", "cachedDouble": 3024.0}
+        ]
+      },
+      {
+        "tableHandle": "0x2a974",
+        "tableSize": "10 rows x 9 columns",
+        "anonymousBlockHeader": "0x2a987",
+        "rootChildFieldPairCount": 8,
+        "ownerPath": "FIELD -> DICTIONARY -> DICTIONARY -> MTEXT -> BLOCK_HEADER",
+        "pairs": [
+          {"root": "0x3bbbd", "child": "0x3bbbe", "expression": "G3*H3", "cachedValue": "$567.00", "cachedDouble": 567.0},
+          {"root": "0x3c0d0", "child": "0x3c0d1", "expression": "G4*H4", "cachedValue": "$3780.00", "cachedDouble": 3780.0},
+          {"root": "0x3c0d2", "child": "0x3c0d3", "expression": "G5*H5", "cachedValue": "$1743.00", "cachedDouble": 1743.0},
+          {"root": "0x3c0d4", "child": "0x3c0d5", "expression": "G6*H6", "cachedValue": "$1113.00", "cachedDouble": 1113.0},
+          {"root": "0x3c0d6", "child": "0x3c0d7", "expression": "G7*H7", "cachedValue": "$218.00", "cachedDouble": 218.0},
+          {"root": "0x3c0d8", "child": "0x3c0d9", "expression": "G8*H8", "cachedValue": "$229.00", "cachedDouble": 229.0},
+          {"root": "0x3c0da", "child": "0x3c0db", "expression": "G9*H9", "cachedValue": "$378.00", "cachedDouble": 378.0},
+          {"root": "0x3c73f", "child": "0x3c740", "expression": "Sum(I3:I9)", "cachedValue": "$8028.00", "cachedDouble": 8028.000000000001}
+        ]
+      }
+    ],
+    "expectedValueCrossCheck": {
+      "method": "Use ACadSharp's independently decoded source TABLE quantity and cost cells, multiply each row per the FIELD expression, then sum the row products for each total expression.",
+      "doorRowProductsAndTotal": [378.0, 1323.0, 329.0, 329.0, 189.0, 476.0, 3024.0],
+      "windowRowProductsAndTotal": [567.0, 3780.0, 1743.0, 1113.0, 218.0, 229.0, 378.0, 8028.0],
+      "cachedFieldValuesMatch": true,
+      "limit": "The arithmetic cross-check is derived from independently decoded TABLE inputs and the source FIELD expressions. ACadSharp's table output leaves the field-backed TOTAL cells empty; it does not independently evaluate these FIELD expressions or establish their display in AutoCAD."
+    }
+  },
+  "unresolved": [
+    "No independent per-object source-body start/end bit cursor was captured for the FIELD records or FIELDLIST.",
+    "No independent following-object boundary is bound to the FIELD body-end cursor; matching total bit sizes are not a substitute.",
+    "The MText/display graph is structurally linked through field dictionaries, but native AutoCAD rendering and edit behavior are unqualified.",
+    "This receipt does not establish strict DXF serialization, fresh DXF-to-DWG roundtrip, general AC1021 support, or a support claim."
+  ],
+  "implementationReadiness": {
+    "status": "SOURCE_GRAPH_AND_VALUE_SCREEN_COMPLETE; INDEPENDENT_FIELD_SPANS_OPEN",
+    "sourceReuse": "Admit this exact AutoCAD 2007 source for P5-A; producer identification, FIELDLIST membership, table ownership graph, and expected expression results are now bound.",
+    "codeChange": "This evidence does not justify a parser or writer change. Typed FIELD/FIELDLIST parse, callback, and encode paths already exist; the strict source-graph route remains unqualified. Do not duplicate the existing paths before exact source-span and graph-closure evidence identifies a concrete gap.",
+    "nextAction": "Capture independent source-body cursor spans for the FIELD/FIELDLIST objects needed by the two TABLE graphs, including the next-object boundary. Crosswalk against ODA v5.4.1 §§20.4.76, 20.4.77, 20.4.99, then reuse existing refusal, rollback/retry, and writer selectors to close only the remaining profile graph/output gap.",
+    "fixturePolicy": "No drawing fixture or derivative was added to the repository."
+  }
+}

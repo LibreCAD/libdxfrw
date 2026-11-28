@@ -1,0 +1,59 @@
+{
+  "receipt": "p4-ac1018-extruder2-orphan-block-records-independent-crosscheck-2026-11-07",
+  "date": "2026-11-07",
+  "scope": "Attribute the current Extruder2 entity failures and determine whether they establish a libdxfrw parser defect.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Extruder2.dwg",
+    "sha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+    "provenance": "Local corpus sample; producer provenance is not established."
+  },
+  "libdxfrw": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Extruder2.dwg -y -d -v2004 /private/tmp/extruder2-attributed3.dxf",
+    "temporary_diagnostic_build_sha256": "79cd5026edb48dc1c30505908e3b696a70091dbce7fb50dec52ad7b4db6cb32a",
+    "trace_sha256": "8b7d296e609f0fad0058bc0468923c606570d2269f514eaad0af815bb3266c64",
+    "source_frames": 14713,
+    "published_frames": 14239,
+    "failed_entity_frames": 474,
+    "object_parse_failures": 0,
+    "failed_entity_type_counts": {
+      "LINE_19": 170,
+      "POINT_27": 90,
+      "SOLID_31": 80,
+      "MTEXT_44": 54,
+      "BLOCK_4": 40,
+      "ENDBLK_5": 40
+    },
+    "missing_block_record_owner_count": 40,
+    "missing_block_record_owners_hex": [
+      "0x4883", "0x488e", "0x4899", "0x48a5", "0x48ff", "0x490c", "0x4919", "0x4927", "0x495e", "0x497a",
+      "0x499c", "0x49a7", "0x49b2", "0x49bd", "0x49c9", "0x49d5", "0x4b78", "0x4b9c", "0x4bba", "0x4bd9",
+      "0x4bf4", "0x4c0e", "0x4c2a", "0x4cbb", "0x4cf3", "0x4d71", "0x4da7", "0x4dd2", "0x4df4", "0x4e1f",
+      "0x503e", "0x5a0f", "0x5a2e", "0x5a49", "0x5a76", "0x5b5b", "0x638e", "0x6475", "0x6496", "0x64fd"
+    ],
+    "instrumentation": "Temporary debug-only logging exposed each failed entity handle, encoded type, and missing BLOCK_RECORD owner; the instrumentation was removed after attribution."
+  },
+  "independent_peer": {
+    "tool": "LibreDWG dwgread 0.14",
+    "binary_sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -O minJSON /Users/dli/doc/dwg/Extruder2.dwg",
+    "output_sha256": "3a44136652e84a0a2e840eaede0a00acc3d68fb7eb422b50318db224b79fb388",
+    "observations": {
+      "published_object_rows": 14713,
+      "BLOCK_HEADER_records": 60,
+      "BLOCK_CONTROL_members": 60,
+      "failed_entity_owner_values_match_peer": "474/474",
+      "missing_owner_targets_absent_from_peer_BLOCK_HEADER": "40/40",
+      "missing_owner_targets_absent_from_peer_BLOCK_CONTROL": "39/40"
+    }
+  },
+  "format_reference": {
+    "authority": "ODA Open Design Specification for .dwg files v5.4.1",
+    "local_pdf_sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "§20.4.2: common entity handle data includes an optional owner soft-pointer reference.",
+      "§20.4.52: R2004+ BLOCK HEADER records an owned-object count and corresponding entity hard-owner references, plus its BLOCK and ENDBLK hard-owner references."
+    ]
+  },
+  "decision": "The failed entity frames consistently name 40 owner handles for which neither libdxfrw's BLOCK_RECORD map nor LibreDWG's BLOCK_HEADER/BLOCK_CONTROL graph has a matching record. LibreDWG independently reports the same owner values for all 474 entities. This evidence supports an incomplete/orphan source graph, not a shared entity-body parser defect. Keep this physical source refused; do not weaken owner checks or change LINE/POINT/SOLID/MTEXT/BLOCK/ENDBLK parsers. Reconsider only if producer-qualified evidence proves the referenced block records exist in a source structure both readers missed.",
+  "fixture_policy": "No DWG/DXF fixture was added."
+}

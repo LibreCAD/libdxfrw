@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Pre-AC1018 paper-space layout ownership cross-peer crosswalk",
+  "mode": "Primary-source peer issue/source review plus local reader and test-owner audit; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Review ACadRust's AC1015 multi-layout ownership report and determine whether its status establishes current peer behavior.",
+    "Crosswalk the legacy first/last entity-chain route to libdxfrw's pre-AC1018 reader path and existing generated test owners.",
+    "Refresh evidence boundaries for broad version matrices, same-codec SAB controls, and correlated downstream applications.",
+    "Refine the existing PAR-49/7G.3 plan with a fast, scratch-generated layout ownership regression."
+  ],
+  "sources": [
+    {
+      "project": "ACadRust issue #121",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/121",
+        "https://github.com/gaoyia/acadrust/commit/83465960c7ca2108ea324705c1b4b3ae6b409cc6"
+      ],
+      "revision": "Issue page reviewed 2026-10-19; the issue reports acadrust 0.6.3 and main at f18646a for the reproduced state.",
+      "observed": "The report describes an AC1015 DWG where entity-mode 1 paper-space entities from non-active layouts are assigned to the active layout because the reader discards BLOCK_HEADER first/last entity handles. Its AC1032 control preserves layout membership. The issue was closed against commit 8346596, but the linked commit is under a contributor fork and the issue text says upstream merge is pending.",
+      "evidenceCeiling": "Peer-reported behavior and fix proposal only. Current upstream integration and release behavior were not established; this does not demonstrate a libdxfrw defect. No peer artifact was downloaded or run."
+    },
+    {
+      "project": "Local libdxfrw reader and test owners",
+      "urls": [
+        "src/intern/dwgreader.cpp",
+        "src/drw_objects.h",
+        "tests/dwg_reader_matrix_tests.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/block_owner_tests.cpp",
+        "CMakeLists.txt"
+      ],
+      "revision": "Shared worktree at de27a33 with extensive uncommitted changes; read-only source/test inspection on 2026-10-19.",
+      "observed": "The pre-AC1018 branch in readDwgBlocks walks a block's firstEH through nextEntLink until lastEH. DRW_Block_Record retains firstEH/lastEH. Inspected tests cover related block ownership and DXF layout serialization, but no focused generated AC1015 DWG reader test asserting multiple paper-space layout memberships was located.",
+      "evidenceCeiling": "Static source and test-owner review only; no parser, build, or test execution. Absence is a bounded test-inventory observation, not proof no equivalent coverage exists elsewhere."
+    },
+    {
+      "project": "LibreDWG and ACadSharp support/test disclosures",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/DomCR/ACadSharp/blob/master/README.md",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "revision": "Mutable project documentation and issue index reviewed 2026-10-19.",
+      "observed": "LibreDWG documents stable, unstable, debugging, and unhandled class dispositions. ACadSharp lists DWG/DXF reader and writer support separately by version; its current issue index contains route- and field-specific reports despite the broad version matrix.",
+      "evidenceCeiling": "Project self-description and issue reports only. They do not define a comparable coverage denominator or establish a local behavior."
+    },
+    {
+      "project": "ACadRust current feature/test disclosures and downstream route lineage",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+        "https://github.com/storytold/cadcraft",
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/iyulab/uncad"
+      ],
+      "revision": "Mutable project pages and test source reviewed 2026-10-19.",
+      "observed": "ACadRust advertises broad DWG/DXF versions, entity families, and ACIS/B-rep functionality. Its visible AcDs tests fabricate marker-bearing SAB payloads and exercise the same implementation's write/read path. CADCraft and OpenCADStudio use ACadRust; uncad routes DWG through LibreDWG FFI and DXF through undxf.",
+      "evidenceCeiling": "Self-described support and same-codec regression evidence only. This is not independent SAB validity, B-rep semantics, native acceptance, or an additional independent DWG-reader vote."
+    },
+    {
+      "project": "ODA specification access check",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "local: /Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "The repository's required local PDF path was checked during this pass but the file was unavailable in the execution environment.",
+      "observed": "No ODA section was used to make a new normative claim in this research update.",
+      "evidenceCeiling": "Before any parseDwg/readDwgBlocks production change, read the applicable ODA v5.4.1 legacy BLOCK_RECORD and entity-chain sections as required by AGENTS.md."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newCoverageGaps": 1,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-49",
+      "7G.3 legacy block/layout ownership",
+      "peer route identity and support-disposition matrix"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsAdded": 0,
+    "newCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refine existing PAR-49/7G.3 with one in-memory/scratch-generated AC1015 multiple-layout reader regression, paired with an AC1018+ owner-handle control. The peer report is not a local defect or current-release fix result. Preserve exact layout/block/entity identity, avoid external fixtures and new CTest registration, and do not change support claims or the top-level execution order."
+  },
+  "implementationReadiness": [
+    "Before changing DWG parser code, read the relevant ODA v5.4.1 legacy BLOCK_RECORD and entity-chain sections; the specified local PDF was unavailable during this research pass.",
+    "Use the existing libdxfrw_dwg_reader_matrix_tests target/CTest and a focused selector; generate AC1015 first/last/next-entity chains without committing a peer or customer DWG.",
+    "Assert layout-name-to-block-record mapping, exact per-layout child handles/types and order, empty/default layout behavior, first==last singleton handling, and a following-object sentinel.",
+    "Generate the same logical manifest for AC1018+ explicit owner handles and compare normalized ownership rather than cross-version bytes.",
+    "Add bounded cycle and missing-middle mutations only where the existing reader's documented failure/softening policy can be asserted without rehoming records.",
+    "Use strict touched-target build, focused selector, owning CTest, scoped diff check, and receipt validation; then continue the next local ready item without waiting for external peer/native access."
+  ],
+  "method": {
+    "kind": "Primary-source web research plus local read-only source/test crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "ACadRust issue #121's closed state does not resolve whether the cited contributor commit is in a released upstream artifact. Peer capability/test statements remain self-reported. No local DWG sample was available or created. The prescribed local ODA PDF was unavailable, so no normative wire-layout change is proposed."
+  }
+}

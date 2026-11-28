@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-47-platforms-gui-2026-11-28",
+  "date": "2026-11-28",
+  "gate": "P8",
+  "supportClaimEffect": "none",
+  "run": "https://github.com/dxli/libdxfrw/actions/runs/46161593587",
+  "sourceCommit": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "patchCount": 47,
+  "outputSha256": {
+    "src/Mod/Import/App/dxf/ImpExpDxf.cpp": "fc38719aa065aa1c1ad8e0abe9631e117f13fb5c23514fe2b87db8dbbe6b2559",
+    "src/Mod/Import/App/dxf/ImpExpDxf.h": "b794a073b2119c394f92d7c90cf6497cab9e15abdefbc494af756803e1a421e3",
+    "src/Mod/Import/App/dxf/dxf.cpp": "0f986db1b0131f71eae6c480582c090b014b14a5f75e3959f6db4984a25583ca",
+    "src/Mod/Import/App/dxf/dxf.h": "283f2966359a8336b6683066db5f0b5400cc9ef467164b5e24329cfa1fad8bf6",
+    "src/Mod/Import/importtests/TestImportDXF.py": "f64ecb4532fb2bcd688ef9e87cc22d0a618893498d974bbb6df186670a7716cf"
+  },
+  "platforms": {
+    "linux": {
+      "headlessTests": 47,
+      "headlessReceiptSha256": "81f488fc39cb8a726ffde473f96fd957fa6b61ace37f155e7293b88a49a2723d",
+      "guiCases": 10,
+      "guiReceiptSha256": "3fce370baf471dbded913152a13b4d2d46a9ed5ed43207e7e24f9ec963279f9e",
+      "qtPlatform": "xcb",
+      "pixelEvidence": {
+        "channelThreshold": 24,
+        "height": 240,
+        "imageSha256": {
+          "pixel-all-hidden.png": "96d83e6200e17e6bd651d4eac03813ef5605d820268f00c12b0104dac3adf2fb",
+          "pixel-mesh-hidden.png": "ce020898b99b40bce169172e16497ec03ed5f0f5e02cb16d11d3613c5eab9ee5",
+          "pixel-restored.png": "b8066bf4f7d2288c25b07f2206a326f0435f31155a83d39f89f39b26df355709",
+          "pixel-visible.png": "5dbef0bb6ade77fe07c75220a51318f84cd93af9ece7ba0e85fe10f94bb65d9b"
+        },
+        "lineChangedPixels": 80,
+        "meshChangedPixels": 2440,
+        "meshDifferenceBounds": [
+          43,
+          90,
+          121,
+          149
+        ],
+        "restorationChangedPixels": 0,
+        "width": 320
+      },
+      "windowsOpenGLModule": null,
+      "requiredOpenGLSha256": null
+    },
+    "windows": {
+      "headlessTests": 47,
+      "headlessReceiptSha256": "bf992eb29f20c2b54be73f9589763a745be24ac454358cfaa2ff5cb89fe56100",
+      "guiCases": 10,
+      "guiReceiptSha256": "01b96790b856814c974344c25a1a4582501cd3ed923cf6e46caca71ffbe7f228",
+      "qtPlatform": "windows",
+      "pixelEvidence": {
+        "channelThreshold": 24,
+        "height": 240,
+        "imageSha256": {
+          "pixel-all-hidden.png": "fe11f2797766d6730b06faabcfca2615a969236a0bceb42a3048457b82325ddd",
+          "pixel-mesh-hidden.png": "d684eb95e92452eb31d2043f824d9a77a924dd0070b272f7744ca96c4d618df9",
+          "pixel-restored.png": "ee0efa33cb01e3aeda9b010e8e96600a54a8e30d0fc69fa6e3d90777e75f5939",
+          "pixel-visible.png": "d03f48add4c73d003d6fde44d4f80fc0f29f00edb1abb3f68124f23fb185bbe3"
+        },
+        "lineChangedPixels": 80,
+        "meshChangedPixels": 2440,
+        "meshDifferenceBounds": [
+          43,
+          90,
+          121,
+          149
+        ],
+        "restorationChangedPixels": 0,
+        "width": 320
+      },
+      "windowsOpenGLModule": "D:\\a\\_temp\\freecad-candidate-build\\bin\\OPENGL32.dll",
+      "requiredOpenGLSha256": "b49b87248f6bb496318a7cbde469dd60c9ff6938b2a11bdb01fd9777c1d884a3"
+    }
+  },
+  "limits": [
+    "Pinned downstream draft only; the candidate has not been submitted to FreeCAD.",
+    "Headless and GUI smoke checks cover selected generated profiles, not general DWG/DXF, producer, FreeCAD or native-application behavior.",
+    "Windows GUI used the workflow-verified build-local software OpenGL module; hardware rendering is unqualified.",
+    "Four framebuffer images per platform are hash-verified; they remain workflow artifacts and are not repository fixtures."
+  ]
+}

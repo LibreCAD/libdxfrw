@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-18",
+  "owner": "PAR-23/7J DIMENSION style-resource closure",
+  "slice": "R2007+ DIMSTYLE linetype resource identity and remapping",
+  "status": "implemented_locally_uncommitted",
+  "scope": {
+    "codes": [345, 346, 347],
+    "minimum_version": "AC1021",
+    "conversion_mode": "strict modern full conversion",
+    "non_strict_and_legacy_behavior_changed": false
+  },
+  "implementation": {
+    "source_identity": "Transactional source LTYPE handle to normalized name and emitted-handle map; includes fixed BYBLOCK/BYLAYER/CONTINUOUS output identities.",
+    "resolution": "Resolve retained source handles and/or dynamic DIMSTYLE linetype names; reject contradictory name/handle identity and missing or ambiguous targets.",
+    "null_absence": "Explicit zero is emitted as the DXF null/default handle; absent references remain omitted.",
+    "version_gate": "345-347 are omitted for AC1018 output; dynamic descriptors remain AC1021+.",
+    "rollback": "Map insertions participate in RecordStateScope rollback and write-session cleanup."
+  },
+  "tests": {
+    "target": "libdxfrw_dwg2dxf_adapter_tests",
+    "ctest": "libdxfrw_dimension_picture_block_full_conversion",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "generated_controls": [
+      "Three distinct custom LTYPE references for DIMLTYPE, DIMLTEX1, and DIMLTEX2",
+      "Source handle remapping and import-to-re-export with changed emitted identities",
+      "Dynamic name-to-emitted-handle resolution",
+      "Built-in BYLAYER handle mapping",
+      "Explicit zero versus absent field",
+      "AC1018 omission of AC1021+ fields",
+      "Missing source handle/name atomic refusal",
+      "Name/handle mismatch atomic refusal and destination sentinel preservation"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dimension_picture_block_full_conversion$' --output-on-failure"
+    ],
+    "result": "pass"
+  },
+  "artifacts": {
+    "persistent_fixture_added": false,
+    "new_ctest_registered": false,
+    "dependency_added": false,
+    "peer_or_native_runtime_run": false,
+    "full_suite_run": false
+  },
+  "remaining_boundaries": [
+    "No AutoCAD/FreeCAD/native producer acceptance established.",
+    "No dimension rendering semantics established.",
+    "Undocumented pre-R2007 per-DIMENSION XDATA codes 380-382 plus 1005 remain deferred pending producer evidence.",
+    "No standard named arrow-block geometry materialization or full DIMENSION graph closure established."
+  ],
+  "plan_state": {
+    "findings": 130,
+    "top_level_subplans": 73,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "support_claim_promoted": false
+  }
+}

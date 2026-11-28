@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p5-ac1018-table-zero-cell-mask-scalar-reencode-2026-11-11",
+  "purpose": "Admit canonical typed re-encoding of a bounded AC1018 TABLE-level alignment/text-height override range when retained cell and border masks are empty, including the existing extension-dictionary writer route.",
+  "scope": {
+    "version": "AC1018",
+    "retainedRanges": "Recognized complete per-cell override ranges with count=0, raw handle code=0 and 10-bit spans, followed by one complete r2007-table-overrides range.",
+    "admittedTableFlags": "Only title/header/data alignment bits 0x00004000/0x00008000/0x00010000 and text-height bits 0x00100000/0x00200000/0x00400000.",
+    "excluded": [
+      "nonzero cell override masks",
+      "row text-style handles, colors, fills and other table-level fields",
+      "nonzero border color/lineweight/visibility masks",
+      "unknown, incomplete, out-of-order, handle-bearing or mismatched retained ranges"
+    ]
+  },
+  "implementation": {
+    "behavior": "The encoder validates the selected typed scalar profile, calculates the exact expected table-range bit count from the mask and values, checks it against retained range metadata, and writes canonical typed fields instead of replaying source offsets or bytes.",
+    "graph": "The existing whole-file route still requires the emitted TABLESTYLE/NOD path, matching anonymous *T BLOCK_RECORD graph, closed extension dictionary, proxy cache and existing reference checks.",
+    "claimEffect": "none; this is generated transport/readback evidence, not physical producer, independent semantic-reader or native rendering qualification."
+  },
+  "generatedControl": {
+    "fixture": "Created in memory at runtime; no DWG/DXF fixture is committed.",
+    "profile": "Three-row/three-column AC1018 TABLE with empty retained per-cell masks, empty border masks, all three alignment and text-height override bits selected, attached empty extension dictionary, and typed readback.",
+    "failureRetry": "A one-bit-short retained table-level range span is refused with the prior destination and TABLE handle state preserved; the corrected metadata then succeeds on the same producer/writer path. The existing compound extension refusal/mutation sweep also preserves destination and caller state.",
+    "readback": "Checks all three alignment values, all three heights including explicit zero, exact recognized range names/counts/raw handle codes/completion, extension dictionary parent/handle and the table geometry block."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "result": "PASS",
+      "targetSha256": "e8e2f0528cd2952a883e09e36c7293c3e41bdf438c0a0f1ea9a263e735001fe9"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_ac1018_(whole_file|empty_extension|zero_mask_extension|zero_mask_scalar_extension)_roundtrip$' --output-on-failure",
+      "result": "PASS: 4/4",
+      "cases": [
+        "libdxfrw_table_ac1018_whole_file_roundtrip",
+        "libdxfrw_table_ac1018_empty_extension_roundtrip",
+        "libdxfrw_table_ac1018_zero_mask_extension_roundtrip",
+        "libdxfrw_table_ac1018_zero_mask_scalar_extension_roundtrip"
+      ]
+    },
+    "diffCheck": "git diff --check passed",
+    "targetSha256": "3a973a03bb290e380bcc6992a0644966b3cffd5020841a2a653153712f2d7842"
+  },
+  "sourceFiles": {
+    "src/drw_entities.cpp": "e7a4844bce6d01008b5b60a3cb92f26fe77ffd2ff5a1f7245f6c54a5d4d83050",
+    "tests/dwg_local_roundtrip_tests.cpp": "a45ea275f549e6863015b63d407417d24f25fa36501f14a0bcc2c0e23177f91c"
+  },
+  "remaining": "No physical source with this exact retained-range plus scalar-mask profile has been qualified in this slice. Independent reader acceptance, producer prevalence, source-derived re-encoding, native precedence/rendering and other table ranges remain open."
+}

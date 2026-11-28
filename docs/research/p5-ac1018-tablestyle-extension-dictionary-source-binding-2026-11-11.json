@@ -1,0 +1,34 @@
+{
+  "id": "p5-ac1018-tablestyle-extension-dictionary-source-binding-2026-11-11",
+  "scope": "Explicit seven-frame same-import binding of the observed TABLESTYLE extension DICTIONARY with selected existing TABLESTYLE, reciprocal TABLE graph and ten XRECORDs. Source observation only, not populated output authorization.",
+  "evidence": "ODA v5.4.1 \u00a720.4.44 defines dictionary itemhandles as H2 soft-owner; the hardOwner policy byte 1 is distinct. Physical source and independent LibreDWG/ODA projection crosswalk are documented in p5-ac1018-tablestyle-cellstylemap-graph-wire-2026-11-11.json. Source order is ACAD_XREC_ROUNDTRIP then ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP; same-vendor DXF order differs.",
+  "physical_source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "probe": "tools/research/p5_ac1018_tablestyle_dictionary_binding_probe.cpp",
+    "result": "PASS: reader-owned CRC-checked DICTIONARY 0xdb; data end bit 607, H4 owner 0x6b bits 607..623, ordered H2 numeric targets 0xdc and 0xdd bits 623..639 and 639..655; selected TABLESTYLE H3 points back to dictionary. All source bundle members seal under one import identity. An unrelated HEADER integrity observation remains.",
+    "controls": [
+      "Typed dictionary owner, policy, name, key order, target order and target mutation; raw-body and publication-ordinal mutation; duplicate dictionary and cross-import transplant all fail the stronger bundle and recover on restoration.",
+      "Typed callback spoof/throw/duplicate, same/cross-adapter reentry, selected dictionary ticket allocation failure, three joint-seal allocation failures and retries are exercised. Invalid selector aliases are rejected transactionally.",
+      "Older style-only mode remains valid after an unselected dictionary model is edited; strict output on the selected valid bundle refuses and preserves a sentinel.",
+      "One dictionary API call measured 2857 allocations; a helper performing three separate revalidating public queries measured 8509. The last allocation in the three-query helper was sampled and retried, not exhaustively swept."
+    ]
+  },
+  "generated_tests": {
+    "command": "cmake --build build --target libdxfrw_dwg_tablestyle_extension_dictionary_reader_lease_tests libdxfrw_dwg_tablestyle_reader_source_tests libdxfrw_dwg_table_candidate_binding_tests libdxfrw_dwg_table_projection_ac1018_candidate_tests -j 3 && ctest --test-dir build -R ^libdxfrw_dwg_(tablestyle_extension_dictionary_ac1018_candidate|tablestyle_extension_dictionary_reader_lease|tablestyle_reader_source|table_candidate_binding|table_projection_ac1018_candidate)$ --output-on-failure",
+    "result": "PASS 5/5",
+    "controls": [
+      "Locally authored two-entry dictionary observer controls cover all truncations, owner/item roles, reserved count, duplicate targets, reversed keys, typed changes, size/padding and an exhaustive sweep of observed observer allocations.",
+      "Actual reader OBJECTS lease uses scratch generated object frames and valid CRC. It tests selected vs prior dictionary-kind dispatch, opt-out, quota, duplicate, incomplete coverage, parse failure, corrupt CRC and wrong H role.",
+      "CRC-valid swapped-target and reversed-key frames reach the reader ticket: the first fails the same explicit selected-target predicate used by the adapter, and the second fails the bounded ordered-key observer. Prior source and projection tests pass."
+    ]
+  },
+  "probe_build": "c++ -std=c++17 -Wall -Wextra -Werror -I src -I dwg2dxf tools/research/p5_ac1018_tablestyle_dictionary_binding_probe.cpp build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build/libdxfrw.a -o /private/tmp/p5_ac1018_tablestyle_dictionary_binding_probe",
+  "probe_run": "/private/tmp/p5_ac1018_tablestyle_dictionary_binding_probe /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+  "limitations": [
+    "Entry targets 0xdc and 0xdd are matched as numeric identities only; existence, reader provenance, object type, payloads and recursive dependencies are not authenticated by this slice.",
+    "The full physical drawing is compressed: CRC-valid target/key changes are tested in locally generated isolated frames, not as a rewritten complete physical graph. Prior-mode mutation was tested on a live post-import dictionary.",
+    "TABLESTYLE selected fields are only a partial model observation; NOD/style dictionary, ancillary XRECORD, CELLSTYLEMAP, STYLE/LTYPE resources, native semantics and transactional output remain open.",
+    "No equivalence is inferred between DWG H2 item roles and same-vendor DXF group 360. No new DWG or DXF fixture is committed; one source and generated controls do not establish general format or producer support."
+  ]
+}

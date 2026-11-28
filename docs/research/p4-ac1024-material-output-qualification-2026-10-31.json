@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-material-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Connect AC1024 physical MATERIAL evidence to strict output identity qualification",
+  "status": "3_MATERIAL_IDENTITIES_QUALIFIED_STRICT_GATE_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "MATERIAL / AcDbMaterial",
+    "recordCount": 3,
+    "fixturePolicy": "Existing local sample only; no DWG/DXF fixture was added to Git."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp"
+    ],
+    "summary": "After the existing MATERIAL OBJECTS inspector has validated the immutable DWG source snapshot and emitted identities, the output transaction now stages the selected physical MATERIAL source handles as opaque callback output qualifications. The stage is committed only after transaction finalization; generated DXF-origin materials do not gain DWG callback qualification.",
+    "reusedProof": "The existing physical MATERIAL path checks three unique source identities, typed body/common-link fields, the NOD ACAD_MATERIAL root, exact owner dictionary keys, extension-dictionary membership, reactor links, output CLASS count and fresh ASCII/Binary readback. Its selector also exercises late-mutation refusal, sentinel preservation and corrected same-adapter retry."
+  },
+  "remainingCensus": {
+    "opaqueCallbacks": 228,
+    "qualifiedOutputIdentities": 204,
+    "unqualifiedIdentities": 24,
+    "breakdown": {
+      "namedGeneric": {
+        "TABLESTYLE": 1,
+        "ACDBDICTIONARYWDFLT": 1,
+        "SORTENTSTABLE": 1
+      },
+      "unnamedEntityType34": 2,
+      "unnamedObjectTypes73_80_82": 4,
+      "standardObjectType42": 13,
+      "standardObjectType79": 2
+    },
+    "strictExport": "Refused before publication at 204/228. The failed attempt left published qualification count and identity set at zero.",
+    "legacyRetry": "Passed and atomically published 204 source-bound output identities."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "physicalReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --material-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary output, including refusal, destination preservation and corrected same-adapter retry."
+    },
+    "census": {
+      "command": "g++ -std=c++17 -Wall -Wextra -pedantic -Werror -I dwg2dxf -I src /tmp/libdxfrw-p4-callback-census.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /tmp/libdxfrw-p4-callback-census && /tmp/libdxfrw-p4-callback-census tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS; census reported 204/228 qualified, strict refusal without publication, and legacy retry with atomic publication. Scratch code and outputs remain outside Git."
+    },
+    "fullSuites": "NOT RUN; only the existing physical MATERIAL selector and source-bound scratch census were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Connect the three physical AC1024 MATERIAL source identities to strict transactional output qualification."
+    ],
+    "nextPacket": "Connect existing TABLESTYLE, ACDBDICTIONARYWDFLT and SORTENTSTABLE physical evidence where complete; otherwise keep identities unqualified and implement only the missing source-backed proof.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "a8001478b0850b86eac37a2d7b2fd18a33fefe4d58fd7869db01a45883559df4",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "13e39e8eaf1abcc02b19535d01a1a575cbba2beefcaf1fedc9a7e421cd2e15c6"
+  }
+}

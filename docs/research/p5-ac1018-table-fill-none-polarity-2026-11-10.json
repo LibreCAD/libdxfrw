@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-10",
+  "topic": "AC1018 TABLE cell background fill-none polarity",
+  "scope": "Generated AC1018 codec mapping and focused DXF group-283 regression only",
+  "authority": {
+    "dwg_specification": {
+      "name": "Open Design Specification for .dwg files",
+      "version": "5.4.1",
+      "section": "20.4.96.1",
+      "field": "Background fill none, B, group code 283, present when cell override flag 0x02 is set"
+    },
+    "dxf_reference": {
+      "name": "Autodesk TABLE DXF group-code definition",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "field": "Group 283 is whether background color is enabled; 0 disabled, 1 enabled"
+    }
+  },
+  "implementation": {
+    "version": "AC1018",
+    "model_semantics": "DRW_TableCell::m_backgroundEnabled follows DXF group-283 enabled polarity",
+    "dwg_decode": "m_backgroundEnabled = !fillNone",
+    "dwg_encode": "write !m_backgroundEnabled as the ODA fill-none bit",
+    "dxf_decode_encode": "continues to read and write group 283 in enabled polarity",
+    "table_row_mapping": "existing m_tableRowFillNone mapping remains inverted at the DXF boundary"
+  },
+  "generated_controls": {
+    "dwg_selector": "libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "wire_assertion": "Two otherwise-identical AC1018 bodies differ in exactly the selected Boolean bit; background enabled emits DWG fill-none 0, disabled emits 1",
+    "readback": "Both admitted states retain typed model meaning, exact body boundary, and following sentinel",
+    "dxf_selector": "libdxfrw_table_content_dxf_tests --table-cell-appearance-write",
+    "focused_ctest": {
+      "libdxfrw_dwg_table_cell_overrides": "PASS (1/1)",
+      "libdxfrw_table_cell_appearance_override_write": "PASS (1/1)"
+    },
+    "fixture_policy": "No DWG or DXF fixture files were added; controls are generated in memory/from scratch."
+  },
+  "limits": [
+    "No physical producer witness or native fill/rendering behavior was qualified.",
+    "This does not enable public dwgRW::writeTable or strict whole-drawing output.",
+    "No general TABLE or DWG/DXF support claim is promoted."
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "receipt_id": "p5-sunstudy-callback-retention",
+  "date": "2026-11-03",
+  "state": "LOCAL_TYPED_CAPTURE_ONLY",
+  "source_callback": "DRW_Interface::addSunStudy",
+  "implementation": {
+    "adapter": "dwg2dxf/dx_iface",
+    "store": "dx_data::sunStudies",
+    "limits": {
+      "records": 100000,
+      "retained_bytes": 67108864,
+      "dates_per_record": 10000,
+      "hours_per_record": 10000
+    },
+    "accounted_payload": "inline model, DRW_TableEntry-owned name/reactors/pending references/extension data/app data, four SUNSTUDY strings, date vector, conservative one-byte-per-hour estimate, and two list links",
+    "failure_behavior": "aggregate record/byte limit, per-record vector bound, or allocation failure sets a sticky dx_data flag; output preflight reports the capture failure and refuses publication",
+    "output_behavior": "no adapter SUNSTUDY serializer or source graph qualification was added; generated low-level identity/reference transport remains separate"
+  },
+  "validation": {
+    "configure": "cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "production_build": "cmake --build build --target dwg2dxf -j4",
+    "focused_test": "ctest --test-dir build -R '^(dwg2dxf_action_path_object_capture_limits|dwg2dxf_sunstudy_callback_capture_limits)$' --output-on-failure",
+    "focused_test_result": "both tests passed",
+    "assertions": [
+      "SUNSTUDY scalar fields, four strings, common table-entry metadata, dates, hours, and reference handles survive callback retention",
+      "retained byte estimate matches the selected in-memory model payload",
+      "the final allowed record is admitted and the next callback causes sticky refusal",
+      "one-byte-over-budget and over-counted-hour cases retain no partial model",
+      "failed capture blocks export before destination publication with a specific diagnostic"
+    ]
+  },
+  "fixtures": {
+    "committed_test_dwg_or_dxf": false,
+    "test_inputs": "locally constructed in-memory DRW models"
+  },
+  "not_qualified": [
+    "physical DWG/DXF source-span-to-callback matching",
+    "valid source owner and page-setup/VIEW/visual-style/text-style target roles",
+    "whole-source SUNSTUDY output, binding, and fresh readback",
+    "native rendering or plotting semantics",
+    "producer breadth or format support"
+  ],
+  "next_work": "Bind physical source spans and owner/reference roles for an eligible SUNSTUDY profile, then add source-bound adapter output and strict readback before making any rendering-support claim."
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "SAMPLED_OPT_IN_DWG_TO_DXF_CONVERSION_WITHOUT_WARNINGS",
+  "scope": "AC1021 internally synthesized *ACTIVE VPORT null references only. This extends the previously source-qualified AC1024 synthetic behavior; explicit caller VPORTs, nonzero references, the VPORT string layout and other revisions retain their existing paths.",
+  "authority_and_source": {
+    "spec": "ODA Open Design Specification v5.4.1 section 20.4.64: background soft pointer, visual style hard pointer, SUN hard owner, followed by named/base UCS hard pointers.",
+    "producer": "ODA File Converter 27.1.0 created AC1021 from a scratch ezdxf 1.4.5 single-LINE drawing.",
+    "dwg_sha256": "d1c06f7818e18d22e6bba41421468903f9b67cd633f900c7c3c17ec4c6b95534",
+    "physical_trace": "/private/tmp/ac1021-control-census/source-v9.log",
+    "independent_observation": "LibreDWG 0.14 reports VPORT owner (4,1,8), xref (5,0,0), background (4,0,0), visual style (5,0,0), SUN (3,0,0), and named/base UCS (5,0,0). The original generated synthetic AC1021 record used roles 0/0/0 for the three middle nulls."
+  },
+  "factorial": {
+    "method": "A scratch archive varied only three synthetic null role assignments and optionally exact-bit VPORT string/footer assembly. Masks 1,2,4 select background/visual style/SUN roles; mask 8 selects exact-bit string/footer. The baseline is byte-identical to the material agent's opt-in graph. ODA 27.1.0 converted all 16 locally generated files and a producer control with ACAD2007 DXF, recursion 0, audit 1. Diagnostics are based on output files, not exit status.",
+    "baseline_sha256": "2c890c1b82a0b95a0eb1e9c99e45a944987ae7df5c737fd410c270807ccfb2ca",
+    "results": "Only masks 7 and 15 produce a DXF without .err; all other masks fail at VPORT with no DXF. Thus all three observed null-role changes are needed for these samples; exact-bit VPORT string framing is not needed and is not changed.",
+    "mask7_sha256": "413777032f68a8d9eddbcc5cbb1678d4e6d15609f5829dcf1239ead72ce80f5d",
+    "mask15_sha256": "0e12d076342306dad833edcb920aef7b1f666cb3f7eec649277e8d47703ee0ca",
+    "material_prerequisite": "With the same three VPORT roles but no default material graph, a default graph DWG 7dbcb968ba3f0a044564cfeb344386ef95b33378da49901152e08f3ae0763875 and a plotstyle-only DWG c0325aa43f755b5254edc695c18e2d42f8c2fe123cc1e45541449c695244a005 still fail at LAYER and emit no DXF."
+  },
+  "final_production": {
+    "dwg_sha256": "413777032f68a8d9eddbcc5cbb1678d4e6d15609f5829dcf1239ead72ce80f5d",
+    "output_dxf_sha256": "3412301c15e6e8a2fed01b9ce5015c617dbeb616c42ebb55d58e9fa5c1864e7d",
+    "oda": "Final opt-in material+plotstyle drawing and producer control both produce DXF, with no .err and zero-byte captured stdout/stderr. ezdxf 1.4.5 reports a single LINE (1,2,3) to (4,5,6) on layer 0, *ACTIVE VPORT and layer 0 pointing to Global material. VPORT height, center, grid spacing and snap spacing match LibreDWG's corresponding DWG values in both controls. ODA assigns nonzero DXF visual-style handles despite the source DWG null slots; no cross-format null-preservation claim is made. Output metadata can vary, so the listed DXF hash binds this run only.",
+    "peer": "LibreDWG 0.14 confirms the seven VPORT owner/reference roles, following LINE, and the generated default material dictionary/object/header/layer graph. tools/audit_ac1021_vport_roles.py SHA-checks the producer or generated DWG, inspects LibreDWG JSON and verifies the selected DXF fields with ezdxf; the DXF association is the recorded scratch ODA conversion, not an automatically authenticated provenance join. tests/dwg_default_material_libredwg.py independently checks the generated material graph.",
+    "scratch": "/private/tmp/ac1021-vport-factorial"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg_default_material_optin_tests -j 4",
+    "selectors": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_header_writer_sealing|libdxfrw_dwg_default_material_optin|libdxfrw_dwg_default_plotstyle_optin|libdxfrw_dwg_ac1024_default_material|libdxfrw_dwg_r2007_layer_string_boundaries|libdxfrw_dwg_r2007_generic_control_boundaries)$' --output-on-failure",
+    "result": "6/6 passed in a coherent shared build, and 6/6 passed again atop AC1021 material prerequisite commit f01c05d8.",
+    "coverage": "Six-version synthetic exact null-role bytes; caller public encoding unchanged; nonzero background/visual-style/SUN and following UCS roles; invalid caller record refusal and corrected same-writer retry; native readback with following LINE.",
+    "addressSanitizer": "ctest --test-dir build-asan-custom -R '^libdxfrw_dwg_header_writer_sealing$' --output-on-failure: 1/1 passed after rebuilding the final VPORT candidate with AddressSanitizer."
+  },
+  "limits": [
+    "Warning-free conversion is established only for the sampled synthetic AC1021 material+plotstyle drawing and ODA 27.1.0 on this host, not arbitrary drawings, native editing, visual rendering or complete semantic parity.",
+    "The material graph is the separately validated prerequisite in commit f01c05d8.",
+    "No binary fixtures were added."
+  ]
+}

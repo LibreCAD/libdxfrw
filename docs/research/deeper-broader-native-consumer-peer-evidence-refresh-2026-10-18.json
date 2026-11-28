@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader native-consumer outcomes and peer-evidence refresh",
+  "mode": "primary-source web research and implementation-readiness refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile current FreeCAD DXF importer backends and historical importer failure shapes",
+    "Refresh ACadSharp SPLINE and EED issue evidence against local plan owners",
+    "Refine native-consumer result fields without duplicating local findings or expanding routine validation"
+  ],
+  "method": {
+    "kind": "Read official project documentation, source pages, and issue pages",
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "drawingsUploaded": 0,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "limitations": "Mutable project documentation/source pages were reviewed on 2026-10-18. FreeCAD issues #13597 and #13598 are closed and link follow-up PRs, but the PR diffs and a current native runtime were not inspected. ACadSharp #1299 exposes an attached archive, but neither it nor its member files were downloaded or hashed. No runtime result or current cross-platform qualification is claimed."
+  },
+  "sources": [
+    {
+      "project": "FreeCAD Draft DXF documentation and importer source",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py"
+      ],
+      "revision": "Mutable main pages retrieved 2026-10-18",
+      "observed": "FreeCAD exposes a built-in C++ DXF importer and an optional legacy Python importer. The documentation describes differing entity/output behavior and says the legacy path requires additional libraries. Current C++ source contains spline-to-Part::Feature handling. These sources establish route distinctions, not runtime behavior for a pinned build or effective user preference."
+    },
+    {
+      "project": "FreeCAD DXF-import issues #13597 and #13598",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/issues/13597",
+        "https://github.com/FreeCAD/FreeCAD/issues/13598"
+      ],
+      "revision": "Issue pages retrieved 2026-10-18; both are closed and link PRs #16511 and #13638 respectively",
+      "observed": "The historical reports describe non-zero layer grouping loss and ignored requested native object-creation settings on the C++ importer route. They are useful acceptance-test shapes, but closure and linked PRs do not substitute for a current native runtime result; PR diffs were not inspected."
+    },
+    {
+      "project": "ACadSharp issue #1299 and Autodesk/GDAL SPLINE references",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Issue and documentation pages retrieved 2026-10-18; ACadSharp report names package 3.8.0",
+      "observed": "The open issue has an attached source/output archive, but its text provides no failing SPLINE handle, complete ordered field arrays, exact GDAL command/diagnostic, or independently expected curve. Autodesk defines the DXF field meanings; GDAL exposes a projection/tessellation route rather than an exact NURBS oracle. The issue's linked AI explanation is not technical evidence."
+    },
+    {
+      "project": "ACadSharp issue #1282",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1282",
+      "revision": "Issue page retrieved 2026-10-18; issue remains open in the reviewed issue index",
+      "observed": "The report gives an exact 32,768-byte per-APPID EED case that overflows through a signed 16-bit writer field and disappears on peer reread; it reports 32,764 bytes positive across AC1015, AC1018, and AC1032. This is peer implementation behavior, not a normative format maximum. Local unsigned boundary/splitting controls already own the corresponding question."
+    },
+    {
+      "project": "LibreDWG manual and optional fuzz replay setup",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg-fuzz"
+      ],
+      "revision": "Mutable project pages retrieved 2026-10-18",
+      "observed": "The manual documents direction/version-specific conversion limits and states that some unknown DWG classes may be retained as blobs without DXF fields. The companion repository describes replaying stored crash/hang/leak cases as a regression practice. This supports a composed hardening checkpoint, not semantic feature coverage or a per-slice external test requirement."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingPlanGatesRefined": [
+      "FreeCAD native Linux/Windows consumer profile",
+      "PAR-22/7H/7I/7AB SPLINE field and curve semantics",
+      "7K EED length and following-record boundary",
+      "Optional composed peer/hardening checkpoints"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refine the existing FreeCAD consumer manifest to capture the exact importer/backend and effective settings, source-to-native entity disposition, native object type, layer membership, and geometry measurements as distinct outcomes. Keep the public ACadSharp SPLINE archive optional and scratch-only; do not block local implementation or commit it. Keep existing generated EED boundary tests and the reduced fast-validation cadence unchanged."
+  },
+  "workingTree": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "receiptCreated": "docs/research/deeper-broader-native-consumer-peer-evidence-refresh-2026-10-18.json",
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared worktree already contains broad user/work-in-progress changes; this research pass changed only the requested plan and its receipt."
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "title": "AC1021 empty LAYER extension DICTIONARY selected output",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the standard DICTIONARY source frame attached as the extension dictionary of one AC1021 LAYER row through selected ASCII/Binary output and fresh typed readback.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; producer/author are unauthenticated. No DWG/DXF fixture or derivative was added."
+  },
+  "sourceGraph": {
+    "owner": {
+      "record": "LAYER",
+      "handle": "0x3B3D3",
+      "extensionDictionaryHandle": "0x3B3D4"
+    },
+    "dictionary": {
+      "record": "DICTIONARY",
+      "standardObjectType": 42,
+      "handle": "0x3B3D4",
+      "parentHandle": "0x3B3D3",
+      "hardOwner": 1,
+      "cloning": 1,
+      "entries": 0,
+      "reactors": 0,
+      "extensionDictionary": 0,
+      "appData": 0,
+      "extData": 0,
+      "dataStorage": false,
+      "commonLinkTail": false,
+      "pendingAppIdResolutions": 0,
+      "pendingLayerRefResolutions": 0
+    },
+    "standardFrame": {
+      "payloadMatched": true,
+      "opaquePayload": false,
+      "evidence": "Current source inventory reports the unique type-42 frame. The focused selector binds it to the typed dictionary model and the layer's typed xDictHandle. The parser trace reports a 100-bit object body, xDictFlag=1 and zero dictionary entries; it is parser evidence, not an independent wire-role oracle.",
+      "inventoryLogSha256": "8dd77c4f8e73e024c495c3c9bf29dbb40581c69489b8f528c7f0d9da5123b0b4",
+      "parserTraceSha256": "5f8ae476e5febb539ef46a8511662840c0411cc21a3dbf9dcbf85c9a0fa157e7"
+    }
+  },
+  "implementation": {
+    "productionChange": "None. The existing standard-object writer inspector recorded a finalized DICTIONARY source-frame proof for this selected graph.",
+    "testFile": "tests/dwg2dxf_adapter_tests.cpp",
+    "testSourceSha256": "112b9916bb642a606110a618694206fc94edc2eea1048a351fc4a0b05d5cc8a8",
+    "testProjection": "The test-only projection prunes unrelated object families using the existing AC1021 base projection, then restores only the selected LAYER xDictHandle, DICTIONARY model and matching type-42 source frame. This is test setup, not whole-source evidence."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS",
+      "adapterTestExecutableSha256": "c5cacd7c0ffe68b6b27a8122742ab5041213dbe61ca89a5479ce4d4ae81a554e"
+    },
+    "focusedControl": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layer-extension-empty-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS for ASCII and Binary targeting AC1024. The test asserts the source layer/dictionary owner link and bounded empty dictionary metadata; mutates the dictionary owner and verifies refusal preserves a destination sentinel; restores the source and retries with the same adapter; asserts the finalized standard-object output proof exists; imports fresh output and verifies the layer xDictHandle, remapped dictionary owner, exact empty dictionary and no child XRECORDs.",
+      "exitCode": 0,
+      "fixtureCommitted": false
+    },
+    "diffCheck": "PASS"
+  },
+  "qualification": {
+    "standardObjectFramesBefore": 102,
+    "standardObjectFramesAfter": 103,
+    "newlyQualified": ["0x3B3D4"],
+    "remainingInThisSourceInventory": 9,
+    "ledgerNote": "The direct standard-object output-proof map contains the finalized frame proof. The aggregate pending opaque-callback identity ledger is a separate measure and is not used here to infer additional callback publication."
+  },
+  "limits": [
+    "One selected graph from one unauthenticated local source.",
+    "No independent source-wire role proof, whole-source output, native consumer validation, producer-wide coverage or support-claim promotion.",
+    "The test uses a pruned projection; it does not claim unrelated layer extension dictionaries or all LAYER-owned graphs are supported."
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-02",
+  "status": "GENERATED_DXF_INSERT_OCS_TRANSFORM_PASS_NATIVE_SEMANTICS_OPEN",
+  "baselineHead": "39b7f7f70d171d9830bdb1b02a99f48f35fcb71e",
+  "scope": "DXF INSERT callback placement conversion when dxfRW::read explicitly requests applyExtrusion; no physical-source or support claim",
+  "authority": [
+    {
+      "title": "Autodesk INSERT (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+      "rules": [
+        "Group code 10 is the INSERT insertion point in OCS, including its X, Y and Z coordinates.",
+        "Group code 210 is the optional extrusion direction, defaulting to (0, 0, 1)."
+      ]
+    },
+    {
+      "title": "Autodesk Object Coordinate Systems (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm",
+      "rule": "The OCS basis is computed from the extrusion normal using the arbitrary-axis algorithm."
+    }
+  ],
+  "implementation": {
+    "files": [
+      {
+        "path": "src/drw_entities.cpp",
+        "sha256": "21eb45269be53095aced4f94db7e7f074f4361ace6e8f9ef93e6cefdbbfdc73d"
+      },
+      {
+        "path": "src/drw_entities.h",
+        "sha256": "c25632cb0e2aabe20f6a1d7e6c68ac5dbeed410a86520ba369561e0d10d293bb"
+      },
+      {
+        "path": "src/libdxfrw.cpp",
+        "sha256": "5bf4ce52758cd62536e392be6cc68d3ce47c0b08f226b7a0bb5f3cb1486d44ac"
+      },
+      {
+        "path": "tests/dxf_fixture_tests.cpp",
+        "sha256": "d5d2e191b62e2e5c3e5b44e44f8f7710441e423c1eeb90f0f33a52a9feaa317a"
+      }
+    ],
+    "behavior": [
+      "DRW_Insert::applyExtrusion converts the INSERT basePoint from OCS to WCS with the existing arbitrary-axis helper only when group 210 was explicitly present.",
+      "processInsert invokes the conversion only for dxfRW::read(..., applyExtrusion=true); the default false option retains the parsed OCS point.",
+      "The local INSERT angle and extrusion normal remain available to consumers; attached ATTRIB points continue to use their own existing conversion path."
+    ]
+  },
+  "generatedControl": {
+    "generator": "writeTextOcsExtrusionControl in tests/dxf_fixture_tests.cpp",
+    "generatorSha256": "d5d2e191b62e2e5c3e5b44e44f8f7710441e423c1eeb90f0f33a52a9feaa317a",
+    "sourceRevision": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "normal": [1.0, 0.0, 0.0],
+    "insert": {
+      "ocsInsertion": [2.0, 3.0, 4.0],
+      "applyExtrusionFalse": [2.0, 3.0, 4.0],
+      "applyExtrusionTrue": [4.0, 2.0, 3.0],
+      "angleDegrees": 30.0,
+      "angleRetainedAsRadians": true,
+      "extrusionRetained": [1.0, 0.0, 0.0]
+    },
+    "adjacentControls": "The same control continues to verify TEXT and INSERT-owned ATTRIB insertion/alignment conversion, OCS normals and local text angles.",
+    "fixtureDisposition": "Generated in a temporary directory by the test and deleted; no DWG/DXF fixture committed."
+  },
+  "validation": {
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.0 (arm64-apple-darwin27.0.0)",
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --text-ocs-extrusion",
+      "result": "PASS",
+      "executableSha256": "5038b971e491e1ec671a430a1eaf245ebfdf3537c02d53d2979fd035a05d1e10"
+    },
+    "focusedCohort": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_(text|polyline)_ocs_extrusion$' --output-on-failure",
+      "result": "PASS, 2/2 in 0.51 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated parser/callback controls only; no physical producer or paired-source evidence was used.",
+    "No native LibreCAD, LibreCAD_3, FreeCAD or other consumer placement check was performed.",
+    "The control does not qualify full block-frame orientation, MINSERT array spacing, whole-document output, or 3D rendering.",
+    "This does not promote a format-support claim."
+  ]
+}

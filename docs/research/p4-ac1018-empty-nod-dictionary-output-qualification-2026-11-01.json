@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1018-empty-nod-dictionary-output-qualification-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Qualify four empty AC1018 NOD child dictionaries through AC1024 output",
+  "status": "FOUR_AC1018_DICTIONARY_IDENTITIES_QUALIFIED_NO_CLAIM_PROMOTION",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "committedAsFixture": false,
+    "independentReader": {
+      "project": "GNU LibreDWG",
+      "version": "0.14",
+      "decodedJsonSha256": "bccee1259568948df2fd0e65c797932965574cc81824781864c3b34b4129d788",
+      "scope": "Corroborates the four NOD key/handle/owner/reactor relationships and empty DICTIONARY bodies; does not establish local DXF writer output."
+    }
+  },
+  "sourceProfile": {
+    "callbackCensus": 23,
+    "previousComposedQualification": 14,
+    "qualifiedAfter": 18,
+    "nodHandle": "0x0C",
+    "dictionaries": [
+      {"name": "ACAD_GROUP", "handle": "0x0D", "type": 42},
+      {"name": "ACAD_PLOTSETTINGS", "handle": "0x19", "type": 42},
+      {"name": "ACAD_MATERIAL", "handle": "0x72", "type": 42},
+      {"name": "ACAD_COLOR", "handle": "0x73", "type": 42}
+    ],
+    "sharedFields": {
+      "parentOwner": "0x0C",
+      "reactors": ["0x0C"],
+      "hardOwner": 0,
+      "cloning": 1,
+      "entryCount": 0,
+      "countCap": false,
+      "appDataEmpty": true,
+      "extDataEmpty": true,
+      "dataStorageAbsent": true,
+      "commonLinkTailAbsent": true,
+      "complete": true
+    },
+    "remainingCallbacks": [
+      "0x0C", "0xE8", "0xE9", "0x2CD", "0x2CE"
+    ]
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Extend the source-stable AC1018 LAYOUT output inspection with four exact empty NOD child dictionary profiles. Before serialization, snapshot each unique root entry and standard-object callback identity; recheck live entries, dictionary fields and source generation. During staged inspection, require each output DICTIONARY identity and mapped NOD owner, compare its full typed body and mapped common references, and verify the unique NOD key, target and soft-owner role. Publish all four callback qualifications only after the existing whole output transaction succeeds.",
+    "scopeBoundary": "The proof checks only these four NOD edges. It does not compare the complete nine-entry NOD body or qualify NOD 0x0C. It also does not establish semantic behavior for GROUP, PLOTSETTINGS, MATERIAL or COLOR contents, all of which are empty in this witness."
+  },
+  "failureAndRetry": {
+    "negativeControl": "For ASCII and Binary, corrupt Layout1's BLOCK_RECORD handle. The output transaction refuses without replacing the seeded destination and leaves the four dictionary qualification states unchanged.",
+    "retry": "Restore the handle and retry with the same adapter. Fresh readback confirms each unique NOD key, empty DICTIONARY body, owner and reactor; all four identities qualify together with the already-proven ACAD_LAYOUT dictionary and three LAYOUT records.",
+    "strictWholeSource": "Still refused at 18/23 callback identities. NOD 0x0C, LayerStates dictionary/source bodies 0xE8/0xE9, SORTENTSTABLE dictionary 0x2CD and its table 0x2CE remain unqualified. Invalid STYLE 0xDF remains an independent whole-source blocker."
+  },
+  "validation": {
+    "build": {
+      "normalCommand": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "asanCommand": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "focusedSelectors": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS for ASCII/Binary four-dictionary body and root-edge proof, existing layout graph, rollback, retry and fresh readback; qualification count is 18/23."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+        "result": "PASS for existing AC1024 Model/Layout1 compatibility profile in ASCII/Binary."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS; composed AC1018 output reports 18/23 qualified."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS; strict output refuses at 18/23, then the partial profile retries and verifies exactly the five remaining callback identities."
+      },
+      {
+        "command": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS for ASCII/Binary; no ASan report."
+      }
+    ],
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN; changed output/readback path, compatibility selector and focused ASan selector were run."
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "18a0a8e162c5660b8da636c2fe6cd928b224ec394ccf1177f2d08fdd2a061926",
+    "dwg2dxf/dx_iface.h": "712e79135f878ebaad565d9d0905dfb3ab62dc9628700fdfc29a2c62bf8715a8",
+    "tests/dwg2dxf_adapter_tests.cpp": "86b72d203030448a1c9aa146949a6d9adf396446d588bfe635c6bb3015b43890",
+    "normalAdapterTestExecutable": "7d9d1a2a4a2183c25c64ee126c2401617ec2f778e023f5027e31bde43a1f986c",
+    "asanAdapterTestExecutable": "a1e937f8ed7ab36c7aa1383c69a05535d79ecb2f5c2a6e5f12819a0ba997c1e3"
+  },
+  "planImpact": {
+    "completedItemRemoved": "Qualify AC1018 empty DICTIONARY callbacks 0x0D, 0x19, 0x72 and 0x73 through their unique NOD keys, mapped owners, full emitted bodies and fresh readback.",
+    "remaining": "P4 remains open with five of 23 AC1018 callback identities unqualified."
+  }
+}

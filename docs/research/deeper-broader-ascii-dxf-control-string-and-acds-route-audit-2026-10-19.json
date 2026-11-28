@@ -1,0 +1,143 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ASCII DXF control-string semantics and 3D comparator boundaries",
+  "mode": "Primary-source research and local source audit; plan refinement only",
+  "worktreeState": "Dirty shared worktree; existing changes preserved",
+  "scope": [
+    "Resolve ASCII DXF control-character string behavior against Autodesk's published rule.",
+    "Compare the semantic string writer/parser paths with raw-carrier and Binary-DXF paths.",
+    "Refresh open-source reader and consumer boundaries relevant to DXF syntax and ACIS/ACDS semantics.",
+    "Add an implementation-ready local finding without expanding routine or full-suite validation."
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-77D34F88-73CC-495D-B48C-37628EE61D73.htm"
+      ],
+      "revision": "Published DXF reference page reviewed 2026-10-19",
+      "observed": "ASCII control characters in text strings are written as caret plus the corresponding character; a literal caret is written as caret-space; OPEN and INSERT perform the complementary conversion.",
+      "evidenceCeiling": "Normative ASCII-string contract. The page does not spell out every code-point edge or field-specific CR/LF policy."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1412",
+        "https://github.com/LibreDWG/libredwg/issues/1408",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Open issue reports reviewed 2026-10-19; exact issue builds and customer files are not bound to current release artifacts",
+      "observed": "#1412 reports allocator-dependent uninitialized-tail output after control-character quoting; #1408 reports raw-CR ASCII framing corruption; #1411 reports R2013+ AcDs/ACDSDATA omission and lost SAB geometry while solid entity shells remain.",
+      "evidenceCeiling": "Peer-specific reports and test leads only; they do not demonstrate the same defect in libdxfrw or provide independent solid semantics."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "Mutable documentation reviewed 2026-10-19",
+      "observed": "DWG is handled through external converter-to-DXF processing; the stock DXF importer documentation says ACIS solids cannot currently be read.",
+      "evidenceCeiling": "Consumer route documentation; no native FreeCAD run or 3D/B-rep acceptance was performed."
+    },
+    {
+      "project": "gdsestimating/dxf-parser",
+      "urls": [
+        "https://github.com/gdsestimating/dxf-parser"
+      ],
+      "revision": "Mutable master README and repository release list reviewed 2026-10-19",
+      "observed": "The README lists most 2D entities, layers, blocks/inserts, some MTEXT/XDATA, and explicitly excludes 3DSolids and some leaders/objects; no release artifact is listed on the repository page.",
+      "evidenceCeiling": "Self-declared narrow DXF route; no runtime or exact package/source match was tested."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html"
+      ],
+      "revision": "Stable 1.4.5 documentation reviewed 2026-10-19",
+      "observed": "Strict read and recovery-plus-audit are distinct; recovery may repair structural flaws and may retain decode errors that can cause data loss on save.",
+      "evidenceCeiling": "Documentation only; strict/recovery commands were not run in this pass."
+    },
+    {
+      "project": "Local libdxfrw source",
+      "urls": [
+        "src/intern/dxfwriter.cpp",
+        "src/intern/drw_textcodec.cpp",
+        "src/libdxfrw.cpp"
+      ],
+      "revision": "Shared worktree source reviewed 2026-10-19",
+      "observed": "The current typed text checks reject NUL/CR/LF but do not caret-map other control scalars; the ASCII sink writes accepted bytes directly; the converter handles CIF/MIF but has no caret-pair inverse. Existing focused tests cover physical framing/newline paths, not BEL/ESC/DEL or literal caret semantics.",
+      "evidenceCeiling": "Source-confirmed uncovered route, not an executed regression or independent acceptance result."
+    }
+  ],
+  "method": {
+    "kind": "Read-only web review plus local source and test-coverage inspection",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The local finding is based on source-path comparison with Autodesk's documented behavior; it was not executed. LibreDWG issues are route-specific reports. Optional native, independent-parser, and kernel qualification remain separate and non-blocking for implementation."
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 1,
+    "newFindings": 1,
+    "newTopLevelSubplans": 0,
+    "newImplementationLeaves": 1,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 136,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds PAR-136 under existing PAR-05/7AR with a generated ASCII semantic-string escape/decode sequence; retains raw replay and Binary-DXF boundaries, current NUL/newline policy, the reduced validation cadence, and the separate ACIS/ACDS semantic gate."
+  },
+  "implementationReadyChecks": [
+    "Encode and decode semantic ASCII text strings using the documented caret notation exactly once; preserve literal caret through caret-space.",
+    "Keep raw DXF groups, opaque application bytes, Binary DXF, and C1-byte policy outside this transformation unless separately specified.",
+    "Keep NUL refused and preserve the existing TEXT CR/LF refusal and MTEXT paragraph-normalization behavior.",
+    "Use generated ASCII controls for BEL, ESC, caret, and explicit tab/DEL boundary cases; assert exact raw spelling, semantic readback, next-record/EOF, and atomic refusal.",
+    "Add MTEXT/ATTRIB/ATTDEF chunk-boundary controls and Binary-DXF unchanged controls as a second local slice.",
+    "Use focused targets, the existing selector and owning CTest; no full suite or persistent fixture is needed.",
+    "Use a pinned strict DXF parser only at the composed checkpoint; keep recovery, semantic comparison, and native acceptance separate."
+  ],
+  "validation": {
+    "commands": [
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-ascii-dxf-control-string-and-acds-route-audit-2026-10-19.json",
+      "jq empty docs/research/deeper-broader-ascii-dxf-control-string-and-acds-route-audit-2026-10-19.json",
+      "shasum -a 256 DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "74b26b33c2b444ad6fd1d582c77441e4060cd9bc64fef0d0cfe8981713f45e33"
+}

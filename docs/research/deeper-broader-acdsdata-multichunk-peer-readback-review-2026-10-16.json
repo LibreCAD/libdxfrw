@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw-deeper-broader-acdsdata-multichunk-peer-readback-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Cross-check an open-source peer's reported repeated ACDSDATA group-310 readback loss against the DXF limit and local libdxfrw writer, qualification, and generated test coverage; update existing implementation readiness without asserting a local defect or promoting 3D support.",
+  "method": {
+    "kind": "Primary standards, project pull-request discussion, and local source/test audit",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFilesInspected": [
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "evidenceRule": "A peer contributor's branch-level report is not a release result or a local defect. Source inspection establishes intended code paths only; generated multi-chunk runtime coverage is still required. A carrier transport test does not establish valid SAB, B-rep semantics, or consumer acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "DXF binary chunk size",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm"
+      ],
+      "observed": "The official DXF group-code reference defines codes 310-319 as arbitrary binary chunks and limits each hexadecimal value to 254 characters, representing at most 127 bytes.",
+      "planUse": "Use a 256-byte generated payload to require three chunks with 127/127/2 bytes and 254/254/4 hex characters."
+    },
+    {
+      "topic": "ACadSharp open writer-branch report",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/pull/1150"
+      ],
+      "observed": "An Oct. 1 contributor comment on open PR #1150 says that after an ACDS refactor the DXF reader retained only the last group-310 line of an ACDSDATA record and asks for #1268's chunk-joining fix first. The current PR page shows #1150 open with no deployment or review. The exact merge/release state of #1268 was not established in this review.",
+      "doesNotEstablish": [
+        "a defect in ACadSharp master or any released package",
+        "that #1268 has or has not shipped",
+        "a defect in libdxfrw",
+        "semantic validity of an ACIS body or native application acceptance"
+      ],
+      "planUse": "Treat as a branch-level regression lead. A future peer run must pin exact source/release and artifact identity."
+    },
+    {
+      "topic": "Local writer and admission audit",
+      "sources": [
+        "dwg2dxf/dx_iface.cpp: ACDSDATA projection loop using bytesPerChunk = 127",
+        "src/libdxfrw.cpp: hasQualifiedAc1027AcdsRecord repeated group-310 accumulation and group-94 length check"
+      ],
+      "observed": "Local code emits ordered 127-byte group-310 chunks. The AC1027 modeler qualification path iterates repeated group-310 values, decodes/appends them, and checks declared length and entity payload identity. This is a source-level observation, not a runtime result.",
+      "planUse": "Do not alter production code absent a failing generated test; first close the explicit multi-chunk coverage gap."
+    },
+    {
+      "topic": "Existing generated test coverage",
+      "sources": [
+        "tests/dwg_local_roundtrip_tests.cpp: runDxfAcdsMultipleDataStorageProjection"
+      ],
+      "observed": "The existing generated modeler payloads are 18 bytes and thumbnail payloads are below 127 bytes. The test checks payload equality, owner keys, schema, and ASCII/binary import, but no individual record has more than one group-310 chunk and this helper does not replay the multi-record output.",
+      "planUse": "Extend this existing fast test owner with a deterministic 256-byte modeler payload, exact chunk assertions, and second-pass replay in ASCII and binary."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnerOnly": true,
+    "implementationOrderChanged": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "testRegistrationAdded": false,
+    "fixtureAdded": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "fastSlice": [
+      "Use a leading-signature, 256-byte transport-only modeler payload in the existing ASCII and binary ACDSDATA projection test.",
+      "Assert exactly three ordered group-310 chunks of 127/127/2 bytes, declared group-94 length 256, correct ASM_Data schema/property and group-320 source owner key, with no bleed into adjacent records.",
+      "Import, replay to a second temporary output, and re-import; compare exact bytes and expected owner remapping.",
+      "If cheap, include omitted-middle and reordered-chunk negative controls that refuse without modifying a seeded destination.",
+      "Run the strict touched target, focused libdxfrw_dwg_local_roundtrip CTest, and scoped git diff --check only."
+    ],
+    "nextImplementationQueueItemUnchanged": "rooted MLEADERSTYLE adapter and graph integration in existing dependency order",
+    "semantic3dEvidence": "NOT ESTABLISHED"
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1024 physical RASTERVARIABLES selected-object output",
+  "date": "2026-11-05",
+  "status": "PHYSICAL_SOURCE_BOUND_PARTIAL_ASCII_BINARY_OUTPUT_AND_READBACK",
+  "scope": "The exact ODA-produced AC1024 RASTERVARIABLES sample now passes the existing source-bound adapter profile through selected-object ASCII and Binary DXF output and fresh typed readback. Source NOD 0x0A ownership and reactor identity are rebound to the emitted NOD and verified after readback. The adapter uses explicit debug/legacy partial-output settings because the source retains two HEADER integrity observations. This is not strict whole-drawing qualification.",
+  "physicalSource": {
+    "path": "/private/tmp/rastervars-ac1024/dwg/raster.dwg",
+    "sha256": "fc1371b35a566d916b4fd143e66333c6695dbd341aa31b2025bc5dcd45fe30ce",
+    "provenance": "An R2010 DXF was authored with ezdxf 1.4.5 and converted to AC1024 with ODA File Converter 27.1.0. The source was not committed.",
+    "independentReader": "LibreDWG 0.14 identifies NOD 0x0A with ACAD_IMAGE_VARS -> 0x2F and RASTERVARIABLES 0x2F owned by and reacting to NOD 0x0A.",
+    "sourceFrameProbe": "The hash-bound tools/audit_ac1024_rastervariables_source.py verify command passed. The source-specific probe checked NOD and object frame CRCs/spans, class 0, frame/quality/units 0/1/3, owner/reactor role 4 -> 0x0A, and the unique ACAD_IMAGE_VARS entry."
+  },
+  "implementationEvidence": {
+    "existingAdapterSelector": "tests/dwg2dxf_adapter_tests.cpp: rasterVariablesDwgAdapterTransport",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1024-direct-nod /private/tmp/rastervars-ac1024/dwg/raster.dwg",
+    "exitCode": 0,
+    "outputProfile": "Same-revision AC1024 ASCII and Binary DXF selected-object output using the existing debug/legacy partial-output route. The physical object is source-bound to its captured opaque DWG frame; output checks the unique ACAD_IMAGE_VARS root mapping, object identity, owner, reactor, class version, frame, quality and units after fresh typed import.",
+    "failureAndRetry": "The adapter mutation matrix rejects altered source bytes/fields, missing or wrong NOD reactor, invalid XDictionary state, duplicate NOD target, wrong class version and unrepresentable units while preserving the destination. It restores the source profile and verifies same-adapter corrected output/readback in both encodings."
+  },
+  "sourceDisposition": {
+    "operationSucceeded": true,
+    "sourceVersion": "AC1024",
+    "publishedFrames": "159/159",
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "headerIntegrityObservations": 2,
+    "integrityDetails": [
+      "HEADER offset 16 expected 821 observed 825",
+      "HEADER offset 843 expected 843 observed 1582"
+    ],
+    "policyConsequence": "Do not promote strict whole-source output or clean-reader completeness."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "passed",
+    "sourceProbeBuild": "g++ -std=c++17 -Isrc -I. tools/probe_ac1024_rastervariables_source.cpp build-gcc/libdxfrw.a -o /private/tmp/probe_ac1024_rastervariables_source_current",
+    "sourceProbeBuildResult": "passed against the current build-gcc/libdxfrw.a",
+    "sourceProbe": "python3 tools/audit_ac1024_rastervariables_source.py verify /private/tmp/rastervars-ac1024/dwg/raster.dwg /private/tmp/probe_ac1024_rastervariables_source_current",
+    "sourceProbeResult": "passed; source hash unchanged",
+    "adapterCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1024-direct-nod /private/tmp/rastervars-ac1024/dwg/raster.dwg",
+    "adapterResult": "exit 0; ASCII/Binary selected-object output, source mutation refusal, correction retry and typed readback passed",
+    "fixturePolicy": "No DWG/DXF fixture was committed; the pre-existing scratch source was read-only."
+  },
+  "sourceBinding": {
+    "baseRevision": "6dca27e0",
+    "files": {
+      "tests/dwg2dxf_adapter_tests.cpp": "5aa692a2b5479570b7af7637a70104acedbaa1b0bd4ad9c05224842b9112e1fe",
+      "tools/audit_ac1024_rastervariables_source.py": "3c6aac4f687448c99e08e1bfc59927875912549b65988b593d804bf95702625e",
+      "tools/probe_ac1024_rastervariables_source.cpp": "61b0600de938880b85ac470f6b9fa3b601e59448d494c371123d40d576497e7e",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "adc04ac614afdc14604d5ac651dd2ab48b0024db7e12cca30abc65b90074ec14"
+    }
+  },
+  "nonClaims": [
+    "This qualifies only the selected RASTERVARIABLES/NOD profile under debug/legacy partial-output settings.",
+    "The two HEADER integrity observations still block strict whole-source output and clean source qualification.",
+    "No native image display, broader physical producer/version profile, nested-owner profile or general drawing support claim is made."
+  ]
+}

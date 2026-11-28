@@ -1,0 +1,85 @@
+{
+  "id": "p6-dwg-block-record-xref-insert-membership-2026-11-09",
+  "status": "generated-profile-verified-ac1015-through-ac1032",
+  "scope": "DWG writer BLOCK_HEADER/BLOCK_RECORD reverse membership for INSERT entities, including XREF and XREF overlay definitions",
+  "spec_basis": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.52 BLOCK_HEADER",
+    "claim": "R13-R2000 BLOCK_HEADER records retain first/last entity references; R2000+ also stores a counted sequence of INSERT soft-pointer handles, followed by the layout handle. AC1015 therefore uses both the legacy entity chain and the counted INSERT reverse-reference list."
+  },
+  "implementation": {
+    "files": {
+      "src/intern/dwgwriter15.cpp": "3035e7772d1ac0a20c866cd65c1fb0c6f33d50b2cbd70338c9a08b858e213ceb",
+      "src/intern/dwgwriter15.h": "8976c6490584294d8315b7abf6f754b074c7e4cd257d1ea09ce8ed894e95cb65",
+      "tests/dwg_local_roundtrip_tests.cpp": "1e1d66caad67b251b0ce7b844ae5d5a9b0860f314f651fb8ee8adfdaa5bcd3d2",
+      "tests/CMakeLists.txt": "ea2d1c7bb9245e4d58ee922b06550008f7c6a6f32314394bd4d552e59285f497"
+    },
+    "behavior": [
+      "Accept bounded, unique, non-null source insertHandles on BLOCK_RECORD definitions.",
+      "For source-backed records, compare ordered expected handles to INSERT callbacks actually emitted before finalizing the deferred BLOCK_CONTROL/BLOCK_HEADER records.",
+      "Permit INSERT reverse membership on XREF and XREF overlay definitions while continuing to reject owned block content on those definitions.",
+      "On mismatch, refuse publication atomically and allow a corrected retry through the same writer facade."
+    ]
+  },
+  "generated_controls": {
+    "writer_versions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "xref_profiles": [
+      "reference-loaded",
+      "reference-unloaded",
+      "overlay-loaded",
+      "overlay-unloaded"
+    ],
+    "positive_case": {
+      "expected_insert_handle": "0xA123",
+      "emitted_insert_handle": "0xA123",
+      "readback": "BLOCK_RECORD insertHandles and INSERT target/handle/space/owner callback agree"
+    },
+    "negative_and_retry_case": {
+      "expected_insert_handle": "0xA123",
+      "emitted_insert_handle": "0xA124",
+      "failure": "output refused and existing destination sentinel preserved",
+      "retry": "same writer facade accepts corrected 0xA123 membership and readback closes the target reference"
+    },
+    "legacy_scope": "AC1015 now participates in the same generated XREF INSERT membership, mismatch refusal, destination-preservation, same-facade retry, and typed readback matrix. This asserts the counted R2000+ INSERT list coexisting with the legacy first/last entity-chain fields; it does not establish native producer interoperability."
+  },
+  "independent_peer": {
+    "tool": "LibreDWG dwgread 0.14",
+    "samples": [
+      {
+        "version": "AC1015",
+        "sample": "generated reference-loaded XREF output with AC1015 magic",
+        "dwg_sha256": "cf98c4dc623aaba5f32bd884b3ed5a43a84052f4768bdd567b45853e5c745429",
+        "json_sha256": "28d46aaf4c8c393b145cb6276f9e299c0fd532b6c79c04047d17ea81f2ce45b9",
+        "log_sha256": "7cc96654896aaa6dba1679527237be1c3e121c69c10ca29a54127ef1f33cc55c",
+        "observation": "Peer JSON parses the file as AC1015, reports GENERATED_XREF BLOCK_HEADER inserts=[0xA123], and reports INSERT handle 0xA123 targeting BLOCK_HEADER 0x30."
+      },
+      {
+        "version": "AC1018",
+        "sample": "generated AC1018 reference-loaded output",
+        "dwg_sha256": "4d76b052855278d894356da5f96e53d686fe3255d290676c2260903d83643aab",
+        "json_sha256": "4fbe0cfff30e01428b7eb5f938c30abdfedb26a0c1955f19ef52d99bb8f035ac",
+        "log_sha256": "ce81db1496448d5c00d1dd8eafdc473ee584045c32aa4dbfac1d871855ffbb1d",
+        "observation": "Peer JSON identifies the modelspace INSERT and XREF BLOCK_HEADER; manual peer inspection confirmed the reciprocal INSERT list and target handle."
+      }
+    ],
+    "scope": "These are generated interoperability witnesses only, not native source-producer qualification."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "focused_test": "ctest --test-dir build-gcc -R '^dwg_block_record_xref_insert_membership$' --output-on-failure",
+    "result": "PASS after extending the matrix to AC1015 (1/1 CTest; generated AC1015-AC1032 profile matrix passes).",
+    "fixture_policy": "All test drawings are generated in temporary scratch space; no DWG/DXF fixture is added to the repository."
+  },
+  "limits": [
+    "Generated writer/parser consistency across AC1015-AC1032 does not establish native AutoCAD producer behavior or imported-source graph closure.",
+    "LibreDWG independently reads one generated AC1015 witness and one generated AC1018 witness; this does not qualify all producer profiles.",
+    "This receipt does not promote a DWG/XREF feature support claim."
+  ]
+}

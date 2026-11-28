@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE DXF scalar fields reject duplicate occurrences",
+  "mode": "P2 local source-schema correctness slice with generated ASCII/Binary controls",
+  "baselineCommit": "24c9056e",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "18eec0a9c5a1fe907f99697d80f1a39d6e6dca71b6314ac4cdf9493e551872d5",
+  "scope": [
+    "Refuse repeated occurrences of all 48 represented singleton MLEADERSTYLE scalar, identity, color, handle and enum fields before publishing the typed object.",
+    "Leave reactor application groups and XDATA containers outside the singleton set so their repeated structure remains supported.",
+    "Exercise all 48 duplicate codes in ASCII and Binary DXF and verify a corrected source through the same dx_iface."
+  ],
+  "evidence": {
+    "sources": [
+      {
+        "title": "Autodesk MLEADERSTYLE DXF reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+        "supports": "Defines the MLEADERSTYLE field map for the scalar groups handled by the parser. The reference marks repeated structures where they exist in related DXF schemas; these MLEADERSTYLE fields are individual values and the local model has one value slot per code. The duplicate rejection is a local source-schema integrity rule, not an external producer claim."
+      }
+    ],
+    "sourceCreation": "The test generates a rooted AC1027 MLEADERSTYLE source locally with every represented field populated, duplicates one field at a time, and transcodes authored ASCII input to Binary DXF for binary controls. Scratch drawings are deleted after the test."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "processMLeaderStyle now owns its record loop and uses a local fixed-size seen-code set for the 48 scalar fields before raw capture and typed parsing. Repeated groups fail with BAD_CODE_PARSED before callbacks; non-singleton application/reactor/XDATA groups continue through the existing capture/parser path.",
+    "behaviorChanges": [
+      "Duplicate style fields no longer silently overwrite earlier values or produce mismatched raw-versus-typed state.",
+      "Duplicate rejection occurs before typed object publication and before the duplicated field is added to the retained raw body.",
+      "A corrected valid object imports through the same reader after all malformed attempts."
+    ],
+    "publicApiOrLayoutChanged": false,
+    "persistentFixturesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests -j4",
+      "ctest --test-dir build -R '^(libdxfrw_mleader_writer_version|libdxfrw_mleaderstyle_cmc_rgb|libdxfrw_mleaderstyle_writer_closure|libdxfrw_mleaderstyle_boolean_source_domain|libdxfrw_mleaderstyle_integer_source_domains|libdxfrw_mleaderstyle_duplicate_singleton_fields)$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS with configured -Werror build.",
+      "focusedCTest": "PASS 6/6 in 2.58 seconds; 96 generated duplicate-field cases were rejected and the same-reader valid retry passed.",
+      "fullSuite": "NOT_RUN per fast-validation plan.",
+      "nativeCadOrIndependentConsumer": "NOT_RUN."
+    }
+  },
+  "limitations": [
+    "The singleton list covers the currently modeled scalar groups; it does not assert completeness of the MLEADERSTYLE schema or validate every producer extension.",
+    "Remaining handle target roles, absent/default/version rules, and native annotation meaning remain open.",
+    "No whole-document, platform, ABI, LibreCAD, LibreCAD_3, FreeCAD, native-producer or rendered-semantics claim is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Duplicate-occurrence rejection for the 48 represented singleton MLEADERSTYLE fields in ASCII and Binary DXF.",
+    "remainingP2Scope": "Uncovered MLEADERSTYLE handle roles, absent/default/version semantics, remaining MLINESTYLE edits and schemas, and LTYPE/XDATA dependency behavior remain open.",
+    "nextImplementationPacket": "Select one currently unmatched MLEADERSTYLE handle role or one current LTYPE/XDATA dependency failure and resolve it through the existing rooted planner with a physical source/output proof.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sourceHashesSha256": {
+    "src/libdxfrw.cpp": "3084778bb048e4e0066d1c9c0e981a5b479a5e5eeb41e68dec766635bbe2aa56",
+    "tests/dwg2dxf_adapter_tests.cpp": "0ec503c87e68fde18eefa0e4746c2ffd1c80c25d30473e4cf7042518fdcaf784",
+    "tests/CMakeLists.txt": "5fd107ea3f216ef817bf783d6bae82747cde1c755a41453f35e86a868d8416bc"
+  },
+  "commitCreated": true,
+  "worktree": "Only the plan, parser and generated-test files, and this receipt are part of the slice; unrelated untracked files were not staged."
+}

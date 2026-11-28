@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw-dwg-origin-tablestyle-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Add a fail-closed AC1021+ DXF TABLESTYLE emitter for a small typed DWG-origin profile, preserving the existing raw TABLESTYLE replay path for DXF-origin data.",
+  "implementation": {
+    "filesChanged": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "supportedProfile": {
+      "source": "typed dx_data marked DWG-origin; this slice does not execute a DWG parser",
+      "targetDxfVersions": "AC1021 and later",
+      "rows": 3,
+      "textStyle": "each source handle resolves to exactly one emitted STYLE name",
+      "colors": "indexed values 0 through 255 only; ambiguous 256/truecolor/by-layer values are rejected",
+      "borders": "six conventional slots with identical lineweight, visibility, and indexed color; no double-line spacing or unsupported border metadata",
+      "formatPayload": "custom cell styles, non-default row data/unit/format fields, unknown handles, and unsupported values are rejected"
+    },
+    "changes": [
+      "Added dxfRW::writeTableStyle with bounded profile validation, handle/owner emission, and documented TABLESTYLE tags for the core record and three repeated row-style groups.",
+      "The adapter emits exactly one typed TABLESTYLE for a DWG-origin graph; DXF-origin TABLESTYLE records continue through exact raw replay.",
+      "The extension graph and ACAD_TABLE preflight now admit a typed-only TABLESTYLE graph only for DWG-origin data, retaining raw/typed identity pairing for DXF-origin data.",
+      "Generated ASCII and binary tests verify literal group values, reminted style and owner identity, parseback, and fail-closed rejection that preserves an existing destination."
+    ],
+    "sourceFileHashesSha256": {
+      "src/libdxfrw.h": "db11c9f23484c5b9fe9d6e47005b7520bbee23b90f86d8ab2abb2d79b1e07adf",
+      "src/libdxfrw.cpp": "965882032e57f5b27ff6e38b9d85dddaf9132ab5b5e73676ede0ea303af29cab",
+      "dwg2dxf/dx_iface.cpp": "fb6af13ef7110a5e32b94f898f37ac3811b522e7b0abc5747aa22cd6023fbee2",
+      "dwg2dxf/dx_iface.h": "687942d9ff1f33367be13c605249d69b444ab27335f232ca3c07b4e2a9c0ea85",
+      "tests/dwg2dxf_adapter_tests.cpp": "d0bf29f83ad763f650a8a5ae8705a5e894cafb4d53369682da60fde3b4cc8901"
+    }
+  },
+  "evidence": [
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+      "use": "Primary DXF group-code reference for TABLESTYLE identity, owner/subclass, margins, suppression flags, row text settings, indexed colors, and six border-code families.",
+      "limit": "The documentation does not fully define row-role ordering or all newer/custom style fields; this emitter preserves the typed row sequence and rejects unmodeled format/custom payloads."
+    },
+    {
+      "source": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "use": "Primary DXF reference for TABLE group 342 style reference and related versioned table style fields.",
+      "limit": "Does not establish that the local DWG parser produces a fully equivalent TABLESTYLE model or that an application renders this output identically."
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 2",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "passed; 1/1; generated ASCII and binary cases run within the test"
+      },
+      {
+        "command": "cmake --build build --target dwg2dxf lc3_compat_check --parallel 2",
+        "result": "passed"
+      },
+      {
+        "command": "git diff --check -- src/libdxfrw.h src/libdxfrw.cpp dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dwg2dxf_adapter_tests.cpp",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "independentPeerRun": false,
+    "realDwgParseExercised": false,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "currentPlanTotals": "123 findings / 71 top-level subplans",
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "remaining": [
+      "Exercise the serializer with TABLESTYLE data produced by an actual admitted DWG parse when a qualified sample is available; current test constructs typed adapter input locally.",
+      "Resolve per-border slot semantics and preserve CMC color method/RGB metadata before expanding beyond identical indexed border values.",
+      "Implement or explicitly retain refusal for custom cell styles and non-default row data/unit/format fields, then keep native rendering as a separate composed gate."
+    ],
+    "worktreeCommitted": false,
+    "reasonNotCommitted": "The shared checkout contains broad in-progress changes, and Git metadata is read-only in this environment; unrelated modifications were left untouched."
+  }
+}

@@ -1,0 +1,17 @@
+--- a/src/intern/drw_textcodec.cpp
++++ b/src/intern/drw_textcodec.cpp
+@@ -222 +222 @@
+-    int code;
++    unsigned int code;
+--- a/src/intern/dwgbuffer.cpp
++++ b/src/intern/dwgbuffer.cpp
+@@ -551,2 +551,2 @@
+-//all are soft pointer reference change to 7 (without offset)
+-            hl.code = 7;
++        //all are soft pointer reference change to 7 (without offset)
++        hl.code = 7;
+--- a/src/intern/dxfreader.cpp
++++ b/src/intern/dxfreader.cpp
+@@ -101 +101 @@
+-    int res;
++    unsigned int res;

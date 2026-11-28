@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-ucs-orthographic-options-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Implement the ready local subset of PAR-100/7BG for DXF UCS orthographic option tuples, using the corrected tuple and scalar-field boundary from the accompanying research receipt.",
+  "researchReceipt": "docs/research/deeper-broader-ucs-orthographic-peer-review-2026-10-17.json",
+  "changes": [
+    {
+      "path": "src/libdxfrw.cpp",
+      "details": "Pending code-71 option finalization requires selector 1-6 and a complete unique 13/23/33 coordinate mask. DXF UCS serialization writes group 79 as zero and refuses unresolved nonzero shared orthoType or base-UCS handle state; repeated option tuples remain ordered and no standalone code-13 point is emitted."
+    },
+    {
+      "path": "src/drw_objects.cpp",
+      "details": "DXF validation accepts only documented group-71 selector values 1-6, separate from shared DWG payload validation."
+    },
+    {
+      "path": "src/drw_objects.h",
+      "details": "Clarified that shared orthoType/DXF group 79 is not the repeated DXF group-71 option selector."
+    },
+    {
+      "path": "tests/dxf_fixture_tests.cpp",
+      "details": "Added --ucs-orthographic-options focused selector and default-suite coverage. Generated ASCII/binary tests exercise option round trips, zero points, group-79 ordering, copy/reset, malformed coordinate tuples, selector range, non-finite values, unresolved group-79/base state, legacy ambiguity, target-version refusal, and option-cap refusal."
+    }
+  ],
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "passed": true
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --ucs-orthographic-options",
+      "passed": true,
+      "note": "Expected parser diagnostics appeared for generated negative records."
+    },
+    "fullSuiteRun": false,
+    "localRoundtripRun": false,
+    "nativeCadRun": false,
+    "peerExecutableRun": false,
+    "fixtureAdded": false,
+    "ctestRegistrationAdded": false,
+    "dependencyAdded": false,
+    "gitDiffCheck": true
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 127,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktree": {
+    "committed": false,
+    "staged": false,
+    "reason": "The shared worktree contains a large mixed set of unrelated and user-owned modifications; this implementation slice was kept isolated from a commit."
+  }
+}

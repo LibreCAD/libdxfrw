@@ -1,0 +1,384 @@
+{
+  "id": "p7-ac1027-modeler-revision-uid-physical-spans-2026-11-03",
+  "date": "2026-11-03",
+  "status": "DIAGNOSTIC_ONLY_AMBIGUOUS_SUFFIX",
+  "supportClaimEffect": "none",
+  "finding": "ODA v5.4.1 section 20.4.41 does not specify the observed R2013 revision GUID tail. The sequence does not conflict with a stated field; the observed terminal BL(0) could correspond to its final R2007+ unknown BL, without claiming that association. LibreDWG dwg.spec describes has_revision_guid B, revision_major BL, revision_minor1 BS, revision_minor2 BS, eight raw revision bytes, and end_marker BL. Peer-bound examples match those fields and the following string flag and handle stream, but reverse starts are often ambiguous.",
+  "bit_conventions": "Zero-based MSB-first positions in the raw retained object frame; end positions are exclusive. The footer is BL(0)=10 followed by the absent string-stream flag=0. Candidate starts enumerate canonical BL/BS encodings without assuming the preceding bit or GUID semantics; peer GUID is used only to select and check one candidate.",
+  "public_source": {
+    "provenance": "Unknown producer. Public example_2013.dwg provenance and independent source/AcDs SAB joins are in p7-ac1027-physical-modeler-acds-sab-oda-byte-join-2026-11-03.json.",
+    "source_sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "oda_dxf_sha256": "fb361cc2ed1517e1828a03bc8bda995ca577179dc1cefa5cf57fcf9b042ecb75",
+    "entities": [
+      {
+        "candidate_flag_starts": [
+          180,
+          228
+        ],
+        "footer_bits": [
+          299,
+          302
+        ],
+        "guid_bits": [
+          229,
+          299
+        ],
+        "handle": "176",
+        "handle_spans": [
+          [
+            302,
+            318,
+            5,
+            138
+          ]
+        ],
+        "kind": "REGION",
+        "object_end": 302,
+        "padding_bits": 2,
+        "peer_290": 0,
+        "peer_uid": "{00000000-0000-0000-0000-000000000000}",
+        "revision_flag_bit": 228,
+        "tentative_common_prefix": {
+          "acis_empty": 1,
+          "acis_empty_span": [
+            74,
+            75
+          ],
+          "common_end": 74
+        }
+      },
+      {
+        "candidate_flag_starts": [
+          292,
+          308,
+          316,
+          324
+        ],
+        "footer_bits": [
+          427,
+          430
+        ],
+        "guid_bits": [
+          293,
+          427
+        ],
+        "handle": "2E1",
+        "handle_spans": [
+          [
+            430,
+            446,
+            5,
+            138
+          ],
+          [
+            446,
+            470,
+            3,
+            740
+          ]
+        ],
+        "kind": "3DSOLID",
+        "object_end": 430,
+        "padding_bits": 2,
+        "peer_290": 1,
+        "peer_uid": "{7cf5f000-46fc-4a48-beef-14b47a01fb47}",
+        "revision_flag_bit": 292,
+        "tentative_common_prefix": {
+          "acis_empty": 1,
+          "acis_empty_span": [
+            74,
+            75
+          ],
+          "common_end": 74
+        }
+      },
+      {
+        "candidate_flag_starts": [
+          310
+        ],
+        "footer_bits": [
+          445,
+          448
+        ],
+        "guid_bits": [
+          311,
+          445
+        ],
+        "handle": "37D",
+        "handle_spans": [
+          [
+            448,
+            472,
+            4,
+            918
+          ],
+          [
+            472,
+            488,
+            5,
+            138
+          ]
+        ],
+        "kind": "REGION",
+        "object_end": 448,
+        "padding_bits": 0,
+        "peer_290": 1,
+        "peer_uid": "{4947ebc7-d030-324c-a853-307cea64983a}",
+        "revision_flag_bit": 310,
+        "tentative_common_prefix": {
+          "acis_empty": 1,
+          "acis_empty_span": [
+            156,
+            157
+          ],
+          "common_end": 156
+        }
+      }
+    ]
+  },
+  "controls": {
+    "producer": "Four separately generated files, all from the same ODA File Converter 27.1.0 macOS ARM64 executable; not independent producers. Audit disabled; authored shell controls were generated from the prior selected-REGION experimental output (see p7-dwg-modeler-shell-loss-guard-2026-11-03.json).",
+    "oda_executable_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "commands": [
+      "ODAFileConverter INPUT OUTPUT ACAD2013 DWG 0 0 *.dxf",
+      "ODAFileConverter INPUT OUTPUT ACAD2013 DXF 0 0 *.dwg"
+    ],
+    "normalization": "All four outputs have group 290=1 and newly generated nonzero group 2, despite authored input group 290 of 0/1 crossed with zero/nonzero GUID. Thus input shell values were not preserved and no independent 290 mapping is established.",
+    "files": {
+      "guid0": {
+        "source_sha256": "f59bbf33a4765924becf15c5b81218f584485b4a5666a4dda689900179edcd8c",
+        "oda_dxf_sha256": "2279263a7deee46cc74b9e111d49a0b19e259ed5bc7bf429f461dbb5592fe453",
+        "entities": [
+          {
+            "candidate_flag_starts": [
+              77,
+              109
+            ],
+            "footer_bits": [
+              212,
+              215
+            ],
+            "guid_bits": [
+              78,
+              212
+            ],
+            "handle": "2C1",
+            "handle_spans": [
+              [
+                215,
+                239,
+                5,
+                702
+              ]
+            ],
+            "kind": "REGION",
+            "object_end": 215,
+            "padding_bits": 1,
+            "peer_290": 1,
+            "peer_uid": "{88ee0c1a-9d9a-9a46-a5ff-88457c10dc07}",
+            "revision_flag_bit": 77,
+            "tentative_common_prefix": {
+              "acis_empty": 0,
+              "acis_empty_span": [
+                74,
+                75
+              ],
+              "common_end": 74,
+              "oda_version": 6,
+              "oda_version_span": [
+                76,
+                86
+              ],
+              "unknown_bit": 1,
+              "version_crosses_peer_guid_boundary": true
+            }
+          }
+        ],
+        "authored_input_dxf_sha256": "aa87ecea16fb7d3165505dac1a95aeca3883cadb5eeb72a76123602d311e1e1b",
+        "authored_group_290": 0,
+        "authored_group_2": "{11223344-5566-7788-99AA-BBCCDDEEFF00}"
+      },
+      "guid1": {
+        "source_sha256": "a934cc7933458a77c29c787b2fc77ced2a7f6f9f83b61ed311e592ca0472e79e",
+        "oda_dxf_sha256": "baac57007eda2bd7ac9810afc16e4f078162e1169dcfab826b3510714de355aa",
+        "entities": [
+          {
+            "candidate_flag_starts": [
+              77,
+              101,
+              109
+            ],
+            "footer_bits": [
+              212,
+              215
+            ],
+            "guid_bits": [
+              78,
+              212
+            ],
+            "handle": "2C1",
+            "handle_spans": [
+              [
+                215,
+                239,
+                5,
+                702
+              ]
+            ],
+            "kind": "REGION",
+            "object_end": 215,
+            "padding_bits": 1,
+            "peer_290": 1,
+            "peer_uid": "{e63113ae-2253-0e43-99fc-6ff42ee34c71}",
+            "revision_flag_bit": 77,
+            "tentative_common_prefix": {
+              "acis_empty": 0,
+              "acis_empty_span": [
+                74,
+                75
+              ],
+              "common_end": 74,
+              "oda_version": 43,
+              "oda_version_span": [
+                76,
+                86
+              ],
+              "unknown_bit": 1,
+              "version_crosses_peer_guid_boundary": true
+            }
+          }
+        ],
+        "authored_input_dxf_sha256": "c0729ea2d1503e02ecc39c14276ec2beeff63b63d154728720cc8c6fafc57b65",
+        "authored_group_290": 1,
+        "authored_group_2": "{11223344-5566-7788-99AA-BBCCDDEEFF00}"
+      },
+      "zero0": {
+        "source_sha256": "475a7e058750fa44790f617784d3c19eb1a481029d9044bc953e05554410a7c5",
+        "oda_dxf_sha256": "256c7c21dc7f59634addc4f1e03bff9f903c5a5a00b5d7dd3ebf3d985d20f919",
+        "entities": [
+          {
+            "candidate_flag_starts": [
+              77,
+              93,
+              125,
+              141
+            ],
+            "footer_bits": [
+              212,
+              215
+            ],
+            "guid_bits": [
+              78,
+              212
+            ],
+            "handle": "2C1",
+            "handle_spans": [
+              [
+                215,
+                239,
+                5,
+                702
+              ]
+            ],
+            "kind": "REGION",
+            "object_end": 215,
+            "padding_bits": 1,
+            "peer_290": 1,
+            "peer_uid": "{5dfa6c60-4738-6a46-8834-a8dc467a37e7}",
+            "revision_flag_bit": 77,
+            "tentative_common_prefix": {
+              "acis_empty": 0,
+              "acis_empty_span": [
+                74,
+                75
+              ],
+              "common_end": 74,
+              "oda_version": 24,
+              "oda_version_span": [
+                76,
+                86
+              ],
+              "unknown_bit": 1,
+              "version_crosses_peer_guid_boundary": true
+            }
+          }
+        ],
+        "authored_input_dxf_sha256": "590ef0faf1beb8e63e04a71f21ad5e4f201d2bd002885f903659b675f16728aa",
+        "authored_group_290": 0,
+        "authored_group_2": "{00000000-0000-0000-0000-000000000000}"
+      },
+      "zero1": {
+        "source_sha256": "c7b2c56f7bc3817f3f8d98111f3d0df94d6ad88dcf63e6c2991b941e6ed9bb01",
+        "oda_dxf_sha256": "015681222e3db13a4371c843d5c598b2f399b9e8a2ab6e41add20cabd479ae7b",
+        "entities": [
+          {
+            "candidate_flag_starts": [
+              77
+            ],
+            "footer_bits": [
+              212,
+              215
+            ],
+            "guid_bits": [
+              78,
+              212
+            ],
+            "handle": "2C1",
+            "handle_spans": [
+              [
+                215,
+                239,
+                5,
+                702
+              ]
+            ],
+            "kind": "REGION",
+            "object_end": 215,
+            "padding_bits": 1,
+            "peer_290": 1,
+            "peer_uid": "{dbbfbe1c-1eba-bc46-9fe8-fd238b987fa1}",
+            "revision_flag_bit": 77,
+            "tentative_common_prefix": {
+              "acis_empty": 0,
+              "acis_empty_span": [
+                74,
+                75
+              ],
+              "common_end": 74,
+              "oda_version": 7,
+              "oda_version_span": [
+                76,
+                86
+              ],
+              "unknown_bit": 1,
+              "version_crosses_peer_guid_boundary": true
+            }
+          }
+        ],
+        "authored_input_dxf_sha256": "65d3d62e22e3e48c34669253020dfb8b4f48a91a400033893a4166a8df93667c",
+        "authored_group_290": 1,
+        "authored_group_2": "{00000000-0000-0000-0000-000000000000}"
+      }
+    }
+  },
+  "flag_limit": "The source bits at the peer-selected GUID boundary happen to equal ODA-exported group 290 for these seven observations. This does not establish that the bit means DXF group 290. The common prefix raw modeler bit is 1 even when the first source REGION exports 290=0. The typed m_isEmpty=false is also normalized by DataStorage attachment and is not the raw first modeler bit.",
+  "reproduction": {
+    "probe_build": "cmake --build BUILD --target libdxfrw_ac1027_acds_source_probe",
+    "command": "python3 -B tests/ac1027_modeler_uid_span.py --source INPUT.dwg --source-sha256 INPUT_SHA256 --oda-dxf ODA_OUTPUT.dxf --oda-sha256 OUTPUT_SHA256 --probe BUILD/libdxfrw_ac1027_acds_source_probe",
+    "source_revision": "isolated current-worktree CMake build; common-entity boundary comes from the same libdxfrw parser and is not independent source evidence",
+    "probe_executable_sha256": "d0c56a4c041e7dcc1fa28deb5c0574de4f591fc66c018cbc75adff11592f18a7",
+    "peer": "ODA File Converter DXF output from the exact hash-pinned input; one converter, not an independent geometric/kernel validation",
+    "fast_tests": "Generated zero and nonzero GUID controls verify exact bound, footer, following handle, bit mutations and truncation.",
+    "physical_negative_controls": "A scratch probe wrapper flipped source 0x2E1 flag bit 292, GUID bit 293, footer bit 428, or following layer handle bit 439; each was rejected. An incorrect input SHA-256 was also rejected."
+  },
+  "limitations": [
+    "No general backward extraction is safe when multiple starts satisfy canonical encodings. Forward parsing the complete body or other conclusive source-bound evidence is needed.",
+    "Unknown producer provenance for public source; the other four files share one ODA producer. No independent native FreeCAD or ACIS semantic qualification.",
+    "Existing DWG-associated SAB shell refusal remains in effect. No source shell fields are automatically promoted and no DWG/DXF fixture was added."
+  ],
+  "forward_trace": {
+    "source": "COMMON_END is obtained by rerunning the in-tree DRW_Entity::parseDwg on the retained frame. This is a tentative boundary, not independent proof.",
+    "oda_prefix_interpretation": "Using the ODA section 20.4.41 first-field order at that tentative boundary, the four generated controls yield ACIS empty=0 at bit 74, unknown=1 at bit 75, and BS versions 6/43/24/7 spanning bits 76\u201386. ODA specifies versions 1 or 2; the proposed version overlaps the peer-bound revision flag at bit 77. The 3 public-source entities instead yield empty=1, with 154/218/154 bits from common end to peer-bound revision start. Their unknown intervening source profile prevents unique forward decoding.",
+    "limitation": "The mismatch can arise from a boundary error, a distinct AcDs source profile, or another misunderstood field; it does not establish which interpretation is correct and does not promote the tentative GUID or flag as a production field."
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schema": "table-explicit-merge-review-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "codeCommit": "071a5940728f7138ad4d42d542e2dd2615613312",
+  "supportClaimsPromoted": false,
+  "scope": "Bounded preflight of explicit-anchor merge ranges, applicable to TABLE output versions admitted by the writer; selected AC1018 tests exercise bounds, overlap and rollback.",
+  "priorEvidence": "docs/research/rpp5il-ac1018-table-merge-unit-span-2026-10-28.json",
+  "preFixReproductions": {
+    "input": "Locally authored 1x3 AC1018 table with unit source descriptors, modified in memory. Out-of-bounds: anchor column 1 width 3 and range columns 1 through 3. Overlap: anchors columns 0 and 1 each width 2 with ranges 0..1 and 1..2.",
+    "inputSha256": "a54ddb2e03c4c88cab16ef6fc10ee6019e9aa27f5e792e68afc344e6fb591c09",
+    "boundsProbeSourceSha256": "1cebbe9937657c19163ae09ff1449cf54a7d0cf0e31b2f0b7b0b652e906f4997",
+    "boundsExecutableSha256": "ba572c86c5d3dc2b09b4d5b7e9f7e72ae694da12b66a3055cda885238d934715",
+    "overlapProbeSourceSha256": "e2887402cfc13e733b038647d908e62fbe161252642d15a2719f90e03324054f",
+    "overlapExecutableSha256": "e5e6538ec800bf803d96335902260bd55b8b6f7b0dc865e41123f1ebc0a0cc7e",
+    "normalLibraryAtLinkSha256": "b2b91d755e8d02d83629854730e00ba75eedb97216a9e61355ee11c3928a7c4a",
+    "normalAdapterAtLinkSha256": "7d60560ea1694d6ba62cde3b3ea6fe26d0ecb7ba2567fd5bc0b45360569e62dd",
+    "result": "Both exported successfully but reimported as semanticContentComplete=0 with no merged ranges.",
+    "logSha256": "41d344f4a07dce94fffb900192f2ef777914ec37b3eb609282fa659281e6a931"
+  },
+  "postFixReproduction": {
+    "source": "build/table-merge-writer-review/explicit-post.cpp",
+    "sourceSha256": "53aafd8c5d5bd4870deaa1e1a1cb68129f004115c5602c48047a33de5756b641",
+    "executableSha256": "27dc7c61c21c8fe70f327285ec531c7cd1c028764267fe650d60f83921b89138",
+    "normalLibraryAtLinkSha256": "c5eb2bceb5f5179abbf0a3fd9bc78181ffcaf2c75523622f56f14f2dfc3bd91e",
+    "normalAdapterAtLinkSha256": "c917494f704c174f52b2d1372245dc0858c2e270c48ceb22fbdd769ec17799b3",
+    "result": "Both malformed cases refused with sentinel and tested model fields unchanged; same-writer corrected retry succeeds and readback is complete with one range.",
+    "logSha256": "8bfe76dc1cc10762adf64869ea671b35f875798e67260c6c5a5b51756cb86e09"
+  },
+  "implementation": "Validate explicit rectangles and anchor descriptors, with bounded grid occupancy and immediate overlap refusal; reject zero non-anchor descriptors in merged grids to avoid normalizing retained data. With zero merged cells and ranges the occupancy vector is empty.",
+  "bindings": {
+    "src/libdxfrw.cpp": "e42b1439eb94bc4ba94fe40400ba2114b721503b4054896fc84b22c0e4d474df",
+    "tests/table_legacy_merge_controls.h": "2e9b22a9ef4ae0c96a29491a6bff45e8c84b211ea35dbceadb0b2029ee040956"
+  },
+  "controls": {
+    "coverage": "ASCII and binary inputs and outputs, strict and compatible modes; 8 valid explicit-anchor and 8 unmerged baseline round trips, 64 malformed-profile atomic refusals with 64 corrected retries.",
+    "faults": "Horizontal and vertical overflow, overlap, duplicate and mismatching ranges, negative bounds, and zero non-anchor width or height. Caller identity/body and destination sentinel are checked."
+  },
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_(table_(legacy_merge|content_dxf_projection|original_inputs)|block_(legacy_capture|source_proof|record_legacy_(observation|adapter))|attdef_(source_profile|legacy_adapter_capture))$' --output-on-failure",
+    "result": "9/9 passed as reported; no retained test-log hash asserted.",
+    "testExecutableSha256": "7cb1509880741f811959bf449aa0a8967efb51cb9fdd53b5ce0a0941af1b884b"
+  },
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^libdxfrw_(table_(legacy_merge|content_dxf_projection|original_inputs)|block_(legacy_capture|source_proof|record_legacy_(observation|adapter))|attdef_(source_profile|legacy_adapter_capture))$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "9/9 passed as reported; no retained test-log hash asserted.",
+    "testExecutableSha256": "edf5333df71f74ede482c867c24f25dbdde3c63d29b1b30bc68a701b27c17d10",
+    "librarySha256": "9c7875f6da64e60a08f9b33ce5df70c033c6e40c35173f222f35e88ba9db415e",
+    "adapterObjectSha256": "2facb3e1d86fbe6e5502caeb32b68fa714ca63dd85c66843e519793ac2a4b9ca"
+  },
+  "simultaneousWork": {
+    "chronology": "BLOCK_RECORD adapter source was frozen but uncommitted during both normal and ASan builds, then committed as 2eafb121.",
+    "dwg2dxf/dx_data.h": "5a71346b49c5c91cf0f0cb2f8b01b4be22e8c73830859dbc8bc87d73479869f4",
+    "dwg2dxf/dx_iface.cpp": "8cf014e90601287de2a0b67a6eb0cf9b1d754cfcd86af32ff13b4f960673e741",
+    "dwg2dxf/dx_iface.h": "750dffa89abeaa256eba61b210dc2ecdb07d6fc56d8274b0cf6e4ce4106f1ba1",
+    "tests/block_legacy_record_observation.h": "99c082ce73a6939c9d2451963cec1804587db4b41728821e8e4c218033e6f176"
+  },
+  "limitations": [
+    "This establishes selected writer refusal and typed readback, not native merge rendering semantics or general TABLE support.",
+    "Source-specific inferred anchor/covered polarity, group 289 absence and override/border semantics remain open; explicit group 177 zero may be omitted.",
+    "No complete document, LibreCAD/LibreCAD_3 or FreeCAD qualification follows. Prior DRW_Table layout change still requires consumer rebuild and ABI/API qualification.",
+    "Scratch probes and authored input remain in ignored build output; no new external fixture committed."
+  ]
+}

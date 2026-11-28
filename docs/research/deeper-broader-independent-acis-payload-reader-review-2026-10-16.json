@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw-deeper-broader-independent-acis-payload-reader-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reassess cadmpeg-codec-sat as an optional independent reader for extracted ACIS payloads, reconcile its immutable release artifact and support claims, and refine the existing composed evidence gate.",
+  "method": {
+    "kind": "Read-only research against official project release metadata, published crate documentation, project support ladder, neutral B-rep contract, and architecture documentation.",
+    "sourcesOpened": [
+      "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.1",
+      "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+      "https://docs.rs/cadmpeg-codec-sat/0.6.1/cadmpeg_codec_sat/",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/cad-ir.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/architecture.md"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerOrNativeExecutablesRun": false,
+    "toolchainInstalled": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localTestsRun": false,
+    "evidenceBoundary": "Published documentation establishes a candidate route, declared profile, artifact metadata, and explicit limitations only. No release binary/crate archive was inspected or executed; no local payload was tested; this review does not qualify any ACIS, DWG, DXF, AcDs, kernel, or native-application support profile."
+  },
+  "evidence": [
+    {
+      "candidate": "cadmpeg-codec-sat 0.6.1 / cadmpeg v0.6.1",
+      "observed": [
+        "GitHub's v0.6.1 release page identifies commit 9e8f6d6 and lists prebuilt artifacts for Apple Silicon macOS, x64 Windows, and x64/ARM64 Linux.",
+        "The Apple Silicon macOS archive is published with SHA-256 932a5067d76617707366c7a913e92e2c48484ccacd4f1ceecb065bbeb97dad4b.",
+        "docs.rs identifies cadmpeg-codec-sat 0.6.1 as published 2026-10-12 and documents exact release crate dependencies; archive-to-tag source equivalence and dependency resolution were not independently verified in this review.",
+        "The reader handles bare SAT/SMT and SAB/ASM payloads, including the documented Spatial ACIS binary 217/218 branch. Other ACIS bands may be framed with a substituted grammar but are reported as Admission::Unverified with a dialect loss.",
+        "The codec transfers supported records to a neutral B-rep IR but does not parse DWG/DXF containers, AcDs pages/indexes, or entity/history ownership, and does not write SAT/SAB.",
+        "The project's aggregate support ladder reports L1 for the declared ASM/ACIS stream family even though the documentation describes connected B-rep transfer for supported records. The L3 model claim requires evidence across the declared profile; one passing payload cannot promote that score.",
+        "The IR documents incidence/orientation and geometric carriers as distinct and defines body-to-point topology. This supports a structured cross-parser comparison, but does not amount to a separately qualified geometry kernel or native CAD acceptance."
+      ],
+      "classification": "OPTIONAL_PROFILE_BOUNDED_INDEPENDENT_PAYLOAD_PARSER_AND_NEUTRAL_MODEL_TRANSFER_COMPARATOR",
+      "planUse": "At the existing composed external checkpoint only, if the exact release artifact is already authorized and available, compare a byte-identical locally extracted 217/218 payload and preserve the complete DecodeReport, losses, body/topology/carrier inventory, units, scale, and identity. Reject unverified dialect substitution, blocking or shape-relevant unknown losses, or incomplete body disposition as a semantic pass. Keep geometric-kernel validity, native consumer acceptance, and DWG/AcDs ownership as separate evidence stages."
+    }
+  ],
+  "planDelta": {
+    "existingGateRefined": "Tighten the optional cadmpeg-codec-sat comparison to an immutable release/artifact/source/dependency identity and exact verified 217/218 input profile; characterize its output as independent parser/model-transfer evidence, not general semantic qualification.",
+    "localImplementationOrderChanged": false,
+    "existingFindingsChanged": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "newFixtures": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue local implementation with focused generated tests; the optional reader is not a blocker or per-slice dependency.",
+      "If the composed external gate is reached and the exact binary/crate is already available, first bind it to release v0.6.1 / commit 9e8f6d6, record artifact and dependency hashes, and verify the crate/source relationship.",
+      "Feed only byte-identical extracted payloads in the verified 217/218 profile; retain full decode/loss reports and compare topology/carrier details with independent analytic expectations.",
+      "Keep the reader result separate from libdxfrw's DWG/AcDs extraction/ownership proof and from any qualified kernel or named native application result.",
+      "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting pending their own platform and independent semantic evidence."
+    ]
+  },
+  "validation": {
+    "planFilesUpdated": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "receiptJsonParsed": "PASS",
+    "gitDiffCheck": "PASS",
+    "productionSourceChanged": false,
+    "testsRun": false
+  }
+}

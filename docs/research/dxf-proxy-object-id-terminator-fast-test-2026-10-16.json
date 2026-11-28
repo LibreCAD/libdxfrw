@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw-dxf-proxy-object-id-terminator-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Implement and verify scoped DXF proxy object-ID terminator handling for ACAD_PROXY_ENTITY and ACAD_PROXY_OBJECT.",
+  "formatContract": {
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-89A690F9-E859-4D57-89EA-750F3FB76C6B.htm",
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-F59F0EC3-D34D-4C1A-91AC-7FDA569EF016.htm"
+    ],
+    "observed": "Both proxy references define group 94 as zero to indicate the end of the optional object-ID section, preceded by zero or more 330/340/350/360 object IDs.",
+    "compatibilityChoice": "When group 94 is present, require integer zero once and reject subsequent object-ID handle groups in the same proxy subclass. Continue accepting absent group 94 because this review did not establish that all historical files include it. Foreign subclasses and 102 application groups remain opaque."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Track proxy object-ID section termination in DxfProxyCapture.",
+      "Reject nonzero or duplicate group 94 in the recognized proxy subclass.",
+      "Reject 330/340/350/360 typed proxy object-ID references after termination.",
+      "Preserve source handle role/order for references before termination.",
+      "Ignore group 94 outside the recognized proxy subclass and within foreign 102 application data.",
+      "Retain backward acceptance when group 94 is absent."
+    ]
+  },
+  "generatedControls": {
+    "asciiAndBinary": true,
+    "entityAndObjectRoutes": true,
+    "cases": [
+      "two ordered object-ID references followed by 94=0",
+      "object-ID reference with group 94 omitted",
+      "nonzero group 94 rejection",
+      "duplicate group 94 rejection",
+      "object-ID handle after 94 rejection",
+      "nonzero group 94 in a foreign subclass remains opaque"
+    ],
+    "callbackPublication": "Malformed recognized proxy cases must fail before typed or raw callbacks."
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target libdxfrw_hardening_tests -j4",
+      "result": "passed"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "failed",
+      "summary": "The new proxy assertions produced no failures. The enclosing test executable reported three other failures: two DICTIONARYWDFLT copy/assignment parser-state assertions and one AcDs body-to-owner binding assertion. These are outside this slice and were not changed."
+    },
+    "fullSuiteRun": false,
+    "sanitizerRun": false,
+    "diffCheck": "Run after plan/receipt update before handoff."
+  },
+  "scopeLimits": [
+    "No new test registration, fixture, dependency, public API, or support claim.",
+    "No evidence is provided for proxy custom-object semantics, DWG proxy decoding, or downstream CAD acceptance.",
+    "The complete hardening CTest is not green because of the unrelated failures listed above."
+  ],
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 122,
+      "topLevelSubplans": 70
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "externalJDispositionChanged": false
+  }
+}

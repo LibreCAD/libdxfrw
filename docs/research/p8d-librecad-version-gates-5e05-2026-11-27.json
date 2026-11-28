@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-version-gates-5e05-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "5e056757bd6062ff005c8c9b770368b0414b7b63",
+  "codecCommit": "219b5164a41650dc834ab96d499cba8cf6030764",
+  "codecScope": "The public codec is unchanged by subsequent dwg2dxf-only and test/evidence commits through 8f377410.",
+  "regression": "The preceding consumer candidate fails an R14 export when planning excludes a newer MLEADERSTYLE but emission still attempts to write it. FIELD/FIELDLIST require R2004 in the standalone codec and R2000 in the bundled codec. Planning must match the selected codec and target; supported EVALUATION_GRAPH also needs its parent dictionary planned.",
+  "change": "Share the selected codec's version boundary for planning and emission, gate the three typed profiles consistently, retain graph parent dictionaries, count omitted typed records without double-counting raw carriers, and describe skipped raw replay without claiming every corresponding object is absent.",
+  "focusedValidation": {
+    "systemVersionAndRetry": "147 assertions in 9 cases passed, including old-version omission, graph-only ownership, state reset, failed write and corrected retry.",
+    "systemImageAndMaterial": "9435 assertions in 19 cases passed.",
+    "bundled": "Affected filter and test translation units compiled; no complete bundled test suite was run.",
+    "hosted": "Headless ON and OFF checks passed; other PR checks were pending when recorded."
+  },
+  "nativeSave": {
+    "platform": "macOS 27.2.1 build 26B131, arm64",
+    "harness": "Clean consumer source, with a scratch-only QSettings organization change for isolated startup. Scratch bundle has a unique identifier, codec rpath and ad-hoc signature; startup source restored after build. Runtime lsof confirmed the shared codec mapping.",
+    "applicationSha256": "0489e0115708f3bcec6733c4ac1a251644db9bfe10f6fccf6998437b925de216",
+    "sharedLibrarySha256": "a18e2367e0bc5727c7e8021ef7694230446c52972e0a7ae1856700c58bb1a099",
+    "inputSha256": "f9223467ad3e791f71643c4e5fff0272ee3a6de8682e68b707073b2483a4084e",
+    "outputSha256": "bbcdabd48a2a0814891de09394ebae6a036917de609574d31349b830317d779c",
+    "observations": [
+      "The locally authored AC1032 input rendered a dashed line. The line properties showed P8D_CUSTOM and endpoint (100,0); the endpoint was changed to (120,0), and the file saved as AC1021.",
+      "The native command line reported: 2 raw record(s) from another DXF version were not replayed; some may have been regenerated.",
+      "ezdxf 1.4.5 independently read one LINE on P8D_LAYER with P8D_CUSTOM, endpoints (0,0,0) and (120,0,0), and pattern length 6 with elements 4 and -2. Audit had zero errors and fixes.",
+      "After closing and reopening the saved AC1021 file, the canvas rendered the dashed line and Line Properties showed P8D_CUSTOM on P8D_LAYER with endpoints (0,0) and (120,0)."
+    ]
+  },
+  "limits": [
+    "Native reopen qualifies this locally authored single-line profile only; it does not replace independent file readback or broader native tests.",
+    "The scratch app is not byte-identical to an unmodified candidate executable. This local source and one edited line do not establish whole-drawing preservation or broad platform support.",
+    "The earlier native receipt identifies the two skipped raw carriers in a separate diagnostic run and verifies matching output records; that does not prove general graph equivalence.",
+    "No input or output drawing was committed."
+  ],
+  "bundledFollowup": {
+    "consumerTestCommit": "68fa64d3",
+    "finding": "The original test incorrectly expected the bundled codec to regenerate the two omitted plot-style records; it reported three failures. The standalone codec regenerates them in the selected profile, whereas the bundled codec omits them and reports skipped raw replay.",
+    "validation": "The corrected version selector passed 146 assertions across eight bundled cases and 147 assertions across nine standalone cases.",
+    "limits": "Test correction only; it neither adds bundled plot-style regeneration nor qualifies a general cross-version profile."
+  },
+  "typeCollisionFollowup": {
+    "consumerCommit": "d4d84bec",
+    "finding": "A skipped cross-version raw object could share a handle with a different typed MLEADERSTYLE, suppressing the typed omission count. The pre-fix bundled control fails for that case.",
+    "change": "Deduplicate an ineligible typed omission against a skipped raw carrier only when both handle and case-insensitive object type match.",
+    "validation": "The version selector passed 158 assertions across nine bundled cases and 159 assertions across ten standalone cases, including same-type, case-variant and different-type collisions and existing version, output, destination and retry checks.",
+    "limits": "This controls version-ineligible typed omission reporting. It does not qualify all collisions or the distinct same-handle typed stand-in and reference-planning paths."
+  },
+  "typedStandInFollowup": {
+    "consumerCommit": "9d51b824",
+    "finding": "In the eligible typed-object planning path, any skipped raw record with the same handle was treated as replaced, even when its type differed or multiple omitted carriers shared the handle. Red-before controls reproduced a hidden raw omission and retained an ambiguous LINE reactor.",
+    "change": "For this typed-object path, count skipped object and entity handles and require exactly one skipped carrier with the same case-insensitive object type before treating it as replaced. Different or ambiguous carriers remain reported and in the dropped-reference set.",
+    "validation": "The focused version selector passed 189 standalone assertions in eleven cases and 188 bundled assertions in ten cases. Controls cover matching and case-variant types, different types, duplicate raw objects, object/entity collisions, report counts, typed output and selected LINE reactor behavior; existing version and retry controls also pass.",
+    "limits": "This qualifies the selected typed-object stand-in path and LINE reactor. Fixed typed objects, typed entities, all graph roles, live identity collisions and semantic equivalence of same-type records remain separate work.",
+    "adjacentHandleSelector": "Bundled codec: 463 assertions in 21 cases passed. Standalone codec: 17 of 21 cases passed, with the same four raw sparse-MATERIAL export failures and 212/216 assertions as the pre-change 219b handle-selector baseline; these remain guarded and unresolved."
+  },
+  "fixedTypedStandInFollowup": {
+    "consumerCommit": "2efea2fe",
+    "finding": "The fixed-object preflight used handle-only stand-ins and reproduced hidden omitted FIELD records and retained ambiguous LINE reactors for MLINESTYLE, including duplicate raw objects and object/entity collisions.",
+    "change": "Use the same unique, case-insensitive type-and-handle stand-in helper for fixed and class-based typed objects; keep existing typed-entity behavior unchanged.",
+    "validation": "The selected version, LAYOUT, and MLINESTYLE linetype controls pass: 308 assertions in 14 standalone cases and 305 assertions in 13 bundled cases. The red-before MLINESTYLE control covered matching and case-variant types, different types, duplicate objects, object/entity collisions, reports, and selected LINE reactor references.",
+    "limits": "The collision profile directly exercises MLINESTYLE and SCALE. LAYOUT is covered by adjacent behavior tests rather than a dedicated collision witness. Typed entities, other graph roles, live-identity ambiguity, and same-type semantic equivalence remain open."
+  },
+  "typedEntityStandInFollowup": {
+    "consumerCommit": "8efe498e",
+    "finding": "A typed NAVISWORKSMODEL was omitted from source-to-output entity handle planning. An earlier LINE reactor could retain its old source handle, and the raw-entity stand-in check accepted unrelated or duplicate carriers. The red-before bundled test showed a dangling reference and incorrect omission reports.",
+    "change": "Apply unique, case-insensitive type-and-scope checks to the selected class-based typed entity stand-in and preallocate NAVISWORKSMODEL source identities before entity output. Mark conflicting skipped identities ambiguous so references do not guess.",
+    "validation": "Version and NAVISWORKS selectors pass 268 standalone assertions in 14 cases and 267 bundled assertions in 13 cases, including matching, missing, conflicting and duplicate raw sources, live identity collision, destination-preserving invalid write and corrected same-filter retry. The adjacent handle selector passes 23 bundled cases; the standalone run passes 19/23 with the same four previously recorded sparse-MATERIAL failures. ezdxf 1.4.5 independently read the generated AC1021 matching output, found one LINE reactor targeting the emitted NAVISWORKSMODEL, and reported no audit errors or fixes.",
+    "peerOutputSha256": "fefc8b7355c2558bce3c9c5139fcb819c733e43a32843781124068dc5a8daae0",
+    "limits": "Only the selected NAVISWORKSMODEL cross-version raw-carrier and LINE-reactor profiles are qualified. Same-version raw/typed deduplication, fixed typed-entity aliases, additional types, graph roles, producer semantics, and native platforms remain open. The generated output stays outside the repository."
+  },
+  "fixedEntityStandInFollowup": {
+    "consumerCommit": "f88b3536",
+    "finding": "GEOPOSITIONMARKER and SECTIONOBJECT were missing from preallocated metadata-entity identities. Handle-only stand-in accounting could suppress omitted raw records and preserve dangling or ambiguous LINE reactors. Red-before controls exposed 24 assertions across two entity types and six source scenarios.",
+    "change": "Share metadata-entity identity planning and scope-aware raw-carrier checks. Canonicalize the existing POSITIONMARKER and SECTION_OBJECT aliases consistently; honor each typed writer minimum; preserve same-version raw precedence; mark conflicting or duplicated sources ambiguous.",
+    "validation": "Selected version, NAVISWORKS and SECTIONOBJECT controls pass 439 standalone assertions in 18 cases and 436 bundled assertions in 17 cases, including alias handling, same-version replay, live/source collisions, old-version behavior, destination preservation and retry. Adjacent handle selectors pass all 26 bundled cases; standalone passes 22/26 with the same four known sparse-MATERIAL failures. ezdxf 1.4.5 independently read generated AC1027 alias-projection outputs and verified each LINE reactor against its GEOPOSITIONMARKER or SECTIONOBJECT with zero audit errors and fixes.",
+    "peerOutputSha256": {
+      "GEOPOSITIONMARKER": "21499310fde4755090f728016d842d58a2e22dbf3f6f108e07a04a42c2d3c9ab",
+      "SECTIONOBJECT": "6e837c94c029d294a31c90e2e9d587b5e5b4896cb6af3c0db1191e9f294fc89b"
+    },
+    "limits": "These controls cover source/output identities and selected LINE reactors, not all graph roles or native meanings. Peer inputs/outputs are locally generated scratch files; no drawing fixture was committed. Other metadata entities, producer semantics and platforms remain open."
+  },
+  "hostedStatusNote": "LibreCAD_3 head b4be27ee passed hosted Linux ARM64, AppImage, Windows persistence, DWG sanitizer and plan sync checks; other jobs remain pending.",
+  "invalidPointCloudKindFollowup": {
+    "consumerCommit": "a0bb9764",
+    "finding": "An unknown point-cloud definition kind produced a null DXF record-name pointer; the bundled-codec regression crashed with a segmentation fault before writing.",
+    "change": "Switch on the stored integer and reject an unnamed typed record in export preflight, before the writer runs. Report the invalid kind and retain the destination.",
+    "validation": "The version selector passes 410 assertions in 17 standalone cases and 407 in 16 bundled cases. The control verifies reported refusal, destination preservation, corrected same-filter retry, output record and reference closure. The separately requested pointcloud tag did not match an additional case.",
+    "limits": "This covers the selected malformed kind and corrected definition; it does not qualify complete point-cloud graphs or DWG behavior."
+  }
+}

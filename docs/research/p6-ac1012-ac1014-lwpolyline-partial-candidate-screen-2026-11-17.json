@@ -1,0 +1,73 @@
+{
+  "id": "p6-ac1012-ac1014-lwpolyline-partial-candidate-screen-2026-11-17",
+  "date": "2026-11-17",
+  "gate": "P6-F",
+  "status": "WAITING_FOR_ELIGIBLE_PARTIAL_SOURCE",
+  "scope": "Trace the ODA-generated AC1012/AC1014 candidates and identify whether they can exercise the partial DWG read publication path without weakening exact-version, bounded-frame, or reference checks.",
+  "source_directory": "/Users/dli/doc/dwg3/oda-27.1-2026-11-17/legacy/",
+  "sources": [
+    {
+      "file": "ac1015_lwpolyline_freecad_control.ac1012.dwg",
+      "version": "AC1012",
+      "sha256": "b8631fc58ae06570d1d67f94b919ebf135eb7379ca3c367b6c76227500a36c5f",
+      "failures": [
+        {
+          "handle": "0xE7",
+          "objectType": 509,
+          "record": "CELLSTYLEMAP",
+          "class": "AcDbCellStyleMap",
+          "diagnostic": "TABLESTYLE cell-style data header invalid; CELLSTYLEMAP cell style parse incomplete"
+        },
+        {
+          "handle": "0x54",
+          "objectType": 500,
+          "record": "ACDBDICTIONARYWDFLT",
+          "class": "AcDbDictionaryWithDefault"
+        }
+      ]
+    },
+    {
+      "file": "ac1015_lwpolyline_freecad_control.ac1014.dwg",
+      "version": "AC1014",
+      "sha256": "4d4170ccf3617d0e100664e2687c54a4f43ed9544c9fec5631d43d14069e65ec",
+      "failures": [
+        {
+          "handle": "0xE5",
+          "objectType": 509,
+          "record": "CELLSTYLEMAP",
+          "class": "AcDbCellStyleMap",
+          "diagnostic": "TABLESTYLE cell-style data header invalid; CELLSTYLEMAP cell style parse incomplete"
+        },
+        {
+          "handle": "0x54",
+          "objectType": 500,
+          "record": "ACDBDICTIONARYWDFLT",
+          "class": "AcDbDictionaryWithDefault"
+        }
+      ]
+    }
+  ],
+  "ac1014_source_default_conversion": {
+    "command_shape": "dwg2dxf <AC1014 source> -o <new output> -y -d",
+    "selected_source_version": "AC1014",
+    "selected_target_version": "AC1014",
+    "outcome": "Strict output refused after read; exact-version ModelDocViewStyle refusal did not occur with source-default target selection.",
+    "source_frames": 191,
+    "published_frames": 189,
+    "failed_frames": 2,
+    "entity_parse_failures": 0,
+    "object_parse_failures": 2,
+    "destination_published": false
+  },
+  "ac1014_explicit_partial_conversion": {
+    "command_shape": "dwg2dxf <AC1014 source> -o <new output> -y --allow-partial-dwg-read -d",
+    "outcome": "Preflight refused with `LAYOUT` and `BLOCK_RECORD` backlinks disagree.",
+    "entity_parse_failures": 0,
+    "object_parse_failures": 2,
+    "destination_published": false
+  },
+  "target_version_note": "An earlier `-v2013` run intentionally targeted AC1027 and triggered the exact-source-version ModelDocViewStyle guard for AC1012/AC1014. Do not remove or relax that guard; AC1014 `-o` source-default mode selects AC1014.",
+  "disposition": "Neither new candidate has recoverable entity failures, and the AC1014 partial path also has an unresolved layout/block backlink. These files cannot qualify the P6-F partial entity-recovery slice.",
+  "next_action": "Resume only if an existing hash-bound AC1012/AC1014 source has eligible recoverable entity failures, all object/backlink/reference dependencies close, and later frames are published. Otherwise leave the gate waiting and continue independent work.",
+  "fixture_policy": "These ODA outputs are external derivatives and remain outside the repository."
+}

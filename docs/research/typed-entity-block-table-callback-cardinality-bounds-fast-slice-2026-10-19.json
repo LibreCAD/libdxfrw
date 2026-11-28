@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Typed entity, block, and TABLE callback cardinality bounds",
+  "mode": "Local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bound persistent dx_iface block-definition, typed entity, and DRW_Table callback retention by container-lifetime record cardinality",
+    "Route entity allocation and list insertion through exception-safe sticky capture admission",
+    "Refuse DXF output after partial/over-limit typed entity callback capture",
+    "Add generated fast coverage without adding a DWG/DXF fixture"
+  ],
+  "implementation": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistered": true,
+    "limits": {
+      "typedEntitiesAcrossAllBlocks": 100000,
+      "blockDefinitions": 100000,
+      "typedTableCallbacks": 100000
+    },
+    "controls": [
+      "Typed entity copies use one aggregate container-lifetime record counter",
+      "Entity allocation and list insertion are enclosed by admission and exception handling",
+      "Block definitions are not allocated/copied after their record ceiling",
+      "DRW_Table copies and their compatibility entity callback are rejected after their record ceiling",
+      "Any capture/allocation failure is sticky and DXF export refuses before publishing output"
+    ],
+    "limitations": "Count ceilings only. No aggregate dynamic-byte estimate was added for nested entity/table payloads, block end-record members, or every auxiliary callback store. This is not a complete adapter memory bound or format/support qualification."
+  },
+  "localEvidence": [
+    "Generated in-memory DRW_Line callback reaches the exact typed entity record ceiling; the next callback is refused and the count/list remain unchanged.",
+    "Generated block-definition and DRW_Table callbacks are refused at their respective ceilings.",
+    "A capture refusal prevents fileExport from replacing an existing sentinel destination.",
+    "No persistent or downloaded drawing fixture was added."
+  ],
+  "planImpact": {
+    "existingOwnerRefined": "7S.2c adapter-owned persistent callback retention census",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "remainingCensus": "Typed entity/block/TABLE record cardinality is bounded; dynamic payload bytes, end-block data, and remaining auxiliary callback stores still need an owner-by-owner audit.",
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/typed-entity-block-table-callback-cardinality-bounds-fast-slice-2026-10-19.json"
+    ],
+    "stagedOrCommitted": false,
+    "limitations": "The repository .git metadata is read-only in this session, so the slice remains uncommitted."
+  },
+  "validation": {
+    "commands": [
+      "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_typed_entity_capture_limits$' --output-on-failure",
+      "ctest --test-dir build-gcc -R '^(dwg2dxf_basic_table_typed_capture_limits|dwg2dxf_dxf_class_typed_capture_limits|dwg2dxf_dictionary_typed_capture_limits|dwg2dxf_dictionary_default_typed_capture_limits|dwg2dxf_dictionary_default_raw_capture_limits|libdxfrw_dictionary_default_adapter_roundtrip|dwg2dxf_visual_style_typed_capture_limits|dwg2dxf_visual_style_raw_capture_limits|libdxfrw_visual_style_import_evidence|dwg2dxf_background_sun_typed_capture_limits|dwg2dxf_render_background_sun_raw_capture_limits|dwg2dxf_render_settings_typed_capture_limits|dwg2dxf_xrecord_typed_capture_limits|dwg2dxf_material_typed_capture_limits|dwg2dxf_datalink_typed_capture_limits|dwg2dxf_named_object_callback_storage|libdxfrw_extension_graph_limits)$' --output-on-failure",
+      "ctest --test-dir build-gcc -R '^(dwg2dxf_modeler_geometry_move_callback|dwg2dxf_modeler_dxf_move_dispatch|dwg2dxf_raw_dxf_entity_capture_limits)$' --output-on-failure",
+      "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "strictTargetsBuilt": true,
+    "newTestPassed": true,
+    "combinedFocusedAdapterTestsPassed": "21/21",
+    "exploratoryDwGFixtureRuns": {
+      "passed": 0,
+      "failed": 2,
+      "observedFailures": [
+        "architectural_example-imperial AC1024→v2010: export preflight reported strict-complete conversion requires successful, complete DWG read disposition",
+        "visualization_-_aerial AC1024→v2010: source header/classes CRC integrity observations preceded export refusal"
+      ],
+      "usedToPromoteSupport": false
+    },
+    "fullSuiteRun": false,
+    "planDiffCheck": true,
+    "receiptJsonValidation": true
+  },
+  "assessment": {
+    "typedEntityRecordCardinalityBounded": true,
+    "nestedPayloadByteBudgetComplete": false,
+    "serializerOrSemanticSupportPromoted": false
+  },
+  "planSha256": "cf87afd4322a8f4932a79c67914555aeb1288121395dd15295cae47194ccf53b"
+}

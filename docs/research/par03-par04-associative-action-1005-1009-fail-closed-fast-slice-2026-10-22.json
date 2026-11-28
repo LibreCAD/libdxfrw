@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-03/PAR-04 associative-action 1005-1009 fail-closed correction",
+  "mode": "generated in-memory fast implementation slice",
+  "scope": [
+    "Correct the generic group-code category for code 1005",
+    "Keep associative-action codes 1005-1009 untyped until their class-specific DWG grammar is established",
+    "Ensure the generated action vectors do not claim string decoding for unresolved codes"
+  ],
+  "evidence": {
+    "odaDwgSpecification": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "section": "§28, Extended Data (EED)",
+      "finding": "The EED group-code table identifies 1005 as an entity-handle reference. Targeted text extraction found no AcDbAssocAction, ACDBASSOCACTION, or AcDbEvalVariant value-layout entry; the EED description does not establish the associative-action data/string/handle-stream grammar."
+    },
+    "localSource": {
+      "files": [
+        "src/intern/dwgvaluekind.h",
+        "src/drw_objects.cpp",
+        "tests/dwg_object_vectors_tests.cpp"
+      ],
+      "finding": "The generic value-kind helper previously classified 1005-1009 as strings and the AcDbAssocAction parser consumed that category as variable text. Its class-specific value grammar is still unresolved."
+    }
+  },
+  "changes": {
+    "production": [
+      "The generic resbuf group-code category now identifies 1005 as Handle.",
+      "Added associativeActionValueKind(), which returns Invalid for 1005-1009 until an authoritative class-specific encoding is available.",
+      "DRW_AssociativeObject::parseDwg uses the consumer-specific category and refuses those values before typed payload consumption; the existing opaque failed-frame route remains intact."
+    ],
+    "generatedTests": [
+      "The generic group-code test expects 1005 to classify as Handle.",
+      "Generated AC1024 AcDbAssocAction frames require consumer-specific refusal for 1005-1009.",
+      "The remaining supported values retain their independent body-sentinel and per-value handle-count checks."
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicAbiChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror; compatibility target succeeds)"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --associative-action-value-kinds",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_associative_action_value_kinds$' --output-on-failure",
+        "result": "PASS (1/1; 0.22 s)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|dwg_associative_failed_frame_retention)$' --output-on-failure",
+        "result": "PASS (2/2; 0.48 s)"
+      },
+      {
+        "command": "git diff --check -- src/intern/dwgvaluekind.h src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par03-par04-associative-action-1005-1009-fail-closed-fast-slice-2026-10-22.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalResult": "The associative-action parser no longer accepts unresolved 1005-1009 values as text; the generic 1005 type is correctly identified as a handle, while the action consumer remains fail-closed pending exact wire evidence.",
+    "unresolved": [
+      "Exact AcDbAssocAction/AcDbEvalVariant DWG payload grammar for codes 1005-1009",
+      "Producer-authored evidence for associative-action handle/string value encoding",
+      "Broader PAR-03/PAR-04 context audit",
+      "Remaining HATCH and DWG/version-specific semantic gaps",
+      "Native FreeCAD Linux/Windows qualification and independent ACIS/ACDS semantic evidence"
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Continue the local exact-source 7S.2c audit and select the next locally evidenced HATCH or DWG/version-specific implementation slice; do not wait for external qualification."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "unstaged": true,
+    "committed": false,
+    "persistentFixtureStaged": false
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-09",
+  "scope": "Generated-only AC1018 TABLE rectangular-grid body and handle-stream allocation rollback/retry control",
+  "model": {
+    "rows": 2,
+    "columns": 2,
+    "cells": 4,
+    "cell_texts": ["generated grid cell 0,0", "generated grid cell 0,1", "generated grid cell 1,0", "generated grid cell 1,1"],
+    "column_widths": [8.0, 5.5],
+    "row_heights": [3.0, 4.5],
+    "selected_text_style_override": {"cell": [1, 1], "handle": "0xA701"},
+    "provenance": "Created in memory by the focused C++ test; no DWG/DXF fixture file was added."
+  },
+  "method": "Calibrate a successful private direct-codec emission, then inject std::bad_alloc at every measured allocation offset. For each failure, compare both destination buffers and bit counts to their seeded pre-call snapshots, then retry on the same TABLE object and the same buffers.",
+  "results": {
+    "measured_allocation_points": 25,
+    "injected_failures": 25,
+    "destination_bytes_rollback": "pass",
+    "destination_bit_count_rollback": "pass",
+    "same_object_retry": "pass",
+    "retry_body_and_handle_bytes_match_calibration": "pass",
+    "seeded_prefixes_preserved": "pass",
+    "normal_focused_ctest": "pass: libdxfrw_table_dwg_codec_allocation_retry",
+    "asan_focused_ctest": "pass: libdxfrw_table_dwg_codec_allocation_retry",
+    "diff_check": "pass"
+  },
+  "limits": [
+    "Generated codec and failure-safety evidence only; no physical AC1018 producer/source profile is established.",
+    "Does not qualify TABLE cell semantics, *T graph closure, native behavior, independent reader agreement, or public dwgRW::writeTable support.",
+    "Public TABLE output remains refused pending physical source, complete graph transaction, and independent readback/native qualification."
+  ]
+}

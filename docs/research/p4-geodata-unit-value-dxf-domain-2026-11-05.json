@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Modern GEODATA DXF UnitsValue domain",
+  "date": "2026-11-05",
+  "status": "MODERN_DXF_WRITER_UNIT_DOMAIN_GUARD_VERIFIED",
+  "scope": "For GEODATA object versions 2 and 3, the DXF writer accepts horizontal and vertical unit values 0 through 24 and refuses values outside the documented UnitsValue enumeration before output mutation. Version 1's separate archival group mapping is unchanged. Parsing remains tolerant.",
+  "normativeSources": [
+    {
+      "title": "Autodesk GEODATA (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm",
+      "groups": "Groups 91 and 92 use the UnitsValue enumeration."
+    },
+    {
+      "title": "Autodesk UnitsValue Enumeration",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_UnitsValue.html",
+      "domain": "Undefined, Inches, Feet, Miles, Millimeters, Centimeters, Meters, Kilometers, MicroInches, Mils, Yards, Angstroms, Nanometers, Microns, Decimeters, Dekameters, Hectometers, Gigameters, Astronomical, LightYears, Parsecs, USSurveyFeet, USSurveyInch, USSurveyYard, USSurveyMile; integer values 0 through 24."
+    }
+  ],
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": "dxfRW::writeGeoData validates both group-91/group-92 values in the modern v2/v3 path before output or caller-state mutation. Legacy v1 fields are unaffected."
+  },
+  "regressionControl": {
+    "file": "tests/wave1_tests.cpp",
+    "test": "libdxfrw_geodata_versioned_writer",
+    "coverage": "For v2 and v3 in ASCII and Binary, horizontal and vertical values -1 and 25 preserve a prior output prefix and caller identity; each corrected same-writer retry uses a valid boundary value (0 or 24) and typed readback confirms both unit values. Existing valid modern writer controls use supported enum values.",
+    "fixturePolicy": "All controls are authored locally in memory; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "buildResult": "passed",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_geodata_versioned_writer$' --output-on-failure",
+    "focusedTestResult": "passed",
+    "diffCheck": "git diff --check passed"
+  },
+  "sourceBinding": {
+    "baseRevision": "984d0f77fbfba070b9f187558ecc0e9662281bf9",
+    "files": {
+      "src/libdxfrw.cpp": "2b98830c696f5ed6572239083e6756c36d7a55e782fe60f7e3d0890fa0c84dd8",
+      "tests/wave1_tests.cpp": "5b9fca5723ddcb462370623add17bea4b79946375ae8832b0f7bb9e118287429"
+    }
+  },
+  "nonClaims": [
+    "No physical producer or native geospatial consumer was qualified.",
+    "This does not qualify GEODATA ownership, whole-document graph closure, map projection behavior or DWG encoding semantics."
+  ]
+}

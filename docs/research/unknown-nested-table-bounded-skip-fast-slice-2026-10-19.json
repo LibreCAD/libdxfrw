@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Unknown nested DXF TABLE bounded-skip fast slice",
+  "mode": "generated local implementation slice",
+  "scope": [
+    "Make structurally framed unknown nested TABLES entries observable without semantic publication",
+    "Bound the diagnostic storage and message when a drawing contains many unknown nested tables",
+    "Preserve malformed ENDSEC-before-ENDTAB and missing-ENDTAB rejection"
+  ],
+  "method": {
+    "generatedInputs": 6,
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "newCtestRegistrations": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "limitations": "Generated structure/framing tests only. They do not establish proprietary table semantics, binary values with unrecognized widths, CLI warning presentation, producer validity, or downstream application behavior."
+  },
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "selector": "--unknown-nested-table-skip",
+    "behavior": "A safely terminated unknown nested table is skipped. At TABLES completion or failure, one non-failing TABLES-phase unsupported-table-skipped diagnostic summarizes the run. It retains at most eight names, caps each name at 64 bytes, reports the total count, and reports omitted-name count. If the secondary diagnostic list is full, a non-failure advisory slot is reused; failure evidence is preserved.",
+    "positiveControls": [
+      "ASCII and Binary DXF each contain 20 unknown nested tables followed by a known LAYER and a LINE sentinel",
+      "Unknown table bodies include a header handle, declared count, repeated known-width group values, APPDATA, XDATA, and a handle-valued tag",
+      "Read succeeds and known table/entity delivery continues",
+      "Diagnostic reports non-failing TABLES phase, 20 skipped tables, a retained name, and 12 omitted names",
+      "Diagnostic secondary-entry count remains within its fixed maximum"
+    ],
+    "negativeControls": [
+      "ASCII and Binary ENDSEC-before-ENDTAB inputs fail with BAD_READ_TABLES",
+      "ASCII and Binary missing-ENDTAB/EOF inputs fail with BAD_READ_TABLES"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --unknown-nested-table-skip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "git diff --check -- src/libdxfrw.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/unknown-nested-table-bounded-skip-fast-slice-2026-10-19.json"
+    ],
+    "results": {
+      "build": "PASS",
+      "focusedSelector": "PASS",
+      "owningCTest": "PASS (1/1, 3.79 seconds)",
+      "scopedDiffCheck": "PASS",
+      "fullSuiteRun": false
+    }
+  },
+  "planImpact": {
+    "findingCountChanged": false,
+    "subplanCountChanged": false,
+    "implementationQueueChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    }
+  }
+}

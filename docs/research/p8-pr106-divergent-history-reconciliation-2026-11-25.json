@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-divergent-history-reconciliation-2026-11-25",
+  "date": "2026-11-25",
+  "status": "LOCAL_MERGED_CANDIDATE_FOCUSED_TESTS_PASS_QUALIFICATION_OPEN",
+  "supportClaimEffect": "none",
+  "parents": {
+    "local": "dc0d8bfb7",
+    "trackedPr": "c13da35d113224268400c6446427752617381e63"
+  },
+  "resolution": [
+    "Retain the local version-aware dictionary layout, null-handle, zero-body-boundary and wide-reference guards and the associated refusal/retry controls.",
+    "Retain the PR's bounded AC1021 detached-control reader, source fixture, and targeted controls. The fixture hash matches the existing LibreCAD repository file.",
+    "Retain the independently verified plain-string TABLE output, strict block-target checks, and empty-value/cache preservation. Keep the proposed General-value output refused because the independent ODA comparison did not validate its wire mapping; add an ASCII/Binary refusal and corrected-retry control.",
+    "Pin the qualification status overlay to the combined candidate digest for CI; retain all 15 claims as EXPERIMENTAL and do not reuse either parent's qualification."
+  ],
+  "validation": [
+    "Six targeted CTests pass: AC1021 LibreCAD fixture and LTYPE control, legacy DICTIONARYVAR, TABLE export reuse, strict TABLE block target, and TABLE value payload. The DWG object-vector executable also passes.",
+    "On local Darwin ARM64, the combined Release candidate passes all seven bounded fast executables and all 53 fixed fast CTests, with no failures or skips.",
+    "The combined CLI publishes 28/28 source frames for the LibreCAD AC1021 fixture with no entity or object parse failures; its strict read-disposition guard refuses output and preserves the destination, with one retained integrity error and an LTYPE role diagnostic.",
+    "The configured CTest inventory and the manifest each contain the same 1401 test names.",
+    "The local workflow and pinned digest contracts pass; qualified support passes (15 experimental claims, two candidate routes, zero advertised); support-matrix validation passes."
+  ],
+  "limits": [
+    "Hosted fast run 393 failed before configuration because the reconciled source-release inventory omitted the newly tracked AC1012 audit tool. Both generated inventories were refreshed; local inventory check and self-test pass. Hosted requalification must rerun on the corrected head.",
+    "These focused local checks do not qualify the combined implementation on hosted Linux, macOS or Windows, nor do they establish native AutoCAD semantics or full source graph preservation.",
+    "No PR update is implied by this local reconciliation receipt."
+  ]
+}

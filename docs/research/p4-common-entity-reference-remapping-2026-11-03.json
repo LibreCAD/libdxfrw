@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-03",
+  "scope": "Generated common-entity DXF reference-identity transport for material, full visual style, and plot style handles.",
+  "fields": [
+    {
+      "member": "DRW_Entity::material",
+      "group_code": 347,
+      "format_role": "Hard-pointer ID/handle to material object; omitted for BYLAYER/default."
+    },
+    {
+      "member": "DRW_Entity::fullVisualStyleHandle",
+      "group_code": 348,
+      "format_role": "Typed parser field; group-code range is a hard-pointer handle."
+    },
+    {
+      "member": "DRW_Entity::plotStyle",
+      "group_code": 390,
+      "format_role": "Hard-pointer ID/handle to plot style object; omitted for the default."
+    }
+  ],
+  "mapping_policy": "For nonzero source handles, use the configured reference resolver when present; otherwise use remapObjectHandle. Existing default omission conditions are unchanged.",
+  "sources": [
+    {
+      "title": "Autodesk Common Group Codes for Entities (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "supports": "Group 347 material and group 390 plot-style hard-pointer roles."
+    },
+    {
+      "title": "Autodesk DXF Group Codes in Numerical Order Reference",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "supports": "Group-code ranges 340–349 are hard-pointer handles."
+    }
+  ],
+  "validation": {
+    "input": "Generated in-memory POINT object; no DWG/DXF fixture was added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "selectors": ["libdxfrw_wave1_tests --entity-reference-remapping"],
+    "result": "PASS for exact output group/value order with resolver precedence and remap fallback.",
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4"
+  },
+  "qualification_limits": [
+    "Generated output transport only; does not establish physical producer field spans or target roles.",
+    "Does not establish target existence, ownership, recursive graph closure, native-consumer behavior, or support-claim eligibility."
+  ]
+}

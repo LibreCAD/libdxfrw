@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-sortents-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Connect the physical AC1024 SORTENTSTABLE callback to strict output qualification",
+  "status": "1_SORTENTSTABLE_IDENTITY_QUALIFIED_STRICT_GATE_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "SORTENTSTABLE / AcDbSortentsTable",
+    "handle": "0x354",
+    "objectType": 517,
+    "ownerDictionary": "0x15D",
+    "blockOwner": "0x1F",
+    "membershipPairs": 88,
+    "profileEvidence": "docs/research/p4-ac1024-sortents-associative-network-physical-output-readback-2026-10-31.json",
+    "fixturePolicy": "Existing repository DWG only; temporary outputs and scratch programs stayed outside Git. No fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_standard_output.h"
+    ],
+    "summary": "Snapshot the typed SORTENTSTABLE, projected output table, ordered membership receipt, owner DICTIONARY and BLOCK_RECORD together with the physical type-517 source identity. During OBJECTS serialization, bind remapped table/dictionary/block identities, verify each ordered target entity and owner, decode the staged SORTENTSTABLE and DICTIONARY bodies, and require exactly one ACAD_SORTENTS entry to the emitted table. Recheck source snapshots in finalization, then qualify the source callback identity atomically.",
+    "fieldAndRoleProof": "The decoder probe finalizes the parsed SORTENTSTABLE while its DXF parser state is intact. The staged record is compared with the projected table after identity remapping, including common metadata, block owner, ordered entity handles and numeric sort values. The staged owner dictionary is compared with the source snapshot and must name the emitted SORTENTSTABLE exactly once. The source owner dictionary and block record are independently matched to their emitted identities and reciprocal owners.",
+    "scope": "Qualifies the single evidenced physical AC1024 type-517 callback. It does not qualify other SORTENTSTABLE profiles or promote a format support claim."
+  },
+  "qualification": {
+    "before": 207,
+    "after": 208,
+    "totalOpaqueCallbacks": 228,
+    "newlyQualified": [
+      {
+        "objectType": 517,
+        "handle": "0x354",
+        "record": "SORTENTSTABLE"
+      }
+    ],
+    "remaining": 20,
+    "strictExport": "Still refuses before publication at 208/228. The failed attempt leaves the published identity set and qualification count empty.",
+    "legacyRetry": "Succeeds and atomically publishes exactly 208 source-bound identities."
+  },
+  "failureAndRetry": {
+    "negativeControl": "The existing selector makes a SORTENTSTABLE target invalid; graph preflight refuses and preserves the destination sentinel byte-for-byte.",
+    "retry": "Restore the original entity handle and retry on the same adapter. ASCII and Binary output both pass fresh import and semantic checks for all 88 ordered pairs, null-sort fallback, dictionary/owner roles and the associative-network graph.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "physicalReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary, including 88 ordered pairs, source membership, owner/dictionary roles, null-sort fallback, atomic refusal and corrected same-adapter retry. The preflight messages are expected from negative controls."
+    },
+    "strictGate": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_opaque_source_capture_and_strict_output_gate$' --output-on-failure",
+      "result": "PASS, 1/1."
+    },
+    "census": {
+      "command": "g++ -std=c++17 -Wall -Wextra -pedantic -Werror -I dwg2dxf -I src /tmp/libdxfrw-p4-callback-census.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /tmp/libdxfrw-p4-callback-census && /tmp/libdxfrw-p4-callback-census tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS; strict conversion refused at 208/228 with no published identities; legacy retry published 208 and reported 20 unresolved. Scratch source and executable stayed outside Git."
+    },
+    "fullSuites": "NOT RUN; focused physical readback, strict-gate CTest and source-bound census were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Connect the physical AC1024 SORTENTSTABLE callback identity to transactional table/dictionary/block output proof and fresh ASCII/Binary readback."
+    ],
+    "nextPacket": "Resolve the five unnamed generic callback identities and 15 standard-object callback identities using source-bound role/output evidence; preserve strict refusal for the 20 unresolved callbacks.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "eb03173cbbc663649f6e58f508631e82385dbea76fb185dde3afd91171b793f2",
+    "dwg2dxf/dx_iface.h": "99440156c163a76e8cda9ebd045aa1e94fce6b95f5aaab1cf059e50ac03e90ae",
+    "dwg2dxf/dx_standard_output.h": "1dbb0f4a7ffa217fefc9d03130055d3a429be26c9d21310c9c5de94330837a91",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "84e549bca2b191be3792ba1e7fc31cd3bda577452319a13f200352c1e74cb382"
+  }
+}

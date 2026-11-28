@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Associative owner-chain current-generation boundary",
+  "mode": "Generated local ASCII/Binary DXF fast slice",
+  "plan": "PAR-06 / 7BV.4e",
+  "implementation": {
+    "change": "Associative owner-chain scanning now uses only the DICTIONARY callback range and unique Named Object Dictionary callback from the current import generation.",
+    "failurePrevented": "A DICTIONARY retained in dx_data from an earlier import can no longer supply missing current-generation ownership/membership evidence and make a current associative record appear rooted.",
+    "boundedness": "Prior dictionary list entries traversed to reach the current range are capped at kMaxAssociativeOwnerNodes; current nodes and edges keep their existing caps.",
+    "compatibility": "No DRW_Interface virtual, codec wire format, serializer qualification, or strict-output policy changed.",
+    "supportClaimsPromoted": 0,
+    "persistentFixturesAdded": 0,
+    "externalFixturesDownloadedOrAdded": 0
+  },
+  "generatedRegression": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "importsPerAdapter": 2,
+    "shape": "First import retains a dictionary/NOD graph whose edges would complete a later associative owner chain. Separate second-import controls omit the current dictionary or NOD while retaining a current associative action; another probe duplicates the current NOD callback.",
+    "assertions": [
+      "Capture, handle-code scan, and owner-chain scan complete.",
+      "Current-generation dictionary range is [1,1), excluding the prior dictionary.",
+      "The associative record is retained but zero owner chains and zero qualified records are reported.",
+      "The following DICTIONARYVAR sentinel is delivered.",
+      "A stale NOD does not substitute for a missing current NOD callback.",
+      "Duplicate current NOD callbacks mark root identity ambiguous and owner-chain completion false."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_associative_(callback_contract|strict_loss_gate)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0
+    },
+    "compatibilityBuild": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+      "result": "PASS"
+    },
+    "diffCheck": "PASS",
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "assessment": {
+    "finding": "PAR-06",
+    "subplan": "7BV.4e",
+    "status": "LOCAL_GENERATION_BOUNDARY_AND_ASCII_BINARY_REGRESSION_PASS",
+    "planTotals": {
+      "findings": 135,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commitCreated": false,
+    "commitLimitation": ".git is read-only in the shared workspace; source, test, plan, and receipt edits remain uncommitted."
+  },
+  "sourceSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "90e5604b1836e4effd2013126bc42361106f35f2b3502068ec080be0e6e8fba0",
+    "dwg2dxf/dx_data.h": "29119bac6949b34989d9b3e2a71ee2816e0c623f227963569cfc4995fd6b4dd2",
+    "dwg2dxf/dx_iface.h": "77c4a56cccde4dc3ba44d951d9c17f13954a44b53d23b5aeb1c70066eda6b53b",
+    "dwg2dxf/dx_iface.cpp": "d488cf5c9bb1f574f0cc1bf21675c6e52456621c9d8371a0c56c52ea1017213c",
+    "tests/dwg2dxf_adapter_tests.cpp": "d92bdef17f77953672a9c74ac8bc4f807ac18469cda0083ad24f3c94a092dbdb"
+  },
+  "limitations": "This closes only the per-import provenance boundary of generic owner-chain evidence. It does not classify associative group-code roles, establish class-specific reference closure, enable replay, or qualify constraint semantics or support claims."
+}

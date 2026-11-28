@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Selected physical AC1021 DICTIONARYVAR graph output and readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify one selected rooted AC1021 AcDbVariableDictionary graph with 12 DICTIONARYVAR records for same-version ASCII/Binary DXF output and typed/raw readback, atomic late-mutation refusal and same-writer retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing. Author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceGraph": {
+    "recordCount": 12,
+    "root": "Exactly one AcDbVariableDictionary NOD entry targets the unique NOD-owned DICTIONARY; the dictionary has 12 complete ordered entries matching the 12 typed DICTIONARYVAR handles.",
+    "recordProfile": "Each record has the selected dictionary as parent and its sole reactor, a validated common-link tail, no extension dictionary, data-storage binary data, appData or extData, a schema in 0..255, and a nonempty value.",
+    "fields": "Every handle is checked against fresh typed and raw readback for owner/reactor, schema group 280, value group 1, ordered dictionary key and membership."
+  },
+  "implementation": {
+    "profile": "The physical same-version DWG snapshot/output gate now admits AC1021 in addition to its existing AC1018-to-AC1024 and AC1024 routes. AC1021 DICTIONARYVAR data causes the NOD-rooted extension graph to be included. AC1018 retains its AC1024 target policy.",
+    "transaction": "The focused writer mutates one value after OBJECTS serialization. ASCII and Binary attempts are refused, preserve the existing destination sentinel, and succeed on the same writer after restoring the source value.",
+    "files": {
+      "dwg2dxf/dx_iface.cpp": "7a4adc1e96155259d9315cb42e19ac8dc08a8cc0bc868be8dbd86d1421ac56de",
+      "tests/dwg2dxf_adapter_tests.cpp": "e7f4f3e7fb653020183d412e222129a35e3e2932af7d442355b1df8178c85f07"
+    }
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS",
+      "executableSha256": "2ed2de8b8b7af85b23838b7b8a917168f81489805038185bab604f5b3766307e"
+    },
+    "physicalSelectedGraph": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-ac1021-physical-selected-graph /Users/dli/doc/dwg/children-room-decoration.dwg /private/tmp/children-room-ac1021-dictionaryvar",
+      "result": "PASS",
+      "logPath": "/private/tmp/dictionaryvar-ac1021-result.log",
+      "logSha256": "6f2677a485d923381e47c429cd8bb7836818856ae5f11670d875013ac2f060af",
+      "outputSha256": {
+        "ascii": "1225bc54cdf68adb36936c3972c09e8ff1b6e71efe28fb397000161cc3c16dbf",
+        "binary": "294a4c8e06c6c289f162b0eb127c479e619a3128f09218911d1e6c7e3b3482a2"
+      },
+      "checks": [
+        "12 source identities and the complete ordered AcDbVariableDictionary graph are checked before output",
+        "ASCII and Binary output followed by fresh DXF import",
+        "Exact typed/raw identity, parent, sole reactor, schema, value and dictionary membership",
+        "Late source mutation is refused and each pre-existing destination sentinel is preserved",
+        "Source restoration allows same-writer retry and fresh typed/raw readback"
+      ]
+    },
+    "compatibilityRegressions": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS; existing AC1018-to-AC1024 route retains strict whole-source and HATCH-stop refusals, stop-resolution retry, rollback and typed output readback."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "result": "PASS; existing AC1024 ASCII/Binary physical output and readback, source-binding refusal, destination preservation and same-adapter retry."
+      }
+    ],
+    "wholeSourceGateRecheck": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/children-room-decoration.dwg -y -d -v2007 /private/tmp/children-room-after-dictvar.dxf",
+      "result": "EXPECTED REFUSAL; current source reaches 1,673/1,673 observed frames and stops before output at the independent DBCOLOR source-profile gate. No DXF was created.",
+      "logPath": "/private/tmp/children-room-after-dictvar.log",
+      "logSha256": "ddbf8cfbffb81422ded23ecb2fff8a52c34f1e8493b97f5b72218bcaaf8e5f09",
+      "converterSha256": "75d05488d706f2ad7d83ff0ff63eb4d5f429818778bf2f815530dd9bbacfb341"
+    },
+    "diffCheck": "git diff --check passed"
+  },
+  "limits": [
+    "The evidence covers one selected graph from one local source whose author and producer are not independently authenticated.",
+    "It does not qualify whole-source conversion, other producer/version profiles, native getvar/setvar behavior, or consumer acceptance.",
+    "The AC1021 inventory still has 20 opaque carriers and 62 standard-object frames outside the bounded output profiles; whole-source output remains gated by independent DBCOLOR and other document-wide dependencies.",
+    "No drawing fixture or derivative is committed."
+  ],
+  "nextAction": "Advance to another independent source family, such as the three AC1021 MATERIAL carriers, with exact source profile, dependency closure, output and fresh readback."
+}

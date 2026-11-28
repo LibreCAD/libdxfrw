@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "date": "2026-11-08",
+  "status": "GENERATED_CONTROL_CORRECTED_NO_IMPLEMENTATION_CLAIM_PROMOTION",
+  "workstream": "P6 / AC1032 TABLESTYLE generated control handle role",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.101.2, R24 TABLESTYLE format",
+    "page": 243,
+    "field": "The handle for the TABLESTYLE cell style named Table is a hard owner."
+  },
+  "change": {
+    "file": "tests/dwg_object_vectors_tests.cpp",
+    "detail": "The generated AC1032 TABLESTYLE frame helper now encodes the Table cell-style owner as DwgHardOwnership instead of DwgHardPointer. The parser's existing hard-owner requirement was unchanged.",
+    "priorFailure": "Focused data-flag, cell-style-type, and margin-override controls failed at the TABLESTYLE owner-handle check because the generated frame used the wrong role.",
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "focusedDataFlag": "PASS: build/libdxfrw_dwg_object_vectors_tests --tablestyle-data-flag",
+    "focusedStyleType": "PASS: build/libdxfrw_dwg_object_vectors_tests --tablestyle-type-domain",
+    "focusedMarginOverride": "PASS: build/libdxfrw_dwg_object_vectors_tests --tablestyle-margin-override-flag-domain",
+    "aggregateObjectVectors": "PASS: ctest --test-dir build -R '^libdxfrw_dwg_object_vectors$' --output-on-failure, 1/1",
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "This corrects generated test input only; it does not establish new physical-producer or consumer qualification.",
+    "No production parser/writer behavior changed."
+  ],
+  "supportClaimsPromoted": 0
+}

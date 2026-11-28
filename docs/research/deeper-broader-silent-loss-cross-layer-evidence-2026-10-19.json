@@ -1,0 +1,150 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Cross-layer silent-loss evidence: exact identity, LEADER fields, and ACIS carriers",
+  "mode": "Primary-source web research plus read-only local source/test/plan cross-check",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "baselineQualification": "The shared worktree was already broadly dirty. Local observations refer to the shared worktree and do not claim a clean-checkout baseline.",
+  "scope": [
+    "Reconcile ACadSharp's AC1032 missing-INSERT report with its aggregate-type count confound and libdxfrw's inheritance hierarchy.",
+    "Trace ACadSharp's LEADER text-width report through the Autodesk DXF contract, ezdxf's rendering path, and local generated controls.",
+    "Keep GDAL's documented LEADER OCS limitation and LibreDWG's ACIS/ACDS carrier-loss report distinct from local semantic and identity claims.",
+    "Update the existing implementation checkpoints with a bounded semantic probe and evidence separation, without adding findings or top-level subplans."
+  ],
+  "method": {
+    "kind": "Current primary-source web review and read-only local source/test/plan inspection",
+    "worktreeDirtyAtStart": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "productionCodeChanged": false,
+    "localTestsRun": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "ACadSharp #1172 and #1180 rely on private DWG inputs and have not been independently reproduced. ezdxf source describes one projection implementation, not a universal CAD rendering rule. GDAL's documented OCS limitation prevents its projected geometry from serving as a LEADER semantic oracle. LibreDWG #1411 is reporter-attributed peer evidence. No external artifact or application was run."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1172",
+        "https://github.com/DomCR/ACadSharp/issues/1001",
+        "https://github.com/DomCR/ACadSharp/issues/1180"
+      ],
+      "revision": "Issue bodies and visible discussion reviewed 2026-10-19.",
+      "observed": "#1172 remains an open private-input AC1032 missing-INSERT report. A commenter identifies a possible aggregate-count confound because TableEntity derives from Insert and separately references #1001, but the comment does not explain the original no-notification symptom. #1180 reports zero text width/height for annotated LEADERs in ACadSharp 3.6.51, group 41 zero, and missing hook geometry in downstream rendering; no drawing is attached."
+    },
+    {
+      "project": "Autodesk DXF documentation",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-396B2369-F89F-47D7-8223-8B7FB794F9F3.htm"
+      ],
+      "revision": "Published LEADER group-code reference reviewed 2026-10-19.",
+      "observed": "The reference assigns groups 40/41 to annotation height/width, group 73 to annotation creation type, groups 74/75 to hook direction/presence, and group 340 to the associated annotation. It does not prescribe a renderer's exact hook-segment algorithm."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/render/leader.py"
+      ],
+      "revision": "Mutable master source fetched 2026-10-19; no immutable commit was bound and no code was run.",
+      "observed": "virtual_entities() reads text_width and horizontal_direction; for text annotation with a hook, it reverses the horizontal vector when hookline_direction is 1 and adds a hook only when dimtad is nonzero and text_width is positive. Its endpoint extension uses dimgap * dimscale + text_width. This is an implementation-specific projection suitable for a pinned comparator probe, not normative universal behavior."
+    },
+    {
+      "project": "GDAL",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md"
+      ],
+      "revision": "Current online driver documentation and known-issues ledger reviewed 2026-10-19.",
+      "observed": "GDAL documents that 3D/OCS support is absent for DIMENSION, LEADER, and MULTILEADER projection paths. Its output must not decide LEADER OCS semantic correctness."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Open issue body reviewed 2026-10-19; no linked drawing was downloaded.",
+      "observed": "The reporter describes a synthetic R2018 DXF→DWG→DXF reproduction in which REGION records survive while a 5489-byte SAB body is lost, plus a private real DWG with 88 REGIONs and an ACDSDATA-related loss report. These observations support separating record, carrier, owner, and semantic accounting; they do not establish local behavior."
+    },
+    {
+      "project": "libdxfrw local source and tests",
+      "urls": [
+        "src/drw_entities.h",
+        "src/drw_entities.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "revision": "Shared worktree read-only inspection on 2026-10-19.",
+      "observed": "DRW_Table derives from DRW_Insert. DRW_Leader has fields for textheight/textwidth; its DWG parser fills them in a version-gated body branch, and the DXF writer emits groups 40 and 41. Existing generated controls assert LEADER field values, annotation-reference identity, record order, and following-record alignment. They do not run an independent renderer or qualify native-producer values/geometry."
+    }
+  ],
+  "implementationReadiness": {
+    "classification": "EXISTING_CHECKPOINT_REFINEMENT_ONLY",
+    "existingOwnersRetained": [
+      "PAR-49 exact entity identity/owner census",
+      "LEADER generated field and cursor-alignment controls",
+      "PAR-59/PAR-07 modeler carrier and owner accounting",
+      "composed consumer semantic checkpoint"
+    ],
+    "rules": [
+      "Partition source-to-output counts by exact entity type, identity/handle, owner path and disposition; inheritance totals are secondary only.",
+      "At the composed LEADER checkpoint, generate a planar DXF control with explicit dimension-style values and derive the expected hook endpoint analytically from source-authored inputs.",
+      "Pin the ezdxf revision and record target DXF version, exact tags, input/output hashes, and ordered projected segment endpoints; include zero-width, hook-disabled, and non-text-annotation negatives.",
+      "Treat a local-writer-generated DWG as structural path coverage, not an independent producer witness; keep external/native qualification separate and do not commit external files.",
+      "Exclude GDAL LEADER/MULTILEADER OCS geometry from semantic denominators.",
+      "For modeler records, require separate entity, carrier, owner/reference, explicit disposition, and geometry-semantic observations."
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false
+  },
+  "localCrosswalk": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingCheckpointRefinements": 1,
+    "codeChanges": 0,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "localTestsRun": false,
+    "receiptJsonSyntaxCheck": "passed with python3 -m json.tool",
+    "scopedDiffCheck": "passed with git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-silent-loss-cross-layer-evidence-2026-10-19.json",
+    "fullSuiteRun": false
+  },
+  "workingTree": {
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "Only the research plan and this receipt were edited by this pass; all pre-existing dirty worktree changes were preserved."
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-direct-header-preflight-error-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "4e571389",
+  "implementationDigestSha256": "1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be",
+  "inputCount": 775,
+  "problem": "Direct DRW_Header::write returned without marking the writer failed for five rejected field profiles; full dxfRW export already checked these separately.",
+  "change": "Use one shared error branch for rejected dimension mappings, material and visual-style references, custom properties, REQUIREDVERSIONS and plot-style ID before emitting a HEADER.",
+  "validation": {
+    "baseline": "The new control failed for all five exercised rejected profiles in each of ASCII and binary against the prior archive.",
+    "focused": "PASS: optimized HEADER selector verifies error flag, empty output and corrected same-writer retry for dimension mapping, visual-style reference, custom property, REQUIREDVERSIONS and plot-style ID in both encodings.",
+    "existing": "PASS: existing dimension migration and header-alias fixtures.",
+    "consumer": "PASS: LibreCAD system-codec linetype selector, 4967 assertions in 56 cases.",
+    "image": "PASS: imported-common 144 metadata reexports and 176 wire retries; legacy two-layer 120 cells and 600 atomic retries."
+  },
+  "limits": [
+    "The control verifies explicit writer error state and retry; it does not add native or broader format qualification.",
+    "Final platform and integration qualification remain open."
+  ]
+}

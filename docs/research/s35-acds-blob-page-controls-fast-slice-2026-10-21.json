@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.5 AC1027 AcDs direct/blob boundary and Blob01 page-chain controls",
+  "mode": "Generated in-memory fast implementation-plan checkpoint",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Verify the exact direct-record/blob threshold at 0x40000 and 0x40001 bytes",
+    "Verify bounded assembly of a multi-page Blob01 payload with physical page order distinct from logical descriptor order",
+    "Verify exact owner-handle association and atomic refusal for corrupted page metadata"
+  ],
+  "controls": {
+    "directRecordMaximumBytes": "0x40000",
+    "firstBlobPayloadBytes": "0x40001",
+    "twoPageChain": {
+      "logicalPages": 2,
+      "physicalOrderDiffersFromDescriptorOrder": true,
+      "exactPayloadCompared": true,
+      "modelerEntityOwnerHandleLinked": true
+    },
+    "malformedMetadata": [
+      "invalid page start",
+      "invalid page index",
+      "invalid page count",
+      "mismatched page byte length",
+      "invalid page segment reference",
+      "missing page segment",
+      "duplicate page ordinal",
+      "incorrect page start offset",
+      "mismatched page reference length"
+    ],
+    "atomicRefusal": "Malformed Blob01 controls publish no raw section or typed record; the separately valid direct record remains observable in the parser-only boundary control."
+  },
+  "validation": {
+    "build": "PASS (libdxfrw_dwg_local_roundtrip and libdxfrw_dwg_reader_matrix_tests)",
+    "focusedControls": {
+      "libdxfrw_dwg_local_roundtrip --datastorage-page-boundaries": "PASS",
+      "libdxfrw_dwg_reader_matrix_tests --acds-modeler-move-callback": "PASS"
+    },
+    "fullSuite": "NOT_RUN",
+    "externalPeerOrNativeCAD": "NOT_RUN",
+    "scopedDiffCheck": "PASS (git diff --check on changed source/test/contract/plan files; jq empty on all current slice receipts)"
+  },
+  "assessment": {
+    "parserContainerControlClosed": true,
+    "sabGeometrySemanticsQualified": false,
+    "generalAc1027PlusEntityToAcDsAssociationQualified": false,
+    "otherDwgVersionsQualified": false,
+    "dwgWriterReady": false,
+    "nativeConsumerQualified": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionFilesChanged": [],
+    "testFilesChanged": [],
+    "documentationFilesChanged": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The generated evidence covers container/page reconstruction and the tested local owner handoff only. It does not establish ACIS/SAB semantic correctness, general AcDs association behavior, external interoperability, or writer acceptance."
+  },
+  "plan": {
+    "findings": 144,
+    "topLevelSubplans": 78,
+    "selfUnblock": "Continue with remaining dependency-ready S3 carrier and projection work; do not expand accepted profiles based on these container tests alone."
+  }
+}

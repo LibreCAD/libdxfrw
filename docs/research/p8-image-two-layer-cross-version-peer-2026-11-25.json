@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-25",
+  "implementation_digest_sha256": "db885e0f610451397a9f1c419a680c916e1a453bd25e22555e1653497b307dcc",
+  "input_count": 775,
+  "scope": "Generated AC1015 DXF with two unselected IMAGEDEF objects and a two-layer default-plot source converted strictly to AC1018 ASCII/binary under the bounded profile. This does not cover an IMAGE entity or native applications.",
+  "sha256": {
+    "source": "a196d0aac535f84bf2edea40014d6fecf92391e6ae98880c83f6e120f81fef53",
+    "ascii_output": "0c3ee3c213989afd8b3e5e051b608a62d393ff426ac794b203265951b9e40038",
+    "binary_output": "52801b3f1ae1499e76367967b7ca60065b41f0bf44855efd730d4759b14ddd70",
+    "ezdxf_self_authored_extension_control": "7466f0dcdb79fdc52feff3b35a442b12a67df600eee6e8ec1e45c1c164a92d62"
+  },
+  "focused_tests": {
+    "image_pair": "4 ASCII/binary source/output cells, 20 atomic refusal and corrected-retry controls",
+    "related_ctest": "4/4 image, default plot and raster tests pass",
+    "inventory": "Fixture-free contract updated and checked: 1403 tests"
+  },
+  "ezdxf_1_4_5": {
+    "pre_audit": "Source and both target encodings preserve NOD to IMAGE dictionary, two named IMAGEDEFs, filename, size, pixel size, extension dictionaries, XRECORD owner/backlinks, reactors, application group, APPID/LAYER EED and both layer fields after handle remapping.",
+    "audit": "All three inputs produce the same one repair: XRECORD D251 is removed after its dictionary owner D250 is silently discarded.",
+    "control": "A fresh ezdxf-authored dictionary with its own nonempty extension dictionary and XRECORD triggers the same 202 repair. Source inspection shows its orphan-dictionary sanitizer discards a dictionary-owned extension dictionary when the owner dictionary lacks a normal key to it; this observation limits the auditor as an oracle for this shape, and does not establish native semantics."
+  },
+  "libredwg_0_14": {
+    "full_source_and_output": "Conversion refuses the opaque IMAGE_ROOT_META application group.",
+    "peer_compatible_derivative": "A local scratch copy with that group removed converts; LibreDWG readback retains the root IMAGE dictionary extension dictionary and XRECORD ownership/backlink topology and the two layers after remapping. It reports unsupported 1003 EED and its DWG output omits IMAGEDEF objects, so this is only partial independent evidence and cannot qualify the full graph."
+  },
+  "remaining": [
+    "The broader imported-common matrix still refuses the next AC1015-to-AC1021 target.",
+    "Native AutoCAD/LibreCAD/FreeCAD and full independent audit behavior remain unqualified.",
+    "Other layer/source/version profiles remain guarded; all format claims remain EXPERIMENTAL.",
+    "All drawing inputs/outputs and derived files are locally generated scratch artifacts; no DWG/DXF fixture is committed."
+  ]
+}

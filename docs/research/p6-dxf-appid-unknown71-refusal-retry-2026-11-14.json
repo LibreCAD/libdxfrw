@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-14",
+  "scope": "DXF APPID writer handling of DRW_AppId::unknown71",
+  "evidence": {
+    "code": "src/libdxfrw.cpp::dxfRW::writeAppId now refuses a nonzero unknown71 before opening a record scope and no longer emits group 71. The field remains available to the DWG model and codec.",
+    "format_references": [
+      {
+        "title": "Autodesk APPID (DXF), 2024",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6E3140E9-E560-4C77-904E-480382F0553E.htm",
+        "applicable_groups": [100, 2, 70]
+      },
+      {
+        "title": "Autodesk AutoCAD Release 12 DXF Reference",
+        "url": "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_r12_dxf.pdf",
+        "section": "APPID table entry",
+        "applicable_groups": [2, 70]
+      }
+    ],
+    "control": "libdxfrw_appid_table_allocation: generated APPID profiles verify atomic refusal with the prior destination preserved and same-writer retry after clearing unknown71 for ASCII and Binary AC1014 and AC1032. The existing seven-revision ASCII/Binary allocation rollback/retry matrix remains green with unknown71 at its default value.",
+    "test_command": "ctest --test-dir build -R '^libdxfrw_appid_table_allocation$' --output-on-failure",
+    "test_result": "passed: 1/1 in 1.57 seconds",
+    "fixture_policy": "Generated only in the system temporary directory; no DWG or DXF fixture added to the repository.",
+    "limits": [
+      "This does not identify the meaning or producer provenance of the undocumented DWG byte.",
+      "It does not claim that arbitrary APPID extensions outside Autodesk's documented schema are supported."
+    ]
+  }
+}

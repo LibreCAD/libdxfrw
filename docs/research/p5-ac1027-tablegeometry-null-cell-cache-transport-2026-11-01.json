@@ -1,0 +1,116 @@
+{
+  "evidence_id": "p5-ac1027-tablegeometry-null-cell-cache-transport-2026-11-01",
+  "date": "2026-11-01",
+  "status": "bounded_transport_profile_only",
+  "source": {
+    "repository": "realDragonium/dwg-verifier",
+    "path": "fixtures/libredwg/example_2013.dwg",
+    "url": "https://raw.githubusercontent.com/realDragonium/dwg-verifier/main/fixtures/libredwg/example_2013.dwg",
+    "local_path": "/private/tmp/dwg-example-2013.dwg",
+    "committed_to_libdxfrw": false,
+    "version": "AC1027",
+    "bytes": 146906,
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f"
+  },
+  "independent_input_differential": {
+    "peer": "LibreDWG 0.14",
+    "peer_json": "/private/tmp/dwg-example-2013-current.json",
+    "peer_json_created_by": "LibreDWG 0.14",
+    "libdxfrw_typed_capture": "/private/tmp/libdxfrw-ac1027-tablegeometry.json",
+    "object_handle": "0xC95",
+    "owner_handle": "0xC97",
+    "owner_graph": [
+      "XRECORD 0xC97 is owned by DICTIONARY 0xC96.",
+      "DICTIONARY 0xC96 is owned by TABLE entity 0x4F2 and maps ACAD_XREC_ROUNDTRIP to XRECORD 0xC97.",
+      "XRECORD 0xC97 data contains group 361 targeting TABLEGEOMETRY 0xC95."
+    ],
+    "grid": {
+      "rows": 20,
+      "columns": 9,
+      "cells": 180,
+      "cells_with_content": 8,
+      "total_content_records": 8
+    },
+    "profile_values": {
+      "cell_flags": [
+        3
+      ],
+      "cell_soft_pointer_targets": [
+        0
+      ],
+      "content_unknown_values": [
+        0
+      ],
+      "content_z_values": [
+        0
+      ]
+    },
+    "numeric_values_compared": 628,
+    "comparison_breakdown": "180 cells x (flags, width-with-gap, height-with-gap) plus 8 content records x (six coordinates, four dimensions, one unknown field). Root handles, ownership, grid, cell count and content counts were checked separately.",
+    "all_numeric_values_within_abs_tolerance": 1e-12,
+    "maximum_absolute_delta": 3.552713678800501e-15,
+    "maximum_delta_field": "cells[9].geometry[0].dist_top_left[0]",
+    "readback_semantics_established": false
+  },
+  "format_evidence": {
+    "authority": "Open Design Specification for .dwg files v5.4.1, section 20.4.103",
+    "specification_summary": [
+      "TABLEGEOMETRY represents table geometry, was introduced in AutoCAD 2008, and need not be present in a DWG.",
+      "The documented field sequence maps row/column/cell counts to DXF 90/91/92, cell flags and dimensions to 93/40/41, an unknown soft-pointer handle to 330, and content coordinates/dimensions to 10/20/30, 11/21/31 and 43/44/45/46.",
+      "The ODA table labels the final DWG content field as BD at DXF group 95 with value 0."
+    ],
+    "unresolved_wire_discrepancy": "The current DWG parser reads the final TABLEGEOMETRY content field as bounded BL, while ODA v5.4.1 lists BD. The admitted source and LibreDWG peer both provide value 0, so this witness cannot discriminate the bit-stream type. Do not change the DWG parser without a nonzero physical witness and sample trace.",
+    "dxf_group_95_policy": "The DXF group-code schema treats group 95 as int32; this writer emits the modeled int32 field and only admits the witnessed value 0. The DWG BD-versus-BL discrepancy is tracked separately and is not resolved by DXF readback."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/table_geometry_dxf_tests.cpp"
+    ],
+    "admitted_output_profile": [
+      "AC1021 through AC1032 DXF output.",
+      "Nonzero object handle and explicit nonzero owner handle.",
+      "The AC1027 witness itself has cell flags exactly 3; the writer later added source-backed flag values 4 and 7, documented in p5-acadsharp-tablegeometry-flag-profile-2026-11-01.json.",
+      "Planar content coordinates, zero unknown content field, finite values and nonnegative dimensions.",
+      "No reactors, extension dictionary, appdata, extData, or unsupported DataStorage metadata."
+    ],
+    "failure_policy": "Out-of-profile or incomplete captures refuse the complete export atomically."
+  },
+  "generated_validation": {
+    "fixture_policy": "Generated ASCII and Binary DXF inputs are created locally by the focused test; no external DWG/DXF fixture was added.",
+    "build_command": "cmake --build build-gcc --target libdxfrw_table_geometry_dxf_tests dwg2dxf -j2",
+    "build_result": "passed",
+    "test_command": "ctest --test-dir build-gcc -R '^libdxfrw_table_geometry_dxf_projection$' --output-on-failure",
+    "test_result": "passed 1/1 in 1.10 seconds",
+    "test_coverage": [
+      "Sixteen generated input/output encoding and target-version combinations across AC1021, AC1024, AC1027 and AC1032.",
+      "Typed readback plus exact raw group-code order and values for the emitted TABLEGEOMETRY object.",
+      "Sixteen atomic refusals for non-null cell soft pointers and sixteen successful retries on the same exporter after correction.",
+      "Four atomic refusals for pre-AC1021 output and four AC1021 retries on the same exporter.",
+      "Existing raw fallback, malformed-input, destination-preservation and corrected-retry controls remain passing."
+    ]
+  },
+  "whole_source_strict_recheck": {
+    "input": "The same AC1027 public fixture; remains outside the repository.",
+    "target_ac1024_command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/dwg-example-2013.dwg -y -v2010 /private/tmp/dwg-example-2013-post-tablegeometry.dxf",
+    "target_ac1024_result": "Strict output now passes the standalone TABLEGEOMETRY gate and stops at ModelDocViewStyle serialization, which requires the exact DWG source version.",
+    "target_ac1027_command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/dwg-example-2013.dwg -y -v2013 /private/tmp/dwg-example-2013-post-tablegeometry-ac1027.dxf",
+    "target_ac1027_result": "Strict-complete output is rejected earlier because the DWG read disposition is incomplete: three object parse failures and one orphan DataStorage record."
+  },
+  "claim_boundary": [
+    "This receipt establishes transport of one source-bounded standalone TABLEGEOMETRY cache profile only.",
+    "The generated tests use an isolated synthetic owner and do not prove complete owner-graph replay.",
+    "The sample's TABLEGEOMETRY owner graph is source evidence only; full strict graph closure remains open in P4.",
+    "This does not establish native TABLE rendering, cell visibility, geometry semantics, or general TABLE support.",
+    "Non-null cell targets, flag values outside {3,4,7}, non-planar content, nonzero group-95 values, other common metadata, and the DWG group-95 bit-stream type remain unqualified."
+  ],
+  "next_actions": [
+    "P6: search for an eligible physical TABLEGEOMETRY source with a nonzero final content field; compare its DWG bit span against ODA before any parser change.",
+    "P4: continue complete graph/output/readback closure for source-backed object dependencies and retain strict refusal for unresolved dependencies.",
+    "P5: obtain independent native evidence before claiming TABLE rendering or cell-geometry semantics."
+  ]
+}

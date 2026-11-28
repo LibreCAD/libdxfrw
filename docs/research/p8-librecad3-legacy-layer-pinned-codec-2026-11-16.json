@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-16",
+  "consumerRepository": "LibreCAD/LibreCAD_3",
+  "consumerBase": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "localCandidateCommit": "89f9657cc1ee92904626bdc4688cd2ba537d6d56",
+  "pinnedLibdxfrwCommit": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "pinnedArchive": "/private/tmp/lc3-pinned-libdxfrw-install/lib/libdxfrw.a",
+  "pinnedArchiveSha256": "bbda069c14828f47194ef47fee39ec160e6fd3a53691b18e847ef3d177da4694",
+  "environment": "macOS ARM64 Release; fresh temporary build with installed pinned static codec; same temporary CMake probe and candidate sources as the current-codec run.",
+  "linkProof": "persistence/CMakeFiles/persistence.dir/link.txt names the stated pinned archive.",
+  "result": "Seven focused tests passed: three MPOLYGON cases, unit preservation, ASCII save roundtrips, ASCII/Binary text, and legacy layer width ASCII/Binary R12/R14 with geometry readback and R2000 preservation. The MPOLYGON controls follow their pinned-codec fallback paths where appropriate.",
+  "logs": [
+    "/private/tmp/librecad3-p8-pinned-configure.log",
+    "/private/tmp/librecad3-p8-pinned-build.log",
+    "/private/tmp/librecad3-p8-pinned-focused.log"
+  ],
+  "limits": "The pinned archive was installed previously; this is not a fresh bundled-source build or native GUI/platform qualification. The candidate remains local and unmerged, bool-only save still signals reported loss, and the R12 default-width provenance/UI question remains open. No support claim or phase gate is promoted."
+}

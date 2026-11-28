@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-acis700-same-version-dxf-carrier-2026-11-11",
+  "purpose": "Enable and qualify the bounded same-version AC1024 inline SAB v700 to DXF SAT 700 carrier route while preserving incomplete whole-source refusal.",
+  "physicalSource": {
+    "path": "/tmp/libdxfrw-acis21500/dwg/cube.dwg",
+    "sha256": "852227fac827598b14a3f3be19228d8ce3177e7c862d805767f6be6242505710",
+    "producer": "ODA File Converter 27.1.0.0",
+    "version": "AC1024",
+    "entity": {
+      "type": "3DSOLID",
+      "handle": "0x2F",
+      "modelerVersion": 2,
+      "objectSize": 7062,
+      "bodyBitSize": 29,
+      "hasModelerData": true,
+      "isEmpty": false,
+      "unknownModelerBit": false,
+      "historyHandle": 0,
+      "payloadBytes": 7007,
+      "payloadSha256": "4b5919bc0188358a279ba833aec5d879fa2067ba8af42a8ea86e585d420fb8a8",
+      "payloadHeader": "ACIS BinaryFile v700, zero record count, one entity, zero flags",
+      "range": {
+        "kind": "Sab",
+        "section": "Body",
+        "offset": 50,
+        "bitOffset": 7,
+        "length": 7007,
+        "consistency": "Exact",
+        "confidence": "Marker",
+        "marker": "End-of-ACIS-data (tagged SAB marker; AC1018/AC1021/AC1024)"
+      },
+      "eedAppId": "ACAD_OBJECT_CHANGE_GUID"
+    },
+    "sourceAppIdTable": [
+      "EZDXF",
+      "ACAD_OBJECT_CHANGE_GUID",
+      "HATCHBACKGROUNDCOLOR",
+      "ACAD"
+    ]
+  },
+  "implementation": {
+    "files": {
+      "src/libdxfrw.cpp": "Adds a strict AC1024-only qualification for a marker-bounded, exact inline SAB v700 3DSOLID with modeler version 2, zero SAB record count, one declared entity/body, zero flags, a complete terminal parse, no DataStorage tail, and a source range contained by the retained DWG frame. The admitted payload is converted to SAT 700 and emitted with DXF group 70 value 1. Existing AC1021/v21200 and later AC1027+ routes are unchanged.",
+      "tests/dwg_local_roundtrip_tests.cpp": "Adds a generated no-fixture writer test for ASCII/Binary AC1024 output, typed readback, import-export-import preservation, EED APPID closure, missing-APPID atomic refusal, and AC1027 cross-version atomic refusal.",
+      "tests/CMakeLists.txt": "Registers the generated control as the focused dwg_ac1024_acis700_sat_dxf_roundtrip test with fast/dwg/dxf/3d/acis/generated labels."
+    },
+    "sourceHashes": {
+      "src/libdxfrw.cpp": "12659ee96fe758c57a0492bc52619dc5349062d347c2058368818c15a456ec08",
+      "tests/dwg_local_roundtrip_tests.cpp": "19d062b5adadc706db6a9465968f077e3c43eedf57669018eb5d5963cadae172",
+      "tests/CMakeLists.txt": "a999f9dad14d6472b840500bc67b4b9badb377d15c8e4e16a2fd3875d4fc6b17"
+    },
+    "profileBoundary": "Only the observed zero-count, one-body ACIS 700 AC1024 3DSOLID carrier is admitted for target AC1024. Other target versions, entities, modeler flags, header values, source-frame ranges, and unqualified data-storage profiles remain refused."
+  },
+  "results": {
+    "physicalSourceRead": {
+      "command": "temporary dx_iface probe: fileImport source DWG; copy only parsed 3DSOLID and source APPID table into a fresh dx_data; fileExport to AC1024; fileImport output",
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "completeDwGDisposition": "Strict whole-file export refused: two retained AcDb:Header integrity diagnostics remain (observed length 825 vs expected 821 at offset 16; observed 1582 vs expected 843 at offset 843). This refusal is retained.",
+      "selectedOutput": {
+        "ascii": {
+          "export": true,
+          "readback": true,
+          "exactObfuscatedSatReadback": true,
+          "sha256": "4a03941a20bddda99b06cf7839153d828729d58cfb49839771a432798c692afb"
+        },
+        "binary": {
+          "export": true,
+          "readback": true,
+          "exactObfuscatedSatReadback": true,
+          "sha256": "af66e17077f9bb363e2393a91433748337c3c968ea958d6ceb2bf4ad377332a4"
+        }
+      },
+      "dependencyClosure": "The selected entity's EED references ACAD_OBJECT_CHANGE_GUID. The fresh selected-output container included the source APPID table; output without APPID registration is refused by the writer."
+    },
+    "odaSameVersionResaveAndAudit": {
+      "converter": "ODA File Converter 27.1.0.0",
+      "resaveCommand": "ODAFileConverter <input-dir> <output-dir> ACAD2010 DWG 0 0 '*.dwg'",
+      "resavedDwgSha256": "237b42f3c135c39709239c0aa711940f3569baba2b22ac79d547d3367f43f44a",
+      "auditCommand": "ODAFileConverter <input-dir> <output-dir> ACAD2010 DWG 0 1 '*.dwg'",
+      "auditDwgSha256": "3f6456bf765c20dfed0b5c28f684a14d39db2488dbae789df9f6e783632f5c2f",
+      "result": "Both generated resaves parse with zero entity/object parse failures, but retain the same two AcDb:Header integrity diagnostics and exact expected/observed values as the original. Neither operation supplies evidence to repair or waive those diagnostics; strict whole-file export remains blocked."
+    },
+    "generatedControl": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_acis_sat_allocation_tests -j4 && ctest --test-dir build-gcc -R '^(dwg_ac1024_acis700_sat_dxf_roundtrip|acis_sat_allocation_rollback_retry)$' --output-on-failure",
+      "result": "PASS 2/2 (0.61 seconds). The AC1024 ASCII/Binary carrier imports, exports, reads back, and survives import-export-import. Missing APPID and AC1027 cross-version output refuse atomically. The serializer allocation/retry control passes."
+    },
+    "diffCheck": "PASS: git diff --check"
+  },
+  "limitations": [
+    "The source DWG was generated by ODA from a public SAT sample and is not an Autodesk-native producer witness.",
+    "The selected entity output control is not whole-document conversion; strict whole-file export remains blocked by the two source header integrity diagnostics.",
+    "A bounded SAT carrier roundtrip does not prove native geometry semantics, topology, or B-rep support. See the separate FreeCAD cube receipt for selected native Part results and its shared-kernel limitation.",
+    "No external DWG, DXF, or SAT fixture was added to the repository."
+  ],
+  "claimEffect": "Adds a bounded same-version AC1024 v700 3DSOLID-to-SAT DXF carrier route with selected source readback and APPID dependency closure. It does not qualify complete-document output or promote general DWG/DXF/ACIS/3D support claims."
+}

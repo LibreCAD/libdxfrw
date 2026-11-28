@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assocdependency-physical-output-binding-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical associative dimension-dependency output and readback",
+  "status": "PHYSICAL_17_DEPENDENCY_BODY_PAIRS_FIELDS_ROLES_AND_READBACK_CLOSED",
+  "supportClaimEffect": "none",
+  "implementationCommit": "69ca1565a5301520029c806595bc070a56e8ac2c",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "profile": {
+      "dependencies": 17,
+      "dimensionDependencyBodies": 17,
+      "distinctBodyNames": 17,
+      "dependencyFields": "class/status, read/write/attached/delegating flags, order, absent/empty name, dependency body ID/handle, and null read/node/write references",
+      "bodyFields": "AcDbAssocDimDependencyBody base/type records, version fields, and unique body name",
+      "roles": "dependency owned by the ACDBASSOC2DCONSTRAINTGROUP; dependency owns its body; dependency points to one DIMENSION entity that has exactly one matching reactor backlink; group action list contains the dependency once"
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_standard_output.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Added strict typed DXF parsing for the emitted ASSOCDIMDEPENDENCYBODY sequence, source snapshots and unchanged-source checks for all 17 physical dependency/body pairs, staged OBJECTS inspection and output finalization. Source entity handles are mapped through the entity handle remapper. The selector reimports ASCII and binary output and compares every dependency/body field, pair identity, dependency owner/body role, dimension target and reactor backlink. Constraint-group action membership is checked; complete constraint-node tail parsing is not claimed.",
+    "failureBehavior": "A late body-name mutation after OBJECTS emission refuses publication and preserves a preexisting destination sentinel. Restoring the source name and retrying on the same adapter succeeds. Both ASCII and binary paths exercise these controls.",
+    "fixturePolicy": "Reused the existing local mechanical DWG. No test DWG or DXF fixture was added to the repository; generated outputs are temporary."
+  },
+  "outputProof": {
+    "cliOperation": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/p4-dependency-stage.dxf",
+      "result": "PASS for explicit-partial AC1024 to ASCII DXF.",
+      "output": {
+        "path": "/private/tmp/p4-dependency-stage.dxf",
+        "sha256": "801e3c91c64dab1af1e02c5da83e3adfcd77b8dc591f79b0afc2f5742352757f",
+        "bytes": 449807
+      },
+      "stagedInspector": "PASS: 17 source pairs, 17 staged dependencies and 17 staged bodies matched; format=ascii, version=AC1024.",
+      "debugLog": {
+        "path": "/private/tmp/p4-dependency-stage.log",
+        "sha256": "0dfa89fa0fc8a094e5fdfe6356a6d663b193a2885560ae44569ab01fd4fa0dff"
+      }
+    },
+    "freshReadback": {
+      "selector": "--assocdependency-physical-output-readback",
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocdependency-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and binary. Each mode reimports all 17 linked pairs, verifies dependency/body fields and owner/action/dimension/reactor roles, refuses a deliberate late mutation without replacing the destination, and succeeds after correction on the same adapter."
+    }
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags. The focused adapter target was rebuilt after the final diagnostic edit."
+    },
+    "focusedSelector": "PASS; deliberate rollback attempts print the expected OBJECTS inspection/export failure diagnostics before the successful retry.",
+    "fullSuites": "NOT RUN; this packet used focused checks only.",
+    "addressSanitizer": "NOT RUN for this packet."
+  },
+  "limitations": [
+    "The CLI proof uses explicit partial DWG-read mode. The physical source still reports 228 opaque callbacks and zero retained correlation frames, so strict complete-export admission remains closed.",
+    "The readback proves the dependency's group action membership but does not prove full constraint-group node-tail semantic parsing.",
+    "This profile proof does not close the other physical callback profiles or qualify LibreCAD, LibreCAD_3, FreeCAD, native platforms, packaging, ABI, 3D semantics, or any support claim."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Bind the 17 physical AC1024 ACDBASSOCDEPENDENCY records and ASSOCDIMDEPENDENCYBODY children to exact source/output identities, typed fields, owner/body/action/dimension/reactor roles, staged output and fresh readback; verify late-mutation refusal, destination preservation and corrected same-adapter retry in ASCII and binary.",
+    "remainingP4Scope": "Continue physical callback/output-coverage closure and required descendant closure. Strict complete-export remains refused while required callback/output closure is incomplete.",
+    "nextAction": "Diagnose the physical AC1024 AcDbSubDMesh CLASS row and instance count against dxfRW::dxfClassForRecordName; preserve refusal until source and version-specific output mapping agree.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "9d61fc91114a170bf31f7ef9f35351c9daee5c61ea1de1455b358378a283c4eb",
+    "dwg2dxf/dx_iface.h": "e14b05d1867221506f3ca740c006114f9e6c4075f5cafd9c0b0e4ad290661409",
+    "dwg2dxf/dx_standard_output.h": "2351b873ca52b49c6743fed11a4b8d134d2a8bebfdbb0071f38395b631d266e7",
+    "src/drw_objects.cpp": "46544fcc93ed84cdc8d3cb1fa8dee148b695234003030071f52b6103b15c2c8f",
+    "src/drw_objects.h": "72d31894cc060a14030f4eacb1a2f83d720df0abdee720cb2076df2a16375b5c",
+    "tests/dwg2dxf_adapter_tests.cpp": "2f14cfadd2d5b3ab601606911a01af730ad11feaeee018081235844ea1954273",
+    "build-gcc/dwg2dxf/dwg2dxf": "68f7105389d308b4e293b2ffaa2e7c8de9cc1ced2c041b37ed279b3dd9f02e26",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "bb4b92249829b5361d99a887699548911675a9585be2749a72a796c568b85583"
+  }
+}

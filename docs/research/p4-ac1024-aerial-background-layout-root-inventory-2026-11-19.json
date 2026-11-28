@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-background-layout-root-inventory-2026-11-19",
+  "date": "2026-11-19",
+  "status": "AC1024_BACKGROUND_AND_LAYOUT_ROOT_CENSUS_CAPTURED",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local aerial DWG; producer identity is not authenticated.",
+    "namedObjectDictionaryEntries": 16,
+    "background": {
+      "root": "NOD 0x0C -> ACAD_BACKGROUND dictionary 0xAE (owner 0x0C)",
+      "rootEntries": [
+        ["188", "0x188"], ["1C2", "0x1C2"], ["1F6", "0x1F6"],
+        ["200", "0x200"], ["241", "0x241"], ["25F", "0x25F"],
+        ["261", "0x261"], ["263", "0x263"], ["26B", "0x26B"],
+        ["343", "0x343"], ["355", "0x355"],
+        ["ACAD_PERSPECTIVE_BACKGROUND", "0x0"]
+      ],
+      "typedBackgroundCount": 12,
+      "typedBackgroundHandles": ["0x188", "0x1C2", "0x1F6", "0x200", "0x241", "0x25F", "0x261", "0x263", "0x26B", "0x311", "0x343", "0x355"],
+      "typedKind": "All 12 imported records are Skylight.",
+      "sunReferences": "Eleven backgrounds reference SUN 0x187; background 0x261 references SUN 0x24C. All typed common parents name dictionary 0xAE.",
+      "sunOwners": [
+        {"sun": "0x187", "parent": "0x94"},
+        {"sun": "0x24C", "parent": "0x246"}
+      ],
+      "closureFindings": "The 12-entry dictionary contains one null perspective key, while typed background 0x311 has no dictionary edge. Skylight-to-SUN ownership and the second SUN's parent mismatch remain unresolved."
+    },
+    "layout": {
+      "root": "NOD 0x0C -> ACAD_LAYOUT dictionary 0x1A (owner 0x0C)",
+      "rootEntries": [
+        {"name": "Layout1", "handle": "0x59"},
+        {"name": "Layout2", "handle": "0x5E"},
+        {"name": "Model", "handle": "0x22"}
+      ],
+      "typedLayoutCount": 3,
+      "layoutRecords": [
+        {"name": "Model", "handle": "0x22", "owner": "0x1A", "paperSpaceBlockRecord": "0x1F", "lastActiveViewport": "0x94", "viewportCount": 0},
+        {"name": "Layout1", "handle": "0x59", "owner": "0x1A", "paperSpaceBlockRecord": "0x58", "lastActiveViewport": "0x0", "viewportCount": 0},
+        {"name": "Layout2", "handle": "0x5E", "owner": "0x1A", "paperSpaceBlockRecord": "0x5D", "lastActiveViewport": "0x0", "viewportCount": 0}
+      ],
+      "closureFindings": "Each typed LAYOUT owner names the rooted dictionary; each has a reciprocal paper-space BLOCK_RECORD link. Model's last-active viewport resolves to VPORT 0x94."
+    },
+    "capture": "A one-import local probe enumerated the typed NOD root, child dictionaries, Background, SUN and LAYOUT records. Existing source/output receipts remain the authority for separately qualified wire fields; this census alone is not a field-span or output proof."
+  },
+  "limits": [
+    "The producer is unauthenticated; no native semantic or consumer claim follows from this typed inventory.",
+    "The current exact AC1024 layout writer selector admits two-layout identities, not this three-layout profile. The normal whole-file export also stops earlier at the independent SUN owner mismatch.",
+    "ACAD_BACKGROUND is not ready for root output: its null key, unrooted typed child and unresolved Skylight-to-SUN relationship must remain fail-closed."
+  ],
+  "nextAction": "Add and source-bind the exact three-layout AC1024 identity profile, then validate the complete ACAD_LAYOUT root through a selected ASCII/Binary output path. Keep all Background/SUN exclusions fail-closed until their graph relationships are independently resolved."
+}

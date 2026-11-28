@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "SectionViewStyle group-3 scalar insertion fast slice",
+  "mode": "Generated local ASCII/Binary implementation slice",
+  "scope": [
+    "Serialize a changed SectionViewStyle group-3 view-label text-style reference and text color when absent from the captured source.",
+    "Preserve ordered groups and aligned ASCII raw lexemes/Binary placeholders; bound inserted ACI color to the signed 16-bit DXF range.",
+    "Verify typed same-version ASCII and Binary readback without adding repository fixtures or a CTest registration."
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "The copied SectionViewStyle raw carrier inserts group 340 for the view-label text-style handle and group 62 for text color in style group 3 when changed from class defaults and absent in the source. Handle text is checked hexadecimal; zero and sentinel handles are refused. Color is range-checked. The raw writer's existing source-handle remapping applies to group 340.",
+    "generatedControl": "The generated style source omits both group-3 fields while retaining the rest of the group. The test confirms initial defaults (handle zero, color 256), edits to the existing VIEW_STYLE_TEXT style and color 34, verifies exact ordered raw groups in ASCII and Binary, and confirms typed readback and reference closure."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/sectionviewstyle-group3-scalar-insertion-fast-slice-2026-10-19.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "repositoryFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "commitCreated": false
+  },
+  "limitations": [
+    "Only same-version generated DXF insertion of these absent single-occurrence fields is covered.",
+    "Repeated group-1/group-2 references, colors and hatch-angle cardinality are not changed by this slice; other unsupported shapes remain fail-closed.",
+    "No DWG-origin typed output, cross-version translation, native style rendering, or consumer support qualification follows."
+  ],
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimPromoted": false,
+    "findings": 138,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

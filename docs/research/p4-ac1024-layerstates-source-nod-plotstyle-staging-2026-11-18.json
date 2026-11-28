@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-source-nod-plotstyle-staging-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SELECTED_SOURCE_NOD_EDGES_STAGED_WITH_INDEPENDENT_DXF_CHECK",
+  "supportClaimEffect": "none",
+  "sourceHead": "1174f77538c3faef61d3f511fe87a4be491a157e",
+  "source": {
+    "name": "visualization_-_aerial.dwg",
+    "version": "AC1024",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "rootHandle": "C",
+    "rootEntries": 16,
+    "context": "docs/research/p4-ac1024-layerstates-source-graph-context-2026-11-18.json"
+  },
+  "writerControl": {
+    "scope": "Supply the complete source NOD and its source GROUP DICTIONARY to the existing setup call, and project only GROUP, PLOTSTYLENAME, and SCALELIST into the staged DXF. Inspect source common fields and selected root ordering, the GROUP record, matching plot-style dictionary and placeholder, and all 32 SCALE records.",
+    "sourceDependency": "Setup with complete NOD and no matching GROUP provider refuses. Setup with that provider accepts; selected plot-style output also requires an explicit caller pair.",
+    "cases": "ASCII and Binary each passed 15 injected failures, preserved seeded destination bytes, and accepted corrected retries on the same codec.",
+    "referenceMapping": {"GROUP": ["D", "D"], "PLOTSTYLENAME": ["E", "A00E"], "Normal": ["F", "A00F"], "SCALELIST": ["126", "A126"]},
+    "testNormalization": "The caller path explicitly sets the Normal entry encoding to DXF group 350 in this scratch test. Source frames show one reactor per plot record; the current no-reactor observer rejects both."
+  },
+  "independentReadback": {
+    "reader": "ezdxf 1.4.5 raw tags",
+    "odaConverter": "ODA File Converter 27.10.0.0 Linux amd64",
+    "odaExportProvenance": "docs/research/p5-ac1024-aerial-sun-oda-linux-screen-2026-11-18.json",
+    "odaExportSha256": "911acff2824c5d75043a074381aea9d2274601ca62391b14786a224444f6c0eb",
+    "matchingRoles": "Group 350 encodes the selected root edges in all three outputs. GROUP and ACDBDICTIONARYWDFLT each have owner and reactor C. The dictionary uses 281=1, Normal 350 and default 340 targeting the same ACDBPLACEHOLDER, whose owner and reactor both target that dictionary.",
+    "rootCounts": {"sourceDWG": 16, "odaDXF": 19, "stagedDXF": 3},
+    "wholeRootScreen": "All 16 source keys retain their original targets at group 350 in the ODA export. ODA adds ACAD_DETAILVIEWSTYLE, ACAD_SECTIONVIEWSTYLE and ACDB_RECOMPOSE_DATA. Among the thirteen omitted source targets, ACAD_COLOR and ACAD_PLOTSETTINGS point to empty dictionaries in the ODA export. The remaining targets require child or standalone object closure."
+  },
+  "plotStyleWire": {
+    "method": "Captured the source object bodies through the current reader. Decoded the bits with a separate scratch Python cursor and compared types, boundaries and handle tuples against LibreDWG dwgread 0.14 JSON and level-5 trace from the identical DWG. ODA v5.4.1 section 20.4.45 describes the additional hard-pointer default reference.",
+    "dictionaryE": "Logical object-section offset 1110, class 500 ACDBDICTIONARYWDFLT, 32-byte body, 66 handle/alignment bits. Normal UTF-16 field [67,173), string length footer [173,189) value 106, marker [189,190). Owner [190,206) code 12 length 1 delta 2 resolves C; reactor [206,222) code 4 length 1 resolves C. Entry [222,238) code 2 length 1 resolves F; default [238,254) code 5 length 1 resolves F. The two observed trailing bits [254,256) are 11; their general semantics are unknown.",
+    "placeholderF": "Logical object-section offset 28014, fixed type 80 PLACEHOLDER, 8-byte body, 24 handle bits. No-string marker [39,40). Owner [40,48) code 8 length 0 resolves E; reactor [48,64) code 4 length 1 resolves E. No remaining body bits.",
+    "peerFrameChecks": "LibreDWG CRC checks pass for both frames. The next indexed record after F is handle 10, fixed type 51 LAYER named 0.",
+    "scratchNegativeCoverage": "The exact-profile cursor refuses 18 field or truncation mutations for E and 10 for F and rereads each unchanged frame. The production no-reactor observer still refuses both original bodies."
+  },
+  "scratch": {
+    "root": "/private/tmp/p4-nod-plot-control",
+    "command": "control --layerstates-ac1024-real-writer <original pinned aerial DWG>",
+    "sha256": {
+      "selected-nod-plot-incremental.patch": "72d418bc7e7646d419ab6b17ed4d936f31ddb8e6dd9f1a88485b951b304accd5",
+      "p4_layerstates_real_writer_controls.h": "fc9e3400bd3a235eff252b5f50eee3bd1b181eb6a6cbc821e9cca6f43bdcf336",
+      "control": "b5abb01a4e280237f4763bd52e715b04d2724df3b968d8d21d720944b8c7a70f",
+      "run.log": "bf1afc08b65ca4d3f0ad1b17c3930ab6153d63674f7665bdcc9f43d704ff296e",
+      "verify_peer.py": "218be46d49c5528dd36c142d9b9f7d3abcc35d5e2904ca58dabdc13397100452",
+      "peer.log": "5b20157382533c4cb24173a79b620688b5348a6c9c53474a0ee314796cf4bf15",
+      "selected-ascii.dxf": "381c28a0c8d4be4cb447b21c19e287c3ca96fe2a3454e68ec39c04ef15b30e51",
+      "selected-binary.dxf": "35756ff04d67a72d40bcdbad09de6a4fdb0431b52eddeeef88967532f721df83",
+      "capture_frames.cpp": "c41ac1212503a84280730df036137830ce1999be12dd068266280cfc5a638fb9",
+      "raw-frames.txt": "4ec294b20ce776c0ffa2a32ab00170b5ee15aa9a3c2c01a5ec48f7f127680619",
+      "verify_plot_wire.py": "0a4ed1461ce4b3c38f91edee0d239ff54345bc8273b3e5d06f13fd2dab55ab8d",
+      "plot-wire.json": "cd53d41b523c13c08fa2cc107e120afaf2aacde0715e0cdd65b8c06de9f36c74",
+      "aerial-libredwg.json": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832",
+      "aerial-libredwg.trace": "484644f3e17d0afe5f2c3dc6f0dec1ab1533ce2b7b31c03eec665a972200a30d"
+    }
+  },
+  "remaining": [
+    "Implement a distinct AC1024 one-reactor source proof for these exact fields, then gate role projection on same-import provenance and test refusal and retry through the production adapter.",
+    "Close the thirteen other original root edges and resolve the SUN owner conflict before attempting strict whole-file output. Native layer-state group-370 restore also remains open.",
+    "No production writer change or drawing fixture is committed."
+  ]
+}

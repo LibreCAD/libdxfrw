@@ -1,0 +1,37 @@
+{
+  "id": "par134-ac1021-ac1024-field-cadvalue-object-id",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "81e04a2a66a6eea6aa6a71e40876db62e9464aeda3a2c129fd2316aae65323f6",
+  "scope": {
+    "class": "DRW_Field / DRW_CadValue",
+    "versions": ["AC1021", "AC1024"],
+    "field": "kObjectId (type 64) root value / soft-pointer handle stream",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "evidence": {
+    "normative": "ODA defines type 64 as an object ID read from the handles section with soft-pointer role.",
+    "localGap": "FIELD lacked positive generated root-value coverage for the type-64 handle-stream path."
+  },
+  "change": "Added generated AC1021/AC1024 vectors asserting handle A721, integer/handle projection, detached metadata, enclosing FIELD validity, and DWG re-encoding with a nonempty handle stream. No production parser/writer behavior changed.",
+  "validation": [
+    "build-gcc/libdxfrw_dwg_object_vectors_tests --field-cadvalue-object-id: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_field_cadvalue_object_id$' --output-on-failure: PASS (1/1)",
+    "ctest --test-dir build-gcc -R '^libdxfrw_(table_(cell_.*|cadvalue_.*)|field_(cadvalue_double|cadvalue_string|cadvalue_date_payload|cadvalue_points|cadvalue_object_id|cadvalue_general_format_flag|cadvalue_unknown_type|oversized_child_value_count))$' --output-on-failure: PASS (19/19)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "productionBehaviorChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256", "J260", "J268", "J284", "J293", "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

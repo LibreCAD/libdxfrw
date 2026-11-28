@@ -1,0 +1,19 @@
+{
+  "exactMembershipMatch": true,
+  "localEdgeRows": 86,
+  "localLog": "/private/tmp/cover-opaque-source-inventory-body.log",
+  "localLogSha256": "3e3fd440f709fb1db7494caff9a117b522034c79c3a7be193bc0690176712fab",
+  "localMissingFromPeer": [],
+  "matchedRows": 86,
+  "nullSlots": 1,
+  "peerEdgeRows": 86,
+  "peerJson": "/private/tmp/cover-current-libredwg.json",
+  "peerJsonSha256": "12a88999c8a23a63aa82062bc867432afd62df558c74fd0cd446520acaa0e0e9",
+  "peerMissingFromLocal": [],
+  "schema": "libdxfrw-dictionary-edge-comparison-v1",
+  "source": "/Users/dli/doc/dwg/Cover.dwg",
+  "sourceSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+  "unresolvedLocalTargets": [],
+  "verifier": "/Users/dli/dev/libdxfrw/tools/research/verify_cover_dictionary_edges.py",
+  "verifierSha256": "a4073dfe9092f09769c29400c23e184d3e42710b70f30c81dda846fc03e56a42"
+}

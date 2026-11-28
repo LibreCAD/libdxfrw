@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-15",
+  "scope": "Generated malformed DIMASSOC body recovery for AC1021, AC1024, AC1027 and AC1032.",
+  "basis": "The previous zero-associativity generated object had no one-bit parser-failing AC1024 mutation. Setting its existing trans-space field to true creates a different valid generated body while retaining the null dimension reference and zero OsnapPointRef entries. The existing bounded search independently requires the common prologue to remain valid and the typed parser to reject the mutated body.",
+  "validation": [
+    "The generator now requires the pre-mutation DIMASSOC and SPATIAL_INDEX baseline reads to have zero object-parse failures. Both focused selectors pass together; dwg2dxf_cli_dimassoc_recovery passes 18 controls in 0.61 seconds. AC1021, AC1024 and AC1032 verify frame accounting, following-LINE continuation, strict atomic refusal and explicit-partial ASCII/Binary output with fresh DXF readback.",
+    "AC1027 verifies following-LINE continuation and both strict and explicit-partial refusal at the existing source-reference gate. The changed Python test passes py_compile; no drawing fixture is committed."
+  ],
+  "implementationDigestSha256": "d4597ef3d4d14a1f1e164393e08be53aa25060341becf2a1f46f3eecefd048b1",
+  "limits": "This is a generated recovery and disposition control; CLI attempts are separate processes. It does not qualify DIMASSOC relationship closure, OsnapPointRef semantics, native associative behavior or the AC1027 output route. No support claim is promoted."
+}

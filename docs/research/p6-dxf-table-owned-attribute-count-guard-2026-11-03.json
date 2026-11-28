@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-table-owned-attribute-count-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Resource bounds and allocation-safe child-handle rollback staging for DXF ACAD_TABLE attribute chains.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "ACAD_TABLE refuses more than dwgSafety::MaxOwnedObjectCount (1,000,000) ATTRIB children immediately after basic entity preflight, before scanning the child list or publishing the record.",
+      "ACAD_TABLE child-handle rollback staging now uses DRW::reserve and follows the writer's atomic refusal path if reservation fails.",
+      "A generated control verifies one valid child remains writable, 1,000,001 valid shared child references refuse while preserving an existing ASCII/Binary destination, and the corrected model succeeds on a same-adapter retry."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j 4",
+    "focused": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_attribute_count_bound$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "Valid one-child write, over-limit refusal, destination preservation, and corrected same-adapter retry in ASCII and Binary."
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --insert-attribute-count-bound",
+        "result": "PASS",
+        "coverage": "Related INSERT count refusal and destination preservation."
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --insert-child-handle-rollback",
+        "result": "PASS",
+        "coverage": "Related INSERT rollback/retry/readback control."
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --tablecontent-multicell-field",
+        "result": "PASS",
+        "coverage": "Existing TABLE field-reference output/readback selector."
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --tablecontent-multicell-block",
+        "result": "PASS",
+        "coverage": "Existing TABLE block-reference output/readback selector."
+      }
+    ],
+    "repositoryFixturesAdded": 0,
+    "allocationFailureInjected": false
+  },
+  "limitations": [
+    "The child limit is an internal resource ceiling, not a DXF semantic maximum or a support claim.",
+    "The allocation-failure branch of DRW::reserve was not fault-injected; broader output assembly bounds remain open."
+  ],
+  "next": "Continue the P6 audit on remaining writer-side scratch reservations, prioritizing bounded counts and existing narrow failure-injection seams."
+}

@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw-broader-sab-resource-profile-and-peer-differential-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the open-source DWG/DXF comparison to standalone SAB parser profiles and limits, exact DXF modeler-data group semantics, and an optional read-focused 2D DWG comparator; refine existing implementation readiness only.",
+  "method": {
+    "kind": "Static review of Autodesk DXF references and primary upstream project documentation/source",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "Autodesk documentation links are versioned; cq-acis and ezdwg main-branch source/docs are mutable. The raw cq-acis source snapshot was reviewed directly on 2026-10-16 but no immutable SHA or runtime package was pinned. Before an optional differential run, record exact release, commit/package hash, input hashes, platform and options.",
+    "evidenceRule": "Separate DXF carrier syntax, SAB record framing, resource admission, opaque history retention, DWG/AcDs association, typed projection, B-rep validity and downstream/native acceptance. Peer parser behavior and limits are comparative implementation evidence, not normative format rules."
+  },
+  "evidence": [
+    {
+      "topic": "DXF inline modeler data has ordered payload chunks and a distinct history handle",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-7FB91514-56FF-4487-850E-CF1047999E77.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-644BF0F0-FD79-4C5E-AD5A-0053FCC5A5A4.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm"
+      ],
+      "observed": "The 3DSOLID, BODY and REGION DXF references identify an AcDbModelerGeometry subclass, group 70 modeler format version, group 1 proprietary data lines shorter than 255 characters, and optional group 3 continuation data when a preceding group 1 string exceeds 255 characters. The 3DSOLID reference then identifies AcDb3dSolid and group 350 as a soft-owner handle to a history object. Autodesk's general group-code guidance says not to assume the tabulated group-code order and permits future codes, but that does not make repeatable payload chunks or subclass transitions interchangeable.",
+      "doesNotEstablish": [
+        "DWG section or AcDs byte layout",
+        "the contents or semantic correctness of ACIS history",
+        "that group 350 contains modeler payload bytes or a payload size",
+        "ACIS B-rep validity or consumer acceptance"
+      ],
+      "planUse": "Keep inline DXF ModelerGeometry, R2013+ DXF ACDSDATA and DWG AcDs separate. Preserve group 1/3 concatenation order and subclass boundaries; test the 255-character continuation rule, group 70, and group 350 handle association separately. Do not reorder repeated fragments based on generic group-order flexibility."
+    },
+    {
+      "topic": "cq-acis has useful bounded parser dimensions but does not validate declared record count",
+      "sources": [
+        "https://raw.githubusercontent.com/monozukuri-ai/cq-acis/main/crates/acis-core/src/sab.rs",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md"
+      ],
+      "observed": "The reviewed source defines defaults of 64 MiB input, 500,000 records, 4,000,000 tokens, 4 MiB per individual string, and subtype nesting depth 64. The string check is per string; no cumulative retained-string counter is apparent in the inspected parser. It stores the nonnegative header record_count, but the reviewed parser loop does not compare that value with the parsed record total at EOF. The source admits ACIS BinaryFile version 21800 and selected ASM BinaryFile4/BinaryFile8 version numbers; the profile notes qualify ASM BinaryFile8 as synthetic framing coverage only. Recognized history markers retain the marker-to-EOF bytes opaquely; contents and terminal framing are not parsed, while preceding active references are checked before publishing the model.",
+      "doesNotEstablish": [
+        "normative SAB/ASM count, terminal or history behavior",
+        "complete support for all advertised geometry layouts",
+        "DWG container extraction or AcDs association",
+        "independent kernel semantics; its shape conversion uses CadQuery/OpenCascade",
+        "that mutable main-branch code and published release documentation identify the same exact revision"
+      ],
+      "planUse": "Use peer limit categories to audit libdxfrw ownership, not as default constants. Define per-string and cumulative retained-string budgets separately, and account independently for bytes, records, tokens, depth, references/work, history, copies, temporary capacity, output and diagnostics. Keep declared-count policy separate from actual work admission and framing completeness; do not copy the peer's lack of count comparison. Pin an immutable revision for any optional parser-structure differential."
+    },
+    {
+      "topic": "ezdwg is an optional common-2D comparator, not a 3D/ACIS qualification source",
+      "sources": [
+        "https://github.com/monozukuri-ai/ezdwg",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/guide/convert.md",
+        "https://github.com/monozukuri-ai/ezdwg/tree/main/test_dwg"
+      ],
+      "observed": "The project documents a Rust-core, read-focused DWG parser for AC1012 through AC1032 and a native DWG writer restricted to an AC1015 subset. Its DWG-to-DXF conversion uses ezdxf and is explicitly best-effort with skipped-entity reporting. Its examples/tests can help identify common 2D records for a pinned comparison, but its version matrix is not a semantic per-entity guarantee. It is published by the same organization as cq-acis, so organizational provenance is shared although the implementation paths differ.",
+      "doesNotEstablish": [
+        "per-version or per-entity semantic parity from the headline version range",
+        "3DSOLID/REGION/BODY ACIS or AcDs support",
+        "writer parity outside the documented narrow writer scope",
+        "independent semantic geometry or independent organizational provenance"
+      ],
+      "planUse": "At a composed checkpoint only, select overlapping common 2D fields and versions supported by exact pinned revisions. Record actual input/output versions, build, diagnostics, per-record coverage and lineage. Add no dependency and do not import peer fixture files."
+    },
+    {
+      "topic": "Local outcome API remains a framing outcome, not a semantic certificate",
+      "sources": [],
+      "observed": "At the baseline working tree, the additive SAB outcome reports candidate/consumed/trailing spans, terminal presence, count-known/matched and complete state. The local ACIS 21800 count-zero exception requires terminal-at-EOF for complete; positive declared counts must match actual records but do not acquire a universal terminal requirement. Legacy bool wrappers reject incomplete suffixes; detailed APIs can expose a parsed prefix as incomplete. Existing generated cases are framing vectors, not complete ACIS models.",
+      "doesNotEstablish": [
+        "history grammar or history-suffix validity",
+        "body-root placement, topology or B-rep validity",
+        "native CAD/kernel acceptance",
+        "a universal count/terminal policy for other profiles"
+      ],
+      "planUse": "Keep the existing ACIS 21800 exception isolated. Define complete as accepted-profile framing only. Resolve profile-specific history and alternate-signature policy from exact producer evidence before expanding acceptance; add outcome states only where an evidenced caller contract requires them."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Refine S3.7a with an evidence/confidence table for exact signature/version, declared-count policy, count inclusion, terminal policy, history suffix behavior and consumed/trailing span.",
+    "Refine 7S.3 resource accounting with separate per-string and cumulative retained-string budgets plus explicit charges for copies, temporary capacity, opaque history, output geometry and diagnostics.",
+    "Keep declared format count, actual record/work admission, active-record stream closure, opaque history retention and semantic completeness as separate counters/states.",
+    "Add generated in-memory boundary vectors for string and aggregate budgets, record/token/depth/work limits, count mismatch, terminal/suffix outcomes, supported opaque-history preservation, truncation, unsupported signature, atomic failure and reuse; do not add external binary fixtures.",
+    "Add owner-scoped DXF cases for group 1/3 ordering and boundary, subclass transition, group 70, and group 350 handle association; retain existing 2D reader/writer and LibreCAD compatibility checks.",
+    "Use cq-acis only as an optional pinned parser-structure comparison and ezdwg only for overlapping 2D comparisons at a composed checkpoint; neither is a required dependency or per-slice blocker.",
+    "Keep per-slice validation to strict affected builds, focused fast tests, lc3_compat_check and git diff --check; run one composed sanitizer checkpoint and retain scheduled full-suite/fuzz cadence."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "newFindingAdded": false,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRunForResearch": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "gitDiffCheck": "PASS",
+    "receiptJson": "VALIDATED"
+  }
+}

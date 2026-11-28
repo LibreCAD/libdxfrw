@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-dictionaryvar-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DICTIONARYVAR_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated DICTIONARYVAR OBJECTS transaction evidence across all seven admitted DXF writer revisions.",
+  "source": {
+    "kind": "deterministic locally-authored graph generated during each test run",
+    "profile": "One NOD entry targets a DICTIONARY containing one DICTIONARYVAR with an exact owner link, schema 0, and a generated string value.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dictionaryvar_objects_version_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-dictionaryvar-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each version and encoding, warm the codec, calibrate a complete write, inject std::bad_alloc at each measured callback allocation, require unchanged destination sentinel and caller graph, retry on the same codec, compare retry bytes with clean output, and freshly read back the NOD-to-DICTIONARY-to-DICTIONARYVAR graph."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 17, "Binary": 16},
+    "AC1015": {"ASCII": 18, "Binary": 16},
+    "AC1018": {"ASCII": 18, "Binary": 16},
+    "AC1021": {"ASCII": 17, "Binary": 15},
+    "AC1024": {"ASCII": 17, "Binary": 15},
+    "AC1027": {"ASCII": 17, "Binary": 15},
+    "AC1032": {"ASCII": 17, "Binary": 15},
+    "totals": {"ASCII": 121, "Binary": 108, "all": 229}
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dictionaryvar_objects_version_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dictionaryvar_objects_version_allocation_retry$' --output-on-failure: PASS 1/1 in 0.64 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_dictionaryvar_objects_version_allocation_tests build-gcc/tests/dictionaryvar-objects-version-allocation-scratch: PASS; seven revisions each sweep ASCII and Binary allocation offsets",
+    "testSourceSha256": "b2c79bd8d81c93fb874984d9012b408c491f184827771c2bf1a62b7333741a23",
+    "testExecutableSha256": "dcfb669449e24b6d356b3f05f758a7bbee3303ff4eb0f21b2cbf0f63f382a611",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated DXF allocation rollback, retry, and typed readback evidence only; this does not establish producer-profile breadth or native consumer semantics.",
+    "One generated dictionary/DICTIONARYVAR graph and field profile is tested per version; other dictionary topologies and independent producer behavior remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The generated DICTIONARYVAR transaction proof now passes across AC1014, AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032 in ASCII and Binary with byte-identical same-codec retry checks.",
+    "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "265 completed slices and 35 remaining packages: 265/(265+35)=88.3%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-scale-allocation-version-matrix-2026-11-13.json"
+}

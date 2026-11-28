@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "status": "completed_bounded_writer_compatibility_slice",
+  "date": "2026-11-11",
+  "scope": "DWG LTYPE_CONTROL phantom-member order in the local writer and compatibility parser",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.57 LINETYPE CONTROL",
+    "finding": "Numentries excludes BYLAYER and BYBLOCK; the final two hard-owner handles are ordered BYLAYER then BYBLOCK."
+  },
+  "implementation": {
+    "writer": "src/intern/dwgwriter15.cpp now emits the final hard-owner control handles in BYLAYER, BYBLOCK order.",
+    "reader": "src/intern/dwgreader.cpp accepts the normative order, the prior libdxfrw hard-owner BYBLOCK, BYLAYER order, and the separately recognized historical all-soft layout.",
+    "candidate": "The bounded AC1018 candidate accepts uppercase BYBLOCK for the normative generated profile and tolerates normalized null-xref handle metadata only when the raw field-span check proves the exact H5 null reference."
+  },
+  "generated_controls": {
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "count_boundaries": [255, 256, 257],
+    "coverage": [
+      "writer field order and ownership roles",
+      "normative phantom order readback",
+      "prior hard-owned writer order remains readable",
+      "historical all-soft profile remains separately recognized",
+      "malformed count, role, framing and padding rejection with corrected-input retry"
+    ],
+    "fixture_policy": "All DWG controls are generated in memory or in scratch files from source code and removed after execution; no external DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "Focused targets built with the repository warning-as-error flags.",
+    "ctest": {
+      "libdxfrw_dwg_ltype_multiversion_count": "passed",
+      "libdxfrw_dwg_ltype_ac1021_count": "passed",
+      "libdxfrw_dwg_ltype_control_byblock_ac1018_candidate": "passed",
+      "p5_ltype_generated_reader_ticket": "passed"
+    },
+    "focused_selector": "libdxfrw_dwg_reader_matrix_tests --ac1015-ltype-count: passed",
+    "diff_check": "git diff --check passed"
+  },
+  "limits": [
+    "This is generated wire-format and local compatibility evidence, not broad producer interoperability evidence.",
+    "The pinned physical AC1018 source still has the anomalous BYBLOCK, BYLAYER order and remains isolated as its observed profile.",
+    "No output support claim, whole-document qualification, native CAD acceptance or rendering claim is promoted."
+  ]
+}

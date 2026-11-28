@@ -1,0 +1,240 @@
+{
+  "receipt": "p5-ac1021-field-flags4-type2-root-census-2026-11-01",
+  "recordedAt": "2026-11-01",
+  "phase": "P5",
+  "readiness": "bounded root-value transport implemented; all 15 AcExpr roots parse as complete; all 42 peer-selected AcObjProp handles correlate with raw-only incomplete local shells; 71 checksum-child fields also remain raw-only because their flags=2/type=2 values leave a 34-bit body suffix under the ODA suppression rule; no source support claim is made",
+  "sourceWitness": {
+    "path": "tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "provenance": "Pre-existing untracked local input; not staged or committed.",
+    "libdxfrw": {
+      "selector": "--field-ac1021-physical-profile-census",
+      "typedFields": 15,
+      "formatFlags4DataType2PeerRoots": 57,
+      "completeTypedRoots": {
+        "AcExpr": 15,
+        "AcObjProp.16.2": 0
+      },
+      "rawFieldCallbacks": 142,
+      "rawOnlyIncompleteFieldShells": 127,
+      "peerAcObjPropRootHandlesMatchRawOnly": 42,
+      "peerAcObjPropRootHandleSet": [
+        "0x144FA",
+        "0x1455F",
+        "0x14583",
+        "0x14598",
+        "0x145AC",
+        "0x145EA",
+        "0x14621",
+        "0x1462F",
+        "0x14643",
+        "0x14658",
+        "0x146B1",
+        "0x146B4",
+        "0x146B7",
+        "0x146BA",
+        "0x146E8",
+        "0x14704",
+        "0x14731",
+        "0x1475E",
+        "0x1476E",
+        "0x1478C",
+        "0x147B6",
+        "0x147CB",
+        "0x147E8",
+        "0x147F6",
+        "0x1480A",
+        "0x1481E",
+        "0x14832",
+        "0x1485C",
+        "0x14870",
+        "0x14884",
+        "0x14898",
+        "0x148AC",
+        "0x148C1",
+        "0x148F5",
+        "0x14925",
+        "0x14934",
+        "0x14948",
+        "0x14965",
+        "0x14974",
+        "0x14988",
+        "0x1499C",
+        "0x149B2"
+      ],
+      "observedObjectDataTailBits": {
+        "34": 71,
+        "258": 41,
+        "210": 1
+      },
+      "tail210Handle": "0x1481E",
+      "priorExploratoryAcObjPropObjectPropertyIdParse": {
+        "dataType64": 42,
+        "scope": "Observed before the fail-soft tail gate; incomplete models are no longer published."
+      },
+      "otherPeerFieldProfiles": "71 flags=3/type=0 _text roots, 13 flags=1/type=0 AcObjProp roots, and one flags=0/type=4 AcObjProp root are outside the selected flags=4/type=2 population.",
+      "observedOtherIncompleteProfiles": {
+        "unsupportedChildCadValueProfiles": 13,
+        "childValueCountOutOfRangeProfiles": 1,
+        "sourcePeerRootProfilesOutsideFlags4Type2": {
+          "flags3_type0_text": 71,
+          "flags1_type0_AcObjProp": 13,
+          "flags0_type4_AcObjProp": 1
+        },
+        "qualifier": "Peer JSON census plus current libdxfrw debug trace; implementation differential only."
+      }
+    },
+    "peer": {
+      "name": "LibreDWG dwgread",
+      "version": "0.14",
+      "outputPath": "/private/tmp/peer-field-census-blocks_and_tables_-_imperial.json",
+      "outputSha256": "fd95543e97c01a003b61013b3e40dcb0d125c4d5c9662179ae150448f9c557e5",
+      "fieldRoots": 142,
+      "formatFlags4DataType2Roots": 57,
+      "evaluators": {
+        "AcObjProp.16.2": 42,
+        "AcExpr": 15
+      },
+      "AcObjPropObjectPropertyIdProfiles": {
+        "dataType64": 38,
+        "dataType2Double1UnitType2": 4
+      },
+      "mismatchedRootHandles": [
+        "0x146B1",
+        "0x146B7",
+        "0x146BA",
+        "0x1480A"
+      ],
+      "qualifier": "Implementation differential only; JSON interpretation is not normative or independent semantic evidence.",
+      "acObjPropRootHandles": [
+        "0x144FA",
+        "0x1455F",
+        "0x14583",
+        "0x14598",
+        "0x145AC",
+        "0x145EA",
+        "0x14621",
+        "0x1462F",
+        "0x14643",
+        "0x14658",
+        "0x146B1",
+        "0x146B4",
+        "0x146B7",
+        "0x146BA",
+        "0x146E8",
+        "0x14704",
+        "0x14731",
+        "0x1475E",
+        "0x1476E",
+        "0x1478C",
+        "0x147B6",
+        "0x147CB",
+        "0x147E8",
+        "0x147F6",
+        "0x1480A",
+        "0x1481E",
+        "0x14832",
+        "0x1485C",
+        "0x14870",
+        "0x14884",
+        "0x14898",
+        "0x148AC",
+        "0x148C1",
+        "0x148F5",
+        "0x14925",
+        "0x14934",
+        "0x14948",
+        "0x14965",
+        "0x14974",
+        "0x14988",
+        "0x1499C",
+        "0x149B2"
+      ],
+      "localHandleJoin": {
+        "matchedPeerAcObjPropRoots": 42,
+        "localDisposition": "All 42 peer-selected handles have a raw FIELD frame callback and no typed FIELD callback.",
+        "qualifier": "Handle identity correspondence is established for this exact source; this does not adjudicate the payload schema or semantics."
+      }
+    }
+  },
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "20.4.76 FIELD",
+      "20.4.99 Value"
+    ],
+    "source": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "rules": [
+      "A FIELD child value is a TV key followed by a Value payload.",
+      "R2007+ Value begins with BL flags and then a BL data type.",
+      "ODA §20.4.99 says the type-specific variant is absent when bit 1 in Flags is set; this FIELD path suppresses the low two flag bits, consistent with LibreDWG master implementation but not treated as semantic evidence.",
+      "Data type 2 carries a BD double when its payload is present.",
+      "Data type 64 is an Object Id carried as an H soft pointer in the handle stream."
+    ],
+    "scopeLimit": "The exact handle join locates all 42 peer-selected AcObjProp roots among local raw-only shells, but their unexplained object-data suffixes keep them incomplete. Separately, 71 _text records have ACFD_FIELDTEXT_CHECKSUM children with flags=2/type=2; suppressing that CadValue payload per ODA leaves a 34-bit body suffix on each record. Preserve the whole record raw-only until a producer-backed schema identifies that suffix. LibreDWG JSON omits the child payload; this peer agreement does not resolve the physical body tail or establish semantic support. ACadSharp uses Flags&0x01 as its empty check and reads the 71 children as doubles; a temporary candidate parse matched its handle/value map 71/71. This is a conflicting implementation parse, not a schema decision. The ODA rule and current LibreDWG source still support suppression; see the reader-conflict receipt."
+  },
+  "implementationBoundary": {
+    "admit": "The generated vector admits AC1021 root profile flags=4/type=2 as opaque flag metadata plus a finite BD double. The physical census types 15 AcExpr roots and retains the other 127 FIELD records as raw-only incomplete shells; none is marked complete or enabled for output.",
+    "notQualified": [
+      "The 34-bit body suffix on 71 flags=2/type=2 ACFD_FIELDTEXT_CHECKSUM children in the local AC1021 source",
+      "The object-data suffix schema for the 42 AcObjProp roots (41 tails measure 258 bits; handle 0x1481E has a 210-bit tail)",
+      "The AcObjProp ObjectPropertyId child type differential (peer reports four type-2 doubles; an earlier exploratory local parse reported type-64 handles) and each target role",
+      "Strict output/readback of any physical FIELD graph",
+      "Native FIELD evaluation and any dynamic-block semantic claim"
+    ],
+    "preserveAndRefuse": [
+      "The 71 _text fields with unexplained 34-bit suffixes after the suppressed flags=2/type=2 child values",
+      "AcObjProp fields with unmodeled object-data tails (41 with 258 bits; handle 0x1481E with 210 bits)",
+      "Unknown root format flags or child value profiles outside the bounded implementation",
+      "Whole-source output while unrelated unsupported FIELD profiles and proxy graphics remain"
+    ],
+    "compatibility": "No public API changes. FIELD and TABLE CadValue payload rules remain separate: the TABLE flags=2 source profile is retained under its existing bounded evidence; this FIELD change does not alter TABLE parsing or writing. The newly retained raw-only FIELD profiles remain outside support claims until body spans and output/readback are proven."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_object_vectors_tests dwg2dxf -j2",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_field_unqualified_format_flags$' --output-on-failure",
+    "focusedTestResult": "Passed, 1/1.",
+    "physicalSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --field-ac1021-physical-profile-census tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+    "physicalSelectorResult": "Passed. Current FIELD census: 15 typed AcExpr records, 142 raw FIELD callbacks, 127 raw-only shells. All 42 peer-selected AcObjProp root handles match raw-only local shells.",
+    "scope": "Generated fast vectors, 24 focused tests, direct local-source census and debug trace only. The AC1021 inputs are pre-existing untracked files and were not staged or committed. No full suite, fixture file, strict output/readback, or native consumer qualification. A temporary alternate flag interpretation was compared with ACadSharp on the exact physical source (71/71 handle/value matches); this differential is recorded as unresolved and did not change committed parser behavior.",
+    "traceCommand": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1021/blocks_and_tables_-_imperial.dwg -y -d -v2010 /tmp/field-flags-ac1021-current.dxf",
+    "traceResult": "Current trace: 71 records leave 34 body bits, 41 leave 258 bits, one (0x1481E) leaves 210 bits; 13 child CadValue profiles are unsupported and one child-value count is out of range. All 71 34-bit tails are in the _text/ACFD_FIELDTEXT_CHECKSUM flags=2/type=2 profile. Strict CLI output is refused because the source read disposition is incomplete. No source-to-output/readback or native semantic claim.",
+    "buildResult": "Passed with -Werror.",
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_acad_field_writer_candidate|libdxfrw_table_content_dwg_object_roundtrip|libdxfrw_table_cell_general_value_format_flag|libdxfrw_cadvalue_payload_presence|libdxfrw_table_cadvalue_long|libdxfrw_table_cadvalue_string|libdxfrw_table_cadvalue_date_payload|libdxfrw_table_cadvalue_points|libdxfrw_table_cadvalue_object_id|libdxfrw_table_cadvalue_unknown_type|libdxfrw_table_cadvalue_unsupported_buffers|libdxfrw_field_cadvalue_general_format_flag|libdxfrw_field_unqualified_format_flags|libdxfrw_field_cadvalue_unknown_type|libdxfrw_field_cadvalue_long|libdxfrw_field_cadvalue_double|libdxfrw_field_cadvalue_string|libdxfrw_field_cadvalue_date_payload|libdxfrw_field_cadvalue_points|libdxfrw_field_cadvalue_object_id|libdxfrw_field_child_cadvalue_types|libdxfrw_field_unsupported_child_cadvalue_buffers|libdxfrw_field_unknown_child_cadvalue_versions|libdxfrw_table_value_payload)$' --output-on-failure",
+      "result": "Passed, 24/24; fast cohort.",
+      "coverage": [
+        "FIELD root and child type-specific payload suppression for flags 1/2/3 and handle-slot omission.",
+        "TABLE flags=2 payload retention, field-specific DXF gating, existing TABLE/DWG object round trips and writer candidate behavior."
+      ]
+    },
+    "temporaryDiagnosticInstrumentation": "None in committed source; the tail BL probe was removed before the final build and trace."
+  },
+  "remaining": [
+    "Adjudicate the ACadSharp flags=2/BD alternative against ODA §20.4.99 and current LibreDWG using producer-bound physical span evidence; resolve the 34-bit suffix on all 71 ACFD_FIELDTEXT_CHECKSUM children and keep their enclosing FIELD records raw-only until fully explained.",
+    "Resolve the object-data suffix schema for the 42 AcObjProp roots (41 tails measure 258 bits; handle 0x1481E has a 210-bit tail).",
+    "Resolve the four ObjectPropertyId child type-2/type-64 differential and prove each target role; do not enable the source profile before body and handle schemas are complete.",
+    "Resolve the 13 unsupported child CadValue profiles and the remaining child-count framing failure.",
+    "Add isolated ASCII/Binary DXF output and typed readback proof for a resolved profile, with unresolved edges refused.",
+    "Keep native FIELD evaluation and whole-source export qualification separate."
+  ],
+  "planEffect": "FIELD parsing now follows ODA low-bit payload suppression and retains undecodable physical records as raw-only; the 34-bit suffix family is an explicit P5 blocker. TABLE flags=2 behavior remains unchanged under its bounded source evidence. P5 remains OPEN; the AC1021 sample remains unqualified. A second reader parses the 71 flags=2 tails as matching BD values, but the conflict does not qualify an override or promote support.",
+  "readerConflict": {
+    "receipt": "docs/research/p5-ac1021-field-flags2-child-reader-conflict-2026-11-01.json",
+    "disposition": "ACadSharp and a temporary FIELD flags&0x01 candidate parse 71 flags=2/type=2 checksum children as BD doubles, matching exact field handles and values 71/71. This conflicts with ODA §20.4.99 and current LibreDWG master suppression. No code change is retained; keep the 71 containing FIELD records raw-only until producer-bound span evidence adjudicates the layout."
+  },
+  "validationAfterReaderConflict": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+    "result": "Passed with -Werror after restoring the committed FIELD suppression rule.",
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_field_|libdxfrw_wave1' --output-on-failure",
+      "result": "Passed, 17/17 fast tests."
+    },
+    "physicalSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --field-ac1021-physical-profile-census tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+      "exitCode": 0,
+      "result": "Current implementation: 15 complete typed AcExpr records, 142 raw FIELD frames, 127 raw-only shells; all 42 peer-selected AcObjProp handles still match raw-only local shells."
+    },
+    "noFullSuite": true
+  }
+}

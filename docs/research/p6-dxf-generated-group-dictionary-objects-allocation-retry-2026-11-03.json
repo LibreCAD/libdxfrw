@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-generated-group-dictionary-objects-allocation-retry-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_TRANSACTION_ROLLBACK_SWEEP",
+  "supportClaimEffect": "none",
+  "scope": "Verify core generated NOD/GROUP OBJECTS rollback, same-writer retry, and typed dictionary-to-GROUP handle readback at every calibrated allocation point.",
+  "source": {
+    "parentCommit": "efacd422",
+    "files": {
+      "tests/dxf_fixture_tests.cpp": "add5eff5790bc759054e04c2a2e8895f16ec3263b21ea70bc60ef11b68869880",
+      "tests/CMakeLists.txt": "34f484c2c40b37d447ba5b802698ec4c3e5c532904d2ac52bd2f069f291022af",
+      "src/libdxfrw.cpp": "87d171d9be7ed48efac532325915c815874f890f42a6853b5c680b097bc61232",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "9fa3267dd7259e9134e506ade63ab9f4af4f40717907940835c2944471f9bf37"
+    }
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "The generated graph roots a GROUP dictionary through NOD, gives that dictionary one entry pointing at a generated GROUP, and applies explicit output remaps to both dictionaries.",
+      "For ASCII and Binary output, the test calibrates allocations from the end of ENTITIES through core OBJECTS generation, then injects one allocation failure at every measured offset before the consumer OBJECTS callback.",
+      "Each injected failure preserves a pre-existing destination sentinel and leaves the derived written-object and minted-handle maps empty; the consumer OBJECTS callback is not reached.",
+      "After each failure, the same writer retries successfully. Fresh typed import checks the remapped NOD and GROUP dictionary ownership/entry, then verifies that the dictionary target handle resolves to the imported GROUP record.",
+      "The test generates temporary ASCII/Binary DXFs locally and removes them on completion; it adds no repository DWG/DXF fixture and does not establish producer interoperability or semantic support."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc -R generated_group_dictionary_objects_allocation_retry --output-on-failure",
+      "result": "PASS 1/1; 0.95 seconds"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom -R generated_group_dictionary_objects_allocation_retry --output-on-failure",
+      "result": "PASS 1/1; 1.86 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "This validates one generated NOD/GROUP graph and the core OBJECTS transaction; independent IMAGE/IMAGEDEF and named DICTIONARY paths have separate receipts.",
+    "Generated typed readback does not establish native application semantics, physical producer prevalence, platform qualification, or broader object-graph closure."
+  ],
+  "next": "Continue the P6 safety audit for remaining OBJECTS builders, source lifetime, platform numeric/string policies, and scoped concurrency."
+}

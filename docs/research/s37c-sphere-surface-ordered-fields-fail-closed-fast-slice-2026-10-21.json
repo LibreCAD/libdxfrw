@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c sphere-surface ordered fields fail closed",
+  "mode": "Generated parser-fed local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "headBeforeSlice": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "The shared worktree was broadly modified before this slice. This slice changes the existing ACIS projection, generated graph-preservation tests, plan summaries, and its receipt only; no files were staged or committed.",
+    "changedFilesForSlice": [
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/s37c-sphere-surface-ordered-fields-fail-closed-fast-slice-2026-10-21.json"
+    ]
+  },
+  "evidence": {
+    "peerSource": "https://docs.rs/acadrust/0.6.4/acadrust/entities/acis/types/struct.SatSphereSurface.html",
+    "peerObservation": "The pinned-version typed accessor documents the sphere-surface field order as center, radius, U direction, and pole. This is implementation evidence for a bounded parser profile, not normative ACIS authority.",
+    "localFinding": "The shared TokenCursor searches forward for requested token tags. On a malformed recognized sphere-surface record, it could skip an unexpected token and bind a later Double as the radius, leaving a misleading successful parameter projection.",
+    "scopeLimit": "Only recognized sphere-surface fields are now required in this order; pointer slots may be skipped because graph links are validated separately. Unknown trailing tokens remain raw/uninterpreted. Other surface parsers and complete ACIS semantics are unchanged."
+  },
+  "implementation": {
+    "productionChange": "Add a strict sphere-surface field reader for LocationVec center, Double signed radius, DirectionVec U direction, and DirectionVec pole. Malformed/truncated fields cause the projection to fail and identify the surface node.",
+    "generatedControls": [
+      "A Literal in the radius position followed by valid direction fields and a later Double; the former scan-ahead behavior would have borrowed that later value.",
+      "A truncated sphere-surface record missing the pole vector.",
+      "Existing valid signed-radius/oriented-frame case.",
+      "Existing 30-case NaN/+infinity/-infinity matrix across center, radius, U direction, and pole direction."
+    ],
+    "assertions": [
+      "Malformed streams remain syntactically parseable at generic SAB framing, isolating the semantic field-reader check.",
+      "Both malformed sphere cases refuse rooted projection with InvalidModel.",
+      "Both refusals clear pre-seeded caller-visible projection output.",
+      "Both failure reports identify the exact sphere-surface node.",
+      "The valid signed-radius and oriented parameter mapping remains unchanged."
+    ],
+    "claimBoundary": "Ordered field disposition only. No sphere evaluation, trimming, face boundary, tessellation, B-rep validity, producer conformance, general ACIS semantic support, or native consumer qualification is established."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS (1/1, 1.13 seconds)"
+      },
+      {
+        "command": "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/s37c-sphere-surface-ordered-fields-fail-closed-fast-slice-2026-10-21.json",
+        "result": "PASS (final scoped check across source, tests, plans, and this receipt)"
+      },
+      {
+        "command": "jq empty docs/research/s37c-sphere-surface-ordered-fields-fail-closed-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "implementationReadiness": {
+    "existingOwner": "PAR-07/S3.7c bounded SAB 21800 rooted ACIS projection",
+    "completedSlice": "Strict ordered sphere-surface field reading with fail-closed malformed/truncated controls and exact failure-node reporting.",
+    "nextAction": "Continue with the next distinct source-backed local S3.7c invariant; keep external semantic and native qualification at composed checkpoints.",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    }
+  }
+}

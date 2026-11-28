@@ -1,0 +1,68 @@
+{
+  "schema": "dimstyle-self-identity-v1",
+  "date": "2026-10-28",
+  "codeCommit": "936de5df",
+  "supportClaimsPromoted": false,
+  "scope": "Top-level DIMSTYLE group 105 is registered as the record identity within processDimStyle, with repeated group 105 in a single record rejected. Application payload is consumed by the existing entry parser; legacy DIMBLK group 5 remains a name. No DRW_Dimstyle public data layout or direct parseCode contract is changed.",
+  "authority": {
+    "title": "Autodesk symbol table group codes",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm",
+    "role": "DIMSTYLE record identity uses group 105; group 5 has an earlier name role."
+  },
+  "originalSource": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "provenance": "Independent repository sample; native authoring history not independently certified.",
+    "observation": "Complete identity census, 995 records, 1003 candidates and zero unmatched admissions. The six DIMSTYLE group-105 identities 27, E1, 39A, 994, B06 and C88 are now Outer/Accepted with zero repeated admissions, previously Outer/Unobserved. AC1018 adapter namespace remains gated.",
+    "probeSourceSha256": "52c4397f4949669d25f93e03cab404cc0707208b005f800492dd694cd764bf9a",
+    "probeBinarySha256": "9b5aefc02842acec0b07ede82261482bc67e3121f644532ff06d79095ab6473d",
+    "outputSha256": "0bfd0f2abb29bbdb584254718e8eccd125ae2871d84614cf47064bcd94928cdf",
+    "adapterObjectSha256": "ed19b0bf269ec8ad4eec4f9e5d6545159f6c5281c0dede54d04fa37dba42ffc9",
+    "librarySha256": "1797fa095a39e59b9ffd216e3a51eb84c0ec7a30e1b57ede4a3acc2082b4f148"
+  },
+  "counterfactual": {
+    "provenance": "Locally authored scratch AC1018 ASCII controls; no committed drawing fixtures.",
+    "collisionInput": "build/identity-review/dimstyle-collision.dxf",
+    "collisionInputSha256": "63f7ce05a93edfd9c93dc555e129b1de3082fce99f7d8538a8976a5034cbaac9",
+    "controlInputSha256": "756676e1aec5840faeb316904a397ad8a690d3aacdc85df2656059ac476eabdf",
+    "trigger": "DIMSTYLE group 105=41 followed by POINT group 5=41; corrected control uses POINT 42.",
+    "before": "DIMSTYLE was unobserved and the colliding POINT was accepted.",
+    "after": "DIMSTYLE is Accepted and colliding POINT is Duplicate; compatible typed entity handling drops its conflicting handle and import succeeds. Corrected POINT 42 is accepted.",
+    "collisionOutputSha256": "dadad8fdd34e8231b78dc44a5bf4fa140f80b79c4786823380dab19283243ac8",
+    "controlOutputSha256": "0d861d51628b79925352ab863ee9b972580909b1b177a9be508afe22585eed42"
+  },
+  "bindings": {
+    "librarySourceSha256": "857ce0b840185a5e3de7fa141a8fd3d7151fefd6a0e4148714931b19e17971fa",
+    "controlsSha256": "8c562f228c5314ff39b36d5f8f67062e6bc6b3b5de363a7f5e69149345225281",
+    "identityControlsSha256": "1c54b2e5adc9a682de6443999493f0a2d00a5a7625500eff2cd91734b54a98cb",
+    "normalTestBinarySha256": "f359e09d7ba671d782b47e481f3dd9a08d7ab9131675e0b3c698d3ee1ed57781"
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_dimstyle_subclass_wire_census",
+      "libdxfrw_identity_source_namespace",
+      "libdxfrw_structural_source_origins",
+      "libdxfrw_spine_source_proof"
+    ],
+    "normal": {
+      "result": "PASS 4/4",
+      "logSha256": "303be4de6bbd2c56feca5db13f7cd89538f7e220f81c7bfd0746dca48836e19e"
+    },
+    "asan": {
+      "result": "PASS 4/4",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "tableTestBinarySha256": "ce7ecaf6c6236c4a2b18cdb6337a7b4b36f3d3c485e9279d41d051dfe833117e",
+      "fixtureTestBinarySha256": "fb128623d7d78e64d48bc0b2d6572393e0e3e9ac1788580c2ef06771264dd74d",
+      "librarySha256": "62be168bef889f75687783b2fc5c026a4fffee1897bc517a9e4678bf166c635d",
+      "logSha256": "d7605d19e861b804f0618e881eef4105940ea4e8affe09652d1ed6ae1567dd7f"
+    },
+    "controls": "Eight authored AC1018/AC1032 ASCII/binary, observer on/off routes; eight softened later collisions; 32 prior-collision, duplicate-105 or malformed refusals and corrected retries; one R12 ASCII absent-identity control. Also checks application 105 against a later POINT and nonhex DIMBLK group 5."
+  },
+  "limitations": [
+    "Existing table-entry duplicate policy rejects an earlier registered identity collision; later typed-entity duplicates are softened and recorded. This does not promise every malformed file fails import.",
+    "Table control handles and other families have separate admission behavior. The original AC1018 adapter namespace remains gated; identity, ownership, graph, output and native semantic support are not established.",
+    "Focused checks only; no full test suite or native platform qualification is claimed."
+  ]
+}

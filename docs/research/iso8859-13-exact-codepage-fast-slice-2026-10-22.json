@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "PAR-05 exact ISO-8859-13 decoder",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "dcfea95f2ede691d3747fbe497f215c54061fb61c86b2a512a49f4a1a44e8b39",
+  "research": [
+    {
+      "source": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-13.TXT",
+      "role": "Primary Unicode Consortium mapping for ISO/IEC 8859-13:1998; table history reports no mapping changes since its creation."
+    },
+    {
+      "source": "Python standard-library strict iso8859_13 codec",
+      "role": "Independent local cross-check of all 128 production table entries."
+    }
+  ],
+  "scope": {
+    "change": "Added the exact ISO-8859-13 mapping, resolver/factory support for compact and hyphenated names, and an appended Iso8859_13 per-consumption source-profile identity; updated resolution, selection, consumed-profile, unavailable-family, ASCII/Binary, and fast-CTest coverage.",
+    "definedBytes": 128,
+    "undefinedBytes": [],
+    "compatibilityBehavior": "Unchanged: ISO8859-13 selects Windows-1257 under Compatible; ISO-8859-13 selects Windows-1252.",
+    "sourceAdmission": "Clean exact ISO-8859-13 remains UnsupportedProfile for both spellings.",
+    "fixturesAdded": false,
+    "publicLayoutChanged": true,
+    "supportClaimChanged": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check --parallel 2",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_iso8859_13_codepage$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --iso8859-13-codepage",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_iso8859_(9|10|11|13)_codepage$' --output-on-failure",
+      "result": "PASS (4/4)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "Compare DRW_TableISO8859_13 against Python strict iso8859_13 for bytes 0x80-0xFF",
+      "result": "PASS (128 entries; 0 mismatches)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_base.h src/intern/drw_cptables.h src/intern/drw_textcodec.cpp tests/gbk_codepage_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "sourceSha256": {
+    "CMakeLists.txt": "f0473364320ecbad687a326371217ecc7e8296c379e364603c593f08ec50ccd3",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "dcfea95f2ede691d3747fbe497f215c54061fb61c86b2a512a49f4a1a44e8b39",
+    "src/drw_base.h": "ef1d5ba97bf33fbbbc9758fdf015a323b5158e36cd19f0d6744717d02eec899f",
+    "src/intern/drw_cptables.h": "0f967c3fa3a91f1c92e64e26360ecd842db3a1d51ca80a718e1ebd785da39a98",
+    "src/intern/drw_textcodec.cpp": "3117cceea6f7ceaa84c5d7baf2ffd407970bf465aa527d751133d08c5155363b",
+    "tests/gbk_codepage_tests.cpp": "289b9ce980e8465cc48724e846acd450f9fbbe20650a3c5e5ec987651576e452"
+  },
+  "evidenceLimits": [
+    "The mapping and generated tests establish decoder/local parser behavior only, not CAD producer emission or native consumer acceptance of either ISO-8859-13 label.",
+    "Compatible fallbacks remain intentionally unchanged; they are not exact ISO-8859-13 decoders or strict-source qualification.",
+    "No full format suite, external peer runtime, native CAD consumer, or persistent sample was used.",
+    "The appended public source profile changes observation structure layout; downstream binaries must rebuild together with the library."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; the shared worktree is broadly dirty and this slice remains unstaged"
+}

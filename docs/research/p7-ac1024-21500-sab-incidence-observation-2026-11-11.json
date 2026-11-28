@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-21500-sab-incidence-observation-2026-11-11",
+  "purpose": "Record a narrow source-observed ACIS 21500 incidence projection and generated closure controls without qualifying B-rep validity or support.",
+  "source": {
+    "dwg": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "version": "AC1024",
+    "producerProvenance": "Not independently authenticated",
+    "selection": {
+      "entity": "3DSOLID",
+      "handle": "0x183",
+      "sabPath": "/private/tmp/p7-ac1024-aerial-solid.sab",
+      "sabBytes": 7048,
+      "sabSha256": "00f7dd11b8993d066a25e33a05dd97fb14f8b35eb7a4d7614c596b6b41d6d79b",
+      "extraction": "Selected inline SAB recovered from LibreDWG 0.14 JSON for the exact hash-pinned DWG; see p7-ac1024-21500-sab-sat-cuboid-crosscheck-2026-11-11.json."
+    }
+  },
+  "observedProfile": {
+    "header": "ACIS BinaryFile 21500",
+    "rowShapes": {
+      "face": 7,
+      "loop": 5,
+      "coedge": 8,
+      "edge": 6,
+      "shell": 7
+    },
+    "referenceRoles": {
+      "face.loopStart": 3,
+      "face.shellOwner": 4,
+      "loop.next": 1,
+      "loop.coedgeStart": 3,
+      "loop.faceOwner": 4,
+      "coedge.next": 2,
+      "coedge.previous": 3,
+      "coedge.partner": 4,
+      "coedge.edge": 5,
+      "coedge.loopOwner": 6,
+      "coedge.pcurve": 7,
+      "edge.endpointVertices": [2, 3],
+      "edge.coedge": 4,
+      "shell.lumpOwner": 6
+    },
+    "coedgeSense": "Boolean observed after five data pointers, accounting for the 21500 EntityType/attribute-pointer/entity-ID token prefix.",
+    "evidenceLimit": "Role indexes and exact row shapes are observations from one hash-pinned source. They are not an authoritative version-wide ACIS schema or an independent semantic oracle."
+  },
+  "sourceObservation": {
+    "parse": true,
+    "complete": true,
+    "recordsIncludingTerminal": 116,
+    "faces": 6,
+    "loops": 6,
+    "coedges": 24,
+    "edges": 12,
+    "allSixFacesHaveOneNullTerminatedLoop": true,
+    "allSixLoopsHaveFourCoedges": true,
+    "allSixCoedgeRingsReturnToStart": true,
+    "allSixRingsHaveReciprocalNextPreviousLinks": true,
+    "allSixEndpointChainsContinuous": true,
+    "allSixFaceLoopOwnerIndexesMatchChains": true,
+    "allSixLoopCoedgeOwnerIndexesMatchChains": true,
+    "brepValidityChecked": false
+  },
+  "implementation": {
+    "files": {
+      "src/drw_acis.cpp": "Adds exact-shape-gated ACIS 21500 role mapping for selected incidence observations; does not enable rooted body output.",
+      "tests/graph_preservation_tests.cpp": "Adds from-scratch two-coedge closed-ring and wrong-next-target controls; generated pointers use absolute record indexes."
+    },
+    "fixtures": "No DWG/DXF fixture was added. The generated SAB control exists in memory; the source SAB remains in /private/tmp."
+  },
+  "validation": {
+    "buildAndTest": {
+      "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4 && build-gcc/libdxfrw_graph_preservation_tests",
+      "result": "PASS: Graph/preservation tests"
+    },
+    "sourceProbe": {
+      "command": "/private/tmp/p7_sab_inspect /private/tmp/p7-ac1024-aerial-solid.sab",
+      "result": "PASS: six face/loop chains; all rings closed and reciprocal; all endpoint chains continuous; owner-index coverage and chain matches true. This probe links the current local libdxfrw build and is implementation evidence, not independent validation."
+    },
+    "diffCheck": "PASS: git diff --check",
+    "testBinarySha256": "f70041dc0e1403c1634f6a29fd9f5bf7569841bb90a0f89b3952a230ceba9a12"
+  },
+  "unresolved": [
+    "Independent ACIS 21500 schema or producer evidence for the observed role mapping.",
+    "Complete source body/lump/shell/face/loop/coedge topology, surface/curve/trim semantics, orientation, placement and units.",
+    "Direct source-to-B-rep lift and independent-kernel/native CAD acceptance.",
+    "DWG/DXF graph association, strict output eligibility and platform qualification."
+  ],
+  "claimEffect": "Adds bounded structural observation evidence for one AC1024 inline SAB profile. Does not promote ACIS/ACDS, 3D, DWG, or DXF support claims.",
+  "sourceFileSha256": {
+    "src/drw_acis.cpp": "49659f3986d2b33898e0459995778ad0e9559ebf0d960da19e1e4d522f682f42",
+    "tests/graph_preservation_tests.cpp": "bcf31f098ee93d859131e6a5e3290de7d2976f6adba1b9a69e0b1c6a4f2615f4"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader viewer fallback circularity and consumer claim provenance review",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen downstream viewer routes for parser lineage and fallback behavior",
+    "Reconcile consumer-level 3D/version claims against exact route and projection limits",
+    "Refine existing peer-admission and composed-consumer evidence rules"
+  ],
+  "method": {
+    "kind": "Read public project README/repository pages and reconcile route claims with existing plan lineage records",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The reviewed repository pages and README views are mutable and were not bound to immutable commits or built artifacts. No runtime route, fallback selection, parser result, geometric output, native acceptance, or local defect was independently reproduced. Findings are route-admission constraints only; ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "DWG Portable Viewer",
+      "urls": [
+        "https://github.com/addisonbarrerasme-code/DWG-PORTABLE-VIEWER"
+      ],
+      "revision": "Mutable repository README/page reviewed 2026-10-18; page listed three commits",
+      "observed": "The README describes DWG primary parsing through @mlightcad/libredwg-web and fallback through @mlightcad/libdxfrw-web exporting DXF for dxf-parser. It describes 3DSOLID/BODY/REGION display as bounds-frame/marker placeholders and a smoke test for handlers and XREF/profile plumbing. The fallback reuses libdxfrw and is not independent evidence about libdxfrw; the placeholder is not 3D semantic evidence."
+    },
+    {
+      "project": "ArrayCAD",
+      "urls": [
+        "https://github.com/stoatworks-labs/arraycad",
+        "https://github.com/stoatworks-labs/arraycad/blob/master/README.md"
+      ],
+      "revision": "Mutable repository landing page and branch README view reviewed 2026-10-18; no exact commit, dependency lock, or runtime was captured",
+      "observed": "The landing-page rendering describes a specialized geometry-reduction route and gives an ACIS-body outer-volume path for some older 3DSOLID cases while warning about R2018 DWG solid loss. A separately rendered master README view describes broad DWG R13-R2018 input without the same specific solid/version qualifications. The views are not bound to one immutable source snapshot, so this is provenance ambiguity, not proof of a same-revision contradiction. Even the detailed path is a projection, not full CAD-graph or B-rep equivalence."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Classifies a viewer fallback through libdxfrw as SELF_LINEAGE and its 3D placeholder as non-semantic; marks unpinned ArrayCAD consumer route descriptions PROVENANCE_UNRESOLVED. Future composed receipts must bind exact app/dependency/parser route, fallback selection, intermediate artifact/version/hash, and representation/loss disposition. No local implementation order or fast validation cadence changed.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep the normal slice loop unchanged: strict touched-target build, focused selector, owning CTest, and diff check; do not add a peer build or full suite to each slice.",
+    "At a composed consumer check, bind exact application release/commit, dependency lock hash, selected parser/importer, fallback occurrence, input/output hash and format version, intermediate output, warnings, repairs, and per-source disposition.",
+    "Mark any route that evaluates libdxfrw using libdxfrw/libdxfrw-web as SELF_LINEAGE and exclude it from independent evidence counts.",
+    "Treat bounds/marker placeholders, 2D drawings, meshes, outer-volume reductions, opaque ACIS bytes, AcDs association, valid B-rep, and native acceptance as separate results.",
+    "Keep any generated test files in memory or scratch; add no downloaded peer or customer drawing to the repository fixture set.",
+    "Continue local implementation if the optional downstream route is ambiguous or unavailable; this research does not change J256/J260/J268/J284/J293/J295 status."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  }
+}

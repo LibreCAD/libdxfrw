@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-classes-available-corpus-rerun-2026-11-05",
+  "date": "2026-11-05",
+  "status": "KNOWN_CLASSES_FAILURE_NOT_REPRODUCED_IN_AVAILABLE_CORPUS",
+  "supportClaimEffect": "none",
+  "scope": "Re-run current dwg2dxf debug reader over all unique AC1024 DWGs in /Users/dli/doc/dwg to determine whether the locally documented AC1024 RTM strDataSize high-bit-extension failure remains current.",
+  "reader": {
+    "executable": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "e0ad08f25e46749662770088df375a244c6c1bbc71ff014a557c0929287bc101",
+    "revision": "370b5270",
+    "commandTemplate": "dwg2dxf <input.dwg> -y -d -v2010 <scratch-output.dxf>",
+    "traceDirectory": "/private/tmp/ac1024-classes-verbose-audit-20261105",
+    "traceStorage": "local scratch only; log hashes bind the traces"
+  },
+  "result": {
+    "uniqueAC1024Inputs": 9,
+    "classStageEndMarkerCount": 9,
+    "classStageFailuresObserved": 0,
+    "strictCliConversionFailures": 8,
+    "strictConversionFailuresAreClassFailures": false
+  },
+  "inputs": [
+    {
+      "name": "architectural_example-imperial.dwg",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "bytes": 148638,
+      "classesStageEndMarker": true,
+      "cliReportsConversionFailure": true,
+      "traceSha256": "d179be4e699d41706a6bf2ce8796e7033319600fdddfe8c44935df32bbd4c67e"
+    },
+    {
+      "name": "civil_example-imperial.dwg",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "bytes": 169592,
+      "classesStageEndMarker": true,
+      "cliReportsConversionFailure": true,
+      "traceSha256": "0ac51b67f9f453f431d6582311f089fbd030a9e2439e619d47cabd29eb582141"
+    },
+    {
+      "name": "mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "bytes": 142267,
+      "classesStageEndMarker": true,
+      "cliReportsConversionFailure": false,
+      "traceSha256": "c32989142122686a8510fb70d182417f8a8704f61db9c110609a03b3119158ca"
+    },
+    {
+      "name": "title_block-arch.dwg",
+      "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+      "bytes": 126985,
+      "classesStageEndMarker": true,
+      "cliReportsConversionFailure": true,
+      "traceSha256": "cc03584d23c513fe0b5a63387ddcfb8e8ae315ac1def726ed9a0f60c656663d0"
+    },
+    {
+      "name": "title_block-iso.dwg",
+      "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+      "bytes": 128233,
+      "classesStageEndMarker": true,
+      "cliReportsConversionFailure": true,
+      "traceSha256": "8d5519d07dfabbe00bd463dee46cddd17432c8d1db75c593fd216d574ee7cc94"
+    },
+    {
+      "name": "visualization_-_aerial.dwg",
+      "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+      "bytes": 733036,
+      "classesStageEndMarker": true,
+      "cliReportsConversionFailure": true,
+      "traceSha256": "2c6f5f83f87e21b79bbec615311da49a29fcffefcf7f18352f5f3335a36461b5"
+    },
+    {
+      "name": "visualization_-_condominium_with_skylight.dwg",
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "bytes": 1415699,
+      "classesStageEndMarker": true,
+      "cliReportsConversionFailure": true,
+      "traceSha256": "1b07f17d83295b572bc9b77f55d498013b9bc6f9990ca9639db1235fa494ed58"
+    },
+    {
+      "name": "visualization_-_conference_room.dwg",
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "bytes": 973730,
+      "classesStageEndMarker": true,
+      "cliReportsConversionFailure": true,
+      "traceSha256": "dfbd68c3f96d2eed4df91aa9ab47589a1fe93afef39b56dc050f253363b2f0de"
+    },
+    {
+      "name": "visualization_-_sun_and_sky_demo.dwg",
+      "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+      "bytes": 553297,
+      "classesStageEndMarker": true,
+      "cliReportsConversionFailure": true,
+      "traceSha256": "796d178b618b7987b71120f23f45ffad5ad1b8351289caa224d1875b0ab6913b"
+    }
+  ],
+  "interpretation": "Every available unique AC1024 drawing completed the readDwgClasses stage under the current build. Most strict DXF conversions failed later on independent output/graph gates. This bounded local scan contradicts the earlier 6/10 class-stage failure observation for this corpus; it does not prove that all AutoCAD 2010 RTM saves pass.",
+  "limitations": [
+    "These are local files with limited producer provenance, and mechanical_example-imperial-alt.dwg was excluded because it has the same SHA-256 as mechanical_example-imperial.dwg.",
+    "A producer-qualified AC1024 RTM save that reproduces the high-bit failure was not available.",
+    "No DWG/DXF fixture was added and no support claim was promoted."
+  ],
+  "next": "Do not change readDwgClassStringFooter without a reproducing RTM sample or new authoritative evidence; continue the next source-backed plan item."
+}

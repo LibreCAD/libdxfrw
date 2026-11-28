@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw-dxf-lwpolyline-component-order-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary-source schema review and generated ASCII/Binary regression",
+  "scope": [
+    "LWPOLYLINE repeated per-vertex field association under group-code reordering",
+    "Declared vertex count and existing resource cap",
+    "Following-entity framing and callback refusal for excess fields"
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF Reference",
+      "revision": "Published 2024 LWPOLYLINE entity reference and general entity-code guidance",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-748FC305-F3F2-4F74-825A-61F04D757A50.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm"
+      ],
+      "observations": {
+        "group90": "Declares the number of vertices.",
+        "coordinateArrays": "Repeated group 10 values are OCS X coordinates and repeated group 20 values are OCS Y coordinates, one entry per vertex.",
+        "optionalArrays": "Groups 40/41/42/91 represent per-vertex start width, end width, bulge, and identifier values; omitted widths/bulges use defaults.",
+        "ordering": "General entity-code guidance prohibits assuming displayed group-code order; preserve each repeated-code occurrence order to retain vertex ordinal."
+      },
+      "limitation": "The schema establishes DXF field association, not DWG byte layouts, rendering, or downstream CAD acceptance."
+    }
+  ],
+  "localAudit": {
+    "path": "src/drw_entities.cpp: DRW_LWPolyline::parseCode",
+    "reproducedFailure": "The old parser created each vertex only on group 10 and updated the last-created vertex for groups 20/40/41/42/91. Generated grouped-by-code ASCII and Binary input lost or misbound values.",
+    "correction": "Independent occurrence counters map groups 10/20/40/41/42/91 to their per-vertex ordinal. Every array is bounded by the existing one-million vertex cap and, once known, group 90. The X count must match the materialized vertex count; omitted optional fields retain zero defaults.",
+    "apiCompatibility": "No public data field or virtual changed. Private parser counters change the installed class layout, so downstream binaries must rebuild against the updated header/library.",
+    "generatedCoverage": [
+      "Three non-square vertices with distinct asymmetric coordinate values",
+      "Distinct start/end widths, bulges, and vertex identifiers",
+      "ASCII and Binary records reordered into per-field ordinal arrays",
+      "Exact comparison of all vertex and entity fields",
+      "Following LINE sentinel retained",
+      "Excess repeated Y rejected before the polyline callback",
+      "All files are temporary generated controls; no fixture added"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "build/libdxfrw_dxf_fixture_tests --lwpolyline-point-component-order",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    }
+  ],
+  "planDelta": {
+    "existingOwnerOnly": true,
+    "newFindingOrSubplan": false,
+    "nextLocalProbe": "HATCH spline-edge and LEADER coordinate arrays, then nested MLEADER context arrays; keep their framing/state-machine checks independent.",
+    "selfUnblock": "If a valid-profile permutation does not reproduce loss or rejection, log the bounded negative probe and continue to the next local family without waiting on optional peer/native qualification."
+  },
+  "limits": {
+    "persistentFixtureAdded": false,
+    "externalPeerOrNativeRuntimeRun": false,
+    "fullSuiteRun": false,
+    "renderingOrGeometrySemanticsEstablished": false,
+    "supportClaimsPromoted": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "deferredStatus": "All six remain DEFERRED_EXTERNAL and non-promoting."
+  }
+}

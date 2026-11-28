@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-01",
+  "profile": "AC1018 empty-name STYLE writer safety and callback-reference cross-check",
+  "classification": "BOUNDED_SAFETY_BEHAVIOR_COMPLETE_NO_CLAIM_PROMOTION",
+  "support_claim_effect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "committed_as_fixture": false
+  },
+  "source_reference_cross_check": {
+    "independent_reader": "GNU LibreDWG 0.14",
+    "decoded_object_and_entity_records": 285,
+    "libdxfrw_callback_identities_matched": 23,
+    "callback_identities_output_qualified": 5,
+    "callback_identities_still_unqualified": 18,
+    "matched_callback_bodies_referencing_empty_style_0xDF": 0,
+    "remaining_decoded_references_to_0xDF": [
+      "STYLE_CONTROL membership [2,1,0xDF,0xDF]",
+      "STYLE self-handle [0,1,0xDF]"
+    ],
+    "scope": "The census was extended across every one of the 23 libdxfrw callback identities and their matched LibreDWG object records for this exact source. This is a decoded source-specific reference check, not proof about all DWG payloads or consumer semantics."
+  },
+  "record": {
+    "type": "STYLE",
+    "handle": "0xDF",
+    "owner": "STYLE_CONTROL 0x3",
+    "name": "",
+    "font": "ltypeshp.shx",
+    "flags": 68,
+    "shape_file_flag": false
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "DRW_Textstyle::validateDxf rejects an empty name for a non-shape STYLE. The existing empty-name shape-file exception remains valid.",
+    "fixture_policy": "No DWG/DXF fixtures were added."
+  },
+  "failure_and_retry": {
+    "ascii_and_binary_refusal": "For each encoding, export refuses before replacing a pre-existing destination sentinel and preserves the source style's tested fields.",
+    "corrected_retry": "After assigning a valid temporary name, the same adapter exports ASCII and Binary and a fresh importer reads the corrected STYLE; the caller's original name is restored after each case.",
+    "scope": "This tests the invalid-row refusal and retry boundary. It does not qualify the unmodified source document's complete output graph."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focused_selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --empty-textstyle-physical-ac1018-output-refusal /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+      "result": "PASS for ASCII/Binary refusal, destination preservation, same-adapter corrected retry, and fresh readback"
+    },
+    "diff_check": "PASS"
+  },
+  "limits": [
+    "The original source conversion remains refused: strict output has 18 of 23 opaque callbacks without output qualification after the separately qualified MLINESTYLE slice.",
+    "No source-qualified omission/replay behavior for STYLE 0xDF is implemented.",
+    "The independent reader's decoded reference scan does not establish native CAD behavior or prove references cannot occur in unparsed data outside the matched callback records.",
+    "This receipt does not qualify whole-document conversion, other empty-name styles, DWG/DXF support claims, or 3D behavior."
+  ],
+  "next_action": "Continue source-bound output qualification for the remaining 19 AC1018 opaque callbacks. Keep the exact empty-name STYLE disposition open until the source reference proof is connected to a bounded output policy and staged/readback evidence."
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_AC1018_DIRECT_NOD_GENERATED_OUTPUT",
+  "supportClaimEffect": "none",
+  "scope": "Same-revision AC1018 RASTERVARIABLES with class/frame/quality/units 0/0/1/3, direct NOD owner, one reactor to that NOD and missing XDictionary. The source-root exception is limited to exactly ACAD_GROUP -> empty dictionary and ACAD_IMAGE_VARS -> RASTERVARIABLES, in that order. Generic legacy common-link evidence remains Unknown.",
+  "authority": "ODA v5.4.1 sections 10.2, 20.1, 20.4.44 and 20.4.91 specify R2004 class count, inline object-data boundary, dictionary roles and raster class/frame/quality/units fields. Autodesk RASTERVARIABLES DXF reference: https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-DDCC21A4-822A-469B-9954-1E1EC4F6DF82.htm.",
+  "source": {
+    "provenance": "The existing ezdxf 1.4.5 scratch IMAGE source was authored from scratch using tools/audit_ac1024_rastervariables_source.py and resaved by ODA File Converter 27.1.0 as AC1018 DWG and AC1018 DXF. No fixture is added.",
+    "input_dxf_sha256": "4a09b459a0bbef4f687e06720b41c7f2391b91174d78b5aae0c79e56884a1c68",
+    "dwg_sha256": "60be1cbf4f15b895274738761994c0fe7581c115892387ec05ef2482752043ef",
+    "oda_dxf_sha256": "f38e53b7412f9bc64d3078f6fc85ecda1aca7ef89da93e8a70b1561210e933b4",
+    "dwg_scratch": "/private/tmp/rastervars-ac1018/dwg/source.dwg",
+    "independent": "LibreDWG 0.14 identifies class 512, RASTERVARIABLES 0x2F, 17-byte body at decoded object-stream offset 2753, inline handle boundary bit 103, class/frame/quality/units 0/0/1/3, owner [103,119) and reactor [119,135) each role 4 -> NOD 0xA, zero padding [135,136) and verified CRC EADC. The root key ACAD_IMAGE_VARS has role 2 -> 0x2F. LibreDWG trace is independent of the in-tree bit walker.",
+    "local": "The source-bound C++ callback probe checks the unique typed and raw record, complete matching class row/count, inline scalar/role spans and NOD entry. It uses the in-tree page decompressor and frame CRC validation; it is not an independent physical decoder."
+  },
+  "implementation": "An exact AC1018 inline wire observer validates object type and handle, EED absence, one reactor, missing XDictionary, all four scalar values, data boundary, both role-4 targets and zero padding. The minimal NOD/group/raster graph is joined to source-matched typed and raw frames, complete opaque capture, immutable unchanged class evidence and unique class/frame identities. Its noexcept source proof catches allocation failure. Existing graph, emitted-source and output-closure checks remain in force; other versions and nonmatching source profiles keep their existing gates.",
+  "validation": {
+    "focused": "ctest --test-dir build-gcc -R '^(dwg2dxf_rastervariables_(ac1018|ac1021|ac1024|ac1032)_direct_nod_adapter_transport|dwg2dxf_rastervariables_direct_nod_adapter_transport|dwg2dxf_wipeoutvariables_ac1018_direct_nod|libdxfrw_ac1018_minimal_dictionary_source)$' --output-on-failure: 7/7 passed.",
+    "generated": "A locally generated AC1018 minimal graph passes strict ASCII and Binary export and typed readback with resolved owners. Unsupported scalar values, missing or wrong reactor, XDictionary state, duplicate or missing root entry, wrong owner/reactor wire roles, cross-version output and modified class version refuse with destination preservation. Added retained-body boundary/scalar/padding corruption, changed class count and opaque capture failure tests refuse source-owner proof and output; corrected same-adapter retries pass. These corruption controls mutate retained records after import, not CRC-resealed physical source files.",
+    "physical": "Compile tools/probe_rastervariables_ac1018_source.cpp against the built adapter and library, then run python3 tools/audit_rastervariables_ac1018_source.py /private/tmp/rastervars-ac1018/dwg/source.dwg /private/tmp/rastervars-ac1018/probe-final /opt/homebrew/bin/dwgread build-gcc/dwg2dxf/dwg2dxf. The audit pins the DWG and LibreDWG executable hashes, checks peer roles/fields/CRC, runs the local probe, and checks the existing CLI refuses the physical source atomically. It verifies source hash before and after. The wrong-source hash is rejected.",
+    "physical_limit": "The ODA source root contains other records and is not the admitted minimal source profile. Its IMAGEDEF/reactor source-correlation failure blocks strict output first; its HEADER also contains 739 unclaimed bytes. The physical CLI refusal was checked with the existing CLI binary; no whole-file output, physical NOD remapping, native image rendering or general support is claimed.",
+    "addressSanitizer": "ctest --test-dir build-asan-custom -R '^dwg2dxf_rastervariables_ac1018_direct_nod_adapter_transport$' --output-on-failure: 1/1 passed after rebuilding the final adapter with AddressSanitizer."
+  },
+  "limits": "Other source metadata, dictionary shapes, nondefault raster fields, arbitrary revisions, independent native image semantics and whole-document closure remain open. Generated scratch files may have different timestamps and hashes."
+}

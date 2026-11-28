@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-visualstyle-model-slot-alignment-test-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "df679b3ff770a6321e02d14df6a0ba7e7183736d",
+  "scope": "Synthetic DWG object-vector test for local VisualStyle decoder-slot to typed-model alignment; no parser, DXF writer, fixture, or support change.",
+  "source": {
+    "vectorPath": "tests/dwg_object_vectors_tests.cpp",
+    "vectorSha256": "c67387b3782a6aeda652c6579d307ecaae31953652d7ffa07b272acf29c0d668",
+    "manifestCheckPath": "tests/check_visualstyle_slot_manifest.py",
+    "manifestCheckSha256": "cc4edfaa589d6093e9e9172ea4188647caa97fae0ee51fa8b3a7235fbd1661d6",
+    "testRegistrationPath": "CMakeLists.txt",
+    "testRegistrationSha256": "00997ad609749b8da5b596bc5ab017aa66f9946546522b91a232a9e9da16dca5"
+  },
+  "coverage": {
+    "typedSlots": 58,
+    "versionedPropertyCounts": {
+      "AC1024": 28,
+      "AC1027": 58,
+      "AC1032": 58
+    },
+    "primitiveFamilies": ["BL", "BS", "BD", "B", "CMC", "T"],
+    "typedDestinations": "Every active slot is checked against a distinct in-memory destination value; the eight CMC destinations are checked against their retained normalized-index metadata; the strokes text slot is checked separately.",
+    "companions": "Existing checks retain one distinct companion per property and verify the versioned count.",
+    "crosswalkBoundary": "This checks decoder/model ordering only. It does not parse the JSON candidate manifest, establish DXF group codes, validate producer output, or qualify a serialization profile."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg_object_vectors_tests -j4",
+      "ctest --test-dir build -R '^libdxfrw_(dwg_object_vectors|visualstyle_slot_manifest)$' --output-on-failure",
+      "cmake --build build --target lc3_compat_check -j4",
+      "git diff --check"
+    ],
+    "result": "PASS",
+    "focusedCtest": {
+      "name": "libdxfrw_dwg_object_vectors",
+      "tests": 1,
+      "passed": 1,
+      "seconds": 0.02
+    },
+    "manifestCtest": {
+      "name": "libdxfrw_visualstyle_slot_manifest",
+      "tests": 1,
+      "passed": 1,
+      "seconds": 0.03
+    },
+    "lc3Compat": "Target reported no work; command returned success.",
+    "executableSha256": "3776c4205427cf94ab4549657fe28fb608bbee2673c96d18996a9fab0354889c",
+    "fullSuite": "NOT RUN; the two focused CTests completed in 0.05 seconds total."
+  },
+  "qualificationEligible": false,
+  "supportClaimsChanged": false,
+  "externalJStatusesChanged": false,
+  "externalItems": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

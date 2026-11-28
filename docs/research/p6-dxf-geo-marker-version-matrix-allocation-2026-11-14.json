@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.dxf.writer-transaction-receipt.v1",
+  "slice": "P6-G GEOPOSITIONMARKER embedded-MTEXT revision matrix",
+  "date": "2026-11-14",
+  "scope": {
+    "writerRoute": "dxfRW::writeGeoPositionMarker",
+    "entityProfile": "locally generated GEOPOSITIONMARKER with enabled embedded AcDbMTextObjectEmbedded payload, nondefault 3D insertion point, radius, notes, landing gap, visibility, and alignment",
+    "versions": ["AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "unsupportedVersion": "AC1024 refused without modifying the prior destination or caller state; same-writer retry at AC1027 matches clean bytes and typed readback",
+    "fixturePolicy": "No committed DWG/DXF fixtures; generated output is scratch-only and removed by the runner."
+  },
+  "checks": {
+    "wholeOperationAllocationFailureOffsets": {
+      "AC1027_ASCII": 96,
+      "AC1027_Binary": 94,
+      "AC1032_ASCII": 96,
+      "AC1032_Binary": 94,
+      "total": 380
+    },
+    "destinationRollback": true,
+    "callerStatePreservation": true,
+    "sameWriterByteIdenticalRetry": true,
+    "freshTypedReadback": true,
+    "ac1024RefusalAndAc1027Recovery": true,
+    "stagedOutputCleanup": true
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dxf_geo_marker_version_allocation_transaction$' --output-on-failure",
+      "result": "passed 1/1 in 2.91 seconds"
+    },
+    "runner": "build/tests/libdxfrw_dxf_write_allocation_transaction_tests build/tests/dxf-geo-marker-version-allocation geo-marker-versions",
+    "sourceSha256": "870c5445c200f17406cd8099f352de64931a7f73bd24d069a2b8efd5ad6f4c54",
+    "runnerSha256": "b0fb7a43d19886403bbe519d055d5995bfd3a26f6b0db892a5023c7910de5428"
+  },
+  "limits": [
+    "Generated codec self-readback does not prove independent producer semantics or native application behavior.",
+    "Only the embedded-MTEXT profile and the admitted AC1027/AC1032 revisions are covered."
+  ]
+}

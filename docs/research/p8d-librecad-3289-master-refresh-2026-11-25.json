@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-3289-master-refresh-2026-11-25",
+  "status": "MASTER_REFRESH_PUSHED_MACOS_SYSTEM_APP_BUILD_PASS_HOSTED_CHECKS_PARTIAL",
+  "supportClaimEffect": "none",
+  "pullRequest": {
+    "url": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "previousHead": "05aaf9fd245da753b7ffea17acc9bc1272d87d65",
+    "master": "b91fbdcf1adeee764938a183018978416d0a8c90",
+    "head": "c468eaaa242767edd9acd69e27ef70d0ed05001a",
+    "merge": "Clean merge of master into the existing PR branch; pushed without force.",
+    "mergeableAtObservation": true,
+    "state": "draft"
+  },
+  "localValidation": {
+    "checkout": "/private/tmp/librecad-pr3289-refresh-20261125",
+    "host": "macOS ARM64, AppleClang 21.0.0",
+    "configuration": "Release, LIBRECAD_USE_SYSTEM_LIBDXFRW=ON, BUILD_TESTS=OFF",
+    "installedPackage": "/private/tmp/libdxfrw-package-ce3ff-20261125/shared-install",
+    "installedLibrarySha256": "dc1ce5ab6dae2855cf2ffb39789c6047df128b5753a79ecd58f8a42a5ed41981",
+    "implementationDigest": "ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b",
+    "binding": "The compile flags include the installed package's include/libdxfrw directory. The object-only compile target does not link the shared library.",
+    "targets": {
+      "librecad_filter_compile_check": "PASS",
+      "librecad": "PASS"
+    },
+    "application": {
+      "path": "/private/tmp/librecad-pr3289-refresh-build-20261125/LibreCAD.app/Contents/MacOS/LibreCAD",
+      "sha256": "ec7083f01a96f30d88d80f94e5a24520ef552d8784a01ee31afbaecca4b6bd7f",
+      "linkCommand": "Names the shared dylib in the selected installed package.",
+      "otool": "Records @rpath/libdxfrw.3.dylib, compatibility/current version 3.0.0, and an rpath to the selected package directory."
+    }
+  },
+  "hostedChecks": {
+    "head": "c468eaaa242767edd9acd69e27ef70d0ed05001a",
+    "atObservation": "Both headless configurations, Linux bounded DWG/DXF, and Linux ARM64 Pixi build passed; remaining platform and CodeQL jobs in progress."
+  },
+  "limits": [
+    "The executable links the selected package and records its rpath; no runtime-loaded library identity or GUI behavior was observed.",
+    "The system-codec BUILD_TESTS=ON profile, remaining hosted CI outcomes, native GUI operations and final-candidate integration remain unqualified by this receipt.",
+    "No native AutoCAD witness or format support claim is established."
+  ]
+}

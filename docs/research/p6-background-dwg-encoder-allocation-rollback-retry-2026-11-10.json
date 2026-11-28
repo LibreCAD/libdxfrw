@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-background-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "status": "GENERATED_DWG_ENCODER_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dimassoc_dwg_encoder_allocation_tests.cpp"
+    ],
+    "behavior": "DRW_Background::encodeDwg stages body, string and handle outputs with alias-aware commit. The control covers every public background kind, including image/IBL strings and IBL/skylight reference handles."
+  },
+  "generatedProfile": {
+    "version": "AC1021",
+    "kindsAndLayouts": [
+      {"kind": "Solid", "separate": 8, "body-string-detached-handles": 7, "all-body": 6},
+      {"kind": "Gradient", "separate": 11, "body-string-detached-handles": 10, "all-body": 8},
+      {"kind": "GroundPlane", "separate": 10, "body-string-detached-handles": 9, "all-body": 6},
+      {"kind": "Image", "separate": 24, "body-string-detached-handles": 18, "all-body": 15},
+      {"kind": "Ibl", "separate": 23, "body-string-detached-handles": 20, "all-body": 16},
+      {"kind": "Skylight", "separate": 10, "body-string-detached-handles": 9, "all-body": 7}
+    ],
+    "totalAllocationOffsets": 217,
+    "result": "All eighteen kind/layout profiles roll back every injected allocation failure and retry the same object to clean output with caller buffers unchanged on failure."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests -j2",
+    "test": "libdxfrw_dwg_object_encoder_allocation_retry",
+    "result": "PASS (1/1; includes all eighteen Background profiles)",
+    "fullSuites": "not run"
+  },
+  "limitations": [
+    "Generated transaction evidence only; no physical producer or consumer qualification.",
+    "Does not establish background class layout, linked graph closure, or native rendering support.",
+    "No drawing fixture was added and no support claim is promoted."
+  ]
+}

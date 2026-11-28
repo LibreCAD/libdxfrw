@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-focused-ctest-recheck-2026-11-25",
+  "date": "2026-11-25",
+  "status": "FOCUSED_AND_FULL_ASAN_DICTIONARY_SELECTORS_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "sourceRevision": "2eab63cfd7c14885cab6111351986d6cd2818dc3",
+  "implementationDigest": {
+    "sha256": "1e9e799bb517d017a0c666e14b933199e18e1c88c1abc5f3718f080fdaf29eca",
+    "inputCount": 774,
+    "verification": "Clean local clone at sourceRevision; computed with --allow-draft because the qualified-format status overlay is not frozen."
+  },
+  "build": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests libdxfrw_dwg_dictionary_cloning_source_tests libdxfrw_dwg_ac1014_dictionaryvar_tests libdxfrw_table_content_dxf_tests -j2",
+    "platform": "Darwin 27.2.0 arm64",
+    "cmake": "4.5.1",
+    "compiler": "/usr/bin/g++ (Apple clang 21.0.0 clang-2100.3.34.2)",
+    "result": "PASS"
+  },
+  "tests": {
+    "command": "ctest --test-dir build-gcc -R 'libdxfrw_(legacy_dictionary_group_links|dictionaryvar_legacy|dwg_ac1014_dictionaryvar|dictionary_source_origins|dwg_dictionary_cloning_source)' --output-on-failure",
+    "exitCode": 0,
+    "passed": 5,
+    "failed": 0,
+    "elapsedSeconds": 2.37,
+    "cases": [
+      {
+        "id": 287,
+        "name": "libdxfrw_legacy_dictionary_group_links",
+        "sha256": "07acf8423e719d55a4fd891be9cb6e77ff69be0b8bcfe00eb8fab9550e8d52f6"
+      },
+      {
+        "id": 509,
+        "name": "libdxfrw_dictionaryvar_legacy",
+        "sha256": "8adf6683ae9eb62df675b47ac032d9288f79ebbb8a3e65730b24db6e77138572"
+      },
+      {
+        "id": 633,
+        "name": "libdxfrw_dwg_dictionary_cloning_source",
+        "sha256": "950aaf2235752c057f1d5e648af0a00002978e3fd81df8785b1905f9ea9d21aa"
+      },
+      {
+        "id": 807,
+        "name": "libdxfrw_dwg_ac1014_dictionaryvar",
+        "sha256": "49246eaf16b08620ea5fdd401d730c587124403b6e4a735e55802d4b29c149d1"
+      },
+      {
+        "id": 981,
+        "name": "libdxfrw_dictionary_source_origins",
+        "sha256": "95fc1a0c39f54b21f0ef396228996819d2bb2aa68ac696cb16dd00617c15cfcd"
+      }
+    ]
+  },
+  "addressSanitizer": {
+    "buildCommand": "cmake --build build-asan-custom --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j2",
+    "testCommand": "ctest --test-dir build-asan-custom -R '^libdxfrw_dwg_ac1014_dictionaryvar$' --output-on-failure",
+    "flags": "-fsanitize=address -fno-omit-frame-pointer",
+    "platform": "Darwin 27.2.0 arm64",
+    "compiler": "/usr/bin/c++ (Apple clang 21.0.0 clang-2100.3.34.2)",
+    "exitCode": 0,
+    "passed": 1,
+    "failed": 0,
+    "elapsedSeconds": 0.40,
+    "testBinarySha256": "3504ef2070d3f2f8951a9084cb3a5a0e9d76d4689cb09f5a96e8bbc94d426b16"
+  },
+  "limits": [
+    "This recheck verifies bounded legacy dictionary parsing, encoding, source and retry selectors on the local build; it is not an AutoCAD normal-open or duplicate-key merge witness.",
+    "The status overlay is still draft and the connected GitHub API was unavailable during this recheck; exact-head hosted qualification remains open.",
+    "The generated AC1012 DWG samples remain scratch-only. No DWG/DXF test fixture was staged or committed."
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1021-imperial-mlinestyle-physical-field-differential-2026-11-14",
+  "date": "2026-11-14",
+  "status": "HASH_BOUND_AC1021_MLINESTYLE_SEMANTIC_DIFFERENTIAL_PASS_IDENTITY_INVENTORY_CLOSED",
+  "supportClaimEffect": "none",
+  "scope": "Compare the retained typed MLINESTYLE in one physical AC1021 source with independent LibreDWG minJSON; also close source callback-to-frame identity and full raw-body byte coverage for this drawing. This does not qualify whole-drawing graph, semantic, or output closure.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_imperial.dwg",
+    "version": "AC1021",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "object": {
+      "type": 73,
+      "handle": "0x18",
+      "sizeBytes": 79,
+      "sourceOffset": 325389,
+      "ownerHandle": "0x17",
+      "reactorHandles": [
+        "0x17"
+      ],
+      "dictionary": "ACAD_MLINESTYLE",
+      "dictionaryKey": "Standard",
+      "bodyHandleFields": 0,
+      "odaBodyRule": "ODA-20.4.73"
+    },
+    "fixtureFilesAdded": 0,
+    "sourceUnchangedDuringAudit": true
+  },
+  "comparison": {
+    "independentPeer": "LibreDWG minJSON",
+    "peerCreatedBy": "LibreDWG 0.13.3.553_6d6a_dirty",
+    "peerJsonPath": "/private/tmp/p6-mlinestyle-ac1021-imperial-peer.json",
+    "peerJsonSha256": "f5675a85f73566ceec3065db2b0239a44ad9825defdbc254eab4fc285e63a12d",
+    "peerSchemaPath": "/Users/dli/dev/libredwg/src/dwg2.spec",
+    "peerSchemaSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "fields": {
+      "name": {
+        "libdxfrw": "STANDARD",
+        "libreDwg": "STANDARD",
+        "matches": true
+      },
+      "description": {
+        "libdxfrw": "",
+        "libreDwg": "",
+        "matches": true
+      },
+      "flags": {
+        "libdxfrw": 0,
+        "libreDwg": 0,
+        "matches": true
+      },
+      "fillColor": {
+        "libdxfrw": 256,
+        "libdxfrwColor24": -1,
+        "libreDwg": "c0000000 (BYLAYER)",
+        "matches": true
+      },
+      "startAngle": {
+        "libdxfrwDegrees": 90.0,
+        "libreDwgRadians": 1.5707963267949,
+        "peerConvertedDegrees": 90.0000000000002,
+        "absoluteToleranceDegrees": 1e-12,
+        "matches": true
+      },
+      "endAngle": {
+        "libdxfrwDegrees": 90.0,
+        "libreDwgRadians": 1.5707963267949,
+        "peerConvertedDegrees": 90.0000000000002,
+        "absoluteToleranceDegrees": 1e-12,
+        "matches": true
+      },
+      "elements": [
+        {
+          "index": 0,
+          "offset": 3.5,
+          "color": "256 (BYLAYER)",
+          "color24": -1,
+          "linetypeIndex": 32767,
+          "matches": true
+        },
+        {
+          "index": 1,
+          "offset": 0.0,
+          "color": "256 (BYLAYER)",
+          "color24": -1,
+          "linetypeIndex": 32767,
+          "matches": true
+        }
+      ]
+    },
+    "frameSizeMatches": true,
+    "ownerAndReactorRolesMatch": true
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tools/research/audit_ac1027_source_references.py",
+      "tools/research/audit_mlinestyle_source_profile.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-ac1021-imperial-mlinestyle-physical-field-differential-2026-11-14.json"
+    ],
+    "testSourceSha256": "8441abe5ae8bd64f45e7683be1d1f0245df91fc94532b5c90313ee000b17547b",
+    "sourceProfileAuditSha256": "aea041e26e38340112bd91f6f583eafa83cae0ab8a9e4fd1d3584af36c5bf47e",
+    "sourceProfileAuditExecutableSha256": "5af9f08f9a29030954b2a423e246a485512c190d6d9e2640e00e9d47deb9d6c1",
+    "diagnosticOutputSha256": "466d672d5e11129130204cb43229deabaa5741627f49e3d6e98c2133bf4712a5",
+    "method": "The adapter test diagnostic emits retained frame identity/common links, full raw-body byte lengths, ACDS history frames, and typed MLINESTYLE fields. A source-profile auditor hashes the DWG before and after, verifies callback/capture/retained identity counts and full raw-body sizes across opaque, standard-object, and ACDS history lanes, then compares the unique type-73 frame\u2019s typed fields and 79-byte frame size with LibreDWG minJSON. The independent source-reference audit passes 1176/1176 identity rows; 673 frames still lack exhaustive body-reference decode.",
+    "sourceReferenceAuditSha256": "d49af99a06e28c5f1bea7331d383c841036ff3a5fbade33fdcb140e6a336a6f2",
+    "genericSourceAuditOutputSha256": "f8ad94e5e3556126a2b664bfc5fd60b1ed8df901e5d5a54d66013b21503a7a6b",
+    "sourceProfileAuditOutputSha256": "8979d47d57375ad83ff65cf73da044f967dc2be4b9ab4787b7ef83efe42f907e"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4: PASS",
+    "sourceProfileAudit": "audit_mlinestyle_source_profile.py: PASS; 1176 callbacks/captured callbacks = 426 opaque + 738 standard + 12 AcDs history frames; all 1176 raw bodies complete; independent MLINESTYLE fields match",
+    "sourceReferenceAudit": "audit_ac1027_source_references.py: PASS; 1176 unique source identities and all full-body spans accounted; 673 frames lack exhaustive body-reference decode",
+    "comparatorSelfTest": "audit_ac1027_source_references.py --self-test: PASS; angle, offset, and linetype-index mutations are rejected",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_mline_style_typed_capture_limits$' --output-on-failure: PASS 1/1",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Source identity and raw-body byte closure do not prove exhaustive body-reference decoding; 673 AC1021 frames remain without exhaustive body-reference coverage.",
+    "LibreDWG minJSON supplies semantic values and object size but not independent physical subfield bit spans.",
+    "The source inventory includes opaque, standard OBJECTS, and separate AcDs history lanes; no whole-drawing graph, output, native behavior, or support claim is promoted.",
+    "This single AC1021 profile does not establish other source versions, producers, or semantic prevalence.",
+    "MLINE geometry, strict whole-document output, native rendering, and output support remain unqualified."
+  ],
+  "planImpact": {
+    "completedSlice": "The AC1021 MLINESTYLE semantic differential now passes with source callback-to-frame identity and full raw-body coverage closed across all retained frame lanes; the class-number diagnostic now follows the version-specific published CLASSES binding.",
+    "remaining": "P6-D remains open for exhaustive physical subfield spans, arbitrary tails, full body-reference/graph closure, other producer/version profiles, full field/no-loss census, and native MLINE meaning; strict output remains unqualified.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "282 completed slices and 35 remaining packages: 282/(282+35)=89.0%; count-based activity proxy only."
+  }
+}

@@ -1,0 +1,367 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-mpolygon-elevation-rotation-2026-11-21",
+  "status": "DRAFT_PR_UPDATED_NATIVE_QUALIFICATION_PENDING",
+  "supportClaimEffect": "none",
+  "pullRequest": {
+    "url": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+    "head": "b36006c71f9950d016264a1b64cd4db46e910662",
+    "previousHead": "c0c608e2425cebf2e1ee64523e83006d8037265d",
+    "dependsOn": "https://github.com/LibreCAD/LibreCAD_3/pull/460"
+  },
+  "authority": {
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+    "scope": "MPOLYGON and HATCH elevation in OCS and MPOLYGON offset vector"
+  },
+  "implementation": [
+    "For bounded default-normal DXF-origin simple solid MPOLYGONs, preserve a finite common edited elevation on the retained polygon snapshot, including supported translation and rotation. Nonplanar or unsupported edits remain on the reported HATCH fallback; elevated DWG-source and tilted planes remain outside this profile.",
+    "Shared XY coordinate rotation preserves the original Z directly, including when the center has a very different elevation; 2D XY arithmetic is unchanged."
+  ],
+  "validation": {
+    "platform": "macOS arm64 headless",
+    "source": "isolated clean PR-head clone; no user checkout or external fixture edited",
+    "bundledCodec": "pinned d68fb1ed937ad2a74a54f6208277ec10a1b031b0; source libdxfrw.cpp matched pinned Git blob",
+    "currentLibdxfrw": "ae55044b7d23ade922b0be34e17528f7579ffc90, separately built shared library",
+    "currentLibrarySha256": "42b6e477162228307f9c72df47d2e4b3ac78920dbea2b6f642534849218592b8",
+    "currentProviderDyldLogSha256": "ff56195be71ed21cc6a12a64c6a85e54939d0ba779525c29283ca1b89ef57161",
+    "bundledTests": "8/8 focused coordinate and MPOLYGON/HATCH persistence controls PASS",
+    "currentTests": "8/8 same controls PASS",
+    "geometryTests": "8/8 coordinate, region, arc, circle and ellipse controls PASS",
+    "bundledLogSha256": "a86f8de9813468ed9dc5c80781ece1650e15b640555c5c895100a78d649162cb",
+    "currentLogSha256": "87bfafc5f74aa685242d848c469c5b6eaecb029f8fb8e51b93e4e0adeb26f65b",
+    "geometryLogSha256": "6461be7250840c647ef7754f548ea3025c4bd4843a9884d646545ef6dc6715a1",
+    "independentReader": "ezdxf 1.4.5 checked 14 ASCII/Binary saves, resaves, retry and rotations plus 2 mixed-height fallbacks; physical encoding, subtype, shared elevation, offset, reconstructed boundary vertices and polygon fill were checked",
+    "independentResultsSha256": "55f476dda080ed34789ed535413567b44ee4924af6af8b8078b9166dac5f4763",
+    "independentResults": {
+      "bundled": {
+        "ascii.dxf": {
+          "sha256": "4feccfbbc216d09dbead398d639f2650cb9d0311a6874d4ae0efd28615d83629",
+          "entity": "HATCH",
+          "elevation": 6,
+          "vertices": [
+            [
+              3.0,
+              7.0,
+              0.0
+            ],
+            [
+              6.0,
+              7.0,
+              0.0
+            ],
+            [
+              5.0,
+              10.0,
+              0.0
+            ]
+          ]
+        },
+        "binary.dxf": {
+          "sha256": "a13053fa4896fff54e9e2e0cb6286ed7f48fbbf438fe34d7f34fea56efce33ed",
+          "entity": "HATCH",
+          "elevation": 6,
+          "vertices": [
+            [
+              3.0,
+              7.0,
+              0.0
+            ],
+            [
+              6.0,
+              7.0,
+              0.0
+            ],
+            [
+              5.0,
+              10.0,
+              0.0
+            ]
+          ]
+        },
+        "resave-ascii.dxf": {
+          "sha256": "e6f8d29fd7f7fd9d7384a5bc26822709d4e6c7a934fed4c40e6f1f67607928bf",
+          "entity": "HATCH",
+          "elevation": 6,
+          "vertices": [
+            [
+              3.0,
+              7.0,
+              0.0
+            ],
+            [
+              6.0,
+              7.0,
+              0.0
+            ],
+            [
+              5.0,
+              10.0,
+              0.0
+            ]
+          ]
+        },
+        "resave-binary.dxf": {
+          "sha256": "718c28a94bc4b3052ac581050953ae42ca5d6a85ade02945b44b0293fd899c8e",
+          "entity": "HATCH",
+          "elevation": 6,
+          "vertices": [
+            [
+              3.0,
+              7.0,
+              0.0
+            ],
+            [
+              6.0,
+              7.0,
+              0.0
+            ],
+            [
+              5.0,
+              10.0,
+              0.0
+            ]
+          ]
+        },
+        "retry-ascii.dxf": {
+          "sha256": "4feccfbbc216d09dbead398d639f2650cb9d0311a6874d4ae0efd28615d83629",
+          "entity": "HATCH",
+          "elevation": 6,
+          "vertices": [
+            [
+              3.0,
+              7.0,
+              0.0
+            ],
+            [
+              6.0,
+              7.0,
+              0.0
+            ],
+            [
+              5.0,
+              10.0,
+              0.0
+            ]
+          ]
+        },
+        "rotated-ascii.dxf": {
+          "sha256": "b110ae39a177ab1c04b81ad07aa00d0f736e0f442b09d930fe84bb6d7d3b91f0",
+          "entity": "HATCH",
+          "elevation": 6,
+          "vertices": [
+            [
+              -0.7232310845583028,
+              7.581354549045218,
+              0.0
+            ],
+            [
+              1.909516601112816,
+              9.019631164857827,
+              0.0
+            ],
+            [
+              -0.4063425765901663,
+              11.17295331192474,
+              0.0
+            ]
+          ]
+        },
+        "rotated-binary.dxf": {
+          "sha256": "80b1fb01ce08f713696dcec27ee70832b7c507121aaac162986c5e62d41a5fad",
+          "entity": "HATCH",
+          "elevation": 6,
+          "vertices": [
+            [
+              -0.7232310845583028,
+              7.581354549045218,
+              0.0
+            ],
+            [
+              1.9095166011128155,
+              9.019631164857827,
+              0.0
+            ],
+            [
+              -0.40634257659016626,
+              11.172953311924744,
+              0.0
+            ]
+          ]
+        },
+        "mixed": {
+          "type": "HATCH",
+          "elevation": 0,
+          "sha256": "40c353e6689ce15ce3e5a71dcd0314d56dc98697c9bf01121598251fcc64e8e7"
+        }
+      },
+      "system": {
+        "ascii.dxf": {
+          "sha256": "4ed471d4f7cbd0e985bbf617e270a47d6ca5f8796f8ecfb570765f6ce8d06dd6",
+          "entity": "MPOLYGON",
+          "elevation": 6,
+          "vertices": [
+            [
+              3.0,
+              7.0,
+              0.0
+            ],
+            [
+              6.0,
+              7.0,
+              0.0
+            ],
+            [
+              5.0,
+              10.0,
+              0.0
+            ]
+          ]
+        },
+        "binary.dxf": {
+          "sha256": "186fba5ac8185dc929836bbadb4de8d183249cf8a5879de582dfdf094fb71672",
+          "entity": "MPOLYGON",
+          "elevation": 6,
+          "vertices": [
+            [
+              3.0,
+              7.0,
+              0.0
+            ],
+            [
+              6.0,
+              7.0,
+              0.0
+            ],
+            [
+              5.0,
+              10.0,
+              0.0
+            ]
+          ]
+        },
+        "resave-ascii.dxf": {
+          "sha256": "1ba155b015f7b55dd31dff352c373d784d38ba52f60b80e90b5ab252536838c9",
+          "entity": "MPOLYGON",
+          "elevation": 6,
+          "vertices": [
+            [
+              3.0,
+              7.0,
+              0.0
+            ],
+            [
+              6.0,
+              7.0,
+              0.0
+            ],
+            [
+              5.0,
+              10.0,
+              0.0
+            ]
+          ]
+        },
+        "resave-binary.dxf": {
+          "sha256": "092ccc81edd135d8ed0e92dd882a653d2223cfd29bd2f8d6bf9cc63ce15d4bdb",
+          "entity": "MPOLYGON",
+          "elevation": 6,
+          "vertices": [
+            [
+              3.0,
+              7.0,
+              0.0
+            ],
+            [
+              6.0,
+              7.0,
+              0.0
+            ],
+            [
+              5.0,
+              10.0,
+              0.0
+            ]
+          ]
+        },
+        "retry-ascii.dxf": {
+          "sha256": "4ed471d4f7cbd0e985bbf617e270a47d6ca5f8796f8ecfb570765f6ce8d06dd6",
+          "entity": "MPOLYGON",
+          "elevation": 6,
+          "vertices": [
+            [
+              3.0,
+              7.0,
+              0.0
+            ],
+            [
+              6.0,
+              7.0,
+              0.0
+            ],
+            [
+              5.0,
+              10.0,
+              0.0
+            ]
+          ]
+        },
+        "rotated-ascii.dxf": {
+          "sha256": "dff95f13736721a4879ae2289c484277a2afe4de100bd74df927a36ae30235c9",
+          "entity": "MPOLYGON",
+          "elevation": 6,
+          "vertices": [
+            [
+              -0.7232310845583028,
+              7.581354549045218,
+              0.0
+            ],
+            [
+              1.9095166011128155,
+              9.019631164857827,
+              0.0
+            ],
+            [
+              -0.40634257659016626,
+              11.172953311924744,
+              0.0
+            ]
+          ]
+        },
+        "rotated-binary.dxf": {
+          "sha256": "20330b4ac9d1293c7620c0756d9456b1ff54638c73809bdbb68a3816896c0750",
+          "entity": "MPOLYGON",
+          "elevation": 6,
+          "vertices": [
+            [
+              -0.7232310845583028,
+              7.581354549045218,
+              0.0
+            ],
+            [
+              1.9095166011128155,
+              9.019631164857827,
+              0.0
+            ],
+            [
+              -0.40634257659016626,
+              11.172953311924744,
+              0.0
+            ]
+          ]
+        },
+        "mixed": {
+          "type": "HATCH",
+          "elevation": 0,
+          "sha256": "a29a1fb97c6457ad0dbc420987467c5b8ffc251cf3966de658e822a4802b9286"
+        }
+      }
+    },
+    "failureAndRetry": "Mixed elevations take the existing explicitly reported HATCH fallback; the same document is restored and saved again successfully. The older bundled codec continues to report HATCH fallback."
+  },
+  "limitations": [
+    "No native GUI or platform qualification; selected DXF-only default-normal profile is not general MPOLYGON support.",
+    "DWG-source elevated polygons, tilted planes and broader multi-loop subtype preservation remain open.",
+    "Local system-codec build glue was scratch-only and is not included in the consumer PR.",
+    "No DWG/DXF fixtures were committed."
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "title": "S3.7c SAB 21800 edge-use census completeness fast slice",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "profile": "ACIS BinaryFile SAB 21800",
+    "fields": [
+      "DRW_AcisEdge::coedgeEdgeUseIndexCoversParsedCoedges",
+      "DRW_AcisEdge::coedgeEdgeUseIndexUnclassifiedCoedgeCount",
+      "DRW_AcisEdge::firstUnclassifiedCoedgeEdgeUseNodeIndex",
+      "DRW_AcisEdge::coedgePartnerRingMatchesEdgeUseIndex"
+    ],
+    "index_universe": "Every coedge node in the constructed DRW_AcisModel",
+    "classification": "A parsed coedge is classifiable only when exact ordinal 4 exists and resolves to a node of type edge; otherwise count it and retain the first source node index.",
+    "match_rule": "The partner ring matches only when every parsed coedge is classifiable, the selected ring closes to its start, and its exact coedge identities equal the selected edge's source-ordered ordinal-4 use row.",
+    "explicit_nonclaims": [
+      "source record completeness before model construction",
+      "omitted ACIS records or links absent from the parsed model",
+      "geometric edge-use consistency",
+      "manifoldness or shell validity",
+      "orientation or oriented-boundary reconstruction",
+      "pcurve or trim evaluation",
+      "B-rep validity",
+      "native CAD acceptance"
+    ]
+  },
+  "coverage": {
+    "parser_fed_positive_complete_census": "PASS",
+    "parser_fed_missing_ordinal_4_ref_prevents_match": "PASS",
+    "parser_fed_wrong_type_ordinal_4_target_prevents_match": "PASS",
+    "unclassified_node_count_and_first_identity_reported": "PASS",
+    "parser_fed_in_memory_projection_equivalence_includes_completeness": "PASS",
+    "coverage_rejects_incomplete_or_inconsistent_census_metadata": "PASS",
+    "detached_extra_edge_use_remains_known_gap": "PASS",
+    "new_drawing_fixture_added": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS",
+    "diff_check": "PASS",
+    "json_validation": "PASS",
+    "address_sanitizer": "NOT_RUN"
+  },
+  "compatibility": {
+    "public_struct_layout_changed": true,
+    "consumer_rebuild_required": true,
+    "DRW_Interface_vtable_changed": false,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "findings": 144,
+    "top_level_subplans": 78,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-generated-simple-root-2026-11-27",
+  "supportClaimEffect": "none",
+  "scope": "Selected root, empty children and style dictionary frames of the locally generated AC1012 pair; not a whole-source projection.",
+  "sourceReceipt": "docs/research/p6-ac1012-explicit-entity-links-2026-11-27.json",
+  "auditTool": "tools/research/audit_ac1012_generated_root.py",
+  "fullScratchAuditSha256": "557bfb4e28027f10a208a49308c057238812b53fa3dc30392885852ce1775136",
+  "samples": {
+    "destination": {
+      "sourceSha256": "591886bfe380de443bba2d2d025a78cda961ea28bbf34563a3b0c109d85dd635",
+      "rootFrameSha256": "c7aa9f29a2507b1103b3bcb11f435ffe7a42a08df4ad926d85ca01373164f61d",
+      "entryNames": [
+        "ACAD_GROUP",
+        "ACAD_MLINESTYLE",
+        "ACAD_PLOTSETTINGS"
+      ],
+      "rootEedCount": 0,
+      "rootParent": {
+        "role": 4,
+        "length": 0,
+        "value": 0
+      },
+      "rootExtension": {
+        "role": 3,
+        "length": 0,
+        "value": 0
+      },
+      "rootReactors": [],
+      "selectedEntryHandleBit": 470,
+      "wrongRoleRejectedAndRetryPassed": true,
+      "emptyChildFrames": {
+        "ACAD_GROUP": {
+          "handle": 13,
+          "frameSha256": "c11640d98831f0f38e48be8bb11949f6eb2e61434cdbeb8657f65fe574fb5e99",
+          "owner": {
+            "role": 8,
+            "length": 0,
+            "value": 12
+          },
+          "reactors": [
+            {
+              "role": 4,
+              "length": 1,
+              "value": 12
+            }
+          ],
+          "xdict": {
+            "role": 3,
+            "length": 0,
+            "value": 0
+          },
+          "eed": []
+        },
+        "ACAD_PLOTSETTINGS": {
+          "handle": 25,
+          "frameSha256": "bc942a4061d8b03c36c888a223c9a98ff66d3f1841a4e93ad5df740934910601",
+          "owner": {
+            "role": 12,
+            "length": 1,
+            "value": 12
+          },
+          "reactors": [
+            {
+              "role": 4,
+              "length": 1,
+              "value": 12
+            }
+          ],
+          "xdict": {
+            "role": 3,
+            "length": 0,
+            "value": 0
+          },
+          "eed": []
+        }
+      },
+      "styleDictionaryFrameSha256": "0d005170285d2dbdc3887520bc5a018a708e58aff8568324818f1f918da95d07",
+      "styleEedCount": 0
+    },
+    "source": {
+      "sourceSha256": "f64932935008a0c4ff84aae0ae29bba22f3c34c856693cb035190639384564d0",
+      "rootFrameSha256": "c7aa9f29a2507b1103b3bcb11f435ffe7a42a08df4ad926d85ca01373164f61d",
+      "entryNames": [
+        "ACAD_GROUP",
+        "ACAD_MLINESTYLE",
+        "ACAD_PLOTSETTINGS"
+      ],
+      "rootEedCount": 0,
+      "rootParent": {
+        "role": 4,
+        "length": 0,
+        "value": 0
+      },
+      "rootExtension": {
+        "role": 3,
+        "length": 0,
+        "value": 0
+      },
+      "rootReactors": [],
+      "selectedEntryHandleBit": 470,
+      "wrongRoleRejectedAndRetryPassed": true,
+      "emptyChildFrames": {
+        "ACAD_GROUP": {
+          "handle": 13,
+          "frameSha256": "c11640d98831f0f38e48be8bb11949f6eb2e61434cdbeb8657f65fe574fb5e99",
+          "owner": {
+            "role": 8,
+            "length": 0,
+            "value": 12
+          },
+          "reactors": [
+            {
+              "role": 4,
+              "length": 1,
+              "value": 12
+            }
+          ],
+          "xdict": {
+            "role": 3,
+            "length": 0,
+            "value": 0
+          },
+          "eed": []
+        },
+        "ACAD_PLOTSETTINGS": {
+          "handle": 25,
+          "frameSha256": "bc942a4061d8b03c36c888a223c9a98ff66d3f1841a4e93ad5df740934910601",
+          "owner": {
+            "role": 12,
+            "length": 1,
+            "value": 12
+          },
+          "reactors": [
+            {
+              "role": 4,
+              "length": 1,
+              "value": 12
+            }
+          ],
+          "xdict": {
+            "role": 3,
+            "length": 0,
+            "value": 0
+          },
+          "eed": []
+        }
+      },
+      "styleDictionaryFrameSha256": "fbaf235e03a52ceacff32f57b3e0334dd4cb0a535b42e659eaa66bdd7c7a49c7",
+      "styleEedCount": 0
+    }
+  },
+  "independentReader": {
+    "name": "cadkit-dwg 0.5.4",
+    "commit": "965567ac854c37b04d2325fe130367b3dea09d03",
+    "rootLogSha256": {
+      "destination": "ad97dd682a0e8cce0e1b459d7265e5d74b10cfe700c812b439486c5c6d5bd0de",
+      "source": "ad97dd682a0e8cce0e1b459d7265e5d74b10cfe700c812b439486c5c6d5bd0de"
+    },
+    "observation": "Both selected roots independently decode three matching named entries, no EED/reactors, null owner/extension and absent R13 cloning/hard-owner fields; no parser errors or warnings."
+  },
+  "packet": {
+    "scratch": "/private/tmp/ac1012-native-explicit-links-root-final-20261127",
+    "manifestSha256": "f5f84970ff2860c8390a0a2c4712690309d79c2e66c66272a116b400f13aa651"
+  },
+  "checks": [
+    "PASS bounded frame CRCs, root-to-child roles, empty child owners/reactors, style ownership and values.",
+    "PASS wrong root-entry wire role rejection and unchanged-frame retry.",
+    "PASS enhanced explicit-link handoff and unchanged ODA-pair packaging.",
+    "PASS whole-source hash mutation rejected before observation."
+  ],
+  "limits": [
+    "The two drawings share one locally generated producer profile; ODA conversion may repair and does not prove native normal-open.",
+    "No duplicate-key merge, remaining entity/object graph, whole-source projection, or native support claim is established.",
+    "Frame-level mutation bypasses the outer CRC intentionally; it tests the role observer, not file-level CRC handling."
+  ]
+}

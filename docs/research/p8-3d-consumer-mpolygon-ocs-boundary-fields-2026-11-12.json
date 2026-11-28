@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-mpolygon-ocs-boundary-fields-2026-11-12",
+  "purpose": "Verify generated MPOLYGON callback delivery of version/fill metadata and OCS boundary loop vertices, plus explicit WCS projection through the shared HATCH coordinate helper.",
+  "authority": {
+    "source": "Autodesk AutoCAD DXF Reference, HATCH (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+    "relevantFields": "The reference states the boundary path, elevation and extrusion groups are shared with MPolygon, and identifies its version, solid-fill and ACI fill-color groups."
+  },
+  "source": {
+    "kind": "runtime-generated-from-scratch-DXF",
+    "version": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "trackedFixture": false,
+    "entity": "MPOLYGON",
+    "layer": "probe_mpolygon_ocs_boundary",
+    "dxfVersion": 1,
+    "solid": true,
+    "associative": false,
+    "fillColorAci": 5,
+    "fillColorRgb": 3430008,
+    "elevation": 6.0,
+    "extrusion": [0.0, 1.0, 0.0],
+    "boundary": {
+      "type": "closed polyline",
+      "verticesOCS": [[2.0, 3.0, 0.0], [5.0, 3.0, 0.0], [5.0, 7.0, 0.0]],
+      "expectedVerticesWCS": [[-2.0, 6.0, 3.0], [-5.0, 6.0, 3.0], [-5.0, 6.0, 7.0]]
+    }
+  },
+  "capture": {
+    "readModes": ["ext=false", "ext=true"],
+    "assertions": [
+      "versioned solid/associativity and distinct ACI/RGB fill fields",
+      "one type-2 loop with one closed polyline and three vertices",
+      "all OCS vertex coordinates",
+      "boundaryPointToWcs projection for each vertex"
+    ],
+    "coordinateRule": "DRW_Hatch::applyExtrusion leaves MPOLYGON boundary callback coordinates in OCS; WCS values are computed explicitly with the inherited DRW_Hatch::boundaryPointToWcs helper."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build --target libdxfrw_3d_consumer_probe -j4",
+    "normalBuildResult": "PASS",
+    "normalCTest": "ctest --test-dir build -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "normalCTestResult": "PASS, 1/1, 0.46 seconds",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_3d_consumer_probe -j4",
+    "asanBuildResult": "PASS",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "asanCTestResult": "PASS, 1/1, 0.80 seconds",
+    "diffCheck": "PASS",
+    "jsonSyntax": "PASS"
+  },
+  "sourceBindings": {
+    "tests/semantic_differential_adapter.cpp": "dbc71c08301386f9ba700be8655521a8f37c90bc9a225a9d0cf8a4ad035ef5ea",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "df9c0c8a2ea993caee9c7801fc0ec1fcba31630d217550c2dd3a149d62c9b719",
+    "DWG_DXF_3D_SUPPORT_PLAN.md": "ae806fffbfe8f8cce97bdf324c5b59cc2178f7985c09c6a5f1ee472be2bcabd7"
+  },
+  "scopeLimit": "Generated same-library DXF callback transport and explicit local coordinate-helper behavior only. Does not establish independent DXF interoperability, DWG producer semantics, fill rendering, native consumer behavior or broad MPOLYGON support.",
+  "claimEffect": "No format or consumer support claim changes."
+}

@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-10",
+  "scope": "Public DXF writeSpline dispatch and default helix reader callback",
+  "finding": "DRW_Helix inherits DRW_Spline, but writeSpline previously serialized a HELIX passed through a base pointer as SPLINE and silently dropped all helix parameters. The default non-pure DRW_Interface::addHelix callback was a no-op, so an adapter implementing only addSpline received no entity.",
+  "change": "Dispatch runtime DRW_Helix objects to the existing writeHelix path. Its existing exact-type and tag validation continues to reject unsupported subclasses and mismatched tags. The default addHelix implementation delegates to addSpline; consumers overriding addHelix retain control and receive no automatic second callback. No pure virtual or vtable slot is added; consumers must rebuild to acquire the new inline default.",
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_spline_helix_dispatch|dwg2dxf_entity_runtime_dispatch)$' --output-on-failure",
+    "result": "2/2 passed",
+    "coverage": "ASCII and binary AC1027 writeSpline(base-pointer-to-HELIX) followed by fresh typed readback verifies helix fields and one typed callback; a spline-only adapter receives the inherited spline exactly once. Ordinary SPLINE retains its type. Derived-helix and wrong-tag attempts preserve a sentinel and the same writer succeeds after correction. AC1009 refusal and later-version retry are verified."
+  },
+  "limitations": "Locally generated transport and callback compatibility evidence only; native HELIX evaluation, other version profiles, independent producer semantics and binary compatibility of already-built consumers remain unqualified. No drawing fixture added."
+}

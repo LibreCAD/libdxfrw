@@ -1,0 +1,29 @@
+{
+  "id": "p5-ac1018-style-resource-generated-reader-binding-2026-11-11",
+  "scope": "From-scratch AC1018 generated source control for opt-in STYLE_CONTROL/STYLE ticket binding, immutable APPID snapshot closure, incomplete-import withholding and same-adapter retry.",
+  "generated_source": {
+    "producer": "libdxfrw dwgRW, generated in the CTest process and removed afterward",
+    "version": "AC1018",
+    "style": "Standard, font arial.ttf, height 2.5, ordered EED group 1001 ACAD and group 1000 Arial",
+    "app_id": "ACAD",
+    "fixture_policy": "No DWG/DXF fixture is committed; both source and truncated copy are runtime scratch files."
+  },
+  "validation": {
+    "target": "p5_ac1018_style_resource_source_probe",
+    "command": "cmake --build build --target p5_ac1018_style_resource_source_probe -j 3; ctest --test-dir build -R '^p5_style_resource_generated_source_binding$' --output-on-failure",
+    "result": "PASS, 1/1",
+    "direct_output": "generated=1 selected=1 imported=1 sourceBound=1 styleMutationRefused=1 styleRestoreAccepted=1 appIdMetadataMutationRefused=1 appIdMetadataRestoreAccepted=1 partialWithheld=1 retryBound=1 eedClosed=1 result=PASS",
+    "details": [
+      "A selected STYLE_CONTROL/STYLE source pair binds through the generated complete AC1018 import and its group-1001 EED resolves to exactly one typed APPID row.",
+      "Changing the live STYLE height refuses the source query; restoring the exact value makes it pass again.",
+      "Changing APPID unknown71 refuses the source query against the immutable same-import APPID snapshot; restoring it makes the query pass again.",
+      "A half-length scratch copy retains the .dwg suffix, reaches BAD_READ_FILE_HEADER, and publishes no qualifying source bundle.",
+      "The same adapter then imports the untouched generated source into a fresh dx_data and rebinds the source pair and EED edge."
+    ]
+  },
+  "limitations": [
+    "This verifies one locally authored AC1018 generated profile, not a producer-wide layout or support claim.",
+    "It does not qualify output ordering, recursive TABLESTYLE/LTYPE closure, native font rendering or independent consumer semantics.",
+    "No external or fixture DWG/DXF file was added to the repository."
+  ]
+}

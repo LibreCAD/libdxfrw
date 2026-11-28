@@ -1,0 +1,39 @@
+{
+  "title": "AC1015 LTYPE inline handle-tail bounded import profile",
+  "date": "2026-11-12",
+  "status": "bounded local compatibility evidence; no format support promotion",
+  "source": {
+    "path": "/Users/dli/doc/dwg/simple.dwg",
+    "sha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+    "version": "AC1015",
+    "provenance": "Existing local source; producer provenance is not authenticated",
+    "observation": "The LTYPE control lists 25 entries. Three exact built-in names (BYBLOCK, BYLAYER, CONTINUOUS) are name-only; the remaining 22 bodies parse with the observed inline-handle size profile. Some simple segments have omitted terminal null dash handles."
+  },
+  "specification": {
+    "authority": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.58 LTYPE",
+    "note": "The compatibility path is bounded to this observed AC1015 source profile. The body/inline-handle boundary and omitted terminal null handles are observations, not a replacement for the normative field layout or a producer-wide rule."
+  },
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "test": "tests/dwg_ltype_multiversion_count_tests.cpp",
+    "baseRevision": "dad9f0509c3576ead0b2b6483f9fd489ca62c634",
+    "profiles": [
+      "name-only import for the three exact AC1015 built-in names when the declared body ends immediately after the name",
+      "parse inline handle tail only when the typed body stops before the declared object boundary and require exact consumption",
+      "tolerate exhausted trailing null dash handles only when every remaining segment has no shape or text resource",
+      "refuse a missing common handle tail and permit same-parser retry after refusal",
+      "generated complex-shape segment refuses a truncated non-null style handle, then parses its complete handle on the same parser instance"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_ltype_multiversion_count_tests dwg2dxf -j4",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_ltype_multiversion_count$' --output-on-failure",
+    "focusedTestResult": "PASS 1/1 in normal and ASan builds",
+    "generatedResourceControl": "A from-scratch AC1015 complex-shape LTYPE control proves that the simple-segment omitted-null compatibility rule does not admit an absent non-null shape-style reference; corrected full input succeeds on the same parser instance.",
+    "physicalRead": "A debug conversion of the pinned sample reports no LTYPE parser warnings and advances to the subsequent LAYER record, where parsing fails with BAD_READ_TABLES.",
+    "qualification": "Does not qualify the complete AC1015 file, layer parsing, output, producer interoperability, or support claims."
+  },
+  "peerDisposition": "LibreDWG 0.14 minJSON/debug output for this source reports malformed LTYPE fields and is not used as an independent semantic oracle.",
+  "fixtures": "No DWG or DXF fixture was added."
+}

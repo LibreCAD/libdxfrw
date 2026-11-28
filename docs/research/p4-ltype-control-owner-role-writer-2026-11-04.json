@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "GENERATED_LTYPE_CONTROL_WRITER_ROLE_PROFILE_CORRECTED",
+  "supportClaimEffect": "none",
+  "scope": "Correct generated DWG LTYPE_CONTROL handle order and ownership roles while retaining the prior libdxfrw writer layout on read. This does not establish source-graph closure or native linetype semantics.",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["2.13 Handle References", "20.4.57 Linetype Control"],
+    "finding": "The count excludes BYBLOCK and BYLAYER. Code 2 is soft ownership; code 3 is hard ownership. The two special handles follow the counted linetype entries."
+  },
+  "physicalEvidence": {
+    "receipt": "docs/research/p6-multiversion-ltype-control-bl-count-2026-11-04.json",
+    "observation": "The ODA File Converter 27.1 AC1018/AC1021/AC1024/AC1027/AC1032 bodies record a role-4 null owner, counted role-2 references, then two role-3 special references. The independent physical handle/name mapping in that receipt resolves the last pair as BYBLOCK then BYLAYER.",
+    "specTextDifference": "ODA §20.4.57 lists BYLAYER then BYBLOCK in its prose. The observed ODA producer profile resolves BYBLOCK then BYLAYER. The writer follows that witnessed order for these tested target revisions; other producer ordering remains unqualified."
+  },
+  "implementation": {
+    "writer": "LTYPE_CONTROL now emits CONTINUOUS and named entries as the counted soft-owner references, followed by hard-owner BYBLOCK and BYLAYER references. Both control-object overloads require exactly count+2 children for this type.",
+    "readerCompatibility": "The bounded writer-tail recognizer accepts both the previous libdxfrw all-soft-owner layout and the corrected ODA producer role/order profile. The general source-read path still collapses control member handles to numeric references and does not publish their original roles."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_ltype_ac1021_count_tests libdxfrw_dwg_ltype_multiversion_count_tests libdxfrw_dwg_reader_matrix_tests -j3",
+    "ctests": [
+      "libdxfrw_dwg_ac1015_ltype_count",
+      "libdxfrw_dwg_ltype_multiversion_count",
+      "libdxfrw_dwg_ltype_ac1021_count"
+    ],
+    "result": "PASS 3/3 focused CTests in 0.76 seconds. Generated checks cover exact emitted order/roles, previous-layout read compatibility, malformed phantom-role refusal in the AC1024+ writer-tail profile, reset/retry, and AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 writer/parser controls.",
+    "fixtures": "No drawing fixture added."
+  },
+  "remaining": [
+    "Retain and diagnose original LTYPE_CONTROL member handle roles in the source graph and bind each member to its typed target and output reference.",
+    "Resolve the ODA prose versus physical BYBLOCK/BYLAYER order discrepancy for other producers and profiles.",
+    "Qualify full-document output and native linetype behavior; this slice does not remove the AC1027 strict-output guard."
+  ]
+}

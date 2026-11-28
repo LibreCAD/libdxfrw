@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ltype-control-null-member-diagnostic-2026-11-04",
+  "date": "2026-11-04",
+  "base_commit": "ef94df09",
+  "status": "GENERATED_NULL_MEMBER_INTEGRITY_DIAGNOSTIC",
+  "supportClaimEffect": "none",
+  "scope": "Make a missing target in a declared LTYPE_CONTROL member slot visible to strict consumers while preserving tolerant read callbacks.",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1, section 20.4.57",
+    "finding": "A complete LTYPE_CONTROL profile requires ordinary counted entries and its two special linetype entries. A zero target in a declared slot is incomplete graph membership; this receipt does not infer a replacement target or alter the source bytes."
+  },
+  "implementation": {
+    "diagnostic": "The first zero orderedHandleSlots entry emits DwgIntegrityCheckKind::TableControlNullMember as an Error, anchored to the LTYPE_CONTROL source frame and control handle. expected/observed retain the slot's expected and original H ownership roles.",
+    "compatibility": "Parsing and tolerant callbacks are unchanged. The new enum value is appended after existing diagnostic values. Strict completeness observes the Error and continues to refuse the incomplete graph.",
+    "coverage": "Generated AC1015 controls exercise one null counted slot and one null phantom slot, each with the corresponding soft-owner or hard-owner H role. Existing controls continue to check valid roles, wrong non-null roles, table traversal, and retry/reset behavior.",
+    "fixtures": "No DWG or DXF fixture was added or changed."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_control_handle_slots$' --output-on-failure",
+    "result": "Build passed with -Werror. Focused generated CTest passed 1/1 in 0.49 seconds. git diff --check passed."
+  },
+  "limitations": [
+    "Only the first null or role-mismatched slot in a control is diagnosed; strict refusal needs one Error.",
+    "The diagnostic anchors the control frame but does not carry a separate slot-index field.",
+    "It does not identify a replacement target, close the source graph, qualify a producer profile, or establish native linetype meaning."
+  ],
+  "files": [
+    "src/libdwgr.h",
+    "src/intern/dwgreader.h",
+    "src/intern/dwgreader.cpp",
+    "tests/dwg_reader_matrix_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "PAR-134 AC1024 PERSUBENTMGR partial source prefix",
+  "date": "2026-10-29",
+  "status": "SELECTED_PARTIAL_PREFIX_IMPLEMENTED",
+  "scope": "Admit one exact AC1024 AcDbPersSubentManager source prefix as a partial diagnostic projection while preserving its complete validated frame as an unvalidated raw carrier. This removes a false record-level parse failure without asserting a complete class schema or semantic support.",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+    "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+    "repositoryFixture": false,
+    "version": "AC1024",
+    "recordName": "ACDBPERSSUBENTMANAGER",
+    "className": "AcDbPersSubentManager",
+    "handleDecimal": 363,
+    "handleHex": "0x16B",
+    "objectType": 515,
+    "rawCarrierBytes": 18,
+    "declaredObjectDataEndBit": 112,
+    "bodyPrefixStartBit": 47,
+    "bodyPrefixEndBit": 111,
+    "footerBitSpan": "111..112; absent R2007+ string stream",
+    "decodedBitLongs": [
+      {"span": "47..57", "value": 2},
+      {"span": "57..59", "value": 0},
+      {"span": "59..69", "value": 2},
+      {"span": "69..79", "value": 2},
+      {"span": "79..81", "value": 0},
+      {"span": "81..91", "value": 2},
+      {"span": "91..101", "value": 1},
+      {"span": "101..111", "value": 2}
+    ],
+    "commonLinks": {
+      "ownerHandle": "0xC",
+      "reactorHandles": ["0xC"],
+      "frameValidated": true
+    },
+    "trace": {
+      "path": "/tmp/libdxfrw-custom-objects-ac1024.log",
+      "sha256": "0e65311a41645df71cde779e4e1cf48dd90703333e9bf1719b1ffd4445b90f3c",
+      "commandExit": 1,
+      "exitReason": "Strict-complete DXF export was refused because the full DWG read disposition is incomplete; the read itself reported zero entity/object parse failures."
+    }
+  },
+  "authorityAndComparison": [
+    {
+      "authority": "ODA Open Design Specification v5.4.1, section 20.1",
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "use": "Specifies common non-entity object framing and the R2007+ separate string stream/presence footer. It does not specify the PERSUBENTMGR class-specific body field roles."
+    },
+    {
+      "authority": "LibreDWG dwg2.spec",
+      "path": "/Users/dli/dev/libredwg/src/dwg2.spec",
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "use": "Its PERSUBENTMGR schema describes scalar counts/vectors but labels coverage limited; it does not establish the selected sample's class semantics."
+    },
+    {
+      "authority": "LibreDWG issue #1398",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1398",
+      "observed": "An independent PERSUBENTMGR record has an uncertain final num_subents position; the reporter lists conflicting candidate layouts and distinguishes this class from ACDBASSOCPERSSUBENTMANAGER.",
+      "use": "Advisory evidence for keeping this class profile partial/raw-only; it is not evidence for the current sample's exact body layout."
+    }
+  ],
+  "admission": {
+    "version": "AC1024 only",
+    "classVersion": 2,
+    "unknown0": 0,
+    "unknown2": 2,
+    "associationStepCount": 2,
+    "associationSubentityCount": 0,
+    "stepCount": 2,
+    "steps": [1, 2],
+    "requiresAbsentStringStreamFooter": true,
+    "requiresExactBodyCursorBeforeFooter": true,
+    "requiresAbsentFinalSubentityCount": true,
+    "allOtherProfiles": "Refused by this exception; other versions retain their prior parser path."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/persistent_manager_test_helpers.h",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "The exact AC1024 [1,2] prefix is retained with ParseStatus::Partial and decodedCountValue=-1. The common owner/reactor stream is left to the existing common-header parser. Raw frame bytes remain available with m_typedPayloadValidated=false and Carrier::Raw. The final subentity count/vector is not read or inferred.",
+    "compatibility": "The existing AC1021 profile is unchanged. Generated dispatch cases exercise AC1021, the exact AC1024 profile, and a same-version nonmatching [3,4] vector. Invalid profiles remain failures and do not prevent the following CRC-valid object from publishing. No public layout or DRW_Interface vtable change.",
+    "sourceSemantics": "The parser exposes values through the existing partial field projection only. Because the class body schema/field roles are unresolved, this is not a complete typed record or semantic support claim."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf --parallel 2",
+      "result": "PASS; -Werror build"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_persistent_manager_exact_footer|libdxfrw_persistent_manager_prefix_dispatch|dwg_associative_custom_object_raw_retention|dwg_read_AC1024_visualization_-_sun_and_sky_demo|dwg_read_AC1024_selected_custom_object_profiles)$' --output-on-failure -j2",
+      "result": "PASS; 5/5",
+      "coverage": [
+        "Exact generated AC1021 and AC1024 partial-prefix admission",
+        "Same-version nonmatching AC1024 vector refusal",
+        "Failure isolation and following-sentinel publication",
+        "Exact AC1024 sample field values, owner/reactor, bit span and raw-only carrier",
+        "Selected BLOCKLOOKUPACTION output profile remains passing",
+        "Existing generic AC1024 sun-and-sky reader regression"
+      ]
+    },
+    "fullSuite": "Not run",
+    "fixtureCommitCount": 0,
+    "supportClaimsPromoted": 0
+  },
+  "limits": [
+    "The local sample's producer and provenance are unverified; its DWG was not copied or committed.",
+    "The selected body values do not prove the semantic roles implied by the existing member names; the exact profile is a bounded prefix observation only.",
+    "The final num_subents count and subentity values are absent and remain unknown.",
+    "No complete PERSUBENTMGR schema, writer behavior, reference/ownership closure, native application behavior, whole-document conversion, or format support claim is established.",
+    "AC1021 and all other AC1024 manager profiles remain governed by their existing independent evidence and refusal behavior.",
+    "The sample's complete DWG read still has a separate CLASSES integrity diagnostic and strict DXF export preflight refusal."
+  ],
+  "next": "Select one separate witnessed ACSH_REVOLVE or ACSH_LOFT boundary; keep manager and solid-history profiles independent."
+}

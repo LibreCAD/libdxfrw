@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "FreeCAD consumer ceiling, peer-corpus provenance, and nested-block issue applicability",
+  "mode": "Deeper/broader primary-source and local-source research; plan update only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Clarify which FreeCAD DWG/DXF route can qualify 2D versus 3D behavior",
+    "Check the evidentiary role of ACadSharp checked-in sample drawings",
+    "Screen the newly indexed ACadSharp nested-block deep-copy issue against local INSERT and adapter paths"
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md"
+      ],
+      "observation": "The stock DWG wrapper converts to DXF and calls importDXF.open. Current documentation limits the ordinary DXF path to 2D data and says 3D objects are flattened to 2D views. This is a route-specific documentation/source claim, not a native runtime result or statement about every optional workbench."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/discussions/520",
+        "https://github.com/DomCR/ACadSharp/tree/master/samples",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md"
+      ],
+      "observation": "The maintainer identifies checked-in samples as test inputs for its reader tests. The retrieved public discussion does not establish the files' authorship, production version/history, per-file redistribution rights, or independent expected semantics."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "observation": "The current issue index contains #1283 titled as a nested-block deep-copy quadratic-time/stack-overflow report. Its full body was not retrieved; no reproduction detail, threshold, or fix status is asserted."
+    },
+    {
+      "project": "Local libdxfrw worktree",
+      "references": [
+        "src/drw_entities.h: DRW_Insert blockRecH/name and attached-attribute state",
+        "src/drw_entities.cpp: DRW_Insert copy constructor/assignment",
+        "dwg2dxf/dx_iface.cpp: visited-handle block traversal"
+      ],
+      "observation": "The reviewed INSERT copy path clones attached ATTRIB and SEQEND metadata but retains the referenced block handle rather than recursively copying the target block graph. Adapter traversal tracks visited block handles. No exact recursive deep-copy route matching the peer issue title was identified."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: distinguish stock FreeCAD 2D converter/import projection from any explicitly selected 3D-capable route",
+      "PAR-144: classify peer-owned samples as smoke inputs unless provenance and independent expected semantics are established",
+      "PAR-07/S8: classify ACadSharp #1283 as a non-matching local architecture prompt; test DAG/cycle/work-budget behavior only if recursive traversal is introduced"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "The stock FreeCAD converter-to-DXF route is explicitly 2D-scoped for qualification; ACadSharp's repository samples are not independent goldens; and the newly indexed nested-block deep-copy performance report has no matching recursive local implementation path."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "localSourceAuditPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-freecad-corpus-block-applicability-2026-10-21.json"
+    ],
+    "limitations": "ACadSharp issue #1283 was visible only in the issue index/title in this pass; its details are intentionally not inferred. Peer sample files were not downloaded. FreeCAD behavior was evaluated from current official source/documentation, not an application run."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-freecad-corpus-block-applicability-2026-10-21.json)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

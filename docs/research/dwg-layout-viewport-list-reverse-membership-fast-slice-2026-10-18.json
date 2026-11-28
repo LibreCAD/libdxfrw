@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-18",
+  "plan_owner": "PAR-20/7G.3",
+  "slice": "DWG LAYOUT viewport-list reverse membership closure",
+  "status": "implemented_locally_uncommitted",
+  "problem": "Preflight checked that listed viewport handles resolved, but did not check that every retained paper-space VIEWPORT owned by that LAYOUT appeared in the list.",
+  "spec_evidence": {
+    "source": "ODA Open Design Specification v5.4.1, §20.4.84 (see preceding PAR-20/7G.3 receipt for local PDF identity and hash)",
+    "contract": "R2004+ LAYOUT records carry a viewport count followed by that many soft-pointer viewport handles. Local validation enforces exact set correspondence, but whether the DWG sequence order has independent consumer semantics remains unresolved; it is not assumed to map to DXF output order, status, or identity."
+  },
+  "implementation": {
+    "owner": "dwg2dxf/dx_iface.cpp::dx_iface::prepareDwgViewportProjection",
+    "changes": [
+      "Build and sort a viewport-handle-to-LAYOUT ownership index from typed DWG LAYOUT records.",
+      "Reject duplicate declarations across LAYOUT lists.",
+      "Require each emitted paper-space VIEWPORT to appear in the declared list of its resolved reciprocal LAYOUT.",
+      "Compare each LAYOUT's declared membership count with its emitted owned paper-space VIEWPORT set.",
+      "Keep DXF groups 68/69 derived from the established output-order projection, independent of DWG list order."
+    ],
+    "failure_atomicity": "Generated control verifies invalid membership leaves the existing destination sentinel unchanged.",
+    "test": "tests/dxf_fixture_tests.cpp::testDwgViewportProjection; locally generated in-memory graph; no fixture file or CTest registration added.",
+    "empty_entity_case": "The generated control also temporarily removes every retained paper-space VIEWPORT while keeping non-empty LAYOUT lists. Composed export rejects atomically because validateLayoutGraph resolves list targets before prepareDwgViewportProjection's no-viewport fast return; no additional production change was needed for this case."
+  },
+  "regression": {
+    "before_fix": "The generated ASCII and Binary DXF paths accepted Sheet A viewport list {0x700}, count 1 while retained same-layout VIEWPORT 0x705 was omitted.",
+    "after_fix": "Both encodings reject the omitted member atomically; valid two-layout projections still write and read back. A separate generated case with all retained paper-space VIEWPORT entities temporarily removed still rejects the nonempty LAYOUT lists at the earlier validateLayoutGraph gate."
+  },
+  "validation": {
+    "strict_target": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "generated_projection_selector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --dwg-viewport-projection",
+      "result": "PASS"
+    },
+    "layout_graph_selector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --layout-graph-read-contract",
+      "result": "PASS"
+    },
+    "xdata_retry_selector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --block-record-xdata-roundtrip",
+      "result": "PASS"
+    },
+    "owning_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1
+    },
+    "diff_check": {
+      "command": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "full_suite": "NOT_RUN"
+  },
+  "fixture_policy": "Only locally authored in-memory graph controls were used. No external DWG/DXF was downloaded, copied, or committed; no new fixture or test registration was added.",
+  "evidence_ceiling": "Typed membership/owner closure and generated ASCII/Binary serializer round-trip only; no native consumer, full-file conversion, independent semantic support, or 3D support claim.",
+  "next_unresolved": "Determine composed DXF representation policy for any DWG-only LAYOUT viewport-list semantics without conflating them with DXF groups 68/69.",
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Broadly dirty shared worktree; this slice is uncommitted and nothing was staged."
+}

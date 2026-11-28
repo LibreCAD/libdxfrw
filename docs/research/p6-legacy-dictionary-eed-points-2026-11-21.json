@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-dictionary-eed-points-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_LEGACY_EED_3D_POINTS",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "28 Extended Entity Data",
+    "observation": "EED items 10 through 13 map to DXF 1010 through 1013 and contain three double-precision XYZ coordinates."
+  },
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py",
+  "construction": "LibreDWG 0.14 generates locally authored R13/R14 controls with four distinct 3D EED points, remapped graph and one 3D LINE member. LibreDWG JSON readback verifies source values and graph. Generated drawings remain outside the repository.",
+  "checks": [
+    "The shared legacy dictionary observer matches each finite coordinate bit-for-bit to the corresponding source span and requires the span to end exactly.",
+    "The ASan source control checks every source bit, all frame truncations, altered point values, matching-wire NaN refusal and corrected retry.",
+    "Group, NOD and MLINESTYLE owner profiles exercise R14 strict and R13 explicit-partial ASCII/Binary output with mutation refusal, destination preservation and corrected retry.",
+    "Independent ezdxf 1.4.5 readback verifies each point code and XYZ value and the GROUP-to-LINE graph for both output encodings, all three locations and both source versions."
+  ],
+  "sourceSha256": {
+    "r13Group": "551a3505cf16003593da4bf8cfcf5aec73982fed50edba92ada00e738b916340",
+    "r13Nod": "55d4e95969bb6506eec40c242df13da02849e9bcb8f392e5380e61709cec8234",
+    "r13Mline": "9fdf5ef6e2ecd734dec8caa30d7e445c8dd9a46b89baf03eb23379338e65ebb5",
+    "r14Group": "0614e24748ac3f193da52e73f0f770c7320756aa71b893a1698babf67623958b",
+    "r14Nod": "8a78a5aa1aa60d2292e48934c9e07a833acf6f0c4a937128d67c932adef1b97c",
+    "r14Mline": "12c4a7fff509a92cae818f1bb623d7aae553e3cd8da1b2715e3373163c58c25b"
+  },
+  "limits": [
+    "R13 output remains explicit partial; MLINESTYLE source semantics, native cloning and general DWG/DXF support remain unqualified.",
+    "This verifies selected finite point transport and does not establish application-specific transformation semantics or unobserved EED codes."
+  ]
+}

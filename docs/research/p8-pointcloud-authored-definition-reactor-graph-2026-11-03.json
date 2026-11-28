@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pointcloud-authored-definition-reactor-graph-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "BOUNDED_AUTHORED_POINTCLOUDEX_GRAPH_OUTPUT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Write one bounded authored POINTCLOUDEX object graph through the concrete adapter with rooted DefinitionEx records, reciprocal ReactorEx records, output identity remapping, and fresh typed readback.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Authored data only (dx_source_format::Unknown) is admitted. Imported DXF still needs a raw-carrier/source-span join; DWG still needs source CLASS/frame/output binding.",
+      "AC1027+ output requires exactly one NOD ACAD_POINTCLOUD_EX_DICT edge to a complete NOD-owned DICTIONARY. Every dictionary entry must uniquely own one POINTCLOUDDEFINITIONEX.",
+      "Every admitted DefinitionEx has a complete reactor list. Each ReactorEx has one owning POINTCLOUDEX entity; entity definition/reactor references, reactor owner, and DefinitionEx persistent-reactor list must agree exactly.",
+      "Definitions and reactors emit through the typed low-level writer after reserving and collision-remapping their identities. The named dictionary is emitted through the codec's named-object path, and the entity references use the same handle remap.",
+      "Classic POINTCLOUD definitions/reactors, NAVISWORKSMODELDEF, POINTCLOUDCOLORMAP, imported source records, incomplete graphs, and lower target revisions remain refused."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally authored in-memory records and handles; no external file and no drawing fixture.",
+    "targetRevision": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "The exact NOD-to-dictionary-to-DefinitionEx path and one POINTCLOUDEX-to-ReactorEx owner/reference cycle are serialized and read back.",
+      "Readback checks the named dictionary entry and one-instance POINTCLOUDDEFINITIONEX/POINTCLOUDDEFREACTOREX CLASS rows.",
+      "A wrong ReactorEx owner is refused before publication and preserves existing destination bytes.",
+      "Correcting the same adapter graph permits retry; readback confirms the reactor owner follows the emitted entity handle, including its remap, while definition and reference handles remain reciprocal.",
+      "Existing controls still refuse an unrooted mixed definition/NAVISWORKS/color-map graph and POINTCLOUDEX below its writer revision floor."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_point_cloud_adapter_transport$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; ASCII/Binary graph admission, invalid-owner destination preservation, same-adapter corrected retry, and typed graph readback.",
+    "diffCheck": "PASS: git diff --check",
+    "fixturePolicy": "No drawing fixture was added or committed."
+  },
+  "limitations": [
+    "This proves authored serializer transport and graph closure only; it does not establish physical producer breadth or independent source-to-output equivalence.",
+    "DWG-origin callbacks remain refused until exact source CLASS/frame identities and all output bindings are qualified.",
+    "Point-cloud assets are not loaded or independently interpreted. Native FreeCAD, LibreCAD, LibreCAD_3, and 3D consumer semantics remain unqualified."
+  ],
+  "observations": [
+    "Initial readback assertion expected the reactor owner to retain the entity's source handle. Actual output correctly remapped the entity and emitted the reactor owner to that output handle; the assertion now checks the emitted identity."
+  ],
+  "next": "Bind imported DXF point-cloud records to complete ordered raw carriers and physical source spans before admitting DXF-origin graph output. Then qualify a DWG source CLASS/frame profile and output binding; keep native asset loading and semantic consumer evidence separate."
+}

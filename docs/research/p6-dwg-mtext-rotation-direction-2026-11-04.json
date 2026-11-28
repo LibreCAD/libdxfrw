@@ -1,0 +1,148 @@
+{
+  "title": "DWG MTEXT rotation-only orientation",
+  "authority": "ODA Open Design Specification for .dwg files v5.4.1 \u00a720.4.46 defines the main MTEXT X-axis direction as a 3BD WCS vector. Existing DXF orientation provenance selects the last relevant group 11 or 50 and retains legacy API nonzero-vector priority.",
+  "problem": "DWG MTEXT encoding always wrote secPoint, so a rotation-only input with angle=30 degrees and no explicit vector was written as zero direction; ODA readback displayed an unrotated 0-degree entity.",
+  "change": "Reuse dxfOrientationForOutput. For its Rotation mode, or legacy callers with no nonzero direction, derive a temporary WCS unit direction from the angle in degrees and the existing normalized arbitrary-axis OCS basis. Keep explicit Direction and legacy nonzero-vector behavior unchanged and do not mutate caller fields. Rotation requiring a nonfinite angle or a zero/nonfinite extrusion is refused before encoding, allowing retry. The R2018 redundant column context remains independently represented.",
+  "source_provenance": "ezdxf 1.4.5 authored rotation-only AC1021 DXF, converted by ODA File Converter 27.1 to AC1021 DWG and returned as AC1027 DXF. Separate tilt, negative-normal, nonunit-normal, and conflicting group 11/50 ordering inputs were authored locally. Hashes bind individual artifacts; conversion lineage is the recorded local run, not established by those hashes alone.",
+  "physical_results": "LibreDWG 0.14 and ODA AC1027 DXF show source rotation 30\u00b0 produces WCS axis (cos30,sin30,0) for +Z, (-cos30,0,sin30) for +Y, and (-cos30,sin30,0) for -Z. ODA normalizes the sampled +Y nonunit input. With +Y normal, direction (0,0,1) before rotation resolves to rotation; reversed order resolves to direction. Generated baseline axis is zero and ODA output has no direction with 0-degree rotation. Corrected generated output matches each source vector for +Z, +Y and -Z. All nine source/baseline/corrected DWG/DXF pairs pass the hash-bound independent audit. ODA produced no .err for the sampled runs.",
+  "generated_validation": "Isolated six-version CTest passes for AC1015/18/21/24/27/32, with both DXF ordering inputs and copied objects with separately edited angle/direction, three sampled unit normals and a nonunit finite normal, legacy nonzero vector including nonunit 3D direction preservation, zero/nonfinite normal and NaN angle refusal and same-writer retry, caller field preservation and following LINE readback. Unmodified writer fails the --geometry-only control at AC1015 readback.",
+  "limits": "Physical output evidence is limited to the three stated normals and one 30-degree rotation, using existing material and plotstyle graph opt-ins. No native application rendering or arbitrary profile is claimed. Binary DXF order parsing is covered by pre-existing DXF tests, not by this new ASCII-input control.",
+  "peer_audit_command": "PYTHONPATH=tools <ezdxf-python> -B tools/audit_ac1021_mtext_rotation_peer.py --dwgread /opt/homebrew/bin/dwgread --dwg <path> --dwg-sha256 <sha> --dxf <path> --dxf-sha256 <sha> --mode <default|tilt|negative|direction|baseline> [--generated-graph]",
+  "reproduction": [
+    "Use tools/author_ac1021_mtext_rotation.py <new-directory> with ezdxf 1.4.5 to create equivalent source DXFs; timestamps and hashes may vary.",
+    "Convert each source DXF to ACAD2007 DWG, then to ACAD2013 DXF using ODA; audit exact hashed pairs with the command above.",
+    "Compile tools/probe_ac1021_mtext_rotation.cpp against the final library, defining MTEXT_NORMAL=0,1,2 for +Z,+Y,-Z, then invoke <producer> text <new-dwg>; convert each to ACAD2013 DXF and run the peer audit with --generated-graph."
+  ],
+  "patch": {
+    "path": "/private/tmp/mtext-rotation/mtext-rotation.patch",
+    "sha256": "d1c1ff2e02def870acdc4ae91f0cabba6af86dd9082846bb2a5c0fc1026f8da9"
+  },
+  "tools": [
+    {
+      "path": "tools/author_ac1021_mtext_rotation.py",
+      "sha256": "5d59bb9a577e5cc2a70f7a85d464f5f43d5fb6c2f9ff78ef44f8c8b4f2df86bc"
+    },
+    {
+      "path": "tools/probe_ac1021_mtext_rotation.cpp",
+      "sha256": "a32bf86bf1e658d48ef9978832b04d8d3ca9d99f1f742a4d4b2c2b18856befc1"
+    },
+    {
+      "path": "tools/audit_ac1021_mtext_rotation_peer.py",
+      "sha256": "954ad9db7dbf514774bd133ef4db7f599becb18b476df1515abf440fa3ac77df"
+    },
+    {
+      "path": "tests/dwg_mtext_rotation_direction_tests.cpp",
+      "sha256": "189468a566a8e91d5b599878f23158d59bd91a2eb283be19e56b10f94272b9c9"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/private/tmp/mtext-rotation/input/text.dxf",
+      "sha256": "fb607099c30b1fd6c36b9002a7f40c87adb29cbd88f472d42382ec90f70e1829"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/source/text.dwg",
+      "sha256": "f83f770aee36e62a052729d73fcd42f5de87a66b3b4bb5fe61bced741f5078ab"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/source-out/text.dxf",
+      "sha256": "05ab5ee5c3e9144b7935915c310722474f604c62929c8fdc01fc92f25511a910"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/gen/text.dwg",
+      "sha256": "db387d658d38fed328788faa3038e19da3e4ecc7e2d488b1fd31a04871d8294a"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/out/text.dxf",
+      "sha256": "6cffdb7533a1c839847d8d713b0a07809136ac44017f34f03dd571b03108f660"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/tilt-input/tilt.dxf",
+      "sha256": "0d2b44b1363ab8d7392000c7447cc1ac1eb04f48f66c14a484aa153124d5c5f9"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/tilt-source/tilt.dwg",
+      "sha256": "148c97d61fe7ed61359162633e55f215e669d236a3d9ea9d93d8e2825d539474"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/tilt-out/tilt.dxf",
+      "sha256": "148a11b79bae86d2411191e9dac00f0c6640f2961d66e9495131c296e590ea68"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/tilt-input/negative.dxf",
+      "sha256": "9545708285995c917f42f50cc20f11aa1c9ea0e2ee2761148e061311f1539700"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/tilt-source/negative.dwg",
+      "sha256": "0d235a952a76f4d990c43dfa05d6a21fe52ff13e1886b076806783fd972ca636"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/tilt-out/negative.dxf",
+      "sha256": "2c25250becef0a25e8b93e9601ed04aa889906c530102c19936b45507da2ab61"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/tilt-input/nonunit.dxf",
+      "sha256": "0d3b7dfa8ba9946f067c0a4795c1efaa3fbbf679547b04facca9d5f0625ab7fe"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/tilt-source/nonunit.dwg",
+      "sha256": "2f9c3774b415227793effa299441341458ef1ea1dd9ad979ae41dbe889cafeea"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/tilt-out/nonunit.dxf",
+      "sha256": "6e0faf2c8f955a3951f2946d2f0fdd0e8bafd6fa84e67a95d1bc7d2ef85edb94"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/order-input/direction_then_rotation.dxf",
+      "sha256": "7378a30a0ed6e9cfc056e6a75c3f2bd77c5edda075ec35d2acbfa5286e23415f"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/order-source/direction_then_rotation.dwg",
+      "sha256": "88fcf0b9595489b88873b977275b51b96f43e6f41ffd2287c2d29ffd6dce7773"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/order-out/direction_then_rotation.dxf",
+      "sha256": "5fc64fa0a76b72c0d0595c5bc24fe1c8476dbade8a8aa157adf12ef8c3fd32e8"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/order-input/rotation_then_direction.dxf",
+      "sha256": "dd11b96783808a50081b0696482c0ad31ec4be27070bf1f631bd78b861d37108"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/order-source/rotation_then_direction.dwg",
+      "sha256": "6d905d19d42890239c76f846ab5e4e5333b52e58f632ff88bec785987c3879c1"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/order-out/rotation_then_direction.dxf",
+      "sha256": "3bf04b7fe2a10d5b11e67de90b88f3819a600c9bbf77d12bf7246bf5a8888caa"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/fixed-in/default.dwg",
+      "sha256": "6b3bb4f78e268f06fb6c1727fee598a482b6b4a2a86e00a55e9f56b29cf22288"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/fixed-out/default.dxf",
+      "sha256": "5c25c56560e08c36f1f468614b06d01507f15c7a332616166c4e5d2030bf657b"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/fixed-in/tilt.dwg",
+      "sha256": "af37227848689505fd38359fb199bfbaddbbce2ed7d4fd53589471b9d6dbdb1d"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/fixed-out/tilt.dxf",
+      "sha256": "7d6f2e02a7742019730424d4be12e0d589d72d3dd8d4de0ab79758f9bf2cedea"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/fixed-in/negative.dwg",
+      "sha256": "e03ee6175b47337a11279882274018c2893a5141b063b2564ef2278f48917537"
+    },
+    {
+      "path": "/private/tmp/mtext-rotation/fixed-out/negative.dxf",
+      "sha256": "e33386c71ea1dd50400dfec9191fc4eb3e1ae37c10ad90b370a1e5e8428982b7"
+    }
+  ],
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_SOURCE_BACKED_MTEXT_ORIENTATION",
+  "integrated_validation": "The updated six-version DWG orientation test and existing ASCII/Binary DXF orientation CLI tests passed 3/3."
+}

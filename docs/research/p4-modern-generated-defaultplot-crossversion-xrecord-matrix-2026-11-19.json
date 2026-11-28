@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-modern-generated-defaultplot-crossversion-xrecord-matrix-2026-11-19",
+  "date": "2026-11-19",
+  "status": "GENERATED_SELECTED_PROFILE_MATRIX_PASSED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "c72ef7da6b01c11a437067d3a420c77af737bd7a3a674ccad3c1f745ce1d048b",
+  "scope": "Strict conversion of the exact locally generated AC1024, AC1027 and AC1032 default-plot graphs to the other AC1015\u2013AC1032 DXF target versions, ASCII and binary. This completes the generated DXF-source owned-XRECORD cross-version matrix, not general DWG support.",
+  "implementation": [
+    "Apply the same bounded same-import CLASS, root, dictionary, placeholder and LAYER proof under the source version and AC1021 codec, using the existing general resource-origin audits.",
+    "Keep subclass and explicit legacy/whole-source observation behavior isolated, and use the existing same-version path.",
+    "Reuse staged TABLES/OBJECTS validation, source-state rechecks, CLASS and handle/owner checks and atomic publication.",
+    "For AC1027 native DWG, check all 12 already-unqualified partial conversions refuse and preserve destination and source; this does not admit that source profile.",
+    "Add the existing owned-XRECORD matrix to the bounded fast CI selector."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j 2",
+    "focusedCtests": "PASS: seven identity, class, structural, plotstyle and XRECORD selectors in 8.55 seconds, including the full owned-XRECORD matrix (1.45 seconds).",
+    "compiler": "PASS: GCC 16 -Wall -Wextra -pedantic -Werror syntax check on the adapter tests.",
+    "fastRunner": "PASS: run_fast_focus.py --self-test; the existing full-matrix CTest was added to the fast selector.",
+    "newSourceProfiles": "PASS: 60 selected conversions and 60 opposite-encoding reexports for the three new source versions, two source encodings, five other target versions and two target encodings; 540 mutation/refusal/retries, 60 staged-extra-LAYER refusal/retries and six capture-failure refusal/retries.",
+    "completeOwnedXrecord": "PASS: 18 sources, 204 actual exports and 204 reexports, 12 strict refusals, and 12 AC1027 partial refusals with destination/source preservation.",
+    "completeSelectorLogSha256": "20bcb7c17dfbaa84229adafc50a2c6eafe557e44d5b5cd3e4247734d45bd13b1"
+  },
+  "independentReadback": {
+    "tool": "ezdxf 1.4.5",
+    "result": "PASS on 60 separately generated outputs using the in-tree production adapter object: target version, root/dictionary/placeholder ownership, Normal/default and LAYER plot references, and version-appropriate CLASS instance counts.",
+    "script": "/private/tmp/p4-2007-proto/verify-fullmodern-ezdxf.py",
+    "scriptSha256": "24fc7b1deb3767d20f8da03039ed1f62ecaca646240bf1c23eeaafa9b6c77834",
+    "logSha256": "7e21c320289d9ffbc018e219a117899c65a4e1e2bdabe443710d763a5200fd16",
+    "limits": "Drawings were generated locally; independent readback is not independent native producer or semantic evidence. No generated drawings were committed."
+  },
+  "limits": [
+    "Only the exact generated strict DXF-source profiles are admitted. General compatibility, nonidentity remaps and native semantics remain unqualified.",
+    "The generated AC1027 DWG partial profile remains fail-closed; broader P4-D and P8-F qualification remain open."
+  ]
+}

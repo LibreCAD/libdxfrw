@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-09",
+  "scope": "Generated complete scalar/vector PERSUBENTMGR body prefix controls for AC1027 and AC1032",
+  "evidence_class": "from-scratch in-memory frames; no external DWG/DXF fixture",
+  "selector": "libdxfrw_dwg_reader_matrix_tests --persistent-manager-prefix-dispatch",
+  "profiles": [
+    "AC1027",
+    "AC1032"
+  ],
+  "class_identity": {
+    "record_name": "ACDBPERSSUBENTMANAGER",
+    "class_name": "AcDbPersSubentManager",
+    "synthetic_class_ordinal": 601
+  },
+  "generated_values": {
+    "class_version": 2,
+    "unknown_scalars": [
+      0,
+      2
+    ],
+    "associated_step_count": 2,
+    "associated_subentity_count": 2,
+    "steps": [
+      11,
+      22
+    ],
+    "subentity_ids": [
+      33,
+      44
+    ]
+  },
+  "assertions_per_version": {
+    "read_succeeds": true,
+    "object_parse_failures": 0,
+    "typed_values_equal_generated_values": true,
+    "class_body_prefix_status": "Complete",
+    "following_object_publishes": true,
+    "raw_bytes_equal_generated_object": true,
+    "raw_carrier_typed_payload_validated": false,
+    "strict_output_or_support_claim": false
+  },
+  "execution": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+    "test": "build-gcc/libdxfrw_dwg_reader_matrix_tests --persistent-manager-prefix-dispatch",
+    "result": "PASS"
+  },
+  "limitations": [
+    "The selected vectors validate generated parser behavior only; they do not establish a physical producer's full PERSUBENTMGR body layout.",
+    "Scalar subentity IDs are not converted to DXF group-330 handles and no graph or output mapping is qualified.",
+    "The raw carrier remains unvalidated, and no native behavior or support claim is inferred.",
+    "The independent LibreDWG issue #1398 confirms unresolved physical field order for PERSUBENTMGR; its apparent merged fix was for the distinct ASSOCPERSSUBENTMANAGER class."
+  ],
+  "independent_issue_recheck": {
+    "source": "https://github.com/LibreDWG/libredwg/issues/1398",
+    "source_type": "public peer-implementation issue discussion; not normative specification",
+    "reported_physical_observation": "The attached Platte.dwg example has ACDBPERSSUBENTMANAGER class_version 2 and observed scalar sequence 2, 0, 2, 0, 0, 0; the peer parser then reads an implausibly large num_subents value and rejects it.",
+    "reported_layout_status": "The issue author lists multiple possible field orders and says the actual order is unknown. The apparent merged fix was clarified as addressing ASSOCPERSSUBENTMANAGER, a different class.",
+    "effect": "Confirms the generated complete vector is only a candidate grammar; do not promote typed semantics or output from it."
+  }
+}

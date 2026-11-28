@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-138 DetailViewStyle group-4 linetype handle insertion fast slice",
+  "mode": "Generated ASCII/Binary implementation and focused regression validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Insert missing DetailViewStyle group-4 connection/border linetype references (DXF group 340) during same-version raw-carrier export.",
+    "Preserve the repeated handle occurrence mapping when an edited later slot follows omitted earlier slots.",
+    "Verify generated ASCII/Binary output with exact ordered raw groups, emitted-target identity, typed readback, reference closure, and neighboring-record continuity."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/detailviewstyle-group4-linetype-handle-insertion-fast-slice-2026-10-19.json"
+    ],
+    "behavior": "The raw-carrier overlay inserts missing group-4 handle occurrences through the highest edited connection/border line-type slot. If border is edited while the connection slot is omitted and remains at its default, a zero/null connection handle is inserted first. The changed border handle is remapped through normal DXF output planning; the test resolves the emitted VIEW_STYLE_LINE by name rather than assuming the source handle is preserved numerically.",
+    "testCases": [
+      "Remove both group-4 group-340 values from the generated primary DetailViewStyle, confirm typed null defaults, edit border linetype to source handle 0x201, export/reimport in ASCII and Binary DXF, and verify null connection plus border mapping to the emitted VIEW_STYLE_LINE handle.",
+      "Compare complete ordered raw DetailViewStyle and SectionViewStyle carriers, verify closed resource references, and ensure the following POINT is intact."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS",
+        "passed": 1,
+        "failed": 0,
+        "elapsedSeconds": 0.49
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0
+  },
+  "limitations": [
+    "Same-source-version DXF typed-field insertion/replay only; no DWG-origin typed serialization or cross-version projection qualification.",
+    "The control verifies one later-slot insertion with a null predecessor; it does not cover every linetype combination or malformed cardinality.",
+    "No native linetype-rendering or broad DetailViewStyle semantic-completeness claim follows.",
+    "The shared worktree is uncommitted and contains unrelated user changes; no cleanup or staging was performed."
+  ]
+}

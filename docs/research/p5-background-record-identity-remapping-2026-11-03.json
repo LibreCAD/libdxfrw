@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-03",
+  "scope": "DXF Background object record identity remapping, allocation, binding and transactional retry.",
+  "source_context": {
+    "schema": "DXF group 5 is the object record identity; Background records inherit the common object identity while the IBL group's 340 secondary-Background reference has a separate target role.",
+    "implementation_gap": "dxfRW::writeBackground emitted ent->handle verbatim and did not reserve or bind the record identity, so a source remap could change the secondary-reference target without changing the Background record's own identity.",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-995ABB55-571A-4D0F-882E-8A74A738643E.htm",
+      "src/libdxfrw.cpp: dxfRW::writeBackground"
+    ]
+  },
+  "implementation": {
+    "behavior": "A supplied source identity is remapped, checked against invalid and fixed output handles, reserved, emitted as group 5, and bound to the emitted object identity after successful record serialization. A zero/no-source identity is allocated before the record scope and emitted. RecordStateScope and DxfWriterRecordScope protect the identity map and record bytes.",
+    "reference_policy": "The IBL group-340 reference retains resolver-first behavior with handle-remap fallback after its existing same-root target registration check; the resolver does not replace the remap for group-5 record identity.",
+    "failure_behavior": "A late invalid EED value leaves the prior destination bytes unchanged and does not publish a source-object identity binding. A corrected fresh writer emits and binds the remapped identity."
+  },
+  "validation": {
+    "input": "Generated in-memory Background records only; no DWG/DXF fixture was added.",
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "controls": [
+      "group-5 identity follows the source remap independently of IBL group-340 resolver/remap selection",
+      "no-source Background identity is allocated and read back",
+      "late invalid EED rolls back record bytes and leaves no source identity binding",
+      "corrected fresh-writer retry emits and binds the remapped group-5 identity"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "build-gcc/libdxfrw_wave1_tests --background-reference-remapping",
+      "git diff --check"
+    ],
+    "result": "PASS"
+  },
+  "qualification_limits": [
+    "Generated controls do not establish complete physical Background producer coverage or source graph closure.",
+    "No independent native consumer or lighting evaluation was used.",
+    "This transport fix does not promote Background support claims."
+  ]
+}

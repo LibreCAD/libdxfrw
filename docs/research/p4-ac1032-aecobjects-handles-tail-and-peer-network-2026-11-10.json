@@ -1,0 +1,146 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-aecobjects-handles-tail-and-peer-network-2026-11-10",
+  "date": "2026-11-10",
+  "status": "ADVISORY_UNQUALIFIED_SOURCE",
+  "supportClaimEffect": "none",
+  "purpose": "Identify the HANDLES section refusal and independently inspect the declared associative networks without bypassing production integrity checks.",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/aec_objects/AecObjects.dwg",
+    "repository": "DomCR/ACadSharp",
+    "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "sha256": "dc196e99b8944d169493c9f3205d45f8a579c0c96e81dbc7fc2f90cd971f7a7e",
+    "producer": "unknown"
+  },
+  "normativeReference": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "23.1-23.2",
+    "finding": "The object map is broken into checksummed groups and terminates with a size-2 empty group. The sections do not explain or establish the meaning of nonempty bytes after that terminator."
+  },
+  "productionDecompression": {
+    "method": "Read-only scratch subclass of dwgReader32 invoked readMetaData, readFileHeader, and parseDataPage for the HANDLES section; no source drawing was modified. This uses the production decompressor and is not an independent decompression oracle.",
+    "logicalSectionSize": 5557,
+    "sectionSha256": "4f013a1a7bc5fecb2a31a4b9f718a38f85734471062cdeb317741727f694a5ca",
+    "groups": [
+      {
+        "offset": 0,
+        "size": 2019,
+        "crc": "af1f"
+      },
+      {
+        "offset": 2021,
+        "size": 2031,
+        "crc": "2338"
+      },
+      {
+        "offset": 4054,
+        "size": 1216,
+        "crc": "b196"
+      },
+      {
+        "offset": 5272,
+        "size": 17,
+        "crc": "1524"
+      },
+      {
+        "offset": 5291,
+        "size": 2,
+        "crc": "01d0",
+        "terminator": true
+      }
+    ],
+    "validation": "The current reader trace reports each group CRC matches before rejecting the declared-section tail.",
+    "tail": {
+      "offset": 5295,
+      "bytes": 262,
+      "nonzeroBytes": 261,
+      "sha256": "f46296a6b93c003249ec2e4a0997e3768fae2699fa4c9a7e74f4cb09038d51a7",
+      "first16": "9c02019c0201ee0101f00101e80101e8",
+      "last16": "0201ca02018b0301ed017d87000201d0",
+      "interpretation": "The final four bytes look like another empty terminator; the preceding bytes remain unclaimed. This observation does not establish padding, a valid second group, or stale records."
+    }
+  },
+  "peer": {
+    "tool": "/Users/dli/dev/libredwg/programs/dwgread",
+    "toolVersion": "0.13.3.553_6d6a_dirty",
+    "workingTreeRevision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "toolSha256": "ffb9e557674a3a10a6b242c645873e83771b9c8744cbd8b89a11cda22d7a0083",
+    "command": "dwgread -v2 -O minJSON -o /private/tmp/p4-aec-libredwg.json /Users/dli/dev/ACadSharp/samples/aec_objects/AecObjects.dwg",
+    "exitCode": 0,
+    "jsonSha256": "6b8158ab1a5e1ddc1168ffdf239ee2ab314e526b1cba5033474e554a17aafa1b",
+    "objectsReported": 1573,
+    "missingHandleWarnings": 108,
+    "distinctMissingHandlesInWarnings": 96,
+    "otherErrors": "The log reports SPATIAL_INDEX handle and binary-data size errors; the peer process exit code alone does not establish source integrity.",
+    "networks": [
+      {
+        "handle": "0x3D3F",
+        "owner": "0x3D3E",
+        "owningNetwork": "0x3D41",
+        "actionIndex": 1,
+        "networkActionIndex": 1,
+        "actions": [
+          {
+            "isOwned": 1,
+            "roleCode": 3,
+            "target": "0x3D42"
+          }
+        ]
+      },
+      {
+        "handle": "0x3D41",
+        "owner": "0x3D40",
+        "owningNetwork": "0",
+        "actionIndex": 0,
+        "networkActionIndex": 3,
+        "actions": [
+          {
+            "isOwned": 0,
+            "roleCode": 4,
+            "target": "0x3D3F"
+          },
+          {
+            "isOwned": 0,
+            "roleCode": 4,
+            "target": "0x3D4A"
+          },
+          {
+            "isOwned": 0,
+            "roleCode": 4,
+            "target": "0x3D52"
+          }
+        ]
+      },
+      {
+        "handle": "0x3D4A",
+        "owner": "0x3D49",
+        "owningNetwork": "0x3D41",
+        "actionIndex": 2,
+        "networkActionIndex": 1,
+        "actions": [
+          {
+            "isOwned": 1,
+            "roleCode": 3,
+            "target": "0x3D4B"
+          }
+        ]
+      },
+      {
+        "handle": "0x3D52",
+        "owner": "0x3D51",
+        "owningNetwork": "0x3D41",
+        "actionIndex": 3,
+        "networkActionIndex": 1,
+        "actions": [
+          {
+            "isOwned": 1,
+            "roleCode": 3,
+            "target": "0x3D53"
+          }
+        ]
+      }
+    ],
+    "interpretation": "These peer-decoded values are candidate evidence from the same LibreDWG implementation used for the prior source. The unresolved tail, missing references, errors, unknown producer, and lack of independent field spans prohibit physical source qualification or writer admission."
+  },
+  "nextAction": "Obtain a producer-attested AC1032 source with a structurally explained complete HANDLES section and independently decoded network fields, or authoritative producer documentation that explains this precise nonzero tail and establishes that the visible map is complete. Then verify owner/action graph closure and physical bit spans before considering output. Keep existing HANDLES and strict-output refusal."
+}

@@ -1,0 +1,97 @@
+{
+  "date": "2026-11-17",
+  "scope": "One scratch-only attempt to convert a locally authored MLINE DXF to AC1018 for a parser-source screen",
+  "source": {
+    "path": "/private/tmp/p6h-mline-screen-20261117/scratch_mline_ac1027.dxf",
+    "created_from_scratch": true,
+    "sha256": "6fede7d730a2de2189b9749591e090f8e3cc22830d6efaa9f8d6e80da343ebb1",
+    "pair_count": 220,
+    "contains": ["MLINE", "MLINESTYLE"]
+  },
+  "converter": {
+    "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "version": "27.1.0.0",
+    "requested_target": "AC1018 / AutoCAD 2004 DWG"
+  },
+  "result": {
+    "conversion_started": false,
+    "process_return_code": -6,
+    "failure": "The converter aborted before conversion with macOS pasteboard/XPC errors, including pasteboard error [-4960].",
+    "output_witness": false
+  },
+  "latest_launch_probe": {
+    "date": "2026-11-17",
+    "source_sha256_rechecked": "6fede7d730a2de2189b9749591e090f8e3cc22830d6efaa9f8d6e80da343ebb1",
+    "launch_probe": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter --help",
+    "return_code": 134,
+    "result": "The app still aborted before conversion with the same pasteboard [-4960] and hiservices XPC errors. The exact MLINE conversion was not retried because the launch prerequisite failed.",
+    "log": "/private/tmp/p6h-oda-launch-20261117.log",
+    "output_witness": false
+  },
+  "post_unlock_launch_probe": {
+    "date": "2026-11-17",
+    "trigger": "The user reported unlocking the macOS session after the prior failed launch probe.",
+    "sessionStateObservation": "launchctl print gui/502 no longer exposed CGSSessionScreenIsLocked; the GUI state could not be independently confirmed from this shell.",
+    "source_sha256_rechecked": "6fede7d730a2de2189b9749591e090f8e3cc22830d6efaa9f8d6e80da343ebb1",
+    "launch_probe": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter --help",
+    "return_code": 134,
+    "result": "The app aborted before conversion; its log again reports pasteboard [-4960] for clipboard/find and invalid hiservices XPC connections.",
+    "log": "/private/tmp/p6h-oda-launch-after-unlock-20261117.log",
+    "output_witness": false
+  },
+  "launchservices_bundle_probe": {
+    "date": "2026-11-17",
+    "source_sha256_rechecked": "6fede7d730a2de2189b9749591e090f8e3cc22830d6efaa9f8d6e80da343ebb1",
+    "launchservices_job": {
+      "label": "gui/502/application.ODAFileConverter.59716274.59716279",
+      "state": "running",
+      "pid": 1424,
+      "started_suspended": true,
+      "last_exit": "never exited"
+    },
+    "bundle_open": {
+      "command": "open -a /Applications/ODAFileConverter.app",
+      "result": "LaunchServices rejected the bundle with NSOSStatusErrorDomain Code=-10827 (kLSNoExecutableErr), although Contents/MacOS/ODAFileConverter exists and is executable."
+    },
+    "signature_check": {
+      "command": "codesign --verify --deep --strict --verbose=2 /Applications/ODAFileConverter.app",
+      "result": "invalid signature (code or signature have been modified); In architecture: arm64"
+    },
+    "accessibility_probe": {
+      "command": "System Events query for the ODAFileConverter process name and frontmost state",
+      "result": "AppleScript returned error -10827; no usable UI state was established."
+    },
+    "conversion_attempted": false,
+    "interpretation": "The launchd application job alone is not a normal usable launch: it is started suspended, LaunchServices rejects the bundle, and signature verification fails. This is an installation/bundle blocker, not evidence about MLINE parsing.",
+    "output_witness": false
+  },
+  "official_current_arm64_package_probe": {
+    "date": "2026-11-17",
+    "source_page": "https://www.opendesign.com/guestfiles/oda_file_converter",
+    "source_page_observation": "ODA lists 27.10 (released 2026-10-30) and macOS 13.0+ arm64 downloads.",
+    "dmg": {
+      "path": "/private/tmp/ODAFileConverter_QT6_macOsX_arm64_27.10.dmg",
+      "sha256": "ae694b8292a7c9de3a3257950a8e29d5be91251edcec125885c586929119a849",
+      "hdiutil_verify": "valid image checksum",
+      "embedded_app_version": "27.10.0.0",
+      "embedded_app_codesign": "invalid signature (code or signature have been modified); Authority unavailable; Info.plist not bound",
+      "executed": false
+    },
+    "pkg": {
+      "path": "/private/tmp/ODAFileConverter_QT6_macOsX_arm64_27.10.pkg",
+      "sha256": "01494f75dbbd3816850d6115b9b0036068cc0e43cc2da25edcfa37bb97f4d486",
+      "pkgutil_check_signature": "invalid signature",
+      "installed": false
+    },
+    "conversion_attempted": false,
+    "interpretation": "The official download page supplies both macOS ARM64 package formats, but neither current 27.10 artifact passes local publisher-signature verification. The DMG container checksum is valid; this does not validate its app code signature. Do not execute or install either artifact, and do not infer anything about MLINE parsing.",
+    "output_witness": false
+  },
+  "disposition": {
+    "gate": "P6-H",
+    "status": "WAITING_FOR_VALID_MACOS_CONVERTER_INSTALLATION",
+    "unblock_condition": "ODA publishes an official macOS ARM64 bundle whose package/app signatures verify and whose app opens through LaunchServices in a usable session.",
+    "next_action": "Do not execute or install the currently downloaded 27.10 artifacts, and do not retry conversion, until ODA provides a verifiable bundle that opens normally. Then convert the exact existing scratch source once; do not regenerate it or add either file to repository fixtures.",
+    "support_claim_effect": "none"
+  }
+}

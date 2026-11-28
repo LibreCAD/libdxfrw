@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-08",
+  "scope": "Generated AC1024 TABLESTYLE DXF CMC truecolor and color-book codec control",
+  "status": "bounded-codec-profile-only",
+  "specification": "Open Design Specification for .dwg files v5.4.1, §§20.4.101.3–20.4.101.4 (TABLESTYLE content and cell-style fields); Autodesk's common DXF group-code reference identifies 420 as 24-bit truecolor and 430 as a color name, with no CMC method field. DXF CMC group-code encoding is exercised as a generated codec control, not independently producer-qualified.",
+  "dxf_reference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+  "implementation": {
+    "writer": "The typed R24 TABLESTYLE writer validates the bounded CMC payload and emits the base group 62 value, optional 420 RGB integer, and optional 430 BOOK$ENTRY string. It bounds UTF-8 field lengths, rejects unsafe separators and inconsistent name flags, and preserves the generated name/book split. DXF has no CMC method field: method-zero CMC with RGB is emitted as 420 (and optional 430) and readback canonicalizes it to C2. A color name/book without an RGB base remains refused because it is not accepted by this bounded parser profile.",
+    "parser": "The TABLESTYLE parser tracks whether the optional CMC fields were present and reconstructs RGB, color name, book name, method, and flags for background, content, and border colors. Group 62 value 256 is accepted as the base selector for a following truecolor field.",
+    "limits": "Only the generated bounded CMC profile is covered. Native CAD rendering, independent producer behavior, the full DXF color-book domain, and broader document graph closure are not established."
+  },
+  "generated_controls": {
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "fields": [
+      "title background: RGB 0xAABBCC, book Palette, entry Sky Blue",
+      "content color: RGB 0x123456, book Palette, entry Warm Gray",
+      "border color: RGB 0x654321, book Palette, entry Accent"
+    ],
+    "assertions": [
+      "writer emits group 62/420/430 for each color profile",
+      "fresh readback preserves typed RGB, entry, book, method, and flags",
+      "method-zero CMC with RGB/book is emitted and readback canonicalizes method to C2 while preserving RGB and names",
+      "color-book/name CMC without an RGB base is refused without replacing the destination",
+      "out-of-range RGB 0x1000000 is refused without replacing the destination",
+      "corrected write succeeds on the same adapter after refusal"
+    ],
+    "fixture_policy": "No DWG/DXF fixture files were added; generated outputs are temporary and removed by the test."
+  },
+  "validation": {
+    "commands": [
+      "git diff --check",
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure"
+    ],
+    "result": "passed; focused CTest 1/1"
+  },
+  "source_sha256": {
+    "src/libdxfrw.cpp": "fd7498be4d71679c3f44e6ec3106243992e535e643211b10cbba1608b80d320a",
+    "src/drw_objects.cpp": "a77fa58e75e6b5de9ab839f6c49255ca4ae890ebe8a4b568830628d3b1420abd",
+    "src/drw_objects.h": "84df68a17e5dbf67c60a1a86093ef7c4463c62bb2cd618dd58ec726136a067c2",
+    "tests/dwg2dxf_adapter_tests.cpp": "a48af733f5710dd9ff1cf844882fd485e896c6f2783809168f9e53a04d182530"
+  },
+  "support_claim": "This receipt records generated encoder/parser consistency and refusal/retry behavior only; it does not independently qualify native CAD semantics or expand DWG/DXF support claims."
+}

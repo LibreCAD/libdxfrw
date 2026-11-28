@@ -1,0 +1,29 @@
+{
+  "id": "p5-ac1018-style-resource-adapter-binding-2026-11-11",
+  "scope": "Import-scoped adapter retention and same-import comparison for a selected AC1018 STYLE_CONTROL to STYLE source pair.",
+  "implementation": {
+    "selection": "dx_iface::enableVerifiedStyleResourceSource(controlHandle, styleHandle) selects exactly one control/record pair and is mutually exclusive with the existing XRECORD candidate selection path.",
+    "reader_tickets": "The existing DWG reader delivers only CRC-checked STYLE_CONTROL and STYLE tickets after complete frame coverage. dx_iface retains the selected source bodies and typed STYLE snapshot under the current import token and generation.",
+    "membership": "The adapter parses the retained STYLE_CONTROL body and requires exactly one ordered STYLE member with role 2 matching the selected STYLE handle.",
+    "typed_binding": "A bounded field comparison joins the source STYLE snapshot with exactly one same-import DRW_Textstyle callback row. Non-EED fields and ordered APPDATA/XDATA are compared; each deferred APPID slot must resolve to exactly one typed APPID row whose name matches the final group-1001 value. The source query also requires that APPID row to match its immutable import-generation snapshot across common table-entry fields, unknown71 and DWG name-source bytes. Pending layer references are refused. The shared retained-byte estimator bounds dynamic strings and data, with a 16 KiB total pair budget.",
+    "revalidation": "dx_iface::hasUnchangedVerifiedStyleResourceSource rechecks import token/generation, selected source identities, control membership, live typed STYLE, and every referenced APPID against its immutable source snapshot. Missing, duplicated or mutated APPID rows refuse the source query.",
+    "output_policy": "The source query does not authorize DWG/DXF replay, output ordering, graph closure or support claims."
+  },
+  "validation": {
+    "build_command": "cmake --build build --target libdxfrw_dwg_local_roundtrip -j 3",
+    "build_result": "PASS: root test adapter and local round-trip executable compiled and linked.",
+    "runtime_command": "build/libdxfrw_dwg_local_roundtrip --inspect-physical-style-resource-adapter /private/tmp/p5-desc-input/input.dwg",
+    "runtime_result": "PASS for the selected source/profile: source SHA256 1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a imported as AC1018 with all 226 frames published. Source and typed STYLE were bound; STYLE mutation, APPID name mutation and APPID unknown71 mutation were each refused and restoration passed. A half-length scratch copy failed at BAD_READ_FILE_HEADER without a source receipt, and the same adapter rebound the original on retry. The generated bounded output model preserved its source snapshots, refused a mutated STYLE without replacing an existing destination, then passed ASCII and Binary retry with fresh typed STYLE/APPID readback. A separate attempted full physical-source export remains refused during preflight by the unrelated AC1018 SUN owner graph.",
+    "remaining_runtime": "The generated output-model retry/readback is libdxfrw self-readback, not an independent consumer or native rendering check. It proves one selected STYLE resource profile only; source ordering and recursive TABLESTYLE/LTYPE closure remain open."
+  },
+  "next": [
+    "Add a portable generated fast control for source-frame binding, same-import APPID snapshot closure, mutation refusal, incomplete-import withholding and corrected same-adapter retry; the current source probe uses one external AC1018 sample.",
+    "Close the remaining selected TABLESTYLE/LTYPE graph and establish source-to-output ordering with exact staged-record inspection before broadening any profile.",
+    "Qualify font resolution/rendering, independent consumer semantics and native platforms separately."
+  ],
+  "limitations": [
+    "This is one selected AC1018 source/profile. The physical input retains an unrelated HEADER integrity observation and full-source export is refused by an unrelated SUN owner graph.",
+    "Generated output readback uses libdxfrw and does not establish native AutoCAD/ODA acceptance, independent semantics or font rendering.",
+    "No DWG/DXF fixture was added to the repository."
+  ]
+}

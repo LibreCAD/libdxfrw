@@ -1,0 +1,127 @@
+{
+  "schema": "libdxfrw-deeper-cross-project-peer-output-and-recovery-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden DWG/DXF peer research from capability matrices to issue-level output and hostile-input reports, consumer/code-lineage relationships, and narrowly scoped implementation readiness. Update existing plan owners without inferring a local defect or promoting support claims.",
+  "method": {
+    "kind": "Primary project repositories, issue reports, maintainer follow-ups, vendor DXF references, and local read-only plan/source inspection",
+    "peerLibrariesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "Issue claims are tied to stated peer releases or mutable upstream pages. No exact peer executable or binary was run. Any future comparator must pin the codec commit/package, consumer build, route, options, and exact input/output hashes.",
+    "evidenceRule": "Issue reports and maintainer statements identify peer-specific failure patterns only. A proposed or upstream fix without a pinned release retest does not establish current behavior, a normative file-format rule, or a libdxfrw defect. Same-codec downstream applications are one parser lineage; app-side rewrites must be recorded separately."
+  },
+  "evidence": [
+    {
+      "topic": "True-color LAYER fallback ACI",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/115",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "ACadRust issue #115 reports that version 0.6.0 wrote exact LAYER group 420 but reset explicit group 62 to 7. The maintainer said paired fallback-ACI/true-color output would be fixed in 0.6.3; the issue page does not show independent current-release verification.",
+      "doesNotEstablish": [
+        "current ACadRust release behavior",
+        "a normative nearest-ACI rule for libdxfrw",
+        "a local libdxfrw LAYER writer defect"
+      ],
+      "planUse": "Refine PAR-66/7AN to assert preservation of an explicit source group 62 beside exact group 420, and keep true-color-only input on a separately documented fallback policy."
+    },
+    {
+      "topic": "TEXT oblique angle writer units",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/125",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-62E5383D-8A14-47B4-BFC4-35824CAE8363.htm",
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html"
+      ],
+      "observed": "ACadRust 0.6.3 issue #125 reports a DXF TEXT group-51 angle written in radians while the reader treats it as degrees. The maintainer said upstream was fixed, but no independent retest appears on the issue page. Autodesk identifies group 51 as TEXT oblique data and documents filer conversion between degrees and DXF angle fields.",
+      "doesNotEstablish": [
+        "the current released ACadRust behavior",
+        "a local libdxfrw production defect",
+        "correct display/rendering from a numeric round trip alone"
+      ],
+      "planUse": "Add a literal ASCII/binary group-51 writer assertion to existing PAR-95/7BD coverage, before same-library parse-back; retain distinct DWG-radian and DXF-degree assertions."
+    },
+    {
+      "topic": "Malformed DWG bounds, allocation, and panic reports",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/123",
+        "https://github.com/hakanaktt/acadrust/issues/124"
+      ],
+      "observed": "The 0.6.3 peer issues describe generated AC1024 bit-flip cases that reportedly cause count inflation with zero-padding, multi-terabyte allocation/abort, or an unchecked header slice panic. Maintainer commits are linked with recheck requests, without a broad corpus retest in the issue pages.",
+      "doesNotEstablish": [
+        "a matching libdxfrw vulnerability",
+        "that peer-specific byte offsets apply to other DWGs or implementations",
+        "that the linked changes eliminate every malformed-input failure"
+      ],
+      "planUse": "Use the failure classes under existing PAR-14/7BE safety owners. Test local generated data at semantically selected fields, bounded allocation/work, recoverable failure, no fabricated publication, and suffix framing; do not copy peer offsets or require per-slice fuzz/full suites."
+    },
+    {
+      "topic": "ACadRust downstream application transformations and lineage",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/storytold/cadcraft/blob/main/crates/dwg/src/lib.rs"
+      ],
+      "observed": "ACadRust identifies OpenCADStudio and CADCraft as downstream users. CADCraft's helper contains a post-writer DXF HEADER routine for selected variables, demonstrating that application-level output may differ from raw codec output.",
+      "doesNotEstablish": [
+        "independent parser agreement across these applications",
+        "complete DWG/DXF semantic fidelity from advertised feature matrices",
+        "native CAD acceptance of app-transformed output"
+      ],
+      "planUse": "Count these products as one codec lineage. At a composed comparison, identify raw codec versus app-transformed bytes and bind exact source/build, file version, transformations, diagnostics, and per-object outcomes."
+    },
+    {
+      "topic": "dxflib comparator scope",
+      "sources": [
+        "https://www.qcad.org/en/what-is-dxflib",
+        "https://www.qcad.org/doc/dxflib/2.5/reference/overview.html",
+        "https://qcad.org/doc/dxflib/2.5/reference/writing.html"
+      ],
+      "observed": "The dxflib guide describes callback forwarding for supported entities rather than a retained full document model, requires writer calls in prescribed order, and documents R12 and DXF 2000/2002 output at the time of publication.",
+      "doesNotEstablish": [
+        "current dxflib release coverage",
+        "DWG support",
+        "full object graph or opaque-record preservation",
+        "modern 3D or ACIS semantic support"
+      ],
+      "planUse": "Keep dxflib/QCAD as an optional narrow DXF consumer/order comparison only for overlapping feature/version routes."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "perSliceValidationExpanded": false,
+    "nextActions": [
+      "Add a direct typed TEXT group-51 literal assertion in ASCII and binary to the existing fast owner; require the degree value before parse-back.",
+      "In 7AN, keep explicit source group 62 and group 420 preservation separate from any true-color-only fallback decision.",
+      "For touched malformed DWG paths, use locally generated in-memory input and test bounded work, recoverable outcome, publication state, and following-record behavior appropriate to that record boundary.",
+      "At one composed peer checkpoint only, pin parser lineage, exact codec and app builds, intermediate transformations, and per-object results."
+    ],
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptAdded": true,
+    "planAndReceiptOnly": true,
+    "codeChanged": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

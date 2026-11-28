@@ -1,0 +1,47 @@
+{
+  "title": "FreeCAD 1.1.4 native platform workflow pin and local consumer recheck",
+  "date": "2026-11-12",
+  "status": "PIN UPDATED; local macOS controls pass; hosted Linux and Windows qualification pending",
+  "release": {
+    "tag": "1.1.4",
+    "commit": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "metadata_url": "https://api.github.com/repos/FreeCAD/FreeCAD/releases/tags/1.1.4",
+    "assets": {
+      "linux": {
+        "name": "FreeCAD_1.1.4-Linux-x86_64-py311.AppImage",
+        "sha256": "f6dc6ba676e5ac96a565ebc8d657232f94c6158e85b4352141bd1a46f6b43434"
+      },
+      "windows": {
+        "name": "FreeCAD_1.1.4-Windows-x86_64-py311.7z",
+        "sha256": "4828741fc91ee37fafcdb97a1abacb18b04ba451ac4372d9ff7a7349b36f4d6d"
+      }
+    }
+  },
+  "changes": {
+    "workflow": ".github/workflows/freecad-platform-qualification.yml now downloads and verifies the 1.1.4 Linux and Windows release assets",
+    "expected_revision": "tests/CMakeLists.txt defaults generated native-consumer checks to the 1.1.4 release commit",
+    "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md records the new pin and retains the hosted-platform gate as open"
+  },
+  "local_runtime": {
+    "platform": "macOS arm64",
+    "freecad_version": "1.1.4",
+    "freecad_revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "freecadcmd_sha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60",
+    "installed_converter": "/private/tmp/libdxfrw-freecad-ac1024-prefix/bin/dwg2dxf",
+    "installed_converter_sha256": "e87d9b5c0dbb2054ad43e9a2877bce1d96297925ebe6b4a4499f11f7038d9669"
+  },
+  "validation": {
+    "configure": "cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_FREECAD_EXPECTED_REVISION=4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "build": "cmake --build build --target dwg2dxf libdxfrw_dwg_local_roundtrip (no work required)",
+    "cli_compatibility": {
+      "selector": "^dwg2dxf_freecad_(generated_ac1021_(line|primitives)_(open|insert)|generated_ac1024_primitives_(open|insert)|cli_compat|installed_cli_compat)$",
+      "result": "2/2 passed"
+    },
+    "native_open_insert": {
+      "selector": "^dwg2dxf_freecad_generated_ac102(1|4)_primitives_(open|insert)$",
+      "result": "4/4 passed outside the sandbox",
+      "sandbox_observation": "The same four invocations aborted before import because Qt could not detect ARM NEON; no geometry assertions ran in those attempts."
+    }
+  },
+  "scope_limit": "This updates the pinned tool and provides local macOS 1.1.4 regression evidence only. Hosted Linux/Windows runs, physical producer breadth, native DWG, broad application semantics, and general 3D support remain unqualified."
+}

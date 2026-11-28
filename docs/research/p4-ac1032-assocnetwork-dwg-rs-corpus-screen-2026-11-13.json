@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-13",
+  "topic": "External associative-network corpus candidate screen",
+  "purpose": "Determine whether the newly documented dwg-rs public corpus supplies an eligible source witness for the open AC1032 associative-network class-version-2 schema and graph gate.",
+  "sources": [
+    {
+      "title": "dwg-rs README",
+      "url": "https://github.com/DrunkOnJava/dwg-rs",
+      "observations": [
+        "The repository describes itself as pre-alpha.",
+        "Its README reports five associative-network custom classes among records skipped in four BookViewerApp3 drawings.",
+        "The README says those records have no DXF exports and that their few occurrences do not settle the field lists."
+      ]
+    },
+    {
+      "title": "dwg-rs clean-room corpus record",
+      "url": "https://github.com/DrunkOnJava/dwg-rs/blob/main/CLEANROOM.md",
+      "observations": [
+        "The documented BookViewerApp3 source pin is commit b8e1dcbf26183e96d199499e491c368c935fb0b0 and is identified as MIT-licensed.",
+        "The listed drawings are four AC1014 files: 2d.dwg, 3d.dwg, Draw.dwg, and Draw2.dwg.",
+        "The repository attributes AutoCAD authorship to selected R14 files using embedded AutoCAD 2019 installation paths, while noting R14 lacks AcDb:AppInfo."
+      ]
+    }
+  ],
+  "assessment": {
+    "eligibleForAc1032ClassVersion2Schema": false,
+    "reason": "The documented BookViewerApp3 candidates are AC1014, not AC1032. The peer repository itself says the associative-class records have no DXF twins and do not settle their field lists.",
+    "producerEvidence": "The file corpus is pinned and MIT-licensed; selected embedded product paths are source metadata, not a producer execution receipt or native semantic oracle.",
+    "localFilesRetrieved": false,
+    "fixturesCommitted": false,
+    "supportClaimsPromoted": false,
+    "decision": "Keep the AC1032 associative-network schema/output gate open. Retain this only as a possible AC1014 parser-boundary candidate if its exact source files are later inspected; do not use it to infer AC1032 fields or associative behavior."
+  }
+}

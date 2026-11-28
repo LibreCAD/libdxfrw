@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-mleaderstyle-dxf-wire-correction-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Remove table-only groups from AC1024 MLEADERSTYLE DXF objects",
+  "status": "SCOPED_WIRE_CORRECTION_VERIFIED; BROADER_CONSUMER_IMPORT_STILL_BLOCKED",
+  "supportClaimEffect": "none",
+  "baselineCommit": "4a819b23",
+  "implementationCommit": "93bc33a3",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "mleaderStyles": 2,
+    "fixturePolicy": "Existing local source only; no DWG/DXF fixture file was added to the repository."
+  },
+  "evidence": {
+    "primaryDxFSchema": "Autodesk Common MLeader Group Codes (DXF), https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-69B9139A-48B4-48A5-B3CF-A3233ABFBE49.htm",
+    "sameInputPeerProjection": {
+      "tool": "LibreDWG 0.14 dwg2dxf",
+      "path": "/private/tmp/mechanical-libredwg-r2010.dxf",
+      "sha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+      "observation": "The two MLEADERSTYLE objects omit groups 2 and 70; the style identities are carried by ACAD_MLEADERSTYLE dictionary keys. Peer output is only a field-shape cross-check and is not semantic acceptance."
+    },
+    "independentReader": {
+      "tool": "LibreDWG 0.14 dxf2dwg",
+      "binarySha256": "d8d27fed5519b67b977170093f3e3d2cd2aeae086ba2db75b5ded2faf2ec31e8",
+      "target": "R2004",
+      "before": {
+        "output": "/private/tmp/libdxfrw_mechanical_strict_current.dxf",
+        "outputSha256": "9e549ab431f3ce1040f96fb646582b22e929db79bbfce958cff9312b631b6471",
+        "diagnostic": "ERROR: Invalid DXF code 2 for MLEADERSTYLE"
+      },
+      "after": {
+        "output": "/private/tmp/libdxfrw_mechanical_after_mleader_fix.dxf",
+        "outputSha256": "bfc8b33bd87f568c3b4625dae40fc8bffbfc6b3f6dd7655ddd526a7edf8c2819",
+        "diagnostic": "MLEADERSTYLE parses; conversion later fails at duplicate-handle diagnostic 734 and Invalid DXF code 90 for ASSOCVALUEDEPENDENCY"
+      },
+      "limits": "The later failure means the full document is not independently accepted. It is a new P4/P6 compatibility differential requiring schema review; do not suppress the value-dependency body or infer the duplicate's meaning from this result."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "MLEADERSTYLE DXF output now omits group 2 and group 70. The style name is represented by its ACAD_MLEADERSTYLE dictionary key; the object serializes its documented style fields and references.",
+    "readbackControl": "The physical-source selector checks both ASCII and binary output contain exactly two MLEADERSTYLE records and no group 2 or group 70 in either record, then verifies existing typed-field, owner-key, handle-role, mutation-refusal, destination-preservation and retry checks.",
+    "sourceHashesSha256": {
+      "src/libdxfrw.cpp": "cfb745e6bf2be564a51f2c4535c261888196f30585405c404cdcf90a9db34191",
+      "tests/dwg2dxf_adapter_tests.cpp": "f8abce356b3d38840fc4eae090c36e1a03c1258a0d709aa358a12e34857a3125",
+      "tests/wave1_tests.cpp": "461b76e586f7c2ee7f17fe87ee22465593597d3ea7a8164b8b7ab0773af3929b"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS"
+    },
+    "focusedPhysicalReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mleaderstyle-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and binary; 2 identities each; selector exit 0"
+    },
+    "generatedWireControls": {
+      "command": "build-gcc/libdxfrw_wave1_tests --mleader-style-validation",
+      "result": "PASS; ASCII/Binary writer omits group 2 and group 70 across AC1021, AC1024 and AC1027"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+      "result": "PASS 1/1; includes the no-group-2/no-group-70 MLEADERSTYLE assertion and updated packed-color expectations"
+    },
+    "unrelatedExistingClosureCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mleaderstyle_writer_closure$' --output-on-failure",
+      "result": "FAIL before MLEADERSTYLE output at the existing Layer TABLE control identity/LAYER membership preflight; this separate failure is documented in p4-ac1024-mleaderstyle-physical-output-readback-2026-10-31.json and is not used as evidence for this correction"
+    },
+    "strictPhysicalConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -v2010 /private/tmp/libdxfrw_mechanical_after_mleader_fix.dxf",
+      "result": "PASS; conversion exit 0"
+    },
+    "independentConsumer": {
+      "command": "/opt/homebrew/bin/dxf2dwg --as r2004 -y -o /private/tmp/libdxfrw_mechanical_after_mleader_fix_roundtrip.dwg /private/tmp/libdxfrw_mechanical_after_mleader_fix.dxf",
+      "result": "EXPECTED PARTIAL DIAGNOSTIC: no MLEADERSTYLE rejection; later fails at ASSOCVALUEDEPENDENCY group 90 and duplicate-handle diagnostic"
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "nextAction": "Resolve the newly exposed AC1024 ASSOCVALUEDEPENDENCY DXF schema/consumer differential against Autodesk/ODA and the exact source graph. Establish whether LibreDWG 0.14 is rejecting a valid derived body or whether emitted fields are outside the DXF contract; preserve the value semantics and refuse output if no conforming lossless route is proven. Investigate duplicate handle 734 separately from the code-90 diagnostic."
+}

@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-19",
+  "scope": "Preserve LibreCAD numeric identities for existing public diagnostic and associative-prefix kinds.",
+  "librecad_master": "deaedc327850349ceb9b4825b3efcc68ac2a52eb",
+  "implementation_digest_sha256": "09b961f58cacf8e13dcad4db196e82aed3c6a1a9fbfd3d8fe49d5abcd1987a82",
+  "before": {
+    "bundled": "3 4 8 18 19 20",
+    "upstream": "4 5 9 27 28 29",
+    "fields": "GeomDependency Network AcShActionBody TableControlDanglingHandle EntityOwnerRecordMissing EntityBlockRecordErased"
+  },
+  "after": "3 4 8 18 19 20",
+  "change": "Keep LibreCAD values for those legacy names, allocate new template diagnostics to 27-29 without overlapping 18-20, and place newer associative kinds after the legacy nine kinds.",
+  "screen_notes": [
+    "DxfWriteMutationKind is a private implementation enum, not a public consumer contract.",
+    "UnitCount is an iteration sentinel whose increase from 21 to 25 accommodates the newly supported survey units; it was not reverted."
+  ],
+  "limitations": [
+    "This preserves selected numeric identities; binary ABI and general consumer compatibility are not established.",
+    "Hosted fast and platform checks for this digest remain pending."
+  ],
+  "validation": [
+    "The DWG reader matrix test executable and lc3_compat_check compiled with their numeric static assertions.",
+    "The focused libdxfrw_dwg_template_fields CTest passed.",
+    "A scratch executable confirmed the six legacy values match the bundled header, and current LibreCAD metadata source compiled against current upstream headers.",
+    "The source-release inventory, support-overlay and exact implementation digest checks passed."
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "RenderSettings callback retention and fail-closed adapter slice",
+  "mode": "local implementation with generated in-memory controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Retain existing low-level typed DRW_RenderSettings callbacks in dx_data",
+    "Retain full raw DXF carriers separately by supported RenderSettings record family",
+    "Refuse adapter export before publication while typed or raw RenderSettings records are present",
+    "Preserve handle inventory visibility for retained typed and raw identities"
+  ],
+  "method": {
+    "kind": "Focused adapter callback, destination-publication, and generated-test implementation",
+    "externalDrawingsDownloaded": 0,
+    "privateSamplesObtained": 0,
+    "peerRepositoriesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "limitations": "No RenderSettings DXF serializer is wired through dx_iface. Standalone PLOTSETTINGS mode-5 code-333 root/owner semantics remain version-specific and unqualified."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behaviors": [
+      "Captures typed RenderSettings callback values.",
+      "Captures raw carriers for RENDERSETTINGS, RENDERGLOBAL, RENDERENVIRONMENT, RENDERENTRY, RAPIDRTRENDERSETTINGS, and MENTALRAYRENDERSETTINGS names and ACDB aliases.",
+      "Includes retained record handles in adapter inventories.",
+      "Rejects export with unsupported RenderSettings carriers before publishing output."
+    ],
+    "generatedControls": [
+      "An in-memory ASCII OBJECTS graph with ACAD_RENDER_PLOT_SETTINGS dictionary and one RAPIDRTRENDERSETTINGS record.",
+      "Typed kind, handle, owner, name, positional values, raw name, and raw identity assertions.",
+      "ASCII and Binary sentinel-preservation checks and same-adapter retry after removing the unsupported graph."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-render-settings-callback-and-fail-closed",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-plotsettings-callback-and-fail-closed",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --plotsettings-visualstyle-shade-reference",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-datalink-callback-and-fail-closed",
+      "cmake --build build-gcc --target dwg2dxf lc3_compat_check -j2",
+      "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "focusedBuildPassed": true,
+    "renderSettingsSelectorPassed": true,
+    "namedObjectCallbackSelectorPassed": true,
+    "plotSettingsSelectorsPassed": true,
+    "dataLinkSelectorPassed": true,
+    "dwg2dxfBuildPassed": true,
+    "librecad3CompatibilityTargetPassed": true,
+    "fullSuiteRun": false,
+    "externalPeerOrNativeCadRun": false,
+    "renderPlotSemanticsQualified": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  }
+}

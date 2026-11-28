@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Loss-aware typed group-1070 Binary DXF numeric output",
+  "date": "2026-11-03",
+  "status": "TYPED_BINARY_NUMERIC_GUARD_IMPLEMENTED_RAW_BITS_UNCHANGED",
+  "supportClaimEffect": "none",
+  "authority": [
+    {
+      "title": "Autodesk numerical DXF group-code reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "finding": "Describes 1070 as a signed 16-bit integer."
+    },
+    {
+      "title": "Autodesk About Extended Data",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+      "finding": "Describes 1070 as signed or unsigned 16-bit; these descriptions conflict on semantic domain."
+    }
+  ],
+  "differential": {
+    "author": "ezdxf 1.4.5 locally authored AC1024 LINE/XDATA inputs with XTEST APPID and following SENTINEL",
+    "converter": "ODA File Converter 27.1.0 verified native macOS executable, audit disabled",
+    "converterSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "operations": [
+      "ACAD2010 DXB, recurse=0, audit=0",
+      "ACAD2010 DXF, recurse=0, audit=0"
+    ],
+    "observer": "ezdxf 1.4.5 reads ODA Binary and subsequent ODA ASCII output; original sentinel follows each integer",
+    "results": [
+      {
+        "input": -32768,
+        "expectedSignedBinary": -32768,
+        "inSha256": "5564309e7f9d9e03e120d638b799449b4b22fb43111ca67a421d760b66f7270f",
+        "binarySha256": "c893a47251001106db1c145f2452b71d59d408e2ec29e8b113e641739a03bb14",
+        "roundtripSha256": "90d48eb3db2b1ca9ceae2c3f1aeae754ff0c0d96f743db5e497820231cd53a37"
+      },
+      {
+        "input": -1,
+        "expectedSignedBinary": -1,
+        "inSha256": "eca304e7993946ca2198d07de9e6fb892993f4f0350201435acd270ae7149996",
+        "binarySha256": "9f57c19fc7c11652f1d6ff5c3f2317c3767ffa714f6f6e222acfc8d0bbef450f",
+        "roundtripSha256": "0f50f3b0ca02fd78fa181b37b80566a74fe2735b790fe99e3c2d199bb83966bb"
+      },
+      {
+        "input": 0,
+        "expectedSignedBinary": 0,
+        "inSha256": "94d3d7aac75fedfdf6d78fb6bc5aa0b0a7bb709ae2af8d5f889b720317a5abaa",
+        "binarySha256": "7bc0d4779179884b5d12d651307cf9b86b71538d2704d231af745d5e4fb0295b",
+        "roundtripSha256": "1e02207e3cbc7d8ece126e15cf0499ce584e7a2300454cbe10012d94dfbfb333"
+      },
+      {
+        "input": 32767,
+        "expectedSignedBinary": 32767,
+        "inSha256": "06dc4cd383f91293436e7a79c28deb683061d34c008a87d7dc0d1402a97e3a30",
+        "binarySha256": "522d78415c63558cccd1e16630fb4dcbe0c7709512467c4ddd441d55e79d0221",
+        "roundtripSha256": "74777f52fc909df813ab027e5b557c9867e316ee790f944c0dd42cd951e87f71"
+      },
+      {
+        "input": 32768,
+        "expectedSignedBinary": -32768,
+        "inSha256": "4bd66c6d21ab8f3986d9f9891bad38e959faaef8d6f45e93bf09220113281e57",
+        "binarySha256": "2a53be4b4e3ffd98cb379be0504dcc8cb0c29f24aad67e8d89c020572469e670",
+        "roundtripSha256": "37ba69e901276d2261648355bfddf6762787fdf58f48f3a464a8575d4b88b9d9"
+      },
+      {
+        "input": 40000,
+        "expectedSignedBinary": -25536,
+        "inSha256": "0bc3626436336108fb9c1bd16178b02cac2ba67c533584e452317e92787e7d8e",
+        "binarySha256": "7dff89643122bf1b1ae7a7ec90fa2e7095bc1e9be8e2997f5ecccbf89868c79f",
+        "roundtripSha256": "c91d0c84da0aa21d09253cc93134272a9e162ad67a4912a8e0096843c956eee1"
+      },
+      {
+        "input": 65535,
+        "expectedSignedBinary": -1,
+        "inSha256": "727b0b49ca8d3a552b2f3813ba33c799b906b6aec1080fd3d1004a77fee4d795",
+        "binarySha256": "0445db2e74c82edc55a407d2d2d6e7d3639ba1005134cca89eb32ac9bd04e7e1",
+        "roundtripSha256": "db61f1d043c5f8761ede75010680708e6fbf984a8ed32bce739a70f7e5195052"
+      }
+    ],
+    "finding": "ODA accepted all inputs and produced both outputs without .err. -32768 through 32767 kept their numeric values; positive 32768/40000/65535 became -32768/-25536/-1 in ODA Binary and ASCII readback while preserving the underlying 16-bit pattern. Do not claim ODA rejects unsigned values or that raw bits alone determine application interpretation."
+  },
+  "implementation": {
+    "policy": "Typed XDATA and typed DWG-compatible XRECORD 1070 values above 32767 refuse Binary DXF before emission because the existing Binary reader exposes the value as signed int16, changing the typed numeric value. Signed-range Binary and ASCII output remain available. Existing low-level dxfWriterBinary and opaque/raw record paths still carry 16-bit patterns, including an explicitly requested 40000 pattern.",
+    "asciiBoundary": "Existing dxfWriterAscii::writeInt16 and Binary counterpart already reject values outside [-32768,65535]. XDATA now checks that same range before writing the first group; ASCII accepted values are unchanged.",
+    "consumerCompatibility": "No pure virtual, object layout, underlying Binary reader or low-level raw-bit behavior changed. The Binary typed API now fails rather than silently changing positive numeric values in 32768..65535; callers intending a raw bit pattern can use an opaque route or explicitly supply the equivalent signed value."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_xdata_int16_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_xdata_int16_exact_numeric$' --output-on-failure",
+      "result": "PASS 1/1. Generated controls cover -32769, -32768, -1, 0, 32767, 32768, 40000, 65535 and 65536 in ASCII/Binary, no-prefix refusal, raw writer and opaque object bit transport, LINE XDATA and DWG-compatible XRECORD full-file destination rollback, caller-state preservation, same-codec corrected retry, and fresh typed readback."
+    }
+  ],
+  "limits": [
+    "Bit-pattern equality does not establish application-level signedness; the policy is loss avoidance for the existing typed numeric API.",
+    "Opaque/raw replay intentionally retains bit transport and can expose signed-normalized typed values when read from Binary.",
+    "No source or generated DXF/DWG fixtures are committed."
+  ]
+}

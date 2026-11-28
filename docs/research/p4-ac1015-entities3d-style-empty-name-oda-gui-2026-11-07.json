@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-07",
+  "title": "ODA GUI audit of AC1015 empty-name shape STYLE candidate",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg6/entities-3d.dwg",
+    "scratchCopy": "/private/tmp/oda-ac1015-style-shape/in/entities-3d.dwg",
+    "sha256": "7b06770ed5532f447f9a2d170af953df8067a6786e592963c39edf5c5d188ef2",
+    "bytes": 23955,
+    "version": "AC1015",
+    "provenance": "Local corpus candidate; producer and redistribution status remain unverified."
+  },
+  "converter": {
+    "name": "ODA File Converter 27.1.0",
+    "route": "Native macOS GUI, Audit enabled, Recurse disabled, output 2010 ASCII DXF",
+    "inputDirectory": "/private/tmp/oda-ac1015-style-shape/in",
+    "outputDirectory": "/private/tmp/oda-ac1015-style-shape/out",
+    "output": {
+      "path": "/private/tmp/oda-ac1015-style-shape/out/entities-3d.dxf",
+      "sha256": "09388ea7fcd65881ba760accf63304c1f7b039b46a76440b95ccd0db89169da7",
+      "bytes": 164106,
+      "version": "AC1024",
+      "errorReports": []
+    },
+    "result": "ODA produced a DXF without an .err report. The STYLE table contains source handle 0x38 as an empty-name shape style (flags 1, font es.shx). A text-record scan of the converted DXF found no SHAPE entity."
+  },
+  "sourceProfile": {
+    "styleHandle": "0x38",
+    "styleName": "",
+    "shapeFlag": 1,
+    "fontFile": "es.shx",
+    "shapeHandle": "0x39",
+    "shapeStyleHandle": "0x38",
+    "shapeId": 131,
+    "shapeName": ""
+  },
+  "limits": [
+    "No .err report and the retained STYLE row show only that ODA's GUI converter processed this local source profile and emitted that table row.",
+    "The missing SHAPE in ODA DXF means the output does not demonstrate lossless SHAPE conversion; the shape font/shape rendering semantics remain unqualified.",
+    "Source provenance is unverified. No source or converted DWG/DXF fixture was added to the repository.",
+    "Strict libdxfrw output still refuses during STYLE table emission. Do not admit the empty-name STYLE/SHAPE pair or claim broader AC1015 output support from this result."
+  ],
+  "nextAction": "Keep this candidate blocked. Reopen only with producer provenance or an independent native test that demonstrates the SHAPE entity and its named-shape semantics survive; otherwise proceed to a different evidence-ready local implementation slice."
+}

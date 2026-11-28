@@ -1,0 +1,870 @@
+{
+  "schema": "libdxfrw-scoped-research-evidence-v1",
+  "date": "2026-10-15",
+  "baseline": "a06447c4ad2229d2ff52a8b69fa23494f8ed3a95",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "scope": "Research/plan-only: installed Assimp projection calibration; current consumer/text-source review; explicit input-policy/owned-adapter/profile-admission readiness. Preserve pre-existing nine-file reader/API WIP; do not integrate, commit or promote it.",
+  "owners": [
+    "PAR-05 / Slice3.3c",
+    "PAR-74/85 / 7AR",
+    "PAR-81 / 7AU",
+    "7M",
+    "7H / S8",
+    "7AH / 7AQ"
+  ],
+  "qualificationEligible": false,
+  "upstreamPins": {
+    "LibreCAD/LibreCAD": "5a4197d223deb8eda75bdb7e0120ae35d7ffcbe6",
+    "LibreCAD/LibreCAD_3": "3dcdc4009546b8c9b2aa9605c52e2434bece6901",
+    "FreeCAD/FreeCAD": "4a1904f8db57d4a31e44cdb1dd984d4c98447c10",
+    "mozman/ezdxf": "7c64bce52c9d60b9db2dad4d2793c1168c8d3f64",
+    "LibreDWG/libredwg": "f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+    "DomCR/ACadSharp": "9bd47f48766a371c441e8d1ab80733e21f62b711",
+    "ixmilia/dxf": "3ab0f9d6d3f14a6f6fa924e111e8e3af1065c567",
+    "assimp/assimp:master": "665ab04c73364c9b6351a28664399c758731a959",
+    "assimp/assimp:v6.0.5": "392a658f9c271be965271f45e7521a1b80ea4392"
+  },
+  "primarySourceFiles": [
+    {
+      "repository": "FreeCAD/FreeCAD",
+      "revision": "4a1904f8db57d4a31e44cdb1dd984d4c98447c10",
+      "path": "src/Mod/Draft/importDXF.py",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/4a1904f8db57d4a31e44cdb1dd984d4c98447c10/src/Mod/Draft/importDXF.py",
+      "scratch_file": "freecad-importDXF.py",
+      "sha256": "569af9d5fd9f8e29f30d1bd93ff2c96d37b4584ee374294da7506f02458bc4fd"
+    },
+    {
+      "repository": "FreeCAD/FreeCAD",
+      "revision": "4a1904f8db57d4a31e44cdb1dd984d4c98447c10",
+      "path": "src/Mod/Draft/importDWG.py",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/4a1904f8db57d4a31e44cdb1dd984d4c98447c10/src/Mod/Draft/importDWG.py",
+      "scratch_file": "freecad-importDWG.py",
+      "sha256": "8311a76f3544cf691273da1dbe3891e4abfad939ecc9d9f62d394f260c040f87"
+    },
+    {
+      "repository": "FreeCAD/FreeCAD",
+      "revision": "4a1904f8db57d4a31e44cdb1dd984d4c98447c10",
+      "path": "src/Mod/Import/App/dxf/dxf.cpp",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/4a1904f8db57d4a31e44cdb1dd984d4c98447c10/src/Mod/Import/App/dxf/dxf.cpp",
+      "scratch_file": "freecad-dxf.cpp",
+      "sha256": "ece98dfb6ea6e1fc5f0527f22684a0631e9959e6b1d8949b182638e91e284aa3"
+    },
+    {
+      "repository": "FreeCAD/FreeCAD",
+      "revision": "4a1904f8db57d4a31e44cdb1dd984d4c98447c10",
+      "path": "src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/4a1904f8db57d4a31e44cdb1dd984d4c98447c10/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "scratch_file": "freecad-ImpExpDxf.cpp",
+      "sha256": "4754ab38c5672fc1bfbb3d13969c5a38c6e8e58b048842e47077ba0e93fcaec7"
+    },
+    {
+      "repository": "FreeCAD/FreeCAD",
+      "revision": "4a1904f8db57d4a31e44cdb1dd984d4c98447c10",
+      "path": "src/Mod/Import/App/dxf/dxf.h",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/4a1904f8db57d4a31e44cdb1dd984d4c98447c10/src/Mod/Import/App/dxf/dxf.h",
+      "scratch_file": "freecad-dxf.h",
+      "sha256": "19882ab5b77020eb8ddee2543836c8b6ea774d75f5ad88cf25221692aa427e9e"
+    },
+    {
+      "repository": "LibreCAD/LibreCAD",
+      "revision": "5a4197d223deb8eda75bdb7e0120ae35d7ffcbe6",
+      "path": "librecad/src/lib/filters/rs_filterdxfrw.cpp",
+      "url": "https://github.com/LibreCAD/LibreCAD/blob/5a4197d223deb8eda75bdb7e0120ae35d7ffcbe6/librecad/src/lib/filters/rs_filterdxfrw.cpp",
+      "scratch_file": "librecad-rs_filterdxfrw.cpp",
+      "sha256": "9d716e1872cb7a42f1428e612e1c00c80d7e84ffd04da70c779fb14e2ba74f5a"
+    },
+    {
+      "repository": "ixmilia/dxf",
+      "revision": "3ab0f9d6d3f14a6f6fa924e111e8e3af1065c567",
+      "path": "src/IxMilia.Dxf/DxfReader.cs",
+      "url": "https://github.com/ixmilia/dxf/blob/3ab0f9d6d3f14a6f6fa924e111e8e3af1065c567/src/IxMilia.Dxf/DxfReader.cs",
+      "scratch_file": "ixmilia-DxfReader.cs",
+      "sha256": "4a4445786ebefef925c12b803fc53b593ed976690e1c354aac813353cecdc07b"
+    },
+    {
+      "repository": "assimp/assimp",
+      "revision": "665ab04c73364c9b6351a28664399c758731a959",
+      "path": "code/AssetLib/DXF/DXFLoader.cpp",
+      "url": "https://github.com/assimp/assimp/blob/665ab04c73364c9b6351a28664399c758731a959/code/AssetLib/DXF/DXFLoader.cpp",
+      "scratch_file": "assimp-DXFLoader.cpp",
+      "sha256": "2729c9b35050cfe096ae8e472551c2f6ce2d8270d447939175ec672a9f9f6e2f"
+    },
+    {
+      "repository": "assimp/assimp",
+      "revision": "392a658f9c271be965271f45e7521a1b80ea4392",
+      "path": "code/AssetLib/DXF/DXFLoader.cpp",
+      "url": "https://github.com/assimp/assimp/blob/392a658f9c271be965271f45e7521a1b80ea4392/code/AssetLib/DXF/DXFLoader.cpp",
+      "scratch_file": "assimp-v6.0.5-DXFLoader.cpp",
+      "sha256": "9e02c20b8d32022e744d48147084b3c812c7f5a533a731287a296758eb1e2ce6"
+    }
+  ],
+  "normativeAndProjectionSources": [
+    "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-77D34F88-73CC-495D-B48C-37628EE61D73.htm",
+    "https://gdal.org/en/stable/drivers/vector/dxf.html"
+  ],
+  "executedResearch": {
+    "assimp": [
+      {
+        "runtime": "6.0.5",
+        "revision": 0,
+        "success": true,
+        "error": "",
+        "meshes": [
+          {
+            "name": "0",
+            "faces": 1,
+            "vertices": [
+              [
+                1,
+                3,
+                -2
+              ],
+              [
+                4,
+                8,
+                -6
+              ]
+            ]
+          }
+        ],
+        "name": "root-line",
+        "encoding": "ASCII",
+        "input_sha256": "5af0963747d0986e4bd07e75e9d34d5fdf3b7ce73c8045ae9a540dbc8168e381",
+        "authored_expected_assimp_frame_vertices": [
+          [
+            1,
+            3,
+            -2
+          ],
+          [
+            4,
+            8,
+            -6
+          ]
+        ],
+        "vertices_match": true,
+        "source_entity_types": [
+          "LINE"
+        ],
+        "author_audit": {
+          "errors": 0,
+          "fixes": 0
+        },
+        "author_readback_audit": {
+          "errors": 0,
+          "fixes": 0
+        }
+      },
+      {
+        "runtime": "6.0.5",
+        "revision": 0,
+        "success": true,
+        "error": "",
+        "meshes": [
+          {
+            "name": "0",
+            "faces": 1,
+            "vertices": [
+              [
+                11,
+                33,
+                -22
+              ],
+              [
+                14,
+                38,
+                -26
+              ]
+            ]
+          }
+        ],
+        "name": "block-rotation-0",
+        "encoding": "ASCII",
+        "input_sha256": "05899f6aa5566993dec08ada6d930d4e7d8a623591a17055cab67591b5379c08",
+        "authored_expected_assimp_frame_vertices": [
+          [
+            11,
+            33,
+            -22
+          ],
+          [
+            14,
+            38,
+            -26
+          ]
+        ],
+        "vertices_match": true,
+        "source_entity_types": [
+          "INSERT"
+        ],
+        "author_audit": {
+          "errors": 0,
+          "fixes": 0
+        },
+        "author_readback_audit": {
+          "errors": 0,
+          "fixes": 0
+        }
+      },
+      {
+        "runtime": "6.0.5",
+        "revision": 0,
+        "success": true,
+        "error": "",
+        "meshes": [
+          {
+            "name": "0",
+            "faces": 1,
+            "vertices": [
+              [
+                11,
+                33,
+                -22
+              ],
+              [
+                14,
+                38,
+                -26
+              ]
+            ]
+          }
+        ],
+        "name": "block-rotation-90",
+        "encoding": "ASCII",
+        "input_sha256": "c006f6c27a7364b456ada18af2723f324bd1b2b66de6bb295699f18ed708bc28",
+        "authored_expected_assimp_frame_vertices": [
+          [
+            8,
+            33,
+            -21
+          ],
+          [
+            4,
+            38,
+            -24
+          ]
+        ],
+        "vertices_match": false,
+        "source_entity_types": [
+          "INSERT"
+        ],
+        "author_audit": {
+          "errors": 0,
+          "fixes": 0
+        },
+        "author_readback_audit": {
+          "errors": 0,
+          "fixes": 0
+        }
+      },
+      {
+        "runtime": "6.0.5",
+        "revision": 0,
+        "success": true,
+        "error": "",
+        "meshes": [
+          {
+            "name": "0",
+            "faces": 2,
+            "vertices": [
+              [
+                101,
+                103,
+                -102
+              ],
+              [
+                104,
+                106,
+                -105
+              ],
+              [
+                1,
+                3,
+                -2
+              ],
+              [
+                4,
+                6,
+                -5
+              ]
+            ]
+          }
+        ],
+        "name": "nested-insert-with-later-sibling",
+        "encoding": "ASCII",
+        "input_sha256": "3ac6092d6a43542d9b8c6ec8eaf597c8aaf94e9efdf9ed5b85b0504587774791",
+        "authored_expected_assimp_frame_vertices": [
+          [
+            1,
+            3,
+            -2
+          ],
+          [
+            4,
+            6,
+            -5
+          ],
+          [
+            21,
+            23,
+            -22
+          ],
+          [
+            24,
+            26,
+            -25
+          ],
+          [
+            11,
+            13,
+            -12
+          ],
+          [
+            14,
+            16,
+            -15
+          ],
+          [
+            101,
+            103,
+            -102
+          ],
+          [
+            104,
+            106,
+            -105
+          ]
+        ],
+        "vertices_match": false,
+        "source_entity_types": [
+          "INSERT",
+          "LINE"
+        ],
+        "author_audit": {
+          "errors": 0,
+          "fixes": 0
+        },
+        "author_readback_audit": {
+          "errors": 0,
+          "fixes": 0
+        },
+        "expected_line_instances": 4
+      },
+      {
+        "runtime": "6.0.5",
+        "revision": 0,
+        "success": true,
+        "error": "",
+        "meshes": [
+          {
+            "name": "0",
+            "faces": 1,
+            "vertices": [
+              [
+                1,
+                3,
+                -2
+              ],
+              [
+                4,
+                8,
+                -6
+              ]
+            ]
+          }
+        ],
+        "name": "line-and-circle",
+        "encoding": "ASCII",
+        "input_sha256": "fbac60ed157d543395e98c3b25de3a2007ecb14a70495b72349dcee195c4322c",
+        "authored_expected_assimp_frame_vertices": [
+          [
+            1,
+            3,
+            -2
+          ],
+          [
+            4,
+            8,
+            -6
+          ]
+        ],
+        "vertices_match": true,
+        "source_entity_types": [
+          "LINE",
+          "CIRCLE"
+        ],
+        "author_audit": {
+          "errors": 0,
+          "fixes": 0
+        },
+        "author_readback_audit": {
+          "errors": 0,
+          "fixes": 0
+        },
+        "expected_circle_count": 1,
+        "note": "line projection alone matches"
+      },
+      {
+        "runtime": "6.0.5",
+        "revision": 0,
+        "success": true,
+        "error": "",
+        "meshes": [
+          {
+            "name": "0",
+            "faces": 1,
+            "vertices": [
+              [
+                1,
+                3,
+                -2
+              ],
+              [
+                4,
+                8,
+                -6
+              ]
+            ]
+          }
+        ],
+        "name": "classic-polyline-three-vertices",
+        "encoding": "ASCII",
+        "input_sha256": "c51412e78104bc99fde2acdf8416386ee919a9235caf5d90668c88896b6b42df",
+        "authored_expected_assimp_frame_vertices": [
+          [
+            1,
+            3,
+            -2
+          ],
+          [
+            4,
+            8,
+            -6
+          ],
+          [
+            9,
+            15,
+            -12
+          ]
+        ],
+        "vertices_match": false,
+        "source_entity_types": [
+          "POLYLINE"
+        ],
+        "author_audit": {
+          "errors": 0,
+          "fixes": 0
+        },
+        "author_readback_audit": {
+          "errors": 0,
+          "fixes": 0
+        },
+        "expected_segment_count": 2
+      },
+      {
+        "runtime": "6.0.5",
+        "revision": 0,
+        "success": true,
+        "error": "",
+        "meshes": [
+          {
+            "name": "0",
+            "faces": 1,
+            "vertices": [
+              [
+                1,
+                3,
+                -2
+              ],
+              [
+                4,
+                8,
+                -6
+              ]
+            ]
+          }
+        ],
+        "name": "line-and-point",
+        "encoding": "ASCII",
+        "input_sha256": "f43b48e0518dcf89f93d904eefa5383c8aff077064b4a9b2a9bab7436ae27f06",
+        "authored_expected_assimp_frame_vertices": [
+          [
+            1,
+            3,
+            -2
+          ],
+          [
+            4,
+            8,
+            -6
+          ]
+        ],
+        "vertices_match": true,
+        "source_entity_types": [
+          "LINE",
+          "POINT"
+        ],
+        "author_audit": {
+          "errors": 0,
+          "fixes": 0
+        },
+        "author_readback_audit": {
+          "errors": 0,
+          "fixes": 0
+        },
+        "expected_point_count": 1,
+        "note": "v6.0.5 omits POINT; master has a source-only route"
+      },
+      {
+        "runtime": "6.0.5",
+        "revision": 0,
+        "success": false,
+        "error": "DXF: Binary files are not supported at the moment",
+        "meshes": [],
+        "name": "binary-root-line",
+        "encoding": "binary",
+        "input_sha256": "0a8a6e2b2fdc80251527f43e0a383f1638c10879f0c98dc3217c3274614739c4",
+        "authored_expected_assimp_frame_vertices": [
+          [
+            1,
+            3,
+            -2
+          ],
+          [
+            4,
+            8,
+            -6
+          ]
+        ],
+        "vertices_match": false,
+        "source_entity_types": [
+          "LINE"
+        ],
+        "author_audit": {
+          "errors": 0,
+          "fixes": 0
+        },
+        "author_readback_audit": {
+          "errors": 0,
+          "fixes": 0
+        }
+      }
+    ],
+    "freecad_pure_deformat": [
+      {
+        "input": "Ąĸ˙",
+        "output": "Ąĸ˙"
+      },
+      {
+        "input": "\\U+0104tail",
+        "output": "U+0104tail"
+      },
+      {
+        "input": "literal^Jend",
+        "output": "literal^Jend"
+      },
+      {
+        "input": "literal^ end",
+        "output": "literal^ end"
+      },
+      {
+        "input": "left\\Pright",
+        "output": "left\\Pright"
+      },
+      {
+        "input": "\\S1^ 2;\\Ptail",
+        "output": "\\S1^ 2;\\Ptail"
+      },
+      {
+        "input": "{\\C1;RED}",
+        "output": "\\C1;RED"
+      },
+      {
+        "input": "{literal}",
+        "output": "literal"
+      },
+      {
+        "input": "%%c %%d %%p",
+        "output": "Ø ° %%p"
+      },
+      {
+        "input": "\u0007tail",
+        "output": "\u0007tail"
+      }
+    ],
+    "freecad_scope": "Exact extracted helper only; no FreeCAD runtime/native qualification",
+    "ezdxf_author_version": "1.4.4",
+    "author_options": {
+      "write_fixed_meta_data_for_testing": true
+    },
+    "compatible_candidate_probe": [
+      {
+        "locale": "C",
+        "rows": 70,
+        "mismatches": 0
+      },
+      {
+        "locale": "tr_TR.ISO8859-9",
+        "rows": 70,
+        "mismatches": 0
+      }
+    ],
+    "preserved_wip_sha256": {
+      "src/drw_base.h": "f8aeceaec12ed15990feba179fdc8627c515efb9b50a12865ffafe4a3d7ec060",
+      "src/drw_header.cpp": "0479d21bb73c5fde605fed24c7f1a618a1bd308f9d42e089d773b2a4f2f7c555",
+      "src/intern/drw_textcodec.cpp": "8b1e0d8b04c3c093eb1d2052993077e49c0b414a40550a4038ffc211f330a09e",
+      "src/intern/drw_textcodec.h": "4a072e48fae933ae9d04eff12db4c2d6b1457061b30febcaebf43eccf5df8ddb",
+      "src/intern/dxfreader.cpp": "a68fdea3a0d87501f0bb20abc33e89f8bc1eb237490e05fd2fd9ce142f9c3ed5",
+      "src/intern/dxfreader.h": "6bb66a27064a135474ce9b9bd9bcef33faef71720105c69ae2065b86351a6d65",
+      "src/libdxfrw.cpp": "1b62a9b68d055c3a6e5887f209cabb94e1779995f5e1048abfd1ca0f031609aa",
+      "src/libdxfrw.h": "2baa52bc1d20ec8bf4229eb13aee19468c3733b3a983536266d39f4ebded2c2b",
+      "tests/gbk_codepage_tests.cpp": "d875a2818ff07feda44df20faee539df66f427a524421e458ed8917dd012684b"
+    },
+    "elapsed_seconds": 0.28156620799563825,
+    "scratch_files_sha256": {
+      "assimp-DXFLoader.cpp": "2729c9b35050cfe096ae8e472551c2f6ce2d8270d447939175ec672a9f9f6e2f",
+      "assimp-probe": "12f0571912a576e66e032c40158094a9492176d3ebf2d23cc2ce561f6e9c0753",
+      "assimp-v6.0.5-DXFLoader.cpp": "9e02c20b8d32022e744d48147084b3c812c7f5a533a731287a296758eb1e2ce6",
+      "assimp_probe.cpp": "ac9c7e21e51924d490748f2d33255126c0acfa2e7ec3fa818928989640d425fc",
+      "binary-root-line.dxf": "0a8a6e2b2fdc80251527f43e0a383f1638c10879f0c98dc3217c3274614739c4",
+      "block-rotation-0.dxf": "05899f6aa5566993dec08ada6d930d4e7d8a623591a17055cab67591b5379c08",
+      "block-rotation-90.dxf": "c006f6c27a7364b456ada18af2723f324bd1b2b66de6bb295699f18ed708bc28",
+      "classic-polyline-three-vertices.dxf": "c51412e78104bc99fde2acdf8416386ee919a9235caf5d90668c88896b6b42df",
+      "freecad-ImpExpDxf.cpp": "4754ab38c5672fc1bfbb3d13969c5a38c6e8e58b048842e47077ba0e93fcaec7",
+      "freecad-dxf.cpp": "ece98dfb6ea6e1fc5f0527f22684a0631e9959e6b1d8949b182638e91e284aa3",
+      "freecad-dxf.h": "19882ab5b77020eb8ddee2543836c8b6ea774d75f5ad88cf25221692aa427e9e",
+      "freecad-importDWG.py": "8311a76f3544cf691273da1dbe3891e4abfad939ecc9d9f62d394f260c040f87",
+      "freecad-importDXF.py": "569af9d5fd9f8e29f30d1bd93ff2c96d37b4584ee374294da7506f02458bc4fd",
+      "ixmilia-DxfReader.cs": "4a4445786ebefef925c12b803fc53b593ed976690e1c354aac813353cecdc07b",
+      "librecad-rs_filterdxfrw.cpp": "9d716e1872cb7a42f1428e612e1c00c80d7e84ffd04da70c779fb14e2ba74f5a",
+      "line-and-circle.dxf": "fbac60ed157d543395e98c3b25de3a2007ecb14a70495b72349dcee195c4322c",
+      "line-and-point.dxf": "f43b48e0518dcf89f93d904eefa5383c8aff077064b4a9b2a9bab7436ae27f06",
+      "nested-insert-with-later-sibling.dxf": "3ac6092d6a43542d9b8c6ec8eaf597c8aaf94e9efdf9ed5b85b0504587774791",
+      "research.py": "2ddf8c5ea27f86785cdb87567f1159c3d5f55713ea002bfbcf9a8af33b83df1c",
+      "root-line.dxf": "5af0963747d0986e4bd07e75e9d34d5fdf3b7ce73c8045ae9a540dbc8168e381"
+    },
+    "runtime_sha256": {
+      "/opt/homebrew/Cellar/assimp/6.0.5/lib/libassimp.6.0.5.dylib": "da753af9482cb515ff60dfc6845e2ec516433a1ddc0c3dd8d4ab135a5a435cd5"
+    }
+  },
+  "researchArtifactBindings": {
+    "build/libdxfrw.a": "e40076cd91d59c4f53a496a597d9079f7739a03ffa7c4d9b5d5ce94c0e3c7fc6",
+    "build/dwg2dxf/dwg2dxf": "4917725bcac58ae60e79f1ae21a5ce4690244121d37ef7d08052ad97655a7b93",
+    "build/libdxfrw_gbk_codepage_tests": "250d40807dc19c516d63e9db54ed2b07a50365135acc05251166aa9c77239edf",
+    "/private/tmp/libdxfrw-exact-reader.kG3YMe/compat-probe": "c955f33cd935fd639014a429f124ef3458e54741ee7f43f129453ad63348f965",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests": "33a4cfa74e5ef1657949faae81d1fe5e7b79c399d8c2707d2e88d5857f36d9fb",
+    "tools/bounded_process.py": "42b73b0599fab5da291c601c5da78526f885d627450d845ce6608deb8513991d",
+    "/opt/homebrew/Cellar/assimp/6.0.5/INSTALL_RECEIPT.json": "24800d31d2371fd04444d833a91dfe1c40e5df331ad73f6455c596253225cbac"
+  },
+  "retainedCandidateContext": {
+    "scope": "Recovered prior candidate validation, not rerun by this research, not a committed acceptance packet. Six selected tests precede the later test-only four-MTEXT expansion; the later codec packet and sanitizer mode cover that expansion.",
+    "packets": [
+      {
+        "path": "/private/tmp/libdxfrw-exact-reader.kG3YMe/accepted-ctest.xml",
+        "sha256": "dee8bdf6cf0c3d4013b8c89e1cad5d67a03832257377158fd150746cc5feec96",
+        "suite": {
+          "name": "(empty)",
+          "tests": "6",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "22",
+          "timestamp": "2026-10-15T15:07:43"
+        },
+        "cases": [
+          {
+            "name": "libdxfrw_public_header_hygiene",
+            "classname": "libdxfrw_public_header_hygiene",
+            "time": "10.2719",
+            "status": "run"
+          },
+          {
+            "name": "dwg2dxf_cli_contract",
+            "classname": "dwg2dxf_cli_contract",
+            "time": "8.1983",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_gbk_codepage",
+            "classname": "libdxfrw_gbk_codepage",
+            "time": "0.33344",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_hardening",
+            "classname": "libdxfrw_hardening",
+            "time": "0.280352",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_diagnostic",
+            "classname": "libdxfrw_diagnostic",
+            "time": "0.181013",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_dxf_fixtures",
+            "classname": "libdxfrw_dxf_fixtures",
+            "time": "3.22158",
+            "status": "run"
+          }
+        ]
+      },
+      {
+        "path": "/private/tmp/libdxfrw-exact-reader.kG3YMe/final-codec-ctest.xml",
+        "sha256": "89ad439d1afbf84a0be4e0e1128481552e8d2c3b3e67bdc606e4d8502a774afc",
+        "suite": {
+          "name": "(empty)",
+          "tests": "1",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "0",
+          "timestamp": "2026-10-15T15:12:11"
+        },
+        "cases": [
+          {
+            "name": "libdxfrw_gbk_codepage",
+            "classname": "libdxfrw_gbk_codepage",
+            "time": "0.339431",
+            "status": "run"
+          }
+        ]
+      }
+    ],
+    "reportedSelectedGateWallSeconds": 22.5,
+    "reportedLaterCodecWallSeconds": 0.34,
+    "directModeCounts": {
+      "reader_header_handoffs": 24,
+      "mtext_routes": 4,
+      "unavailable_name_routes": 6,
+      "legacy_modern_unicode_controls": 4
+    },
+    "sanitizer": "Retained completed exact-reader mode passes with ASAN_OPTIONS=detect_leaks=0 and UBSAN_OPTIONS=halt_on_error=1; not a native or whole-suite qualification.",
+    "strict": "Retained completion status for prior five-TU strict and compatibility-probe compilation is zero. Consumer/contract review and dedicated acceptance receipt remain required before candidate integration.",
+    "noFreshSuiteClaim": true
+  },
+  "decisions": [
+    {
+      "owner": "Slice3.3c.1",
+      "state": "CANDIDATE_NOT_COMMITTED",
+      "next": "Finish input-policy/snapshot/provenance/observation docs, actual consumer rebuild/source gate review and dedicated bound acceptance receipt; commit separately before adapter expansion.",
+      "claimsNotClosed": [
+        "parent3.3",
+        "CLI exact input selection",
+        "producer wire qualification",
+        "native text/rendering",
+        "binary ABI"
+      ]
+    },
+    {
+      "owner": "Slice3.3c.2a",
+      "state": "READY_AFTER3.3c.1",
+      "next": "Defaulted explicit adapter input-policy argument, applied before read and snapshotted on returned/throwing exits in existing owned outcome. Test exact ISO, unavailable high bytes, early failure, callback mutation and corrected reuse.",
+      "default": "Compatible"
+    },
+    {
+      "owner": "Slice3.3c.2b",
+      "state": "CONTRACT_REVIEW_REQUIRED",
+      "next": "Closed profile eligibility and cumulative fixed-size consumption evidence before complete-conversion/CLI opt-in; preserve refusal until reviewed. Last HEADER and zero issue mask cannot qualify earlier noncanonical profile.",
+      "currentCliBugClaim": false,
+      "reason": "Current CLI/default adapter cannot request the new exact policy; this is extension-readiness analysis, not a reproduction of unsafe current CLI admission."
+    },
+    {
+      "owner": "7AQ/7AH",
+      "state": "CALIBRATED_OPTIONAL_PEER",
+      "next": "Existing report/profile mutations for rotation, nested/sibling coverage, segment loss, unsupported entity/binary and master/runtime mixups; no new mandatory dependency or runner.",
+      "assimpRuntime": "6.0.5",
+      "masterExecuted": false
+    },
+    {
+      "owner": "7H/S8",
+      "state": "FEATURE_TUPLE_GATED",
+      "next": "Final document Unicode/identity/placement plus asymmetric non-XY analytic controls for new consumer rows. Preserve existing narrow native LINE qualification; helper/source review is not native evidence."
+    }
+  ],
+  "limits": [
+    "Assimp source release and current master are separately fetched/pinned. Installed binary is Homebrew 6.0.5, runtime revision0; no claim of byte-identical source build or executed master.",
+    "All eight DXFs are authored locally from scratch at runtime and remain only in scratch. ezdxf audit/readback validates author-stack consistency, not independent semantics.",
+    "C++ peer probe deliberately exits0 after serializing success/error. JSON success and required fields/coverage determine outcome; process success alone is not eligibility.",
+    "Matching LINE vertices in LINE+CIRCLE or LINE+POINT is partial-projection agreement only, not supported whole-input coverage.",
+    "FreeCAD executes only exact AST-extracted pure deformat helper; no optional legacy reader, FreeCAD runtime, native document, GUI, Part/OCCT or plugin is executed.",
+    "FreeCAD native source UTF8 no-op is not proof of whole-pipeline acceptance: later Python/native stages may reject or transform.",
+    "Current-source compatibility probe is linked to the candidate, not clean HEAD; all 140 frozen Compatible outputs match.",
+    "No DWG parser/byte-layout edits, external semantic oracle, support metadata update, downloaded drawing fixture, install, new CTest, full suite or remote mutation.",
+    "Source/cache reuse remains impact-scoped diagnostic evidence; complete qualification binding requirements are unchanged."
+  ],
+  "harnessCorrections": [
+    "Initial binary author route omitted BinaryTagWriter.write_signature and failed ordinary author readback before that Assimp observation. Final route writes signature and passes both author audits; no production assertion was weakened.",
+    "Installed pre-existing ezdxf environment was queried before use: first unrelated environment was 1.4.3 and not used; executed author environment is 1.4.4.",
+    "Initial sandbox GitHub access failed; approved read-only source retrieval then succeeded. No GitHub state was changed."
+  ],
+  "reproduction": {
+    "scratchDirectory": "/private/tmp/libdxfrw-broader-handoff.1DH331",
+    "researchPython": "import ast\nimport hashlib\nimport json\nimport math\nfrom pathlib import Path\nimport re\nimport sys\nimport time\n\nimport ezdxf\nfrom ezdxf.lldxf.tagwriter import BinaryTagWriter\n\nREPO = Path('/Users/dli/dev/libdxfrw')\nROOT = Path(__file__).resolve().parent\nsys.path.insert(0, str(REPO / 'tools'))\nfrom bounded_process import run_bounded\n\ndef digest(path):\n    return hashlib.sha256(Path(path).read_bytes()).hexdigest()\n\ndef command(argv):\n    result = run_bounded(argv, timeout=10, output_limit=65536)\n    assert result.returncode == 0, (argv, result.returncode, result.stderr)\n    return result.stdout.decode('utf-8')\n\ndef assimp_frame(point):\n    x, y, z = point\n    return [x, z, -y]\n\ndef line(layout, start, end):\n    layout.add_line(start, end)\n    return [list(start), list(end)]\n\ndef equal_points(left, right):\n    left = sorted(tuple(row) for row in left)\n    right = sorted(tuple(row) for row in right)\n    return len(left) == len(right) and all(\n        math.isclose(a, b, abs_tol=1e-6, rel_tol=1e-6)\n        for p, q in zip(left, right) for a, b in zip(p, q))\n\nstarted = time.monotonic()\nezdxf.options.write_fixed_meta_data_for_testing = True\nwip_paths = ['src/drw_base.h', 'src/drw_header.cpp',\n             'src/intern/drw_textcodec.cpp', 'src/intern/drw_textcodec.h',\n             'src/intern/dxfreader.cpp', 'src/intern/dxfreader.h',\n             'src/libdxfrw.cpp', 'src/libdxfrw.h', 'tests/gbk_codepage_tests.cpp']\nbefore = {path: digest(REPO / path) for path in wip_paths}\nresults = []\n\ndef observe(name, doc, expected, binary=False, extra=None):\n    audit = doc.audit()\n    assert not audit.errors and not audit.fixes, (name, audit.errors, audit.fixes)\n    path = ROOT / (name + '.dxf')\n    if binary:\n        with path.open('wb') as stream:\n            writer = BinaryTagWriter(stream, dxfversion=doc.dxfversion,\n                                     encoding=doc.output_encoding)\n            writer.write_signature()\n            doc.export_sections(writer)\n    else:\n        doc.saveas(path)\n    reread = ezdxf.readfile(path)\n    reread_audit = reread.audit()\n    assert not reread_audit.errors and not reread_audit.fixes\n    raw = command([str(ROOT / 'assimp-probe'), str(path)])\n    observation = json.loads(raw)\n    observed = [v for mesh in observation['meshes'] for v in mesh['vertices']]\n    observation.update(name=name, encoding='binary' if binary else 'ASCII',\n                       input_sha256=digest(path),\n                       authored_expected_assimp_frame_vertices=expected,\n                       vertices_match=equal_points(observed, expected),\n                       source_entity_types=[e.dxftype() for e in reread.modelspace()],\n                       author_audit={'errors': 0, 'fixes': 0},\n                       author_readback_audit={'errors': 0, 'fixes': 0})\n    if extra: observation.update(extra)\n    results.append(observation)\n    return observation\n\nroot_doc = ezdxf.new('R2000')\nroot_points = line(root_doc.modelspace(), (1, 2, 3), (4, 6, 8))\nroot_expected = [assimp_frame(p) for p in root_points]\nassert observe('root-line', root_doc, root_expected)['vertices_match']\n\nfor angle in (0, 90):\n    doc = ezdxf.new('R2000')\n    points = line(doc.blocks.new('ASYMMETRIC'), (1, 2, 3), (4, 6, 8))\n    doc.modelspace().add_blockref('ASYMMETRIC', (10, 20, 30),\n                                 dxfattribs={'rotation': angle})\n    # Independently authored analytic Z-rotation and translation, not peer bounds.\n    expected = [assimp_frame((p[0] + 10, p[1] + 20, p[2] + 30)\n                            if angle == 0 else\n                            (10 - p[1], 20 + p[0], 30 + p[2])) for p in points]\n    got = observe('block-rotation-' + str(angle), doc, expected)\n    assert got['vertices_match'] == (angle == 0)\n\ndoc = ezdxf.new('R2000')\ninner = doc.blocks.new('INNER')\ninner_points = line(inner, (21, 22, 23), (24, 25, 26))\nouter = doc.blocks.new('OUTER')\nbefore_points = line(outer, (1, 2, 3), (4, 5, 6))\nouter.add_blockref('INNER', (0, 0, 0))\nafter_points = line(outer, (11, 12, 13), (14, 15, 16))\ndoc.modelspace().add_blockref('OUTER', (0, 0, 0))\nroot_points2 = line(doc.modelspace(), (101, 102, 103), (104, 105, 106))\nexpected = [assimp_frame(p) for p in before_points + inner_points + after_points + root_points2]\ngot = observe('nested-insert-with-later-sibling', doc, expected,\n              extra={'expected_line_instances': 4})\nassert got['success'] and not got['vertices_match']\nassert sum(m['faces'] for m in got['meshes']) == 2\nassert equal_points([v for m in got['meshes'] for v in m['vertices']],\n                    [assimp_frame(p) for p in before_points + root_points2])\n\ndoc = ezdxf.new('R2000')\nline(doc.modelspace(), (1, 2, 3), (4, 6, 8))\ndoc.modelspace().add_circle((200, 300, 4), radius=7)\ngot = observe('line-and-circle', doc, root_expected,\n              extra={'expected_circle_count': 1, 'note': 'line projection alone matches'})\nassert got['success'] and got['vertices_match'] and len(got['source_entity_types']) == 2\n\ndoc = ezdxf.new('R2000')\npath_points = [(1, 2, 3), (4, 6, 8), (9, 12, 15)]\ndoc.modelspace().add_polyline3d(path_points)\ngot = observe('classic-polyline-three-vertices', doc,\n              [assimp_frame(p) for p in path_points],\n              extra={'expected_segment_count': 2})\nassert got['success'] and not got['vertices_match']\nassert sum(m['faces'] for m in got['meshes']) == 1\n\ndoc = ezdxf.new('R2000')\nline(doc.modelspace(), (1, 2, 3), (4, 6, 8))\ndoc.modelspace().add_point((201, 301, 401))\ngot = observe('line-and-point', doc, root_expected,\n              extra={'expected_point_count': 1, 'note': 'v6.0.5 omits POINT; master has a source-only route'})\nassert got['success'] and got['vertices_match'] and len(got['source_entity_types']) == 2\n\ngot = observe('binary-root-line', root_doc, root_expected, binary=True)\nassert not got['success'] and 'Binary files are not supported' in got['error']\n\n# Execute only the exact pure function, not import FreeCAD, Part, or a native app.\nsource = (ROOT / 'freecad-importDXF.py').read_text()\ntree = ast.parse(source)\ndefinition = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'deformat')\nmodule = ast.Module(body=[definition], type_ignores=[])\nnamespace = {'re': re}\nexec(compile(module, str(ROOT / 'freecad-importDXF.py') + ':deformat-only', 'exec'), namespace)\ntext_inputs = ['\\u0104\\u0138\\u02d9', r'\\U+0104tail', 'literal^Jend',\n               'literal^ end', r'left\\Pright', r'\\S1^ 2;\\Ptail',\n               r'{\\C1;RED}', '{literal}', '%%c %%d %%p', '\\x07tail']\ndeformat_rows = [{'input': value, 'output': namespace['deformat'](value)} for value in text_inputs]\n\n# Recheck frozen Compatible outputs on the current-source candidate, not clean HEAD.\nreference = json.loads((REPO / 'docs/research/broader-codec-policy-research-2026-10-15.json').read_text())\nkeys = ['selected', 'decoded_utf8_hex', 'reencoded_hex', 'redecoded_utf8_hex']\nfrozen = {(row['alias'], row['input_hex']): row for row in reference['result']['vectors']}\ncompatibility = []\nfor locale in ('C', 'tr_TR.ISO8859-9'):\n    rows = [json.loads(row) for row in command([\n        '/private/tmp/libdxfrw-exact-reader.kG3YMe/compat-probe', locale]).splitlines()]\n    assert len(rows) == 70\n    mismatches = [row for row in rows if any(row[key] != frozen[(row['alias'], row['input_hex'])][key]\n                                            for key in keys)]\n    assert not mismatches\n    compatibility.append({'locale': locale, 'rows': len(rows), 'mismatches': 0})\n\nafter = {path: digest(REPO / path) for path in wip_paths}\nassert before == after\nreport = {'assimp': results, 'freecad_pure_deformat': deformat_rows,\n          'freecad_scope': 'Exact extracted helper only; no FreeCAD runtime/native qualification',\n          'ezdxf_author_version': ezdxf.__version__,\n          'author_options': {'write_fixed_meta_data_for_testing': True},\n          'compatible_candidate_probe': compatibility,\n          'preserved_wip_sha256': after,\n          'elapsed_seconds': time.monotonic() - started,\n          'scratch_files_sha256': {p.name: digest(p) for p in sorted(ROOT.iterdir())\n                                   if p.is_file() and p.name != 'report.json'},\n          'runtime_sha256': {'/opt/homebrew/Cellar/assimp/6.0.5/lib/libassimp.6.0.5.dylib':\n                            digest('/opt/homebrew/Cellar/assimp/6.0.5/lib/libassimp.6.0.5.dylib')}}\n(ROOT / 'report.json').write_text(json.dumps(report, indent=2) + '\\n')\nprint(json.dumps({'assimp_routes': len(results), 'deformat_rows': len(deformat_rows),\n                  'compatibility_rows': 140, 'seconds': report['elapsed_seconds']}))\n",
+    "assimpProbeCpp": "#include <assimp/Importer.hpp>\n#include <assimp/scene.h>\n#include <assimp/version.h>\n#include <iomanip>\n#include <iostream>\n#include <string>\n\nstatic void quoted(const std::string& s) {\n    std::cout << '\"';\n    for (unsigned char c : s) {\n        if (c == '\"' || c == '\\\\') std::cout << '\\\\' << c;\n        else if (c < 32) std::cout << \"\\\\u00\" << std::hex << std::setw(2)\n                                  << std::setfill('0') << unsigned(c) << std::dec;\n        else std::cout << c;\n    }\n    std::cout << '\"';\n}\n\nstatic void nodes(const aiScene* scene, const aiNode* node,\n                  const aiMatrix4x4& parent, bool& first) {\n    const aiMatrix4x4 transform = parent * node->mTransformation;\n    for (unsigned i = 0; i < node->mNumMeshes; ++i) {\n        const auto* mesh = scene->mMeshes[node->mMeshes[i]];\n        if (!first) std::cout << ',';\n        first = false;\n        std::cout << \"{\\\"name\\\":\"; quoted(mesh->mName.C_Str());\n        std::cout << \",\\\"faces\\\":\" << mesh->mNumFaces << \",\\\"vertices\\\":[\";\n        for (unsigned j = 0; j < mesh->mNumVertices; ++j) {\n            if (j) std::cout << ',';\n            const auto v = transform * mesh->mVertices[j];\n            std::cout << '[' << v.x << ',' << v.y << ',' << v.z << ']';\n        }\n        std::cout << \"]}\";\n    }\n    for (unsigned i = 0; i < node->mNumChildren; ++i)\n        nodes(scene, node->mChildren[i], transform, first);\n}\n\nint main(int argc, char** argv) {\n    if (argc != 2) return 2;\n    Assimp::Importer importer;\n    const auto* scene = importer.ReadFile(argv[1], 0); // no postprocessing\n    std::cout << std::setprecision(9) << \"{\\\"runtime\\\":\\\"\"\n              << aiGetVersionMajor() << '.' << aiGetVersionMinor() << '.'\n              << aiGetVersionPatch() << \"\\\",\\\"revision\\\":\" << aiGetVersionRevision()\n              << \",\\\"success\\\":\" << (scene ? \"true\" : \"false\") << \",\\\"error\\\":\";\n    quoted(importer.GetErrorString());\n    std::cout << \",\\\"meshes\\\":[\";\n    bool first = true;\n    if (scene && scene->mRootNode) nodes(scene, scene->mRootNode, aiMatrix4x4{}, first);\n    std::cout << \"]}\\n\";\n    return 0; // observation, not support admission\n}\n",
+    "compile": "clang++ -std=c++17 -Wall -Wextra -Werror -O2 assimp_probe.cpp -I/opt/homebrew/Cellar/assimp/6.0.5/include -L/opt/homebrew/Cellar/assimp/6.0.5/lib -lassimp -o assimp-probe",
+    "run": "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/bin/python /private/tmp/libdxfrw-broader-handoff.1DH331/research.py",
+    "environment": "Reuse existing Assimp6.0.5 shared library and isolated ezdxf1.4.4 environment. Fetch only the pinned source files listed above into scratch; adjust REPO/ROOT and bound compatibility-probe path if reproducing elsewhere.",
+    "processContract": {
+      "timeoutSeconds": 10,
+      "outputLimitBytesPerStream": 65536,
+      "helper": "tools/bounded_process.py",
+      "helperSha256": "42b73b0599fab5da291c601c5da78526f885d627450d845ce6608deb8513991d"
+    },
+    "generatorNotice": "Own source recipes; no downloaded or embedded third-party drawing bytes. Fixed author metadata is enabled; source/scalar/geometry expectations are authored explicitly."
+  },
+  "progress": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "threeDLedger": {
+      "items": 149,
+      "committed": 128,
+      "blocked": 6,
+      "inProgress": 3,
+      "other": 12,
+      "readyParents": 0
+    }
+  },
+  "externalGates": [
+    {
+      "id": "J256",
+      "state": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J260",
+      "state": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J268",
+      "state": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J284",
+      "state": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J293",
+      "state": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J295",
+      "state": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    }
+  ],
+  "filesChangedByResearch": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md",
+    "docs/research/broader-consumer-oracle-readiness-2026-10-15.json"
+  ],
+  "noCommitOrRemoteWrite": true
+}

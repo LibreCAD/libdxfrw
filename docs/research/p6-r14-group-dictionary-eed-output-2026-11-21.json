@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-r14-group-dictionary-eed-output-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_R14_GROUP_DICTIONARY_ASCII_EED_OUTPUT",
+  "supportClaimEffect": "none",
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py",
+  "origin": "Locally authored drawing via LibreDWG 0.14 dwgadd and dwgwrite JSON; no fixture committed. The JSON roundtrip angle was restored to the original exact half-pi so that the baseline meets the existing MLINESTYLE source profile.",
+  "control": {
+    "baselineDwgSha256": "16b1099663af5c463bae663f9b0652473f6fe73f8bad3a31b19be8c9c82488be",
+    "eedDwgSha256": "bba682d2f4a49edd9781aaed5eaff9e4af66b552426cc66169027031bf724ef9",
+    "outputAsciiSha256": "17f27b7d6ed049be0c8349a8463e7c490b829d6c6154bc53c1a89f38cb1ce925",
+    "outputBinarySha256": "6cfadf6280aa6fecb44585848072276285751adc80ac743c3ca653af419a810b",
+    "dictionaryHandle": "D",
+    "appidHandle": "12",
+    "appid": "ACAD",
+    "eedCodepage": 30,
+    "eed": [
+      [
+        1000,
+        "HELLO"
+      ],
+      [
+        1070,
+        42
+      ]
+    ]
+  },
+  "checks": [
+    "The source observer checks exact bit spans, handle roles, bounded ASCII strings and integers, bound unchanged APPID and source codepage.",
+    "Existing staged table identities, dictionary graph, exact generated-root output and standard-object readback are required before strict publication.",
+    "Both ASCII and binary outputs were read independently with ezdxf 1.4.5 and contained the same APPID and EED values.",
+    "ASan adapter controls mutate source EED values, APPID, raw frame, and late raw frame; they verify destination preservation and corrected retry, as well as cross-version refusal.",
+    "The generated fast test recreates the control when LibreDWG 0.14 tools are available."
+  ],
+  "limits": [
+    "This is a narrow local R14-to-R14 source and output profile, not general dictionary EED, R13, UTF-8 output, native cloning semantics, or a promoted format support claim.",
+    "Independent native duplicate and clone semantics remain unresolved; producer and consumer evidence is not equivalent to AutoCAD semantic qualification."
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5ms consumed MLINE append counts 129 through 173 and count-174 refusal",
+  "date": "2026-10-29",
+  "status": "SELECTED_RANGE_QUALIFIED_WITH_RESOURCE_BOUNDARY",
+  "codeCommit": "bf5d6c893894ec6acaddc34e8af28beeff240774",
+  "scope": "Qualifies runtime-generated AC1027 one-element consumed-style append profiles from source counts 129 through 173, producing target counts 130 through 174. Separately binds the source-count 174 to 175 fail-closed refusal under the adapter's 64 MiB conservative retained-byte budget. No broader support claim is promoted.",
+  "contract": {
+    "positiveAdmission": "Each source count 129..173 is generated with the shared ordered offset, ACI and alternating ByLayer/Continuous tuple recipe. One tuple is appended. Source/target flags are 2 with unchanged angles; two source-bound open, uncut and unfilled MLINE consumers use each style.",
+    "geometryAndOutput": "Source group-41 pairs are checked against the source minimum and all consumer pairs are recalculated against the target minimum. Exact target group-71 and group-73 counts, ordered style tuples, group-340 style identity and group-74/group-41/group-75 arrays are inspected in actual output. Fresh import checks tuples and consumer data in model space and a named block.",
+    "positiveFailureAndRetry": "For each positive count, four source/output encoding combinations and eight readbacks pass. Unsupported flags and a late live-consumer mutation each refuse before publication with destination/caller checks; corrected state retries successfully on the same adapter in ASCII and binary output.",
+    "resourceBoundary": "The generated source count 174 with one appended element to target 175 is refused in both ASCII and binary output. Four attempts preserve the sentinel destination and caller snapshot; repeat attempts on the same adapter also refuse cleanly. A temporary source diagnostic isolated the failing admission: the accumulated conservative charge was 65,160,640 bytes before charging an estimated 34,775-byte typed MLINE entity. The named-resource accounting multiplies that estimate by 64, requiring another 2,225,600 bytes; projected total 67,386,240 exceeds the 64 MiB limit (67,108,864) by 277,376 bytes. The append-projection estimate itself fits. The temporary diagnostic was removed; the retained-byte cap was not changed.",
+    "compatibility": "No public API or DRW_Interface virtual changes. All DXFs are generated at runtime and removed after success; no fixture files are committed.",
+    "limits": "Positive evidence is limited to counts 129..173 and the exact generated AC1027 tuple/consumer profile. Count 174→175 is a qualified fail-closed resource refusal, not append support. Counts 175..254, other append cardinalities, removals, schema/carrier/version variants and native/document semantics remain unqualified. The earlier 254→255 attempt remains a separate unexplained refusal."
+  },
+  "controls": {
+    "positiveSourceOutputMatrix": [
+      "ASCII source → ASCII AC1027 output",
+      "ASCII source → binary AC1027 output",
+      "binary source → ASCII AC1027 output",
+      "binary source → binary AC1027 output"
+    ],
+    "qualifiedPositiveProfiles": {"sourceCounts": "129 through 173 inclusive", "targetCounts": "130 through 174 inclusive", "operation": "append one tuple"},
+    "boundaryRefusalMatrix": ["ASCII AC1027 output", "binary AC1027 output"],
+    "boundaryRollbackRetry": "Two output-format refusals, each repeated on the same adapter; sentinel destination and caller snapshot preserved on all four attempts."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4"
+    },
+    "focusedTests": {
+      "result": "PASS",
+      "positiveRangeElapsed": "23.13 seconds",
+      "combinedSummary": "The 129..173 range passed 180 source/output combinations and 360 readbacks, with 90 unsupported-flag and 90 late-mutation refusals plus 180 corrected retries. The count-174 boundary control passed four expected refusals and two same-adapter retry checks.",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_source_count_(append_129_173|174_budget_refusal)$' --output-on-failure"
+    },
+    "diffCheck": "git diff --check; PASS before code commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "The parameterized selected range uses consumedSourceCountRecipe and shared output/readback controls. The 174 boundary test runtime-generates source count 174 and appends one tuple, then checks refusal atomicity and retry. Successful test artifacts are removed.",
+    "implementationCommit": "bf5d6c893894ec6acaddc34e8af28beeff240774",
+    "tests/dxf_fixture_tests.cpp": "ea8726dc707543ce7fccd73eec27d08e8d3d1e049047f76950dee452c073ae8a",
+    "tests/CMakeLists.txt": "72787abadcf08f4c9a14aa26702f830cd2aad4d1806978e911d15f5648673963",
+    "testExecutableSha256": "a4a64c6952893288ea9ac8f6446754ec5edb3f769569eb5bf3dfd8fce89b15d0"
+  },
+  "next": "Investigate reducing duplicated MLINE source-proof retained cost at count 174 while preserving the 64 MiB budget, then rerun the explicit refusal control. Do not raise or bypass the cap. If no safe representation fits, keep 174→175 refused and select another current P2 witness; do not infer 175..254 behavior."
+}

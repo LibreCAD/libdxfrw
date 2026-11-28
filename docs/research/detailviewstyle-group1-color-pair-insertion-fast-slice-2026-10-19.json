@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-138 DetailViewStyle group-1 color insertion fast slice",
+  "mode": "Generated ASCII/Binary implementation and focused regression validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Insert absent DetailViewStyle group-1 identifier/arrow color values (DXF group 62) from edited typed values during same-version raw-carrier export.",
+    "Preserve occurrence mapping when the identifier color is default and only the arrow color changes by inserting the default identifier-color slot first.",
+    "Validate generated ASCII and Binary source/output behavior with typed readback, exact ordered raw-group comparisons, and unchanged neighboring style carrier."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/detailviewstyle-group1-color-pair-insertion-fast-slice-2026-10-19.json"
+    ],
+    "behavior": "The DetailViewStyle overlay now detects missing group-1 identifier and arrow colors. Non-default identifier color is inserted before the arrow color. If only the arrow color is non-default and the identifier occurrence is missing, insert the typed/default identifier color as the first group-62 occurrence, then insert the arrow color. Newly inserted colors are constrained to signed 16-bit values.",
+    "testCases": [
+      "Remove both group-1 group-62 colors from a generated primary DetailViewStyle; confirm both parse as default 256, change only arrow color to 19, export/read back in ASCII and Binary DXF, and assert identifier remains 256 while arrow is 19.",
+      "Compare the complete ordered raw DetailViewStyle group stream and untouched SectionViewStyle carrier after replay."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS",
+        "passed": 1,
+        "failed": 0,
+        "elapsedSeconds": 0.49
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0
+  },
+  "limitations": [
+    "Same-source-version DXF typed-field insertion/replay only; no DWG-origin typed serialization or cross-version projection qualification.",
+    "No native style-rendering or broad DetailViewStyle semantic-completeness claim follows.",
+    "No commit was created because the shared worktree's .git directory is read-only."
+  ]
+}

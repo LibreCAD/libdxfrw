@@ -1,0 +1,135 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-oda-acis700-zero-count-framing-2026-11-11",
+  "purpose": "Reproduce and close the bounded ACIS 700 zero-record-count framing refusal in an AC1024 DWG, then qualify the corresponding bounded AC1024 SAT 700 serialization against ODA's independent DXF export without claiming 3D semantic support.",
+  "source": {
+    "sat": {
+      "url": "https://raw.githubusercontent.com/monozukuri-ai/cq-acis/main/corpus/data/ezdxf/cube_sat_700.sat",
+      "sha256": "343766d21e6653260aebed3a9c09171c3c7ab3d2f76ed7427642cc02f4ff58dd",
+      "header": "700 0 1 0",
+      "records": 118,
+      "terminal": "End-of-ACIS-data",
+      "provenance": "Public cube SAT sample. The downloaded SAT remained under /tmp and was not committed as a fixture."
+    },
+    "generatedDxf": {
+      "tool": "ezdxf 1.4.5",
+      "target": "AC1024 / R2010 ASCII DXF",
+      "operation": "Created a 3DSOLID and assigned the SAT 700 lines to its SAT carrier.",
+      "path": "/tmp/libdxfrw-acis21500/source/cube.dxf",
+      "sha256": "b3b50ee9e81781fc1d8f9937be64e4833dd6b6d8f1e6b64850e586ce7ea846dc"
+    },
+    "generatedDwg": {
+      "tool": "ODA File Converter 27.1.0.0",
+      "command": "ODAFileConverter /tmp/libdxfrw-acis21500/source /tmp/libdxfrw-acis21500/dwg ACAD2010 DWG 0 0 '*.dxf'",
+      "path": "/tmp/libdxfrw-acis21500/dwg/cube.dwg",
+      "sha256": "852227fac827598b14a3f3be19228d8ce3177e7c862d805767f6be6242505710",
+      "version": "AC1024"
+    },
+    "odaRoundTripDxf": {
+      "tool": "ODA File Converter 27.1.0.0",
+      "path": "/tmp/libdxfrw-acis21500/roundtrip-dxf/cube.dxf",
+      "sha256": "c1be24d46fbfae4f689b18041d2516a834f40b2a15e3999abf7a35222c8ee40e",
+      "operation": "Converted the generated AC1024 DWG back to ACAD2010 ASCII DXF; the 3DSOLID SAT carrier remains version 700."
+    },
+    "extractor": {
+      "tool": "LibreDWG 0.14",
+      "command": "dwgread -O minJSON /tmp/libdxfrw-acis21500/dwg/cube.dwg -o /tmp/libdxfrw-acis21500/cube.json",
+      "entity": "3DSOLID",
+      "handle": "0x2F",
+      "payloadBytes": 7007,
+      "payloadSha256": "4b5919bc0188358a279ba833aec5d879fa2067ba8af42a8ea86e585d420fb8a8",
+      "header": {
+        "signature": "ACIS BinaryFile",
+        "version": 700,
+        "recordCount": 0,
+        "thirdInteger": 1,
+        "flags": 0
+      },
+      "integrityScope": "The generated DWG has other reader integrity warnings; this receipt qualifies only the extracted modeler payload and parser framing behavior."
+    }
+  },
+  "implementation": {
+    "files": {
+      "src/drw_acis.cpp": "Admits a zero ACIS record count as unknown for version 700 only, matching the existing version-scoped 21200/21500/21800 behavior. Completion still requires the explicit terminal marker and full input consumption. The bounded SAT v1 serializer preserves SAT 700 only for AC1024, uses v700 @string, integer, pointer, and Boolean token spellings, and refuses the same carrier for AC1027.",
+      "tests/acis_sat_allocation_tests.cpp": "Adds in-memory, locally generated ACIS 700 framing and serializer controls for integer/pointer spellings, plane-surface interval/sense booleans, coedge sense, straight-curve booleans, and body-transform literal preservation. It verifies complete parsing, missing-terminal refusal, AC1024 conversion, atomic AC1027 refusal, and allocation-failure rollback with same-buffer retry. No external DWG/DXF/SAT fixture was added."
+    },
+    "sourceHashes": {
+      "src/drw_acis.cpp": "b27e53f71a8980fd56c8ee10b3f7082431121a271ce475f20895682fd49003d5",
+      "tests/acis_sat_allocation_tests.cpp": "7fd528a68e0cf442af5c132f14d002bad05b411619e936da3bde6c730a2dddb2"
+    },
+    "scopeLimit": "Only the selected standard ACIS 7.00 carrier to AC1024 SAT 700 serialization is qualified. This does not establish DXF/DWG output admission, native B-rep validity, independent geometry semantics, other producer profiles, or a 3D support claim."
+  },
+  "results": {
+    "beforeChange": {
+      "operation": "drw_parseSabWithOutcome on the exact extracted payload",
+      "result": "Rejected after 115 record starts and 1211 tags because header recordCount=0 was treated as a literal count."
+    },
+    "afterChange": {
+      "operation": "drw_parseSabWithOutcome, drw_buildAcisModel, drw_extractAcisWireframeWithReport on the exact extracted payload",
+      "parse": true,
+      "complete": true,
+      "terminalSeen": true,
+      "recordCountKnown": false,
+      "recordsIncludingTerminal": 115,
+      "modelInventory": {
+        "bodies": 1,
+        "lumps": 1,
+        "shells": 1,
+        "faces": 6,
+        "loops": 6,
+        "coedges": 24,
+        "edges": 12,
+        "vertices": 8,
+        "projectionDiagnostics": 0
+      },
+      "brepValidityChecked": false
+    },
+    "sat700SerializationComparison": {
+      "odaSatPath": "/tmp/libdxfrw-acis21500/oda-roundtrip.sat",
+      "odaSatSha256": "2ac28bcc2f03394abfddc2dac14d2c5dfe6c50a9babed80ff677c6b4cf688ff7",
+      "libdxfrwSatPath": "/tmp/libdxfrw-acis21500/libdxfrw-roundtrip.sat",
+      "libdxfrwSatSha256": "119ed8a97ce3d4d72d8d197157244f4f310fb0fccde6c0dd780becba1ef08920",
+      "comparison": "Both streams have 1,297 whitespace-delimited SAT tokens. All entity/header tokens match except the creation time and the two header scalars whose exponent spellings differ but represent the same values. All 1,294 remaining tokens match exactly.",
+      "independenceBoundary": "ODA produced the reference AC1024 DWG and DXF; the SAT tokens were independently decoded from ODA's DXF with ezdxf 1.4.5. This is exact carrier serialization agreement for this one input, not independent B-rep or source-geometry semantic evidence."
+    },
+    "generatedControl": {
+      "command": "cmake --build build-gcc --target libdxfrw_acis_sat_allocation_tests -j4 && ctest --test-dir build-gcc -R '^acis_sat_allocation_rollback_retry$' --output-on-failure",
+      "result": "PASS 1/1; generated complete terminal parsing, missing-terminal refusal, v700 SAT 700 token grammar, exact body-transform matrix/translation/flag literal preservation, AC1024 serialization, atomic AC1027 refusal, exhaustive reached-allocation failure rollback, and same-buffer retry verified."
+    },
+    "independentKernel": {
+      "repository": "https://github.com/HakanSeven12/OpenCADStudio",
+      "revision": "36981c6abe76e4b69d0a8ac5e210c35a0e8f681c",
+      "kernel": "OpenCADKernel",
+      "kernelRevision": "802f75134a5606d34bd34dac0d3508565537b067",
+      "satParser": "ACadRust",
+      "satParserRevision": "ce8a148568e7a80a80f50797bf287a651d1259c7",
+      "normalization": "None; both original public SAT and exact hash-bound libdxfrw SAT output were parsed and lifted directly.",
+      "probe": "/private/tmp/opencadstudio-p7/crates/ocs_acis/tests/libdxfrw_ac1024_sat700_probe.rs",
+      "probeSha256": "bac79b8b7b8d5eb874ac0f86d974fa610302b7f842e19f155a7f3562ff790bcc",
+      "inputs": [
+        {
+          "role": "original public ACIS 7.0 source SAT",
+          "path": "/private/tmp/libdxfrw-acis21500/cube_sat_700.sat",
+          "sha256": "343766d21e6653260aebed3a9c09171c3c7ab3d2f76ed7427642cc02f4ff58dd"
+        },
+        {
+          "role": "exact libdxfrw SAT 700 serializer output",
+          "path": "/private/tmp/libdxfrw-acis21500/libdxfrw-roundtrip.sat",
+          "sha256": "119ed8a97ce3d4d72d8d197157244f4f310fb0fccde6c0dd780becba1ef08920"
+        }
+      ],
+      "command": "LIBDXFRW_SAT_PATH=<input.sat> CARGO_TARGET_DIR=/private/tmp/opencad-p7-target cargo test -q --manifest-path /private/tmp/opencadstudio-p7/Cargo.toml -p ocs_acis --test libdxfrw_ac1024_sat700_probe -- --nocapture",
+      "result": "PASS for both inputs: ACadRust parsed SAT 7.0; OpenCADKernel lifted one body with one lump/shell, six faces/loops, 24 coedges, 12 edges and eight vertices; surface/curve/broken-reference loss was zero and body validation reported zero flaws. The libdxfrw output's world bounds are [0,0,0] to [777,777,777], centroid [388.5,388.5,388.5], mesh area 3622374 and mass-properties volume 469097433.",
+      "freecadCrossCheck": "After applying the exact SAT BODY-to-TRANSFORM placement in the native FreeCAD probe, FreeCAD bounds are [0,0,0] to [777,777,777], area 3622373.9999999995 and volume 469097432.99999994. These agree with OpenCADKernel's world bounds and measurements; relative analytic area/volume errors in the FreeCAD result are 1.29e-16 and 1.27e-16. The checked-in reproduction script is tools/research/freecad_acis700_sat_probe.py at SHA-256 c8b87de550c69ca973777bfc30e21ff2544a16808c50d37abb4fbf83d621933d.",
+      "limitations": "This independently validates direct SAT 700 parsing, body placement, closed topology and bounded cube metrics for the selected carrier. It does not validate DWG entity-to-AcDs association, native source CAD import, other geometry/producers, platform breadth or whole-document output. Probe and source inputs remain scratch-only."
+    },
+    "diffCheck": "PASS: git diff --check"
+  },
+  "authorityBoundary": {
+    "odaReference": "https://www.opendesign.com/blog/2017/october/working-sat-and-sab-files-teigha",
+    "use": "ODA describes DWG release-to-default SAT/SAB version mappings and the Autodesk-modified dialect boundary. The sample experiment is an ODA converter output observation only; it does not establish Autodesk producer behavior or resolve the separate ACIS 21500 header semantics.",
+    "semanticCeiling": "One ODA-produced AC1024 ACIS 700 carrier has direct SAT serialization agreement, independent ACadRust parsing, a zero-flaw non-OCCT OpenCADKernel closed-topology lift and matching placed cube metrics against the native FreeCAD Part result. This does not establish Autodesk-native DWG semantics, DWG entity-to-AcDs association, broader ACIS 700 geometry, producer-wide support, whole-source output or general 3D support."
+  },
+  "claimEffect": "Closes the parser's bounded ACIS 700 zero-count framing refusal for streams with an explicit terminal marker and implements the selected AC1024 SAT 700 serializer profile. Does not promote DWG, DXF, ACIS/ACDS, or 3D support claims."
+}

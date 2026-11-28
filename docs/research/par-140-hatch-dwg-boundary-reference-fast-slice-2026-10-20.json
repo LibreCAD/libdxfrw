@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-140 DWG HATCH and MPOLYGON boundary-reference fast slice",
+  "mode": "implementation progress; generated fast validation",
+  "finding": {
+    "id": "PAR-140",
+    "subplan": "7N.4",
+    "findingCount": 140,
+    "topLevelSubplanCount": 78,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportPromotion": false
+  },
+  "changes": [
+    {
+      "file": "src/drw_entities.h",
+      "summary": "Retain per-path DWG HATCH/MPOLYGON boundary reference counts through boundary-body parsing."
+    },
+    {
+      "file": "src/drw_entities.cpp",
+      "summary": "Partition the bounded post-common-entity handle stream by saved path counts; validate soft-pointer role, relative resolution, count bounds, and 32-bit model width before publishing path lists; emit actual counts and ordered references in the correct version-specific stream."
+    },
+    {
+      "file": "src/intern/dwghatchboundary.h",
+      "summary": "Expose a narrow internal helper seam for raw malformed-handle controls without changing public API or DRW_Interface."
+    },
+    {
+      "file": "src/libdxfrw.cpp",
+      "summary": "Route MPOLYGON DXF group-330 references through the configured resolver/object-handle remapper, matching HATCH behavior and failing on unresolved handles."
+    },
+    {
+      "file": "tests/dwg_local_roundtrip_tests.cpp",
+      "summary": "Add generated AC1018/AC1024 HATCH/MPOLYGON DWG and ASCII/Binary DXF roundtrips, raw independent handle/count checks, target identity and sentinel assertions, writer overflow refusal, and transactional malformed-reader controls."
+    },
+    {
+      "file": "tests/CMakeLists.txt",
+      "summary": "Register the existing narrow dwg_hatch_dwg_boundary_references fast CTest selector."
+    }
+  ],
+  "testCoverage": {
+    "versions": ["AC1018", "AC1024"],
+    "entities": ["HATCH", "MPOLYGON"],
+    "pathCounts": [2, 0, 1],
+    "pathFlags": [1, 0, 16],
+    "positiveControls": [
+      "Independent DWG writer-side path-count decoder",
+      "Independent DWG soft-pointer handle-tail decoder",
+      "Full generated DWG readback with references partitioned to original loops",
+      "All references resolve to intended generated LINE identities",
+      "Following LINE entity remains aligned",
+      "DWG-to-ASCII-DXF and DWG-to-Binary-DXF group-97/330 roundtrip with remapped handles",
+      "MPOLYGON group-71 solid-fill semantic kept distinct from HATCH associativity"
+    ],
+    "malformedReaderControls": [
+      "Accept absolute code-4 and relative soft-pointer codes 6, 8, A, and C",
+      "Reject hard-pointer code 5 after a valid earlier path handle without mutating any loop",
+      "Reject a physically truncated handle payload without mutating any loop",
+      "Reject absolute and relative resolved references wider than uint32 without mutating the target loop",
+      "Reject one path count over the configured item limit before handle reads or model mutation",
+      "Reject aggregate path counts over the configured item limit before handle reads or model mutation"
+    ],
+    "malformedWriterControls": [
+      "Reject oversized path reference lists before body or handle output"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-dwg-boundary-references",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg_hatch_dwg_boundary_references$' --output-on-failure",
+      "result": "PASS",
+      "summary": "1/1 passed in 0.11 seconds"
+    },
+    "adjacentSelectors": [
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-references",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-dwg-spline-weights",
+        "result": "PASS"
+      }
+    ],
+    "fullSuite": "NOT_RUN",
+    "commit": "NOT_CREATED",
+    "peerExecutable": "NOT_RUN",
+    "nativeApplication": "NOT_RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0
+  },
+  "remainingBoundaries": [
+    "The focused raw helper tests do not claim malformed whole-file callback/publication behavior; keep that in the composed parser/adapter gate.",
+    "Missing or ambiguous graph targets, geometric boundary agreement, and native associative edit/recompute remain separate qualification gates.",
+    "The separate LibreCAD bundled fork still requires an explicit source-compatible port and consumer compile/readback."
+  ],
+  "externalOnlyItems": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

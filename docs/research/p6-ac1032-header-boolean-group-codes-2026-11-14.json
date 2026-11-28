@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1032-header-boolean-group-codes-2026-11-14",
+  "date": "2026-11-14",
+  "title": "AC1032 DXF HEADER boolean group-code normalization and DWG flag encoding",
+  "status": "LOCAL_GENERATED_DXF_READBACK_FIXED; FOCUSED_CONTROLS_PASS",
+  "supportClaimEffect": "none",
+  "scope": {
+    "source": {
+      "repository": "LibreCAD/libdxfrw",
+      "kind": "locally generated AC1032 DXF and direct HEADER encoder controls",
+      "committedFixture": false
+    },
+    "changes": [
+      "HEADER writer validation accepts group 70 values retained from DWG flag decoding and, for AC2010+ targets, group 290 values already present in modern DXF input.",
+      "AC2010+ HEADER emission normalizes EXTNAMES, PSTYLEMODE, and OLESTARTUP to group 290.",
+      "DWG packed HEADER flag composition accepts either the legacy group-70 or modern DXF group-290 representation for these three boolean values, while unrelated group codes remain invalid.",
+      "The AC1032 CLI contract asserts the emitted group-290 code and expected value for all three variables, then imports and rewrites the resulting file."
+    ],
+    "affectedPlanScope": "P6-F HEADER per-version behavior; does not close HEADER envelope/suffix accounting, broader version coverage, external producer qualification, or P6-G writer inventory."
+  },
+  "observations": {
+    "reproduction": {
+      "before": "Locally generated AC1032 DXF readback failed during HEADER emission because EXTNAMES, PSTYLEMODE, and OLESTARTUP were emitted as group 290 but preflight required group 70.",
+      "after": "AC1032 output uses the expected group-290 booleans and the generated output can be imported and rewritten successfully."
+    },
+    "dwgFlagEncoding": {
+      "legacyGroup70": "Existing packed-flag encoding control passes.",
+      "modernGroup290": "Generated group-290 EXTNAMES/PSTYLEMODE/OLESTARTUP values compose to the expected DWG flag bits.",
+      "wrongGroupCode": "A group-280 OLESTARTUP value is rejected."
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg_local_roundtrip -j4",
+    "focusedHeaderFlags": {
+      "command": "./build-gcc/libdxfrw_dwg_reader_matrix_tests --header-packed-flags",
+      "result": "PASS"
+    },
+    "sourceDispositionAndReadback": {
+      "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --source-disposition-only",
+      "result": "PASS: 34 repair/skip/mask controls"
+    },
+    "diffCheck": "PASS: git diff --check"
+  },
+  "limits": [
+    "Generated controls establish writer normalization, DWG flag composition, and self-readback only; they do not establish independent producer behavior or native consumer qualification.",
+    "No DWG/DXF fixture file was added or modified.",
+    "The broader DWG reader matrix contains unrelated pre-existing failures and was not used as a passing result."
+  ]
+}

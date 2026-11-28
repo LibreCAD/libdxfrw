@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-current-ci-fc51ed6-2026-11-23",
+  "date": "2026-11-23",
+  "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+  "head": "fc51ed642c2b09e692b7ff238ab4038ae2d8f40a",
+  "observedAtUtc": "2026-11-23 20:10 UTC",
+  "checks": {
+    "fast-regressions": {
+      "runId": 45253830048,
+      "jobId": 137970252627,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "qualification workflow contract": {
+      "runId": 45253830127,
+      "jobId": 137970252105,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "focused / linux-gcc": {
+      "runId": 45253830127,
+      "jobId": 137970369890,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "focused / windows-msvc": {
+      "runId": 45253830127,
+      "jobId": 137970369860,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "focused / macos-clang": {
+      "runId": 45253830127,
+      "jobId": 137970369824,
+      "status": "in_progress",
+      "conclusion": null
+    },
+    "final broad matrix": {
+      "runId": 45253830127,
+      "jobId": 137970372594,
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    "extended deterministic fuzz": {
+      "runId": 45253830127,
+      "jobId": 137970372949,
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    "source-release": {
+      "runId": 45253830048,
+      "jobId": 137970255296,
+      "status": "completed",
+      "conclusion": "skipped"
+    }
+  },
+  "supportClaimEffect": "none",
+  "limits": [
+    "The check results bind the exact source head shown above.",
+    "macOS focused validation is still running.",
+    "Broad final matrix and extended fuzz were skipped by workflow design.",
+    "No qualification claim or release gate is promoted by this status snapshot."
+  ]
+}

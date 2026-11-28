@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P3 selected unmarked MATERIAL file-backed normal filename edit",
+  "date": "2026-10-28",
+  "codeCommit": "0504212f3f88c50783072e5461a514c7bdf1383c",
+  "scope": "Unchanged captured modern-DXF MATERIAL source with an inferred complete normal tuple, normal source 1 and qualified common carrier; typed filename edit alone or composed with selected normal blend/projection/tiling/auto-transform edits.",
+  "contract": {
+    "operation": "Bind exactly two outer group-3 string fields around the inferred second group-42 boundary, preserve the diffuse filename and use the target-format strict UTF-8 encoder for the normal filename. Re-decode and match the entire represented emitted model.",
+    "atomicity": "Invalid UTF-8, embedded NUL, excessive retained bytes, changed diffuse/source/presence, conflicting raw fields, unqualified procedural fields and late mutations refuse without replacing the destination or caller state; corrected retry uses the same adapter.",
+    "unqualified": "Group-72 source changes and their coupling with filename/procedural data, native text/file resolution, rendering, other source profiles, opaque/caret cross-format source replay and whole-document conversion."
+  },
+  "sourceBindings": {
+    "materialBodyHeaderSha256": "7892db4d8c3c2ff8042b846db6f14fde56e8fcdc601b5c1c4b801606b5a3f04c",
+    "testSourceSha256": "4716d67b6b67020ef5ee92896c630a1edcd32ab96e4a2b39a6d4b9ea5330d8b9",
+    "normalAdapterObjectSha256": "c0359bd36feaa3cab7d715a07bd7c675695b1f0fa227043c6d995037804bafee",
+    "normalLibrarySha256": "3e771b88b7069039c9c75013cf25710f50570c53e7950ae45317ecde4dc1b67f",
+    "normalTestExecutableSha256": "3d36254722ca985c9f94adb58e789f7fdbbd47a84940a6612043415df557de14",
+    "asanAdapterObjectSha256": "b65939ed599382cdfddc08447d36e616f3a9e0f579793c99277406b902676076",
+    "asanLibrarySha256": "01130f377d4b1aa36f9d9c2c2b239758d5fe1ea3eb0b62b1c285c858117f9bd7",
+    "asanTestExecutableSha256": "5c77e3b00c75341162f3c234e53f02c1ae152ead8f92325aa55f8d85ee5f7d70"
+  },
+  "validation": {
+    "normal": {
+      "selector": "libdxfrw_material_normal_roles",
+      "result": "PASS"
+    },
+    "asan": {
+      "selector": "libdxfrw_material_normal_roles",
+      "result": "PASS",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "Five filename forms (plain, UTF-8, literal caret, literal Unicode-escape text and empty) across four ASCII/binary source/output routes; four selected combined-field exports; 28 invalid, resource-bound, changed context/presence and raw-conflict refusal/retries; six late-callback refusal/retries; 24 procedural-field refusal/retries. Existing source common-carrier, ownership and replay controls continue.",
+    "chronology": "Normal and ASan used frozen code committed as above. The independent text projection was rerun against the freshly built shared normal adapter and library."
+  },
+  "independentPeer": {
+    "version": "ezdxf 1.4.5",
+    "reportPath": "build/p3-normal-filename-scratch/text-proof.json",
+    "reportSha256": "d27e75bc6e6519abbc95c65e1b6394008c8377b1ea9e9f4eb1aedfb2e0b97ad5",
+    "reportScriptSha256": "0549d1760cec78fec9a9f8292295a09f15c1679120acd8a391d2dad097ca106d",
+    "probeSourceSha256": "701b4a64cdd872714d99cea3dd36a33ba10ca956c77d85e2640e2c99f532e507",
+    "sharedLinkedProbeSha256": "5a4f3739f943d861c88b4da78d822ecd14bb30b9c449ab56b06556f51e86efea",
+    "originalSourceSha256": "73dde2657340ba362c79b9d49439f6296008aefa24a2ce433033c23465adbab8",
+    "derivedInputSha256": "f3bcd7af1275cb98f0502ee3429987dcb36c5baac72a72e6ccc647845094eee3",
+    "derivation": "The retained selected source removes unrelated EZDXF_META root and DICTIONARY/DICTIONARYVAR objects; its selected MATERIAL identity and all 55 host fields match the independently authored original before document setup.",
+    "sourceMaterialHandle": "2F",
+    "sourceMaterialOwner": "E",
+    "normalSource": 1,
+    "sourceFilenames": [
+      "peer-diffuse-sentinel.png",
+      "peer-normal-sentinel.png"
+    ],
+    "results": [
+      {
+        "format": "ascii",
+        "case": "utf8",
+        "sha256": "cfc2711443a9a158c93b974807b62440dba89880f744f0338e36eed92ca133a7"
+      },
+      {
+        "format": "binary",
+        "case": "utf8",
+        "sha256": "73031e9ae6c0bae69b7832aae7cfdd61d8a893e6b23307906a347839daf12d9c"
+      },
+      {
+        "format": "ascii",
+        "case": "literal-caret",
+        "sha256": "1422d68873424f6cbea4ccdd254c9daa524822920f2f1b04a61eebc51c584f34"
+      },
+      {
+        "format": "binary",
+        "case": "literal-caret",
+        "sha256": "edc8eb3471d940aef140f6bcd6acc2f909608564fc992c294daca1a6390b8fb0"
+      },
+      {
+        "format": "ascii",
+        "case": "literal-unicode-escape",
+        "sha256": "28bf3fd6722cc980499e164c6cda4dcec378fc55d158d2c3b10d2b1e0e0c9d6c"
+      },
+      {
+        "format": "binary",
+        "case": "literal-unicode-escape",
+        "sha256": "11de48da21a776b5d371cf8cf380b529c0de03179b6b180edda92fca5ad55d6d"
+      }
+    ],
+    "observations": "Independent pre-setup physical-tag loader verified all 55 selected MATERIAL body fields unchanged except the second group 3. It applied one target-specific text decode and compared the intended Unicode, caret and literal escape strings in both encodings."
+  },
+  "references": [
+    {
+      "title": "Autodesk MATERIAL DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm"
+    },
+    {
+      "title": "Autodesk MaterialMap source enumeration",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_GraphicsInterface_Source.html"
+    }
+  ],
+  "limitations": [
+    "Autodesk names normal map group 72 but does not specify its numeric values or inactive filename coupling in the MATERIAL DXF table. Existing modeled 0/1 admission is not a native semantic certificate.",
+    "The independently authored peer experiment uses a derived source with unrelated objects removed; it is not proof of whole-document fidelity.",
+    "No native CAD rendering, file lookup behavior, DWG parity, arbitrary profile or broad support claim follows. No drawing fixture is committed."
+  ]
+}

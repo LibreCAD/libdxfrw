@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-4g MATERIAL reflection map generated fast slice",
+  "mode": "Local implementation and generated ASCII/Binary validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "1f8693214aae9aa3f17f96227a4339acf9ee0a2537e8f1568ba31590f32cb415",
+  "authoritativeReference": {
+    "title": "Autodesk MATERIAL DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+    "accessed": "2026-10-22",
+    "fields": [
+      {
+        "group": 48,
+        "description": "Reflection map blend factor",
+        "default": 1.0,
+        "validation": "finite real"
+      },
+      {
+        "group": 171,
+        "description": "Reflection map source",
+        "default": 1,
+        "validValues": [0, 1]
+      },
+      {
+        "group": 6,
+        "description": "Reflection map file name",
+        "default": ""
+      },
+      {
+        "group": 172,
+        "description": "Reflection map projection",
+        "default": 1,
+        "validValues": [1, 2, 3, 4]
+      },
+      {
+        "group": 173,
+        "description": "Reflection map tiling",
+        "default": 1,
+        "validValues": [1, 2, 3]
+      },
+      {
+        "group": 174,
+        "description": "Reflection map auto-transform bitset",
+        "default": 1,
+        "validMask": 7
+      },
+      {
+        "group": 49,
+        "description": "Reflection map mapper transform",
+        "format": "16 real values, row-major",
+        "default": "identity"
+      }
+    ]
+  },
+  "implementation": {
+    "typedModel": [
+      "DRW_Material retains reflection-map scalar/string controls and a separate 16-element row-major transform with documented defaults and presence flags.",
+      "The group-6 filename uses an independent retained-text lease; its matrix has cardinality state separate from diffuse, specular, and Normal Map matrices.",
+      "Copy/reset behavior preserves the typed map and restores identity/defaults with presence false."
+    ],
+    "parser": [
+      "Type groups 48/171/6/172/173/174/49 before the post-map 464/465 Normal Map boundary.",
+      "Validate finite blend and matrix reals, source/projection/tiling domains, and the documented auto-transform flag mask.",
+      "Require exactly 16 contiguous matrix reals; reject incomplete matrices at the next group and reject excess values immediately.",
+      "Preserve the exact ordered raw net, including later repeated Normal Map groups."
+    ],
+    "writer": [
+      "Emit groups 48/171/6/172/173/174 followed by all 16 group-49 row-major values when present.",
+      "Reject invalid authored domains and non-finite map data before output replacement."
+    ],
+    "boundedTextRegression": [
+      "The focused MATERIAL retained-owner CTest checks exact-cap reflection filename replacement in ASCII and Binary DXF.",
+      "At one byte under the cap, the previous reflection filename remains intact; copy/reset accounting releases retained charges correctly."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp4g-material-reflection-map-fast-slice-2026-10-22.json",
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ]
+  },
+  "generatedControls": [
+    "ASCII and Binary MATERIAL records carry distinct reflection-map values and a non-identity 16-value mapper, followed by a LINE sentinel.",
+    "Assert typed fields, exact raw group order, same-encoding replay, cross-encoding replay, copy/reset/default behavior, and normal-map delimiter isolation.",
+    "Reject invalid source/projection/tiling/auto-transform values, non-finite ASCII blend/transform values, and 15-/17-value matrices before callback publication.",
+    "Typed writer round-trips every field and asserts schema order; invalid domains and a non-finite transform preserve prior output and succeed after correction.",
+    "No persistent test drawing is added; malformed ASCII numeric values are applied only to locally generated temporary files."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror); fixture test rebuilt after correcting repeated group-49 mutation helper",
+    "ctest": "PASS: libdxfrw_dxf_material_text_owner_budget, libdxfrw_dxf_fixtures, and libdxfrw_dxf_binary_group_width_guard (3/3)",
+    "diffCheck": "PASS: git diff --check on changed source, test, CMake, and plan files",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "dwgMaterialBodyChanged": false,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-4h: opacity fields and map block (groups 140/141/175/7/176/177/178/142)",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

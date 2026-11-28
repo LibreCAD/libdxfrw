@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5lb selected AC1027 four-element MLINE retarget tail append",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "eef0645ec61c7b935897a12e0e4b2a51825108cb",
+  "evidenceCommit": "eef0645ec61c7b935897a12e0e4b2a51825108cb",
+  "scope": "Qualifies one source-bound AC1027 retarget from a four-element MLINE style to another source-bound style after appending one fifth tail element. The test verifies exact emitted style and consumer data, ownership, fresh readback, failure rollback, late-mutation refusal and same-adapter retry. This is a selected profile only.",
+  "references": [
+    {
+      "authority": "Autodesk DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Groups 71 and 49 encode the element count and offsets, with repeated 49/62/6 element tuples; group 70 contains style flags. These definitions do not prescribe how to regenerate MLINE consumer geometry."
+    },
+    {
+      "authority": "Autodesk DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Group 340 identifies the MLINESTYLE object, group 2 is its redundant name, group 73 records style element count, groups 74/41 describe each vertex's segment parameters, groups 75/42 describe fill parameters, and groups 13/23/33 carry vertex miter vectors."
+    }
+  ],
+  "contract": {
+    "admission": "Runtime-authored AC1027 source. The original and target style geometries each have flags 2, angles 90/90, offsets [1.25,-0.75,-1.25,-2.0], and four ordered element tuples. The original tuple colors/LTYPEs are [1,3,4,5] and [ByLayer,Continuous,ByLayer,Continuous]; the target tuple colors/LTYPEs are [5,7,4,5] with the same LTYPE order. Two source-bound MLINE consumers have three vertices and are owned by model space and a named block. The target edit appends offset -3.0, ACI 4, ByLayer and retargets both consumers by group-340 identity while preserving group-2 names.",
+    "projection": "Require the exact 4-to-5 target tail append, preserve all four source offsets as an ordered prefix, and keep flags 2 and angles 90/90. Recompute each consumer's first group-41 parameter against the target's full minimum offset (-3.0), preserving source vertex positions, segment directions, miter geometry and zero second parameters. Bottom justification uses the resulting +3.0 shift. This is not a general MLINE regeneration algorithm.",
+    "outputAndReadback": "Across ASCII/binary source and output, verify both style records and dictionary ownership/keys; group 70/71/49/62/6 style fields; both MLINE group-340 references, preserved group-2 names, group 73=5, exact group 74/75/41 arrays and groups 13/23/33; model-space/block ownership; and fresh import of both style records and both consumers with the expected five-element target and projected arrays.",
+    "failureAndRetry": "For each output encoding, perturb an existing target offset and prove refusal preserves the destination sentinel and caller snapshot; restoring the source permits a same-adapter retry with full output/readback proof. A late consumer-parameter mutation also refuses atomically; restoring caller state permits retry. The selected 4-to-5 case has four successful source/output encoding combinations, two source-mutation refusals, two late-mutation refusals and four successful retries.",
+    "compatibility": "No public API or DRW_Interface virtual changes. DXF sources and outputs are authored at runtime under a temporary directory and removed after passing runs. No drawing fixtures are committed.",
+    "limits": "Evidence covers only AC1027 source count 4 to target count 5 by one tail append, the exact flags, angles, offsets and tuple fields above, and two source-bound open/uncut/unfilled three-vertex consumers. Other source counts, append batches, flags, angles, offsets, schemas, carriers, versions, native CAD semantics, complete-document closure and broader support claims remain unqualified."
+  },
+  "controls": {
+    "profiles": [
+      "ASCII AC1027 source -> ASCII output",
+      "ASCII AC1027 source -> binary output",
+      "binary AC1027 source -> ASCII output",
+      "binary AC1027 source -> binary output"
+    ],
+    "observed": "The focused selector covers this case alongside source counts 2 and 3: aggregate successful profiles=12; output/readback proofs including retries=24; source-mutation refusals with rollback=6; late-mutation refusals with rollback=6; same-adapter retries=12. The four source-count-four profiles, two source-mutation refusals, two late-mutation refusals and four retries are bound by the selector's sourceCount==4 loop cases.",
+    "runtimeFixturePolicy": "The focused test creates the DXF source and all outputs at runtime; it adds no DWG/DXF fixture to the repository."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2"
+    },
+    "focusedSuite": {
+      "result": "PASS",
+      "summary": "All four focused MLINE retarget/append tests passed (4/4); the retarget-append selector covers source counts 2, 3 and 4.",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_(retarget_(angle|offset|append)_projection|consumed_style_append)$' --output-on-failure"
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "tests/dxf_fixture_tests.cpp": "8501a0f27ad94b7202a4d0347ffb36e1b1c5cd34c89736529090bdbc42019646",
+    "normalLibdxfrwDxfFixtureTests": "9e79d45bd74f652e510b79e7b1151f05fba5f62c12f5abb2717e44e85a177ce2"
+  },
+  "next": "Select a source-backed 5-to-6 tail-append retarget or another witnessed P2 geometry operation; if no exact expected result is available, use the bounded dense retained-byte boundary. Keep each selected profile separate and do not promote native meaning or broad support claims from adapter output/readback alone."
+}

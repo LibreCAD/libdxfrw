@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-dxf-assoc-edge-pers-subent-id-codec-2026-11-07",
+  "date": "2026-11-07",
+  "title": "DXF AcDbAssocEdgePersSubentId typed codec",
+  "supportClaimEffect": "none",
+  "scope": "Retain and emit the DXF class-specific AcDbAssocEdgePersSubentId version and index fields, with fail-closed handling for incomplete payloads. This does not implement or qualify the civil DWG body layout.",
+  "evidence": {
+    "autodeskApi": {
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDb_Classes.html",
+      "observation": "Autodesk describes AcDbAssocEdgePersSubentId as identifying edge subentities by two endpoint or arbitrary index identifiers. This establishes the API-level meaning, not DXF/DWG serialization order."
+    },
+    "libreDwgSchema": {
+      "repository": "/Users/dli/dev/LibreDWG",
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "file": "src/dwg2.spec",
+      "range": "3159-3173",
+      "observation": "The peer schema models the Edge persistent-subentity class version, index1, index2, and dependent-on-compound flag; it annotates the integer fields with DXF group code 90. This is corroborating schema evidence, not ODA wire authority."
+    },
+    "odaSpecification": {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "observation": "The scanned text contains no class-specific serialized-body layout for AcDbAssocEdgePersSubentId. No DWG parser change is based on this DXF codec result."
+    }
+  },
+  "implementation": {
+    "model": "DRW_AssociativeObject stores Edge class version and both signed 32-bit indices separately from the AcDbAssocGeomDependency class version.",
+    "dxfRead": "The AcDbAssocPersSubentId subclass requires exactly three ordered group-90 values for AcDbAssocEdgePersSubentId, validates class version as a nonnegative uint16 value, and requires the compound flag after the complete tail.",
+    "dxfWrite": "The AC1024 associative dependency writer emits Edge class version, index1 and index2 as three ordered group-90 values. It refuses missing Edge fields and refuses Edge-only values attached to AcDbAssocSingleEdgePersSubentId.",
+    "dwgBoundary": "The DWG parser and physical civil selector are unchanged; incomplete physical Edge bodies remain refused pending independent body/string-span and handle-role evidence.",
+    "abi": "Public DRW_AssociativeObject layout changed. ABI and consumer qualification remain open under P8."
+  },
+  "sourceDigests": {
+    "src/drw_objects.h": "967779914b33b6335e4ffa9d13f68197b6f79f7174088a9ddbc88d52f8109787",
+    "src/drw_objects.cpp": "8333c93d56dc9d4ff0e0766f0b8e7bda4454696e6a9a2fd7c4456751f120ae65",
+    "src/libdxfrw.cpp": "fd0ea8562ea5f88dda3e0a2729bba4d6101782a2075b97828969aac442852605",
+    "tests/wave1_tests.cpp": "22ae751c84b7765ade96f3b235da3a18a11be0a731b4a457b51b2b28f42be72c",
+    "tests/dwg2dxf_adapter_tests.cpp": "f94e6791713dae64fa6c000d1f1982d57547c7b7fa0a37b65ac43d719acecb87"
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j6",
+    "buildResult": "PASS with project -Werror configuration",
+    "tests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_associative_dependency_writer$' --output-on-failure",
+        "result": "PASS, 1/1 in 0.53 seconds",
+        "coverage": "ASCII/Binary writer field order, required-field refusal, mismatched SingleEdge refusal, and ASCII writer output surviving typed dx_iface re-import."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_associative_callback_contract|dwg2dxf_associative_geometry_dependency_graph_export)$' --output-on-failure",
+        "result": "PASS, 2/2 in 0.82 seconds",
+        "coverage": "ASCII/Binary generated Edge DXF import retention, incomplete Edge payload refusal to promote complete typed fields, and unchanged generated associative geometry-dependency graph output."
+      }
+    ],
+    "fullSuites": "NOT_RUN",
+    "asan": "NOT_RUN",
+    "fixtures": "Generated controls use scratch output; no DWG/DXF fixture was committed."
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mesh-subdivvertices-output-loss-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "NONEMPTY_LEGACY_VECTOR_REFUSED; WIRE_MEANING_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "scope": "Prevent typed DXF or DWG output from silently dropping nonempty DRW_Mesh::subdivVertices while its wire mapping remains disputed.",
+  "research": {
+    "autodeskDxf": {
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+      "publishedFields": "Group 91 is described as number of subdivision levels; group 92 is the vertex count of level 0; group 10 gives vertex positions.",
+      "interpretation": "The public table does not identify a separate subdivVertices vector. It does not specify the DWG body layout."
+    },
+    "libreDwg": {
+      "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "schemaFile": "src/dwg2.spec",
+      "schemaLocation": "2523-2529",
+      "candidateLayout": "FIELD_BL(num_subdiv_vertex, 91), followed by FIELD_3DPOINT_VECTOR(subdiv_vertex, num_subdiv_vertex, 10), then FIELD_BL(num_vertex, 92).",
+      "limitation": "The surrounding schema comment calls the MESH fields undocumented/unstable. The peer field interpretation conflicts with Autodesk's DXF group-91 description and has no nonzero physical witness in the checked corpus."
+    },
+    "physicalCensus": {
+      "tool": "LibreDWG 0.14 dwgread -v5 and minJSON",
+      "inputs": [
+        {
+          "path": "/Users/dli/doc/dwg5/Surface.dwg",
+          "version": "AC1018",
+          "sha256": "7ba7ea2e6e89a01094d4ffe104dd1cfc03513d1991bd223aeac1a3186a6c38d3",
+          "meshCount": 2,
+          "numSubdivVertex": [
+            0,
+            0
+          ]
+        },
+        {
+          "path": "/Users/dli/doc/dwg5/sample_AC1015.dwg",
+          "version": "AC1015",
+          "sha256": "8ffbdc713f5838cbbb1596a8422e2b607e5c9e79921e852cbb5abee4af76ea4e",
+          "meshCount": 2,
+          "numSubdivVertex": [
+            0,
+            0
+          ]
+        },
+        {
+          "path": "/Users/dli/doc/dwg5/sample_AC1021.dwg",
+          "version": "AC1021",
+          "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+          "meshCount": 2,
+          "numSubdivVertex": [
+            0,
+            0
+          ]
+        },
+        {
+          "path": "/Users/dli/doc/dwg5/sample_AC1024.dwg",
+          "version": "AC1024",
+          "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+          "meshCount": 2,
+          "numSubdivVertex": [
+            0,
+            0
+          ]
+        }
+      ],
+      "result": "All eight physical MESH records use zero for the peer's candidate group-91 vector count. These records cannot determine the layout or meaning of a nonzero vector."
+    },
+    "expandedCensusReceipt": "docs/research/p6-mesh-subdivvertices-corpus-census-2026-11-02.json",
+    "expandedCensusResult": "The complete local corpus scan found 16 unique MESH records across eight unique DWG byte streams. Verbose traces report group-91 candidate vector counts [0,0] for each stream. No nonzero profile was found; see the expanded receipt for coverage and exclusions."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp"
+    ],
+    "guard": "DRW_Mesh::validateGeometry rejects a nonempty subdivVertices vector; both typed output routes validate geometry before writing, so the DXF and every supported DWG writer revision refuse before stream mutation.",
+    "testCoverage": [
+      "ASCII and Binary DXF writer controls verify atomic refusal for one caller-supplied subdivision vertex.",
+      "DWG writer controls verify atomic refusal for one caller-supplied subdivision vertex across AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032.",
+      "After refusal, clearing the DXF model retries successfully with a fresh writer in both encodings; clearing the DWG model retries on the same output streams for all six writer revisions.",
+      "Existing base-cage output and parser checks remain unchanged."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests -j2",
+    "buildResult": "PASS",
+    "focusedTests": "ctest --test-dir build-gcc -R '^libdxfrw_mesh_(crease_value_domains|dwg_crease_count_guard|dxf_allocation_failure)$' --output-on-failure",
+    "focusedTestResult": "PASS (3/3)",
+    "diffCheck": "PASS",
+    "fixtureFilesAdded": 0
+  },
+  "limitations": [
+    "No nonzero physical source was found to adjudicate the candidate group-91 vector layout.",
+    "The guard does not implement or qualify subdivision-vector import/export; locate a conforming producer sample and establish field meaning before adding a route.",
+    "No support claim was promoted, and no DWG/DXF fixture was added."
+  ],
+  "fileHashesAfterEdit": {
+    "src/drw_entities.cpp": "9686876de2cc3349bac0d5bcabee8ea37d5a50d661bde6b99f345d0939577a09",
+    "src/drw_entities.h": "406073402223810e0b41e63a6c74adbe82259b19b735db2daf8a04312771e45d",
+    "tests/hardening_tests.cpp": "e62421bf7e2964ed5ad0eab7ed5090ff243baf2c1e500f8105afbab0223185db",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "68ad149535f53c07204d672c26de318222323fa53b591dbd56529a68f9817e41"
+  },
+  "currentTurnValidation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests --parallel 4",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mesh_crease_value_domains|libdxfrw_mesh_dwg_crease_count_guard|libdxfrw_mesh_dxf_allocation_failure)$' --output-on-failure",
+    "passed": 3,
+    "failed": 0,
+    "elapsedSeconds": 0.41
+  },
+  "stagedInputHashes": {
+    "src/drw_entities.cpp": "90444975aea47189d45bc0ca752c834a49a9d4cdfa9444e16960df687bc581b2",
+    "tests/dwg_object_vectors_tests.cpp": "437da8f7bc00df9f817aae47172731cbd4864b11402a2885a98bf7dc0645b3b1",
+    "tests/hardening_tests.cpp": "82516e1a3059d1d47836c5682a7c8fde9e660f8e5864af0a4549de3e1612ae2b",
+    "tests/dwg_local_roundtrip_tests.cpp": "8e051681e201c34b11a180584fc1dc8b66f6fba152d2433ab1a367001c020a9d",
+    "CMakeLists.txt": "d1c8714988f9cd41e787983cd28586c1495f1aa07ecfe883a4e34151a539fb33",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ca6184dc175f0fa7feb8e069f75b53dc8ee78a271fb0117ef5ee259d37e49ce7"
+  },
+  "repositoryState": {
+    "baseHead": "a49c90a3",
+    "stagedScope": "bounded MESH DWG parse/output profile; DXF loss guards; generated vectors",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

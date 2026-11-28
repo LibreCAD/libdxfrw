@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader DXF parser screen and peer failure-lane reconciliation",
+  "mode": "primary-source web research and read-only plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen an additional DXF parser for material overlap with libdxfrw",
+    "Reconcile recent ACadSharp issue reports with existing local risk owners",
+    "Separate DWG MLeader object-context concerns from DXF MLEADER parsing",
+    "Refine peer admission and fast-validation readiness without changing support claims"
+  ],
+  "method": {
+    "kind": "Read current upstream project documentation and issues, then map claims to the existing local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/hardening_tests.cpp"
+    ],
+    "limitations": "Mutable upstream README and issue pages were reviewed as peer-specific reports, not format authority. Full details for ACadSharp issues #1282 and #1283 were not independently available in this pass, so only their issue-index titles are recorded as leads. No peer behavior or local defect was reproduced."
+  },
+  "sources": [
+    {
+      "project": "gdsestimating/dxf-parser",
+      "urls": [
+        "https://github.com/gdsestimating/dxf-parser"
+      ],
+      "revision": "Mutable repository README reviewed 2026-10-18",
+      "observed": "The JavaScript project documents parsing text DXF into a projected object model and lists most 2D entities as supported, with 3DSOLID, some leaders, and other less-common objects not yet supported. The README does not establish DWG or Binary DXF support, arbitrary unknown-tag round-trip preservation, or ACIS/SAB semantics."
+    },
+    {
+      "project": "ACadSharp issue #1281",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281"
+      ],
+      "revision": "Issue opened 2026-10-11; page reviewed 2026-10-18",
+      "observed": "The report describes recursive stack growth for repeated comments, extended-data application blocks, and Wipeout clip-boundary data, including high-count reproductions and shared Binary DXF reader paths. These describe ACadSharp implementation paths, not a format limit or a libdxfrw reproduction. The local generated robustness lane covers repeated comments in ASCII, and XDATA plus Wipeout-like input in both ASCII and Binary DXF, with following LINE sentinels."
+    },
+    {
+      "project": "ACadSharp issues #1282 and #1283",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1283"
+      ],
+      "revision": "Issue index reviewed 2026-10-18",
+      "observed": "The issue index titles point to per-APPID EED size/overflow and nested-block deep-copy performance/stack-growth topics. Full issue details were not independently available in this pass. These are leads mapped to existing EED width/accounting and graph-work owners, not confirmed local mechanisms or thresholds."
+    },
+    {
+      "project": "ACadSharp issue #1277",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1277"
+      ],
+      "revision": "Issue opened 2026-10-09; page reviewed 2026-10-18",
+      "observed": "The report describes an AC1032 DWG rewrite for which AutoCAD LT 2026 AUDIT reportedly rejects standalone AcDbMLeaderObjectContextData objects associated with extension dictionaries and annotation scales; it identifies two distinct serialization changes. The original source drawing was not available in the issue. This remains a peer report, not a reproduced libdxfrw failure."
+    },
+    {
+      "project": "ACadSharp repository capability matrix",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "revision": "Mutable repository README reviewed 2026-10-18",
+      "observed": "The README presents version-level DWG/DXF read/write capability cells. These support route selection but do not prove entity- or field-level survival, graph closure, conversion fidelity, or solid semantics."
+    },
+    {
+      "project": "QCAD dxflib and libopencad",
+      "urls": [
+        "https://github.com/qcad/qcad/tree/master/src",
+        "https://github.com/sandyre/libopencad"
+      ],
+      "revision": "Mutable repository pages reviewed 2026-10-18",
+      "observed": "The recheck identified no new qualification claim to add: dxflib remains a callback-oriented DXF reference, and the original libopencad repository describes a narrow basic R15/AC1015 DWG reader and is abandoned. Existing plan roles remain appropriately limited."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Screened dxf-parser out as a general parity dependency and 3D comparator; mapped peer-reported recursion, EED-width, nested-block-work, and AC1032 MLeader-context risks to existing owners; kept the DWG object-context report distinct from DXF MLEADER parsing; and reiterated exact operation overlap, generated local reproduction, and focused fast validation as implementation-readiness gates."
+  },
+  "implementationReadyChecks": [
+    "Treat a peer issue as a hypothesis until the matching local path, format/version/direction, invariant, and independently expected generated reproduction are named.",
+    "For repeated DXF inputs, use the owning focused selector with bounded progress and a following-record sentinel; do not import peer count thresholds.",
+    "Route EED width/accounting and nested-block work to their existing owners; do not infer limits or performance thresholds from issue titles alone.",
+    "Keep AC1032 DWG MLeader object-context closure separate from DXF MLEADER groups and qualify it at the composed object-graph/native-AUDIT gate.",
+    "Do not add dxf-parser as a dependency; an optional future ASCII comparison requires an exact artifact/runtime and independently authored expected fields.",
+    "No broad suite, peer build, sanitizer campaign, external fixture, or native CAD run is required for this research-only update."
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1027-persubentmgr-raw-only-shell-recovery-2026-11-08",
+  "date": "2026-11-08",
+  "status": "AC1027_PHYSICAL_FRAME_PUBLISHED_RAW_ONLY",
+  "supportClaimEffect": "none",
+  "scope": "Retain AC1027 bare AcDbPersSubentManager frames raw-only after typed body parsing fails and the independent common shell/handle stream validates.",
+  "authority": {
+    "oda": "ODA v5.4.1 does not establish the disputed class-specific AC1027 PERSUBENTMGR body sequence observed here.",
+    "implementationPolicy": "Preserve the exact frame only after RawObjectShell validates the bounded common header and handle tail. Do not infer class-specific field order, meaning, output eligibility, or semantic support."
+  },
+  "implementation": {
+    "file": "src/intern/dwgreader.cpp",
+    "profile": "Exact AC1027 or AC1032 version, record ACDBPERSSUBENTMANAGER, class AcDbPersSubentManager, typed parse failure, and successful independent RawObjectShell parse.",
+    "behavior": "Failed typed body parsing retries on a pristine cursor through RawObjectShell. The unsupported-object callback retains the exact raw frame with typedPayloadValidated=false; invalid shell parses remain failures."
+  },
+  "generatedControl": {
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "method": "Two locally authored AC1027 manager frames are read sequentially. Assertions check zero object parse failures, no typed associative callback, exact raw bytes, class/version, validated owner/reactor links, raw carrier dispositions, and recovery of the second frame.",
+    "fixturesAdded": 0
+  },
+  "physicalSource": {
+    "path": "/private/tmp/example_2013.dwg",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "version": "AC1027",
+    "provenance": "Existing external public example_2013.dwg already referenced by hash-bound repository receipts; read-only, not copied into the repository.",
+    "object": {
+      "record": "ACDBPERSSUBENTMANAGER",
+      "class": "AcDbPersSubentManager",
+      "handle": "0x2E0",
+      "observedBodyFailure": "The typed prefix reaches the bounded body end and fails on the class-specific sequence. No field interpretation was changed."
+    },
+    "readback": {
+      "command": "build/dwg2dxf/dwg2dxf /private/tmp/example_2013.dwg -y -d -v2013 /private/tmp/libdxfrw-example2013-rawfallback2.dxf",
+      "logPath": "/private/tmp/libdxfrw-example2013-rawfallback2.log",
+      "logSha256": "9712c2239ef9f3502a60b3148281219e6502c185ab0e997fa8a8cc40069ca14c",
+      "rawOnlyDiagnostic": "[persistent-manager-raw-only class=AcDbPersSubentManager handle=736]",
+      "tableContentRawOnlyDiagnostic": "[table-content-raw-only class=AcDbTableContent handle=3220]",
+      "sourceFrames": 481,
+      "publishedFrames": 480,
+      "failedFrames": 1,
+      "entityParseFailures": 0,
+      "objectParseFailures": 1,
+      "priorObjectParseFailures": 2,
+      "strictExport": "Refused before output at the existing AC1027 DWG source-reference qualification gate."
+    }
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+    "focusedTest": "PASS: ctest --test-dir build -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure (1/1; includes generated AC1027/AC1032 manager and TABLECONTENT recovery controls)",
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limits": [
+    "PERSUBENTMGR class-specific body fields and semantics remain unresolved.",
+    "Raw-only retention does not authorize replay or selected/whole-file output.",
+    "The physical source still has one failed object frame and strict output remains refused."
+  ],
+  "next": "Continue with a distinct locally implementable P4/P6 slice; keep unsupported bodies raw-only and strict output fail-closed."
+}

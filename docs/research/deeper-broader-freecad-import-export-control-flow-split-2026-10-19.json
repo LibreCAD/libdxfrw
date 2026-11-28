@@ -1,0 +1,55 @@
+{
+  "title": "FreeCAD import/export control-flow and codec-evidence split",
+  "captured_at": "2026-10-19",
+  "scope": "Source-only cross-check of FreeCAD's current DWG converter wrapper and downstream DXF importer, with a route-specific reconciliation against existing libdxfrw qualification owners.",
+  "sources": [
+    {
+      "name": "FreeCAD Import/Export Preferences",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "observation": "The documented DWG conversion preference distinguishes Automatic from an explicitly selected converter. FreeCAD requires an external converter; DXF preferences also affect the DWG route. Documentation is mutable and not a runtime result."
+    },
+    {
+      "name": "FreeCAD current importDWG.py",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "observation": "Current source tries LibreDWG, ODA, and QCAD in sequence in Automatic mode. DWG-to-DXF conversion checks intermediate-path existence after communicate(), not child status. The ODA command requests ACAD2000 DXF. DXF-to-DWG conversion returns the requested output path after a converter call without checking output existence/status. Mutable main was read on 2026-10-19; no immutable source SHA or executable was obtained."
+    },
+    {
+      "name": "FreeCAD issue #31835",
+      "url": "https://github.com/freecad/freecad/issues/31835",
+      "observation": "The still-open report describes Automatic DXF-to-DWG export stopping after a failed first converter because convertToDwg() returns unconditionally. The report names FreeCAD 1.1.3 on Windows, LibreDWG 0.14, and ODA File Converter 27.1.0; these are reporter-attributed results, not reproduced here and not a libdxfrw defect."
+    },
+    {
+      "name": "FreeCAD Draft DXF guide",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "observation": "FreeCAD documents separate C++ and legacy Python DXF import routes and states that embedded ACIS/SAT solid data cannot currently be read by its stock DXF importer."
+    },
+    {
+      "name": "FreeCAD C++ DXF importer source",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "observation": "The C++ importer has a specific entity dispatch/object construction path; importer selection and feature preferences are part of the consumer route rather than evidence about the converter alone."
+    }
+  ],
+  "plan_delta": [
+    "Keep explicit LibreDWG-to-FreeCAD import qualification separate from FreeCAD Automatic fallback; Automatic may choose ODA or QCAD and is not a codec-specific result without child-process provenance.",
+    "Capture subprocess status, fresh output digest, actual DXF version, strict DXF parse, selected importer/backend, and per-source object disposition as separate outcomes.",
+    "For FreeCAD DXF-to-DWG export, require file existence, size, actual DWG magic/version, and independent reopen; the wrapper-returned path alone is not a success signal.",
+    "Keep stock FreeCAD's documented ACIS limitation outside the B-rep semantic evidence gate."
+  ],
+  "limitations": [
+    "No FreeCAD, LibreDWG, ODA, or QCAD executable was run.",
+    "FreeCAD main source is mutable and was not resolved to an immutable revision in this pass.",
+    "No issue attachment or external drawing was downloaded; no fixture was added.",
+    "No new local defect, numbered finding, top-level subplan, dependency, or support claim was established.",
+    "Findings/top-level subplans remain 139/77; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ],
+  "non_promotion": {
+    "new_local_findings": 0,
+    "new_top_level_subplans": 0,
+    "code_or_tests_changed": false,
+    "peer_or_native_runtime_executed": false,
+    "external_drawings_downloaded": false,
+    "findings_top_level_subplans": "139/77",
+    "deferred_external_items": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "support_claims_promoted": false
+  }
+}

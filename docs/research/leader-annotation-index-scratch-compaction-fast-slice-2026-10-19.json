@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "7S.2c LEADER annotation target-index scratch compaction",
+  "mode": "Generated local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reduce temporary per-entity-handle allocation in the LEADER annotation-target preflight.",
+    "Preserve unique-target pointer selection and duplicate-identity refusal semantics."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/leader-annotation-index-scratch-compaction-fast-slice-2026-10-19.json"
+    ],
+    "change": "Replace unordered_map<uint32_t, vector<const DRW_Entity*>> with unordered_map<uint32_t, {first entity pointer, occurrence count}>. The count increment is checked before overflow.",
+    "preservedBehavior": [
+      "Missing LEADER annotation target is rejected before destination publication.",
+      "Wrong-kind target is rejected.",
+      "Duplicate entity-handle target is rejected.",
+      "Object-family and raw-entity handle collisions remain rejected.",
+      "A unique valid target is preallocated before record emission."
+    ],
+    "testOwner": "libdxfrw_dxf_fixtures",
+    "focusedSelector": "--leader-annotation-reference",
+    "testBoundary": "Generated ASCII/Binary writer/readback through dx_iface; no native producer or consumer qualification."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 2",
+      "result": "PASS"
+    },
+    "productionTargetBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --leader-annotation-reference",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "elapsedSeconds": 4.38
+    },
+    "diffCheck": {
+      "command": "git diff --check -- dwg2dxf/dx_iface.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/leader-annotation-index-scratch-compaction-fast-slice-2026-10-19.json",
+      "result": "PASS"
+    },
+    "receiptValidation": "PASS: jq -e . docs/research/leader-annotation-index-scratch-compaction-fast-slice-2026-10-19.json",
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "testRegistrationsAdded": 0,
+    "persistentFixturesAdded": 0,
+    "semanticBehaviorChanged": false,
+    "confirmedFormatDefectsAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Advances the existing 7S.2c local scratch/retention census by removing one inner vector allocation per unique valid entity handle in LEADER annotation preflight. The broader 7S.2c census and all external/native/semantic qualification remain open."
+  },
+  "method": {
+    "sourceFixturePolicy": "The test generates temporary DXF input/output from scratch and removes it; no persistent DWG/DXF fixture is added.",
+    "planUpdated": true,
+    "commitCreated": false,
+    "commitReason": "Git metadata is read-only in this workspace."
+  }
+}

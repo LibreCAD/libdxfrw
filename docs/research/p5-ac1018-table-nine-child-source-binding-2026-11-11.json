@@ -1,0 +1,38 @@
+{
+  "id": "p5-ac1018-table-nine-child-source-binding-2026-11-11",
+  "scope": "Opt-in source observations of nine ordered DATATABLE child XRECORD wire profiles, jointly sealed with the selected root and three custom frames; no write or semantic authority.",
+  "authority": {
+    "oda": "Local Open Design Specification v5.4.1 sections 2.13 and 20.4.104 describe common object framing, parent soft-pointer and XRECORD data pairs. It describes RC string length where this source uses RS.",
+    "independent": "The earlier pinned LibreDWG 0.14 minJSON confirms nine selected owners and ordered child pairs; ODA self-conversion also agrees. See p5-ac1018-table-descendant-graph-wire-2026-11-11.json."
+  },
+  "physical_source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "probe": "tools/research/p5_ac1018_table_children_binding_probe.cpp",
+    "result": "PASS: same import ten XRECORDs, three candidates; each child 0xbe..0xc6 has owner 0xbd with source H code 4; exact observed five/six ordered pairs match immutable typed values. An unrelated HEADER integrity observation remains."
+  },
+  "profile": "AC1018, nine children, each with one code-4 parent, no EED/reactors/extension, cloning 1, exact framing/padding and one of two observed ordered five/six-pair wire shapes. Each child may independently use either shape and any matching printable ASCII text up to 64 bytes; the selection does not require the physical witness Title/blank/blank/1\u20136 distribution or prove its cell semantics. Each string carries source byte 45 and observed RS length. Text interpretation and general producer support are not inferred.",
+  "generated_control": {
+    "command": "cmake --build build --target libdxfrw_dwg_table_candidate_binding_tests libdxfrw_dwg_table_child_xrecord_ac1018_candidate_tests -j 3 && ctest --test-dir build -R ^libdxfrw_dwg_table_(candidate_binding|child_xrecord_ac1018_candidate)$ --output-on-failure",
+    "result": "PASS 2/2",
+    "construction": "Locally written ten-XRECORD AC1018 scratch container, locally constructed root and child bodies substituted with object CRC and page checksum recomputation; no fixture committed.",
+    "coverage": [
+      "Standalone five/six groups; every truncation; wrong identity/owner role/codepage/count, typed mutation/order, long input, legacy mirrors, allocation fault sweep with retry.",
+      "Generated full bundle, prior root-only API compatibility, nine child identities and source order, byte/typed mutation, duplicate/missing selection, same/cross-adapter reentry, spoofed typed callback, 3 sealing allocation failures and retry.",
+      "Valid-frame child codepage, group-code and scalar variants still pass the prior root-only bundle but fail the strict child-bound selection; wrong parent/owner role fail closed.",
+      "Query outputs reset on failure at last of 2834 observed allocations, then clean retry; sample is not an exhaustive query fault sweep.",
+      "Child frame CRC corruption leaves recomputed page checksums valid; untruncated diagnostics specifically identify child 0xbe ObjectFrameBounds, then same-adapter retry.",
+      "Strict DXF output refusal preserves sentinel. Existing 2 MiB aggregate/4 KiB geometry quota controls run in the same cohort.",
+      "An alternate CRC-valid child with matching Other text is deliberately accepted: the source-bound predicate proves individual wire shape and roles, not the exact physical witness value distribution."
+    ]
+  },
+  "probe_build": "c++ -std=c++17 -Wall -Wextra -Werror -I src -I dwg2dxf tools/research/p5_ac1018_table_children_binding_probe.cpp build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build/libdxfrw.a -o /private/tmp/p5_ac1018_table_children_binding_probe",
+  "probe_run": "/private/tmp/p5_ac1018_table_children_binding_probe /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+  "limitations": [
+    "Observed RS string length conflicts with ODA documented RC; codepage 45 semantics remain unqualified.",
+    "One ODA-produced AC1018 out-of-version profile does not establish general format or native interoperability.",
+    "Remaining graph includes TABLE parent and extension dictionary, TABLESTYLE and resource dependencies; transactional populated-graph output, semantic equivalence and independent readback remain unproved.",
+    "The stricter observer intentionally accepts only the demonstrated five/six-group ASCII shapes. Raw/typed candidate observations do not authorize replay or output.",
+    "Allocation failures are sampled for sealing and end-to-end queries; only the small standalone child observer measured and swept its own observed allocation points."
+  ]
+}

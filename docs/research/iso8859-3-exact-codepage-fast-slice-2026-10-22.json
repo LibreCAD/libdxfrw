@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "PAR-05 exact ISO-8859-3 decoder",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "2608d5df601ae95cfcd91b04a94f605c93c6f118c4ae6a7cddea41c599ea5c9e",
+  "research": [
+    {
+      "source": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-3.TXT",
+      "role": "Primary Unicode Consortium mapping for ISO/IEC 8859-3:1999; enumerates defined scalars and omits the seven undefined byte positions."
+    },
+    {
+      "source": "Python standard-library strict iso8859_3 codec",
+      "role": "Independent local cross-check of every production upper-half table entry; undefined input bytes were treated as undefined, not replacement mappings."
+    }
+  ],
+  "scope": {
+    "change": "Added a distinct ISO-8859-3 mapping table, ExactNamed resolution/factory route, and per-consumption Iso8859_3 source profile for ISO8859-3 and ISO-8859-3.",
+    "definedBytes": 121,
+    "undefinedBytes": ["0xA5", "0xAE", "0xBE", "0xC3", "0xD0", "0xE3", "0xF0"],
+    "compatibilityBehavior": "Unchanged: ISO8859-3 remains Windows-1254 under Compatible; ISO-8859-3 remains Windows-1252 under Compatible.",
+    "sourceAdmission": "Exact ISO-8859-3 decoding remains UnsupportedProfile. Undefined byte observations produce ObservedIssues; neither path promotes strict source support.",
+    "fixturesAdded": false,
+    "publicLayoutChanged": true,
+    "supportClaimChanged": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check --parallel 2",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_iso8859_3_codepage$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "Compare DRW_TableISO8859_3 against Python strict iso8859_3 for bytes 0x80-0xFF",
+      "result": "PASS (128 entries; 7 undefined; 0 mismatches)"
+    },
+    {
+      "command": "git diff --check -- touched implementation/test/plan files",
+      "result": "PASS"
+    }
+  ],
+  "sourceSha256": {
+    "CMakeLists.txt": "7b969af02f7f32e3d32738458225a162c89058741dbfb5ef10a71567b00ee3f2",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "2608d5df601ae95cfcd91b04a94f605c93c6f118c4ae6a7cddea41c599ea5c9e",
+    "src/drw_base.h": "16f787558a85e2bdab18a212d0046fa558af6cd8c648f5b98a76ae3e10350b28",
+    "src/intern/drw_cptables.h": "bb3ec46f036e7388b8ce19cd77d0fa3e06d2d4ca2af1215a22bb1b48753f33c4",
+    "src/intern/drw_textcodec.cpp": "7769467040d6e6b13cb6c2b685ec9369ec95b0caa4af090cac26957ca474afe6",
+    "tests/gbk_codepage_tests.cpp": "a13ed65abe718387f11379356785b15399c99c6625c5e64506ef85e57f41e9d3"
+  },
+  "evidenceLimits": [
+    "The Unicode table and local generated tests prove mapping behavior, not CAD producer emission or native consumer acceptance of either ISO-8859-3 label.",
+    "Compatible behavior remains intentionally approximate and unchanged.",
+    "No full format suite, external peer runtime, native CAD consumer, or persistent sample was used.",
+    "The observation structure grows by one profile counter; downstream binaries must rebuild with the library."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; the shared worktree is broadly dirty and this slice remains unstaged"
+}

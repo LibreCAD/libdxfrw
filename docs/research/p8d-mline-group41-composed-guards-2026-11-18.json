@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-mline-group41-composed-guards-2026-11-18",
+  "date": "2026-11-18",
+  "status": "COMPOSED_SCRATCH_RED_GREEN_GUARDS_PASSED",
+  "supportClaimEffect": "none",
+  "priorEvidence": "docs/research/p8d-mline-group41-scratch-transport-screen-2026-11-18.json",
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm"
+  ],
+  "source": "The same pinned six-vertex AC1018 planar open MLINE ASCII/Binary inputs as the prior receipt. The scratch collision case relocates the paper BLOCK_RECORD and puts the STANDARD style at the fixed output block-record handle 1E. Mutations are local controls.",
+  "scratchRoot": "/private/tmp/librecad-mline-group41-composed",
+  "compiledFilesSha256": {
+    "rs_filterdxfrw.cpp": "676f790eca595b2b93754ee8513b9323c0bf31744d37ad150c7e316a01bb4ae8",
+    "rs_filterdxfrw.h": "cd3cdd5906369cc97b8b65531706e34b1fca4c10fad9de570156afb1fac5a7e2",
+    "rs_filterdxfrw.cpp.o": "e4805591364f45da3fdfb417a41ae6a45d97621e44a22fbfdda86c517eda53fc",
+    "liblibrecad_lib.a": "49d175445ac980d6719559776dba2892d91f4e7bd3d241ca2dbf0d524029f109",
+    "save_probe": "60e1b923404541748c1c69e42932221af9af824a3ce1e7bbafe80647d55dd03a",
+    "owner_probe": "eef75cc12e8f08545eaac4e5fbf1887ba6a461a656a43cbfef41f2568558409d",
+    "mutation_probe": "833fb6b4e543ba36da6d0c1921ef8c838833ad27f5c61f83577db5318952df8a",
+    "harness_composed": "f64c4a63d8ad7fddab8b84dfbd5ad10086f330d4365b7af5677d51a5fe7b5d20"
+  },
+  "build": "Compile the filter object via build.py with the existing LibreCAD candidate flags, replace only that member in a private copy of the matching closure archive, and link all probes to that absolute archive path. The filter header and class layout match the closure candidate.",
+  "checks": {
+    "provider": "The original scratch style collision emitted the provider at 190 while group 340 retained 1E (a BLOCK_RECORD). The composed save and independent ezdxf 1.4.5 readback agree on MLINE group 340, the STANDARD entry of ACAD_MLINESTYLE, and the emitted MLINESTYLE at 190. Control files retain handle 18.",
+    "payload": "Unchanged saves from both encodings preserve the observed baseline, directions, miters, open flag and complete group-41 pairs within 1e-12. Maximum observed rounding is three ULP. LibreCAD ASCII save and fresh reopen pass.",
+    "ownerAndIdentity": "Use the recorded model-space block record and reject an aliased or wrong owner and common metadata outside the profile. One source handle is retained on the anchor. Wrong owner, unknown group 102, reactor, marked group membership, duplicate projected identity and a new sibling reference select visible polylines in the controls.",
+    "geometry": "Both encodings pass arc, pen, malformed direction and gap edits and restored same-filter retry. Arc bulge and RGB are present in independent readback. A gap explicitly refuses and retains the sentinel because generic polyline output would otherwise reconnect it. A source with zero direction remains visible polylines.",
+    "styleCases": "Fourteen style/provider/root cases cover missing, changed, duplicate and lexically inconsistent metadata. A restored typed-style retry saves the MLINE. Duplicate raw handles and a typed root/style alias expressly refuse and preserve preexisting destination bytes."
+  },
+  "scriptsAndLogsSha256": {
+    "build.py": "ebc7207d32f2475426f69664a23092f5d3340956bbc946d8a1b1a956364af6f1",
+    "build_save_probe.py": "1df951a5c4d62cdfa4ea45c0c75acb730b69ba8a8fda737d13b95947d63f4bab",
+    "build_owner_probe.py": "768680ebf23e7f1edf3e517fe9a2d49d7aabe0a25db37e6b637c9d1e8a733ea9",
+    "build_mutation_probe.py": "d4d2b792d89ca7986bd10b6f359a97f5c75d9febffc869d0ae9a32fd27704ee6",
+    "build_harness.py": "718e49f9763e92ff9fbe36d7b19c333db27cd2b692b2642bf3a74ae84df1b87c",
+    "run_positive.py": "8b314d434bd8756aabe614503ff63913a84f6525d5dc7d8c920dfefea88b0316",
+    "compare.py": "98feb568fcbd4e046b757a52bcfb1644ceb0aaad898e8ab7a08c3ab0e4aa80fa",
+    "check.py": "23d6f00f61debaa961cfd23b25083374e28ba94d29b16200c2501874f9720bf7",
+    "run_mutations.py": "6e10031bbd5b9c53842d7239f174c507c53d85e692a4516c5048cc027a1ac01d",
+    "run_atomic_styles.py": "ebc4604cca29e75eab7a7eaff8a369673719fb71120c4943c42bfee4d164db48",
+    "run_geometry.py": "2bea5190ff85085edd848bed1b48c3e01315b5592bfa9cba6fa206d7d45bf05e",
+    "positive.log": "b5fbf5c6ce5affa879831ae41a9099e10fae2b8a8d48bfda660287824cf2180b",
+    "comparison.json": "042b7369603697621f026563f2746b0fcfc877b8e387e8277914c46bbe8e0858",
+    "owner-report.json": "3cff8fc660d521d2330fdbb0de21dc61da67e1de3d48a9106b7cc802e164ccd7",
+    "mutations.log": "378fd4bb81883babbe18f8e67175840c8bdf7398abdb4ce5ef2e2a00dc63eb42",
+    "geometry.log": "0ab277134df7c8408c7791eeb31c81d8765329144a8ce236b20746d748ad1a0f"
+  },
+  "remaining": [
+    "The bundled LibreCAD writer has a finalization callback without the standalone libdxfrw staged OBJECTS inspector. The scratch guard checks planned providers and the independent readback confirms the selected emitted graph. Bind the emitted style and dictionary identities before publication in a production adapter, with an emitted-provider omission/refusal and corrected retry.",
+    "Keep the bundled and standalone codec contracts separate when mapping group 340. The standalone codec already resolves the input source handle. Test the installed-library path independently before integrating the adapter.",
+    "The fallback tests establish visible geometry. They do not establish complete application-data or inbound GROUP membership preservation for unsupported sources. GUI behavior, cuts, fills, general styles, other formats and broader source profiles remain unqualified.",
+    "The composed source, test drivers and generated DXF files stay in scratch. No production group-41 patch or fixture is in this commit."
+  ]
+}

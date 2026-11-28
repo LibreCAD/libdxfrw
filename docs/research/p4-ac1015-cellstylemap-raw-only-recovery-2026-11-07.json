@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1015 out-of-version CELLSTYLEMAP raw-only recovery",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg6/PolyLine3D_2.dwg",
+    "sha256": "f51f4f65ba027bf1a001480d3c7b5bc5667960050081c67f9bb9c7bdbcfe815a",
+    "bytes": 179722,
+    "version": "AC1015",
+    "provenance": "Existing local corpus file. Its producer and redistribution status are not established by this investigation; it remains outside the repository."
+  },
+  "formatBoundary": {
+    "authority": "Open Design Specification for .dwg files v5.4.1, §20.4.102",
+    "finding": "CELLSTYLEMAP was introduced in AutoCAD 2008. Its occurrence in this AC1015 file is out-of-version, so the newer body must not be interpreted as an AC1015 typed record from this witness alone."
+  },
+  "independentPeer": {
+    "tool": "LibreDWG 0.14",
+    "binaryPath": "/opt/homebrew/bin/dwgread",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -O minJSON -o /private/tmp/libdxfrw-polyline3d-2000-minjson.json /Users/dli/doc/dwg6/PolyLine3D_2.dwg",
+    "exitCode": 0,
+    "object": {
+      "handle": "0x218",
+      "type": 509,
+      "class": "AcDbCellStyleMap",
+      "bitsize": 5390,
+      "decodedCellCount": 3,
+      "owner": "0x104"
+    },
+    "interpretation": "Peer typed decoding shows this record exists and is structurally readable to LibreDWG. It does not override the ODA version boundary or qualify an AC1015 body schema."
+  },
+  "libdxfrw": {
+    "repositoryRevision": "b181c8a4ff30b8f280269ac6534ea41ddab3f94a",
+    "change": "For the exact AC1015/AC1018 CELLSTYLEMAP and AcDbCellStyleMap class pair, a failed typed parse may fall back only when RawObjectShell validates the common header and handles. The exact source frame is published as raw-only; no typed callback or DXF output eligibility is granted.",
+    "before": {
+      "publishedFrames": 228,
+      "failedFrames": 1,
+      "failedHandle": "0x218",
+      "failure": "TABLESTYLE cell-style data header invalid"
+    },
+    "after": {
+      "publishedFrames": 229,
+      "failedFrames": 0,
+      "rawOnlyObjects": 1,
+      "rawOnlyHandle": "0x218",
+      "strictConversion": "Still refused before output because skipped unsupported objects make the DWG read disposition incomplete; this is the intended fail-closed result."
+    },
+    "build": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_object_vectors_tests -j 4",
+      "dwg2dxfSha256": "809b16e731da7b0fc744ee80d4d31b503d46c5f03b70273ebec9b8b62fb9202f",
+      "objectVectorsSha256": "a2cb106b77e0a296c586bfa0c4764e3c311b958a51c63989feff91addb58520b"
+    },
+    "test": {
+      "selector": "libdxfrw_cellstylemap_identity_domains",
+      "result": "passed (1/1)",
+      "coverage": "Exact AC1015/AC1018 admission plus rejection for AC1014, AC1021, null class, and a mismatched record name."
+    },
+    "fixturePolicy": "No DWG or DXF fixture was added."
+  },
+  "scopeLimit": "The new branch improves tolerant frame recovery only for the exact observed version/class pairs after common-shell validation. It does not add AC1015 CELLSTYLEMAP semantics, serializer support, strict conversion eligibility, producer qualification, or consumer support."
+}

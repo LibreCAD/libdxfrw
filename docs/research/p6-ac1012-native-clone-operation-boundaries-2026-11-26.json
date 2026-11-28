@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-26",
+  "id": "p6-ac1012-native-clone-operation-boundaries",
+  "status": "WITNESS_PROCEDURE_REFINED_NATIVE_MERGE_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "sources": [
+    {
+      "title": "AcDbDatabase::wblockCloneObjects",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbDatabase__wblockCloneObjects_AcDbObjectIdArray__AcDbObjectId__AcDbIdMapping__AcDb__DuplicateRecordCloning_bool.html",
+      "finding": "When the supplied owner is a dictionary, newly cloned entries are anonymous. The caller supplies the operation-level duplicate-record policy; documentation separately identifies INSERT and database insert as Ignore."
+    },
+    {
+      "title": "XRECORD (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+      "finding": "XRECORDs disappear when read into AutoCAD releases before R13c4; this statement concerns DXF reads."
+    }
+  ],
+  "assessment": [
+    "A direct wblockCloneObjects call into the target dictionary cannot alone establish the behavior of a named SAME_KEY collision; capture the actual keys and ID mapping and separately test an applicable INSERT or merge operation.",
+    "Record the exact native release and maintenance level for XRECORD DXF readback. AC1012 and successful open do not prove XRECORD preservation.",
+    "Neither source establishes the in-memory mergeStyle of an AC1012 dictionary with an absent serialized field, nor native DWG open or merge behavior. Continue strict refusal pending the witness."
+  ],
+  "changes": [
+    "Updated native witness procedure and P6 remaining queue."
+  ],
+  "limits": [
+    "No native process was run; no product behavior or support claim was changed."
+  ]
+}

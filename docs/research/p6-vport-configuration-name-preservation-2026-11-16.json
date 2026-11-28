@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-16",
+  "scope": "DXF VPORT configuration names and active-entry ordering for direct writer callbacks.",
+  "authority": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-8CE7CC87-27BD-4490-89DA-C21F516415A9.htm",
+  "finding": "Previously the first callback was always renamed to *ACTIVE. A generated NAMED_CONFIG center=12 followed by *ACTIVE center=34 read as two *ACTIVE entries, changing both the saved name and the current viewport.",
+  "change": "Preserve explicit names and set the active-present state only for case-insensitive *ACTIVE or the legacy unnamed-active shorthand. If no active entry was supplied, append the existing default active row. Preserve repeated active and repeated named entries in callback order.",
+  "checks": [
+    "VPORT allocation test passes its AC1014 through AC1032 ASCII/Binary allocation-failure rollback and retry sweep. New name controls cover AC1009, AC1014 and AC1032 ASCII/Binary: named-before-active, repeated named and active names, missing-active default, unnamed compatibility shorthand, invalid second row, unchanged destination/caller and same-writer retry matching a clean writer byte for byte.",
+    "The dynamic table-capacity matrix passes its targeted selector, including the added default active row and preserved names.",
+    "The existing VPORT reference remapping, ambient CMC, version-loss rollback, APPID allocation and FreeCAD CLI compatibility checks pass 5/5.",
+    "After relinking against this source, LibreCAD installed-codec LTYPE and PR #3269 focused tests pass: 17 passed and one ODA-fixture test skipped in the LTYPE suite, plus five PR #3269 tests.",
+    "ezdxf 1.4.5 independently reads the generated named-before-active DXF as NAMED_CONFIG center 12 followed by *ACTIVE center 34.",
+    "Implementation digest refreshed from a clean temporary Git index matching 5988 staged tracked entries; no support claim status or receipt linkage changed."
+  ],
+  "limitations": [
+    "Generated controls and one independent DXF reader do not qualify native tiled viewport display, producer coverage, or full graph/semantic support.",
+    "The unnamed viewport shorthand is a compatibility convention; named viewports no longer become active merely because they are written first.",
+    "No DXF or DWG fixtures were committed."
+  ],
+  "implementationDigestSha256": "7debc48faefabedca480c847f745c1aacec9f800aadcd64c07be278d418ed1ed",
+  "independentPeerMatrix": {
+    "reader": "ezdxf 1.4.5",
+    "producer": "Scratch C++ generator linked against fixed libdxfrw, using two named and two active VPORT records.",
+    "versions": [
+      "AC1009",
+      "AC1014",
+      "AC1032"
+    ],
+    "encodings": [
+      "ascii",
+      "binary"
+    ],
+    "result": "All six outputs contain both NAMED_CONFIG records with centers 12 and 78 and both *ACTIVE records with centers 34 and 56. The peer preserves order within each name group but groups records by name during iteration, so this does not independently verify inter-group order.",
+    "inputs": [
+      {
+        "name": "AC1009-ascii.dxf",
+        "sha256": "c0d70b53dbe2ec38aeda57424ffa21ffcd93d7bcae74cd6d012e5420e667cf55"
+      },
+      {
+        "name": "AC1009-binary.dxf",
+        "sha256": "63c68739c58fbdcc47b61306fa1943aeb5592bb65ab3ba5861c929a557b6cbe8"
+      },
+      {
+        "name": "AC1014-ascii.dxf",
+        "sha256": "3d35fb0234c3b8dbd62cc2655bd7590c8685190a00de735c26ee08a242c8b9fb"
+      },
+      {
+        "name": "AC1014-binary.dxf",
+        "sha256": "48d209d71aa46c69ce3f14018c31836996f39d6a83a5277ff2ce567d1d059bb5"
+      },
+      {
+        "name": "AC1032-ascii.dxf",
+        "sha256": "3513ee6fb6b82daca174c58b244b4a63f78f57ee5f2903e2fe477a529c16990b"
+      },
+      {
+        "name": "AC1032-binary.dxf",
+        "sha256": "27db5b920c477c9804b2105f8385642624eb47d94815caffea329831b419d2ab"
+      }
+    ],
+    "scope": "Independent DXF field decoding only; no native viewport rendering or semantics and no committed fixtures."
+  },
+  "hostedQualification": {
+    "revision": "6592270a19e8bb8506d8567421d9b004eb1172ac",
+    "fast": "https://github.com/dxli/libdxfrw/actions/runs/43865527188",
+    "freecadRelease": "https://github.com/dxli/libdxfrw/actions/runs/43865527092",
+    "native": "https://github.com/dxli/libdxfrw/actions/runs/43865527078",
+    "status": "PASSED at the listed revision: fast regressions, FreeCAD release Linux/Windows, and all focused native Linux/Windows/macOS jobs. Later test-only and documentation commits are not covered by these run identities."
+  }
+}

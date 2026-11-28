@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-10",
+  "phase": "P5",
+  "finding": "FIELD and FIELDLIST DWG encoders mutated caller output buffers directly; FIELD also has late semantic refusal paths after writing earlier values.",
+  "change": "Stage body, string, and handle destinations with alias-aware routing; publish only after successful encoding and convert std::bad_alloc to false.",
+  "profile": "Generated AC1021 FIELD parsed from the existing hand-authored bounded frame and generated FIELDLIST with two non-null handles plus one null member.",
+  "allocationFailuresInjected": {
+    "FIELD": 25,
+    "FIELDLIST": 11
+  },
+  "assertions": [
+    "Every injected allocation failure returns false without throwing.",
+    "Seeded destination bytes, bit cursors, and handle-occurrence ledger remain unchanged.",
+    "The same object retries into the same buffers and matches clean output bytes, cursors, and handle occurrences.",
+    "The first non-failing offset produces output identical to the clean calibration."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^(libdxfrw_field_object_encoder_allocation_rollback|libdxfrw_field_unit12_dwg_strings|libdxfrw_field_cadvalue_general_format_flag|libdxfrw_field_oversized_child_value_count)$' --output-on-failure",
+    "result": "4/4 passed",
+    "allocationSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --field-object-encoder-allocation-rollback",
+    "selectorResult": "PASS; FIELD injected 25 failures and FIELDLIST injected 11 failures",
+    "diffCheck": "git diff --check passed"
+  },
+  "limitations": [
+    "Generated transaction evidence only; no new FIELD/FIELDLIST graph or semantic profile is established.",
+    "No physical producer, native application, or general support claim is promoted.",
+    "Other object encoders and whole-file failure paths are not covered."
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-generated-dictionary-ezdxf-peer-2026-11-22",
+  "date": "2026-11-22",
+  "status": "GENERATED_R14_R2000_SELECTED_OUTPUT_READBACK",
+  "supportClaimEffect": "none",
+  "sourceCommit": "079138d1",
+  "tool": "tools/research/generate_ac1012_dictionary_witness.py",
+  "toolSha256": "36a7fc7186c4f88b2b7e82c35b1c7c0fc3ac9dd5e791dc83cc565fc58ea651d9",
+  "converterSha256": "d86e78f34e785b57212982723e7801b70a6094a83056197e0b174c689df1503f",
+  "command": "PYTHONPATH=<ezdxf-install> python3 -B tools/research/generate_ac1012_dictionary_witness.py --self-test --output-dir <scratch> --candidate <current-dwg2dxf> --ezdxf-peer",
+  "peer": "ezdxf 1.4.5",
+  "producer": "GNU LibreDWG dwgadd 0.14",
+  "scratchDirectory": "/private/tmp/libdxfrw-ac1012-current/ac1012-dictionary-rdf52l0f",
+  "scratchReceiptSha256": "efea83b2cb5871251556f3e29a8f8be273c0abc288e16b12855d97a335c04cc3",
+  "binaryRefusalRecheck": {
+    "toolSha256": "e1a67f354f8eeda99b19f7356ec522ccb9b2fc28cd764f9e39791032788f1b58",
+    "scratchDirectory": "/private/tmp/libdxfrw-ac1012-current/ac1012-dictionary-bdr2arb3",
+    "scratchReceiptSha256": "e48bafc5b1db4b58e2a4e8e1ee1dd87c38cdab2828da54662ea568e22c4a6ece",
+    "result": "For both R13 cloning requests, ASCII and binary strict conversion refuse and preserve their pre-existing destinations. All four R14/R2000 samples continue to pass the selected ASCII and binary peer checks. Wrong owner and cloning expectations refuse, followed by corrected same-process retry."
+  },
+  "checks": [
+    "Fresh R13 outputs refuse strict conversion while preserving the existing destination; no successful output is claimed for these cases.",
+    "For each of two generated R14 and two R2000 sources, both ASCII and binary output independently reopen. The root resolves TEST_DICT with the expected handle, owner and empty contents, and the LINE retains both 3D endpoints.",
+    "A separate physical DXF audit and the peer both observe absent cloning on R14 projections and the explicit 0/1 values on R2000 projections. The peer's default value for an absent field is not counted as physical presence.",
+    "A wrong expected owner and a wrong cloning value are rejected, followed by successful corrected same-process retries.",
+    "Version-boundary and malformed-frame generator self-tests pass."
+  ],
+  "limits": [
+    "The generated sources are not independently qualified as native AutoCAD drawings; no generated drawing is committed.",
+    "This is a selected-object and geometry check, not full-graph or general interoperability qualification.",
+    "The independent reader does not execute native dictionary cloning, duplicate resolution, or WBLOCK and cannot close the R13 semantic guard."
+  ]
+}

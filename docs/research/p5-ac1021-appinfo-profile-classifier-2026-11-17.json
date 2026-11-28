@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 bounded AppInfo producer-profile classifier implementation slice",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "scope": "Implement and verify bounded internal classification of the exact Autodesk AC1021 TABLE source as AutoCAD 2007, while keeping unrecognized AC1021 producers on incomplete/fallback semantics.",
+  "source": {
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "headerVersion": "AC1021",
+    "producerAttributionReceipt": "docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json",
+    "appInfoSection": "AcDb:AppInfo",
+    "sourceBytes": 656,
+    "observedEncoding": "ODA §16.2 AppInfo fields with UTF-16 code-unit counts; product-information attribute delimiters are backslash-escaped quotes in this source."
+  },
+  "implementation": {
+    "classifier": "src/intern/dwgappinfo.h",
+    "readerIntegration": [
+      "src/intern/dwgreader21.cpp",
+      "src/intern/dwgreader.h",
+      "src/drw_entities.cpp",
+      "src/drw_entities.h"
+    ],
+    "profileAcceptedOnlyWhen": [
+      "The bounded section begins with the expected AppInfoDataList schema and three-field list.",
+      "Version is four numeric components with major/minor 17.0.",
+      "ProductInformation identifies AutoCAD and registry_version 17.0.",
+      "The metadata strings are structurally bounded and terminated."
+    ],
+    "unknownProfileBehavior": "Reader passes an unclassified AC1021 TABLE through the common INSERT/header and handle prefix, marks semantic content incomplete, and retains the anonymous-block display fallback. Other AC1021 producers are not routed through the AutoCAD 2007 cell parser.",
+    "publicApiChange": false,
+    "fixturePolicy": "No downloaded DWG/DXF or derived sample was added to the repository; controls are generated in memory."
+  },
+  "validation": {
+    "build": "cmake --build build --target dxfrw dwg2dxf libdxfrw_dwg_appinfo_profile_tests libdxfrw_dwg_object_vectors_tests libdxfrw_table_dwg_codec_allocation_tests -j4",
+    "focusedTests": [
+      {
+        "name": "libdxfrw_dwg_appinfo_profile",
+        "result": "passed",
+        "coverage": "AutoCAD 2007 acceptance; AutoCAD 2008/2009, other product, conflicting metadata, malformed version/length, truncation, and null input refusal."
+      },
+      {
+        "name": "libdxfrw_dwg_table_cell_overrides",
+        "result": "passed"
+      },
+      {
+        "name": "libdxfrw_table_dwg_codec_allocation_retry",
+        "result": "passed"
+      },
+      {
+        "name": "libdxfrw_table_cell_general_value_format_flag",
+        "result": "passed"
+      },
+      {
+        "name": "libdxfrw_table_cadvalue_string",
+        "result": "passed"
+      }
+    ],
+    "authenticSourceTrace": {
+      "command": "build/dwg2dxf/dwg2dxf <Autodesk source> -y -d -v2010 <scratch output>",
+      "profileDiagnostic": "AC1021 TABLE producer profile: AutoCAD 2007",
+      "wholeDrawingOutcome": "Strict export stopped before output because two typed proxy graphics are not preserved (firstHandle=165230). This is an independent open output gate; no TABLE output/readback was claimed.",
+      "logPath": "/private/tmp/autodesk_blocks_and_tables_metric.ac1021-profile5.log"
+    }
+  },
+  "remainingP5IWork": [
+    "Trace and bind TABLE cell/value spans, string and handle roles, counts, override tails, and following-object boundaries against ODA §20.4.96.1 and the exact source.",
+    "Add profile-aware unknown/malformed source controls proving the reader takes fallback semantics, without changing direct generated codec vectors.",
+    "Prove TABLE state rollback and corrected same-writer retry.",
+    "Prove selected TABLE strict ASCII and Binary output, then fresh ACadSharp readback and independent value comparison."
+  ],
+  "closure": "This completed classifier slice is removed from the active action list and retained here. P5-I remains open; no AC1021-wide or TABLE support claim follows."
+}

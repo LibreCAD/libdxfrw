@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "purpose": "Provide reusable staged verification of common AcDbEntity group-347 material references as a prerequisite to graph closure.",
+  "behavior": "The inspector checks every non-null common entity material reference in a staged BLOCKS or ENTITIES body against unique expected emitted entity and MATERIAL handles. It rejects invalid expectations, omitted or additional references, malformed application-group framing, and duplicate selected entities.",
+  "verification": [
+    "Focused libdxfrw_dxf_staged_image_reference CTest passed, including generated entity-reference cases in AC1021, AC1024, AC1027 and AC1032, ASCII and binary, and both compatibility profiles.",
+    "Each case checks emitted handle remapping, wrong/missing/duplicate expectations, modified staged reference, atomic destination preservation, corrected retry and reader readback.",
+    "The same focused test passed under AddressSanitizer with macOS leak detection disabled.",
+    "Qualification implementation digest verified against a clean staged index: 34b33e6d972284192b7c50e2dad86ed9fc65a9d2ef7463f3a788fa2448b87d04 (780 inputs)."
+  ],
+  "limitations": [
+    "The inspector proves only emitted common group-347 references; it does not bind source entities, prove MATERIAL object type or graph closure, or establish publication.",
+    "LibreCAD has not yet installed or composed the inspector with its existing IMAGE checks; sparse raw MATERIAL export remains refused."
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "title": "DXF XDATA APPID admission allocation rollback",
+  "date": "2026-11-05",
+  "scope": "Direct dxfRW APPID preflight admission and the shared transactional set insertion used by preflight and typed XDATA emission.",
+  "implementation": [
+    "Stage only newly required APPID keys before mutating the codec's required set.",
+    "Reserve the destination set before inserting keys; if any insertion throws, erase all keys staged by this admission and preserve pre-existing requirements.",
+    "Catch allocation failures in preflight vector construction and group validation so they return refusal rather than escape the API."
+  ],
+  "control": {
+    "test": "tests/dxf_xdata_int16_tests.cpp appIdAllocationRollbackControls",
+    "target": "libdxfrw_xdata_int16_tests",
+    "encodings": "ASCII direct preflight; insertion logic is encoding-independent",
+    "existing_requirements": ["EXISTING"],
+    "new_requirements": ["APP_ONE", "APP_TWO"],
+    "injected_failure_offsets": 9,
+    "each_failure": "The operation refuses, the prior EXISTING requirement remains, neither new key remains, and a fresh codec admits both keys successfully.",
+    "success_boundary": "The next calibrated offset completes admission with exactly all three required keys."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_xdata_int16_tests -j4",
+    "cd build-gcc && ctest -R '^libdxfrw_xdata_int16_exact_numeric$' --output-on-failure"
+  ],
+  "limitations": [
+    "The allocation sweep directly exercises preflight admission; it does not inject failures during later DXF record serialization.",
+    "The failing codec retains the writer's existing sticky-error behavior; recovery is verified with a fresh codec.",
+    "No producer or format-support claim changes."
+  ],
+  "support_claim_effect": "none",
+  "status": "bounded caller-state safety control"
+}

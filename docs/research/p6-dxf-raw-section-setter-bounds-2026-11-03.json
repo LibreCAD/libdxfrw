@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-raw-section-setter-bounds-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Apply the adapter's raw-section count, group and retained-byte limits at the low-level DXF setter, adoption and replay boundaries.",
+  "source": {
+    "parentCommit": "9ec621057cc99cfbabe5e7afa08d95fcf6d2282f",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "cmake": "4.4.5",
+    "files": {
+      "src/libdxfrw.cpp": "331147cf41c061173814aa122b1a6baf1640b31862c418a0ba52d31d444a1585",
+      "src/libdxfrw.h": "328c56db5b10d0c973b48e9db6169cc96346eba18e21afc9bb78c2b85df987d0",
+      "src/intern/dxfparserlimits.h": "0814a86290bd091c80796c4cf3067dab6cc593262453debfc9faf69a860026af",
+      "dwg2dxf/dx_iface.h": "55d22b270fefb12744c3ba90f0eac4826e2daa23039bdc68f630ad3f6f4fdc17",
+      "tests/dxf_fixture_tests.cpp": "d6e96ea40391a5ef1eef745607fd468e9330cff0cd4208ef1d9926fcc10ec5f9",
+      "tests/dxf_no_raw_sections_tests.cpp": "4a9ec23f3124ce33e91a9da0afb41807c5b4bda0887ecf628da23a870ae45147",
+      "tests/CMakeLists.txt": "9be43db90f92d52ef9a866afc326b118bb4717f7d29819c7608267c1c647c479"
+    }
+  },
+  "limits": {
+    "sections": 100000,
+    "groupsPerAggregate": 4000000,
+    "logicalRetainedBytes": 67108864,
+    "sharedWithAdapterCapture": true
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dxfparserlimits.h",
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/dxf_no_raw_sections_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "Const-section staging estimates the complete nested value payload before copying, stages into a temporary vector, and swaps only after a successful copy; rejection or allocation failure clears stale sections and leaves a sticky input-rejection state.",
+      "Rvalue setter and adoption paths estimate before moving; rejected input remains owned by the caller and stale codec sections are discarded.",
+      "A valid replacement clears the rejection state. The next write refuses a pending rejected setter before opening its output transaction.",
+      "The aggregate section/group/byte budget is rechecked at the raw replay boundary, and direct single-section writes enforce the same per-section logical-byte ceiling.",
+      "Adapter capture now aliases the same shared constants, preventing resource ceilings from drifting between capture and serialization."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_no_raw_sections_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_raw_dxf_section_setter_bound|libdxfrw_no_raw_sections|dwg2dxf_raw_dxf_section_capture_limits' --output-on-failure",
+      "result": "PASS 3/3; 1.29 seconds",
+      "coverage": "Exact/under byte-bound estimator behavior; over-count const/move/adopt refusal; caller ownership preservation; valid adoption/return; ASCII/Binary destination preservation after rejected setter input; corrected same-codec output retry; existing adapter capture limit."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests libdxfrw_no_raw_sections_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_raw_dxf_section_setter_bound|libdxfrw_no_raw_sections' --output-on-failure",
+      "result": "PASS 2/2; 1.43 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The byte estimate bounds logical owned values, not vector/string capacity, allocator overhead or process RSS.",
+    "These internal ceilings are resource limits, not DXF format maxima or support claims.",
+    "The allocation-failure branch of const-vector staging was not fault-injected in this slice.",
+    "A private dxfRW state field changed class layout; downstream consumers must rebuild, and ABI compatibility remains an open P8 gate.",
+    "The transport and rollback controls do not qualify physical producer coverage or native consumer semantics."
+  ],
+  "next": "Continue the P6 safety and caller-state audit on other unbounded copy, assembly, allocation-failure and rollback paths."
+}

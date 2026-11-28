@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "title": "GEODATA ASCII coordinate definition with literal caret-J and newline",
+  "status": "BOUNDED_OUTPUT_IMPLEMENTED",
+  "supportClaimEffect": "none",
+  "problem": "ASCII GEODATA output refused a coordinate-system definition containing both a literal caret-J sequence and a line feed, even though the two are distinguishable in DXF. Binary output was already supported.",
+  "authority": {
+    "title": "Autodesk About ASCII Control Characters in DXF Files",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-77D34F88-73CC-495D-B48C-37628EE61D73.htm",
+    "finding": "ASCII text uses caret followed by the corresponding letter for control characters; a literal caret is escaped as caret followed by space. LF is ASCII control character 10, hence caret-J. This is ASCII transport, not XML or geolocation semantics."
+  },
+  "implementation": "The GEODATA writer preflights as before but encodes the original ASCII source string one scalar at a time: source LF becomes the atomic two-byte sequence ^J; a literal caret follows the existing generic ASCII control path and becomes ^ followed by a space. This permits both in one field and prevents splitting an individual escape between 255-byte continuation chunks. The Binary path, public APIs, class layout, unsupported-value refusal and destination transaction behavior are unchanged. Strict text validation checks the original UTF-8 with line feeds replaced only in its validation view; NUL and CR remain disallowed. For object version 1, the preflight accounts for each normalized LF as its actual two output bytes rather than counting the extra generic caret-quoting byte.",
+  "tests": {
+    "generated": "libdxfrw_wave1_tests --geodata-versioned-writer passes v1/v2/v3 ASCII and Binary exact raw bytes and typed roundtrip, including mixed LF/literal-caret text; an invalid version preserves prefix, caller fields and writer state, then a corrected same-writer attempt succeeds. libdxfrw_hardening_tests --dxf-geodata-modern-text-preflight passes AC1021/AC1032 compatible/lossless and ASCII/Binary controls, including the 255-byte boundary with the two distinct caret sequences. Version-1 ASCII compatible/lossless boundary controls additionally reject 254 literal bytes plus LF (256 encoded bytes), preserve the prefix and caller handle, then retry successfully with 253 literal bytes plus LF (255 encoded bytes). A version-1 compatible modern Binary no-newline control also checks rejection at 256 bytes, same-writer retry at 255 bytes, and raw preservation of an invalid UTF-8 byte; this retains the prior binary fast path.",
+    "physicalSource": "A scratch DXF was authored with ezdxf 1.4.5, using tools/geodata_mixed_text_probe.py; the XML-shaped fragment is only a text witness. ODA File Converter 27.1.0 produced an AC1027 DWG. LibreDWG 0.14 independently reports the source definition as <x>literal^J|newline\\nend</x>, where \\n denotes a line feed. The existing physical selector imported the source then exported a test-only selected BLOCK_RECORD/DICTIONARY/GEODATA graph in ASCII and Binary. ODA converted both selected outputs to DWG without error files; LibreDWG independently reads the exact same literal caret-J and LF in each output. The ASCII record spells its text <x>literal^ J|newline^Jend</x>.",
+    "independentReaderLimit": "ezdxf 1.4.5 reads the GEODATA coordinate-system-definition chunks by replacing caret-J but leaves caret-space in its returned text; it therefore does not itself establish the intended literal-caret interpretation. ODA conversion and LibreDWG DWG extraction establish only the selected text transport observed here."
+  },
+  "hashes": {
+    "inputDxf": "090e90ac0ba9dca3fbc48042ffa6d432a5b6da4cee65b95c01721086fd3fa3ee",
+    "sourceDwg": "3378bca95ee2cece2314e2941f72e0b3814fdded5bde2b02001599601a750342",
+    "odaPairedDxf": "ab58900b85504297bd45e7a9ce7215262d43484c0dc3ea33372880f7969939a5",
+    "selectedAsciiDxf": "53a119766dfe7ab1890a49141b7c77d6c6b5e9f74946b36c6578ab958d8c9664",
+    "selectedBinaryDxf": "4ee41b65a98f5ec81e71e4297171c787b77667e170534f37befb067c68c755d2",
+    "selectedAsciiOdaDwg": "4154cd0114724e9f29aab6023b253dd2e7e2e05c7d17ca1084db45482fe3900a",
+    "selectedBinaryOdaDwg": "a2bfcbe9a30ae7f2980449350caac2c2ce76c99aea62fd716b4072295de3405d"
+  },
+  "reproduction": [
+    "build/rpp5gh-evidence/peer/bin/python tools/geodata_mixed_text_probe.py <scratch>/in/escaped.dxf",
+    "ODAFileConverter <scratch>/in <scratch>/dwg ACAD2013 DWG 0 0 '*.dxf'",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --physical-geodata-dictionary-graph <scratch>/dwg/escaped.dwg <existing-empty-selected-output-directory>",
+    "ODAFileConverter <selected-output-directory> <scratch>/selected-dwg ACAD2013 DWG 0 0 '*.dxf'",
+    "Use LibreDWG dwgread -O JSON on the source and each resulting DWG, compare the exact GEODATA coord_system_def including the LF, and hash-bind all files. Newly authored source files may have differing generated identifiers and hashes."
+  ],
+  "limits": [
+    "The selected output omits unrelated source objects and does not qualify the original whole drawing or its unclaimed HEADER bytes.",
+    "This does not validate CRS XML, native geolocation or general GEODATA support. No external fixtures were committed."
+  ]
+}

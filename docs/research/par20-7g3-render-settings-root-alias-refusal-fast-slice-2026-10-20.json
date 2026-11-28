@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 RenderSettings root-alias refusal",
+  "mode": "Generated local implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "finding": {
+    "source": "The RenderSettings graph validator counted the canonical ACAD_RENDER_PLOT_SETTINGS NOD root but did not reject a differently named NOD key targeting the same dictionary.",
+    "risk": "Ambiguous source ownership could be normalized during DXF export rather than refused as incomplete/ambiguous graph input.",
+    "scope": "RenderSettings export preflight only; this does not qualify every named-object-dictionary root family."
+  },
+  "implementation": [
+    "Extended the shared named-object-root validator with a required-root mode while preserving optional-root behavior for existing families.",
+    "RenderSettings validation now requires one canonical ACAD_RENDER_PLOT_SETTINGS entry, exactly one dictionary record with that handle owned by the actual NOD, and no differently named NOD alias to the same handle.",
+    "Extended the existing generated RenderSettings ASCII/Binary callback control with same-dictionary alias refusal, seeded destination preservation, corrected same-adapter retry, and strict readback for RapidRT and MentalRay."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "focusedSelector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-render-settings-callback-and-fail-closed (ASCII/Binary; RapidRT/MentalRay)",
+    "ctest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_render_settings_owner_order$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fullSuite": "NOT_RUN (fast generated slice)",
+    "externalPeerOrNativeConsumer": "NOT_RUN"
+  },
+  "scopeAccounting": {
+    "persistentFixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "filesChanged": [
+    "dwg2dxf/dx_iface.cpp",
+    "tests/dwg2dxf_adapter_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/par20-7g3-render-settings-root-alias-refusal-fast-slice-2026-10-20.json"
+  ],
+  "commitCreated": false,
+  "commitBlocker": "The shared worktree is broadly dirty and Git metadata is read-only in this session."
+}

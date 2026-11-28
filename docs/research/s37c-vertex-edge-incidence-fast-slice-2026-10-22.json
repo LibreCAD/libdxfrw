@@ -1,0 +1,44 @@
+{
+  "title": "S3.7c vertex-to-edge incidence identity",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Reconcile each resolved rooted vertex-to-edge pointer with the edge's retained endpoint identities.",
+    "evidence": "The rooted SAB 21800 traversal resolves vertex pointer ordinal 1 as an edge; edge pointer ordinals 1 and 2 are retained as start/end vertex identities.",
+    "invariant": "For every non-null vertex ordinal-1 target, a matching five-pointer edge row must exist and at least one endpoint target must equal the vertex node identity.",
+    "nullHandling": "A null vertex edge-adjacency pointer remains observable and is not labeled invalid by this check alone.",
+    "semanticLimit": "Projection identity consistency only; not a B-rep validity condition, native ACIS semantic result, or consumer acceptance."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check --parallel 4",
+    "build_result": "PASS (-Werror)",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1; 1.29 s)",
+    "negative_control": "A vertex redirected to a structurally present detached edge whose endpoints are the other vertex is classified as a known gap.",
+    "new_dwg_dxf_fixture": false,
+    "full_suite_run": false
+  },
+  "compatibility": {
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "wire_format_changed": false,
+    "2d_callback_lane_changed": false,
+    "support_claim_promoted": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "freecad_linux_windows_qualification": "OPEN",
+    "independent_acis_acds_semantic_evidence": "OPEN"
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED",
+    "reason": "The shared worktree is broadly dirty, including the touched source and test files; committing whole paths could include unrelated existing edits."
+  }
+}

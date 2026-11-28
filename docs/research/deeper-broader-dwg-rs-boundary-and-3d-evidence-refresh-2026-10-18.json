@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader independent DWG reader boundary and 3D-evidence refresh",
+  "mode": "primary-source repository research and read-only local plan reconciliation",
+  "scope": [
+    "Recheck the current public dwg-rs capability, corpus, strict-boundary, ACIS, clean-room, and fuzz-qualification statements",
+    "Compare its evidence role against LibreDWG, ACadSharp, ezdxf/ODA File Converter, and the existing ACIS/AcDs plan gates",
+    "Refine optional comparator selection without changing support claims, implementation order, or validation cadence"
+  ],
+  "method": {
+    "kind": "Read current primary-source repository pages and reconcile against the local parity plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-independent-dwg-reader-refresh-2026-10-18.json"
+    ],
+    "limitations": "Upstream dwg-rs pages were read from mutable main and no immutable commit was resolved. The status and coverage counts are project-reported and dated 2026-08-30; the README contains conflicting aggregate percentages. The corpus and expected values were not inspected or reproduced, and no optional peer or native run was performed. These sources are capability/provenance leads only, not normative format authority, producer evidence, or semantic/native qualification."
+  },
+  "sources": [
+    {
+      "project": "DrunkOnJava/dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/STATUS.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/examples/coverage_report.rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/ARCHITECTURE.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/CLEANROOM.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/THREAT_MODEL.md"
+      ],
+      "revision": "Mutable main pages accessed 2026-10-18; immutable commit not resolved",
+      "observed": "README labels project 0.1.0-alpha.1/pre-alpha and spec-derived from ODA v5.4.1. STATUS reports 19 real files across seven version bands, 3,911 decoded / 525 skipped / 9 errors (88.0%), per-record boundary checks, nine AC1032 record errors, and entity types absent from corpus. README verification prose separately states 90.3% aggregate / 85.9% AC1032, inconsistent with its main table and STATUS. STATUS says three AC1032 3DSOLID/REGION records close at the R2013+ has-AcDs-data marker; its geometry adapter uses a bounding-box placeholder for 3DSOLID. The clean-room document says spec/public-byte development with no LibreDWG source consultation, but characterizes itself as a solo-developer posture rather than formal two-team protocol. The threat model lists scaffolded fuzz targets but says extended-duration runs are not logged.",
+      "limits": "No parser execution, corpus inspection, or expected-value audit. No AcDsPrototype_1b section-to-entity ownership join or ACIS/B-rep semantic route is documented by the reviewed status. Read-side boundary comparison only; not an independent specification, producer, DWG writer, or native-consumer result."
+    },
+    {
+      "project": "LibreDWG/libredwg",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "revision": "Mutable main README accessed 2026-10-18",
+      "observed": "Public project documentation identifies a separate DWG reader/writer lineage and describes R2007 writer limitations and R2010-R2018 writer CRC issues.",
+      "limits": "Project README scope statements are not a per-version executed result. Peer self-read is not independent writer validation."
+    },
+    {
+      "project": "DomCR/ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/558"
+      ],
+      "revision": "Issue #558 accessed 2026-10-18; exact current release behavior not executed",
+      "observed": "Maintainer discussion reports version-dependent DWG writer stability, an unimplemented AC1021 writer, and better behavior for selected AC18/AC27/AC32 paths.",
+      "limits": "Issue discussion is a route-selection warning, not a normalized release matrix, format rule, or local reproduction."
+    },
+    {
+      "project": "mozman/ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/odafc.rst"
+      ],
+      "revision": "Mutable repository documentation accessed 2026-10-18",
+      "observed": "ezdxf documents ASCII/Binary DXF support and an optional add-on that invokes a separately installed ODA File Converter for DWG/DXF conversion.",
+      "limits": "The ODA converter is an external proprietary tool route, not ezdxf's independent DWG implementation."
+    }
+  ],
+  "assessment": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "findingsCount": 134,
+    "topLevelSubplansCount": 76,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "supportClaimChanged": false,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "disposition": "Keep dwg-rs as an optional, exact-profile, read-side boundary cross-check only. Bind commit, corpus, command, per-type fields, record boundary, and skip/error diagnostics. Do not use conflicting aggregate percentages, bbox projection, has-AcDs-data marker, or scaffolded fuzz targets to promote AcDs/SAB/ACIS/B-rep/native support. Require separate owner-key payload and semantic geometry evidence. No peer install/run is scheduled for ordinary slices."
+  }
+}

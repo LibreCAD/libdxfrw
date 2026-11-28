@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-planar-query-api-compat-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "dabe12239e62dd9ce227b716cc6e2637692f9ce8",
+  "change": "Retain the original unambiguous three-argument storage query and provide the planar query under a separate name, sharing their implementation.",
+  "validation": [
+    "An overloaded same-name variant failed to compile the Lua binding, which takes the original method address. The distinct-name implementation builds the scripting-linked target successfully.",
+    "76 focused builder, entity-builder, selection and canvas tests pass, including a typed pointer to the original C++ method and 3D versus planar query behavior.",
+    "Three Lua controls pass. The plan synchronization check passed against the PR base before this follow-up; rerun on the final candidate."
+  ],
+  "logsSha256": {
+    "failedOverloadBuild": "82ca4d6f81a180de0cde39ecd2062b103f0cf428bcfa24a4ad859f8fe442d9e4",
+    "build": "b13cf5ce29f5251727ee5515ebbb289e5ff67643ac8eab95d573739cb0a6720e",
+    "tests": "395670e92999396036ccc7e69fe63ad8f0628f9aedc9acb37317bdbcff339d17",
+    "lua": "95b1b161056fa7db7687eda8e7e2728b98aac8b2ea6fbfa58220dcb495c96723",
+    "planSync": "86b9064a57327ca04cb9dff5496d96aff829b470a089209c4265076dd5dab28f"
+  },
+  "limitations": [
+    "No new general platform, rendering or mixed-elevation graph qualification is claimed."
+  ]
+}

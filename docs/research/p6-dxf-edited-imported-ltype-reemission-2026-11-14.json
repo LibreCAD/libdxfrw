@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.dxf.model-edit-writer-readback-receipt.v1",
+  "slice": "P6-D edited imported LTYPE re-emission control",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": [
+      "tests/ltype_table_allocation_tests.cpp"
+    ],
+    "change": "Added a test that creates a scratch AC1027 DXF with a generated LTYPE, reads that record, edits its description and dash path, exports the edited record, and verifies the edited values using a fresh reader in both ASCII and Binary. The test data is generated locally from scratch and no DWG/DXF fixture is committed."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_ltype_table_allocation_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_ltype_table_allocation$' --output-on-failure",
+      "result": "PASS (1/1, 0.80 seconds)",
+      "coverage": "The generated AC1027 LTYPE is imported, changed from its source description and path to 'Edited after import' and {3,-1}, re-emitted in ASCII and Binary, then freshly read with the edited description, path, size, and total length verified."
+    }
+  },
+  "limits": [
+    "This tests libdxfrw's parsed-model-to-writer path only; it does not exercise LibreCAD's RS_FilterDXFRW table-selection or archive-replay behavior.",
+    "This is generated self-roundtrip evidence, not independent consumer or native semantic qualification.",
+    "The LibreCAD PR #3269 save/readback regression remains an open P8-D integration-qualification requirement."
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5ds shared BLOCK/ENDBLK replay and scoped reconciliation",
+  "date": "2026-10-25",
+  "parentCommit": "d3310d26",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "BOUNDED_ENDPOINT_REPLAY_PROFILE_AND_SCOPED_NORMALIZATION_IMPLEMENTED_RICH_ENDPOINT_CHILD_DEPENDENCY_LIVE_OUTPUT_QUALIFICATION_OPEN",
+  "scope": {
+    "sharedDecoder": "Actual production BLOCK/ENDBLK admission and bounded replay share private dxfBlock::Decoder; ordinary tolerant import policy retained",
+    "replay": "Original captured ASCII/Binary scalar carriers using actual modern source version; no normalized re-export",
+    "modeledAgreement": "Complete retained common, POINT and BLOCK fields plus original parser cursor observations; begin/footer fields tracked independently",
+    "profile": "Modern class progression, scalar inventory, self/owner/name/XDATA/common/reserved application/opaque reference roles; unknown, duplicate, lossy, partial and redundant-name conflicts refused",
+    "reconciliation": "Actual effective name, insUnits and previewData equal retained existing rawTypedMatched BLOCK_RECORD row, with endpoint owner/family/version and capture-state guards",
+    "reconciliationLimit": "Scoped normalization only, not full transitive BLOCK_RECORD/common dependency or whole-block/ATTDEF eligibility",
+    "quotas": "Precharged logical model/transport/span/work allowances; exact/below aggregate quota compatibility restored; parser/capture/budget failure sticky",
+    "quotaLimit": "Conservative logical allowances, not capacity/RSS, every process allocation or a strict CPU bound",
+    "sourceFactsLimit": "Endpoint facts may exist before later import failure; successful whole import, valid context and retained consumer remain mandatory before any combined candidate check",
+    "publicInterfaceVtableChanged": false,
+    "publicModelLayoutChanged": false,
+    "nativeDwgParsingOrEncodingChanged": false,
+    "selectedAttdefTargetGateImplemented": false,
+    "originalOrderedChildrenQualified": false,
+    "fullDependencyLiveOutputQualified": false,
+    "provedResourceFamilyCount": 9,
+    "attdefRawTypedMatched": false,
+    "newExternalDrawingFixturesCommitted": false,
+    "drawings": "All new drawing controls authored locally at runtime in scratch directories"
+  },
+  "owningControlsPerConfiguration": {
+    "ctest": "libdxfrw_block_source_proof",
+    "selector": "--block-proof",
+    "actualImportProfiles": 48,
+    "axes": "Four modern versions x ASCII/Binary x with/without BLOCK_RECORD x zero/one/two ATTDEF children",
+    "scopedReconciliations": 24,
+    "missingBlockRecordResults": 24,
+    "originalFileScalarRoleSpans": 2064,
+    "observer": "Independent original-file ASCII/Binary byte walker plus separately authored complete per-record field/role/handle ledger; no production decoder/profile inference of expected roles",
+    "observerLimit": "Baseline authored endpoint profiles, not broad rich-field corruption coverage, complete graph or external semantic proof",
+    "profileRefusalAndFreshDataRetries": 32,
+    "profileNegatives": "Unknown group/subclass, duplicate common field/self handle/reserved extension handle, lossy lineweight, interrupted coordinate and orphan XDATA opener; earlier parser refusal allowed",
+    "consistentRawMutationAndFreshDataRetries": 12,
+    "rawNegatives": "Consistent raw scalar/spelling changes in layer, application-contained APPID-like tag and opaque string on each endpoint, both encodings",
+    "effectiveFieldOrVersionFaultAndFreshDataRetries": 8,
+    "reconciliationNegatives": "Effective name, units and preview mutation or wrong footer source version, both encodings",
+    "replayProfileAllocationFaultAndFreshDataRetries": 59,
+    "allocationInterval": "Calibrated allocations during actual endpoint closure replay/profile/reconciliation",
+    "allocationLimit": "Observed C++ allocation sites in this interval, not every process allocator or all paths",
+    "recovery": "Corrected fresh data/session on same adapter",
+    "retainedSourceCaptureProbe": {
+      "ctest": "libdxfrw_block_source_capture",
+      "actualImportProfiles": 48,
+      "optOutProfiles": 48,
+      "callbackFaultAndRetries": 18,
+      "exceptionRoutes": 24,
+      "malformedFooterRetries": 10,
+      "exactBelowSnapshotQuotaDimensions": 4,
+      "snapshotAllocationFaultAndRetries": 79,
+      "contextRoutes": 16,
+      "originalFileScalarSpans": 2064,
+      "oracleCorruptions": 192,
+      "readerQuotaBoundaries": 8,
+      "rawAllocationSchedulesAndSameCodecRetries": 242,
+      "limits": "Transport/callback/ownership controls from RPP-5dr still run; terminal raw allocation schedules need not fail; do not relabel these as richer endpoint proof"
+    }
+  },
+  "integrationFindings": [
+    {
+      "status": "NEW_PATH_FINDING_FIXED",
+      "before": "New replay/profile allocation test failed: parser softened allocation failure into false without sticky capture failure",
+      "initialLog": "/tmp/rpp5ds-initial-proof.log",
+      "after": "Undecodable captured transport is a sticky block-source capture failure; allocation fault/retry probe passes",
+      "releasedBaselineDefectClaimed": false
+    },
+    {
+      "status": "NEW_PATH_EXACT_BOUNDARY_REGRESSION_FIXED",
+      "before": "Existing source-capture exact aggregate work quota failed after replay was introduced; initial compatibility cohort was 2/3",
+      "initialLog": "/tmp/rpp5ds-shared-compat.log",
+      "after": "Typed variant node budget uses the original group count already prepaid by group work, without requiring the same unpaid work headroom again; separate decode-work bound retained",
+      "releasedBaselineDefectClaimed": false
+    },
+    {
+      "status": "TEST_ONLY_COMPILE_ERROR_CORRECTED",
+      "before": "Test attempted to name private nested reconciliation enum outside friend accessor",
+      "after": "Alias exposed only inside existing test friend; product API visibility unchanged"
+    }
+  ],
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21.0.0; build-gcc is not Linux/GCC",
+    "languageWarnings": "C++17 -Wall -Wextra -pedantic -Werror",
+    "normal": {
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 25.78
+    },
+    "asan": {
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 54.01
+    },
+    "sequentialCohorts": true,
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "tests": [
+      "libdxfrw_dxf_block_record_parser_retained_budget",
+      "libdxfrw_dxf_fixtures",
+      "libdxfrw_block_xref_path_roundtrip",
+      "libdxfrw_block_owners",
+      "dwg2dxf_block_owner_rejection_cli",
+      "dwg2dxf_block_owners_ascii_cli",
+      "dwg2dxf_block_owners_binary_cli",
+      "libdxfrw_attdef_source_transport",
+      "libdxfrw_nested_mtext_common_owner_budget",
+      "libdxfrw_attdef_immutable_capture",
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_block_source_capture",
+      "libdxfrw_block_source_proof",
+      "libdxfrw_block_record_source_proof",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe"
+    ],
+    "compileGate": "Strict library/CLI/owning/affected targets and lc3_compat_check pass in both configurations; mirrored consumer API compile, not actual CAD application execution or formal binary ABI certification",
+    "fullProjectSuiteRun": false,
+    "fullAutotoolsDistributionBuildRun": false,
+    "nativeLinuxWindowsFreecadRun": false,
+    "independentAcisAcdsSemanticKernelRun": false
+  },
+  "qualification": {
+    "ledger": "CLOSED",
+    "outputEligible": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "supportPromotion": false,
+    "remoteMutation": false,
+    "fullGoalComplete": false
+  },
+  "next": [
+    "Rich endpoint/common/geometry/proxy/reserved application/reference positives and broad common/native field faults; Unicode redundant-name/default/conflict cases, independent ledger corruption controls and exact/below replay quotas",
+    "Pending original XDATA, tolerated wrong owner and later-import invalidation endpoint controls; scoped normalization remains distinct from transitive BLOCK_RECORD/common target closure",
+    "Original ordered child sequence including unknown/dropped events, ENTITIES model/paper-space association, selected ATTDEF common/style/APPID/LAYER/object dependencies and ATTRIB/SEQEND",
+    "Full B2b/B3/C graph/live/output, compound identities, exact emitted fields/references, rollback/retry and destination preservation; original IMAGE/document/native/speed/ownership/2D/3D/FreeCAD and external semantic/platform scope retained",
+    "Self-update exact evidence and next ready dependency, safely unblock local prerequisites, commit/report coherent slices; prefer owning/affected fast tests and never commit downloaded external drawings"
+  ],
+  "sourceSha256": {
+    ".gitignore": "c3906ed444ac4a4eba142b308c6f007b53f84108c6d758b9e49ec67829178e51",
+    "dwg2dxf/CMakeLists.txt": "f4237c3e88f3d38dce472080915f770e89986b03a05f5133bb11e835ab050f6b",
+    "dwg2dxf/Makefile.am": "f4d3581069d0b832314a9fc9fc06275bb920a9f20fdd2e6ec6ed21ff43eb8055",
+    "dwg2dxf/dx_attdef_source_profile.h": "0c820c5f8e08447bab27e184e832cf80627349bd6079eff06243d4cc5a272554",
+    "dwg2dxf/dx_block_source_profile.h": "01d6146a54711401f2be12b8a3e1aace8b62a4a845fc83a99871320f4e96d83d",
+    "dwg2dxf/dx_data.h": "5db99f7926edd141974122f1d2aae26ffa86f27fbbdd6a3aa18c173b386c73d6",
+    "dwg2dxf/dx_iface.cpp": "3d158164e7376c92d07b143cec5557824d914d62f181f8f8b0ec0d1c2463fa53",
+    "dwg2dxf/dx_iface.h": "dd7abdeeb19a40539fed96a030518f345d5440ed2714663c48ee472ca806c8a0",
+    "src/Makefile.am": "d0a18464a73f0ae7f8504e739d79a782646e264c4e81b5bb88e19f5fa00b242d",
+    "src/drw_entities.h": "e2e37d341d10d761032c90d6380b87464ff2f094b3ab4bc00d77c318e672a97f",
+    "src/intern/dxfblock.h": "3326adfde9b25f0927298cf6559423f9b1bd38c8dd063e6a94dee0bb7b935ca1",
+    "src/libdxfrw.cpp": "b6cd3a5eae93f355f8ce746ac2f6c923f5b4e42d8deff53204e8863f008a0ea3",
+    "tests/CMakeLists.txt": "c6864845cc288bff51ee4634c1fdc52e5c56e320fc952c2de89cf8cb70ecb78a",
+    "tests/attdef_source_tests.cpp": "5b49d7a00473210ec34ba4d3c012bb1228a5f1f3afc2e78912e4009f91120eab",
+    "tests/block_source_controls.h": "ea5f0b22f47209851f133d03d07468e8f52ecc10de9dad88c0885578a53e8a83",
+    "tests/block_source_proof_controls.h": "78712e2f14d9d4ad6dfa1f14c08fb649be4a373ff039d9117050b0d881d96f1e"
+  },
+  "evidenceSha256": {
+    "/tmp/rpp5ds-initial-proof.log": "baa57d03d84df1510db1075decd0c86ff129e28c16d641f4863411dda1d5ae10",
+    "/tmp/rpp5ds-shared-compat.log": "1de37cf0e9c9f104e0f0dccfd839503ca9a85f7d3600c42c7ce6c230767ec02b",
+    "/tmp/rpp5ds-normal-final-build.log": "39960f293d26397121f8b7f0e092a4f8d0653f83cdf3c6177defcc5d2ed7c293",
+    "/tmp/rpp5ds-asan-final-build.log": "8d9f2582401cc8655b8f11e5e554b2d29867d1827eaa5f5fe8f25921cfcbd7fb",
+    "/tmp/rpp5ds-normal-affected.log": "5dc0803c0ed645bfe3b96c01dcb7bd473b9960c43a44801828dba580b3c9f129",
+    "/tmp/rpp5ds-normal-affected.xml": "2d8a6fda1376df6c956badfe5d44258572eee8699afafd14913479c7f8cd220f",
+    "/tmp/rpp5ds-asan-affected.log": "274c81a4e61357cccc5761ea6c762c0323f9185cbdfb3e93feb07285058470aa",
+    "/tmp/rpp5ds-asan-affected.xml": "e74ca2f504634b2c83ecae76fd5bbe29924d61f5fea6d960a72d702bb5880619"
+  }
+}

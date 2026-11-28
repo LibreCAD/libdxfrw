@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 TABLE value and attribute handle roles",
+  "date": "2026-11-24",
+  "supportClaimEffect": "none",
+  "scope": "Apply ODA-defined TABLE cell reference roles, keep value/field references separate from text-style metadata, and verify wrong-role fallback and corrected retry.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1",
+    "fields": [
+      "The per-cell H varies between group 344 for text cells and group 340 for block cells; both are hard pointers.",
+      "Each block-cell ATTDEF reference is a soft pointer.",
+      "Text-style override is a separate hard-pointer slot controlled by the cell override flag."
+    ]
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "changes": [
+      "TABLE cell value handles now require a hard-pointer role; malformed roles leave the base entity readable and cell semantics incomplete per record-recovery policy.",
+      "Block-cell ATTDEF references now require soft-pointer roles.",
+      "A text-cell value handle remains in m_valueHandle and is no longer copied into m_textStyleHandle; the independent text-style override handle remains in m_textStyleOverrideHandle.",
+      "Legacy inline cell text is selected by the value handle's nullness."
+    ],
+    "generatedControls": [
+      "AC1021 text cell: wrong soft-pointer value handle is retained only as incomplete fallback; corrected hard-pointer value handle and separate hard-pointer text-style override succeed on same-object retry.",
+      "AC1021 block cell: wrong hard-pointer ATTDEF handle is retained only as incomplete fallback; corrected soft-pointer ATTDEF and its string-stream text succeed on same-object retry."
+    ],
+    "focusedTest": "libdxfrw_dwg_table_cell_overrides",
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2 && ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_table_cell_overrides$'",
+    "result": "Build succeeded; 1 of 1 focused tests passed."
+  },
+  "classifiedSourceReadback": [
+    {
+      "path": "~/doc/dwg/blocks_and_tables_-_metric.dwg",
+      "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+      "producer": "AutoCAD 2007 per the existing source-attribution receipt",
+      "result": "Complete AC1021 read, zero entity/object parse failures, and no TABLE cell-incomplete diagnostic after hard-pointer validation."
+    },
+    {
+      "path": "~/doc/dwg/blocks_and_tables_-_imperial.dwg",
+      "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+      "producer": "AutoCAD 2007 per the existing source-attribution receipt",
+      "result": "Complete AC1021 read, zero entity/object parse failures, and no TABLE cell-incomplete diagnostic after hard-pointer validation."
+    }
+  ],
+  "outputBoundary": "Both strict conversions still stop before DXF publication at the existing FIELD/FIELDLIST carrier preflight. No selected TABLE output/readback or native-render claim is made.",
+  "limitations": [
+    "The parser tests use generated vectors; no DWG or DXF fixture was added.",
+    "The external source read verifies the real profile remains accepted but does not close the FIELD/FIELDLIST output gap.",
+    "TABLE graph closure, selected strict ASCII/Binary output, independent readback, and native appearance remain open."
+  ],
+  "closure": "The ODA-defined TABLE value/ATTDEF roles and value-versus-text-style model distinction are implemented for the shared AC1018+ cell reader. P5-I remains open and support claims remain unchanged."
+}

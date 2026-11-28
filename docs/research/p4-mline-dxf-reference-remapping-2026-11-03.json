@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-mline-dxf-reference-remapping-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P4",
+  "status": "LOW_LEVEL_MLINESTYLE_REFERENCE_TRANSLATION_AND_REFUSAL_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Make low-level MLINE serialization use the final configured reference identity for its MLINESTYLE link.",
+  "issue": {
+    "before": "writeMLine used remapObjectHandle directly for styleHandle, bypassing an installed reference resolver.",
+    "wireField": "Group 340 identifies the MLINESTYLE object; group 2 is redundant and must agree with that object."
+  },
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "The MLINE style handle uses the configured resolver when present, and treats its result as the final output identity.",
+      "Without a resolver, it uses the established source-handle remap fallback.",
+      "A nonzero source style handle whose resolved identity is zero or NoHandle is refused before record publication.",
+      "The existing source/output graph and style-name consistency checks are unchanged."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed in-memory MLINE and MLINESTYLE records; no DWG/DXF fixture files.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "cases": [
+      "existing remap route to the emitted MLINESTYLE identity",
+      "reference resolver overrides a conflicting remap for the group-340 link",
+      "unresolved nonzero target preserves the destination in ASCII and Binary",
+      "corrected reference succeeds with a fresh writer"
+    ],
+    "validation": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "buildResult": "PASS",
+      "focusedTestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_mline_style_validation$' --output-on-failure",
+      "focusedTestResult": "PASS: 1/1; MLINESTYLE validation including ASCII/Binary resolver precedence, unresolved-target refusal, and corrected retry",
+      "diffCheck": "PASS: git diff --check"
+    }
+  },
+  "limitations": [
+    "Generated low-level identity translation only; target existence, correct target kind, graph closure, physical producer coverage, native linetype/rendering semantics, and strict whole-document output remain separate gates.",
+    "No support claim is promoted."
+  ],
+  "next": "Continue P4 MLINESTYLE source-role/provider closure and strict output/readback evidence independently."
+}

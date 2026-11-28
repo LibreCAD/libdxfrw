@@ -1,0 +1,154 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1024-current-tree-classes-recheck-2026-11-17",
+  "date": "2026-11-17",
+  "title": "Current-tree AC1024 CLASSES report recheck",
+  "status": "REPORTED_CLASS_FAILURE_NOT_REPRODUCED_IN_CURRENT_LOCAL_CORPUS",
+  "supportClaimEffect": "none",
+  "trigger": "Current workspace guidance described six of ten AC1024 samples failing readDwgClasses at the strDataSize high-bit path; this conflicts with the existing corpus receipts and required a current-executable check.",
+  "reader": {
+    "revision": "e0c72272b39d53bee9654ac57f9efb298218586e",
+    "executable": "/Users/dli/dev/libdxfrw/build-gcc/dwg2dxf/dwg2dxf",
+    "executableSha256": "b90b53e16f06dae5d995900acfce848943b0190ea4270f050282f6870aec1876",
+    "buildCommand": "cmake --build build-gcc --target dwg2dxf -j4",
+    "runCommandTemplate": "build-gcc/dwg2dxf/dwg2dxf <input.dwg> -y -d -v2010 <scratch-output.dxf>",
+    "scratchDirectory": "/private/tmp/ac1024-classes-current-20261117"
+  },
+  "result": {
+    "uniqueInputs": 10,
+    "classesEndMarkers": 10,
+    "badReadClasses": 0,
+    "strDataSizeHighBitFailureText": 0,
+    "fullReadSuccesses": 9,
+    "laterStageBadReadTables": 1
+  },
+  "inputs": [
+    {
+      "name": "architectural_example-imperial.dwg",
+      "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "bytes": 148638,
+      "classesEndMarker": true,
+      "maxClassNumber": 559,
+      "operationSucceeded": true,
+      "legacyError": 0,
+      "traceSha256": "ec281953ab74d4a405f254bb41dbd62b4d96bcd2555bb9b96539b5809c009e59",
+      "tracePath": "/private/tmp/ac1024-classes-current-20261117/00-architectural_example-imperial.log"
+    },
+    {
+      "name": "civil_example-imperial.dwg",
+      "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "bytes": 169592,
+      "classesEndMarker": true,
+      "maxClassNumber": 537,
+      "operationSucceeded": true,
+      "legacyError": 0,
+      "traceSha256": "005950e788f628519c32804d634d44d3d1ac866cdc9181e56785b4164111804b",
+      "tracePath": "/private/tmp/ac1024-classes-current-20261117/01-civil_example-imperial.log"
+    },
+    {
+      "name": "mechanical_example-imperial.dwg",
+      "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "bytes": 142267,
+      "classesEndMarker": true,
+      "maxClassNumber": 524,
+      "operationSucceeded": true,
+      "legacyError": 0,
+      "traceSha256": "d9b482c051cc48d483da66015e1c80f2c7a91cd8b6cfc28bc2488e022956523d",
+      "tracePath": "/private/tmp/ac1024-classes-current-20261117/02-mechanical_example-imperial.log"
+    },
+    {
+      "name": "title_block-arch.dwg",
+      "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+      "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+      "bytes": 126985,
+      "classesEndMarker": true,
+      "maxClassNumber": 520,
+      "operationSucceeded": true,
+      "legacyError": 0,
+      "traceSha256": "4c24307cac801dc07a400a3352935869111814596400fc747b9fd50567ea676f",
+      "tracePath": "/private/tmp/ac1024-classes-current-20261117/03-title_block-arch.log"
+    },
+    {
+      "name": "title_block-iso.dwg",
+      "path": "/Users/dli/doc/dwg/title_block-iso.dwg",
+      "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+      "bytes": 128233,
+      "classesEndMarker": true,
+      "maxClassNumber": 520,
+      "operationSucceeded": true,
+      "legacyError": 0,
+      "traceSha256": "b430f65cbe434b60ef0f8962fb42202cc7fdc92de14a86a9ddaf62d41e1734e9",
+      "tracePath": "/private/tmp/ac1024-classes-current-20261117/04-title_block-iso.log"
+    },
+    {
+      "name": "visualization_-_aerial.dwg",
+      "path": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+      "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+      "bytes": 733036,
+      "classesEndMarker": true,
+      "maxClassNumber": 521,
+      "operationSucceeded": true,
+      "legacyError": 0,
+      "traceSha256": "22edeee4056fe4bf3c051850f428a9226138a175c0e89255659d3699fef74222",
+      "tracePath": "/private/tmp/ac1024-classes-current-20261117/05-visualization_-_aerial.log"
+    },
+    {
+      "name": "visualization_-_condominium_with_skylight.dwg",
+      "path": "/Users/dli/doc/dwg/visualization_-_condominium_with_skylight.dwg",
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "bytes": 1415699,
+      "classesEndMarker": true,
+      "maxClassNumber": 535,
+      "operationSucceeded": true,
+      "legacyError": 0,
+      "traceSha256": "4bbacc2794c467871943751556c2f9b67bea1a318525ee3542796386fe439ebb",
+      "tracePath": "/private/tmp/ac1024-classes-current-20261117/06-visualization_-_condominium_with_skylight.log"
+    },
+    {
+      "name": "visualization_-_conference_room.dwg",
+      "path": "/Users/dli/doc/dwg/visualization_-_conference_room.dwg",
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "bytes": 973730,
+      "classesEndMarker": true,
+      "maxClassNumber": 536,
+      "operationSucceeded": true,
+      "legacyError": 0,
+      "traceSha256": "c733c86165bbee1d05d947377eceb30e16a90da7a0408d42f0b170af06b7c2bd",
+      "tracePath": "/private/tmp/ac1024-classes-current-20261117/07-visualization_-_conference_room.log"
+    },
+    {
+      "name": "visualization_-_sun_and_sky_demo.dwg",
+      "path": "/Users/dli/doc/dwg/visualization_-_sun_and_sky_demo.dwg",
+      "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+      "bytes": 553297,
+      "classesEndMarker": true,
+      "maxClassNumber": 539,
+      "operationSucceeded": true,
+      "legacyError": 0,
+      "traceSha256": "6c57e5fbf23eb3828ac6c408b2c1914f34e66e6fe6d316b2a176f4e1275a1a8e",
+      "tracePath": "/private/tmp/ac1024-classes-current-20261117/08-visualization_-_sun_and_sky_demo.log"
+    },
+    {
+      "name": "framing_AC1024.dwg",
+      "path": "/Users/dli/doc/dwg6/framing_AC1024.dwg",
+      "sha256": "ede641fae16ad5b0c60d5149b66b8dea314e39f7a0fb5d459c5d26d7958e0c39",
+      "bytes": 3266,
+      "classesEndMarker": true,
+      "maxClassNumber": 503,
+      "operationSucceeded": false,
+      "legacyError": 9,
+      "traceSha256": "9c5ed27e0f6e45ac7cff7ca07d8f5f79d3477b362257b4ab2fb3cbba1e4896f2",
+      "tracePath": "/private/tmp/ac1024-classes-current-20261117/09-framing_AC1024.log"
+    }
+  ],
+  "interpretation": "All nine unique AC1024 files listed by the existing corpus receipt, plus framing_AC1024.dwg, reached the dwgReader24::readDwgClasses END marker. The nine corpus files reported legacyError 0; framing_AC1024 advanced to BAD_READ_TABLES (legacyError 9). No current input reproduced BAD_READ_CLASSES or a strDataSize high-bit failure. Strict CLI/output failures on the nine corpus files are not evidence of a CLASSES failure.",
+  "limitations": [
+    "These are the currently available local research inputs; producer provenance is not independently authenticated for every file.",
+    "This does not disprove a failure on a different AutoCAD 2010 RTM save. No hash-bound failing RTM input or producer/maintenance metadata was supplied.",
+    "No production code changed, no test fixture was added, and no support claim was promoted."
+  ],
+  "next": "Do not repeat this corpus scan or modify the CLASSES size path for these inputs. Reopen only with a new hash-bound source that fails at CLASSES and its producer/maintenance metadata."
+}

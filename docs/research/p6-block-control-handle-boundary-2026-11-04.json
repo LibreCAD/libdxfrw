@@ -1,0 +1,20 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 section 20.4.51 defines BLOCK_CONTROL object size as the bit position before end handles, followed by NULL owner, optional xdictionary, user block handles, model space and paper space.",
+  "problem":"AC1015/AC1018 deferred BLOCK_CONTROL wrote the handle tail inline before finishObject patched the object-size bit position. The resulting physical AC1018 field was 113 bits even though the actual handle stream began at bit 65; an independent ODA-produced AC1018 control uses bit 65.",
+  "change":"Stage the deferred BLOCK_CONTROL handle tail for legacy AC1015/AC1018 before patching the data/handle boundary, as already done for other legacy table controls. Preserve existing AC1021 and AC1024+ control framing and extension flag behavior.",
+  "automated_validation":"PASS: libdxfrw_dwg_block_control_handle_boundary independently parses the emitted frame, checks its CRC and declared handle boundary, and verifies the owner, extension, model and paper handle codes and targets for AC1015/1018/1024/1027/1032. Repeated block-control finalization is byte-idempotent. Existing libdxfrw_dwg_group_dictionary_controls and libdxfrw_dwg_header_writer_sealing cover six-version consumer readback, invalid-write rollback and retry.",
+  "independent_validation":"LibreDWG 0.14 independently decodes production scratch files with AC1015 bit boundary 64 and AC1018 bit boundary 65, correct nonzero model and paper hard-owner handles, and a following LINE. AC1024/1027/1032 retain their previous physical model/paper handles and LINE.",
+  "oda_factorial": {
+    "reader":"ODA File Converter 27.1.0 ACAD2013 DXF; inspect .err and actual output because exit status is zero on failures",
+    "cases":[
+      {"boundary_fixed":false,"xdict_missing":false,"sha256":"947166ccb9b2eb8f8efb82b977cca72c5490ce57ae18dac41a9ff2a01233b0e2","error":"Object improperly read: <AcDbBlockTable> (1); previous error Object improperly read"},
+      {"boundary_fixed":false,"xdict_missing":true,"sha256":"990a741a4dc9bb5e210071973d67c26331de4da5429490e39e478839300ed38e","error":"Object improperly read: <AcDbBlockTable> (1); previous error Object improperly read"},
+      {"boundary_fixed":true,"xdict_missing":false,"sha256":"d9a867b1ee1e4b7a4c598a622a9d57f0a626c006f06820ed2e112b620bf46abb","error":"Warning AcDbBlockTableRecord(18): BlockBegin owner Id is invalid (17); Object improperly read: <AcDbLayerTableRecord> (12); previous error .dwg file needs recovery"},
+      {"boundary_fixed":true,"xdict_missing":true,"sha256":"47212e94a6c414e5dcfd1aae3f0996edae33a8bb43bf64f2bdf39b7b64a31805","error":"Warning AcDbBlockTableRecord(18): BlockBegin owner Id is invalid (17); Object improperly read: <AcDbLayerTableRecord> (12); previous error .dwg file needs recovery"}
+    ],
+    "result":"The boundary-only production-generated AC1018 file is byte-identical to the third candidate; all four fail and no DXF is produced. Do not infer the cause of either later message."
+  },
+  "next_step_ac1021":"Separate R2007 framing investigation required. LibreDWG decodes the generated AC1021 BLOCK_CONTROL (SHA-256 678828f769d8d2cb9a9620072c936a5e4841400417feadef44e942ba6adc6e72) with bitsize 120 and zero model/paper handles, while a local AC1021 source (SHA-256 70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a; independent producer provenance not established) has bitsize 74 and nonzero model/paper references. Compare exact object, string-footer and handle spans against an independently produced AC1021 control before changing the distinct stream rules.",
+  "qualification":"The ODA conversion still fails later; no general DWG support claim. All DWGs are locally generated or existing local scratch files; no fixture is committed."
+}

@@ -1,0 +1,186 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index bc399c2..77c936c 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3498,7 +3498,81 @@ public:
+     return m_blockRecordLinkCaptureFailed;
+   }
+ 
++#ifdef LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY
++  // Frozen typed observations are correlation evidence, never export authority.
++  // Only retain the bounded no-EED profile accepted by the source verifier.
++  void observeDictionarySource(const DRW_Dictionary &dictionary) noexcept {
++    constexpr std::size_t maxRecords = 100000u;
++    constexpr std::size_t maxBytes = 32u * 1024u * 1024u;
++    if (m_dictionarySourceCaptureFailed)
++      return;
++    if (dictionary.tType != DRW::DICTIONARY || !dictionary.hasCompleteDwgEntries()
++        || dictionary.countCap || !dictionary.appData.empty()
++        || !dictionary.extData.empty() || !dictionary.pendingAppIdResolutions.empty()
++        || !dictionary.pendingLayerRefResolutions.empty()
++        || dictionary.reactorCount() != 0 || !dictionary.reactorHandles.empty()
++        || dictionary.extensionDictionaryFlag() != 1u || dictionary.xDictHandle != 0u
++        || dictionary.hasDataStorageBinaryData()
++        || dictionary.parentHandle == 0u || dictionary.parentHandle == DRW::NoHandle)
++      return;
++    const auto reject = [this]() noexcept {
++      m_dictionarySources.clear();
++      m_dictionarySourceBytes = 0u;
++      m_dictionarySourceCaptureFailed = true;
++    };
++    if (dictionary.handle == 0u || dictionary.handle == DRW::NoHandle
++        || m_dictionarySources.size() >= maxRecords
++        || dictionary.m_entries.size() > DRW_Dictionary::kMaxEntries) {
++      reject();
++      return;
++    }
++    std::size_t estimate = sizeof(DRW_Dictionary);
++    const auto account = [&estimate](std::size_t bytes) noexcept {
++      if (bytes > maxBytes - estimate)
++        return false;
++      estimate += bytes;
++      return true;
++    };
++    if (!account(dictionary.name.size())
++        || dictionary.m_entries.size() > maxBytes / sizeof(DRW_Dictionary::Entry)
++        || !account(dictionary.m_entries.size() * sizeof(DRW_Dictionary::Entry))) {
++      reject();
++      return;
++    }
++    for (const auto &entry : dictionary.m_entries) {
++      if (!account(entry.m_name.size())) {
++        reject();
++        return;
++      }
++    }
++    if (m_dictionarySourceBytes > maxBytes - estimate) {
++      reject();
++      return;
++    }
++    try {
++      if (!m_dictionarySources.emplace(dictionary.handle, dictionary).second) {
++        reject();
++        return;
++      }
++      m_dictionarySourceBytes += estimate;
++    } catch (...) {
++      reject();
++    }
++  }
++
++  const std::map<std::uint32_t, DRW_Dictionary> &
++  dictionarySourceObservations() const noexcept { return m_dictionarySources; }
++  bool dictionarySourceCaptureFailed() const noexcept {
++    return m_dictionarySourceCaptureFailed;
++  }
++#endif
++
+   void clear() {
++#ifdef LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY
++    m_dictionarySources.clear();
++    m_dictionarySourceBytes = 0u;
++    m_dictionarySourceCaptureFailed = false;
++#endif
+     m_blockRecordLinks.clear();
+     m_blockRecordLinkBytes = 0;
+     m_blockRecordLinkCaptureFailed = false;
+@@ -5592,6 +5666,9 @@ public:
+       record.entries.push_back(std::move(er));
+     }
+     m_dictionaries.push_back(std::move(record));
++#ifdef LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY
++    observeDictionarySource(dictionary);
++#endif
+     resolveDictionaryMLeaderStyleNames();
+   }
+ 
+@@ -13521,6 +13598,11 @@ private:
+   std::vector<TableGeometryRecord> m_tableGeometry;
+   std::vector<PlaceholderRecord> m_placeholders;
+   std::vector<DictionaryRecord> m_dictionaries;
++#ifdef LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY
++  std::map<std::uint32_t, DRW_Dictionary> m_dictionarySources;
++  std::size_t m_dictionarySourceBytes = 0u;
++  bool m_dictionarySourceCaptureFailed = false;
++#endif
+   std::vector<XRecordRecord> m_xrecords;
+   std::vector<LayoutRecord> m_layouts;
+   // PR 8d.2a — five small no-storage OBJECTS families.
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index b9912ce..9d1f158 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9515,6 +9515,60 @@ TEST_CASE("Legacy DXF export reports unrepresentable layer lineweight",
+   }
+ }
+ 
++#ifdef LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY
++TEST_CASE("Dictionary source observations retain typed values and reject ambiguity",
++          "[dwg][roundtrip][dictionarysource][source]") {
++  LC_DwgAdvancedMetadata metadata;
++  DRW_Dictionary dict;
++  dict.handle = 0x123u;
++  dict.parentHandle = 0x10u;
++  dict.setDwgCommonObjectState(0, 1, false);
++  dict.setDwgCommonLinkTailValidated(true);
++  dict.flags = 42;
++  dict.name = "DICTIONARY";
++  DRW_Dictionary::Entry entry;
++  entry.m_name = "ACAD_SORTENTS";
++  entry.m_handle = 0x456u;
++  dict.m_entries.push_back(entry);
++  metadata.addDictionary(dict);
++  REQUIRE_FALSE(metadata.dictionarySourceCaptureFailed());
++  REQUIRE(metadata.dictionarySourceObservations().size() == 1u);
++  dict.flags = 0;
++  dict.m_entries[0].m_name = "CHANGED";
++  const auto &saved = metadata.dictionarySourceObservations().at(0x123u);
++  CHECK(saved.flags == 42);
++  CHECK(saved.hasDwgCommonLinkTail());
++  CHECK(saved.m_entries[0].m_name == "ACAD_SORTENTS");
++  CHECK(saved.m_entries[0].m_handle == 0x456u);
++  metadata.observeDictionarySource(dict);
++  CHECK(metadata.dictionarySourceCaptureFailed());
++  CHECK(metadata.dictionarySourceObservations().empty());
++  metadata.clear();
++  CHECK_FALSE(metadata.dictionarySourceCaptureFailed());
++  dict.handle = DRW::NoHandle;
++  metadata.observeDictionarySource(dict);
++  CHECK(metadata.dictionarySourceCaptureFailed());
++  metadata.clear();
++  dict.handle = 0x123u;
++  dict.reactorHandles.push_back(0x99u);
++  metadata.observeDictionarySource(dict);
++  CHECK_FALSE(metadata.dictionarySourceCaptureFailed());
++  CHECK(metadata.dictionarySourceObservations().empty());
++  dict.reactorHandles.clear();
++  dict.parentHandle = 0u; // The root dictionary is outside this profile.
++  metadata.observeDictionarySource(dict);
++  CHECK_FALSE(metadata.dictionarySourceCaptureFailed());
++  CHECK(metadata.dictionarySourceObservations().empty());
++  dict.parentHandle = 0x10u;
++  dict.name.assign(32u * 1024u * 1024u, 'x');
++  metadata.observeDictionarySource(dict);
++  CHECK(metadata.dictionarySourceCaptureFailed());
++  CHECK(metadata.dictionarySourceObservations().empty());
++  metadata.clear();
++  CHECK_FALSE(metadata.dictionarySourceCaptureFailed());
++}
++#endif
++
+ template <typename T, typename = void>
+ struct HasBlockRecordReadCallback : std::false_type {};
+ template <typename T>
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b582c6b..22c8c01 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -4076,7 +4076,7 @@ if (LIBRECAD_BUILD_SYSTEM_CODEC_TESTS)
+     add_test(NAME librecad_system_codec_ltype
+              COMMAND librecad_system_codec_tests "[ltype]~[dwg]")
+     add_test(NAME librecad_system_codec_block_record
+-             COMMAND librecad_system_codec_tests "[blockrecord][source]")
++             COMMAND librecad_system_codec_tests "[blockrecord][source],[dictionarysource][source]")
+     add_test(NAME librecad_system_codec_pr3269
+              COMMAND librecad_system_codec_tests
+              "DXF writes a changed line type definition over its record,DWG writes a changed line type definition over its record,DXF writes a redefined built-in from the table,DXF writes a changed complex line type without its segments,DXF writes a twin archived spelling as it came beside a changed record")

@@ -1,0 +1,135 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Attested open-source SAT/SAB reader and semantic-gate readiness",
+  "mode": "primary-source web and package-artifact research; plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Find a reproducible open-source SAT/SAB parser candidate for the independent ACIS semantic-evidence gate",
+    "Bind the candidate to an exact published artifact, source revision, and macOS ARM64 wheel hash",
+    "Separate parser independence, analytic expectations, shared geometry-kernel lineage, and native application qualification",
+    "Refine one-time composed-check readiness without changing fast-test cadence or committed-fixture policy",
+    "Reconcile the earlier CAD Assistant macOS ARM64 option and recent peer ACIS writer-loss evidence"
+  ],
+  "method": {
+    "kind": "Read-only review of primary project documentation, published package metadata/provenance, and local plan state",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedThisResearchPass": false,
+    "testCodeChangedThisResearchPass": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Package attestation binds cq-acis 0.3.12 to a source commit and wheel hash but is not runtime evidence. The project labels itself experimental and its geometry conversion uses CadQuery/OpenCascade, a kernel family shared with FreeCAD. No package was installed, no local or external sample was parsed, and no support claim was qualified."
+  },
+  "sources": [
+    {
+      "project": "cq-acis / PyPI release 0.3.12",
+      "urls": [
+        "https://pypi.org/project/cq-acis/0.3.12/#files",
+        "https://github.com/monozukuri-ai/cq-acis/tree/e05a8f470d2f6799277f7b7df467d2fc35625889",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/sab-support.md"
+      ],
+      "revision": "PyPI 0.3.12, published 2026-10-16; Trusted Publishing source commit e05a8f470d2f6799277f7b7df467d2fc35625889",
+      "artifact": {
+        "filename": "cq_acis-0.3.12-cp310-abi3-macosx_11_0_arm64.whl",
+        "sha256": "94204f623d752e7dacf494bf631551277a985acbeb612ee3a24464ea0f0daab5"
+      },
+      "observed": "The published wheel has a verified PyPI Trusted Publishing attestation to the named repository commit. The project documents bounded SAT saves and selected SAB/ASM profiles, experimental geometry conversion, raw retention for some unknown records, and errors for unsupported referenced geometry. It is a separate parser implementation from libdxfrw and ezdxf, but not a separate geometry-kernel lineage from FreeCAD."
+    },
+    {
+      "project": "cq-acis test corpus",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/corpus/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/corpus/manifest.jsonl"
+      ],
+      "revision": "Repository source commit e05a8f470d2f6799277f7b7df467d2fc35625889",
+      "observed": "The corpus documents NIST Engineering Design Models and ezdxf test artifacts with upstream provenance and separate license notices. These files are not already-tracked libdxfrw/LibreCAD fixtures, so the plan excludes copying them into this repository and instead prescribes locally authored scratch geometry."
+    },
+    {
+      "project": "Open Cascade CAD Assistant",
+      "urls": [
+        "https://www.opencascade.com/products/cad-assistant/",
+        "https://www.opencascade.com/release_notes/cad-assistant/"
+      ],
+      "revision": "Official product and release-note pages reviewed 2026-10-18; latest listed CAD Assistant version 1.6.0 dated 2021-10-05",
+      "observed": "The official page lists macOS ARM64 and ACIS SAT/SAB import via commercial Open Cascade components. It states model export/conversion is disallowed for data imported by those components. The app is therefore an optional visual/import smoke route, not an open-source parser or exportable semantic oracle."
+    },
+    {
+      "project": "ACadSharp and ezdxf ACIS/DXF routes",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Public issue/PR state and stable ACIS API documentation reviewed 2026-10-18",
+      "observed": "ACadSharp issue #1195 describes read-side 3DSOLID/REGION objects silently omitted by its DXF writer and links an open change. ezdxf documents flat-polygon ACIS mesh projection rather than a general kernel. These are route/direction-specific peer warnings, not new libdxfrw findings."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "optionalPeerCandidateBound": true,
+    "candidateExecuted": false,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds a source/artifact-pinned cq-acis 0.3.12 candidate and a one-time SAT 700/SAB 21800 locally-authored analytic probe at the existing composed 3D checkpoint. Separates independent parser, independently specified geometry, shared OCCT kernel, carrier/owner preservation, and native FreeCAD outcome. CAD Assistant remains an optional visual-only route. No new implementation item, dependency, fixture, test, support claim, or required gate is introduced."
+  },
+  "implementationReadyChecks": [
+    "In an isolated environment, verify the cq-acis ARM64 wheel hash and Trusted Publishing attestation to the exact source commit; record Python, CadQuery, OCCT, OS, and architecture versions.",
+    "Author locally from scratch two asymmetric bodies as separate entities and write independent dimensions, placement, area, volume, bounds, counts, and tolerance expectations before serialization.",
+    "At one composed checkpoint, test exact SAT 700 and SAB 21800 bytes; inventory diagnostics, raw/unknown/reachable records, complete body disposition, conversion refusal behavior, B-rep validity, and analytic metrics.",
+    "For carrier transport, verify exact DXF ACDSDATA owner-key joins and DWG AcDs key/index-to-owner joins and payload hashes before passing extracted bytes to cq-acis.",
+    "Label cq-acis results as independent parser plus analytic expectation with shared OCCT kernel; do not claim independent-kernel or native FreeCAD qualification.",
+    "Do not copy the cq-acis corpus into this repository or add the package to project/CI dependencies; if the optional run is unavailable, record NOT_RUN and continue local work.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL until their named external/platform qualification is actually satisfied."
+  ],
+  "workingTree": {
+    "alreadyContainsUncommittedImplementationChanges": true,
+    "researchPassChangedProductionOrTests": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-attested-open-source-acis-reader-semantic-gate-2026-10-18.json",
+      "awk '/[ \\t]+$/ { print FNR \": trailing whitespace\"; failed=1 } END { exit failed }' docs/research/deeper-broader-attested-open-source-acis-reader-semantic-gate-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-attested-open-source-acis-reader-semantic-gate-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

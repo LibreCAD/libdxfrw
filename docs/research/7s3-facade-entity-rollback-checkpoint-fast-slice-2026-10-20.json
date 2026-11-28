@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "title": "7S.3 facade-level last-entity rollback checkpoint",
+  "date": "2026-10-20",
+  "scope": "Generated fast implementation slice removing the facade's redundant document-wide snapshot around ordinary single-entity writes.",
+  "changes": [
+    "Added an explicit capability for writers to retain bounded rollback state for their most recent successful entity frame; unknown/custom writers preserve the full-checkpoint fallback.",
+    "Implemented retained frame, owner-membership, INSERT-membership, error/provenance rollback for dwgWriter15 and dwgWriter24 entity paths, including the explicit facade rollback API.",
+    "Extended the existing generated owner selector to exercise public dwgRW writes at AC1015 and AC1024, post-frame facade failure, last-write rollback, and zero full checkpoint calls."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+    "focusedOwnershipCTest": "PASS: libdxfrw_dwg_block_owner_membership_index (1/1)",
+    "roundtripTests": "PASS: libdxfrw_dwg_local_roundtrip, libdxfrw_dwg_block_record_xref_roundtrip, and dwg_dxf_issue_1410_cross_codec (3/3)",
+    "diffCheck": "PASS: git diff --check on touched writer/facade/test/plan files"
+  },
+  "notPerformed": [
+    "No full CTest suite",
+    "No external drawing or persistent fixture",
+    "No external peer runtime or native CAD application",
+    "No wall-clock performance benchmark",
+    "No support claim promotion"
+  ],
+  "planInventory": {
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "worktree": {
+    "committed": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

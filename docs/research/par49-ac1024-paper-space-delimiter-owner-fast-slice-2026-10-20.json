@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-49/7G.3 AC1024 paper-space delimiter owner",
+  "mode": "Generated owner-closure regression and local sample trace",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Fix the observed false rejection of a BLOCK/ENDBLK pair whose parent handle is the owning paper-space BLOCK_RECORD.",
+    "Preserve strict rejection of mismatched nonzero owners and the existing BLOCK/ENDBLK reciprocal owner check.",
+    "Keep generated structural evidence distinct from end-to-end conversion and semantic support claims."
+  ],
+  "evidence": {
+    "existingSample": "tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+    "before": "The existing sample failed in readDwgBlocks with BLOCK/ENDBLK owner does not match BLOCK_RECORD. Trace showed BLOCK_RECORD *Paper_Space handle 0x58 and *Paper_Space0 BLOCK/ENDBLK delimiters whose parent handle was 0x58.",
+    "after": "The sample's DWG read reaches completion (operationSucceeded=true); export remains refused later because two OBJECT parses fail and SUN typed/raw carrier owner closure is incomplete.",
+    "formatBasis": "Local authoritative ODA v5.4.1 PDF, §20.2 and §20.4.6–7; the former describes the legacy ownerless model/paper-space form, and the latter documents BLOCK/ENDBLK handle data."
+  },
+  "implementation": {
+    "rule": "Accept a delimiter parent equal to the active BLOCK_RECORD handle. Also retain the existing ownerless form for names classified as model/paper space. Reject any other nonzero handle; still require BLOCK and ENDBLK owners to match each other.",
+    "generatedControl": "An AC1027 in-memory writer emits BLOCK and ENDBLK named *PAPER_SPACE0, each parented to a *PAPER_SPACE BLOCK_RECORD; full readDwgBlocks publishes one complete scope.",
+    "testRegistration": "Added focused libdxfrw_dwg_space_block_delimiter_owner CTest; no drawing fixture was added."
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "existingSubplansRefined": [
+      "PAR-49/7G.3: accept owner-bearing paper-space BLOCK/ENDBLK scopes when the handle matches their BLOCK_RECORD.",
+      "7G: keep owner/reference validation strict while distinguishing legacy ownerless space delimiters from valid explicit owner references."
+    ],
+    "productionCodeChanged": true,
+    "testHarnessCodeChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "focusedBuild": "PASS (cmake --build build --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j4)",
+    "ownerRegressionAndAdjacentNegative": "PASS (2/2 focused CTests)",
+    "legacyOwnerlessLayoutControl": "PASS (libdxfrw_dwg_reader_matrix_tests --legacy-layout-block-chains)",
+    "existingSamplePostFix": "Read succeeds past the BLOCK/ENDBLK owner gate; conversion remains refused for distinct OBJECT parse and SUN carrier-owner closure failures.",
+    "initialAc1024LabelBaseline": "0/31 before the fix; included a headless ODA converter abort and strict-export failures. Not rerun wholesale.",
+    "diffCheck": "PASS (scoped to CMake, reader, reader-matrix test, and plan files)",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "The generated control proves the local structural owner rule only; it does not qualify every paper-space version/name or downstream layout semantics.",
+    "The existing AC1024 sample is not fully converted: object types 528 and 515 fail parsing, and strict/partial export is refused by SUN carrier/owner closure.",
+    "No external drawing, peer implementation, native CAD application, geometry kernel, or platform qualification was run.",
+    "The change is uncommitted because the shared worktree has broad pre-existing modifications.",
+    "ODA v5.4.1 remains authoritative for DWG byte-layout questions; all six external J items remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

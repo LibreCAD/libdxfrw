@@ -1,0 +1,142 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Open-source DWG/DXF evidence-to-work reconciliation",
+  "mode": "Deeper/broader primary-source research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile current open-source DWG/DXF project documentation and public issue evidence with existing local owners.",
+    "Separate parser, writer, preservation, projection, downstream-consumer, ACIS/AcDs, and native-acceptance evidence.",
+    "Refine implementation-ready routing without adding peer-dependent work, tests, fixtures, or validation frequency."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review plus local plan/source/test crosswalk",
+    "sourcePagesMutableUnlessPinned": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localTestsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Public issue reports are not normative format evidence or reproductions of libdxfrw behavior. Peer README/manual/source pages are mutable unless pinned. Private/customer corpora cited by ACadRust were unavailable, and candidate fixes have no published reporter retest in the reviewed issue pages. No broad support claim is derived from documentation alone; ODA Open Design Specification v5.4.1 remains authoritative for DWG layout questions."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "revision": "NEWS/manual/README pages reviewed 2026-10-18; exact binary not pinned or run",
+      "observed": "The July 2026 NEWS labels 0.14.1 beta and describes an R2004 writer. Project documentation differs on effective writer ceilings and warns about CRC/audit problems for later versions. The manual distinguishes stable, unstable, debugging and unhandled classes; NEWS states the modern AcDsPrototype_1b datastore remains incomplete and newer SAB extraction is not generally reliable. These are project-scope declarations, not a runtime qualification."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "revision": "Issue #1279 opened 2026-10-11; issue body reviewed 2026-10-18",
+      "observed": "The report describes an AC1014 2D POLYLINE with VERTEX subclass markers ending at AcDbVertex and no AcDb2dVertex marker; ACadSharp reportedly leaves a placeholder and fails while building the document. No public source drawing/hash or normative grammar evidence is supplied."
+    },
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/132",
+        "https://github.com/hakanaktt/acadrust/issues/133",
+        "https://github.com/hakanaktt/acadrust/issues/134",
+        "https://github.com/hakanaktt/acadrust/commit/95a8c2fd5f9b247a098df2ca6137dbe1742dff2a",
+        "https://github.com/hakanaktt/acadrust/commit/b62555f",
+        "https://github.com/hakanaktt/acadrust/commit/0e46236",
+        "https://github.com/HakanSeven12/opencadcodec/commit/69ef6fc"
+      ],
+      "revision": "Issues and candidate commit references reviewed 2026-10-18; no candidate build or private corpus run",
+      "observed": "#132 contains a synthetic DXF-to-DWG report separating raw-only custom class loss, group-430 color-book name/DBCOLOR linkage loss, and table/BLOCK_RECORD XDATA loss. Its maintainer-linked commit requests reporter retesting; no result is published. #133 reports orphan-owner reassignment/phantom geometry. #134 reports 70/351 private AC1032 corpus failures after stricter record bounds, 65 attributed to AcDbMLeaderObjectContextData; a candidate recovery commit and later downstream merge are references, not verified reporter retests."
+    },
+    {
+      "project": "GDAL / ezdxf",
+      "urls": [
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "revision": "Current driver documentation and mutable ezdxf documentation reviewed 2026-10-18; no runtime used",
+      "observed": "GDAL DXF is a geometry projection/tessellation route; its optional modern raw-ASM path exposes carrier bytes and transform rather than a B-rep. Its public known-issues document is an older snapshot, not a current full capability census. ezdxf documents ACIS inspection/limited manipulation and explicitly says its drawing add-on does not render ACIS or provide a 3D renderer."
+    },
+    {
+      "project": "FreeCAD and LibreCAD_3",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Current project documentation pages reviewed 2026-10-18; no application run",
+      "observed": "FreeCAD documents a DWG-converter to DXF to selected-importer route, with distinct C++ and optional legacy Python DXF importers; stock DXF import does not read embedded ACIS/SAT solids. LibreCAD_3 documents opt-in read-only DWG import and separate write gates, making it a compatibility consumer policy rather than an independent codec result."
+    }
+  ],
+  "localCrosswalk": [
+    {
+      "peerReports": ["ACadSharp #1279"],
+      "localOwners": ["Generated AC1014 VERTEX/compound-record owner", "ODA and Autodesk legacy grammar review"],
+      "result": "Use only as an adversarial parser shape. Do not infer VERTEX subtype from the parent or generalize a recovery rule to mesh/polyface child records."
+    },
+    {
+      "peerReports": ["ACadRust #132"],
+      "localOwners": ["Custom typed/raw/refused record disposition", "Named color and DBCOLOR linkage", "Table and BLOCK_RECORD XDATA"],
+      "result": "Keep the three loss modes independent and reuse existing generated owners. Candidate peer commit and issue status do not prove current peer behavior or a local defect."
+    },
+    {
+      "peerReports": ["ACadRust #133", "ACadRust #134"],
+      "localOwners": ["PAR-49/7G owner closure", "PAR-07/S8 bounded object-failure ladder"],
+      "result": "Never synthesize model-space ownership for unresolved explicit owners. Keep record bounds; only retain/skip when record boundary and graph-safety conditions are proven, otherwise fail enclosing read."
+    },
+    {
+      "peerRoutes": ["LibreDWG", "ACadSharp", "ezdxf", "GDAL", "FreeCAD", "LibreCAD_3"],
+      "localOwners": ["Existing composed peer/consumer evidence matrix", "Existing focused local test cadence"],
+      "result": "Pin exact artifact and operation; record requested/actual version, parser lineage, per-handle/owner disposition, projection/loss, independent result, and native result separately. No peer runtime is needed for routine slices."
+    }
+  ],
+  "assessment": {
+    "confirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrCtestRegistrations": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Reconciles current peer evidence with existing local findings and owners, sharpens test/readiness boundaries, and confirms that external retests or peer installations do not block the next local PAR-20/7G.3 output-semantics slice. No support status or implementation order changed."
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonSyntaxChecked": true,
+    "markdownDiffCheck": true,
+    "localTestsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-oda-case-aligned-pair-2026-11-25",
+  "date": "2026-11-25",
+  "status": "SELECTED_STYLE_EXTENSION_REMOVED_ODA_REOPEN_AND_LIBREDWG_READ_PASS_NATIVE_OPEN_AND_MERGE_PENDING",
+  "supportClaimEffect": "none",
+  "prior": "docs/research/p6-ac1012-oda-two-element-pair-2026-11-25.json",
+  "scratchDirectory": "/private/tmp/ac1012-linux-oda-20261125",
+  "discriminator": "The prior source key STANDARD and style name Standard differed only in case, with an EXTNAMES round-trip XRECORD in the selected style dictionary's extension graph. In locally edited R2010 DXF controls, align both spellings to STANDARD, preserving selected styles and their ownership; generate fresh AC1012 DWGs using ODA File Converter 27.10 and reopen them to R2010 DXF.",
+  "samples": {
+    "destination": {"path": "case-dwg/destination.dwg", "sha256": "10f5943ad7bddd4855ad200643a643a59b0e216c3cbde0fc4c542b085bde3b17", "styleDictionaryFrameSha256": "2fcb462dcbe8f86076cc95b2d4be61d69b2b6d23046d3507319f496b10620778", "angles": {"SAME_KEY": 15, "DEST_ONLY": 22}},
+    "source": {"path": "case-dwg/source.dwg", "sha256": "1356386cb54287a4dddfa7c355179309a71b020c9df558bc932afbb22a8a3e87", "styleDictionaryFrameSha256": "24baaa9ec92d142211c579bc8b104099c67bb063612651abff4b2964a56f1d12", "angles": {"SAME_KEY": 37, "SOURCE_ONLY": 51}}
+  },
+  "checks": [
+    "ODA reopened both AC1012 outputs to R2010 DXF without per-file errors; the selected style dictionary entries, identity, angles and two-element counts were preserved.",
+    "LibreDWG 0.14 read both DWGs. The bounded physical walker checks each selected style dictionary's CRC, entries, ACAD EED, root owner/reactor and typed-null extension handle; selected style geometry matches the model.",
+    "The current dwg2dxf refuses strict AC1024 ASCII and binary output at the AC1012 dictionary merge-semantics guard for each file and preserves the prior destination."
+  ],
+  "limits": [
+    "The selected style dictionary still carries ACAD TREAT_AS_HARD EED. LibreDWG also reports a distinct non-null root extension dictionary 0x200 with an ACAD_XREC_ROUNDTRIP entry; this is not a whole-graph simplification.",
+    "Matching case correlated with the selected extension's disappearance in these controls; it does not prove a general ODA or AutoCAD rule.",
+    "ODA reopened its own outputs. Independent LibreDWG readback does not establish native AutoCAD acceptance, style validity or merge behavior. Inputs originate in local explicit-partial DXF projections.",
+    "No fixture was committed and no support claim is promoted."
+  ]
+}

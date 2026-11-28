@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-21500-pcurve-reference-rows-2026-11-11",
+  "purpose": "Record the observed ACIS 21500 pcurve reference-row shapes and the bounded rooted-graph dependency handling added for them.",
+  "sourceScreen": {
+    "origin": "Three source-distinct 3DSOLID inline SAB payloads extracted from the local AC1024 conference-room drawing; external DWG/SAB files were not added to the repository.",
+    "sabPayloads": [
+      {
+        "file": "p7-conference-205-1703.sab",
+        "sha256": "3f0f8d043f2c03d9b513640c6ad549f9eab28bc7f209fe34a22d0cc9ded08324"
+      },
+      {
+        "file": "p7-conference-242-1744.sab",
+        "sha256": "b506c9e956e295d0d332e096c06f7ef310694caec5120538582da76e3e7868f7"
+      },
+      {
+        "file": "p7-conference-279-1785.sab",
+        "sha256": "f0fc046b0911ad95c69cda72257109b132224cc8110c07b81fdcd3b1016cdc10"
+      }
+    ],
+    "method": "Scratch-only SAB parser inspection compared each resolved DRW_AcisNode.refs row with its ordered raw pointer tokens and node types.",
+    "observation": {
+      "pcurvesPerPayload": 22,
+      "rawWidth2RowsPerPayload": 19,
+      "rawWidth3RowsPerPayload": 3,
+      "width2Meaning": "common attribute pointer plus one nullable pcurve body pointer",
+      "width3Meaning": "common attribute pointer plus one nullable body pointer plus one pointer resolving to intcurve-curve",
+      "incomingCoedgeLinksPerPcurve": 1,
+      "scope": "Structural observations for these three payloads only; not a normative ACIS 21500 schema or semantic interpretation of pcurve body fields."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "behavior": [
+      "The ACIS 21500 rooted-view builder accepts only pcurve rows with exactly two or three raw references including the common attribute pointer.",
+      "For three-reference rows, the optional final target must resolve to an intcurve-curve node.",
+      "The normalized 21800 walker retains the source-profile flag and follows the optional curve edge, including it as an unsupported reachable curve rather than interpreting its geometry.",
+      "Public graph-link pointer ordinals are restored to the original ACIS 21500 source rows."
+    ],
+    "generatedControls": [
+      "A generated in-memory pcurve with an intcurve-curve dependency produces the pcurve graph link at source pointer ordinal 2 and reports both nodes as unsupported semantics.",
+      "A generated in-memory pcurve with a null optional curve dependency remains accepted and reports no reachable curve dependency.",
+      "A truncated pcurve pointer row is rejected atomically.",
+      "A pcurve dependency resolving to the wrong record type is rejected atomically."
+    ]
+  },
+  "independentTypedAccessorScreen": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "revision": "ce8a148568e7a80a80f50797bf287a651d1259c7",
+    "workspace": "https://github.com/HakanSeven12/OpenCADStudio",
+    "workspaceRevision": "36981c6abe76e4b69d0a8ac5e210c35a0e8f681c",
+    "method": "The pinned SatDocument parser and SatPCurve/SatCoedge typed accessors were run against the exact SAT v1 text projections corresponding to the three source SAB payloads. No profile-specific pointer or token normalization was applied.",
+    "inputs": [
+      {
+        "file": "p7-conference-205-1703.sat",
+        "sha256": "1b0bbc0ec79676d8e7cfb742af5543dde1af310b55177cc3f4802d3b6d804c15"
+      },
+      {
+        "file": "p7-conference-242-1744.sat",
+        "sha256": "999436a2baa6b91548cd82321d696c27f828cb0c0a66be8a2c742236a3ead6a3"
+      },
+      {
+        "file": "p7-conference-279-1785.sat",
+        "sha256": "341ffea3b544f8ca91c38feced8e68b9ee94cd76ffcb60de71277aed2e80dabd"
+      }
+    ],
+    "resultPerInput": {
+      "declaredVersion": "215.0.0",
+      "records": 1102,
+      "pcurveRecords": 22,
+      "typedCoedgeToPCurveLinks": 0,
+      "decodedPCurveSplines": 0
+    },
+    "disposition": "Negative qualification result only. The parser accepts the SAT document framing, but its ACIS-7 typed pcurve/coedge accessor route does not interpret this ACIS 21.5 profile. Do not promote semantic support or infer 21.5 field offsets from this peer."
+  },
+  "formatAuthorityBoundary": {
+    "source": "Open Design Alliance, Working with .sat and .sab Files in Teigha",
+    "url": "https://www.opendesign.com/blog/2017/october/working-sat-and-sab-files-teigha",
+    "observation": "The article maps R24/AutoCAD 2010 to ACIS 21500 and describes Autodesk's 20800-and-later SAT/SAB streams as modified from native Spatial ACIS.",
+    "effect": "ACIS 7.0 SAT parsing is not an oracle for this modified 21500 profile. Keep pcurve field layout and geometry semantics unqualified until version-specific authority or an explicitly 21500-qualified peer resolves them."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4 && ./build-gcc/libdxfrw_graph_preservation_tests",
+    "build": "PASS",
+    "result": "PASS: Graph/preservation tests",
+    "sourcePayloadProjection": {
+      "scratchProbe": "/private/tmp/p7_pcurve_projection_check.cpp (not committed)",
+      "command": "/private/tmp/p7_pcurve_projection_check /private/tmp/p7-conference-205-1703.sab /private/tmp/p7-conference-242-1744.sab /private/tmp/p7-conference-279-1785.sab",
+      "result": "PASS for all three payloads: 22/22 pcurves reachable and exactly three pcurve-to-intcurve graph links projected per payload."
+    },
+    "gitDiffCheck": "PASS",
+    "noDrawingFixtureCommitted": true
+  },
+  "unresolved": [
+    "The embedded exp_par_cur and nubs fields are not decoded or independently interpreted.",
+    "The pinned ACIS-7 typed pcurve accessors do not decode or link pcurves in these 21500 projections; a version/profile-aware independent route is still needed.",
+    "Trim parameterization, surface correspondence, periodicity, and B-rep validity remain unqualified.",
+    "The observed pointer-row shape is not established for other ACIS 21500 producers or revisions.",
+    "No native CAD acceptance, whole-source output, or general DWG/DXF support claim follows."
+  ],
+  "claimEffect": "Adds bounded structural closure for an optional ACIS 21500 pcurve-to-intcurve graph dependency. Pcurves and curves remain semantically unsupported; no geometry or support claim is promoted."
+}

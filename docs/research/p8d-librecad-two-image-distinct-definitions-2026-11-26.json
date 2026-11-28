@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-two-image-distinct-definitions-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "1cd3b590027504a3308f60946d2b3e94c15985c5",
+  "librecadCommit": "6c354d2e765c3bda7ae900d7aee03b571dfad11d",
+  "scope": "Bounded AC1021 two-IMAGE model-space graphs with either one shared IMAGEDEF or two distinct IMAGEDEF objects, each with its own reactor.",
+  "results": [
+    "PASS: 325 image assertions across four cases, testing both graph shapes, nonzero WCS Z, staged reference/scalar/dictionary/plot checks, corrupt and late-mutated sources, destination preservation and corrected retry.",
+    "PASS: focused system-codec MATERIAL and 2D linetype compatibility checks, 5,812 assertions across 62 cases.",
+    "PASS: bundled-codec filter source compiles.",
+    "PASS: ezdxf 1.4.5 independently resolves one-definition and two-definition output graphs, with two IMAGE and two IMAGEDEF_REACTOR records, correct owners/links and nonzero Z; each audit has zero errors and fixes."
+  ],
+  "artifacts": {
+    "sharedOutputSha256": "f4e95fe20c3cfaf17bddf7852c6c340bf19fbfe6dc76a653550e9a24b4a094ed",
+    "distinctOutputSha256": "417f7f833b524379fb80545e029e3e5b7ed4c8002ce8fdf0ab5cd72fffbd1471",
+    "testExecutableSha256": "1d592733218a205f44079cdd76aec6536c81f6fde8c431f8e38531de703f15f4"
+  },
+  "limits": [
+    "The source is locally generated ASCII; no native producer/rendering or cross-platform qualification is implied.",
+    "Different counts, other versions, blocks, unknown fields, layers and clipping shapes remain separate profiles.",
+    "No drawing fixture was committed."
+  ]
+}

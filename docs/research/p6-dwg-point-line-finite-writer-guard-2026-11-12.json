@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-dwg-point-line-finite-writer-guard-2026-11-12",
+  "purpose": "Make DWG POINT and LINE writer admission reject non-finite modeled fields already rejected by their DWG readers.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.21 LINE (object type 19)", "20.4.31 POINT (object type 27)"],
+    "localPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "wireMapping": "LINE carries start/end coordinates, thickness and extrusion. POINT carries point, thickness, extrusion and X-axis angle.",
+    "consistencyEvidence": "The corresponding DWG parsers already reject non-finite values for every field guarded in this slice."
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "POINT output requires finite position, thickness, extrusion and X-axis angle. LINE output requires finite start/end coordinates, thickness and extrusion. Validation precedes staging.",
+    "scope": "Writer admission only; parser behavior and finite zero extrusion compatibility remain unchanged."
+  },
+  "generatedControls": {
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "pointRefusals": ["NaN position", "infinite thickness", "NaN extrusion", "infinite X-axis angle"],
+    "lineRefusals": ["NaN start coordinate", "infinite end coordinate", "NaN thickness", "infinite extrusion"],
+    "failureRetry": "Each failure preserves a seeded destination. Corrected same-writer output reads back typed fields with zero entity/object parse failures.",
+    "fixturePolicy": "All files are generated locally from scratch in test storage; no fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j6 PASS",
+    "focusedSelector": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_point_line_finite_admission$' --output-on-failure PASS 1/1 in 0.32 seconds"
+  },
+  "limitations": [
+    "Generated writer admission and readback do not establish physical producer prevalence, native rendering or whole-document qualification.",
+    "The broader P6 version/schema/no-loss audit remains open."
+  ],
+  "supportClaimEffect": "Closes bounded finite-field writer gaps for DWG POINT and LINE; no broad DWG/DXF support claim is promoted."
+}

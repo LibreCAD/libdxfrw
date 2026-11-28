@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Pool_Detail AC1021 MLEADERSTYLE bounded dependency projection output and readback",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Qualify selected ASCII/Binary transport for the exact Pool_Detail AC1021 MLEADERSTYLE graph and its directly referenced BYBLOCK linetype while retaining malformed source-control and HEADER integrity observations as excluded evidence.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Pool_Detail.dwg",
+    "sha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. The input and derivatives are not committed."
+  },
+  "sourceGraph": {
+    "root": "NOD dictionary 0x7784C contains the ACAD_MLEADERSTYLE key to style 0x7784D.",
+    "dependency": "The style's group 340 hard pointer targets LTYPE 0x12 (BYBLOCK). ODA v5.4.1 §20.4.87 defines the MLEADERSTYLE group 340 pointer as hard; independent LibreDWG 0.14 JSON and libdxfrw typed import agree on the source row and target.",
+    "excludedSourceIntegrity": [
+      "TableControlNullMember at LTYPE_CONTROL handle 0x05; the source control omits the directly referenced BYBLOCK row and has null member slots.",
+      "TableControlNullMember at BLOCK_CONTROL handle 0x01.",
+      "HeaderCurrentLayerReference at handle 0x0E."
+    ],
+    "boundary": "The private projection admits exactly the AC1021 single-style/single-BYBLOCK dependency profile and those exact three excluded integrity identities. It does not qualify source control membership, alter the source observations, or enable strict whole-source output."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "Bind a generation/source-scoped typed linetype baseline and exact malformed-source observations to this selected dependency subset; admit only that profile in partial-export gating; inspect exact BYBLOCK output identity plus canonical ByLayer/Continuous defaults; extend physical ASCII/Binary readback for Pool_Detail. Preserve complete-control behavior and fail closed for other profiles and mutations.",
+    "productionCodecChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS",
+      "testSourceSha256": "1c5ad7cf0f1f4b9a1d3bb3225a0c7421eb7a5bb8a4d56309b72369ed281358f3",
+      "executableSha256": "934281b285c9c8d5d1867dec7955fb595898d32b9efd0fb1834990763e3f7926"
+    },
+    "productionBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf -j4",
+      "result": "PASS"
+    },
+    "poolDetailAc1021": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mleaderstyle-physical-output-readback /Users/dli/doc/dwg/Pool_Detail.dwg",
+      "result": "PASS in ASCII and Binary; strict whole-source output refuses and preserves the destination sentinel; selected output has fresh typed readback for the style, root/owner and LTYPE identity/role; late style mutation, selected LTYPE mutation and unclassified integrity-row mutation refuse without replacing destination; corrected same-adapter retry succeeds."
+    },
+    "childrenRoomAc1021Regression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mleaderstyle-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS in ASCII and Binary; existing source profile readback, refusal, destination preservation and same-adapter retry remain intact."
+    },
+    "mechanicalAc1024Regression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mleaderstyle-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS in ASCII and Binary; existing two-style AC1024 profile readback, refusal, destination preservation and same-adapter retry remain intact."
+    },
+    "diffCheck": "PASS; git diff --check passed."
+  },
+  "limits": [
+    "This is selected graph transport evidence for one unauthenticated local AC1021 source; it does not qualify whole-source conversion, source control integrity, producer-wide behavior, or native application semantics.",
+    "The malformed LTYPE_CONTROL, BLOCK_CONTROL, and HEADER observations remain excluded and strict whole-source output remains refused.",
+    "The private subset gate must not be generalized to different versions, styles, linetype dependencies, or error sets without independent source evidence and new bounded tests.",
+    "No DWG/DXF fixture was added to the repository."
+  ],
+  "next": "Select a distinct P4 OBJECTS source/profile from the existing inventory whose source identity, owner roles, and recursive dependencies are already established. Do not repeat Pool_Detail MLEADERSTYLE capture or weaken strict source refusal."
+}

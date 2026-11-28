@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Open-source peer artifact, profile, and route boundaries",
+  "mode": "Primary-source web research and plan-only comparator audit",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh operation and artifact boundaries for dwg-rs, cq-acis, uncad, and FreeCAD.",
+    "Separate mutable branch documentation from pinned released capability and actual parser/writer route.",
+    "Refine existing PAR-07/S8 and consumer comparator admission without adding implementation or support claims."
+  ],
+  "sources": [
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "revision": "Mutable README reviewed 2026-10-20; no immutable source revision pinned or executed",
+      "observed": "README reports per-record boundary checks, nine named current errors (six VIEWPORT, two MESH, one LEADER), unmatched MATERIAL/TABLESTYLE, and warns aggregate percentages compare different corpus denominators. Project describes itself as pre-alpha, spec-based, with alpha writers. These are project-reported observations, not independently verified runtime results."
+    },
+    {
+      "project": "cq-acis",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md"
+      ],
+      "revision": "Pinned 0.3.12 source commit e05a8f470d2f6799277f7b7df467d2fc35625889 plus mutable main docs reviewed 2026-10-20; no wheel installed or run",
+      "observed": "The project distinguishes parse retention from shape conversion; unsupported referenced geometry fails conversion rather than silently returning a partial solid. The pinned geometry document labels cylinder seam/shell closure and oblique-cylinder profiles unreleased. The current README says the project test corpus is excluded from distributions and separately licensed. Conversion goes through CadQuery/OCCT."
+    },
+    {
+      "project": "uncad",
+      "urls": [
+        "https://github.com/iyulab/uncad"
+      ],
+      "revision": "Mutable README and About metadata reviewed 2026-10-20; no source revision pinned or executed",
+      "observed": "Repository About metadata advertises writing, but README says read-only. DWG parsing is LibreDWG FFI; DXF parsing is the separate undxf crate; output is JSON/SVG/PNG. The DWG route is not independent of LibreDWG and the documented package is not a writer candidate."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Mutable documentation source reviewed 2026-10-20; no FreeCAD build executed",
+      "observed": "The document describes distinct built-in C++ and optional legacy Python DXF importers with differing entity coverage, and states stock FreeCAD cannot read DXF ACIS/SAT solids. This is route guidance, not verification of a particular installed build."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: admit at most one pinned peer for a specific unresolved route; record immutable artifact, profile, direction/version, corpus denominator, and full unsupported/loss disposition.",
+      "3D semantic gate: use only released cq-acis profiles; keep raw parsing, conversion, analytic semantics, and consumer acceptance separate.",
+      "Consumer route inventory: correct uncad's stale About tagline from its documented read-only route; treat DWG via LibreDWG and DXF via undxf separately."
+    ],
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 142,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Update comparator admission to use per-version dwg-rs denominators and its current named reader gaps rather than aggregate coverage claims.",
+    "Exclude cq-acis profiles explicitly labeled unreleased from the candidate released-capability denominator; require exact wheel, source, and dependency-set identity before an optional run.",
+    "Record parser unknowns and conversion failures separately, require complete body-reachable disposition and independently authored analytic metrics, and do not count OCCT/CadQuery as a kernel independent from FreeCAD.",
+    "Correct uncad's stale About metadata classification: its current README describes a read-only tool, DWG via LibreDWG FFI, and DXF via undxf; do not use it as an independent DWG parser or writer.",
+    "Keep FreeCAD qualification bound to exact importer backend/build/options and do not treat the stock DXF route as an ACIS semantic oracle.",
+    "Preserve the fast implementation cadence: no peer build/run per code slice, no external fixture imports, and self-unblock to local implementation if artifact/profile admission is not quick."
+  ],
+  "limitations": [
+    "dwg-rs and uncad observations are from mutable repository README/source descriptions; neither was pinned, built, or executed here.",
+    "cq-acis source and current branch documentation are not a runtime result; no wheel or geometry kernel was installed or run.",
+    "FreeCAD documentation is route guidance and does not establish behavior for every platform or installed importer version.",
+    "No ODA DWG byte-layout claim was changed; the ODA v5.4.1 specification remains authoritative for DWG layout questions."
+  ]
+}

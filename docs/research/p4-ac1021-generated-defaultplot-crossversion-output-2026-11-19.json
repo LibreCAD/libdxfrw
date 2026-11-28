@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1021-generated-defaultplot-crossversion-output-2026-11-19",
+  "date": "2026-11-19",
+  "status": "GENERATED_SELECTED_PROFILE_OUTPUT_AND_PEER_READBACK",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "2f94116829d649a4307192ae11a51685dc2d1e17c7d53ce94f4a0e505cf6bfbb",
+  "scope": "Strict conversion of the exact generated AC1021 default-plot graph to AC1015, AC1018, AC1024, AC1027 and AC1032 DXF, with both source and output encodings.",
+  "implementation": [
+    "Bind both original CLASS rows, source/live root, dictionary and placeholder fields, and the exact LAYER 0 plot target to the same import under the AC1021 codec.",
+    "Select LAYER 0 from the existing general resource-origin audit without reducing its ten-record namespace or changing general identity/structural/resource reports.",
+    "Do not select this profile for subclasses or explicitly enabled legacy/whole-source observation modes; retain their prior observation behavior.",
+    "Reuse the transactional typed writer with staged target fields and references, final source checks, CLASS and owner/identity checks."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j 2",
+    "focusedCtests": "PASS: six class, identity, structural, plotstyle and XRECORD selectors; 4.51 seconds.",
+    "compiler": "PASS: GCC 16 -Wall -Wextra -pedantic -Werror syntax check on adapter tests.",
+    "matrix": "PASS: 20 selected exports and 20 opposite-encoding reexports with owned-XRECORD graph readback; 180 mutation/refusal/retries, 20 unexpected staged-LAYER refusal/retries and two capture-failure refusal/retries.",
+    "isolation": "PASS: source/live field mutation, changed physical CLASS count, same-importer retry, existing general origins, subclass, and two explicit observation modes in both source encodings.",
+    "remainingSelector": "The full owned-XRECORD selector advances through all AC1021 targets and first refuses AC1024 source to AC1015 ASCII.",
+    "remainingSelectorLogSha256": "39aaec0e84ca731d0d7deb0e76a8fa609732a1a22bcb383b2f23bfa851be447a"
+  },
+  "independentReadback": {
+    "tool": "ezdxf 1.4.5",
+    "result": "PASS on 20 outputs generated with the in-tree production adapter object: target version, root/dictionary/placeholder ownership, Normal/default and layer references, and version-specific CLASS instance counts.",
+    "script": "/private/tmp/p4-2007-proto/verify-ezdxf.py",
+    "scriptSha256": "f5ce279edbfab01e788557cf8e9191f190ac303a807810c85be3c1f518d7a7ae",
+    "logSha256": "297e67a39b95311cbeb03e592f2200363affafa682457472dbb1c5d64dedc836",
+    "limits": "The drawings were generated locally; independent readback is not an independent producer or native semantic witness. No generated drawings are committed."
+  },
+  "limits": [
+    "Only this exact generated strict-conversion profile is admitted. General compatibility, nonidentity remaps and native semantics remain unqualified.",
+    "The broader matrix and P8-F replay for the changed digest remain open."
+  ]
+}

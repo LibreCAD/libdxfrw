@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Physical AC1027 WIPEOUTVARIABLES writer bridge",
+  "date": "2026-11-05",
+  "status": "BOUNDED_PHYSICAL_AC1027_WRITER_BRIDGE_PASSED",
+  "supportClaimEffect": "none",
+  "scope": "The hash-bound AC1027 direct-NOD WIPEOUTVARIABLES witness is imported and its exact source frame, owner, reactor, XDictionary-missing flag, and display-frame value are checked. The captured typed object seeds a locally authored dependency-closed DWG wrapper; that wrapper is re-imported and its selected object is written to ASCII and Binary DXF with refusal, destination-preservation, retry, and typed-rooted-readback checks. This does not convert the physical drawing or qualify native wipeout rendering.",
+  "physicalWitness": {
+    "path": "/private/tmp/p4-wipeout-candidate/ac1027/source.dwg",
+    "sha256BeforeAndAfter": "39a63109851de9ef044a87bf4f88042468267340e52dfb4038047d4c5972e5f7",
+    "revision": "AC1027",
+    "objectHandle": "0x30",
+    "classNumber": 516,
+    "ownerPath": "NOD 0x0A -> ACAD_WIPEOUT_VARS -> WIPEOUTVARIABLES",
+    "fields": {
+      "displayFrame": 0
+    },
+    "commonMetadata": {
+      "reactorCount": 1,
+      "reactorRole": "soft pointer",
+      "reactorTarget": "0x0A (owner NOD)",
+      "xDictMissingFlag": 1,
+      "xDictionaryHandle": 0,
+      "dataStorage": false,
+      "appDataGroups": 0,
+      "extDataItems": 0
+    },
+    "readLimitations": "The witness reports two HEADER integrity observations (expected/observed 822/826 and 844/1583); this does not qualify whole-source output."
+  },
+  "wrapper": {
+    "kind": "locally authored AC1027 DWG generated in the focused selector",
+    "fieldSource": "The physical object's display frame and common metadata seed the wrapper record. The source owner/reactor NOD target is remapped to the wrapper's NOD while preserving the direct owner/reactor roles.",
+    "outputs": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "checks": [
+      "physical source frame and typed owner/profile proof",
+      "wrapper DWG re-import",
+      "root entry, object owner, reactor and display-frame readback",
+      "wrong owner/reactor, altered root, invalid display-mode and cross-revision refusal",
+      "destination sentinel preservation",
+      "same-adapter retry",
+      "typed rooted readback"
+    ],
+    "strictness": "AC1027 whole-source strict qualification remains closed. The bounded selected-object control uses the legacy read-completeness setting and independently verifies the emitted NOD/object graph.",
+    "fixturePolicy": "The wrapper DWG and ASCII/Binary DXF outputs are temporary locally authored controls and are removed after execution. The physical source is read-only and no drawing fixture was committed."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_wipeoutvariables_' --output-on-failure",
+      "result": "11/11 focused generated WIPEOUTVARIABLES controls passed"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-physical-ac1027-direct-nod /private/tmp/p4-wipeout-candidate/ac1027/source.dwg",
+      "result": "passed; physical witness import and source-frame audit, wrapper re-import, ASCII/Binary output checks, refusal/retry and typed readback"
+    },
+    {
+      "command": "shasum -a 256 /private/tmp/p4-wipeout-candidate/ac1027/source.dwg (before and after selector)",
+      "result": "same SHA-256 before/after: 39a63109851de9ef044a87bf4f88042468267340e52dfb4038047d4c5972e5f7"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "nonClaims": [
+    "No physical-source whole-drawing DXF output was attempted as a success claim; the source carries unrelated HEADER integrity observations.",
+    "The wrapper output is selected-object evidence and does not prove byte-preserving physical conversion.",
+    "No native AutoCAD, LibreCAD, LibreCAD_3, FreeCAD, or independent rendering/plotting acceptance was run.",
+    "No broader producer, version, mode, or support claim follows from this witness."
+  ],
+  "remaining": [
+    "Physical whole-source WIPEOUTVARIABLES output on an independently eligible drawing.",
+    "Additional physical producer/version and display-mode profiles.",
+    "Native wipeout display/plot semantics and preview preservation.",
+    "Remaining P4 graph and source closure."
+  ]
+}

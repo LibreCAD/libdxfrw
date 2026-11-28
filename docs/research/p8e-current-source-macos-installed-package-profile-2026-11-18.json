@@ -1,0 +1,435 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8e-current-source-macos-installed-package-profile-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Current-source macOS shared/static package install and relocation profile",
+  "status": "CLOSED_CURRENT_SOURCE_PROFILE_ALL_PLATFORMS_PASS",
+  "supportClaimEffect": "none",
+  "sliceEffect": "The current-source shared/static package-and-relocation profile passed on Linux, macOS, and Windows; P8-E is closed for this package profile. Drawing semantics and complete ABI compatibility remain unqualified.",
+  "source": {
+    "librarySourceCommit": "f96f1408a695d1991f9ccf95c3ac943cff42423e",
+    "librarySourceFilesChangedDuringBuild": false,
+    "probe": "tools/probe_installed_package.py",
+    "probeSha256": "0e18002b7c3e434d64d2c1fc929212a7d5e2d9cc6f0e0d24eb934bf657c2690b",
+    "workflow": ".github/workflows/shared-abi-qualification.yml (updated to capture shared and static profiles for the parity branch)",
+    "platform": "macOS ARM64, AppleClang 21.0.0",
+    "cmake": "cmake version 4.4.5",
+    "configuration": "Release; C++17 consumer; docs, dwg2dxf, and project tests disabled."
+  },
+  "crossPlatformRun": {
+    "runId": 44294866742,
+    "sourceCommit": "ddd3c967551e8a797aa54e8f37dc9808998c98ad",
+    "workflow": ".github/workflows/shared-abi-qualification.yml",
+    "linux": {
+      "status": "PASS",
+      "jobId": 134769165706,
+      "artifactId": 14422707923,
+      "profiles": {
+        "shared": {
+          "installedFiles": 28,
+          "selectedTarget": "lib/libdxfrw.so.3.0.0",
+          "selectedTargetSha256": "5971936b099fa1cdcea201082619bbaaaf49f8fbba267c93ae29556c3df924fb",
+          "loadedRuntimeSha256": "5971936b099fa1cdcea201082619bbaaaf49f8fbba267c93ae29556c3df924fb"
+        },
+        "static": {
+          "installedFiles": 26,
+          "selectedTarget": "lib/libdxfrw.a",
+          "selectedTargetSha256": "ba79b3e08d9ea884b95767cfcd0896e856b2a0321e5a25e86a5123a7061858e6"
+        }
+      }
+    },
+    "macos": {
+      "status": "PASS",
+      "runner": "macos-15",
+      "jobId": 134769166075,
+      "artifactId": 14422928802,
+      "profiles": {
+        "shared": {
+          "installedFiles": 28,
+          "selectedTarget": "lib/libdxfrw.3.0.0.dylib",
+          "selectedTargetSha256": "b36a1d41e1d9925a4115c8b0d93e6cf28b353575820406d45a6d5d9b2ec14d26",
+          "loadedRuntimeSha256": "b36a1d41e1d9925a4115c8b0d93e6cf28b353575820406d45a6d5d9b2ec14d26"
+        },
+        "static": {
+          "installedFiles": 26,
+          "selectedTarget": "lib/libdxfrw.a",
+          "selectedTargetSha256": "f1f318760526a9255664b53d421251d0e5ed379957fdf9e14b183743c444ded7"
+        }
+      }
+    },
+    "windows": {
+      "status": "PASS",
+      "jobId": 134769166376,
+      "artifactId": 14422594084,
+      "profiles": {
+        "shared": {
+          "installedFiles": 27,
+          "selectedTarget": "bin/dxfrw-3.dll",
+          "selectedTargetSha256": "eaf17ba46c8a9fca11996f0a82cfdeaece4f1e272d31e275e8989c691917ca18",
+          "loadedRuntimeSha256": "eaf17ba46c8a9fca11996f0a82cfdeaece4f1e272d31e275e8989c691917ca18"
+        },
+        "static": {
+          "installedFiles": 26,
+          "selectedTarget": "lib/dxfrw.lib",
+          "selectedTargetSha256": "f06c59ab6c504c4b71792db5d1aa669193340f27e0199eca8658ef51202e7028"
+        }
+      }
+    },
+    "previousWindowsFailure": {
+      "runId": 44292703471,
+      "sourceCommit": "469d5a57b719f130355050474715af70f155bd4e",
+      "failure": "Windows probe compared unresolved path spellings and rejected a target inside the relocated prefix; both package builds had succeeded.",
+      "resolution": "Resolve the selected imported target and relocated prefix before containment comparison."
+    }
+  },
+  "profiles": {
+    "shared": {
+      "configure": "cmake -S . -B <build> -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_DWG2DXF=OFF -DLIBDXFRW_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=\"<prefix with spaces>\"",
+      "buildAndInstall": "cmake --build <build> --config Release --parallel 2 --target dxfrw && cmake --install <build> --config Release",
+      "probe": "python3 -B tools/probe_installed_package.py --kind shared --prefix <prefix> --install-manifest <build>/install_manifest.txt --output <receipt>",
+      "result": {
+        "schema": "libdxfrw-installed-package-receipt-v1",
+        "kind": "shared",
+        "platform": "darwin",
+        "abiVersion2Rejected": true,
+        "abiVersion3Accepted": true,
+        "installManifestSha256": "ac9ce7e62d8e7c4a1e8b5459e12c507ced474bee99bc9f3957dbf19613753552",
+        "installedFiles": {
+          "include/libdxfrw/drw_acis.h": {
+            "kind": "file",
+            "sizeBytes": 108982,
+            "sha256": "b39c78a1cdaeb31278c7ec2ba3f1e383cb7b09814fe1d1d00918df018d42c4c1"
+          },
+          "include/libdxfrw/drw_base.h": {
+            "kind": "file",
+            "sizeBytes": 45643,
+            "sha256": "83a7bbbe525073c6d546fb136ab4e0d7426e078b57066272d42256bcc9608fe4"
+          },
+          "include/libdxfrw/drw_classes.h": {
+            "kind": "file",
+            "sizeBytes": 2351,
+            "sha256": "a49a41256c70fbbbafcc553ffe7f7abb9d98cf5da6f329b58fac873c79eba932"
+          },
+          "include/libdxfrw/drw_datastorage.h": {
+            "kind": "file",
+            "sizeBytes": 13559,
+            "sha256": "ca073c3c15650a1de624dd2de4376ab6c572a43f898bbbdf2db13d2f7f319d2f"
+          },
+          "include/libdxfrw/drw_dxf_capabilities.h": {
+            "kind": "file",
+            "sizeBytes": 239,
+            "sha256": "f98ac3029375f1e5abcb28e721c95a330e07f19079b237a848da14fc84c8931c"
+          },
+          "include/libdxfrw/drw_dxf_extrusion.h": {
+            "kind": "file",
+            "sizeBytes": 3939,
+            "sha256": "f5c4a56cac0b2e422e8b9e2ddb82c926135374283c1f906e72462b6f977588d8"
+          },
+          "include/libdxfrw/drw_entities.h": {
+            "kind": "file",
+            "sizeBytes": 265881,
+            "sha256": "c4d198175204dfc3daf3c91934f3c72c3efbd0f02afd99594769acce60100ca6"
+          },
+          "include/libdxfrw/drw_header.h": {
+            "kind": "file",
+            "sizeBytes": 33867,
+            "sha256": "80f2907c24172b973b94f83c4717c84c36354f6387072ada76e04b2cd7d9594f"
+          },
+          "include/libdxfrw/drw_interface.h": {
+            "kind": "file",
+            "sizeBytes": 84123,
+            "sha256": "237bf0a3669df26103401023bc6dcd100263f4ab3b4e8af6e2907f0a698d6d9f"
+          },
+          "include/libdxfrw/drw_objects.h": {
+            "kind": "file",
+            "sizeBytes": 372063,
+            "sha256": "0d7cce9b14620efbd07f0508d205b72885e9e261d90e9f907d76292a2364715f"
+          },
+          "include/libdxfrw/intern/dwg_fixed_handles.h": {
+            "kind": "file",
+            "sizeBytes": 2745,
+            "sha256": "40fc75b207b13af26324dd174bf607b63d12601880c828025de86525eb8859fb"
+          },
+          "include/libdxfrw/intern/dwgbufferw.h": {
+            "kind": "file",
+            "sizeBytes": 16157,
+            "sha256": "250b5c53d6d0e50eb230868bd37d241b679dbf7404e07395c8d29ae3e277d337"
+          },
+          "include/libdxfrw/intern/dwgsafety.h": {
+            "kind": "file",
+            "sizeBytes": 10933,
+            "sha256": "a7efc6a1b6acd678e6a295e4278f908a3d7db47b32177456cce2039f5816aec1"
+          },
+          "include/libdxfrw/intern/dwgutil.h": {
+            "kind": "file",
+            "sizeBytes": 16128,
+            "sha256": "db5e67ba6991edceeae89b2f33b9cc348ef5cedbd46182f1bf229f15e6c14358"
+          },
+          "include/libdxfrw/libdwgr.h": {
+            "kind": "file",
+            "sizeBytes": 54425,
+            "sha256": "d07ba8fdeaa01468016d84f0bd51bd0d316f36f21c37bfb8f9b4718776a445d4"
+          },
+          "include/libdxfrw/libdxfrw.h": {
+            "kind": "file",
+            "sizeBytes": 123569,
+            "sha256": "43b5ca42b5aa2376f26deef4b0985482ba041fabed4918376d1d49dc2c7215d7"
+          },
+          "lib/cmake/libdxfrw/FindLibdxfrw.cmake": {
+            "kind": "file",
+            "sizeBytes": 14305,
+            "sha256": "165409f7b16b0466cebfdc58cddb962e2394ae6eb833d3b5e9cf9411083fe7bf"
+          },
+          "lib/cmake/libdxfrw/libdxfrwConanThreads.cmake": {
+            "kind": "file",
+            "sizeBytes": 766,
+            "sha256": "71e2d22b5f3b509cc6ddeb2e2545e7459ea7d38c3233f03ae7ec65538bd126ff"
+          },
+          "lib/cmake/libdxfrw/libdxfrwConfig.cmake": {
+            "kind": "file",
+            "sizeBytes": 2449,
+            "sha256": "ae2311fc55cd5263878dd0f29cbb718d886f17a33c8d05a5e0fc10ac10a36d6a"
+          },
+          "lib/cmake/libdxfrw/libdxfrwConfigVersion.cmake": {
+            "kind": "file",
+            "sizeBytes": 2762,
+            "sha256": "d62c6198eeacb66fc8ab01a0bb244a4d3fc9dfcc25500229b29a55abbb86f098"
+          },
+          "lib/cmake/libdxfrw/libdxfrwTargets-release.cmake": {
+            "kind": "file",
+            "sizeBytes": 883,
+            "sha256": "78511a22a1fefa2caa12d9b5e4880e49ff3c67ae181868cd9e5f3907eacd780c"
+          },
+          "lib/cmake/libdxfrw/libdxfrwTargets.cmake": {
+            "kind": "file",
+            "sizeBytes": 4234,
+            "sha256": "0fc82361bd9f1f4fa5b1a8f9f49edd65115f364da014674cd73ee5d8f43685f7"
+          },
+          "lib/libdxfrw.3.0.0.dylib": {
+            "kind": "file",
+            "sizeBytes": 8217568,
+            "sha256": "806b40011315459dab17e05ccc390514f262f5e4a2daf76efd893aaeaa398c3e"
+          },
+          "lib/libdxfrw.3.dylib": {
+            "kind": "symlink",
+            "target": "libdxfrw.3.0.0.dylib",
+            "sha256": "806b40011315459dab17e05ccc390514f262f5e4a2daf76efd893aaeaa398c3e"
+          },
+          "lib/libdxfrw.dylib": {
+            "kind": "symlink",
+            "target": "libdxfrw.3.dylib",
+            "sha256": "806b40011315459dab17e05ccc390514f262f5e4a2daf76efd893aaeaa398c3e"
+          },
+          "lib/pkgconfig/libdxfrw.pc": {
+            "kind": "file",
+            "sizeBytes": 309,
+            "sha256": "4609ac19d5b0311c9250810d9c7526440373823cb3b69b8602fb5e9d41012a76"
+          },
+          "share/licenses/libdxfrw/COPYING": {
+            "kind": "file",
+            "sizeBytes": 18092,
+            "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+          },
+          "share/licenses/libdxfrw/Unicode-3.0.txt": {
+            "kind": "file",
+            "sizeBytes": 1995,
+            "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+          }
+        },
+        "relocatedFilesMatch": true,
+        "selectedTarget": {
+          "path": "lib/libdxfrw.3.0.0.dylib",
+          "sha256": "806b40011315459dab17e05ccc390514f262f5e4a2daf76efd893aaeaa398c3e"
+        },
+        "loadedRuntime": {
+          "path": "lib/libdxfrw.3.0.0.dylib",
+          "sha256": "806b40011315459dab17e05ccc390514f262f5e4a2daf76efd893aaeaa398c3e"
+        },
+        "limitations": [
+          "Package selection, install inventory, relocation, and a minimal consumer only.",
+          "Does not establish complete C++ ABI compatibility or drawing semantics."
+        ]
+      }
+    },
+    "static": {
+      "configure": "cmake -S . -B <build> -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_DWG2DXF=OFF -DLIBDXFRW_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=\"<prefix with spaces>\"",
+      "buildAndInstall": "cmake --build <build> --config Release --parallel 2 --target dxfrw && cmake --install <build> --config Release",
+      "probe": "python3 -B tools/probe_installed_package.py --kind static --prefix <prefix> --install-manifest <build>/install_manifest.txt --output <receipt>",
+      "result": {
+        "schema": "libdxfrw-installed-package-receipt-v1",
+        "kind": "static",
+        "platform": "darwin",
+        "abiVersion2Rejected": true,
+        "abiVersion3Accepted": true,
+        "installManifestSha256": "c1b579af212c0af0fb5b27cabcb77f718245707c9c48acb91aaa4fc70af54305",
+        "installedFiles": {
+          "include/libdxfrw/drw_acis.h": {
+            "kind": "file",
+            "sizeBytes": 108982,
+            "sha256": "b39c78a1cdaeb31278c7ec2ba3f1e383cb7b09814fe1d1d00918df018d42c4c1"
+          },
+          "include/libdxfrw/drw_base.h": {
+            "kind": "file",
+            "sizeBytes": 45643,
+            "sha256": "83a7bbbe525073c6d546fb136ab4e0d7426e078b57066272d42256bcc9608fe4"
+          },
+          "include/libdxfrw/drw_classes.h": {
+            "kind": "file",
+            "sizeBytes": 2351,
+            "sha256": "a49a41256c70fbbbafcc553ffe7f7abb9d98cf5da6f329b58fac873c79eba932"
+          },
+          "include/libdxfrw/drw_datastorage.h": {
+            "kind": "file",
+            "sizeBytes": 13559,
+            "sha256": "ca073c3c15650a1de624dd2de4376ab6c572a43f898bbbdf2db13d2f7f319d2f"
+          },
+          "include/libdxfrw/drw_dxf_capabilities.h": {
+            "kind": "file",
+            "sizeBytes": 239,
+            "sha256": "f98ac3029375f1e5abcb28e721c95a330e07f19079b237a848da14fc84c8931c"
+          },
+          "include/libdxfrw/drw_dxf_extrusion.h": {
+            "kind": "file",
+            "sizeBytes": 3939,
+            "sha256": "f5c4a56cac0b2e422e8b9e2ddb82c926135374283c1f906e72462b6f977588d8"
+          },
+          "include/libdxfrw/drw_entities.h": {
+            "kind": "file",
+            "sizeBytes": 265881,
+            "sha256": "c4d198175204dfc3daf3c91934f3c72c3efbd0f02afd99594769acce60100ca6"
+          },
+          "include/libdxfrw/drw_header.h": {
+            "kind": "file",
+            "sizeBytes": 33867,
+            "sha256": "80f2907c24172b973b94f83c4717c84c36354f6387072ada76e04b2cd7d9594f"
+          },
+          "include/libdxfrw/drw_interface.h": {
+            "kind": "file",
+            "sizeBytes": 84123,
+            "sha256": "237bf0a3669df26103401023bc6dcd100263f4ab3b4e8af6e2907f0a698d6d9f"
+          },
+          "include/libdxfrw/drw_objects.h": {
+            "kind": "file",
+            "sizeBytes": 372063,
+            "sha256": "0d7cce9b14620efbd07f0508d205b72885e9e261d90e9f907d76292a2364715f"
+          },
+          "include/libdxfrw/intern/dwg_fixed_handles.h": {
+            "kind": "file",
+            "sizeBytes": 2745,
+            "sha256": "40fc75b207b13af26324dd174bf607b63d12601880c828025de86525eb8859fb"
+          },
+          "include/libdxfrw/intern/dwgbufferw.h": {
+            "kind": "file",
+            "sizeBytes": 16157,
+            "sha256": "250b5c53d6d0e50eb230868bd37d241b679dbf7404e07395c8d29ae3e277d337"
+          },
+          "include/libdxfrw/intern/dwgsafety.h": {
+            "kind": "file",
+            "sizeBytes": 10933,
+            "sha256": "a7efc6a1b6acd678e6a295e4278f908a3d7db47b32177456cce2039f5816aec1"
+          },
+          "include/libdxfrw/intern/dwgutil.h": {
+            "kind": "file",
+            "sizeBytes": 16128,
+            "sha256": "db5e67ba6991edceeae89b2f33b9cc348ef5cedbd46182f1bf229f15e6c14358"
+          },
+          "include/libdxfrw/libdwgr.h": {
+            "kind": "file",
+            "sizeBytes": 54425,
+            "sha256": "d07ba8fdeaa01468016d84f0bd51bd0d316f36f21c37bfb8f9b4718776a445d4"
+          },
+          "include/libdxfrw/libdxfrw.h": {
+            "kind": "file",
+            "sizeBytes": 123569,
+            "sha256": "43b5ca42b5aa2376f26deef4b0985482ba041fabed4918376d1d49dc2c7215d7"
+          },
+          "lib/cmake/libdxfrw/FindLibdxfrw.cmake": {
+            "kind": "file",
+            "sizeBytes": 14305,
+            "sha256": "165409f7b16b0466cebfdc58cddb962e2394ae6eb833d3b5e9cf9411083fe7bf"
+          },
+          "lib/cmake/libdxfrw/libdxfrwConanThreads.cmake": {
+            "kind": "file",
+            "sizeBytes": 766,
+            "sha256": "71e2d22b5f3b509cc6ddeb2e2545e7459ea7d38c3233f03ae7ec65538bd126ff"
+          },
+          "lib/cmake/libdxfrw/libdxfrwConfig.cmake": {
+            "kind": "file",
+            "sizeBytes": 2449,
+            "sha256": "ae2311fc55cd5263878dd0f29cbb718d886f17a33c8d05a5e0fc10ac10a36d6a"
+          },
+          "lib/cmake/libdxfrw/libdxfrwConfigVersion.cmake": {
+            "kind": "file",
+            "sizeBytes": 2762,
+            "sha256": "d62c6198eeacb66fc8ab01a0bb244a4d3fc9dfcc25500229b29a55abbb86f098"
+          },
+          "lib/cmake/libdxfrw/libdxfrwTargets-release.cmake": {
+            "kind": "file",
+            "sizeBytes": 861,
+            "sha256": "667e223b36c4ed61ae4fd532f3f9d4514761d556cb57c4e0821ac6ceb1a9ed00"
+          },
+          "lib/cmake/libdxfrw/libdxfrwTargets.cmake": {
+            "kind": "file",
+            "sizeBytes": 4234,
+            "sha256": "dc9acf5ffcb8892675c1d9566e478de0d1bfbf9e97e488de29c6216512f07070"
+          },
+          "lib/libdxfrw.a": {
+            "kind": "file",
+            "sizeBytes": 13221848,
+            "sha256": "ad5ca5996a5b090166fb9ee4ed6233c94ea36c3c2eaaeedcf85362cfbb31dcd4"
+          },
+          "lib/pkgconfig/libdxfrw.pc": {
+            "kind": "file",
+            "sizeBytes": 309,
+            "sha256": "4609ac19d5b0311c9250810d9c7526440373823cb3b69b8602fb5e9d41012a76"
+          },
+          "share/licenses/libdxfrw/COPYING": {
+            "kind": "file",
+            "sizeBytes": 18092,
+            "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+          },
+          "share/licenses/libdxfrw/Unicode-3.0.txt": {
+            "kind": "file",
+            "sizeBytes": 1995,
+            "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+          }
+        },
+        "relocatedFilesMatch": true,
+        "selectedTarget": {
+          "path": "lib/libdxfrw.a",
+          "sha256": "ad5ca5996a5b090166fb9ee4ed6233c94ea36c3c2eaaeedcf85362cfbb31dcd4"
+        },
+        "loadedRuntime": null,
+        "limitations": [
+          "Package selection, install inventory, relocation, and a minimal consumer only.",
+          "Does not establish complete C++ ABI compatibility or drawing semantics."
+        ]
+      }
+    }
+  },
+  "validation": {
+    "result": "PASS for shared and static profiles.",
+    "sourceReleaseInventory": "Initial fast CI at 469d5a57 failed because tools/probe_installed_package.py was absent from the generated source-release manifests. Both manifests have been regenerated; tools/generate_build_inventory.py --check passes locally.",
+    "checks": [
+      "Installed file inventory exactly matches the CMake install manifest; file hashes and symlink targets were recorded.",
+      "The complete installed prefix was copied to a path containing spaces and its inventory matched the source prefix.",
+      "A fresh CMake consumer rejected package version 2.0 and accepted 3.0 for both profiles.",
+      "The shared consumer loaded the exact relocated dylib and its hash matched the selected installed target.",
+      "The static consumer linked and ran against the exact relocated archive."
+    ],
+    "actionlint": "PASS for .github/workflows/shared-abi-qualification.yml.",
+    "projectTestSuitesRun": false
+  },
+  "decision": {
+    "P8E": "Closed for the exact package profile at ddd3c967551e8a797aa54e8f37dc9808998c98ad; Linux, macOS, and Windows shared/static jobs passed. This does not establish complete ABI compatibility or drawing semantics.",
+    "nextAction": "Reuse these platform receipts while library and package inputs remain unchanged; evaluate P8-A and P8-G after the remaining admitted profiles stabilize.",
+    "retryTrigger": "A change to library/package inputs, toolchain profile, or qualification workflow."
+  },
+  "fixtureAdded": false,
+  "planImpact": {
+    "completedSlice": "Current-source shared/static installed-package manifests, ABI version selection, prefix relocation, and consumer/runtime identity passed on Linux, macOS, and Windows.",
+    "closedGate": "P8-E closed for this exact package profile; no support claims were promoted.",
+    "remainingGate": "P8-E has no remaining action unless its named retry trigger changes.",
+    "activityProgressAfterSlice": "87/110 (79.1%); 10/33 package gates closed (30.3%)."
+  }
+}

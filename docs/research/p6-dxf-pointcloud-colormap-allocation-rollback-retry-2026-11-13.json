@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-pointcloud-colormap-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_POINTCLOUDCOLORMAP_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the public writePointCloudColorMap entry point within whole-operation AC1027 ASCII and Binary allocation rollback/retry sweeps.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One POINTCLOUDCOLORMAP with two intensity/elevation ramps and one classification ramp, each populated with multiple ordered scheme names; no external or committed drawing fixture is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "15244d7b",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "method": "Add a generated multi-ramp DRW_PointCloudColorMap to the existing whole-operation writer adapter and call writePointCloudColorMap directly in OBJECTS. Compare the caller's handle, parent, class version, default schemes, ramp vectors, declared counts, per-ramp class versions and scheme lists after each injected allocation failure and retry. Require preexisting destination preservation on failure, same-writer retry, and typed callback readback of the ordered ramp contents."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure: PASS 1/1",
+    "directRun": "PASS; ASCII 935/935 and Binary 914/914 allocation offsets injected; destination/caller rollback, same-writer retry and typed readback passed",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated DXF transaction and typed-codec evidence only; no independent producer or consumer semantics are established.",
+    "The color map is not attached to an ACAD_POINTCLOUDCOLORMAP dictionary key in this profile; dictionary membership is not qualified.",
+    "No native point-cloud styling or external asset behavior is qualified.",
+    "This closes one direct variable-size writer profile only; P6-G's public-writer inventory remains open.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's public-writer inventory and cover another uncovered route with rollback, same-writer retry and typed readback."
+}

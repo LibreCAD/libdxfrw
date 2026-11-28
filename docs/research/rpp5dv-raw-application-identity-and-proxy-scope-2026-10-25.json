@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5dv raw application identity and proxy scope isolation",
+  "date": "2026-10-25",
+  "parentCommit": "a1b4c108",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "RAW_APPLICATION_IDENTITY_PROXY_SCOPE_AND_LITERAL_GROUP5_WRITER_PREREQUISITE_IMPLEMENTED_FULL_CHILD_GRAPH_SPACE_DEPENDENCY_LIVE_OUTPUT_OPEN",
+  "scope": {
+    "capture": "Reuse existing application depth for generic raw entity/object/unknown-section/proxy and opted-in BLOCK_RECORD capture plus common application helper",
+    "opaqueGroup5": "Literal application data, including repeated/nonhex/wide values; neither lexical self handles nor global identity registrations",
+    "outerSelf": "Required outer self remains subject to established lexical/duplicate rules; application-only identity cannot satisfy modern generic raw admission",
+    "compatibility": "Preserve R12 absent-self tolerance, ordinary non-SORT field-order tolerance and typed duplicate softening",
+    "sortents": "Preserve special header identity/body sort-key separation; only application-contained group 5 gains literal replay instead of structural remapping",
+    "genericProxyHost": "Opaque application common/count/chunk fields cannot change proxy host draw state",
+    "proxyGrammar": "Opaque application fields cannot overwrite proxy class/format/origin, lengths, slots or payload bytes",
+    "commonProxyReferences": "Root common owner and reserved reactor/extension-dictionary groups can precede proxy subclass; nested reserved names remain opaque",
+    "wideReferences": "Explicit null/wide owner presence remains distinct from body object IDs; wide convenience references become NoHandle instead of unrelated narrowed values, full raw lexemes retained",
+    "write": "Raw validation allows opaque group 5; emission skips group-5 handle remapping within application scopes; emitted inventory tracks scopes before actual self",
+    "exceptionsPreserved": "XRECORD body group-102 payload exception, SORT body roles and conservative raw-entity application-reference export policy",
+    "atomicity": "Low-level scope abort restores bytes/pending identity/owner/depth; public raw-object missing-self failure preserves destination and allows same-facade corrected retry",
+    "nativeDwgParsingOrEncodingChanged": false,
+    "publicModelLayoutChanged": false,
+    "publicInterfaceVirtualContractChanged": false,
+    "sourceInventoryCallbackPairingQualified": false,
+    "selectedAttdefTargetGateImplemented": false,
+    "wholeDocumentOpaqueReplayQualified": false,
+    "externalDrawingFixturesCommitted": false,
+    "drawings": "Runtime locally authored scratch DXF/scalar streams only"
+  },
+  "primaryReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+      "role": "Common object outer handle versus application-defined 102 scopes"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "role": "Common entity handle/owner/application distinction; do not require table order"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm",
+      "role": "SORTENTSTABLE self versus body group-5 sort-key roles"
+    }
+  ],
+  "baseline": {
+    "method": "Updated regression controls compiled directly against retained pre-fix ASan adapter object/library from previously verified RPP-5du checkpoint; not a newly rebuilt pristine-parent checkout",
+    "compiler": "/usr/bin/c++ -fsanitize=address -fno-omit-frame-pointer -g -std=c++17 -Wall -Wextra -pedantic -Werror",
+    "artifactSha256": {
+      "build-asan-custom/libdxfrw.a": "2b07a51383886d6f0102aaa5a4a9401a68d3ac0d4279b470d93596929e701e1f",
+      "build-asan-custom/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o": "3b4003c501cc6f6c33d3ce622e934a0180eb26d701458c0f49d448145b17ee37"
+    },
+    "executable": "/tmp/libdxfrw-rpp5dv-baseline.iTou6p/controls",
+    "regressions": [
+      {
+        "selector": "--raw-identity",
+        "log": "/tmp/rpp5dv-exact-identity-baseline.log",
+        "result": "All-hex application C2 reserves identity; actual following POINT C2 is softened to zero; first AC1012 ASCII BLOCK profile fails"
+      },
+      {
+        "selector": "--raw-identity-missing",
+        "log": "/tmp/rpp5dv-exact-missing-baseline.log",
+        "result": "Application C2 supplies phantom self for missing-outer generic raw BLOCK record without a following POINT; AC1021 ASCII first fault incorrectly accepted"
+      },
+      {
+        "selector": "--proxy-scope",
+        "log": "/tmp/rpp5dv-exact-proxy-baseline.log",
+        "result": "Pre-subclass common owner/reserved references lost or confused with proxy body reference list"
+      }
+    ]
+  },
+  "owningControlsPerConfiguration": {
+    "ctests": [
+      "libdxfrw_raw_application_identity",
+      "libdxfrw_raw_proxy_application_scope",
+      "libdxfrw_raw_application_writer"
+    ],
+    "rawImportProfiles": 448,
+    "rawAxes": "Eight versions x ASCII/Binary x BLOCK children/ENTITIES/OBJECTS/unknown section x seven opaque/self/order shapes",
+    "rawVersions": [
+      "AC1012",
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "independentOriginalBlockInventoryScalarSpans": 2096,
+    "rawOuterIdentityRefusalsAndSameCodecRetries": 96,
+    "rawNegativeAxes": "Four modern versions x ASCII/Binary x BLOCK children/ENTITIES/OBJECTS x missing/null/repeated/late-repeated outer identity; missing/null cases omit following POINT",
+    "legacyR12AbsentSelfControls": 2,
+    "typedDuplicateSofteningControls": 2,
+    "optInTypedSourceApplicationParityControls": 8,
+    "parityLimit": "Ordinary admission retained for BLOCK/ENDBLK/ATTDEF/BLOCK_RECORD capture; strict source profiles may still refuse qualification",
+    "proxyImportProfiles": 112,
+    "proxyAxes": "Four modern versions x ASCII/Binary x entity/object x seven foreign-common/foreign-grammar/nested-reserved/baseline/null-owner/wide-owner/wide-material-plot profiles",
+    "proxyChecks": "Exact raw carrier, common owner/reactors/xdict, body object-ID list, common convenience fields, class/format/origin and graphics/body payload unaffected by foreign application data",
+    "lowLevelWriterInventoryAbortAndCorrectedRetryControls": 4,
+    "publicRawObjectOutputReadbackProfiles": 16,
+    "writerAxes": "Both source encodings x both output encodings x C2/C1/nonhex/wide application group 5, before actual outer self C1",
+    "writerInventoryObservation": "Only during finalizeDxfWrite; no claim of persistent post-write inventory",
+    "independentOutputWalker": true,
+    "destinationPreservingRefusalsAndSameCodecWriteRetries": 16,
+    "writerLimit": "Authored VENDOR_OBJECT transport only; no whole-document, arbitrary pointer namespace, native or semantic qualification",
+    "existingSortentsOracle": "Retain full emitted self/body keys/owners/ref binding checks; only third group-5 value inside BODY_APP now expected literal 601 rather than remapped 701"
+  },
+  "integrationFindings": [
+    {
+      "status": "TEST_AUTHORING_ASSUMPTION_CORRECTED",
+      "before": "Negative raw test used distinct repeated outer handle C2 followed by typed POINT C2 and expected a fatal read",
+      "after": "Preserve existing typed duplicate softening, add explicit positive [C2,NoHandle] control, use actual repeated raw self C1 for refusal"
+    },
+    {
+      "status": "TEST_LIFETIME_ASSUMPTION_CORRECTED",
+      "before": "Public writer test queried emitted inventory after dxfRW::write returned and writer expired",
+      "after": "Assert tentative inventory during documented finalizeDxfWrite callback; no production lifetime widening"
+    },
+    {
+      "status": "EXISTING_ORACLE_UPDATED_FOR_INTENTIONAL_LITERAL_APPLICATION_POLICY",
+      "before": "Both initial affected cohorts passed 34/35; fixture suite had two encoding assertions expecting opaque SORTENTSTABLE BODY_APP group 5 to be structurally remapped",
+      "after": "Expect literal third value only; retain remapped outer identity, body sort keys, owners and actual source reference checks; focused sort role control passes"
+    }
+  ],
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21.0.0 (clang-2100.3.34.2); build-gcc is not Linux/GCC",
+    "languageWarnings": "C++17 -Wall -Wextra -pedantic -Werror",
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "normal": {
+      "passed": 35,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 26.34
+    },
+    "asan": {
+      "passed": 35,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 52.82
+    },
+    "tests": [
+      "libdxfrw_dxf_operation_admission",
+      "libdxfrw_dxf_entity_boundary_token_transfer",
+      "libdxfrw_dxf_appdata_retained_owner_budget",
+      "libdxfrw_dxf_block_record_parser_retained_budget",
+      "libdxfrw_dxf_raw_carrier_retention_budget",
+      "libdxfrw_dxf_proxy_subclass_marker_view",
+      "libdxfrw_dxf_proxy_retained_budget",
+      "libdxfrw_dxf_proxy_object_id_terminator",
+      "libdxfrw_dxf_fixtures",
+      "libdxfrw_block_xref_path_roundtrip",
+      "libdxfrw_sortents_adapter",
+      "dwg2dxf_sort_table_style_raw_capture_limits",
+      "dwg2dxf_sortents_typed_capture_limits",
+      "libdxfrw_block_owners",
+      "dwg2dxf_block_owner_rejection_cli",
+      "dwg2dxf_block_owners_ascii_cli",
+      "dwg2dxf_block_owners_binary_cli",
+      "libdxfrw_attdef_source_transport",
+      "libdxfrw_nested_mtext_common_owner_budget",
+      "libdxfrw_attdef_immutable_capture",
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_block_source_capture",
+      "libdxfrw_block_source_proof",
+      "libdxfrw_block_children_source",
+      "libdxfrw_raw_application_identity",
+      "libdxfrw_raw_proxy_application_scope",
+      "libdxfrw_raw_application_writer",
+      "libdxfrw_block_record_source_proof",
+      "dwg2dxf_raw_dxf_entity_capture_limits",
+      "dwg2dxf_raw_dxf_section_capture_limits",
+      "dwg2dxf_proxy_object_capture_limits",
+      "dwg2dxf_raw_dxf_object_list_node_accounting",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe"
+    ],
+    "sequentialRuntimeCohorts": true,
+    "strictBuildTargets": [
+      "libdxfrw_attdef_source_tests",
+      "libdxfrw_block_owner_tests",
+      "libdxfrw_table_content_dxf_tests",
+      "libdxfrw_dxf_fixture_tests",
+      "libdxfrw_hardening_tests",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "dwg2dxf",
+      "lc3_compat_check"
+    ],
+    "compatibilityLimit": "Mirrored consumer API/source compile and CLI compatibility checks only, not native LibreCAD/LibreCAD_3/FreeCAD execution or binary ABI certification",
+    "initialIntegration": {
+      "normal": {
+        "passed": 34,
+        "failed": 1,
+        "seconds": 28.39
+      },
+      "asan": {
+        "passed": 34,
+        "failed": 1,
+        "seconds": 61.41
+      },
+      "failedTest": "libdxfrw_dxf_fixtures",
+      "reason": "Two encoding assertions for old application-contained group-5 remapping oracle"
+    },
+    "directFastSelectors": [
+      "libdxfrw_hardening_tests --dxf-raw-section-writer-common-path",
+      "libdxfrw_dxf_fixture_tests --sortents-key-roles"
+    ],
+    "fullProjectSuiteRun": false,
+    "fullAutotoolsDistributionBuildRun": false,
+    "nativeLinuxWindowsFreecadRun": false,
+    "independentAcisAcdsSemanticKernelRun": false
+  },
+  "qualification": {
+    "provedResourceFamilyCount": 9,
+    "attdefRawTypedMatched": false,
+    "ledger": "CLOSED",
+    "outputEligible": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "supportPromotion": false,
+    "remoteMutation": false,
+    "fullGoalComplete": false
+  },
+  "next": [
+    "Audit remaining specialized capture loops and profile-specific body self/owner roles, duplicate fields, raw/typed marker agreement, opaque pointer namespace/remapping and proxy codepage/common text without weakening conservative gates",
+    "Pair original physical ordinals with all typed/raw/no-callback staged dispositions and immutable ATTDEF pairs; prove complete original membership/owner/order/compound boundaries and endpoint/BLOCK_RECORD facts with failure/retry controls",
+    "Separate ENTITIES space and selected common/style/APPID/LAYER/object/default/opaque dependency closure plus ATTRIB/SEQEND before changing ATTDEF rawTypedMatched/advisory Bound",
+    "Retain full B2b/B3/C graph/live/output, exact emitted fields/references, atomic rollback/retry/destination, IMAGE/document/native bit/decimal/carrier/schema/owner, speed/ownership/allocation, 2D/3D/dwg2dxf/FreeCAD and independent semantic/platform scope",
+    "After every item self-update actual results/limits/next dependency, safely unblock, commit/report coherent slices and continue within authority; prioritize fast owning/affected tests and never commit external drawing fixtures"
+  ],
+  "sourceSha256": {
+    "src/libdxfrw.cpp": "37170d0ec44165d970bd25247eb5ea3b7a659bfdcfb2c433e161041ee87d91bb",
+    "src/intern/dxfwriter.cpp": "f955b11dbdd2ac17adba5de6d814e76e3d7b8ec67ca63d229f7f44453a36287d",
+    "tests/CMakeLists.txt": "c1f5f8028c8e5d904c1a6d8e6db75ac0ef0406f137127f8f90effac5e33283c4",
+    "tests/attdef_source_tests.cpp": "d2d773dbbae40f2064ed07ca76e88888faebe8057bc3a3f5a58c34b087e3a0c8",
+    "tests/raw_application_scope_controls.h": "075910e0b14446832ca2c3a22acb02d387f960f150013887ecd0dcdd9026e05c",
+    "tests/dxf_fixture_tests.cpp": "52ed66ebf8199d2129667004474a7a5d16e5416b83af1c568f163e2b3dc27ca9"
+  },
+  "logSha256": {
+    "/tmp/rpp5dv-exact-identity-baseline.log": "f74e750befac53e3c18581e6214a9623a60cbbf1ffcd723201f4b4f7851b75c5",
+    "/tmp/rpp5dv-exact-missing-baseline.log": "e443a8947d8e4fead9caad85e860287fd443463bf33d93bcc4d50627f8c90373",
+    "/tmp/rpp5dv-exact-proxy-baseline.log": "7588f58d6690baa8e486d5b06400662e5913a09dd5f0804159f01c538997fc82",
+    "/tmp/rpp5dv-final-normal-build.log": "8988dcafb2e79d6b3f2f72cb590930a260ff23bb0e2554e5e54f615ee3b9bb1f",
+    "/tmp/rpp5dv-final-asan-build.log": "48abbdc218f934783a0245471d6361c2ec2d0e18ca3f192a544a94cd1037a9da",
+    "/tmp/rpp5dv-sort-literal-normal-build.log": "889a8b1808d2ee4629b5b06243c501c621cec0d2042f1c20c99fd91dae724fe7",
+    "/tmp/rpp5dv-sort-literal-asan-build.log": "4732729ebb25c28fd4255792d66c51e95500190cbc67c4abda9ed16bacc7f467",
+    "/tmp/rpp5dv-final-normal-ctest.log": "3db77fe96038d081e3558bea32ede0298a8404c6a38e2afe8018317b4eba7198",
+    "/tmp/rpp5dv-final-asan-ctest.log": "4afde313e269c351b7f34eeede8cbc521022b7fc752fe786ba83d26c29efa39c",
+    "/tmp/rpp5dv-verified-normal-ctest.log": "6a0de6b452fbf89d97952f4748e1b8a1acf3c21e47b5d3ff36d85d9117a61115",
+    "/tmp/rpp5dv-verified-asan-ctest.log": "5992d42478c970e6de053415fc229b402e5b1a9c71c6b839a8f46d089fe11f23",
+    "/tmp/rpp5dv-normal-raw-section-writer.log": "3f51b3662320563a32dad8fb6d0c050c87e20ed7667b8386232d8ea66a4f3f89",
+    "/tmp/rpp5dv-asan-raw-section-writer.log": "3f51b3662320563a32dad8fb6d0c050c87e20ed7667b8386232d8ea66a4f3f89",
+    "/tmp/rpp5dv-sort-literal-normal.log": "4ef7e0edb995874fbe1763c2ed915b651644c9712030e223759bdeee9a91cab6",
+    "/tmp/rpp5dv-sort-literal-asan.log": "4ef7e0edb995874fbe1763c2ed915b651644c9712030e223759bdeee9a91cab6"
+  }
+}

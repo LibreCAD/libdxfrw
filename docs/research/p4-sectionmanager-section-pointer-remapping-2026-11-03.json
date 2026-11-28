@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-03",
+  "scope": "SECTIONMANAGER repeated group-330 section-entity pointer identity mapping and bounded list validation.",
+  "source_context": {
+    "model": "DRW_Section::Manager stores m_sectionCount and m_sectionHandles; parseCode retains manager group-90 count and repeated group-330 handles.",
+    "documented_role": "Autodesk's SECTIONMANAGER DXF table defines group 90 as the number of sections and repeated group 330 values as soft-pointer handles to section entities. Group 330 is a soft pointer under Autodesk's group-code reference.",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-C1C9B840-F291-4CB2-8EBA-A94BC27DC46D.htm",
+      "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+      "src/drw_objects.h: DRW_Section::m_sectionCount and m_sectionHandles",
+      "src/drw_objects.cpp: DRW_Section::parseCode"
+    ]
+  },
+  "implementation": {
+    "behavior": "Before publishing SECTIONMANAGER bytes, validate a bounded nonnegative section count equal to the retained list size, and resolve every nonzero/non-sentinel list handle. A configured reference resolver supplies the final identity; otherwise source-handle remapping applies. Emit the resolved handles after the AcDbSectionManager subclass marker, leaving common reactor and owner group-330 fields on their separate paths.",
+    "failure_behavior": "Zero or NoHandle source/final list values, count/list mismatches, resolver exceptions, and allocation failures refuse before the SECTIONMANAGER record is emitted.",
+    "retry_behavior": "The correction control retries on a fresh writer after refusal; failed dxfRW writer state remains sticky."
+  },
+  "validation": {
+    "input": "Generated in-memory records only; no DWG/DXF fixture was added.",
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "controls": [
+      "explicit source-handle remap fallback for both section pointers",
+      "resolver precedence over explicit remaps",
+      "physical record parsing isolates the repeated list from pre-subclass reactor/owner group-330 fields",
+      "zero and NoHandle final identities refuse atomically",
+      "section-count/list mismatch refuses atomically",
+      "corrected fresh-writer retry succeeds"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "build-gcc/libdxfrw_wave1_tests --section-manager-reference-remapping",
+      "ctest --test-dir build-gcc -R '^libdxfrw_section_manager_reference_remapping$' --output-on-failure",
+      "git diff --check"
+    ],
+    "result": "PASS"
+  },
+  "qualification_limits": [
+    "No physical producer or independent native consumer was used.",
+    "No source-bound proof establishes that all source SECTIONOBJECT records are present or that each target has valid ownership and matching section semantics.",
+    "Correct reference identity transport does not close recursive dependencies or qualify whole-document output."
+  ]
+}

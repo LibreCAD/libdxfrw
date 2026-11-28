@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-rastervariables-dwg-adapter-transport-2026-11-02",
+  "date": "2026-11-02",
+  "title": "Generated AC1027 RASTERVARIABLES DWG adapter transport",
+  "status": "HISTORICAL_GENERATED_PROFILE_SUPERSEDED_BY_NORMATIVE_DXF_DOMAIN_CONTROL",
+  "supportClaimEffect": "none; the generated self-consistency profile used classVersion=1 and displayQuality=2, which Autodesk's DXF table does not permit for RASTERVARIABLES output",
+  "supersededBy": "docs/research/p4-rastervariables-dxf-scalar-domain-2026-11-05.json",
+  "scope": "Bounded generation-keyed typed RASTERVARIABLES capture, source CLASS/frame binding, rooted dictionary ownership, same-revision profile-gated DXF output, atomic field refusal/retry, and fresh ASCII/Binary typed readback for a locally authored AC1027 DWG.",
+  "fixture": {
+    "kind": "locally-authored-from-scratch",
+    "generator": "tests/dwg2dxf_adapter_tests.cpp:rasterVariablesDwgAdapterTransport",
+    "repositoryFixtureAdded": false,
+    "artifacts": "The test writes a temporary DWG and ASCII/Binary DXFs under the system temporary directory and removes them with RAII cleanup.",
+    "sourceProfile": {
+      "dwgVersion": "AC1027",
+      "targetDxfVersion": "AC1027",
+      "classVersion": 1,
+      "displayFrame": 1,
+      "displayQuality": 2,
+      "units": 3,
+      "handle": "0xB500",
+      "ownerDictionary": "0xA601",
+      "ownerPath": "NOD -> LOCAL_RASTER_SETTINGS dictionary -> RASTERVARIABLES"
+    }
+  },
+  "implementation": {
+    "behavior": "The adapter retains bounded DWG-origin typed records keyed by import generation and handle. Extension-graph inventory and traversal recognize the typed object as a unique dictionary child, stage it once, and require the owner dictionary to be rooted once from the NOD. Output preflight requires unchanged complete CLASS evidence, one matching published AcDbRasterVariables class row and raw source frame per typed callback, common-link evidence matching the typed parent, class version 1, signed-16-bit display-frame/quality/units values, and no reactors, extension dictionary, data-storage bytes, EED, or XDATA. It registers the DXF CLASS, reserves the source identity, writes the typed record, and qualifies the source frame only after successful serialization.",
+    "limits": [
+      "Only same-revision AC1027 DWG-to-DXF output is admitted by this adapter profile; the generated selector exercises tolerant-owner ASCII output and required-owner Binary output.",
+      "Typed capture is capped at 1024 records and DRW::kMaxDxfBinaryPayloadBytes of estimated retained data.",
+      "The generated profile does not establish physical producer coverage, native image-display meaning, other class versions, other source/target revisions, or whole-document closure."
+    ]
+  },
+  "regressionControl": {
+    "selector": "--rastervariables-dwg-adapter-transport",
+    "behavior": "The test uses ASCII output with tolerant owner policy and Binary output with required-owner policy. For each encoding, units=32768 is refused without changing sentinel destination bytes; restoring units=3 allows retry on the same adapter. Fresh typed readback verifies object fields, exactly one RASTERVARIABLES owner-dictionary entry, exactly one LOCAL_RASTER_SETTINGS NOD entry targeting that owner, and selected source-frame output qualification.",
+    "outputQualification": "The selector proves only the selected generated RASTERVARIABLES source frame and its dictionary path; it does not assert whole-source opaque output qualification."
+  },
+  "sourceBinding": {
+    "baseRevision": "371342fb8268d414ff3b0741bfab8d4338362872",
+    "files": {
+      "dwg2dxf/dx_data.h": "f604365384698567fd8684cc81e37a4d7b133ad01d33e08dace22dd381b26517",
+      "dwg2dxf/dx_iface.h": "a5c9fab05965c623cfd150c24ceadba38b1fa6320e0ecd643f3d7245d11f0a7c",
+      "dwg2dxf/dx_iface.cpp": "aee3973ef0d86b2e334040b854784443b29cb9108f2228c6d11eb65d2c36ed35",
+      "tests/dwg2dxf_adapter_tests.cpp": "e50a89563f2600cac5270694151b741277b5e1e6a8a3cc7ab12a973e728bc48a",
+      "tests/CMakeLists.txt": "d17fb4ecc803460f1af5c829c61f79fbd1357f2443aba1b34b2685d1ab72caed"
+    },
+    "executables": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "352c72eaee95a58b2a642d8bf09bd630434add2118e344376e576db1131d8720",
+      "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "2f90feb424e4a0d64985792661b687ffe0f4450888f9e434e18612d6cd97eaf6"
+    }
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "normalBuildResult": "passed",
+    "normalTest": "ctest --test-dir build-gcc -R '^(dwg2dxf_(geodata|rastervariables)_dwg_adapter_transport|libdxfrw_extension_dictionary_owner_graphs|libdxfrw_extension_graph_limits|libdxfrw_dwg_plotsettings_nod_graph)$' --output-on-failure",
+    "normalTestResult": "5/5 passed in 1.23 seconds",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "asanBuildResult": "passed",
+    "asanTest": "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-dwg-adapter-transport",
+    "asanTestResult": "passed with no sanitizer findings",
+    "diffCheck": "git diff --check passed"
+  }
+}

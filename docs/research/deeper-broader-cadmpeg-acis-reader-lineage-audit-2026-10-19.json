@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader CADMPEG ACIS/ASM reader candidate and evidence-lineage update",
+  "mode": "Primary-source project, release, crate, and local-plan review; research-only update",
+  "scope": [
+    "Screen the CADMPEG bare SAT/SAB reader as a newly surfaced ACIS payload comparator",
+    "Separate direct payload decoding from DWG/DXF container and AcDs association evidence",
+    "Inspect explicitly documented verified and unverified save-format bands and open semantic items",
+    "Resolve parser, producer, corpus, and kernel correlation with the existing cq-acis candidate",
+    "Refine the optional PAR-07/S8 composed evidence checkpoint without changing local implementation order"
+  ],
+  "sources": [
+    {
+      "name": "CADMPEG release v0.6.2",
+      "urls": [
+        "https://github.com/cadmpeg/cadmpeg/releases"
+      ],
+      "observed": "The GitHub releases page lists v0.6.2 at commit 7bcc952, published 2026-10-19, with checksummed platform release assets. The release page alone does not bind the SAT codec crate archive to the release binary or docs.rs artifact."
+    },
+    {
+      "name": "CADMPEG repository and ACIS/ASM format support",
+      "urls": [
+        "https://github.com/cadmpeg/cadmpeg",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/Cargo.toml",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm-open-items.md",
+        "https://docs.rs/crate/cadmpeg-codec-sat/latest"
+      ],
+      "observed": "The project has a distinct cadmpeg-asm and cadmpeg-codec-sat implementation path for bare ASM/ACIS streams. Its documented codec is read-only, produces a neutral model, and does not provide a DWG/DXF outer-container route. It identifies ASM BinaryFile4/8 and text streams separately and documents only ACIS save-format majors 217 and 218 as verified; other ACIS majors are unverified. The open-items document explicitly names unresolved grammar and semantic questions, including cache ownership, pcurve handling, body-kind inference, and topology substitution. The inspected repository workspace contains no declared cq-acis dependency, but this does not establish producer/corpus/author independence."
+    },
+    {
+      "name": "CADMPEG release/crate artifact alignment",
+      "urls": [
+        "https://github.com/cadmpeg/cadmpeg/releases",
+        "https://docs.rs/crate/cadmpeg-codec-sat/latest"
+      ],
+      "observed": "The GitHub release page lists v0.6.2 at commit 7bcc952 while the currently served docs.rs crate page identifies cadmpeg-codec-sat v0.6.1. Exact release, source tag, crate archive, and documentation-build alignment must be resolved and hashed before a run."
+    },
+    {
+      "name": "cq-acis lineage disclosure",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/THIRD_PARTY_NOTICES.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md"
+      ],
+      "observed": "The existing source review records cq-acis as citing CADMPEG format notes/source for SAB grammar/layout work and using CadQuery/OpenCascade for conversion. CADMPEG and cq-acis can be distinct executable implementations but share format-discovery ancestry and cannot be counted as independent positive evidence without further provenance analysis."
+    },
+    {
+      "name": "Local DWG/DXF parity plan",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "The plan already separates carrier extraction/association, ACIS payload decoding, independent geometric semantics, and native-consumer acceptance under PAR-07/S8. The new route belongs only as an optional direct-payload comparator in that existing lane."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds an optional exact-pinned direct ACIS/ASM payload differential to existing PAR-07/S8. It is explicitly correlated with cq-acis in format-discovery ancestry, limited to verified branches, and non-promoting for DWG/DXF container, AcDs association, native acceptance, or support claims. An exact release/source/crate mismatch or intersecting open grammar item yields ARTIFACT_UNRESOLVED or OPEN_ITEM and does not block local implementation."
+  },
+  "method": {
+    "kind": "Read-only primary-source research plus a focused crosswalk against the existing local parity plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localTestsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub release/source pages and docs.rs may expose different publication snapshots. No exact v0.6.2 crate archive was obtained or run, no CADMPEG test specimen was independently reproduced, and no source/corpus provenance audit was performed beyond the public declarations and inspected workspace dependency list. Conclusions are candidate admission guidance, not format authority or semantic qualification."
+  }
+}

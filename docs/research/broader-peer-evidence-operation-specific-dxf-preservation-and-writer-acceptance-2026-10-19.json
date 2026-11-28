@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Broader peer evidence: operation-specific DXF preservation and writer acceptance",
+  "mode": "Primary-source documentation and source review plus local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare current open-source DXF/DWG peer disclosures across direct codecs, conversion tools, and a downstream CAD consumer.",
+    "Separate unknown-record retention, object import/copy, writer output, independent reopen, and native CAD acceptance.",
+    "Refine the existing PAR-07/S8 composed evidence checkpoint and PAR-138 DXF serializer controls without adding new findings or routine test work."
+  ],
+  "sources": [
+    {
+      "name": "GNU LibreDWG documentation and test tooling",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/DXF.html",
+        "https://www.gnu.org/software/libredwg/manual/html_node/Programs.html",
+        "https://github.com/LibreDWG/libredwg/blob/master/test-dxf.sh"
+      ],
+      "observed": "The versioned 0.13.4 manual describes broad ASCII DXF writing, reports that AutoCAD fails to import some generated files (approximately 10% in that project statement), says DXF reading works for most objects, describes Binary DXF reading as complete but untested, and Binary DXF output as under construction. The manual/repository also provide fuzzing and conversion/round-trip tooling for DWG, DXF, and DXFB. These are project disclosures and methods, not an executed current binary result."
+    },
+    {
+      "name": "ezdxf entity serialization, XREF/import, and resource mapping",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/xref.py"
+      ],
+      "observed": "The source exposes raw tag storage and structured entity export. The XREF/import documentation states that unsupported and unknown/proxy entities and some document features are not transferred by that operation; known resource handles are mapped by copy/resource workflows. Unknown-tag retention in a supported document read/write path therefore cannot be generalized to semantic copy, import, transform, or reference-closed graph preservation."
+    },
+    {
+      "name": "IxMilia.Dxf compatibility cautions and changelog",
+      "urls": [
+        "https://github.com/ixmilia/dxf",
+        "https://github.com/ixmilia/dxf/blob/main/CHANGELOG.md"
+      ],
+      "observed": "The project warns that some entity writer outputs may not open in AutoCAD or need additional required information. Its changelog records discrete fixes for block-contained handle resolution, valid handle assignment, XDATA placement, and version/encoding-sensitive output. This supports test-shape selection only; it is not proof of a libdxfrw defect or peer-wide acceptance."
+    },
+    {
+      "name": "FreeCAD DXF and DWG consumer route documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "observed": "FreeCAD documents DWG import as external DWG-to-DXF conversion followed by a selected DXF importer, and says its stock importer cannot read embedded ACIS/SAT solids. A FreeCAD result measures a converter-plus-importer consumer path and is not, by itself, a DWG-reader or ACIS/AcDs semantic result."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-07/S8 operation-aware comparator manifest and composed checkpoint",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-138 exact subclass/group/occurrence/cardinality serializer readiness and recent generated ASCII/Binary slices",
+    "Current plan findings and external-only status: 138 findings, 77 top-level subplans; J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies that direct strict read, same-document rewrite, raw unknown retention, XREF/import/copy, transform, cross-version conversion, independent reopen, and native acceptance are distinct evidence operations. PAR-138 remains on its existing bounded typed-over-raw implementation path; repeated ambiguous fields and unremappable references stay fail-closed. Peer comparisons and fuzzing remain at scheduled composed/hardening checkpoints, not per implementation slice."
+  },
+  "method": {
+    "kind": "Read-only primary-source documentation/source review and local plan reconciliation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/broader-peer-evidence-operation-specific-dxf-preservation-and-writer-acceptance-2026-10-19.json"
+    ],
+    "limitations": "The LibreDWG failure percentage is a versioned project self-report, not a current independent measurement and not evidence about libdxfrw. GitHub master source/docs are mutable. Peer documentation is not an execution. No local serializer test was run in this research-only update; no support capability, peer interoperability, or native CAD result is promoted."
+  }
+}

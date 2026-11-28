@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1032 ACAD_TABLE sample bounded Mental Ray parser recovery",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg",
+    "sha256": "1b719034b3d65a66830db64ae65662f0c9249f8f05ce906d212f7ffd4b34473c",
+    "version": "AC1032",
+    "repositoryRevision": "23c16706a555b67c4123abad4449c7cb6c7da4ed",
+    "provenance": "The tracked dwg-parser PROVENANCE.md identifies this as an ODA R2018 export of an ACAD_TABLE scaffold from an ezdxf MIT fixture plus locally authored CJK cell text. It remains external and is not copied into libdxfrw."
+  },
+  "implementation": {
+    "path": "src/drw_objects.cpp",
+    "class": "DRW_RenderSettings",
+    "recordClass": "AcDbMentalRayRenderSettings",
+    "handle": "0x7B",
+    "behavior": "For MentalRay records, probe the candidate base-field layouts with and without hasPredefined transactionally. Accept only when exactly one candidate parses the modeled fields and remains within both body and detached-string bounds; otherwise fail closed.",
+    "observedProfile": "The no-hasPredefined candidate is the only candidate that closes the captured ODA AC1032 frame."
+  },
+  "focusedValidation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j4",
+    "localRoundtripCommand": "build-gcc/libdxfrw_dwg_local_roundtrip",
+    "localRoundtripResult": "PASS",
+    "generatedCodecProfiles": [
+      {
+        "version": "AC1027",
+        "hasPredefined": false,
+        "hasPredefinedPresent": false,
+        "readback": "The callback verified both false values; later generated records were also read."
+      },
+      {
+        "version": "AC1032",
+        "hasPredefined": true,
+        "hasPredefinedPresent": true,
+        "readback": "The callback verified both true values; later generated records were also read."
+      }
+    ],
+    "generatedInput": "The existing in-memory local DWG round-trip control was extended; no fixture files were added.",
+    "sourceDiagnosticCommand": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg -y -d -v2018 /private/tmp/acad-table-cells-ac1032-after-fix.dxf",
+    "binaryPath": "build-gcc/dwg2dxf/dwg2dxf",
+    "binarySha256": "6a9633547add4bc31c47a0b2f9327973a3d31a6066cb9101c70773ea1b2d8eb5",
+    "logPath": "/private/tmp/acad-table-cells-ac1032-after-fix.log",
+    "logSha256": "db5594fe7ec0feae20b17f1985dbac3ca07988758a9cd1b0f9f7ff5076cc2c2c",
+    "exitCode": 1,
+    "sourceFrames": 182,
+    "publishedFrames": 182,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "strictOutput": "Still refused; independent HEADER integrity failures and unclaimed bytes remain.",
+    "strictOutputRecheck": "Still refused because independent HEADER integrity failures and 739 unclaimed bytes remain; no DXF was published."
+  },
+  "crossCheck": {
+    "peer": "LibreDWG 0.14 dwgread",
+    "peerBinarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "peerOutputSha256": "244fb1dda8ce99d2efb811c5af19a119e91780cf52503b500b3b8c56b8559927",
+    "sameObjectHandle": "0x7B",
+    "objectSizeBytes": 133,
+    "objectDataBits": 1029,
+    "reportedFields": [
+      "class_version=2",
+      "name=Medium",
+      "mr_version=2",
+      "sampling1=0",
+      "sampling2=1",
+      "sampling_filter1=3.0",
+      "sampling_filter2=3.0",
+      "energy_multiplier=1.0"
+    ],
+    "peerReadStatus": "SUCCESS",
+    "limit": "Structural comparator only; peer decode is not normative field-layout proof or native semantic evidence."
+  },
+  "unresolvedEvidence": {
+    "odaSpecification": "ODA v5.4.1 does not document this class body.",
+    "peerSpecificationConflict": "LibreDWG src/dwg2.spec includes has_predefined in the AcDbRenderSettings base fields for R2013+.",
+    "headerIntegrity": [
+      {
+        "fileOffset": 16,
+        "expected": 808,
+        "observed": 812
+      },
+      {
+        "fileOffset": 830,
+        "expected": 830,
+        "observed": 1569
+      }
+    ],
+    "unclaimedBytes": 739,
+    "disposition": "Retain both integrity rows and keep strict output refused; do not classify the suffix as padding."
+  },
+  "nextAction": "Find an independent producer witness for each modern MentalRay base layout and continue HEADER-envelope analysis only with independent evidence. Keep strict output refusal and do not promote support claims.",
+  "scopeLimit": "This fixes one observed object parse failure in one external AC1032 source. It does not qualify general AC1032 object support, DXF conversion, HEADER layout, native semantics, or support claims.",
+  "currentCodeRecheck": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg -y -d -v2018 /private/tmp/acad-table-cells-ac1032-current.dxf",
+    "binarySha256": "0136790c88fd37a34155708ca2cee8c445b8a6bed3f51672263190830422b7a6",
+    "logPath": "/private/tmp/acad-table-cells-ac1032-current.log",
+    "logSha256": "db5594fe7ec0feae20b17f1985dbac3ca07988758a9cd1b0f9f7ff5076cc2c2c",
+    "sourceSha256": "1b719034b3d65a66830db64ae65662f0c9249f8f05ce906d212f7ffd4b34473c",
+    "result": "PASS parser recovery: 182/182 observed frames published; zero entity/object parse failures, class CRC mismatches or DataStorage link/orphan failures. Strict output still refuses at output preparation because the two HEADER integrity rows remain.",
+    "headerIntegrity": [
+      {
+        "fileOffset": 16,
+        "expected": 808,
+        "observed": 812
+      },
+      {
+        "fileOffset": 830,
+        "expected": 830,
+        "observed": 1569
+      }
+    ],
+    "unclaimedBytes": 739
+  }
+}

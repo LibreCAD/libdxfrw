@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Raw modeler zero-copy raw-frame input fast slice",
+  "mode": "local implementation and focused fast verification",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Make the in-memory DWG byte stream read-only so raw-modeler replay can parse the retained frame without a full mutable copy",
+    "Verify existing inline/blob/orphan replay controls and owning CTests"
+  ],
+  "method": {
+    "productionFilesChanged": [
+      "src/intern/dwgbuffer.h",
+      "src/intern/dwgbuffer.cpp",
+      "src/intern/dwgwriter15.cpp"
+    ],
+    "testSourceChanged": false,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "limitations": "Only the existing focused replay and owning tests were run. No full suite, allocation/RSS benchmark, external peer, or native CAD application was run."
+  },
+  "implementation": {
+    "changed": "Changed dwgCharStream and the in-memory dwgBuffer constructor/storage from mutable byte pointers to const byte pointers, then constructs the raw-object parser buffer directly from object.m_rawBytes.data().",
+    "lifetimeAndMutationBasis": [
+      "The DRW_DwgObject instance owns m_rawBytes and outlives the entire replayRawObject parse call.",
+      "dwgCharStream::read only reads source bytes into caller-provided output memory; the stream mutates only its cursor/status.",
+      "Cloned/forked streams retain the same borrowed const pointer and are used within the same parse operation."
+    ],
+    "preserved": [
+      "Raw-frame equality preflight",
+      "Semantic parse-peer comparisons",
+      "Body/object size and AcDs finalization checks",
+      "Owner, marker, and orphan refusals"
+    ],
+    "allocationClaim": "Removes the temporary full-frame sourceFrameBytes allocation/copy; combined with the preceding parse-peer vector-copy slice, raw frame bytes are not redundantly materialized during this validation path. No wall-time or RSS improvement is claimed."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg_object_vectors_tests dwg2dxf -j2",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --raw-modeler-acds-replay",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$|^libdxfrw_dwg_object_vectors$' --output-on-failure",
+      "git diff --check -- src/intern/dwgbuffer.h src/intern/dwgbuffer.cpp src/intern/dwgwriter15.cpp tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/raw-modeler-zero-copy-raw-frame-input-fast-slice-2026-10-18.json"
+    ],
+    "results": {
+      "build": "passed",
+      "focusedSelector": "passed",
+      "owningCtests": "passed (2/2)",
+      "scopedDiffCheck": "passed",
+      "fullSuite": "not run",
+      "peerOrNativeRun": "not run"
+    },
+    "receiptJsonValidation": "passed"
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "worktree": "Uncommitted shared worktree; staging and commit were not attempted."
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-baseline-fallback-guard-2026-11-20",
+  "date": "2026-11-20",
+  "status": "SOURCE_CANDIDATE_CLASSIFICATION_GUARD_PASS_OUTPUT_STILL_BLOCKED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing untracked local reference; producer provenance remains unqualified."
+  },
+  "change": "For AC1024 to AC1024 preflight, detect an imported LayerStates candidate from the captured extension dictionary baseline as well as its editable state, so deleting or renaming the LayerStates key cannot bypass profile refusal. Existing AC1021 two-root classification is retained.",
+  "validation": {
+    "binary": "/private/tmp/libdxfrw-plotsettings-test-build/tests/libdxfrw_dwg2dxf_adapter_tests",
+    "binarySha256": "fc0711308882b85f3376d5f078342395b90103b843e40bf72fcb825cff6941bc",
+    "logs": {
+      "build": {
+        "path": "/private/tmp/libdxfrw-layerstates-baseline-guard-build.log",
+        "sha256": "4142ad3861c342a25339b398fb5d5dae3a7381376383a2f825be1ac4209a32f0"
+      },
+      "fallback": {
+        "path": "/private/tmp/libdxfrw-layerstates-baseline-guard-fallback.log",
+        "sha256": "d6edbc4f620305d5eb0df3324c3069f054f493b1c4222986ac9df60b1f95b5a4"
+      },
+      "sourceGraph": {
+        "path": "/private/tmp/libdxfrw-layerstates-baseline-guard-source.log",
+        "sha256": "f3a6e1298ff03d5be13e7169c397b17c67a3b371558a1b3d2d4caafbd049b0e9"
+      }
+    },
+    "controls": [
+      "Both importing and separate preflight adapters refuse renamed, removed, case-varied, expanded and reduced LayerStates roots in this unqualified source; restoration remains refused for the unqualified profile.",
+      "A test-only unrelated live dictionary and unrelated captured baseline take the skip path without preparing output; restoring the LayerStates baseline reinstates refusal.",
+      "Source-graph mutation and restoration controls continue to pass.",
+      "Existing ASCII/Binary destination-preservation controls pass; the corrected same-adapter retry is still refused because the profile is unqualified."
+    ]
+  },
+  "limits": [
+    "This is candidate classification and fail-closed behavior, not admission or successful output of the three-root profile.",
+    "The source proof remains bound to its original data and importing adapter; output selection, APPID/EED dependency checks, independent readback and native semantic qualification remain open.",
+    "The local reference DWG was not committed."
+  ]
+}

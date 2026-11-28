@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1027 Cover opaque and standard frame common-link inventory",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "provenanceLimit": "Existing local source; producer is not independently authenticated and no DWG/DXF fixture is committed."
+  },
+  "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --opaque-dwg-source-inventory /Users/dli/doc/dwg/Cover.dwg",
+  "binary": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests",
+  "binarySha256": "6ca30bf933e055571ca9ea7b31b94cc54eb7b05d117a227992ced304c9541c72",
+  "output": {
+    "path": "/private/tmp/cover-opaque-source-inventory-current.log",
+    "sha256": "dddc0c5cef33d049c4db72e00e4a71b1868f1700641a42cef616bbe253632b08",
+    "summary": "schema=2 sourceVersion=AC1027 sourceCallbacks=88 captured=88 retained=75 standardCaptured=13; 111/111 observed frames published; zero entity/object parse failures; zero DataStorage link/orphan failures."
+  },
+  "commonLinks": {
+    "capturedFrames": 88,
+    "ownerEdges": 86,
+    "ownerEdgesToCapturedFrames": 85,
+    "externalOwnerEdges": [
+      {
+        "handle": "0x29",
+        "resolvedAs": "typed VPORT table record",
+        "role": "owner"
+      }
+    ],
+    "blockOwnerEdges": [
+      {
+        "handle": "0x1F",
+        "resolvedAs": "model-space BLOCK_RECORD",
+        "role": "block owner"
+      }
+    ],
+    "extensionDictionaryEdges": 0,
+    "reactorEdges": 85,
+    "reactorEdgesToCapturedFrames": 85
+  },
+  "limitations": {
+    "utilitySourceHashBound": false,
+    "bodyReferencesInspected": false,
+    "allOwnerRolesIndependentlyProven": false,
+    "dxfSchemaRoutesQualified": false,
+    "aggregateAc1027GuardCleared": false,
+    "headerSuffixResolved": false,
+    "strictOutputPublished": false,
+    "details": "This diagnostic reports frame identity/spans and common-header link fields only. Body references may exist and remain uninspected. It does not alter the sticky strict-output guard or the separate 731-byte unclaimed HEADER suffix disposition."
+  },
+  "nextAction": "Bind the exact source hash to an inventory receipt and reconcile each frame's body-level references with independently decoded source data; classify target record type, role, and DXF route before considering any bounded output admission."
+}

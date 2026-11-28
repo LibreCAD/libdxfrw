@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-libdxfrw-single-line-control-transport-2026-11-25",
+  "status": "LOCAL_LIBRARY_FAST_CHECKS_PASS_CONSUMER_AND_QUALIFICATION_OPEN",
+  "supportClaimEffect": "none",
+  "problem": "Semantic CR and LF in TEXT, ATTRIB and ATTDEF were rejected before the ASCII DXF writer could encode them. Separately the installed-codec consumer double encoded controls and double decoded literal carets.",
+  "change": "Reuse the caret-J encoder with an opt-in carriage-return spelling for these single-line fields only. ASCII writes LF and CR as caret-J and caret-M and quotes literal carets; binary retains bytes. All other text-field and structural-name validation remains unchanged.",
+  "validation": {
+    "host": "macOS ARM64, AppleClang 21, Release",
+    "owningCtest": "libdxfrw_dxf_mtext_caret PASS: AC1018 and AC1027, compatible and strict text policies, ASCII and binary, TEXT/ATTDEF/ATTRIB; NUL and structural newline refusals preserve destination, corrected same-writer retry and fresh typed readback pass.",
+    "legacyDictionaryCtest": "libdxfrw_dwg_ac1014_dictionaryvar PASS.",
+    "librarySha256": "7560e07c7889219246c4f3dcb2e2aadbbb235c786c338039d8588ad35fd7a97a",
+    "consumerBundled": "librecad_dxf_fast_tests PASS on the pending adapter worktree.",
+    "consumerSystem": "Pending current installed-codec build and focused tests."
+  },
+  "limits": [
+    "These are local generated controls, not native producer or broad format qualification.",
+    "The implementation digest and focused/package qualification are reopened.",
+    "No generated DWG or DXF fixtures were committed."
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "title": "UNDERLAY DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory PDF, DGN and DWF underlay transaction controls; no producer or support claim.",
+  "implementation": {
+    "writer": "DRW_Underlay::encodeDwg",
+    "behavior": [
+      "Stage body, string and handle destinations using the alias-aware entity transaction helper.",
+      "Preserve subtype selection, normal and inverse clip encoding, and the definition hard pointer."
+    ]
+  },
+  "generated_profiles": [
+    {
+      "version": "AC1021",
+      "kinds": [
+        "PDF",
+        "DGN",
+        "DWF"
+      ],
+      "allocation_failures_per_kind": 16
+    },
+    {
+      "version": "AC1024",
+      "kinds": [
+        "PDF",
+        "DGN",
+        "DWF"
+      ],
+      "allocation_failures_per_kind": 17
+    },
+    {
+      "version": "AC1032",
+      "kinds": [
+        "PDF",
+        "DGN",
+        "DWF"
+      ],
+      "allocation_failures_per_kind": 17
+    }
+  ],
+  "assertions": [
+    "Every measured allocation failure returns false without throwing and preserves seeded streams, counts, handle occurrences and previous type.",
+    "Same-object retry matches clean encoding; an all-stream alias failure and retry preserve state.",
+    "AC1024 and AC1032 controls include inverse clip vertices."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --underlay-dwg-encode-allocation-rollback",
+    "selector_result": "9/9 profiles passed",
+    "ctest": "ctest --test-dir build-gcc -R 'libdxfrw_(underlay_dwg_encode_allocation_rollback|underlay)' --output-on-failure",
+    "ctest_result": "4/4 passed"
+  },
+  "limitations": [
+    "Generated controls establish transaction behavior only; physical producer, graph and native rendering qualification remain open.",
+    "No DWG or DXF fixture was added."
+  ]
+}

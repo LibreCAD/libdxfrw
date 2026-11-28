@@ -1,0 +1,38 @@
+{
+  "title": "OBJECTPTR AC1015 direct-writer allocation rollback and retry",
+  "date": "2026-11-15",
+  "status": "GENERATED_OBJECTPTR_AC1015_TRANSACTION_PASS",
+  "scope": "Fills the AC1015 ASCII/Binary gap in the existing generated OBJECTPTR transaction matrix, which covers AC1018 through AC1032.",
+  "source": {
+    "provenance": "Generated from scratch by the allocation-transaction test adapter in the build-tree scratch directory; generated DXF files are removed after each control.",
+    "record": "One OBJECTPTR at source handle 0xDA70 with parent handle 0xC and no XDATA, reactors, or extension dictionary.",
+    "encoding_matrix": ["ASCII", "Binary"],
+    "prior_matrix": "docs/research/p6-dxf-field-path-partial-viewing-index-version-matrix-allocation-2026-11-13.json covers AC1018/AC1021/AC1024/AC1027/AC1032."
+  },
+  "revision_results": {
+    "AC1015": {
+      "ascii_allocation_failures": 86,
+      "binary_allocation_failures": 86,
+      "rollback_retry_typed_readback": true
+    }
+  },
+  "total_injected_failures": 172,
+  "assertions": [
+    "Every injected allocation failure preserves the prior destination sentinel and leaves no staged output file.",
+    "Every injected failure preserves the caller OBJECTPTR handle, parent, reactors, extension-dictionary handle, and XDATA state, and rolls back source-handle/object identity maps.",
+    "Retry on the same dxfRW instance reproduces clean baseline bytes exactly.",
+    "Fresh ASCII/Binary import reads exactly one OBJECTPTR with the expected handle and parent handle after baseline writes and every retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j2 passed.",
+    "diff_check": "git diff --check passed.",
+    "targeted": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_objectptr_allocation_transaction$' --output-on-failure passed 1/1 in 0.34 seconds.",
+    "aggregate": "The full dxf_write_allocation_transaction suite and broader CTest suite were not rerun."
+  },
+  "limits": [
+    "Generated writer transaction and same-library readback only; producer-authored OBJECTPTR semantics and native consumer behavior are not qualified.",
+    "The test checks the parent handle value but does not resolve or qualify the target object's graph closure.",
+    "This does not establish DWG OBJECT_PTR output support.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

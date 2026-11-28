@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-27",
+  "scope": "Generated AC1027 ASCII and binary DXF XRECORD profiles, with one selected 340\u2013349 hard-pointer reference to another selected dictionary or XRECORD.",
+  "implementationDigestSha256": "8262bdf047afd0d3d0a5e988f5dcc4a9a223d98b18fcdb61a53cde110cd34108",
+  "converterSha256": "821a7fe341a707ee84381503e1d341dd700d28af493a559e1ff91f28f1ae0911",
+  "primaryReference": {
+    "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm",
+    "finding": "Autodesk identifies XRECORD group codes 340\u2013349 as hard pointer IDs."
+  },
+  "change": "Admit exactly one selected hard-pointer group within 340\u2013349 and bind its exact physical group code and selected target to the imported model and staged output. More than one pointer or other unqualified reference roles remain refused.",
+  "hashes": {
+    "341": {
+      "ascii": {
+        "source": "ec8f34ed66cf13ea428466674b243936646b5a2223662e302adbd14f97d265bf",
+        "output": "09c4a7704b9bb164c21e8df54b1540431b092feb9cbbf1b33148676617f7cc67"
+      },
+      "binary": {
+        "source": "389c60c6596a2716291e02b316b77535817bb3b6839175a5eccf375235ef683d",
+        "output": "3d69395add93119ecbe23687efbf7865c638561aa8180576e5648422979cf190"
+      }
+    },
+    "349": {
+      "ascii": {
+        "source": "dce0ccf62e8f5fd16995d0422897d53919e1f59b30969b759e8a4bdbeadf48bd",
+        "output": "52ce4cd253ea5bfa1ddc93aa2db69bf648d17e26826b0c352a22e243e6641888"
+      },
+      "binary": {
+        "source": "07351ab7d1400a47d37c999daee03f9933aa60580f26c91deab3c7f7af5d9849",
+        "output": "2e7f93d01b1d4210f643debf2491a5e7dcfa7766f0f17d241fe81d5e74878999"
+      }
+    }
+  },
+  "peerReadback": {
+    "ezdxf": "1.4.5: groups 341 and 349 in each encoding: 28 mapped objects, 27 dictionary entries, 14 root entries, two layers, owners, reactors, record references, materials and dictionary values match; source/output audit each zero errors and fixes.",
+    "libredwg": "0.14 dxf2dwg r2004 and dwgread JSON preserve each endpoint group code and resolve the selected record target/owners in both encodings. MATERIAL warnings restrict this evidence to selected graph."
+  },
+  "checks": [
+    "Test group 341 referencing selected XRECORD and group 349 referencing selected dictionary, both encodings and alias collisions",
+    "Changing the imported group code, target or owner and late payload mutation refuse with destination preserved and corrected retry",
+    "Missing, unselected, unrelated MATERIAL or dangling targets, duplicate pointer role, cross-version and cross-encoding refuse safely",
+    "Focused compact-material graph, whole-source and AC1024 plot-style CTests pass",
+    "GCC 16 strict syntax checks pass"
+  ],
+  "limits": [
+    "Only one selected group 340\u2013349 per XRECORD, targeting a selected dictionary or XRECORD; remaining handle roles, multiple pointers and arbitrary target types stay refused",
+    "Endpoint 341 and 349 controls are independently checked; other group values follow the documented common type but are not separately producer-qualified",
+    "At most eight selected chains and the bounded same-version, same-encoding AC1027 plot/material graph",
+    "No native producer or consumer or broad support claim established",
+    "No external DWG/DXF fixtures committed"
+  ]
+}

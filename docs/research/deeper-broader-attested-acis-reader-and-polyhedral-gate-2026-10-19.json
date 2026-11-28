@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader attested ACIS reader route and low-cost polyhedral gate",
+  "mode": "Primary-source release, package, documentation, and local plan review",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh the exact distributable and provenance of the previously selected macOS ARM64 open-source ACIS parser candidate.",
+    "Compare its coverage and dependency burden with ezdxf's simpler ACIS parser/flat-polyhedron mesh path.",
+    "Turn the existing PAR-07/S8 ACIS/AcDs semantic checkpoint into a staged, implementation-ready sequence without adding routine per-slice work.",
+    "Preserve the distinction between DWG/AcDs extraction, ACIS parsing, B-rep construction, native FreeCAD behavior, and the six external-only evidence tasks."
+  ],
+  "sources": [
+    {
+      "name": "PyPI cq-acis 0.3.12 release",
+      "urls": [
+        "https://pypi.org/project/cq-acis/0.3.12/"
+      ],
+      "observed": "PyPI lists a macOS 11+ ARM64 ABI3 wheel with SHA-256 94204f623d752e7dacf494bf631551277a985acbeb612ee3a24464ea0f0daab5. Its publish attestation identifies GitHub Actions, repository monozukuri-ai/cq-acis, and source commit e05a8f470d2f6799277f7b7df467d2fc35625889. The release metadata requires Python >=3.11. This establishes artifact availability/provenance, not a successful local install or semantic pass."
+    },
+    {
+      "name": "cq-acis README and package manifest",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/pyproject.toml"
+      ],
+      "observed": "The project labels itself experimental and states that parse success does not guarantee conversion. The current manifest requires CadQuery >=2.8 in addition to Python >=3.11. A prebuilt wheel avoids a local Rust build but does not remove the CadQuery/OpenCascade runtime dependency."
+    },
+    {
+      "name": "cq-acis geometry and SAB profile documentation",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+      ],
+      "observed": "The docs distinguish supported geometry conversion from parsing/record retention, list bounded SAT/SAB/ASM profiles, and specify explicit errors for unsupported conversions. The inspected mutable-main docs contain unreleased profile notes, so their full claims cannot be attributed to the 0.3.12 wheel without inspecting the exact release tree. The API consumes extracted ACIS payload bytes and does not decode DWG sections or establish AcDs ownership."
+    },
+    {
+      "name": "ezdxf ACIS API documentation",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": "ezdxf documents parsing and authoring of a limited ACIS subset, loss of unsupported nodes on its typed load path, no arbitrary ACIS load/re-export guarantee, and flat polygonal mesh extraction only; curved-face tessellation requires an ACIS kernel. This is a candidate for a low-cost planar-polyhedron structural cross-check, not a general B-rep oracle."
+    },
+    {
+      "name": "FreeCAD DXF/DWG route documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "observed": "FreeCAD's DWG route composes an external DWG-to-DXF converter with a selected DXF importer. The documentation says the stock importer does not read embedded ACIS/SAT solids, so a successful cq-acis shape result is not a FreeCAD native-import result."
+    },
+    {
+      "name": "ODA Open Design Specification v5.4.1",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "observed": "The R2013 organization section identifies AcDb:AcDsPrototype_1b as a new data section containing ACIS data. This supports keeping inline AC1024 SAT and AC1027+ AcDs/SAB test profiles distinct; it does not specify or validate the full local extraction/association result for a particular file."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-07/S8 staged consumer and per-object semantic evidence gates",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing cq-acis release/artifact split and ACIS/AcDs ownership requirements",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md generated-only fixture policy and external FreeCAD qualification requirements",
+    "Current plan totals: 138 findings and 77 top-level subplans",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "The optional macOS ARM64 ACIS route is now pinned to a concrete attested release artifact and has an explicit preflight. A cheap ezdxf structural/mesh check is admitted only for planar polyhedra. The composed sequence separately records scratch authoring, converter transformations, DWG/AcDs extraction and owner join, payload parse, geometry measurements, and native FreeCAD behavior. External artifact availability is resolved; execution, semantic qualification, FreeCAD platform acceptance, and historical J-item promotion remain pending."
+  },
+  "method": {
+    "kind": "Read-only primary-source research and plan update",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-attested-acis-reader-and-polyhedral-gate-2026-10-19.json"
+    ],
+    "limitations": "The PyPI page and project source establish a release artifact and declared profile, not a successful install or runtime result. Current mutable geometry/SAB documentation includes unreleased notes and is not treated as evidence about the tagged 0.3.12 binary unless resolved against the release tree. ezdxf's documented mesh path is limited to flat polygonal faces. FreeCAD docs describe the consumer route but no FreeCAD runtime was exercised. No DWG/DXF input was downloaded or generated, and the repository-local ODA PDF noted in AGENTS.md was not available in this environment; this pass makes no new byte-layout claim beyond the public ODA document's R2013 section description."
+  }
+}

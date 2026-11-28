@@ -1,0 +1,42 @@
+{
+  "title": "CAD Assistant macOS ARM64 reader availability recheck",
+  "date": "2026-11-14",
+  "scope": "Check availability of the user-selected official CAD Assistant macOS ARM64 reader for the next P7 complete-boundary-topology probe.",
+  "publisher": "Open Cascade",
+  "official_product_page": "https://opencascade.com/products/cad-assistant/",
+  "artifact_url": "https://opencascade.com/source-mirror/sites/default/files/private/occt/applications/cad_assistant_1.6.0_2021-10-06_arm64.dmg",
+  "publisher_page_state": "The official page lists CAD Assistant 1.6.0 and links an ARM 64-bit macOS DMG; it documents SAT/SAB import through commercial XDE components and disallows model export/conversion.",
+  "local_state": "Reacquired the official CAD Assistant 1.6.0 Apple-silicon DMG to /private/tmp/cad_assistant_1.6.0_2021-10-06_arm64.dmg and mounted it read-only at /private/tmp/cad-assistant-mount. The mount was detached after the launch check; no application files were installed or copied into the repository.",
+  "acquisition_attempt": {
+    "command": "curl -fL --retry 2 --output /private/tmp/cad_assistant_1.6.0_2021-10-06_arm64.dmg https://www.opencascade.com/sites/default/files/private/occt/applications/cad_assistant_1.6.0_2021-10-06_arm64.dmg",
+    "result": "PASS: 45,435,791 bytes downloaded; SHA-256 a1a21d2b3294ca556b7a0172df8ed1a8046450894033147be09a9fd1549f2b2d matches the previously checked official release artifact."
+  },
+  "disposition": "The previous DNS blocker is resolved and the official artifact is hash-matched and natively verified. Launch Services produced a pre-import transfer error. A separate in-app picker attempt did not display the known-hash scratch SAB in Downloads and produced no import. Next external evidence work must resolve picker visibility/file access or use an independently authorized import path; continue local modeler implementation in parallel.",
+  "limitations": [
+    "CAD Assistant shares OCCT geometry-kernel lineage with FreeCAD and is not an independent-kernel vote.",
+    "The current launch error provides no evidence about ACIS parsing or shape meaning.",
+    "A successful reader run still requires exact payload identity, topology, known-answer semantic checks, and separation from DWG placement/history claims."
+  ],
+  "nativeIntegrity": {
+    "hdiutilVerify": "PASS; disk image CRC valid",
+    "readOnlyMount": "PASS",
+    "bundle": "/private/tmp/cad-assistant-mount/CAD Assistant.app",
+    "bundleIdentifier": "org.opencascade.cadassistant",
+    "executable": "Contents/MacOS/CADAssistant",
+    "executableSha256": "aeb1cb18e53193dbf502e34986e7e2047cedf61cf0895fb237caed1be63b91aa",
+    "architecture": "arm64",
+    "codesign": "PASS: valid on disk and satisfies designated requirement (native verification outside sandbox)",
+    "gatekeeper": "PASS: accepted, Notarized Developer ID (native assessment outside sandbox)"
+  },
+  "launchAttempt": {
+    "command": "open -a \"/private/tmp/cad-assistant-mount/CAD Assistant.app\" --args /tmp/libdxfrw-acis21500/cube.sab",
+    "sampleSha256": "4b5919bc0188358a279ba833aec5d879fa2067ba8af42a8ea86e585d420fb8a8",
+    "result": "The application launched, then displayed \"Error occurred transferring SAT file\" for the supplied SAB path. No import, shape, measurements, or geometry result was observed. The app was quit and the disk image detached.",
+    "disposition": "This invocation route is not a reader result. A native in-app file selection is required before making any semantic observation.",
+    "nativePickerRecheck": {
+      "procedure": "Launched the mounted application without a file argument and browsed its built-in filesystem picker to the user Downloads location. A temporary byte-identical copy of the generated cube SAB was present there with the expected SHA-256, but did not appear in the visible file list; no file was opened.",
+      "result": "No import or geometry observation. The temporary Downloads copy was removed; the app was quit and the read-only image detached.",
+      "limitation": "The visible picker filter/category state was not fully resolved; this is not evidence that CAD Assistant rejects the SAB content."
+    }
+  }
+}

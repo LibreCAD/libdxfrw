@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-p5-field-transport-fast-slice-v1",
+  "date": "2026-11-01",
+  "qualificationEligible": false,
+  "supportClaimsPromoted": false,
+  "scope": "Transport-only implementation for FIELD CadValue data type 0 when its BL payload is present. This does not establish FIELD expression meaning, native evaluation, or whole-source output support.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.99 Value",
+    "rule": "Data type 0 (Unknown) has a BL payload when the value payload is present. Payload-suppressed type-0/general-value flag profiles remain refused."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_object_vectors_tests.cpp"
+    ],
+    "behavior": [
+      "Decode the bounded type-0 BL into transport storage and continue through the detached format metadata, FIELD value string, child values, and handle stream.",
+      "Allow type-0 BL values through the existing bounded DWG encoder; preserve unknown application meaning.",
+      "Keep payload-suppressed type 0, unsupported format flags, and unknown data types refused."
+    ],
+    "fixturePolicy": "Vectors are generated in memory. No DWG or DXF fixture file was added."
+  },
+  "validation": {
+    "generatedFrameCoverage": {
+      "parseAndReencode": ["AC1018", "AC1021", "AC1024"],
+      "rootAndChildValues": ["root type 0 BL", "child type 0 BL (AC1021/AC1024)"],
+      "writerEligibility": ["AC1015", "AC1018", "AC1021", "AC1024"],
+      "negativeControls": [
+        "payload-suppressed type 0 remains incomplete/refused",
+        "unsupported format flags remain incomplete/refused",
+        "unknown type 1024 remains incomplete/refused",
+        "type 0 carrying unmodeled size/raw bytes is refused before output"
+      ]
+    },
+    "fastTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_field_cadvalue_unknown_type|libdxfrw_field_unknown_child_cadvalue_versions)$' --output-on-failure",
+        "result": "passed, 2/2"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_acad_field_writer_candidate|libdxfrw_fieldlist_membership_output)$' --output-on-failure",
+        "result": "passed, 2/2; existing ASCII/Binary FIELD output and readback coverage includes type-0 values"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_read_AC1021_architectural_-_annotation_scaling_and_multileaders$' --output-on-failure",
+        "result": "passed, 1/1 for reader completion with zero entity/object parse failures"
+      }
+    ],
+    "localPhysicalInput": {
+      "path": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+      "provenance": "Pre-existing untracked local input; not added to the repository.",
+      "peerJsonCensus": {
+        "fieldObjects": 66,
+        "mainFormatFlagsAndTypeCounts": {
+          "0,0": 16,
+          "0,4": 16,
+          "3,0": 29,
+          "4,4": 4,
+          "4,8": 1
+        },
+        "childFormatFlagsAndTypeCounts": {
+          "0,0": 16,
+          "0,1": 28,
+          "0,4": 17,
+          "2,2": 29
+        }
+      },
+      "libdxfrwCallbackProbe": "0 typed FIELD callbacks; the sample's unsupported flags/child profiles still prevent physical source-profile closure.",
+      "strictDxfExport": "Refused with 36 unpreserved proxy-graphics records; no output/readback qualification was claimed."
+    }
+  },
+  "residuals": [
+    "Qualify physical producer/version FIELD records through typed callbacks and exact output/readback.",
+    "Resolve payload-suppressed/general-value flags from authoritative source evidence before changing their interpretation.",
+    "Keep unknown flags and unknown data types refused.",
+    "Qualify native FIELD evaluation independently from cached-value transport."
+  ],
+  "planEffect": "This receipt is an exclusion inventory for the narrow payload-present type-0 BL path only. P5 remains open."
+}

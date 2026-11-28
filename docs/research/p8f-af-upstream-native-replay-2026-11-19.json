@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8f-af-upstream-native-replay-2026-11-19",
+  "date": "2026-11-19",
+  "status": "CURRENT_DIGEST_FAST_AND_FOCUSED_NATIVE_PASSED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "1b63ce2a27ce76a23c32c34d360001c3d0328f3b43e96c5245b7aedb535c5cf4",
+  "upstream": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44649760766",
+    "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44649760901",
+    "headSha": "af715907a0c6b7a7146e968399fa72e3f3eb866c",
+    "checkedOutMergeSha": "f83c90c0f3bd87f11dd50bbde64359190aa158a6",
+    "fastJobId": 136001405324,
+    "fastResult": "PASS: seven executables and 51 selected CTests; one optional locale test skipped.",
+    "fastLogSha256": "807baad25d49071a88bc91301305432eca2ef243d7131dd1da944ed7bc483369",
+    "platforms": {
+      "linux-gcc": {
+        "apiJobId": 136001537956,
+        "artifactId": 14590922083,
+        "downloadedArchiveSha256": "076f1e532145633110befd5e3490f4aca15896717e0a169cd151a27bbf59e941",
+        "receiptContentSha256": "a69109d84afaa505b04e77ccb68035c4000c985d77062f56762b6973d3493040"
+      },
+      "macos-clang": {
+        "apiJobId": 136001537910,
+        "artifactId": 14590401920,
+        "downloadedArchiveSha256": "74b2a5428abfccb77ce70d797ea4d798795ff3577b31449331fe76fab71eea78",
+        "receiptContentSha256": "7f7f1dd9faff2a3f960b2f1041c9598b189f99d5c3c1ab2f4b5081836471b6d9"
+      },
+      "windows-msvc": {
+        "apiJobId": 136001537909,
+        "artifactId": 14589814695,
+        "downloadedArchiveSha256": "292be89c52467d4d3a2a07ef46c82c948f71cfa028ddb1ba311d60c92ce8bd57",
+        "receiptContentSha256": "3a4cca4f126d2a1a213b6380c29fd6cf05e95e2fdc1c1518476b93e138c04691"
+      }
+    }
+  },
+  "liveVerification": {
+    "result": "PASS: all three focused native artifacts verified against the authenticated GitHub API, exact tested PR merge ref and artifact archives before the ref advanced.",
+    "scratchRoot": "/private/tmp/p7g-planar-source/native-verification-af",
+    "apiResponseSha256": {
+      "run.json": "f7728d3eda255cdd58933ea4fdcb3d867b9c7ff45f4edd97f2a8d9447fea2de3",
+      "jobs.json": "709d9c1d4f18fb98ee3aa0a41b641e76905eedd5569799abf226e335de24f518",
+      "artifacts.json": "02a2eb8eaf58d32c2d72576a493eb56cb26e797a9a5fa08590b341d1750c7fb1"
+    }
+  },
+  "limits": [
+    "This closes P8-F only for the exact implementation digest; later selected-input changes reopen it.",
+    "Documentation-only commits after the tested head do not change the implementation digest.",
+    "This does not close native GUI, broad/fuzz, independent producer or semantic evidence and does not promote any support claim."
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-title-block-xrecord-1071-compatibility-recheck-2026-11-02",
+  "date": "2026-11-02",
+  "title": "Recheck AC1024 Title_Block-ARCH XRECORD 1071 compatibility output",
+  "status": "BOUNDED_DWG_ORIGIN_COMPATIBILITY_OUTPUT_MATCHES_LIBREDWG_STRICT_GRAPH_STILL_REFUSED",
+  "supportClaimEffect": "none",
+  "amends": {
+    "receipt": "docs/research/p4-ac1024-block-representation-data-output-2026-10-31.json",
+    "scope": "Replaces only the finding that physical strict output stops at XRECORD 0x121F group 1071. It does not replace the BLOCKREPRESENTATIONDATA body proof or claim full-graph output."
+  },
+  "alsoAmends": {
+    "receipt": "docs/research/p5-dynamic-block-visibility-composed-generated-output-2026-10-31.json",
+    "scope": "Closes only its nextPacket statement that XRECORD 0x121F group 1071 still blocks the physical output path; the generated dynamic-block graph's synthetic nodes, edges, and geometries remain unqualified as physical source evidence."
+  },
+  "source": {
+    "path": "tests/samples/AC1024/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "repositoryStatus": "Pre-existing local untracked input; not added or committed.",
+    "xrecord": {
+      "handle": "0x121F",
+      "ownerDictionary": "0x121E",
+      "dictionaryKey": "16",
+      "orderedAcDbXrecordValues": [
+        [1071, 135625452],
+        [1071, 184556386],
+        [70, 25],
+        [70, 104],
+        [10, 0.0],
+        [20, 0.0],
+        [30, 0.0],
+        [1, "ARCH D"]
+      ]
+    }
+  },
+  "authorities": {
+    "autodeskXrecordContract": {
+      "title": "XRECORD (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+      "rule": "The documented XRECORD application-value domain is normal object groups 1..369 except 5 and 105; group 1071 is outside this standard range.",
+      "effect": "Keep group 1071 explicitly labeled as a producer-compatibility route. This differential does not establish native AutoCAD acceptance or standard DXF semantics."
+    },
+    "libreDwgDifferential": {
+      "tool": "/opt/homebrew/bin/dwg2dxf",
+      "version": "LibreDWG 0.14",
+      "command": "/opt/homebrew/bin/dwg2dxf --as r2010 -y -o /private/tmp/libredwg-title-block-arch-r2010.dxf tests/samples/AC1024/title_block-arch.dwg",
+      "exitCode": 0,
+      "outputSha256": "6dd6fa62f034c33542362790c3b3f48d0d13e7b6f85b1569ff0168d6faedcd37",
+      "result": "The independent DXF output contains XRECORD 0x121F with owner 0x121E and the same ordered group-1071 values 135625452, 184556386, followed by the same group-70, point, and text fields. LibreDWG emits this profile despite Autodesk's standard XRECORD range."
+    }
+  },
+  "implementationAndValidation": {
+    "route": "The adapter selects the explicit AC1021+ DWG-origin XRECORD compatibility writer only when the target revision matches the imported DWG revision. Standard DXF-origin XRECORD writes continue to reject groups outside the standard domain unless an unchanged same-source compatibility replay applies.",
+    "focusedBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "generatedCompatibilityControl": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_xrecord_dwg_compatibility_codes$' --output-on-failure",
+      "result": "PASS 1/1; explicit output, type and revision refusal, destination preservation, corrected retry, and fresh typed readback."
+    },
+    "physicalStrictConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/title_block-arch.dwg -y -d -v2010 /private/tmp/title-block-arch-strict-output.dxf",
+      "exitCode": 1,
+      "result": "The trace reaches finalization at 106/109 qualified opaque callbacks; the remaining callbacks are the named-block SORTENTSTABLEs 0x4202, 0x4380, and 0x4637. The XRECORD group-1071 blocker is passed on this source route.",
+      "atomicity": "A pre-existing destination sentinel remained byte-for-byte unchanged after final refusal. No complete DXF was published."
+    },
+    "binaryHashes": {
+      "source": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+      "libdxfrwDwg2dxf": "68bc5fcb2b37d2ddc6248a4c8355c2ebc3593bab7021e0a47f6c79ca2d1e259f",
+      "libreDwgDwg2dxf": "e4cca8e3f5af9a878eb0085ed14e992f64d35f03065743847701274a46781c99"
+    }
+  },
+  "remainingLimits": [
+    "The group-1071 route is a compatibility behavior, not a standard XRECORD profile and not native consumer qualification.",
+    "Strict complete conversion remains refused for the three named-block SORTENTSTABLE owner-scope profiles; see docs/research/p4-ac1024-title-block-named-block-sortents-residual-2026-11-01.json.",
+    "The source is local pre-existing material and no DWG/DXF fixture was added to the repository."
+  ]
+}

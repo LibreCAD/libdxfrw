@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "id": "s8-1c-shape-block-adapter-2026-11-02",
+  "date": "2026-11-02",
+  "status": "COMMITTED_IMPLEMENTATION",
+  "implementationCommit": "dc2e10366a32368764088ef99a85304e8bff3e22",
+  "scope": {
+    "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P8 / BLOCK callback coverage; P6 shape field correctness",
+    "operation": "Retain and serialize named DXF SHAPE entities through the BLOCK adapter while refusing output that lacks the required DXF group-2 shape name or relies only on a DWG SHAPEFILE table handle.",
+    "behavior": [
+      "The concrete BLOCK adapter captures DRW_Shape values, charges the style-name string and retained raw bytes, and dispatches the runtime SHAPE type to dxfRW::writeShape.",
+      "The low-level SHAPE serializer refuses an empty group-2 name and does not publish an incomplete SHAPE record.",
+      "The DXF adapter refuses a DWG-origin SHAPE with a nonzero SHAPEFILE handle because the current DWG reader resolves the STYLE row name, not the actual SHX glyph name required by DXF group 2.",
+      "Generated AC1027 ASCII/Binary named-BLOCK controls verify named-shape callback readback, fields, empty-name refusal with destination preservation, and corrected retry through the same adapter."
+    ]
+  },
+  "normativeReference": {
+    "title": "Autodesk SHAPE (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0988D755-9AAB-4D6C-8E26-EC636F507F2C.htm",
+    "relevantField": "Group code 2 is the shape name."
+  },
+  "supportClaimEffect": "none",
+  "binding": {
+    "branchHead": "dc2e10366a32368764088ef99a85304e8bff3e22",
+    "implementationFilesSha256": {
+      "dwg2dxf/dx_iface.h": "ef9e31209532d7445e4182f7629447923d97a449f19a0662ec356af9ea03d4c6",
+      "dwg2dxf/dx_iface.cpp": "9f6ce5ffdaf54f33adba6a4591fe74514ee44a6f4658787d6cdc2991fd739f32",
+      "src/libdxfrw.cpp": "2969daeb416554cd32491a20e75773399f9d639680529f77f22bfcba563c47d7",
+      "src/drw_entities.h": "84074f1c8eb8a341247aeb5c1e77a07f66d61e4272e2f14fa75916d070f14294",
+      "tests/dwg_local_roundtrip_tests.cpp": "caf1a0e852763e26b70cad35089f2e3027e191b1382bc4abd6fbb4de324e1e9a"
+    },
+    "artifactsSha256": {
+      "build-gcc/dwg2dxf/dwg2dxf": "86d6ade5eb908e7048adfe211ab2d3a24818dabfe4432a1cfd88a2ac151eba92",
+      "build-gcc/libdxfrw_dwg_local_roundtrip": "b93c9691d28e31233a89e2d1b2b6669bf303964532de37da82d4ebc1c465fbf1"
+    }
+  },
+  "validation": {
+    "productionBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j4",
+      "result": "PASS"
+    },
+    "postCorrectionBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS (1/1; 17.98 seconds)"
+    },
+    "diffCheck": "PASS",
+    "fullSuiteRun": false,
+    "asanRun": false,
+    "persistentFixtureAdded": false
+  },
+  "limitations": [
+    "No SHX-backed mapping from a DWG glyph index to the DXF SHX shape name is implemented; DWG-origin SHAPE output is intentionally refused when the source handle is present.",
+    "The generated vectors establish codec and adapter transport only, not external producer behavior or native glyph rendering.",
+    "This does not qualify complete document conversion, LibreCAD/LibreCAD_3, FreeCAD, platform, ABI, or package support.",
+    "No support claim is promoted."
+  ]
+}

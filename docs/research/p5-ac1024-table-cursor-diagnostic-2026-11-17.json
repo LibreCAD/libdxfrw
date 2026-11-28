@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1024 TABLE body/string/handle cursor diagnostic",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "scope": "Record parser cursor observations for the hash-bound AC1024 TABLE candidate. This is diagnostic evidence only; it does not establish source field spans, producer semantics, or a handle-role exception.",
+  "source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "dwgPath": "samples/sample_AC1024.dwg",
+    "dwgSha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+    "pairedAsciiDxfSha256": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372",
+    "pairedBinaryDxfSha256": "6a99aed5d669235a12f592d5cce426c6fba29b5462bae8d76f98187a2fdda22f",
+    "producerLimit": "The checked-in SAVEAS script does not establish the exact executing application/build or the authoring provenance of the base drawing."
+  },
+  "instrumentation": {
+    "repositoryRevision": "56c42180",
+    "workingTreeFile": "src/drw_entities.cpp",
+    "workingTreeFileSha256": "c60c3c728e11ab2a89240688081fb5bdd311bad845b31aad262753812898f723",
+    "buildTarget": "dwg2dxf",
+    "runCommand": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/ACadSharp_sample_AC1024.dwg -y -d -v2010 /private/tmp/ACadSharp_sample_AC1024.dxf",
+    "tracePath": "/private/tmp/ACadSharp_sample_AC1024-trace.log",
+    "traceSha256": "2c067e0ef1c12b4e6202ae50fb04cedda5329b1f3850c519f23e6d20b98a81f0"
+  },
+  "observations": [
+    {
+      "entityHandle": "0x528",
+      "rows": 7,
+      "columns": 3,
+      "firstCellDisplay": "Table sample",
+      "decodedAttributeCount": 80,
+      "cursorBitsAtCount": {
+        "body": 39158,
+        "string": 92438,
+        "handle": 105173
+      },
+      "firstHandle": {
+        "observedCode": 5,
+        "observedReference": "0x00",
+        "parserExpectedCode": 4
+      }
+    },
+    {
+      "entityHandle": "0xa35",
+      "decodedAttributeCount": 32,
+      "cursorBitsAtCount": {
+        "body": 52254,
+        "string": 74960,
+        "handle": 87913
+      },
+      "firstHandle": {
+        "observedCode": 5,
+        "observedReference": "0x11",
+        "parserExpectedCode": 4
+      }
+    }
+  ],
+  "interpretation": {
+    "authority": "ODA v5.4.1 §20.4.97 specifies the cell ATTDEF reference as a soft pointer (code 4).",
+    "inference": "The large decoded attribute counts, compared with the paired DXF cell representation, make alignment before the attribute-count field the first local question. This is only a cursor-debugging hypothesis: the paired DXF is a semantic comparator, not a byte-identical encoding of the DWG cell stream.",
+    "doNot": "Do not change the expected handle role or parser field order from these observations alone. Reconcile the preceding body fields, R2007+ string intervals, and handle stream against ODA and the exact source boundary first."
+  },
+  "result": "The parser remains fail-closed for the unvalidated TABLE semantic tail. No fixture was added and no support claim is promoted."
+}

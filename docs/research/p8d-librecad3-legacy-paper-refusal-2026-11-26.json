@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_code_commit": "673d567a",
+  "consumer_plan_head": "9a635f35",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "finding": "A locally generated LINE in additional paper space was present in R12/R14 ASCII and binary output; ezdxf 1.4.5 audit removed the orphaned block and the line while the exporter reported no loss.",
+  "pre_guard_output_sha256": {
+    "R12_ascii": "65a7d45d01ea652f3cef13186e49f0fe57e78983a5fceed8f8c8d4eb03df1dd4",
+    "R14_ascii": "0dcc5401fef159aef329929c63e7c148e27b7f156e881d1ac040677f82c19a52",
+    "R12_binary": "ade1c8b6a90e937bcecd88b87822e184f98b46d11b0416d5f35f2985fa72b27a",
+    "R14_binary": "73118663c71ff0d6d53db6effb4e4e7f81d54bd7467d4cb8a7954a9c05da5b0d"
+  },
+  "fix": "Before touching the destination, refuse legacy output when additional paper blocks contain modeled children, nondefault metadata or modeled INSERT references. A plain R12 uppercased paper block is matched to the kernel default on import.",
+  "validation": [
+    "macOS ARM64: 71 DXF round-trip/export tests and six layout graph tests passed",
+    "Four legacy targets refused additional paper content without overwriting destination; removing the offending content allowed retry",
+    "The same DXFimpl writer object refused then successfully retried after correction",
+    "The primary paper-space LINE survived R12 reopen and independent ezdxf audit",
+    "Focused controls refuse a referenced empty block and a block with nonzero base",
+    "Older bundled codec headers passed syntax compilation; linked runtime qualification remains open",
+    "Consumer plan sync passed locally",
+    "Locally generated R12 with nonzero additional-paper base and LINE retains both on import and refuses unsafe export without touching destination, including a versionless-header control.",
+    "Locally authored R14 cases preserve nonzero block base, children and both anonymous states, and refuse unsafe output without overwriting the destination.",
+    "After sharing case-folding, the 71 DXF round-trip/export and six layout tests passed; the application built with the later Save As filename rollback. The GUI refusal observation predates that filename change."
+  ],
+  "limitations": [
+    "The empty orphan block still incurs an ezdxf audit repair; distinguish application-created and imported blocks and qualify references before removing it.",
+    "Additional nondefault source metadata, binary layout replay and broader producer/consumer behavior remain unqualified.",
+    "Native final-head and hosted Linux/Windows checks remain open."
+  ],
+  "consumer_import_followup_commit": "57c9a553",
+  "import_followup": {
+    "source_sha256": "3621c77311101c3bbd31f069d93c95cf3dd4790d32c59f1b2fea711bd8c4fb0c",
+    "persistence_library_sha256": "a816436d0cfbe3a1badedfa7029a79f6b39f9f000b864ab8e6181c73f7aea92d",
+    "focused_test_sha256": "dc3561776aab5404bda644c58143ce11d5562cae24ec9f5ae9783dab3bd2cfbf",
+    "finding": "Before the follow-up, uppercased nondefault source paper was stored outside the kernel default lookup, so export succeeded and dropped its LINE.",
+    "result": "The import now replaces the matching default using the source base/anonymous state and canonical block name; the source LINE remains reachable and legacy export refuses."
+  },
+  "consumer_r14_import_followup_commit": "fcc5bd5a",
+  "consumer_r14_anonymous_test_commit": "68f5bad156df2f39fa3ef9db519abaeb7a86b32b",
+  "r14_import_followup": {
+    "source_sha256": "d3ea219ba29cc58345ad9a32a10493f8509a3a28f629c8a7d0d33ce0a6268c16",
+    "persistence_library_sha256": "933d00d5ee8fd61988c41ff1cd6e26a8eddecba94098f55d4bfae0045126131f",
+    "focused_test_sha256": "60a0d696fe998a4e9434dfccdb5cb3fb2c99b4be744c0fb50ee47b0ad1ebaa84",
+    "finding": "Before the follow-up a nonzero source base was replaced by the application default.",
+    "result": "Imported R14 source base, modeled anonymous state, and LINE remain available to the legacy guard."
+  },
+  "consumer_ui_commit": "29978a12",
+  "native_refusal_dialog": {
+    "platform": "macOS ARM64",
+    "app_executable_sha256": "11fdfc3682129ab4742f0d2f5857d3453aefc2ea3dce578a61b840038b21ea0a",
+    "persistence_library_sha256": "933d00d5ee8fd61988c41ff1cd6e26a8eddecba94098f55d4bfae0045126131f",
+    "source_sha256": "3621c77311101c3bbd31f069d93c95cf3dd4790d32c59f1b2fea711bd8c4fb0c",
+    "result": "Fresh isolated app process opened the source, confirmed the save action owned that source, refused an R12 save, displayed the paper-space explanation and R2000 recommendation, and created no destination file.",
+    "limits": "The proof app contains scratch-only title and save-owner instrumentation; it is not the final packaged UI. Rendering/editing and other platforms remain open."
+  },
+  "consumer_shared_names_commit": "c61ce0d5",
+  "consumer_save_state_commit": "c48f203a",
+  "native_save_state_rollback": {
+    "platform": "macOS ARM64",
+    "app_executable_sha256": "63fa235ddbb1352223e901069b2b24db785a453c87cd9d4e4c9b66a2f017cada",
+    "persistence_library_sha256": "135353a90b868bf98d798a6c5c5d185c8ff16dc620a4513d0cb66f1b5f0b637a",
+    "consumer_code_commit": "c48f203a",
+    "source_sha256": "3621c77311101c3bbd31f069d93c95cf3dd4790d32c59f1b2fea711bd8c4fb0c",
+    "result": "In a fresh isolated process, an R12 Save As was refused with its specific reason and no output file. A scratch-only post-save observation showed the original source filename was retained.",
+    "limits": "App contains scratch-only title and post-save state instrumentation; this is not final packaged UI or other-platform qualification."
+  }
+}

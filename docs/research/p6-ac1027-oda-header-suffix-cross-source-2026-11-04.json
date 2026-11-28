@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "CROSS_SOURCE_SUFFIX_STRUCTURE_OBSERVED_UNCLAIMED",
+  "supportClaimEffect": "none",
+  "scope": "Compare the decoded AC1027 HEADER section suffix after its documented end sentinel in four different ODA 27.1 outputs and three prior same-source ODA saves. This is diagnostic evidence only, not a padding classification or semantic qualification.",
+  "reproduction": {
+    "source": "/Users/dli/doc/dwg/Cover.dwg",
+    "sourceSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "converter": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "converterSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "converterIntegrity": "codesign --verify --deep --strict succeeded outside the sandbox",
+    "settings": "ACAD2013 DWG, recursion 0, audit 0, a scratch copy as input and a scratch output directory; no .err file observed",
+    "newResaveSha256": "3bdbc32fa2393634c006c29000576a9f8a2622851094443a68cd6266411024f7",
+    "otherSources": "Three independently authored DXF controls containing 255, 256 or 257 ordinary LTYPE records and a LINE were converted to AC1027 DWG by the same ODA version. The source DXF and DWG hashes and procedure are in docs/research/p6-multiversion-ltype-control-bl-count-2026-11-04.json.",
+    "extractor": "A pre-existing scratch libdxfrw dwgReader27 driver invokes parseDataPage and writes exactly the declared logical HEADER section. Its executable SHA-256 is ad53fc82b570004821c8bee6bf55fbee6a73078e3148db31532e57c2f4be118b and source SHA-256 is 50dcbe5a4c34d5a3e7ccd026a98a6c370c670f057e6c08706c1cc2ba320a6e75. The extractor is not an independent decoder; an earlier Cover/resave comparison independently matched LibreDWG decompression as recorded in docs/research/p6-ac1027-cover-oda-same-version-resave-2026-11-03.json.",
+    "comparison": "Locate the sole occurrence of the documented 16-byte HEADER end sentinel 3084e0dc0221c756a0839747b192cca0, compare bytes after it through the declared logical section end, and hash the decoded section and suffix. Confirmed byte-for-byte position-level least-significant-bit relation across all 739 positions. This sentinel search records an observation and is not a replacement for validated envelope, CRC, and boundary checks."
+  },
+  "outputs": [
+    {"name": "Cover new resave", "trailerEnd": 844, "logicalSize": 1583, "sectionSha256": "1190e9eb85c96d8fd9eded2a64120449c98917fffe4226f44e6f5676f36ac9a2", "suffixSha256": "76331dab9c1e0c7c42474490b5f8c6c1d5cacbd6c3e3d4e24d6dea8d9cb4b5f0", "lsbXorWithNewCover": 0},
+    {"name": "authored 255-control", "trailerEnd": 845, "logicalSize": 1584, "sectionSha256": "337b41fc4a78cf766e327c8b9a2d1ca87b189267469a60f81b7ca8cb6ddf649e", "suffixSha256": "c9ff97bbbcc20ac77e0b5b948ea97fd74d55ebcce71d4e4212aff823ed5a1b6d", "lsbXorWithNewCover": 1},
+    {"name": "authored 256-control", "trailerEnd": 845, "logicalSize": 1584, "sectionSha256": "1a3c0b7aa5199a45c1137357a88c0eef611f3e1653eca3defb188c722aab4b1f", "suffixSha256": "33fe68117979a5f39ccb29afcd140858433a90e88c4929b4d4aceb7d2a7ee998", "lsbXorWithNewCover": 1},
+    {"name": "authored 257-control", "trailerEnd": 845, "logicalSize": 1584, "sectionSha256": "bf11351a30abb7feba7289460275690d85461d3167cc43aeeceb287987dd30ad", "suffixSha256": "18620213bed77bc711c3357342ef1a517512971ca68c1d8989ab6bc05e28f4c2", "lsbXorWithNewCover": 0},
+    {"name": "Cover previous resave", "trailerEnd": 844, "logicalSize": 1583, "sectionSha256": "55551135612baa4deee22c2d740ca386f3e786c08d81f4a99dfec30401cba1f3", "suffixSha256": "6737be156086ce40761e00e7e595383dcea844680cdb73bb72b374336e42e0db", "lsbXorWithNewCover": 0},
+    {"name": "Cover previous repeat 1", "trailerEnd": 844, "logicalSize": 1583, "sectionSha256": "dd7307e9181a24b0dcea31d396ea2c9c2f8786d28420c9c17c2e37c8e64fa7fd", "suffixSha256": "56f76f165e93638b82f1bd6eb5d80cd6a4e4da252415853cf21582f1cb3bc326", "lsbXorWithNewCover": 0},
+    {"name": "Cover previous repeat 2", "trailerEnd": 844, "logicalSize": 1583, "sectionSha256": "3e8860cdc0dd57f9365ea475337614636ff8563e1eac000bfa620516182307f0", "suffixSha256": "d38cc7a280cd4496b1192043d72fab0c61cb2f466677330cd939c4942d99b973", "lsbXorWithNewCover": 1}
+  ],
+  "interpretation": "All seven suffixes are 739 bytes. At each position their lowest bit is either identical to the new Cover resave across the complete suffix or inverted across the complete suffix, depending on the file. The three authored controls are variations of one source, whereas Cover is a different drawing; the observations are not seven independent producer implementations. They narrow the producer-pattern investigation but do not establish a generator, padding, semantic equivalence or safe omission. The original Cover suffix has 731 bytes and does not share that position-level lowest-bit relation with the new resave.",
+  "disposition": "Keep all suffixes unclaimed and strict-complete output refused. Obtain source-backed producer or normative evidence, test unrelated producer/version controls, and bind any admission to exact framing and integrity. No support claim changes and no DWG/DXF fixtures were committed."
+}

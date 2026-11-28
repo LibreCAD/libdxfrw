@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "title": "Explicit legacy CIRCLE/ARC inverse extrusion for bounded AC1024 DWG output",
+  "status": "BOUNDED_EXPLICIT_AC1024_DWG_QUALIFICATION",
+  "supportClaimEffect": "bounded explicit helper contract only; no broad DWG or 3D claim",
+  "authority": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 sections 20.4.18 and 20.4.20 specify CIRCLE/ARC center, radius, thickness and extrusion and ARC start/end angles.",
+    "circle": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-8663262B-222C-414D-B133-4A8506A27C18.htm",
+    "arc": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-0B14D8F1-0EBA-44BF-9108-57D8CE614BC8.htm",
+    "axis": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm"
+  },
+  "change": "Document that the existing explicit DRW_DxfLegacyExtrusion::toNativeOcs helper may be used before the bounded AC1024 DWG writer route. This changes no runtime implementation, class layout, vtable, default reader/writer behavior, or automatic frame inference. The caller must still guarantee exactly one legacy applyExtrusion call, unchanged relevant coordinates/normal/flag, and exact built-in entity types. It does not represent a general WCS ARC-angle conversion; other DWG revisions remain unqualified.",
+  "physicalSource": {
+    "method": "tools/author_dwg_legacy_extrusion.py authored a scratch R2010 DXF with tilted (0,1,0) and axial-negative (0,0,-1) CIRCLE/ARC entities and nonzero thickness; ODA File Converter 27.1.0 wrote AC1024 DWG. tools/replay_dwg_legacy_extrusion.cpp reads that physical source with applyExt=true, explicitly converts the selected entities and writes a new AC1024 DWG using the bounded material/plotstyle opt-in providers. This is selected geometry, not a whole-document copy. ODA converted both DWGs to DXF with no error files.",
+    "sourceDxfSha256": "eca7a16deb7981b6ccd81a63722184247c7b60d0c193d0d936463efff68a7a87",
+    "sourceDwgSha256": "4f21c04dc5b88e359eee36b52155da59cc2294475ea11571a5ad887c973d2470",
+    "convertedDwgSha256": "899b8371b0ed76b761cf4007f3597a827f07ebf27e6b626871af5082eddc842d",
+    "odaSourceDxfSha256": "edc0bc8db17098eee5c43a6697e077fc8a47e0a918266bc34ab127b8aea5d77a",
+    "odaConvertedDxfSha256": "12ca199381d33806eae238cb3635ded073aba8853ee1afd15e59f05b14293f87",
+    "independent": "tests/dwg_legacy_extrusion_oda_ezdxf.py compared all four ODA-exported entities using ezdxf 1.4.5: OCS centers, normals, radii and thicknesses, WCS centers, ARC angles and WCS endpoints match. Rebuilt tracked replay tool reproduced the identical converted DWG hash."
+  },
+  "generatedSource": {
+    "method": "The focused C++ test generates AC1024 DWGs from scratch, reads raw and applyExt views, converts explicitly, writes, and checks both raw and applied readback. It also refuses an invalid second-entity normal without changing an existing destination, then corrects and retries with the same dwgRW facade.",
+    "normals": "six each of CIRCLE and ARC: identity, negative Z, tilted, nonunit and both sides of the arbitrary-axis cutoff. ODA converted both generated DWGs with no error files; ezdxf independently matched all 12 OCS fields, WCS centers and ARC endpoints.",
+    "originalDwgSha256": "034b7a450e37b9243af09939fc7270159470bebc85e89082738701765cbf6778",
+    "convertedDwgSha256": "053df8c0382fb7b67427318e782b3cb2a0d7286f90aa0bb2954c0248be77fe64",
+    "odaOriginalDxfSha256": "571e73601e57cf359d065f4e192fd46a14883ac211d7a8e2fdb22534e6870f02",
+    "odaConvertedDxfSha256": "68a45169da1f688afa8a85fd33a02ee4c79fef84e07b2b65adc21bf8996b8cd9"
+  },
+  "validation": [
+    "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_legacy_extrusion|dxf_ellipse_extrusion_policy|libdxfrw_dxf_dimension_ocs_extrusion)$' --output-on-failure: 3/3 passed",
+    "build/rpp5gh-evidence/peer/bin/python tests/dwg_legacy_extrusion_oda_ezdxf.py /private/tmp/dwg-extrusion/oda-out/source.dxf /private/tmp/dwg-extrusion/oda-out/converted.dxf 4: PASS",
+    "build/rpp5gh-evidence/peer/bin/python tests/dwg_legacy_extrusion_oda_ezdxf.py /private/tmp/dwg-extrusion/generated-out/original.dxf /private/tmp/dwg-extrusion/generated-out/converted.dxf 12: PASS",
+    "git diff --check: PASS"
+  ],
+  "reproduction": [
+    "build/rpp5gh-evidence/peer/bin/python tools/author_dwg_legacy_extrusion.py <scratch>/input/source.dxf",
+    "ODAFileConverter <scratch>/input <scratch>/source ACAD2010 DWG 0 0 '*.dxf'",
+    "g++ -std=c++17 -Wall -Wextra -Werror -I. -Isrc -Idwg2dxf tools/replay_dwg_legacy_extrusion.cpp build-gcc/libdxfrw.a -o <scratch>/replay",
+    "<scratch>/replay <scratch>/source/source.dwg <scratch>/output/converted.dwg",
+    "Convert source and converted DWGs to separate DXFs with ODA, then run tests/dwg_legacy_extrusion_oda_ezdxf.py <source.dxf> <converted.dxf> 4. Bind all observations to exact per-run SHA-256 hashes; newly generated source IDs/hashes may differ.",
+    "For generated controls, run build-gcc/tests/libdxfrw_dxf_legacy_extrusion_tests --keep, convert its ac1024-original.dwg and ac1024-converted.dwg with ODA, then compare the resulting DXFs using the same script with count 12."
+  ],
+  "limits": [
+    "Only selected CIRCLE/ARC geometry under the stated AC1024 writer providers is checked; source metadata, other object graphs and whole-file fidelity are not qualified.",
+    "The physical source has two normals and four entities; generated peer checks broaden arithmetic coverage but do not establish native semantic behavior for every producer, arbitrary edit or general 3D geometry.",
+    "No DWG/DXF fixture was added."
+  ]
+}

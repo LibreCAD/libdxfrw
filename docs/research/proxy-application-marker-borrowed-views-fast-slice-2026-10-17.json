@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Proxy application marker borrowed views",
+  "mode": "source-demonstrated copy avoidance with generated local controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Borrow group-102 marker text during raw-DXF nesting validation",
+    "Avoid intermediate marker and substring copies while capturing proxy application-group names",
+    "Preserve proxy record scoping and nested application-group behavior"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp"
+    ],
+    "summary": "updateRawDxfApplicationDepth() and collectProxyDxfGroup() now inspect group-102 strings through std::string_view. ProxyCapture retains its required owning group-name string by emplacing the marker's pointer/length range directly, avoiding the former temporary marker string plus substr temporary. Added a focused selector for the existing proxy marker-inside-application-group control.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-proxy-application-marker",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check -- src/libdxfrw.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": {
+      "buildAndCompatibility": "passed",
+      "focusedProxyApplicationMarker": "passed",
+      "owningHardeningCTest": "passed (1/1; 0.30 s)",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "The selected raw-DXF/proxy application-marker paths avoid intermediate owned marker/substr strings. ProxyCapture still owns one copy of each active group name because it uses that name after the immediate marker inspection. This is not an allocator-count, peak-RSS, or throughput measurement.",
+    "coverage": "Existing generated controls validate that group-100 markers inside group-102 application data do not re-arm proxy payload parsing; the owning hardening CTest covers the broader proxy and retained-payload controls.",
+    "limitations": "No full suite, external drawing, peer parser, CAD application, or persistent fixture was used."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "gitMetadataReadOnly": true,
+    "staged": false,
+    "committed": false
+  }
+}

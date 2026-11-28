@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-geom-dependency-dxf-writer-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 geometry-dependency DXF subclass preservation and writer",
+  "status": "LOCAL_PROFILE_AND_DIRECT_WRITER_VERIFIED_GRAPH_ROUTING_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "c0034e6c",
+  "scope": "Retain the four already-bounded AC1024 AcDbAssocGeomDependency subclass values and encode the one independently observed version-0 SingleEdge persistent-subentity profile. This adds a direct record primitive only; associative graph routing and complete conversion remain open.",
+  "sourceProfile": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "alreadyBoundedDwgValues": [
+      "geom class version",
+      "enabled flag",
+      "persistent-subentity class name",
+      "dependent-on-compound-object flag"
+    ],
+    "persistentFixturesAdded": 0
+  },
+  "specificationCheck": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "result": "Read the ODA v5.4.1 common non-entity object section (20.1). It defines enclosing object data, handle and string streams, but does not document this custom associative subclass body. No DWG field order or decoding rule was changed in this slice."
+  },
+  "independentOutput": {
+    "implementation": "LibreDWG 0.14 at commit 6d6a33987a1a97095b069c799c3d8a793320f812",
+    "sourceProjection": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+    "sourceProjectionSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+    "sourceOutput": "/private/tmp/libdxfrw-p4-libredwg-mechanical.dxf",
+    "sourceOutputSha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+    "witnessObjectHandle": "48D",
+    "observation": "All 54 ACDBASSOCGEOMDEPENDENCY records in this mechanical output have the same subclass profile: AcDbAssocGeomDependency / version 0 / enabled true / AcDbAssocPersSubentId / AcDbAssocSingleEdgePersSubentId / dependent-on-compound-object false. The matching LibreDWG JSON projection reports these same fields for handle 48D.",
+    "limits": "Independent output corroborates field spelling, order, values and one source profile. It does not establish application-level subentity meaning or qualify graph conversion."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "DRW_AssociativeObject retains and copies the bounded geometry-dependency values. DXF subclass parsing captures the same sequence. The dependency writer accepts ACDBASSOCGEOMDEPENDENCY only when those values are present, geom class version is 0, and the subentity class is exactly AcDbAssocSingleEdgePersSubentId; it emits the witnessed subclass groups after the shared dependency fields and remaps shared references using the existing writer path. Other geometry-dependency class versions or subentity classes fail atomically.",
+    "graphIntegration": "Not connected to dx_iface. The strict whole-document dwg-associative-graph-not-serialized gate is unchanged.",
+    "supportClaimEffect": "none"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_wave1_tests -j4",
+      "result": "PASS with -Werror"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_associative_dependency_writer|dwg2dxf_associative_callback_contract|dwg2dxf_associative_strict_loss_gate)$' --output-on-failure",
+      "result": "PASS 3/3. Includes exact ASCII/Binary writer projections, remapped common references, refusal of an unqualified version, late-EED rollback and retry, ASCII/Binary typed DXF field parsing, and unchanged strict refusal."
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN; the focused selectors cover the direct writer, parser callback and strict refusal boundaries."
+  },
+  "remaining": "Source-bound graph planner routing, descendants and recursive closure, binding planned identities to emitted objects, independent staged-output inspection/readback, and whole-operation rollback/retry remain open under P4."
+}

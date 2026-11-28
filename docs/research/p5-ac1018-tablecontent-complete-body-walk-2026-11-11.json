@@ -1,0 +1,179 @@
+{
+  "id": "p5-ac1018-tablecontent-complete-body-walk-2026-11-11",
+  "date": "2026-11-11",
+  "scope": "Exact physical-source and same-vendor DXF walk of one AC1018 out-of-version TABLECONTENT object. No graph closure, native consumer qualification, or output support promotion.",
+  "source": {
+    "drawing_sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "object_handle": "0xb9",
+    "class": "TABLECONTENT / AcDbTableContent",
+    "body_sha256": "5caa9921eb02acc3efc94c6d71f90c9bc400dbb7969eb95c4dadf142064630f2",
+    "body_size_bytes": 1719,
+    "source_file_codepage": "30, recognized by current importer; this sample contains only ASCII bytes and does not qualify non-ASCII decoding or exact text round-trip. The separate XRECORD codepage-byte-45 question is still unresolved.",
+    "provenance": "See p5-ac1018-table-descendant-graph-wire-2026-11-11.json for source recreation, callback capture, converter and pinned peer identity."
+  },
+  "authority": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 sections 20.1, 20.4.97, 20.4.99, 20.4.100 and 20.4.101.3-.4. Sections 20.4.97 and 20.4.103 place class introduction in 2008, so AC1018/R2004 is a producer-specific out-of-version profile.",
+    "peer": "LibreDWG 0.14 source JSON successfully identifies the record/parent but misprojects its body fields; it is not a valid field or semantic oracle here. ODA ACAD2004 ASCII DXF is same-vendor producer self-consistency, not independent native semantic evidence."
+  },
+  "data_fields": {
+    "common_shell_end_bit": 71,
+    "name_description_columns": "empty / empty / 3; body starts at bit 71, columns begin at bit 85.",
+    "column_spans": [
+      [
+        85,
+        171
+      ],
+      [
+        171,
+        257
+      ],
+      [
+        257,
+        343
+      ]
+    ],
+    "columns": "Each empty name, zero custom data/map, cell-style type 3/no data, style ID 0, width 152; rows count=3 at bits 343..353.",
+    "row_spans": [
+      [
+        353,
+        3485
+      ],
+      [
+        3485,
+        8261
+      ],
+      [
+        8261,
+        13037
+      ]
+    ],
+    "row_heights": [
+      11.0,
+      9.0,
+      9.0
+    ],
+    "cell_spans": [
+      [
+        363,
+        1953
+      ],
+      [
+        1953,
+        2585
+      ],
+      [
+        2585,
+        3393
+      ],
+      [
+        3495,
+        5053
+      ],
+      [
+        5053,
+        6611
+      ],
+      [
+        6611,
+        8169
+      ],
+      [
+        8271,
+        9829
+      ],
+      [
+        9829,
+        11387
+      ],
+      [
+        11387,
+        12945
+      ]
+    ],
+    "cell_contents": [
+      [
+        [
+          [
+            4,
+            "Title"
+          ]
+        ],
+        [],
+        []
+      ],
+      [
+        [
+          [
+            4,
+            "1"
+          ]
+        ],
+        [
+          [
+            4,
+            "2"
+          ]
+        ],
+        [
+          [
+            4,
+            "3"
+          ]
+        ]
+      ],
+      [
+        [
+          [
+            4,
+            "4"
+          ]
+        ],
+        [
+          [
+            4,
+            "5"
+          ]
+        ],
+        [
+          [
+            4,
+            "6"
+          ]
+        ]
+      ]
+    ],
+    "details": "Verifier parses each cell flags, tooltip, custom-map entries, value formats, content styles, each color encoding, margin flags, border edge/override/type/color/lineweight/visibility/spacing, row style and style IDs. It checks all nine corresponding DXF cell projections and row/column wrappers. Seven checksum entries are exact and the two other cells have empty content/custom maps.",
+    "overall_and_merge": "Zero field-owned references; overall style type 4 with data and no borders; one merged range (row 0 col 0) through (row 0 col 2). All compare to producer DXF. Exact body end bit 13313."
+  },
+  "handles": {
+    "counts": {
+      "parent": 1,
+      "textstyle": 17,
+      "border-linetype": 33,
+      "tablestyle": 1
+    },
+    "wire": "common parent H code 4 size 1 -> 0xbc; seventeen content-format text-style H code 5 size 0 -> null and thirty-three border-linetype H code 5 size 0 -> null in the exact field order produced by the verified data walk; final TABLESTYLE H code 5 size 1 -> 0x6b. 52 handle tokens end at bit 13745 with seven zero alignment bits.",
+    "provenance_limit": "Field association follows the ODA schema and this selected physical data; null references do not qualify non-null ownership, remapping, resource closure or other layouts."
+  },
+  "text_bytes": {
+    "count": 45,
+    "nonempty": 14,
+    "content_termination": "Seven content-value TVs include a final NUL byte; seven checksum key TVs do not. The verifier emits exact field spans and raw hex before comparing the decoded ASCII projection. This does not establish behavior for embedded NULs or non-ASCII bytes."
+  },
+  "verification": {
+    "command": "python3 tools/research/p5_ac1018_tablecontent_interior_verify.py --source /private/tmp/p5-desc-input/input.dwg --peer-json /private/tmp/p5-ac1018-oda-audited-output/peer.json --dxf /private/tmp/p5-desc-dxf-2004/input.dxf --body-dir /private/tmp/p5-desc-repro-captures-isolated",
+    "result": "PASS; independently walked bit-coded payload and handle order, compared every selected cell and corresponding format, borders, column/row wrappers, merge range and TABLESTYLE projection against pinned ODA DXF.",
+    "proof_sha256": "826fca1abb6bcfcc6d8664140dd62115528a30342b7a7fd00ecb3595e429f48d",
+    "tool_sha256": "4bc4bfa9b97abcd6402f5f4fbb6d88df07564c969fa99a2b02904746853e2a5e",
+    "capture": "Reuse the isolated capture command and inputs in the descendant-graph receipt; the capture is source-associated by a real raw callback, not authenticated by the Python decoder alone.",
+    "safety": "Hash-pinned input check rejects altered body before interpretation. No external DWG/DXF fixture is committed."
+  },
+  "implementation_readiness": [
+    "Add an opt-in out-of-band AC1018 source candidate; keep ordinary callbacks and raw-only fallback unchanged until separately qualified.",
+    "Reuse bounded table-content decode helpers only after explicitly aliasing legacy inline body/text cursors and positioning a separate handle cursor at objSize for this R2004 profile. Current seekTableObjectHandleStream only seeks for versions > AC1018 and current standalone parser intentionally refuses version <= AC1018; simply lifting that guard would read handles at the wrong boundary.",
+    "Preserve exact 45 source text byte spans, especially seven trailing-NUL content values; do not infer non-ASCII semantics or drop custom maps, formatting, borders or raw fields.",
+    "Verify field-specific roles (owner soft pointer code 4; format text-style, border linetype and table style hard pointer code 5), exact source/body/handle end and alignment; reject wrong role/count or truncation transactionally and test same-reader corrected retry.",
+    "Bind selected source identity, immutable source/model and dependencies without requiring any consumer callback ABI changes. Treat candidate completeness independently from semantic/output eligibility; do not emit source or mark full graph supported without codepage, resource and recursive closure, independent semantic/native output and atomic failure/retry evidence."
+  ],
+  "remaining": "One source, single-vendor production and conversion; TABLESTYLE and its dependencies, DATATABLE and nine XRECORD descendants, codepage 45, source-bound output and foreign reader/native behavior remain open. Do not alter broad AC1018 TABLECONTENT version gate or enable DXF/DWG output from this receipt alone."
+}

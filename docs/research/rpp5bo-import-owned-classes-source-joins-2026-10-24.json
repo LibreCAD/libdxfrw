@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bo",
+  "date": "2026-10-24",
+  "parentCommit": "9c7373772b84b23995e70ba5f3fd9dc67b099878",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "IMPORT_OWNED_CLASS_BASELINES_AND_UNANIMOUS_SOURCE_JOINS_READY_RASTER_FRAME_BINDING_AND_QUALIFICATION_PENDING",
+  "implementation": {
+    "header": "dwg2dxf/dx_dwg_class_evidence.h",
+    "owner": "Private dx_data import ledger, entered only by dx_iface::fileImport's actual DWG read scope",
+    "metadata": "One shared immutable Rows owner with fixed scalar rows and one flat UTF-8 arena, not mutable public callback copies",
+    "source": "Private copied source/profile report sharing the existing immutable byte owner, not the advisory public-generation lookup",
+    "identity": "Private monotonic actual-attempt counter, expected public label and exclusive data/adapter read owner; direct reader result/version/codepage at seal",
+    "contextRefusals": ["Reentrant/redirected read", "Duplicate/late callback", "Reused public label and historical collision", "Overflow", "Failed/non-DWG attempt cannot reuse an older current report"],
+    "retainedByteEstimateCap": 67108864,
+    "retainedImportCap": 1024,
+    "rowCap": 65036,
+    "budget": "Logical sizes preflight before snapshot allocation; actual row/arena/source capacities checked before publication. Failed active entries/buffers are released and refunded at seal, with a fixed failure result. Successful historical owners remain charged. Advisory/public model budgets remain separate, not a process-wide peak-memory guarantee.",
+    "join": "All syntactically complete source candidates are enumerated independently of expected values. Every scalar, ordinal, descriptor, normalized name and range/address-space/publication field must match the immutable baseline for every framed candidate.",
+    "text": "Encoded-unit convention selection precedes expected UTF-8 comparison; exact and one-final-NUL forms are explicit. Unknown codepages, invalid Unicode and repeated/interior NULs remain refused.",
+    "readOnlyInspection": ["dwgClassEvidence()", "hasUnchangedDwgClassEvidence()"],
+    "inspectionBoundary": "Joined is table/source correlation, not schema, semantic, raster, editable CLASS output, document or support admission. Failure zero counts are unknown, not a qualified empty table.",
+    "installedAPIOrDRWInterfaceVtableChanged": false,
+    "productionRecordGrammarOrWriterChanged": false,
+    "ordinaryReadResultChangedByEvidenceFailure": false,
+    "unsupportedReentrantImportNowExplicitlyRefused": true,
+    "issueMasksOrOutputAdmissionChanged": false
+  },
+  "workSharing": {
+    "observer": "observeSectionTails shares one independent record/CRC prerequisite per common profile; every tail separately verifies END/extension/envelope accounting.",
+    "binding": "Common scalar/text streams are matched once, with every framed and matched candidate retained in masks; a proper matched subset fails rather than selecting a convenient profile.",
+    "observerStandard": "C++14, allocation-free",
+    "bindingStandard": "Existing C++17 converter context",
+    "batchSingleDifferentialControls": 480,
+    "comparedResultComponents": 52,
+    "performanceClaim": false
+  },
+  "ambiguousScratchEvidence": {
+    "origin": "Locally authored byte/bit packet and nibble CRC recurrence, no production writer and no external drawing fixture",
+    "fieldOrder": ["Class DWG version", "Class maintenance", "Unknown1", "Unknown2"],
+    "BS": [257, 1024, 67305985, 100860417],
+    "BL": [16777473, -1048559616, -1048559616, 0],
+    "completeFramingCandidates": 2,
+    "matchingEitherBaselineIndividually": 1,
+    "requiredResult": "RowMismatch for both baselines: expected values cannot select a schema",
+    "otherControls": ["Small-value all-candidate agreement remains explicitly ambiguous", "Uniquely framed large-field case", "Malformed arena span", "Exact/single-NUL/codepage/surrogate/forged-issue text controls"],
+    "bindingControls": 17,
+    "nativeProducerOrSemanticQualificationClaim": false
+  },
+  "nativeAndFaultControls": {
+    "assertions": 1989,
+    "nativeFixtures": ["tests/fixtures/dwg/ordinary_enc_AC1015.dwg", "tests/fixtures/dwg/ordinary_enc_AC1018.dwg", "tests/fixtures/dwg/ordinary_enc_AC1021.dwg", "tests/fixtures/dwg/ordinary_enc_AC1027.dwg"],
+    "uniqueCorrelatedRows": 255,
+    "fixtureByteEvidence": "Existing fixture hashes and framing spans recorded in unchanged RPP-5bn receipt; no fixture changed in this slice.",
+    "actualEntry": "fileImport drives the native and callback drop/duplicate/throw/request-failure controls; friend helpers are fault microcontracts only, not qualification.",
+    "controls": [
+      "All27 scalar/name/range/state row mutations fail current-state comparison and independent frozen joins",
+      "Private immutable owner never refreshes from edited public coverage",
+      "Public outcome/version/codepage/generation edits cannot promote authority",
+      "Exact and one-under aggregate budgets; row preflight refuses with allocations disabled",
+      "Snapshot owner/row-vector/arena allocation failures and later fresh-generation recovery",
+      "Independent source inspection and finishing with all allocations failing",
+      "Failed snapshot entries refund all private retained-byte charges at seal",
+      "Entry-count cap, context/map allocation, missing/duplicate row and source callbacks",
+      "Partial class coverage and ordinary read failure remain unqualified",
+      "Source version/codepage/range/descriptor/count/ownership/completion/CRC mutations",
+      "Actual late callbacks, failed file open, fake success flags and public-label reuse do not revive history",
+      "Collided historical labels are poisoned; a genuine fresh actual import recovers",
+      "Redirected owner, in-read generation edit, reentrant request and overflow refusal",
+      "Actual dropped/duplicated/throwing row callbacks and dropped/duplicated/request-failed source channel preserve ordinary parse results",
+      "Empty literal table is matched as empty; adding a public row invalidates it",
+      "No-capture converter still reports SourceUnavailable instead of invented evidence"
+    ]
+  },
+  "validation": {
+    "build": {"result": "PASS", "flags": "Strict project warnings, no -Werror bypass; standalone observer C++14 and metadata binding C++17", "logs": ["/tmp/rpp5bo-final-build.log", "/tmp/rpp5bo-checkpoint-build.log", "/tmp/rpp5bo-source-freeze-build.log", "/tmp/rpp5bo-binding-final-build.log"]},
+    "focused": {"result": "PASS", "passed": 8, "total": 8, "wallSeconds": 10.73, "parallelism": 3, "tests": ["libdxfrw_class_source_join", "libdxfrw_class_section_independent_wire", "libdxfrw_class_dwg_independent_wire", "libdxfrw_raster_dwg_independent_wire", "libdxfrw_dwg_class_source", "libdxfrw_adapter_build_context", "libdxfrw_cli_optional_build", "libdxfrw_public_header_hygiene"], "log": "/tmp/rpp5bo-fast-tests.log"},
+    "sourceContracts": {"result": "PASS", "assertions": 1989, "log": "/tmp/rpp5bo-source-freeze-controls.log"},
+    "owning": {"result": "PASS", "passed": 5, "total": 5, "wallSeconds": 9.41, "parallelism": 3, "tests": ["libdxfrw_wave1", "libdxfrw_dwg_local_roundtrip", "libdxfrw_dwg_object_vectors", "libdxfrw_hardening", "libdxfrw_dxf_fixtures"], "log": "/tmp/rpp5bo-owning-tests.log"},
+    "readerConsumers": {"result": "PASS", "passed": 4, "total": 4, "wallSeconds": 2.40, "parallelism": 3, "tests": ["libdxfrw_dwg_reader_matrix", "libdxfrw_dwg_fixtures", "libdxfrw_named_resource_import_evidence", "libdxfrw_3d_consumer_probe"], "log": "/tmp/rpp5bo-compat-tests.log"},
+    "asan": {"result": "PASS", "passed": 3, "total": 3, "wallSeconds": 0.95, "options": "halt_on_error=1:detect_leaks=0", "tests": ["libdxfrw_dwg_class_source", "libdxfrw_class_section_independent_wire", "libdxfrw_class_source_join"], "log": "/tmp/rpp5bo-asan-final-tests.log"},
+    "combinedAsanUbsan": {"result": "PASS", "tests": ["Standalone metadata/source binding", "Standalone section/tail equivalence"], "logs": ["/tmp/rpp5bo-binding-combined-sanitizer.log", "/tmp/rpp5bo-section-combined-sanitizer.log"]},
+    "bindingAndSectionStandaloneLinkage": ["libc++", "libSystem"],
+    "libreCAD3CompileGate": "PASS",
+    "heavyOwningCohortsSequential": true,
+    "fullSuite": "NOT_RUN",
+    "nativeExternalSemanticOrThroughputQualificationClaim": false
+  },
+  "next": [
+    "Capture private actual-import identity in raw raster and publication staging, then join encoded/resolved type and class stream ordinal to the immutable class/source entry",
+    "Compare complete custom IMAGEDEF/reactor identity and carried metadata without inventing custom ordinals for fixed types or using public generation as sole authority",
+    "Class-role, alias, missing, mutation, rollback/retry and cross-attempt tests before any issue-mask/output policy change",
+    "Resolve profile and body/path/EED text qualification separately from the new Joined state",
+    "Native AC1024/AC1032 and independent large-field producer semantics remain unqualified by current fixtures/scratch vectors",
+    "Carry forward sparse-class native reproduction, IMAGE/common-state, NOD/document, LAYER/codepage, APPID/LAYER/XRECORD and broader existing dependencies"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "existingClassEnvelopeOrTextSemanticsIssueMasksCleared": false,
+    "J256": "DEFERRED_EXTERNAL", "J260": "DEFERRED_EXTERNAL", "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL", "J293": "DEFERRED_EXTERNAL", "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0,
+    "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false,
+    "unrelatedUntrackedFilesPreserved": true,
+    "remoteMutations": false
+  }
+}

@@ -1,0 +1,434 @@
+{
+  "advisory": true,
+  "historicalSetDigestSha256": null,
+  "interpretation": "The later snapshot has 24 DWG-magic streams and four DXF-magic .dwg aliases; the historical sweep input bytes are not proven identical to that snapshot. Status rows alone establish no semantic parity.",
+  "joinLimit": "All 28 basenames match the later snapshot; six selected source hashes also match a second snapshot taken 52m31.041s before the original sweep. The later full inventory ran 7h36m24.232s after the sweep. No at-sweep byte hashes or immutable file snapshot were recovered, so even matching bracketing hashes do not prove the bytes used by the sweep.",
+  "kind": "j268-original-execution-transcript-recovery-v1",
+  "laterSnapshotMagicCounts": {
+    "999\\ndx": 4,
+    "AC1015": 1,
+    "AC1018": 2,
+    "AC1021": 11,
+    "AC1024": 9,
+    "AC1027": 1
+  },
+  "originalCommand": "Sort the local *.dwg paths; for each run baseline then upgraded dwg2dxf SOURCE -y -v2010 OUTPUT with four-second timeout; remove temporary output; classify by exit status only.",
+  "originalMembershipBasis": "28 path basenames and exit statuses recovered from the execution transcript; original run did not print source hashes",
+  "promotesSupportClaims": false,
+  "provenance": "All three execution records are in the local Codex session 01a09a72-4aa5-7562-a791-9cf6d27e32af; record hashes are SHA-256 over the UTF-8 JSONL record excluding its line terminator. The transcript is local and is not included in this repository.",
+  "records": {
+    "earlierSelectedHashInventory": {
+      "allMatchLaterSnapshot": true,
+      "executionRecordSha256": "198827ab400ebec7983fee79b9feea89d47d54c225cb83aeebf6b02b75853842",
+      "exitStatus": 0,
+      "minutesBeforeSweep": 52.51735,
+      "outputSha256": "fe2e5e0b480d9d8d75376273a467e8d02f1e24f654aa3754588cd384396133d1",
+      "selectedRows": 6,
+      "timestamp": "2026-09-16T00:37:25.843Z"
+    },
+    "laterIndependentHashInventory": {
+      "executionRecordSha256": "556644b97a1a257ca7564dc3c44c69e1e1799acdd2547949d024ea5223e4270d",
+      "exitStatus": 0,
+      "outputSha256": "0ffe50372394a6492b9c30d53736dbc79b50b813f955c547b262badd612ed231",
+      "timestamp": "2026-09-16T09:06:21.116Z"
+    },
+    "originalSweep": {
+      "executionRecordSha256": "36e9b40b20259dd890880558413d1c0d03bf4120c0301e811eddc1da0270eeab",
+      "exitStatus": 0,
+      "outputSha256": "81c5334efb845da9d120ca403cab0a5d766c5a8bae75c3957ba21cda54cdc068",
+      "timestamp": "2026-09-16T01:29:56.884Z"
+    }
+  },
+  "remaining": "Recover at-sweep content hashes or an immutable source snapshot with matching contemporaneous provenance before asserting a historical set digest; independent semantic and current-platform qualification remain separate. J268 stays DEFERRED_EXTERNAL.",
+  "rows": [
+    {
+      "baselineExit": 1,
+      "baselineTimeout": false,
+      "basename": "#Pool_Detail.dwg",
+      "classification": "neither",
+      "currentExit": 1,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "999\\ndx",
+        "laterSize": 1228697,
+        "laterSnapshotSha256": "8cfad4e4090ce5fead86c8fd4ed17020f6d13a4dda86f67d92953f10e8bf04ca"
+      }
+    },
+    {
+      "baselineExit": 1,
+      "baselineTimeout": false,
+      "basename": "#blocks_and_tables_-_metric.dwg",
+      "classification": "neither",
+      "currentExit": 1,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "999\\ndx",
+        "laterSize": 378774,
+        "laterSnapshotSha256": "e22c24d315c9f5819b2e8c3763c6dbb2a8d3ee450754f0f180763fd581a1ac17"
+      }
+    },
+    {
+      "baselineExit": 1,
+      "baselineTimeout": false,
+      "basename": "#mechanical_example-imperial.dwg",
+      "classification": "neither",
+      "currentExit": 1,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "999\\ndx",
+        "laterSize": 67441,
+        "laterSnapshotSha256": "57ec80c861976ea8b100033f2f92fcaf230e134a3a40d3ec9f3417bb173c6fcc"
+      }
+    },
+    {
+      "baselineExit": 1,
+      "baselineTimeout": false,
+      "basename": "#title_block-iso.dwg",
+      "classification": "neither",
+      "currentExit": 1,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "999\\ndx",
+        "laterSize": 111516,
+        "laterSnapshotSha256": "47bb4c784621b50b4b5395c8374a9e7c8cb9ad4886fd7f901aa25019a1a53987"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "Cover.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1027",
+        "laterSize": 18880,
+        "laterSnapshotSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "ET-Drawing-with-Border.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1018",
+        "laterSize": 30217,
+        "laterSnapshotSha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b"
+      }
+    },
+    {
+      "baselineExit": 1,
+      "baselineTimeout": false,
+      "basename": "Extruder2.dwg",
+      "classification": "neither",
+      "currentExit": 1,
+      "currentTimeout": false,
+      "earlierSnapshot": {
+        "magic": "AC1018",
+        "sha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c"
+      },
+      "laterSnapshot": {
+        "laterMagic": "AC1018",
+        "laterSize": 2856002,
+        "laterSnapshotSha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "Pool_Detail.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1021",
+        "laterSize": 420256,
+        "laterSnapshotSha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "architectural_-_annotation_scaling_and_multileaders.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1021",
+        "laterSize": 188992,
+        "laterSnapshotSha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654"
+      }
+    },
+    {
+      "baselineExit": 1,
+      "baselineTimeout": false,
+      "basename": "architectural_example-imperial.dwg",
+      "classification": "improvement",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1024",
+        "laterSize": 148638,
+        "laterSnapshotSha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "blocks_and_tables_-_imperial.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "earlierSnapshot": {
+        "magic": "AC1021",
+        "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07"
+      },
+      "laterSnapshot": {
+        "laterMagic": "AC1021",
+        "laterSize": 227008,
+        "laterSnapshotSha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "blocks_and_tables_-_metric.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "earlierSnapshot": {
+        "magic": "AC1021",
+        "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1"
+      },
+      "laterSnapshot": {
+        "laterMagic": "AC1021",
+        "laterSize": 258848,
+        "laterSnapshotSha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "children-room-decoration.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1021",
+        "laterSize": 1715680,
+        "laterSnapshotSha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce"
+      }
+    },
+    {
+      "baselineExit": 1,
+      "baselineTimeout": false,
+      "basename": "civil_example-imperial.dwg",
+      "classification": "improvement",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1024",
+        "laterSize": 169592,
+        "laterSnapshotSha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc"
+      }
+    },
+    {
+      "baselineExit": 1,
+      "baselineTimeout": false,
+      "basename": "colorwh.dwg",
+      "classification": "neither",
+      "currentExit": null,
+      "currentTimeout": true,
+      "earlierSnapshot": {
+        "magic": "AC1021",
+        "sha256": "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344"
+      },
+      "laterSnapshot": {
+        "laterMagic": "AC1021",
+        "laterSize": 1786976,
+        "laterSnapshotSha256": "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344"
+      }
+    },
+    {
+      "baselineExit": -6,
+      "baselineTimeout": false,
+      "basename": "dwgreader21_230.dwg",
+      "classification": "neither",
+      "currentExit": 1,
+      "currentTimeout": false,
+      "earlierSnapshot": {
+        "magic": "AC1021",
+        "sha256": "21b49e383cc43171fd13e2bbcd1c235bc1a57804be97f63a0d581fb944e743ff"
+      },
+      "laterSnapshot": {
+        "laterMagic": "AC1021",
+        "laterSize": 522,
+        "laterSnapshotSha256": "21b49e383cc43171fd13e2bbcd1c235bc1a57804be97f63a0d581fb944e743ff"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "lineweights.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1021",
+        "laterSize": 58496,
+        "laterSnapshotSha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d"
+      }
+    },
+    {
+      "baselineExit": 1,
+      "baselineTimeout": false,
+      "basename": "mechanical_example-imperial.dwg",
+      "classification": "improvement",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1024",
+        "laterSize": 142267,
+        "laterSnapshotSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "plot_screening_and_fill_patterns.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1021",
+        "laterSize": 85952,
+        "laterSnapshotSha256": "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71"
+      }
+    },
+    {
+      "baselineExit": 1,
+      "baselineTimeout": false,
+      "basename": "simple.dwg",
+      "classification": "neither",
+      "currentExit": 1,
+      "currentTimeout": false,
+      "earlierSnapshot": {
+        "magic": "AC1015",
+        "sha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58"
+      },
+      "laterSnapshot": {
+        "laterMagic": "AC1015",
+        "laterSize": 12117,
+        "laterSnapshotSha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "tablet.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1021",
+        "laterSize": 438656,
+        "laterSnapshotSha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4"
+      }
+    },
+    {
+      "baselineExit": 1,
+      "baselineTimeout": false,
+      "basename": "title_block-arch.dwg",
+      "classification": "improvement",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1024",
+        "laterSize": 126985,
+        "laterSnapshotSha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d"
+      }
+    },
+    {
+      "baselineExit": 1,
+      "baselineTimeout": false,
+      "basename": "title_block-iso.dwg",
+      "classification": "improvement",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1024",
+        "laterSize": 128233,
+        "laterSnapshotSha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "truetype.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1021",
+        "laterSize": 70464,
+        "laterSnapshotSha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "visualization_-_aerial.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1024",
+        "laterSize": 733036,
+        "laterSnapshotSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "visualization_-_condominium_with_skylight.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1024",
+        "laterSize": 1415699,
+        "laterSnapshotSha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "visualization_-_conference_room.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1024",
+        "laterSize": 973730,
+        "laterSnapshotSha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4"
+      }
+    },
+    {
+      "baselineExit": 0,
+      "baselineTimeout": false,
+      "basename": "visualization_-_sun_and_sky_demo.dwg",
+      "classification": "neither",
+      "currentExit": 0,
+      "currentTimeout": false,
+      "laterSnapshot": {
+        "laterMagic": "AC1024",
+        "laterSize": 553297,
+        "laterSnapshotSha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881"
+      }
+    }
+  ],
+  "schema": 1
+}

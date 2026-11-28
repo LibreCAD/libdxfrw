@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-dynamic-block-visibility-grip-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Qualify the isolated AC1024 BLOCKVISIBILITYGRIP body",
+  "status": "ISOLATED_RECORD_BODY_QUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "record": "BLOCKVISIBILITYGRIP",
+    "handle": "0x1119",
+    "evaluationGraph": "0x1117",
+    "fields": {
+      "evalExprVersion": [29, 2],
+      "evalExprValueCode": -9999,
+      "nodeId": 17,
+      "elementName": "Grip",
+      "elementVersion": [29, 2],
+      "eed1071": 0,
+      "linkedExpressionNodeIds": [18, 19],
+      "location": [0.0, 0.0, 0.0],
+      "insertCycling": false,
+      "insertCyclingWeight": -1
+    },
+    "readers": [
+      {
+        "implementation": "LibreDWG",
+        "version": "0.14",
+        "command": "dwgread -O JSON title_block-arch.dwg",
+        "observed": "BLOCKVISIBILITYGRIP handle 0x1119 has EvalExpr 29/2, value_code -9999, node 17, grip links 18/19, zero location, disabled insert cycling and weight -1."
+      },
+      {
+        "implementation": "libdxfrw",
+        "revision": "local working tree before this slice",
+        "command": "/private/tmp/read_dynamic",
+        "observed": "The existing AC1024 DWG parser reports a complete Kind::Grip body with EvalExpr 29/2, AcDbBlockElement 29/2, name Grip, eed1071 0, grip values 18/19, zero location, false cycling and weight -1."
+      }
+    ],
+    "independentOutput": {
+      "implementation": "LibreDWG",
+      "version": "0.14",
+      "command": "dwg2dxf -y --as r2010 -o title_block_arch_libredwg.dxf title_block-arch.dwg",
+      "outputSha256": "dea419cf73dc1a135918d76f6a4bfc422b8fab6e3aeebbc43fe18c0c54188678",
+      "observed": "The record omits the EvalExpr value union for source value_code -9999. The exact body uses EvalExpr groups 90/98/99 = 17/33/29, AcDbBlockElement name Grip and groups 98/99/1071 = 33/29/0, then AcDbBlockGrip groups 91/92/1010/1020/1030/280/93 = 18/19/0/0/0/0/-1, followed by AcDbBlockVisibilityGrip."
+    },
+    "schemaSource": {
+      "repository": "LibreDWG/libredwg",
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "file": "src/dwg2.spec",
+      "sha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "observed": "AcDbEvalExpr omits DXF groups 1/70/value when value_code is -9999. AcDbBlockElement emits DXF version constants 33/29 for AC1024+. AcDbBlockGrip emits the linked node IDs, 3BD location, cycling flag and weight in the observed order."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "Add strict AC1024 BLOCKVISIBILITYGRIP DXF parsing and exact body serialization for the observed no-value EvalExpr body, AcDbBlockElement version projection, and AcDbBlockGrip fields. High-level adapter admission remains fail-closed for this record outside a complete owner graph.",
+    "scope": "One isolated record body sourced from AC1024 handle 0x1119. This does not qualify the enclosing EvaluationGraph, either visibility-parameter state body, graph-edge semantics, DICTIONARY ownership, Sortents ownership, or document conversion."
+  },
+  "qualification": {
+    "targetVersion": "AC1024",
+    "ascii": "PASS: exact 18-group body sequence and fresh typed readback preserve the observed fields.",
+    "binary": "PASS: exact 18-group body sequence and fresh typed readback preserve the observed fields.",
+    "parserRefusal": "PASS: changing the linked group-92 node ID from 19 to 20 leaves the raw DXF record readable but does not mark its typed body complete.",
+    "failureAndRetry": "PASS: unsupported linked node ID 20 leaves an existing destination byte-for-byte intact; correcting it to source-backed ID 19 and reusing the same dxfRW writer succeeds.",
+    "ownerGraphBoundary": "PASS: the high-level DXF adapter still refuses a BLOCKVISIBILITYGRIP with no complete owner EvaluationGraph/dictionary route.",
+    "focusedValidation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "selector": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_visibility_grip$' --output-on-failure",
+      "result": "1/1 passed in 0.49 seconds"
+    },
+    "fixturePolicy": "Test records are authored in C++; ASCII/Binary output is temporary and removed. No investigation DWG or DXF fixture was added."
+  }
+}

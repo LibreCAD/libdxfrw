@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "title": "AC1024 POINT independent read-field witness",
+  "scope": "Compare one hash-bound AutoCAD-authored AC1024 POINT across its DWG, paired source DXF, libdxfrw's current-source reader, and LibreDWG 0.14.",
+  "source": {
+    "repository": "https://github.com/nextgis/dwg_samples",
+    "revision": "ff05d5a89ce123da511ed93c5fe5e6df85e02ab8",
+    "producer": "AutoCAD 2016 M.49.0.0, as documented by the repository README",
+    "profile": "2010",
+    "dwg": {
+      "file": "point3d_2010.dwg",
+      "sha256": "9819e04c3ae5e75fb4aa0c6265e77421faa833acec0ebbb60feb34f019259b19"
+    },
+    "pairedDxf": {
+      "file": "point3d_2010.dxf",
+      "sha256": "1bccc1155424d48fe7d79de991db9d3dd5b9e818298e50c1e73a6579d6132cdf"
+    }
+  },
+  "layoutAuthority": "ODA Open Design Specification v5.4.1, section 20.4.31 (POINT)",
+  "result": {
+    "status": "matched",
+    "independentReader": "LibreDWG dwgread 0.14",
+    "entity": "POINT",
+    "handle": "0x7c",
+    "wcsXYZ": [50.0, 50.0, 50.0],
+    "extrusion": [0.0, 0.0, 1.0],
+    "comparedSources": [
+      "libdxfrw DWG semantic adapter built from source revision cd7597ccbfdf1bfe3c27912a63ebe2c4a369c8cd",
+      "paired source DXF read through libdxfrw",
+      "LibreDWG 0.14 DWG reader"
+    ]
+  },
+  "validation": {
+    "adapterProfileFix": "Updated the standalone test adapter inventory to include the two current defaulted callbacks addDwgTemplateDescription and addProxySubentityMarker, while retaining the common LibreCAD interface digest and prior accepted inventories.",
+    "adapterSelfTest": "PASS",
+    "controlledBuild": "PASS",
+    "adapterSha256": "8eb8a13ddb0d33dc1eb87c8901618051ef7b17599e25ea514ba61c92c3b3a2ab",
+    "comparisonCommand": "python3 tools/compare_dwg_3d_consumer_oracle.py --adapter <controlled current-source adapter> --dwgread /opt/homebrew/bin/dwgread --input <point3d_2010.dwg>"
+  },
+  "claimBoundary": "One POINT read-field witness for this pinned AC1024 file only. This does not qualify other entities, versions, DWG writing, FreeCAD geometry, or general AC1024 support, and it does not reproduce or resolve the AutoCAD 2010 RTM CLASSES high-bit-size failure.",
+  "fixturePolicy": "Both downloaded files and the built adapter remained under /private/tmp; no external fixture was added to the repository."
+}

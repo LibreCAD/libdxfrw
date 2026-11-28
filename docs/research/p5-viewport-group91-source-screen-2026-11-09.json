@@ -1,0 +1,43 @@
+{
+  "id": "p5-viewport-group91-source-screen-2026-11-09",
+  "date": "2026-11-09",
+  "question": "Do available references resolve whether VIEWPORT DXF group 91 is a soft-pointer handle or a 32-bit integer?",
+  "sources": [
+    {
+      "name": "Autodesk AutoCAD 2008 DXF Reference",
+      "url": "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2008.pdf",
+      "finding": "The VIEWPORT entity table calls group 91 a soft-pointer reference to a viewport object for layer VP property override.",
+      "limitation": "Documentation only; no native ASCII or Binary DXF bytes were inspected."
+    },
+    {
+      "name": "Autodesk VIEWPORT DXF Reference, 2020",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "finding": "The VIEWPORT entity table again calls group 91 a soft-pointer reference for layer VP property override.",
+      "limitation": "Documentation only; does not resolve the generic 90-99 Int32 classification against physical encoding."
+    },
+    {
+      "name": "Autodesk VIEWPORT DXF Reference, 2021",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "finding": "The VIEWPORT entity table repeats the soft-pointer description for group 91.",
+      "limitation": "Documentation only; no producer output was inspected."
+    },
+    {
+      "name": "ezdxf LayerOverrides documentation",
+      "url": "https://ezdxf.mozman.at/docs/tables/layer_table_entry.html",
+      "finding": "The implementation documents viewport-specific layer override values on LAYER entries and explicitly says this DXF storage implementation is not documented by the DXF reference.",
+      "limitation": "Independent implementation documentation, not a native producer witness and not evidence for the physical type of VIEWPORT group 91."
+    }
+  ],
+  "result": "Not resolved. The Autodesk entity-specific description is consistent across the screened versions, but available open-source implementation documentation does not provide byte-level corroboration and describes a different storage location. The generic Int32 classification remains in conflict.",
+  "generated_peer_probe": {
+    "producer": "ezdxf 1.4.4",
+    "generation": "Created an R2010 DXF from scratch with one paper-space VIEWPORT and one LAYER color override, then committed the LayerOverrides value with the viewport handle.",
+    "sha256": "e84a9775edc7dfcf09fae5612193af9c951f4ca7f01a0a085c67b9a5ff27372c",
+    "temporary_path": "/private/tmp/ezdxf-viewport-override.dxf",
+    "observation": "The VIEWPORT record (handle 30) contains no group 91. The color override is stored in an XRECORD under the layer extension dictionary, with 102 {ADSK_LYR_COLOR_OVERRIDE, 335 30, and 420 -1023410175.",
+    "limitation": "Generated peer output, not native AutoCAD/BricsCAD output. It demonstrates ezdxf's color-override route only and does not resolve VIEWPORT group-91 physical typing or general override semantics."
+  },
+  "implementation_disposition": "Keep DRW_Viewport::parseCode refusal for group 91 and keep output closed pending a native ASCII/Binary witness or stronger authoritative byte-format evidence.",
+  "support_claim_effect": "None. This screen does not promote VIEWPORT layer override support.",
+  "fixture_policy": "No DXF/DWG fixture downloaded or added."
+}

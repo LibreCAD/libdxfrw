@@ -1,0 +1,63 @@
+{
+  "title": "ezdxf binary proxy-graphic fix and artifact boundary",
+  "date": "2026-10-20",
+  "sources": [
+    {
+      "name": "Autodesk ACAD_PROXY_ENTITY DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-89A690F9-E859-4D57-89EA-750F3FB76C6B.htm",
+      "observed": "Defines group 92 as graphics byte size, group 310 as binary graphics chunks, group 93 as entity-data bit size, and a separate optional group-310 entity-data sequence.",
+      "evidenceCeiling": "Field-role contract only; not arbitrary proxy validity, semantic execution safety, or 3D interpretation."
+    },
+    {
+      "name": "Autodesk common entity group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "observed": "Describes group 92 as the byte count for subsequent group-310 proxy-graphics chunks and cautions that displayed code-table ordering is not immutable.",
+      "evidenceCeiling": "DXF field description; not a universal ordering rule or native acceptance result."
+    },
+    {
+      "name": "ezdxf issue #1412",
+      "url": "https://github.com/mozman/ezdxf/issues/1412",
+      "observed": "ezdxf 1.4.4 ASCII proxy-graphic output succeeded while Binary DXF output raised TypeError because a pre-encoded string was passed to a binary writer expecting bytes.",
+      "revision": "Issue opened 2026-08-29; closed as completed by PR #1418 on 2026-10-02.",
+      "evidenceCeiling": "Issue report for the named version/runtime; not a libdxfrw defect."
+    },
+    {
+      "name": "ezdxf PR #1418 merge commit",
+      "url": "https://github.com/mozman/ezdxf/commit/c87c87e65937feede396e5861eec703bde701ec8",
+      "revision": "c87c87e65937feede396e5861eec703bde701ec8",
+      "observed": "Merged change passes raw DXFBinaryTag chunks through the tag-writer protocol and adds generated ASCII/Binary payload tests across AC1021/AC1024 count-code profiles and size boundaries.",
+      "evidenceCeiling": "Merged-source behavior and its added regression shape; no peer artifact was executed in this review."
+    },
+    {
+      "name": "ezdxf v1.4.5 release tag",
+      "url": "https://github.com/mozman/ezdxf/releases/tag/v1.4.5",
+      "revision": "tag target 84ae319",
+      "observed": "The public release page identifies v1.4.5 and target commit 84ae319.",
+      "evidenceCeiling": "Release source identity only; this pass did not establish that the tag contains c87c87e or inspect the release tree."
+    },
+    {
+      "name": "PyPI ezdxf release metadata",
+      "url": "https://pypi.org/project/ezdxf/",
+      "revision": "v1.4.5 metadata reviewed 2026-10-20",
+      "observed": "PyPI lists upload date 2026-10-16, sdist SHA-256 a6c3bbc1a65ce764d97c5beafe6ae693d8ed14c6cdae366b50e1974a79d4a00, and pure-Python wheel SHA-256 70a79ec7d40990f60453e3c87ffe9f668907ee061cf6f4c0a3794d032ec2b40e.",
+      "evidenceCeiling": "Artifact identity/checksum metadata, not source-to-artifact binding or runtime behavior."
+    },
+    {
+      "name": "Local libdxfrw output and tests",
+      "url": "src/libdxfrw.cpp; tests/dxf_fixture_tests.cpp; DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-76/PAR-128",
+      "revision": "Shared worktree source reviewed 2026-10-20",
+      "observed": "The writer emits version-dependent count codes 92/160 and group-310 chunks from the raw byte carrier. The exact 0/127/128/255/256-byte chunk-boundary matrix is LINE-based; current replay admission also allows POINT, CIRCLE, ARC, and ELLIPSE, for which the existing test owner contains generated positive routes. The source/test inventory supersedes older plan text describing a LINE-only allowlist.",
+      "evidenceCeiling": "Local raw-carrier transport regression scope; not arbitrary proxy semantics, ACIS/ACDS, B-rep, or native application qualification."
+    }
+  ],
+  "conclusions": [
+    "The stale instruction to re-resolve ezdxf PR #1418 is superseded: the issue is closed by merged source commit c87c87e65937feede396e5861eec703bde701ec8.",
+    "The v1.4.5 release tag and PyPI checksums identify candidate artifacts but were not bound to the merged fix or executed; package-level comparator status remains unqualified.",
+    "Local PAR-76/PAR-128 coverage already tests the relevant binary-carrier encoding boundary, so no new local test, code, fixture, dependency, or CTest is justified.",
+    "This work is non-promoting: findings/subplans remain 141/78 and J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ],
+  "actions": [
+    "At the next already-planned composed comparator checkpoint, pin one exact ezdxf artifact hash and verify ASCII and Binary proxy chunk equality, byte counts, and next-record alignment before recording comparator success.",
+    "Do not block local implementation or per-slice fast validation on optional ezdxf availability."
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader DWG reader release-boundary and 3D evidence-source audit",
+  "mode": "primary-source web research and read-only local plan review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile the current ezdwg published artifact with its mutable development source and documented entity/version paths",
+    "Recheck whether its reader, DXF writer, and native DWG writer are independent evidence routes",
+    "Verify the official OCCT licensing and kernel-lineage boundary for ACIS SAT/SAB evidence",
+    "Update optional peer admission while preserving focused validation and deferred external support conditions"
+  ],
+  "method": {
+    "kind": "Read primary project, package-index, and official OCCT source pages; compare with existing local route plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-ft-model-cpp-dwg-parser-route-review-2026-10-18.json"
+    ],
+    "limitations": "GitHub main documentation is mutable. PyPI reports that ezdwg 0.16.3 was not uploaded using Trusted Publishing; the current GitHub workspace version matches the release string, but this review did not establish a cryptographic source-commit-to-sdist/wheel relationship or conduct a full parser provenance audit. No executable, local sample, CAD kernel, or native consumer was tested."
+  },
+  "sources": [
+    {
+      "project": "ezdwg 0.16.3 PyPI release",
+      "urls": [
+        "https://pypi.org/project/ezdwg/0.16.3/"
+      ],
+      "revision": "Published release page reviewed 2026-10-18; release date shown as 2026-10-17",
+      "observed": "The latest published version is 0.16.3. The source distribution SHA-256 is 77978afa63fdcc61a18abbd581b9bb1cdac09e5a1747840bb689fbd9771b230c. PyPI metadata says Trusted Publishing was not used. Platform wheels exist and must be treated as separate artifacts with their own hashes."
+    },
+    {
+      "project": "ezdwg README, current workspace/core manifests, and API documentation",
+      "urls": [
+        "https://github.com/monozukuri-ai/ezdwg",
+        "https://raw.githubusercontent.com/monozukuri-ai/ezdwg/main/Cargo.toml",
+        "https://raw.githubusercontent.com/monozukuri-ai/ezdwg/main/crates/ezdwg-core/Cargo.toml",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/api/index.md"
+      ],
+      "revision": "Mutable GitHub main reviewed 2026-10-18; current workspace version reads 0.16.3",
+      "observed": "The Rust core exposes raw decode functions and a high-level document/layout/entity API. Its direct manifest dependency is encoding_rs. The README states AC1012/AC1014 are experimental, names a narrow native-decode regression subset for modern AC codes, reports best-effort style/layer-color behavior on some files, limits the native writer to AC1015/subsets, and identifies ezdxf as the DWG-to-DXF writer backend. The version-string match does not bind source to PyPI artifact."
+    },
+    {
+      "project": "ezdwg current changelog",
+      "urls": [
+        "https://raw.githubusercontent.com/monozukuri-ai/ezdwg/main/docs/changelog.md"
+      ],
+      "revision": "Mutable main reviewed 2026-10-18; changes are under the Unreleased heading",
+      "observed": "Unreleased notes describe additional native AC1021/AC1024/AC1027 decode paths, removal of a DWG compatibility-conversion route, additional version-aware fields/dimensions, and paired-DXF tests. These source-tree notes are not attributed to the 0.16.3 release absent an immutable matching artifact. Paired DXF checks are not by themselves native DWG producer truth."
+    },
+    {
+      "project": "Official OCCT components and distribution documentation",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components",
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+        "https://github.com/Open-Cascade-SAS/OCCT-Samples"
+      ],
+      "revision": "Official OCCT project/organization pages reviewed 2026-10-18",
+      "observed": "Official sources classify ACIS SAT/SAB exchange as a commercial OCCT component outside the open-source core. This establishes a licensing boundary, not local entitlement, exact-profile behavior, independent-kernel status, or DWG/AcDs container support."
+    },
+    {
+      "project": "Existing libdxfrw implementation and 3D route plans",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "DWG_DXF_3D_SUPPORT_PLAN.md"
+      ],
+      "revision": "Working tree over baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-18",
+      "observed": "Existing gates already separate 2D reader comparison, writer output, ACIS/AcDs association, geometry-kernel results, native application acceptance, and external J criteria. The update refines release/kernel lineage only and preserves optional composed-checkpoint execution."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Clarifies that ezdwg 0.16.3 remains an optional candidate only for exact documented common-2D reader comparisons; its release artifact is distinct from mutable Unreleased main and its writers are separate routes. Confirms that OCCT ACIS SAT/SAB exchange is a commercial extension and, if licensed, remains OCCT-kernel-correlated and outside the outer DWG/AcDs join. No required implementation action, dependency, or gate was added.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Do not use ezdwg development-branch claims as evidence for the 0.16.3 PyPI artifact unless an immutable source/artifact link is established.",
+    "At the existing optional composed checkpoint, pin either the exact sdist plus build inputs or one exact platform wheel; keep those routes distinct.",
+    "Compare only exact AC-code/entity/field cases and report inferred or unsupported graph fields as unavailable, not empty or matching.",
+    "Keep ezdwg parsing, its ezdxf-backed DXF output, and its subset AC1015 DWG output as separate evidence rows.",
+    "Do not treat 3DFACE, 3D polylines, or mesh entities as 3DSOLID/REGION ACIS semantics.",
+    "Do not treat open-source OCCT core as an ACIS reader; any already-licensed OCCT ACIS component is optional, shares OCCT kernel lineage with FreeCAD, and cannot prove DWG/AcDs association.",
+    "Do not add peer setup, full-suite runs, dependencies, or external samples to the per-slice implementation loop.",
+    "Keep findings/subplans at 130/73 and J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL."
+  ]
+}

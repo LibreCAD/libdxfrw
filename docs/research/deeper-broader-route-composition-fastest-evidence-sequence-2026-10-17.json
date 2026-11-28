@@ -1,0 +1,157 @@
+{
+  "schema": "libdxfrw-route-composition-fastest-evidence-sequence-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Synthesize current FreeCAD, SAT/SAB parser, kernel, renderer, and licensed-consumer routes into a minimum-cost composed evidence sequence without changing the implementation queue.",
+  "method": {
+    "kind": "Read-only review of primary project documentation, exact release documentation, and current plan entries.",
+    "sourcesReviewed": [
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "https://pypi.org/project/cq-acis/0.3.12/",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+      "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.1",
+      "https://docs.rs/cadmpeg-codec-sat/0.6.1/",
+      "https://github.com/jmplonka/InventorLoader/blob/master/README.md",
+      "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py",
+      "https://docs.techsoft3d.com/hoops/exchange/start/format/acis_reader.html",
+      "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/ref_cad/cadACIS.html",
+      "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+      "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "externalExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "drawingsDownloaded": 0,
+    "installations": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "codeChanged": false,
+    "limitations": "Documentation and repository statements identify route boundaries but are not runtime or geometry qualification. No licensed reader, FreeCAD backend, native platform, payload, or drawing was exercised."
+  },
+  "routeFindings": [
+    {
+      "route": "stock FreeCAD DWG import",
+      "observed": [
+        "The documented DWG workflow uses an external converter and then the selected DXF importer.",
+        "FreeCAD maintainer response to issue 18454 says stock FreeCAD cannot read ACIS blobs.",
+        "Importer backend and import settings affect which DXF entity families can be consumed."
+      ],
+      "doesNotEstablish": [
+        "ACIS/SAB semantics or DWG AcDs association",
+        "behavior of every FreeCAD build, converter, importer backend, or platform",
+        "native Linux or Windows qualification"
+      ],
+      "disposition": "QUALIFY_EXACT_CONVERTER_AND_IMPORTER_FOR_EXPLICIT_ENTITY_SUBSET; STOCK_ACIS_CONSUMER_NOT_APPLICABLE"
+    },
+    {
+      "route": "cadmpeg-codec-sat 0.6.1",
+      "observed": [
+        "Separate bare SAT/SAB parser route with profile and loss reporting.",
+        "Project support ladder documents L1/profile-level support for this codec.",
+        "No DWG/DXF/AcDs container route or geometry kernel is documented."
+      ],
+      "doesNotEstablish": [
+        "DWG entity-to-AcDs owner/key/payload join",
+        "closed or valid B-rep geometry",
+        "a successful run on the target payload"
+      ],
+      "disposition": "OPTIONAL_COMPOSED_STRUCTURAL_PAYLOAD_CROSSCHECK_NOT_SEMANTIC_ORACLE"
+    },
+    {
+      "route": "cq-acis 0.3.12",
+      "observed": [
+        "Separate SAT/SAB/ASM parser with explicitly bounded save-profile and geometry conversion scopes.",
+        "Supported geometry can be converted through CadQuery/OpenCASCADE.",
+        "OCCT kernel lineage is shared with FreeCAD."
+      ],
+      "doesNotEstablish": [
+        "DWG/DXF/AcDs association",
+        "all ACIS producer/version profiles",
+        "an independent kernel vote or a completed local run"
+      ],
+      "disposition": "OPTIONAL_PROFILE_BOUNDED_PARSER_AND_SHARED_OCCT_SHAPE_EVIDENCE"
+    },
+    {
+      "route": "InventorLoader add-on",
+      "observed": [
+        "Optional DXF wrapper extracts SAT/SAB and calls its ACIS reader before constructing FreeCAD Part objects.",
+        "Project documents unsupported geometry and no SAT/SAB/DXF export."
+      ],
+      "doesNotEstablish": [
+        "stock FreeCAD behavior",
+        "DWG AcDs outer-container handling",
+        "complete closed solids for all profiles or an independent kernel"
+      ],
+      "disposition": "OPTIONAL_THIRD_PARTY_DXF_CONSUMER_ONLY"
+    },
+    {
+      "route": "HOOPS Exchange and Ansys ACIS import",
+      "observed": [
+        "Commercial documentation describes SAT/SAB geometry reader routes; HOOPS also documents DWG/DXF import, while Ansys documents selected DWG/DXF and SAT/SAB profiles."
+      ],
+      "doesNotEstablish": [
+        "runtime availability or license on this task host",
+        "exact target-file support or expected geometry",
+        "open-source status"
+      ],
+      "disposition": "USE_ONLY_IF_ALREADY_AUTHORIZED_AND_AVAILABLE; NO_INSTALL_OR_PURCHASE"
+    },
+    {
+      "route": "ACadRust/OpenCADStudio and ProGPU/ProCad",
+      "observed": [
+        "OpenCADStudio uses the ACadRust codec family; ProGPU describes renderer-local edge projection; ProCad reader lineage is ACadSharp-family."
+      ],
+      "doesNotEstablish": [
+        "independent parser votes across correlated applications",
+        "full B-rep semantic validity from tessellation, pixels, or edge output"
+      ],
+      "disposition": "OPTIONAL_APPLICATION_OR_RENDERER_OBSERVATION_ONLY"
+    }
+  ],
+  "planRefinements": [
+    "Split stock-FreeCAD explicit-entity qualification from ACIS/AcDs semantics; native Linux and Windows runs bind exact converter, importer backend, settings, output, and platform.",
+    "Use the observed inner payload signature/save version for admission; the outer ACADVER does not substitute for the inner SAT/SAB/ASM profile.",
+    "At the existing composed checkpoint, verify source entity to AcDs owner/key/record/payload identity and exact payload digest before feeding the payload to any parser.",
+    "Use one bare-payload parser for typed/raw/loss census, followed by one geometry route and independent analytic expectations; label shared OCCT lineage explicitly.",
+    "Keep all peer/native checks out of per-slice validation and leave unavailable routes NOT_AVAILABLE/NOT_RUN while local implementation continues."
+  ],
+  "implementationReadiness": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTests": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "validationCadenceChanged": false,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 127,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "remainingExternalConditions": [
+      "Native Linux FreeCAD qualification",
+      "Native Windows FreeCAD qualification",
+      "Independent external ACIS/AcDs semantic evidence"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "codeChanged": false,
+    "fixtureOrDependencyAdded": false,
+    "supportClaimsPromoted": 0
+  }
+}

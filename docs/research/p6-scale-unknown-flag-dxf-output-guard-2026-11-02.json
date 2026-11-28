@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-scale-unknown-flag-dxf-output-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_SCALE_UNKNOWN_FLAG_OUTPUT_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Preserve unknown SCALE group-70 values on DXF read and refuse nonzero typed DXF output until the field meaning is established.",
+  "implementationReadiness": {
+    "baselineHead": "251b8b74b2eecc521e9f158fbc4da884587f6b89",
+    "sourceObservation": "DRW_Scale::parseCode retained group-70 values, but dxfRW::writeScale emitted any stored flag. The SCALE data member comment incorrectly described the value as always zero, which implied a known meaning rather than an unknown field.",
+    "normativeEvidence": {
+      "source": "Open Design Specification for .dwg files v5.4.1, §20.4.92 SCALE (AcDbScale), p. 221",
+      "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "relevantRule": "The SCALE group-70 field is described as unknown; ODA writes 0. This does not establish semantics for other values."
+    },
+    "change": "DXF parsing continues to retain any group-70 value. Typed DXF writing now admits only zero and refuses nonzero values before emitting bytes. The public field comment now describes the field as unknown. No DWG parser/encoder code or callbacks changed."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_objects.h": "548a572114b8b76c09ef0db87987ec01f24654a8c190bf41d4ee61f3775c6559",
+      "src/libdxfrw.cpp": "30185e0d84e436b36b14fca3df27c041fbbfd195c3dde21dab3e43fb3b328f80",
+      "tests/hardening_tests.cpp": "1dffb4e1a0239094042a92a97dc0c27009c01db4bfcdda9a2a627532b585e493",
+      "CMakeLists.txt": "aa5f06df2e7c82c1329037e0eb4d722d775b7ef83440f974f18ace23ba117cb5"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+      "platform": "Darwin arm64"
+    },
+    "testExecutableSha256": "da5e150dc7cb88b993802dffa54abc4bd0d3d92bfbc02ed89a9884f57a1ae24b"
+  },
+  "controls": {
+    "selector": "--dxf-scale-flag-output-guard",
+    "ctest": "libdxfrw_scale_flag_output_guard",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "ASCII and Binary readers retain a nonzero unknown group-70 field.",
+      "Typed ASCII and Binary writers emit group-70 zero and read it back as zero.",
+      "Typed ASCII and Binary writers refuse nonzero group 70 before emitting bytes."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_scale_flag_output_guard$' --output-on-failure",
+      "result": "PASS 1/1 in 0.31 seconds"
+    },
+    "regressions": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_scale_units_dxf_domain$' --output-on-failure",
+        "result": "PASS 1/1 in 0.31 seconds"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-scale-name-owner-budget",
+        "result": "PASS"
+      }
+    ],
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated field handling only; no physical nonzero group-70 source or native consumer behavior was qualified.",
+    "Nonzero values remain readable but cannot be re-emitted through the typed SCALE DXF writer until their meaning is known.",
+    "No support claim is promoted; other SCALE version/API/root-graph and native annotation semantics remain open."
+  ],
+  "nextReadyPacket": "Continue with an independently supported local P5/P6 gap; preserve and refuse unknown SCALE values rather than assign guessed semantics."
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-oda-linux-generated-pair-2026-11-25",
+  "date": "2026-11-25",
+  "status": "ODA_GENERATED_AND_REOPENED_LIBREDWG_READ_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "scratchDirectory": "/private/tmp/ac1012-linux-oda-20261125",
+  "provenance": "The inputs were local explicit-partial ASCII DXF projections of the locally generated specification-directed AC1012 collision-and-unique-entry pair. ODA File Converter 27.10.0.0 generated the new DWGs in an offline emulated Ubuntu linux/amd64 container, then reopened them and exported R2010 ASCII DXF. No drawing was committed.",
+  "originalPair": {
+    "destinationSha256": "35b2ec0f3e851ae3238dd8e1fced4f5256b019c97bf338ba82012233a14f24e9",
+    "sourceSha256": "613a5b2f943fc895fbd81bded2e2589bd9fcb77ee419adc4e064a347455b7e99",
+    "odaResult": "Both failed readFile with 'Object of class AcDbDimStyleTableRecord can't be cast to AcDbEntity'; no DXF was produced. Converter exit status alone did not signal the individual failures."
+  },
+  "replacement": {
+    "destination": {
+      "path": "dwg-output/destination-candidate-explicit-partial-ascii.dwg",
+      "sha256": "f582de3ad6cdae099d242eca8d24c66df904f1f64a9b480746867b457854a039",
+      "reopenedDxfSha256": "dadfb69d9d1d1825de7304c081f76d82d2c78a2485905d5249b8564f01061be8",
+      "stylesDegrees": {"SAME_KEY": 15, "DEST_ONLY": 22}
+    },
+    "source": {
+      "path": "dwg-output/source-candidate-explicit-partial-ascii.dwg",
+      "sha256": "96f06106023ca0fc5e5d5a707e64ca61873f516bf8899637de9046b6197089e7",
+      "reopenedDxfSha256": "0170353df8357886ce8064e34a9639bbb1277ef55b17a14bc4f0cdbc3a1c0c40",
+      "stylesDegrees": {"SAME_KEY": 37, "SOURCE_ONLY": 51}
+    },
+    "magic": "AC1012",
+    "odaReopen": "Both generated files reopened and re-exported without .err files. The independent DXF tag audit resolves ACAD_MLINESTYLE dictionary ownership and each target style and confirms the listed angles.",
+    "libredwg": "GNU LibreDWG 0.14 independently read both DWGs successfully and reports the same dictionary entry handles, style owners and start angles."
+  },
+  "limits": [
+    "ODA generated and reopened its own DWGs; the independent LibreDWG read is not a native AutoCAD open or merge operation.",
+    "The chosen styles have zero elements; their acceptance and usability as merge witnesses in AutoCAD must be checked.",
+    "The ODA R2010 DXF group 281 value is not proof of an AC1012 source cloning field or AutoCAD's default merge semantics.",
+    "The source DXFs were explicit-partial projections; their successful use does not qualify whole-source lossless conversion."
+  ]
+}

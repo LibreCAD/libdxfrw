@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-roundtrip-stale-surface-viewport-controls-2026-11-03",
+  "date": "2026-11-03",
+  "status": "STALE_CONTROLS_CORRECTED",
+  "supportClaimEffect": "none",
+  "baseline": {
+    "evidenceLog": "/private/tmp/libdxfrw-roundtrip-crc-check.log",
+    "failures": "ASCII and Binary SURFACE and VIEWPORT round-trip assertions failed.",
+    "surface": "The existing test initializes a nonzero DWG lofted-surface path handle without a verified DXF projection, so commit a9e61ec9 correctly refuses serialization; the separate SHAPE empty-name refusal remained active.",
+    "viewport": "The existing test supplies default lighting type 2, outside the documented group-282 0/1 domain that commit 4741abfc validates.",
+    "reference": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm"
+  },
+  "change": "The generated tests now explicitly verify atomic refusal and destination preservation for the unmapped DWG loft path and invalid VIEWPORT lighting value, then correct each input and retry with the same exporter. Surface tests retain the separate missing SHAPE glyph-name refusal. Both ASCII and Binary controls verify typed readback. No production behavior is weakened.",
+  "focusedValidation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "command": "build-gcc/libdxfrw_dwg_local_roundtrip --surface-viewport-roundtrip",
+    "result": "PASS",
+    "generalRoundtrip": "ctest --test-dir build-gcc -R ^libdxfrw_dwg_local_roundtrip$ --output-on-failure: PASS 1/1"
+  },
+  "limitations": [
+    "The tests are generated DXF transport controls and do not qualify physical producer breadth, graph closure, native rendering or DWG surface semantics.",
+    "No fixture added."
+  ]
+}

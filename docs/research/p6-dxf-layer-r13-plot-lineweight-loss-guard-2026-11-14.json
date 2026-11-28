@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.dxf.writer-version-loss-guard-receipt.v1",
+  "slice": "P6-D LAYER pre-R2000 plot and lineweight loss refusal",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "sourceEvidence": {
+    "autodeskLayerSchema": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+      "finding": "The current LAYER DXF schema assigns the plot flag to group 290 and lineweight to group 370."
+    },
+    "autodeskVersionMap": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+      "finding": "AC1014 identifies AutoCAD R14 and AC1015 identifies AutoCAD 2000. Existing writeLayer schema comments identify groups 290 and 370 as R2000+ fields."
+    },
+    "repositoryDefect": "writeLayer emitted groups 290 and 370 only for AC1015+, but did not refuse nondefault plotF=false or lineweight values for AC1014 and earlier. The generated LAYER allocation profile used both nondefault values at AC1014 and skipped comparison of those fields in its readback predicate, hiding the lossy downgrade."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/layer_table_allocation_tests.cpp"
+    ],
+    "change": "writeLayer now rejects pre-AC1015 output when plotF is false or lineweight differs from BYDEFAULT. Representable defaults remain writable. The generated seven-revision allocation profile now uses representable AC1014 values, compares plotF/lineweight and truecolor in every revision, and exercises independent AC1014 refusal of each nondefault field followed by same-writer AC1015 retry."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_layer_table_allocation_tests -j4",
+    "buildResult": "PASS",
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_layer_table_allocation$' --output-on-failure",
+      "result": "PASS (1/1, 0.49 seconds)",
+      "coverage": "Seven supported revisions in ASCII and Binary retain their representable LAYER fields under allocation rollback/retry and fresh readback. In AC1014, both nondefault plot state and nondefault lineweight independently refuse without replacing a destination sentinel or changing caller values; same-codec AC1015 retries pass with typed readback."
+    },
+    "compatibilityTarget": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated controls and libdxfrw self-readback only; no native R14 or R2000 consumer was run.",
+    "This closes only the two LAYER downgrade omissions and does not qualify all pre-R2000 table or entity fields."
+  ]
+}

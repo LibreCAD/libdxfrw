@@ -1,0 +1,71 @@
+{
+  "date": "2026-11-03",
+  "kind": "implementation-slice completion receipt",
+  "slice": "Bind imported classic POINTCLOUD source fields for a bounded reference-free profile",
+  "profile": {
+    "source_format": "DXF",
+    "source_revision": "AC1027 through AC1032",
+    "target_revision": "exact source revision",
+    "section": "ENTITIES",
+    "space": "modelspace, owner BLOCK_RECORD handle 0x1F",
+    "references": "zero definition and reactor handles",
+    "fixture_policy": "ASCII and Binary sources authored locally at runtime in temporary paths; no fixture files added"
+  },
+  "source_binding": {
+    "joins": [
+      "physical POINTCLOUD record to one parser dispatch",
+      "dispatch to one typed parser callback and observed source model",
+      "observed model identity and every modeled classic POINTCLOUD field to the retained output entity"
+    ],
+    "physical_checks": [
+      "complete ordered record spans and exact AcDbEntity then AcDbPointCloud subclass markers",
+      "common handle, modelspace owner, common entity fields and body reference fields",
+      "supported coordinate, source-file, count, UCS and intensity fields",
+      "required and optional field types, cardinalities, and source-file order",
+      "no unrepresented fields, clipping payload, intensity display, or nonzero definition/reactor references"
+    ],
+    "inventory": "every retained classic POINTCLOUD must bind exactly once; named-BLOCK records cannot be paired by this ENTITIES-only route and therefore remain refused"
+  },
+  "controls": {
+    "ascii_and_binary": [
+      "locally authored AC1027 import, exact-revision output and fresh typed readback",
+      "mutated retained point count is refused before output and preserves the destination",
+      "restored point count succeeds on the same adapter and binds exactly one physical source entity",
+      "readback verifies class version, source filename/list, point count, reference handles, UCS name and axes"
+    ],
+    "ascii_only": [
+      "a duplicated physical class-version field imports tolerantly but fails strict source binding and preserves a pre-existing destination"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_pointcloud_definition_source_spans|dwg2dxf_point_cloud_adapter_transport' --output-on-failure",
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        "libdxfrw_pointcloud_definition_source_spans",
+        "dwg2dxf_point_cloud_adapter_transport"
+      ]
+    },
+    "asan_build": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "asan_focused_ctest": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_pointcloud_definition_source_spans|dwg2dxf_point_cloud_adapter_transport' --output-on-failure",
+      "passed": 2,
+      "failed": 0
+    },
+    "full_suite": "Not run"
+  },
+  "limitations": [
+    "No physical producer coverage or native consumer semantics are established.",
+    "Named-BLOCK, paper-space, DWG-source and cross-revision profiles remain refused or unqualified.",
+    "Nonzero definition/reactor graph closure, external asset loading and 3D semantics remain open."
+  ],
+  "support_claim_effect": "None; this adds generated source-to-output transport evidence only."
+}

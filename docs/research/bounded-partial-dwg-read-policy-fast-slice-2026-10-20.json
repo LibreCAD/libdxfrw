@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Explicit bounded partial DWG-read policy",
+  "mode": "Generated fast implementation slice with local diagnostic negative controls",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Separate DWG semantic-read completeness policy from owner/reference closure while preserving strict CLI defaults.",
+    "Allow partial output only with successful source-matched reads, finalized and exactly accounted terminal frame dispositions, and a complete non-saturated integrity ledger without retained errors.",
+    "Exercise generated partial-read behavior and CLI token/overwrite contracts without adding persistent DWG/DXF fixtures."
+  ],
+  "changes": [
+    {
+      "file": "dwg2dxf/dx_data.h",
+      "detail": "Added Legacy, RequireComplete, and AllowPartial read-completeness policies."
+    },
+    {
+      "file": "dwg2dxf/dx_iface.h",
+      "detail": "Added a trailing defaulted policy argument to fileExport; Legacy preserves prior source behavior."
+    },
+    {
+      "file": "dwg2dxf/dx_iface.cpp",
+      "detail": "Added bounded partial-read admission independent of strict owner checks; partial mode requires a successful receipt, final frame ledger, complete integrity evidence, and no retained integrity errors. Unknown policy enum values fail closed."
+    },
+    {
+      "file": "dwg2dxf/dx_cli.h",
+      "detail": "Recognized the exact --allow-partial-dwg-read token."
+    },
+    {
+      "file": "dwg2dxf/main.cpp",
+      "detail": "Kept CLI conversion strict by default, wired explicit partial opt-in through positional, FreeCAD, and batch routes, and emitted a non-promoting warning for DWG input."
+    },
+    {
+      "file": "dwg2dxf/dwg2dxf.1",
+      "detail": "Documented strict default, partial admission boundaries, unchanged owner/reference checks, and non-support-claim semantics."
+    },
+    {
+      "file": "tests/dwg_local_roundtrip_tests.cpp",
+      "detail": "Extended the generated read-outcome selector to prove strict refusal, explicit partial LINE preservation after a malformed HATCH, rejection of unfinished frame ledgers and unknown policy values, and unchanged owner-closure refusal with sentinel preservation."
+    },
+    {
+      "file": "tests/dwg2dxf_cli_contract_tests.py",
+      "detail": "Added exact-token, positional/-o acceptance, invalid-suffix, overwrite-authority controls, and an options-only fast selector."
+    },
+    {
+      "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "detail": "Recorded the implementation result, local AC1018/AC1024 negative controls, focused validation, and self-unblocking continuation."
+    }
+  ],
+  "assessment": {
+    "newConfirmedProductionDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansAdvanced": [
+      "PAR-06/PAR-07/S8 now has a distinct explicit partial-read policy while preserving strict CLI completeness and owner/reference gates"
+    ],
+    "productionBehaviorChanged": true,
+    "testCodeChanged": true,
+    "qualificationManifestChanged": false,
+    "testsRun": 5,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Strict conversion remains the default. Explicit partial mode may publish only after a successful read and bounded final frame/integrity accounting, without relaxing owner/reference closure. Generated controls prove the policy path; the existing local AC1018 read failure and AC1024 owner-closure failure remain rejected. No file-format, peer, native-consumer, or 3D support claim is promoted."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip --parallel 2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --dwg-read-outcome",
+        "result": "PASS"
+      },
+      {
+        "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --options-only",
+        "result": "PASS; 54 token, filename, and overwrite controls"
+      },
+      {
+        "command": "python3 -B -m py_compile tests/dwg2dxf_cli_contract_tests.py",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check on touched implementation, test, and plan files",
+        "result": "PASS"
+      },
+      {
+        "command": "diagnostic dwg2dxf run on an existing user-held AC1018 DWG, strict and explicit-partial modes",
+        "result": "Both rejected at input read: BAD_READ_BLOCKS (10); partial policy did not bypass operation failure. No fixture/output retained."
+      },
+      {
+        "command": "diagnostic dwg2dxf run on an existing user-held AC1024 DWG, explicit-partial mode with trace",
+        "result": "Read succeeded with 501/501 terminal frames and semanticCoverage=unknown; export remained rejected by strict LAYOUT last-active-viewport owner closure. No fixture/output retained."
+      }
+    ],
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "repositoryNote": "The shared worktree already contains broad unrelated modifications; only the named slice was extended, and no unrelated changes were staged or committed."
+  }
+}

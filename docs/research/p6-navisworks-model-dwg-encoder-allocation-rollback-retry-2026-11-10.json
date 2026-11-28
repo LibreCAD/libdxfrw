@@ -1,0 +1,45 @@
+{
+  "title": "NAVISWORKSMODEL DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory NAVISWORKSMODEL transaction controls only; no producer or support claim.",
+  "implementation": {
+    "writer": "DRW_NavisworksModel::encodeDwg",
+    "behavior": [
+      "Stage common entity body, detached strings, and handle output through the shared private transaction helper.",
+      "Preserve the custom class ID, 4x4 transform, unit factor, and external definition reference.",
+      "Preserve AC1015/AC1018 pre-matrix handle placement and AC1021+ trailing soft-pointer placement."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1015", "profile": "flags, non-identity 4x4 transform, unit factor, external definition handle", "reached_allocation_failures": 16},
+    {"version": "AC1018", "profile": "flags, non-identity 4x4 transform, unit factor, external definition handle", "reached_allocation_failures": 16},
+    {"version": "AC1021", "profile": "flags, non-identity 4x4 transform, unit factor, external definition handle", "reached_allocation_failures": 15},
+    {"version": "AC1024", "profile": "flags, non-identity 4x4 transform, unit factor, external definition handle", "reached_allocation_failures": 15}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body, string, and handle bytes, bit counts, handle occurrences, and prior class ID remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output.",
+    "All-stream alias controls preserve state and succeed on retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --navisworks-model-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1015 NAVISWORKSMODEL": 16,
+      "AC1018 NAVISWORKSMODEL": 16,
+      "AC1021 NAVISWORKSMODEL": 15,
+      "AC1024 NAVISWORKSMODEL": 15
+    },
+    "entity_writer_transaction_cohort": "32/32 passed",
+    "compound_image_transaction_ctest": "libdxfrw_dwg_image_compound_transaction: PASS",
+    "focused_ctest_cohort": "33/33 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish transaction behavior only.",
+    "External NWD semantics, producer coverage, native consumer behavior, and broader support remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}

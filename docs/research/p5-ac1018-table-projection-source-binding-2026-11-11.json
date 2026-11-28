@@ -1,0 +1,37 @@
+{
+  "id": "p5-ac1018-table-projection-source-binding-2026-11-11",
+  "scope": "Explicit opt-in unchanged retained INSERT-shaped 2D projection, derived from the selected reader-bound TABLE model and jointly validated with the existing source bundle. No output authorization or block-membership evidence.",
+  "implementation": [
+    "The expected projection is a deep DRW_Insert copy of the bounded private reader TABLE snapshot, with proxy bytes/count cleared and replay authorization revoked exactly as dx_iface::addInsert does for a complete TABLE.",
+    "On sealing and each query, the adapter requires one concrete INSERT with the selected handle among model-space and retained block entities. Block and total entity counts are bounded at 100000 before traversal; duplicate matching identities, failed capture, absent projection and allocation failures fail the whole stronger selection.",
+    "The projection comparator checks bitwise common/INSERT model state and proxy remap provenance. It rejects unsupported nested aliases, EED/appdata, attributes and data-storage state before making the bounded temporary copy. No new DRW_Interface virtual callback or public consumer behavior changes.",
+    "Previous model-only and source-only selections remain available. DRW_Interface default addTable forwarding to an insert-only callback is unchanged."
+  ],
+  "physical_source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "probe": "tools/research/p5_ac1018_table_projection_binding_probe.cpp",
+    "result": "PASS: one source-bound TABLE model and its retained INSERT projection bind with the reciprocal dictionary and other selected source frames; unrelated HEADER integrity observation remains.",
+    "controls": [
+      "Projection position, name, xdictionary and proxy mutation, removal, duplicate distinct object, duplicate same pointer and mBlock/container alias revoke the whole capability and pass after restoration.",
+      "Exact 100000 retained-entity scan budget succeeds, 100001 is refused, and container restoration succeeds.",
+      "The older model-only selection intentionally remains valid when its independent 2D projection is edited.",
+      "A spoofed TABLE callback, block replay exception, same/cross-adapter reentry, wrong selection, TABLE snapshot or ticket allocation failure refuse and permit clean retry.",
+      "A valid stronger bundle still fails strict DXF output and preserves the destination sentinel.",
+      "End-to-end query used 2850 allocations in this build; its last allocation was faulted and retried. This is sampled, not exhaustive."
+    ]
+  },
+  "automated_generated_tests": {
+    "command": "cmake --build build --target libdxfrw_dwg_table_projection_ac1018_candidate_tests libdxfrw_dwg_table_model_ac1018_candidate_tests libdxfrw_dwg_table_candidate_binding_tests libdxfrw_dwg_tablestyle_reader_source_tests -j 3 && ctest --test-dir build -R ^libdxfrw_dwg_(table_projection_ac1018_candidate|table_model_ac1018_candidate|table_candidate_binding|tablestyle_reader_source)$ --output-on-failure",
+    "result": "PASS 4/4",
+    "controls": "Locally authored bounded TABLE and matching INSERT projection with geometry, xdictionary, layer, proxy, subtype, EED/attribute and size negative cases; every observed comparator allocation faulted and retried. A DRW_Interface default addTable call reaches an insert-only override with the original dynamic TABLE. Other source-bundle and TABLESTYLE compatibility tests pass.",
+    "limits": "Full projection bundle integration uses a local scratch physical source; the generated comparator does not construct a complete populated DWG graph."
+  },
+  "probe_build": "c++ -std=c++17 -Wall -Wextra -Werror -I src -I dwg2dxf tools/research/p5_ac1018_table_projection_binding_probe.cpp build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build/libdxfrw.a -o /private/tmp/p5_ac1018_table_projection_binding_probe",
+  "probe_run": "/private/tmp/p5_ac1018_table_projection_binding_probe /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+  "limitations": [
+    "Only the selected complete AC1018 3x3 TABLE profile is considered. Projection comparison does not establish its block/container membership or separately emitted display primitives.",
+    "TABLESTYLE and wider resource closure, source/codepage semantics, independent semantic/native interoperability and atomic populated-output transaction remain open. This capability must never alone authorize output.",
+    "Physical full-bundle controls use one ODA-created source and no new DWG/DXF fixture is committed. End-to-end allocation failures are sampled, not swept."
+  ]
+}

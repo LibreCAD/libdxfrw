@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader ACadSharp Python bridge and UnCAD route-lineage refresh",
+  "mode": "primary-source repository, package-provenance, issue, and local-plan research",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen a newly published Python-facing ACadSharp artifact and identify its parser lineage",
+    "Refresh UnCAD's current DWG, DXF, writer, renderer, and test-input routes",
+    "Reconcile recent ACadSharp spline and LibreDWG block-writer reports with existing libdxfrw owners",
+    "Refine optional peer selection without adding implementation-slice validation cost"
+  ],
+  "method": {
+    "kind": "Read public primary project pages, PyPI provenance, issue reports, and current local plan/test ownership",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/block_owner_tests.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "src/intern/dwgreader.cpp",
+      "src/libdxfrw.cpp"
+    ],
+    "limitations": "Peer documentation and public issues are route/source claims, not executed conformance results. ACadSharp.Python's recursive ACadSharp submodule revision was not resolved from an installed artifact or checkout. The issue #1299 attachment and external diagnostic were not downloaded or independently inspected. No local peer or native-CAD run was performed."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp.Python / PyPI acadsharp",
+      "urls": [
+        "https://github.com/wieslawsoltes/ACadSharp.Python",
+        "https://pypi.org/project/acadsharp/"
+      ],
+      "revision": "PyPI 0.1.0 page reviewed 2026-10-18; publisher provenance identifies wrapper commit 25a8243cff364008392dba9cca6b80b88f08e50a",
+      "artifact": {
+        "sdistSha256": "10df8579aff80dfceda6bb23439f3d1e268697e64d6953b07e1f1bf72ef100c2",
+        "published": "2026-10-15",
+        "runtime": "Python >=3.11 and .NET 10"
+      },
+      "observed": "The project describes Python.NET bindings to ACadSharp's actual public .NET object model and says ACadSharp is pinned as a recursive Git submodule. The package cautions that complete API exposure does not imply support for all DWG/DXF features. This is a harness interface to the ACadSharp lineage, not an independent parser."
+    },
+    {
+      "project": "UnCAD",
+      "urls": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/iyulab/uncad/tree/main/crates"
+      ],
+      "revision": "Mutable main README and workspace/test-layout description reviewed 2026-10-18",
+      "observed": "The project documents DWG read through vendored, locally patched LibreDWG FFI; DXF read through the separate pure-Rust undxf crate; SVG/PNG through a renderer; and removal of its earlier DWG/DXF write API. Its real-file integration tests require the LibreDWG submodule. It adds no independent DWG parser or current writer route; undxf remains a distinct read-side DXF candidate."
+    },
+    {
+      "project": "LibreDWG organization repository inventory",
+      "url": "https://github.com/LibreDWG",
+      "revision": "Organization repository inventory reviewed 2026-10-18",
+      "observed": "The organization lists explicit forks of ACadSharp and dxf-rs and the Kaitai DWG schema project. These repository names do not establish additional independently implemented runtime parsers."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "revision": "Open issue page reviewed 2026-10-18; report cites ACadSharp 3.8.0",
+      "observed": "The reporter says a converted DXF contains bad SPLINE data that makes GDAL conversion fail and attaches a DWG/DXF archive. The issue body does not provide expected control points, knots, weights, source handle, independently derived curve, or inspectable diagnosis; the attachment was not retrieved. This remains a peer report, not normative SPLINE behavior or a local failure."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1409",
+      "revision": "Open issue page and activity reviewed 2026-10-18",
+      "observed": "The report describes a mutable object-array loop-index bug that omits later BLOCK and paper-space bodies in the ASCII and Binary DXF writers, with a BLOCK_RECORD-to-BLOCK count invariant and per-owner examples. The plan's existing generated ASCII/Binary owner census and consecutive-block tests already cover the relevant local structural route; no equivalent local defect was reproduced."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Adds ACadSharp.Python as an optional adapter to an existing peer lineage; clarifies that current UnCAD DWG reading is LibreDWG-correlated and that its write API has been removed; retains #1299 and #1409 under existing SPLINE and block-owner gates. Optional peer use remains composed-checkpoint-only.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep per-slice validation to the strict touched-target build, focused locally generated selector, applicable compatibility check, and owning CTest; do not install or run peer wrappers per slice.",
+    "At a composed checkpoint, bind the exact parser, wrapper, recursive submodule, runtime, features, operation, source/target version, command, input/output hashes, diagnostics, and source-to-output owner disposition.",
+    "Treat ACadSharp.Python as the ACadSharp parser lineage; the wrapper commit and package attestation do not by themselves identify or qualify the recursive ACadSharp revision.",
+    "Treat UnCAD DWG read as LibreDWG lineage, undxf as a separate DXF read route, rendering as projection, and its removed write API as unavailable.",
+    "Reuse PAR-22/7H independent SPLINE expectations and PAR-49/7G per-owner block closure; do not turn issue attachments or GDAL failure into normative expected results.",
+    "Use only already-authorized or locally authored-from-scratch controls; do not commit peer/customer drawings.",
+    "Do not let wrapper exposure, issue reports, parser counts, or route discovery promote J256, J260, J268, J284, J293, or J295."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout has extensive pre-existing tracked and untracked work. This research pass changed only the parity plan and its new receipt; unrelated changes were preserved."
+  }
+}

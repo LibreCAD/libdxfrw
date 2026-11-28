@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-windows-current-digest-2026-11-25",
+  "date": "2026-11-25",
+  "status": "WINDOWS_FREECAD_GENERATED_PROFILE_PASS",
+  "supportClaimEffect": "none",
+  "candidate": {
+    "runHead": "9228642de0c775c952e7f95463d0fdb8db84560a",
+    "implementationDigestSha256": "ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b",
+    "inputCount": 775,
+    "workflowFix": "docs/research/p8-freecad-windows-python-probe-2026-11-25.json"
+  },
+  "hosted": {
+    "repository": "dxli/libdxfrw",
+    "runId": 45644250331,
+    "jobId": 139310822644,
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/45644250331",
+    "jobConclusion": "success",
+    "artifactId": 15036269454,
+    "artifactSha256": "cfe43f699098d2754abfa3ea8abaa0df6d8143001fccffc10bc3782c013f116f",
+    "scope": "Windows-only retry; Linux and candidate-headless jobs skipped intentionally."
+  },
+  "consumer": {
+    "version": "FreeCAD 1.1.4, revision 4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "Windows Server 2022 x64, OS build 20348",
+    "verifiedReleaseArchiveSha256": "4828741fc91ee37fafcdb97a1abacb18b04ba451ac4372d9ff7a7349b36f4d6d",
+    "executable": "bin/freecadcmd.exe selected from the hash-verified release archive; the test reports the exact FreeCAD revision.",
+    "installedConverterSha256": "82521b80158407968b81ffc644079ad1b7a4a8d90c6824886a5bdab4fabb7c3a",
+    "legacyImporterCommit": "e060ef0d8fe7143c2e0ce34734b686ba073f3cc1"
+  },
+  "validation": "All 17 selected CTests passed: installed and CLI handoff, batch output naming, AC1021 line open/insert, AC1021/AC1024/AC1032 generated primitives open/insert, and corresponding legacy POLYFACE open/insert controls. Logs bind converter hash, source version, operation and observed geometry.",
+  "limits": [
+    "The pinned C++ FreeCAD importer reports 3DFACE and SOLID unsupported for the generated primitive profile and renders the selected POLYFACE as a wire including the parent basepoint; the separate pinned legacy importer exercises the faceted profile. Passing tests preserve these observed limits rather than claiming those C++ importer features work.",
+    "The executable is identified through its exact path in a hash-verified release archive; a separate executable-file hash was not recorded.",
+    "This is not general DWG/DXF, native GUI, or broader FreeCAD qualification. Reopen the gate when selected code, consumer, or profile requirements change."
+  ]
+}

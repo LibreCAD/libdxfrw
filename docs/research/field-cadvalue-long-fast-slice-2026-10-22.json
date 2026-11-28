@@ -1,0 +1,38 @@
+{
+  "id": "par134-ac1021-ac1024-field-cadvalue-long",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "fb86ffbe7f3c04303f5c52a6528b9b6d18fc20479109b1b591c39b172fcd8313",
+  "scope": {
+    "class": "DRW_Field / DRW_CadValue",
+    "versions": ["AC1021", "AC1024"],
+    "field": "kLong (type 1) root value",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "evidence": {
+    "normative": "ODA defines type 1 as a BL long value; the R2007+ unit enum includes 0 for no units.",
+    "localGap": "The FIELD root-value fast matrix lacked a positive kLong typed parse/encode control."
+  },
+  "change": "Added generated AC1021/AC1024 controls for integer 42, valid unit metadata, detached format/value strings, complete FIELD validation, and DWG re-encoding. Updated only the generated frame builder; no production parser/writer behavior changed.",
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS (-Werror)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests --field-cadvalue-long: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_field_cadvalue_long$' --output-on-failure: PASS (1/1)",
+    "ctest --test-dir build-gcc -R '^libdxfrw_(table_(cell_.*|cadvalue_.*)|field_(cadvalue_long|cadvalue_double|cadvalue_string|cadvalue_date_payload|cadvalue_points|cadvalue_object_id|cadvalue_general_format_flag|cadvalue_unknown_type|oversized_child_value_count))$' --output-on-failure: PASS (20/20)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "productionBehaviorChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256", "J260", "J268", "J284", "J293", "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

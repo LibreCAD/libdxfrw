@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "AC1021 FIELD bounded incomplete raw fallback",
+  "mode": "generated in-memory fast implementation slice with existing sample regression",
+  "scope": [
+    "Keep unsupported FIELD child CadValue kinds out of typed-complete claims",
+    "Recover from bounded oversized and signed-negative child-value counts without guessing an array shape or allocating from the count",
+    "Preserve structural failure for a missing/truncated child-value count"
+  ],
+  "evidence": {
+    "odaDwgSpecification": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": ["20.4.76 FIELD", "20.4.99 Value"],
+      "finding": "ODA defines the FIELD child-value ordering and lists the supported value-kind encodings. An unknown kind has no documented payload width to decode."
+    },
+    "existingAc1021Sample": {
+      "file": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "provenance": "Existing repository sample; no sample was added or modified",
+      "focusedCtest": "dwg_read_AC1021_architectural_-_annotation_scaling_and_multileaders",
+      "result": "PASS after rebuilding libdxfrw_dwg_reader_matrix_tests against the changed library",
+      "directReaderObservation": {
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "rawCallbacks": 36,
+        "reader21Ac1021CrcMismatch": 13,
+        "operationSucceeded": true
+      },
+      "limit": "Raw callbacks do not prove dx_iface retention/export. The 13 CRC observations remain unresolved; this single sample is not AC1021-wide qualification."
+    },
+    "boundedDwgReadLane": {
+      "command": "ctest --test-dir build-gcc -R '^dwg_read_' --output-on-failure",
+      "result": "14/17 passed; all seven AC1021 samples and seven AC1024 samples passed; three AC1024 visualization samples failed",
+      "failedSamples": [
+        {
+          "file": "tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+          "objectParseFailures": 3,
+          "classesCrcMismatch": 1
+        },
+        {
+          "file": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+          "objectParseFailures": 3,
+          "classesCrcMismatch": 1
+        },
+        {
+          "file": "tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+          "objectParseFailures": 2,
+          "classesCrcMismatch": 1
+        }
+      ],
+      "representativeTrace": "The condominium sample reaches AcDbShLoft class frames with a child count peer diagnostics reject as invalid, and an AcDbShRevolve frame whose direction/angle values are not safely typed by the current parser.",
+      "limit": "These failures are not attributed to the FIELD change; only the condominium sample was traced in this pass."
+    },
+    "libreDwgDiagnostic": {
+      "project": "LibreDWG 0.14",
+      "route": "local /opt/homebrew/bin/dwgread -v3 -O JSON on the same existing AC1021 sample",
+      "finding": "The peer trace also reports the observed child CadValue kind as invalid and logs child-value counts outside the local safe limit.",
+      "limit": "Diagnostic cross-check only; not ODA authority or independent semantic qualification."
+    }
+  },
+  "changes": {
+    "production": true,
+    "productionFiles": [
+      "src/drw_objects.cpp"
+    ],
+    "productionBehavior": "Unknown CadValue kinds and bounded out-of-domain child-value counts now return through finishSoft(), withholding typed completeness while preserving the incomplete raw FIELD shell. Truncated count framing still fails.",
+    "generatedTests": [
+      "tests/dwg_object_vectors_tests.cpp generates valid, oversized-positive-count, signed-negative-count, unknown-child-value-kind, and truncated-count AC1021 FIELD frames."
+    ],
+    "focusedCtestAdded": false,
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicAbiChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+        "result": "PASS (-Werror build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_field_oversized_child_value_count$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_read_AC1021_architectural_-_annotation_scaling_and_multileaders$' --output-on-failure",
+        "result": "PASS (1/1, after reader-matrix executable rebuild)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalResult": "The generated bounded/unknown/truncated controls pass, and the existing AC1021 sample's focused regression passes with zero object and entity parse failures.",
+    "unresolved": [
+      "The AC1021 sample still reports 13 reader21 CRC mismatches; the focused test passes but does not erase these observations.",
+      "FIELD child values with unknown kinds remain untyped; no payload grammar or semantic interpretation was inferred.",
+      "Raw reader callbacks do not establish converter storage, graph closure, or output retention.",
+      "Three AC1024 visualization samples remain failing at Classes CRC and object-parse gates; the other two failed samples have not been traced yet."
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Continue locally actionable implementation, and trace the remaining AC1024 visualization sample failures against their exact class frames without weakening CRC/object-integrity gates or guessing unsupported geometry semantics."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "unstaged": true,
+    "committed": false,
+    "persistentFixtureStaged": false
+  }
+}

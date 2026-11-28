@@ -1,0 +1,58 @@
+{
+  "status": "bounded container correction; ODA writer interoperability remains unqualified",
+  "authority": "Open Design Specification for .dwg files v5.4.1 \u00a7\u00a74.1, 7 and 8: R2004 file-header data are repeated at EOF, with an absolute address to that copy. R2013 and R2018 use the R2004 file-header organization.",
+  "scope": "AC1027 and AC1032 only. The final 0x6c encrypted bytes equal the first encrypted file-header data; the encoded absolute address points to their first byte. The section page map remains unchanged and excludes the repeated header. AC1018/AC1024 retain existing bytes.",
+  "physical_sources": {
+    "AC1027": {
+      "path": "/private/tmp/modern-writer-investigation/source-dwg/AC1027/line.dwg",
+      "sha256": "1bab740b1f96b88534b4f8238828b9044cffd58b2975ec4b6b00db0c4560cd09",
+      "second_header_offset": 12181
+    },
+    "AC1032": {
+      "path": "/private/tmp/modern-writer-investigation/source-dwg/AC1032/line.dwg",
+      "sha256": "ff2ac82b1ba9cf7d52970299fc766b85ddf48c3f6359d9ae62b550a6c1d7c26d",
+      "second_header_offset": 11860
+    }
+  },
+  "source_provenance": "Locally authored LINE DXF converted by ODA File Converter 27.1.0; original source construction and conversion join are recorded in p6-ac1027-1032-oda-writer-rejection-2026-11-04.json. Both source files have byte-identical first and trailing encrypted data; source file header CRCs and decoded copy addresses were independently checked for this observation.",
+  "outputs": {
+    "AC1027": {
+      "path": "/private/tmp/modern-8bb/final-in/AC1027-line.dwg",
+      "sha256": "9147ad434c7b90a3202dd354a72c70dae2ed1817d4a9ec17b2256f12a744fd97",
+      "second_header_offset": 179911,
+      "oda_result": "Out of range; no DXF"
+    },
+    "AC1032": {
+      "path": "/private/tmp/modern-8bb/final-in/AC1032-line.dwg",
+      "sha256": "dd6d8344f795c8c4ae7728abd41b6baf7cc16ac2bbf71d5154399ccb0d8568de",
+      "second_header_offset": 179911,
+      "oda_result": "CRC does not match; no DXF"
+    }
+  },
+  "output_binding": "8bb071a2 archived snapshot plus only dwgwriter18.cpp and dwgwriterlayoutvalidation.cpp changes. Production outputs are byte-identical to manually patched 8bb baseline files in /private/tmp/modern-8bb/second-in; ODA was run on the latter. This equality is the join, not a claim ODA read the final paths.",
+  "oda_logs": {
+    "stdout": "/private/tmp/modern-8bb/second-stdout.txt (0 bytes)",
+    "stderr": "/private/tmp/modern-8bb/second-stderr.txt (0 bytes)",
+    "err_1027": "/private/tmp/modern-8bb/second-out/AC1027-line.dxf.err",
+    "err_1032": "/private/tmp/modern-8bb/second-out/AC1032-line.dxf.err"
+  },
+  "peer_check": "LibreDWG 0.14 dwgread -O JSON reads each generated output with one LINE from (1,2,3) to (4,5,6). This is a narrow peer observation, not ODA acceptance or warning-free qualification.",
+  "tests": [
+    "libdxfrw_dwg_modern_repeated_header: source-independent first/copy equality, EOF address, independent CRC, four-version behavior, invalid entity sentinel preservation and same-facade retry; copy/address/truncation negative verifier controls.",
+    "libdxfrw_dwg_modern_repeated_header_fault compiles writer18 and the layout validator with the existing DWG_LAYOUT_VALIDATION_TESTS hook; corrupted copy, independently resealed wrong address with equal copies, equal copies with bad CRC, and truncation each refuse publication, preserve the destination, and permit same-facade retry."
+  ],
+  "limits": "Only an omitted required container copy is corrected. ODA rejects both tested files, so the cause of its rejection remains unknown. This does not establish broader writer support or change AC1018/AC1024.",
+  "files": {
+    "src/intern/dwgwriter18.cpp": "9e2378c5261986b6fb28141cc9fd8a0cebb493f9b05a206132a11214253ace91",
+    "src/intern/dwgwriterlayoutvalidation.cpp": "b9e341948bc7458185e437802d3c1f77dab4003b72205be61bfe9386c0dc5f1a",
+    "tests/dwg_modern_repeated_header_tests.cpp": "23faf751b88eb1ea4e8a1b1fea2cca5a4754855e74daa5bf13a913997c5f51e9"
+  },
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "integrated_validation": "The integrated repeated-header test and registered instrumented corruption/rollback test passed 2/2.",
+  "legacy_byte_comparison": {
+    "AC1018": "5964b4dc9a1f25b951c2f197566fe41d265a8bd0c00520b7bdf3e2cd0f668b0e",
+    "AC1024": "53f46e21906c9e18f4f7a499a40a2135d3015325c33f996d2fbcc4e6a046f468",
+    "method": "Isolated 8bb071a2 old/new archives wrote matching LINE controls with identical per-version hashes; scratch outputs /private/tmp/modern-8bb/{old-in,new-in}/."
+  }
+}

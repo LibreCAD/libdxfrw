@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-resolved-write-reference-setter-bounds-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bound codec-owned registration vectors that authorize selected TABLESTYLE, Background and SUN write references.",
+  "source": {
+    "parentCommit": "79710d1d8970b8b2c4e77e2d2cb5147f589b0d26",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "cmake": "4.4.5",
+    "files": {
+      "src/libdxfrw.h": "363437cc400c964b8b84b04ae69e92049f0db67ddde4a2e21b74cc871ada2892",
+      "tests/dxf_fixture_tests.cpp": "083d30fff41eab3f70c8c694a1f377d9cb358de1535ae1ece21cba85eb9437d8",
+      "tests/dxf_no_raw_sections_tests.cpp": "5a4a9f4644152cd4b393473a7938d8bd3303a7cb333ed23867b45f8f7f0d585e",
+      "tests/CMakeLists.txt": "ea376548e108fbef95497b9eef87bc4e278388c40b82b50e0273234232c60dba"
+    }
+  },
+  "limit": {
+    "entriesPerRegistration": 100000,
+    "registrationTypes": [
+      "TABLESTYLE handles",
+      "TABLESTYLE base IDs",
+      "Background handles",
+      "SUN handles"
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/dxf_no_raw_sections_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "All four registration types share const-copy staging into a temporary vector and count validation before copying; their rvalue overloads validate before consuming caller storage.",
+      "Oversized input clears stale registration data and sets an independent rejection bit. A valid replacement clears only its own bit, so correcting one registration cannot hide another rejected list.",
+      "A pending rejection blocks a new write before output creation; an invalid registration attempted during an active write marks the attempt failed.",
+      "The added private rejection state requires downstream consumers to rebuild; ABI compatibility remains gated under P8."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_no_raw_sections_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_resolved_write_reference_setter_bounds|libdxfrw_no_raw_sections|libdxfrw_raw_dxf_section_setter_bound|dwg2dxf_raw_dxf_section_capture_limits' --output-on-failure",
+      "result": "PASS 4/4; 1.30 seconds",
+      "coverage": "All four registration setters reject oversized input and clear stale values; independent rejection state survives unrelated correction; valid replacements clear their own state; ASCII/Binary write refusal preserves an existing destination and accepts a corrected same-codec retry."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests libdxfrw_no_raw_sections_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_resolved_write_reference_setter_bounds|libdxfrw_no_raw_sections' --output-on-failure",
+      "result": "PASS 2/2; 1.65 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The 100,000-entry limit is an internal resource ceiling, not a DXF format maximum or support claim.",
+    "Allocation failure during a valid const-vector copy was not fault-injected in this slice.",
+    "These registrations authorize selected references; they do not establish target existence, correct target roles or semantic completeness by themselves.",
+    "Other unbounded setup inputs, including handle remaps, source BLOCK_RECORDs and canonical linetype metadata, remain in the P6 safety audit."
+  ],
+  "next": "Continue the P6 safety and caller-state audit on remaining unbounded copied setup inputs and assembly paths."
+}

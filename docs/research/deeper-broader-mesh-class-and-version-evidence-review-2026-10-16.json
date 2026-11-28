@@ -1,0 +1,123 @@
+{
+  "date": "2026-10-16",
+  "review": "MESH CLASS metadata and version evidence",
+  "type": "research_only",
+  "sources": [
+    {
+      "title": "Autodesk AutoCAD 2010 DXF Reference",
+      "url": "https://images.autodesk.com/adsk/files/acad_dxf1.pdf",
+      "supports": [
+        "AC1024 maps to AutoCAD 2010.",
+        "SUBDIVISION uses the AcDbSubDMesh subclass and documents the base cage, crease, and property-override group-code family.",
+        "Generic CLASSES group-code meanings include record/class/app names, proxy flags, instance count, was-a-proxy, and entity flag."
+      ],
+      "does_not_establish": [
+        "Earliest DXF version accepting SubDMesh.",
+        "An authoritative exact CLASS tuple for AcDbSubDMesh."
+      ]
+    },
+    {
+      "title": "Autodesk AutoCAD 2013 DXF Reference",
+      "url": "https://images.autodesk.com/adsk/files/autocad_2013_pdf_dxf_reference_enu.pdf",
+      "supports": [
+        "AC1027 maps to AutoCAD 2013.",
+        "MESH uses the AcDbSubDMesh subclass and documents its base cage and related group-code family."
+      ],
+      "does_not_establish": [
+        "Earliest DXF version accepting MESH.",
+        "AC1032 acceptance or exact CLASS tuple."
+      ]
+    },
+    {
+      "title": "ezdxf 1.4.4 MESH internals",
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mesh.html",
+      "supports": [
+        "Documentation states MESH was introduced in R13/R14.",
+        "The example represents MESH and AcDbSubDMesh fields."
+      ],
+      "does_not_establish": [
+        "An R13/R14 writer or verified native sample."
+      ]
+    },
+    {
+      "title": "ezdxf 1.4.5 MESH API",
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfentities/mesh.html",
+      "supports": [
+        "ezdxf documents DXF R2000 / AC1015 as its required export version."
+      ],
+      "does_not_establish": [
+        "Historical format introduction; an implementation export minimum is not necessarily a format minimum."
+      ]
+    },
+    {
+      "title": "LibreDWG generated MESH field census",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/examples/alldxf_MESH.inc",
+      "supports": [
+        "Generated census labels a MESH entity from test/test-data/2004/Surface.dxf and shows AcDbEntity plus AcDbSubDMesh fields."
+      ],
+      "does_not_establish": [
+        "The listed file's header, hash, producer, CLASS tuple, or whether the census reflects original input versus converted/generated data."
+      ]
+    },
+    {
+      "title": "Autodesk DXF 2010 generic CLASS schema",
+      "url": "https://images.autodesk.com/adsk/files/acad_dxf1.pdf",
+      "supports": [
+        "CLASS group codes 1, 2, 3, 90, 91, 280, and 281 describe record name, C++ class name, application name, proxy capabilities, instance count, was-a-proxy, and entity status respectively."
+      ],
+      "does_not_establish": [
+        "Normative SubDMesh application string or proxy capability value."
+      ]
+    },
+    {
+      "title": "ACadSharp issue #1038 and v3.6.12 release notes",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1038",
+      "secondary_url": "https://github.com/DomCR/ACadSharp/releases",
+      "supports": [
+        "Historical report showed a MESH/AcDbSubDMesh DXF entity displayed as ACAD_PROXY_ENTITY with ObjectDBX Classes application text.",
+        "Release notes say PR #1067 updated mesh version, DXF asserts, and edge-crease handling."
+      ],
+      "does_not_establish": [
+        "Exact fixed CLASS tuple or current-release native application acceptance."
+      ]
+    },
+    {
+      "title": "ACadRust class registry",
+      "url": "https://docs.rs/acadrust/latest/src/acadrust/classes/mod.rs.html",
+      "supports": [
+        "Implementation claims its R2013 default class registry matches AutoCAD output and gives MESH/AcDbSubDMesh proxy flags 4095 and a descriptive application string."
+      ],
+      "does_not_establish": [
+        "Independent/native validation of that claim in this review."
+      ]
+    }
+  ],
+  "reconciliation": {
+    "versioned_names": {
+      "AC1024": "SUBDIVISION documented by Autodesk",
+      "AC1027": "MESH documented by Autodesk",
+      "pre_AC1024": "Unqualified; retain current compatibility behavior while auditing exact sample provenance",
+      "AC1032": "Implementation currently inherits MESH; keep profile unqualified pending native or version-specific reference sample"
+    },
+    "class_tuple": "Local SCENEOE/1025 tuple is tested only as a serializer invariant. Generic Autodesk schema does not define it; peer artifacts differ. Native acceptance remains NOT_RUN.",
+    "old_sample": "LibreDWG Surface.dxf could not be fetched in the review tool; no header, hash, producer or original-source confirmation was available."
+  },
+  "plan_effect": [
+    "Added an exact, provenance-bearing sample audit to the existing MESH owner.",
+    "At the existing composed checkpoint only, capture CLASSES and ENTITIES separately and run a pinned independent consumer; do not run peer CAD applications per implementation slice.",
+    "If native/sample evidence is unavailable, leave old-version validity and exact CLASS acceptance unqualified and continue with unrelated implementation."
+  ],
+  "not_changed": {
+    "findings": 125,
+    "top_level_subplans": 71,
+    "fixture_files_added": 0,
+    "new_dependencies": 0,
+    "support_claims_promoted": 0,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

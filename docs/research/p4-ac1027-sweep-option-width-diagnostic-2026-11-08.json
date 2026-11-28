@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-option-width-diagnostic-2026-11-08",
+  "date": "2026-11-08",
+  "status": "ONE-SAMPLE-OPTION-WIDTH-DIFFERENTIAL",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/private/tmp/example_2013.dwg",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "version": "AC1027",
+    "object": "ACSH_SWEEP_CLASS",
+    "handle": "0x2e2",
+    "actionBodyBits": 2343
+  },
+  "method": "The opt-in source probe reads the bounded raw action-body span with the ACadRust candidate order, then repeats the same sequence with only the two align/miter option encodings changed from BS to RC as listed in LibreDWG dwg2.spec. Every cursor read and payload skip is checked against the 2,343-bit body bound. No production decoder behavior changes.",
+  "results": {
+    "candidateBS": {
+      "alignOption": 2,
+      "miterOption": 2,
+      "bodyCursor": 2342,
+      "bound": 2343,
+      "profilePath": [[77, 744], [77, 480]],
+      "opaqueSuffixBits": 1
+    },
+    "competingRC": {
+      "stop": "vector",
+      "bodyCursor": 63,
+      "bound": 2343,
+      "reason": "The RC interpretation shifts the subsequent candidate bits and cannot decode the expected bounded 3BD field at this cursor."
+    }
+  },
+  "interpretation": "The ACadRust BS widths are better supported for this exact sample than the LibreDWG RC widths: they produce option values 2/2, valid following fields, the same-handle paired payload sizes, finite transforms and the bounded body endpoint. The test is not independent producer evidence; it does not resolve vector semantics, the one-bit suffix, embedded type-77 geometry, normative field meanings, other profiles/versions, output support or FreeCAD behavior.",
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_ac1027_acds_source_probe -j4",
+    "physicalProbe": "PASS: SWEEP_OPTION_WIDTH BS bits=2342/2343 align=2 miter=2; SWEEP_OPTION_WIDTH RC bits=63/2343 stop=vector",
+    "fixturePolicy": "No fixture added; existing local sample used in place.",
+    "fullSuites": "not run"
+  },
+  "nextAction": "Obtain a native or independently authored DWG witness for the action-body order/widths. If ODA remains unavailable in the current desktop session, continue independently ready P4/P6 work and retain raw/Partial/fail-closed behavior."
+}

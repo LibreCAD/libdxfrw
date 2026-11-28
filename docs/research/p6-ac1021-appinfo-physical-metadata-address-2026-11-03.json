@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1021-appinfo-physical-metadata-address-2026-11-03",
+  "date": "2026-11-03",
+  "status": "APPINFO_LOCATOR_CORRECTED_ODA_REJECTION_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "authority": "Open Design Specification for .dwg files v5.4.1, section 5.2 specifies the R2007 metadata field at 0x2c as the application-info stream address. Section 4.1 instead reserves those bytes in the R2004-family metadata, so this change is restricted to AC1021.",
+  "finding": "The R2007 writer always generated an AcDb:AppInfo section but left its metadata stream locator at zero. In an independent ODA-generated AC1021 one-LINE drawing (SHA-256 f3bb8e438a7df7ecb2a45535f548e8b035af253272d8b70cfa6056e7ec32dae3), metadata locator 0x2c equals 0xd20, the physical page-map address of its first AppInfo page.",
+  "change": "After determining physical page order, find the first logical AppInfo page, sum preceding physical page lengths with checked arithmetic, reject a locator beyond 32 bits, and write its absolute little-endian stream address. The R2007 layout validator checks the locator against the separately assembled physical-page receipt.",
+  "validation": {
+    "selector": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_r2007_section_map_page_extent|libdxfrw_dwg_r2007_crc_spec_vectors|libdxfrw_dwg_r2007_data_page_crc_profiles|libdxfrw_dwg_header_current_references)$' --output-on-failure: PASS 4/4",
+    "physicalControl": "The generated file is decoded from the actual system pages, resolves the AppInfo section descriptor's page ID through the physical page map, and requires its address to equal the metadata locator. A second in-memory generated drawing adds a locally authored VBA-section payload before AppInfo, requiring the locator to move and still match the physical map. This is locator evidence only, not VBA support.",
+    "independentRead": "LibreDWG 0.14 reads the freshly generated AC1021 file (SHA-256 0181777ea2b8963e83992984b4d138215438c74d1e6061cba2b6265fb8bc0e86); its page map places AppInfo page 6 at 0xc80, equal to the metadata locator. It reports the intended one LINE."
+  },
+  "independentConverter": {
+    "tool": "ODA File Converter 27.1.0",
+    "operation": "ACAD2013 DXF, recursion disabled, audit disabled",
+    "result": "The freshly generated AC1021 file above still returns zero with only an .err reporting Invalid input and no DXF. A prior scratch patch of the locator on a custom-reference drawing similarly failed.",
+    "interpretation": "This fixes an independently evidenced metadata error, but the broader ODA rejection remains unresolved."
+  },
+  "limits": [
+    "Only AC1021 writer metadata is changed; no change to AC1018/AC1024/AC1027/AC1032 locator semantics is implied.",
+    "No external fixture was committed and no interoperability claim was promoted."
+  ]
+}

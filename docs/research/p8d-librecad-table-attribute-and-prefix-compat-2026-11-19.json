@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-librecad-table-attribute-and-prefix-compat-2026-11-19",
+  "date": "2026-11-19",
+  "status": "SOURCE_COMPATIBILITY_FIXED_CONSUMER_GUI_OPEN",
+  "supportClaimEffect": "none",
+  "sourceBaseline": {
+    "libdxfrwMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "librecadMaster": "deaedc327850349ceb9b4825b3efcc68ac2a52eb",
+    "librecadMasterArchiveSha256": "64c9e36466705e4a152c8e89fd42bb7c4bdfe8a58f39193a936ee00797a67c50",
+    "librecadPreviousMaster": "4437cebb885533e19de2369cb7bc0abeea4ac3ca",
+    "librecadDelta": "3 commits, 139 changed paths; relevant paths CMakeLists.txt and filters/tests/dwg_smoke_tests.cpp. The DXFRW filter source hash is unchanged.",
+    "librecad3Master": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+    "freecadMain": "d65d3b388743b51da923d6ab36d10ddbc149ba46",
+    "freecadPreviousMain": "51089c6d8e4d82e731e3810a8af1e23f6d23b095",
+    "freecadDelta": "9 commits, 265 changed paths; filename screen found no dxf, dwg, import or libdxfrw path. This is not a semantic consumer test."
+  },
+  "sourceBreak": {
+    "trigger": "LibreCAD current entity_metadata_tests.cpp uses vector.push_back({handle,index,text}) at three call sites. Upstream DRW_TableCellAttribute has private reader bookkeeping, so it is no longer an aggregate and all three calls failed to compile.",
+    "fix": "Add a default constructor and a value constructor supporting the historic 1-, 2- and 3-field forms plus the upstream content index. Preserve member order and private retained-text bookkeeping.",
+    "validation": "Current LibreCAD metadata test source fails at three attribute initializer sites before the header fix and passes -fsyntax-only with current upstream headers afterward. The compatibility object and graph/preservation CTest pass; runtime controls cover default, partial, three-field, four-field, copy and move values."
+  },
+  "guardedConsumerPatch": {
+    "path": "docs/patches/librecad-associative-prefix-kinds-guarded-2026-11-19.patch",
+    "sha256": "bb57e9b1a640010d5163135510b8e5526bdad6798ef3b41c6e8ca321aba27b4e",
+    "origin": "Adapted from existing local LibreCAD commit 9e1bde5b3 to guard references to four newer source enum values with LIBDXFRW_HAS_EXTENDED_ASSOCIATIVE_PREFIX_KINDS. Existing LibreCAD enum and count fields stay available in either build.",
+    "reason": "The prior unguarded fix compiles with upstream but names enum values missing in LibreCAD bundled libdxfrw.",
+    "checks": "Patch applies exactly to clean deaedc source with git apply and passes patch --dry-run; complete LibreCAD filter object builds without the four-kind warning against both bundled and current upstream codecs. Full entity_metadata_tests.cpp syntax passes under both header sets. Assert-enabled standalone mapping probes pass both macro branches.",
+    "bundledProbeBuild": "The standalone bundled codec CMake configure references a missing cmake/libdxfrwConfig.cmake in the archive; the scratch probe instead builds the exact bundled libdxfrw_sources.cmake source list with C++17 and the project warning options. No product source or flags were suppressed.",
+    "limit": "Patch is reviewable but not merged into LibreCAD. Prefix mapping is diagnostic only; no associative semantic claim."
+  },
+  "consumerChecks": {
+    "sharedDigest": "9d988b4c00e5faa7b9e20d1b3aec3e91e79f8361ebd683426bb898e7ab10fd0f",
+    "sharedDylibSha256": "7cb379e4b74db6b75aa394c68913007fa2a6fd37a05e59fd5caf9d63a023a270",
+    "librecad": "Exact deaedc filter compiles against the installed package; dependency file excludes bundled codec headers and a dynamic link probe resolves the screened libdxfrw symbol prefixes. The consumer source has the guarded patch; scratch CMake routes the filter to the package.",
+    "librecad3": "Unmerged candidate 1ab08f5819f31053d5540b0c3e1259b865b8265d based on current 4fb48312708b39d499f7e6668104a3b54a8601c7 compiles persistence and loads the exact shared dylib. Existing generated ASCII 2D LINE open/save and 3D LINE save/reopen tests pass 2/2; dyld traces the exact package.",
+    "librecad3LogSha256": "253418a24f0dfc340e15ef6153fcf4d3c818f8dd51545d3fa035adeec433e55d",
+    "librecad3DyldLogSha256": "aff0408b429b20af329f0db9def86d02c4f7bceff4dca444a4852be97c392669",
+    "limits": "Neither current LibreCAD GUI nor unmodified LibreCAD_3 application is qualified; the 2D test does not reopen, and no external drawing or native rendering was tested."
+  },
+  "validation": {
+    "graphPreservation": "PASS 1/1",
+    "lc3Compat": "PASS compile",
+    "sourceInventory": "PASS: 1349 files after tracking the consumer patch",
+    "patchApply": "PASS against exact deaedc archive and byte comparison of both resulting files",
+    "fixturePolicy": "No new DWG/DXF fixture or external drawing committed.",
+    "qualification": "Selected source/test changes require P8-F to rerun for the new digest."
+  }
+}

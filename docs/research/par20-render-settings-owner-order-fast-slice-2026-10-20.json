@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 RenderSettings and PlotSettings owner-order fast slice",
+  "mode": "Generated ASCII/Binary DXF adapter regression",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Assert NOD-first and dictionary-owner-before-child physical OBJECTS order for generated RenderSettings and PlotSettings callback routes.",
+    "Register the existing selector as one focused fast CTest; preserve the current producer and fixture policy."
+  ],
+  "sources": [
+    {
+      "project": "Local adapter regression",
+      "urls": [],
+      "references": [
+        "tests/dwg2dxf_adapter_tests.cpp",
+        "tests/CMakeLists.txt"
+      ],
+      "observed": "The generated RenderPreset callback round-trip checks resolved readback handles and OBJECTS physical order for NOD, ACAD_RENDER_PLOT_SETTINGS, ACAD_PLOTSETTINGS, RenderSettings children, and PlotSettings. Both RapidRT and Mental Ray variants run through ASCII and Binary DXF."
+    }
+  ],
+  "assessment": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "focusedCtestRegistered": "libdxfrw_render_settings_owner_order",
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "targetBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "directSelector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-render-settings-callback-and-fail-closed",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_render_settings_owner_order$' --output-on-failure (1/1)",
+    "fullSuiteRun": false,
+    "nativeOrPeerValidation": false,
+    "commitCreated": false,
+    "commitBlocker": "The shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

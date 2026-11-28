@@ -1,0 +1,10 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 section 20.4.54: R2004+ LAYER missing-xdictionary flag and xref block hard-pointer role.",
+  "scope":"Only the internally synthesized layer 0 receives missing-xdictionary=1 and explicit typed-null xref for AC1018+. Caller/source layer 0 retains its own flag and null-role state; an explicitly typed caller null is preserved. AC1015 behavior is unchanged. Plotstyle remains untouched pending its independently witnessed graph.",
+  "source_evidence":"LibreDWG 0.14 decodes ODA-produced AC1021/AC1024/AC1027/AC1032 LINE drawings with layer-0 missing=1 and xref=(5,0,0). In the AC1018 ODA control the root layer has a real extension dictionary. Nine locally decoded layer-0 source records without an extension also exhibit missing=1 and xref=(5,0,0).",
+  "independent_generated_readback":"Production AC1018 scratch SHA-256 470c515ca5924ee06471925d2aadf50f7f653eb9717a068bd2acf0502290d965 decodes with missing=1 and xref=(5,0,0). It is byte-identical to the corresponding ODA differential candidate; plotstyle remains untyped null in this limited slice.",
+  "oda_result":"ODA File Converter 27.1.0 still produces no DXF and reports Object improperly read: <AcDbLayerTableRecord> (12), previous error .dwg file needs recovery. Do not claim the layer interoperability gap is closed; the nonnull source-backed plotstyle graph remains separate work.",
+  "tests":"PASS after rebuilding all dependent adapter/test objects: libdxfrw_dwg_header_writer_sealing exercises generated layer 0, caller untyped/typed null and explicit metadata, invalid-color failure with no output and same-writer retry, and following LINE in AC1015/1018/1021/1024/1027/1032. libdxfrw_dwg_group_dictionary_controls and current-reference selector also pass.",
+  "limitations":"The caller source's plotstyle and other metadata are not normalized. No generated DWG fixture is committed."
+}

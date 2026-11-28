@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-spline-edge-hatch-elevation-2026-11-21",
+  "date": "2026-11-21",
+  "status": "DOWNSTREAM_INCREMENTAL_PATCH_FOCUSED_VERIFICATION_PASSED_NATIVE_PENDING",
+  "supportClaimEffect": "none",
+  "problem": "A default-normal non-rational spline HATCH boundary imports its control points at zero height, so its shared nonzero source elevation is lost.",
+  "authority": [
+    {
+      "title": "Autodesk HATCH (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm"
+    },
+    {
+      "title": "Autodesk Boundary Path Data (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+      "scope": "Spline control and fit points are 2D OCS positions; tangents are 2D vectors."
+    }
+  ],
+  "patch": {
+    "path": "docs/patches/librecad3-p8-hatch-spline-edge-elevation-2026-11-21.patch",
+    "sha256": "d1959c3e17f65cf9e0c09e01a0452937ca72d0177aba46375a6d3ac3acb59cf4",
+    "base": "Incremental candidate patch applied after the P8 curved-edge elevation patch and its recorded downstream dependencies; not standalone on LibreCAD_3 master.",
+    "adapterPreimageGitBlob": "f31497751c2185a9ec319abc601e5c5a4cff283f",
+    "testsPreimageGitBlob": "62637ebdc25853d464b3400f82c326be1c6e56b9",
+    "application": "git apply --check and apply PASS on isolated exact preimages; patched files byte-match the tested files. Existing user LibreCAD_3 checkout untouched.",
+    "implementation": "Lift default-normal control and fit points to the entity plane; preserve tangent vectors. Include eligible non-rational splines in the shared finite common-plane check. Once a common output elevation is proved, put it on the HATCH and clear spline point Z in the temporary 2D DXF edge object; leave unsupported/mixed profiles outside this normalization."
+  },
+  "validation": {
+    "baseline": "A locally generated quadratic spline edge fails imported and reopened control point Z checks before the patch.",
+    "baselineLogSha256": "e7b23d0c9ab8895c861c8321834e62189947f5007b191bae8d273f23dc7a1369",
+    "focused": "8/8 selected tests pass for both bundled and current shared codecs, including a non-rational quadratic spline with three controls, two fit points, knots and start/end tangents; ASCII/Binary save/reopen, mixed-height destination handling, corrected same-document retry and seven prior HATCH/MPOLYGON controls.",
+    "currentLibrarySourceCommit": "b46f448b9611374c286674fe2619715572bca67a",
+    "currentLibraryImplementationDigest": "18a77d51abb44da94a659d99d26657645f57e570ce19b8fea4c76f5cbd65c95d",
+    "currentSharedLibrarySha256": "e61efec8166c2e6f12d1e180fd039de682989fe1768a138ed704ba147eef848f",
+    "currentPersistenceSha256": "f3c9cbf5808667bcdf16cd59e1b4b7385a4fa11759058ee1d177ca24f570e295",
+    "bundledPersistenceSha256": "bbc1145c0b78378acf0ca733e6674eb143404a29c4f5d09ef8628eef0cafd8de",
+    "currentLogSha256": "dc43b23bab374804e2f18f7a11d84da69947764712be83a003a4be852c60fe93",
+    "bundledLogSha256": "2e3a406e529f951efa3175156222c2ba7b2f649c5aebfc8673cecc389c61e263",
+    "independentReader": "ezdxf 1.4.5 checks all parsed spline edge fields and elevation against the original DXF plus physical ASCII/Binary signatures; output-specific hashes are below.",
+    "independentOutputs": {
+      "current": {
+        "spline-ascii.dxf": {
+          "sha256": "dbcce19c9d324b8b2824b2231e02b686316c4f25590670bfb633e76ee5158122",
+          "elevation": 3,
+          "allSplineFieldsMatchInput": true
+        },
+        "spline-binary.dxf": {
+          "sha256": "5d2a3e8e8cff843b2c9927fcb71af50bce36f009589cc49d229fa9f2389392f0",
+          "elevation": 3,
+          "allSplineFieldsMatchInput": true
+        },
+        "retry.dxf": {
+          "sha256": "dbcce19c9d324b8b2824b2231e02b686316c4f25590670bfb633e76ee5158122",
+          "elevation": 3,
+          "allSplineFieldsMatchInput": true
+        },
+        "mixed": "refused, existing destination preserved"
+      },
+      "bundled": {
+        "spline-ascii.dxf": {
+          "sha256": "f2a6187248884fb0bf78728573e74c4a995f406a7e8e07c2e5e69a3f12adc86e",
+          "elevation": 3,
+          "allSplineFieldsMatchInput": true
+        },
+        "spline-binary.dxf": {
+          "sha256": "41c5cbde093621fbf9046ac5f0cd26f5ef6b43e0181acc9b1fd3f8866f25658c",
+          "elevation": 3,
+          "allSplineFieldsMatchInput": true
+        },
+        "retry.dxf": {
+          "sha256": "f2a6187248884fb0bf78728573e74c4a995f406a7e8e07c2e5e69a3f12adc86e",
+          "elevation": 3,
+          "allSplineFieldsMatchInput": true
+        },
+        "mixed": "flattened with loss warning in focused test"
+      }
+    }
+  },
+  "limits": [
+    "This is an unmerged downstream patch, not native GUI, platform or whole-file qualification.",
+    "The tested profile is default-normal and non-rational. Rational weights, periodic cases, tilted planes and DWG MPOLYGON source geometry remain separately unqualified.",
+    "For the selected mixed-height spline, current codec refuses and preserves the destination; bundled codec emits a flattened output with a loss warning. Neither behavior is claimed for other invalid profiles. No fixture files were committed."
+  ]
+}

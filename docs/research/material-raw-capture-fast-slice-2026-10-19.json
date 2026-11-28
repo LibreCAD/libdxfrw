@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw-material-raw-capture-fast-slice-v1",
+  "date": "2026-10-19",
+  "title": "PAR-20/7G.3f.4b.2 MATERIAL DXF raw-capture handoff",
+  "scope": "Retain the existing ordered MATERIAL raw-DXF callback alongside its typed projection and bind both to one successful import generation.",
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256": {
+      "dwg2dxf/dx_data.h": "2ca4ec268ab1c8d68fc59aae28fd7ec7f6e21f0b6343319ee7b32ffc73d03a25",
+      "dwg2dxf/dx_iface.cpp": "71afd54d89cb3b7d951e8f157f786397dedc76807f591123482c264a04f9f4a6",
+      "tests/dxf_fixture_tests.cpp": "2a5e050dbd27abc278f1b8f86daae52bc440b4f3240b8df9236fb2f9a59e9236"
+    },
+    "behavior": [
+      "Retains MATERIAL raw tag groups only on the DXF callback route; DWG opaque tails are not treated as DXF payload.",
+      "Generation-bound receipt checks successful source profile and one-to-one typed/raw handle and owner identity.",
+      "Adapter capture is bounded to 100000 records, 4000000 raw groups, and 64 MiB estimated payload; overflow/allocation failure is explicit.",
+      "Preserves ordered repeated groups and ASCII source spellings in the existing DRW_RawDxfObject carrier."
+    ],
+    "productionCodeChanged": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "newTestTarget": false,
+    "newCTestRegistration": false,
+    "committedFixtureFiles": 0,
+    "dependenciesAdded": 0,
+    "generatedProfiles": [
+      "Scratch-authored AC1027 ASCII MATERIAL with repeated map-name/value groups and source-spelling verification",
+      "Scratch-authored AC1027 Binary DXF MATERIAL with the same ordered typed group sequence",
+      "Raw/typed handle mismatch and owner mismatch negatives",
+      "Successful same-container second import rejected by the single-generation receipt"
+    ],
+    "notCompleted": [
+      "ACAD_MATERIAL NOD root and owner graph closure",
+      "MATERIAL payload replay on output",
+      "Entity group-347 target closure through emitted objects",
+      "DWG-origin MATERIAL semantic projection or rendering"
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --material-raw-capture",
+        "result": "PASS",
+        "summary": "ASCII and Binary DXF capture, exact ordered groups, ASCII raw spelling, typed/raw identity-owner pairing, mismatch negatives, and generation binding"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+        "result": "PASS",
+        "summary": "1/1 passed in 3.82 seconds"
+      },
+      {
+        "command": "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/material-raw-capture-fast-slice-2026-10-19.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuitesRun": false,
+    "peerRuntimesRun": 0,
+    "nativeCadRuns": 0,
+    "externalFilesDownloaded": 0
+  },
+  "status": "PASS_LOCAL_FAST_SLICE",
+  "supportClaimPromoted": false,
+  "planCounts": {
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

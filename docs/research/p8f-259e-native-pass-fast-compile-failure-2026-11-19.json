@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8f-259e-native-pass-fast-compile-failure-2026-11-19",
+  "date": "2026-11-19",
+  "status": "PRIOR_DIGEST_NATIVE_PASS_FAST_COMPILE_FAILED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "53077a6b6db8e97c9d01ea5150fde7831af2e11de737fe57f216da707084ffb9",
+  "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44639744122",
+  "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44639744183",
+  "headSha": "259e90fa6370a14faef7d270890881455a91a9af",
+  "checkedOutMergeSha": "b6bde4d2bd5eeb2829ecfdd729c16e89398ca809",
+  "focusedVerification": "PASS: three focused platform artifacts authenticated through the live receipt verifier; 7/7 tests per platform.",
+  "platforms": {
+    "linux-gcc": {
+      "jobId": 135967561009,
+      "artifactId": 14585064218,
+      "archiveSha256": "e9f4412b604a0846a0c8f7f3ddda6dc4c787c5fb66e704975774ee0cd75d7e71",
+      "receiptSha256": "26a5d5dad6392f8dde170703ffd116edea19ed4d203cf4e80849fb775ed87ef3"
+    },
+    "macos-clang": {
+      "jobId": 135967560965,
+      "artifactId": 14585728473,
+      "archiveSha256": "328647f435fbf431d2be5a6998afe903cc018afbfc3fdd6ad7c820daf51379c0",
+      "receiptSha256": "881a040cbee84976a84c59f6e4b74529250e94f254f21d93704e6da05ef12031"
+    },
+    "windows-msvc": {
+      "jobId": 135967560990,
+      "artifactId": 14585659350,
+      "archiveSha256": "7e71bdc89aa93e0ece8ebaa93b39e86236ff3ec61b573d5eda579e3865cd56ae",
+      "receiptSha256": "a4fd24c2b00798f1e659f2d4622966758a5e064871b14da7180d07eba0d2dd6e"
+    }
+  },
+  "fastResult": "FAIL: GCC 13 -Werror=range-loop-construct on a copied std::pair in xrecordOwnedExtensionClosure; test execution did not begin. The loop now uses a const reference; a separate pre-existing GCC 16 dangling-reference diagnostic was also corrected.",
+  "fastJobId": 135967415832,
+  "fastLogSha256": "a560f13b342f8c39be6d284c44d33578676e56f0f56798ab803081fe82d2fdc6",
+  "limits": [
+    "P8-F remains open: the fast lane failed and the selected source changed.",
+    "These receipts do not establish broad, GUI, independent-producer, or semantic qualification."
+  ]
+}

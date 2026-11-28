@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "HEADER_ENVELOPE_CORRECTED_OBJECT_REJECTION_REMAINS",
+  "supportClaimEffect": "none",
+  "scope": "AC1021 generated file-header envelope for the existing uncompressed 272-byte writer profile. The data size is an eight-byte signed negative value, and the normal payload CRC uses UpdateSeed2. No other writer versions or generic DWG reader behavior are changed.",
+  "authority": "ODA Open Design Specification v5.4.1 sections 5.2.1.2-5.2.1.5 describe the eight-byte negative uncompressed size and the normal header data/compressed-data CRCs; the exact compressed CRC seed is additionally bound to the producer control below.",
+  "producer_control": {
+    "origin": "ODA File Converter 27.1.0 AC1021 DWG, from a scratch ezdxf 1.4.5 single-LINE DXF",
+    "path": "/private/tmp/p6-ac1021-current/oda/source.dwg",
+    "sha256": "d1c06f7818e18d22e6bba41421468903f9b67cd633f900c7c3c17ec4c6b95534",
+    "observation": "The RS-decoded envelope has 163 compressed bytes and stored CRC e5fc703350823e5b. The in-tree normal CRC with UpdateSeed2(0,163) matches; UpdateSeed1 gives 2fda180827039684. The 163 literal payload bytes and stored value are tested. This source uses a positive compressed length, so it does not physically prove a negative 64-bit size.",
+    "positive_control": "Same ODA ACAD2007 DXF audit=1 batch produces a DXF without .err; ezdxf reports one LINE (1,2,3) to (4,5,6)."
+  },
+  "factorial": {
+    "baseline": "Previously recorded generated default and opt-in plotstyle files; both contain the low 32 bits of -272 but a zero upper word and a seed1 payload CRC. The mutation tool checks matching header copies, raw header profile, repeat block and existing header/payload CRC, then changes only the selected envelope fields and RS-reseals both copies.",
+    "default_baseline_sha256": "5d0d360f0c05b4dd652aa72ee0d4ca839e3d9847576460ff6cfb7e82ad18e6eb",
+    "plotstyle_baseline_sha256": "a49664768f95b208e704a2ad3c91363e7a3957a261718ef96e2bbefa5a5a96ce",
+    "outcomes": [
+      {
+        "mask": 0,
+        "change": "none",
+        "oda": "Invalid input; no DXF"
+      },
+      {
+        "mask": 1,
+        "change": "sign-extend size to 64 bits only",
+        "oda": "CRC does not match; no DXF",
+        "default_sha256": "3b525c8f35b1bf1856f08d3bc58c280301b1175470de093e58412dc0e81c9ee9",
+        "plotstyle_sha256": "792ac65a53dba2706b8e56244e9c3fd680dfab81bcf9b65c1b83d11251b6bf72"
+      },
+      {
+        "mask": 2,
+        "change": "use seed2 payload CRC only",
+        "oda": "Invalid input; no DXF",
+        "default_sha256": "fe7ff3debc53d86493ecd877e2a463bb76a03fda096a10e641ad8194a9450fdc",
+        "plotstyle_sha256": "50cccd2ee345c1b3e11f1a29ffbbf54ed2992dd5490bf981ac299e06088573db"
+      },
+      {
+        "mask": 3,
+        "change": "both",
+        "oda": "Object warnings for DICTIONARY, STYLE and BLOCK_CONTROL, then fatal LAYER_CONTROL; no DXF",
+        "default_sha256": "9a8fb1da51f8106c68f73d99508cc9ba7c51cb18001eafdfa615089233041324",
+        "plotstyle_sha256": "7394a064d246668c260cfd81dfb01dcb2f80b27a946764a6fb5f793eddfbb4ec"
+      }
+    ],
+    "interpretation": "The changed diagnostics discriminate these inputs and show that both field changes advance the ODA reader to object processing. They do not prove all framing or CRCs correct, identify every remaining defect, or establish successful conversion."
+  },
+  "final_writer": {
+    "default_sha256": "9a8fb1da51f8106c68f73d99508cc9ba7c51cb18001eafdfa615089233041324",
+    "plotstyle_sha256": "7394a064d246668c260cfd81dfb01dcb2f80b27a946764a6fb5f793eddfbb4ec",
+    "oda": "Fresh files reproduce the mask-3 object warnings and fatal LAYER_CONTROL, with no DXF. The positive control produces one LINE and no .err.",
+    "independent_reader": "LibreDWG 0.14 reads the final plotstyle file and reports one LINE with start (1,2,3) and end (4,5,6); this is not a complete graph or interoperability proof."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg_reader_matrix_tests -j 4",
+    "tests": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_fixed_metadata_pointer|libdxfrw_dwg_r2007_crc_spec_vectors|libdxfrw_dwg_r2007_data_page_crc_profiles|libdxfrw_dwg_r2007_section_map_page_extent|libdxfrw_dwg_header_writer_sealing|libdxfrw_dwg_image_compound_transaction)$' --output-on-failure",
+    "result": "6/6 passed",
+    "coverage": "Actual writer header RS decoding checks all eight size bytes, CRC and repeated block; a literal producer payload confirms the CRC seed. The pre-publication envelope validator rejects zero-extension, changed CRC, changed body and truncation, and accepts the restored envelope. Adjacent existing transaction and reader controls pass. The invalid-envelope test directly exercises the validator and does not inject a corrupted envelope into a whole output transaction.",
+    "addressSanitizer": "ctest --test-dir build-asan-custom -R '^libdxfrw_dwg_fixed_metadata_pointer$' --output-on-failure: 1/1 passed after rebuilding the final writer with AddressSanitizer.",
+    "owningRoundtrip": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure: 1/1 passed."
+  },
+  "reproduction": [
+    "Compile tools/probe_ac1021_envelope_variant.cpp with /usr/bin/g++ -std=c++17 -I. -Isrc -Isrc/intern tools/probe_ac1021_envelope_variant.cpp build-gcc/libdxfrw.a -o <scratch>/variant. Verify the baseline SHA first; for masks 1, 2, 3 run <scratch>/variant <baseline.dwg> <scratch>/maskN.dwg N.",
+    "Run ODAFileConverter <input-dir> <output-dir> ACAD2007 DXF 0 1 '*.dwg'; inspect .err and actual DXF rather than relying on the process status. The positive-control and factorial files are retained only under /private/tmp/ac1021-size-field.",
+    "tools/probe_ac1021_line_writer.cpp generates fresh baseline-profile files with the current library; an old SHA-bound file is required to reproduce the pre-fix factorial."
+  ],
+  "limits": [
+    "No fixture added; all producer files are scratch-only.",
+    "The consumer behavior of an ODA-produced negative-size header has not been independently witnessed; the eight-byte signed encoding follows the authoritative field description and the controlled ODA differential.",
+    "The next observed blocker is object-level, not a qualified root cause of every object warning."
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "ac1027-mline-ltype-mixed-text-first-v1",
+  "date": "2026-10-29",
+  "codeCommit": "2a5f65d7bfe2bf4e1b4d4ead16d4a475dc3c670c",
+  "scope": "Selected two-element AC1027 complex LTYPE transport where the text segment precedes a simple dash segment. This complements, but does not generalize beyond, the simple-then-text profile in RPP-5ra.",
+  "priorReceipt": "docs/research/rpp5ra-mline-ltype-mixed-simple-text-segments-2026-10-29.json",
+  "finding": "The current parser, model, and writer already preserve this segment order. No production code change was needed; the earlier test asserted a fixed simple-first path and was extended to express both qualified orders.",
+  "profile": {
+    "version": "AC1027",
+    "segments": [
+      {
+        "order": 1,
+        "kind": "text",
+        "length": 0.5,
+        "shapeFlags": 2,
+        "complexShapeCode": 0,
+        "styleProvider": "ComplexText",
+        "styleFile": "txt.shx",
+        "scale": 0.75,
+        "rotationRadians": 0.004363323129985824,
+        "xOffset": 0.125,
+        "yOffset": -0.25,
+        "text": "DXF"
+      },
+      {
+        "order": 2,
+        "kind": "simple",
+        "length": 1.5,
+        "shapeFlags": 0
+      }
+    ],
+    "sourceAndOutput": "Runtime-generated ASCII and binary source/output cross-product; existing two MLINE consumers retain the selected style dependency.",
+    "physicalChecks": "Ordered group-49 lengths and group-74 flags, group-340 STYLE provider reference/remap, text segment's groups 75/46/50/44/45/9, unique STYLE/LTYPE rows and STYLE file field.",
+    "readback": "Fresh libdxfrw import checks LTYPE path and both DRW_LTypeSegment values in order, exact selected text payload/parameters and remapped STYLE handle, plus the MLINE style consumer profile.",
+    "failureControls": "For each encoding, remove the text STYLE provider; export refuses while preserving the sentinel destination and caller/provider state. Restore the provider and retry on the same adapter; output and readback pass."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "selector": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_mixed_segments$' --output-on-failure",
+    "result": "PASS 1/1. The selector covers both segment orders × ASCII/binary source × ASCII/binary output: 8 initial profiles, 16 successful readbacks including corrected retries, 8 missing-provider refusals and 8 retries.",
+    "diffCheck": "PASS git diff --check before the code commit.",
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.3 (clang-2100.3.34.2), arm64 macOS"
+  },
+  "bindings": {
+    "tests/dxf_fixture_tests.cpp": "8a9c4bc3a7d63c151295ccb777e0b55a208b9b48028a599351ce8a7cce3e6e46",
+    "testExecutableSha256": "2eab871c6c06a51e3e6768ff60616442ea2fef3d97dc145d518b027ef2055685"
+  },
+  "limits": [
+    "No external producer fixture or native consumer was used; the drawing is authored at runtime from scratch and remains in temporary storage.",
+    "The result qualifies only this two-element mixed profile and its reverse ordering relative to RPP-5ra; other segment counts, flags, shape/text combinations, optional placements, providers and versions remain open.",
+    "The STYLE file identity is transported; SHX availability, font loading, native orientation and rendered appearance are not proved."
+  ]
+}

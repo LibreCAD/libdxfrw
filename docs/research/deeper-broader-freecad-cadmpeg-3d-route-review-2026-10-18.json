@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader FreeCAD 2D boundary and SAT/SAB peer-route review",
+  "mode": "public-source research only; no peer installation, build, or execution",
+  "sources": [
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "observation": "DWG wrapper converts through an external converter to temporary DXF and then invokes the DXF import route; converter choice is installation/configuration-dependent."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "observation": "DWG support depends on external converters; documentation distinguishes the 2D DXF route from the CADExchanger 3D DWG workflow."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "observation": "FreeCAD documents separate C++ and legacy Python DXF import/export backends with different feature coverage."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+      "observation": "FreeCAD's current file-format guidance says its DXF and DWG paths support only 2D geometry."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "observation": "A FreeCAD maintainer confirms in the issue response that ACIS blobs in DXF solids are not read by the stock FreeCAD DXF route."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "observation": "Autodesk 3DSOLID groups include modeler version 70, repeated proprietary payload groups 1/3, and optional history reference 350."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "observation": "Autodesk warns not to assume entity group-code order is fixed."
+    },
+    {
+      "url": "https://docs.rs/cadmpeg-codec-sat/latest/cadmpeg_codec_sat/",
+      "observation": "The separately implemented read-only codec accepts bare SAT/SMT/SAB/SMB streams, exposes model-transfer losses, and identifies verified binary ACIS save formats 217/218; other ACIS bands are unverified/recovery-labelled. The current published codec is 0.6.1 and requires Rust 1.88 or later."
+    },
+    {
+      "url": "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+      "observation": "The project rates bare ASM/ACIS streams L1; the published level is not a general B-rep semantic or native acceptance claim."
+    },
+    {
+      "url": "https://github.com/cadmpeg/cadmpeg/blob/main/LEGAL.md",
+      "observation": "The project publishes a clean-room policy based on legally possessed files and public documentation, excluding vendor SDKs, decompiled binaries, and confidential knowledge."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+      "observation": "Current source recognizes AcDb:AcDsPrototype_1b and dispatches a dedicated AcDs parser path."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "observation": "Published NEWS still describes modern R2013+ SAB extraction from AcDs as not fully reliable and partly brute-force."
+    }
+  ],
+  "findings": [
+    {
+      "area": "FreeCAD downstream qualification",
+      "result": "Stock DWG conversion plus DXF import is a 2D route; successful conversion/import does not exercise ACIS solid semantics.",
+      "evidenceGrade": "documented source route; not executed"
+    },
+    {
+      "area": "DXF solid carrier",
+      "result": "3DSOLID carrier integrity must compare ordered group 1/3 payload bytes, group 70, optional group 350, and the enclosing object/owner graph; legal group order cannot be assumed globally.",
+      "evidenceGrade": "primary Autodesk entity/group-code documentation"
+    },
+    {
+      "area": "Independent SAT/SAB parser candidate",
+      "result": "cadmpeg-codec-sat is an optional bare-stream decoder/model comparator with a narrow documented profile; it does not parse DWG AcDs and does not establish general B-rep validity or native CAD acceptance.",
+      "evidenceGrade": "current project documentation; not executed"
+    }
+  ],
+  "planImpact": {
+    "existingOwners": [
+      "PAR-07 / S8 carrier and semantic gates",
+      "PAR-59 / 7P.5b IMAGEDEF graph and wire-contract gates"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "requiredExternalRun": false,
+    "dependencyAdded": false,
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "repositoryState": {
+    "worktreeWasBroadlyDirty": true,
+    "unrelatedChangesPreserved": true,
+    "receiptAndPlanAreUncommitted": true
+  }
+}

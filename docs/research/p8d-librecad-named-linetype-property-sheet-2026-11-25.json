@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-named-linetype-property-sheet-2026-11-25",
+  "status": "OFFSCREEN_PROPERTY_EDIT_AND_PEER_READBACK_PASS_NATIVE_GUI_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "5811bb2c4a5a3ee30789106eda9b85e2b9f7a803"
+  },
+  "dependency": {
+    "runtimeLibrary": "/private/tmp/libdxfrw-material-policy-install-20261125/lib/libdxfrw.3.0.0.dylib",
+    "runtimeLibrarySha256": "ab2a007b1a220ff4c335259507e83e41817d5cd9d5dfa849b305947ab1f1f13f",
+    "codeDigest": "7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246",
+    "currentTestInclusiveDigest": "5bc263cc80c1c5431b0055829b79daf9e9ceafe4b58877ffe3fae6ca1adc2061",
+    "note": "The later digest changes selected tests only; implementation code is unchanged. Earlier platform qualification is not transferred."
+  },
+  "problem": "The entity Properties provider used RS2::LineType alone; a drawing-defined name fell back to the SolidLine enum and the panel displayed Continuous despite a preserved named linetype.",
+  "implementation": "A name-aware property carries the enum and optional exact name so NoPen, unnamed built-ins and named records remain distinguishable. It reuses the existing drawing-aware QG_LineTypeBox, retains missing names via a temporary row, and propagates the selected identity through multi-selection. Existing enum-only property users remain on their original type.",
+  "validation": [
+    "System codec: the focused named-linetype and document-lifetime lane passed 97 assertions in 9 cases; dyld confirmed the isolated installed library. The separate CTest target passed with registration enabled; registration disabled produced zero matching tests.",
+    "Bundled codec: named-linetype, existing linetype-selector and document-lifetime lanes passed 541 assertions in 41 cases (including an optional scratch screenshot).",
+    "The test selects a named line, changes line width, changes its linetype, saves and reopens; it checks the exact name and 4/-2 pattern. Other controls exercise mixed named selections, choosing the first selected value, missing names, NoPen, and named-vs-unnamed built-in identity.",
+    "An offscreen screenshot of the actual property-sheet widget displays CUSTOM_B in the Line Type row after the edit. System and bundled screenshots had SHA-256 d4be91c2a05991932dbd501d83fc64493c4e2a116007c56fae2658621f71b7ae.",
+    "Independent ezdxf 1.4.4 readback of the locally generated AC1021 DXFs found one LINE from (0,0,0) to (100,0,0), linetype CUSTOM_B, group-49 pattern 4/-2, and zero audit errors or repairs. System output SHA-256 10afc4474c1ee03da77f00d8c0c7abb9f6a3836d402ec2c444cb64fee1d23186; bundled output SHA-256 56614a79cc1b78f7fc8cb2caa71db3d08e4369c34b93be48257ef67c5597bca9.",
+    "The broader focused system-codec lane passed 2,082 assertions in 33 cases before the final test-only addition; no production code changed after that lane."
+  ],
+  "limits": [
+    "These are offscreen widget and local peer checks, not an unmodified native desktop save/reopen qualification.",
+    "A sanitizer build was started but not completed because it would rebuild most of the application; normal document-lifetime controls passed.",
+    "No generated DXF or screenshot was committed. Remaining native/platform and other linetype profiles require separate evidence."
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "title": "Generated SECTION_SETTINGS body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_SECTION_SETTINGS_BODY_RECOVERY_PASS_AC1021",
+  "scope": "Generated SECTION_SETTINGS malformed-body disposition at AC1021 plus the existing AC1027 source-reference gate.",
+  "selection": {
+    "source": "P6-F typed OBJECTS dispatcher/parser inventory and the existing Section Manager profile",
+    "reason": "SECTION_SETTINGS is the Settings subtype of the already-supported DRW_Section parser and has a generated writer/readback seed in the local regression suite."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-section-settings-body-source",
+    "profile": "One Settings record with current type 1, one source handle, a destination file, and one geometry record carrying color, layer, linetype, plot style, hatch, lineweight, and transparency values, followed by a LINE.",
+    "mutation": "A bounded one-bit mutation within the pre-handle body causes the typed parser to reject the object frame."
+  },
+  "revision_results": {
+    "AC1021": {
+      "controls": 5,
+      "output_revision": "AC1021"
+    },
+    "AC1027": {
+      "controls": 3,
+      "output": "refused by the existing source-reference gate"
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 passed.",
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 passed after registering the targeted selector.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
+    "diff_check": "git diff --check passed.",
+    "aggregate": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure passed; 917 controls; 29.40 seconds.",
+    "targeted": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_section_settings_recovery$' --output-on-failure passed; 8 controls; 0.69 seconds."
+  },
+  "validation_tuning": "A first four-revision expansion exceeded the aggregate selector's 30-second timeout. The recovery profile is limited to the AC1021 generated output/readback route and the AC1027 gate. A dedicated 20-second CTest selector now runs these eight controls in under one second for subsequent slice iteration.",
+  "assertions": [
+    "AC1021 read reports one failed OBJECTS frame, retains the following LINE, and balances source/published/failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel.",
+    "Explicit-partial ASCII/Binary output at AC1021 reopens through the local typed DXF reader.",
+    "AC1027 strict and partial output remain refused by the source-reference gate."
+  ],
+  "limits": [
+    "Generated local recovery and output-disposition evidence only; no producer-authored SECTION_SETTINGS graph is qualified.",
+    "The referenced source handle role and target closure are not independently proven; native section semantics are not tested.",
+    "AC1024 and AC1032 malformed-body profiles are not included.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

@@ -1,0 +1,35 @@
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1966,0 +1967,31 @@
++    def test_lwpolyline_closed_bulge_ocs(self):
++        """Closing bulges follow the same tilted, elevated OCS as other edges."""
++        import math
++        options = FreeCAD.ParamGet(self.option_source)
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                (0, "LWPOLYLINE"), (8, "0"), (90, 3), (70, 1), (38, 5),
++                (10, 0), (20, 0), (10, 2), (20, 0), (10, 2), (20, 1), (42, -1),
++                (210, 0), (220, 1), (230, 0), (0, "ENDSEC"), (0, "EOF")]
++        path = os.path.join(self.temp_dir, "lwpolyline-closed-ocs.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        for mode in (2, 3):
++            with self.subTest(mode=mode):
++                options.SetInt("DxfImportMode", mode)
++                previous = set(self.document.Objects)
++                Import.readDXF(path, self.document.Name, True, self.option_source)
++                self.document.recompute()
++                name = "Compound" if mode == 3 else "Polyline"
++                objects = [o for o in self.document.Objects if o not in previous and o.Name.startswith(name)]
++                edges = [edge for obj in objects for edge in obj.Shape.Edges]
++                self.assertEqual(len(edges), 3)
++                closing = [edge for edge in edges if abs(edge.Length - math.pi * math.sqrt(5) / 2) < 0.00001]
++                self.assertEqual(len(closing), 1)
++                arc = closing[0]
++                midpoint = arc.valueAt((arc.FirstParameter + arc.LastParameter) / 2)
++                for value, expected in zip((midpoint.x, midpoint.y, midpoint.z), (-1.5, 5, -0.5)):
++                    self.assertAlmostEqual(value, expected, delta=0.00001)
++                self.assertEqual(tuple(sorted((round(v.Point.x, 6), round(v.Point.y, 6), round(v.Point.z, 6))
++                                              for v in arc.Vertexes)), ((-2, 5, 1), (0, 5, 0)))
++

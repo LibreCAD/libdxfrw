@@ -1,0 +1,206 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Generated DXF controls for MPOLYGON's omitted solid-fill flag.
+#include "lc3_compat_check.cpp"
+#include "intern/dxfreader.h"
+#include "intern/dxfwriter.h"
+
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <vector>
+
+namespace {
+class LegacyConsumer final : public LC3CompatCheck {
+public:
+    void addHatch(const DRW_Hatch* hatch) override {
+        if (hatch != nullptr)
+            fills.push_back(hatch->solid);
+    }
+    std::vector<int> fills;
+};
+
+class TypedConsumer final : public LC3CompatCheck {
+public:
+    void addMPolygon(const DRW_MPolygon* polygon) override {
+        if (polygon != nullptr) {
+            fills.push_back(polygon->solid);
+            hstyle = polygon->hstyle;
+            if (polygon->looplist.size() == 1 && polygon->looplist[0]
+                && polygon->looplist[0]->objlist.size() == 1) {
+                boundaryHandles = polygon->looplist[0]->m_boundaryHandles;
+                const auto* polyline = dynamic_cast<const DRW_LWPolyline*>(
+                    polygon->looplist[0]->objlist[0].get());
+                geometryOk = polyline && (polyline->flags & 1) != 0
+                    && polyline->vertlist.size() == 3
+                    && polyline->vertlist[0]
+                    && polyline->vertlist[0]->bulge == 0.5;
+            }
+        }
+    }
+    std::vector<int> fills;
+    std::vector<std::uint32_t> boundaryHandles;
+    int hstyle = -1;
+    bool geometryOk = false;
+};
+
+class PolygonEmitter final : public LC3CompatCheck {
+public:
+    void writeEntities() override {
+        DRW_MPolygon polygon;
+        polygon.dxfVersion = 1;
+        polygon.solid = 1;
+        polygon.name = "SOLID";
+        polygon.hstyle = nondefault ? 1 : 0;
+        auto loop = std::make_shared<DRW_HatchLoop>(3);
+        if (nondefault) loop->m_boundaryHandles.push_back(0x50u);
+        auto polyline = std::make_shared<DRW_LWPolyline>();
+        polyline->flags = 1;
+        for (int i = 0; i < 3; ++i) {
+            auto vertex = std::make_shared<DRW_Vertex2D>();
+            vertex->x = i == 1 ? 1.0 : 0.0;
+            vertex->y = i == 2 ? 1.0 : 0.0;
+            vertex->bulge = i == 0 ? 0.5 : 0.0;
+            polyline->vertlist.push_back(vertex);
+        }
+        loop->objlist.push_back(polyline);
+        polygon.looplist.push_back(loop);
+        accepted = writer->writeMPolygon(&polygon);
+    }
+    dxfRW* writer = nullptr;
+    bool accepted = false;
+    bool nondefault = false;
+};
+
+bool writerFlagOrder(bool binary, bool nondefault) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-mpolygon-order-" + std::to_string(nonce) + ".dxf");
+    PolygonEmitter emitter;
+    emitter.nondefault = nondefault;
+    dxfRW output(path.string().c_str());
+    emitter.writer = &output;
+    bool ok = output.write(&emitter, DRW::AC1021, binary) && emitter.accepted;
+    std::ifstream input(path, std::ios::binary);
+    if (binary) input.seekg(22);
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(std::make_unique<dxfReaderBinary>(&input))
+        : std::unique_ptr<dxfReader>(std::make_unique<dxfReaderAscii>(&input));
+    reader->setVersion("AC1021", true);
+    bool inPolygon = false;
+    bool inPath = false;
+    std::vector<int> flags;
+    int styleCount = 0;
+    int sourceCount = 0;
+    int sourceHandleCount = 0;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) inPolygon = reader->getString() == "MPOLYGON";
+        if (!inPolygon) continue;
+        if (code == 92) inPath = true;
+        else if (inPath && code == 93) inPath = false;
+        else if (inPath && (code == 73 || code == 72)) {
+            flags.push_back(code);
+            ok = ok && reader->getInt32() == 1;
+        }
+        if (code == 75) ++styleCount;
+        if (code == 97) ++sourceCount;
+        if (code == 330 && reader->getString() == "50") ++sourceHandleCount;
+    }
+    ok = ok && flags == std::vector<int>({73, 72})
+        && styleCount == (nondefault ? 1 : 0)
+        && sourceCount == (nondefault ? 1 : 0)
+        && sourceHandleCount == (nondefault ? 1 : 0);
+    input.close();
+    TypedConsumer typed;
+    dxfRW verify(path.string().c_str());
+    ok = verify.read(&typed, false) && typed.fills == std::vector<int>({1})
+        && typed.geometryOk && typed.hstyle == (nondefault ? 1 : 0)
+        && typed.boundaryHandles == (nondefault ? std::vector<std::uint32_t>({0x50u})
+                                               : std::vector<std::uint32_t>()) && ok;
+    std::error_code ignored;
+    std::filesystem::remove(path, ignored);
+    if (!ok) std::cerr << (binary ? "binary" : "ASCII") << " MPOLYGON flag order failed\n";
+    return ok;
+}
+
+bool emitDrawing(std::ostream& stream, bool binary, bool invalidAnnotation) {
+    if (binary) {
+        static constexpr char signature[] = "AutoCAD Binary DXF\r\n\x1a\0";
+        stream.write(signature, sizeof(signature) - 1);
+    }
+    std::unique_ptr<dxfWriter> writer = binary
+        ? std::unique_ptr<dxfWriter>(std::make_unique<dxfWriterBinary>(&stream))
+        : std::unique_ptr<dxfWriter>(std::make_unique<dxfWriterAscii>(&stream));
+    const auto text = [&](int code, const char* value) { return writer->writeString(code, value); };
+    const auto integer = [&](int code, int value) { return writer->writeInt16(code, value); };
+    const auto count = [&](int code, int value) { return writer->writeInt32(code, value); };
+    const auto real = [&](int code, double value) { return writer->writeDouble(code, value); };
+    if (!text(0, "SECTION") || !text(2, "HEADER") || !text(9, "$ACADVER")
+        || !text(1, "AC1021") || !text(0, "ENDSEC") || !text(0, "SECTION")
+        || !text(2, "ENTITIES")) return false;
+    const char* handles[] = {"30", "31", "32", "33"};
+    const int flags[] = {-1, 1, 0, -1};
+    for (int i = 0; i < (invalidAnnotation ? 1 : 4); ++i) {
+        if (!text(0, "MPOLYGON") || !text(5, handles[i])
+            || !text(100, "AcDbEntity") || !text(8, "0")
+            || !text(100, "AcDbMPolygon") || !integer(70, 1)
+            || !real(10, 0) || !real(20, 0) || !real(30, 0)
+            || !real(210, 0) || !real(220, 0) || !real(230, 1)
+            || !text(2, "ANSI31") || (flags[i] >= 0 && !integer(71, flags[i]))
+            || !count(91, 1) || !count(92, 3) || !integer(73, 1)
+            || !integer(72, 0) || !count(93, 3)
+            || !real(10, 0) || !real(20, 0) || !real(10, 1)
+            || !real(20, 0) || !real(10, 0) || !real(20, 1)
+            || !integer(76, 1) || (invalidAnnotation && !integer(73, 42))
+            || !real(52, 0) || !real(41, 1)
+            || !integer(77, 0) || !integer(78, 0)
+            || !real(11, 0) || !real(21, 0) || !count(99, 0)) return false;
+    }
+    return text(0, "ENDSEC") && text(0, "EOF") && !writer->hasWriteError();
+}
+
+bool run(bool binary, bool invalidAnnotation) {
+    std::ostringstream output(std::ios::binary);
+    if (!emitDrawing(output, binary, invalidAnnotation)) return false;
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-mpolygon-default-" + std::to_string(nonce) + ".dxf");
+    {
+        std::ofstream file(path, std::ios::binary);
+        const std::string bytes = output.str();
+        file.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+        if (!file) return false;
+    }
+    const std::vector<int> expected{0, 1, 0, 0};
+    TypedConsumer typed;
+    dxfRW typedReader(path.string().c_str());
+    const bool typedRead = typedReader.read(&typed, false);
+    const bool typedOk = invalidAnnotation ? !typedRead && typed.fills.empty()
+                                                && typedReader.getError() == DRW::BAD_CODE_PARSED
+                                           : typedRead && typed.fills == expected;
+    LegacyConsumer legacy;
+    dxfRW legacyReader(path.string().c_str());
+    const bool legacyRead = legacyReader.read(&legacy, false);
+    const bool legacyOk = invalidAnnotation ? !legacyRead && legacy.fills.empty()
+                                                 && legacyReader.getError() == DRW::BAD_CODE_PARSED
+                                            : legacyRead && legacy.fills == expected;
+    std::error_code ignored;
+    std::filesystem::remove(path, ignored);
+    if (!typedOk || !legacyOk)
+        std::cerr << (binary ? "binary" : "ASCII") << " MPOLYGON default/readback failed\n";
+    return typedOk && legacyOk;
+}
+} // namespace
+
+int main() {
+    // Directly constructed objects keep their existing API defaults; only
+    // DXF input without group 71 uses the MPOLYGON pattern default.
+    if (DRW_Hatch{}.solid != 1 || DRW_MPolygon{}.solid != 1) return 1;
+    return run(false, false) && run(true, false)
+        && run(false, true) && run(true, true)
+        && writerFlagOrder(false, false) && writerFlagOrder(true, false)
+        && writerFlagOrder(false, true) && writerFlagOrder(true, true) ? 0 : 1;
+}

@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-mpolygon-default-trailer-tags-2026-11-15",
+  "date": "2026-11-15",
+  "status": "bounded_writer_defaults_peer_readback",
+  "supportClaimEffect": "none",
+  "sources": [
+    "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/mpolygon.py",
+    "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/boundary_paths.py"
+  ],
+  "finding": "ezdxf writes no hatch-style tag for MPOLYGON and no source-boundary tags for polyline paths. Its documented default hatch style is zero. LibreCAD's bundled writer follows the same default-output profile.",
+  "change": "Omit group 75 only when its value is zero and omit group 97 only when the source-boundary handle list is empty; keep nondefault style and all populated handle lists. HATCH output is unchanged.",
+  "verification": [
+    "Generated default and populated MPOLYGON files in ASCII and Binary pass wire-order, tag-presence and typed-readback controls: closed polyline, bulge, hatch style and source handles.",
+    "ezdxf 1.4.5 independently reads the same four generated outputs with matching path closure, bulge, style and handle-list values.",
+    "The local MPOLYGON and adjacent HATCH boundary tests pass 2/2. The seven-revision HATCH/MPOLYGON allocation transaction, rollback and retry selector passes in 9.28 seconds.",
+    "LibreCAD's combined DIMASSOC/MPOLYGON comparison improves from 5/11 to 6/11 cases passing, with 125/135 assertions passing."
+  ],
+  "limits": [
+    "The populated MPOLYGON fields are retained rather than projected away; ezdxf readback does not qualify their native interpretation, and ezdxf does not export these tags for this path type.",
+    "Only a polyline with one boundary was tested for this slice. Other path forms, native CAD rendering and five remaining consumer cases remain open.",
+    "No DWG or DXF fixtures were added."
+  ]
+}

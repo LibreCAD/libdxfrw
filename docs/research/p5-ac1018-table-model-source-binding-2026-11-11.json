@@ -1,0 +1,37 @@
+{
+  "id": "p5-ac1018-table-model-source-binding-2026-11-11",
+  "scope": "Explicitly selected bounded parsed AC1018 TABLE model, privately captured before public callback and bound to the later same-import reciprocal CRC/ledger source bundle. No output or full graph authority.",
+  "implementation": [
+    "Reader captures a deep TABLE copy and the exact initial CRC-checked frame bytes after block-space/attribute normalization and name resolution, before public callback/journaling. Later post-BLOCKS frame reread must match handle, decoded offset, ordinal, space, encoded class and full body bytes. Published-once and successful whole-read/coverage/failure checks still control delivery.",
+    "The preflight admits only a concrete semantic-complete 3x3 model with one text content per cell, 2104 proxy bytes, bounded strings/ranges, no attributes, EED/appdata, reactors, data-storage, native EED write refs or mutable DXF accounting lease. String variants must have canonical owned storage and no dormant layer/color metadata. Count and length bounds precede the deep snapshot; a conservative 256 KiB is charged per retained model against existing aggregate limits.",
+    "Adapter deep-copies the private reader model, verifies original parsed proxy provenance is unmodified, applies only the same proxy replay-authorization normalization as its ordinary retained TABLE callback, and compares the unique live TABLE on sealing and every later source query.",
+    "Comparison includes generic entity/INSERT/TABLE fields, proxy bytes and provenance, all TABLE row and border overrides and colors, geometry/cells/values, merged ranges and retained raw-handle role codes. Doubles are compared by bit pattern. Previous reciprocal source-only API remains unchanged."
+  ],
+  "physical_source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "probe": "tools/research/p5_ac1018_table_model_binding_probe.cpp",
+    "result": "PASS. Selected TABLE 0x9c model, reciprocal DICTIONARY 0xbb, root, nine child XRECORDs and custom frames are bound in one import. An unrelated HEADER integrity observation remains.",
+    "controls": [
+      "Live TABLE geometry, xdictionary, proxy bytes and replay authorization, each row/border override family, color metadata, range raw handle code and cell/text mutations revoke the entire capability and restore after reset. Duplicate TABLE models are refused.",
+      "A forged TABLE callback xdictionary fails the stronger model-bound selection; the earlier source-only reciprocal selection continues to accept the independently authenticated source.",
+      "Actual BLOCKS callback exception, same/cross-adapter reentry and reader-snapshot or entity-ticket allocation fault expose no partial capability; same adapter retries successfully.",
+      "Strict DXF output of both valid and spoofed bundles refuses while preserving the destination sentinel.",
+      "The adapter\u2019s independent legacy 2D INSERT projection is not tracked by this capability: changing it leaves the model source observation valid. No future output gate may rely on this observation alone."
+    ]
+  },
+  "automated_generated_tests": {
+    "command": "cmake --build build --target libdxfrw_dwg_table_model_ac1018_candidate_tests libdxfrw_dwg_table_candidate_binding_tests libdxfrw_dwg_table_entity_reader_lease_tests -j 3 && ctest --test-dir build -R ^libdxfrw_dwg_table_(model_ac1018_candidate|candidate_binding|entity_reader_lease|entity_xdictionary_ac1018_candidate)$ --output-on-failure",
+    "result": "PASS 4/4",
+    "controls": "Synthetic model tests cover row/border scalar/flag/color/handle arrays, signed-zero bit equality, proxy bytes, subrecord role, cells, variant deep copy, caller-pointer alias, hidden layer provenance and bounded size/count refusals. Existing generated reader lease and source-bundle tests retain prior CRC, quota and failure coverage.",
+    "limits": "A generated complete DWG carrying the populated graph is still not available because the output writer correctly refuses it; full model-binding integration and callback/retry controls use the scratch physical source."
+  },
+  "probe_build": "c++ -std=c++17 -Wall -Wextra -Werror -I src -I dwg2dxf tools/research/p5_ac1018_table_model_binding_probe.cpp build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build/libdxfrw.a -o /private/tmp/p5_ac1018_table_model_binding_probe",
+  "probe_run": "/private/tmp/p5_ac1018_table_model_binding_probe /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+  "limitations": [
+    "This narrow capture does not prove TABLESTYLE/resources or entire TABLE graph closure, semantic equivalence, native interoperability, or transaction-safe populated output.",
+    "The separate LibreCAD-compatible 2D INSERT projection is outside the model capability and can change without invalidation; output must never be authorized on this observation alone.",
+    "Only one physical producer/profile and generated model controls were exercised. End-to-end allocation failures are sampled, not swept.",
+    "DXF transient parser cursor/accounting fields are not semantic source state; any shared DXF accounting lease is rejected."
+  ]
+}

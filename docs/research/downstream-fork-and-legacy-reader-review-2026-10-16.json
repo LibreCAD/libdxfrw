@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw-downstream-fork-and-legacy-reader-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden DWG/DXF implementation comparison to LibreCAD's vendored libdxfrw fork and consumer inventories, a lower-priority independent legacy DWG reader, and current Autodesk DXF parser guidance.",
+  "method": {
+    "kind": "Read-only local source/status inspection plus primary project documentation and Autodesk format documentation",
+    "liveReferencesRecheckedAt": "2026-10-16",
+    "localLibreCADCheckout": {
+      "repositoryCommit": "41678d97626c05ab652ceaa02cf0ac7f7f6205cf",
+      "repositoryCommitDate": "2026-10-14T20:40:52-04:00",
+      "vendoredSourceSnapshotMarker": "89b762bef636c90eb370cb1af3cec80fe759cb32",
+      "snapshotCommitObjectAvailableLocally": false,
+      "qualification": "The marker is recorded in the vendored tree, but its referenced Git object is not present in the parent checkout; it is not independently verified as the source commit used by the files inspected."
+    },
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "lineageRule": "LibreCAD's in-tree libdxfrw is the nearest downstream copy of this implementation lineage, not an independent parser. Generated coverage inventories identify names and routes but do not replace fixture, external reopen, or native-consumer evidence.",
+    "evidenceRule": "Separate source API compatibility, static route inventory, typed/raw/skipped behavior, graph closure, ordinary reopen, target-consumer acceptance, and semantic geometry. A static enum, dispatch case, raw replay entry, or successful import is not full support evidence."
+  },
+  "evidence": [
+    {
+      "project": "LibreCAD vendored libdxfrw",
+      "sources": [
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/README.md",
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_ROADMAP.md",
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_VERSION_SUPPORT_STATUS.md",
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/CROSS_READ_PARITY_STATUS.md",
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_WRITER_SUPPORT_STATUS.md"
+      ],
+      "observed": "The README identifies the vendored copy and states that DWG read/write work is maintained in LibreCAD's in-tree fork. The local parent checkout contains a separate roadmap and generated inventories: 525 cross-read rows, per-version static reader/writer entry points, and writer raw-shell inventories. The version matrix's fixture and external-writer gates remain blocked; the writer inventory explicitly treats its rows as readiness rather than promoted support. The roadmap itself says feature completion requires target layout, reference graph, and failure-behavior proof.",
+      "doesNotEstablish": [
+        "independent parser confirmation",
+        "fixture-backed or native qualification for every inventory row",
+        "that the vendored snapshot marker resolves to the exact inspected tree",
+        "binary ABI compatibility of upstream changes"
+      ],
+      "planUse": "Before public callback/data-layout, dispatch, or common 2D behavior changes, reconcile the touched upstream source against the exact LibreCAD filter and pinned source/submodule revision. Use generated inventories for discovery only; preserve non-pure callback defaults and focused LibreCAD/LibreCAD_3 compatibility gates."
+    },
+    {
+      "project": "libopencad",
+      "sources": [
+        "https://github.com/sandyre/libopencad/blob/master/libopencad_api.h",
+        "https://www.gnu.org/software/libredwg/manual/html_node/Overview.html"
+      ],
+      "observed": "The public libopencad API enum names DWG R13, R14, R2000, R2004, R2007, R2010, and R2013, with corresponding DXF codes and structured section parse errors. The older GNU LibreDWG comparison describes libopencad as an R2000 reader. The conflicting scope descriptions show why a version enum or old comparison table cannot serve as a tested compatibility matrix.",
+      "doesNotEstablish": [
+        "that every enum revision is implemented and passes real files",
+        "current maintenance/release quality from the mutable master page",
+        "AC1027+ AcDs/SAB parsing or geometry semantics",
+        "writer support"
+      ],
+      "planUse": "Do not add as a dependency or block implementation on it. If already available at a composed checkpoint, smoke-test and pin an exact build before using it for a narrowly scoped older-version structural comparison."
+    },
+    {
+      "project": "Autodesk DXF guidance",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-D939EA11-0CEC-4636-91A8-756640A031D3.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A0CC85BE-C044-4A4D-B20A-161C5D53FF6E.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm"
+      ],
+      "observed": "Autodesk says the presented code order is not a required entity parser order, future releases can add group codes, and the next group-0 record terminates the current entity. DXF is sectioned, entities appear in ENTITIES and BLOCKS, and database objects have unique handles plus optional owner, extension-dictionary, and reactor links. Symbol-table order can vary; declared entry counts may exceed records actually written.",
+      "doesNotEstablish": [
+        "that repeated or sequence-bearing fields may be reordered",
+        "that unknown group codes may be silently discarded in a preservation workflow",
+        "that a record's handle or owner can be validated by physical order",
+        "that importer acceptance proves complete graph preservation"
+      ],
+      "planUse": "Use table-driven dispatch and targeted permutations only for fields proven order-independent. Preserve order for repeated tuples, chunks, subclass and child-record sequences, XDATA, and references. Retain bounded unknown raw data where eligible or report scoped loss/refusal; check object graphs by handle."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Add a one-time direct downstream crosswalk before the next public-surface slice: source snapshot pin, DRW_Interface/public-type delta, RS_FilterDXFRW override, adapter storage, reference/owner mapping, writer route, and existing focused test target.",
+    "Do not treat the vendored fork or its static inventories as an independent parser vote or as fixture/native evidence.",
+    "For public API/data-layout changes, keep strict changed-target builds and existing LibreCAD plus LibreCAD_3 source/API checks; reserve full consumer builds/native runs for the composed gate.",
+    "Use minimal generated ASCII/binary order-variation controls only where the field grammar permits it, with a following-record sentinel and independently authored expectations.",
+    "Keep libopencad optional and outside per-slice dependency/test requirements; record NOT RUN or NOT APPLICABLE if unavailable or not qualified."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRunForResearch": false,
+    "externalRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

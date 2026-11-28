@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-assocnetwork-candidate-fields-2026-11-09",
+  "date": "2026-11-09",
+  "status": "BOUNDED_PHYSICAL_CANDIDATE_FIELDS_RETAINED_WRITER_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "scope": "Preserve the two distinct action indexes decoded for the hash-bound AC1032 ACDBASSOCNETWORK candidates without marking the AC1032 writer profile qualified.",
+  "source": {
+    "repository": "/Users/dli/dev/libredwg",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "path": "test/test-data/example_2018.dwg",
+    "sha256": "7bc7721224003062b237845842b7a976e46771c37eba6833b9ed3712e7a5a65a",
+    "headerVersion": "AC1032",
+    "fixturePolicy": "Read in place from the adjacent LibreDWG repository; not copied into libdxfrw.",
+    "producerProvenance": "Not established."
+  },
+  "observedProfile": {
+    "records": [
+      {
+        "handle": "0x390",
+        "parentDictionary": "0x38F",
+        "owningNetwork": "0",
+        "classVersion": 2,
+        "actionIndex": 0,
+        "networkVersion": 0,
+        "networkActionIndex": 1,
+        "actions": [{"owned": false, "handle": "0x38E"}],
+        "prefixes": [
+          {"kind": "AcDbAssocAction", "startBit": 48, "bitSize": 26, "status": "Complete"},
+          {"kind": "AcDbAssocNetwork", "startBit": 74, "bitSize": 25, "status": "Complete"}
+        ]
+      },
+      {
+        "handle": "0x38E",
+        "parentDictionary": "0x38D",
+        "owningNetwork": "0x390",
+        "classVersion": 2,
+        "actionIndex": 1,
+        "networkVersion": 0,
+        "networkActionIndex": 1,
+        "actions": [{"owned": true, "handle": "0x391"}],
+        "prefixes": [
+          {"kind": "AcDbAssocAction", "startBit": 48, "bitSize": 34, "status": "Complete"},
+          {"kind": "AcDbAssocNetwork", "startBit": 82, "bitSize": 25, "status": "Complete"}
+        ]
+      }
+    ],
+    "parserStatus": "The bounded parser completes both prefixes. AC1032 remains writer-unqualified; m_networkFieldsParsed is false."
+  },
+  "independentPeer": {
+    "tool": "LibreDWG 0.14 dwgread",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "command": "dwgread -O JSON -o /tmp/libredwg-example2018-assoc.json /Users/dli/dev/libredwg/test/test-data/example_2018.dwg",
+    "jsonSha256": "db8e7821c7d04f9bbf4c51339e38607e5583ec0a6cea6fa55e0a33e2c02aed59",
+    "agreement": "Peer JSON agrees on class version 2, distinct base/network indexes, owner dictionaries, owning-network relation and action target/ownership roles for both records. This peer is not independent producer provenance and does not qualify native semantics or output."
+  },
+  "normativeSource": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "finding": "The supplied PDF text extraction yielded no class-specific ACDBASSOCNETWORK schema section. Do not treat the candidate field agreement as normative qualification."
+  },
+  "implementation": {
+    "files": ["src/drw_objects.cpp", "src/drw_objects.h", "tests/dwg2dxf_adapter_tests.cpp"],
+    "change": "For AC1032 only, retain the already bounded networkVersion/networkActionIndex candidates separately and preserve the base actionIndex decoded by AcDbAssocAction. Leave m_networkFieldsParsed false, so graph/output qualification remains refused. A manual physical selector asserts the two records, ownership/action relations, complete prefix statuses and candidate values. No DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS with configured warning-as-error flags.",
+    "physicalSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocnetwork-ac1032-candidate-profile /Users/dli/dev/libredwg/test/test-data/example_2018.dwg",
+    "physicalSelectorResult": "PASS; both AC1032 class-version-2 records match the captured independent peer fields and complete bounded prefix spans; writer qualification remains false.",
+    "focusedTests": "PASS 6/6: libdxfrw_associative_network_writer, libdxfrw_associative_network_objects_allocation_retry, dwg2dxf_associative_dwg_root_network_value_dependency_export, dwg2dxf_associative_dwg_nested_network_sortents_output, dwg2dxf_generated_selected_associative_networks_output, libdxfrw_associative_network_action_index_generated.",
+    "fullSuites": "NOT RUN."
+  },
+  "remainingGates": [
+    "ACDBASSOCNETWORK class-version-2 body semantics and output schema lack normative/source-producer qualification; retain m_networkFieldsParsed=false.",
+    "The exact AC1032 graph and physical selected export remain blocked by the associative writer/graph AC1024-only profile and additional owner/action dependencies.",
+    "After independent profile qualification, require staged output identity inspection, ASCII/Binary readback, rollback/retry and consumer evidence before any support claim."
+  ]
+}

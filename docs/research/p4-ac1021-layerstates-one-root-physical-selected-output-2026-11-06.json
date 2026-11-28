@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "title": "AC1021 one-root empty LayerStates selected output",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the two source-backed DICTIONARY frames in the one-root empty ACAD_LAYERSTATES profile through selected ASCII/Binary output and fresh typed readback.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; producer and author are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceGraph": {
+    "layerControlHandle": "0x2",
+    "extensionDictionary": {
+      "handle": "0x1FF",
+      "owner": "0x2",
+      "entry": {
+        "key": "ACAD_LAYERSTATES",
+        "target": "0x200"
+      }
+    },
+    "childDictionary": {
+      "handle": "0x200",
+      "owner": "0x1FF",
+      "entryCount": 0,
+      "reactors": [
+        "0x1FF"
+      ]
+    },
+    "frameEvidence": "The source inventory reports both dictionary handles as unique type-42 standard object frames with payloadMatched=1 and opaquePayload=0.",
+    "inventoryLogSha256": "26568efae6219f75419ee2f31bcea322f9245e33631a8a3eb59debf38d4f8499"
+  },
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "change": "Generalize the existing one-root empty LayerStates profile gate to AC1021 while preserving the AC1024 path and existing three-root profile.",
+    "sourceSha256": "5412877719e54212de6859afc29ee6216d216da929aa0923bda4cdf70a305dab",
+    "testFile": "tests/dwg2dxf_adapter_tests.cpp",
+    "testSourceSha256": "fae7d5fe3d63de01a7e9fc30f3b77a6eb53ddccec8c70760dffe3ac221912f31",
+    "testProjectionLimit": "The test-only projection clears unrelated typed families and their corresponding retention/import counters so selected graph output reaches the LayerStates writer. This is test setup only and does not qualify whole-source conversion."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS",
+      "adapterTestExecutableSha256": "7a160e4dcd3a48441e7057024e7dc2843429823a68c5236c75375f0eaa927f00"
+    },
+    "focusedControls": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1021-source-admission /Users/dli/doc/dwg/children-room-decoration.dwg",
+        "result": "PASS. Physical source admission accepts the exact one-root ACAD_LAYERSTATES graph; whole-source strict refusal remains atomic."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+        "result": "PASS for ASCII and Binary output. Fresh typed readback verifies the one-root extension, empty child dictionary and remapped owner/reactor graph. Mutation refusal preserves a destination sentinel; restoring the source and retrying the same adapter succeeds."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1024-output-readback tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+        "result": "FAIL on current code: same-writer retry is rejected during strict-complete finalization with 227/228 opaque callbacks qualified. This AC1024 cross-version control passed in an earlier receipt but must be requalified and its differing source/code context investigated; this failure is not evidence of the AC1021 slice's AC1021 focused gates passing."
+      }
+    ],
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Selected output from one unauthenticated local AC1021 source profile only.",
+    "No independent DWG wire-role proof, whole-source conversion, native LayerStates restore/evaluation, producer-wide support or support-claim promotion.",
+    "The AC1024 neighboring selector currently fails and remains an explicit compatibility follow-up."
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "title": "AC1024 persistent-subentity-manager opaque proxy projection",
+  "date": "2026-11-05",
+  "scope": "Two retained AC1024 ODA DXF outputs compared with exact source DWG frame captures and generated ASCII/Binary codec controls.",
+  "oda_file_converter": {
+    "version": "27.1.0.0",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "fresh_resave_attempt": "aborted with macOS pasteboard/XPC errors; retained ODA outputs were used"
+  },
+  "inputs": [
+    {
+      "profile": "conference room",
+      "source": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+      "source_sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "retained_oda_output": "/private/tmp/libdxfrw-oda-ac1024-conference-dxf-34841/output/conference.dxf",
+      "output_sha256": "377a4acf6767be8a5a02cdd2c8af2afb09b0547b3df3b5fc779f2fd96282bd78",
+      "proxy_objects": 243,
+      "acsh_source_frames": 241,
+      "associative_manager_frames": 1,
+      "bare_manager_frames": 1,
+      "source_parser_failures_retained": 3,
+      "ordered_eed_groups": 650
+    },
+    {
+      "profile": "condominium",
+      "source": "tests/samples/AC1024/condominium.dwg",
+      "source_sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "retained_oda_output": "/private/tmp/libdxfrw-oda-ac1024-condo-proxy-2026-11-05/output/condo.dxf",
+      "output_sha256": "9c387c51c78baacea0ba33e8ed5e2b13b00bef47c6a66e79174edc6697e05a2d",
+      "proxy_objects": 535,
+      "acsh_source_frames": 533,
+      "associative_manager_frames": 1,
+      "bare_manager_frames": 1,
+      "source_parser_failures_retained": 3,
+      "ordered_eed_groups": 0
+    }
+  ],
+  "observations": {
+    "manager_classes": [
+      "ACDBASSOCPERSSUBENTMANAGER / AcDbAssocPersSubentManager / ObjectDBX Classes",
+      "ACDBPERSSUBENTMANAGER / AcDbPersSubentManager / AcDbPersSubentManager"
+    ],
+    "typed_to_raw_binding": "Each typed manager record is bound by import generation and handle to one exact captured source frame; record/class identity, owner, reactors, xdictionary and source class metadata are checked.",
+    "output_census": "The retained ODA proxy census equals the complete captured ACSH plus the two manager frames for each input. Ordered group fields and payload spans are compared; the two manager groups are emitted in the observed reactor-before-owner order.",
+    "roles": "For both sampled inputs each manager has one reactor equal to its owner, a unique typed DICTIONARY target, no xdictionary, and no class-specific object-ID body references. Wrong-kind owner/reference and owner/reactor-to-MATERIAL mutations refuse atomically.",
+    "class_rows": "ODA CLASS output IDs are resolved by CLASS row identity/order. Both manager CLASS rows report instanceCount 2 in retained ODA outputs while source class metadata reports 1; implementation permits this exact observed relation only for these two classes and one captured frame each.",
+    "codec_readback": "Generated ASCII and Binary controls verify class metadata, proxy fields, owner/reactor ordering and typed readback, including corrected retry after refusal.",
+    "limitations": [
+      "Evidence is limited to two retained AC1024 ODA outputs and their exact source frames.",
+      "A fresh ODA resave could not be completed because the CLI aborted with macOS pasteboard/XPC errors.",
+      "Three source object parser failures remain on each input; opaque transport does not establish their semantics.",
+      "Strict whole-document output/readback, other producer/version profiles, native consumer semantics and 3D support are not qualified."
+    ]
+  },
+  "validation": [
+    "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --acds-opaque-proxy-codec-readback",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --proxy-object-capture-limits",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --acds-opaque-proxy-oda-compare tests/samples/AC1024/visualization_-_conference_room.dwg /private/tmp/libdxfrw-oda-ac1024-conference-dxf-34841/output/conference.dxf",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --acds-opaque-proxy-oda-compare tests/samples/AC1024/condominium.dwg /private/tmp/libdxfrw-oda-ac1024-condo-proxy-2026-11-05/output/condo.dxf"
+  ],
+  "support_claim_effect": "none",
+  "fixture_policy": "No new DWG/DXF fixture files are committed; existing source files and retained external outputs were used.",
+  "status": "bounded implementation evidence only; P4 remains open"
+}

@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "date": "2026-11-11",
+  "scope": "AC1018 fixed OBJECTS type 70 routing to the existing VX_CONTROL parser",
+  "source": {
+    "url": "https://trattocad.com/samples/trattocad-sample-3d-pulley.dwg",
+    "local_path": "/private/tmp/p7-trattocad-pulley.dwg",
+    "sha256": "6002b39780e7c1c3980c885f319c1b03721aa8ae216ca3c16d3a619ebaa11ad6",
+    "dwg_version": "AC1018",
+    "producer_provenance": "unverified; publisher advertises a 3D pulley DWG sample for testing/teaching",
+    "not_committed": true
+  },
+  "observed_frame": {
+    "handle_hex": "0x2426",
+    "file_offset": 966264,
+    "encoded_type": 70,
+    "independent_projection": "LibreDWG 0.14 JSON labels it VX_CONTROL, subclass AcDbVXTable, owner handle 0x4",
+    "libdxfrw_before": "classified as entity; OBJECTS read failed with 'object frame routed as entity'",
+    "libdxfrw_after": "classified as fixed OBJECTS; existing DRW_VxControl parser callback succeeds"
+  },
+  "verification": {
+    "build": "cmake --build build-gcc --target dwg2dxf -j4",
+    "build_result": "passed with -Werror",
+    "run": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/p7-trattocad-pulley.dwg -y -d -v2010 /private/tmp/p7-trattocad-pulley-after-vx.dxf",
+    "source_frames": 9161,
+    "published_frames": 9161,
+    "entity_parse_failures": 0,
+    "object_parse_failures": 0,
+    "strict_export": "refused before output publication at the unrelated WIPEOUTVARIABLES source CLASS/dictionary-owner/display-mode gate"
+  },
+  "limits": [
+    "The sample producer is not authenticated and does not qualify interoperability support.",
+    "This proves type routing and the existing common-header parser path only; it does not establish AC1018 VX_CONTROL body semantics or decoded record handles.",
+    "No DXF output, 3D geometry, or whole-file export claim is made.",
+    "No DWG or DXF fixture was added to the repository."
+  ]
+}

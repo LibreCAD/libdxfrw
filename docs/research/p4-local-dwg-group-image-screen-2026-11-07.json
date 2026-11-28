@@ -1,0 +1,166 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Local DWG GROUP and IMAGE source candidate screen",
+  "date": "2026-11-07",
+  "tool": "GNU LibreDWG dwgread 0.14",
+  "command": "dwgread -O minJSON <file>",
+  "screenedCount": 24,
+  "validJsonCount": 18,
+  "cliFailureCount": 5,
+  "jsonParseFailureCount": 1,
+  "candidateCount": 0,
+  "candidates": [],
+  "sources": [
+    {
+      "name": "#Pool_Detail.dwg",
+      "sha256": "8cfad4e4090ce5fead86c8fd4ed17020f6d13a4dda86f67d92953f10e8bf04ca",
+      "result": "CLI_FAILURE",
+      "exitCode": 1
+    },
+    {
+      "name": "#blocks_and_tables_-_metric.dwg",
+      "sha256": "e22c24d315c9f5819b2e8c3763c6dbb2a8d3ee450754f0f180763fd581a1ac17",
+      "result": "CLI_FAILURE",
+      "exitCode": 1
+    },
+    {
+      "name": "#mechanical_example-imperial.dwg",
+      "sha256": "57ec80c861976ea8b100033f2f92fcaf230e134a3a40d3ec9f3417bb173c6fcc",
+      "result": "CLI_FAILURE",
+      "exitCode": 1
+    },
+    {
+      "name": "#title_block-iso.dwg",
+      "sha256": "47bb4c784621b50b4b5395c8374a9e7c8cb9ad4886fd7f901aa25019a1a53987",
+      "result": "CLI_FAILURE",
+      "exitCode": 1
+    },
+    {
+      "name": "Cover.dwg",
+      "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "ET-Drawing-with-Border.dwg",
+      "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "Extruder2.dwg",
+      "sha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "architectural_example-imperial.dwg",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "blocks_and_tables_-_imperial.dwg",
+      "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "blocks_and_tables_-_metric.dwg",
+      "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "civil_example-imperial.dwg",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "colorwh.dwg",
+      "sha256": "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "dwgreader21_230.dwg",
+      "sha256": "21b49e383cc43171fd13e2bbcd1c235bc1a57804be97f63a0d581fb944e743ff",
+      "result": "CLI_FAILURE",
+      "exitCode": 1
+    },
+    {
+      "name": "lineweights.dwg",
+      "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "plot_screening_and_fill_patterns.dwg",
+      "sha256": "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "simple.dwg",
+      "sha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "tablet.dwg",
+      "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "title_block-arch.dwg",
+      "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "title_block-iso.dwg",
+      "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "truetype.dwg",
+      "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "visualization_-_aerial.dwg",
+      "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "visualization_-_condominium_with_skylight.dwg",
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "result": "JSON_PARSE_FAILURE",
+      "detail": "Expecting value: line 1 column 2297369 (char 2297368)"
+    },
+    {
+      "name": "visualization_-_conference_room.dwg",
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "result": "PASS",
+      "objectCounts": {}
+    },
+    {
+      "name": "visualization_-_sun_and_sky_demo.dwg",
+      "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+      "result": "PASS",
+      "objectCounts": {}
+    }
+  ],
+  "supportClaimEffect": "none",
+  "limits": [
+    "Local discovery only; this is not independent producer or application qualification.",
+    "No valid JSON source in the screened set exposed GROUP, IMAGE, or IMAGEDEF objects. Failed and malformed outputs were excluded rather than treated as absence.",
+    "Sources have local provenance only; the inventory does not qualify parser correctness or semantic support."
+  ],
+  "next": "Acquire an independently produced DWG with a populated, rooted GROUP or IMAGEDEF graph and complete source owner/target evidence. Until then, do not broaden these output routes."
+}

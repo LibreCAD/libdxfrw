@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-blockrepresentation-body-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_BLOCKREPRESENTATION_DATA_AC1015_AC1021_BODY_RECOVERY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add malformed OBJECTS-body frame recovery and CLI disposition controls for the bounded BLOCKREPRESENTATION_DATA profile.",
+  "source": {
+    "kind": "scratch-only DWGs authored at test runtime by the in-tree DWG writer",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-blockrepresentation-body-source",
+    "object": "BLOCKREPRESENTATION_DATA with flag 7 and a hard-owner reference to the model-space BLOCK_RECORD; one-bit mutation is searched only after a valid common prologue and within the declared body span.",
+    "versions": ["AC1015", "AC1018", "AC1021"],
+    "cliTarget": "AC1021",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-cli-malformed-blockrepresentation-body-recovery-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "controls": "Each source must read successfully with one object parse failure, zero entity parse failures, one failed frame, exact source-frame accounting, and a following LINE callback. Strict ASCII/Binary conversion preserves the destination sentinel. Explicit-partial ASCII/Binary conversion succeeds, reopens with the retained LINE and VPORT, and carries the incomplete-output warning."
+  },
+  "results": {
+    "readRecoveryProfiles": {
+      "AC1015": {"sourceFrames": 28, "publishedFrames": 27, "failedFrames": 1},
+      "AC1018": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1021": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1}
+    },
+    "outputProfiles": 3,
+    "blockRepresentationControls": 15,
+    "fullFocusedDispositionCohortControls": 215,
+    "versionLimit": "Valid AC1024/AC1027/AC1032 sources were generated, but the bounded one-bit body mutation search did not find a mutation that makes this parser reject. No malformed-body recovery claim is made for those revisions."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "pythonSyntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 5.84 seconds",
+    "directControl": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only: PASS; 172 existing controls, 28 VBA_PROJECT controls, and 15 BLOCKREPRESENTATION_DATA controls",
+    "diffCheck": "git diff --check and python3 -m json.tool: PASS"
+  },
+  "limitations": [
+    "Generated parser-recovery and CLI disposition evidence only; it does not establish BLOCKREPRESENTATION_DATA producer semantics, arbitrary body corruption behavior, or interoperability.",
+    "The negative bit mutations are limited to AC1015/AC1018/AC1021; no failing AC1024+ mutation was found within this body-bounded search.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-F now includes a bounded BLOCKREPRESENTATION_DATA malformed-body profile at AC1015/AC1018/AC1021, with strict refusal and explicit-partial ASCII/Binary readback.",
+    "remainingP6F": "Continue source/resource inventory and select only a supported OBJECTS body with a reproducible bounded parser-failure mutation; keep per-version claims tied to successful controls.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "400 completed slices and 32 remaining packages: 400/(400+32)=92.6%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-cli-malformed-vbaproject-body-recovery-2026-11-14.json"
+}

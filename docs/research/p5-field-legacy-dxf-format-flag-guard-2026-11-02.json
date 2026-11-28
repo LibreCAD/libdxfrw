@@ -1,0 +1,84 @@
+{
+  "evidenceId": "p5-field-legacy-dxf-format-flag-guard-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P5",
+  "status": "GENERATED_DXF_WRITER_GUARD_ONLY",
+  "qualificationEligible": false,
+  "supportClaimsPromoted": false,
+  "scope": "AC1018 FIELD DXF output refuses nonzero CadValue format flags on the root value or any child value before writing bytes. Corrected input can retry through the same dxfRW writer in ASCII and Binary.",
+  "reference": {
+    "authority": "Autodesk FIELD DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm",
+    "observed": "The documented FIELD code table lists group 93 as the number of data sets and does not list a CadValue format-flags field.",
+    "implementationBasis": "The AC1018 low-level writer does not emit group 93 for CadValue flags. Treating nonzero flags as unrepresentable is a fail-closed implementation decision based on that legacy writer profile and the published code table; it is not evidence about physical legacy producer prevalence."
+  },
+  "generatedControl": {
+    "test": "libdxfrw_field_dxf_versioned_wire_profiles",
+    "selector": "--field-dxf-versioned-wire-profiles",
+    "targetVersion": "AC1018",
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "profiles": [
+      {
+        "location": "root CadValue",
+        "formatFlags": 2,
+        "result": "refusal emits no bytes; setting flags to zero permits same-writer retry and WIRE_END sentinel"
+      },
+      {
+        "location": "child CadValue",
+        "formatFlags": 2,
+        "dataType": 2,
+        "result": "refusal emits no bytes; setting flags to zero permits same-writer retry and WIRE_END sentinel"
+      }
+    ],
+    "modernPositiveControl": {
+      "targetVersion": "AC1021",
+      "childKey": "ACFD_FIELDTEXT_CHECKSUM",
+      "formatFlags": 2,
+      "dataType": 2,
+      "expectedDXF": [
+        "group 93 = 2",
+        "group 140 = finite BD value"
+      ],
+      "result": "ASCII/Binary control passes"
+    },
+    "fixturePolicy": "Values are authored in memory and output is captured in temporary streams. No DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_field_dxf_versioned_wire_profiles$' --output-on-failure",
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.46
+    },
+    "diffCheck": "git diff --cached --check passed for the committed slice"
+  },
+  "sourceHashes": {
+    "src/libdxfrw.cpp": "0c759818a6aa2d05dc35f3fe4b57a9fa4d5f624954045bc1487a7ae2fabd823c",
+    "tests/wave1_tests.cpp": "b11921e82b191b1529a979ae15d022885d9eb91558a4eb1d203a9eb01b2605ef",
+    "CMakeLists.txt": "7e462b14618d5e4fa83723273ba6d95412a9e437d2684e67ed0f5a84703e0ad5",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "9b3e5724b1e5874d8bd1abeccc97908708bdb93c47018adcf30ae5b7262ad346"
+  },
+  "repositoryState": {
+    "baseHead": "9a3b4a5a52c19bd164647fa72121a1075159d2f6",
+    "stagedScope": "FIELD representability guard, preflight-before-sticky-error ordering, ASCII/Binary retry and modern AC1021 positive controls, fast CTest registration, and P5 status note",
+    "fixtureFilesAdded": 0
+  },
+  "claimBoundary": [
+    "This is generated writer representability and retry evidence only.",
+    "It does not establish physical AC1018 FIELD format-flag prevalence, physical DWG-to-DXF conversion, full FIELD graph closure, or native FIELD evaluation.",
+    "The broader P5 FIELD source/version and consumer gates remain open."
+  ],
+  "validatedWorkingTreeHashes": {
+    "src/libdxfrw.cpp": "f6abad8d2343ac578d2e5ec52308dd2804bad6e13f350da32fe86d323eaf9b26",
+    "tests/wave1_tests.cpp": "4d0440094e76a3f4f17c1215b8de54bcff93e0cb977f35e0d6ea86dbf50687d7",
+    "CMakeLists.txt": "10786d70b54be40850494c9b845e03332dffd7566b5239d83fa42d49167c0a16"
+  },
+  "validationContext": "The focused build and CTest ran against these working-tree files. The committed sourceHashes record the staged blobs for this slice; other pending worktree changes were not part of the commit."
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "SectionViewStyle group-2 line measurement overlay insertion",
+  "mode": "generated ASCII/Binary fast implementation slice",
+  "scope": [
+    "Preserve typed bend-line length, end-line overshoot, and end-line length edits when raw group-2 code-40 values are absent",
+    "Exercise the third repeated value with default placeholders for the first two occurrences",
+    "Verify ordered raw replay and typed same-version readback"
+  ],
+  "implementation": {
+    "production": [
+      "The same-version SectionViewStyle raw overlay inserts missing group-2 code-40 line measurements through the highest edited occurrence.",
+      "An end-line-length-only edit inserts default bend length and end-line overshoot values before the changed third value. Non-finite values refuse insertion."
+    ],
+    "tests": [
+      "Generated ASCII and Binary controls remove all three group-2 code-40 values, default the first two typed fields, and edit the third.",
+      "The focused style selector compares the complete expected raw group sequence and verifies same-version typed readback alongside group-2 colors/weights and group-3 label controls."
+    ],
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportPromotion": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks",
+      "result": "passed; ASCII and Binary"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure",
+      "result": "passed; 1/1"
+    },
+    "compatibilityTarget": "lc3_compat_check passed",
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "persistentGeneratedFiles": 0,
+    "commitCreated": false,
+    "gitMetadataWritable": false
+  },
+  "disposition": {
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This validates local generated same-version raw overlay and typed readback only. It does not qualify native producer field ordering, cross-version serialization, or CAD rendering."
+}

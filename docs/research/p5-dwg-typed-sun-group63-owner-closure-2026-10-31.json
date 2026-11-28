@@ -1,0 +1,53 @@
+{
+  "title": "P5 generated DWG-origin typed SUN group-63 output and owner closure",
+  "date": "2026-10-31",
+  "status": "local_adapter_transport_slice_complete",
+  "scope": "Exercise the DWG-origin typed-only SUN adapter path for same-version AC1024 output, with exact group-63 projection, VPORT and VIEWPORT ownership/reference closure, both DXF encodings, strict destination preservation, and corrected retry.",
+  "input": {
+    "kind": "locally generated in-memory callback data",
+    "sourceFormat": "DWG",
+    "sourceVersion": "AC1024",
+    "targetVersion": "AC1024",
+    "sunProfiles": [
+      "ACI color 42 with VPORT owner",
+      "ACI color 7 with VIEWPORT owner"
+    ],
+    "persistentFixtureFilesAdded": false
+  },
+  "implementation": [
+    "Allow a same-version AC1021+ DWG-origin typed-only SUN graph while continuing to require exact typed/raw pairing and closed identity edges for the DXF-origin raw replay route.",
+    "Write each validated DWG-origin typed SUN exactly once through dxfRW::writeSun; retain raw-object replay for DXF-origin SUN records.",
+    "Register canonical SUN/AcDbSun CLASS metadata for typed DWG-origin SUN records and reject conflicting or duplicate class rows.",
+    "Validate owner and consumer links for VPORT and VIEWPORT, including remapped output handles and emitted group 330/361 fields.",
+    "Keep unrepresentable RGB CMC output fail-closed."
+  ],
+  "failure_and_retry": {
+    "firstAttempt": "An RGB CMC SUN is refused and a pre-existing destination remains byte-for-byte unchanged.",
+    "retry": "After changing the same adapter data to group-63-faithful ACI, export succeeds; fresh import confirms both owner paths and both typed/raw SUN records.",
+    "scope": "The test exercises the adapter's per-export failure and corrected retry. It does not qualify physical DWG read admission or native renderer behavior."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "focusedTests": [
+      "dwg2dxf_dwg_typed_sun_output",
+      "libdxfrw_sun_cmc_dxf_projection",
+      "libdxfrw_sun_cmc_retention",
+      "dwg2dxf_render_background_sun_raw_capture_limits",
+      "dwg2dxf_background_sun_typed_capture_limits"
+    ],
+    "result": "PASS, 5/5 focused CTests"
+  },
+  "proven": [
+    "ASCII and Binary DXF serialize two typed SUN records with matching typed identity and owner parent handles after fresh readback.",
+    "Wire-level group 330 owner handles and group 361 references match the remapped VPORT/VIEWPORT and SUN identities.",
+    "Group 63 values 42 and 7, and canonical SUN/AcDbSun CLASS instanceCount 2, survive readback.",
+    "RGB CMC refusal preserves the destination and corrected ACI retry succeeds on the same adapter."
+  ],
+  "not_proven": [
+    "No physical DWG with a fully admitted SUN/VPORT/VIEWPORT graph was read or converted.",
+    "No native CAD/rendering consumer or renderer semantics were qualified.",
+    "No lossless RGB, color-name, or color-book CMC output route was established; those states remain refused.",
+    "No support claim or whole P5 exit gate is promoted by this generated transport test."
+  ],
+  "planImpact": "Remove generated same-version DWG-origin typed-only ACI SUN serializer/owner transport from the open implementation queue. Retain physical-source and native-rendering qualification, remaining rendering profiles, and all unsupported CMC cases as open work."
+}

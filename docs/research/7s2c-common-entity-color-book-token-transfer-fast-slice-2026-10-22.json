@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c common entity color-book token transfer",
+  "scope": "Transfer the current typed-entity group-430 semantic color-book token into its retained field without an intermediate getString() value copy.",
+  "files": {
+    "CMakeLists.txt": "52910f459d3cf08a0f7eb99bec1c1c4af45a36f9f7888da3cce5236e363b6531",
+    "src/drw_entities.cpp": "3ac7eebc316357c75558956668860578bb7b089a49baf91c44a78deec491c0f4",
+    "tests/hardening_tests.cpp": "4cfd7da82e412454c0903f6fa0793e4133c9b2b3fcb635c8250fa5c7423e4391",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "a7374ee40dc9384b75f1d66dec66fb71126468c04fd23ba2ab95aca4055451e9"
+  },
+  "evidence": {
+    "sourceAudit": "The common entity group-430 parser already uses replaceDxfReadRetainedString to atomically replace the retained colorName owner. In typed entity context, getString() applies semantic decoding; takeString() applies the same decoder before transferring the reader token. The raw-carrier route is independent and unchanged.",
+    "generatedControls": "Generated AC1032 UTF-8 group-430 records are read in ASCII and Binary modes with typed semantic-string mode enabled. Tests assert decoded value BOOK$Coloré, token consumption, exact measured admission cap, copy/reset lease lifetime, and one-byte-under refusal without partial publication.",
+    "noPersistentFixture": "Writer output is held in memory; no drawing fixture is added."
+  },
+  "change": {
+    "publicApiChanged": false,
+    "publicModelLayoutChanged": false,
+    "wireBehaviorChanged": false,
+    "retainedByteBudgetChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror build; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-color-book-name-token-transfer",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_color_book_name_token_transfer$' --output-on-failure",
+      "result": "PASS (1/1; 0.01 s)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "fullSuiteRun": false,
+  "persistentFixtureAdded": false,
+  "worktreeState": "Broad shared worktree remains dirty; slice is uncommitted and unstaged.",
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "externalQualification": [
+    "Native FreeCAD Linux qualification",
+    "Native FreeCAD Windows qualification",
+    "Independent ACIS/ACDS semantic evidence"
+  ],
+  "selfUnblockingContinuation": "Continue exact-source retained-string ownership audit when destination and decoding contracts are clear; pair each accepted change with generated ASCII/Binary controls and a focused fast CTest. Keep proprietary DWG changes gated on normative or traceable class-frame evidence."
+}

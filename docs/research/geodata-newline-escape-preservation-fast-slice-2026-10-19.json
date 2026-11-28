@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "title": "GEODATA newline escape preservation fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "7S.2c modern DXF text sink / existing GEODATA writer",
+  "scope": "Preserve GEODATA's existing LF-to-^J field normalization while applying modern DXF ASCII caret escaping to ordinary text and retaining safe chunk boundaries.",
+  "changes": {
+    "files": [
+      "src/intern/dxfwriter.h",
+      "src/intern/dxfwriter.cpp",
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/geodata-newline-escape-preservation-fast-slice-2026-10-19.json"
+    ],
+    "productionBehaviorChanged": true,
+    "testCodeChanged": true,
+    "newCtestRegistration": false,
+    "persistentDwgDxfFixtureAdded": false,
+    "dependenciesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "generatedControls": [
+      "AC1021 and AC1032",
+      "ASCII and Binary DXF",
+      "Compatible and RequireLossless text policies",
+      "GEODATA version-2 group-301 line-break spelling remains Alpha^JBeta^JGamma",
+      "Following-record sentinel remains readable after the GEODATA record"
+    ],
+    "implementation": "Added a field-specific writer path that treats normalized ^J as an atomic encoded escape while encoding all other UTF-8 scalars with the selected compatible/strict policy. The chunked route keeps scalar and escape atoms intact at the 255-byte group boundary."
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-geodata-modern-text-preflight",
+      "result": "PASS"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "PASS, 1/1 in 0.78 sec"
+    },
+    "scopedDiffCheck": {
+      "command": "git diff --check -- src/intern/dxfwriter.h src/intern/dxfwriter.cpp src/libdxfrw.cpp tests/hardening_tests.cpp",
+      "result": "PASS"
+    },
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "planImpact": {
+    "existingFindingAndSubplanOnly": true,
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "sliceStatus": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / UNCOMMITTED",
+    "implementationQueueChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "This local serializer regression fix does not qualify GEODATA against a native producer/consumer.",
+    "The full test suite was not run; the scoped owning hardening CTest passed.",
+    "No commit was attempted; existing repository guidance reports the shared .git directory as read-only."
+  ]
+}

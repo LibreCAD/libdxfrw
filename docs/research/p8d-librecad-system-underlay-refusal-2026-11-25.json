@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-underlay-refusal-2026-11-25",
+  "status": "LOCAL_REFUSAL_AND_CORRECTED_RETRY_PASS_BROADER_GAPS_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "af08fa404d1e2837d286b4de296f912dbad4ee7f",
+    "previousHead": "a10fa4fa856a1c6b5da2cee3f1c67d3fd1a6cbec"
+  },
+  "dependency": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "implementationDigest": "7827d552d5f861a0d3fd16c48d539f6bf70e332d9780132938d329e37661ff74"
+  },
+  "finding": "The earlier broad test expected legacy targets to emit underlays or silently omit them, while the installed codec refuses unsupported target versions. Its synthetic sources can also claim versions older than their underlay records. Re-export of the same source at R2010 failed even using a fresh filter, so that observation does not establish a stale-filter retry defect.",
+  "change": "The system-codec test now checks refusal and preservation of a sentinel for 28 old-target combinations, reimports a corrected R2010 source profile, and verifies a successful same-filter R2010 retry with two underlay records. Supported target cases retain their class and record checks. The bundled test branch remains unchanged.",
+  "validation": {
+    "host": "macOS ARM64 AppleClang 21 Release",
+    "systemFocused": "PASS: 1,480 assertions in 27 cases, including 538 assertions in the underlay matrix.",
+    "systemTestSha256": "e100982b235964d42a40ac8dd7a0039949264ecedbeb03102a19cdb37ff31100",
+    "bundledFast": "PASS: librecad_dxf_fast_tests.",
+    "systemBroad": "Exploratory [dxf][roundtrip][filter]: 94/131 cases pass; 37 fail with 61 failed assertions, compared with 93/131 and 89 failing assertions before the test correction. No normalized failure expression increased."
+  },
+  "limits": [
+    "The corrected-retry source changes the declared version and, when needed, the CLASS instance-count field; it does not validate the original out-of-profile source.",
+    "No broader underlay support or native semantic claim follows. Native GUI and cross-platform current-head checks remain open.",
+    "No generated drawing fixtures were committed."
+  ]
+}

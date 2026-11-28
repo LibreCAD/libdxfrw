@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-block-record-link-observation-2026-11-15.patch",
+  "patchSha256": "5ebc06432e86b9ff6e1f2584cadc9cca039c67464b45b482b52159c2ef32823d",
+  "problem": "The upstream reader publishes an optional BLOCK_RECORD callback, but LibreCAD did not retain its source identity and extension-dictionary link. Those fields are prerequisites for validating the title-block SORTENTSTABLE owner graph.",
+  "implementation": "The adapter records bounded copies of handle, parent, name, extension dictionary, reactors and common flags as observation-only metadata. Duplicate, invalid or over-budget capture clears the collection and latches failure; clear resets it. The method is an override only when the new upstream feature macro is present and remains an ordinary nonvirtual method with the older bundled interface. Observations never authorize or change export.",
+  "validation": [
+    "Modified incremental macOS upstream-linked LibreCAD: 19 focused block-record/LTYPE cases, 4019 assertions; five original PR #3269 cases, 49 assertions. The installed older upstream archive was used with its matching interface header plus the compile-only new feature macro; a current-source clean installed-mode test is running separately.",
+    "The direct capture control checks copies survive mutation, duplicate and invalid handles invalidate and clear capture, and reset releases it. Physical callback controls read existing LibreCAD R2004 ordinary_enc_AC1018 and R14 lc_layer_flags_ac1014 fixtures; their model/paper handles and R14 extension-dictionary handle match independently decoded LibreDWG observations. The R14 source also has two unrelated object parse failures and is not a complete-file support witness.",
+    "An extra scratch-only test on the existing libdxfrw AC1024 title-block fixture observed block/dictionary pairs 225B/22D3, 0127/21CD, 20A8/2120 and 0002/00F2: 11 assertions passed. The test was removed after the run; no fixture is committed.",
+    "Bundled-codec rebuild: 19 focused cases and 3980 assertions, plus all five PR #3269 cases and 49 assertions. The bundled reader lacks this optional callback; its DWG callback-specific branch returns early, while the direct capture controls run.",
+    "Patch forward and reverse checks pass after the prior 16 patches."
+  ],
+  "limits": "This is a source-link observation, not raw-frame/typed-baseline verification, complete graph closure, no-op projection, GUI qualification or format support. The downstream patch remains unmerged; no phase gate or claim is promoted."
+}

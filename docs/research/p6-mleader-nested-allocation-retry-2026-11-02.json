@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-p6-mleader-nested-allocation-retry-v1",
+  "recordedAt": "2026-11-02",
+  "status": "PASS_BOUNDED_DXF_PARSER_SAFETY_PROFILE",
+  "scope": "Guarded allocation and retry behavior for nested MLEADER CONTEXT_DATA collections in ASCII DXF parsing.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "collections": [
+      "CONTEXT_DATA root vector",
+      "LEADER_LINE vector inside a root",
+      "LEADER_LINE point vector",
+      "LEADER_LINE break vector",
+      "LEADER root break vector"
+    ],
+    "behavior": "Each append checks the existing format item cap and uses DRW::reserve before publishing a new element or consuming its coordinate value. Failed reserves leave parser nesting and logical collection contents retryable.",
+    "publicApiChanged": false
+  },
+  "control": {
+    "file": "tests/dxf_fixture_tests.cpp",
+    "selector": "--mleader-nested-allocation-failure",
+    "allocationInjection": "MaterialAllocationFailure offset 0 targets each collection reserve independently.",
+    "checks": [
+      "Root allocation failure leaves CONTEXT_DATA open and permits LEADER retry and close.",
+      "Leader-line allocation failure leaves its parent root intact and permits line retry and close.",
+      "Point allocation failure leaves the point list empty and permits ordered XYZ retry and close.",
+      "Line-break and root-break allocation failures leave break lists empty and permit coordinate-component retry."
+    ],
+    "fixtureAdded": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "buildResult": "PASS",
+    "focusedCTestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_mleader_(column_size|arrowhead|block_label|nested)_allocation_failure$' --output-on-failure",
+    "focusedCTestResult": "4/4 passed in 0.57 seconds",
+    "fullSuiteRun": false
+  },
+  "limits": [
+    "This covers the listed nested MLEADER DXF allocation paths only.",
+    "It does not qualify MLEADER physical producer breadth, native annotation semantics, DWG parsing, or complete document conversion."
+  ],
+  "next": "Continue P6 safety review at a separate reproduced parser allocation or rollback boundary; keep native and whole-document qualification gates open."
+}

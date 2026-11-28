@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-15",
+  "source": "tests/samples/AC1024/title_block-iso.dwg",
+  "sourceSha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+  "decoder": "LibreDWG dwgread 0.14 JSON",
+  "decodedJsonSha256": "450b086f16867b618eaf586ab897138a750d91dfe9dd2b982448bcfb8eed79f0",
+  "tool": "tools/inspect_libredwg_inbound_candidates.py",
+  "command": "python3 -B tools/inspect_libredwg_inbound_candidates.py decoded.json --target 0xf3 --target 0x2121 --target 0x21d3 --target 0x22d4",
+  "findings": [
+    "The decoded JSON contains 501 classified objects/entities. Across the whole JSON, the only four handle-shaped inbound candidates to the selected tables are ACAD_SORTENTS dictionary entries F2->F3, 2120->2121, 21CD->21D3 and 22D3->22D4.",
+    "The independently constructed diagnostic receipt graph agrees for each target: the only modeled incoming edges are the Owner and DictionaryMember edges from the same dictionary. The model-space F3 remains a control.",
+    "Absence cannot be established: four decoded objects retain 6692 reported unknown bits (TABLESTYLE 0x96: 5425, BLOCKREPRESENTATION 0x2022: 73, EVALUATION_GRAPH 0x21CE: 1113, DYNAMICBLOCKPURGEPREVENTER 0x21D9: 81); 354 objects have EED, and XRECORD 0x10D has binary group-310 data. The latter two unknown-bit objects are dependencies in the title-block dictionary and must not be discarded.",
+    "The standalone tool self-test covers nested object, EED, non-object-section candidates, opaque indicators and malformed object entries. Its output deliberately marks handle-shaped arrays as candidates and records the input hash. Source-release inventory and 18 refusal controls pass with 1219 files; the implementation digest is unchanged."
+  ],
+  "limits": "This is a heuristic search over one independently decoded representation. It can report false positives or miss hidden references, and it does not authorize omission, complete graph/output closure, independently establish native semantic parity, or promote a support claim."
+}

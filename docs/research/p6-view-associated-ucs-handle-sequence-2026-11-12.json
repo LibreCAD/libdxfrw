@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-12",
+  "phase": "P6",
+  "scope": "VIEW associated-UCS handle sequence for a source-bound AC1024 profile",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+    "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+    "object": "VIEW Camera1",
+    "sourceVersion": "AC1024",
+    "internalProducerMetadata": "LibreDWG 0.14 minJSON reports AutoCAD build E.49.0.0 and Trusted DWG metadata; this is source metadata, not an external provenance attestation."
+  },
+  "evidence": {
+    "odaSpecification": "ODA DWG specification v5.4.1 §20.4.60 lists Base UCS Handle and Named UCS Handle for R2000+ but does not state that their presence is conditional on associated-UCS flag 72.",
+    "independentReader": {
+      "tool": "LibreDWG 0.14 dwgread -O minJSON",
+      "result": "success",
+      "view": {
+        "handle": "0x2d9",
+        "associated_ucs": 0,
+        "base_ucs": "omitted",
+        "named_ucs": "omitted",
+        "liveSection": [4, 0, 0, 0]
+      },
+      "pairedViews": [
+        {
+          "name": "RenderView",
+          "associated_ucs": 1,
+          "base_ucs": [5, 0, 0, 0],
+          "named_ucs": [5, 0, 0, 0],
+          "liveSection": [4, 0, 0, 0]
+        },
+        {
+          "name": "Camera3",
+          "associated_ucs": 1,
+          "base_ucs": [5, 0, 0, 0],
+          "named_ucs": [5, 0, 0, 0],
+          "liveSection": [4, 0, 0, 0]
+        }
+      ]
+    },
+    "peerSchema": {
+      "repository": "LibreDWG/libredwg",
+      "path": "src/dwg.spec",
+      "revision": "master branch reviewed 2026-11-12; exact commit not pinned",
+      "fields": "The DWG_OBJECT(VIEW) profile reads associated_ucs, then conditionally reads UCS body fields, base_ucs and named_ucs; liveSection is read afterward for R2007+.",
+      "authorityLimit": "Independent implementation/schema evidence, not ODA normative authority."
+    }
+  },
+  "change": {
+    "file": "src/drw_objects.cpp",
+    "reader": "DRW_View::parseDwg reads Base/Named UCS handles only when associated-UCS is true; the R2007+ live-section handle remains in the following position.",
+    "writer": "DRW_View::encodeDwg omits Base/Named UCS handles when associated-UCS is false and refuses non-null stored UCS references rather than silently discarding them.",
+    "compatibilityBoundary": "The conditional layout is corroborated by one hash-bound AC1024 AutoCAD metadata profile and current LibreDWG source schema. Other producer/version profiles remain unqualified."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j4",
+    "generatedSelector": "ctest --test-dir build-gcc -R '^libdxfrw_ac1012plus_view_handle_roles$' --output-on-failure",
+    "generatedSelectorResult": "passed 1/1; includes AC1012/14/15/18/21/24/27/32, conditional true/false field sequence, spans, role/truncation refusal, corrected retry, and unchanged destinations when writer refuses non-null UCS handles with associated-UCS false.",
+    "physicalRead": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_conference_room.dwg -y -d -v2010 /private/tmp/conference-room-after.dxf",
+      "result": "TABLES parsing now completes; DWG read operation succeeds with 607/607 frames published and zero entity parse failures.",
+      "remaining": "Three unrelated object parse failures remain. Strict DXF export is refused. The independent HEADER envelope diagnostic remains expected=816, observed=820 at file offset 16.",
+      "ctestHarness": "The broad sample CTest still fails its complete-read assertion because of those three object failures; it no longer fails at VIEW parsing or BAD_READ_TABLES."
+    },
+    "diffCheck": "git diff --check passed before receipt update."
+  },
+  "fixturePolicy": "No fixture was added or modified.",
+  "claimBoundary": "This fixes a source-bound VIEW sequence defect. It does not resolve the ODA conditionality discrepancy for all releases, the remaining AC1024 object failures, the HEADER envelope discrepancy, strict whole-file output, native VIEW semantics, or broader producer support."
+}

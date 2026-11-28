@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "DXF writer-setup vector handoff moves",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Remove redundant writer-state deep copies for locally prepared export metadata vectors, including regenerated CLASS records.",
+    "Preserve existing const-reference setters and source dx_data collections."
+  ],
+  "sourceChange": {
+    "files": [
+      "src/libdxfrw.h",
+      "dwg2dxf/dx_iface.cpp"
+    ],
+    "before": "fileExport assembled local CLASS, BLOCK_RECORD, canonical LTYPE, raw-section, named-dictionary, and root-dictionary vectors, then passed each to a const-reference setter that deep-copied the vector into dxfRW.",
+    "after": "Rvalue-reference setter overloads move those six local vectors into dxfRW; all existing const-reference overloads remain unchanged for copy semantics.",
+    "effect": "Eliminates one setup-handoff deep copy per vector. Source dx_data collections remain unchanged. The isolated raw-section working copy remains necessary because optional AcDs projection may append a section."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_raw_dxf_section_capture_limits|dwg2dxf_raw_dxf_section_passthrough|libdxfrw_block_owners|dwg2dxf_block_owners_ascii_cli|dwg2dxf_block_owners_binary_cli|libdxfrw_ltype_mirror_authority|libdxfrw_dictionary_default_adapter_roundtrip|dwg2dxf_dxf_class_typed_capture_limits)$' --output-on-failure",
+        "result": "passed",
+        "count": "8/8",
+        "elapsedSeconds": 1.22
+      }
+    ],
+    "diffCheck": "scoped git diff --check passed for src/libdxfrw.h, dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Removes redundant deep copies of six prepared writer-setup vectors while retaining source isolation, raw-section validation, and all existing limits."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict dwg2dxf and adapter-test target build",
+      "Focused raw DXF section capture-limit and end-to-end passthrough CTests",
+      "Focused ASCII/binary BLOCK_RECORD owner CLI tests",
+      "Focused canonical LTYPE, CLASS metadata, and named-dictionary adapter tests"
+    ],
+    "limitations": "The change removes one deep copy for each listed setup vector. It does not measure process RSS or allocator metadata, eliminate the raw-section source-isolation working copy, or claim complete semantic preservation for any associated object family."
+  }
+}

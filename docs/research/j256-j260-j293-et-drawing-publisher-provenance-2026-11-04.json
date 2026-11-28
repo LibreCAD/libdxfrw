@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "PUBLISHER_BYTES_MATCH_FILE_LICENSE_SCOPE_UNCONFIRMED",
+  "advisory": true,
+  "supportClaimEffect": "none",
+  "historicalItems": [
+    "J256",
+    "J260",
+    "J293"
+  ],
+  "source_sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+  "external_artifact_disposition": "external-origin-not-admitted; exact file license and grantor scope remain unconfirmed",
+  "publisher_binding": {
+    "lab_page": "https://engineeringtechnology.org/et-curriculum-and-lecture-notes/course-notes-graphics-and-descriptive-geometry/autocad-lab-assignments/autocad-lab-4-geometric-construction/",
+    "lab_page_sha256": "0bd366736dd430c345bc192029c9f1617446ecb71c487ef93821a2acd88e85a8",
+    "lab_page_observation": "Lab 4 links the named drawing and instructs users to download it as the starting point for their drawing. The page footer states CC BY 4.0, but does not expressly identify the separately linked DWG as covered by that notice.",
+    "sample_page": "https://engineeringtechnology.org/engineering-graphics/cad-autocad/autocad-sample-files/",
+    "sample_page_sha256": "c7493d568f2c74f708e1f783fa753d2246d5952bd84bcd8ba42aa3a0c4318b54",
+    "sample_page_observation": "AutoCAD Sample Files directly links the same DWG URL.",
+    "exact_download_url": "https://engineeringtechnology.org/wp-content/uploads/2024/10/ET-Drawing-with-Border.dwg",
+    "download_sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "download_bytes": 30217,
+    "download_protocol": "HTTPS, successful public GET; scratch only. Local copy and retrieved bytes compared independently by SHA-256.",
+    "http_head": "HTTP/2 200; content-type image/vnd.dwg; content-length 30217; last-modified Tue, 29 Oct 2024 16:31:43 GMT. These headers do not prove original creation date or authorship.",
+    "media_metadata_url": "https://engineeringtechnology.org/wp-json/wp/v2/media/5721",
+    "media_metadata_sha256": "a337f4f214526ae3953ef5c423dbedc0db738e42eb2a9ef5e9f67b1f83047952",
+    "media_metadata": {
+      "id": 5721,
+      "date_gmt": "2024-10-29T16:31:43",
+      "modified_gmt": "2024-10-29T16:31:43",
+      "post": 5719,
+      "title": "ET Drawing with Border",
+      "source_url": "https://engineeringtechnology.org/wp-content/uploads/2024/10/ET-Drawing-with-Border.dwg",
+      "filesize": 30217,
+      "file_specific_license": "none stated in examined title, description, caption or media metadata",
+      "author": "WordPress author ID 1 resolves to generic display name Admin; this does not establish original author or copyright ownership."
+    }
+  },
+  "licensing_sources": {
+    "lab_footer": "https://engineeringtechnology.org/et-curriculum-and-lecture-notes/course-notes-graphics-and-descriptive-geometry/autocad-lab-assignments/autocad-lab-4-geometric-construction/",
+    "footer_notice": "This work is licensed under CC BY 4.0, linking to https://creativecommons.org/licenses/by/4.0/?ref=chooser-v1. Scope over the linked DWG is not explicit.",
+    "curriculum_page": "https://engineeringtechnology.org/et-curriculum-and-lecture-notes/",
+    "curriculum_notice": "The site permits adapting its collection of lecture notes for teaching engineering technology; the notice does not identify the DWG or explicitly settle use in a software test corpus.",
+    "terms": "https://engineeringtechnology.org/about/terms-of-use/",
+    "terms_sha256": "a5e2db01196a09ca94f7898ae53195838eb72b0f641a093ddcfae445cee30b94",
+    "terms_observation": "Terms apply to site use and downloadable materials, contain disclaimers and acknowledge possible third-party documents. They do not provide a specific license grant for this DWG.",
+    "about": "https://engineeringtechnology.org/about/",
+    "about_observation": "The site identifies Robert Hewitt as editor and maintainer; this alone is not proof that he created or owns this particular drawing."
+  },
+  "alternatives_and_next_steps": [
+    "For separately identified successor experiments, the existing experimental allowlist metadata/admitted-candidate-fields-v1.json records three exact LibreCAD-commit repository blobs: large_radial.dwg SHA-256 d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a, mpolygon_solid.dwg 66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29, and rtext_arctext.dwg db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511. Their candidate status is EXPERIMENTAL/PENDING_NATIVE and no fixture/version/whole-format claim is allowed. Locally authored drawings are a further distinct alternative. None replaces this exact historical source or resolves the other evidence gates.",
+    "A rights holder or publisher statement explicitly applying the desired license and redistribution/derivative permissions to this exact SHA-256 would resolve the file-specific licensing ambiguity; no external message was sent.",
+    "Even if artifact admission were later resolved, current-source semantic coverage, pinned-target equivalence, same-digest platform and output/preservation gates remain separate."
+  ],
+  "limits": [
+    "The footer may apply to the page, the attachment, or both; this investigation makes no conclusive legal interpretation.",
+    "The current publisher download matches the retained source bytes, not necessarily the bytes present at the original historical run absent its own binding.",
+    "An authenticated HTTPS fetch and matching digest establish present publisher hosting of these bytes, not authorship or third-party rights.",
+    "No DWG/DXF payload, page snapshot, screenshot or installed package is committed."
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Peer issue mechanisms, codec boundaries, and consumer routes",
+  "mode": "Deeper/broader primary-source web research and plan-only crosswalk",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck current ACadSharp issue reports for nested-block graph cost, EED width, MTEXT whole-file acceptance, and SPLINE-to-GDAL reports",
+    "Separate library API behavior from serialized DWG/DXF codec behavior and format requirements",
+    "Cross-check the peer mechanisms against local DRW_Insert and existing plan owners",
+    "Refresh GDAL and FreeCAD consumer-route boundaries for projected geometry, raw ASM, and DWG-to-DXF import"
+  ],
+  "method": {
+    "kind": "Primary repository issue/docs review plus read-only local source crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub issues and mutable main/master documentation were inspected as published on 2026-10-18; no peer artifact, issue attachment, GDAL binary, or native CAD application was run. Peer reports are not format authorities or evidence of a local defect. ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1283",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "revision": "issue bodies and mutable issue index accessed 2026-10-18",
+      "observed": "#1283 describes recursive deep-copy behavior in the Insert(BlockRecord) convenience API, quadratic construction time, and stack exhaustion; it is not a wire-format finding. #1282 reports signed-16-bit narrowing of per-APPID encoded EED size at 32,768 bytes. #1281 reports recursive DXF parser advancement on repeated constructs. #1297 reports whole-file AC1032 AutoCAD rejection for frame-only MTEXT flag 16 despite an entity-body byte-match; proposed missing-style causes are unproven. #1299 reports downstream GDAL failure on ACadSharp-produced SPLINE data but lacks public field arrays and exact diagnostic."
+    },
+    {
+      "project": "Local libdxfrw source",
+      "urls": [
+        "src/drw_entities.h",
+        "dwg2dxf/dx_iface.cpp",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "workspace at baseline commit de27a3391a624aba03ca71f3583c4b3a6e6396a9 plus pre-existing dirty changes",
+      "observed": "DRW_Insert carries a block-name reference and DWG handles instead of an owned nested BlockRecord graph. Existing plan owners already contain EED-size boundary vectors through 65,536 bytes, repeated-input bounds, graph traversal budgets, version-scoped MTEXT handling, and analytic spline checks. The ACadSharp clone-on-add API failure has no direct local equivalent established by this source comparison."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm"
+      ],
+      "revision": "official MTEXT group-code reference accessed 2026-10-18",
+      "observed": "DXF MTEXT group 90 documents background-fill values 0, 1, and 2. This DXF carrier is distinct from the version-specific R2018 DWG text-frame flag discussed in ACadSharp #1297."
+    },
+    {
+      "project": "GDAL",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/cad.html",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "stable documentation accessed 2026-10-18",
+      "observed": "The CAD/DWG driver is a read-only libopencad-based projection with a small published geometry subset. The separate DXF driver tessellates/projects curves and can expose raw ASM bytes and transforms in opt-in AC1027+ mode, while documentation states that it does not convert ASM modeler data into OGR geometry."
+    },
+    {
+      "project": "FreeCAD and ezdxf consumer documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "revision": "mutable main documentation/source pages accessed 2026-10-18",
+      "observed": "FreeCAD's DWG path is converter-to-DXF followed by a selected DXF importer. ezdxf's drawing add-on documents no 3D engine, XY projection for 3D entities, and no ACIS rendering. These routes do not establish native solid semantics."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies existing mechanism-specific owners and evidence gates. Keep ACadSharp #1283 as a peer API/performance lead rather than a codec defect; retain current EED, repeated-input, graph, MTEXT, and spline owners; require whole-file native checks where already composed; treat GDAL projection/raw ASM and FreeCAD converter routes as non-semantic for B-rep claims. No new finding, test, fixture, dependency, support promotion, or external-J transition."
+  }
+}

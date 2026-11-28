@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-11",
+  "phase": "P6",
+  "scope": "DRW_View::parseDwg typed-null handle role validation",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+    "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+    "record": "VIEW Camera1",
+    "observedField": "baseUcs",
+    "wireReference": {
+      "rawCode": 4,
+      "target": 0,
+      "payloadSize": 0
+    }
+  },
+  "change": {
+    "file": "src/drw_objects.cpp",
+    "behavior": "A null VIEW handle is accepted when its reference and encoded payload are zero and its absolute relation code is 0 or 2 through 5. Non-null handles still require the field's exact expected relation code.",
+    "publicState": "VIEW typed fields and raw handle spans are published through the existing transactional parse path only after successful parsing."
+  },
+  "generatedControl": {
+    "file": "tests/dwg_object_vectors_tests.cpp",
+    "selector": "libdxfrw_ac1012plus_view_handle_roles",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027"],
+    "cases": [
+      "code-4 typed-null baseUcs is accepted and its raw code/span are retained",
+      "non-null wrong baseUcs role is rejected without partial publication",
+      "corrected typed-null input succeeds on the same parser instance"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_reader_matrix_tests dwg2dxf -j4",
+    "focusedTest": "ctest --test-dir build -R '^libdxfrw_ac1012plus_view_handle_roles$' --output-on-failure",
+    "focusedTestResult": "passed 1/1",
+    "diffCheck": "git diff --check passed"
+  },
+  "physicalSampleRecheck": {
+    "command": "ctest --test-dir build -R '^dwg_read_AC1024_visualization_-_conference_room$' --output-on-failure",
+    "beforeFixTrace": "The hash-bound Camera1 VIEW frame failed because its baseUcs handle was raw code 4, target 0, while the parser accepted only canonical null code 0 or the expected non-null role.",
+    "afterFixTrace": {
+      "acceptedHandleSequence": [
+        {"field": "control", "rawCode": 4, "size": 1, "target": 6},
+        {"field": "xdict", "rawCode": 3, "size": 2, "target": 730},
+        {"field": "xrefBlock", "rawCode": 5, "size": 0, "target": 0},
+        {"field": "background", "rawCode": 4, "size": 0, "target": 0},
+        {"field": "visualStyle", "rawCode": 5, "size": 1, "target": 163},
+        {"field": "sun", "rawCode": 3, "size": 0, "target": 0},
+        {"field": "baseUcs", "rawCode": 4, "size": 0, "target": 0}
+      ],
+      "failure": "The bounded frame has no remaining encoded handle for namedUcs; readBoundedObjectHandle fails at that field.",
+      "specification": "ODA v5.4.1 §20.4.60 defines both Base UCS Handle and Named UCS Handle for R2000+ VIEW records.",
+      "decision": "Keep the record failure and do not synthesize a missing handle or relax the frame boundary."
+    },
+    "result": "The parser no longer rejects the observed typed-null baseUcs role; the physical sample remains rejected at the absent following namedUcs handle, so BAD_READ_TABLES remains correct for this incomplete profile.",
+    "separateIntegrityObservation": "The reader reports an AC1024 HEADER section envelope discrepancy at file offset 16: expected 816 bytes, observed 820 bytes.",
+    "softeningExperiment": "Temporarily allowing the failed VIEW row to be skipped made the read operation succeed but left one source frame unresolved; the existing sample harness correctly rejected this incomplete coverage. That change was reverted.",
+    "disposition": "Keep physical sample qualification open. The missing namedUcs field and HEADER discrepancy are independent source-integrity gaps."
+  },
+  "fixturePolicy": "No DWG or DXF fixture was added. The generated profile is encoded in memory.",
+  "claimBoundary": "This closes only the local typed-null VIEW handle-role parser control. It does not prove target existence, ownership graph closure, whole-file conversion, native VIEW semantics, or broader producer support."
+}

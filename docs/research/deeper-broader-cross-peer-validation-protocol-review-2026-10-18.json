@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader cross-peer validation protocol and DXF loss-boundary audit",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Inspect peer regression harnesses for machine-verifiable semantic assertions versus interactive diff workflows",
+    "Separate strict DXF parsing from recovery/audit and cross-document import/projection",
+    "Refine implementation-ready peer evidence capture without increasing per-slice validation time"
+  ],
+  "method": {
+    "kind": "Read current primary repository scripts and project documentation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "Mutable upstream master/stable pages were reviewed as route-contract evidence only. No peer behavior was executed or independently reproduced. The ODA v5.4.1 specification remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/test-dxf.sh",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "revision": "Mutable master pages reviewed 2026-10-18",
+      "observed": "test-dxf.sh builds and converts a selected drawing, filters output, and sends a diff through a comparator and interactive pager; it is a useful inspection aid, not by itself a machine-verifiable semantic regression result. Project documentation separately describes direction/version coverage limits."
+    },
+    {
+      "project": "ezdxf recovery",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html"
+      ],
+      "revision": "Stable documentation 1.4.5 reviewed 2026-10-18",
+      "observed": "Recovery repairs structurally flawed ASCII DXF and audits the result; documents can be returned with unrecoverable binary-XRECORD decode errors. The docs warn recovered rewrites can lose information or become invalid and describe strict decoding as an alternative."
+    },
+    {
+      "project": "ezdxf legacy Importer",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/addons/importer.html"
+      ],
+      "revision": "Stable documentation 1.4.5 reviewed 2026-10-18",
+      "observed": "The deprecated compatibility importer is a cross-document graphical transfer route. It explicitly removes extension dictionaries, AppData, and XDATA, omits OBJECTS and selected overrides, and requires finalization for dependencies. These limitations do not describe the base parser."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "revision": "Mutable master pages reviewed 2026-10-18",
+      "observed": "The reader example shows OnNotification warnings/information during Read(), and the README lists format-direction/version capability. These are useful diagnostics and route hints but do not constitute a complete per-object semantic-loss ledger."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

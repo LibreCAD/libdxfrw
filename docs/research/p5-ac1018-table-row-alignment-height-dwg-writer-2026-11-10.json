@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-ac1018-table-row-alignment-height-dwg-writer-2026-11-10",
+  "scope": "AC1018 TABLE DWG title/header/data row alignment and row text-height overrides",
+  "authority": "Open Design Specification for .dwg files v5.4.1 section 20.4.96.1 places group-170 row alignment BS fields at masks 0x4000, 0x8000 and 0x10000, followed after the optional text-style handles by group-140 row text-height BD fields at masks 0x100000, 0x200000 and 0x400000. This writer continues to refuse the text-style handle flags and other unsupported bits.",
+  "implementation": "Emit selected alignment fields in title/header/data order, then selected row text heights in that order. Require selected alignments in 1..9, selected heights finite, and unselected values at their model defaults. Preserve explicit zero height under a selected flag. Keep physical row heights separate from row text heights.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_local_roundtrip -j4",
+    "focused": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_table_cell_overrides|libdxfrw_table_ac1018_whole_file_roundtrip|libdxfrw_table_ac1018_dbcolor_whole_file_roundtrip)$' --output-on-failure",
+    "result": "3/3 passed",
+    "codec": "Generated vectors exercise all 64 combinations mixed with the existing scalar overrides, check exact raw BS/BD order, typed values and a following sentinel, including selected zero height. Eight invalid/residual cases preserve preexisting body and handle bytes, then succeed with the same object and buffers on corrected retry. A row-height BD truncated at its body bound remains incomplete or fails and the same parser object accepts corrected input. Both unmodified and mutated parsed nonempty override ranges remain refused without source binding; their attempted writes preserve the seeded destinations.",
+    "wholeFile": "Generated AC1018 TABLE and TABLE/DBCOLOR files finalize and freshly read back all six selected fields; the title height is explicitly zero. The drawing and cached geometry are authored at runtime under scratch and not committed.",
+    "independentReader": "LibreDWG 0.14 dwgread -O minJSON returned SUCCESS for the generated AC1018 file, but exposes its TABLE body as 1596 unknown bits and does not independently decode these overrides. This is container/object transport evidence only.",
+    "scratchDwgSha256": "63777467a927de424dbe39421e0e64790b258c2f42847c84a68550003671c038",
+    "scratchLibreDwgJsonSha256": "3eb7f24729b9bf5c21bd3b65174e998d5ebd7288747869821d2422c588a687af"
+  },
+  "limits": [
+    "No native AutoCAD/ODA producer or semantic rendering evidence is added; this is a generated spec-backed codec and local whole-file roundtrip profile.",
+    "Text-style handle, color, border and other override flags remain outside this DWG writer profile and are refused. Parsed nonempty override ranges cannot yet be re-encoded: the public retained-range metadata has no source bytes or value snapshot to validate against later mutations.",
+    "Existing 2D callback and other version routes are unchanged; no DWG/DXF fixture is committed."
+  ]
+}

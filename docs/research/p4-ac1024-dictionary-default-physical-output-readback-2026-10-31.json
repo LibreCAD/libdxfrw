@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-dictionary-default-physical-output-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical DICTIONARYWDFLT and PLACEHOLDER output proof",
+  "status": "PHYSICAL_DICTIONARY_DEFAULT_PAIR_FIELDS_ROLES_AND_READBACK_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "dictionaryWithDefault": {
+      "objectType": 500,
+      "record": "ACDBDICTIONARYWDFLT",
+      "handle": "E"
+    },
+    "placeholder": {
+      "objectType": 80,
+      "record": "ACDBPLACEHOLDER",
+      "handle": "F"
+    },
+    "fixturePolicy": "Reused the existing local DWG witness; no DWG or DXF fixture was added."
+  },
+  "sourceProfile": {
+    "rootKey": "ACAD_PLOTSTYLENAME",
+    "dictionaryParent": "named-object dictionary",
+    "dictionaryReactor": "named-object dictionary",
+    "entry": {
+      "name": "Normal",
+      "target": "PLACEHOLDER F"
+    },
+    "defaultEntry": "PLACEHOLDER F",
+    "placeholderParent": "DICTIONARYWDFLT E",
+    "placeholderReactor": "DICTIONARYWDFLT E",
+    "xDictionaryAppDataExtData": "absent on both records"
+  },
+  "implementation": {
+    "change": "Added a focused physical-source output/readback selector covering the typed DICTIONARYWDFLT record and the raw ACDBPLACEHOLDER companion.",
+    "sourcePath": "tests/dwg2dxf_adapter_tests.cpp",
+    "sourceSha256": "a53a5e487b1b383c50d868c766db849960408d0507e273a56aa94a21d8399b14",
+    "selector": "--dictionary-default-physical-output-readback"
+  },
+  "outputReadback": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "method": "Exported from the imported physical source and freshly imported each emitted file.",
+    "checked": [
+      "one DICTIONARYWDFLT and one ACDBPLACEHOLDER class instance",
+      "ACAD_PLOTSTYLENAME root entry targets the emitted dictionary",
+      "dictionary entry Normal targets the placeholder and remains its default entry",
+      "dictionary and placeholder parent and reactor roles",
+      "raw placeholder owner and reactor group-330 fields"
+    ]
+  },
+  "failureAndRetry": {
+    "negativeControl": "Set the physical placeholder reactor to NoHandle; export refuses and preserves the pre-existing destination sentinel.",
+    "retry": "Restore the source reactor and retry on the same adapter; both ASCII and Binary export and freshly read back successfully.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary output, source roles, fresh readback, atomic refusal and corrected same-adapter retry.",
+      "executableSha256": "e2bca4f333d628f33eadca87531c7673b8f85785ae445f102de3e47bf2611a01"
+    },
+    "fullSuites": "NOT RUN; focused build and selector were sufficient for this profile slice."
+  },
+  "limitations": [
+    "This closes only the selected physical dictionary/default pair and its admitted fields and references.",
+    "The 228 opaque callback views and zero retained correlation frames remain unchanged; strict complete export stays closed.",
+    "Fresh libdxfrw readback is transport evidence, not independent CAD consumer or platform qualification.",
+    "No support claim or external item is promoted."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Prove physical AC1024 DICTIONARYWDFLT/PLACEHOLDER source roles, output records, ASCII/Binary readback, refusal, atomic publication and same-adapter retry.",
+    "nextAction": "Continue the census-to-receipt reconciliation using the residual source identities; close only the highest-priority required profile whose emitted fields, references and readback remain unproved.",
+    "externalItemsPromoted": 0
+  }
+}

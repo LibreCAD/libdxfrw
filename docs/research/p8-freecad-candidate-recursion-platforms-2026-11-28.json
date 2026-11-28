@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-candidate-recursion-platforms-2026-11-28",
+  "supportClaimEffect": "none",
+  "run": "https://github.com/dxli/libdxfrw/actions/runs/46115869173",
+  "qualificationToolsCommit": "7e6c5b61be4e2ebb25287138cc7da800b763afdf",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "27 ordered local patches",
+  "results": {
+    "ubuntu-24.04": {
+      "testsRun": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "receiptSha256": "1fa681175994560b83d91691a3c79251b93615dd5fb2b100bf86b283cabebd8f",
+      "artifact": "freecad-candidate-ubuntu-24.04-46115869173-1"
+    },
+    "windows-2022": {
+      "testsRun": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "receiptSha256": "0a9ee8d8c3374ff4a19b918fce6bdfa3d5b9bd902af5dce9e19d5660e86bbc0f",
+      "artifact": "freecad-candidate-windows-2022-46115869173-1"
+    }
+  },
+  "limits": [
+    "Selected headless candidate tests only; released packages and native GUI are not tested by this run.",
+    "The candidate is not an upstream FreeCAD contribution. Block layer visibility and fused-shape layer semantics, independent producers, and broader profiles remain open.",
+    "Later candidate source changes require requalification."
+  ]
+}

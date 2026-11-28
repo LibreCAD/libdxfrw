@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-16",
+  "purpose": "Independent physical field-span oracle for one AC1021 MLINESTYLE object; no fixture is vendored.",
+  "specification": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "path": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.73",
+    "pages": [192, 193],
+    "relevantRules": [
+      "Name and description are TV fields, followed by BS flags, CMC fill color, two BD angles, and an RC element count.",
+      "Each element contains BD offset and CMC color; the pre-R2018 linetype field is BS.",
+      "The common handle tail contains a soft-pointer owner, soft-pointer reactors, and an optional hard-owner xdictionary."
+    ]
+  },
+  "source": {
+    "path": "~/doc/dwg/blocks_and_tables_-_imperial.dwg",
+    "version": "AC1021",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "committedFixture": false
+  },
+  "peer": {
+    "project": "LibreDWG",
+    "repository": "https://github.com/LibreDWG/libredwg",
+    "describe": "0.13.3-553-g6d6a3398",
+    "sourceCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "librarySonameVersion": "0:14:0",
+    "instrumentation": {
+      "files": {
+        "src/dwg.spec": "3bc8cf67060c4d7888a4f1ac5f9b0693090ae9df8411b3add1930e22dd62dc68",
+        "src/dec_macros.h": "ceba034193a30cffceb37cf7f949ee2b1a941c5cabde174c40570e1854db597b"
+      },
+      "description": "Temporary narrow instrumentation around MLINESTYLE fields and its TU/common-handle reads; source tree is an isolated export and was not changed in the LibreDWG checkout."
+    },
+    "build": {
+      "tool": "CMake, AppleClang 21.0.0, macOS ARM64",
+      "options": [
+        "-DDISABLE_WERROR=ON",
+        "-DCMAKE_C_FLAGS=-D_GNU_SOURCE -D_DARWIN_C_SOURCE",
+        "-DHAVE_C_FSTACK_CLASH_PROTECTION=OFF"
+      ],
+      "target": "dwgread",
+      "binarySha256": "5b17350f9f3ad8c6e4f05f17cffb08e57fe333173ae53576484dc7cf7620ed9d"
+    },
+    "command": "dwgread -v5 -OminJSON -o <peer-minjson.json> <source.dwg>",
+    "peerMinJsonSha256": "4c98746c33c42d76a939ffa0a303885a4f7f78ec9781872482d8fdf8250ffc23",
+    "peerTraceSha256": "c8889f5fc733d2ad352e94caf540b098b0591e9a1dbbdbf08ac77562aea02e5b"
+  },
+  "object": {
+    "minJsonIndex": 20,
+    "handleHex": "0x18",
+    "handleDecimal": 24,
+    "fixedType": 73,
+    "frameBytes": 79,
+    "frameBits": 632,
+    "bitsize": 606,
+    "ownerHandle": 23,
+    "ownerRawHandleCode": 8,
+    "reactorHandles": [23],
+    "reactorRawHandleCodes": [4],
+    "xDictionaryMissing": true,
+    "name": "STANDARD",
+    "description": "",
+    "flags": 0,
+    "fillColor": "BYLAYER",
+    "startAngleRadians": 1.5707963267949,
+    "endAngleRadians": 1.5707963267949,
+    "elements": [
+      {"offset": 3.5, "color": "BYLAYER", "linetypeIndex": 32767},
+      {"offset": 0.0, "color": "BYLAYER", "linetypeIndex": 32767}
+    ],
+    "peerReportedAddress": 325391,
+    "peerReportedAddressSpace": "decompressed section",
+    "coordinateCaution": "Do not equate peerReportedAddress 325391 with the earlier receipt sourceOffset 325389; they are different coordinate spaces."
+  },
+  "spans": [
+    {"stream": "body", "field": "flags", "startBit": 71, "endBit": 73},
+    {"stream": "body", "field": "fill_color", "startBit": 73, "endBit": 117},
+    {"stream": "string", "field": "name", "startBit": 449, "endBit": 587},
+    {"stream": "string", "field": "description", "startBit": 587, "endBit": 589},
+    {"stream": "body", "field": "start_angle", "startBit": 117, "endBit": 183},
+    {"stream": "body", "field": "end_angle", "startBit": 183, "endBit": 249},
+    {"stream": "body", "field": "num_lines", "startBit": 249, "endBit": 257},
+    {"stream": "body", "field": "element[0].offset", "startBit": 257, "endBit": 323},
+    {"stream": "body", "field": "element[0].color", "startBit": 323, "endBit": 367},
+    {"stream": "string", "field": "element[0].color.embedded", "startBit": 589, "endBit": 589},
+    {"stream": "body", "field": "element[0].lt.index", "startBit": 367, "endBit": 385},
+    {"stream": "body", "field": "element[1].offset", "startBit": 385, "endBit": 387},
+    {"stream": "body", "field": "element[1].color", "startBit": 387, "endBit": 431},
+    {"stream": "string", "field": "element[1].color.embedded", "startBit": 589, "endBit": 589},
+    {"stream": "body", "field": "element[1].lt.index", "startBit": 431, "endBit": 449},
+    {"stream": "string", "field": "fill_color.embedded", "startBit": 589, "endBit": 589},
+    {"stream": "handle", "field": "ownerhandle", "startBit": 606, "endBit": 614, "rawCode": 8, "target": 23},
+    {"stream": "handle", "field": "reactors[0]", "startBit": 614, "endBit": 630, "rawCode": 4, "target": 23}
+  ],
+  "frameTail": {
+    "handleStreamEndBit": 630,
+    "frameEndBit": 632,
+    "alignmentBits": [630, 632],
+    "warning": "Confirm the bit-coordinate basis in the libdxfrw observer before treating these intervals as an equivalent stream coordinate. Do not infer unobserved payload from a gap."
+  },
+  "libdxfrwObserverRun": {
+    "parserSource": "src/drw_objects.cpp",
+    "parserSourceSha256": "9e41eb9b368d46fe4b3310eb31682eabc29041c08a42f945ae57ac8e1811a7c0",
+    "instrumentationMacro": "DRW_DWG_MLINESTYLE_SPAN_TRACE",
+    "normalBuildMacroState": "undefined",
+    "normalBuildResult": "AppleClang 21.0.0 dwg2dxf target built successfully with the observer compiled out.",
+    "observerBinary": "/private/tmp/libdxfrw-span-build/dwg2dxf/dwg2dxf",
+    "binarySha256": "10d88d7af4dbaf17494bdbd6464e04fac1d6e060d7750fe4d0478610ecd699d0",
+    "command": "dwg2dxf ~/doc/dwg/blocks_and_tables_-_imperial.dwg -y -d -v2010 <scratch-output.dxf>",
+    "tracePath": "/private/tmp/p6-ac1021-mline-libdxfrw-trace.log",
+    "traceSha256": "4892881e6e22b81b28479a5bae5c166f3dcda2f52704824d01fc710d710691c8",
+    "verifier": "tools/research/verify_ac1021_mlinestyle_peer_spans.py",
+    "verifierSha256": "ec2048ad9f1f9bc2c16222eeff22be23d53812fc1159dc53aa3bd4cb581ff378",
+    "verifierCommand": "python3 -B tools/research/verify_ac1021_mlinestyle_peer_spans.py --receipt docs/research/p6-ac1021-mlinestyle-physical-peer-spans-2026-11-16.json --trace /private/tmp/p6-ac1021-mline-libdxfrw-trace.log --source /Users/dli/doc/dwg/blocks_and_tables_-_imperial.dwg --binary /private/tmp/libdxfrw-span-build/dwg2dxf/dwg2dxf --parser-source src/drw_objects.cpp",
+    "readerResult": {
+      "sourceVersion": "AC1021",
+      "sourceFrames": 3586,
+      "publishedFrames": 3586,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0
+    },
+    "cliOutcome": "The reader completed; strict DXF publication stopped at output preflight because two unrelated proxy-graphics carriers were not preserved (first handle 155421). No DXF was published. This does not affect the completed MLINESTYLE span comparison.",
+    "observed": {
+      "uniqueSpans": 18,
+      "repeatedIdenticalHandleSpans": 2,
+      "state": {"xdictionary_missing": 1},
+      "comparison": "PASS: exact interval, stream, handle role/reference, and xdictionary-state match against this receipt.",
+      "shiftedSpanNegativeControl": "PASS: incrementing the expected start bit of the first field is rejected."
+    },
+    "focusedValidation": {
+      "test": "dwg2dxf_mline_style_typed_capture_limits",
+      "command": "ctest --test-dir /private/tmp/libdxfrw-span-build -R '^dwg2dxf_mline_style_typed_capture_limits$' --output-on-failure",
+      "result": "1/1 passed in 0.54 seconds"
+    }
+  },
+  "limits": [
+    "Peer agreement and encoder/parser self-consistency do not establish producer semantics or broader AC1021/MLINESTYLE support.",
+    "The source DWG remains outside the repository. Do not copy it or any derived DWG/DXF into tests/samples.",
+    "The peer's byte-level field position labels and decompressed-section address use distinct coordinate systems; the comparator must match field spans only after coordinate normalization is documented."
+  ]
+}

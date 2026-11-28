@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-implementation-slice-receipt",
+  "date": "2026-10-16",
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "589a59dacc40431e78406f979669cbca541186ca9970e10ad0a3532012235489"
+  },
+  "slice": "7F.1b schema-3 partial and opaque observation policy controls",
+  "change": {
+    "runnerFile": "tools/run_qualified_differential_v2.py",
+    "runnerSha256": "4af82423f41c138accdf4b23470b291080e899b6319be4bf8c337faaf25eddb8",
+    "behavior": "schema-3 self-tests now ensure matching, operation-successful results remain reviewedNonPromoting when both report a DWG entity parse failure with finalizedPartial frame coverage or a skipped unsupported-object name"
+  },
+  "validation": {
+    "runnerSelfTest": "pass",
+    "pythonBytecodeCompilation": "pass",
+    "gitDiffCheck": "pass",
+    "partialObservation": {
+      "operationSucceeded": true,
+      "adaptersAgree": true,
+      "reportStatus": "reviewedNonPromoting",
+      "claimEligible": false,
+      "blockersChecked": [
+        "target.observations.inputRead.partial:entityParseFailures",
+        "target.observations.inputRead.frameCoverage:finalizedPartial"
+      ]
+    },
+    "opaqueObservation": {
+      "operationSucceeded": true,
+      "adaptersAgree": true,
+      "reportStatus": "reviewedNonPromoting",
+      "claimEligible": false,
+      "blockerChecked": "target.observations.inputRead.skipped:skippedUnsupportedObjects"
+    },
+    "actualTargetStandalonePartialOpaqueReadback": "not-qualified-by-this-runner-policy-slice",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "fullTestSuiteRun": false
+  },
+  "qualification": {
+    "pairedDifferentialRun": "not-run",
+    "supportClaimsPromoted": false,
+    "externalJItemsChanged": false,
+    "externalJItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

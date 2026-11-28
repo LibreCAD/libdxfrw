@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-mechanical-strict-conversion-readback-2026-11-01",
+  "date": "2026-11-01",
+  "title": "AC1024 mechanical source strict conversion and fresh DXF read/write",
+  "status": "EXACT_SOURCE_STRICT_CONVERSION_AND_DXF_READ_WRITE_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "fixturePolicy": "Used the existing local sample matching the previously recorded source digest. No DWG/DXF fixture was added to Git."
+  },
+  "binding": {
+    "commit": "e8b3136fd11f1d8f81d50ea07eba4703c6a4465b",
+    "executable": {
+      "path": "build-gcc/dwg2dxf/dwg2dxf",
+      "sha256": "f0ae9933b758fa60a903023c3f8b93e18a45113d1de9a27e38c71d7b899502d4"
+    },
+    "sourceFilesSha256": {
+      "dwg2dxf/main.cpp": "fe6df13d51ad8d1c72f7237e4059b67fd59ff04b6ee6bcf4d98ac67ac06fb1cc",
+      "dwg2dxf/dx_iface.cpp": "46563b473a07288a0aa91f171cd35cd8b8182995998c7ae1d26d6248ba3ac14d",
+      "dwg2dxf/dx_iface.h": "d9a49da7b2e72011a71c8cd744dba1fc3fb9c1ab115899effe4426aa0ab8939d"
+    }
+  },
+  "strictDwgToDxf": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/libdxfrw-active-strict-confirm.dxf",
+    "policy": "dwg2dxf/main.cpp passes dx_dwgReadCompletenessPolicy::RequireComplete when --allow-partial-dwg-read is absent.",
+    "exitCode": 0,
+    "result": "Success: converted the exact source to AC1024/2010 ASCII DXF. The complete-read preflight and transactional opaque-output finalizer returned success; either refusal would have returned false before publication.",
+    "output": {
+      "path": "/private/tmp/libdxfrw-active-strict-confirm.dxf",
+      "bytes": 449879,
+      "sha256": "bfc8b33bd87f568c3b4625dae40fc8bffbfc6b3f6dd7655ddd526a7edf8c2819"
+    },
+    "log": {
+      "path": "/private/tmp/libdxfrw-active-strict-confirm.log",
+      "successLine": 46734,
+      "readReportLine": 11023,
+      "readReportNote": "opaqueFramesOutputQualified=0 is reported before output finalization; it is not the post-write qualification count. Strict CLI success proves the finalizer accepted the complete pending identity set for this exact run."
+    }
+  },
+  "freshDxfReadWrite": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-active-strict-confirm.dxf -o /private/tmp/libdxfrw-active-roundtrip.dxf -y -v2010",
+    "exitCode": 0,
+    "result": "The exact first-pass DXF was parsed as DXF input and successfully written as a new AC1024/2010 DXF.",
+    "output": {
+      "path": "/private/tmp/libdxfrw-active-roundtrip.dxf",
+      "bytes": 449943,
+      "sha256": "e549396106794616ef18b0ad9f0845895bea51c17e8f31be0d88b7449377db81"
+    },
+    "log": "/private/tmp/libdxfrw-active-roundtrip.log"
+  },
+  "validationScope": {
+    "proves": [
+      "This exact physical AC1024 source reaches the default RequireComplete CLI export path and publishes output.",
+      "A fresh DXF import/write pass accepts the emitted ASCII file."
+    ],
+    "doesNotProve": [
+      "Strict conversion of other drawings or full P4 source-family coverage.",
+      "Independent CAD application acceptance, native rendering, 3D semantic correctness, or format-wide support.",
+      "Semantic equality of every record in the second-pass DXF."
+    ],
+    "tests": "No test suite was run; this was a source-bound strict CLI and fresh DXF read/write checkpoint."
+  },
+  "remainingP4": "Keep P4 open for the named-block SORTENTSTABLE owner routes, AC1018 empty-name STYLE and TABLE profiles, LayerStates producer/schema evidence, and complete coverage beyond this exact mechanical source."
+}

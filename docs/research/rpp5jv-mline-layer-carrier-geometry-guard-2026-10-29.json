@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5jv MLINE LAYER carrier geometry guard",
+  "date": "2026-10-29",
+  "codeCommit": "8cb6d0053d778dc431ce5a55546efb66a660fcec",
+  "scope": "Connects the selected bounded AC1027 LAYER source/live proof to AC1021+ MLINESTYLE geometry-edit export preflight and repeats the proof during adapter finalization. This is an opt-in, narrow refusal gate; it does not complete dependency closure, authenticate emitted sections, enable consumed geometry, or promote support claims.",
+  "contract": {
+    "selection": "The source/live guard runs only for a modern MLINESTYLE geometry transaction when whole-source or legacy-identity observation is selected. The proof itself requires its full admitted source profile and fails closed otherwise. Unobserved ordinary adapter routes retain their existing behavior.",
+    "preflight": "The selected AC1027 ASCII/binary profile binds the accepted source and live LAYER model. A caller-added LAYER appData group-340 carrier referring to the edited style is rejected before publication.",
+    "finalization": "After writer callbacks, adapter finalization reruns the LAYER source/live proof when preflight selected it. A test consumer injects the hidden carrier immediately before base finalization; the export is refused before replacing the destination.",
+    "failureAndRetry": "Preflight refusal preserves the destination sentinel, edited style offset and caller appData. The finalization-time refusal preserves the destination and offset; the test hook removes its injected appData after the base finalizer returns. Disabling the hook and retrying on the same adapter succeeds; readback retains the selected style offset and has no LAYER appData.",
+    "compatibility": "The selected proof is private to dx_iface and is used only on selected modern geometry edits. Existing non-opt-in routes were exercised by the MLINESTYLE transaction selector. Existing LibreCAD-facing callback/API shape is unchanged.",
+    "limits": "The proof covers only the admitted selected AC1027 LAYER profile and bounded logical work (512 MiB configured ceiling; not an RSS or CPU guarantee). It does not authenticate all LAYER scopes/forms, other carriers, all mutations by hostile subclasses, or actual staged section contents. Generated CLASSES, HEADER/HANDSEED backpatch, TABLES, BLOCKS, ENTITIES and OBJECTS still need output-bound authentication. The selected layer gate does not enable consumed offsets or other currently refused operations."
+  },
+  "controls": {
+    "profiles": 4,
+    "matrix": [
+      "ASCII source -> ASCII DXF output",
+      "ASCII source -> binary DXF output",
+      "binary DXF source -> ASCII output",
+      "binary DXF source -> binary output"
+    ],
+    "preflightHidden340Refusals": 4,
+    "finalizationMutationRefusals": 4,
+    "destinationSentinelsPreserved": 8,
+    "sameAdapterCorrectedRetries": 4,
+    "readbacks": 4,
+    "readbackChecks": "The selected MLINESTYLE retains its edited offset and the test LAYER appData is absent.",
+    "sourceConstruction": "The AC1027 DXF text and hidden LAYER appData are authored in the test; binary input is encoded locally. The finalization mutation is injected by a test-only consumer subclass. Temporary files are cleaned up. No DWG/DXF fixture file was added to Git."
+  },
+  "validation": {
+    "normalBuild": {
+      "result": "PASS",
+      "command": "cmake --build build --target libdxfrw_mline_source_dependency_tests libdxfrw_dxf_fixture_tests -j4"
+    },
+    "asanBuild": {
+      "result": "PASS",
+      "command": "cmake --build build/rpp5fa-evidence.4xKADX/asan-build --target libdxfrw_mline_source_dependency_tests libdxfrw_dxf_fixture_tests libdxfrw_whole_source_tests libdxfrw_legacy_blockref_relation_tests libdxfrw_no_raw_sections_tests -j4"
+    },
+    "directSelector": {
+      "result": "PASS",
+      "command": "build/tests/libdxfrw_mline_source_dependency_tests --mline-layer-carrier-geometry-guard",
+      "summary": "profiles=4, refusals=4, late-refusals=4, retries=4, readbacks=4"
+    },
+    "normalCohort": {
+      "result": "PASS",
+      "count": "9/9",
+      "seconds": 29.17,
+      "command": "ctest --test-dir build -R 'libdxfrw_(no_raw_sections|mline_style_body_transactions|mline_source_dependency|mline_layer_source_live|mline_layer_carrier_geometry_guard|mline_deleted_consumer_geometry_guard|mline_raw_section_geometry_guard|whole_source_capture|legacy_blockref_relation)' --output-on-failure",
+      "includes": [
+        "libdxfrw_mline_style_body_transactions",
+        "libdxfrw_no_raw_sections",
+        "libdxfrw_mline_source_dependency",
+        "libdxfrw_mline_layer_source_live",
+        "libdxfrw_mline_layer_carrier_geometry_guard",
+        "libdxfrw_mline_deleted_consumer_geometry_guard",
+        "libdxfrw_mline_raw_section_geometry_guard",
+        "libdxfrw_whole_source_capture",
+        "libdxfrw_legacy_blockref_relation"
+      ]
+    },
+    "asanCohort": {
+      "result": "PASS",
+      "count": "8/8",
+      "seconds": 1.56,
+      "sanitizer": "AddressSanitizer-instrumented targets; ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+      "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R 'libdxfrw_(no_raw_sections|mline_source_dependency|mline_layer_source_live|mline_layer_carrier_geometry_guard|mline_deleted_consumer_geometry_guard|mline_raw_section_geometry_guard|whole_source_capture|legacy_blockref_relation)' --output-on-failure"
+    },
+    "diffCheck": "PASS (git diff --check and git diff --cached --check; JSON parsed with python3 -m json.tool)"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "4d33738702faff41e94435ddf774a7db0f9d014e9ba820f5df7568239c3c5999",
+    "dwg2dxf/dx_iface.h": "e8c69bcf461735afdbe7c550f4d8e04fad78f90d20085e9c4984701b83ab417b",
+    "tests/CMakeLists.txt": "c836eb9fe943bd6c81fb99e0c05bcf57d0257ad5181c5da8f5c51481c887006b",
+    "tests/dxf_mline_source_dependency_tests.cpp": "e7523ddd310d8599da14224ed858ff761e6972e0e4c157a45f1d6d0db3572bed"
+  },
+  "binaryBindings": {
+    "normalMlineSourceDependencyTests": "726f957ae537ca25da4f46b07536127322a07c58f330d4c42c8a2b1fb8a5fc48",
+    "normalDxfFixtureTests": "b5c7ed2067c5802458a0a4c0235df12b88fc1c2adc03505474e68757230af7db",
+    "asanMlineSourceDependencyTests": "45ddadd08ec0d4834d221b086b20a2f9bff822011f7c86a0ecbda033ddfdfd66"
+  },
+  "next": "Extend source/live dependency protection to the next exact admitted carrier and authenticate actual staged output, especially generated CLASSES and the post-inspection HANDSEED backpatch. Keep consumed geometry refused until all affected references and emitted geometry are independently proved."
+}

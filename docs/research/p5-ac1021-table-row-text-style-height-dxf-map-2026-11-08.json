@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "date": "2026-11-08",
+  "status": "GENERATED_TABLE_ROW_STYLE_AND_HEIGHT_DXF_MAP_BOUNDED",
+  "workstream": "P5 / AC1018-AC1021 TABLE title/header/data row style and height overrides",
+  "authority": {
+    "dwgDocument": "Open Design Specification for .dwg files v5.4.1",
+    "dwgSection": "20.4.96.1, Until R21",
+    "fields": {
+      "0x020000": "title text-style hard pointer, DXF group 7",
+      "0x040000": "header text-style hard pointer, DXF group 7",
+      "0x080000": "data text-style hard pointer, DXF group 7",
+      "0x100000": "title row height, DXF group 140",
+      "0x200000": "header row height, DXF group 140",
+      "0x400000": "data row height, DXF group 140"
+    },
+    "dxfReference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+    "dxfEvidence": "The Autodesk TABLE group-code reference defines groups 7 and 140 at entity level with one entry per cell type. It separately defines group 141 as one physical row height per row.",
+    "limitation": "Autodesk does not state the order of repeated cell-type values. ODA gives title/header/data order for the DWG sequence; generated controls apply that order but do not establish physical DXF producer order or native precedence."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/table_content_dxf_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "DRW_Table retains DXF group-7 row STYLE names separately from DWG hard-pointer handles, parses selected group-140 values into title/header/data row-height slots, and validates selected-field cardinality. The writer resolves hard pointers only through the emitted STYLE registry, requires exactly one source STYLE name, rejects missing/duplicate/wrong-type/ambiguous/un-emitted targets, and checks any retained name agrees with its source handle. Selected finite row heights, including zero, serialize as repeated group 140 values. Unselected orphan values and non-finite selected heights refuse output. The DWG retained override mask now includes all modeled bits through 0x400000; border masks remain subject to strict output refusal.",
+    "generatedControl": "From-scratch TABLE tags cover all three title/header/data names and heights, selected zero height, mixed cell-level and entity-level overrides, parseback, and missing/excess selected group-7/group-140 values in ASCII and Binary DXF.",
+    "outputControl": "ASCII/Binary adapter output checks exact group-code order/count/value, hard-pointer-to-emitted-STYLE resolution, fresh typed readback, duplicate STYLE-name and missing-handle atomic refusal, non-finite height refusal, destination preservation, and corrected same-writer retry."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_table_content_dxf_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedRegression": "PASS: ctest --test-dir build -R '^(libdxfrw_table_row_alignment_override_parse|libdxfrw_table_scalar_override_output|libdxfrw_table_content_dxf_projection|libdxfrw_table_legacy_override_177|libdxfrw_table_legacy_text_height|libdxfrw_table_legacy_merge)$' --output-on-failure, 6/6",
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated codec mapping only; no physical DXF repeated-value order witness, producer breadth, native precedence, or rendering qualification.",
+    "Group 141 per-physical-row heights remain distinct from group 140 row-style heights.",
+    "TABLE border CMC, lineweight, and visibility overrides remain output-refused pending exact slot-to-DXF mapping.",
+    "No broader TABLE, whole-drawing, or product support claim is promoted."
+  ],
+  "supportClaimsPromoted": 0,
+  "fixtureFilesAdded": 0,
+  "next": "Audit ODA's 18-slot border lineweight and visibility order against Autodesk groups 274-279 and 284-289. Map only if the six edge categories and repeated title/header/data ordering are exact; otherwise preserve fail-closed output."
+}

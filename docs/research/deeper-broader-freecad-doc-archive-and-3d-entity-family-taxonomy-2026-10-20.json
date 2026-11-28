@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader FreeCAD documentation archive correction and 3D entity-family taxonomy",
+  "mode": "Primary-source web research and read-only local plan/evidence reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Correct the FreeCAD documentation repository status recorded in the latest consumer review.",
+    "Separate DXF 3DFACE, planar SOLID/TRACE, HATCH, mesh/polyface, and ACIS-backed 3DSOLID/REGION/BODY/SURFACE evidence.",
+    "Reconcile the existing FreeCAD 1.1.3 C++ consumer report and optional pinned 3DFACE control without adding a test lane or promoting claims."
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD documentation repository archive status and importer route",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "revision": "Public GitHub repository/page inspected 2026-10-20; mutable main path, repository marked archived on 2026-04-01",
+      "observed": "The documentation pages remain accessible, but the repository page explicitly marks FreeCAD/FreeCAD-documentation archived/read-only. Its route matrix describes an external DWG-to-DXF converter followed by a selected DXF importer, with separate C++ and legacy Python profiles and stock ACIS/SAT limitations.",
+      "limits": "Archived documentation is a profile snapshot, not a current runtime contract. No FreeCAD binary or legacy importer was run in this research pass."
+    },
+    {
+      "project": "Autodesk DXF entity references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+        "https://help.autodesk.com/cloudhelp/2022/ENU/AutoCAD-Core/files/GUID-5E88BB23-9110-45FB-B54A-3FF2E2002585.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E0C5F04E-D0C5-48F5-AC09-32733E8848F2.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "revision": "Public Autodesk DXF/entity pages accessed 2026-10-20",
+      "observed": "3DFACE uses three/four WCS corners with group-70 invisible-edge flags; planar SOLID uses corner points plus optional thickness and extrusion; 3DSOLID uses a modeler subclass/version, proprietary group-1/3 payload, and a history-object handle. These are distinct geometry/data routes.",
+      "limits": "Entity wire definitions do not prove any particular library or application preserves, interprets, or constructs the represented geometry."
+    },
+    {
+      "project": "FreeCAD current application source",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp"
+      ],
+      "revision": "Mutable main source accessed 2026-10-20; not pinned to a release/runtime",
+      "observed": "The current C++ importer source contains a generic TopoDS_Shape construction path with a 3DFACE comment, but that downstream generic case alone does not demonstrate that every 3DFACE form reaches it or is accepted.",
+      "limits": "No source revision, build, or runtime was pinned during this review. Source comments do not supersede the exact application probe."
+    },
+    {
+      "project": "Existing local consumer report and test route",
+      "references": [
+        "docs/3D_SUPPORT_STATUS.md",
+        "tests/freecad_dwg2dxf_import_check.FCMacro",
+        "tests/CMakeLists.txt",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Existing worktree evidence inspected 2026-10-20; prior FreeCAD run identifies 1.1.3 revision 20260725 on macOS arm64 / Qt 6.8.3; not rerun",
+      "observed": "The prior report compares an existing user-owned AC1021 sample converted by libdxfrw and ODA File Converter 27.1.0.0: both DXFs yielded 4,868 FreeCAD C++ importer objects and reported 38 3DFACE, 69 planar SOLID, and 22 HATCH records unsupported, with entity-read exceptions. The report does not pair every source handle to an imported object. The existing optional macro has a pinned one-tilted-3DFACE unsupported expectation, separate from ordinary 2D and ACIS checks.",
+      "limits": "Counts alone do not show which remaining records imported, prove per-handle equivalence, or qualify a general FreeCAD 3D route. The external sample remains uncommitted/user-owned; no application, converter, or test was executed in this research pass."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "FreeCAD consumer route: archived documentation is profile guidance, while runtime results must bind app build/backend/converter",
+      "PAR-07/S8 and consumer evidence: distinguish explicit faces, planar fills, mesh/polyface, hatch, and ACIS modeler carriers",
+      "FreeCAD 3DFACE disposition: compare per-source identity and outcomes, not aggregate created-object or unsupported counts"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Corrected the preceding section: accessible FreeCAD-documentation pages are archived/read-only, not evidence the repository is active.",
+    "Added Autodesk-backed distinctions among WCS 3DFACE, planar SOLID/TRACE, HATCH, mesh/polyface, and ACIS-backed 3DSOLID/REGION/BODY/SURFACE.",
+    "Reconciled the existing FreeCAD 1.1.3 aggregate unsupported report as downstream route evidence only; required per-identity dispositions for future qualification.",
+    "Reused existing local generated 3DFACE controls and optional pinned FreeCAD negative test; added no finding, fixture, CTest, or external per-slice validation requirement.",
+    "Kept stock FreeCAD ACIS consumption out of profile and retained all six J items as DEFERRED_EXTERNAL."
+  ],
+  "limitations": [
+    "The prior FreeCAD importer result and user-owned AC1021 sample were read from the existing local status record, not rerun or downloaded in this pass.",
+    "The FreeCAD application source link is mutable main and was not resolved to an immutable commit.",
+    "The local consumer report is aggregate and lacks complete handle-to-imported-object correspondence; it cannot establish equivalence or semantic support.",
+    "No Linux or Windows native FreeCAD profile was executed."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check on plan and receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Plan/research update only; broad shared worktree has pre-existing changes and Git metadata is read-only in this session."
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "slice": "7S.2c DXF 102 application-group opener ownership",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "paths": [
+    "DRW_Entity::parseDxfGroups",
+    "DRW_TableEntry::parseDxfGroups"
+  ],
+  "change": {
+    "borrowed_record_lifetime_opener_marker": true,
+    "only_final_opener_string_allocated": true,
+    "retained_owner_charged_once": true,
+    "stale_post_insert_charge_subtraction_removed": true,
+    "nested_group_order_and_publication_unchanged": true,
+    "generated_minimum_budget_entity_and_table_controls": true,
+    "copy_reset_and_one_under_refusal_checked": true,
+    "persistent_fixture_added": false,
+    "public_api_or_layout_changed": false,
+    "wire_behavior_changed": false,
+    "support_claim_changed": false
+  },
+  "validation": [
+    {
+      "command": "git diff --check -- src/drw_entities.cpp src/drw_objects.cpp tests/hardening_tests.cpp CMakeLists.txt",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-appdata-retained-owner-budget",
+      "result": "PASS (minimum retained-byte cap, entity/table parity, copy/reset, one-byte-under refusal)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_appdata_retained_owner_budget$' --output-on-failure",
+      "result": "PASS (1/1; 0.02 seconds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-application-raw-typed-variant-budget",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "full test suites",
+    "native FreeCAD Linux/Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "external_gates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "inventory_totals": {
+    "findings": 144,
+    "subplans": 78,
+    "note": "Inventory totals; not open-item counts."
+  },
+  "next": "Continue exact-source 7S.2c review of remaining temporary text/value owners, parser staging, retained-byte charges, and writer-side copies before advancing to the next locally evidenced semantic gap."
+}

@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader InventorLoader source-route and solid-disposition audit",
+  "mode": "primary-source research only",
+  "scope": [
+    "Inspect the current InventorLoader DXF-to-SAT/SAB-to-FreeCAD route at source level",
+    "Separate payload extraction, ACIS parse, reader state, shape construction, fallback geometry, and solid semantics",
+    "Refresh open issue and release/provenance evidence without downloading attachments",
+    "Refine the existing optional S8 qualification gate without adding runtime dependencies or blocking local implementation"
+  ],
+  "sources": [
+    {
+      "name": "InventorLoader DXF extraction wrapper",
+      "url": "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py",
+      "observed": "The wrapper calls ezdxf.readfile, iterates DXF entities, extracts nonempty SAT/SAB fields, and invokes a separate AcisReader. Parsed readers are stored in module-global state and named by a traversal counter; the shown path does not visibly carry the source DXF handle into the FreeCAD result."
+    },
+    {
+      "name": "InventorLoader FreeCAD shape builder",
+      "url": "https://github.com/jmplonka/InventorLoader/blob/master/importerSAT.py",
+      "observed": "The builder resolves ACIS references, attempts to create Part.Shell from faces, and falls back to individual faces on exception; wires are built/fused separately. Presence of a face, shell, wire, or STEP file does not establish a closed valid solid or source entity association."
+    },
+    {
+      "name": "InventorLoader supported geometry and limitations",
+      "url": "https://github.com/jmplonka/InventorLoader",
+      "observed": "The README describes SAT/SAB/DXF import but no export, and lists unsupported blending/helix cases plus omission of law-defined curves/surfaces without spline data."
+    },
+    {
+      "name": "InventorLoader issue 102",
+      "url": "https://github.com/jmplonka/InventorLoader/issues/102",
+      "observed": "Open report of an attached SAB import raising a Python TypeError; the attachment was not downloaded or inspected."
+    },
+    {
+      "name": "InventorLoader issue 103",
+      "url": "https://github.com/jmplonka/InventorLoader/issues/103",
+      "observed": "Open report that the supplied SAT model produced no recognized face during shell construction; the attachment was not downloaded or inspected."
+    },
+    {
+      "name": "InventorLoader issue 110",
+      "url": "https://github.com/jmplonka/InventorLoader/issues/110",
+      "observed": "Open 2026 report gives a user workaround that retains the reader with setReader after readText succeeds, then converts through STEP/FreeCAD Part; it also reports messy normals. This is not a pinned upstream fix or independent qualification."
+    },
+    {
+      "name": "InventorLoader releases",
+      "url": "https://github.com/jmplonka/InventorLoader/releases",
+      "observed": "GitHub reports no formal releases. Existing plan research records package metadata 1.5.1 and a disagreement between package license metadata and repository LICENSE text; this pass does not resolve artifact provenance or licensing."
+    },
+    {
+      "name": "InventorLoader package metadata and license text",
+      "url": "https://github.com/jmplonka/InventorLoader/blob/master/package.xml",
+      "relatedUrl": "https://github.com/jmplonka/InventorLoader/blob/master/LICENSE",
+      "observed": "The package metadata and repository license remain inconsistent in the previously reviewed snapshot; no code is copied, bundled, or executed as part of this research."
+    },
+    {
+      "name": "FreeCAD stock DWG converter route",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "observed": "The stock application route remains an external DWG converter followed by the selected DXF importer; this is separate from the optional InventorLoader ACIS add-on route."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Tightens only the optional existing S8 gate. A candidate run must bind source DXF entity and owner to exact carrier bytes/hash, parser outcome, all unsupported/fallback paths, and exactly mapped closed valid solid results with independent analytic metrics. InventorLoader is not stock FreeCAD behavior, does not parse DWG AcDs, and shares the FreeCAD/OCCT geometry-kernel lineage. Unavailable, unpinned, unsafe, or incomplete routes self-unblock as NOT_AVAILABLE/NOT_QUALIFIED without delaying local implementation."
+  },
+  "implementationReadyChecks": [
+    "At the existing composed S8 checkpoint only, pin the complete InventorLoader source SHA and exact FreeCAD/Python/ezdxf/OCCT tuple; resolve provenance/license and perform source-wide input-safety/resource review before giving it untrusted payloads.",
+    "Generate one asymmetric scratch-only DXF with two distinct ACIS payloads; build a source-handle/owner/type to ordered carrier/hash manifest before calling the peer route.",
+    "Record parser return/exception, reader lifetime/state, record count, unsupported entities, build errors, fallback use, and output object identity for every input body.",
+    "Require the expected number of closed valid solids and independently compare units, placement, bounds, centroid, volume/area, topology, and orientation; faces, wires, open shells, display output, or STEP existence alone are not a semantic pass.",
+    "Keep STOCK_FREECAD_CONVERTER_DXF_IMPORT separate from INVENTORLOADER_DXF_SAT_SAB_ADDON; neither result alone establishes DWG AcDs association or independent-kernel evidence.",
+    "If a prerequisite is unavailable or any required payload/profile/geometry is unsupported, record the exact NOT_AVAILABLE/NOT_QUALIFIED/INCOMPLETE stage and proceed with local fast slices. Do not add the plugin to CMake/CI, download or commit foreign drawings, or run full suites for this optional check."
+  ],
+  "limitations": "Primary-source web review only. The add-on was not installed, built, or executed; no issue attachment or drawing was downloaded. Source safety, parser completeness, file-to-shape identity mapping, solids produced, and runtime behavior were not experimentally verified. FreeCAD and OCCT builds/platforms were not run. The local ODA v5.4.1 specification remains authoritative for DWG byte layout.",
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  },
+  "workingTree": {
+    "productionOrTestFilesEdited": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

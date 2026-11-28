@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-native-material-point-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "329203040e8de2f3772bbcea682eaafd674a0111",
+  "codecCommit": "1e8cd41fc",
+  "host": {
+    "os": "macOS 27.2.1",
+    "build": "26B131",
+    "architecture": "arm64"
+  },
+  "scope": "One locally authored AC1024 ASCII model-space POINT with selected sparse material, current-material and LAYER links, using an isolated LibreCAD application profile.",
+  "checks": [
+    "The current consumer application opened the authored source, saved as DXF 2010 to a new path, and reopened that saved drawing; the application reported the save and displayed the RAWTEST layer.",
+    "ezdxf 1.4.5 independently checked the saved output after native reopen. It retains the material dictionary and owner, name and channel flag, current-material, LAYER and POINT references and POINT location (6, 7, 0), with zero audit errors or fixes.",
+    "The current application binary was linked to the scratch installed shared codec and built with an isolated settings organization; the temporary source change was restored after the build."
+  ],
+  "hashes": {
+    "source": "ca22d0fafc8d7bd136e0bc7dfb536f63c5e21f7a03cfa0ac96b190aa77b899c7",
+    "nativeSave": "1917ea23cb3b5014b6a543a4aa60ee41e05be2f48017b18ca5459712023aa88d",
+    "application": "ca05d71545215c7cb2c36bed3d873b787096f96e5ceedb43e3bc5f102ece9ef8",
+    "sharedCodec": "af4e1c1f040c11be32fe8ae449d77d4d77098c82acf7b2f80870f9b4118bfe7c"
+  },
+  "limits": [
+    "No native point edit, 3D material rendering, other object graphs, producer or platform is qualified by this test. The input is locally authored; no drawing fixture is committed."
+  ]
+}

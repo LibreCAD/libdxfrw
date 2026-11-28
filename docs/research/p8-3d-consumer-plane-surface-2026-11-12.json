@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-plane-surface-2026-11-12",
+  "purpose": "Check generated PLANESURFACE callback delivery/readback and AC1027 inline-payload refusal/retry behavior in the headless 3D consumer probe.",
+  "changes": [
+    "Added a runtime-authored DRW_PlaneSurface with modelerFormatVersion 3, uIsolines 5, and vIsolines 7.",
+    "Asserted PLANESURFACE entity identity, the three authored fields, and absence of an ACIS byte carrier after callback readback.",
+    "Ran both ASCII and Binary output with ext=false and legacy ext=true consumer modes.",
+    "Added AC1027 negative controls that submit an inline text ACIS payload, assert writer refusal and byte-for-byte preservation of an existing destination, then retry with corrected content using the same writer and verify LINE readback."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.45 seconds"
+  },
+  "scopeLimit": "Same-library generated DXF field/callback transport plus a writer version-policy refusal/rollback/retry check. The rejected ACIS text is synthetic and not valid geometry. No surface geometry, ACIS semantics, independent interoperability, or native rendering is established.",
+  "fixturePolicy": "ASCII and Binary DXF files are generated under the existing unique temporary test directory and removed; no fixture was added.",
+  "claimEffect": "No support claim changes."
+}

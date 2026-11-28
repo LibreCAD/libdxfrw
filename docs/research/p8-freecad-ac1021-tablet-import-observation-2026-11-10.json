@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Native FreeCAD import observation for the AC1021 tablet conversion",
+  "date": "2026-11-10",
+  "supportClaimEffect": "none",
+  "classification": "single-profile macOS consumer execution; not general format, entity, or platform qualification",
+  "platform": {
+    "os": "macOS Darwin 27.2.0",
+    "architecture": "arm64",
+    "hostCpu": "Apple M2 Max",
+    "application": "FreeCAD 1.1.4",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "freecadcmdSha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60",
+    "freecadGuiSha256": "a535464ece9a6175a3b15f385b35818402007eb3a8853384dacd65f128b50b1e"
+  },
+  "source": {
+    "path": "tests/samples/AC1021/tablet.dwg",
+    "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+    "provenanceLimit": "Existing local user corpus; producer and repository provenance are unauthenticated. The source was not added or modified."
+  },
+  "route": {
+    "operation": "FreeCAD Draft importDWG.open -> FreeCAD dwg2dxf subprocess -> FreeCAD C++ importDXF",
+    "converterArgv": [
+      "/Users/dli/dev/libdxfrw/build-gcc/dwg2dxf/dwg2dxf",
+      "/Users/dli/dev/libdxfrw/tests/samples/AC1021/tablet.dwg",
+      "-o",
+      "FreeCAD temporary tablet.dxf"
+    ],
+    "converterReturnCode": 0,
+    "converterSha256": "936c8bf368b1e6ab727f67b3a32de1961b20efc7712f0589a633b3cec8c94737",
+    "convertedDxfSha256": "7365cade8ae8155c70748681a408dc9154d89b6891239460749418c362cf9",
+    "copiedDxfSha256": "7365cade8ae8155c70748681a408dc9154d89b6891239460749418c362cf9",
+    "freecadLogSha256": "d9ecbd8bb2bbdb9addaa72394039b6d24f8d5565c744c63e127f773f0414e330",
+    "macroSha256": "6d1753c8edc1a76c248962d4e1ced2b66f989e68a095cd542a0070dd180124cf"
+  },
+  "observations": {
+    "dxfVersion": "AC1021",
+    "cppImportTimeSeconds": 3.670137333,
+    "documentObjects": 4875,
+    "validNonNullShapes": 4867,
+    "invalidShapes": [],
+    "entityCounts": {
+      "3DFACE": 38,
+      "ARC": 225,
+      "BLOCK": 208,
+      "CIRCLE": 166,
+      "ELLIPSE": 24,
+      "ENTITIES_IN_PAPERSPACE": 2,
+      "HATCH": 22,
+      "INSERT": 208,
+      "LINE": 2975,
+      "LWPOLYLINE": 1139,
+      "MTEXT": 2,
+      "OLE2FRAME": 1,
+      "POLYLINE": 8,
+      "SOLID": 69,
+      "TEXT": 320,
+      "VIEWPORT": 2
+    },
+    "unsupportedByFreeCADImporter": {
+      "3DFACE": 38,
+      "HATCH": 22,
+      "OLE2FRAME": 1,
+      "SOLID": 69,
+      "VIEWPORT": 2
+    }
+  },
+  "limitations": [
+    "This run demonstrates execution of one FreeCAD Draft DWG import route on macOS arm64 only.",
+    "FreeCAD reports HATCH, 3DFACE, SOLID, OLE2FRAME, and VIEWPORT entities unsupported; their conversion or import is not qualified by this observation.",
+    "The source is unauthenticated local corpus data; no producer-wide interoperability claim follows.",
+    "No semantic equivalence, native DWG acceptance, Linux/Windows qualification, LibreCAD/LibreCAD_3 qualification, or general entity support claim is established.",
+    "No DWG or DXF fixture was added; generated conversion output and run artifacts remain outside the repository."
+  ]
+}

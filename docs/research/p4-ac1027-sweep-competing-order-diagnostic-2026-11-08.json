@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-competing-order-diagnostic-2026-11-08",
+  "date": "2026-11-08",
+  "status": "BOUNDED-COMPETING-ORDER-DIAGNOSTIC",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/private/tmp/example_2013.dwg",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "version": "AC1027",
+    "class": "ACSH_SWEEP_CLASS",
+    "handle": "0x2e2",
+    "actionBodyBitSize": 2343
+  },
+  "method": "Extended the opt-in source probe to parse the captured action-body bits using the field order listed by LibreDWG src/dwg2.spec:4210-4255. Every read and skip is checked against the body's 2,343-bit bound. This is diagnostic-only and does not change production capture.",
+  "result": {
+    "major": 33,
+    "minor": 29,
+    "direction": [0, 0, 0],
+    "relativeCursorAfterDirection": 26,
+    "profileTypeCandidate": 0,
+    "profileLengthCandidate": 0,
+    "relativeCursorAfterProfilePathPrefix": 34,
+    "pairedDxfProfile": {"type": 77, "declaredBits": 744},
+    "pairedDxfPath": {"type": 77, "declaredBits": 480},
+    "pathTypeCandidate": 0,
+    "pathLengthCandidate": 0,
+    "failure": "reserved BD code while reading first transform",
+    "relativeFailureBit": 186,
+    "readerReturnedToExactBodyEnd": false
+  },
+  "candidateOrderContext": {
+    "candidate": "ACadRust read_history_sweep order",
+    "physicalCandidateBodyEnd": "relative bit 2342; one bounded trailing bit remains opaque",
+    "fieldCorrelation": "The pinned trace decodes the profile/path and produces finite matrices that correlate with the same-handle DXF values. See p4-ac1027-sweep-acadrust-field-span-trace-2026-11-08.json and p4-ac1027-sweep-dxf-candidate-field-differential-2026-11-08.json.",
+    "limit": "Candidate order remains one-source, non-normative evidence. A field-order fit and DXF value correlation do not independently establish DWG semantics, entity codec, writer behavior or producer interoperability."
+  },
+  "decision": "The LibreDWG dwg2.spec order cannot decode this exact witness: its profile/path prefix disagrees with the hash-pinned companion DXF and it encounters an invalid bit-double code before the transforms. Preserve the current bounded raw body and Partial result; do not switch parser order or promote support from this diagnostic.",
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_ac1027_acds_source_probe -j4",
+    "physicalProbe": "PASS: build/libdxfrw_ac1027_acds_source_probe /private/tmp/example_2013.dwg; reports SWEEP_LIBREDWG_PREFIX bits=34/2343 profile=0/0 path=0/0 and SWEEP_LIBREDWG_ORDER bits=186/2343 stop=transform",
+    "fixturePolicy": "No drawing fixture added; the protected local sample is used in place.",
+    "fullSuites": "not run"
+  },
+  "nextAction": "Acquire an independently authored/native producer witness or re-enable ODA qualification after the desktop is actually unlocked. Continue other ready P4 implementation slices meanwhile; retain the raw body and keep Sweep output refused."
+}

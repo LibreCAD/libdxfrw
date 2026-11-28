@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-36-platforms-2026-11-28",
+  "supportClaimEffect": "none",
+  "sourceCommit": "2d6cd279c3d9768060c08f2185825bec0c169e51",
+  "run": "https://github.com/dxli/libdxfrw/actions/runs/46157961230",
+  "checks": [
+    "The 36-patch source replay and 35 focused headless tests pass on Linux x86_64 and Windows x64 with no skips. The archive and ordered patch hashes agree across platform receipts.",
+    "The later 45-patch candidate has its own Linux/Windows run; the 36-patch result does not qualify subsequent code changes."
+  ],
+  "receipts": [
+    {
+      "platform": "linux",
+      "testsRun": 35,
+      "patchCount": 36,
+      "sha256": "29d10831314cf16b28101b1d1d28c44c803b36027de950d1f8f67373856ad146"
+    },
+    {
+      "platform": "win32",
+      "testsRun": 35,
+      "patchCount": 36,
+      "sha256": "8c47616f6f9753c25a7f6a4b7e882a92fb4f2dbb9e0879042d1e51205593c56e"
+    }
+  ],
+  "limits": [
+    "Focused headless generated-input checks only; native GUI, real Draft rendering, producer interoperability, whole-file semantics and later patches remain open."
+  ]
+}

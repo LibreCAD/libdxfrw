@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-oda-pair-xrecord-wire-2026-11-25",
+  "date": "2026-11-25",
+  "status": "SELECTED_EXTENSION_DICTIONARY_AND_XRECORD_FRAME_WALK_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "prior": "docs/research/p6-ac1012-oda-pair-frame-graph-2026-11-25.json",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.44 and 20.4.104, R13/R14 object and XRECORD framing.",
+  "method": "The reusable R13 trace locator validates size and CRC; the shared dictionary walker checks the selected extension dictionary. The bounded XRECORD walker checks its type, self handle, empty EED, body boundary, reactor count, exact 39 source data bytes, owner/reactor roles, typed-null extension handle and alignment. LibreDWG's class and decoded records provide an independent model comparison.",
+  "extensionDictionary": {
+    "offsets": {"destination": 8821, "source": 8823},
+    "frameSize": 37,
+    "bodyEndBit": 242,
+    "frameSha256": "709abbe4314c5192c704fde3bf3dca519f8da1e0244e2b8c667a97252c7b1e8f",
+    "owner": "0x17",
+    "entry": {"name": "ACAD_XREC_ROUNDTRIP", "role": 2, "handle": "0x15C"}
+  },
+  "xrecord": {
+    "offsets": {"destination": 16190, "source": 16194},
+    "frameSize": 58,
+    "frameSha256": "9edf7c5816a1df901cab038c825d26a49e2adb649bf2478ad3227efe07837fd9",
+    "bodyEndBit": 408,
+    "dataBeginBit": 96,
+    "dataBytes": 39,
+    "dataHex": "66000800004558544e414d455301000800005354414e4441524402000800005374616e64617264",
+    "owner": "0x15B",
+    "reactor": "0x15B",
+    "extensionDictionary": 0
+  },
+  "validation": [
+    "The audit passes both two-element source profiles and the original dictionary-frame helper still passes the prior LibreDWG-generated control.",
+    "A changed XRECORD payload with a recomputed valid frame CRC was rejected by the bounded raw-content observer; mutation remained scratch-only."
+  ],
+  "limits": [
+    "The selected 39 bytes agree with LibreDWG's three decoded values, but this does not generalize XRECORD parsing or establish the meaning of EXTNAMES.",
+    "No native AutoCAD behavior, complete graph output, strict admission or support claim is established."
+  ]
+}

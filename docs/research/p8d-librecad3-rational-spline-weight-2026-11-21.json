@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-rational-spline-weight-2026-11-21",
+  "date": "2026-11-21",
+  "status": "DRAFT_CONSUMER_FIX_FOCUSED_VALIDATION_PASSED",
+  "supportClaimEffect": "none",
+  "pullRequests": {
+    "hatch": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
+    "hatchHead": "d5cc38b51a6399a70c58f2269d7cd9b9c085dbdb",
+    "mpolygon": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+    "mpolygonHead": "3d8b0382c60519edafb1b5b6887e2165047aad44"
+  },
+  "problem": "Imported rational SPLINE weights were discarded, causing the pinned codec to reject save. The generated quarter-circle control reproduced this failure.",
+  "implementation": "Preserve weights in the spline model, builder, copy, transforms, edit paths and standalone DXF output; report that rational rendering and geometry operations may be approximate. The public model layout and constructor change require a consumer rebuild.",
+  "validation": {
+    "platform": "macOS ARM64 headless",
+    "negativeControl": "Quarter-circle rational SPLINE import succeeded but R2000 save failed before the fix.",
+    "parentCodecTests": "3/3 rational, ordinary and fit-only spline controls pass with pinned bundled codec and current shared libdxfrw; rational control exercises move/copy, rotation, scale, mirror, drag points, properties, builder, ASCII/Binary save and fresh readback, plus unflagged non-unit weights and import warning.",
+    "parentBundledLogSha256": "3f24807d096e6139a940c203048b328d153033c5bf81f82369926a59ae3a2cbf",
+    "parentCurrentLogSha256": "8df8dc7d5e520de9cfbda3a2f8fa4d8bb8a718e56e214a6b73eb1ba74bfbd112",
+    "independent": "ezdxf 1.4.5 read bundled-codec ASCII and Binary output, verified weights [1,0.7071067811865476,1], rational flag and control-point Z=3.",
+    "mergedTests": "After merging the parent into PR 461, 11/11 selected HATCH, MPOLYGON and spline tests pass with each codec.",
+    "mergedBundledLogSha256": "ed9cab9ae559b3a32c57740ca280576a2753eb946c5bf5c2112a7c9b6fe9ca64",
+    "mergedCurrentLogSha256": "4068a5386089ed6d74b911282108d4856ce0a660c1a680731c43b44d31fac58a",
+    "systemBuild": "current libdxfrw 3 shared library with separate unmerged scratch system-codec CMake glue; this is not the final package configuration.",
+    "planSync": "explicit-path plan validation passed in complete source tree for parent and merged branch."
+  },
+  "limits": [
+    "Weight preservation is limited to standalone SPLINE. Rational rendering and geometry calculations remain approximate and are reported on import.",
+    "Other rational HATCH spline-edge profiles, native GUI, Linux and Windows remain open; the selected planar path is recorded in p8d-librecad3-rational-hatch-spline-weight-2026-11-21.json.",
+    "No generated DWG/DXF fixture is committed."
+  ],
+  "followUp": "Selected planar HATCH edge weight preservation is recorded in p8d-librecad3-rational-hatch-spline-weight-2026-11-21.json; this receipt retains its original PR heads and evidence."
+}

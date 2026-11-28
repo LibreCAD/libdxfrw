@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer security, generated ACIS carrier, and consumer-scope refresh",
+  "mode": "primary-source research and local source/test reconciliation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh LibreDWG LTYPE, FIELD, and unaligned-access reports against normative DXF rules and local code/tests",
+    "Reconcile ACadSharp repeated-record stack exhaustion reports with existing generated hardening coverage",
+    "Refine the optional scratch-generated ACIS carrier gate and FreeCAD consumer qualification boundary"
+  ],
+  "method": {
+    "kind": "Read upstream issue/documentation pages and inspect local source/test ownership",
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "drawingsUploaded": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localTestsRun": false,
+    "limitations": "Issue reports are reporter-authored and version-specific. LibreDWG #1411's public ezdxf recipe was not executed; no current peer build or native FreeCAD/kernel runtime was qualified. FreeCAD documentation establishes published scope only. Local code/test conclusions are source inspection, not newly executed test results."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG issues #1450, #1451, and #1452",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1450",
+        "https://github.com/LibreDWG/libredwg/issues/1451",
+        "https://github.com/LibreDWG/libredwg/issues/1452"
+      ],
+      "revision": "Issue bodies retrieved 2026-10-18; mutable issue state",
+      "observed": "#1450 reports an AC1024 LTYPE code-9 text field without group 74 and a peer bounds failure; #1451 reports FIELD group 93=0 with a primary ACFD_FIELD_VALUE and a peer use-after-free; #1452 reports a UBSan misaligned BITCODE_RS access through a packed C structure in the peer EED encoder."
+    },
+    {
+      "project": "Autodesk DXF LTYPE and FIELD references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm"
+      ],
+      "revision": "Official reference pages retrieved 2026-10-18",
+      "observed": "The LTYPE table defines group 74 flags and restricts group-9 text to text elements; FIELD group 93 identifies data-set count. The LTYPE reduced peer shape is malformed as a valid-file witness under that contract."
+    },
+    {
+      "project": "ACadSharp issue #1281",
+      "urls": ["https://github.com/DomCR/ACadSharp/issues/1281"],
+      "revision": "Issue body retrieved 2026-10-18; mutable issue state",
+      "observed": "The report describes stack exhaustion from repeated comments, XDATA application blocks, and clipping-group records. Peer counts and runtime behavior are not normative format thresholds. Existing local generated controls cover 20,000 comment records, repeated XDATA in ASCII/Binary, malformed clipping counts in ASCII/Binary, and a following LINE sentinel."
+    },
+    {
+      "project": "LibreDWG issue #1411 and scratch producer reference",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/mozman/ezdxf",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "revision": "Issue/reference pages retrieved 2026-10-18",
+      "observed": "The issue reports a 5,489-byte mesh-derived SAB in an AC1032 DXF REGION and payload loss through LibreDWG 0.14.8593 DXF-to-DWG-to-DXF. The recipe is a potential locally generated scratch carrier test, not a reproduced current result or shape-semantic oracle."
+    },
+    {
+      "project": "FreeCAD documentation scope",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Published documentation reviewed 2026-10-18; repository marked archived",
+      "observed": "The import/export matrix describes DWG/DXF support as 2D geometry; the Draft DXF guide says the stock importer does not read embedded ACIS/SAT blobs. This is published scope, not runtime qualification."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingPlanGatesRefined": [
+      "PAR-39/LTYPE malformed-input versus valid-text controls",
+      "FIELD zero-child primary-value and following-object boundary evidence",
+      "Existing repeated-record hardening coverage",
+      "Optional S8 generated ACIS carrier provenance and non-promotion boundary",
+      "FreeCAD qualification limited to pinned 2D/projection consumer outcomes"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Avoid duplicate LTYPE/FIELD and stress controls already present. Keep the LibreDWG #1452 alignment report as a source-shape mismatch. If S8 carrier provenance needs an added observation, generate the public SAB cube only in disposable scratch and measure carrier/association separately from semantics. Use FreeCAD only as a pinned 2D/projection consumer, not an ACIS/AcDs semantic gate."
+  },
+  "workingTree": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "receiptCreated": "docs/research/deeper-broader-peer-security-carrier-consumer-refresh-2026-10-18.json",
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared worktree already contains broad user/work-in-progress changes; only the requested plan and this receipt were changed."
+  }
+}

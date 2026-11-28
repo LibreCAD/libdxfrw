@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-point-layer-actual-merge-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/463",
+  "pointParent": "8162610b75d53b1ba602a436c415a639cccafb25",
+  "layerParent": "1395a2f54aef9b7c7ce869c7d32d809db1527e1f",
+  "consumerCommit": "6f43c4b4ccbd01fccbbeed13245a7aaeba864315",
+  "codecPin": "845591df450f08380754b97cf2351317dbc17c40",
+  "change": "Merge actual PR 461 layer/MPOLYGON head into POINT branch; retain both plan ledger entries and unit registrations, and filter hidden snap candidates after elevated POINT collection. PR 463 remains a draft against master and contains PR 461 changes.",
+  "validation": [
+    "macOS ARM64 headless Release build with DWG import enabled and bundled pinned codec passed.",
+    "90 selected POINT, selection, layer, builder, MPOLYGON and persistence tests passed after the negative control was restored.",
+    "All 18 layout-graph tests passed.",
+    "Elevated off-layer snap test fails when post-collection hidden-layer filter is removed and passes after restoration.",
+    "Plan full/base checks, 31 checker tests and git diff --check passed. GitHub reports PR mergeable."
+  ],
+  "logSha256": {
+    "restoredTests": "68cfd2bee9d9eb690ce933e5b89b4e3d2a04a732aecf08a9b66b187a0a57d82e",
+    "layoutTests": "1875196f3e6f64a561be3d4ae6f22488c5d305c8ffe986f702e2c86ef9f20435",
+    "negativeControl": "bbafdb8e4e8d659ba6e31cd9c1cad7243ff20ce79e3c7dce3c2c52b3ef54d0cf"
+  },
+  "limits": [
+    "No native GUI, hosted platform, final standalone-codec, or general DWG/DXF qualification established.",
+    "Further changes to either PR require integration revalidation; the branch includes the entire PR 461 parent, not just the layer fix."
+  ]
+}

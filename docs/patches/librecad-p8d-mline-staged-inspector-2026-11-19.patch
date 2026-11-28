@@ -1,0 +1,1234 @@
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -25,6 +25,7 @@
+ **
+ **********************************************************************/
+ 
++#include "staged_graph.h"
+ #include <algorithm>
+ #include <array>
+ #include <cctype>
+@@ -7510,22 +7568,155 @@
+  * round-trip metadata stored on each polyline's drwExtData so the export
+  * path can reconstruct an MLINE on save.
+  */
++namespace {
++bool hasRepresentedMLineCommonData(const DRW_Entity &entity) {
++  return entity.appData.empty() && entity.reactorHandles.empty() &&
++         entity.xDictHandle == 0 && entity.material == DRW::MaterialByLayer &&
++         entity.plotStyle == DRW::DefaultPlotStyle &&
++         entity.shadow == DRW::CastAndReceieveShadows && entity.shadowHandle == 0 &&
++         entity.fullVisualStyleHandle == 0 && entity.faceVisualStyleHandle == 0 &&
++         entity.edgeVisualStyleHandle == 0 && entity.ltypeScale == 1.0 &&
++         entity.numProxyGraph == 0 && entity.proxyGraphics.empty();
++}
++
++bool hasModelSpaceMLineOwner(const DRW_Entity &entity, const RS_Graphic &drawing) {
++  if (entity.handle == DRW::NoHandle || entity.parentHandle == DRW::NoHandle ||
++      entity.handle == entity.parentHandle || entity.space != DRW::ModelSpace)
++    return false;
++  const auto &spaceBlocks = drawing.dwgAdvancedMetadata().spaceBlockRecords();
++  const auto model = [](const auto &record) {
++    return QString::fromUtf8(record.second.c_str()).compare(
++               QStringLiteral("*Model_Space"), Qt::CaseInsensitive) == 0;
++  };
++  const auto owner = spaceBlocks.find(entity.parentHandle);
++  return owner != spaceBlocks.end() && model(*owner) &&
++         std::count_if(spaceBlocks.begin(), spaceBlocks.end(), model) == 1;
++}
++
++// The currently witnessed open profile has nondegenerate straight baseline
++// segments, matching unit forward directions, and consistently oriented unit
++// angle-bisector miters. The last direction repeats the preceding segment.
++// This is a narrow source/profile guard, not general MLINE validation.
++bool group41Topology(const DRW_Coord *positions, const DRW_Coord *directions,
++                     const DRW_Coord *miters, std::size_t count) {
++  if (!positions || !directions || !miters || count != 6u)
++    return false;
++  constexpr double tolerance = 1e-8;
++  std::array<double, 5> ux{}, uy{};
++  for (std::size_t i = 0; i + 1u < count; ++i) {
++    const double dx = positions[i + 1u].x - positions[i].x;
++    const double dy = positions[i + 1u].y - positions[i].y;
++    const double length = std::hypot(dx, dy);
++    if (!std::isfinite(dx) || !std::isfinite(dy) ||
++        !std::isfinite(length) || length <= RS_TOLERANCE)
++      return false;
++    ux[i] = dx / length;
++    uy[i] = dy / length;
++  }
++  for (std::size_t i = 0; i < count; ++i) {
++    const std::size_t segment = i == count - 1u ? i - 1u : i;
++    if (!std::isfinite(directions[i].x) || !std::isfinite(directions[i].y) ||
++        directions[i].z != 0.0 ||
++        std::abs(directions[i].x - ux[segment]) > tolerance ||
++        std::abs(directions[i].y - uy[segment]) > tolerance)
++      return false;
++    double tangentX = ux[segment];
++    double tangentY = uy[segment];
++    if (i > 0u && i + 1u < count) {
++      tangentX += ux[i - 1u];
++      tangentY += uy[i - 1u];
++    }
++    const double bisectorLength = std::hypot(tangentX, tangentY);
++    if (!std::isfinite(bisectorLength) || bisectorLength <= RS_TOLERANCE ||
++        !std::isfinite(miters[i].x) || !std::isfinite(miters[i].y) ||
++        miters[i].z != 0.0 ||
++        std::abs(miters[i].x + tangentY / bisectorLength) > tolerance ||
++        std::abs(miters[i].y - tangentX / bisectorLength) > tolerance)
++      return false;
++  }
++  return true;
++}
++
++bool group41Topology(const DRW_MLine &line) {
++  if (line.vertlist.size() != 6u)
++    return false;
++  std::array<DRW_Coord, 6> positions{}, directions{}, miters{};
++  for (std::size_t i = 0; i < positions.size(); ++i) {
++    positions[i] = line.vertlist[i].position;
++    directions[i] = line.vertlist[i].vertexDir;
++    miters[i] = line.vertlist[i].miterDir;
++  }
++  return group41Topology(positions.data(), directions.data(), miters.data(), positions.size());
++}
++
++// This experimental witness guard deliberately accepts only the selected
++// STANDARD style profile. It is not a general MLINESTYLE validator.
++template <class T> bool selectedGroup41Style(const T &style) {
++  return style.name == "STANDARD" && style.flags == 0 &&
++      style.fillColor == 256 && style.description.empty() &&
++      style.startAngle == 90.0 && style.endAngle == 90.0 &&
++      style.elements.size() == 2 && style.elements[0].offset == 0.5 &&
++      style.elements[1].offset == -0.5 &&
++      style.elements[0].color == 256 && style.elements[1].color == 256 &&
++      style.elements[0].color24 == -1 && style.elements[1].color24 == -1 &&
++      style.elements[0].linetype == "BYLAYER" && style.elements[1].linetype == "BYLAYER";
++}
++
++// Experimental profile: unit planar miters, exactly two continuous elements,
++// no source XDATA, and six vertices. Wider semantics require separate proof.
++bool eligibleGroup41MLine(const DRW_MLine &data) {
++  if (data.numLines != 2 || data.vertlist.size() != 6 || data.numVerts != 6 ||
++      data.openClosed != 1 || data.scale != 1.0 || data.justification != 0 ||
++      !data.extData.empty() || data.extPoint.x != 0 || data.extPoint.y != 0 ||
++      data.extPoint.z != 1 || data.basePoint.x != data.vertlist[0].position.x ||
++      data.basePoint.y != data.vertlist[0].position.y || data.basePoint.z != 0)
++    return false;
++  for (const auto &v : data.vertlist) {
++    const double norm = std::hypot(v.miterDir.x, v.miterDir.y);
++    if (!std::isfinite(v.position.x) || !std::isfinite(v.position.y) ||
++        v.position.z != 0 || !std::isfinite(v.vertexDir.x) ||
++        !std::isfinite(v.vertexDir.y) || v.vertexDir.z != 0 ||
++        !std::isfinite(norm) || std::abs(norm - 1.0) > 1e-9 ||
++        v.miterDir.z != 0 || v.segParms.size() != 2 ||
++        v.areaFillParms.size() != 2)
++      return false;
++    for (std::size_t i = 0; i < 2; ++i)
++      if (v.segParms[i].size() != 2 || !std::isfinite(v.segParms[i][0]) ||
++          v.segParms[i][1] != 0 || !v.areaFillParms[i].empty() ||
++          !std::isfinite(v.position.x + v.miterDir.x / norm * v.segParms[i][0]) ||
++          !std::isfinite(v.position.y + v.miterDir.y / norm * v.segParms[i][0]))
++        return false;
++  }
++  return true;
++}
++} // namespace
++
+ void RS_FilterDXFRW::addMLine(const DRW_MLine *data) {
+   RS_DEBUG->print("RS_FilterDXFRW::addMLine");
+   if (!data || data->vertlist.empty() || data->numLines == 0)
+     return;
+ 
+   const auto style = m_mlineStyleCache.find(QString::fromUtf8(data->styleName.c_str()));
+-  const bool styleHandleMismatch = style != m_mlineStyleCache.end()
+-      && data->styleHandle != 0u && data->styleHandle != DRW::NoHandle
+-      && style->second.handle != data->styleHandle;
++  const bool styleHandleMismatch = style != m_mlineStyleCache.end() &&
++      data->styleHandle != 0u && data->styleHandle != DRW::NoHandle &&
++      style->second.handle != data->styleHandle;
+   if (m_deferDxfMLines && (style == m_mlineStyleCache.end()
+       || style->second.elements.size() != static_cast<std::size_t>(data->numLines)
+       || styleHandleMismatch)) {
+     PendingDxfMLine pending;
+     // Retain only the projection inputs, not the potentially much larger
+     // per-vertex segment/fill arrays or other callback-owned data.
++    const bool group41Shape = eligibleGroup41MLine(*data);
+     pending.source = std::make_unique<DRW_MLine>();
++    if (group41Shape) {
++      if (m_graphic != nullptr && m_currentContainer == m_graphic &&
++          hasModelSpaceMLineOwner(*data, *m_graphic) &&
++          hasRepresentedMLineCommonData(*data))
++        pending.source->parentHandle = data->parentHandle;
++      pending.source->numVerts = data->numVerts;
++      pending.source->basePoint = data->basePoint;
++      pending.source->extPoint = data->extPoint;
++    }
+     pending.source->handle = data->handle;
+     pending.source->styleHandle = data->styleHandle;
+     pending.source->styleName = data->styleName;
+@@ -7538,6 +7729,11 @@
+       DRW_MLineVertex copy;
+       copy.position = vertex.position;
+       copy.miterDir = vertex.miterDir;
++      if (group41Shape) {
++        copy.vertexDir = vertex.vertexDir;
++        copy.segParms = vertex.segParms;
++        copy.areaFillParms = vertex.areaFillParms;
++      }
+       pending.source->vertlist.push_back(std::move(copy));
+     }
+     pending.container = m_currentContainer;
+@@ -7583,11 +7779,24 @@
+   auto styleIt = m_mlineStyleCache.find(styleName);
+   const DRW_MLineStyle *style =
+       (styleIt != m_mlineStyleCache.end()) ? &styleIt->second : nullptr;
+-  // A nonzero source handle may not bind to a different same-named style,
+-  // regardless of whether its style callback arrived before or after MLINE.
++  // Only late DXF binding needs this additional identity check. A nonzero
++  // group-340 handle may not silently bind to a different same-named style.
+   if (style != nullptr && data->styleHandle != 0u
+       && data->styleHandle != DRW::NoHandle && style->handle != data->styleHandle)
+     style = nullptr;
++
++  const bool group41Shape =
++      placeholders != nullptr && m_dxfR &&
++      m_dxfR->getSourceVersion() == DRW::AC1018 && eligibleGroup41MLine(*data);
++  const bool group41Candidate =
++      group41Shape && data->parentHandle != DRW::NoHandle && style != nullptr &&
++      selectedGroup41Style(*style) &&
++      data->styleHandle != DRW::NoHandle && style->handle == data->styleHandle &&
++      group41Topology(*data);
++  // Unbound owners, unsupported common data and incompatible styles retain
++  // their visible polylines without re-entering the older reconstruction.
++  const bool group41VisibleOnly = group41Shape && !group41Candidate;
++  const bool group41Profile = group41Candidate;
+ 
+   // Compute effective per-element offsets after justification + scale.
+   // Justification: 0=top, 1=zero/middle, 2=bottom. The reference offset
+@@ -7629,6 +7838,7 @@
+     }
+ 
+     for (const auto &v : data->vertlist) {
++      const double vertexOffset = group41Profile ? v.segParms[i][0] : effOffsets[i];
+       RS_Vector miter(v.miterDir.x, v.miterDir.y);
+       const double mlen = miter.magnitude();
+       RS_Vector pos;
+@@ -7636,11 +7846,18 @@
+         pos = RS_Vector{v.position.x, v.position.y};
+       } else {
+         miter /= mlen;
+-        pos = RS_Vector{v.position.x + miter.x * effOffsets[i],
+-                        v.position.y + miter.y * effOffsets[i]};
++        pos = RS_Vector{v.position.x + miter.x * vertexOffset,
++                        v.position.y + miter.y * vertexOffset};
+       }
+       polyline->addVertex(pos, 0.0, false);
+     }
++
++    // The two polylines project one source entity. Preserve its identity
++    // only on the anchor so the output planner maps incoming references once.
++    if (group41Shape && i != 0)
++      polyline->setSourceHandle(DRW::NoHandle);
++    if (group41VisibleOnly)
++      continue;
+ 
+     // Round-trip metadata as XDATA. Schema per the implementation plan:
+     //   1001 "LibreCAD_MLINE", 1000 mlineId, 1000 styleName,
+@@ -7650,7 +7867,7 @@
+     // so the export side can reconstruct without averaging.
+     std::vector<std::shared_ptr<DRW_Variant>> ext;
+     ext.push_back(
+-        std::make_shared<DRW_Variant>(1001, std::string("LibreCAD_MLINE")));
++        std::make_shared<DRW_Variant>(1001, std::string(group41Candidate ? "LibreCAD_MLINE_V2" : "LibreCAD_MLINE")));
+     ext.push_back(std::make_shared<DRW_Variant>(1000, mlineId.toStdString()));
+     ext.push_back(std::make_shared<DRW_Variant>(1000, data->styleName));
+     ext.push_back(std::make_shared<DRW_Variant>(
+@@ -7663,6 +7880,9 @@
+     ext.push_back(std::make_shared<DRW_Variant>(1040, effOffsets[i]));
+     ext.push_back(
+         std::make_shared<DRW_Variant>(1070, std::int32_t{data->openClosed}));
++    if (group41Candidate)
++      for (const auto &v : data->vertlist)
++        ext.push_back(std::make_shared<DRW_Variant>(1040, v.segParms[i][0]));
+     if (i == 0) {
+       // Anchor carries baseline + miter for each vertex.
+       for (const auto &v : data->vertlist) {
+@@ -7670,6 +7890,8 @@
+             1011, DRW_Coord(v.position.x, v.position.y, v.position.z)));
+         ext.push_back(std::make_shared<DRW_Variant>(
+             1013, DRW_Coord(v.miterDir.x, v.miterDir.y, v.miterDir.z)));
++        if (group41Candidate)
++          ext.push_back(std::make_shared<DRW_Variant>(1012, v.vertexDir));
+       }
+     }
+     polyline->setDrwExtData(std::move(ext));
+@@ -11624,6 +11910,17 @@
+  * @param file Full path to the DXF file that will be written.
+  * @param type
+  */
++namespace {
++struct MLineStageContext { RS_FilterDXFRW *owner; std::vector<StageMLineExpected> emitted; };
++static thread_local MLineStageContext *activeMLineStage = nullptr;
++struct MLineStageScope {
++  MLineStageContext *previous;
++  explicit MLineStageScope(MLineStageContext *current) : previous(activeMLineStage) { activeMLineStage=current; }
++  ~MLineStageScope() { activeMLineStage=previous; }
++};
++static bool verifyMLineStagedGraph(const std::filesystem::path &, void *);
++}
++
+ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+                                 const RS2::FormatType type) {
+   // Also protect callers using the filter directly rather than RS_FileIO.
+@@ -12843,8 +13140,11 @@
+   }
+ 
+   //    bool success = m_dxfW->write(this, exportVersion, false); //ascii
++  MLineStageContext stageContext{this, {}};
++  MLineStageScope stageScope(&stageContext);
+   const bool success =
+-      m_dxfW->write(this, exportVersion, binary) && !m_writeFailed; // binary
++      m_dxfW->writeVerified(this, exportVersion, binary, verifyMLineStagedGraph,
++                            &stageContext) && !m_writeFailed; // binary
+   m_writeLeftOut = m_dxfW->leftOut();
+   activeWriter.reset();
+ 
+@@ -29015,6 +29313,9 @@
+   bool isAnchor = false; // i==0 polyline carries baseline + miter
+   std::vector<DRW_Coord> baselineVerts;
+   std::vector<DRW_Coord> miterDirs;
++  bool group41Profile = false;
++  std::vector<double> miterDistances;
++  std::vector<DRW_Coord> vertexDirs;
+ };
+ 
+ struct LWPolylineMeta {
+@@ -29721,7 +30022,8 @@
+         inGroup = false;
+         continue;
+       }
+-      inGroup = marker == "LibreCAD_MLINE";
++      inGroup = marker == "LibreCAD_MLINE" || marker == "LibreCAD_MLINE_V2";
++      if (inGroup) m.group41Profile = marker == "LibreCAD_MLINE_V2";
+       if (inGroup && ++m.markerCount > 1)
+         return std::nullopt;
+       continue;
+@@ -29749,6 +30051,11 @@
+         m.scale = d;
+       else if (seen1040 == 1)
+         m.offset = d;
++      else if (m.group41Profile) {
++        if (m.miterDistances.size() >= 6) return std::nullopt;
++        m.miterDistances.push_back(d);
++      }
++      else return std::nullopt;
+       ++seen1040;
+       break;
+     }
+@@ -29782,25 +30089,73 @@
+       DRW_Coord coordinate;
+       if (readXDataCoord(sp.get(), 1011, coordinate) != XDataReadResult::Valid)
+         return std::nullopt;
++      if (m.group41Profile && m.baselineVerts.size() >= 6) return std::nullopt;
+       m.baselineVerts.push_back(coordinate);
+       m.isAnchor = true;
++      break;
++    }
++    case 1012: {
++      if (!m.group41Profile) return std::nullopt;
++      DRW_Coord coordinate;
++      if (readXDataCoord(sp.get(), 1012, coordinate) != XDataReadResult::Valid)
++        return std::nullopt;
++      if (m.vertexDirs.size() >= 6) return std::nullopt;
++      m.vertexDirs.push_back(coordinate);
+       break;
+     }
+     case 1013: {
+       DRW_Coord coordinate;
+       if (readXDataCoord(sp.get(), 1013, coordinate) != XDataReadResult::Valid)
+         return std::nullopt;
++      if (m.group41Profile && m.miterDirs.size() >= 6) return std::nullopt;
+       m.miterDirs.push_back(coordinate);
+       break;
+     }
+     default:
+       break;
++    }
++  }
++  if (m.group41Profile) {
++    const bool anchor = m.elementIndex == 0;
++    std::vector<int> expected{1001,1000,1000,1071,1040,1070,1070,1070,1040,1070};
++    expected.insert(expected.end(), 6, 1040);
++    if (anchor) for (int i = 0; i < 6; ++i)
++      expected.insert(expected.end(), {1011,1013,1012});
++    if (ext.size() != expected.size() || m.elementCount != 2 ||
++        m.elementIndex < 0 || m.elementIndex >= 2 || m.styleHandle == 0 ||
++        m.styleHandle == DRW::NoHandle || m.scale != 1.0 ||
++        m.justification != 0 || m.openClosed != 1 || m.miterDistances.size() != 6 ||
++        (anchor ? (m.baselineVerts.size() != 6 || m.miterDirs.size() != 6 ||
++                   m.vertexDirs.size() != 6)
++                : (!m.baselineVerts.empty() || !m.miterDirs.empty() || !m.vertexDirs.empty())))
++      return std::nullopt;
++    for (std::size_t i = 0; i < expected.size(); ++i)
++      if (!ext[i] || ext[i]->code() != expected[i]) return std::nullopt;
++    if (anchor) {
++      for (std::size_t i = 0; i < 6; ++i) {
++        const auto &v = m.baselineVerts[i]; const auto &d = m.vertexDirs[i];
++        const auto &n = m.miterDirs[i];
++        if (v.z != 0 || d.z != 0 || n.z != 0 ||
++            std::abs(std::hypot(n.x,n.y) - 1.0) > 1e-9)
++          return std::nullopt;
++      }
++      if (!group41Topology(m.baselineVerts.data(), m.vertexDirs.data(),
++                           m.miterDirs.data(), m.baselineVerts.size()))
++        return std::nullopt;
+     }
+   }
+   if (m.mlineId.isEmpty() || m.elementCount == 0)
+     return std::nullopt;
+   m.entity = e;
+   return m;
++}
++
++static bool verifyMLineStagedGraph(const std::filesystem::path &path, void *opaque) {
++  auto *stage = static_cast<MLineStageContext *>(opaque);
++  if (!stage || !stage->owner || activeMLineStage != stage) return false;
++  if (stage->emitted.empty()) return true;
++
++  return stageRead(QString::fromUtf8(path.u8string().c_str()), stage->emitted);
+ }
+ 
+ struct MLineSidecarDescriptor {
+@@ -29819,6 +30174,40 @@
+   const bool closed = (anchor.openClosed & 0x2) != 0;
+   if (polyline->isClosed() != closed)
+     return false;
++  if (entry.group41Profile) {
++    // The open V2 profile is a chain of actual straight segments. Sampling
++    // only their starts would overlook arcs or edited intermediate endpoints.
++    if (closed || anchor.baselineVerts.size() != 6u ||
++        entry.miterDistances.size() != anchor.baselineVerts.size())
++      return false;
++    const auto expectedPoint = [&](std::size_t i) {
++      const auto &base = anchor.baselineVerts[i];
++      const auto &miter = anchor.miterDirs[i];
++      const double length = std::hypot(miter.x, miter.y);
++      if (!std::isfinite(length) || length <= RS_TOLERANCE)
++        return RS_Vector{false};
++      return RS_Vector{base.x + miter.x / length * entry.miterDistances[i],
++                       base.y + miter.y / length * entry.miterDistances[i]};
++    };
++    std::size_t index = 0u;
++    for (RS_Entity *segment :
++         lc::LC_ContainerTraverser{*polyline, RS2::ResolveNone}.entities()) {
++      if (!segment || segment->rtti() != RS2::EntityLine ||
++          index + 1u >= anchor.baselineVerts.size())
++        return false;
++      const auto *line = static_cast<const RS_Line *>(segment);
++      const auto start = expectedPoint(index);
++      const auto end = expectedPoint(index + 1u);
++      if (!hasFiniteVisibleCoordinate(start) || !hasFiniteVisibleCoordinate(end) ||
++          !hasFiniteVisibleCoordinate(line->getStartpoint()) ||
++          !hasFiniteVisibleCoordinate(line->getEndpoint()) ||
++          !pointsMatch2D(line->getStartpoint(), DRW_Coord{start.x, start.y, 0.0}) ||
++          !pointsMatch2D(line->getEndpoint(), DRW_Coord{end.x, end.y, 0.0}))
++        return false;
++      ++index;
++    }
++    return index + 1u == anchor.baselineVerts.size();
++  }
+   const std::vector<RS_Vector> visible = collectPolylineVertices(polyline);
+   if (visible.size() != anchor.baselineVerts.size())
+     return false;
+@@ -29833,8 +30222,10 @@
+       return false;
+     RS_Vector expected{base.x, base.y};
+     if (length > RS_TOLERANCE) {
+-      expected.x += miter.x / length * entry.offset;
+-      expected.y += miter.y / length * entry.offset;
++      const double offset = entry.group41Profile ? entry.miterDistances[i] : entry.offset;
++      expected.x += miter.x / length * offset;
++      expected.y += miter.y / length * offset;
++      if (!std::isfinite(expected.x) || !std::isfinite(expected.y)) return false;
+     }
+     if (!pointsMatch2D(visible[i], DRW_Coord{expected.x, expected.y, 0.0}))
+       return false;
+@@ -29880,6 +30271,12 @@
+         entry.justification > 2 || entry.openClosed < 0 ||
+         entry.openClosed > std::numeric_limits<std::uint8_t>::max() ||
+         !std::isfinite(entry.scale) || !std::isfinite(entry.offset) ||
++        entry.group41Profile != anchor.group41Profile ||
++        (entry.group41Profile && !matchesSidecarPresentation(entry.entity, anchor.entity)) ||
++        (entry.group41Profile && (elementCount != 2 || anchor.baselineVerts.size() != 6 ||
++          entry.miterDistances.size() != 6 ||
++          (index == 0 ? entry.vertexDirs.size() != 6 : !entry.vertexDirs.empty()))) ||
++        (!entry.group41Profile && (!entry.miterDistances.empty() || !entry.vertexDirs.empty())) ||
+         std::abs(entry.scale - anchor.scale) > RS_TOLERANCE ||
+         (index != 0 &&
+          (!entry.baselineVerts.empty() || !entry.miterDirs.empty())) ||
+@@ -30053,6 +30450,42 @@
+   }
+ }
+ 
++namespace {
++// A disconnected polyline cannot be represented as one DXF LWPOLYLINE;
++// emitting the ordinary fallback would silently join its edited segments.
++bool group41FallbackPolylineIsRepresentable(RS_Polyline *polyline) {
++  if (!polyline) return false;
++  bool seen = false;
++  RS_Vector first, previous;
++  for (RS_Entity *entity :
++       lc::LC_ContainerTraverser{*polyline, RS2::ResolveNone}.entities()) {
++    if (!entity || (entity->rtti() != RS2::EntityLine &&
++                    entity->rtti() != RS2::EntityArc))
++      return false;
++    const auto *segment = static_cast<const RS_AtomicEntity *>(entity);
++    const RS_Vector start = segment->getStartpoint(), end = segment->getEndpoint();
++    if (!hasFiniteVisibleCoordinate(start) || !hasFiniteVisibleCoordinate(end) ||
++        (seen && !pointsMatch2D(start, DRW_Coord{previous.x, previous.y, 0.0})))
++      return false;
++    if (!seen) first = start;
++    seen = true;
++    previous = end;
++  }
++  return seen && (!polyline->isClosed() ||
++      pointsMatch2D(previous, DRW_Coord{first.x, first.y, 0.0}));
++}
++
++bool hasGroup41Marker(const RS_Entity *entity) {
++  if (!entity || !entity->hasDrwExtData()) return false;
++  for (const auto &value : entity->getDrwExtData()) {
++    std::string marker;
++    if (readXDataMarker(value.get(), marker) == XDataReadResult::Valid &&
++        marker == "LibreCAD_MLINE_V2") return true;
++  }
++  return false;
++}
++} // namespace
++
+ void RS_FilterDXFRW::reconstructMLines(RS_EntityContainer *container,
+                                        std::set<RS_Entity *> &consumed) {
+   if (!container)
+@@ -30066,6 +30499,11 @@
+       continue;
+     if (e->rtti() != RS2::EntityPolyline)
+       continue;
++    if (hasGroup41Marker(e) &&
++        !group41FallbackPolylineIsRepresentable(static_cast<RS_Polyline *>(e))) {
++      m_writeFailed = true;
++      return;
++    }
+     auto m = extractMLineMeta(e);
+     if (!m)
+       continue;
+@@ -30083,11 +30521,169 @@
+       continue;
+     }
+     const MLineEntry *anchor = descriptor->anchor;
++    std::uint32_t qualifiedStyleHandle = 0, qualifiedDictionaryHandle = 0;
++    if (anchor->group41Profile) {
++      if (container != m_graphic || m_dwgW || !m_dxfW ||
++          m_dxfW->getVersion() != DRW::AC1018)
++        continue;
++      const auto sourceHandle = anchor->entity->sourceHandle();
++      const auto &context = *m_dxfW->getWritingContext();
++      if (sourceHandle == DRW::NoHandle ||
++          anchor->mlineId != QStringLiteral("mline_%1").arg(sourceHandle) ||
++          descriptor->members[1]->entity->sourceHandle() != DRW::NoHandle ||
++          context.ambiguousSourceHandles.count(sourceHandle) != 0 ||
++          context.sourceHandleToMintedMap.count(sourceHandle) != 1)
++        continue;
++      const auto hasUnrepresentedLinks = [](const MLineEntry *member) {
++        const RS_Entity &projected = *member->entity;
++        return projected.materialHandle() != 0 || projected.plotStyleHandle() != 0 ||
++               projected.shadowMode() != DRW::CastAndReceieveShadows ||
++               projected.shadowHandle() != 0 || projected.fullVisualStyleHandle() != 0 ||
++               projected.faceVisualStyleHandle() != 0 || projected.edgeVisualStyleHandle() != 0 ||
++               !projected.reactorHandles().empty() || projected.xDictHandle() != 0;
++      };
++      if (std::any_of(descriptor->members.begin(), descriptor->members.end(),
++                      hasUnrepresentedLinks))
++        continue;
++      const auto &metadata = m_graphic->dwgAdvancedMetadata();
++      const auto sourceStyle = anchor->styleHandle;
++      if (sourceStyle == 0 || sourceStyle == DRW::NoHandle ||
++          m_dxfSuppressedObjectHandles.count(sourceStyle) ||
++          m_dxfDroppedReferenceHandles.count(sourceStyle)) continue;
++      unsigned int typedMatches = 0;
++      const LC_DwgAdvancedMetadata::MLineStyleRecord *typed = nullptr;
++      for (const auto &style : metadata.mlineStyles()) {
++        if (style.handle == sourceStyle ||
++            QString::compare(QString::fromUtf8(style.name.c_str()), anchor->styleName,
++                             Qt::CaseInsensitive) == 0) {
++          ++typedMatches; typed = &style;
++        }
++      }
++      if (typedMatches != 1 || metadata.mlineStyles().size() != 1 || !typed || typed->handle != sourceStyle ||
++          typed->replayState != LC_DwgAdvancedMetadata::ReplayState::ReplayAllowed ||
++          !selectedGroup41Style(*typed) || anchor->styleName != QStringLiteral("STANDARD")) continue;
++      const DRW_RawDxfObject *rawStyle = nullptr, *rawDict = nullptr;
++      unsigned int styleCount = 0, dictCount = 0, allRawStyles = 0;
++      for (const auto &o : metadata.rawDxfObjects()) {
++        if (o.name == "MLINESTYLE") ++allRawStyles;
++        if (o.handle == sourceStyle) { ++styleCount; rawStyle = &o; }
++        if (o.handle == typed->parentHandle) { ++dictCount; rawDict = &o; }
++      }
++      bool rawEntityCollision = false;
++      for (const auto &e : metadata.rawDxfEntities())
++        if (e.handle == sourceStyle || e.handle == typed->parentHandle) rawEntityCollision = true;
++      if (rawEntityCollision || styleCount != 1 || dictCount != 1 || allRawStyles != 1 || !rawStyle || !rawDict ||
++          rawStyle->name != "MLINESTYLE" || rawDict->name != "DICTIONARY" ||
++          !replaysInDxfExport(rawStyle->m_version) || !replaysInDxfExport(rawDict->m_version) ||
++          m_dxfSuppressedObjectHandles.count(typed->parentHandle)) continue;
++      const LC_DwgAdvancedMetadata::DictionaryRecord *root = nullptr, *dict = nullptr;
++      unsigned int roots = 0, dicts = 0;
++      for (const auto &d : metadata.dictionaries()) {
++        if (d.parentHandle == 0) { ++roots; root = &d; }
++        if (d.handle == typed->parentHandle) { ++dicts; dict = &d; }
++      }
++      if (roots != 1 || dicts != 1 || !root || !dict || root->handle == 0)
++        continue;
++      if (root->handle == sourceStyle || root->handle == dict->handle ||
++          dict->handle == sourceStyle) {
++        m_writeFailed = true;
++        continue;
++      }
++      if (dict->parentHandle != root->handle ||
++          rawStyle->parentHandle != dict->handle || rawDict->parentHandle != root->handle ||
++          dict->entries.size() != 1 || dict->entries[0].name != "Standard" ||
++          dict->entries[0].handle != sourceStyle || dict->countCap || !dict->typedPayloadComplete)
++        continue;
++      unsigned int rootEdges = 0;
++      for (const auto &e : root->entries)
++        if (QString::compare(QString::fromUtf8(e.name.c_str()), QStringLiteral("ACAD_MLINESTYLE"), Qt::CaseInsensitive) == 0 || e.handle == dict->handle) {
++          if (e.name != "ACAD_MLINESTYLE" || e.handle != dict->handle) { rootEdges = 99; break; }
++          ++rootEdges;
++        }
++      if (rootEdges != 1) continue;
++      const auto matchCodes = [](const std::vector<DRW_Variant> &groups, std::initializer_list<int> codes) {
++        if (groups.size() != codes.size()) return false;
++        std::size_t i = 0; for (int code : codes) if (groups[i++].code() != code) return false;
++        return true;
++      };
++      const auto str = [](const DRW_Variant &g, const char *value) {
++        return g.type() == DRW_Variant::STRING && g.c_str() && std::string(g.c_str()) == value;
++      };
++      const auto integer = [](const DRW_Variant &g, int value) {
++        return g.type() == DRW_Variant::INTEGER && g.i_val() == value;
++      };
++      const auto real = [](const DRW_Variant &g, double value) {
++        return g.type() == DRW_Variant::DOUBLE && g.d_val() == value;
++      };
++      const auto handle = [](const DRW_Variant &g, std::uint32_t expected) {
++        if (g.type() != DRW_Variant::STRING || !g.c_str()) return false;
++        bool ok = false; const auto value = QString::fromLatin1(g.c_str()).toUInt(&ok, 16);
++        return ok && value == expected;
++      };
++      // ASCII raw replay uses saved lexical values rather than typed groups.
++      // Bind both representations before trusting a planned provider.
++      const auto lexemesMatch = [](const DRW_RawDxfObject &object) {
++        if (!object.hasRawValues) return true;
++        if (object.rawValues.size() != object.groups.size()) return false;
++        for (std::size_t i = 0; i < object.groups.size(); ++i) {
++          const auto &group = object.groups[i];
++          const QString text = QString::fromUtf8(object.rawValues[i].c_str());
++          bool ok = false;
++          if (group.type() == DRW_Variant::STRING) {
++            if (!group.c_str()) return false;
++            if (group.code() == 5 || (group.code() >= 330 && group.code() <= 369)) {
++              const auto raw = text.trimmed().toUInt(&ok, 16);
++              bool typedOk = false;
++              const auto typed = QString::fromLatin1(group.c_str()).toUInt(&typedOk, 16);
++              if (!ok || !typedOk || raw != typed) return false;
++            } else if (object.rawValues[i] != std::string(group.c_str())) return false;
++          } else if (group.type() == DRW_Variant::INTEGER) {
++            const int raw = text.trimmed().toInt(&ok);
++            if (!ok || raw != group.i_val()) return false;
++          } else if (group.type() == DRW_Variant::DOUBLE) {
++            const double raw = text.trimmed().toDouble(&ok);
++            if (!ok || !std::isfinite(raw) || raw != group.d_val()) return false;
++          } else return false;
++        }
++        return true;
++      };
++      if (!lexemesMatch(*rawStyle) || !lexemesMatch(*rawDict)) continue;
++      const auto &g = rawStyle->groups;
++      if (!matchCodes(g, {5,102,330,102,330,100,2,70,3,62,51,52,71,49,62,6,49,62,6}) ||
++          !handle(g[0], sourceStyle) || !str(g[1], "{ACAD_REACTORS") ||
++          !handle(g[2], dict->handle) || !str(g[3], "}") || !handle(g[4], dict->handle) ||
++          !str(g[5], "AcDbMlineStyle") || !str(g[6], "STANDARD") || !integer(g[7], 0) ||
++          !str(g[8], "") || !integer(g[9], 256) || !real(g[10], 90) || !real(g[11], 90) ||
++          !integer(g[12], 2) || !real(g[13], 0.5) || !integer(g[14], 256) ||
++          !str(g[15], "BYLAYER") || !real(g[16], -0.5) || !integer(g[17], 256) ||
++          !str(g[18], "BYLAYER")) continue;
++      const auto &dg = rawDict->groups;
++      if (!matchCodes(dg, {5,102,330,102,330,100,280,281,3,350}) ||
++          !handle(dg[0], dict->handle) || !str(dg[1], "{ACAD_REACTORS") ||
++          !handle(dg[2], root->handle) || !str(dg[3], "}") || !handle(dg[4], root->handle) ||
++          !str(dg[5], "AcDbDictionary") || !integer(dg[6], 0) || !integer(dg[7], 1) ||
++          !str(dg[8], "Standard") || !handle(dg[9], sourceStyle)) continue;
++      qualifiedStyleHandle = dxfReference(sourceStyle);
++      const auto resolvedDict = dxfReference(dict->handle);
++      qualifiedDictionaryHandle = resolvedDict;
++      const auto resolvedRoot = dxfReference(root->handle);
++      if (qualifiedStyleHandle == 0 || resolvedDict == 0)
++        continue;
++      if (resolvedRoot != 0xCu || qualifiedStyleHandle == resolvedDict ||
++          qualifiedStyleHandle == resolvedRoot || resolvedDict == resolvedRoot ||
++          qualifiedStyleHandle == 0xDu || resolvedDict == 0xDu) {
++        m_writeFailed = true;
++        continue;
++      }
++      if (qualifiedStyleHandle != m_dxfW->remapHandle(sourceStyle) ||
++          resolvedDict != m_dxfW->remapHandle(dict->handle)) continue;
++    }
+     const int N = static_cast<int>(descriptor->members.size());
+ 
+     // Build DRW_MLine from anchor metadata + baseline vertices.
+     DRW_MLine ml;
+     getEntityAttributes(&ml, anchor->entity);
++    if (anchor->group41Profile) ml.extData.clear();
+     ml.styleName = anchor->styleName.toStdString();
+     std::uint32_t styleSourceHandle = anchor->styleHandle;
+     if (anchor->styleHandle != 0) {
+@@ -30107,6 +30703,7 @@
+         }
+       }
+     }
++    if (anchor->group41Profile) ml.styleHandle = qualifiedStyleHandle;
+     std::uint32_t styleOutputHandle = styleSourceHandle;
+     if (m_dwgW != nullptr && styleSourceHandle != 0) {
+       const DwgWriteReferenceStatus status =
+@@ -30136,11 +30733,15 @@
+     for (size_t i = 0; i < V; ++i) {
+       DRW_MLineVertex v;
+       v.position = anchor->baselineVerts[i];
++      if (anchor->group41Profile) v.vertexDir = anchor->vertexDirs[i];
+       if (i < M)
+         v.miterDir = anchor->miterDirs[i];
+       // Default segment params: a single zero parameter per element
+       // (sufficient for a continuous unbroken multiline).
+       v.segParms.assign(N, std::vector<double>{0.0});
++      if (anchor->group41Profile)
++        for (int k = 0; k < N; ++k)
++          v.segParms[k] = {descriptor->members[k]->miterDistances[i], 0.0};
+       v.areaFillParms.assign(N, std::vector<double>{});
+       ml.vertlist.push_back(std::move(v));
+     }
+@@ -30205,6 +30806,25 @@
+       if (m_dwgW != nullptr)
+         return;
+       continue;
++    }
++    if (anchor->group41Profile) {
++      if (!activeMLineStage || activeMLineStage->owner != this || !ml.handle ||
++          !qualifiedStyleHandle || !qualifiedDictionaryHandle || ml.vertlist.size()!=6 ||
++          activeMLineStage->emitted.size() >= 4096) { m_writeFailed=true; return; }
++      StageMLineExpected expected;
++      expected.anchor=ml.handle; expected.style=qualifiedStyleHandle;
++      expected.dictionary=qualifiedDictionaryHandle;
++      expected.base={ml.basePoint.x,ml.basePoint.y,ml.basePoint.z};
++      for(std::size_t i=0;i<6;++i){
++        const auto &v=ml.vertlist[i];
++        if(v.segParms.size()!=2 || v.segParms[0].size()!=2 || v.segParms[1].size()!=2 ||
++           v.areaFillParms.size()!=2 || !v.areaFillParms[0].empty() || !v.areaFillParms[1].empty()) {m_writeFailed=true;return;}
++        expected.position[i]={v.position.x,v.position.y,v.position.z};
++        expected.direction[i]={v.vertexDir.x,v.vertexDir.y,v.vertexDir.z};
++        expected.miter[i]={v.miterDir.x,v.miterDir.y,v.miterDir.z};
++        expected.distances[i]={v.segParms[0][0],v.segParms[1][0]};
++      }
++      activeMLineStage->emitted.push_back(std::move(expected));
+     }
+     for (const MLineEntry *member : descriptor->members)
+       consumed.insert(member->entity);
+diff --git a/librecad/src/lib/filters/staged_graph.h b/librecad/src/lib/filters/staged_graph.h
+new file mode 100644
+--- /dev/null
++++ b/librecad/src/lib/filters/staged_graph.h
+@@ -0,0 +1,485 @@
++#pragma once
++#include <QByteArray>
++#include <QFile>
++#include <algorithm>
++#include <array>
++#include <cmath>
++#include <cstdint>
++#include <map>
++#include <set>
++#include <string>
++#include <vector>
++
++// Experimental AC1018 ASCII staged validator. The caller supplies output
++// handles; this does not infer provenance or authorize any source profile.
++struct StageMLineExpected {
++  std::uint32_t anchor = 0, style = 0, dictionary = 0;
++  std::array<double, 3> base{};
++  std::array<std::array<double, 3>, 6> position{}, direction{}, miter{};
++  std::array<std::array<double, 2>, 6> distances{};
++};
++struct StageRecord {
++  QByteArray kind, section, name;
++  std::uint32_t handle = 0, owner = 0, target = 0;
++  int handleCount = 0, ownerCount = 0, targetCount = 0, nameCount = 0;
++  bool touchesTarget = false;
++  struct Edge {
++    QByteArray key;
++    std::uint32_t target;
++    int role;
++  };
++  std::vector<Edge> entries;
++  std::vector<std::pair<int, QByteArray>> styleFields, mlineFields, mlineCommon;
++  bool styleBody = false, mlineBody = false, dictionaryBody = false,
++       unsupportedStyle = false, unsupportedMline = false,
++       unsupportedDictionary = false, payloadBeforeIdentity = false;
++  int styleSubclassCount = 0, dictionarySubclassCount = 0, hardOwnerCount = 0,
++      hardOwner = 0, cloningCount = 0, cloning = 0, reactorOpen = 0;
++  std::vector<std::uint32_t> reactors;
++};
++struct StageReadBudget {
++  std::uint64_t maxStageBytes = 256u * 1024u * 1024u;
++  std::uint64_t maxLineBytes = 1024u * 1024u;
++  std::uint64_t maxPairs = 8000000;
++  std::uint64_t maxDictionaryEntriesPerRecord = 100000;
++  std::uint64_t maxTotalDictionaryEntries = 100000;
++  std::uint64_t maxAggregateDictionaryKeyBytes = 4u * 1024u * 1024u;
++  std::uint64_t maxDictionaryKeyBytes = 255;
++  std::uint64_t maxReactorsPerRecord = 100000;
++  std::uint64_t maxExpected = 4096;
++};
++static bool stageHex(const QByteArray &value, std::uint32_t &out,
++                     bool allowZero = false) {
++  auto v = value.trimmed();
++  if (v.isEmpty() || v.size() > 8)
++    return false;
++  for (char c : v)
++    if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') ||
++          (c >= 'a' && c <= 'f')))
++      return false;
++  bool ok = false;
++  out = v.toUInt(&ok, 16);
++  return ok && (allowZero || out != 0);
++}
++static bool stageRead(const QString &path,
++                      const std::vector<StageMLineExpected> &expected,
++                      const StageReadBudget &budget = StageReadBudget{}) {
++  if (!budget.maxStageBytes || !budget.maxLineBytes ||
++      budget.maxLineBytes >= 2147483647u || !budget.maxPairs ||
++      !budget.maxDictionaryEntriesPerRecord ||
++      !budget.maxTotalDictionaryEntries ||
++      !budget.maxAggregateDictionaryKeyBytes || !budget.maxDictionaryKeyBytes ||
++      !budget.maxReactorsPerRecord || !budget.maxExpected)
++    return false;
++  if (expected.empty())
++    return true;
++  if (expected.size() > budget.maxExpected)
++    return false;
++  std::set<std::uint32_t> targets{0xC};
++  for (const auto &e : expected) {
++    if (!e.anchor || !e.style || !e.dictionary)
++      return false;
++    targets.insert(e.anchor);
++    targets.insert(e.style);
++    targets.insert(e.dictionary);
++  }
++  std::map<std::uint32_t, StageRecord> selected;
++  std::map<std::uint32_t, int> counts;
++  QFile f(path);
++  if (!f.open(QIODevice::ReadOnly))
++    return false;
++  StageRecord r;
++  QByteArray section, pendingName;
++  bool sectionPending = false, seenEof = false, haveRecord = false;
++  int depth = 0, entryCount = 0, standardStyles = 0;
++  bool malformedStyleName = false;
++  std::uint64_t stageBytes = 0, entryBytes = 0, totalEntries = 0, pairCount = 0;
++  auto finish = [&]() {
++    if (!haveRecord)
++      return true;
++    if (depth != 0 || !pendingName.isEmpty())
++      return false;
++    if (r.touchesTarget && (r.handleCount > 1 || r.payloadBeforeIdentity))
++      return false;
++    if (r.kind == "MLINESTYLE" && r.nameCount != 1)
++      malformedStyleName = true;
++    if (r.kind == "MLINESTYLE" && r.nameCount == 1 &&
++        r.name.compare("STANDARD", Qt::CaseInsensitive) == 0)
++      ++standardStyles;
++    if (r.handleCount == 1 && targets.count(r.handle)) {
++      ++counts[r.handle];
++      selected[r.handle] = r;
++    }
++    r = StageRecord{};
++    haveRecord = false;
++    entryCount = 0;
++    return true;
++  };
++  while (!f.atEnd()) {
++    QByteArray c = f.readLine(static_cast<int>(budget.maxLineBytes + 1)),
++               v = f.readLine(static_cast<int>(budget.maxLineBytes + 1));
++    if (c.isEmpty() || v.isEmpty() ||
++        static_cast<std::uint64_t>(c.size()) > budget.maxLineBytes ||
++        static_cast<std::uint64_t>(v.size()) > budget.maxLineBytes ||
++        !c.endsWith('\n') || !v.endsWith('\n'))
++      return false;
++    const auto lineBytes = static_cast<std::uint64_t>(c.size()) +
++                           static_cast<std::uint64_t>(v.size());
++    if (++pairCount > budget.maxPairs || stageBytes > budget.maxStageBytes ||
++        lineBytes > budget.maxStageBytes - stageBytes)
++      return false;
++    stageBytes += lineBytes;
++    c = c.trimmed();
++    v.chop(1);
++    if (v.endsWith('\r'))
++      v.chop(1);
++    bool ok = false;
++    int code = c.toInt(&ok);
++    if (!ok || code < 0 || code > 1071 || seenEof)
++      return false;
++    if (code == 0) {
++      if (!finish())
++        return false;
++      if (v == "EOF") {
++        seenEof = true;
++        continue;
++      }
++      if (v == "SECTION") {
++        if (!section.isEmpty() || sectionPending)
++          return false;
++        sectionPending = true;
++        continue;
++      }
++      if (v == "ENDSEC") {
++        if (section.isEmpty() || sectionPending)
++          return false;
++        section.clear();
++        continue;
++      }
++      if (section.isEmpty() || sectionPending)
++        return false;
++      if (v.size() > 256)
++        return false;
++      r.kind = v;
++      r.section = section;
++      haveRecord = true;
++      continue;
++    }
++    if (sectionPending) {
++      if (code != 2 || v.isEmpty() || v.size() > 256)
++        return false;
++      section = v;
++      sectionPending = false;
++      continue;
++    }
++    if (!haveRecord) {
++      if (section.isEmpty() && code != 999)
++        return false;
++      continue;
++    }
++    if (code == 102) {
++      if (r.kind == "MLINESTYLE" || r.kind == "DICTIONARY") {
++        const bool bad =
++            (r.styleBody || r.dictionaryBody ||
++             (v != "{ACAD_REACTORS" && v != "}") ||
++             (v == "{ACAD_REACTORS" && depth != 0) || (v == "}" && depth != 1));
++        if (r.kind == "MLINESTYLE" && bad)
++          r.unsupportedStyle = true;
++        if (r.kind == "DICTIONARY" && bad)
++          r.unsupportedDictionary = true;
++        if (v == "{ACAD_REACTORS")
++          ++r.reactorOpen;
++      }
++      if (r.kind == "MLINE")
++        r.unsupportedMline = true;
++      if (v.startsWith('{'))
++        ++depth;
++      else if (v == "}") {
++        if (--depth < 0)
++          return false;
++      }
++      continue;
++    }
++    if (r.kind == "MLINESTYLE" && code == 100)
++      ++r.styleSubclassCount;
++    if (r.kind == "MLINESTYLE" && depth > 0 && code != 330)
++      r.unsupportedStyle = true;
++    if (r.kind == "DICTIONARY" && depth > 0 && code != 330)
++      r.unsupportedDictionary = true;
++    if ((r.kind == "MLINESTYLE" || r.kind == "DICTIONARY") && depth > 0 &&
++        code == 330) {
++      std::uint32_t x = 0;
++      if (!stageHex(v, x) || r.reactors.size() >= budget.maxReactorsPerRecord)
++        return false;
++      r.reactors.push_back(x);
++    }
++    if (r.kind == "DICTIONARY" && depth == 0 && !r.dictionaryBody &&
++        code != 5 && code != 330 && code != 100)
++      r.unsupportedDictionary = true;
++    if (r.kind == "DICTIONARY" && depth == 0 && code == 100) {
++      ++r.dictionarySubclassCount;
++      if (v == "AcDbDictionary")
++        r.dictionaryBody = true;
++      else
++        r.unsupportedDictionary = true;
++    }
++    if (r.kind == "DICTIONARY" && depth == 0 && r.dictionaryBody &&
++        code != 100 && code != 280 && code != 281 && code != 3 && code != 350 &&
++        code != 360)
++      r.unsupportedDictionary = true;
++    if (r.kind == "DICTIONARY" && depth == 0 && code == 280) {
++      ++r.hardOwnerCount;
++      bool parsed = false;
++      r.hardOwner = v.toInt(&parsed);
++      if (!parsed)
++        return false;
++    }
++    if (r.kind == "DICTIONARY" && depth == 0 && code == 281) {
++      ++r.cloningCount;
++      bool parsed = false;
++      r.cloning = v.toInt(&parsed);
++      if (!parsed)
++        return false;
++    }
++    if (r.kind == "MLINESTYLE" && depth == 0 && !r.styleBody) {
++      if (code == 100 && v == "AcDbMlineStyle")
++        r.styleBody = true;
++      else if (code != 5 && code != 330)
++        r.unsupportedStyle = true;
++    }
++    if (r.kind == "MLINE" && depth == 0 && !r.mlineBody) {
++      if (r.handleCount == 0 && code != 5)
++        r.payloadBeforeIdentity = true;
++      if (code == 5 || r.touchesTarget) {
++        if (r.mlineCommon.size() >= 8 || v.size() > 128)
++          return false;
++        r.mlineCommon.push_back({code, v});
++      }
++    }
++    if (r.kind == "MLINE" && depth == 0 && code == 100 && v == "AcDbMline") {
++      r.mlineBody = true;
++      if (r.handleCount == 0)
++        r.payloadBeforeIdentity = true;
++    } else if (r.kind == "MLINE" && depth == 0 && r.mlineBody) {
++      if (r.handleCount == 0)
++        r.payloadBeforeIdentity = true;
++      if (r.touchesTarget) {
++        if (r.mlineFields.size() >= 160 || v.size() > 128)
++          return false;
++        r.mlineFields.push_back({code, v});
++      }
++    }
++    if (code == 5) {
++      ++r.handleCount;
++      if (!stageHex(v, r.handle))
++        return false;
++      if (targets.count(r.handle))
++        r.touchesTarget = true;
++      continue;
++    }
++    if (code == 330 && depth == 0) {
++      ++r.ownerCount;
++      if (!stageHex(v, r.owner, true))
++        return false;
++      continue;
++    }
++    if (code == 340 && depth == 0 && r.kind == "MLINE") {
++      ++r.targetCount;
++      if (!stageHex(v, r.target))
++        return false;
++      continue;
++    }
++    if (r.kind == "MLINESTYLE" && depth == 0 && r.styleBody && code == 100 &&
++        v != "AcDbMlineStyle")
++      r.unsupportedStyle = true;
++    if (r.kind == "MLINESTYLE" && depth == 0 && r.styleBody && code != 100) {
++      if (r.handleCount == 0)
++        r.payloadBeforeIdentity = true;
++      if (code != 2 && code != 70 && code != 3 && code != 62 && code != 51 &&
++          code != 52 && code != 71 && code != 49 && code != 6)
++        r.unsupportedStyle = true;
++      else if (r.touchesTarget) {
++        if (r.styleFields.size() >= 16 || v.size() > 256)
++          return false;
++        r.styleFields.push_back({code, v});
++      }
++    }
++    if (code == 2 && (r.kind == "MLINE" || r.kind == "MLINESTYLE")) {
++      ++r.nameCount;
++      r.name = v;
++      continue;
++    }
++    if (r.kind == "DICTIONARY" && depth == 0) {
++      if (code == 3) {
++        if (!pendingName.isEmpty() || v.isEmpty() ||
++            static_cast<std::uint64_t>(v.size()) > budget.maxDictionaryKeyBytes)
++          return false;
++        pendingName = v;
++      } else if (code == 350 || code == 360) {
++        std::uint32_t target = 0;
++        const auto nameBytes = static_cast<std::uint64_t>(pendingName.size());
++        if (pendingName.isEmpty() || !stageHex(v, target) ||
++            ++entryCount > budget.maxDictionaryEntriesPerRecord ||
++            ++totalEntries > budget.maxTotalDictionaryEntries ||
++            entryBytes > budget.maxAggregateDictionaryKeyBytes ||
++            nameBytes > budget.maxAggregateDictionaryKeyBytes - entryBytes)
++          return false;
++        entryBytes += nameBytes;
++        r.entries.push_back({pendingName, target, code});
++        pendingName.clear();
++      }
++    }
++  }
++  if (!finish() || !seenEof || !section.isEmpty() || sectionPending)
++    return false;
++  for (const auto &e : expected) {
++    if (counts[e.anchor] != 1)
++      return false;
++    const auto &a = selected[e.anchor];
++    if (a.kind != "MLINE" || a.section != "ENTITIES" || a.name != "STANDARD" ||
++        a.nameCount != 1 || a.ownerCount != 1 || a.owner != 0x1F ||
++        a.targetCount != 1 || a.target != e.style || !e.style ||
++        !e.dictionary || e.style == e.dictionary || e.style == 0xC ||
++        e.dictionary == 0xC)
++      return false;
++    if (counts[0xC] != 1 || counts[e.style] != 1 || counts[e.dictionary] != 1)
++      return false;
++    const auto &root = selected[0xC], &dict = selected[e.dictionary],
++               &style = selected[e.style];
++    if (root.kind != "DICTIONARY" || root.section != "OBJECTS" ||
++        root.ownerCount != 1 || root.owner != 0 || !root.dictionaryBody ||
++        root.dictionarySubclassCount != 1 || root.unsupportedDictionary ||
++        root.hardOwnerCount != 0 || root.cloningCount != 1 ||
++        root.cloning != 1 || root.reactorOpen != 0 || !root.reactors.empty() ||
++        dict.kind != "DICTIONARY" || dict.section != "OBJECTS" ||
++        dict.ownerCount != 1 || dict.owner != 0xC || !dict.dictionaryBody ||
++        dict.dictionarySubclassCount != 1 || dict.unsupportedDictionary ||
++        dict.hardOwnerCount != 1 || dict.hardOwner != 0 ||
++        dict.cloningCount != 1 || dict.cloning != 1 || dict.reactorOpen != 1 ||
++        dict.reactors.size() != 1 || dict.reactors[0] != 0xC ||
++        style.kind != "MLINESTYLE" || style.section != "OBJECTS" ||
++        style.ownerCount != 1 || style.owner != e.dictionary ||
++        style.nameCount != 1 || style.name != "STANDARD" || !style.styleBody ||
++        style.styleSubclassCount != 1 || style.reactorOpen != 1 ||
++        style.reactors.size() != 1 || style.reactors[0] != e.dictionary ||
++        style.unsupportedStyle || !a.mlineBody || a.unsupportedMline)
++      return false;
++    auto edge = [](const StageRecord &rec, const QByteArray &key,
++                   std::uint32_t target) {
++      return std::count_if(rec.entries.begin(), rec.entries.end(),
++                           [&](const StageRecord::Edge &x) {
++                             return x.key.compare(key, Qt::CaseInsensitive) ==
++                                        0 &&
++                                    x.target == target && x.role == 350;
++                           }) == 1 &&
++             std::count_if(rec.entries.begin(), rec.entries.end(),
++                           [&](const StageRecord::Edge &x) {
++                             return x.key.compare(key, Qt::CaseInsensitive) ==
++                                        0 ||
++                                    x.target == target;
++                           }) == 1;
++    };
++    if (!edge(root, "ACAD_MLINESTYLE", e.dictionary) ||
++        !edge(dict, "Standard", e.style) || standardStyles != 1 ||
++        malformedStyleName)
++      return false;
++    const auto &common = a.mlineCommon;
++    const int commonCodes[] = {5, 330, 100, 8, 6, 62, 370, 100};
++    if (common.size() != 8)
++      return false;
++    for (std::size_t i = 0; i < 8; ++i)
++      if (common[i].first != commonCodes[i])
++        return false;
++    std::uint32_t commonAnchor = 0, commonOwner = 0;
++    if (!stageHex(common[0].second, commonAnchor) || commonAnchor != e.anchor ||
++        !stageHex(common[1].second, commonOwner) || commonOwner != 0x1F ||
++        common[2].second != "AcDbEntity" || common[3].second != "0" ||
++        common[4].second != "ByLayer" || common[7].second != "AcDbMline")
++      return false;
++    bool colorOk = false, weightOk = false;
++    if (common[5].second.toInt(&colorOk) != 256 || !colorOk ||
++        common[6].second.toInt(&weightOk) != -1 || !weightOk)
++      return false;
++    // The emitted MLINE must be exactly the V2 model selected by the write
++    // callback, within the existing ASCII binary64 formatting tolerance.
++    std::size_t cursor = 0;
++    auto value = [&](int code, const QByteArray &literal) {
++      if (cursor >= a.mlineFields.size() ||
++          a.mlineFields[cursor].first != code ||
++          a.mlineFields[cursor].second != literal)
++        return false;
++      ++cursor;
++      return true;
++    };
++    auto number = [&](int code, double expectedValue) {
++      if (cursor >= a.mlineFields.size() || a.mlineFields[cursor].first != code)
++        return false;
++      bool ok = false;
++      double x = a.mlineFields[cursor++].second.toDouble(&ok);
++      return ok && std::isfinite(x) && std::isfinite(expectedValue) &&
++             std::abs(x - expectedValue) <= 1e-12;
++    };
++    auto integer = [&](int code, int expectedValue) {
++      if (cursor >= a.mlineFields.size() || a.mlineFields[cursor].first != code)
++        return false;
++      bool ok = false;
++      int x = a.mlineFields[cursor++].second.toInt(&ok);
++      return ok && x == expectedValue;
++    };
++    auto ref = [&]() {
++      if (cursor >= a.mlineFields.size() || a.mlineFields[cursor].first != 340)
++        return false;
++      std::uint32_t x = 0;
++      return stageHex(a.mlineFields[cursor++].second, x) && x == e.style;
++    };
++    if (!value(2, "STANDARD") || !ref() || !number(40, 1) || !integer(70, 0) ||
++        !integer(71, 1) || !integer(72, 6) || !integer(73, 2))
++      return false;
++    for (int k = 0; k < 3; ++k)
++      if (!number(10 + 10 * k, e.base[k]))
++        return false;
++    for (int i = 0; i < 6; ++i) {
++      for (int k = 0; k < 3; ++k)
++        if (!number(11 + 10 * k, e.position[i][k]))
++          return false;
++      for (int k = 0; k < 3; ++k)
++        if (!number(12 + 10 * k, e.direction[i][k]))
++          return false;
++      for (int k = 0; k < 3; ++k)
++        if (!number(13 + 10 * k, e.miter[i][k]))
++          return false;
++      for (int k = 0; k < 2; ++k)
++        if (!integer(74, 2) || !number(41, e.distances[i][k]) ||
++            !number(41, 0) || !integer(75, 0))
++          return false;
++    }
++    if (cursor != a.mlineFields.size())
++      return false;
++    const auto &sf = style.styleFields;
++    const int codes[] = {2, 70, 3, 62, 51, 52, 71, 49, 62, 6, 49, 62, 6};
++    // Keep the complete, ordered profile; do not accept extra style fields.
++    if (sf.size() != 13)
++      return false;
++    for (std::size_t i = 0; i < sf.size(); ++i)
++      if (sf[i].first != codes[i])
++        return false;
++    auto styleInteger = [&](std::size_t i, int value) {
++      bool ok = false;
++      auto x = sf[i].second.toInt(&ok);
++      return ok && x == value;
++    };
++    auto styleReal = [&](std::size_t i, double value) {
++      bool ok = false;
++      auto x = sf[i].second.toDouble(&ok);
++      return ok && x == value;
++    };
++    if (sf[0].second != "STANDARD" || !styleInteger(1, 0) ||
++        !sf[2].second.isEmpty() || !styleInteger(3, 256) || !styleReal(4, 90) ||
++        !styleReal(5, 90) || !styleInteger(6, 2) || !styleReal(7, 0.5) ||
++        !styleInteger(8, 256) || sf[9].second != "BYLAYER" ||
++        !styleReal(10, -0.5) || !styleInteger(11, 256) ||
++        sf[12].second != "BYLAYER")
++      return false;
++  }
++  return true;
++}

@@ -1,0 +1,1646 @@
+{
+  "schema": "libdxfrw-source-release-qualification-v1",
+  "slice": "RPP-5fx",
+  "date": "2026-10-27",
+  "dateTimezone": "America/Toronto",
+  "observedAtUtc": "2026-10-27T22:45:27.961036+00:00",
+  "state": "IMPLEMENTED_LOCAL_QUALIFICATION_COMPLETE_PLATFORM_QUALIFICATION_OPEN",
+  "parentCommit": "f590610a",
+  "scope": "Source inventory/build/install repair; no production C++ or header changes and no semantic support promotion.",
+  "fileSha256": {
+    ".github/workflows/parity-fast.yml": "25539433cdcbd5bd15179ac4446e0c71ef9b63cbb66afcb24ed9477154854364",
+    "CMakeLists.txt": "55d7ad31891d067508d3b4cadc775383f5d3f1461536a428bbc49e80b6a15f6d",
+    "Makefile.am": "c442e6bf7fd7b1c91781e793359ec22f081e71be0908b17a383cfc7bfbf05c67",
+    "README.md": "71672367adde8e839ad3875fd79f72451d4f8493906ef76ad725076e60582179",
+    "autogen.sh": "6f3deb2c6721fc5efadb02025e7ac7e1abcda9c1e065f5c6c7ed38ea325aa02a",
+    "configure.ac": "f10fd63cc3c6ecf5074aaa8927603ad63b54c4d0f11b59ff56392fdaa6e51eb1",
+    "docs/SOURCE_RELEASE.md": "e8e16887bdb3358bd396b4d7a1fd61334ba1b15ab69162f774f5f44f864e4646",
+    "dwg2dxf/CMakeLists.txt": "f22326c1539e169004bc4a1e84e131544224cc6dd6d03c22f18d17f1f585f967",
+    "dwg2dxf/Makefile.am": "98922c2ec31eadeb8fcee969136c1228c3f6ed622d2adf8ca73249f76d2322e6",
+    "dwg2dxf/source-files.am": "afe363c38498e12ae6c68cc9a44427e00d29c200a5ef3834f4045b0fa5434319",
+    "dwg2dxf/source-files.cmake": "6ddc28b528898756a07b766a720c269407fefd415eda9c766e519dbd224bb07f",
+    "libdxfrw-autotools.pc.in": "a3023db9f4d5f751e8588db1eab163975d05141bd1d748c7ad2f0083018d1d5a",
+    "libdxfrw_sources.cmake": "3b91dfd751fd27113f4f463c5431ed7c4c11886d4242c2e480cab25b7e860d9e",
+    "source-release-files.am": "badb3d120910cd64942a96715dee209073dc32a09b593767d917705ca6c90e27",
+    "source-release-files.txt": "33d4ec300dc7d0a08cae0a185574fab6e629f9a9aaeccd7d267d76d128749a47",
+    "src/Makefile.am": "464ec1570ad50790092ff8cb8878d14fcd6cfa0779e6f04a6eaab2e4c8dc373f",
+    "src/source-files.am": "d17b53e9a0d84c6f86b1cd01793f7a52b2ddfedd14f590e9bd0d4cedea1998a4",
+    "tools/check_fixture_admission.py": "e17d315b171339a86edc326889b890af29fedd87cfede69ac56662f39bed94d8",
+    "tools/generate_build_inventory.py": "b53614912c6bd9f425eaf4c8ff47d1264c1aa6bceb8862a21f1cdcea0739a8d1"
+  },
+  "sources": [
+    {
+      "url": "https://www.gnu.org/software/automake/manual/html_node/Include.html",
+      "use": "Automake includes explicit generated inventory fragments."
+    },
+    {
+      "url": "https://www.gnu.org/software/automake/manual/html_node/Libtool-Convenience-Libraries.html",
+      "use": "A noninstalled one-source convenience library merges the entity object into the installed library."
+    },
+    {
+      "url": "https://www.gnu.org/software/automake/manual/html_node/Program-and-Library-Variables.html",
+      "use": "Target CXXFLAGS explicitly retain AM_CXXFLAGS; user CXXFLAGS are ordered later and can override package defaults."
+    },
+    {
+      "url": "https://www.gnu.org/software/automake/manual/html_node/Checking-the-Distribution.html",
+      "use": "Actual distcheck verifies VPATH, installation, ordinary/DESTDIR uninstall, cleanup and archive regeneration."
+    },
+    {
+      "url": "https://github.com/actions/runner-images/blob/main/images/ubuntu/toolsets/toolset-2404.json",
+      "use": "The primary Ubuntu 24.04 image manifest lists Autoconf, Automake, libtool, GCC and make; this verifies job prerequisites, not execution of the pending job."
+    }
+  ],
+  "baseline": {
+    "observed": {
+      "source": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/baseline-source/libdxfrw-2.0.0",
+      "steps": [
+        {
+          "step": "configure",
+          "command": [
+            "./configure",
+            "--disable-shared",
+            "--prefix=/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/baseline-prefix",
+            "CXXFLAGS=-std=c++17 -O0 -Wall -Wextra -pedantic -Werror"
+          ],
+          "exitCode": 0,
+          "seconds": 12.767152000000351
+        },
+        {
+          "step": "build",
+          "command": [
+            "make",
+            "-j2"
+          ],
+          "exitCode": 2,
+          "seconds": 1.0476490830042167
+        }
+      ],
+      "observedAt": "2026-10-27T21:59:45.345233+00:00"
+    },
+    "failure": "The previous extracted archive configures, then make cannot find drw_acis.h.",
+    "evidence": [
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/baseline.json",
+        "sha256": "980bd7184b060bd4ff91e588ecb125879a052421c343a579347f845cbaed00ad"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/baseline-build.log",
+        "sha256": "48116f9cc4e838427dd162fba006d03b62542788b75c0860bb27b0a9472df3d3"
+      }
+    ],
+    "previousMissingProductionInputs": {
+      "objects": 39,
+      "actualProductionInputs": 148,
+      "missing": 59,
+      "missingCpp": 18,
+      "artifact": "production-archive-input-audit.json",
+      "qualification": "Read-only comparison of actual CMake library/CLI compile sources and Ninja header dependencies against the final Autotools archive. Does not qualify a source-release build or all CMake tests/modules.",
+      "missingPaths": [
+        "dwg2dxf/dx_batch_input.h",
+        "dwg2dxf/dx_batch_output_names.cpp",
+        "dwg2dxf/dx_batch_output_names.h",
+        "dwg2dxf/dx_cli.h",
+        "dwg2dxf/dx_dwg_class_evidence.h",
+        "dwg2dxf/dx_dwg_class_section_wire.h",
+        "dwg2dxf/dx_dwg_class_wire.h",
+        "dwg2dxf/dx_table_source_profile.h",
+        "dwg2dxf/dx_table_value_source_profile.h",
+        "src/drw_acis.cpp",
+        "src/drw_acis.h",
+        "src/drw_base.cpp",
+        "src/drw_datastorage.cpp",
+        "src/drw_datastorage.h",
+        "src/handle_allocator.h",
+        "src/intern/drw_dimvar_migration.h",
+        "src/intern/drw_reserve.h",
+        "src/intern/dwg_dxf_output_transaction.cpp",
+        "src/intern/dwg_dxf_output_transaction.h",
+        "src/intern/dwg_fixed_handles.h",
+        "src/intern/dwg_header_time.h",
+        "src/intern/dwgbufferw.cpp",
+        "src/intern/dwgbufferw.h",
+        "src/intern/dwghatchboundary.h",
+        "src/intern/dwgheadersection.h",
+        "src/intern/dwgobjectframe.cpp",
+        "src/intern/dwgobjectframe.h",
+        "src/intern/dwgreader32.cpp",
+        "src/intern/dwgreader32.h",
+        "src/intern/dwgreaderR11.cpp",
+        "src/intern/dwgreaderR11.h",
+        "src/intern/dwgreaderR1_40.cpp",
+        "src/intern/dwgreaderR1_40.h",
+        "src/intern/dwgsafety.h",
+        "src/intern/dwgtemplate.h",
+        "src/intern/dwgvaluekind.h",
+        "src/intern/dwgwriter.h",
+        "src/intern/dwgwriter15.cpp",
+        "src/intern/dwgwriter15.h",
+        "src/intern/dwgwriter18.cpp",
+        "src/intern/dwgwriter18.h",
+        "src/intern/dwgwriter21.cpp",
+        "src/intern/dwgwriter21.h",
+        "src/intern/dwgwriter24.cpp",
+        "src/intern/dwgwriter24.h",
+        "src/intern/dwgwriter27.cpp",
+        "src/intern/dwgwriter27.h",
+        "src/intern/dwgwriter32.cpp",
+        "src/intern/dwgwriter32.h",
+        "src/intern/dwgwriterlayoutvalidation.cpp",
+        "src/intern/dwgwriterlayoutvalidation.h",
+        "src/intern/dxfcode.h",
+        "src/intern/dxfnumber.h",
+        "src/intern/dxfparserlimits.h",
+        "src/intern/dxftable.h",
+        "src/intern/dxftablecapacity.h",
+        "src/intern/dxfvalue.h",
+        "src/intern/proxygraphicdecoder.cpp",
+        "src/intern/proxygraphicdecoder.h"
+      ],
+      "missingCppPaths": [
+        "dwg2dxf/dx_batch_output_names.cpp",
+        "src/drw_acis.cpp",
+        "src/drw_base.cpp",
+        "src/drw_datastorage.cpp",
+        "src/intern/dwg_dxf_output_transaction.cpp",
+        "src/intern/dwgbufferw.cpp",
+        "src/intern/dwgobjectframe.cpp",
+        "src/intern/dwgreader32.cpp",
+        "src/intern/dwgreaderR11.cpp",
+        "src/intern/dwgreaderR1_40.cpp",
+        "src/intern/dwgwriter15.cpp",
+        "src/intern/dwgwriter18.cpp",
+        "src/intern/dwgwriter21.cpp",
+        "src/intern/dwgwriter24.cpp",
+        "src/intern/dwgwriter27.cpp",
+        "src/intern/dwgwriter32.cpp",
+        "src/intern/dwgwriterlayoutvalidation.cpp",
+        "src/intern/proxygraphicdecoder.cpp"
+      ],
+      "hostScope": "Observed macOS CMake/Ninja production dependencies; other platform/conditional inputs and all CMake/test support remain separate inventory obligations."
+    }
+  },
+  "inventory": {
+    "coreCpp": 36,
+    "coreHeaders": 81,
+    "cliCpp": 3,
+    "cliHeaders": 29,
+    "installedHeaders": [
+      "drw_acis.h",
+      "drw_base.h",
+      "drw_classes.h",
+      "drw_datastorage.h",
+      "drw_entities.h",
+      "drw_header.h",
+      "drw_interface.h",
+      "drw_objects.h",
+      "intern/dwg_fixed_handles.h",
+      "intern/dwgbufferw.h",
+      "intern/dwgsafety.h",
+      "intern/dwgutil.h",
+      "libdwgr.h",
+      "libdxfrw.h"
+    ],
+    "listedReleaseFiles": 590,
+    "formerlyMissingProductionInputsNowPresent": 59,
+    "newDrawingPayloadsOrDerivatives": 0,
+    "policy": "Tracked project files plus eight explicit managed files; omit active parity plan/historical receipts except two actual CMake research inputs.",
+    "bootstrap": {
+      "source": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/final-maintainer-source",
+      "steps": [
+        {
+          "step": "inventory",
+          "command": [
+            "python3",
+            "tools/generate_build_inventory.py",
+            "--check"
+          ],
+          "exitCode": 0,
+          "seconds": 0.08173425000859424
+        },
+        {
+          "step": "bootstrap",
+          "command": [
+            "./autogen.sh"
+          ],
+          "exitCode": 0,
+          "seconds": 5.723436625004979
+        },
+        {
+          "step": "configure",
+          "command": [
+            "./configure",
+            "--disable-shared",
+            "CXXFLAGS=-O0 -Wall -Wextra -pedantic -Werror"
+          ],
+          "exitCode": 0,
+          "seconds": 6.1181076250068145
+        },
+        {
+          "step": "dist",
+          "command": [
+            "make",
+            "dist"
+          ],
+          "exitCode": 0,
+          "seconds": 6.687311791989487
+        }
+      ],
+      "observedAt": "2026-10-27T22:31:43.988604+00:00"
+    },
+    "archives": [
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/final-maintainer-source/libdxfrw-2.0.0.tar.bz2",
+        "sha256": "b0995410897f82773b61e12103f53c5f10383064ba3645b97a6c9e64d952e1f1",
+        "members": 666,
+        "regularFiles": 608,
+        "exactListedSourceFiles": 590,
+        "sourceManifestSha256": "3b33b3245addc87068963b8c7457f9a04c5e88c3fe44d04ad3688700fac6fb1a"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/final-maintainer-source/libdxfrw-2.0.0.tar.gz",
+        "sha256": "fb79645aba072885a0c220e1657310d9cc9e9003d35d6038e12bc5dc963223c7",
+        "members": 666,
+        "regularFiles": 608,
+        "exactListedSourceFiles": 590,
+        "sourceManifestSha256": "3b33b3245addc87068963b8c7457f9a04c5e88c3fe44d04ad3688700fac6fb1a"
+      }
+    ],
+    "manifest": {
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/final-release-inputs.sha256",
+      "sha256": "3b33b3245addc87068963b8c7457f9a04c5e88c3fe44d04ad3688700fac6fb1a"
+    }
+  },
+  "implementation": [
+    "Canonical core/CLI CMake inventories generate exact Automake source/header/install and release fragments; a fast checker rejects drift and unexpected archive payloads.",
+    "Use C++17 link probes without running target executables, detect thread linkage and macOS CLI CoreFoundation, and align installed headers/pkg-config/ABI major 2 with CMake.",
+    "Preserve the existing CMake GNU entity-parser warning policy via one noninstalled convenience library, retaining strict warnings and -Werror elsewhere; Clang discriminator yields no exception.",
+    "Run fast inventory checks on ordinary CI; schedule full Linux GCC source-release distcheck only for master push or manual dispatch. That remote job has not run in this slice."
+  ],
+  "development": [
+    "Initial archive guard rejected legitimate libtool lt~obsolete.m4; permit that generated-file spelling only in the archive grammar, retaining strict source path validation.",
+    "Use a streaming tar pass instead of repeated random-access decompression for source byte comparisons.",
+    "Initial static/shared/CMake qualification predates the convenience-library repair and is preserved separately; final variants were rebuilt after that repair.",
+    "After final static/shared and before distcheck, remove a duplicated CI -Wextra user flag which would override Automake's per-target GNU default.",
+    "The staged fixture guard falsely classified generated Automake HEADERS and drw_entities filenames as drawing marker substrings. Match whole marker tokens, and verify that actual DXF/DWG content disguised as .am still refuses. Correct a trailing blank CLI-manifest line caught by git diff --check.",
+    "Preserve native-build archives separately from the final refreshed archive. Differences are CI metadata, a trailing CLI manifest newline, and the ancillary fixture scanner. All C++/headers and Autotools build configurations are exact; the effective CMake inventory is unchanged."
+  ],
+  "validation": {
+    "toolVersions": {
+      "/usr/bin/clang++": {
+        "command": [
+          "/usr/bin/clang++",
+          "--version"
+        ],
+        "firstLine": "Apple clang version 21.0.0 (clang-2100.3.34.2)"
+      },
+      "cmake": {
+        "command": [
+          "cmake",
+          "--version"
+        ],
+        "firstLine": "cmake version 4.4.4"
+      },
+      "autoconf": {
+        "command": [
+          "autoconf",
+          "--version"
+        ],
+        "firstLine": "autoconf (GNU Autoconf) 2.73"
+      },
+      "automake": {
+        "command": [
+          "automake",
+          "--version"
+        ],
+        "firstLine": "automake (GNU automake) 1.19"
+      },
+      "autoreconf": {
+        "command": [
+          "autoreconf",
+          "--version"
+        ],
+        "firstLine": "autoreconf (GNU Autoconf) 2.73"
+      },
+      "pkg-config": {
+        "command": [
+          "pkg-config",
+          "--version"
+        ],
+        "firstLine": "3.0.8"
+      },
+      "python3": {
+        "command": [
+          "python3",
+          "--version"
+        ],
+        "firstLine": "Python 3.15.0"
+      }
+    },
+    "static": {
+      "mode": "static",
+      "source": "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/libdxfrw-2.0.0",
+      "build": "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-build",
+      "prefix": "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix",
+      "steps": [
+        {
+          "step": "configure",
+          "command": [
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/libdxfrw-2.0.0/configure",
+            "--prefix=/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix",
+            "--disable-shared",
+            "CXXFLAGS=-O0 -Wall -Wextra -pedantic -Werror"
+          ],
+          "exitCode": 0,
+          "seconds": 6.496274417004315
+        },
+        {
+          "step": "build",
+          "command": [
+            "make",
+            "-j1"
+          ],
+          "exitCode": 0,
+          "seconds": 66.20136941698729
+        },
+        {
+          "step": "install",
+          "command": [
+            "make",
+            "install"
+          ],
+          "exitCode": 0,
+          "seconds": 0.5853266249905573
+        },
+        {
+          "step": "pkg-validate",
+          "command": [
+            "pkg-config",
+            "--validate",
+            "libdxfrw"
+          ],
+          "exitCode": 0,
+          "seconds": 0.0037540000048466027
+        },
+        {
+          "step": "header-0",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_acis.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.3135202080011368
+        },
+        {
+          "step": "header-1",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_base.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.26903291599592194
+        },
+        {
+          "step": "header-2",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_classes.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.26869250000163447
+        },
+        {
+          "step": "header-3",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_datastorage.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.30585300001257565
+        },
+        {
+          "step": "header-4",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_entities.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.7542735419992823
+        },
+        {
+          "step": "header-5",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_header.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.32752612500917166
+        },
+        {
+          "step": "header-6",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_interface.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.8576349170034518
+        },
+        {
+          "step": "header-7",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_objects.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.5154606670112116
+        },
+        {
+          "step": "header-8",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "intern/dwg_fixed_handles.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.018932791004772298
+        },
+        {
+          "step": "header-9",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "intern/dwgbufferw.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.2680607910006074
+        },
+        {
+          "step": "header-10",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "intern/dwgsafety.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.2581665830075508
+        },
+        {
+          "step": "header-11",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "intern/dwgutil.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.27117533300770447
+        },
+        {
+          "step": "header-12",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "libdwgr.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.8766350000078091
+        },
+        {
+          "step": "header-13",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "libdxfrw.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.9585488750017248
+        },
+        {
+          "step": "consumer-link",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+            "-pthread",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-build/consumer.cpp",
+            "-L/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/lib",
+            "-ldxfrw",
+            "-pthread",
+            "-o",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-build/consumer"
+          ],
+          "exitCode": 0,
+          "seconds": 1.1399437079962809
+        },
+        {
+          "step": "consumer-run",
+          "command": [
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-build/consumer"
+          ],
+          "exitCode": 0,
+          "seconds": 0.19905470799130853
+        },
+        {
+          "step": "installed-cli",
+          "command": [
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/bin/dwg2dxf",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-build/authored-input.dxf",
+            "-y",
+            "-v2013",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-build/authored-output.dxf"
+          ],
+          "exitCode": 0,
+          "seconds": 0.32843937499274034
+        },
+        {
+          "step": "uninstall",
+          "command": [
+            "make",
+            "uninstall"
+          ],
+          "exitCode": 0,
+          "seconds": 0.2554341250070138
+        }
+      ],
+      "version": "2.0.0",
+      "headers": [
+        "drw_acis.h",
+        "drw_base.h",
+        "drw_classes.h",
+        "drw_datastorage.h",
+        "drw_entities.h",
+        "drw_header.h",
+        "drw_interface.h",
+        "drw_objects.h",
+        "intern/dwg_fixed_handles.h",
+        "intern/dwgbufferw.h",
+        "intern/dwgsafety.h",
+        "intern/dwgutil.h",
+        "libdwgr.h",
+        "libdxfrw.h"
+      ],
+      "pkgCflags": [
+        "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/include/libdxfrw",
+        "-pthread"
+      ],
+      "pkgLibs": [
+        "-L/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-prefix/lib",
+        "-ldxfrw",
+        "-pthread"
+      ],
+      "installedFiles": [
+        "bin/dwg2dxf",
+        "include/libdxfrw/drw_acis.h",
+        "include/libdxfrw/drw_base.h",
+        "include/libdxfrw/drw_classes.h",
+        "include/libdxfrw/drw_datastorage.h",
+        "include/libdxfrw/drw_entities.h",
+        "include/libdxfrw/drw_header.h",
+        "include/libdxfrw/drw_interface.h",
+        "include/libdxfrw/drw_objects.h",
+        "include/libdxfrw/intern/dwg_fixed_handles.h",
+        "include/libdxfrw/intern/dwgbufferw.h",
+        "include/libdxfrw/intern/dwgsafety.h",
+        "include/libdxfrw/intern/dwgutil.h",
+        "include/libdxfrw/libdwgr.h",
+        "include/libdxfrw/libdxfrw.h",
+        "lib/libdxfrw.a",
+        "lib/libdxfrw.la",
+        "lib/pkgconfig/libdxfrw.pc",
+        "share/licenses/libdxfrw/COPYING",
+        "share/licenses/libdxfrw/Unicode-3.0.txt",
+        "share/man/man1/dwg2dxf.1"
+      ],
+      "installedConsumerAndCliPassed": true,
+      "cliAuthoredCoordinates": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "noDeveloperLoaderPaths": true,
+      "maintainerToolsDisabled": true,
+      "uninstallPassed": true,
+      "completedAt": "2026-10-27T22:35:47.220484+00:00",
+      "distcleanPassed": true,
+      "distcleanSeconds": 0.35080716700758785,
+      "remainingBuildFiles": [],
+      "authoredConsumerEvidence": "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/static-consumer-evidence"
+    },
+    "shared": {
+      "mode": "shared",
+      "source": "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/libdxfrw-2.0.0",
+      "build": "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-build",
+      "prefix": "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix",
+      "steps": [
+        {
+          "step": "configure",
+          "command": [
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/libdxfrw-2.0.0/configure",
+            "--prefix=/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix",
+            "--disable-static",
+            "CXXFLAGS=-O0 -Wall -Wextra -pedantic -Werror"
+          ],
+          "exitCode": 0,
+          "seconds": 6.496180042013293
+        },
+        {
+          "step": "build",
+          "command": [
+            "make",
+            "-j1"
+          ],
+          "exitCode": 0,
+          "seconds": 65.67114962499181
+        },
+        {
+          "step": "install",
+          "command": [
+            "make",
+            "install"
+          ],
+          "exitCode": 0,
+          "seconds": 0.548650083001121
+        },
+        {
+          "step": "pkg-validate",
+          "command": [
+            "pkg-config",
+            "--validate",
+            "libdxfrw"
+          ],
+          "exitCode": 0,
+          "seconds": 0.0037187080015428364
+        },
+        {
+          "step": "header-0",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_acis.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.3174809589982033
+        },
+        {
+          "step": "header-1",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_base.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.2817382089997409
+        },
+        {
+          "step": "header-2",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_classes.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.2639682909939438
+        },
+        {
+          "step": "header-3",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_datastorage.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.30087345800711773
+        },
+        {
+          "step": "header-4",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_entities.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.7452314169931924
+        },
+        {
+          "step": "header-5",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_header.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.33517700000084005
+        },
+        {
+          "step": "header-6",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_interface.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.8470968750043539
+        },
+        {
+          "step": "header-7",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "drw_objects.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.5192647500080056
+        },
+        {
+          "step": "header-8",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "intern/dwg_fixed_handles.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.02131408300192561
+        },
+        {
+          "step": "header-9",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "intern/dwgbufferw.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.27414470800431445
+        },
+        {
+          "step": "header-10",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "intern/dwgsafety.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.2658956660015974
+        },
+        {
+          "step": "header-11",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "intern/dwgutil.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.26573212500079535
+        },
+        {
+          "step": "header-12",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "libdwgr.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.8787195409968263
+        },
+        {
+          "step": "header-13",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "-include",
+            "libdxfrw.h",
+            "-x",
+            "c++",
+            "-fsyntax-only",
+            "-"
+          ],
+          "exitCode": 0,
+          "seconds": 0.9538303750014165
+        },
+        {
+          "step": "consumer-link",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-Werror",
+            "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+            "-pthread",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-build/consumer.cpp",
+            "-L/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/lib",
+            "-ldxfrw",
+            "-o",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-build/consumer"
+          ],
+          "exitCode": 0,
+          "seconds": 1.0768108749907697
+        },
+        {
+          "step": "consumer-run",
+          "command": [
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-build/consumer"
+          ],
+          "exitCode": 0,
+          "seconds": 0.3533046250086045
+        },
+        {
+          "step": "installed-cli",
+          "command": [
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/bin/dwg2dxf",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-build/authored-input.dxf",
+            "-y",
+            "-v2013",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-build/authored-output.dxf"
+          ],
+          "exitCode": 0,
+          "seconds": 0.2284302089974517
+        },
+        {
+          "step": "loader",
+          "command": [
+            "otool",
+            "-L",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/bin/dwg2dxf"
+          ],
+          "exitCode": 0,
+          "seconds": 0.014490665998891927
+        },
+        {
+          "step": "uninstall",
+          "command": [
+            "make",
+            "uninstall"
+          ],
+          "exitCode": 0,
+          "seconds": 0.26462279200495686
+        }
+      ],
+      "version": "2.0.0",
+      "headers": [
+        "drw_acis.h",
+        "drw_base.h",
+        "drw_classes.h",
+        "drw_datastorage.h",
+        "drw_entities.h",
+        "drw_header.h",
+        "drw_interface.h",
+        "drw_objects.h",
+        "intern/dwg_fixed_handles.h",
+        "intern/dwgbufferw.h",
+        "intern/dwgsafety.h",
+        "intern/dwgutil.h",
+        "libdwgr.h",
+        "libdxfrw.h"
+      ],
+      "pkgCflags": [
+        "-I/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/include/libdxfrw",
+        "-pthread"
+      ],
+      "pkgLibs": [
+        "-L/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-prefix/lib",
+        "-ldxfrw"
+      ],
+      "installedFiles": [
+        "bin/dwg2dxf",
+        "include/libdxfrw/drw_acis.h",
+        "include/libdxfrw/drw_base.h",
+        "include/libdxfrw/drw_classes.h",
+        "include/libdxfrw/drw_datastorage.h",
+        "include/libdxfrw/drw_entities.h",
+        "include/libdxfrw/drw_header.h",
+        "include/libdxfrw/drw_interface.h",
+        "include/libdxfrw/drw_objects.h",
+        "include/libdxfrw/intern/dwg_fixed_handles.h",
+        "include/libdxfrw/intern/dwgbufferw.h",
+        "include/libdxfrw/intern/dwgsafety.h",
+        "include/libdxfrw/intern/dwgutil.h",
+        "include/libdxfrw/libdwgr.h",
+        "include/libdxfrw/libdxfrw.h",
+        "lib/libdxfrw.2.dylib",
+        "lib/libdxfrw.dylib",
+        "lib/libdxfrw.la",
+        "lib/pkgconfig/libdxfrw.pc",
+        "share/licenses/libdxfrw/COPYING",
+        "share/licenses/libdxfrw/Unicode-3.0.txt",
+        "share/man/man1/dwg2dxf.1"
+      ],
+      "installedConsumerAndCliPassed": true,
+      "cliAuthoredCoordinates": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "noDeveloperLoaderPaths": true,
+      "maintainerToolsDisabled": true,
+      "uninstallPassed": true,
+      "completedAt": "2026-10-27T22:35:46.676667+00:00",
+      "distcleanPassed": true,
+      "distcleanSeconds": 0.35086737500387244,
+      "remainingBuildFiles": [],
+      "authoredConsumerEvidence": "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/shared-consumer-evidence"
+    },
+    "cmake": {
+      "steps": [
+        {
+          "step": "build",
+          "command": [
+            "cmake",
+            "--build",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/cmake-build",
+            "--target",
+            "dwg2dxf",
+            "libdxfrw_table_content_dxf_tests",
+            "lc3_compat_check",
+            "-j",
+            "2"
+          ],
+          "exitCode": 0,
+          "seconds": 41.88648962500156
+        },
+        {
+          "step": "tests",
+          "command": [
+            "ctest",
+            "--test-dir",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/cmake-build",
+            "-R",
+            "^(libdxfrw_build_inventory|libdxfrw_build_inventory_selftest|libdxfrw_render_preset_output|libdxfrw_render_preset_graph_output|dwg2dxf_freecad_cli_compat|dwg2dxf_freecad_installed_cli_compat)$",
+            "-j",
+            "2",
+            "-V",
+            "--output-on-failure"
+          ],
+          "exitCode": 0,
+          "seconds": 2.418875624993234
+        },
+        {
+          "step": "install",
+          "command": [
+            "cmake",
+            "--install",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/cmake-build"
+          ],
+          "exitCode": 0,
+          "seconds": 0.10516295800334774
+        },
+        {
+          "step": "consumer-configure",
+          "command": [
+            "cmake",
+            "-S",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/cmake-consumer",
+            "-B",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/cmake-consumer/build",
+            "-G",
+            "Ninja",
+            "-DCMAKE_PREFIX_PATH=/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/cmake-prefix"
+          ],
+          "exitCode": 0,
+          "seconds": 0.44777916600287426
+        },
+        {
+          "step": "consumer-build",
+          "command": [
+            "cmake",
+            "--build",
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/cmake-consumer/build",
+            "-j",
+            "2"
+          ],
+          "exitCode": 0,
+          "seconds": 1.2601711249881191
+        },
+        {
+          "step": "consumer-run",
+          "command": [
+            "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/cmake-consumer/build/consumer"
+          ],
+          "exitCode": 0,
+          "seconds": 0.22435029200278223
+        }
+      ],
+      "source": "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/libdxfrw-2.0.0",
+      "build": "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/cmake-build",
+      "prefix": "/private/tmp/libdxfrw-rpp5fx-final-86o59gf0/cmake-prefix",
+      "tests": [
+        "libdxfrw_build_inventory",
+        "libdxfrw_build_inventory_selftest",
+        "libdxfrw_render_preset_output",
+        "libdxfrw_render_preset_graph_output",
+        "dwg2dxf_freecad_cli_compat",
+        "dwg2dxf_freecad_installed_cli_compat"
+      ],
+      "passed": 6,
+      "installedFindPackageConsumerPassed": true,
+      "completedAt": "2026-10-27T22:37:41.068563+00:00"
+    },
+    "distcheck": {
+      "command": [
+        "make",
+        "-j1",
+        "distcheck",
+        "DISTCHECK_CONFIGURE_FLAGS=--disable-static"
+      ],
+      "source": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/final-maintainer-source",
+      "exitCode": 0,
+      "seconds": 173.95426812500227,
+      "observedAt": "2026-10-27T22:39:48.679352+00:00"
+    },
+    "inputEquivalence": {
+      "phases": [
+        {
+          "phase": "staticSharedCmake",
+          "archive": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/qualified-build-archive/libdxfrw-2.0.0.tar.gz",
+          "archiveSha256": "14c75358bd06522981707eda235a41b43ca6d8ecaae0d0f2e069de34047718f8",
+          "onlyDifferencesFromFinalSource": [
+            ".github/workflows/parity-fast.yml",
+            "dwg2dxf/source-files.cmake",
+            "tools/check_fixture_admission.py"
+          ],
+          "compiledCppAndHeadersIdentical": true,
+          "autotoolsBuildInputsIdentical": true,
+          "cmakeBuildInputsIdenticalExceptTrailingNewline": true,
+          "fixtureGuardChangedOnlyAfterNativeBuildChecks": true
+        },
+        {
+          "phase": "distcheck",
+          "archive": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/distcheck-qualified-archive/libdxfrw-2.0.0.tar.gz",
+          "archiveSha256": "ff5c4478fdf3a43e66f930a7dac3147982bb5449945f33ac0c4c1aeb4cfefdb1",
+          "onlyDifferencesFromFinalSource": [
+            "dwg2dxf/source-files.cmake",
+            "tools/check_fixture_admission.py"
+          ],
+          "compiledCppAndHeadersIdentical": true,
+          "autotoolsBuildInputsIdentical": true,
+          "cmakeBuildInputsIdenticalExceptTrailingNewline": true,
+          "fixtureGuardChangedOnlyAfterNativeBuildChecks": true
+        }
+      ],
+      "scope": "Archive differences are CI metadata, trailing CLI manifest newline, and the ancillary fixture scanner. All C++/headers, Autotools build configuration and effective CMake inputs remain unchanged."
+    },
+    "productionEquivalence": {
+      "comparedCommit": "f590610a",
+      "changedTrackedPaths": [
+        ".github/workflows/parity-fast.yml",
+        "CMakeLists.txt",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "Makefile.am",
+        "README.md",
+        "autogen.sh",
+        "configure.ac",
+        "docs/SOURCE_RELEASE.md",
+        "docs/research/rpp5fx-source-release-inventory-and-extracted-builds-2026-10-27.json",
+        "dwg2dxf/CMakeLists.txt",
+        "dwg2dxf/Makefile.am",
+        "dwg2dxf/source-files.am",
+        "dwg2dxf/source-files.cmake",
+        "libdxfrw-autotools.pc.in",
+        "libdxfrw_sources.cmake",
+        "source-release-files.am",
+        "source-release-files.txt",
+        "src/Makefile.am",
+        "src/source-files.am",
+        "tools/check_fixture_admission.py",
+        "tools/generate_build_inventory.py"
+      ],
+      "changedProductionCppOrHeaders": [],
+      "formerlyMissingPathsNowListed": [
+        "dwg2dxf/dx_batch_input.h",
+        "dwg2dxf/dx_batch_output_names.cpp",
+        "dwg2dxf/dx_batch_output_names.h",
+        "dwg2dxf/dx_cli.h",
+        "dwg2dxf/dx_dwg_class_evidence.h",
+        "dwg2dxf/dx_dwg_class_section_wire.h",
+        "dwg2dxf/dx_dwg_class_wire.h",
+        "dwg2dxf/dx_table_source_profile.h",
+        "dwg2dxf/dx_table_value_source_profile.h",
+        "src/drw_acis.cpp",
+        "src/drw_acis.h",
+        "src/drw_base.cpp",
+        "src/drw_datastorage.cpp",
+        "src/drw_datastorage.h",
+        "src/handle_allocator.h",
+        "src/intern/drw_dimvar_migration.h",
+        "src/intern/drw_reserve.h",
+        "src/intern/dwg_dxf_output_transaction.cpp",
+        "src/intern/dwg_dxf_output_transaction.h",
+        "src/intern/dwg_fixed_handles.h",
+        "src/intern/dwg_header_time.h",
+        "src/intern/dwgbufferw.cpp",
+        "src/intern/dwgbufferw.h",
+        "src/intern/dwghatchboundary.h",
+        "src/intern/dwgheadersection.h",
+        "src/intern/dwgobjectframe.cpp",
+        "src/intern/dwgobjectframe.h",
+        "src/intern/dwgreader32.cpp",
+        "src/intern/dwgreader32.h",
+        "src/intern/dwgreaderR11.cpp",
+        "src/intern/dwgreaderR11.h",
+        "src/intern/dwgreaderR1_40.cpp",
+        "src/intern/dwgreaderR1_40.h",
+        "src/intern/dwgsafety.h",
+        "src/intern/dwgtemplate.h",
+        "src/intern/dwgvaluekind.h",
+        "src/intern/dwgwriter.h",
+        "src/intern/dwgwriter15.cpp",
+        "src/intern/dwgwriter15.h",
+        "src/intern/dwgwriter18.cpp",
+        "src/intern/dwgwriter18.h",
+        "src/intern/dwgwriter21.cpp",
+        "src/intern/dwgwriter21.h",
+        "src/intern/dwgwriter24.cpp",
+        "src/intern/dwgwriter24.h",
+        "src/intern/dwgwriter27.cpp",
+        "src/intern/dwgwriter27.h",
+        "src/intern/dwgwriter32.cpp",
+        "src/intern/dwgwriter32.h",
+        "src/intern/dwgwriterlayoutvalidation.cpp",
+        "src/intern/dwgwriterlayoutvalidation.h",
+        "src/intern/dxfcode.h",
+        "src/intern/dxfnumber.h",
+        "src/intern/dxfparserlimits.h",
+        "src/intern/dxftable.h",
+        "src/intern/dxftablecapacity.h",
+        "src/intern/dxfvalue.h",
+        "src/intern/proxygraphicdecoder.cpp",
+        "src/intern/proxygraphicdecoder.h"
+      ],
+      "releaseManifestSha256": "3b33b3245addc87068963b8c7457f9a04c5e88c3fe44d04ad3688700fac6fb1a"
+    },
+    "preservedStaticSharedCmakeArchive": {
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/qualified-build-archive/libdxfrw-2.0.0.tar.gz",
+      "sha256": "14c75358bd06522981707eda235a41b43ca6d8ecaae0d0f2e069de34047718f8"
+    },
+    "preservedDistcheckArchive": {
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/distcheck-qualified-archive/libdxfrw-2.0.0.tar.gz",
+      "sha256": "ff5c4478fdf3a43e66f930a7dac3147982bb5449945f33ac0c4c1aeb4cfefdb1"
+    },
+    "sourceOutsideCheckoutAndReadOnly": true,
+    "autotoolsConsumerMaintainerToolsDisabled": [
+      "AUTOCONF",
+      "AUTOMAKE",
+      "ACLOCAL",
+      "AUTOHEADER"
+    ],
+    "autotoolsConsumerNoPythonOrGitBuildRequirement": "Released configure/make do not call either; Python orchestrates this local evidence collection.",
+    "fastChecks": [
+      {
+        "command": "python3 -B tools/generate_build_inventory.py --check",
+        "exitCode": 0
+      },
+      {
+        "command": "python3 -B tools/generate_build_inventory.py --self-test",
+        "exitCode": 0,
+        "refusalControls": 18
+      },
+      {
+        "command": "python3 -B tools/build_semantic_adapter.py --self-test",
+        "exitCode": 0
+      },
+      {
+        "command": "python3 -B tools/check_fixture_admission.py --self-test",
+        "exitCode": 0,
+        "newControls": "Generated Automake identifiers are not drawing markers; actual DXF markers and DWG magic with .am spelling remain candidates."
+      },
+      {
+        "command": "python3 -B tools/check_staged_package.py --self-test --build-options-self-test --cxx /usr/bin/clang++",
+        "exitCode": 0,
+        "configureProfiles": 4,
+        "pythonProbeControls": 8
+      }
+    ],
+    "noBroadOrAsanRepetition": "Build metadata changes only. Reuse prior runtime/ASan checkpoint and qualify actual extracted builds plus six selected CMake tests; no new broad runtime or ASan claim.",
+    "logs": [
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/static-build.log",
+        "sha256": "7e6cc70889af50c28d102cbc12b169023c8e506c66038995f32c7c4dc5a38647"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/shared-build.log",
+        "sha256": "cffca783f2a1a8d1206d9fbe1a05fd7ba71fcf5252edfca5bc1deb0c97a68b32"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/static-distclean.log",
+        "sha256": "c753732a0a1be1419ce8e693690163f262b81e6353fcbbae70600c0fe2487121"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/shared-distclean.log",
+        "sha256": "c753732a0a1be1419ce8e693690163f262b81e6353fcbbae70600c0fe2487121"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/cmake-build.log",
+        "sha256": "157cc50e345f06fc248bf462780b0cf952010b37cf443bcdf709b0a600dca7e3"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/cmake-tests.log",
+        "sha256": "4478d43dda083695769cc2d511417c0f68a1db2e2c88d1c6760c6428cd965a2d"
+      },
+      {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fx-evidence/distcheck.log",
+        "sha256": "5d19726c16c4dc62202c31a407438781bcdb517afd9876b38fedbae07a16f636"
+      }
+    ],
+    "stagedFixtureAdmission": {
+      "command": "python3 -B tools/check_fixture_admission.py",
+      "exitCode": 0,
+      "indexCandidates": 21
+    },
+    "stagedWhitespaceCheck": {
+      "command": "git diff --cached --check",
+      "exitCode": 0
+    }
+  },
+  "limits": [
+    "Local execution is macOS ARM64/Apple Clang. Linux GCC source-release CI, Windows, native CAD applications, formal ABI and controlled RSS/performance remain separate.",
+    "The installed CLI coordinate check uses a locally authored LINE; the FreeCAD CLI tests are contract checks, not native FreeCAD application qualification.",
+    "Automake make check/installcheck have no registered semantic test runner here; the six separately run CMake tests supply the selected runtime checks.",
+    "Autotools installation relocation is not promised. Existing CMake relocation behavior is unchanged.",
+    "Archive byte checks admit generated Autotools files by a small explicit allowlist; other Autotools versions may require reviewed allowlist updates.",
+    "Remaining emitted/coupled/whole-document, rendering, TABLE and native version/corpus semantics are not closed by package qualification."
+  ],
+  "next": [
+    "Complete edited typed rewriting and emitted PLOTSETTINGS/LAYOUT/VIEWPORT consumer-to-provider binding, all remap/collision routes and recursive/coupled/whole-document ownership.",
+    "Complete remaining rendering profiles, active/global/environment/background/live-section/sun, VIEWPORT wire/spec reconciliation, clipping/layer overrides and entity/material/reactor/IMAGE/control/name/XDATA/HEADER/native-collation dependencies.",
+    "Finish TABLE Values, multiple-content, linked-data, formatting/units/borders and full B2b/B3/C bit/schema/owner/version/corpus work without guessing date/point/General semantics.",
+    "Run native Linux GCC source-release CI and other platform/consumer qualification, formal/native ABI/application checks and controlled memory/performance.",
+    "Keep J256/J260/J268/J284/J293/J295 deferred and native Linux/Windows FreeCAD plus independent ACIS/ACDS kernel evidence separate. Continue fast checks, self-unblocking, plan updates and committed slices."
+  ],
+  "gates": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "selectedOriginalLayoutReferenceDispositionsCanMatch": true,
+    "fullObjectiveComplete": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxFreecad": "NOT_RUN",
+    "nativeWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "selectedOriginalViewUcsTargetsCanMatch": true,
+    "selectedOriginalViewportTargetsCanMatch": true,
+    "selectedCanonicalPrimaryVisualStyleSourcesCanMatch": true,
+    "selectedRootedOriginalVisualStyleTargetsCanMatch": true,
+    "observedCommentedCanonicalVisualStyleSourcesCanMatch": true,
+    "selectedCanonicalRenderPresetSourcesCanMatch": true,
+    "selectedRootedOriginalLayoutPresetTargetsCanMatch": true,
+    "viewportShadeSourceQualified": false,
+    "editedRenderSettingsTypedRewritingQualified": false,
+    "selectedAc1027PresetEmittedBodiesMatchAuthoredLiterals": true,
+    "completeEmittedObjectDictionaryGraphQualified": false,
+    "selectedCapturedPresetOutputBodiesAndDictionariesInspected": true,
+    "selectedCallbackPresetEditsRefuseBeforePublication": true,
+    "rawHandleScopeControlsPass": true,
+    "macosExtractedAutotoolsStaticQualified": true,
+    "macosExtractedAutotoolsSharedQualified": true,
+    "macosExtractedCmakeSelectedQualified": true,
+    "macosAutotoolsDistcheckPassed": true,
+    "nativeLinuxGccSourceReleaseDistcheck": "NOT_RUN",
+    "nativeWindowsSourceRelease": "NOT_RUN"
+  },
+  "documentationSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "5290063f9a4c1f63e7ff5e51867bda29d440c8b1298ac0567d54e451754e3de4",
+    "README.md": "71672367adde8e839ad3875fd79f72451d4f8493906ef76ad725076e60582179",
+    "docs/SOURCE_RELEASE.md": "e8e16887bdb3358bd396b4d7a1fd61334ba1b15ab69162f774f5f44f864e4646"
+  },
+  "developmentStagedChecks": {
+    "fixtureGuardBeforeTokenFix": {
+      "exitCode": 1,
+      "falsePositivePaths": [
+        "dwg2dxf/source-files.am",
+        "src/source-files.am"
+      ]
+    },
+    "gitDiffCheckBeforeTrailingNewlineFix": {
+      "exitCode": 2,
+      "path": "dwg2dxf/source-files.cmake",
+      "line": 39
+    }
+  }
+}

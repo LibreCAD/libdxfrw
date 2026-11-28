@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c remaining LAYOUT/IDBUFFER subclass-marker views",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Compare structural DXF group-100 subclass markers without temporary UTF-8 string materialization.",
+    "routes": [
+      "DRW_Layout PlotSettings/Layout subclass selection",
+      "DRW_IDBuffer body-subclass recognition"
+    ],
+    "lifetime": "Borrowed views are compared synchronously before the next readRec invalidates the current record token.",
+    "behavior": "Marker matching and state transitions are unchanged. Group 100 is structural and does not require semantic text decoding.",
+    "tests": [
+      "Generated ASCII and Binary DXF controls exercise both routes with a 32-KiB unknown marker before and after the recognized marker.",
+      "A following-record sentinel verifies record alignment."
+    ],
+    "non_claims": [
+      "no persistent fixture",
+      "no public API or class-layout change",
+      "no wire behavior change",
+      "no support promotion",
+      "no resolution of AC1024 proprietary solid-history class failures",
+      "no native FreeCAD or independent ACIS/ACDS qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+    "build_result": "PASS (-Werror; compatibility target succeeds)",
+    "selector": "build-gcc/libdxfrw_hardening_tests --dxf-borrowed-subclass-markers",
+    "selector_result": "PASS",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_borrowed_subclass_markers$' --output-on-failure",
+    "focused_ctest_result": "PASS (1/1; 0.02 s)",
+    "composed_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_(borrowed_subclass_markers|fixtures)$' --output-on-failure",
+    "composed_ctest_result": "PASS (2/2; 4.14 s)",
+    "diff_check": "PASS (src/drw_objects.cpp, tests/hardening_tests.cpp)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad user changes; this slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Finish the structural group-100 marker audit, then implement another locally reproducible DWG/DXF correctness issue. Preserve semantic decode observation paths for actual text values and keep proprietary DWG class bodies fail-closed absent authoritative or traceable layout evidence."
+}

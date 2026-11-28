@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-tablestyle-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_TABLESTYLE_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep callback allocation failures through the legacy and R24 rich-cell TABLESTYLE DXF writers at their admitted revision boundaries.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory TABLESTYLE/TEXTSTYLE profile",
+    "profiles": [
+      "Legacy: one TABLESTYLE with three row styles, six ordered borders per row, and one emitted TEXTSTYLE dependency.",
+      "R24: one TABLESTYLE with default Table plus title/header/data cell styles, six ordered borders per rich style, and one emitted TEXTSTYLE dependency."
+    ],
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "test": "libdxfrw_dxf_tablestyle_allocation",
+    "result": "PASS",
+    "elapsedSeconds": 2.33,
+    "testSourceSha256": "efbd5c257043df48dcb134352c0cd73c5e07db0fc70c84b03ab3daf94ba51433",
+    "testExecutableSha256": "da49c20ee9aca3d3511a551cce548f3d4d42309b576a80d760712ed4cde6b07a",
+    "allocationOffsets": {
+      "legacy_AC1021_ASCII": 19,
+      "legacy_AC1021_Binary": 17,
+      "legacy_AC1032_ASCII": 19,
+      "legacy_AC1032_Binary": 17,
+      "R24_AC1024_ASCII": 19,
+      "R24_AC1024_Binary": 19,
+      "R24_AC1027_ASCII": 19,
+      "R24_AC1027_Binary": 19,
+      "R24_AC1032_ASCII": 19,
+      "R24_AC1032_Binary": 19,
+      "total": 186
+    },
+    "checks": [
+      "Every measured callback allocation failure is reached and refuses the write",
+      "The existing destination sentinel is unchanged after each refusal",
+      "The caller TABLESTYLE remains unchanged after each refusal",
+      "Same-codec retry reproduces the calibrated clean bytes",
+      "Fresh typed readback validates the TABLESTYLE identity, owner, names, legacy row values, and R24 cell-style IDs, names, and border vector"
+    ]
+  },
+  "limitations": [
+    "Generated transaction evidence only; no producer interoperability or native TABLESTYLE semantics are established.",
+    "Generated transaction evidence does not qualify producer interoperability, native TABLE presentation, or semantic interpretation of TABLESTYLE values."
+  ]
+}

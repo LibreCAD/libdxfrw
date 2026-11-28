@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw-downstream-acis-importer-qualification-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Compare downstream FreeCAD DXF/DWG route identity and ezdxf ACIS API/profile limits; refine implementation and qualification gates without promoting support claims.",
+  "method": {
+    "kind": "Primary project documentation, source, and issue review",
+    "repositoriesClonedOrBuilt": false,
+    "peerProgramsRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "mutableReferences": [
+      "FreeCAD main",
+      "FreeCAD documentation main (archived 2026-04-01)",
+      "ezdxf stable documentation (1.4.4 page set)"
+    ],
+    "evidenceRule": "Documentation/source identifies eligible routes and limitations; it is not execution evidence for local support. Resolve version-sensitive or conflicting statements against an exact runtime before using them as a comparator result."
+  },
+  "evidence": [
+    {
+      "topic": "FreeCAD importer and converter route identity",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.wikitext",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "FreeCAD exposes a built-in C++ DXF importer and an optional legacy Python importer with distinct documented feature coverage. The cited FreeCAD documentation repository was archived in April 2026, so its entity matrix is historical guidance rather than current runtime qualification. The legacy route depends on a separately installed add-on; current importer source can fetch that add-on from a mutable Draft-dxf-importer/master URL when configured to download. The DWG adapter converts through an external utility and then calls DXF import; the maintainer distinguishes explicit DXF entities from unreadable proprietary ACIS blobs in stock FreeCAD.",
+      "doesNotEstablish": [
+        "that any particular locally installed FreeCAD binary has a specific importer setting",
+        "semantic correctness for any libdxfrw-produced entity or 3D body",
+        "that conversion success means the selected importer retained all source entities",
+        "ACIS/AcDs support in a standard FreeCAD build"
+      ],
+      "planUse": "At a composed native checkpoint record FreeCAD release/platform, converter path/version/options/status, intermediate DXF version/hash, selected importer backend/preferences, legacy add-on commit/hash if used, diagnostics, and per-source-entity or nested-block object disposition. Disable uncontrolled add-on auto-download. Keep explicit DXF geometry and ACIS/AcDs expectations separate."
+    },
+    {
+      "topic": "ezdxf ACIS capabilities and documentation discrepancy",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "observed": "The 1.4.4 API page documents SAT/SAB loading and export_sat/export_sab. It says mesh_from_body projects only flat polygonal faces and does not tessellate spline surfaces, tori, or cones. The same documentation set's FAQ says ezdxf reads SAT/SAB but writes SAT only, contradicting the API declaration.",
+      "doesNotEstablish": [
+        "which statement corresponds to actual behavior of a selected installed distribution",
+        "semantic validity of arbitrary SAB files or closed B-rep geometry",
+        "correct AcDs extraction or entity-to-payload association",
+        "complete shape semantics from mesh_from_body or vertex extraction"
+      ],
+      "planUse": "Use ezdxf as an optional pinned DXF syntax/carrier/parser comparator. Resolve SAB writing against one exact package runtime and preserve method, output-version, carrier, audit, and warning results. Treat planar mesh output as a bounded planar-face cross-check, not a curved-solid oracle."
+    },
+    {
+      "topic": "Recovery and audit are not lossless-success signals",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html"
+      ],
+      "observed": "The recover API can return a document with unrecoverable audit errors, and its documentation warns that saving files with decoding errors can produce invalid output or information loss.",
+      "doesNotEstablish": [
+        "that every repaired document is safe for round-trip or editing",
+        "that a successful return implies raw-tag, opaque payload, or graph preservation"
+      ],
+      "planUse": "Capture audit/recovery diagnostics and compare record/payload disposition in any peer run; do not accept return status or re-open success as a preservation result."
+    }
+  ],
+  "implementationReadiness": {
+    "fastSliceValidation": [
+      "Strictly build the touched target.",
+      "Run the nearest generated/in-memory focused test.",
+      "Run relevant LibreCAD and LibreCAD_3 compile/compatibility checks.",
+      "Run git diff --check."
+    ],
+    "composedDownstreamGate": [
+      "Pin platform, FreeCAD release/build, converter binary, exact argv/options, selected importer backend, and effective preferences.",
+      "Record fresh intermediate DXF magic/version/hash and converter return/diagnostic status.",
+      "Assert source identity to imported object disposition, including nested block contents, coordinate/frame behavior, and warnings/loss.",
+      "If the requested backend or route is unavailable, record NOT RUN without implicit fallback."
+    ],
+    "acisGate": [
+      "Pin ezdxf distribution/version and resolve the FAQ/API SAB-export discrepancy by runtime probe before assigning writer-comparator status.",
+      "Check raw payload and ACDSDATA-to-entity association separately from parsing and geometry.",
+      "Use an independently specified curved analytic solid plus topology/orientation/extent/unit assertions at the composed semantic gate.",
+      "Do not use ezdxf planar mesh projection, exact carrier bytes, or parser success as a curved B-rep semantic oracle."
+    ],
+    "fixturePolicy": "No external drawing or ACIS fixture was added; future leaf tests should use existing repository-owned samples or locally generated in-memory controls."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "consumerCompatibility": "LibreCAD and LibreCAD_3 2D compatibility gates remain unchanged."
+  },
+  "validation": {
+    "planUpdated": true,
+    "researchChangedSourceCode": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

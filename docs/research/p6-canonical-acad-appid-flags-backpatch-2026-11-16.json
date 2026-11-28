@@ -1,0 +1,299 @@
+{
+  "date": "2026-11-16",
+  "scope": "Preserve canonical ACAD APPID flags while retaining atomic refusal for unsupported non-flag metadata.",
+  "regression": "The initial flag-refusal guard at 507ae368 caused Linux and Windows FreeCAD release qualification and fast/native jobs to fail on generated DWG handoffs. The AC1021 source inspection found ACAD flags=64, with empty application/XDATA/reactor metadata.",
+  "change": "Backpatch the fixed-width canonical APPID group 70 after the callback, using a scoped per-thread sink and the existing bounded group-70 writer. Conflicting duplicate values refuse. Non-flag metadata that the prewritten row cannot retain still refuses. No public data member or virtual function was added.",
+  "checks": [
+    "Canonical flags 0, 16, 32, 48, 64, 80, 96 and 112 round-trip for AC1009, AC1014 and AC1032 ASCII/Binary.",
+    "Nested distinct writers retain independent flags; conflicting callbacks preserve the destination and a corrected same-writer retry passes.",
+    "Seven non-flag metadata/reference states refuse without mutating caller or destination; same-writer retry and default APPID readback pass.",
+    "Generated AC1021, AC1024 and AC1032 DWG -> ASCII/Binary DXF conversions pass 6/6 with ACAD flag 64 on readback.",
+    "The FreeCAD CLI compatibility check passes and now verifies flag 64 after conversion and DXF retry.",
+    "Local macOS FreeCAD generated AC1021 LINE open/insert and AC1021/AC1024/AC1032 primitive open/insert controls pass 8/8. Sandboxed FreeCAD launches failed because Qt reported ARM NEON unavailable; the same controls passed with desktop access.",
+    "The focused CLI contract passed when run directly; its 25-second CTest wrapper timed out locally both inside and outside the sandbox.",
+    "The APPID allocation, LTYPE allocation and source-table identity CTests passed 3/3.",
+    "The frozen implementation digest was refreshed from a clean temporary index matching all 5988 staged tracked entries; digest validation and its self-test pass. Claim statuses and receipt references are unchanged."
+  ],
+  "limitations": [
+    "The failed hosted revision is not qualified; the corrected revision must rerun fast, native and FreeCAD hosted jobs.",
+    "Non-flag canonical APPID metadata is not preserved and is refused.",
+    "Generated controls do not promote independent semantic or broad format support claims.",
+    "The digest refresh does not promote support claims or turn pending native qualification into a pass."
+  ],
+  "qualificationDigest": "f1fec14db2da02458ffccfc4846c6e0292fa8be34532c24ed79304698f5ff81e",
+  "peerAcceptance": {
+    "tool": "GNU LibreDWG dxf2dwg and dwgread 0.14",
+    "targetVersion": "r2000",
+    "inputs": [
+      {
+        "version": "AC1021",
+        "format": "ascii",
+        "sha256": "7876c264580e14be2870ad5e874bde4442121be84edbe9933b171a06bdb70257"
+      },
+      {
+        "version": "AC1021",
+        "format": "binary",
+        "sha256": "7f0cfb8a9698fdc755d167a4bdeed238e0da3b2ed1ce1de39f920ea01a1410e4"
+      },
+      {
+        "version": "AC1024",
+        "format": "ascii",
+        "sha256": "7876c264580e14be2870ad5e874bde4442121be84edbe9933b171a06bdb70257"
+      },
+      {
+        "version": "AC1024",
+        "format": "binary",
+        "sha256": "7f0cfb8a9698fdc755d167a4bdeed238e0da3b2ed1ce1de39f920ea01a1410e4"
+      },
+      {
+        "version": "AC1032",
+        "format": "ascii",
+        "sha256": "7876c264580e14be2870ad5e874bde4442121be84edbe9933b171a06bdb70257"
+      },
+      {
+        "version": "AC1032",
+        "format": "binary",
+        "sha256": "7f0cfb8a9698fdc755d167a4bdeed238e0da3b2ed1ce1de39f920ea01a1410e4"
+      }
+    ],
+    "result": "All six conversions and JSON readbacks returned success and contained one ACAD APPID with is_xref_ref=1. Each conversion emitted two Unknown HEADER.DIMLDRBLK STANDARD warnings. Converter and reader share the LibreDWG implementation.",
+    "negativeControl": "A scratch ASCII derivative changed only ACAD group 70 from 64 to 0; it also returned is_xref_ref=1, so the observed field cannot distinguish the flag values and does not independently verify preservation.",
+    "scope": "Peer acceptance of generated outputs only; neither whole-drawing compatibility nor independent flag semantics is established. No sample files were committed."
+  },
+  "independentDxfReader": {
+    "tool": "ezdxf 1.4.5 readfile and APPID dxf.flags",
+    "inputs": "The same six hash-bound locally generated DXF outputs listed under peerAcceptance, from AC1021/AC1024/AC1032 DWG sources in ASCII and binary encodings.",
+    "result": "All six independently read ACAD flags=64; a scratch ASCII control derived from AC1021 with only group 70 changed to 0 independently read flags=0.",
+    "controlSha256": "ad9c83f0853eff2ca4809be6925f8de0256de1a51c9b8a461cbdce262b2d8e55",
+    "scope": "Independent decoder observation of the emitted field for these generated files only; no native interpretation, complete drawing behavior, or support claim is established.",
+    "fullFlagMatrix": {
+      "producer": "Scratch generator built against build/libdxfrw.a using the existing CanonicalExport control from tests/appid_table_allocation_tests.cpp; no drawing fixtures committed.",
+      "versions": [
+        "AC1009",
+        "AC1014",
+        "AC1032"
+      ],
+      "encodings": [
+        "ascii",
+        "binary"
+      ],
+      "flags": [
+        0,
+        16,
+        32,
+        48,
+        64,
+        80,
+        96,
+        112
+      ],
+      "result": "ezdxf 1.4.5 independently read all 48 expected flags with no mismatches.",
+      "outputs": [
+        {
+          "name": "AC1009-ascii-0.dxf",
+          "sha256": "d3712d269f67fd3a82c64d554d5e68dcc176410de24d2babb64073d439f112f2"
+        },
+        {
+          "name": "AC1009-ascii-112.dxf",
+          "sha256": "b66fd3e0dbcd48bde5963fbbb7ac2e68af0e8ef42a91f26f89ee0d08691bb771"
+        },
+        {
+          "name": "AC1009-ascii-16.dxf",
+          "sha256": "e8dbc062069607abc3df8261c2a0c5d7fd5094ec9c92221c38f83202fd916fde"
+        },
+        {
+          "name": "AC1009-ascii-32.dxf",
+          "sha256": "408ee0ac68e5e964ab5ee127ea5426cd07031625f782516d58274c34e61b1a3b"
+        },
+        {
+          "name": "AC1009-ascii-48.dxf",
+          "sha256": "7b182ba878721bb02d03c3290800a50e0a92e37630f8c31b9a18405f8a3cdbcb"
+        },
+        {
+          "name": "AC1009-ascii-64.dxf",
+          "sha256": "862cb5e6daa5aa9f74d28cfa2942cbe78cc973a30a2e44a94424bfe22a032560"
+        },
+        {
+          "name": "AC1009-ascii-80.dxf",
+          "sha256": "0632cdd3b2c4abfa9edd9a39e6e9b624b72a3c3f289d799d4be43c96fc4ddb73"
+        },
+        {
+          "name": "AC1009-ascii-96.dxf",
+          "sha256": "3555bda57eb18cd28acac4a613550546bdeb22f3d1aa66b6cbce30c8bd3bf3a8"
+        },
+        {
+          "name": "AC1009-binary-0.dxf",
+          "sha256": "8cb5d847c4203d85ef440d0f86f070445433a3900c0ca74408adac1222a4ae3b"
+        },
+        {
+          "name": "AC1009-binary-112.dxf",
+          "sha256": "dac56273a0b2846cd085799d87436ca1741f0375226982417a2d902695c676a2"
+        },
+        {
+          "name": "AC1009-binary-16.dxf",
+          "sha256": "66b92e9813d6275f0bfdc2d1274dc0859f415948bdba5a1941c27cd85187b5f2"
+        },
+        {
+          "name": "AC1009-binary-32.dxf",
+          "sha256": "03eec337e86354c0d2eb1b70da25b2cc64dc8f34f6df239e94ae382ed3a1dfe5"
+        },
+        {
+          "name": "AC1009-binary-48.dxf",
+          "sha256": "853b75506ad6d4f433e8d32d3da8ddb80ce77ef287b110f9d2a70ea0f7df4b50"
+        },
+        {
+          "name": "AC1009-binary-64.dxf",
+          "sha256": "18b1189043a321eb352872fd5d311330abe0e340200824e6f278292170983cb7"
+        },
+        {
+          "name": "AC1009-binary-80.dxf",
+          "sha256": "2dca250d059c30db3a58dd1338f913da588246a7ee8e830cdcd08371ea6f12f6"
+        },
+        {
+          "name": "AC1009-binary-96.dxf",
+          "sha256": "468cc98ad9a6bd0489f879da2b743cc085b45223952bd4ceab857e3300f73907"
+        },
+        {
+          "name": "AC1014-ascii-0.dxf",
+          "sha256": "73b405e0d4f3a04e7e77d22bf2e44d1ab899f2391e607ff8efa1c4326d63be05"
+        },
+        {
+          "name": "AC1014-ascii-112.dxf",
+          "sha256": "f9107a6021c5bc3d6b54adc6feca9d957437423f0d1ccb268b222fef9841e2f8"
+        },
+        {
+          "name": "AC1014-ascii-16.dxf",
+          "sha256": "fd5b1228c26abf2006453b3a01dd7eceec50363ede0ada848cc9a4024f05d05d"
+        },
+        {
+          "name": "AC1014-ascii-32.dxf",
+          "sha256": "1b8c30f63ae915ec6ba92cc0ed01a24a744d460f135090e1a5e89a261fe0544b"
+        },
+        {
+          "name": "AC1014-ascii-48.dxf",
+          "sha256": "caa94413b848b8e13d88601bf24d515e5f3475dea3e2e68a3dfeb876136d36d3"
+        },
+        {
+          "name": "AC1014-ascii-64.dxf",
+          "sha256": "b0d5382af150bd03d0c3749722d583768e10d42a85361e96a415af4960a5ede7"
+        },
+        {
+          "name": "AC1014-ascii-80.dxf",
+          "sha256": "61201a22eceb7cd27ae84f846062f95dc28d6630110b962bfed18ea8d0346649"
+        },
+        {
+          "name": "AC1014-ascii-96.dxf",
+          "sha256": "7f95b632cb963d2823904a63f6b6c242274c0bde3c936fc74b7032182aefee3c"
+        },
+        {
+          "name": "AC1014-binary-0.dxf",
+          "sha256": "25c67497d347779479f143e894bb30d79e212de761fed84b21ea198476eca995"
+        },
+        {
+          "name": "AC1014-binary-112.dxf",
+          "sha256": "a8205580e46feabdb162be2000de14ceacb9d2dca87ca5050cf16ee11c7ad55d"
+        },
+        {
+          "name": "AC1014-binary-16.dxf",
+          "sha256": "14393d72096f99604f00156af2001814704505060a6b6863f4e50da0e607d7f7"
+        },
+        {
+          "name": "AC1014-binary-32.dxf",
+          "sha256": "63549661f5c46f0c6af481e22775f2819c52238ccc43655189344a740a796588"
+        },
+        {
+          "name": "AC1014-binary-48.dxf",
+          "sha256": "cd210c5697d154a3794ee5369a93b14aed49c0356915460b517cbcc794decc39"
+        },
+        {
+          "name": "AC1014-binary-64.dxf",
+          "sha256": "6d9061a09d178b51ed671fd8eca825c3b0df97072e57065bc6f198e58214d922"
+        },
+        {
+          "name": "AC1014-binary-80.dxf",
+          "sha256": "67b7b5f85718c0a5ccdaa9bd5015cef077e26abe52a2b407600ecc181aad2ff6"
+        },
+        {
+          "name": "AC1014-binary-96.dxf",
+          "sha256": "e9e49a7c198550c4f4a366159e358bbe6b2c03f845c0f9c8dd7f5a8259916a13"
+        },
+        {
+          "name": "AC1032-ascii-0.dxf",
+          "sha256": "334405be61023d7f318bda72b9e03a67407cc8d5292d371c295b6847635652e2"
+        },
+        {
+          "name": "AC1032-ascii-112.dxf",
+          "sha256": "1f3478644b3c8baa9fd89f766c3cf3d825426d3de8d095d5fbea17ca153a98f4"
+        },
+        {
+          "name": "AC1032-ascii-16.dxf",
+          "sha256": "3cd8f5330aeb72181801651ea72d77b319d141ab3d43b72c15b3413d608ef3d3"
+        },
+        {
+          "name": "AC1032-ascii-32.dxf",
+          "sha256": "849beff37e819a2712ad3c39e9f6efbf43abca6a31a76fae1cf489cc9a6a31b3"
+        },
+        {
+          "name": "AC1032-ascii-48.dxf",
+          "sha256": "43b4e08ddfdeec17439b76bdda675df6c3dd84a37dddd71d4451fcacfe76329e"
+        },
+        {
+          "name": "AC1032-ascii-64.dxf",
+          "sha256": "53687a0346d04833fb535f68763118bf76d93e3c6cc923912126463691046650"
+        },
+        {
+          "name": "AC1032-ascii-80.dxf",
+          "sha256": "1720e6326f21be3fdc53ea7bf76cb191e4760a4aa0fd1c65b97c3f42e5418490"
+        },
+        {
+          "name": "AC1032-ascii-96.dxf",
+          "sha256": "82f6fbba976fd9d036ef3c5271fde7743bd0992abced564f1d590c2962dbb911"
+        },
+        {
+          "name": "AC1032-binary-0.dxf",
+          "sha256": "8f92fd29d3db399cfb346a9d2101468a2b3d455a512715d88dae98dc71b8ab3e"
+        },
+        {
+          "name": "AC1032-binary-112.dxf",
+          "sha256": "6e90aa31a37d79c86df83bdc2d63194251816aa86fafcd53db477db8dc5b2eeb"
+        },
+        {
+          "name": "AC1032-binary-16.dxf",
+          "sha256": "087ec5bddf145ebc4297a27d6c9a420f7240ed685ca7b86edb410956e9ffb7ea"
+        },
+        {
+          "name": "AC1032-binary-32.dxf",
+          "sha256": "efdd7be33dce909a71422fd7d76c65c3258d1f1a0b622fbb1225a85a18dbbe32"
+        },
+        {
+          "name": "AC1032-binary-48.dxf",
+          "sha256": "55aa7cf92ebebf6299662b65417d9e8a53b9c47cd06dc767e599003f6ca301a7"
+        },
+        {
+          "name": "AC1032-binary-64.dxf",
+          "sha256": "110b336949742eab85f67a31525355a262709cc618d72aaa540e42632783939f"
+        },
+        {
+          "name": "AC1032-binary-80.dxf",
+          "sha256": "83b1d82ae9d121754fb8990a1090b845c37c979f7b1b914071215c255a8b3a32"
+        },
+        {
+          "name": "AC1032-binary-96.dxf",
+          "sha256": "8689b73c2b974054f8e7efeb412d010bc2c69b8cac4f812dd45f74ba89f0f2d3"
+        }
+      ]
+    }
+  },
+  "hostedFollowUp": {
+    "revision": "65aefd2c2039c84407164b2dcf353eabc789d18b",
+    "freecadReleaseRun": "https://github.com/dxli/libdxfrw/actions/runs/43862739438",
+    "linuxFreecad": "PASSED 16/16 generated CLI, installed converter and FreeCAD 1.1.4 open/insert checks, including optional legacy profile.",
+    "windowsFreecad": "PASSED 17/17 generated CLI, installed converter and FreeCAD 1.1.4 open/insert checks, including optional legacy profile.",
+    "fastRun": "https://github.com/dxli/libdxfrw/actions/runs/43862739444",
+    "fastStatus": "PASSED fast regressions at 65aefd2c",
+    "nativeRun": "https://github.com/dxli/libdxfrw/actions/runs/43862739412",
+    "linuxNative": "Attempt 1 FAILED before checkout after three GitHub HTTPS connection timeouts; no source compiled or tests run. Attempt 2 is running.",
+    "windowsNative": "PASSED focused job",
+    "macosNative": "Attempt 1 cancelled before allocation; attempt 2 queued."
+  }
+}

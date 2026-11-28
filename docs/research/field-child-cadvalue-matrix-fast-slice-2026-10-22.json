@@ -1,0 +1,41 @@
+{
+  "id": "par134-field-child-cadvalue-matrix",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "addc1d8429945308c1b1da34a4ab90d4a57d688ab55b5e04eaea9825a828a25c",
+  "scope": {
+    "class": "DRW_Field / DRW_CadValue",
+    "versions": ["AC1021", "AC1024"],
+    "field": "positive child CadValue matrix, types 1/2/4/8/16/32/64",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "evidence": {
+    "localGap": "Root CadValue kinds had focused positive coverage, but equivalent child-value payload, metadata, and object-ID handle-stream paths had not been covered across the same supported kind set.",
+    "change": "Extended the generated FIELD frame builder to encode one typed child value; added child parsing assertions for integer, double, string, date bytes, 2D/3D points, and soft-pointer object ID, including child key, format/unit/value metadata, complete-payload validity, and re-encoding.",
+    "evidenceCeiling": "Generated vectors exercise this library's writer and reader in one lineage. They establish local structural regression coverage only, not independent producer interoperability, consumer acceptance, or broad support."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_field_child_cadvalue_types$' --output-on-failure: PASS (1/1)",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_field_(oversized_child_value_count|cadvalue_.*)|libdxfrw_dwg_object_vectors)$' --output-on-failure: PASS (10/10)",
+    "git diff --check -- CMakeLists.txt tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "productionBehaviorChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "remaining": [
+    "Audit negative child-value routes, including unsupported buffer kinds and invalid type-64 reference roles.",
+    "Keep FIELD format flag 0x02 semantics unqualified absent authoritative or independently traced evidence.",
+    "Continue the next locally actionable source-backed plan gap without waiting for external qualification."
+  ],
+  "deferredExternal": [
+    "J256", "J260", "J268", "J284", "J293", "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

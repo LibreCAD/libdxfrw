@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1032-text-context-data-queue-recheck-2026-11-09",
+  "date": "2026-11-09",
+  "scope": "Verify whether AC1032 TextObjectContextData remains an open P6 item after the bounded raw fallback landed.",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+    "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+    "version": "AC1032",
+    "provenance": "Existing tracked ACadSharp sample, read-only."
+  },
+  "implementation": {
+    "priorReceipt": "docs/research/p6-ac1032-text-context-data-raw-only-fallback-2026-11-07.json",
+    "binary": "build-gcc/dwg2dxf/dwg2dxf",
+    "binarySha256": "a5ac6b655034dfeb91a26e0d6557b350568d85eb3ef00cb353d416e85856397a"
+  },
+  "verification": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg -y -d -v2018 /private/tmp/current-ac1032-readback.dxf",
+    "tracePath": "/private/tmp/current-ac1032-readback.trace",
+    "traceSha256": "b335caebfe395a6c1477ae70701f7bbc7761a79404c54fc8d50f9321d202ad33",
+    "operationSucceeded": true,
+    "sourceFrames": 842,
+    "publishedFrames": 842,
+    "failedFrames": 0,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "otherRawOnlyClasses": {
+      "AcDbPersSubentManager": 1,
+      "AcDbTableContent": 2
+    },
+    "textContextClassSeen": true,
+    "strictDxfOutput": "Refused before output preparation because standalone DWG OBJECTCONTEXTDATA has no qualified replay path; no DXF file was created."
+  },
+  "disposition": "The source-backed raw fallback and complete frame recovery are already implemented. Remove TextObjectContextData from the P6 remaining-work queue; typed text semantics and strict DXF replay remain unsupported and are not closed by this raw-only receipt.",
+  "fixturePolicy": "No DWG/DXF fixture was added or modified. The physical source and trace remain outside the repository."
+}

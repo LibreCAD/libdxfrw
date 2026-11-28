@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-whole-body-retention-2026-11-08",
+  "date": "2026-11-08",
+  "status": "IMPLEMENTED_EXACT_BOUNDED_RAW_SPAN_PLUS_PARTIAL_TYPED_CAPTURE",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/ac1027_acds_source_probe.cpp"
+    ],
+    "behavior": "SweepActionBodyCapture retains the start bit, declared bit size, and a separate byte-packed copy of every source bit from action-body start through the bounded object-data end, in addition to the typed candidate fields, embedded entity bit strings and opaque suffix. Raw capture is bounded by the existing kMaxAcShBlobBytes resource ceiling and transactionally published with the rest of the parse result. It is an exact source-span retention aid, not a serializer-ready or semantically decoded entity."
+  },
+  "evidence": {
+    "generatedSelector": "libdxfrw_hardening_tests --acsh-action-body-exact-span",
+    "generatedAssertions": [
+      "whole body bits and bit length equal the generated ordinary source body, including a one-bit suffix",
+      "whole body bits equal the special type-15 modeler-profile source span while its subprofile stays opaque",
+      "exact-bound profile also retains its complete raw action-body span",
+      "truncated bounds leave caller cursor, prior output state and parsed-end value unchanged; corrected same-buffer retry succeeds",
+      "oversized embedded-bit counts refuse without committing caller state"
+    ]
+  },
+  "physicalSource": {
+    "path": "/private/tmp/example_2013.dwg",
+    "version": "AC1027",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "objectHandle": "0x2e2",
+    "bodyStartBit": 228,
+    "bodyEndBitExclusive": 2571,
+    "bodyBitSize": 2343,
+    "retainedByteCount": 293,
+    "expectedDisposition": "Partial; type-77 profile/path payloads and one-bit zero suffix remain unclassified semantically"
+  },
+  "researchBoundary": {
+    "odaSpec": "ODA v5.4.1 was inspected; it defines fixed DWG type codes and general object/data/handle framing but contains no AcDbShSweepBase or ACSH_SWEEP_CLASS serialized body schema.",
+    "libredwg": "The local current dwg2.spec labels ACSH_SWEEP_CLASS DEBUGGING and contains a best-effort field sketch, not a validated conformance profile.",
+    "dwgTs": "The local peer parser explicitly states no public wire-format exists for its embedded AcDbSh entity, identifies the ODA spec as silent and LibreDWG CALL_SUBENT as a decode no-op, and preserves the full class body raw when its tail decode fails. This is corroboration of the evidence gap, not normative authority.",
+    "decision": "Retain the exact bounded body while keeping field semantics, suffix identity, embedded entity meaning, output, graph closure and native consumer qualification unresolved."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_hardening_tests dwg2dxf libdxfrw_ac1027_acds_source_probe -j4",
+    "focusedTest": "PASS: build/libdxfrw_hardening_tests --acsh-action-body-exact-span",
+    "physicalProbe": "PASS: source sha256 ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f; action body start=228, bitSize=2343, retained bytes=293; type-77 payloads=744/480 bits; suffix start=2570 size=1 value=00; status=Partial",
+    "diffCheck": "PASS: git diff --check",
+    "receiptJson": "PASS: python3 -m json.tool",
+    "fullSuites": "not run (focused validation only)"
+  },
+  "limitations": [
+    "No DWG or DXF fixture was created or committed.",
+    "Raw bits are not an authorized output route and do not promote support claims.",
+    "The one-bit suffix remains unexplained and embedded type-77 geometry remains undecoded.",
+    "Special type-15/16 profiles remain opaque.",
+    "No Sweep/Extrusion writer or native/independent kernel qualification was added."
+  ],
+  "nextAction": "Find eligible independent evidence for the final bit's field/framing role and for the embedded entity type/profile codec. Preserve the raw exact span and Partial disposition until semantics and downstream writer/readback gates are separately qualified."
+}

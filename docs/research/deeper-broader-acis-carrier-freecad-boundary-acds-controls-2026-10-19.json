@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ACIS carrier generation, FreeCAD consumer limits, and DWG AcDs controls",
+  "mode": "Deeper/broader primary-source web research and local plan reconciliation; research only",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile stock FreeCAD DXF/DWG importer limits with its optional ACIS-capable add-on route.",
+    "Identify reproducible scratch-generation possibilities and limits for SAT/SAB DXF carriers.",
+    "Turn the LibreDWG AcDs generated issue report into a guarded peer-comparison protocol without treating it as a libdxfrw finding.",
+    "Keep J256, J260, J268, J284, J293, and J295 external-only and non-promoting."
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD stock importers",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Mutable FreeCAD documentation and main source reviewed 2026-10-19",
+      "observed": "The Draft DXF guide says stock import cannot read ACIS/SAT solid payloads. Its documented C++ and legacy Python importer entity sets differ; the legacy path includes 3DFACE. importDWG.py invokes external DWG converters and then sends DXF through the regular DXF importer; current ODA route requests ACAD2000 DXF."
+    },
+    {
+      "project": "InventorLoader for FreeCAD",
+      "urls": [
+        "https://github.com/jmplonka/InventorLoader",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py"
+      ],
+      "revision": "Mutable master README and importer source reviewed 2026-10-19",
+      "observed": "The DXF adapter uses ezdxf to extract SAT/SAB and a custom AcisReader, then offers native or STEP import. The add-on README lists unsupported ACIS features. This is a distinct parser route, but shape construction still occurs through FreeCAD/OCCT and is not a distinct kernel-family oracle."
+    },
+    {
+      "project": "ezdxf ACIS tools",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html"
+      ],
+      "revision": "Stable documentation identifying ezdxf 1.4.5 reviewed 2026-10-19",
+      "observed": "The package supports simple/known ACIS structures, is not an ACIS kernel, warns unsupported records become NONE_ENTITY and arbitrary ACIS cannot be round-tripped, and can generate polyhedral ACIS bodies from meshes. Documentation maps SAT to DXF R2000-R2010 and SAB to R2013/R2018; mesh extraction only represents flat polygonal faces."
+    },
+    {
+      "project": "LibreDWG AcDs report and implementation references",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+      ],
+      "revision": "Issue #1411 names LibreDWG 0.14.8593 at source 8a1ae764; manual, NEWS and decoder links are mutable master pages reviewed 2026-10-19",
+      "observed": "Issue #1411 describes an ezdxf-generated AC1032 DXF REGION with a cube-derived SAB body and reports its loss through a named LibreDWG DXF→DWG→DXF route; it is not independently reproduced here. Current NEWS describes incomplete AcDsPrototype_1b support and brute-force extraction for some SAB blobs, while current decoder source contains an AcDs reader, so exact version/build and direction must be pinned."
+    }
+  ],
+  "localEvidence": [
+    "The existing plan already separates codec conversion, FreeCAD orchestration, DXF import, ACIS payload preservation, and semantic/native acceptance.",
+    "Stock FreeCAD's documented ACIS limitation makes it inapplicable as a 3DSOLID/REGION B-rep oracle; this does not reduce its usefulness for supported 2D or explicit-entity routes.",
+    "ezdxf offers a from-scratch polyhedral SAT/SAB generation route suitable for bounded scratch controls, not general ACIS correctness.",
+    "No peer report or public support statement was reproduced as a libdxfrw result."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsOrIssueAttachmentsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planPath": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "planSha256": "416376eca174d4d2c5aebe5f765b9b4b381e5e7016bee3c1cc184767f9c9cd32",
+    "planImpact": "Separates stock FreeCAD explicit-entity import evidence from optional add-on SAT/SAB parsing; defines a pinned scratch-generated polyhedral carrier profile and AcDs precondition checks for the one composed peer gate. No support claim, finding, implementation order, routine validation cost, dependency, or fixture status changes."
+  },
+  "method": {
+    "kind": "Primary-source documentation, repository source and issue-report review; local plan crosswalk",
+    "localPlanAudit": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "FreeCAD and LibreDWG main/master pages are mutable. InventorLoader is an optional add-on with its own limitations and uses the FreeCAD/OCCT kernel family. ezdxf explicitly limits its ACIS model to simple/known structures and does not provide a geometry kernel. LibreDWG issue #1411 is a reporter account and was not reproduced. No evidence here closes external qualification gates."
+  },
+  "implementationReadyChecks": [
+    "At the composed FreeCAD gate, capture the importer backend and record stock-importer ACIS payloads as UNSUPPORTED_CONSUMER rather than codec failures or solid support.",
+    "If InventorLoader is used, pin its revision, FreeCAD/OCCT, ezdxf package, native-versus-STEP strategy, source payload, parser disposition, and known unsupported features.",
+    "Generate only a scratch asymmetric polyhedral ACIS control from a pinned ezdxf package; distinguish SAT AC1015/AC1018/AC1021/AC1024 from SAB AC1027/AC1032 and record exact carrier bytes and unsupported records.",
+    "Before a DWG AcDs comparison, prove the generated source DXF produced the expected AcDs section and entity-owner/key graph in the intermediate DWG; then test DXF AcDs records and joins after conversion.",
+    "Keep scratch artifacts outside the repository, do not add production/test dependencies, and run peer/native checks only at the existing composed checkpoint—not for every local slice.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "workingTree": {
+    "alreadyContainsUncommittedImplementationChanges": true,
+    "researchPassChangedProductionOrTests": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

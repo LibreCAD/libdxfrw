@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-celtscale-header-field-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_CELTSCALE_TYPED_HEADER_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Prevent DXF HEADER output from silently replacing a malformed explicit $CELTSCALE with the serializer's absent-value default.",
+  "implementationReadiness": {
+    "baselineHead": "838cec170f86fd5a883b8d5ca4fb5c737253454c",
+    "sourceObservation": "DRW_Header::write emits group 40 from getDouble($CELTSCALE), but when an explicit variant has the wrong type or group, getDouble returns false and the writer emits the absent-value default 1.0. A local direct-writer reproduction using addInt($CELTSCALE, 7, 70) succeeded and serialized group 40 = 1.0.",
+    "baselineBinding": {
+      "library": "build-gcc/libdxfrw.a",
+      "librarySha256": "08422e7c57d57e8618c4ea4d02e50170b218025985c4ddb2eff1db669b4931dd",
+      "reproducerSha256": "109917cbc0df3e5895d96f6f7079706241617a2490d59c6a7ac7d0bd49dcfd1d",
+      "reproducerOutput": "write_error=0 bytes=6199 celtscale_found=1 emitted=$CELTSCALE\\n 40\\n1\\n"
+    },
+    "normativeEvidence": [
+      {
+        "source": "Autodesk AutoCAD 2024 DXF HEADER Section Group Codes",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+        "relevantRule": "$CELTSCALE is group code 40 and represents the current entity linetype scale."
+      },
+      {
+        "source": "Autodesk AutoCAD 2027 CELTSCALE System Variable",
+        "url": "https://help.autodesk.com/cloudhelp/2027/ENU/AutoCAD-Core/files/GUID-ECE175AB-AB7B-4DEC-9CEC-D5D67AF9310B.htm",
+        "relevantRule": "CELTSCALE is a real-valued drawing variable with initial value 1.0000; the documentation does not state a zero/sign range."
+      }
+    ],
+    "compatibilityDecision": "Require one exact canonical or bare CELTSCALE spelling with group-40 DOUBLE and finite value when present. Preserve every finite value, including zero and negatives, because the cited documentation establishes no numeric range. Keep malformed input readable; refuse typed output instead of substituting 1.0.",
+    "change": "A non-consuming DRW_Header output check runs both at header emission and top-level DXF write preflight."
+  },
+  "controls": {
+    "selector": "--ltype-scale-header-domain",
+    "ctest": "libdxfrw_ltype_scale_header_domain",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "Finite positive, zero and negative CELTSCALE values retain their exact group-40 output.",
+      "Absent CELTSCALE retains the existing emitted default 1.0.",
+      "NaN and positive/negative infinity are refused without publishing a HEADER record.",
+      "Wrong variant type, wrong group, dollar/bare conflicts and case-folded duplicate aliases refuse instead of falling back to 1.0.",
+      "Parsing retains a malformed explicit input value for diagnosis; corrected same-writer retry succeeds after rollback."
+    ]
+  },
+  "validation": {
+    "build": {
+      "commands": [
+        "cmake --build build-gcc --target libdxfrw_hardening_tests -j2 — PASS",
+        "cmake --build build-gcc --target dwg2dxf -j2 — PASS"
+      ]
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_cli_contract|libdxfrw_ltype_scale_header_domain)$' --output-on-failure",
+      "result": "PASS 2/2; CLI contract 6.83 seconds, focused header domain 0.02 seconds"
+    },
+    "cliOptionSelector": {
+      "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --options-only",
+      "result": "PASS 78 controls, including malformed CELTSCALE refusal with ASCII/Binary output destinations preserved"
+    },
+    "diffCheck": "git diff --check — PASS"
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_header.cpp": "9acdc04a5a7ef438d0253208686186761ce577dfaa797f70849816ea2c9e0efb",
+      "src/drw_header.h": "8e52c06b26692429eb2e80b64119f7d164d56873d58957baf394eadb8f87d80f",
+      "src/libdxfrw.cpp": "254f507173053eea99c6ac11e5af586171ab25d9d037712fff717f870cf5c75d",
+      "tests/hardening_tests.cpp": "19246012cb3f4d0ec9a80eceeb794d69cbef5a9f4d8ff850f62aa25986452646",
+      "tests/dwg2dxf_cli_contract_tests.py": "e4cb0f66130d40936edab9574d65b99adece7bcf70bafb17412ddad06a5056f4",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "e04157191951aa5a458735459e87b190610cef9c2d77084929cedde5d44ab933"
+    },
+    "librarySha256": "2adaa98979dbaadbb4c87bd06682c98a82d44af5437757042e20fce158b37c2f",
+    "testExecutableSha256": "a67716497157b79967928ba8c95d2c922459e2577651f4ecc8828fdf0b3160de",
+    "dwg2dxfSha256": "473e192f58959b0260ff138fcd6b52f6873368d3d2ad25f840385e7b358135d2"
+  },
+  "limitations": [
+    "Only non-finite CELTSCALE values and malformed explicit group/type/key forms are refused. No sign or zero domain is claimed.",
+    "Input remains tolerant and retains malformed values for diagnosis.",
+    "No physical producer, native CAD acceptance, linetype resource selection or rendered appearance was qualified."
+  ],
+  "escalation": "Focused hardening and CLI selectors rebuilt the affected executables and passed. No full suite or native linetype appearance/resource test was run."
+}

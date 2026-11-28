@@ -1,0 +1,15 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "change": "Allow the staged layer-material inspector to accept an empty expected list and verify that no emitted layer has a non-null material reference.",
+  "validation": [
+    "Focused sparse-material and staged-entity-reference CTests pass in the normal and AddressSanitizer builds.",
+    "Generated AC1024 ASCII and binary controls refuse an empty expectation when a layer has a non-null material, preserve the destination, accept after the layer reference is cleared, and retry after restoration.",
+    "The clean staged-index qualification digest is 03f75af17d8bc8a1745043c1889364b15db8ac86804354a9a5aa16ac5e666189 (780 inputs)."
+  ],
+  "limits": [
+    "The inspector checks staged layer references, not source identity, MATERIAL target type, graph closure, or publication.",
+    "No support claim is promoted."
+  ]
+}

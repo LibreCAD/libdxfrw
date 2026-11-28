@@ -1,0 +1,147 @@
+{
+  "title": "DWG HATCH ellipse-edge derived-type dispatch",
+  "authority": "ODA Open Design Specification for .dwg files v5.4.1 section 20.4.75, printed page 195: edge type 3 is an elliptical arc, type 1 is a line.",
+  "finding": "DRW_Ellipse derives from DRW_Line, so testing the line cast first encoded the ellipse as type 1 and wrote center and major-axis vector as line endpoints. DXF HATCH and MPOLYGON writers use eType dispatch and do not share this cast ordering.",
+  "correction": "Try the ellipse cast before line in DRW_Hatch::encodeDwgBoundaryData; leave the remaining branches unchanged. Shared MPOLYGON path is exercised as an in-memory synthetic boundary only.",
+  "source_provenance": "ezdxf 1.4.5 authored AC1021 DXFs, converted by ODA File Converter to DWG at each listed revision. Six AC1021 source/corrected DWG to AC1027 DXF source/return pairs were separately converted by ODA. The recorded converter invocation establishes the DXF pairing; the audit hash-binds each file independently and does not authenticate converter lineage.",
+  "scope": "Physical source witnesses each cover one full ellipse centered (3,4), axis (4,0), ratio .5, angles 0 to 2pi, ccw, with following LINE; source and corrected AC1021 output plus arc/linear controls were checked in LibreDWG and ezdxf. The corrected writer used both existing material and plotstyle opt-ins. This is not arbitrary HATCH, native CAD, MPOLYGON physical output, or whole-file qualification.",
+  "observations": [
+    "Baseline AC1021 generated ellipse is decoded by LibreDWG and ODA as a LINE edge, losing ellipse fields; ODA produced DXF with no error file.",
+    "Corrected AC1021 output has type 3 and the stated exact geometry; ODA writes AC1027 DXF with matching geometry and clean ezdxf audit. Source and corrected arc/linear controls match their fields; both corrected DWGs are byte-identical to baseline controls.",
+    "Source AC1015, AC1018, AC1021, AC1024, AC1027, AC1032 each decode to type 3 with the same fields and expected model-space entity membership/endpoints.",
+    "All source/return/fixed ODA logs have zero bytes, and the checked output directories have no .err files."
+  ],
+  "focused_tests": [
+    "ctest --test-dir /private/tmp/ac1021-hatch-edges/snapshot-build -R ^libdxfrw_dwg_hatch_ellipse_edge$ --output-on-failure passed 1/1. Unmodified HEAD fails this test on the first ellipse boundary.",
+    "In-memory HATCH and MPOLYGON bodies cover six revisions, mixed LINE/ARC/ELLIPSE/SPLINE fields, continuation and sentinel; native full writer/readback covers six revisions, invalid-null refusal/corrected retry, and following LINE.",
+    "Integrated libdxfrw_dwg_hatch_ellipse_edge passed 1/1 in both normal and AddressSanitizer builds."
+  ],
+  "audit_command": "PYTHONPATH=tools <ezdxf-python> -B tools/audit_dwg_hatch_ellipse_edge.py --mode <ellipse|arc|linear> --version <AC code> --dwgread /opt/homebrew/bin/dwgread --dwg <path> --dwg-sha256 <sha256> [--dxf <path> --dxf-sha256 <sha256>] [--generated-graph]",
+  "tools": [
+    {
+      "path": "tools/author_ac1021_hatch_edge_source.py",
+      "sha256": "f3c3df11d46e44f729e3d59907f74a708553574b1d84dd2453f394a5a6af30e1"
+    },
+    {
+      "path": "tools/probe_ac1021_hatch_edge_writer.cpp",
+      "sha256": "296e8d1f597bd41124c2344c3062d890962482c55c888bf0202c9672426a947d"
+    },
+    {
+      "path": "tools/audit_dwg_hatch_ellipse_edge.py",
+      "sha256": "d260979c40d5dc6f0e5817b843a85360dc2a76661bd3442fef84dc2a4950bbfd"
+    },
+    {
+      "path": "tests/dwg_hatch_ellipse_edge_dwg_tests.cpp",
+      "sha256": "eace69bd013e0de7717aaeb602e0e3e4a81d74fb234359f85a388a1292e95395"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/source-in/ellipse.dxf",
+      "sha256": "fa0730c61cb3d95921d5acc0cb82adf18ecc73893588588f43fedad9ae794b66"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/source-in/arc.dxf",
+      "sha256": "3e5e637ab82d4fea3df14e3dcdb5f53a9071223bf9ac1502abb597ec0e1cd7c7"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/source-in/linear.dxf",
+      "sha256": "fdb21ff266a06401b02cf2eec570d13ff5d74ef4674c48f89371becc57fd55f4"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/source-dwg/ellipse.dwg",
+      "sha256": "7376c2159f44b751495cba7e53bbd20099e7d0ca74a0687dfeee50133cb72130"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/source-dwg/arc.dwg",
+      "sha256": "f4e3c5fb6676f5f7efb8bab9d5780d7f1d3b2e3518d080efa300ce2c1d31c2b5"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/source-dwg/linear.dwg",
+      "sha256": "4ce87dcc290b2a9866945cbd404773c986153c590483cd2bc83c45e34a151310"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/source-out/ellipse.dxf",
+      "sha256": "3ca3ff40be8740156b10083cb196b6677e334dabf4b080e25f3b8c3670f598ef"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/source-out/arc.dxf",
+      "sha256": "fa419db9e10f0b2c52cf78e2e4033f1734299740745447789026566356d340d5"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/source-out/linear.dxf",
+      "sha256": "2704bf3d12cbcaa7178a652c8a83f90e282de2493b7cc84fb1a8dac1675a73ae"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/gen-in/ellipse.dwg",
+      "sha256": "527d3171087b2c59ec92f9a9ad6a4d55e71f6c88aec952ffb60821a5b73dcc21"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/gen-in/arc.dwg",
+      "sha256": "c803a845b2fa1b9c0fe3409fc791181cdf61148eb91cda567f6143c0c4343d9e"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/gen-in/linear.dwg",
+      "sha256": "8a4a49d7bfb66e2588163da40142caf3a996d11c56b940f46cd42026119147a6"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/gen-out/ellipse.dxf",
+      "sha256": "18caa2a5e4cd0a36904f96e29578f9ddff8901f84bed64f7f49597dd7388f733"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/gen-out/arc.dxf",
+      "sha256": "01a3d94304a7e98422e2211bb27e7023d0ff0893a30b0813cac73251aa04f3fe"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/gen-out/linear.dxf",
+      "sha256": "b3f8bc4e540dce8dce83a4a5c6f7bdf6310621369e2cc96d0ae9c79844ff6480"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/fixed-in/ellipse.dwg",
+      "sha256": "82f766e99fbeeae166865e1783e8bf1c59d391e55c0aebdd9fac105a175445a5"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/fixed-in/arc.dwg",
+      "sha256": "c803a845b2fa1b9c0fe3409fc791181cdf61148eb91cda567f6143c0c4343d9e"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/fixed-in/linear.dwg",
+      "sha256": "8a4a49d7bfb66e2588163da40142caf3a996d11c56b940f46cd42026119147a6"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/fixed-out/ellipse.dxf",
+      "sha256": "306f1936d2e2e5a2fca956aeead3a598f6be6aaf192ca5241ad8006dee431e74"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/fixed-out/arc.dxf",
+      "sha256": "a9da1060cff906592f477a68279f6cdc062fa0f534f061dab69c6227785982f2"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/fixed-out/linear.dxf",
+      "sha256": "9672d7dff88110f0b0227b9c8f8f77a1b815975230e869273b8e852b176d080a"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/census/AC1015/ellipse.dwg",
+      "sha256": "efa0dfabf2482bfcbee5debc13dc177344406b2eb715243a63a990a463666f9d"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/census/AC1018/ellipse.dwg",
+      "sha256": "1633c60d2c2adcfc924267d0f5b553fd38815e210a9fbbb0cca77ca20009c9b1"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/census/AC1024/ellipse.dwg",
+      "sha256": "371ad2f328bcd8e5bc17de54d280536ac9256e8940a1b5a4326b973c2d7bb6a5"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/census/AC1027/ellipse.dwg",
+      "sha256": "d14de86f0fd50e823d8d77413a10c75024b24d69e0cafed91f74355b7558de07"
+    },
+    {
+      "path": "/private/tmp/ac1021-hatch-edges/census/AC1032/ellipse.dwg",
+      "sha256": "a4a06e0bfeba81b390c88acb3f8f9c686f3b17795b66c117d57449dedbb3cd4a"
+    }
+  ],
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_PRODUCER_AND_OUTPUT"
+}

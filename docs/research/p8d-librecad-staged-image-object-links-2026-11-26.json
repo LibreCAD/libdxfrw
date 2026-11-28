@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-staged-image-object-links-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "73d613da44a49651f6890863b7f663b3b6e94c11",
+  "implementationDigestSha256": "757d14feff96367d5839762099e9ca35d0e2224846127d9a76f2c310e4dc0238",
+  "libdxfrwLibrarySha256": "12379d4de1365e01f9953399a2667d0778fe726ff84169b3f2b2f254b19bc68a",
+  "librecadCommit": "1e84e4de566ffaefdeac4cff2f7443f2c6c19beb",
+  "change": "Bind the existing bounded single-IMAGE export to shared staged IMAGEDEF/reactor object-link inspection and require that inspection before final publication.",
+  "checks": [
+    "PASS: macOS ARM64 system-codec IMAGE tests, 165 assertions across three cases, including top-level and named-block output, source mutation refusal and retry.",
+    "PASS: macOS ARM64 system-codec MATERIAL tests, 845 assertions across six cases; the bundled-codec filter compiles.",
+    "PASS: independently read one locally generated AC1021 output with ezdxf 1.4.5, SHA-256 6815f854e037514e86f27c39805e6e7893fbc2e485fb82373e4ff0496143f680. Physical tags and the high-level graph agree: root C -> image dictionary 5F -> IMAGEDEF 5D -> reactor 5E -> IMAGE 5A, and IMAGE 5A references 5D/5E. The peer reports zero audit errors and fixes."
+  ],
+  "limits": [
+    "This is one generated single-image profile; it does not prove all scalar fields, multi-image admission, other versions, native CAD semantics, GUI behavior or FreeCAD qualification.",
+    "The generated DXF remains in scratch storage and was not committed."
+  ]
+}

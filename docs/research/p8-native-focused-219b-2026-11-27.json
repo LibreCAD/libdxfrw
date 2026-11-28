@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-27",
+  "headSha": "219b5164a41650dc834ab96d499cba8cf6030764",
+  "implementationDigestSha256": "defe1f69008aa5109d960a443628fdf050f2932e37ce46328a9dd9010cd007d0",
+  "focused": {
+    "run": "https://github.com/dxli/libdxfrw/actions/runs/45952820276",
+    "result": "PASS: workflow contract plus seven selected CTests on each of Linux GCC, macOS Clang and Windows MSVC; broad and extended fuzz jobs were not run.",
+    "receiptSha256": {
+      "windows-msvc": "1feab378bff498e3465b4b590e304717db66b5651819b71e79e0f896f88420d7",
+      "linux-gcc": "d184537d33b5c1d20ba23b5e56a2d6c6bd04dd9db5fe9a15835a498896aff795",
+      "macos-clang": "8830734b77dabbe8a79913c9dd08fa81efcd1ba936fbaf7be37d10e76e6de5fb"
+    }
+  },
+  "package": {
+    "run": "https://github.com/dxli/libdxfrw/actions/runs/45952820318",
+    "result": "PASS: static and shared installed-package relocation and ABI-version boundary checks on Linux, macOS and Windows; each receipt reports v2 rejected and v3 accepted."
+  },
+  "limits": [
+    "Evidence applies only to stated head/digest and focused profiles; later changes require affected-profile rechecks.",
+    "These checks do not establish complete C++ ABI stability, native GUI behavior, or broad DWG/DXF/3D semantics.",
+    "The final broad suite and extended fuzz are intentionally deferred until candidate freeze.",
+    "No support claim or package gate promoted."
+  ]
+}

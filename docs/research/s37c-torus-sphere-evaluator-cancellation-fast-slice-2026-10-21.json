@@ -1,0 +1,56 @@
+{
+  "title": "S3.7c torus/sphere evaluator frame and cancellation correction",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Numerical conformance of local untrimmed torus and sphere evaluators to their documented decoded-field parameterizations",
+    "frame_contract": "Use V = normalizedAxis cross normalizedU directly; do not renormalize the cross-product basis",
+    "accumulation_policy": "Sum surface-offset products before adding the center so a small representable center survives exact cancellation of large finite terms",
+    "non_claims": [
+      "native ACIS U/V parameter direction or trim semantics",
+      "body transforms or source-unit application",
+      "B-rep validity, manifoldness, or shell closure",
+      "native consumer or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_generated_sab_21800_sphere_fields": "PASS",
+    "parser_fed_generated_sab_21800_torus_fields": "PASS",
+    "large_sphere_terms_cancel_and_retain_small_center": "PASS",
+    "large_torus_terms_cancel_and_retain_small_center": "PASS",
+    "existing_oblique_frames_and_expected_coordinates": "PASS",
+    "existing_invalid_frame_parameter_and_output_overflow_controls": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.08 seconds)",
+    "direct_test_executable": "PASS",
+    "symbol_check": "PASS (nm -gC build-gcc/libdxfrw.a exports drw_evaluateAcisTorusSurface and drw_evaluateAcisSphereSurface)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_exported_api": false,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-03/PAR-04 associative-action undecoded value variants fail closed",
+  "mode": "generated in-memory fast implementation slice",
+  "scope": [
+    "Prevent associative-action value parameters from being reported complete when the parser does not decode their payload",
+    "Keep unverified value payload widths and class-specific DWG grammar unresolved",
+    "Add source-generated AC1024 parser controls without persistent drawing fixtures or CTest registration"
+  ],
+  "evidence": {
+    "odaDwgSpecification": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "search": "Text extraction searched for associative-action/value-parameter terminology; the only associative match was the unrelated HATCH associative flag.",
+      "finding": "The available ODA specification text does not provide the AcDbAssocAction value-parameter wire layout needed to assign payload widths."
+    },
+    "localSource": {
+      "file": "src/drw_objects.cpp",
+      "function": "DRW_AssociativeObject::parseDwg / readActionFields / readValueVariant",
+      "finding": "ObjectId, Int64, Point3d, Bool, Binary, and Invalid kinds had no payload decoder but returned true, permitting a typed prefix to be reported complete without consuming a value."
+    },
+    "decision": "Return false for all recognized-but-undecoded value kinds. Do not infer their payload widths from the generic group-code classifier or another consumer's grammar."
+  },
+  "changes": {
+    "production": "src/drw_objects.cpp fails the typed action prefix for ObjectId, Int64, Point3d, Bool, Binary, and Invalid variants until their consumer-specific wire grammar is implemented.",
+    "generatedTests": [
+      "tests/dwg_object_vectors_tests.cpp adds an in-memory AC1024 ACDBASSOCACTION frame builder and controls for group codes 350/ObjectId, 160/Int64, 10/Point3d, 290/Bool, 1004/Binary, and 700/Invalid.",
+      "Each unsupported vector independently checks the encoded group code and asserts parse refusal plus cleared typed state.",
+      "A supported Real group-code-40 control parses and reaches a following 3-bit body sentinel."
+    ],
+    "baseline": "Before the production change, five unsupported-kind controls reproduced false completion; the Int64 generated control was already rejected.",
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicAbiChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --associative-action-unsupported-value-kinds",
+        "result": "PASS (all six unsupported variants refuse; Real control reaches sentinel)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp",
+        "result": "PASS"
+      },
+      {
+        "command": "pdftotext -layout '/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf' /tmp/oda-spec.txt && rg -ni 'assoc(action|iative)|value parameter|resbuf|action parameters' /tmp/oda-spec.txt",
+        "result": "PASS (only the unrelated HATCH associative flag matched)"
+      }
+    ],
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalCorrection": "The reader no longer treats an undecoded associative-action variant as a complete typed value.",
+    "unresolved": [
+      "Exact AcDbAssocAction value-parameter DWG payload grammar and widths",
+      "Typed decoding and semantic interpretation for the six refused kinds",
+      "Broader PAR-03/PAR-04 code/context audit",
+      "Independent native/platform and ACIS/ACDS semantic qualification"
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "staged": false,
+    "committed": false
+  }
+}

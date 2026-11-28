@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-shade-consumer-transport-current-recheck-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Current generated shade-graph transport and physical VIEWPORT recheck",
+  "status": "SELECTED_TRANSPORT_PASS_PRODUCER_AND_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "codeRevision": "bbd69e4598cd2028c89c41e54e6e29c5b70fcc19",
+  "scope": "Confirm current generated LAYOUT shade-mode 4/5 graph transport and selected VIEWPORT tests; retain physical-producer, published-schema reconciliation and native-rendering gates.",
+  "sourceHashesSha256": {
+    "src/libdxfrw.cpp": "6f246262860df5bda2f33df64e6e1f728708f9328d86605a87504ba1cc52764f",
+    "src/drw_objects.cpp": "417b82592e3d30280b6008d8ffcc09f15d428d33ce5d5be02d9bec722dc728a0",
+    "dwg2dxf/dx_iface.cpp": "777deb05f7e0842df9364897c8d9abba4513c8a09af94c3bb8226b18f30561e4",
+    "tests/render_preset_graph_output_controls.h": "9a159660c9d2bbd73d5f2cd0b43f3570b1e535deea4ba6b40c68ac9133eb6a61",
+    "tests/table_content_dxf_tests.cpp": "26009f5bb0fa83810bd42abb7e8482308f60fdb0636fd9903e0c84369dd8401d",
+    "tests/dwg2dxf_adapter_tests.cpp": "186aabf3d1ae0ceb1bae755e54c28512d344d18e9f42f26bca9b8f34eb8471a9",
+    "tests/dxf_fixture_tests.cpp": "4e7eb967c4ab89312a7b98bb4cb14611bb3139352c23ea401c167a3fc382ca6f"
+  },
+  "build": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_table_content_dxf_tests -j2",
+    "result": "PASS",
+    "cmake": "4.4.4",
+    "compiler": "/usr/bin/g++",
+    "configuration": "build-gcc"
+  },
+  "generatedControls": {
+    "command": "ctest --test-dir build-gcc -R '^(libdxfrw_shade_consumer_output|libdxfrw_render_preset_graph_output|libdxfrw_viewport_original_sources|libdxfrw_rendering_original_sources)$' --output-on-failure",
+    "result": "PASS, 4/4",
+    "executables": {
+      "libdxfrw_table_content_dxf_tests": "b4b25177a539a2c3555ec78f7365cc5c2f8ec6646b6591f87822ede0e9382dce",
+      "libdxfrw_dwg2dxf_adapter_tests": "171b4166031cf3ad375c474bd8d0b8197b9385a4647197e0ecaec57b3590de1d"
+    },
+    "covered": [
+      "Generated AC1027 LAYOUT shade mode 4 VisualStyle target graph in ASCII and Binary DXF, including output remapping/readback and refusal/retry controls.",
+      "Generated AC1027 LAYOUT shade mode 5 RapidRT render-preset target graph in ASCII and Binary DXF, including output remapping/readback and refusal/retry controls.",
+      "Selected VIEWPORT shade-mode output and source publication controls, including target validation."
+    ],
+    "limitation": "Generated output and same-library readback prove selected transport/graph invariants only; they do not establish a physical producer profile or native rendering semantics."
+  },
+  "physicalViewportRecheck": {
+    "source": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "sourceVersion": "AC1024",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "result": "PASS in ASCII and Binary for two census VIEWPORT source projections, selected typed fields, target/container ownership, readback, refusal and same-adapter retry.",
+    "executableSha256": "171b4166031cf3ad375c474bd8d0b8197b9385a4647197e0ecaec57b3590de1d",
+    "limitation": "This receipt does not identify a physical VIEWPORT shade-mode 4/5 witness; do not count the two source projections as such."
+  },
+  "schemaAndConsumerBoundary": {
+    "autodeskReferences": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-1113675E-AB07-4567-801A-310CDE0D56E9.htm",
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm"
+    ],
+    "finding": "The available published PLOTSETTINGS/VIEWPORT shade tables list modes 0-3. The code's selected modern mode-4/5 transport is generated-test behavior; it does not override the published schema or prove producer/native support.",
+    "remaining": [
+      "Obtain a conforming physical producer witness or authoritative schema reconciliation for VIEWPORT mode 4/5 and its code-333 target class.",
+      "Qualify native rendering semantics for any admitted mode-4/5 profile.",
+      "Resolve remaining VIEWPORT layer override references 335/343/344/91 with coupled dictionary keys, names, object bodies and consumer behavior."
+    ]
+  },
+  "fixturePolicy": "No DWG/DXF fixture was added or committed; generated controls author inputs at runtime and the physical source was pre-existing local material."
+}

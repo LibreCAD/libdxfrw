@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5kg selected first-element removal from a consumed MLINESTYLE",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "a5024137b39599c7bfe01e677427c19aa2e66407",
+  "scope": "Extends the selected AC1027 open, uncut, unfilled MLINE projection to remove either one element from a source-bound two-element style used by ordinary MLINE consumers. It uniquely maps the remaining exact source tuple to its target index and projects each MLINE vertex's corresponding parameter. The earlier tail-removal profile remains in RPP-5ke. This is selected output/geometry evidence, not native CAD semantic qualification or whole-document support.",
+  "references": [
+    {
+      "authority": "Autodesk DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Group 73 is the number of MLINESTYLE elements; group 74 gives the repeated parameter count per element at each segment; group 41 carries those parameters; group 75/42 carry area-fill parameter counts and values. The first group-41 value is the distance along the miter vector to the element path intersection."
+    },
+    {
+      "authority": "Autodesk DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Group 49 carries each MLINESTYLE element offset; the selected projection is limited to style flag 2."
+    }
+  ],
+  "contract": {
+    "admission": "The original MLINESTYLE body, dictionary/provider graph and every ordinary MLINE consumer must be source-bound. The source has exactly two elements and the target has one. All style-level fields and the retained element's full tuple must match the source exactly. The survivor must have one unique ordered source identity; ambiguous duplicate tuples refuse. The selected route requires AC1027, style flag 2, equal start/end angles, and open/unfilled/uncut consumers whose original MLINE element count is two. Every affected consumer must remain live, in its original scope and model-identical during preflight. Multi-element removal, one-to-zero, composed style edits, other source counts and unqualified carriers refuse.",
+    "geometry": "Each selected MLINE must have at least two vertices, positive finite scale, justification 1 or 2, unit extrusion, source-consistent WCS positions/directions/miters, exactly two group-41 parameters per source element with a zero second value, and no group-42 fill values. Both original element parameters are revalidated at every vertex, including the removed element. The surviving parameter is selected by its uniquely matched source tuple and recomputed using the target style offset and justification shift. The output MLINE count and per-vertex arrays are reduced to one without mutating caller models.",
+    "identityAndOutput": "The MLINE retains its redundant group-2 name and group-340 style reference. Output proof checks the target style's single group-71 count, group-49 offset, ACI and linetype, each MLINE group-73 count 1, three group-74 counts, six group-41 values, three zero group-75 counts and absence of group 42. Fresh import verifies the surviving style tuple and parameter-array arity, plus unchanged WCS positions/directions/miters, scale, justification and extrusion for model-space and named-block consumers.",
+    "failureAndRetry": "An unsupported style flag refuses before publication and preserves destination/caller state; correcting it permits same-adapter retry. A one-to-zero count control refuses and preserves destination/caller state. A late live-consumer parameter mutation after entity emission refuses before publication; restoring caller state permits a same-adapter retry. Successful output is reopened for semantic field readback.",
+    "compatibility": "No public API or DRW_Interface virtual changes. ASCII/binary input and output remain supported. All drawings are authored at runtime and removed after success; no DWG/DXF fixture was committed.",
+    "limits": "Evidence covers AC1027 ASCII and binary sources crossed with ASCII and binary output; a two-element source style reduced to either its first or second element; exact survivor tuple identity; flags 2 and equal angles; open, unfilled, uncut ordinary MLINEs; one model-space and one named-block consumer; three vertices; center and bottom justification; and two extrusion planes. It does not qualify multi-element removals, one-to-zero, other original counts, style edits composed with removal, other versions/carriers/schemas, native CAD rendering, document closure or independent 3D semantics. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII AC1027 output",
+      "ASCII source -> binary AC1027 output",
+      "binary source -> ASCII AC1027 output",
+      "binary source -> binary AC1027 output"
+    ],
+    "styleAndConsumerProfile": "Generated source has two tuples at offsets 1.25/-0.75 with ACI/linetype pairs (1, ByLayer) and (3, Continuous). Both 2-to-1 variants are exercised: remove the first tuple and retain -0.75/ACI 3/Continuous, or remove the tail and retain 1.25/ACI 1/ByLayer. Both consumer styles are represented: center and bottom justification, including independent recomputation under the resulting target offset.",
+    "failureAndRetry": "Eight source/output/removal-position profiles and twelve successful readbacks; two invalid-flag refusals preserve sentinels/caller state and succeed after same-adapter correction; two one-to-zero refusals preserve sentinels/caller state; two late-consumer mutation refusals preserve sentinels and succeed after same-adapter caller restoration."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "commands": [
+        "cmake --build build -j4 --target libdxfrw_dxf_fixture_tests dwg2dxf",
+        "cmake --build build-asan-custom -j4 --target libdxfrw_dxf_fixture_tests"
+      ]
+    },
+    "affectedNormalCohort": {
+      "result": "PASS",
+      "summary": "7/7 fast selectors: style geometry guard, source/live guard, consumed offset, retarget offset, one-element append, two-element append and consumed single-element removal",
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_(style_body_geometry_guard|style_body_source_live|consumed_offset_projection|retarget_offset_projection|consumed_style_append|consumed_style_multi_append|consumed_style_removal)$' --output-on-failure"
+    },
+    "affectedAsanCohort": {
+      "result": "PASS",
+      "summary": "5/5 projection selectors: consumed offset, retarget offset, one-element append, two-element append and consumed single-element removal",
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_(consumed_offset_projection|retarget_offset_projection|consumed_style_append|consumed_style_multi_append|consumed_style_removal)$' --output-on-failure"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "e871baf4b8d7d30248883af44d3d4935858065316d5763d1b6d3de06a0d4f3ea",
+    "tests/CMakeLists.txt": "adef24aaaa250feef7d9643e59f6be49b12fc28631bfcd26c3a6d458d7eda848",
+    "tests/dxf_fixture_tests.cpp": "4aa39ade57e38880110a6941f2708c0bb2fe8ea4f555271260976740a4407f16"
+  },
+  "binaryBindings": {
+    "normalLibdxfrwDxfFixtureTests": "f6edf4dd6ade7b7952f48622b2468703cf1ab94b288ce3596dc1f6b84fba49d0",
+    "asanLibdxfrwDxfFixtureTests": "dc6cc11439d6bbb47e6184061d8f99e86cb4b7a5b4a75bde3a1dee8e8cf5fa3f"
+  },
+  "next": "Select one exact still-refused P2 operation, preferably a bounded multi-element removal from a consumed style if a current source and unique survivor mapping can be bound. Keep count edits, other append cardinalities, retarget profiles, carriers, schemas and semantic/platform claims open."
+}

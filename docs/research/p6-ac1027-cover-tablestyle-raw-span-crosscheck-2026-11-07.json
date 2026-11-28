@@ -1,0 +1,227 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1027 Cover TABLESTYLE independently derived raw-frame spans",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "provenanceLimit": "Existing local source; producer provenance is not independently authenticated. No DWG or DXF fixture is committed."
+  },
+  "capture": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --opaque-dwg-source-inventory /Users/dli/doc/dwg/Cover.dwg",
+    "binarySha256": "1e1344cf1cc588b833ca952eca0c0d44cc22a363c9ac14d7ba1539e930507305",
+    "logPath": "/private/tmp/cover-field-span-raw-inventory.log",
+    "logSha256": "306de923b736bc40e5efe6c9984b5f0db0948816ae961bc458e6bb218ff6ad0c",
+    "rawFrame": {
+      "handle": "0x6a",
+      "byteSize": 924,
+      "sha256": "2bd3365551e63cc9c46193f755262234aaffff63205fc330d393c5874ce7d8f4",
+      "dataStreamBits": 6955,
+      "handleStreamBits": 437,
+      "provenance": "The frame bytes come from the current reader’s already retained validated TABLESTYLE raw source frame; this is the decoded object-frame payload, not compressed physical-file bytes.",
+      "stringStreamStartBit": 6384,
+      "stringStreamEndBit": 6938,
+      "stringStreamSizeBits": 554,
+      "handleStreamStartBit": 6955,
+      "handleStartBasis": "The captured frame metadata supplies handleStreamBits; the verifier independently walks H fields and validates the terminal padding but does not independently recover the stream partition from compressed DWG pages."
+    }
+  },
+  "independentPeer": {
+    "tool": "LibreDWG 0.14 dwgread -O minJSON",
+    "jsonPath": "/private/tmp/cover-current-libredwg.json",
+    "jsonSha256": "12a88999c8a23a63aa82062bc867432afd62df558c74fd0cd446520acaa0e0e9",
+    "peerObject": "TABLESTYLE handle 0x6a, frame size 924 bytes",
+    "unknownBits": 7352,
+    "exactAlignment": "The peer unknown_bits carrier has 7,352 significant bits and equals the captured raw frame beginning at bit offset 40, followed by one zero alignment byte. The verifier independently decodes the object/common prologue to bit 40, R24 prefix and detached prefix name, the complete Table and three repeated cell-style records, all 28 typed handle references, string-footer bounds, and five zero handle-stream padding bits. Every parser-reported TABLESTYLE field range matches the independently derived cursor range."
+  },
+  "verifier": {
+    "path": "tools/research/verify_cover_tablestyle_raw_spans.py",
+    "sha256": "865198692368df4611006ce56989c3b367009c7958bbc4bc7deb2fd00f39dce1",
+    "sourceCodeSha256": "0e36d1e0de765add0ad95ea7f678fa2844fa698251aa51ff375f57f0f94d058a",
+    "testSourceSha256": "e62612d187ac90dc13ec62617e2230f9cf9ebc944e8ea7e517c092b5be6683ee",
+    "peerComparisonSha256": "12a88999c8a23a63aa82062bc867432afd62df558c74fd0cd446520acaa0e0e9",
+    "runReportSha256": "91020477874c30c23493daf5f985c9792d5cc0b9486d379ea20f7cd4c27ba5c1"
+  },
+  "decodedAtParserReportedSpans": {
+    "ids": [
+      4,
+      1,
+      2,
+      3
+    ],
+    "classes": [
+      2,
+      1,
+      1,
+      2
+    ],
+    "names": [
+      "Table",
+      "_TITLE",
+      "_HEADER",
+      "_DATA"
+    ],
+    "textStyleHandles": [
+      0,
+      17,
+      17,
+      17
+    ],
+    "borderLinetypeHandles": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20,
+      20
+    ],
+    "decodedHandleReferences": 28,
+    "spanTokenChecks": 40,
+    "result": "PASS independent AC1027 object, common-link, R24 prefix, body, string, and handle cursors derive the complete TABLESTYLE frame; all modeled parser field spans and peer raw bytes match",
+    "identityAndHandleSpanChecks": 40,
+    "parserSpanRangesMatched": true
+  },
+  "interpretation": {
+    "confirms": "A separate schema-driven cursor derives the AC1027 TABLESTYLE cell-body field boundaries from bit 68; consumes the R24 prefix name and all cell-content CMC, TU, margin, border, identity and handle fields in their respective streams; and closes the body/string cursors exactly at bits 6384/6938. It decodes 28 typed references from the handle stream beginning at bit 6955 (that stream partition is supplied by the captured validated frame metadata) and finds five zero tail padding bits. All modeled parser spans match these derived positions and values. The matching LibreDWG unknown-bit carrier preserves the same raw tail.",
+    "doesNotConfirm": "The captured frame metadata partition is not independently reconstructed from compressed DWG pages. The source producer is unauthenticated. This result does not settle ODA’s documented repeated-order/class semantics, validate physical compressed-page offsets, establish recursive graph closure, qualify TABLESTYLE output, or establish native consumer meaning."
+  },
+  "nextAction": "The decoded physical sequence remains title/header/data with IDs 1/2/3 and classes 1/1/2, conflicting with ODA v5.4.1 §20.4.101.2/20.4.101.4. Obtain a second eligible producer or native consumer witness exposing raw order and named-role semantics before changing parser semantics or admitting this physical profile. Until then keep Cover TABLESTYLE output unqualified; continue the next independent source-ready implementation packet. Do not repeat the unchanged ODA CLI launch without a method/environment change.",
+  "fixturePolicy": "No DWG/DXF test fixture was added to the repository.",
+  "independentlyDerived": {
+    "encodedType": 504,
+    "commonPrologueEndBit": 40,
+    "commonOwner": 105,
+    "commonOwnerStartBit": 6955,
+    "commonReactorCount": 1,
+    "commonReactorHandles": [
+      105
+    ],
+    "commonXdictHandle": 0,
+    "r24PrefixClassVersion": 0,
+    "r24PrefixName": "Standard",
+    "r24UnknownValues": [
+      8,
+      101
+    ],
+    "r24OwnerHandle": 0,
+    "r24OwnerHandleStartBit": 6987,
+    "tableCellRecordStartBit": 68,
+    "tableCellRecordEndBit": 1326,
+    "tableCellType": 5,
+    "tableCellDataFlags": 1,
+    "tableCellId": 4,
+    "tableCellClass": 2,
+    "tableCellName": "Table",
+    "tableCellTextStyleHandle": 0,
+    "tableCellBorderLineTypeHandles": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "repeatedCountStartBit": 1326,
+    "repeatedCount": 3,
+    "repeatedStyles": [
+      {
+        "recordStartBit": 1336,
+        "recordEndBit": 3040,
+        "styleIndex": 1,
+        "type": 5,
+        "hasData": 1,
+        "id": 1,
+        "class": 1,
+        "name": "_TITLE",
+        "textStyleHandle": 17,
+        "borderLineTypeHandles": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ]
+      },
+      {
+        "recordStartBit": 3040,
+        "recordEndBit": 4712,
+        "styleIndex": 2,
+        "type": 5,
+        "hasData": 1,
+        "id": 2,
+        "class": 1,
+        "name": "_HEADER",
+        "textStyleHandle": 17,
+        "borderLineTypeHandles": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ]
+      },
+      {
+        "recordStartBit": 4712,
+        "recordEndBit": 6384,
+        "styleIndex": 3,
+        "type": 5,
+        "hasData": 1,
+        "id": 3,
+        "class": 2,
+        "name": "_DATA",
+        "textStyleHandle": 17,
+        "borderLineTypeHandles": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20
+        ]
+      }
+    ]
+  },
+  "cursorProof": {
+    "bodyEndBit": 6384,
+    "stringStartBit": 6384,
+    "stringEndBit": 6938,
+    "handleStreamStartBit": 6955,
+    "handleStartBasis": "The captured frame metadata supplies handleStreamBits; the verifier independently walks H fields and validates the terminal padding but does not independently recover the stream partition from compressed DWG pages.",
+    "handleFieldsEndBit": 7387,
+    "zeroPaddingBits": 5,
+    "allParserSpanRangesMatched": true
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "PASS",
+    "diagnosticCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --opaque-dwg-source-inventory /Users/dli/doc/dwg/Cover.dwg",
+    "diagnosticResult": "PASS (exit 0); raw span log refreshed in /private/tmp only",
+    "verifierCommand": "python3 tools/research/verify_cover_tablestyle_raw_spans.py --source /Users/dli/doc/dwg/Cover.dwg --inventory-log /private/tmp/cover-field-span-raw-inventory.log --peer-json /private/tmp/cover-current-libredwg.json --inventory-binary build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests",
+    "verifierResult": "PASS; all 40 identity/reference tokens checked and all modeled parser spans matched the independent cursor",
+    "focusedCTest": "ctest --test-dir build-gcc -R ^libdxfrw_tablestyle_r24_typed_writer$ --output-on-failure",
+    "focusedCTestResult": "PASS (1/1, 0.16 seconds)",
+    "fullSuites": "NOT RUN; unrelated code paths unchanged"
+  }
+}

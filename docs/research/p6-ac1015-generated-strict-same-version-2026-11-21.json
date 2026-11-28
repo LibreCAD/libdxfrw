@@ -1,0 +1,203 @@
+{
+  "schema": 1,
+  "scope": "generated source chain; not native interoperability",
+  "ezdxfVersion": "1.4.5",
+  "tools": {
+    "dwgadd": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgadd",
+      "sha256": "66c435deb0f081ab72be21bb9ba36e5d149f9352d71ddf1e83ac95b3fc07f282"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "dwgwrite": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgwrite",
+      "sha256": "8c5dfd7f733e924723155e5040dd33f3fefdf4682071867a4c1d3499adf73e74"
+    },
+    "candidate": {
+      "path": "/private/tmp/libdxfrw-p6j-asan/dwg2dxf/dwg2dxf",
+      "sha256": "0a94fcda1fc7a13f2548cb9ba8512798569107ad342b03e5f5bb562d9a870eba"
+    }
+  },
+  "samples": {
+    "r13": {
+      "version": "AC1012",
+      "dwgSha256": "5a1b3ba9d28ad40f0fc60a3fbb1c1919f8e47ae3bbdbce7631856b82b57c0052",
+      "peerReopenSha256": "6d9788989ac1128edab6c9a79a5f991a3baa942dbe2bb0571c0fd23c2f2460c7",
+      "checks": [
+        {
+          "mode": "strict-ascii",
+          "exit": 1,
+          "traceSha256": "ac7cc7139dc83184db2fde63fc732d20c4d3e5ec84bf7fdfc56d1a867a3b25ea",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "strict-binary",
+          "exit": 1,
+          "traceSha256": "96de4aaf4ca0f3ef08c596ae175f21e6dc1235d81e627bad8af35005ae88a14f",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "partial-ascii",
+          "exit": 0,
+          "traceSha256": "1627b9f597a0aab743c39b7cbea878b0eb41b0f132f63b157f6ccdb08e5099c7",
+          "outputSha256": "a35ff0c98ba9c3f38a07b6b9d81b4ca3c1f90ee656d5d213d7825d35a6f7ed42",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-binary",
+          "exit": 0,
+          "traceSha256": "0637aa67bac6a6a3f3501749384b35f2172dd629f4f0b244e4ba9172698b70b4",
+          "outputSha256": "96068205bbe55a5e85a19e3b436325a4bf85b7d58a3e2e63eca0834ca44c4180",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        }
+      ]
+    },
+    "r14": {
+      "version": "AC1014",
+      "dwgSha256": "0f2daa122d4be16561c9f9c01dc59bce366885fd26c9fd373c1e77bf0c339068",
+      "peerReopenSha256": "2b65d1a266596677cb8fbcf9f264838a8ad2d485970702d9a13f17c1021c35b4",
+      "checks": [
+        {
+          "mode": "rounded-ascii",
+          "exit": 1,
+          "destinationPreserved": true,
+          "sourceSha256": "a629e92f321cb2585f2cd48049135605989d68f1c22a41a01d7af8f2c03003ee"
+        },
+        {
+          "mode": "rounded-binary",
+          "exit": 1,
+          "destinationPreserved": true,
+          "sourceSha256": "a629e92f321cb2585f2cd48049135605989d68f1c22a41a01d7af8f2c03003ee"
+        },
+        {
+          "mode": "strict-ascii",
+          "exit": 0,
+          "traceSha256": "8e0724ea760d66be9c539df49c50584be76bf432edf5f7244d12e29b31338abc",
+          "outputSha256": "fc45e3a3d30d56ab2dc16b2b0f4ebd2127b6a6f319514e350aac18c7c8d75c36",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "strict-binary",
+          "exit": 0,
+          "traceSha256": "676ab560f31a60aaff7e35447f7d299d0946062a51f11401177932f025eac118",
+          "outputSha256": "74193721fb0c92afdd8d72bbaac985fde639c527f317d5d7043fe296ac321e49",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-ascii",
+          "exit": 0,
+          "traceSha256": "b619da7ea009e32b94e940d4c2c578814ecc20ccc20f08c0becb12fbcef58c55",
+          "outputSha256": "fc45e3a3d30d56ab2dc16b2b0f4ebd2127b6a6f319514e350aac18c7c8d75c36",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-binary",
+          "exit": 0,
+          "traceSha256": "f4514ad7f3d6454a6fe8f9d082f040691fdd159367936c8baa290e65cdb19058",
+          "outputSha256": "74193721fb0c92afdd8d72bbaac985fde639c527f317d5d7043fe296ac321e49",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        }
+      ],
+      "adapterRetry": {
+        "testSha256": "23ed052ce791837df2ab0f077cf74eabb87d9fd7915f8a87acd39984e2277413",
+        "outputSha256": "74193721fb0c92afdd8d72bbaac985fde639c527f317d5d7043fe296ac321e49",
+        "result": "mutation refused and destination preserved; same-adapter ASCII and Binary retry passed"
+      }
+    },
+    "r2000": {
+      "version": "AC1015",
+      "dwgSha256": "aabb598eb34822153cbddb6f25acbbfe9c94e59597f60f77237a3dbb87837fbf",
+      "peerReopenSha256": "8574fbe9edfde02b72354b23a3b2431397b41f67e284df805b7de4879df3bc85",
+      "checks": [
+        {
+          "mode": "strict-ascii",
+          "exit": 0,
+          "traceSha256": "a3795a2a6887bef87b1a056939d1c3e2069e20488a8dae4d4660eb6b513c0003",
+          "outputSha256": "18d1eddb68fb7b6f72b9735fdc3603c73b41e7058bdd34ee244238fbc526a351",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "strict-binary",
+          "exit": 0,
+          "traceSha256": "023e04d10e96cd0b4ab1fed147ab6db0fb0882e4efb5d74c6ad2604bcbb00dd6",
+          "outputSha256": "68fefae1b35a2ddb0f76aba103617e45b322f7dc857bb439b1b5f1b86cd82d05",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-ascii",
+          "exit": 0,
+          "traceSha256": "a8748562edc4fa97a28ecb2ac67b8c40ad095e04205ed17b406b324bde598f8f",
+          "outputSha256": "18d1eddb68fb7b6f72b9735fdc3603c73b41e7058bdd34ee244238fbc526a351",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-binary",
+          "exit": 0,
+          "traceSha256": "40e53723dbe2eb515ebac175087bbb7ce0acfa1be530be790fa8b25c3b6ac2bc",
+          "outputSha256": "68fefae1b35a2ddb0f76aba103617e45b322f7dc857bb439b1b5f1b86cd82d05",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "strict-r2010-ascii",
+          "exit": 0,
+          "outputSha256": "73056d95fd079685878a65622c57844fa3fc0d5d1164f21e523a7ec0958ed6ec",
+          "independentReadback": "canonical plot-style graph and geometry"
+        },
+        {
+          "mode": "strict-r2010-binary",
+          "exit": 0,
+          "outputSha256": "13d425200c5132f2b69e0118a57d53047620ff69b59c2296065476a678331954",
+          "independentReadback": "canonical plot-style graph and geometry"
+        },
+        {
+          "mode": "partial-r2010-ascii",
+          "exit": 0,
+          "outputSha256": "73056d95fd079685878a65622c57844fa3fc0d5d1164f21e523a7ec0958ed6ec",
+          "independentReadback": "canonical plot-style graph and geometry"
+        },
+        {
+          "mode": "partial-r2010-binary",
+          "exit": 0,
+          "outputSha256": "13d425200c5132f2b69e0118a57d53047620ff69b59c2296065476a678331954",
+          "independentReadback": "canonical plot-style graph and geometry"
+        }
+      ],
+      "adapterRetry": {
+        "testSha256": "23ed052ce791837df2ab0f077cf74eabb87d9fd7915f8a87acd39984e2277413",
+        "outputSha256": "1133ac0d453208edaad658a4f932cf89dcfc90e622437a6c99e1138061e40c11",
+        "result": "wrong reactor, linetype, or layout owner refused for both targets; changed source style bytes or angle refused for R2000; destination preserved and same-adapter strict ASCII/Binary retry passed"
+      }
+    }
+  },
+  "status": "GENERATED_AC1015_STRICT_CONTROL_ONLY",
+  "baseCommit": "a91bc1c5c",
+  "generator": "tools/research/generate_legacy_insert_chain_control.py",
+  "generatorSha256": "b49806914d5fa194c9347ce5a2051cbb77de6631fa96f2a39f00b98e36be1b56",
+  "testSource": "tests/dwg_ac1014_output_external_tests.cpp",
+  "testSourceSha256": "d23dff8e96e371f9be2765d915eabc9287c82196196b4ea7a6b30419d0d9414b",
+  "specification": {
+    "document": "ODA Open Design Specification for DWG Files v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.1 common object layout",
+      "20.2 common entity links",
+      "20.4.73 MLINESTYLE"
+    ],
+    "boundary": "R2000 object bit size precedes self handle and EED; R13/R14 place it after them."
+  },
+  "change": "Allow the previously selected, source-bound AC1015 MLINESTYLE and two-LAYOUT output proofs to inspect AC1015 DXF as well as AC1024. Extend the bounded standard MLINESTYLE wire verifier to R2000 and require its recheck for AC1015-to-AC1015 output. Source graph, staged output, callback qualification and version checks remain active.",
+  "validation": [
+    "Locally generated AC1015 source uses three implicit next-link INSERTs and a following LINE; the corrected scratch graph and exact MLINESTYLE angles are independently peer-reopened.",
+    "Strict and explicit partial ASCII/Binary outputs pass for AC1015 and AC1024 targets. ezdxf 1.4.5 retains the original canonical plot dictionary/default graph, MLINESTYLE fields and owner/reactor, both LAYOUT records, their block-record backlinks, and INSERT/LINE geometry.",
+    "Under AddressSanitizer, each encoding and target rejects wrong placeholder reactor, wrong MLINESTYLE linetype, and wrong LAYOUT owner with the destination preserved; the same adapter succeeds after restoring each field. AC1015 target also rejects changed MLINESTYLE source bytes and changed angle, then retries successfully.",
+    "R13 strict refusal and R14 strict/partial controls continue to pass."
+  ],
+  "limitations": [
+    "Locally generated source and one peer reader are not native application or broader interoperability evidence.",
+    "MLINESTYLE wire proof is bounded to the selected two-element Standard style with 90-degree angles and +/-0.5 offsets for this target.",
+    "No organic entity failure is present; P6-F and the open package gates remain unchanged."
+  ],
+  "supportClaimEffect": "none"
+}

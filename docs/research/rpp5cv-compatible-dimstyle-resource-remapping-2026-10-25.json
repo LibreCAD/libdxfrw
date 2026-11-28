@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5cv compatible DIMSTYLE resource remapping",
+  "date": "2026-10-25",
+  "parentCommit": "9ba6516698d0bdaf0d865b4122305ee63d98cca3",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "TESTED_SAME_REVISION_COMPATIBLE_DXF_RESOURCE_REMAP_CLOSED_BROADER_NATIVE_SEMANTIC_PLATFORM_PARITY_OPEN",
+  "baseline": {
+    "buildLog": "/tmp/rpp5cv-baseline-build.log",
+    "testLog": "/tmp/rpp5cv-baseline.log",
+    "observed": "Literal valid source imports, then compatible export retains source DIMSTYLE resource handles after actual table rows are reminted",
+    "diagnostic": "compatible DIMSTYLE resource map differs from actual emitted rows",
+    "sourceAuthoring": "Literal ASCII and little-endian binary tags created locally from scratch without the library serializer; no drawing payload committed"
+  },
+  "scope": {
+    "format": "DXF",
+    "versions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "targets": "Same revision as source; ASCII and binary",
+    "resourceRoles": {
+      "340": "STYLE",
+      "341": "leader arrow BLOCK_RECORD",
+      "342": "arrow BLOCK_RECORD",
+      "343": "first arrow BLOCK_RECORD",
+      "344": "second arrow BLOCK_RECORD",
+      "345": "dimension LTYPE",
+      "346": "first extension LTYPE",
+      "347": "second extension LTYPE"
+    },
+    "linetypeVersionGate": "AC1021 and later",
+    "nativeDwgLayoutChanged": false,
+    "publicApiAbiCallbacksChanged": false,
+    "strictResourceGuardsDisabled": false,
+    "crossRevisionMatrixQualified": false,
+    "independentReaderQualification": "NOT_RUN",
+    "supportClaimsPromoted": false
+  },
+  "implementation": {
+    "knownBindings": "Require matching source identity, resource family/name and actual emitted row; never bind through an unrelated generic table alias",
+    "legacyArrowAliases": "Known modern 342/343/344 source roles supply actual block names for obsolete groups 5/6/7; do not replay stale handle text as a name",
+    "nullPresence": "DRW::NoHandle equals zero. Preserve explicit-null 341-347 when typed handle code is 5; do not confuse absent default handles with explicit zero",
+    "compatibleUnknowns": "Preserve unresolved references without qualifying them; strict still refuses dangling or wrong-family identities",
+    "duplicateSlots": "Reject duplicate modern resource dynamic variables before record prefix in compatible and strict modes",
+    "transactions": "Known arrows reuse pending block-resource registration inside RecordStateScope; sentinel and corrected same-facade retry controls retained",
+    "callerState": "Resource names, eight typed handle code/ref/ref64 fields and string dynamic variables compared before/after positive exports"
+  },
+  "controls": {
+    "test": "libdxfrw_dimstyle_compatible_resource_remap",
+    "selector": "libdxfrw_dimstyle_optional_handle_tests --resource-remap",
+    "sourceVersionCount": 6,
+    "sourceEncodings": 2,
+    "outputEncodings": 2,
+    "positiveRoutes": 24,
+    "perRoute": "Compatible export, actual import, opposite-encoding compatible reexport, actual import, full-policy strict export, physical target/role checks",
+    "fullPolicyStrictFinalPass": [
+      "RequireValidSource",
+      "RequireLossless",
+      "FailIfNotPreserved",
+      "RequireComplete"
+    ],
+    "actualOutputChecks": [
+      "Unique expected resource slots",
+      "Actual matching emitted STYLE/BLOCK_RECORD/LTYPE handles",
+      "Distinct source and emitted handles",
+      "Actual arrow BLOCK owner",
+      "EOF"
+    ],
+    "compatibleMissingOrWrongFamilyControls": 32,
+    "strictAtomicRefusals": 32,
+    "compatibleDuplicateAtomicRefusals": 16,
+    "totalAtomicRefusals": 48,
+    "destinationSentinelsPreserved": 48,
+    "correctedSameFacadeReadbacks": 48,
+    "explicitNullEncodingRoutes": 4,
+    "preExistingOptionalHandleTestsRetained": true,
+    "scratchIsolation": "Fresh unique temporary directory per selector run; success removes only that owned directory, failure retains evidence",
+    "geometrySemanticQualification": false
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang; build-gcc is not native Linux/GCC",
+    "normalBuildLog": "/tmp/rpp5cv-final-build-gcc-build.log",
+    "asanBuildLog": "/tmp/rpp5cv-final-build-asan-custom-build.log",
+    "normalTests": {
+      "passed": 31,
+      "total": 31,
+      "elapsedSeconds": 34.07,
+      "log": "/tmp/rpp5cv-final-normal-tests.log"
+    },
+    "asanTests": {
+      "passed": 31,
+      "total": 31,
+      "elapsedSeconds": 74.35,
+      "log": "/tmp/rpp5cv-final-asan-tests.log",
+      "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0"
+    },
+    "owningCohortsSequentialAcrossBuildTrees": true,
+    "cliOptionalRegistration": {
+      "passed": 1,
+      "total": 1,
+      "elapsedSeconds": 2.7,
+      "log": "/tmp/rpp5cv-cli-optional-tests.log"
+    },
+    "lc3CompileGates": [
+      "build-gcc: PASS",
+      "build-asan-custom: PASS"
+    ],
+    "tests": [
+      "libdxfrw_material_color_lexemes",
+      "libdxfrw_material_root_output_compatibility",
+      "libdxfrw_numeric_locale",
+      "dwg2dxf_numeric_locale_ascii_cli",
+      "dwg2dxf_numeric_locale_binary_cli",
+      "dwg2dxf_generated_root_common_closure",
+      "dwg2dxf_raster_finite_real_controls",
+      "dwg2dxf_raster_token_width_controls",
+      "dwg2dxf_raster_observer_profiles",
+      "dwg2dxf_raster_observer_profile_faults",
+      "dwg2dxf_raster_profile_token_controls",
+      "dwg2dxf_standard_output_framing_controls",
+      "libdxfrw_acds_raw_scalar_wire_controls",
+      "dwg2dxf_acds_history_reexport_faults",
+      "libdxfrw_raster_dwg_independent_wire",
+      "dwg2dxf_modern_cli_versions",
+      "dwg2dxf_acds_strict_material_closure",
+      "libdxfrw_material_strict_color_closure",
+      "libdxfrw_material_raw_scalar_wire_controls",
+      "dwg2dxf_rooted_xrecord_string_widths",
+      "dwg2dxf_rooted_xrecord_string_width_faults",
+      "dwg2dxf_generated_dictionary_scalar_transport",
+      "dwg2dxf_generated_dictionary_scalar_faults",
+      "libdxfrw_dimstyle_dimclr_cmc",
+      "libdxfrw_dimstyle_dimtfill_cmc",
+      "libdxfrw_dimstyle_subclass_wire_census",
+      "libdxfrw_dimension_picture_block_full_conversion",
+      "libdxfrw_dimstyle_optional_handles",
+      "libdxfrw_dimstyle_compatible_resource_remap",
+      "dwg2dxf_dimstyle_optional_handles_ascii_cli",
+      "dwg2dxf_dimstyle_optional_handles_binary_cli"
+    ],
+    "testRegex": "^(libdxfrw_material_color_lexemes|libdxfrw_material_root_output_compatibility|libdxfrw_numeric_locale|dwg2dxf_numeric_locale_ascii_cli|dwg2dxf_numeric_locale_binary_cli|dwg2dxf_generated_root_common_closure|dwg2dxf_raster_finite_real_controls|dwg2dxf_raster_token_width_controls|dwg2dxf_raster_observer_profiles|dwg2dxf_raster_observer_profile_faults|dwg2dxf_raster_profile_token_controls|dwg2dxf_standard_output_framing_controls|libdxfrw_acds_raw_scalar_wire_controls|dwg2dxf_acds_history_reexport_faults|libdxfrw_raster_dwg_independent_wire|dwg2dxf_modern_cli_versions|dwg2dxf_acds_strict_material_closure|libdxfrw_material_strict_color_closure|libdxfrw_material_raw_scalar_wire_controls|dwg2dxf_rooted_xrecord_string_widths|dwg2dxf_rooted_xrecord_string_width_faults|dwg2dxf_generated_dictionary_scalar_transport|dwg2dxf_generated_dictionary_scalar_faults|libdxfrw_dimstyle_dimclr_cmc|libdxfrw_dimstyle_dimtfill_cmc|libdxfrw_dimstyle_subclass_wire_census|libdxfrw_dimension_picture_block_full_conversion|libdxfrw_dimstyle_optional_handles|libdxfrw_dimstyle_compatible_resource_remap|dwg2dxf_dimstyle_optional_handles_ascii_cli|dwg2dxf_dimstyle_optional_handles_binary_cli)$",
+    "werrorRetained": true,
+    "gitDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "leakCheck": false,
+    "codeSha256": {
+      "src/libdxfrw.cpp": "63d36540a325994e809acc74ae0d38f4c590443832c2608ad416cc75a3ebf345",
+      "tests/CMakeLists.txt": "f86b478c696ffed40a2f7b4301b5377eeb4bfb5302837b3e7e3a7edac1aa1cbf",
+      "tests/dimstyle_optional_handle_tests.cpp": "dc2c5249c9c5c5c89daf7fa7761fd80c7ce15a4f0bf12a6ac924361e745a71c4"
+    }
+  },
+  "references": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+      "role": "DIMSTYLE STYLE/arrow handle roles and obsolete arrow-name groups"
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/v1.4.4/src/ezdxf/entities/dimstyle.py",
+      "role": "Independent implementation role corroboration, including 345-347 LTYPE; no independent execution in this slice"
+    }
+  ],
+  "limits": {
+    "qualificationLedger": "CLOSED",
+    "externalFollowups": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernel": "NOT_RUN",
+    "previousInvalidReplays": "Not repaired or promoted; a resource already missing from input cannot be inferred safely",
+    "physicalScanner": "Uses library scalar reader, not an independent schema/geometry oracle",
+    "untestedExtensions": [
+      "Native DWG source remapping",
+      "Cross-revision target matrix",
+      "Broader legacy downwrites and name/body/resource collisions"
+    ],
+    "externalFixturesCommitted": false,
+    "preExistingUntrackedDrawingsTouched": false,
+    "previousImmutableReceiptsModified": false,
+    "remoteMutation": false
+  },
+  "next": [
+    "Inventory the external example's still-rejected OBJECTS and preserve exact first diagnostic/source provenance",
+    "Establish SWEEP/EXTRUSION binary widths, nested handles, EED APPID/LAYER/material roles and raw-versus-native authority before bounded admission",
+    "Extend native/cross-revision DIMSTYLE and independent emitted-reference evidence separately",
+    "Continue full native carrier, IMAGE, document closure and 2D/3D consumer plan",
+    "Self-update evidence, run fast affected tests, commit and report after each ready slice without promoting deferred external evidence"
+  ]
+}

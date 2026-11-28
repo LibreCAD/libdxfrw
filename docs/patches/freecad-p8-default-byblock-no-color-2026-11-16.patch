@@ -1,0 +1,71 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index 73c1e3e..7620c5b 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2480 +2480,2 @@ bool CDxfRead::ReadBoundedMesh(
+-                    if (vertexColor < 1 || vertexColor > 256) profileValid = false;
++                    // BYBLOCK is safe to discard only when colors are disabled.
++                    if (vertexColor < (m_preserveColors ? 1 : 0) || vertexColor > 256) profileValid = false;
+@@ -2690 +2691,2 @@ bool CDxfRead::ReadPolyLine()
+-                if (parentColor < 1 || parentColor > 256) polyfaceProfile = false;
++                // Negative color values may encode visibility and remain refused.
++                if (parentColor < (m_preserveColors ? 1 : 0) || parentColor > 256) polyfaceProfile = false;
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index 2b084ac..87b74a4 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -933,0 +934,48 @@ class TestImportDXF(TestImportBase):
++    def test_bounded_mesh_parent_byblock_color_disabled(self):
++        """BYBLOCK is a valid color to discard, unlike malformed parent colors."""
++        options = FreeCAD.ParamGet(self.option_source)
++        cases = (("byblock", (0,), True), ("negative", (-1,), False),
++                 ("range", (257,), False), ("duplicate", (0, 0), False))
++        for polygon in (False, True):
++            for preserve in (True, False):
++                options.SetBool("dxfGetOriginalColors", preserve)
++                for name, parent_tags, valid in cases:
++                    with self.subTest(polygon=polygon, preserve=preserve, profile=name):
++                        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                                (0, "SECTION"), (2, "ENTITIES")]
++                        for offset, colors in ((0, parent_tags), (10, (1,))):
++                            tags.extend([(0, "POLYLINE"), (8, "0"), (66, 1), (70, 16 if polygon else 64)])
++                            tags.extend((62, color) for color in colors)
++                            if polygon:
++                                tags.extend([(71, 2), (72, 2)])
++                            coords = ((offset, 0), (offset, 3), (offset + 4, 0), (offset + 4, 3)) if polygon else (
++                                (offset, 0), (offset + 4, 0), (offset, 3))
++                            for x, y in coords:
++                                tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0),
++                                             (70, 64 if polygon else 192), (62, 1)])
++                            if not polygon:
++                                tags.extend([(0, "VERTEX"), (8, "0"), (10, 0), (20, 0), (30, 0),
++                                             (70, 128), (71, 1), (72, 2), (73, 3), (62, 1)])
++                            tags.extend([(0, "SEQEND"), (8, "0")])
++                        tags.extend([(0, "LINE"), (8, "0"), (10, 20), (20, 0), (30, 0),
++                                     (11, 22), (21, 0), (31, 0), (0, "ENDSEC"), (0, "EOF")])
++                        path = os.path.join(self.temp_dir, f"parent-byblock-{polygon}-{preserve}-{name}.dxf")
++                        with open(path, "w", encoding="ascii", newline="\n") as stream:
++                            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                        previous = set(self.document.Objects)
++                        stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                        objects = [obj for obj in self.document.Objects if obj not in previous
++                                   and obj.isDerivedFrom("Part::Feature")]
++                        meshes = [obj for obj in objects if obj.Name.startswith("PolygonMesh" if polygon else "Polyface")]
++                        lines = [obj for obj in objects if obj.Name.startswith("Shape")]
++                        accepted = valid and not preserve
++                        self.assertEqual(len(meshes), 1 + int(accepted))
++                        self.assertEqual(len(lines), 1)
++                        for mesh in meshes:
++                            self.assertAlmostEqual(mesh.Shape.Area, 12.0 if polygon else 6.0)
++                        reason = ("POLYGON MESH" if polygon else "POLYFACE") + " unsupported or invalid profile"
++                        self.assertEqual(reason in stats["unsupportedFeatures"], not accepted)
++                        if not accepted:
++                            self.assertEqual(len(stats["unsupportedFeatures"][reason]), 1)
++
+@@ -938 +986 @@ class TestImportDXF(TestImportBase):
+-                 ("byblock", (0,), False), ("duplicate", (2, 3), False))
++                 ("byblock", (0,), True), ("duplicate", (2, 3), False))
+@@ -989 +1037 @@ class TestImportDXF(TestImportBase):
+-                 ("bylayer", ((2,), (256,)), True), ("byblock", ((2,), (0,)), False),
++                 ("bylayer", ((2,), (256,)), True), ("byblock", ((2,), (0,)), True),

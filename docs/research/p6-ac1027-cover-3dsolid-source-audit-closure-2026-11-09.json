@@ -1,0 +1,72 @@
+{
+  "receipt": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1027-cover-3dsolid-source-audit-closure-2026-11-09",
+  "date": "2026-11-09",
+  "status": "ONE_HASH_BOUND_3DSOLID_REFERENCE_PROFILE_CLASSIFIED",
+  "scope": "Join the exact AC1027 Cover 3DSOLID History ID bit-span proof and unique layer lookup into the repeatable source-reference audit.",
+  "supportClaimEffect": "none",
+  "authority": {
+    "name": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "§20.4.41 identifies the R2007+ 3DSOLID/REGION History ID H field.",
+      "§2.13 defines handle code 3 as hard ownership."
+    ],
+    "limit": "These rules do not establish a DWG-to-DXF ownership-role equivalence or ACIS history semantics."
+  },
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "producerProvenance": "Existing local source; producer is not independently authenticated and no drawing fixture is committed.",
+    "frame": {
+      "handle": "0x6f",
+      "encodedType": 38,
+      "recordSizeBytes": 28,
+      "historyField": {
+        "present": true,
+        "code": 3,
+        "encodedOffsetBytes": 0,
+        "reference": "0x0",
+        "startBit": 209,
+        "bitSize": 8,
+        "parseComplete": true
+      },
+      "layerLookup": {
+        "name": "0",
+        "matchingLayerCount": 1,
+        "targetLayerHandle": "0x10"
+      },
+      "dataStorageJoin": "The preceding source-bound probe receipt records same-handle record 0x6f, a complete 22,983-byte payload, and byte equality with the entity payload; see p4-ac1027-cover-3dsolid-history-wire-span-2026-11-08.json."
+    }
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tools/research/audit_ac1027_source_references.py"
+    ],
+    "change": "The inventory emits the parsed History ID code/value/span for 3DSOLID frames. The audit verifier now admits the exact Cover hash/handle profile only when its History ID fields and the unique layer edge match the pinned evidence; it reclassifies that frame as source-bound rather than a selected typed report. Other sources receive no such promotion.",
+    "scopeLimit": "This source-specific classification does not clear m_unqualifiedAc1027DwgImport or authorize DXF output."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "pythonSyntax": "PASS: python3 -m py_compile tools/research/audit_ac1027_source_references.py",
+    "auditCommand": "python3 tools/research/audit_ac1027_source_references.py --executable build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --source /Users/dli/doc/dwg/Cover.dwg --timeout 60",
+    "auditVerifierSha256": "3d52501a924f1ea977640a3b0386e2c5bd9bbca982e1685b9963771aa58c4534",
+    "auditExecutableSha256": "44d642ab4dcac688bf8ffa63cbc27c976243112dc6fb13230733dad1a7cb57b0",
+    "diagnosticOutputSha256": "f60b776e8441463209da73f48b87a0b91bbc655e2a0745af3a5ce9736353840e",
+    "auditOutputSha256": "67d496b0d94cd13f2c872c4bbc1df081d6d7858f8c1ef63fea2a19e94f19500a",
+    "sourceFramesCaptured": 88,
+    "typedBodyReferenceRows": 129,
+    "sourceBoundModelerHistoryProfiles": 1,
+    "selectedTypedBodyReportRows": 0,
+    "notExhaustivelyDecodedRows": 0,
+    "fullTestSuites": "NOT RUN"
+  },
+  "remainingGates": [
+    "The audit still records only selected body-reference profiles and common links; all entity/table reference closure and independent proof of all owner roles remain incomplete.",
+    "The HEADER suffix remains unclaimed and independently blocks strict complete output.",
+    "No output route, whole-source semantic equivalence, ACIS history meaning, or support claim is qualified."
+  ],
+  "next": "Continue source-wide entity/table reference and dependency closure; preserve the global AC1027 strict-output guard until every source dependency and output disposition is proven."
+}

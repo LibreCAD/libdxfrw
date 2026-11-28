@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-oda-dictionary-default-raw-shell-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_RAW_SOURCE_ONLY",
+  "supportClaimEffect": "none",
+  "priorReceipt": "docs/research/p6-ac1012-oda-cellstylemap-raw-shell-2026-11-21.json",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.44 and 20.4.45: plain R13 DICTIONARY omits the cloning field; DICTIONARYWDFLT adds a hard-pointer default entry. Later producer-frame evidence identifies a cloning field in the observed legacy DICTIONARYWDFLT subclass; see p6-legacy-dictionary-default-typed-2026-11-21.json.",
+  "sources": [
+    "9361298515f2a339d6bfd7b55621e53b095389b433fd21c39441a11a267f5fcf",
+    "c70a47dbb7a03a1eca49870e91f17ab10854dc108b5e58e97a7e2e644f2eb4b9"
+  ],
+  "observation": {
+    "version": "AC1012",
+    "handle": "12",
+    "class": "AcDbDictionaryWithDefault",
+    "record": "ACDBDICTIONARYWDFLT",
+    "frameOffset": 5190,
+    "frameBytes": 51,
+    "frameSha256": "63bb16a8d25b77f8670b347ca30d73fe24e89acdd65727a04cdb45231273d512",
+    "peerDecoder": "GNU LibreDWG 0.14; CRC and hard-pointer default target 13 observed",
+    "typedPayloadPublished": false,
+    "retainedRawFrame": true,
+    "rawFrameOutputQualified": false,
+    "objectFramesPublished": 201,
+    "objectFramesFailed": 0,
+    "objectFramesObserved": 201,
+    "unmodeledRawClasses": ["AcDbDictionaryWithDefault", "AcDbCellStyleMap"]
+  },
+  "checks": [
+    "The physical-source test compares the captured dictionary frame byte-for-byte with each ODA input and verifies its class, source identity, raw-only state and absence of output qualification.",
+    "The exact R13 class/version selector and negative controls pass the focused object-vector test.",
+    "Both output encodings are refused and preserve an existing destination; the earlier EED source mutation and corrected-retry controls remain active.",
+    "Focused AC1012/AC1014 tests pass under ASan with statically linked targets rebuilt after the reader change."
+  ],
+  "limits": [
+    "The producer and peer traces do not establish native duplicate/cloning semantics or qualify the raw body for DXF output.",
+    "A complete frame-disposition ledger is not complete semantic coverage or a support claim; both unmodeled classes remain reported as skipped.",
+    "EED codepage 45 and the independent ModelDocViewStyle cross-version guard remain unresolved.",
+    "The generated samples remain outside the repository."
+  ]
+}

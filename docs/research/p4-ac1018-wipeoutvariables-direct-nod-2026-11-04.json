@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_AC1018_DIRECT_NOD_GENERATED_OUTPUT",
+  "supportClaimEffect": "none",
+  "scope": "AC1018 same-revision WIPEOUTVARIABLES, frame 0, direct NOD owner plus one same-NOD reactor. Root source qualification is limited to exactly ACAD_GROUP\u2192empty DICTIONARY and ACAD_WIPEOUT_VARS\u2192WIPEOUTVARIABLES in that order. No generic unknown common-link evidence is upgraded.",
+  "source": {
+    "provenance": "Scratch DXF authored with ezdxf 1.4.5 tools/author_wipeout_direct_nod.py; ODA File Converter 27.1.0 ACAD2004 DWG and DXF; no fixture committed.",
+    "inputDxfSha256": "61530d185249c0d2db9a752f3af29990da4c7777283228e18e2c3d50a95f34bb",
+    "dwgSha256": "ec41e065f406cd19d133940892754d5c76e85c1c8f6bd3f283632a75fddebb54",
+    "odaDxfSha256": "72c258abcc4dbc439b59f338e334c6338310046d48cdd4c1591421a497ff51ce",
+    "independent": "LibreDWG 0.14 independently reports dynamic class 513, WIPEOUTVARIABLES 0x30, class instance count 1, NOD 0xA key ACAD_WIPEOUT_VARS role 2\u21920x30, frame 0, no EED, one reactor, missing XDICT, and distinct owner/reactor role 4\u21920xA. Object stream offset 2737, body 15 bytes, pre-handle boundary bit 81, owner [81,97), reactor [97,113), zero padding [113,120), CRC 2441 verified. Offsets are in the decompressed object stream.",
+    "local": "In-tree capture and separate bit walk check source/class identity and exact spans; page decompression and object CRC validation are in-tree, not independent."
+  },
+  "authority": "ODA v5.4.1 \u00a7\u00a710.2, 20.1 and 20.4.44 specify R2004 class count, common pre-handle boundary and dictionary owner/item roles. The specification does not name the WIPEOUTVARIABLES-specific body; the one-BS frame-0 body is supported by the physical ODA/LibreDWG witness, not inferred as a general specification.",
+  "implementation": "Add AC1018 inline custom-object framing observer: BS class type, RL object-data end, self, empty EED, one reactor, missing XDICT, frame-0 BS, exact end, soft-pointer owner/reactor, zero pad. The exact root/group/WIPEOUT source graph is bound to immutable same-import snapshots, complete opaque-source capture, canonical class identity/count and source-frame identity; output still requires graph staging and exact emitted-source qualification. Allocation failure in source-proof evaluation refuses safely. Existing AC1024/27/32 routes stay unchanged.",
+  "validation": {
+    "focused": "ctest --test-dir build-gcc -R '^(dwg2dxf_wipeoutvariables_ac1018_direct_nod|libdxfrw_ac1018_minimal_dictionary_source|dwg2dxf_wipeoutvariables_ac1024_direct_nod|dwg2dxf_wipeoutvariables_ac1027_direct_nod|dwg2dxf_wipeoutvariables_ac1032_direct_nod|dwg2dxf_wipeoutvariables_dwg_adapter_transport)$' --output-on-failure: 6/6 PASS",
+    "generated": "Locally generated exact direct-NOD graph: strict ASCII and Binary typed output/readback; wrong root key/aliases, owner/reactor fields and raw roles, cross-revision, storage flag, unsupported frame and class/retained-frame/root/capture-failure mutations preserve destination and retry. Class and raw changes additionally refuse the independent source owner query. The controls mutate retained data after import, not CRC-resealed physical files.",
+    "physical": "g++ -std=c++17 -Wall -Wextra -Werror -I. -Isrc -Idwg2dxf tools/probe_wipeout_ac1018_source.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /private/tmp/wipeout-ac1018/probe-final; python3 tools/audit_wipeout_ac1018_source.py /private/tmp/wipeout-ac1018/dwg/source.dwg /private/tmp/wipeout-ac1018/probe-final /opt/homebrew/bin/dwgread build-gcc/dwg2dxf/dwg2dxf: PASS; source hash checked before/after.",
+    "physical_limit": "The physical source has 16+ other NOD entries and a 739-byte unclaimed HEADER suffix; strict whole-source export remains refused with destination sentinel preserved. The header refusal check used the existing CLI binary; the source callback/bit probe was relinked to the current adapter. Neither this profile nor record transport proves native WIPEOUT rendering.",
+    "addressSanitizer": "ctest --test-dir build-asan-custom -R '^dwg2dxf_wipeoutvariables_ac1018_direct_nod$' --output-on-failure: 1/1 passed after rebuilding the final adapter with AddressSanitizer."
+  },
+  "reproduction": [
+    "build/rpp5gh-evidence/peer/bin/python tools/author_wipeout_direct_nod.py <scratch>/in/source.dxf",
+    "ODAFileConverter <scratch>/in <scratch>/dwg ACAD2004 DWG 0 0 '*.dxf'",
+    "ODAFileConverter <scratch>/dwg <scratch>/out ACAD2004 DXF 0 0 '*.dwg'",
+    "For the exact hash-bound witness, compile/run the physical validation command above; regenerated files need new source binding and independent inspection."
+  ]
+}

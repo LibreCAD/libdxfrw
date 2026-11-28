@@ -1,0 +1,1391 @@
+{
+  "schema": "libdxfrw-p4-dbcolor-oda-palette-counterexamples-v1",
+  "recordedAt": "2026-11-03",
+  "status": "RESEARCH_ONLY_NO_SUPPORT_PROMOTION",
+  "scope": "One locally generated AC1021 ASCII DXF scaffold per color/name variant, resaved directly as AC1021 DXF by one macOS ODA File Converter release; this does not test DWG-to-DXF conversion, establish CAD-neutral named-color semantics, or qualify any adapter graph.",
+  "producer": {
+    "name": "ODA File Converter",
+    "version": "27.1.0",
+    "platform": "macOS ARM64",
+    "binarySha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "arguments": "<input-directory> <output-directory> ACAD2007 DXF 0 0",
+    "exitCode": 0,
+    "outputFiles": 70,
+    "errorFiles": 0
+  },
+  "generator": {
+    "path": "tools/dbcolor_palette_probe.py",
+    "sha256": "14f5c8768e8cea7c172a41713e4fc0f1932bf71b212020c5b83aa3d255ce583e",
+    "ezdxfVersion": "1.4.5",
+    "description": "ezdxf creates an empty R2007 scaffold; repository tool authors one dictionary entry and DBCOLOR record with 420, optional 430, no 62 and no EED. Each named variant uses the fixed RAL CLASSIC$RAL 7047 name irrespective of input RGB; this is only a differential control, not evidence that the name and arbitrary RGB represent a valid color-book entry.",
+    "commands": [
+      "python3 -B tools/dbcolor_palette_probe.py self-test",
+      "build/rpp5gh-evidence/peer/bin/python -B tools/dbcolor_palette_probe.py prepare <new-input-directory>",
+      "<ODA File Converter> <new-input-directory> <new-output-directory> ACAD2007 DXF 0 0",
+      "build/rpp5gh-evidence/peer/bin/python -B tools/dbcolor_palette_probe.py compare <new-input-directory> <new-output-directory> <libredwg-src/dwg.c>"
+    ]
+  },
+  "comparators": {
+    "autodeskLookup": {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_Colors_EntityColor_LookUpAci_byte_byte_byte.html",
+      "statement": "Autodesk documents RGB-to-ACI as closest match, but does not specify the palette, distance metric, tie-break, or DBCOLOR serialization algorithm."
+    },
+    "ezdxf": {
+      "version": "1.4.5",
+      "source": "ezdxf.colors.DXF_DEFAULT_COLORS; source describes an AutoCAD 2020 modelspace palette for a particular display background",
+      "distance": "minimum unweighted squared RGB distance across indices 1..255, retaining all ties; not claimed to be ezdxf behavior or ODA behavior"
+    },
+    "libredwg": {
+      "source": "https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/dwg.c",
+      "sourceFileSha256": "a1af9430a09ab2ea68ca777817c47db7627566de6e427e0a8fb1a58f91aa64b3",
+      "distance": "minimum unweighted squared RGB distance across indices 1..255, retaining all ties; not claimed to be LibreDWG behavior or ODA behavior",
+      "note": "LibreDWG dwg_find_color_index does an exact table match and returns 256 for unmatched RGB; it is not a closest-color algorithm."
+    }
+  },
+  "observations": {
+    "numberRGBs": 35,
+    "namedAndUnnamedCases": 70,
+    "allRGBsRetained": true,
+    "allNamePairsSame62": true,
+    "unnamedMismatchCounts": {
+      "ezdxfPaletteEuclidean": 15,
+      "libredwgPaletteEuclidean": 16
+    },
+    "counterexamples": [
+      "RGB 0x696969 -> ODA 251; both candidate palette tables have exact RGB match at index 252.",
+      "RGB 0x7F0000 -> ODA 16; both candidate palette tables choose 14 by unweighted squared RGB distance.",
+      "RGB 0x000000 -> ODA 18; the tested LibreDWG palette has equal black entries at 18, 98 and 178, so tie policy matters."
+    ]
+  },
+  "limitations": [
+    "The probes have no XDATA; the prior EED counterexample receipt separately covers selected EED controls.",
+    "Different palettes or distance functions could fit these results. These cases do not establish ODA internals or universal behavior, and do not demonstrate whether Autodesk uses any candidate formula.",
+    "The name-versus-unnamed comparison does not resolve color-book validity because most RGBs do not match the fixed RAL name.",
+    "The original physical DWG graph and EED must still be preserved exactly, and the originating DWG has no observed serialized DXF group-62 fallback."
+  ],
+  "conclusion": "Do not synthesize a DWG-source DBCOLOR group 62 from either tested palette-nearest formula; retain the fail-closed complete-output gate until producer-backed fallback and source graph semantics are independently established.",
+  "results": [
+    {
+      "name": "000000_unnamed.dxf",
+      "inputSha256": "3103a84ee35b16bfc3b7d242913d5c55f59394c055ede142366f210353d740af",
+      "outputSha256": "49c7225558d964c9b249654f925a451b808374b9579e2a1b42a5eace6a827b13",
+      "input420": 0,
+      "input430": [],
+      "output420": 0,
+      "output430": [],
+      "output62": 18,
+      "ezdxfEuclideanNearest": [
+        250
+      ],
+      "libredwgEuclideanNearest": [
+        18,
+        98,
+        178
+      ]
+    },
+    {
+      "name": "000000_named.dxf",
+      "inputSha256": "6c061b6abadb8e7822b95ed60c666a9bc6cb67c04de0cba216c1595f6997e80a",
+      "outputSha256": "6b135f24b1cdca672dd823e08c0305e9757ce9b99e2b8156050a989549579481",
+      "input420": 0,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 0,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 18,
+      "ezdxfEuclideanNearest": [
+        250
+      ],
+      "libredwgEuclideanNearest": [
+        18,
+        98,
+        178
+      ]
+    },
+    {
+      "name": "000080_unnamed.dxf",
+      "inputSha256": "a521180e83aeec705e0a9f8edc47dcf52ac6ac61d906e14d52d34263081a1930",
+      "outputSha256": "661f57ffc736e6099ede560779911fa3e049b7ce9f20e2039ca15269832a7132",
+      "input420": 128,
+      "input430": [],
+      "output420": 128,
+      "output430": [],
+      "output62": 176,
+      "ezdxfEuclideanNearest": [
+        174
+      ],
+      "libredwgEuclideanNearest": [
+        174
+      ]
+    },
+    {
+      "name": "000080_named.dxf",
+      "inputSha256": "0ccc3c80548246f8e9e10cabd6b36621fa83bd0c3345db9275317de52050a418",
+      "outputSha256": "2891f75c47e81d2b2af916494ae84fe368b2e9e004a8ffaf073bce0b8c568e97",
+      "input420": 128,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 128,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 176,
+      "ezdxfEuclideanNearest": [
+        174
+      ],
+      "libredwgEuclideanNearest": [
+        174
+      ]
+    },
+    {
+      "name": "0000ff_unnamed.dxf",
+      "inputSha256": "03d847b1bb8f58a81fda4b0c010aae27059d44dc05cc1bdb95cf7b78886ca1f3",
+      "outputSha256": "e017f6758e4e9dd2854335b5554dafef4805529e93b776e15c0236e4e7da9730",
+      "input420": 255,
+      "input430": [],
+      "output420": 255,
+      "output430": [],
+      "output62": 5,
+      "ezdxfEuclideanNearest": [
+        5,
+        170
+      ],
+      "libredwgEuclideanNearest": [
+        5,
+        170
+      ]
+    },
+    {
+      "name": "0000ff_named.dxf",
+      "inputSha256": "6abc40d35a23921430274352b217a8c2735c0428fba2dc790dbb43953ed8faad",
+      "outputSha256": "050ebe4dd7a1df7b6ec0d0d9b3c62662ca6eaef01cfc98354c8fbf95976fe904",
+      "input420": 255,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 255,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 5,
+      "ezdxfEuclideanNearest": [
+        5,
+        170
+      ],
+      "libredwgEuclideanNearest": [
+        5,
+        170
+      ]
+    },
+    {
+      "name": "00ff00_unnamed.dxf",
+      "inputSha256": "027674b6d9a534c6379b14e4e7001d33878d204dc4e2e7e0c481f4fdf22d6f74",
+      "outputSha256": "d2a7803d49037e1c3e9b7d18984799939e1cf46a8ab29225f0e0c2a95a5527ca",
+      "input420": 65280,
+      "input430": [],
+      "output420": 65280,
+      "output430": [],
+      "output62": 3,
+      "ezdxfEuclideanNearest": [
+        3,
+        90
+      ],
+      "libredwgEuclideanNearest": [
+        3,
+        90
+      ]
+    },
+    {
+      "name": "00ff00_named.dxf",
+      "inputSha256": "e2e28fd3621f62cdf447ad639f6990a9dd0dfa6787591d88cdbc10fc3211760b",
+      "outputSha256": "fb3a21b71317732d5a850079637866c2ad2b9e1fe612bb69261327a9a2a0c46f",
+      "input420": 65280,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 65280,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 3,
+      "ezdxfEuclideanNearest": [
+        3,
+        90
+      ],
+      "libredwgEuclideanNearest": [
+        3,
+        90
+      ]
+    },
+    {
+      "name": "00ffff_unnamed.dxf",
+      "inputSha256": "8698ecfd4cc6f772e89f5de05b825847c55c286e2ca675f46d1799139a36f9b0",
+      "outputSha256": "f8da5f62ec2950a1a30578dceac8c7a9acc968f6c14a9f855ecc93cad19c873a",
+      "input420": 65535,
+      "input430": [],
+      "output420": 65535,
+      "output430": [],
+      "output62": 4,
+      "ezdxfEuclideanNearest": [
+        4,
+        130
+      ],
+      "libredwgEuclideanNearest": [
+        4,
+        130
+      ]
+    },
+    {
+      "name": "00ffff_named.dxf",
+      "inputSha256": "2f15bb5f89199d0ee6af46e7bb8214925662e66909fc5adccb78c708d9e6bfca",
+      "outputSha256": "d2da0724a18ec1e6bd9cad20c24896edda17c14658da103ce5e6edaea6f98a7a",
+      "input420": 65535,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 65535,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 4,
+      "ezdxfEuclideanNearest": [
+        4,
+        130
+      ],
+      "libredwgEuclideanNearest": [
+        4,
+        130
+      ]
+    },
+    {
+      "name": "102030_unnamed.dxf",
+      "inputSha256": "4394692ef38820f4122d31ebdd9b5f4dc3f72302209d2c166df27177c8a443a4",
+      "outputSha256": "36ef11792b1a18da22b731ed48117f7c045a13b9e7ad635eb1635114c0083f57",
+      "input420": 1056816,
+      "input430": [],
+      "output420": 1056816,
+      "output430": [],
+      "output62": 158,
+      "ezdxfEuclideanNearest": [
+        148
+      ],
+      "libredwgEuclideanNearest": [
+        158
+      ]
+    },
+    {
+      "name": "102030_named.dxf",
+      "inputSha256": "9f803495b605a3b9e1cf9b5c9cb70b775addea4a74b8e9e2f8feacb20f0fb6ce",
+      "outputSha256": "b547b9130f74cca5e2d46230d6083616e17031c2f2debac5f76dc25b04d35697",
+      "input420": 1056816,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 1056816,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 158,
+      "ezdxfEuclideanNearest": [
+        148
+      ],
+      "libredwgEuclideanNearest": [
+        158
+      ]
+    },
+    {
+      "name": "112233_unnamed.dxf",
+      "inputSha256": "56c26e57fae5b0430fe2157c192ae99484145c0b57dcf6ba263bb79ef7ca1f25",
+      "outputSha256": "2e8ec6cdd0a75af87a269c24c168cb1e6b88952a1e10489d13eb621517dd38c7",
+      "input420": 1122867,
+      "input430": [],
+      "output420": 1122867,
+      "output430": [],
+      "output62": 158,
+      "ezdxfEuclideanNearest": [
+        138
+      ],
+      "libredwgEuclideanNearest": [
+        158
+      ]
+    },
+    {
+      "name": "112233_named.dxf",
+      "inputSha256": "769a0da32d3141f3a34706ebc91c7e8cd78352bcf491a9389ae9815720bb1012",
+      "outputSha256": "47ed9f10a0d02396d0a9d241c97e5167c7d89c461a2c4c9446dbb79d088089b5",
+      "input420": 1122867,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 1122867,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 158,
+      "ezdxfEuclideanNearest": [
+        138
+      ],
+      "libredwgEuclideanNearest": [
+        158
+      ]
+    },
+    {
+      "name": "123456_unnamed.dxf",
+      "inputSha256": "ab4c8715d0a141e6afa7ed7e9797e70d507ddce866b330d418cf373a3f2b35b4",
+      "outputSha256": "f82920fe97473eedd782665ad439333a5639522a402187d76c02e0af2a8e505c",
+      "input420": 1193046,
+      "input430": [],
+      "output420": 1193046,
+      "output430": [],
+      "output62": 148,
+      "ezdxfEuclideanNearest": [
+        146
+      ],
+      "libredwgEuclideanNearest": [
+        148
+      ]
+    },
+    {
+      "name": "123456_named.dxf",
+      "inputSha256": "80141153509e551480a46eb928b9720c66992421cc91c80c1fd4565643f36ded",
+      "outputSha256": "9865d66d90ed065394d7516499d5649dd07c9b462c1340ae4dd6f995dc3409d3",
+      "input420": 1193046,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 1193046,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 148,
+      "ezdxfEuclideanNearest": [
+        146
+      ],
+      "libredwgEuclideanNearest": [
+        148
+      ]
+    },
+    {
+      "name": "333333_unnamed.dxf",
+      "inputSha256": "1a8a15e7c1e7c223d5799c3c268292f9ae139adf2034cbd6375ab41c9a8419e6",
+      "outputSha256": "d03417f252181f586d6769c0b7c3fedac11ff949fd346f816bfc43d99a80e82f",
+      "input420": 3355443,
+      "input430": [],
+      "output420": 3355443,
+      "output430": [],
+      "output62": 250,
+      "ezdxfEuclideanNearest": [
+        27,
+        87,
+        107,
+        247
+      ],
+      "libredwgEuclideanNearest": [
+        250
+      ]
+    },
+    {
+      "name": "333333_named.dxf",
+      "inputSha256": "03157ecda06864cf6f5261c53c901f0e28e09c31bc9781fc9a67f950ad5b88c9",
+      "outputSha256": "8a2d5053e9e9f9780a5791079a4a9c7ab695b3ee5a8c9b2b2a6fea5667a7b4b5",
+      "input420": 3355443,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 3355443,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 250,
+      "ezdxfEuclideanNearest": [
+        27,
+        87,
+        107,
+        247
+      ],
+      "libredwgEuclideanNearest": [
+        250
+      ]
+    },
+    {
+      "name": "404040_unnamed.dxf",
+      "inputSha256": "b774cba77900c698f95bc11514e2be0bb143babb75d438cc98570d822a3ca550",
+      "outputSha256": "60658df58e10c7e7606e99b7534e891e58603d611a4c14ea43ebb661e9f0446a",
+      "input420": 4210752,
+      "input430": [],
+      "output420": 4210752,
+      "output430": [],
+      "output62": 250,
+      "ezdxfEuclideanNearest": [
+        47,
+        67,
+        127,
+        207,
+        227
+      ],
+      "libredwgEuclideanNearest": [
+        8
+      ]
+    },
+    {
+      "name": "404040_named.dxf",
+      "inputSha256": "90f0561119e5fb4e904739a743d911194d702ea3337fc4e6262dc9117f17cea1",
+      "outputSha256": "b2c2b126ef75b0bffcbeea14ae524879a2af84bc6de465ae3d40ab494541475e",
+      "input420": 4210752,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 4210752,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 250,
+      "ezdxfEuclideanNearest": [
+        47,
+        67,
+        127,
+        207,
+        227
+      ],
+      "libredwgEuclideanNearest": [
+        8
+      ]
+    },
+    {
+      "name": "505050_unnamed.dxf",
+      "inputSha256": "eea4d10ec3a43248aab7913f5667a7794a8f35c339504d142446d2d9f1831e90",
+      "outputSha256": "ae4afdeeda182debf4fb4ede989996c15e999594bcc2acf7626e3ace77e0929f",
+      "input420": 5263440,
+      "input430": [],
+      "output420": 5263440,
+      "output430": [],
+      "output62": 251,
+      "ezdxfEuclideanNearest": [
+        251
+      ],
+      "libredwgEuclideanNearest": [
+        251
+      ]
+    },
+    {
+      "name": "505050_named.dxf",
+      "inputSha256": "36de1abb50900ee09b8e244e2f897d7dfe9eceff121c2d237963e6003ea13792",
+      "outputSha256": "b3a6060c6cf595750e8069e22bfdd37a3f96d11a0f4deae186f32acdc1205d84",
+      "input420": 5263440,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 5263440,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 251,
+      "ezdxfEuclideanNearest": [
+        251
+      ],
+      "libredwgEuclideanNearest": [
+        251
+      ]
+    },
+    {
+      "name": "557799_unnamed.dxf",
+      "inputSha256": "8a1e51e32a068e6a9b465cd9631f8d3e12a402364891e46baef4dca4a04ac9ef",
+      "outputSha256": "1138acdd6680c6b0300bb0debdb4c96a7057f67695bf87309d170c8e54077c7b",
+      "input420": 5601177,
+      "input430": [],
+      "output420": 5601177,
+      "output430": [],
+      "output62": 155,
+      "ezdxfEuclideanNearest": [
+        153
+      ],
+      "libredwgEuclideanNearest": [
+        145
+      ]
+    },
+    {
+      "name": "557799_named.dxf",
+      "inputSha256": "c86fc1206124fee6d3ddcb71a514c2caebd816344c7097462d9a8405d160c196",
+      "outputSha256": "a836a6ce701361dd848fa59e5d7019b7e6078563c3441ced5dfc99db337f2666",
+      "input420": 5601177,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 5601177,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 155,
+      "ezdxfEuclideanNearest": [
+        153
+      ],
+      "libredwgEuclideanNearest": [
+        145
+      ]
+    },
+    {
+      "name": "64320a_unnamed.dxf",
+      "inputSha256": "05c33e41dbac1a4a10f749da3f246aa203e33c4966fa7fc789e468a7bd7ea6fa",
+      "outputSha256": "8d4311376aad374ab8167d5b6dad77ce6a5eed1a538ad567d38852106ed85a76",
+      "input420": 6566410,
+      "input430": [],
+      "output420": 6566410,
+      "output430": [],
+      "output62": 48,
+      "ezdxfEuclideanNearest": [
+        46
+      ],
+      "libredwgEuclideanNearest": [
+        36
+      ]
+    },
+    {
+      "name": "64320a_named.dxf",
+      "inputSha256": "22a1f00e628f2d1636768716ddf714b3f659b32c16bebb3fcbf55daef743616a",
+      "outputSha256": "b08fdd698c3158e84852838ab3a1000bb7df089c0a0aad524e89f89404f98d2a",
+      "input420": 6566410,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 6566410,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 48,
+      "ezdxfEuclideanNearest": [
+        46
+      ],
+      "libredwgEuclideanNearest": [
+        36
+      ]
+    },
+    {
+      "name": "696969_unnamed.dxf",
+      "inputSha256": "b7da4be482f8b92bd8aff0f8b47ced434e082825c815e9992b0fabfd53b8fc92",
+      "outputSha256": "9f3cf24f3b40310231b0a6b2d36cc1ca2aca76ba71eb199672e22a597d73009b",
+      "input420": 6908265,
+      "input430": [],
+      "output420": 6908265,
+      "output430": [],
+      "output62": 251,
+      "ezdxfEuclideanNearest": [
+        252
+      ],
+      "libredwgEuclideanNearest": [
+        252
+      ]
+    },
+    {
+      "name": "696969_named.dxf",
+      "inputSha256": "5653c999c1b85648fac928b1fdec93b433b7c37a4382b074f68c536e2284d936",
+      "outputSha256": "eb8bd218efadba0162d865208b571fdaa7c22d5b7b8a8763c73f7bec63ae7d73",
+      "input420": 6908265,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 6908265,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 251,
+      "ezdxfEuclideanNearest": [
+        252
+      ],
+      "libredwgEuclideanNearest": [
+        252
+      ]
+    },
+    {
+      "name": "7f0000_unnamed.dxf",
+      "inputSha256": "e4bc2ef02790e7d671b989ea7d43e0ad304a09cfa44db2e88e487d5cff6f1698",
+      "outputSha256": "444a9dc45cc86839755af8ecb0ec52f688a7e8c23335ff57122d78ea7f05724c",
+      "input420": 8323072,
+      "input430": [],
+      "output420": 8323072,
+      "output430": [],
+      "output62": 16,
+      "ezdxfEuclideanNearest": [
+        14
+      ],
+      "libredwgEuclideanNearest": [
+        14
+      ]
+    },
+    {
+      "name": "7f0000_named.dxf",
+      "inputSha256": "e819dc2742c320b4da7d40bd12e315c0b1d148506ce4636c6b5e9047cbd89355",
+      "outputSha256": "131b45436281992f8277c0457fca55aad240ac3f0a28195bdf83fdd57f80f34b",
+      "input420": 8323072,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 8323072,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 16,
+      "ezdxfEuclideanNearest": [
+        14
+      ],
+      "libredwgEuclideanNearest": [
+        14
+      ]
+    },
+    {
+      "name": "7f007f_unnamed.dxf",
+      "inputSha256": "1e9053605c4ba40295191e0d311ec4624aa1b09ebf2a9699367f8599c22d36b8",
+      "outputSha256": "ffc7802e5930ec191a435fab39c112cf73033a43cffdd72c5a23b5c9a6035ca7",
+      "input420": 8323199,
+      "input430": [],
+      "output420": 8323199,
+      "output430": [],
+      "output62": 216,
+      "ezdxfEuclideanNearest": [
+        214
+      ],
+      "libredwgEuclideanNearest": [
+        214
+      ]
+    },
+    {
+      "name": "7f007f_named.dxf",
+      "inputSha256": "8dd180949ed52d0daf1a633b36cf8f644ec50b4657d44f7d7f63974c8684e8b2",
+      "outputSha256": "439c456df3af508c3708750acfdfd7cd89f81ef3f6882433e16e897f24482e7f",
+      "input420": 8323199,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 8323199,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 216,
+      "ezdxfEuclideanNearest": [
+        214
+      ],
+      "libredwgEuclideanNearest": [
+        214
+      ]
+    },
+    {
+      "name": "7f7f7f_unnamed.dxf",
+      "inputSha256": "f9a15746e3d41f60babbacf909b25a5d7883b3339828edbac1d924e6f363666c",
+      "outputSha256": "9fbe990a082e2a8830f03d356772e028f8991b087a6728e492604cfd92cab844",
+      "input420": 8355711,
+      "input430": [],
+      "output420": 8355711,
+      "output430": [],
+      "output62": 8,
+      "ezdxfEuclideanNearest": [
+        8
+      ],
+      "libredwgEuclideanNearest": [
+        9
+      ]
+    },
+    {
+      "name": "7f7f7f_named.dxf",
+      "inputSha256": "83d15426b331de2d1172ba9742b85fbd05f6858a18d0304af446605437cc7ebe",
+      "outputSha256": "59cf098a02add6e83d11d3dddc91dd2bbc77e3ba8d86144a69af032f3a9164d0",
+      "input420": 8355711,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 8355711,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 8,
+      "ezdxfEuclideanNearest": [
+        8
+      ],
+      "libredwgEuclideanNearest": [
+        9
+      ]
+    },
+    {
+      "name": "808000_unnamed.dxf",
+      "inputSha256": "3e6d6e7d45f2514751fe6dfed4a4fd393c627a0c51b325d023324b9edf965521",
+      "outputSha256": "fa58e7e81b762dde5fe5bc946635714345c615f564dfad16576aa38e53e7a098",
+      "input420": 8421376,
+      "input430": [],
+      "output420": 8421376,
+      "output430": [],
+      "output62": 56,
+      "ezdxfEuclideanNearest": [
+        54
+      ],
+      "libredwgEuclideanNearest": [
+        54
+      ]
+    },
+    {
+      "name": "808000_named.dxf",
+      "inputSha256": "53fe4987599abb08c5dc27bc23bac80b2159828d7d1ad758531ef20d3c21ea76",
+      "outputSha256": "ec15087fa9aaaa3e1518136d4c4d2cc320905b55e417ffbd3a1de55f2f932fca",
+      "input420": 8421376,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 8421376,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 56,
+      "ezdxfEuclideanNearest": [
+        54
+      ],
+      "libredwgEuclideanNearest": [
+        54
+      ]
+    },
+    {
+      "name": "808080_unnamed.dxf",
+      "inputSha256": "62ef0ff3e60f8b08de6cf0d40c309c431a560b693871d4a0a99045cd2bdec36e",
+      "outputSha256": "e046afb29434876b7ffc50d3f22bcaedfc59d5462346a1653177fda84880c70e",
+      "input420": 8421504,
+      "input430": [],
+      "output420": 8421504,
+      "output430": [],
+      "output62": 8,
+      "ezdxfEuclideanNearest": [
+        8
+      ],
+      "libredwgEuclideanNearest": [
+        9
+      ]
+    },
+    {
+      "name": "808080_named.dxf",
+      "inputSha256": "420d894194272dfcd56c457ce3230e9156f3294e1d4920ec16031cfd98c1fc32",
+      "outputSha256": "16af9a772d2572217840925cd6bd1f9b9ab95150ca70fd5609e1e65ebad71211",
+      "input420": 8421504,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 8421504,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 8,
+      "ezdxfEuclideanNearest": [
+        8
+      ],
+      "libredwgEuclideanNearest": [
+        9
+      ]
+    },
+    {
+      "name": "818181_unnamed.dxf",
+      "inputSha256": "c77ad3dfdc98a31a5e7b167cff07aab9b95bb2c0136a8f94bfe46e170c956407",
+      "outputSha256": "ad6214d9e656cbcac93781998239fccf7967666a748783a9f490884a77b29812",
+      "input420": 8487297,
+      "input430": [],
+      "output420": 8487297,
+      "output430": [],
+      "output62": 8,
+      "ezdxfEuclideanNearest": [
+        8
+      ],
+      "libredwgEuclideanNearest": [
+        9,
+        253
+      ]
+    },
+    {
+      "name": "818181_named.dxf",
+      "inputSha256": "1f4b5789b35ea80ffb075fe20b3bb25612abb6d6a2ebb0fc414e1b30b5b97a35",
+      "outputSha256": "c705da483dc170303519a551cffba0544df8018a1ed877ae52a159839bd35f81",
+      "input420": 8487297,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 8487297,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 8,
+      "ezdxfEuclideanNearest": [
+        8
+      ],
+      "libredwgEuclideanNearest": [
+        9,
+        253
+      ]
+    },
+    {
+      "name": "828282_unnamed.dxf",
+      "inputSha256": "56bcef253cd92fd0bf2d207cceac69daa7b97aaad4ac003e8dd98794f3bef99a",
+      "outputSha256": "c6e3ba627baedd25e2a77ad3ea54c79e8267371e7d9efa32f15b612bc38494b2",
+      "input420": 8553090,
+      "input430": [],
+      "output420": 8553090,
+      "output430": [],
+      "output62": 8,
+      "ezdxfEuclideanNearest": [
+        8
+      ],
+      "libredwgEuclideanNearest": [
+        253
+      ]
+    },
+    {
+      "name": "828282_named.dxf",
+      "inputSha256": "7cee2dc7fba4888700f20cd652b33f24224e090105416234c57fdc79a4dbb1b9",
+      "outputSha256": "b876b60aa5f81cfda6bfbfca90e0ed439d159616262746af6e9549b8f637a3c4",
+      "input420": 8553090,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 8553090,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 8,
+      "ezdxfEuclideanNearest": [
+        8
+      ],
+      "libredwgEuclideanNearest": [
+        253
+      ]
+    },
+    {
+      "name": "999999_unnamed.dxf",
+      "inputSha256": "6aa94d58b56c4c53643aa4d4d2028c61b73ff5bc11c0986eb3b0eb81906f63f9",
+      "outputSha256": "36c1e81c3658c12be40e3de366b9a454f0f282407a4e92147f8092261953e505",
+      "input420": 10066329,
+      "input430": [],
+      "output420": 10066329,
+      "output430": [],
+      "output62": 253,
+      "ezdxfEuclideanNearest": [
+        253
+      ],
+      "libredwgEuclideanNearest": [
+        253
+      ]
+    },
+    {
+      "name": "999999_named.dxf",
+      "inputSha256": "7c40b0eef1042c23e85befe38d62a2f24905dbbee44418cf5f4da8b7a269e8ab",
+      "outputSha256": "e062fe8c3bd515ee13a9b5409909ea848aa29fda1c226455c15849020161a951",
+      "input420": 10066329,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 10066329,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 253,
+      "ezdxfEuclideanNearest": [
+        253
+      ],
+      "libredwgEuclideanNearest": [
+        253
+      ]
+    },
+    {
+      "name": "a0a0a0_unnamed.dxf",
+      "inputSha256": "95da4bf8fc8fdc3a564200f1edb2f5eef7d16904ce816d7576fd95210919a245",
+      "outputSha256": "92e25bfb32a0751eb647194d6969f50b5da6147b8d039dc152292c4905fc0711",
+      "input420": 10526880,
+      "input430": [],
+      "output420": 10526880,
+      "output430": [],
+      "output62": 253,
+      "ezdxfEuclideanNearest": [
+        253
+      ],
+      "libredwgEuclideanNearest": [
+        33,
+        73,
+        113,
+        153,
+        193,
+        233
+      ]
+    },
+    {
+      "name": "a0a0a0_named.dxf",
+      "inputSha256": "03923b136a95b9f0e407a5a5db3b713dc9fa7ae42112715711b1b13a08ffcdf9",
+      "outputSha256": "457699d35e96ac418616a43c09b2c2acd7d02a04a02a785183b376cfcdfc3515",
+      "input420": 10526880,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 10526880,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 253,
+      "ezdxfEuclideanNearest": [
+        253
+      ],
+      "libredwgEuclideanNearest": [
+        33,
+        73,
+        113,
+        153,
+        193,
+        233
+      ]
+    },
+    {
+      "name": "a50000_unnamed.dxf",
+      "inputSha256": "c21e7346c63b347ef3bc11c3899379398479fec983b8e1178b7b8b6722792eb4",
+      "outputSha256": "5a2adec87b389a352cb9284f641106640e3607ae72ae2a776c31f25588680b55",
+      "input420": 10813440,
+      "input430": [],
+      "output420": 10813440,
+      "output430": [],
+      "output62": 14,
+      "ezdxfEuclideanNearest": [
+        12
+      ],
+      "libredwgEuclideanNearest": [
+        12
+      ]
+    },
+    {
+      "name": "a50000_named.dxf",
+      "inputSha256": "2e5db0b27c87aa883f7499d24cb92d8c65b365885a9570c22de4fe7c46e3d5d8",
+      "outputSha256": "bb64c057002247c4a5102145685cedd442d1117406c3f1c22b164c69c54207dc",
+      "input420": 10813440,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 10813440,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 14,
+      "ezdxfEuclideanNearest": [
+        12
+      ],
+      "libredwgEuclideanNearest": [
+        12
+      ]
+    },
+    {
+      "name": "abcdef_unnamed.dxf",
+      "inputSha256": "e3a6378b4c2db43eb76c18e74187037acae74f16e4f8c1887abbbc63f0ee84b5",
+      "outputSha256": "f97c5c5e3529106dc0bb374ab68897d031571d8d2e428ba92a9c5741c7668eb9",
+      "input420": 11259375,
+      "input430": [],
+      "output420": 11259375,
+      "output430": [],
+      "output62": 151,
+      "ezdxfEuclideanNearest": [
+        254
+      ],
+      "libredwgEuclideanNearest": [
+        151
+      ]
+    },
+    {
+      "name": "abcdef_named.dxf",
+      "inputSha256": "5cbbe5f61f903f602eb81bd27a7b5c93c3a1e12e26906e4eade2490d3cf03a7c",
+      "outputSha256": "57cd2e941b2c7f60ebd01d56c69a3b35bea6bb298c051e10a4b7fb32ea58862e",
+      "input420": 11259375,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 11259375,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 151,
+      "ezdxfEuclideanNearest": [
+        254
+      ],
+      "libredwgEuclideanNearest": [
+        151
+      ]
+    },
+    {
+      "name": "bebebe_unnamed.dxf",
+      "inputSha256": "d796f722f23c03c6a04e9b796e603f8f5da83ccf7c850ae9fe2be1d829df9a1f",
+      "outputSha256": "d309c04590e579d71647ebfb2194decd239e3a1ae815c0e016cf6e2408c84dab",
+      "input420": 12500670,
+      "input430": [],
+      "output420": 12500670,
+      "output430": [],
+      "output62": 9,
+      "ezdxfEuclideanNearest": [
+        9
+      ],
+      "libredwgEuclideanNearest": [
+        254
+      ]
+    },
+    {
+      "name": "bebebe_named.dxf",
+      "inputSha256": "52efd5dc6e788d45e1da77bbbdaef9e975b5cdbdd8df97a58e6115ebbe7530fd",
+      "outputSha256": "c75e6bf174fee643226adbdab3f83c4a682d0bfc81bad047c1481af417c05b81",
+      "input420": 12500670,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 12500670,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 9,
+      "ezdxfEuclideanNearest": [
+        9
+      ],
+      "libredwgEuclideanNearest": [
+        254
+      ]
+    },
+    {
+      "name": "c0c0c0_unnamed.dxf",
+      "inputSha256": "50b15b4e62e7efec5ccd080627574ab9eb808d56523896b7dde5e798ae5d3f50",
+      "outputSha256": "9f53f34f5f2ac684dec984a825f45e9e082d15c016223810602075c9d9fc1a85",
+      "input420": 12632256,
+      "input430": [],
+      "output420": 12632256,
+      "output430": [],
+      "output62": 9,
+      "ezdxfEuclideanNearest": [
+        9
+      ],
+      "libredwgEuclideanNearest": [
+        254
+      ]
+    },
+    {
+      "name": "c0c0c0_named.dxf",
+      "inputSha256": "d0d339bdb30e7332a8e757b4a8290a4b0473b01bb8324dce58b46a60cac3f417",
+      "outputSha256": "012ca01437acaa5ac2b0ae8f58ac8d647950eda0658a62911145324f34044876",
+      "input420": 12632256,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 12632256,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 9,
+      "ezdxfEuclideanNearest": [
+        9
+      ],
+      "libredwgEuclideanNearest": [
+        254
+      ]
+    },
+    {
+      "name": "cccccc_unnamed.dxf",
+      "inputSha256": "42af06a5da07fe0013c46b1fe8a76e04d0b71f4288d17c4e2ee69c1199266bbe",
+      "outputSha256": "14e572a2d431a484a2fd72317c5964d0f439bee33a42966a954689a58af57610",
+      "input420": 13421772,
+      "input430": [],
+      "output420": 13421772,
+      "output430": [],
+      "output62": 254,
+      "ezdxfEuclideanNearest": [
+        254
+      ],
+      "libredwgEuclideanNearest": [
+        254
+      ]
+    },
+    {
+      "name": "cccccc_named.dxf",
+      "inputSha256": "97ac57962226f4e5c3417a62db8470fd6061266724c1a9c99b58eed6ae211966",
+      "outputSha256": "73500f18b50fa70fa5416b9c9cf206c64e297efa9e19b9c02269023622635676",
+      "input420": 13421772,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 13421772,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 254,
+      "ezdxfEuclideanNearest": [
+        254
+      ],
+      "libredwgEuclideanNearest": [
+        254
+      ]
+    },
+    {
+      "name": "cfd0cf_unnamed.dxf",
+      "inputSha256": "77102aff16a63d620b6693e88db182f8c93d45b0eb01ed51922621552b961630",
+      "outputSha256": "90094495d672f7c5beb04982c441f676d17a86d5c2d68158da9b8790af454663",
+      "input420": 13619407,
+      "input430": [],
+      "output420": 13619407,
+      "output430": [],
+      "output62": 254,
+      "ezdxfEuclideanNearest": [
+        254
+      ],
+      "libredwgEuclideanNearest": [
+        254
+      ]
+    },
+    {
+      "name": "cfd0cf_named.dxf",
+      "inputSha256": "3fa43ae8e8e6ab4ae6ad2518b3e29a5df79d150a052cafd53d80d1eb72948969",
+      "outputSha256": "b44d358b4ec4a62277ab8b8ac2f0ccf43dbc66fba25df005ee9bd32a92243441",
+      "input420": 13619407,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 13619407,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 254,
+      "ezdxfEuclideanNearest": [
+        254
+      ],
+      "libredwgEuclideanNearest": [
+        254
+      ]
+    },
+    {
+      "name": "f0f0f0_unnamed.dxf",
+      "inputSha256": "70aa3c9f15c3122f4905936a594b3f08eda579fb2101329daf2b3bbdaf19d5c4",
+      "outputSha256": "63d720a4bfac6a66527e16a0f585e139e096590e67795e855c80d95aa4c6714d",
+      "input420": 15790320,
+      "input430": [],
+      "output420": 15790320,
+      "output430": [],
+      "output62": 7,
+      "ezdxfEuclideanNearest": [
+        7,
+        255
+      ],
+      "libredwgEuclideanNearest": [
+        7,
+        255
+      ]
+    },
+    {
+      "name": "f0f0f0_named.dxf",
+      "inputSha256": "21849ff51d8f5204f2d08f907b0beeeec915d7bfd34f92b494553922dd60185f",
+      "outputSha256": "350ac0ee117eb8c4979252aa4162a95f7e936c4e6491892e4478d978e5df8dd2",
+      "input420": 15790320,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 15790320,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 7,
+      "ezdxfEuclideanNearest": [
+        7,
+        255
+      ],
+      "libredwgEuclideanNearest": [
+        7,
+        255
+      ]
+    },
+    {
+      "name": "ff0000_unnamed.dxf",
+      "inputSha256": "7996c48718b965b5ab0e884776627a88ee69026ad9e9cabe013edc390a283ade",
+      "outputSha256": "4f00391f23874836604393b2604376deecd8917776a7b549c7f45824085188e8",
+      "input420": 16711680,
+      "input430": [],
+      "output420": 16711680,
+      "output430": [],
+      "output62": 1,
+      "ezdxfEuclideanNearest": [
+        1,
+        10
+      ],
+      "libredwgEuclideanNearest": [
+        1,
+        10
+      ]
+    },
+    {
+      "name": "ff0000_named.dxf",
+      "inputSha256": "14bc8644892ddad9222d99ae1fba20820b2c2e57027d29f0f86faac9cddf13ea",
+      "outputSha256": "a9ff9ca0f95d9ef8b62a7d1ddeae6b7d3ef94e5cf18a10644695202efda5ad27",
+      "input420": 16711680,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 16711680,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 1,
+      "ezdxfEuclideanNearest": [
+        1,
+        10
+      ],
+      "libredwgEuclideanNearest": [
+        1,
+        10
+      ]
+    },
+    {
+      "name": "ff00ff_unnamed.dxf",
+      "inputSha256": "a5e2a41c0f0222283faa7af729af613cec91066b99ca562e62999ebd9f13c26e",
+      "outputSha256": "3b051242ae4b5618784efe4b22867a5b87e3ef2990fd70bfbbfc986cd8dce978",
+      "input420": 16711935,
+      "input430": [],
+      "output420": 16711935,
+      "output430": [],
+      "output62": 6,
+      "ezdxfEuclideanNearest": [
+        6,
+        210
+      ],
+      "libredwgEuclideanNearest": [
+        6,
+        210
+      ]
+    },
+    {
+      "name": "ff00ff_named.dxf",
+      "inputSha256": "767d3a5f1f88b66e986e292b412d3abd32b7eb3c06e8fa3b984dd5fb00598721",
+      "outputSha256": "bf43de3b8048c7606bb713e3bfe3e6454665437fd01357a83c91edc99ace849e",
+      "input420": 16711935,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 16711935,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 6,
+      "ezdxfEuclideanNearest": [
+        6,
+        210
+      ],
+      "libredwgEuclideanNearest": [
+        6,
+        210
+      ]
+    },
+    {
+      "name": "ff7f7f_unnamed.dxf",
+      "inputSha256": "7b48d31f80391b26a799a3e049600dd79f3c0b19d4dfa4062a99dd657c001f10",
+      "outputSha256": "9a61cd10d943b7512fa44687e232e3582305295eb1513151496374f09b82eab5",
+      "input420": 16744319,
+      "input430": [],
+      "output420": 16744319,
+      "output430": [],
+      "output62": 11,
+      "ezdxfEuclideanNearest": [
+        11
+      ],
+      "libredwgEuclideanNearest": [
+        11
+      ]
+    },
+    {
+      "name": "ff7f7f_named.dxf",
+      "inputSha256": "9ca4f32eaaa986ad1b4f0c3abec913a499e1118445cfdd8dbbf92e13f35e90cc",
+      "outputSha256": "87ff553ab77d33f9f49068f95063233f2b4dd45b707ac29a94f6f9d07a6063e9",
+      "input420": 16744319,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 16744319,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 11,
+      "ezdxfEuclideanNearest": [
+        11
+      ],
+      "libredwgEuclideanNearest": [
+        11
+      ]
+    },
+    {
+      "name": "ffff00_unnamed.dxf",
+      "inputSha256": "a3bd6aa36b51f6599ff60afb33a043e82fbe4ca0bc903d3b6624a6b578a26201",
+      "outputSha256": "1492ba6ae2c4ff9393039e067b83977eaef2190a5e62be1e378b831caaccd97e",
+      "input420": 16776960,
+      "input430": [],
+      "output420": 16776960,
+      "output430": [],
+      "output62": 2,
+      "ezdxfEuclideanNearest": [
+        2,
+        50
+      ],
+      "libredwgEuclideanNearest": [
+        2,
+        50
+      ]
+    },
+    {
+      "name": "ffff00_named.dxf",
+      "inputSha256": "ecbd848de2a3eb7b9aa3dfb0106f579efa1098abd7489838eb9ef83d67b3aa8c",
+      "outputSha256": "272f139807036b5334fb9c1abf7050f1cadc698ceec4328c96abaab46f30d207",
+      "input420": 16776960,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 16776960,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 2,
+      "ezdxfEuclideanNearest": [
+        2,
+        50
+      ],
+      "libredwgEuclideanNearest": [
+        2,
+        50
+      ]
+    },
+    {
+      "name": "ffffff_unnamed.dxf",
+      "inputSha256": "056c8387084e1382c6061fbcb93df25680b57fc7a90f53958c13c0f2ae55eb74",
+      "outputSha256": "6f814c1c3d3976bb4301f66f3690f674c97bbc73d54b93460a5f8f953c3789d9",
+      "input420": 16777215,
+      "input430": [],
+      "output420": 16777215,
+      "output430": [],
+      "output62": 7,
+      "ezdxfEuclideanNearest": [
+        7,
+        255
+      ],
+      "libredwgEuclideanNearest": [
+        7,
+        255
+      ]
+    },
+    {
+      "name": "ffffff_named.dxf",
+      "inputSha256": "d1e15844e0685ab0df006f251f3bdc8752bfd70539732c197291e6f8f60b6845",
+      "outputSha256": "fc59a76e70356f4d099f5105f22bdf6bb743549268e885baa39a7ac546ccecb9",
+      "input420": 16777215,
+      "input430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output420": 16777215,
+      "output430": [
+        "RAL CLASSIC$RAL 7047"
+      ],
+      "output62": 7,
+      "ezdxfEuclideanNearest": [
+        7,
+        255
+      ],
+      "libredwgEuclideanNearest": [
+        7,
+        255
+      ]
+    }
+  ]
+}

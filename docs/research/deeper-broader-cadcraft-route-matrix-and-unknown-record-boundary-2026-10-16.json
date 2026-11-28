@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw-cadcraft-route-matrix-unknown-record-boundary-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Broaden the open-source peer review with CADCraft's route-specific DXF/DWG matrix and cross-check its unknown-record claims against ACadRust's published raw entity paths; update the existing plan ledger without adding a peer or promoting support.",
+  "method": {
+    "kind": "Read-only review of current primary project documentation and published API/source documentation",
+    "sourcesOpened": [
+      "https://git.mitgai.net/storytold/cadcraft/blob/main/docs/file-format-parity.md",
+      "https://github.com/storytold/cadcraft/blob/main/docs/file-format-parity.md",
+      "https://github.com/hakanaktt/acadrust",
+      "https://docs.rs/acadrust/latest/src/acadrust/entities/unknown_entity.rs.html",
+      "https://docs.rs/acadrust/latest/src/acadrust/io/dwg/dwg_stream_writers/object_writer/entities.rs.html",
+      "https://docs.rs/acadrust/latest/src/acadrust/io/dxf/writer/section_writer.rs.html",
+      "https://github.com/HakanSeven12/OpenCADStudio/issues/1078"
+    ],
+    "sourcePinStatus": {
+      "cadcraft": "Mutable main documentation; app-reported behavior only.",
+      "acadrust": "Repository README advertises 0.6.4; docs.rs unknown-entity API page identifies 0.5.5 and latest source URLs are mutable. Do not attribute those source details to 0.6.4 without exact dependency/source pinning.",
+      "opencadstudio_issue_1078": "Already reviewed elsewhere in the plan; opened only as context, no new runtime or source pair checked."
+    },
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "evidenceBoundary": "Project compatibility tables and public source comments are static capability/implementation evidence, not independently reproduced behavior. CADCraft/OpenCADStudio/ACadRust are one parser lineage. Raw-record transport does not establish typed semantics, graph closure, B-rep validity, or native acceptance."
+  },
+  "findings": [
+    {
+      "topic": "CADCraft distinguishes native, raw, projected, and omitted DXF/DWG outcomes",
+      "observed": [
+        "The app matrix describes ASCII and binary DXF support across R13-R2018, while naming feature-specific limitations such as flattened polyface/polygon meshes, folded MLEADER landings, regenerated dimension anonymous blocks, and retained foreign raw data.",
+        "For 3DSOLID, BODY, SURFACE, MESH and proxy entities, the matrix describes DXF raw-tag/CLASS preservation but says these raw-only records are dropped by its DWG save route.",
+        "The matrix describes foreign REGION input as unknown/raw but app-authored regions as closed polylines with CADCraft XDATA; this is not native ACIS REGION output.",
+        "Its aggregate DXF read/write percentages are explicitly estimated with weighted feature classes, not derived from a shared conformance benchmark."
+      ],
+      "disposition": "Same-lineage, application-documented route evidence only. Keep exact type/profile and output disposition per handle; no independent support vote."
+    },
+    {
+      "topic": "ACadRust raw unknown paths are format- and source-profile-specific",
+      "observed": [
+        "Published API/source separates raw DXF group-code pairs from raw DWG merged-stream payload bytes.",
+        "The DWG writer source documents same-source-profile raw passthrough and dropping an incompatible raw DWG record rather than reframing it; the DXF writer uses a separate unknown-entity raw path and filters references to objects that do not have a DXF representation.",
+        "The visible docs.rs unknown-entity API page identifies v0.5.5 while the repository README advertises v0.6.4, so the public source view does not prove behavior of the currently advertised release."
+      ],
+      "disposition": "Require exact app+codec source pins and separate DXF raw preservation, same-profile DWG pass-through, cross-version conversion, graph closure, and semantic results. No peer was run."
+    }
+  ],
+  "planDelta": {
+    "existingGatesRefined": [
+      "PAR-07 peer evidence classification",
+      "S5 per-source-handle output ledger",
+      "Existing raw ENTITY/OBJECT/CLASSES and writer-graph test owners"
+    ],
+    "ledgerOutcomeLabels": [
+      "TYPED_NATIVE",
+      "OPAQUE_NATIVE",
+      "LOSSY_PROJECTION",
+      "OMITTED_OR_REFUSED"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "implementationOrderChanged": false,
+    "peerOrNativeRuntimeAdded": false,
+    "supportClaimsPromoted": 0,
+    "externalJItemsChanged": false,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planResearchOnly": true,
+    "productionBehaviorChanged": false,
+    "testsRun": false,
+    "receiptJsonParsed": true,
+    "gitDiffCheck": true
+  }
+}

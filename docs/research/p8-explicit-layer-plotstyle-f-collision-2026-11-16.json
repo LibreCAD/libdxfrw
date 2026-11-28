@@ -1,0 +1,228 @@
+{
+  "date": "2026-11-16",
+  "scope": "Explicit LAYER plot-style source handle F when the codec generates its default plot-style graph",
+  "source_reference": {
+    "title": "Autodesk LAYER DXF group codes",
+    "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+    "role": "group 390 is a hard pointer to a PlotStyleName object"
+  },
+  "reproduction": "Before the fix, reserving E forced the generated default placeholder away from F while a layer with explicit source 390/F was still written to F. The new regression fails against the pre-fix code.",
+  "behavior": "If no caller reference resolver is present, explicit source F is accepted only when the generated placeholder remains F. If the generated placeholder has moved, writing fails atomically; clearing the unqualified source pointer allows a same-writer retry. A caller-supplied plot-style root retains its existing route and is not qualified by this change.",
+  "focused_controls": {
+    "versions": "AC1015, AC1018, AC1021, AC1024, AC1027, AC1032",
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "reservations": [
+      "none",
+      "E",
+      "F",
+      "E and F"
+    ],
+    "explicit_F_control": "12 successful controls with original F",
+    "refusal_and_retry": "36 destination-sentinel-preserving refusals and 36 same-writer corrected retries",
+    "ctest": "default graph, dictionary-default adapter, dwg2dxf layer graph, and layer allocation: 4/4 passed",
+    "independent_reader": "ezdxf 1.4.5 verified 48 output roots, dictionary defaults and Normal entries, placeholder owners, and layer 390 targets"
+  },
+  "scratch_outputs": [
+    {
+      "name": "explicit-13-ascii-0.dxf",
+      "sha256": "a360304192ab2e1eb5edea118bc45f6ca4f047092407e1c5bcbd9c6647d07d9a"
+    },
+    {
+      "name": "explicit-13-ascii-1.dxf",
+      "sha256": "a7179a59ca76ababc857afb90b0ed70eb2be2f412f0f6202194ef238b21eaea5"
+    },
+    {
+      "name": "explicit-13-ascii-2.dxf",
+      "sha256": "a7179a59ca76ababc857afb90b0ed70eb2be2f412f0f6202194ef238b21eaea5"
+    },
+    {
+      "name": "explicit-13-ascii-3.dxf",
+      "sha256": "a7179a59ca76ababc857afb90b0ed70eb2be2f412f0f6202194ef238b21eaea5"
+    },
+    {
+      "name": "explicit-13-binary-0.dxf",
+      "sha256": "8e757c4d7e04d2147b5cedd14ab2356e0d0c4fef7c7bdcbcb915d7525f323eb8"
+    },
+    {
+      "name": "explicit-13-binary-1.dxf",
+      "sha256": "4fd2edf4e4cc677bd14138c5a5d30238cc3a60fcc3284cbdfd5ec39a955f64b8"
+    },
+    {
+      "name": "explicit-13-binary-2.dxf",
+      "sha256": "4fd2edf4e4cc677bd14138c5a5d30238cc3a60fcc3284cbdfd5ec39a955f64b8"
+    },
+    {
+      "name": "explicit-13-binary-3.dxf",
+      "sha256": "4fd2edf4e4cc677bd14138c5a5d30238cc3a60fcc3284cbdfd5ec39a955f64b8"
+    },
+    {
+      "name": "explicit-14-ascii-0.dxf",
+      "sha256": "dbfc625dea7481fddadc64c383b558965560b495be99ef42b1442fefce2cc472"
+    },
+    {
+      "name": "explicit-14-ascii-1.dxf",
+      "sha256": "854a4c6b8f97416e2445b3a5d0bc78dd7bb143dfbf48235ae6be96feede768b8"
+    },
+    {
+      "name": "explicit-14-ascii-2.dxf",
+      "sha256": "854a4c6b8f97416e2445b3a5d0bc78dd7bb143dfbf48235ae6be96feede768b8"
+    },
+    {
+      "name": "explicit-14-ascii-3.dxf",
+      "sha256": "854a4c6b8f97416e2445b3a5d0bc78dd7bb143dfbf48235ae6be96feede768b8"
+    },
+    {
+      "name": "explicit-14-binary-0.dxf",
+      "sha256": "ea02eccfa6d7856f780c888ef868d049ee82d0ad0fdc9087a1caa221c0250f8c"
+    },
+    {
+      "name": "explicit-14-binary-1.dxf",
+      "sha256": "8931a923628de40eacc8e16f1ee9c9f25c28b88ec8938e48d1f0c37825baa9f3"
+    },
+    {
+      "name": "explicit-14-binary-2.dxf",
+      "sha256": "8931a923628de40eacc8e16f1ee9c9f25c28b88ec8938e48d1f0c37825baa9f3"
+    },
+    {
+      "name": "explicit-14-binary-3.dxf",
+      "sha256": "8931a923628de40eacc8e16f1ee9c9f25c28b88ec8938e48d1f0c37825baa9f3"
+    },
+    {
+      "name": "explicit-15-ascii-0.dxf",
+      "sha256": "52b7f48cea4c2e7e8e694971f89dbf4021be5ae661588268735fe2bab97bf33c"
+    },
+    {
+      "name": "explicit-15-ascii-1.dxf",
+      "sha256": "00aaa21a84b25a922ea249fe6f7b912c9bb065dc85cbda560933992c01f953ef"
+    },
+    {
+      "name": "explicit-15-ascii-2.dxf",
+      "sha256": "00aaa21a84b25a922ea249fe6f7b912c9bb065dc85cbda560933992c01f953ef"
+    },
+    {
+      "name": "explicit-15-ascii-3.dxf",
+      "sha256": "00aaa21a84b25a922ea249fe6f7b912c9bb065dc85cbda560933992c01f953ef"
+    },
+    {
+      "name": "explicit-15-binary-0.dxf",
+      "sha256": "49c8a0312ceced38c1271d7c55b054fcb833d6f0f9c5880c0abea2794a21ce96"
+    },
+    {
+      "name": "explicit-15-binary-1.dxf",
+      "sha256": "44baed913f31bc064801772d8ad15cc9ef59cd2e7ec8f1f03bef10c2f6fb0f19"
+    },
+    {
+      "name": "explicit-15-binary-2.dxf",
+      "sha256": "44baed913f31bc064801772d8ad15cc9ef59cd2e7ec8f1f03bef10c2f6fb0f19"
+    },
+    {
+      "name": "explicit-15-binary-3.dxf",
+      "sha256": "44baed913f31bc064801772d8ad15cc9ef59cd2e7ec8f1f03bef10c2f6fb0f19"
+    },
+    {
+      "name": "explicit-16-ascii-0.dxf",
+      "sha256": "92febd0afc31120b894e4bd774b4e2f58afdeeecd2aa1fab5adabe0b2e7db8b1"
+    },
+    {
+      "name": "explicit-16-ascii-1.dxf",
+      "sha256": "3c00c08b6ee664695fe5205dc17c7c36e8d08660d7b062e0b9a235da194dffed"
+    },
+    {
+      "name": "explicit-16-ascii-2.dxf",
+      "sha256": "3c00c08b6ee664695fe5205dc17c7c36e8d08660d7b062e0b9a235da194dffed"
+    },
+    {
+      "name": "explicit-16-ascii-3.dxf",
+      "sha256": "3c00c08b6ee664695fe5205dc17c7c36e8d08660d7b062e0b9a235da194dffed"
+    },
+    {
+      "name": "explicit-16-binary-0.dxf",
+      "sha256": "4d9010b7d1090557a3c57ac6cba139f444a64ed00b64266c7a3fd23ca062fd79"
+    },
+    {
+      "name": "explicit-16-binary-1.dxf",
+      "sha256": "0dce28a80cd8b6756401629b02ab3351d041f20f2b54fca960c0a3badb33c3f9"
+    },
+    {
+      "name": "explicit-16-binary-2.dxf",
+      "sha256": "0dce28a80cd8b6756401629b02ab3351d041f20f2b54fca960c0a3badb33c3f9"
+    },
+    {
+      "name": "explicit-16-binary-3.dxf",
+      "sha256": "0dce28a80cd8b6756401629b02ab3351d041f20f2b54fca960c0a3badb33c3f9"
+    },
+    {
+      "name": "explicit-17-ascii-0.dxf",
+      "sha256": "69b2fdf8861ff91a23abe1cbdc4b72218e12f9c18fc176b0ef7b4245af2a07a0"
+    },
+    {
+      "name": "explicit-17-ascii-1.dxf",
+      "sha256": "89072aa4dd94cc5a22556a163ba4edcb957184e13d522d6768d12730e0361da2"
+    },
+    {
+      "name": "explicit-17-ascii-2.dxf",
+      "sha256": "89072aa4dd94cc5a22556a163ba4edcb957184e13d522d6768d12730e0361da2"
+    },
+    {
+      "name": "explicit-17-ascii-3.dxf",
+      "sha256": "89072aa4dd94cc5a22556a163ba4edcb957184e13d522d6768d12730e0361da2"
+    },
+    {
+      "name": "explicit-17-binary-0.dxf",
+      "sha256": "23ef213b7954647f6d8f464e22eaa551be4f72d2ac8e3fabe0e2e92bad081073"
+    },
+    {
+      "name": "explicit-17-binary-1.dxf",
+      "sha256": "d6834ebe27d068f99a3d32d82e8d02d6917a2baa5d2e2561b8d7741aefcc59b3"
+    },
+    {
+      "name": "explicit-17-binary-2.dxf",
+      "sha256": "d6834ebe27d068f99a3d32d82e8d02d6917a2baa5d2e2561b8d7741aefcc59b3"
+    },
+    {
+      "name": "explicit-17-binary-3.dxf",
+      "sha256": "d6834ebe27d068f99a3d32d82e8d02d6917a2baa5d2e2561b8d7741aefcc59b3"
+    },
+    {
+      "name": "explicit-18-ascii-0.dxf",
+      "sha256": "d4f2e063e5af2db787d5f7d9d6aaa443019a3e081ac46c867d002696388b840e"
+    },
+    {
+      "name": "explicit-18-ascii-1.dxf",
+      "sha256": "27935911ffa9c754c5e942a1b8d4d7867edeb53cc1f11d37e5f73a63abc21c3c"
+    },
+    {
+      "name": "explicit-18-ascii-2.dxf",
+      "sha256": "27935911ffa9c754c5e942a1b8d4d7867edeb53cc1f11d37e5f73a63abc21c3c"
+    },
+    {
+      "name": "explicit-18-ascii-3.dxf",
+      "sha256": "27935911ffa9c754c5e942a1b8d4d7867edeb53cc1f11d37e5f73a63abc21c3c"
+    },
+    {
+      "name": "explicit-18-binary-0.dxf",
+      "sha256": "7f3f05a0fbdc2c91dfe89a150bcbbf01e021e47b48f0dde1290c2a4f63cdce6d"
+    },
+    {
+      "name": "explicit-18-binary-1.dxf",
+      "sha256": "a1b7845875310f3056f32dca84685a7d4299dee394b5d6b6c2884be6516d59dd"
+    },
+    {
+      "name": "explicit-18-binary-2.dxf",
+      "sha256": "a1b7845875310f3056f32dca84685a7d4299dee394b5d6b6c2884be6516d59dd"
+    },
+    {
+      "name": "explicit-18-binary-3.dxf",
+      "sha256": "a1b7845875310f3056f32dca84685a7d4299dee394b5d6b6c2884be6516d59dd"
+    }
+  ],
+  "limitations": [
+    "No native plotting or producer-source equivalence is established.",
+    "Caller-supplied plot-style roots and reference-resolver graph validation remain open.",
+    "No support qualification or external gate is promoted."
+  ],
+  "fixtures": "Outputs were created from scratch under /private/tmp and are not committed."
+}

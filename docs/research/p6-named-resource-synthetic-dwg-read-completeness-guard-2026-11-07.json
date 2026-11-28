@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Named-resource synthetic DWG receipt strict-output regression",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Align generated named-resource controls with strict DWG read-completeness admission; do not let a receipt synthesized from a DXF import stand in for a physical DWG read.",
+  "findings": {
+    "priorFailure": "The fast named-resource import test expected strict typed DWG output from synthetic receipts attached to models parsed from generated DXF. The exporter correctly rejected these incomplete DWG read dispositions; the CTest expectation was stale.",
+    "correctedControls": [
+      "DICTIONARYVAR synthetic typed route: strict-complete output refusal and destination preservation",
+      "SCALE synthetic typed route: strict-complete output refusal and destination preservation",
+      "MLEADERSTYLE synthetic typed route: strict-complete output refusal and destination preservation"
+    ],
+    "mlineGroup2": "The generated MLINE control now expects atomic refusal after mutating redundant group 2. Autodesk documents group 2 as redundant text and identifies group 340 as the MLINESTYLE object reference; this control does not authorize rewriting group 2 from group 340."
+  },
+  "authority": {
+    "mlineDxfReference": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "relevantRule": "MLINE group 2 is the style-name string; group 340 identifies the MLINESTYLE object. Autodesk describes group 2 as redundant and advises against modifying it."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j 4",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "result": "PASS 1/1; 2.35 seconds"
+    },
+    "fullSuites": "NOT_RUN",
+    "fixturePolicy": "Generated DXF controls remain temporary test output. No DWG/DXF fixture files were added."
+  },
+  "decision": "Keep strict-complete DWG output admission unchanged. A synthetic named-resource receipt does not establish a complete DWG read or support claim. Physical-source routes remain governed by their existing source-bound checks."
+}

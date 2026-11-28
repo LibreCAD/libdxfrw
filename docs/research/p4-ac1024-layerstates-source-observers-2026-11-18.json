@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "date": "2026-11-18",
+  "scope": "Disconnected AC1024 LayerStates source-frame DICTIONARY, XRECORD and SCALE observers; no output admission.",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "tracked": false,
+    "provenanceLimit": "Existing local sample; not added to the repository."
+  },
+  "references": [
+    "docs/research/p4-ac1024-three-root-layerstates-common-tail-investigation-2026-11-18.json",
+    "ODA DWG v5.4.1 sections 20.1, 20.4.44, 20.4.92, 20.4.104 and 28"
+  ],
+  "files": {
+    "dwg2dxf/dx_layerstates_dwg_wire.h": "94860dd6f7cea8d10946fa515e536d4509edc03e545a1e00469daf257bc288bb",
+    "tools/research/probe_ac1024_layerstates_eed.cpp": "ed273111b22bad8971824a584b2d77f3cefea836ab4ffc80dad9dfaf5b29b1f8"
+  },
+  "validation": {
+    "command": "python3 tools/research/probe_ac1024_layerstates_eed.py tests/samples/AC1024/visualization_-_aerial.dwg /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg-trace.log --peer-json /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg.json",
+    "result": "PASS; hash-bound source and independent peer inputs",
+    "logSha256": "5782dc0b44531fc9c32b30ab7c81ee9fe57479f54d0ed0f026baead33280aecd",
+    "linkedAdapterObjectSha256": "c54b6f5e1a04e9e1c093d506a65e4f0a1fea8b72c79da65d9c5ad5334155af58",
+    "linkedLibrarySha256": "7d9f57866a409f1461f8058bb9e7e00d80f5861f71c57890b9a5f766514a241a",
+    "frames": "seven DICTIONARY, two XRECORD and 32 SCALE source frames",
+    "faultControls": {
+      "dictionary": 184,
+      "nestedXrecord": 13,
+      "primaryXrecord": 25,
+      "scale": 494,
+      "scaleMetadata": 160,
+      "xrecordMetadata": 10
+    },
+    "otherControls": "Denied class and handle-role callbacks; corrected original-byte retries."
+  },
+  "implementationDigestSha256": "1ba158d6df67a47313bee2ef129459db870e8b0c1132a70297dac6bde7d39784",
+  "limits": [
+    "Observers are disconnected from output admission.",
+    "Caller must establish same-import class and APPID identity, full object-ID dependencies, graph closure, typed XRECORD compatibility views, and staged DXF/APPID output.",
+    "The typed SCALE model has no dictionary-style common-tail marker; the observer requires validated raw common-link evidence and verifies the full source handle tail.",
+    "ASCII UTF-16 names and the selected payload vocabulary only; other encodings and payloads refuse."
+  ],
+  "next": "Join these observers with the original import context, prove the selected graph and staged output, and retain atomic refusal and corrected retry before admitting a profile."
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-material-body-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_MATERIAL_AC1015_AC1018_BODY_RECOVERY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add bounded malformed MATERIAL OBJECTS-body recovery and CLI disposition controls for the legacy revisions admitted by the synthetic writer profile.",
+  "source": {
+    "kind": "scratch-only DWGs authored at test runtime by the in-tree DWG writer; the valid typed seed is converted to a raw mutated frame and injected with matching custom-class registration",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-material-body-source",
+    "object": "MATERIAL with a generated name and description; one bounded body bit is flipped after the common prologue has been independently validated.",
+    "versions": ["AC1015", "AC1018"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-cli-malformed-material-body-recovery-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "controls": "Each mutated source reads successfully with one object parse failure, zero entity parse failures, one failed object frame, exact source-frame accounting, and the following LINE callback. Strict ASCII/Binary conversion preserves the destination sentinel. Explicit-partial ASCII/Binary conversion succeeds and reopens with the retained LINE and VPORT. Both revisions exercise the same 2007 output target because the synthetic writer profile admits only AC1015 and AC1018 MATERIAL bodies."
+  },
+  "results": {
+    "readRecoveryProfiles": {
+      "AC1015": {"sourceFrames": 28, "publishedFrames": 27, "failedFrames": 1},
+      "AC1018": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1}
+    },
+    "cliDispositionControls": 10,
+    "fullFocusedDispositionCohortControls": 485,
+    "outputQualification": "AC1015 and AC1018 pass strict refusal plus explicit-partial ASCII/Binary readback. Other source revisions are not tested for this family because the writer enforces source-bound modern MATERIAL profiles."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "pythonSyntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 16.24 seconds",
+    "directControl": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only: PASS; 172 base strict/partial/readback controls, 28 controls each for VBA_PROJECT, GROUP, DICTIONARY, TV_DEVICE_PROPERTIES, POINTPATH, PARTIAL_VIEWING_INDEX, CURVEPATH, PLOTSETTINGS, and UNDERLAYDEFINITION; 15 BLOCKREPRESENTATION_DATA controls; 18 controls each for VX_CONTROL and VX_TABLE_RECORD; 10 MATERIAL controls",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated parser-recovery and CLI disposition evidence only; it does not establish MATERIAL field semantics, producer prevalence, or interoperability.",
+    "Only AC1015 and AC1018 generated profiles are covered. Modern MATERIAL writing is limited to exact source-bound profiles and is not exercised by this synthetic source helper.",
+    "MATERIAL's current typed parser does not decode the full modern material body; successful raw replay behavior is not qualified by this malformed-body receipt.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-F now includes bounded MATERIAL malformed-body recovery for AC1015/AC1018, with strict refusal and explicit-partial ASCII/Binary readback at both tested output profiles.",
+    "remainingP6F": "Continue source/resource inventory and select only supported OBJECTS bodies with reproducible bounded parser-failure mutations; tie each version and class claim to successful controls.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "411 completed slices and 32 remaining packages: 411/(411+32)=92.8%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-cli-malformed-underlaydefinition-body-recovery-2026-11-14.json"
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-spline-rational-near-unit-weights-2026-11-11",
+  "date": "2026-11-11",
+  "problem": "SPLINE and HELIX share DXF and DWG spline-body emitters. Each used an absolute 1e-12 deadband when inferring the rational flag, but still emitted every supplied weight. For finite mixed weights such as [1, nextafter(1, 2), 1], the output contained a non-unit weight while the emitted rational bit was clear. Consumers that rely on that bit can interpret a different curve. The local DWG parser normalizes a present weight array to rational, so its typed readback alone hides the old raw flag discrepancy.",
+  "authority": {
+    "autodeskDxf": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+    "autodeskDxfScope": "SPLINE group 70 bit 4 marks rational, and group 41 carries weights. The spec does not prescribe a 1e-12 cutoff.",
+    "oda": "Open Design Specification for .dwg files v5.4.1 section 20.4.40, page 142",
+    "odaScope": "Scenario-1 Rational is flag bit 2, separate from the weight-presence bit. The document calls the latter seemingly an echo of flag bit 4. This change does not infer an unconditional identity or reinterpret existing all-unit representations."
+  },
+  "change": "Infer non-unit weights by exact comparison with 1.0. The existing finite-value validation precedes normal emission. Explicit rational flags remain set; all-unit/no-list defaults remain unchanged. Equal non-unit weights retain the prior rational-marked encoding. Binary64 values immediately above and below one are preserved, with no mutation to the caller's weights or flags.",
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^(libdxfrw_spline_rational_weight_precision|libdxfrw_dxf_spline_helix_dispatch|dwg_spline_bitlong_boundary)$' --output-on-failure",
+    "result": "3/3 passed with the configured -Werror build",
+    "dxf": "Generated SPLINE and HELIX, ASCII and Binary: no weights, all-unit, one representable step above or below one, equal non-unit, explicit rational, and closed/periodic flags. Fresh typed readback verifies each emitted flag and every binary64 weight. Infinity refusal preserves a sentinel destination; corrected same-writer retry succeeds.",
+    "dwg": "Generated SPLINE body directly inspected using dwgBuffer primitives before libdxfrw parser readback. Six versions AC1015/18/21/24/27/32 check rational, closed, periodic and presence bits; every knot, control and weight; following sentinel; and decoded weight readback. The same body encoder is used by HELIX. An all-unit weight array retains its preexisting rational-bit behavior; the current reader independently marks a present array rational.",
+    "fixtures": "All output is created from scratch in a temporary directory and removed. No DWG/DXF fixtures added."
+  },
+  "limits": "Generated serialization evidence only. No producer/native semantic qualification, geometry-level comparison or broad support claim is made. ODA describes the relation between the two DWG bits tentatively; normalizing all-unit arrays or mismatched imported flag/presence combinations is outside this slice."
+}

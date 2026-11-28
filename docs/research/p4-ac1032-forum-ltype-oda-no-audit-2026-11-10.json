@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-forum-ltype-oda-no-audit-2026-11-10",
+  "scope": "Compare one AC1032 forum drawing's LTYPE control with an ODA-generated AC1024 ASCII DXF, without converter audit.",
+  "source": {
+    "origin": "https://forums.autodesk.com/t5/objectarx-forum/how-to-give-constrains-with-c-net/td-p/11874110",
+    "path": "/private/tmp/p4-forum-oda-input/constraints.dwg",
+    "sha256": "685bf22ed533121238c62c07357bf03fa6ddb40983cff7967c481fbb244b6b4f",
+    "libredwgJsonSha256": "1ad1aa1677c56ff001ef676be3c810a7cd2c5b18c94e5be2fa1f426f62d14b87"
+  },
+  "conversion": {
+    "application": "ODA File Converter 27.1.0.0, macOS arm64",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "inputFolder": "/private/tmp/p4-forum-oda-input",
+    "outputFolder": "/private/tmp/p4-forum-oda-output",
+    "settings": "2010 ASCII DXF, audit off, recursion off; isolated input folder",
+    "visibleResult": "Done",
+    "output": "/private/tmp/p4-forum-oda-output/constraints.dxf",
+    "outputBytes": 168390,
+    "outputSha256": "1b0010ad90eb12b6a27fcc81da0361e78a8c131448d131501a5110d04a07ec96"
+  },
+  "comparison": {
+    "dwgCountedEntries": [[2, 1, 22, 22], [2, 0, 0, 0]],
+    "dwgPhantomHandles": {"ByBlock": 20, "ByLayer": 21},
+    "sourceAndDxfRows": [[20, "ByBlock", 5], [21, "ByLayer", 5], [22, "Continuous", 5]],
+    "dxfTableGroup70": 1,
+    "result": "The output contains the three identified live LTYPE records with matching handles and owner 0x5; its table count is one and it contains no record for the null slot."
+  },
+  "authority": {
+    "autodeskSymbolTables": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm",
+    "interpretation": "Autodesk documents deleted symbol-table entries and their omission from DXF. It does not establish that this DWG null handle represents a deleted entry."
+  },
+  "verification": {
+    "tool": "tools/research/p4_forum_ltype_oda_compare.py",
+    "toolSha256": "a4ffd9a6e3cff893568b9786d11abbf993f6c18db82912dab6adca8c6db94882",
+    "command": "python3 tools/research/p4_forum_ltype_oda_compare.py /private/tmp/p4-forum-oda-input/constraints.dwg /private/tmp/p4-forum-libredwg.json /private/tmp/p4-forum-oda-output/constraints.dxf",
+    "result": "PASS; a one-byte modified DXF was refused by the input hash check."
+  },
+  "limits": [
+    "ODA is a separate converter but not a native AutoCAD rewrite; audit being off does not prove the input was not normalized during conversion.",
+    "The output targets an older DXF version and only the LTYPE inventory and owners were compared; other references, graph semantics, and whole-source completeness remain unqualified.",
+    "Keep the LTYPE null-member integrity error and strict-output gate until authoritative source semantics or native rewrite evidence establishes that this slot can be omitted without loss.",
+    "No DWG or DXF fixture is committed."
+  ]
+}

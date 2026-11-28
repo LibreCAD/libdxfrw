@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P3 selected unmarked MATERIAL normal projection edit",
+  "date": "2026-10-28",
+  "codeCommit": "27fd83a01b1ec0cc6250dc726fb61d243f27e429",
+  "scope": "Previously accepted unmarked modern DXF MATERIAL with unchanged captured raw body, exact two host-body blend and projection fields, complete inferred normal tuple, no procedural-only host field, and a sole typed normal projection edit in the range 1–4.",
+  "contract": {
+    "operation": "Change only the second host group 73, proven after the inferred second 42 and bound to original normal projection; retain the first diffuse projection and all other raw fields and spellings except format transcoding.",
+    "atomicity": "Actual output is decoded and its complete represented model compared to the requested state; unsupported or conflicting edits preserve destination and caller and allow corrected same-facade retry.",
+    "unqualified": "Simultaneous blend/projection or other typed edits, changed raw bodies, invalid projection values, procedural fields, ambiguous or incomplete source, unqualified cross-format caret strings, global markerless writer grammar and native rendering remain outside this packet."
+  },
+  "sourceBindings": {
+    "materialBodyHeaderSha256": "a259b2664904fe35f2154f19585e16a356798e2672256d3c6331b422199c4aa9",
+    "testSourceSha256": "628b7dd717fafe7adfd386eb78e24f37455b614b99cba6512b167a5302dd9961",
+    "adapterSourceSha256": "a960cedfdc9090a254c47aaaf43cafbcdeb6654de973433bace65d4d87f55283",
+    "concurrentTableWriterSourceSha256": "9ca915133b19c12bb04e77947cfdb6d86141d365ba4197317b3b80066db15fad",
+    "concurrentTableEntitiesSourceSha256": "cf2e2af4e1530bdee4f9bae534adb630593d08da4e2bca1ab3dff707d28b0368",
+    "entitiesHeaderSha256": "14fdf6d7179e16bd40dca2f80ab62cf77ebed44cd2173068efdb00b04623ed16",
+    "tableCodecHeaderSha256": "aa2fbf1df02d5e905ef0127574952581787981e3d780ace5c946a7aff9499a8e",
+    "normalAdapterObjectSha256": "6855fb035c20c9d3a27dee93dd6ee2b7dd08b54b174a3d5e6e2edbd39e7ceaa0",
+    "normalLibrarySha256": "9a7babaf49ef0f2c20392ffa6f7053303042482bd295f49147a9601d67c298a9",
+    "normalTestExecutableSha256": "da90e96f3802161d505315cd5a1c5061d4d01c8f078e66237f095c5951e91d39",
+    "simultaneousTableCommit": "9dc1686da1900679575f9d3b13655b6da83e21e6",
+    "simultaneousBlockCommit": "db5de9408581b70e9f56ef03b3e15b8fe07b4d5a",
+    "asanAdapterObjectSha256": "de01b913a4b7266d4721194f5b995cac97fb7f8fdc68210a33b817027e3b3639",
+    "asanLibrarySha256": "bd36b9bbbf30f4df0e6c631f4dfd88686556c329a560baf8d93f8839c49aa939",
+    "asanTestExecutableSha256": "25f7132675cf209f6fba043e5ef4128ec1fb93b3286c50323bad1086e6066a16"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_attdef_source_profile",
+        "libdxfrw_attdef_legacy_adapter_capture",
+        "libdxfrw_block_legacy_capture",
+        "libdxfrw_block_source_proof",
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ],
+      "result": "PASS",
+      "count": "8/8",
+      "note": "An initial shared run had an unrelated TABLE writer control failure; the corrected final shared run passed all eight selectors."
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_attdef_source_profile",
+        "libdxfrw_attdef_legacy_adapter_capture",
+        "libdxfrw_block_legacy_capture",
+        "libdxfrw_block_source_proof",
+        "libdxfrw_table_content_dxf_projection",
+        "libdxfrw_table_legacy_merge",
+        "libdxfrw_table_original_inputs",
+        "libdxfrw_material_normal_roles"
+      ],
+      "result": "PASS",
+      "count": "8/8",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "8 encoding/endpoint positive routes; 40 out-of-range, simultaneous typed and raw-conflict refusal/retries; 24 orphan-procedural edit refusals; 6 late-callback refusal/retries; existing blend, explicit marker, unchanged transport and incomplete-source controls.",
+    "sourceChronology": "Shared builds included simultaneous TABLE and BLOCK work later committed as the revisions recorded in sourceBindings. Source and adapter/library hashes bind the combined build state; the MATERIAL change is committed separately."
+  },
+  "independentPeer": {
+    "version": "1.4.5",
+    "reportPath": "build/p3-material-projection-research/independent-final.json",
+    "reportSha256": "651ada891e3db4a141f12db33797c74faf479a8a3a500538366c31866f9bb87e",
+    "reportScriptSha256": "88a8b1721b936667a9ca69c7d2a86a349c3a10cb61028c89d7efdd5d06724382",
+    "probeSourceSha256": "d67e2ee013bef053ae7b09948c54d8992e797614887b538f22fba89a9aaabe44",
+    "probeExecutableSha256": "90268fc19ec923273c6fe6abeae7b4ddc8cb0c2717aa2dbbabbe758e06ab746d",
+    "projectionToolSha256": "8d6a62d98bf094f9acf496017c4a5960821d1b300b6f68a69d6fcf08d235ea81",
+    "originalSourceSha256": "73dde2657340ba362c79b9d49439f6296008aefa24a2ce433033c23465adbab8",
+    "derivedInputSha256": "f3bcd7af1275cb98f0502ee3429987dcb36c5baac72a72e6ccc647845094eee3",
+    "derivation": "Removed EZDXF_META root entry and its DICTIONARY/DICTIONARYVAR objects from a copy; exact selected MATERIAL fields and identity verified unchanged before document setup.",
+    "sourceMaterialHandle": "2F",
+    "sourceMaterialOwner": "E",
+    "sourceHostBodyTagCount": 55,
+    "expectedProjectionFields": [
+      2,
+      4
+    ],
+    "outputProjectionFields": [
+      2,
+      1
+    ],
+    "outputs": [
+      {
+        "format": "asc",
+        "sha256": "b411573f3edc1718c668e77ba6515a0862cf172f6c8f90386b7848b3355a7607"
+      },
+      {
+        "format": "bin",
+        "sha256": "63f9308b79898b08a340cafda2b407320aa3c0cf664c9c76988bb582377dbae2"
+      }
+    ],
+    "observations": "Independent ezdxf physical tag loader before ordinary setup verified source/derived selected MATERIAL identity and 55 host tags, and exact equality of all output body tags except the second group 73 in ASCII and binary."
+  },
+  "limitations": [
+    "The peer input removes unrelated EZDXF_META DICTIONARYVAR records from a previously independently authored source; it is not proof of unmodified whole-document export.",
+    "The selected physical role evidence does not qualify omitted-boundary behavior in native CAD applications, rendering or untested versions.",
+    "No drawing fixture is committed."
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-acdsdata-multichunk-replay-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_UNCOMMITTED",
+  "scope": "Close the existing ACDSDATA group-310 multi-chunk coverage gap in the current ASCII/binary local round-trip owner test.",
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "generatedPayload": {
+      "sizeBytes": 256,
+      "requiredPrefix": "ACIS BinaryFile",
+      "remainingBytes": "deterministic marker pattern; transport-only and not asserted to be valid SAB or geometry"
+    },
+    "assertions": [
+      "ASCII and binary exports contain a 256-byte group-94 declared length and exact source payload.",
+      "The target record contains exactly three ordered group-310 chunks of 127, 127, and 2 decoded bytes.",
+      "The group-320 key resolves to an imported modeler handle after remapping; adjacent records remain separately bounded.",
+      "Re-export/re-import preserves the exact payload and chunk sequence while validating remapped modeler owner handles."
+    ],
+    "productionCodeChanged": false,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq -e . docs/research/acdsdata-multichunk-replay-fast-slice-2026-10-17.json >/dev/null"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "focusedCTest": "passed, 1/1; exercises ASCII and binary profiles (2.92 s)",
+      "scopedDiffCheck": "passed",
+      "receiptJson": "passed"
+    }
+  },
+  "limits": {
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "fullTestSuite": "NOT RUN",
+    "malformedChunkNegativeControls": "NOT ADDED; optional follow-up only",
+    "semanticAcisEvidence": "NOT ESTABLISHED",
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing edits"
+  }
+}

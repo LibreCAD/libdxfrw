@@ -1,0 +1,140 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACadRust failure-mode and Open CAD Studio consumer-route reconciliation",
+  "mode": "deeper/broader primary-source research and plan-only refinement",
+  "scope": [
+    "Refresh current open-source peer failure modes for Binary DXF serialization, legacy code pages, table conversion, named colors, XDATA, and native interpretation",
+    "Cross-check peer reports against existing local writer guards and focused tests without importing peer-specific format assumptions",
+    "Assess Open CAD Studio as an optional downstream app/kernel route with explicit parser-lineage and evidence limits",
+    "Add implementation-ready gates without increasing per-slice validation frequency or changing support claims"
+  ],
+  "method": {
+    "kind": "Read project-owned GitHub issues, README/docs, manifest pins, and relevant local source/test declarations",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "localSourceAndTestsInspectedReadOnly": true,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Peer issue reports are version/reporter scoped and are not independent reproductions of libdxfrw defects or format rules. Open CAD Studio's current documentation is mutable; its manifest pins codec/kernel dependencies but the release artifact was not run or hashed. The app shares the opencadcodec/ACadRust parser lineage, and its same-codec save/reopen cannot independently qualify its writer. ODA v5.4.1 remains authoritative for DWG layout; Autodesk references remain authoritative for documented DXF grammar. No support claim or DEFERRED_EXTERNAL item is promoted."
+  },
+  "sources": [
+    {
+      "project": "ACadRust Binary DXF writer",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/136"
+      ],
+      "revision": "Issue #136, opened 2026-10-14; reporter identifies acadrust 0.6.4",
+      "observed": "The report identifies wrong primitive widths at Binary-DXF call sites (including I16/I32 examples) that desynchronize later tags, says the peer's own reader accepts its output, and describes an embedded-NUL XDATA string truncation. These are peer-specific allegations, not local findings. Local source inspection found value-kind guards before binary primitive emission and an embedded-NUL rejection test; this research pass did not run the local tests or exhaustively audit every serializer call site."
+    },
+    {
+      "project": "ACadRust cross-format table and metadata reports",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/130",
+        "https://github.com/hakanaktt/acadrust/issues/132"
+      ],
+      "revision": "Open issues accessed 2026-10-18; #132 reproduction names 0.6.3/main and records a maintainer retest request after a linked commit",
+      "observed": "#130 reports DWG/DXF field divergence for 2010+ table merged ranges and title/header suppression. #132 reports loss of unknown custom records, named entity colors, and table/block-record XDATA on DXF-to-DWG paths; the report itself points to different codec loss locations and is not a current-release reproduction. Existing local table, named-color, raw-class, and XDATA owners were mapped rather than duplicated."
+    },
+    {
+      "project": "ACadRust text and legacy code-page reports",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/125",
+        "https://github.com/hakanaktt/acadrust/issues/131"
+      ],
+      "revision": "Open issues accessed 2026-10-18; #125 names 0.6.3 and a main revision; #131 opened 2026-10-11",
+      "observed": "#125 alleges a TEXT group-51 radian/degree conversion bug in the peer; local focused source/test coverage already checks degrees in ASCII and Binary DXF. #131 enumerates legacy code-page mappings alleged wrong in ACadRust; local code classifies several such mappings as unavailable rather than silently using a nearby exact mapping. No peer encoding table was treated as authoritative."
+    },
+    {
+      "project": "ACadRust transparency interoperability report",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/119"
+      ],
+      "revision": "Open issue accessed 2026-10-18; reproduction reports ACadRust 0.6.0 and source observation at 0.6.1",
+      "observed": "The report says the peer's own reader recovers explicit transparency that a CAD application's properties panel displays as ByLayer, with application/version not fully identified and the method-byte cause marked as suspected. It supports separating native interpretation from same-codec readback; it does not establish the correct libdxfrw byte value."
+    },
+    {
+      "project": "Open CAD Studio",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/tessellation.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml"
+      ],
+      "revision": "Mutable main documentation accessed 2026-10-18; Cargo manifest pins opencadcodec revision 5d4f11a and opencadkernel revision a60f18f",
+      "observed": "The app advertises a headless audit/save_verified route with entity manifests, dropped-on-save reporting, target-version checks and same-app reopen, and documents ACIS-to-kernel-body meshing with incomplete fallback marking. It provides an optional downstream consumer route and candidate source-distinct geometry kernel, but shares codec lineage with ACadRust through opencadcodec. No binary, app artifact, kernel operation, or result was executed here."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-39/7X Binary-DXF primitive/code-width admission and caller propagation",
+      "PAR-39 text oblique-angle writer guard",
+      "TABLE/ACAD_TABLE merged-range and style-flag cross-format closure",
+      "Named-color/DBCOLOR, table-record XDATA, and unknown-class source disposition",
+      "Legacy code-page explicit availability and no-silent-alias policy",
+      "Native consumer/application interpretation versus same-codec roundtrip",
+      "Composed optional consumer qualification route"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds targeted regression details to existing writer, encoding, graph/loss, table, and consumer owners. Adds Open CAD Studio as an optional composed application/kernel route with its codec-lineage and same-codec-reopen limits; it cannot replace FreeCAD qualification or establish broad DWG/DXF/ACIS support."
+  },
+  "implementationReadyChecks": [
+    "For Binary DXF, assert each low-level primitive/code type match, no bytes emitted for an invalid primitive/code pair, correct next-record alignment, and serializer failure propagation for a representative local family.",
+    "For merged tables, compare DWG-to-DXF and DXF-to-DWG fields independently: anchor/span/covered cell state and title/header suppression; include a following-record sentinel.",
+    "For custom/raw records, named colors, and table/block XDATA, report per-source-handle typed/raw-retained/transformed/omitted/refused disposition and reference closure; never silently treat absence as preservation.",
+    "Keep unsupported legacy code-page names explicitly unavailable until exact mappings are implemented from an authoritative source with distinct decode and encode vectors.",
+    "At the existing optional Open CAD Studio checkpoint, pin app artifact, opencadcodec/opencadkernel revisions, OS, route and target version; use scratch-generated controls, collect diagnostics/manifests/drop disposition and geometry metrics separately, and keep all output temporary.",
+    "Do not use Open CAD Studio's own save/reopen as independent writer evidence, count its codec fork as an independent ACadRust parser lineage, substitute it for FreeCAD Linux/Windows qualification, or promote J256/J260/J268/J284/J293/J295."
+  ],
+  "workingTree": {
+    "alreadyContainsUncommittedImplementationChanges": true,
+    "researchPassChangedProductionOrTests": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-acadrust-opencadstudio-peer-reconciliation-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-acadrust-opencadstudio-peer-reconciliation-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "IMAGEDEF independent wire scanner and documented group-12 writer mapping",
+  "mode": "generated local fast-test implementation with primary-spec-backed DXF output correction",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Replace reader-backed IMAGEDEF pixel-size slot discovery with a test-only raw scanner",
+    "Independently observe literal group-12/group-21 order in generated ASCII and Binary DXF",
+    "Keep semantic projection checks in a separate fresh libdxfrw import",
+    "Align IMAGEDEF DXF writer output with the versioned Autodesk DXF group-11/group-12 mapping"
+  ],
+  "implementation": {
+    "file": "tests/dxf_fixture_tests.cpp",
+    "selector": "--image-def-pixel-size-code-forms",
+    "asciiScanner": [
+      "Reads raw group-code/value line pairs",
+      "Tracks record boundaries from literal group 0 values",
+      "Captures code 12 and 21 within IMAGEDEF records",
+      "Walks group 1001 APPID and group 1000 string values on IMAGEDEF records"
+    ],
+    "binaryScanner": [
+      "Checks the 22-byte AutoCAD Binary DXF sentinel",
+      "Reads 16-bit little-endian group codes for the generated AC1027 R13+ profile",
+      "Skips generated record values using documented DXF group-code width classes",
+      "Captures code 12 and 21 within IMAGEDEF records",
+      "Walks group 1001 APPID and group 1000 string values on IMAGEDEF records"
+    ],
+    "normativeMappingEvidence": [
+      "Autodesk AutoCAD 2012 DXF reference PDF: group 11 is pixel-size U and group 12 is pixel-size V",
+      "Autodesk 2020 IMAGEDEF DXF table: same group-11/group-12 mapping"
+    ],
+    "productionChange": {
+      "file": "src/libdxfrw.cpp",
+      "before": "DRW_ImageDef::vp emitted as group 21",
+      "after": "DRW_ImageDef::vp emitted as documented DXF group 12",
+      "readerCompatibility": "DRW_ImageDef::parseCode continues accepting both groups 12 and 21"
+    },
+    "matrix": {
+      "encodings": ["ASCII", "Binary"],
+      "forms": ["absent", "code12", "code21", "both12then21", "both21then12"],
+      "followingSentinels": [280, 281],
+      "xdataWireValues": [
+        {"group": 1001, "value": "IMAGE_META"},
+        {"group": 1000, "value": "scanner-sentinel"}
+      ]
+    },
+    "limits": [
+      "Scanner covers group-value types emitted by this generated fixture and is not a generalized DXF reader",
+      "Binary framing is limited to generated AC1027 R13+ files; legacy R12 one-byte/escape framing is not implemented",
+      "The primary DXF references resolve the documented mapping, but no native producer was run in this slice",
+      "The ezdxf point-style source declaration is a peer implementation discrepancy; its writer was not executed and is not treated as proof of wire bytes",
+      "Fresh semantic readback still uses libdxfrw and is intentionally a separate assertion"
+    ],
+    "productionCodeChanged": true,
+    "fixtureFilesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "build-gcc/libdxfrw_dxf_fixture_tests --image-def-pixel-size-code-forms",
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_fixtures|dwg2dxf_image_path_cli)$' --output-on-failure",
+      "git diff --check -- tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "buildPassed": true,
+    "focusedSelectorPassed": true,
+    "focusedSelectorResult": "IMAGEDEF pixel-size group-12/group-21 wire matrix: PASS; generated writer group-12 control plus all ten encoding/form cases, XDATA values, and following sentinels",
+    "focusedCTestPassed": true,
+    "focusedCTestResult": "libdxfrw_dxf_fixtures and dwg2dxf_image_path_cli passed 2/2 in 4.16 seconds",
+    "diffCheckPassed": true,
+    "fullSuiteRun": false,
+    "repairNote": "An initial incorrect R12 escape interpretation failed the generated R13+ Binary control. The scanner was narrowed to the active AC1027 16-bit little-endian code profile; the strict rebuild and focused matrix then passed."
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remaining7P5b": [
+      "Optional transformed U/V bounds consumer observation at the composed consumer gate",
+      "Native-producer witness only if future work narrows legacy dual-read compatibility or claims native acceptance"
+    ]
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout contains extensive unrelated tracked and untracked work, including the plan and test file. The focused test/plan/receipt slice was kept isolated; unrelated changes were preserved."
+  }
+}

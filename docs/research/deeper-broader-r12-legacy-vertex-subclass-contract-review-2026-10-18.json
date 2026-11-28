@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw-deeper-broader-r12-legacy-vertex-subclass-review-v1",
+  "reviewedAt": "2026-10-18",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Resolve the Release 12 versus R13+ subclass-marker boundary for classic POLYLINE/VERTEX inputs, reconcile ACadSharp issues #1278/#1279 with primary Autodesk documentation, and refine existing plan/test ownership.",
+  "method": {
+    "kind": "Primary-source web research plus targeted local plan/source/test-record inspection",
+    "localTestsRun": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "worktreeWasAlreadyDirty": true,
+    "planSha256BeforeThisUpdate": "c9c9391cbcee132c00acf7f459101ed6c37fb50cf6ddd9de3f79a272f0401915",
+    "localFilesInspected": {
+      "src/drw_entities.cpp": "56f0f930b0d256296c36f5e4cbd06e5b9ab742e31077baf3ee62bb8421e67de5",
+      "src/libdxfrw.cpp": "7e79776c5d432da4665d7607922faaa0bd0faa283432f66112fa70af5a14df8c",
+      "tests/dxf_fixture_tests.cpp": "717b1178f6484ccd8d3825d429f1f965fb18b065abc90fc776f933e91d707bd9"
+    },
+    "sources": [
+      "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_r12_dxf.pdf",
+      "https://help.autodesk.com/view/ACD/2027/ENU/?caas=caas%2Fdocumentation%2FCIV3D%2F2014%2FENU%2FfilesACD%2FGUID-DFDAE6CD-E753-4D01-9D9B-4D1F66B1DE6E-htm.html",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/addons/r12writer.py",
+      "https://github.com/DomCR/ACadSharp/issues/1278",
+      "https://github.com/DomCR/ACadSharp/issues/1279"
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "R12 group-code profile",
+      "observed": "Autodesk's 1993 R12 DXF reference documents the classic POLYLINE/VERTEX/SEQEND structure and its group-code tables do not define code 100 as a subclass marker.",
+      "doesNotEstablish": [
+        "how all contemporary readers handle extra code-100 strings in a file labeled R12",
+        "that extra code-100 records must always be rejected rather than tolerated"
+      ],
+      "planDisposition": "Treat group-100 markers as out-of-profile for R12 input and keep strict R12 output marker-free. Any tolerance is a separate parser compatibility policy."
+    },
+    {
+      "topic": "Legacy VERTEX marker requirement",
+      "observed": "Autodesk's current AutoLISP entity-creation guidance says group-100 markers are required for entities introduced in R13+, and explicitly lists pre-R13 POLYLINE, VERTEX, and SEQEND among entities that do not require them.",
+      "doesNotEstablish": [
+        "universal acceptance of every partial marker combination by every CAD parser",
+        "a general rule for inferring mesh, polyface, or 3D child roles from the parent"
+      ],
+      "planDisposition": "Do not classify the AC1014 missing-role-marker case as malformed solely because the modern VERTEX table lists a canonical role marker. Retain only the already-bounded 2D compatibility case."
+    },
+    {
+      "topic": "Canonical writer representation",
+      "observed": "The modern Autodesk VERTEX page lists AcDbVertex followed by AcDb2dVertex or AcDb3dPolylineVertex. ezdxf's dedicated R12 writer corroborates marker-free legacy serialization but is not treated as normative evidence.",
+      "planDisposition": "Preserve version-gated output: marker-free R12; canonical role-specific marker sequence for R13+."
+    },
+    {
+      "topic": "ACadSharp issue evidence limits",
+      "observed": "Issue #1279 describes an AC1014 child VERTEX with AcDbVertex but no more-specific marker and a peer builder exception; no sample hash or independent native result is published. Issue #1278 was available only as a live-index title in this pass and alleges dropped R12 records containing subclass markers.",
+      "planDisposition": "Keep #1279 as a narrow legacy-input compatibility scenario and #1278 as a title-level discovery lead; neither establishes a libdxfrw defect or valid-R12 conformance gap."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersReinforced": [
+      "PAR-14/7BS classic compound POLYLINE/VERTEX parsing and boundary isolation",
+      "version-specific DXF output profiles and canonical writer markers"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "additionalTestTargetsOrCtestRegistrations": 0,
+    "externalFixturesOrDependenciesAdded": false,
+    "supportClaimsPromoted": 0,
+    "findingsAndTopLevelSubplans": "130/73",
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "validation": {
+    "planFileUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "jsonValidationRun": true,
+    "planDiffCheckRun": true,
+    "markdownRenderingRun": false,
+    "localTestResultsRebound": false,
+    "reason": "Research and plan refinement only; the earlier AC1014 generated-test result was not rerun in this research pass."
+  }
+}

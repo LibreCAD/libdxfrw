@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-civil-ltype-null-slot-strict-refusal-2026-11-05",
+  "date": "2026-11-05",
+  "status": "STRICT_REFUSAL_CONFIRMED",
+  "supportClaimEffect": "none",
+  "scope": "Identify the exact strict DWG read-completeness failure for a local AC1024 civil sample and determine whether it is a reader defect or unresolved source membership.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "version": "AC1024",
+    "provenance": "Local untracked sample; not added to the repository"
+  },
+  "observations": {
+    "libdxfrw": {
+      "sourceFrames": 335,
+      "publishedFrames": 335,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "strictOutcome": "Refused before output preflight because LTYPE_CONTROL membership is incomplete",
+      "controlHandle": "0x5",
+      "countedSlots": 6,
+      "slots": ["0x16", "0x1b1", "0x1b2", "0x1b3", "0x36b", "0x0"],
+      "phantomSlots": ["0x14", "0x15"],
+      "integrityDiagnostic": {
+        "kind": "TableControlNullMember",
+        "severity": "Error",
+        "expectedRole": "soft ownership",
+        "observedRole": "soft ownership",
+        "sourceOffset": 547
+      }
+    },
+    "libredwg": {
+      "version": "0.14",
+      "controlEntries": ["0x16", "0x1b1", "0x1b2", "0x1b3", "0x36b", "0x0"],
+      "typedLtypes": ["0x14", "0x15", "0x16", "0x1b1", "0x1b2", "0x1b3", "0x36b"],
+      "minJsonRead": "Succeeded and preserved the same null entry in the control list",
+      "dxfWrite": "Succeeded; this is tolerant-reader/exporter behavior, not strict graph-completeness proof"
+    },
+    "odaSpecification": {
+      "version": "5.4.1",
+      "section": "20.4.57",
+      "statement": "Numentries counts the soft-owner linetypes; BYBLOCK and BYLAYER are the two final hard-owner entries.",
+      "boundary": "The section does not establish whether a null reference inside the counted soft-owner slots is a valid tombstone or invalid membership."
+    }
+  },
+  "conclusion": "The local parser and LibreDWG agree on the physical null counted slot. No evidence shows a libdxfrw decode defect, and the current exact-membership gate correctly refuses to promote the graph while that slot has no target. Do not weaken the general strict gate based on tolerant peer output. A future bounded policy requires authoritative evidence that this null slot is a valid tombstone plus output/readback proof that preserves every live LTYPE and all references.",
+  "validation": {
+    "libdxfrwCommand": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/civil_example-imperial.dwg -y -d -v2010 /private/tmp/civil-current-trace.dxf",
+    "libredwgCommands": [
+      "dwgread -O minJSON -o /private/tmp/civil-minjson.json /Users/dli/doc/dwg/civil_example-imperial.dwg",
+      "dwgread -O DXF -o /private/tmp/civil-peer.dxf /Users/dli/doc/dwg/civil_example-imperial.dwg"
+    ],
+    "odaSpecReference": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf#page=171"
+  },
+  "limitations": [
+    "No native AutoCAD or ODA application qualification was performed for this source.",
+    "LibreDWG acceptance and DXF export demonstrate peer tolerance only.",
+    "The null slot's producer intent and tombstone semantics remain unresolved.",
+    "No DWG or DXF fixture was added to the repository."
+  ]
+}

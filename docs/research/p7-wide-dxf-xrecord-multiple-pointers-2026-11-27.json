@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-27",
+  "scope": "Generated AC1027 ASCII and binary XRECORD with several ordered soft and hard pointers to selected dictionaries and XRECORDs.",
+  "implementationDigestSha256": "defe1f69008aa5109d960a443628fdf050f2932e37ce46328a9dd9010cd007d0",
+  "converterSha256": "1d26cae48f52652c055e763166f39cf37ec1dba931afaf7bf120bdd752515b41",
+  "change": "Capture up to 16 references per selected XRECORD, prove each target in the selected graph, project only the proven physical fields and bind the ordered group-code/target sequence at import and staged output.",
+  "hashes": {
+    "ascii": {
+      "source": "392ee3d82a05565aaaf691b218d3434febca1284edb8356c178e984a62f7830a",
+      "output": "a2ea48da5f9cad252ece0487f7b1ed82be913524c31c14a94cacf1a648ecf81a"
+    },
+    "binary": {
+      "source": "f13e593f6831ab734d14768d456c69b0dedf89b44d88bf9fc57c9c4348292108",
+      "output": "f3a4356f44dffb14a1623bf0765e4a4705f667ce9c737a40b844d515dc332e56"
+    }
+  },
+  "peerReadback": {
+    "ezdxf": "1.4.5: 28 mapped objects, 27 dictionary entries, 14 root entries, two layers, owners/reactors, record payload/reference order, materials and dictionary values match for each encoding; source and output each audit zero errors and fixes.",
+    "libredwg": "0.14 dxf2dwg r2004 and dwgread JSON match four ordered pointers [341,332,349,341], target types, values and record owner in both encodings. MATERIAL warnings restrict evidence to the selected graph."
+  },
+  "checks": [
+    "In-tree tests cover mixed roles, repeated codes and both encodings with handle collisions",
+    "16 pointer boundary passes; 17 pointers and unqualified targets refuse with destination preservation and corrected same-adapter retry",
+    "Pointer reordering, code/owner changes and late payload mutation refuse atomically; restored state succeeds",
+    "Wrong owner, unselected or unrelated MATERIAL, dangling target, unsupported ownership role, cross-version and cross-encoding refuse",
+    "Focused whole-source, compact-material graph and AC1024 plot-style CTests plus GCC strict syntax checks pass"
+  ],
+  "limits": [
+    "At most 16 selected groups 332\u2013349 per XRECORD and at most eight selected chains; groups 330/331 remain refused due observed peer data loss",
+    "Only selected dictionary and XRECORD targets, strict same-version and same-encoding AC1027 bounded plot/material graph",
+    "No native producer or native consumer or broad support claim established",
+    "No external DWG/DXF fixtures committed"
+  ]
+}

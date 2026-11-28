@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 fixed nonprocedural MATERIAL body parsing",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Decode the bounded fixed nonprocedural MATERIAL body profile for AC1021, preserving same-version raw capture and refusing semantic publication when the body, string stream, or zero-padding bounds do not match. This does not qualify DXF output or native material behavior.",
+  "authority": {
+    "format": "ODA Open Design Specification v5.4.1 remains authoritative for shared DWG framing and bit encodings; it does not publish a MATERIAL body schema.",
+    "bodySchema": "The fixed nonprocedural field order follows LibreDWG dwg2.spec and is corroborated by the source-bound AC1021 peer audit and local physical-source probe. Procedural and unknown tails remain unsupported."
+  },
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "revision": "AC1021",
+    "provenanceLimit": "Existing local DWG; its producer and author are not independently authenticated. No fixture was added to the repository.",
+    "materialGraph": "One ACAD_MATERIAL dictionary at 0x6A with ByBlock 0xED, ByLayer 0xEC, and Global 0xEE; each material has the dictionary as owner and its sole reactor."
+  },
+  "independentPeer": {
+    "reader": "/opt/homebrew/bin/dwgread",
+    "version": "LibreDWG 0.14",
+    "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "jsonSha256": "94b457c0bcfbd29455914c4c97ac5cbdcc57cd89ff9b4bb21c3e7d24fa44b55f",
+    "result": "The peer JSON exposes all three material records, the same handles and owner/reactor graph, and fixed body fields including color methods/factors, six map profiles, channel flags and illumination values. The local probe checks the shared scalar/map profile and graph roles."
+  },
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "change": "Apply the existing independently-cursored fixed nonprocedural body decoder to AC1021 in addition to its AC1024/AC1027 profiles. Exact bounded consumption remains required before semantic fields are published; existing raw payload capture is unchanged.",
+    "generatedRegression": "The default-material graph control now requires semantic field publication for locally generated AC1021 material records while retaining AC1021 raw-payload checks."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_default_material_optin_tests dwg2dxf -j4",
+    "buildResult": "passed",
+    "physicalProbe": "build-gcc/tests/libdxfrw_dwg_default_material_optin_tests --physical-ac1021-semantic-probe /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "physicalProbeResult": "passed: all three source materials publish complete semantic profiles; the tested graph and scalar/map fields match the peer-observed profile.",
+    "testExecutableSha256": "795ea9cdcdaf9737039cea56c939362f55928c94f593d5bcdc1d030f1f24c20d",
+    "regressions": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_(default_material_optin|ac1024_default_material)$' --output-on-failure: 2/2 passed.",
+    "sourceRead": "The current dwg2dxf build publishes 1,673/1,673 observed frames and reports zero entity/object parse failures on this source. Whole-source output still refuses at the independent DBCOLOR source-profile gate; no DXF is emitted."
+  },
+  "limits": [
+    "No physical MATERIAL graph output or fresh DXF readback is qualified.",
+    "Procedural materials, unknown fields/tails, other producer profiles, native material rendering, and whole-drawing interoperability remain open.",
+    "The AC1021 default-material graph remains explicit opt-in; this parser change does not broaden writer admission or support claims."
+  ]
+}

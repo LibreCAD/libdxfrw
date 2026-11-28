@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "AC1027 multi-body block AcDs owner and payload mapping",
+  "mode": "generated, focused implementation slice",
+  "scope": [
+    "Exercise two AC1027 modeler bodies in one nested block with distinct owner-keyed payloads",
+    "Independently vary entity and ACDSDATA record order",
+    "Refuse swapped, missing, duplicate-owner, and foreign-owner records transactionally",
+    "Preserve the existing block/BLOCK_RECORD, nested/shared INSERT, history, and strict replay assertions"
+  ],
+  "implementation": {
+    "selector": "libdxfrw_dwg_local_roundtrip --modeler-acds-block-projection",
+    "ctest": "dwg2dxf_modeler_acds_block_projection",
+    "positiveCases": [
+      "ASCII and Binary AC1027 generated DXF",
+      "One 3DSOLID and one REGION in the same modeler-only block; the REGION payload spans multiple group-310 chunks",
+      "Assert block child order is 3DSOLID then REGION and ACDSDATA owner-record order is REGION then 3DSOLID",
+      "Emitted handle maps to exact ASM_Data owner and payload independent of record order",
+      "Initial import and strict re-export/readback",
+      "Nested INSERT through a mixed block and two transformed shared modelspace INSERTs",
+      "BLOCK_RECORD/block ownership and 3DSOLID history-proxy ownership"
+    ],
+    "negativeCases": [
+      "Swap the two distinct payloads while retaining owner keys",
+      "Omit one modeler record while leaving both modeler entities",
+      "Duplicate one owner record while preserving the record count",
+      "Remap one record to a foreign owner while preserving the record count",
+      "Exercise each mutation in ASCII and Binary and require destination sentinel preservation"
+    ],
+    "testHelperChange": "collectAcdsRecordPayloads inventories every ASM_Data owner/payload pair and rejects duplicate owner keys instead of returning an ambiguous first match."
+  },
+  "planImpact": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportPromotion": false,
+    "totalFindings": 142,
+    "topLevelSubplans": 78,
+    "countNote": "Historical plan totals remain unreconciled; working summary retained.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "targetBuild": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2: PASS",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-acds-block-projection: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeler_acds_block_projection$' --output-on-failure: PASS (1/1, 0.03s)",
+    "companionSelector": "build-gcc/libdxfrw_dwg_local_roundtrip --dxf-acds-multiple-data-storage: PASS",
+    "scopedDiffCheck": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md: PASS",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  },
+  "limitations": [
+    "Marker payloads are locally generated opaque bytes, not valid SAB and not semantic ACIS evidence.",
+    "No production code changed; this is generated test coverage and a test-helper correctness improvement.",
+    "No persistent DWG/DXF fixture, peer executable, external drawing, native CAD/kernel, or full test suite was run.",
+    "The shared checkout is broadly modified and remains uncommitted; unrelated changes were not staged or committed."
+  ],
+  "changedFiles": [
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md",
+    "docs/research/ac1027-multibody-block-acds-owner-mapping-fast-slice-2026-10-21.json"
+  ]
+}

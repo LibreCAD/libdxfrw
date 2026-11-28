@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw-broader-implementation-family-and-projection-review-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Reconcile DWG/DXF peer claims by evidence layer: document codecs, DXF entity models, GIS projections, target consumers, and geometry semantics; refine optional comparator and fast-gate selection.",
+  "method": {
+    "kind": "Static review of primary project documentation/source pages and the current local implementation plan",
+    "peerRepositoriesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "GitHub master/main, project API references, and stable GDAL documentation are mutable; exact revision/release/options must be captured before any runtime comparator use.",
+    "evidenceRule": "Separate container/version parsing, typed field and graph preservation, writer/readback acceptance, projected geometry, and exact B-rep semantics. Project matrices and class registration do not promote support."
+  },
+  "comparators": [
+    {
+      "project": "LibreDWG",
+      "role": ["DWG/DXF document codec", "optional DWG/container and conversion comparator"],
+      "sources": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/libredwg.spec"
+      ],
+      "evidence": "The project documents broad DWG/DXF parsing, writing and conversion, while also listing advanced/unstable/undertested classes and AcDs record limitations. Published README/manual/packaging statements differ on writer boundaries, making release pinning material.",
+      "doesNotEstablish": ["all object-family preservation", "complete AcDs owner/page association", "ACIS shape validity", "target-CAD acceptance"],
+      "planUse": "Optional pinned comparator at a composed stage, recording version, direction, object route, per-handle typed/raw/skipped result and diagnostics. Not a per-slice dependency or semantic kernel."
+    },
+    {
+      "project": "ACadSharp",
+      "role": ["DWG/DXF structured-document reader/writer"],
+      "sources": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/api/index.md"
+      ],
+      "evidence": "Published capability tables separate DXF and DWG reader/writer by AC version; read APIs expose notifications. This is route/version inventory, not a per-family preservation guarantee.",
+      "doesNotEstablish": ["nested block object completeness", "writer acceptance for every entity/object family", "ACIS B-rep validity"],
+      "planUse": "If selected for a specific unresolved question, pin a release/source SHA and record notifications, per-source-handle outcomes, BLOCK/INSERT closure, target write and independent reopen separately."
+    },
+    {
+      "project": "QCAD dxflib",
+      "role": ["conventional DXF entity-model/API comparator"],
+      "sources": [
+        "https://github.com/qcad/qcad/tree/master/src/3rdparty/dxflib",
+        "https://github.com/qcad/qcad/blob/master/src/3rdparty/dxflib/src/dl_entities.h"
+      ],
+      "evidence": "The exposed model includes ordinary geometric records including SOLID, 3DFACE, VERTEX and 3D polylines. That supports bounded explicit-entity comparison only.",
+      "doesNotEstablish": ["DXF 3DSOLID/ACIS carrier semantics", "DWG AcDs extraction", "geometry-kernel validity"],
+      "planUse": "Keep in the common entity/consumer lane; distinguish SOLID from 3DSOLID and do not count as an independent ACIS semantic oracle without source-lineage review."
+    },
+    {
+      "project": "GDAL/OGR DXF",
+      "role": ["GIS-oriented DXF feature projection", "optional raw modern ASM carrier comparator"],
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md"
+      ],
+      "evidence": "The driver tessellates curves, expands/merges blocks depending on options, projects entities into OGR geometries, and documents unsupported types and missing OCS/elevation cases. GDAL 3.12 adds Binary DXF input. AC1027+ extensible mode exposes raw ASM data and a transform without constructing OGR solid geometry.",
+      "doesNotEstablish": ["exact DXF tag preservation", "DWG support", "complete CAD object graph", "ACIS shape semantics", "3DFACE Z/OCS correctness across unsupported routes"],
+      "planUse": "Optional composed comparison only, with GDAL version, input AC code and all raw/block/merge/3D options captured. Score only explicitly supported projected profiles; never treat a missing OGR feature as proof of source loss."
+    },
+    {
+      "project": "acad-ts",
+      "role": ["ACadSharp-derived port"],
+      "sources": ["https://github.com/node-projects/acad-ts"],
+      "evidence": "The repository states that it is ported from ACadSharp and identifies an upstream ACadSharp commit for comparison.",
+      "doesNotEstablish": ["a second independent parser lineage"],
+      "planUse": "Deduplicate peer evidence by parser source family; an independently tested port can be a differential implementation but not an independent vote."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Retain all affected 2D LibreCAD/LibreCAD_3 callback and DXF compatibility checks; 3D peer gaps do not weaken the 2D contract.",
+    "For explicit polygonal geometry, compare wire tags, WCS/OCS placement, connectivity, visibility/crease fields, owner/container and following-record framing before any lossy geometry projection.",
+    "Keep SOLID, 3DFACE, polyface/MESH and ACIS 3DSOLID as distinct feature families.",
+    "Complete local ACIS/ASM carrier, transform, size, index, handle and owner closure before optional GDAL or other external carrier checks.",
+    "At a composed external checkpoint, select at most one document parser relevant to the unresolved format-stage question and keep the expected handle/content manifest independently authored.",
+    "Per-slice validation remains changed strict targets, the owning focused CTest, lc3_compat_check and git diff --check; broad peer/native validation remains at the existing composed gates."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRunForResearch": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-block-control-wire-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "0000c7c24",
+  "implementationDigestSha256": "556debe1c6d6fed6237d36c8fc76bdd68483231feec5257d398b1231ec27132b",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1 and 20.4.51",
+  "scope": "BLOCK_CONTROL source frame and selected block-record membership in the locally generated AC1012 collision pair.",
+  "checks": [
+    "The observer checks both physical CRC-validated control frames: type and self handle, empty EED/reactors and counted list, exact body boundary, typed null owner/extension, and hard-owned model 0x1F and paper 0x20 slots. All byte-prefix truncations and wrong-role mutations are refused; unchanged frames pass again.",
+    "The adapter's source-bound, duplicate-free control membership check passes on both drawings and rejects a changed block owner before a corrected retry; the three focused CTests pass.",
+    "Independent cadkit-dwg 0.5.4 decodes the selected source control with valid CRC, no counted entries and extra entries 0x1F/0x20, with no remaining data or handle bits. Cadkit is specification-directed and labels R13 untested.",
+    "The generated-pair packager records the BLOCK_CONTROL frame hash in addition to the existing boundary hashes. No drawing fixture was committed."
+  ],
+  "scratchPacket": "/private/tmp/ac1012-native-two-element-block-control-20261127",
+  "hashes": {
+    "observer": "e903b849312ae6b6ff15295102231da2282fd60e0f752c9e6086f82a3fa80423",
+    "observerResults": "0da89dbc6c8aa45e0b187f1976047abcab486a66cc7a3384e6e9e769e56973da",
+    "ctestLog": "9ec30c69972b6ac1d77573ab19d48f13e01d3f0cf3e02b469be9f0f41ae31eec",
+    "cadkitLog": "ddc0364980e66d54ee070934adf135bc3dcb4ec459c1557275f410393dac03fa",
+    "packetManifest": "c76939711da9680168177260242cad32de65d52faf6dfe8bf28987c61bce6c51"
+  },
+  "limits": [
+    "Selected generated R13 source framing and membership only. Whole-file closure, AutoCAD normal-open, cloning behavior, native output and general support remain unqualified."
+  ]
+}

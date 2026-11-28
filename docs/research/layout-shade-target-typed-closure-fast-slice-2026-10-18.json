@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-18",
+  "plan_owner": "PAR-20/7G.3",
+  "slice": "LAYOUT embedded PlotSettings code-333 typed shade-target closure",
+  "status": "implemented_locally_uncommitted",
+  "scope": {
+    "modes": {
+      "0-3": "require a null shade target",
+      "4": "require a uniquely rooted VISUALSTYLE target",
+      "5": "require a uniquely rooted same-version RapidRT or MentalRay RenderSettings target"
+    },
+    "version_boundary": "Uses the existing modern target-version ceiling shared with VIEWPORT shade modes.",
+    "negative_cases": [
+      "mode/handle mismatch",
+      "null modern-mode target",
+      "dangling target",
+      "wrong target class",
+      "invalid mode"
+    ],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "remapping": "Normal target handles and a fixed-handle collision are read back through the emitted LAYOUT edge."
+  },
+  "artifacts": {
+    "fixtures": "Generated from scratch in temporary directories; no drawing fixture committed.",
+    "ctest_registration": "none"
+  },
+  "validation": {
+    "strict_target": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_selector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --layout-graph-read-contract",
+      "result": "PASS"
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dxf_fixture_tests.cpp",
+      "result": "PASS"
+    },
+    "owning_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "FAIL",
+      "failures": [
+        "ASCII DXF XDATA output succeeds after same-writer retry",
+        "Binary DXF XDATA output succeeds after same-writer retry"
+      ],
+      "scope_note": "The isolated --block-record-xdata-roundtrip selector reproduces the same two failures; that generated AC1021 source contains no LAYOUT records, so this slice's LAYOUT validation path is not exercised."
+    },
+    "full_suite": "not_run"
+  },
+  "evidence_ceiling": "Structural typed-graph write/readback only; no CAD semantic or native-application support claim.",
+  "unresolved": [
+    "DWG LAYOUT viewport-count and viewport-handle-list decoding",
+    "composed DWG-to-DXF CLI conversion",
+    "LibreCAD_3 runtime qualification",
+    "independent/native ACIS and 3D semantic qualification"
+  ],
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "No changes staged or committed."
+}

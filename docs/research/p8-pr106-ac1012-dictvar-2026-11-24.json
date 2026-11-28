@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-ac1012-dictvar-2026-11-24",
+  "date": "2026-11-24",
+  "status": "EXACT_HEAD_FAST_AND_FOCUSED_CHECKS_PASS",
+  "supportClaimEffect": "none",
+  "candidate": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "head": "a52a1b054287ea6a43405c5f0d3733cdd1f436cd",
+    "implementationDigestSha256": "a7f8a6db5b11cbb1460de7869d0cc8ea3360a9d26f3a4e197aca4fe095d0100f",
+    "selectedInputCount": 774,
+    "qualificationInventory": 1400
+  },
+  "change": {
+    "commit": "a52a1b054287ea6a43405c5f0d3733cdd1f436cd",
+    "subject": "Guard wide legacy dictionary variable refs",
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_ac1014_dictionaryvar_tests.cpp",
+      "metadata/qualified-format-status-v1.json"
+    ],
+    "behavior": "Legacy DICTIONARYVAR common parent, reactor, and extension-dictionary handles are rejected when their decoded references exceed the uint32_t public graph range. The shared helper is enabled only on the existing legacy dictionary-role validation path.",
+    "fixtures": "Generated frames remain in-memory controls. No DWG or DXF fixtures were committed."
+  },
+  "localValidation": {
+    "platform": "macOS ARM64",
+    "compiler": "Apple clang version 21.0.0.21000334",
+    "build": "PASS: libdxfrw_dwg_ac1014_dictionaryvar_tests, libdxfrw_dwg_object_vectors_tests, and libdxfrw_dwg_reader_matrix_tests",
+    "focusedCtests": {
+      "count": 6,
+      "result": "PASS 6/6; 0.43 seconds",
+      "names": [
+        "libdxfrw_dwg_ac1014_dictionaryvar",
+        "libdxfrw_legacy_dictionary_group_links",
+        "libdxfrw_dwg_table_cell_overrides",
+        "libdxfrw_ac1021_table_content_reference_roles",
+        "libdxfrw_ac1024_table_content_spec_vectors",
+        "libdxfrw_dwg_r2007_class_string_footer"
+      ]
+    },
+    "qualificationDigest": "PASS",
+    "qualifiedFormatSupport": "PASS: 15 claims, 2 candidate routes, 0 advertised",
+    "workflowContract": "PASS",
+    "diffCheck": "PASS"
+  },
+  "hostedValidation": {
+    "fastRun": {
+      "runNumber": 368,
+      "runId": 45530709835,
+      "statusAtReceipt": "success",
+      "fastRegressionsJob": {
+        "jobId": 138925099109,
+        "status": "success",
+        "completedSteps": [
+          "Build bounded fast targets and source compatibility check",
+          "Run fast vectors and required CLI regressions"
+        ]
+      }
+    },
+    "nativeQualificationRun": {
+      "runNumber": 526,
+      "runId": 45530709813,
+      "statusAtReceipt": "success",
+      "jobs": [
+        {"name": "qualification workflow contract", "jobId": 138924998085, "status": "success"},
+        {"name": "focused / linux-gcc", "jobId": 138925088732, "status": "success"},
+        {"name": "focused / windows-msvc", "jobId": 138925088769, "status": "success"},
+        {"name": "focused / macos-clang", "jobId": 138925088778, "status": "success"},
+        {"name": "final broad matrix", "jobId": 138925090783, "status": "skipped"},
+        {"name": "extended deterministic fuzz", "jobId": 138925091468, "status": "skipped"}
+      ]
+    },
+    "note": "Exact-head fast run 368 and focused native qualification run 526 pass for the current digest. Broad, extended-fuzz, and source-release jobs were skipped by workflow design."
+  },
+  "qualificationDisposition": {
+    "p8f": "closed for digest a7f8a6db after exact-head fast and focused Linux, Windows, and macOS checks passed",
+    "claims": "all EXPERIMENTAL",
+    "advertisedRoutes": 0,
+    "nativeAutoCADDictionaryMerge": "unresolved",
+    "strictAc1012Output": "guarded"
+  }
+}

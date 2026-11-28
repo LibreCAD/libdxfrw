@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-common-appdata-reference-output-id-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_WRITER_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Recognized group-330 ACAD_REACTORS and group-360 ACAD_XDICTIONARY references retained in DRW_TableEntry appData.",
+  "interpretationCorrection": {
+    "supersedes": "The resolver-zero refusal expectation recorded in p4-common-object-reference-output-id-guard-2026-11-03 describes an intermediate implementation and is not the current contract.",
+    "sentinel": "DRW::NoHandle is zero; UINT32_MAX is not treated as this library's NoHandle sentinel.",
+    "resolverZero": "A configured resolver result of zero continues to omit the optional reference value and its empty wrapper."
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": [
+      "Without a reference resolver, recognized parseable reference source IDs in retained common app-data groups must be nonzero.",
+      "Without a reference resolver, direct remapping of a recognized retained common reference must produce a nonzero ID before record output.",
+      "With a reference resolver, recognized source IDs must be nonzero; a resolver result of zero omits the optional edge and group, preserving established behavior.",
+      "Malformed or unparseable retained reference values remain on the prior opaque preservation route and are not qualified by this guard."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "focused": [
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --common-reference-output-id-guard",
+        "result": "PASS",
+        "coverage": "ASCII/Binary typed common metadata and retained common app-data: zero source IDs and direct-remap results refuse before publication; resolver-zero optional edges/groups are omitted while record framing reaches a following sentinel."
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --common-appdata-base-scope",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_common_reference_output_id_guard$' --output-on-failure",
+        "result": "PASS"
+      }
+    ],
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "This proves local ID representation, output omission, and record framing only; it does not prove target existence, target kind, ownership, recursive closure, physical producer support, or native semantics.",
+    "Unparseable retained reference values remain opaque and need a separately source-backed policy if a producer profile requires their interpretation."
+  ],
+  "next": "Continue source- and role-backed common-reference closure; retain strict refusal for unresolved targets and dependencies."
+}

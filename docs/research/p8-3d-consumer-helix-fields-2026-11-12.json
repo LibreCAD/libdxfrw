@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-helix-fields-2026-11-12",
+  "purpose": "Close the generated DXF 3D consumer probe's missing HELIX positive case while preserving the legacy ext=true callback contract.",
+  "changes": [
+    "Extended the runtime-generated AC1027 ASCII and Binary DXF consumer recipe with a locally authored rational 3D HELIX.",
+    "Asserted selected inherited SPLINE fields and the AcDbHelix trailer, including version, axis/base/start points, radius, turns, turn height, handedness, and constraint type.",
+    "Ran the HELIX callback assertions with both ext=false and ext=true to ensure the legacy 2D extrusion mode does not rewrite this WCS/control/trailer data."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.43 seconds"
+  },
+  "scopeLimit": "This is generated same-library writer/parser callback evidence only. It does not qualify independent DXF interoperability, DWG HELIX layout, native geometry construction, FreeCAD HELIX import, or general HELIX support.",
+  "fixturePolicy": "The test writes ASCII and Binary DXF under a temporary directory at runtime and removes them; no fixture file was added.",
+  "claimEffect": "No format support claim changes. The local S8.3 consumer-probe coverage gap for HELIX is closed."
+}

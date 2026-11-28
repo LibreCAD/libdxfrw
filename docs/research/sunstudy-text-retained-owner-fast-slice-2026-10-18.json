@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "SUNSTUDY retained text owner fast slice",
+  "mode": "local fast implementation slice with generated controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge the four DXF SUNSTUDY text fields in groups 1 through 4 to retained-string ownership",
+    "Preserve replacement, copy, assignment, and reset accounting",
+    "Verify direct parser and full OBJECTS callback boundaries using generated inputs"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "DRW_SunStudy::parseCode now routes groups 1-4 through replaceDxfRetainedStringField using four private per-field counters on the inherited table-entry lease. Explicit copy and assignment preserve those counters; reset clears them before base lease release.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": true,
+    "layoutChange": "A private four-entry retained-byte counter array was added to public DRW_SunStudy layout. Downstream consumers must rebuild; binary ABI compatibility is not claimed.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "build-gcc/libdxfrw_hardening_tests --dxf-sunstudy-text-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "jq empty docs/research/sunstudy-text-retained-owner-fast-slice-2026-10-18.json",
+      "git diff --check"
+    ],
+    "results": {
+      "strictHardeningTarget": "passed",
+      "lc3CompatibilityCompile": "passed",
+      "focusedSunStudyTextOwnerBudget": "passed",
+      "owningHardeningCTest": "passed (1/1)",
+      "receiptValidation": "passed",
+      "diffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "newCTestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "The four selected parser-owned SUNSTUDY text values are charged to the shared logical retained-byte budget. Exact-peak admission succeeds; one-byte-under replacement preserves the prior final field and its charge. Copies share the lease until final reset/destruction.",
+    "coverage": "Generated ASCII/Binary direct parser controls cover all four fields, exact peak, under-cap replacement, reader teardown, copy/assignment, and final release. Generated full ASCII/Binary OBJECTS controls cover actual callback suppression, ResourceLimit diagnostics, and same-facade corrected retry through a following sentinel object.",
+    "limitations": "This does not bound allocation capacity or RSS, caller mutation after callback, writer/projection copies, DWG parsing, other object text fields, peer/native acceptance, or full-suite behavior."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "staged": false,
+    "committed": false
+  }
+}

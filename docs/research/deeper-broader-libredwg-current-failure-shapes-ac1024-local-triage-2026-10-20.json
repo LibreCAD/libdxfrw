@@ -1,0 +1,142 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Current LibreDWG failure shapes and local AC1024 disposition split",
+  "mode": "Primary-source web research and local diagnostic conversion; plan update only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh current LibreDWG issue/PR status for output closure, owned-entity traversal, block ownership, string framing, AcDs carrier preservation, and DXF import edge cases.",
+    "Cross-check current ezdxf documentation for unsupported-record and 3D semantic evidence limits.",
+    "Re-triage nine user-held AC1024 DWG samples without copying them into the repository.",
+    "Turn observations into focused implementation-ready deltas while preserving strict conversion defaults and validation frequency."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG issue #1355 and PR #1360",
+      "revision": "Issue/PR state reviewed 2026-10-20; PR #1360 remained open",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1355",
+        "https://github.com/LibreDWG/libredwg/pull/1360"
+      ],
+      "observed": "The issue reports a DWG-to-DXF output ending before ENTITIES/EOF with exit status zero. The open PR author corrected the initial diagnosis to a failed modular-character read accepted while the handle offset was invalid; the proposed resynchronization is conditional.",
+      "evidenceCeiling": "Peer-reported behavior and unmerged peer recovery code do not establish a libdxfrw defect or a general DWG recovery rule."
+    },
+    {
+      "project": "LibreDWG issue #1357 and PR #1359",
+      "revision": "Issue/PR state reviewed 2026-10-20; PR #1359 remained open",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1357",
+        "https://github.com/LibreDWG/libredwg/pull/1359"
+      ],
+      "observed": "The issue reports one unresolved owned-entity reference stopping a peer writer after 93 of 10,847 R2007 modelspace entities. The PR proposes distinguishing unresolved references from end-of-list.",
+      "evidenceCeiling": "This is a peer writer traversal report. Continue is safe only when the list/frame boundary is independently known; it is not a local reader result or permission for heuristic scanning."
+    },
+    {
+      "project": "LibreDWG issues #1409, #1410, #1411, and #1412",
+      "revision": "Mutable issue pages reviewed 2026-10-20; peer reports identify specific named builds/operations",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1409",
+        "https://github.com/LibreDWG/libredwg/issues/1410",
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/issues/1412",
+        "https://github.com/LibreDWG/libredwg/commit/5abbe5dc25208c87e7c2da2b6aa402d54f2193b1",
+        "https://github.com/LibreDWG/libredwg/commit/aafb376e0bd0b75b5b06a2e04a7c7dd65a741474"
+      ],
+      "observed": "#1409 reports empty block bodies from a mutable loop-index error; #1410 groups explicit-zero HATCH, unusual attribute tags, and embedded-MTEXT DXF-import behavior; #1411 reports R2013+ AcDs/SAB carrier loss with modeler shells retained; #1412 reports transformed-string termination and empty-value framing, with two linked fix commits while the issue page remains open.",
+      "evidenceCeiling": "These are peer issue reports and commits, not local reproductions or proof of a published-release fix. The plan already owns generated local controls for these shape families; no duplicate test is warranted."
+    },
+    {
+      "project": "LibreDWG 0.14.1 NEWS and manual",
+      "revision": "Mutable master documentation reviewed 2026-10-20; NEWS identifies 0.14.1 beta dated 2026-07-25",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observed": "The NEWS lists security/bounds and parser fixes; the manual separately identifies stable, partial, unhandled, and untested object families.",
+      "evidenceCeiling": "A version badge or repository-level claim does not establish a per-object, direction-specific, semantic, or native-consumer result."
+    },
+    {
+      "project": "ezdxf xref and drawing-backend documentation",
+      "revision": "Mutable documentation reviewed 2026-10-20",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "observed": "The xref module documents unsupported entities/features that may be ignored while unknown entities/objects can be wrapped as tag storage. The drawing backend documents no 3D engine and no ACIS rendering.",
+      "evidenceCeiling": "Useful as an exact-profile DXF or carrier observer, not as a complete-record preservation or arbitrary ACIS/B-rep semantic oracle."
+    },
+    {
+      "project": "Local user-held AC1024 corpus diagnostic",
+      "revision": "Current worktree build-gcc/dwg2dxf; run 2026-10-20",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "src/intern/dwgreader18.cpp",
+        "dwg2dxf/main.cpp",
+        "dwg2dxf/dx_iface.cpp"
+      ],
+      "observed": "Nine local AC1024 files were converted with debug tracing into temporary paths. Five reached readDwgClasses END, had successful reader outcome and all observed frames published with no entity/object parse failures, but were refused by strict-complete preflight (three semanticCoverage=partial-observed, two unknown). Four visualization files logged a class-section CRC mismatch and then failed at sticky BAD_READ_BLOCKS numeric 10 with partial frame publication/unresolved frames. None reproduced BAD_READ_CLASSES numeric 8 in this cohort.",
+      "evidenceCeiling": "This is a diagnostic on user-held local samples, not a general AC1024 claim or root-cause proof. The CRC warning does not establish that the high-size word is causal; no sample was copied or committed."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-06/PAR-07/S8: converter output closure, atomic publication, terminal EOF, and per-source loss disposition",
+      "PAR-07/7G: block, layout, and owner/reference closure",
+      "PAR-14: bounded record parsing, recovery boundaries, and stable first-error stage",
+      "PAR-19/PAR-28: zero-valued HATCH, attribute-tag, and embedded-MTEXT local controls",
+      "Strict-versus-partial conversion: separate read completeness from owner-closure policy, preserving strict defaults"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "formalTestsRun": 0,
+    "localDiagnosticDwgsRun": 9,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Separate read completeness from graph closure, keep strict conversion default, map current peer issues only to existing owners, and investigate the AC1024 class CRC/block-stage cohort from spec plus trace without copying external samples."
+  },
+  "method": {
+    "kind": "Read-only primary-source web research and local diagnostic conversion; plan/receipt update only",
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localDiagnosticDwgsRun": 9,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-libredwg-current-failure-shapes-ac1024-local-triage-2026-10-20.json"
+    ],
+    "limitations": "Peer issue bodies and master documentation are mutable. Local AC1024 files were user-held outside the repository. The sample audit is not an exhaustive corpus pass and does not establish a file-format rule or a CRC root cause."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq parse, plan totals, and six DEFERRED_EXTERNAL keys)",
+    "planDiffCheck": "PASS (git diff --check on plan and receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

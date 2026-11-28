@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw-broader-codec-headless-consumer-readiness-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "20923cd9a7e113439964fcf14d67417d2dc22ffe",
+  "scope": "Static review of current ACadRust AcDs regression tests and OpenCADStudio native/headless consumer automation, with emphasis on evidence level and a faster composed validation path.",
+  "method": {
+    "kind": "Primary project README, test source, automation guide, and current issue review",
+    "runtimeTestsRun": false,
+    "peerLibrariesRun": false,
+    "nativeCadRun": false,
+    "sourcePinning": "GitHub main-branch source/docs and the issue were reviewed on 2026-10-15. The ACadRust README reports release 0.5.5; no peer binary or exact source commit was executed or pinned in this pass.",
+    "evidenceRule": "Classify in-memory construction, same-library write/read, independent parser readback, kernel metrics, and target-native acceptance separately. A successful self-read or entity manifest does not establish exact ACIS semantics or AutoCAD compatibility."
+  },
+  "findings": [
+    {
+      "id": "ACADRUST_ACDS_TEST_SCOPE",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "evidence": "The current roundtrip test source uses minimal marker-bearing fake SAB data to check AcDs byte/body pairing and has_ds_data retention. A separate source-generated cube uses build_planar_body and the ACadRust R2018 writer/reader, but its visible assertions check a present 3DSOLID, has_data, and has_ds_data; they do not compare B-rep topology or analytic dimensions or invoke an independent parser/kernel.",
+      "confidence": "Static review of current source; no peer test was executed.",
+      "planUse": "Use structural fake-carrier tests only for container/link regressions. Keep a separate locally-authored known-shape manifest for semantic tests. Do not count peer-generated markers or same-library roundtrip as independent geometry evidence."
+    },
+    {
+      "id": "OPENCADSTUDIO_HEADLESS_AUDIT_PATH",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md"
+      ],
+      "evidence": "The project documents native --serve/--mcp automation, target-version audit reporting including dropped_on_save and raw DXF reference checks, save_verified reopening and comparing the semantic entity manifest, build version/hash reporting, a script that emits DWG 2000/2013/2018 and DXF 2000, and a separate optional Windows reference-CAD AUDIT script. The documented manifest and internal readback are not stated to include exact B-rep metric comparison.",
+      "confidence": "Current primary repository documentation; no app build, tool or consumer run was performed.",
+      "planUse": "Offer an optional pinned-binary composed consumer check to reduce manual harness work. Capture build, target, hashes, lossy records, dangling refs, reopened body/entity counts and explicit NOT RUN states. Require independent geometry metrics and a distinct parser/target for stronger claims."
+    },
+    {
+      "id": "OPENCADSTUDIO_3D_INTEROP_ISSUE_1615",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1615"
+      ],
+      "evidence": "The issue remained open on 2026-10-15. A user reported some app-produced 3D DWGs failed in AutoCAD or ProgeCAD. The maintainer reported improvement and a later pyramid/cylinder subtract that opened in an unnamed strict third-party DWG reader, while asking for a reproducible case for remaining issues. The report is mixed and does not establish current-build AutoCAD acceptance.",
+      "confidence": "Issue report and maintainer response; no files or claims independently reproduced.",
+      "planUse": "Treat OpenCADStudio as a candidate read/diagnostic route and possible distinct geometry-kernel lineage, but not the sole writer/native compatibility oracle. Pin exact build and require named target open/audit for emitted DWG."
+    }
+  ],
+  "readinessChanges": [
+    "Keep the per-slice CI loop limited to generated fast tests, focused CTest, lc3_compat_check, strict warnings, and diff check.",
+    "At one composed AcDs/ACIS checkpoint, optionally reuse a pinned existing OpenCADStudio native binary's audit and verified-reopen operations; do not build/install it per slice or infer B-rep validity from its entity manifest.",
+    "Use source-generated body inputs with a known manifest and exact hashes. No peer fixture, external drawing, or runtime dependency is introduced.",
+    "Record parser and kernel lineages separately; ACadRust/OpenCADStudio same-library or shared-codec results do not count as two independent parser implementations."
+  ],
+  "scopeBoundary": {
+    "findings": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChanged": false,
+    "testFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "runtimeValidation": "NOT RUN; research-only update"
+  }
+}

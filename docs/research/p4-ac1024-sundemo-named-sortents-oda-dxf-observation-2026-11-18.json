@@ -1,0 +1,170 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-sundemo-named-sortents-oda-dxf-observation-2026-11-18",
+  "date": "2026-11-18",
+  "status": "NAMED_BLOCK_ODA_DXF_STRUCTURAL_WITNESS_NATIVE_QUALIFICATION_OPEN",
+  "supportClaimEffect": "none",
+  "gateEffect": "This advances source-bound structural evidence for one named-block SORTENTSTABLE but does not open its production export gate.",
+  "source": {
+    "original": "/Users/dli/doc/dwg/visualization_-_sun_and_sky_demo.dwg",
+    "scratchReadOnlyCopy": "/private/tmp/libdxfrw-p4d-oda-sundemo/source/sundemo.dwg",
+    "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+    "version": "AC1024",
+    "provenance": "Existing local corpus drawing; producer and author are not independently authenticated. No drawing is committed."
+  },
+  "converter": {
+    "name": "ODA File Converter",
+    "version": "27.10.0.0 Linux amd64",
+    "official": "https://www.opendesign.com/guestfiles/oda_file_converter",
+    "package": "/private/tmp/libdxfrw-p6h-oda-linux.ZztZf5/oda.deb",
+    "packageSha256": "c432002cc688f89ddf6a68ad68e877cd16da1d99ab8729386009c552cf73beb5",
+    "executableSha256": "bda7c79a901be17d4e0a76ea6e9dfddb24b83601e98cf41d66c158a9c428ca24",
+    "image": "sha256:c8bf2d80c87c3685d5974aadf7968e5451cb41e543d2a7ab7f25f99007afc29f",
+    "runtimeProvenance": "docs/research/p6h-oda-linux-ac1018-mline-source-2026-11-18.json",
+    "script": "/private/tmp/libdxfrw-p4d-oda-sundemo/convert.sh",
+    "scriptSha256": "171eac7b4c52477d50a27e4022549072c3958f9555983900bc59a6fde97f9c96",
+    "converterCommand": "timeout 90s xvfb-run -a /tmp/oda/usr/bin/ODAFileConverter_27.10.0.0/ODAFileConverter /source /out ACAD2010 DXF 0 0 '*.dwg'",
+    "containerCommand": "docker run --rm --platform linux/amd64 --network none --cap-drop ALL --security-opt no-new-privileges --user 65534:65534 --mount type=bind,src=/private/tmp/libdxfrw-p4d-oda-sundemo/source,dst=/source,readonly --mount type=bind,src=/private/tmp/libdxfrw-p6h-oda-linux.ZztZf5/oda.deb,dst=/scratch/oda.deb,readonly --mount type=bind,src=/private/tmp/libdxfrw-p4d-oda-sundemo/convert.sh,dst=/work/convert.sh,readonly --mount type=bind,src=/private/tmp/libdxfrw-p4d-oda-sundemo/out,dst=/out sha256:c8bf2d80c87c3685d5974aadf7968e5451cb41e543d2a7ab7f25f99007afc29f /bin/sh /work/convert.sh > /private/tmp/libdxfrw-p4d-oda-sundemo/convert-retry.log 2>&1",
+    "containerBoundary": "No network, no capabilities, no-new-privileges, unprivileged uid, read-only source, package and script, scratch-only output; the disposable container root filesystem was writable.",
+    "result": "PASS exit 0; selected input converted to ASCII DXF AC1024, independently checked using ezdxf.dxfversion.",
+    "log": "/private/tmp/libdxfrw-p4d-oda-sundemo/convert-retry.log",
+    "logSha256": "a65defb9dd3ab350c311ff04a77a1ee0ca0a7fb082450f2b8b29456db11a7fbd",
+    "firstSetup": "A separate initial setup used a read-only root with /tmp tmpfs lacking exec and exited before launching ODA with Permission denied. Its log SHA-256 is 6808b89fcf69ec0bc7fb237253ee6a294353914514fc459ed1002707c561eab2. The subsequent invocation above is the only actual conversion."
+  },
+  "output": {
+    "path": "/private/tmp/libdxfrw-p4d-oda-sundemo/out/sundemo.dxf",
+    "sha256": "a2322e92a329fc6cba1474b9b585e25a1ef29b15e8be26678a01de33e751ab3f",
+    "version": "AC1024",
+    "versionCheck": "build/rpp5gh-evidence/peer/bin/python -c 'import ezdxf; print(ezdxf.readfile(\"/private/tmp/libdxfrw-p4d-oda-sundemo/out/sundemo.dxf\").dxfversion)'"
+  },
+  "comparison": {
+    "sourcePeer": "GNU LibreDWG dwgread 0.14 JSON from docs/research/p4-ac1024-layerstates-alternative-witness-screen-2026-11-18.json",
+    "sourcePeerJson": "/private/tmp/libdxfrw-layerstates-crossversion-20261118/sundemo-peer.json",
+    "sourcePeerJsonSha256": "927532c12a638243569383294047109c142d242240dc05279e15e1f5b87454c9",
+    "reader": "ezdxf 1.4.5",
+    "command": "build/rpp5gh-evidence/peer/bin/python /private/tmp/libdxfrw-p4d-oda-sundemo/compare.py > /private/tmp/libdxfrw-p4d-oda-sundemo/compare.json 2> /private/tmp/libdxfrw-p4d-oda-sundemo/compare.err",
+    "scriptSha256": "61f04a846d0931700dc89137a46a695150cba4a4afb46b026cd47e172ff8a2dd",
+    "resultSha256": "f45457c53d2091127e74d785301b20ec3c3a894ee45f6a14411737e51ddfbc26",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr": "empty",
+    "sourceGraph": "Named BLOCK_RECORD 1FF (WF Beam - Imperial) owns extension DICTIONARY 200 with ACAD_SORTENTS entry pointing to SORTENTSTABLE 236. The table has owner 200, reactor 200, and body group 330 block owner 1FF; DXF dictionary uses group 360 for the hard-owned entry. All six referenced entities resolve with owner 1FF.",
+    "sourcePairsEntitySortKey": [
+      [
+        "23C",
+        "A6"
+      ],
+      [
+        "23A",
+        "A4"
+      ],
+      [
+        "23F",
+        "A9"
+      ],
+      [
+        "23D",
+        "A8"
+      ],
+      [
+        "23B",
+        "A5"
+      ],
+      [
+        "240",
+        "A3"
+      ]
+    ],
+    "dxfPairsEntitySortKey": [
+      [
+        "23A",
+        "A4"
+      ],
+      [
+        "23B",
+        "A5"
+      ],
+      [
+        "23C",
+        "A6"
+      ],
+      [
+        "23D",
+        "A8"
+      ],
+      [
+        "23F",
+        "A9"
+      ],
+      [
+        "240",
+        "A3"
+      ]
+    ],
+    "pairSetEqual": true,
+    "pairSequenceEqual": false,
+    "pairsSortedNumericallyByKey": [
+      [
+        "240",
+        "A3"
+      ],
+      [
+        "23A",
+        "A4"
+      ],
+      [
+        "23B",
+        "A5"
+      ],
+      [
+        "23C",
+        "A6"
+      ],
+      [
+        "23D",
+        "A8"
+      ],
+      [
+        "23F",
+        "A9"
+      ]
+    ],
+    "blockEntityOrderEqual": true,
+    "blockEntityOrder": [
+      "239",
+      "23A",
+      "23B",
+      "23C",
+      "23D",
+      "23E",
+      "23F",
+      "240",
+      "241",
+      "242",
+      "243",
+      "244"
+    ],
+    "ezdxfAuditErrors": 0,
+    "ezdxfAuditFixes": 0
+  },
+  "authority": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbSortentsTable.html",
+      "finding": "ObjectARX describes draw-order entity/key associations in a block table record extension dictionary and states that stored pair sequence does not determine draw order."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbSortentsTable__getSortHandle_AcDbObjectId_AcDbHandle__const.html",
+      "finding": "Sort keys are numeric order values and may no longer identify a database object; they are not object references merely because DXF uses group 5."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm",
+      "finding": "The documented DXF body group-330 owner is limited to model/paper space, conflicting with this ODA-emitted named-block example."
+    }
+  ],
+  "decision": "ODA preserves the selected association set, numeric keys and the 12-member block ordering on this source, even though it reorders serialized pair entries. This justifies targeted source-wire and selected-output research; one ODA conversion and an ezdxf structural audit do not resolve the named-block DXF documentation conflict or establish an AutoCAD-native open/save/getFullDrawOrder result. Keep production admission and strict whole-source claims closed.",
+  "limits": [
+    "One local AC1024 source and one ODA build; no native AutoCAD semantic inspection, draw-order evaluation or rendering was run.",
+    "The sorted six explicit key pairs do not by themselves establish the full resulting draw order of all block entities.",
+    "The remaining dynamic-block graph, 19 NOD roots, source wire completeness, failure/retry and staged output closure remain separately unqualified.",
+    "Only scratch copies, logs and derivatives were created. No drawing, package or product-source change is committed; /private/tmp artifacts may be ephemeral."
+  ]
+}

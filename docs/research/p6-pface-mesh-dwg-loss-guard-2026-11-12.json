@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-pface-mesh-dwg-loss-guard-2026-11-12",
+  "purpose": "Prevent the DWG POLYLINE writer from silently discarding modeled PFACE/MESH values that have no corresponding body fields or contradict their encoded record counts.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      {
+        "section": "20.4.33 POLYLINE (PFACE) (29)",
+        "page": 134,
+        "wireFields": ["common entity data", "vertex count (BS 71)", "face count (BS 72)", "versioned owned/vertex handles", "SEQEND handle"]
+      },
+      {
+        "section": "20.4.34 POLYLINE (MESH) (30)",
+        "page": 134,
+        "wireFields": ["common entity data", "flags (BS 70)", "curve type (BS 75)", "M/N vertex counts (BS 71/72)", "M/N smooth densities (BS 73/74)", "versioned owned/vertex handles", "SEQEND handle"]
+      }
+    ],
+    "localPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "PFACE output requires the type bit only, default curve/smooth metadata and default base point, extrusion, widths and thickness. Its group-71/72 counts must equal the actual coordinate and face record counts. MESH output requires default base point, extrusion, widths and thickness because these have no fields in its documented body; its M×N vertex dimensions must equal the owned vertex count. Validation runs before staged entity bytes are published."
+  },
+  "generatedControls": {
+    "pfaceRefusals": [
+      "closed flag without a documented PFACE flag field",
+      "nondefault curve type",
+      "nondefault smooth density",
+      "nondefault base point",
+      "nondefault extrusion",
+      "nondefault start width",
+      "nondefault thickness",
+      "vertex count inconsistent with coordinate records",
+      "face count inconsistent with face records"
+    ],
+    "meshRefusals": [
+      "nondefault thickness",
+      "nondefault base point",
+      "nondefault extrusion",
+      "nondefault end width",
+      "M×N counts inconsistent with owned vertices"
+    ],
+    "populatedProfiles": {
+      "pface": {"coordinateVertices": 4, "faceRecords": 1, "readbackFlags": 64, "readbackCounts": [4, 1]},
+      "mesh": {"mVertices": 2, "nVertices": 2, "ownedVertices": 4, "readbackFlags": 16, "readbackCounts": [2, 2]}
+    },
+    "validProfileReadback": {
+      "pface": {"readbackFlags": 64, "vertexCount": 0, "faceCount": 0},
+      "mesh": {"readbackFlags": 16, "vertexCount": 0, "faceCount": 0},
+      "selector": "dwg_r2007_polyline3d_closed_flag_roundtrip PASS"
+    },
+    "failureRetry": "Each tested refusal preserves the writer buffer; after restoring the omitted values to their default profile, the same writer successfully encodes PFACE and MESH."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4: PASS",
+    "readbackSelector": "ctest --test-dir build-gcc -R '^dwg_r2007_polyline3d_closed_flag_roundtrip$' --output-on-failure: PASS 1/1",
+    "affectedFastCohort": "ctest --test-dir build-gcc -R 'polyline' --output-on-failure: PASS 23/23 in 2.80 seconds",
+    "fixturePolicy": "Controls are generated in memory; no DWG/DXF fixture was added."
+  },
+  "limitations": [
+    "The controls establish bounded encoder admission and atomic refusal/retry, not complete PFACE/MESH semantics or interoperability across producers.",
+    "Native consumer geometry behavior and broader support claims remain unqualified."
+  ],
+  "supportClaimEffect": "Closes only the tested silent-loss paths for omitted PFACE/MESH DWG body fields; no broad support claim is promoted."
+}

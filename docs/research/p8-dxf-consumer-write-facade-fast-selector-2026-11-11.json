@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p8-dxf-consumer-write-facade-fast-selector-2026-11-11",
+  "purpose": "Expose the existing source-version, reservation, reference-resolution, phase-scoped block-remap, and omitted-record consumer contracts as one fast focused CTest.",
+  "changes": [
+    "Added --consumer-write-facade to run five generated consumer API controls without the full DXF fixture suite.",
+    "Registered libdxfrw_dxf_consumer_write_facade with fast/dxf/consumer/generated/transaction labels.",
+    "Moved the five API controls out of the default all-fixtures run; the dedicated selector remains their focused CTest entry point.",
+    "Corrected the reservation test to avoid reading an emitted handle back from the caller's DRW_Line; the DXF writer intentionally does not mutate caller entity handles. The control now checks the directly observable generated allocator handle and explicit reservations.",
+    "Overrode dx_iface::finalizeDxfWrite in the bounded block-remap writer control because that integration finalizer requires a complete adapter graph outside this API-slice test's scope."
+  ],
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+    "focusedCtest": "ctest --test-dir build -R '^libdxfrw_dxf_consumer_write_facade$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.65 seconds",
+    "subcontrols": [
+      "--consumer-reservation-query PASS",
+      "--consumer-block-remap PASS",
+      "The aggregate selector also runs testConsumerSourceVersionSnapshot, testDxfReferenceResolver, and testDxfWriteLeftOutReporting."
+    ]
+  },
+  "scopeLimit": "This verifies generated upstream API and transaction behavior only. It does not qualify native LibreCAD or LibreCAD_3 builds, application import/export, ABI stability, or DWG/DXF support claims.",
+  "fixturePolicy": "All controls author temporary DXF files locally at runtime; no DWG/DXF fixture was added.",
+  "claimEffect": "No format support claim changes. The new selector makes the existing API bridge easier to validate during consumer integration."
+}

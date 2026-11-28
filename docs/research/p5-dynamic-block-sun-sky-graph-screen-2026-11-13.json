@@ -1,0 +1,35 @@
+{
+  "title": "AC1024 sun and sky dynamic-block graph candidate screen",
+  "date": "2026-11-13",
+  "scope": "Screen the locally available sun and sky AC1024 DWG as a candidate for the closed dynamic-block output profile; no source or fixture was added to the repository.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/visualization_-_sun_and_sky_demo.dwg",
+    "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+    "version": "AC1024",
+    "provenance": "Local external source; producer provenance is not established."
+  },
+  "tool": {
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-source-graph-census <source>",
+    "executableSha256": "b32b8318f0b8ac5e36d0138557ad470c26196c93d8f689db82dbbca704477912",
+    "repositoryHead": "e0108990760db81b23c8071ceda684a51fe5063d"
+  },
+  "observations": {
+    "publishedFrames": 395,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "evaluationGraphs": 16,
+    "graphsWithOwnerDictionaryHandle": 16,
+    "dictionariesWithAcadEnhancedBlockEntry": 1,
+    "dynamicBlockObjects": 53,
+    "integrityWarnings": 1,
+    "integrityWarning": "HEADER section size expected 851 bytes, observed 855 bytes at file offset 16"
+  },
+  "strictOutput": {
+    "result": "refused",
+    "gate": "AC1024 dynamic graph-set check",
+    "diagnostic": "dynamic-block objects are outside the closed output profiles",
+    "implication": "The source does not satisfy the existing profile requiring every evaluation graph to have a unique ACAD_ENHANCEDBLOCK owner. This census does not establish that the remaining graphs are dynamic-block graphs, their semantics, or safe output behavior."
+  },
+  "decision": "Do not weaken the output gate or reuse this file as a qualifying dynamic-block witness. Continue seeking an eligible source with closed owner, expression, dependency, and consumer-semantic evidence.",
+  "fixturePolicy": "No DWG/DXF fixture was committed. Census JSON and conversion output were written under /tmp."
+}

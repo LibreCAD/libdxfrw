@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-25",
+  "consumer_commit": "0d42a3f216124981d099d9e220d3c99beaaaa767",
+  "scope": "Live entity source-handle collision with a version-ineligible raw carrier",
+  "problem": "Dropped raw handle was consulted during preallocation before the live entity could establish its source-to-output binding, so the writer refused the export.",
+  "change": "When scanning an emitted live entity, remove its handle from the dropped-raw reference set; duplicate live source handles remain marked ambiguous. Surface structured system-codec write diagnostics in the debug log.",
+  "validation": {
+    "system_codec": "20 assertions in 4 identity controls pass; separate HATCH control passes 33 assertions",
+    "bundled_codec": "50 assertions in 5 identity and HATCH cases pass",
+    "ambiguous_case": "Two live entities sharing one source handle receive distinct output handles; a reactor targeting the ambiguous source is omitted.",
+    "system_wider_handle_filter": "14 of 20 cases / 195 of 201 assertions passed before adding the ambiguity control, improving from 13 of 20; five sparse-MATERIAL import tests and one wide proxy-handle output test failed."
+  },
+  "limitations": [
+    "The wider suite is not green.",
+    "Incomplete MATERIAL graph admission and wide proxy-handle serialization remain open.",
+    "Final native and platform qualification remain open."
+  ]
+}

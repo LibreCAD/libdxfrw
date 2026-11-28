@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DWG ModelDocViewStyle dictionary-derived name join",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "finding": "PAR-138",
+  "status": "IMPLEMENTED_LOCAL_UNCOMMITTED",
+  "summary": "After a successful DWG read, the dwg2dxf adapter resolves DetailViewStyle and SectionViewStyle names from their validated NOD child-dictionary entries, without relying on OBJECTS callback order.",
+  "behavior": {
+    "route": "DWG-origin adapter data only; DXF-origin style-name resolution remains in the existing DXF parser path.",
+    "requiredGraph": [
+      "One unambiguous callback for the header-resolved NOD",
+      "One exact ACAD_DETAILVIEWSTYLE / ACAD_SECTIONVIEWSTYLE key for each populated family",
+      "A unique complete child DICTIONARY in the current import range, owned by the NOD",
+      "Each typed style has a unique valid handle, is owned by the child dictionary, and maps to exactly one nonempty dictionary key",
+      "No style handle, child dictionary handle, or case-insensitive style name ambiguity"
+    ],
+    "transactionality": "All graph validation and name allocation completes before assigning any style name. Refusal leaves existing typed names unchanged.",
+    "resourceAccounting": "Dictionary-derived name payload bytes are admitted against the existing aggregate typed ModelDocViewStyle retention budget; repeat resolution does not charge the same names twice.",
+    "failClosed": [
+      "Missing or ambiguous NOD callback/root key",
+      "Missing, duplicate, incomplete, aliased, or wrong-owner child dictionary",
+      "Invalid/duplicate style identity, wrong style owner, missing/duplicate target entry, empty name, or case-insensitive duplicate name",
+      "Insufficient aggregate retained-byte budget"
+    ],
+    "consumerCompatibility": "No DRW_Interface pure virtual or callback-order change; this is post-read adapter-data completion for dwg2dxf."
+  },
+  "tests": {
+    "selector": "--modeldoc-view-style-callbacks",
+    "provenanceLimit": "The test starts from a generated DXF callback graph, clears style names, and constructs a DWG-origin adapter envelope for the association helper. It does not exercise a real DWG parser or producer.",
+    "coverage": [
+      "Detail and Section names derive from the expected child-dictionary keys with dictionary records retained in reverse order",
+      "Repeated resolution is idempotent and does not double-charge retained name bytes",
+      "Wrong child-dictionary owner refuses transactionally",
+      "Duplicate style target entry refuses transactionally",
+      "Exhausted aggregate name-retention budget refuses transactionally"
+    ],
+    "persistentFixturesAdded": 0
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2 (passed)",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks (exit 0)",
+    "ctest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure (1/1 passed)",
+    "integrationCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure (1/1 passed)",
+    "fullSuiteRun": false
+  },
+  "scope": {
+    "productionFiles": ["dwg2dxf/dx_data.h", "dwg2dxf/dx_iface.cpp"],
+    "testFiles": ["tests/dwg2dxf_adapter_tests.cpp"],
+    "planFiles": ["DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"],
+    "dependenciesAdded": 0,
+    "externalRuns": 0,
+    "persistentFixturesAdded": 0,
+    "supportPromotion": false,
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

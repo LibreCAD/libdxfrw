@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-3dface-block-layer-loss-2026-11-27",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "22 ordered local patches; no FreeCAD commit or submission",
+  "finding": "The candidate imports a valid named-layer 3DFACE within a block but block composition assigns the instance to the INSERT layer. Both individual-shape and fused-shape modes left the named source layer empty without reporting the loss.",
+  "implementation": "Retain valid face geometry and report the unpreserved named child layer when layer import is enabled. Default layer-zero and disabled-layer controls remain unchanged.",
+  "validation": [
+    "Before the change, a 3DFACE/INSERT scratch drawing reproduced the missing named-layer relationship without an unsupported-feature report in both import modes; the new test failed in both named-layer cases.",
+    "After the change, the 19-test focused headless suite passed without failures, errors or skips; it covers both block import modes, layer 0 versus FACE, enabled/disabled layer grouping, retained face area, existing mesh-layer and mesh-color controls, and the prior 16 candidate tests.",
+    "The 22-patch replay matches all five candidate files at the pinned FreeCAD base, the configured candidate Import module was rebuilt, the standard source-verified 17-test probe passes, and the replay CTest passes.",
+    "The test sources are generated locally in scratch; no drawings are committed."
+  ],
+  "evidence": {
+    "patchSha256": "ac1da1ee811e25cd5f604207fb3ef8bda6208904a48ab468cbd0e910e047dadd",
+    "redLogSha256": "2539fe416a43199cc6450e0ff646101b662df0783eda1ed86d3c3b091fa857ab",
+    "reproductionLogSha256": "42504378e2646c269bcb30cfa442573072d29b985f1062929049bb3595952bab",
+    "focusedLogSha256": "efbcbefc36d3e4cd7eefc826f43ea5ce1fc65d888d7177f06ece8ff968a69573",
+    "buildLogSha256": "7a15edbee1b34c8ad91952c8d23e6aef36049f2079164e98ebf6dfc011343781",
+    "replaySha256": "f730096254e85dfe08a7a84a1e5b041aef3a94f80a017aa07971985d6cfc6fb7",
+    "standardProbeReceiptSha256": "fb6b90790725a39e70388466e681f164525912387eebff726f33bbec4b39d848",
+    "replayCtestSha256": "e496b65fce4a54681bb1d4078474ea0101aa827dc4c1691e8beafd62dd97de73",
+    "probeOk": true
+  },
+  "limits": [
+    "This reports layer loss; it does not preserve the child layer, qualify linked-instance visibility or color, or prove native GUI rendering. Other block entities and nondefault color cases require separate tests.",
+    "FreeCAD project policy reserves submission, contributor attestations and project communication for a human contributor. This local draft has not been submitted."
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "GDAL DWG/DXF route matrix and 3D evidence ceiling",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Distinguish GDAL CAD/libopencad DWG projection from its DXF route and ODA-backed driver registration",
+    "Recheck current GDAL DXF ASCII/Binary reader and writer behavior",
+    "Bound the AC1027+ optional raw ASM carrier route and clarify its semantic evidence ceiling",
+    "Refine only the existing PAR-07/S8 composed comparator checkpoint"
+  ],
+  "sources": [
+    {
+      "project": "GDAL CAD — AutoCAD DWG driver documentation",
+      "reference": "https://gdal.org/en/stable/drivers/vector/cad.html",
+      "status": "current_stable_primary_documentation_reviewed_2026-10-20",
+      "observation": "The CAD driver says its DWG route is based on libopencad, is read-only, and projects POINT, LINE, CIRCLE/ARC, and 3DFACE into OGR geometries. It may tessellate rounded polylines; its documented generic attributes do not promise a stable source-entity handle field."
+    },
+    {
+      "project": "GDAL vector-driver index",
+      "reference": "https://gdal.org/en/stable/drivers/vector/index.html",
+      "status": "current_stable_primary_documentation_reviewed_2026-10-20",
+      "observation": "The driver list separates CAD/AutoCAD DWG with internal libopencad from a DWG driver associated with Open Design Alliance Teigha. The route must be identified by selected driver and backend rather than by input extension or a generic GDAL label."
+    },
+    {
+      "project": "GDAL AutoCAD DXF driver documentation",
+      "reference": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "status": "current_stable_primary_documentation_reviewed_2026-10-20",
+      "observation": "The DXF driver reads ASCII DXF and writes DXF in the AutoCAD 2004 format; its docs describe compatibility with AutoCAD 2004 and later. Binary DXF input is documented beginning with GDAL 3.12. It projects into OGR features; EntityHandle is available, raw unhandled group values are opt-in, and block inlining is configurable."
+    },
+    {
+      "project": "GDAL DXF 3D extensibility mode documentation",
+      "reference": "https://gdal.org/en/stable/drivers/vector/dxf.html#3d-extensibility",
+      "status": "current_stable_primary_documentation_reviewed_2026-10-20",
+      "observation": "3DSOLID, REGION, BODY and SURFACE carriers are skipped by default because GDAL cannot transform them into OGR geometries. Optional DXF_3D_EXTENSIBLE_MODE exposes ASMData and a 12-real column-major ASMTransform only for AC1027 and later; this is raw carrier/transform exposure, not B-rep semantics."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Added an optional, operation-specific GDAL comparator procedure to existing PAR-07/S8 evidence admission. It separates the narrow read-only CAD/libopencad DWG projection, the DXF OGR parser/writer projection, and AC1027+ optional raw ASM extraction. No local defect, new implementation item, peer dependency, routine test, or support claim was created.",
+    "nextImplementation": "Continue the existing local-ready implementation queue. Use the pinned GDAL route only at the already-planned composed checkpoint if available; do not make it a per-slice prerequisite.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-gdal-dwg-dxf-route-matrix-2026-10-20.json"
+    ],
+    "limitations": "The review uses mutable current stable documentation rather than a pinned GDAL release binary or source checkout. No driver was executed, so no parser behavior, raw carrier bytes, geometry, or consumer outcome was observed. The findings refine comparator applicability only."
+  },
+  "validation": {
+    "planEdit": "Added route-specific evidence ceilings and an optional implementation-ready composed-checkpoint procedure; counts, queue, cadence, fixture policy and support claims remain unchanged.",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan; trailing-whitespace scan passed for the new receipt",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit was requested; the shared worktree is broadly dirty and Git metadata is read-only."
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "id": "RPP-5uj",
+  "title": "MLINE-referenced simple LTYPE with signed-short XDATA",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "5c406b71",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated LTYPE and APPID records; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "xdata": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1070, "value": -1234 }
+    ]
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "document": "DXF Group Codes in Numerical Order Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+    "relevant_rule": "XDATA group 1070 is a 16-bit integer value. This receipt tests the signed value -1234 only."
+  },
+  "proof": {
+    "source": "Physical source fields and fresh import verify the 1001 APPID followed by typed 1070 value -1234. Import-time origin, raw/typed equality, the AppIdName role and APPID name lookup bind the provider.",
+    "output": "The staged output proof checks exact 1001/1070 order and numeric value, APPID row common fields/flags/emitted owner and fresh typed readback of the signed integer.",
+    "failure_retry": "Removing the source APPID provider refuses export and preserves the destination sentinel; restoring it succeeds on the same adapter. A late APPID-name mutation also refuses atomically and succeeds after correction on the same adapter.",
+    "counts": {
+      "positive_profiles": 16,
+      "successful_readbacks": 36,
+      "refusals_with_destination_preservation": 20,
+      "same_adapter_retries": 20
+    }
+  },
+  "validation": {
+    "fixture_test_build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "fixture_test_build_result": "PASS",
+    "production_build": "cmake --build build-gcc --target dwg2dxf -j2",
+    "production_build_result": "PASS",
+    "focused_command": "ctest --test-dir build-gcc -R '^(libdxfrw_mline_ltype_appid_xdata|libdxfrw_xrecord_xdata_channels|libdxfrw_dxf_xdata_string_owner_budget|libdxfrw_mline_ltype_provider_profiles|libdxfrw_mline_ltype_mixed_segments)$' --output-on-failure",
+    "focused_result": "PASS (5/5)",
+    "asan_build": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j2",
+    "asan_build_result": "PASS",
+    "asan_command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+    "asan_result": "PASS (1/1)",
+    "runtime_counts_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "runtime_counts_result": "profiles=16; readbacks=36; refusals=20; retries=20",
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineLtypeAppIdXdataControls",
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This receipt qualifies one AC1027 simple-LTYPE XDATA application with exactly one signed 1070 value of -1234 and one bare source-bound APPID provider. It does not qualify other 1070 values, other XDATA scalar types, 1003/1005 dependency resolution, 1004 binary data, coordinate tuples, combining different payload schemas, broader APPID metadata, other LTYPE schemas or versions.",
+    "The receipt establishes transport only. It does not establish application-specific XDATA meaning, MLINE rendering, recursive document closure, or broader LTYPE provider support."
+  ]
+}

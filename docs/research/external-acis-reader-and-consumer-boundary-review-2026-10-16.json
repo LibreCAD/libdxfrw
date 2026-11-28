@@ -1,0 +1,139 @@
+{
+  "schema": "libdxfrw-external-acis-reader-and-consumer-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the external-reader and consumer review to identify which available tools can qualify AcDs structure, extracted SAT/SAB body semantics, and named 2D/3D consumer routes without conflating their evidence.",
+  "method": {
+    "kind": "Primary project documentation/source review plus local authoritative ODA specification reading",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localSpecification": "Open Design Specification for .dwg files v5.4.1, §24, pp.252-258; read from the local authoritative copy named in AGENTS.md.",
+    "mutableSourcePolicy": "Default-branch source and product pages are snapshots, not stable pins. Record exact dependency commits where the reviewed manifest supplied them; pin application source, release, platform, entitlement and input profile before any qualification run.",
+    "evidenceRule": "Keep container framing, record-to-entity association, carrier emission, parser acceptance, reconstructed shape, and independent analytic semantics as separate results. Product capability statements and issue discussions are not local execution evidence."
+  },
+  "evidence": [
+    {
+      "topic": "ODA AcDs and SAB specification boundary",
+      "sources": [
+        "Open Design Specification for .dwg files v5.4.1, §24.1-24.2.2.6, pp.252-258 (local authoritative PDF)"
+      ],
+      "observed": "The specification describes the AcDs byte-stream file/segment header, segment index, data index, data records, blob references/pages, schema index/data, object handle in each data-record header, the 0x40000 direct-record/blob threshold, and that search data may be ignored when reading. It expressly leaves detailed SAB stream bytes outside the scope of the chapter.",
+      "doesNotEstablish": [
+        "complete AcDs schema semantics for arbitrary producers",
+        "a complete ACIS/SAB entity grammar",
+        "valid B-rep topology or shape equivalence",
+        "that numeric schema-index equality proves schema compatibility"
+      ],
+      "planUse": "Use the ODA chapter for bounded container/index/record framing. Preserve the separation between unique handle join, owner/block closure, raw payload equality, and external geometry validation; do not infer schema meaning or reconstruct a generic schema writer."
+    },
+    {
+      "topic": "Commercial ACIS translator and CAD Assistant availability",
+      "sources": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://www.opencascade.com/products/cad-assistant/"
+      ],
+      "observed": "Open Cascade's component preview lists ACIS Import-Export as a commercial extension. CAD Assistant advertises SAT/SAB import through commercial XDE components, lists macOS ARM64, exposes geometry properties including area, volume, and centroid, and states that conversion/export of models imported by commercial components is disabled. Its product page lists version 1.6.0 dated 2021-10-05.",
+      "doesNotEstablish": [
+        "current local installation, entitlement, exact binary identity, or successful import of a libdxfrw body",
+        "automatable or open-source CI availability",
+        "an independent geometry-kernel lineage from OCCT/FreeCAD",
+        "DWG AcDs segment parsing, handle association, or emitted-DWG acceptance"
+      ],
+      "planUse": "Retain CAD Assistant only as an optional, manually operated, version-pinned shape witness for a correctly extracted standalone SAT/SAB body; capture the exact application/build and measured invariants. Keep it separate from the independent-kernel gate."
+    },
+    {
+      "topic": "FreeCAD stock DXF/DWG route is not an ACIS semantic reader",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observed": "FreeCAD's format guide describes stock DXF/DWG as 2D-only because embedded 3D data is proprietary; a FreeCAD maintainer discussion confirms ACIS blob entities are not read. The DWG source path converts through an external converter and then delegates to DXF import. The documentation repository was archived on 2026-04-01, so it is a versioned consumer contract, not a live claim about every future release.",
+      "doesNotEstablish": [
+        "a libdxfrw defect or capability",
+        "3D solid import by the stock FreeCAD route",
+        "successful consumer semantics from converter exit status or retained entity shells"
+      ],
+      "planUse": "Keep stock FreeCAD tests scoped to a pinned converter->DXF->selected-importer 2D handoff, with fresh output and actual document assertions. Do not use this route to promote ACIS/AcDs support."
+    },
+    {
+      "topic": "Open-source ACIS profile limitations",
+      "sources": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/acis.rst"
+      ],
+      "observed": "ezdxf describes simple known ACIS structures, explicitly says it has no ACIS kernel and does not target arbitrary existing ACIS editing, and limits geometry extraction to flat polygonal faces. Its documented generated DXF writer profile covers R2000-R2010 SAT and R2013-R2018 SAB.",
+      "doesNotEstablish": [
+        "general curved-surface or arbitrary B-rep semantics",
+        "all producer SAB or DWG AcDs profile behavior",
+        "native CAD acceptance"
+      ],
+      "planUse": "Use ezdxf only for raw-carrier inspection and explicitly narrow planar-polyhedron tests, not as a general solid oracle."
+    },
+    {
+      "topic": "Open CAD Studio parser/kernel lineage and maturity",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/HakanSeven12/opencadkernel",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "The reviewed OpenCADStudio manifest pins opencadcodec revision 278c49a and opencadkernel revision 46e5bf8 with the acis feature. ACadRust identifies Open CAD Studio as an application using its codec family. The kernel project labels itself early and states that most operations are not yet written, while the application advertises ACIS entity tessellation.",
+      "doesNotEstablish": [
+        "an independent DWG/DXF parser from the ACadRust family",
+        "exact B-rep topology or semantic validity from visible tessellation",
+        "the state of any other OpenCADStudio app build or mutable main-branch snapshot"
+      ],
+      "planUse": "Classify Open CAD Studio as a product-level rendering/tessellation comparator in the ACadRust codec lineage. Pin the app and both engine revisions before any optional run; compare per-handle disposition and do not count its app and engine as independent parser votes."
+    },
+    {
+      "topic": "Non-OCCT kernel availability",
+      "sources": [
+        "https://ansyshelp.ansys.com/public/views/secured/corp/v261/en/ref_cad/cadACIS.html",
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "observed": "The existing Ansys documentation describes a standalone SAT/SAB reader outside the OCCT lineage, but this review did not verify entitlement, installed binary, supported profile, units, or an output-measurement path. ACadSharp and LibreDWG remain parser/structural comparators, not verified alternate B-rep kernels.",
+      "doesNotEstablish": [
+        "available license or platform-compatible executable",
+        "acceptance of the locally generated or extracted payload profile",
+        "two-kernel qualification"
+      ],
+      "planUse": "Keep the independent-kernel gate conditional on an availability/profile check. If no eligible tool is available, record NOT QUALIFIED and continue local implementation rather than substituting a shared-OCCT or parser-only candidate."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Complete bounded AcDs structure and unique handle/owner/payload closure locally before external semantic spending; same-version raw replay remains exact and unchanged only.",
+    "Mark current marker-only SAB tests TRANSPORT_ONLY. Semantic vectors need a permitted real payload and independent source geometry, units, transform, topology, and analytic invariants.",
+    "At the composed checkpoint, distinguish CAD Assistant's manually measured extracted-body check from DWG AcDs association and from the non-OCCT independent-kernel check.",
+    "Keep FreeCAD on its pinned stock 2D converter/importer route; do not use it as an ACIS semantic gate.",
+    "Pin every optional consumer, parser, kernel, platform, entitlement, input profile and result path before execution; availability checks must not block local source work.",
+    "Do not add new drawing fixtures or dependencies; keep new synthetic controls in memory and existing reduced full-suite/scheduled fuzz cadence unchanged."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRunForResearch": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

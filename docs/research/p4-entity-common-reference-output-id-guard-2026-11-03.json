@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-entity-common-reference-output-id-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_WRITER_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Typed common ACAD_REACTORS group-330 and ACAD_XDICTIONARY group-360 output for DXF entities.",
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": [
+      "Typed reactor source IDs must be nonzero; an XDICTIONARY source ID of zero remains the absent-edge value.",
+      "Typed common references are resolved before group publication. Direct-remap output ID zero refuses the entity record atomically.",
+      "A configured resolver result of zero omits that optional reference and its wrapper, preserving established resolver semantics.",
+      "Retained common app-data groups are validated by writeAppData under the related p4-common-appdata-reference-output-id-guard receipt."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "focused": [
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --common-reference-output-id-guard",
+        "result": "PASS",
+        "coverage": "ASCII/Binary LINE controls: zero reactor source and zero direct-remap outputs refuse without published bytes; valid direct mappings emit exact group-330/group-360 IDs; resolver-zero optional references omit their groups and preserve following-record framing."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_common_reference_output_id_guard$' --output-on-failure",
+        "result": "PASS"
+      }
+    ],
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "This proves local ID representation, remapping, omission, and record rollback only. It does not prove target existence, target kind, ownership, recursive closure, physical producer support, or native semantics."
+  ],
+  "next": "Continue the source-backed reference and ownership audit; do not infer target validity from a nonzero mapped ID."
+}

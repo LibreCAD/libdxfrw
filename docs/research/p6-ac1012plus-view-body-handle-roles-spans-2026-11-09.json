@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "title": "AC1012+ VIEW handle-stream roles and spans",
+  "status": "BOUNDED_GENERATED_CODEC_PROFILE_WITH_ONE_PHYSICAL_READ_CHECK",
+  "scope": "Correct the R2000+ VIEW body-handle order and add transactional role/span evidence. This does not qualify full VIEW graph output or native view semantics.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.60, VIEW",
+    "pages": "173-175",
+    "finding": "For R2000 and later, Base UCS Handle and Named UCS Handle remain in the VIEW handle stream even when the body HasUCS bit is false. Their two hard-pointer fields precede the R2007+ Live Section soft pointer."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/dwg_object_vectors_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "changes": [
+      "VIEW parsing now consumes the R2000+ base/named UCS handles independently of HasUCS, preserving subsequent Live Section alignment.",
+      "VIEW handle fields are bounded by the complete object handle-stream end and validate control/reactor soft pointers, optional xdictionary hard ownership, xref hard pointer, R2007+ background/visual-style/SUN roles, R2000+ UCS hard pointers, and R2007+ live-section soft pointer.",
+      "Canonical null fields require both null role code and zero target; malformed roles and truncation reset the record transactionally.",
+      "The parser records exact ordered handle bit spans; the encoder emits base/named UCS fields for every R2000+ VIEW regardless of HasUCS."
+    ]
+  },
+  "generated_validation": {
+    "versions": ["AC1012", "AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027"],
+    "hasUcs": "false for AC1012/AC1014 (field absent); false and true for AC1015+",
+    "coverage": [
+      "For AC1015+, independent encoder walk verifies expected field order, raw roles and targets.",
+      "Independent parser wire walk matches every recorded bit span, role and target across AC1012/AC1014 and AC1015+ version gates.",
+      "Wrong-role refusal for each field, canonical nulls, final-field truncation, reset, copy/assignment and same-object corrected retry."
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j4",
+      "build-gcc/libdxfrw_dwg_object_vectors_tests --ac1012plus-view-handle-roles",
+      "ctest --test-dir build-gcc -R '^libdxfrw_ac1012plus_view_handle_roles$' --output-on-failure",
+      "cmake --build build-asan-custom --target libdxfrw_dwg_object_vectors_tests -j4 && build-asan-custom/libdxfrw_dwg_object_vectors_tests --ac1012plus-view-handle-roles"
+    ],
+    "result": "PASS; AC1012/AC1014 common-role parser vectors, AC1015+ encoder/parser vectors, focused CTest 1/1 and focused AddressSanitizer selector after expanding the matrix.",
+    "addressSanitizer": {
+      "flags": "-fsanitize=address -fno-omit-frame-pointer",
+      "result": "PASS; no sanitizer diagnostics"
+    }
+  },
+  "physical_read_check": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Cover.dwg -y -d -v2018 /private/tmp/view-ac1027-cover-current.dxf",
+    "readResult": "111/111 source frames published; zero entity/object parse failures; zero CRC mismatches; no VIEW handle-role mismatch observed.",
+    "tracePath": "/private/tmp/view-ac1027-cover-current.trace",
+    "traceSha256": "e81b7184cd4ad98e0ef58bd5a81e3124861e2b936d96125bea2c50c44edde506",
+    "outputResult": "Strict DXF output remains refused at the independent AC1027 source-reference gate: AC1027 DWG source references are not fully qualified. No output file was produced."
+  },
+  "limits": [
+    "Generated vectors establish the bounded codec behavior; the one physical source does not independently prove every VIEW producer's field profile.",
+    "VIEW target graph closure, associated UCS semantics, native consumer behavior, and strict whole-source output remain open.",
+    "The separate online AC1024 search found modern 2010-format samples, but none is an AutoCAD 2010 RTM provenance witness and that unrelated CLASSES discrepancy remains unresolved.",
+    "No DWG/DXF fixture was added."
+  ]
+}

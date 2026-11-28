@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-mline-style-physical-output-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical MLINESTYLE sentinel output and readback",
+  "status": "PHYSICAL_STANDARD_MLINESTYLE_IDENTITY_FIELDS_AND_READBACK_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "MLINESTYLE",
+    "objectType": 73,
+    "handle": "18",
+    "name": "STANDARD",
+    "elementCount": 2,
+    "sourceLinetypeIndices": [32767, 32767],
+    "fixturePolicy": "Reused the existing local DWG witness; no DWG or DXF fixture was added."
+  },
+  "implementation": {
+    "change": "Added a focused physical-source output/readback selector for the admitted AC1024 MLINESTYLE built-in BYLAYER sentinel profile.",
+    "sourcePath": "tests/dwg2dxf_adapter_tests.cpp",
+    "sourceSha256": "293b274de49c1756074534ed5358354f02639a3bdfe2dc3fc1d9d1fd239f9b65",
+    "selector": "--mline-style-physical-output-readback"
+  },
+  "outputReadback": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "route": "Full physical source export in explicit partial-read mode, followed by fresh dx_iface import of each exact output file.",
+    "checked": [
+      "one output style at the source handle and name",
+      "parent, flags, description, fill color and cap angles",
+      "two ordered elements with matching offset and color",
+      "each source linetype index 32767 is emitted and read back as BYLAYER with no linetype handle"
+    ]
+  },
+  "failureAndRetry": {
+    "negativeControl": "Change the first source linetype index to unsupported value 7; export refuses and preserves a pre-existing destination sentinel.",
+    "retry": "Restore the source value and retry on the same adapter; ASCII and Binary export and freshly reimport successfully.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-style-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary; both report STANDARD identity, two BYLAYER sentinel elements, atomic refusal and same-adapter retry.",
+      "executableSha256": "a86392803a5c0ffe3c0944d18acf16229724906fcf37bd7a34e8ebe9e67bc678"
+    },
+    "fullSuites": "NOT RUN; focused physical selector and warning-as-error target build were sufficient for this profile slice."
+  },
+  "limitations": [
+    "Export uses AllowPartial; the global strict-complete gate remains closed by 228 opaque callback views and zero retained correlation frames.",
+    "This closes only the physical STANDARD style and its two BYLAYER sentinel elements; ordinary unbound linetype indices and other MLINESTYLE source profiles remain refused.",
+    "Fresh libdxfrw readback is transport evidence, not independent CAD consumer, native-platform or rendering qualification.",
+    "No support claim or external item is promoted."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Bind physical AC1024 MLINESTYLE handle 0x18 and its two built-in BYLAYER elements to ASCII/Binary output and fresh readback with atomic refusal and corrected retry.",
+    "nextAction": "Close the five P5-owned physical census profiles, then rerun the composed strict gate without relaxing the callback/correlation predicate.",
+    "externalItemsPromoted": 0
+  }
+}

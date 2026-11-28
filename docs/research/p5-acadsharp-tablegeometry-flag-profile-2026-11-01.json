@@ -1,0 +1,102 @@
+{
+  "evidence_id": "p5-acadsharp-tablegeometry-flag-profile-2026-11-01",
+  "date": "2026-11-01",
+  "status": "bounded_transport_extension_only",
+  "scope": "Expand the TABLEGEOMETRY cache writer's source-observed cell flag values while retaining null-reference, planar, zero-unknown-field and common-metadata restrictions.",
+  "sources": [
+    {
+      "repository": "ACadSharp",
+      "repository_commit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "path": "samples/sample_AC1021.dwg",
+      "local_path": "/Users/dli/dev/ACadSharp/samples/sample_AC1021.dwg",
+      "bytes": 1063168,
+      "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+      "version": "AC1021"
+    },
+    {
+      "repository": "ACadSharp",
+      "repository_commit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "path": "samples/sample_AC1024.dwg",
+      "local_path": "/Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg",
+      "bytes": 1122389,
+      "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+      "version": "AC1024"
+    }
+  ],
+  "independent_peer": {
+    "tool": "LibreDWG dwgread 0.14",
+    "command": "dwgread -O JSON <sample.dwg>",
+    "result": "Both files produced parseable JSON with two TABLEGEOMETRY objects each."
+  },
+  "libdxfrw_comparison": {
+    "tool": "build-gcc/tests/libdxfrw_table_geometry_dxf_tests --inspect <sample.dwg>",
+    "result": "Both current libdxfrw reads returned true and published two TABLEGEOMETRY objects, 41 cells and 37 content records per file.",
+    "numeric_values_compared_per_file": 530,
+    "comparison_breakdown": "41 cells x (flags, width-with-gap, height-with-gap) plus 37 content records x (six coordinates, four dimensions, one unknown field). Object handles, owners, grid sizes, cell/content counts and per-cell handle targets were checked separately.",
+    "all_numeric_values_within_abs_tolerance": 1e-12,
+    "maximum_absolute_delta": 7.105427357601002e-15,
+    "maximum_absolute_delta_source": "ACadSharp sample_AC1021.dwg",
+    "field_values": {
+      "cell_flags": [3, 4, 7],
+      "cell_soft_pointer_targets": [0],
+      "content_unknown_values": [0],
+      "content_z_values": [0]
+    },
+    "AC1021_objects": [
+      {"handle": "0x748", "owner": "0xF01", "rows": 7, "columns": 3, "cells": 21, "contents": 19, "flags": [3]},
+      {"handle": "0xF12", "owner": "0xF14", "rows": 4, "columns": 5, "cells": 20, "contents": 18, "flags": [4, 7]}
+    ],
+    "AC1024_objects": [
+      {"handle": "0x748", "owner": "0xE97", "rows": 7, "columns": 3, "cells": 21, "contents": 19, "flags": [3]},
+      {"handle": "0xEA5", "owner": "0xEA7", "rows": 4, "columns": 5, "cells": 20, "contents": 18, "flags": [4, 7]}
+    ]
+  },
+  "additional_libredwg_corpus_observation": {
+    "tool": "LibreDWG 0.14",
+    "sources": [
+      "/Users/dli/dev/libredwg/test/test-data/example_2007.dwg",
+      "/Users/dli/dev/libredwg/test/test-data/example_2010.dwg",
+      "/Users/dli/dev/libredwg/test/test-data/example_2013.dwg",
+      "/Users/dli/dev/libredwg/test/test-data/example_2018.dwg"
+    ],
+    "result": "Each peer JSON contains one 20x9 TABLEGEOMETRY object with 180 cells, eight contents, flags 3, null soft-pointer targets and content unknown values 0.",
+    "libdxfrw_read_boundary": "The current libdxfrw publishes the AC1021, AC1024 and AC1027 objects; its AC1032 read does not complete and publishes no TABLEGEOMETRY callback."
+  },
+  "additional_acadsharp_corpus_observation": {
+    "tool": "LibreDWG 0.14",
+    "sources": [
+      {
+        "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg",
+        "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6"
+      },
+      {
+        "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+        "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528"
+      },
+      {
+        "path": "/Users/dli/dev/ACadSharp/samples/sample_base/sample_base.dwg",
+        "sha256": "2fd52de87040d2b74922579e5e49b7f72943a436b8a11dc1d7f00244aed7da21"
+      }
+    ],
+    "result": "Each peer JSON contains two TABLEGEOMETRY objects. All exposed final content values and cell soft-pointer targets are zero; the cell flag values are 3, 4 and 7.",
+    "libdxfrw_read_boundary": "The current libdxfrw read does not complete for these files and publishes no TABLEGEOMETRY callback; these are peer observations, not libdxfrw support evidence."
+  },
+  "implementation_change": {
+    "file": "src/libdxfrw.cpp",
+    "admitted_cell_flag_values": [3, 4, 7],
+    "refused_unwitnessed_flag_control": 5,
+    "test_matrix": "Generated ASCII/Binary import and output across AC1021, AC1024, AC1027 and AC1032, with source-observed flag profiles [3,3] and [4,7]. Exact raw group values and typed readback are checked.",
+    "generated_test_result": "32 output/readback combinations passed; 32 non-null-reference failures preserved the destination and retried successfully on the same exporter; an unwitnessed flag 5 failed atomically and retried; eight pre-AC1021 refusals retried successfully at AC1021.",
+    "ctest": "libdxfrw_table_geometry_dxf_projection passed 1/1 in 1.33 seconds.",
+    "external_fixtures_committed": false
+  },
+  "claim_boundary": [
+    "The flags are preserved as witnessed wire values; their native semantic meaning is not established.",
+    "No sample in this receipt discriminates the final DWG content-field encoding: every observed value is zero. ODA §20.4.103 says BD while the current DWG parser reads BL; keep this P6 gate open.",
+    "Null-reference and zero-unknown-field evidence does not qualify non-null handles or nonzero final content values.",
+    "Generated owner references do not establish complete source owner-graph replay; P4 remains open.",
+    "No evidence here qualifies native TABLE rendering, cell visibility, or general TABLE support.",
+    "AC1027 and AC1032 ACadSharp sample files are not admitted by this cross-reader check because the current libdxfrw DWG read does not publish the objects."
+  ],
+  "next_action": "Continue searching for a producer-backed, independently decoded nonzero final content value. Do not alter the DWG parser until its field span is discriminated against ODA v5.4.1 and a real sample trace."
+}

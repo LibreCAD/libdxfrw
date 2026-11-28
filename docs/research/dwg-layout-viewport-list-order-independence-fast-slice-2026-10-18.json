@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-18",
+  "plan_owner": "PAR-20/7G.3",
+  "related_owner": "PAR-122",
+  "slice": "DWG LAYOUT viewport-list order independence",
+  "status": "implemented_locally_uncommitted",
+  "problem": "The generated multi-layout projection covered valid viewport membership but did not assert that reversing the ordered DWG LAYOUT viewport lists leaves the projected DXF viewport status and IDs unchanged.",
+  "spec_evidence": {
+    "source": "Autodesk DXF references summarized in docs/research/dwg-layout-viewport-cross-format-semantics-research-2026-10-18.json",
+    "contract": "DXF LAYOUT has no counted viewport-list field. VIEWPORT group 68 is stacking/off/active state and group 69 is viewport ID; neither is specified as the DWG LAYOUT-list ordinal. LAYOUT 331 is a separate last-active viewport reference."
+  },
+  "implementation": {
+    "owner": "tests/dxf_fixture_tests.cpp::testDwgViewportProjection",
+    "changes": [
+      "Reverse both generated DWG LAYOUT viewport-handle sequences without changing membership or count.",
+      "Export and re-import both ASCII and Binary DXF outputs.",
+      "Compare unique generated viewport identity markers, owning paper-space layout name, and each viewport's group-68/group-69 model values.",
+      "Restore the source LAYOUT sequences before subsequent controls."
+    ],
+    "production_change": false,
+    "fixture_or_registration": false,
+    "failure_atomicity": "Not applicable; both generated list orderings are valid and must export successfully."
+  },
+  "regression": {
+    "baseline": "Valid two-layout generated DWG-origin projection in the existing focused test.",
+    "control": "Reverse Sheet A and Sheet B list order, then compare the re-imported projection by unique center-X identity marker, layout owner name, vpstatus, and vpID.",
+    "expected": "The identity-bound DXF projection is equal for both source list orderings in ASCII and Binary encodings."
+  },
+  "validation": {
+    "strict_target": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_selector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --dwg-viewport-projection",
+      "result": "PASS"
+    },
+    "owning_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1
+    },
+    "diff_check": {
+      "command": "git diff --check -- tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "full_suite": "NOT_RUN",
+    "rerun_date": "2026-10-19"
+  },
+  "fixture_policy": "Only generated in-memory data and temporary ASCII/Binary DXF output were used. No external or committed DWG/DXF fixture and no CTest registration were added.",
+  "evidence_ceiling": "Local generated serializer/readback behavior only; no native editor reconstruction, complete-file conversion, independent semantic support, or DWG/DXF 3D support claim.",
+  "next_unresolved": "Continue the dependency-ready local PAR-20/7G.3 queue; native/editor reconstruction of DWG-only list semantics remains at the composed consumer checkpoint.",
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Broadly dirty shared worktree; this slice is uncommitted and nothing was staged."
+}

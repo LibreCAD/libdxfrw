@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-dwg-circle-arc-finite-geometry-guard-2026-11-12",
+  "purpose": "Prevent DWG CIRCLE and ARC output from serializing invalid centers, thickness values, or extrusion directions.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.18 ARC (object type 17)", "20.4.20 CIRCLE (object type 18)"],
+    "pages": [122, 124],
+    "localPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "wireMapping": "Both records carry a center, thickness and extrusion. ARC and CIRCLE use WCS center data and a nonzero WCS plane normal in the native model.",
+    "nativeContract": {
+      "source": "Autodesk ObjectARX AcDbCircle and AcDbArc method references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbCircle.html",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbArc.html"
+      ],
+      "requirements": "Circle/arc normals are nonzero WCS vectors; center and thickness setters reject unacceptable input."
+    }
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "A shared DWG writer admission check now requires finite center coordinates, finite thickness, finite positive radius, finite normal coordinates and a nonzero normal. ARC also requires finite start and end parameters. Values are checked before record staging.",
+    "scope": "Writer admission only; DWG parsing remains unchanged."
+  },
+  "generatedControls": {
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "entities": ["CIRCLE", "ARC"],
+    "refusedGeometryProfiles": [
+      "NaN center coordinate",
+      "infinite thickness",
+      "zero extrusion direction",
+      "NaN extrusion component"
+    ],
+    "failureRetry": "Every refusal preserves a seeded destination; corrected same-writer output reads back exact center, normal, thickness and radius with zero entity/object parse failures.",
+    "fixturePolicy": "All input drawings are authored by the test in scratch storage; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j6 PASS",
+    "focusedSelector": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_(circle_arc_radius_domain|arc_angle_domain|circle_arc_geometry_domain)$' --output-on-failure PASS 3/3 in 0.55 seconds"
+  },
+  "limitations": [
+    "These generated controls prove bounded writer refusal and retry/readback only; source prevalence, native rendering and whole-document qualification remain open.",
+    "The broader P6 version/schema/no-loss audit remains open."
+  ],
+  "supportClaimEffect": "Closes bounded DWG CIRCLE/ARC writer geometry-admission gaps; no broad DWG/DXF support claim is promoted."
+}

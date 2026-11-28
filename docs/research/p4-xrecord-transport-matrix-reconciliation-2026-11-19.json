@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-xrecord-transport-matrix-reconciliation-2026-11-19",
+  "date": "2026-11-19",
+  "status": "GENERATED_XRECORD_TRANSPORT_REGRESSION_REPAIRED",
+  "supportClaimEffect": "none",
+  "baseline": "b578680d7510393d2f032c3a31eb07c863115980",
+  "implementationDigestSha256": "fb90c50087e53c909ebe522ef0e1797ec56fea3db668ba870561a39b6cd74b3d",
+  "observations": {
+    "priorSelector": "The current binary XRECORD transport selector failed at the unconditional strict-refusal assertion.",
+    "strictScreen": "In 168 generated AC1015-target cells spanning 14 payload scopes and both encodings, AC1021/AC1024/AC1032 sources succeeded in all 84 cells and AC1015/AC1018/AC1027 sources refused in all 84.",
+    "ac1027PartialScreen": "All 168 generated AC1027 partial-export cells spanning 14 scopes, six target versions and two encodings refused.",
+    "priorFastCI": "Fast run 44619995644 job 135898944467 built its targets but reached its 25-minute timeout during the first CTest; it did not qualify the digest."
+  },
+  "change": [
+    "The matrix now checks strict successes with fresh libdxfrw readback, XRECORD graph, remapped references and XDATA equality, and verifies refusal preserves the destination.",
+    "The matrix checks AC1027 partial refusal and destination preservation explicitly; it does not admit that profile.",
+    "The fast lane adds the binary transport and fault selectors, compiles C++ at O1 with NDEBUG while keeping warning flags, and increases its timeout to 40 minutes. Native qualification retains its independent Release configuration."
+  ],
+  "validation": [
+    "The prior selector failed as documented; all eight related selectors pass on the updated Release build.",
+    "A clean local O1/NDEBUG static build passed the binary transport selector and compiled lc3_compat_check.",
+    "run_fast_focus self-test, qualification workflow contract, workflow YAML parse and source inventory checks pass."
+  ],
+  "logSha256": {
+    "priorSelector": "1161ca2ef42d3c031892f13889e639d6cfb431daf71f2d7faf41f26df3ef439e",
+    "relatedSelectors": "bfc75f557eb8d7522eaefda19654e6a24e6ed44d95d13f306a2875431e5b3697",
+    "o1Selector": "6a7204c80e7e4103c6194b59bb5c5e8b4fb20492567c424a41f385194c274bc9",
+    "cancelledFastCI": "8a079dc5d47b9411f19445b43cbce6a538957976f084eb2d2064df976ed799cf",
+    "strictScreen": "6ef2e4a8fb427b8b76dbc10239421300b5b282cdcbc7f6cf6a39e5f666aadeba",
+    "partialScreen": "aa75e5ec3f42090fadc9c68377d66fbd2863831b81450c56115088ad392a3b8f"
+  },
+  "limits": [
+    "Generated sources and fresh libdxfrw readback are not independent native semantic evidence.",
+    "The AC1027 source profile and cross-version default-plot owned-extension control remain unresolved.",
+    "Hosted fast and native qualification for the new implementation digest are pending.",
+    "No external DWG or DXF fixtures were committed."
+  ],
+  "previousPlatformEvidence": {
+    "head": "b578680d7510393d2f032c3a31eb07c863115980",
+    "digest": "09b961f58cacf8e13dcad4db196e82aed3c6a1a9fbfd3d8fe49d5abcd1987a82",
+    "runId": 44619996085,
+    "liveVerification": "three focused receipts passed",
+    "receipts": [
+      {
+        "platform": "linux-gcc",
+        "jobId": 135898872698,
+        "artifactId": 14576859326,
+        "receiptSha256": "3fd83a0d40644a839071e1babf0ea0f340bbbd9b3fc629fcc80365a65d59deee",
+        "archiveSha256": "d77afe2a558e8b9715f33f5c0294e5025af080502bcc08901f6a715fbfdf0cb7"
+      },
+      {
+        "platform": "macos-clang",
+        "jobId": 135898873509,
+        "artifactId": 14577726377,
+        "receiptSha256": "33beb44106691963a942f091a6b76d8ed0e6b077fa1e59518b6c173a2279ee93",
+        "archiveSha256": "b7c1c81d2f47b0b1c11fb5a8d49824ee66d09599fef26e4cbe8eb476f68ed4e3"
+      },
+      {
+        "platform": "windows-msvc",
+        "jobId": 135898872966,
+        "artifactId": 14577775552,
+        "receiptSha256": "715dd31bb92c841f91c490ef300406c7ee97901ccb26d554359117d6f1f9fee1",
+        "archiveSha256": "b781c90517f33f0ee536d5830628cec41ba791ccc427d378d583099f68639349"
+      }
+    ]
+  }
+}

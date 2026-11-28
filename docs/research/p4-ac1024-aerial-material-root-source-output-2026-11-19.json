@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-material-root-source-output-2026-11-19",
+  "date": "2026-11-19",
+  "status": "COMPLETE_ACAD_MATERIAL_ROOT_ASCII_BINARY_OUTPUT_AND_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local aerial DWG; producer identity is not authenticated.",
+    "rootDictionary": "0x72",
+    "rootEntries": 9,
+    "extensionDictionaries": 9,
+    "childXrecords": 53,
+    "orderedXrecordFields": 2834,
+    "sourceAdmission": "One import qualifies all nine root MATERIAL identities, nine extension dictionaries, all 53 unique named child edges and XRECORD owner/reactor roles. The same-import profiles cover ACAD APPID, Global and six aerial MATERIAL EED records, ByBlock/ByLayer class/source profiles, six ADVMATERIALs, six FBXASSETs, 36 TILEs and the Rust - Heavy DIFFUSE/BUMP pair."
+  },
+  "outputProfile": {
+    "target": "AC1024",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "projection": "The complete nine-entry ACAD_MATERIAL root, all nine extensions and all 53 child XRECORDs, with default plot-style dependencies.",
+    "handleMapping": "Source object handles map to 0xA000 plus the source handle; the ACAD_MATERIAL root dictionary maps to 0xA072.",
+    "graphChecks": [
+      "All nine root keys map exactly once to their remapped MATERIAL records.",
+      "All MATERIAL bodies match through dxfMaterial::sameBodyState; owners, extension handles and ordered EED values match after handle remapping.",
+      "All nine extension dictionaries retain their complete source edge sets, exactly 53 named XRECORDs, and no dangling child edges.",
+      "All XRECORD owners, sole reactors, ordered m_dataEntries and m_values match after remapping.",
+      "ACAD APPID appears exactly once; the source-qualified ADVMATERIAL and DIFFUSE/BUMP compatibility routes are selected only for their profiles."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-complete-material-root-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS. Fresh libdxfrw imports match the complete nine-entry ACAD_MATERIAL graph, all nine extension dictionaries, all 53 child edges, exact MATERIAL bodies/EED and all 2,834 ordered XRECORD values in ASCII and Binary.",
+    "refusalRetry": [
+      "Changing a group-460 ADVMATERIAL, group-70 FBXASSET, group-270 TILE or group-420 DIFFUSE field refuses the root transaction, preserves the destination sentinel, then succeeds after restoration and readback in both encodings.",
+      "Changing the BUMP raw source frame refuses the root transaction, preserves the destination sentinel, then succeeds after restoration and readback in both encodings.",
+      "Requesting AC1027 output refuses this AC1024 source profile, preserves the destination sentinel, then succeeds after the AC1024 retry and readback in both encodings."
+    ],
+    "fixturePolicy": "The existing local DWG remains untracked. Output DXFs are temporary and removed by the selector. No drawing fixture was added or committed."
+  },
+  "limits": [
+    "This focused transaction closes the complete ACAD_MATERIAL graph but does not export the rest of the source DWG.",
+    "The normal dwg2dxf whole-file export still refuses in preflight at the unresolved VIEW 0x242 -> SUN 0x24C owner mismatch (SUN parent 0x246).",
+    "No native AutoCAD/ObjectARX or independent consumer readback was performed; the local producer is unauthenticated and this does not promote a support claim."
+  ],
+  "nextAction": "Continue the remaining AC1024 named-object graph work for ACAD_BACKGROUND and ACAD_LAYOUT, and keep the whole-file SUN owner contract separately fail-closed until its source relationship is qualified."
+}

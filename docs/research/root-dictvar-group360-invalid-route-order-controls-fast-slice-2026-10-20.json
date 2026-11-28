@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DICTIONARYVAR group-360, invalid-route, and subordinate-order controls",
+  "mode": "generated ASCII/Binary fast implementation slice informed by primary sources",
+  "sources": [
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D305303C-F9CE-4714-9C92-607BFDA891B4.htm",
+      "status": "normative-DICTIONARYVAR-owner-reference",
+      "observation": "DICTIONARYVAR group 330 identifies its ACDBVARIABLEDICTIONARY owner."
+    },
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "status": "normative-DICTIONARY-entry-reference",
+      "observation": "The documented DICTIONARY entry pair uses group-3 key and group-350 soft-owner target."
+    },
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm",
+      "status": "normative-OBJECTS-order-reference",
+      "observation": "The NOD is always the first OBJECTS record; subsequent non-graphical objects may be owned by it or by another object."
+    },
+    {
+      "project": "ezdxf",
+      "reference": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dictionary.py",
+      "status": "compatibility-implementation-reference",
+      "observation": "The parser accepts both 350 and 360 dictionary entry references, while the cited Autodesk schema documents 350. This is treated only as input-compatibility evidence."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "GENERATED_COMPATIBILITY_AND_NEGATIVE_CONTROLS_VERIFIED",
+    "implementationSummary": "Added generated ASCII/Binary controls for mixed 350/360 dictionary links; strict re-import/rewrite with explicit expected code selection (regenerated NOD entries use 350; ordinary child dictionary entries use 360 when hardOwner is 1, otherwise 350); subordinate record order variation with NOD first; and strict refusal of duplicate canonical root key, wrong target type, and missing target without replacing an existing destination.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "externalDrawingsDownloaded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "generatedScratchControls": "Runtime-generated ASCII and Binary DXF under the existing CTest output directory; no persistent fixture was created.",
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": true,
+    "changedFiles": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/root-dictvar-group360-invalid-route-order-controls-fast-slice-2026-10-20.json"
+    ],
+    "limitations": "This validates local DXF parsing and strict writer graph admission for generated inputs only. It does not qualify the DWG reader, independent DWG producers, ACIS/AcDs semantics, or native LibreCAD/FreeCAD acceptance. Group 360 is a compatibility probe, not a normative output claim."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2 passed.",
+    "focusedCTest": [
+      "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure passed (1/1).",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_named_resource_import_evidence|dwg2dxf_named_object_callback_storage)$' --output-on-failure passed (2/2)."
+    ],
+    "scopedDiffCheck": "git diff --check passed for the scoped production source, generated-control test, and plan; no trailing whitespace found in all three research receipts.",
+    "jsonValidation": "jq empty passed for the canonical-route, broader-owner-link, and group-360 fast-slice receipts.",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

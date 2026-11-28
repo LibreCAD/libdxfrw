@@ -2,6 +2,36 @@ cmake_minimum_required(VERSION 3.28)
 
 project(libdxfrw_semantic_target_adapter LANGUAGES CXX)
 
+function(_libdxfrw_reject_launcher_channels)
+    # A toolchain, project include, or source-list include can seed these as
+    # normal variables instead of cache entries. Check at each configure
+    # boundary where user-controlled CMake code has just run.
+    foreach(_channel IN ITEMS
+            CMAKE_CXX_COMPILER_ARG1
+            CMAKE_CXX_COMPILER_LAUNCHER
+            CMAKE_CXX_LINKER_LAUNCHER
+            CMAKE_RULE_LAUNCH_COMPILE
+            CMAKE_RULE_LAUNCH_LINK)
+        if(DEFINED ${_channel} AND NOT "${${_channel}}" STREQUAL "")
+            message(FATAL_ERROR
+                "unsupported compiler argument/launcher channel: ${_channel}")
+        endif()
+    endforeach()
+
+    foreach(_property IN ITEMS RULE_LAUNCH_COMPILE RULE_LAUNCH_LINK)
+        get_property(_property_set GLOBAL PROPERTY "${_property}" SET)
+        if(_property_set)
+            get_property(_property_value GLOBAL PROPERTY "${_property}")
+            if(NOT "${_property_value}" STREQUAL "")
+                message(FATAL_ERROR
+                    "unsupported global launcher property: ${_property}")
+            endif()
+        endif()
+    endforeach()
+endfunction()
+
+_libdxfrw_reject_launcher_channels()
+
 if(NOT DEFINED LIBDXFRW_SEMANTIC_TARGET_ROOT)
     message(FATAL_ERROR
         "LIBDXFRW_SEMANTIC_TARGET_ROOT must name the extracted "
@@ -30,6 +60,7 @@ if(NOT EXISTS "${LIBDXFRW_SEMANTIC_ADAPTER_SOURCE}")
 endif()
 
 include("${LIBDXFRW_SEMANTIC_SOURCE_LIST}")
+_libdxfrw_reject_launcher_channels()
 if(NOT LIBDXFRW_SOURCES)
     message(FATAL_ERROR "Pinned target source list defines no sources")
 endif()
@@ -82,6 +113,22 @@ target_compile_definitions(libdxfrw_semantic_adapter_target PRIVATE
     LIBDXFRW_SEMANTIC_SIDE_TARGET=1
     "LIBDXFRW_SEMANTIC_ADAPTER_NAME=\"libdxfrw_semantic_adapter_target\"")
 
+# CMAKE_* variables normally initialize these target properties, but a
+# toolchain/project include can also set them directly after target creation.
+# Such a build would not be represented by the direct compile-option receipt.
+foreach(_target IN ITEMS
+        libdxfrw_semantic_target
+        libdxfrw_semantic_adapter_target)
+    foreach(_property IN ITEMS CXX_COMPILER_LAUNCHER CXX_LINKER_LAUNCHER)
+        get_target_property(_property_value "${_target}" "${_property}")
+        if(NOT "${_property_value}" STREQUAL ""
+                AND NOT "${_property_value}" MATCHES "-NOTFOUND$")
+            message(FATAL_ERROR
+                "unsupported target launcher property: ${_target}.${_property}")
+        endif()
+    endforeach()
+endforeach()
+
 if(DEFINED LIBDXFRW_SEMANTIC_ADAPTER_COMMIT)
     target_compile_definitions(libdxfrw_semantic_adapter_target PRIVATE
         "LIBDXFRW_SEMANTIC_ADAPTER_COMMIT=\"${LIBDXFRW_SEMANTIC_ADAPTER_COMMIT}\"")
@@ -93,3 +140,22 @@ endif()
 
 target_link_libraries(libdxfrw_semantic_adapter_target
     PRIVATE libdxfrw_semantic_target)
+
+# Apple ld's map records the exact archive members and SDK stubs selected by
+# this executable link. Keep it beside (not in) the adapter artifact; the
+# receipt builder parses and hashes the observed inputs after the build.
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin"
+        AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_link_options(libdxfrw_semantic_adapter_target PRIVATE
+        "-Wl,-map,${CMAKE_BINARY_DIR}/semantic-adapter-link.map")
+endif()
+
+# Clang may read default config files that inject options after CMake's
+# codemodel has recorded the target fragments.  Disable that implicit channel
+# for both the target library and adapter; the receipt validator requires the
+# adapter option on Clang-family compilers.
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(libdxfrw_semantic_target PRIVATE --no-default-config)
+    target_compile_options(libdxfrw_semantic_adapter_target
+        PRIVATE --no-default-config)
+endif()

@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-table-legacy-2x2-mask-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_LEGACY_TABLE_2X2_MASK_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend whole-file AC1018 allocation sweeps for both public legacy TABLE mask writers to a mixed per-cell mask on a 2x2 TABLE, verifying rollback, same-writer retry, byte identity, typed readback, and exact selected group-177 presence.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory TABLE",
+    "profile": "Four text cells in two rows and two columns with mask {0,1,0,1}; tested through writeTableWithLegacySourcePresence() and writeTableWithLegacyZeroOverrides() in ASCII and Binary. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "9571fd4c",
+    "files": [
+      "tests/table_legacy_height_controls.h",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-table-legacy-2x2-mask-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Expand the existing generated one-cell TABLE to a 2x2 grid and sweep every measured writeTableWithLegacySourcePresence()/writeTableWithLegacyZeroOverrides() allocation offset in ASCII and Binary. Check caller identity/body and destination sentinel after failures; retry the same writer, require byte-identical output, read back all four cells and walk the wire to verify group 177 appears as explicit zero only for the selected cells."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_table_content_dxf_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_table_legacy_presence_allocation$' --output-on-failure: PASS 1/1 (0.48 sec)",
+    "directRun": "PASS; source-presence 1x1 and 2x2 profiles: 11 and 15 offsets per encoding; zero-override 1x1 and 2x2 profiles: 11 and 15 offsets per encoding. All failed writes preserved destination and TABLE state; same-writer retry, byte match, typed readback and wire group-177 presence checks passed. Invalid mask byte 2 refusal and correction remain passing.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "The mixed mask profile covers only {0,1,0,1}; other mask permutations and bit-2/bit-3 attribute-presence paths remain open.",
+    "Generated output is not independent producer or native consumer evidence and promotes no support claim."
+  ],
+  "nextAction": "Continue the P6-G public-writer inventory and retain source-profile and semantic TABLE qualification as separate gates."
+}

@@ -1,0 +1,43 @@
+{
+  "title": "Generated GEODATA body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_GEODATA_BODY_RECOVERY_AC1015_PASS",
+  "scope": "CLI disposition for a bounded malformed GEODATA OBJECTS body at AC1015, with strict refusal and explicit-partial output/readback, plus AC1018 fail-closed output-gate controls.",
+  "selection": {
+    "source": "P6-F typed OBJECTS parser and writer inventory",
+    "reason": "DRW_GeoData has typed DWG parse and write routes. The generated object uses a modelspace owner and host-block reference, plus a bounded version-2 body with finite coordinates and no mesh entries."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-geodata-body-source",
+    "profile": "One GEODATA object at handle 0x700, modelspace parent and host-block, coordinate type 2, finite design/reference/up/north values, and an empty mesh, followed by a LINE at handle 0x701.",
+    "mutation": "The generator searches the bounded object frame for a one-bit mutation rejected by DRW_GeoData::parseDwg while preserving the object handle and common prologue."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 5, "output_revision": "AC1021"},
+    "AC1018": {"controls": 6, "status": "reader continuation and strict/partial atomic refusal; explicit-partial output is refused by the existing GEODATA source CLASS/owner/host-block/body preflight gate"},
+    "AC1021": {"status": "not qualified"},
+    "AC1024": {"status": "not qualified"},
+    "AC1027": {"status": "not qualified"},
+    "AC1032": {"status": "not qualified"}
+  },
+  "assertions": [
+    "The AC1015 generated source records one failed OBJECTS frame, continues to the following LINE, and balances source/published/failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel for the AC1015 source.",
+    "Explicit-partial ASCII/Binary conversion and fresh DXF readback retain the LINE for the AC1015 source.",
+    "The AC1018 generated source also reaches parser recovery and retains the following LINE; strict ASCII/Binary conversion refuses at the incomplete-read gate, while explicit-partial ASCII/Binary conversion fails closed at the existing GEODATA source-profile preflight and preserves each destination sentinel. No successful partial output qualification is admitted for AC1018."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j4 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed before the final receipt/plan-only edits.",
+    "diff_check": "git diff --check passed before the final receipt/plan-only edits.",
+    "targeted": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_geodata_recovery$' passed 1/1 in 0.33 seconds and reported 11 controls, including four AC1018 strict/partial ASCII/Binary atomic refusal checks.",
+    "aggregate": "The dwg2dxf_cli_partial_read_disposition aggregate remains at its latest recorded 917 controls / 29.40 seconds and was not rerun for this isolated profile."
+  },
+  "limits": [
+    "Generated parser recovery and disposition evidence only; producer-authored geolocation profiles and native map/coordinate semantics are not qualified.",
+    "The generated AC1015 profile has no mesh points or faces and does not establish larger GEODATA payload behavior.",
+    "AC1018 partial output remains refused by the source-profile preflight; AC1021, AC1024, AC1027, and AC1032 are unqualified.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

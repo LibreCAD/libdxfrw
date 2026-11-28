@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-03",
+  "scope": "Serialize the bounded low-level AC1021+ LIGHTLIST DXF profile with exact reference-role remapping and fail-closed behavior.",
+  "schema": {
+    "sources": [
+      {
+        "title": "Autodesk AutoCAD 2007 DXF Reference, LIGHTLIST",
+        "url": "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2007.pdf"
+      },
+      {
+        "title": "Autodesk LIGHTLIST DXF group-code table",
+        "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-C4E7FFF8-C3ED-43DD-854D-304F87FFCF06.htm"
+      }
+    ],
+    "field_order": "LIGHTLIST handle; {ACAD_REACTORS with the required ACAD_LIGHT named-object-dictionary entry pointer and any actual reactor pointers; owner-object pointer; AcDbLightList subclass; version and light count; repeated LIGHT handle and name pairs.",
+    "version_floor": "AC1021, matching the Autodesk 2007 DXF Reference that documents LIGHTLIST. No earlier output floor is inferred."
+  },
+  "implementation": {
+    "behavior": "The low-level writer requires the ACAD_LIGHT pointer in retained ACAD_REACTORS app-data; verifies that subsequent app-data pointers match the typed reactor list; remaps the dictionary pointer, reactors, owner, object identity, and each LIGHT reference; and writes the documented order.",
+    "validation": "The writer requires the declared light count to match the bounded typed list, a representable class version, nonempty safe light names, valid required handles, and resolved graph edges. Malformed/unresolved profiles fail before publication; late XDATA failure rolls back record bytes and source-identity binding.",
+    "limits": "Generated transport evidence only. The dwg2dxf adapter continues to refuse retained LIGHTLIST records pending physical DWG source binding, full dictionary/LIGHT graph closure, and native lighting semantics. No support claim is promoted."
+  },
+  "validation": {
+    "inputs": "Locally authored in-memory values and generated ASCII/Binary documents; no DWG/DXF fixture was added.",
+    "control": "The focused control checks exact ASCII/Binary group order and all remapped handles with and without a reference resolver; typed readback checks the object owner, ACAD_LIGHT dictionary edge, selected reactor, LIGHT handles, and names. Unresolved dictionary/reactor/owner/LIGHT references preserve existing destination bytes. A late XDATA failure preserves bytes and identity state, and a corrected fresh-writer retry reads back the remapped identity.",
+    "commands": [
+      "cmake --build build --target libdxfrw_wave1_tests -j4",
+      "build/libdxfrw_wave1_tests --lightlist-reference-remapping",
+      "build-asan-custom/libdxfrw_wave1_tests --lightlist-reference-remapping",
+      "cmake --build build --target dwg2dxf -j4",
+      "git diff --check"
+    ],
+    "result": "PASS: focused ASCII/Binary serializer and typed-readback control passed in normal and ASan builds; dwg2dxf rebuilt; diff whitespace check passed."
+  }
+}

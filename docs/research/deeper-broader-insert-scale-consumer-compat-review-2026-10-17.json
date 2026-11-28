@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw-deeper-broader-insert-scale-consumer-compat-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Compare the normative DXF INSERT scale defaults, a recent LibreCAD-to-FreeCAD interoperability report and merged application fix, current open-source peer scale policies, FreeCAD's distinct importer routes, and local libdxfrw codec behavior; refine the existing implementation and consumer gates without promoting support claims.",
+  "method": {
+    "kind": "Primary-source web research plus targeted local source/test/plan inspection",
+    "peerRevisionsPinned": false,
+    "libreCADFixCommit": "LibreCAD/LibreCAD 5abd2b26a (PR #2756; verified in the adjacent local repository history)",
+    "peerExecutablesBuiltOrRun": false,
+    "localTestsRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+      "https://github.com/LibreCAD/LibreCAD/issues/1428",
+      "https://github.com/LibreCAD/LibreCAD/commit/5abd2b2",
+      "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Entities/Insert.cs",
+      "https://github.com/haplokuon/netDxf/blob/master/netDxf/Entities/Insert.cs",
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/insert.py",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/AppImportPy.cpp",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py"
+    ],
+    "localFilesInspected": [
+      "src/drw_entities.h: DRW_Insert scale defaults",
+      "src/drw_entities.cpp: DRW_Insert::parseCode groups 41/42/43",
+      "src/libdxfrw.cpp: isValidDxfEntityFields and dxfRW::writeInsert",
+      "tests/dxf_fixture_tests.cpp and tests/dwg_local_roundtrip_tests.cpp: existing INSERT scale controls",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing PAR-07/7H, 7AG, S8 and composed consumer gates",
+      "../LibreCAD/librecad/src/lib/engine/document/entities/rs_insert.cpp: usableScale implementation at commit 5abd2b26a"
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "Absent INSERT scale groups default to one; explicit-zero validity is not specified by the cited DXF table",
+      "observed": "Autodesk documents groups 41, 42, and 43 as optional with default 1. The table states no nonzero constraint.",
+      "localObservation": "DRW_Insert initializes all three scales to 1.0. DXF parseCode stores explicit scale groups verbatim, and writeInsert emits all three groups.",
+      "disposition": "Add a generated omitted-code-43 control that verifies Z remains one through read and read-after-write. Do not claim the DXF reference prohibits an explicit zero."
+    },
+    {
+      "topic": "LibreCAD issue #1428 documents a 2D interchange failure and a product-level repair",
+      "observed": "The report says a 2D DXF omitted group 43, LibreCAD import/save then emitted zero Z scale, and FreeCAD rejected the resulting DXF. The issue was closed by PR #2756, merge 5abd2b26a. Its current RS_InsertData policy and writer guard replace zero and non-finite scale factors with one.",
+      "localObservation": "The adjacent LibreCAD repository contains the merged commit and the usableScale implementation; this is source evidence for LibreCAD's chosen repair, not evidence about LibreCAD_3 or a current FreeCAD binary.",
+      "disposition": "Extend the existing LibreCAD/FreeCAD consumer gates with the omitted-43 scenario, pin the actual consumer revision and runtime, and qualify LibreCAD_3 independently. Keep the 2021 issue report out of current platform qualification."
+    },
+    {
+      "topic": "Open-source peer policies differ by model API and repair path",
+      "observed": "Current ACadSharp source guards its X/Y/Z scale setters against exact zero; netDxf's vector Scale setter rejects components considered zero; ezdxf's optional XYZ attributes default to one and declare a nonzero validator with RETURN_DEFAULT as fixer. The LibreCAD issue comment's wider corpus statement was not independently reproduced.",
+      "localObservation": "These sources show implementation policy differences but do not prove all file-reader or writer routes share those setter/repair semantics. The current master URLs are mutable and were not pinned or executed.",
+      "disposition": "Use peer behavior as operation-specific comparator context only. Pin source/package revisions and test read, model construction, repair, and export separately before relying on an observed result."
+    },
+    {
+      "topic": "FreeCAD source has separate DXF importer routes and INSERT composition modes",
+      "observed": "Current FreeCAD source exposes a C++ Import::readDXF path through ImpExpDxfRead; its block-composition code applies the INSERT scale to an App::Link or while flattening block geometry. A separate Draft Python DXF importer remains in the source tree.",
+      "localObservation": "The LibreCAD issue report does not identify its FreeCAD version, importer backend, import mode, or manual scaling option. Source-level flow is not runtime behavior evidence.",
+      "disposition": "At the composed FreeCAD gate, pin the backend, parametric/flattened mode, manual scale preference, version, and platform. If both current importer routes are included in the support claim, qualify each separately and compare final geometry."
+    },
+    {
+      "topic": "Local explicit zero is finite, retained, and currently writable",
+      "observed": "isValidDxfEntityFields rejects non-finite scale values but does not reject finite zero; dxfRW::writeInsert serializes X/Y/Z values. Existing inspected tests cover non-default scale values but do not assert the omitted-code-43 DXF path or define explicit-zero interoperability policy.",
+      "localObservation": "This is a codec/consumer boundary difference, not proof of a normative format defect. A finite zero induces a singular transform; no successful native consumer result was produced in this pass.",
+      "disposition": "Keep the low-level parser's explicit value visible. Before changing writer behavior, specify the operation-specific disposition: preserve at a low-level codec boundary, repair with a diagnostic in an explicitly named consumer adapter, or refuse strict conversion atomically. Do not silently rewrite zero in generic libdxfrw on the basis of a peer policy."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 127,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "fastNextAction": "Add the omitted-group-43 ASCII/Binary case to an existing focused DXF test owner; separately document and test explicit-zero low-level and strict-converter outcomes. Keep native LibreCAD, LibreCAD_3, and each selected FreeCAD importer route at the already planned composed consumer gates.",
+    "qualificationBoundary": "Normative omitted-value defaults, explicit raw field preservation, peer model setter/repair behavior, LibreCAD application repair, consumer runtime acceptance, and 3D semantics remain separate evidence classes."
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "testsRun": false,
+    "gitDiffCheck": true,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

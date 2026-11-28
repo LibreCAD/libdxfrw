@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-material-physical-output-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical MATERIAL identity, field, owner and class output proof",
+  "status": "PHYSICAL_3_MATERIAL_IDENTITIES_FIELDS_AND_GRAPH_READ_BACK_CLOSED",
+  "supportClaimEffect": "none",
+  "implementationCommit": "c9c79229e53589dbe95290bc1a1f74be615333e4",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "MATERIAL",
+    "class": "AcDbMaterial",
+    "count": 3,
+    "ownerRoute": "NOD ACAD_MATERIAL key -> unique owner DICTIONARY -> three MATERIAL records; each record has one unique owner key.",
+    "fixturePolicy": "Existing physical DWG only. Selector outputs are temporary and removed; no investigation DWG/DXF fixture was added."
+  },
+  "implementation": {
+    "change": "Register MATERIAL/AcDbMaterial CLASS metadata using the unique union of selected ACDS, DXF-origin and DWG-origin output handles. Refuse invalid or duplicate source identities. Add a physical AC1024 selector that uses the existing staged-byte inspector and independently reopens ASCII/Binary output to verify all three source identities and graph roles.",
+    "fields": "Compare the complete admitted DRW_Material body state, record identity/name/flags, mapped owner, extension-dictionary handle and mapped reactor sequence. For every extension dictionary, compare owner and ordered name/target membership. Require exactly one MATERIAL/AcDbMaterial CLASS row with instanceCount 3.",
+    "admission": "All three source records must have complete AC1024 typed semantic fields and raw source bodies. Existing explicit-partial source read policy remains in force; unsupported fields remain refused."
+  },
+  "sourceToOutput": {
+    "identity": "Three unique source handles map to three unique staged MATERIAL OBJECTS records and the same identities appear in fresh typed DXF readback.",
+    "ownerAndKeys": "Fresh readback verifies the NOD ACAD_MATERIAL key uniquely maps to the owner dictionary; the owner parent maps to the NOD; each source owner key maps to the same staged MATERIAL identity.",
+    "references": "Fresh typed readback verifies mapped MATERIAL owner, extension-dictionary owner and entries, and reactor order. The writer's existing stage inspector compares body fields and handle roles against the frozen physical source models before publication.",
+    "classMetadata": "Output contains one MATERIAL/AcDbMaterial CLASS row whose instanceCount equals the three emitted source records.",
+    "outputArtifacts": "ASCII and Binary files are read back by the selector and removed afterwards; no persistent output hashes are claimed."
+  },
+  "failureAndRetry": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "controls": [
+      "A late diffuse-factor mutation after OBJECTS emission is refused and preserves a pre-existing destination sentinel.",
+      "An ACAD_MATERIAL owner-key alias to another MATERIAL is refused atomically.",
+      "Removing a required ACAD_MATERIAL owner key is refused atomically.",
+      "Restoring the original typed field and owner dictionary permits corrected same-adapter retry and fresh typed readback."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "physicalSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --material-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary; three identities, ACAD_MATERIAL root/keys, typed body/common links, extension-dictionary roles, MATERIAL class count, rollback and retry."
+    },
+    "generatedMaterialAndDictionaryGraph": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_material_ac1024_typed_graph_output$|^libdxfrw_extension_dictionary_owner_graphs$' --output-on-failure",
+      "result": "PASS 2/2."
+    },
+    "materialAndAcdsCompatibility": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_acds_strict_material_closure$|^dwg2dxf_acds_typed_historyless_companion$|^dwg2dxf_acds_multi_record_projection$|^libdxfrw_material_root_output_compatibility$|^libdxfrw_material_strict_color_closure$' --output-on-failure",
+      "result": "PASS 5/5."
+    },
+    "neighboringPhysicalProfiles": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --xrecord-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "result": "PASS for ASCII and Binary."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "result": "PASS for ASCII and Binary."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --scale-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg /private/tmp/dictvar-current-check.dxf",
+        "result": "PASS for 17 physical SCALE identities and rooted ACAD_SCALELIST output."
+      }
+    ],
+    "fullSuites": "NOT RUN; focused physical and shared-class compatibility controls only."
+  },
+  "bindings": {
+    "sourceSha256": {
+      "dwg2dxf/dx_iface.cpp": "ebedfcc31db1165b33622a52303aaa343f95b1487c4e13cd1e365370cfdb52a4",
+      "tests/dwg2dxf_adapter_tests.cpp": "abbac13ca242c8d219e54ab67524641c96de343cf953effcad56647ca67fba07"
+    },
+    "executablesSha256": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "a01af401e6559ad7bb968c01f018b0298d433382585980c7a30934c2391bb5a6",
+      "build-gcc/dwg2dxf/dwg2dxf": "c00fe9864fe01075b38db19039b6ce5dd48bed88e7532e03d5e875bef2d62479"
+    }
+  },
+  "limits": [
+    "This closes one physical AC1024 MATERIAL profile in explicit-partial output only.",
+    "The global strict-complete gate remains closed by the unchanged 228 opaque callback views and zero retained correlation frames.",
+    "Fresh libdxfrw readback is transport evidence; no independent CAD consumer, native-platform, ABI/package or material-rendering semantic qualification is established.",
+    "No support claim or external J item is promoted."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Bind the three physical AC1024 MATERIAL identities and admitted typed fields to staged output, ACAD_MATERIAL owner keys, extension-dictionary/reactor roles and fresh ASCII/Binary readback; require class metadata, atomic refusal and retry.",
+    "nextCandidate": "Prove the two physical AC1024 MLEADERSTYLE source identities and admitted fields, ACAD_MLEADERSTYLE owner/key route, resolved target roles, emitted class count, fresh ASCII/Binary readback, refusal and retry.",
+    "externalItemsPromoted": 0
+  }
+}

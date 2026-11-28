@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-associative-only-dxf-replay-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 associative-only DXF-origin replay",
+  "status": "AC1024_ASSOCIATIVE_ONLY_DXF_REPLAY_OUTPUT_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "baselineCommit": "0730d7af5d6996b439250ae4af9ed71a6a028035",
+  "scope": {
+    "sourceProfile": "Locally authored AC1024 source graph with one ACDBASSOCNETWORK, one ACDBASSOC2DCONSTRAINTGROUP, one ACDBASSOCGEOMDEPENDENCY and no dynamic-block objects.",
+    "operation": "Import generated ASCII/Binary DXF, independently prepare exact typed/raw AC1024 associative snapshots, traverse owner/reactor closure, replay OBJECTS, and freshly import output.",
+    "claimBoundary": "Adapter transport, graph validation, failure/retry and DXF readback only; no associative semantic evaluation, native application acceptance, DWG output or support-claim promotion."
+  },
+  "implementation": {
+    "changes": [
+      "AC1024 DXF associative graph traversal now requires complete associative typed/raw carrier pairs without requiring an unrelated dynamic-block carrier set.",
+      "DXF associative replay preparation and output admission are independent of dynamic-block replay, while remaining restricted to same-version AC1024 and complete typed/raw identity.",
+      "Successful associative replay publishes its own qualified-record count after staged-body inspection; it no longer depends on dynamic-block replay inspection.",
+      "Staged replay diagnostics identify source import/cardinality, typed-model, raw-record, or target-version mismatches."
+    ],
+    "failureAndRetry": "A late ACDBASSOCNETWORK model mutation after OBJECTS staging is rejected; the pre-existing destination sentinel remains unchanged and qualifiedRecords remains zero. Restoring the source and retrying with the same exporter succeeds.",
+    "readback": "ASCII and Binary outputs freshly import with all three typed and raw associative carriers, no dynamic-block objects, unchanged record identities/owners and selected network, constraint-group, geometry-dependency and target-reactor fields.",
+    "fixturePolicy": "The graph is authored by the existing runtime test. Temporary DXF files are removed by the selector. No persistent DWG/DXF fixture was added."
+  },
+  "validation": {
+    "host": "Darwin 27.0.0 arm64",
+    "cmake": "4.4.4",
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS with configured warning-as-error policy."
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --associative-geometry-dependency-graph-export",
+      "exitCode": 0,
+      "result": "PASS for ASCII and Binary. Expected diagnostics from invalid-graph and injected late-mutation refusal controls were emitted.",
+      "fullSuite": "NOT RUN; only the owning selector was used."
+    },
+    "sourceSha256": {
+      "dwg2dxf/dx_iface.cpp": "aa131de36fe49721ef3d784104d5fc1a225d327b8c7aec717a0aab20c1b8ddc2",
+      "tests/dwg2dxf_adapter_tests.cpp": "b229b6fac8b31704dae64d77ff2f5eeece78ddb806c31184159915116c57cd64",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "fff3a65f2726ecf4e7f5bdfb82133e216ee71f9c444e801464044d48b673f370",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "520282833d3f52110b0671c542741453808ede0edeb7f2a91457cea86f7a7e5c"
+    }
+  },
+  "completedScopeRemovedFromQueue": "Associative-only AC1024 DXF-origin replay admission, independent qualification bookkeeping, late-mutation rollback/retry, and ASCII/Binary fresh readback.",
+  "remaining": [
+    "Other source-required P4 bodies, owner edges and dependencies that lack strict output/readback proof.",
+    "All independent semantic, native consumer, platform, and other P4-P9 qualification gates."
+  ],
+  "externalItemsPromoted": 0
+}

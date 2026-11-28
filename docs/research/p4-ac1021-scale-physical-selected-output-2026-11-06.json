@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Selected physical AC1021 SCALE graph output and readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the 17 SCALE records in one existing AC1021 source as a selected rooted ACAD_SCALELIST graph for same-version ASCII and Binary DXF output, typed/raw readback, atomic late-mutation refusal, and same-writer retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing. Author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceGraph": {
+    "scaleCount": 17,
+    "root": "Exactly one ACAD_SCALELIST NOD edge targets the unique AC1021 dictionary; its 17 complete ordered entries each target one typed SCALE with matching parent and unique reactor to the dictionary.",
+    "scaleProfile": "Each record has one non-null dictionary owner/reactor, no extension dictionary, appData, extData, data-storage binary data, or common-link tail; names are nonempty and paper/drawing units are finite and positive.",
+    "fields": "Flag, name, paper units, drawing units, and isUnitScale are checked against fresh typed and raw DXF readback for each handle."
+  },
+  "implementation": {
+    "profile": "The source-bound SCALE snapshot/output path now admits this AC1021 profile alongside the established AC1024 profile and requires same-version output. AC1021 SCALE data causes the NOD-rooted extension graph to be included.",
+    "transaction": "A writer subclass mutates one SCALE after OBJECTS serialization. Final snapshot validation refuses both ASCII and Binary output, preserves the existing destination sentinel, and the same writer succeeds after source restoration.",
+    "files": {
+      "dwg2dxf/dx_iface.cpp": "413ef576721f2df6ca7ee72a96f889d3f4ef27dbfe5c4280d9372de042f4c288",
+      "tests/dwg2dxf_adapter_tests.cpp": "a0abc7319ad20d82074ba215ace0600b8336b341be4afdc9ab263906425a4647"
+    }
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS",
+      "executableSha256": "09b899447285b81a2600fb50849fc680a27aa979b3f420c6e2213984eefc3924"
+    },
+    "physicalSelectedGraph": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --scale-ac1021-physical-selected-graph /Users/dli/doc/dwg/children-room-decoration.dwg /private/tmp/children-room-ac1021-scale-final",
+      "result": "PASS",
+      "logPath": "/private/tmp/scale-ac1021-result.log",
+      "logSha256": "f4eec9b8dc7b4daf6741f704f39ff6adec64cff1e89fd4b67a59c04a341d72e8",
+      "outputSha256": {
+        "ascii": "b86c6a3e40b3f0acae868cc611fef0853d541ce958a1a064c7f46f1ec6cf4f2c",
+        "binary": "ca762039038c317eba8b932459e9d80687d67d1f4310c5aae248716618ca6587"
+      },
+      "checks": [
+        "17 source SCALE identities and all ACAD_SCALELIST dictionary edges are checked before output",
+        "ASCII and Binary output imports as 17 typed SCALE records with exact handles, owner/reactor roles, flags, names, numeric fields, unit-scale bits, and raw scalar carriers",
+        "Late source mutation after OBJECTS serialization is refused for ASCII and Binary",
+        "The pre-existing destination sentinel survives each refusal",
+        "Restoring the source allows same-writer retry and fresh readback"
+      ]
+    },
+    "ac1024CompatibilityRegression": {
+      "conversionCommand": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -v2010 /private/tmp/scale-ac1024-regression.dxf",
+      "conversionResult": "PASS",
+      "converterSha256": "3cb30f04eb95f1d79c215ce99e61e273a49c08f143382b3b35933ceb678836ac",
+      "outputSha256": "2d1cdfd55773cadf1a8bec57eccd1947d250a31d827b40dca3c5ed3ca68764a0",
+      "readbackCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --scale-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg /private/tmp/scale-ac1024-regression.dxf",
+      "readbackResult": "PASS; the selector first emits its expected injected refusal diagnostic for the atomic-mutation case, then confirms 17 source identities, rooted ACAD_SCALELIST membership, owner/reactors, exact typed/raw fields, destination preservation and retry.",
+      "readbackLogSha256": "658936d47d3d8c07f663b9c52168a9183e907e5fc4ac08cd754034005229f8cc"
+    },
+    "diffCheck": "git diff --check passed"
+  },
+  "limits": [
+    "This is one selected graph from one local source; it does not qualify whole-source conversion or another producer/version.",
+    "The source author and producer are not independently authenticated, and the route does not establish native scale-list semantics or consumer acceptance.",
+    "The broader AC1021 inventory still contains 32 unqualified opaque carriers and 62 unqualified standard-object frames; other graph dependencies and document-wide output remain gated."
+  ],
+  "nextAction": "Continue with another independently bounded physical graph/source family, prioritizing the existing inventory and preserving source, role, dependency, output, and readback gates."
+}

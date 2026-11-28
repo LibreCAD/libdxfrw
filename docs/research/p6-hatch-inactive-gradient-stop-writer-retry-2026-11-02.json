@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-02",
+  "topic": "HATCH and MPOLYGON inactive gradient-stop writer refusal and retry",
+  "repository_base_commit": "6673f0a29e981d59fa0886c3ddc662b1a62bb087",
+  "normative_reference": {
+    "title": "Autodesk HATCH DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+    "relevant_fields": {
+      "450": "Gradient fill flag; 0 denotes solid fill",
+      "453": "Number of colors in the gradient definition"
+    }
+  },
+  "finding": "When gradient fill is disabled, a nonempty gradient color-stop list has no documented DXF carrier. Reject the payload before sticky entity preflight so the writer can be corrected and reused.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "writeHatch and writeMPolygon validate payload representability before preflightEntity can latch a writer error",
+      "In ASCII and Binary modes, invalid solid-fill records leave the destination empty",
+      "Clearing the inactive gradient stops permits same-writer retry and a following sentinel record, checking that refusal did not corrupt writer state"
+    ],
+    "new_fixture_files": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "result": "passed"
+    },
+    "ctest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_hatch_inactive_gradient_guard|libdxfrw_hatch_gradient_stop_color_domain|libdxfrw_mpolygon_aci_domain)$' --output-on-failure",
+      "result": "3/3 passed",
+      "elapsed_seconds": 0.12
+    }
+  },
+  "evidence_scope": {
+    "supports": [
+      "Generated ASCII and Binary atomic refusal for solid-fill HATCH and MPOLYGON payloads carrying gradient stops",
+      "Same-writer corrected retry after removing the unrepresentable stops"
+    ],
+    "does_not_support": [
+      "Physical producer prevalence",
+      "HATCH or MPOLYGON fill semantic equivalence",
+      "Native rendering qualification",
+      "Broader DWG/DXF support claims"
+    ]
+  },
+  "sha256": {
+    "tested_worktree": {
+      "CMakeLists.txt": "10786d70b54be40850494c9b845e03332dffd7566b5239d83fa42d49167c0a16",
+      "src/libdxfrw.cpp": "2188807c22ff2c2045f1230c83ff1f74156317656dd55b497f61514fe715fcba",
+      "tests/wave1_tests.cpp": "5d7d894f6b4f0305e75f9124b7181448b631aabcadfda59e7c9bbb4f14d34f67",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "c461b24e131e091d5b6310b4dc3885bf97f05647d3de355a532cc00758dc63eb"
+    },
+    "staged_blobs": {
+      "CMakeLists.txt": "ad7ee975f57829fc3826acecdf30e65cc470bced53c3aa0a4378979061b95f9f",
+      "src/libdxfrw.cpp": "1d5ec06fe557549c3a672fffaff231402446cc580403c210111cc05d94832bd2",
+      "tests/wave1_tests.cpp": "5d7d894f6b4f0305e75f9124b7181448b631aabcadfda59e7c9bbb4f14d34f67",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "fef4377df01d2e80351756566cba541f869d971160b5b3774343c118640e514e"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-layer-material-graph-closure-adapter-fast-2026-11-04",
+  "date": "2026-11-04",
+  "title": "Generated LAYER MATERIAL graph output and retry control",
+  "state": "VERIFIED_LOCAL_IMPLEMENTATION",
+  "supportClaimEffect": "none",
+  "parentCommit": "174f03a28a5c3f3387a098264f06a0f243a2b658",
+  "scope": "Register the existing generated dx_iface LAYER group-347 material-graph control as a focused CTest and record its current output/readback scope. No production behavior or support claim changes.",
+  "control": {
+    "fixtureAdmission": "The source DXF recipes and adapter models are locally generated at test runtime. Temporary drawings are removed after a successful run; no DWG/DXF fixture is committed.",
+    "matrix": {
+      "sourceVersions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+      "sourceEncodings": ["ASCII", "Binary"],
+      "targetEncodings": ["ASCII", "Binary"],
+      "profiles": 32
+    },
+    "proof": "Inspect emitted LAYER group 347 against the exact MATERIAL output identity and owner dictionary, then import the generated DXF and check all four typed layer references. Control invalid/unresolved material handles, wrong owner/name/provider state, callback mutation, staged output edits and same-adapter retries."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j3",
+    "test": "ctest --test-dir build-gcc -R '^dxf_layer_material_bindings$' --output-on-failure",
+    "result": "PASS",
+    "elapsedSeconds": 1.75,
+    "counts": {
+      "profiles": 32,
+      "independentFieldChecks": 748,
+      "typedReadbacks": 32,
+      "callbackRefusals": 82,
+      "correctedRetries": 108,
+      "exactAndOneUnderLimitCases": 4,
+      "invalidPointerRefusals": 34,
+      "stagedFieldRefusals": 72,
+      "reachedInspectorAllocationFaults": 50,
+      "unreachedFaultOffsets": 4,
+      "inactive2DProfiles": 2,
+      "legacyProjectionProfiles": 2
+    }
+  },
+  "limits": [
+    "Generated source graph only; no physical producer conversion is included.",
+    "The control proves emitted identity and owner closure for this bounded adapter profile, not all MATERIAL graphs or native rendering.",
+    "No support claim is promoted."
+  ]
+}

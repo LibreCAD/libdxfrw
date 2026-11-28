@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_OPT_IN_RAW_ONLY_IMPORT",
+  "base_commit": "7037d4dc",
+  "scope": "Accept only the exact observed AC1027 sparse ODA default ByBlock/ByLayer/Global MATERIAL body and common envelope when the consumer explicitly opts in through an independent policy facet. Without it, the prior parse refusal remains. The typed record is marked raw-only; typed DXF/DWG emission and adapter MATERIAL replay refuse it. No graph output is admitted.",
+  "authority": "Autodesk MATERIAL DXF table https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm identifies 94 as channel flags and uses 273 for both refraction-map source and final gather mode. This incomplete body does not disambiguate 273.",
+  "physical_source": {
+    "provenance": "The LIGHT/LIGHTLIST source was authored from scratch using ezdxf 1.4.5 and tools/author_light_dxf_421.py, then ODA File Converter 27.1 converted it to AC1027 DWG and returned AC1027 DXF. Local conversion lineage is observed, not proved by file hashes.",
+    "input_dxf": "/private/tmp/light421-color/in/rgb.dxf",
+    "input_sha256": "abbe035b0b4cac2aee7aef22e885f0e01a522bb7de9800f5b3b94f297b96eae3",
+    "dwg": "/private/tmp/light421-color/dwg/rgb.dwg",
+    "dwg_sha256": "e15bdf112893b080f6714a8e34c58f8a8100bd25527b7baf94b661c90ac673a4",
+    "returned_dxf": "/private/tmp/light421-color/out/rgb.dxf",
+    "returned_dxf_sha256": "fa5d37197d271ab36ce268ecfddd942083a33c9b1a3b02411714c9fee0af3fb9",
+    "records": "All three MATERIAL records have exactly body 1=<canonical name>,71=1,91=-1023410177 (0xC2FFFFFF),72=1,273=1,94=63 after self, one matching owner/reactor and AcDbMaterial marker. The in-tree producer-source probe reads all three raw and typed callbacks; exact group order is hash-bound.",
+    "independent": "LibreDWG 0.14 decodes the DWG counterparts as diffuse color 0xC2FFFFFF, refraction-map source 1, empty filename and channel flags 63. It does not establish whether the standalone DXF group 273 was intended as refraction source or final-gather mode; the latter is not present in its JSON. The Python audit checks exact returned DXF tags and peer fields independently of the native parser."
+  },
+  "implementation": "When the independent policy opts in, recognize only the complete exact 11-group prefix, canonical name, required source version, exact scalar values and common links; defer 94 to an immediate object boundary. Preserve 273 solely in raw data, clear typed refraction-source presence, expose channel flags 63 and a raw-only query. An unreachable ordinary-parser combination of the two existing private implicit-tail/procedural-started bits carries the marker without changing layout. `hasDxfMaterialImplicitTail` retains its previous meaning. The typed DXF and DWG encoders reject the marker; the DWG facade latches failure, and the adapter explicitly refuses raw-only MATERIAL sources until a separate exact source/graph qualification is implemented. State comparison includes the marker. Direct explicit low-level raw-object replay is unchanged.",
+  "state_invariant": "reset initializes both flags false. Ordinary parser sets procedural-started only for 300 or 292, both of which refuse an existing implicit tail; it sets implicit-tail only when a procedural table has not started. Search found no other assignments. Compiler-generated copy/move preserve both flags; the focused test covers copy, move, assignment and reset.",
+  "validation": {
+    "focused": "4/4 isolated CTests pass: sparse MATERIAL raw-only test, existing normal-role parser controls, DWG retained-MATERIAL refusal, and default MATERIAL opt-in. New ASCII/Binary cases verify no-facet and disabled-facet refusal without MATERIAL callbacks, enabled-facet same-reader retry, and test all three names, exact raw field retention through explicit raw writer/readback, invalid or duplicate fields, unqualified version/name/owner and additional groups, same-reader retry, typed DXF destination preservation and same-writer raw retry, marker copy/move/reset, zero-byte DWG encoder refusal, ignored DWG facade failure/sentinel and corrected same-facade retry.",
+    "source": "Hash-bound audit of the physical DWG/DXF runs with Python -O and checks peer 0.14 fields, exact DXF sequence, three native typed/raw captures exact built-in versus legacy-derived versus explicitly opted-in derived adapter behavior, and explicit adapter prepare refusal.",
+    "full_file": "With the candidate, the source DXF imports fully. Strict adapter output still refuses at typed-proxy-graphics-not-preserved for LIGHT handle 0x2F and preserves PRIOR_MATERIAL_DEST. This is not whole-file output or LIGHTLIST graph qualification.",
+    "integrated": "The integrated sparse-input, material normal-role, DWG replay refusal and default-material controls passed 4/4."
+  },
+  "commands": [
+    "cmake --build /private/tmp/material-sparse-default/build --target libdxfrw_dxf_sparse_material_raw_tests libdxfrw_material_normal_role_tests libdxfrw_dwg_material_replay_refusal_tests libdxfrw_dwg_default_material_optin_tests -j4",
+    "ctest --test-dir /private/tmp/material-sparse-default/build -R '^libdxfrw_(dxf_sparse_material_raw|material_normal_roles|dwg_material_replay_refusal|dwg_default_material_optin)$' --output-on-failure",
+    "Compile tools/probe_sparse_material_source.cpp against libdxfrw; compile tools/probe_sparse_material_adapter.cpp against the test adapter object and libdxfrw, both with -std=c++17 -I<source> -I<source>/src -I<source>/dwg2dxf.",
+    "PYTHONPATH=<source>/tools build/rpp5gh-evidence/peer/bin/python -O <source>/tools/audit_sparse_material_source.py --dxf /private/tmp/light421-color/out/rgb.dxf --dwg /private/tmp/light421-color/dwg/rgb.dwg --dwgread /opt/homebrew/bin/dwgread --probe /private/tmp/material-sparse-default/probe --adapterprobe /private/tmp/material-sparse-default/adapterprobe"
+  ],
+  "patch_sha256": "351f11188878754d8a149629e345d2729766da60cd611e48b039ebcb52d18d74",
+  "tool_sha256": {
+    "tests/dxf_sparse_material_raw_tests.cpp": "1b6b0e761c6bbbd31b4d26872dac44482c85a7d429f322e0ce87ca13fe51bcca",
+    "tools/probe_sparse_material_source.cpp": "da4c3ca1182f711ac8790475ca8cd9d9b3ff16fc038142a1c5665559885af8d9",
+    "tools/probe_sparse_material_adapter.cpp": "1c54b7218e6f6d1ee2dc59a451a0cb0c7b0c7fdb7cce1eb9029fd3b871570611",
+    "tools/audit_sparse_material_source.py": "231bba8948096c8905851fa1dbea0f02412abba2f0ae8b1834aae1c2eea51780"
+  },
+  "limits": [
+    "No support promotion or graph admission; a later solution must independently qualify the ambiguity and complete graph.",
+    "No DWG/DXF fixtures were added; physical samples remain scratch-only.",
+    "Third-party typed consumers must honor requiresRawDxfMaterialReplay; the in-tree typed encoders and adapter enforce it."
+  ],
+  "typed_callback_limit": "The opt-in MATERIAL callback is deliberately incomplete: omitted typed fields, including the ambiguous group 273, mean unmodeled rather than observed defaults. A consumer that explicitly opts in but ignores requiresRawDxfMaterialReplay() may mistake those values for source semantics and lose data. The complete record is retained separately in the raw callback. In-tree typed DXF/DWG writers and adapter replay refuse the marked object; other consumer behavior is outside this change. Consumers without the facet retain prior refusal.",
+  "opt_in": "The independent DRW_DxfSparseMaterialRawPolicy facet defaults false and does not alter DRW_Interface layout or vtable. Only an opting-in consumer receives the partial typed and complete raw callbacks. The exact built-in dx_iface opts in; pre-existing dx_iface subclasses do not inherit opt-in and may override the facet explicitly if they retain raw data and honor the marker.",
+  "abi": "Installed DRW_Interface class, vtable and DRW_Material data layout remain unchanged; the independent facet is a new optional interface. The in-tree dx_iface adapter gains a polymorphic base, changing its layout and secondary base offsets; external binaries built against that adapter must rebuild. CMake installs dwg2dxf as an executable and does not install dx_iface as a consumer header. An independent old-header consumer compiled against the candidate library refused the physical sparse source without MATERIAL callbacks; old/new DRW_Material sizeof both 2032 on this host, not a cross-platform ABI certification.",
+  "scratch_source_and_test_sha256": {
+    "src/drw_interface.h": "8771491971a089e2512da7283e0041a327e3cb291a43f75dc4d5e6523cf100c6",
+    "src/drw_objects.h": "4d8d0ca582bef84623d055ff8e6e79bd8e17cd106cdce8c452871c5bd1840705",
+    "src/drw_objects.cpp": "de8cbaff6c5da74d01b8becf8583323892d5d12192a9ad5e54205886d7b933d0",
+    "src/libdxfrw.cpp": "f64e1bbc289d3ed41d2832754f976ef1df477862f26311a7b0f9a08bdbde388e",
+    "src/libdwgr.cpp": "3882e3c5bb522e94d43f425f30a6f48f1798e29a2d4f5cfb911720384a4e72ca",
+    "src/intern/dxfmaterial.h": "f2aba6a42d5c9efeb24500bc9d1713fa63bd579831b6fec25bb44ebc30355452",
+    "dwg2dxf/dx_iface.h": "aefcb42cc49f34cc53e88db286effa77038263f25d058a0b3a002d97b5cfa113",
+    "dwg2dxf/dx_iface.cpp": "453e3447f547d0072ddbf747a5d11a12a6a96071cf8390d27a241bf0b51dfa1d",
+    "tests/CMakeLists.txt": "316b447e7dcbbb4c81ec51473918482e8590796ebbcc086343816a6fff055e54"
+  }
+}

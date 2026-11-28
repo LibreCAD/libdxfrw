@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "MLINESTYLE description retained-owner fast slice",
+  "mode": "local fast implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge DXF group-3 MLINESTYLE descriptions to the shared table-entry lease",
+    "Preserve replacement, copy, assignment, and reset lifetime semantics",
+    "Add in-memory ASCII and Binary exact/one-under controls"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp"
+    ],
+    "behavior": "DRW_MLineStyle::parseCode now uses replaceDxfRetainedStringField for group-3 description. The private field counter is cleared in reset before DRW_TableEntry::reset releases the shared lease. Implicit copies preserve the counter and shared lease.",
+    "generatedInMemoryControls": [
+      "ASCII and Binary group-2 table name plus initial and replacement group-3 descriptions",
+      "minimum aggregate retained-byte cap succeeds",
+      "one-byte-under cap refuses replacement while preserving the previous description and charge",
+      "copy construction and assignment preserve the lease after source reset",
+      "final copied-owner reset releases the aggregate charge"
+    ],
+    "selector": "--dxf-mline-style-description-owner-budget",
+    "publicLayoutChanged": true,
+    "publicLayoutNote": "Private size_t bookkeeping changes DRW_MLineStyle layout; downstream consumers must rebuild. No binary ABI compatibility claim is made.",
+    "wireLengthRuleAdded": false
+  },
+  "planImpact": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, sub-slice 7S.2c.d.17.7",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newCtestRegistrations": 0,
+    "externalFixtureFilesAdded": 0,
+    "externalPeerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-mline-style-description-owner-budget",
+      "cmake --build build-gcc --target lc3_compat_check -j2",
+      "jq empty docs/research/mline-style-description-retained-owner-fast-slice-2026-10-17.json",
+      "git diff --check -- src/drw_objects.h src/drw_objects.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mline-style-description-retained-owner-fast-slice-2026-10-17.json"
+    ],
+    "results": [
+      "strict libdxfrw_hardening_tests target built",
+      "focused MLINESTYLE retained-owner selector passed for ASCII and Binary generated tag streams",
+      "lc3_compat_check target built"
+    ],
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixtureFilesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "productionCodeChanged": true,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "commitCreated": false,
+    "commitNote": "The shared worktree contains broad unrelated modifications to these same files; no attempt was made to stage or commit unrelated state."
+  }
+}

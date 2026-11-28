@@ -1,0 +1,239 @@
+{
+  "date": "2026-11-16",
+  "scope": "Opt-in caller-authored default plot-style graph through typed and bounded raw OBJECTS writers",
+  "base_commit": "eea275a6183f60a57be341770accca37671e9f22",
+  "source_sha256": {
+    "src/libdxfrw.cpp": "1a2d596ad95192f3e1fa1af7770eea46256545a7c6a7cef4e14932ac74048a77",
+    "src/libdxfrw.h": "e7853ab3f3b6765e526bbfc186cc753917ff16f717709efd33319670ff2ca92e",
+    "tests/dxf_default_plotstyle_graph_tests.cpp": "5f3d11a2c08b5615af8661e1f873e9cef955d3dec8f69509b68cfb5b8c56e713"
+  },
+  "behavior": [
+    "The declared ACDBDICTIONARYWDFLT and Normal ACDBPLACEHOLDER can be emitted through typed callbacks or a strict raw profile.",
+    "The raw profile requires exact self/owner identities, AcDbDictionary and AcDbDictionaryWithDefault subclass order, one Normal group-350 target, a matching group-340 default, and no unmodeled children, XDATA, extension dictionary, or foreign application scopes.",
+    "Selected raw dictionary aliases are emitted with canonical ACDBDICTIONARYWDFLT identity; source identity is bound to its output handle, and root, Normal/default handles, placeholder owner, physical record identities, and reactor output targets are checked before publication.",
+    "Typed and raw reactor edges are remapped and checked against unique physical output records; raw ACAD_REACTORS group-330 references remain distinct from the common owner group-330."
+  ],
+  "controls": {
+    "versions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "handle_profiles": [
+      "identity",
+      "dictionary and placeholder remapped"
+    ],
+    "typed": "24 successful profile combinations; eight malformed/missing/late-source profiles per combination refused with destination sentinel preserved and same-writer retry.",
+    "raw": "24 successful profile combinations; nine malformed owner/edge/duplicate/application profiles per combination refused with destination sentinel preserved and same-writer retry.",
+    "focused_ctest": "4/4: libdxfrw_dxf_default_plotstyle_graph, libdxfrw_dictionary_default_adapter_roundtrip, dwg2dxf_default_plotstyle_layer_graph, libdxfrw_layer_table_allocation.",
+    "asan": "The rebuilt libdxfrw_dxf_default_plotstyle_graph CTest passes under AddressSanitizer.",
+    "independent_reader": "ezdxf 1.4.5 opened all 48 locally generated files and verified root dictionary, Normal/default equality, placeholder owner, layer plotstyle pointer and reactor edge."
+  },
+  "scratch_outputs": [
+    {
+      "name": "caller-13-ascii-identity.dxf",
+      "sha256": "3a1537fdb3d62c3eec2472f980e6c095bbc6d78a541f4b45e2300731fa166f0c"
+    },
+    {
+      "name": "caller-13-ascii-remapped.dxf",
+      "sha256": "6882e4bb28d8ab4ce066b0f54a26a45bdd46267f49443cd9e9206d524b0029a9"
+    },
+    {
+      "name": "caller-13-binary-identity.dxf",
+      "sha256": "73d0c72486a1cf27e4ad933fa7383427b0dbb1e6c3c642de170cb6f8e9f2e7df"
+    },
+    {
+      "name": "caller-13-binary-remapped.dxf",
+      "sha256": "e8650af97d1f2ee5e328e2c6ae4875b544a9178cb809ad07557dcc06a8afcd9e"
+    },
+    {
+      "name": "caller-14-ascii-identity.dxf",
+      "sha256": "f03018302698a1402cdc1657b90c2e3ae54403535745d425d188613e59b5b98e"
+    },
+    {
+      "name": "caller-14-ascii-remapped.dxf",
+      "sha256": "9f9c1ed8be265261718572e9c21c4b0a11f5d3244de5d2753c6f59df276aaf9c"
+    },
+    {
+      "name": "caller-14-binary-identity.dxf",
+      "sha256": "a26884c3f9ce3ebfdff987c191bde91af0fd2fec92f0824f6d5539ee651f0d44"
+    },
+    {
+      "name": "caller-14-binary-remapped.dxf",
+      "sha256": "f014319548a271162e5fcd43a349d692328d997dd1e0218223511b76011111e7"
+    },
+    {
+      "name": "caller-15-ascii-identity.dxf",
+      "sha256": "d8cd8188f750584eb9203f681b89c355b25b3df9f23c929aa119ee81434a3c8a"
+    },
+    {
+      "name": "caller-15-ascii-remapped.dxf",
+      "sha256": "ebb659fe14187af5798ce18e13514ee44dd24977e7ec8b6069f21f191b7c2808"
+    },
+    {
+      "name": "caller-15-binary-identity.dxf",
+      "sha256": "044ee54e03fe10a4ff0266ae7788d91d94b26b725ed0c551dcf16dfc3507a72d"
+    },
+    {
+      "name": "caller-15-binary-remapped.dxf",
+      "sha256": "1841616822cefe57e36f976c10b2b3d87c3483a3754e090eeba45cadaa0b5c74"
+    },
+    {
+      "name": "caller-16-ascii-identity.dxf",
+      "sha256": "3f9d9d92b95e2b88f3182ff1dfb6ce5ef515460361c0b85ca8eb444d96e46bc9"
+    },
+    {
+      "name": "caller-16-ascii-remapped.dxf",
+      "sha256": "7f738d07c6722acae9b052938f5e5465239b7b0222318e2d216297da51742d0b"
+    },
+    {
+      "name": "caller-16-binary-identity.dxf",
+      "sha256": "749266fab592cd6a11f3077899a0fac387e2e227244216720d267fb6cc5aff7a"
+    },
+    {
+      "name": "caller-16-binary-remapped.dxf",
+      "sha256": "eba3c579d51ffa573cd95f51397cd98f894595517737b70bbcee1f0463d02c60"
+    },
+    {
+      "name": "caller-17-ascii-identity.dxf",
+      "sha256": "a7ed3b7dbe25ad802871ce61bcf0ead654f9f3e64f09549e59bdc431eb825c7e"
+    },
+    {
+      "name": "caller-17-ascii-remapped.dxf",
+      "sha256": "e49a0f99a3f11ae44d2b6df73bec02f38f799eb31b8265df71ed06fc8e2a85dd"
+    },
+    {
+      "name": "caller-17-binary-identity.dxf",
+      "sha256": "8723d95884c262241918303108ccec552a126ffaf71d7fdc90df0080235a4183"
+    },
+    {
+      "name": "caller-17-binary-remapped.dxf",
+      "sha256": "abb800a51f2528fd711661abbee5f254a898aee79e247e1d4253727a5dabc921"
+    },
+    {
+      "name": "caller-18-ascii-identity.dxf",
+      "sha256": "c21b9ad0756f7940ced1455442893df8ce12ef67d2096dc990b5f3d575ae3c5c"
+    },
+    {
+      "name": "caller-18-ascii-remapped.dxf",
+      "sha256": "b7a037ea024656ffa6174681da9d773bcd0bbbc00f1c3a84ffef640deb61d44d"
+    },
+    {
+      "name": "caller-18-binary-identity.dxf",
+      "sha256": "5fdaf16f0939dd9b995d0971b9473281e05b5b886f6cedb6ee925f4b6da26d2f"
+    },
+    {
+      "name": "caller-18-binary-remapped.dxf",
+      "sha256": "b7f014ef9997158c46bcab905989b83f4eb948c8870bc439e3d2c1d83dddbb03"
+    },
+    {
+      "name": "raw-caller-13-ascii-identity.dxf",
+      "sha256": "b6fc0303001e266242b7ab88a46a4ffe287331dd4552533b65304f98d5bc7ac5"
+    },
+    {
+      "name": "raw-caller-13-ascii-remapped.dxf",
+      "sha256": "da0ccc4d5e336235b07ddbdfb46a0698576f98edfb90a75a360b14ae68a9b7bc"
+    },
+    {
+      "name": "raw-caller-13-binary-identity.dxf",
+      "sha256": "68fdadc5f2cbfb1c362458d9ea18310d318fdbaffc187bd791ec507b32047c0d"
+    },
+    {
+      "name": "raw-caller-13-binary-remapped.dxf",
+      "sha256": "2aefab5f7ab1aa821ce1f4b27b38c51a93d5fb6a010bf842dc6978f7363c7ae3"
+    },
+    {
+      "name": "raw-caller-14-ascii-identity.dxf",
+      "sha256": "66946061778a1ef1333d61e7dfd249ebc5def2dd2a7626a6c4f9bf2d47c88c28"
+    },
+    {
+      "name": "raw-caller-14-ascii-remapped.dxf",
+      "sha256": "488ef88f0955a5dc56fbe59df067ab41ad7ad47008a39b43c0517087d3105d58"
+    },
+    {
+      "name": "raw-caller-14-binary-identity.dxf",
+      "sha256": "c4846fcc1da0f3a21a1514bcb6333a734125aa862f6b428165453b6c7098357b"
+    },
+    {
+      "name": "raw-caller-14-binary-remapped.dxf",
+      "sha256": "ec082dfe1adc4e448696570665798f8029bcb755cf5ad4eb06b775f0c0d8e2ad"
+    },
+    {
+      "name": "raw-caller-15-ascii-identity.dxf",
+      "sha256": "8c83e59791e07f9040539129d1ffe1f777ae9ff9c3e361580c8c4dfc280a02cb"
+    },
+    {
+      "name": "raw-caller-15-ascii-remapped.dxf",
+      "sha256": "9a5deb42f9d1913ef908a5775eff1540516cc227c3915d33f1d4279eb8bfadeb"
+    },
+    {
+      "name": "raw-caller-15-binary-identity.dxf",
+      "sha256": "37ab8b238b438e1c778a5920d93618fe197a2bb3dec90c397ade969fb8aecec8"
+    },
+    {
+      "name": "raw-caller-15-binary-remapped.dxf",
+      "sha256": "e86a627124b90ba575dbd06f41cb60ab6df0de83ce573235924c7e48ec8393e5"
+    },
+    {
+      "name": "raw-caller-16-ascii-identity.dxf",
+      "sha256": "60408a612448b56df3212575f2d8614e05867dc24c9f88d2772ce3775fa1b2f2"
+    },
+    {
+      "name": "raw-caller-16-ascii-remapped.dxf",
+      "sha256": "5228271b057e0fe24b3a3bec5bb248f09c4d59d355a4f9948086e2877cef9611"
+    },
+    {
+      "name": "raw-caller-16-binary-identity.dxf",
+      "sha256": "44429d656aa7fa0283d225843deabf5a0ea7d5b412b122a36a4226ba69009e70"
+    },
+    {
+      "name": "raw-caller-16-binary-remapped.dxf",
+      "sha256": "92f0d7a9c39fa1eeca413d48afcfab5a1a937a37d3b15d85dac9e3aed2cb8b63"
+    },
+    {
+      "name": "raw-caller-17-ascii-identity.dxf",
+      "sha256": "16d36c5844e9da4570e82de55c131298b50efaec204ef40968c0aef5d02c0218"
+    },
+    {
+      "name": "raw-caller-17-ascii-remapped.dxf",
+      "sha256": "6e2970e563a9d57e0b1dffa9a57c4b87a1ee52373a881b910f8485d453af8771"
+    },
+    {
+      "name": "raw-caller-17-binary-identity.dxf",
+      "sha256": "171e416ff3c44267bf13a83d78be934d12c38abc01ad4b2d82f830f854bcbcff"
+    },
+    {
+      "name": "raw-caller-17-binary-remapped.dxf",
+      "sha256": "d920e10db49360c6839e77c7f8b93895f381313ba6dcfc3d12080043f625091b"
+    },
+    {
+      "name": "raw-caller-18-ascii-identity.dxf",
+      "sha256": "b1f7228dd6468e13bd27d14aab7a827dafad5e42875a883a767d25a231a6567a"
+    },
+    {
+      "name": "raw-caller-18-ascii-remapped.dxf",
+      "sha256": "cb3613d6a35cc13bfebf1b27c7c93880b3b0478621b112e41eee71567186335d"
+    },
+    {
+      "name": "raw-caller-18-binary-identity.dxf",
+      "sha256": "e6bab56dca0a3346182e2a5b085064dc207057ce4ceb513c00fc30534d585b55"
+    },
+    {
+      "name": "raw-caller-18-binary-remapped.dxf",
+      "sha256": "80ad1272083a5ec52d6f8fa6fdb51d640fec15252ed96913363bdf98e7e889ba"
+    }
+  ],
+  "limitations": [
+    "The raw route is only the exact one-Normal projection; named entries, unknown subclasses, XDATA, extension dictionaries and foreign app data remain refused under this opt-in profile.",
+    "Generated controls do not prove source-produced graph equivalence, integration through dx_iface or another actual consumer, native plotting, or cross-platform ABI compatibility.",
+    "No support claim or external gate is promoted."
+  ],
+  "fixture_policy": "Output DXF files were generated locally from scratch in /private/tmp and are not committed."
+}

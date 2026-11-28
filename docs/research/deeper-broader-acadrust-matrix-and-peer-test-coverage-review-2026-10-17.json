@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw-acadrust-peer-matrix-test-coverage-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reconcile current ACadRust advertised version matrix, skipped corpus tests, ACIS test evidence, and OpenCADStudio codec lineage with the existing DWG/DXF/3D peer plan.",
+  "method": {
+    "kind": "Read-only primary-source web research plus local plan inspection",
+    "peerSourcesPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "localTestsRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/hakanaktt/acadrust",
+      "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+      "https://github.com/dr-data/opencadstudio"
+    ],
+    "sourceObservations": [
+      "ACadRust README prose describes DXF/DWG R12 through R2018+, while its detailed table shows AC1009 DXF R/W and DWG unavailable; the adjacent note says AC1009 DWG fidelity is incomplete.",
+      "ACadRust README says drawing-dependent tests for files absent from the repository are #[ignore]d and must be selected with --ignored when the input is available.",
+      "The visible ACadRust roundtrip source fabricates marker-bearing SAB-like bytes for a transport/association test and also invokes its own DWG writer followed by its own reader.",
+      "OpenCADStudio advertises DWG/DXF R13 through R2018 and 3D/ACIS tessellation; ACadRust names it as an application using ACadRust as its core DWG/DXF engine. This is a correlated codec lineage, not independent parser evidence.",
+      "ACadRust's optional import feature names STL, COLLADA, OBJ, glTF/GLB, and FBX imports separately from its ACIS SAT/SAB modeling-data feature."
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing ACadRust release/version matrix, R12 effective-output and peer-test-evidence entries, synthetic ACIS controls, and OpenCADStudio lineage rows",
+      "DWG_DXF_3D_SUPPORT_PLAN.md: existing parser/carrier/semantic/native-acceptance evidence gates and six external-only dispositions"
+    ],
+    "evidenceRule": "Mutable README claims, ignored fixture tests, synthetic marker payloads, and same-codec round trips are route-specific evidence only. They do not establish AC1009 DWG support, external corpus coverage, independent ACIS interpretation, or native solid semantics."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "correctedPeerDisposition": {
+      "peer": "ACadRust",
+      "format": "DWG",
+      "version": "AC1009",
+      "status": "NOT_ESTABLISHED",
+      "reason": "The current README's detailed table lists no AC1009 DWG support, despite broader prose; no exact peer artifact/input route was run."
+    },
+    "peerExecutionReadinessRefinement": [
+      "At the existing composed checkpoint, record exact artifact/source, toolchain/features, test command, passed/failed/ignored counts, and input hashes/provenance.",
+      "A default cargo test pass does not count ignored drawing-dependent tests as corpus coverage.",
+      "Record a missing/unavailable drawing route as NOT_RUN and continue; do not add peer runs to the per-slice loop."
+    ],
+    "planTotals": {
+      "findings": 128,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheck": true,
+    "testsRun": false
+  }
+}

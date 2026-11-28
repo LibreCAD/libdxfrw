@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw-downstream-consumer-route-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh current LibreCAD and LibreCAD_3 downstream compatibility evidence and screen a newly surfaced 2D IR pipeline without promoting it to an independent DWG/3D oracle.",
+  "method": {
+    "kind": "Read-only immutable local git refs plus current primary project and package documentation",
+    "gitRefs": {
+      "LibreCAD_origin_master": "25ca7fe9f6d65caf2dec1181514ce9d0914656b1",
+      "LibreCAD_3_origin_master": "55d6bb0f858af1a6281f38c944bd964ce1cf23c3"
+    },
+    "workingTreeCaveat": "Both sibling working trees contain unrelated local changes or are behind origin/master; only committed origin/master objects were inspected.",
+    "sourcesReviewed": [
+      "https://github.com/LibreCAD/LibreCAD/commit/25ca7fe9f6d65caf2dec1181514ce9d0914656b1",
+      "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/src/drw_interface.h",
+      "https://github.com/LibreCAD/LibreCAD/blob/master/librecad/src/lib/filters/rs_filterdxfrw.cpp",
+      "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md",
+      "https://github.com/LibreCAD/LibreCAD_3/commit/55d6bb0f858af1a6281f38c944bd964ce1cf23c3",
+      "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "https://pypi.org/project/cad2d-ir/",
+      "https://github.com/neka-nat/cad2d-ir",
+      "https://github.com/neka-nat/cad2d-ir/blob/main/src/cad2d_ir/importers/dwg.py",
+      "https://raw.githubusercontent.com/neka-nat/cad2d-ir/main/pyproject.toml"
+    ],
+    "applicationsBuiltOrRun": false,
+    "peerPackagesDownloadedOrRun": false,
+    "drawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "evidenceBoundary": "Source-level callback and policy observations only. No LibreCAD UI behavior, native consumer acceptance, parser correctness, DWG write support, or 3D geometry semantics were exercised. Mutable default branches and package/source version claims are not runtime identity."
+  },
+  "findings": [
+    {
+      "route": "LibreCAD 2 bundled libdxfrw consumer",
+      "sourceCommit": "25ca7fe9f6d65caf2dec1181514ce9d0914656b1",
+      "observed": [
+        "RS_FilterDXFRW::addModelerGeometry stores DRW_ModelerGeometry in advanced metadata as an opaque sidecar.",
+        "If the SAB wireframe decoder yields edges, the adapter creates XY-derived 2D entities and sets their source handle to zero.",
+        "The adapter path is an optional 2D display projection plus source-data retention; it does not construct an editable 3D solid or verify B-rep semantics."
+      ],
+      "planUse": "Maintain existing callback/API compatibility and distinguish opaque carrier replay from derived XY display entities. No new native 3D qualification task."
+    },
+    {
+      "route": "LibreCAD_3 current upstream persistence integration",
+      "sourceCommit": "55d6bb0f858af1a6281f38c944bd964ce1cf23c3",
+      "observed": [
+        "A source-symbol search in persistence/libdxfrw found no DRW_ModelerGeometry, ACIS, 3DSOLID, REGION, or BODY callback integration.",
+        "The current DWG support policy makes import opt-in and read-only, declares DWG writing unimplemented/not planned, and reports 15 pinned read claims: 11 EXPERIMENTAL, 4 PENDING_NATIVE, zero PROMOTED."
+      ],
+      "doesNotEstablish": [
+        "absence of future routes or external plugins",
+        "native app runtime behavior",
+        "any qualified DWG write or 3D consumer support"
+      ],
+      "planUse": "Treat LibreCAD_3 as a 2D source/API compatibility target, not a 3D consumer or independent parser vote."
+    },
+    {
+      "route": "cad2d-ir optional DWG adapter",
+      "packageSnapshot": "PyPI page reports 0.12.4; retrieved repository pyproject snapshot reports 0.10.6; artifact-to-source identity unresolved",
+      "observed": [
+        "The project describes a typed 2D CAD IR with source identity and import/export diagnostics.",
+        "Its DWG adapter uses ezdwg, so it shares the already reviewed DWG parser lineage.",
+        "Its declared 2D data model and conversion path do not decode or preserve ACIS 3DSOLID/REGION/BODY semantics; explicit SOLID/TRACE/3DFACE handling is not an ACIS solid route.",
+        "R12 downgrade diagnostics and entity disposition may be a low-cost optional 2D projection check if the exact package and dependency lock are pinned."
+      ],
+      "planUse": "DISCOVERY_ONLY / 2D_IR_CONSUMER. No independent DWG vote, 3D evidence, repository dependency, or per-slice validation."
+    }
+  ],
+  "planDelta": {
+    "filesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-downstream-consumer-route-review-2026-10-16.json"
+    ],
+    "existingOwnersOnly": [
+      "PAR-07 peer and evidence admission",
+      "7AG downstream compatibility",
+      "S7.5 LibreCAD consumer audit",
+      "S8 optional consumer qualification"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "fixturesAdded": 0,
+    "codeChanged": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanges": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue local implementation without waiting for these optional consumer routes.",
+      "Run current LibreCAD/LibreCAD_3 source compatibility checks only when a public API or callback surface changes.",
+      "Admit cad2d-ir only at a composed 2D checkpoint after resolving the exact package, source revision, and ezdwg dependency; never use it for ACIS or 3D claims."
+    ],
+    "validation": "Passed python3 -m json.tool and git diff --check for both updated plan files; no code or tests changed."
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-02",
+  "status": "GENERATED_DXF_DIMENSION_OCS_POINT_TRANSFORM_PASS_NATIVE_SEMANTICS_OPEN",
+  "baselineHead": "1eea33a9d33a81c25661594e3df0816fa2c8ad4e",
+  "scope": "DXF DIMENSION callback conversion of documented OCS point fields when dxfRW::read explicitly requests applyExtrusion; no physical-source or support claim",
+  "authority": [
+    {
+      "title": "Autodesk Common Dimension Group Codes (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-EDD54EAC-A339-4EBA-AEA6-EC8066505E2B.htm",
+      "rules": [
+        "Groups 10/20/30, 13/23/33, 14/24/34 and 15/25/35 are WCS points.",
+        "Groups 11/21/31, 12/22/32 and 16/26/36 are OCS points.",
+        "Group 210/220/230 supplies the extrusion direction used for the entity OCS."
+      ]
+    },
+    {
+      "title": "Autodesk Object Coordinate Systems (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm",
+      "rule": "The OCS basis is computed from the extrusion normal using the arbitrary-axis algorithm."
+    }
+  ],
+  "implementation": {
+    "files": [
+      {
+        "path": "CMakeLists.txt",
+        "sha256": "12c3f16f3dc0a2ae2e30a60473c394fbe5bad448ad39f66aa31aa4e67821541e"
+      },
+      {
+        "path": "src/drw_entities.cpp",
+        "sha256": "1b2c638c0aca7fa13bfa5afc29cff88ddcc1eccd45ed861f31f2cfeb0be3eb97"
+      },
+      {
+        "path": "src/drw_entities.h",
+        "sha256": "63dee49a83b202a6e272419ff5ef8bf4f05e549fae070f8fa331d18e8bb9229b"
+      },
+      {
+        "path": "src/libdxfrw.cpp",
+        "sha256": "d3976af88714f7c806499592a765245e47beb72f2e8bab7540f2d3ef90724347"
+      },
+      {
+        "path": "tests/dxf_fixture_tests.cpp",
+        "sha256": "d17eb15390b2add976f4e86bdb99316c8ce71225b2b1f49e8f98e000d57c6fcc"
+      }
+    ],
+    "behavior": [
+      "DRW_Dimension::applyExtrusion converts textPoint, clonePoint and arcPoint through the existing arbitrary-axis basis when an extrusion normal is present.",
+      "WCS definition points are not modified.",
+      "processDimension applies this conversion only when dxfRW::read(..., applyExtrusion=true), before dispatching the typed dimension callback.",
+      "The default false option retains the parsed native OCS/WCS point frames."
+    ]
+  },
+  "generatedControl": {
+    "generator": "writeDimensionOcsControl in tests/dxf_fixture_tests.cpp",
+    "generatorSha256": "d17eb15390b2add976f4e86bdb99316c8ce71225b2b1f49e8f98e000d57c6fcc",
+    "sourceRevision": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "normal": [1.0, 0.0, 0.0],
+    "linearDimension": {
+      "type": 0,
+      "wcsDefinitionPoints": [[20.0, 21.0, 22.0], [30.0, 31.0, 32.0], [40.0, 41.0, 42.0]],
+      "ocsTextPoint": [2.0, 3.0, 4.0],
+      "ocsClonePoint": [5.0, 6.0, 7.0],
+      "convertedTextPoint": [4.0, 2.0, 3.0],
+      "convertedClonePoint": [7.0, 5.0, 6.0]
+    },
+    "angularDimension": {
+      "type": 2,
+      "wcsDefinitionPoints": [[60.0, 61.0, 62.0], [70.0, 71.0, 72.0], [80.0, 81.0, 82.0], [90.0, 91.0, 92.0]],
+      "ocsTextPoint": [8.0, 9.0, 10.0],
+      "ocsArcPoint": [14.0, 15.0, 16.0],
+      "convertedTextPoint": [10.0, 8.0, 9.0],
+      "convertedArcPoint": [16.0, 14.0, 15.0]
+    },
+    "applyExtrusionFalse": "Both callbacks retain their original OCS text/clone/arc points.",
+    "preservationControl": "The test checks WCS points and normal unchanged, plus linear group-50/group-51 and angular group-51 values retained.",
+    "fixtureDisposition": "Generated in a temporary directory by the test and deleted; no DWG/DXF fixture committed."
+  },
+  "validation": {
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.0 (arm64-apple-darwin27.0.0)",
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --dimension-ocs-extrusion",
+      "result": "PASS",
+      "executableSha256": "81a128d0a475b3e3becf0794e6f231d91675a7c0c808448f667b8b8f9352831d"
+    },
+    "focusedCohort": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_dimension_ocs_extrusion$' --output-on-failure",
+      "result": "PASS, 1/1 in 0.03 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated parser/callback controls only; no physical producer or paired-source evidence was used.",
+    "No native LibreCAD, LibreCAD_3, FreeCAD or other consumer dimension-display check was performed.",
+    "Only linear and two-line angular typed callbacks are covered; other dimension subtype placement and rendered text behavior remain unqualified.",
+    "This does not promote a format-support claim."
+  ]
+}

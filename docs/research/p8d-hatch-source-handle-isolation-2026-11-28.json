@@ -1,0 +1,32 @@
+{
+  "kind": "librecad-hatch-source-explicit-handle-isolation",
+  "date": "2026-11-28",
+  "consumerCommit": "02d588e716545472fe97d95e82742b8684c6d994",
+  "codecCommit": "7a76eb16c4dd201264b8c4bde6e8dc984193618a",
+  "scope": "On the already retained bounded AC1024 source, scan explicit DXF handle-coded groups throughout the source for incoming references or duplicate self identities targeting the selected HATCH and boundary, apart from their already checked self and reciprocal links. Record this result independently of the model-space and geometry evidence.",
+  "checks": {
+    "systemCodec": {
+      "cases": 6,
+      "assertions": 405,
+      "result": "pass",
+      "logSha256": "c68e7e39550a19c0b79341e028ad8246559b3301d65d30c3b3436a2e088c65ae"
+    },
+    "bundledCodec": {
+      "cases": 4,
+      "assertions": 225,
+      "result": "pass; optional source observer absent",
+      "logSha256": "a574426d4fe142d75ded618bec1f776c6168db266d940c2ce10e71214b5d4423"
+    }
+  },
+  "controls": [
+    "Generated model-space sources pass with expected self, owner and reciprocal links.",
+    "Conflicting HEADER references using codes 5, 330, 340, 481 and 1005 suppress the isolation result without invalidating the independent model-space evidence.",
+    "Existing observer fault, source mutation, geometry snapshot, corrected retry and mixed IMAGE/MATERIAL controls pass."
+  ],
+  "limits": [
+    "This is an explicit group-code scan, not full graph closure: opaque binary payloads, nonstandard encodings and producer semantics remain unqualified.",
+    "No export association replay is enabled and no support claims are promoted."
+  ],
+  "fixtures": "Locally authored drawing; no DXF or DWG committed",
+  "supportClaimsPromoted": false
+}

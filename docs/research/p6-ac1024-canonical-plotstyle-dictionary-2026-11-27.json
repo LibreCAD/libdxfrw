@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-canonical-plotstyle-dictionary-2026-11-27",
+  "supportClaimEffect": "none",
+  "sourceSha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+  "problem": "The source-bound AC1024 graph emitted the DICTIONARYWDFLT alias. ezdxf 1.4.5 loaded the alias as an unknown object and silently created a replacement ACAD_PLOTSTYLENAME dictionary and placeholder while layer group-390 references still targeted the original placeholder; a zero-fix audit did not expose this.",
+  "change": "Reuse the target-version-bound canonical dictionary projection for the already qualified AC1024 DWG source graph. Emit ACDBDICTIONARYWDFLT and its matching CLASS; bind the staged dictionary, default, owner, NOD and layer identities. Captured DXF alias replay and unrelated DWG profiles retain their existing behavior.",
+  "checks": [
+    "PASS generated two- and three-layer AC1024 ASCII/binary conversions, source-mutation refusal, preserved destination, corrected retry, canonical raw token and NOD/dictionary/default/placeholder/layer readback.",
+    "PASS ezdxf 1.4.5 reads both output encodings with zero audit errors/fixes and exactly one canonical plot dictionary; its Normal placeholder is owned by that dictionary and every source layer targets the same placeholder.",
+    "PASS ODA File Converter 27.1.0 reopened both outputs with audit disabled; LibreDWG 0.14 decoded the one dictionary, owner, Normal/default target and all three layer plot-style references.",
+    "PASS focused existing AC1024 plot graph, DIMSTYLE controls, R24 TABLESTYLE and ModelDocViewStyle tests; the pre-existing AC1015 default-plot output matrix passed after the shared marker rename."
+  ],
+  "outputSha256": {
+    "ascii": "c16f6371800931e1c531b438df79b196c622a490d6078ccee93ae0836a98f7b7",
+    "binary": "5599593053345e2633fe24718ace164c4e8fd0353b5b4411c730160b0eb41cb6"
+  },
+  "limits": [
+    "Output remains explicit partial for the source with an unclassified header suffix; no strict or whole-file parity claim.",
+    "The ODA intermediary is related to the source producer and no native AutoCAD result is implied.",
+    "No DWG or DXF fixture was committed."
+  ]
+}

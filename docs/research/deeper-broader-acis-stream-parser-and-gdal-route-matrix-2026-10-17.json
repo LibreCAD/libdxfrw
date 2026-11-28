@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw-independent-acis-stream-and-gdal-route-matrix-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden primary-source research on independent open-source ACIS stream readers and GDAL DXF/DWG routes; refine the existing optional composed evidence checkpoint without adding routine work, fixtures, dependencies, or support claims.",
+  "method": {
+    "kind": "Read-only review of versioned crate documentation, source repository documentation, and current GDAL driver documentation",
+    "peerRepositoriesCloned": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesBuiltOrRun": false,
+    "gdalExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "productionCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "sources": [
+      "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+      "https://docs.rs/cadmpeg-codec-sat/0.6.1/cadmpeg_codec_sat/",
+      "https://github.com/cadmpeg/cadmpeg/tree/main/crates/cadmpeg-codec-sat",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/LEGAL.md",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md",
+      "https://gdal.org/en/stable/drivers/vector/cad.html",
+      "https://gdal.org/en/stable/drivers/vector/dwg.html",
+      "https://github.com/nextgis-borsch/lib_opencad"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing CADMPEG/acis-core cross-read boundary, GDAL raw-ASM lane, optional composed comparator cadence, and six external-only J gates",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing libopencad lineage and GDAL CAD versus ODA DWG distinction"
+    ],
+    "limitations": "Published docs and manifests establish declared route scope, not a locally reproduced parser result, exact source/artifact correspondence, complete source-independence audit, or native semantic acceptance. The CADMPEG 0.6.1 runtime and GDAL options were not executed."
+  },
+  "routeFindings": [
+    {
+      "route": "cadmpeg-codec-sat 0.6.1",
+      "observed": "The versioned crate describes a read-only parser for bare ShapeManager/ASM SAT/SAB streams and ACIS binary save formats 217/218. It documents ASM BinaryFile4 and BinaryFile8 framing, text ASM/ACIS termination, declared solved-record limits, explicit decode losses, unknown-record retention/source spans where available, and blocking geometry-not-transferred outcomes. It does not parse DWG/DXF containers or AcDs ownership. Rust 1.88+ is required.",
+      "evidenceCeiling": "Conditional exact-profile inner-stream parser candidate; release documentation only. No result qualifies until source/package provenance, source overlap, exact profile compatibility, and execution are checked. It is not a DWG/DXF codec, writer, or native consumer.",
+      "planUse": "At most one optional run at the already-planned composed checkpoint. Pin crate archive/hash, source commit and Cargo lock/toolchain; audit overlap with acis-core/cq-acis; verify stream kind, version, reference width, losses, body disposition, unknown records, and independent analytic expectations."
+    },
+    {
+      "route": "GDAL direct DXF reader",
+      "observed": "Current docs say Binary DXF reading starts at GDAL 3.12; EntityHandle is exposed; RawCodeValues is opt-in and includes only unhandled codes. Disabling inline blocks exposes block, insertion, scale, angle, OCS, and attribute fields. On AC1027+ with DXF_3D_EXTENSIBLE_MODE enabled, the driver exposes raw ASM bytes and a 12-value transform but does not create OGR solid geometry. The writer targets AC2004 and projections/tessellations are intentionally lossy for many entity families.",
+      "evidenceCeiling": "Optional DXF structural/projection/carrier comparator only. Raw-code capture is incomplete by design; ASM bytes do not establish ACIS semantics, B-rep closure, or DWG AcDs association.",
+      "planUse": "Pin release/build and input mode. Use direct reader output, opt into raw-code values, disable inline/merge for block tests, and enable raw ASM mode only for AC1027+. Record entity handle/owner/placement, raw carrier, projection, unknown/skipped disposition, and diagnostics separately."
+    },
+    {
+      "route": "GDAL DWG driver selection",
+      "observed": "GDAL's CAD driver is based on libopencad and is documented as read-only with a narrow projected entity set. GDAL's separate DWG driver requires ODA Teigha. The driver name therefore identifies materially different parser and licensing routes.",
+      "evidenceCeiling": "CAD belongs to the existing libopencad lineage; DWG/ODA is a separately licensed external route. Neither OGR projection exposes a complete DWG owner graph or ACIS/AcDs solid semantics.",
+      "planUse": "Record the exact GDAL driver, backend/library revision, build configuration, version, and options. Do not count a generic GDAL result as a new parser vote or open-source route without backend attribution."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "ownersRefined": [
+      "optional independent ACIS inner-stream cross-read and semantic metrics",
+      "GDAL DXF structural/raw-carrier/geometry projection lane",
+      "GDAL CAD/libopencad versus DWG/ODA backend attribution",
+      "outer DWG AcDs owner closure and native consumer gates remain separate"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newRequiredPeerGates": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planUpdated": true,
+    "scopedDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

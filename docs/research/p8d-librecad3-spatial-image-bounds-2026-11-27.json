@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-spatial-image-bounds-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "3af11b78",
+  "scope": "LibreCAD_3 IMAGE bounding geometry for the selected modeled insertion point and two 3D axis vectors.",
+  "reproduction": "Tilted image and moved image returned z=0 for both bounding corners before the change.",
+  "implementation": "Construct the four spatial corners from base + width*U + height*V and reuse Area::merge; the existing XY projection remains the same.",
+  "validation": [
+    "Focused pre-fix regression failed four Z-bound assertions.",
+    "Eight focused image, layer and elevated geometry/area tests pass after the change.",
+    "The image case checks tilted axes, movement, signed extents, an elevated plane, planar bounds and the Area XY selection predicate."
+  ],
+  "artifacts": {
+    "testLogSha256": "e9605e2195a30a087c6737db18f988d9ffad2aa46d859aa622b1c5b6006e53ea"
+  },
+  "limits": [
+    "This is modeled-geometry and Area predicate evidence, not native rendering, import, actual image picking, or all tilted drawing support."
+  ]
+}

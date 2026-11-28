@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p7-freecad-torus-bounds-cache-diagnostic-2026-11-10",
+  "date": "2026-11-10",
+  "status": "SOURCE_FIELDS_MATCH_BOUNDS_API_DIAGNOSTIC_INCOMPLETE",
+  "purpose": "Recheck the selected AC1021 torus bound discrepancy using the exact SAT payload and inspect FreeCAD's parsed surface fields and bound behavior before treating a box mismatch as geometry disagreement.",
+  "inputs": {
+    "satPath": "/private/tmp/acsh-semantic-probe/torus-precision.sat",
+    "satSha256": "4917d971df23651987e01f18cf8635d19dab7ec2c306c910734ba0093641da08",
+    "bytes": 1057,
+    "pinnedInventorLoader": {
+      "revision": "e94bdf5e29052a0dc7ce6fdf755e956ae507caec",
+      "sha256": "ec84f9528355f0df2e28bd94eecf7d9e4be89c5b9f7a77eef9b9cccbc21366bb"
+    }
+  },
+  "runtime": {
+    "application": "FreeCAD 1.1.4 Part/OpenCASCADE",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "macOS ARM64",
+    "route": "freecadcmd executed outside the Codex sandbox to permit Qt's ARM NEON capability probe",
+    "diagnosticMacro": "/private/tmp/acsh-semantic-probe/native_freecad_torus_qualification_detail.FCMacro",
+    "diagnosticMacroSha256": "cdda9a47f76cb5188c171d78da9610906452a746c70247859d25ab906fba52ab",
+    "outputSha256": "9091679544adb12e79bcbcc3122475e5243f09473da74718b4e2f7dc0e878248"
+  },
+  "sourceParsedSurface": {
+    "recordIndex": 11,
+    "type": "torus-surface",
+    "center": [1383.6151200595348, 418.50000000000074, 1158.755189492682],
+    "axis": [-0.5014237824134797, -1.6431677767887314e-16, -0.8652018206350235],
+    "majorRadius": 19.0,
+    "minorRadius": 2.7899834596164137,
+    "uOrigin": [-0.8652018206350235, -3.8945365021134883e-17, 0.5014237824134797],
+    "uRange": "I I",
+    "vRange": "I I",
+    "comparison": "The pinned InventorLoader parsed center, axis, radii and U origin exactly equal to the source-bound values recorded by the independent ACIS probe."
+  },
+  "boundsObservations": {
+    "analyticFullTorusBounds": {
+      "method": "For each Cartesian axis i, extent = majorRadius * sqrt(1 - axis[i]^2) + minorRadius",
+      "min": [1364.386302007853, 396.7100165403836, 1146.4381541672094],
+      "max": [1402.8439381112166, 440.2899834596164, 1171.0722248181544]
+    },
+    "freeCadBrepBoundBeforeDiagnosticTessellationFromPriorReceipt": {
+      "min": [1364.386302007853, 396.7156937382162, 1146.4447430729351],
+      "max": [1402.8373492054907, 440.28430626178533, 1171.0722248181544]
+    },
+    "freeCadBoundAfterTessellateDeflection0_5": {
+      "min": [1364.3871691849297, 396.71679303234663, 1146.438169263496],
+      "max": [1402.84392301493, 440.2832069676549, 1171.0722248181544]
+    },
+    "interpretation": "The shape's reported BoundBox changes after requesting a coarse tessellation, while the parsed torus fields and exact analytic area/volume remain unchanged. Its triangulated bounds miss the analytic Y extrema by about 0.00678 units. This shows the measured box is dependent on representation/tessellation state for this probe and cannot serve as a geometry-semantic oracle by itself."
+  },
+  "otherSemanticMetrics": {
+    "area": 2092.738510431738,
+    "analyticArea": 2092.738510431747,
+    "volume": 2919.352914703419,
+    "analyticVolume": 2919.352914703433,
+    "centroid": [1383.6151200595348, 418.5000000000007, 1158.755189492682],
+    "topology": {"valid": true, "shells": 1, "faces": 1, "edges": 2, "vertices": 1}
+  },
+  "limitations": [
+    "The discrepancy's root cause in OpenCASCADE's B-rep bound calculation is not identified; the pre-tessellation bound remains different from the exact analytic box.",
+    "The source-derived SAT remains one selected torus profile, not a general ACIS/ACDS semantic qualification.",
+    "InventorLoader and FreeCAD Part share OpenCASCADE; this is not independent-kernel evidence.",
+    "The source SAB lift still has no loops, edges or vertices, and its header body-count mismatch remains open.",
+    "No native AutoCAD acceptance or support claim is promoted."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added; the SAT payload and diagnostic are external scratch artifacts."
+}

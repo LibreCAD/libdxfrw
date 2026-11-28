@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "topic": "P5 AC1018 selected STYLE resource writer-stage and finalization revalidation",
+  "date": "2026-11-11",
+  "status": "generated source-bound writer control passed; physical whole-source export remains preflight-refused",
+  "source": {
+    "path": "/private/tmp/p5-desc-input/input.dwg",
+    "sha256": "1ba45d704ed7cc846ea6d4d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "version": "AC1018",
+    "prior_import_observation": {
+      "published_frames": "226/226",
+      "parse_failures": 0,
+      "selected_style_control": "0x3",
+      "selected_style": "0x11",
+      "selected_style_appid": "0x12",
+      "unrelated_integrity_observation": {
+        "section": "AcDb:Header",
+        "expected_offset": 592,
+        "observed_offset": 1331
+      }
+    }
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp"
+    ],
+    "writer_stage": [
+      "Before STYLE rows are emitted, recheck the imported STYLE_CONTROL/STYLE source pair and the same-import typed STYLE/APPID snapshots.",
+      "Enable the bounded record inventory for selected STYLE source bundles so finalization can verify the completed emitted row."
+    ],
+    "finalization": [
+      "Before dxfRW atomically publishes output, recheck the selected source pair and typed snapshot.",
+      "Require the completed emitted STYLE row to retain its source-to-output identity, record type, TABLES section, and STYLE table owner 0x3."
+    ],
+    "claim_limit": "These checks do not admit output or waive other source-integrity, resource-closure, strict-output, ordering, font-semantic, consumer, or support gates."
+  },
+  "validation": {
+    "build_command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "build_result": "passed",
+    "existing_physical_source_diagnostic": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --inspect-physical-style-resource-adapter /private/tmp/p5-desc-input/input.dwg",
+      "result": "passed",
+      "assertions": [
+        "Source pair binds after complete import.",
+        "STYLE and APPID mutation are refused and restoration succeeds.",
+        "Truncated scratch copy publishes no source receipt; retry with original bytes succeeds."
+      ],
+      "source_bound_export_attempt": {
+        "target_version": "AC1018",
+        "result": "refused during output preparation before TABLES callbacks",
+        "diagnostic": "SUN owner graph closure: SUN graph requires a same-version AC1021+ source and target",
+        "observed_sun_graph": {
+          "typed_sun_rows": 1,
+          "raw_sun_rows": 0,
+          "named_object_dictionary_acad_sun_roots": 0,
+          "vport_view_and_viewport_sun_owner_edges": 0,
+          "sun_handle": "0x23",
+          "parent_handle": "0xcc",
+          "class_version": 1,
+          "is_on": false,
+          "intensity": 1.0,
+          "has_shadow": true
+        },
+        "style_writer_stage_reached": false,
+        "atomic_finalization_reached": false,
+        "readback_performed": false
+      },
+      "scope_limit": "The source-binding assertions pass. The source has an unrooted, non-default typed AC1018 SUN object and no modeled owner references. Its inactive flag alone does not prove it is safe to drop or replay as an AC1018 DXF object. The export attempt therefore remains refused before STYLE writer staging; this physical input does not prove serialized STYLE field equality/readback."
+    },
+    "generated_source_bound_writer_control": {
+      "source_binding": "Reuses the completed physical import's source token, STYLE_CONTROL/STYLE frame tickets, and selected typed STYLE/APPID rows in a minimal generated dx_data output model. No drawing fixture is written or committed.",
+      "source_mutation": "Changing selected STYLE height is refused before STYLE emission; an existing destination sentinel remains byte-identical.",
+      "retry": "Restoring the source-matching height and retrying with the same adapter succeeds.",
+      "ascii": "write succeeds; fresh DXF import reads back selected STYLE name, font, and height; each group-1001 EED name resolves to exactly one APPID row",
+      "binary": "write succeeds; fresh Binary DXF import reads back selected STYLE name, font, and height; each group-1001 EED name resolves to exactly one APPID row",
+      "result": "passed",
+      "scope_limit": "This proves the selected source guard, staged writer path, finalization identity check, atomic refusal/retry, and typed readback for the generated minimal output model. It does not qualify full physical-source output, exact source/output field-byte equality, resource ordering, font semantics, or whole-file support."
+    },
+    "diff_check": "passed"
+  },
+  "remaining": [
+    "Resolve the AC1018 unrooted SUN object's source profile and lossless output/disposition with evidence; do not drop or replay it speculatively to promote STYLE output.",
+    "Prove exact STYLE output bytes/fields and fresh ASCII/Binary readback under the selected output profile.",
+    "Close remaining LTYPE dependencies and ordering, font meaning, producer breadth, and whole-source integrity before any output or support promotion."
+  ]
+}

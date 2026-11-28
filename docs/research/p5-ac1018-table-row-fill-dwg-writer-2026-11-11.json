@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "status": "completed_bounded_generated_writer_slice",
+  "date": "2026-11-11",
+  "scope": "AC1018 TABLE title/header/data row fill-none and fill-color DWG output",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.96.1 Until R21",
+    "finding": "After the row text CMC fields, selected title/header/data fill-none Boolean values are followed by selected title/header/data fill CMC fields; row alignments follow."
+  },
+  "implementation": {
+    "codec": "DRW_Table::encodeDwgWithExtension now validates and emits fill-none bits 0x100/0x200/0x400 and fill-color bits 0x800/0x1000/0x2000. Selected fill CMCs accept only C0/ByLayer, C1/ByBlock and C3/ACI 1..255 with no RGB, name/book payload or unknown CMC flags. Unselected fill values must remain default. The body order is fill-none Booleans, fill CMCs, then row alignments.",
+    "readback_model": "The prior row-text-color slice's normalized CMC payload index is shared by the row fill-color arrays, preserving the selected ACI index on readback.",
+    "compatibility": "No public virtuals, public struct layout or fixture files were changed. Unsupported fill values remain refused."
+  },
+  "generated_control": {
+    "selected_mask": "0x0001FF00",
+    "fill_none": [true, false, true],
+    "fill_colors": [
+      { "slot": "title", "method": "0xC0", "index": 256 },
+      { "slot": "header", "method": "0xC1", "index": 0 },
+      { "slot": "data", "method": "0xC3", "index": 42 }
+    ],
+    "alignments": [1, 5, 9],
+    "checks": [
+      "Readback preserves each selected fill-none Boolean, CMC method/index and alignment",
+      "Wire walk verifies fill-none Booleans precede title/header/data fill CMCs, which precede alignments",
+      "The TABLE body cursor reaches its exact bound and the following sentinel remains readable",
+      "Selected truecolor and unselected nondefault fill values refuse without publishing output"
+    ],
+    "fixture_policy": "Generated in memory from test code; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4 passed with repository warning-as-error settings",
+    "ctest": {
+      "libdxfrw_dwg_table_cell_overrides": "passed",
+      "libdxfrw_table_scalar_override_output": "passed"
+    },
+    "diff_check": "git diff --check passed"
+  },
+  "limits": [
+    "The generated vector proves writer/parser consistency but not physical producer ordering.",
+    "Native fill rendering and style precedence remain unqualified.",
+    "Parsed TABLE source-range replay and broad TABLE support remain gated."
+  ]
+}

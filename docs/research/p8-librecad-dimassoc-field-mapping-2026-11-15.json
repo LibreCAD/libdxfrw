@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad-dimassoc-field-mapping-2026-11-15",
+  "date": "2026-11-15",
+  "status": "downstream_patch_locally_verified",
+  "supportClaimEffect": "none",
+  "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C0B96256-A911-4B4D-85E6-EB4AF2C91E27.htm",
+  "finding": "LibreCAD's bundled DXF DIMASSOC reader and writer swapped group 70 trans-space and group 71 rotated-dimension type. The upstream libdxfrw implementation already used the documented mapping.",
+  "downstream": {
+    "base": "15e3a7af03f0765ab1a4cc50b7dc3803936f28e7",
+    "commit": "2e31fef426f4e250a056ed064d5186f8f71ef76b",
+    "patch": "docs/patches/librecad-p8-dimassoc-field-mapping-2026-11-15.patch",
+    "merged": false
+  },
+  "change": "Correct the bundled reader and writer mapping, correct the group-71 byte-overflow test, and make the osnap tests exercise either bounded typed readback or refusal according to the library's modeled fields.",
+  "verification": [
+    "The new asymmetric group-70=1/group-71=0 reader test failed on the bundled fork before the mapping fix, then passed afterwards.",
+    "Both linked libraries pass four DIMASSOC cases: 42 assertions with the corrected bundled fork and 48 with upstream. The field test checks actual ASCII and Binary writer tags and typed readback.",
+    "The combined DIMASSOC/MPOLYGON selector passes 12/12 cases with the corrected bundled fork and 10/12 upstream; the upstream failures are the two geometry cases (152/161 assertions pass).",
+    "The patch passes forward and reverse apply checks against its stated parent and commit."
+  ],
+  "limits": [
+    "The downstream change is local and unmerged and has not been checked against a newer LibreCAD head.",
+    "The osnap capability distinction does not claim complete native DIMASSOC semantics or graph closure.",
+    "No DWG or DXF fixture files were added."
+  ]
+}

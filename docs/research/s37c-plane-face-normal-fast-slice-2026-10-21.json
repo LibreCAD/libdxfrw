@@ -1,0 +1,62 @@
+{
+  "title": "S3.7c ACIS plane-face normal",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Normalize the decoded plane normal and apply the retained face-sense flag.",
+    "inputContract": "The face must have a resolved plane profile, a finite nonzero plane normal, and a known face-sense flag.",
+    "outputContract": "On success, return a unit oriented normal; on failure, leave the caller output unchanged.",
+    "semanticLimit": "Local plane-profile utility only; no producer/version-wide ACIS semantics or B-rep validity is established.",
+    "non_claims": [
+      "trim or pcurve interpretation",
+      "placement or source-unit application",
+      "containment or shell winding",
+      "native producer/version orientation equivalence",
+      "B-rep validity",
+      "native consumer qualification",
+      "independent semantic support"
+    ]
+  },
+  "coverage": {
+    "parser_fed_forward_and_reversed_face_sense": "PASS",
+    "non_unit_plane_normal_normalization": "PASS",
+    "unknown_sense_refuses_atomically": "PASS",
+    "wrong_surface_type_refuses_atomically": "PASS",
+    "zero_and_nonfinite_plane_normal_refuse_atomically": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.22 seconds)",
+    "symbol_check": "PASS (nm -gC build-gcc/libdxfrw.a exports drw_evaluateAcisPlaneFaceNormal)",
+    "diff_check": "PASS (scoped implementation, test, and plan paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_exported_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED",
+    "reason": "Shared worktree has broad pre-existing user changes; no broad staging or commit was attempted."
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw-text-oblique-group51-dxf-wire-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "GENERATED_FAST_REGRESSION_PASSES",
+  "scope": "Inspect literal ASCII and binary DXF group 50/51 values emitted from typed TEXT before any same-library semantic parse-back, and check the following LINE record framing.",
+  "implementation": {
+    "productionBehaviorChanged": false,
+    "existingDxfFixtureTestExtended": true,
+    "newFixtureAdded": false,
+    "newTestRegistrationAdded": false,
+    "newDependencyAdded": false
+  },
+  "generatedInput": {
+    "text": "ANGLE_WIRE",
+    "rotationDegrees": 45,
+    "obliqueDegrees": 30,
+    "followingLine": {
+      "start": [10, 20, 30],
+      "end": [40, 50, 60]
+    },
+    "ascii": {
+      "typedExport": true,
+      "literalGroup50": 45,
+      "literalGroup51": 30,
+      "followingLineFieldsAndOrder": true,
+      "eofReached": true
+    },
+    "binary": {
+      "typedExport": true,
+      "literalGroup50": 45,
+      "literalGroup51": 30,
+      "followingLineFieldsAndOrder": true,
+      "eofReached": true
+    },
+    "temporaryFilesRemoved": true
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests --parallel 2",
+      "result": "passed"
+    },
+    "focusedFastTest": {
+      "command": "./build/libdxfrw_dxf_fixture_tests --text-oblique-dxf-wire-degrees",
+      "result": "passed"
+    },
+    "diffCheck": "passed",
+    "fullTestSuite": "not run; focused fast-test slice only",
+    "independentPeerOrNativeRun": "not run"
+  },
+  "changedFileHash": {
+    "path": "tests/dxf_fixture_tests.cpp",
+    "sha256": "ac2703b6754abe7e8cfcc3fb292198688a951ad66b9f5c4fae5ad9fe05675677"
+  },
+  "evidenceBoundary": {
+    "relatedPeerReport": "https://github.com/hakanaktt/acadrust/issues/125",
+    "peerIssueIndependentlyReproduced": false,
+    "establishes": [
+      "the local typed DXF writer emits the public TEXT rotation and oblique degree values literally in groups 50 and 51 for generated ASCII and binary files",
+      "the following LINE record retains its complete generated endpoint fields and the raw scan reaches EOF"
+    ],
+    "doesNotEstablish": [
+      "the exact ACadRust issue reproducer or a matching defect in that project",
+      "DWG radians decoding or encoding behavior",
+      "native CAD acceptance, rendered text appearance, or external semantic parity",
+      "a new support claim"
+    ]
+  },
+  "planImpact": {
+    "findings": 123,
+    "topLevelSubplans": 71,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "committed": false,
+    "commitReason": "The test source and plan contain unrelated pre-existing workspace changes."
+  }
+}

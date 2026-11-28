@@ -1,0 +1,155 @@
+{
+  "schema": "ac1018-table-text-height-override-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "codeCommit": "381f0ea0c3d81ed4e185b308f89138588c6b6e42",
+  "supportClaimsPromoted": false,
+  "scope": "Selected AC1018 text-cell override 177=0x20 with finite strictly positive group-140 height; all other legacy override masks and inconsistent/unsupported cell profiles remain refused.",
+  "source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "repositoryPath": "samples/sample_AC1018_ascii.dxf",
+    "lastFileCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "format": "AC1018 ASCII DXF; ANSI_1252",
+    "record": "ACAD_TABLE 528; first cell",
+    "selectedObservedGroups": [
+      [
+        171,
+        1
+      ],
+      [
+        172,
+        0
+      ],
+      [
+        173,
+        0
+      ],
+      [
+        174,
+        0
+      ],
+      [
+        175,
+        3
+      ],
+      [
+        176,
+        1
+      ],
+      [
+        177,
+        32
+      ],
+      [
+        178,
+        0
+      ],
+      [
+        145,
+        0.0
+      ],
+      [
+        1,
+        "Table sample"
+      ],
+      [
+        140,
+        4.0
+      ]
+    ],
+    "custody": "Existing external repository sample used read-only; native producer is not independently established. No external drawing fixture is committed."
+  },
+  "authority": {
+    "autodeskTable": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+    "autodeskGroupTypes": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+    "documented": "The former lists group 177 as the pre-2007 cell override flag and group 140 as the cell text-height override; the latter assigns group 177 a 16-bit integer. Neither establishes native rendering or every bit meaning.",
+    "acadsharp": {
+      "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "dwgFlagEnumPath": "src/ACadSharp/Entities/TableEntity.Cell.OverrideFlags.cs",
+      "dwgFlagEnumSha256": "810d91c7963a7fb3506bc00542025ecbd0178868cbab8cba0e862a5f6daa7795",
+      "observation": "DWG override enum names bit 0x20 TextHeight; the selected original DXF physically pairs group 177 value 32 with group 140 value 4. The DXF reader ignores group 177 and assigns group 140 to a template field; a consumer of that field was not established. This is not independent native semantic validation."
+    }
+  },
+  "codeBindings": {
+    "writerSource": {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "131909cadddb2ae87f6efcfc64e4fd305578fccc59af2779da1c276189877b69"
+    },
+    "testEntry": {
+      "path": "tests/table_content_dxf_tests.cpp",
+      "sha256": "e955bf5fb6f9eef6b1a47ae9fc8b16d283c3e7beda987fb36167c5947ebd89a8"
+    },
+    "focusedControls": {
+      "path": "tests/table_legacy_height_controls.h",
+      "sha256": "579b086ecbc8902c176cd87905bd7cf5b22a965bc720da749bb86ded86e25a15"
+    },
+    "testExecutable": {
+      "path": "build/tests/libdxfrw_table_content_dxf_tests",
+      "sha256": "e0af6f611c4ec4daf54e330bcce02c6076284dd21ef3c27dadcf8c47e07dd898"
+    }
+  },
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_table_(legacy_override_177|legacy_text_height|content_dxf_projection|content_source_proof)$' --output-on-failure",
+    "result": "4/4 passed; reported output, LastTest.log overwritten by subsequent tests",
+    "focusedCounts": {
+      "authoredSourceEncodingRoutes": 2,
+      "successfulInputOutputEncodingAndStrictnessProfiles": 8,
+      "atomicRefusals": 72,
+      "correctedSameWriterRetries": 72
+    },
+    "focusedCoverage": [
+      "Authored AC1018 ASCII and binary source import",
+      "Both output encodings and strict/compatible paths",
+      "Selected values and group order in independent physical walker and typed readback",
+      "Zero and negative, infinite and NaN height; mask mismatch, unqualified additional flags, background and border fault refusals",
+      "Destination and selected caller identity/fields retained on refusal; corrected retry succeeds"
+    ],
+    "adapterBinding": {
+      "objectSha256": "6caf2681912fdfb606d4f1e5d943486458511d8d75ea121f1c33e509b24c0315",
+      "note": "The normal adapter object at the independent probe link includes concurrent, uncommitted MLINE work; only the object digest is asserted for that link. Other source bindings are limited to the stated writer/test files."
+    }
+  },
+  "independentPhysicalComparison": {
+    "reportPath": "build/table-height-peer/independent.json",
+    "reportSha256": "86c8c9b937e684cdc95ba6ffdbd3588a84e268ec90eb473c5f23f34b24cb0bc5",
+    "observerPath": "build/table-height-peer/observe.py",
+    "observerSha256": "cbb5361e13012df5e09302108a8f4b91f3fac4cca24982227d19ec85f966e1f1",
+    "tool": "ezdxf 1.4.5 ordinary read; loaded module digests in report",
+    "producerProbeSourceSha256": "3f2e7f5659659876af99192718467097030fee9efb0e5f2f7e1a2b55c3e4f0aa",
+    "producerProbeExecutableSha256": "2c434613409065d1a1ea829671733779c2742ee2e213466daadb6da7fedeb571",
+    "librarySha256AtLink": "ef08649d21441164a732d5b02dc8e61ecfc24ae9d36ee6d6088bacb159728c22",
+    "adapterObjectSha256AtLink": "6caf2681912fdfb606d4f1e5d943486458511d8d75ea121f1c33e509b24c0315",
+    "asciiOutputSha256": "e0b1a00546c63236ee8827101af32a5dcbcfc852b204f78ba2363d866be3859a",
+    "binaryOutputSha256": "8869315f575741a5c441c4f35a10c9b443927117c084dfac25793017a543f201",
+    "result": "For original selected first cell and both authored model outputs, raw tags show 177=32, 178=0, 145=0 and 140=4 in the same selected order. Original 175 is 3 while authored outputs use 1, and the text differs. ezdxf preserves raw AcadTableBlockContent; it does not independently interpret group 177 or validate rendering."
+  },
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^libdxfrw_table_(legacy_override_177|legacy_text_height|content_dxf_projection|content_source_proof)$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "4/4 passed; reported output; ASan is not a native semantic qualification",
+    "testExecutable": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_table_content_dxf_tests",
+      "sha256": "3b053afdb8c8e5b6f3b95f175ba597f3fe9a3d7e1dbc9f6c1f5e264a099cf1f8"
+    },
+    "library": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw.a",
+      "sha256": "84a47444ee2687b172e024d3e118b16c0e71e446d0351fa00460ff27ab5d2ff7"
+    },
+    "adapterObject": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "6e6741a9b7fc52ca739015f4b130e71e3fcbdd9e8fcb90b577c7558d1c270c2a"
+    },
+    "adapterSource": {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "92ecfafc2f7ec6eaffe4f774a8b65c6244be05ac617f369f62d50c6c65b8257b",
+      "note": "Frozen at ASan build; includes concurrent uncommitted MLINE changes and is not the adapter in codeCommit."
+    }
+  },
+  "limitations": [
+    "No full original TABLE or document conversion is claimed.",
+    "No native renderer, 2D consumer application, FreeCAD, platform or semantic support claim is established.",
+    "Only the selected positive height profile is admitted; other flags, earlier/later contextual profiles, broad legacy output and unqualified field semantics remain open.",
+    "Independent emitted files and external samples stay in scratch or their existing repository, not committed."
+  ]
+}

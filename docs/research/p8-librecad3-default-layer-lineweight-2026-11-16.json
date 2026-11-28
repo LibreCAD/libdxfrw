@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-16",
+  "scope": "LibreCAD_3 preserve symbolic default layer lineweight across import, edit and export",
+  "consumer_master": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "local_candidate_branch": "codex/libdxfrw-abi3-consumer-20261116",
+  "local_candidate_parent": "e56fabf65b38e90133e94f2758d78d33a8402356",
+  "local_candidate_commit": "1ab08f5819f31053d5540b0c3e1259b865b8265d",
+  "patch": "docs/patches/librecad3-p8-default-layer-lineweight-2026-11-16.patch",
+  "patch_sha256": "e77a3c5a11d2e1e517196598e74ca1bf19803e74fbc8120416643171eb77b4b8",
+  "references": [
+    {
+      "title": "Autodesk LAYER DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm"
+    },
+    {
+      "title": "Autodesk layer lineweight setting",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENG/AutoCAD-Core/files/GUID-E30B3681-544D-4DA5-856D-B33497D005C0.htm"
+    },
+    {
+      "title": "Autodesk LWDEFAULT system variable",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-Core/files/GUID-969FE4A6-C30D-44DE-AFD4-A81B53F175F6.htm"
+    }
+  ],
+  "finding": "A generated R12 layer with absent group 370 imported as explicit 0 mm and losslessly saving the same profile was incorrectly reported as a lossy layer-lineweight conversion. The adapter also could not retain the difference between DEFAULT and explicit 0.25 mm.",
+  "change": "Store a separate default-lineweight state on Layer; preserve the existing five-argument constructor and add a six-argument overload. Carry the state through the layer builder, importer and writer; the initial display fallback is 0.25 mm. The layer editor exposes Default separately from fixed widths and preserves the state on rename and frozen-state changes. Selecting a fixed width clears default intent.",
+  "verification": {
+    "red": "Before the fix, the locally generated AC1009 source imported its absent layer width as 0 rather than 0.25 mm and legacy saves reported loss.",
+    "persistence": "PASS: 6 focused tests each for installed ABI-3 shared and pinned 2.0 static codecs on macOS ARM64, plus 4 adjacent save/roundtrip tests each. Checks include R12/R14/R2000 ASCII and binary exports and readback, explicit/custom entity and layer losses, corrected retries, and default vs explicit 0.25 mm. An ASCII tag scan separately confirms group 370 values -3 and 25. Scratch drawings were created from scratch and were not committed.",
+    "ui": "PASS: clean LibreCAD_3 Release GUI build with installed shared ABI-3, after explicitly selecting matching Homebrew Lua headers and library. Two focused offscreen Qt tests exercise default/explicit changes in both directions, frozen preservation, and rename. The test binary reused the clean GUI object files; it is not a full GUI suite or native rendering qualification.",
+    "logs": [
+      "/private/tmp/lc3-default-width-red.log",
+      "/private/tmp/lc3-default-width-system-test.log",
+      "/private/tmp/lc3-default-width-pinned-test.log",
+      "/private/tmp/lc3-default-width-adjacent-system.log",
+      "/private/tmp/lc3-default-width-adjacent-pinned.log",
+      "/private/tmp/lc3-default-width-ui-rebuild.log",
+      "/private/tmp/lc3-default-ui-test.log"
+    ]
+  },
+  "limits": "Local candidate is unmerged and requires all preceding ordered LibreCAD_3 patches, including the custom layer- and entity-width patches; apply this patch with git apply --unidiff-zero. The 0.25 mm display fallback is the documented initial value, not a live implementation of the user-configurable LWDEFAULT setting. Full native GUI interaction, package installation, other platforms, unsupported layer-lineweight input states and complete consumer/source-graph qualification remain open. Layer object layout changes require rebuilding LibreCAD_3 and dependent code."
+}

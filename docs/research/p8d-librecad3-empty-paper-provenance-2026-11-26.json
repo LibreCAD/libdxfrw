@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "ff7435bfb3652a650c13ff53e23ea2f630b24b7c",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "scope": "Omit only the unreferenced empty application-created *Paper_Space0 when no layout graph is emitted, preserve provenance on DXF and DWG import, and refuse unverified modern paper-space content while retaining destination and retry.",
+  "persistence_library_sha256": "d138ab8c140cfaef520ba214d6a3c36d2d43f26bb76f1500110bea94e2ce05cf",
+  "layout_test_sha256": "ebbfb1f079031e328baad448bfc273a8fb7de2810689646b50e5a4495c0e4cc8",
+  "dwg_fixture": "third_party/libdxfrw/tests/fixtures/dwg/ordinary_enc_AC1015.dwg",
+  "dwg_fixture_sha256": "80690dc45b2e32b4d378df4be860c51c6b3c952400aa762eb73a654e93a728dd",
+  "focused_tests": {
+    "layout_graph": 12,
+    "dwg_import": 17,
+    "dxf_roundtrip_export": 71,
+    "plan_checker": 31,
+    "older_bundled_codec_headers": "syntax-only pass with pre-existing warnings"
+  },
+  "independent_reader": "ezdxf 1.4.5",
+  "independent_binary_output_audits": [
+    {
+      "version": "AC1015",
+      "sha256": "12290a7ae512719af9c81786b5ed205f89ff43b91ff874f3c8362204f4f19c20",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "version": "AC1018",
+      "sha256": "e9cdf0791aa8a41b5921951cf7ef55e93c277af48c16ddfe1c4388f955878267",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "version": "AC1021",
+      "sha256": "b615a045b6751ea00ca69e81be0409d6433c6558c4b638466fbb59d27feb21f3",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "version": "AC1024",
+      "sha256": "c693a16148579188c7aa5099dc9488dc7650f8c5db867deda01c7cf3a0e08df0",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "version": "AC1027",
+      "sha256": "974c04e377ef464bece50727460ee22e0aae3cdb859617981a17b57cee05003a",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    }
+  ],
+  "failure_controls": [
+    "headerless imported DXF block retained",
+    "actual imported DWG primary-paper save refused with destination preserved and same-writer retry",
+    "referenced or nonempty extra-paper guards retained"
+  ],
+  "limitations": [
+    "Independent audits cover generated empty binary files only.",
+    "Imported DWG layout semantics and native GUI behavior are not qualified.",
+    "Windows and Linux consumer checks remain open."
+  ]
+}

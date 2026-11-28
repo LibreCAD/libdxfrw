@@ -1,0 +1,41 @@
+{
+  "id": "p5-field-unit12-dwg-value-string-framing-2026-11-03",
+  "date": "2026-11-03",
+  "status": "specification_backed_codec_correction_physical_profile_unqualified",
+  "problem": "The FIELD DWG reader and shared CadValue DWG encoder omitted the detached value-string TV when unit type is 12. This can shift subsequent FIELD strings or drop cached data. The DXF FIELD writer separately suppresses group 302 for unit 12 and could therefore silently discard a nonempty DWG value string.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.99 Value; 20.4.76 FIELD",
+    "scope": "R2007+ unit BL is followed by format TV and value TV; the published table does not define 12 among its listed unit values and does not describe a unit-specific omission of the value TV.",
+    "policy": "The project instructions require this specification to govern DWG wire-layout disagreements. The meaning and native validity of unit 12 remain unqualified."
+  },
+  "peer_conflict": {
+    "ACadSharp": "At commit 3a52a52047e84670759c1f9ad3916ec3ce85ff56, DwgObjectReader.Objects.cs readCadValue unconditionally reads both R2007+ variable strings.",
+    "LibreDWG": "At commit 6d6a33987a1a97095b069c799c3d8a793320f812, dwg_spec_shared.h TABLE_value_fields skips value_string for unit 12 in the shared DWG/DXF schema. This is an unresolved peer/specification disagreement, not evidence that every producer uses the same layout.",
+    "prior_writer_compatibility": "An older libdxfrw DWG FIELD encoder omitted the TV for unit 12. Its locally generated malformed profile may no longer parse as a complete FIELD under the specification framing; no ambiguous fallback is inferred from string contents."
+  },
+  "change": [
+    "Read and write the R2007+ DWG value TV after unit and format even for unit 12.",
+    "Refuse FIELD DXF output of a nonempty unit-12 value string before any record bytes, because the current writer omits group 302 in that profile. An explicit caller correction can then be retried."
+  ],
+  "generated_controls": [
+    "A hand-authored detached FIELD text stream tests AC1021 and AC1024 root unit-12 value TV, following FIELD value string and child key/value alignment without using the FIELD encoder to create the text stream.",
+    "The writer text stream is decoded independently to check the exact format/value/following-TV sequence.",
+    "An omitted value TV is rejected as incomplete, then the same FIELD object parses the corrected frame successfully.",
+    "ASCII and Binary direct DXF controls test both root and child cache refusal before output and successful same-writer correction retry."
+  ],
+  "physical_recheck": {
+    "sample": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "source_provenance": "pre-existing untracked local sample; no fixture added",
+    "peer_observation": "The existing LibreDWG JSON reports five unit-12 child values on AcSm records; its own parse follows the conflicting shared macro and is not independent evidence of the physical field boundary.",
+    "test_result": "Baseline and corrected strict-reader traces both retain 16 unsupported child-value shells, 16 child-count failures, and one 146-bit unmodeled object-data tail; they do not qualify this source profile. ACadSharp did not publish the candidate handles through CadDocument.GetCadObject<Field>, so its real-file field span was not independently verified. No whole-file output or native FIELD semantics are claimed."
+  },
+  "claim_effect": "none",
+  "fixtures_added": false,
+  "validation": {
+    "build": "cmake --build /private/tmp/libdxfrw-p5-field-build --target libdxfrw_dwg_object_vectors_tests libdxfrw_wave1_tests -j4",
+    "dwg": "15 focused FIELD DWG selectors passed, including libdxfrw_field_unit12_dwg_strings",
+    "dxf": "libdxfrw_wave1_tests --field-cadvalue-emission-preflight passed with ASCII/Binary root and child refusal/retry"
+  }
+}

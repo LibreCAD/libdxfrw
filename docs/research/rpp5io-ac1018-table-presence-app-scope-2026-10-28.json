@@ -1,0 +1,53 @@
+{
+  "schema": "ac1018-table-zero-presence-scope-fix-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "codeCommit": "ffc576cb0e7019f6a16f8fa5a10dddea796414c7",
+  "supportClaimsPromoted": false,
+  "scope": "Distinguish TABLE host 177=0 from 177 and 100 fields nested in application groups. A real selected host zero with an in-table application group remains atomically refused as unqualified.",
+  "priorEvidence": "docs/research/rpp5in-ac1018-table-zero-presence-2026-10-28.json",
+  "bindings": {
+    "dwg2dxf/dx_iface.cpp": "242864146e0cc288995194158157be736458b390655e9b0e7a51847744dbb518",
+    "tests/table_legacy_merge_controls.h": "d80df457499ab1844786acff269abdb1242f082b846fa82ff77a49926b1a1929"
+  },
+  "actualReproductions": {
+    "scratchDirectory": "build/table-zero-presence-review",
+    "probeSourceSha256": "b080549c7557b0d774dbcf8a81e020efb146c7fca1175218f3008aba44eb02a2",
+    "preFeatureExecutableSha256": "bfc572bd9d515b0ae7b4984147a673c4cf2aee2c95b612943f0c8bc3209854d1",
+    "beforeFixExecutableSha256": "f57d0ee24663ca4d3d90fab72d1a6879a32646abf3e2886935da4307ba3b4b19",
+    "currentExecutableSha256": "d239785880512a2509bdfa3b98a9693a1ff64306ad08ea38a0098d37fe22ceec",
+    "nestedZeroInputSha256": "97d749b926bc10eb592fc98a4223f6fd06cb8856e7afd4b9802e77260e26ac2b",
+    "hiddenHostZeroInputSha256": "8c4d28276b4690134e224b4102551fa70d7a45da49927820df170dacc51c0099",
+    "result": "Host 177=32 with nested application 177=0 exported before presence feature, was refused by ca271fed, and exports again after this fix. Host 177=0 after nested 100 VendorSubtype exported with omitted presence before the fix and is now refused.",
+    "preFixNestedLogSha256": "4aec215c0c05ff2606a79138cc4e29694c92b656899a980b188a336bfa2ea231",
+    "preFixHiddenLogSha256": "6b13aa822158b0317f09cce1d9807de17f28d573349fd05cc7be2bc6c64470b4",
+    "postFixNestedLogSha256": "c250124d75d752936de8aa7d7dda3f407ecf7008118a8ade4c918a0411bc601d",
+    "postFixHiddenLogSha256": "7b9c59b4fcb3cc01310872a71e36c4a027aae314133af2a7cfeb085dbc420ec6"
+  },
+  "controls": "Eight input/output ASCII/binary and strict/compatible cases each for accepted nested zero and refused hidden host zero; destination sentinel, caller state and fresh same-adapter retry checked.",
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_table_(legacy_merge|legacy_text_height|legacy_override_177|content_dxf_projection|original_inputs)$' --output-on-failure",
+    "result": "5/5 passed as reported; no retained log hash asserted",
+    "tableExecutableSha256": "a4eb0ea83d5c0a19de84a9237e7cd3d2eb31790d113c784eb49c0ccfb2a9c5c1",
+    "librarySha256": "70c41831a346f9c0043c4d529eec68d13620771935d1e67a3f13c2d6b24de5d7",
+    "adapterObjectSha256": "d6de4590f2f8ed357083c6694eac09dab690a223ede94b889fb9e6aa71b85abd"
+  },
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^libdxfrw_table_(legacy_merge|legacy_text_height|legacy_override_177|content_dxf_projection|original_inputs)$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "5/5 passed as reported; no retained log hash asserted",
+    "tableExecutableSha256": "c7e72c5ff24c6db4490898e31d7d5556a65c27c08779e9e1416de35ec2618337",
+    "librarySha256": "20c8f783f367285177bc0f9eddfe57bb70f81427ab1fd8759475e9d30c9596c7",
+    "adapterObjectSha256": "a381063b6280ca8746c6ebc6298e2767aae921e7e5cc0ed615b840fcb621c8b4"
+  },
+  "simultaneousWork": {
+    "chronology": "The adapter and library sources were frozen together during normal and ASan builds, then committed separately as ffc576cb and fad5990a.",
+    "adapterSourceSha256": "242864146e0cc288995194158157be736458b390655e9b0e7a51847744dbb518",
+    "librarySourceSha256": "1d0b5ae2ff4a05b3066aaa6160c28772298c631553a41627c06ea7cd6214a8d7"
+  },
+  "limitations": [
+    "Host-zero with in-table application groups is intentionally not qualified.",
+    "No native semantics, full TABLE or complete document/application support follows.",
+    "Authored fixtures and outputs remain in ignored scratch; no new external fixture committed."
+  ]
+}

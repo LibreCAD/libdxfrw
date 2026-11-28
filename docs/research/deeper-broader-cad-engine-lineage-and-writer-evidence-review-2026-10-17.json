@@ -1,0 +1,122 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader CAD-engine lineage and cross-layer writer evidence review",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "OpenCADStudio codec/kernel dependency lineage and release/source provenance",
+    "Reported DWG writer failure and maintainer-reported repair evidence",
+    "Application-level self-consistency versus independent consumer acceptance",
+    "CADKernel detailed DWG/DXF/ACIS format-matrix screen",
+    "Implementation readiness and composed-only peer gate refinement"
+  ],
+  "method": {
+    "kind": "Read-only review of current public primary project sources, dependency metadata, and issue history",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "GitHub main-branch sources are mutable. The reviewed OpenCADStudio manifest and lockfile reference different Git revisions; this review did not determine which exact source set produced any published binary. Issue #1078 contains reporter and maintainer statements, but the source-pair files and post-fix AutoCAD acceptance were not independently inspected. No behavior or semantic support is inferred from documentation alone."
+  },
+  "sources": [
+    {
+      "project": "OpenCADStudio",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/blob/main/README.md",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The application advertises native DWG/DXF read-write, versioned save targets, 3D modeling/rendering, and platform release artifacts. These statements nominate an optional application/consumer route but do not qualify a particular binary."
+    },
+    {
+      "project": "OpenCADStudio",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The manifest declares Git dependencies on HakanSeven12/opencadcodec at rev a01df94 and HakanSeven12/opencadkernel at rev 0574444."
+    },
+    {
+      "project": "OpenCADStudio",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.lock",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The lockfile records opencadcodec at commit 325fa98d2b881f48e106a830d5cf161624f63131 and opencadkernel at commit dfca3912228b19d4df25c8695b628ccb13497a78, differing from the short revisions in the retrieved manifest."
+    },
+    {
+      "project": "HakanSeven12/opencadcodec",
+      "url": "https://github.com/HakanSeven12/opencadcodec",
+      "revision": "repository metadata reviewed 2026-10-17",
+      "observed": "GitHub marks the repository as forked from hakanaktt/acadrust. It is a distinct maintained fork, not an independent parser lineage from ACadRust."
+    },
+    {
+      "project": "opencadkernel",
+      "url": "https://github.com/HakanSeven12/opencadkernel",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The project describes a separate geometry kernel with an optional ACIS SatDocument lift/lower layer, while also describing itself as early and noting that most operations are not yet written. It is not a DWG/DXF parser."
+    },
+    {
+      "project": "OpenCADStudio issue #1078",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/1078",
+      "revision": "issue activity and comments reviewed 2026-10-17",
+      "observed": "A reporter described AutoCAD RECOVER damage to Layout, MLeader, dynamic-block, handle/XDATA and XREF structures in specified builds. The maintainer later reported source changes and semantic counts for a supplied source pair, including an unchanged AcDs-section byte comparison on same-version saves. The pair and post-fix native acceptance were not independently verified."
+    },
+    {
+      "project": "OpenCADStudio automation specification",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/API-SPEC.md",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The application documents its own document open/read/edit/save operations. Results produced by this application stack are application/self-consistency evidence and must not be counted as an independent parser or consumer vote."
+    },
+    {
+      "project": "CADKernel",
+      "url": "https://github.com/kernalix7/CADKernel#supported-file-formats",
+      "revision": "mutable repository documentation reviewed 2026-10-17",
+      "observed": "The detailed format table marks DWG and DXF read/write, notes a DXF fallback for DWG, and marks ACIS SAT/SAB unsupported despite broader compatibility headlines. No implementation route was built or run."
+    }
+  ],
+  "assessment": {
+    "lineageRule": "OpenCADStudio/opencadcodec is ACadRust-fork lineage; count an application run as consumer/application evidence, not an independent codec vote. Record opencadkernel separately as a geometry layer, not a file parser.",
+    "sourceArtifactRule": "Bind exact application release checksum, source commit, and resolved dependency lock before interpreting results. If manifest/lock/release provenance cannot be reconciled, mark PROVENANCE_INCOMPLETE.",
+    "writerFailureRule": "Use issue #1078 only as peer-specific failure taxonomy and test-design input. Separate same-version rewrite, cross-version rewrite, record/owner closure, opaque AcDs retention, and independent native acceptance. Do not infer a libdxfrw defect or require byte identity after version changes.",
+    "cadkernelRule": "Do not treat CADKernel broad format claims as ACIS evidence; its own table marks SAT/SAB unsupported and DWG as DXF fallback.",
+    "researchStopRule": "No new candidate runtime is warranted unless a pinned route can fill a named missing evidence layer; ordinary implementation slices remain local and fast."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-cad-engine-lineage-and-writer-evidence-review-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "awk '/[ \\t]+$/ { print FNR \": trailing whitespace\"; failed=1 } END { exit failed }' docs/research/deeper-broader-cad-engine-lineage-and-writer-evidence-review-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

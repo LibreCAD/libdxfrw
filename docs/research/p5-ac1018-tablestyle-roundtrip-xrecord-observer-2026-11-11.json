@@ -1,0 +1,28 @@
+{
+  "id": "p5-ac1018-tablestyle-roundtrip-xrecord-observer-2026-11-11",
+  "scope": "Standalone bounded observer only: caller-supplied bytes and typed model are not reader-origin capabilities; no graph closure, output authorization, text/codepage semantics or general XRECORD conformance is asserted.",
+  "evidence": {
+    "source": "ODA File Converter 27.1.0 AC1018 conversion of locally generated ezdxf table; source SHA256 1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "wire_and_peer": "docs/research/p5-ac1018-tablestyle-cellstylemap-graph-wire-2026-11-11.json",
+    "spec": "Open Design Specification for .dwg files v5.4.1 sections 20.4.97, 20.1 and 2.13. Spec describes XRECORD strings with RC length; the observed producer-specific source uses RS length and this observer only accepts the latter. Byte 45 does not establish codepage semantics."
+  },
+  "profile": {
+    "object": "AC1018 fixed XRECORD type 79, no EED or extension dictionary, one reactor, cloning 1; bounded source frame at most 4096 bytes.",
+    "payload": "89 bytes, exactly ordered group/value pairs: 102=ACAD_ROUNDTRIP_PRE2007_TABLESTYLE; 90=4; 91=0; 1=empty; 92=4; 93=0; 2=empty; 94=4; 95=0; 3=empty. All four strings use observed RS length and page byte 45; values compared as bytes, not decoded semantics.",
+    "links": "Owner H4 and reactor H4 must be the same nonzero non-sentinel handle, distinct from self, and agree with typed and validated raw metadata. Numeric handles may vary. Raw data end, exact payload/handles and zero padding are checked.",
+    "typed": "Ordered m_dataEntries are authoritative. Legacy m_values/m_handleValues may differ and are not consulted. Raw bytes and typed fields are compared; private source identity is not authenticated.",
+    "source_spans": "Physical payload [81,793), data end 803; owner [803,819), reactor [819,835), remaining padding zero. Generated writer independently records every group and handle span."
+  },
+  "checks": {
+    "generated": "libdxfrw_dwg_tablestyle_roundtrip_xrecord_ac1018_candidate passes. Checks generated expected per-entry spans, every byte truncation, roles, owner/reactor mismatch, page, swapped or changed typed values, metadata contradiction, reserved BL length, EED, extra reactor, extension flag, padding, size/version, payload corruption, legacy mirror independence and each allocation observed in the observer followed by retry.",
+    "physical_captured_body": "build/tests/libdxfrw_dwg_tablestyle_roundtrip_xrecord_ac1018_candidate_tests /private/tmp/p5-tablestyle-graph-repro/body-220.bin passed; body SHA256 e73c19f8102c18c0b3ea6761d4b74062874cde5abe2355e9ac5a87ca9d11ffa9. This compares physical bytes to a generated typed shape.",
+    "physical_callbacks": "tools/research/p5_ac1018_tablestyle_roundtrip_xrecord_probe.cpp imported the pinned source and passed the paired actual raw and typed callbacks through the observer. Callback association alone does not authenticate a source ticket. The full read reports one pre-existing HEADER integrity observation; do not infer whole-file semantic qualification."
+  },
+  "reproduction": {
+    "build": "cmake --build build --target libdxfrw_dwg_tablestyle_roundtrip_xrecord_ac1018_candidate_tests -j 3",
+    "ctest": "ctest --test-dir build -R '^libdxfrw_dwg_tablestyle_roundtrip_xrecord_ac1018_candidate$' --output-on-failure",
+    "probe_build": "c++ -std=c++17 -Wall -Wextra -Werror -I src -I dwg2dxf tools/research/p5_ac1018_tablestyle_roundtrip_xrecord_probe.cpp build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build/libdxfrw.a -o /private/tmp/p5_ac1018_tablestyle_roundtrip_xrecord_probe",
+    "probe_run": "/private/tmp/p5_ac1018_tablestyle_roundtrip_xrecord_probe /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg"
+  },
+  "next": "Add explicit opt-in to the same reader-generation verified XRECORD selection including this first style-dictionary target; authenticate CRC, fixed type 79, tuple and immutable typed/raw baseline, compare observed owner/reactor to the verified style dictionary, and jointly seal/revalidate all existing members with aggregate bounds, missing/duplicate/CRC, mutation, retry and nested-read controls. Keep old APIs and default consumer behavior. CELLSTYLEMAP, other resources, source-destination mapping, text semantics and strict output/readback remain separate."
+}

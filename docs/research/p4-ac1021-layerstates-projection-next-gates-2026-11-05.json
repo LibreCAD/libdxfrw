@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1021-layerstates-projection-next-gates-2026-11-05",
+  "date": "2026-11-05",
+  "status": "SELECTED_PROJECTION_ADVANCES_BUT_REMAINS_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "version": "AC1021",
+    "fixtureDisposition": "Pre-existing local file; not tracked or committed"
+  },
+  "probe": {
+    "source": "/private/tmp/libdxfrw_layerstate_export_probe.cpp",
+    "sourceSha256": "e633c76ca07441d98c93457d003a02bfabc7213f4c05a945331a8b9b2fb04796",
+    "adapterObjectSha256": "1ab7853e953182719572d3170ed9b2cb269c2d4517e336179b1e461c65e83a8a",
+    "librarySha256": "1203bef8b60ec44663d76399025b40a685bee725f02a4856c1494b64fdad776f",
+    "operation": "Permissive production dx_iface::fileExport to AC1024 ASCII; scratch projection keeps the 43 source BLOCK_RECORD/BLOCK containers and selected LayerStates graph, while progressively omitting unrelated fields, entities, proxy data and object graphs.",
+    "policy": "Compatible source/text/proxy policies with AllowPartial; diagnostic projection only"
+  },
+  "observations": [
+    "With the imported source unchanged, permissive output stops at FIELD/FIELDLIST serialization.",
+    "After removing FIELD carriers in scratch, preflight reaches VIEWPORT frozen-layer validation. Four VIEWPORTs in block *U0 (handles 9089, 9092, 9095, 9099) carry zero frozen-layer handle slots; thirteen slots across the source fail unique-LAYER resolution.",
+    "Removing those VIEWPORT entities leaves dangling LAYOUT viewport membership. Clearing viewport memberships and last-active handles then advances, but the source SORTENTSTABLE extension DICTIONARY reciprocity gate fails.",
+    "After dropping the SORTENTSTABLE graph, the projection exposes ACAD_GROUP and ACAD_LAYOUT NOD dependencies, dynamic-block output refusal, DICTIONARYWDFLT root/import dependencies, named-resource receipt consistency, and CELLSTYLEMAP/TABLESTYLE closure in sequence. These are independent graph profiles, not additional LayerStates dependencies.",
+    "A second diagnostic projection cleared the unrelated TABLESTYLE/CELLSTYLEMAP family and reached VISUALSTYLE closure. The physical AC1021 source contains 16 decoded typed VisualStyles, no raw DXF carriers, all owned by dictionary 0x99 with one reactor each. Existing typed DWG-to-DXF admission is limited to the source-qualified AC1024 profile; no AC1021 field-to-DXF serializer profile is established. The projection still refused before output and retained the destination sentinel."
+  ],
+  "outcome": {
+    "exportSucceeded": false,
+    "lastObservedRefusal": "extension-object graph validation: VISUALSTYLE carrier coverage (AC1021 has 16 typed objects, no raw carriers, and no qualified AC1021 typed-output profile)",
+    "destinationBytes": 9,
+    "destinationContent": "sentinel\n",
+    "outputOrReadback": "No DXF was published; no LayerStates output/readback claim is established."
+  },
+  "decision": "Do not broaden AC1021 LayerStates output from this scratch projection. The original strict whole-source refusal remains required. A qualifying projection must close the necessary BLOCK_RECORD/BLOCK and LAYOUT graph while excluding unrelated families through source-consistent projection rules, then pass ASCII/Binary rollback, retry and fresh typed readback. No source files were modified or committed."
+}

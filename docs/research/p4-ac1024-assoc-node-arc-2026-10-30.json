@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-arc-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative constrained arc prefix",
+  "status": "OBSERVED_PROFILE_IMPLEMENTED_REMAINDER_RAW",
+  "supportClaimEffect": "none",
+  "scope": "Decode the witnessed AC1024 inline AcConstrainedArc node body with its exact dependency role and geometry fields while retaining the incomplete associative graph raw.",
+  "input": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "committedFixture": false,
+    "groupHandle": "42B",
+    "serializedNodeIndex": 29,
+    "nodeId": 163,
+    "connections": [165, 167, 169, 170]
+  },
+  "independentReader": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+    "sourcePath": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+    "sourceGitBlobSha1": "0a4e0b7ea2e660ea32b90ee826617d171a22ccbd",
+    "sourceFileSha256": "08ae91fe60fc78f08a24af1d59b0256e82419c7c7cbc4a7e791684d96c8740fa",
+    "runtime": "official macOS ARM64 Rust 1.99.1",
+    "harnessSource": "/private/tmp/libdxfrw-acadrust-qualifier/src/main.rs",
+    "harnessSourceSha256": "14fde9d771cccd88ba8afc6e62a3bfb19461fb4d4518a468e1780d08b32ca484",
+    "harnessSha256": "fc05c3db378015bcc96963bc754e94d148ea0bab56d0ec1d7bd890d682155712",
+    "outputPath": "/private/tmp/arc-peer.txt",
+    "outputSha256": "a74d3cdccb8e11d2b144fe218ac9fc4d12b83483b5582b4bd54f7a82e88012bc",
+    "outputIndexNote": "The peer's node[0] is an empty in-memory sentinel; node[29] is the thirtieth vector entry and the twenty-ninth serialized node."
+  },
+  "sourceProfile": {
+    "peerDecodedNode": "Arc { geometry_dependency: Handle(1404), geometry_node_id: 0, center: (63.11370687434459, 37.572948833487146, 0.0), normal: (0.0, 0.0, 1.0), direction: (1.0, 0.0, 0.0), radius: 11.5, start_parameter: 0.0, end_parameter: 6.283185307179586, reserved: 0.0, start_point: (64.11370687434459, 26.116509596097544, 0.0), end_point: (64.11370687434459, 49.02938807087675, 0.0) }",
+    "localHandleStreamProbe": {
+      "method": "forked the object handle stream at the witnessed arc boundary and decoded without committing the probe",
+      "code": 4,
+      "size": 2,
+      "reference": 1404,
+      "handleBit": 218396,
+      "diagnosticLogSha256": "c5510ad0d5bc5a7ba4d334cc84de809d4a47c0c28ee748a73702208289463c6d",
+      "interpretation": "ODA v5.4.1 defines code 4 as a soft pointer. The witnessed dependency is a non-null code-4 reference."
+    },
+    "wireLayout": {
+      "source": "Pinned acadrust source at the recorded commit; AC1024 inline dispatch calls read_constraint_node_data(..., legacy, false).",
+      "fields": [
+        "Geometry dependency: handle stream, observed code 4 soft pointer to 1404.",
+        "Geometry node ID: BL.",
+        "Center, normal, direction: 3BD each.",
+        "Radius, start parameter, end parameter: BD each.",
+        "Reserved double: absent from this AC1024 inline profile; the peer model's zero is synthesized.",
+        "Start point and end point: 3BD each."
+      ],
+      "odaSpecification": {
+        "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+        "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+        "result": "ODA documents the DWG primitives and typed handle roles; the associative node body is established by the pinned peer and same-input evidence."
+      }
+    },
+    "limitations": [
+      "The independent reader is structural evidence only and does not qualify a consumer or promote a support claim.",
+      "The parser types only the witnessed non-null code-4 AC1024 inline profile; unsupported variants remain raw.",
+      "The following observed node, AcParallelConstraint ID 408 with connections [360, 295], remains unsupported and bounds this group's current typed prefix.",
+      "Full associative closure, DXF serialization and consumer meaning remain unqualified."
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/associative_constraint_group_test_helpers.h",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "fields": [
+      "Geometry dependency code and reference, geometry node ID, center, normal, direction, radius, start/end parameters, start/end points.",
+      "Reserved value remains explicitly absent (m_hasReserved=false); m_reserved=0 is not a decoded wire field."
+    ],
+    "failureBehavior": "A generated wrong-role code-5 dependency leaves the arc body untyped/raw and recovers the following OBJECT.",
+    "strictExport": "dwg-associative-graph-not-serialized remains active; no DXF output is created.",
+    "persistentDrawingFixturesAdded": 0
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "generatedControls": [
+      "From-scratch arc profile checks node ID, connections, dependency role/reference, geometry node ID, all three vectors, radius, parameters, start/end points, and absent reserved-field state.",
+      "Wrong handle role remains raw and the following object is recovered.",
+      "Existing implicit-point, bounded-line, plain-geometrical, framing, count-bound and unknown-class controls remain green."
+    ],
+    "realSourceNormal": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/arc-final.dxf",
+      "result": "Expected strict refusal. Trace decodes Arc node 163 with dependency 1404 and the witnessed geometry values, then stops at unsupported AcParallelConstraint node 408. No DXF was created.",
+      "logSha256": "b2681fb973725020d26e54199dac8b2cf4edcdc3c06c471555a614fc17105fdb"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS with -fsanitize=address"
+    },
+    "asanFocusedTest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "realSourceAsan": {
+      "command": "build-asan-custom/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/arc-final-asan.dxf",
+      "result": "Same strict refusal and node boundary; no AddressSanitizer diagnostic and no DXF output.",
+      "logSha256": "b2681fb973725020d26e54199dac8b2cf4edcdc3c06c471555a614fc17105fdb"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "8c3f1a3e717e82edb39c4dfb78d648a463339d44ae1d8372e6b328fe425c9b0e",
+    "src/drw_objects.h": "f557ea4c7d15009adf36e37da615dfd7295c1a31f5dc07c33b9b23ff98ae6d27",
+    "tests/associative_constraint_group_test_helpers.h": "e233be520c1690ce4dbab0f4a60901e56a1464d003037ff9588b047cf3bcc4f9",
+    "tests/dwg_reader_matrix_tests.cpp": "5b7510f944f0019b19a82abcac114f3462a52712567851ac0522a9a0a483daaf",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "6fc06677d349d738340acf663c7670a05eab20801c585db41b08b4070938c45e",
+    "build/dwg2dxf/dwg2dxf": "8cf85636eb5d4bfbb33f6387f99638d3a78c312392a6623e46f61836f0d23b6f",
+    "build/libdxfrw_dwg_reader_matrix_tests": "a1a9d74496da6eba69c33736005367190df3eabfa9f8d64798c33feb9b5ebaa3",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "0822b6edb162b508b442c2078db4885c5e6e3bbdc6c537b197eb1249ae80820e",
+    "build-asan-custom/libdxfrw_dwg_reader_matrix_tests": "2b4963b7ac68324b0401ed741b0af21ae9b7861ca288af104ee3efdcaeeeb0aa"
+  },
+  "nextAction": "Implement the observed AC1024 AcParallelConstraint at node ID 408 (connections [360, 295]); establish its handle role and source-matched body/string/handle spans before adding typed fields."
+}

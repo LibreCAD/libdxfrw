@@ -1,0 +1,30 @@
+{
+  "id": "p5-ac1018-table-root-xrecord-ordered-candidate-2026-11-11",
+  "date": "2026-11-11",
+  "scope": "Opt-in inspection of one observed AC1018 TABLE roundtrip XRECORD raw body and supplied ordered typed entries. No reader-origin authentication, recursive graph closure, or output authorization.",
+  "authority": {
+    "oda": "ODA v5.4.1 section 20.4.104 describes pre-R2007 XRECORD string length as RC; the pinned actual source and independent LibreDWG decoder use RS followed by RC codepage. This candidate implements only the witnessed producer profile. Byte 45 is a literal profile value, without general text or file-codepage inference.",
+    "source": "p5-ac1018-table-xrecord-source-wire-2026-11-11.json and p5-ac1018-xrecord-codepage45-utf8-controlled-probe-2026-11-11.json; drawing SHA-256 1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a; raw body SHA-256 849458d8d7e0d40aa5e9c49d4f7ae0b0f9917e1cc56f8844f78b3bd077b9aa26."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwg_table_roundtrip_xrecord_ac1018_candidate.h",
+      "src/intern/dwg_table_roundtrip_xrecord_ac1018_candidate.cpp",
+      "tests/dwg_table_roundtrip_xrecord_ac1018_candidate_tests.cpp"
+    ],
+    "bounded": "At most 4096 bytes; AC1018 fixed XRECORD, no EED, one reactor, missing extension dictionary, exact 197-byte payload, source-ordered 13 pairs and marker bytes, known scalars/point, clone=1, matching owner and reactor soft-pointer role 4, exact boundaries and zero padding. Reject reserved BL and malformed lengths; clear result on failure.",
+    "references": "Group 360 at bits 377..457 -> 0xb9, group 361 at 841..921 -> 0xba, group 360 at 1577..1657 -> 0xbd on the pinned body. Each group is an RS DXF group label followed by a raw LE 64-bit value; neither is a DWG H token and no H ownership role is inferred. Candidate accepts distinct dynamic nonzero <=32-bit targets that cannot alias root or owner.",
+    "typed": "Compare every supplied ordered m_dataEntries element and represented common fields to source bytes. m_values and m_handleValues are not required to mirror ordered entries. In a sealed bundle those views are separately bound to their existing immutable snapshot.",
+    "trust": "Inputs are caller-fabricable, and raw callback body excludes stored frame CRC. Reader-owned same-import provenance and matching target identities and owners require a later binding; this does not change default callbacks or writer gates."
+  },
+  "controls": {
+    "build": "cmake --build build --target libdxfrw_dwg_table_roundtrip_xrecord_ac1018_candidate_tests -j 3",
+    "ctest": "ctest --test-dir build -R ^libdxfrw_dwg_table_roundtrip_xrecord_ac1018_candidate$ --output-on-failure -V: 1/1 PASS",
+    "generated": "All byte truncations; wrong ordered type/order/marker/value, group code, codepage, point signed zero, reserved BL, shell metadata/role, duplicate/zero/out-of-range/self/owner references, \u00b11 bit data boundary, appended bytes and bad padding; cleared result and corrected retry. Independently varied target handles succeed. Nonmatching legacy views stay accepted. Five measured allocation offsets were faulted, preserving input and allowing retry.",
+    "caller_body": "build/tests/libdxfrw_dwg_table_roundtrip_xrecord_ac1018_candidate_tests /private/tmp/p5-table-body-188.bin: PASS. This mode uses caller-supplied raw body plus generated typed metadata; it does not verify drawing hash, frame CRC or origin.",
+    "physical_callback": "tools/research/p5_table_root_xrecord_candidate_probe.cpp compiled against matched isolated e5341dd31d686c529ba2f8172de56868bc3551b9 adapter/library plus candidate source; actual reader callbacks on pinned source yielded read=1 raw=1 typed=1 matched=1 refs=b9,ba,bd. This is an observation, not a sealed or output-qualified provenance token. Log SHA-256 ffa4a7aff2ef0a75ff6673b19eca62418723bbf661ce04fce35bcf92746de74d.",
+    "independent_verifier": "python3 tools/research/p5_ac1018_table_xrecord_source_verify.py --source /private/tmp/p5-desc-input/input.dwg --body /private/tmp/p5-table-body-188.bin --self-test: PASS; proof SHA-256 96aca8e898c335cade298d91433d02f76f6decfe5158610a38c77652c9f43baf.",
+    "asan": "Candidate and test translation units passed ASan with detect_stack_use_after_return=1; linked libdxfrw.a was not instrumented, so this is partial ASan coverage. No DWG/DXF fixture added."
+  },
+  "remaining": "Bind the selected root candidate to reader-owned CRC-checked source and immutable ordered baseline; compare returned 360/361/360 labels and targets with selected TABLECONTENT, TABLEGEOMETRY and DATATABLE identities, and cross-check each child owner. TABLESTYLE/resources, recursive graph closure, native interoperability and transactional output remain open. Preserve unresolved general codepage and RS/RC ambiguity and keep default writer gates closed."
+}

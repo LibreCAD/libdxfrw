@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-15",
+  "scope": "DXF FIELD _text evaluator expression, primary string value, and cache text transport; not complete FIELD graph or dynamic evaluation support.",
+  "source": {
+    "receipt": "docs/research/p5-mtext-fieldlist-source-cache-2026-11-15.json",
+    "sha256": "fb09a7af8882787553149a675c6d15b45bab8ff4a49f58200460832eab3de401",
+    "field": "A9",
+    "originating_cad_producer": "unverified"
+  },
+  "defect": "Generic ASCII DXF caret decoding removed the space from MTEXT stack syntax in the FIELD expression, primary value and cached value. The generic FIELD writer also did not preserve MTEXT caret syntax or split long _text strings into the observed continuation groups.",
+  "change": "For evaluator _text, preserve MTEXT caret syntax in expression groups 3/2, primary string groups 2/1, and cache groups 9/301. Emit the same groups with scalar and caret-safe chunks. Unrelated FIELD evaluators retain their existing decoding. Ambiguous ASCII caret-bearing text preceding a later _text evaluator and duplicate _text evaluators are refused; Binary DXF with a late evaluator and caret-only preceding text remains accepted; see the follow-up for later conservative escape and multibyte checks.",
+  "source_crosscheck": {
+    "method": "Isolate only source FIELD A9 in a scratch DXF; use libdxfrw to read and write ASCII/Binary, then check typed text, cached length and handle slots on readback; independently inspect output tags and plain MTEXT with ezdxf.",
+    "tool": "tools/research/audit_mtext_field_roundtrip.py",
+    "result": {
+      "source_sha256": "fb09a7af8882787553149a675c6d15b45bab8ff4a49f58200460832eab3de401",
+      "field": "A9",
+      "peer": "ezdxf 1.4.5",
+      "outputs": [
+        {
+          "encoding": "ascii",
+          "code_sha256": "7d0521062dcdbf74a3e28a4be966093c0368d79e0986309ea49d34ad98adeb10",
+          "value_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "cache_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "field_code_continuations": 7,
+          "cache_continuations": 8
+        },
+        {
+          "encoding": "binary",
+          "code_sha256": "7d0521062dcdbf74a3e28a4be966093c0368d79e0986309ea49d34ad98adeb10",
+          "value_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "cache_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "field_code_continuations": 7,
+          "cache_continuations": 8
+        }
+      ],
+      "limit": "Isolated FIELD text only; graph and evaluation remain unqualified."
+    },
+    "limit": "The isolated record contains references but the surrounding dictionary, MTEXT, FIELDLIST and consumer graph are not emitted or validated; this does not qualify whole-document output."
+  },
+  "fast_validation": [
+    "libdxfrw_dxf_field_mtext: AC1018/AC1021/AC1027/AC1032 targets, ASCII/Binary, strict/compatible output, chunk boundaries, generic and late evaluator controls, failed-output destination preservation and corrected retry.",
+    "libdxfrw_field_retained_owner_budget and libdxfrw_dxf_mtext_caret passed.",
+    "libdxfrw_dwg2dxf_adapter_tests --field-dxf-multichunk-value passed; its two bad-read messages are expected negative controls.",
+    "ezdxf 1.4.5 independently inspected 16 generated _text FIELD output combinations across four target revisions, both encodings and both text policies; expression, primary value and cache matched, including the formatted fraction."
+  ],
+  "limits": [
+    "No native FIELD evaluation or whole-graph export claim.",
+    "Out-of-order ASCII _text with preceding caret is conservatively rejected.",
+    "No external DWG/DXF fixture was committed.",
+    "Other _text nested-value contexts need separate evidence."
+  ],
+  "followup": "See p5-dxf-field-mtext-chunk-boundaries-2026-11-15.json for later chunk assembly and revised late-evaluator handling."
+}

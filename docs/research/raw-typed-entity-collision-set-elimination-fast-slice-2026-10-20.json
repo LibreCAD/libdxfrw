@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "7S.2c raw/typed entity collision-set elimination fast slice",
+  "mode": "generated local fast slice",
+  "scope": [
+    "Continue the 7S.2c writer-owned scratch census in dx_iface::fileExport",
+    "Remove the full typed-entity handle set that was built only to reject collisions with raw entity handles",
+    "Avoid typed-entity scanning and indexing entirely when the input contains no raw entity events"
+  ],
+  "method": {
+    "kind": "Local source audit and existing strict raw-plus-typed entity collision regression",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "persistentTestDataAdded": false,
+    "limitations": "Raw handle uniqueness and cross-family collision refusal remain structurally checked, but no allocator/RSS benchmark or external consumer qualification was performed. The workspace Git metadata is read-only, so this implementation and its plan entry remain uncommitted."
+  },
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "Validate and reserve raw entity handles in one pass while retaining only the raw-handle uniqueness set.",
+      "When raw entities exist, scan typed entity lists and query raw-handle membership directly; remove the full typedEntityHandles set. When the raw set is empty, skip the typed collision scan.",
+      "A collision still fails export before dxfRW::write and destination publication; the writer is discarded on failure."
+    ],
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "validation": {
+    "builds": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf --parallel 2"
+    ],
+    "owningCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+    "owningCtestResult": "1/1 passed in 4.36 seconds",
+    "scopedDiffCheck": "git diff --check -- dwg2dxf/dx_iface.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/raw-typed-entity-collision-set-elimination-fast-slice-2026-10-20.json",
+    "receiptJsonCheck": "jq empty docs/research/raw-typed-entity-collision-set-elimination-fast-slice-2026-10-20.json",
+    "scopedDiffCheckPassed": true,
+    "receiptJsonPassed": true,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  }
+}

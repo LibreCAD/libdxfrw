@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-21500-sab-rooted-geometry-graph-2026-11-11",
+  "purpose": "Record a bounded rooted geometry-graph projection for the exact ACIS 21500 row profile observed in one hash-pinned AC1024 inline SAB.",
+  "source": {
+    "dwg": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "version": "AC1024",
+    "producerProvenance": "Not independently authenticated",
+    "entity": "3DSOLID",
+    "handle": "0x183",
+    "sabPath": "/private/tmp/p7-ac1024-aerial-solid.sab",
+    "sabBytes": 7048,
+    "sabSha256": "00f7dd11b8993d066a25e33a05dd97fb14f8b35eb7a4d7614c596b6b41d6d79b",
+    "priorEvidence": "The inline SAB and parser framing details are documented in p7-ac1024-21500-sab-sat-cuboid-crosscheck-2026-11-11.json; the incidence rows are documented in p7-ac1024-21500-sab-incidence-observation-2026-11-11.json."
+  },
+  "implementation": {
+    "path": "drw_extractAcisBodyWireframes detects ACIS BinaryFile 21500, validates the common EntityType/attribute-Pointer/entity-ID prefix and exact pointer-row widths for rooted geometry record families, creates an internal view omitting only the common attribute-pointer slot, then calls the existing 21800 rooted geometry walker. Node identity and record tokens stay unchanged. Public graph-link and failure pointer ordinals are restored to the source 21500 rows.",
+    "atomicRefusal": "Malformed common attribute references or pointer-row widths refuse before projection; generated mismatch control verifies cleared output and InvalidModel.",
+    "scopeLimits": [
+      "This normalization is admitted only for the exact observed 21500 row shapes; it is not a version-wide ACIS schema declaration.",
+      "Common attribute-pointer dependencies are not part of the rooted geometry projection or graph-link list.",
+      "The output reports geometry graph observations only. It does not check B-rep validity, apply transforms or units, or establish native/kernel acceptance.",
+      "The source header's third integer remains semantically unqualified; bodyCount is derived from observed body records, not that integer.",
+      "The slice does not close the containing DWG entity/owner/AcDs join, other SAB bodies, whole-source graph closure, or DWG/DXF output."
+    ]
+  },
+  "observedSourceResult": {
+    "sabParseComplete": true,
+    "headerVersion": 21500,
+    "sourceModelNodes": 116,
+    "rootedBodies": 1,
+    "bodyNodeIndex": 1,
+    "reachableGeometryGraphNodes": 85,
+    "wireframe": {
+      "vertices": 8,
+      "edges": 12,
+      "faces": 6,
+      "resolvedVertices": 8,
+      "resolvedEdgeEndpointPairs": 12,
+      "resolvedFaceSurfaces": 6,
+      "allFacesHaveOneLoop": true,
+      "allSixLoopsHaveFourCoedges": true,
+      "allSixCoedgeRingsClosed": true,
+      "allSixCoedgeRingsReciprocal": true,
+      "allSixEndpointChainsContinuous": true,
+      "allSixLoopOwnerIndexesMatchChains": true,
+      "allSixFaceOwnerIndexesMatchChains": true,
+      "unsupportedPatternNodes": 0,
+      "unsupportedWireNodes": 0,
+      "unsupportedSubshellNodes": 0,
+      "unsupportedPCurveNodes": 0,
+      "brepValidityChecked": false,
+      "bodyTransformsApplied": false,
+      "sourceUnitScaleApplied": false
+    }
+  },
+  "generatedControl": {
+    "origin": "Constructed from scratch in tests/graph_preservation_tests.cpp; no external fixture file.",
+    "positive": "ACIS 21500 prefixed rooted body graph preserves root/node identities, projects expected vertices/faces, reports closed and reciprocal coedge links, identifies the deliberately discontinuous one-coedge endpoint chain, and exposes the body-to-lump graph link at source pointer ordinal 2.",
+    "negative": "A model/reference mismatch for the common attribute pointer refuses atomically and returns InvalidModel."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4 && build-gcc/libdxfrw_graph_preservation_tests",
+    "result": "PASS: Graph/preservation tests",
+    "sourceProbe": {
+      "command": "g++ -std=c++17 -Isrc /private/tmp/p7_body_probe.cpp build-gcc/libdxfrw.a -lz -o /private/tmp/p7_body_probe && /private/tmp/p7_body_probe /private/tmp/p7-ac1024-aerial-solid.sab",
+      "result": "PASS: one rooted body; 85 reachable geometry-graph nodes; 8 vertices, 12 edges, 6 faces; all six loops closed, reciprocal, endpoint-continuous and owner-index matched.",
+      "independence": "Probe links the current libdxfrw build and is an implementation observation, not independent semantic evidence."
+    },
+    "diffCheck": "PASS: git diff --check"
+  },
+  "unresolved": [
+    "Independent producer/schema evidence for this ACIS 21500 rooted-row normalization.",
+    "The excluded attribute-pointer metadata graph and complete ACIS/AcDS source association.",
+    "Transform, unit, surface/curve parameter, trim, orientation and B-rep validity semantics.",
+    "Direct source-to-B-rep lift, independent-kernel/native CAD acceptance, strict output and platform qualification."
+  ],
+  "claimEffect": "Adds a narrow rooted geometry graph projection for one observed AC1024/ACIS 21500 profile. Does not promote ACIS/ACDS, 3D, DWG, or DXF support claims.",
+  "sourceFileSha256": {
+    "src/drw_acis.cpp": "2a2ee4b49f7277e0e4cb1784cde8a54f917d1d01930471b10316c4269b686aee",
+    "tests/graph_preservation_tests.cpp": "4a106e0e47dad7b710c2312c08d67b18793ed6534feace3603024c298af4afba",
+    "build-gcc/libdxfrw_graph_preservation_tests": "6f9781389187dc80ac71fcdbf1a06c1a336678dfe540e9dd53e2bf833ed6be41"
+  }
+}

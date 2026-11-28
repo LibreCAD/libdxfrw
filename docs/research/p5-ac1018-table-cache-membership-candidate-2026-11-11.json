@@ -1,0 +1,39 @@
+{
+  "id": "p5-ac1018-table-cache-membership-candidate-2026-11-11",
+  "scope": "Opt-in AC1018 same-import TABLE-to-*T1 membership evidence joined to CRC-checked source frames. This does not prove emitted display-geometry equivalence, native rendering, or authorize output.",
+  "implementation": [
+    "The candidate predicate requires the existing verified TABLE projection bundle and checks one *T1 TABLE, one same-name BLOCK_RECORD, one same-name BLOCK callback, reciprocal callback parent handles, a complete 15-member entity map, unique child handles, and the observed seven-MTEXT/eight-LINE profile.",
+    "A separate private reader sink selects BLOCK_RECORD 0x9d and BLOCK 0xa6 explicitly. The reader retains each CRC-checked AC1018 source body with its version, decoded-buffer offset, source-map ordinal, offset space and body/handle bit sizes, paired with the parsed model snapshot.",
+    "The reader delivers both tickets only after complete DWG read finalization and checks each against the finalized source-frame ledger: handle, offset, ordinal, offset space, Published disposition and one publication.",
+    "The adapter retains both tickets under the same import token and generation, checks each source model against its same-import typed callback, and exposes a query separate from output admission. No public DRW_Interface callback or writer policy changed.",
+    "The BLOCK_RECORD exposes only a matchesEntityMap comparison, keeping its parser-owned handle vector encapsulated. The candidate compares the ordered 15 child callback handles with the source-bound model sequence."
+  ],
+  "physical_source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "observations": [
+      "TABLE 0x9c names *T1.",
+      "BLOCK_RECORD 0x9d names *T1 and its parser entity-map count is 15.",
+      "BLOCK 0xa6 has parent 0x9d and contains 15 entities.",
+      "All 15 entities have parent handle 0x9d: seven MTEXT and eight LINE."
+    ],
+    "result": "PASS: callback candidate and reader-issued source-frame query both pass; unrelated HEADER integrity observation remains."
+  },
+  "mutation_controls": [
+    "Changing the selected BLOCK parent handle refuses the membership candidate; restoration passes.",
+    "Changing a cached child handle refuses the membership candidate; restoration passes.",
+    "Duplicating the *T1 BLOCK_RECORD callback refuses the membership candidate; removal restores the pass.",
+    "Swapping adjacent cached entity callbacks refuses the ordered membership candidate; restoring their source order passes."
+  ],
+  "verification": {
+    "build": "cmake --build build-gcc --target libdxfrw_test_adapter dwg2dxf libdxfrw_dwg_table_projection_ac1018_candidate_tests -j4",
+    "focused_test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_projection_ac1018_candidate$' --output-on-failure",
+    "physical_probe": "c++ -std=c++17 -Wall -Wextra -Werror -I src -I dwg2dxf tools/research/p5_ac1018_table_projection_binding_probe.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /private/tmp/p5_ac1018_table_projection_binding_probe && /private/tmp/p5_ac1018_table_projection_binding_probe /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "result": "Adapter, library, dwg2dxf and focused test target built; focused CTest passed 1/1; the physical probe passed both callback mutation controls and source-frame queries. git diff --check and receipt JSON parsing passed."
+  },
+  "remaining": [
+    "Compare the emitted 15 display primitives with an independent decoder or native renderer.",
+    "Keep TABLE output refused until remaining graph, semantic and transaction gates pass."
+  ],
+  "fixtures": "No DWG/DXF fixture was added to the repository; the existing local scratch source was used."
+}

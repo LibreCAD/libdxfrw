@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-10",
+  "id": "p5-ac1018-table-block-name-preflight-2026-11-10",
+  "title": "AC1018 TABLE direct-encoder anonymous block-name preflight",
+  "question": "Does the bounded AC1018 TABLE entity-frame encoder reject inherited DRW_Insert names that it cannot serialize and that cannot participate in the required anonymous TABLE block graph?",
+  "finding": {
+    "before": "DRW_Table::encodeDwg validated the frame's modeled fields but accepted any inherited DRW_Insert::name. The TABLE entity frame does not encode that name. The compound writer later requires a *T-prefixed name and matches it against the emitted BLOCK_RECORD.",
+    "change": "The direct AC1018 encoder now requires a name of at least three bytes beginning with '*' followed by ASCII 'T' (case-insensitive) before output staging. Compound graph validation remains responsible for exact name-to-BLOCK_RECORD identity.",
+    "scope": "Generated AC1018 plain-text TABLE entity-frame profile only. No other versions or broader TABLE contents are admitted."
+  },
+  "control": {
+    "testTarget": "libdxfrw_dwg_object_vectors_tests",
+    "selector": "--table-cell-overrides",
+    "invalidName": "LOCAL_TABLE_DISPLAY",
+    "correctedName": "*T_RETRY",
+    "assertions": [
+      "invalid name is refused",
+      "preseeded body and handle buffers are unchanged after refusal",
+      "the same object encodes after its name is corrected",
+      "existing valid AC1018 TABLE encode/readback and merge-profile controls pass"
+    ],
+    "result": "PASS",
+    "output": "AC1018 TABLE encoder allocation failures injected=19 rollback=PASS retry=PASS; AC1018/AC1021 TABLE cell override vectors: PASS"
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4 && ./build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS",
+    "diffCheck": "PASS"
+  },
+  "repositoryEffects": {
+    "productionFiles": ["src/drw_entities.cpp"],
+    "testFiles": ["tests/dwg_object_vectors_tests.cpp"],
+    "fixtureFilesAdded": 0,
+    "externalDrawingsAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "claimBoundary": "This preflight closes one direct-codec silent-omission path. It does not prove native TABLE semantics, cell rendering, additional producer profiles, R24 TABLECONTENT, or whole-source DWG conversion."
+}

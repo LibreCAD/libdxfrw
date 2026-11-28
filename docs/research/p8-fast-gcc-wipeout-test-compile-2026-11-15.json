@@ -1,0 +1,8 @@
+{
+  "date": "2026-11-15",
+  "hostedRun": "https://github.com/dxli/libdxfrw/actions/runs/43721688908/job/132834923326",
+  "failure": "GCC 13 rejected two signed object-type comparisons against unsigned constants in the WIPEOUT adapter test under -Werror=sign-compare.",
+  "change": "Use signed constants matching the object-type field; values and assertions are unchanged.",
+  "validation": "GCC 16 completes -std=c++17 -Wall -Wextra -pedantic -Werror -fsyntax-only on the complete adapter test translation unit.",
+  "limits": "A hosted GCC 13 rebuild and the remaining fast tests must still pass. No production behavior or support claim changes."
+}

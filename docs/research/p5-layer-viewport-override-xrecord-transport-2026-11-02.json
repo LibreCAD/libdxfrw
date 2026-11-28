@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "p5-layer-viewport-override-xrecord-transport-2026-11-02",
+  "date": "2026-11-02",
+  "status": "BOUNDED_GENERATED_DXF_TRANSPORT_AND_REFUSAL_ONLY",
+  "scope": "Check the DXF Layer extension-dictionary graph and selected viewport-override XRECORD body profiles without treating the undocumented application schema as a normative support claim.",
+  "formatEvidence": {
+    "autodeskXrecordReference": {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+      "rule": "XRECORD application payload groups are 1 through 369 except groups 5 and 105."
+    },
+    "autodeskGroupCodeReference": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "rules": [
+        "Group 343 is a hard-pointer handle group.",
+        "Groups 420 and 440 are 32-bit integer groups.",
+        "Group 335 is a soft-pointer handle group; group 91 is a 32-bit integer group."
+      ]
+    },
+    "openSourceLayerOverrideSchema": {
+      "project": "ezdxf",
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/tables/layer_table.html",
+      "observation": "The documentation describes Layer extension-dictionary keys for alpha, color, linetype and lineweight override XRECORDs. Each described body links group 335 to a VIEWPORT; the linetype profile uses 343 and lineweight uses 91; alpha/color use 440/420.",
+      "limitation": "The ezdxf documentation explicitly says this XRECORD structure is not documented by the DXF reference. It is an open-source profile description, not an Autodesk normative schema or a physical producer fixture."
+    }
+  },
+  "generatedControl": {
+    "test": "libdxfrw_layer_viewport_override_xrecord_transport",
+    "selector": "--layer-viewport-overrides",
+    "sourceVersion": "AC1027",
+    "fixturePolicy": "All DXF inputs are authored locally by the test helper and written in the system temporary directory. No DWG/DXF fixture file was added to the repository.",
+    "fullSchemaReadProfiles": [
+      "ADSK_XREC_LAYER_ALPHA_OVR: 335 VIEWPORT reference and 440 integer payload",
+      "ADSK_XREC_LAYER_COLOR_OVR: 335 VIEWPORT reference and 420 integer payload",
+      "ADSK_XREC_LAYER_LINETYPE_OVR: 335 VIEWPORT reference and 343 LTYPE reference",
+      "ADSK_XREC_LAYER_LINEWT_OVR: 335 VIEWPORT reference and 91 integer payload"
+    ],
+    "inEnvelopeOutputProfile": [
+      "Layer 0x280 owns extension DICTIONARY 0xB3.",
+      "The dictionary keys own the lineweight and linetype XRECORDs.",
+      "The XRECORDs retain body order, reactor/owner links and group-335 VIEWPORT targets.",
+      "The linetype XRECORD group-343 hard pointer resolves to the OVERRIDE_LTYPE table row.",
+      "Group 91 lineweight and group 343 linetype profiles are exported/read back across ASCII/Binary source and target combinations. Readback references are checked against the emitted entity/table handles."
+    ],
+    "outOfEnvelopePolicy": "The alpha and color XRECORDs parse and retain their fields, but standard XRECORD output rejects group 440 and group 420 under Autodesk's 1..369 envelope. Tests require refusal to preserve the preexisting destination. The generic XRECORD domain is unchanged.",
+    "failureRetry": "For the in-envelope profile, a deliberately wrong extension-dictionary owner is rejected without changing the destination; restoring the owner and retrying with the same exporter succeeds and readback verifies the graph."
+  },
+  "implementation": {
+    "productionCodeChanged": false,
+    "change": "Added a generated fast integration control and CTest registration. No XRECORD group-code range was widened and no VIEWPORT entity field was inferred.",
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_layer_viewport_override_xrecord_transport$' --output-on-failure",
+      "result": "PASS: 1/1 in 0.54 seconds"
+    },
+    "relatedRegression": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_layout_graph_read_contract$' --output-on-failure",
+      "result": "PASS: 1/1 in 0.26 seconds"
+    },
+    "diffCheck": "git diff --check passed"
+  },
+  "claimBoundary": [
+    "This is locally generated DXF transport/refusal evidence only; it does not establish that AutoCAD, LibreCAD, LibreCAD_3, FreeCAD or another consumer applies the overrides semantically.",
+    "The group-420/440 application schema remains non-normative and output-refused until an eligible producer-bound compatibility profile and independent consumer evidence are available.",
+    "The documented VIEWPORT entity references 335/343/344/91 are separate from these XRECORD payload references; they remain unmodeled and unsupported by this receipt.",
+    "Do not promote DWG, general DXF, viewport rendering or layer-override support claims from this receipt."
+  ],
+  "remaining": [
+    "Obtain an eligible physical DXF/DWG source containing layer override records, target roles, dictionary keys and native relationships.",
+    "Determine whether group-420/440 override XRECORD profiles need a narrowly source-bound compatibility writer; do not widen the generic XRECORD domain.",
+    "Qualify native layer override application and VIEWPORT entity reference semantics independently.",
+    "Establish native dictionary key collation rules with producer/consumer evidence."
+  ]
+}

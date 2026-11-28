@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-10",
+  "finding": "POINTCLOUDEX DWG writer silently omitted display and other modeled values whenever croppingCount was nonzero. The same-library reader resets those unencoded values to defaults.",
+  "schema_evidence": {
+    "libredwg_revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "file": "src/dwg2.spec:5344-5419",
+    "qualification": "Its independent implementation grammar writes the omitted fields in DWG only when the crop count is zero, while DXF writes the display fields regardless of count. ODA v5.4.1 contains no POINTCLOUDEX entry; this is peer grammar evidence, not native producer qualification."
+  },
+  "change": "Reject nondefault unknown integers, stylization, three scheme names, elevation and intensity ranges, two out-of-range behaviors, and three gradient/range flags when the crop count is nonzero. Refusal occurs before output or oType mutation. Zero-crop behavior is preserved.",
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_pointcloudex_cropped_fields$' --output-on-failure",
+    "result": "1/1 passed",
+    "coverage": "16 independent field/NaN mutations on AC1027 and AC1032 check seeded body/string/handle byte and cursor preservation, source values and type preservation, and corrected same-object/buffer retry. Generated zero-crop nondefault fields still encode. A generated cropped DWG per version is written and freshly read back, checking crop point data and default display state."
+  },
+  "limits": "Generated codec and local readback evidence only; native producer semantics and full graph qualification remain open. No fixture committed."
+}

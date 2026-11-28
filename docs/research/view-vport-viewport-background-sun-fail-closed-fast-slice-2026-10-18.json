@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-40 / 7G.2 VIEW, VPORT, and VIEWPORT Background/SUN fail-closed export",
+  "mode": "local generated DXF implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Prevent unclosed Background/SUN source handles from being emitted by direct VIEWPORT/VPORT writers",
+    "Bring VPORT adapter graph preflight into agreement with low-level writer policy",
+    "Verify ASCII and Binary AC1027 refusal, destination preservation, and corrected same-instance retry",
+    "Keep carrier-specific support claims and deferred external evidence unchanged"
+  ],
+  "implementation": {
+    "filesChanged": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "dxfRW::writeViewport rejects nonzero Background and SUN references before record emission; adapter-side refusal remains in place.",
+      "VPORT adapter preflight and dxfRW::writeVport reject nonzero Background/SUN references rather than emitting unrooted or unremapped handles.",
+      "VPORT code 332 is documented as a Background reference; code 361 is not established for VPORT and remains explicitly fail-closed."
+    ],
+    "generatedControls": [
+      "ASCII/Binary AC1027 VIEWPORT controls exercise direct-writer rejection and corrected retry for codes 332 and 361.",
+      "ASCII/Binary AC1027 VPORT controls exercise adapter preflight and direct-writer rejection, preserve pre-existing destinations, and retry after clearing only the unsupported edge.",
+      "Existing positive VIEWPORT typed-handle remapping retains only the independently supported edges; VIEW Background/SUN coverage remains enabled."
+    ],
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "dwgParseOrEncodeChanged": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+    "buildPassed": true,
+    "focusedCommands": [
+      "build/libdxfrw_dxf_fixture_tests --viewport-background-sun-fail-closed",
+      "build/libdxfrw_dxf_fixture_tests --vport-background-sun-fail-closed",
+      "build/libdxfrw_dxf_fixture_tests --viewport-typed-handle-remap",
+      "build/libdxfrw_dxf_fixture_tests --vport-shadeplot-retention",
+      "build/libdxfrw_dxf_fixture_tests --view-background-sun-fail-closed",
+      "git diff --check -- src/libdxfrw.cpp dwg2dxf/dx_iface.cpp tests/dxf_fixture_tests.cpp"
+    ],
+    "focusedResults": [
+      "VIEWPORT Background/SUN fail-closed export: PASS",
+      "VPORT Background/SUN fail-closed export: PASS",
+      "VIEWPORT typed reference handle remapping: PASS",
+      "VPORT shade-plot retention and fail-closed output: PASS; negative-control diagnostics expected",
+      "VIEW background/SUN fail-closed export: PASS",
+      "Scoped diff whitespace check: PASS"
+    ],
+    "fullFixtureCTestRun": false,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "evidence": [
+    {
+      "source": "Autodesk VIEWPORT DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "observed": "The carrier schema lists optional code-332 Background and code-361 SUN references; it does not provide the missing object/owner closure in the local typed adapter."
+    },
+    {
+      "source": "Autodesk VPORT DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-8CE7CC87-27BD-4490-89DA-C21F516415A9.htm",
+      "observed": "The VPORT schema documents code 332 as a Background reference. It does not document code 361, so this slice does not affirm a VPORT SUN code mapping."
+    },
+    {
+      "source": "Local adapter and low-level writer audit",
+      "observed": "Before this slice, VIEWPORT adapter checks rejected codes 332/361 but direct writeViewport emitted them; VPORT writeVport emitted codes 332/361 and adapter preflight had no corresponding rejection. Background/SUN object capture and root/owner closure are not implemented."
+    }
+  ],
+  "assessment": {
+    "closedScope": "Loss-prevention refusal for nonzero VIEW/VPORT/VIEWPORT Background/SUN references on the affected adapter and low-level writer paths; generated atomic failure-and-retry controls pass.",
+    "remaining": "No Background dictionary capture or serialization, no SUN owner-object serialization, no positive VPORT code-361 semantics, and no native plot/render or 3D qualification.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "repositoryState": {
+      "worktreeBroadlyDirty": true,
+      "staged": false,
+      "committed": false
+    }
+  }
+}

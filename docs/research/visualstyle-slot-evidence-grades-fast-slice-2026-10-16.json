@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-visualstyle-slot-evidence-grades-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Freeze evidence grades for the existing 58-slot VisualStyle crosswalk without admitting a DXF serializer.",
+  "implementation": {
+    "filesChanged": [
+      "CMakeLists.txt",
+      "tests/check_visualstyle_slot_manifest.py",
+      "docs/research/visualstyle-slot-evidence-grades-2026-10-16.json",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "gradeResults": [
+      "All 58 source primitive/destination slots are labeled empirically-captured with an explicit limit: local source capture plus generated mapping is not independent semantic proof.",
+      "All 58 same-profile DWG no-op encoder slots are labeled policy-qualified based on exact generated body-bit replay; this does not establish DXF tags or external producer semantics.",
+      "R2010b value-group slots 0-5 and 7-27 are labeled specified by the primary Autodesk table; slot 6 remains unresolved because the candidate group 63 conflicts with the table's dedicated group 421 Face style mono color entry; slots 28-57 are not applicable to the 28-slot profile.",
+      "All 58 R2013b value groups, group-176 companion candidates, and DXF serializer admissions remain unresolved.",
+      "CMC output policy remains unresolved for slots 6, 9, 10, 15, 20, 41, 44, and 51."
+    ],
+    "testCoverage": [
+      "The existing VisualStyle manifest CTest now checks grade-array coverage against all 58 candidate indices, exact field-name conflict mappings, R2010b specified/unresolved/not-applicable partition, unresolved R2013b and group-176 coverage, CMC slot coverage, serializer denial, and deferred external-J statuses.",
+      "The existing vector CTest still checks source/model primitive alignment, generated local DWG replay, and 28/58 version boundary.",
+      "No new CTest registration, drawing fixture, dependency, parser behavior, or serializer behavior was added."
+    ],
+    "evidenceBoundary": "The Autodesk table establishes only the listed conventional DXF fields. The LibreDWG-derived R2013b map remains a candidate; its writer was not executed. No output-group, CMC serialization, graph closure, native acceptance, or format support claim is qualified."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j 2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_(dwg_object_vectors|visualstyle_slot_manifest)$' --output-on-failure",
+      "git diff --check -- CMakeLists.txt DWG_DXF_3D_SUPPORT_PLAN.md DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/visualstyle-slot-evidence-grades-2026-10-16.json tests/check_visualstyle_slot_manifest.py",
+      "python3 -m json.tool docs/research/visualstyle-slot-evidence-grades-2026-10-16.json"
+    ],
+    "buildPassed": true,
+    "lc3CompatTargetPassed": true,
+    "focusedCTestPassed": true,
+    "focusedCTestPassedCount": 2,
+    "focusedCTestFailedCount": 0,
+    "gitDiffCheckPassed": true,
+    "jsonValidationPassed": true,
+    "fullSuiteRun": false,
+    "pinnedPeerWriterRun": false,
+    "nativeCadRun": false
+  },
+  "planDelta": {
+    "owners": [
+      "f.3c VisualStyle source-profile evidence",
+      "PAR-07 format support/serializer admission boundary"
+    ],
+    "newFindings": 0,
+    "newSubplans": 0,
+    "newCTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commitCreated": false,
+    "commitNote": "The worktree contains broad pre-existing uncommitted changes; no staging or commit was attempted."
+  },
+  "nextLocalWork": "Keep VisualStyle DXF output fail-closed. At one optional composed checkpoint, characterize an exact pinned writer or producer/readback route; if that external route is unavailable, continue other locally actionable implementation-plan items."
+}

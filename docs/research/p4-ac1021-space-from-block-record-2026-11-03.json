@@ -1,0 +1,111 @@
+{
+  "title": "AC1021 paper-space classification from validated BLOCK_RECORD ownership",
+  "date": "2026-11-03",
+  "phase": "P4",
+  "status": "FOCUSED_SPACE_CLASSIFICATION_PASSES;_STRICT_OUTPUT_ADVANCES_TO_NEXT_GATE",
+  "baseCommit": "b987f577",
+  "scope": "Correct the entity space flag after typed DWG parsing and successful block-owner validation, using the active containing BLOCK_RECORD name for model/paper-space records.",
+  "implementation": {
+    "sourceFiles": [
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader.cpp"
+    ],
+    "rule": "For an ordinary typed entity in the current validated block scope, derive DRW::PaperSpace from *PAPER_SPACE or *PAPER_SPACE<n>, and DRW::ModelSpace from *MODEL_SPACE. Do not change named-block entities or entities whose owner does not match the current scope. Once a validated INSERT/POLYLINE aggregate is ready, propagate its space to its ATTRIB/VERTEX children before delivery.",
+    "testFiles": [
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "generatedControl": "libdxfrw_entity_space_from_block_record checks canonical model/paper names, numbered layouts, an ownerless legacy walk, mismatched ownership, ordinary named blocks, direct VERTEX exclusion, INSERT-to-ATTRIB and POLYLINE-to-VERTEX inheritance, and supported-pair boundaries."
+  },
+  "implementationDigests": {
+    "src/intern/dwgreader.cpp": "430c4452fff6272b2866aabf16d070203391a6e6fbca089e89e78a3017fad88e",
+    "src/intern/dwgreader.h": "26191177375b5e99b39561bd9a123e02adff6ac89b4fa843f338c975aeffdf54",
+    "tests/dwg_reader_matrix_tests.cpp": "cda43fa5ba61f8bf04552c4285f1b1b7708948bd2670ea0a130ddd555dda9eec",
+    "tests/CMakeLists.txt": "17bd5c5626e301874343b6ad2b40a41216616a5568e6a6a3cdfc6bafe8cddefa",
+    "build-gcc/libdxfrw_dwg_reader_matrix_tests": "fdb632a834c0209745876a35759e7ea583e09b25f9aa517dd9166848c1f2a726",
+    "build-gcc/dwg2dxf/dwg2dxf": "18caa67754f127697b875163d3fd204d665aebd0d823a6cef1449b0dd7bef4d3"
+  },
+  "localSourceObservations": [
+    {
+      "path": "tests/samples/AC1021/plot_screening_and_fill_patterns.dwg",
+      "sha256": "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71",
+      "provenance": "Present in the local working copy and untracked; not staged or committed.",
+      "records": "LAYOUT Fill Patterns 0x2BD refers to BLOCK_RECORD 0x2BE (*Paper_Space1), whose viewport list contains 0x2BF and 0x2C0. Both VIEWPORT entities have entmode 0 and owner 0x2BE."
+    },
+    {
+      "path": "tests/samples/AC1021/truetype.dwg",
+      "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+      "provenance": "Present in the local working copy and untracked; not staged or committed."
+    },
+    {
+      "path": "tests/samples/AC1021/lineweights.dwg",
+      "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+      "provenance": "Present in the local working copy and untracked; not staged or committed."
+    }
+  ],
+  "independentSpecificationReview": {
+    "autodeskCommonEntityCodes": {
+      "source": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "finding": "Group 330 identifies the owning BLOCK_RECORD; group 67 defaults to model space when omitted or zero and is one for paper space."
+    },
+    "autodeskBlockDefinitions": {
+      "source": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm",
+      "finding": "Paper-space layout definitions use *Paper_Space, *Paper_Space0, *Paper_Space1, and subsequent numbered names; group 67 distinguishes paper-space entities."
+    },
+    "odaSpecification": {
+      "source": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf, sections 20.4.1-20.4.2",
+      "finding": "ODA specifies the common entity entmode field and the common owner-handle data; the reviewed text does not itself state the DXF group-67 mapping for every numbered layout owner."
+    },
+    "libreDwgPeer": {
+      "source": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/common_entity_handle_data.spec",
+      "finding": "LibreDWG derives DXF paper space for entmode 1 or entmode 0 with the header paper-space BLOCK_RECORD owner. Its 0.14 DXF conversion of the same local samples omits group 67 for some numbered paper-space owners, while emitting group 67=1 for other paper-space viewports. This peer output is conflicting implementation evidence and is not treated as normative semantic proof."
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+      "result": "PASS"
+    },
+    "fastTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_entity_space_from_block_record$' --output-on-failure",
+      "result": "PASS; 1/1 test"
+    },
+    "compoundControls": [
+      {
+        "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --insert-staging-index",
+        "result": "PASS"
+      }
+    ],
+    "strictCli": [
+      {
+        "input": "plot_screening_and_fill_patterns.dwg",
+        "exitCode": 1,
+        "currentDisposition": "LAYOUT viewport-list validation passes; strict output stops at VISUALSTYLE carrier coverage."
+      },
+      {
+        "input": "truetype.dwg",
+        "exitCode": 1,
+        "currentDisposition": "LAYOUT viewport-list validation passes; strict output stops at VISUALSTYLE carrier coverage."
+      },
+      {
+        "input": "lineweights.dwg",
+        "exitCode": 1,
+        "currentDisposition": "LAYOUT viewport-list validation passes; strict output stops at VISUALSTYLE carrier coverage."
+      }
+    ],
+    "strictCliCommandPattern": "build-gcc/dwg2dxf/dwg2dxf <input> -y -v2010 <scratch-output>",
+    "oldFailureTrace": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-p4-existing-dwg-sweep-jg4vujnz/; pre-change logs for the three SHA-bound inputs show 'DWG LAYOUT viewport list contains a missing, duplicate, or non-VIEWPORT target'.",
+    "peerDxf": "LibreDWG 0.14 outputs remained under /private/tmp/libredwg-paperspace-*.dxf; no drawing fixture or generated output was added to the repository."
+  },
+  "claimBoundary": [
+    "The normalization is based on the actual validated containing block scope and uses names rather than hard-coded handles.",
+    "All three strict conversions remain refused for an unrelated VISUALSTYLE carrier-coverage gate; no complete DWG-to-DXF output or fresh readback was produced.",
+    "LibreDWG's group-67 disagreement on some numbered paper-space owners remains recorded as a peer differential, not resolved interoperability evidence.",
+    "This closes one local parser/adapter classification defect only; it does not promote a format-support claim or native-consumer qualification."
+  ],
+  "nextAction": "Trace the source records behind VISUALSTYLE carrier coverage on the AC1021 strict-conversion witnesses and establish its exact owner, fields, and output route before attempting a writer change."
+}

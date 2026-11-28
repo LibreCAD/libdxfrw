@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p6-hatch-elevation-z-overflow-fast-slice-2026-11-11",
+  "status": "GENERATED_FINITE_ROTATED_RESULT_PRESERVED",
+  "scope": "Nonmutating HATCH/MPOLYGON OCS boundary-point conversion when adding the HATCH elevation to a finite boundary-point Z overflows before rotation.",
+  "finding": {
+    "operation": "DRW_Hatch::boundaryPointToWcs",
+    "priorBehavior": "The OCS boundary Z and entity elevation were added directly. That intermediate can overflow even when the orthogonal OCS-to-WCS rotation distributes the exact finite inputs into three representable WCS components.",
+    "change": "When the direct elevation-plus-boundary-Z sum is non-finite, use a scaled, compensated four-term dot product that applies the OCS rotation to the two Z contributions separately. If the stable calculation cannot produce a finite result, retain the prior non-finite result behavior.",
+    "scopeBoundary": "Ordinary finite elevation sums retain the existing arithmetic path. This is arithmetic robustness for the public coordinate helper, not a change to stored HATCH/MPOLYGON data, parsing, native rendering, or producer qualification."
+  },
+  "generatedControls": [
+    "Positive elevation and boundary Z each equal 0.6 * DBL_MAX; their direct sum overflows, while the rotated normal (1,1,1) yields three finite components matching 1.2 * DBL_MAX / sqrt(3).",
+    "Negative elevation and boundary Z each equal -0.6 * DBL_MAX; their direct sum overflows negatively, while the rotated result remains finite and matches the analytic components.",
+    "Existing ordinary arbitrary-normal point/vector mapping and large-coordinate intermediate-cancellation controls remain in the same focused selector."
+  ],
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "focusedCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_hatch_ocs_wcs_coordinate$' --output-on-failure",
+    "focusedResult": "PASS 1/1",
+    "diffCheck": "PASS",
+    "drawingFixturesAdded": 0
+  },
+  "unresolved": [
+    "Exact real-number arithmetic is not provided; generated results are checked within floating-point tolerance.",
+    "Native CAD rendering, external producer behavior, broad OCS conversion coverage, and support claims remain unqualified."
+  ],
+  "claimEffect": "Closes only the generated finite-result overflow case for HATCH/MPOLYGON boundary-point coordinate conversion. No DWG/DXF support claim is promoted."
+}

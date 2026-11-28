@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 GROUP root cardinality and alias refusal",
+  "mode": "Generated local ASCII/Binary fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reject duplicate case-folded ACAD_GROUP root entries before DXF publication.",
+    "Reject a differently named NOD key that aliases the canonical ACAD_GROUP dictionary.",
+    "Verify destination preservation, corrected retry, and strict GROUP/member readback."
+  ],
+  "implementation": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationAdded": false,
+    "behavior": "The adapter preflight now validates an existing ACAD_GROUP NOD edge as a unique key to exactly one DICTIONARY owned by the owner-zero NOD, and rejects any additional NOD key aliasing that dictionary. Authored GROUPs without a source NOD entry remain eligible for writer-generated root creation. The existing selector adds duplicate-root and same-target alias negatives for both ASCII and Binary, checks byte-for-byte destination preservation, retries corrected input through the same adapter, and verifies the GROUP/member identity on strict readback."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "selector": "PASS: libdxfrw_dwg2dxf_adapter_tests --group-adapter-roundtrip (exercised by the owning CTest in ASCII and Binary)",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^(libdxfrw_group_adapter_roundtrip|dwg2dxf_named_object_callback_storage)$' --output-on-failure (2/2)",
+    "diffCheck": "PASS: git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp",
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadOrKernelRun": false
+  },
+  "supportImpact": {
+    "supportPromotion": false,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "staged": false,
+    "reason": "Shared worktree is broadly dirty and Git metadata is read-only."
+  }
+}

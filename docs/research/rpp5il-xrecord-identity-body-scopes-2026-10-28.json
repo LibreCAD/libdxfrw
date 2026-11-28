@@ -1,0 +1,64 @@
+{
+  "schema": "xrecord-identity-payload-scope-v1",
+  "date": "2026-10-28",
+  "codeCommit": "f7ee8791c9a326c7e95f63b2560a2d84a5cc1adf",
+  "supportClaimsPromoted": false,
+  "scope": "Identity source observer distinguishes XRECORD opaque body values from common structural applications. It inventories payload code-5/105 candidates in the new OpaqueBody scope; unknown-scope consumers remain fail-closed. The first body 1001 starts trailing XDATA.",
+  "originalSource": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "provenance": "Independent repository sample; native authoring history not independently certified.",
+    "trigger": "XRECORD [520253,...), after AcDbXrecord contains opaque 102 {ATTRRECORD and 102 ATTRRECORD} at [520449,520465); former observer incorrectly treated these as a normal application scope.",
+    "before": "Public identity observation InvalidBoundary, 6 sections/821 records/829 candidates, no EOF ordinal.",
+    "after": "Public identity observation Complete, 6 sections/995 records/1003 candidates, EOF ordinal 45077. Adapter identityInput and identityAudit remain absent for AC1018. Selected BLOCK_RECORD 6F2, owner TABLE 1, XDICT 6F3, INSERT 704 and APPID 12/6FA were observed, not independently resolved as a graph."
+  },
+  "probe": {
+    "path": "build/agent-attribute-profile/ac1018-identity-final/",
+    "sourceSha256": "79d84dfbb9e56a2e8d6cdc56a99acf597321af24aaa16c1668d7dc7e0d36909a",
+    "binarySha256": "8632bc72d1f984651ce3ca38f487061a38db13160bce342c75a20b4f811c8b68",
+    "stdoutSha256": "33ecdc065f7bee05d20d2da1907aa083b599ac2b368238c1a384c1895b603f76",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "adapterObjectSha256": "616dd8ba03fe54c97ad0d9cd1baa037d680cbef01570fa7b69c6338896328a77",
+    "librarySha256": "c947e27046e85ccb02ced434b186ddf6d30a9be8ddc256b5f76bfd4f1131b5bc"
+  },
+  "bindings": {
+    "observerSha256": "3913e7186d5bc7517354b4709fde96ab8e415dfc977f54142e526f2dc81eac32",
+    "publicHeaderSha256": "9582285bfe0d3edd4930270bc24e75644cc073f7ad18d45244965771cfcc21b0",
+    "focusedControlSha256": "e3c2fcad83d231943e56e7d3083a07859b22b2494e20f0d8d9c0ec7366941616",
+    "normalTestBinarySha256": "5009fff32a8394cb05a1c2209f86ba0df260643ed00bb952d281d9057f68c450",
+    "chronology": "Focused normal and ASan builds included concurrent TABLE work, subsequently committed as 465cbe01. The original source probe is bound to its stated normal objects."
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_legacy_override_177",
+      "libdxfrw_table_legacy_text_height",
+      "libdxfrw_table_legacy_merge",
+      "libdxfrw_identity_source_namespace",
+      "libdxfrw_structural_source_origins",
+      "libdxfrw_table_original_inputs"
+    ],
+    "normal": {
+      "result": "PASS 7/7",
+      "log": "build/Testing/Temporary/LastTest.log",
+      "sha256": "d96ae84951a04d131182ee1eec40311617fb1da295c5f4b8ddb0d4d9aae07b13"
+    },
+    "asan": {
+      "result": "PASS 7/7",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "testBinarySha256": "eb3badf9e9d12e29f56a3a923d65413d19013d2d2e48cb084da56f29ba3c1974",
+      "librarySha256": "e286c58798d7d2b466d5b162162f780b1387b77aa4ecb0d95c57b0ea9bdba0bd",
+      "log": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+      "sha256": "78da3969c81cebfb219f54ed700302f5a1c7834a2c602318e8867e457f0db536"
+    },
+    "controls": "Locally authored AC1018/AC1032 ASCII/binary: 4 complete observations, 8 opaque candidate scopes, 4 unqualified namespace states, 4 bad trailing-XDATA reads, 4 quota boundaries and 8 corrected retries. A direct observer control preserves wide opaque lexemes and duplicate outer candidates. Focused checks, not a full suite."
+  },
+  "limitations": [
+    "OpaqueBody was appended to the public uint8 scope enum: existing numeric values and representation stay fixed and no virtual is added; downstream exhaustive switches must explicitly handle the new value conservatively. Rebuild consumers using the changed header.",
+    "The observer tracks original candidate scope, not unique identity, reference target type, ownership, full document output or native semantics. AC1018 adapter namespace remains gated.",
+    "Separately unresolved reader bug at this commit: captured XRECORD payload code 5 can still register as a global self handle. In a locally authored control, XRECORD self 41 plus body 5=41 causes read failure; control body 5=42 reads. The diagnostic identity scope remains opaque even when that flawed registry reports acceptance.",
+    "No drawing fixture was committed."
+  ]
+}

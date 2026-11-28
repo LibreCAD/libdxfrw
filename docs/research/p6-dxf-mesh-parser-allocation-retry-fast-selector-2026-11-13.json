@@ -1,0 +1,28 @@
+{
+  "title": "Generated MESH DXF parser allocation rollback/retry fast selector",
+  "date": "2026-11-13",
+  "status": "focused_parser_control_passed",
+  "scope": "Register the existing generated MESH DXF parser allocation rollback/retry control as an independently runnable fast CTest.",
+  "control": {
+    "selector": "--mesh-dxf-allocation-failure",
+    "generated_profiles": [
+      "vertex-count reservation failure, unchanged model, and retry",
+      "face-count reservation and face construction rollback/retry",
+      "edge-count reservation failure and retry",
+      "crease-count reservation failure and retry",
+      "property-override count reservation and append/retry"
+    ],
+    "fixture_policy": "The test authors records in memory; no DWG/DXF fixture file is committed."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j 4",
+    "focused": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_mesh_parser_allocation_retry$' --output-on-failure",
+    "result": "1/1 passed in 0.29 seconds."
+  },
+  "limitations": [
+    "This exposes existing parser rollback controls; it does not add MESH writer allocation-failure coverage.",
+    "This is local generated allocation/retry evidence only and does not qualify source semantics, graph closure, native behavior, or platform behavior.",
+    "The broader P6 safety and caller-state audit remains open; no support claim is promoted."
+  ]
+}

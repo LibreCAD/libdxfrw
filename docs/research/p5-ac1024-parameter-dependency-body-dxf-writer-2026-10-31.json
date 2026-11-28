@@ -1,0 +1,113 @@
+{
+  "receiptVersion": 1,
+  "phase": "P5",
+  "profile": "AC1024 BLOCKPARAMDEPENDENCYBODY DXF projection and record writer",
+  "state": "RECORD_TRANSPORT_TYPED_READBACK_PASS_GRAPH_CLOSURE_OPEN",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "version": "AC1024",
+    "matchingRecords": 6,
+    "fixtureCommittedByThisWork": false,
+    "observedNames": [
+      "H=4.0000",
+      "W=36.0000",
+      "H=6\"",
+      "W=5'-0\"",
+      "H=6\"",
+      "W=3'-6\""
+    ],
+    "observedVersions": {
+      "AcDbAssocDependencyBody": 1,
+      "AcDbImpAssocDimDependencyBodyBase": 1,
+      "AcDbBlockParameterDependencyBody": 0
+    }
+  },
+  "schemaEvidence": {
+    "independentImplementation": "ACadRust DXF writer",
+    "source": "https://docs.rs/acadrust/latest/src/acadrust/io/dxf/writer/section_writer.rs.html",
+    "fieldOrder": [
+      [100, "AcDbAssocDependencyBody"],
+      [90, "dependency body version"],
+      [100, "AcDbImpAssocDimDependencyBodyBase"],
+      [90, "dimension base version"],
+      [1, "dependency name"],
+      [100, "AcDbBlockParameterDependencyBody"],
+      [90, "class version"]
+    ],
+    "crossCheck": {
+      "implementation": "GNU LibreDWG dwg2dxf 0.14",
+      "sourceCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "scratchOutput": "/private/tmp/window-libredwg.dxf",
+      "scope": "Observed the same subclass order and six dependency names; LibreDWG reports unrelated unstable-class warnings and parse errors for this sample, so this is structural evidence only."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "reader": "AC1024 exact seven-group body projection; other versions, wrong field types/order, or trailing unknown groups remain raw-only.",
+    "writer": "AC1024 exact 1/1/0 version profile and nonempty name; emits DXF group 90 values as 32-bit integers and remaps common object/owner handles through the standard writer path.",
+    "unknownTail": "An added group after the terminal class-version field leaves the record raw-retained and not fully typed.",
+    "fixturesCommitted": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+    "ctest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_parameter_dependency_body_writer$' --output-on-failure",
+      "result": "PASS",
+      "input": "Six locally authored in-memory records; no drawing file created."
+    },
+    "physicalSourceSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-parameter-dependency-body-dxf-writer tests/samples/AC1024/architectural_example-imperial.dwg",
+      "result": "PASS",
+      "checks": [
+        "all six source records match the bounded AC1024 version/name profile",
+        "ASCII and Binary DXF output",
+        "exact common identity/owner and subclass group order",
+        "fresh typed and raw readback of all six records",
+        "late-record failure preserves the existing destination",
+        "corrected same-writer retry succeeds",
+        "unknown trailing group is retained raw-only"
+      ]
+    },
+    "adjacentControls": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-proxy-node-dxf-readback",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-proxy-node-dxf-writer",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-visibility-composed-graph",
+        "result": "PASS"
+      }
+    ],
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "5e743499094e279c0b766073862450e6e48712814bc88b85f38fb02ac1f7b508",
+      "tests/dwg2dxf_adapter_tests.cpp": "0f271f56171efe0642e5bfaf1d326c32bea988b35204a03ece88c0683bd6b52b",
+      "tests/CMakeLists.txt": "102bf58a26d27d27b8b0aaa386a7bfe89e45a84fff37a5071ad1ec4ee235df2c"
+    },
+    "executableSha256": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "6c54fe213aa800f62001a3f05e954643dc374a53f522b79aee7c46e42c181c85",
+      "build-gcc/dwg2dxf/dwg2dxf": "32bd54f3696e4c0ecc63d32bb1839d05e4e9960d3bd6563186ee19d1a5cf6621"
+    }
+  },
+  "qualification": {
+    "sourceRecordBodyProjected": true,
+    "asciiBinaryRecordTransport": true,
+    "typedRawRecordReadback": true,
+    "sourceIdentityAndOwnerFieldsRoundTrip": true,
+    "ownerTargetResolvedAndEmitted": false,
+    "owningAssociativeDependencyClosure": false,
+    "bothEvaluationGraphOwnersClosed": false,
+    "strictCompleteConversion": false,
+    "nativeDynamicBlockSemantics": false,
+    "supportClaimsPromoted": false
+  },
+  "next": "Bind these six projected bodies to their owning ACDBASSOCDEPENDENCY records and emitted identities, then close the associative network and both EvaluationGraph owner graphs. Standalone record readback does not establish graph or native semantics."
+}

@@ -1,0 +1,73 @@
+{
+  "title": "SORTENTSTABLE DXF OBJECTS writer allocation rollback and retry",
+  "date": "2026-11-12",
+  "scope": "Generated full-file ASCII/Binary AC1027 SORTENTSTABLE graph, documented owner-domain, and codec transaction controls only; no source-producer or support claim.",
+  "implementation": {
+    "writer": "dxfRW::writeSortEntsTable",
+    "path": "Public DXF OBJECTS callback in a complete dxfRW::write operation",
+    "profile": "NOD parent, model-space BLOCK_RECORD owner, four emitted model-space LINE targets paired with sort keys, and two EED values",
+    "behavior": [
+      "Emit SORTENTSTABLE only when the remapped group-330 owner is the documented model-space or paper-space BLOCK_RECORD.",
+      "Preserve the model-space and paper-space owner identities; reject any other remapped owner before record emission."
+    ]
+  },
+  "generated_profiles": [
+    {
+      "encoding": "ASCII DXF",
+      "version": "AC1027",
+      "ownerProfile": "model-space BLOCK_RECORD with four emitted model-space LINE targets",
+      "reached_allocation_failures": 18
+    },
+    {
+      "encoding": "Binary DXF",
+      "version": "AC1027",
+      "ownerProfile": "model-space BLOCK_RECORD with four emitted model-space LINE targets",
+      "reached_allocation_failures": 17
+    }
+  ],
+  "assertions": [
+    "Each injected allocation failure returns a failed write and preserves pre-existing destination bytes.",
+    "The caller DRW_SortEntsTable, including handles, owner, sort pairs, and EED values, is unchanged after allocation failure.",
+    "The generated model-space graph writes four LINE targets; each remapped group-331 target resolves to its emitted LINE and group 330 names the model-space BLOCK_RECORD.",
+    "A non-space owner is refused before publication and preserves destination bytes; correcting to model space and retrying the same writer succeeds. Paper-space owner output is also admitted and read back with paper-space LINE owners.",
+    "Retry after injected allocation failure with the same writer/table reproduces byte-identical clean output.",
+    "Fresh typed libdxfrw readback verifies selected table fields and EED values for ASCII and Binary DXF."
+  ],
+  "validation": {
+    "normal_build": "cmake --build build --target libdxfrw_sortents_objects_allocation_tests -j4: PASS",
+    "normal_ctest": "ctest --test-dir build -R '^libdxfrw_sortents_objects_allocation$' --output-on-failure: 1/1 PASS",
+    "asan_configuration": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5; retained -fsanitize=address -fno-omit-frame-pointer flags",
+    "asan_build": "cmake --build build-asan-custom --target libdxfrw_sortents_objects_allocation_tests -j4: PASS",
+    "asan_ctest": "ctest --test-dir build-asan-custom -R '^libdxfrw_sortents_objects_allocation$' --output-on-failure: 1/1 PASS",
+    "observed_allocation_counts": "ASCII 18; Binary 17 in both normal and ASan executables; owner-scope negative/positive controls pass in both encodings",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish graph closure for the authored four-LINE profiles, the documented owner handle domain, rollback, retry, and same-library readback only.",
+    "No physical source graph, producer-wide owner coverage, or native consumer behavior is established; named-block SORTENTSTABLE records remain refused.",
+    "DXF files are generated from scratch in a temporary directory and removed; no DWG/DXF fixture was added."
+  ],
+  "artifact_sha256": {
+    "src/libdxfrw.cpp": "9e04ff7b10f4cd798fec8275bd020f2533d02bac790e9c59c9b9a6ab872241fe",
+    "tests/sortents_objects_allocation_tests.cpp": "8c0e3abee3cf355b7f466e664f08915a035f710431a6e24ad93375042d11907b",
+    "tests/CMakeLists.txt": "f76f52c2cd2100890e78f7a88f91b0e6b53f2c07d753b6a191dbb2ffd8db878a",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ba424b1fa1b542403818238a0a16cb0c81142868a93e7ed92d7da7b88efb8851"
+  },
+  "owner_scope_controls": [
+    {
+      "encoding": "ASCII DXF",
+      "invalid_owner": "0x600",
+      "result": "refused; seeded destination preserved; same-writer model-space retry passed; paper-space output/readback passed"
+    },
+    {
+      "encoding": "Binary DXF",
+      "invalid_owner": "0x600",
+      "result": "refused; seeded destination preserved; same-writer model-space retry passed; paper-space output/readback passed"
+    }
+  ],
+  "owner_scope_authority": {
+    "source": "Autodesk AutoCAD DXF Reference — SORTENTSTABLE",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm",
+    "rule": "Group code 330 owner is currently only *MODEL_SPACE or *PAPER_SPACE."
+  }
+}

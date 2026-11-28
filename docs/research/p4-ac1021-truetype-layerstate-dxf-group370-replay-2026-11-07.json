@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 truetype exact LayerStates group-370 DXF replay",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "supersedes": "The DXF-origin group-370 resave limitation recorded in p4-ac1021-truetype-strict-dxf-output-readback-2026-11-07.json. That receipt remains the evidence for strict whole-source output/readback; this follow-up closes only the exact replay route described here.",
+  "scope": "Preserve the exact AC1021 truetype LayerStates XRECORD group-370 payload on same-version DXF re-emission, using a parse-time typed snapshot, exact owner dictionary path and complete group-330/331 target binding; reject mutations atomically and retry on the same adapter.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; producer and author are not independently authenticated. Source and generated DXF files remain outside the repository."
+  },
+  "sourceProfile": {
+    "dictionaryPath": "LAYER_CONTROL extension dictionary -> ACAD_LAYERSTATES dictionary -> ACAD_VIEWS_default XRECORD; the sibling ACAD_LAYERFILTERS dictionary is present and empty.",
+    "xrecord": "One immutable parse-time model snapshot; 27 ordered data values; exactly four group-330 references resolving uniquely to emitted LAYER records, four group-331 references resolving uniquely to emitted LTYPE records, and four group-370 integer values equal to -3. The profile is same-version AC1021 only.",
+    "normativeBoundary": "Autodesk's XRECORD object reference documents application data groups 1-369 (except 5 and 105). Its numeric DXF group-code reference assigns 370-379 to lineweight and notes custom non-entity objects may use the full range. Therefore group 370 remains excluded from ordinary XRECORD output; this path is a narrow replay exception for one independently source-bound LayerStates shape, not general XRECORD syntax support.",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+      "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm"
+    ]
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "Extend bounded parse-time XRECORD snapshots to retain only DWG 1070/1071 compatibility records or the exact 27-value LayerStates group-370 candidate shape. A separate DXF-origin replay predicate requires same-version AC1021, an unchanged typed source snapshot, exact 4x330/4x331/4x370 payload cardinality and values, unique LAYER/LTYPE targets, the complete LAYER_CONTROL extension -> ACAD_LAYERSTATES/ACAD_LAYERFILTERS -> ACAD_VIEWS_default path, and expected reciprocal owners/reactors. Only then route through the existing special group-370 writer. All other group-370 XRECORDs fall through to normal refusal.",
+    "productionParserChanged": false,
+    "fixtureAdded": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS with -Werror",
+      "testSourceSha256": "b70be24b478fc9f5b11e140df7084522b6302666219bdc7f82e35dfe2dd4fe92",
+      "adapterExecutableSha256": "3e00890895bf33ac778e03c8259a0e51b825d479378149e39d1c856794a19e2c",
+      "dwg2dxfExecutableSha256": "5982fe171b1c92345120eaa72b6f450309dd023b7f323313e64f80a697972f7b"
+    },
+    "generatedReferenceControl": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_xrecord_group_reference_admission$' --output-on-failure",
+      "result": "PASS; the XRECORD group-330/331 typed-target and dangling-reference admission controls pass."
+    },
+    "physicalStrictAndReplay": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --truetype-ac1021-strict-output-readback /Users/dli/doc/dwg/truetype.dwg /private/tmp/truetype-strict-dxf-resave-qualified",
+      "result": "PASS in ASCII and Binary. RequireComplete output and fresh whole-file import readback preserve all 173 published source frames, the complete XRECORD/LAYER/LTYPE census, and the exact LayerStates owner and target identities. Re-emitting the imported DXF in the same encoding succeeds and freshly imports with all 27 XRECORD values, including four 370 values of -3. Mutating a group-370 value refuses without replacing a destination sentinel; restoring the value and retrying the same adapter succeeds."
+    },
+    "outputs": {
+      "strictAsciiSha256": "78806f866e72316fcfa14477a99ef973c36663f0260d04de53a7ce91d6f58583",
+      "strictBinarySha256": "baabd1758c4df8d85ce90acefeeb1bbec1b9ac692885ba0b18ebf7c243ca296b",
+      "resavedAsciiSha256": "f75a0c015973b9fcf654e0636290a8b0066f6118057b6cfb8bb48ec650bd9cea",
+      "resavedBinarySha256": "039faa2511977db1895f3e09a4ae6851da7967a321bd730da8310b38ef6e592e"
+    },
+    "diffCheck": "PASS; git diff --check passed."
+  },
+  "limits": [
+    "One unauthenticated local AC1021 source profile only; no producer-wide, native application, or support claim is established.",
+    "No other XRECORD group-370 payload is admitted. Different value counts, non--3 values, versions, owners, keys, target sets, or mutated snapshots remain refused.",
+    "This is a compatibility replay route despite the standard XRECORD application-data range being documented as 1-369; it does not promote group 370 to an ordinary XRECORD application code.",
+    "No DWG/DXF fixture was added to the repository."
+  ],
+  "next": "Continue P4 with a distinct physically evidenced OBJECTS graph from the existing inventory. Keep the AC1021 group-370 path closed to other source shapes and versions."
+}

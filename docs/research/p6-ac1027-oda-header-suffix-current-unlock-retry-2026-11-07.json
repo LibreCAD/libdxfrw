@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1027 HEADER suffix retry after current unlock report",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Determine whether the ODA File Converter can process the existing AC1027 Cover witness after the user's latest unlock report, without changing source or converter versions.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "copyPath": "/private/tmp/libdxfrw-oda-unlock-current-20261107-052315/in/Cover.dwg",
+    "copySha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "provenanceLimit": "Existing local source; no new drawing fixture was added."
+  },
+  "converter": {
+    "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/libdxfrw-oda-unlock-current-20261107-052315/in /private/tmp/libdxfrw-oda-unlock-current-20261107-052315/out ACAD2013 DWG 0 0",
+    "boundedSeconds": 30,
+    "observedAtLocal": "2026-11-07 05:23:15 America/Toronto",
+    "result": "ABORT (SIGABRT, return code -6) in 0.24 seconds during pasteboard/XPC initialization; stdout empty; no document processing or output file.",
+    "stderrExcerpt": "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]; PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]; invalid com.apple.hiservices-xpcservice connection.",
+    "postAttemptOutputFiles": []
+  },
+  "sessionCheck": {
+    "method": "CoreGraphics CGSessionCopyCurrentDictionary",
+    "result": "no session dictionary",
+    "interpretation": "This environment did not expose a console-session dictionary; the converter result is the direct operational check."
+  },
+  "decision": "The unlock report did not change this launch failure. Do not repeat the same direct CLI invocation under the same environment. Suffix analysis remains unqualified and strict output remains refused. Continue with a supported GUI or independent converter launch path only after its launch environment or invocation method changes, while continuing independent local implementation.",
+  "validation": {
+    "sourceHashRechecked": true,
+    "copiedSourceHashMatches": true,
+    "converterHashRechecked": true,
+    "freshInputOutputDirectories": true,
+    "outputDirectoryChecked": true,
+    "fullSuites": "NOT RUN"
+  }
+}

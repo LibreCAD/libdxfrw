@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-138 DetailViewStyle group-1 handle insertion fast slice",
+  "mode": "Generated ASCII/Binary implementation and focused regression validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Insert missing DetailViewStyle group-1 identifier and arrow-symbol DXF group-340 references from edited typed values during same-version raw-carrier export.",
+    "Preserve occurrence semantics for an arrow-only edit by inserting a null identifier reference before the arrow handle.",
+    "Verify generated ASCII and Binary DXF source/output behavior with complete ordered raw-group and typed/resource-closure checks."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/detailviewstyle-group1-handle-pair-insertion-fast-slice-2026-10-19.json"
+    ],
+    "behavior": "When group-1 identifier or arrow references are absent in a captured raw carrier but typed handles are edited, insert group 340 values in occurrence order. If the identifier slot is default-null and the arrow is nonzero, insert group 340 value 0 as the first slot so the arrow remains the second occurrence. Reject zero/NoHandle as newly inserted non-null targets.",
+    "testCases": [
+      "Remove both group-1 references from a generated primary DetailViewStyle; edit identifier and arrow references; export and verify typed readback, resource closure, complete ordered raw-group replay, untouched SectionViewStyle carrier, and following POINT in ASCII and Binary DXF.",
+      "With both source references absent, leave identifier default-null and edit only arrow; verify null first-occurrence placeholder and arrow second-occurrence readback in ASCII and Binary DXF."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS",
+        "passed": 1,
+        "failed": 0,
+        "elapsedSeconds": 0.52
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0
+  },
+  "limitations": [
+    "Same-source-version DXF typed-field insertion/replay only; no DWG-origin typed serialization or cross-version projection qualification.",
+    "Does not resolve semantically ambiguous partial repeated-occurrence source data; unsupported states remain fail-closed.",
+    "Does not qualify native style rendering or remaining typed view-style properties.",
+    "No commit was created because the shared worktree's .git directory is read-only."
+  ]
+}

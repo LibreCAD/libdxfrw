@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-03",
+  "scope": "SECTIONSETTINGS nested source-object group-330 and destination-block group-331 output identity mapping.",
+  "source_context": {
+    "model": "DRW_Section::Settings stores nested DRW_SectionTypeSettings::m_sourceHandles and m_destinationBlockHandle; the legacy flat form stores DRW_Section::m_destinationBlockHandle.",
+    "documented_roles": "Autodesk's Section Type Settings DXF table defines group 330 as repeated soft pointers to source objects, bounded by the source count, and group 331 as a soft pointer to the destination block object.",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-50D73C4F-83B5-4A09-9A40-87B5EA1F9A11.htm",
+      "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+      "src/drw_objects.h: DRW_SectionTypeSettings and DRW_Section settings fields",
+      "src/drw_objects.cpp: DRW_Section::parseCode and parseDwg handle-list decode"
+    ]
+  },
+  "implementation": {
+    "behavior": "Before emitting SECTIONSETTINGS bytes, resolve every nested source-object reference and destination-block link. A configured reference resolver supplies the final handle; otherwise source-handle remapping applies. The legacy flat destination-block group-331 field uses the same mapping. Source lists larger than the existing kMaxSectionSourceCount bound, NoHandle values, resolver exceptions, and zero/NoHandle results for nonzero source references refuse before record publication. A zero nested source entry remains a literal zero to preserve the existing counted list shape.",
+    "count_projection": "Nested group 92 is emitted from the bounded source-handle vector size; source entries are no longer silently truncated to the maximum.",
+    "retry_behavior": "Failure controls preserve the preexisting destination prefix; corrected output succeeds with a fresh writer because failed dxfRW writer state is sticky."
+  },
+  "validation": {
+    "input": "Generated in-memory records only; no DWG/DXF fixture was added.",
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "controls": [
+      "nested group-92/source group-330/destination group-331 output parsed from the emitted record",
+      "resolver precedence over explicit source-handle remaps for both nested references",
+      "legacy flat destination group-331 remap and resolver paths",
+      "zero and NoHandle resolver results refuse atomically for source and destination references",
+      "corrected fresh-writer retry succeeds"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "build-gcc/libdxfrw_wave1_tests --section-settings-reference-remapping",
+      "ctest --test-dir build-gcc -R '^libdxfrw_section_settings_reference_remapping$' --output-on-failure",
+      "git diff --check"
+    ],
+    "result": "PASS"
+  },
+  "qualification_limits": [
+    "No physical producer or independent native consumer was used.",
+    "Reference-role documentation does not prove target existence, valid ownership, source-to-output association, or complete recursive closure.",
+    "Generated wire consistency does not qualify native section-generation semantics or promote a format support claim."
+  ]
+}

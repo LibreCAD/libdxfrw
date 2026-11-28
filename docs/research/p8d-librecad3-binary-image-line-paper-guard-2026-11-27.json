@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-binary-image-line-paper-guard-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "03f99f42877079cac92d332121e40a225a477222",
+  "implementation": "Extend the existing same-revision checked binary paper-block omission to standard blocks containing only model-space LINE and same-source IMAGE entities. The shared graph inspector and source identity checks continue to gate the path; raw records dropped during cross-encoding remain reported.",
+  "validation": [
+    "New LINE and retained-IMAGE omission assertions failed before this change. Thirteen focused image, dictionary and paper-space tests and eighteen layout tests pass afterward.",
+    "Controls retain the conservative block for POINT entities, a foreign-source image, unmodeled child references, source paper and other versions. Unsafe paper content refuses before replacing the destination, and corrected retry succeeds.",
+    "ezdxf 1.4.5 independently reads binary outputs containing a LINE, one IMAGE, two same-path IMAGEs with distinct IMAGEDEFs, and a mixed LINE/IMAGE pair; each audit reports zero errors and zero fixes. The selected IMAGE links, dimensions and pixel sizes match the generated source."
+  ],
+  "redLogSha256": "6d4d4911f7c7ce0f28fd8fc6480a18635c73d3d1dae03c33c566c673e9517279",
+  "testLogSha256": "75229ea90788986af748f3896a08838b41f3b7b9860dbb5b7a4fb33879d8aa41",
+  "layoutLogSha256": "2d4371b6a5c53ce19d3a622fb835bfb4eb7de7e860d7d6f3d6c5f08a1b8d8e1b",
+  "outputsSha256": {
+    "line": "e95721295754523666c8310f09ca223ea1220bec956fb465acc8726df3cc8a7f",
+    "image": "7931625bdc4a0fcb6a20b25347e269d8e58b0714b3f04e1b6f6d48f893f53e10",
+    "distinctImages": "1cc05e6a4e93de1a46dfc613d48fdd699af364203f3f08a2beb3ed10e577304e",
+    "mixed": "45e1569be54c8b422e109a25a1dae895cd49eca163707f70ae54c0288c0cb009"
+  },
+  "limits": [
+    "These are selected locally authored R2000 profiles; they do not prove lossless raw-source replay, arbitrary entity or block references, native image rendering or other producer/platform behavior.",
+    "Output files remain in scratch storage and are not committed."
+  ]
+}

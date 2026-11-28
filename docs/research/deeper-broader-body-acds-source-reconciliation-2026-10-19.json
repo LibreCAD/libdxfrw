@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "BODY and modern AcDs source reconciliation",
+  "mode": "Official ODA specification review plus current primary-source peer and local test/code review",
+  "scope": [
+    "Resolve whether the reviewed format specification establishes a modern BODY-to-AcDs/SAB owner/key route.",
+    "Compare broad peer source claims with the concrete tests and implementation paths that support those claims.",
+    "Turn the resulting evidence boundary into a fast local regression slice without downloading or committing drawing fixtures."
+  ],
+  "method": {
+    "official_oda_pdf_version": "5.4.1",
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_downloaded": 0,
+    "peer_fixtures_copied": 0,
+    "local_code_or_tests_changed": true,
+    "full_suite_run": false,
+    "local_files_reviewed": [
+      "src/libdxfrw.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "tests_run": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-body-acds-boundary",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure"
+    ],
+    "limitations": "ODA v5.4.1 positively specifies AcDs SAB records for REGION and 3DSOLID but does not define BODY's modern record join in the reviewed section. That specification omission is not proof that no producer profile exists. Peer source predicates and comments are not normative evidence; the generated local SAB-marker control tests refusal and transactionality, not valid BODY SAB or B-rep semantics."
+  },
+  "sources": [
+    {
+      "name": "Official ODA Open Design Specification v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "observed": "Section 20.4.41 groups REGION, 3DSOLID, and BODY as ACIS entities. Section 24.2.2.3 describes a data record containing an SAB stream for each REGION and 3DSOLID. The reviewed text does not specify BODY's modern AcDs record/key/owner join.",
+      "evidence_ceiling": "Authoritative for the documented DWG byte-layout rules and explicit scope of the cited clauses. The missing BODY mapping is a qualification gap, not a proof of impossibility."
+    },
+    {
+      "name": "Autodesk BODY DXF entity reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7FB91514-56FF-4487-850E-CF1047999E77.htm",
+      "observed": "BODY uses AcDbModelerGeometry, a modeler version, proprietary group-1 text, and optional group-3 continuation lines.",
+      "evidence_ceiling": "Legacy inline DXF grammar only; it does not establish a modern AcDs association."
+    },
+    {
+      "name": "LibreDWG AcDs reader source",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec"
+      ],
+      "observed": "The current common-entity path queues handles when has_ds_data is set and dwg_obj_is_3dsolid() accepts the entity. That predicate includes 3DSOLID, REGION, BODY, and multiple surface types. The AcDs reader scans the data-store for SAB markers and associates found spans through that handle queue.",
+      "evidence_ceiling": "Current mutable peer implementation behavior; not a normative BODY format rule, independent producer trace, or BODY semantic validation."
+    },
+    {
+      "name": "ACadRust entity contract and round-trip source",
+      "urls": [
+        "https://docs.rs/acadrust/latest/acadrust/entities/struct.EntityCommon.html",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs#L3798-L3928"
+      ],
+      "observed": "The current contract/comment includes BODY in the R2013+ AcDs carrier statement. In the inspected round-trip test, the concrete helper constructs Solid3D and the positive generated R2018 vector round-trips a planar 3DSOLID; the marker-bearing SAB helper is synthetic. No BODY-specific generated round-trip was found in that reviewed source range.",
+      "evidence_ceiling": "A peer implementation claim and test-intent observation; not BODY-specific wire/profile or independent geometry evidence."
+    },
+    {
+      "name": "Local AC1027 modeler writer boundary",
+      "path": "src/libdxfrw.cpp",
+      "observed": "hasQualifiedAc1027AcdsRecord accepts E3DSOLID and REGION, validates the qualified SAB/DataStorage owner-key profile, and excludes BODY. Unqualified modeler payloads are refused before destination publication.",
+      "evidence_ceiling": "Local implementation behavior only; does not independently establish format support."
+    },
+    {
+      "name": "Generated AC1027 BODY refusal regression",
+      "path": "tests/dwg_local_roundtrip_tests.cpp",
+      "observed": "The new --modeler-body-acds-boundary selector generates a BODY with a local synthetic DataStorage/SAB-marker candidate and verifies ASCII and Binary DXF export refuse while preserving a pre-existing destination and BODY identity/key/payload. The control uses no downloaded or checked-in drawing fixture.",
+      "evidence_ceiling": "Refusal and transactionality regression only; the marker bytes do not represent a valid BODY SAB/B-rep witness. Existing legacy BODY SAT matrix remains the positive carrier control."
+    }
+  ],
+  "plan_impact": {
+    "modern_body": "Keep modern BODY AcDs serialization NOT_QUALIFIED / PROFILE_DISCOVERY_PENDING until a normative clarification or traceable real producer profile establishes the BODY-specific owner/key/schema/payload route. Do not extrapolate from REGION/3DSOLID or promote based on broad peer predicates/comments.",
+    "legacy_body": "Keep the documented inline BODY SAT group-1/3 route separate and retain its existing positive matrix coverage.",
+    "implementation": "Add a focused generated ASCII/Binary AC1027 BODY AcDs refusal and destination-preservation test in the existing round-trip executable; no production support broadened.",
+    "speed_and_validation": "Strict focused target, selector, and owning CTest only. No new CTest registration, external fixture, peer run, native app, or full-suite cadence change.",
+    "implementation_change": "One local test-only implementation slice; no new finding, top-level subplan, dependency, or support claim."
+  },
+  "validation": {
+    "strict_target_build": "PASS",
+    "focused_selector": "PASS",
+    "owning_ctest": "PASS (1/1)",
+    "full_suite": "NOT_RUN"
+  },
+  "finding_subplan_totals": {
+    "findings": 134,
+    "top_level_subplans": 76
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Broadly dirty shared worktree. This focused test, plan section, and receipt are uncommitted; no unrelated files were staged or committed."
+}

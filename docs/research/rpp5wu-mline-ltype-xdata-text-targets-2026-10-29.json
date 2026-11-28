@@ -1,0 +1,117 @@
+{
+  "id": "RPP-5wu",
+  "title": "MLINE LTYPE XDATA code-1005 TEXT targets with a STYLE dependency",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "485f6b4aea99ae4724d03bde9ea658e716d7acd9",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII/binary DXF records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One selected plain TEXT profile was exercised for all four ASCII/binary source and output combinations in each of two source sections.",
+    "linetype": "EditDash with two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0 and alignment 65.",
+    "xdata": "One source-bound APPID, one group-1000 payload, then one ordered group-1005 soft pointer.",
+    "targets": [
+      {
+        "type": "TEXT",
+        "source_handle": "0xA900",
+        "source_section": "ENTITIES",
+        "block_name": "*Model_Space",
+        "block_record_handle": "0x201",
+        "owner_handle": "0x201",
+        "insertion_wcs": [1.25, 2.5, 3.75],
+        "alignment_wcs": [4.5, 5.5, 6.5],
+        "text": "TARGET-TEXT",
+        "height": 2.5,
+        "rotation_degrees": 30.0,
+        "width_factor": 1.25,
+        "oblique_degrees": 5.0,
+        "generation_flags": 2,
+        "horizontal_alignment": 2,
+        "vertical_alignment": 3,
+        "style_name": "XDATA_TARGET_STYLE"
+      },
+      {
+        "type": "TEXT",
+        "source_handle": "0xA900",
+        "source_section": "BLOCKS",
+        "block_name": "AuthorityBlock",
+        "block_record_handle": "0x203",
+        "owner_handle": "0x203",
+        "insertion_wcs": [1.25, 2.5, 3.75],
+        "alignment_wcs": [4.5, 5.5, 6.5],
+        "text": "TARGET-TEXT",
+        "height": 2.5,
+        "rotation_degrees": 30.0,
+        "width_factor": 1.25,
+        "oblique_degrees": 5.0,
+        "generation_flags": 2,
+        "horizontal_alignment": 2,
+        "vertical_alignment": 3,
+        "style_name": "XDATA_TARGET_STYLE"
+      }
+    ],
+    "style_dependency": {
+      "source_type": "STYLE",
+      "source_handle": "0x1E3",
+      "source_table_handle": "0x1E2",
+      "name": "XDATA_TARGET_STYLE",
+      "height": 0.0,
+      "width_factor": 0.8,
+      "oblique_degrees": 3.0,
+      "last_height": 2.5,
+      "font": "txt",
+      "big_font": ""
+    },
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    }
+  },
+  "proof": {
+    "source": "The physical LTYPE XDATA sequence is bound to its APPID. Each target is uniquely identified by source handle, source section, block-record owner, parsed callback and exact DRW_Text dynamic type. The source TEXT's named STYLE dependency is separately source-bound and contains non-default width, oblique angle, last height and font fields.",
+    "output": "For both source sections and all four encoding pairs, emitted physical XDATA is checked against the remapped TEXT handle. The model-space target is emitted in ENTITIES under *Model_Space; the named target remains in BLOCKS under AuthorityBlock. Physical output and fresh typed readback verify target owner, insertion/alignment points, text value, height, rotation, width factor, oblique angle, generation/alignment flags, style name and the emitted STYLE row joined by the target's group-7 name.",
+    "failure_retry": "For each section and encoding pair, removing the TEXT target refuses export and preserves the prior destination; restoring it permits same-adapter retry. Separate late-mutation probes change the target handle after APPID emission in ENTITIES and BLOCKS; finalization refuses without replacing the destination, and restoring the original handle permits same-adapter retry with physical output and typed readback.",
+    "counts": {
+      "selected_positive_profiles": 8,
+      "selected_successful_readbacks_including_retries": 18,
+      "selected_refusals_with_destination_preservation": 10,
+      "selected_same_adapter_retries": 10,
+      "whole_focused_test_profiles": 276,
+      "whole_focused_test_readbacks": 618,
+      "whole_focused_test_refusals": 342,
+      "whole_focused_test_retries": 342
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 16.82 seconds); selector asserts whole-test counts listed above"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds bounded entity target routing and generated proof, with no ownership-transfer change. Revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "implementation_commit": "485f6b4aea99ae4724d03bde9ea658e716d7acd9",
+      "dx_iface_cpp_sha256": "67ae839b976dd8d64d7f96e00bbde01623e4ef7740addaa07df85f9c3af35a4e",
+      "test_source_sha256": "db2eb71488a5b4d75a14324bc3b26a4199857fcf1124d1e10e56f2935273960e",
+      "normal_executable_sha256": "aa05711707db7a663103fc365afdf8e52207ac504d6fec51cf7bc09aec9522ee",
+      "dwg2dxf_executable_sha256": "aca17d775f104b880da17cc5a1fd74d7832cef10137bce81a745c94504b37a3b",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+    }
+  },
+  "limits": [
+    "This qualifies one AC1027 plain TEXT target in model-space ENTITIES and one in named AuthorityBlock BLOCKS, each with one ordered code-1005 XDATA reference and one named STYLE dependency. It does not qualify other TEXT profiles, ATTRIB/ATTDEF/MTEXT/RTEXT/ARCALIGNEDTEXT, other target entity types, larger reference counts, versions or application meanings.",
+    "This is selected transport, source identity, STYLE-name dependency, output, typed readback and transaction evidence only; it does not establish text rendering, font availability, annotation meaning, recursive document closure or format support claims."
+  ],
+  "next": "Select one distinct current P2 witness from the remaining target roles/sections, XDATA compositions, provider schemas or MLINE consumer operations. Preserve exact source/output identity, fresh readback and rollback/retry controls without expanding reference-count matrices absent a distinguishing need."
+}

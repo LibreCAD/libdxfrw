@@ -1,0 +1,15 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ellipse-polyline-work-bound-2026-11-03",
+  "date": "2026-11-03",
+  "status": "BOUNDED_GENERATED_POLYLINE_CONVERSION",
+  "supportClaimEffect": "none",
+  "problem": "Extreme ellipse segment requests could overflow the open-curve vertex-count calculation or cause unbounded work; early refusal left a stale vertexcount.",
+  "change": "Bound the derived segment count before integer conversion and endpoint addition using the existing one-million-vertex internal resource bound, and reset the output count when clearing the vertices.",
+  "validation": "dxf_ellipse_extrusion_policy passes; direct open and closed INT_MAX controls reject and retry, while ASCII/Binary R12 export preserves the destination on refusal and the same codec retries with four vertices and fresh readback.",
+  "limits": [
+    "The bound is an implementation resource guard, not a DXF format maximum.",
+    "No claim about native curve semantics or physical producer coverage.",
+    "No fixture added."
+  ]
+}

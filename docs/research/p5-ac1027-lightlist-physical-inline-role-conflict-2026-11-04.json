@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "title": "AC1027 LIGHTLIST physical inline handle role and graph output blocker",
+  "status": "DEFERRED_SOURCE_REFERENCE_ROLE_OUTPUT_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "method": "Locally authored from scratch with ezdxf 1.4.5 and tools/lightlist_physical_graph_probe.py, then ODA File Converter 27.1.0 DXF to ACAD2013 DWG to DXF. No drawing fixture was added. Generated file hashes bind this exact run; newly authored file identifiers may differ.",
+    "inputDxfSha256": "0ed2f8589fba6967f207020efec4f8e6555b72ea16596bfb66e9719e543c3ec2",
+    "dwgSha256": "6bbb3100dd58ab6e683e735c9cce42a66c45f8fc3130105dce94eaf78a74e7a8",
+    "odaDxfSha256": "151a0d4b2d12ff7f9ed55e017adcf98054c184e0f5c0ff29e675f96d09493ffb",
+    "libredwgVerboseTraceSha256": "773dd05a547b2eb9e575185b81506fd9f6c492da390b2cb64f86df7808296383"
+  },
+  "dxfGraph": "ODA DXF readback retains NOD ACAD_LIGHT -> dictionary 0x30 -> LIGHTLIST 0xF000, LIGHTLIST owner and ACAD_REACTORS dictionary pointer 0x30, and entry handle 0x2F with name LOCAL_LIGHT. A LIGHT entity with handle 0x2F and name LOCAL_LIGHT is present. Autodesk LIGHTLIST DXF reference describes these groups: https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-C4E7FFF8-C3ED-43DD-854D-304F87FFCF06.htm . ODA output is one producer observation, not independent native lighting semantics.",
+  "dwgEvidence": "LibreDWG 0.14 trace identifies a 40-byte custom LIGHTLIST body with 33 handle bits and handle-stream boundary bit 287. Its split-string flag is set and its 186-bit string payload plus 17-bit footer begins at bit 84. Version and count BL fields end at bits 58 and 68. In the libdxfrw-extracted raw frame, witness-specific bit walk [68,84) is 0x012F: role nibble 0, length 1, value 0x2F; common owner and reactor at [287,303) and [303,319) are both 0x4130 (role 4, length 1, value 0x30). A native typed callback reports handle 0x2F and name LOCAL_LIGHT, but its parser does not enforce the role. This is an in-tree raw-frame extraction and separate bit walk, not an independent decompressor or semantic oracle.",
+  "peerLimit": "LibreDWG identifies the LIGHTLIST and LIGHT, but its LIGHTLIST handle decoder overreads the detached handle stream and reports a null entry while retaining the name. It therefore does not independently validate the type-specific reference value or role. ODA v5.4.1 has no LIGHTLIST-specific DWG record section, and its handle relation table specifies codes 2,3,4,5 but does not establish the relationship represented by this role-0 occurrence. Existing generated libdxfrw writer emits role 5 for this field; source role 0 cannot be assumed equivalent.",
+  "behavior": "No parser, graph or output admission was broadened. The adapter continues to refuse retained LIGHTLIST. Whole-source strict completeness, proxy-preview preservation and native lighting behavior remain unqualified.",
+  "reproduce": [
+    "build/rpp5gh-evidence/peer/bin/python tools/lightlist_physical_graph_probe.py <scratch>/in/scene.dxf",
+    "ODAFileConverter <scratch>/in <scratch>/dwg ACAD2013 DWG 0 0 '*.dxf'",
+    "ODAFileConverter <scratch>/dwg <scratch>/out ACAD2013 DXF 0 0 '*.dwg'",
+    "/opt/homebrew/bin/dwgread -v5 -O JSON -o <scratch>/peer.json <scratch>/dwg/scene.dwg > <scratch>/trace.log 2>&1",
+    "g++ -std=c++17 -I. -Isrc -Idwg2dxf tools/probe_lightlist_physical_capture.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o <scratch>/probe",
+    "<scratch>/probe <scratch>/dwg/scene.dwg; bind any exact-span observation to source SHA-256 before and after the probe."
+  ],
+  "next": "Find an independent, correctly decoding LIGHTLIST DWG implementation or obtain authoritative LIGHTLIST role semantics; construct a nonempty producer witness with multiple distinct handles and prove exact role, identity, owner, reciprocal graph and independent native/readback semantics before output admission."
+}

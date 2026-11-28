@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad3-windows-smoke-timeout-2026-11-09",
+  "date": "2026-11-09",
+  "title": "LibreCAD_3 Windows package smoke timeout follow-up",
+  "status": "LOCAL_TEST_PASS_HOSTED_WINDOWS_PENDING",
+  "supportClaimEffect": "none",
+  "pr": {
+    "url": "https://github.com/LibreCAD/LibreCAD_3/pull/456",
+    "base": "LibreCAD/LibreCAD_3:master@5cf435f4a5a57d8dba1599c720917b902e74b25b",
+    "head": "dxli/LibreCAD_3:codex/libdxfrw-upstream-compat@321f2cad7a37c347072d25d72d26a14b1985a441",
+    "implementationCommit": "fd5af0b8099bc02b3e9354f08fc493b8a585e0d9",
+    "planReceiptCommit": "321f2cad7a37c347072d25d72d26a14b1985a441"
+  },
+  "change": {
+    "path": "scripts/tests/test_windows_package_smoke.py",
+    "detail": "Increase each temporary CMake configure/install subprocess timeout from 30 to 120 seconds after hosted Windows BuildWindows job 128979972376 timed out configuring a temporary LANGUAGES NONE project at the 30-second limit.",
+    "productCodeChanged": false,
+    "fixturesAdded": false
+  },
+  "validation": {
+    "local": {
+      "command": "python3 -m unittest scripts.tests.test_windows_package_smoke -v",
+      "platform": "macOS",
+      "result": "PASS 19/19; includes the package-layout configure/install test",
+      "scopeLimit": "Test logic only; not native Windows execution or package qualification"
+    },
+    "consumerPlan": {
+      "commands": [
+        "python3 scripts/validate_python_binding_plan.py --full",
+        "python3 -m unittest discover -s scripts/tests -p 'test_validate_python_binding_plan.py' -v",
+        "python3 scripts/validate_python_binding_plan.py --paths PYTHON_BINDING_IMPLEMENTATION_PLAN.md scripts/tests/test_windows_package_smoke.py",
+        "python3 scripts/validate_python_binding_plan.py --base-ref origin/master",
+        "git diff --check"
+      ],
+      "result": "PASS; 31 plan-checker tests"
+    },
+    "hostedAtLatestObservation": {
+      "head": "321f2cad7a37c347072d25d72d26a14b1985a441",
+      "planSync": "success",
+      "buildWindows": "in_progress",
+      "buildWindowsPersistence": "success",
+      "buildLinux": "in_progress",
+      "codeqlCpp": "in_progress",
+      "macOSArm64": "in_progress",
+      "linuxArm64": "queued",
+      "appImage": "queued",
+      "readDwgUnderSanitizers": "success",
+      "codeqlPython": "success",
+      "macOSX86_64": "in_progress",
+      "aggregateCodeQL": "neutral: base branch C++ configuration missing",
+      "result": "Plan Sync, Windows persistence, DWG sanitizers, and CodeQL Python passed; the Windows package job remains in progress."
+    }
+  },
+  "limitations": [
+    "The timeout is bounded test-harness resilience, not product behavior or support evidence.",
+    "macOS test success does not establish a Windows pass.",
+    "LibreCAD and LibreCAD_3 native consumer qualification remains open."
+  ],
+  "nextAction": "Inspect current-head PR checks and confirm the hosted Windows package smoke completes with the larger timeout; then continue the native consumer/platform qualification gates."
+}

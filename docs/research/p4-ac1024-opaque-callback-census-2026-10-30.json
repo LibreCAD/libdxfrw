@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-opaque-callback-census-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 mechanical DWG strict-read opaque callback census",
+  "status": "CALLBACK_IDENTITIES_CENSUSED_OUTPUT_PROVIDERS_UNMAPPED",
+  "supportClaimEffect": "none",
+  "scope": {
+    "source": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sourceVersion": "AC1024",
+    "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "operation": "Strict dwg2dxf read and export preflight with debug tracing.",
+    "purpose": "Identify the source identities and record/type profiles behind the opaque callback count that blocks strict complete export. This census does not establish output coverage for any callback."
+  },
+  "evidence": {
+    "temporaryTrace": {
+      "path": "/private/tmp/opaque-callback-census.log",
+      "sha256": "7ba3f66c8f9c4a1c89a33aab11f7827507fb52028332a76ed028c3c07772ba8d",
+      "identityRows": 228,
+      "uniqueBy": ["objectOffset", "handle"],
+      "instrumentation": "Temporary stderr census in dx_iface::addUnsupportedObject; removed after collection.",
+      "instrumentedSourceSha256": "78fee15e04571eaf2ebf04572223c8e46671b409243437608fc1e76081b1c826",
+      "instrumentedBinary": {
+        "path": "build-gcc/dwg2dxf/dwg2dxf",
+        "sha256": "64b52257c4a97d9b87ffa363608685792a0ae1bb3da2ed240a0c6a4aa9009d25"
+      },
+      "baseCommit": "5cc703cd"
+    },
+    "callbackSummary": {
+      "opaqueViewCallbacks": 228,
+      "opaqueFramesRetainedByAdapter": 0,
+      "observedTypedCallbacks": 129,
+      "observedRawCallbacks": 0,
+      "observedTypedAndRawCallbacks": 228,
+      "standardObjectFramesCaptured": 32,
+      "standardObjectSourceReceiptsMatched": 32,
+      "standardObjectTypedPayloadsMatched": 32
+    },
+    "readDisposition": {
+      "operationSucceeded": true,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "frameCoverageStatus": "FinalizedComplete",
+      "sourceFrames": 366,
+      "publishedFrames": 366,
+      "strictGate": "strictDwgReadOutcomeIsComplete rejects when opaqueViewCallbacks > opaqueFramesRetainedByAdapter; the observed comparison is 228 > 0.",
+      "result": "Strict complete export refused before the output serializer ran. The 32 standard object frames are retained for source correlation and do not establish output preservation."
+    },
+    "recordProfiles": [
+      {"type": 524, "record": "ACDBASSOCGEOMDEPENDENCY", "class": "AcDbAssocGeomDependency", "count": 54, "standardObject": false},
+      {"type": 520, "record": "ACDBASSOCVALUEDEPENDENCY", "class": "AcDbAssocValueDependency", "count": 30, "standardObject": false},
+      {"type": 42, "record": null, "class": null, "count": 24, "standardObject": true},
+      {"type": 506, "record": "VISUALSTYLE", "class": "AcDbVisualStyle", "count": 19, "standardObject": false},
+      {"type": 507, "record": "SCALE", "class": "AcDbScale", "count": 17, "standardObject": false},
+      {"type": 519, "record": "ACDBASSOCVARIABLE", "class": "AcDbAssocVariable", "count": 17, "standardObject": false},
+      {"type": 521, "record": "ACDBASSOCDEPENDENCY", "class": "AcDbAssocDependency", "count": 17, "standardObject": false},
+      {"type": 522, "record": "ASSOCDIMDEPENDENCYBODY", "class": "AcDbAssocDimDependencyBody", "count": 17, "standardObject": false},
+      {"type": 503, "record": "DICTIONARYVAR", "class": "AcDbDictionaryVar", "count": 8, "standardObject": false},
+      {"type": 79, "record": null, "class": null, "count": 8, "standardObject": true},
+      {"type": 505, "record": "MATERIAL", "class": "AcDbMaterial", "count": 3, "standardObject": false},
+      {"type": 34, "record": null, "class": null, "count": 2, "standardObject": false, "entity": true},
+      {"type": 508, "record": "MLEADERSTYLE", "class": "AcDbMLeaderStyle", "count": 2, "standardObject": false},
+      {"type": 518, "record": "ACDBASSOCNETWORK", "class": "AcDbAssocNetwork", "count": 2, "standardObject": false},
+      {"type": 82, "record": null, "class": null, "count": 2, "standardObject": false},
+      {"type": 500, "record": "ACDBDICTIONARYWDFLT", "class": "AcDbDictionaryWithDefault", "count": 1, "standardObject": false},
+      {"type": 504, "record": "TABLESTYLE", "class": "AcDbTableStyle", "count": 1, "standardObject": false},
+      {"type": 517, "record": "SORTENTSTABLE", "class": "AcDbSortentsTable", "count": 1, "standardObject": false},
+      {"type": 523, "record": "ACDBASSOC2DCONSTRAINTGROUP", "class": "AcDbAssoc2dConstraintGroup", "count": 1, "standardObject": false},
+      {"type": 73, "record": null, "class": null, "count": 1, "standardObject": false},
+      {"type": 80, "record": null, "class": null, "count": 1, "standardObject": false}
+    ],
+    "identityJoin": "The full callback log records handle, source offset, object type, entity/custom/class-definition flags, standard-object classification, record name and class name for every one of the 228 unique identities. The class-count projection above sums to 228."
+  },
+  "limitations": [
+    "Typed-plus-opaque callback presence does not prove complete typed field capture or DXF emission.",
+    "The callback log is outside the repository and is content-addressed above; no investigation DWG or generated DWG/DXF fixture was added.",
+    "This census does not qualify graph closure, output bytes, fresh readback, atomic publication, consumer semantics, or support claims."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Census the 228 opaque callback identities for the mechanical AC1024 witness and group them by object type/class/record.",
+    "remainingP4Scope": "Join the census families to existing complete source-to-output receipts; select the highest-incidence required family without full field/output proof, then qualify physical output and readback.",
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "e90cf1a81d3e7c2d3946f3a6f3e77cd2ce1ee872c60302630c20d6bbdc67fafc"
+  }
+}

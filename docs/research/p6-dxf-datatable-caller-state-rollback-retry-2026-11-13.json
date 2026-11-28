@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-datatable-caller-state-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DATATABLE_CALLER_STATE_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Strengthen caller-state assertions in the existing ASCII/Binary DATATABLE allocation rollback and retry sweep.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One AC1024 DATATABLE with four typed columns and two rows, two XRECORD row children, and generated handle remapping. No external sample or fixture file is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "f5fca008",
+    "files": {
+      "tests/dxf_datatable_read_tests.cpp": "e2beb3d30b105e8c18834055a956ca858a36cb1667e6218590daa1555492c1e9",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ffdaa5a2c5b88a9ca59adf0a52779b3c382b44df91107d2a3a407f57003fd537"
+    },
+    "method": "After each injected DATATABLE writer allocation failure and same-codec retry, compare the full public DATATABLE payload used by the fixture, including table identity/owner/base state, counts, name, references, every column type/name, and every long/double/string cell value. Preserve the existing prior-destination bytes, child identity, same-writer retry, byte comparison, and fresh typed readback checks."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_datatable_read_tests --parallel 2: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_datatable_read$' --output-on-failure: PASS 1/1",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated AC1024 transaction and typed-readback evidence only; producer behavior, independent interoperability, and native DATATABLE semantics remain open.",
+    "The generated XRECORD child checks retain identity/owner assertions; this change's expanded field-by-field comparison applies to the DATATABLE caller object.",
+    "P6-G remains open pending the writer inventory diff and coverage of remaining public writers.",
+    "No support claim is promoted."
+  ],
+  "nextAction": "Continue the P6-G writer inventory and caller-state audit with a remaining public writer lacking equivalent payload comparisons."
+}

@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-hosted-focused-pass-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "ef5f77cc8d2a4394b80f3835d029e230c9568893",
+  "implementationDigestSha256": "d51f3204eadc44842903914b883c2d91e18ec2d77a3d185aed21e701f4b09b8a",
+  "hostedRuns": {
+    "fast": "https://github.com/LibreCAD/libdxfrw/actions/runs/45827083194",
+    "focused": "https://github.com/LibreCAD/libdxfrw/actions/runs/45827082984"
+  },
+  "results": [
+    "PASS: PR fast parity regressions.",
+    "PASS: focused native qualification on Linux GCC, Windows MSVC, and macOS Clang.",
+    "The consumer head 4b0b2eb2f90bd32cb7ad2b2e9a4746612735aed5 passed DWG/DXF verification, both headless configurations, Windows x64/ARM64, and all five Pixi builds.",
+    "The later consumer head 750c757729f9cdfef7da0548b952ff6c17855e3b has been pushed; its hosted checks are pending."
+  ],
+  "limits": [
+    "These are bounded CI profiles, not broad platform, native GUI, or semantic support qualification.",
+    "The broad matrix and extended fuzz lanes were skipped by the workflow; they remain required for final freeze.",
+    "All format claims remain experimental."
+  ]
+}

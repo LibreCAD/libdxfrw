@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 ACAD_IMAGE_DICT owner-order generated fast slice",
+  "mode": "Local generated regression test",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Assert physical OBJECTS ordering and reciprocal ownership for the generated image dictionary graph.",
+    "Reuse the existing image-path adapter/CLI test route and frozen CTest inventory.",
+    "Avoid persistent test drawings, peer dependencies, and broad test runs."
+  ],
+  "sources": [
+    {
+      "project": "Local generated DXF adapter control",
+      "urls": [
+        "tests/dwg2dxf_adapter_tests.cpp",
+        "tests/run_dwg2dxf_image_path_test.cmake",
+        "tests/CMakeLists.txt"
+      ],
+      "revision": "Shared local worktree state, 2026-10-20.",
+      "observed": "The existing image-path test emits a scratch AC1027 DXF graph, converts it twice through dwg2dxf, and strictly reads back each result. The generated control contains shared and distinct IMAGEDEF/IMAGEDEF_REACTOR references and owned image definitions.",
+      "limits": "The physical-record scanner inspects generated ASCII DXF. This slice does not add new binary-DXF owner-order coverage or change production serialization behavior."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G.3: assert actual NOD-first order, NOD ownership of ACAD_IMAGE_DICT, and physical owner-before-child order for IMAGEDEF records.",
+      "Retain reciprocal IMAGE 340, IMAGEDEF_REACTOR 360, dictionary-key, and owner checks in the existing generated control."
+    ],
+    "planFileChanged": true,
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "focusedCtestRegistered": false,
+    "existingCTestOwner": "dwg2dxf_image_path_cli",
+    "fixturesAdded": 0,
+    "persistentTestDrawingsAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Recorded the image dictionary physical-order invariant as one PAR-20/7G.3 generated fast slice.",
+    "Kept the existing CLI CTest owner and did not expand the test inventory.",
+    "Recorded focused target and CTest validation; no full suite or external qualification was run."
+  ],
+  "limitations": [
+    "This is a generated ASCII DXF test control and does not qualify all producer files or dictionary families.",
+    "No persistent testing drawing was added or committed.",
+    "The shared worktree is broadly dirty and Git metadata is read-only; no commit was created."
+  ],
+  "validation": {
+    "targetBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^dwg2dxf_image_path_cli$' --output-on-failure (1/1; 0.44 sec)",
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check for the plan/test files; new receipt has no trailing whitespace)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-05",
+  "scope": "bounded AC1021 DWG-origin VISUALSTYLE selected-graph output",
+  "claim_status": "local typed-field and transport evidence only; no whole-document, native-rendering, or general producer support claim",
+  "source": {
+    "path": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "version": "AC1021",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "visualstyle_count": 16,
+    "repository_fixture": false
+  },
+  "format_specification": {
+    "authority": "Open Design Specification for .dwg files, v5.4.1",
+    "local_copy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "section": "2.11 CmColor",
+    "scope_note": "The specification defines the R2004+ CMC fields (BS index, BL RGB value, RC flags) but does not prescribe the complete AcDbVisualStyle custom-class body; this receipt therefore keeps its field profile tied to the physical source and independent peer output."
+  },
+  "independent_peer": {
+    "implementation": "LibreDWG",
+    "version": "0.14",
+    "conversion": "dwg2dxf",
+    "dxf_path": "/private/tmp/AC1021-architectural-libredwg.dxf",
+    "dxf_sha256": "0ca8f250ef8487e629e2a6e31ac59b1251b4a8d4755d8b7df4bb7f38e16b012d",
+    "minjson_path": "/private/tmp/ac1021-architectural.json"
+  },
+  "implementation_output": {
+    "route": "physical-source selected VISUALSTYLE graph; unrelated document graph excluded",
+    "ascii_path": "/private/tmp/ac1021-visualstyle-output/physical-visual-style-ac1021-ascii.dxf",
+    "ascii_sha256": "f82815b13df3e039d3756c7b961266a875dc1d4e2e46280395fe9b4ec1941605",
+    "binary_path": "/private/tmp/ac1021-visualstyle-output/physical-visual-style-ac1021-binary.dxf",
+    "binary_sha256": "02f816a4e043d4846c69bcebfa0cf2f82c8e1b8eb1bf1b6b706252248693532a"
+  },
+  "observations": {
+    "peer_style_count": 16,
+    "implementation_style_count": 16,
+    "payload_field_mismatches": 0,
+    "comparison": "Ordered group-code/value payloads match after numeric normalization. Structural/entity identity groups 0, 5, 102, 330, and subclass group 100 were excluded; all remaining VISUALSTYLE property groups were compared.",
+    "source_c2_colors": [
+      {"rgb": "C2FFFFFF", "peer_aci": 7},
+      {"rgb": "C2787878", "peer_aci": 256},
+      {"rgb": "C2808080", "peer_aci": 9}
+    ],
+    "specific_fix": "The R2007 output maps the two exact palette colors to ACI 7 and 9 and maps the non-palette true color C2787878 to ACI 256 while retaining the packed RGB extension value.",
+    "readback": "The selected-source control exported ASCII and Binary DXF and freshly imported 16 typed/raw VISUALSTYLE pairs in each format; it checked handles, owners, descriptions, type, edgeStyleApply, reserved group 45, and representative packed CMC groups.",
+    "failure_retry": "The generated ASCII/Binary controls reject an unqualified C2 RGB value without replacing the destination, then restore the admitted value and successfully retry with the same writer and typed/raw readback.",
+    "focused_checks": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_visual_style_ac1021_typed_writer|libdxfrw_visual_style_ac1024_typed_writer|libdxfrw_visual_style_import_evidence)$' --output-on-failure",
+      "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --visual-style-ac1021-physical-output /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg /private/tmp/ac1021-visualstyle-output"
+    ],
+    "focused_ctest_result": "3/3 VISUALSTYLE adapter checks and the DWG object-vector test passed",
+    "dwg_codec_roundtrip": "A hand-authored AC1021 body vector confirms the parser retains reserved double 12.5 and the encoder replays the exact body, string, and handle bytes. The shared test frame builder now includes the AC1015–AC1021 explicit object-size prefix.",
+    "full_source_conversion": "Still atomically refused at the unrelated FIELD/FIELDLIST serializer gate; no whole-document support claim is made.",
+    "fixture_policy": "No external DWG/DXF fixture was added to the repository. The generated writer vector is created locally by the focused test."
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "title": "Generated FIELDLIST body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_FIELDLIST_BODY_RECOVERY_PASS",
+  "scope": "Malformed FIELDLIST OBJECTS-body parser recovery and CLI disposition at six locally generated DWG revisions.",
+  "selection": {
+    "source": "P6-F typed OBJECTS parser and writer inventory",
+    "reason": "FIELDLIST has bounded typed parse/write routes, and no dedicated malformed-body CLI profile existed. The profile uses a single permitted null member so it does not claim a complete FIELD/FIELDLIST graph."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the in-tree dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-fieldlist-body-source",
+    "profile": "One FIELDLIST with a single null FIELD handle, followed by a LINE sentinel.",
+    "mutation": "The generator searches the bounded FIELDLIST body for a one-bit change rejected by DRW_FieldList::parseDwg while preserving the common OBJECTS prologue and handle."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 5, "output_revision": "AC1021"},
+    "AC1018": {"controls": 5, "output_revision": "AC1021"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024"},
+    "AC1027": {"controls": 3, "output": "strict and partial output refused by the existing source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "All six generated revisions continue through the following LINE and report one failed OBJECTS frame, zero entity parse failures, and balanced source/published/failed frame accounting.",
+    "At AC1015, AC1018, AC1021, AC1024, and AC1032, strict ASCII/Binary conversion refuses atomically and explicit-partial ASCII/Binary output passes fresh DXF readback with the LINE retained.",
+    "At AC1027, strict and explicit-partial output preserve the destination and refuse at the existing source-reference gate."
+  ],
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 passed.",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed before the final receipt and plan edits.",
+    "diff_check": "git diff --check passed before the final receipt and plan edits.",
+    "targeted": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_fieldlist_recovery$' passed 1/1 in 0.92 seconds and reported 28 controls.",
+    "aggregate": "The longer dwg2dxf_cli_partial_read_disposition aggregate was not rerun for this isolated selector slice."
+  },
+  "limits": [
+    "Generated parser recovery and CLI disposition only; FIELDLIST membership closure, FIELD evaluation semantics, producer-authored prevalence, and application recalculation are not qualified.",
+    "AC1027 output remains refused by the existing source-reference gate.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

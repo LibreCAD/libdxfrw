@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "p5-ac1024-dynamic-evalexpr-default-normalization-2026-11-01",
+  "date": "2026-11-01",
+  "status": "BOUNDED_DXF_IMPORT_DEFAULT_ALIGNMENT_ONLY",
+  "scope": "Align the in-memory default for absent AcDbEvalExpr.parentId on two exact AC1024 typed DXF profiles with an independent DXF importer's default. This does not add a DXF field or establish dynamic-block semantics.",
+  "sourceProfile": {
+    "physicalInput": {
+      "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "version": "AC1024",
+      "repositoryFixture": false,
+      "relevantSourceObservation": "The existing source-bound receipt identifies BLOCKLINEARGRIP 0x1111 with EvalExpr.parentId 0xFFFFFFFF. The prior fresh DXF readback was 0; the follow-up physical control now requires the same in-memory default after isolated ASCII and Binary typed readback."
+    },
+    "generatedProfiles": [
+      "BLOCKALIGNMENTGRIP",
+      "BLOCKFLIPGRIP",
+      "BLOCKLINEARGRIP",
+      "BLOCKVISIBILITYPARAMETER"
+    ],
+    "priorEvidence": [
+      "docs/research/p5-ac1024-dynamic-graph-failure-readback-2026-10-31.json",
+      "docs/research/p5-dynamic-block-consumer-admission-2026-10-31.json"
+    ]
+  },
+  "independentPeerSource": {
+    "repository": "LibreDWG",
+    "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "path": "src/in_dxf.c",
+    "blob": "845e5133f5adbe0b3c1b8bc39b664d9feb719373",
+    "function": "add_AcDbEvalExpr",
+    "observation": "The importer initializes Dwg_EvalExpr.parentid to -1 before reading its supported DXF groups. The inspected function has no parentid group-code case. The inspected out_dxf.c blob contains no parentid reference.",
+    "evidenceLimit": "This is an independent implementation's import default, not a normative Autodesk DXF field definition and not proof that omitting the DWG value preserves native evaluation semantics."
+  },
+  "implementation": {
+    "commit": "8bce18b8d78bbecc970355bfe9069fdff8dc2786",
+    "sourceBindings": {
+      "src/libdxfrw.cpp": "5a8cf286b6c092dd258954f1122841cb907bef0a6fc5ee0a17a1bf9f8d3d7f87",
+      "tests/dwg2dxf_adapter_tests.cpp": "0599ca6d58c0d42ec7a899505652946576ddd2654d9502b4869aa957f9871562"
+    },
+    "change": "The exact AC1024 oriented-grip and visibility-parameter DXF body decoders now assign UINT32_MAX for the absent EvalExpr.parentId default, matching LibreDWG's -1 initialization instead of DRW::NoHandle (0). Output wire groups are unchanged; no speculative group code was added.",
+    "compatibility": "The source model retains its original DWG parentId. Only fresh typed DXF import state for the two covered body branches is normalized."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS",
+      "librarySha256": "de1e048fddc78fb4d799ce08b17cdb3d3ef0710d9d7ecb834600a002938abcd2",
+      "testExecutableSha256": "d28f033d63deec1dd55201e1afc47a0e5878a7012bea5037c8eb1a82d263d77c"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_(oriented_grips|visibility_parameter|visibility_parameter_door_profile)$' --output-on-failure",
+      "result": "PASS: 3/3, 0.19 seconds",
+      "coverage": "Generated ASCII/Binary output and fresh typed readback assert UINT32_MAX for the unrepresented parentId default in oriented-grip and visibility-parameter profiles. The oriented-grip test covers alignment, flip, and linear subclasses. Existing exact wire, destination-preservation, malformed-record, and same-writer retry controls remain active."
+    },
+    "physicalSourceCheck": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-oriented-grips tests/samples/AC1024/architectural_example-imperial.dwg",
+      "result": "PASS: 2 alignment, 3 flip, and 4 linear source grips; exact DXF wire and fresh typed ASCII/Binary readback. The source-bound BLOCKLINEARGRIP handle 0x1111 is required to carry parentId UINT32_MAX, and the typed readback control requires that same normalized import default.",
+      "sourceSha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "testSourceSha256": "50d35fb7bc653691bf9e2531b3b6e378257fed46d84e54893b92f84324678d4f",
+      "testExecutableSha256": "d28f033d63deec1dd55201e1afc47a0e5878a7012bea5037c8eb1a82d263d77c"
+    },
+    "beforeFixRegression": "After tightening the generated readback assertions but before changing the parser, the oriented-grip and visibility-parameter focused tests failed on ASCII readback because parentId was 0. Both passed after the parser change.",
+    "fixturePolicy": "The DWG remained an existing local investigation input and was not staged or committed. Generated ASCII/Binary controls create their own content; no fixture was added."
+  },
+  "claimBoundary": [
+    "The emitted DXF still has no parentId group in these profiles.",
+    "Matching LibreDWG's DXF importer default establishes a bounded import-state alignment only.",
+    "Native dynamic-block evaluation, visibility/action behavior, and equivalence of omitting a physical DWG parentId remain unqualified.",
+    "Do not promote dynamic-block, DWG, or DXF support claims from this receipt."
+  ],
+  "remaining": [
+    "Obtain primary field evidence or an independent native evaluator to decide whether omitting the source parentId from DXF affects semantics.",
+    "Qualify native evaluation for both roots, visibility, parameter/action behavior, and reachable geometry.",
+    "Continue independently actionable P4/P5 implementation work without waiting on the native evaluator."
+  ]
+}

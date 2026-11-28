@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw-autodesk-table-multicontent-dxf-wire-order-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Determine whether primary source material defines the DXF wire ordering needed to extend the local ACAD_TABLE writer from one to multiple contents per cell.",
+  "method": {
+    "kind": "Read-only review of Autodesk DXF and managed API references plus current local parser/writer/tests",
+    "externalExecutablesRun": false,
+    "targetAuthoredMultiContentDxfAvailable": false,
+    "localTestsRun": false,
+    "codeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table_GetBlockAttributeValue_int_int_int_ObjectId.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table_GetContentTypes_int_int_int.html"
+    ],
+    "localInspection": [
+      "src/libdxfrw.cpp:dxfRW::writeTable currently preflights exactly one DRW_TableCellContent per cell and refuses nonzero attribute content ordinals",
+      "src/drw_entities.cpp:DRW_Table::parseCode handles a generated text-content-then-block-content sequence, but this does not validate producer-authored DXF serialization",
+      "tests/dwg2dxf_adapter_tests.cpp:generated ASCII/binary controls assert local parser association only"
+    ],
+    "evidenceRule": "An API-level content ordinal is not a DXF wire grammar. Do not infer serialization boundaries from a local generated input. Require authoritative layout documentation or target-authored output plus ordered readback before widening the writer."
+  },
+  "evidence": [
+    {
+      "topic": "Autodesk publishes cell-level group-code fields but not arbitrary multiple-content framing",
+      "observed": "The TABLE (DXF) page describes group 171 as a cell type repeated once per cell, group 301 as a cell-value-block begin marker, text groups 302/303, block pointer group 340, and ATTDEF groups 179/331/300. It does not define the complete serialization order or boundary markers for multiple ordered content entries of different or repeated types within one cell.",
+      "doesNotEstablish": [
+        "that a cell is limited to one content in the underlying API",
+        "that multiple contents cannot be represented in DXF",
+        "a legal order for multiple text, field, or block content entries",
+        "a producer-authored multi-content encoding"
+      ],
+      "planUse": "Treat the layout as insufficient evidence, not evidence of impossibility. Keep the local writer single-content-only pending the complete serialization contract."
+    },
+    {
+      "topic": "Autodesk managed API proves a semantic ordinal but not its wire representation",
+      "observed": "GetBlockAttributeValue(row,column,contentIndex,attDefId) and GetContentTypes(row,column,contentIndex) expose a zero-based per-cell content ordinal and define the expected range. These API contracts do not specify DXF group-code serialization.",
+      "doesNotEstablish": [
+        "group sequence or delimiters for multiple contents in ACAD_TABLE DXF",
+        "the interpretation of every DXF group 90/301/302/303/340 combination",
+        "writer interoperability from parser-generated controls"
+      ],
+      "planUse": "Retain DRW_TableCellAttribute::m_contentIndex and its tests, but do not use API semantics to invent the writer's wire sequence."
+    },
+    {
+      "topic": "Current generated test is parser-only evidence",
+      "observed": "The local test constructs an ASCII sequence with a text content preceding a block content and attributes, converts it to binary, and verifies the current parser associates the later ATTDEF tuple with content index 1. The sequence is locally authored rather than obtained from a target producer.",
+      "doesNotEstablish": [
+        "AutoCAD/ODA emits this sequence",
+        "other parsers accept it",
+        "multiple content types or repeated same-type contents are fully modeled",
+        "the writer can safely emit multiple contents"
+      ],
+      "planUse": "Keep the generated test as a local parser regression and do not copy its invented sequence into writeTable."
+    }
+  ],
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "writerExtensionAuthorized": false,
+    "implementationQueueBlocked": false,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

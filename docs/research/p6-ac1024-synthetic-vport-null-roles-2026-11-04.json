@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-04",
+  "authority": "Open Design Specification for .dwg files v5.4.1 section 20.4.64 specifies VPORT background soft pointer, visual style hard pointer and SUN hard owner. Two independently authored ODA AC1024 producer witnesses and their LibreDWG field/reference verification are documented in p6-ac1024-vport-source-null-roles-2026-11-04.json.",
+  "problem": "The internally synthesized AC1024 *ACTIVE VPORT encoded all three absent references as untyped code-zero handles, although the witnessed producer encodes typed nulls. The existing default-material graph output failed ODA conversion at AcDbViewportTableRecord with prior recovery warnings and no DXF.",
+  "correction": "For synthetic AC1024 VPORT only, emit null background with role 4, null visual style with role 5 and null SUN with role 3. Existing nonzero values, caller-supplied VPORT codec behavior, and all other writer versions retain their prior encoding. The existing private synthetic flag and public function signatures are unchanged.",
+  "controlled_differential": {
+    "method": "Recompile the same objects source in scratch while changing only selected null-role assignments, link it against the same library and test generator, and produce the same default-material drawing. Bit mask 1=background, 2=visual style, 4=SUN. No DWG or DXF sample is committed.",
+    "baseline": "DWG c06164f49fa65d576b678c69e2ded89b392f7e2b4877a2d2d0821e8f652c4e0b produced no DXF and an .err reporting recovery warnings followed by fatal AcDbViewportTableRecord 0x16.",
+    "single_and_pair_masks": "Each of masks 1, 2, 3, 4, 5 and 6 produced no DXF and an .err with the VPORT recovery failure. The combined mask 7 yielded DWG d2d18d0a515dd7317c3b7bc3d3300fa488f7c5665ab45fda9b7d581ad4aa7662, exactly matching the final production build's default output. LibreDWG independently decoded the three roles as [4,0,0,0], [5,0,0,0] and [3,0,0,0], with following UCS handles intact.",
+    "inference": "In these controlled samples all three typed nulls are needed for this observed ODA conversion outcome; this does not prove why ODA reported earlier object warnings or establish behavior for arbitrary drawings."
+  },
+  "production_validation": {
+    "default_dwg_sha256": "d2d18d0a515dd7317c3b7bc3d3300fa488f7c5665ab45fda9b7d581ad4aa7662",
+    "explicit_global_dwg_sha256": "672d58d0abfd4f6d36842c182fc38dfa2e2b94a115f92dffef51c90308e487e0",
+    "oda": "ODA File Converter 27.1.0 converted both drawings to ACAD2013 DXF with both audit=0 and audit=1. Each run exited 0, produced both DXFs, had no .err, and captured stdout and stderr were each zero bytes. ezdxf parsed both audit=0 outputs, observed *ACTIVE VPORT and LINE (1,2,3) to (4,5,6). DXF names and conversion metadata can change output hashes; no rendering or complete semantic validation is implied.",
+    "independent_graph": "GNU LibreDWG 0.14 tests/dwg_default_material_libredwg.py passes on both production DWGs: material dictionary and objects, owner/reactor roles, HEADER DICTIONARY_MATERIAL and CMATERIAL (ByLayer or explicit Global), and default layer Global reference.",
+    "fast_tests": "Six-version testActiveVportDefaults selector passes exact handle bytes, unchanged caller/public behavior, nonzero handles, following UCS slots, failure/retry and following LINE. CTest libdxfrw_dwg_header_writer_sealing, libdxfrw_dwg_default_plotstyle_optin, libdxfrw_dwg_ac1024_default_material and libdxfrw_dwg_default_material_optin pass 4/4. LC3 compatibility target compiles."
+  },
+  "limits": "Warning-free ODA conversion is established only for these two synthetic AC1024 opt-in drawings on the tested macOS ODA release. No claim of general AC1024 DWG/DXF parity, VPORT rendering, native CAD editing, other platforms, other versions, arbitrary caller VPORTs or complete material semantic preservation follows."
+}

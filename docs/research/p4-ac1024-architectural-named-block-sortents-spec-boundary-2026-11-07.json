@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1024 architectural named-block SORTENTSTABLE DXF owner-scope boundary",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "version": "AC1024",
+    "provenanceLimit": "Existing local DWG, author and producer unauthenticated; the file is untracked in this checkout and was not added to Git."
+  },
+  "authority": {
+    "source": "Autodesk AutoCAD DXF Reference 2020 ENU, SORTENTSTABLE",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm",
+    "rule": "SORTENTSTABLE body group 330 is a soft-pointer owner reference currently limited to the *MODEL_SPACE or *PAPER_SPACE blocks. DRAWORDER stores the table under ACAD_SORTENTS in a space block's extension dictionary.",
+    "decision": "Named-block owner tables are outside the documented DXF profile. Internal writer/readback agreement does not establish a valid owner role. Keep their opaque callbacks unqualified and strict whole-file output refused."
+  },
+  "sourceInventory": {
+    "opaqueCallbacks": 490,
+    "sortEntsTables": 7,
+    "modelSpaceTable": {"handle": "0x10C5", "owner": "*Model_Space", "pairCount": 45},
+    "namedBlockTables": [
+      {"handle": "0x1BB9", "owner": "Door - Imperial", "ownerBlockRecord": "0x110D", "ownerDictionary": "0x110E", "sourcePairs": 0},
+      {"handle": "0x1BBA", "owner": "Window - Imperial", "ownerBlockRecord": "0x1145", "ownerDictionary": "0x1146", "sourcePairs": 0},
+      {"handle": "0x1F66", "owner": "*U4", "ownerBlockRecord": "0x1F57", "ownerDictionary": "0x1F65", "sourcePairs": 0},
+      {"handle": "0x1FB3", "owner": "*U5", "ownerBlockRecord": "0x1FA4", "ownerDictionary": "0x1FB2", "sourcePairs": 0},
+      {"handle": "0x2037", "owner": "*U6", "ownerBlockRecord": "0x201E", "ownerDictionary": "0x2032", "sourcePairs": 0},
+      {"handle": "0x2090", "owner": "*U7", "ownerBlockRecord": "0x2077", "ownerDictionary": "0x208B", "sourcePairs": 0}
+    ],
+    "note": "The first four named-block dictionaries contain the source-witnessed ACAD_ASSOCNETWORK, ACAD_ENHANCEDBLOCK and/or purge-preventer graph entries. These identities do not widen the DXF SORTENTSTABLE body-owner schema."
+  },
+  "validation": {
+    "restoredCodeBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with warning-as-error flags after reverting the experimental named-owner qualification."
+    },
+    "currentStrictOutput": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/architectural_example-imperial.dwg -y -d -v2010 /private/tmp/ac1024-architectural-sortents-reverted.dxf",
+      "result": "FAIL CLOSED at finalization: 484/490 opaque callbacks qualified; the six named-block SORTENTSTABLE identities above remain unqualified; no DXF was published.",
+      "tracePath": "/private/tmp/ac1024-architectural-sortents-reverted.log",
+      "traceSha256": "6e90963875ef602351e0990e388d0149ab1412528b72493012904337a9a2d11b"
+    },
+    "discardedExperiment": {
+      "result": "A temporary qualification-only relaxation let this source convert in ASCII and Binary and pass libdxfrw typed readback. The output is not counted as valid evidence because its named-block group-330 owners conflict with Autodesk's documented DXF restriction. All experimental source and test edits were reverted.",
+      "asciiOutputPath": "/private/tmp/ac1024-architectural-next.dxf",
+      "asciiOutputSha256": "de48bc8830ce8682168d83095da15e818d3afca48160659499b0089082a88465",
+      "repositoryChangesRetained": false
+    },
+    "existingModelPaperRegression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary; 88 ordered mappings, atomic refusal, same-adapter retry and fresh typed readback."
+    }
+  },
+  "planImpact": {
+    "resolved": "The architectural named-block SORTENTSTABLE candidate is ineligible for DXF output under the cited owner schema. Do not implement or claim named-block table output based only on local writer/readback consistency.",
+    "retainedBoundary": "Only *MODEL_SPACE and *PAPER_SPACE owner profiles may qualify; the six named-block callbacks remain open/refused.",
+    "next": "Continue P4 with the AC1027 Cover source-bound callback/reference closure. Keep the independent unclaimed-header-suffix gate closed, and only qualify a selected graph whose every emitted owner/target role is valid under DXF schema.",
+    "externalItemsPromoted": 0,
+    "fixturesAdded": 0
+  }
+}

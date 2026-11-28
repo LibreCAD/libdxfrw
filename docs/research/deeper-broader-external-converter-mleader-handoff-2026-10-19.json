@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "External converter runtime and version-specific MLEADER handoff",
+  "mode": "Primary-source research plus local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Review the external ODA File Converter runtime boundary used by optional DWG-to-DXF consumer routes.",
+    "Inspect peer reports for version-specific MLEADER conversion behavior and distinguish route observations from codec defects.",
+    "Refine existing FreeCAD and MLEADER composed qualification gates without adding routine test dependencies or blocking local implementation."
+  ],
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "4a63d9b8b8f511695313d106c76b6ab9134e3d2bca9b00946cb71fa7b1cfa753",
+    "findings": 139,
+    "topLevelSubplans": 77,
+    "supportClaimsPromoted": 0,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sources": [
+    {
+      "project": "ezdxf ODA File Converter integration",
+      "url": "https://ezdxf.readthedocs.io/en/stable/addons/odafc.html",
+      "revision": "Stable integration documentation reviewed 2026-10-19; executable was not run",
+      "observation": "The add-on invokes a separately installed converter. The guide lists mappings through AC1021/R2007, AC1027/R2013, and AC1032/R2018; it says Linux GUI suppression may require xvfb and documents no known solution for macOS GUI suppression.",
+      "evidenceCeiling": "Optional converter environment/setup guidance only; it does not qualify ODA output, FreeCAD's selected converter, or libdxfrw behavior."
+    },
+    {
+      "project": "ezdxf issue #1354",
+      "url": "https://github.com/mozman/ezdxf/issues/1354",
+      "revision": "Open issue body/activity reviewed 2026-10-19; report concerns ODA File Converter 26.9 Qt6 Linux RPM",
+      "observation": "The reporter says the installed package aborted with status 134 because the Qt xcb platform plugin could not initialize. A commenter suggested missing Qt/XCB runtime dependencies and mentioned xvfb for a Debian container.",
+      "evidenceCeiling": "One reporter's platform/package failure, not a universal dependency requirement or a libdxfrw defect."
+    },
+    {
+      "project": "ezdxf issue #1077",
+      "url": "https://github.com/mozman/ezdxf/issues/1077",
+      "revision": "Open issue body/activity reviewed 2026-10-19; ezdxf 1.1.4b2 named by reporter, ODA build not identified",
+      "observation": "The issue reports MULTILEADER loss in an odafc.readfile()/odafc.export_dwg() route for an R2007 source. The maintainer says newly authored R2007 DXF MLEADER was not affected and recommends converting the source to R2013 first; the reporter says this workaround resolved the case. The attached drawing was not downloaded or inspected.",
+      "evidenceCeiling": "Version- and workflow-specific peer observation only. It does not isolate a failing stage, establish a format rule, or implicate ezdxf, ODA, FreeCAD, or libdxfrw independently."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "revision": "Mutable main source rechecked 2026-10-19; local plan already pins its explicit test-local converter route",
+      "observation": "The DWG import workflow delegates to a selected external converter and then imports the DXF; the existing plan pins the required local dwg2dxf route and records process status, intermediate output, importer, and object outcomes separately.",
+      "evidenceCeiling": "Route-design context only; no FreeCAD or converter execution was performed in this research pass."
+    }
+  ],
+  "localEvidence": [
+    "The current parity plan already scopes required FreeCAD qualification to an explicit local dwg2dxf path, avoiding automatic converter fallback.",
+    "The MLEADER plan already separates DXF MULTILEADER entities from DWG MLEADER payload/context routes and has a composed consumer checkpoint.",
+    "The new research adds only an optional ODA runtime preflight and preserve-version versus R2013-upversioned evidence separation."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "ownersRefined": [
+      "PAR-07",
+      "S8",
+      "MLEADER/AC1021 composed evidence"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "testsOrRegistrationsAdded": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds runtime preflight and error classification only for an optional ODA comparator, and preserves R2007 versus R2013-upversioned MLEADER results as distinct composed evidence. It adds no local defect or implementation blocker."
+  },
+  "method": {
+    "kind": "Read primary project integration documentation and issue reports, then map route boundaries to existing local qualification owners",
+    "peerRepositoriesCloned": false,
+    "peerRepositoriesBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "ODA #1354 is one environment report and does not define universal package dependencies. ezdxf #1077 lacks a pinned ODA version, source/output hashes, isolated stage result, and inspected drawing. Repository/documentation branches are mutable. No peer or native runtime was exercised."
+  },
+  "implementationReadyChecks": [
+    "Keep ordinary implementation validation to the touched strict target, focused selector, owning CTest, and scoped diff check.",
+    "Keep required FreeCAD qualification on the explicit local dwg2dxf route; do not introduce ODA/Qt/X11 dependencies into the library or per-slice loop.",
+    "If ODA is selected for a composed comparison, preflight the exact executable and runtime/display environment once per platform; classify startup failure as ENVIRONMENT_NOT_RUN.",
+    "For a selected AC1021 MLEADER comparison, record same-version and R2013-upversioned routes separately with intermediate DXF version/hash and per-source identity/owner/disposition.",
+    "Do not add peer/customer drawings as fixtures; use existing permitted samples or locally authored scratch controls only."
+  ],
+  "validation": {
+    "commands": [
+      "shasum -a 256 DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq empty docs/research/deeper-broader-external-converter-mleader-handoff-2026-10-19.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-external-converter-mleader-handoff-2026-10-19.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

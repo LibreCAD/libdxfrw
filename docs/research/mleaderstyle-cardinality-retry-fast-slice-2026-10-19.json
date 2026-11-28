@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "slice": "f.4b.1c MLEADERSTYLE two-instance CLASS count and corrected retry controls",
+  "status": "LOCAL_PARTIAL_COMPLETE",
+  "base_commit": "de27a33",
+  "changes": [
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "46541b5bd6b7eb3b808bf8219882fffa8407347c3a6761e6ad48ca5057911724",
+      "summary": "Generated ASCII/Binary rooted MLEADERSTYLE controls now contain STANDARD and SECONDARY style records and verify both dictionary/owner edges, resolved 340/341/342/343 targets, and exact CLASS instanceCount 2 on raw-replay and synthetic typed routes. Wrong-owner and unresolved-reference failures retry on the same adapter after repair and pass rooted-output readback; existing four wrong-kind target refusals remain checked."
+    },
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "sha256": "226978fad1981be3e78588dd4d7c3627cb35263c455015ef7a93227bae95d49b",
+      "summary": "Updates f.4b.1c status to distinguish completed property-target preflight/count/retry controls from still-unsupported MLEADER entity output, and records focused implementation progress and remaining evidence gates."
+    }
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "result": "PASS (1/1, 0.30 s)"
+    },
+    {
+      "command": "git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "evidence_limits": [
+    "The second style exercises output class cardinality, but duplicate-record refusal and filtered/suppressed-class count controls remain open.",
+    "The typed DWG-origin route is synthesized from a local DXF import and fabricated receipt; it is not a real DWG import/output witness.",
+    "MLEADER entity input still reaches the intentional unsupported-serializer refusal. This slice does not claim MLEADER entity output or full MLEADER content-context support.",
+    "No full suite, external peer, native CAD application, or support promotion was performed."
+  ],
+  "commit": {
+    "status": "NOT_COMMITTED",
+    "reason": "The task filesystem grant is read-only for .git metadata."
+  },
+  "external_items": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 section 9: HEADER contains a hard pointer to the ACAD_GROUP dictionary.",
+  "problem":"Every generated writer creates the ACAD_GROUP dictionary at reserved handle 0x0D and puts its entry in the named-objects dictionary, but the HEADER field was previously encoded as a null hard pointer.",
+  "independent_controls":"LibreDWG 0.14 decodes the locally authored LINE drawings converted by ODA File Converter 27.1.0 at AC1018/AC1024/AC1027/AC1032 with nonzero HEADER ACAD_GROUP hard pointers. A local AC1021 source of unverified provenance also has a nonzero pointer. These controls do not prove ODA acceptance of our output.",
+  "implementation":"Pass the reserved group dictionary handle from both writer HEADER paths into the private HEADER encoder. The standalone protected HEADER encoder still uses zero. All versions share the object-emission path creating the group dictionary; public DWG publication requires the generated NOD and group frames and matching ACAD_GROUP entry before output finalization.",
+  "validation":{
+    "fast_selectors_passed":["libdxfrw_dwg_header_writer_sealing","libdxfrw_dwg_header_current_references","libdxfrw_dwg_r2004_system_terminators","libdxfrw_dictionary_item_wire_role"],
+    "tests":"Modern generated HEADER handle streams are walked independently through the preceding references; assert the group hard pointer, following null MLINESTYLE hard pointer, named-objects hard-owner reference, CRC sealing, and following LINE readback. Existing sealing checks cover all six writer versions.",
+    "physical_independent_reader":"LibreDWG 0.14 decoded each from-scratch complete generated file: HEADER ACAD_GROUP (5,1,0x0D); target is a DICTIONARY owned by NOD 0x0C; one LINE decoded.",
+    "physical_sha256":{
+      "AC1015":"610784ea41fd9edaac4124bec0bd255ff71b993512d58e10a1c78ff917f42837",
+      "AC1018":"67eb20b341500b5d01834f91a152205ef609998fd771c22b299d4ff3f01df5b1",
+      "AC1021":"85cd5ab6f38d85a9152e4596d35984d7626a3baaae8f86011139d35e1ed752c6",
+      "AC1024":"68d65313e1d5e9e7e1ffecf8a8fbf077f11fa502691066197e51b2bb6e4a2d71",
+      "AC1027":"484c4ea77e5162656cef9d4594c1b2cac7e106bb521ed9f5a94017d47563e70e",
+      "AC1032":"40fbfd749c72431a8bb97590a2e221503caa71d22d6c59718127b0d4a169bba7"
+    }
+  },
+  "limits":"ODA could not be rerun while the Mac session was locked; a corrected relationship is not a claim of full interoperability or proof that this was the ODA rejection cause. No generated DWG fixtures were committed."
+}

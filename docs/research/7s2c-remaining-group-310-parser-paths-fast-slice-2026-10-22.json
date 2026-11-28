@@ -1,0 +1,71 @@
+{
+  "slice": "7S.2c remaining group-310 parser paths",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "paths": [
+    "DRW_Ole2Frame::parseCode",
+    "DRW_OleFrame::parseCode",
+    "DRW_ExtrudedSurface::parseCode",
+    "DRW_SweptSurface::parseCode",
+    "DRW_LoftedSurface::parseCode",
+    "DRW_RevolvedSurface::parseCode"
+  ],
+  "behavior": {
+    "borrowed_group_310_token": true,
+    "direct_append_to_final_payload_for_ole_and_typed_surfaces": true,
+    "lofted_variant_vector_moved_without_payload_copy": true,
+    "declared_size_checks_preserved": true,
+    "ole_payload_too_large_disposition_preserved": true,
+    "generated_ascii_and_binary_controls": true,
+    "following_record_sentinel_checked": true,
+    "persistent_fixture_added": false,
+    "public_api_or_layout_changed": false,
+    "wire_behavior_changed": false,
+    "support_claim_changed": false
+  },
+  "validation": [
+    {
+      "command": "git diff --check -- src/drw_entities.cpp tests/hardening_tests.cpp CMakeLists.txt",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-group-310-direct-decode",
+      "result": "PASS (generated ASCII/Binary payload, chunk boundary, sentinel, and declared-size overrun controls)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_group_310_direct_decode$' --output-on-failure",
+      "result": "PASS (1/1; 0.02 seconds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-lofted-surface-typed-variant-budget",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-acis-carrier-retained-budget",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "full test suites",
+    "native FreeCAD Linux/Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "external_gates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "inventory_totals": {
+    "findings": 144,
+    "subplans": 78,
+    "note": "Inventory totals; not open-item counts."
+  },
+  "next": "Continue the exact-source 7S.2c audit across compound/class parser staging, scratch buffers, retained owners, and writer-side copies; then advance to the next locally evidenced PAR-03/PAR-04, HATCH, or DWG semantic gap without waiting on external qualification."
+}

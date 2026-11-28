@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw-deeper-broader-independent-producer-and-vertex-marker-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Screen ACadRust as a source-authored DWG/DXF producer route and reconcile ACadSharp's AC1014 VERTEX marker report with Autodesk documentation and local compound-record code; refine the implementation plan without changing code or support claims.",
+  "method": {
+    "kind": "Primary-source web research plus targeted local source/test/plan inspection",
+    "localTestsRun": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "localWorktreeWasDirty": true,
+    "sources": [
+      "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4",
+      "https://github.com/hakanaktt/acadrust",
+      "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+      "https://github.com/HakanSeven12/OpenCADStudio",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+      "https://help.autodesk.com/view/ACD/2027/ENU/?caas=caas%2Fdocumentation%2FACD%2F2014%2FENU%2Ffiles%2FGUID-DFDAE6CD-E753-4D01-9D9B-4D1F66B1DE6E-htm.html",
+      "https://github.com/DomCR/ACadSharp/issues/1279"
+    ],
+    "localFilesInspected": {
+      "src/drw_entities.cpp": "9e1d54ef1ed5bbf6b8e371752f91e3cd4604e9574eaaaf60e3fe6da58d76fbbc",
+      "src/libdxfrw.cpp": "c74ef672def241d2b9fa82ac32890505bf13a20c0afe62a2b5c83d297a1efba5",
+      "tests/dxf_fixture_tests.cpp": "c3859e7a3181d5e7eabaa2265bc724a0514477bd53db93d7e7e3fbbaa0beaa69"
+    },
+    "localInspection": [
+      "DRW_Vertex::parseCode handles vertex payload fields but does not infer a subtype from group-100 marker strings.",
+      "dxfRW::processPolyline/processVertex stages generic vertices under their parent and validates the compound boundary before callback publication.",
+      "The R13+ writer emits AcDbVertex followed by a role-specific subclass marker; the existing tests cover marked records but not AC1014's reported omitted marker.",
+      "No named selector currently isolates testClassicVertexPresenceBoundaries; the full fixture executable is the owning test route unless future measured duration justifies a selector."
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "ACadRust 0.6.4 is an optional authoring route, not independent ACIS semantic evidence",
+      "observed": "ACadRust documents DWG/DXF read/write across R12-R2018+ and its tests build an analytic planar cube, construct SAT, write an AC1032 DWG and read it back with the same codec. Its fake SAB helper is framing-only, and the analytic-body roundtrip assertion checks ACIS carrier presence rather than an independent parsed topology or metric.",
+      "doesNotEstablish": [
+        "independent DWG/DXF reader agreement",
+        "independent ACIS parser or B-rep semantics",
+        "native AutoCAD, LibreCAD, LibreCAD_3, or FreeCAD acceptance",
+        "all-version or all-entity interoperability"
+      ],
+      "planDisposition": "Keep it as an optional, exact-version producer at the existing composed checkpoint. Bind source manifest, release/commit, toolchain/features, target version, output hash, and diagnostics. Keep generated files in scratch and use separate parser/kernel/consumer evidence for higher claims."
+    },
+    {
+      "topic": "AC1014 VERTEX subclass marker validity is ambiguous in the cited Autodesk references",
+      "observed": "The Autodesk DXF VERTEX reference lists AcDbVertex followed by AcDb2dVertex or AcDb3dPolylineVertex. The separate AutoLISP entmake reference exempts the legacy VERTEX entity from the post-R12 subclass-marker requirement for later-introduced entities. ACadSharp #1279 reports an AC1014 file containing AcDbVertex but no AcDb2dVertex; no drawing or hash is attached.",
+      "doesNotEstablish": [
+        "whether the exact AC1014 serialization is accepted by AutoCAD or other consumers",
+        "that the issue's input is valid or malformed",
+        "a matching libdxfrw parser defect",
+        "that missing markers should be synthesized generally"
+      ],
+      "planDisposition": "Add one generated compatibility case under the existing classic POLYLINE/VERTEX test owner. Assert parent/vertex semantics, no incorrect callback, following-entity alignment, and canonical complete marker output after re-export. Keep it non-promoting and limit it to the exact 2D case."
+    }
+  ],
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "nestedSubstepsAdded": 1,
+    "implementationOrderChanged": false,
+    "existingOwnersReinforced": [
+      "classic POLYLINE/VERTEX parsing and compound-record isolation under 7BS/7AS",
+      "optional producer-vs-reader separation in the version × operation × feature × consumer matrix",
+      "ACIS carrier, semantic geometry, and native consumer evidence separation"
+    ],
+    "supportClaimsPromoted": 0,
+    "fixtureOrDependencyAdded": false,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limits": {
+    "peerSourceCommitPinnedForExecution": false,
+    "peerPackagesBuiltOrRun": 0,
+    "nativeCadRuns": 0,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false
+  }
+}

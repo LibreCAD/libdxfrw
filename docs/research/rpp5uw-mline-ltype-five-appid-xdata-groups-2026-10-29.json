@@ -1,0 +1,98 @@
+{
+  "id": "RPP-5uw",
+  "title": "MLINE-referenced simple LTYPE with five ordered APPID XDATA groups",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "8d6c2d5dbc091a4ca8719e042af5eacd2dc0148b",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated DXF; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_providers": [
+      { "name": "MLINE_LTYPE_XDATA", "source_handle": "0x1F1", "source_owner": "0x1F0", "flags": 0 },
+      { "name": "MLINE_LTYPE_XDATA_2", "source_handle": "0x1F2", "source_owner": "0x1F0", "flags": 0 },
+      { "name": "MLINE_LTYPE_XDATA_3", "source_handle": "0x1F3", "source_owner": "0x1F0", "flags": 0 },
+      { "name": "MLINE_LTYPE_XDATA_4", "source_handle": "0x1F4", "source_owner": "0x1F0", "flags": 0 },
+      { "name": "MLINE_LTYPE_XDATA_5", "source_handle": "0x1F5", "source_owner": "0x1F0", "flags": 0 }
+    ],
+    "xdata": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1000, "value": "provider-owned-xdata" },
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA_2" },
+      { "code": 1000, "value": "second-provider-owned-xdata" },
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA_3" },
+      { "code": 1000, "value": "third-provider-owned-xdata" },
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA_4" },
+      { "code": 1000, "value": "fourth-provider-owned-xdata" },
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA_5" },
+      { "code": 1000, "value": "fifth-provider-owned-xdata" }
+    ]
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "documents": [
+      {
+        "title": "DXF Group Codes in Numerical Order Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "relevant_rule": "Group 1001 names the registered application that begins an XDATA group; group 1000 carries a string value."
+      }
+    ]
+  },
+  "implementation": {
+    "change": "The selected simple-LTYPE XDATA path admits up to five distinct ordered APPID groups. Typed validation, source binding, unchanged-state verification and staged output projection all check five references in order and retain existing work/byte budgets.",
+    "preserved_contract": "No public API or DRW_Interface virtual changes. Six-or-more APPIDs, metadata-bearing providers, earlier versions and application-specific XDATA meaning remain outside this profile."
+  },
+  "proof": {
+    "source": "Five distinct APPID names and five following string payloads are exact and ordered in physical XDATA, typed readback and source-bound bare APPID records.",
+    "output": "All four ASCII/binary input/output combinations preserve exact physical XDATA order and payloads. Fresh import confirms all five typed pairs and exactly one emitted record for each APPID provider. Internal binding checks prove all five provider source handles and LTYPE identity.",
+    "failure_retry": "Removing the fifth APPID provider refuses export and preserves the destination for all four output combinations; restoring the provider succeeds on the same adapter. A late fifth-provider name mutation refuses atomically for ASCII and binary output; restoring the original name succeeds on the same adapter with exact output and readback.",
+    "counts": {
+      "five_provider_positive_profiles": 4,
+      "five_provider_successful_readbacks_including_retries": 10,
+      "five_provider_atomic_refusals": 6,
+      "five_provider_same_adapter_retries": 6,
+      "whole_focused_test_profiles": 68,
+      "whole_focused_test_readbacks": 144,
+      "whole_focused_test_refusals": 77,
+      "whole_focused_test_retries": 76
+    }
+  },
+  "validation": {
+    "normal_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2",
+      "result": "PASS"
+    },
+    "normal_focused_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "normal_focused_result": "PASS",
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "asan_build": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "asan_focused_command": "build-asan-custom/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "asan_focused_result": "PASS",
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_bindings": {
+      "commit": "8d6c2d5dbc091a4ca8719e042af5eacd2dc0148b",
+      "adapter_sha256": "e5df01f754b472bcd37334117d134fae3333a613e54f17d962216c1558f5f83b",
+      "test_source_sha256": "aa470ac9a0b6efbaf01b0abd17c312fcbaaed89e70f11a6d813fb733e3e118e1",
+      "normal_executable_sha256": "dbd66c5b8a4bd04d0be752780174dd8d382941d44dbd3ddbb3b73b3c81da840e",
+      "asan_executable_sha256": "79168ea05429c2c09b670c43f2229ed45b928d7de6d9552f35f43c5dfd2e75b5",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746",
+      "asan_cmake_cache_sha256": "f1aeb154e90745f39981fadcbb2e24f1c25d9296abc19beb4ea699b49fc6bb68"
+    },
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This qualifies only five distinct bare APPID providers, each followed by one group-1000 string, in one AC1027 simple-LTYPE XDATA profile. Six-or-more APPIDs, repeated provider names, metadata-bearing providers, other payload orders/compositions, LTYPE schemas, versions and application meaning remain unqualified.",
+    "The evidence proves transport and source/output identity only. It does not establish MLINE rendering, recursive document closure or general format support."
+  ],
+  "next": "Extend this same bounded profile to six distinct ordered APPID groups, preserving the four-encoding matrix, exact physical/typed identity checks, missing-provider refusal/retry and late-mutation rollback/retry. Keep seven-or-more APPIDs, metadata, other compositions and application meaning outside scope."
+}

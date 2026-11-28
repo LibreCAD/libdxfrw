@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1021-control-alignment-bits-2026-11-25",
+  "date": "2026-11-25",
+  "status": "BOUNDED_NONZERO_ALIGNMENT_ACCEPTED_LOCAL_FAST_AND_ASAN_PASS",
+  "supportClaimEffect": "none",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.1 specifies padding bits until the next byte boundary after object handles and does not require their values to be zero; section 20.4.53 describes LAYER_CONTROL handle order.",
+  "finding": "The reconciled AC1021 detached-control path rejected a bounded final alignment bit when it was one, imposing a zero-value requirement not stated by the object framing specification.",
+  "change": "Allow either alignment-bit value after the parsed detached control handles while retaining the maximum seven-bit frame boundary and buffer-status checks. The separate producer-specific empty-string-footer validation is unchanged.",
+  "validation": [
+    "The new nonzero-padding LAYER_CONTROL vector failed before the change, then passed. An additional whole trailing byte remains rejected with state reset and corrected same-object retry.",
+    "Both the AC1021 control CTest and the existing LibreCAD AC1021 fixture CTest pass in the normal build; the control CTest also passes with the library and test instrumented by AddressSanitizer."
+  ],
+  "limits": [
+    "The nonzero alignment vector is locally generated, not a claim of native producer provenance or broad control support.",
+    "The LibreCAD fixture still has a strict-output integrity diagnostic. Selected inputs changed, reopening the candidate digest and platform qualification."
+  ]
+}

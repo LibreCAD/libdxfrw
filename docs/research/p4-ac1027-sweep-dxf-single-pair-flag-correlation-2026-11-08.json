@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-dxf-single-pair-flag-correlation-2026-11-08",
+  "date": "2026-11-08",
+  "status": "ONE-PAIR-FIELD-NAME-CORRELATION",
+  "supportClaimEffect": "none",
+  "sources": {
+    "dwg": {
+      "path": "/private/tmp/example_2013.dwg",
+      "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+      "version": "AC1027",
+      "sweepHandle": "0x2e2",
+      "capturedFirstOptionBit": 1,
+      "capturedNextFlag": 1,
+      "capturedDwgOnlyVector": [1, 1, 1]
+    },
+    "pairedDxf": {
+      "path": "/Users/dli/dev/libredwg/test/test-data/example_2013.dxf",
+      "sha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3",
+      "recordHandle": "2E2",
+      "group290Solid": 1,
+      "group292AlignStart": 1,
+      "group293Bank": 0,
+      "group294BasePointSet": 1,
+      "group295SweepTransformComputed": 1,
+      "group296PathTransformComputed": 1,
+      "group11ReferenceVector": [0, 0, 0]
+    }
+  },
+  "decision": {
+    "fieldNameCorrection": "The first captured B is now named m_solid because it equals the same-handle paired DXF group 290 value, whose public meaning is documented by Autodesk. The next captured B is retained as optionFlags[0] and agrees with DXF group 292 in this pair.",
+    "dwgOnlyVector": "The captured (1,1,1) vector does not equal the paired DXF group 11/21/31 reference vector (0,0,0). Do not map these fields together. Their relationship and field semantics remain unresolved.",
+    "boundary": "The DXF is a co-located LibreDWG test-corpus companion with matching record handle, not an independently authenticated AutoCAD/ODA export lineage. This is a one-pair naming/correlation result only; it does not qualify a normative DWG schema, embedded entity semantics, serializer, graph closure, native compatibility or support claim."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_hardening_tests dwg2dxf libdxfrw_ac1027_acds_source_probe -j4",
+    "focusedTest": "PASS: build/libdxfrw_hardening_tests --acsh-action-body-exact-span",
+    "physicalProbe": "PASS: SWEEP_CAPTURE 2e2 33 29 solid=1 profile=77/744 path=77/480 tail=bit2570/1 rawBody=bit228/2343/293bytes dwgVector=1,1,1",
+    "dxfrwDxfPairInspection": "PASS: same-handle record contains groups 290=1, 292=1, 293=0, 294=1, 295=1, 296=1 and reference vector 11/21/31=(0,0,0)",
+    "diffCheck": "PASS: git diff --check",
+    "fullSuites": "not run"
+  },
+  "nextAction": "Compare the remaining candidate fields to this same-handle DXF as a narrow differential only, record mismatches, and seek independent producer evidence before assigning DWG semantics or enabling output. Keep the exact full-body copy and Partial disposition."
+}

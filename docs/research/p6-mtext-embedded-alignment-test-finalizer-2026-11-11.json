@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mtext-embedded-alignment-test-finalizer-2026-11-11",
+  "date": "2026-11-11",
+  "problem": "The existing libdxfrw_mtext_column_object_scope fixture failed before its embedded ATTRIB/ATTDEF alignment matrix could run. An isolated e5341dd3 source/build and the current working tree produced the same selected export/caller geometry failure with identical dxf_fixture_tests.cpp at SHA-256 b5623ec3380ee1dba5fe64096f8f09885033a9d5f77aeb7bb5cc2a8c6c4233f3 before this fix.",
+  "diagnosis": "Instrumentation separated the three conditions: dxfRW::write returned false, the custom selected-output callback reported good, and caller geometry matched its pre-write snapshot. dxfRW reported dxf-finalize-rejected. Temporary scoped finalization diagnostics identified the DWG proxy entity object-ID finalizer: the test directly invokes dxfRW with its own selected callback implementation and empty dx_data, but inherited dx_iface::finalizeDxfWrite requires the normal dx_iface::fileExport proxy graph-planning pipeline to have run even for an empty proxy set. The test did not run that pipeline. This was a test harness contract mismatch, not a demonstrated production geometry defect.",
+  "change": "The selected-output test adapter explicitly finalizes according to its own accumulated callback status. Its borrowed geometry, generated BLOCK_RECORD/BLOCK/INSERT/ATTRIB/ATTDEF/LINE callbacks, independent wire identity/owner inspection, output readback, refusal and retry checks remain in place. Production dx_iface finalization and its proxy graph checks are unchanged. A test-only negative mode restores the inherited finalizer and verifies dxf-finalize-rejected, successful record callbacks, unchanged caller geometry and a preserved sentinel destination.",
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mtext_column_object_scope|libdxfrw_dxf_mtext_legacy_columns|libdxfrw_legacy_mtext_xdata_identity|libdxfrw_attdef_embedded_equal_alignment|libdxfrw_attdef_embedded_dual280|libdxfrw_attribute_subclass_alignment)$' --output-on-failure",
+    "result": "6/6 passed with the configured build",
+    "fullFixture": "Two authored source encodings and four input/output encoding cells execute 48 modeled profiles, 24 source physical profiles, 384 output physical profiles and 384 readback profiles, 24 independent observer refusals, 24 nonfinite refusals, four late-column refusals, 28 corrected retries and 32 ordinary output readbacks. These are generated transport and transaction checks.",
+    "negativeControl": "A fresh selected source with the inherited finalizer enabled rejects publication despite successful callbacks, leaves geometry unchanged, reports dxf-finalize-rejected and preserves the seeded destination. The fixture's custom finalizer then permits the separately constructed positive cases.",
+    "baselineCommand": "ctest --test-dir /private/tmp/mtext-baseline-build -R '^libdxfrw_mtext_column_object_scope$' --output-on-failure",
+    "baselineResult": "The clean isolated pre-fix e5341dd3 source/build fails at the original selected-export assertion; the saved baseline comparison is historical and does not include the test-harness repair.",
+    "fixtures": "Generated scratch files only; no DWG/DXF file added to the repository."
+  },
+  "limits": "The test adapter intentionally bypasses dx_iface's independent fileExport graph planning because it is a focused custom callback serializer. The output assertions do not qualify production graph planning, native CAD rendering or broad column semantics. Production graph safety is neither relaxed nor asserted by this test."
+}

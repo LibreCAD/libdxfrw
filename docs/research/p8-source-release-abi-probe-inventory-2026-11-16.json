@@ -1,0 +1,7 @@
+{
+  "date": "2026-11-16",
+  "failure": "Hosted fast run 43876883762 at 0eeec30f failed the source-release inventory check because the newly tracked tools/probe_public_abi_layout.cpp was not listed in source-release-files.am or source-release-files.txt. The earlier local check ran before that file was staged and therefore did not see it.",
+  "repair": "Regenerate both source-release inventories after the probe is tracked. No code or support claims change.",
+  "validation": "generate_build_inventory.py --check and --self-test pass with the probe included. Hosted fast regression run 43880983215 at b8db0d8e passed; the separate source-release job was intentionally skipped by the branch push policy.",
+  "hosted_run": "https://github.com/dxli/libdxfrw/actions/runs/43880983215"
+}

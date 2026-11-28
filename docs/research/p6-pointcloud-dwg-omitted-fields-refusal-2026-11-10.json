@@ -1,0 +1,31 @@
+{
+  "title": "Classic POINTCLOUD omitted DWG field refusal",
+  "date": "2026-11-10",
+  "scope": "Prevent silent loss of locally modeled fields in classic POINTCLOUD DWG encoding.",
+  "evidence": [
+    {
+      "source": "LibreDWG src/dwg2.spec POINTCLOUD",
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "observation": "The source-list branch omits extent/UCS and extended fields; the zero-source branch places extended fields under SINCE(R_2013b); clipping vertices are 2RD and depth applies to type 1."
+    },
+    {
+      "source": "src/drw_entities.cpp DRW_PointCloud::resetDwgState",
+      "observation": "Establishes libdxfrw model defaults for omitted fields."
+    }
+  ],
+  "implementation": [
+    "Reject nondefault extent/UCS, count, handles, intensity and clipping fields omitted for source-file lists.",
+    "Reject nondefault handles, intensity and clipping fields omitted from AC1021/AC1024 zero-source layout.",
+    "Reject nonzero clipping-vertex Z and nonzero type-2/3 depth; preserve type-1 depth."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "ctest": "ctest --test-dir build-gcc -R 'libdxfrw_pointcloud_(dwg_representability|dwg_encode_allocation_rollback|reference_remapping)' --output-on-failure",
+    "result": "3/3 passed; 106 individually mutated omission/refusal/retry cases plus two type-1 depth output controls"
+  },
+  "limitations": [
+    "LibreDWG's R2013b boundary is finer than libdxfrw's AC1027 enum; this change does not qualify all AC1027 producer variants.",
+    "The peer grammar and generated controls do not establish native rendering or broader support.",
+    "No DWG or DXF fixture was added."
+  ]
+}

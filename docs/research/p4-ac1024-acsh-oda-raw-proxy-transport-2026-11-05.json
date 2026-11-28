@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-acsh-oda-raw-proxy-transport-2026-11-05",
+  "date": "2026-11-05",
+  "status": "AC1024_ACSH_BOUNDED_PROXY_GROUPS_MATCH_ODA",
+  "supportClaimEffect": "none",
+  "question": "Can bounded AC1024 ACSH objects be transported as ACAD_PROXY_OBJECT records without interpreting their class-specific bodies while preserving the ODA proxy view of body spans, owners/references and common EED?",
+  "sources": [
+    {
+      "path": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "provenance": "Existing local AC1024 sample; not added to this commit."
+    },
+    {
+      "path": "tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "provenance": "Existing local AC1024 sample; not added to this commit."
+    }
+  ],
+  "converter": {
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "version": "27.1.0.0",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "successfulCommandProfile": "ODAFileConverter <scratch-input-dir> <scratch-output-dir> ACAD2013 DXF 0 0",
+    "successfulRuns": "Existing successful local runs; the conference run is also recorded in p6-ac1024-acsh-oda-dxf-proxy-only-2026-11-05.json.",
+    "latestRetry": {
+      "exitCode": 134,
+      "stderr": "PasteBoard errors creating clipboard/find pasteboards [-4960], followed by Connection invalid/Invalid for com.apple.hiservices-xpcservice.",
+      "note": "The retry used a fresh scratch output and did not alter the successful reference DXFs."
+    }
+  },
+  "outputs": [
+    {
+      "path": "/private/tmp/libdxfrw-oda-ac1024-conference-dxf-34841/output/conference.dxf",
+      "sha256": "377a4acf6767be8a5a02cdd2c8af2afb09b0547b3df3b5fc779f2fd96282bd78",
+      "capturedObjectFrameCount": 241,
+      "acshGeometryFrameCount": 208,
+      "capturedFramesMatchedToProxyByHandle": 241,
+      "proxyGroupsMatchingInOrder": 241,
+      "payloadsMatchingOdaBitSpanAndBytes": 241,
+      "ownersCommonLinksAndTypedReferencesMatching": 241,
+      "sourceEedObjects": 65,
+      "normalizedEedGroups": 650,
+      "eedGroupSequenceAndAppIdNamesMatching": 65,
+      "eedLayerReferences": 0,
+      "maximumAbsoluteAsciiCoordinateRoundTripDelta": 2.842170943040401e-14,
+      "appIdSourceHandleCounts": {
+        "280": 55,
+        "E2B": 5,
+        "D84": 5
+      }
+    },
+    {
+      "path": "/private/tmp/libdxfrw-oda-ac1024-condo-proxy-2026-11-05/output/condo.dxf",
+      "sha256": "9c387c51c78baacea0ba33e8ed5e2b13b00bef47c6a66e79174edc6697e05a2d",
+      "capturedObjectFrameCount": 533,
+      "acshGeometryFrameCount": 460,
+      "capturedFramesMatchedToProxyByHandle": 533,
+      "proxyGroupsMatchingInOrder": 533,
+      "payloadsMatchingOdaBitSpanAndBytes": 533,
+      "ownersCommonLinksAndTypedReferencesMatching": 533,
+      "sourceEedObjects": 0,
+      "normalizedEedGroups": 0
+    }
+  ],
+  "method": {
+    "bodySpan": "For each captured object, DRW_TableEntry::parseDwg was run over its retained bounded bytes. The parser cursor measured the common-header/EED end. ODA group 161 equals the source data span from that cursor to the declared object-data/handle-stream boundary minus its final zero bit. The adapter verifies that bit is zero before omitting it; group-310 bytes and the resulting significant span match ODA exactly.",
+    "references": "Each source H entry was decoded from the bounded handle stream. Its role was mapped through DRW_ProxyObjectIdRef::dxfGroupCodeForDwgHandleCode and compared in order with ODA group-330/340/350/360 values. The common owner was compared separately. Null references were retained as zero-valued proxy references, not treated as resolved targets.",
+    "eed": "The common EED was parsed independently and compared with ODA ordered XDATA groups. APPID handle references resolve to matching output APPID names. Coordinate-valued EED variants are normalized to their X/Y/Z DXF group triplets before comparison. ASCII coordinates are compared numerically with the measured maximum absolute delta above.",
+    "optionalFields": "For this bounded AC1024 ACSH route, group 94 is emitted when proxy object-ID references are present and omitted when the reference list is empty, matching the ODA outputs. Generic proxy output is unchanged."
+  },
+  "observations": {
+    "commonHeaderEndBitCounts": {
+      "conference": {
+        "39": 143,
+        "993": 65
+      },
+      "condominium": {
+        "39": 460
+      }
+    },
+    "odaProxyFieldsObserved": {
+      "group90": 499,
+      "group91": "source class ordinal in these files",
+      "group95": 2424861,
+      "group70": 0,
+      "group94": "zero terminator when object-ID references are present",
+      "dataSizeCode": 161,
+      "bodyCode": 310
+    },
+    "parserFailuresRemain": {
+      "conference": 3,
+      "condominium": 3,
+      "interpretation": "This comparison does not make the class-specific typed DWG parsers pass."
+    }
+  },
+  "verification": {
+    "selector": "--acds-opaque-proxy-oda-compare",
+    "conferenceResult": "PASS: 241 projected object records matched ODA group order and values; 3 source parser failures retained; invalid-owner mutation refused atomically without changing prior output vectors; restored source succeeded on a fresh collector retry.",
+    "condominiumResult": "PASS: 533 projected object records matched ODA group order and values; 3 source parser failures retained; invalid-owner mutation refused atomically without changing prior output vectors; restored source succeeded on a fresh collector retry.",
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+    "fastControl": "libdxfrw_dwg2dxf_adapter_tests --proxy-object-capture-limits passed.",
+    "strictWholeSourceOutput": "Not qualified: strict CLI export refuses because the DWG frame disposition is partial with three ACSH_REVOLVE_CLASS body parser failures (handles 0x6FC, 0x6D3 and 0x6AA; each stops at the revolve-angle field at body bit 1301). The accompanying 816/820 diagnostic is HeaderSectionCompatibility (kind 24): the accepted AC1024 maintenance-37 envelope includes the optional 4-byte high-size word; strict completeness does not reject this warning. Explicit partial mode still refuses at typed-proxy-graphics-not-preserved (10 records, first handle 701). No full-document output/readback claim is made."
+  },
+  "interpretation": "This establishes ODA-matching opaque proxy transport for captured AC1024 frames in these two bounded inputs, including the observed terminal-zero trimming rule, ordered EED, owners/common links and typed reference roles. It does not establish Revolve/Loft semantics, ACIS meaning, B-rep validity, other producers/versions, arbitrary class completeness, or strict whole-document writer/readback qualification.",
+  "limits": [
+    "ODA output is a proxy view; it exposes no typed Revolve or Loft fields.",
+    "The group-95 value was observed in ACAD2013 output; do not derive a general version mapping from this receipt.",
+    "Strict whole-document output and fresh libdxfrw readback remain unqualified because unrelated source/global gates currently refuse these files.",
+    "All inputs and outputs remained in existing repository paths or /private/tmp; no new drawing fixture is committed."
+  ],
+  "nextSlice": "Use a source whose unrelated global completeness gates close, or a bounded generated document control, to exercise the integrated proxy/class-table writer through strict output and fresh readback. Keep semantic/ACIS support claims closed."
+}

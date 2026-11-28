@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "LibreDWG/ezdxf SAT DXF framing and terminal-block crosscheck",
+  "mode": "Primary-source web research and read-only local plan/source crosswalk",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Compare Autodesk's published 3DSOLID carrier contract with source-level SAT DXF framing in LibreDWG, ezdxf, ACadSharp, and local libdxfrw.",
+    "Separate group-code framing, line/chunk boundaries, SAT-v1 caret conversion, SAB-to-SAT block retention, parser reconstruction, ACIS semantics, and native acceptance.",
+    "Refine the existing PAR-07/S8 composed checkpoint while preserving fast local validation, no external fixture files, and self-unblocking implementation cadence."
+  ],
+  "sources": [
+    {
+      "project": "Autodesk 3DSOLID DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "revision": "Official cloud help page accessed 2026-10-20.",
+      "observed": "Group 1 is described as proprietary data in multiple lines under 255 characters; group 3 is additional lines when the preceding group-1 string exceeds 255 characters.",
+      "limits": "The table does not prescribe token-aware boundaries, caret conversion, or acceptance by a particular parser/native consumer."
+    },
+    {
+      "project": "ezdxf ACIS DXF source",
+      "urls": [
+        "https://raw.githubusercontent.com/mozman/ezdxf/v1.4.4/src/ezdxf/entities/acis.py"
+      ],
+      "revision": "Pinned v1.4.4 source, accessed 2026-10-20.",
+      "observed": "The reader starts an SAT line at group 1 and appends following group-3 values. The writer emits each SAT line as group 1 up to 255 characters followed by group-3 chunks for the remaining characters; the same source describes SAB storage in ACDSDATA for DXF 2013+.",
+      "limits": "Source-level parser/writer behavior is a structural comparator only, not ACIS semantic geometry or native application acceptance."
+    },
+    {
+      "project": "LibreDWG DXF writer and SAB-to-SAT source",
+      "urls": [
+        "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/out_dxf.c#L2546-L2610",
+        "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/out_dxf.c#L2641-L2728",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Mutable master source and NEWS observed 2026-10-20; exact commit was not captured and no executable was built or run.",
+      "observed": "The DXF dxf_3dsolid path writes SAT lines using repeated group 1, prefers an embedded newline before its current cut, otherwise limits chunks to 255 bytes, and applies SAT-v1 caret-space conversion. The SAB-to-SAT converter uses 4096-byte storage blocks, sets the final block count plus a zero-size/null sentinel, and comments that a prior missing +1 dropped the last block; NEWS records a last-SAT-block DXF export fix.",
+      "limits": "Current master is mutable. This source path is peer implementation evidence, not a normative rule or proof of downstream acceptance; pin an exact commit/tag before any run."
+    },
+    {
+      "project": "ACadSharp ACIS writer proposal",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1150"
+      ],
+      "revision": "Open proposal inspected 2026-10-20.",
+      "observed": "The proposal reports legacy DXF SAT output in groups 1 and 3 and proposes a whitespace-aware cut policy.",
+      "limits": "Unmerged branch statements are not released or independently reproduced behavior; do not promote compatibility based on them."
+    },
+    {
+      "project": "Local libdxfrw source and generated matrix",
+      "urls": [],
+      "references": [
+        "src/libdxfrw.cpp: writeDxfSatTextValue",
+        "src/libdxfrw.cpp: writeModelerGeometry",
+        "tests/modeler_dxf_writer_matrix_tests.cpp",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: prior ACIS DXF history boundary and SAT chunk policy review"
+      ],
+      "revision": "Read-only source/test and plan inspection on 2026-10-20; no code or tests changed or run.",
+      "observed": "Local writing uses group-1/3 values with a 255-byte budget, keeps SAT-v1 caret-space escapes atomic, and permits other tokens to cross a value boundary. Existing generated cases cover boundary lengths, token/space cases, ASCII/Binary tags, local reconstruction, and refusal.",
+      "limits": "Existing local round-trip proves only local serialization and reconstruction; not independent or native acceptance."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8 SAT writer checkpoint: separately capture exact group-code sequence, 255-character chunk lengths, reconstructed SAT lines, caret conversion, and terminal-block completeness.",
+      "Keep LibreDWG repeated-group-1 output, ezdxf group-1/3 behavior, ACadSharp proposal, and Autodesk's published table as distinct evidence profiles; source agreement/disagreement does not establish acceptance.",
+      "Run optional peers only at the existing composed checkpoint, with exact revisions and locally generated ephemeral inputs; external availability does not stop local implementation."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a dated source-level crosscheck section and linked it from the 3D plan.",
+    "Clarified the long-logical-line serializer difference: LibreDWG master uses repeated group 1 in dxf_3dsolid while ezdxf uses group 1 plus group-3 continuation, as described in Autodesk's carrier table; native acceptance of the repeated-group-1 form remains unresolved.",
+    "Added terminal partial 4096-byte block retention and exact tag/reassembly capture to the existing composed checkpoint; did not add another test lane or routine external run.",
+    "Restated self-update/self-unblock behavior: update progress and receipt after committed slices; optional peer unavailability records NOT_RUN/DEFERRED_EXTERNAL and work continues locally."
+  ],
+  "limitations": [
+    "LibreDWG master is mutable and its exact commit was not captured; source observation only, no peer build/run.",
+    "No native CAD or ACIS kernel was run, so exact tag reconstruction and the NEWS regression note do not establish native acceptance or B-rep semantics.",
+    "No external drawing was downloaded or committed; future cases must be generated locally and remain ephemeral.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check on plan files)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

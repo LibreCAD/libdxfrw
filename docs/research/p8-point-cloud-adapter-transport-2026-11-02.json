@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-point-cloud-adapter-transport-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "POINTCLOUD_NAVISWORKS_ADAPTER_TRANSPORT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Connect the existing POINTCLOUD, POINTCLOUDEX, and NAVISWORKSMODEL callbacks and DXF writers through the concrete dx_iface adapter.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "The concrete adapter retains each callback through the existing typed-entity record and byte bounds.",
+      "The BLOCK writer dispatches each exact runtime class to its existing dxfRW serializer, refuses a mismatched runtime class, and refuses nonzero definition/reactor handles until their object graph is qualified.",
+      "The existing dxfRW target-version checks remain authoritative; POINTCLOUDEX refusal at AC1024 is atomic and retry at AC1027 succeeds."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed typed models with finite coordinates, one point-cloud source filename, one POINTCLOUDEX crop polygon, and a finite NAVISWORKSMODEL transform. Reference handles are zero; no external asset or definition graph is claimed. No DWG/DXF fixture is used or committed.",
+    "records": ["POINTCLOUD", "POINTCLOUDEX", "NAVISWORKSMODEL"],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "All three callbacks are retained in the concrete BLOCK adapter.",
+      "The AC1024 attempt is refused because POINTCLOUDEX requires a later target; a pre-existing destination remains byte-identical.",
+      "Nonzero POINTCLOUD definition/reactor, POINTCLOUDEX definition/reactor, and NAVISWORKSMODEL definition handles are refused atomically with destination preservation.",
+      "Retry at AC1027 succeeds on the same adapter and re-imports all three typed records.",
+      "Readback checks representative scalar, coordinate, source-name, clipping, transform, and unit-factor fields."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_point_cloud_adapter_transport$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; ASCII and Binary version/reference refusal with destination preservation, AC1027 corrected retry, and typed readback, in 0.48 seconds.",
+    "diffCheck": "PASS: git diff --check",
+    "fixturePolicy": "No drawing fixture was added or committed."
+  },
+  "limitations": [
+    "This is generated adapter and DXF transport evidence only.",
+    "It does not close POINTCLOUD/NAVISWORKS definition-object graphs, external asset loading, physical DWG producer breadth, or native consumer semantics.",
+    "No support claim is promoted; P8 remains open."
+  ]
+}

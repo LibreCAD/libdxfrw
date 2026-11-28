@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-04",
+  "authority": "Open Design Specification for .dwg files v5.4.1 section 20.4.58 defines the LTYPE xdictionary hard-owner and xref hard-pointer handle roles; AC1015 stores the xdictionary slot.",
+  "scope": "Only internally synthesized AC1015 BYBLOCK, BYLAYER and CONTINUOUS LTYPE records use typed-null hard-owner xdictionary and hard-pointer xref slots. Caller-supplied records, public encoder behavior and AC1018+ remain unchanged; no nonzero target is fabricated.",
+  "oda_factorial": {
+    "reader": "ODA File Converter 27.1.0, ACAD2013 DXF; all four locally generated AC1015 controls use the opt-in plotstyle graph and preceding synthetic dictionary, layer and style corrections. Exit status is not evidence: inspect actual .err and DXF output.",
+    "baseline_sha256": "76079c5698f56d4a7c2d615ca9f1d2acf0fdda20cad0331c511c167f7bfa2d47",
+    "typed_xdictionary_only_sha256": "2ba5e6628d516ece2db4a849f6b8f63a80403de13db497f655f2bf7eccfe6c68",
+    "typed_xref_only_sha256": "79aad7bbc168e7312035226d3f6c33b5907172334f1432c2ba98423f4fa7a4f1",
+    "both_sha256": "3d00b9301c3098c9eaec1a5ca3a4e37d9afa0719c31de7c4a68b31ec3566e81c",
+    "results": "The first three controls report Object improperly read: <AcDbLinetypeTableRecord> (F). Both typed slots advance the first error to <AcDbViewportTableRecord> (16). All four lack output DXF; no inference about the later error cause or general acceptance follows. The production writer probe has exactly the same SHA-256 as the both-slots control."
+  },
+  "validation": "PASS libdxfrw_dwg_header_writer_sealing after coherent build: six writer versions, synthetic and caller reserved records, exact AC1015 typed and public null bytes, following dash-handle alignment, full readback including a following LINE, no-output rollback and retry. LibreDWG 0.14 independently decodes the production BYBLOCK, BYLAYER and CONTINUOUS records with xdictionary (3.0.0) and xref (5.0.0). An external derived consumer compiled against the preceding committed header and linked and ran against the new library using the original protected four-argument encodeDwgResolved symbol.",
+  "limits": "This narrow generated profile does not establish arbitrary caller/source records or general AC1015 interoperability. The controlled scratch files are not committed."
+}

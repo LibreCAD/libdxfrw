@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw-strict-dxf-recovery-and-reduced-output-grading-v1",
+  "reviewedAt": "2026-10-17",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Use a reported DWG-to-DXF interoperability case to refine how strict parse, recovery/audit, reduced output, and preservation evidence are graded.",
+  "method": {
+    "kind": "Primary project issue/docs review plus local plan cross-check",
+    "peerRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localBuildsRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A3E4F1D3-79C9-489C-B7EC-3924DA7F25C9.htm",
+      "https://github.com/mozman/ezdxf/issues/1136",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/tutorials/getting_data.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+      "https://github.com/mozman/ezdxf/blob/master/examples/copydxf.py"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing writer-output, strict-versus-recovery, semantic inventory, and fixture-admission gates"
+    ],
+    "limitations": "Issue #1136 is a historical reporter/maintainer discussion involving LibreDWG 0.13.3 and ezdxf 1.3.2, with attachments not downloaded or independently rerun. Later comments report an ezdxf reader change and hundreds of audit/recovery fixes, but do not establish current peer behavior or a local libdxfrw defect."
+  },
+  "evidence": [
+    {
+      "topic": "Full and reduced output modes have distinct preservation outcomes",
+      "observed": [
+        "Autodesk's BLOCK reference lists group 2 as the block name, and its BLOCKS example includes the name in each BLOCK record.",
+        "The report says a full LibreDWG dwg2dxf R2004 output failed ezdxf strict parsing and initially also failed ezdxf recovery because a BLOCK was missing required group 2 name data.",
+        "The reporter says the reduced (-m) output parsed but stripped information.",
+        "The issue later records an ezdxf reader change, a LibreDWG audit reporting 322 repairs, and a BricsCAD recovery report of 320 repairs; the comment says saving requires recovery to make the document valid.",
+        "The thread was closed after the ezdxf reader change; this does not show a LibreDWG output correction or current cross-version acceptance."
+      ],
+      "doesNotEstablish": [
+        "A reproducible current peer defect because the files and exact binaries were not pinned or rerun.",
+        "A libdxfrw defect or any local runtime behavior.",
+        "Semantic preservation from the reduced output's parse success.",
+        "A zero audit count as a full graph or semantic-completeness oracle."
+      ],
+      "planUse": "Keep full and reduced writer modes separate, bind outputs to the same local source manifest, and record strict parse, recovery/audit changes, and semantic deltas as separate outcomes."
+    },
+    {
+      "topic": "Strict read, recovery, audit, and valid save/reopen are different states",
+      "observed": [
+        "ezdxf documentation recommends ordinary readfile for trusted files and recover.readfile for flawed inputs; recovery returns an auditor and can leave errors.",
+        "Issue #1136 illustrates that recovery initially could not load a missing-name BLOCK, and later comments distinguish loading from repairing the document for save."
+      ],
+      "doesNotEstablish": [
+        "That ezdxf is a normative validator for every DXF profile.",
+        "That any recovered model is safe to save or semantically equivalent without checking its fixes and errors."
+      ],
+      "planUse": "Label strict parse, recovered parse, audit fixes/errors, and strict reopen of recovered output separately; do not count recovery success alone as writer acceptance."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "newPeerGateAdded": false,
+    "testRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "At the composed peer checkpoint, run full and reduced output modes separately and compare both to the same source-authored manifest.",
+      "Record exact peer version/command/output hash, strict parse outcome, recovery/audit fixes and errors, save/reopen result, and semantic identity/owner/payload delta.",
+      "Treat a reduced output that parses as a lossy-profile observation only; it cannot promote full writer preservation.",
+      "Keep peer/native work out of the per-slice loop; use existing generated fast writer/readback checks and fixture policy."
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "localBuildsRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad-3289-ci-7d175ccf-2026-11-28",
+  "supportClaimEffect": "none",
+  "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "headCommit": "7d175ccf5c611bbaa07e5e45b1b5303bcbbf582d",
+  "checks": [
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/runs/141020111363",
+      "name": "CodeQL",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/actions/runs/46154087464/job/141006923393",
+      "name": "build_with_pixi (macos-latest)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/actions/runs/46154087464/job/141006923065",
+      "name": "build_with_pixi (macos-15-intel)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/actions/runs/46154087464/job/141006923374",
+      "name": "build_with_pixi (ubuntu-latest)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/actions/runs/46154087464/job/141006923317",
+      "name": "build_with_pixi (ubuntu-24.04-arm)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/actions/runs/46154087464/job/141006923255",
+      "name": "build_with_pixi (windows-latest)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/actions/runs/46154087415/job/141006856065",
+      "name": "VerifyDwgDxfWindows (windows-2022, windows, win64_msvc2022_64, x64, x64, x64, qt3d qt5compat qtim...",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/actions/runs/46154087415/job/141006855919",
+      "name": "VerifyDwgDxfFast",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/actions/runs/46154087415/job/141006856012",
+      "name": "VerifyDwgDxfWindows (windows-11-arm, windows_arm64, win64_msvc2022_arm64, ARM64, arm64, arm64, qt...",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/actions/runs/46154087373/job/141006844616",
+      "name": "Analyze (cpp, none)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/actions/runs/46154087373/job/141006845897",
+      "name": "Security scan",
+      "state": "SKIPPED"
+    },
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/actions/runs/46154087463/job/141006789672",
+      "name": "Headless (ON)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/LibreCAD/LibreCAD/actions/runs/46154087463/job/141006789330",
+      "name": "Headless (OFF)",
+      "state": "SUCCESS"
+    }
+  ],
+  "checksJsonSha256": "3b3e387cb848b781f8a50bc42296f03783173247cabc744e74b4ac74bd2b8ada",
+  "scope": "Hosted PR checks at the recorded consumer head. Headless ON/OFF, focused DWG/DXF Linux and Windows x64/ARM64 lanes, Linux/macOS/Windows builds and CodeQL succeeded. One security-scan job was skipped.",
+  "limitations": [
+    "Results apply to the recorded consumer head and hosted configurations, not untested native edits, other producers or complete DWG/DXF parity.",
+    "The codec PR and native consumer integration gates remain open."
+  ]
+}

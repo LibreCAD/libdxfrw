@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-16",
+  "scope": "Prevent loss of nonempty or inconsistent pattern state on mandatory canonical DXF LTYPE rows.",
+  "finding": "A generated CONTINUOUS callback with a two-element pattern and custom description previously wrote successfully but fresh readback contained the fixed solid pattern and default description. Description preservation is separate and remains open.",
+  "change": "Reject nonzero size or total length, non-A alignment, or nonempty path, complex-segment or shape-handle vectors in canonical callbacks and predeclared metadata; fixed mandatory rows have zero pattern.",
+  "checks": [
+    "Generated AC1009, AC1014 and AC1032 ASCII and Binary tests cover all three canonical names and six pattern-state mutations in both callback and predeclared metadata.",
+    "Each refusal preserves the destination and source fields; clearing the fault permits a same-writer retry with byte-identical default output.",
+    "The canonical LTYPE allocation, APPID allocation and source table identity CTests passed 3/3.",
+    "The existing LibreCAD system-codec LTYPE test was relinked against the changed library and passed 17 cases / 4135 assertions, with one ODA-fixture case skipped.",
+    "The same relinked LibreCAD system-codec PR #3269-focused test passed 5 cases and 49 assertions."
+  ],
+  "limitations": [
+    "Canonical LTYPE description preservation remains unresolved.",
+    "The LibreCAD check reused compiled consumer objects rather than a clean consumer build.",
+    "These are generated controls and do not establish independent producer semantics."
+  ],
+  "descriptionFollowUp": "Predeclared descriptions, including empty, are now retained. An unseeded empty CONTINUOUS callback selects the built-in default; see p6-canonical-ltype-descriptions-2026-11-16.json."
+}

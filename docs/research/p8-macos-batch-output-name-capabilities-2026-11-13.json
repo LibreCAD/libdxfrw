@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-13",
+  "platform": "Darwin arm64",
+  "compiler": "/usr/bin/g++ (AppleClang toolchain)",
+  "implementation_commit": "a9c96625",
+  "change": "Use getattrlist ATTR_VOL_CAPABILITIES to read APFS case-sensitivity instead of CoreFoundation resource properties.",
+  "build_command": "cmake --build build-gcc --target dwg2dxf libdxfrw_batch_output_names_tests -j 4",
+  "build_result": "Both targets built successfully with project warning flags including -Werror.",
+  "test_command": "ctest --test-dir build-gcc -R '^libdxfrw_batch_output_names$' --output-on-failure",
+  "test_result": "1/1 passed.",
+  "runtime_control": "The test refused exact duplicate names, admitted distinct names, matched Case.dwg/case.dwg behavior to a filesystem-created case probe (the tested temporary volume was case-insensitive), and verified the output directory was clean after every invocation.",
+  "scope": [
+    "Local macOS batch output-name preflight behavior",
+    "CLI target build no longer fails on macOS SDK nullability-extension warnings"
+  ],
+  "not_qualified": [
+    "Hosted Linux and Windows builds",
+    "Native FreeCAD consumer behavior",
+    "Other filesystems or APFS configurations"
+  ]
+}

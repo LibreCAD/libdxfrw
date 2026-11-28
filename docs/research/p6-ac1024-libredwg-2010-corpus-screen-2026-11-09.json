@@ -1,0 +1,252 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "purpose": "Screen the public LibreDWG test-data/2010 sample directory for additional AC1024 files relevant to the reported ACAD2010 RTM CLASSES high-bit failure.",
+  "source": {
+    "repository": "https://github.com/LibreDWG/libredwg",
+    "path": "test/test-data/2010",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "directoryUrl": "https://github.com/LibreDWG/libredwg/tree/master/test/test-data/2010",
+    "localCheckoutPath": "/Users/dli/dev/LibreDWG/test/test-data/2010",
+    "sourceProvenance": "The directory is named 2010 and includes DWG/DXF demonstration pairs, but the repository does not attribute each DWG to AutoCAD 2010 RTM; do not treat the folder name as producer provenance."
+  },
+  "method": {
+    "version": "first six bytes",
+    "sha256": "SHA-256 per file",
+    "reader": "current libdxfrw build-gcc/dwg2dxf",
+    "commandPattern": "dwg2dxf <sample> -y -d -v2010 <scratch-output>",
+    "scratchDirectory": "/private/tmp",
+    "noSamplesCopiedIntoTargetRepository": true
+  },
+  "summary": {
+    "ac1024Files": 18,
+    "classesEndObserved": 18,
+    "operationSucceeded": 17,
+    "classesCrcMismatch": 0,
+    "readFailedAfterClasses": 1,
+    "outcomeCounts": {
+      "read-succeeded-output-gated": 17,
+      "read-failed-at-later-stage": 1
+    },
+    "strictOutputRefusedOrFailed": 17
+  },
+  "samples": [
+    {
+      "file": "Arc.dwg",
+      "sha256": "92f71737e697bac4c4e547f3cbc30e6c02bd29c8d83807784410d1299ec73826",
+      "bytes": 63276,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "Constraints.dwg",
+      "sha256": "bbac6b21d4edd199794a47af639263d0b36a62bcd2d1cce330904800b1ba8fb4",
+      "bytes": 303057,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+    },
+    {
+      "file": "ConstructionLine.dwg",
+      "sha256": "307e4b4752b444004951a5c076feecd00c316d373facfbd89c3d0f32765e6831",
+      "bytes": 63178,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "Donut.dwg",
+      "sha256": "ae8de62d5c1a1d4b673fefc59faee1b9e09eb09d657a2724cf39cbb3de58f2dd",
+      "bytes": 62060,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "Ellipse.dwg",
+      "sha256": "fd89a9ee5e9b690dbd67100747399b4b29bf697127a616cf924daf959bed81fa",
+      "bytes": 63468,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "Helix.dwg",
+      "sha256": "590e97ae535b8e248c26518313d74233ff2b889e019510905b42051086b1a290",
+      "bytes": 68650,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: typed-proxy-graphics-not-preserved count=1 firstHandle=447"
+    },
+    {
+      "file": "Leader.dwg",
+      "sha256": "37361cb2a9925552379434b42e6163d3086fddd3e3af5a773d8ff7dfd795bb9e",
+      "bytes": 359144,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export refused: standalone DWG OBJECTCONTEXTDATA has no qualified replay path; output would be incomplete"
+    },
+    {
+      "file": "Line.dwg",
+      "sha256": "315729e57328ea09fc0e3530540294144fb1217922ca28ba076936bf52a9d0ec",
+      "bytes": 62664,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "Multiline.dwg",
+      "sha256": "831057f2c4ddfb6151bdeddf1b2926ccdaab3a8356f815d41e2ee60bebcb197e",
+      "bytes": 65836,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "Point.dwg",
+      "sha256": "66c5e2887a948fe9ecc8dab883c39d84801e5e76c21cd3654f5c883ca6e6c403",
+      "bytes": 61735,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "PolyLine3D.dwg",
+      "sha256": "3332aff86777e67148830999fe8dc1f98c2a671af988f302a381295cd52cb328",
+      "bytes": 63399,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "Polygon.dwg",
+      "sha256": "59a714c8ec07bec1332bc98aae66abd717c9968f19474f00d8126ab14fa0e0bf",
+      "bytes": 62923,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "Polyline.dwg",
+      "sha256": "b02fd1d77f7e14867de400c3a633e19f88322f9edce71a60fff8d8f8f5d89cc5",
+      "bytes": 63239,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "RAY.dwg",
+      "sha256": "550406435ff1dfc585b1ef49a461e20f835625663683b61cfb19553d75332da8",
+      "bytes": 62508,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "Spline.dwg",
+      "sha256": "c0367bedcf8d1d4e65ba96faf9961597e5ca72c4964f5583168358e5be119df8",
+      "bytes": 61932,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "Text.dwg",
+      "sha256": "12b9fa57323b75230022fcc2ee892f345961ba3dec3577cba43bd5f37750810e",
+      "bytes": 62535,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "circle.dwg",
+      "sha256": "c1f4ec9a377ffbccdb024530ed82d16752deb5922639b0cc85cce14a2bc4de47",
+      "bytes": 64302,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": true,
+      "legacyError": 0,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "DXF export preflight failed: extension-object graph validation"
+    },
+    {
+      "file": "gh209_1.dwg",
+      "sha256": "4d3d81a0dd7b7a845368e3517ad745b763a9e338b0bae09e78e86c5bf2742e27",
+      "bytes": 65070,
+      "sourceVersion": "AC1024",
+      "classesEndMarkerObserved": true,
+      "legacyOperationSucceeded": false,
+      "legacyError": 9,
+      "classesCrcMismatch": false,
+      "strictConversionExit": 1,
+      "strictConversionRefusal": "Read failed after CLASSES: Error reading file /Users/dli/dev/LibreDWG/test/test-data/2010/gh209_1.dwg"
+    }
+  ],
+  "result": "All 18 AC1024 files reached the CLASSES end marker and had no CLASSES CRC mismatch. Seventeen completed DWG read with legacyError=0. One (gh209_1.dwg) failed later at TABLES (legacyError=9). The 17 completed reads were refused by strict output preflight or refused for incomplete OBJECTCONTEXTDATA; these are not CLASSES failures. The files do not resolve the historical AutoCAD 2010 RTM report because their per-file producer build is unverified. Keep parser unchanged; request exact failing hash or qualifying producer evidence."
+}

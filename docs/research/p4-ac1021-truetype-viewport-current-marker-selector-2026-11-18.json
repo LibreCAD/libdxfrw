@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 truetype viewport selector after DICTIONARY common-tail marker change",
+  "date": "2026-11-18",
+  "supportClaimEffect": "none",
+  "priorReceipt": "docs/research/p4-ac1021-truetype-layout-viewport-strict-output-2026-11-07.json",
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "provenance": "Pre-existing local drawing with unauthenticated producer. No fixture or derivative is added."
+  },
+  "validation": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/truetype.dwg",
+    "result": "Exit 0. Both ASCII and Binary report four source projections, 53/53 callbacks qualified, full typed viewport readback, atomic refusal, destination preservation and same-adapter retry.",
+    "negativeControl": "The logged BLOCKS emission failures precede the successful corrected retry in each encoding; they are negative-control outcomes, not final selector failures.",
+    "logSha256": "5db51767efe088c6cb57ac0bc462698a25012a10878d0020eb16d6181ae4dbe5",
+    "testExecutableSha256": "0918fa933a04feb5650dfe26846b6eb5657d3464f184846df797cb7edfe1912a",
+    "workspaceHead": "57af57ddc3281b847d9fc61957561bdbe5f2419b",
+    "workspaceLimit": "The executable was freshly rebuilt by a collaborator during ongoing AC1021 LayerStates edits; HEAD alone does not identify the worktree content. Binary hash identifies this run."
+  },
+  "branchObservation": "The historical complete-NOD branch logs that it was skipped with selected-empty-roots=0 and common-tail marker=1. The overall selector nevertheless passes 53/53 via other qualification. This run does not establish a failing viewport regression or prove every remaining common-tail-gated path.",
+  "limits": [
+    "One selected AC1021 source and the selector's staged transport/readback controls only.",
+    "No native CAD layout, plotting or visual semantics, other producer, other source version, or wider support claim is established.",
+    "The full test suite was not run as part of this receipt."
+  ]
+}

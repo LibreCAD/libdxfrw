@@ -1,0 +1,145 @@
+{
+  "schema": "libdxfrw-3d-consumer-route-peer-maturity-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden the open-source peer review to current released/source maturity and downstream 3D consumer route boundaries; refine existing explicit-geometry, ACIS carrier, AcDs/SAB association, and native-consumer qualification gates.",
+  "method": {
+    "kind": "Primary-source repository/release/issue and product-documentation research with read-only plan audit",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sources": [
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/DomCR/ACadSharp/issues/1281",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+      "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "https://help.solidworks.com/2026/english/SolidWorks/sldworks/t_DXF_3D_Files.htm"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing S8/PAR-07, PAR-76/7AP, ACIS/AcDs, peer provenance, and repeated-record owners",
+      "Current plan already records generated local repeated-run tests for the ACadSharp #1281 pattern and LibreDWG parser-safety invariants; this pass avoided duplicate work"
+    ],
+    "limitations": "No peer artifact or native application was executed. Issue/release documentation establishes reported behavior and provenance, not a local defect or universal interoperability rule. SOLIDWORKS is proprietary and is included only as an optional downstream-consumer contract, not as open-source peer evidence."
+  },
+  "evidence": [
+    {
+      "topic": "ACadSharp released artifact versus open writer/read issues",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1281"
+      ],
+      "observed": "The signed v3.8.0 release identifies commit 3a1c66b and reports an assembly-visibility change. Open issue #1195 reports DXF writer omission of 3DSOLID/REGION and links open ACIS writer work. Open issue #1281 provides concrete recursive comment, XDATA application-block, and clip-group read paths for its stated 3.8.0/master route.",
+      "doesNotEstablish": [
+        "that the peer issue reproduces in libdxfrw",
+        "that the whole ACadSharp API or release has complete DWG/DXF semantics",
+        "that peer-specific crash thresholds are format limits",
+        "a released ACIS DXF writer route or a B-rep semantic oracle"
+      ],
+      "planUse": "Pin package/source identity and exact operation for any optional comparison. Reuse existing local generated repeated-run tests. Keep ACIS writer unavailable until a released route and independent identity/owner readback are demonstrated."
+    },
+    {
+      "topic": "LibreDWG 0.14.1 parser-safety invariants",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "The beta NEWS records a decompression allocation-capacity versus logical-size mismatch, invalid section-page offsets, allocation-product overflow, and a 3DSOLID block-size bounds issue, among other fixes.",
+      "doesNotEstablish": [
+        "matching vulnerabilities in libdxfrw",
+        "that one global byte limit covers cursor, allocation, arithmetic, graph, and work/depth safety",
+        "a universal correct bound for all DWG revisions"
+      ],
+      "planUse": "Retain existing PAR-14/7BE and ACIS bounded-reader owners; add only a focused generated invariant when a touched local path lacks one. Keep fuzz/sanitizer work at its composed checkpoint."
+    },
+    {
+      "topic": "FreeCAD DXF import scope and backend differences",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "The general import/export manual describes stock DXF as 2D-only because its 3D data is proprietary; the additional-components guide distinguishes native C++ and optional legacy Python importers with different entity coverage; a maintainer response on issue #18454 states stock FreeCAD cannot read the proprietary ACIS blob.",
+      "doesNotEstablish": [
+        "runtime results for any pinned Linux or Windows FreeCAD build",
+        "complete support or lack of support for every explicit 3D DXF entity",
+        "ACIS/AcDs semantic acceptance through a stock FreeCAD route"
+      ],
+      "planUse": "Key native qualification by exact build/platform, converter, importer backend/preferences, DXF version, and entity family. Keep explicit geometry separate from ACIS and AcDs; use CONSUMER_NOT_APPLICABLE for stock ACIS unless an exact route is shown to have changed."
+    },
+    {
+      "topic": "SOLIDWORKS DXF 3D translator as a product-specific consumer contract",
+      "sources": [
+        "https://help.solidworks.com/2026/english/SolidWorks/sldworks/t_DXF_3D_Files.htm"
+      ],
+      "observed": "The 2026 guide says the DXF 3D translator extracts ACIS information into a part/assembly, does not import wireframe data, and is not a 2D-to-3D converter.",
+      "doesNotEstablish": [
+        "an open-source implementation result",
+        "DXF normative requirements or a particular SAB/modeler-version capability",
+        "DWG AcDs/SAB owner-index-payload association",
+        "a run or license availability in this environment"
+      ],
+      "planUse": "Offer only as an optional, exact-release ACIS-DXF consumer observation when already available; it cannot qualify explicit wireframe/mesh support or modern DWG AcDs and is not a required dependency or routine test."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "refinedOwners": [
+      "S8/PAR-07 downstream consumer qualification",
+      "PAR-76/7AP proxy and DXF carrier handling",
+      "existing ACIS/AcDs entity-owner-payload and semantic-evidence gates",
+      "peer release/package/source provenance and repeated-record hardening"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "fullSuiteOrSanitizerCadenceChanged": false,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "separate explicit/faceted 3D geometry, inline DXF ACIS carriers, and DWG AcDs/SAB association",
+      "bind native consumer evidence to exact platform/build, importer/backend, preferences, format version, and entity family",
+      "treat FreeCAD stock ACIS as not applicable unless its exact route changes and is verified",
+      "keep SOLIDWORKS as an optional commercial consumer observation, never open-source peer or required test",
+      "use source-authored identity/owner/geometry expectations and reserve semantic body metrics for a genuine independent ACIS route"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

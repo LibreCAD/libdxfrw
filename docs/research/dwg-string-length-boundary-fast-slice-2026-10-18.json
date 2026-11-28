@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "DWG CP8/ENC/UTF-16 string length boundary fast slice",
+  "mode": "local implementation fast slice",
+  "scope": [
+    "Characterize CP8 and ENC length-prefixed string writers at the maximum accepted payload and first rejected payload",
+    "Characterize UTF-16 length using code units, including an astral scalar and following-byte sentinel",
+    "Reuse the existing writer-primitives target and CTest registration"
+  ],
+  "implementation": {
+    "files": [
+      "tests/writer_primitives_tests.cpp"
+    ],
+    "details": [
+      "CP8 and ENC accept 65,534 payload bytes plus terminator (BS count 65,535), preserve exact bytes, and leave a following sentinel aligned.",
+      "TU accepts 65,534 UTF-16 payload code units plus terminator, including one astral surrogate pair; tests exact bytes and following sentinel.",
+      "CP8/ENC payloads of 65,535 bytes and TU payloads of 65,535 UTF-16 units fail before writing a length or payload byte."
+    ],
+    "productionCodeChanged": false,
+    "newCtestRegistration": false,
+    "persistentFixturesAdded": false,
+    "externalFixturesImported": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_writer_primitives_tests -j2",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_writer_primitives$' --output-on-failure",
+      "result": "passed (1/1)"
+    },
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "planStatus": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimsPromoted": 0,
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This is local writer-wire characterization, not typed SummaryInfo implementation, external producer acceptance, or native CAD qualification. The shared worktree is broadly modified, so the slice remains uncommitted rather than staging unrelated work."
+}

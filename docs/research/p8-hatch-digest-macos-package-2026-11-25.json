@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-hatch-digest-macos-package-2026-11-25",
+  "date": "2026-11-25",
+  "status": "MACOS_ARM64_SHARED_STATIC_PASS_HATCH_DIGEST_LINUX_WINDOWS_OPEN",
+  "supportClaimEffect": "none",
+  "testedImplementation": {
+    "cleanCloneCommit": "c31185daa",
+    "implementationDigestSha256": "e1b7dc677d2bd2f83b962ab14aa5596e4c97c9c2ad21d9c5ae0786c2049559ea",
+    "implementationInputCount": 774
+  },
+  "platform": {
+    "os": "macOS 27.2.1 (26B131)",
+    "architecture": "arm64",
+    "compiler": "AppleClang 21.0.0.21000334",
+    "cmake": "4.5.1",
+    "configuration": "Release",
+    "testsEnabled": false,
+    "documentationEnabled": false
+  },
+  "probe": {
+    "path": "tools/probe_installed_package.py",
+    "sha256": "7a7a6bb0c67e625c14ba71425c50b5eb7f3108f7d2a182759f89be368476ce1d",
+    "abiVersion2Rejected": true,
+    "abiVersion3Accepted": true,
+    "relocatedFilesMatch": true,
+    "relocatedConsumerBuilds": true
+  },
+  "scratchRoot": "/private/tmp/libdxfrw-p8-hatch-e1b7",
+  "packages": {
+    "shared": {
+      "installManifestSha256": "cbc1a96d24b7412c587fde4cd3eed1b928f84e8d77f855200de35c6c5e5df57a",
+      "probeReceiptSha256": "73e2606be07d48d4de7d447e1bf3c6907de11c2240d0e77656d18147d014e8a2",
+      "installedFileCount": 30,
+      "selectedTarget": {
+        "path": "lib/libdxfrw.3.0.0.dylib",
+        "sha256": "f4c0cba61569f34bd61537257e1f4f23d326d31644dec4518c6dccc745fe9eb1"
+      },
+      "loadedRuntime": {
+        "path": "lib/libdxfrw.3.0.0.dylib",
+        "sha256": "f4c0cba61569f34bd61537257e1f4f23d326d31644dec4518c6dccc745fe9eb1"
+      },
+      "installedCli": {
+        "path": "bin/dwg2dxf",
+        "sha256": "cde84b332ba35ce503a90464e6fb300f5c04d1c5f7429910d68605edcfb6f578",
+        "relocatedExecution": true,
+        "usageOutputObserved": true,
+        "expectedUsageExitCode": 1,
+        "actualExitCode": 1,
+        "knownLoaderOverrideVariablesCleared": true,
+        "runtimeIdentity": "The relocated shared consumer above reports the exact loaded dxfrw module path and hash."
+      }
+    },
+    "static": {
+      "installManifestSha256": "2d0ee87418fabb9f6e94c98f43380b6e0a71d6d0cbe8c5bfceeafc14e94441d9",
+      "probeReceiptSha256": "779d7c365199ed5a97bfea725fafb64ae14db1b656bae3c96702d34424986859",
+      "installedFileCount": 26,
+      "selectedTarget": {
+        "path": "lib/libdxfrw.a",
+        "sha256": "65bc6a858750022d0604d2871257bbcacab76ab9100cd641430775c82b8a996f"
+      },
+      "loadedRuntime": null,
+      "installedCli": null
+    }
+  },
+  "limits": [
+    "Local macOS ARM64 package selection and relocation evidence only; Linux GCC and Windows MSVC hosted package profiles remain open.",
+    "No complete C++ ABI, drawing semantics, native CAD, GUI, or FreeCAD qualification is implied.",
+    "No DWG/DXF fixture was added or committed."
+  ]
+}

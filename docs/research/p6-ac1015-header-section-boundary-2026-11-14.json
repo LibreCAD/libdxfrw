@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1015-header-section-boundary-2026-11-14",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "scope": "Hash-bound R2000/AC1015 file-header locator and AcDb:Header envelope accounting for one external local sample; no parser behavior was changed.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sections": ["2.14.1", "3.1", "3.2"],
+    "rules": [
+      "R13-R15 section-locator record count selects the documented header CRC XOR value; count 6 uses 0x8461.",
+      "The file-header CRC is followed by the 16-byte 0x95A04E... sentinel.",
+      "The R13-R15 AcDb:Header section contains a begin sentinel, declared byte count and data, 16-bit CRC, then end sentinel."
+    ]
+  },
+  "source": {
+    "path": "../ACadSharp/samples/sample_AC1015.dwg",
+    "sha256": "8ffbdc713f5838cbbb1596a8422e2b607e5c9e79921e852cbb5abee4af76ea4e",
+    "size": 1297511,
+    "version": "AC1015",
+    "provenanceLimit": "The file is from a local ACadSharp sample checkout; its producer and source-generation provenance were not established in this audit. It is not a repository fixture."
+  },
+  "fileHeader": {
+    "locatorCountOffset": 21,
+    "locatorCount": 6,
+    "locatorRecordsStart": 25,
+    "locatorRecordBytes": 9,
+    "crcOffset": 79,
+    "crcRawBeforeMagicXor": "0xF928",
+    "documentedCount6MagicXor": "0x8461",
+    "crcComputed": "0x7D49",
+    "crcStored": "0x7D49",
+    "sentinelOffset": 81,
+    "sentinelHex": "95a04e2899821ae55e41e05f9d3a4d00",
+    "sectionLocators": [
+      {"id": 0, "address": 13563, "size": 575},
+      {"id": 1, "address": 14138, "size": 3514},
+      {"id": 2, "address": 1294004, "size": 3354},
+      {"id": 3, "address": 0, "size": 0},
+      {"id": 4, "address": 1297507, "size": 4},
+      {"id": 5, "address": 97, "size": 123}
+    ],
+    "crcMethod": "Independent bytewise implementation of ODA §2.14.1 reflected 0xA001 table update, seed 0, then the §3.2 count-specific XOR."
+  },
+  "headerSection": {
+    "offset": 13563,
+    "size": 575,
+    "sha256": "4c8610d779bf4592fa602932fe0dd28b4b0bb9d87ea1ed92c9789ac652ac0065",
+    "beginSentinelHex": "cf7b1f23fdde38a95f7c68b84e6d335f",
+    "declaredSizeWordOffset": 16,
+    "declaredDataSize": 537,
+    "dataOffset": 20,
+    "payloadEndOffset": 557,
+    "crcOffset": 557,
+    "crcHexLittleEndian": "b878",
+    "crcComputed": "0x78B8",
+    "crcSeed": "0xC0C1",
+    "endSentinelOffset": 559,
+    "endSentinelHex": "3084e0dc0221c756a0839747b192cca0",
+    "trailerEndOffset": 575,
+    "unclaimedSuffixBytes": 0,
+    "crcMethod": "Independent bytewise implementation of ODA §2.14.1 over section bytes 16 through 556 inclusive, seed 0xC0C1."
+  },
+  "implementationObservation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf ../ACadSharp/samples/sample_AC1015.dwg -y -d -v2000 /private/tmp/p6-e-ac1015-probe.dxf",
+    "executableSha256": "553464f0a037426f755d633e914d45ab85a7cc4459821923ca3d3fbf0eac1f20",
+    "traceSha256": "9dd3023925b9aa8643779c0d496ace32d50d28b0af3d1dfbe168435ab21bda9c",
+    "observation": "The current AC1015 reader reports section 0 at offset 13563, size 575; declared size 537; payload end 557; trailer end 575; unclaimed bytes 0; and operationSucceeded=true, legacyError=0. The overall conversion exits 1 after six unrelated object parse warnings, so this is only a HEADER/file-locator result."
+  },
+  "limits": [
+    "One unverified-provenance source does not establish AC1015 producer breadth or whole-drawing support.",
+    "Other R13-R15 section records, optional templates, and source profiles are outside this bounded header-section accounting result.",
+    "No sample or derived DWG/DXF fixture was added to the repository."
+  ],
+  "next": "Continue P6-E only for source/version profiles not already accounted by hash-bound receipts. Keep any unexplained suffix unclaimed and strict-complete output refused."
+}

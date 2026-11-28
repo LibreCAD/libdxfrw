@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-mechanical-alt-libredwg-dxf-peer-rejection-2026-11-05",
+  "date": "2026-11-05",
+  "status": "INDEPENDENT_DXF_PEER_REJECTS_BEFORE_READBACK",
+  "supportClaimEffect": "none",
+  "question": "Can LibreDWG 0.14 independently consume the strict libdxfrw mechanical-alt DXF output?",
+  "input": {
+    "sourceDwg": "tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+    "sourceDwgSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "emittedDxf": "/private/tmp/libdxfrw-mechanical-alt-current.dxf",
+    "emittedDxfSha256": "f75dbf3683385f7a7deee8874e267e15ef3b2c54d0057c083bf5c78e3903671a"
+  },
+  "peer": {
+    "name": "LibreDWG",
+    "version": "0.14",
+    "dxf2dwg": "/opt/homebrew/bin/dxf2dwg",
+    "dxf2dwgSha256": "d8d27fed5519b67b977170093f3e3d2cd2aeae086ba2db75b5ded2faf2ec31e8",
+    "dwgread": "/opt/homebrew/bin/dwgread",
+    "dwgreadSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+  },
+  "command": "dxf2dwg -y --as r2004 -o /private/tmp/libdxfrw-mechanical-alt-peer.dwg /private/tmp/libdxfrw-mechanical-alt-current.dxf",
+  "result": {
+    "exitCode": 1,
+    "outputCreated": false,
+    "diagnostics": [
+      "Duplicate handle 734 for object 227 already points to object 75",
+      "Illegal subclass AcDbAssocValueDependency in object ASSOCVALUEDEPENDENCY",
+      "Invalid DXF code 90 for ASSOCVALUEDEPENDENCY",
+      "Failed to decode DXF file"
+    ]
+  },
+  "triage": {
+    "group5Handle734Occurrences": [
+      {
+        "record": "LINE",
+        "role": "entity handle",
+        "line": 3617
+      },
+      {
+        "record": "SORTENTSTABLE",
+        "role": "sort key in the SORTENTSTABLE body",
+        "line": 14931
+      }
+    ],
+    "roleEvidence": "The emitted DXF parser's RawSortEntsScope treats SORTENTSTABLE group 5 as an opaque body sort key rather than the record identity. The matching value 734 therefore does not demonstrate a duplicate output object handle.",
+    "interpretation": "The peer run does not reach an independent semantic readback. Its reported duplicate is explained by the established group-5 SORTENTSTABLE role, while ASSOCVALUEDEPENDENCY is an independently documented peer capability gap. Do not infer either a libdxfrw output defect or successful interoperability from this run."
+  },
+  "limits": [
+    "LibreDWG 0.14 did not produce a DWG or readback result.",
+    "The peer's ASSOCVALUEDEPENDENCY parser coverage is inadequate for this file; a different consumer that supports the subclass is required.",
+    "No source, output, or support claim changed."
+  ]
+}

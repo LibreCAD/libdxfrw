@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Classic WCS POLYLINE non-default extrusion loss guard",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Prevent typed DXF output from silently dropping a non-default extrusion vector on a classic WCS POLYLINE family record, while retaining the valid default normal and existing WCS vertex coordinates.",
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": "writePolyline refuses a non-default extPoint for 3D POLYLINE, polygon-mesh, and polyface-mesh flags before opening the record transaction. The default (0,0,1) remains admitted; tolerant read behavior is unchanged.",
+    "why": "The writer emits WCS vertices and intentionally omits DXF extrusion groups for these flags. Refusing a non-default retained vector avoids silently claiming lossless output without a qualified projection."
+  },
+  "formatEvidence": {
+    "reference": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+    "observation": "Autodesk describes POLYLINE group 30 as WCS elevation for a 3D polyline and lists group 210 as an optional extrusion direction.",
+    "implementationInference": "The reference does not define a semantic effect for a non-default group-210 vector on a WCS 3D polyline. Because this writer omits that retained field, fail closed until its behavior is qualified."
+  },
+  "control": {
+    "test": "libdxfrw_polyline_wcs_extrusion_loss_guard",
+    "selector": "libdxfrw_dxf_fixture_tests --polyline-wcs-extrusion-loss-guard",
+    "profiles": ["AC1021 ASCII", "AC1021 Binary"],
+    "assertions": [
+      "non-default extrusion refusal preserves an existing destination sentinel",
+      "the caller's extrusion and WCS vertex values remain unchanged on refusal",
+      "correcting to the default normal retries successfully on the same adapter",
+      "typed readback preserves both 3D vertex coordinates",
+      "raw output omits extrusion groups 210/220/230 for WCS vertices"
+    ],
+    "result": "PASS",
+    "fullSuites": "NOT RUN",
+    "fixturePolicy": "The control authors its model in test code and writes only to a temporary path; no DWG/DXF fixture was added."
+  },
+  "limitations": [
+    "No physical producer or native consumer semantics are established.",
+    "This guard does not establish general 3D POLYLINE, polygon mesh, or polyface support."
+  ]
+}

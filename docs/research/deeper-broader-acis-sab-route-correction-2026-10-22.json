@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "Deeper/broader ACIS/SAB producer scope and AcDs test-route correction",
+  "mode": "Primary-source web research and plan refinement; no code execution",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Resolve the ezdxf ACIS API versus FAQ claim about SAB writing.",
+    "Separate LibreDWG issue #1411's writer loss from reader qualification.",
+    "Make existing PAR-07/S8 modeler carrier and consumer probes cheaper and implementation-ready."
+  ],
+  "sources": [
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html"
+      ],
+      "revision": "Stable documentation identifies ezdxf 1.4.5; pages accessed 2026-10-22 and are mutable",
+      "observed": "The specific ACIS API documents export_sat(), export_sab(), export_dxf(), and body_from_mesh(). It describes SAT for DXF R2000-R2010 and SAB for R2013/R2018. It limits geometry generation to supported polyhedral bodies, says unsupported ACIS entities can load as NONE_ENTITY with data loss, says mesh_from_body() extracts only planar faces, and states ezdxf provides no ACIS kernel. The FAQ still states SAT-only writing and no ACIS creation/editing, contradicting the specific API.",
+      "limits": "No package/source artifact was downloaded or run. Documentation is not proof that every export route, modeler entity, or arbitrary ACIS graph works."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Issue #1411 opened 2026-09-02; report names LibreDWG 0.14.8593 at 8a1ae764; mutable issue/source pages accessed 2026-10-22",
+      "observed": "The issue's public AC1032 DXF reproduction uses ezdxf to author a polyhedral SAB body, confirms entity SAB bytes and AcDsData records, then reports the LibreDWG dxf2dwg output lacks AcDsPrototype_1b and a subsequent dwg2dxf output lacks SAB. The issue separately reports an unavailable confidential AutoCAD sample. Since the public intermediate DWG lacks the target section, that route exercises a writer loss but does not qualify the DWG reader's extraction path.",
+      "limits": "The issue is a peer report, not independently reproduced here and not a current-release result. The confidential input was not accessed."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "revision": "Mutable master README accessed 2026-10-22",
+      "observed": "The public version matrix separates DxfReader, DxfWriter, DwgReader, and DwgWriter. It declares AC1021 DWG read but no DWG write, and declares AC1024/AC1027/AC1032 for both directions.",
+      "limits": "This is a project capability declaration, not runtime, per-class, AcDs, or semantic evidence. No peer package/source was run."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Mutable main-branch docs/source accessed 2026-10-22",
+      "observed": "DWG import composes an external converter with the DXF importer; converter preference and fallback determine route attribution. A successful converter output does not establish downstream importer or 3D semantic behavior.",
+      "limits": "No FreeCAD application or native platform profile was run."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8 split ACIS/SAB DXF carrier, DWG writer section-emission, DWG reader extraction, semantic geometry, and native-consumer evidence",
+      "PAR-144 evidence admission for artifact identity, source-section presence, per-owner association, and independent semantic checks",
+      "Optional ezdxf scratch controls are not required dependencies, committed fixtures, or CI gates"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Corrected a stale comparison row: the specific ezdxf ACIS API documents SAB export for bounded polyhedral bodies even though its FAQ still says SAT-only; arbitrary ACIS editing and kernel behavior remain unsupported.",
+    "Reclassified the public LibreDWG #1411 reproduction as evidence of loss on its reported dxf2dwg writer path, not DWG reader extraction, because its intermediate DWG lacks AcDsPrototype_1b.",
+    "Added an implementation-ready staged probe: optional pinned scratch generation; separate ASCII/Binary DXF carrier checks; verify AcDs section and owner/key associations before scoring DWG writer/reader; independent analytic and consumer gates remain separate.",
+    "Kept ACadSharp version declarations directional/version-scoped and FreeCAD as a converter-plus-selected-importer route.",
+    "Preserved no-external-fixture, fast-test-first, no-new-dependency, and non-promoting J-gate rules."
+  ],
+  "limitations": [
+    "Mutable project docs and issue pages can change; future executions must pin package/source revisions and record hashes.",
+    "No issue reproduction, package, peer binary, independent kernel, or native CAD application was run.",
+    "Generated ezdxf content is a bounded sample-generation route only and cannot independently verify its own semantics.",
+    "No new result resolves native FreeCAD Linux/Windows qualification, independent ACIS/ACDS semantics, or any deferred J item."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (git diff --check on plan and receipt paths)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

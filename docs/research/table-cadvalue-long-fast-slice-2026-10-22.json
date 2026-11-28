@@ -1,0 +1,42 @@
+{
+  "id": "par134-ac1021-ac1024-table-cadvalue-klong-coverage",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "141e72ba6c1e1e25abbc541a18366294bdad2c33faa32cf12abc1626ff4e4b9b",
+  "scope": {
+    "class": "DRW_Table / DRW_TableContentObject",
+    "version": "AC1021 and AC1024",
+    "field": "TABLE CadValue type-1 kLong payload",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "change": "Extended in-memory frame builders to encode a matching type-1 BL payload and display string for both the standalone AC1021 TABLECONTENT route and embedded AC1024 TABLE route. The production parser branch was already present; this slice adds regression coverage only.",
+  "generatedControls": {
+    "payload": "Signed 32-bit integer 314159 encoded as the type-1 BL value.",
+    "ac1021": "Asserts complete typed value, integer variant/value, matching display string, and cell text.",
+    "ac1024": "Asserts the same semantics plus exact following-table-tail bit boundary."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_table_cadvalue_long$' --output-on-failure: PASS (1/1)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- CMakeLists.txt tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "productionParserChanged": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

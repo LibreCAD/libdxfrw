@@ -1,0 +1,161 @@
+{
+  "schema": "libdxfrw-r2018-rust-dxf-comparator-and-validation-boundary-refresh-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden the open-source DXF peer inventory across Rust and TypeScript readers and JavaScript writers, determine documented version/read-write/interop boundaries, recheck the current uncad operation route, and refine optional use without adding a fast-loop dependency.",
+  "method": {
+    "kind": "Primary-source repository, changelog, and API documentation review plus local plan cross-check",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesOrTestsRun": false,
+    "odaFileConverterRun": false,
+    "nativeCadApplicationsRun": false,
+    "drawingsDownloaded": 0,
+    "drawingsUploaded": 0,
+    "localBuildsRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "sources": [
+      "https://github.com/ixmilia/dxf-rs",
+      "https://github.com/ixmilia/dxf-rs/blob/main/CHANGELOG.md",
+      "https://docs.rs/dxf/0.6.1/dxf/",
+      "https://github.com/ixmilia/dxf",
+      "https://github.com/linkiez/DXF-Renewed",
+      "https://github.com/tarikjabiri/js-dxf",
+      "https://github.com/iyulab/uncad",
+      "https://github.com/mlightcad/libredwg-web"
+    ],
+    "evidenceBoundary": "Documentation identifies candidate capability and test prerequisites only. No release artifact was executed, no source-lineage audit was performed, and no DXF behavior or consumer acceptance was independently reproduced."
+  },
+  "evidence": [
+    {
+      "topic": "IxMilia Rust dxf crate is a bounded AC1032 DXF comparator candidate",
+      "sources": [
+        "https://github.com/ixmilia/dxf-rs",
+        "https://github.com/ixmilia/dxf-rs/blob/main/CHANGELOG.md",
+        "https://docs.rs/dxf/0.6.1/dxf/"
+      ],
+      "observed": [
+        "The crate documentation describes DXF and DXB read/write APIs.",
+        "The changelog records R2018 drawing support in 0.4.0 and R13+ writer improvements in 0.6.0; docs.rs documents version 0.6.1.",
+        "These declarations make it a candidate for a narrowly selected AC1032 DXF structural comparison."
+      ],
+      "doesNotEstablish": [
+        "Runtime conformance for a specific entity, object, encoding, or version.",
+        "Complete field/reference/owner preservation or native CAD acceptance.",
+        "DWG parsing/writing, ACIS/AcDs association, B-rep semantics, or 3D support."
+      ],
+      "planUse": "Optional DXF-only structural comparator at the existing composed checkpoint; pin the exact artifact and compare against a source-authored expected manifest. Keep peer self-roundtrip results diagnostic only."
+    },
+    {
+      "topic": "Documented peer interop test depends on proprietary ODA File Converter and Windows",
+      "source": "https://github.com/ixmilia/dxf-rs",
+      "observed": [
+        "The repository README states its integration/interop tests currently run only on Windows.",
+        "Those tests require an installed ODA File Converter."
+      ],
+      "doesNotEstablish": [
+        "That the ODA converter is available or authorized in this local environment.",
+        "That the integration tests establish AutoCAD, LibreCAD, LibreCAD_3, or FreeCAD acceptance.",
+        "That converter success demonstrates parser completeness or semantic preservation."
+      ],
+      "planUse": "Do not add ODA File Converter or Windows-only peer tests to local fast validation. If already authorized and used at a composed checkpoint, pin tool identity and report the converter stage separately from parser and consumer results."
+    },
+    {
+      "topic": "IxMilia C# and Rust projects should be lineage-correlated, not counted as independent votes",
+      "sources": [
+        "https://github.com/ixmilia/dxf-rs",
+        "https://github.com/ixmilia/dxf"
+      ],
+      "observed": [
+        "Both repositories are in the IxMilia project namespace and address DXF implementations in different languages.",
+        "This pass did not perform a source-to-source or design-provenance audit."
+      ],
+      "doesNotEstablish": [
+        "Shared executable code or a specific code-generation lineage.",
+        "Full independence or dependence between all implementations."
+      ],
+      "planUse": "Treat dxf-rs as a distinct optional implementation path but correlate it under the IxMilia maintainer lineage. Do not count both language implementations as independent peer votes without a future source-lineage audit."
+    },
+    {
+      "topic": "DXF-Renewed is a TypeScript parser and projection route, not a 3D semantic peer",
+      "source": "https://github.com/linkiez/DXF-Renewed",
+      "observed": [
+        "The repository describes input as DXF text/string and exposes a parsed object model, JSON output, SVG rendering, and polyline projection.",
+        "The supported-entity table lists 2D/3D POLYLINE as rendered to SVG, but says 3DFACE and REGION are parsed and not rendered.",
+        "The repository is explicitly forked from skymakerolof/dxf."
+      ],
+      "doesNotEstablish": [
+        "Binary DXF parsing, a DXF writer, or a pinned version-specific conformance result.",
+        "3D topology or exact 3DFACE/REGION geometry semantics from an SVG projection.",
+        "ACIS/AcDs payload parsing, B-rep construction, or DWG support."
+      ],
+      "planUse": "At most an optional pinned text-DXF model/projection diagnostic for a specific 2D consumer question. Correlate its lineage with skymakerolof/dxf; do not add a gate or count rendered output as 3D semantics."
+    },
+    {
+      "topic": "js-dxf is a narrow writer candidate with undocumented target version",
+      "source": "https://github.com/tarikjabiri/js-dxf",
+      "observed": [
+        "The repository describes itself as a DXF writer and lists 3D polyline and 3DFace output among supported entities.",
+        "The inspected README does not name the output DXF target version and does not document a reader or ACIS carrier path."
+      ],
+      "doesNotEstablish": [
+        "Any exact AC-code target, versioned writer conformance, or readback behavior.",
+        "DWG, ACIS/AcDs, B-rep, or native consumer support."
+      ],
+      "planUse": "Discovery-only narrow writer candidate. If a future need justifies it, pin source/release, inspect the actual emitted AC code, and read the scratch output with a separate parser against a source-authored manifest. Existing generated controls remain preferred."
+    },
+    {
+      "topic": "uncad operation metadata must not be mistaken for a writer implementation",
+      "source": "https://github.com/iyulab/uncad",
+      "observed": [
+        "The short repository description mentions writing, while the README Scope explicitly says the current library is read-only and notes that a previous write API was removed.",
+        "The README assigns DWG input to LibreDWG FFI and DXF input to undxf; output is model/JSON/SVG/PNG projection."
+      ],
+      "doesNotEstablish": [
+        "A current DWG/DXF writer route or an independent DWG parser lineage.",
+        "Writer parity, ACIS/AcDs closure, or geometry semantics from its projection."
+      ],
+      "planUse": "Follow the detailed README scope and parser identities. Keep uncad as a read/model/render wrapper: LibreDWG lineage for DWG and undxf lineage for DXF; do not count it as another writer or parser vote."
+    },
+    {
+      "topic": "libredwg-web is a wrapper in the already-counted LibreDWG lineage",
+      "source": "https://github.com/mlightcad/libredwg-web",
+      "observed": [
+        "The repository identifies itself as a JavaScript DWG/DXF parser based on libredwg."
+      ],
+      "doesNotEstablish": [
+        "A separately implemented DWG parser, an independent DXF route, or ACIS/AcDs/B-rep semantics beyond the underlying dependency."
+      ],
+      "planUse": "Retain it under the existing LibreDWG wrapper lineage; no new peer gate follows."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "newPeerGateAdded": false,
+    "testRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

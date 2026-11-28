@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Independent DWG reader and evidence-lane audit",
+  "mode": "Primary-source open-source repository, API, build metadata, and package-index review",
+  "scope": [
+    "Screen newly surfaced direct DWG reader implementations and distinguish parser lineage from wrappers and normalized models.",
+    "Map exact documented operation/version/entity coverage to the current parity plan.",
+    "Make any useful external differential implementation-ready without adding a routine dependency, fixture, or support claim.",
+    "Keep DWG AcDs transport, ACIS payload decoding, shape semantics, and native consumer qualification as separate evidence stages."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_downloaded": 0,
+    "peer_fixtures_copied": 0,
+    "local_tests_changed": false,
+    "full_suite_run": false,
+    "limitations": "The source review was not a complete ancestry audit and no published wheel was installed or executed. README/API claims and dependency metadata screen candidate roles; they do not qualify runtime behavior or semantic correctness."
+  },
+  "sources": [
+    {
+      "name": "ezdwg repository and README",
+      "url": "https://github.com/monozukuri-ai/ezdwg",
+      "observed": "Documents a Rust-core/PyO3 read-focused DWG API covering AC1012 through AC1032, a narrow native AC1015 writer, DXF conversion through ezdxf, and version/entity-specific limitations."
+    },
+    {
+      "name": "ezdwg guide: reading files and version matrix",
+      "url": "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/guide/reading-files.md",
+      "observed": "Separates experimental AC1012/AC1014 from later listed versions and distinguishes modelspace, paperspace, all-entity enumeration, layouts, and entity placement."
+    },
+    {
+      "name": "ezdwg Rust core Cargo manifest",
+      "url": "https://github.com/monozukuri-ai/ezdwg/blob/main/crates/ezdwg-core/Cargo.toml",
+      "observed": "The core crate declares encoding_rs as its dependency. This is dependency-graph evidence only; source ancestry still needs audit."
+    },
+    {
+      "name": "ezdwg workspace Cargo manifest and Cargo.lock",
+      "url": "https://github.com/monozukuri-ai/ezdwg/blob/main/Cargo.toml",
+      "observed": "The workspace manifest reports 0.16.3 while the reviewed lockfile lists internal ezdwg-core and ezdwg-python packages at 0.12.12; neither libredwg nor acadrust appears in the lockfile. This drift must be reconciled before claiming source-to-wheel correspondence."
+    },
+    {
+      "name": "ezdwg PyPI 0.16.3 artifact metadata",
+      "url": "https://pypi.org/project/ezdwg/0.16.3/",
+      "observed": "Version 0.16.3 was published 2026-10-17 with macOS universal/ARM64, Linux x86-64/ARM64, and Windows x86-64 wheels; the listed macOS wheel has SHA-256 50414743576011389c2382c7a129da78cdd0b3bf17af05f3beef88597b7ff0c8."
+    },
+    {
+      "name": "ezdwg GitHub releases page",
+      "url": "https://github.com/monozukuri-ai/ezdwg/releases",
+      "observed": "No GitHub Releases were listed at review time, so a package artifact pin and source revision reconciliation are required."
+    },
+    {
+      "name": "acadrust.js README and third-party notice",
+      "url": "https://github.com/monozukuri-ai/acadrust.js",
+      "observed": "The JavaScript package is a binding that consumes upstream acadrust as an unmodified Cargo dependency; its notice identifies acadrust 0.3.4. Count it under the ACadRust parser lineage."
+    },
+    {
+      "name": "cad2d-ir README",
+      "url": "https://github.com/monozukuri-ai/cad2d-ir",
+      "observed": "Its DWG adapter consumes the ezdwg model and maps into a 2D IR, so it is a normalized wrapper and not a second DWG parser vote."
+    },
+    {
+      "name": "cq-acis README and geometry limitations",
+      "url": "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+      "observed": "Describes an experimental, subset-bounded SAT/SAB-to-CadQuery/OpenCascade route that surfaces unsupported geometry; it begins at payload bytes and does not establish DWG AcDs lookup or ownership joins."
+    },
+    {
+      "name": "LibreDWG issue #1411",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "observed": "Reports R2013+ ACIS geometry loss in the AcDs/ACDSDATA carrier path for a specific LibreDWG build. This is an external peer report, not a local reproduction or format authority."
+    }
+  ],
+  "plan_impact": {
+    "ezdwg": "Optional direct DWG read-side differential; dependency graph appears distinct from LibreDWG and ACadRust, but source ancestry and wheel/source correspondence remain to be audited. Limit to documented exact overlaps and independently expected fields.",
+    "acadrust_js": "Same ACadRust parser lineage; wrapper does not count as an independent DWG implementation.",
+    "cad2d_ir": "Uses ezdwg and normalizes to 2D IR; useful only for a named normalization behavior, not a separate parser or source graph/3D preservation vote.",
+    "acis_acds": "Maintain distinct evidence stages for DWG AcDs section transport and owner/key joins, exact payload recovery, ACIS parse completeness, expected shape metrics, and native CAD acceptance.",
+    "implementation_change": "No local defect, required comparator, permanent test, fixture, dependency, native run, validation cadence change, or support promotion."
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Plan and receipt only, in a broadly dirty shared worktree. No source, test, fixture, or dependency was changed; no changes were staged or committed."
+}

@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper and broader peer release-versus-branch readiness refresh",
+  "mode": "primary-source web research and read-only local implementation-plan/source reconciliation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck current published and unreleased ACIS/AcDs peer paths",
+    "Separate release behavior, open-branch claims, issue reports, carrier preservation, and semantic shape evidence",
+    "Refine existing local 3D carrier and composed-consumer gates without adding per-slice validation cost"
+  ],
+  "method": {
+    "kind": "Read current upstream release pages, issues, pull requests, documentation, and targeted local implementation paths",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/intern/dwgreader.cpp",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp"
+    ],
+    "limitations": "Mutable upstream pages and user issue reports are not independent reproductions. Open PR branch state was inspected but not built or run. The ezdxf mesh-derived example is carrier-generation evidence only, not a qualified analytic B-rep. No external payload, customer drawing, native consumer, or peer executable was tested."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp released baseline",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "revision": "v3.8.0 tagged commit 3a1c66b and mutable issue/repository pages reviewed 2026-10-18",
+      "observed": "The format/version matrix is not a per-family retention guarantee. Open issue #1195 reports ACIS-bearing 3DSOLID/REGION read but silently omitted by the DXF writer on unavailable customer drawings; this is a reporter claim, not a reproduction."
+    },
+    {
+      "project": "ACadSharp ACIS writer and storage branches",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "revision": "Open PR state and comments reviewed 2026-10-18",
+      "observed": "#1240 remains open, depends on #1174, and has no deployment; #1174 remains open. A contributor reports one branch test failing because readAcdsRecord is NotImplementedException and the branch DXF path losing post-2013 payloads. The reported branch test was not rerun in this research."
+    },
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Open issue and mutable NEWS reviewed 2026-10-18; issue reporter pins tested executable to 0.14.8593 / commit prefix 8a1ae764",
+      "observed": "Open issue #1411 describes an R2013+ AcDs/SAB loss route where modeler entity identity survives but payload does not. The proposed no-proprietary-file repro uses ezdxf body_from_mesh(cube()); it is suitable as a carrier association scenario, not a curved/analytic B-rep oracle. NEWS documents prior incomplete/brute-force extraction of AcDb:AcDsPrototype_1b."
+    },
+    {
+      "project": "ezdxf carrier and rendering scope",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html"
+      ],
+      "revision": "Mutable stable documentation reviewed 2026-10-18",
+      "observed": "ezdxf provides bounded SAT/SAB carrier authoring and inspection, but the drawing backend does not render ACIS or provide a general 3D renderer; mesh-derived bodies do not constitute an independent analytic-kernel result."
+    },
+    {
+      "project": "Local libdxfrw",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "src/intern/dwgreader.cpp",
+        "src/drw_entities.cpp",
+        "src/libdxfrw.cpp",
+        "dwg2dxf/dx_iface.cpp"
+      ],
+      "revision": "Working tree over de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-18",
+      "observed": "The implementation contains distinct modeler payload parsing, AcDs section capture, record linking, and output validation paths; this source structure does not by itself qualify all external/native routes or body semantics."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines existing S2.3 and PAR-07/S8 work: require per-entity carrier presence/hash and AcDs owner/key linkage independently from modeler-entity count; distinguish mesh-derived carrier controls from analytic semantic controls; and treat unreleased peer branches as experiments, not release evidence.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Continue independent local slices without waiting for peer or native availability.",
+    "Use only locally scratch-generated controls; do not add customer or peer corpus DWG/DXF files.",
+    "A mesh-derived SAT/SAB case can test payload presence and owner association only; use a separately qualified analytic geometry case for shape semantics.",
+    "Assert source entity and owner path, AcDs record/key, payload length/hash/profile, output carrier, and output disposition independently.",
+    "Pin peer release versus open PR head, build/runtime, options, diagnostics, and output hashes before using any comparator result.",
+    "Keep native Linux/Windows FreeCAD and independent semantic routes at composed gates; missing external evidence is recorded as NOT_RUN or NOT_AVAILABLE and does not stop local work.",
+    "After each implementation slice is committed, update the plan status/next action and report progress; this research pass itself made no commit."
+  ]
+}

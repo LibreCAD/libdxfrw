@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-dxf-mleader-vertex-component-order-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "generated ASCII/Binary parser regression scoped to one documented MLEADER leader-line context",
+  "sources": [
+    {
+      "name": "Autodesk MLeader context DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-EC56D0DE-026D-46AB-87B1-9692393B0C22.htm",
+      "use": "Defines the context and nested leader scopes, including repeated point-coordinate groups."
+    },
+    {
+      "name": "Autodesk MLeader leader-line DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-B2E6436A-F17D-4F59-9DE8-DBDB61AD36C6.htm",
+      "use": "Identifies groups 10/20/30 as leader-line vertices, and groups 11/21/31 and 12/22/32 as break endpoints."
+    },
+    {
+      "name": "Autodesk common entity group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "use": "Warns that displayed group-code order is not a wire-order guarantee; nested scope boundaries remain significant."
+    }
+  ],
+  "scope": {
+    "nestedPath": "CONTEXT_DATA{} → LEADER{} → LEADER_LINE{}",
+    "components": "Repeated 10/20/30 vertex coordinate arrays only; breaks, flags, same-code occurrence order, and all nested delimiters remain fixed.",
+    "limit": "Parser-local retention evidence, not full MLEADER style-graph validity, rendering, or CAD acceptance."
+  },
+  "reproduction": {
+    "redControl": "Before the fix, the existing focused selector failed for both ASCII and Binary controls because the old parser discarded groups 20/30 arriving before group 10 opened a vertex.",
+    "validShape": "Two asymmetric vertices: repeated group-20 and group-30 arrays precede the repeated group-10 array inside one leader-line block; the nested block closes and entity-level group 270 follows as a parser-state sentinel.",
+    "negativeControl": "An additional group-20 component beyond the X-defined point count is refused at group-305 closure in ASCII and Binary."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp"
+    ],
+    "change": "DRW_MLeader assigns each vertex coordinate by its independent bounded occurrence ordinal, scoped to the current LEADER_LINE. Group 305 validates X-defined slot count and refuses Y/Z arrays longer than X.",
+    "compatibility": "No public field, callback, or virtual changed. Private class layout changed; downstream consumers must rebuild against the updated headers/library."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "build/libdxfrw_hardening_tests --mleader-context-roundtrip",
+      "result": "PASS",
+      "detail": "Existing direct selector; ASCII and Binary exact two-point values, nested closure, post-context group 270, and excess-Y refusal."
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    }
+  ],
+  "limits": [
+    "No new CTest lane or persistent fixture was added; test records are generated in memory.",
+    "No peer runtime, native CAD application, geometry kernel, external drawing, or full suite was run.",
+    "No support claim was promoted; this covers only the tested MLEADER leader-line vertex profile.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The worktree remains broadly dirty and .git metadata is read-only; this slice is uncommitted."
+  ]
+}

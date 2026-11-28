@@ -1,0 +1,166 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-main-477a704-dwg-handoff-2026-11-27",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "freecadCandidate": "Twenty existing local importer patches replayed on base; see p8-freecad-main-477a704-patch-replay-2026-11-27.json. Source was not committed.",
+  "libdxfrwSource": "be6357dfbfb9545c81844541e4d3f85b8a9a18c3, local source tree; additional research bootstrap only",
+  "platform": "macOS arm64, headless FreeCADCmd, Qt 6.12.0, real PySide6 and real Draft",
+  "freecadVersionNote": "Development build does not embed git revision; source/build identity checked separately.",
+  "bootstrap": "tools/research/freecad_dwg_handoff_bootstrap.FCMacro",
+  "bootstrapSha256": "4bc9b831511a4f81654ec7abc8b4dfea6e461b01c1e0d5fcf000eac60296058b",
+  "assertionMacro": "tests/freecad_dwg2dxf_import_check.FCMacro",
+  "assertionMacroSha256": "cae35bde1d5142b595a370e0df2d0bd98573f4d60926fa7ef0a5b8c7b89c8927",
+  "generatorSha256": "39d3cebeaf6531960ce30ac84d66cfe9d06e96e8831151056fdbe93119ed7dd7",
+  "runs": {
+    "AC1021": {
+      "open": {
+        "logSha256": "063e1e0e1241ddcfc0f7ea07604e6080a2d5e1227f01563e1c6027f4b10eebd7",
+        "inputSha256": "562e063eea7c71e2869d080bc4341d2d9bd0019c5f6954653e30b702816a68e5",
+        "convertedDxfSha256": "381bd378a734f1fb63142cac19e0306d3589c2b57b7cec1b7e64eee14a916f48",
+        "lineEndpoints": [
+          [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        ],
+        "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+        "backend": "Import",
+        "unicodeAndSpaces": true
+      },
+      "insert": {
+        "logSha256": "41735dcc9d7b056fb21244b3ea2eb83fec92f5c4ddf5706907f7e57fbef17c7b",
+        "inputSha256": "562e063eea7c71e2869d080bc4341d2d9bd0019c5f6954653e30b702816a68e5",
+        "convertedDxfSha256": "381bd378a734f1fb63142cac19e0306d3589c2b57b7cec1b7e64eee14a916f48",
+        "lineEndpoints": [
+          [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        ],
+        "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+        "backend": "Import",
+        "unicodeAndSpaces": true
+      }
+    },
+    "AC1024": {
+      "open": {
+        "logSha256": "dbbe5dc1ca67ddb25fa48cc6aafdd7587659664d1d27f0ec1a8e7a2cf793fc0e",
+        "inputSha256": "8be7650fc28d414409c1500f2dcdc27ceddeccacd3fba0ef4c10c00356afe66a",
+        "convertedDxfSha256": "58661aae920571abd7f98c3ad254d5951d21d6d4ecc4f1e628798d3da1f9e00f",
+        "lineEndpoints": [
+          [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        ],
+        "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+        "backend": "Import",
+        "unicodeAndSpaces": true
+      },
+      "insert": {
+        "logSha256": "a62713cc418249a2927f887895bfe4f7fb424be7eb76e83f0910095ae0c89ad0",
+        "inputSha256": "8be7650fc28d414409c1500f2dcdc27ceddeccacd3fba0ef4c10c00356afe66a",
+        "convertedDxfSha256": "58661aae920571abd7f98c3ad254d5951d21d6d4ecc4f1e628798d3da1f9e00f",
+        "lineEndpoints": [
+          [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        ],
+        "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+        "backend": "Import",
+        "unicodeAndSpaces": true
+      }
+    },
+    "AC1032": {
+      "open": {
+        "logSha256": "9723e61a9b367db833ac64ca9d987b7e6d545fc68fac5b63e5f82e467974b5a4",
+        "inputSha256": "c5838730e8c66f0e894d3b65640a78a495ee91042596777c7cd8e5ce84df54ce",
+        "convertedDxfSha256": "faa450dacbc30c63e8b214a1b7f03c77a292a7c50c18559f7f4aaf4aef3abdce",
+        "lineEndpoints": [
+          [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        ],
+        "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+        "backend": "Import",
+        "unicodeAndSpaces": true
+      },
+      "insert": {
+        "logSha256": "9cb900f93d806e07c9927434d162b54db2e790158b44b5b46667ca990b7afad7",
+        "inputSha256": "c5838730e8c66f0e894d3b65640a78a495ee91042596777c7cd8e5ce84df54ce",
+        "convertedDxfSha256": "faa450dacbc30c63e8b214a1b7f03c77a292a7c50c18559f7f4aaf4aef3abdce",
+        "lineEndpoints": [
+          [
+            [
+              1.0,
+              2.0,
+              3.0
+            ],
+            [
+              4.0,
+              5.0,
+              6.0
+            ]
+          ]
+        ],
+        "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+        "backend": "Import",
+        "unicodeAndSpaces": true
+      }
+    }
+  },
+  "realDraftMeshProbe": {
+    "tool": "tools/research/freecad_real_draft_mesh_layer_probe.py",
+    "logSha256": "ecff44153903c19ea349ccd55ba160c7d1a9c302596578498e46e4b50f47abf9",
+    "results": "Polyface and polygon grouped in MESH; malformed mixed and nested non-default-layer cases explicitly reported."
+  },
+  "limits": [
+    "Sources are locally generated by libdxfrw; this is not independent DWG producer evidence.",
+    "No GUI, desktop dispatch, Linux/Windows, arbitrary geometry, or general version qualification is claimed.",
+    "The headless compatibility package supplies real PySide6 modules, while loaded Qt frameworks are checked for unique paths.",
+    "The existing harness checks the installed converter byte identity, PATH discovery, open/insert operation, full endpoints, and isolated preferences."
+  ]
+}

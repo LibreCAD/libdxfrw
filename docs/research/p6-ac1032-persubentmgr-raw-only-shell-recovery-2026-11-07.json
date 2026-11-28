@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1032 PERSUBENTMGR bounded raw-only shell recovery",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+    "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+    "version": "AC1032",
+    "provenance": "Tracked external ACadSharp sample; used read-only, not copied into this repository."
+  },
+  "authority": {
+    "oda": "ODA v5.4.1 does not resolve the observed AC1032 AcDbPersSubentManager body layout used by this fallback.",
+    "implementationPolicy": "Preserve the disputed class body as raw bytes. Do not infer field order, semantic meaning, or strict DXF output eligibility from shell validation."
+  },
+  "implementation": {
+    "baseRevision": "cc551fd5",
+    "files": [
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "For only AC1032 ACDBPERSSUBENTMANAGER / AcDbPersSubentManager, a failed typed-body parse retries on an independent cursor through RawObjectShell. A bounded common header and handle tail permit a raw-only callback; its typedPayloadValidated flag is false. Invalid shells remain parse failures. No associative typed callback or output-support claim is created."
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+      "result": "PASS",
+      "dwg2dxfSha256": "7227786df043f13d316a9a875a96d0f0dd597bbbf90546ea0475db81c832fb2a"
+    },
+    "generatedControl": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure",
+      "result": "PASS, 1/1, 0.45 seconds",
+      "coverage": [
+        "AC1032 disputed body falls back only after RawObjectShell validation",
+        "source frame bytes and class identity are retained raw-only",
+        "common owner and reactor evidence is preserved",
+        "following typed object still publishes",
+        "existing AC1021/AC1024 valid and malformed prefix cases remain covered"
+      ]
+    },
+    "asanControl": {
+      "buildCommand": "cmake --build build-asan-custom --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+      "buildResult": "PASS",
+      "testCommand": "ctest --test-dir build-asan-custom -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure",
+      "testResult": "PASS, 1/1, 0.90 seconds"
+    },
+    "physicalRead": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg -y -d -v2018 /private/tmp/sample-AC1032-persubent-raw-only-verified.dxf",
+      "binarySha256": "7227786df043f13d316a9a875a96d0f0dd597bbbf90546ea0475db81c832fb2a",
+      "logSha256": "62887feec82a05f613a36afb906fd891c0e0d6ff8c749aee0adad05642ff66c3",
+      "result": "Read completed; CLI returned 1 because strict DXF preparation correctly refused the existing standalone OBJECTCONTEXTDATA replay gate.",
+      "rawOnlyTrace": "[persistent-manager-raw-only class=AcDbPersSubentManager handle=3427]",
+      "sourceFrames": 842,
+      "publishedFrames": 840,
+      "failedFrames": 2,
+      "entityParseFailures": 0,
+      "objectParseFailures": 2,
+      "remainingObjectFailures": [
+        "AcDbTableContent handle 0xE5F",
+        "AcDbTableContent handle 0x747"
+      ],
+      "dataStorageLinkFailures": 0,
+      "dataStorageOrphanRecords": 0
+    },
+    "fixturePolicy": "No DWG or DXF fixture was added; the regression control is generated in memory."
+  },
+  "scopeLimit": "This recovers bounded common shell and raw source-frame publication only. The PERSUBENTMGR body schema, support semantics, independent producer behavior, strict DXF output, and native consumer acceptance remain unqualified."
+}

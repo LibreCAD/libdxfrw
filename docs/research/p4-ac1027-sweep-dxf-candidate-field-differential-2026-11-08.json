@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-dxf-candidate-field-differential-2026-11-08",
+  "date": "2026-11-08",
+  "status": "ONE-PAIR-CANDIDATE-FIELD-DIFFERENTIAL",
+  "supportClaimEffect": "none",
+  "sources": {
+    "dwg": {
+      "path": "/private/tmp/example_2013.dwg",
+      "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+      "version": "AC1027",
+      "sweepHandle": "0x2e2",
+      "probe": "libdxfrw_ac1027_acds_source_probe",
+      "bodyStartBit": 228,
+      "bodyBitSize": 2343,
+      "boundedObjectEndBit": 2571,
+      "opaqueTail": {"startBit": 2570, "bitSize": 1, "value": "0"},
+      "operationVersion": [33, 29],
+      "direction": [0, 0, 0],
+      "scalarOrder": ["draftAngle", "startDraftDistance", "endDraftDistance", "twistAngle", "scaleFactor", "alignAngle"],
+      "scalars": [0, 0, 0, 0, 1, 0],
+      "solid": 1,
+      "alignOptionCandidate": 2,
+      "secondShortCandidate": 2,
+      "optionFlags": [1, 0, 1, 1],
+      "dwgOnly3BD": [1, 1, 1],
+      "flag296": 1,
+      "profile": {"type": 77, "declaredBits": 744, "capturedBytes": 93},
+      "path": {"type": 77, "declaredBits": 480, "capturedBytes": 60},
+      "probeOutput": ["SWEEP_CAPTURE", "SWEEP_CANDIDATE_FIELDS", "SWEEP_PROFILE_BITS", "SWEEP_PATH_BITS"]
+    },
+    "pairedDxf": {
+      "path": "/Users/dli/dev/libredwg/test/test-data/example_2013.dxf",
+      "sha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3",
+      "record": "ACSH_SWEEP_CLASS",
+      "recordHandle": "2E2",
+      "subclass": "AcDbShSweepBase",
+      "group90SequenceInSubclass": ["33", "744", "480"],
+      "group91SequenceInSubclass": ["29"],
+      "group92": 77,
+      "group93": 77,
+      "groups42_45_48_49": [0, 0, 0, 0, 1, 0],
+      "group70": 2,
+      "group71": 2,
+      "groups290_292_296": {"290": 1, "292": 1, "293": 0, "294": 1, "295": 1, "296": 1},
+      "group11_21_31": [0, 0, 0],
+      "group46Count": 16,
+      "group47Count": 16,
+      "group310PayloadBytes": [94, 61],
+      "group310TrailingByteEach": "CC"
+    }
+  },
+  "differential": {
+    "matched": [
+      "operation version candidate 90/91 = 33/29",
+      "direction candidate = DXF 10/20/30 = 0/0/0",
+      "six scalar candidates = DXF groups 42/43/44/45/48/49 = 0/0/0/0/1/0",
+      "candidate solid bit = documented DXF group 290 = 1",
+      "candidate first option bit = documented DXF group 292 = 1",
+      "remaining option bits = documented DXF groups 293/294/295 = 0/1/1",
+      "candidate final flag = documented DXF group 296 = 1",
+      "first candidate short = DXF group 70 alignment option = 2",
+      "candidate 16-value sweep/path matrices = DXF groups 46/47 in order within floating-point representation; maximum absolute delta 1.8189894035458565e-12",
+      "candidate profile/path types and bit sizes = DXF groups 92/93 and corresponding group 90 declarations",
+      "captured profile/path bytes exactly equal the first 93/60 bytes of their corresponding DXF group-310 strings"
+    ],
+    "unresolvedOrNotMapped": [
+      "candidate DWG-only 3BD vector (1,1,1) differs from paired DXF groups 11/21/31 (0,0,0); do not map these fields",
+      "second candidate short equals DXF group 71 (2), but group 71 is not listed in Autodesk's swept-surface group-code reference; retain without a semantic assignment",
+      "each paired DXF group-310 string has one extra trailing 0xCC byte after the bytes covered by its declared 744/480-bit size; meaning is unknown and it is not consumed",
+      "final DWG body bit 2570 remains an opaque zero bit; no padding/framing meaning established",
+      "type-77 embedded profile/path payloads are byte-correlated but not semantically decoded"
+    ]
+  },
+  "provenanceLimit": "The DXF is a co-located LibreDWG test-corpus companion with matching ACSH record handle, not an independently authenticated AutoCAD or ODA export. This one-pair differential validates candidate correlations only; it does not establish a normative DWG wire schema, general producer interoperability, embedded curve/path semantics, writer support, graph closure, native CAD behavior, FreeCAD compatibility or ACIS/ACDS support.",
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_ac1027_acds_source_probe -j4",
+    "physicalProbe": "PASS: build/libdxfrw_ac1027_acds_source_probe /private/tmp/example_2013.dwg",
+    "pairInspection": "PASS: matching ACSH_SWEEP_CLASS handle 2E2 extracted from hash-pinned DXF; candidate fields compared against groups in AcDbShSweepBase",
+    "fullSuites": "not run"
+  },
+  "nextAction": "Find independent DWG producer evidence for the candidate 3BD vector, second short/group 71, group-310 trailing CC bytes, final body bit and type-77 embedded geometry. Keep all unsupported semantics unmapped and keep Sweep/whole-file output refused."
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-class-footer-presence-bit-2026-11-24",
+  "date": "2026-11-24",
+  "status": "GENERATED_FLAG_CONTROL_PASS_SOURCE_PROFILE_DISCREPANCY_RETAINED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["5.8 AcDb:Classes Section", "10.2 R18+"]
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "behavior": "The reader continues to derive the class string bounds from the bounded footer size words for compatibility. The final presence bit is read but is not used as a hard rejection gate.",
+    "testCorrection": "The generated nonempty AC1024 class-string footer vectors now encode the presence bit as 1. The physical writer-generated high-size control also asserts that bit before parsing.",
+    "testSourceSha256": "d73c9386c37b9fcdf77237a2c35f7f99849b6763e2459902250bba544a4398bb"
+  },
+  "observations": {
+    "generatedControl": {
+      "writer": "dwgWriter24",
+      "nonemptyStringFooterPresenceBit": 1,
+      "extendedSize": "greater than 0x7fff bits",
+      "result": "high-bit footer, bit-offset arithmetic, malformed size, truncation, and physical class read controls pass"
+    },
+    "unprovenancedSource": {
+      "path": "/Users/dli/doc/dwg6/framing_AC1024.dwg",
+      "sha256": "ede641fae16ad5b0c60d5149b66b8dea314e39f7a0fb5d459c5d26d7958e0c39",
+      "producerProvenance": "not independently established",
+      "existingDefects": "The prior receipt records a CLASSES CRC mismatch and a 14-byte post-CRC tail where the 16-byte sentinel is expected.",
+      "observedFooter": "At the footer location selected by the current bounded formula, the presence bit is 0 while the prior parser decodes a 1640-bit string stream and four class records.",
+      "tolerantReaderFirstFailure": "BAD_READ_TABLES (error 9)",
+      "strictPresenceExperimentFirstFailure": "BAD_READ_CLASSES (error 8)",
+      "decision": "Do not enforce the presence bit as a hard parser gate on this unqualified source. Retain the bounded legacy read path pending a producer and maintenance-version witness."
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2 passed",
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^dwg_r2007_class_string_footer$'",
+      "result": "passed 1/1",
+      "testBinarySha256": "2f0c49e5346680a3c7ebb313b084eae7076795cb033105470b5ded91e2a7ef81"
+    },
+    "hashPinnedCorpus": {
+      "receipt": "docs/research/p6-ac1024-classes-current-corpus-recheck-2026-11-24.json",
+      "currentReaderSha256": "b7c308bf5ca08fb4859dd1b926279d3c098845d5591bf3bd7a00b2d754794650",
+      "inputsWithChangedHashes": 0,
+      "badReadClasses": 0,
+      "fullReadSuccesses": 9,
+      "framingSampleFirstFailure": "BAD_READ_TABLES (error 9)"
+    }
+  },
+  "limits": [
+    "Generated footer controls are implementation consistency checks, not producer interoperability evidence.",
+    "The framing sample has unknown producer provenance and existing CLASSES integrity anomalies.",
+    "No DWG fixture was added and no support claim is promoted."
+  ]
+}

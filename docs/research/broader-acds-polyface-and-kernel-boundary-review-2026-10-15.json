@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw-broader-acds-polyface-kernel-boundary-review-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "873eb76",
+  "scope": "Primary-format and current peer research to refine generated test gates, DWG version scope, and independent-kernel qualification. Plan update only; no source/test execution or external installation in this pass.",
+  "method": {
+    "primaryDocuments": [
+      {
+        "title": "Open Design Specification for .dwg files, Version 5.4.1",
+        "localReference": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+        "localMetadata": "PDF creation date 2018-02-15; 279 pages",
+        "sectionsReviewed": ["8 (R2018 format organization)", "20.4.41 (REGION/3DSOLID/BODY)", "24 (AcDsPrototype_1b/DataStorage)"]
+      },
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm"
+    ],
+    "peerDocumentation": [
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "https://github.com/Open-Cascade-SAS/OCCT-Samples",
+      "https://ansyshelp.ansys.com/public/views/secured/corp/v251/en/ref_cad/cadACIS.html",
+      "https://cadexchanger.com/products/sdk/pricing/"
+    ],
+    "evidenceRule": "Format documents constrain byte-level claims; peer declarations, open reports, generated self-roundtrips, and commercial product matrices are leads/capability statements, not local interoperability or support qualification."
+  },
+  "findings": [
+    {
+      "id": "ODA_R2018_SCOPE_AND_ACIS_LIMIT",
+      "evidence": "The local v5.4.1 PDF has an explicit R2018 organization chapter: R2018 is described as structurally identical to R2013, with summarized deltas including three zero shorts at the end of AuxHeader and selected entity/object changes. Chapter 24's DataStorage introduction retains a December 2012 knowledge caveat, while §20.4.41 says the ACIS entity stream is not completely decrypted; §24 specifies the container but says detailed ACIS/SAB bytes are outside its scope.",
+      "planEffect": "Use ODA v5.4.1 R2018 text for only its stated structural/version deltas. Do not infer complete AC1032 AcDs schema, profile behavior, or ACIS semantics from structural similarity; record the actual sample's revision, segment kinds, and payload markers."
+    },
+    {
+      "id": "ODA_DATASTORAGE_BLOB_BOUNDARIES_AND_INDEX_GRAPH",
+      "evidence": "ODA §24.2.2.3 states data records hold byte arrays up to 0x40000 bytes; larger values use a blob reference to one or more blob01 segments, with maximum page payload 0xfffb0. Blob descriptors carry total length, page count, nominal/last-page lengths and page segment indices; each page carries total length, page-start offset, zero-based page index/count and data length. Data index entries join a data segment/local offset to a schema index; data record headers include the owning handle. §24.2.2.7 says the search segment may be ignored when reading, but §24.2.2.7.1 says AutoCAD ignores a stored entity if the required search-index object/handle mapping is absent.",
+      "localAudit": "src/drw_datastorage.cpp already validates and optionally assembles referenced pages under a retention cap. tests/graph_preservation_tests.cpp::testDataStorageBounds currently covers inline schema properties, but the test tree has no generated blob-reference/blob01-chain control.",
+      "planEffect": "Before expanding AcDs writing, add in-memory segment/data-index/blob-page vectors for the 0x40000 transition, ordered multi-page reconstruction, all index/length joins, and atomic malformed-page rejection. Preserve the read/write asymmetry: a reader may not need the search segment for payload extraction, but a writer claiming AutoCAD-visible output must emit its required searchable object mapping."
+    },
+    {
+      "id": "AUTODESK_POLYFACE_READER_TOLERANCE",
+      "evidence": "Autodesk's DXF polyface reference says header group 71/72 counts need not be correct and readers should tolerate noncanonical vertex/face ordering; writers should emit all coordinate vertices before face records. VERTEX group 71-74 are signed 1-based indexes, a negative index marks the edge beginning at that corner invisible, zero terminates the face, and the supported face record is limited to four indices.",
+      "localAudit": "The in-tree generated coverage already checks caller-side interleaved input, canonical writer order, signed visibility values, and a following record. It does not expose a dedicated read control where declared counts disagree with child records or face records precede coordinate records.",
+      "planEffect": "Add focused ASCII/binary read controls for inaccurate header counts, face-first/interleaved child order, signed edge visibility and legal/invalid indices. Keep output canonical (vertices before faces) and reject malformed references without consuming the following parent/entity boundary."
+    },
+    {
+      "id": "KERNEL_AND_READER_LINEAGE_BOUNDARY",
+      "evidence": "ezdxf describes ACIS browsing as carrier inspection and its renderer does not support ACIS or general 3D rendering. Open Cascade lists ACIS-SAT among separate commercial data-exchange components rather than the public open-source core. The Ansys ACIS interface documents standalone SAT/SAB solid/surface/line-body reading on Windows/Linux but requires an entitled installation. CAD Exchanger has distinct licensed format components and platform/architecture configurations. Existing cq-acis notes identify a separately implemented parser but an OCCT geometry backend shared with FreeCAD.",
+      "planEffect": "Preflight reader, kernel, and application lineage independently. A separately implemented parser using OCCT can be a parser cross-check, not an independent-kernel result; a vendor capability table cannot qualify the exact ASM/SAB profile. Pin product/release/platform/license mode and observed inner SAT/SAB version, then compare against source-native dimensions and a distinct kernel lineage before semantic promotion."
+    }
+  ],
+  "readyGeneratedControls": [
+    "Direct records at 0x3ffff and 0x40000 bytes; blob-reference case at 0x40001 bytes with exact concatenated output.",
+    "Multi-page blob with deliberately nonmonotonic segment indexes but ascending zero-based page indexes; assert total length, each page start, page lengths, and byte-for-byte payload reconstruction.",
+    "Malformed variants: wrong page index/count/start offset/segment kind, missing page, inconsistent last-page size, arithmetic overflow, out-of-range segment, and truncated descriptor/data; require structural rejection, no partial payload publication, and next-record containment.",
+    "Polyface reader variants with inaccurate 71/72 counts and unusual child ordering; preserve signed visibility and 1-based index identity, while writer output stays canonical.",
+    "R2018/DataStorage comparisons must report section revision and marker/profile observations separately from ODA's R2013 structural-equivalence summary."
+  ],
+  "implementationOrder": [
+    "Keep the MESH override slice committed and pass its fast gate.",
+    "Complete f.3c VisualStyle descriptor/model alignment without admitting a serializer.",
+    "Add the DataStorage blob/page parser controls against the existing implementation before opening any ACDS writer profile.",
+    "Add missing polyface reader-tolerance controls, preserving the existing canonical writer contract.",
+    "Continue route/version-specific container transfer; require a complete search-index/object/handle graph for output acceptance.",
+    "Run the separately pinned native/kernel qualification only after source-native known dimensions and reader/kernel lineage are available."
+  ],
+  "qualificationEligible": false,
+  "supportClaimsChanged": false,
+  "findingCountsChanged": false,
+  "externalJStatusesChanged": false,
+  "externalJStatuses": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "fixturesOrDependenciesAdded": false,
+  "fullTestSuiteRun": false
+}

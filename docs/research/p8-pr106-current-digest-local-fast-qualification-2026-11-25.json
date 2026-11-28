@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-current-digest-local-fast-qualification-2026-11-25",
+  "date": "2026-11-25",
+  "status": "LOCAL_FAST_AND_CONTRACTS_PASS_HOSTED_MATRIX_OPEN",
+  "supportClaimEffect": "none",
+  "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+  "codeRevision": "ad5d33402a8538c0806d0d8e444e7970a65b5362",
+  "cleanCloneRevision": "2eab63cfd7c14885cab6111351986d6cd2818dc3",
+  "evidenceHead": "99411090608774a43bc02cdb8ea47b425d147da0",
+  "implementationDigest": {
+    "algorithm": "sha256-git-blob-records-v1",
+    "sha256": "1e9e799bb517d017a0c666e14b933199e18e1c88c1abc5f3718f080fdaf29eca",
+    "inputCount": 774,
+    "verification": "PASS in clean local clone with --allow-draft; current status overlay is not frozen."
+  },
+  "environment": {
+    "platform": "Darwin 27.2.0 arm64",
+    "cmake": "4.5.1",
+    "compiler": "/usr/bin/g++ (Apple clang 21.0.0 clang-2100.3.34.2)",
+    "buildType": "Release"
+  },
+  "localChecks": {
+    "qualificationWorkflow": {
+      "command": "python3 tools/check_qualification_workflow.py --allow-unfinalized",
+      "result": "PASS (broad inventory pending)"
+    },
+    "qualifiedFormatSupport": {
+      "command": "python3 tools/check_qualified_format_support.py --allow-draft --json",
+      "result": "PASS",
+      "claimCount": 15,
+      "candidateRouteCount": 2,
+      "advertisedRouteCount": 0,
+      "claimsDigestSha256": "7f72bd5c6033fb312c89d56fcc5b476063273a2b24faa863e58114a703956ab8"
+    },
+    "supportMatrix": {
+      "command": "python3 tools/check_support_matrix.py",
+      "result": "PASS"
+    },
+    "fastFocus": {
+      "command": "python3 tools/run_fast_focus.py --build-dir build-gcc --ctest-regressions",
+      "executablesPassed": 7,
+      "ctestsPassed": 53,
+      "ctestsFailed": 0,
+      "ctestsSkipped": 0,
+      "ctestElapsedSeconds": 34.63,
+      "result": "PASS"
+    }
+  },
+  "hostedChecks": {
+    "linuxGcc": "OPEN",
+    "macosClang": "OPEN (local Apple Clang fast profile is not the hosted qualification job)",
+    "windowsMsvc": "OPEN",
+    "remoteStatus": "GitHub connector and web API fetch were unavailable; no current hosted result was observed."
+  },
+  "limits": [
+    "The draft/unfinalized allowances are local development checks, not a frozen CI qualification receipt.",
+    "No broad suite, fuzz lane, source-release lane, or native GUI test was run.",
+    "Fast tests and support contracts do not promote format support claims; zero routes are advertised.",
+    "No DWG/DXF fixture was added or staged."
+  ]
+}

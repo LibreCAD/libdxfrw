@@ -1,0 +1,26 @@
+{
+  "scope": "Selected AC1024 LayerStates, SCALE and Global MATERIAL join on the original importer; unrelated whole-drawing roots and native semantics are not qualified.",
+  "source": {
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "producer": "not independently authenticated",
+    "repository_fixture_committed": false,
+    "libredwg_json_sha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832"
+  },
+  "join": "The selected writer uses the original adapter's LayerStates and Global MATERIAL source snapshots together. Both table inspectors verify the same remapped ACAD APPID row; object inspectors and finalizers verify the selected root, SCALELIST, nested graph, MATERIAL owner/extension and FBXASSET identities and payloads.",
+  "validation": {
+    "selector": "--layerstates-ac1024-material-selected-writer",
+    "result": "PASS ASCII/Binary: 15 injected corruptions per encoding, destination preservation and corrected same-writer retry, including a late MATERIAL source-frame mutation. Fresh typed readback checks a unique ACAD row, all seven EED variants and the selected LayerStates graph.",
+    "address_sanitizer": "PASS the same selector in the address-sanitized build.",
+    "regressions": "The LayerStates-only selected writer and separately selected Global MATERIAL writer passed."
+  },
+  "independent_readback": {
+    "source_reader": "LibreDWG dwgread 0.14",
+    "dxf_reader": "ezdxf 1.4.5",
+    "script": "tools/research/compare_layerstates_selected_ezdxf.py --material",
+    "result": "PASS both encodings: selected LayerStates graph, group-370 value -3, all six Global MATERIAL EED payload values, owner/extension links and all 193 FBXASSET payload entries.",
+    "ascii_sha256": "90e9f234ed75898108ab54668789caef225c754f5e0fccbbef2e081126ef82df",
+    "binary_sha256": "a2a204aa186d448f6b4eba3ce18ceaaf4525b886e2531934c6a25126ed5c3702",
+    "limitation": "ezdxf synthesizes missing default materials on load, so its in-memory MATERIAL dictionary is not treated as an exact output wire census."
+  },
+  "remaining": "The observed Global EED values are nonnegative; the separate mechanical profile proves -1 transport. Whole-source SUN closure, a negative-value same-import combined witness, producer provenance and native semantics remain open."
+}

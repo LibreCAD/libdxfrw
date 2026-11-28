@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw-field-emitted-handle-inventory-implementation-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "LOCAL_IMPLEMENTATION_COMPLETE_HANDLE_EXISTENCE_ONLY",
+  "scope": "Add an opt-in bounded DXF output handle ledger, make it record-scope rollback-aware, retain it through pre-publication finalization, and use it to strengthen HATCH target publication checks.",
+  "implementation": {
+    "captureEnabledOnlyOnRequest": true,
+    "capturedPrimaryHandleCodes": [5, 105],
+    "asciiAndBinaryWriterHooks": true,
+    "abortedRecordScopeRollsBackLedger": true,
+    "nestedCommittedScopeRollsBackWithParent": true,
+    "invalidHandleOrLimitFailureIsSticky": true,
+    "boundedDefaultHandleLimit": 4194304,
+    "dxfRWSnapshotAvailableDuringFinalize": true,
+    "failedAttemptClearsSnapshot": true,
+    "ordinaryAdapterWritesKeepCaptureDisabled": true,
+    "hatchTargetMustAppearExactlyOnce": true,
+    "fieldExportStillFailClosed": true
+  },
+  "modifiedFiles": [
+    {
+      "path": "src/intern/dxfwriter.h",
+      "sha256": "6047a4bf092976ac26f5a38050124d7bd8a11cd1f6dd28ce9b674192f8aee918"
+    },
+    {
+      "path": "src/intern/dxfwriter.cpp",
+      "sha256": "5ebefd66dff6674eb6f87985618ee7c8b3280b9f62ab49f8d87ea7f31367558b"
+    },
+    {
+      "path": "src/libdxfrw.h",
+      "sha256": "0956b6917e7d81e9b9d1cfd44da2deed4121f63e5b9118240a138759b7dcbc53"
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "7ff49ba8c56aba25ca8a63c4e6b2c642a3db4f6b7ea20be7fc0486fedd698493"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "89b9f41baeb7f2bc1f156231705b5b7b24ae05412237b22f236db664ea8889da"
+    },
+    {
+      "path": "tests/wave1_tests.cpp",
+      "sha256": "82e96a681d7bcca7cc1bf382ad08d533e54d48be3bf272e1dde33e941e9f8d6f"
+    }
+  ],
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j4",
+      "exitCode": 0
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_wave1|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "passed": 2,
+      "failed": 0
+    },
+    "diffCheck": "passed",
+    "generatedTestCoverage": [
+      "ASCII/binary handle inventory equality",
+      "exclude HEADER $HANDSEED group-5 value from record identities",
+      "capture legacy group-105 record handles",
+      "rollback nested committed scope with aborted parent",
+      "sticky failure on configured handle-count exhaustion",
+      "observe canonical BLOCK and source entity handles during complete-write finalization",
+      "clear handle snapshot after a complete write fails during a later record append"
+    ],
+    "fullTestSuite": "not run; plan retains focused fast-test cadence",
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "doesNotEstablish": [
+    "record type or section associated with each handle",
+    "global duplicate-handle rejection",
+    "separate source and remapped output identities in the ledger",
+    "semantic reference-edge type compatibility",
+    "post-write ASCII/binary parser readback of a FIELD graph",
+    "the conflicting FIELD wire format or producer-qualified FIELD semantics",
+    "general FIELD/FIELDLIST or TABLE group-344 write support"
+  ],
+  "implementationReadiness": {
+    "planTotals": {
+      "findings": 122,
+      "topLevelSubplans": 70
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "committed": false,
+    "commitReason": "The worktree contains unrelated pre-existing changes in the same source and test files; committing those paths would include unrelated user work."
+  }
+}

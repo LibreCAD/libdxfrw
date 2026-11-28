@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-block-header-frame-capture-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-F",
+  "status": "PROVISIONAL_LEGACY_BLOCK_RECORD_FRAMES_CAPTURED",
+  "supportClaimEffect": "none",
+  "change": "On opt-in R13/R14 reads, retain bounded CRC-checked BLOCK_HEADER frames directly from reader-authenticated source offsets, using an independent cursor. The CLI adapter retains a maximum of 10000 frames, 64 KiB per frame and 16 MiB total including an overhead allowance; a capture failure clears the set and disables further capture without failing the drawing read. Every new import attempt invalidates the prior set.",
+  "validation": {
+    "samples": {
+      "r13": "999c41fa2d243b145f36db8e3a797648dcced79f8c7257eb17aefd3d90287242",
+      "r14": "c057bba383107ea8906d4dc887eb7857628419306e36f37a8cb261a117319bdb"
+    },
+    "sourceChecks": "For both generated resaved samples, captured handles, physical source offsets, unique ordinals, version and import generation match the retained block records; an independent file read through the validated frame reader returns identical body bytes. Changing stored bytes or generation is detected; restoring them succeeds.",
+    "failureRetry": "An injected capture failure clears evidence and disables further collection while the drawing read succeeds; switching the same adapter back to normal and importing again captures the frames. A missing-file re-import clears prior evidence, and a corrected same-adapter import succeeds.",
+    "regressions": [
+      "libdxfrw_AC1012_layout_graph_external",
+      "libdxfrw_AC1014_layout_graph_external",
+      "dwg2dxf_ac1012_partial_generated",
+      "libdxfrw_block_record_body_handle_roles",
+      "libdxfrw_entity_space_from_block_record"
+    ],
+    "reproduction": "Generate and resave locally using tools/research/generate_acadrust_legacy_shape.py; configure LIBDXFRW_AC1012_LAYOUT_WIRE_SAMPLE and LIBDXFRW_AC1014_LAYOUT_WIRE_SAMPLE, then run the external layout graph CTests.",
+    "asan": "Fully instrumented reader, CLI and adapter pass both generated legacy graph/capture, failure and retry tests under AddressSanitizer."
+  },
+  "sources": {
+    "src/intern/dwg_xrecord_verified_source.h": "f4ff350215ffed9cf0b3dd73e9fd2c2181190540c839b3e5581cbd5405799ec6",
+    "src/intern/dwgreader.cpp": "b531b6074dcfc6657ce7173d80909ca236fa408ba9f7e5bb3368ed3add6dfd28",
+    "dwg2dxf/dx_data.h": "8fa37b1e75e64b76bc7eed1e7cc136c1909b0418d87b217545b615df92ca0b5f",
+    "dwg2dxf/dx_iface.h": "97093716ca20b55094f5e18ecd0872e4e37e77bca7cfd08be75438d144f21bd8",
+    "dwg2dxf/dx_iface.cpp": "5db29a19b7056133992f614b6bf8a5d727e643c34b965fb8a4ae2426a7a49f8a",
+    "tests/dwg_ac1014_output_external_tests.cpp": "c14539be32dac0e33a2731a2d5d0725788f9a9d30a5c953e3a982f4491119468"
+  },
+  "limits": [
+    "Frames are provisional and are not yet decoded or bound to the live BLOCK_HEADER body by an independent observer.",
+    "No output support claim is promoted; legacy layout projection and dictionary merge semantics remain gated.",
+    "The corpus consists of generated peer controls, not native AutoCAD files, and no DWG or DXF was committed."
+  ]
+}

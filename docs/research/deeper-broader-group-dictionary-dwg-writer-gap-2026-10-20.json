@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader GROUP dictionary ownership and DWG writer gap",
+  "mode": "Primary-source web/specification research and local plan reconciliation; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile GROUP and DICTIONARY ownership semantics across the authoritative ODA DWG specification, Autodesk DXF references, and current local DXF/DWG writer and reader paths.",
+    "Refine the existing PAR-20/7G.3 GROUP graph work into a small implementation-ready generated AC1024 slice without adding another top-level finding or subplan.",
+    "Keep external/native qualification, support claims, fixture policy, and the existing fast-validation cadence unchanged."
+  ],
+  "sources": [
+    {
+      "project": "ODA Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": ["§20.1", "§20.4.44", "§20.4.72"],
+      "observed": "The header dictionary references include ACAD_GROUP; DICTIONARY records encode name/object-handle pairs plus parent and item handles; GROUP records carry a name, unnamed/selectable flags, an ordered member-handle list, and a parentHandle soft pointer.",
+      "limits": "This establishes the ownership and member-reference roles used to refine the local graph plan. It does not qualify local wire encoding or prove support for other DWG versions. The cited ODA sections remain the authority to consult before changing any DWG parser or writer encoding."
+    },
+    {
+      "project": "Autodesk GROUP DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-5F1372C4-37C8-4056-9303-EE1715F58E67.htm",
+      "revision": "Current documentation page accessed 2026-10-20",
+      "observed": "GROUP's owner-dictionary pointer is the ACAD_GROUP entry of the NOD; group 300 is description, 70 is unnamed, 71 is selectable, and repeated 340 values are hard-pointer entity members.",
+      "limits": "DXF reference semantics are not a substitute for the versioned DWG bit-stream specification. The distinction between a dictionary key and the GROUP description is preserved rather than inferred to be identical."
+    },
+    {
+      "project": "Autodesk DICTIONARY DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "revision": "Current documentation page accessed 2026-10-20",
+      "observed": "Dictionary entries are repeated key/handle pairs, with an owner pointer and a hard-owner flag.",
+      "limits": "Used for the DXF dictionary graph and field separation; does not independently validate local DWG writer output."
+    },
+    {
+      "project": "Autodesk OBJECTS section example and ownership ordering",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-49C9C960-0944-4C1B-8DF9-E2428C28A2FB.htm"
+      ],
+      "revision": "Current documentation pages accessed 2026-10-20",
+      "observed": "The OBJECTS example represents dictionary contents as key/child-handle entries, and the ownership-ordering reference requires owners to precede owned objects in the serialized OBJECTS records.",
+      "limits": "Applied only to the DXF object graph and ordering assertion; DWG root identity continues to come from its decoded handle, not record position."
+    },
+    {
+      "project": "Local libdxfrw GROUP writer, reader adapter, and generated round-trip test",
+      "localFiles": [
+        "src/intern/dwgwriter15.cpp",
+        "dwg2dxf/dx_iface.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "revision": "Shared local worktree inspected 2026-10-20",
+      "observed": "The DWG writer's fixed ACAD_GROUP dictionary is emitted empty; the generated round-trip registers the group key through the generic NOD-entry path and currently expects the key directly under NOD; writeGroup permits the NOD parent; and dx_iface has a DWG-only direct-NOD fallback. The DXF OBJECTS writer already emits the nested ACAD_GROUP dictionary and its ownership edge.",
+      "limits": "This is a source audit, not a new runtime reproduction. The finding is scoped to generated DWG GROUP dictionary graph conformance and does not establish a broader production compatibility defect or support failure."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G.3: register GROUP dictionary entries separately from generic NOD children, require each key to map to one successfully emitted GROUP frame owned by the fixed ACAD_GROUP dictionary, and remove the reader's direct-NOD fallback only after generated positive and negative controls pass",
+      "PAR-20/7G.3: independently assert dictionary key, GROUP name, DXF group-300 description, flags, ordered member identities, reciprocal ownership, and topological object ordering"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "inventory": "141 findings / 78 top-level subplans",
+    "deferredExternalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added an upfront summary and a linked research receipt for the source-confirmed DWG GROUP dictionary graph gap.",
+    "Refined the existing PAR-20/7G.3 work instead of adding a PAR finding: use a dedicated bounded GROUP-dictionary registration/emission receipt, enforce ACAD_GROUP ownership, and preserve separate dictionary-membership and GROUP-member-reference ledgers.",
+    "Specified a focused generated AC1024 positive/negative matrix, including zero/one GROUP cases, wrong/direct-NOD ownership, duplicate or missing entries/frames, member-target validation, field separation, and a following-object sentinel.",
+    "Required removal of the DWG-only direct-NOD fallback only after the generated graph matrix passes; retained the small validation lane and the no-new-fixture rule."
+  ],
+  "limitations": [
+    "Autodesk and ODA documentation pages and repository sources are mutable; the reviewed date is recorded, and the versioned ODA v5.4.1 PDF remains authoritative for DWG byte-layout changes.",
+    "No DWG/DXF runtime conversion was performed during this research-only turn; the local finding is a source-level writer/test-path mismatch awaiting its generated implementation slice.",
+    "No external sample, peer binary, independent kernel, or native CAD application was used; this evidence cannot promote any external or semantic-support claim."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (git diff --check on plan and research receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

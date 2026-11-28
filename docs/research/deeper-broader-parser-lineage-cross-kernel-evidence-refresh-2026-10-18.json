@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader parser-lineage and cross-kernel evidence refresh",
+  "mode": "primary-source web research and read-only local plan reconciliation",
+  "scope": [
+    "Re-screen newly surfaced DWG/DXF viewers and wrappers for parser lineage",
+    "Audit field-specific cross-reference claims in the ft_model DWG implementation notes",
+    "Separate renderer/application evidence from parser and kernel evidence",
+    "Reconcile recent cross-backend topology-matching research with existing semantic validation gates"
+  ],
+  "method": {
+    "kind": "Read current project documentation/source pages and a research preprint; reconcile evidence classes with the existing plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-lineage-semantic-stage-review-2026-10-18.json",
+      "docs/research/deeper-broader-peer-advertised-scope-acis-authoring-readiness-2026-10-18.json",
+      "docs/research/deeper-broader-cross-kernel-semantic-validation-topology-identity-2026-10-18.json"
+    ],
+    "limitations": "Findings are based on mutable repository documentation/source pages and a preprint, not pinned or executed peer artifacts. The exact ft_model binaries, DWG corpus, current CI outputs, ProGPU SAT/SAB implementation, and consumer renderings were not built or run. No claim is made about code copying; the ft_model documentation explicitly cross-references LibreDWG for selected algorithm decisions, so those fields are not independent corroboration."
+  },
+  "sources": [
+    {
+      "project": "ft_model",
+      "urls": [
+        "https://github.com/hhcme/ft_model",
+        "https://github.com/hhcme/ft_model/blob/main/PROJECT_STATUS.md",
+        "https://github.com/hhcme/ft_model/blob/main/docs/dwg_version_deltas.md",
+        "https://github.com/hhcme/ft_model/tree/main/core/src/parser"
+      ],
+      "revision": "Mutable main pages viewed 2026-10-18",
+      "observed": "The project describes an MIT C++20 DWG/DXF-to-scene/2D-rendering route. Its PROJECT_STATUS describes version-specific gaps and historical entity comparison rates, and explicitly attributes the R2004 object-map accumulator behavior to LibreDWG's read_2004_section_handles. Accordingly, its implementation is diverse but not an independent source for the specifically cross-referenced object-map decision. No exact reproducible public real-DWG input manifest/run receipt was bound in this pass."
+    },
+    {
+      "project": "Browser DWG viewers",
+      "urls": [
+        "https://github.com/wiscaksono/cadview",
+        "https://github.com/jaaaco/dwg.moonforge.tech",
+        "https://github.com/SedatTelli/cadze"
+      ],
+      "revision": "Current public README/repository pages viewed 2026-10-18",
+      "observed": "The reviewed projects document DWG routes through LibreDWG/WASM or dwg2dxf, with distinct DXF and rendering layers. Their UI/adapter/rendering behavior may be consumer evidence, but the DWG parse path is not a new independent implementation lineage."
+    },
+    {
+      "project": "ProGPU / ProCad",
+      "urls": [
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/docs/PROGPU_CAD_ARCHITECTURE.md",
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md",
+        "https://github.com/wieslawsoltes/ProCad"
+      ],
+      "revision": "Mutable project architecture, DXF note, and README reviewed 2026-10-18",
+      "observed": "The active ProGPU CAD architecture identifies ACadSharp as its file-format model; the older ProGPU.Dxf route remains a legacy/migration component. ProCad likewise describes ACadSharp-backed DWG/DXF I/O. Their application/rendering route is not an independent DWG/DXF parser or B-rep kernel witness."
+    },
+    {
+      "project": "CADIR cross-backend CAD paper",
+      "urls": [
+        "https://arxiv.org/abs/2608.00891"
+      ],
+      "revision": "arXiv v1 submitted 2026-08-01; abstract reviewed 2026-10-18",
+      "observed": "The paper describes an OCCT/OCP-backed editable modeling IR and Geometric Signature Matching for face/edge correspondence across backend changes. It is not a DWG/DXF parser, ACIS grammar reference, normative shape-equivalence procedure, or independent ACIS/AcDs semantic result."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines existing PAR-07/S8 parser-lineage and consumer evidence, PAR-11 expected-value provenance, and the composed semantic gate. Distinguish implementation diversity from independent algorithm evidence; treat wrappers as adapter/consumer routes; keep topology correspondence as a diagnostic or declared identity-preserving check rather than a universal semantic requirement. No new peer run enters the fast slice loop.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "For each optional peer, capture implementation relation, specification/source relation, expected-value origin, consumer/kernel relation, and exact artifact/run identity; do not compress these into one independence flag.",
+    "For ft_model, do not count LibreDWG-referenced object-map or CMC decisions as a second independent vote; require an exact source/build and available hash-bound inputs before any optional comparison.",
+    "For viewer wrappers, identify the actual converter/parser selected for the run and report wrapper/render behavior separately from parser behavior.",
+    "If CADIR-style topology matching is used, treat it as a correspondence diagnostic; semantic acceptance still requires a complete valid body, independent expected geometry/operation, and explicit tolerances.",
+    "When source, artifact, input, or independent expected manifest is unavailable, record NOT_RUN and continue local work; no optional peer is a per-slice prerequisite.",
+    "Keep the existing fast implementation loop and composed-only peer/native checks; do not add fixtures, dependencies, tests, or validation frequency from this research alone."
+  ],
+  "validation": {
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed",
+    "fullSuiteRun": false,
+    "nativeCadRun": false
+  }
+}

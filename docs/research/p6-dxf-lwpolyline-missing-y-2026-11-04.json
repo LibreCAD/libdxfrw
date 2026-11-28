@@ -1,0 +1,18 @@
+{
+  "scope": "Refuse DXF LWPOLYLINE records that omit a required Y coordinate before publishing the entity; keep explicit zero Y, valid grouped coordinates, and manually authored objects working.",
+  "authority": "Autodesk LWPOLYLINE DXF documentation specifies one group-10 X and one group-20 Y for each vertex: https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-748FC305-F3F2-4F74-825A-61F04D757A50.htm. In contrast to widths and bulges, it does not describe group 20 as optional.",
+  "compatibility": "Previously, libdxfrw accepted records with missing Y values and silently supplied 0. The current bundled LibreCAD parser likewise constructs default-zero vertices, and its 2D adapter cannot distinguish a missing Y from an authored zero. The stricter read therefore changes malformed-input compatibility deliberately; explicit zero values remain accepted, and no public class layout or callback changes. Counts alone do not establish pairing for every ambiguous reordered record.",
+  "change": "At DXF record validation, if any vertex fields have been parsed, require the group-20 count to equal the masked group-10 count and the vertex vector size. Preserve existing declared group-90 checks and validation of complete grouped coordinates. Objects authored directly through the public API have no parser counters and remain unaffected.",
+  "validation": {
+    "pre_fix": "The focused test demonstrated that missing first, middle or last Y, grouped missing Y, and a missing Y without group 90 were all accepted and published in both ASCII and binary.",
+    "post_fix": "libdxfrw_lwpolyline_point_component_order passes both encodings: each malformed case refuses before the LWPOLYLINE callback, the same reader succeeds on a corrected source, explicit zero Y values remain valid, complete grouped records and manually authored sparse polylines remain valid, and adjacent sparse/copy/output-retry checks continue to pass.",
+    "independent": "Scratch inputs generated with ezdxf 1.4.5 low-level tag writers were checked with ezdxf's independent reader and a libdxfrw same-reader refusal/retry probe. Both readers reject the interleaved missing-Y source and accept the explicit-zero source in ASCII and binary. Complete grouped-array acceptance is a libdxfrw compatibility extension and is checked by the local regression, not asserted for ezdxf.",
+    "source_sha256": {
+      "ascii_missing": "93e2f6d2debbe7fe92c9e6113be7e7e99735400f6083d91fd334ba6bb313d195",
+      "ascii_zero": "38d28ff3159d11b1f1ff838d72b866296b85d79d828a96e6ef8447a15c5f137e",
+      "binary_missing": "8403d65cd18d20fa1bcb46a828dd43ef7427217ab5d2b5d7ea42a035a493958b",
+      "binary_zero": "a233ef3ea1164499d775b8e3e65e98b10501ec275a9275185ca70fd8efefceff"
+    },
+    "tools": "tools/audit_dxf_lwpolyline_missing_y.py authors and verifies scratch sources with ezdxf; tools/probe_dxf_lwpolyline_missing_y.cpp checks libdxfrw refusal and same-reader retry. No DXF fixture is committed."
+  }
+}

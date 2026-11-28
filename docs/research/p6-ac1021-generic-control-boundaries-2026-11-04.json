@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "SEVEN_CONTROL_BOUNDARIES_CORRECTED_LAYER_RECORD_STILL_REJECTED",
+  "supportClaimEffect": "none",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.1 and the respective control sections (including 20.4.53 and 20.4.55) place the R2007 object-size boundary before the handle tail. A null owner is a soft pointer, an emitted extension-dictionary null is a hard owner, and ordinary child records are soft owners.",
+  "source": {
+    "producer": "ODA File Converter 27.1.0 AC1021 DWG from a scratch ezdxf 1.4.5 single-LINE DXF",
+    "path": "/private/tmp/p6-ac1021-current/oda/source.dwg",
+    "sha256": "d1c06f7818e18d22e6bba41421468903f9b67cd633f900c7c3c17ec4c6b95534",
+    "independent_trace": "/private/tmp/p6-ac1021-current/control.log",
+    "observation": "LibreDWG 0.14 decodes LAYER, STYLE, VPORT and APPID control boundaries at bit 74, empty VIEW and UCS at 66, and DIMSTYLE at 82; each has a null role-4 owner and its ordinary entries use role 2. The physical source uses the missing-extension flag; the generated profile retains its already emitted role-3 null xdictionary instead."
+  },
+  "change": "Stage only AC1021 LAYER, STYLE, VIEW, UCS, VPORT, APPID and DIMSTYLE handles in their detached buffer, then merge them at the exact bit boundary following the absent-string bit. Rebase committed handle occurrence receipts to the merged data segment. LTYPE retains its previous detached aligned route, BLOCK retains its separate route, and other types and versions are unchanged.",
+  "historical_comparison": {
+    "method": "tools/probe_ac1021_control_frames.cpp extracted actual object bodies from a separately compiled pre-change writer and the current production writer. For all seven, the lengths and every bit other than the patched 32-bit RL object-size field match. The focused test reconstructs that exact old body from the current body and verifies native parser compatibility; it also rejects a truncated body and retries successfully on the same parser.",
+    "pinned_pre_change_revision": "eb07f99947caf5f49c853c94208fc64feb2ca656",
+    "scratch_directories": [
+      "/private/tmp/ac1021-control-census/old-frames",
+      "/private/tmp/ac1021-control-census/new-frames"
+    ],
+    "old_body_sha256_by_handle": {
+      "2": "8c9225faae8ddca309233d293196b983713cba77436c0d1da104e1750fc94c34",
+      "3": "edc7fc5f70825cdceb5d58a264327d5f723a063d53e8deeed7c5f343ac4467aa",
+      "6": "ae7bbe1d35ecef4cd8bafdb5d959be153e90af3acc5fc7628cbda3dcfd069c1f",
+      "7": "3957bb91986ffc4a3dde36a035c1c8177fe5ddfb7d13b2db3eb4bac53232b9f7",
+      "8": "b96de826d8b864910f4cd27071ae7f13bc219c91b27f368250f90def5f34ecc0",
+      "9": "30558b67a6ef3384c64da5fcdccd0e21beb3708de543c45cd5f6fe6b7535307a",
+      "10": "696cfdc140ff54be4208f0b901ba4ef17cd536efc230e9abf582a0524fccf6ae"
+    },
+    "new_body_sha256_by_handle": {
+      "2": "f459a0ce903ee62b1514a11155075d6301dfe1fc9561fdeee9a593597735004e",
+      "3": "15fe299e0b5fcc9ae8144e01da854c6548947ca261025528b54fa970d46ee3cd",
+      "6": "172e437f44343d16b4ed2675641cce27d47de192443470171a9e08222df1c917",
+      "7": "2bbbea0e1b240b3aa7f5b99aad5f8e3a8599536780ecf2220dd88e15acb47e47",
+      "8": "e7fdfd0276ed9aa7d7e7fbece0606c76f0a3ecb82a4dcf644a794d1d28bc0a07",
+      "9": "91271bcab6745b791546ce3bfd44fb4f170d4f12039bbe67c950a3c1e2e5bc49",
+      "10": "b2860672facadbfd4a2d23ae2ea601cf67e020f5aff113be5bf54435e5a1bc13"
+    }
+  },
+  "oda_differential": {
+    "method": "Scratch-only writer variants from the pinned source, with the earlier file-header envelope fix present. Same ODA ACAD2007 DXF audit=1 batch; success is assessed from emitted files, not exit status. Positive producer control converts to DXF without .err.",
+    "inline_baseline": {
+      "sha256": "7394a064d246668c260cfd81dfb01dcb2f80b27a946764a6fb5f793eddfbb4ec",
+      "result": "Fatal LAYER_CONTROL after DICTIONARY, STYLE and BLOCK_CONTROL warnings; no DXF."
+    },
+    "layer_detached_byte_aligned": {
+      "sha256": "d7d0119b05ffcde7cef695d71154122d47e07e4dfb9d5f705a012595ab48867b",
+      "result": "LAYER_CONTROL warning and fatal STYLE_CONTROL; no DXF."
+    },
+    "layer_exact_bit": {
+      "sha256": "25864bf82e31e6a77041b2755343eba160b217625f4add3ee4924c18fa6614d7",
+      "result": "No LAYER_CONTROL warning; fatal STYLE_CONTROL; no DXF."
+    },
+    "seven_exact_bit": {
+      "sha256": "407503e861f624c2acca038ce7e6d8f6ae40c0ac1ab43b5f52ef1f5affac594b",
+      "result": "No warnings for the seven generic controls. Earlier DICTIONARY, STYLE record, BLOCK_CONTROL and LTYPE_CONTROL warnings remain; fatal LAYER record; no DXF."
+    },
+    "extension_flag_controls": "A separate missing-xdictionary flag with corresponding omitted null handle did not remove the observed boundary-related warnings. Production retains existing extension handling.",
+    "production": "Fresh production plotstyle output is byte-identical to seven_exact_bit. LibreDWG independently reports the seven exact boundaries, owner/child roles, and a following LINE. This does not qualify full-file conversion or all controls' count encodings."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j 4",
+    "selectors": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_r2007_generic_control_boundaries|libdxfrw_dwg_block_control_handle_boundary|libdxfrw_dwg_ltype_ac1021_count|libdxfrw_dwg_group_dictionary_controls|libdxfrw_dwg_fixed_metadata_pointer)$' --output-on-failure",
+    "result": "5/5 passed",
+    "coverage": "All seven frame CRCs, exact boundary, roles and targets, direct native readback, old inline profile, truncated-input rejection and same-parser retry, CRC-validated next frame; two-entry layer frame and exact merged-handle receipt offsets. Adjacent BLOCK, LTYPE, graph/transaction and header controls pass.",
+    "addressSanitizer": "ctest --test-dir build-asan-custom -R '^libdxfrw_dwg_r2007_generic_control_boundaries$' --output-on-failure: 1/1 passed after rebuilding the final writer with AddressSanitizer."
+  },
+  "reproduction": [
+    "Compile tools/probe_ac1021_control_frames.cpp against the current library and run it with an existing empty scratch directory; output filenames are decimal control handles.",
+    "To reproduce prior bodies, check out only src/intern/dwgwriter15.cpp and dwgwriter21.cpp from revision eb07f999 into scratch, compile them with the project C++17 include paths, replace those two objects in a scratch copy of build-gcc/libdxfrw.a, link the same probe against it and extract into another directory. Compare the bodies after clearing bit positions 10-41 (the RL field).",
+    "The ODA scratch outputs and independent logs remain under /private/tmp/ac1021-control-census; the controlled source variants are scratch-only and are not fixtures."
+  ],
+  "limits": [
+    "No successful whole-file ODA conversion is claimed; the next fatal observation is LAYER record 0x12.",
+    "The source witness has compact control counts; larger count encoding is a separate issue.",
+    "No fixtures were added."
+  ]
+}

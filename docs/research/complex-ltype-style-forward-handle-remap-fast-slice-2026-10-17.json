@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-17",
+  "finding": "PAR-40",
+  "subplan": "7G.2 complex LTYPE to STYLE forward-reference first edge",
+  "status": "partial_local_fast_slice_uncommitted",
+  "implementation": [
+    "Added a source table-record handle map separate from entity and object identity maps.",
+    "Preplanned unique source STYLE output identities before TABLES serialization.",
+    "Reused each planned identity when writing its STYLE record.",
+    "Remapped nonzero complex LTYPE group-340 STYLE references and failed closed on unresolved targets."
+  ],
+  "validation": {
+    "strict_target_build": "libdxfrw_dxf_fixture_tests passed",
+    "focused_selector": "--ltype-style-handle-remap passed for generated ASCII/binary output, unresolved-target refusal, and cross-kind STYLE/entity collision refusal with destination preservation",
+    "related_selector": "--ltype-mirror-authority passed",
+    "compatibility": "lc3_compat_check built",
+    "owning_ctest": "libdxfrw_ltype_mirror_authority passed (1/1)",
+    "diff_check": "passed",
+    "full_suite": "not run"
+  },
+  "evidence_boundary": [
+    "Generated controls only; no persisted drawing fixture was added.",
+    "This closes only one 7G.2 typed graph edge.",
+    "The current mapped identity classes reject tested entity collisions, but global source-handle uniqueness, remaining graph references, native acceptance, and broad support claims remain unqualified.",
+    "Finding/subplan counts remain 130/73; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

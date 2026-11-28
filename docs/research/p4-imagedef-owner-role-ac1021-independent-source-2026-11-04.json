@@ -1,0 +1,98 @@
+{
+  "disposition": "ADVISORY_ONLY_NO_OUTPUT_QUALIFICATION",
+  "question": "Does another attributed producer emit soft-pointer IMAGEDEF owners, and has ODA resolved the discrepancy between its common-object and IMAGEDEF-specific rules?",
+  "authority": {
+    "official_download": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "official_guest_page": "https://www.opendesign.com/guestfiles",
+    "version": "5.4.1",
+    "local_pdf_sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "finding": "Section 20.1 calls the common parent a soft pointer; section 20.4.81 calls IMAGEDEF parent a hard owner. Section 2.13 identifies code 3 as hard ownership and code 12 (0xC) as a negative relative soft pointer. The official guest download inspected 2026-11-04 still identifies itself as version 5.4.1. Targeted public ODA searches found no clarifying erratum; absence of a search result does not prove none exists."
+  },
+  "source": {
+    "repository_url": "https://github.com/LibreDWG/libredwg/blob/master/test/test-data/2007/ATMOS-DC22S.dwg",
+    "catalog_url": "https://www.cadforum.cz/catalog_en/block.asp?blk=4475",
+    "local_path": "/private/tmp/libredwg-tablecontent-probe-src/test/test-data/2007/ATMOS-DC22S.dwg",
+    "sha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+    "md5": "ab520974a12e52f02f3da9dd1d723e1a",
+    "provenance": "CAD Forum identifies this filename as a DWG2007 upload dated 2009-03-26 and publishes the same MD5. LibreDWG ChangeLog attributes the sample to cadforum.cz. Matching the published MD5 corroborates this lineage but is not a cryptographic authorship certificate. The source AppInfo claims AutoCAD 17.2.608.0 and product AutoCAD build C.608.0; it can be copied or forged, so native producer provenance is attributed, not independently authenticated. No fixture is added; source usage or redistribution permissions are not established by this observation."
+  },
+  "independent_reader": {
+    "tool": "/opt/homebrew/bin/dwgread",
+    "version": "GNU LibreDWG 0.14",
+    "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -v5 -O minJSON -o /private/tmp/atmos-owner-current.json <source.dwg> > /private/tmp/atmos-owner-current.stdout 2> /private/tmp/atmos-owner-current.log",
+    "limitations": "The debug trace reports a handle-stream MISSING warning for these records, so the raw handle bits were cross-checked separately. The minJSON output is not assumed parseable JSON."
+  },
+  "raw_bit_observation": {
+    "extraction": "libdxfrw fileImport retains decompressed IMAGEDEF source frames. The standalone tool walks their bits separately from the typed IMAGEDEF parser and LibreDWG; it does not independently verify compressed pages or CRC. Bit ranges are zero-based half-open within each 101-byte retained body, not offsets in the compressed on-disk DWG.",
+    "tool": "tools/probe_ac1021_imagedef_owner_tokens.cpp",
+    "tool_sha256": "1f967289890fa4f890cb4dffb1be624e8bb88ac1aed75c5276ab56643a3a0850",
+    "build": "/usr/bin/clang++ -std=c++17 -Wall -Wextra -Werror -Isrc -Idwg2dxf tools/probe_ac1021_imagedef_owner_tokens.cpp build-gcc/CMakeFiles/libdxfrw_root_test_adapter.dir/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -pthread -o /private/tmp/probe-ac1021-imagedef-owner",
+    "reproduce": "Verify the source SHA-256 before and after running /private/tmp/probe-ac1021-imagedef-owner <source.dwg>. Independently run the pinned dwgread command and compare its IMAGEDEF tokens. The adapter object and static library must be coherently built for the current source.",
+    "observations": [
+      {
+        "self": "0x7B",
+        "parent_token": "C1 04",
+        "parent_span_bits": [
+          773,
+          789
+        ],
+        "resolved_parent": "0x77",
+        "reactor_token": "41 77",
+        "reactor_span_bits": [
+          789,
+          805
+        ]
+      },
+      {
+        "self": "0x7E",
+        "parent_token": "C1 07",
+        "parent_span_bits": [
+          773,
+          789
+        ],
+        "resolved_parent": "0x77",
+        "reactor_token": "41 77",
+        "reactor_span_bits": [
+          789,
+          805
+        ]
+      },
+      {
+        "self": "0x87",
+        "parent_token": "C1 10",
+        "parent_span_bits": [
+          773,
+          789
+        ],
+        "resolved_parent": "0x77",
+        "reactor_token": "41 77",
+        "reactor_span_bits": [
+          789,
+          805
+        ]
+      },
+      {
+        "self": "0x9D",
+        "parent_token": "C1 26",
+        "parent_span_bits": [
+          773,
+          789
+        ],
+        "resolved_parent": "0x77",
+        "reactor_token": "41 77",
+        "reactor_span_bits": [
+          789,
+          805
+        ]
+      }
+    ]
+  },
+  "interpretation": "These four AC1021 tokens are relative soft pointers, not literal role-4 tokens; the separate ODA-produced AC1024 source in p4-ac1024-imagedef-owner-role-diagnostic-2026-11-04.json uses an explicit role-4 owner. These observations conflict with the IMAGEDEF-specific hard-owner wording and cannot establish equivalence, authorize output, or promote any support claim.",
+  "next_steps": [
+    "Obtain a written authoritative ODA clarification or an explicitly superseding specification resolving section 20.1 versus section 20.4.81, including whether the parent handle role may vary by DWG version and producer.",
+    "Create controlled source-only DWGs in an independently licensed AutoCAD environment from a new drawing with an IMAGE, IMAGEDEF, dictionary and reactor; record producer build, byte hashes and graph identity, and inspect literal spans with independent decoders.",
+    "Only after authoritative clarification, define the exact admitted profile, prove full IMAGE/IMAGEDEF/reactor/dictionary graph and handle-role output mapping, and validate strict ASCII/Binary output, rollback/retry and native independent readback."
+  ],
+  "constraints": "No fixture was copied into the repository. The current AC1024 diagnostic remains non-promoting and no support gate was changed."
+}

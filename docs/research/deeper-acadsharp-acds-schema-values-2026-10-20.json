@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "ACadSharp Prototype_1b schema-value comparator caveat",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Recheck the exact released ACadSharp DataStorage comparator role against current upstream defect evidence",
+    "Separate structured DWG Prototype_1b parsing from schema-value fidelity, DXF ACDSDATA extraction, writing, and ACIS semantics",
+    "Tighten the optional PAR-07/S8 comparator capture requirements without adding a required dependency"
+  ],
+  "method": {
+    "webResearchPerformed": true,
+    "officialDwgSpecificationReviewed": true,
+    "exactPeerReleasePreviouslyPinned": "ACadSharp v3.7.1 commit d7dc111",
+    "peerSourceBuiltOrRun": false,
+    "externalRepositoriesCloned": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "sources": [
+    {
+      "project": "ACadSharp PR #1215",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1215",
+      "revision": "Open PR and comments reviewed 2026-10-20",
+      "observed": "The PR author reports that DwgPrototype1bReader.readSchemaProperty sizes the value array by PropertyValueCount but repeatedly fills row zero, losing later values. The PR text identifies AcDbDs::ID as a common two-value property. A one-line reader fix remains proposed; the regression test was removed during review because of a planned refactor. The PR remains open and undeployed at review time.",
+      "limits": "The report concerns ACadSharp's peer implementation, is not reproduced locally, and does not prove a defect in libdxfrw or establish whether every peer lookup route depends on the affected property values."
+    },
+    {
+      "project": "ACadSharp Prototype_1b history and release",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1152",
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.7.1",
+        "https://github.com/DomCR/ACadSharp/blob/v3.7.1/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgPrototype1bReader.cs"
+      ],
+      "revision": "v3.7.1 tag commit d7dc111; PR #1154 is included in the released structured DWG Prototype_1b reader lineage",
+      "observed": "The discussion distinguishes earlier scan/fallback extraction from the subsequently merged structured DWG reader. The contributor states the DXF extraction logic remains on its earlier path; the discussion also records concerns about general writer assumptions and blob/schema coverage.",
+      "limits": "Issue discussion and contributor statements are not an independent reproduction of a peer defect. A structured DWG reader does not prove DXF carrier parity, writer fidelity, B-rep semantics, independent-kernel validity, or native CAD acceptance."
+    },
+    {
+      "project": "ODA Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "section": "§24.2.2.5–.7",
+      "observed": "ODA documents schema-index references, schema property values and counts, and schema-search data relationships; it notes schema-search data can be ignored by readers.",
+      "limits": "The specification is the byte-layout authority, not an endorsement of a peer API and not a semantic ACIS/B-rep specification."
+    }
+  ],
+  "decision": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "peerRoleNarrowed": true,
+    "supportClaimPromoted": false,
+    "inventory": "141 findings / 78 top-level subplans",
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planDelta": "ACadSharp v3.7.1 remains an optional structural DWG Prototype_1b comparator but is no longer treated as an unqualified typed schema-value oracle. Any selected run must capture all multi-valued schema property rows, compare AcDbDs::ID values against the independent raw DataIndex/record/entity/owner ledger, and keep DXF ACDSDATA, writer, ACIS semantics, kernel, and native evidence separate."
+  },
+  "implementationReadyChecks": [
+    "For a pinned optional ACadSharp run, use an exact schema property with PropertyValueCount greater than one and preserve every raw value row in the evidence capture.",
+    "Resolve records from the ODA-led DataIndex -> record-header handle -> entity/owner mapping before consulting any schema/search convenience API.",
+    "Treat absent or inconsistent ACadSharp high-level schema results as a peer limitation unless an independently parsed raw-ledger mismatch demonstrates a local error.",
+    "Do not promote this peer to a DXF ACDSDATA, writer, ACIS geometry, independent kernel, or native consumer authority."
+  ],
+  "validation": {
+    "testsRunForThisResearchOnlyUpdate": false,
+    "receiptJsonValidation": "jq empty docs/research/deeper-acadsharp-acds-schema-values-2026-10-20.json — passed",
+    "planDiffCheck": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/dwg_reader_matrix_tests.cpp — passed",
+    "commitCreated": false,
+    "commitBlocker": "No commit attempted; shared worktree has extensive unrelated user changes and Git metadata is read-only in this environment."
+  }
+}

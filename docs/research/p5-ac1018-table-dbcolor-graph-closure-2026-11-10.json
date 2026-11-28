@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-10",
+  "id": "p5-ac1018-table-dbcolor-graph-closure-2026-11-10",
+  "title": "AC1018 TABLE AcDbColor target-role closure",
+  "question": "Does compound TABLE admission verify that a flagged AcDbColor handle resolves to an emitted object of the DBCOLOR custom class?",
+  "finding": {
+    "before": "The direct TABLE codec emitted an AcDbColor hard pointer when its common-header flag was set. The compound TABLE graph gate did not verify the target handle or its class role.",
+    "change": "Compound TABLE closure now checks flag/handle consistency, requires the target frame to be emitted, resolves its class instance, and requires the class definition names AcDbColor/DBCOLOR. This preserves the existing DBCOLOR writer route rather than rejecting all AcDbColor references.",
+    "control": "The generated TABLE graph vector changes the target to an un-emitted handle and verifies closure refusal; existing TABLE graph rollback/commit controls and the focused TABLE selector pass.",
+    "scope": "Target identity/role admission only. No successful full-file TABLE→DBCOLOR readback or native color meaning is established.",
+    "fixtures": "No DWG/DXF fixture was added; controls use generated in-memory objects."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused": "./build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS: AC1018 TABLE encoder allocation failures injected=19 rollback=PASS retry=PASS; AC1018/AC1021 TABLE cell override vectors: PASS"
+  },
+  "limitations": [
+    "This graph-closure receipt predates the successful positive whole-file TABLE-to-DBCOLOR control; see p5-ac1018-table-dbcolor-whole-file-readback-2026-11-10.json for that later evidence.",
+    "The class check does not establish native color/rendering semantics.",
+    "No support claim is promoted."
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "schema": "libdxfrw-deeper-broader-acadrust-release-and-peer-loss-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh the exact ACadRust release profile, assess parser/application lineage, and use open ACadSharp ACIS writer-loss reports to refine existing route-specific plan gates.",
+  "method": {
+    "kind": "Public project release documentation, issue/PR state, DXF/ODA documentation, and local plan review",
+    "sourcesOpened": [
+      "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4",
+      "https://github.com/hakanaktt/acadrust/commit/8d5c46d",
+      "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.3",
+      "https://github.com/hakanaktt/acadrust",
+      "https://github.com/HakanSeven12/OpenCADStudio",
+      "https://github.com/storytold/cadcraft",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/DomCR/ACadSharp/pull/1150",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRunForResearch": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "evidenceBoundary": "Release notes and issue/PR descriptions are source-provided claims only. No peer artifact/output was executed or independently reproduced, and no support matrix, native CAD, or semantic geometry claim is promoted."
+  },
+  "evidence": [
+    {
+      "candidate": "ACadRust v0.6.4",
+      "releaseTag": "v0.6.4",
+      "sourceCommit": "8d5c46d",
+      "observed": [
+        "The release advertises R12 through R2018+ DXF/DWG read/write and 48 top-level entity variants, including ACIS-bearing entities.",
+        "Release notes report generation-specific ACIS silhouette and inline-surface support and say the supplied strict-read sample corpus passed, but provide no hash-pinned per-family corpus report in the reviewed release page.",
+        "Release notes report BricsCAD V20 checks passing for 18 of 20 generated files, with two remaining failures involving TABLESTYLE suppression behavior.",
+        "The release page describes the version matrix as format-level and says entity availability varies by version; AC1009 DWG fidelity is incomplete and R12 DXF export is promoted to R13 or later."
+      ],
+      "doesNotEstablish": [
+        "per-entity ACIS or AcDs semantic parity on the local plan's exact payloads",
+        "independently reproduced BricsCAD/native application acceptance",
+        "exact source-handle/owner closure or complete block contents on arbitrary files",
+        "an independent geometry-kernel vote"
+      ],
+      "classification": "PINNED_OPTIONAL_STRUCTURAL_COMPARATOR_NOT_SEMANTIC_ORACLE",
+      "planUse": "At one existing composed checkpoint, pin source/package checksum, toolchain, feature options and exact inputs; record each entity's identity, owner/block path, parsed/opaque/skipped/error disposition, diagnostics, emitted identity and ACIS/AcDs link. Keep self-roundtrip and release-generated tests separate from independent expected-value evidence."
+    },
+    {
+      "candidate": "ACadRust v0.6.3 LAYER output precedent",
+      "observed": [
+        "Release notes state that RGB LAYER output includes a nearest-ACI group 62 fallback alongside exact truecolor group 420.",
+        "The public release note does not specify the distance metric or supply independent native acceptance results."
+      ],
+      "classification": "NON_NORMATIVE_IMPLEMENTATION_PRECEDENT",
+      "planUse": "Keep the local fallback policy based on Autodesk's group-62/group-420 behavior and LibreCAD's deterministic existing ACI palette policy; retain a local literal-output test and never remap explicit C3/indexed ACI."
+    },
+    {
+      "candidate": "ACadRust downstream application lineage",
+      "observed": [
+        "OpenCADStudio and CADCraft identify ACadRust as their core file engine.",
+        "Multiple app/package names therefore do not create independent parser observations."
+      ],
+      "classification": "ONE_SHARED_PARSER_LINEAGE",
+      "planUse": "Record parser lineage separately from application, renderer, geometry kernel, and native-consumer profile; do not count downstream applications as additional parser votes."
+    },
+    {
+      "candidate": "ACadSharp issue #1195 and writer PRs #1150/#1240",
+      "observed": [
+        "Issue #1195 reports that ACadSharp 3.4.9 reads 3DSOLID/REGION but silently omits them on DXF writing, including content nested in blocks.",
+        "The maintainer states the DXF writer does not yet support Solid3D, CadBody, and Region, and links ongoing work.",
+        "PR #1150 and PR #1240 remain proposals in the reviewed public state; their behavior is not treated as released writer capability."
+      ],
+      "doesNotEstablish": [
+        "the same loss in later ACadSharp releases",
+        "a local libdxfrw defect",
+        "validity of ACIS bytes or native CAD acceptance"
+      ],
+      "classification": "PEER_REPORTED_WRITER_LOSS_AND_TEST_DESIGN_LEAD",
+      "planUse": "Keep emitted identity and nested-block closure checks; require each source entity to be emitted exactly once, explicitly rejected/reported, or classified as unsupported/lost. Parseable output and aggregate counts are not enough."
+    },
+    {
+      "candidate": "ezdxf ACIS routing and ODA DWG specification",
+      "observed": [
+        "ezdxf documents SAT on DXF R2000-R2010 and SAB/ACDSDATA routing for R2013 and later in its ACIS export path.",
+        "ODA DWG specification §20.4.41 describes ACIS entity byte carriers while stating the described decryption is incomplete."
+      ],
+      "classification": "VERSIONED_CARRIER_REFERENCE_NOT_UNIVERSAL_SEMANTIC_CONTRACT",
+      "planUse": "Keep inline SAT, DXF ACDSDATA/SAB, DWG inline, and DWG AcDs as separate paths. Consult ODA before DWG parser edits and require independent topology/geometry evidence beyond carrier retention."
+    }
+  ],
+  "implementationReadiness": {
+    "localImplementationOrderChanged": false,
+    "existingFindingsOrSubplansChanged": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 123,
+      "topLevelImplementationSubplans": 71
+    },
+    "nextActions": [
+      "Continue local small slices with the touched strict build and nearest generated fast regression; the optional peer run is not a leaf-slice prerequisite.",
+      "At one composed checkpoint only, use the exact v0.6.4 / 8d5c46d release and capture per-identity status and diagnostics on already admitted or locally generated inputs.",
+      "Keep ACadRust, OpenCADStudio and CADCraft under one parser-lineage key.",
+      "For ACIS/AcDs, report carrier association, parser result, topology completeness, independent kernel metrics and named consumer acceptance separately.",
+      "For all writer paths, reconcile source handles and owner/block paths to emitted, explicitly rejected, or documented lost outcomes; do not infer completeness from file open or total counts.",
+      "Keep J256, J260, J268, J284, J293 and J295 DEFERRED_EXTERNAL and non-promoting."
+    ]
+  }
+}

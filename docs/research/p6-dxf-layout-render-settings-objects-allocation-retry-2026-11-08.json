@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-dxf-layout-render-settings-objects-allocation-retry-2026-11-08",
+  "date": "2026-11-08",
+  "status": "GENERATED_LAYOUT_RAPIDRT_OBJECTS_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep every measured allocation inside the DXF OBJECTS callback for a generated AC1027 LAYOUT shadePlotMode=5 graph rooted to one RapidRT render-settings preset.",
+  "input": {
+    "kind": "Generated ASCII and Binary AC1027 DXF written by writeLayoutGraphControl under the test temporary directory, then imported before export.",
+    "sourceGraph": "ACAD_LAYOUT root and Sheet A layout with shadePlotMode 5 -> a RapidRT render settings object, rooted through its named dictionary.",
+    "fixtureFilesAdded": 0,
+    "cleanup": "The generated source and output DXFs are created under the system temporary directory and removed after the test."
+  },
+  "implementation": {
+    "test": "tests/dxf_fixture_tests.cpp:testLayoutObjectsAllocationRetry",
+    "registration": "tests/CMakeLists.txt:libdxfrw_layout_objects_allocation_retry",
+    "method": "Calibrate allocations performed during dx_iface::writeObjects, inject std::bad_alloc at every offset, require destination sentinel preservation and source graph retention, then retry the same adapter and import the resulting LAYOUT/render-settings graph."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_fixture_tests --parallel 4 \u2014 PASS",
+    "ctest": "ctest --test-dir build -R ^libdxfrw_layout_objects_allocation_retry$ --output-on-failure \u2014 PASS 1/1; 1.72 seconds",
+    "ascii": "57/57 calibrated callback allocation offsets injected; rollback, source graph preservation, same-adapter retry and readback passed.",
+    "binary": "56/56 calibrated callback allocation offsets injected; rollback, source graph preservation, same-adapter retry and readback passed.",
+    "fixtureFilesAdded": 0,
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction and graph-closure evidence only; no native rendering behavior or independent producer interoperability is established.",
+    "The control covers one AC1027 RapidRT preset profile, not all LAYOUT shade modes, render settings, OBJECTS builders, or whole-drawing failure states."
+  ],
+  "nextAction": "Continue the P6 OBJECTS transaction-safety audit with an independent uncovered builder; keep producer semantics and platform qualification as separate gates."
+}

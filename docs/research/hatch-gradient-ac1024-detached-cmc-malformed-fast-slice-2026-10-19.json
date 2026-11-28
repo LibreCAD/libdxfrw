@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "AC1024 HATCH detached-string CMC malformed-input controls",
+  "mode": "Generated local fast regression slice",
+  "scope": [
+    "Extend PAR-134/7Q malformed reserved-BS and RC controls from AC1018 direct-body encoding to the AC1024 R2007 detached-string object framing.",
+    "Prove the mutation targets from an independent test-local CMC bit walk and preserve transactional parser failure behavior.",
+    "Record the focused selector result separately from the broader owning CTest, which currently has unrelated failures."
+  ],
+  "method": {
+    "specification": "Local authoritative ODA Open Design Specification v5.4.1, §2.11 CmColor and §20.4.75 HATCH.",
+    "generatedProfile": "AC1024 HATCH DWG entity with detached R2007 string stream, object/string footer, handle stream, and appended sentinel.",
+    "offsetDerivation": "A test-local independent bit reader starts at the common-prefix cursor and walks the gradient prologue, first color value, reserved BS, packed CMC BL, and RC byte.",
+    "mutations": [
+      "Change the first reserved color BS from zero to a nonzero encoded value.",
+      "Set a bit in the first color RC byte so the flags are nonzero."
+    ],
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "productionCodeChanged": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "limitations": "The generated vector uses this checkout's encoder and is parsed by this checkout. It proves local framing, bounds/refusal, rollback, and sentinel behavior only; it is not independent-producer or native interoperability evidence."
+  },
+  "implementation": {
+    "sourceFiles": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "selector": "--hatch-gradient-cmc",
+    "behavior": "AC1024 reserved-BS and RC mutations fail before publication, invalidate the source cursor back to bit zero, reset the partially parsed HATCH object, and leave the independent post-handle sentinel readable. The valid detached-string vector and existing truncated-string negative remain covered."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-gradient-cmc",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --header-date-time-publication",
+      "python3 -m json.tool docs/research/hatch-gradient-ac1024-detached-cmc-malformed-fast-slice-2026-10-19.json",
+      "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/hatch-gradient-ac1024-detached-cmc-malformed-fast-slice-2026-10-19.json"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "focusedSelector": "PASS",
+      "owningCTest": "FAIL (1/1; 315 broader assertions fail, including HEADER date/time publication and versioned local DWG writer/self-read paths; HATCH gradient/modeler controls report PASS)",
+      "unrelatedHeaderFailureReproduced": "FAIL (reproduced by --header-date-time-publication: rejected=1, preserved=1, retry=0, validDwg=0)",
+      "receiptJson": "PASS",
+      "scopedDiffCheck": "PASS",
+      "fullSuiteRun": false
+    }
+  },
+  "planImpact": {
+    "findingCountChanged": false,
+    "subplanCountChanged": false,
+    "implementationQueueChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "sliceStatus": "AC1024 malformed-wire controls implemented and focused-pass; parent 7Q remains partial. Left unstaged/uncommitted because the shared worktree contains broad unrelated changes."
+  }
+}

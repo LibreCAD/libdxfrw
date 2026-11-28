@@ -1,0 +1,134 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-rigid-set-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative constrained-rigid-set node",
+  "status": "OBSERVED_PROFILE_IMPLEMENTED_FOCUSED_VALIDATED_REMAINDER_RAW",
+  "supportClaimEffect": "none",
+  "scope": "Decode the observed AC1024 version-0 inline AcConstrainedRigidSet body transactionally; preserve incomplete nodes/groups raw and retain strict document-level refusal until required associative ownership, graph closure, output and readback are complete.",
+  "independentLayoutSource": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+    "sourcePath": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+    "sourceGitBlobSha1": "0a4e0b7ea2e660ea32b90ee826617d171a22ccbd",
+    "sourceFileSha256": "08ae91fe60fc78f08a24af1d59b0256e82419c7c7cbc4a7e791684d96c8740fa",
+    "layout": "The pinned reader/writer profile orders the node-specific soft-pointer handle, geometry node ID (BL), reserved flag (B), sixteen bit doubles, geometry-ID count (BL), then geometry IDs (BL). The independent source confirms field order; physical boundaries and values below come from the local AC1024 witness."
+  },
+  "semanticReferences": {
+    "autodeskClass": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcConstrainedRigidSet.html",
+      "meaning": "AcConstrainedRigidSet is a constrained rigid-set node belonging to an associative 2D constraint group."
+    },
+    "autodeskMethods": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcConstrainedRigidSet.html",
+      "meaning": "The class exposes constrained geometry membership and a transform."
+    },
+    "autodeskConstructor": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcConstrainedRigidSet__AcConstrainedRigidSet_bool_AcGeMatrix3d_.html",
+      "meaning": "The constructor accepts a transform relative to the owning group's workplane; no matrix row/column convention is inferred by this decoder."
+    },
+    "odaSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "result": "ODA v5.4.1 contains the applicable bit-stream primitive definitions but no class-specific RigidSet body layout. The class-specific field order is corroborated by the pinned reader and the physical AC1024 trace."
+    }
+  },
+  "sourceProfile": {
+    "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "groupHandle": "777",
+    "nodeId": 768,
+    "body": {
+      "startBit": 26285,
+      "geometryNodeId": 0,
+      "reservedFlag": false,
+      "transformWireOrder": [
+        1.0, 0.0, 0.0, 384.02944432664754,
+        0.0, 1.0, 0.0, 167.53646572387899,
+        0.0, 0.0, 1.0, 0.0,
+        0.0, 0.0, 0.0, 1.0
+      ],
+      "geometryCount": 3,
+      "geometryIds": [767, 769, 771],
+      "endBit": 26560
+    },
+    "nodeSpecificHandle": {
+      "role": "soft pointer",
+      "reference": 0,
+      "startBit": 89102,
+      "endBit": 89110
+    },
+    "boundaryConfirmation": "The complete civil group now parses through 147/147 nodes, including the following AcConstrainedArc node 873. The architectural witness independently remains complete at 174/174 nodes."
+  },
+  "independentRun": {
+    "tool": "prebuilt acadrust qualifier",
+    "binaryPath": "/private/tmp/libdxfrw-acadrust-qualifier/target/release/libdxfrw-acadrust-qualifier",
+    "binarySha256": "fc05c3db378015bcc96963bc754e94d148ea0bab56d0ec1d7bd890d682155712",
+    "outputPath": "/private/tmp/rigidset-acadrust.log",
+    "outputSha256": "7bdb19fa5746d810b4f48a907ed6eeae5fbdc60de23ff86d8dda05d78308659c",
+    "result": "Independently recognizes group 777 and one AcConstrainedRigidSet. Its 148-node count includes the reader's existing empty placeholder convention; libdxfrw's source-ordered node count is 147. This run corroborates class membership, not the RigidSet payload values."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/associative_constraint_group_test_helpers.h",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "profile": "Version-0 inline profile observed in AC1024: soft-pointer code 4/reference 0, geometry node ID, reserved flag, sixteen finite bit doubles retained in wire order, bounded geometry-ID count and IDs. Existing enum values are preserved by appending DataKind::RigidSet. No row/column matrix convention or writer serialization is added.",
+    "failureBehavior": "Parsing uses independent body and handle probes. A wrong handle role, truncated transform, negative count or truncated ID list leaves the node raw and group partial without committing body/handle positions; a following generated sentinel object remains recoverable.",
+    "generatedControls": [
+      "Valid generated RigidSet verifies the null soft-pointer role, transform and geometry IDs [767, 769, 771], followed by an implicit-point node to prove handle-stream alignment.",
+      "Wrong handle role remains raw/partial and the following object recovers.",
+      "Truncated transform remains raw/partial and the following object recovers.",
+      "Truncated geometry-ID list remains raw/partial and the following object recovers.",
+      "Negative geometry-ID count remains raw/partial and the following object recovers."
+    ],
+    "outputBehavior": "No graph serializer was added. Strict export still refuses with dwg-associative-graph-not-serialized; no DXF is created.",
+    "persistentDrawingFixturesAdded": 0,
+    "abiNote": "DRW_AssociativeConstraintNode layout changed; ABI compatibility remains an open P8 qualification item."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "asanFocusedTest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "civilNormalAndAsan": {
+      "normalLog": "/private/tmp/rigidset-final.log",
+      "asanLog": "/private/tmp/rigidset-asan.log",
+      "bothLogSha256": "c6186cbf3a40c90381bc07bfad37b3509f19a200bee61e47bb92b7c37d6f7f0a",
+      "result": "Byte-identical source traces; RigidSet node 768 ends at body bit 26560 and handle bit 89110; all 147 civil nodes decode. The export preflight refuses the incomplete associative graph and no DXF is created. No sanitizer diagnostics."
+    },
+    "architecturalNormal": {
+      "log": "/private/tmp/rigidset-arch-final.log",
+      "sha256": "f81fdad600973ac7ac9a89effc2b4ef76ab1e173377d17a67855f98007c6267f",
+      "result": "The architectural group remains complete at 174/174 nodes; strict export is refused and no DXF is created."
+    },
+    "diffCheck": "PASS"
+  },
+  "nextAction": "Resolve source-required roles, types and owners for RigidSet geometry IDs 767, 769 and 771, then continue recursive associative graph closure and output/readback. Keep strict export refused until the complete reachable graph is serialized and independently read back.",
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "2cfe29b6517c0ad22056afd030a60a18f13668ec9e25f36eaa53fe1b832b3579",
+    "src/drw_objects.h": "b3461a0d2c91da26105bd7bf5a6d1034a850dd03d968f469422df67a7aeb5ef4",
+    "tests/associative_constraint_group_test_helpers.h": "8317bcbf53b840f2da3c32da16e046f58c13b5fd5900bbc4e9d5662ee6ebf569",
+    "tests/dwg_reader_matrix_tests.cpp": "9c5fdfff2760b53c5f9179fd6fd4d728599416a843453a3e0bf199fe50c033aa",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "67e031051521112bc1fff99a59d7149b704f86a242ce17e84b17eac916ef2206",
+    "build/dwg2dxf/dwg2dxf": "b315196d36bf3b6e3704c0eaa8d001e4dfa7c3d487b1f3616aaefea9393c489d",
+    "build/libdxfrw_dwg_reader_matrix_tests": "f1a23368eb12f4a286505695ea69ac70103836557821d418493c12628d6a0049",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "d88af38b7c1b3fce33e88be7dc1f215dfca9155ead61b1a0953770f3b46372b6",
+    "build-asan-custom/libdxfrw_dwg_reader_matrix_tests": "2b221ef4b2c05c10bfe91e08ad1603009a21f1f5ee04d44df60c98f394e3e38f"
+  }
+}

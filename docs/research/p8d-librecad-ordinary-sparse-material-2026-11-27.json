@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-ordinary-sparse-material-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "8e664213",
+  "codecLibrarySha256": "715e638095a7994d091e3bf330a3710c993a703993df5cad709bababbb23f517",
+  "finding": "The ordinary LibreCAD filter refused even the previously checked same-version AC1021 sparse-material graph; a first prototype could save it but could not reopen and resave LibreCAD's own default-space and plot-settings output.",
+  "change": [
+    "Admit ordinary replay only for bounded ASCII AC1021 input with a complete physical identity inventory and selected simple model-space LINE records. Validate physical fields, delivered geometry, default appearance, reference identity, graph closure and the existing staged-output checks.",
+    "For an output reread, admit only the exact generated default model/paper block-record and paired empty BLOCK/ENDBLK shapes; validate the generated default PLOTSETTINGS source bytes and typed projection. Source input is prescanned once and retained only for possible MATERIAL files at or below the existing 256 KiB bound.",
+    "Before publishing, recheck that live entities and active plot settings remain within this profile; unsupported edits and source shapes refuse without replacing the destination. The explicit wider experimental replay policy remains separately guarded."
+  ],
+  "validation": {
+    "focused": "macOS ARM64 with the installed standalone codec: 9906 assertions in 19 MATERIAL and IMAGE cases pass. The bundled-codec filter translation unit compiles. The controls cover initial save, a separate writer, reopen/resave, material-bearing and unlinked line edits, cross-version refusal, unsupported entity/field/block/plot forms, physical identity collision or mismatch, omitted callbacks, destination preservation, late mutation and corrected retry.",
+    "peer": "ezdxf 1.4.5 independently read the initial save, resave and edited resave. In each, the first LINE, layer, header and ACAD_MATERIAL dictionary named the same PlainMat; the edited resave retained endpoints (12,0,0) and (20,1,0) for its two lines. Each audit had zero errors and fixes.",
+    "scratchOutputSha256": {
+      "initial": "04030f35e90a84ed8b2da91f66bf4c3e33d9af0dd675dbfd2ca56f09ac1bf97e",
+      "resave": "6dc4463de081e0ab3b80a0ffa6ed02ca92592ea10a417d7267ef248ff8c1915a",
+      "editedResave": "3f4ab7a695a081710cf3b51a4715f91f18183a42818efc62a4e24ce476928c52"
+    }
+  },
+  "limits": [
+    "This is an experimental locally authored profile, not general MATERIAL, DXF, DWG or native-platform parity. Binary and other versions, nondefault plot settings, other entity types, custom blocks, unrelated source fields and unknown references remain refused on the ordinary raw-material route.",
+    "The 256 KiB source bound is unchanged. Additional source observers retain bounded inventories; broader files and aggregate-memory expansion require separate qualification.",
+    "Four existing handle-selector cases still expect broader unqualified sparse-MATERIAL output. No drawing fixture was committed."
+  ]
+}

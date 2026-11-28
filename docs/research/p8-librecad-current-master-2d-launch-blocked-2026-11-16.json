@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-16",
+  "slice": "P8-D1 LibreCAD current-master 2D edit/save/reopen",
+  "status": "WAITING_FOR_INTERACTIVE_MAC_GUI",
+  "source": {
+    "repository": "LibreCAD/LibreCAD",
+    "ref": "master",
+    "commit": "d40f178b9708b54ad34b15f721d22abb2315aa2b",
+    "publicHeadVerifiedAt": "2026-11-16",
+    "checkout": "/private/tmp/librecad-p8-current-20261116",
+    "workingTreeClean": true
+  },
+  "build": {
+    "directory": "/private/tmp/librecad-p8-current-build-20261116",
+    "command": "cmake -S /private/tmp/librecad-p8-current-20261116 -B /private/tmp/librecad-p8-current-build-20261116 -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF",
+    "buildCommand": "cmake --build /private/tmp/librecad-p8-current-build-20261116 --target librecad --parallel 8",
+    "result": "PASS: librecad target built",
+    "platform": "macOS 27.2.1 ARM64",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "cmake": "4.4.5",
+    "qt": "6.12.0",
+    "buildType": "Release",
+    "BUILD_TESTS": false,
+    "LIBRECAD_ENABLE_OPENTYPE": false,
+    "applicationBinary": "/private/tmp/librecad-p8-current-build-20261116/LibreCAD.app/Contents/MacOS/LibreCAD",
+    "applicationBinarySha256": "116b65cf15de22e6b4c8298c0244f7f6ae3eccae81f4d6f79517a5501eb82b13"
+  },
+  "launchAttempt": {
+    "command": "LibreCAD.app/Contents/MacOS/LibreCAD --help",
+    "result": "CRASHED_BEFORE_GUI_STARTUP",
+    "diagnostics": [
+      "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]",
+      "PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]",
+      "Connection Invalid error for service com.apple.hiservices-xpcservice",
+      "LibreCAD reported that it crashed"
+    ],
+    "crashLog": "/private/tmp/librecad-p8-current-build-20261116/LibreCAD.app/Contents/MacOS/LibreCAD.98394.1794865369.crash.log",
+    "crashLogSha256": "7cf94ad44c16c8f9159d2d7afaf2161c97ba672857c9566e0c8107465d503f55"
+  },
+  "drawingAttempt": {
+    "inputOpened": false,
+    "inputOrOutputFixtureCreated": false,
+    "outputPublished": false,
+    "editSaveReopenQualified": false
+  },
+  "limits": [
+    "The application compiled at the pinned current-master source, but its macOS GUI session could not initialize its pasteboard/XPC connection.",
+    "No drawing was opened or written; build success is not edit/save/reopen or consumer compatibility evidence.",
+    "Do not repeat the launch probe until an interactive macOS pasteboard session is available. Continue headless/local implementation slices meanwhile."
+  ],
+  "next": "Resume the actual 2D edit/save/close/reopen only after LibreCAD can start in an interactive session; proceed with P8-D2 code and fast persistence checks meanwhile."
+}

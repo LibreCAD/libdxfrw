@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-surface-raw-dwg-body-encoder-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "BOUNDED_SURFACE_VERSION_BOUND_RAW_BODY_TRANSACTIONAL_ROLLBACK_RETRY",
+  "supportClaimEffect": "none",
+  "scope": "Exercise version-bound raw DWG body replay through the DRW_Surface transaction for a generated exact-version plane-surface payload.",
+  "implementation": {
+    "encoder": "src/drw_entities.cpp:DRW_Surface::encodeDwg",
+    "test": "tests/dwg_hatch_encoder_allocation_tests.cpp",
+    "generatedProfile": {
+      "subtype": "PLANESURFACE",
+      "rawBytes": [165, 31],
+      "bitSize": 13,
+      "sourceVersionBoundPerCase": true
+    },
+    "failureBehavior": "Injected allocation failure preserves caller stream bytes and bit positions and restores the writer object type; same-object retry into the same buffers reproduces clean output."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_entity_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j4",
+    "allocationSweep": "PASS: 5,348 allocation offsets across nine entity families and 325 entity/version/stream-layout profiles",
+    "focusedTests": "ctest --test-dir build-gcc -R '^(dwg_entity_encoder_allocation_rollback_retry|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "result": "PASS (2/2)",
+    "asanBuild": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build build-asan-custom --target libdxfrw_dwg_entity_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j4",
+    "asanConfiguration": "-fsanitize=address -fno-omit-frame-pointer",
+    "asanFocusedTests": "ctest --test-dir build-asan-custom -R '^(dwg_entity_encoder_allocation_rollback_retry|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "asanResult": "PASS (2/2)",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "coverage": [
+    "Generated exact-version AC1021, AC1024, AC1027 and AC1032 raw-body profiles use five stream-alias layouts each.",
+    "Each injected allocation failure verifies complete destination rollback and corrected same-object retry to exact clean bytes."
+  ],
+  "inputHashes": {
+    "src/drw_entities.cpp": "f59e2ca5615b2722cb34b8d5cd9b96a89b8f02292a12e46bae2e064e652be17b",
+    "tests/dwg_hatch_encoder_allocation_tests.cpp": "7d4967e26dbdd184304ca9eed9237f20bd35db931c0e751a36d4639bc2f05683"
+  },
+  "fixtureFilesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "This generated control verifies transaction behavior, not the meaning or provenance of captured physical raw bodies, ACIS geometry, semantic equivalence, graph closure, native rendering or output support.",
+    "No DWG or DXF drawing fixture was added."
+  ]
+}

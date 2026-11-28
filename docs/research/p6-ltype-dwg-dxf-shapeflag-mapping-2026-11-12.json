@@ -1,0 +1,56 @@
+{
+  "id": "p6-ltype-dwg-dxf-shapeflag-mapping-2026-11-12",
+  "status": "bounded-codec-mapping-verified",
+  "claim_scope": "Generated codec consistency for DWG LTYPE Shapeflag to DXF group 74 text/shape bits; no physical producer or native rendering claim.",
+  "authorities": [
+    {
+      "name": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.58 LTYPE",
+      "local_source": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf",
+      "finding": "DWG Shapeflag bit 2 identifies shape-number codes; bit 4 identifies string-area offsets. A later R2007+ sentence in the same ODA section says 0x02 for area presence, conflicting with the field definition; this discrepancy is retained explicitly."
+    },
+    {
+      "name": "Autodesk DXF LTYPE reference",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+      "finding": "DXF group 74 bit 2 identifies embedded text and bit 4 identifies an embedded shape."
+    },
+    {
+      "name": "GNU LibreDWG public dwg.h source reference",
+      "url": "https://www.gnu.org/software/libredwg/refman/dwg_8h_source.html",
+      "finding": "Dwg_LTYPE_dash documents bit 2 as shape number and bit 4 as strings_area index; has_strings_area is set when any shape_flag has bit 4, with the source comment identifying the conflicting ODA wording as a bug."
+    }
+  ],
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "mapping": "Swap bits 2 and 4 at DWG codec boundaries; keep DRW_LTypeSegment and DXF-facing callbacks in group-74 semantics. Raw DWG bit 4 controls presence of the R2007+ string area."
+  },
+  "generated_controls": [
+    {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "coverage": "Across all direct DWG writer versions, independently inspect raw flag bits: DXF text bit 2 encodes as DWG bit 4; DXF shape bit 4 encodes as DWG bit 2."
+    },
+    {
+      "file": "tests/dwg_local_roundtrip_tests.cpp",
+      "coverage": "Generated DWG text-area tests and shape-only tests write and read back normalized flags, text and shape code for AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032."
+    }
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg_object_vectors_tests -j2",
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_(ltype_text_area_contract|object_vectors)$' --output-on-failure",
+      "result": "passed 2/2"
+    },
+    "integration_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_(object_vectors|local_roundtrip)$' --output-on-failure",
+      "result": "object_vectors passed; broad local_roundtrip failed 359 unrelated assertions across existing material/output, DXF topology and polygon-mesh profiles. The new LTYPE-specific selector passes independently.",
+      "limitation": "This broad test's failures were not established as baseline in a clean checkout and are recorded without attributing them to this change."
+    }
+  },
+  "not_established": [
+    "physical producer conformance",
+    "native complex linetype rendering or shape-font selection",
+    "producer-wide interoperability",
+    "support promotion"
+  ],
+  "evidence_limits": "The bit mapping is supported by ODA field semantics, Autodesk DXF group 74 semantics and LibreDWG implementation documentation. No real producer fixture with complex LTYPE text/shape was independently qualified in this slice."
+}

@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-header-ucs-reference-reader-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": [
+    "ODA Open Design Specification v5.4.1 section 9: paper/model UCSNAME are hard pointers; the orthographic reference and base pointers are R2000+."
+  ],
+  "sample": {
+    "provenance": "Locally created ezdxf R2010 input, converted by ODA File Converter 27.1 macOS; scratch only.",
+    "dwgSha256": "ea5fede8fd2a0712e428ab6fe5d4b5c0b131328e8858bb7412049a82539321bd",
+    "libredwg014": "Five nonnull pointers resolve to distinct source UCS records. ODA normalized PUCSNAME to a typed null."
+  },
+  "change": "Retain six versioned UCS handles and resolve each non-null hard pointer against the same-import UCS table; malformed, wrong-kind, wide, missing or ambiguous targets cause integrity diagnostics.",
+  "checks": [
+    "Five focused HEADER test groups pass; six fields have wrong-role, wrong-kind, missing, wide, duplicate and same-reader correction controls.",
+    "Explicit partial ASCII/binary DXF preserve all five source names and the null, retaining six UCS table records; ezdxf 1.4.5 reports zero audit errors and fixes.",
+    "ODA 27.1 reopened both outputs with audit off; LibreDWG 0.14 independently resolves the same five nonnull targets and null paper-space name."
+  ],
+  "limits": [
+    "The PUCSNAME nonnull case is generated-control-only; native UCS activation/rendering and general version behavior remain unqualified.",
+    "Strict AC1024 output remains refused for its unclassified HEADER suffix; no generated fixture was committed."
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader current FreeCAD importer contract and layout limit",
+  "mode": "Primary-source web research and plan reconciliation; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile earlier archived-documentation claims against the current FreeCAD documentation repository.",
+    "Separate DWG conversion, DXF importer/backend, explicit 3D entity, ACIS solid, and paper-space layout evidence.",
+    "Refine the existing FreeCAD consumer qualification and PAR-49 readiness without adding per-slice runtime requirements."
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD documentation: Draft DXF route",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/freecad"
+      ],
+      "revision": "Mutable main pages accessed 2026-10-20; no commit/release or application runtime pinned",
+      "observed": "Current documentation describes DWG-to-DXF conversion followed by a selected DXF importer, names LibreDWG/ODA/QCAD converter choices, distinguishes C++ and legacy Python importer feature lists, lists 3DFACE on the legacy list but not the C++ list, and says stock FreeCAD cannot read DXF ACIS/SAT blobs. The GitHub organization describes FreeCAD-Doc as former synced online documentation, distinct from the currently accessible FreeCAD-documentation repository.",
+      "limits": "Documentation is not proof of a particular installed FreeCAD build, converter, preference state, importer backend, or runtime behavior. No native app was run."
+    },
+    {
+      "project": "FreeCAD current DWG adapter source",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Mutable main source accessed 2026-10-20; no commit or runtime pinned",
+      "observed": "The adapter describes the DWG layer as conversion to/from DXF and delegates actual parsing to importDXF. Its current source contains converter branches for LibreDWG, ODA, and QCAD, so the selected route must be captured from the running configuration.",
+      "limits": "Source inspection is not a successful conversion/import result and does not qualify intermediate fidelity or consumer object semantics."
+    },
+    {
+      "project": "FreeCAD C++ DXF importer multi-layout issue",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/issues/22214"
+      ],
+      "revision": "Issue page accessed 2026-10-20; report describes FreeCAD 1.0.1 / 1.1.0dev on Windows; no current build reproduced",
+      "observed": "The issue is marked confirmed and reports that the C++ DXF importer imports only one paper-space layout when the layout option is enabled. The report has no linked fix on the reviewed issue page.",
+      "limits": "A downstream issue report is not a current reproduced result, format rule, or libdxfrw codec defect."
+    },
+    {
+      "project": "FreeCAD ACIS import limitation and current C++ importer source",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/issues/18454",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp"
+      ],
+      "revision": "Issue and mutable main source accessed 2026-10-20; no runtime or independent kernel comparison performed",
+      "observed": "A FreeCAD maintainer says explicit DXF entities can import while opaque proprietary ACIS blobs cannot be interpreted by stock FreeCAD. The C++ importer constructs application shapes from parsed geometry callbacks.",
+      "limits": "This neither establishes ACIS semantic support nor independently validates a libdxfrw parser, DWG AcDs association, or OCCT-based geometry result."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "Consumer qualification: name converter, intermediate DXF, selected importer backend/settings, and per-object outcomes",
+      "PAR-49: do not use FreeCAD C++ multi-layout import as sole writer/layout oracle",
+      "3D support: separate explicit 3D entities from opaque ACIS/AcDs solid semantics"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a current-source reconciliation: earlier statements that the FreeCAD-documentation repository itself is archived are superseded; the former FreeCAD-Doc repository is distinct.",
+    "Made the FreeCAD DWG route explicit as converter to intermediate DXF to selected importer/backend, with the C++ and legacy Python importer capability lists kept separate.",
+    "Added a confirmed downstream C++ importer multi-layout limitation as a consumer-only caution; codec writer layout validation remains based on emitted structure and independent readers.",
+    "Separated explicit 3D entities such as 3DFACE from ACIS/SAT solid blobs and from DWG AcDs association/modeler semantics.",
+    "Kept native tests at the composed checkpoint, local fast tests as per-slice validation, and all unavailable external checks non-blocking."
+  ],
+  "limitations": [
+    "All FreeCAD source and documentation links are mutable main-branch pages and were not pinned to immutable commits in this pass.",
+    "Issue #22214 reports specific historical builds; no Linux or Windows runtime was executed to establish current status.",
+    "No DXF/DWG sample was downloaded, no external fixture was added, and no FreeCAD application or converter was run."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (git diff --check on plan and receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

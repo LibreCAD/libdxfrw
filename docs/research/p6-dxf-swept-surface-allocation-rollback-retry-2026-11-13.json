@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p6-dxf-swept-surface-allocation-rollback-retry-2026-11-13",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6 safety and caller-state audit",
+  "scope": "Add generated whole-operation allocation rollback/retry coverage for a variable-sized SWEPTSURFACE DXF record.",
+  "profile": {
+    "targetVersion": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "fields": [
+      "surface version, isolines, sweep/path IDs and opaque byte carriers",
+      "reference vector, alignment/path flags, draft/twist/scale values",
+      "selected transformed/untransformed matrix entries and boolean flags"
+    ],
+    "carrierLimit": "The generated sweep/path byte vectors are transport tokens only; they do not prove embedded entity or geometry semantics."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure",
+    "result": "PASS, 1/1 test",
+    "allocationOffsets": {
+      "ascii": 486,
+      "binary": 478,
+      "eachOffset": "Injected failure refused the write, preserved the prior destination and caller surface fields/carriers, and allowed same-codec retry to reproduce clean output and typed readback."
+    }
+  },
+  "scopeLimit": "This closes allocation transaction coverage for one generated AC1027 SWEPTSURFACE DXF profile only. It does not qualify external interoperability, DWG body layout/suffixes, embedded path meaning, dependency closure, surface evaluation, or native rendering.",
+  "fixturePolicy": "The drawing is generated under a scratch directory; no DWG/DXF fixture was added.",
+  "claimEffect": "No format support claim changes."
+}

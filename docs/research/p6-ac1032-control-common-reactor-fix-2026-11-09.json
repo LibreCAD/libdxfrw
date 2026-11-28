@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-09",
+  "scope": "Decode the declared common reactor sequence before table-control entries in AC1032 and other object-control profiles",
+  "evidence_class": "ODA v5.4.1 §20.4.63; generated control-frame regression; scratch-only public DWG corpus",
+  "source_receipt": "docs/research/p6-ac1032-vport-public-pair-read-blocker-2026-11-09.json",
+  "source": {
+    "issue": "https://github.com/LibreDWG/libredwg/issues/1021",
+    "archive_sha256": "25c8921cb4cb2f09daca7aafb4b714593a85986adf7429c3d46f0f2f46a0cc52",
+    "disposition": "DWG and DXF inputs remain in /tmp; no external fixture was added to Git.",
+    "platte_dwg_sha256": "146c9fbc33a7b9636ea462f4b6b1476a1c73fcaebc3cbb173cdf81e7ce04c82c"
+  },
+  "format_basis": {
+    "oda_section": "20.4.63 TABLE (VPORT) (64)",
+    "relevant_layout": "The object common prefix declares numReactors; the handle sequence includes the null owner and common reactor references before the control-specific optional XDictionary and VPORT entries.",
+    "physical_platte_trace": "Before the fix, VPORT_CONTROL reported numReactors=1 and numEntries=1. Its null owner was 0; the next handle 0x3d126 was misread as the VPORT entry. Independent LibreDWG minJSON identifies 0x3d126 as the control reactor and 0x57 as the *Active VPORT entry."
+  },
+  "implementation": {
+    "file": "src/intern/dwgreader.cpp",
+    "change": "Read and validate declared soft-pointer reactor handles for object controls after the owner handle and before the optional XDictionary/table-entry list; retain the historical inline AC1021 BLOCK_CONTROL compatibility profile.",
+    "public_api_change": false
+  },
+  "generated_regression": {
+    "file": "tests/block_control_reactor_tests.cpp",
+    "profile": "AC1032 VPORT_CONTROL, reactor 0x3d126, entry 0x57",
+    "checks": [
+      "reactor and table-entry handles remain distinct and ordered",
+      "truncated common handle sequence resets the control",
+      "corrected source retries successfully after truncation",
+      "zero-reactor control still publishes its VPORT entry",
+      "existing AC1021 BLOCK_CONTROL reactor/compatibility cases remain passing"
+    ],
+    "execution": {
+      "build": "cmake --build build-gcc --target libdxfrw_block_control_reactor_tests -j4",
+      "test": "build-gcc/tests/libdxfrw_block_control_reactor_tests",
+      "result": "PASS"
+    }
+  },
+  "physical_recheck": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf <scratch-input.dwg> -y -d -v2018 <scratch-output.dxf>",
+    "common_result": "All five inputs pass the VPORT control. The logged table row handle is 0x57 in every file, and parsing reaches OBJECTS.",
+    "per_input": [
+      {"name": "Platte.dwg", "sha256": "146c9fbc33a7b9636ea462f4b6b1476a1c73fcaebc3cbb173cdf81e7ce04c82c", "frames": 45932, "published": 45932, "entity_parse_failures": 0, "object_parse_failures": 0},
+      {"name": "Stahl.dwg", "sha256": "5db4d7022d170ef3abc8428a2140a999edbc8abb78630380753f81a1845b72d6", "frames": 2260, "published": 2260, "entity_parse_failures": 0, "object_parse_failures": 0},
+      {"name": "Teile.dwg", "sha256": "0ef7c9c79e16a4a5e219cd9ac3fecbfe30c12dd2af5ba2d71ba99ec09cc79af3", "frames": 3515, "published": 3513, "entity_parse_failures": 0, "object_parse_failures": 2},
+      {"name": "test-trichter.dwg", "sha256": "34b7bf3f3bae90e38a184d66967764839cf230728ddc5dc8da563f97d48162f4", "frames": 349, "published": 348, "entity_parse_failures": 0, "object_parse_failures": 1},
+      {"name": "xx17.dwg", "sha256": "c1392c8efece0eeb3d228362c70b51c5f68cfab0d62709dedf1164f4e910046a", "frames": 5767, "published": 5764, "entity_parse_failures": 3, "object_parse_failures": 0}
+    ],
+    "strict_output": "All CLI runs still refuse strict-complete DXF export. Platte and Stahl have zero entity/object parse failures but omit large unsupported/custom-object sets; the other three also have source-frame failures. No whole-file export or support claim is established."
+  },
+  "persubentmgr_observation": {
+    "source": "Platte.dwg",
+    "handle": "0x20c50",
+    "class": "AcDbPersSubentManager / ACDBPERSSUBENTMANAGER",
+    "bounded_body_bits": 84,
+    "decoded_candidate_scalar_prefix": [2, 0, 2, 0, 0, 0],
+    "boundary": "The sixth scalar reaches bit 84 exactly; the next candidate count cannot be read. The object is preserved through the raw-only route.",
+    "interpretation": "This physical body boundary corroborates the issue report's observed scalar sequence and disproves the sufficiency of the generated longer candidate for this source instance. It still does not decide the undocumented field semantics/order or a cross-version schema."
+  },
+  "evidence_ceiling": "The common-reactor parser fix is supported by the ODA control layout, a generated AC1032 regression, and five hash-bound source observations. This does not resolve PERSUBENTMGR's physical schema, unrelated failures in three sources, complete strict output, graph closure, native behavior, or any broader support claim."
+}

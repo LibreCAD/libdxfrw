@@ -1,0 +1,80 @@
+{
+  "receipt": "p6-dxf-hatch-version-allocation-rollback-retry",
+  "date": "2026-11-13",
+  "scope": "Generated DXF HATCH and MPOLYGON whole-file transaction profiles across all supported writer versions from AC1014 through AC1032.",
+  "source": {
+    "kind": "generated locally from scratch by the test adapter",
+    "committed_fixture": false,
+    "profile": {
+      "entities": ["HATCH", "MPOLYGON"],
+      "patterned_fill": {"name": "ANSI31", "solid": false},
+      "boundaries": [
+        "closed four-vertex LWPOLYLINE",
+        "LINE edge",
+        "counterclockwise ARC edge",
+        "counterclockwise ELLIPSE edge",
+        "rational degree-2 SPLINE edge with knots, control points, weights, and fit point"
+      ],
+      "pattern_line": {
+        "angle": 0.5,
+        "base": [0.25, -0.5],
+        "offset": [0.0, 1.25],
+        "dashes": [0.5, -0.25, 1.0]
+      },
+      "seed_point": [0.5, 0.75],
+      "gradient_profile": {
+        "minimum_target": "AC1018",
+        "solid": true,
+        "name": "LINEAR",
+        "angle": 0.75,
+        "shift": 0.25,
+        "stops": [
+          {"position": 0.0, "rgb": 1122867},
+          {"position": 1.0, "rgb": 4478310}
+        ]
+      },
+      "mpolygon_fields": {
+        "dxf_version": 1,
+        "fill_color_aci": 5,
+        "annotated_boundary": 1,
+        "offset_vector": [1.5, -0.75]
+      }
+    }
+  },
+  "method": {
+    "writer": "dxfRW::write through a generated HATCH/MPOLYGON DRW_Interface adapter",
+    "encodings": ["ASCII", "Binary"],
+    "allocation_failure": "Each allocation ordinal observed in a successful calibration write is failed individually.",
+    "rollback_assertions": [
+      "write reports failure",
+      "prior destination sentinel remains byte-for-byte unchanged",
+      "source HATCH or MPOLYGON payload remains unchanged",
+      "no staged output remains"
+    ],
+    "retry_assertions": [
+      "same dxfRW writer and adapter retry successfully",
+      "retry output is byte-for-byte equal to clean calibration output",
+      "fresh typed DXF readback checks boundary edge types and geometry, patterned fill or gradient stop fields, seed point, and MPOLYGON-specific fields"
+    ]
+  },
+  "results": [
+    {"version": "AC1014", "hatch": {"pattern": {"ascii": 92, "binary": 91}}, "mpolygon": {"pattern": {"ascii": 92, "binary": 91}}, "result": "PASS"},
+    {"version": "AC1015", "hatch": {"pattern": {"ascii": 94, "binary": 93}}, "mpolygon": {"pattern": {"ascii": 94, "binary": 93}}, "result": "PASS"},
+    {"version": "AC1018", "hatch": {"pattern": {"ascii": 94, "binary": 93}, "gradient": {"ascii": 94, "binary": 93}}, "mpolygon": {"pattern": {"ascii": 94, "binary": 93}, "gradient": {"ascii": 94, "binary": 93}}, "result": "PASS"},
+    {"version": "AC1021", "hatch": {"pattern": {"ascii": 94, "binary": 93}, "gradient": {"ascii": 94, "binary": 93}}, "mpolygon": {"pattern": {"ascii": 94, "binary": 93}, "gradient": {"ascii": 94, "binary": 93}}, "result": "PASS"},
+    {"version": "AC1024", "hatch": {"pattern": {"ascii": 101, "binary": 100}, "gradient": {"ascii": 101, "binary": 100}}, "mpolygon": {"pattern": {"ascii": 101, "binary": 100}, "gradient": {"ascii": 101, "binary": 100}}, "result": "PASS"},
+    {"version": "AC1027", "hatch": {"pattern": {"ascii": 94, "binary": 93}, "gradient": {"ascii": 94, "binary": 93}}, "mpolygon": {"pattern": {"ascii": 94, "binary": 93}, "gradient": {"ascii": 94, "binary": 93}}, "result": "PASS"},
+    {"version": "AC1032", "hatch": {"pattern": {"ascii": 94, "binary": 93}, "gradient": {"ascii": 94, "binary": 93}}, "mpolygon": {"pattern": {"ascii": 94, "binary": 93}, "gradient": {"ascii": 94, "binary": 93}}, "result": "PASS"}
+  ],
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_hatch_mpolygon_version_allocation_transaction$' --output-on-failure",
+    "result": "PASS; 1/1 test, 9.78 seconds",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
+    "build_result": "PASS"
+  },
+  "limits": [
+    "Generated writer/transaction/readback consistency only; not independent producer interoperability or native HATCH/MPOLYGON display evidence.",
+    "AC1012 is not included because isSupportedDxfWriteVersion does not admit that whole-file DXF output target.",
+    "No support claim is promoted."
+  ]
+}

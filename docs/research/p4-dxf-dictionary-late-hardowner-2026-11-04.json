@@ -1,0 +1,60 @@
+{
+  "title": "DXF DICTIONARY late hard-owner flag after completed entries",
+  "date": "2026-11-04",
+  "base_commit": "818b40dc",
+  "status": "bounded implementation with focused validation; no general graph qualification",
+  "problem": "An ordinary DICTIONARY whose group 280 follows a complete entry is refused before typed or raw callbacks, preventing consumption of its otherwise intact object graph.",
+  "authority": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "scope": "Group 280 is the dictionary-wide hard-owner flag; group 3 and 350 are per-entry names and soft-owner references."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+      "scope": "General DXF group ordering guidance."
+    }
+  ],
+  "fix": "Within dxfRW::processDictionary, observe AcDbDictionary subclass scope. When group 280 occurs after complete entries in that scope, validate 0 or 1 and constant-time parser-local pending-entry completeness, retain the raw group, then update the typed flag. Other paths continue through the old parser. Entry codes 350/360 remain independently retained. Existing repeated-280 last-value behavior is retained, including when a later flag follows complete entries.",
+  "source_evidence": "The ODA-returned AC1027 source contains DICTIONARY 0x78 owned by 0x70, hard-owner 1 and one 360 edge ACAD_XREC_ROUNDTRIP\u2192XRECORD 0x83 owned by 0x78. A controlled copy moves only that flag after the completed edge. Pre-fix selected-record read fails after root callback; fixed read publishes the dictionary with original flag, identity and edge. ODA 27.1 converts the full edited input to DWG and back to DXF; ezdxf verifies the dictionary and reciprocal XRECORD ownership and four XRECORD payload tags. The returned target was renumbered to 0x88. ODA invocation joins are manual; hashes alone do not prove lineage. The source is itself an ODA return from locally authored data; neither late order nor the edited copy is producer-authored.",
+  "tests": "Fixture-free ASCII/Binary tests cover flag before/after and between completed entries, mixed 350/360 roles, independent raw source order, copy/assignment, rooted dictionary with two XRECORD outputs, reciprocal owners, typed readback, invalid values, pending name, unrelated subclass, 102 application-group scope, marker re-entry, unchanged WDFLT refusal and same-reader retry. A 1500-entry/1500-repeated-flag control covers the bounded-work path. The baseline test exits 2; the candidate passes. Target outputs are generated, not native application output. The lc3_compat_check target also builds. The unrelated existing libdxfrw_table_content_dxf_tests target fails to compile in the clean base snapshot: tests/object_physical_controls.h:25,29 repeats DRW_DxfObjectPhysicalSourcePolicy through dx_iface, triggering -Winaccessible-base under -Werror; those selectors were not run. After applying the separate test-only duplicate-base fix /private/tmp/object-physical-fix/object-physical.patch (SHA-256 e94d91246546989270b70027ac7fee13347ae5cdada1e5dc76ad0cd43b856cff), the candidate scratch build passes libdxfrw_objects_physical_sources, libdxfrw_dictionary_source_origins, and libdxfrw_dictionary_effective_ownership (3/3).",
+  "limitations": [
+    "The selected physical record is checked through a minimal wrapper; no full physical file native output is claimed.",
+    "Newly allowed late repeated 280 uses existing last-value semantics, which is not a unique-source guarantee.",
+    "Direct protected parseCode, external subclasses and DICTIONARYWDFLT behavior are unchanged.",
+    "Flags inserted between an entry name and its handle remain refused.",
+    "Other unsupported or incomplete dictionary graphs, target remapping and external consumer/native behavior are not promoted.",
+    "ODA selected graph does not establish broader rendering or semantic compatibility."
+  ],
+  "artifacts_sha256": {
+    "/private/tmp/section-counts/out/source.dxf": "207d54b82638046109066894e226ecc23553096be62de0c11619bc16caa40e1c",
+    "/private/tmp/dictionary-late/full.dxf": "74c9f6ced8de081adb8cf2458419ae1abcd50ac3a70beac402c6e7c0135747ad",
+    "/private/tmp/dictionary-late/oda-dwg/full.dwg": "c92b37e3edb2baea70f1778995bd3a231a00eb1bca7603b99ba6d7c0b2e442b3",
+    "/private/tmp/dictionary-late/oda-out/full.dxf": "78b4812a386de96962886507f55287e38150f214f84a52816085b233fb10d01d",
+    "/private/tmp/dictionary-late/late.dxf": "d835b7b1ca74517807ae2d0000aa109b8f8c32ff9f3234d907e05ab71b8ce373",
+    "/private/tmp/dictionary-late/dictionary-late.patch": "42290fbfaf404871623f4d72096b19ec78269154cf3a507927426f5c93e0977a",
+    "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+  },
+  "candidate_files_sha256": {
+    "src/libdxfrw.cpp": "55a79fc6c7173fa45194b02367ebe7dde441af949e931586d8b19b67e97789ce",
+    "tests/CMakeLists.txt": "91ec7ddabea103015253afb7eea8dcab487b7eb8418ab59024f4f2efb63034ac",
+    "tests/dxf_dictionary_late_hardowner_tests.cpp": "ff671e35c53b06bf98ac4cd237b7eb9cd70cd0d41b249ae153bb53b3912d2365",
+    "tools/audit_dictionary_late_hardowner.py": "6f6d07621276b80ac6c4a552b381290685a717bae929e9a226177dce87d2397f",
+    "tools/author_dictionary_late_hardowner.py": "b93c90dfbffc403ad7d656a455f9fea4fb8ff487332218ee3444c6fdff99f60d"
+  },
+  "commands": {
+    "build": "cmake -S . -B /private/tmp/dictionary-late/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_BUILD_TESTS=ON && cmake --build /private/tmp/dictionary-late/build --target libdxfrw_dxf_dictionary_late_hardowner_tests -j4",
+    "test": "ctest --test-dir /private/tmp/dictionary-late/build -R ^libdxfrw_dxf_dictionary_late_hardowner$ --output-on-failure",
+    "selected": "/private/tmp/dictionary-late/build/tests/libdxfrw_dxf_dictionary_late_hardowner_tests /private/tmp/dictionary-late/late.dxf",
+    "author": "python3 tools/author_dictionary_late_hardowner.py /private/tmp/section-counts/out/source.dxf /private/tmp/dictionary-late/reproduced.dxf --sha256 207d54b82638046109066894e226ecc23553096be62de0c11619bc16caa40e1c",
+    "audit": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dictionary_late_hardowner.py --source /private/tmp/section-counts/out/source.dxf --source-sha256 207d54b82638046109066894e226ecc23553096be62de0c11619bc16caa40e1c --edited /private/tmp/dictionary-late/full.dxf --edited-sha256 74c9f6ced8de081adb8cf2458419ae1abcd50ac3a70beac402c6e7c0135747ad --returned /private/tmp/dictionary-late/oda-out/full.dxf --returned-sha256 78b4812a386de96962886507f55287e38150f214f84a52816085b233fb10d01d",
+    "oda": "ODAFileConverter oda-in oda-dwg ACAD2013 DWG 0 1 \"*.dxf\"; ODAFileConverter oda-dwg oda-out ACAD2013 DXF 0 1 \"*.dwg\""
+  },
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_(dxf_dictionary_late_hardowner|dictionary_source_origins|dictionary_effective_ownership|objects_physical_sources)$' --output-on-failure: 4/4 passed.",
+  "integrated_files": {
+    "src/libdxfrw.cpp": "55a79fc6c7173fa45194b02367ebe7dde441af949e931586d8b19b67e97789ce",
+    "tests/CMakeLists.txt": "91ec7ddabea103015253afb7eea8dcab487b7eb8418ab59024f4f2efb63034ac",
+    "tests/dxf_dictionary_late_hardowner_tests.cpp": "ff671e35c53b06bf98ac4cd237b7eb9cd70cd0d41b249ae153bb53b3912d2365",
+    "tools/audit_dictionary_late_hardowner.py": "6f6d07621276b80ac6c4a552b381290685a717bae929e9a226177dce87d2397f",
+    "tools/author_dictionary_late_hardowner.py": "b93c90dfbffc403ad7d656a455f9fea4fb8ff487332218ee3444c6fdff99f60d"
+  }
+}

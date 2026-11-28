@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-08",
+  "slice": "Fail-closed DWG common table-entry metadata preflight",
+  "implementation": {
+    "path": "src/intern/dwgwriter15.cpp",
+    "behavior": [
+      "Reject table entries with unresolved parser-side APPID or LAYER references before opening an object frame.",
+      "Reject opaque or malformed DXF group-102 application data that has no modeled DWG representation.",
+      "Allow canonical ACAD_REACTORS and ACAD_XDICTIONARY groups only when parsed handles exactly match the table entry's modeled reactor and extension-dictionary handles."
+    ]
+  },
+  "control": {
+    "path": "tests/dwg_local_roundtrip_tests.cpp",
+    "selector": "--table-entry-appdata-guards",
+    "cases": [
+      "opaque group-102 appData is refused with output preservation",
+      "pending APPID and LAYER references are each refused with output preservation",
+      "matching reactor and xDictionary groups are accepted",
+      "reactor appData that disagrees with modeled handles is refused",
+      "the same writer succeeds after correcting a refused record"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_entry_appdata_guards$' --output-on-failure",
+    "result": "PASS; 1/1 focused fast CTest passed"
+  },
+  "limitations": [
+    "This is a loss-prevention guard, not evidence for additional table-record body fields or full document output.",
+    "No native ODA/FreeCAD qualification was obtained; the desktop remained locked during the latest inventory."
+  ],
+  "supportClaim": "unchanged"
+}

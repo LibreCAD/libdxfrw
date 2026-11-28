@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-21500-generic-face-flags-2026-11-11",
+  "purpose": "Keep generic and rooted wireframe projections consistent for the exact observed ACIS 21500 face row and post-pointer boolean candidates.",
+  "implementation": {
+    "file": "src/drw_acis.cpp",
+    "change": "The generic ACIS wireframe face projector now reads sense and sidedness booleans only for ACIS BinaryFile 21500 face rows with exactly seven resolved references (the common attribute pointer plus six observed geometry pointers). The boolean scanner skips the 21500 common EntityType/attribute-Pointer/entity-ID token prefix and reads the post-six-pointer fields. Other row widths do not enter this candidate path.",
+    "scope": "This parses bounded candidate flags only. It does not determine surface-normal direction, outward shell orientation, containment validity, or B-rep validity."
+  },
+  "generatedControl": {
+    "origin": "From-scratch ACIS 21500 fixture bytes emitted in memory by tests/graph_preservation_tests.cpp.",
+    "faceFields": "Six pointer fields followed by BoolFalse (forward sense), BoolTrue (double-sided), BoolTrue (containment-in); both generic and rooted APIs must return the same candidate values. A row-width negative control removes one face reference and confirms the generic path does not interpret the same trailing boolean fields as face flags.",
+    "result": "PASS: generic projection exposes one face with sense present/not reversed, double-sided present/true, containment present/in; the rooted projection asserts the same values. A face row of the wrong pointer width does not enter the candidate flag path.",
+    "fixtures": "No DWG/DXF fixture was added."
+  },
+  "sourceObservation": {
+    "dwg": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "sabSha256": "00f7dd11b8993d066a25e33a05dd97fb14f8b35eb7a4d7614c596b6b41d6d79b",
+    "interpretation": "The local parser observes one forward and five reversed face flags; all six are single-sided, so it publishes no containment value. This is a same-implementation observation, not independent semantic evidence."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4 && build-gcc/libdxfrw_graph_preservation_tests",
+    "result": "PASS: Graph/preservation tests",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "unresolved": [
+    "Independent ACIS 21500 evidence for face boolean field positions and meanings.",
+    "Normal orientation, loop orientation, containment, and closed-shell validity.",
+    "Transform/unit application, direct B-rep lift, native/kernel acceptance, output and platform qualification."
+  ],
+  "claimEffect": "Restores bounded field parity between two local projection APIs only; no ACIS/ACDS, 3D, DWG, or DXF support claim is promoted.",
+  "sourceFileSha256": {
+    "src/drw_acis.cpp": "e21db3122f08eadaf2ebb761747b86d14548c4f0fa36d7fc60d21e333fb2a906",
+    "tests/graph_preservation_tests.cpp": "b19dc698dd01219087d24632f2d825518625374afd7a8d16293512925ca464cc",
+    "build-gcc/libdxfrw_graph_preservation_tests": "df4394aff81356a03422a1aa69c2851b009f828001e12d1d43c586a54c7433f2"
+  }
+}

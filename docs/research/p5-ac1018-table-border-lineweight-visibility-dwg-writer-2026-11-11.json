@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "status": "completed_bounded_generated_writer_slice",
+  "date": "2026-11-11",
+  "scope": "AC1018 TABLE-level 18-bit border lineweight and visibility masks",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.96.1 Until R21",
+    "finding": "After the optional border-color mask, border lineweight and visibility each have a Boolean presence, a 18-bit mask, and one BS value for each selected mask bit in order. Visibility uses 0=visible and 1=invisible."
+  },
+  "implementation": {
+    "codec": "DRW_Table::encodeDwgWithExtension now writes selected table-level border lineweight and visibility masks and selected BS values in 18-slot order. The per-slot presence arrays must exactly agree with their masks; selected zero is represented by the mask/presence bit. Unselected values and presence residue refuse.",
+    "lineweight_domain": "The parser and writer admit only exact AcDb::LineWeight values -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200 and 211. The BS wire value is reinterpreted as signed for the three negative sentinels. Other decoded lineweights make the TABLE semantic profile incomplete.",
+    "visibility_domain": "Selected visibility values are restricted to 0 or 1; other decoded values make the TABLE semantic profile incomplete.",
+    "compatibility": "No public virtuals, public struct layout or fixture files were changed. Border CMC output remains refused."
+  },
+  "generated_control": {
+    "lineweight_mask": "0x00020001",
+    "lineweight_values": { "slot_0": 5, "slot_17": -2 },
+    "visibility_mask": "0x00010002",
+    "visibility_values": { "slot_1": 1, "slot_16": 0 },
+    "checks": [
+      "Sparse masks, values, explicit presence and signed ByBlock sentinel roundtrip through the AC1018 TABLE parser",
+      "Wire walk verifies lineweight mask/values precede visibility mask/values in slot order",
+      "The TABLE body cursor reaches its exact bound and the following sentinel remains readable",
+      "Non-enum lineweight, out-of-domain visibility and inconsistent mask/presence refuse without publishing output",
+      "Unselected nondefault lineweight residue refuses"
+    ],
+    "fixture_policy": "Generated in memory from test code; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4 passed with repository warning-as-error settings",
+    "ctest": {
+      "libdxfrw_dwg_table_cell_overrides": "passed",
+      "libdxfrw_table_scalar_override_output": "passed"
+    },
+    "diff_check": "git diff --check passed"
+  },
+  "limits": [
+    "Generated wire and readback checks do not establish physical producer ordering or prevalence.",
+    "Native table-border rendering and precedence remain unqualified.",
+    "Border CMC output remains refused due unresolved general DXF representability; parsed source-range replay remains separately gated."
+  ]
+}

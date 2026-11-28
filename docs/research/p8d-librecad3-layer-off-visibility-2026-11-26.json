@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "a13b2f05071d4ad69b18c4c91461ed2f641eafbf",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "authority": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+  "change": [
+    "Represent negative DXF layer color indices as an independent off state and provide a layer-list toggle; preserve that state in supported DXF output and expose it to Lua and Python builders.",
+    "Exclude off-layer entities from rendering, picking, area and bulk selection, snapping and fit. Propagate effective layer through nested inserts for layer-0 children. Preserve off and existing frozen state on layer edits."
+  ],
+  "validation": [
+    "72 DXF round-trip, 17 DWG/persistence, 17 layout, seven canvas and three offscreen Qt layer tests pass. Full app builds; older bundled codec and Python bridge syntax compile.",
+    "The focused canvas controls exercise direct and cached draw, point and area selection, select-all, inverse selection, turning off selected entities, snapping, fit and nested inserts.",
+    "ezdxf 1.4.5 independently reads generated on and off DXF outputs with true black and the expected index signs, with zero audit errors or fixes. The fallback index changed across layer replacement.",
+    "An instrumented native macOS app opened the generated source and displayed COLOR_LAYER Off; the accessibility interface could not click the layer table. No native toggle or display result is claimed.",
+    "Plan full, worktree (excluding preexisting sample.log), base-ref and 31 checker tests pass; no qualification gate changed."
+  ],
+  "artifacts": {
+    "source_sha256": "4e1168669da1c8b877ad89f8b90f7108dcb551d42116827639e2121280b78c05",
+    "on_ascii_sha256": "07bf851adcbcc8fa0a69f3ffb97c03de761c445bd640c7abd42cab9757e21743",
+    "off_binary_sha256": "e483d5de3c8afd4f086f0bf7689a4ce71a57d8f2ea12f19a1484c58fcd5c47c3"
+  },
+  "limits": [
+    "Generated sample and outputs are local only and not committed; independent producer evidence remains open.",
+    "Frozen-layer behavior is distinct and not established by this slice. Replacing a named-color layer may discard its source color name, with an export loss note; exact fallback ACI need not survive replacement.",
+    "No native toggle, unrestricted rendering, Linux/Windows or full application compatibility qualification is established."
+  ],
+  "supportClaimEffect": "none"
+}

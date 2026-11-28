@@ -1,0 +1,92 @@
+{
+  "date": "2026-11-08",
+  "topic": "AC1018 TABLE cell appearance DXF output mapping",
+  "scope": "Generated ASCII/Binary DXF writer and parser self-consistency only; no physical producer or native rendering qualification",
+  "authority": {
+    "dwg_specification": "Open Design Specification for .dwg files, v5.4.1 §20.4.96.1",
+    "dxf_reference": "Autodesk TABLE DXF group-code definition",
+    "mapped_groups": {
+      "cell_text_style": 7,
+      "cell_background_color": 63,
+      "cell_content_color": 64,
+      "cell_fill_state": 283
+    }
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "version": "AC1018",
+    "selected_cell_override_bits": {
+      "fill_state": "0x02",
+      "background_color": "0x04",
+      "content_color": "0x08",
+      "text_style_hard_pointer": "0x10"
+    },
+    "constraints": [
+      "Group 283 is emitted when selected even when its stored boolean is false; the wire value is preserved verbatim without assigning fill semantics.",
+      "Groups 63/64 are emitted only for selected cell overrides and only for canonical indexed color values 0 through 256 with method 0.",
+      "A selected text-style hard pointer or name-only DXF cell override is emitted as group 7 only when it resolves to exactly one safe, emitted STYLE name; unresolved or ambiguous references fail closed.",
+      "Unselected color/state residue, unsupported color methods, unknown override bits, and unresolved STYLE pointers are refused before output publication."
+    ],
+    "public_dwg_table_writer": "remains disabled"
+  },
+  "generated_controls": {
+    "selector": "build-gcc/tests/libdxfrw_table_content_dxf_tests --table-cell-appearance-write",
+    "result": "PASS",
+    "profiles": [
+      {
+        "override_flags": "0x0e",
+        "fill_state": false,
+        "background_color_index": 0,
+        "content_color_index": 256,
+        "encodings": ["ASCII", "Binary"],
+        "result": "selected group presence, order, typed readback, and semantic completeness verified"
+      },
+      {
+        "override_flags": "0x1e",
+        "fill_state": true,
+        "background_color_index": 3,
+        "content_color_index": 4,
+        "text_style": "CELLOVERRIDESTYLE",
+        "encodings": ["ASCII", "Binary"],
+        "text_style_source": "DWG hard-pointer handle",
+        "result": "unique STYLE resolution, selected group presence/order, typed readback, and semantic completeness verified"
+      },
+      {
+        "override_flags": "0x1e",
+        "fill_state": true,
+        "background_color_index": 5,
+        "content_color_index": 6,
+        "text_style": "CELLOVERRIDESTYLE",
+        "encodings": ["ASCII", "Binary"],
+        "text_style_source": "name-only DXF cell override",
+        "result": "unique STYLE resolution, selected group presence/order, typed readback, and semantic completeness verified"
+      }
+    ],
+    "failure_retry": {
+      "unsupported_color_method": "refused",
+      "destination_preserved": true,
+      "caller_model_preserved": true,
+      "same_writer_corrected_retry": true,
+      "corrected_readback": true,
+      "unresolved_text_style_hard_pointer": "refused with destination preserved"
+    },
+    "neighbor_controls": {
+      "libdxfrw_table_content_grid_write": "PASS",
+      "libdxfrw_table_content_cell_border_visibility_edges": "PASS"
+    },
+    "focused_ctest": "4/4 passed",
+    "legacy_override_guard": {
+      "selector": "libdxfrw_table_legacy_override_177",
+      "result": "PASS",
+      "observations": "16 imports, 56 unsupported-mask refusal cases, 58 retries, and 56 zero/nonzero/reset counterfactuals"
+    },
+    "fixture_policy": "No DWG/DXF fixture file was added; tests author scratch drawings from scratch."
+  },
+  "limits": [
+    "This does not prove physical producer ordering or native fill/style precedence.",
+    "The raw group-283 boolean is retained without interpreting fill-enabled versus fill-none semantics.",
+    "Physical AC1018 TABLE sources still encounter undocumented override masks 0x40000/0x40020 before a complete source profile is available.",
+    "No *T block/object graph transaction or public dwgRW::writeTable support is enabled.",
+    "No DWG/DXF support claim is promoted."
+  ]
+}

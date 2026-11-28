@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1018-layout-output-qualification-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Qualify the three physical AC1018 LAYOUT callbacks through AC1024 DXF output",
+  "status": "THREE_AC1018_LAYOUT_IDENTITIES_QUALIFIED_NO_CLAIM_PROMOTION",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "committedAsFixture": false,
+    "independentReader": {
+      "project": "GNU LibreDWG",
+      "version": "0.14",
+      "decodedJsonSha256": "bccee1259568948df2fd0e65c797932965574cc81824781864c3b34b4129d788",
+      "scope": "Corroborates the source layout identities and graph; does not establish emitted DXF semantics."
+    }
+  },
+  "formatEvidence": {
+    "authority": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.84 LAYOUT",
+    "localPdf": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "relevantRules": [
+      "The LAYOUT body contains PlotSettings fields and layout-specific fields.",
+      "The trailing common handle stream contains the parent handle and reactors; the body also carries the associated paperspace BLOCK_RECORD handle.",
+      "The source-version callback frame for AC1018 does not itself carry validated common-link fields, so this profile binds the typed parent/reactor values to the rooted ACAD_LAYOUT dictionary and reciprocal BLOCK_RECORD graph."
+    ]
+  },
+  "sourceProfile": {
+    "namedObjectDictionary": "NOD 0x0C has a unique ACAD_LAYOUT entry to dictionary 0x1A.",
+    "layoutDictionary": {
+      "handle": "0x1A",
+      "owner": "0x0C",
+      "entries": [
+        ["Model", "0x22"],
+        ["Layout1", "0x59"],
+        ["Layout2", "0x5E"]
+      ],
+      "reactor": "0x0C",
+      "complete": true
+    },
+    "layouts": [
+      {
+        "handle": "0x22",
+        "name": "Model",
+        "ownerDictionary": "0x1A",
+        "blockRecord": "0x1F",
+        "blockRecordName": "*Model_Space"
+      },
+      {
+        "handle": "0x59",
+        "name": "Layout1",
+        "ownerDictionary": "0x1A",
+        "blockRecord": "0x58",
+        "blockRecordName": "*Paper_Space"
+      },
+      {
+        "handle": "0x5E",
+        "name": "Layout2",
+        "ownerDictionary": "0x1A",
+        "blockRecord": "0x5D",
+        "blockRecordName": "*Paper_Space0"
+      }
+    ],
+    "boundedFields": "All three records have one dictionary reactor; no extension dictionary, XRECORD, EED, application data, data storage, viewport-list entries, plot-view/shade references or UCS references. The typed records carry their own nonzero parent handles and the reciprocal BLOCK_RECORD relation.",
+    "callbackFrames": "Three distinct type-82 object frames match the source version and handles. Their legacy common-link evidence is Unknown with parent 0; typed owner/reactor fields are independently checked against the rooted dictionary before admission."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Extend the existing transactional LAYOUT source/output profile to admit the exact AC1018 three-layout graph when writing AC1024 DXF. Freeze and compare the source version explicitly, use bounded per-layout snapshots, and retain the AC1024 frame-common evidence path unchanged. The staged TABLES/OBJECTS inspectors validate the ACAD_LAYOUT root, complete layout fields, mapped owners/reactors and reciprocal BLOCK_RECORD links before publishing callback qualification.",
+    "failureAndRetry": "For ASCII and Binary, replacing Layout1's source BLOCK_RECORD handle with NoHandle is refused before destination replacement; the seeded destination and all three callback qualification states remain unchanged. Restoring the handle and retrying on the same adapter succeeds, qualifies all three LAYOUT identities, and freshly imports the complete AC1024 DXF layout dictionary and fields.",
+    "styleIsolation": "The source also contains invalid non-shape empty-name STYLE 0xDF. The selector changes only its in-memory test name to reach bounded LAYOUT output; the separate STYLE refusal selector remains authoritative. This does not qualify or omit the STYLE row or claim whole-document conversion."
+  },
+  "qualification": {
+    "sourceCallbacks": 23,
+    "qualifiedBefore": 10,
+    "qualifiedAfter": 13,
+    "newlyQualified": [
+      {"objectType": 82, "handle": "0x22", "name": "Model"},
+      {"objectType": 82, "handle": "0x59", "name": "Layout1"},
+      {"objectType": 82, "handle": "0x5E", "name": "Layout2"}
+    ],
+    "strictWholeSource": "Still refuses at 13/23. The remaining identities are listed in the updated plan; the invalid STYLE remains separately fail-closed.",
+    "externalItemsPromoted": 0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with warning-as-error flags.",
+      "adapterTestSha256": "1cfb1d3d02deb72a7dda2f7b70fde389366eaf87b1e418aee64f073eafa37a71"
+    },
+    "focusedSelectors": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS for ASCII/Binary, exact three callback identities, rollback, same-adapter retry and fresh readback; aggregate qualification is 13/23."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+        "result": "PASS for the existing AC1024 Model/Layout1 source profile in ASCII/Binary, including graph readback, rollback and retry."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS; the composed AC1018 output also reports 13/23 qualified."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS; strict output still refuses at 13/23, then partial profile output verifies source wire fields, rollback, retry and readback."
+      }
+    ],
+    "asan": {
+      "buildCommand": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "selectorCommand": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+      "result": "PASS for ASCII/Binary source capture, rollback, retry and fresh readback; no ASan report.",
+      "adapterTestSha256": "0af2f1ec38d0277cfa5ef365321c0959bc74752ccfe004888f1d93c4f1ab6b4e"
+    },
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN; the affected physical selectors and existing AC1024 compatibility profile were run directly."
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "c0f0c182aaf808850b29d950f6ecb2cfd98d4a038202457d70996d5c470d34e0",
+    "dwg2dxf/dx_iface.h": "bbad931a3953aad3d15b8d43bb526ddeb776cb6f4099cd0de25f0dc3de65a9ae",
+    "tests/dwg2dxf_adapter_tests.cpp": "57f0099b4eebdfec5089dfe7df7d40014d6d7eb470a9416de07c1d7d804a6fae"
+  },
+  "planImpact": {
+    "completedItemRemoved": "Qualify AC1018 LAYOUT callbacks 0x22, 0x59 and 0x5E with source-bound graph/output/readback proof.",
+    "remaining": "P4 remains open with 10 of 23 AC1018 callbacks unqualified; named-block SORTENTSTABLE 0x2CE remains intentionally ineligible under the documented DXF owner scope."
+  }
+}

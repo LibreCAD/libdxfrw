@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-138 DetailViewStyle group-4 line color insertion fast slice",
+  "mode": "Generated ASCII/Binary implementation and focused regression validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Insert missing DetailViewStyle group-4 connection/border line color values (DXF group 62) during same-version raw-carrier export.",
+    "Preserve repeated color occurrence mapping when an edited later field follows an omitted earlier field.",
+    "Verify generated ASCII/Binary output with exact ordered raw groups, typed readback, reference closure, and neighboring-record continuity."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/detailviewstyle-group4-line-color-insertion-fast-slice-2026-10-19.json"
+    ],
+    "behavior": "The raw-carrier overlay inserts missing group-4 color occurrences through the highest edited connection/border slot. If border color is edited while connection color is omitted and still defaulted, it emits the current/default connection color 256 before the border value. Values are checked against the signed 16-bit DXF color range.",
+    "testCases": [
+      "Remove both group-4 group-62 values from the generated primary DetailViewStyle, confirm typed defaults, edit border color to 77, export/reimport in ASCII and Binary DXF, and assert ordered values 256 then 77.",
+      "Compare complete ordered raw DetailViewStyle and SectionViewStyle carriers, verify typed readback and closed references, and ensure the following POINT is intact."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS",
+        "passed": 1,
+        "failed": 0,
+        "elapsedSeconds": 0.51
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0
+  },
+  "limitations": [
+    "Same-source-version DXF typed-field insertion/replay only; no DWG-origin typed serialization or cross-version projection qualification.",
+    "The control verifies one later-slot insertion with its default predecessor; it does not cover every color combination or malformed cardinality.",
+    "No native color interpretation or broad DetailViewStyle semantic-completeness claim follows.",
+    "The shared worktree is uncommitted and contains unrelated user changes; no cleanup or staging was performed."
+  ]
+}

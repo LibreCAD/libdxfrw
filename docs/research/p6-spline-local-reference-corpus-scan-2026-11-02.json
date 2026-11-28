@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-spline-local-reference-corpus-scan-2026-11-02",
+  "date": "2026-11-02",
+  "status": "LOCAL_SPLINE_PARSER_SMOKE_ONLY_PRODUCER_PROVENANCE_UNVERIFIED",
+  "supportClaimEffect": "none",
+  "scope": "Read-only trace scan of local reference DWGs for SPLINE parser-smoke observations after adding the generated AC1027/AC1024 field-boundary control.",
+  "tool": {
+    "executable": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "b907ea008f3fab58c22510377bcffb532877ede9576c273a7a454f4eb7ed9922",
+    "commandTemplate": "dwg2dxf <source.dwg> -y -d -v2013 <unique-output.dxf-under-/private/tmp>",
+    "observedExitCode": 1,
+    "reasonForNonzero": "The strict complete-output gate refused publication for incomplete source disposition or unrelated whole-document failures. No output DXF was published for any scanned source."
+  },
+  "sourceInventory": {
+    "directory": "~/doc/dwg",
+    "totalDwgFiles": 29,
+    "versionCounts": {
+      "AC1015": 1,
+      "AC1018": 2,
+      "AC1021": 12,
+      "AC1024": 9,
+      "AC1027": 1,
+      "other_or_unreadable_signature": 4
+    },
+    "trackingStatus": "These inputs are local reference files outside the repository; none was copied, modified, staged, or added as a fixture. Producer provenance was not verified."
+  },
+  "samples": [
+    {
+      "path": "~/doc/dwg/Extruder2.dwg",
+      "version": "AC1018",
+      "bytes": 2856002,
+      "sha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+      "splineHandleOccurrences": 28,
+      "uniqueSplineHandles": 14,
+      "scenariosByUniqueHandle": {"1": 14},
+      "entityParseFailures": 474,
+      "objectParseFailures": 0,
+      "debugLog": "/private/tmp/libdxfrw-local-reference-06.log",
+      "debugLogSha256": "9d4c2209d36524453cb9cf9e16cdb3f003f90f5db7408e37b458e0f2c027783c"
+    },
+    {
+      "path": "~/doc/dwg/Pool_Detail.dwg",
+      "version": "AC1021",
+      "bytes": 420256,
+      "sha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+      "splineHandleOccurrences": 24,
+      "uniqueSplineHandles": 12,
+      "scenariosByUniqueHandle": {"1": 11, "2": 1},
+      "entityParseFailures": 0,
+      "objectParseFailures": 1,
+      "debugLog": "/private/tmp/libdxfrw-local-reference-07.log",
+      "debugLogSha256": "3ea4359a19c07ba9d05b2c0d95df82019bd390d4699cb75655af11bff693d9b1"
+    },
+    {
+      "path": "~/doc/dwg/children-room-decoration.dwg",
+      "version": "AC1021",
+      "bytes": 1715680,
+      "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+      "splineHandleOccurrences": 2856,
+      "uniqueSplineHandles": 1428,
+      "scenariosByUniqueHandle": {"1": 1428},
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "debugLog": "/private/tmp/libdxfrw-local-reference-12.log",
+      "debugLogSha256": "027d18a221f8cacf214ce34ac25bad70214c3633790d77626f80da37e6c8e5ca"
+    },
+    {
+      "path": "~/doc/dwg/visualization_-_condominium_with_skylight.dwg",
+      "version": "AC1024",
+      "bytes": 1415699,
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "splineHandleOccurrences": 2,
+      "uniqueSplineHandles": 1,
+      "scenariosByUniqueHandle": {"2": 1},
+      "entityParseFailures": 0,
+      "objectParseFailures": 3,
+      "debugLog": "/private/tmp/libdxfrw-local-reference-26.log",
+      "debugLogSha256": "0893476cd43e096dc81d33dd69d03eaef3feaf7e5fae32727ab1dc2cc2db3d65"
+    },
+    {
+      "path": "~/doc/dwg/visualization_-_conference_room.dwg",
+      "version": "AC1024",
+      "bytes": 973730,
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "splineHandleOccurrences": 4,
+      "uniqueSplineHandles": 2,
+      "scenariosByUniqueHandle": {"2": 2},
+      "entityParseFailures": 0,
+      "objectParseFailures": 3,
+      "debugLog": "/private/tmp/libdxfrw-local-reference-27.log",
+      "debugLogSha256": "912a8db101d5045619fb689df0732fed5933f92854ad70d68fd73a8ce3e74582"
+    }
+  ],
+  "interpretation": {
+    "sourceObservation": "Current traces include pre-R2013 AC1018/AC1021/AC1024 SPLINE bodies; AC1021 and AC1024 samples exercise scenario 1 and scenario 2. Repeated trace occurrences are duplicate reader passes, so unique source handles are counted separately.",
+    "limit": "The local files have no verified producer provenance. Their other whole-document parse failures and strict-output refusal prevent using them as complete conversion or semantic evidence. No additional AC1027 or AC1032 SPLINE record was found in this 29-file local reference corpus or the tracked LibreCAD DWG corpus. A separate public AC1027 example_2013.dwg field differential is recorded in the parity plan and is not included in this local-directory scan; it does not close whole-file, producer, or support qualification. No AC1032 witness is recorded.",
+    "disposition": "Keep the ODA-backed parser layout and generated sentinel tests unchanged. Retain authentic per-version producer qualification as open; do not promote support from this scan."
+  },
+  "fixturePolicy": {
+    "repositoryFilesAdded": 0,
+    "repositoryFixturesAdded": 0,
+    "outputs": "All logs and attempted DXFs remained under /private/tmp; no DXF was published."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "kind": "librecad-dxf-decoded-owner-candidates",
+  "date": "2026-11-28",
+  "consumerCommit": "19a218b27965dee3c337ba107805ad781a3576dc",
+  "scope": "Bounded import-time capture of decoded DXF entity source owner candidates, plus immutable sorted geometry snapshots for a selected live HATCH/polyline match.",
+  "checks": {
+    "systemCodec": {
+      "cases": 3,
+      "assertions": 208,
+      "result": "pass",
+      "logSha256": "e0b2578cd655940936b01a7c9caac67771f7f6d7a0fbb487df93a83b2f314920"
+    },
+    "bundledCodec": {
+      "cases": 4,
+      "assertions": 225,
+      "result": "pass",
+      "logSha256": "40674c4738fcd5c008e6217d543a50e5786abba893a37cb71806b5af49f300c9"
+    }
+  },
+  "controls": [
+    "Distinct group-330 owner and nested reactor decode separately for locally authored HATCH and LWPOLYLINE.",
+    "Duplicate entity handles invalidate the owner lookup without mutating its output parameter.",
+    "At 65536 unique identities the next addition disables and clears the inventory; clear then permits retry.",
+    "Matching geometry produces a snapshot; failed matching leaves it unchanged and moving both objects changes it.",
+    "Deleted and modified source edges and a stale cached loop refuse matching."
+  ],
+  "limits": [
+    "Decoded owners alone are not physical proof of exactly one source owner or reactor group.",
+    "Partial import, source space identity, provenance, graph closure and late-edit checks remain open.",
+    "This slice does not enable associative HATCH replay."
+  ],
+  "supportClaimsPromoted": false
+}

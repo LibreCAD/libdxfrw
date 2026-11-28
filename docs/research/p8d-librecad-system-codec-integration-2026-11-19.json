@@ -1,0 +1,145 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-librecad-system-codec-integration-2026-11-19",
+  "date": "2026-11-19",
+  "status": "LOCAL_CANDIDATE_FOCUSED_CHECKS_PASS_UNMERGED",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "patchBase": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
+    "testedBase": "26dd8817b37f59242a17fa1d0f8c61d6f1cfb410",
+    "baseDelta": "Only plugins/picfile/picfile.cpp changed; the focused tests were built on 26dd and were not rebuilt against 281a.",
+    "localBranch": "codex/libdxfrw-consumer-compat",
+    "localBranchHead": "d71af16eedab445b62f8c036b53161486f9cea82",
+    "checkout": "/private/tmp/libdxfrw-librecad-integration-26dd",
+    "patch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
+    "patchSha256": "7d6b6ffeb6eaeeab3f1768a7219483b6d061a5e2c00cd31ba4c0d3017a17df25",
+    "patchVerification": "Applying the patch to an alternate index at 281a produces exactly the current candidate tree.",
+    "patchAtReceiptCommit": "39320dd325fa8f1003faaca34925ab02b5293853"
+  },
+  "validation": {
+    "focusedCurrentLibrary": "A scratch CMake override built librecad_lib and five focused tests with current source headers and linked the source-built static archive; it was not the production installed-package option. DXF-to-DWG dimension style 15/15, JWW default 8/8, JWW imports 343 assertions in 17 cases, SHP codepage 20 assertions in 3 cases, associative prefix 48/48.",
+    "testedSourceDifference": "Candidate affected C++ sources match the focused test source except for spelling of the fixed-handles include; both refer to the same header. The candidate spelling also compiled in the installed-option build.",
+    "focusedBinary": {
+      "path": "/private/tmp/libdxfrw-librecad-master-26dd-current-build/librecad_current_dimstyle_focus",
+      "sha256": "ea24d5be8aa0632ca7557dfa66e921c39e9b67f45e6707ce1a58544c6d8ec9e8",
+      "scope": "Final current-codec focused selectors, built at 26dd with the current library; earlier selectors used previous binaries."
+    },
+    "installedOption": "Actual installed-codec option configuration and filter/JWW/SHP compilation pass with -Werror. Bundled option filter compilation passes. BUILD_TESTS=ON, absent package, and 2.x package are refused explicitly.",
+    "archiveComparison": "The installed and linked source-built archives have different container hashes but contain the same 48 ordered object members, each byte-identical.",
+    "logs": [
+      {
+        "path": "/private/tmp/libdxfrw-librecad-current-final-dxf.log",
+        "sha256": "fa05f82c5512124b0c92e72a3b1da7406cd8225c8eecc2f8ecdbea278bf9b55f"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-current-final-jww-default.log",
+        "sha256": "36d9a1ab2418bc465c1638b8fa1a82f4583a1cab40254b6c0c35b28de6a9192b"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-current-final-jww-import.log",
+        "sha256": "1546e5e8e6c567eb571d5e8a51bc1116c64966be11055b199cb8e1c91809b44c"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-current-final-shp.log",
+        "sha256": "7ee2f2ee6a6028ec71f7d59f86cbbac5ff70db2ef2b336319992591371432ea6"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-current-final-prefix.log",
+        "sha256": "203c8c17c281ebf8439bd1c80d7864a9beaf44d1da777089d7aed5a1d4db0fe9"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-system-v3-check.log",
+        "sha256": "39c9182adcb40e2daf8af96a9404a54e487ed0ad72eb74fdcea9a5234e863ba2"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-bundled-option.log",
+        "sha256": "814eb4435f671ef8bda6a0f36f36504e50b3e7e653d198c9ebdc9281915b9284"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-system-v2-refusal.log",
+        "sha256": "81d5a7f838a0a83bbac423d4fdcb32067e6d787890a200c8132ec60f61348d5d"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-installed-tests-refusal.log",
+        "sha256": "5698bdeb109f3515cd148353d0027fb9b8b5de08b5cc82129ed54635db7e44de"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-missing-system-package.log",
+        "sha256": "5fa0a3c830339d1164297008f30084e28a40446c82f854e73421056b030c9074"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-system-app-build.log",
+        "sha256": "83701853f76920eecb772b9e89fd01fc469b7e9f5747759c7a1469db8770a7ea"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-system-xdata-final-build.log",
+        "sha256": "84e4bcae2a2be8b9426195374250cffcb26238856a1cb6d4f01165e3b27400ca"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-bundled-xdata-final-build.log",
+        "sha256": "5c0db9bb6cd85c15b46e2bed59953bed4c7eb84a08e43ceaa5b223fe3de9ee0a"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-xdata-witness-red.log",
+        "sha256": "fc97458cd1f529fcaac2a736ea0d3a1d9d8c07a49521781e42434b4c8f6b18f3"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-xdata-final-tests.log",
+        "sha256": "fd98d2bd0c3cfaa793c98f1d411c83d7b5fad3420cb1e124f44d9020e6965a47"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-system-smoke/dxf2dwg-isolated.log",
+        "sha256": "92ccc0ca1088a76a234fbd2ad6ad531b12e4fade0280ede85c6cc4ff31b57f9e"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-system-smoke/dwg2dxf-final.log",
+        "sha256": "055bee025d5416a511bb0e4185a923998878442bd5fa4ede399fe886a35f2943"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-xdata-edit-red.log",
+        "sha256": "a61010f29857637f62486da3ea75d9039a280f3745c536f4a10cb665f9470a89"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-xdata-edit-direct-final.log",
+        "sha256": "46420ef813b072eb843a315264945d5cc78c46986b1ebd39fdd386b22073fd72"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-xdata-edit-app-build.log",
+        "sha256": "6648a9c3054d8692672d040726612378890a63dbd5dfb628686fa3fa1ca9f490"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-xdata-edit-bundled-build.log",
+        "sha256": "457986c2511d59ffb9fb22595c5de108d06943a301b1bf73be53d9f318c98d2f"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-system-smoke/edit-final-dxf2dwg.log",
+        "sha256": "38e9eb43f99465a7f6a438f73034c505cc0c212ab425e07193cb30cf2fae3601"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-system-smoke/edit-final-dwg2dxf.log",
+        "sha256": "67adc13c7eb9f67c63f7180d8a1e274db07551a4888e5578b5dd7c5af72330f3"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-xdata-edit-dwg.log",
+        "sha256": "7bee8feae382707b96a8126e59955e747d00a9352445aa83d3e2b6fb31638350"
+      }
+    ],
+    "fullSystemBuild": "PASS: actual LibreCAD application built and linked on macOS 27.2.1 ARM64 using Qt 6.12 with -Werror and the installed libdxfrw 3.x archive; verified the final link command. Initial build failed on deprecated Q_OS_MAC and the isolated candidate replaces all six uses with Q_OS_MACOS. The final build also includes the DIMSTYLE fix. This build predates the latest library and consumer changes; its exact binary does not qualify the current candidate.",
+    "dimstyleRoundtrip": "A generated-from-scratch DXF reproduces the failure after the normal onLoadingCompleted workflow: before the fix, DWG reimport to DXF fails with duplicate ACAD_DSTYLE_DIMTALN XDATA. Final focused selectors pass 60 assertions in two cases. The exact modeled 392 group can be edited for DXF and is checked by direct text inspection and fresh typed readback; separate source XDATA remains intact, extended groups refuse, destination survives refusal, and corrected same-filter retry succeeds. A same-source retained group is never mutated. The actual installed-codec app converted generated DXF to AC1015 DWG and back, preserving a LINE endpoints and one DIMTALN group. A scratch injected library redirects QSettings to a temporary INI location. This is headless smoke evidence only. The current candidate passes 99 focused assertions with the current library and 60 with the bundled codec, as detailed in the follow-up receipt.",
+    "applicationBinary": {
+      "path": "/private/tmp/libdxfrw-librecad-installed-option-build/LibreCAD.app/Contents/MacOS/LibreCAD",
+      "sha256": "b4b2b74fa242811e98be929d7d56845150759795dc1749eee94e73acb5adabf6"
+    },
+    "dwgReexportFinding": "The prior unchanged DWG re-export failure was resolved for the bounded generated AC1015 profile by the follow-up receipt; broader versions and native consumers remain open.",
+    "latestResaveReceipt": "docs/research/p8d-ac1015-plotsettings-raw-resave-2026-11-19.json"
+  },
+  "limits": [
+    "The candidate remains local and unmerged; user consumer checkouts were not modified.",
+    "Focused linked tests used a scratch CMake override, not the production installed option, and were built at 26dd.",
+    "Only the specified generated line and DIMSTYLE XDATA profile was exercised through the installed-codec application; native GUI, Linux/Windows and LibreCAD_3 qualification remain open.",
+    "Extended, duplicate, invalid or otherwise ambiguous DIMSTYLE XDATA groups still refuse; they are not merged or discarded. The source metadata is not overwritten by the edited DXF projection.",
+    "No DWG/DXF fixtures were added."
+  ],
+  "supersededBy": "docs/research/p8d-ac1015-plotsettings-nod-and-margin-2026-11-20.json"
+}

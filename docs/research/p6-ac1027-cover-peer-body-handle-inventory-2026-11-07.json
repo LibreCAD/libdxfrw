@@ -1,0 +1,925 @@
+{
+  "capturedFrameCount": 88,
+  "coverageLimit": "This inventories handle tuples exposed by LibreDWG minJSON for the joined frames. It does not prove that minJSON decoded every source body field, and it is not a local raw-frame scanner or output proof.",
+  "localLog": "/private/tmp/cover-opaque-source-inventory-body.log",
+  "localLogSha256": "3e3fd440f709fb1db7494caff9a117b522034c79c3a7be193bc0690176712fab",
+  "peerBodyHandleEdgeCount": 98,
+  "peerBodyHandleEdges": [
+    {
+      "field": "items.ACAD_GROUP",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 13,
+      "targetObject": "DICTIONARY",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ACAD_PLOTSTYLENAME",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 14,
+      "targetObject": "DICTIONARYWDFLT",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ACAD_MLINESTYLE",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 23,
+      "targetObject": "DICTIONARY",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ACAD_PLOTSETTINGS",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 25,
+      "targetObject": "DICTIONARY",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ACAD_LAYOUT",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 26,
+      "targetObject": "DICTIONARY",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ACAD_VISUALSTYLE",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 42,
+      "targetObject": "DICTIONARY",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ACAD_MATERIAL",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 67,
+      "targetObject": "DICTIONARY",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ACAD_SCALELIST",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 71,
+      "targetObject": "DICTIONARY",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ACAD_TABLESTYLE",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 105,
+      "targetObject": "DICTIONARY",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ACAD_MLEADERSTYLE",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 107,
+      "targetObject": "DICTIONARY",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ACAD_IMAGE_VARS",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 110,
+      "targetObject": "RASTERVARIABLES",
+      "targetResolves": true
+    },
+    {
+      "field": "items.AcDbVariableDictionary",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 112,
+      "targetObject": "DICTIONARY",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ACAD_DETAILVIEWSTYLE",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 116,
+      "targetObject": "DICTIONARY",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ACAD_SECTIONVIEWSTYLE",
+      "handleCode": 2,
+      "sourceHandle": 12,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 117,
+      "targetObject": "DICTIONARY",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Normal",
+      "handleCode": 2,
+      "sourceHandle": 14,
+      "sourceObject": "DICTIONARYWDFLT",
+      "targetHandle": 15,
+      "targetObject": "PLACEHOLDER",
+      "targetResolves": true
+    },
+    {
+      "field": "defaultid",
+      "handleCode": 5,
+      "sourceHandle": 14,
+      "sourceObject": "DICTIONARYWDFLT",
+      "targetHandle": 15,
+      "targetObject": "PLACEHOLDER",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Standard",
+      "handleCode": 2,
+      "sourceHandle": 23,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 24,
+      "targetObject": "MLINESTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Layout1",
+      "handleCode": 2,
+      "sourceHandle": 26,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 30,
+      "targetObject": "LAYOUT",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Model",
+      "handleCode": 2,
+      "sourceHandle": 26,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 34,
+      "targetObject": "LAYOUT",
+      "targetResolves": true
+    },
+    {
+      "field": "block_header",
+      "handleCode": 4,
+      "sourceHandle": 30,
+      "sourceObject": "LAYOUT",
+      "targetHandle": 27,
+      "targetObject": "BLOCK_HEADER",
+      "targetResolves": true
+    },
+    {
+      "field": "block_header",
+      "handleCode": 4,
+      "sourceHandle": 34,
+      "sourceObject": "LAYOUT",
+      "targetHandle": 31,
+      "targetObject": "BLOCK_HEADER",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Flat",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 43,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.FlatWithEdges",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 44,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Gouraud",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 45,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.GouraudWithEdges",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 46,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.2dWireframe",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 47,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Wireframe",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 48,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Hidden",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 49,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Basic",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 50,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Realistic",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 51,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Conceptual",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 52,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Dim",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 53,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Brighten",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 54,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Thicken",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 55,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Linepattern",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 56,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Facepattern",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 57,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ColorChange",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 58,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.JitterOff",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 59,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.OverhangOff",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 60,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.EdgeColorOff",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 61,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Shades of Gray",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 62,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Sketchy",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 63,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.X-Ray",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 64,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Shaded with edges",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 65,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Shaded",
+      "handleCode": 2,
+      "sourceHandle": 42,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 66,
+      "targetObject": "VISUALSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ByLayer",
+      "handleCode": 2,
+      "sourceHandle": 67,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 68,
+      "targetObject": "MATERIAL",
+      "targetResolves": true
+    },
+    {
+      "field": "items.ByBlock",
+      "handleCode": 2,
+      "sourceHandle": 67,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 69,
+      "targetObject": "MATERIAL",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Global",
+      "handleCode": 2,
+      "sourceHandle": 67,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 70,
+      "targetObject": "MATERIAL",
+      "targetResolves": true
+    },
+    {
+      "field": "items.A0",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 72,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.A1",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 73,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.A2",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 74,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.A3",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 75,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.A4",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 76,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.A5",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 77,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.A6",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 78,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.A7",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 79,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.A8",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 80,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.A9",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 81,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.B0",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 82,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.B1",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 83,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.B2",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 84,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.B3",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 85,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.B4",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 86,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.B5",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 87,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.B6",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 88,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.B7",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 89,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.B8",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 90,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.B9",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 91,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.C0",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 92,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.C1",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 93,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.C2",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 94,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.C3",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 95,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.C4",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 96,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.C5",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 97,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.C6",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 98,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.C7",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 99,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.C8",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 100,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.C9",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 101,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.D0",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 102,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.D1",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 103,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.D2",
+      "handleCode": 2,
+      "sourceHandle": 71,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 104,
+      "targetObject": "SCALE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Standard",
+      "handleCode": 2,
+      "sourceHandle": 105,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 106,
+      "targetObject": "TABLESTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "ovr.cellstyle.content_format.text_style",
+      "handleCode": 5,
+      "sourceHandle": 106,
+      "sourceObject": "TABLESTYLE",
+      "targetHandle": 17,
+      "targetObject": "STYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "ovr.cellstyle.borders[0].ltype",
+      "handleCode": 5,
+      "sourceHandle": 106,
+      "sourceObject": "TABLESTYLE",
+      "targetHandle": 20,
+      "targetObject": "LTYPE",
+      "targetResolves": true
+    },
+    {
+      "field": "ovr.cellstyle.borders[1].ltype",
+      "handleCode": 5,
+      "sourceHandle": 106,
+      "sourceObject": "TABLESTYLE",
+      "targetHandle": 20,
+      "targetObject": "LTYPE",
+      "targetResolves": true
+    },
+    {
+      "field": "ovr.cellstyle.borders[2].ltype",
+      "handleCode": 5,
+      "sourceHandle": 106,
+      "sourceObject": "TABLESTYLE",
+      "targetHandle": 20,
+      "targetObject": "LTYPE",
+      "targetResolves": true
+    },
+    {
+      "field": "ovr.cellstyle.borders[3].ltype",
+      "handleCode": 5,
+      "sourceHandle": 106,
+      "sourceObject": "TABLESTYLE",
+      "targetHandle": 20,
+      "targetObject": "LTYPE",
+      "targetResolves": true
+    },
+    {
+      "field": "ovr.cellstyle.borders[4].ltype",
+      "handleCode": 5,
+      "sourceHandle": 106,
+      "sourceObject": "TABLESTYLE",
+      "targetHandle": 20,
+      "targetObject": "LTYPE",
+      "targetResolves": true
+    },
+    {
+      "field": "ovr.cellstyle.borders[5].ltype",
+      "handleCode": 5,
+      "sourceHandle": 106,
+      "sourceObject": "TABLESTYLE",
+      "targetHandle": 20,
+      "targetObject": "LTYPE",
+      "targetResolves": true
+    },
+    {
+      "field": "items.Standard",
+      "handleCode": 2,
+      "sourceHandle": 107,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 108,
+      "targetObject": "MLEADERSTYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "line_type",
+      "handleCode": 5,
+      "sourceHandle": 108,
+      "sourceObject": "MLEADERSTYLE",
+      "targetHandle": 20,
+      "targetObject": "LTYPE",
+      "targetResolves": true
+    },
+    {
+      "field": "text_style",
+      "handleCode": 5,
+      "sourceHandle": 108,
+      "sourceObject": "MLEADERSTYLE",
+      "targetHandle": 17,
+      "targetObject": "STYLE",
+      "targetResolves": true
+    },
+    {
+      "field": "layer",
+      "handleCode": 5,
+      "sourceHandle": 111,
+      "sourceObject": "<unnamed entity>",
+      "targetHandle": 16,
+      "targetObject": "LAYER",
+      "targetResolves": true
+    },
+    {
+      "field": "items.CANNOSCALE",
+      "handleCode": 2,
+      "sourceHandle": 112,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 113,
+      "targetObject": "DICTIONARYVAR",
+      "targetResolves": true
+    },
+    {
+      "field": "items.CTABLESTYLE",
+      "handleCode": 2,
+      "sourceHandle": 112,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 114,
+      "targetObject": "DICTIONARYVAR",
+      "targetResolves": true
+    },
+    {
+      "field": "items.CMLEADERSTYLE",
+      "handleCode": 2,
+      "sourceHandle": 112,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 115,
+      "targetObject": "DICTIONARYVAR",
+      "targetResolves": true
+    },
+    {
+      "field": "items.CENTEREXE",
+      "handleCode": 2,
+      "sourceHandle": 112,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 118,
+      "targetObject": "DICTIONARYVAR",
+      "targetResolves": true
+    },
+    {
+      "field": "items.CENTERLTYPEFILE",
+      "handleCode": 2,
+      "sourceHandle": 112,
+      "sourceObject": "DICTIONARY",
+      "targetHandle": 119,
+      "targetObject": "DICTIONARYVAR",
+      "targetResolves": true
+    }
+  ],
+  "peerFrameJoinCount": 88,
+  "peerFrameSizeMatches": 88,
+  "peerJson": "/private/tmp/cover-current-libredwg.json",
+  "peerJsonSha256": "12a88999c8a23a63aa82062bc867432afd62df558c74fd0cd446520acaa0e0e9",
+  "peerObjectCountsForCapturedFrames": {
+    "<unnamed entity>": 1,
+    "DICTIONARY": 13,
+    "DICTIONARYVAR": 5,
+    "DICTIONARYWDFLT": 1,
+    "LAYOUT": 2,
+    "MATERIAL": 3,
+    "MLEADERSTYLE": 1,
+    "MLINESTYLE": 1,
+    "PLACEHOLDER": 1,
+    "RASTERVARIABLES": 1,
+    "SCALE": 33,
+    "SUN": 1,
+    "TABLESTYLE": 1,
+    "VISUALSTYLE": 24
+  },
+  "peerUnknownBodyRows": [
+    {
+      "handle": 106,
+      "numUnknownBits": 7352,
+      "object": "TABLESTYLE",
+      "unknownBitsHexCharacters": 1840
+    }
+  ],
+  "schema": "libdxfrw-peer-frame-body-handle-inventory-v1",
+  "source": "/Users/dli/doc/dwg/Cover.dwg",
+  "sourceSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+  "unresolvedPeerTargets": [],
+  "verifier": "/Users/dli/dev/libdxfrw/tools/research/inventory_cover_peer_body_handles.py",
+  "verifierSha256": "6daad43c97f1d8dfdab14c2ae01b681f99f0dd3f6cb57f578a882897ade7361f"
+}

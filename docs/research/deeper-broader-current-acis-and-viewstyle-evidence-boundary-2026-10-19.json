@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Current ACIS comparator limits and ModelDocViewStyle evidence boundary",
+  "mode": "Current primary project/API source review plus local source and plan audit",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reassess whether newly screened downstream readers add independent DWG, DXF, or 3D semantic evidence.",
+    "Bound cq-acis as a potential external ACIS parser/converter by its published SAT/SAB profiles and limitations.",
+    "Cross-check Autodesk view-style property semantics against LibreDWG field documentation and local PAR-138 storage.",
+    "Refine existing PAR-07/S8 and PAR-138 implementation/evidence gates without adding local findings or support claims."
+  ],
+  "method": {
+    "kind": "Read-only primary-source review and local source/plan reconciliation",
+    "sources": [
+      "https://github.com/iyulab/uncad",
+      "https://github.com/iyulab/uncad/blob/main/docs/CAVEATS.md",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_DetailViewStyle.html",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_SectionViewStyle.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_SectionViewStyle_HatchAngles.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_SectionViewStyle_IsModifiedForRecompute.html",
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in"
+    ],
+    "localEvidence": [
+      "src/drw_objects.h and src/drw_objects.cpp DetailViewStyle/SectionViewStyle models and parsers",
+      "Existing generated PAR-138 ASCII/Binary typed-value, raw replay, high-bit, unnamed-boolean, and hatch-angle controls",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md prior peer-lineage, ACIS, FreeCAD, and PAR-138 crosswalks"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "limitations": "The reviewed GitHub main/master and Autodesk API pages are mutable and were not pinned to source commits or executed artifacts. LibreDWG's published OBJECTS field inventory is generated for 0.13.4; the separately reviewed current src/objects.in class registry is mutable main. The ODA v5.4.1 PDF text search found no DetailViewStyle/SectionViewStyle class-name entry, which bounds this edition's available evidence but does not prove no later ODA material exists. cq-acis documentation is an experimental project scope statement, not a run or universal ACIS guarantee. No result qualifies a native CAD application, arbitrary DWG/ACDSDATA association, or support claim."
+  },
+  "observations": {
+    "uncadRouteBoundary": {
+      "dwgRoute": "Vendored locally patched LibreDWG via Rust FFI; not an independent DWG parser vote beside LibreDWG.",
+      "dxfRoute": "Separate undxf parser for ASCII/Binary DXF, including documented R2007+ coverage; candidate only for a named pinned DXF-read comparison.",
+      "semanticCeiling": "Project caveats describe 3DSOLID/REGION and mesh-family output as approximate isometric wireframes; experimental type coverage is not real-file qualified in the cited document. Rendering is not B-rep semantics or source-record preservation."
+    },
+    "cqAcisProfileBoundary": {
+      "sat": "Documented save versions 105, 400, 600, and 700, with explicit geometry/profile limits.",
+      "sab": "Documented ACIS BinaryFile 21800 and selected ASM versions 22000, 22300, 22600, 22700, 22900, and 23200; 8-byte framing is synthetic-only.",
+      "conversion": "Parsing does not imply conversion. Unsupported records remain raw; shape conversion is limited to listed analytic and experimental spline/tolerance profiles with source-precision checks.",
+      "independence": "Parser source lineage is distinct from libdxfrw, but CadQuery/OpenCascade is shared with the FreeCAD kernel family. It does not establish DWG AcDs extraction/owner association or native application acceptance."
+    },
+    "viewStyleEvidence": {
+      "autodeskApi": "DetailViewStyle and SectionViewStyle expose named semantic properties. SectionViewStyle HatchAngles are radians, cycle for later components, and require at least one angle; these references do not define DWG flag bit positions or identify repeated group-290 fields.",
+      "odaSpec": "The public v5.4.1 PDF text search returned no DetailViewStyle, SectionViewStyle, or hatch_angles entry; no class-specific semantic flag crosswalk can be attributed to this edition.",
+      "libredwg": "The published 0.13.4 OBJECTS inventory exposes raw flags, two SectionViewStyle unknown booleans, and angle count/vector fields; current mutable objects.in marks both style classes STABLE. This is peer field/class evidence, not normative ODA layout evidence or writer/root-graph qualification.",
+      "local": "Local models preserve style fields, aggregate flags, and both repeated SectionViewStyle booleans. Existing generated ASCII/Binary tests prove storage/copy/raw-replay for tested values, not every semantic mapping or real-producer DWG decode."
+    }
+  },
+  "planEffect": {
+    "existingOwners": ["PAR-07/S8", "PAR-138"],
+    "newConfirmedLocalFindings": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

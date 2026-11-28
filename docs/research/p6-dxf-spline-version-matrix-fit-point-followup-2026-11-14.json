@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-spline-version-matrix-fit-point-followup-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_SPLINE_FIT_AND_RATIONAL_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend standalone SPLINE whole-operation allocation rollback, same-writer retry and typed readback to a fit-point-only profile, retaining the rational control-point matrix.",
+  "source": {
+    "kind": "locally generated in-memory DRW_Spline entities",
+    "profiles": {
+      "rationalControl": "Planar rational degree-2 SPLINE with three control points, six knots, non-unit middle weight, nondefault knot/control/fit tolerances, extrusion normal and endpoint tangents.",
+      "fitOnly": "Planar degree-3 fit-only SPLINE with three fit points, nondefault fit tolerance and endpoint tangents; control points, knots and weights are absent."
+    },
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "previousSliceCommit": "d455d75d",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-spline-version-matrix-fit-point-followup-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "6ddf9ab2b3972e8405c9fdab485c904f71a4acd1ba74d1aa232fbdbf3339bf41",
+    "testExecutableSha256": "94d5a9d56551d6aeabb4741d5d5666bd81649916f6fc45d51247a08752968f35",
+    "method": "For each profile, revision and encoding, calibrate a successful full-document write, inject std::bad_alloc at every measured allocation, require sentinel destination bytes and unchanged modeled caller fields/derived handle maps, retry on the same codec with byte-identical output, then freshly import and compare revision, spline subtype and modeled geometry/metadata."
+  },
+  "allocationOffsets": {
+    "AC1014": {"rationalASCII": 86, "rationalBinary": 85, "fitASCII": 86, "fitBinary": 85},
+    "AC1015": {"rationalASCII": 88, "rationalBinary": 87, "fitASCII": 88, "fitBinary": 87},
+    "AC1018": {"rationalASCII": 88, "rationalBinary": 87, "fitASCII": 88, "fitBinary": 87},
+    "AC1021": {"rationalASCII": 88, "rationalBinary": 87, "fitASCII": 88, "fitBinary": 87},
+    "AC1024": {"rationalASCII": 95, "rationalBinary": 94, "fitASCII": 95, "fitBinary": 94},
+    "AC1027": {"rationalASCII": 88, "rationalBinary": 87, "fitASCII": 88, "fitBinary": 87},
+    "AC1032": {"rationalASCII": 88, "rationalBinary": 87, "fitASCII": 88, "fitBinary": 87},
+    "totals": {"rational": 1235, "fitOnly": 1235, "all": 2470}
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dxf_spline_version_allocation_transaction$' --output-on-failure: PASS 1/1 in 17.32 seconds",
+    "directRun": "build/tests/libdxfrw_dxf_write_allocation_transaction_tests /tmp/libdxfrw-spline-version-allocation-complete spline: PASS; all 2,470 measured offsets passed rollback, same-writer byte-identical retry and typed readback.",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction and same-library self-readback evidence only; independent producer and native spline behavior remain unqualified.",
+    "Nonplanar, periodic/closed, producer-specific profiles and native spline meaning remain outside this receipt.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The standalone SPLINE matrix now covers one rational control-point profile and one fit-point-only profile across all seven admitted revisions in ASCII and Binary.",
+    "remainingP6G": "Continue the exact public-writer inventory and uncovered version/profile variants; producer and native spline semantics remain separate gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "302 completed slices and 34 remaining packages: 302/(302+34)=89.9%; count-based activity proxy only."
+  }
+}

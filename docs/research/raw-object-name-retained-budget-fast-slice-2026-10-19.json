@@ -1,0 +1,29 @@
+{
+  "title": "Raw DXF object name retained-budget fast slice",
+  "date": "2026-10-19",
+  "scope": "Parser-side raw-carrier constructor census, generated no-group regression for name-only raw OBJECTS records, and a bounded writer-side materializer audit.",
+  "implementation": {
+    "production_code_changed": false,
+    "finding": "All parser-side DRW_RawDxfObject record paths found in src/libdxfrw.cpp use copyRawDxfCarrierName() before body consumption. The empty unknown-object route has no captureRawGroup() call and therefore needs a direct name-lease regression.",
+    "test": "testRawDxfObjectNameRetainedBudget() locates the minimum successful retained-byte budget for a generated AC1009 empty unknown OBJECTS record, asserts the published lease contains exactly the object-name bytes, and verifies one byte below the threshold fails with dxf-retained-byte-budget before callback publication.",
+    "persistent_fixture_added": false,
+    "ctest_registration_changed": false,
+    "dependency_changed": false,
+    "follow_on_writer_audit": "makeRawProxyObject() emits at most the three-object closure and validates each of its three possible binary source vectors against the 64 MiB per-payload ceiling. Hex chunk text is at most 2x payload bytes and allocation exceptions are caught by the enclosing closure materializer. This is a composable logical-size ceiling, not an allocator-capacity/RSS guarantee; no additional arbitrary aggregate cap was added."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+    "result": "passed",
+    "focused_test": "build-gcc/libdxfrw_hardening_tests --dxf-raw-object-name-retained-budget",
+    "focused_test_result": "passed",
+    "scoped_diff_check": "git diff --check -- tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md passed",
+    "full_test_suite": "not run"
+  },
+  "non_claims": [
+    "No parser behavior or support claim changed.",
+    "No allocator-capacity or RSS bound is claimed.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree has extensive pre-existing changes. The sandbox denied creation of .git/index.lock, so no staging or commit occurred; keep any later commit isolated to this test, plan entry, and receipt."
+  ],
+  "plan_totals": "137 findings / 77 top-level subplans"
+}

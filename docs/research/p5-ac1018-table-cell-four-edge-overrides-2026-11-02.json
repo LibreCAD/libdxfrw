@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw-dxf-implementation-receipt-v1",
+  "date": "2026-11-02",
+  "status": "SCOPED_IMPLEMENTATION_COMPLETE_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / AC1018 TABLE text-cell border override decoding and bounded DXF transport",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1 Until R21",
+    "pages": [230, 231, 232],
+    "localReference": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sha256": "fa7d94932897c65887b1b6eb8b43a8c6f7a0567192f4483db98b9f4f856fce2e",
+    "fieldOrder": [
+      { "mask": "0x00020", "field": "text height", "wire": "BD", "dxfGroup": 140 },
+      { "mask": "0x00040", "field": "top color", "wire": "CMC", "dxfGroup": 69 },
+      { "mask": "0x00400", "field": "top lineweight", "wire": "BS", "dxfGroup": 279 },
+      { "mask": "0x04000", "field": "top visibility; 1 means visible", "wire": "BS", "dxfGroup": 289 },
+      { "mask": "0x00080", "field": "right color", "wire": "CMC", "dxfGroup": 65 },
+      { "mask": "0x00800", "field": "right lineweight", "wire": "BS", "dxfGroup": 275 },
+      { "mask": "0x08000", "field": "right visibility; 1 means visible", "wire": "BS", "dxfGroup": 285 },
+      { "mask": "0x00100", "field": "bottom color", "wire": "CMC", "dxfGroup": 66 },
+      { "mask": "0x01000", "field": "bottom lineweight", "wire": "BS", "dxfGroup": 276 },
+      { "mask": "0x10000", "field": "bottom visibility; 1 means visible", "wire": "BS", "dxfGroup": 286 },
+      { "mask": "0x00200", "field": "left color", "wire": "CMC", "dxfGroup": 68 },
+      { "mask": "0x02000", "field": "left lineweight", "wire": "BS", "dxfGroup": 278 },
+      { "mask": "0x20000", "field": "left visibility; 1 means visible", "wire": "BS", "dxfGroup": 288 }
+    ],
+    "dxfSources": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm"
+    ],
+    "dxfConstraint": "Autodesk TABLE DXF reference defines group 177 as a pre-AutoCAD-2007 cell override mask; group-code type reference assigns 170-179 to 16-bit integers. Writer therefore admits only selected masks <= 65535."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "readerAdmission": "AC1018 text cells only; override flags must be a nonempty subset of text-height plus the four ODA border color/lineweight/visibility triplets. It retains only indexed ACI/BYLAYER/BYBLOCK CMC without RGB/name/book/reserved-index side data, lineweight 0..32767, visibility 0/1, exact edge flags implied by selected border fields, and no virtual edges. Unsupported combinations remain readable but semantically incomplete.",
+    "writerAdmission": "The same typed field/edge rules plus legacy group-177 value <= 65535; every selected visibility mask must have an explicit typed value. Higher masks, unsupported fields, mismatched edges, and missing companions are refused atomically.",
+    "wireProfiles": {
+      "readerGeneratedVector": "0x3FFE0: text height and all four edges, with color, lineweight and visibility fields for each edge; generated DWG vector is authored from scratch and checks full ODA field order and cursor sentinel.",
+      "writerAsciiBinaryVector": "0x0FFE0: text height and all four edges' color/lineweight fields plus top/right visibility; fits group 177's unsigned 16-bit value domain and checks all emitted group codes and binary typed readback."
+    },
+    "failureBehavior": [
+      "Invalid visibility and virtual-edge combinations remain parsed but incomplete.",
+      "Missing a selected visibility value refuses output without replacing the destination or changing caller state; correcting the model allows retry.",
+      "True-color/name/book CMC and override masks outside the modeled field set remain refused for strict output."
+    ],
+    "fixturePolicy": "DWG reader vectors are authored in memory; DXF outputs use temporary paths. No investigation DWG or DXF fixture was added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTests": [
+      {
+        "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+        "result": "PASS",
+        "coverage": "AC1018 all-edge field decoding/order, cursor sentinel, incomplete virtual edges and invalid-visibility behavior; existing AC1021 TABLE cell controls."
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --ac1018-table-top-border",
+        "result": "PASS",
+        "coverage": "AC1018 ASCII/Binary writer fields, all four edge property groups, group-177 0xFFE0 round-trip, explicit selected visibility values, missing-visibility atomic refusal and corrected retry."
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ]
+  },
+  "physicalSourceRecheck": {
+    "input": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "lastRecheck": "2026-11-02 receipt p5-ac1018-table-cell-0x4460-dwg-readback-2026-11-02.json",
+    "result": "The DWG read completed, but strict export stopped before publication at an unrelated DICTIONARYVAR preflight. No TABLE callback/cell override span was observed. The local hash differs from the earlier paired-DXF source hash; this is not a physical producer or source-to-output witness."
+  },
+  "remaining": [
+    "Find a byte-bound physical AC1018 TABLE producer callback carrying an admitted mask; prove its edge/virtual-edge fields and spans.",
+    "Bind that captured cell through typed fields to strict emitted ASCII/Binary DXF bytes and fresh readback.",
+    "Qualify native TABLE rendering and shared-edge behavior independently."
+  ]
+}

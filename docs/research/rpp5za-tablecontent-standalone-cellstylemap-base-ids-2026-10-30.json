@@ -1,0 +1,54 @@
+{
+  "id": "RPP-5za",
+  "date": "2026-10-30",
+  "title": "Standalone TABLECONTENT CELLSTYLEMAP base-style resolution",
+  "scope": {
+    "operation": "Resolve standalone TABLECONTENT base-style IDs through the rooted TABLESTYLE/CELLSTYLEMAP graph and emit only uniquely mapped IDs.",
+    "profile": "Generated standalone TABLECONTENT with AC1024 built-in ID 4 and AC1021 custom ID 101, one rooted TABLESTYLE, its canonical extension-dictionary CELLSTYLEMAP, and ASCII/binary output.",
+    "source_basis": "ODA Open Design Specification for .dwg files v5.4.1 §20.4.102 defines ID 4 for R24 and custom IDs from 101. The adapter previously validated these joins for legacy TABLE records but omitted standalone TABLECONTENT from the rooted map census; the standalone writer refused both IDs.",
+    "implementation": [
+      "Include standalone TABLECONTENT column, row and cell references in the existing rooted TABLESTYLE/CELLSTYLEMAP census.",
+      "Require a unique CELLSTYLEMAP ID under the exact TABLESTYLE for standalone ID 4 and custom IDs; keep missing, duplicate, wrong-owner, reserved and pre-R24 cases refused.",
+      "Pass only resolved TABLESTYLE/base-ID pairs to the writer. Direct writer calls without adapter proof continue to reject ID 4 and custom IDs.",
+      "Verify exact ASCII/binary wire IDs, fresh typed readback, destination and caller preservation on refusal, and same-adapter corrected retry."
+    ],
+    "claim_boundary": "Selected generated standalone TABLECONTENT transport for AC1024 ID 4 and AC1021 custom ID 101 through a unique rooted CELLSTYLEMAP. This does not qualify native table rendering, broader style-field composition, DWG output or general CELLSTYLEMAP support."
+  },
+  "evidence": {
+    "generated_runtime_input": true,
+    "source_authored_locally_from_scratch": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary_output": true,
+    "graph_controls": "Census tests cover standalone IDs 1-3, mapped custom ID 101, missing-ID same-graph repair, duplicate map IDs, wrong TABLESTYLE owner, missing TABLESTYLE handle, reserved ID 5, ID 4 without a map, ID 4 with its unique R24 map entry, and pre-R24 refusal.",
+    "physical_wire": "The independent scalar walker confirms the standalone TABLECONTENT group-90 ID and matching CELLSTYLEMAP group-90 ID in ASCII and binary output.",
+    "typed_readback": "Fresh ASCII and binary imports preserve the standalone style ID and TABLESTYLE reference; the matching style ID occurs exactly once in the map.",
+    "failure_controls": "A missing mapped ID is refused before replacing a destination sentinel and leaves the caller's invalid style ID unchanged.",
+    "retry_control": "Repairing the ID on the same adapter writes successfully; fresh readback confirms the corrected ID."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "focused_ctest": "ctest --test-dir build -R '^(dwg2dxf_table_content_style_reference_census|libdxfrw_table_content_table_style_reference_write)$' --output-on-failure",
+    "focused_ctest_result": "2/2 passed",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "research": [
+    {
+      "source": "Open Design Specification for .dwg files v5.4.1 §20.4.102 CELLSTYLEMAP",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "finding": "CELLSTYLEMAP is attached to TABLESTYLE through its named extension-dictionary entry. IDs 1/2/3 denote title/header/data; ID 4 is the R24 table style; custom IDs start at 101."
+    }
+  ],
+  "files": [
+    "src/libdxfrw.cpp",
+    "src/libdxfrw.h",
+    "dwg2dxf/dx_iface.cpp",
+    "dwg2dxf/dx_iface.h",
+    "tests/dwg2dxf_adapter_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "Broader CELLSTYLEMAP body/property combinations and native table-rendering meaning remain open.",
+    "Other TABLECONTENT format/value/content graphs and DWG output remain open; this receipt does not promote a support claim."
+  ]
+}

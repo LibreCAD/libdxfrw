@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw-deeper-broader-independent-route-peer-maturity-refresh-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Refresh open-source DWG/DXF/ACIS peer maturity and determine whether a route closes independent end-to-end semantic-solid evidence or changes the local implementation sequence.",
+  "method": {
+    "kind": "Read-only review of primary project manuals, source repositories, package/release metadata, active pull requests, and native-consumer documentation",
+    "sourcesOpened": [
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/DomCR/ACadSharp/pull/1174",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+      "https://docs.rs/acis-core/latest/acis_core/",
+      "https://pypi.org/project/cq-acis/0.3.12/",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4"
+    ],
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalSamplesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "evidenceRule": "A route qualifies only for the exact stage it demonstrates. Separate container/parser coverage, owner and AcDs association, raw carrier preservation, complete body conversion, independent expected metrics, kernel validity, and native-consumer acceptance."
+  },
+  "findings": [
+    {
+      "route": "LibreDWG manual and release/issues",
+      "observed": [
+        "The current manual lists ACDSRECORD and ACDSSCHEMA among unhandled types and lists fixture-coverage gaps that include BODY, MESH, and MINSERT.",
+        "The open issue #1411 reports modern AcDs/SAB loss on one pinned 0.14.8593 route; it is not a run against current master or libdxfrw."
+      ],
+      "disposition": "Optional exact-pinned container/conversion comparator only; aggregate coverage and successful process exit are non-promoting."
+    },
+    {
+      "route": "ACadSharp v3.8.0 and ACIS writer dependency chain",
+      "observed": [
+        "The v3.8.0 release notes do not announce ACIS writer support.",
+        "PR #1240 remains open and undeployed, depends on PR #1174, and #1174 remains open with a contributor-reported failing AcDs attachment test on that branch.",
+        "Branch reports do not establish a defect in released packages or correctness of the proposed writer."
+      ],
+      "disposition": "Do not count the writer as released peer capability; if later used at a composed checkpoint, pin both commits and pass the focused dependency/owner test first."
+    },
+    {
+      "route": "FreeCAD and DXF importer",
+      "observed": [
+        "Documented DWG import is an optional converter-to-DXF pipeline followed by the selected DXF importer.",
+        "The documented DXF path says embedded ACIS solid blobs cannot currently be read; documentation does not identify every installed backend or runtime result."
+      ],
+      "disposition": "Keep native qualification OS-, build-, converter-, importer-, option-, and entity-family-bound; treat stock 2D importer as a control, not an ACIS semantic pass."
+    },
+    {
+      "route": "Open-source ACIS reader/kernel/consumer candidates",
+      "observed": [
+        "acis-core provides bounded payload parsing and reference validation without a geometry kernel.",
+        "cq-acis converts a bounded geometry subset through CadQuery/OCCT and shares OCCT kernel lineage with FreeCAD.",
+        "ezdxf provides carrier authoring/inspection and narrow mesh projection; ACadRust is a file-format codec rather than a geometric kernel.",
+        "No reviewed route closes arbitrary producer payload extraction, DWG AcDs handle association, complete B-rep conversion, independent expected metrics, and native acceptance end to end."
+      ],
+      "disposition": "Keep parser, graph, carrier, geometry, kernel, and native gates distinct; no mandatory peer/runtime dependency is justified."
+    }
+  ],
+  "planDelta": {
+    "existingGatesRefined": [
+      "PAR-07 writer graph and fail-closed output disposition",
+      "S2/S3 payload extraction, version profile, and AcDs association",
+      "S5 optional exact-pinned peer admission",
+      "S8 semantic and native consumer qualification"
+    ],
+    "implementationOrderChanged": false,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "peerOrNativeRuntimeAdded": false,
+    "supportClaimsPromoted": 0,
+    "externalJItemsChanged": false,
+    "externalJDisposition": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planResearchOnly": true,
+    "productionBehaviorChanged": false,
+    "testsRun": false,
+    "externalSamplesDownloaded": false,
+    "receiptJsonParsed": true,
+    "gitDiffCheck": true
+  }
+}

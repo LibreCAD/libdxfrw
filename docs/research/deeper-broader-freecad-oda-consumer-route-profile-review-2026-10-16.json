@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw-deeper-broader-freecad-oda-consumer-route-profile-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden downstream consumer and conversion research for the DWG/DXF parity plan. Make FreeCAD importer/exporter identity and settings explicit, separate ODA clean conversion from repair, and reconcile the conditional PLOTSETTINGS DPI route with current local coverage.",
+  "method": {
+    "kind": "Current FreeCAD project documentation/source, official ODA File Converter description, Autodesk DXF contract, ACadSharp issue report, and local plan/source/test-owner cross-check",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionFilesChanged": false,
+    "evidenceRule": "Mutable documentation/source and peer issue reports define candidate routes and test leads only. No runtime acceptance, local defect, or format-support claim is inferred. Repaired output is not a clean conversion pass."
+  },
+  "evidence": [
+    {
+      "topic": "FreeCAD DXF importer/exporter route profiles",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observed": "FreeCAD documentation distinguishes a bundled C++ DXF route from an optional legacy Python route; it says the C++ route is faster but has fewer features, while the Python converter has a separate license and may be downloaded/updated. Preferences can affect annotation, point, paper-space, anonymous-block, scale, object-creation, grouping, joining, color, hatch, spline/ellipse and polyface outcomes. The current C++ importer source records effective settings, but mutable main-source inspection is not a run of a pinned binary.",
+      "doesNotEstablish": [
+        "the behavior of a pinned FreeCAD binary or either backend on this repository's output",
+        "that every documented preference exists or behaves identically on every platform/build",
+        "semantic preservation from a successful open, object count, or projected mesh"
+      ],
+      "planUse": "At the composed native gate pin the application build/platform, converter, importer backend, add-on digest, explicit preferences, unit scaling and intermediate DXF hash. Classify each source identity as typed, projected, excluded, warning/loss or missing. Keep both importer backends out of per-slice testing."
+    },
+    {
+      "topic": "FreeCAD TechDraw DXF export is not a modern document-writer comparator",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/TechDraw_ExportPageDXF.md"
+      ],
+      "observed": "The documented TechDraw page exporter outputs AC1009/R12 or AC1014/R14 and writes only geometry supported by Import::ImpExpDxfWrite. Its R12 mode can convert spline and ellipse entities to polylines. This is a different workflow from Draft document-level DXF export or the importer used by FreeCAD's DWG converter path.",
+      "doesNotEstablish": [
+        "AC1027/AC1032 DXF writer acceptance",
+        "whole-document or graph-preserving DXF round-trip behavior",
+        "exact spline/ellipse semantics after projection"
+      ],
+      "planUse": "Exclude TechDraw export/re-import from modern libdxfrw writer acceptance. If TechDraw is an explicit target, label it as an R12/R14 projected-output profile with its own expectations."
+    },
+    {
+      "topic": "ODA File Converter directory and audit behavior",
+      "sources": [
+        "https://www.opendesign.com/guestfiles/oda_file_converter?language=en"
+      ],
+      "observed": "The official page describes source and target directories, file filtering, output version/type, recursion, and audit flags; every matching file is loaded and saved, and audit applies repair during load. It lists Linux, macOS ARM64/x64 and Windows packages. ODA is a proprietary external comparator, not an open-source implementation.",
+      "doesNotEstablish": [
+        "that audit-off output is accepted by another independent application",
+        "that post-repair output proves the original unmodified conversion was valid",
+        "the output version, semantic completeness or geometry without inspecting the actual result"
+      ],
+      "planUse": "At a composed optional gate isolate one input in a fresh source directory and use an empty target directory. Use audit-off for the clean conversion observation. Run audit-on only as a separate diagnostic against a byte-identical copy, preserving diagnostics and input/output hashes. Verify process status, fresh output, actual magic/version and independent reopen."
+    },
+    {
+      "topic": "Conditional PLOTSETTINGS group 78 and peer layout-loss report",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-1113675E-AB07-4567-801A-310CDE0D56E9.htm",
+        "https://github.com/DomCR/ACadSharp/issues/1184",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "observed": "Autodesk specifies group 78's 100–32767 range as applying only when group 77 selects Custom (5). ACadSharp issue #1184 reports that rejecting inactive stored DPI zero can drop LAYOUT objects in named releases; it is not reproduced here. The existing local 7BM/PLOTSETTINGS test owner already exercises mode 2 with DPI zero separately from Custom-range writer admission. This was a source/test-owner inspection, not a test run.",
+      "doesNotEstablish": [
+        "a corresponding defect in libdxfrw",
+        "the correctness of every peer-reported result outside its named releases",
+        "layout graph preservation from scalar field retention alone"
+      ],
+      "planUse": "Retain PAR-111/7BM as the only owner; do not add duplicate work. Preserve the inactive zero compatibility control and active Custom bounds, layout owner/dictionary closure, and following-record sentinel when that route changes."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "PAR-02",
+      "PAR-11",
+      "PAR-15",
+      "PAR-20",
+      "PAR-111",
+      "7BM",
+      "FreeCAD composed consumer gate"
+    ],
+    "fastPerSliceChecks": [
+      "touched strict build",
+      "existing focused CTest",
+      "relevant LibreCAD/LibreCAD_3 compatibility compile for interface changes",
+      "git diff --check"
+    ],
+    "composedConsumerGate": [
+      "one pinned FreeCAD importer profile and explicit settings; no factorial preference sweep",
+      "per-source identity/disposition inventory plus intermediate DXF version and hash",
+      "one-input isolated ODA audit-off conversion; optional audit-on repair diagnostic in a separate run"
+    ],
+    "fixturePolicy": "No downloaded or newly committed drawing fixtures. Use existing repository-owned material or locally generated temporary controls only.",
+    "cadence": "No FreeCAD, ODA, add-on, or peer installation/run per implementation slice; use the composed downstream checkpoint only.",
+    "nonPromotion": "No support claim or external J disposition changes. J256, J260, J268, J284, J293 and J295 remain DEFERRED_EXTERNAL."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 122,
+      "topLevelSubplans": 70
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

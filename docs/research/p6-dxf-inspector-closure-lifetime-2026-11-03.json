@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-inspector-closure-lifetime-2026-11-03",
+  "date": "2026-11-03",
+  "status": "FOCUSED_NORMAL_AND_ASAN_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Document and verify the ownership boundary for staged DXF write inspector closures and their callback views.",
+  "contract": {
+    "callbackClosure": "Inspector setters retain an owned copy of the callback and its value captures in dxfRW.",
+    "referenceCaptures": "Objects reached through reference captures remain the caller's lifetime responsibility and must outlive every possible invocation.",
+    "view": "DxfObjectsWriteView byte and code-page views expire when the callback returns; callbacks must not retain them."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "tests/dxf_symbol_output_tests.cpp"
+    ],
+    "control": "A weak_ptr observes that a value-captured object remains alive after the caller releases its copy, remains alive through one inspector invocation, and is released after clearing the inspector.",
+    "fixturesAdded": 0
+  },
+  "validation": [
+    {
+      "configuration": "build-gcc",
+      "command": "cmake --build build-gcc --target libdxfrw_symbol_output_tests -j2",
+      "result": "PASS"
+    },
+    {
+      "configuration": "build-gcc",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_tables_write_inspection$' --output-on-failure",
+      "result": "PASS, 1/1 tests, 0.54 seconds"
+    },
+    {
+      "configuration": "build-asan-custom",
+      "command": "cmake --build build-asan-custom --target libdxfrw_symbol_output_tests -j2",
+      "result": "PASS"
+    },
+    {
+      "configuration": "build-asan-custom",
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_tables_write_inspection$' --output-on-failure",
+      "result": "PASS, 1/1 tests, 0.98 seconds"
+    }
+  ],
+  "limitations": [
+    "This control covers inspector closure ownership and the documented callback-view lifetime; it does not audit every public API or internal borrowed pointer.",
+    "Reference captures still depend on caller-managed object lifetime.",
+    "No platform numeric/string policy, DWG/DXF semantic support, concurrency, or consumer qualification claim is made."
+  ],
+  "next": "Audit remaining source-lifetime boundaries and platform numeric/string policies; keep each issue tied to a concrete public/internal lifetime path or platform-specific failure."
+}

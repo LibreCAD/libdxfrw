@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dictionary-default-typed-direct-writer-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_TYPED_DIRECT_WRITER_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the generated DICTIONARYWDFLT/ACDBPLACEHOLDER allocation rollback and retry control across target revisions for its public typed writer route, while retaining the source-bound raw adapter route at AC1027.",
+  "source": {
+    "kind": "deterministic locally-authored DXF generated in test code",
+    "profile": "One NOD-owned DICTIONARYWDFLT with one placeholder member/default target. The dictionary uses hard-owner flag zero, matching the typed writer's supported grammar. No external or committed DWG/DXF fixture is used.",
+    "typedWriterTargetVersions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "rawAdapterTargetVersion": "AC1027",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "3cc118e0",
+    "files": [
+      "tests/dictionary_default_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dictionary-default-typed-direct-writer-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "testSourceSha256": "6711db452779e81e24f36d798de4fc1495f000a4a05ad6b220da4b43ba37e1a1",
+    "testExecutableSha256": "43d2893e47cbabecb339dbbb64f02c6c5e583b3507c06bc1aa13af93ffc76459",
+    "method": "The direct typed callback invokes writeDictionaryWithDefault() and writeAcDbPlaceholder() for AC1021, AC1024, AC1027, and AC1032. The source-bound raw adapter route remains AC1027-only because its target-profile check refuses other revisions. For each admitted allocation offset, require whole-export refusal, unchanged destination sentinel and source graph, then same-adapter retry and fresh typed graph readback."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dictionary_default_objects_allocation_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dictionary_default_objects_allocation_retry$' --output-on-failure: PASS 1/1 (0.55 sec)",
+    "directRun": "PASS; raw AC1027 adapter route: ASCII 25 and Binary 24 offsets; typed route at AC1021/AC1024/AC1027/AC1032: ASCII 12 and Binary 11 offsets per target; 141 total measured offsets, preserving destination/source, same-adapter retry, and typed readback",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "This is generated transaction and typed-readback evidence only; it does not qualify producer-authored profiles, external graph closure, or native consumer semantics.",
+    "The control covers one no-reactor placeholder and one dictionary member/default edge; larger dictionaries, reactors, extension dictionaries and other ownership variants remain open.",
+    "The raw adapter route remains AC1027-only; no lower-version raw-adapter output claim is made.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Typed DICTIONARYWDFLT and PLACEHOLDER rollback/retry/readback covers AC1021, AC1024, AC1027, and AC1032; source-bound raw adapter rollback/retry/readback remains AC1027-only.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "244 completed slices and 35 remaining packages: 244/(244+35)=87.5%; count-based activity proxy only."
+  },
+  "nextAction": "Continue the P6-G public-writer inventory and select the next genuinely uncovered public route for rollback, same-writer retry and typed or exact bounded raw readback."
+}

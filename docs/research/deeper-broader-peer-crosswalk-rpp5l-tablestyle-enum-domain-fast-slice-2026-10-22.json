@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "TABLESTYLE group-90/91 enum projection and bounded edit",
+  "mode": "ODA/Autodesk API cross-check plus generated ASCII/Binary DXF and local DWG roundtrip",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "27696260fc21358bb010534996b321089fcf5adeab8ecf263d3f62553a12a6bb",
+  "authoritativeReferences": [
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sections": ["20.4.99 Value", "20.4.101.1 TABLESTYLE format until R21"],
+      "pages": "232-233",
+      "finding": "The value data type enum lists 0, 1, 2, 4, 8, 16, 32, 64, 128, 256, and R2007+ 512; unit type lists 0, 1, 2, 4, and 8. TABLESTYLE's R2007+ group 90/91 use those ACAD_TABLE definitions."
+    },
+    {
+      "title": "Autodesk TABLESTYLE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+      "finding": "Groups 90 and 91 are cell data type and cell unit type, repeated for each table-style row/cell style."
+    },
+    {
+      "title": "Autodesk TableStyle.SetDataType (2018)",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-ManagedRefGuide/files/OREFNET-Autodesk_AutoCAD_DatabaseServices_TableStyle_SetDataType_Autodesk_AutoCAD_DatabaseServices_DataType_Autodesk_AutoCAD_DatabaseServices_UnitType_Autodesk_AutoCAD_DatabaseServices_R.html",
+      "finding": "The row-style API accepts Autodesk DataType and UnitType enums, directly binding the semantic enum domain to TABLESTYLE row settings."
+    },
+    {
+      "title": "Autodesk DataType enumeration",
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DataType.html",
+      "finding": "Lists the documented DataType numeric values, including General=512."
+    },
+    {
+      "title": "Autodesk UnitType enumeration",
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_UnitType.html",
+      "finding": "In addition to ODA's common unit codes, lists Currency=16, Percentage=32, and AngleNotTransformed=65536."
+    },
+    {
+      "title": "Autodesk TableStyle.Format method",
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_TableStyle_Format_RowType.html",
+      "finding": "Confirms there is a row-type-specific format string property, but does not state its TABLESTYLE DXF group code."
+    },
+    {
+      "title": "Autodesk TABLE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "finding": "Documents group 4 as a standard/title/header row format string on TABLE; this is not evidence that group 1 is the DXF mapping for TABLESTYLE."
+    }
+  ],
+  "researchConclusion": {
+    "resolved": "The DXF-facing DataType/UnitType API enum values can be projected as opaque scalar values and edited only in present group-90/91 slots.",
+    "unresolved": "ODA v5.4.1's serialized DWG unit-type list is narrower than Autodesk's API enum; API-only unit codes are therefore not emitted in DWG until producer-authored drawings establish version-specific acceptance. ODA documents DWG TABLESTYLE format text as group 1, but Autodesk's TABLESTYLE DXF reference omits that field and separately assigns TABLE group 4 to row-format text, so a TABLESTYLE DXF mapping is not inferred."
+  },
+  "implementation": {
+    "changes": [
+      "R2007+ TABLESTYLE DXF parsing and bounded raw-carrier editing validate documented DataType and UnitType API enum codes.",
+      "Only existing paired group-90/group-91 slots are editable; omitted slots remain omitted, raw order is preserved, and untouched ASCII source spellings remain unchanged.",
+      "The typed DXF writer emits the scalar enum codes without interpreting table values or converting units.",
+      "DWG reader parsing can retain documented API enum codes, while DWG writer validation remains limited to ODA's explicitly enumerated unit codes 0/1/2/4/8.",
+      "Generated ASCII/Binary controls cover valid API-only units, invalid enum refusal, sparse slot refusal, sentinels, raw-net preservation, and typed readback."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp5l-tablestyle-enum-domain-fast-slice-2026-10-22.json",
+      "dwg2dxf/dx_iface.cpp",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_local_roundtrip libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R 'tablestyle|classes_wire|dimstyle_subclass_wire|^libdxfrw_dwg_local_roundtrip$' --output-on-failure (15/15)",
+    "diffCheck": "PASS: git diff --check scoped to plan and touched source/test files",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "producerAuthoredSamplesUsed": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "publicLibdxfrwModelLayoutChangedByThisSlice": false,
+    "rawCarrierPreserved": true,
+    "dwgWriteSupportsApiOnlyUnitEnums": false,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "Acquire or author an independently checkable DWG showing whether API-only UnitType codes serialize in AC1021/AC1024/AC1027/AC1032; only then consider widening DWG emission.",
+      "Resolve whether and how TABLESTYLE.m_valueFormatString maps to a DXF group; retain raw source and keep nonempty typed writes fail-closed until a normative or producer-backed DXF witness resolves group 1 versus the separate TABLE group 4 field.",
+      "TABLESTYLE format-string semantics and complete custom cell-style authoring remain outside the bounded scalar profile.",
+      "No table-cell value conversion or unit transformation semantics were implemented."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

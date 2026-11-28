@@ -1,0 +1,89 @@
+{
+  "id": "RPP-5wo",
+  "title": "MLINE LTYPE XDATA code-1005 CIRCLE target in named BLOCKS",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "d2c53a983e79151d3481be62a27bdd012954eaf8",
+  "qualification_commit": "03681ac3",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII/binary DXF records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One selected profile was exercised for all four ASCII/binary source and output combinations.",
+    "linetype": "EditDash with two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0 and alignment 65.",
+    "xdata": "One source-bound APPID, one group-1000 payload, then one ordered group-1005 soft pointer.",
+    "target": {
+      "type": "CIRCLE",
+      "source_handle": "0xA900",
+      "source_section": "BLOCKS",
+      "block_name": "AuthorityBlock",
+      "block_record_handle": "0x203",
+      "owner_handle": "0x203",
+      "center": [50, 60, 7],
+      "radius": 5
+    },
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    }
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "documents": [
+      {
+        "title": "DXF Group Codes in Numerical Order Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "relevant_rule": "Group 1005 is an entity handle in extended data, encoded as a hexadecimal string of up to 16 digits."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 handles behave as soft pointers and translate when referenced objects are copied or inserted."
+      }
+    ]
+  },
+  "proof": {
+    "source": "The physical LTYPE XDATA sequence is bound to its APPID. The CIRCLE target is uniquely identified by source handle, BLOCKS section, AuthorityBlock BLOCK_RECORD owner, parsed callback, exact DRW_Circle dynamic type and center/radius sentinel.",
+    "output": "Across all four encoding pairs, emitted physical XDATA is checked in order against the remapped CIRCLE handle. The CIRCLE must remain in BLOCKS under the emitted AuthorityBlock BLOCK_RECORD with exact center and radius. Fresh typed readback verifies the DRW_Circle identity, owner and geometry plus typed LTYPE XDATA values.",
+    "failure_retry": "For each encoding pair, removing the CIRCLE target refuses export and preserves the prior destination; restoring it permits same-adapter retry with exact physical output and typed readback. A separate ASCII-input/ASCII-output late mutation changes the target handle after APPID emission; finalization refuses without replacing the destination, and restoring the handle permits successful same-adapter retry.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 9,
+      "selected_refusals_with_destination_preservation": 5,
+      "selected_same_adapter_retries": 5,
+      "whole_focused_test_profiles": 228,
+      "whole_focused_test_readbacks": 510,
+      "whole_focused_test_refusals": 282,
+      "whole_focused_test_retries": 282
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 13.96 seconds); selector asserts whole-test counts listed above"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds generated proof and uses the existing typed writer path without parser state or ownership changes. Revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "qualification_commit": "03681ac3",
+      "test_source_sha256": "3cb0bf25a8340a0977a21fb5ff2c9da625163b52c8d02965d90da004351f5ddc",
+      "normal_executable_sha256": "afb16751b9dc1a9ad14aafbc7dc43a1c305a1adcabc28806d4c02ad656dd2f99",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+    }
+  },
+  "limits": [
+    "This qualifies one AC1027 CIRCLE target in one named BLOCKS section with one ordered code-1005 XDATA reference. It does not qualify CIRCLE targets in other block roles, other target types, mixed section sets, larger reference counts, versions, provider schemas or application meanings.",
+    "This is selected transport, source identity, output, typed readback and transaction evidence only; it does not establish recursive document closure, native rendering or format support claims."
+  ],
+  "next": "Select one current source-backed P2 target role, XDATA composition or MLINE consumer operation that resolves a distinct unsupported behavior. Preserve exact source/output identity, fresh readback and rollback/retry controls without expanding the reference-count matrix absent a distinguishing need."
+}

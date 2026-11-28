@@ -1,0 +1,39 @@
+{
+  "title": "AC1021 TABLE per-row border CMC lossless DXF audit",
+  "date": "2026-11-08",
+  "decision": "Keep all 18 per-row border CMC slots and border color override mask output-refused for the general TABLE profile.",
+  "scope": "Determine whether arbitrary title/header/data border colors can be represented losslessly by TABLE entity DXF fields.",
+  "sources": {
+    "oda": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.96.1, AcDbTable",
+      "pages": [233, 234],
+      "local_source": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "findings": [
+        "The 18-bit border-color mask selects 18 independent CMC values across title, header and data rows.",
+        "Each row carries six ordered categories: horizontal top, horizontal inside, horizontal bottom, vertical left, vertical inside and vertical right.",
+        "Those six categories use DXF group-code families 64, 65, 66, 63, 68 and 69 respectively in the DWG specification's encoding table."
+      ]
+    },
+    "autodesk": {
+      "title": "TABLE (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "findings": [
+        "TABLE groups 63 and 64 are entity-level border/background color values and may have one entry for each cell type.",
+        "TABLE groups 65, 66, 68 and 69 are entity-level horizontal-inside, horizontal-bottom, vertical-inside and vertical-right border colors with no per-cell-type repeat declaration.",
+        "The same groups are separately documented for individual cell overrides, which does not create row-specific entity-level slots."
+      ]
+    }
+  },
+  "reasoning": [
+    "Groups 63/64 can carry the title/header/data values for the vertical-left and horizontal-top categories, subject to color-method conversion evidence.",
+    "The remaining four categories have one entity-level DXF value each but up to three independent DWG row values each. For example, distinct selected title and data horizontal-inside CMC values cannot both be represented by one group-65 entity-level value.",
+    "CMC may also contain methods, RGB, color names/books and flags beyond a plain indexed color. These cannot be flattened into one shared DXF value without a narrower proven profile and explicit preservation policy."
+  ],
+  "implementation": "No code change. Existing strict writer refusal for nonzero border-color override masks or retained CMC state is the correct general-profile behavior.",
+  "qualification_limits": [
+    "This resolves the general lossless-mapping question by a representational counterexample; it does not claim that no narrower equality-constrained projection could ever be implemented.",
+    "No physical producer sample or native render check was used or needed to establish that the singular DXF groups cannot carry arbitrary distinct row values.",
+    "No support claim is promoted. Per-row border colors remain output-refused."
+  ]
+}

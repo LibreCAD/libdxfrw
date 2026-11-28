@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Typed SORTENTSTABLE callback capture bounds",
+  "mode": "Local implementation slice with generated fast tests",
+  "scope": [
+    "Bound adapter-owned typed DRW_SortEntsTable callback copies.",
+    "Account for aggregate record count, ordered entity/sort handle entries, and base object metadata.",
+    "Keep parser limits, raw companion capture, graph validation, serializer support, and native acceptance separate."
+  ],
+  "implementation": {
+    "limits": {
+      "aggregateRecords": 100000,
+      "aggregateHandleEntries": 1000000,
+      "aggregateLogicalRetainedBytes": 67108864,
+      "lifetime": "dx_data container lifetime; prior failure and counters are not reset for appended imports"
+    },
+    "behavior": [
+      "Estimate includes DRW_TableEntry retained metadata and both ordered handle vectors.",
+      "Counters advance only after successful typed-list insertion; budget/allocation failure is sticky.",
+      "DXF export refuses typed SORTENTSTABLE after failed capture before publishing output.",
+      "Raw companion admission and graph-validator budgets remain independent."
+    ],
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_sortents_typed_capture_limits|dwg2dxf_render_settings_typed_capture_limits|libdxfrw_sortents_adapter)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 3,
+      "failed": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt",
+      "result": "PASS"
+    },
+    "fullTestSuiteRun": false,
+    "externalPeerOrNativeRuns": 0
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "repositoryDrawingFixturesAdded": 0,
+    "externalFixturesDownloaded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planEffect": "Records the typed SORTENTSTABLE capture budget and fast graph-adjacent validation. The next variable-size callback family is TABLESTYLE's nested row/cell/border state."
+  },
+  "planPath": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "40ce86f6b81a88d1abb710548875d03c153761baf76638887d62190a2a6440ae"
+}

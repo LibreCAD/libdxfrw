@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-nurbssurface-fields-2026-11-12",
+  "purpose": "Extend the headless DXF 3D consumer probe with a positive NURBSURFACE typed-field case using complete WCS vector groups.",
+  "changes": [
+    "Added a runtime-authored AC1027 NURBSURFACE with non-default modeler version and group-170 value, enabled control-hull display, and four complete distinct coordinate vectors.",
+    "Asserted modeler version, group-170 scalar, Boolean display field, and all four vectors through the typed callback under ext=false and ext=true.",
+    "The probe runs the same generated case through ASCII and Binary DXF."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.41 seconds"
+  },
+  "scopeLimit": "This is generated same-library writer/parser callback evidence only. It does not evaluate NURBS geometry, qualify independent DXF interoperability, establish DWG NURBSURFACE layout, or qualify native/consumer support.",
+  "fixturePolicy": "The test creates ASCII and Binary DXF under a temporary directory at runtime and removes them; no fixture file was added.",
+  "claimEffect": "No format support claim changes. The local S8.3 probe gains a NURBSURFACE typed-field case."
+}

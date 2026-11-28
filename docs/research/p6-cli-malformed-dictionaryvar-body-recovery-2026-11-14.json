@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "date": "2026-11-14",
+  "slice": "P6-F malformed supported DICTIONARYVAR body recovery",
+  "status": "generated fast control passed",
+  "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-dictionaryvar-body-source",
+  "mutation": "Write a valid typed DICTIONARYVAR with schema 0 and a scalar string value. Preserve the common prologue/type/handle, then flip one bit in the declared object-body span until DRW_DictionaryVar::parseDwg rejects the record; replay the bounded raw frame into a fresh generated source.",
+  "profiles": [
+    {
+      "version": "AC1015",
+      "sha256": "80e73817ecf6f549421fc7ca59a8aa865917d3d6e280c4b073e64148164a23f2",
+      "source_frames": 28,
+      "published_frames": 27,
+      "failed_frames": 1,
+      "output_target": "AC1021"
+    },
+    {
+      "version": "AC1018",
+      "sha256": "ed0625c4ac65b0629dc97494f1d16bf34fb5587deb77a3783d5738d82aca0680",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "output_target": "AC1021"
+    },
+    {
+      "version": "AC1021",
+      "sha256": "3a05b159410677d43368a31fc4723c3c0ebd75fa950a44e981d773acf504c7c1",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "output_target": "AC1021"
+    },
+    {
+      "version": "AC1024",
+      "sha256": "8cba51a049ddc065d9412ec869e8fac0fde82ffce880457692cb7a4e9a147e3b",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "output_target": "AC1024"
+    },
+    {
+      "version": "AC1027",
+      "sha256": "6455c31a8181708238ad966a3048b44cea8d84e5388d892a07d97e9af7fa8b82",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "qualification": "reader-only for output; independent source-reference closure gate applies"
+    },
+    {
+      "version": "AC1032",
+      "sha256": "7b162babcb4dc48d6c4f4cfe08200f12a088c3d065438d3eb8ac8e0b4fb82bc2",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "output_target": "AC1032"
+    }
+  ],
+  "per_profile_observation": {
+    "read_succeeded": true,
+    "entity_parse_failures": 0,
+    "object_parse_failures": 1,
+    "retained_line_count": 1,
+    "frame_accounting": "source = published + failed"
+  },
+  "cli_policy": {
+    "output_eligible_profiles": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "strict": "Refuses atomically before replacing the sentinel destination.",
+    "explicit_partial": "Replaces the same destination after strict refusal, emits the incomplete-output warning, and reopens with one LINE and one VPORT; the source remains unchanged.",
+    "AC1027": "Strict and explicit-partial attempts preserve the destination and stop at the source-reference closure gate."
+  },
+  "validation": {
+    "selector": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
+    "selector_result": "PASS: CLI partial DWG read (172 strict/partial/readback controls)",
+    "ctest": "dwg2dxf_cli_partial_read_disposition",
+    "ctest_result": "PASS 1/1 in 5.16 seconds"
+  },
+  "limitations": [
+    "Generated DWG/DXF control files are temporary and are not committed as fixtures.",
+    "This demonstrates parser failure isolation and CLI disposition for one generated DICTIONARYVAR profile only; it does not qualify its payload semantics or producer interoperability.",
+    "No DWG/DXF support claim is promoted."
+  ]
+}

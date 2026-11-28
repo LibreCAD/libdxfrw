@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-03",
+  "title": "Generated SECTIONMANAGER/SECTIONSETTINGS adapter graph closure",
+  "scope": "Bounded AC1021+ DXF adapter output for SECTIONMANAGER membership, SECTIONOBJECT group-360 settings references, and nested SECTIONSETTINGS source/destination/geometry fields.",
+  "format_contract": {
+    "section_settings": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7448F1DB-BA0B-4443-B202-C9CFB2CF333F.htm",
+      "finding": "SECTIONSETTINGS is an object with a common owner and AcDbSectionSettings body."
+    },
+    "section_manager": {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-C1C9B840-F291-4CB2-8EBA-A94BC27DC46D.htm",
+      "finding": "The manager exposes a section count and repeated group-330 section-entity pointers."
+    },
+    "section_object": {
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-8B60CBAB-B226-4A5F-ABB1-46FD8AABB928.htm",
+      "finding": "SECTION exposes a group-360 settings-object handle."
+    },
+    "nested_type": {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-50D73C4F-83B5-4A09-9A40-87B5EA1F9A11.htm",
+      "finding": "Section type settings carry source object pointers and an optional destination block."
+    },
+    "nested_geometry": {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-21E53626-0F28-4787-A109-86B9FFE0C149.htm",
+      "finding": "Section geometry settings define the modeled layer, linetype, color, hatch, lineweight, and transparency fields."
+    }
+  },
+  "implementation": {
+    "capture": "dx_iface retains bounded typed SECTION callbacks and bounded source DXF SECTIONMANAGER/SECTIONSETTINGS carriers with private import-time snapshots. Export rejects capture-budget failure, changed carriers, unmodeled raw fields, opaque DWG tails, unsupported common data, duplicate identities, and non-AC1021+ targets.",
+    "graph": "The manager count must equal its bounded member list and each member must resolve uniquely to a SECTIONOBJECT entity. Every nonzero SECTIONOBJECT group-360 handle must resolve to a retained SECTIONSETTINGS record; settings must be referenced, source handles must resolve to unique entities, and destination handles must resolve to unique BLOCK_RECORDs. Common owners are limited to the NOD root or a reciprocal SECTIONOBJECT owner. Legacy flat settings are admitted only when their modeled mirrors and destination target are consistent.",
+    "output": "SECTIONMANAGER/SECTIONSETTINGS group-5 identities are reserved after the shared source-handle remap. The existing low-level writer resolves manager members, nested source handles, and destination blocks through the final output resolver, with source-handle remap fallback.",
+    "bounded_profile": "Generated AC1027 profile with one SECTIONMANAGER, one SECTIONOBJECT, one nested SECTIONSETTINGS type, one entity source, and one destination block-independent geometry settings record."
+  },
+  "validation": {
+    "inputs": "Generated ASCII/Binary DXF authored by the test helper and in-memory typed records; no DWG/DXF fixture was added.",
+    "cases": [
+      "Exact remapped VIEW group-334, SECTIONOBJECT group-5/group-360, manager group-330, and nested settings source identities are checked in output.",
+      "Fresh ASCII/Binary import checks manager membership, settings association, source-object identity, and nested geometry fields.",
+      "Missing settings, wrong-kind target, duplicate settings identity, duplicate SECTIONOBJECT identity, pre-AC1021 target, and changed raw carrier each preserve the existing destination.",
+      "The same adapter succeeds after the refusal cases are corrected."
+    ],
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+    "tests": [
+      "build-gcc/libdxfrw_dxf_fixture_tests --view-live-section-reference-closure: PASS",
+      "ctest --test-dir build-gcc -R 'libdxfrw_view_reference_remapping|libdxfrw_view_live_section_reference_closure|libdxfrw_section_(manager|settings)_reference_remapping' --output-on-failure: PASS (4/4)",
+      "build-gcc/libdxfrw_dxf_fixture_tests --view-live-section-fail-closed: PASS",
+      "cmake --build build-gcc --target lc3_compat_check --parallel 4: PASS",
+      "git diff --check: PASS"
+    ]
+  },
+  "qualification_limits": [
+    "Generated transport and graph closure only; no physical producer source-span or owner-profile evidence is established.",
+    "No native section-generation, live-section, or 3D kernel semantics are qualified.",
+    "Unsupported raw fields, common data, tails, color-book/RGB variants, and unclosed dependencies remain fail-closed.",
+    "No support claim is promoted."
+  ]
+}

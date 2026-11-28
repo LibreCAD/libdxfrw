@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw-material-text-retained-owner-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Close the demonstrated DXF retained-string accounting gap for DRW_Material name and description with focused ASCII/Binary parser and full OBJECTS controls.",
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "fields": [
+      {
+        "field": "DRW_Material::m_name",
+        "dxfCode": 1,
+        "accounting": "Independent live-byte counter on shared DRW_TableEntry retained-string lease; reserve before replacement and preserve old value/charge on refusal."
+      },
+      {
+        "field": "DRW_Material::m_description",
+        "dxfCode": 2,
+        "accounting": "Independent live-byte counter on shared DRW_TableEntry retained-string lease; reserve before replacement and preserve old value/charge on refusal."
+      }
+    ],
+    "reset": "Clears both per-field counters before base lease release.",
+    "copyMove": "Implicit copy/assignment preserve both counters and the shared lease; no custom move behavior was added.",
+    "contractLimits": [
+      "Logical parsed DXF string lengths only; not allocator capacity, RSS, or a total process-memory cap.",
+      "Public post-callback edits, DWG string storage, and writer/projection copies remain outside this owner.",
+      "DRW_Material public layout changed; downstream consumers must rebuild and binary ABI compatibility is not claimed."
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-material-text-owner-budget",
+        "result": "PASS"
+      }
+    ],
+    "selectorCoverage": [
+      "Generated direct parser streams cover ASCII and Binary DXF and replacement of both text fields.",
+      "Exact-cap succeeds; one-byte-under replacement preserves the prior description and its charge.",
+      "Copy construction and assignment preserve both charges after source reset; final reset releases them.",
+      "Generated full ASCII and Binary OBJECTS input refuses before addMaterial callbacks at cap-minus-one with ResourceLimit/dxf-retained-byte-budget, then succeeds on a same-facade exact-cap retry through a following MATERIAL sentinel.",
+      "Binary input is generated in temporary storage and removed; no persistent fixture or CTest was added."
+    ],
+    "receiptJsonParsed": true,
+    "planLinkChecked": true,
+    "scopedDiffCheck": true,
+    "ctestRun": false,
+    "fullSuiteRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeCadQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "externalJItemsRemainDeferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commit": "NOT CREATED: the shared checkout has broad existing edits in touched files; unrelated hunks were not staged."
+  }
+}

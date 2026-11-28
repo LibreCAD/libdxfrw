@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-cmlstyle-nondefault-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": [
+    "ODA Open Design Specification v5.4.1 section 9 HEADER CMLSTYLE hard pointer; sections 20.4.44 and 20.4.73 for the source dictionary and style frame."
+  ],
+  "source": "Locally generated, previously hash-checked two-element AC1012 source; LibreDWG 0.14 JSON projection changed only HEADER CMLSTYLE to its existing SAME_KEY MLINESTYLE hard pointer, then dwgwrite --as r13 produced a scratch control.",
+  "scratch": {
+    "dwg": "/private/tmp/p6-header-cmlstyle-20261127/ac1012-selected.dwg",
+    "dwgSha256": "8b311e8660b6128dbb221d5cab50687cbf374f9c947175288062c57787e1b53b",
+    "sourceDwgSha256": "3a9dd2858b9d86d226fb4d704a5a396b4af04041bd034473ae7b022524f62173"
+  },
+  "checks": [
+    "LibreDWG 0.14 independently decodes AC1012 HEADER hard pointer 0x2e to MLINESTYLE SAME_KEY.",
+    "libdxfrw explicit-partial ASCII and binary DXF retain SAME_KEY and all three selected styles; ezdxf 1.4.5 reports zero audit errors and fixes.",
+    "ODA 27.1 reopens both DXF files with audit disabled; LibreDWG independently resolves both reopened CMLSTYLE pointers to SAME_KEY."
+  ],
+  "limits": [
+    "This is a locally generated and modified control, not an original AutoCAD producer witness or native clone/merge test.",
+    "The sample does not establish full source graph closure or broad R13 support; the existing native semantics and strict-output gates remain open. No drawing fixture was committed."
+  ]
+}

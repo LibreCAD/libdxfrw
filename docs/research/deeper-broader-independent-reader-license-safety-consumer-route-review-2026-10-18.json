@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader independent-reader license, parser-safety, and consumer-route review",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Assess LibreDWG's current AcDs reader route, security history, and source license as a comparator for libdxfrw",
+    "Separate DXF parser support from peer writer/native acceptance for 3DSOLID and related carriers",
+    "Pin FreeCAD converter/importer route dimensions and LibreCAD 3 feature configuration requirements",
+    "Refine existing 2D compatibility, 3D carrier, semantic, and fast-validation owners without creating new gates"
+  ],
+  "method": {
+    "kind": "Read current upstream source, release history, official application documentation, and reconcile with local implementation plans",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "GitHub master and official documentation pages are mutable. No peer behavior or issue report was reproduced. Source claims are route discovery only; ODA v5.4.1 remains authoritative for DWG byte layout. No local defect was established."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG R2007+ AcDs decoder",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/ODA-5.4.2-libredwg-diff.pdf"
+      ],
+      "revision": "Mutable master reviewed 2026-10-18",
+      "observed": "The source has a dedicated read_2007_section_acds() entry route into acds_private()/acds.spec for AcDsPrototype_1b. The project exposes a document comparing its internal ODA 5.4.2 specification to LibreDWG implementation behavior. This identifies a useful structure comparator and investigation index, but does not prove complete entity-owner association, ACIS body semantics, or conformance for an unpinned build. The local ODA v5.4.1 specification remains authoritative."
+    },
+    {
+      "project": "LibreDWG release security history and license",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreCAD/LibreCAD"
+      ],
+      "revision": "NEWS entry for 0.14.1 dated 2026-07-25; repository license reviewed 2026-10-18",
+      "observed": "The release history records fixes for an R2004 section-decompression heap overflow, a pre-R2004 VIEWPORT import use-after-free, and an R2004 section-page-map out-of-bounds read. These are not evidence of local libdxfrw defects; they are relevant regression classes for the existing parser-hardening owners. LibreDWG is GPL-3.0-or-later, so source reuse in the LibreCAD downstream path needs separate maintainer/license-compatibility review; behavioral comparison does not require source reuse."
+    },
+    {
+      "project": "IxMilia.Dxf read/write boundary",
+      "urls": [
+        "https://github.com/ixmilia/dxf#autocad"
+      ],
+      "revision": "Repository compatibility notes reviewed 2026-10-18",
+      "observed": "The repository lists typed DXF 3DSOLID, BODY, and REGION entities, but explicitly cautions that AutoCAD might not open files written with several such entity types. This is a project-level warning and not proof that all output is invalid. It supports treating reader/model coverage separately from writer/native acceptance."
+    },
+    {
+      "project": "FreeCAD converter and importer configuration",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "revision": "Official documentation pages reviewed 2026-10-18",
+      "observed": "FreeCAD's DWG path uses an external converter followed by the selected DXF importer; documented converter choices include LibreDWG, ODA File Converter, and QCAD Pro. DXF importer choice is configurable between a newer C++ implementation and a legacy Python implementation with differing feature coverage. Stock DXF import does not consume embedded ACIS solids. A FreeCAD result must therefore identify the exact converter, output revision/artifact, importer backend, and relevant preferences; it cannot establish ACIS/B-rep semantics."
+    },
+    {
+      "project": "LibreCAD 3 downstream DWG route",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Mutable master document reviewed 2026-10-18",
+      "observed": "The documentation states that DWG import is behind WITH_DWG_IMPORT, off by default, and read-only, and describes a read-direction evidence ledger. Downstream qualification must pin the source revision and explicitly enable the feature; default-build absence and DWG writing are not the same route. This is a compatibility consumer, not an ACIS semantic witness."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines existing PAR-07/S8, writer-acceptance, security-hardening, FreeCAD platform-qualification, and LibreCAD adapter-compatibility owners. Peer admission now records license/revision/build/route; FreeCAD qualification pins converter plus importer backend; writer readback is not treated as native acceptance; security examples map to existing bounds, lifetime, and decompression controls. Local fast-slice cadence and implementation queue are unchanged.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Use immutable peer revisions and capture repository URL, license, binary/source hash, build options, OS, format/version/direction, exact command, and diagnostics; classify unavailable or ambiguous evidence as NOT_RUN/NOT_QUALIFIED.",
+    "Use LibreDWG's ODA implementation-difference PDF only to locate questions; adjudicate DWG bytes with the local ODA v5.4.1 PDF and an empirical sample trace.",
+    "Do not port GPL-3.0-or-later source into the LibreCAD downstream path without a separate maintainer/license-compatibility review; prefer specification-led implementation.",
+    "For FreeCAD Linux and Windows runs, capture exact app and converter revisions, converter selection, requested/actual DXF version, intermediate DXF hash, importer backend, and relevant import preferences. Test only the route actually claimed; an alternate backend is an optional distinct matrix row.",
+    "Keep 2D compatibility, explicit 3D geometry, opaque SAT/SAB/AcDs payload preservation, ACIS parsing, B-rep semantics, and native application acceptance as separate results.",
+    "Treat peer entity readers as reader evidence only when the peer documents writer acceptance caveats; require an independent reopen/native check for writer claims.",
+    "Map peer security reports to existing local bounds, decompression-size, progress, and object-lifetime owners. Add a focused in-memory regression to the existing owner only after confirming an uncovered local gap.",
+    "Retain strict owning-target build + focused selector + owning CTest for each local slice. Defer full suites, fuzzing, sanitizers, broad corpus, peer, and native-app runs to existing composed gates.",
+    "After each implementation item, update the plan with result, remaining evidence boundary, and next actionable local item; mark external evidence unavailable and continue without waiting."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  }
+}

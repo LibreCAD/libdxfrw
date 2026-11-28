@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-common-defaults-2026-11-27",
+  "supportClaimEffect": "selected profile only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "ee40253827787b4c6501f92f006f84da140d8da7",
+  "parent": "3b9abcd46ad6c1b3aa082f5cd66bdc77f5f8cdef",
+  "authority": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+  "scope": "Bounded ordinary ASCII AC1021 sparse-MATERIAL model-space POINT, LINE, CIRCLE, ARC, ELLIPSE and LWPOLYLINE with explicit common-entity default group 67=0, linetype scale 48=1, and visibility 60=0.",
+  "checks": [
+    "The combined-default input was refused before the change.",
+    "The focused test passes 534 assertions across six types, covering edits, reopen/resave, invalid, duplicate, nondefault and misplaced values, raw/typed disagreement, a live invisibility edit, destination preservation and corrected retry.",
+    "The MATERIAL selector passes 4619 assertions in 23 cases against the installed shared codec; the bundled-codec library builds.",
+    "ezdxf 1.4.5 independently verifies model-space membership, default visibility and scale, edited coordinates, PlainMat links and zero audit errors or fixes. The normalized outputs are byte-identical to the corresponding prior model-space outputs."
+  ],
+  "hashes": {
+    "redLog": "65f98a8def97266d2d8d11533b883f07e7a1f98246aa6fa7c57993388bdb858f",
+    "focusedLog": "bb85b763e20f4bcea21290cda041bd112c7044aedb75602c5b754eda74e4ea4c",
+    "materialLog": "17712e60022e15dce42b7c962c00eae8d69fe62bf59c9a44be5ed7f5ff9c7049",
+    "bundledBuildLog": "33b366fa1b796685fcad8ca85434ce908ccf3af7ef470ed601123ba9f7f2e18c"
+  },
+  "limits": [
+    "Nondefault visibility, linetype scale, paper-space, and unqualified layout, owner and material graphs remain guarded.",
+    "Generated ASCII AC1021 and headless macOS ARM64 only; no native GUI, binary, other producer or general parity claim. No drawing fixture was committed."
+  ]
+}

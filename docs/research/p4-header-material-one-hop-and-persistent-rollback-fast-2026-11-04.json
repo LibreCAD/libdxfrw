@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-header-material-one-hop-and-persistent-rollback-fast-2026-11-04",
+  "date": "2026-11-04",
+  "title": "Generated HEADER MATERIAL target closure and persistent rollback control",
+  "state": "VERIFIED_LOCAL_IMPLEMENTATION",
+  "supportClaimEffect": "none",
+  "parentCommit": "a3e1e3a41f037df57b070c27ded262bd118a41b4",
+  "scope": "Refresh and register the existing generated HEADER $CMATERIAL control after MATERIAL object handles began following handle remaps. Verify the core's one-hop target check, direct output graph identity, atomic refusal, retry, both DXF encodings, and allocation-failure rollback. No producer, native rendering, full-document, or support claim is qualified.",
+  "control": {
+    "fixtureAdmission": "Locally authored DXF recipes and API models only; all drawing bytes are generated in a temporary directory and removed on success. No DWG/DXF fixture is committed.",
+    "targetChain": "With remaps 2 -> EA02 and EA02 -> EA12, HEADER source 2 resolves one hop to EA02 while the source MATERIAL object EA12 remains EA12. The mismatched graph is atomically refused. Correcting HEADER source to EA02 resolves to EA12 and passes output identity/owner proof.",
+    "directWriter": "The bounded low-level dxfRW test adapter accepts the completed output after the control independently checks the material target, owner dictionary, HEADER group 347 and HANDSEED. It does not claim dx_iface source-snapshot admission for arbitrary direct callers."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j3",
+    "test": "ctest --test-dir build-gcc -R '^dxf_header_material_bindings$' --output-on-failure",
+    "result": "PASS",
+    "seconds": 3.27,
+    "encoding": ["ASCII", "Binary"],
+    "counts": {
+      "facadeProfiles": 80,
+      "independentFieldChecks": 1634,
+      "readbacks": 80,
+      "callbackRefusals": 68,
+      "correctedRetries": 248,
+      "malformedOrTargetRefusals": 52,
+      "stagedByteRefusals": 16,
+      "directWriterProfiles": 6,
+      "inspectorGuardRefusals": 8,
+      "persistentAllocationFailuresReached": 128,
+      "unreachedAllocationOffsets": 0,
+      "scalarOnlyDiagnostics": 128,
+      "inactiveOrNull2DProfiles": 4
+    },
+    "allocationControl": "Global allocation failure remains active after the first injected std::bad_alloc until each write attempt returns. Every reached offset preserves the destination, leaves no owned temporary files, records the scalar-only diagnostic, and succeeds after same-codec retry."
+  },
+  "limits": [
+    "Generated graph identity and writer transaction evidence only.",
+    "The direct-writer vector does not qualify physical producer graphs or native material semantics.",
+    "No support claim is promoted."
+  ]
+}

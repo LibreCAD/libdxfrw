@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-08",
+  "scope": "Generated AC1027 CELLSTYLEMAP CMC DXF writer loss-guard control",
+  "status": "bounded-generated-profile",
+  "evidence": {
+    "source": "DXF CELLSTYLEMAP serializer and parser group-62/420/430 path; generated local graph only.",
+    "change": "DXF has no CMC method field. Method-zero CMC with RGB and optional color names/books is emitted through groups 420/430 and canonicalizes to method C2 on readback. A color-book/name value without an RGB base remains refused. Color-book string assembly catches allocation exceptions and fails the record transaction.",
+    "control": "The existing generated CELLSTYLEMAP ASCII/Binary graph exercises background, content, and border RGB/book/name values and exact group order with fresh typed readback; its background starts with method zero and proves normalization to C2. A method-zero content color-book value without RGB is refused, preserving a destination sentinel; corrected same-adapter retry succeeds.",
+    "fixture_policy": "No DWG/DXF fixtures were added. The test graph and output are generated locally; output is removed after the test."
+  },
+  "validation": {
+    "commands": [
+      "git diff --check",
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "ctest --test-dir build -R '^libdxfrw_cellstylemap_dxf_writer$' --output-on-failure"
+    ],
+    "result": "passed; focused CTest 1/1"
+  },
+  "source_sha256": {
+    "src/libdxfrw.cpp": "fd7498be4d71679c3f44e6ec3106243992e535e643211b10cbba1608b80d320a",
+    "tests/dwg2dxf_adapter_tests.cpp": "a48af733f5710dd9ff1cf844882fd485e896c6f2783809168f9e53a04d182530"
+  },
+  "qualification_limits": [
+    "No independent producer or native CAD behavior is established.",
+    "The generated checks establish codec consistency and atomic refusal/retry only.",
+    "Complete TABLESTYLE/CELLSTYLEMAP graph closure and consumer rendering remain governed by their existing P4/P5 gates."
+  ]
+}

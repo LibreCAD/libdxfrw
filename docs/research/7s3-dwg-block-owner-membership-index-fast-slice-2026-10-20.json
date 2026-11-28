@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "plan_owner": "PAR-65/7S.3",
+  "related_owner": "7S",
+  "slice": "DWG BLOCK owner membership index",
+  "status": "implemented_locally_uncommitted",
+  "problem": "Typed and raw entity ownership registration linearly scanned the destination owner vector before each insertion, creating cumulative quadratic duplicate-check work for large block lists.",
+  "implementation": {
+    "files_changed": [
+      "src/intern/dwgwriter15.h",
+      "src/intern/dwgwriter15.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "Added an owner+entity-handle ordered membership set shared by typed and raw entity ownership registration.",
+      "Preserved historical per-owner duplicate behavior by including the BLOCK_RECORD handle in the key.",
+      "Bounded index cardinality at dwgSafety::MaxDwgReadObjectCount (1,000,000); retained vector publication is rolled back if membership insertion or vector append fails.",
+      "Updated compound rollback to erase indexed memberships alongside truncated modelspace, paperspace, and user-block entity-list tails, including removed post-checkpoint user blocks.",
+      "Added a generated focused selector and CTest for typed/raw duplicate rejection, per-owner scope, and rollback/retry without persistent DWG/DXF fixtures."
+    ],
+    "complexity": "Duplicate lookup changes from linear owner-list scan to O(log N) ordered-set lookup. No timing benchmark or RSS bound is claimed.",
+    "wire_behavior": "No serialized field, handle ordering, public API, or support claim changed."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+      "result": "PASS (GCC -Werror)"
+    },
+    "focused_ctests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_block_owner_membership_index|libdxfrw_dwg_block_record_xref_roundtrip|libdxfrw_dwg_local_roundtrip)$' --output-on-failure",
+      "passed": 3,
+      "failed": 0,
+      "result": "PASS"
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- src/intern/dwgwriter15.cpp src/intern/dwgwriter15.h tests/dwg_local_roundtrip_tests.cpp CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/7s3-dwg-block-owner-membership-index-fast-slice-2026-10-20.json",
+      "result": "PASS"
+    },
+    "not_run": [
+      "full test suite",
+      "sanitizers or fuzzing",
+      "performance benchmark or RSS measurement",
+      "peer executable or independent producer",
+      "native CAD application"
+    ]
+  },
+  "assessment": {
+    "new_format_findings": 0,
+    "new_top_level_subplans": 0,
+    "production_code_changed": true,
+    "tests_added": true,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 141,
+      "top_level_subplans": 78
+    },
+    "deferred_external": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "next_local_work": "Charge every rawNamedResourceObjects carrier once against PAR-58/7AI's source-record work budget; the current inventory loops rescan the vector by class family and do not charge unmatched entries.",
+  "repository_state": "Broadly dirty shared worktree; .git metadata is read-only, so the slice remains uncommitted."
+}

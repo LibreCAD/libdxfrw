@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-image-clip-boundary-output-guard-2026-11-03",
+  "date": "2026-11-03",
+  "title": "IMAGE clipping boundary output admission",
+  "supportClaimEffect": "none",
+  "source": {
+    "title": "Autodesk IMAGE DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3A2FF847-BE14-4AC5-9BD4-BD3DCAEF2281.htm",
+    "observation": "Group 71 selects rectangular or polygonal boundary; group 91 is vertex count; rectangle requires exactly two opposite corners and polygon at least three sequential vertices."
+  },
+  "defect": "The writer selected group 71 solely by clipPath length. One stored vertex silently became a default rectangle; an explicit rectangle with three points or polygon with two points was silently rewritten as the other boundary kind.",
+  "change": "IMAGE output validates explicit type, parsed count and unfinished vertex state before output; unset type with an uncounted list of at least two vertices still infers its shape, and empty unset/rectangle boundaries use the documented default rectangle.",
+  "validation": "Generated ASCII and Binary whole-file controls cover the three lossy inputs plus a present parsed count with missing type, preserve an existing destination and source identity on refusal, then correct and retry on the same writer with typed boundary readback. The empty default rectangle remains accepted. Existing adjustment admission controls run in the same focused selector.",
+  "limits": [
+    "This validates boundary representation and failure handling, not native clipping geometry, source-producer breadth, or whole-document graph closure.",
+    "No DWG/DXF fixture was added.",
+    "A missing parsed count does not prove a list was authored: tolerant DXF import can publish malformed incomplete boundary data, and DRW_Image copying resets parser count and vertex state. Source-callback completeness and copy provenance remain unqualified."
+  ]
+}

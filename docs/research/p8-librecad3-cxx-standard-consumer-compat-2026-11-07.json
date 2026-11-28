@@ -1,0 +1,68 @@
+{
+  "id": "p8-librecad3-cxx-standard-consumer-compat-2026-11-07",
+  "date": "2026-11-07",
+  "scope": "LibreCAD_3 persistence compile compatibility with the current upstream libdxfrw public headers",
+  "classification": "consumer-build-configuration incompatibility; not a format-support result",
+  "source_revisions": {
+    "libdxfrw": "workspace HEAD at investigation time",
+    "librecad3": "local dirty checkout; CMake reports branch fix/msvc-eigen-include, commit 132265a0"
+  },
+  "observations": [
+    {
+      "source": "libdxfrw/CMakeLists.txt",
+      "lines": "68-69, 96",
+      "fact": "The project sets CMAKE_CXX_STANDARD to 17 and the dxfrw target publishes cxx_std_17 as a PUBLIC compile feature."
+    },
+    {
+      "source": "LibreCAD_3/CMakeLists.txt",
+      "lines": "227-228",
+      "fact": "The consumer sets CMAKE_CXX_STANDARD to 14 with CXX_STANDARD_REQUIRED enabled."
+    },
+    {
+      "source": "/private/tmp/librecad3-upstream-check/persistence/CMakeFiles/persistence.dir/flags.make",
+      "fact": "The persistence target compiles with -std=gnu++14 and includes upstream libdxfrw headers from /Users/dli/dev/libdxfrw/src. The probe supplied raw include/library paths, not the exported dxfrw target, so its PUBLIC compile feature was not propagated."
+    }
+  ],
+  "reproduction": {
+    "configure": "cmake -S ../LibreCAD_3 -B /private/tmp/librecad3-upstream-check -DCMAKE_BUILD_TYPE=Release -DWITH_PERSISTENCE=ON -DWITH_PYTHONSCRIPT=OFF -DWITH_QT_UI=OFF -DLIBDXFRW_INCLUDE_DIR=/Users/dli/dev/libdxfrw/src -DLIBDXFRW_LIBRARY=/Users/dli/dev/libdxfrw/build-gcc/libdxfrw.a",
+    "configure_result": "success; found the selected upstream headers and static library",
+    "build": "cmake --build /private/tmp/librecad3-upstream-check --target persistence -j 4",
+    "build_result": "failure while compiling persistence/file.cpp and persistence/libdxfrw/dxfimpl.cpp; public headers report no std::optional or std::nullopt under C++14, followed by cascading type errors"
+  },
+  "config_package_recheck": {
+    "install": "cmake --install build-gcc --prefix /private/tmp/libdxfrw-p8-install",
+    "configure": "cmake -S ../LibreCAD_3 -B /private/tmp/librecad3-upstream-cxx17-check -DCMAKE_BUILD_TYPE=Release -DWITH_PERSISTENCE=ON -DWITH_PYTHONSCRIPT=OFF -DWITH_QT_UI=OFF -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=ON -Dlibdxfrw_DIR=/private/tmp/libdxfrw-p8-install/lib/cmake/libdxfrw -DEIGEN3_INCLUDE_DIR=/opt/homebrew/include/eigen3",
+    "consumer_compile_mode": "-std=gnu++17 in persistence/CMakeFiles/persistence.dir/flags.make",
+    "build": "cmake --build /private/tmp/librecad3-upstream-cxx17-check --target persistence -j 4",
+    "build_result": "success; LibreCAD_3 persistence linked against the installed upstream libdxfrw package target",
+    "libdxfrw_archive_sha256": "455d03b566a9ad658ffe844614712372e24c5b85d8447f480c0f02f9b4b5089a",
+    "persistence_dylib_sha256": "ba0c40fe672e8074988c0f479ec8db1c62499e1686115fd8e9002807c58c63c8"
+  },
+  "focused_consumer_rechecks": {
+    "dynamic_load_confirmation": "DYLD_PRINT_LIBRARIES confirmed the test runners loaded /private/tmp/librecad3-upstream-cxx17-check/persistence/libpersistence.dylib and /private/tmp/librecad3-upstream-cxx17-check/lckernel/liblckernel.dylib",
+    "export_tests": "The existing dxfexporttest.cpp runner passed DxfExportTest.* (3/3) against the newly built persistence dylib.",
+    "planar_open_save_reopen": "The existing Lc3NativeDxfrw.OpenSaveReopen2dEntities control passed (1/1) against the newly built persistence dylib; the test read its locally authored LINE/CIRCLE source, saved and reopened it, and verified coordinates/radius.",
+    "saved_dxf_sha256": "5e18501cb56559cd9ff5c096a7011d0bcfda5e78ec0dafe7ace93a8d62cbf8d9",
+    "fixtures": "All test inputs and outputs remain in /private/tmp; none were added to this repository."
+  },
+  "in_tree_usage_requirement_guard": {
+    "target": "libdxfrw_consumer_cxx17_contract",
+    "source": "tests/consumer_cxx17_contract.cpp",
+    "consumer_requested_standard": "C++14",
+    "linked_target": "dxfrw",
+    "assertion": "The public <optional> feature macro and DRW_Variant::ActiveDwgLayerReference are available to the downstream translation unit.",
+    "effective_compile_flags": "-std=c++17 in build-gcc/tests/CMakeFiles/libdxfrw_consumer_cxx17_contract.dir/flags.make",
+    "result": "cmake --build build-gcc --target libdxfrw_consumer_cxx17_contract -j 4 succeeded"
+  },
+  "interpretation": "The observed failure is explained by the consumer compile mode and does not establish a source/API defect under the libdxfrw target's declared C++17 requirement. The repository AGENTS.md description of libdxfrw as C++14 is stale relative to CMakeLists.txt and must not be used as the current build contract.",
+  "implementation_follow_up": [
+    "Prefer the installed CONFIG package in LibreCAD_3 with CMAKE_FIND_PACKAGE_PREFER_CONFIG=ON and libdxfrw_DIR set to the selected package, or update its module-mode imported interface target to publish cxx_std_17. Do not pass raw source include/library variables without a compile-feature contract.",
+    "The CONFIG-package path now configures, builds persistence, and passes the existing focused export (3/3) and planar open/save/reopen (1/1) controls against the installed package archive.",
+    "Keep the default module-mode failure, clean consumer revision, full application, ABI, and Linux/Windows qualification as separate remaining P8 gates."
+  ],
+  "limitations": [
+    "The LibreCAD_3 checkout is dirty and was not modified; prior custom runners were reused, and DYLD_PRINT_LIBRARIES verified that they loaded the newly built persistence/kernel dylibs.",
+    "No native application, ABI, Windows, or Linux qualification was performed.",
+    "No DWG/DXF fixtures were added."
+  ]
+}

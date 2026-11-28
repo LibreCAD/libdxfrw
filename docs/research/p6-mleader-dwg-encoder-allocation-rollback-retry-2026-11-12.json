@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mleader-dwg-encoder-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "BOUNDED_MLEADER_DWG_ENCODER_TRANSACTIONAL_ROLLBACK_RETRY",
+  "supportClaimEffect": "none",
+  "scope": "Make DRW_MLeader DWG encoding transactional across caller body, string, and handle buffers and test allocation-failure rollback with same-object retry.",
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "src/drw_entities.h"
+    ],
+    "method": "DRW_MLeader::encodeDwg",
+    "changes": [
+      "Wrap the existing MLEADER body encoder in encodeEntityDwgTransaction and pass its staged body, string, and handle buffers to the existing encoding path.",
+      "Keep output field order and validation unchanged; defer oType and caller-buffer commits until successful completion."
+    ],
+    "test": "tests/dwg_hatch_encoder_allocation_tests.cpp",
+    "failureBehavior": "Injected allocation failure leaves all caller streams and oType unchanged; retrying the same MLEADER against the same buffers matches clean output exactly."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_entity_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedTests": "ctest --test-dir build-gcc -R '^(dwg_entity_encoder_allocation_rollback_retry|libdxfrw_dwg_hatch_edge_subtype|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "result": "PASS (3/3)",
+    "allocationSweep": "PASS: 1,336 allocation offsets across HATCH and MPOLYGON at six DWG versions, plus MLEADER at AC1024/AC1027/AC1032; 75 entity/version/stream-layout profiles",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "coverage": [
+    "The generated MLEADER includes style/entity handles and a root with a leader line and one point.",
+    "Five stream alias layouts are exercised: distinct streams, shared string/handle stream, body/string alias, body/handle alias, and all streams aliased.",
+    "Each allocation offset verifies body/string/handle bytes and bit positions, oType, and handle state, then performs same-object/same-buffer retry and exact comparison with clean output.",
+    "HATCH and MPOLYGON remain in the combined allocation sweep as regressions."
+  ],
+  "inputHashes": {
+    "src/drw_entities.cpp": "c34370585bb8e35216d7c42bd51c4d4f19d1d8db2c7aa6a96091f472416c9a0d",
+    "src/drw_entities.h": "ec32e6333a28c4bad0ace8107e20c0f5bcd65a6197a02e06933ef2c412a887fc",
+    "tests/dwg_hatch_encoder_allocation_tests.cpp": "2fcb5694e207ec8db71457dad0d92e81842c85413ed7294fb547eae2e2291e33",
+    "tests/CMakeLists.txt": "7f53357d5b2c989d2bc8e7a51bcca5d179bef70e7cd450620dd6c383dc58cbde"
+  },
+  "fixtureFilesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "Generated transaction controls do not qualify MLEADER source-producer breadth, wire semantics, graph closure, or native annotation rendering.",
+    "No DWG or DXF drawing fixture was added."
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-138 DetailViewStyle unknown-header-prefix refusal fast slice",
+  "mode": "generated ASCII/Binary regression control",
+  "scope": [
+    "Close the PAR-138 gap where DetailViewStyle unknown class-header prefix refusal lacked the matching SectionViewStyle preservation control",
+    "Verify fail-closed behavior and preservation of a pre-existing output destination"
+  ],
+  "method": {
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "testsRun": true,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The generated test checks ambiguity refusal for one DetailViewStyle class-header insertion route in ASCII and Binary DXF. It is not an exhaustive field matrix, DWG validation, external writer acceptance, or 3D semantic result."
+  },
+  "implementation": {
+    "testFile": "tests/dwg2dxf_adapter_tests.cpp",
+    "selector": "--modeldoc-view-style-callbacks",
+    "change": "Added a generated unknown group-999 field before DetailViewStyle group-71 flags, requested class-version insertion, required export refusal, and verified the destination sentinel stayed byte-identical. Restored the captured raw carrier before later selector checks.",
+    "productionBehaviorChanged": false,
+    "newTestSelector": false,
+    "newCTestRegistration": false
+  },
+  "decision": {
+    "newLocalFormatDefect": false,
+    "newNumberedFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimPromoted": false,
+    "externalGatesChanged": false,
+    "findingsAndSubplans": "141 / 78",
+    "deferredExternalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2 — passed",
+    "fastSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks — passed",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure — 1/1 passed",
+    "scopedDiffCheck": "git diff --check for tests/dwg2dxf_adapter_tests.cpp and DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md — passed",
+    "receiptJsonValidation": "jq empty docs/research/par138-detailviewstyle-unknown-prefix-refusal-fast-slice-2026-10-20.json — passed",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree contains extensive user-owned changes and Git metadata is read-only; no staging or commit performed."
+  }
+}

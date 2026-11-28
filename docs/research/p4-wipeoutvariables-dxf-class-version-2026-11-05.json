@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "WIPEOUTVARIABLES DXF class-version field",
+  "date": "2026-11-05",
+  "status": "GROUP_90_READ_WRITE_AND_ASCII_BINARY_RETRY_PASSED",
+  "scope": "Model and transport the WIPEOUTVARIABLES DXF class-version field without widening DWG-origin owner-graph admission. Tolerant input retains unsupported class versions; typed output admits only the documented zero value.",
+  "normativeSource": {
+    "title": "Autodesk WIPEOUTVARIABLES (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CD28B95F-483C-4080-82A6-420606F88356.htm",
+    "fields": {
+      "group90": "Class version 0",
+      "group70": "Display-image-frame flag, 0 or 1"
+    }
+  },
+  "implementation": {
+    "files": ["src/drw_objects.h", "src/drw_objects.cpp", "src/libdxfrw.cpp"],
+    "behavior": "DRW_WipeoutVariables exposes and resets m_classVersion; parseCode reads group 90 as a 32-bit value; writeWipeoutVariables emits group 90 before group 70 and rejects nonzero class versions or invalid display-frame values before table-entry identity reservation. The DWG codec remains unchanged because group 90 is a DXF field."
+  },
+  "regressionControl": {
+    "file": "tests/wave1_tests.cpp",
+    "selector": "--raster-wipeout-variables-identity-remapping",
+    "coverage": "ASCII and Binary output both emit and read back group 90=0. Nonzero class version and frame=2 are refused without bytes, corrected on the same writer, and read back with one identity. A tolerant ASCII input with group 90=1 retains that value and the exact raw group for caller inspection."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "buildResult": "passed",
+    "focusedTest": "build-gcc/libdxfrw_wave1_tests --raster-wipeout-variables-identity-remapping",
+    "focusedTestResult": "passed",
+    "adapterBuild": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "adapterBuildResult": "passed",
+    "adapterTest": "ctest --test-dir build-gcc -R '^dwg2dxf_wipeoutvariables_dwg_adapter_transport$' --output-on-failure",
+    "adapterTestResult": "fails at corrected same-adapter retry both with this worktree and after replacing src/drw_objects.h, src/drw_objects.cpp and src/libdxfrw.cpp with their HEAD versions; failure is pre-existing and is not attributed to this class-version change",
+    "diffCheck": "git diff --check passed"
+  },
+  "sourceBinding": {
+    "baseRevision": "92c3fba8",
+    "files": {
+      "src/drw_objects.h": "4826f88ae760f1f2299d4bca5ee5822a99a96767850d2299833a68ee6b143e90",
+      "src/drw_objects.cpp": "a7d2f4f4a141f69e35ae043d1299efee21ab3a36e4dd1c392e11300bb3ae228c",
+      "src/libdxfrw.cpp": "9a107ff143d90d8e4294e7818bdf675d829bbeab322d4b196eafdc346eb8d87d",
+      "tests/wave1_tests.cpp": "a5cfa7aa48fac529205dabdeb330696d3fc58cf43a02f4fb1eeb3616a21f8868"
+    }
+  },
+  "fixturePolicy": {
+    "newDwgOrDxfFixtureCommitted": false,
+    "generatedInputs": "ASCII and Binary records are generated in memory by the focused test."
+  },
+  "nonClaims": [
+    "No physical producer profile was added or qualified.",
+    "No whole-document DWG conversion or native wipeout display claim follows.",
+    "The DWG-origin adapter same-revision profile remains bounded by its existing source and graph evidence."
+  ]
+}

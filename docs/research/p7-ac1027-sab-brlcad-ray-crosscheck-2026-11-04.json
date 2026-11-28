@@ -1,0 +1,246 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_ADVISORY_CROSS_KERNEL_STEP_RAY_OBSERVATION",
+  "supportClaimEffect": "none",
+  "qualification_eligible": false,
+  "scope": "Six rim rays, one hole ray and one exterior ray against a STEP-bridged representation of the exact 2E1 SAB from the previously joined AC1027 modeler source; plus analytic-cube ray controls. This is not independent SAB decoding or source-native placement or support qualification.",
+  "provenance": {
+    "source_dwg_sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "source_dwg_to_sab_join": "Prior source/ODA byte-join receipt p7-ac1027-physical-modeler-acds-sab-oda-byte-join-2026-11-03.json; this audit verifies the exact previously joined SAB hash but does not repeat DWG extraction or ODA conversion.",
+    "sab_handle": "2E1",
+    "sab_sha256": "5ca4756434d068b932ac6e0100e5ff07eae36c7eed29a43367eeff8113cca0ec",
+    "bridge": "cq-acis 0.3.12 / OCCT, STEP without pcurves",
+    "brlcad": "BRL-CAD 7.24 STEPcode/openNURBS/librt",
+    "execution": "macOS ARM64 host using installed x86_64 BRL-CAD 7.24.0 under Rosetta; a scratch symlink avoids the colon in the installed application path. No tools or binaries are downloaded, modified or committed.",
+    "exact_module_sha256": {
+      "/private/tmp/p7-ac1027-semantic/cqenv/lib/python3.12/site-packages/cq_acis/_native.abi3.so": "28456eb65642c94169b35c7ab437658f91d8208db62b6cd030c63e24035a22b2",
+      "/private/tmp/p7-ac1027-semantic/cqenv/lib/python3.12/site-packages/cq_acis/cadquery.py": "3b5f4429dcb152aaca999a1d4627542eb0406a868dc03a8a5cdd8abdf262f323",
+      "/private/tmp/p7-ac1027-semantic/cqenv/lib/python3.12/site-packages/cadquery/occ_impl/shapes.py": "6f6a9136b45177bd9cb00ed1706f90078aab04ea2b1a7eb26ab5b46aa43f6c94",
+      "/private/tmp/p7-ac1027-semantic/cqenv/lib/python3.12/site-packages/OCP/OCP.cpython-312-darwin.so": "827fa23f8169d10d13b91d8808dd5d3306b6f3e5af1d5b7d6ddc61ce7617299a"
+    },
+    "brlcad_selected_executable_and_library_sha256": {
+      "bin/step-g": "63dc66a0e16972d9e85c5e35bc637d23624b0c6d1043b886c792fa9e0da9573b",
+      "bin/rtshot": "628ac78da8e835cd9e0f314e478aefad5d5150f2f864b2c2ac80df1c18e8373e",
+      "bin/mged": "2941b6a41de8f52fbbf87ae21ab6643fe4bdd3f2a61d26276a72bbfa7acc0191",
+      "lib/libbrep.20.dylib": "96bb69e20fd4c01031a0436e4bcdae8dfcf5c91aa867449325328c4de6be8d8c",
+      "lib/libopenNURBS.2010.04.95.dylib": "22e0be53452778ad4c5f3b106078468324831b0f7d002418151182e0adc273b0",
+      "lib/librt.20.dylib": "a25ffd4805bb616ea6c53511ea3749f756afa2e8c6dc186c2c9488a810b0e249",
+      "lib/libstepcore.2.dylib": "a1d6a4fe946ffb13665d2ecc019bd0e05adde73eecc896c0fd23ec0b3dcb1237",
+      "lib/libsteputils.2.dylib": "ed963559208e37fc091cebb270674c291eb7dd3756d981430fcbddaf2555277e",
+      "lib/libstepeditor.2.dylib": "b7066c7968a534040a1db539bab41dd08e8077cb1ebea1f01240f19f8b076205",
+      "lib/libstepdai.2.dylib": "d86fbe02a9c860a45eda229fc7104d57e28fdfe2f64b9a31fcd03ddfb6418a10",
+      "lib/libbu.20.dylib": "747cfce363008999c23e0487c956f7c4b17bda8e8c2ae4ef8e424b34f76dda6c",
+      "lib/libbn.20.dylib": "301e8f2dd9088a964aa58a30364f3576bcf0ab73e0f62f12ac2121449c68e652",
+      "lib/libp2t.1.dylib": "59948f7c95ff976b9e948dd424f0974b646f6da00b6f3bd6d3129fc208c33088",
+      "lib/libexpress.2.dylib": "83cb41d98cf30d401f0ef0aa5298026e1fc7e7f23a426f62f996c59578567744",
+      "lib/libwdb.20.dylib": "c7f4dd5b6a00be61b14ae58a783ac96ed7133fa84c4669d95d6a89af2c895eb2",
+      "lib/libvds.1.dylib": "076a5074537e7f5ce12643527796d84c8b89b1c9c72b601eb4a0e65a8cadb477",
+      "lib/libsysv.20.dylib": "0eeb765e9797a82d762d392b7613d8988c71c2d75004fc9a9d0915aaaa7f6d79"
+    },
+    "module_limit": "Hashes bind the listed executables and major modules only; the complete OS, OCCT and BRL-CAD transitive dependency chain is not fully attested."
+  },
+  "method": "Pinned cq-acis/OCCT converts the SAB to a shape and exports STEP with pcurves disabled. This is an OCCT-processed intermediary and may already involve sewing. BRL-CAD 7.24 cannot import default pcurves and treats generic FACE_BOUND as invalid; an analytic 2\u00d73\u00d74 cube exhibits the same importer limitation. The audit independently parses the bounded STEP planar LINE/loop structure, validates connected rings, plane coordinates, face and bound orientations, simple nonintersecting rings, unique positive outer winding, opposite hole winding and strict hole nesting, then changes only the eight proven outer FACE_BOUND names to FACE_OUTER_BOUND. The original and normalized STEP hashes are in the report. STEPcode/openNURBS imports the normalized STEP; mged checks counts and librt/rtshot checks exact fixed-depth ray observations. A fresh scratch directory prevents output collision.",
+  "observations": {
+    "cube": {
+      "faces": 6,
+      "holes": 0,
+      "analytic_dimensions": [
+        2,
+        3,
+        4
+      ],
+      "rays": [
+        {
+          "point": [
+            0.0,
+            0.0
+          ],
+          "hit": true,
+          "distances": [
+            8.0,
+            12.0
+          ],
+          "output_sha256": "9b060c7645a8e7ed746ddff5643d4c479a69ae564f6f29f8c4ae738d17097e85"
+        },
+        {
+          "point": [
+            3.0,
+            0.0
+          ],
+          "hit": false,
+          "distances": null,
+          "output_sha256": "f567d0a49f1bcecc3049b5dcea0f2ab091c497a83f081bdfff3423d568d5fac4"
+        }
+      ],
+      "note": "Independent BRL-CAD ray intersection: z=2 to -2 for a central vertical ray, exterior ray misses. An earlier separate rtweight 512\u00b2 run reported approximately 24.0094 mm\u00b3 versus analytic 24; this is sampled volume and is not used as a strict acceptance criterion."
+    },
+    "solid": {
+      "faces": 8,
+      "loops": 10,
+      "edges": 18,
+      "vertices": 12,
+      "classified_outer_bounds": [
+        18,
+        58,
+        89,
+        131,
+        162,
+        186,
+        203,
+        220
+      ],
+      "holes": 2,
+      "rays": [
+        {
+          "point": [
+            2932.838366931075,
+            13774.9746551445
+          ],
+          "hit": true,
+          "distances": [
+            6.0,
+            10.0
+          ],
+          "output_sha256": "8ef7ff3fd12042abe0f7dfd3300137beb2b0aabd2cb49bce17c5127641d66b26",
+          "boundary_margin": 0.12499999939105652,
+          "role": "rim"
+        },
+        {
+          "point": [
+            3534.414030859425,
+            13956.8150636055
+          ],
+          "hit": true,
+          "distances": [
+            6.0,
+            10.0
+          ],
+          "output_sha256": "9b019cbfe42cd115a7748a152b61c94b9980857a8e4c439f857447b2fee4b8b4",
+          "boundary_margin": 0.12499999967470513,
+          "role": "rim"
+        },
+        {
+          "point": [
+            3958.78134481025,
+            14168.962206809998
+          ],
+          "hit": true,
+          "distances": [
+            6.0,
+            10.0
+          ],
+          "output_sha256": "e049ef1166118bd541539691c6450243e90bd0297a3bf77f27e2f04c9f6a8bb7",
+          "boundary_margin": 0.12499999999818101,
+          "role": "rim"
+        },
+        {
+          "point": [
+            3720.94909283975,
+            14168.96220681
+          ],
+          "hit": true,
+          "distances": [
+            6.0,
+            10.0
+          ],
+          "output_sha256": "5f5932a1af4f61a1fc3e014a8575193f63c62693238ff610b4fa515b9753231b",
+          "boundary_margin": 0.125,
+          "role": "rim"
+        },
+        {
+          "point": [
+            3019.110818256675,
+            13956.8150636055
+          ],
+          "hit": true,
+          "distances": [
+            6.0,
+            10.0
+          ],
+          "output_sha256": "fc5ef981827ce6af77e76fa8ae899961303116f1da91d8248f3111815f19ec02",
+          "boundary_margin": 0.12500000039277687,
+          "role": "rim"
+        },
+        {
+          "point": [
+            2655.3674062988252,
+            13774.9746551445
+          ],
+          "hit": true,
+          "distances": [
+            6.0,
+            10.0
+          ],
+          "output_sha256": "a32c1ee504980007324eeee07355b4f8ebd29b1258154850e888f80dab18d7eb",
+          "boundary_margin": 0.12500000060463673,
+          "role": "rim"
+        },
+        {
+          "point": [
+            3303.7607675896666,
+            13967.015321719999
+          ],
+          "hit": false,
+          "distances": null,
+          "output_sha256": "348b295a7b5d0946137c235b835557882a178c7e34dddb20c74fd65c0d96ac54",
+          "boundary_margin": 76.37705028148196,
+          "role": "hole"
+        },
+        {
+          "point": [
+            5000.0,
+            15000.0
+          ],
+          "hit": false,
+          "distances": null,
+          "output_sha256": "0276579acead0399be6d5ba700c567aadc94d501eb8c5b679d412a4efc7d2138",
+          "boundary_margin": 1128.022943129775,
+          "role": "outside"
+        }
+      ],
+      "ray_interpretation": "Six independently selected rim locations are at least 0.125 mm from either checked boundary and return distances 6 and 10 from z=10, giving z=4 and z=0. One strictly interior hole point and one exterior point miss. Printed BRL-CAD distances are not a general intersection error bound.",
+      "before_step_sha256": "45184e8038a80cb10a2d0218ffea25824ea32a29928cea9deabe6bc98efd0185",
+      "normalized_step_sha256": "9ea64bf0672191f2bf10357901ba9209aaee7a863078dddff922bdae5829a9a5",
+      "brlcad_database_sha256": "2ca387e2b1fa3d460418ada27a9ac82c6c05853df0cdf3ca38b8f80f850efea7"
+    }
+  },
+  "validation": {
+    "tool": "tools/audit_ac1027_sab_brlcad_rays.py",
+    "tool_sha256": "4ff07163e8ef84e2543635c0830a533da7db9a78e5cffa6ee858c695a73e2ae2",
+    "command": "/private/tmp/p7-ac1027-semantic/cqenv/bin/python -B tools/audit_ac1027_sab_brlcad_rays.py --sab /private/tmp/p7-ac1027-semantic/2e1.sab --brlcad-root /private/tmp/brlcad-724 --work-dir /private/tmp/p7-brlcad-crosscheck",
+    "report_scratch": "/private/tmp/p7-brlcad-crosscheck/report-final.json",
+    "report_sha256": "e637eaa2cf8fe630c0cc440eac843a2260aa6f6d76f33f70ea5f0e0b6a22ef47",
+    "negative_controls": "A one-byte-mutated SAB is rejected by source hash before parser use. Reversing the outer STEP FACE_BOUND orientation is rejected as ambiguous winding before producing normalized output. Earlier analytic helper self-tests exercise cube, reversed hole, self-intersection, hole outside and nonplanar ring. External subprocesses have bounded timeouts; bounded input reads do not sandbox parser CPU or arbitrary filesystems."
+  },
+  "limits": [
+    "BRL-CAD receives an OCCT-generated STEP shape, not SAB or native DWG; this is a distinct geometry-kernel ray observation but not an independent decoder or separate source-native geometry oracle.",
+    "The STEP bridge omits pcurves and changes eight independently classified bound type tokens; full curve/trim interchange and nonplanar geometry are not qualified.",
+    "Retained solid-history/asmheader records remain undecoded and their effects on source geometry and placement are unproven. The observed source coordinate frame and mm assumptions are not independently tied to native DWG world placement.",
+    "An exploratory default-view 1024-grid BRL-CAD volume was 150825 mm\u00b3 versus OCCT/analytic 4243.18 mm\u00b3 with only 88 hits; a 4096\u00b2 cropped run was stopped after several minutes and produced no result. These are not agreement and no source-volume claim is made.",
+    "Only selected rays and one source-associated solid are checked; REGIONs, global validity, self-intersection, native rendering, arbitrary files, platforms and whole-document replay remain open. No DWG/DXF/SAB/STEP fixture or application binary is committed."
+  ],
+  "currentLibdxfrwPlanarLoopRecheck": {
+    "date": "2026-11-19",
+    "head": "524e49d941a14d4402f3f3a3f5a84d0ce34bc68d",
+    "sourceDwgSha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "sourceRecordPayloadSha256": "5ca4756434d068b932ac6e0100e5ff07eae36c7eed29a43367eeff8113cca0ec",
+    "sourceProbe": "build-gcc/libdxfrw_ac1027_acds_source_probe",
+    "sourceProbeSha256": "1d9add20aedb1c05752ee17e61cad4ba98cc7a8800bdfe78573ea3f2942bdf96",
+    "sourceLogSha256": "90c476904a81b91e158d9e8192616a4161f6a7f0b2a5542309edecc1007f0595",
+    "librarySha256": "5f2a5d816b8d0eb816defc359766ab5d974f889117a20329ad6d2172abc75f8d",
+    "scratchProbe": {
+      "source": "/private/tmp/p7g-planar-source/probe.cpp",
+      "sourceSha256": "59ec968b8c63bc8901087edda7f0b40b736cbb8a70b9758577ebdb486fa06c36",
+      "binarySha256": "8f9591bc83f0db7e12b191c29ad49882952fca92c6f7f3685da38e3f48e0d0e1",
+      "outputSha256": "f8e283861cb2bb51e2086d6b91e2c39d50a6f9b72b6715a299993be2b71232f1",
+      "comparisonScript": "/private/tmp/p7g-planar-source/compare.py",
+      "comparisonScriptSha256": "4b478e4455072e51b6f9d3b3b2f6bcf61983e5c4fb47201660a382117ae923dd",
+      "comparisonOutputSha256": "90ec88a994c5266dbb09af20598f8a48faac8163e172f81b6b4b019e4f94ccba"
+    },
+    "observations": "Fresh source probe recovers the exact SAB bytes. Current parser reports complete SAB 21800 with 135 records and one projected body with 8 planar faces, 18 edges, 12 vertices, and 10 closed connected loops. Face 42 is at z=4 with two oppositely oriented triangular loops; all hole vertices lie inside the outer loop. Independent scratch polygon arithmetic using projected loop vertices reproduces all eight previously recorded BRL-CAD hit/miss observations: six rim hits, hole miss and outside miss. Point-to-boundary margins exceed 0.124999 mm for these probes.",
+    "limits": "This compares libdxfrw source projection against a previously observed BRL-CAD ray result on an OCCT-generated, normalized STEP intermediary. It is not a native DWG/ACIS producer oracle, independent original-source decoder, proof of modeler containment flags, or general trim/pcurve support. No libdxfrw trimmed-face classifier was used; no producer-geometry or application support claim follows. All source and derived drawings and payloads remain scratch-only.",
+    "nextAction": "Implement a bounded planar-straight-loop classifier or equivalent trim operation with explicit tolerance and fail-closed handling of malformed, intersecting, ambiguous, nonplanar, curved, pcurve-bearing, or unsupported containment profiles. Independently check this exact hole/rim profile, boundary, off-plane, invalid topology and corrected retry; preserve raw data. Do not change 3D support claims until profile and consumer gates are satisfied.",
+    "supportClaimEffect": "none"
+  }
+}

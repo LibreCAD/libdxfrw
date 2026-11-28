@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 MLEADERSTYLE CMC optional name/book retention",
+  "mode": "generated AC1024 writer-wire-parser fast slice",
+  "scope": [
+    "Retain optional CMC color-name and color-book-name strings for MLEADERSTYLE leader, text, and block colors",
+    "Use bounded R2007+ detached string-stream parsing and writing",
+    "Verify C0, C2, and C3 method projection, flags, string order, parse round-trip, and fail-before-output behavior"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "20.4.87 MLEADERSTYLE"],
+      "finding": "ODA §2.11 defines the optional CMC color-name/book-name flags and TV strings; §20.4.87 identifies the leader, text, and block style colors as CMC. This evidence does not define class-specific DXF truecolor/name/book mappings."
+    },
+    "localSource": {
+      "files": ["src/drw_objects.h", "src/drw_objects.cpp"],
+      "finding": "MLEADERSTYLE previously retained C2 RGB only and discarded CMC names/books in parseDwg; encodeDwg emitted index/RGB with empty optional strings. The model now retains all three independent name/book pairs, the bounded parser captures them, and the writer emits them through the selected string stream.",
+      "compatibility": "Six strings were appended after the existing RGB companions, preserving earlier member offsets but changing public class size. Downstream consumers must rebuild; no virtual method changed."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024"],
+      "finding": "Independent wire walking checks named C0 ByLayer, named C3 ACI, and named C2 truecolor, including body method/index/flags and detached name/book string ordering around description/default text. Production parsing verifies all three colors and strings plus common object handles. A second round-trip preserves named RGB black distinctly from no-RGB state. Missing detached string buffers, out-of-domain scalar values, invalid RGB, and non-normalized scalar/RGB pairs are refused before output. Copy/assignment/reset checks cover all appended strings.",
+      "limit": "Generated vectors establish local codec consistency only; they are not producer-authored or native-consumer evidence."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append leader/text/block CMC color-name and color-book-name fields and clear them in reset().",
+      "Capture the optional TV fields with readCmColorWithinBounds and the object's bounded detached string cursor.",
+      "Emit method-specific C0/C1/C2/C3 CMC with optional names/books through strBuf.",
+      "Reject invalid scalar/RGB domains and missing/aliased R2007+ string buffers before output."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestReused": "libdxfrw_mleaderstyle_cmc_rgb",
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_mleaderstyle_cmc_rgb$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (8/8)"
+      },
+      {
+        "command": "git diff --check -- src/drw_objects.h src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "Class-specific DXF truecolor/name/book mappings for MLEADERSTYLE remain unaudited and are not inferred from DWG CMC evidence.",
+    "The broader CMC consumer audit, HATCH C5 producer semantics, and native/external qualification remain separate work.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

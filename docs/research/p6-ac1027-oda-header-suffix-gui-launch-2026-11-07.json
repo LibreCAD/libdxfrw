@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1027 Cover ODA GUI-session launch attempt",
+  "date": "2026-11-07",
+  "observedAtLocal": "2026-11-07 08:14 America/Toronto",
+  "supportClaimEffect": "none",
+  "scope": "Use the installed ODA File Converter through Launch Services in the active Aqua session, avoiding the previously failing direct CLI launch; determine whether document processing starts.",
+  "session": {
+    "consoleUser": "dli",
+    "launchdGuiDomain": "gui/502",
+    "type": "login",
+    "session": "Aqua"
+  },
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "copyPath": "/private/tmp/libdxfrw-oda-gui-session-20261107/in/Cover.dwg",
+    "copySha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "provenanceLimit": "Existing local source; no DWG/DXF fixture or derivative was added to Git."
+  },
+  "converter": {
+    "bundle": "/Applications/ODAFileConverter.app",
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "signatureVerification": {
+      "command": "codesign --verify --deep --strict --verbose=2 /Applications/ODAFileConverter.app",
+      "valid": false,
+      "result": "invalid signature (code or signature have been modified)",
+      "teamIdentifier": "4SVB9F72E4",
+      "candidateCodeDirectoryHash": "909b0c308395c8f158ac0bb2412b79e9d8a5d632a7e0940503aade24d463eaf9",
+      "interpretation": "Launch Services kLSNoExecutableErr may be related to the invalid bundle signature; causation has not been established. Do not modify or re-sign the installed application as part of this plan update."
+    },
+    "bundleMetadata": {
+      "CFBundleIdentifier": "ODAFileConverter",
+      "CFBundleExecutable": "ODAFileConverter",
+      "version": "27.1.0.0",
+      "executablePresent": true
+    },
+    "command": "open -a /Applications/ODAFileConverter.app --args /private/tmp/libdxfrw-oda-gui-session-20261107/in /private/tmp/libdxfrw-oda-gui-session-20261107/out ACAD2013 DWG 0 0",
+    "exitCode": 1,
+    "result": "Launch Services failed before starting the converter: kLSNoExecutableErr (NSOSStatusErrorDomain Code -10827). The app bundle names the existing executable, but no converter process or document processing was observed.",
+    "postAttemptOutputFiles": [],
+    "outputDirectoryFileCount": 0
+  },
+  "decision": "This is the single changed GUI-session launch attempt after prior direct CLI pasteboard/XPC failures. Do not retry the same app through Launch Services or repeat direct CLI launches. The AC1027 HEADER suffix remains unclaimed and strict output remains refused; reopen converter work only after the Launch Services registration or launch environment materially changes, or an independent converter session becomes available.",
+  "validation": {
+    "sourceHashRechecked": true,
+    "copiedSourceHashMatches": true,
+    "converterHashRechecked": true,
+    "bundleExecutableExists": true,
+    "fullSuites": "NOT_RUN"
+  }
+}

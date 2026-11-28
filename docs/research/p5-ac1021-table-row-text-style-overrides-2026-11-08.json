@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "date": "2026-11-08",
+  "status": "GENERATED_DWG_TYPED_READ_RETENTION_DXF_OUTPUT_REFUSED",
+  "workstream": "P5 / AC1018-AC1021 TABLE row text-style overrides",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1, TABLE until R21",
+    "page": 233,
+    "fields": {
+      "0x020000": "title row text-style handle H, hard pointer",
+      "0x040000": "header row text-style handle H, hard pointer",
+      "0x080000": "data row text-style handle H, hard pointer"
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "DRW_Table retains the three selected row text-style references in a typed array. The DWG parser publishes matching hard-pointer roles; a mismatched role leaves the TABLE readable but semantically incomplete and does not expose the handle as typed. The strict DXF writer rejects these fields, and it also rejects retained row override values when their selection bits are removed.",
+    "generatedControl": "A generated AC1021 TABLE vector selects all title/header/data height, alignment and text-style overrides, emits three hard-pointer handles in the handle stream, and checks exact typed values plus the following body sentinel. A soft-pointer mutation verifies tolerant read plus incomplete semantics and no typed-handle publication.",
+    "outputControl": "ASCII/Binary tests verify mapped-profile refusal, refusal of unflagged row override data, destination preservation and corrected same-adapter retry/readback."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedReader": "PASS: build/libdxfrw_dwg_object_vectors_tests --table-r2007-cell-reader",
+    "focusedAsciiBinaryOutput": "PASS: ctest --test-dir build -R '^libdxfrw_table_scalar_override_output$' --output-on-failure, 1/1",
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated wire-profile evidence only; no physical producer or whole-drawing qualification.",
+    "The role check follows the ODA hard-pointer annotation; no cross-format identity/remap route or native text-style behavior is established.",
+    "Row-height, alignment and text-style overrides remain output-ineligible.",
+    "Table color/fill and border override fields remain incomplete."
+  ],
+  "supportClaimsPromoted": 0,
+  "fixtureFilesAdded": 0,
+  "next": "Establish and test a lossless DXF representation for selected row styles before enabling output; continue another override field group only with complete typed storage and output/refusal proof."
+}

@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-18",
+  "title": "7S.3/S3.7 shared-loop next-link memoization",
+  "planOwner": "PAR-07/S8; 7S.3/S3.7 bounded SAB extraction work",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": [
+    "Extend the per-extraction ACIS loop projection cache to retain next-loop reference along with coedge-ring cardinality",
+    "Preserve per-face loop order, independent cycle guards, and one output row per face/loop visit",
+    "Reuse generated 4-face/4-loop cycle and exact/one-under budget tests"
+  ],
+  "changedFiles": [
+    "src/drw_acis.cpp",
+    "tests/graph_preservation_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "behavior": {
+    "cacheKey": "source loop node index within one extractAcisWireframeImpl invocation",
+    "cachedData": "coedge-ring cardinality and resolved next-loop node index",
+    "perFaceCycleGuardShared": false,
+    "perFaceLoopRowsDeduplicated": false,
+    "loopOrderChanged": false,
+    "projectedCountsChanged": false,
+    "budgeting": "one maxOutputItems unit per distinct cached loop, charged before coedge traversal, next-link resolution, and insertion; this bounds entry count, not allocator bytes or RSS"
+  },
+  "generatedControls": {
+    "input": "Existing in-memory ACIS 21800 SAB with four faces sharing a four-loop cycle and four coedges per loop",
+    "assertions": [
+      "Each face retains four ordered loop rows with the same source loop identities",
+      "Each projected loop retains coedge count 4",
+      "Four-face extraction work is greater than one-face work but below four times the one-face baseline",
+      "Existing exact work/output-item budgets admit the projection",
+      "Existing one-under work budget refuses and clears caller-visible output"
+    ],
+    "measurementLimit": "Deterministic extraction-work counter only; no wall-clock benchmark"
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "build-gcc/libdxfrw_graph_preservation_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "buildPassed": true,
+    "testExecutablePassed": true,
+    "owningCTest": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.59
+    },
+    "diffCheckPassed": true,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "nextLocalAction": "Audit remaining 7S.3 projection traversals for shared curve-token rescans; add a bounded cache only if a generated fan-out case proves repeated invariant work and preserve a per-edge output copy.",
+  "workingTree": {
+    "preExistingBroadChangesPreserved": true,
+    "unrelatedChangesStaged": false,
+    "commitCreated": false,
+    "reasonUncommitted": "The shared worktree contains broad overlapping user changes; no isolated commit could be made safely."
+  }
+}

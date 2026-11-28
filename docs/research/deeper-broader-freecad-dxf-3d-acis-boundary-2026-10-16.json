@@ -1,0 +1,180 @@
+{
+  "schema": "libdxfrw-deeper-broader-freecad-dxf-3d-acis-boundary-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Separate FreeCAD explicit-DXF-geometry qualification from DWG conversion, opaque ACIS carrier preservation, and independent ACIS semantic shape evidence.",
+  "planFilesUpdated": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "method": {
+    "kind": "Official FreeCAD and Autodesk documentation/source, plus open-source ezdxf and OCCT component documentation",
+    "sourcesOpened": [
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-7D07C886-FD1D-4A0C-A7AB-B4D21F18E484.htm",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://occt3d.com/components/acis-exchange/",
+      "https://github.com/Open-Cascade-SAS/OCCT-Components",
+      "https://www.opencascade.com/products/cad-assistant/"
+    ],
+    "revisionsPinned": false,
+    "repositoriesCloned": false,
+    "peerLibrariesBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "The FreeCAD documentation repository is archived and its importer matrix is a historical route snapshot. Current FreeCAD source links use mutable main and were inspected as source, not built or run. ezdxf and OCCT sources/docs describe peer capability but were not executed. No evidence qualifies a specific installed application build or parser output."
+  },
+  "evidence": [
+    {
+      "topic": "FreeCAD DWG conversion and DXF importer routes",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp"
+      ],
+      "observed": "The archived FreeCAD DXF docs describe separate C++ and legacy Python importers, with the C++ route faster but having fewer features; their entity table lists 3DFACE support only for legacy Python and says ACIS solid blobs are not readable. Current FreeCAD importDWG.py converts DWG to DXF and then calls importDXF.open; preferences describe external converter choices. Current ImpExpDxf.cpp constructs Open CASCADE shapes from importer callbacks and has a generic-shape path with a 3DFACE comment. The old matrix and mutable current source may reflect different importer generations.",
+      "doesNotEstablish": [
+        "3DFACE or other explicit-geometry behavior in any named current FreeCAD release/build",
+        "successful FreeCAD native DWG reading independent of the configured external converter",
+        "successful ACIS/ACDS carrier decoding or B-rep semantics",
+        "that source comments guarantee every entity reaches the callback or correct geometry is produced"
+      ],
+      "planUse": "Treat FreeCAD(DWG) as converter-to-DXF-to-importer, not a native DWG route. For libdxfrw qualification, feed its emitted DXF directly to a pinned FreeCAD build and importer. Record platform, app/build, converter where applicable, produced DXF version, backend and preferences. Test explicit geometry by importer backend and use topology/coordinate assertions. Keep the archived 3DFACE matrix a hypothesis until reproduced."
+    },
+    {
+      "topic": "DXF ACIS carrier versus semantic B-rep",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-7D07C886-FD1D-4A0C-A7AB-B4D21F18E484.htm"
+      ],
+      "observed": "Autodesk documents 3DSOLID with a modeler-format marker and proprietary payload in group 1 plus optional group 3 continuation strings. DXF also defines explicit entities such as 3DFACE separately from 3DSOLID. The reference documents framing and entity distinction, not an open ACIS B-rep schema.",
+      "doesNotEstablish": [
+        "validity of a preserved payload as a solid",
+        "closedness, orientation, volume, area, or analytic surface correctness",
+        "equivalence of inline DXF ACIS and AcDs SAB storage/attachment"
+      ],
+      "planUse": "Measure exact carrier/version/framing preservation separately from semantic shape reconstruction. Keep 3DSOLID, REGION, BODY, inline SAT/SAB, AcDs SAB and entity attachment separately identifiable. A byte/hash match or syntax parse is not a semantic pass."
+    },
+    {
+      "topic": "ezdxf ACIS implementation limits",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": "The current stable docs page reports ezdxf 1.4.5 and documents SAT/SAB load/export APIs. It warns that only a limited count of ACIS entities is supported, unsupported types become NONE_ENTITY and lose data, and mesh projection covers flat polygonal faces rather than analytic surfaces. The docs state SAT 700 is sufficient for DXF R2000-R2010 and SAB 21800 for R2013/R2018; this is peer-specific capability guidance.",
+      "doesNotEstablish": [
+        "full ACIS syntax/semantic support or analytic B-rep reconstruction",
+        "native CAD acceptance or correctness of libdxfrw-produced output",
+        "a normative version rule for libdxfrw or DWG payload decoding"
+      ],
+      "planUse": "Use only as an optional, exact-version-pinned supported-subset parser/carrier comparator. Capture lost/unsupported counts. Flat-face meshes may check a supported subset but do not close analytic shape or volume gates, and ezdxf is not a mandatory per-slice dependency."
+    },
+    {
+      "topic": "Independent OCCT ACIS reader availability and license boundary",
+      "sources": [
+        "https://occt3d.com/components/acis-exchange/",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components",
+        "https://www.opencascade.com/products/cad-assistant/"
+      ],
+      "observed": "OCCT documentation presents SAT/SAB ACIS import-export as an added-value/commercial component, separate from the open-source OCCT core. The component describes geometry/topology translation and XDE name/color data. CAD Assistant may include commercial-component import, but its page restricts export/conversion for data imported through those components.",
+      "doesNotEstablish": [
+        "availability or license for this repository or user environment",
+        "redistributability as a CI tool or test dependency",
+        "equivalence between a viewer result and native AutoCAD/BricsCAD acceptance"
+      ],
+      "planUse": "An exact licensed OCCT ACIS component could be an optional independent semantic oracle if locally available and permitted. Before use, pin product/component version, executable/library hash, platform, license/use conditions and conversion route. Do not call the component open source or add it as a repository dependency. If unavailable, leave the semantic gate unresolved."
+    },
+    {
+      "topic": "FreeCAD ACIS limitation confirmation",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "A FreeCAD maintainer response on the 3D-DXF issue identifies ACIS solids as opaque proprietary blobs not readable by FreeCAD and points users to a proprietary application/neutral-format conversion route. This aligns with the archived documentation but is issue discussion rather than a new runtime test.",
+      "doesNotEstablish": [
+        "all explicit DXF 3D entities are unsupported",
+        "all future/current FreeCAD versions lack an ACIS extension",
+        "any libdxfrw defect"
+      ],
+      "planUse": "Do not make FreeCAD ACIS import an assumed positive qualification. Use FreeCAD only for the explicit-DXF families its pinned build consumes; require a different independent reader for ACIS/ACDS semantic evidence."
+    },
+    {
+      "topic": "Existing in-repository FreeCAD adapter observations",
+      "sources": [
+        "DWG_DXF_3D_SUPPORT_PLAN.md, S8.15.15 and S8.15.17-S8.15.18.2"
+      ],
+      "observed": "The current worktree plan already records a FreeCAD 1.1.3/macOS 27 arm64/C++ importer profile where an exact generated 3D LINE converts and creates a line edge, while 3DSOLID and 3DFACE are reported unsupported with zero shapes. The 3DFACE tests also have ODA and LibreDWG comparator checks across six generated DWG target versions. These are existing plan receipts; this research pass did not rerun or independently inspect their logs.",
+      "doesNotEstablish": [
+        "native Linux or Windows FreeCAD geometry support",
+        "legacy Python importer behavior in a named current FreeCAD build",
+        "source-authored DWG interoperability or broad entity-family support",
+        "ACIS/ACDS solid semantics"
+      ],
+      "planUse": "Do not repeat the existing macOS C++ importer profile. Keep Linux/Windows as distinct planned platform runs and distinguish converter handoff from semantic geometry creation."
+    }
+  ],
+  "implementationReadiness": {
+    "evidenceLanes": [
+      "explicit DXF 3D geometry and entity semantics",
+      "opaque ACIS/AcDs payload framing, attachment, and round-trip identity",
+      "independent ACIS semantic B-rep reconstruction",
+      "native FreeCAD explicit-DXF application acceptance",
+      "separate DWG converter-to-DXF-to-FreeCAD user-workflow smoke"
+    ],
+    "fastPerSliceValidation": [
+      "touched strict -Werror build target",
+      "one focused existing generated-vector test",
+      "applicable API compatibility check",
+      "git diff --check"
+    ],
+    "composedExternalRunFields": [
+      "FreeCAD release/build, OS/architecture and importer backend",
+      "DWG converter version/options and intermediate DXF version when route begins at DWG",
+      "pre/post entity-family census, skips/warnings/repairs, coordinates and shape topology",
+      "ACIS reader/kernel exact version, hash, platform and license/use conditions",
+      "independent expected values, B-rep closedness/orientation/volume/area and tolerance"
+    ],
+    "fixturePolicy": "Use locally authored generated vectors or already repository-owned fixtures; do not download or commit peer/native test drawings. Do not add a new test registration or mandatory external dependency for this research refinement."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 124,
+      "topLevelImplementationSubplans": 71
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "researchChangedSourceCode": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

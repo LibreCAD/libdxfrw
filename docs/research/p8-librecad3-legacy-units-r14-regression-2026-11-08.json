@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw-p8-librecad3-legacy-units-r14-regression-v1",
+  "date": "2026-11-08",
+  "consumer_repository": "/private/tmp/librecad3-p8",
+  "consumer_branch": "codex/libdxfrw-upstream-compat",
+  "base_commit": "36082e71f4d627deb18e81d4c57c5a2f342c4473",
+  "commit": "93354846",
+  "change": {
+    "file": "unittest/persistence/dxfroundtriptest.cpp",
+    "test": "DxfRoundTripTest.DrawingUnitsSurviveASave",
+    "behavior": "Unitless and three nonzero insertion-unit cases exercise both R12 and R14 exports. Every export must succeed, omit $INSUNITS, and preserve the generated LINE. Unitless exports report zero loss notes; each nonzero profile reports exactly one insertion-unit loss note.",
+    "fixture_policy": "No fixture files added; test DXFs are generated in the system temporary directory and removed."
+  },
+  "validation": {
+    "build_command": "cmake --build build --target lcunittest -j4",
+    "build_result": "PASS",
+    "test_command": "./build/bin/lcunittest --gtest_filter='DxfRoundTripTest.DrawingUnitsSurviveASave'",
+    "test_result": "PASS: 1 test; one unitless and three nonzero unit profiles; R12 and R14 each preserved LINE and omitted $INSUNITS. Unitless reported no loss; each nonzero input reported one insertion-unit loss note.",
+    "diff_check": "PASS",
+    "warnings": "Build succeeded with pre-existing missing-override warnings and a missing gtest_build linker search path warning."
+  },
+  "followup_commit": "762a0f1e",
+  "current_head_focused_cohort": "DxfExportTest.*:DxfRoundTripTest.* passed 64/64 after unitless coverage was added.",
+  "plan_sync_followup_commit": "8269dd7be7209436d26ceb022c913b76bd92f7e8",
+  "plan_sync_validation": "PASS locally: --full, --base-ref origin/master, checker regression suite 31/31; hosted rerun queued.",
+  "pull_request": "https://github.com/LibreCAD/LibreCAD_3/pull/456",
+  "scope_limit": "This closes only legacy insertion-unit loss regression coverage for the already implemented LibreCAD_3 export behavior. It does not establish general DXF support, upstream LibreCAD adapter migration, DWG compatibility, ABI, Linux/Windows, or native FreeCAD qualification."
+}

@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-header-physical-times-2026-11-28",
+  "supportClaimEffect": "none",
+  "candidateCommit": "26d7d6c76",
+  "implementationDigestSha256": "9944e586474c9f22075f2173cffd13588bc0a29d645e3419ea2ff1c57f6f8dda",
+  "scope": "Expand selected AC1012 HEADER partial-output comparison with source target names and physical DXF timestamps.",
+  "checks": [
+    "Each of the four selected ASCII/Binary AC1024 partial outputs matches 143 walked scalar/coordinate/text/color fields, six named current-object targets and two null UCS names. Six legacy settings remain explicitly absent.",
+    "An independent tag walker reads TDCREATE, TDUPDATE, TDINDWG and TDUSRTIMER from the actual ASCII or binary DXF bytes and compares them with the DWG day/millisecond pairs. Changed source creation time is rejected; restored comparison succeeds.",
+    "The source creation time is present correctly in the output bytes. The local ezdxf 1.4.5 readfile observation substitutes a creation timestamp in its in-memory header, so the audit deliberately does not use that value as evidence of the emitted TDCREATE.",
+    "Strict attempts preserve their destination, separate explicit-partial attempts succeed, modified in-memory DIMTIH is rejected, and ezdxf reports zero audit errors or fixes. No generated drawing fixtures are committed."
+  ],
+  "hashes": {
+    "tool": "723a8e2d0fe1644edd48faa67ed06618de31b962b9036d799822b6a62d0f43b4",
+    "candidateExecutable": "62314d30418f8055ba0a5ef16496d1a77eedbfbe86e6764c295be07c2f739239",
+    "candidateLibrary": "c69aa4c72c5a2113d73a822be8782f8ccfe53a85473b935acf353bf5ca90aa02",
+    "results": "ebd37cdf6f0242bcc7f7c70d30023ccc14ee183f0a6453c1a26e7ed856fbd2da"
+  },
+  "limits": [
+    "Target-name comparison uses LibreDWG source decoding; independently decoded physical DXF timestamps and ezdxf output checks do not establish native AutoCAD semantics.",
+    "Only selected generated drawings and fields are checked; aliases are tested for their particular values, strict output and complete graph closure remain blocked, and separate processes perform strict and partial attempts."
+  ]
+}

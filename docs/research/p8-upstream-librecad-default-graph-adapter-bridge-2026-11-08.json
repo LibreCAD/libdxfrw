@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.p8-adapter-bridge-receipt.v1",
+  "date": "2026-11-08",
+  "scope": "bounded upstream LibreCAD adapter integration for generated DWG default plot-style/material graphs and hatch angle unit boundaries",
+  "consumer": {
+    "repository": "LibreCAD/LibreCAD isolated checkout",
+    "base_commit": "9889c13cdc2ef18b774abd9ff00a652594f07485",
+    "branch": "codex/p8-default-graphs",
+    "commit": "e216b44e763a87374556bad13e16628ff95e574c",
+    "files": [
+      "CMakeLists.txt",
+      "librecad/src/lib/filters/rs_filterdxfrw.cpp",
+      "librecad/src/lib/filters/rs_filterdxfrw.h",
+      "librecad/src/lib/filters/tests/lc_dwg_default_graph_adapter_tests.cpp",
+      "librecad/src/lib/filters/tests/lc_hatch_angle_units_tests.cpp"
+    ],
+    "provider_source_sha256": "01997b13aa6d0668286755e5f7a5ed757f412f3bc06fc382f75b89e839d37f9d",
+    "provider_header_sha256": "834703330e3c76c17e3cff6d62c383888ba36cd3da03e3fbb392e4fe019d2b00",
+    "adapter_test_sha256": "738fb7ee2ed9e13b66bf9e62f57c3eb8be97659766c899886cda830928c05fc7"
+  },
+  "provider": {
+    "repository": "LibreCAD/libdxfrw workspace",
+    "base_commit": "6466df12dfb272e1595bcc010681d318c330a04b",
+    "writer_source_sha256": "157ee6488a0747017f252d035ec8d5b4f2eb7842bb9ddf85525f1a4fe23acf5d",
+    "test_source_sha256": "5deacb1690bcf50e2d37437f6133890d69fdd4c14cd83f40ebd7fde90f05e856",
+    "changes": "AC1027 accepts a supplied layer-0 record only when its material handle equals the staged default Global material handle; conflicting/arbitrary supplied handles remain refused."
+  },
+  "results": [
+    {
+      "command": "cmake --build build-p8 --target librecad_dwg_default_graph_adapter_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "QT_QPA_PLATFORM=offscreen ./build-p8/librecad_dwg_default_graph_adapter_tests --reporter compact",
+      "result": "PASS: 80 assertions in 2 cases",
+      "coverage": "generated AC1021/AC1024/AC1027 plot-style/material graph write and typed readback; each generated file imports into LibreCAD, re-exports, and reads back with one default plot-style dictionary, one placeholder, three materials and the LINE; layer-0 Global material link; opaque group-1005 XDATA suppresses both synthesized default graphs"
+    },
+    {
+      "command": "cmake --build build --target libdxfrw_dwg_default_material_optin_tests -j4 && ./build/tests/libdxfrw_dwg_default_material_optin_tests",
+      "result": "PASS: DWG default material opt-in PASS",
+      "coverage": "generated AC1021/AC1024/AC1027 graph readback; supplied layer 0 with exact staged Global material accepted; arbitrary supplied material handle refusal remains covered"
+    },
+    {
+      "command": "focused librecad_hatch_angle_units_tests cases",
+      "result": "PASS: 3 focused cases (19 assertions total)",
+      "coverage": "upstream degree-valued DXF/DWG DRW_Hatch boundary converts to LibreCAD radians and round-trips DXF groups 52/53"
+    },
+    {
+      "command": "QT_QPA_PLATFORM=offscreen ./build-p8/librecad_hatch_angle_units_tests --reporter compact",
+      "result": "7/9 cases pass; two unrelated failures remain",
+      "failures": [
+        "The legacy shipped-library test cannot open absent support/library/misc/a3.dxf.",
+        "The DRW_VERSION case expects the legacy 2.0.0 comment while this upstream checkout writes 0.6.4."
+      ]
+    }
+  ],
+  "fixture_policy": "No DWG/DXF fixture files were added to either repository. Adapter test drawings are generated into temporary paths at runtime.",
+  "existing_graph_reexport_probe": {
+    "source": "The passing AC1021 adapter test output was imported through LibreCAD fileImport; typed metadata contained 3 MATERIAL records and NOD-owned ACAD_PLOTSETTINGS and ACAD_MATERIAL dictionaries.",
+    "initial_result": "DWG fileExport returned false. Diagnostics showed emitted dictionary 0x30 -> PLOTSETTINGS target 0x5C and dictionary 0x33 -> MATERIAL targets 0x34, 0x35, 0x36 were recorded as generic Object targets but committed as raw carriers.",
+    "fix": "Raw OBJECTS identities are reserved during eligible CLASSES admission; DICTIONARY entry resolution now retains RawCarrier kind and refuses entity-kind targets. Reserved-only typed identities no longer shadow an admitted raw carrier.",
+    "result": "PASS: generated AC1021/AC1024/AC1027 files import through LibreCAD, re-export, and typed readback confirms one plot-style default dictionary, one placeholder, three materials, and the LINE.",
+    "scope": "This qualifies only the generated same-version graph round-trip. It does not establish physical producer breadth, native CAD semantics, complete DWG metadata preservation, or platform/ABI behavior."
+  },
+  "limitations": [
+    "This is generated transport/readback and compile evidence only; it does not qualify native CAD semantics, full ABI compatibility, physical producer breadth, clean consumer integration, or Linux/Windows behavior.",
+    "The broad LibreCAD DWG write test target remains incompatible with the upstream overlay due pre-existing API mismatches in the larger test source; the full hatch target also has unrelated fixture/version expectation failures. Only focused microtargets are claimed.",
+    "Only the generated same-version existing-graph round-trip is qualified. Physical producer breadth, unrelated advanced metadata replay, and full-document semantic preservation remain open.",
+    "The low-level libdxfrw writer and regression test are modified in the workspace but not committed. The root checkout .git index is unavailable for writes in this environment; the isolated LibreCAD adapter slice is committed at the hash above."
+  ]
+}

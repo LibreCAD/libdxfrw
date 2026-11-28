@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw-acis-sab-parser-fed-complex-resource-boundaries-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "slice": "S3.7c generated complex wire graph parser and traversal budgets",
+  "change": {
+    "files": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "The generated complex 21800 SAB passes exact parser limits for input bytes, records, tags, cumulative strings, token capacity, and type-part capacity. One tag below cap fails with resourceLimitExceeded and cleared output. Rooted traversal of the parsed graph refuses a zero extraction-work budget and clears projection output.",
+    "persistentDwgDxfSabFixtureAdded": false,
+    "productionParserChanged": false,
+    "dependencyOrTestRegistrationChanged": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS 1/1"
+    }
+  ],
+  "evidenceCeiling": "Validates configured SAB resource budgets and output clearing through a generated 21800 parser/model/projector path. Does not establish allocator RSS bounds, change operational defaults, or prove ACIS semantics, B-rep validity, DWG AcDs association, or native consumer acceptance.",
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "next": "Continue the next source-backed local S3.7c structural or resource gap without waiting for external qualification."
+}

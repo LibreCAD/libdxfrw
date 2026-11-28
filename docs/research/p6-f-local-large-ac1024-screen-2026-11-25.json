@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-25",
+  "status": "NO_ELIGIBLE_PARTIAL_SOURCE_FOUND",
+  "purpose": "Finish the local large-file P6-F screen by checking the only AC1024 source larger than 50 MiB. No source fixture or derivative was copied into the repository.",
+  "candidate": {
+    "path": "/Users/dli/doc/dwg6/dtm_2023.Dwg",
+    "bytes": 74278580,
+    "magic": "AC1024",
+    "sha256": "2fe8bee6fc1a71e2ce0e5d7c1e31cc0e4ca8a506bbf92d99ec65167e6c91239c",
+    "provenance": "Local corpus; producer provenance is unauthenticated."
+  },
+  "candidate_build": {
+    "source_revision": "de59d108aff543b77f659bd106f553b6a384aac2",
+    "dwg2dxf_sha256": "ca9e7918f9a4e4ec1305b374d853ce493fa9cba54bad4127ab67d3bffa448ab0",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "cmake": "4.5.1",
+    "os": "macOS 27.2.1 (26B131)"
+  },
+  "operation": {
+    "command": "build/dwg2dxf/dwg2dxf '/Users/dli/doc/dwg6/dtm_2023.Dwg' -y -v2010 /private/tmp/p6f-large-screen-20261125/dtm_2023.dxf",
+    "timeout_seconds": 90,
+    "exit_code": 1,
+    "first_error": "BAD_READ_HEADER (legacyError=6)",
+    "source_frames": 0,
+    "entity_parse_failures": 0,
+    "object_parse_failures": 0,
+    "output_created": false,
+    "log_sha256": "3fa143ad667d0b6311bfd186845e6bf88331cd6b5c09f39688342e94b430077d",
+    "log_bytes": 2692
+  },
+  "large_file_inventory": {
+    "roots": ["/Users/dli/doc/dwg", "/Users/dli/doc/dwg6"],
+    "unique_files_over_50_mib": 8,
+    "magic_counts": {"AC1009": 5, "AC1024": 1, "AC1032": 2},
+    "eligibility": "The five AC1009 files predate the supported AC1012+ reader range. The two AC1032 files use the documented pass-through stub and are not eligible for an organic partial-read qualification. The single AC1024 file is the candidate screened above."
+  },
+  "conclusion": "The only large AC1024 candidate fails before frame parsing and cannot establish partial-output behavior. No eligible large local source remains for this P6-F screen. The prior small/medium corpus findings still exclude unsupported AC1032, unauthenticated or unclosed sources, and parser defects that have since been fixed. This does not qualify P6-F or exhaust external corpora."
+}

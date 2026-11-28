@@ -1,0 +1,3744 @@
+{
+  "schema": "libdxfrw-scoped-research-evidence-v1",
+  "date": "2026-10-15",
+  "baseline": "6c5666cceb8e5d7a4e9eba41ffb8a7800f84770c",
+  "localOriginMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "scope": "Research and plan update only. Existing three-file source/test WIP preserved; no C++ acceptance run, production implementation, drawing fixture addition, dependency installation, CI registration, remote write or support promotion.",
+  "owners": [
+    "PAR-20 / 7G.3f.1-4",
+    "7F.1b",
+    "7BE.9d",
+    "7AH / 7AQ",
+    "S3.2 / Slice8"
+  ],
+  "qualificationEligible": false,
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "threeDLedgerItems": 149
+  },
+  "upstreamPins": {
+    "mozman/ezdxf": "7c64bce52c9d60b9db2dad4d2793c1168c8d3f64",
+    "DomCR/ACadSharp": "9bd47f48766a371c441e8d1ab80733e21f62b711",
+    "LibreDWG/libredwg": "f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+    "LibreCAD/LibreCAD": "bdb757804e3014b022f732d1f4d148f81e1fc724",
+    "LibreCAD/LibreCAD_3": "3dcdc4009546b8c9b2aa9605c52e2434bece6901",
+    "ixmilia/dxf": "3ab0f9d6d3f14a6f6fa924e111e8e3af1065c567",
+    "FreeCAD/FreeCAD": "4a1904f8db57d4a31e44cdb1dd984d4c98447c10",
+    "hakanaktt/acadrust": "a1a216d642d09c7548cc26ac6d3db6f79bd5a667"
+  },
+  "upstreamRedirect": {
+    "from": "HakanSeven12/acadrust",
+    "to": "hakanaktt/acadrust",
+    "observedApiResponse": "Moved Permanently; canonical repository independently fetched",
+    "independentLineageAdded": false
+  },
+  "primarySourceFiles": [
+    {
+      "repository": "mozman/ezdxf",
+      "ref": "v1.4.4",
+      "path": "src/ezdxf/entities/visualstyle.py",
+      "gitBlobSha": "07bf9df410853b969b326d532e2aafbb509a6123",
+      "url": "https://github.com/mozman/ezdxf/blob/v1.4.4/src/ezdxf/entities/visualstyle.py",
+      "scope": "complete VISUALSTYLE entity loader/exporter",
+      "interpretationOnly": true
+    },
+    {
+      "repository": "mozman/ezdxf",
+      "ref": "7c64bce52c9d60b9db2dad4d2793c1168c8d3f64",
+      "path": "src/ezdxf/entities/visualstyle.py",
+      "gitBlobSha": "07bf9df410853b969b326d532e2aafbb509a6123",
+      "url": "https://github.com/mozman/ezdxf/blob/7c64bce52c9d60b9db2dad4d2793c1168c8d3f64/src/ezdxf/entities/visualstyle.py",
+      "scope": "master blob comparison; same implementation",
+      "interpretationOnly": true
+    },
+    {
+      "repository": "mozman/ezdxf",
+      "ref": "v1.4.4",
+      "path": "src/ezdxf/entities/dictionary.py",
+      "gitBlobSha": "fc901ea163cd4dc0bcae0982b66eee1484e3bc51",
+      "url": "https://github.com/mozman/ezdxf/blob/v1.4.4/src/ezdxf/entities/dictionary.py",
+      "scope": "load_dict/export_dict/audit ownership and code normalization",
+      "interpretationOnly": true
+    },
+    {
+      "repository": "DomCR/ACadSharp",
+      "ref": "9bd47f48766a371c441e8d1ab80733e21f62b711",
+      "path": "src/ACadSharp/IO/DXF/DxfStreamWriter/DxfObjectsSectionWriter.cs",
+      "gitBlobSha": "bc55b502bbbc88904c53619504f96799d6ca5858",
+      "url": "https://github.com/DomCR/ACadSharp/blob/9bd47f48766a371c441e8d1ab80733e21f62b711/src/ACadSharp/IO/DXF/DxfStreamWriter/DxfObjectsSectionWriter.cs",
+      "scope": "isObjectSupported lines729-756; dictionary entry writer",
+      "interpretationOnly": true
+    },
+    {
+      "repository": "DomCR/ACadSharp",
+      "ref": "9bd47f48766a371c441e8d1ab80733e21f62b711",
+      "path": "src/ACadSharp/Objects/VisualStyle.cs",
+      "gitBlobSha": "9d71b5daebafa22484b06bf9e52618d12b96bb0e",
+      "url": "https://github.com/DomCR/ACadSharp/blob/9bd47f48766a371c441e8d1ab80733e21f62b711/src/ACadSharp/Objects/VisualStyle.cs",
+      "scope": "basic public model/class metadata",
+      "interpretationOnly": true
+    },
+    {
+      "repository": "LibreDWG/libredwg",
+      "ref": "f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+      "path": "src/dwg2.spec",
+      "gitBlobSha": "3a44d45c15b85fa7280e3ac9d811da505d984c7f",
+      "url": "https://github.com/LibreDWG/libredwg/blob/f860b0fb76d5f8effb5a70769a3389cb1e0308c8/src/dwg2.spec",
+      "scope": "VISUALSTYLE lines2110-2288; interpretation only, no code transplant",
+      "interpretationOnly": true
+    },
+    {
+      "repository": "hakanaktt/acadrust",
+      "ref": "a1a216d642d09c7548cc26ac6d3db6f79bd5a667",
+      "path": "src/io/dxf/writer/section_writer.rs",
+      "gitBlobSha": "796a13d19d8876c9de4bdfea27935333a585882a",
+      "url": "https://github.com/hakanaktt/acadrust/blob/a1a216d642d09c7548cc26ac6d3db6f79bd5a667/src/io/dxf/writer/section_writer.rs",
+      "scope": "VISUALSTYLE serializer lines8178-8299",
+      "interpretationOnly": true
+    },
+    {
+      "repository": "hakanaktt/acadrust",
+      "ref": "a1a216d642d09c7548cc26ac6d3db6f79bd5a667",
+      "path": "src/objects/stub_objects.rs",
+      "gitBlobSha": "ac987d36fd4b9706d231d39fe56c23cd1e5ea4dc",
+      "url": "https://github.com/hakanaktt/acadrust/blob/a1a216d642d09c7548cc26ac6d3db6f79bd5a667/src/objects/stub_objects.rs",
+      "scope": "VisualStyleProperty/VisualStyle core, extended, legacy mapping helpers",
+      "interpretationOnly": true
+    },
+    {
+      "repository": "ixmilia/dxf",
+      "ref": "3ab0f9d6d3f14a6f6fa924e111e8e3af1065c567",
+      "path": "src/IxMilia.Dxf.Generator/Specs/ObjectsSpec.xml",
+      "gitBlobSha": "85eb46d39d03b4fcf609647e63983eeecdeb08fd",
+      "url": "https://github.com/ixmilia/dxf/blob/3ab0f9d6d3f14a6f6fa924e111e8e3af1065c567/src/IxMilia.Dxf.Generator/Specs/ObjectsSpec.xml",
+      "scope": "DxfVisualStyle schema element",
+      "interpretationOnly": true
+    },
+    {
+      "repository": "ixmilia/dxf",
+      "ref": "3ab0f9d6d3f14a6f6fa924e111e8e3af1065c567",
+      "path": "src/IxMilia.Dxf/Objects/DxfDictionary.cs",
+      "gitBlobSha": "dcf5c98cd5db6d61afee9cfe47cef679507fd862",
+      "url": "https://github.com/ixmilia/dxf/blob/3ab0f9d6d3f14a6f6fa924e111e8e3af1065c567/src/IxMilia.Dxf/Objects/DxfDictionary.cs",
+      "scope": "load/emit code selection and dictionary ordering",
+      "interpretationOnly": true
+    },
+    {
+      "repository": "FreeCAD/FreeCAD",
+      "ref": "4a1904f8db57d4a31e44cdb1dd984d4c98447c10",
+      "path": "src/Mod/Draft/importDWG.py",
+      "gitBlobSha": "8ceba7eaf31234c891621652cca414f102b495a0",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/4a1904f8db57d4a31e44cdb1dd984d4c98447c10/src/Mod/Draft/importDWG.py",
+      "scope": "converter invocation/output existence gate; full source fetched",
+      "interpretationOnly": true
+    },
+    {
+      "repository": "LibreCAD/LibreCAD_3",
+      "ref": "3dcdc4009546b8c9b2aa9605c52e2434bece6901",
+      "path": "persistence/libdxfrw/dxfimpl.h",
+      "gitBlobSha": "0ef8c52bf0a8610d3d4b31fc6cd3aff1eada9794",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/3dcdc4009546b8c9b2aa9605c52e2434bece6901/persistence/libdxfrw/dxfimpl.h",
+      "scope": "DRW_Interface inheritance and absence of VisualStyle/root overrides",
+      "interpretationOnly": true
+    },
+    {
+      "repository": "LibreCAD/LibreCAD",
+      "ref": "bdb757804e3014b022f732d1f4d148f81e1fc724",
+      "path": "librecad/src/lib/filters/rs_filterdxfrw.h",
+      "gitBlobSha": "38c87561a712a48ed537350fd3c1877fd81f3c30",
+      "url": "https://github.com/LibreCAD/LibreCAD/blob/bdb757804e3014b022f732d1f4d148f81e1fc724/librecad/src/lib/filters/rs_filterdxfrw.h",
+      "scope": "lines2020-2060; current VisualStyle declaration",
+      "interpretationOnly": true
+    }
+  ],
+  "authoritativeReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm",
+      "scope": "basic VISUALSTYLE DXF fields only; no complete expanded property-tail definition"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_VisualStyleDictionaryId.html",
+      "scope": "ACAD_VISUALSTYLE typed dictionary identity"
+    },
+    {
+      "url": "https://www.opendesign.com/guestfiles/oda_file_converter",
+      "scope": "directory/filter/version/type/recursion/audit CLI inputs; audit flag applies repair; current website is not the executed 27.1 build"
+    }
+  ],
+  "authoritativePdf": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "version": "5.4.1",
+    "readPages": [
+      14,
+      103,
+      104,
+      105,
+      106,
+      107
+    ],
+    "renderedReviewedPages": [
+      104
+    ],
+    "wholeDocumentTextSearch": "VISUALSTYLE appears as a header dictionary reference/non-fixed class listing; 20.4.95 is SPATIAL_INDEX. No full VISUALSTYLE body chapter found.",
+    "scope": "CMC primitives and common object/entity stream boundaries; not authority for peer-derived VISUALSTYLE field order"
+  },
+  "preservedWipSha256": {
+    "src/drw_objects.h": "003f7f5db5a152267d69285486800106a2dc27bac168809d23b9c6998e3f125d",
+    "src/drw_objects.cpp": "5a5a4e0600f15ab7da91eed1aa655fb96112e36c98f0cec68be63ecbe062b477",
+    "tests/dwg_object_vectors_tests.cpp": "d6fe038b803f4b98c3684ed7bcffc87a4d2d1e6b5f52f6f5595addb66649f7e1"
+  },
+  "sourceInspection": {
+    "header": "DICT NAMED OBJS reference is consumed but not retained; no root publication in DWG dictionary dispatcher",
+    "interface": "Existing optional addNamedObjectDictionary forwards to historical addDictionary; source contract currently documented as DXF-only",
+    "adapter": "DXF-origin style graph requires typed/raw cardinality and identity; missing raw companions in DWG-origin source is not permission to bypass the graph",
+    "serializer": "Common entity DXF writes full-style348 only; face/edge DWG relations remain separate capability audit",
+    "candidate": "Owned source-color/companion/clamp metadata is uncommitted WIP; no candidate acceptance or commit inferred"
+  },
+  "peerComponentCalibration": {
+    "argv": [
+      "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/bin/python",
+      "-B",
+      "/private/tmp/libdxfrw-graph-readiness.jzaELF/oracle_calibration.py"
+    ],
+    "timeoutSeconds": 10,
+    "perStreamOutputCap": 65536,
+    "returncode": 0,
+    "stdoutSha256": "e3585d25c9ae2e187e2752ca058be2c465b2b1fc9f7be97f0cb70d4f64e2d576",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "result": {
+      "schema": "libdxfrw-peer-component-calibration-v1",
+      "version": "1.4.4",
+      "cExtensions": false,
+      "qualificationEligible": false,
+      "rows": [
+        {
+          "case": "two_property_tail",
+          "tailPreserved": true,
+          "retainedTags": [
+            [
+              70,
+              2
+            ],
+            [
+              62,
+              7
+            ],
+            [
+              420,
+              16777215
+            ],
+            [
+              176,
+              2
+            ],
+            [
+              90,
+              123456
+            ],
+            [
+              176,
+              1
+            ]
+          ],
+          "conclusion": "opaque tail preservation, not property grammar validation"
+        },
+        {
+          "case": "wrong_declared_count",
+          "tailPreserved": true,
+          "retainedTags": [
+            [
+              70,
+              3
+            ],
+            [
+              62,
+              7
+            ],
+            [
+              420,
+              16777215
+            ],
+            [
+              176,
+              2
+            ],
+            [
+              90,
+              123456
+            ],
+            [
+              176,
+              1
+            ]
+          ],
+          "conclusion": "opaque tail preservation, not property grammar validation"
+        },
+        {
+          "case": "missing_last_companion",
+          "tailPreserved": true,
+          "retainedTags": [
+            [
+              70,
+              2
+            ],
+            [
+              62,
+              7
+            ],
+            [
+              420,
+              16777215
+            ],
+            [
+              176,
+              2
+            ],
+            [
+              90,
+              123456
+            ]
+          ],
+          "conclusion": "opaque tail preservation, not property grammar validation"
+        },
+        {
+          "case": "owned_tail_copy",
+          "sourceUnaffected": true
+        },
+        {
+          "case": "mixed_soft_then_hard",
+          "outputEdges": [
+            [
+              360,
+              "C1"
+            ],
+            [
+              360,
+              "C2"
+            ]
+          ],
+          "conclusion": "diagnostic robustness input, not a valid mixed-edge format claim"
+        },
+        {
+          "case": "mixed_hard_then_soft",
+          "outputEdges": [
+            [
+              350,
+              "C1"
+            ],
+            [
+              350,
+              "C2"
+            ]
+          ],
+          "conclusion": "diagnostic robustness input, not a valid mixed-edge format claim"
+        },
+        {
+          "case": "duplicate_key",
+          "outputEdges": [
+            [
+              350,
+              "C2"
+            ]
+          ],
+          "conclusion": "diagnostic robustness input, not a valid mixed-edge format claim"
+        },
+        {
+          "case": "dangling_dictionary_audit",
+          "before": [
+            "MISSING"
+          ],
+          "after": [],
+          "errors": 0,
+          "fixes": 1,
+          "conclusion": "zero errors after repair is not lossless graph evidence"
+        }
+      ],
+      "modules": {
+        "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/lib/python3.12/site-packages/ezdxf/entities/dictionary.py": "91bef1d012a5ee294d5e221daec7d39b327fc37366600d7f7d3c2de7b0baf9c8",
+        "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/lib/python3.12/site-packages/ezdxf/entities/visualstyle.py": "445d5a19e95a19817ab531e7c373e8d6f2793ee82e43f0e6e9aead8684bf8090",
+        "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/lib/python3.12/site-packages/ezdxf/audit.py": "96c5cef57d3fda1c8230554ba4fae38e8feee36c18a38b3d0ba8c813572d5773",
+        "/private/tmp/libdxfrw-parity-work.k7hiK2/oracle/lib/python3.12/site-packages/ezdxf/lldxf/tagwriter.py": "3a99b0500845c462c237129e2638993e7029047f449ecd00bea205e3ed6f61dd"
+      },
+      "recipe": "\"\"\"Authored in-memory peer calibration; no drawing file or CAD qualification.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\n\nimport ezdxf\nfrom ezdxf.audit import Auditor\nfrom ezdxf.entities import Dictionary, VisualStyle\nfrom ezdxf.lldxf.tags import Tags\nfrom ezdxf.lldxf.tagwriter import TagCollector\n\n\ndef source(pairs):\n    return \"\".join(f\"{code}\\n{value}\\n\" for code, value in pairs)\n\n\ndef export(entity):\n    collector = TagCollector(dxfversion=\"AC1032\")\n    entity.export_dxf(collector)\n    return [(tag.code, tag.value) for tag in collector.tags]\n\n\nprefix = [(0, \"VISUALSTYLE\"), (5, \"A1\"), (330, \"B1\"),\n          (100, \"AcDbVisualStyle\"), (2, \"LOCAL_STYLE\"), (70, 8),\n          (73, 6), (421, 16777215), (291, 0)]\ntail = [(70, 2), (62, 7), (420, 16777215), (176, 2),\n        (90, 123456), (176, 1)]\nrows = []\nfor label, payload in [\n    (\"two_property_tail\", tail),\n    (\"wrong_declared_count\", [(70, 3)] + tail[1:]),\n    (\"missing_last_companion\", tail[:-1]),\n]:\n    style = VisualStyle.from_text(source(prefix + payload))\n    emitted = export(style)\n    actual = emitted[emitted.index((291, 0)) + 1:]\n    assert actual == payload\n    assert style.dxf.style_type == 8 and style.dxf.face_color_mode == 6\n    rows.append(dict(case=label, tailPreserved=True, retainedTags=actual,\n                     conclusion=\"opaque tail preservation, not property grammar validation\"))\n\nstyle = VisualStyle.from_text(source(prefix + tail))\nclone = style.copy()\nclone.acad_xdata.pop()\nassert len(style.acad_xdata) == len(tail)\nassert len(clone.acad_xdata) == len(tail) - 1\nrows.append(dict(case=\"owned_tail_copy\", sourceUnaffected=True))\n\ndict_prefix = [(0, \"DICTIONARY\"), (5, \"B1\"), (330, \"0\"),\n               (100, \"AcDbDictionary\"), (280, 0), (281, 1)]\nfor label, pairs, expected in [\n    (\"mixed_soft_then_hard\", [(3, \"A\"), (350, \"C1\"), (3, \"B\"), (360, \"C2\")], 360),\n    (\"mixed_hard_then_soft\", [(3, \"A\"), (360, \"C1\"), (3, \"B\"), (350, \"C2\")], 350),\n    (\"duplicate_key\", [(3, \"A\"), (350, \"C1\"), (3, \"A\"), (350, \"C2\")], 350),\n]:\n    dictionary = Dictionary.from_text(source(dict_prefix + pairs))\n    emitted = export(dictionary)\n    edges = [(code, value) for code, value in emitted if code in (350, 360)]\n    assert all(code == expected for code, _ in edges)\n    if label == \"duplicate_key\":\n        assert edges == [(350, \"C2\")]\n    else:\n        assert len(edges) == 2\n    rows.append(dict(case=label, outputEdges=edges,\n                     conclusion=\"diagnostic robustness input, not a valid mixed-edge format claim\"))\n\ndoc = ezdxf.new(\"R2013\")\ndictionary = doc.rootdict.add_new_dict(\"LOCAL_DANGLING\")\ndictionary.load_dict(Tags.from_text(source([(3, \"MISSING\"), (350, \"FFFF\")])) )\nbefore = list(dictionary.keys())\nauditor = Auditor(doc)\ndictionary.audit(auditor)\nafter = list(dictionary.keys())\nassert before == [\"MISSING\"] and after == []\nassert len(auditor.errors) == 0 and len(auditor.fixes) > 0\nrows.append(dict(case=\"dangling_dictionary_audit\", before=before, after=after,\n                 errors=len(auditor.errors), fixes=len(auditor.fixes),\n                 conclusion=\"zero errors after repair is not lossless graph evidence\"))\n\nmodules = {}\nfor cls in [Dictionary, VisualStyle, Auditor, TagCollector]:\n    import inspect\n    path = Path(inspect.getfile(cls))\n    modules[str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()\nprint(json.dumps(dict(schema=\"libdxfrw-peer-component-calibration-v1\",\n                      version=ezdxf.__version__, cExtensions=ezdxf.options.use_c_ext,\n                      qualificationEligible=False, rows=rows,\n                      modules=modules,\n                      recipe=Path(__file__).read_text()), indent=2))\n"
+    },
+    "initialUnboundedObservationMatchesBounded": true,
+    "uniqueControls": 8,
+    "repeatRuns": 2,
+    "scope": "Actual installed ezdxf1.4.4 in-memory components, TagCollector not binary/file/CAD-kernel acceptance",
+    "environment": {
+      "EZDXF_DISABLE_C_EXT": "1",
+      "XDG_CONFIG_HOME": "/private/tmp/libdxfrw-graph-readiness.jzaELF/config"
+    },
+    "recipeSha256": "4df8298b4428b68c4e92bde1c0352d470e2688d8b4619b17dc18b31ae27fb755"
+  },
+  "odaConversionCalibration": {
+    "schema": "libdxfrw-producer-conversion-calibration-v1",
+    "qualificationEligible": false,
+    "auditRequested": false,
+    "binary": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "binarySha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "sourceSha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+    "timeoutSeconds": 20,
+    "perStreamOutputCap": 65536,
+    "rows": [
+      {
+        "year": 2018,
+        "argv": [
+          "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+          "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-input",
+          "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2018",
+          "ACAD2018",
+          "DXF",
+          "0",
+          "0",
+          "rtext_arctext.dwg"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputExists": true,
+        "outputSha256": "946651dccbcd56b5d2d9af410da9e156ad85d245715c45fce60ac3312ee80d15",
+        "outputBytes": 89774,
+        "styleCount": 24,
+        "styles": [
+          {
+            "handle": "20023",
+            "description": "2dWireframe",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20026",
+            "description": "Basic",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2002A",
+            "description": "Brighten",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2002E",
+            "description": "ColorChange",
+            "suffixTagCount": 121,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20028",
+            "description": "Conceptual",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20029",
+            "description": "Dim",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20031",
+            "description": "EdgeColorOff",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              2
+            ],
+            "companionsSha256": "966755a518b721ec3bd227ba9901941f5cefef5d3aec6816945457ea1e553a6f",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2002D",
+            "description": "Facepattern",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2001F",
+            "description": "Flat",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20020",
+            "description": "FlatWithEdges",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20021",
+            "description": "Gouraud",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20022",
+            "description": "GouraudWithEdges",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20025",
+            "description": "Hidden",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2002F",
+            "description": "JitterOff",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              2
+            ],
+            "companionsSha256": "966755a518b721ec3bd227ba9901941f5cefef5d3aec6816945457ea1e553a6f",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2002C",
+            "description": "Linepattern",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20030",
+            "description": "OverhangOff",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              2
+            ],
+            "companionsSha256": "966755a518b721ec3bd227ba9901941f5cefef5d3aec6816945457ea1e553a6f",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20027",
+            "description": "Realistic",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20036",
+            "description": "Shaded",
+            "suffixTagCount": 121,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20035",
+            "description": "Shaded with edges",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20032",
+            "description": "Shades of Gray",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20033",
+            "description": "Sketchy",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2002B",
+            "description": "Thicken",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20024",
+            "description": "Wireframe",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20034",
+            "description": "X-Ray",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          }
+        ],
+        "flatLiteralRecord": [
+          [
+            0,
+            "VISUALSTYLE"
+          ],
+          [
+            5,
+            "2001F"
+          ],
+          [
+            102,
+            "{ACAD_REACTORS"
+          ],
+          [
+            330,
+            "2001E"
+          ],
+          [
+            102,
+            "}"
+          ],
+          [
+            330,
+            "2001E"
+          ],
+          [
+            100,
+            "AcDbVisualStyle"
+          ],
+          [
+            2,
+            "Flat"
+          ],
+          [
+            70,
+            "     0"
+          ],
+          [
+            177,
+            "     3"
+          ],
+          [
+            291,
+            "     1"
+          ],
+          [
+            70,
+            "    58"
+          ],
+          [
+            90,
+            "        2"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        2"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "0.6"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "30.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "     7"
+          ],
+          [
+            420,
+            " 16777215"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "     7"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "   257"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "1.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        8"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "     7"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "1.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        6"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        2"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "     7"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        5"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       13"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "0.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       50"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "0.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "1.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "    18"
+          ],
+          [
+            420,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       50"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        3"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "     5"
+          ],
+          [
+            420,
+            "      255"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       50"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       50"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       50"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       50"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "   256"
+          ],
+          [
+            176,
+            "     0"
+          ],
+          [
+            40,
+            "1.0"
+          ],
+          [
+            176,
+            "     0"
+          ],
+          [
+            90,
+            "        2"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            1,
+            "strokes_ogs.tif"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "1.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "1.0"
+          ],
+          [
+            176,
+            "     1"
+          ]
+        ]
+      },
+      {
+        "year": 2013,
+        "argv": [
+          "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+          "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-input",
+          "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2013",
+          "ACAD2013",
+          "DXF",
+          "0",
+          "0",
+          "rtext_arctext.dwg"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputExists": true,
+        "outputSha256": "1c1760ea856a5aa1e294ae3a0d9d3e491742d1dc821b6dc5674392d627e4a28e",
+        "outputBytes": 90391,
+        "styleCount": 24,
+        "styles": [
+          {
+            "handle": "20023",
+            "description": "2dWireframe",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20026",
+            "description": "Basic",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2002A",
+            "description": "Brighten",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2002E",
+            "description": "ColorChange",
+            "suffixTagCount": 121,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20028",
+            "description": "Conceptual",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20029",
+            "description": "Dim",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20031",
+            "description": "EdgeColorOff",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              2
+            ],
+            "companionsSha256": "966755a518b721ec3bd227ba9901941f5cefef5d3aec6816945457ea1e553a6f",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2002D",
+            "description": "Facepattern",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2001F",
+            "description": "Flat",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20020",
+            "description": "FlatWithEdges",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20021",
+            "description": "Gouraud",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20022",
+            "description": "GouraudWithEdges",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20025",
+            "description": "Hidden",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2002F",
+            "description": "JitterOff",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              2
+            ],
+            "companionsSha256": "966755a518b721ec3bd227ba9901941f5cefef5d3aec6816945457ea1e553a6f",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2002C",
+            "description": "Linepattern",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20030",
+            "description": "OverhangOff",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              2
+            ],
+            "companionsSha256": "966755a518b721ec3bd227ba9901941f5cefef5d3aec6816945457ea1e553a6f",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20027",
+            "description": "Realistic",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20036",
+            "description": "Shaded",
+            "suffixTagCount": 121,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20035",
+            "description": "Shaded with edges",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20032",
+            "description": "Shades of Gray",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20033",
+            "description": "Sketchy",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "2002B",
+            "description": "Thicken",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20024",
+            "description": "Wireframe",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          },
+          {
+            "handle": "20034",
+            "description": "X-Ray",
+            "suffixTagCount": 120,
+            "companionCount": 58,
+            "companionValues": [
+              0,
+              1
+            ],
+            "companionsSha256": "43b5ae901fae43b0a4a48c7a595cdbc8ba9fe305d6e3e500f625f47c0ea6548b",
+            "propertyCount": [
+              58
+            ]
+          }
+        ],
+        "flatLiteralRecord": [
+          [
+            0,
+            "VISUALSTYLE"
+          ],
+          [
+            5,
+            "2001F"
+          ],
+          [
+            102,
+            "{ACAD_REACTORS"
+          ],
+          [
+            330,
+            "2001E"
+          ],
+          [
+            102,
+            "}"
+          ],
+          [
+            330,
+            "2001E"
+          ],
+          [
+            100,
+            "AcDbVisualStyle"
+          ],
+          [
+            2,
+            "Flat"
+          ],
+          [
+            70,
+            "     0"
+          ],
+          [
+            177,
+            "     3"
+          ],
+          [
+            291,
+            "     1"
+          ],
+          [
+            70,
+            "    58"
+          ],
+          [
+            90,
+            "        2"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        2"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "0.6"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "30.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "     7"
+          ],
+          [
+            420,
+            " 16777215"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "     7"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "   257"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "1.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        8"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "     7"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "1.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        6"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        2"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "     7"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        5"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       13"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "0.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       50"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "0.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "1.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "    18"
+          ],
+          [
+            420,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       50"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        3"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "     5"
+          ],
+          [
+            420,
+            "      255"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       50"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       50"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       50"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "       50"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "   256"
+          ],
+          [
+            176,
+            "     0"
+          ],
+          [
+            40,
+            "1.0"
+          ],
+          [
+            176,
+            "     0"
+          ],
+          [
+            90,
+            "        2"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            1,
+            "strokes_ogs.tif"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "1.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "1.0"
+          ],
+          [
+            176,
+            "     1"
+          ]
+        ]
+      },
+      {
+        "year": 2010,
+        "argv": [
+          "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+          "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-input",
+          "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2010",
+          "ACAD2010",
+          "DXF",
+          "0",
+          "0",
+          "rtext_arctext.dwg"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputExists": true,
+        "outputSha256": "878ccc71d94f777f9e73b108800eaa8b0678627a34635a54610b25738cf67552",
+        "outputBytes": 137192,
+        "styleCount": 24,
+        "styles": [
+          {
+            "handle": "20023",
+            "description": "2dWireframe",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20026",
+            "description": "Basic",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "2002A",
+            "description": "Brighten",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "2002E",
+            "description": "ColorChange",
+            "suffixTagCount": 59,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20028",
+            "description": "Conceptual",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20029",
+            "description": "Dim",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20031",
+            "description": "EdgeColorOff",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              0,
+              2
+            ],
+            "companionsSha256": "6e51a08e7546a5f845865d76c8110cae50756d52b589cdfea6054699fe6d6253",
+            "propertyCount": []
+          },
+          {
+            "handle": "2002D",
+            "description": "Facepattern",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "2001F",
+            "description": "Flat",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20020",
+            "description": "FlatWithEdges",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20021",
+            "description": "Gouraud",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20022",
+            "description": "GouraudWithEdges",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20025",
+            "description": "Hidden",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "2002F",
+            "description": "JitterOff",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              0,
+              2
+            ],
+            "companionsSha256": "6e51a08e7546a5f845865d76c8110cae50756d52b589cdfea6054699fe6d6253",
+            "propertyCount": []
+          },
+          {
+            "handle": "2002C",
+            "description": "Linepattern",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20030",
+            "description": "OverhangOff",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              0,
+              2
+            ],
+            "companionsSha256": "6e51a08e7546a5f845865d76c8110cae50756d52b589cdfea6054699fe6d6253",
+            "propertyCount": []
+          },
+          {
+            "handle": "20027",
+            "description": "Realistic",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20036",
+            "description": "Shaded",
+            "suffixTagCount": 59,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20035",
+            "description": "Shaded with edges",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20032",
+            "description": "Shades of Gray",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20033",
+            "description": "Sketchy",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "2002B",
+            "description": "Thicken",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20024",
+            "description": "Wireframe",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          },
+          {
+            "handle": "20034",
+            "description": "X-Ray",
+            "suffixTagCount": 58,
+            "companionCount": 28,
+            "companionValues": [
+              1
+            ],
+            "companionsSha256": "e650fc4580997c84be48e8984fe604f57d0dcf6f11fbf5d3a924b71fa8deb515",
+            "propertyCount": []
+          }
+        ],
+        "flatLiteralRecord": [
+          [
+            0,
+            "VISUALSTYLE"
+          ],
+          [
+            5,
+            "2001F"
+          ],
+          [
+            102,
+            "{ACAD_REACTORS"
+          ],
+          [
+            330,
+            "2001E"
+          ],
+          [
+            102,
+            "}"
+          ],
+          [
+            102,
+            "{ACAD_XDICTIONARY"
+          ],
+          [
+            360,
+            "20045"
+          ],
+          [
+            102,
+            "}"
+          ],
+          [
+            330,
+            "2001E"
+          ],
+          [
+            100,
+            "AcDbVisualStyle"
+          ],
+          [
+            2,
+            "Flat"
+          ],
+          [
+            70,
+            "     0"
+          ],
+          [
+            177,
+            "     2"
+          ],
+          [
+            291,
+            "     1"
+          ],
+          [
+            71,
+            "     2"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            72,
+            "     1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            73,
+            "     1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            90,
+            "        2"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            40,
+            "0.6"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            41,
+            "30.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            62,
+            "     5"
+          ],
+          [
+            63,
+            "     7"
+          ],
+          [
+            421,
+            " 16777215"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            74,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            91,
+            "        0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            64,
+            "     7"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            65,
+            "   257"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            75,
+            "     1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            175,
+            "     1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            42,
+            "1.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            92,
+            "        8"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            66,
+            "     7"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            43,
+            "1.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            76,
+            "     1"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            77,
+            "     6"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            78,
+            "     2"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            67,
+            "     7"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            79,
+            "     5"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            170,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            171,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            290,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            93,
+            "       13"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            44,
+            "0.0"
+          ],
+          [
+            176,
+            "     1"
+          ],
+          [
+            173,
+            "     0"
+          ],
+          [
+            176,
+            "     1"
+          ]
+        ]
+      }
+    ],
+    "recipe": "\"\"\"Convert one tracked project-authored input; inspect literal tags before load.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\nimport sys\n\nsys.path.insert(0, \"/Users/dli/dev/libdxfrw/tools\")\nfrom bounded_process import run_bounded\n\nroot = Path(__file__).resolve().parent\nbinary = Path(\"/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter\")\nrows = []\nfor year in (2018, 2013, 2010):\n    out = root / f\"oda-{year}\"\n    argv = [str(binary), str(root / \"oda-input\"), str(out), f\"ACAD{year}\",\n            \"DXF\", \"0\", \"0\", \"rtext_arctext.dwg\"]\n    process = run_bounded(argv, timeout=20, output_limit=65536)\n    output = out / \"rtext_arctext.dxf\"\n    row = dict(year=year, argv=argv, returncode=process.returncode,\n               stdout=process.stdout.decode(\"utf8\", \"replace\"),\n               stderr=process.stderr.decode(\"utf8\", \"replace\"),\n               outputExists=output.is_file())\n    rows.append(row)\n    if process.returncode != 0 or not output.is_file():\n        continue\n    data = output.read_bytes()\n    lines = data.decode(\"utf8\").splitlines()\n    assert len(lines) % 2 == 0\n    pairs = [(int(lines[i]), lines[i + 1]) for i in range(0, len(lines), 2)]\n    records = []\n    current = []\n    for pair in pairs:\n        if pair[0] == 0:\n            if current and current[0] == (0, \"VISUALSTYLE\"):\n                records.append(current)\n            current = [pair]\n        else:\n            current.append(pair)\n    styles = []\n    for record in records:\n        handle = next(value for code, value in record if code == 5)\n        desc = next(value for code, value in record if code == 2)\n        index = next(i for i, pair in enumerate(record) if pair[0] == 291)\n        suffix = record[index + 1:]\n        companions = [int(value) for code, value in suffix if code == 176]\n        styles.append(dict(handle=handle, description=desc,\n                           suffixTagCount=len(suffix), companionCount=len(companions),\n                           companionValues=sorted(set(companions)),\n                           companionsSha256=hashlib.sha256(json.dumps(companions).encode()).hexdigest(),\n                           propertyCount=[int(value) for code, value in suffix if code == 70]))\n    row.update(outputSha256=hashlib.sha256(data).hexdigest(), outputBytes=len(data),\n               styleCount=len(styles), styles=styles,\n               flatLiteralRecord=next((record for record in records\n                                       if (2, \"Flat\") in record), None))\n    assert len(styles) == 24\n\nprint(json.dumps(dict(schema=\"libdxfrw-producer-conversion-calibration-v1\",\n                      qualificationEligible=False, auditRequested=False,\n                      binary=str(binary), binarySha256=hashlib.sha256(binary.read_bytes()).hexdigest(),\n                      sourceSha256=hashlib.sha256((root / \"oda-input/rtext_arctext.dwg\").read_bytes()).hexdigest(),\n                      timeoutSeconds=20, perStreamOutputCap=65536, rows=rows,\n                      recipe=Path(__file__).read_text())))\n",
+    "version": "27.1.0.0",
+    "versionSource": "/Applications/ODAFileConverter.app/Contents/Info.plist",
+    "architecture": "arm64",
+    "recipeSha256": "4fc620296a85b9eeb1eeb78e2803e7201664d95d538ccf7d03432d6fc3fc9aaf",
+    "scope": "Three final audit-disabled save conversions of one already tracked DWG; 24 styles per target, not 72 independent drawings or native semantic votes",
+    "originalFixtureProducerBuild": "unknown",
+    "initialSandboxFailures": [
+      {
+        "year": 2018,
+        "returncode": -6,
+        "stdout": "",
+        "stderr": "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]\nPasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]\n2026-10-15 18:02:59.561 ODAFileConverter[98498:84667812] Connection Invalid error for service com.apple.hiservices-xpcservice.\n2026-10-15 18:02:59.561 ODAFileConverter[98498:84667811] Error received in message reply handler: Connection invalid\n",
+        "outputExists": false
+      },
+      {
+        "year": 2013,
+        "returncode": -6,
+        "stdout": "",
+        "stderr": "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]\nPasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]\n2026-10-15 18:02:59.793 ODAFileConverter[98500:84667828] Connection Invalid error for service com.apple.hiservices-xpcservice.\n2026-10-15 18:02:59.793 ODAFileConverter[98500:84667824] Error received in message reply handler: Connection invalid\n",
+        "outputExists": false
+      },
+      {
+        "year": 2010,
+        "returncode": -6,
+        "stdout": "",
+        "stderr": "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]\nPasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]\n2026-10-15 18:03:00.030 ODAFileConverter[98502:84667837] Error received in message reply handler: Connection invalid\n2026-10-15 18:03:00.030 ODAFileConverter[98502:84667846] Connection Invalid error for service com.apple.hiservices-xpcservice.\n",
+        "outputExists": false
+      }
+    ],
+    "recovery": "Approved macOS service access. First oversized diagnostic capture was truncated; repeated compact final capture retained all three results. Final output hashes independently match graph inspection.",
+    "byteStabilityClaimed": false
+  },
+  "odaLiteralGraphInspection": {
+    "rows": [
+      {
+        "year": 2018,
+        "outputSha256": "946651dccbcd56b5d2d9af410da9e156ad85d245715c45fce60ac3312ee80d15",
+        "flatExtensionDictionary": null,
+        "dictionaryLiteral": [],
+        "targets": []
+      },
+      {
+        "year": 2013,
+        "outputSha256": "1c1760ea856a5aa1e294ae3a0d9d3e491742d1dc821b6dc5674392d627e4a28e",
+        "flatExtensionDictionary": null,
+        "dictionaryLiteral": [],
+        "targets": []
+      },
+      {
+        "year": 2010,
+        "outputSha256": "878ccc71d94f777f9e73b108800eaa8b0678627a34635a54610b25738cf67552",
+        "flatExtensionDictionary": "20045",
+        "dictionaryLiteral": [
+          [
+            0,
+            "DICTIONARY"
+          ],
+          [
+            5,
+            "20045"
+          ],
+          [
+            330,
+            "2001F"
+          ],
+          [
+            100,
+            "AcDbDictionary"
+          ],
+          [
+            280,
+            "     1"
+          ],
+          [
+            281,
+            "     1"
+          ],
+          [
+            3,
+            "ACAD_XREC_ROUNDTRIP"
+          ],
+          [
+            360,
+            "20046"
+          ]
+        ],
+        "targets": [
+          {
+            "handle": "20046",
+            "literal": [
+              [
+                0,
+                "XRECORD"
+              ],
+              [
+                5,
+                "20046"
+              ],
+              [
+                102,
+                "{ACAD_REACTORS"
+              ],
+              [
+                330,
+                "20045"
+              ],
+              [
+                102,
+                "}"
+              ],
+              [
+                330,
+                "20045"
+              ],
+              [
+                100,
+                "AcDbXrecord"
+              ],
+              [
+                280,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop28"
+              ],
+              [
+                280,
+                "     0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp28"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop29"
+              ],
+              [
+                280,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp29"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop30"
+              ],
+              [
+                280,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp30"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop31"
+              ],
+              [
+                280,
+                "     0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp31"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop32"
+              ],
+              [
+                280,
+                "     0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp32"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop33"
+              ],
+              [
+                280,
+                "     0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp33"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop34"
+              ],
+              [
+                280,
+                "     0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp34"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop35"
+              ],
+              [
+                280,
+                "     0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp35"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop36"
+              ],
+              [
+                280,
+                "     0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp36"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop37"
+              ],
+              [
+                90,
+                "       50"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp37"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop38"
+              ],
+              [
+                140,
+                "0.0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp38"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop39"
+              ],
+              [
+                140,
+                "1.0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp39"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop40"
+              ],
+              [
+                90,
+                "        0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp40"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop41ColorIndex"
+              ],
+              [
+                90,
+                "       18"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop41ColorRGB"
+              ],
+              [
+                90,
+                "        0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp41"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop42"
+              ],
+              [
+                90,
+                "       50"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp42"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop43"
+              ],
+              [
+                90,
+                "        3"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp43"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop44ColorIndex"
+              ],
+              [
+                90,
+                "        5"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop44ColorRGB"
+              ],
+              [
+                90,
+                "      255"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp44"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop45"
+              ],
+              [
+                280,
+                "     0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp45"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop46"
+              ],
+              [
+                90,
+                "       50"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp46"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop47"
+              ],
+              [
+                90,
+                "       50"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp47"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop48"
+              ],
+              [
+                90,
+                "       50"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp48"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop49"
+              ],
+              [
+                280,
+                "     0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp49"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop50"
+              ],
+              [
+                90,
+                "       50"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp50"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop51ColorIndex"
+              ],
+              [
+                90,
+                "      256"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop51ColorRGB"
+              ],
+              [
+                90,
+                "-16777216"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp51"
+              ],
+              [
+                70,
+                "     0"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop52"
+              ],
+              [
+                140,
+                "1.0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp52"
+              ],
+              [
+                70,
+                "     0"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop53"
+              ],
+              [
+                90,
+                "        2"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp53"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop54"
+              ],
+              [
+                1,
+                "strokes_ogs.tif"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp54"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop55"
+              ],
+              [
+                280,
+                "     0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp55"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop56"
+              ],
+              [
+                140,
+                "1.0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp56"
+              ],
+              [
+                70,
+                "     1"
+              ],
+              [
+                102,
+                "RTVSPost2010Prop57"
+              ],
+              [
+                140,
+                "1.0"
+              ],
+              [
+                102,
+                "RTVSPost2010PropOp57"
+              ],
+              [
+                70,
+                "     1"
+              ]
+            ]
+          }
+        ]
+      }
+    ],
+    "qualificationEligible": false,
+    "recipe": "\"\"\"Literal source/output graph observations, no repair or support promotion.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\n\nroot = Path(__file__).resolve().parent\nreports = []\nfor year in (2018, 2013, 2010):\n    path = root / f\"oda-{year}\" / \"rtext_arctext.dxf\"\n    lines = path.read_text().splitlines()\n    pairs = [(int(lines[i]), lines[i + 1]) for i in range(0, len(lines), 2)]\n    records = []\n    current = []\n    for pair in pairs:\n        if pair[0] == 0:\n            if current:\n                records.append(current)\n            current = [pair]\n        else:\n            current.append(pair)\n    by_handle = {next(v.strip() for c, v in rec if c == 5): rec\n                 for rec in records if any(c == 5 for c, v in rec)}\n    flat = next(rec for rec in records if rec[0] == (0, \"VISUALSTYLE\")\n                and (2, \"Flat\") in rec)\n    xdict = None\n    if (102, \"{ACAD_XDICTIONARY\") in flat:\n        start = flat.index((102, \"{ACAD_XDICTIONARY\"))\n        xdict = flat[start + 1][1].strip()\n    dictionary = by_handle.get(xdict, [])\n    targets = [v.strip() for c, v in dictionary if c in (350, 360)]\n    reports.append(dict(year=year, outputSha256=hashlib.sha256(path.read_bytes()).hexdigest(),\n                        flatExtensionDictionary=xdict, dictionaryLiteral=dictionary,\n                        targets=[dict(handle=target, literal=by_handle.get(target))\n                                 for target in targets]))\nprint(json.dumps(dict(rows=reports, qualificationEligible=False,\n                      recipe=Path(__file__).read_text())))\n",
+    "recipeSha256": "f55ddfe2dcd4029ec6b6cf81b894eb7909c0e92bb139425d7ea30fd6af5b9f73"
+  },
+  "retainedIndependentSourceObservation": {
+    "path": "/private/tmp/libdxfrw-broader-boundaries.eCaIDz/rtext_arctext-peer.json",
+    "sha256": "3dfd7797e92bb05bd3603fb6edaee511b02104d14d203a4464d642d87566199f",
+    "runtime": "Installed LibreDWG0.14; earlier hash-bound execution, not rerun or asserted built from current master",
+    "flatHandle": "2001F",
+    "flatFields": {
+      "ext_lighting_model": 2,
+      "is_xdic_missing": 1,
+      "face_mono_color": {
+        "index": 7,
+        "rgb": "c2ffffff"
+      },
+      "edge_obscured_color": {
+        "rgb": "c8000000"
+      },
+      "c_prop29": {
+        "rgb": "c2000000"
+      }
+    },
+    "scope": "Handle-joined source field lead; not rendering/kernel qualification"
+  },
+  "decisions": [
+    "Use existing metadata WIP as f.1 prerequisite, not a new implementation or accepted result.",
+    "Retain exact DWG HEADER root identity; existing optional callback default must not cause duplicate publication.",
+    "Start same-version AC1032 typed serializer from captured tags; preserve source/target origin separation.",
+    "CMC normalized scalar loses distinctions; RGB zero is present data, C8->257 is this witnessed conversion, not a universal undocumented rule.",
+    "Modern ODA ext-lighting2->3 normalization needs explicit meaning review, not automatic source mutation.",
+    "AC1024 downgrade uses hard-owned ACAD_XREC_ROUNDTRIP RTVSPost2010Prop28-57 graph; truncation is not qualified downgrade.",
+    "ACadSharp skips VISUALSTYLE DXF emission; ezdxf tail preservation/repair is not grammar/lossless certification; exclude unqualified comparator profiles.",
+    "Keep 2D tolerant defaults and optional callback source compatibility; public layout changes require consumer rebuild, not ABI claims.",
+    "Use existing object/reader/graph fast targets; one composed CLI/lc3 gate, full suite only shared-boundary/release.",
+    "Independent multi-page AcDs controls and report-only oracle negatives are ready alternatives while a profile/external cell is unavailable."
+  ],
+  "externalGates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "notEstablished": [
+    "Native Linux/Windows FreeCAD qualification",
+    "Independent known-dimension ACIS/AcDs geometry, units or placement semantics",
+    "J268 original report/membership recovery",
+    "VISUALSTYLE renderer appearance",
+    "Named/book-color and all CMC method target mappings",
+    "AC1024 round-trip-property restore lifecycle",
+    "Whole CLI9d or whole-plan completion"
+  ],
+  "handleJoinedProducerCrosswalk": {
+    "rows": [
+      {
+        "year": 2018,
+        "counts": {
+          "styles": 24,
+          "companions": 1392,
+          "nonColorValues": 1200,
+          "modernColors": 192
+        },
+        "colorMethods": {
+          "192": 24,
+          "194": 74,
+          "195": 64,
+          "200": 30
+        },
+        "lightingChanges": [
+          {
+            "handle": "20023",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20026",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2002A",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2002E",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20028",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20029",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20031",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2002D",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2001F",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20020",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20021",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20022",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20025",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2002F",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2002C",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20030",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20027",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20036",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20035",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20032",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20033",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2002B",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20024",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20034",
+            "source": 2,
+            "target": 3
+          }
+        ],
+        "outputSha256": "946651dccbcd56b5d2d9af410da9e156ad85d245715c45fce60ac3312ee80d15"
+      },
+      {
+        "year": 2013,
+        "counts": {
+          "styles": 24,
+          "companions": 1392,
+          "nonColorValues": 1200,
+          "modernColors": 192
+        },
+        "colorMethods": {
+          "192": 24,
+          "194": 74,
+          "195": 64,
+          "200": 30
+        },
+        "lightingChanges": [
+          {
+            "handle": "20023",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20026",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2002A",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2002E",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20028",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20029",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20031",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2002D",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2001F",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20020",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20021",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20022",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20025",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2002F",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2002C",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20030",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20027",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20036",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20035",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20032",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20033",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "2002B",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20024",
+            "source": 2,
+            "target": 3
+          },
+          {
+            "handle": "20034",
+            "source": 2,
+            "target": 3
+          }
+        ],
+        "outputSha256": "1c1760ea856a5aa1e294ae3a0d9d3e491742d1dc821b6dc5674392d627e4a28e"
+      },
+      {
+        "year": 2010,
+        "counts": {
+          "styles": 24,
+          "companions": 672,
+          "nonColorValues": 552,
+          "modernColors": 0
+        },
+        "colorMethods": {},
+        "lightingChanges": [],
+        "outputSha256": "878ccc71d94f777f9e73b108800eaa8b0678627a34635a54610b25738cf67552"
+      }
+    ],
+    "qualificationEligible": false,
+    "sourcePeerSha256": "3dfd7797e92bb05bd3603fb6edaee511b02104d14d203a4464d642d87566199f",
+    "recipe": "\"\"\"Handle-joined source-field/producer-tag crosswalk, not CAD semantic acceptance.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\n\nroot = Path(__file__).resolve().parent\npeer_path = Path(\"/private/tmp/libdxfrw-broader-boundaries.eCaIDz/rtext_arctext-peer.json\")\npeer = json.loads(peer_path.read_text())\nby_handle = {format(o[\"handle\"][2], \"X\"): o for o in peer[\"OBJECTS\"]\n             if o.get(\"object\") == \"VISUALSTYLE\"}\nkeys = [\"face_lighting_model\", \"face_lighting_quality\", \"face_color_mode\",\n        \"face_modifier\", \"face_opacity\", \"face_specular\", \"face_mono_color\",\n        \"edge_model\", \"edge_style\", \"edge_intersection_color\", \"edge_obscured_color\",\n        \"edge_obscured_ltype\", \"edge_intersection_ltype\", \"edge_crease_angle\",\n        \"edge_modifier\", \"edge_color\", \"edge_opacity\", \"edge_width\", \"edge_overhang\",\n        \"edge_jitter\", \"edge_silhouette_color\", \"edge_silhouette_width\", \"edge_halo_gap\",\n        \"edge_isolines\", \"edge_do_hide_precision\", \"display_settings\", \"display_brightness\",\n        \"display_shadow_type\"]\nkeys += [f\"b_prop{x:02x}\" for x in range(0x1c, 0x25)]\nkeys += [\"bl_prop25\", \"bd_prop26\", \"bd_prop27\", \"bl_prop28\", \"c_prop29\", \"bl_prop2a\",\n         \"bl_prop2b\", \"c_prop2c\", \"b_prop2d\", \"bl_prop2e\", \"bl_prop2f\", \"bl_prop30\",\n         \"b_prop31\", \"bl_prop32\", \"c_prop33\", \"bd_prop34\", \"edge_wiggle\", \"strokes\",\n         \"b_prop37\", \"bd_prop38\", \"bd_prop39\"]\nassert len(keys) == 58 and len(by_handle) == 24\nfloat_keys = {\"face_opacity\", \"face_specular\", \"edge_crease_angle\", \"edge_opacity\",\n              \"display_brightness\"}\nbool_keys = {\"edge_do_hide_precision\"}\ncolors = {\"face_mono_color\", \"edge_intersection_color\", \"edge_obscured_color\",\n          \"edge_color\", \"edge_silhouette_color\", \"c_prop29\", \"c_prop2c\", \"c_prop33\"}\nrows = []\nfor year in (2018, 2013, 2010):\n    path = root / f\"oda-{year}\" / \"rtext_arctext.dxf\"\n    lines = path.read_text().splitlines()\n    pairs = [(int(lines[i]), lines[i + 1]) for i in range(0, len(lines), 2)]\n    records, current = [], []\n    for pair in pairs:\n        if pair[0] == 0:\n            if current and current[0] == (0, \"VISUALSTYLE\"):\n                records.append(current)\n            current = [pair]\n        else:\n            current.append(pair)\n    counts = dict(styles=0, companions=0, nonColorValues=0, modernColors=0)\n    methods, lighting_changes = {}, []\n    for record in records:\n        handle = next(v.strip() for c, v in record if c == 5)\n        source = by_handle[handle]\n        tail = record[next(i for i, (c, v) in enumerate(record) if c == 291) + 1:]\n        if year >= 2013:\n            assert tail.pop(0) == (70, \"    58\")\n        groups, group = [], []\n        for code, value in tail:\n            if code == 176:\n                groups.append((group, int(value)))\n                group = []\n            else:\n                group.append((code, value))\n        assert not group and len(groups) == (58 if year >= 2013 else 28)\n        for key, (values, companion) in zip(keys, groups):\n            assert companion == source.get(key + \"_int\", 0), (year, handle, key)\n            counts[\"companions\"] += 1\n            if key in colors:\n                if year < 2013:\n                    continue\n                raw = int(source[key][\"rgb\"], 16)\n                method = raw >> 24\n                methods[str(method)] = methods.get(str(method), 0) + 1\n                assert values[0][0] == 62\n                index = int(values[0][1])\n                if method == 0xc2:\n                    assert [(c, int(v)) for c, v in values if c == 420] == [(420, raw & 0xffffff)]\n                elif method == 0xc3:\n                    assert index == raw & 0xff\n                elif method == 0xc8:\n                    assert index == 257\n                elif method == 0xc0:\n                    assert index == 256\n                elif method == 0xc1:\n                    assert index == 0\n                else:\n                    raise AssertionError((handle, key, method))\n                counts[\"modernColors\"] += 1\n                continue\n            assert len(values) == 1, (year, handle, key, values)\n            code, value = values[0]\n            if key == \"strokes\":\n                parsed, expected_code = value, 1\n            elif key in float_keys or key.startswith(\"bd_prop\"):\n                parsed, expected_code = float(value), 40\n            elif key in bool_keys or key.startswith(\"b_prop\"):\n                parsed, expected_code = int(value), 290\n            else:\n                parsed, expected_code = int(value), 90\n            assert parsed == source[key], (year, handle, key, parsed, source[key])\n            if year >= 2013:\n                assert code == expected_code\n            counts[\"nonColorValues\"] += 1\n        counts[\"styles\"] += 1\n        lighting = int(next(v for c, v in record if c == 177))\n        if lighting != source[\"ext_lighting_model\"]:\n            lighting_changes.append(dict(handle=handle, source=source[\"ext_lighting_model\"], target=lighting))\n    assert counts[\"styles\"] == 24\n    rows.append(dict(year=year, counts=counts, colorMethods=methods,\n                     lightingChanges=lighting_changes,\n                     outputSha256=hashlib.sha256(path.read_bytes()).hexdigest()))\nprint(json.dumps(dict(rows=rows, qualificationEligible=False,\n                      sourcePeerSha256=hashlib.sha256(peer_path.read_bytes()).hexdigest(),\n                      recipe=Path(__file__).read_text())))\n",
+    "recipeSha256": "33b1f13dc877df6d52eb5179a5485a2c238090e66dd4996e5cf0b4982be0ab8b",
+    "totals": {
+      "styles": 72,
+      "companions": 3456,
+      "nonColorValues": 2952,
+      "modernColors": 384
+    },
+    "scope": "All24 original source styles per target, source-joined companion/numeric/text fields and only modern C0/C2/C3/C8 color mappings; no native/render/kernel semantics",
+    "excluded": [
+      "Named/book colors and flags",
+      "CMC methods other than C0/C2/C3/C8",
+      "Legacy AC1024 color fidelity",
+      "AC1024 extension round-trip restore lifecycle"
+    ]
+  },
+  "planValidation": {
+    "jsonAndPlanConsistency": "PASS: JSON structure, linked new section, 8 heads, 13 source files, counts and six unchanged external statuses",
+    "protectedWip": "PASS: all three production/test SHA-256 values unchanged after plan update",
+    "retainedRecipes": "PASS: four recipe ASTs and exact SHA-256 bindings",
+    "artifactBindings": "PASS: tracked original input and all three final output hashes match retained crosswalk and graph inspector",
+    "oracleRegistrySelfTest": "PASS: python3 -B tools/check_parity_test_oracles.py --self-test",
+    "whitespace": "PASS: git diff --check",
+    "cppBuildOrTestAcceptanceClaimed": false,
+    "fullSuiteRun": false,
+    "nativeConsumerRun": false,
+    "existingSourceWipCommitted": false,
+    "remoteWrites": false
+  },
+  "scratchDirectory": "/private/tmp/libdxfrw-graph-readiness.jzaELF"
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-spatial-filter-simple-polygon-dxf-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_SPATIAL_FILTER_POLYGON_ADMISSION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Reject invalid SPATIAL_FILTER polygon boundaries at DXF writer admission while retaining simple concave and explicitly closed polygons. This does not establish physical DWG producer support or clipping behavior in a native consumer.",
+  "implementationReadiness": {
+    "baselineHead": "1c36504b7a083f21640bd1340194ed8b65f328ea",
+    "sourceObservation": "DRW_SpatialFilter::hasValidDxfFields checked finite coordinates, point count and matrix sizes but did not test polygon topology. Autodesk's AcDbSpatialFilter constructor documentation says a boundary with more than two points is a polygon and that the polygon should be non-self-intersecting.",
+    "normativeEvidence": {
+      "source": "Autodesk ObjectARX Reference Guide, AcDbSpatialFilter constructor",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbSpatialFilter__AcDbSpatialFilter_AcGePoint2dArray__AcGeVector3d__double_double_double_Adesk__Boolean.html",
+      "relevantRule": "Two points are diagonal points of a rectangle; otherwise the points are polygon vertices and the polygon should be non-self-intersecting."
+    },
+    "change": "DXF writer admission checks polygon edge intersections in the 2D boundary coordinates, including non-adjacent crossings/touches and adjacent retracing. It accepts the common explicit closing-point spelling. Near-collinear arithmetic that cannot be classified confidently is refused conservatively. The existing 10,000-point bound limits work; validation is quadratic in the worst case."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_objects.cpp": "76ee6f2d37f441de154aa4a66b751f68dbc0174507c049d7ace3761db6286e65",
+      "tests/hardening_tests.cpp": "2f92e574d2b21068e09cd64b2c21395c02635ba3621970ccd914cbda9a0450c6",
+      "CMakeLists.txt": "cd5a6c4c09e1472a67334512602c582c52391b881c7627fdf6605368621577bc"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "/usr/bin/g++",
+      "platform": "Darwin 27.0.0 arm64"
+    },
+    "testExecutableSha256": "3aa7b98aa09f0c5544493e5e418bddf55318de07b24532a9190ad640cf70aabf"
+  },
+  "controls": {
+    "selector": "--spatial-filter-dxf-validation",
+    "ctest": "libdxfrw_spatial_filter_simple_boundary",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "Parser source-field validation accepts a simple concave polygon and a simple polygon with an explicit closing point.",
+      "Parser source-field validation and typed writer admission reject a bow-tie polygon.",
+      "Typed writer admission rejects adjacent edges that retrace over a segment.",
+      "ASCII and Binary SPATIAL_FILTER writers refuse a self-intersecting polygon before emitting any bytes.",
+      "Existing rectangle and field-order controls continue to pass."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_spatial_filter_simple_boundary$' --output-on-failure",
+      "result": "PASS 1/1 in 0.32 seconds"
+    },
+    "diffCheck": "PASS",
+    "boundedWorkProbe": {
+      "input": "Locally authored, in-memory 10,000-vertex regular polygon at the existing SPATIAL_FILTER point limit; no DWG/DXF fixture file.",
+      "result": "Accepted in 927 ms in the current unoptimized local build.",
+      "interpretation": "A single local timing observation only; the implementation remains O(n^2) with the existing 10,000-point cap."
+    }
+  },
+  "limitations": [
+    "No physical SPATIAL_FILTER source or DWG-to-DXF end-to-end output was qualified.",
+    "The guard validates polygon topology for writer admission only; it does not prove XCLIP inversion, clipping transforms, actual geometry clipping, or native rendering semantics.",
+    "Near-collinear ambiguous inputs may be conservatively refused; broad numeric and completed-pool safety qualification remains open.",
+    "No support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue with an independently actionable P6 schema/semantic residual; preserve the separation between DXF field admission and physical-source/native clipping qualification."
+}

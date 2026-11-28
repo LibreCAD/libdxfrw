@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw-dxf-producer-and-projection-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the open-source DXF producer and consumer audit by examining GDAL's declared projection/writer boundaries and QGIS's independent ASCII AC1018 exporter. Refine peer admission without changing implementation behavior or support claims.",
+  "method": {
+    "kind": "Public primary-source documentation and source audit",
+    "sourcesOpened": [
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md",
+      "https://github.com/qgis/QGIS/blob/master/src/core/dxf/qgsdxfexport.cpp",
+      "https://github.com/qgis/QGIS/blob/master/src/core/dxf/qgsdxfexport.h",
+      "https://github.com/qgis/QGIS/blob/master/tests/src/core/testqgsdxfexport.cpp",
+      "https://github.com/qgis/QGIS-Documentation/blob/master/docs/user_manual/managing_data_source/create_layers.rst"
+    ],
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourceFreshness": "QGIS master source is mutable and not pinned to a release binary. GDAL KNOWN_ISSUES.md has a June 2018 footer; treat listed limitations as documented risk/exclusion leads until rechecked on an exact current build. Stable GDAL driver documentation is also version-gated and must be paired with the runtime version/options at use time.",
+    "evidenceBoundary": "Project documentation/source establishes route behavior and declared gaps, not a current execution against libdxfrw artifacts. No local defect, full-file parity, or support promotion was established."
+  },
+  "evidence": [
+    {
+      "topic": "GDAL DXF projection and declared gaps",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md"
+      ],
+      "observed": [
+        "The DXF driver maps DXF into OGR features and supports a bounded Create route; it is not a native CAD document model.",
+        "KNOWN_ISSUES.md lists unsupported MESH, MPOLYGON, RAY, TABLE, TOLERANCE and XLINE readers; missing 3D/OCS support for DIMENSION, LEADER and MULTILEADER; absent HATCH pattern interpretation and MLINESTYLE fidelity; WIPEOUT image omission; and ATTRIB writer omission for POINT BlockAttributes.",
+        "The same known-issues page warns that 3DFACE polygon/PEN representation is handled poorly, and its footer is dated June 2018."
+      ],
+      "doesNotEstablish": [
+        "that every listed issue persists in a current GDAL release",
+        "a libdxfrw defect or a usable negative control without reproducing the case",
+        "CAD graph, ATTRIB sequence, 3D/OCS, or solid-semantic acceptance"
+      ],
+      "planUse": "Treat the list as a route-exclusion and recheck checklist. Only credit the exact feature/version/direction that a pinned current build freshly exercises; retain diagnostics and independently inspect its output."
+    },
+    {
+      "topic": "QGIS as an optional independent AC1018 ASCII DXF producer",
+      "sources": [
+        "https://github.com/qgis/QGIS/blob/master/src/core/dxf/qgsdxfexport.cpp",
+        "https://github.com/qgis/QGIS/blob/master/src/core/dxf/qgsdxfexport.h",
+        "https://github.com/qgis/QGIS/blob/master/tests/src/core/testqgsdxfexport.cpp",
+        "https://github.com/qgis/QGIS-Documentation/blob/master/docs/user_manual/managing_data_source/create_layers.rst"
+      ],
+      "observed": [
+        "The current source emits ASCII DXF with $ACADVER AC1018.",
+        "The group-point writer emits Z when the point is 3D and force2d is false; the API exposes a force-2D option and a 3D polyline flag.",
+        "The route is GIS-layer export with map extent, CRS, unit, symbology, label, and optional block processing, rather than general CAD-document round-trip.",
+        "The visible QGIS tests include exporter execution and QGIS re-open checks, which are same-application checks rather than independent acceptance of libdxfrw output."
+      ],
+      "doesNotEstablish": [
+        "a pinned current release behavior or independent run against this library",
+        "binary DXF, DWG, arbitrary tables/objects, opaque preservation, or ACIS semantics",
+        "untransformed coordinates unless the test explicitly fixes CRS and export options"
+      ],
+      "planUse": "Optionally use an already-available QGIS build at the composed checkpoint for a small source-authored AC1018 point/3D-line producer control. Inspect literal output tags independently and record exact build/options. Do not install it for per-slice tests or add it as a required dependency."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "7AG peer admission",
+      "S8 consumer-evidence separation"
+    ],
+    "peerReceiptsMustSeparate": [
+      "source records read",
+      "projected OGR/GIS features",
+      "literal DXF output tags",
+      "libdxfrw parse result",
+      "independent native or semantic acceptance"
+    ],
+    "optionalProducerSelection": "At most one additional common-geometry producer run at the composed checkpoint. Prefer an already-installed GDAL route; use QGIS only if the AC1018 3D-coordinate producer question warrants it. No per-slice peer run.",
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue local implementation using generated fast tests and existing slice owners.",
+      "At the composed checkpoint, select a single already-available producer only when it answers a stated version/feature question.",
+      "Pin exact runtime/build, fix CRS and projection options, inspect source-authored expected tags, and record losses/warnings.",
+      "Keep GDAL and QGIS output as bounded producer evidence, not general CAD-document or 3D-semantic oracles."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

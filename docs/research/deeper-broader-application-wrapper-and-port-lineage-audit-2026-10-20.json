@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Application wrapper and port lineage audit",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Screen newly surfaced CAD applications and language ports for genuinely independent DWG/DXF parser lineages",
+    "Reconcile application-level consumer value with parser, writer, projection, and geometry-kernel independence",
+    "Strengthen exact output-version checks using documented peer failure history",
+    "Refine the existing PAR-07/S8 composed checkpoint without adding per-slice validation or external prerequisites"
+  ],
+  "sources": [
+    {
+      "project": "CodeCAD core manifest",
+      "reference": "https://github.com/backkem/codecad/blob/main/crates/cadview-core/Cargo.toml",
+      "status": "primary_dependency_lineage",
+      "observation": "The CAD application describes DWG parsing in cadview-core and declares acadrust = 0.3. Its parser lineage is therefore ACadRust-derived rather than independent."
+    },
+    {
+      "project": "CodeCAD Cargo.lock",
+      "reference": "https://github.com/backkem/codecad/blob/main/Cargo.lock",
+      "status": "locked_dependency_identity",
+      "observation": "The reviewed main-branch lock resolves acadrust to version 0.3.4 with a crates.io checksum. This is older than ACadRust 0.6.4 already reviewed in the plan; any runtime comparison must bind the exact CodeCAD commit and locked crate."
+    },
+    {
+      "project": "CodeCAD application README",
+      "reference": "https://github.com/backkem/codecad",
+      "status": "consumer_scope_declaration",
+      "observation": "The project describes a DWG viewer/editor, browser and native/server execution, and a 2D rendering path. Application behavior may be considered only as a route-specific consumer projection, not as independent parser, writer, graph-preservation, or 3D-semantic evidence."
+    },
+    {
+      "project": "acad-ts README and interoperability notes",
+      "reference": "https://github.com/node-projects/acad-ts/blob/master/README.md",
+      "status": "explicit_port_lineage_and_version_boundary",
+      "observation": "The project identifies itself as a TypeScript port from ACadSharp and names its source/last-compared commits. It marks AC1021 DWG writing unsupported and reports that earlier releases emitted an R2004 container with an R2007 signature, which external CAD engines rejected. This is a peer implementation lesson, not a local libdxfrw reproduction."
+    },
+    {
+      "project": "MLightCAD open-source DWG viewer and parser route declaration",
+      "reference": "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md",
+      "status": "primary_parser_lineage_and_scope",
+      "observation": "The open-source viewer's DWG ingestion uses LibreDWG WebAssembly packages, while DXF uses a distinct parser. The proprietary alternative is licensed and documents partial SAB decoding with wireframe/bounding-box fallback rather than full B-rep tessellation."
+    },
+    {
+      "project": "flyfish-dev CAD viewer README",
+      "reference": "https://github.com/flyfish-dev/cad-viewer",
+      "status": "wrapper_lineage_declaration",
+      "observation": "The application declares DWG support through MLightCAD LibreDWG WebAssembly packages. It is an application/scene projection on the LibreDWG lineage, not another DWG parser implementation."
+    },
+    {
+      "project": "CADKernel README and support table",
+      "reference": "https://github.com/kernalix7/CADKernel",
+      "status": "conflicting_project_claims_not_admitted",
+      "observation": "The mutable README marks DWG/DXF read/write in its commercial-format matrix, leaves ACIS SAT/SAB read/write unchecked, and says in its FAQ that proprietary-format import is planned. No source-linked DWG implementation or independently inspectable per-family qualification evidence was admitted in this review."
+    },
+    {
+      "project": "FreeCAD Draft DXF documentation",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "status": "consumer_route_and_supported_subset",
+      "observation": "The current page describes two selectable DXF importers with different supported subsets and states stock FreeCAD import cannot read ACIS solids. It documents DWG as external conversion to DXF followed by that importer."
+    },
+    {
+      "project": "FreeCAD DWG converter implementation",
+      "reference": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "status": "current_route_source",
+      "observation": "The Python adapter selects converter routes from preferences/fallback logic and invokes external tools. A native acceptance record must identify the actually selected executable and the generated intermediate DXF rather than infer behavior from the application name."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Expanded the existing PAR-07/S8 provenance ledger with CodeCAD/ACadRust, acad-ts/ACadSharp, and browser/LibreDWG lineage classifications; excluded a conflicting unsupported CADKernel matrix; and reinforced actual-output-version verification using acad-ts's documented historical false-signature failure. No local defect, implementation order, validation cadence, test, fixture, dependency, or support claim changed.",
+    "nextImplementation": "Continue the next existing local-ready PAR-138 slice. Optional app/peer routes remain confined to the composed checkpoint and do not block implementation.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-application-wrapper-and-port-lineage-audit-2026-10-20.json"
+    ],
+    "limitations": "GitHub master/main sources and project support matrices are mutable. The observations are source/documentation evidence only; no candidate was built or run, no drawing was tested, and no peer behavior is transferred to libdxfrw. CodeCAD's ACadRust dependency and MLightCAD's LibreDWG route establish correlated lineages, not independent semantic evidence."
+  },
+  "validation": {
+    "planEdit": "Added source-backed lineage classifications and refined the existing composed-gate route metadata/output-version checks; local queue and per-slice validation cadence are unchanged.",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan; no trailing whitespace found in the new receipt",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

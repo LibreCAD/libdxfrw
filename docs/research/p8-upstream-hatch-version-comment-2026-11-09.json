@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "id": "p8-upstream-hatch-version-comment-2026-11-09",
+  "date": "2026-11-09",
+  "question": "Can the LibreCAD adapter distinguish new upstream degree-valued hatch output from same-version raw-radian legacy output?",
+  "supportClaimEffect": "none",
+  "reviewEvidence": {
+    "consumerCheckout": "/private/tmp/librecad-p8-default-graphs",
+    "branch": "codex/p8-default-graphs",
+    "commitsReviewed": [
+      "72bceb94511e7fb0d161c920713e347d68bbe80c",
+      "d043eca8f",
+      "e216b44e763a87374556bad13e16628ff95e574c"
+    ],
+    "adapterTest": "librecad_dwg_default_graph_adapter_tests: PASS, 80 assertions in 2 cases",
+    "hatchSuiteBeforeFix": "librecad_hatch_angle_units_tests: 7/9 cases passed; 71/73 assertions passed",
+    "hatchFailuresBeforeFix": [
+      "The shipped a3.dxf test could not open the absent librecad/support/library/misc/a3.dxf asset.",
+      "The degree-writer check failed because current DRW_VERSION and the adapter's raw-radian legacy marker were both 2.0.0."
+    ],
+    "cause": "The adapter classifies DXF header 'dxfrw 2.0.0' as raw-radian legacy, while current upstream libdxfrw also emitted 'dxfrw 2.0.0' after writing degree-valued hatch angles. For small angle values, header-based compatibility heuristics cannot distinguish those same-marker producer profiles."
+  },
+  "implementation": {
+    "cmakeProjectVersion": "2.0.1",
+    "drwVersionComment": "2.0.1",
+    "files": [
+      "CMakeLists.txt",
+      "src/drw_base.h",
+      "README.md"
+    ],
+    "reason": "Give new upstream degree-valued output a distinct version comment. The LibreCAD adapter already reserves 2.0.0 for the legacy raw-radian profile and recognizes other post-0.6.4 upstream versions as degree-valued.",
+    "historicalLimit": "Existing 2.0.0 files remain ambiguous: this change does not identify whether an old file with that marker was produced by the degree-valued upstream writer or a raw-radian fork. No compatibility claim is made for this unresolved overlap."
+  },
+  "validation": {
+    "rootConfigure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "rootTargetBuild": "libdxfrw_dxf_fixture_tests: PASS",
+    "writerPrimitiveBuild": "libdxfrw_writer_primitives_tests: PASS",
+    "writerPrimitiveRun": "Writer primitives: PASS",
+    "compiledMarker": "build-gcc/libdxfrw.a contains the compiled 2.0.1 literal; src/libdxfrw.cpp constructs the DXF version comment from DRW_VERSION.",
+    "consumerRebuild": "Focused post-fix consumer link completed without rebuilding librecad_lib: compiled the hatch test translation unit against the byte-identical 2.0.1 drw_base.h, copied the existing scratch liblibrecad_lib.a, replaced only its libdxfrw.cpp.o member with the freshly compiled object containing 2.0.1, then relinked librecad_hatch_angle_units_tests against that scratch archive. This verifies the marker boundary and focused hatch paths; it is not a clean/full LibreCAD rebuild or broad consumer qualification.",
+    "consumerHatchCases": "PASS: 45 assertions in 3 cases: DRW_VERSION is a degree writer; Legacy and foreign headers decide hatch angle units; A hatch saved with libdxfrw 0.6.4 writes degrees and reads back.",
+    "consumerCompileNote": "The targeted consumer test translation unit emitted an existing -Wswitch warning for four associative enum values in librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h. It did not fail this focused build and is unrelated to hatch units."
+  },
+  "fixturePolicy": "No DWG or DXF fixture added. The LibreCAD build is scratch-only.",
+  "nextAction": "Keep the missing a3.dxf asset as a separate test-environment issue, retain the historical 2.0.0 ambiguity gate, and continue with the next independently ready P4/P6 implementation slice. This focused marker-boundary check does not qualify a clean/full LibreCAD rebuild, native application behavior, ABI, or platform support."
+}

@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-render-settings-identity-remapping-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "GENERATED_IDENTITY_TRANSPORT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Low-level DXF group-5 identity emission shared by the RENDERSETTINGS-family writer routes.",
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "The writer remaps and reserves a nonzero source identity, or allocates an identity when the source handle is zero.",
+      "All preset and non-preset body routes share staged record commit and bind source identity only after successful output.",
+      "A fixed output identity is refused before publishing record bytes.",
+      "Late invalid-XDATA failure restores staged bytes, emitted-record inventory, and source-object identity-map changes; corrected retry is verified with a fresh writer."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed in-memory AC1032 RENDERSETTINGS objects. No DWG/DXF fixtures were added.",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "cases": [
+      "Mapped group-5 identity, OBJECTS inventory identity, source-object binding, and typed RENDERSETTINGS readback.",
+      "Allocated group-5 identity when the source handle is zero, with typed readback.",
+      "Fixed-handle remap refusal preserves the destination.",
+      "Late invalid-XDATA rollback checks destination bytes, emitted-record inventory, and source-object identity map.",
+      "Corrected retry and typed readback use a fresh writer.",
+      "Existing RENDERSETTINGS text-budget, typed-capture, owner-order, preset output, preset graph-output, and preset transaction controls still pass."
+    ],
+    "validation": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "buildResult": "PASS",
+      "focusedCommand": "ctest --test-dir build-gcc -R 'render_settings_identity_remapping|render_settings_text_owner_budget|render_preset_(output|graph_output|transactions)|render_settings_owner_order|dwg2dxf_render_settings_typed_capture_limits' --output-on-failure",
+      "focusedResult": "PASS: 7/7; 6.02 seconds total",
+      "diffCheck": "PASS: git diff --check"
+    }
+  },
+  "limitations": [
+    "Generated identity transport only; no physical producer prevalence or complete-document support is established.",
+    "Native rendering behavior, visual-style interaction, and consumer appearance remain open.",
+    "The late-failure test verifies byte, inventory, and source-object identity-map rollback, not handle-allocator reservation rollback; retry is verified on a fresh writer.",
+    "No support claim is promoted."
+  ],
+  "next": "Continue checking remaining low-level OBJECTS own-identity paths while retaining the independent physical-source and native-rendering gates."
+}

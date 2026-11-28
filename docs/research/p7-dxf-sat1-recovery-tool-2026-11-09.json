@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "updated": "2026-11-12",
+  "purpose": "Make the already-evidenced SAT1 DXF carrier recovery reproducible for future independent ACIS reader checks.",
+  "implementation": {
+    "path": "tools/research/decode_dxf_sat1.py",
+    "sha256": "2b969a1252d8e5db677870612952cbd4b48732e229d8f0cdbee5207aa30308ce",
+    "scope": "Exact-handle extraction for one ASCII DXF 3DSOLID/REGION/BODY, SAT v1 group-1/group-3 joining, inverse SAT1 byte transform, caret escape reversal, minimal SAT header/end-marker validation, and safe output overwrite refusal. Research aid only."
+  },
+  "algorithmEvidence": {
+    "priorReceipt": "docs/research/p7-oda-ac1021-torus-semantic-crosscheck-2026-11-09.json",
+    "priorExternalResult": "For AC1021 source entity 0x452, ODA ACAD2007/2010 DXF recovered SAT payloads of 1071 bytes; the ACAD2010 payload was read by pinned ACadRust 0.6.8 with zero validation errors and its torus fields matched the source-derived SAT profile.",
+    "implementationReference": "LibreDWG 0.14 DXF output's SAT1 encryption and group-3 continuation handling, as detailed in the prior cross-check receipt. The exact physical AC1018 carrier uses the unprefixed End-of-ACIS-data token; the pinned InventorLoader Acis.py and ezdxf 1.4.5 ACIS constants both recognize unprefixed end-marker tokens.",
+    "markerSources": [
+      "https://github.com/jmplonka/InventorLoader/blob/e94bdf5e29052a0dc7ce6fdf755e956ae507caec/Acis.py",
+      "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/const.py"
+    ]
+  },
+  "focusedValidation": {
+    "unitTest": "python3 -m unittest tools.research.test_decode_dxf_sat1 -v",
+    "unitTestResult": "PASS 2/2: all four prefixed/unprefixed ACIS/ASM end tokens plus multi-chunk/caret transport pass; unknown terminal token is refused.",
+    "unitTestSource": "tools/research/test_decode_dxf_sat1.py (SHA-256 31ca7b850c6d470c8eaeb7fedeb91325275fd7d1e0d1ab39cabc2d10e4633c9e)",
+    "pythonSyntaxCompile": "PASS: python3 -m py_compile tools/research/decode_dxf_sat1.py",
+    "generatedInMemoryCarrier": "PASS: exact-handle selection, group-1/group-3 joining, SAT1 inverse, escaped-caret reversal, exact four-field header, all four prefixed/unprefixed ACIS/ASM terminal tokens, unknown-marker refusal, trailing-garbage refusal, malformed continuation refusal, and invalid-handle refusal.",
+    "physicalUnprefixedMarker": "PASS: the exact source-bound AC1018 handle 0x2d ASCII DXF carrier decodes to 234,503 SAT bytes ending in the unprefixed End-of-ACIS-data token.",
+    "cliOutputSafety": "PASS: generated scratch ASCII DXF decoded to the expected SAT bytes; a second invocation without --force refused to overwrite and preserved the output.",
+    "fixturePolicy": "All controls were generated in memory or under /private/tmp. No DWG, DXF, or SAT fixture was added to the repository."
+  },
+  "limitations": [
+    "This receipt does not re-run against the original ODA DXF files, which were not present in the current temporary directory.",
+    "The helper validates carrier framing only; it does not validate ACIS semantic records, geometry, graph association, native acceptance, or libdxfrw support.",
+    "It handles ASCII DXF and SAT v1 only; Binary DXF and SAB remain outside scope."
+  ],
+  "supportClaimEffect": "none; research workflow improvement only"
+}

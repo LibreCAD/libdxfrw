@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-conference-room-transform-source-screen-2026-11-11",
+  "purpose": "Screen one hash-pinned local AC1024 drawing for inline SAB body-transform witnesses before attempting ACIS transform semantics or application.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/visualization_-_conference_room.dwg",
+    "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+    "dwgVersion": "AC1024",
+    "producerProvenance": "Not independently authenticated; the local source is used only as a corpus candidate.",
+    "jsonPath": "/private/tmp/p7-conference.json",
+    "jsonSha256": "d375c9bf81f5b3bb48ff9b2740015e351e8318bf6f5089c0fd39ace0c2bb06ce",
+    "jsonProducer": "LibreDWG 0.14"
+  },
+  "method": {
+    "inventory": "Enumerate all JSON OBJECTS rows whose entity is 3DSOLID. Reconstruct each inline SAB from the JSON ACIS signature string followed by its hex payload; write only temporary payloads under /private/tmp.",
+    "verification": "A temporary C++ probe linked against the current build-gcc/libdxfrw.a called drw_parseSab, drw_buildAcisModel, and drw_extractAcisBodyWireframes. It reported each SAB version, complete parse result, projected body count and transform state. Probe source and payloads are scratch artifacts and are not committed.",
+    "commands": [
+      "/opt/homebrew/bin/dwgread -O JSON -o /private/tmp/p7-conference.json /Users/dli/doc/dwg/visualization_-_conference_room.dwg",
+      "g++ -std=c++17 -Isrc /private/tmp/p7_transform_scan.cpp build-gcc/libdxfrw.a -lz -o /private/tmp/p7_transform_scan",
+      "/private/tmp/p7_transform_scan /private/tmp/p7-conference-sab"
+    ]
+  },
+  "result": {
+    "solidEntities": 33,
+    "distinctHandles": 33,
+    "sumSabBytes": 700746,
+    "minimumSabBytes": 2643,
+    "maximumSabBytes": 123179,
+    "sabSignature": "ACIS BinaryFile",
+    "sabVersion": 21500,
+    "completeSabParseCount": 33,
+    "rootedProjectionSuccessCount": 33,
+    "rootedBodiesPerPayload": 1,
+    "bodyTransformPresentCount": 0,
+    "sortedHandleByteCountPayloadSha256Index": "a8668ad9600022b6e2eb4bc1b6e7dd2e9d7cf9b748932255b472078d6dd13b6c"
+  },
+  "scopeLimits": [
+    "A negative result for one AC1024 source is not a version-wide absence rule.",
+    "This source contributes no non-null ACIS body-transform pointer or transform semantics evidence.",
+    "Successful parser/rooted projection results establish neither source producer authenticity nor B-rep, placement, unit, native application, independent kernel, output, or support qualification.",
+    "The drawing, JSON export, extracted SAB files and temporary probe are not repository fixtures and were not committed."
+  ],
+  "claimEffect": "No implementation behavior or support claim changes. This source is exhausted for transform-witness work; seek a new source with a non-null transform pointer or use a narrowly generated control only with an independent placement oracle."
+}

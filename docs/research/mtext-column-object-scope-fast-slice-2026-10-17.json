@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-mtext-column-object-scope-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "status": "PASS_LOCAL_FAST_SLICE",
+  "scope": "Implement the existing PAR-19/7E standalone R2018 MTEXT column-object grammar while keeping ATTRIB/ATTDEF embedded-MTEXT parsing host-scoped.",
+  "implementation": {
+    "filesChanged": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionCodeChanged": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "newTestTarget": false,
+    "newCTestRegistration": false,
+    "committedFixtureFiles": 0,
+    "dependenciesAdded": 0,
+    "generatedProfiles": [
+      "no embedded column object",
+      "static columns",
+      "dynamic-auto columns with zero serialized count",
+      "dynamic-manual columns with a counted final zero-height value",
+      "incomplete embedded point rejected before callback",
+      "short dynamic-manual height list rejected before callback",
+      "ordinary embedded ATTRIB and ATTDEF with distinct group-46 annotation height, group-50 rotation, background values, tag/prompt, and sequence boundary"
+    ],
+    "assertions": [
+      "standalone and attribute-host Embedded Object markers select separate grammars",
+      "standalone duplicated direction, insertion, rectangle and total extents remain distinct from main MTEXT fields",
+      "column type/count/width/gutter/flags and manual heights survive ASCII and binary DXF write/readback",
+      "nested column direction does not replace main MTEXT orientation",
+      "malformed point tuples and inconsistent column-height counts publish no partial MTEXT callback",
+      "ATTRIB/ATTDEF group-46 annotation height and group-50 rotation survive typed round-trip",
+      "unrepresentable standalone column state in ATTRIB/ATTDEF output is refused without replacing destination bytes",
+      "pre-R2018 output with standalone column state is refused without replacing destination bytes",
+      "following LINE and INSERT attribute sequence boundaries remain intact"
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --mtext-column-object-scope",
+        "result": "PASS",
+        "notes": "Malformed input controls intentionally emit reader diagnostics and assert rejection."
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.h src/drw_entities.cpp src/libdxfrw.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mtext-column-object-scope-fast-slice-2026-10-17.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuitesRun": false,
+    "ctestRun": false,
+    "peerRuntimesRun": 0,
+    "nativeCadRuns": 0,
+    "externalFilesDownloaded": 0
+  },
+  "limits": {
+    "claimsAutoCADOrBricsCADRenderingAcceptance": false,
+    "implementsLegacyLinkedColumnXdata": false,
+    "implementsDWGColumnWriter": false,
+    "promotes3dConsumerSupport": false,
+    "promotesSupportClaims": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

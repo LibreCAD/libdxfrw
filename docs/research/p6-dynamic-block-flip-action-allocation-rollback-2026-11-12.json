@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dynamic-block-flip-action-allocation-rollback-2026-11-12",
+  "date": "2026-11-12",
+  "status": "FLIP_ACTION_DIRECT_ALLOCATION_SWEEP_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add direct AC1024 ASCII/Binary allocation-failure coverage for the profiled BLOCKFLIPACTION writer, including caller-state and source-identity rollback, remapped dependency references, and retry/readback.",
+  "binding": {
+    "repositoryHead": "ecfe5ed7",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "27ac70a55b86da086ad484392b099de2b2777c7c9acb80b61f84b0061185cae3",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "tests/dynamic_block_objects_allocation_tests.cpp": "94c0a99cc9110f90a007d578ba1731a32aff8efcf7872a9b1a25d2981d3a4ef5",
+      "tests/CMakeLists.txt": "7a6d869bd778a362a1552bb5c8c48c6a0b8d5b7e0fac8bc7aa24a9fd5b171469",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "301639768fca29e1c5a768697fa6442b7cf5ada2cc4f23dffe0a231227a63c9b"
+    },
+    "artifactSha256": {
+      "build/tests/libdxfrw_dynamic_block_objects_allocation_tests": "d89cb1e8d136059d016e1ab2613c92f0b6c2d3aeb9690670ed1c32920e7a0acc",
+      "build-asan-custom/tests/libdxfrw_dynamic_block_objects_allocation_tests": "79291b3c7c03d9370dd911690e5c20f15960b07f4dea041fb47300da16218671"
+    }
+  },
+  "change": {
+    "testCoverage": "A generated BLOCKFLIPACTION record contains 11 ordered action indexes, 27 dependency handles, a display point, and four connection code/name pairs; the source handle also appears in the dependency remap and is checked at its emitted identity.",
+    "perEncoding": "ASCII and Binary each exercise 14 allocation offsets. Every injected failure preserves source fields and removes sourceHandleToWrittenObjectMap identity. Fresh-writer retries read back the owner, remapped dependencies, emitted object handle, indexes, connection fields, point, and subclass.",
+    "existingAdapterControl": "The existing dwg2dxf_dynamic_block_flip_action_writer profile continues to pass with the direct allocation control."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS"
+    },
+    "normalFocusedTests": {
+      "command": "ctest --test-dir build -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_flip_action_writer' --output-on-failure",
+      "result": "PASS 2/2; 0.52 seconds total"
+    },
+    "asanFocusedTests": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_flip_action_writer' --output-on-failure",
+      "result": "PASS 2/2; 1.53 seconds total"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Fault injection covers the low-level record writer, not the enclosing whole-file output transaction.",
+    "A fresh writer is used after a fault because the failed writer may retain partial stream bytes and a sticky error.",
+    "Generated action serialization does not establish physical graph closure, producer breadth, or native action semantics.",
+    "No DWG/DXF fixture is added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue P6 direct-writer transaction coverage with the next source-backed dynamic-block writer profile; preserve producer and native semantic gates."
+}

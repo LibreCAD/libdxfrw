@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Generated AC1015 SAT-v1 caret escape at the DXF 255-byte cut",
+  "mode": "local generated codec regression following implementation-readiness review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Exercise the existing SAT-v1 writer's indivisible caret escape exactly at a group-value boundary",
+    "Verify public DXF parse/re-export/readback preserves decoded opaque carrier bytes and continuation metadata",
+    "Keep native/independent acceptance and general chunk-policy decisions open"
+  ],
+  "implementation": {
+    "file": "tests/dwg_local_roundtrip_tests.cpp",
+    "selector": "--modeler-sat-v1-extraction",
+    "control": {
+      "sourceVersion": "AC1015",
+      "generatedPayloadOnly": true,
+      "lineShape": "254 ordinary SAT-v1-encoded bytes, then plaintext A, then Z",
+      "transform": "ODA SAT-v1 maps plaintext A to caret; DXF text escape is two bytes '^ '",
+      "requiredWireBehavior": "Flush the 254-byte group-1 value before writing the indivisible caret escape into group-3",
+      "publicReadbackGroups": [1, 1, 3, 1, 3],
+      "finalDecodedContinuationBytes": 2,
+      "semanticScope": "Opaque carrier framing only; the generated SAT body is not claimed as valid geometry"
+    },
+    "productionCodeChanged": false,
+    "fixtureFilesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-sat-v1-extraction",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-long-carrier",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-matrix",
+      "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_3D_SUPPORT_PLAN.md DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "buildPassed": true,
+    "satV1FocusedSelectorPassed": true,
+    "satV1FocusedSelectorResult": "AC1015 SAT-v1 extraction and chunk-cut controls: PASS",
+    "neighboringLongCarrierSelectorPassed": true,
+    "neighboringVersionEncodingMatrixPassed": true,
+    "diffCheckPassed": true,
+    "fullSuiteRun": false,
+    "owningCtestRun": false
+  },
+  "assessment": {
+    "newConfirmedProductionDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "externalBinarySatAcceptance": "OPEN",
+    "nativeOrIndependentCutPolicyAcceptance": "OPEN",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportClaimsPromoted": 0
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout contains extensive pre-existing changes. The test and plan updates were kept additive; unrelated work was not staged or modified for this slice."
+  }
+}

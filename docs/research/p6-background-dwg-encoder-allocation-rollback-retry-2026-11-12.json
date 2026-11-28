@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-12",
+  "title": "BACKGROUND DWG encoder allocation rollback and retry matrix",
+  "status": "IMPLEMENTED_FAST_CONTROL_PASS",
+  "scope": "Verify allocation-failure transaction behavior for every generated AC1024 DRW_Background kind.",
+  "profiles": [
+    {"kind": "SOLID_BACKGROUND", "allocationFailures": 9},
+    {"kind": "GRADIENT_BACKGROUND", "allocationFailures": 11},
+    {"kind": "GROUND_PLANE_BACKGROUND", "allocationFailures": 10},
+    {"kind": "IMAGE_BACKGROUND", "allocationFailures": 20},
+    {"kind": "IBL_BACKGROUND", "allocationFailures": 19},
+    {"kind": "SKYLIGHT_BACKGROUND", "allocationFailures": 10}
+  ],
+  "fixture": "All profiles generated in memory; no DWG/DXF file added.",
+  "checks": {
+    "allocationFailures": 79,
+    "destinations": "seeded body, string and handle buffers retain bytes, bit counts and handle occurrence state after every injected failure",
+    "sameObjectRetry": "every failed attempt retries the same object and buffers; bytes and cursors match the clean encoding",
+    "aliasing": "all-stream shared-buffer failure preserves the buffer and same-object retry matches clean output",
+    "limits": "transaction evidence only; no source-producer, semantic, graph-closure, native-consumer or support claim"
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_background_dwg_encode_allocation_rollback$' --output-on-failure",
+    "focusedResult": "PASS 1/1 in 0.35 seconds",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --background-dwg-encode-allocation-rollback",
+    "selectorResult": "PASS; 79 total injected allocation failures across six kinds; each profile rollback/retry PASS",
+    "diffCheck": "PASS: git diff --check",
+    "fullSuites": "NOT RUN"
+  },
+  "bindings": {
+    "tests/dwg_object_vectors_tests.cpp": "ea0d165b22a870e8acae38b6abbc7b674b9ce28e202b59e4d88fe7b4668b6017",
+    "CMakeLists.txt": "cb5601f89910bf2cc3ad88c6652b9777991c0c38a27fb4341a7eb31afb42f3f9",
+    "testExecutable": "e73bfc0696eaedd08e58f50518801efa654e06577482c048c21a53469d274475"
+  },
+  "newFixtureCommitted": false,
+  "supportClaimEffect": "none"
+}

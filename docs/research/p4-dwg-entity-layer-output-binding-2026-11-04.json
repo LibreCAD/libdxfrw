@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-dwg-entity-layer-output-binding-2026-11-04",
+  "date": "2026-11-04",
+  "base_commit": "01d0c46d",
+  "status": "GENERATED_DWG_ENTITY_LAYER_STAGED_OUTPUT_GATE",
+  "supportClaimEffect": "none",
+  "scope": "Bind each typed DWG-origin entity group-8 layer name to its source common-header LAYER hard-pointer and the exact LAYER row emitted by the current DXF write attempt.",
+  "implementation": {
+    "sourceProfile": "ODA v5.4.1 section 20.4.2 defines the entity LAYER relationship as a hard-pointer. The entity retains the resolved 32-bit handle, original 64-bit value and raw handle role for strict output admission.",
+    "stagedOutput": "The TABLES inspector maps every typed source DRW_Layer to its current emitted handle and qualified LAYER row, requiring unique source handles, emitted handles and names. It recognizes the writer's fixed synthetic layer-0 row only when the source model has no layer 0; that row is never entered in the source-binding map.",
+    "entityAdmission": "Before typed entity serialization, require a nonzero/non-sentinel source handle, exact raw 64-bit equality, DwgHardPointer role, exact entity/source layer-name equality and a still-current source-to-emitted LAYER binding. Apply the same check recursively to embedded POLYLINE VERTEX/SEQEND and INSERT ATTRIB/SEQEND records.",
+    "finalization": "Retain source and emitted LAYER bindings through write finalization and recheck the target registry after OBJECTS callbacks. A changed or ambiguous table alias fails the file transaction.",
+    "compatibility": "No callback or virtual API changed. DRW_Entity gains additive inline DWG layer-handle accessors and a raw wire-state setter; no data members or vtable slots were added. Tolerant read behavior remains unchanged."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_symbol_output_tests -j3",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_source_table_identities$' --output-on-failure",
+    "result": "Build passed with -Werror. Focused fast CTest passed 1/1 in 1.51 seconds. The generated AC1024 adapter graph ran 27 profiles for each of seven DXF targets (AC1014, AC1015, AC1018, AC1021, AC1024, AC1027, AC1032) in ASCII and Binary: four positive explicit/implicit-linetype profiles and 23 negative profiles. The negative matrix includes wrong source name, missing/null/wide/wrong-role/wrong-kind entity LAYER references and post-inspection source-to-output alias mutation. Every refusal preserved the destination and succeeded on same-codec retry; positive files read back exact entity group-8 layer names. Recursive embedded VERTEX checks cover valid, name-mismatched and wrong-kind references.",
+    "matrix": {
+      "outputConfigurations": 14,
+      "profilesPerConfiguration": 27,
+      "totalWriteProfiles": 378,
+      "positiveProfilesPerConfiguration": 4,
+      "negativeProfilesPerConfiguration": 23,
+      "sameCodecRetries": 322
+    },
+    "fixtures": "No DWG/DXF fixture was added or modified. DXF outputs were generated in a temporary directory and removed by the test."
+  },
+  "limitations": [
+    "Generated AC1024 adapter evidence only; no physical whole-source DWG conversion reached this gate.",
+    "Raw-preserved DXF entity references, producer ordering, whole-document closure, native application behavior and linetype rendering remain unqualified.",
+    "This does not qualify nondefault owner, reactor, extension-dictionary, color, material, plotstyle, visual-style or EED references."
+  ],
+  "files": {
+    "src/drw_entities.h": "exposes the retained entity LAYER handle value and role and provides a setter for exact wire state",
+    "dwg2dxf/dx_iface.h": "retains source-to-emitted LAYER bindings for the write transaction",
+    "dwg2dxf/dx_iface.cpp": "inspects emitted TABLES rows, checks typed entity and embedded-entity references, and revalidates bindings at finalization",
+    "tests/dxf_symbol_output_tests.cpp": "adds generated ASCII/Binary matrix, failure/retry, alias-mutation and readback controls",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "records this completed local slice and keeps physical/raw/native gates open"
+  }
+}

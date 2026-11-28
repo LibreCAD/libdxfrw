@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-sized-area-spline-hull-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPR": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "2e815af2",
+  "problem": "Constructing an Area from an elevated origin, width and height placed its second corner at Z=0; a positive/zero/negative elevation control failed before the change.",
+  "change": "Build the second corner as an XY offset from the origin, preserving its elevation.",
+  "verification": [
+    "PASS 76 focused macOS headless B\u00e9zier, geometry, builder, canvas and fit-only spline tests.",
+    "PASS positive, zero and negative origins, including negative width.",
+    "PASS selected control-point and fit-point spline hull Z ranges before and after a Z move, using the prior shared Area merge fix.",
+    "Hosted PR checks pending."
+  ],
+  "limits": [
+    "Spline bounds are the current point hull, not exact NURBS bounds or proof that an interpolated fit curve lies inside that hull.",
+    "No native GUI, tilted-plane, platform-wide or DWG/DXF support claim follows."
+  ]
+}

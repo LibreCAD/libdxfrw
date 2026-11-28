@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-mesh-geometry-fields-2026-11-12",
+  "purpose": "Verify generated MESH callback delivery of all modeled DXF fields: version, blend-crease flag, subdivision level, vertices, face indices, edge indices, crease values, and ordered sub-entity property overrides.",
+  "authority": {
+    "source": "Autodesk AutoCAD DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+    "relevantFields": "MESH group codes describe version, blend-crease state, subdivision level, level-0 vertices/faces/edges/creases, and sub-entity property override counts, markers, and property types."
+  },
+  "source": {
+    "kind": "runtime-generated-from-scratch-DXF",
+    "version": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "trackedFixture": false
+  },
+  "profile": {
+    "layer": "probe_mesh_geometry",
+    "version": 7,
+    "blendCrease": true,
+    "subdivisionLevel": 5,
+    "vertices": [[20.0, 21.0, 22.0], [23.0, 24.0, 25.0], [26.0, 27.0, 28.0]],
+    "faces": [[0, 1, 2]],
+    "edges": [[0, 1], [1, 2]],
+    "creases": [0.25, 0.75],
+    "propertyOverrides": [
+      {"subEntityMarker": 17, "propertyTypes": [0, 2]},
+      {"subEntityMarker": 29, "propertyTypes": [1, 3]}
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "ctestResult": "PASS, 1/1, 0.48 seconds",
+    "extrusionModes": ["ext=false", "ext=true"],
+    "diffCheck": "PASS"
+  },
+  "scopeLimit": "Generated same-library DXF callback transport only for modeled MESH fields. The DWG-only unknown tail and legacy subdivVertices slot are excluded; this does not qualify native mesh construction, independent interoperability, DWG producer semantics, or broader MESH support.",
+  "claimEffect": "No format or consumer support claim changes."
+}

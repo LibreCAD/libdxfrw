@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-block-record-all-overloads-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DXF_BLOCK_RECORD_ALL_PUBLIC_OVERLOADS_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend whole-operation ASCII and Binary DXF allocation-failure coverage from the rich BLOCK_RECORD route to every public writeBlockRecord overload across eligible revisions, including a caller-populated BLOCK/ENDBLK definition envelope, preserving caller fields and checking typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored callback model",
+    "profile": "Generated drawings with one named BLOCK_RECORD, a matching BLOCK/ENDBLK envelope, two INSERTs and a caller-populated ENDBLK footer across AC1014, AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032. The block has a nondefault base point and description. Four writer routes are exercised: (1) name and insertion units, (2) name, units, and preview bytes, (3) name, units, preview bytes, and ordered INSERT source handles, and (4) the same plus APPID/XDATA. The handle-bearing routes begin at AC1015 because the writer refuses BLKREFS at AC1014. Footer readback selects the generated footer among canonical model/paper-space footers and verifies caller fields, structural handle, versioned BLOCK_RECORD owner, lineweight emission boundary and transparency emission boundary. Fields omitted or version-gated by a route are checked against emitted behavior; supplied references are checked against emitted INSERT identities.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-block-record-all-overloads-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "Parameterized the focused BLOCK_RECORD whole-operation allocation sweep to invoke all four public overloads across seven supported revisions where each route is admitted, and write a matching BLOCK begin plus caller-populated ENDBLK footer. Fresh readback checks the block name, handle, base point and description; BLOCK_RECORD name, version-available insertion units, optional preview data, optional ordered/remapped INSERT handles and optional APPID/XDATA; and the generated footer's layer, linetype, color, visibility, scale, lineweight, transparency, exact BLOCK_RECORD-handle-plus-two identity and versioned owner pointer. The expectations exercise lineweight serialization from AC1015 and transparency from AC1018; preceding targets retain defaults. Caller preservation, identity rollback, stage cleanup, and retry checks apply to every eligible variant.",
+    "method": "For each eligible overload/revision and each ASCII/Binary encoding, calibrate allocation count from a successful clean export, inject std::bad_alloc at every reached offset with a prior destination sentinel, require failure and exact destination/source preservation plus identity-ledger rollback and stage cleanup, then retry the same codec and require byte-identical output and fresh typed readback."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS; ctest --test-dir build-gcc -R '^libdxfrw_dxf_block_record_allocation_transaction$' -V: PASS 1/1 in 15.00 seconds",
+    "allocationOffsetsByVersionOverload": {
+      "AC1014": {"overload0": {"ascii": 140, "binary": 139}, "overload1": {"ascii": 141, "binary": 140}},
+      "AC1015": {"overload0": {"ascii": 144, "binary": 142}, "overload1": {"ascii": 145, "binary": 143}, "overload2": {"ascii": 149, "binary": 147}, "overload3": {"ascii": 165, "binary": 163}},
+      "AC1018": {"overload0": {"ascii": 144, "binary": 142}, "overload1": {"ascii": 145, "binary": 143}, "overload2": {"ascii": 149, "binary": 147}, "overload3": {"ascii": 165, "binary": 163}},
+      "AC1021": {"overload0": {"ascii": 137, "binary": 135}, "overload1": {"ascii": 138, "binary": 136}, "overload2": {"ascii": 142, "binary": 140}, "overload3": {"ascii": 158, "binary": 156}},
+      "AC1024": {"overload0": {"ascii": 144, "binary": 142}, "overload1": {"ascii": 145, "binary": 143}, "overload2": {"ascii": 149, "binary": 147}, "overload3": {"ascii": 165, "binary": 163}},
+      "AC1027": {"overload0": {"ascii": 137, "binary": 135}, "overload1": {"ascii": 138, "binary": 136}, "overload2": {"ascii": 142, "binary": 140}, "overload3": {"ascii": 158, "binary": 156}},
+      "AC1032": {"overload0": {"ascii": 137, "binary": 135}, "overload1": {"ascii": 138, "binary": 136}, "overload2": {"ascii": 142, "binary": 140}, "overload3": {"ascii": 158, "binary": 156}}
+    },
+    "eligibleRevisionOverloadEncodingCases": 52,
+    "injectedAllocationFailures": 7580,
+    "result": "All 52 eligible revision/overload/encoding combinations passed rollback, same-codec retry, byte-identical output, caller preservation, stage cleanup, and typed BLOCK/BLOCK_RECORD/ENDBLK/INSERT readback. The custom footer's structural identity equals its BLOCK_RECORD handle plus two; its owner pointer follows the AC1015 boundary. Footer fields preserve the supplied layer, linetype, color, visibility and scale. Lineweight uses the supplied width09 from AC1015; transparency uses the supplied explicit alpha 0x40 from AC1018. Earlier revisions read back their documented defaults. BLKREFS overloads are not invoked at AC1014; insertion-units readback is version-gated until AC1021.",
+    "diffCheck": "PASS for tests/dxf_write_allocation_transaction_tests.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt"
+  },
+  "limitations": [
+    "Generated output transaction and typed readback evidence only; no producer-authored preview semantics, broad BLOCK_RECORD graph closure, or native consumer claim follows.",
+    "The version matrix uses locally generated drawings. Producer-authored semantics, independent interoperability, complete reference closure, and native consumer behavior remain separate qualification work.",
+    "No DWG/DXF fixture files were added, and no support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "Transaction and typed readback coverage for all four public BLOCK_RECORD writer overloads plus the matching named BLOCK/ENDBLK definition envelope, including caller-populated footer fields and handle/owner roles, across the seven tested DXF revisions; includes the AC1015 lineweight and AC1018 transparency boundaries and respects the AC1015 BLKREFS admission and AC1021 insertion-units field gates.",
+    "remainingP6G": "Continue the public-writer inventory diff for uncovered routes, overloads, version-specific compound-record variants, and variable-size OBJECTS profiles; preserve independent producer and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "237 completed slices and 35 remaining packages: 237/(237+35)=87.13%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-block-record-rich-overload-allocation-rollback-retry-2026-11-13.json"
+}

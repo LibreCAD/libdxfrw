@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "id": "p4-ac1032-assocnetwork-autodesk-ownership-semantics-2026-11-09",
+  "date": "2026-11-09",
+  "scope": "Clarify the semantic roles that graph closure must distinguish for associative networks while assessing the unresolved AC1032 class-version-2 candidate.",
+  "supportClaimEffect": "none; ObjectARX API semantics do not specify DWG class-version-2 serialized field layout or qualify output",
+  "authorities": [
+    {
+      "title": "Autodesk ObjectARX 2018 Developer Guide — Networks of Actions",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-DevGuide/files/GUID-BD833D49-DD90-4815-B576-8E7B5831A5BC.htm",
+      "observations": [
+        "A network logically knows about its actions; an action may also be physically hard-owned by that network.",
+        "The database top-level ACDBASSOCNETWORK is under NOD key ACAD_ASSOCNETWORK through a subdictionary that soft-owns the network object.",
+        "Block-record subnetwork membership can be logical through the top-level network while physical ownership is through a block-record extension dictionary."
+      ]
+    },
+    {
+      "title": "Autodesk ObjectARX 2022 Developer Guide — Main Concepts",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F05803F8-38F7-4679-B9A4-DCF87B2D2A64.htm",
+      "observations": [
+        "Associative networks organize actions as a directed acyclic graph and a network is itself an action.",
+        "Dependencies connect actions to objects/entities; the network keeps actions together and does not itself own those objects/entities."
+      ]
+    }
+  ],
+  "implementationImplication": {
+    "keepDistinct": [
+      "NOD key and dictionary ownership path to the top-level network",
+      "logical network action membership references",
+      "the action's owning-network relation",
+      "physical hard-owner path, when present",
+      "action dependency targets"
+    ],
+    "sourceCandidate": "The existing AC1032 example_2018.dwg receipt captures root 0x390 and child 0x38E with their dictionary owners, owning-network reference, action membership references, and separate base/network indexes.",
+    "limitation": "The Autodesk pages describe runtime/object-model semantics, not the class-version-2 DWG byte sequence. Keep m_networkFieldsParsed false and the AC1032 writer route refused until schema and producer evidence bind the physical fields."
+  },
+  "nextAction": "Use the distinct-role checklist when pursuing authoritative class-version-2 evidence and recursive source graph closure; do not reinterpret the existing candidate byte spans from API semantics alone."
+}

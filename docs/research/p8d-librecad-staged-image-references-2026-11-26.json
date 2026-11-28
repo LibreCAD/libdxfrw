@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-staged-image-references-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwSourceCommit": "981341470231db84203dd4acc2858939927e4078",
+  "libdxfrwLibrarySha256": "ccdda52ab4b91297ca91b028e392a15e448edf865c2f52d2037ca067409e1121",
+  "librecadCommit": "33c2023ab238b9d2d7b382f8117b7d76ddd14491",
+  "change": "For the previously admitted single-IMAGE graph, bind source handles to staged BLOCKS/ENTITIES image, owner, IMAGEDEF and reactor references. Recheck graph identities and the live image path before final publication; reject embedded NUL in the path.",
+  "checks": [
+    "PASS macOS ARM64 system-codec focused IMAGE cases: 161 assertions across three cases, including top-level and named-block save/reopen, late reactor/path mutations, embedded NUL, destination preservation and corrected same-filter retry.",
+    "PASS macOS ARM64 system-codec MATERIAL cases: 845 assertions across six cases.",
+    "PASS focused bundled-codec filter compilation; dyld confirmed the intended system library for the named-block check."
+  ],
+  "limits": [
+    "The shared inspector checks IMAGE references, not all image scalar fields or staged IMAGEDEF/reactor object bodies.",
+    "Multi-image output is still refused; native GUI, FreeCAD, independent application semantics and other platforms remain unqualified.",
+    "No new DWG or DXF fixture was committed."
+  ]
+}

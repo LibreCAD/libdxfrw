@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1021-group-physical-selected-output-2026-11-06",
+  "date": "2026-11-06",
+  "status": "PASS_BOUNDED_PHYSICAL_SOURCE_OUTPUT_READBACK",
+  "supportClaimEffect": "none",
+  "question": "Does the special generated-root path preserve the physical AC1021 ACAD_GROUP dictionary when the source graph contains no GROUP records?",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "producerProvenance": "Existing local source; author and producer are not independently authenticated."
+  },
+  "sourceGraph": {
+    "groupCallbacks": 0,
+    "namedObjectDictionary": {
+      "handle": "0xC",
+      "hardOwner": 0,
+      "cloning": 1
+    },
+    "entry": {
+      "key": "ACAD_GROUP",
+      "targetHandle": "0xD",
+      "occurrences": 1,
+      "outputDxfHandleRole": "soft-owner"
+    },
+    "target": {
+      "type": "DICTIONARY (standard object type 42)",
+      "handle": "0xD",
+      "ownerHandle": "0xC",
+      "hardOwner": 0,
+      "cloning": 1,
+      "entries": 0,
+      "reactors": ["0xC"],
+      "extensionDictionary": "0x0",
+      "appData": 0,
+      "extData": 0,
+      "dataStorage": false,
+      "commonLinkTail": false
+    },
+    "sourceFrame": {
+      "fileOffset": 1990476,
+      "fileSize": 15,
+      "retainedBodyBytes": 15,
+      "typedPayloadMatched": true,
+      "standardSourceEligible": true
+    }
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "No production writer change was required. The test exercises the existing source-backed generated GROUP dictionary route and its two generated-root output proofs; the source-backed path is distinct from the fallback synthesized empty dictionary."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "selector": "--group-empty-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --group-empty-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS for ASCII and Binary AC1021 DXF output and fresh typed readback. The output has the unique ACAD_GROUP key with soft-owner role and the unique source-backed DICTIONARY at handle 0xD, owned by NOD, empty, with the NOD reactor. The source frame belongs to the finalized standard-object output proof; both generated NOD and GROUP root proofs are finalized and published. A post-OBJECTS reactor mutation refuses atomically, preserves the existing destination sentinel, and restoration lets the same adapter retry.",
+    "outputPolicy": "AllowPartial with unresolved-owner strictness disabled. This does not qualify strict whole-source output.",
+    "logPath": "/private/tmp/p4-ac1021-group-physical-selected-output-2026-11-06.log",
+    "logSha256": "735524d26ffa327a90909c895734b46534a1cb76d863dd6a40a3127672803c9c",
+    "testSourceSha256": "81781ef8bece94793cc27f023beb2dcd795fa8670bb1b1d363acca9b094bc7f7",
+    "executableSha256": "51368767e8a9ab63426d80417890c62090a8750472b35b25bef64c78389ba62c"
+  },
+  "limits": [
+    "One unauthenticated local producer profile is covered.",
+    "This confirms only the zero-GROUP source graph; populated GROUP membership/order and semantics are not established here.",
+    "The source NOD contains other entries whose complete target graph is not qualified by this test; strict whole-source output remains refused.",
+    "No native group behavior, independent encoder roundtrip, or producer-wide support claim is established.",
+    "The DWG source and generated output are not committed as fixtures."
+  ],
+  "nextAction": "Continue the AC1021 source inventory. Screen the empty ACAD_IMAGE_DICT root through the image-specific generated path, then select the next smallest closed standard-object graph. Keep all broader support claims gated."
+}

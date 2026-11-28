@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "ODA File Converter 27.10 official ARM64 package integrity and signature check",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Investigate the installed ODA 27.1 bundle's Launch Services failure by downloading the current official ODA macOS ARM64 disk image to temporary storage, verifying its image checksum, and inspecting but not executing the contained application.",
+  "source": {
+    "publisher": "Open Design Alliance",
+    "downloadPage": "https://www.opendesign.com/guestfiles/oda_file_converter",
+    "downloadUrl": "https://www.opendesign.com/guestfiles/get?filename=ODAFileConverter_QT6_macOsX_arm64_15.0dll_27.10.dmg",
+    "platformClaim": "Mac OS X 13.0 arm64 or later",
+    "downloadPath": "/private/tmp/ODAFileConverter_QT6_macOsX_arm64_15.0dll_27.10.dmg",
+    "downloadSha256": "ae694b8292a7c9de3a3257950a8e29d5be91251edcec125885c586929119a849",
+    "temporaryOnly": true
+  },
+  "diskImageVerification": {
+    "command": "hdiutil verify /private/tmp/ODAFileConverter_QT6_macOsX_arm64_15.0dll_27.10.dmg",
+    "result": "VALID",
+    "containerChecksums": "All GPT, HFS and disk-image CRC32 checks passed.",
+    "limit": "This verifies the image's internal checksums; it does not independently authenticate the publisher or validate the nested code signature."
+  },
+  "application": {
+    "pathInReadOnlyMount": "/private/tmp/oda27.10.mnt/ODAFileConverter.app",
+    "version": "27.10.0.0",
+    "executableSha256": "654f1960b226a0db91ff58e40ec62d91c29b531301fb0e4a25eff5d1b5f228ad",
+    "architecture": "arm64",
+    "teamIdentifier": "4SVB9F72E4",
+    "candidateCodeDirectoryHash": "cf01ebafcf68a15d71fb624049543f85ab6b2fe86007bf7b54849c9364323162",
+    "signatureVerification": {
+      "command": "codesign --verify --deep --strict --verbose=2 /private/tmp/oda27.10.mnt/ODAFileConverter.app",
+      "valid": false,
+      "result": "invalid signature (code or signature have been modified)"
+    },
+    "gatekeeperAssessment": "spctl --assess returned internal error in Code Signing subsystem.",
+    "execution": "NOT_RUN",
+    "systemInstallationOrModification": "NONE",
+    "mount": "Read-only mount was ejected after inspection."
+  },
+  "decision": "The official download page supplies a 27.10 ARM64 package and the disk image passes its own checksums, but the contained application and the installed 27.1 application both fail local code-signature verification. Do not launch either bundle, alter or re-sign them, or infer any converter output. Resume suffix qualification only with a publisher-verifiable executable/package or an independent converter session. Continue local source-backed implementation meanwhile.",
+  "validation": {
+    "repositoryFixtureAdded": false,
+    "repositoryFileModified": false,
+    "fullSuites": "NOT_RUN"
+  }
+}

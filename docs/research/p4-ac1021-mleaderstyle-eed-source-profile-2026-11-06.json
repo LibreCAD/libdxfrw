@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 MLEADERSTYLE EED source profile",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Freeze the source-side owner, frame, XDATA and APPID facts for the one MLEADERSTYLE in the selected AC1021 drawing. The later selected-output proof is recorded separately.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceProfile": {
+    "style": "One typed MLEADERSTYLE, handle 0x12E, uniquely owned by the dictionary rooted at NOD key ACAD_MLEADERSTYLE.",
+    "sourceFrame": "The retained source frame is object type 508, record MLEADERSTYLE, class AcDbMLeaderStyle, custom-class object, not an entity.",
+    "eed": [
+      {"order": 0, "code": 1001, "type": "STRING", "value": "ACAD_MLEADERVER"},
+      {"order": 1, "code": 1070, "type": "INTEGER", "value": 2}
+    ],
+    "appid": "Exactly one typed APPID row named ACAD_MLEADERVER is present in the imported source model."
+  },
+  "qualification": {
+    "sourceProfileSelector": "--mleaderstyle-ac1021-eed-source-profile",
+    "result": "PASS for the bounded local source facts above.",
+    "output": "This source-only receipt does not qualify output. The follow-on selected AC1021-to-AC1024 output, APPID, readback, refusal and retry proof is recorded in docs/research/p4-ac1021-mleaderstyle-eed-selected-output-2026-11-06.json.",
+    "nextRequired": "Broaden producer/version coverage; whole-source output and native MLEADERSTYLE semantics remain open."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mleaderstyle-ac1021-eed-source-profile /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS; source frame, owner graph, ordered EED tuple and unique APPID row verified"
+    },
+    "fullSuites": "NOT RUN; this was a focused source-profile probe."
+  }
+}

@@ -1,0 +1,267 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5aj",
+  "date": "2026-10-23",
+  "state": "LOCAL_IMPLEMENTATION_COMPLETE_WITH_NARROW_INDEPENDENT_OBSERVATION",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": "dirty, uncommitted and unstaged; not a clean-checkout qualification receipt",
+  "finding": {
+    "family": "modern DWG object data/string boundary",
+    "before": "The generated R21 DICTIONARY scalar prefix ends at bit 91, but its string stream begins at bit 96. The writer aligned the scalar body before appending the first name.",
+    "after": "Present strings start at the exact scalar bit boundary. The shared assembler moves byte alignment to the string trailer and includes that tail padding in the encoded string size.",
+    "changedWriters": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "unchanged": [
+      "no-string object framing",
+      "pre-R2007 writers",
+      "parser admission",
+      "public APIs and callback layouts",
+      "strict conversion completeness guard"
+    ],
+    "scope": "Fixes the concrete generated dictionary empty-key observation. It does not qualify complete files, native applications, arbitrary object semantics or ACIS."
+  },
+  "sourceAuthority": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "20.1",
+      "20.4.44",
+      "20.4.45"
+    ],
+    "visuallyReviewedPages": [
+      104,
+      152,
+      153
+    ]
+  },
+  "peerSourceReview": [
+    "https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/src/dwg.spec",
+    "https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/src/dec_macros.h"
+  ],
+  "implementationBindings": {
+    "src/intern/dwgwriter21.cpp": "e966a9d7b570424bc8e50da494943a345474df4986b2c15d92b345ce4163c753",
+    "src/intern/dwgwriter24.cpp": "1eddc8b5b3195aaf7e5cf10a258f3919aa03f0a03f5408eefbe2539868954277",
+    "tests/writer_primitives_tests.cpp": "aef9d489a3db8a88fd0fa42d103f3425b0a856c40650b1dfc615510081245af7",
+    "tests/dwg_local_roundtrip_tests.cpp": "2150f4cf9cc96bf8428c317bf420cbc691f7d86c6710a8358900940a7b1d0a15",
+    "build/libdxfrw_writer_primitives_tests": "225680347681eec6dfba4c9824903ab653bb373faba4c5bab69834d93cff104b",
+    "build/libdxfrw_dwg_local_roundtrip": "73d5722b3d49274d37f959f00aaabffc02b8f31728585716cee8a96024f9361d"
+  },
+  "negativeControl": {
+    "input": "/tmp/libdxfrw-group-final.PbCVsc/group.dwg",
+    "inputSha256": "2e43f42089ad927ccf7025b3c0c2d37a4c131a871d2bc8c7bb1fa1b08dfe92d1",
+    "output": "/tmp/libdxfrw-dictionary-trace.6854gN/generated.json",
+    "outputSha256": "6ed916791cf7da2c973ffd9ea72a9068ea6ce68874aa03cacfc4958308b1cb1e",
+    "observation": "Both generated dictionaries report numitems=1 but empty item maps.",
+    "producerPositiveControl": "Existing LibreDWG 2007/Leader.dwg read in place; exact binding and successful *A1 -> 829 observation remain in the RPP-5ai receipt.",
+    "redProof": "Eight original AC1021 scalar/string footer-boundary assertions failed before the correction. Extending the matrix exposed the same later-version defect before the AC1024+ finisher was changed.",
+    "developmentLog": "/tmp/libdxfrw-dict-current.kbTUjv/modern-before-fix.log",
+    "developmentLogSha256": "7b82a843d30448368b41061f6f77ce31cae0b4956867042bbf37d53a3dec5fd9",
+    "developmentCaveat": "The 162 later-stage failed assertions include downstream poisoned-cursor checks, not 162 distinct production defects. Initial text assertions also needed a DWG UTF-16 decoder in the test; that test setup correction is not a library defect."
+  },
+  "independentReader": {
+    "executable": "/opt/homebrew/bin/dwgread",
+    "version": "dwgread 0.14",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "loadedLibrary": "/opt/homebrew/Cellar/libredwg/0.14/lib/libredwg.0.dylib",
+    "librarySha256": "0dd60856c25aa0dad6ff80f6c753957d0f27cc39a29f8466637db68dbd0a8847",
+    "libraryIdentityMethod": "otool -L and DYLD_PRINT_LIBRARIES=1; no claim that the installed binary was built from the local peer checkout",
+    "commands": [
+      {
+        "generate": "build/libdxfrw_dwg_local_roundtrip --generate-group-dictionary-control /tmp/libdxfrw-dict-current.kbTUjv/group-AC1021.dwg AC1021",
+        "read": "/opt/homebrew/bin/dwgread -v5 -O minJSON -o /tmp/libdxfrw-dict-current.kbTUjv/AC1021.json /tmp/libdxfrw-dict-current.kbTUjv/group-AC1021.dwg",
+        "exitCode": 0
+      },
+      {
+        "generate": "build/libdxfrw_dwg_local_roundtrip --generate-group-dictionary-control /tmp/libdxfrw-dict-current.kbTUjv/group-AC1024.dwg AC1024",
+        "read": "/opt/homebrew/bin/dwgread -v5 -O minJSON -o /tmp/libdxfrw-dict-current.kbTUjv/AC1024.json /tmp/libdxfrw-dict-current.kbTUjv/group-AC1024.dwg",
+        "exitCode": 0
+      },
+      {
+        "generate": "build/libdxfrw_dwg_local_roundtrip --generate-group-dictionary-control /tmp/libdxfrw-dict-current.kbTUjv/group-AC1027.dwg AC1027",
+        "read": "/opt/homebrew/bin/dwgread -v5 -O minJSON -o /tmp/libdxfrw-dict-current.kbTUjv/AC1027.json /tmp/libdxfrw-dict-current.kbTUjv/group-AC1027.dwg",
+        "exitCode": 0
+      },
+      {
+        "generate": "build/libdxfrw_dwg_local_roundtrip --generate-group-dictionary-control /tmp/libdxfrw-dict-current.kbTUjv/group-AC1032.dwg AC1032",
+        "read": "/opt/homebrew/bin/dwgread -v5 -O minJSON -o /tmp/libdxfrw-dict-current.kbTUjv/AC1032.json /tmp/libdxfrw-dict-current.kbTUjv/group-AC1032.dwg",
+        "exitCode": 0
+      }
+    ],
+    "expectedProjection": {
+      "namedObjectsDictionary": {
+        "handle": 12,
+        "entry": "ACAD_GROUP",
+        "itemHandle": [
+          2,
+          1,
+          13,
+          13
+        ]
+      },
+      "groupDictionary": {
+        "handle": 13,
+        "owner": 12,
+        "entry": "FAST_GROUP_KEY",
+        "itemHandle": [
+          2,
+          2,
+          1536,
+          1536
+        ]
+      },
+      "group": {
+        "handle": 1536,
+        "owner": 13,
+        "description": "GROUP_DESCRIPTION_IS_DISTINCT",
+        "orderedMembers": [
+          1280,
+          1281
+        ]
+      }
+    },
+    "projectionCheck": "jq -e asserts exact dictionary count, handles, owners, keys, edge roles, GROUP description and ordered member references in each output; four true results.",
+    "rows": [
+      {
+        "version": "AC1021",
+        "input": "/tmp/libdxfrw-dict-current.kbTUjv/group-AC1021.dwg",
+        "inputSha256": "be15af47a909e246ba4fa41e685400fd3c7bc7ea470724751d8e3410e45dd60f",
+        "output": "/tmp/libdxfrw-dict-current.kbTUjv/AC1021.json",
+        "outputSha256": "80d6c6dfadf338b657d44a9ac237525adc09ca28f0e0663920d3a55333bcfa2b",
+        "trace": "/tmp/libdxfrw-dict-current.kbTUjv/AC1021.trace",
+        "traceSha256": "e6be1ee27452ff6bcd25503f6b205d2d5c645c7ead2409e60bf5318df28b0d14",
+        "exactProjectionPassed": true,
+        "remainingDiagnostic": "ERROR: Invalid num_pages 0, skip",
+        "wholeFileQualification": "NOT_ESTABLISHED"
+      },
+      {
+        "version": "AC1024",
+        "input": "/tmp/libdxfrw-dict-current.kbTUjv/group-AC1024.dwg",
+        "inputSha256": "5b482f259ccf28cc877dc51461fb130a9aa9b00e6c63ff26ec1d953e196fb8a0",
+        "output": "/tmp/libdxfrw-dict-current.kbTUjv/AC1024.json",
+        "outputSha256": "253b4076a5e70ac0695371ffd49bc9f9351f7f448b59240a6cd8081ab74d0d0e",
+        "trace": "/tmp/libdxfrw-dict-current.kbTUjv/AC1024.trace",
+        "traceSha256": "095e6c23e0f49c51587a1ac2b29c30007647909686b4fe161d0857b64a1a1ad2",
+        "exactProjectionPassed": true,
+        "remainingDiagnostic": "ERROR: bit_read_RC buffer overflow at 179910.0 >= 179910",
+        "wholeFileQualification": "NOT_ESTABLISHED"
+      },
+      {
+        "version": "AC1027",
+        "input": "/tmp/libdxfrw-dict-current.kbTUjv/group-AC1027.dwg",
+        "inputSha256": "e1912fbf6ae218ee6fa4dd9fb7f78d57392d3347d92a38d989922b0bdad29032",
+        "output": "/tmp/libdxfrw-dict-current.kbTUjv/AC1027.json",
+        "outputSha256": "3e18e2abc064114c087cd2840d5fd5ff7559d7f1d530ce3f7d5be33ae8ddcf8c",
+        "trace": "/tmp/libdxfrw-dict-current.kbTUjv/AC1027.trace",
+        "traceSha256": "adf2a40720fd2d8b166959a3db3bd82055795334097155aa5ba44e8e352c7877",
+        "exactProjectionPassed": true,
+        "remainingDiagnostic": "ERROR: bit_read_RC buffer overflow at 179910.0 >= 179910",
+        "wholeFileQualification": "NOT_ESTABLISHED"
+      },
+      {
+        "version": "AC1032",
+        "input": "/tmp/libdxfrw-dict-current.kbTUjv/group-AC1032.dwg",
+        "inputSha256": "0a4d9799ee90902e51be3d4dca1f68094d4e23b611f46a13903094eddaedc246",
+        "output": "/tmp/libdxfrw-dict-current.kbTUjv/AC1032.json",
+        "outputSha256": "c5f40bd23858d5636edb787bf4f97cd1dbd7bbea83515255417086da568d0e41",
+        "trace": "/tmp/libdxfrw-dict-current.kbTUjv/AC1032.trace",
+        "traceSha256": "460655d09f9b0eb8f8d6a7948b69052b8b289df07f591a6697fccd5759c1e2b6",
+        "exactProjectionPassed": true,
+        "remainingDiagnostic": "ERROR: bit_read_RC buffer overflow at 179910.0 >= 179910",
+        "wholeFileQualification": "NOT_ESTABLISHED"
+      }
+    ],
+    "debugger": "A read-only LLDB launch exited with no such process on this host; no runtime-debug result is claimed."
+  },
+  "generatedRegression": {
+    "cells": 48,
+    "versions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "extensionSlot": [
+      "present null",
+      "absent"
+    ],
+    "reactors": [
+      0,
+      1
+    ],
+    "keys": [
+      "ASCII",
+      "BMP plus surrogate-pair Unicode with a second counted name",
+      "2200-character ASCII extended-footer control"
+    ],
+    "twoEntryCells": 16,
+    "assertions": [
+      "MS/UMC frame size",
+      "fixed object type and common flags",
+      "scalar/string start equality",
+      "contiguous key decoding without detached seek",
+      "ordered multi-entry names",
+      "owner/reactor/extension/item handle slots",
+      "frame receipt dataBitSize",
+      "CRC over emitted prefixes and shifted streams"
+    ],
+    "persistentDrawingFixtureAdded": false
+  },
+  "validation": {
+    "strictTargets": [
+      "dwg2dxf",
+      "libdxfrw_writer_primitives_tests",
+      "libdxfrw_dwg_local_roundtrip",
+      "libdxfrw_dwg_reader_matrix_tests",
+      "libdxfrw_dwg_object_vectors_tests",
+      "lc3_compat_check"
+    ],
+    "testTranslationUnitStrictCommand": "/usr/bin/clang++ -std=c++17 -Wall -Wextra -pedantic -Werror -Isrc -Isrc/intern -fsyntax-only tests/writer_primitives_tests.cpp",
+    "focusedCohort": {
+      "passed": 9,
+      "failed": 0,
+      "seconds": 7.22,
+      "tests": [
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg_hatch_reference_graph",
+        "libdxfrw_writer_primitives",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_persistent_manager_exact_footer",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_dwg_read_outcome_policy",
+        "libdxfrw_persistent_manager_prefix_dispatch"
+      ]
+    },
+    "generatorRefusals": {
+      "unknownVersionExit": 1,
+      "unknownVersionOutputCreated": false,
+      "existingPathExit": 1,
+      "existingInputUnchanged": true
+    },
+    "scopedDiffCheck": "PASS",
+    "fullProjectSuiteRun": false,
+    "sanitizersRun": false,
+    "nativeApplicationsRun": false
+  },
+  "remaining": {
+    "nextLocal": "Bounded standard-object DICTIONARY/GROUP/XRECORD raw-companion capture and qualified output handoff. Keep strict read completeness and destination-sentinel refusal until that contract is complete.",
+    "containerDiagnostics": "Classify separately at the composed checkpoint; peer exit zero and exact dictionary keys do not erase them.",
+    "table": "Legacy TABLE entity/extension integration and AC1024+ inline authoring remain open.",
+    "externalJ": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nativeFreecadLinuxWindows": "NOT_RUN",
+    "independentAcisAcdsKernelSemantics": "NOT_RUN",
+    "supportClaimsPromoted": 0
+  }
+}

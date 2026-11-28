@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-27",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "failed_head": "bdeb2046",
+  "failed_job": "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45986946711/job/140464885836",
+  "failure": "Windows feature configuration run failed six LayoutGraph assertions: ASCII records were matched with LF despite the DXF writer producing CRLF on Windows. Build and packaging had passed.",
+  "fix_head": "1395a2f5",
+  "fix": "Normalize CRLF only for ASCII textual checks; retain raw bytes for binary and sentinel checks. A mixed-ending test verifies normalization and unchanged raw input.",
+  "local_validation": "macOS ARM64 LayoutGraph.*: 18/18 passed, including normalization test. Plan validation and 31 plan-checker unit tests passed.",
+  "remaining": "Updated-head hosted Windows run queued; do not claim Windows qualification until it passes."
+}

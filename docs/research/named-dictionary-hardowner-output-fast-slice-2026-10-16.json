@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-named-dictionary-hardowner-output-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "owner": "PAR named-root dictionary output / generated-object graph closure",
+  "scope": "Emit and verify the modeled dictionary-wide hard-owner flag and matching entry edge codes on direct and DWG-origin named-dictionary DXF writer paths.",
+  "implementation": {
+    "changedFiles": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "writerChanges": [
+      "Prevalidate named dictionary handle, hardOwner range 0..1, code-281 cloning int16 range, and complete entry list before emission.",
+      "Write group 280 and select each dictionary entry edge as 360 for hard ownership or 350 for soft ownership.",
+      "Keep group 281 version-gated above AC1014 to match the direct dictionary writer."
+    ],
+    "generatedCoverage": {
+      "encoding": ["ASCII", "binary"],
+      "versions": ["AC1021", "AC1027", "AC1032"],
+      "assertions": [
+        "Named-dictionary soft-owner output contains literal group 280=0 and group 350 entry.",
+        "Direct and routed hard-owner dictionary output contains literal group 280=1 and group 360 entry edges.",
+        "Out-of-range hardOwner rejects before destination publication on the direct and routed named-dictionary paths.",
+        "Typed readback retains the dictionary ownership field and child entries."
+      ],
+      "testRegistrationAdded": false
+    },
+    "residual": "DRW_Dictionary represents ownership with one dictionary-wide hardOwner flag. Imported dictionaries with mixed per-entry 350/360 roles remain unrepresentable and are not claimed as losslessly round-trippable."
+  },
+  "validation": {
+    "strictTargetBuild": "PASS: cmake --build build --target libdxfrw_dxf_fixture_tests --parallel 2",
+    "focusedCTest": "PASS: ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check on the changed writer, fixture test, and plan files",
+    "fullTestSuite": "NOT RUN",
+    "externalPeerOrNativeCad": "NOT RUN",
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "implementationReadiness": {
+    "oldGapNoteSuperseded": true,
+    "dictionaryWideHardOwnerOutput": "LOCAL_IMPLEMENTATION_COMPLETE",
+    "mixedPerEntryOwnershipRepresentation": "OPEN",
+    "externalSemanticSupport": "NOT_ESTABLISHED",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktree": "Shared worktree remains broadly dirty and uncommitted; this slice staged and committed nothing."
+}

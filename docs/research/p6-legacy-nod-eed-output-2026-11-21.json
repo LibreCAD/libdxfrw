@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-nod-eed-output-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_LEGACY_NOD_EED_AND_MLINESTYLE_PATH",
+  "supportClaimEffect": "none",
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py --eed-on-nod",
+  "construction": "Locally generated R13/R14 controls attach ACAD EED to the named-object dictionary. Remapped controls use NOD 0x35, group dictionary 0x34, ACAD APPID 0x33, and a named GROUP with one 3D LINE member. Producer JSON readback checks source references; UTF-8 text uses a fixed-size, CRC-repaired patch to the previously observed codepage-45 profile. Generated drawings remain outside the repository.",
+  "sourceSha256": {
+    "r13RemappedNonemptyUtf8": "c987c71640f5ec4c7e28f437588574ab75c34c20497438bc892576d67f46a7a5",
+    "r14RemappedNonemptyUtf8": "1c08156d14ef68bba2487dfec4240d633a867b9a770532c555499401a3f0a16b"
+  },
+  "checks": [
+    "The shared legacy dictionary observer checks NOD framing and handle roles. The captured root must have a unique ACAD_GROUP target whose complete source owner is the root; the MLINESTYLE output path reuses this observer.",
+    "R14 strict and R13 explicit-partial ASCII/Binary controls cover original and remapped handles, ASCII and representable UTF-8, EED/APPID/source-frame/root-graph mutations, destination preservation and corrected retry. R14 also tests edited MLINESTYLE refusal.",
+    "A source with aliased ACAD_GROUP membership remains unqualified and is refused; the corrected graph succeeds on the same adapter. Unrepresentable target text is refused before destination replacement.",
+    "Independent ezdxf 1.4.5 readback finds NOD EED caf\u00e9 and 42, a MYGROUP-to-LINE edge with original 3D coordinates, and the MLINESTYLE dictionary in ASCII and Binary output for both source versions."
+  ],
+  "limits": [
+    "R13 output is explicit partial; its unqualified MLINESTYLE may be edited and does not gain a source-completeness certificate. Strict R13 remains refused.",
+    "Only this bounded ACAD APPID, dictionary and output profile is covered; native dictionary duplicate/clone semantics, other EED schemas and general format support remain open."
+  ],
+  "independentOutputSha256": {
+    "r13PartialAscii": "611bd301c9c7848182ef68fc37e587b3ff812aeaaf7627e061d4c8e1f4c46ec1",
+    "r13PartialBinary": "26db2074749ad800277cde4f4e0a5d9e0436aa5b0df9e31f342d37caf1ec502c",
+    "r14StrictAscii": "6eb636adf17c43fcfc9bef4b381baaece33683f2d805355b2039715f44c883e6",
+    "r14StrictBinary": "1ddc59bab91ecf2c82da110bc195b7bfcf75ac60b91e59167cf36a3df962d160"
+  }
+}

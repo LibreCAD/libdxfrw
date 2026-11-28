@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Open-source peer capability matrix and 3D evidence boundaries",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Refresh open-source DWG/DXF peer operation and version boundaries",
+    "Reconcile modeler-carrier writer omissions with per-source no-loss evidence",
+    "Separate strict DXF parsing, recovery, ACIS payload inspection, and B-rep conversion",
+    "Refine existing PAR-07/S8 implementation readiness without increasing per-slice validation"
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "reference": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "status": "current_project_documentation",
+      "observation": "The manual distinguishes stable, unstable, and unhandled class states and states that R2010-R2018 DWG writing still fails CRC/audit checks. Treat it as a pinned read-side/structural comparator for exact supported profiles, not a general modern DWG writer acceptance oracle."
+    },
+    {
+      "project": "LibreDWG fuzz setup",
+      "reference": "https://github.com/LibreDWG/libredwg-fuzz",
+      "status": "current_project_test_harness_documentation",
+      "observation": "The project documents AFL++ campaigns and saved crash/hang/leak regression replay. Borrow only the failure classification and minimized-regression pattern at an existing scheduled hardening checkpoint; no peer fuzz corpus was copied or run."
+    },
+    {
+      "project": "ACadSharp",
+      "reference": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "status": "open_package_specific_peer_report",
+      "observation": "The reporter says ACadSharp 3.4.9 reads DWG 3DSOLID/REGION entities but its DXF writer silently omits them, including solid-only blocks; the reporter says LibreDWG's census confirmed the source objects. No source drawing is attached and the report is not an independent local reproduction."
+    },
+    {
+      "project": "dwg-rs",
+      "reference": "https://github.com/DrunkOnJava/dwg-rs/blob/main/README.md",
+      "status": "current_pre_alpha_project_documentation",
+      "observation": "The README labels the project 0.1.0-alpha.1/pre-alpha; reports decoded, skipped, and errored counts on a dated 19-file corpus; says entity records are boundary-checked; and says DWG writer output lacks automated external-CAD acceptance. Corpus expansion changed its aggregate percentage, so that percentage is not a stable support score."
+    },
+    {
+      "project": "dwg-rs",
+      "reference": "https://github.com/DrunkOnJava/dwg-rs/blob/main/CLEANROOM.md",
+      "status": "source_lineage_disclosure",
+      "observation": "The policy permits the ODA public specification, eligible public DWGs, self-generated fixtures, and high-level algorithm descriptions; it explicitly forbids consulting LibreDWG implementation code. Its public ODA-spec lineage means it is a distinct implementation, not an independent normative authority."
+    },
+    {
+      "project": "ezdxf",
+      "reference": "https://github.com/mozman/ezdxf/blob/master/docs/source/tutorials/getting_data.rst",
+      "status": "current_project_documentation",
+      "observation": "The tutorial distinguishes ordinary readfile use on trusted DXF from recover.readfile for flawed files. A recovered document is a different outcome from strict parser acceptance."
+    },
+    {
+      "project": "ezdxf",
+      "reference": "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+      "status": "current_acis_inspection_documentation",
+      "observation": "browse-acis inspects and exports raw SAT/SAB content. It is useful for payload framing, not proof of B-rep semantics."
+    },
+    {
+      "project": "ezdxf",
+      "reference": "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "status": "current_renderer_limitations",
+      "observation": "The drawing add-on lists ACIS rendering as unsupported and says it has no 3D rendering engine. A successful DXF parse or rendering pass therefore cannot qualify solid geometry."
+    },
+    {
+      "project": "cq-acis",
+      "reference": "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+      "status": "current_experimental_acis_scope",
+      "observation": "The project calls itself experimental, documents selected SAT/SAB/ASM profiles and geometry, retains unsupported records as raw data, and warns that parsing does not guarantee conversion to a shape."
+    },
+    {
+      "project": "cq-acis",
+      "reference": "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+      "status": "current_geometry_subset_and_failure_policy",
+      "observation": "The geometry support table is profile-limited and rejects unsupported geometry rather than silently replacing it with sampled surfaces or returning a partially successful solid."
+    },
+    {
+      "project": "cq-acis",
+      "reference": "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+      "status": "current_sab_profile_and_lineage_scope",
+      "observation": "The documented SAB/ASM versions have unequal native/synthetic coverage; history is retained opaquely and not fully validated. The library uses CadQuery/OpenCascade conversion, so it does not establish an independent kernel result from OCCT-based consumers."
+    }
+  ],
+  "localCrosswalk": {
+    "sourceOwnersInspected": [
+      "src/libdxfrw.cpp::dxfRW::writeModelerGeometry",
+      "dwg2dxf/dx_iface.cpp modeler-geometry dispatch",
+      "tests/modeler_dxf_writer_matrix_tests.cpp",
+      "tests/qualify_modeler_dxf_syntax.py"
+    ],
+    "observation": "The local source has an explicit modeler-geometry DXF writer route and generated syntax/test owners. This research pass did not run those tests or qualify external reopen, independent shape semantics, or native consumer acceptance.",
+    "localDefectConfirmed": false
+  },
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Refined existing PAR-07/S8 comparator admission and no-loss reporting. The plan now distinguishes source and output modeler identity/owner disposition, strict DXF parse from recovery, ACIS raw inspection from shape conversion, and source/parser/kernel/consumer lineage. No local defect, test, fixture, dependency, or support claim was added.",
+    "nextImplementation": "The SectionViewStyle group-1 identifier/arrow position slice was completed and validated later in this work session. Continue with the next already-listed local-ready PAR-138 slice; do not wait for peer builds or external qualification.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-peer-capability-matrix-3d-evidence-2026-10-20.json"
+    ],
+    "limitations": "Peer documentation and issues are mutable, route-specific, and not local reproductions. dwg-rs coverage counts are self-reported on a small dated corpus. ACadSharp #1195 has no public customer drawing. cq-acis profile support and OCCT conversion do not establish general ACIS, DWG AcDs association, or independent-kernel support."
+  },
+  "validation": {
+    "planEdit": "Added a peer capability matrix, cross-route modeler no-loss requirements, and fast-first PAR-07/S8 refinements.",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan and receipt",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

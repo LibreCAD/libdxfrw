@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader consumer no-loss claim and peer-route reconciliation",
+  "mode": "Primary-source documentation/issue review and local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile FreeCAD's generic DWG-to-DXF no-loss statement with its documented importer limitations and actual converter-to-importer route.",
+    "Refresh the version/direction boundary from LibreDWG 0.14.1 source notes and current ACadSharp issue reports.",
+    "Refine the existing PAR-07/S8 route ledger so converter, intermediate DXF, importer, carrier, and semantic outcomes remain separate.",
+    "Keep findings, implementation order, fast validation cadence, fixtures, and external-only evidence statuses unchanged unless new local evidence supports a change."
+  ],
+  "sources": [
+    {
+      "name": "FreeCAD archived Draft DXF documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observed": "The documentation repository is archived. The Draft DXF page describes distinct C++ and legacy importers, says the C++ importer skips text, dimensions, and attributes inside blocks, and says embedded ACIS/SAT solids cannot currently be read. The same page broadly describes DWG-to-DXF conversion as no-loss/1:1. The broad statement is not a result for the documented converter-plus-importer route and conflicts with the page's importer-specific limitations when interpreted as an end-to-end guarantee."
+    },
+    {
+      "name": "Current FreeCAD DWG wrapper source",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observed": "The wrapper selects an external converter, creates an intermediate DXF, and then dispatches into the FreeCAD DXF importer. Converter completion, intermediate DXF validity/content, and importer disposition are separate outcomes. No FreeCAD binary or OS-specific route was run."
+    },
+    {
+      "name": "GNU LibreDWG 0.14/0.14.1 NEWS and manual",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observed": "The 0.14 NEWS announces AC1018/R2004 DWG writing and DXB support, and says R2007 encoding falls back to R2010; the release notes and manual disclose remaining version-specific limits and fixes. These source/release statements do not qualify a particular installed artifact or every entity family. No peer executable was built or run."
+    },
+    {
+      "name": "ACadSharp issue #1282",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1282"
+      ],
+      "observed": "The open report describes signed-16-bit narrowing of one APPID's encoded EED length at 32,768 bytes in the peer writer, with the object absent on peer reread. This is a peer implementation report, not a DWG format-wide limit or libdxfrw defect."
+    },
+    {
+      "name": "ACadSharp issue #1297",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1297"
+      ],
+      "observed": "The report says AutoCAD 2025 rejects an AC1032 whole-file result with a frame-only MTEXT flag despite a reportedly byte-identical MTEXT object; the proposed missing-style cause is unproven. This separates entity-body encoding from whole-document acceptance."
+    },
+    {
+      "name": "ACadSharp issue #1299 and version matrix",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "observed": "The report describes a peer DWG-to-DXF spline result rejected downstream by GDAL and attaches a source/result pair, but the issue text does not establish the exact independently expected curve. The project's reader/writer matrix is a declared route inventory, not proof of acceptance for every entity or whole file. No attachment was downloaded."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-07/S8 consumer route and per-object disposition ledger",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing FreeCAD Linux/Windows, converter, importer-backend, and ACIS evidence gates",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-19/29 MTEXT field and whole-file acceptance gates",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-22/7H/7I/7AB spline and analytic-curve owners",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md 7K EED unsigned length, split/refusal, and following-object controls",
+    "Current plan totals: 138 findings and 77 top-level subplans",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "The FreeCAD generic no-loss sentence is now explicitly excluded as end-to-end acceptance evidence. The existing composed consumer gate is refined to account for source identity and disposition at converter input, intermediate DXF, and selected importer output, with stock FreeCAD ACIS non-consumption separated from carrier preservation and B-rep semantics. Existing EED, MTEXT, and spline peer reports remain mapped to their established owners; no finding or support claim changes."
+  },
+  "method": {
+    "kind": "Read-only primary-source documentation/issue review and local plan reconciliation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-consumer-no-loss-claim-and-peer-route-reconciliation-2026-10-19.json"
+    ],
+    "limitations": "FreeCAD documentation is archived and is used only to characterize its stated importer routes; current source confirms the converter-to-importer handoff, but no FreeCAD runtime was qualified. ACadSharp issue reports are version-specific and were not independently reproduced; no attachment was downloaded. LibreDWG notes were source/release disclosures, not an executed artifact result. The repository-local ODA specification PDF was absent at the path provided in AGENTS.md, and this pass therefore makes no new DWG byte-layout claim."
+  }
+}

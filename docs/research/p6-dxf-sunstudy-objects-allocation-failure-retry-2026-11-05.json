@@ -1,0 +1,60 @@
+{
+  "id": "p6-dxf-sunstudy-objects-allocation-failure-retry-2026-11-05",
+  "date": "2026-11-05",
+  "scope": "Generated AC1027 SUNSTUDY OBJECTS callback allocation failure, whole-output rollback, same-adapter retry and typed graph readback.",
+  "source": {
+    "kind": "deterministic local-from-scratch DXF source; removed after each CTest run",
+    "author": "tools/audit_sunstudy_dxf_graph.py author --version AC1027",
+    "sha256": "74c3f3af3a227fb27a47339bf8569fe8e5787cbcc3901ecf88b806221b18639d",
+    "repositoryFixtureAdded": false,
+    "revision": "671bb1c7d916e29b6845fdabc233c9c74607a6f0"
+  },
+  "implementation": {
+    "test": "tests/sunstudy_objects_allocation_tests.cpp",
+    "testSha256": "19aecfdc1317b4a92f3bbb71fe173cfbae14a5e748a9bff3ed8116c70e98a482",
+    "runner": "tests/run_sunstudy_objects_allocation_test.cmake",
+    "runnerSha256": "30e94774d06c1f406509cd5353b66171bac9ff885189d8fc11719c40614c8044",
+    "cmakeSha256": "8ef44e3d79f284ed5ee169b84fe72a4684ab9df1290d8ba008dd69b044cf66a6",
+    "normalBinarySha256": "178bd907f12cf9653b254878139f742787fa584d852f1b2c5b14422eb861cef6",
+    "asanBinarySha256": "86bfa05543f71e44750961c719b9af5e81c8d550d2879d4fb733a2449862079d"
+  },
+  "environment": {
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "normalBuild": "build-gcc",
+    "asanBuild": "build-asan-custom",
+    "commands": [
+      "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "cmake --build build-gcc --target libdxfrw_sunstudy_objects_allocation_tests -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_sunstudy_objects_allocation_retry$' -V",
+      "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "cmake --build build-asan-custom --target libdxfrw_sunstudy_objects_allocation_tests -j4",
+      "ctest --test-dir build-asan-custom -R '^libdxfrw_sunstudy_objects_allocation_retry$' -V"
+    ]
+  },
+  "result": {
+    "status": "PASS",
+    "selector": "libdxfrw_sunstudy_objects_allocation_retry",
+    "normal": {
+      "asciiAllocationOffsets": 20,
+      "binaryAllocationOffsets": 18,
+      "destinationSentinelPreservedAtEveryOffset": true,
+      "sameAdapterRetryAtEveryOffset": true,
+      "typedReadbackAtEveryRetry": true,
+      "durationSeconds": 0.42
+    },
+    "asan": {
+      "asciiAllocationOffsets": 20,
+      "binaryAllocationOffsets": 18,
+      "destinationSentinelPreservedAtEveryOffset": true,
+      "sameAdapterRetryAtEveryOffset": true,
+      "typedReadbackAtEveryRetry": true,
+      "durationSeconds": 1.70
+    },
+    "suite": "focused normal and ASan selectors only; no full suite"
+  },
+  "limits": [
+    "Generated DXF writer transaction evidence only; it does not qualify physical DWG producer data or native SUNSTUDY behavior.",
+    "Covers the SUNSTUDY OBJECTS graph and its callback allocations, not other OBJECTS builders or shared-instance concurrency."
+  ],
+  "next": "Continue P6 safety/caller-state work with another distinct, locally ready OBJECTS builder or staged family."
+}

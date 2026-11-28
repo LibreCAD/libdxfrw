@@ -1,0 +1,184 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mesh-dwg-trailing-bit-fields-recheck-2026-11-02",
+  "date": "2026-11-02",
+  "status": "BOUNDED_DWG_FLAG_SPAN_AND_ALIGNMENT_VERIFIED; SEMANTIC_SUPPORT_NOT_PROMOTED",
+  "supportClaimEffect": "none",
+  "scope": "Resolve the observed AcDbSubDMesh trailing field width and preserve the two fields for the witnessed DWG source profiles.",
+  "resolution": {
+    "wireLayout": [
+      "After the level-0 crease vector, read unknown_b1 as one bit, then unknown_b2 as one bit.",
+      "Retain the source-compatible DRW_Mesh::unknown field as bit 0 = unknown_b1 and bit 1 = unknown_b2.",
+      "DWG output emits those two bits in the same order and rejects values outside the 0..3 mask.",
+      "DXF has no corresponding groups, so strict DXF output continues to refuse any nonzero mask."
+    ],
+    "layoutLimit": "ODA v5.4.1 documents Common Entity Data and the separate Common Entity Handle Data sections (\u00a720.4.1\u201320.4.2), but contains no AcDbSubDMesh body prescription. The field widths are therefore bounded by physical source bytes and differential field decoding, not asserted as an ODA-published MESH schema."
+  },
+  "physicalEvidence": {
+    "independentReader": {
+      "name": "LibreDWG",
+      "version": "0.14",
+      "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "schemaFile": "src/dwg2.spec",
+      "schemaLocation": "2523-2548",
+      "schemaFields": [
+        "FIELD_B (unknown_b1, 0)",
+        "FIELD_B (unknown_b2, 0)"
+      ],
+      "interpretation": "Corroborating implementation evidence only; the peer schema describes these fields as undocumented/unstable and does not establish their semantic meaning."
+    },
+    "sources": [
+      {
+        "file": "/Users/dli/doc/dwg5/Surface.dwg",
+        "version": "AC1018",
+        "sha256": "7ba7ea2e6e89a01094d4ffe104dd1cfc03513d1991bd223aeac1a3186a6c38d3",
+        "sameBytesAs": "/Users/dli/dev/libredwg/test/test-data/2004/Surface.dwg",
+        "trustedDwgMetadata": "LibreDWG minJSON AppInfo contains the UTF-16 text: Autodesk DWG. This file is a Trusted DWG last saved by an Autodesk application or Autodesk licensed application.",
+        "meshes": [
+          {
+            "handle": "0x2D0",
+            "unknown_b1": 1,
+            "unknown_b2": 0,
+            "libdxfrwUnknownMask": 1
+          },
+          {
+            "handle": "0x2D6",
+            "unknown_b1": 1,
+            "unknown_b2": 0,
+            "libdxfrwUnknownMask": 1
+          }
+        ]
+      },
+      {
+        "file": "/Users/dli/doc/dwg5/sample_AC1015.dwg",
+        "version": "AC1015",
+        "sha256": "8ffbdc713f5838cbbb1596a8422e2b607e5c9e79921e852cbb5abee4af76ea4e",
+        "meshes": [
+          {
+            "handle": "0x343",
+            "unknown_b1": 1,
+            "unknown_b2": 0,
+            "libdxfrwUnknownMask": 1
+          },
+          {
+            "handle": "0x380",
+            "unknown_b1": 1,
+            "unknown_b2": 0,
+            "libdxfrwUnknownMask": 1
+          }
+        ]
+      },
+      {
+        "file": "/Users/dli/doc/dwg5/sample_AC1021.dwg",
+        "version": "AC1021",
+        "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+        "meshes": [
+          {
+            "handle": "0x343",
+            "unknown_b1": 1,
+            "unknown_b2": 0,
+            "libdxfrwUnknownMask": 1
+          },
+          {
+            "handle": "0x380",
+            "unknown_b1": 1,
+            "unknown_b2": 0,
+            "libdxfrwUnknownMask": 1
+          }
+        ]
+      },
+      {
+        "file": "/Users/dli/doc/dwg5/sample_AC1024.dwg",
+        "version": "AC1024",
+        "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+        "meshes": [
+          {
+            "handle": "0x343",
+            "unknown_b1": 1,
+            "unknown_b2": 0,
+            "libdxfrwUnknownMask": 1
+          },
+          {
+            "handle": "0x380",
+            "unknown_b1": 1,
+            "unknown_b2": 0,
+            "libdxfrwUnknownMask": 1
+          }
+        ]
+      }
+    ],
+    "method": "For each physical input, the current libdxfrw reader was run through a temporary adapter probe that reports typed MESH callback fields. LibreDWG 0.14 dwgread -O minJSON independently reported the two named one-bit fields. The AC1018 source digest was checked against the identical LibreDWG repository fixture."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/hardening_tests.cpp"
+    ],
+    "details": [
+      "DWG parsing consumes two bounded bits and packs them into the compatibility field.",
+      "DWG writing validates the 2-bit domain and emits the two fields in order.",
+      "Generated AC1024 parser vectors cover masks 0, 1, 2, and 3 and verify the following common handle resolves to 0xA300.",
+      "Generated writer checks cover each mask for AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032, including exact final-bit order and rejection of out-of-mask values.",
+      "DXF output loss guard remains unchanged for nonzero masks."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests -j2",
+    "buildResult": "PASS",
+    "focusedTests": "ctest --test-dir build-gcc -R '^libdxfrw_mesh_(crease_value_domains|dwg_crease_count_guard|dxf_allocation_failure)$' --output-on-failure",
+    "focusedTestResult": "PASS (3/3)",
+    "physicalProbe": "Recompiled /private/tmp/libdxfrw_mesh_probe against the current adapter object and build-gcc/libdxfrw.a; all eight MESH records across the four listed files report unknown=1 and preserve vertex/face/edge/crease counts.",
+    "independentFields": "LibreDWG 0.14 minJSON reports unknown_b1=1 and unknown_b2=0 for all eight MESH records.",
+    "diffCheck": "PASS",
+    "fixtureFilesAdded": 0
+  },
+  "supersedes": {
+    "receipt": "p6-mesh-dwg-opaque-tail-output-guard-2026-11-02",
+    "scope": "The earlier refusal of every nonzero DWG tail is superseded for the bounded two-bit field layout and 0..3 value domain above. Keep that receipt as historical evidence. The separate DXF loss refusal in p6-mesh-dwg-unrepresented-tail-guard-2026-11-02 remains valid."
+  },
+  "limitations": [
+    "The two flag meanings are unknown; this does not qualify their behavior in a native consumer.",
+    "Physical evidence covers only the four listed revisions and one observed flag combination (1,0); generated vectors cover encoding/decoding mechanics for all four combinations.",
+    "This does not qualify MESH topology, crease effects, subdivision behavior, property overrides, geometry semantics, complete source-to-output conversion, or broader producer/version support.",
+    "No support claims were promoted, and no DWG or DXF fixtures were added."
+  ],
+  "specification": {
+    "file": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sectionsReviewed": [
+      "20.4.1 Common Entity Data",
+      "20.4.2 Common Entity Handle Data"
+    ],
+    "meshPrescriptionFound": false
+  },
+  "fileHashesAfterEdit": {
+    "src/drw_entities.cpp": "14be3bf0dac0506d0b047a1bec8c0a565ec9ec76213d4c923fa93a3162b7b819",
+    "src/drw_entities.h": "1082c13e4451aec678792667fe54781a3b01e1e153f97c847ca20c022fd21123",
+    "tests/dwg_object_vectors_tests.cpp": "2d63a25a5a01ddff8868bae2ad31a63169644195705d6d3fd232d7b7c6a88e7e",
+    "tests/hardening_tests.cpp": "76c57b28897da9c91d38af7361baa44b4f214e65b8e4ea4efa689e5ec4a9e998",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "dea414fd9e6f4790b21085b380ee57983702e1ddb92b433f327f136277482c41"
+  },
+  "currentTurnValidation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests --parallel 4",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mesh_crease_value_domains|libdxfrw_mesh_dwg_crease_count_guard|libdxfrw_mesh_dxf_allocation_failure)$' --output-on-failure",
+    "passed": 3,
+    "failed": 0,
+    "elapsedSeconds": 0.41
+  },
+  "stagedInputHashes": {
+    "src/drw_entities.cpp": "90444975aea47189d45bc0ca752c834a49a9d4cdfa9444e16960df687bc581b2",
+    "tests/dwg_object_vectors_tests.cpp": "437da8f7bc00df9f817aae47172731cbd4864b11402a2885a98bf7dc0645b3b1",
+    "tests/hardening_tests.cpp": "82516e1a3059d1d47836c5682a7c8fde9e660f8e5864af0a4549de3e1612ae2b",
+    "tests/dwg_local_roundtrip_tests.cpp": "8e051681e201c34b11a180584fc1dc8b66f6fba152d2433ab1a367001c020a9d",
+    "CMakeLists.txt": "d1c8714988f9cd41e787983cd28586c1495f1aa07ecfe883a4e34151a539fb33",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ca6184dc175f0fa7feb8e069f75b53dc8ee78a271fb0117ef5ee259d37e49ce7"
+  },
+  "repositoryState": {
+    "baseHead": "a49c90a3",
+    "stagedScope": "bounded MESH DWG parse/output profile; DXF loss guards; generated vectors",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "title": "S3.7c SAB 21800 edge-rooted coedge partner-ring walk fast slice",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "profile": "ACIS BinaryFile SAB 21800",
+    "fields": [
+      "DRW_AcisEdge::hasCoedgePartnerRingObservation",
+      "DRW_AcisEdge::coedgePartnerRingClosed",
+      "DRW_AcisEdge::coedgePartnerRingNodeIndices",
+      "DRW_AcisEdge::coedgePartnerRingNextNodeIndices"
+    ],
+    "root": {
+      "source_type": "edge",
+      "pointer_ordinal": 3,
+      "target_type": "coedge"
+    },
+    "partner": {
+      "source_type": "coedge",
+      "pointer_ordinal": 3,
+      "target_type": "coedge"
+    },
+    "behavior": "Walk from the edge-selected coedge, retain each unique source node and its exact next partner target, and report closed only when the walk returns to that same start. A null end or cycle into a different coedge remains open/partial and is a known projection gap.",
+    "semantic_reference": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+    "semantic_reference_limit": "The public ACIS data-model documentation describes circular partner lists, including non-manifold lists; it is semantic model guidance, not SAB byte-layout authority. Pointer positions are exercised by local generated parser-fed SAB 21800 streams.",
+    "explicit_nonclaims": [
+      "complete census of every coedge that may reference the partner cycle",
+      "edge-use consistency across all partner coedges",
+      "manifoldness or shell validity",
+      "coedge orientation or oriented-boundary reconstruction",
+      "pcurve or trim evaluation",
+      "B-rep validity",
+      "native CAD acceptance"
+    ]
+  },
+  "coverage": {
+    "parser_fed_multi_member_partner_cycles_from_multiple_edges": "PASS",
+    "parser_fed_null_partner_target_retains_exact_partial_walk_and_known_gap": "PASS",
+    "parser_fed_cycle_entering_a_different_coedge_not_misreported_closed": "PASS",
+    "parser_fed_wrong_type_partner_pointer_refusal": "PASS via existing rooted graph validator exact source/ordinal diagnostics",
+    "parser_fed_in_memory_projection_equivalence_includes_new_fields": "PASS",
+    "coverage_rejects_unclosed_misaligned_and_inconsistent_partner_rows": "PASS",
+    "exact_output_budget_and_one_under_refusal_include_new_rows": "PASS",
+    "new_drawing_fixture_added": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS 1/1 in 1.23 seconds",
+    "address_sanitizer": "NOT_RUN",
+    "diff_check": "PASS",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "public_struct_layout_changed": true,
+    "consumer_rebuild_required": true,
+    "DRW_Interface_vtable_changed": false,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "findings": 144,
+    "top_level_subplans": 78,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

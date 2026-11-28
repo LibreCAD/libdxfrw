@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "Deeper/broader peer consumer boundaries and implementation readiness",
+  "mode": "Primary-source web research and plan refinement; research only",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "b6e88c3b0173f29f9ba1b684fd65ac5097010e9220da3469b6a048f12ff425ae",
+  "scope": [
+    "Cross-check open-source DWG/DXF implementation routes and downstream consumer limitations.",
+    "Refine boundaries between projected geometry, raw modeler carriers, and independent solid semantics.",
+    "Make existing MATERIAL and TABLESTYLE subplans more implementation-ready without expanding full-suite cadence."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/releases/tag/0.14"
+      ],
+      "revision": "Mutable NEWS page and 0.14 release page accessed 2026-10-22",
+      "observed": "NEWS reports targeted HATCH path-state, MATERIAL color/mapper, TABLESTYLE row true-color, and final SAT-block fixes, as well as continuing parser-hardening work. The 0.14 release notes identify AC1018 as the supported DWG writer target, later versions as experimental, and AC1021 encoding as a fallback to AC1024.",
+      "limits": "Release notes and mutable source are peer-maintained route evidence, not a local defect reproduction, normative format authority, or independent correctness oracle."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "revision": "Mutable master/release/issue pages accessed 2026-10-22; issue #1195 reports package 3.4.9",
+      "observed": "The project publishes independent DXF/DWG reader/writer version claims. Issue #1195 reports 3DSOLID/REGION omission on the named 3.4.9 DWG-to-DXF route.",
+      "limits": "The report is version-specific and does not establish behavior in v3.8.0 or a local libdxfrw defect. No package or source build was run."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Stable documentation identifies ezdxf 1.4.5; accessed 2026-10-22",
+      "observed": "The ACIS API supports limited known structures and polyhedral-body generation/extraction; SAT export is documented for DXF R2000-R2010 and SAB for R2013/R2018. The documentation explicitly excludes arbitrary ACIS editing and states that ezdxf has no ACIS kernel.",
+      "limits": "A bounded carrier generator or planar-polyhedron observer is not a general ACIS/B-rep semantic oracle; no package or geometry was run."
+    },
+    {
+      "project": "GDAL/OGR DXF and CAD drivers",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://gdal.org/en/stable/drivers/vector/cad.html"
+      ],
+      "revision": "Mutable stable documentation accessed 2026-10-22; DXF binary read documented since GDAL 3.12",
+      "observed": "The DXF reader projects selected records into OGR geometry, tessellates some curves, can inline/merge blocks, and skips ACIS-bearing entities by default. DXF_3D_EXTENSIBLE_MODE exposes raw ASMData plus a 12-value transform for AC1027+ but does not create solid geometries. The separate CAD/DWG driver is read-only and documents a small primitive subset.",
+      "limits": "OGR projections and optional raw carrier values do not constitute a full object graph, DWG writer, or ACIS semantic result."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "Mutable main-branch source and documentation accessed 2026-10-22",
+      "observed": "FreeCAD's DWG path invokes a selected external converter and then its DXF importer. Current DXF documentation says ACIS solid blobs cannot be read by the standard importer; the DWG page states converter output inherits DXF-importer limitations.",
+      "limits": "Documentation defines a route boundary but does not substitute for native Linux/Windows tests. No FreeCAD application or converter was run."
+    },
+    {
+      "project": "LibreCAD 3",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Mutable master documentation accessed 2026-10-22",
+      "observed": "The project documents experimental DWG reading as off by default and no DWG writing absent separately promoted write claims and independent acceptance.",
+      "limits": "This is a downstream project policy statement, not a libdxfrw ABI/UI test or a general 3D support result."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: classify external observers by exact route, direction, version, and output projection",
+      "PAR-14: keep raw-carrier matching, geometry semantics, and native consumer qualification as separate evidence stages",
+      "RPP-4: finish MATERIAL map scalar controls before mapper transforms; do not infer DWG body semantics from DXF fields",
+      "RPP-5: include nested TABLESTYLE row true-color/CMC cases and preserve-or-refuse behavior"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "executionOrderChanged": false,
+    "validationCadenceChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a route/evidence table for LibreDWG, ACadSharp, ezdxf, GDAL/OGR, FreeCAD, and LibreCAD 3.",
+    "Clarified that FreeCAD qualification cannot establish ACIS solid semantics through its documented standard importer route.",
+    "Limited GDAL use to exact projected primitive/topology observations or AC1027+ raw ASM carrier inspection; Binary DXF is not DWG support.",
+    "Refined RPP-4c/RPP-4d and RPP-5 with repeated-group, bounded-string, matrix, nested true-color, raw-net, and following-record controls.",
+    "Preserved focused fast validation, generated-from-scratch committed tests, no support promotion, and external-gate status."
+  ],
+  "limitations": [
+    "Mutable project branches, release pages, and documentation may change; observations are timestamped and route/version scoped.",
+    "No peer artifact, application, kernel, or external drawing was executed or downloaded.",
+    "This review did not inspect new DWG wire layouts; the local ODA v5.4.1 specification remains authoritative for such changes.",
+    "Native FreeCAD Linux/Windows qualification, independent ACIS/ACDS semantic evidence, and all six deferred J items remain unresolved."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

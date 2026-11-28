@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-31",
+  "profile": "AC1018 legacy TABLESTYLE signed lineweight decoding",
+  "scope": "Parser field qualification only; this receipt does not qualify whole-document conversion or TABLESTYLE rendering.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "committed_as_fixture": false
+  },
+  "authoritative_format_source": {
+    "document": "Open Design Specification for .dwg files, v5.4.1",
+    "section": "20.4.101.1 TABLESTYLE format until R21",
+    "page": 242,
+    "relevant_fields": [
+      "Three legacy row styles, each with six borders",
+      "Border lineweights use group codes 274-279",
+      "Border visibility uses group codes 284-289",
+      "Border colors use group codes 64-69"
+    ]
+  },
+  "independent_implementation_evidence": {
+    "project": "GNU LibreDWG",
+    "version": "0.14",
+    "evidence_url": "https://github.com/LibreDWG/libredwg/issues/1042",
+    "observation": "Its AC1018 TABLESTYLE decode trace identifies border lineweight as BSd and reports -2 for all six border slots in the cited source profile. Its DXF export of ET-Drawing-with-Border also emits the five named STYLE records and omits the unnamed ltypeshp.shx STYLE entry."
+  },
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "change": "Decode the legacy TABLESTYLE lineweight slot with readSBitShortWithinBody so signed lineweight sentinels such as ByBlock (-2) are preserved. Other legacy bit-short fields continue using the unsigned reader."
+  },
+  "observed_fields": {
+    "table_styles": 1,
+    "style_name": "Standard",
+    "legacy_rows": 3,
+    "borders_per_row": 6,
+    "lineweight_values": [-2],
+    "lineweight_slots": 18,
+    "edge_flags_match_order": true,
+    "property_override_flags": 0,
+    "border_type": 0,
+    "linetype_handle": 0,
+    "double_line_spacing": 0.0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focused_source_selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-ac1018-source-profile /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+      "result": "passed",
+      "assertions": "Three legacy rows, eighteen signed -2 lineweights, ordered edge flags, and zero/default R24-only border fields."
+    },
+    "ac1024_writer_compatibility": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-output-readback /Users/dli/doc/dwg/title_block-iso.dwg",
+      "source_sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+      "result": "passed",
+      "assertions": "Existing AC1024 R24 TABLESTYLE ASCII and binary output, readback, refusal, and same-adapter retry profiles."
+    },
+    "diff_check": "passed"
+  },
+  "remaining_gates": [
+    "AC1018 ET-Drawing-with-Border has 23 opaque DWG callbacks with 0/23 strict output qualifications.",
+    "A generated DXF readback fails in the STYLE table because the source contains an unnamed STYLE record with font ltypeshp.shx. LibreDWG 0.14 omits that row, but this alone does not prove the handle has no required source references or authorize a general omission rule.",
+    "No native TABLESTYLE rendering or whole-document semantic qualification is claimed."
+  ]
+}

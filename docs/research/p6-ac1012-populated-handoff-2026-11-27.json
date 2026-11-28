@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-populated-handoff-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "sourceReceipt": "docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json",
+  "tool": "tools/research/package_ac1012_populated_pair.py",
+  "toolSha256": "3f6ceb5a2114738f791ec78c5bf64f77359d2a604dd26c6c7217323de7eeb931",
+  "packet": "/private/tmp/ac1012-native-populated-handoff-v2-20261127",
+  "manifestSha256": "49f1cacb462edeb29ededc93cff835048adf1f2fc02a3fab6faa5eafb17030de",
+  "checks": [
+    "The packager verifies the receipt hashes for both ODA-generated AC1012 DWGs and their ODA reopen DXFs, then rechecks selected root/style dictionary frames, CRCs, handle roles, EED and discriminating two-element styles using LibreDWG 0.14 and the shared bounded physical auditor.",
+    "An independent manifest verification passes for all copied files. Modified-input, preexisting-destination and dangling-symlink controls refuse without replacing the destination.",
+    "The packet contains locally generated scratch drawings, the witness procedure, receipt and manifest; no DWG or DXF fixture is committed."
+  ],
+  "limits": [
+    "The producer pair has been reopened by ODA and read by LibreDWG; AutoCAD normal-open, style validity and duplicate-merge behavior remain unobserved.",
+    "The empty-name/null root entry and ACAD EED do not become qualified merely because the packet audit succeeds."
+  ]
+}

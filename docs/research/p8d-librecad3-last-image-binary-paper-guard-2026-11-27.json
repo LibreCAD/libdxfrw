@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-last-image-binary-paper-guard-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "3e293115a2f1b71c6a5b4f823c47b49fedfc64bb",
+  "problem": "Binary cross-encoding after last-image deletion retained an orphan synthetic paper block because its source graph was no longer selected for raw replay.",
+  "implementation": "Reuse the bounded source IMAGE/dictionary graph checks with an explicit source argument, allowing same-revision binary omission after raw replay is dropped only for an empty document with standard blocks. Source paper, nonempty or unusual blocks, unexpected raw objects and different revisions remain guarded. Raw-record loss remains reported.",
+  "validation": [
+    "The new omission assertion failed before the fix. Thirteen focused image, dictionary and paper-space tests and eighteen layout tests pass afterward.",
+    "Tests retain the conservative behavior for a different output revision, a model entity, source paper and an unrelated raw reactor. Paper-space content refuses without replacing the existing destination; after removal, a corrected binary retry succeeds.",
+    "ezdxf 1.4.5 independently reads the selected locally generated binary deletion output with no model entities, IMAGEDEF or IMAGEDEF_REACTOR and no extra paper block; audit reports zero errors and zero fixes."
+  ],
+  "redLogSha256": "5631be46b62ddf057c36e916c879d72fa7e3d163fb544ae611faa1cae70042e1",
+  "testLogSha256": "acba876443eca6760baaa761d1d1daf652a6226134db50f8b7528f1d884dd602",
+  "layoutLogSha256": "811f182b5dc8855cb67a47dffcc1f5362d2cbe33ffd1a22cd1f1d442540c3e58",
+  "outputSha256": "c2702de2d038304d7018fc7869068d53a04f7f97a8034c99a4eaef8bc482d502",
+  "limits": [
+    "This is one same-revision empty-output profile, not binary raw-graph replay or lossless source preservation. Broader typed/header references, nonempty drawings, different revisions, native producer behavior and rendering remain unqualified.",
+    "The locally captured output is not committed; source raw records remain dropped and reported."
+  ]
+}

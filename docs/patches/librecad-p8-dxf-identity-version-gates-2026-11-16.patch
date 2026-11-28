@@ -1,0 +1,190 @@
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index 96fd69e..f334adf 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -68,0 +69,3 @@
++#if __has_include("drw_dxf_capabilities.h")
++#include "drw_dxf_capabilities.h"
++#endif
+@@ -12452,0 +12456,2 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
++  std::map<std::string, std::size_t> versionExcludedTyped;
++  std::set<std::uint32_t> versionExcludedTypedHandles;
+@@ -12781 +12786 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+-      if (exportVersion < minVersion || handle == 0 ||
++      if (handle == 0 ||
+@@ -12784,0 +12790,9 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
++      if (exportVersion < minVersion) {
++        // A raw carrier already counted as left out needs no second warning.
++        // Typed-only records still need a warning and must not be referenced.
++        if (leftOutRawHandles.count(handle) == 0 &&
++            versionExcludedTypedHandles.insert(handle).second)
++          ++versionExcludedTyped[std::string(recordName) +
++                                 " (not in this DXF version)"];
++        return;
++      }
+@@ -12807,0 +12822,5 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
++#ifdef LIBDXFRW_DXF_FIELD_MINIMUM_VERSION
++    constexpr DRW::Version fieldMinimumVersion = LIBDXFRW_DXF_FIELD_MINIMUM_VERSION;
++#else
++    constexpr DRW::Version fieldMinimumVersion = DRW::AC1015;
++#endif
+@@ -12809 +12828 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+-      reserveTyped(record.handle, record.replayState, "FIELD", DRW::AC1015);
++      reserveTyped(record.handle, record.replayState, "FIELD", fieldMinimumVersion);
+@@ -12813 +12832 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+-      reserveTyped(record.handle, record.replayState, "FIELDLIST", DRW::AC1015);
++      reserveTyped(record.handle, record.replayState, "FIELDLIST", fieldMinimumVersion);
+@@ -12852,3 +12871,3 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+-      if (exportVersion >= DRW::AC1021 &&
+-          canWriteNativeEvaluationGraph(evaluationGraphFromMetadata(record)))
+-        reserveTyped(record.handle, record.replayState, "EVALUATION_GRAPH");
++      if (canWriteNativeEvaluationGraph(evaluationGraphFromMetadata(record)))
++        reserveTyped(record.handle, record.replayState, "EVALUATION_GRAPH",
++                     DRW::AC1021);
+@@ -12986,0 +13006,2 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
++    m_dxfDroppedReferenceHandles.insert(versionExcludedTypedHandles.cbegin(),
++                                        versionExcludedTypedHandles.cend());
+@@ -12998,0 +13020,4 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
++    // Reservation prevents reuse; an explicit mapping also tells codecs that
++    // plan GROUP output handles to retain the identity used by reactors.
++    for (const std::uint32_t h : keptGroupHandles)
++      handleRemap.emplace(h, h);
+@@ -13133 +13158 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+-      noteDataOnly(r.handle, r.parentHandle, r.replayState, DRW::AC1015);
++      noteDataOnly(r.handle, r.parentHandle, r.replayState, fieldMinimumVersion);
+@@ -13135 +13160 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+-      noteDataOnly(r.handle, r.parentHandle, r.replayState, DRW::AC1015);
++      noteDataOnly(r.handle, r.parentHandle, r.replayState, fieldMinimumVersion);
+@@ -13315,0 +13341,2 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
++  for (const auto &[name, count] : versionExcludedTyped)
++    m_writeLeftOut[name] += count;
+@@ -13634,2 +13661,7 @@ void RS_FilterDXFRW::prepareDxfEntityHandleMap() {
+-    } else if (m_dxfW->preallocateEntityHandle(sourceHandle) == 0) {
+-      m_writeFailed = true;
++    } else {
++      // A live entity supersedes an omitted raw carrier with the same source
++      // handle. Clear that stale omission before the codec asks dxfReference
++      // to plan the live entity's output identity.
++      m_dxfDroppedReferenceHandles.erase(sourceHandle);
++      if (m_dxfW->preallocateEntityHandle(sourceHandle) == 0)
++        m_writeFailed = true;
+@@ -27559 +27591,2 @@ void RS_FilterDXFRW::writeObjects() {
+-      if (!emitTyped(record.handle, record.replayState))
++      if (m_dxfExportVersion < DRW::AC1021 ||
++          !emitTyped(record.handle, record.replayState))
+@@ -27679,0 +27713,5 @@ void RS_FilterDXFRW::writeObjects() {
++#ifdef LIBDXFRW_DXF_FIELD_MINIMUM_VERSION
++    constexpr DRW::Version fieldMinimumVersion = LIBDXFRW_DXF_FIELD_MINIMUM_VERSION;
++#else
++    constexpr DRW::Version fieldMinimumVersion = DRW::AC1015;
++#endif
+@@ -27683 +27721,2 @@ void RS_FilterDXFRW::writeObjects() {
+-      if (!emitTyped(record.handle, record.replayState))
++      if (m_dxfExportVersion < fieldMinimumVersion ||
++          !emitTyped(record.handle, record.replayState))
+@@ -27691 +27730,2 @@ void RS_FilterDXFRW::writeObjects() {
+-      if (!emitTyped(record.handle, record.replayState))
++      if (m_dxfExportVersion < fieldMinimumVersion ||
++          !emitTyped(record.handle, record.replayState))
+@@ -27828 +27868,2 @@ void RS_FilterDXFRW::writeObjects() {
+-      if (!canWriteNativeEvaluationGraph(graph) ||
++      if (m_dxfExportVersion < DRW::AC1021 ||
++          !canWriteNativeEvaluationGraph(graph) ||
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 09cd4a4..5ec2dda 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -56,0 +57,3 @@
++#if __has_include("drw_dxf_capabilities.h")
++#include "drw_dxf_capabilities.h"
++#endif
+@@ -4775,0 +4779,7 @@ TEST_CASE("DXF write planning excludes typed objects below their version gate",
++  // R14 cannot carry an explicit layer width; this test is about object
++  // version gates, so keep the layer's width at the legacy default.
++  RS_Layer *zero = graphic.findLayer("0");
++  REQUIRE(zero != nullptr);
++  RS_Pen zeroPen = zero->getPen();
++  zeroPen.setWidth(RS2::WidthDefault);
++  zero->setPen(zeroPen);
+@@ -4825 +4835,2 @@ TEST_CASE("DXF write planning excludes typed objects below their version gate",
+-  const std::string fieldOut = tmpFile("typed_gates_r2000.dxf");
++  const std::string r2000Out = tmpFile("typed_gates_r2000.dxf");
++  const std::string fieldOut = tmpFile("typed_gates_r2004.dxf");
+@@ -4827,0 +4839 @@ TEST_CASE("DXF write planning excludes typed objects below their version gate",
++  std::filesystem::remove(r2000Out);
+@@ -4832,2 +4844,4 @@ TEST_CASE("DXF write planning excludes typed objects below their version gate",
+-    REQUIRE(filter.fileExport(graphic, QString::fromStdString(oldOut),
+-                              RS2::FormatDXFRW14));
++    const bool exported = filter.fileExport(graphic, QString::fromStdString(oldOut),
++                                             RS2::FormatDXFRW14);
++    INFO(filter.exportReport().toStdString());
++    REQUIRE(exported);
+@@ -4850,2 +4864,22 @@ TEST_CASE("DXF write planning excludes typed objects below their version gate",
+-    REQUIRE(filter.fileExport(graphic, QString::fromStdString(fieldOut),
+-                              RS2::FormatDXFRW2000));
++    const bool exported = filter.fileExport(graphic, QString::fromStdString(r2000Out),
++                                             RS2::FormatDXFRW2000);
++    INFO(filter.exportReport().toStdString());
++    REQUIRE(exported);
++  }
++#ifdef LIBDXFRW_DXF_FIELD_MINIMUM_VERSION
++  const bool r2000SupportsField = LIBDXFRW_DXF_FIELD_MINIMUM_VERSION <= DRW::AC1015;
++#else
++  const bool r2000SupportsField = true;
++#endif
++  for (const char *name : {"FIELD", "FIELDLIST"})
++    CHECK(recordGroupValues(r2000Out, name, "5").empty() != r2000SupportsField);
++  const auto danglingR2000 = danglingReferences(r2000Out);
++  CAPTURE(danglingR2000);
++  CHECK(danglingR2000.empty());
++
++  {
++    RS_FilterDXFRW filter;
++    const bool exported = filter.fileExport(graphic, QString::fromStdString(fieldOut),
++                                             RS2::FormatDXFRW2004);
++    INFO(filter.exportReport().toStdString());
++    REQUIRE(exported);
+@@ -4885,0 +4920 @@ TEST_CASE("DXF write planning excludes typed objects below their version gate",
++  std::filesystem::remove(r2000Out);
+@@ -4889,0 +4925,39 @@ TEST_CASE("DXF write planning excludes typed objects below their version gate",
++TEST_CASE("DXF version gates report typed-only fields and clear stale references",
++          "[dxf][roundtrip][filter][version][objects]") {
++  ensureSettings();
++  RS_Graphic graphic;
++  graphic.initForNewDocument();
++  RS_Layer *zero = graphic.findLayer("0");
++  REQUIRE(zero != nullptr);
++  RS_Pen pen = zero->getPen();
++  pen.setWidth(RS2::WidthDefault);
++  zero->setPen(pen);
++  auto *line = new RS_Line(&graphic, RS_LineData(RS_Vector(0.0, 0.0),
++                                                RS_Vector(1.0, 1.0)));
++  line->setReactorHandles({0xE4u});
++  graphic.addEntity(line);
++  DRW_Field field;
++  field.handle = 0xE4u;
++  graphic.dwgAdvancedMetadata().addField(field);
++  const std::string oldOut = tmpFile("typed_only_r14.dxf");
++  const std::string newOut = tmpFile("typed_only_r2004.dxf");
++  std::filesystem::remove(oldOut);
++  std::filesystem::remove(newOut);
++  RS_FilterDXFRW filter;
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(oldOut),
++                            RS2::FormatDXFRW14));
++  CHECK(filter.exportReport().contains(QStringLiteral("FIELD")));
++  CHECK(recordGroupValues(oldOut, "FIELD", "5").empty());
++  CHECK(danglingReferences(oldOut).empty());
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(newOut),
++                            RS2::FormatDXFRW2004));
++  CHECK(filter.exportReport().isEmpty());
++  CHECK(recordGroupValues(newOut, "FIELD", "5") ==
++        std::vector<std::string>{"E4"});
++  const auto refs = recordGroupValues(newOut, "LINE", "330");
++  CHECK(std::count(refs.begin(), refs.end(), "E4") == 1);
++  CHECK(danglingReferences(newOut).empty());
++  std::filesystem::remove(oldOut);
++  std::filesystem::remove(newOut);
++}
++
+@@ -4934,0 +5009 @@ TEST_CASE("DXF live identities win over left-out raw carriers with the same hand
++  CHECK(danglingReferences(out).empty());

@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw-acis-peer-release-silent-loss-semantic-boundary-review-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Refresh open-source DWG/DXF/ACIS peer evidence by operation, release, carrier, owner, writer, reopen, and semantic boundary; update existing plan gates only.",
+  "method": {
+    "sourceClass": "project-owned release notes, source documentation, issues, and pull requests",
+    "repositoriesCloned": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localFixturesCreated": 0,
+    "dependenciesAdded": 0
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1152"
+      ],
+      "observations": [
+        "v3.6.51 release notes include ACIS payload reading for 3DSOLID, REGION, and BODY via PR #1139, and Prototype1b parsing via PR #1154.",
+        "The latest tagged release page at review time is v3.8.0; current master remains a separate, moving candidate.",
+        "Open issue #1195 reports silent DWG-to-DXF loss using ACadSharp 3.4.9 and links to open writer PR #1240.",
+        "PR #1240 depends on open schema refactor #1174 and has no deployment; open contributor PR #1150 is not shipped behavior.",
+        "Peer branch discussion identifies repeated group-310 retention, sorted-handle rank/index, SAT group-1/3 token framing, and versioned DXF subclass markers as test dimensions, not normative sources."
+      ],
+      "disposition": "Release-pinned optional structural peer; no writer parity or semantic support claim inferred."
+    },
+    {
+      "project": "ezdxf",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/index.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html#browse-acis",
+        "https://ezdxf.readthedocs.io/en/stable/tasks/add_dxf_entities.html#acis-entities",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html"
+      ],
+      "observations": [
+        "Supports ASCII/Binary DXF read/write through R2018 and retention of third-party content.",
+        "ACIS browser exposes raw SAT/SAB carrier data; ACIS payload creation requires an external library.",
+        "The drawing add-on does not render ACIS and has no 3D rendering engine."
+      ],
+      "disposition": "DXF structure/raw-carrier observer only; not a B-rep oracle."
+    },
+    {
+      "project": "acis-core / cq-acis",
+      "references": [
+        "https://docs.rs/acis-core/0.3.3/acis_core/",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+      ],
+      "observations": [
+        "The shared model preserves raw records/source spans and validates reference closure, while its documentation explicitly distinguishes that from B-rep validity or product-version compatibility.",
+        "The documented decoder covers bounded SAB/ASM profiles; container extraction is separate and SAT serialization is not covered.",
+        "This is associated with the existing cq-acis route and is not an independent second parser/kernel vote."
+      ],
+      "disposition": "Optional parser/model architecture evidence only; no dependency or support promotion."
+    }
+  ],
+  "planImpact": {
+    "updatedSections": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing S8/PAR-07 peer checkpoint and external evidence procedure",
+      "DWG_DXF_3D_SUPPORT_PLAN.md: cross-reference to peer release and semantic boundary findings"
+    ],
+    "newFindings": 0,
+    "newSubplans": 0,
+    "newLocalDefects": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "jItemsPromoted": [],
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "implementationReadyChecks": [
+    "At the scheduled composed peer checkpoint, bind one immutable release or commit per operation and direction.",
+    "Track source entity handle, type, block/owner path, payload digest, writer diagnostic, emitted record, strict-reopen identity, and consumer disposition.",
+    "Use a locally generated scratch-only solid-only block control so silent omission is observable without downloading customer drawings.",
+    "Report wire preservation, graph/reference closure, and geometry-kernel validity/topology/metrics as separate conclusions.",
+    "Do not run peer or native application checks in each fast implementation slice; if an upstream writer remains unreleased, report that lane unavailable and continue local work."
+  ],
+  "doesNotEstablish": [
+    "that ACadSharp 3.8.0 reproduces issue #1195",
+    "that open ACadSharp PRs are correct, merged, deployed, or interoperable",
+    "that retained raw ACIS bytes or closed references form a valid B-rep",
+    "native FreeCAD Linux/Windows qualification",
+    "independent ACIS/ACDS semantic evidence or promotion of J256, J260, J268, J284, J293, or J295"
+  ]
+}

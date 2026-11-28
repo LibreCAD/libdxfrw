@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-viewport-runtime-dispatch-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "VIEWPORT_RUNTIME_DISPATCH_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Prevent the concrete BLOCK adapter from reinterpreting a non-VIEWPORT entity as DRW_Viewport solely because its mutable public eType is VIEWPORT.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "VIEWPORT dispatch now requires a DRW_Viewport runtime object before reading viewport fields or calling the viewport writer.",
+      "A mismatched object is refused through the adapter's fail-closed entity path.",
+      "Correcting the public type tag permits a same-adapter retry."
+    ]
+  },
+  "validationProfile": {
+    "source": "A locally constructed DRW_Point captured through dx_iface; the test mutates only its public eType. No DWG/DXF fixture is used or committed.",
+    "mismatchedTag": "DRW_Point tagged as DRW::VIEWPORT",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "Both mismatched VIEWPORT exports are refused before type-specific serialization.",
+      "Each refusal preserves a pre-existing destination sentinel.",
+      "Corrected same-adapter retries import as POINT and retain the authored coordinates."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_viewport_runtime_dispatch$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; ASCII and Binary refusal, destination preservation, corrected retry, and POINT readback, in 0.57 seconds.",
+    "diffCheck": "PASS: git diff --check",
+    "fixturePolicy": "No drawing fixture was added or committed."
+  },
+  "limitations": [
+    "This verifies adapter dispatch integrity and modeled POINT DXF transport only.",
+    "It does not qualify viewport fields, native rendering, physical DWG source profiles, or remaining entity-tag casts.",
+    "No support claim is promoted; P8 remains open."
+  ]
+}

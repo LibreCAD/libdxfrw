@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-3289-master-refresh-2026-11-23",
+  "status": "MASTER_REFRESH_PUSHED_LOCAL_ADAPTER_AND_APP_BUILD_PASS_HOSTED_CI_RUNNING_RUNTIME_SMOKE_ABORTED",
+  "supportClaimEffect": "none",
+  "pullRequest": {
+    "url": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "state": "open",
+    "draft": true,
+    "mergeable": true,
+    "base": "master",
+    "baseSha": "954217a719f7fff1f54bdf4ee894a0e462e21934",
+    "headBranch": "codex/libdxfrw-consumer-compat",
+    "previousHeadSha": "f5477f98a051f2e9e41ffaf9858a9e8c153821fe",
+    "headSha": "05aaf9fd245da753b7ffea17acc9bc1272d87d65",
+    "branchRefreshMergeCommitSha": "05aaf9fd245da753b7ffea17acc9bc1272d87d65",
+    "masterCommit": {
+      "sha": "954217a719f7fff1f54bdf4ee894a0e462e21934",
+      "subject": "Add batch trim for selected entities (#3301)"
+    },
+    "mergeResult": "CLEAN_MERGE_NO_CONFLICTS",
+    "pushed": true
+  },
+  "localValidation": {
+    "checkout": "/private/tmp/librecad-pr3289-full-20261123",
+    "configuration": {
+      "LIBRECAD_USE_SYSTEM_LIBDXFRW": true,
+      "BUILD_TESTS": false,
+      "libdxfrwPrefix": "/private/tmp/libdxfrw-p8d-current-20261123-install",
+      "qtPrefix": "/opt/homebrew/opt/qt",
+      "host": "macOS ARM64",
+      "compiler": "AppleClang 21.0.0"
+    },
+    "targets": {
+      "librecad_filter_compile_check": "PASS",
+      "librecad": "PASS"
+    },
+    "linkedCodec": {
+      "path": "@rpath/libdxfrw.3.dylib",
+      "installedFile": "/private/tmp/libdxfrw-p8d-current-20261123-install/lib/libdxfrw.3.0.0.dylib",
+      "sha256": "09041857fd7770d21986c01a3969f6cacd988fac2c2c094fd38dd89a2eb05653"
+    },
+    "runtimeProbe": {
+      "command": "LibreCAD --help",
+      "status": "ABORTED_BEFORE_OUTPUT",
+      "diagnostics": [
+        "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]",
+        "PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]",
+        "Connection Invalid error for service com.apple.hiservices-xpcservice"
+      ],
+      "interpretation": "Environment/runtime launch failure; does not establish codec behavior or GUI qualification."
+    }
+  },
+  "hostedChecks": {
+    "headSha": "05aaf9fd245da753b7ffea17acc9bc1272d87d65",
+    "observed": "2026-11-23",
+    "counts": {
+      "inProgress": 8,
+      "queued": 3,
+      "skipped": 1,
+      "completedWithConclusion": 0
+    },
+    "skipped": ["Security scan"],
+    "inProgress": [
+      "VerifyDwgDxfFast",
+      "Headless (ON)",
+      "Headless (OFF)",
+      "build_with_pixi (windows-latest)",
+      "build_with_pixi (macos-15-intel)",
+      "build_with_pixi (ubuntu-24.04-arm)",
+      "build_with_pixi (ubuntu-latest)",
+      "Analyze (cpp, none)"
+    ],
+    "queued": [
+      "VerifyDwgDxfWindows (windows-11-arm)",
+      "VerifyDwgDxfWindows (windows-2022 x64)",
+      "build_with_pixi (macos-latest)"
+    ]
+  },
+  "prMetadata": {
+    "bodyRefreshAttempt": "FAILED_403_RESOURCE_NOT_ACCESSIBLE_BY_INTEGRATION",
+    "cliAuth": "INVALID_TOKEN_AND_GITHUB_API_DNS_UNAVAILABLE",
+    "effect": "PR description still contains its older validation summary; branch base/head metadata is current."
+  },
+  "limits": [
+    "Native LibreCAD 2 save/reopen/render/edit and LibreCAD_3 qualification remain open.",
+    "Hosted checks were still running when observed; do not infer outcomes until polled at the same head.",
+    "The macOS console runtime probe could not run past pasteboard/XPC initialization.",
+    "The PR remains draft and no format support claim is promoted."
+  ]
+}

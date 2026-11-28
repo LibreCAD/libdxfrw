@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-09",
+  "area": "P5 VIEWPORT DXF status-domain admission",
+  "source": {
+    "authority": "Autodesk AutoCAD DXF Reference, VIEWPORT entity",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+    "fields": {
+      "group_68": "-1 (on but off-screen or inactive), 0 (off), or positive (on and active; stacking order)",
+      "group_170": "0 (As Displayed), 1 (Wireframe), 2 (Hidden), or 3 (Rendered)"
+    }
+  },
+  "change": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "DRW_Viewport::validateDxf rejects vpstatus values below -1 and shadePlotMode values above 3. The DWG wire-width validation and DXF parseCode assignments are unchanged."
+  },
+  "validation": {
+    "test": "libdxfrw_dxf_viewport_status_domain",
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_viewport_status_domain$' --output-on-failure",
+    "result": "passed 1/1",
+    "coverage": [
+      "ASCII and Binary generated DXF read/write/readback for statuses -1, 0, 1, and the signed-16-bit maximum 32767, crossed with all shade-plot modes 0 through 3",
+      "The group-68 parser accepts -2 and the group-170 parser accepts 4 as observed values while typed DXF validation rejects each",
+      "ASCII and Binary strict output for each invalid value fails without replacing a pre-existing destination",
+      "The same writer succeeds after correcting group 68 to -1 or group 170 to 3, and typed readback retains the corrected value"
+    ],
+    "fixtures_added": false
+  },
+  "limits": [
+    "This establishes documented field-domain admission and codec behavior only; it does not qualify viewport rendering or full-application semantics.",
+    "The VIEWPORT group-91 representation/reference conflict remains unresolved and output-refused pending an eligible native ASCII/Binary witness."
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1018-empty-style-dwg-bit-order-differential-2026-11-03",
+  "date": "2026-11-03",
+  "title": "AC1018 empty-name STYLE DWG bit-order differential",
+  "status": "DISAGREEMENT_REPRODUCED_STRICT_OUTPUT_REMAINS_REFUSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "committedAsFixture": false,
+    "style": {
+      "type": "STYLE",
+      "handle": "0xDF",
+      "owner": "STYLE_CONTROL 0x3",
+      "name": "",
+      "font": "ltypeshp.shx"
+    }
+  },
+  "normativeSource": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.56 SHAPEFILE",
+    "finding": "The common STYLE record body lists the Vertical B1 field before the shape-file B1 field. The current libdxfrw AC1018 branch follows this order.",
+    "textExtract": "/private/tmp/oda-dwg-spec.txt",
+    "textLines": "8978-9022"
+  },
+  "independentPeer": {
+    "project": "GNU LibreDWG",
+    "version": "0.14",
+    "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "repository": "/Users/dli/dev/libredwg",
+    "schema": "src/dwg.spec",
+    "schemaFinding": "The STYLE schema reads is_shape before is_vertical and comments that the ODA order is wrong.",
+    "json": {
+      "path": "/private/tmp/et-libre.json",
+      "sha256": "bccee1259568948df2fd0e65c797932965574cc81824781864c3b34b4129d788",
+      "handle": "0xDF",
+      "decoded": {
+        "name": "",
+        "is_xref_ref": 1,
+        "is_xref_resolved": 0,
+        "is_xref_dep": 0,
+        "xref": [
+          5,
+          0,
+          0,
+          0
+        ],
+        "is_shape": 1,
+        "is_vertical": 0,
+        "font_file": "ltypeshp.shx"
+      }
+    },
+    "dxfExport": {
+      "path": "/private/tmp/et-libre.dxf",
+      "sha256": "04484a2b42e65c11f0a9d81630c7c153f52fbf35f5d823fb3de1ad2fb4c22bf3",
+      "result": "The generated STYLE table contains five named records (handles 0x11, 0xE0, 0xE1, 0xE2 and 0xE3); the empty-name 0xDF record is omitted."
+    }
+  },
+  "consumerReference": {
+    "title": "Autodesk AutoCAD DXF Reference — STYLE",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-EF68AF7C-13EF-45A1-8175-ED6CE66C8FC9.htm",
+    "finding": "DXF group 70 bit 1 marks a shape record; for a shape-file LOAD request only group 3 (the shape file name) is meaningful. This describes DXF semantics but does not resolve the conflicting AC1018 DWG bit order."
+  },
+  "currentLibdxfrwObservation": {
+    "implementation": "DRW_Textstyle::parseDwg reads vertical then shape for AC1018 and shape then vertical after AC1018, matching its current encoder branch.",
+    "physicalFields": {
+      "handle": "0xDF",
+      "flags": 68,
+      "xrefReferenceBit": true,
+      "verticalBit": true,
+      "shapeBit": false,
+      "font": "ltypeshp.shx"
+    },
+    "output": "The physical ET Border full-output attempt passes BLOCK_RECORD planning and is refused during TABLES emission by STYLE 0xDF. The generic FIELDLIST warning is not the failure cause; SORTENTSTABLE output is not reached."
+  },
+  "decision": {
+    "codeChange": "None. Keep the ODA-defined AC1018 parse order and the existing fail-closed empty-name/non-shape STYLE rule until the wire-order conflict is resolved with eligible evidence.",
+    "reason": "LibreDWG is independent implementation evidence, and Autodesk defines the shape request's DXF meaning, but neither supersedes the repository's authoritative ODA DWG layout rule by itself. Flipping the bits, omitting the record, or assigning a replacement name would currently be speculative.",
+    "unblockCondition": "Obtain producer/native evidence tied to this source or a provenance-qualified AC1018 shape-style witness that resolves the two on-wire bits, then verify output and fresh consumer readback while proving all source references and required shape behavior."
+  },
+  "limits": [
+    "No output or support claim is promoted for the unmodified source.",
+    "LibreDWG's omitted row is observed behavior, not proof that the shape request is semantically disposable.",
+    "The source-reference receipts cover decoded references but do not establish native command/shape-load semantics.",
+    "No DWG/DXF fixture was added."
+  ],
+  "nextAction": "Resolve AC1018 STYLE bit order with an eligible producer/native witness or authoritative ODA clarification; retain atomic refusal while unresolved.",
+  "versionScopeRecheck": {
+    "oda": "Section 20.4.56 places the two bits in a Common section without an explicit R2007+ reversal; its parenthetical bit numbers also conflict with the Autodesk DXF flag assignments, so its wording alone does not explain the current version split.",
+    "libredwg": "LibreDWG 0.14 src/dwg.spec applies shape then vertical since R13b1, without an R2007 boundary, and annotates the ODA order as wrong.",
+    "libdxfrw": "Both parseDwg and encodeDwg use vertical then shape through AC1018 and shape then vertical for AC1021 and later. A paired local encoder/parser round trip cannot independently prove either ordering.",
+    "remaining": "Qualify the bit order on each side of the version boundary with provenance-qualified producer or authoritative clarification and validate both parse and emission. The AC1018 ET Border mismatch alone does not prove the AC1021+ choice."
+  }
+}

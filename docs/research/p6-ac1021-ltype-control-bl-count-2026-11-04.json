@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-04",
+  "status": "AC1021_COUNT_AND_SPLIT_CONTROL_HANDLES_WITH_BOUNDED_LEGACY_FALLBACK",
+  "scope": "Apply ODA v5.4.1 section 20.4.57 BL count and declared R2007 control handle boundary to AC1021 LTYPE_CONTROL. Preserve non-LTYPE control behavior and the unresolved BYBLOCK/BYLAYER authority disagreement; no general DWG or linetype interoperability claim.",
+  "producer_witness": {
+    "provenance": "ODA File Converter 27.1.0 converted three locally authored ezdxf R2010 DXFs with 255/256/257 ordinary linetypes and one LINE to ACAD2007 DWG, audit=0 and recursion=0. No .err files were produced. All DWG/DXF source and output remain scratch-only.",
+    "input_sha256": {
+      "255": "aab957ef3252df7bffdda5ba4b583659353a85f47c12bf475d18433404118ab8",
+      "256": "4f46f927aed468a7f5b5c016a865f3321ee5bba07095f65b0fbb2413b9e226d9",
+      "257": "76f7254f85972770582345f5aab98660cc5cb1d59719df9e02305422027206fb"
+    },
+    "dwg_sha256": {
+      "255": "201c5f0490aa8e63c4a01316325af3f8b7f19cf86c914832ca5fa5899d76b31d",
+      "256": "19123b51f791ae64070a000b8a4c7ab16482319afb23dafbf27a416d7e6ce8f8",
+      "257": "404f524fc2b2bc55ebb61431e959a8c8ed95ac35d18da6929a653ae25087b092"
+    },
+    "method": "GNU LibreDWG 0.14 source traces supplied the independent object address, object size and data/handle bit boundary. This library supplied the decoded AcDbObjects page; an independent bit cursor inspected its object bits and handle roles. Hence page decoding is shared, not independent. LibreDWG interprets the count as BS; its decoded count is not used as the BL proof.",
+    "observations": "All three LTYPE_CONTROL bodies start at Objects-section byte 60. The count starts at bit 63; BL 255 ends at bit 73 and BL 256/257 at 97. One zero absent-string bit follows, and the RL declared handles boundary is respectively 74/98/98. The detached tail is role-4 null owner, count nonzero ordinary role-2 handles, then two role-3 handles. Independent LTYPE handle mapping identifies the producer tail as ByBlock then ByLayer; ODA section 20.4.57 states BYLAYER then BYBLOCK. That conflict is unresolved and this change does not reorder.",
+    "physical_mode": "Three physical source bodies pass the native parser with 257/258/259 handle slots and independently supplied expected 74/98/98-bit boundaries. This is record-only proof; it does not establish full source drawing conversion."
+  },
+  "historical_producer": {
+    "method": "Pre-count-fix source blob 3634f4ba6c6fbc132b625f811187fc215677b358 was separately compiled into a scratch producer alongside dwgWriter21. The actual bodies are 2007 writer frames, not hand-encoded fixtures. No fixtures are committed.",
+    "body_sha256": {
+      "1": "2ec18214ba15f12118a4c47561562815a70378531920400746e1639e90da7c06",
+      "2": "5a7c7d4ba6e6752dfd8ef2a840c54ee78dac9ba6d44ad7b7ea605731ded8ec88",
+      "255": "3246cfb03cc4c8648e761abac05f6837dccbe23d42edcc45e5dbb355e788e805",
+      "256": "10b8e85246efd34f72681ba72beccacb5d6c65e7a21e063360ee97d397929e56",
+      "257": "c81da353920b38eeb9c7bdf4ef9e46193fbe0cac1edd6eca041794f63175c377"
+    },
+    "observations": "Each RL objSize equals the entire padded body. The historical BS count ends at bit 73/65/81 for 255/256/257 respectively, followed by zero immediate string bit, role-4 null owner, role-3 null xdictionary, count+2 unique nonzero role-2 children starting ByBlock/ByLayer/Continuous, and at most seven zero pad bits.",
+    "readback": "The revised reader accepts the genuine historical count 1/2/255/256/257 records, returning count+2 slots."
+  },
+  "implementation": {
+    "writer": "Only AC1021 LTYPE_CONTROL now writes BL and stages its handles in the detached stream; its objSize is the byte-aligned scalar data end. Existing zero alignment follows the immediate absent-string bit. Other controls, special-handle order and AC1012/1014 behavior remain unchanged.",
+    "reader": "The source route reads BL and starts handles at RL objSize. A source record has exactly one zero string flag before this boundary. The current writer zero-aligned alternative is accepted only with the exact zero layout and fully checked fixed writer handle graph. Historical inline BS frames require objSize equal to the padded full frame, the fixed LTYPE control identity, no reactors/EED/data-storage state, xdictionary-missing flag 0, zero string flag, the typed-null owner and xdictionary, unique nonzero role-2 child handles with three fixed initial identities, and no more than seven zero tail padding bits. False and ambiguous forms reset and fail.",
+    "scope_of_old_fallback": "An unrelated third-party inline BS graph or different framing is not admitted or certified as compatible."
+  },
+  "validation": "libdxfrw_dwg_ltype_ac1021_count tests counts 255/256/257 through the corrected writer, independent explicit token inspection and CRC-validated following frame, spec-style split body, old inline BS and writer-aligned body. Corrupt owner, fixed identities, duplicate children, truncation, string flag, source boundary and writer alignment are rejected with same-control retry. Optional modes verify the five genuine historical bodies and the three ODA source bodies. Existing AC1015 and four-version count selectors provide adjacent compatibility checks.",
+  "limits": "No fixture added. Physical count and stream results do not resolve the independent special-reference ordering disagreement, establish warning-free ODA open, full drawing conversion or LibreCAD/FreeCAD parity."
+}

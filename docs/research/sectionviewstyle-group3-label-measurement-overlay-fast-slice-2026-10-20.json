@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "SectionViewStyle group-3 label measurement overlay insertion",
+  "mode": "generated ASCII/Binary fast implementation slice",
+  "scope": [
+    "Preserve typed label text-height and label-offset edits when raw group-3 code-40 occurrences are absent",
+    "Exercise the second group-3 double with a default first-slot placeholder",
+    "Keep the control isolated from unrelated named-object callback tests"
+  ],
+  "implementation": {
+    "production": [
+      "The same-version SectionViewStyle raw overlay now inserts missing group-3 code-40 label text height/offset values when typed values differ from defaults.",
+      "A changed label offset with a default/missing label-height slot emits the height placeholder first, preserving repeated-value ordinal decoding."
+    ],
+    "tests": [
+      "Generated ASCII and Binary controls remove both original group-3 code-40 values, retain the default text height, and change the label offset.",
+      "The test checks the exact ordered raw group stream and same-version typed readback, alongside group-2 color/lineweight insertions in the same generated style control."
+    ],
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportPromotion": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks",
+      "result": "passed; ASCII and Binary"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure",
+      "result": "passed; 1/1"
+    },
+    "compatibilityTarget": "lc3_compat_check passed",
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "persistentGeneratedFiles": 0,
+    "commitCreated": false,
+    "gitMetadataWritable": false
+  },
+  "disposition": {
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This proves local same-version raw overlay preservation and typed readback for generated inputs only. Autodesk's SectionViewStyle property API identifies label text height and offset but is not a DXF group-code schema; native producer/consumer behavior, cross-version writing, and rendering remain unqualified."
+}

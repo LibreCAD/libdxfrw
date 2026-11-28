@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-librecad3-05e7-patched-persistence-load-2026-11-18",
+  "date": "2026-11-18",
+  "status": "PATCHED_CANDIDATE_MACOS_PERSISTENCE_COMPILE_LINK_LOAD_PASS",
+  "supportClaimEffect": "none",
+  "gateEffect": "No native GUI, consumer semantic or cross-platform gate is closed.",
+  "consumer": {
+    "repository": "LibreCAD/LibreCAD_3",
+    "candidateCommit": "1ab08f5819f31053d5540b0c3e1259b865b8265d",
+    "upstreamBase": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+    "baseAncestorVerified": true,
+    "scope": "Unmerged local candidate with opt-in system ABI-3 integration and prior ordered consumer patches; not unmodified upstream.",
+    "previousReceipt": "docs/research/p8-librecad3-default-layer-lineweight-2026-11-16.json",
+    "cleanCheckout": "/private/tmp/librecad3-05e7-clean",
+    "preparation": [
+      "git clone --no-hardlinks --no-checkout /private/tmp/librecad3-abi3-master-replay-20261116 /private/tmp/librecad3-05e7-clean",
+      "git checkout --detach 1ab08f5819f31053d5540b0c3e1259b865b8265d"
+    ],
+    "dependencyPreparation": "The pinned dependency revisions listed below were exported with git archive from existing local repositories under /Users/dli/dev/LibreCAD_3 into the scratch checkout. No user checkout was modified and no dependency or drawing was downloaded.",
+    "dependencyRevisions": {
+      "lckernel/nano-signal-slot": "d4d199e5d3fdde59490ac891333af35990889558",
+      "lckernel/tinyspline": "bb3b02cdfaa039aa236a5240f2ba8bce66bea527",
+      "third_party/kaguya": "2f20d965aa30aaee0cb01d04aea93e508c43225d",
+      "third_party/pybind11": "97bf890db679505a14dfe547a5e77bb2bd05dc90",
+      "third_party/libdxfrw": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0"
+    },
+    "pinnedCodecNote": "The archived pinned codec exists for the candidate source tree; the system-codec option selects the separately installed 3.x package instead."
+  },
+  "codec": {
+    "commit": "69679cac1c6539746e3a454ea5deebb3816e8d21",
+    "implementationDigestSha256": "05e7cb3341469cc6fcf56c9928a5bb79d164de293334d5fc37c8817ef924fa02",
+    "packageReceipt": "docs/research/p8a-macos-package-05e7-source-matched-2026-11-18.json",
+    "cmakePackage": "/private/tmp/libdxfrw-p8a-05e7-shared-prefix/lib/cmake/libdxfrw",
+    "runtimePath": "/private/tmp/libdxfrw-p8a-05e7-shared-prefix/lib/libdxfrw.3.0.0.dylib",
+    "runtimeSha256": "7a0b42cdae111c7c63f121ab206427bd69a19bfb8953da7c9d32af36e89c3960"
+  },
+  "environment": {
+    "os": "macOS 27.2.1 (26B131)",
+    "architecture": "arm64",
+    "compiler": "AppleClang 21.0.0.21000334",
+    "cmake": "4.4.5",
+    "boostInclude": "/opt/homebrew/include",
+    "luaIncludeActuallyConfigured": "/usr/local/include",
+    "luaLibrary": "/opt/homebrew/lib/liblua.dylib"
+  },
+  "commands": {
+    "configure": "cmake -S /private/tmp/librecad3-05e7-clean -B /private/tmp/librecad3-05e7-build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/private/tmp/libdxfrw-p8a-05e7-shared-prefix -DLIBRECAD_USE_SYSTEM_LIBDXFRW=ON -DWITH_PERSISTENCE=ON -DWITH_DWG_IMPORT=ON -DWITH_QT_UI=OFF -DWITH_CAIRO=OFF -DWITH_LUACMDINTERFACE=OFF -DWITH_PYTHONSCRIPT=OFF -DWITH_DOCUMENTATION=OFF -DWITH_UNITTESTS=OFF -DWITH_RENDERING_UNITTESTS=OFF -DWITH_HEADERS=OFF -DLUA_INCLUDE_DIR=/opt/homebrew/include -DLUA_LIBRARY=/opt/homebrew/lib/liblua.dylib",
+    "build": "cmake --build /private/tmp/librecad3-05e7-build --config Release --parallel 2 --target persistence > /private/tmp/librecad3-05e7-persistence-build.log 2>&1",
+    "linkInspection": "otool -L /private/tmp/librecad3-05e7-build/persistence/libpersistence.dylib",
+    "runtimeLoad": "env -u DYLD_LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH -u DYLD_INSERT_LIBRARIES /private/tmp/librecad3-05e7-loaded-runtime /private/tmp/librecad3-05e7-build/persistence/libpersistence.dylib"
+  },
+  "results": {
+    "configure": "PASS",
+    "persistenceBuild": "PASS; existing consumer warnings were emitted and were not suppressed.",
+    "persistenceDylibSha256": "5e181a1dc30b6453195466c6ee25db18dc3623b75961460a9485eb5da3016b4c",
+    "buildLog": "/private/tmp/librecad3-05e7-persistence-build.log",
+    "buildLogSha256": "a8b806e07c11ff7e722f60815a99dc5066061a10bf3084f167429b6008030fbc",
+    "link": "otool records @rpath/libdxfrw.3.dylib, compatibility/current version 3.0.0.",
+    "runtime": "PASS; scratch executable dlopens persistence with RTLD_NOW|RTLD_LOCAL and reports the sole loaded libdxfrw image after resolving its real path. It matches the package runtime path and hash above.",
+    "runtimeProbeSource": "/private/tmp/librecad3-05e7-loaded-runtime.cpp",
+    "runtimeProbeSourceSha256": "49585c4f0c1b89c419410812baf41925abb500ea78b6ddaa657fb75d3754acf9",
+    "runtimeProbeBinarySha256": "884a4e92e1764ce4f7c8ccc9137495acb94debccceae22d438c53f06ef17c299"
+  },
+  "limits": [
+    "Compile/link and library-load smoke only: no drawing was imported or exported and no persistence behavior was exercised.",
+    "The consumer is an unmerged patched candidate, not unmodified upstream or a released application.",
+    "No GUI, native rendering, actual application launch, complete ABI comparison, Linux or Windows qualification is implied.",
+    "Scratch build, log and runtime probe under /private/tmp may be ephemeral; their hashes are recorded."
+  ]
+}

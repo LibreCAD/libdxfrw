@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-p6-mleader-arrowhead-allocation-retry-v1",
+  "recordedAt": "2026-11-02",
+  "status": "PASS_BOUNDED_DXF_PARSER_SAFETY_PROFILE",
+  "scope": "Allocation-failure rollback for the legacy MLEADER DXF group-94 arrowhead index append.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The parser checks the existing arrowhead limit and reserves one additional entry before consuming group 94. Failed reserve returns false without publishing an entry; the subsequent push uses the reserved slot.",
+    "publicApiChanged": false
+  },
+  "control": {
+    "file": "tests/dxf_fixture_tests.cpp",
+    "selector": "--mleader-arrowhead-allocation-failure",
+    "allocationInjection": "MaterialAllocationFailure offset 0 targets the guarded vector reserve.",
+    "checks": [
+      "Injected reserve failure occurs exactly once and leaves arrowHeads empty.",
+      "Retry group 94 with index 7, then group 345 with handle A10A; both the index and handle are retained."
+    ],
+    "fixtureAdded": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "buildResult": "PASS",
+    "focusedCTestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_mleader_(column_size|arrowhead)_allocation_failure$' --output-on-failure",
+    "focusedCTestResult": "2/2 passed in 0.57 seconds",
+    "fullSuiteRun": false
+  },
+  "limits": [
+    "This covers only legacy MLEADER group-94 vector growth and its following group-345 handle field.",
+    "It does not qualify MLEADER physical producer breadth, native annotation semantics, DWG parsing, or complete document conversion."
+  ],
+  "next": "Continue P6 safety review at a separate reproduced parser allocation or rollback boundary; keep native and whole-document qualification gates open."
+}

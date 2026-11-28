@@ -1,0 +1,151 @@
+{
+  "id": "p7-freecad-analytic-torus-optimal-bounds-2026-11-10",
+  "scope": "FreeCAD bounds diagnostic for a newly constructed torus using the previously recorded source-derived parameters; no SAT imported",
+  "runtime": {
+    "freecad": "1.1.4",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "macOS ARM64",
+    "executable": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+    "route": "console outside sandbox"
+  },
+  "probe": {
+    "path": "tools/research/freecad_torus_bound_probe.py",
+    "sha256": "360dd3127c61852702ebbbc5c9fc4f5ddbc78202958b2d45f6e861637aa0d4be",
+    "command": "printf \"exec(open('/Users/dli/dev/libdxfrw/tools/research/freecad_torus_bound_probe.py').read())\\n\" | /Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd -c"
+  },
+  "source_parameter_provenance": "docs/research/p7-freecad-torus-bounds-cache-diagnostic-2026-11-10.json",
+  "source_code": {
+    "toposhape": "https://github.com/FreeCAD/FreeCAD/blob/4fd3bf320d9566a27e60069fc8387448aaa3a094/src/Mod/Part/App/TopoShape.cpp#L1109-L1140",
+    "python_api": "https://github.com/FreeCAD/FreeCAD/blob/4fd3bf320d9566a27e60069fc8387448aaa3a094/src/Mod/Part/App/TopoShapePyImp.cpp#L2477-L2489",
+    "occt": "https://dev.opencascade.org/sites/default/files/pdf/release_notes_7.1.0.pdf"
+  },
+  "observation": {
+    "analytic": [
+      1364.386302007853,
+      396.71001654038434,
+      1146.4381541672094,
+      1402.8439381112166,
+      440.28998345961713,
+      1171.0722248181544
+    ],
+    "before": {
+      "default": [
+        1362.9735117414111,
+        394.91469185881164,
+        1145.6542130072762,
+        1404.2567283776584,
+        442.08530814118984,
+        1171.8561659780876
+      ],
+      "optimal_no_mesh": [
+        1364.3863019078528,
+        396.7100164403843,
+        1146.4381540672093,
+        1402.8439382112167,
+        440.28998355961716,
+        1171.0722249181545
+      ],
+      "optimal_mesh": [
+        1364.3863019078528,
+        396.7100164403843,
+        1146.4381540672093,
+        1402.8439382112167,
+        440.28998355961716,
+        1171.0722249181545
+      ]
+    },
+    "valid": true,
+    "area": 2092.7385104317473,
+    "volume": 2919.3529147034346,
+    "topology": [
+      1,
+      2,
+      1
+    ],
+    "0.5": {
+      "default": [
+        1364.3870585501425,
+        396.7167892594455,
+        1146.4381579412836,
+        1402.843181568927,
+        440.283210740556,
+        1171.0722210440802
+      ],
+      "optimal_no_mesh": [
+        1364.3863019078528,
+        396.7100164403843,
+        1146.4381540672093,
+        1402.8439382112167,
+        440.28998355961716,
+        1171.0722249181545
+      ],
+      "optimal_mesh": [
+        1364.379419209601,
+        396.70914991890425,
+        1146.4305186007423,
+        1402.8508209094684,
+        440.29085008109723,
+        1171.0798603846215
+      ]
+    },
+    "0.05": {
+      "default": [
+        1364.3870585501425,
+        396.7167892594455,
+        1146.4381579412836,
+        1402.843181568927,
+        440.283210740556,
+        1171.0722210440802
+      ],
+      "optimal_no_mesh": [
+        1364.3863019078528,
+        396.7100164403843,
+        1146.4381540672093,
+        1402.8439382112167,
+        440.28998355961716,
+        1171.0722249181545
+      ],
+      "optimal_mesh": [
+        1364.379419209601,
+        396.70914991890425,
+        1146.4305186007423,
+        1402.8508209094684,
+        440.29085008109723,
+        1171.0798603846215
+      ]
+    },
+    "0.005": {
+      "default": [
+        1364.3863022257103,
+        396.7101696625646,
+        1146.4384654928592,
+        1402.8434171016672,
+        440.28983033743685,
+        1171.0722008611822
+      ],
+      "optimal_no_mesh": [
+        1364.3863019078528,
+        396.7100164403843,
+        1146.4381540672093,
+        1402.8439382112167,
+        440.28998355961716,
+        1171.0722249181545
+      ],
+      "optimal_mesh": [
+        1364.3856112218918,
+        396.70947865874604,
+        1146.4377744890407,
+        1402.8441081054857,
+        440.29052134125544,
+        1171.0728918650007
+      ]
+    }
+  },
+  "interpretation": "The geometry-based optimal box with triangulation disabled differs from the analytic full-torus bounds by approximately 1e-7 on each side and is unchanged by these tessellations. Default BoundBox changes with tessellation and after 0.5 deflection misses analytic Y extrema by about 0.00677. Pinned FreeCAD calls BRepBndLib::Add and clears the box gap. This constructed torus illustrates method dependence; it does not establish why the earlier imported solid had its initial box.",
+  "next_action": "Recover the original hash-pinned SAT and repeat optimalBoundingBox(False, False) on its imported B-rep before closing the original discrepancy.",
+  "limitations": [
+    "The source SAT was not imported in this run.",
+    "This does not resolve source topology, body-count discrepancy, independent kernel semantics, native modeler acceptance, or general support.",
+    "No DWG/DXF fixture was added."
+  ]
+}

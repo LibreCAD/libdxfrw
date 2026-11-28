@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 consumed-style nine-to-one removal",
+  "date": "2026-10-29",
+  "status": "SOURCE_COUNT_NINE_SINGLE_SURVIVOR_POSITIONS_QUALIFIED",
+  "codeCommit": "955d5f01",
+  "scope": "Qualify every choice of one surviving tuple when reducing a consumed nine-element AC1027 MLINESTYLE to one element. This is a selected removal profile, not complete source-count-nine removal or universal MLINE support.",
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "change": "Reuse runConsumedSurvivorSubsetRemoval and its exact physical output inspector for all nine ordered 9-to-1 survivor choices; extend its bounded source admission only for targetCount=1 at sourceCount=9. The runtime-generated CTest includes ASCII/binary input and output, exact survivor parameter/readback checks, invalid-state refusal, late-mutation rollback, and corrected retries.",
+    "productionBehavior": "No writer change was required. The selected 9-to-1 model transaction was already handled by the existing writer and source-bound consumer projection."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_style_single_from_nine_removal$' --output-on-failure",
+    "ctestResult": "PASS",
+    "directCommand": "build-gcc/libdxfrw_dxf_fixture_tests --mline-consumed-style-single-from-nine-removal",
+    "directResult": "PASS (exit 0): survivorSets=9; profiles=36; readbacks=40; refusals=2; late=2; retries=4",
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "fixturePolicy": "Source and output DXFs are generated at runtime under a system temporary directory and removed after success. No test drawing was committed.",
+  "limits": [
+    "Only source count nine, target count one, and all nine survivor positions are qualified.",
+    "Other target counts, source counts above nine, zero-element handling, native rendering and complete-document closure remain open.",
+    "Selected AC1027 compatible output does not establish native MLINE rendering or cross-version support."
+  ],
+  "next": "Qualify source-count-nine to two-element removal over all 36 survivor pairs using the same bounded inspector; retain exact parameter projection, output/readback, refusal/late-mutation rollback and retries."
+}

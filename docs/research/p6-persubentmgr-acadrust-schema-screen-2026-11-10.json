@@ -1,0 +1,160 @@
+{
+  "id": "p6-persubentmgr-acadrust-schema-screen-2026-11-10",
+  "date": "2026-11-10",
+  "scope": "Runtime cross-check and narrowly bounded partial-prefix admission for the unresolved PERSUBENTMGR body schema",
+  "peer": {
+    "name": "ACadRust",
+    "version": "0.6.8",
+    "gitCommit": "7717afb7bdcc0a1b6b2fd0ba5ef6e18dda847f0c",
+    "runtimeRoute": "DwgReader -> associative class-object dispatch -> read_static_pers_subent_manager",
+    "runtimeObservation": "The executed route reads five scalar BL prefix values, then collects a flat run of BL values while at least two main-stream bits remain. It does not decode separate step and subentity arrays or assign semantic roles to the tail values.",
+    "instrumentation": "A scratch checkout added cursor-span logging around the existing prefix and each tail read; decoder behavior was not changed. The checkout is outside this repository and its instrumentation is not part of the evidence-bearing library patch."
+  },
+  "sources": [
+    {
+      "name": "ACadRust class-object reader source listing",
+      "url": "https://docs.rs/acadrust/latest/src/acadrust/io/dwg/dwg_stream_readers/object_reader/class_object.rs.html",
+      "lines": "987-1008",
+      "observation": "The generic class-object source contains a candidate parser with two count-prefixed arrays.",
+      "limitation": "This is not the runtime route used for ACDBPERSSUBENTMANAGER and cannot establish its body layout."
+    },
+    {
+      "name": "LibreDWG issue #1398",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1398",
+      "observation": "A peer trace reports [2,0,2,0,0,0] before a candidate count overruns the object; the author identifies competing interpretations and says the field sequence is unknown.",
+      "limitation": "Diagnostic output, not a schema or semantic oracle."
+    },
+    {
+      "name": "LibreDWG PERSUBENTMGR manual",
+      "url": "https://www.gnu.org/software/libredwg/manual/LibreDWG.pdf",
+      "section": "Objects, PERSUBENTMGR",
+      "observation": "Lists the five common scalar fields and candidate count/vector fields.",
+      "limitation": "Does not establish physical order, omission conditions, or meanings for the observed versioned profiles."
+    }
+  ],
+  "hashBoundInputs": [
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1015.dwg",
+      "sha256": "8ffbdc713f5838cbbb1596a8422e2b607e5c9e79921e852cbb5abee4af76ea4e",
+      "d63": {
+        "prefixStartBit": 86,
+        "tailStartBit": 120,
+        "mainEndBit": 150,
+        "handleStartBit": 150,
+        "prefix": [2, 0, 2, 4, 0],
+        "flatTail": [
+          {"value": 2, "startBit": 120, "endBit": 130},
+          {"value": 3, "startBit": 130, "endBit": 140},
+          {"value": 4, "startBit": 140, "endBit": 150}
+        ],
+        "owner": "0xC",
+        "reactors": ["0xC"]
+      }
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1021.dwg",
+      "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+      "d63": {
+        "prefixStartBit": 87,
+        "tailStartBit": 121,
+        "mainEndBit": 151,
+        "handleStartBit": 152,
+        "prefix": [2, 0, 2, 4, 0],
+        "flatTail": [
+          {"value": 2, "startBit": 121, "endBit": 131},
+          {"value": 3, "startBit": 131, "endBit": 141},
+          {"value": 4, "startBit": 141, "endBit": 151}
+        ],
+        "owner": "0xC",
+        "reactors": ["0xC"]
+      }
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg",
+      "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+      "d63": {
+        "prefixStartBit": 47,
+        "tailStartBit": 81,
+        "mainEndBit": 111,
+        "handleStartBit": 112,
+        "prefix": [2, 0, 2, 4, 0],
+        "flatTail": [
+          {"value": 2, "startBit": 81, "endBit": 91},
+          {"value": 3, "startBit": 91, "endBit": 101},
+          {"value": 4, "startBit": 101, "endBit": 111}
+        ],
+        "owner": "0xC",
+        "reactors": ["0xC"]
+      }
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg",
+      "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6",
+      "d63": {
+        "prefixStartBit": 48,
+        "tailStartBit": 74,
+        "mainEndBit": 76,
+        "handleStartBit": 77,
+        "prefix": [2, 0, 2, 0, 0],
+        "flatTail": [
+          {"value": 0, "startBit": 74, "endBit": 76}
+        ],
+        "owner": "0xC",
+        "reactors": ["0xC"]
+      }
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+      "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+      "d63": {
+        "prefixStartBit": 48,
+        "tailStartBit": 74,
+        "mainEndBit": 76,
+        "handleStartBit": 77,
+        "prefix": [2, 0, 2, 0, 0],
+        "flatTail": [
+          {"value": 0, "startBit": 74, "endBit": 76}
+        ],
+        "owner": "0xC",
+        "reactors": ["0xC"]
+      }
+    }
+  ],
+  "crossCheck": {
+    "pairedDxf": "The existing ACadSharp cross-version receipt records group-90 values [2,0,2,4,0,2,3,4] for AC1015/AC1021/AC1024 and [2,0,2,0,0,0] for AC1027/AC1032.",
+    "scope": "The physical cursor spans confirm only that the modern selected source bodies contain five bounded prefix BL values followed by one two-bit BL zero. The one-bit difference between mainEndBit and handleStartBit is not classified here."
+  },
+  "implementation": {
+    "admittedVersions": ["AC1027", "AC1032"],
+    "exactAdmission": "class_version=2, unknown0=0, unknown2=2, associated step count=0, associated subentity count=0, and exactly two body bits remain before the separately bounded footer/handles region",
+    "publication": "Publish the five-field prefix as Partial; leave the two-bit tail unconsumed and opaque; retain the exact raw payload with typedPayloadValidated=false.",
+    "generatedControls": [
+      "Exact AC1027 and AC1032 prefix controls verify decoded fields, Partial status, unvalidated raw carrier, and following-object recovery.",
+      "A one-bit near miss and a truncated nonzero two-bit BL tail remain raw-only; the following object is recovered.",
+      "AC1032 truncated common-handle input is withheld; corrected input retries and publishes the same partial prefix."
+    ],
+    "realInputRecheck": [
+      {
+        "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg",
+        "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6",
+        "command": "build-gcc/dwg2dxf/dwg2dxf <input> -y -d -v2013 <temporary-output>",
+        "result": "D63 reaches ACDBASSOC shell dispatch; full input publishes 865/865 frames with zero entity/object parse failures. DXF output is refused by the separate AC1027 source-reference qualification gate."
+      },
+      {
+        "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+        "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+        "command": "build-gcc/dwg2dxf/dwg2dxf <input> -y -d -v2018 <temporary-output>",
+        "result": "D63 reaches ACDBASSOC shell dispatch; full input publishes 842/842 frames with zero entity/object parse failures. DXF output remains refused by the independent OBJECTCONTEXTDATA replay gate."
+      }
+    ],
+    "focusedTest": "build-gcc/libdxfrw_dwg_reader_matrix_tests --persistent-manager-prefix-dispatch",
+    "result": "PASS"
+  },
+  "decision": "Admit only the exact AC1027/AC1032 five-field partial prefix. Keep AC1015/AC1021/AC1024 behavior unchanged, preserve the tail as opaque, and do not infer array structure, manager semantics, graph closure, DXF output, or support claims. The external inputs are research-only and were not added to the repository.",
+  "remaining": [
+    "Resolve the two-bit tail's field role and broader PERSUBENTMGR layouts with authoritative schema or eligible independent producer/consumer evidence.",
+    "Establish manager reference semantics and graph closure.",
+    "Qualify strict DXF output/readback before enabling any output route."
+  ],
+  "fixturesAdded": 0
+}

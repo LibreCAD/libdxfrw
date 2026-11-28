@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-default-plotstyle-optin-2026-11-04",
+  "date": "2026-11-04",
+  "status": "EXPLICIT_DWG_DEFAULT_PLOTSTYLE_GRAPH",
+  "supportClaimEffect": "bounded opt-in generated graph only; no general DWG support claim",
+  "authority": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 sections 9, 20.4.44, 20.4.45 and 20.4.54 define the HEADER dictionary reference, dictionary/default references and layer plotstyle hard pointer.",
+    "source_graph": "docs/research/p6-default-plotstyle-graph-research-2026-11-04.json",
+    "identity_prerequisite": "docs/research/p6-plotstyle-nod-identity-admission-2026-11-04.json"
+  },
+  "api": "A separate optional DRW_DwgDefaultPlotStyleProvider interface selects synthesis after the caller's writeDwgClasses callback and receives planned dictionary/placeholder identities. It does not add virtuals to DRW_Interface or change public entity, facade or DRW_Interface layout. Existing consumers and providers returning false follow the unchanged default path. Early or late competing plotstyle-root registration fails the output transaction. Consumers must not supply opaque records claiming ownership of generated identities; such hidden references are not validated by this slice.",
+  "implementation": "Reserve two distinct identities after caller reservations; register the root and DICTIONARYWDFLT class instance before HEADER/CLASSES. HEADER points to the root. After caller OBJECTS, emit NOD-owned DICTIONARYWDFLT with one Normal soft-owner entry and matching hard-pointer default, and the corresponding dictionary-owned ACDBPLACEHOLDER. Only the internally synthesized layer 0 gets the placeholder hard pointer; supplied layer records remain untouched. Validate NOD/frame and class-instance completion before publication. Existing raw/opaque and arbitrary graph closure rules remain separate.",
+  "collision_and_rollback": "Reject existing or late root collisions, NOD/GROUP aliases to the protected placeholder, caller DICTIONARY or DICTIONARYWDFLT ownership/default aliases to either generated identity, and caller impersonation of the generated dictionary. Root aliases are case-insensitive for the reserved ASCII key. Failed graph staging restores the allocator and admission/class state before a planning notification; checkpoint-copy exceptions leave state unchanged. Deferred-object emission is checkpointed; an injected exception after the dictionary frame rolls back bytes, class/identity ledgers and completion state, and same-writer retry succeeds. If rollback itself cannot allocate, a sticky internal error prevents publication; the same low-level writer is not claimed retryable in that extreme condition.",
+  "focused_tests": {
+    "selectors": [
+      "libdxfrw_dwg_default_plotstyle_optin",
+      "libdxfrw_dwg_plotstyle_nod_admission",
+      "libdxfrw_dwg_header_writer_sealing"
+    ],
+    "result": "PASS across AC1015/1018/1021/1024/1027/1032 for no-provider and disabled-provider defaults; generated graph and following LINE; reserved identities; caller layer-0 override; preexisting unrelated owner; early/late root conflicts; late NOD/GROUP alias; nested DICTIONARY/DICTIONARYWDFLT alias and impersonation; object/entity identity collisions; existing-destination preservation and same-facade retry. Direct controls cover class ordinal collision, planned-identity reservation, stage retry/high-water restoration, admission/emission checkpoint exceptions, injected post-dictionary exception, class ledger and same-writer retry. HEADER handle streams are walked directly for R2007+. Exact synthetic-versus-caller DICTIONARYWDFLT null-role bytes and following references are checked across all six versions; the typed-null distinction applies to AC1015.",
+    "consumer_guard": "lc3_compat_check object target compiled against the optional interface.",
+    "independent": "LibreDWG 0.14 independently decoded all six physical scratch files using tests/dwg_default_plotstyle_libredwg.py: HEADER hard pointer to NOD child, Normal soft-owner and default hard-pointer to PLACEHOLDER, placeholder soft-pointer owner to dictionary, LAYER 0 hard pointer to placeholder, and one following LINE. R2004+ class instance count is 1; AC1015 does not serialize this count.",
+    "reproduction": "Run libdxfrw_dwg_default_plotstyle_optin_tests --keep and pass its OUTPUT directory plus a dwgread binary to tests/dwg_default_plotstyle_libredwg.py. Only locally authored scratch files are generated.",
+    "sha256": {
+      "AC1015": "bd41013c51f8fb0855dde3a68b06c96c7a290e9aa350485d6d442159679bc419",
+      "AC1018": "ef56d7c7920ed7b2a991c2f181257d5dcb1c02ccd40fffde9e09dfa697deb8d0",
+      "AC1021": "4b8e0e6f26fd696130181aa38b2a9d3565f35d2cef84ae3419d90702d5f9b651",
+      "AC1024": "6a9d9b87fc494201fb72db0c35bba9a001757ae0d51c708ba49669b2fac03b7d",
+      "AC1027": "e242928fe74fce44a122a241161dce9e622136c3eb6f1754a6f32af857b8a44c",
+      "AC1032": "251cc44946b319410f03238d5ad483f65aa3882202038d0b84922a0d8d0278bc"
+    }
+  },
+  "oda_matrix": {
+    "tool": "ODA File Converter 27.1.0, ACAD2013 DXF, recursion=0, audit=0; .err and actual output inspected",
+    "AC1015": "The updated bd4101... probe fails at AcDbLayerTableRecord (12), recovery required; no DXF.",
+    "AC1018": "The ef56d7... single-LINE probe produces DXF without .err; DXF SHA-256 37909cb1963faebc9ac4b758251f91d3018951cddd928ba27c060654abe03097 and LINE (1,2,3) to (4,5,6).",
+    "AC1021": "Invalid input; no DXF.",
+    "AC1024": "Object warnings then AcDbLayerTableRecord (12), recovery required; no DXF.",
+    "AC1027": "Out of range; no DXF.",
+    "AC1032": "CRC does not match; no DXF.",
+    "additional_ac1018": "docs/research/p6-oda-optin-ac1018-generated-geometry-2026-11-04.json documents two direct production-writer LINE/CIRCLE/ARC controls. Their output fields are verified, but the tilted case does not establish OCS/WCS semantics."
+  },
+  "limits": "This is explicit opt-in, not automatic synthesis. The synthetic core graph is checked; hidden references in arbitrary opaque records, broader document closure, native consumer/platform behavior, class/producer breadth and general ODA conversion remain open. The other five version-specific ODA failures do not become support claims. The provider must avoid hidden competing ownership of planned identities. No DWG/DXF fixtures are committed."
+}

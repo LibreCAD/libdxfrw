@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "LAYER_STREAM_BOUNDARY_CORRECTED_MATERIAL_GRAPH_STILL_OPEN",
+  "supportClaimEffect": "none",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1 and 20.4.54: R2007 object size marks the bit boundary before handle references; the string stream has a bit-counted size followed by a presence bit. TU contains a bitshort character count and UTF-16 code units.",
+  "source": {
+    "producer": "ODA File Converter 27.1.0 AC1021, from a locally authored ezdxf 1.4.5 single-LINE DXF",
+    "path": "/private/tmp/p6-ac1021-current/oda/source.dwg",
+    "sha256": "d1c06f7818e18d22e6bba41421468903f9b67cd633f900c7c3c17ec4c6b95534",
+    "independent_trace": "/private/tmp/ac1021-control-census/source-v9.log",
+    "observation": "LibreDWG 0.14 reports layer 0 scalar body through bit 127, a 26-bit string stream, 16-bit size, one presence bit, and an unaligned handle boundary at bit 170. The material is role-5 pointer 0x21 to Global, with owner/reactor dictionary 0xE; it is not a null reference. The Defpoints record also has an unaligned boundary at bit 298."
+  },
+  "problem_and_fix": "The AC1021 writer rounded its layer string buffer to whole bytes, added padding to the footer and rounded the object boundary before the handle tail. Preserve the exact LAYER string-bit count, append the short or extended bit-size footer and presence bit, then merge handle tokens at the resulting unaligned boundary. Preserve existing TU content, including the writer's trailing NUL, and leave other object types and revisions unchanged. The committed handle receipt points to the merged data segment and rebases each handle token.",
+  "factorial": {
+    "method": "Eight scratch writer variants share the seven-control correction. Bits 1, 2, 4 select respectively a nonterminated layer-0 TU, exact-bit layer string/footer/handles, and a typed role-5 null material. ODA File Converter 27.1.0 ACAD2007 DXF audit=1 is run with the positive source; inspect .err and output files rather than process status.",
+    "results": [
+      {
+        "mask": 0,
+        "sha256": "407503e861f624c2acca038ce7e6d8f6ae40c0ac1ab43b5f52ef1f5affac594b",
+        "oda": "fatal LAYER record; no DXF"
+      },
+      {
+        "mask": 1,
+        "sha256": "c92c43e045d2d70682bfdd7c42e944e153bf78dddf512019a839d789e90ddcf9",
+        "oda": "fatal LAYER record; no DXF"
+      },
+      {
+        "mask": 2,
+        "sha256": "f845c828c98dd8aa4bbffe6e86d2cf4f4d57665eb6d65cc3877aeccd4475b2a6",
+        "oda": "fatal LAYER record; no DXF"
+      },
+      {
+        "mask": 3,
+        "sha256": "ec0b69e4f40dcb17363173344fc4e0f92cee37f6fa09621ed43ad30b31105358",
+        "oda": "fatal LAYER record; no DXF"
+      },
+      {
+        "mask": 4,
+        "sha256": "ebb46a8e1115cacb606c5a33a3b5984677fbd841a7cd1f1d787ef7868e6f9b45",
+        "oda": "LAYER warning then fatal VPORT record; no DXF"
+      },
+      {
+        "mask": 5,
+        "sha256": "dca9f068383637ce25af08869cd1e68d635bec0ccd2ed966fc62b0af53335879",
+        "oda": "LAYER warning then fatal VPORT record; no DXF"
+      },
+      {
+        "mask": 6,
+        "sha256": "1831e730aeecaf6a221ca69c35c37e24b20b468931d8d39923fc65eed67a0909",
+        "oda": "no LAYER warning; fatal VPORT record and other warnings remain; no DXF"
+      },
+      {
+        "mask": 7,
+        "sha256": "47b778e47d292ef2847e52fa51704c19dd287bd38d3cb6a47456e8ca7ad87a61",
+        "oda": "no LAYER warning; fatal VPORT record and other warnings remain; no DXF"
+      }
+    ],
+    "interpretation": "The nonzero Global material source does not establish a valid typed-null material; the typed-null modes are diagnostic only and are not promoted. In those controls, exact-bit framing removes the LAYER warning regardless of TU terminator choice. The sampled ODA behavior does not prove arbitrary LAYER semantics or full-file validity."
+  },
+  "local_and_peer": {
+    "fresh_output_sha256": "f845c828c98dd8aa4bbffe6e86d2cf4f4d57665eb6d65cc3877aeccd4475b2a6",
+    "result": "Fresh production default-material behavior is byte-identical to mask 2, keeps the untyped-null material, and remains ODA-rejected at LAYER. LibreDWG 0.14 confirms mask 6 has string length 42 bits and boundary 186, and mask 7 has 26 bits and boundary 170; both retain the expected name, scalar fields and handle roles. Native reader successfully reads the actual old padded mask 0 and new exact masks 6 and 7, with layer 0 and one LINE.",
+    "scratch": "/private/tmp/ac1021-layer-string"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j 4",
+    "selectors": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_r2007_layer_string_boundaries|libdxfrw_dwg_r2007_generic_control_boundaries|libdxfrw_dwg_block_control_handle_boundary|libdxfrw_dwg_group_dictionary_controls|libdxfrw_dwg_fixed_metadata_pointer)$' --output-on-failure",
+    "result": "5/5 passed",
+    "coverage": "Four layers including non-ASCII and a long name requiring the extended footer, exact string lengths and owner/xref/plotstyle/material/linetype receipt spans, same-parser truncation/refusal/retry, caller-field preservation, and reconstructed legacy byte-padded string streams. Adjacent controls and transaction selector pass.",
+    "mixed_build_limit": "The shared build also included concurrently edited, frozen MATERIAL graph version-gate changes. These tests and the fresh output do not by themselves establish a standalone LAYER-only build; the independently staged LAYER-only snapshot must be built and checked separately.",
+    "isolated_candidate": "Clean git archive of 639c16e83ff96a2cbc1fc8a8abbe34be969daa2c plus only the staged CMakeLists.txt, dwgwriter21.cpp and dwg_local_roundtrip_tests.cpp: independent scratch build succeeded; LAYER selector and four adjacent controls passed 5/5. Concurrent material-gate edits were excluded.",
+    "isolated_address_sanitizer": "The same clean candidate snapshot, rebuilt with -fsanitize=address, passed libdxfrw_dwg_r2007_layer_string_boundaries 1/1; concurrent material edits were excluded."
+  },
+  "open": [
+    "The material graph and VPORT fatal require separate evidence and fixes.",
+    "The source has nonterminated TU strings, but this change deliberately retains existing writer termination and makes no general TU conformance claim.",
+    "Other table-record string/footer layouts, full-file ODA output and native material semantics are not qualified.",
+    "No binary fixture was added."
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": "par134-ac1021-ac1024-table-cell-state-flag-domain",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": {
+    "class": "DRW_Table / DRW_TableContentObject",
+    "version": "AC1021 and AC1024",
+    "field": "TABLE cell-state flags",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.97"
+  },
+  "change": "Retain the raw 32-bit cell-state flags and mark the semantic projection incomplete when any bit outside the documented 0x7F mask is present.",
+  "regression": "Before the change, generated AC1021 and AC1024 cells with 0x80 or -1 parsed with semantic completeness still set.",
+  "generated_controls": [
+    {
+      "cell_state_flags": 0,
+      "expected": "complete semantic projection"
+    },
+    {
+      "cell_state_flags": 127,
+      "expected": "complete semantic projection for all documented bits"
+    },
+    {
+      "cell_state_flags": 128,
+      "expected": "retain standalone AC1021 field and mark semantics incomplete; AC1024 withholds embedded content atomically"
+    },
+    {
+      "cell_state_flags": -1,
+      "expected": "retain standalone AC1021 field and mark semantics incomplete; AC1024 withholds embedded content atomically"
+    }
+  ],
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check --parallel 2: PASS (-Werror)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-state-flag-domain: PASS",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_table_.*|libdxfrw_tablestyle_.*|libdxfrw_dwg_object_vectors)$' --output-on-failure: PASS (17/17; 0.29 s)",
+    "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp: PASS"
+  ],
+  "fixtures_added": false,
+  "full_suite_run": false,
+  "external_producer_or_native_application_run": false,
+  "support_claim_changed": false,
+  "deferred_external": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ]
+}

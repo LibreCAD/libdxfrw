@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-generated-dictionary-source-allocation-failure-retry-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_SETUP_ALLOCATION_SWEEP",
+  "supportClaimEffect": "none",
+  "scope": "Sweep allocation failures while admitting owned generated NOD and optional GROUP/IMAGE dictionary source metadata.",
+  "source": {
+    "parentCommit": "16b1356d",
+    "files": {
+      "tests/dxf_fixture_tests.cpp": "a040821d4cc3a58b10f15728eab234fbc2c5a37c4eb2cdd206edf6d39e64ebe9",
+      "tests/CMakeLists.txt": "34f484c2c40b37d447ba5b802698ec4c3e5c532904d2ac52bd2f069f291022af",
+      "src/libdxfrw.cpp": "356faeb09e59ef6a3a60292bd0958329fe0bd7e74286c6275a4381dbd83d2abe",
+      "src/libdxfrw.h": "54af5f45476a14c6046ddaed33ef290c0779eaa02c2eb2ac6141d5f6101a36d3",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "fe04866c3ebd7c73a938193f04749d990e30268d82038bdb6e81eeed9da8cc2a"
+    }
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "For root-only NOD and rooted NOD/GROUP/IMAGE profiles, the test walks allocation-failure offsets until the first offset beyond all admission allocations.",
+      "Every injected std::bad_alloc is caught; the setter rejects the candidate and preserves the previously accepted NOD, GROUP, and IMAGE state.",
+      "After every injected failure, a fresh replacement graph is accepted on the same codec and all owned dictionary handles, entries, and parent links match.",
+      "This is setup-state safety evidence only; it adds no DWG/DXF fixture and no format support claim."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_generated_dictionary_source_allocation_failure$'",
+      "result": "PASS 1/1; 0.55 seconds"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests --parallel 4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom --output-on-failure -R '^libdxfrw_generated_dictionary_source_allocation_failure$'",
+      "result": "PASS 1/1; 1.03 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The sweep covers setup-time owned dictionary admission; it does not cover subsequent writeObjects output assembly allocations.",
+    "This is local allocation-safety evidence only and establishes no DWG/DXF support or native CAD semantics."
+  ],
+  "next": "Continue allocation-failure coverage across independent writeObjects builders; retain source lifetime, platform numeric/string policy, and scoped concurrency in the safety audit."
+}

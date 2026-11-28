@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-134 AC1021 TABLE unretained CMC override semantic-completeness gate",
+  "mode": "generated AC1021 DWG object-vector fast slice",
+  "scope": [
+    "Prevent structurally consumed but unretained per-cell and table-level TABLE override values from being marked semantically complete",
+    "Continue parsing subsequent cells and table override sections after semantic completeness is lost, preserving stream alignment",
+    "Reject undocumented high bits in the bounded AC1021 TABLE cell/table override masks"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "localDocument": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": ["2.11 CmColor", "20.4.96.1 Until R21"],
+      "finding": "ODA §20.4.96.1 identifies the AC1021 table-cell override mask, including CMC background/content/border color fields, and the table-level title/header/data row color and border masks. The current typed TABLE projection does not retain these individual values."
+    },
+    "localCode": {
+      "files": [
+        "src/drw_entities.cpp",
+        "tests/dwg_object_vectors_tests.cpp",
+        "dwg2dxf/dx_iface.cpp"
+      ],
+      "finding": "The bounded parser consumed override fields but left semantic completeness true; typed TABLE output is conditioned on that flag, while incomplete snapshots retain the anonymous-block INSERT fallback."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Thread semantic-completeness state through AC1021 cell and table override parsing; any nonzero unretained override mask disqualifies typed TABLE output without aborting the structural parse.",
+      "Separate structural cell-parse success from semantic completeness so remaining cells and trailing override masks are still consumed after an override is found.",
+      "Reject mask bits above the ODA-documented AC1021 cell/table override ranges rather than silently ignoring potentially length-bearing fields."
+    ],
+    "testFiles": ["tests/dwg_object_vectors_tests.cpp"],
+    "focusedSelectors": ["AC1021 TABLE object-vector coverage"],
+    "focusedCtests": ["libdxfrw_dwg_object_vectors", "dwg_table_writer_refusal"],
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "wireAndParser": "Locally authored AC1021 object frames encode a ByLayer CMC in a cell background-color override and a ByLayer CMC in a table title-row-color override. Both cases assert structural read success, semantic incompleteness, and cursor alignment at a following sentinel; existing no-override text/block controls remain semantically complete.",
+    "evidenceBoundary": "The vectors use the ODA-documented common CMC representation and flag positions; they do not claim producer-authored AC1021 TABLE support or semantic retention of override colors."
+  },
+  "validation": {
+    "strictBuild": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg_object_vectors_tests -j4",
+    "strictBuildResult": "PASS",
+    "focusedCommands": [
+      "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|dwg_table_writer_refusal)$' --output-on-failure",
+      "git diff --check -- src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp"
+    ],
+    "focusedResults": ["PASS (2/2; 0.10 sec)", "PASS"]
+  },
+  "evidenceLimits": [
+    "CMC values are still parsed and discarded; this change only prevents the incomplete typed semantic path from claiming completeness and retains the existing anonymous-block fallback.",
+    "No independent producer, native CAD application, full suite, external semantic route, or platform qualification was used.",
+    "No persistent fixture, dependency, or support promotion was added.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue the PAR-134 audit of TABLECONTENT cell-style/content-format CMC reads and DXF projections; where values remain intentionally skipped, carry semantic incompleteness through the TABLECONTENT path. Then resume exact-source PAR-03/PAR-04 associative-action classification."
+}

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "title": "Deeper/broader cross-implementation 3D capability and loss-accounting audit",
+  "date": "2026-10-20",
+  "scope": "Read-only primary-source comparison of explicit DXF geometry, ACIS/SAT/SAB, DWG conversion, and downstream projection boundaries; update plan readiness without claiming peer execution or format qualification.",
+  "sources": [
+    {
+      "name": "Autodesk POLYLINE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+      "evidence": "Documents distinct 2D/3D/poly-mesh/polyface flags and OCS-vs-WCS elevation semantics.",
+      "limit": "DXF entity contract only; not DWG layout, application behavior, or geometry-kernel evidence."
+    },
+    {
+      "name": "Autodesk Polyface Meshes DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm",
+      "evidence": "Declared vertex/face counts need not be correct; writers should emit vertices before faces; readers should tolerate unusual child ordering.",
+      "limit": "DXF reader/writer structure only; does not validate manifoldness or rendered geometry."
+    },
+    {
+      "name": "ezdxf ACIS API 1.4.5 documentation",
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "evidence": "Reads SAT/SAB and exports supported ACIS structures; export errors for unsupported structures; flat-face mesh extraction loses curved faces; mesh-derived vertex bounds are approximate for curved geometry.",
+      "limit": "Project documentation; not independent B-rep correctness or native DWG/AcDs qualification."
+    },
+    {
+      "name": "IxMilia/dxf repository support contract",
+      "url": "https://github.com/ixmilia/dxf",
+      "evidence": "Declares DXF R10-R2014 support with named entity omissions and warns that some typed modeler entities may not open in AutoCAD when written.",
+      "limit": "Mutable repository self-description; no peer binary was built or executed."
+    },
+    {
+      "name": "LibreDWG repository contract",
+      "url": "https://github.com/LibreDWG/libredwg",
+      "evidence": "Repository documents read and write limitations that differ by version and direction; dxf2dwg is documented as R2000-only.",
+      "limit": "Mutable upstream documentation; exact comparator use still requires revision/tool/profile pinning."
+    },
+    {
+      "name": "ACadSharp issue 1195 and linked PR 1240",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "secondaryUrl": "https://github.com/DomCR/ACadSharp/pull/1240",
+      "evidence": "Open issue reports silent DXF writer omission of DWG-read 3DSOLID/REGION including block-only geometry; issue reports ACadSharp 3.4.9 and must remain revision-scoped.",
+      "limit": "Peer report, not reproduced on current release/master and not evidence of a libdxfrw defect."
+    },
+    {
+      "name": "GDAL DWG driver documentation",
+      "url": "https://gdal.org/en/stable/drivers/vector/dwg.html",
+      "evidence": "DWG driver uses ODA Teigha and exposes data through an OGR entity layer.",
+      "limit": "Not independent of ODA-based comparisons and not a whole-document CAD graph oracle."
+    },
+    {
+      "name": "GDAL DXF driver documentation",
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "evidence": "DXF is interpreted through OGR feature projection; curves may be tessellated and INSERT geometry is inlined/merged by default. INLINE_BLOCKS=FALSE exposes block/reference fields; AC1027+ 3D_EXTENSIBLE_MODE exposes raw ASM and transform, not OGR modeler geometry.",
+      "limit": "Projection-specific only; not full CAD identity/owner-graph, ACIS semantic, or native-consumer proof."
+    }
+  ],
+  "findings": [
+    "No screened open-source route establishes the conjunction of DWG/DXF read-write, exact versioned entity semantics, arbitrary ACIS topology, curved B-rep geometry, and native consumer behavior.",
+    "Existing PAR-37/7V ASCII/Binary vectors cover stale counts, interleaved/forward face ordering, signed indices, and canonical output, but have no following-entity sentinel after SEQEND or focused fast selector/CTest.",
+    "Existing S2.3.9.4.29 and PAR-07/S8 per-body owner/INSERT/output/readback checks remain the right owners for silent block-content loss and explicit disposition.",
+    "Evidence must remain separated for explicit facets, SubD control cages, raw SAT/SAB, AcDs joins, interpreted B-rep, and consumer-imported geometry."
+  ],
+  "implementationReadyChecks": [
+    "For PAR-37/7V, add a distinct LINE sentinel after SEQEND and assert its XYZ on input and strict write/readback; expose the existing ASCII/Binary case matrix through one focused selector/CTest.",
+    "Preserve canonical vertex-before-face output and validate active signed index magnitudes against actual coordinate records rather than declared header counts.",
+    "For ACIS, retain exact carrier and unsupported-node/error inventory; never use faceting or approximate curved-body bounds as a B-rep semantic oracle.",
+    "Pin peer revision, tool, operation, version, entity, and dependency lineage; distinguish project support declarations and issue reports from executed peer evidence.",
+    "Continue the next local slice if an external peer, platform, or independent semantic reader is unavailable; leave the external evidence cell NOT_RUN or DEFERRED_EXTERNAL."
+  ],
+  "changes": {
+    "code": false,
+    "tests": false,
+    "fixtures": false,
+    "dependencies": false,
+    "supportClaimsPromoted": false,
+    "externalJStatusesChanged": false,
+    "findingsBeforeAfter": "141",
+    "topLevelSubplansBeforeAfter": "78"
+  },
+  "validation": {
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed",
+    "peerExecutablesRun": false,
+    "nativeCadRun": false,
+    "fullSuiteRun": false
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-15",
+  "reference": "https://github.com/LibreCAD/LibreCAD/pull/3269",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "configuration": "Modified incremental macOS ARM64 LibreCAD test executable using a separately installed static libdxfrw archive, with the ordered local consumer patches; QT_QPA_PLATFORM=offscreen.",
+  "testExecutableSha256": "513b2c9bf33ba1ff979846bc01126ca29d752fff15140d2e62448f1208ae3fde",
+  "installedLibdxfrwArchiveSha256": "95e9f20acae0b6d745dd5b94a4a4b3cf53db74ba23f653a14f310fcb49719060",
+  "testNames": [
+    "DXF writes a changed line type definition over its record",
+    "DWG writes a changed line type definition over its record",
+    "DXF writes a redefined built-in from the table",
+    "DXF writes a changed complex line type without its segments",
+    "DXF writes a twin archived spelling as it came beside a changed record"
+  ],
+  "result": "All five original PR cases passed, 49 assertions. The generated DXF and DWG controls remain temporary.",
+  "limits": "This is a focused existing-test run, not a clean consumer build, all-version/Binary matrix, native third-party acceptance or independent proof of untouched metadata outside the tested profiles. Local consumer patches are unmerged. No broader support claim or phase gate is promoted."
+}

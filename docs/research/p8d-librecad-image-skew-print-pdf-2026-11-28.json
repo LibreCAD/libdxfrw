@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-image-skew-print-pdf-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "d07014c302c9494d4bea44070daf9ac844025bee",
+  "codecTestInclusiveDigest": "af2d9e8a1f4866db44def162e69f1c974fc3b08dbd0f263a4100431460e473ea",
+  "scope": "Selected manually observed macOS ARM64 print-preview and native print-to-PDF control of the locally generated, previously saved and independently audited skewed polygon IMAGE.",
+  "checks": [
+    "The native print preview displayed the 18-vertex skewed image against the page, with the area outside the clip left white.",
+    "The native Print dialog saved one A4 color page as a scratch PDF. Poppler independently rendered its first page; visual inspection showed the skewed polygon and colored pixels, with white outside the clipped area. The PDF reports one unencrypted A4 page and Qt 6.12.0 as producer.",
+    "The scratch application uses a distinct settings organization and signed bundle. The drawing and PDF remain outside the repository; no DWG/DXF fixture was committed."
+  ],
+  "sha256": {
+    "drawing": "cace5e152829623444c213d5ab2409e6a52dd78f5f9f29b20578de0b8cc88f9c",
+    "raster": "cc9ba2ba453ba7b9b081582448117dd74b29c80d56f0c64b733d65ec7736d28b",
+    "nativeBinary": "fbb63c8abbfeea20145b01589949411faa4448d11d269515ef474b5846c9165d",
+    "sharedCodec": "dc4c9d0c9f396fe49d11e898d44692272e0230f1099213a75e2e58a22c2ea681",
+    "pdf": "f70ad8296557198905e4f97abe34465a619632fa9cd3a73ce6a53e0040ef41cd",
+    "popplerPng": "c93667841bcf13860be761ffc9df8d82520bf57e2faed1b289cd09cfd52c4f89"
+  },
+  "limits": [
+    "One generated skewed, normal-clipping image and one macOS PDF workflow; this is not a physical-printer, dimensional-scale, inverse-clipping, edited, or other-platform qualification.",
+    "The drawing preview reported an invalid-scale message during initialization; no claim about scale accuracy is made.",
+    "No overall image-format or consumer-parity claim follows."
+  ]
+}

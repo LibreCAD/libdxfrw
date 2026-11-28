@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-rastervariables-frame0-physical-writer-bridge-2026-11-05",
+  "date": "2026-11-05",
+  "status": "BOUNDED_PHYSICAL_SOURCE_WRAPPER_AND_STRICT_SELECTED_OUTPUT",
+  "supportClaimEffect": "none",
+  "scope": "Bind one hash-identified physical AC1024 RASTERVARIABLES frame=0 source record to a locally authored same-version wrapper, then qualify selected ASCII/Binary output under RequireComplete and resolved-owner policies, refusal/retry and typed readback. This does not qualify whole-drawing conversion or native raster behavior.",
+  "physicalWitness": {
+    "provenance": "An R2010 DXF with one IMAGE and its image definition was authored using ezdxf 1.4.5 and converted by ODA File Converter 27.1 to AC1024 DWG. The observed conversion lineage is not authenticated by hashes alone. No sample fixture was added.",
+    "dwgPath": "/private/tmp/rastervars-ac1024/dwg/raster.dwg",
+    "dwgSha256": "fc1371b35a566d916b4fd143e66333c6695dbd341aa31b2025bc5dcd45fe30ce",
+    "independentPeer": "GNU LibreDWG 0.14 identifies NOD 0x0A with ACAD_IMAGE_VARS to object 0x2F, custom class 512, class/frame/quality/units 0/0/1/3, missing XDictionary, and role-4 owner/reactor handles to NOD 0x0A.",
+    "sourceSpan": "The source-specific probe verifies the AC1024 object and NOD frames and CRCs, object type/self handle, common EED/reactor/XDictionary prefix, class and frame/quality/units fields ending at bit 63, absent-string marker at bit 63, and both role-4 handles to 0x0A. In-tree page extraction and CRC checking are not independent of the repository reader."
+  },
+  "implementation": "The physical AC1024 frame verifier now accepts the observed frame=0 layout as well as the previously bridged frame=1 layout. The selector confirms typed and raw source identity, direct NOD entry, exact source values and owner/reactor links, then seeds a local AC1024 wrapper. It remaps physical owner/reactor 0x0A to wrapper NOD 0x0C and exercises RequireComplete owner-resolved ASCII/Binary output, mutation refusal, same-adapter retry and typed readback. Existing source-level IMAGEDEF owner-role refusal checks remain in place; this receipt qualifies only the selected RASTERVARIABLES wrapper.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "physicalFrame0": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1024-direct-nod /private/tmp/rastervars-ac1024/dwg/raster.dwg",
+    "physicalFrame1Regression": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1024-frame1-direct-nod /private/tmp/raster-frame1-witness/dwg/source.dwg",
+    "focusedGeneratedControls": "ctest --test-dir build-gcc -R '^dwg2dxf_rastervariables_' --output-on-failure",
+    "results": "Physical AC1024 frame=0 and frame=1 wrapper selectors passed, along with all nine focused generated raster-variable CTests. Both physical source hashes matched their recorded values after execution."
+  },
+  "limits": [
+    "The physical file has two HEADER integrity observations and a separately unqualified IMAGEDEF owner role; its whole-source output remains refused.",
+    "The file is a local ezdxf/ODA profile, not broad producer coverage.",
+    "No native image rendering, downstream application behavior, or general AC1024 support is claimed.",
+    "No DWG/DXF fixture was added; the physical witness remains in scratch storage."
+  ]
+}

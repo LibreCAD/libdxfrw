@@ -1,0 +1,34 @@
+{
+  "title": "LAYER DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated local LAYER direct-codec transaction control across inline, detached, separate, and aliased stream layouts",
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "method": "DRW_Layer::encodeDwgForWriter",
+    "behavior": "Stage the body, detached string destination, and detached handle destination while preserving the required separate modern string stream, versioned CMC color-book text, legacy typed-null policy, common handles, and plot-style/material/LTYPE references. Publish only after all staged streams succeed; public and typed writer routes share this implementation."
+  },
+  "control": {
+    "file": "tests/dimassoc_dwg_encoder_allocation_tests.cpp",
+    "profile": "Locally generated LAYER with two reactors, extension dictionary, lineweight/plot state, xref, plot-style, material, and LTYPE handles. AC1021 also carries a color-book entry name.",
+    "tested_route": "Public encodeDwg",
+    "cases": [
+      {"version": "AC1012", "mode": "inline", "reached_allocation_offsets": 9},
+      {"version": "AC1018", "mode": "inline text with detached handles", "reached_allocation_offsets": 13},
+      {"version": "AC1021", "mode": "separate string and handle streams", "reached_allocation_offsets": 32},
+      {"version": "AC1021", "mode": "shared string and handle stream", "reached_allocation_offsets": 29},
+      {"version": "AC1021", "mode": "separate string and body-aliased handles", "reached_allocation_offsets": 29}
+    ],
+    "failure_assertions": "Every reached one-shot allocation failure leaves caller body, strings, handles, cursors, health, and handle-occurrence ledgers unchanged. The same object and buffers then retry to clean output.",
+    "fixtures_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests libdxfrw_gbk_codepage_tests libdxfrw_dxf_fixture_tests libdxfrw_dxf_layer_color_order_tests -j2",
+    "focused_tests": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|libdxfrw_dwg_object_encoder_allocation_retry|libdxfrw_ac1018plus_layer_body_handle_roles|libdxfrw_layer_dwg_cmc_roundtrip|libdxfrw_layer_name_source|libdxfrw_layer_material_reference_remapping|libdxfrw_dxf_layer_color_order)$' --output-on-failure",
+    "result": "The allocation control reports all five layouts passing rollback/retry across 112 offsets. All seven focused CTests passed."
+  },
+  "limits": [
+    "Generated local transaction evidence only; it does not broaden LAYER producer or DWG revision coverage.",
+    "The typed legacy-null writer route shares the staged implementation but was not separately fault-injected in this receipt.",
+    "Whole-document source/reference graph closure and broad native interoperability remain separately gated."
+  ]
+}

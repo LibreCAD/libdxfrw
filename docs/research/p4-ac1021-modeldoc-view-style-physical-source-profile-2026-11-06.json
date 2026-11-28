@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 ModelDocViewStyle physical selected output and readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the exact four physical AC1021 ModelDocViewStyle frames, both NOD-rooted style dictionaries, and their extension-dictionary/XRECORD graph in combined strict staged output, plus selected ASCII and Binary output/readback and rollback/retry controls.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceGraph": {
+    "namedObjectDictionary": "Handle 0xC has one ACAD_DETAILVIEWSTYLE edge to dictionary 0x21B and one ACAD_SECTIONVIEWSTYLE edge to dictionary 0x219.",
+    "detailDictionary": "Dictionary 0x21B is owned by and reacts to NOD 0xC. Ordered entries Imperial24 -> DETAILVIEWSTYLE 0x18082 and Metric50 -> DETAILVIEWSTYLE 0x21C.",
+    "sectionDictionary": "Dictionary 0x219 is owned by and reacts to NOD 0xC. Ordered entries Imperial24 -> SECTIONVIEWSTYLE 0x18081 and Metric50 -> SECTIONVIEWSTYLE 0x21A.",
+    "recordFrames": "The four raw source frames match ACDBSECTIONVIEWSTYLE type 515 / AcDbSectionViewStyle and ACDBDETAILVIEWSTYLE type 516 / AcDbDetailViewStyle, with common owner equal to their dictionary. Typed callbacks match each handle, name, owner and record family.",
+    "resourceReferences": "All four typed styles resolve text-style handle 0x11 and linetype handle 0x16 through the source table inventory. Arrow/block references are zero in this sample.",
+    "extensionRecords": "All four styles reference one extension dictionary; each extension dictionary contains ACAD_XREC_ROUNDTRIP targeting one XRECORD. The XRECORD owner/reactor and ordered payload are checked on output readback. Source XRECORD extensionDictionaryFlag=1 with xDictHandle=0 is preserved as the source model state but is not represented in DXF and is not compared as a DXF field."
+  },
+  "verification": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4 \u2014 PASS.",
+    "typedOnlyControl": {
+      "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks",
+      "result": "PASS for generated typed-only DWG writer route in ASCII and Binary. Checks typed field and reference readback, valid absent extension dictionaries (NoHandle with flag 0), extension dictionary dependency refusal, wrong dictionary owner atomic refusal, and cross-version refusal."
+    },
+    "physicalSourceSelector": {
+      "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-ac1021-source-profile /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS in ASCII and Binary. Checks source graph identity, both NOD edges, dictionary ownership/reactors, four style identities and source frame types/owners, closed text-style/linetype references, exact selected output/readback, four extension-dictionary keys and targets, XRECORD owners/reactors/payload entries, and SECTIONVIEWSTYLE NONE color sentinel readback."
+    },
+    "failureAndRetry": "The physical selector injects std::bad_alloc after OBJECTS emission for both ASCII and Binary, verifies the prior destination sentinel remains unchanged, then retries on the same adapter and imports the result for typed graph readback. Expected injected-failure diagnostics are emitted.",
+    "diffCheck": "git diff --check \u2014 PASS.",
+    "strictWholeSource": "PASS: strict AC1021 ASCII conversion of children-room-decoration.dwg completed after staged qualification advanced from 182/186 to all opaque callbacks; generated output SHA-256 is recorded in strictWholeSourceOutput.",
+    "fullOutputReexport": "The resulting DXF re-imported, but DXF-to-DXF export remains refused at IMAGEDEF extension/reactor roots; no full-file roundtrip claim.",
+    "focusedPhysicalSelector": "PASS on final implementation: AC1021 source graph and selected ASCII/Binary output, exact selected body/reference checks, fresh typed readback, destination preservation after injected failure, and same-adapter retry."
+  },
+  "limits": [
+    "This is one local source whose author and producer are not independently authenticated.",
+    "Selected graph evidence does not qualify whole-drawing conversion, other producer/version profiles, native consumer semantics, or general ModelDocViewStyle support.",
+    "Source XRECORD DWG-only extensionDictionaryFlag is not asserted as a DXF-preserved field; no fixture or derivative is committed."
+  ],
+  "nextAction": "The earlier IMAGEDEF-root re-export failure is stale for this exact source/output pair. Continue IMAGEDEF work on a nonempty, independently qualified IMAGEDEF/reactor source profile; this source has no IMAGE or IMAGEDEF records, so its empty ACAD_IMAGE_DICT does not close that gap. Keep strict refusal for the physical code-0xC source profile and do not commit generated drawings or outputs.",
+  "currentRecheck": {
+    "date": "2026-11-12",
+    "sourceSha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "format": "AC1021 / AutoCAD 2007 DXF target",
+    "operations": [
+      {
+        "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/children-room-decoration.dwg -y -v2007 /private/tmp/children-room-current.dxf",
+        "result": "PASS",
+        "outputSha256": "4ecad789413087b3714d356a488e934179366f2e46583d55f725158ed2d6ada5"
+      },
+      {
+        "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/children-room-current.dxf -y -v2007 /private/tmp/children-room-current-roundtrip.dxf",
+        "result": "PASS",
+        "outputSha256": "5a814782b93a6a0eda93349498754d2bd957975191828d2fb1213246b702b9f6"
+      },
+      {
+        "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/children-room-decoration.dwg -y -b -v2007 /private/tmp/children-room-current-bin.dxf",
+        "result": "PASS",
+        "outputSha256": "4b7e7095d845288d45e5cf8ac4486bc6f7b803efb06c1466e5d84bc774e96c30"
+      },
+      {
+        "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/children-room-current-bin.dxf -y -b -v2007 /private/tmp/children-room-current-bin-roundtrip.dxf",
+        "result": "PASS",
+        "outputSha256": "5a3bd6960d89bba654bfbc9be356f69b2409cf1025f0a5a65925b969d3983a37"
+      }
+    ],
+    "scopeLimit": "The source has an empty ACAD_IMAGE_DICT and no IMAGE, IMAGEDEF, or IMAGEDEF_REACTOR frames. These conversions supersede the historical failure for this particular source but do not validate a nonempty image graph or the disputed physical owner profile. Outputs remain under /private/tmp and are not committed."
+  },
+  "projection": {
+    "records": "Two rooted style dictionaries, four typed style records, four extension dictionaries, and four XRECORDs; required text-style and linetype targets are retained.",
+    "colorMapping": "The source SECTIONVIEWSTYLE hatch-background CMC uses method 0xC8 (NONE) with scalar 256. It is projected to DXF group-62 sentinel 257, consistent with this codebase\u2019s existing TABLESTYLE serializer convention. ODA \u00a72.11 documents CMC wire structure; this receipt does not claim independent ODA documentation of the method-to-sentinel semantics."
+  },
+  "strictWholeSourceOutput": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/children-room-decoration.dwg -y -v2007 /private/tmp/libdxfrw-children-room-viewstyle-strict.dxf",
+    "result": "PASS: strict full-source AC1021 ASCII conversion completed after all 186 opaque callbacks were qualified; output was created.",
+    "sourceSha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "outputSha256": "cbb453feddbc65c78ee807d55489427f1a023cf3a15f3ee0b578089aba68c88c",
+    "scopeLimit": "One existing unauthenticated local source and AC1021 ASCII output only. Strict generation plus staged body proof does not establish native semantic acceptance or general producer support."
+  },
+  "fullOutputReexportProbe": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-children-room-viewstyle-strict.dxf -y -v2007 /private/tmp/libdxfrw-children-room-viewstyle-roundtrip.dxf",
+    "result": "The DXF import completed, then re-export stopped during extension-object graph preflight: invalid-graph at IMAGEDEF roots on handle 0xC during reactor target lookup. No re-export DXF was published.",
+    "interpretation": "This is a separate full-output IMAGEDEF graph/read-write issue. It does not invalidate the successful source DWG-to-DXF strict write or the selected ModelDocViewStyle ASCII/Binary fresh readback, and it prevents claiming full-file DXF-to-DXF roundtrip."
+  }
+}

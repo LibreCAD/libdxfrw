@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACIS pending worklist logical-slot accounting fast slice",
+  "mode": "local implementation and generated in-memory regression",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Account the ordered pending worklist entries retained alongside queued membership",
+    "Preserve breadth-first traversal, graph output order, and exact fail-closed output limits"
+  ],
+  "changes": [
+    {
+      "file": "src/drw_acis.cpp",
+      "summary": "Added one output-item charge before pending.push_back, after queued-set admission. The ordered vector and membership set each retain one logical slot per queued source index."
+    },
+    {
+      "file": "tests/graph_preservation_tests.cpp",
+      "summary": "The generated two-lump cycle accepts maxOutputItems=33 with unchanged projection links and cycle count, and refuses at 32 with ResourceLimit and cleared output. Before the charge, the 32-item negative assertion failed because that incomplete budget was admitted."
+    }
+  ],
+  "evidence": {
+    "previousBudgetWithoutPendingCharge": 30,
+    "newExactOutputItems": 33,
+    "oneUnderOutputItems": 32,
+    "additionalPendingSlots": 3,
+    "redGreen": "The 32-item refusal regression failed before accounting the pending vector slots and passed afterward.",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "build-gcc/libdxfrw_graph_preservation_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp"
+    ],
+    "results": [
+      "strict target build passed",
+      "direct graph/preservation executable passed",
+      "owning CTest passed 1/1 in 0.59 seconds",
+      "focused diff whitespace check passed"
+    ]
+  },
+  "limitations": {
+    "wallClockBenchmarkRun": false,
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "externalDrawingDownloaded": 0,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "publicApiChanged": false,
+    "supportClaimsPromoted": 0,
+    "worktreeCommitted": false,
+    "reasonUncommitted": "The shared worktree contains broad pre-existing modifications, including extensive changes to the same source and test files; staging or committing them together is unsafe."
+  },
+  "assessment": {
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

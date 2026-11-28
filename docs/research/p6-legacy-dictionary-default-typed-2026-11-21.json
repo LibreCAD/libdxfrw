@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-dictionary-default-typed-2026-11-21",
+  "date": "2026-11-21",
+  "status": "R13_R14_OBSERVED_TYPED_READ_OUTPUT_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "correction": "The earlier raw-only receipts referred to the absent R13/R14 cloning field without distinguishing plain DICTIONARY from DICTIONARYWDFLT. The selected producer DICTIONARYWDFLT bodies physically contain cloning=1 and hard-owner=0. The plain DICTIONARY conclusion remains unchanged.",
+  "authority": "ODA DWG v5.4.1 sections 20.1, 20.4.44, 20.4.45 and 28 define common framing, dictionary entries, handle roles and EED. The subclass-specific legacy fields and their boundaries are additionally demonstrated by the producer-generated controls and independent byte walker, rather than inferred from the plain dictionary layout.",
+  "generator": "tools/research/generate_legacy_eed_utf8_witness.py",
+  "runDirectory": "/private/tmp/libdxfrw-ac1012-eed-utf8-runs/legacy-eed-utf8-ycdpo0bq",
+  "runReceiptSha256": "533751cb078e3d9464a0c4ee1c076c8c89fc575a0ca6c6bb14d1c15a1024eb9a",
+  "producer": {"name": "ODA File Converter", "version": "27.1.0.0", "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"},
+  "peer": {"name": "GNU LibreDWG dwgread", "version": "0.14", "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"},
+  "r13": {"dwgSha256": "d993222c5d6ac0975683d245835895bf162f2e030f26bdcc88dc5ed3bffb490b", "frameSha256": "b16ebb399720a4dc90ed9c75ffb136c9c7c3c2745a5c27171d8f526c6c4292f5", "cloningStartBit": 266, "bodyEndBit": 342, "defaultStartBit": 390, "paddingBits": 2},
+  "r14": {"dwgSha256": "74a92ccea9ccd6cdc4e5f65de440524a92d1c0565aa40acced2678733366353b", "frameSha256": "70f340dd3e45bbc87489a1f5a4627fbbe27acc3fe004c282b25f35a383b56de5", "cloningStartBit": 80, "bodyEndBit": 156, "defaultStartBit": 204, "paddingBits": 4},
+  "sharedValues": {"handle": "12", "owner": "A", "cloning": 1, "hardOwner": 0, "entryName": "NORMAL", "entryHandle": "13", "defaultHandle": "13", "ownerRole": 4, "extensionRole": 3, "entryRole": 2, "defaultRole": 5},
+  "checks": [
+    "The independent bit walker validates each frame size and CRC, declared body end, values, owner/extension/entry/default handle roles and trailing alignment.",
+    "ODA reopens each drawing and writes an AC2018 DXF with cloning 1 and the same default entry, independently read by ezdxf. This is producer readback, not a native duplicate-merge witness.",
+    "libdxfrw publishes the bounded typed record and retains its raw source. Generated truncations, extra trailing byte, and all four wrong-handle-role controls reject typed parsing, reset state, and retry successfully.",
+    "CRC-correct physical self-handle mutations reject the affected frame. A CRC-correct bad default role retains only its raw shell, refuses strict ASCII/Binary output without replacing the destination, and succeeds on corrected same-adapter retry.",
+    "Focused legacy, object-role, and transactional ASan tests pass."
+  ],
+  "limits": [
+    "This is a bounded observed legacy source profile, not proof of native duplicate-merge behavior, complete dictionary semantics, graph closure or DXF output qualification.",
+    "The out-of-version CELLSTYLEMAP remains raw-only; strict output stays fail-closed.",
+    "Locally generated and deliberately corrupted drawings remain outside the repository."
+  ]
+}

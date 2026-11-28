@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-144 generated writer/reader BLOCK_RECORD ownership cross-check",
+  "mode": "Implementation fast slice",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "finding": "PAR-144 / 7G.3 multi-layout DWG ownership graph",
+  "changedFiles": [
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "implementation": {
+    "summary": "During finalizeDwgWriteStructure, compare the completed writer DwgBlockWriteResult against exact entity handles captured while emitting two paper-layout blocks, an ordinary INSERT target block, and the ModelSpace INSERT/ATTRIB/SEQEND chain. On readback, compare parsed BLOCK_RECORD fields against that ledger: AC1015 first/last entity handles; AC1024 exact owned-entity lists; both versions' INSERT references, BLOCK/ENDBLK handles, and reverse LAYOUT associations; and exactly one parsed callback per emitted record. Normalize AC1015 expected entity ordering to the legacy writer order.",
+    "evidenceLimit": "This is a same-library writer/reader structural roundtrip using the reader's parsed BLOCK_RECORD fields. It is not an independent parser or hand-written bitstream decoder, and it does not qualify native CAD behavior.",
+    "productionCodeChanged": false,
+    "persistentFixtureAdded": false,
+    "dependencyAdded": false,
+    "supportClaimPromoted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "buildPassed": true,
+    "testCommand": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$' --output-on-failure",
+    "testsPassed": 1,
+    "testsFailed": 0,
+    "elapsedSeconds": 0.36,
+    "fullSuiteRun": false,
+    "peerExecutableRun": false,
+    "nativeCadRun": false
+  },
+  "remaining": [
+    "Diagnose the unresolved AC1015 type-34 VIEWPORT writer/reader boundary",
+    "Add hand-written byte-level corroboration if required fields cannot be inspected through the composed reader",
+    "Exercise a non-default current paper layout through the canonical *PAPER_SPACE association",
+    "Add malformed duplicate/missing/nonreciprocal graph controls",
+    "Run one exact-pinned composed independent/native qualification"
+  ],
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

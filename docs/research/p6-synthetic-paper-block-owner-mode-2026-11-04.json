@@ -1,0 +1,17 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 section 20.4.1 common entity mode: 1 indicates paper space without explicit owner; 2 indicates model space without explicit owner.",
+  "problem":"The writer constructed both paper-space BLOCK and ENDBLK as model-space entities. The generated paper BLOCK_RECORD owned a BLOCK begin whose implicit model-space owner resolved to the wrong record.",
+  "change":"Set paper-space mode only on the internally generated reserved paper-space BLOCK and ENDBLK entities; model-space and caller-created block entities are unchanged.",
+  "independent_control":"LibreDWG 0.14 decoded the ODA-produced AC1018 LINE drawing with model begin/end modes 2/2 and paper begin/end modes 1/1. The prior generated drawing had 2/2 and 2/2. The corrected generated drawing decodes as 2/2 and 1/1.",
+  "oda_differential":{
+    "reader":"ODA File Converter 27.1.0, ACAD2013 DXF; inspect .err and output, not exit status",
+    "before_sha256":"d9a867b1ee1e4b7a4c598a622a9d57f0a626c006f06820ed2e112b620bf46abb",
+    "before":"Warning AcDbBlockTableRecord(18): BlockBegin owner Id is invalid (17), followed by Object improperly read: <AcDbLayerTableRecord> (12)",
+    "after_sha256":"943ccc372557bac1f658918832b20a8ea85647a18afc8908f07e2b79390ccc09",
+    "after":"Prior BlockBegin owner warning absent; still Object improperly read: <AcDbLayerTableRecord> (12), previous error .dwg file needs recovery; no DXF produced.",
+    "physical_production_identity":"The production-generated AC1018 file hashes exactly to the after scratch witness."
+  },
+  "tests":"PASS: libdxfrw_dwg_builtin_block_owner_modes checks four CRC-validated physical block-begin/end frames in AC1015/1018/1021/1024/1027/1032. Adjacent block-control boundary, GROUP graph, and HEADER write rollback/same-writer retry selectors pass.",
+  "limits":"No full ODA interoperability claim: conversion still fails at the layer record. Generated DWGs were scratch artifacts and no fixture is committed."
+}

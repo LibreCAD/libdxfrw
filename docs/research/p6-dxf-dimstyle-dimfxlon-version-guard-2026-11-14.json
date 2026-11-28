@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-14",
+  "scope": "Pre-AC1021 DXF DIMSTYLE DIMFXLON group-290 output",
+  "evidence": {
+    "format_crosswalk": "The project DIMSTYLE variable descriptor maps group 290 to DIMFXLON with minimum revision AC1021. ODA DWG v5.4.1 identifies DIMFXLON as R2007+; Autodesk documents the system-variable meaning and initial value 0. ezdxf maps DIMFXLON to DXF group 290 and identifies it among variables not documented in Autodesk's DXF reference.",
+    "references": [
+      {
+        "title": "Autodesk DIMFXLON system variable",
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-Core/files/GUID-D0E2EA4A-4CA2-4286-9439-55A19726C166.htm",
+        "initial_value": 0
+      },
+      {
+        "title": "ODA Open Design Specification for .dwg files",
+        "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "section": "DIMSTYLE R2007+ fields",
+        "observation": "Lists DIMFXLON with field code 290."
+      },
+      {
+        "title": "ezdxf DIMSTYLE internals",
+        "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/tables/dimstyle_table.html",
+        "observation": "Maps DIMFXLON to group 290 and marks it as undocumented in Autodesk's DXF Reference; independent peer evidence, not Autodesk authority."
+      }
+    ],
+    "code": "dxfRW::writeDimstyle now refuses pre-AC1021 output when the typed dimfxlon field or a dynamic group-290 override enables fixed-length extension lines. The default off value remains omitted.",
+    "control": "libdxfrw_dimstyle_table_allocation generates typed and dynamic enabled cases and verifies atomic refusal plus same-writer retry after restoring off in ASCII and Binary AC1018; it also checks clean ASCII output contains no DIMSTYLE group 290.",
+    "test_command": "cmake --build build --target libdxfrw_dimstyle_table_allocation_tests -j4 && ctest --test-dir build -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure",
+    "test_result": "passed: 1/1 in 1.33 seconds",
+    "fixture_policy": "Generated controls write only to the system temporary directory; no DWG or DXF fixture added to the repository.",
+    "limits": [
+      "The group-290 DXF projection is corroborated by ezdxf and the existing project descriptor; Autodesk's published DIMSTYLE table does not list it.",
+      "This does not qualify other unofficial DIMSTYLE variables or native dimension rendering semantics."
+    ]
+  }
+}

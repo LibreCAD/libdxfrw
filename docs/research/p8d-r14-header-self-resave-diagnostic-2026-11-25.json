@@ -1,0 +1,350 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r14-header-self-resave-diagnostic-2026-11-25",
+  "supportClaimEffect": "none",
+  "consumerCommit": "2fcaa5262c1621ccc95490d04a1d3d97eeb6b17a",
+  "libraryImplementationDigestSha256": "6dd91b2be8f6dd49ddd13bccb0064a5c4a23c2652eb798605c29017b91e5500e",
+  "sourceSha256": "05e8e30fe596bea373953b0fedc415f36197fd25a499b5638423a47930a5ed70",
+  "observation": "A scratch-instrumented current library reports that R14 header preflight rejects $EXTNAMES, $PSTYLEMODE and $OLESTARTUP because the imported group code is 290, while group 70 is required by that preflight. The same writer emitted each variable with group 290 on the first save. The R14 resave fails before header publication.",
+  "independentCheck": {
+    "implementation": "ezdxf 1.4.5 HEADER_VAR_MAP",
+    "description": "The independent version table associates each of the three Boolean variables with group 290 and minimum AC1015. It lists the following 64 names present in this one generated physical AC1014 header as AC1015-or-newer; this is an implementation comparison, not authoritative proof of all R14 exclusions.",
+    "newerVersionVariableCount": 64,
+    "variables": [
+      {
+        "name": "$CELTSCALE",
+        "minimumVersion": "AC1015",
+        "groupCode": 40
+      },
+      {
+        "name": "$DISPSILH",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMJUST",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMSD1",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMSD2",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMTOLJ",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMTZIN",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMALTZ",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMALTTZ",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMUPT",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMDEC",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMTDEC",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMALTU",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMALTTD",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMTXSTY",
+        "minimumVersion": "AC1015",
+        "groupCode": 7
+      },
+      {
+        "name": "$DIMAUNIT",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMADEC",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMALTRND",
+        "minimumVersion": "AC1015",
+        "groupCode": 40
+      },
+      {
+        "name": "$DIMAZIN",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMDSEP",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMATFIT",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMFRAC",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMLDRBLK",
+        "minimumVersion": "AC1015",
+        "groupCode": 1
+      },
+      {
+        "name": "$DIMLWD",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMLWE",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$DIMTMOVE",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$CHAMFERC",
+        "minimumVersion": "AC1015",
+        "groupCode": 40
+      },
+      {
+        "name": "$CHAMFERD",
+        "minimumVersion": "AC1015",
+        "groupCode": 40
+      },
+      {
+        "name": "$UCSBASE",
+        "minimumVersion": "AC1015",
+        "groupCode": 2
+      },
+      {
+        "name": "$UCSORTHOREF",
+        "minimumVersion": "AC1015",
+        "groupCode": 2
+      },
+      {
+        "name": "$UCSORTHOVIEW",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$UCSORGTOP",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$UCSORGBOTTOM",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$UCSORGLEFT",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$UCSORGRIGHT",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$UCSORGFRONT",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$UCSORGBACK",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$PUCSBASE",
+        "minimumVersion": "AC1015",
+        "groupCode": 2
+      },
+      {
+        "name": "$PUCSORTHOREF",
+        "minimumVersion": "AC1015",
+        "groupCode": 2
+      },
+      {
+        "name": "$PUCSORTHOVIEW",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$PUCSORGTOP",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$PUCSORGBOTTOM",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$PUCSORGLEFT",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$PUCSORGRIGHT",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$PUCSORGFRONT",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$PUCSORGBACK",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$PINSBASE",
+        "minimumVersion": "AC1015",
+        "groupCode": 10
+      },
+      {
+        "name": "$TREEDEPTH",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$CMLSTYLE",
+        "minimumVersion": "AC1015",
+        "groupCode": 2
+      },
+      {
+        "name": "$CMLJUST",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$CMLSCALE",
+        "minimumVersion": "AC1015",
+        "groupCode": 40
+      },
+      {
+        "name": "$PROXYGRAPHICS",
+        "minimumVersion": "AC1015",
+        "groupCode": 70
+      },
+      {
+        "name": "$CELWEIGHT",
+        "minimumVersion": "AC1015",
+        "groupCode": 370
+      },
+      {
+        "name": "$ENDCAPS",
+        "minimumVersion": "AC1015",
+        "groupCode": 280
+      },
+      {
+        "name": "$JOINSTYLE",
+        "minimumVersion": "AC1015",
+        "groupCode": 280
+      },
+      {
+        "name": "$LWDISPLAY",
+        "minimumVersion": "AC1015",
+        "groupCode": 290
+      },
+      {
+        "name": "$HYPERLINKBASE",
+        "minimumVersion": "AC1015",
+        "groupCode": 1
+      },
+      {
+        "name": "$STYLESHEET",
+        "minimumVersion": "AC1015",
+        "groupCode": 1
+      },
+      {
+        "name": "$XEDIT",
+        "minimumVersion": "AC1015",
+        "groupCode": 290
+      },
+      {
+        "name": "$CEPSNTYPE",
+        "minimumVersion": "AC1015",
+        "groupCode": 380
+      },
+      {
+        "name": "$PSTYLEMODE",
+        "minimumVersion": "AC1015",
+        "groupCode": 290
+      },
+      {
+        "name": "$EXTNAMES",
+        "minimumVersion": "AC1015",
+        "groupCode": 290
+      },
+      {
+        "name": "$PSVPSCALE",
+        "minimumVersion": "AC1015",
+        "groupCode": 40
+      },
+      {
+        "name": "$OLESTARTUP",
+        "minimumVersion": "AC1015",
+        "groupCode": 290
+      }
+    ]
+  },
+  "nextSteps": [
+    "Establish the applicable R14 header schema and default/nondefault loss policy from version-specific primary authority and independent producers before changing output.",
+    "Separate compatibility for previously emitted files from clean R14 output. Preserve supported values, report or refuse real loss, and never silently promote unsupported variables.",
+    "Add ASCII and binary first-save, reimport, second-save, malformed-value refusal, destination preservation and same-writer retry controls. Compare physical header groups and independent/native readback for the final profile.",
+    "Investigate the independent root-dictionary owner repair separately."
+  ],
+  "limits": [
+    "The instrumented library and generated DXF remain in scratch storage; no DWG/DXF fixture or diagnostic source is committed.",
+    "The current R14 adapter control exercises the original graphic and explicitly does not claim reimport/resave success."
+  ],
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+    "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/sections/headervars.py"
+  ]
+}

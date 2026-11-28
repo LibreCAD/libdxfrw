@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-librecad-table-projection-ac1012-sample-recheck-2026-11-22",
+  "date": "2026-11-22",
+  "supportClaimEffect": "none",
+  "librecadTableProjection": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "baseCommit": "195dc2cd142dd1205761de4b38c6b96e3216b316",
+    "fixCommit": "f5477f98a",
+    "change": "In the LibreCAD adapter, use one row and column for a TABLE's INSERT projection while retaining the source grid and ordinary MINSERT counts.",
+    "bundledRuntime": "Focused Catch2 test passes 48 assertions for block-only and grid-rendered TABLEs and ordinary MINSERT, including source counts, metadata and placement. Before the fix the same test fails four count assertions: both TABLE projections are 3 by 2.",
+    "installedCodecCompile": "librecad_filter_compile_check passes with LIBRECAD_USE_SYSTEM_LIBDXFRW=ON and BUILD_TESTS=OFF against the local installed 3.0.0 package; runtime was not tested with this package.",
+    "installedHeaderSha256": "36bb94b5c29a2ff6426f30aaaabfdd3d72bc258ed7ecf32e5082b32211872c03",
+    "currentInstalledCodecRuntime": {
+      "libdxfrwSourceCommit": "079138d1",
+      "libdxfrwStaticArchiveSha256": "396e694a4cc819a21826511f69683856d68261fa85b9c3e82f24549b248b6cbb",
+      "librecadCommit": "f5477f98a051f2e9e41ffaf9858a9e8c153821fe",
+      "testExecutableSha256": "2b5877f5b51875e6d3eb829d6319e51d7761b62798897b0a20ad0ed77266499d",
+      "result": "The focused TABLE projection test passes all 48 assertions using the separately installed static libdxfrw and offscreen Qt on macOS arm64.",
+      "configuration": "An isolated build temporarily exempted only this public-API test target from the repository's general system-codec/test incompatibility guard. The tracked CMake policy was restored unchanged. The complete test suite was not run under this configuration."
+    },
+    "limits": ["No native GUI rendering or editing qualification was performed.", "LibreCAD_3 addInsert does not use row or column counts; its native behavior remains a separate qualification."]
+  },
+  "ac1012GeneratedControls": {
+    "command": "python3 -B tools/research/generate_ac1012_dictionary_witness.py --self-test --output-dir /private/tmp/libdxfrw-ac1012-current --candidate /Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+    "scratchDirectory": "/private/tmp/libdxfrw-ac1012-current/ac1012-dictionary-6xf_hrwp",
+    "scratchReceiptSha256": "81cc974e82aac58a408801807a294da76ac5c37342123f7bd1c0671a4e45849b",
+    "producer": "GNU LibreDWG dwgadd 0.14",
+    "observations": "R13 and R14 requested cloning values 0 and 1 produce identical selected frames with no cloning field. R2000 controls have different frames and decode the requested values. Malformed-frame self-tests pass.",
+    "peerAttempt": "ODA File Converter aborted with exit -6 and no output before conversion; macOS pasteboard and hiservices XPC errors were reported.",
+    "currentCandidateRecheck": {
+      "sourceCommit": "079138d1",
+      "build": "Clean Ninja build with LIBDXFRW_BUILD_TESTS=OFF and LIBDXFRW_BUILD_DOC=OFF",
+      "executableSha256": "d86e78f34e785b57212982723e7801b70a6094a83056197e0b174c689df1503f",
+      "scratchDirectory": "/private/tmp/libdxfrw-ac1012-current/ac1012-dictionary-r2zvjynk",
+      "scratchReceiptSha256": "05031585c31d128ce34982bcbb7cefb0df8f1f002e044a6c930ccd92d5833f8a",
+      "result": "Both R13 cases refuse strict output due to one unqualified opaque callback and preserve an existing destination. Both R14 and both R2000 generated cases return success; this screen does not independently validate their output."
+    },
+    "limits": ["Scratch files are locally generated and are not committed.", "The earlier build executable was not established as built from the current source head; its conversion results do not qualify the current candidate.", "Generated source frames and peer failure cannot establish native AutoCAD duplicate-merge or WBLOCK behavior."]
+  }
+}

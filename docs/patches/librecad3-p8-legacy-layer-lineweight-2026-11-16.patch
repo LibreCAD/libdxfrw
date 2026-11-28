@@ -1,0 +1,89 @@
+diff --git a/persistence/libdxfrw/dxfimpl.cpp b/persistence/libdxfrw/dxfimpl.cpp
+index 3776e5b..5284126 100644
+--- a/persistence/libdxfrw/dxfimpl.cpp
++++ b/persistence/libdxfrw/dxfimpl.cpp
+@@ -1682,0 +1683,11 @@ void DXFimpl::writeLayer(const std::shared_ptr<const lc::meta::Layer>& layer) {
++    // R12/R14 have no layer lineweight field. Preserve the writer's
++    // fail-closed contract, but allow an explicit, reported conversion.
++    if (_exportVersion <= DRW::AC1014 && lay.lWeight != DRW_LW_Conv::widthDefault) {
++        const std::string note =
++            "Layer lineweights were not retained: R12/R14 DXF has no layer lineweight field.";
++        if (std::find(_loss.notes.begin(), _loss.notes.end(), note) == _loss.notes.end()) {
++            _loss.notes.push_back(note);
++        }
++        lay.lWeight = DRW_LW_Conv::widthDefault;
++    }
++
+diff --git a/unittest/persistence/dxfroundtriptest.cpp b/unittest/persistence/dxfroundtriptest.cpp
+index b4fe35b..874764b 100644
+--- a/unittest/persistence/dxfroundtriptest.cpp
++++ b/unittest/persistence/dxfroundtriptest.cpp
+@@ -54,0 +55 @@
++#include <cad/operations/layerops.h>
+@@ -1214 +1215,9 @@ TEST(DxfRoundTripTest, AsciiRoundTripStaysAscii) {
+-        ASSERT_TRUE(lc::persistence::File::save(doc, resaved, recorded)) << acadVersion;
++        const auto saved = lc::persistence::File::exportFile(doc, resaved, recorded);
++        ASSERT_TRUE(saved.ok) << acadVersion;
++        if (recorded == lc::persistence::File::LIBDXFRW_DXF_R12
++            || recorded == lc::persistence::File::LIBDXFRW_DXF_R14) {
++            EXPECT_TRUE(std::any_of(saved.loss.notes.begin(), saved.loss.notes.end(),
++                [](const std::string& note) { return note.find("Layer lineweights") != std::string::npos; }));
++        } else {
++            EXPECT_TRUE(saved.loss.empty()) << acadVersion;
++        }
+@@ -3166 +3175 @@ TEST(DxfRoundTripTest, DrawingUnitsSurviveASave) {
+-            const std::size_t expectedLossCount = c.insUnits == 0 ? 0u : 1u;
++            const std::size_t expectedLossCount = c.insUnits == 0 ? 1u : 2u;
+@@ -3169,4 +3178,6 @@ TEST(DxfRoundTripTest, DrawingUnitsSurviveASave) {
+-            if (c.insUnits != 0) {
+-                EXPECT_NE(legacyResult.loss.notes.front().find("insertion units"),
+-                          std::string::npos) << legacyResult.loss.notes.front();
+-            }
++            const auto hasNote = [&](const std::string& text) {
++                return std::any_of(legacyResult.loss.notes.begin(), legacyResult.loss.notes.end(),
++                    [&](const std::string& note) { return note.find(text) != std::string::npos; });
++            };
++            EXPECT_TRUE(hasNote("Layer lineweights"));
++            EXPECT_EQ(hasNote("insertion units"), c.insUnits != 0);
+@@ -3190,0 +3202,41 @@ TEST(DxfRoundTripTest, DrawingUnitsSurviveASave) {
++
++// NOLINTNEXTLINE(readability-identifier-naming)
++TEST(DxfRoundTripTest, LegacyLayerLineweightsReportLossAndKeepGeometry) {
++    auto doc = newDocument();
++    auto layer = std::make_shared<lc::meta::Layer>(
++        "A", lc::meta::MetaLineWidthByValue(0.25), lc::Color(255, 255, 255, 255));
++    std::make_shared<lc::operation::AddLayer>(doc, layer)->execute();
++    auto line = std::make_shared<lc::entity::Line>(
++        lc::geo::Coordinate(0, 0, 0), lc::geo::Coordinate(4, 3, 0), layer);
++    insertThroughBuilder(doc, {line});
++    const lc::persistence::File::Type legacyTypes[] = {
++        lc::persistence::File::LIBDXFRW_DXF_R12, lc::persistence::File::LIBDXFRW_DXF_R14,
++        lc::persistence::File::LIBDXFRW_DXB_R12, lc::persistence::File::LIBDXFRW_DXB_R14};
++    for (const auto type : legacyTypes) {
++        const std::string output = uniqueTmpDxf("layer-weights-legacy");
++        const auto result = lc::persistence::File::exportFile(doc, output, type);
++        ASSERT_TRUE(result.ok) << static_cast<int>(type);
++        ASSERT_EQ(result.loss.notes.size(), 1u);
++        EXPECT_NE(result.loss.notes.front().find("Layer lineweights"), std::string::npos);
++        auto reread = newDocument();
++        ASSERT_TRUE(lc::persistence::File::importFile(
++            reread, output, lc::persistence::File::Library::LIBDXFRW).ok);
++        EXPECT_EQ(entitiesInDocument(reread)["Line"], 1u);
++        EXPECT_EQ(reread->allLayers().count("A"), 1u);
++        EXPECT_FALSE(lc::persistence::File::save(doc, output, type));
++        boost::filesystem::remove(output);
++    }
++    const std::string modern = uniqueTmpDxf("layer-weights-modern");
++    const auto modernResult = lc::persistence::File::exportFile(
++        doc, modern, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    ASSERT_TRUE(modernResult.ok);
++    EXPECT_TRUE(modernResult.loss.empty());
++    auto reread = newDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(
++        reread, modern, lc::persistence::File::Library::LIBDXFRW).ok);
++    EXPECT_EQ(entitiesInDocument(reread)["Line"], 1u);
++    ASSERT_EQ(reread->allLayers().count("A"), 1u);
++    EXPECT_DOUBLE_EQ(reread->allLayers().at("A")->lineWidth().width(), 0.25);
++    boost::filesystem::remove(modern);
++}
++

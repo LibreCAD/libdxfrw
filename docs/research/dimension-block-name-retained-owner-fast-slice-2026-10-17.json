@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "DIMENSION group-2 block-name retained owner",
+  "mode": "local fast implementation slice with generated controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge the DXF DIMENSION group-2 anonymous-block name to its parsed owner lease",
+    "Preserve replacement, copy/assignment, and reset accounting behavior",
+    "Keep programmatic mutation and output-side copies outside this narrowly scoped parsed-field contract"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "DRW_Dimension::parseCode now passes DXF group 2 through replaceDxfRetainedStringField using a dedicated byte counter. The explicit copy constructor preserves the counter and resetDwgState clears it. Added a focused selector that uses a generated OLD-to-*D1234 record stream, finds the minimum accepted aggregate cap by binary search, verifies exact-cap success and one-byte-under refusal with the old value intact, and checks copied-lease lifetime through final reset.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": true,
+    "layoutChange": "A private retained-byte counter was added to public DRW_Dimension layout. Downstream consumers must rebuild; binary ABI compatibility is not claimed.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-dimension-name-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "results": {
+      "strictHardeningTargetAndCompatibilityCompile": "passed",
+      "focusedDimensionNameOwnerBudget": "passed",
+      "owningHardeningCTest": "passed (1/1; 0.30 s)",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "The selected DXF parser-owned DIMENSION group-2 string is admitted to the shared logical retained-byte budget, and its charge follows copies until the final reset/destruction. This does not bound allocated capacity, process RSS, programmatic setter mutation, writer-side copies, or typed projection scratch.",
+    "coverage": "The generated ASCII parser stream checks replacement at the minimum aggregate budget, one-byte-under failure preserving OLD and its charge, copy construction and assignment, sibling reset, and final release. The owning hardening CTest passes.",
+    "limitations": "No full OBJECTS-to-callback stream control, persistent or external drawing, peer parser, native CAD application, full suite, allocation benchmark, or DWG byte-layout change was used."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "gitMetadataReadOnly": true,
+    "staged": false,
+    "committed": false
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "date": "2026-11-16",
+  "scope": "Separate unqualified VIEWPORT shade mode from independent VPORT and HEADER VisualStyle fixture controls",
+  "diagnosis": "The generated mode-4 VIEWPORT is rejected by the compound decoder's validateDxf check before the following OBJECTS section is processed, so earlier graph assertions could not exercise their intended paths. The direct typed writer likewise refuses mode 4.",
+  "change": "Test mode-4 refusal explicitly for ASCII and binary, including failed publication and atomic output rollback. Retry a corrected mode-0 direct writer on the same adapter. Use mode 0 with no shade target for separate rooted VPORT/HEADER VisualStyle input, remap, graph-closure, wrong-target and readback controls; do not claim VIEWPORT shade-plot closure.",
+  "validation": "The focused VIEWPORT reference remapping and VPORT/HEADER VisualStyle controls pass; the complete libdxfrw_dxf_fixtures CTest passes (20.81 s).",
+  "limitations": "No production codec or support claim changed. Producer-bound mode-4/5 wire mappings, target classes, native semantic behavior and VIEWPORT shade-plot output remain unqualified."
+}

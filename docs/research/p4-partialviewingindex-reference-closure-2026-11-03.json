@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-partialviewingindex-reference-closure-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P4",
+  "status": "GENERATED_LOW_LEVEL_REFERENCE_CLOSURE_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Generated low-level PARTIALVIEWINGINDEX DXF serialization, identity binding, indexed-target closure, rollback and typed readback.",
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "The record's group-5 identity is source-remapped and reserved, or allocated when the source handle is absent; source identities bind only after successful record serialization.",
+      "Each entry validates finite extents and a nonzero, nonsentinel group-340 source handle before record emission.",
+      "The configured reference resolver takes precedence and returns the final output identity; otherwise the source-handle remap is used.",
+      "A group-340 target is emitted only when its final handle occurs exactly once in the writer inventory and the source handle has a matching unambiguous typed entity, object, or table identity binding.",
+      "The record is staged with DxfWriterRecordScope and RecordStateScope so late serialization failures roll back bytes and source identity-map changes; the focused corrected retry uses a fresh writer after the failed direct writer is poisoned."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed in-memory AC1032 DXF records. No DWG/DXF fixture files were added.",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "cases": [
+      "group-5 source identity remap",
+      "allocated group-5 identity when no source identity is present",
+      "group-340 remap fallback to an already-emitted POINT identity",
+      "resolver final identity overrides a conflicting fallback remap",
+      "refusal of missing nonzero, zero, and DRW::NoHandle targets",
+      "refusal when a resolver aliases another emitted record without source identity proof",
+      "late invalid XDATA failure preserves prior output and rolls back the PVI identity",
+      "fresh-writer corrected retry",
+      "typed PARTIALVIEWINGINDEX callback readback of identity, extents, and reference"
+    ],
+    "validation": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "buildResult": "PASS",
+      "focusedTestCommand": "ctest --test-dir build-gcc -R 'partialviewingindex_reference_closure|scene_object_reference_remapping' --output-on-failure",
+      "focusedTestResult": "PASS: 2/2; 0.46 seconds total",
+      "adjacentTestCommand": "build-gcc/libdxfrw_wave1_tests --common-appdata-base-scope",
+      "adjacentTestResult": "PASS",
+      "diffCheck": "PASS: git diff --check"
+    }
+  },
+  "limitations": [
+    "Generated transport and writer-inventory closure only; no eligible physical PARTIALVIEWINGINDEX producer/source-span profile is established.",
+    "The source map proves a broad typed entity/object/table identity path but does not independently establish the indexed target's exact format role or owner semantics.",
+    "No native consumer interpretation, complete document graph closure, or support claim is qualified. Keep the adapter gate fail-closed until source, role/owner, and composed readback evidence is available."
+  ],
+  "next": "Obtain source-bound physical profile and independent indexed-target role/owner evidence before admitting PARTIALVIEWINGINDEX in composed graph output."
+}

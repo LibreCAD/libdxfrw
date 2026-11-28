@@ -1,0 +1,56 @@
+{
+  "id": "p8-pointcloud-classic-authored-graph-transport-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "IMPLEMENTED_GENERATED_TRANSPORT_ONLY",
+  "topic": "Authored classic POINTCLOUD definition/reactor graph transport",
+  "scope": {
+    "admitted": "Locally authored AC1027+ classic POINTCLOUD, POINTCLOUDDEFINITION and POINTCLOUDDEFREACTOR records with a unique NOD-owned DICTIONARY, preserved caller root/entry names, complete dictionary membership, and reciprocal entity/definition/reactor identities and ownership.",
+    "excluded": [
+      "Imported DXF and DWG classic graphs with nonzero entity references",
+      "A canonical classic point-cloud NOD root key or producer convention",
+      "POINTCLOUDEX mixed graphs, NAVISWORKSMODELDEF, POINTCLOUDCOLORMAP, and targets below AC1027",
+      "External point-cloud asset resolution or native display/semantic support"
+    ]
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "details": [
+      "The strict graph admission is authored-only and disjoint from DefinitionEx/ReactorEx; it checks a unique directly NOD-owned dictionary, complete entry carriers, one-to-one definition membership, definition reactor counts, reactor ownership, and reciprocal POINTCLOUD definition/reactor references.",
+      "The selected dictionary is reattached to the extension-object emission queue after extension graph preparation resets that queue, then emitted by the dedicated point-cloud graph writer exactly once.",
+      "Definition and reactor IDs are reserved/remapped; classic CLASS records use exact admitted object counts; entity references use the configured reference resolver.",
+      "The caller-supplied root and definition entry names are preserved. The locally authored test key is explicitly not a canonical-name assertion."
+    ]
+  },
+  "evidence": {
+    "selector": "dwg2dxf_point_cloud_adapter_transport",
+    "controls": [
+      "Generated ASCII and Binary AC1027 graph output and fresh typed readback.",
+      "Readback checks NOD root key and dictionary entry, classic definition/reactor CLASS names and counts, definition payload fields, and reciprocal emitted entity/object handles.",
+      "AC1024 target refusal and unrepresented definition name/flags refusal both preserve the existing destination.",
+      "A wrong reactor owner is refused before replacing a destination sentinel; correcting the retained owner permits same-adapter retry and readback.",
+      "All DXF inputs and outputs are created in the temporary directory; no DWG/DXF fixture is added to the repository."
+    ],
+    "peer_schema_reference": {
+      "url": "https://www.gnu.org/software/libredwg/manual/LibreDWG.html",
+      "use": "Independent peer field-map evidence for classic POINTCLOUD definition/reactor references and object fields; not normative proof of graph root naming or native semantic interoperability."
+    },
+    "independent_api_reference": {
+      "url": "https://docs.dev.graebert.com/html/2026.0.1/cfx/d6/d8c/class_od_db_point_cloud-members.html",
+      "use": "Exposes classic pointCloudDefId()/reactorId() API accessors; it does not establish a canonical dictionary name or native file interoperability."
+    }
+  },
+  "validation": {
+    "normal_build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "normal_selector": "ctest --test-dir build-gcc -R '^dwg2dxf_point_cloud_adapter_transport$' --output-on-failure",
+    "normal_result": "PASS; selector exercises both ASCII and Binary cases.",
+    "asan_build": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "asan_selector": "ctest --test-dir build-asan-custom -R '^dwg2dxf_point_cloud_adapter_transport$' --output-on-failure",
+    "asan_result": "PASS; selector exercises both ASCII and Binary cases."
+  },
+  "claim_boundary": "Generated authored transport evidence only. This receipt does not qualify physical producer breadth, a canonical classic root key, imported or DWG source graphs, external assets, native consumers, complete drawing conversion, or any support claim."
+}

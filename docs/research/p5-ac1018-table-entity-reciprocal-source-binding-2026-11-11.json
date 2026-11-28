@@ -1,0 +1,38 @@
+{
+  "id": "p5-ac1018-table-entity-reciprocal-source-binding-2026-11-11",
+  "scope": "Opt-in reader-origin TABLE entity CRC/frame/class/ledger source evidence, jointly sealed with the existing source-bound extension dictionary, root and nine children. No typed TABLE model binding or output authority.",
+  "implementation": [
+    "At OBJECTS entry, after successful BLOCKS, the private selected handle is looked up in the HANDLE-map ledger and must be Published exactly once with a decoded-buffer source tuple. Size is preflighted to 64 KiB and shares the 2 MiB candidate budget before frame allocation. DwgObjectFrame rereads and verifies frame CRC.",
+    "The encoded type is resolved through the reader-owned class map; entity route and exact ACAD_TABLE/AcDbTable names and encoded/resolved identity are required. Candidate staging refuses duplicate kind/handle/ordinal/location. Delivery requires successful whole operation, finalized complete coverage, no transition violation and zero entity/object parse failures.",
+    "The immutable ticket body is inspected against the bounded AC1018 common selector profile: proxy flag and 2104-byte bounded opaque proxy, entmode 2, zero reactors, present xdictionary, and unaligned H3 target. Following layer/block/style H5 tokens are observed, not resolved or semantically qualified.",
+    "The strict bundle additionally checks that the H3 target is the reader-bound dictionary and its owner target is the authenticated entity handle. The editable TABLE callback/model is deliberately not retained or compared; spoofing its xdictionary does not change source evidence. Generic AC1018 common-link evidence remains Unknown."
+  ],
+  "physical_source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "result": "PASS same-import 0x9c TABLE H3 to DICTIONARY 0xbb, DICTIONARY H4 owner to 0x9c, code-2 entry to root 0xbc, three custom candidates and nine selected child XRECORDs. Known unrelated HEADER integrity observation remains.",
+    "probe": "tools/research/p5_ac1018_table_reciprocal_binding_probe.cpp",
+    "controls": [
+      "A thrown actual TABLE callback during BLOCKS replay makes import fail and exposes no bundle; the same adapter succeeds on retry.",
+      "Changed live TABLE callback sets its retained xdictionary to zero while immutable source evidence remains valid, explicitly demonstrating no typed-model binding.",
+      "Same- and cross-adapter same-data reentry, missing TABLE selection, XRECORD mutation and selected-entity ticket allocation fault each fail closed and permit retry.",
+      "Strict DXF output refuses and preserves sentinel; ordinary opt-out read keeps generic AC1018 common-link evidence Unknown."
+    ]
+  },
+  "automated_generated_tests": {
+    "command": "cmake --build build --target libdxfrw_dwg_table_candidate_binding_tests libdxfrw_dwg_table_entity_reader_lease_tests -j 3 && ctest --test-dir build -R ^libdxfrw_dwg_table_(candidate_binding|entity_reader_lease|entity_xdictionary_ac1018_candidate)$ --output-on-failure",
+    "result": "PASS 3/3",
+    "observer": "Locally synthesized unaligned TABLE-like body with 2104 scratch proxy bytes, tested across every truncation, H3 role and target, missing flag, reactors, reserved selector, declared proxy zero/overflow, handle/class mismatch, byte quota, and all observed observer allocation failures with retry. The body is not a complete parseable TABLE.",
+    "reader_lease": "In a separate runnable CTest, a locally framed body with freshly generated CRC and a test-only private ledger/class map drives the actual post-BLOCKS OBJECTS staging and delivery functions. Controls cover Published-once vs staged/duplicate publication, source offset space/identity/ordinal, class entity route, record/class names and resolved number, missing class/selection, bad CRC, opt-out, source size and shared byte quotas, duplicate stage, one staged-allocation failure, incomplete coverage, entity/object parse failure, integrity violation, and valid private ticket. This is an isolated reader harness, not a generated whole-DWG graph.",
+    "prior": "Existing generated dictionary/root/child bundle compatibility, source mutation, CRC and retry test passes in the same cohort."
+  },
+  "probe_build": "c++ -std=c++17 -Wall -Wextra -Werror -I src -I dwg2dxf tools/research/p5_ac1018_table_reciprocal_binding_probe.cpp build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build/libdxfrw.a -o /private/tmp/p5_ac1018_table_reciprocal_binding_probe",
+  "probe_run": "/private/tmp/p5_ac1018_table_reciprocal_binding_probe /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+  "limitations": [
+    "No generated whole-DWG positive for the populated TABLE graph: the production writer correctly refuses it. Automated tests instead isolate the generated observer and real reader lease; full integration evidence uses the scratch physical source.",
+    "Source evidence does not freeze or validate an editable TABLE model; it cannot be used as permission for output.",
+    "Proxy bytes and remaining TABLE payload are opaque. Synthesized carrier metadata is not evidence of absent data-storage, ACIS or ACDS.",
+    "TABLESTYLE/resource and wider graph closure, codepage interpretation, independent semantic interoperability and atomic populated-graph output remain open.",
+    "One reader-stage allocation and one adapter-ticket allocation failure are sampled; end-to-end allocation coverage is not exhaustive."
+  ]
+}

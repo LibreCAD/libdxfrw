@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "LibreDWG safety proposal crosswalk",
+  "mode": "Primary-source open PR and issue review plus local source/test-owner audit",
+  "scope": [
+    "Review full bodies and diffs for LibreDWG PRs 1454, 1457, and 1458, and full issue bodies for 1450, 1451, and 1452.",
+    "Map integer arithmetic, C struct layout, JSON count/buffer, LTYPE, FIELD, and XDATA/EED findings to local owners and route applicability.",
+    "Refine implementation readiness without changing code, tests, fixtures, support claims, validation cadence, or implementation order."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": ["https://github.com/LibreDWG/libredwg/pull/1454"],
+      "revision": {
+        "state": "open",
+        "merged": false,
+        "base_sha": "f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+        "head_sha": "852c8de6d48901fb33f40dc979623de7e50940aa"
+      },
+      "observed": "The proposal reports count-times-maximum-element-width checks where multiplication occurs in 32-bit arithmetic before a later cast; its example wraps 21,916,000 * 196 to 568,704 instead of 4,295,536,000.",
+      "evidenceCeiling": "Open peer proposal and source-level repro description; not evidence of an analogous local defect or a format rule."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": ["https://github.com/LibreDWG/libredwg/pull/1457"],
+      "revision": {
+        "state": "open",
+        "merged": false,
+        "base_sha": "f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+        "head_sha": "3dc5c9322157b32ce822f8dca95101d9815f67b8"
+      },
+      "observed": "The proposal reports ASSOCASMBODYACTIONPARAM placing shared 3DSOLID fields at offsets inconsistent with shared helper casts, and proposes struct/dynapi ordering plus offset assertions. The PR describes ASan/UBSan/fuzzer evidence against its base.",
+      "evidenceCeiling": "Peer-specific C layout/alias contract. It does not by itself specify wire order or show a local failure; the corresponding class is absent from the local implementation."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": ["https://github.com/LibreDWG/libredwg/pull/1458"],
+      "revision": {
+        "state": "open",
+        "merged": false,
+        "base_sha": "f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+        "head_sha": "cce69342d6a7f80cc144ac6a2faca99831fa1a4a"
+      },
+      "observed": "The proposal reports count/buffer cardinality defects across LibreDWG's JSON importer, including section/object buffers, fixed vectors, shared array counts, subclass arrays, MLINE lines, and dotted keys into unset arrays.",
+      "evidenceCeiling": "JSON import route only. libdxfrw has no production JSON codec, so this is excluded from the local DXF/DWG route denominator."
+    },
+    {
+      "project": "LibreDWG and Autodesk",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1450",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm"
+      ],
+      "revision": "Issue and official LTYPE reference reviewed 2026-10-19",
+      "observed": "Issue #1450 reports LTYPE code 9 dash text without code 74. Autodesk documents text elements under the code 74 text flag; the reduced case is malformed-input safety evidence rather than a valid-file parity witness.",
+      "evidenceCeiling": "Peer report plus format reference. Existing local generated LTYPE controls cover valid flagged text, missing-flag refusal, bounds, and following-record alignment; no local defect is asserted."
+    },
+    {
+      "project": "LibreDWG and Autodesk",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1451",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm"
+      ],
+      "revision": "Issue and official FIELD reference reviewed 2026-10-19",
+      "observed": "Issue #1451 reports group 93=0 with a primary ACFD_FIELD_VALUE and stale pointer use in LibreDWG. The FIELD reference defines the group as a dataset count and does not specify a positive minimum.",
+      "evidenceCeiling": "Existing local generated AC1015 ASCII/Binary and AC1018 vectors cover zero child values, primary value retention, and following-object continuity; no local ownership failure is asserted."
+    },
+    {
+      "project": "LibreDWG and Open Design Alliance",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1452",
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Issue and ODA DWG specification v5.4.1 reviewed 2026-10-19",
+      "observed": "Issue #1452 reports a packed-struct, odd-offset typed 16-bit access in LibreDWG's DXF-to-DWG EED encoder. ODA section 28 describes R2007+ EED string layout; the report concerns host-language alignment, not a different wire rule.",
+      "evidenceCeiling": "Local value-based dwgBuffer/dwgBufferW routes showed no analogous typed unaligned dereference in the scoped source review. This is not an exhaustive UB audit."
+    },
+    {
+      "project": "Local libdxfrw",
+      "urls": [
+        "src/intern/dwgsafety.h",
+        "src/intern/dwgreader.cpp",
+        "src/intern/dwgbuffer.cpp",
+        "src/drw_interface.h",
+        "tests/dwg_object_vectors_tests.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp",
+        "tests/dwg_reader_matrix_tests.cpp"
+      ],
+      "revision": "Current shared worktree source reviewed 2026-10-19",
+      "observed": "The local code contains checked uint64 multiply and subtraction-form range helpers used by several byte/bit bound paths; modeler carriers use DRW_ModelerGeometry callbacks; the reviewed peer associative type and JSON route are absent; generated LTYPE and FIELD zero-child controls already exist.",
+      "evidenceCeiling": "Scoped static crosswalk only, not an exhaustive arithmetic, aliasing, memory-safety, or feature-completeness audit."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "localBuildsRun": 0,
+    "localTestsRun": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-libredwg-safety-proposal-crosswalk-2026-10-19.json"
+    ],
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "The research refines existing PAR-14, LTYPE, FIELD, EED/XDATA, and typed-modeler owner checks. It adds no code or test work; implementation remains local and the reduced fast-test cadence is unchanged."
+  }
+}

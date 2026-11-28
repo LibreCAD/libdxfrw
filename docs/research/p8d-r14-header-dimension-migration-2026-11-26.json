@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r14-header-dimension-migration-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "c79b8fb5f1d1f00380f05d71857eabf1819b4425",
+  "implementationDigestSha256": "78f05d6baabea99f631e03be3d3b4da0d0a58ef59e1aadc36c0fbc9c38ab9a2f",
+  "inputCount": 775,
+  "consumerCommit": "d574254f28ade16119d4f4a9511f8cfc5934a804",
+  "authority": [
+    {
+      "url": "https://filemonger.com/specs/dxf/wotsit.org/dxf_r14/header_section_al_u05_c.htm",
+      "scope": "R14 HEADER reference and retained dimension variables."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDmUtil__dimfit_int_int.html",
+      "scope": "Legacy DIMFIT conversion."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDmUtil__dimunit_int_int.html",
+      "scope": "Legacy DIMUNIT conversion."
+    }
+  ],
+  "change": "For pre-R2000 output omit unprovided newer dimension fields, refuse seven explicit unmapped fields, and convert representable modern unit and fit families to DIMUNIT and DIMFIT. Preserve established modern-family precedence when legacy and modern families coexist; accept and validate bare DWG and dollar-prefixed header keys. LibreCAD reports omission of its generated default angular precision and refuses nondefault values.",
+  "validation": {
+    "physical": "PASS: optimized HEADER selector, ASCII/binary R14 LINE save/import/resave/reopen and R2000 nondefault dimension readback; R14 DIMDEC and DIMJUST retained.",
+    "migration": "PASS: existing dimension migration and header alias fixture controls; DIMLUNIT=4 and DIMFRAC=2 map to DIMUNIT=6, and DIMATFIT=3 and DIMTMOVE=1 map to DIMFIT=4.",
+    "transaction": "PASS: explicit newer fields, duplicate bare/prefixed aliases and unrepresentable fit tuples refuse before destination modification, then succeed on same-adapter corrected retries in ASCII and binary.",
+    "consumer": "PASS: LibreCAD system-codec selector 4957 assertions in 55 cases and bundled-codec selector 1282 assertions in 52 cases.",
+    "image": "PASS: imported-common 144 metadata reexports, 176 wire retries; two-layer legacy 120 cells and 600 atomic retries.",
+    "peer": "PASS: ezdxf 1.4.5 independently reads modern nondefaults and selected legacy dimensions without audit errors or fixes. It upgrades AC1014 files to AC1015 in memory, so this does not establish native R14 interoperability.",
+    "referenceAudit": "Four generated names remain absent from the original R14 table: FACETRES, ISOLINES, PELLIPSE and TEXTQLTY. Absence alone does not establish invalidity.",
+    "scratchSha256": {
+      "r2000Ascii": "bab5fabd67a2370861c1f3bf77825e5d5a907537ff2886bd00a417f631b5ae32",
+      "r2000Binary": "5fcd39c2c5f56c613ed6b66639ade94ad5f1af4f71424fa6b55305b1e970ec16",
+      "r2000BareAscii": "bab5fabd67a2370861c1f3bf77825e5d5a907537ff2886bd00a417f631b5ae32",
+      "r2000BareBinary": "5fcd39c2c5f56c613ed6b66639ade94ad5f1af4f71424fa6b55305b1e970ec16",
+      "r14AsciiFirst": "255c551545c0b4a0c3213c1f3e6e59d5c9e7a0af3cbe9a47b5b5619d7e15d6eb",
+      "r14AsciiSecond": "7bf4b157e0eefd4b34d50aca372b7afd089e0ad79e9108d4431ccfe6a6722e6e",
+      "r14BinaryFirst": "e59b765ac0ea82330a742068235fa2e787210b859b2bda5c974d73a6238dc691",
+      "r14BinarySecond": "5fa58672fbf851e28130cb8be12e8c5bb2d16e175f4cfcebdc0d51b5c1c51a7d"
+    }
+  },
+  "limits": [
+    "Native R14 behavior and platform qualification remain open.",
+    "Only losslessly representable dimension-family mappings are accepted for legacy targets.",
+    "Generated drawings and downloaded references remain scratch-only."
+  ]
+}

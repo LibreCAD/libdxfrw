@@ -1,0 +1,76 @@
+{
+  "slice": "RPP-5ab",
+  "title": "CELLSTYLEMAP bounded DXF style-class edit",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": [
+    "allow DXF-origin CELLSTYLEMAP edits to the typed style-class field only when the raw source carrier still matches its captured baseline",
+    "re-encode selected raw group-91 Int32 values through the normal typed ASCII/Binary DXF writer",
+    "continue permitting bounded UTF-8 style-name edits and support combined name/class edits",
+    "refuse invalid class values and unrelated typed/raw mutations"
+  ],
+  "generated_controls": [
+    "ASCII and Binary export/readback changes style 101 class 1 to 2 and style 102 class 2 to 0",
+    "the same export combines both class edits with UTF-8 name edits",
+    "typed readback and raw group-91 values match the edited classes",
+    "ASCII readback preserves the existing noncanonical CELLSTYLEMAP count spelling",
+    "classes -1 and 3 are refused before output publication",
+    "a changed raw class carrier and existing unrelated typed/raw mutations are refused"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "mechanism": "dxfRW::writeRawDxfObjectWithStringAndInt32Overrides applies validated positional Int32 values with the typed group writer; all non-overridden groups retain raw replay. Adapter preflight permits only style-class/name changes against matching typed and raw baselines."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 2",
+      "result": "PASS",
+      "notes": "-Werror adapter build and compatibility target"
+    },
+    "focused_ctests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_cellstylemap_dxf_writer|dwg2dxf_table_content_style_reference_census|dwg2dxf_table_base_style_id_dxf_refusal|libdxfrw_table_content_style_id_domains)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "elapsed_seconds": 0.26
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- src/libdxfrw.h src/libdxfrw.cpp dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/rpp5ab-cellstylemap-style-class-dxf-edit-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    },
+    "receipt_json_parse": {
+      "command": "jq empty docs/research/rpp5ab-cellstylemap-style-class-dxf-edit-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    }
+  },
+  "fixtures": {
+    "persistent_external_fixtures_added": 0,
+    "input_origin": "generated in-memory DXF objects; temporary ASCII/Binary outputs"
+  },
+  "qualification_limits": {
+    "typed_edit_scope": "CELLSTYLEMAP style class only, domain 0 through 2; unrelated typed fields remain immutable",
+    "native_dwg_tablecontent_writer": "NOT_IMPLEMENTED",
+    "production_tablestyle_cellstylemap_graph_handoff": "NOT_IMPLEMENTED",
+    "nonzero_tablecontent_base_style_ids_in_dxf": "WRITER_FAILS_CLOSED; published TABLE DXF schema has no corresponding field",
+    "full_suites": "NOT_RUN",
+    "sanitizers": "NOT_RUN",
+    "native_freecad_linux": "NOT_RUN",
+    "native_freecad_windows": "NOT_RUN",
+    "independent_acis_acds_semantic_evidence": "NOT_RUN",
+    "support_claim_promoted": false,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "commit": "NONE"
+}

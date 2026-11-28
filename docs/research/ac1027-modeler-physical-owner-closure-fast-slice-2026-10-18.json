@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-18",
+  "title": "AC1027 modeler physical-owner closure",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reject AC1027 ACDSDATA/SAB projection when a modeler's explicit entity owner disagrees with its physical modelspace, paperspace, or named-block owner.",
+  "reproduction": {
+    "control": "Generated ASCII and binary DXF cases retain an exact modeler handle/key/payload association but assign a block-contained 3DSOLID or REGION to a different, valid BLOCK_RECORD; a modelspace case points to a user-block record instead.",
+    "beforeFix": "Both encodings exported successfully and replaced the pre-existing destination sentinel.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "productionFile": "dwg2dxf/dx_iface.cpp",
+    "testFile": "tests/dwg_local_roundtrip_tests.cpp",
+    "behavior": "The AC1027 DataStorage preflight validates explicit modeler parentHandle against the containing block's BLOCK_RECORD identity; modelspace and paperspace use their matching record or canonical fixed handle. Unspecified owner handles retain the writer's existing physical-container fallback.",
+    "positiveOwnerControls": [
+      "ASCII and binary explicit modelspace owner",
+      "ASCII and binary explicit paperspace owner"
+    ],
+    "negativeOwnerControls": [
+      "ASCII and binary named-block 3DSOLID and REGION with another valid block owner",
+      "ASCII and binary modelspace modeler with a user-block owner"
+    ],
+    "outputFailureIsTransactional": true,
+    "validSABSemanticEvidence": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "passed",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "elapsedSeconds": 3.32
+    },
+    "optionalSabAuthoring": {
+      "status": "NOT_AVAILABLE",
+      "interpreter": "/opt/homebrew/bin/python3",
+      "reason": "The available interpreter cannot import ezdxf; no package was installed and no semantic check was run."
+    },
+    "scopedDiffCheck": {
+      "command": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md",
+      "result": "passed"
+    },
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "planDisposition": {
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "findings": 130,
+    "topLevelImplementationSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "worktreeState": "Uncommitted in the broadly dirty shared worktree; nothing staged."
+  },
+  "nextLocalAction": "Continue with the next dependency-ready local modeler/carrier invariant. Keep valid-body semantic parsing and platform qualification at the composed gates; external evidence does not stop unrelated local implementation."
+}

@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "HATCH gradient-name retained owner fast slice",
+  "mode": "local fast implementation slice with generated controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge the DXF HATCH group-470 gradName string to the parsed entity owner lease",
+    "Preserve replacement, copy/move, and reset accounting behavior",
+    "Use generated ASCII controls without adding persistent DWG/DXF fixtures"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "DRW_Hatch::parseCode now passes group 470 through replaceDxfRetainedStringField with a dedicated byte counter. The explicit copy constructor and assignment preserve the count with the gradient name and shared base lease; default moves transfer accounting, and reset clears/releases the field.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": true,
+    "layoutChange": "A private retained-byte counter was added to public DRW_Hatch layout. Downstream consumers must rebuild; binary ABI compatibility is not claimed.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests --parallel 4",
+      "build-gcc/libdxfrw_hardening_tests --dxf-hatch-text-owner-budget",
+      "cmake --build build-gcc --target lc3_compat_check --parallel 4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/hatch-gradient-name-retained-owner-fast-slice-2026-10-17.json"
+    ],
+    "results": {
+      "strictHardeningTarget": "passed",
+      "focusedHatchTextOwnerBudget": "passed",
+      "lc3CompatibilityCompile": "passed",
+      "owningHardeningCTest": "passed (1/1)",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "The selected parser-owned DXF HATCH group-470 string is charged to the shared logical retained-byte budget and its lease follows copies until final reset/destruction. Cap-minus-one admission preserves the previous gradient name and leaves its charge intact. This does not bound allocation capacity, RSS, public mutation, writer copies, or all HATCH fields.",
+    "coverage": "Generated ASCII controls cover pattern and gradient name replacement, minimum accepted aggregate budget, exact-cap success, one-byte-under preservation, copy construction/assignment, move construction/assignment, and final reset release.",
+    "limitations": "Per-stop color-book names (groups 432/433), HATCH boundary/pattern semantics, DWG decoding, public post-parse mutation, writer/projection copies, peer/native execution, and full-suite behavior are outside this slice."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "gitMetadataReadOnly": true,
+    "staged": false,
+    "committed": false
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 TABLE peer-schema screen",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "scope": "Check whether current open-source reader implementations independently resolve the AC1021 TABLE cell schema gap, and refine the P5-I evidence threshold without using peer code as wire authority.",
+  "primaryAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1",
+    "note": "ODA remains authoritative. The reviewed section does not settle the AutoCAD 2008 TABLE cell change; do not import a peer mapping as a substitute."
+  },
+  "peers": [
+    {
+      "repository": "DomCR/ACadSharp",
+      "source": "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Entities.cs",
+      "observed": "2026-11-17; mutable master URL, source commit not pinned",
+      "observations": [
+        "readTableCellData comments that AutoCAD 2008 changed the cell schema and marks that change TODO.",
+        "The same method decodes the pre-2010 inline cell path, so the code is an implementation lead but does not establish a correct AC1021 2008/2009 mapping.",
+        "readTableEntity uses a distinct R2010+ TABLECONTENT path; the older path is labeled Until R2007, which does not by itself identify the exact producer release of an AC1021 file."
+      ],
+      "testSource": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp.Tests/IO/TableEntityTests.cs",
+      "testLimit": "The test loads the repository's DWG/DXF sample sets and asserts one table's values, but does not bind the asserted case to a filename, source hash, producer release, or AC1021 version. It is not an independent AC1021 witness."
+    },
+    {
+      "repository": "DomCR/ACadSharp",
+      "source": "https://github.com/DomCR/ACadSharp/pull/1040",
+      "observed": "Merged 2026-05-02",
+      "observations": [
+        "The merged change adds TableEntity DWG writer support and serialization refactoring.",
+        "A merged writer implementation is useful for locating field families, but the PR does not bind the unresolved 2008 cell-change schema to a producer-versioned source/API witness."
+      ]
+    }
+  ],
+  "inputBinding": {
+    "sourceReceipt": "docs/research/p5-autodesk-metric-table-ac1021-screen-2026-11-17.json",
+    "exactHeaderVersion": "AC1021",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "sizeBytes": 258848,
+      "producerRelease": "AutoCAD 2007, identified by coherent embedded AcDb:AppInfo product metadata (17.0.48.0 / AutoCAD / registry_version 17.0) and corroborated by Autodesk's official ACADVER mapping; see docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json",
+    "records": ["0x2856e", "0x2a974"],
+    "currentBehavior": "The bounded AppInfo classifier recognizes this exact source as AutoCAD 2007 and routes it to the legacy TABLE parser. Documented text-cell overrides are typed for that exact profile. The final-row alignment raw-RS versus BitShort conflict remains gated; source field-span, graph, output, and fresh readback closure are open. Other AC1021 profiles retain incomplete/fallback semantics."
+  },
+  "decision": {
+    "status": "IMPLEMENTING_AUTOCAD_2007_TABLE_PROFILE; OTHER_AC1021_RELEASES_UNRESOLVED",
+    "nextEvidence": "Resolve raw-RS 42049 versus BitShort 6 at cells [8,0] and [9,0] with source field-boundary evidence, then bind remaining spans, roles, override tails, and following-record boundary. Keep AutoCAD 2008/2009 waiting for primary versioned layout authority or a producer-bound API/source capture.",
+    "implementationRule": "Use ODA §20.4.96.1 for the AutoCAD 2007 layout and the linked source-attribution receipt for this sample's release and independent cell values. The bounded classifier and documented text-cell override retention are implemented; unknown, malformed, contradictory, 17.1, or 17.2 metadata remains semantically incomplete. ACadSharp's MiddleRight readback corroborates the BitShort candidate but does not settle its conflict with ODA's RS field or the source boundary. Bind all spans, types, handle roles, cell counts, and next-record boundary before output; preserve anonymous-block fallback and refuse strict output for unresolved profiles. See the implementation receipts and separate whole-source proxy-graphics refusal.",
+    "supportClaimEffect": "none",
+    "repeatPolicy": "Do not repeat generic peer searches, re-download the Autodesk sample, or infer semantics from CadValue traces or paired geometry."
+  }
+}

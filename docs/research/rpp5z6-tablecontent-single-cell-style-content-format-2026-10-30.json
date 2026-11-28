@@ -1,0 +1,61 @@
+{
+  "id": "RPP-5z6",
+  "date": "2026-10-30",
+  "title": "TABLECONTENT single-cell style-scope CONTENTFORMAT output",
+  "scope": {
+    "operation": "Write the selected CONTENTFORMAT at cell, row, column and table scopes through the legacy 1x1 TABLECONTENT serializer path.",
+    "profile": "Generated AC1027 1x1 scalar TABLECONTENT for each style type 1 through 4, paired with the existing generated 2x2-grid profile; ASCII and binary DXF.",
+    "source_basis": "The legacy 1x1 path rejected row, column and table style metadata as nondefault and emitted those scopes with null style pointers, silently dropping format fields if admission were relaxed. The grid path already serialized metadata. This receipt qualifies the bounded same format profile through both serializer branches, not general table style or rendering semantics.",
+    "format": {
+      "property_override_flags": "0x1BF",
+      "property_flags": "0x100",
+      "value_data_type": 2,
+      "value_unit_type": 1,
+      "value_format_string": "0.000",
+      "rotation": 0.125,
+      "block_scale": 2.0,
+      "cell_alignment": 5,
+      "content_color": 7,
+      "text_style_handle": 0,
+      "text_height": 3.25
+    },
+    "limits": [
+      "One selected style per generated table at a time, for scope types 1 through 4",
+      "One 1x1 scalar table and the 2x2 scalar-grid control profile",
+      "No margins, borders or TABLESTYLE/CELLSTYLEMAP dependency",
+      "AC1027 DXF output only"
+    ],
+    "claim_boundary": "Selected DXF serializer and typed readback evidence only; no native rendering, DWG serialization, dependency graph or broader table formatting claim."
+  },
+  "implementation": [
+    "Allow the selected format-only style profile in the 1x1 path for row, column and table scopes while retaining existing cell-style checks and refusing unrelated margins/borders.",
+    "Pass admitted row, column and table metadata to the corresponding writeStyle calls instead of serializing null/default style bodies.",
+    "Count style format strings with plain cell values and per-content format strings under the aggregate text budget in both serializer branches."
+  ],
+  "evidence": {
+    "generated_runtime_input": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary": true,
+    "physical_wire": "For each style type 1 through 4, independent scalar walking finds exactly one CONTENTFORMAT span in both a 1x1 record and a 2x2 grid, with exact field order, wire types, values and 0.000 format string; selected margin override flags remain zero.",
+    "typed_readback": "Fresh imports locate the selected cell, row, column or table style in both record shapes and preserve hasData, scope type, all selected format fields and scalar cell content.",
+    "failure_control": "Unit type 3 is refused for every scope, record shape and encoding; destination sentinel, table collection and explicit caller value remain unchanged.",
+    "retry_control": "Restoring unit type 1 permits same-adapter retry in every profile; fresh typed readback confirms the corrected unit."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focused_selector": "build/tests/libdxfrw_table_content_dxf_tests --table-style-format-write",
+    "focused_ctest": "ctest --test-dir build -R '^(libdxfrw_table_content_(grid_write|linked_grid_write|row_margin_write|column_table_margin_write|table_style_format_write)|libdxfrw_table_content_cell_style_border_alignment)$' --output-on-failure",
+    "focused_ctest_result": "6/6 passed; style-format selector covers four scopes x two record shapes x ASCII/binary, with refusal/retry controls",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "tests/table_content_dxf_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "The parent P5 rendering/TABLE phase remains open.",
+    "Other format values, field combinations, TABLESTYLE/CELLSTYLEMAP dependencies, native rendering and DWG output are not claimed."
+  ]
+}

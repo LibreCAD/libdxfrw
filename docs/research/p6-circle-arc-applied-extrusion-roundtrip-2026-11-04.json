@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-circle-arc-applied-extrusion-roundtrip-2026-11-04",
+  "date": "2026-11-04",
+  "status": "REPRODUCED_OPEN_API_STATE_AMBIGUITY",
+  "supportClaimEffect": "none",
+  "authority": {
+    "circle": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-8663262B-222C-414D-B133-4A8506A27C18.htm: CIRCLE DXF center group 10 is OCS; group 210 specifies extrusion.",
+    "arc": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-0B14D8F1-0EBA-44BF-9108-57D8CE614BC8.htm: ARC DXF center group 10 is OCS; groups 50/51 are its angles and 210 specifies extrusion.",
+    "dwg": "ODA DWG v5.4.1 sections 20.4.18 and 20.4.20 list ARC/CIRCLE center and extrusion wire fields. Their OCS-to-DWG output semantics are not independently qualified by this experiment.",
+    "arbitrary_axis": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm: defines the normal-based arbitrary-axis basis and 1/64 threshold.",
+    "independent_open_source": "https://ezdxf.readthedocs.io/en/stable/concepts/coordinates.html: identifies CIRCLE and ARC as OCS entities and describes converting a circle center with the entity OCS. This is documentation evidence, not a second executable readback."
+  },
+  "reproducer": {
+    "path": "tools/circle_arc_extrusion_repro.cpp",
+    "sha256": "e44c6eb3ebcb27f88c9773bb9fe42b99289028d3c143377077386836ba3e2f26",
+    "build": "c++ -std=c++17 -Wall -Wextra -pedantic -Werror -Isrc tools/circle_arc_extrusion_repro.cpp build-gcc/libdxfrw.a -o /tmp/circle_arc_extrusion_repro",
+    "run": "/tmp/circle_arc_extrusion_repro",
+    "environment": "macOS ARM64, Apple clang 21.0.0; HEAD a1a907e027ed0f4a83458f2572a644742a3edd5b with unrelated in-progress BLOCK_RECORD edits in the workspace. Test uses the local CMake-built static library.",
+    "method": "Create a fresh directory and author from scratch one CIRCLE (center 2,3,4; normal 0.6,0,0.8; radius 2) and one ARC (center 2,3,4; normal 0,0,-1; radius 2; angles 0.25,1.5 radians). Both are directly authored with haveExtrusion=false. For ASCII and Binary AC1027 DXF, read with the selected applyExt mode, write the callbacks unchanged, then read in the same mode. Independently require both CIRCLE and ARC to match in the false control and both to differ in the true control. Remove generated files on exit. Exit 0 means the defect is reproduced, not that the behavior is correct.",
+    "results": {
+      "applyExt_false": "Both ASCII and Binary preserve circle center (2,3,4) and arc center (2,3,4) with angles (0.25,1.5).",
+      "applyExt_true": "Both ASCII and Binary change circle callback center approximately (0,2,5) to (1.4,0,5.2); arc callback center and angles (-2,3,-4; 1.6415926535897932,2.8915926535897932) change to (2,3,4; 0.25,1.5)."
+    }
+  },
+  "root_cause": "dxfRW::processCircle/processArc conditionally invoke applyExtrusion; DRW_Circle converts the center and leaves haveExtrusion set, and DRW_Arc additionally mirrors/swaps angles for a near-axial negative-Z normal. The DXF writers serialize those stored fields directly as native OCS. The DWG writers also directly serialize stored center and angles, but no successful DWG file round trip or DWG producer comparison is claimed here.",
+  "compatibility_constraint": "The public fields do not distinguish an authored OCS entity from one whose extrusion was applied. In particular existing clients can assign extPoint directly while haveExtrusion remains its default false; inferring WCS from that boolean would reinterpret valid existing data. The internal extrusion-axis cache is not a safe provenance flag: it is reused, copied, and an already compiled caller can invoke inline reset without clearing that cache. Public coordinate/normal edits and repeated applications further prevent reconstructing the original state automatically. Do not repurpose existing fields or change legacy default output on this evidence.",
+  "proposed_opt_in": {
+    "contract": "Add an explicit per-call or standalone conversion API that distinguishes native DXF OCS from the exact legacy applyExtrusion result; preserve existing methods and object/vtable layout. A consumer asserting the latter must know it was transformed exactly once and that its normal/coordinate interpretation remains valid. This is not a generic all-3D ARC-WCS angle representation: the legacy method mirrors angles only for its specific near-axial negative-Z case.",
+    "implementation": "For explicit legacy-applied mode, validate finite coordinates and a nonzero finite normal, inverse-project a copy of center using the matching normalized arbitrary-axis basis, and reverse the exact legacy negative-Z ARC angle operation when applicable. Do not mutate the supplied entity; reject unsupported or invalid state before record publication. Preserve original API and behavior for callers who have not explicitly opted in. Verify the DWG target and each version against independent physical source/output before extending the contract to DWG.",
+    "migration": "Consumers carrying transformed callbacks must persist the frame discriminator alongside their own stable entity identity, preserve it across copies and edits, and explicitly choose the opt-in conversion when exporting. Consumers who can keep native OCS may read with applyExt=false and use the existing writer. A legacy callback with unknown or edited frame state cannot be converted safely by inference.",
+    "acceptance": "Test default-authored OCS and old consumer binary/source compatibility; both formats and read modes; positive, negative axial and tilted normals, axis cutoff, angles and endpoints; copies, intentional edits, invalid normals, atomic failure and same-writer retry; independent DXF reader and physical producer checks. Keep unproven arbitrary-angle/normal-edit cases explicitly unsupported."
+  },
+  "limitations": "The witness checks libdxfrw-generated and libdxfrw-read ASCII/Binary DXF at AC1027; Autodesk defines native DXF OCS independently, but a second reader and physical DWG proof remain open. The reproducer is deliberately a regression witness for current bad behavior and should be replaced or changed when the implementation is fixed. No fixture is committed."
+}

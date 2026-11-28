@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "plan_slice": "7R.2d",
+  "parent_commit": "98f0eae",
+  "scope": "HATCH-containing dx_iface exports: per-call entity/compound-child source identity restoration, same-data repeat and corrected late-failure retry",
+  "implementation": {
+    "cross_callback_pointer_journal": false,
+    "compound_child_lifetime": "owning shared_ptr references retained only through one writeEntity call",
+    "snapshot_limit": "maxSourceRecords checked before per-call snapshot allocation; graph stats exclude temporary slots/RSS",
+    "detached_hatch_handle_zero": true,
+    "direct_codec_and_no_hatch_mutation_contract": "unchanged",
+    "caller_geometry_edits": "not undone"
+  },
+  "source_sha256": {
+    "dwg2dxf/dx_iface.cpp": "fb5b80aaa6580a32b7a3c57ae96b63d91dbf14e54676f5d4b8d99b91aab19604",
+    "dwg2dxf/dx_iface.h": "fe6195b711dbd42b17bc4d4339920c244222f5b0e81b338f1d6862094faa3573",
+    "tests/hatch_reference_tests.cpp": "12c9187c5b1c077aff723def373e9eb00d7edbe0d1742ca47515dd59194ae5f5",
+    "tests/dwg_local_roundtrip_tests.cpp": "00ef88203bd18abc389a8fb08ebbcbca6b5651f24f250942491c54ca94decfd3"
+  },
+  "artifact_sha256": {
+    "build/libdxfrw_dwg_local_roundtrip": "fe545c8f4b1912132cf9b173d5a3c0d58e883c3f692b5d34726b74a4d08a58cf",
+    "build/dwg2dxf/dwg2dxf": "ce3952ff0428653bda93c90e33a020718a56bcc94e76efde3e042f6ff0f95d31",
+    "build/libdxfrw.a": "bd31e7f7607b649746f948014fba421ccfebb06227808bab3c72937f659ef9f2"
+  },
+  "baseline": {
+    "adapter_source": "98f0eae with matching parent header, latest test TU and unchanged core library",
+    "source_sha256": "5d95ba7082745f46350a2e963dfc11144ad8df88fb757b7bdec41b377295c842",
+    "executable": "/private/tmp/libdxfrw-hatch-same-data-baseline.ggfTuX/before",
+    "executable_sha256": "a6ca5cf9441fbd981124b34d34a9a27d17b2df1456f2c918b7326e68bef148bd",
+    "command": "before --hatch-same-data",
+    "exit_code": 1,
+    "observation": "first associative export in each encoding succeeds and verifies but mutates identities; later original-data exports fail; successful=0, rejected=0 under the new identity gate"
+  },
+  "validation": {
+    "focused_mode": {"command": "build/libdxfrw_dwg_local_roundtrip --hatch-same-data", "successful": 16, "rejected": 8, "exit_code": 0},
+    "affected_build": "libdxfrw_dwg_local_roundtrip dwg2dxf libdxfrw_dxf_fixture_tests lc3_compat_check: no work needed, exit 0",
+    "strict_tus": "clang++ -std=c++17 -Wall -Wextra -Werror -I src -I . -fsyntax-only tests/hatch_reference_tests.cpp dwg2dxf/dx_iface.cpp: exit 0",
+    "focused_ctest": {"regex": "^(libdxfrw_dwg_local_roundtrip|libdxfrw_dxf_fixtures)$", "passed": 2, "failed": 0, "seconds": 5.27},
+    "sanitizer": {
+      "executable": "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_dwg_local_roundtrip",
+      "sha256": "35995b74beb2fe2da601ca4b1efa00d4383fa41cc9bcb43daee139d0d412bb92",
+      "flags": "-fsanitize=address,undefined -fno-omit-frame-pointer -O1",
+      "environment": "ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1",
+      "mode": "--hatch-same-data",
+      "successful": 16, "rejected": 8, "exit_code": 0,
+      "limit": "Apple-runtime leak detection disabled; focused lifetime mode only, not a whole-suite or leak qualification"
+    }
+  },
+  "actual_cli": {
+    "directory": "/private/tmp/libdxfrw-hatch-closed-cli.pQFqxS",
+    "inputs": {
+      "ascii": "/private/tmp/libdxfrw-hatch-cli.vLQ5ae/input-ascii.dxf",
+      "binary": "/private/tmp/libdxfrw-hatch-cli.vLQ5ae/input-binary.dxf"
+    },
+    "commands": [
+      "build/dwg2dxf/dwg2dxf INPUT_ASCII -o DIRECTORY/ascii.dxf",
+      "build/dwg2dxf/dwg2dxf DIRECTORY/ascii.dxf -o DIRECTORY/ascii-second.dxf",
+      "build/dwg2dxf/dwg2dxf INPUT_BINARY -b -o DIRECTORY/binary.dxf",
+      "build/dwg2dxf/dwg2dxf DIRECTORY/binary.dxf -b -o DIRECTORY/binary-second.dxf",
+      "build/libdxfrw_dwg_local_roundtrip --verify-hatch-references EACH_OUTPUT"
+    ],
+    "all_conversion_and_verifier_exit_codes": 0,
+    "ascii_both_passes_sha256": "d55bc02adfe4298f48602ebdad55276ace58ccbeb88dfcd531e68cc7eaae136c",
+    "binary_both_passes_sha256": "33f197a4220a450b5ae97710c4547dbd11ac5a92435c28ece977ed56fbdb7b94"
+  },
+  "external_drawing_or_new_ctest_registration": false,
+  "not_qualified": ["native associative edit/update", "HATCH fill/rendering", "DWG HATCH layout", "general geometry", "binary ABI", "external/platform J items"],
+  "support_claim_promotions": 0
+}

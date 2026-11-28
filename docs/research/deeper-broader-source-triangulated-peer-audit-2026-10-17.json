@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw-source-triangulated-peer-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Deepen the open-source DWG/DXF comparison by separating field decoding, geometric transformation, unknown-object layout, performance, and downstream-consumer evidence; reconcile only with existing plan owners.",
+  "method": {
+    "kind": "Read-only primary-source web research plus local plan/source inspection",
+    "peerSourcesPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "localTestsRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/DomCR/ACadSharp/issues/1250",
+      "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Entities/Arc.cs",
+      "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Entities/Ellipse.cs",
+      "https://github.com/DomCR/ACadSharp/releases",
+      "https://github.com/LibreDWG/libredwg/issues/1398",
+      "https://github.com/LibreDWG/libredwg/issues/1021",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/issues/1395",
+      "https://github.com/LibreDWG/libredwg/pull/1402",
+      "https://github.com/LibreDWG/libredwg/issues/1410",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-06 PERSUBENTMGR policy, PAR-21/7H coordinate-frame/analytic geometry owner, PAR-92/7BA/7S.3 performance work and existing peer reports",
+      "src/drw_entities.cpp: DRW_Arc and DRW_Ellipse DXF/DWG field parsing and arbitrary-axis helpers",
+      "src/drw_objects.h and src/libdxfrw.cpp: bounded opaque-object and class-tail handling",
+      "Current source, plan state, and worktree status were inspected only; no tests or peer tools were run"
+    ],
+    "evidenceRule": "Peer issues, mutable source, releases, and author measurements are route- and revision-specific. They generate bounded local questions but are not format authority, local defect reproductions, or independent semantic support evidence."
+  },
+  "evidence": [
+    {
+      "topic": "ACadSharp entity transform as a geometric-oracle limitation",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1250",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Entities/Arc.cs",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Entities/Ellipse.cs",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "observed": "Issue #1250 reports wrong transformed ARC endpoints and an ELLIPSE rotation discrepancy. The latest formal release page lists signed v3.8.0 at 3a1c66b without a transform fix in its release notes; mutable current Arc.ApplyTransform still maps endpoint vectors via Matrix3 multiplication. No current package/runtime test was run.",
+      "doesNotEstablish": [
+        "that the issue reproduces in ACadSharp v3.8.0 or current master",
+        "that libdxfrw serializes ARC or ELLIPSE fields incorrectly",
+        "that ACadSharp cannot be used for typed field or record comparison"
+      ],
+      "planUse": "Keep PAR-21/7H analytic OCS/world calculations as the geometric oracle. Pin and calibrate a future ACadSharp transform route before scoring its derived geometry; preserve parsed fields and transformed geometry as separate observations."
+    },
+    {
+      "topic": "PERSUBENTMGR versus ASSOCPERSSUBENTMANAGER class identity",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1398",
+        "https://github.com/LibreDWG/libredwg/issues/1021",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "Issue #1398 reports an ambiguous PERSUBENTMGR field sequence and a peer trace that reads an implausible num_subents value. The reporter explicitly corrects the thread: the earlier merged PR concerned ASSOCPERSSUBENTMANAGER, not PERSUBENTMGR.",
+      "doesNotEstablish": [
+        "a stable PERSUBENTMGR wire layout",
+        "a local libdxfrw defect or valid libdxfrw dispatch number",
+        "that the peer issue is fixed by the distinct ASSOCPERSSUBENTMANAGER PR"
+      ],
+      "planUse": "Preserve PAR-06's opaque/unsupported status. Require authoritative layout and versioned producer evidence before typed implementation; never hardcode the peer's reported type code."
+    },
+    {
+      "topic": "LibreDWG large-input quadratic-cost proposal",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1395",
+        "https://github.com/LibreDWG/libredwg/pull/1402"
+      ],
+      "observed": "Open PR #1402 describes three distinct quadratic paths in LibreDWG and reports author-run improvements and output comparisons. The PR remains open/undeployed and has a cla_needed label; its timings and tests were not reproduced in this task.",
+      "doesNotEstablish": [
+        "a quadratic libdxfrw code path",
+        "that peer handle-first ordering preserves libdxfrw source-order semantics",
+        "portable wall-time thresholds for local CI"
+      ],
+      "planUse": "Reuse PAR-92/7BA/7S.3's existing deterministic work counters and perform any scale experiment at the scheduled composed checkpoint only after a corresponding local hot path changes."
+    },
+    {
+      "topic": "LibreDWG DXF writer edge cases and local policy boundary",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1410",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm"
+      ],
+      "observed": "The issue bundles a zero-valued HATCH coordinate rejection, unusual attribute-tag loss, and embedded-MTEXT field rejection. These are separate peer reports; its proposed tolerant handling is not a universal DXF policy.",
+      "doesNotEstablish": [
+        "an analogous defect in libdxfrw",
+        "that arbitrary unknown groups should be ignored in all entity scopes",
+        "that omission of a required embedded-object scope marker preserves semantics"
+      ],
+      "planUse": "Keep value presence, tag profiles, embedded-MTEXT scope, and following-record alignment under their existing owners; add no broad unknown-group skip or duplicate regression."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 128,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheck": true,
+    "testsRun": false
+  }
+}

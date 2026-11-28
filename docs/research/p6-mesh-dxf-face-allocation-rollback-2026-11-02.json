@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mesh-dxf-face-allocation-rollback-2026-11-02",
+  "date": "2026-11-02",
+  "status": "BOUNDED_DXF_FACE_ALLOCATIONS_GUARDED_WITH_RETRY",
+  "supportClaimEffect": "none",
+  "scope": "Make generated DXF MESH parsing allocation-safe for the bounded vertex, face-list, and per-face index vectors while preserving same-group retry after reserve failure.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "method": "DRW_Mesh::parseCode",
+    "changes": [
+      "Before committing group-93 parser state, reserve an aggregate-bounded number of face slots using the minimum four group-90 items per triangular face.",
+      "When opening a face from group 90, reserve its validated index count before advancing the pending-index cursor; remove the just-created empty face if reserve fails.",
+      "Keep the existing maximum item limit and exception-catching DRW::reserve path."
+    ],
+    "failureBehavior": "A failed vector reservation returns false without committing the associated count/cursor transition; the same group can be retried on the same MESH parser object."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_mesh_dxf_allocation_failure$' --output-on-failure",
+    "focusedTestResult": "PASS (1/1, 0.04 seconds)",
+    "currentSourceRegressionMatrix": {
+      "build": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests -j2",
+      "focusedTests": "ctest --test-dir build-gcc -R '^libdxfrw_mesh_(crease_value_domains|dwg_crease_count_guard|dxf_allocation_failure)$' --output-on-failure",
+      "result": "PASS (3/3) against the final src/drw_entities.cpp hash recorded below"
+    },
+    "coverage": [
+      "Injected failure at group 92 vertex reserve leaves vertices empty and permits corrected group-92 retry.",
+      "Injected failure at group 93 face-list reserve leaves faces empty and permits corrected group-93 retry.",
+      "Injected failure while opening a group-90 face rolls back the empty face and permits the same group-90 retry followed by all three indices.",
+      "The final generated face is exactly [0, 1, 2].",
+      "No DWG/DXF fixture files were added."
+    ]
+  },
+  "inputHashesBeforePlanUpdate": {
+    "src/drw_entities.cpp": "b88847f1ac2c44df4c4009aeb44fce024d93f044f60f7456e812452d4980f05f",
+    "tests/dxf_fixture_tests.cpp": "fd63e54a1212e16299a4fb36f44cfbde7e574f9bfa43cd5959bdc22898a60490",
+    "CMakeLists.txt": "06643d484032eaa3a10b7e20584353d88eb7a02d7402b942675c359e5df97084",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "e1e4d9a5798db6379de551a3823a08da929ae20b7533a52ed7efc8e1781b1dfb"
+  },
+  "finalHashes": {
+    "src/drw_entities.cpp": "b88847f1ac2c44df4c4009aeb44fce024d93f044f60f7456e812452d4980f05f",
+    "tests/dxf_fixture_tests.cpp": "fd63e54a1212e16299a4fb36f44cfbde7e574f9bfa43cd5959bdc22898a60490",
+    "CMakeLists.txt": "06643d484032eaa3a10b7e20584353d88eb7a02d7402b942675c359e5df97084",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "e1e4d9a5798db6379de551a3823a08da929ae20b7533a52ed7efc8e1781b1dfb"
+  },
+  "fixtureFilesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "This protects DXF parser state and allocation behavior; it does not qualify physical MESH producer profiles or native geometry semantics.",
+    "It does not resolve the separate DWG MESH trailing-field layout conflict."
+  ],
+  "repositoryState": {
+    "baseHead": "fada6ed3",
+    "inputSnapshot": "staged blobs composed from HEAD plus MESH-only changes; focused build/CTest ran against corresponding worktree source",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

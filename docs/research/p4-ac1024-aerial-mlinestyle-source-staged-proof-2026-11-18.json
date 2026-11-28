@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-mlinestyle-source-staged-proof-2026-11-18",
+  "date": "2026-11-18",
+  "status": "WITNESSED_MLINESTYLE_SOURCE_BOUND_TO_SELECTED_OUTPUT",
+  "supportClaimEffect": "none",
+  "implementationDigest": "6d8f5978979763bd48e644c5c693db25d8a22391fff72be896889e125c785f3a",
+  "priorEvidence": "docs/research/p4-ac1024-mlinestyle-output-qualification-2026-10-31.json",
+  "source": {
+    "aerialSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "mechanicalSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "scope": "Byte-identical original bodies for AC1024 dictionary 17 and type-73 style 18. Both pass the new source-wire observers in separate original-import controls.",
+    "dictionary": "34-byte body with string 67–205, 138-bit footer and marker 205–222, relative owner C at 222–238, reactor C at 238–254, Standard soft-owner entry 18 at 254–270, observed terminal bits 11.",
+    "style": "83-byte body with common header 0–39, flags, fill CMC, both angles, two offsets, element CMC and linetype sentinels through bit 481, UTF-16 style and empty description 481–621, footer and marker through 638, relative owner 17 at 638–646, reactor 17 at 646–662, observed terminal bits 11.",
+    "authority": "Read ODA v5.4.1 sections 20.4.44 and 20.4.73. LibreDWG 0.14 confirms both frame boundaries and roles on the pinned aerial source. The independent cursor reads the captured body and string spans and the terminal bits. The file-specific terminal bits carry no general padding claim.",
+    "independentCursorSha256": "5af420a753e042cd58cd8688999981f4a2d00a0cc823aa41233ca4ba3bc496d9",
+    "cursorResultSha256": "516feaa3569ddfe850eb445155d97238efc9a6f076ce3663d236ec03d8df7c2c"
+  },
+  "implementation": {
+    "behavior": "After selecting this AC1024 source profile, require the same-import NOD and Standard membership, captured source identities, exact dictionary and style wire checks, and the existing staged field and ownership inspector. Preserve the selected proof requirement through finalization.",
+    "compatibility": "The exact source check applies to the observed C/17/18 frame widths and default angle/offset model. An edited 91-degree start angle still passes the previous modeled style path in both encodings. Existing other source profiles retain their modeled paths."
+  },
+  "validation": {
+    "wire": "Generated frames refuse all 936 single-bit mutations across the two frames, truncation, extension and changed typed metadata. Corrected frames pass.",
+    "selectedTransaction": "Original importing adapter and retained cData, with test-only output selection. The 17/18 pair and selected NOD roots pass ASCII and Binary output. Ten seeded destination-preserving refusals and corrected same-codec retries pass per encoding, including changed style/dictionary tail, changed staged style body and changed tail during finalization.",
+    "beforeAfter": "The prior production source snapshot and staged inspector accepted a changed retained style tail in both encodings. The new proof refuses it and preserves the destination.",
+    "regressions": "Four owning focused CTests pass. The adjacent empty-root, SCALELIST and whole-source refusal selectors pass.",
+    "independentReadback": "ezdxf 1.4.5 independently matched the corrected outputs with ODA's AC1024 tag rows. C maps ACAD_MLINESTYLE via group 350 to A017. Standard maps via group 350 to A018. Owners and reactors match the mapped graph. The complete emitted STANDARD flags, BYLAYER colors, angles, offsets, linetypes and entry order match.",
+    "scratch": "/private/tmp/libdxfrw-aerial-mlinestyle.7HNivb",
+    "logSha256": {
+      "final-ctest.log": "bc3ea33cd653a62918738aae5e5a30e773cc62c3147b7f9d9e4ba7c2c20c16a9",
+      "mlinestyle-writer.log": "b6555ba7ae55ace1c4ee2e3d30a4131fc9dec3b91f074c7c6c49b69f4ed9e3b1",
+      "before.log": "1c8ebf439920c7b2b04f32454068287dddffd8311ca34022016d3aa68ac9dc36",
+      "after.log": "21c5d5a7f2740d9703d036f0100b9fffc88862f0a04a8c24fa27815a0f3830c7",
+      "compatible-edit.log": "8758580849918228244a8d845724c539e1f55d739301779f6584601e795c7766",
+      "peer.log": "010757f5721367ecb51238863d8922559672df8060457cbea9a0b91115da849d"
+    }
+  },
+  "remaining": "Whole-source NOD and owner-graph closure remain open. The source and output checks concern the selected resource pair; LibreCAD MLINE editing and render behavior require separate consumer evidence."
+}

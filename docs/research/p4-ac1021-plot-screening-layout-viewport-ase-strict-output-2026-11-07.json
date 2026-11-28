@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 plot-screening LAYOUT, VIEWPORT, and ASE hierarchy strict output",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/plot_screening_and_fill_patterns.dwg",
+    "sha256": "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. No DWG or DXF fixture or derivative was added to the repository."
+  },
+  "independentStructuralCrossCheck": {
+    "tool": "LibreDWG minJSON",
+    "sourceJson": "/private/tmp/libdxfrw-plot-screening-libredwg.json",
+    "sourceJsonSha256": "7140ac1c65efc61ef3a717a8429d5051299338b0425bd658730f41af0eed3f87",
+    "limit": "Structural peer comparison only; not a native CAD consumer or semantic qualification."
+  },
+  "profile": {
+    "layouts": ["Model", "Fill Patterns", "Grayscales", "Screening 100%", "Screening 25%", "Screening 50%", "Screening 75%"],
+    "layoutCount": 7,
+    "viewportCount": 12,
+    "sourceCallbacksQualified": "69/69",
+    "aseHierarchy": {
+      "namedDictionaryPath": "NOD -> ASE_INDEX_DICTIONARY -> DICTIONARY -> ASEBlockHierarchyIndexRecord XRECORD",
+      "orderedReferenceCount": 240,
+      "sourceTargets": "240 unique model-space INSERTs on Color Table, each targeting Color Swatch and having a unique insertion-point fingerprint",
+      "outputReadback": "All ordered references resolve to unique output model-space INSERTs with matching insertion point, layer, block identity, payload code/value, and graph role."
+    },
+    "viewportGraph": "LAYOUT-to-viewport membership, reciprocal paper-space BLOCK_RECORD graph, layer/style links, and frozen-layer handle remapping were checked against fresh typed ASCII and Binary DXF imports."
+  },
+  "implementation": {
+    "files": ["dwg2dxf/dx_iface.cpp", "tests/dwg2dxf_adapter_tests.cpp"],
+    "sha256": {
+      "dwg2dxf/dx_iface.cpp": "57ec5654d00e14ce205b2bab698e34d05708dec13a0ab500e63444314967007c",
+      "tests/dwg2dxf_adapter_tests.cpp": "566c063438df50a7834d84d705211f744e1127010ffbed8230e93040e77d2193"
+    },
+    "behavior": "Admits the exact seven-layout/twelve-viewport AC1021 profile and source-binds the ASE hierarchy dictionary/XRECORD graph and its ordered 240 entity references. Fresh ASCII/Binary output readback verifies the bounded graph and remapped identities.",
+    "failureBehavior": "The selector verifies atomic destination preservation on invalid output and corrected same-adapter retry for both output encodings."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with warning-as-error enabled"
+    },
+    "physicalReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/plot_screening_and_fill_patterns.dwg",
+      "result": "PASS for ASCII and Binary; 12 viewport projections, 69/69 source callbacks qualified, 240 ordered ASE references resolved and identity-checked, rollback and same-adapter retry",
+      "testExecutableSha256": "63290351288514ea11d186515a1841b9f24602b3c85e35dddd4e4f86a0d6ca34"
+    },
+    "regression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/truetype.dwg",
+      "result": "PASS for ASCII and Binary; 4 viewport projections and 53/53 callbacks qualified"
+    },
+    "strictConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/plot_screening_and_fill_patterns.dwg -y -d -v2007 /private/tmp/plot-screen-final.dxf",
+      "result": "PASS; whole-source strict conversion",
+      "outputSha256": "db7ce3e14e68abde72679beae05b85e06e5db9d0c4fee5fdfd44f4247e205253"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "One unauthenticated AC1021 local source profile only.",
+    "Fresh libdxfrw readback and LibreDWG structural corroboration do not establish native CAD semantics or broader consumer interoperability.",
+    "No producer-wide, platform, LibreCAD_3, or FreeCAD support claim is made."
+  ],
+  "planImpact": {
+    "completed": "The plot-screening source's exact LAYOUT/VIEWPORT census, ASE XRECORD owner/target-role inventory, 240 ordered-reference output proof, ASCII/Binary rollback/retry, and strict whole-source conversion are now bounded and receipted.",
+    "removedFromQueue": "Do not repeat the 240-reference inventory or this exact source profile.",
+    "next": "Inspect the AC1024 architectural named-block SORTENTSTABLE owner-scope candidate from its existing source receipt; qualify only the missing owner/target roles and reuse existing selectors where possible.",
+    "externalItemsPromoted": 0
+  }
+}

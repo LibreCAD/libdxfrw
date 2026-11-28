@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "title": "AC1015 attributed INSERTs referencing an empty named block",
+  "status": "SOURCE_PROFILE_ONLY",
+  "supportClaimEffect": "none",
+  "source": {
+    "provenance": "From-scratch ezdxf 1.4.5 R2000 DXF; ODA File Converter 27.1.0 converted it to AC1015 DWG, then to ACAD2013 DXF; GNU LibreDWG 0.14 independently decoded the DWG. No DWG or DXF fixture is committed.",
+    "inputDxfSha256": "3c6d8df851bc9312feb28594a11ea846fa00ec338c0dddb1563c3a05bcde1256",
+    "sourceDwgSha256": "9e85e775c592ca628e95e6ae9354f1be647e9fc5302aa92c3714d2ceb05a1213",
+    "odaOutputDxfSha256": "d8503002b87135889ca89a0b6071a102e4025ece999fbfacaa6ff193309b40ad",
+    "reproducer": "tools/audit_ac1015_empty_attributed_insert.py author <input.dxf>; ODAFileConverter <input-dir> <dwg-dir> ACAD2000 DWG 0 0 '*.dxf'; ODAFileConverter <dwg-dir> <dxf-dir> ACAD2013 DXF 0 0 '*.dwg'; audit_ac1015_empty_attributed_insert.py verify <source.dwg> <output.dxf> <dwgread>",
+    "authority": "ODA DWG v5.4.1 sections 20.4.9, 20.4.52 and common entity handle data; source wire role/ownership observations independently decoded with LibreDWG.",
+    "scriptRepeatDxfSha256": "0f526f332821388e51309db7d0d9cd8fe57b9bb6cd3442630270ccf5c28725b3",
+    "scriptRepeatDwgSha256": "480ad5f990c74dd23d0b9dbe4a4d80847239bbc4d827d63483059a80b9a64fb5",
+    "scriptRepeatOutputDxfSha256": "521e8337e573c53a5638169e4ddccd376f6fa5f9b6a1d8eceb30d9acfe966849",
+    "repeat": "Full author/ODA/LibreDWG/ezdxf pipeline rerun and passed. Producer metadata makes byte hashes vary; verification checks the recorded topology and fields."
+  },
+  "observedGraph": {
+    "namedBlock": "BLOCK_HEADER 0x8A name EMPTY_CHAIN, hasattrs 0, base (0,0,0), owner soft pointer to BLOCK_CONTROL 0x9; BLOCK and ENDBLK hard-owner references 0x8B and 0x8C; first and last block-content references are role-4 typed null; ordered insert references role 4 to 0x8E and 0x93.",
+    "boundaries": "BLOCK 0x8B and ENDBLK 0x8C have entmode 0 and soft-pointer common owner 0x8A; their predecessor/successor are role-4 typed null. This independently produced source has no ATTDEF or other block content.",
+    "modelChain": "LINE 0x8D -> INSERT 0x8E -> CIRCLE 0x92 -> INSERT 0x93 -> LINE 0x96. ATTRIB and SEQEND frames are not model-chain entries.",
+    "twoAttributeInsert": "INSERT 0x8E has block-header hard pointer 0x8A, first/last attribute soft pointers 0x90/0x91 and SEQEND hard owner 0x8F. ATTRIB 0x90/0x91 common owners soft-pointer 0x8E; first prev typed-null and next relative +1, last prev relative -1 and next typed-null. SEQEND 0x8F owner soft-pointer 0x8E and prev/next typed-null.",
+    "oneAttributeInsert": "INSERT 0x93 first and last soft pointers both target ATTRIB 0x95 and its SEQEND hard-owner reference targets 0x94. Both child and footer owners soft-point to 0x93; each has typed-null predecessor/successor. This source and ODA roundtrip retain exactly one attribute."
+  },
+  "independentRoundtrip": {
+    "odaResult": "One DXF output; no .err. ezdxf independently decoded two INSERTs and exactly three attributes, and confirmed the named block contains no entities.",
+    "attributes": [
+      {
+        "tag": "FIRST",
+        "text": "ONE",
+        "position": [
+          3,
+          4,
+          0
+        ],
+        "height": 0.5,
+        "rotationDegrees": 15
+      },
+      {
+        "tag": "SECOND",
+        "text": "TWO",
+        "position": [
+          4,
+          5,
+          0
+        ],
+        "height": 0.75,
+        "rotationDegrees": 25
+      },
+      {
+        "tag": "SINGLE",
+        "text": "THREE",
+        "position": [
+          9,
+          10,
+          0
+        ],
+        "height": 0.6,
+        "rotationDegrees": 0
+      }
+    ]
+  },
+  "limits": [
+    "This witnesses one empty ordinary named block and one/two attributed INSERT chains, not ATTDEF content, nested blocks, MINSERT, paper space, arbitrary block metadata, or all ATTRIB fields.",
+    "Source-produced and roundtripped bytes do not qualify generated libdxfrw output. Require separate independent generated-output role, semantic and ODA acceptance checks plus negative ownership, collision, caller-state and transaction tests."
+  ],
+  "rotatedSourceControl": {
+    "description": "Locally authored 30-degree parent INSERT with the same two explicit attributes; ODA converted DXF to AC1015 DWG and back to DXF without .err. LibreDWG decoded pi/6 radians and ezdxf read back 30 degrees; attribute text and positions retained.",
+    "inputDxfSha256": "3b60227f35be9b0507e3b5a0455d693569437b7ba26d5471e0d5eb7edc8d921e",
+    "sourceDwgSha256": "53a54924fb29281f362d84243b39c8cd02137fe829a0b9653fe94b5d38eed61f",
+    "roundtripDxfSha256": "a203ebae5c5519787f75cda84498b10f19cb3765c5ade2d4cc91b3965dbcee26",
+    "reproduction": "Use author-rotated and verify-rotated modes of the source tool and the same ODA commands as the default control."
+  }
+}

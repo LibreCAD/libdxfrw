@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-ac1027-plotstyle-source-audit-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateCommit": "c9d06a308",
+  "implementationDigestSha256": "ba76b71d87dcf9d42f81c820396f6f13afd99e0fe245cb8d93b94a0f41c3f317",
+  "source": "Locally generated ezdxf 1.4.5 AC1027 narrow control from p7-ac1027-ezdxf-default-material-2026-11-26.json; ASCII and binary were inspected separately.",
+  "sourceSha256": {
+    "ascii": "d2127764444c5c07e20d4cb1845f723555d71807b534a495437434ff3e0b71e0",
+    "binary": "d4d5e7298a27e6685095c7a094fb1db21791df81d2417d16d3de8ff355661a09"
+  },
+  "scratchProbeSourceSha256": "a06cc1504fa333e10f19d972e64f9e0d9d3620106d65e48a420ccf6b3b33db13",
+  "scratchProbeExecutableSha256": "3210500ca8054b725f525d6b06b1a490618bd1ddd0d7552dddf147d0e5924db3",
+  "sourceObservation": {
+    "root": "A",
+    "rootEntries": 13,
+    "plotDictionary": "12",
+    "placeholderAndDefaultTarget": "13",
+    "plotObjects": 2,
+    "plotBodiesMatched": 2,
+    "plotOriginsBound": 2,
+    "plotTargetCount": 1,
+    "plotNamedTargetCount": 1,
+    "plotOriginalSourcesMatched": true,
+    "resourceRecords": 10,
+    "resourceOriginsBound": 10,
+    "resourceBodiesMatched": 10,
+    "layers": [
+      {
+        "name": "0",
+        "handle": "27",
+        "plotStyle": "13",
+        "sourceOriginBound": true,
+        "sourceBodyMatched": true,
+        "stateComplete": true
+      },
+      {
+        "name": "Defpoints",
+        "handle": "28",
+        "plotStyle": "13",
+        "sourceOriginBound": true,
+        "sourceBodyMatched": true,
+        "stateComplete": true
+      }
+    ]
+  },
+  "remaining": "Both source reports leave ownerTargetsResolved and outputEligible false. Strict output remains refused at LAYER plot-style preparation; the current single-layer graph proof assumes three NOD entries and typed materials. Extend source/live snapshots, all selected root and reference edges, physical TABLES/OBJECTS checks, mutation refusal, retry and independent readback together.",
+  "limits": [
+    "Source audits are local implementation observations on generated controls and are not independent semantics or publication evidence.",
+    "The peer file has extra graph nodes; a smaller admitted control must not be used to claim complete output for it. No DWG/DXF fixture is committed."
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-dwg-proxy-entity-bounded-dxf-transport-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P4",
+  "status": "GENERATED_PROXY_ENTITY_TRANSPORT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Retain non-DXF ACAD_PROXY_ENTITY callbacks and emit a bounded same-revision AC1018+ DXF proxy profile with source class ordinal remapping; reject unresolved proxy references and unknown payload slots.",
+  "implementation": {
+    "sourceFiles": [
+      "src/drw_entities.h",
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": [
+      "The adapter retains the typed DWG proxy entity under the existing bounded typed-entity budget, including entity-data bytes, proxy graphics bytes, subclass text, unknown bytes, and object-ID references.",
+      "The writer emits ACAD_PROXY_ENTITY class ID 498, the remapped group-91 class ordinal, bit-sized entity data, the object-ID terminator, drawing format, and original-data format.",
+      "The CLASSES output list is built only from complete published source class rows used by retained proxy entities. The class number must agree with its source stream ordinal, source instance count must equal emitted proxy instances, and source and target revisions must match.",
+      "Unresolved proxy object-ID references, unknown-data slots, unsupported common references/EED, mixed ACDS data, incomplete class coverage, and unsupported revision profiles fail closed. Parsed DWG proxy graphics may be emitted only for the same source/target revision."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally authored DRW_ProxyEntity models and a locally authored ordered DRW_DwgClassCoverageReport. No DWG/DXF fixture files were added.",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "assertions": [
+      "The source class 501 at stream ordinal 1 is emitted as a single CLASSES row and the proxy group-91 ordinal is remapped to 500.",
+      "A 19-bit entity payload occupying three bytes and the group-95/group-70 metadata survive typed readback.",
+      "An unresolved optional proxy object-ID reference preserves an existing destination; removing that reference permits same-adapter retry and readback.",
+      "DXF-origin proxies continue to use their existing exact raw-carrier route."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_proxy_entity_output_gate$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1 in 0.53 seconds.",
+    "diffCheck": "PASS",
+    "fixturePolicy": "No investigation or test drawing fixture was added or committed."
+  },
+  "authorities": [
+    {
+      "title": "Autodesk ACAD_PROXY_ENTITY DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-89A690F9-E859-4D57-89EA-750F3FB76C6B.htm",
+      "use": "Group 90 carrier ID, group 91 CLASSES ordinal, group 92 graphics byte count, group 93 entity-data bit count, group 94 object-ID terminator, group 95 drawing format, and group 70 original-data format."
+    }
+  ],
+  "limitations": [
+    "This is generated transport evidence, not physical DWG source-to-output proof, an independent consumer read, or native proxy semantic qualification.",
+    "This receipt's adapter-level output path refuses proxy object-ID references because it has no source graph resolver. The subsequent low-level resolver-backed writer profile is separately recorded in p4-dwg-proxy-entity-object-id-dxf-transport-2026-11-02.json; it does not close adapter graph dependencies.",
+    "Unknown data slots and unsupported common metadata still refuse output. Their source mapping, role-safe dependency closure, and native meaning remain open.",
+    "Strict-complete physical DWG conversion still requires fresh output/readback qualification for every opaque callback; this receipt does not grant that qualification.",
+    "P4, P6, P7, and P8 remain open; no format support claim is promoted."
+  ]
+}

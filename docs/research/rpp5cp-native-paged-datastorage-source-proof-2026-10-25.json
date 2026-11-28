@@ -1,0 +1,476 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5cp native paged DataStorage source and output proof",
+  "date": "2026-10-25",
+  "parentCommit": "7d48ef27c48b7068ed325579ff42457d130a7de9",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "GENERATED_NATIVE_AC1027_AC1032_IMPORT_SCHEMA_OWNER_BYTE_PROOF_AND_RETRIES_PASS_PEER_STRUCTURAL_SUBSET_ONLY_GENERAL_CARRIER_SEMANTIC_PLATFORM_PARITY_OPEN",
+  "implementationKind": "Locally authored native-source generator and regression/proof coverage; production codecs and support predicates unchanged",
+  "research": {
+    "specification": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/private/tmp/lc2961-impl-evidence.9GtLO2/independent-fixtures/tooling/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sha256": "fa7d94932897c65887b1b6eb8b43a8c6f7a0567192f4483db98b9f4f856fce2e",
+    "sections": [
+      "20.4.41 REGION/3DSOLID/BODY",
+      "24.1 and 24.2.1 headers",
+      "24.2.2.1 segment index",
+      "24.2.2.3/.4 data/blob pages",
+      "24.2.2.5/.6 schema index/data",
+      "24.2.2.7 search"
+    ],
+    "precedence": "Authoritative ODA layout retained where the peer decoder differs; no silent reordering to match the incomplete peer"
+  },
+  "sourceGenerator": {
+    "locallyAuthoredFromScratch": true,
+    "profiles": [
+      "AC1027",
+      "AC1032"
+    ],
+    "usesExistingNativeCommonEncodersRawReplayAndSectionWriter": true,
+    "existingFrameHelperDefaultsPreserved": true,
+    "newFrameHelperExplicitlyGatedToRegionSolidAndTwoProfiles": true,
+    "entity": "REGION fixed type37, handle0x708, no history, modelspace membership",
+    "layer": "Existing DwgLayer0Handle0x12; common hard-pointer code5 independently resolves to layer0",
+    "dataStorageHeaderVersion": 2,
+    "unknown1": 2,
+    "segmentNames": [
+      "segidx",
+      "datidx",
+      "_data_",
+      "blob01",
+      "blob01",
+      "schidx",
+      "schdat",
+      "search"
+    ],
+    "segmentIndexGrownFrom128To192AndFollowingOffsetsRelocated": true,
+    "sixSchemasAndSevenNamesSerializedIntoNativeSection": true,
+    "nativeSchemaIndexSecondTableOrder": "segment-index/local-offset/index",
+    "searchRowsAuthoredUsingOda64BitCountsAndHandleJoins": true,
+    "blobSegmentHeaderFlagsOneAndUnusedSegmentPadding0x70": true,
+    "completeDecompressedSectionBytes": 525952,
+    "modelerLogicalPayloadBytes": 262145,
+    "blobPageBytes": [
+      131072,
+      131073
+    ],
+    "thumbnailInlinePayloadBytes": 262144,
+    "payloadSemantics": "Marker-bearing byte-transport controls only; neither SAB geometry nor PNG validity is claimed",
+    "sourceImportsThroughRealFileReader": true,
+    "schemaOrRecordTransplantAfterNativeImport": false,
+    "actualImportedRawSectionEqualsEntireAuthoredSection": true,
+    "nativeDecodedRecordSchemaSegmentPayloadAndEntityBindingChecked": true,
+    "actualModelerFrameAndSourcePayloadIdentityPreservedAfterExportsAndRetries": true,
+    "generatorOptionalEmptyDirectoryArgumentAndHelpDocumented": true,
+    "onlyOwnedFreshScratchDirectoriesRecursivelyCleaned": true
+  },
+  "controls": {
+    "newCTests": [
+      "dwg2dxf_native_paged_datastorage",
+      "dwg2dxf_native_paged_datastorage_faults",
+      "libdxfrw_acds_exact_record_wire_controls"
+    ],
+    "nativeFileInstancesAcrossTwoNativeSelectorsPerCohort": 4,
+    "positiveSelector": {
+      "nativeImports": 2,
+      "initialProjections": 4,
+      "parsedOppositeEncodingReexports": 4,
+      "strictAtomicSentinelRefusals": 4
+    },
+    "faultSelector": {
+      "nativeImports": 2,
+      "preflightSourceEdits": 8,
+      "encodings": 2,
+      "restoredSameFacadeRetries": 32,
+      "successfulProjectionReadbacks": 32,
+      "parsedOppositeEncodingReexports": 32,
+      "strictAtomicSentinelRefusals": 4
+    },
+    "faultModes": [
+      "Incomplete blob retention",
+      "Wrong logical blob total",
+      "Underfull page byte sum",
+      "Record payload differs from modeler",
+      "Changed record handle key",
+      "Wrong record schema role",
+      "Changed schema count",
+      "Modeler payload differs from record"
+    ],
+    "aggregateNewNativeProjectionsAndReadbacks": 36,
+    "aggregateNewNativeParsedReexportsAndReadbacks": 36,
+    "aggregateNewNativeStrictRefusals": 8,
+    "exactDxfProof": [
+      "Output revision and six expected schemas",
+      "One matching REGION on layer0 with DXF modelspace owner and no invented history",
+      "Canonical ACDSRECORD schema ID90, ID-name2/type280=10, translated owner320, payload-name2/type280=15, logical length94",
+      "Every source payload byte in exact canonical127-byte hex chunks, including final chunk",
+      "ASM_Data links to actual remapped REGION; Thumbnail_Data retains key700 and all inline bytes",
+      "Actual parsed opposite-encoding reexport verifies the same fields and bytes"
+    ],
+    "independentLiteralObserverControls": {
+      "positiveRecords": 2,
+      "corruptionRestorationPairs": 26,
+      "usesLibrarySerializerOrParserToAuthorLiteralRecords": false,
+      "faults": [
+        "Wrong/missing/duplicate length",
+        "Wrong payload byte",
+        "Wrong chunk width",
+        "Duplicate/missing/wrong-key/wrong-role owner",
+        "Duplicate payload name",
+        "Wrong schema ID",
+        "Wrong ID section name",
+        "Wrong payload type"
+      ]
+    }
+  },
+  "harnessReadiness": {
+    "initialScaffoldCallSignatureCorrectedWithoutProductionChanges": true,
+    "initialAuthorNullViewCallbackFixedByExplicitViewsAndUcsNoops": true,
+    "initialAuthorAsanLog": "/tmp/rpp5cp-old-author-asan.log",
+    "explicitTypedExternalStorageSourceVersionAndMarkerBindingAddedBeforeNativeWrite": true,
+    "authorUsesExistingLayerTargetRatherThanNullLayerPointer": true,
+    "initialScaffoldFailuresNotCountedAsProductionRegressions": true
+  },
+  "independentPeer": {
+    "tool": "GNU LibreDWG dwgread",
+    "version": "0.14",
+    "binary": "/opt/homebrew/bin/dwgread",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "profiles": [
+      {
+        "revision": "AC1027",
+        "source": "/private/tmp/libdxfrw-rpp5cp-qualified-peer.7asxlt/native-AC1027.dwg",
+        "sourceSha256": "72c99d8be87acb6eef606b487b1a1352cecf840a04daabc04bfa355414ab3c16",
+        "json": "/private/tmp/libdxfrw-rpp5cp-qualified-peer.7asxlt/libredwg-AC1027.json",
+        "jsonSha256": "523a07cfc7a0bddd2cf4c2f4cbf3e715ff46bc130766447a764d37a967787f26",
+        "regionHandle": [
+          0,
+          2,
+          1800
+        ],
+        "regionType": 37,
+        "entityMode": 2,
+        "hasDataStorage": 1,
+        "modelerVersion": 2,
+        "layerReference": [
+          5,
+          1,
+          18,
+          18
+        ],
+        "layerTargetName": "0",
+        "layerTargetHandle": [
+          0,
+          1,
+          18
+        ],
+        "modelSpaceHandle": [
+          0,
+          1,
+          23
+        ],
+        "modelSpaceEntityReferences": [
+          [
+            3,
+            2,
+            1800,
+            1800
+          ]
+        ],
+        "dataStorageVersion": 2,
+        "dataStorageByteSize": 525952,
+        "segmentNames": [
+          "segidx",
+          "datidx",
+          "_data_",
+          "blob01",
+          "blob01",
+          "schidx",
+          "schdat",
+          "search"
+        ],
+        "schemaIndexEntries": [
+          {
+            "index": 6,
+            "segidx": 0,
+            "offset": 0
+          },
+          {
+            "index": 6,
+            "segidx": 64,
+            "offset": 1
+          },
+          {
+            "index": 6,
+            "segidx": 128,
+            "offset": 2
+          },
+          {
+            "index": 6,
+            "segidx": 146,
+            "offset": 3
+          },
+          {
+            "index": 6,
+            "segidx": 164,
+            "offset": 4
+          },
+          {
+            "index": 6,
+            "segidx": 182,
+            "offset": 5
+          }
+        ],
+        "searchRowCount": 6,
+        "blobHeaderFlags": [
+          1,
+          1
+        ],
+        "processExitCode": 0,
+        "stderrResult": "SUCCESS",
+        "completeSchemaPayloadOrSabSemanticQualification": false
+      },
+      {
+        "revision": "AC1032",
+        "source": "/private/tmp/libdxfrw-rpp5cp-qualified-peer.7asxlt/native-AC1032.dwg",
+        "sourceSha256": "0a022490d2e48e43aeebcf2bdab6c9d5a1c4aad105ee9062c69a3a772150649f",
+        "json": "/private/tmp/libdxfrw-rpp5cp-qualified-peer.7asxlt/libredwg-AC1032.json",
+        "jsonSha256": "b6494f044406a4e796223783f4ccd32f4354fd534fc2dd9871a62f196ede4b67",
+        "regionHandle": [
+          0,
+          2,
+          1800
+        ],
+        "regionType": 37,
+        "entityMode": 2,
+        "hasDataStorage": 1,
+        "modelerVersion": 2,
+        "layerReference": [
+          5,
+          1,
+          18,
+          18
+        ],
+        "layerTargetName": "0",
+        "layerTargetHandle": [
+          0,
+          1,
+          18
+        ],
+        "modelSpaceHandle": [
+          0,
+          1,
+          23
+        ],
+        "modelSpaceEntityReferences": [
+          [
+            3,
+            2,
+            1800,
+            1800
+          ]
+        ],
+        "dataStorageVersion": 2,
+        "dataStorageByteSize": 525952,
+        "segmentNames": [
+          "segidx",
+          "datidx",
+          "_data_",
+          "blob01",
+          "blob01",
+          "schidx",
+          "schdat",
+          "search"
+        ],
+        "schemaIndexEntries": [
+          {
+            "index": 6,
+            "segidx": 0,
+            "offset": 0
+          },
+          {
+            "index": 6,
+            "segidx": 64,
+            "offset": 1
+          },
+          {
+            "index": 6,
+            "segidx": 128,
+            "offset": 2
+          },
+          {
+            "index": 6,
+            "segidx": 146,
+            "offset": 3
+          },
+          {
+            "index": 6,
+            "segidx": 164,
+            "offset": 4
+          },
+          {
+            "index": 6,
+            "segidx": 182,
+            "offset": 5
+          }
+        ],
+        "searchRowCount": 6,
+        "blobHeaderFlags": [
+          1,
+          1
+        ],
+        "processExitCode": 0,
+        "stderrResult": "SUCCESS",
+        "completeSchemaPayloadOrSabSemanticQualification": false
+      }
+    ],
+    "corroboratedScope": [
+      "Container read completed without diagnostics beyond SUCCESS",
+      "REGION fixed type37 and handle0x708",
+      "Modern modeler version2 and DataStorage flag",
+      "Layer hard-pointer code5 resolves actual layer0 handle0x12",
+      "Modelspace membership reference code3 names REGION0x708",
+      "DataStorage version2, eight segment headers, two blob01 flags",
+      "Counts only: six second-table schema index rows and six search rows"
+    ],
+    "notCorroborated": [
+      "Second-table schema entry field roles: LibreDWG0.14 uses index/segidx/offset labels against ODA segment-index/local-offset/index order",
+      "Full schema-data interpretation: pinned decoder hardcodes one unknown-property record",
+      "Logical SAB payload byte digest through the peer",
+      "ACIS semantics/kernel or native platform qualification",
+      "Search row values/handle joins: peer declares narrower count fields than the ODA table; row counts alone are not join evidence"
+    ],
+    "primarySource": {
+      "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/src/acds.spec",
+      "secondTableLines": [
+        216,
+        222
+      ],
+      "schemaStubLines": [
+        224,
+        234
+      ],
+      "finding": "Pinned peer implementation explains field-role discrepancy and incomplete schema interpretation; do not relabel counts as schema qualification"
+    },
+    "masterSourceAlsoInspected": {
+      "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/acds.spec",
+      "date": "2026-10-25",
+      "secondTableAndSchemaStubStillObserved": true,
+      "searchCountWidthDifferenceAlsoObserved": true
+    }
+  },
+  "validation": {
+    "normal": {
+      "log": "/tmp/rpp5cp-normal-record-final-tests.log",
+      "tests": [
+        "dwg2dxf_modeler_acds_blob_faults",
+        "dwg2dxf_xrecord_owned_extension",
+        "dwg2dxf_native_paged_datastorage_faults",
+        "dwg2dxf_xrecord_owned_extension_faults",
+        "dwg2dxf_selected_raster_reactor_metadata",
+        "dwg2dxf_modeler_acds_blob_projection",
+        "dwg2dxf_native_paged_datastorage",
+        "libdxfrw_wave1",
+        "libdxfrw_table_entry_datastorage_refusal",
+        "libdxfrw_acds_exact_record_wire_controls",
+        "dwg2dxf_modeler_dxf_writer_matrix",
+        "dwg2dxf_acds_multi_record_projection",
+        "dwg2dxf_modeler_acds_r2013plus_projection",
+        "libdxfrw_dwg_acds_dataindex_order",
+        "libdxfrw_datastorage_page_boundaries",
+        "dwg2dxf_acds_raw_dxf_source_baseline",
+        "dwg2dxf_modeler_acds_block_projection",
+        "dwg2dxf_datastorage_capture_limits",
+        "dwg2dxf_datastorage_move_callback",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_raw_modeler_acds_replay",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "wallSeconds": 16.44,
+      "allPass": true
+    },
+    "asan": {
+      "log": "/tmp/rpp5cp-asan-record-final-tests.log",
+      "tests": [
+        "dwg2dxf_xrecord_owned_extension",
+        "libdxfrw_dwg_local_roundtrip",
+        "dwg2dxf_xrecord_owned_extension_faults",
+        "dwg2dxf_native_paged_datastorage_faults",
+        "dwg2dxf_modeler_acds_blob_faults",
+        "dwg2dxf_selected_raster_reactor_metadata",
+        "libdxfrw_dxf_fixtures",
+        "libdxfrw_wave1",
+        "dwg2dxf_modeler_acds_blob_projection",
+        "dwg2dxf_modeler_dxf_writer_matrix",
+        "libdxfrw_table_entry_datastorage_refusal",
+        "dwg2dxf_native_paged_datastorage",
+        "libdxfrw_dwg_acds_dataindex_order",
+        "dwg2dxf_acds_multi_record_projection",
+        "dwg2dxf_modeler_acds_block_projection",
+        "libdxfrw_raw_modeler_acds_replay",
+        "dwg2dxf_modeler_acds_r2013plus_projection",
+        "libdxfrw_datastorage_page_boundaries",
+        "dwg2dxf_datastorage_move_callback",
+        "libdxfrw_acds_exact_record_wire_controls",
+        "dwg2dxf_acds_raw_dxf_source_baseline",
+        "dwg2dxf_datastorage_capture_limits"
+      ],
+      "wallSeconds": 26.96,
+      "allPass": true
+    }
+  },
+  "additionalValidation": {
+    "occupiedOutputDirectoryRefusal": {
+      "result": "PASS",
+      "actualHarnessExitCode": 1,
+      "allExistingGeneratedArtifactHashesUnchanged": true
+    },
+    "normalAndAsanLibreCAD3CompileGates": "PASS",
+    "cliOptionalStaticSharedOnOffRegistration": {
+      "result": "PASS",
+      "wallSeconds": 3.17,
+      "log": "/tmp/rpp5cp-cli-optional-final.log"
+    },
+    "normalBuildLog": "/tmp/rpp5cp-record-normal-build.log",
+    "asanBuildLog": "/tmp/rpp5cp-record-asan-build.log",
+    "finalPostBuildSourceChange": "Comment-only warning that generated payloads are not semantically valid SAB/PNG",
+    "cohortParallelism": 3,
+    "normalAndAsanOwningCohortsSequential": true,
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "fullSuite": "NOT_RUN",
+    "leakQualification": "NOT_RUN",
+    "nativeLinuxWindowsQualification": "NOT_RUN"
+  },
+  "supportBoundaries": {
+    "strictAdmission": "CLOSED",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxFreeCAD": "NOT_RUN",
+    "nativeWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsSemanticKernelQualification": "NOT_RUN",
+    "independentProducerDrawingOrSchemaQualification": false,
+    "supportClaimsPromoted": false,
+    "wholePlanComplete": false
+  },
+  "remaining": [
+    "Genuine valid SAB/region-or-solid witness matching native entity kind and an independently capable semantic/kernel reader; generated marker payloads cannot satisfy it",
+    "Independent full schema/payload/owner proof: LibreDWG0.14 and observed master retain schema-table role and schema decoder gaps; do not count declared counts or local reimplementation as qualification",
+    "General native DataStorage raw-carrier/schema/owner-byte preservation and cumulative decoded-owner/retention controls, including late-source mutation and additional families/generations",
+    "Owning-family/common-extension/source-generation aliases, profile callbacks, independent names/body/path/EED, sparse classes, full IMAGE/named-root/document closure",
+    "Preserve full LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD objective; update immutable receipts and plan, safely self-unblock and commit/report slices",
+    "Isolate remaining legacy fixed temp paths before parallel cross-build owning cohorts"
+  ],
+  "exclusions": {
+    "drawingsCommitted": false,
+    "preexistingUntrackedDrawingsExcluded": 17,
+    "unrelatedUntrackedFilesExcluded": true,
+    "earlierReceiptsModified": false,
+    "remoteMutation": false
+  }
+}

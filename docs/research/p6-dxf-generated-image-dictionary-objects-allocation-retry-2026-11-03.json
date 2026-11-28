@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-generated-image-dictionary-objects-allocation-retry-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_TRANSACTION_ROLLBACK_SWEEP",
+  "supportClaimEffect": "none",
+  "scope": "Verify core generated NOD/IMAGE dictionary and plan-bound IMAGEDEF OBJECTS rollback, same-writer retry, and typed reference readback at every calibrated allocation point.",
+  "source": {
+    "parentCommit": "a169b29b",
+    "files": {
+      "tests/dxf_fixture_tests.cpp": "5542d8ec6903e6e0338a8181d85383f79fc7306e5208d5610b9d5ac23d4ac13d",
+      "tests/CMakeLists.txt": "7896197d78d8e8b169d0d6de2c90dcc36640ea1559c55dde85f41296bc126fd3",
+      "src/libdxfrw.cpp": "87d171d9be7ed48efac532325915c815874f890f42a6853b5c680b097bc61232",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "6831dab66c339da42df45ec28c2aa1b18294245a2a9dade77f02fce1614c5d7a"
+    }
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "The generated graph has a NOD entry targeting a source IMAGE dictionary and an IMAGE dictionary entry targeting a plan-bound IMAGEDEF. The IMAGE entity binds to that definition by import generation and source handle.",
+      "The test applies explicit output remaps to NOD, IMAGE dictionary, and IMAGEDEF identities, calibrates core OBJECTS allocations after IMAGE entity emission, and injects a one-shot failure at every measured offset in ASCII and Binary output.",
+      "Every injected failure occurs before the consumer OBJECTS callback, preserves the destination sentinel, and clears derived written-object and minted-entity identity maps.",
+      "After each failure, the same writer retries. Typed import verifies the root NOD entry and owner, IMAGE dictionary owner and key, dictionary-to-IMAGEDEF handle, IMAGE entity reference, and retained IMAGEDEF name.",
+      "The test writes temporary generated DXFs under the system temporary directory and removes them on completion; it adds no repository fixture and does not establish external producer behavior or semantic support."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc -R generated_image_dictionary_objects_allocation_retry --output-on-failure",
+      "result": "PASS 1/1; 1.15 seconds"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom -R generated_image_dictionary_objects_allocation_retry --output-on-failure",
+      "result": "PASS 1/1; 2.51 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "This exercises one generated IMAGE dictionary and IMAGEDEF graph; it does not qualify source DWG framing, native raster display, or other IMAGE profiles.",
+    "Local generated ASCII/Binary readback is transaction and model-binding evidence only; platform qualification and independent semantic support evidence remain open."
+  ],
+  "next": "Continue the P6 safety audit for other OBJECTS builders, source lifetime, platform numeric/string policies, and scoped concurrency."
+}

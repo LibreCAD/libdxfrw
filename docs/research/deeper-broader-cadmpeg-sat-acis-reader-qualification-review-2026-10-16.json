@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw-deeper-broader-cadmpeg-sat-acis-reader-qualification-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Evaluate the newly visible CADMPEG standalone SAT/SAB reader as an optional independent ACIS payload cross-reader and determine whether it can satisfy semantic-evidence or DWG/DXF wrapper gates.",
+  "method": {
+    "kind": "Primary project documentation, package metadata, source-tree, corpus-manifest, and open-items audit",
+    "sourcesOpened": [
+      "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+      "https://github.com/cadmpeg/cadmpeg/tree/main/crates/cadmpeg-codec-sat",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm-open-items.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/architecture.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/Cargo.toml",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/corpus/manifest.toml",
+      "https://github.com/cadmpeg/cadmpeg/tree/main/corpus"
+    ],
+    "repositoryCloned": false,
+    "peerInstalledBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "The published package and source tree describe a read-only standalone SAT/SAB parser and neutral B-rep transfer path, not DWG/DXF or AcDs ownership. The source's own L1 profile and open-items list constrain semantic use; direct/embedded parity shares the same decoder. The visible corpus manifest has no SAT entry, and the provenance/oracle of the codec golden directory was not established. GitHub main/workspace version metadata and docs.rs 0.6.1 were not bound to the same immutable source artifact. No runtime result, local defect, support promotion, or external-J resolution was established."
+  },
+  "evidence": [
+    {
+      "topic": "Bounded standalone ACIS parser candidate",
+      "sources": [
+        "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+        "https://github.com/cadmpeg/cadmpeg/tree/main/crates/cadmpeg-codec-sat",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/architecture.md"
+      ],
+      "observed": [
+        "The published codec describes bare ASM/ACIS SAT/SMT/SAB/SMB reading, with save-format 217/218 as verified ACIS bands and transfer to a neutral B-rep model.",
+        "The route is read-only and does not parse DWG/DXF containers or encode SAT/SAB output.",
+        "The project describes explicit decode losses and unknown-record/source-fidelity retention.",
+        "The project tree is separate from the ACadRust/OpenCADStudio parser family and the cq-acis/OCCT route; this is a distinct implementation candidate, not independent semantic proof."
+      ],
+      "doesNotEstablish": [
+        "correct extraction of an ACIS payload from a libdxfrw DWG/DXF entity",
+        "3DSOLID/REGION/BODY owner binding or R2013+ AcDs section linkage",
+        "native application acceptance, general ACIS correctness, or a geometry result matching independent truth"
+      ],
+      "planUse": "Retain as an optional cross-reader at the existing composed ACIS checkpoint, limited to exact extracted payload spans and separately authored expected geometry."
+    },
+    {
+      "topic": "Release-to-source identity and legal/runtime pinning",
+      "sources": [
+        "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/Cargo.toml",
+        "https://github.com/cadmpeg/cadmpeg"
+      ],
+      "observed": [
+        "docs.rs lists cadmpeg-codec-sat 0.6.1 with a 2026-10-12 release date.",
+        "The inspected mutable GitHub main workspace manifest identifies version 0.6.0; the reviewed package docs and main source are not demonstrated to be the same artifact.",
+        "The project identifies Apache-2.0 code and CC-BY-4.0 documentation and publishes clean-room/provenance rules."
+      ],
+      "doesNotEstablish": [
+        "the 0.6.1 source commit, archive checksum, transitive lock, enabled features, or runtime behavior from mutable main documentation"
+      ],
+      "planUse": "Require exact crate archive SHA-256, corresponding source commit, resolved dependency lock, toolchain/features/platform, and invocation before any peer run; otherwise record NOT_RUN."
+    },
+    {
+      "topic": "Semantic scope and unresolved assumptions",
+      "sources": [
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm-open-items.md"
+      ],
+      "observed": [
+        "The format-support document scores standalone SAT/ACIS at L1 while documenting B-rep transfer as extra capability for 217/218.",
+        "The open-items document records unresolved cases including missing-partner coedge behavior, body-kind inference by edge-use counts, pcurve interval tolerance/fallback, cone pcurve chart sign/scale, and procedural normal orientation.",
+        "The direct and embedded routes share the ACIS decoder, so their parity is internal consistency rather than an independent-reader comparison."
+      ],
+      "doesNotEstablish": [
+        "topology, trims, orientation, body-kind or placements for unresolved families",
+        "semantic truth from a passing generated self-roundtrip or same-codec direct/embedded comparison"
+      ],
+      "planUse": "Only compare cases whose expected topology and analytic geometry are separately known and whose semantics avoid the listed open items; report all losses, unknown carriers, and incomplete connected topology."
+    },
+    {
+      "topic": "Public corpus and self-test provenance boundary",
+      "sources": [
+        "https://github.com/cadmpeg/cadmpeg/blob/main/corpus/manifest.toml",
+        "https://github.com/cadmpeg/cadmpeg/tree/main/corpus",
+        "https://github.com/cadmpeg/cadmpeg/tree/main/crates/cadmpeg-codec-sat"
+      ],
+      "observed": [
+        "The inspected public corpus manifest lists FreeCAD FCStd fixtures and no SAT entry.",
+        "The SAT codec tree exposes a tests/golden directory, but the opened metadata does not establish the input provenance or an independently authored semantic oracle for those tests.",
+        "The corpus policy calls for authored, declared CC0 samples; expected topology is optional."
+      ],
+      "doesNotEstablish": [
+        "a public native SAT/SAB regression corpus or independently verified geometric truth"
+      ],
+      "planUse": "Treat the peer's test suite as source/regression evidence only until each SAT/SAB input and expected result has been provenance-audited. Add no third-party drawing fixture under this plan update."
+    }
+  ],
+  "planDelta": {
+    "newFindingIds": 0,
+    "newTopLevelSubplans": 0,
+    "newDependencies": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "peerRuntimeRuns": 0,
+    "localBehaviorChanged": false,
+    "supportClaimsPromoted": false,
+    "externalJDispositionChanged": false,
+    "findingCount": 125,
+    "topLevelSubplanCount": 71,
+    "deferredExternalItems": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

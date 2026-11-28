@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-134 tracked AC1027 redundant ACI reserved-index VPORT DXF projection",
+  "scope": "Unblock the tracked ordinary AC1027 FreeCAD-shaped conversion by narrowly projecting an ACI CMC whose nonzero reserved BS duplicates the authoritative packed ACI value; preserve strict DWG re-encoding and all mismatched/unsupported refusals.",
+  "files": {
+    "src/drw_objects.cpp": "e8e3302c6bbbc7f41891075dce140d5da76a845a2e930f424459d2196e7c22a1",
+    "src/libdxfrw.cpp": "88e0fa3a921ae878b78f6c43e822a2c5e13087f9ea26883a53e72d3645ddd00c",
+    "dwg2dxf/dx_iface.cpp": "b909c64c8fd44edca9031278fb7881e44c162513f4ce1856ae8b8552a145bc49",
+    "dwg2dxf/dx_iface.h": "b5e6b7e2928499a694eadc3dc3f7a33f324794088bf89e8ccd89593dab1ec686",
+    "tests/dxf_fixture_tests.cpp": "611520cfa23486f24758357d2de8a64b4cb7f0c323172a916ec9de88348f2477",
+    "tests/run_freecad_dwg2dxf_compat_test.cmake": "6eee5c1db86702b8b1b527d7d4cbab899ac7dbbc2ae4d7ecdeb60e5770f43dbb"
+  },
+  "evidence": {
+    "odaSpec": {
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "section": "2.11 CmColor",
+      "finding": "R2004+ CMC is a BS followed by a packed BL method/color word and an RC flags byte; the specification says the BS index is always zero. The source's nonzero value is therefore kept noncanonical for DWG re-encoding."
+    },
+    "peerImplementation": {
+      "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/bits.c",
+      "relatedIssue": "https://github.com/LibreDWG/libredwg/issues/1415",
+      "finding": "The current LibreDWG CMC reader reads the leading BS, then derives its effective index from the packed color word. Issue #1415's corrective analysis identifies the separately-read R2004+ index as vestigial and explains that the packed word carries the ACI value. This is peer implementation evidence, not producer qualification."
+    },
+    "trackedFixture": {
+      "path": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+      "sourceRepository": "LibreCAD/LibreCAD",
+      "sourceCommit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+      "sourceBlob": "2bc3fb36076bd47f7e3d7d093cc7eda063875842",
+      "observedVport": "*ACTIVE has CMC method 0xC3, packed ACI 250, reserved BS index 250, no RGB/name/book flags."
+    }
+  },
+  "change": {
+    "summary": "DXF VPORT ambient projection accepts a nonzero CMC BS only when method is ACI and the BS exactly equals the effective packed ACI value. All other metadata checks remain; DWG writer validation still requires reserved index zero. Strict CLI preflight diagnostics are printed for resolved-owner conversions, temporary debug traces were removed, and tracked special-record CLI assertions now pin the earlier strict-read completeness gate.",
+    "persistentDrawingFixturesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "wireBehaviorChanged": true,
+    "supportClaimPromoted": false,
+    "externalQualificationChanged": false
+  },
+  "generatedControls": {
+    "dxfAsciiAndBinary": "Both encodings emit VPORT group 63 value 250 and no ambient RGB/name groups for the matching redundant-index case.",
+    "negative": "A reserved BS index of 249 with packed ACI 250 refuses atomically and preserves the previous DXF destination.",
+    "dwgEncoder": "The same nonzero reserved index remains refused before body, string, or handle output.",
+    "integration": "The tracked ordinary AC1027 FreeCAD-shaped `input -o output` conversion passes. RTEXT/ARCTEXT and MPOLYGON tracked controls fail at the earlier strict DWG read-completeness gate and leave no DXF; `dwg2dxf_cli_contract` separately exercises typed-proxy refusal."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 4",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_cli_contract|libdxfrw_dxf_fixtures|dwg2dxf_freecad_cli_compat)$' --output-on-failure --parallel 3",
+      "result": "PASS (3/3; 27.30 s)"
+    },
+    {
+      "command": "git diff --check -- src/drw_objects.cpp src/libdxfrw.cpp dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dxf_fixture_tests.cpp tests/run_freecad_dwg2dxf_compat_test.cmake",
+      "result": "PASS"
+    }
+  ],
+  "evidenceCeiling": "This is a narrow format-compatibility projection inferred from one tracked LibreCAD AC1027 input and corroborating CMC reader behavior. It does not establish that arbitrary nonzero CMC reserved values are valid, does not relax DWG writer validation, and does not promote general DWG/DXF or FreeCAD support.",
+  "fullSuiteRun": false,
+  "sanitizersRun": false,
+  "externalPeersRun": false,
+  "nativeCadRun": false,
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "selfUnblockingContinuation": "Continue the PAR-134 CMC consumer/class-specific projection audit, then resume the next evidence-backed PAR-03/PAR-04, HATCH, or DWG semantic slice. Keep external qualification separate; it does not pause local implementation."
+}

@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "MATERIAL normal method before strength without refraction transform",
+  "mode": "P3 local source-order parser/writer slice with generated ASCII/Binary controls",
+  "baselineCommit": "d5a19720",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "89aa19de79f3766035a5a5b592e5d30795fbe4a62a6d0a74ce671ad37f603d2b",
+  "scope": [
+    "Recognize a repeated group 271 as the normal-map method when bump tiling was already bound, no refraction transform was present, and group 465 follows immediately.",
+    "Retain the bump tiling value, require the complete distinguishing normal-map tuple, and reject a candidate with missing strength or incomplete fields.",
+    "Keep raw-body role classification consistent with typed parsing and verify ASCII/Binary source and output, readback, atomic destination refusal, and corrected retry."
+  ],
+  "evidence": {
+    "peer": {
+      "producer": "ezdxf 1.4.5",
+      "producerSource": "build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/material.py",
+      "producerSourceSha256": "d590f51cf29e2c7efd5dc51ac530646ced8e159a47a99c5233d89a2da4ff8565",
+      "drawing": "build/rpp5gh-evidence/normal-map-without-refraction-AC1027.dxf",
+      "drawingSha256": "e3530b5d44e32b3165ac9b1f2399778a0b6e75eff58d17accae8474d55504339",
+      "physicalSequence": "The NormalOnly MATERIAL body contains bump tiling 271=1, normal method 271=7, strength 465=0.5, then normal-map groups 42/72/3/73/74/75, with no group-147 refraction matrix.",
+      "limitation": "The complete peer drawing fails earlier on a ByBlock material with an unrelated duplicate group 73 and an unmarked second blend. That failure is not attributed to NormalOnly and the drawing is not treated as semantic-conformance evidence."
+    },
+    "sourceCreation": "The owning test locally authors the isolated target field sequence and malformed controls at runtime. Test-generated drawings are removed; no peer or test drawing is committed."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "dwg2dxf/dx_material_body.h",
+      "tests/material_normal_role_tests.cpp"
+    ],
+    "summary": "The MATERIAL parser accepts the repeated pre-strength group 271 only under the witnessed boundary conditions and requires group 465 immediately after the candidate. The raw-body writer classifier identifies the same occurrence only in the top-level AcDbMaterial body, outside APPDATA/XDATA and without a refraction matrix. Inferred boundaries require a complete normal-map tuple.",
+    "behaviorChanges": [
+      "The witnessed normal-map field order imports while retaining bump tiling and normal method as separate typed roles.",
+      "ASCII and Binary outputs preserve the normal method and strength roles and reimport with the edited values.",
+      "Conflicting raw/typed normal-method edits refuse without replacing the destination; restoring the source allows same-adapter retry.",
+      "Missing strength and incomplete normal tuples are refused; a corrected input imports through the same adapter."
+    ],
+    "publicApiChanged": false,
+    "classLayoutChanged": true,
+    "persistentFixturesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_material_normal_role_tests -j4",
+      "ctest --test-dir build -R '^libdxfrw_material_normal_roles$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS with the configured -Werror build.",
+      "focusedCTest": "PASS 1/1 in 7.16 seconds; covers ASCII/Binary input and output, physical roles, typed edits, readback, malformed refusal, rollback and retry.",
+      "fullSuite": "NOT_RUN per the fast-validation plan.",
+      "nativeCADOrIndependentConsumer": "NOT_RUN."
+    }
+  },
+  "limitations": [
+    "This qualifies the witnessed source order and local serializer/readback behavior only; it does not prove the full ezdxf drawing is conformant or establish native renderer meaning.",
+    "The new private DRW_Material parser-state flag changes class layout; ABI qualification remains in P8.",
+    "Other MATERIAL source profiles, producer conformance, native rendering, version semantics and complete-document closure remain open."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "P3 pre-strength normal-map method classification, complete-tuple admission, ASCII/Binary output/readback, malformed refusal, destination rollback and retry.",
+    "remainingP3Scope": "No P3 implementation packet is currently selected. Reopen only for a new source-witnessed MATERIAL/LAYER/HEADER/common348 loss; producer/native meaning is covered by the existing P7/P8 qualification gates.",
+    "nextImplementationPacket": "P4 bounded source census: select one current physically evidenced unmatched record/dependency and prepare its exact implementation brief, or record that no implementation-ready source gap was found.",
+    "phaseStatusesChanged": true,
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "7329f6ee19d23347a3d791682cb698dd760172474997259ca7e04c7909dbec0a",
+    "src/drw_objects.h": "bcf4476d1b4c9ef5a8c94999ce6ffea9bf9552a4238d471545653969090c4b44",
+    "dwg2dxf/dx_material_body.h": "756261b8c3f311126ddb164d416b7aa955b790a609021a86faa2691405a75e25",
+    "tests/material_normal_role_tests.cpp": "8bc52a9eeae345ba373a91ab0d63c7c03884f6a827110b8335d413b6f36914c9"
+  },
+  "commitCreated": true,
+  "worktree": "The slice commit contains the P3 implementation, focused generated test, receipt and plan update. Unrelated untracked files were not staged."
+}

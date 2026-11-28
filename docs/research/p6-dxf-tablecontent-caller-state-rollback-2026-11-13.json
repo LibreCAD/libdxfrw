@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-tablecontent-caller-state-rollback-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_TABLECONTENT_CALLER_STATE_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Strengthen caller-state assertions and cover the generated whole-file DXF TABLECONTENT allocation profile across four output revisions.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One standalone TABLECONTENT object with one named column, one row, and one typed UTF-8 scalar cell; no external sample or fixture file is used.",
+    "targetVersions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "826d4e91",
+    "files": {
+      "tests/tablecontent_objects_allocation_tests.cpp": "b4c1f154ea68fb7fcd6b03405bb477735de2e4ea5cd5ec52e04f0ca9f4c4bde9",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "b4db3e2f1a5e719d8fbebea003c6151744f3a43b8625b2acdac2c23df50ba3fc"
+    },
+    "method": "After each injected whole-file allocation failure and same-writer retry, compare the complete public TABLECONTENT payload exercised by the generated object: base identity fields and empty extended/application data, completion flags, grid vectors and styles, all cell members, borders, attributes, typed value fields, merged ranges, and subrecord ranges. Existing destination sentinel, retry, and fresh typed readback checks remain in place."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_tablecontent_objects_allocation_tests --parallel 2: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_tablecontent_objects_allocation_retry$' --output-on-failure: PASS 1/1",
+    "directRun": "34 direct DWG encoder offsets; each of AC1021/AC1024/AC1027/AC1032 passes 14 ASCII and 12 Binary whole-file OBJECTS callback allocation offsets: PASS",
+    "focusedCTestElapsedSeconds": 1.26,
+    "testSourceSha256": "27f1ebc51e5e020632c59058bd6124a45123f546e3ea1f0c06d9dd746bbca96e",
+    "testExecutableSha256": "59a89dfd6216566f8e92bd10f4014b6332f2430a7e38a0c21676500f875587e6",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "The fixture remains a single generated scalar TABLECONTENT profile; no external producer prevalence, native behavior, or semantic support claim is established.",
+    "Private retained metadata is not directly compared; this generated caller object has no DXF retained metadata lease.",
+    "This is an evidence increment only. P6-G remains open pending the writer inventory diff and coverage of other remaining public writers.",
+    "No support claim is promoted."
+  ],
+  "nextAction": "Continue the P6-G writer inventory audit and select the next public writer without caller-state rollback/retry coverage."
+}

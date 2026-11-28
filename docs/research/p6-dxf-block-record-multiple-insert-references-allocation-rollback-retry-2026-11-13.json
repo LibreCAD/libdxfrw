@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-block-record-multiple-insert-references-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_BLOCK_RECORD_ORDERED_REFERENCE_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the generated rich BLOCK_RECORD whole-operation AC1032 ASCII/Binary allocation sweep to two ordered INSERT references; verify rollback, same-codec retry, and typed readback of reference order and target identities.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DXF records",
+    "profile": "One BLOCK_RECORD with four insertion units, 12 generated preview bytes, two model-space INSERTs with source handles 0xA100 and 0xA200 at distinct positions, and an APPID/string XDATA pair. Typed readback confirms the two BLKREFS handles match the emitted INSERT identities in order. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "901eb678",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-block-record-multiple-insert-references-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Extend the focused rich-overload mode to write two referenced INSERTs, each with distinct caller data. Sweep one-shot allocation failures across each codec's measured whole-operation allocation offsets; require destination and both INSERTs to remain unchanged, identity maps to roll back, and staged output to be removed. Retry the same codec and require byte-identical output plus fresh typed readback verifying two ordered BLKREFS identities resolve to the emitted INSERT handles and both positions are preserved."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_block_record_allocation_transaction$' --output-on-failure: PASS 1/1 (0.78 sec)",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_block_record_allocation_transaction$' --output-on-failure: PASS 1/1 (4.85 sec)",
+    "directRun": "PASS; ASCII 142 and Binary 139 allocation offsets injected; caller/destination/identity rollback, staging cleanup, same-codec retry and ordered typed readback passed.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction evidence for two references does not establish producer-authored preview semantics or version-wide interoperability.",
+    "Other BLOCK_RECORD option combinations, XDATA value types, and source-producer behavior remain open.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's public-writer inventory with another exact uncovered route or version-specific compound-record variant."
+}

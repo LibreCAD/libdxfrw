@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 TABLECONTENT CadValue object-ID role and retry",
+  "date": "2026-11-24",
+  "supportClaimEffect": "none",
+  "scope": "Verify the TABLECONTENT CadValue type-64 Object ID handle role and parser reset/retry behavior with generated AC1021 vectors.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.99",
+    "field": "CadValue type 64 (Object Id) is an H handle read from the handles section and is a soft pointer."
+  },
+  "implementation": {
+    "file": "tests/dwg_object_vectors_tests.cpp",
+    "test": "libdxfrw_ac1021_table_content_reference_roles",
+    "generatedControls": [
+      "A hard-pointer encoding for a type-64 CadValue Object ID is rejected, the input is marked bad, and the parser resets its parse-complete flag and retained rows.",
+      "The same parser instance accepts the corrected soft-pointer encoding, retains object ID 0xA721 and TABLESTYLE handle 0xA700, reports complete semantic content, and consumes the bounded frame."
+    ],
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2 && ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_ac1021_table_content_reference_roles$'",
+    "result": "Build succeeded; 1 of 1 focused tests passed."
+  },
+  "fixtureDisposition": "Both vectors are authored in memory from scratch. No DWG or DXF fixture was added.",
+  "outputBoundary": "This closes only the generated AC1021 TABLECONTENT CadValue type-64 handle-role control. It does not establish producer-wire provenance, TABLE graph closure, strict output/readback, native rendering, or broader AC1021 support."
+}

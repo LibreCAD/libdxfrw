@@ -1,0 +1,146 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-action-empty-reference-profile-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative action empty-reference profile",
+  "status": "OBSERVED_AC1024_EMPTY_ACTION_REFERENCE_PROFILE_OUTPUT_OPEN",
+  "supportClaimEffect": "none",
+  "scope": "Audit the parsed AcDbAssocAction prefix fields actionbody, deps, and owned_params for the three source-matched AC1024 witnesses. This closes only their empty-reference profile; it does not qualify any nonempty target route or associative output.",
+  "independentSource": {
+    "reader": "LibreDWG dwgread",
+    "version": "0.14",
+    "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "sourceDefinitions": [
+      {
+        "path": "/Users/dli/dev/libredwg/include/dwg.h",
+        "fields": "ASSOCACTION_fields defines owningnetwork, actionbody, num_deps/deps, num_owned_params/owned_params, and num_values/values."
+      },
+      {
+        "path": "/Users/dli/dev/libredwg/src/dwg2.spec",
+        "fields": "Action body is DXF group 360. Dependency entries use group 360 when is_owned and 330 otherwise. Owned parameters use hard-owned group 360 handles."
+      },
+      {
+        "path": "/Users/dli/dev/libredwg/src/in_dxf.c",
+        "fields": "The independent DXF reader checks 330/360 dependency group codes and 360 owned-parameter references."
+      }
+    ],
+    "projectionMethod": "Run dwgread -O DXF on each exact source. In OBJECTS, locate each record's 100 AcDbAssocAction marker and parse the ordered class version, geometry status, owning network, action body, action index, maximum dependency index, and dependency-count fields; inspect the dependency entries and class-version-gated owned-parameter count/handles.",
+    "limitations": "This independent DXF projection confirms the observed fields and empty reference arrays for these source profiles. It does not validate this library's writer or prove nonempty target types and ownership routes."
+  },
+  "sourceProfiles": [
+    {
+      "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "localAudit": {
+        "logPath": "/private/tmp/assoc-action-prefix-civil.log",
+        "logSha256": "117271fec3f4fe0184300ab99148aa5a869a7c6a255aa11e14cd1bc406069dcc",
+        "actionRecords": 24,
+        "actionBodyReferences": 0,
+        "actionDependencyReferences": 0,
+        "actionOwnedParamReferences": 0,
+        "emptyReferenceProfileComplete": true,
+        "strictOutput": "Refused with dwg-associative-graph-not-serialized; no DXF output was created."
+      },
+      "independentPeer": {
+        "jsonPath": "/private/tmp/civil-assoc-dependency.json",
+        "jsonSha256": "ef33f2eb73fbf0f9f74d0a4b99d63b347fb01554e788be71d02989688774c5de",
+        "dxfPath": "/private/tmp/civil-assoc-action-prefix-peer.dxf",
+        "dxfSha256": "b19a6c760c6539e5e0b768125c4bfbf710a8e323f158b53b314d2556d3d30855",
+        "actionRecords": 24,
+        "classVersionCounts": {"1": 24},
+        "actionBodyReferences": 0,
+        "actionDependencyReferences": 0,
+        "actionOwnedParamReferences": 0
+      }
+    },
+    {
+      "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "localAudit": {
+        "logPath": "/private/tmp/assoc-action-prefix-architectural.log",
+        "logSha256": "13bafd85e3453ee444d009a59622a55ab82307527aa136eedfbb78780bb43171",
+        "actionRecords": 29,
+        "actionBodyReferences": 0,
+        "actionDependencyReferences": 0,
+        "actionOwnedParamReferences": 0,
+        "emptyReferenceProfileComplete": true,
+        "strictOutput": "Refused with dwg-associative-graph-not-serialized; no DXF output was created."
+      },
+      "independentPeer": {
+        "jsonPath": "/private/tmp/architectural-assoc-dependency.json",
+        "jsonSha256": "da7a939d6542a9e7ef638d331c1dd7cdc90970858493124edbff7bac9f31d39f",
+        "dxfPath": "/private/tmp/architectural-assoc-action-prefix-peer.dxf",
+        "dxfSha256": "16587f4864d2dd0b704bd1992e482a0e80be0c7517ff4455584c97d5142312e5",
+        "actionRecords": 29,
+        "classVersionCounts": {"1": 29},
+        "actionBodyReferences": 0,
+        "actionDependencyReferences": 0,
+        "actionOwnedParamReferences": 0
+      }
+    },
+    {
+      "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "workspaceStatus": "Local investigation fixture; not staged or committed.",
+      "localAudit": {
+        "logPath": "/private/tmp/assoc-action-prefix-mechanical.log",
+        "logSha256": "a289c8a94a57d1d99fee35b5873cdef8e4ca6383fab3a62f1b39b1fd4ef040d1",
+        "actionRecords": 20,
+        "actionBodyReferences": 0,
+        "actionDependencyReferences": 0,
+        "actionOwnedParamReferences": 0,
+        "emptyReferenceProfileComplete": true,
+        "strictOutput": "Refused with dwg-associative-graph-not-serialized; no DXF output was created."
+      },
+      "independentPeer": {
+        "jsonPath": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+        "jsonSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+        "dxfPath": "/tmp/libdxfrw-p4-libredwg-mechanical.dxf",
+        "dxfSha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+        "actionRecords": 20,
+        "classVersionCounts": {"1": 20},
+        "actionBodyReferences": 0,
+        "actionDependencyReferences": 0,
+        "actionOwnedParamReferences": 0
+      }
+    }
+  ],
+  "implementation": {
+    "files": ["dwg2dxf/dx_data.h", "dwg2dxf/dx_iface.cpp"],
+    "behavior": "For AC1024 imports, count action-prefix records and bound work across actionbody, deps, and owned_params. The empty-reference profile closes only when every action prefix is complete, those references are absent, version-gated value-parameter fields are consistent, and no resource limit is exceeded. Nonempty or partial profiles remain unqualified.",
+    "strictOutput": "Unchanged. Associative DWG output remains refused until complete graph serialization and readback are implemented.",
+    "supportClaimEffect": "none"
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf -j 4",
+      "result": "PASS"
+    },
+    "sourceRuns": {
+      "command": "build/dwg2dxf/dwg2dxf <source.dwg> -y -d -v2010 <temporary-output.dxf>",
+      "result": "Three source-matched imports passed the action-prefix audit: 24/24, 29/29, and 20/20 action records; all actionbody/deps/owned_params reference totals were zero. Each run retained the expected strict graph-serialization refusal and created no DXF output."
+    },
+    "peerRuns": {
+      "command": "/opt/homebrew/bin/dwgread -O DXF <source.dwg> -o <temporary-peer.dxf>",
+      "result": "Three independent LibreDWG conversions showed matching action-record counts and empty actionbody/deps/owned_params fields."
+    },
+    "diffCheck": "PASS",
+    "automatedTestSuites": "Not run; the focused -Werror build and three matched reader projections were used for this audit slice."
+  },
+  "limitations": [
+    "Coverage is limited to the empty AC1024 action-prefix reference profile in these three witnesses, not all AC1024 files or other DWG versions.",
+    "No non-null actionbody, action dependency, or owned-parameter target type/owner route was source-witnessed or qualified.",
+    "Other recursive references, associative serialization, handle remapping, output readback, and consumer semantics remain open.",
+    "The local mechanical DWG and all scratch peer outputs remain uncommitted."
+  ],
+  "nextAction": "Obtain a source-matched nonempty action-body/dependency/owned-parameter witness before qualifying those target routes; continue auditing other required associative descendants, then implement complete-graph output and readback while strict refusal remains active.",
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_data.h": "e96c0614d4909dbcfee193e11e95ef7cde68bcc649d791af816cb1b315b920fd",
+    "dwg2dxf/dx_iface.cpp": "605fb7e0e8f0b6a3365a03ff0187ac618cd23472e84579ab4d5f37ac0b7c2e59",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "b53c98ebe08ffecca9c3c0e9648df49cd209951845cc382fde6c7eae255fba82",
+    "build/dwg2dxf/dwg2dxf": "238bd91089c9f0d12d353cd179a5ef378bb0ef1a6fef5cc1d480aea8e260802e"
+  }
+}

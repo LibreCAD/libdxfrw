@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-explicit-links-current-candidate-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "3e9d2525d",
+  "implementationDigestSha256": "f5a373b6adbce3a1a181b62734b6223eadd3931fbbb265b41cb1913713640467",
+  "candidateSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+  "frameTestSha256": "35a5a80c271569e2e8cafee118778a6883756da325d595f80b70a779bbac343b",
+  "sourceReceipt": "docs/research/p6-ac1012-explicit-entity-links-2026-11-27.json",
+  "scratchDirectory": "/private/tmp/ac1012-current-candidate-sfhq1a4s",
+  "samples": {
+    "destination": {
+      "sourceSha256": "591886bfe380de443bba2d2d025a78cda961ea28bbf34563a3b0c109d85dd635",
+      "dictionaryFrameSha256": "0d005170285d2dbdc3887520bc5a018a708e58aff8568324818f1f918da95d07",
+      "lineFrameSha256": "44096a17d66d965c042a8e509412d1de8aba88ceae1e780b63b88497e7850f6a",
+      "frameTestOutput": "physical AC1012 dictionary frame and role/refusal/retry: PASS",
+      "candidate": {
+        "ascii": {
+          "strict": {
+            "exitCode": 1,
+            "destinationPreservedOnRefusal": true,
+            "outputSha256": null,
+            "expectedMergeRefusalObserved": true
+          },
+          "partial": {
+            "exitCode": 0,
+            "destinationPreservedOnRefusal": null,
+            "outputSha256": "cfcb4611e6fe5381a8c889f35c00cf15fab3b86fe1a2583c34ea421969f611bb",
+            "dictionaryAuditSha256": "0ede3457e150064c7347134c863690d4e26174c75fca22eeb110ba3a01b6dcb4",
+            "selectedDictionaryRoots": 1,
+            "selectedStyleValuesChecked": true
+          }
+        },
+        "binary": {
+          "strict": {
+            "exitCode": 1,
+            "destinationPreservedOnRefusal": true,
+            "outputSha256": null,
+            "expectedMergeRefusalObserved": true
+          },
+          "partial": {
+            "exitCode": 0,
+            "destinationPreservedOnRefusal": null,
+            "outputSha256": "7b659779b920f04842a7a71886f7ddc7746bc3cb5f37cbf5b9e9394248153d53",
+            "dictionaryAuditSha256": "ddb80bb43b141ee2d025924b39eb367af60acaba47f105a7f1a8eea36eefca59",
+            "selectedDictionaryRoots": 1,
+            "selectedStyleValuesChecked": true
+          }
+        }
+      }
+    },
+    "source": {
+      "sourceSha256": "f64932935008a0c4ff84aae0ae29bba22f3c34c856693cb035190639384564d0",
+      "dictionaryFrameSha256": "fbaf235e03a52ceacff32f57b3e0334dd4cb0a535b42e659eaa66bdd7c7a49c7",
+      "lineFrameSha256": "44096a17d66d965c042a8e509412d1de8aba88ceae1e780b63b88497e7850f6a",
+      "frameTestOutput": "physical AC1012 dictionary frame and role/refusal/retry: PASS",
+      "candidate": {
+        "ascii": {
+          "strict": {
+            "exitCode": 1,
+            "destinationPreservedOnRefusal": true,
+            "outputSha256": null,
+            "expectedMergeRefusalObserved": true
+          },
+          "partial": {
+            "exitCode": 0,
+            "destinationPreservedOnRefusal": null,
+            "outputSha256": "ae76ab4c897334f70a1f93c55b3dbf069c70eb8baadb06f5af3bec9d0779676f",
+            "dictionaryAuditSha256": "d3f9199b628ef527ec5c5a65988ad5f04464a5ad92b9f1bdb3e363327c2ec585",
+            "selectedDictionaryRoots": 1,
+            "selectedStyleValuesChecked": true
+          }
+        },
+        "binary": {
+          "strict": {
+            "exitCode": 1,
+            "destinationPreservedOnRefusal": true,
+            "outputSha256": null,
+            "expectedMergeRefusalObserved": true
+          },
+          "partial": {
+            "exitCode": 0,
+            "destinationPreservedOnRefusal": null,
+            "outputSha256": "a4a135224799d10f86ebb5dd2c6e76a21e103cd7ef0f1f598297d9c4d09f9af1",
+            "dictionaryAuditSha256": "47128b6645f41efe869a1cb1d66493202a45729081bab2dd3514d5296a38067a",
+            "selectedDictionaryRoots": 1,
+            "selectedStyleValuesChecked": true
+          }
+        }
+      }
+    }
+  },
+  "limits": [
+    "Selected frame and projection controls only; no native AutoCAD normal-open, duplicate merge, complete graph or general support claim."
+  ],
+  "fullScratchEvidenceSha256": "3ca2abeaa919e75916f3eb1c962e6b6ef3be34398b674997324886cd9bb3c325"
+}

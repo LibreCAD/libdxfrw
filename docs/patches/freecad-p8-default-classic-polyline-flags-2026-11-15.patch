@@ -1,0 +1,100 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index 06d3cd0..0eddc13 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2405,6 +2405,10 @@ bool CDxfRead::ReadPolyLine()
+ 
+     SetupValueAttribute(eInteger1, flags);
+     ProcessAllEntityAttributes();
++    // VERTEX records also use group 70; preserve the parent flags before
++    // processing those records into the existing attribute map.
++    const int polylineFlags = flags;
++    const bool isMesh = (polylineFlags & (16 | 64)) != 0;
+ 
+     // We are now followed by a series of VERTEX entities followed by ENDSEQ.
+     // To avoid eating and discarding the rest of the entieies if ENDSEQ is missing,
+@@ -2416,14 +2420,21 @@ bool CDxfRead::ReadPolyLine()
+         currentVertex.location = Base::Vector3d();
+         currentVertex.bulge = 0.0;
+         ProcessAllEntityAttributes();
+-        vertices.push_back(currentVertex);
++        if (!isMesh) {
++            vertices.push_back(currentVertex);
++        }
+     }
+     if (!IsObjectName("SEQEND")) {
+         ImportError("POLYLINE ends with '{}' record rather than 'SEQEND'\n", m_record_data);
+         repeat_last_record();
+     }
+ 
+-    OnReadPolyline(vertices, flags);
++    if (isMesh) {
++        // Mesh face records are not polyline vertices. Do not fabricate a wire.
++        UnsupportedFeature("POLYLINE polygon or polyface mesh");
++        return true;
++    }
++    OnReadPolyline(vertices, polylineFlags);
+     return true;
+ }
+ 
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index 8f5c041..4557d84 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -188,3 +188,56 @@ class TestImportDXF(TestImportBase):
+                     self.assertEqual(actual, sorted(set(points)))
+                 else:
+                     self.assertIn(unsupported, stats["unsupportedFeatures"])
++
++    def test_classic_polyline_header_flags_and_mesh_disposition(self):
++        """Preserve parent closure flags and never turn mesh records into wires."""
++        points = [(1, 1, 0), (4, 1, 0), (4, 5, 0), (1, 5, 0)]
++        cases = [
++            ("open2d", 0, 0, 3, False, True),
++            ("closed2d", 1, 0, 4, False, True),
++            ("open3d", 8, 32, 3, False, True),
++            ("closed3d", 9, 32, 4, False, True),
++            ("missingseqend", 1, 0, 4, False, False),
++            ("polymesh", 16, 64, 0, True, True),
++            ("polyface", 64, 192, 0, True, True),
++            ("meshmissingseqend", 64, 192, 0, True, False),
++        ]
++        for name, header_flags, vertex_flags, edge_count, mesh, seqend in cases:
++            with self.subTest(profile=name):
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                        (0, "SECTION"), (2, "ENTITIES"), (0, "POLYLINE"), (8, "0"),
++                        (66, 1), (70, header_flags)]
++                for x, y, z in points:
++                    tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, z),
++                                 (70, vertex_flags)])
++                if name in ("polyface", "meshmissingseqend"):
++                    tags.extend([(0, "VERTEX"), (8, "0"), (10, 0), (20, 0), (30, 0),
++                                 (70, 128), (71, 1), (72, 2), (73, 3), (74, 4)])
++                if seqend:
++                    tags.append((0, "SEQEND"))
++                tags.extend([(0, "LINE"), (8, "0"), (10, 20), (20, 20), (30, 0),
++                             (11, 21), (21, 20), (31, 0), (0, "ENDSEC"), (0, "EOF")])
++                path = os.path.join(self.temp_dir, f"polyline-{name}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                before = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                objects = [obj for obj in self.document.Objects
++                           if obj not in before and obj.isDerivedFrom("Part::Feature")]
++                lines = [obj for obj in objects if obj.Name.startswith("Shape")]
++                wires = [obj for obj in objects if obj.Name.startswith("Polyline")]
++                self.assertEqual(stats["entityCounts"].get("POLYLINE"), 1)
++                self.assertEqual(stats["entityCounts"].get("LINE"), 1)
++                self.assertEqual(len(lines), 1)
++                self.assertEqual(sorted((v.Point.x, v.Point.y, v.Point.z)
++                                        for v in lines[0].Shape.Vertexes),
++                                 [(20, 20, 0), (21, 20, 0)])
++                if mesh:
++                    self.assertEqual(wires, [])
++                    self.assertIn("POLYLINE polygon or polyface mesh", stats["unsupportedFeatures"])
++                else:
++                    self.assertEqual(len(wires), 1)
++                    self.assertEqual(len(wires[0].Shape.Edges), edge_count)
++                    self.assertEqual(wires[0].Shape.isClosed(), edge_count == 4)
++                    self.assertEqual(stats["unsupportedFeatures"], {})

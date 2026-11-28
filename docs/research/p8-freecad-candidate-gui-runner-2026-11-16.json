@@ -1,0 +1,57 @@
+{
+  "date": "2026-11-16",
+  "scope": "Guarded GUI smoke runner on local macOS ARM64 candidate; view properties only.",
+  "sourceCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+  "sourceArchiveSha256": "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4",
+  "patchCount": 20,
+  "candidateCompared": true,
+  "gitBaseVerified": false,
+  "cmakeCacheSha256": "933f52bb5676eaa71434dcc822f72c83ee15c6cd56584a439d32ef199d15bdb1",
+  "freecadSha256": "eaef0a9296bfb569011e08d6f07f60896932e90c27868055eb85b34244c97694",
+  "importGuiSha256": "b05c7cfec8b6b070fef5f2a57002e5da78839ca45908d495ca339d448ae52c74",
+  "draftSha256": "72c03a089baca13a55d7f3051988005c3e1005b532b3944b279d407dc122a9a9",
+  "macroSha256": "2334d23f02faf59292fa7814bf9094579200e280260ce022f45b3d2a4706b7d5",
+  "qtPlatformRequested": "cocoa",
+  "platform": "darwin",
+  "machine": "arm64",
+  "guiUp": 1,
+  "profile": "smoke",
+  "cases": [
+    "polyface",
+    "polygon",
+    "mixed",
+    "nested_nolayers",
+    "layer_on_2",
+    "layer_off_2",
+    "layer_frozen_2",
+    "color",
+    "color_mixed",
+    "color_mixed_nocolor"
+  ],
+  "checks": [
+    "All ten GUI view-property cases passed in a real local FreeCAD GUI process.",
+    "A fake executable without a result marker was refused.",
+    "A build paired with a different source root was refused.",
+    "A real GUI retry passed after the negative controls.",
+    "The native macOS GUI smoke passed with the requested and observed Cocoa Qt platform."
+  ],
+  "limitations": [
+    "The successful native source was archive-extracted; optional Git-base verification was not used.",
+    "Git-base verification, when used, covers HEAD and tracked changed paths, not ignored or untracked files, submodules or complete build provenance.",
+    "Qt display backend and producer interoperability must be recorded separately on other platforms.",
+    "This does not prove rendered pixels or broad DWG/DXF support.",
+    "The local Draft resource was outside the selected build and was accepted through an explicit resource-directory override; hosted runs use the build resource directory by default."
+  ],
+  "qtPlatformObserved": "cocoa",
+  "resourceFollowUp": {
+    "macroSha256": "0ec43944aaa7069fc6b7886ee497252b87e203706624a3b4c2d11f3cc4d0799f",
+    "draftResourceSha256": "e8d2ed84e4b003fc8e3d5b7cec68207598ec2b7ad718de5a49d6c72f09a7e468",
+    "draftResourceWithinBuild": false,
+    "qtPlatformObserved": "cocoa",
+    "checks": [
+      "The selected resource directory loaded successfully on local macOS.",
+      "A resource from a different directory was refused.",
+      "One earlier local process reported successful smoke cases but aborted during shutdown; the wrapper rejected it and the retry passed."
+    ]
+  }
+}

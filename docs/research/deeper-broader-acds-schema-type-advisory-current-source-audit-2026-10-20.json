@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "AcDs schema-type advisory and current peer-source audit",
+  "repository": "LibreCAD/libdxfrw",
+  "mode": "Primary-source web review and local source/test crosswalk; research-only",
+  "scope": [
+    "Reconcile CVE-2026-111167 with ODA's AcDs schema property type domain.",
+    "Inspect the corresponding current mutable LibreDWG schema decoder path.",
+    "Verify that the local range-test recommendation from 2026-10-19 is implemented and define safe optional-peer use."
+  ],
+  "sources": [
+    {
+      "name": "CVE-2026-111167",
+      "urls": [
+        "https://www.cve.org/CVERecord?id=CVE-2026-111167",
+        "https://www.vulncheck.com/advisories/gnu-libredwg-through-0.14.8612-out-of-bounds-read-in-acds-private-acds-decoder"
+      ],
+      "revision": "CVE record published 2026-10-15; assigned by VulnCheck.",
+      "observed": "Reports an out-of-bounds read in LibreDWG acds_private() through 0.14.8612 when an oversized schdat schema property type indexes beyond a static type-size table.",
+      "evidenceCeiling": "Third-party security report; not a maintainer-confirmed patch status, local defect, or reproduced exploit in this review."
+    },
+    {
+      "name": "ODA Open Design Specification v5.4.1",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Section 24.2.2.6.1.1, schema property type; reviewed 2026-10-20.",
+      "observed": "Defines normal property types 0 through 15; type 0xE carries a custom-size field, and fixed-size lookup uses a 16-entry table.",
+      "evidenceCeiling": "Normative byte-layout reference for the stated field domain; does not validate peer behavior or establish semantic interpretation of unknown schema payloads."
+    },
+    {
+      "name": "LibreDWG current mutable acds.spec",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec"
+      ],
+      "revision": "Mutable master page reviewed 2026-10-20; no peer commit was built or executed.",
+      "observed": "The reviewed schdat decoder parses prop.type and directly indexes _AcDs_Schema_Prop_types[prop.type] for non-custom values; no range guard appears in that stanza.",
+      "evidenceCeiling": "Source-shape correspondence only. Mutable source is not an immutable artifact or runtime exploitability result."
+    },
+    {
+      "name": "Local implementation and regression owner",
+      "urls": [
+        "src/drw_datastorage.cpp",
+        "tests/graph_preservation_tests.cpp",
+        "docs/research/acds-schema-property-type-range-negative-controls-fast-slice-2026-10-19.json"
+      ],
+      "revision": "Shared worktree source/test inventory reviewed 2026-10-20; focused implementation receipt dated 2026-10-19.",
+      "observed": "The local parser checks the parsed type against SCHEMA_PROPERTY_TYPE_COUNT before table lookup. The generated profile tests legal 15 and invalid 16/UINT32_MAX, requiring an invalid-type diagnostic, invalid/non-replayable status, and bounded later-schema handling. The recorded graph-preservation CTest passed.",
+      "evidenceCeiling": "Local bounds regression evidence only; not an AcDs ownership, SAB, B-rep, or native-consumer qualification."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "priorFocusedRecommendation": "Implemented; do not duplicate",
+    "implementationOrderChanged": false,
+    "newMandatoryPeerOrNativeGates": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "testsRunInThisResearchPass": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Mark the local AcDs type-index test recommendation complete and require exact artifact/source guard inspection before optional peer parsing; keep malformed AcDs negative vectors local unless the peer build is verified fixed and isolated."
+  },
+  "method": {
+    "kind": "Read-only web research plus local source/test/plan inspection",
+    "codeModified": false,
+    "testsModified": false,
+    "testsRun": false,
+    "fixturesAdded": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "externalDrawingsDownloaded": false
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "AC1024 associative network dictionary owner-chain audit",
+  "mode": "P4 source-matched dictionary owner and BLOCK_CONTROL closure slice",
+  "baselineCommit": "f4db31fc",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Bind each associative network dictionary to its source-matched common owner and recursively verify each ACAD_ASSOCNETWORK dictionary membership edge.",
+    "Retain the actual BLOCK_CONTROL source publication and require an exact duplicate-free match between its handle list and the complete retained BLOCK_RECORD table.",
+    "Verify terminal NOD root ownership or the BLOCK_RECORD extension-dictionary edge; keep graph serialization, node-tail semantics and remaining descendants separate."
+  ],
+  "evidence": {
+    "runtimeSources": [
+      {
+        "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "logPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-assoc-owner-chain-final-xepsaehg/architectural_example-imperial.dwg.log",
+        "logSha256": "e94a2189e2d1bf5173cfc0a0afa646daa185eac5ca75faf5440c6cdde478d348",
+        "exitCode": 1,
+        "networkRecords": 5,
+        "dictionaryEntriesVerified": "5/5",
+        "dictionaryOwnerChainReferences": 5,
+        "dictionaryOwnerEdgesVerified": 9,
+        "nodAnchorsVerified": 1,
+        "blockRecordAnchorsVerified": 4,
+        "ownerChainLimitExceeded": false,
+        "ownerChainsComplete": true,
+        "strictGraphRefusal": true,
+        "outputFileCreated": false
+      },
+      {
+        "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "logPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-assoc-owner-chain-final-xepsaehg/civil_example-imperial.dwg.log",
+        "logSha256": "1c64ec7d03d4953e202b7f7fdd73973585c1d41247a749f306700091af296a04",
+        "exitCode": 1,
+        "networkRecords": 4,
+        "dictionaryEntriesVerified": "4/4",
+        "dictionaryOwnerChainReferences": 4,
+        "dictionaryOwnerEdgesVerified": 7,
+        "nodAnchorsVerified": 1,
+        "blockRecordAnchorsVerified": 3,
+        "ownerChainLimitExceeded": false,
+        "ownerChainsComplete": true,
+        "strictGraphRefusal": true,
+        "outputFileCreated": false
+      },
+      {
+        "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "logPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-assoc-owner-chain-final-xepsaehg/mechanical_example-imperial.dwg.log",
+        "logSha256": "d89ff86e802f8573e61ae4e161c6114d623142560a163a01260b5e94121aa436",
+        "exitCode": 1,
+        "networkRecords": 2,
+        "dictionaryEntriesVerified": "2/2",
+        "dictionaryOwnerChainReferences": 2,
+        "dictionaryOwnerEdgesVerified": 3,
+        "nodAnchorsVerified": 1,
+        "blockRecordAnchorsVerified": 1,
+        "ownerChainLimitExceeded": false,
+        "ownerChainsComplete": true,
+        "strictGraphRefusal": true,
+        "outputFileCreated": false
+      }
+    ],
+    "independentPeerProfile": {
+      "repository": "https://github.com/LibreDWG/libredwg",
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "sourceProjection": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+      "sourceProjectionSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+      "matchingInputSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "observed": [
+        "NOD dictionary 12 has owner 0 and ACAD_ASSOCNETWORK -> dictionary 1057; dictionary 1057 has owner 12 and ACAD_ASSOCNETWORK -> root network 1058.",
+        "Child network 1060 is owned by dictionary 1059; dictionary 1059 has owner 349 and ACAD_ASSOCNETWORK -> 1060.",
+        "Dictionary 349 has owner BLOCK_RECORD 31 and ACAD_ASSOCNETWORK -> dictionary 1059; BLOCK_RECORD 31 has owner BLOCK_CONTROL 1 and xdicobjhandle 349.",
+        "BLOCK_CONTROL 1 declares model-space record 31, paper-space record 88 and ordinary entry 1048."
+      ],
+      "scopeLimit": "Independent projection confirms the mechanical source roles and handles. Local runtime receipts verify each imported network dictionary chain in the three local AC1024 samples; this does not qualify associative output or consumer semantics."
+    }
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Added bounded retention and validation of the BLOCK_CONTROL table publication, exact membership comparison against retained BLOCK_RECORD callbacks, source-matched DICTIONARY owner lookup, recursive ACAD_ASSOCNETWORK owner-edge checks and separate NOD/block-record anchor metrics. The P4 queue now lists only unresolved node-tail, remaining-descendant and complete-output work.",
+    "bounds": {
+      "blockControlHandles": 100000,
+      "blockControlPublicationBytes": 1048576,
+      "ownerChainWork": 100000
+    },
+    "supportClaimPromoted": false,
+    "persistentDrawingFixturesAdded": 0
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j 4",
+    "buildResult": "PASS with configured -Wall -Wextra -pedantic -Werror settings.",
+    "focusedTestCommand": "ctest --test-dir build -R 'dwg2dxf_dwg_block_record_control_membership|libdxfrw_associative_constraint_group_generated' --output-on-failure",
+    "focusedTestResult": "PASS: 2/2. Includes exact-membership success, owner mismatch, missing child, duplicate publication, duplicate handle, stale generation and over-limit controls.",
+    "runtimeCommand": "build/dwg2dxf/dwg2dxf <AC1024 source> -y -d -v2010 <temporary DXF>",
+    "runtimeResult": "All 11 network dictionary owner chains closed across the three inputs. The strict dwg-associative-graph-not-serialized refusal remains active and no DXF output was created.",
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Constraint-group node-tail layouts remain unresolved; unsupported tails remain unvalidated.",
+    "Other associative descendants, complete graph serialization, identity remapping, output readback and native consumer semantics remain open.",
+    "The three DWGs are local investigation inputs and were not added to Git.",
+    "Strict associative export refusal remains active; no support claim is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Source-matched ACAD_ASSOCNETWORK dictionary owner chains through exact NOD entries or exact BLOCK_CONTROL -> BLOCK_RECORD -> XDICTIONARY links for all networks in three AC1024 investigation inputs.",
+    "remainingP4Scope": "Resolve the AC1024 constraint-group node-tail profile, close remaining source-required descendants, then implement and verify complete graph serialization/remapping/readback.",
+    "nextImplementationPacket": "Resolve the independent same-input AC1024 constraint-group node-tail conflict and implement only a witnessed node profile.",
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_data.h": "55852f8c21b4a402038c8158f11bf84ec445cf9b655e23daab39e94fa05ccccf",
+    "dwg2dxf/dx_iface.cpp": "c7caf2062a80ff4639e986a012ff68826e383ef683d124904113277c50e98e75",
+    "tests/dwg2dxf_adapter_tests.cpp": "9701c5fa8a36b5ad354c89608ad74455843eb8482107c85a9b4a544eb8ce9ff9",
+    "tests/CMakeLists.txt": "47c05f89ac21b3cefe53494c74f823b6dfe3c28621d7f3774424d34d84801096",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "69d17c3107c49a92ab5b5c2a84639a271d1ed617220659b0902287cb585b6870",
+    "build/dwg2dxf/dwg2dxf": "af29055d11de6f6b6d325e55f2a076a12b8f3dfc6c3e2a8fc24a6af032acf48d",
+    "build/tests/libdxfrw_dwg2dxf_adapter_tests": "39d628f26964606761ce75f6a4edc2e1270905c0954e0c445666117110927ce5"
+  },
+  "commitCreated": true,
+  "worktree": "Only listed implementation, focused tests, plan and this receipt are in scope; unrelated untracked workspace files and DWG samples remain excluded."
+}

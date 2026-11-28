@@ -1,0 +1,171 @@
+{
+  "date": "2026-11-09",
+  "scope": "Hash-deduplicated local DWG corpus search for TABLEGEOMETRY objects with non-null cell soft-pointer targets or nonzero standalone unknown BD values.",
+  "tool": "LibreDWG 0.14 dwgread JSON output; NaN normalization was applied only to unrelated JSON properties so TABLEGEOMETRY records could be summarized.",
+  "corpusRoot": "/Users/dli/dev",
+  "inputPaths": 397,
+  "uniqueFiles": 177,
+  "decoderResults": {
+    "ok": 173,
+    "tool-failure": 4
+  },
+  "tableGeometryObjects": 18,
+  "filesWithTableGeometry": 11,
+  "findings": {
+    "objectsWithNonNullCellSoftPointer": 0,
+    "objectsWithNonZeroStandaloneUnknownBD": 0
+  },
+  "records": [
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1014.dwg",
+      "sha256": "d1ec4519be14ac49ecab5ec024ad951271e00261a1851f623a784a97ba6ede73",
+      "handle": 1864,
+      "cellCount": 21,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1014.dwg",
+      "sha256": "d1ec4519be14ac49ecab5ec024ad951271e00261a1851f623a784a97ba6ede73",
+      "handle": 4366,
+      "cellCount": 20,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1015.dwg",
+      "sha256": "8ffbdc713f5838cbbb1596a8422e2b607e5c9e79921e852cbb5abee4af76ea4e",
+      "handle": 1864,
+      "cellCount": 21,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1015.dwg",
+      "sha256": "8ffbdc713f5838cbbb1596a8422e2b607e5c9e79921e852cbb5abee4af76ea4e",
+      "handle": 4150,
+      "cellCount": 20,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1021.dwg",
+      "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+      "handle": 1864,
+      "cellCount": 21,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1021.dwg",
+      "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+      "handle": 3858,
+      "cellCount": 20,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg",
+      "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+      "handle": 1864,
+      "cellCount": 21,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg",
+      "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+      "handle": 3749,
+      "cellCount": 20,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg",
+      "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6",
+      "handle": 1864,
+      "cellCount": 21,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg",
+      "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6",
+      "handle": 3706,
+      "cellCount": 20,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+      "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+      "handle": 1864,
+      "cellCount": 21,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+      "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+      "handle": 3680,
+      "cellCount": 20,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_base/sample_base.dwg",
+      "sha256": "2fd52de87040d2b74922579e5e49b7f72943a436b8a11dc1d7f00244aed7da21",
+      "handle": 1864,
+      "cellCount": 21,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_base/sample_base.dwg",
+      "sha256": "2fd52de87040d2b74922579e5e49b7f72943a436b8a11dc1d7f00244aed7da21",
+      "handle": 3624,
+      "cellCount": 20,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/LibreCAD/librecad/src/lib/filters/tests/testdata/datastorage_modeler_r2013.dwg",
+      "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+      "handle": 3221,
+      "cellCount": 180,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/LibreCAD/librecad/src/lib/filters/tests/testdata/datastorage_modeler_r2018.dwg",
+      "sha256": "7bc7721224003062b237845842b7a976e46771c37eba6833b9ed3712e7a5a65a",
+      "handle": 2207,
+      "cellCount": 180,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/dwg-writer/tests/fixtures/committed/libredwg/example_r13.dwg",
+      "sha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+      "handle": 4186,
+      "cellCount": 0,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    },
+    {
+      "path": "/Users/dli/dev/dwg-writer/tests/fixtures/committed/libredwg/example_r14.dwg",
+      "sha256": "aec626c5680584c763418497495950089854ff9682af36076851fd793d9e2c0b",
+      "handle": 3241,
+      "cellCount": 180,
+      "nonnullCellReferences": [],
+      "nonzeroUnknowns": []
+    }
+  ],
+  "limitations": [
+    "The corpus is a local repository/worktree scan, not a representative producer survey.",
+    "Files with LibreDWG tool failures were not semantically classified.",
+    "No result qualifies a new output profile or broadens version support.",
+    "The samples remain in their original locations; no DWG/DXF files were copied into or committed to libdxfrw."
+  ],
+  "decision": "No local candidate supplies either disputed value. Keep non-null cell references and nonzero standalone unknown BD fields gated. Further evidence requires a new traceable producer sample or a generated-from-scratch control; generated controls can validate code paths but cannot establish external producer semantics."
+}

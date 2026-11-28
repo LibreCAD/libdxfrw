@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-16",
+  "scope": "Preserve supported flags for predeclared mandatory DXF BYBLOCK, BYLAYER and CONTINUOUS LTYPE rows, and refuse late nondefault flags that would be lost.",
+  "finding": "Before the fix, an unseeded canonical CONTINUOUS callback with flags 16 succeeded but fresh DXF readback reported flags 0.",
+  "change": "Use validated flags from predeclared canonical metadata when writing mandatory rows. A nonzero callback flag must match a predeclared row; a zero callback flag retains predeclared flags. Invalid predeclared flags and late or mismatched nonzero flags refuse without publishing partial output.",
+  "checks": [
+    "Generated AC1009, AC1014 and AC1032 ASCII and Binary tests cover all three mandatory names and flag values 16, 48, 64, 80 and 112 with fresh readback.",
+    "Unseeded and mismatched nonzero flags, plus invalid flag 32, refuse atomically; the same writer retries with the expected row and byte-identical output.",
+    "Default callback rows retain predeclared source flags; default unseeded rows and source-handle aliases remain functional.",
+    "Focused CTest: libdxfrw_ltype_table_allocation, libdxfrw_appid_table_allocation and libdxfrw_dxf_source_table_identities passed 3/3.",
+    "A previously built LibreCAD system-codec test binary was relinked against the newly installed library: the targeted LTYPE test passed 17 cases and 4135 assertions; one ODA-fixture case was skipped. The changed libdxfrw.cpp.o SHA-256 matched in build and installed archives: cd322f8e102f2d317fe687423f4ec6828af40fb48b95ad0521f4b3e8f32d5126."
+  ],
+  "limitations": [
+    "The LibreCAD check reused previously compiled consumer objects and was not a clean consumer rebuild; the optional ODA fixture case was not run.",
+    "This slice preserves flag values only. Canonical descriptions and nonempty patterns may still be replaced by built-in values and need separate disposition.",
+    "Generated codec readback does not establish independent producer semantics or whole-document support."
+  ],
+  "followUp": "Nonempty or inconsistent canonical pattern state is now refused; see p6-canonical-ltype-pattern-refusal-2026-11-16.json. Description preservation remains open.",
+  "descriptionFollowUp": "Predeclared descriptions, including empty, are now retained. An unseeded empty CONTINUOUS callback selects the built-in default; see p6-canonical-ltype-descriptions-2026-11-16.json."
+}

@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-03",
+  "scope": "Generated PLOTSETTINGS and LAYOUT reference-identity transport.",
+  "fields": [
+    {
+      "record": "PLOTSETTINGS",
+      "fields": [
+        { "member": "shadePlotHandle.ref", "group_code": 333 }
+      ]
+    },
+    {
+      "record": "LAYOUT",
+      "fields": [
+        { "member": "shadePlotHandle.ref", "group_code": 333 },
+        { "member": "paperSpaceBlockRecordHandle.ref", "group_code": 330 },
+        { "member": "lastActiveViewportHandle.ref", "group_code": 331 },
+        { "member": "namedUcsHandle.ref", "group_code": 345 },
+        { "member": "baseUcsHandle.ref", "group_code": 346 }
+      ]
+    }
+  ],
+  "field_contract": "The typed DXF parseCode contracts in DRW_PlotSettings and DRW_Layout map these group codes to the listed handle members; layout group 330 is disambiguated from the common object owner by its AcDbLayout subclass.",
+  "mapping_policy": "For nonzero source handles, use the configured reference resolver when present; otherwise use remapObjectHandle. Reject zero or NoHandle results before record publication. LAYOUT record emission is now transactional through its common owner write and final record commit; existing record identities and field omission rules are unchanged.",
+  "validation": {
+    "input": "Generated in-memory PLOTSETTINGS and LAYOUT objects; no DWG/DXF fixture was added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "selectors": ["libdxfrw_wave1_tests --layout-plotsettings-reference-remapping"],
+    "result": "PASS for exact output groups/values under resolver precedence and remap fallback, including remapped group-5 row identities; unresolved PLOTSETTINGS and each LAYOUT reference preserve the destination in ASCII/Binary, as does a late common-owner failure, and corrected fresh-writer retries pass.",
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4"
+  },
+  "qualification_limits": [
+    "Generated low-level transport only; it does not prove physical target record presence or target role.",
+    "Does not establish owner validity, recursive graph closure, physical producer breadth, native plotting, or support-claim eligibility."
+  ]
+}

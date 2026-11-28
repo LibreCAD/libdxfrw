@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c SAB 21800 non-finite analytic-surface node attribution",
+  "mode": "Generated parser-fed local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "headBeforeSlice": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "The shared worktree was already broadly modified. This slice changes existing SAB 21800 surface finite-value guards, generated graph-preservation cases/assertions, both plan files, and this receipt only; no files were staged or committed.",
+    "changedFilesForSlice": [
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/s37c-sab21800-nonfinite-analytic-surface-field-attribution-fast-slice-2026-10-21.json"
+    ]
+  },
+  "evidence": {
+    "localFinding": "The admitted SAB 21800 plane/torus field readers and existing scan-based cone projection deferred non-finite rejection to a whole-body scan, which reported the body rather than the malformed surface node.",
+    "formatBasis": "No new wire-layout assumption was introduced. Plane and torus checks apply to fields already consumed by the existing strict 21800 readers. Cone retains its existing tolerant scan because its version-specific continuation markers remain unresolved. ODA v5.4.1 remains authoritative for DWG layout.",
+    "scopeLimit": "Only finite-value refusal and failure-node precision changed for the current SAB 21800 plane, cone, and torus parameter paths. Non-21800 paths, cone field order, surface geometry, degeneracy rules, topology, B-rep validity, and external/native qualification remain unchanged."
+  },
+  "implementation": {
+    "productionChange": "Validate consumed plane origin/normal/optional U direction, cone origin/axis/major axis/ratio/sine/cosine, and torus center/axis/radii/U direction before marking each surface projected. Return failure through the existing exact-surface-node path.",
+    "generatedControls": [
+      "Plane origin: 9 mutations covering NaN, +infinity, and -infinity in x/y/z.",
+      "Plane normal and U direction: 18 mutations covering all vector components and all three non-finite values.",
+      "Cone: 36 mutations across all coordinates of origin/axis/major axis and ratio/sine/cosine.",
+      "Torus: 33 mutations across all coordinates of center/axis/U direction and major/minor radii.",
+      "All 96 parser-fed malformed cases parse/build generically, then fail rooted projection with InvalidModel, clear pre-seeded output, and identify the exact surface node."
+    ],
+    "claimBoundary": "Finite-value refusal and diagnostic attribution only. No cone continuation grammar, surface evaluation, degeneracy semantics, trimming, B-rep validity, producer conformance, broad ACIS support, or native consumer acceptance is established."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS (1/1, 1.22 seconds)"
+      },
+      {
+        "command": "clang-format --dry-run --Werror --lines=3025:3435 tests/graph_preservation_tests.cpp",
+        "result": "PASS (formatted changed test region)"
+      },
+      {
+        "command": "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/s37c-sab21800-nonfinite-analytic-surface-field-attribution-fast-slice-2026-10-21.json",
+        "result": "PASS (final scoped check)"
+      },
+      {
+        "command": "jq empty docs/research/s37c-sab21800-nonfinite-analytic-surface-field-attribution-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "persistentFixtureAdded": false,
+    "testRegistrationAdded": false,
+    "dependencyAdded": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "implementationReadiness": {
+    "existingOwner": "PAR-07/S3.7c bounded SAB 21800 rooted ACIS projection",
+    "completedSlice": "Current projected plane/cone/torus fields now fail on non-finite values at their surface node with transactional output clearing.",
+    "nextAction": "Continue with the next dependency-ready local S3.7c parser/graph invariant; do not wait for external semantic or platform qualification.",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    }
+  }
+}

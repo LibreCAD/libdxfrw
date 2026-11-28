@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-138 SectionViewStyle group-1 color insertion fast slice",
+  "mode": "Generated ASCII/Binary implementation and focused regression validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Insert missing SectionViewStyle group-1 identifier and arrow colors (DXF group 62) from edited typed fields during same-version raw-carrier export.",
+    "Preserve occurrence mapping when the identifier color is default and only the arrow color changes by inserting the identifier slot before the arrow slot.",
+    "Exercise the generated control in ASCII and Binary DXF with typed readback, exact ordered raw-stream comparison, resource closure, and neighboring-record continuity."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/sectionviewstyle-group1-color-pair-insertion-fast-slice-2026-10-19.json"
+    ],
+    "behavior": "The SectionViewStyle typed-over-raw overlay now detects missing group-1 identifier and arrow colors. It inserts a non-default identifier color before the arrow color. If the identifier occurrence is absent/default and only the arrow color is edited, it inserts the typed/default identifier color 256 first, then the arrow color. Inserted values are constrained to the signed 16-bit group-62 range.",
+    "testCases": [
+      "Remove both SectionViewStyle group-1 group-62 tags from a generated source DXF while retaining its handles; confirm the parsed typed fields default to 256; change only arrow color to 23; export and re-import ASCII and Binary DXF at AC1027; assert identifier color remains 256 and arrow color is 23.",
+      "Compare the complete ordered raw SectionViewStyle carrier, unchanged DetailViewStyle carrier, reference closure, and following model-space POINT in both encodings."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS",
+        "passed": 1,
+        "failed": 0,
+        "elapsedSeconds": 0.56
+      },
+      {
+        "command": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0
+  },
+  "limitations": [
+    "Same-source-version DXF typed-field insertion/replay only; no DWG-origin typed serialization or cross-version projection qualification.",
+    "No native style-rendering or broader SectionViewStyle semantic-completeness claim follows.",
+    "No commit was created because the shared worktree .git directory is read-only."
+  ]
+}

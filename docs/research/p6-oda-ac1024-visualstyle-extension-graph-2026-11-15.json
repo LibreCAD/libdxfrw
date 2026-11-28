@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "title": "ODA AC1024 VISUALSTYLE extension graph and independent payload comparison",
+  "status": "SELECTED_AC1024_DWG_GRAPH_ASCII_BINARY_OUTPUT",
+  "supportClaimEffect": "none",
+  "scope": "Two from-scratch generated mesh DXFs converted to AC1024 DWG by ODA File Converter 27.1.0.0 and returned by ODA to DXF; no sample files are committed.",
+  "tools": {
+    "independentDwgReader": "LibreDWG dwgread 0.14 JSON",
+    "comparison": "Scratch Python script /private/tmp/compare-oda-visualstyles.py; normalizes numeric values but retains all group codes, values and order. Matches unique VISUALSTYLE description within each input; does not assume ODA preserves handles."
+  },
+  "samples": [
+    {
+      "name": "polyface",
+      "dwgSha256": "f18332b967e99776adac0e0cf1a6a66612275e270604f7591478586802573c13",
+      "odaReturnedDxfSha256": "c1827537abf8400a20277d2d6f8ec4463223d992cf653270b47f3a25791fdb23",
+      "libredwgJsonSha256": "911eba4900d3710b7d220b97201762cda23e03735004cf37dd0492c3df92598b"
+    },
+    {
+      "name": "closedmesh",
+      "dwgSha256": "df2ec8285245a09a0ba709672797df2d0fcc2d16906aac7d8462c2a7496d10b5",
+      "odaReturnedDxfSha256": "0f04e390fdca642bcbf6271d39118a046de113a35553c8bf7cce100aa3bc3d3f",
+      "libredwgJsonSha256": "a8126e4e67f595aa5eb81a468d5b99bef22b1165851c7893b35447d8b9dcf2d1"
+    }
+  ],
+  "observation": {
+    "eachDwg": "24 uniquely described VISUALSTYLE records; each has an H3 extension link to a DICTIONARY owned by that style; each dictionary has cloning=1, hardOwner=1 and exactly one H2 ACAD_XREC_ROUNDTRIP entry to an XRECORD owned by and reacting to the dictionary. These source facts are independently decoded by LibreDWG JSON; the adapter capture comparison is recorded below.",
+    "payload": "For each of 24 style descriptions in each sample, all 126 ordered XRECORD group-code/value pairs in LibreDWG source decode agree with the XRECORD reached through the ODA-returned DXF extension graph. Numeric DXF formatting differences were normalized before comparison.",
+    "diagnostic": "libdxfrw --allow-partial-dwg-read refuses at VISUALSTYLE carrier coverage. Its AC1024 typed profile requires no extension dictionary, so the observed graph is outside the admitted profile. Strict conversion independently refuses unclaimed HEADER suffix bytes."
+  },
+  "nextAction": "Investigate the two EZDXF_META DICTIONARYVAR records under the custom NOD child dictionary. Prove their source frames, payloads and owner/membership roles, then implement and test a narrowly bounded DWG custom-dictionary route if justified. Retain strict HEADER refusal.",
+  "limits": [
+    "Locally generated ODA sources, not independently authenticated producer-authored drawings.",
+    "LibreDWG source decoding and ODA DXF agree on payload order and value but do not establish visual semantics, native consumer behavior or source bit spans.",
+    "Comparison matches unique descriptions and follows each source/output graph; no claim that handles remain equal.",
+    "Selected graph output only; whole-document closure, HEADER suffix meaning, independent visual semantics and native consumers remain unqualified."
+  ],
+  "adapterSourceCapture": {
+    "result": "PASS for both locally generated DWGs: 24/24 style extension dictionaries and 24/24 XRECORDs have import-generation-matched standard-object frames with payloadMatched and fixed object types 42 and 79; each XRECORD contains 126 values. All 24 ordered typed value sequences exactly match the corresponding LibreDWG JSON by source XRECORD handle.",
+    "probeSourceSha256": "1de7d04b62e95117e29d4861611dd35b6d0e95d07838feb4ae5b2c757f3a53c2",
+    "probeExecutableSha256": "66b04920366145de04864a3a73156b555c340604357608752e568733cb047207",
+    "polyfaceLogSha256": "8b7d569502d5d01e60a0d89f5e746021d6caa562a9f1aa2f4e6686f6889c780a",
+    "closedmeshLogSha256": "e2dc7df0f1e3260724c76549dbcc076cc592232f4650ba1570f9b771a779f23b",
+    "limits": "This verifies typed capture and the adapter frame match result; it does not independently decode individual physical bit spans or prove output."
+  },
+  "implementation": {
+    "profile": "Admit same-version AC1024 typed VISUALSTYLEs with no EED and one source-matched owned DICTIONARY and single ACAD_XREC_ROUNDTRIP XRECORD, exact owner/reactor closure, 126 ordered typed payload values, fixed frame types and matching captured standard-object frames. Continue accepting the prior no-extension profile.",
+    "writer": "Emit ACAD_XDICTIONARY group 360 and retain existing strict graph planning, source-snapshot and destination-rollback checks.",
+    "scope": "Selected graph only; HEADER suffix and whole-document closure remain open."
+  },
+  "verification": {
+    "focusedCtest": "11/11 VISUALSTYLE-related tests passed, including fixture-free admission and malformed owner/key/payload/frame controls.",
+    "physicalSelectedGraphs": "Both ODA-generated AC1024 sources and the existing AC1021 children-room source passed selected ASCII and Binary output/readback, owner and entry checks, XRECORD value/order checks, invalid owner/key admission, mutated-payload destination preservation and same-writer retry. Output NOD and style dictionary handle remapping is resolved through the emitted root edge.",
+    "independentAscii": "For both selected libdxfrw ASCII DXFs, all 24 XRECORD payloads agree with the independent LibreDWG JSON source, all 126 typed group-code/value pairs in order; matching uses unique style descriptions and each output graph, not assumed source/output handle equality.",
+    "partialCli": "Both full DWG inputs now pass VISUALSTYLE carrier coverage but refuse at DICTIONARYVAR owner is not the NOD's AcDbVariableDictionary; no output is published. Strict mode still refuses unexplained HEADER suffix.",
+    "adapterTestExecutableSha256": "068e19f55c37bc6347906f33b26c1cd1094bf3338fb9195d5b2376aade9216be",
+    "cliSha256": "da1fff195a56645fbd84e5b729c27d062c0b5e9530696f3f52a16e3001b0a208",
+    "cleanCheckoutDigest": "7e62dbb79e7744ca27d34697617f461464edd44bc05a2b2d53434485e87adffc",
+    "frozenCtestInventory": "1366 names; added only libdxfrw_visual_style_ac1024_extension_profile"
+  }
+}

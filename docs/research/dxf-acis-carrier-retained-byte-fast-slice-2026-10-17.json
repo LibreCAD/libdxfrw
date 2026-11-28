@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "DXF ACIS carrier retained-byte ownership",
+  "mode": "local implementation and focused generated verification",
+  "scope": [
+    "Charge retained DXF Surface and ModelerGeometry ACIS copies to the existing per-read entity lease",
+    "Include text delimiters introduced by modeler geometry assembly",
+    "Prove exact and over-budget behavior for ASCII and Binary DXF without committing fixtures"
+  ],
+  "implementation": {
+    "planItem": "7S.2c.d.17.32",
+    "files": [
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "chargedDestinations": {
+      "DRW_Surface::rawAcisData": ["DXF groups 1/3 text bytes", "decoded group 310 bytes"],
+      "DRW_ModelerGeometry::m_rawBytes": ["DXF groups 1/3 text bytes", "inserted separator newline", "decoded group 310 bytes", "final text terminator newline"]
+    },
+    "lease": "Existing per-read DRW_Entity retained-byte lease; no new data member",
+    "installedApiChanged": false,
+    "classLayoutChanged": false,
+    "fixtureAdded": false,
+    "ctestRegistrationAdded": false,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-acis-carrier-retained-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "ctest --test-dir build-gcc -R '^libdxfrw_public_header_hygiene$' --output-on-failure"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "lc3CompatibilityCheck": "PASS",
+      "focusedSelector": "PASS: generated direct parser and full-read ASCII/Binary routes; exact quota, one-under refusal, diagnostic, and same-facade retry",
+      "owningHardeningCtest": "PASS: 1/1",
+      "publicHeaderHygieneCtest": "PASS: 1/1",
+      "fullSuite": "NOT_RUN",
+      "sanitizers": "NOT_RUN"
+    }
+  },
+  "limitations": [
+    "Logical retained bytes are charged; vector capacity, allocator overhead and RSS are not measured or bounded by this slice.",
+    "SAT/SAB syntax, ACIS semantics, DWG AcDs associations and caller-owned post-callback copies are outside scope.",
+    "Other raw carrier routes remain outside this owner.",
+    "The shared worktree is broadly dirty; this slice and plan edits are uncommitted."
+  ],
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "planTotals": {
+    "findings": 129,
+    "topLevelSubplans": 72
+  }
+}

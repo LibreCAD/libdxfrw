@@ -1,0 +1,74 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.h b/src/Mod/Import/App/dxf/ImpExpDxf.h
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.h
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.h
+@@ -543,0 +544,7 @@
++            // Block composition places the resulting instance on its INSERT
++            // layer. Keep the geometry, but report any named child layer that
++            // cannot currently be represented by that single instance.
++            if (Reader.m_preserveLayers && Reader.m_entityAttributes.m_Layer != nullptr
++                && Reader.m_entityAttributes.m_Layer->Name != "0") {
++                Reader.UnsupportedFeature("Block geometry nondefault layer");
++            }
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -941,0 +942,59 @@
++    def _assert_block_geometry_named_layer_loss(self, kind):
++        """Keep geometry and disclose a named child layer lost in a block."""
++        import sys
++        import types
++        draft = types.ModuleType("Draft")
++
++        def make_layer(name, *args):
++            layer = self.document.addObject("App::FeaturePython", "TestLayer")
++            layer.Label = name
++            layer.addProperty("App::PropertyLinkListHidden", "Group")
++            return layer
++
++        draft.make_layer = make_layer
++        old_draft = sys.modules.get("Draft")
++        sys.modules["Draft"] = draft
++        try:
++            for mode in (2, 3):
++                for layer in ("0", "DETAIL"):
++                    for preserve in (False, True):
++                        with self.subTest(mode=mode, layer=layer, preserve=preserve):
++                            options = FreeCAD.ParamGet(self.option_source)
++                            options.SetInt("DxfImportMode", mode)
++                            options.SetBool("dxfUseDraftVisGroups", preserve)
++                            tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                                    (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                                    (0, "SECTION"), (2, "TABLES"), (0, "TABLE"), (2, "LAYER"), (70, 2)]
++                            for name in ("0", "DETAIL"):
++                                tags.extend([(0, "LAYER"), (2, name), (70, 0), (62, 1), (6, "CONTINUOUS")])
++                            tags.extend([(0, "ENDTAB"), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                                         (0, "BLOCK"), (8, "0"), (2, "INNER"), (70, 0),
++                                         (10, 0), (20, 0), (30, 0), (0, kind), (8, layer),
++                                         (10, 0), (20, 0), (30, 0),
++                                         *([(11, 4), (21, 0), (31, 0)] if kind == "LINE" else [(40, 2)]),
++                                         (0, "ENDBLK"), (8, "0"), (0, "ENDSEC"), (0, "SECTION"),
++                                         (2, "ENTITIES"), (0, "INSERT"), (8, "0"), (2, "INNER"),
++                                         (10, 1), (20, 2), (30, 0), (0, "ENDSEC"), (0, "EOF")])
++                            path = os.path.join(self.temp_dir, f"block-{kind}-{mode}-{layer}-{preserve}.dxf")
++                            with open(path, "w", encoding="ascii", newline="\n") as stream:
++                                stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                            previous = set(self.document.Objects)
++                            stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                            objects = [obj for obj in self.document.Objects if obj not in previous]
++                            reason = "Block geometry nondefault layer"
++                            self.assertEqual(reason in stats["unsupportedFeatures"], preserve and layer != "0")
++                            links = [obj for obj in objects if obj.Name.startswith("Link_INNER")]
++                            self.assertEqual(len(links), 1)
++                            self.assertAlmostEqual(links[0].Shape.Length, 4.0 if kind == "LINE" else 12.566370614359172)
++        finally:
++            if old_draft is None:
++                del sys.modules["Draft"]
++            else:
++                sys.modules["Draft"] = old_draft
++
++    def test_block_line_named_layer_loss_is_reported(self):
++        self._assert_block_geometry_named_layer_loss("LINE")
++
++    def test_block_circle_named_layer_loss_is_reported(self):
++        self._assert_block_geometry_named_layer_loss("CIRCLE")
++

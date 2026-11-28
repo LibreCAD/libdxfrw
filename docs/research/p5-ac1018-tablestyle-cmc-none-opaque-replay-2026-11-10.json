@@ -1,0 +1,55 @@
+{
+  "id": "p5-ac1018-tablestyle-cmc-none-opaque-replay-2026-11-10",
+  "date": "2026-11-10",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": "Retain and same-version replay of TABLESTYLE CMC method 0xC8 without assigning it color semantics.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "2.11 CmColor",
+    "finding": "The specification describes the R2004+ CMC BS/BL/RC slots but does not define method 0xC8 semantics. The implementation treats the packed BL as opaque."
+  },
+  "physical_observation": {
+    "file": "/private/tmp/libdxfrw-table-ac1018-oda/out/acad_table_simple.dwg",
+    "sha256": "aa88b0bd66694008db8aaaa6548cd30192e1a500a093d72859f8d45a918951ab",
+    "provenance": "ODA-converted scratch DWG; not added to the repository",
+    "version": "AC1018",
+    "tableStyle": "Standard",
+    "rows": 3,
+    "observedColor": {
+      "method": "0xC8",
+      "scalarFallback": 256,
+      "reservedIndex": 0,
+      "flags": 0,
+      "packedWord": "0xC8000000"
+    },
+    "limit": "This converted source is a parser/wire observation, not a native producer or rendering witness. The exploratory selected whole-file output did not audit the source TABLESTYLE reactor and extension-dictionary closure and is not counted as graph/output qualification."
+  },
+  "implementation": {
+    "reader": "TABLESTYLE CMC readers retain the packed 32-bit word for method 0xC8 in legacy rows and R24 cell-style/content records.",
+    "model": "The existing m_rgb slot stores the low 24 opaque bits only when m_method is 0xC8. No public struct data members were added, so DRW_TableStyleCmcColor layout is unchanged.",
+    "writer": "AC1018+ TABLESTYLE output emits the retained packed word, flags, reserved index, and optional names after strict consistency checks. Missing/mismatched payloads and pre-AC1018 output are refused.",
+    "dxf": "DXF continues using the established no-color sentinel for C8 and suppresses group 420 so opaque low bits are never emitted as RGB."
+  },
+  "verification": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg2dxf_adapter_tests -j4",
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_tablestyle_nod_whole_file_roundtrip|libdxfrw_table_ac1018_whole_file_roundtrip|libdxfrw_tablestyle_r24_typed_writer|libdxfrw_cellstylemap_dxf_writer)$' --output-on-failure",
+      "result": "PASS 4/4"
+    },
+    "diffCheck": "PASS"
+  },
+  "claimBoundary": [
+    "No meaning is assigned to method 0xC8 or its low 24 bits.",
+    "No native rendering, broader producer, strict source graph, or support claim is promoted.",
+    "No DWG/DXF fixture file was added."
+  ],
+  "filesChanged": [
+    "src/drw_objects.cpp",
+    "src/drw_objects.h",
+    "src/libdxfrw.cpp",
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "tests/dwg2dxf_adapter_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/p5-ac1018-tablestyle-cmc-none-opaque-replay-2026-11-10.json"
+  ]
+}

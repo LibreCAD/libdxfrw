@@ -1,0 +1,44 @@
+{
+  "id": "RPP-5yt",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE R2010 attachment-field version gate",
+  "scope": {
+    "operation": "Restrict groups 271-273 to their documented R2010+ DXF versions and refuse unrepresentable pre-R2010 attachment data.",
+    "versions": {
+      "AC1021": "R2007: groups 271-273 omitted; nondefault attachment data is refused before publication.",
+      "AC1024": "R2010: supported.",
+      "AC1027": "R2013: supported."
+    },
+    "authority": "ODA Open Design Specification for .dwg files v5.4.1, §20.4.87 marks groups 271-273 R2010+; Autodesk's MLEADERSTYLE DXF reference documents the group roles and values.",
+    "sources": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm"
+    ],
+    "claim_boundary": "Selected direct-writer version gating only; no whole-version MLEADERSTYLE or native annotation support claim."
+  },
+  "implementation": [
+    "Emit group 271 and nondefault groups 272/273 only for AC1024 or later.",
+    "Refuse nondefault groups 271-273 for targets below AC1024 before output.",
+    "Keep unset defaults omitted."
+  ],
+  "evidence": {
+    "input": "Runtime-generated typed MLEADERSTYLE objects; no fixture files committed.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "older_target_refusal": "AC1021 with attachmentDirection=1, topAttachment=10, bottomAttachment=9 preserves destination and caller values.",
+    "retry": "The same dx_iface retries at AC1021 after resetting all R2010-only fields; groups 271-273 are absent.",
+    "newer_target_output": "AC1024 and AC1027 emit exact groups 271=1, 272=9 and 273=10.",
+    "default_profile": "The version matrix confirms group 271 is absent in AC1021 and present in AC1024/AC1027; unset vertical groups 272/273 remain omitted.",
+    "matrix": "ASCII/binary output covers AC1021 refusal/retry plus AC1024 and AC1027 explicit-field output."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_wave1_tests --parallel 4",
+    "focused_test": "ctest --test-dir build -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+    "result": "Passed, 1/1 test in 0.51 seconds.",
+    "diff_check": "PASS: git diff --check.",
+    "full_suite": "NOT_RUN"
+  },
+  "files": ["src/libdxfrw.cpp", "tests/wave1_tests.cpp"],
+  "remaining": [
+    "Other MLEADERSTYLE version-specific fields and native semantics remain open."
+  ]
+}

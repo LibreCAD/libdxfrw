@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-common-object-reference-output-id-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_WRITER_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Typed common ACAD_REACTORS group-330 and ACAD_XDICTIONARY group-360 output from DRW_TableEntry metadata.",
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": [
+      "Typed reactor source IDs reject zero and DRW::NoHandle.",
+      "Typed extension-dictionary source IDs reject DRW::NoHandle; zero remains the absent-edge value.",
+      "The writer computes the typed output IDs before publishing either generated group, rejects DRW::NoHandle results from resolver or remap, and rejects zero results from the direct remap path.",
+      "The configured callback resolver's existing zero-result behavior remains unchanged and omits that optional typed edge."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "focused": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_common_reference_output_id_guard$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "ASCII/Binary typed DICTIONARY records: invalid reactor and XDICTIONARY source IDs, zero/NoHandle direct-remap results, and NoHandle resolver results all refuse with empty output."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_common_reference_output_id_guard|libdxfrw_hatch_inactive_gradient_guard|libdxfrw_field_reference_output_id_guard)$' --output-on-failure",
+        "result": "PASS"
+      }
+    ],
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "This proves typed ID representation and preflight only; it does not prove target existence, ownership, target kind, recursive closure, or physical producer support.",
+    "A callback resolver result of zero retains the preexisting optional-edge omission behavior.",
+    "Explicit retained ACAD_REACTORS and ACAD_XDICTIONARY groups in appData are not qualified by this receipt."
+  ],
+  "next": "Continue source- and role-backed common-reference closure; keep optional resolver omissions and retained raw app-data profiles separate from typed ID validation."
+}

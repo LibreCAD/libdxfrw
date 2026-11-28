@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-xrecord-binary-chunk-stack-buffer-fast-slice-v1",
+  "date": "2026-10-17",
+  "slice": "7S.2c.d.17.44",
+  "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / XRECORD_BINARY_STACK_BUFFER",
+  "objective": "Avoid allocating a temporary string for every typed XRECORD binary-data chunk.",
+  "implementation": {
+    "changed_files": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/xrecord-binary-chunk-stack-buffer-fast-slice-2026-10-17.json"
+    ],
+    "behavior": [
+      "Typed XRECORD binary codes encode each at-most-127-byte chunk into a fixed 254-character stack buffer.",
+      "The populated uppercase-hex range is passed as a synchronous string_view to the writer.",
+      "Empty group behavior, chunk order and size, and write-failure propagation remain unchanged."
+    ],
+    "compatibility": "Internal writer path only; no installed API, public class layout, or DRW_Interface callback changed."
+  },
+  "tests": {
+    "build_fixture_target": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "build_fixture_target_result": "PASS",
+    "focused_selector": "build-gcc/libdxfrw_dxf_fixture_tests --typed-object-common-graphs",
+    "focused_selector_result": "PASS",
+    "adjacent_selector": "build-gcc/libdxfrw_dxf_fixture_tests --xdata-binary-chunk-boundary",
+    "adjacent_selector_result": "PASS",
+    "hardening_build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+    "hardening_build_result": "PASS",
+    "hardening_selectors": [
+      "build-gcc/libdxfrw_hardening_tests --dxf-binary-chunk-stack-buffer",
+      "build-gcc/libdxfrw_hardening_tests --dxf-ole-binary-chunk-stack-buffer"
+    ],
+    "hardening_selectors_result": "PASS",
+    "owning_adjacent_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "owning_adjacent_ctest_result": "PASS (1/1)",
+    "diff_check": "PASS",
+    "receipt_json_validation": "PASS"
+  },
+  "controls": [
+    "The generated object graph writes 300 deterministic binary bytes as three group-310 chunks in AC1021/AC1032 and ASCII/Binary DXF.",
+    "Public readback asserts 127/127/46-byte chunks, exact concatenated bytes, XRECORD body ordering, and the following arbitrary group-320 handle; scratch outputs are removed."
+  ],
+  "limits": [
+    "Source-level per-chunk allocation avoidance is established; allocator counts, peak RSS, and throughput were not measured.",
+    "No full fixture suite, peer runtime, native CAD application, external drawing, or sanitizer/fuzz campaign was run."
+  ],
+  "artifacts": {
+    "external_dwgdxf_fixtures_added": false,
+    "persistent_fixture_added": false,
+    "dependencies_added": false,
+    "ctest_registration_added": false,
+    "support_claim_promoted": false
+  },
+  "plan_ledger": {
+    "finding_count": 129,
+    "top_level_subplan_count": 72,
+    "queue_order_changed": false
+  },
+  "next_unblocked_slice": "Continue source audit of typed-object binary and text serialization; choose only paths with a narrow generated semantic/wire control and preserve exact failure policy.",
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit_status": "UNCOMMITTED; broad shared worktree and .git metadata is read-only in this environment"
+}

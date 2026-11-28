@@ -1,0 +1,124 @@
+{
+  "id": "p7-ac1027-current-reader-graph-closure-2026-11-16",
+  "date": "2026-11-16",
+  "status": "CLOSED_EXACT_AC1027_ASSOCIATION_AND_REFERENCE_GRAPH_ONLY",
+  "supportClaimEffect": "none",
+  "scope": "Reconcile the current reader and its generated controls against the already source-to-ODA-bound AC1027 AcDs/SAB graph. This closes unique association and the captured dependent history/evaluation references for this input only. It does not qualify producer provenance, geometric meaning, DXF writer output, or consumer support.",
+  "repository": {
+    "head": "30f75c25024a71650183f3840e5e72c393d8d1ca",
+    "reader_path": "src/intern/dwgreader.cpp",
+    "reader_sha256": "b991206f5d780807a860c17106fd1b577b55f374c364dd4f1acf1106fdc9edf3"
+  },
+  "source": {
+    "repository": "realDragonium/dwg-verifier",
+    "path": "fixtures/libredwg/example_2013.dwg",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "version": "AC1027",
+    "local_path_used": "/Users/dli/doc/dwg3/example_2013.dwg",
+    "fixture_added": false,
+    "prior_source_to_oda_receipt": "docs/research/p7-ac1027-physical-modeler-acds-sab-oda-byte-join-2026-11-03.json",
+    "provenance_limit": "The public drawing's original authoring application and production history are unknown."
+  },
+  "current_reader_observation": {
+    "probe_source": "tests/ac1027_acds_source_probe.cpp",
+    "probe_source_sha256": "312aef1455b9b0cd846fe9abdf0e9ade0480c490096ed34c785fed9388d89baa",
+    "probe_executable": "build-gcc/libdxfrw_ac1027_acds_source_probe",
+    "probe_executable_sha256": "059b83b34be6e2d44f28cacf0426cc2352c71db8e26257a47bad8432bdd1f61b",
+    "probe_output_scratch": "/private/tmp/p7a-ac1027-source-current-20261116.log",
+    "probe_output_size": 78819,
+    "probe_output_sha256": "27bf8a3b0e452fbfae8c8729ae3bd32dda57cccc534d69979770d1a995e14ab5",
+    "section_sha256": "6447fe7ae583c89ef0ef4cd28446848968363b600fce7012df8f1f391d078ee8",
+    "schema_entries": [
+      [0, 5, 64, "AcDbDs::ID:10 Thumbnail_Data:15"],
+      [1, 5, 128, "AcDbDs::ID:10 ASM_Data:15"],
+      [2, 5, 192, "AcDbDs::TreatedAsObjectData:1"],
+      [3, 5, 210, "AcDbDs::Legacy:1"],
+      [4, 5, 228, "AcDs:Indexable:1"],
+      [5, 5, 246, "AcDbDs::HandleAttribute:7"]
+    ],
+    "data_index_rows": [[0, 0, 0], [1, 9, 0], [0, 9, 20], [1, 9, 40], [1, 9, 60]],
+    "modeler_entities": [
+      {
+        "handle": "0x176",
+        "type": "REGION",
+        "schema": 1,
+        "segment": 9,
+        "local_offset": 0,
+        "linked_record_handle": "0x176",
+        "payload_size": 1709,
+        "payload_sha256": "596d37aaf81ebe9662bd22ba199bce876403dec8da71dd3287b0255adb354782",
+        "modeler_version": 2
+      },
+      {
+        "handle": "0x2E1",
+        "type": "3DSOLID",
+        "schema": 1,
+        "segment": 9,
+        "local_offset": 60,
+        "linked_record_handle": "0x2E1",
+        "payload_size": 8798,
+        "payload_sha256": "5ca4756434d068b932ac6e0100e5ff07eae36c7eed29a43367eeff8113cca0ec",
+        "modeler_version": 2,
+        "history_handle": "0x2E4"
+      },
+      {
+        "handle": "0x37D",
+        "type": "REGION",
+        "schema": 1,
+        "segment": 9,
+        "local_offset": 40,
+        "linked_record_handle": "0x37D",
+        "payload_size": 2196,
+        "payload_sha256": "fabe3e9804c44472907987ea96409b30b7db35575a34688430b0157d1b6c5566",
+        "modeler_version": 2
+      }
+    ],
+    "dependent_history_graph": {
+      "history_object": ["0x2E4", "0x2E1", "0x2E3", "ACSH_HISTORY_CLASS", 1, 0, 0],
+      "sweep_object": ["0x2E2", "0x2E3", "0", "ACSH_SWEEP_CLASS", 0, 1, 1],
+      "evaluation_graph": ["0x2E3", "0x2E4", 1],
+      "evaluation_node": ["0x2E3", 0, 32, 1, "0x2E2"]
+    },
+    "oda_binding": "All three same-handle entity types, schema selections, payload lengths, and full SAB bytes match the existing independent ODA DXF receipt. The 3DSOLID history handle matches ODA DXF group 350. No ODA conversion was repeated."
+  },
+  "current_code_and_controls": {
+    "association_path": "dwgReader::linkDataStorage selects exactly one section/record before mutation; explicit lexical and numeric identities must resolve to the same record; duplicate claims, missing or ambiguous matches, and payload-budget failures do not publish a partial entity link.",
+    "finalization_path": "dwgReader::finalizeDataStorageLinks distinguishes a record bound to a validated source frame from a true orphan.",
+    "graph_test": {
+      "path": "tests/graph_preservation_tests.cpp",
+      "sha256": "a7d1f8884679efd545750bc53abe92ad24350d80cf2e62d76c0c36d9b18e81fe",
+      "cases": "Exact handle/key binding, raw payload preservation, history/evaluation links, missing and unbound records, true orphan accounting, mismatched lexical/numeric identities, duplicate claims, atomic refusal, and payload bounds."
+    },
+    "ambiguity_test": {
+      "path": "tests/hardening_tests.cpp",
+      "sha256": "e88f1e8712194cedea505d536212c451bed32bb08cb5d9ecbc48c0f49a8b55dd",
+      "case": "Two sections containing the same matching record are rejected before entity mutation; the test also covers distinct record, handle-sort, and owner-traversal orders."
+    },
+    "source_compare": {
+      "path": "tests/ac1027_acds_source_compare.py",
+      "sha256": "331b7ced26d49552e8ff33796e88a5d469629a0ae27df336ce119b7d14be6a7d",
+      "self_test": "Generated positive and negative comparator controls pass, including changed source mode/storage identity and payload bytes."
+    }
+  },
+  "focused_validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests libdxfrw_ac1027_acds_source_probe -j4",
+    "build_result": "PASS",
+    "graph_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "graph_ctest_result": "PASS (1/1)",
+    "hardening_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "hardening_ctest_result": "PASS (1/1)",
+    "compare_self_test": "ctest --test-dir build-gcc -R '^libdxfrw_ac1027_acds_source_compare_self_test$' --output-on-failure",
+    "compare_self_test_result": "PASS (1/1)",
+    "binary_sha256": {
+      "graph_preservation_tests": "79168976cdfc59f13232baa5876ac1ce375b380954dc672b60ba6abf948d9dfc",
+      "ac1027_acds_source_probe": "059b83b34be6e2d44f28cacf0426cc2352c71db8e26257a47bad8432bdd1f61b"
+    }
+  },
+  "decision": "Close P7-A for unique AC1027 modeler-to-AcDs/SAB association and the captured prototype/history/evaluation reference chain only. P7-C remains open for exact DXF owner/block output and fresh readback; P7-B remains open for a versioned AcDs profile and source-distinct physical peer.",
+  "limitations": [
+    "The source's original authoring application and production history remain unknown.",
+    "The SAB bytes and reference graph are structurally bound; geometric values, topology, placement, units, and native meaning are not independently qualified.",
+    "DXF output, fresh typed readback, native LibreCAD/LibreCAD_3 behavior, and FreeCAD behavior were not established by this closure.",
+    "The DWG and generated probe log remain outside the repository; no sample fixture was added."
+  ]
+}

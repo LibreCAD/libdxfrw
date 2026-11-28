@@ -1,0 +1,20 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -613 +613,2 @@
+-            if (active.count(nestedInsert.Name) || active.size() >= 128) {
++            if (active.count(nestedInsert.Name) ||
++                (active.size() >= 128 && !composed.count(nestedInsert.Name))) {
+@@ -694 +695,2 @@
+-            if (active.count(nestedInsert.Name) || active.size() >= 128) {
++            if (active.count(nestedInsert.Name) ||
++                (active.size() >= 128 && !composed.count(nestedInsert.Name))) {
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1010,0 +1011,3 @@
++        shared_names = ["A"] + [f"D{i:03}" for i in range(1, 128)] + ["0SHARED"]
++        deep_shared = {name: ((shared_names[i + 1],) if i + 1 < len(shared_names) else ())
++                       for i, name in enumerate(shared_names)}
+@@ -1016,0 +1020 @@
++                ("deep-shared", deep_shared, 129.0, False),

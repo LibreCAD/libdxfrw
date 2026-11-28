@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-acadsharp-layout-readback-2026-11-19",
+  "date": "2026-11-19",
+  "status": "PARTIAL_INDEPENDENT_ASCII_BINARY_READBACK",
+  "supportClaimEffect": "none",
+  "scope": "Bounded independent readback of the selected local AC1024 two-layout, null-background source's strict ASCII and Binary DXF outputs. This qualifies only the semantic fields ACadSharp reconstructs; the remaining source profile and product claims stay open.",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "fixtureCommitted": false,
+    "provenance": "Local sample; producer identity is unauthenticated."
+  },
+  "outputs": {
+    "ascii": {
+      "path": "/private/tmp/p4d-local-candidate-screen-20261119/architectural_example-imperial.dxf",
+      "sha256": "6bda57e8f5d4ba81c444dac8cc8d41e8b23ef8c5b75da841f9e5da6cdb0d7566"
+    },
+    "binary": {
+      "path": "/private/tmp/p4d-local-candidate-screen-20261119/architectural_example-imperial-binary.dxf",
+      "sha256": "308e27cc9a6b14fb8bc0d701505f3f7f45dae211c86112d128b1538a78d2c0e5"
+    }
+  },
+  "reader": {
+    "name": "ACadSharp",
+    "version": "3.6.15",
+    "repositoryCommit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "assemblySha256": "b10896a9f13149c6ebd2a901dd4574bf62be985707471f8ae5bf5fd97696f324",
+    "readbackOutputSha256": "820d262ed8273596f9c0156aef7b52a9625125cbc2ca5b675e73020c17953438",
+    "result": "Both ASCII and Binary DXF outputs load. ACAD_LAYOUT contains Layout1 (handle 0x59) and Model (0x22); both retain owner 0x1A, flags 1, tab orders 1 and 0, and extension dictionaries 0x2A7 and 0x108D. The associated blocks resolve to *Paper_Space and *Model_Space; Layout1 has viewport entities 0x22E2 and 0x22E3 in both outputs."
+  },
+  "binaryWireAudit": {
+    "tool": "tools/research/audit_binary_dxf_layout_nod.py",
+    "toolSha256": "4841056c852c30031cdde781fdbc261679a970b3c9bed90f28e87c637d97f3e3",
+    "reportPath": "/private/tmp/p4d-binary-dxf-audit.json",
+    "reportSha256": "ef11409c3ba1be10c94f9d91afb9ca72d51ea0f0cea2a08fa4095af694bbe518",
+    "crosscheckPath": "/private/tmp/p4d-binary-dxf-crosscheck.json",
+    "crosscheckSha256": "ca2da7cf313f854cfe4e1044b2e3607a0f3004e3866d3d2e6425b6cfea1c7491",
+    "decodedGroupValuePairs": 20220,
+    "rootNodEntries": 15,
+    "rootNodTargetsResolved": 15,
+    "unresolvedRootEntries": [],
+    "duplicateNonNullHandles": [],
+    "result": "PASS: The focused auditor decodes the complete Binary DXF stream, resolves all 15 root entries and reports no duplicate non-null handles. Binary NOD names and target handles exactly match the local source peer's 15-entry map, including ACAD_PLOTSTYLENAME -> 0xE. The Model LAYOUT group 331 is 0x2292 and resolves to VPORT *ACTIVE; Layout1 group 331 is 0x22E2 and resolves to a VIEWPORT entity owned by *Paper_Space block record 0x1E. Source DWG targets are VPORT *Active 0x94 and VIEWPORT 0x28B respectively. Autodesk's ObjectARX type rule confirms the Model/paper-space target classes."
+  },
+  "primaryTypeReferences": [
+    {
+      "source": "Autodesk ObjectARX Active Viewport documentation",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARXMAC-DevGuide/files/GUID-B09C31FD-0E71-4A19-861B-F8751426E9F8.htm",
+      "finding": "The active viewport object is AcDbViewportTableRecord in model space and AcDbViewport in paper space."
+    },
+    {
+      "source": "Autodesk AutoCAD DXF LAYOUT reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm",
+      "finding": "LAYOUT group 331 carries the ID/handle of the viewport that was last active in that layout."
+    },
+    {
+      "source": "Autodesk AutoCAD DXF VPORT reference",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-8CE7CC87-27BD-4490-89DA-C21F516415A9.htm",
+      "finding": "Model-space active viewport configurations use VPORT records named *ACTIVE."
+    }
+  ],
+  "fieldObservations": {
+    "asciiLayoutGroup331": {
+      "Layout1": "0x22E2; emitted VIEWPORT entity owned by mapped *Paper_Space block 0x1E",
+      "Model": "0x2292; emitted VPORT table record named *ACTIVE (owner 0x8)",
+      "status": "Source-bound LibreDWG class identities and emitted ASCII targets align with Autodesk's API distinction: Model group 331 points to a VPORT/AcDbViewportTableRecord *ACTIVE target, while Layout1 points to a VIEWPORT/AcDbViewport entity. For this sample, the ASCII target roles are supported; Binary physical target values still need direct independent extraction."
+    },
+    "acadsharpResolution": {
+      "sourceDwgLayout1LastActiveViewport": "0x28B",
+      "asciiAndBinaryLayout1LastActiveViewport": null,
+      "modelLastActiveViewport": null,
+      "status": "ACadSharp does not surface group 331 in its DXF object model. DxfObjectsSectionReader.readLayout stores it in LasActiveViewportHandle (source line 428), while CadLayoutTemplate.build resolves ActiveViewportHandle (line 35). The DXF reader therefore drops the captured handle before graph resolution. Its object model also exposes Viewport targets only, so it cannot resolve the model-space VPORT table-record target. Autodesk's ObjectARX documentation confirms the distinct model-space and paper-space target types; ACadSharp's null property is a peer limitation, not evidence of a libdxfrw output defect. Binary physical group-331 values remain unverified."
+    },
+    "namedObjectDictionary": {
+      "rawLocalSourceAndAsciiComparison": "The prior bounded comparison reports the same 15 source/output NOD entries, including ACAD_PLOTSTYLENAME.",
+      "acadsharpSourceDwgModelCount": 17,
+      "acadsharpAsciiAndBinaryDxfModelCount": 16,
+      "acadsharpDefaultEntries": ["ACAD_IMAGE_DICT", "ACAD_PDFDEFINITIONS"],
+      "acadsharpOutputModelOmission": "ACAD_PLOTSTYLENAME",
+      "status": "ACadSharp inserts default root entries and omits ACAD_PLOTSTYLENAME from its DXF object model even though the raw ASCII comparison and the focused Binary wire audit both find the key. Its object-model counts are not a faithful NOD parity oracle."
+    }
+  },
+  "limitations": [
+    "This is partial independent semantic readback, not full object-graph closure or native AutoCAD/LibreCAD acceptance.",
+    "The local sample has unauthenticated producer provenance and is not committed as a fixture.",
+    "The focused Binary wire audit validates serialized group/value structure, not AutoCAD or another CAD application's semantic import behavior.",
+    "ACadSharp reads both encodings but its object model does not expose the group-331 target handle; raw Binary values and target classes are recorded by the focused audit tool.",
+    "No DWG/DXF fixtures or generated outputs were committed; generated outputs remain in /private/tmp."
+  ],
+  "next": "Use the remote AutoCAD/ObjectARX host to open the exact ASCII and Binary outputs and query NOD membership, both layouts, associated blocks, and viewport target classes. Record release/build, OS, SDK, file digests, API results, and artifact return route. Keep P4-D open until native semantic and consumer checks pass; this local profile does not promote general support."
+}

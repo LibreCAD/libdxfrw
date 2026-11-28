@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader application and viewer route-lineage refresh",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile Zephyr's declared DXF/DWG routes against its build instructions",
+    "Screen newly surfaced browser and Qt/OCCT viewers for independent format evidence",
+    "Update existing optional 2D-consumer admission rules without changing implementation cadence"
+  ],
+  "method": {
+    "kind": "Read-only review of public repository README, usage, license, and development documentation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Project pages are mutable and no released binary, converter invocation, or parser runtime was bound. Claims identify candidate routes only; they are not runtime results or semantic evidence."
+  },
+  "sources": [
+    {
+      "project": "Zephyr",
+      "urls": [
+        "https://github.com/joseph-montanez/zephyr",
+        "https://github.com/joseph-montanez/zephyr/blob/main/DEVELOPMENT.md"
+      ],
+      "revision": "Mutable main README and development guide reviewed 2026-10-18",
+      "observed": "The README describes the DXF module as a Swift port of libdxfrw and its app as 2D. The same README's tech-stack table says ODA CLI bridge for DWG I/O, while its file-I/O section names LibreDWG and ODA File Converter. The development guide says automated setup downloads/builds LibreDWG and manual setup clones it. No exact app artifact or selected runtime backend is bound by these pages."
+    },
+    {
+      "project": "flyfish CAD Viewer / File Viewer",
+      "urls": [
+        "https://github.com/flyfish-dev/cad-viewer/blob/main/README.md",
+        "https://github.com/flyfish-dev/file-viewer/wiki/Usage",
+        "https://github.com/flyfish-dev/cad-viewer"
+      ],
+      "revision": "Mutable main README, usage guide, and repository license page reviewed 2026-10-18",
+      "observed": "The viewer documents a DWG worker using @mlightcad/libredwg-web / LibreDWG WASM and a separate JavaScript DXF route. The CAD Viewer package is AGPL-3.0-only. Public documentation does not establish lossless graph retention, AcDs/SAB owner association, or 3D solid semantics."
+    },
+    {
+      "project": "mxcadviewer-cpp",
+      "urls": [
+        "https://github.com/mxcad/mxcadviewer-cpp"
+      ],
+      "revision": "Mutable main README/build guide reviewed 2026-10-18",
+      "observed": "The project advertises DWG/DXF viewing and separately lists STEP/IGES/STL 3D viewing, but its build instructions require a downloadable mxcadlib package and prebuilt dependencies. The public page reviewed here does not establish parser source, license, or version for that required library."
+    }
+  ],
+  "assessment": {
+    "zephyrRule": "Supersede an earlier unqualified attribution of the Zephyr DWG route to LibreDWG. Treat it as PROVENANCE_INCOMPLETE until the selected application artifact, converter executable, version/hash, arguments, intermediate DXF, and importer are bound. Its DXF parser is a libdxfrw-derived route, not an independent parser vote.",
+    "flyfishRule": "Optional browser 2D consumer only. Keep its DWG lane correlated with LibreDWG and its JavaScript DXF loader as a separate candidate requiring a named parser version and field-specific value/disposition checks. Render output is not document-graph or solid evidence.",
+    "mxcadRule": "Exclude from open-source codec and independent-semantic evidence until the required mxcadlib implementation and license are reviewable. STEP/IGES/STL viewer behavior cannot qualify DWG/DXF 3DSOLID support.",
+    "fixtureAndCadenceRule": "Use only locally authored scratch controls at the existing composed gate. No external drawings, new peer dependencies, test registrations, or per-slice application runs."
+  },
+  "planImpact": {
+    "existingOwnersOnly": [
+      "PAR-07 peer lineage and evidence-role intake",
+      "composed 2D consumer qualification",
+      "3D consumer and independent semantic evidence gates"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-application-and-viewer-route-lineage-refresh-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-application-and-viewer-route-lineage-refresh-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

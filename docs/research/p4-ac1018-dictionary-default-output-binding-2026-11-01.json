@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1018-dictionary-default-output-binding-2026-11-01",
+  "date": "2026-11-01",
+  "title": "AC1018 physical DICTIONARYWDFLT and PLACEHOLDER output proof",
+  "status": "BOUNDED_OUTPUT_PROFILE_COMPLETE_NO_CLAIM_PROMOTION",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "fixturePolicy": "Used the existing local DWG. No DWG or DXF fixture was added."
+  },
+  "formatEvidence": {
+    "authority": "Open Design Specification for .dwg files, v5.4.1",
+    "section": "20.4.45 DICTIONARYWDFLT",
+    "relevantLayout": "DICTIONARYWDFLT has DICTIONARY fields plus a hard-pointer default-entry field.",
+    "localTrace": {
+      "path": "/tmp/et-ac1018-current.log",
+      "sha256": "b2893261e86b178d2978bee0f2f21ba0696cdb5fd4f46f97355efb170a5942e8",
+      "observed": [
+        "Object type 500, handle 0x0E, DICTIONARYWDFLT class AcDbDictionaryWithDefault",
+        "Object type 80, handle 0x0F, ACDBPLACEHOLDER"
+      ]
+    },
+    "independentSourceReader": {
+      "project": "GNU LibreDWG",
+      "version": "0.14",
+      "path": "/tmp/et-libre.json",
+      "sha256": "bccee1259568948df2fd0e65c797932965574cc81824781864c3b34b4129d788",
+      "decodedGraph": "DICTIONARYWDFLT 0x0E is rooted by NOD ACAD_PLOTSTYLENAME; its Normal entry and defaultId target PLACEHOLDER 0x0F. The dictionary owner/reactor is NOD 0x0C; the placeholder owner/reactor is dictionary 0x0E."
+    }
+  },
+  "sourceProfile": {
+    "dictionary": "The unique DICTIONARYWDFLT has cloning 1, hardOwner 0, one Normal entry and default entry both targeting PLACEHOLDER 0x0F; its owner/reactor target NOD 0x0C.",
+    "placeholder": "The unique PLACEHOLDER 0x0F has owner/reactor DICTIONARYWDFLT 0x0E, with no extension dictionary, appData or extData.",
+    "root": "The NOD contains exactly one ACAD_PLOTSTYLENAME entry for DICTIONARYWDFLT 0x0E."
+  },
+  "qualifiedScope": {
+    "target": "AC1024 DXF",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "sourceCallbacks": [
+      {
+        "handle": "0x0E",
+        "objectType": 500,
+        "record": "ACDBDICTIONARYWDFLT",
+        "class": "AcDbDictionaryWithDefault"
+      },
+      {
+        "handle": "0x0F",
+        "objectType": 80,
+        "record": "",
+        "class": ""
+      }
+    ],
+    "graph": "Frozen typed source records and source callback identities are compared at the original AC1018 version. The staged AC1024 output inspector checks unique remapped NOD, dictionary and placeholder identities; NOD key ownership; the DICTIONARYWDFLT Normal/default target; dictionary and placeholder owner/reactor roles; and the placeholder's exact raw owner/reactor fields. Only the two inspected callback identities are qualified after successful staged inspection.",
+    "readback": "Fresh AC1024 import checks the typed DICTIONARYWDFLT and raw PLACEHOLDER pair, class counts, NOD root edge, default target, remapped ownership/reactor roles and placeholder fields."
+  },
+  "failureAndRetry": {
+    "negativeControl": "Replace the source PLACEHOLDER reactor with NoHandle. Export rejects before destination replacement and leaves both callback qualification states unchanged.",
+    "retry": "Restore the reactor and retry on the same adapter. ASCII and Binary output succeed, fresh readback passes, and both source callbacks become output-qualified only after staged inspection.",
+    "sourceIsolation": "The source contains unrelated invalid empty-name STYLE 0xDF. The physical AC1018 test renames only that in-memory test model to reach OBJECTS output; this does not qualify STYLE or whole-source conversion."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "The existing dictionary-default output binding now freezes AC1018 or AC1024 source version independently from the AC1024 DXF target, applies source-version-aware equality and frame checks, and requires exact custom/standard callback roles before admission.",
+    "testSourceSha256": "3b09389c4fca3653e1c3e4536f9948698ca794e680a2156dc3f896d0a8cc5eed",
+    "interfaceSourceSha256": "05c5870fea84e7bfca6377f274cf2db5370236f61a73e86295bf0e1efdc52913",
+    "headerSha256": "d815759793d48be941528ddb3a86692788f235a2a7dabe26a5dc259b26f83152"
+  },
+  "planImpact": {
+    "callbackCensus": "9 of 23 source callback identities now have bounded output qualification across the prior admitted profiles and this pair; 14 remain unqualified.",
+    "completedActionRemoved": "Add AC1018 source-version-aware output binding and exact readback for DICTIONARYWDFLT 0x0E and PLACEHOLDER 0x0F.",
+    "remaining": "Resolve the invalid empty-name STYLE disposition and qualify the other required callbacks and dependencies. Strict whole-source conversion remains refused.",
+    "externalItemsPromoted": 0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelectors": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS for AC1018 source identity, ASCII/Binary output, output qualification, exact graph roles, fresh readback, atomic refusal and same-adapter retry"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "result": "PASS for existing AC1024 source compatibility, ASCII/Binary output, exact graph roles, fresh readback, atomic refusal and same-adapter retry"
+      }
+    ],
+    "executableSha256": "cca60b0379d4d224b06119a600cbac70dcce8703ff27ef5cd3320fe42dc78d8a",
+    "fullSuites": "NOT RUN; the focused profile selectors were sufficient for this local output-binding slice."
+  },
+  "limitations": [
+    "This proves one source-bound AC1018 dictionary/default pair to AC1024 DXF profile only.",
+    "Fourteen of 23 AC1018 callback identities remain unqualified; strict whole-source conversion remains refused.",
+    "The test-only STYLE rename is not a production omission or replay policy.",
+    "Fresh libdxfrw readback and independent source decoding do not establish native CAD or 3D consumer semantics."
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-p6-insunits-domain-guard-v1",
+  "completedAt": "2026-11-02",
+  "status": "SCALAR_DOMAIN_ENFORCED",
+  "supportClaimEffect": "none",
+  "question": "What INSUNITS scalar values can libdxfrw represent in DXF and DWG headers without truncation or silent omission?",
+  "normativeEvidence": {
+    "autodeskInsunitsReference": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-Core/files/GUID-A58A87BB-482B-4042-A00A-EEF55A2B4FD8.htm",
+    "autodeskDxfHeaderReference": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+    "findings": [
+      "INSUNITS is an integer system variable stored in the drawing.",
+      "The documented INSUNITS codes are the contiguous range 0 through 24.",
+      "The DXF HEADER stores INSUNITS using group code 70.",
+      "Autodesk documents code 21 as supported for insertion/attachment starting with AutoCAD 2017-based products; earlier products treat it as unitless.",
+      "Autodesk documents codes 22, 23, and 24 as supported on AutoCAD for Mac only."
+    ]
+  },
+  "implementation": {
+    "publicApi": "DRW_Header::Units now names USSurveyFoot=21, USSurveyInch=22, USSurveyYard=23, USSurveyMile=24, and UnitCount=25. DRW_Header::measurement classifies all four survey values as English units.",
+    "dxfOutput": "Validate canonical dollar/bare aliases, integer type, group 70, and the 0-24 range. Refuse an explicit INSUNITS value for targets before AC1015, where the writer would otherwise omit it.",
+    "dwgOutput": "DRW_Header::encodeDwgForWriter validates aliases, type, group 70, and range before changing the output streams; invalid values cannot be narrowed to UInt16 silently.",
+    "input": "Tolerant DXF parsing remains unchanged and retains unsupported integer source values for diagnosis."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_insunits_header_domain$' --output-on-failure",
+    "result": "PASS (1/1)",
+    "coverage": [
+      "ASCII and Binary DXF output/readback for every value 0 through 24.",
+      "Absent value, invalid negative/25/INT_MAX values, wrong type/group, duplicate aliases, lowercase alias, and custom-variable placement.",
+      "Tolerant DXF input retention for code 25.",
+      "Atomic DXF refusal and corrected same-writer retry.",
+      "Refusal rather than silent omission on pre-AC1015 DXF targets.",
+      "DRW_Header::measurement classifies codes 21-24 as English.",
+      "DWG header encoding accepts representative values 0, 20, 21, and 24 and refuses -1/25 without emitting bits for all six supported writer revisions."
+    ]
+  },
+  "qualificationLimit": "These controls qualify scalar representation and admission only. They do not verify insertion-scale calculations, unit conversion factors, native consumer behavior, or platform support for codes 21-24. In particular, the Autodesk platform/version restrictions remain separate consumer gates.",
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-Core/files/GUID-A58A87BB-482B-4042-A00A-EEF55A2B4FD8.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm"
+  ],
+  "inputFixturesAdded": 0,
+  "supportClaimsPromoted": 0
+}

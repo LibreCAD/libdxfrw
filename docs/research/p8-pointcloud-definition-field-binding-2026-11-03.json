@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-03",
+  "kind": "implementation-slice completion receipt",
+  "slice": "Bind imported DefinitionEx/ReactorEx physical values and cardinalities to typed source models",
+  "finding": "Before this slice, imported graph admission verified ordered physical group codes against the raw carrier and stable typed snapshots, but did not prove the raw scalar values and cardinalities mapped to the retained definition/reactor fields. A generated duplicate DefinitionEx group-90 field with the same value imported and passed output admission.",
+  "profile": {
+    "source_format": "DXF",
+    "source_revision": "AC1027 through AC1032",
+    "target_revision": "exact source revision",
+    "records": [
+      "POINTCLOUDDEFINITIONEX / ACDBPOINTCLOUDDEFEX",
+      "POINTCLOUDDEFREACTOREX / ACDBPOINTCLOUDDEFREACTOREX"
+    ],
+    "fixture_policy": "Generated source and output in temporary paths from locally authored records; no fixture added"
+  },
+  "source_binding": {
+    "physical_to_raw": "The complete OBJECTS scalar span sequence must match the ordered raw carrier group codes.",
+    "raw_to_typed": [
+      "One code-5 identity and one code-330 owner must match typed roles.",
+      "The exact subclass and single group-90 class version must match the object kind and typed model.",
+      "DefinitionEx requires one filename, one 0/1 loaded flag, one nonnegative 64-bit point count, and six finite extent doubles in writer order; each value must match the typed model.",
+      "An optional ACAD_REACTORS group is accepted only for DefinitionEx, with ordered code-330 handles exactly equal to the typed reactor list and a balanced closing marker.",
+      "Unknown fields, duplicate singleton fields, unqualified app-data/XDATA, and fields outside the selected object-kind profile are refused."
+    ],
+    "graph_gate": "Existing exact same-revision NOD/dictionary/DefinitionEx/ReactorEx/entity owner and reference checks remain required after source-field binding."
+  },
+  "controls": {
+    "ascii_and_binary": [
+      "Existing generated imported AC1027 DefinitionEx/ReactorEx graph passes source binding, same-adapter corrected retry, output and fresh typed graph readback.",
+      "Existing changed POINTCLOUDEX source-model values refuse atomically and corrected same-adapter retries pass."
+    ],
+    "ascii_only": [
+      "Inject a duplicate DefinitionEx group-90 field with the same value into a locally generated graph; tolerant import succeeds, strict output refuses, and a sentinel destination remains unchanged."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_pointcloud_definition_source_spans|dwg2dxf_point_cloud_adapter_transport' --output-on-failure",
+      "passed": 2,
+      "failed": 0
+    },
+    "asan_build": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "asan_focused_ctest": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_pointcloud_definition_source_spans|dwg2dxf_point_cloud_adapter_transport' --output-on-failure",
+      "passed": 2,
+      "failed": 0
+    },
+    "full_suite": "Not run"
+  },
+  "limitations": [
+    "Generated AC1027 graph and source-field transport only; no independent producer or native consumer evidence is established.",
+    "Classic definition/reactor graph output, DWG source CLASS/frame binding, external assets, and native 3D semantics remain open.",
+    "No support claim is promoted."
+  ]
+}

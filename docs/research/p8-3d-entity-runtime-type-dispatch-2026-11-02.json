@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-3d-entity-runtime-type-dispatch-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "3D_ENTITY_RUNTIME_TYPE_DISPATCH_GUARDS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Prevent the concrete DXF adapter from reinterpreting an entity as modeler geometry, MESH, HELIX, or SPLINE solely because its mutable public eType contains a geometry tag.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "guards": {
+      "3DSOLID/REGION/BODY": "dynamic_cast<DRW_ModelerGeometry*>",
+      "MESH": "dynamic_cast<DRW_Mesh*>",
+      "HELIX": "dynamic_cast<DRW_Helix*>",
+      "SPLINE": "dynamic_cast<DRW_Spline*>"
+    },
+    "behavior": [
+      "A mismatched runtime object takes the adapter's fail-closed path before entering a type-specific writer.",
+      "A failed export preserves the prior destination.",
+      "Correcting the retained entity's eType permits a same-adapter retry and typed LINE readback."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed DRW_Line records captured through dx_iface; each test mutates only the public eType. No DWG/DXF fixture is used or committed.",
+    "tags": ["3DSOLID", "REGION", "BODY", "MESH", "HELIX", "SPLINE"],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "All twelve tag/encoding combinations are rejected when the runtime object is DRW_Line.",
+      "Every rejection preserves a pre-existing destination sentinel.",
+      "All corrected same-adapter retries import and preserve the authored line endpoints."
+    ],
+    "identityNote": "The generated no-source LINE output receives a writer-assigned handle; the control checks runtime type and geometry rather than handle identity."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_typed_entity_capture_limits$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; twelve 3D tag/encoding refusal and retry cells plus LINE readback, in 0.73 seconds.",
+    "diffCheck": "PASS: git diff --check",
+    "fixturePolicy": "No drawing fixture was added or committed."
+  },
+  "limitations": [
+    "The test uses a LINE with mutated eType as a controlled wrong-runtime-type input; it does not verify that valid native MESH/HELIX/modeler payloads round-trip.",
+    "It does not validate ACIS/SAB syntax, geometry, consumer semantics, ABI, or the full BLOCK callback inventory.",
+    "No support claim is promoted; P8 remains open."
+  ]
+}

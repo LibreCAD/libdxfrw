@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1027-tablecontent-raw-only-shell-recovery-2026-11-08",
+  "date": "2026-11-08",
+  "status": "GENERATED_AC1027_RAW_ONLY_SHELL_RECOVERY",
+  "supportClaimEffect": "none",
+  "scope": "Recover bounded AC1027 TABLECONTENT frames as exact raw-only objects after typed parsing fails and the independent common shell/handle stream validates.",
+  "authority": {
+    "oda": "ODA v5.4.1 \u00a7\u00a72 and 20.4.99 remain authoritative for object strings and TABLECONTENT fields. This change does not resolve the disputed AC1027 body/string layout.",
+    "implementationPolicy": "Preserve only the validated common shell and exact raw frame; publish no partial typed object and make no DXF output or semantic support claim."
+  },
+  "implementation": {
+    "file": "src/intern/dwgreader.cpp",
+    "profile": "Exact AC1027 or AC1032 version, record name TABLECONTENT, class name AcDbTableContent, typed parse failure, and successful independent RawObjectShell parse with bounded common handles.",
+    "behavior": "The failed typed parser cursor is discarded. The raw fallback reparses from a pristine frame cursor and publishes the exact frame only when the common shell and handle stream validate. Other versions/classes and invalid shells retain the prior failure behavior."
+  },
+  "generatedControl": {
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "method": "Two locally authored AC1027 TABLECONTENT object frames are read in sequence. Assertions check zero object parse failures, no typed TABLECONTENT callback, exact raw payload bytes, class/version identity, validated owner/reactor links, raw carrier dispositions for both objects, and second-frame recovery.",
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+    "focusedTest": "PASS: ctest --test-dir build -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure (1/1; includes AC1027 and existing AC1032 TABLECONTENT raw-shell controls)",
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "physicalSource": {
+    "path": "/private/tmp/example_2013.dwg",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "version": "AC1027",
+    "provenance": "Existing external public example_2013.dwg already referenced by hash-bound repository receipts; read-only, not copied into the repository.",
+    "historicalBaseline": "The prior production recheck recorded three object parse failures and no typed/raw callback for TABLECONTENT 0xC94.",
+    "currentRecheck": {
+      "command": "build/dwg2dxf/dwg2dxf /private/tmp/example_2013.dwg -y -d -v2013 /private/tmp/libdxfrw-example2013-rawfallback.dxf",
+      "logPath": "/private/tmp/libdxfrw-example2013-rawfallback.log",
+      "logSha256": "0ffc991027318375791778284123f40fcb0d41c8e75f732c4472ce0aa149c3d3",
+      "tableContentHandle": "0xC94",
+      "rawOnlyDiagnostic": "[table-content-raw-only class=AcDbTableContent handle=3220]",
+      "sourceFrames": 481,
+      "publishedFrames": 479,
+      "failedFrames": 2,
+      "entityParseFailures": 0,
+      "objectParseFailures": 2,
+      "rawCallbacks": 1,
+      "typedTableContentCallback": "none for the disputed standalone object",
+      "strictExport": "refused before output at the existing AC1027 DWG source-reference qualification gate",
+      "interpretation": "The exact physical frame now publishes through the shell-validated raw-only fallback. Other parse failures and the source/output gates remain. No TABLECONTENT value or target-role semantics are established."
+    }
+  },
+  "limits": [
+    "TABLECONTENT field spans, value semantics and target roles remain unresolved; the AC1027 detached-TV versus candidate body/string disagreement is unchanged.",
+    "Raw-only retention does not authorize replay, selected output, strict whole-file conversion, or producer-wide support claims.",
+    "The physical whole-source output remains refused at the independent AC1027 source-reference gate."
+  ],
+  "next": "Continue with a distinct locally implementable P4/P6 slice. Keep the physical 0xC94 record raw-only until its exact body/string/handle layout and semantic roles are resolved; preserve strict output refusal."
+}

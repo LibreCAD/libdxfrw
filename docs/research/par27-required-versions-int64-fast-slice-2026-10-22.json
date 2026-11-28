@@ -1,0 +1,115 @@
+{
+  "id": "par27-required-versions-int64",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Preserve the AC1027+ $REQUIREDVERSIONS HEADER variable as group 160 signed int64 through parse, copy/move, adapter handoff, and DXF write.",
+    "Refuse malformed/repeated field shapes and downlevel output before destination publication without interpreting or clearing unknown requirement bits."
+  ],
+  "sources": [
+    {
+      "title": "Autodesk DXF group-code ranges",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/OARX-DevGuide/files/GUID-A0E46BAC-ECE3-4E31-854A-3616A532C826.htm",
+      "use": "Defines group-code range 160-169 as 64-bit integer; does not assign REQUIREDVERSIONS-specific semantics."
+    },
+    {
+      "title": "LibreDWG header_variables.spec",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/header_variables.spec",
+      "use": "Cross-project source gates FIELD_BLL(REQUIREDVERSIONS, 160) under SINCE(R_2013b); not native acceptance."
+    },
+    {
+      "title": "ezdxf AC1027 example DXF",
+      "url": "https://github.com/mozman/ezdxf/blob/master/examples_dxf/dimension_in_nested_blocks.dxf",
+      "use": "Contains an AC1027 HEADER $REQUIREDVERSIONS group-160 value of zero; used as a mapping corroboration, not run as an independent test fixture."
+    }
+  ],
+  "implementation": {
+    "files_changed": [
+      "CMakeLists.txt",
+      "src/drw_header.h",
+      "src/drw_header.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par27-required-versions-int64-fast-slice-2026-10-22.json"
+    ],
+    "source_versions": ["AC1027", "AC1032"],
+    "target_versions": ["AC1027", "AC1032"],
+    "downlevel_target_tested": "AC1024",
+    "wire_encodings": ["ASCII", "Binary"],
+    "values_tested": [
+      "0",
+      "81985529216486895",
+      "-9223372036854775808"
+    ],
+    "asserted": [
+      "Group 160 is parsed and retained as INTEGER64 with exact value.",
+      "AC1027/AC1032 writer emits exactly one group-160 value and readback preserves it.",
+      "Absent REQUIREDVERSIONS remains absent; explicit zero remains present.",
+      "DRW_Header copy, assignment, move, and adapter handoff retain the field.",
+      "Wrong group/type, duplicate variable records, and repeated values are readable but not writable.",
+      "Explicit clear-and-replace repairs malformed source state.",
+      "Present state refuses AC1024 conversion without replacing a sentinel destination.",
+      "Unknown feature-mask bits are not interpreted, masked, or reset."
+    ],
+    "selector": "--header-required-versions",
+    "ctest": "libdxfrw_header_required_versions",
+    "public_api_changed": true,
+    "public_layout_changed": true,
+    "downstream_rebuild_required": true,
+    "binary_abi_claim": false,
+    "persistent_fixture_added": false,
+    "support_claim_changed": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+        "result": "PASS",
+        "notes": "Strict build; LibreCAD compatibility target passes."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_header_(required_versions|custom_property_roundtrip)$' --output-on-failure",
+        "result": "PASS",
+        "tests_passed": 2,
+        "tests_total": 2
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --header-wide-variable-wire-values",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_header.h src/drw_header.cpp src/libdxfrw.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par27-required-versions-int64-fast-slice-2026-10-22.json",
+        "result": "PASS"
+      },
+      {
+        "command": "jq -e . docs/research/par27-required-versions-int64-fast-slice-2026-10-22.json",
+        "result": "PASS"
+      }
+    ],
+    "full_fixture_suite_run": false,
+    "asan_run": false,
+    "independent_producer_run": false,
+    "native_cad_run": false
+  },
+  "assessment": {
+    "evidence_ceiling": "Generated local ASCII/Binary parser/writer and adapter controls plus source cross-checks; no independent producer or native acceptance, and no requirement-bit meaning is qualified.",
+    "remaining": [
+      "Implement/qualify remaining HEADER handle fields.",
+      "Define retention or observable loss for unknown HEADER variables and other repeated groups.",
+      "Obtain independent producer/native acceptance for REQUIREDVERSIONS and broader HEADER behavior."
+    ],
+    "deferred_external": [
+      "J256", "J260", "J268", "J284", "J293", "J295",
+      "FreeCAD Linux qualification",
+      "FreeCAD Windows qualification",
+      "independent ACIS/ACDS semantic qualification"
+    ]
+  },
+  "commit": "not created; no files were staged"
+}

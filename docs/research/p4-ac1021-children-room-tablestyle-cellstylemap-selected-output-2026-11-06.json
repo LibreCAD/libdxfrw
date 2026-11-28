@@ -1,0 +1,171 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Second physical AC1021 TABLESTYLE/CELLSTYLEMAP selected output profile",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the existing AC1021 TABLESTYLE/CELLSTYLEMAP writer against a second distinct local source, with its actual owner, extension dictionary, text-style and linetype dependencies. Preserve exact-profile refusal/retry and keep whole-source/native claims closed.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenance": "Existing local sample; author/producer are unauthenticated. No drawing or derivative is committed."
+  },
+  "sourceGraph": {
+    "tableStyle": {
+      "handle": "0x7F",
+      "ownerDictionary": "0x7E",
+      "extensionDictionary": "0x162",
+      "name": "Standard",
+      "flowDirection": 0,
+      "flags": 0,
+      "margins": [
+        1.5,
+        1.5
+      ],
+      "titleSuppressed": false,
+      "headerSuppressed": false,
+      "legacyRows": [
+        {
+          "height": 4.5,
+          "alignment": 2,
+          "valueDataType": 512,
+          "valueUnitType": 0,
+          "borderCount": 6
+        },
+        {
+          "height": 6.0,
+          "alignment": 5,
+          "valueDataType": 512,
+          "valueUnitType": 0,
+          "borderCount": 6
+        },
+        {
+          "height": 4.5,
+          "alignment": 5,
+          "valueDataType": 512,
+          "valueUnitType": 0,
+          "borderCount": 6
+        }
+      ]
+    },
+    "cellStyleMap": {
+      "handle": "0x3C3F7",
+      "ownerAndReactor": "0x162",
+      "cells": 3
+    },
+    "nodKey": "ACAD_TABLESTYLE -> 0x7E",
+    "ownerKey": "Standard -> TABLESTYLE 0x7F",
+    "extensionKey": "ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP -> CELLSTYLEMAP 0x3C3F7",
+    "dependencies": "The selected projection closes the NOD, both DICTIONARY records, TABLESTYLE/CELLSTYLEMAP source frames, named text-style dependencies, and source LTYPE handles 0x14 referenced by cell borders."
+  },
+  "cellProfile": [
+    {
+      "id": 1,
+      "class": 1,
+      "name": "_TITLE",
+      "type": 5,
+      "hasData": true,
+      "mergeFlags": "0x8000",
+      "textStyle": "0x11",
+      "background": "DWG CMC 256/C8 -> DXF 257",
+      "textHeight": 6.0,
+      "alignment": 5,
+      "layout": 1,
+      "margins": [
+        1.5,
+        1.5,
+        1.5,
+        1.5
+      ],
+      "borderCount": 6,
+      "borderSpacing": 1.125
+    },
+    {
+      "id": 2,
+      "class": 1,
+      "name": "_HEADER",
+      "type": 5,
+      "hasData": true,
+      "mergeFlags": "0x0",
+      "textStyle": "0x11",
+      "background": "DWG CMC 256/C8 -> DXF 257",
+      "textHeight": 4.5,
+      "alignment": 5,
+      "layout": 1,
+      "margins": [
+        1.5,
+        1.5,
+        1.5,
+        1.5
+      ],
+      "borderCount": 6,
+      "borderSpacing": 1.125
+    },
+    {
+      "id": 3,
+      "class": 2,
+      "name": "_DATA",
+      "type": 5,
+      "hasData": true,
+      "mergeFlags": "0x0",
+      "textStyle": "0x11",
+      "background": "DWG CMC 256/C8 -> DXF 257",
+      "textHeight": 4.5,
+      "alignment": 2,
+      "layout": 1,
+      "margins": [
+        1.5,
+        1.5,
+        1.5,
+        1.5
+      ],
+      "borderCount": 6,
+      "borderSpacing": 1.125
+    }
+  ],
+  "implementation": {
+    "change": "Generalized the physical selected-graph test projection to resolve source TABLESTYLE/CELLSTYLEMAP owner handles dynamically and retain required border LTYPE rows. Readback compares source scalar fields, maps legacy row text-style handles to their DXF name representation, verifies nested content text-style references, and checks border LTYPE references by remapped target name.",
+    "productionWriter": "The current writer emitted this source profile without a production-code change; this slice adds a second source-bound output qualification profile, not general TABLESTYLE/CELLSTYLEMAP support.",
+    "strictAdmissionGap": "The current exact legacy admission predicate rejects this physical source because it requires 0.06/0.06 margins and row heights 0.18/0.25/0.18; the source has 1.5/1.5 margins and 4.5/6.0/4.5 row heights. This explains TABLESTYLE source snapshot count 0 in strict output."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4 (-Werror).",
+    "architecturalSource": "PASS selected ASCII/Binary output/readback, graph closure, dangling STYLE destination preservation, same-adapter retry.",
+    "childrenRoomSource": "PASS selected ASCII/Binary output/readback, graph closure, dangling STYLE destination preservation, same-adapter retry.",
+    "generatedFastCTest": "PASS: libdxfrw_cellstylemap_dxf_writer (1/1).",
+    "diffCheck": "PASS: git diff --check.",
+    "fullSuites": "NOT RUN",
+    "fixturesCommitted": false,
+    "testSourceSha256": "15cf9c94352ad9f0d32dc53f16522caffc95cc5cf135ee610fa531b9ac1487d9",
+    "executableSha256": "c658a79eb07afc9e63a6e592bed80d106b243b97bfbe058729762fdcbd03c922",
+    "generatedOutputs": {
+      "ascii": {
+        "bytes": 18135,
+        "sha256": "0c96441d8500fdec68499bae601fdd0323f7135f383403971daf3741866fb6c5"
+      },
+      "binary": {
+        "bytes": 14535,
+        "sha256": "757d318c10b4209a83d3f994600f124d2fa603953571e6ace95daebdef02db60"
+      },
+      "directory": "/private/tmp/ac1021-children-room-cellstylemap-output"
+    }
+  },
+  "limits": "One more unauthenticated local AC1021 source profile; selected projection only. It does not qualify full drawing conversion, producer breadth, independent version-capable roundtrip, native TABLE semantics or support claims.",
+  "nextAction": "Use the updated gap receipt for the remaining MLEADERSTYLE and paired section/detail view-style strict inspectors.",
+  "strictStagedProof": {
+    "result": "PASS for TABLESTYLE 0x7F and CELLSTYLEMAP 0x3C3F7 in the same staged strict-output transaction.",
+    "profile": "AC1021 Standard TABLESTYLE margins 1.5/1.5; rows (height,alignment) 4.5/2, 6.0/5, 4.5/5; exact extension DICTIONARY 0x162 and three-cell map profile.",
+    "checks": [
+      "NOD and owner dictionary key/entry roles",
+      "extension dictionary owner and canonical CELLSTYLEMAP key",
+      "TABLESTYLE staged scalar/row/border body fields",
+      "CELLSTYLEMAP staged complete field model with DXF CMC normalization",
+      "reciprocal reactor group and STYLE/LTYPE output references",
+      "source-generation snapshots unchanged"
+    ],
+    "strictWholeSource": "Advanced from 179/186 to 181/186, then failed closed on five independent callbacks; no whole-source DXF was created.",
+    "remaining": "MLEADERSTYLE 0x12E, SECTIONVIEWSTYLE 0x21A/0x18081, DETAILVIEWSTYLE 0x21C/0x18082.",
+    "debugLogSha256": "43d717beda7e902b4b4eb0fc2045a2b41e3eb373472a2f1343881d2cb96e20e7",
+    "supportClaimEffect": "none"
+  }
+}

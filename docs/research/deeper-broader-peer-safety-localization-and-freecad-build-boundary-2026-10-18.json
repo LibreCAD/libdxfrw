@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader cross-peer failure classes, AcDs name-folding, and FreeCAD build boundary",
+  "mode": "primary-source research and read-only plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh exact cross-peer DWG/DXF parser and writer failure classes",
+    "Check the local AcDs segment-name normalization path against ODA section 24.2.1",
+    "Clarify current FreeCAD development-build dependencies and the platform evidence boundary",
+    "Refine existing implementation/test owners without expanding per-slice validation"
+  ],
+  "method": {
+    "kind": "Read official upstream release notes, issue reports, specification text, and local parser/test source",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/drw_datastorage.cpp",
+      "src/drw_datastorage.h",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/gbk_codepage_tests.cpp"
+    ],
+    "limitations": "The local ODA PDF specified by AGENTS.md was not present at ~/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf. The ODA-hosted PDF was reviewed read-only for §24.2.1 canonical segment names; no parser behavior was changed. Any future DWG layout change must still consult the authoritative local copy and a sample trace. Mutable peer pages and issue reports are not local reproductions or support evidence."
+  },
+  "sources": [
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/security/advisories"
+      ],
+      "revision": "0.14.1 NEWS section and current advisory index reviewed 2026-10-18",
+      "observed": "Release notes enumerate capacity/logical-length drift, stale pointers across realloc, offset and size arithmetic errors, non-finite writer hangs, resource/no-progress issues, and sanitizer/fuzz-discovered memory and cleanup faults. These are hazards in LibreDWG paths, not proof of the same defect in libdxfrw."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/DomCR/ACadSharp/issues/1280",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1283"
+      ],
+      "revision": "Current issue index reviewed 2026-10-18",
+      "observed": "The issue index separates culture-sensitive codepage lookup, recursive DXF parser stack exhaustion, per-application EED size overflow/loss, and nested-block deep-copy complexity/stack use. Issue thresholds are peer-specific and do not define format limits."
+    },
+    {
+      "project": "Open Design Alliance DWG specification",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Official hosted PDF, §24.2.1, reviewed 2026-10-18",
+      "observed": "The section lists canonical segment names as six-byte lowercase spellings: segidx, datidx, _data_, schidx, schdat, search, and blob01. It does not state that uppercase/mixed-case variants are normative or accepted."
+    },
+    {
+      "project": "BRL-CAD",
+      "urls": [
+        "https://github.com/BRL-CAD/brlcad/issues/228",
+        "https://github.com/BRL-CAD/brlcad/pull/245"
+      ],
+      "revision": "Issue and PR status reviewed 2026-10-18",
+      "observed": "The open issue reports an ASan out-of-range POLYFACE face-index read in dxf-g; the open PR proposes a >=1 lower bound that conflicts with negative DXF face-index visibility semantics. No hostile-input execution was performed."
+    },
+    {
+      "project": "Open CASCADE Technology",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157"
+      ],
+      "revision": "Official announcement dated 2026-03-10, reviewed 2026-10-18",
+      "observed": "The announcement separates LGPL core exchange formats from commercial DXF and ACIS SAT/SAB components; stock OCCT/FreeCAD is not itself an open-source ACIS reader by implication."
+    },
+    {
+      "project": "FreeCAD Developers Handbook",
+      "urls": [
+        "https://freecad.github.io/DevelopersHandbook/gettingstarted/dependencies.html"
+      ],
+      "revision": "Current development handbook reviewed 2026-10-18",
+      "observed": "The page describes main as development for FreeCAD 1.2 and specifies C++23, Python 3.11+, Qt 6.4, and Ubuntu 24.04 LTS as its stated build baseline. This is build guidance, not a runtime or DXF acceptance result."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines existing PAR-14/PAR-20/PAR-26/PAR-37/PAR-49, 7BE, 7S, and S8 owners. The local AcDs case-folding path remains a compatibility question rather than a confirmed defect because the ODA-listed canonical names are lowercase and no valid uppercase producer/profile was established. Current FreeCAD development dependencies must be bound to the exact target build/platform at the existing composed gate.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep the implementation queue moving; peer vulnerabilities refine only their corresponding local owners and do not establish matching libdxfrw defects.",
+    "Do not change DWG byte parsing until the repository-authoritative local ODA section and a real sample trace are reviewed.",
+    "Treat the existing lowercase AcDs segment-name handling as canonical; only implement deterministic ASCII case folding if a supported compatibility profile explicitly requires case variants.",
+    "If AcDs variant support is selected, add a short generated child-process locale test to the existing DataStorage boundary owner and verify kind/index/payload identity plus a following-record sentinel.",
+    "Pin FreeCAD release versus development main, exact build/dependencies, OS/architecture, converter, importer backend, and file hashes at the composed platform gate; unavailable environments are NOT_RUN.",
+    "Maintain the fast per-slice validation cadence; leave full suites, peer matrices, sanitizers/fuzzing, and native Linux/Windows GUI work at scheduled/composed checkpoints.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL; none of these sources supplies their independent semantic or platform evidence."
+  ]
+}

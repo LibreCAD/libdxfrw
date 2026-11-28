@@ -78,6 +78,8 @@ void appendUtf16Name(std::vector<std::uint8_t>& bytes,
         bytes.push_back(character);
         bytes.push_back(0);
     }
+    bytes.push_back(0);
+    bytes.push_back(0);
 }
 
 std::vector<std::uint8_t> buildR2007PageMap(
@@ -104,8 +106,10 @@ std::vector<std::uint8_t> buildR2007SectionMap(
     std::vector<std::uint8_t> bytes;
     try {
         for (const R2007Section& section : sections) {
+            std::uint64_t nameUnits = 0;
             std::uint64_t nameByteLength = 0;
-            if (!dwgSafety::multiply(section.name.size(), 2,
+            if (!dwgSafety::add(section.name.size(), 1, nameUnits)
+                || !dwgSafety::multiply(nameUnits, 2,
                                      nameByteLength))
                 return {};
             putRLL(bytes, section.size);
@@ -203,8 +207,10 @@ bool matchesR2004Name(ByteCursor& cursor, const std::string& expected) {
 
 bool matchesR2007Name(ByteCursor& cursor, std::uint64_t byteLength,
                       const std::string& expected) {
+    std::uint64_t expectedUnits = 0;
     std::uint64_t expectedByteLength = 0;
-    if (!dwgSafety::multiply(expected.size(), 2, expectedByteLength)
+    if (!dwgSafety::add(expected.size(), 1, expectedUnits)
+        || !dwgSafety::multiply(expectedUnits, 2, expectedByteLength)
         || byteLength != expectedByteLength
         || byteLength > std::numeric_limits<std::size_t>::max())
         return false;
@@ -217,7 +223,7 @@ bool matchesR2007Name(ByteCursor& cursor, std::uint64_t byteLength,
             || bytes[index * 2 + 1] != 0)
             return false;
     }
-    return true;
+    return bytes[byteLength - 2] == 0 && bytes[byteLength - 1] == 0;
 }
 
 ValidationResult validateR2004SectionPageMap(
@@ -557,9 +563,34 @@ ValidationResult validateR2004(const R2004Snapshot& snapshot) {
             if (!dwgSafety::add(address, page.size, address))
                 return fail(ValidationCategory::Span);
         }
-        if (address != receipt.actualFileSize
-            || receipt.actualFileSize != receipt.declaredFileSize)
+        std::uint64_t expectedFileSize = address;
+        if (!dwgSafety::add(expectedFileSize, 0x6cu, expectedFileSize))
+            return fail(ValidationCategory::Span);
+        if (address != receipt.declaredFileSize
+            || receipt.actualFileSize != expectedFileSize)
             return fail(ValidationCategory::Header);
+        {
+            if (!checkedSpan(snapshot.assembled, address, 0x6cu, span)
+                || !std::equal(snapshot.fileHeader.cbegin() + 0x80,
+                               snapshot.fileHeader.cbegin() + 0xec, span))
+                return fail(ValidationCategory::Header);
+            std::array<std::uint8_t, 0x6c> decoded{};
+            std::uint32_t seed = 1;
+            for (std::size_t i = 0; i < decoded.size(); ++i) {
+                seed = seed * 0x343fdu + 0x269ec3u;
+                decoded[i] = span[i] ^ static_cast<std::uint8_t>(seed >> 16);
+            }
+            const auto read64 = [](const std::uint8_t* p) {
+                return static_cast<std::uint64_t>(getRL(p))
+                    | (static_cast<std::uint64_t>(getRL(p + 4)) << 32);
+            };
+            if (read64(decoded.data() + 0x34) != address)
+                return fail(ValidationCategory::Header);
+            const std::uint32_t storedCrc = getRL(decoded.data() + 0x68);
+            std::fill(decoded.begin() + 0x68, decoded.end(), 0);
+            if (dwgUtil::crc32(0, decoded.data(), decoded.size()) != storedCrc)
+                return fail(ValidationCategory::Checksum);
+        }
 
         std::vector<bool> seen(snapshot.dataPages.size() + 1, false);
         for (const R2004Section& section : snapshot.sections) {
@@ -766,6 +797,13 @@ ValidationResult validateR2007(const R2007Snapshot& snapshot) {
         if (snapshot.fileHeaderData.size() != kR2007FileHeaderDataSize
             || snapshot.fileHeaderPage.size() < kR2007EncodedHeaderSize)
             return fail(ValidationCategory::Header);
+        const auto* header2Field = snapshot.fileHeaderData.data() + 72u;
+        const std::uint64_t header2Offset = getRL(header2Field)
+            | (static_cast<std::uint64_t>(getRL(header2Field + 4u)) << 32);
+        std::uint64_t header2Address = 0u;
+        if (!dwgSafety::add(receipt.dataStart, header2Offset, header2Address)
+            || header2Address != receipt.trailingHeaderAddress)
+            return fail(ValidationCategory::Header);
         std::vector<std::uint8_t> encodedHeader(
             snapshot.fileHeaderPage.cbegin(),
             snapshot.fileHeaderPage.cbegin() + kR2007EncodedHeaderSize);
@@ -775,6 +813,8 @@ ValidationResult validateR2007(const R2007Snapshot& snapshot) {
                            snapshot.fileHeaderData.cend(),
                            decodedHeader.cbegin() + 32))
             return fail(ValidationCategory::ReedSolomon);
+        if (!validateR2007HeaderEnvelope(decodedHeader.data(), decodedHeader.size()))
+            return fail(ValidationCategory::Header);
 
         std::uint64_t address = receipt.dataStart;
         std::unordered_map<std::uint32_t, std::size_t> pageIndexes;
@@ -800,6 +840,17 @@ ValidationResult validateR2007(const R2007Snapshot& snapshot) {
 
         if (receipt.pages[1].address < receipt.dataStart)
             return fail(ValidationCategory::Topology);
+        const auto appInfoPage = std::find_if(
+            receipt.pages.cbegin(), receipt.pages.cend(),
+            [](const R2007PhysicalPage& page) {
+                return page.kind == R2007PhysicalPage::Kind::Data
+                    && page.sectionName == "AcDb:AppInfo"
+                    && page.logicalOffset == 0u;
+            });
+        if (appInfoPage == receipt.pages.cend()
+            || appInfoPage->address > std::numeric_limits<std::uint32_t>::max()
+            || getRL(snapshot.metadata.data() + 0x2cu) != appInfoPage->address)
+            return fail(ValidationCategory::Header);
         const std::uint64_t pageMap2Offset =
             receipt.pages[1].address - receipt.dataStart;
         std::uint64_t expectedFileSize = 0;
@@ -1069,6 +1120,20 @@ ValidationResult validate(const R2004Snapshot& snapshot) {
 
 ValidationResult validate(const R2007Snapshot& snapshot) {
     return validateR2007(snapshot);
+}
+
+bool validateR2007HeaderEnvelope(const std::uint8_t* data, std::size_t size) noexcept {
+    if (!data || size < 32u + kR2007FileHeaderDataSize) return false;
+    const auto getRLL = [](const std::uint8_t* p) {
+        return static_cast<std::uint64_t>(getRL(p))
+            | (static_cast<std::uint64_t>(getRL(p + 4u)) << 32);
+    };
+    const auto rawSize = static_cast<std::uint64_t>(
+        -static_cast<std::int64_t>(kR2007FileHeaderDataSize));
+    return getRLL(data + 24u) == rawSize
+        && getRLL(data + 16u) == dwgUtil::crc64Normal(
+            dwgUtil::updateSeed2(kR2007CrcSeed, kR2007FileHeaderDataSize),
+            data + 32u, kR2007FileHeaderDataSize);
 }
 
 #ifdef DWG_LAYOUT_VALIDATION_TESTS

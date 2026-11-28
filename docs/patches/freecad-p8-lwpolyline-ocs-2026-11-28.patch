@@ -1,0 +1,118 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.h b/src/Mod/Import/App/dxf/dxf.h
+--- a/src/Mod/Import/App/dxf/dxf.h
++++ b/src/Mod/Import/App/dxf/dxf.h
+@@ -743,0 +744 @@
++    bool m_lwPolylineInOCS = false;
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2370,0 +2371 @@
++    double elevation = 0;
+@@ -2386,0 +2388 @@
++    SetupScaledDoubleAttribute(static_cast<eDXFGroupCode_t>(38), elevation);
+@@ -2410,0 +2413,3 @@
++    for (auto& vertex : vertices) {
++        vertex.location.z = elevation;
++    }
+@@ -2414,0 +2420 @@
++    m_lwPolylineInOCS = true;
+@@ -3434,0 +3441 @@
++    m_lwPolylineInOCS = false;
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -1625,0 +1626,9 @@
++    if (m_lwPolylineInOCS) {
++        const Base::Vector3d normal(OCSOrientationTransform[0][2], OCSOrientationTransform[1][2],
++                                    OCSOrientationTransform[2][2]);
++        if (normal.IsNull() || !std::isfinite(normal.x) || !std::isfinite(normal.y)
++            || !std::isfinite(normal.z)) {
++            UnsupportedFeature("LWPOLYLINE invalid extrusion direction");
++            return;
++        }
++    }
+@@ -1628,0 +1638,5 @@
++    }
++    if (m_lwPolylineInOCS) {
++        Part::TopoShape transformed(wire);
++        transformed.transformShape(OCSOrientationTransform, false, true);
++        wire = TopoDS::Wire(transformed.getShape());
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1891,0 +1892,75 @@
++    def _assert_lwpolyline_bulge_elevation_ocs(self, bulge):
++        """An elevated tilted LWPOLYLINE keeps its straight and bulged segments."""
++        import math
++        options = FreeCAD.ParamGet(self.option_source)
++        entity = [(0, "LWPOLYLINE"), (8, "0"), (90, 3), (70, 0), (38, 5),
++                  (10, 0), (20, 0), (42, bulge), (10, 2), (20, 0), (10, 2), (20, 1),
++                  (210, 0), (220, 1), (230, 0)]
++        header = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                  (9, "$INSUNITS"), (70, 4), (0, "ENDSEC")]
++        for mode in (2, 3):
++            options.SetInt("DxfImportMode", mode)
++            for nested in (False, True):
++                with self.subTest(mode=mode, nested=nested):
++                    if nested:
++                        tags = header + [(0, "SECTION"), (2, "BLOCKS"), (0, "BLOCK"), (8, "0"),
++                                         (2, "B"), (70, 0), (10, 0), (20, 0), (30, 0)] + entity + [
++                                         (0, "ENDBLK"), (8, "0"), (0, "ENDSEC"),
++                                         (0, "SECTION"), (2, "ENTITIES"), (0, "INSERT"),
++                                         (8, "0"), (2, "B"), (10, 0), (20, 0), (30, 0)]
++                    else:
++                        tags = header + [(0, "SECTION"), (2, "ENTITIES")] + entity
++                    tags += [(0, "ENDSEC"), (0, "EOF")]
++                    path = os.path.join(self.temp_dir, "lwpolyline-ocs.dxf")
++                    with open(path, "w", encoding="ascii", newline="\n") as stream:
++                        stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                    previous = set(self.document.Objects)
++                    Import.readDXF(path, self.document.Name, True, self.option_source)
++                    self.document.recompute()
++                    name = "Link_B" if nested else ("Compound" if mode == 3 else "Polyline")
++                    objects = [o for o in self.document.Objects if o not in previous and o.Name.startswith(name)]
++                    edges = [edge for obj in objects for edge in obj.Shape.Edges]
++                    self.assertEqual(len(edges), 2)
++                    arc = [edge for edge in edges if abs(edge.Length - math.pi) < 0.00001]
++                    line = [edge for edge in edges if abs(edge.Length - 1) < 0.00001]
++                    self.assertEqual(len(arc), 1)
++                    self.assertEqual(len(line), 1)
++                    circle = arc[0].Curve
++                    for actual, expected in zip((circle.Center.x, circle.Center.y, circle.Center.z), (-1, 5, 0)):
++                        self.assertAlmostEqual(actual, expected, delta=0.00001)
++                    self.assertAlmostEqual(abs(circle.Axis.y), 1, delta=0.00001)
++                    midpoint = arc[0].valueAt((arc[0].FirstParameter + arc[0].LastParameter) / 2)
++                    self.assertAlmostEqual(midpoint.z, -bulge, delta=0.00001)
++                    endpoints = tuple(sorted((round(v.Point.x, 6), round(v.Point.y, 6), round(v.Point.z, 6))
++                                             for v in line[0].Vertexes))
++                    self.assertEqual(endpoints, ((-2, 5, 0), (-2, 5, 1)))
++
++    def test_lwpolyline_bulge_elevation_ocs(self):
++        self._assert_lwpolyline_bulge_elevation_ocs(1)
++        self._assert_lwpolyline_bulge_elevation_ocs(-1)
++
++    def test_lwpolyline_invalid_normal_then_valid(self):
++        """Reject a zero normal and preserve following valid polyline and line."""
++        options = FreeCAD.ParamGet(self.option_source)
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                (0, "LWPOLYLINE"), (8, "0"), (90, 2), (10, 0), (20, 0), (10, 2), (20, 0),
++                (210, 0), (220, 0), (230, 0),
++                (0, "LWPOLYLINE"), (8, "0"), (90, 2), (10, 0), (20, 0), (10, 2), (20, 0),
++                (0, "LINE"), (8, "0"), (10, 0), (20, 1), (30, 0), (11, 1), (21, 1), (31, 0),
++                (0, "ENDSEC"), (0, "EOF")]
++        path = os.path.join(self.temp_dir, "invalid-lwpolyline-ocs.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        for mode in (2, 3):
++            with self.subTest(mode=mode):
++                options.SetInt("DxfImportMode", mode)
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                self.document.recompute()
++                names = ("Compound",) if mode == 3 else ("Polyline", "Shape")
++                objects = [o for o in self.document.Objects if o not in previous and o.Name.startswith(names)]
++                edges = [edge for obj in objects for edge in obj.Shape.Edges]
++                self.assertEqual(len(stats["unsupportedFeatures"]["LWPOLYLINE invalid extrusion direction"]), 1)
++                self.assertEqual(sorted(round(edge.Length, 6) for edge in edges), [1, 2])
++

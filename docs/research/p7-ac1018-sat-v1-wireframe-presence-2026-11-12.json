@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p7-ac1018-sat-v1-wireframe-presence-2026-11-12",
+  "date": "2026-11-12",
+  "scope": "Decode the common DWG modeler wireframe-presence bit following the bounded AC1015/AC1018 SAT-v1 block sequence. The implementation records presence only and does not decode wireframe records, transforms, or 3D semantics.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.41",
+    "finding": "After modeler payload framing, the common layout carries a one-bit Wireframe data present field; true is followed by optional wireframe and silhouette data.",
+    "localExtract": "/private/tmp/oda-spec-p7.txt"
+  },
+  "source": {
+    "path": "/private/tmp/trattocad-sample-3d-house.dwg",
+    "sha256": "894d2c8b19000d39e2d1819ef9eacf87481dd3bb58718ec32bf4deb688a8150b",
+    "version": "AC1018",
+    "records": 48,
+    "handles": "0x2a-0x59",
+    "producerProvenance": "The exact producer/toolchain remains unauthenticated."
+  },
+  "independentComparison": {
+    "implementation": "LibreDWG 0.14",
+    "outputPath": "/private/tmp/house-libredwg.json",
+    "outputSha256": "25de5f683f7abb11a158b5817f309b2fba7630df0bbeb59de758eaeb1db9e790",
+    "method": "dwgread -O JSON source.dwg",
+    "result": "All 48 3DSOLID rows report wireframe_data_present=0; libdxfrw reports m_hasWireframe=false for each selected source handle."
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "After an exactly terminated SAT-v1 payload, read one bounded bit at the body cursor and publish its value to DRW_ModelerGeometry::m_hasWireframe. If the SAT-v1 carrier is not exactly framed, no wireframe-presence value is inferred. Wireframe body data remains unparsed.",
+    "regression": "The existing hash-bound per-handle physical selector compares m_hasWireframe against the LibreDWG result while preserving its SAT payload, unit-header, ASCII/Binary readback, refusal, and same-adapter retry checks."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "passed with -Werror",
+    "run": "For each handle 0x2a through 0x59, run build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeler-ac1018-physical-sat-v1-projection /private/tmp/trattocad-sample-3d-house.dwg <handle>.",
+    "result": "48/48 source handles passed; both ASCII and Binary projection/readback succeeded for every handle and the wireframe-presence values agreed with LibreDWG.",
+    "testSourceSha256": "fe96fc06e77a02c505ed76b4b4387cda844c016d4a365292c6b8ba9870cc004a",
+    "testExecutableSha256": "24e4492b29d670798f2363e5a088bfc82df60eb7ce074cdc9c7969df1abec947",
+    "fixturePolicy": "The external DWG and LibreDWG JSON remain in /private/tmp; no fixture was added to Git."
+  },
+  "limitations": [
+    "This qualifies one common presence bit for one unauthenticated AC1018 producer sample, not wireframe payload semantics or producer breadth.",
+    "When the bit is true, point, isoline, wire, silhouette, viewport and transform fields are still opaque and are not surfaced as typed data.",
+    "No AC1015, AC1021, AC1024, AC1027 or AC1032 wireframe profile is qualified by this result.",
+    "This does not establish ACIS source placement, independent geometry equivalence, native consumer acceptance, whole-file output, or format support."
+  ]
+}

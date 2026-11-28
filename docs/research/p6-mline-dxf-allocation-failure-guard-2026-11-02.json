@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mline-dxf-allocation-failure-guard-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P6",
+  "status": "BOUNDED_MLINE_DXF_ALLOCATION_FAILURE_FAILS_CLOSED_AND_RETRIES",
+  "supportClaimEffect": "none",
+  "scope": "Bound allocations made while DRW_MLine::parseCode constructs DXF vertex and segment/fill parameter arrays and while pending parameter blocks are attached after the line count arrives.",
+  "implementation": {
+    "sources": {
+      "src/drw_entities.cpp": "29e06e36aed5c87a09f746bf689e36c299ee465abd9a3fef83509b0fce37ba4d",
+      "tests/dxf_fixture_tests.cpp": "740a386261eae17c8f608aecbb00d980ce8c0ac7cbe813db4800191886d4f322",
+      "CMakeLists.txt": "97d625d9148f7267fde8c9e97556e9588810063c8f6006460cb1aeafb232251c"
+    },
+    "behavior": [
+      "The nine repeated vector-component groups use the exception-catching DRW::resize helper and increment their occurrence count only after the coordinate has been stored.",
+      "Group 74 pre-reserves bounded segment values and destination slots before publishing a parameter block. The line-known path computes candidate indices locally and rolls back any newly appended vertices if a later reservation fails.",
+      "Group 75 reserves the selected fill-value vector before changing the active parser state, so the same group can be retried after allocation failure.",
+      "Pending parameter attachment validates its bounded vertex count and target slots first, reserves every destination vector before moving any data, and removes newly grown vertices if reservation fails. Group 73 restores the prior line-count state after an attachment failure."
+    ],
+    "failureInjection": {
+      "method": "The focused test executable replaces global operator new with a scoped countdown fault injector and parses one DXF group at a time.",
+      "boundaries": [
+        "Lone vector-component growth",
+        "Both pending group-74 allocations",
+        "All three pending group-73 attachment allocations",
+        "All four line-known group-74 setup allocations",
+        "The group-75 fill-vector reservation"
+      ],
+      "result": "Each injected allocation failure was observed exactly once, returned a parse failure without publishing partial logical state, and succeeded when the same group was retried. Completed parameter values were checked after attachment."
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_mline_(dxf_allocation_failure|vector_component_order)$' --output-on-failure",
+      "result": "PASS: 2/2 tests in 0.14 seconds; fault-injection/retry selector and ASCII/Binary component-order/readback selector"
+    },
+    "fixturePolicy": "All allocation controls are locally generated in memory. No DWG or DXF fixture was added to the repository.",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "limitations": [
+    "This closes only the bounded DXF MLINE vector and parameter allocations described above; DWG MLINE parsing, string retention and other parser allocation paths remain open.",
+    "The focused controls prove parser failure/retry and parameter transport, not physical producer breadth, full-document conversion, or native MLINE rendering semantics.",
+    "No support claim is promoted."
+  ],
+  "next": "Continue P6 safety review at another reproduced parser allocation or rollback boundary; keep unrelated full-suite validation deferred under the fast-validation policy."
+}

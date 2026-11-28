@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "title": "GEODATA source-binding bypass, north-Z loss guard, and AC1027 north-direction span",
+  "status": "FOCUSED_CORRECTIONS_WITH_SCOPED_PHYSICAL_EVIDENCE",
+  "supportClaimEffect": "none",
+  "auditedCommit": "a79b83a6edf0fa8698d63cc2e2829a76b37b3ab3",
+  "findings": [
+    {
+      "problem": "The older direct-owner preflight compared the retained raw GEODATA frame's owner but not its reactor count/vector, XDICTIONARY flag/reference or data-storage flag, and the editable model's source version and host were not privately bound. On the physical v3 source, changing the editable model to v2, clearing its reactor state, and changing the editable model-space handle and host to the dictionary handle made prepareDwgGeoDataOutput return true through the old direct-owner route, while the raw source still had one reactor and XDICTIONARY-missing flag 1.",
+      "evidenceLimit": "This established a direct preflight admission bypass. The unmodified physical whole drawing remains refused at other source-carrier/integrity gates; the experiment does not claim that the unmodified source fully exported.",
+      "correction": "Capture each DWG GEODATA's original version and host in a private generation-keyed map, charged to the existing retained-byte budget with insertion rollback on failure. Before both direct and dictionary-graph admission, require the current typed version/host to match that immutable source descriptor and all retained raw common-link fields to match the typed record. Recheck source owner, generation, version/host and common links at OBJECTS emission and finalization, including the pre-existing direct-owner profile."
+    },
+    {
+      "problem": "Modern GEODATA DXF north direction has groups 12 and 22 only. The low-level writer accepted a finite nonzero m_northDirection.z but emitted no representation for that value. The selected graph's output inspector would later refuse such a mismatch, but the older direct-owner and direct-writer paths could discard it.",
+      "reference": "Autodesk GEODATA DXF group map: https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm",
+      "correction": "For object versions 2 and 3, reject nonzero north Z before any record mutation. Existing finite checks already reject NaN and infinity. Version 1's existing legacy validation is unchanged."
+    }
+  ],
+  "physicalNorthDirection": {
+    "source": "tools/geodata_north_witness.py authors a scratch AC1027 DXF; ODA File Converter 27.1.0 converts it to AC1027 DWG and a paired AC1027 DXF. No drawing fixture is committed.",
+    "generatorSha256": "5e9586b1fc3c6d3cf1b48cb7e6c6f97cb2332d7caa20c838810ed45eb03959ae",
+    "inputDxfSha256": "abcf593ac99bad94e02639b7d3d7c30da220b051a187b2bedf4c571ca39e260d",
+    "odaDwgSha256": "86ee23a1bbcf341791e642aaa1fb66978e0a7b70bd765ca3e80c65aa2af46769",
+    "odaDxfSha256": "eff5730039b624d76041fd4de68eb9edc9754ee03b25c6187b19fed551e195eb",
+    "frameSha256": "ccfecc46428b3cd4e6ba5d6f10d8dedb368256dc3d0152187d42c0bde70f140d",
+    "values": "GEODATA version 3; north x=0.6, y=0.8; scale-estimation method 2; user factor 1.23456789; sea-level flag true; elevation 42.75; radius 6371000.0. libdxfrw, LibreDWG's separately built decoder and the ODA-paired DXF agree.",
+    "bitSpan": "In the bounded retained raw GEODATA frame, with MSB-first bit offsets from the first retained frame byte, the unique little-endian 0.6/0.8 double pair spans [358,486). The next 10 bits at [486,496) are the BL one-byte encoding of 2. Then [496,562) is BD 1.23456789, [562,563) is B true, [563,629) is BD 42.75, and [629,695) is BD 6371000. The opt-in test verifies this complete unique sequence and the typed values.",
+    "specificationDiscrepancy": "Open Design Specification for .dwg files v5.4.1 section 20.4.78 labels modern north direction as 3RD; this specific independently produced AC1027 frame instead has the two raw doubles immediately followed by the independently checked scale method and following fields. LibreDWG source at commit 6d6a33987a1a97095b069c799c3d8a793320f812 uses FIELD_2RD(north_dir, 12): https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/dwg2.spec . The current libdxfrw parser in src/drw_objects.cpp:DRW_GeoData::parseDwg uses read2RawDoubleWithinBody for the modern north direction. Do not change that parser on this evidence; independently qualify nondefault vectors and versions from other producers before generalizing or asserting the ODA table is universally wrong.",
+    "versionAndProducerLimit": "One ODA AC1027 object, locally authored in DXF; nonzero north Z cannot be authored by the documented DXF group map. This is not native AutoCAD, Civil 3D, broader version or whole-file semantic qualification."
+  },
+  "focusedValidation": [
+    "libdxfrw_geodata_versioned_writer: modern v2/v3 ASCII/Binary north Z +1, -1 and NaN refuse atomically; correction retries on the same writer. Existing v1 and default north controls pass.",
+    "dwg2dxf_geodata_dwg_adapter_transport: original generated v2 direct-owner source prepares and exports; post-preparation source version/reactor-state changes fail the source binding and restoration succeeds.",
+    "--physical-geodata-dictionary-graph: physical v3 selected source graph rejects the compound v2/host/reactor mutation both at direct preflight and at actual export; existing destination survives; an in-write source mutation refuses publication and corrected same-adapter retry succeeds; nonzero north Z is refused. ASCII/Binary selected readback remains exact.",
+    "--physical-geodata-north-span: verifies the unique nondefault raw north pair and all following sentinel fields against the ODA-produced frame.",
+    "Source-role capture controls verify private copy isolation, same-handle isolation across import generations, duplicate callback failure without partial insertion, budget refusal without partial state, and recovery using fresh data.",
+    "Focused CTest run passed 2/2; both opt-in physical graph and north-span selectors passed. The raw 128-bit pair starts at offset 358 and the independent following-field sentinels end at bit 695."
+  ],
+  "reproduction": [
+    "build/rpp5gh-evidence/peer/bin/python -B tools/geodata_north_witness.py <new-input-dir>/tilted.dxf",
+    "<ODA File Converter> <new-input-dir> <new-DWG-dir> ACAD2013 DWG 0 0",
+    "<ODA File Converter> <new-DWG-dir> <new-ODA-DXF-dir> ACAD2013 DXF 0 0",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --physical-geodata-north-span <new-DWG-dir>/tilted.dwg",
+    "<LibreDWG dwgread> -v4 -O JSON -o <scratch-output.json> <new-DWG-dir>/tilted.dwg"
+  ]
+}

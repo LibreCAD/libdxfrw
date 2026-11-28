@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-codec-single-line-text-2026-11-25",
+  "status": "LOCAL_SYSTEM_AND_BUNDLED_CONTROLS_PASS_CROSS_PLATFORM_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "a10fa4fa856a1c6b5da2cee3f1c67d3fd1a6cbec",
+    "previousHead": "76cdccbb0c46844f17d6e21c13bd1a8ba093ac08"
+  },
+  "dependency": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "codeHead": "7371d329b",
+    "implementationDigest": "7827d552d5f861a0d3fd16c48d539f6bf70e332d9780132938d329e37661ff74",
+    "librarySha256": "7560e07c7889219246c4f3dcb2e2aadbbb235c786c338039d8588ad35fd7a97a"
+  },
+  "problem": "The adapter encoded semantic single-line caret controls before handing them to a system library that encodes them again, and it decoded values already decoded by the system library. Literal caret text and control characters were corrupted; semantic CR/LF were also refused by the library writer.",
+  "change": "For installed libdxfrw, route semantic single-line values to the library writer, and decode on input only for headerless ASCII DXF where the library has not entered semantic DXF text mode. Binary input remains literal. Preserve the bundled adapter path and the existing single-line symbol conversion.",
+  "validation": {
+    "host": "macOS ARM64 AppleClang 21 Release",
+    "systemFocused": "PASS on the committed adapter: 942 assertions, 26 cases. Tests cover headerless, declared version, unknown version and code-page-only ASCII; TAB, LF, CR, literal caret and caret-I; TEXT and INSERT ATTRIB; binary literal caret input; four DXF target versions and relevant DWG controls.",
+    "bundledFast": "PASS on the committed adapter: librecad_dxf_fast_tests; prior verbose run reports 41,492 assertions, 841 passed cases and three skipped.",
+    "systemBroad": "Exploratory [dxf][roundtrip][filter] 93/131 cases pass; 38 fail, 89 assertions fail versus prior 91/131 and 116 failing assertions. Normalized expression counts show no new or increased categories. Some older-target underlay cases expect output that the candidate deliberately refuses.",
+    "finalCommittedChecks": "Both installed-codec and bundled-codec CTests pass on a10fa4fa.",
+    "systemTestSha256": "e57c36331a76580a014091554ba5b59efa9736b096caacff3bd739ce01d2cc61"
+  },
+  "limits": [
+    "The consumer adapter depends on the corresponding new libdxfrw writer; earlier separately installed builds do not include the fix.",
+    "DWG literal-caret behavior and stored multiline ATTRIB sidecars are not qualified by these controls.",
+    "Native GUI, current-head hosted CI, Linux/Windows consumer qualification and broader profiles remain open.",
+    "No generated drawing fixtures were committed."
+  ]
+}

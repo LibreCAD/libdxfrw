@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-text-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "title": "TEXT DWG encoder allocation rollback and retry",
+  "scope": "Generated local transaction evidence for DRW_Text::encodeDwg; no physical producer or output-support claim.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The encoder stages body, string and handle streams, preserves aliases, and publishes all streams only after successful encoding. A scoped rollback guard restores the original oType on every failure and retains oType=1 on success.",
+    "versions": ["AC1021", "AC1024"],
+    "profile": "Generated TEXT with Unicode text, non-default alignment, common owner/reactor/extension handles, and seeded caller buffers."
+  },
+  "allocationSweep": {
+    "mechanism": "One-shot global allocation failure countdown in the generated object-vector test",
+    "result": "24 reached allocation-failure offsets per version returned false without throwing, preserved seeded body/string/handle bytes, bit counts, handle occurrences and original oType, and succeeded on same-object retry with bytes equal to clean output and oType=1.",
+    "aliasControl": "Failure at the first reached allocation preserved the all-streams-aliased destination and original oType; same-object retry matched the clean aliased encoding."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --text-dwg-encode-allocation-rollback",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_text_dwg_encode_allocation_rollback$' --output-on-failure",
+    "result": "PASS: focused selector and CTest (1/1); git diff --check passed."
+  },
+  "limitations": [
+    "Generated vectors establish local failure/retry behavior only; they do not qualify TEXT wire semantics or physical producer interoperability.",
+    "No native consumer rendering, complete-document output, or broad DWG support claim follows."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added."
+}

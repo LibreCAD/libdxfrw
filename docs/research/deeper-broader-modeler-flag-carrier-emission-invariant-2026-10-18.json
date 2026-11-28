@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader R2013+ modeler flag-to-carrier emission invariant",
+  "mode": "primary-source web research and read-only plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Trace the R2013+ has_ds_data bit and SAB payload through open-source writer and reader paths",
+    "Compare peer conventions with ODA's normative bit meaning and refine the exact supported-profile boundary",
+    "Refine existing per-handle AcDs replay/readback acceptance without adding peer execution to the fast loop"
+  ],
+  "method": {
+    "kind": "Current official repository, release-index, and source-documentation review; local plan cross-check",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "limitations": "ACadRust docs.rs latest source is mutable and was not bound to the listed 0.6.4 release; its latest AcisData API page still identifies version 0.5.4. ACadSharp PR #1240 is open and undeployed. Peer source patterns are not normative DWG evidence or runtime results."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance Open Design Specification v5.4.1",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Official ODA-hosted PDF reviewed 2026-10-18; §§20.4.1 and 24 (printed pp. 106-107 and 244-245)",
+      "observed": "Section 20.4.1 defines the R2013+ Has DS binary data bit as indicating associated binary data in the data store; section 24 describes AcDb:AcDsPrototype_1b as an ACIS data section with segment/index lookup structures. The specification does not define a universal per-modeler eligibility rule, one-to-one record-key mapping, or solid-semantic guarantee from the bit."
+    },
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://docs.rs/acadrust/latest/src/acadrust/io/dwg/dwg_stream_writers/object_writer/entities.rs.html",
+        "https://docs.rs/acadrust/latest/src/acadrust/io/dwg/dwg_reader.rs.html",
+        "https://docs.rs/acadrust/latest/acadrust/entities/solid3d/struct.AcisData.html",
+        "https://docs.rs/crate/acadrust"
+      ],
+      "revision": "Mutable docs.rs latest source and API reviewed 2026-10-18; release index lists 0.6.4",
+      "observed": "The writer source derives pending has_ds_data from AcDs route eligibility and contributes_sab before emitting the entity preamble, then queues a SAB entry paired to the entity handle. The reader source distinguishes indexed handle attachment from order fallback. The API/source snapshot is not proven to match the listed release."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "revision": "Open PR page reviewed 2026-10-18",
+      "observed": "PR #1240 remains open and undeployed, depends on the ACDS schema refactor #1174, and its visible writer commit describes ModelerGeometry serialization and unsupported-binary warnings."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Current NEWS and issue status reviewed 2026-10-18; issue report names 0.14.8593",
+      "observed": "NEWS includes an inline SAT final-block fix. Open issue #1411 reports AcDs/SAB carrier loss on its specifically named 0.14.8593 route. The release note and issue concern different routes and do not establish current behavior."
+    },
+    {
+      "project": "Local libdxfrw source",
+      "urls": [
+        "src/drw_entities.cpp",
+        "src/intern/dwgwriter15.cpp",
+        "src/intern/dwgwriter18.cpp"
+      ],
+      "revision": "Read-only audit of the shared worktree source state at HEAD de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+      "observed": "The common entity encoder emits the bit from hasDsData. The inspected writer stages AcDs payload metadata only for preserved raw modeler-frame replay and validates it against a replayed raw AcDs section; this path is not a general typed modeler DWG serializer."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines existing PAR-07/S2/S3/S8 acceptance by separating ODA's coarse bit meaning from the stricter local raw-replay policy. The bidirectional per-handle flag/payload invariant applies only to the admitted AC1027+ REGION/3DSOLID AcDs replay profile; it is not a universal modeler rule or general typed-DWG-authoring claim. No implementation queue or validation cadence change."
+  },
+  "implementationReadyChecks": [
+    "For the admitted AC1027+ REGION/3DSOLID AcDs raw-replay profile, assert that the external-data bit and exact linked payload agree both ways for each entity handle and owner path; do not generalize to BODY or other data-store object types.",
+    "Exercise empty, supported, and refused modeler-data cases plus distinct two-body payloads under object-order/handle-order permutation using locally generated in-memory or scratch-only material.",
+    "Inspect the physical wire bit, AcDs key/framing/hash, and output disposition separately; count the local path as same-version raw replay, not general typed AcDs authoring or independent semantic proof.",
+    "Keep AC1024-and-earlier inline modeler serialization as a separate profile; use ODA and producer traces for wire authority.",
+    "Use only the owning focused build, selector, and existing CTest for a later implementation slice; do not add external fixtures, dependencies, peer-per-slice runs, or full-suite runs."
+  ]
+}

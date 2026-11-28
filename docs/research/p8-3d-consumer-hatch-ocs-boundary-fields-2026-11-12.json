@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-hatch-ocs-boundary-fields-2026-11-12",
+  "purpose": "Verify generated HATCH boundary callback delivery of loop structure and selected OCS vertices, with independently helper-mapped WCS expectations.",
+  "source": {
+    "kind": "runtime-generated-from-scratch-DXF",
+    "version": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "trackedFixture": false,
+    "entity": "HATCH",
+    "layer": "probe_hatch_ocs_boundary",
+    "solid": true,
+    "associative": false,
+    "elevation": 4.0,
+    "extrusion": [1.0, 0.0, 0.0],
+    "boundary": {
+      "type": "closed polyline",
+      "verticesOCS": [[2.0, 3.0, 0.0], [5.0, 3.0, 0.0], [5.0, 7.0, 0.0]],
+      "closed": true,
+      "expectedVerticesWCS": [[4.0, 2.0, 3.0], [4.0, 5.0, 3.0], [4.0, 5.0, 7.0]]
+    }
+  },
+  "capture": {
+    "readModes": ["ext=false", "ext=true"],
+    "assertions": [
+      "solid and associative flags",
+      "elevation and extrusion normal",
+      "one type-2 loop with one closed polyline and three vertices",
+      "all three OCS boundary vertices",
+      "boundaryPointToWcs projection for all three vertices"
+    ],
+    "coordinateRule": "DRW_Hatch::applyExtrusion leaves boundary callback coordinates in OCS; WCS assertions are computed explicitly with DRW_Hatch::boundaryPointToWcs."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build --target libdxfrw_3d_consumer_probe -j4",
+    "normalBuildResult": "PASS",
+    "normalCTest": "ctest --test-dir build -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "normalCTestResult": "PASS, 1/1, 0.52 seconds",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_3d_consumer_probe -j4",
+    "asanBuildResult": "PASS",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "asanCTestResult": "PASS, 1/1, 0.80 seconds",
+    "diffCheck": "PASS",
+    "jsonSyntax": "PASS"
+  },
+  "sourceBindings": {
+    "tests/semantic_differential_adapter.cpp": "eb49b44c6fd47fb8841e344fc21bce6d8db4341cf22b9f20386d73ffb2264348",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "9e3ba4a16d74ff3b4b31c58aff957a9f603c6e9a04b87f2679950bbde9bdcc4b",
+    "DWG_DXF_3D_SUPPORT_PLAN.md": "17e06e3531248eef80bc4dc784209eeabb3aa9fe95dde3fbc2d3e240706c76bd"
+  },
+  "scopeLimit": "Generated same-library DXF callback transport and local coordinate-helper behavior only. Does not establish independent DXF interoperability, HATCH fill/pattern semantics, DWG producer semantics, or native consumer construction.",
+  "claimEffect": "No format or consumer support claim changes."
+}

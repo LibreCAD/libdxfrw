@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-03",
+  "scope": "Prevent adapter conversion from silently dropping retained action-path and rendering OBJECTS callbacks.",
+  "implementation": {
+    "families": [
+      "MOTIONPATH",
+      "ACDBCURVEPATH",
+      "ACDBPOINTPATH",
+      "OBJECTPTR",
+      "SUNSTUDY",
+      "LIGHTLIST",
+      "GEOMAPIMAGE"
+    ],
+    "behavior": "DXF adapter preflight fails with a family-specific diagnostic when any corresponding retained callback list is nonempty. Capture failures keep their existing more-specific diagnostics.",
+    "destination": "Output is refused before publication; the focused control verifies an existing destination remains byte-for-byte unchanged.",
+    "qualification": "This is a loss-prevention gate. It does not implement output or establish source spans, producer fields, ownership/reference closure, readback, or native semantics."
+  },
+  "validation": {
+    "inputs": "Locally authored in-memory callback values; no DWG/DXF fixture was added.",
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "ctest --test-dir build -R '^(dwg2dxf_action_path_object_capture_limits|dwg2dxf_sunstudy_callback_capture_limits|dwg2dxf_lightlist_callback_capture_limits|dwg2dxf_geomapimage_callback_capture_limits)$' --output-on-failure",
+      "git diff --check"
+    ],
+    "result": "PASS: all four focused CTest selectors passed; existing destinations were preserved for successfully captured but unqualified records."
+  }
+}

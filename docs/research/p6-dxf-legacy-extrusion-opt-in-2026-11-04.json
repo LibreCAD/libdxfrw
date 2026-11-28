@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-legacy-extrusion-opt-in-2026-11-04",
+  "date": "2026-11-04",
+  "status": "EXPLICIT_DXF_CIRCLE_ARC_LEGACY_EXTRUSION_CONVERSION",
+  "supportClaimEffect": "bounded explicit DXF opt-in only",
+  "authority": {
+    "dxf_circle": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-8663262B-222C-414D-B133-4A8506A27C18.htm",
+    "dxf_arc": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-0B14D8F1-0EBA-44BF-9108-57D8CE614BC8.htm",
+    "arbitrary_axis": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm",
+    "baseline": "docs/research/p6-circle-arc-applied-extrusion-roundtrip-2026-11-04.json"
+  },
+  "change": "Add installed header drw_dxf_extrusion.h and two non-virtual free functions DRW_DxfLegacyExtrusion::toNativeOcs for exact built-in CIRCLE and ARC input/output. An explicit caller asserts the input reflects exactly one legacy applyExtrusion call and retains its flag and coordinate/normal interpretation. Reuse the existing normalized basis and inverse projection; reverse exactly the existing near-axial negative-Z ARC angle mapping. If haveExtrusion was false, the legacy call was a no-op and so is this conversion. The input is copied before publication; no existing writer, public class layout, vtable or default behavior changes.",
+  "atomicity": "Reject nonfinite/zero normals, nonfinite modeled geometry, nonfinite inverse results, mismatched input public type tags, and derived input or output runtime types. Copy failures return false and nothrow move assignment is compile-time checked. Output remains unchanged on refusal; input/output aliasing is supported. This is not an inferred frame-state marker.",
+  "tests": {
+    "focused_ctests": [
+      "libdxfrw_dxf_legacy_extrusion",
+      "dxf_ellipse_extrusion_policy",
+      "libdxfrw_dxf_dimension_ocs_extrusion"
+    ],
+    "generated_scope": "For ASCII and Binary AC1027 DXF, generate six CIRCLE and six ARC entities with identity, axial negative, tilted, non-unit and values on both sides of the normalized arbitrary-axis cutoff; compare native fields and applied callbacks before and after opt-in output. Also check aliases, authored objects with nondefault normal and false flag, derived and tag mismatch refusal, finite overflow, nonfinite values, zero normal, subnormal and maximum finite normals, and unchanged supplied objects.",
+    "transaction": "An invalid normal after a previous entity was staged causes finalization failure and preserves a pre-existing destination. After correction, the same dxfRW instance successfully writes and reads back the drawing in each encoding.",
+    "independent": "ezdxf 1.4.5, tests/dxf_legacy_extrusion_ezdxf.py, independently reads the locally generated originals and opt-in outputs and confirms each of 12 entities has matching OCS center, normal, radius, WCS center and ARC endpoints for both ASCII and Binary.",
+    "hashes": {
+      "ascii_original": "d7d5deddf7f78c5cc158b4b900b9b7bcbf56484eb67e9249d1d79bf0388befba",
+      "ascii_converted": "ef0d8954ad8dba9c09c867e0770f24d3aad4029845cb0432a0dd4e1aed5e7b49",
+      "binary_original": "b557c4f512fe15ab2c8ba69040a6fdf605e015bcd9a7fd1ff75dfb0835db8bec",
+      "binary_converted": "c7861697798a05979cf4d5e5286095e9a18bd7524f3b8617e4dccccd4d7019a2"
+    },
+    "reproduction": "Run CTest libdxfrw_dxf_legacy_extrusion. For the optional independent audit run build-gcc/tests/libdxfrw_dxf_legacy_extrusion_tests --keep and pass its OUTPUT directory to an ezdxf-capable Python running tests/dxf_legacy_extrusion_ezdxf.py. The drawings are generated locally and are not committed."
+  },
+  "limits": "This opt-in reverses the in-tree legacy transformation and cannot prove a caller assertion, detect later normal/coordinate changes, undo multiple applications, or interpret generic WCS ARC angles. Its contract is DXF native OCS only; DWG output, arbitrary external producers, native application semantics, and automatic legacy round-trip repair remain open. The historical reproducer remains valid for unchanged default behavior."
+}

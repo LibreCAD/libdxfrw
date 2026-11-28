@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Standalone PLOTSETTINGS graph emission fast slice",
+  "mode": "local implementation with generated in-memory controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "ACAD_PLOTSETTINGS NOD root and dictionary owner closure",
+    "Named page-setup key to PLOTSETTINGS record matching",
+    "Object identity remap through root entry, dictionary entry, record handle, and owner",
+    "Null shade-reference ASCII/Binary adapter round-trip and fail-closed controls"
+  ],
+  "method": {
+    "kind": "Targeted adapter, object-graph, writer, and generated-test implementation",
+    "externalDrawingsDownloaded": 0,
+    "privateSamplesObtained": 0,
+    "peerRepositoriesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "limitations": "Only DXF-source standalone PLOTSETTINGS with R14+ targets, finite modeled fields, shade modes 0-3, and null/omitted code 333 are admitted. No device/printer availability or semantic plotting behavior is qualified. DWG-source standalone PlotSettings remains fail-closed."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behaviors": [
+      "Captures standalone PLOTSETTINGS separately from the LAYOUT plot prefix.",
+      "Inventories PLOTSETTINGS handles in extension-object graph traversal and requires typed owner closure.",
+      "Validates one ACAD_PLOTSETTINGS NOD edge, a unique NOD-owned dictionary, unique entries, matching pageSetupName values, and complete rooted coverage.",
+      "Remaps fixed-handle collisions consistently for the dictionary, entry targets, record handles, and owner links.",
+      "Writes reachable standalone records using the existing dxfRW::writePlotSettings serializer.",
+      "Rejects non-null shadePlotHandle references before output publication."
+    ],
+    "generatedControls": [
+      "Two named page setups with non-monotonic source identities and fixed-handle collisions.",
+      "ASCII and Binary write/readback with root, owner, name, field, and remap assertions.",
+      "Missing root, duplicate root, wrong owner, non-null shade handle, dictionary-key mismatch, and duplicate target negatives.",
+      "Existing-destination sentinel preservation and same-adapter retry after each rejected case."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-plotsettings-callback-and-fail-closed",
+      "cmake --build build-gcc --target dwg2dxf lc3_compat_check -j2",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-datalink-callback-and-fail-closed",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp src/libdxfrw.cpp tests/dwg2dxf_adapter_tests.cpp",
+      "jq empty docs/research/standalone-plotsettings-graph-emission-fast-slice-2026-10-17.json",
+      "awk '/[ \\t]+$/ { print FNR \": trailing whitespace\"; failed=1 } END { exit failed }' docs/research/standalone-plotsettings-graph-emission-fast-slice-2026-10-17.json"
+    ],
+    "focusedBuildsPassed": true,
+    "generatedPlotSettingsSelectorPassed": true,
+    "datalinkRegressionSelectorPassed": true,
+    "librecad3CompatibilityTargetPassed": true,
+    "fullSuiteRun": false,
+    "composedCliGraphCheckpointRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  }
+}

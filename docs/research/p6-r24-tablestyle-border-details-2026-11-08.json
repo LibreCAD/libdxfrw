@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "R24 TABLESTYLE border type, invisibility and spacing",
+  "date": "2026-11-08",
+  "supportClaimEffect": "none",
+  "source": {
+    "specification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.4",
+    "finding": "Border type group 91 defines Single=1 and Double=2; group 93 is invisibility 0/1; group 40 is double-line spacing."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "The AC1024 TABLESTYLE writer admits border types 1/2, invisibility 0/1 and finite nonnegative double-line spacing, keeping existing lineweight, color, linetype, edge identity and other profile checks."
+  },
+  "validation": {
+    "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4 && ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+    "result": "Final build passed; focused CTest passed 1/1. Generated ASCII/Binary controls verify group-91/93/40 placement and typed readback for double/invisible borders, refuse border type 3, invisibility 2 and negative spacing with destination preservation, then retry on the same adapter.",
+    "fixturesAdded": 0
+  },
+  "qualificationLimits": [
+    "Only finite nonnegative spacing is admitted; lineweight remains the existing ByBlock profile.",
+    "Generated codec controls do not qualify independent producer wire behavior or native border rendering.",
+    "No whole-file DWG/DXF support claim is promoted."
+  ],
+  "hashes": {
+    "src/libdxfrw.cpp": "1ff7ec9ca5db86b7fb0d7423332674b7e3d4110880b9ec9d85d550988688fc2b",
+    "tests/dwg2dxf_adapter_tests.cpp": "e737753c76a53e89d618d81c3fbef0159940855d44fc7dd0e6f6858e273dc2a4"
+  }
+}

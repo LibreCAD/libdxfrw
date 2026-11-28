@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACadSharp modeler read/write scope and linked-PR audit",
+  "mode": "primary-source web and GitHub API review; plan-only update",
+  "scope": [
+    "Trace ACadSharp ACIS/modeler reader and writer claims to merged changes, current PR status, exact changed files, and test type",
+    "Reconcile the linked writer proposals with the reported DXF silent-loss issue",
+    "Refine the existing local evidence gates without adding per-slice validation cost"
+  ],
+  "method": {
+    "kind": "Read current upstream issue/PR pages, PR metadata, changed-file lists and patches; reconcile with existing local plans and research receipts",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/broader-current-consumer-writer-readiness-2026-10-18.json",
+      "docs/research/deeper-broader-acis-carrier-peer-writer-and-consumer-refresh-2026-10-18.json"
+    ],
+    "limitations": "ACadSharp issue counts and the #1139 large-corpus extraction totals are contributor-reported and were not reproduced. Open PR patches were inspected, not built or run. PR status and mutable project documentation can change; the recorded states are the GitHub snapshot accessed 2026-10-18. No external/customer drawing was used, and no local implementation behavior was tested in this research pass."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp reader",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1139"
+      ],
+      "revision": "Merged 2026-07-09; PR page accessed 2026-10-18",
+      "observed": "The change adds raw ACIS payload extraction from legacy DXF group 1/3, DWG modeler streams, and R2013+ AcDs/ACDSDATA paths. The contributor reports 306 files and over 16,000 extracted payloads, with a known multi-blob gap. The PR describes read-only carrier extraction; it does not claim SAT/SAB B-rep interpretation or independent analytic geometry validation."
+    },
+    {
+      "project": "ACadSharp cross-format writer proposal",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1150"
+      ],
+      "revision": "Open, unmerged; head 098d7a3a7ce84101e2391ce965fc4138d1b35e54; last substantive activity reviewed 2026-10-01",
+      "observed": "The proposal changes DXF and DWG writers and adds a Prototype1b/AcDs writer. Its tests include same-library Prototype1b readback; one manually parsed search-index test covers permuted handle order. The maintainer says the raw DataStorage writer loses schema information needed for future use and prefers a generic schema-aware writer. Follow-up comments identify a rebase conflict after the Prototype1b refactor and a multi-group-310 DXF readback issue. The branch is an unmerged implementation proposal, not released capability or an independent oracle."
+    },
+    {
+      "project": "ACadSharp linked writer PR scope",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "revision": "PR #1240 open and non-mergeable at access; head 9535336162a79a6bd06b444d4b3577918b039ec8; base 12f836af8cd7b470ee6883a9ccc51a22dee66e24; depends on #1174",
+      "observed": "The changed-file list contains only DWG object-writer files, not DXF writer code. The inspected patch refuses pre-R2013 binary SAB by warning and emitting an empty ACIS body; it adds no AcDs section writer in this change. Thus the linked PR title does not establish a fix for the DXF writer loss report or complete cross-version SAT/SAB/AcDs writing."
+    },
+    {
+      "project": "ACadSharp silent DXF omission report",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "revision": "Open issue opened 2026-08-19; page accessed 2026-10-18",
+      "observed": "The reporter describes ACadSharp 3.4.9 omitting 3DSOLID/REGION entities during DWG-to-DXF conversion, including solids that were the sole contents of blocks. Counts were cross-checked by the reporter with LibreDWG. The customer files are not attached, so this is a real-world failure report and test-shape lead, not a reproduced peer result or local libdxfrw defect."
+    },
+    {
+      "project": "FreeCAD stock DXF consumer",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Current documentation page accessed 2026-10-18",
+      "observed": "FreeCAD documents that its stock DXF import cannot read embedded ACIS/SAT solids and that DWG import uses an external converter to DXF before the chosen DXF importer. This route is not an ACIS semantic consumer."
+    },
+    {
+      "project": "LibreDWG R2013+ AcDs issue",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Open issue opened 2026-09-02; page accessed 2026-10-18",
+      "observed": "The issue reports a separate loss of R2013+ ACIS payloads carried in AcDb:AcDsPrototype_1b. It reinforces the need to separate modeler entity shells, AcDs payload transport/ownership, and solid semantics; it is not a local defect finding."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Clarifies ACadSharp evidence by exact implementation direction and changed-file scope. The merged reader is raw-carrier extraction; #1150 is an unmerged cross-format writer proposal with schema-design and rebase/readback concerns; linked #1240 is a DWG-only writer patch and does not fix the DXF omission report. Reuse existing per-entity disposition, block/INSERT closure, AcDs linkage, and composed independent semantic/native gates. No new local work item or per-slice validation prerequisite is justified.",
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Inspect current merge/release state, exact base/head, changed files, version/format scope, and test oracle before treating a linked PR as a resolved issue.",
+    "Keep raw carrier extraction and byte preservation separate from ACIS parsing, valid closed-solid semantics, analytic expectations, and native consumer acceptance.",
+    "Retain generated fast controls for entity identity, group-1/3 and group-310 framing, sentinels, AcDs ownership, and block/INSERT closure; do not add peer/customer DWG or DXF files.",
+    "For unsupported modeler entities, require an explicit diagnostic/refusal and destination-preservation behavior instead of silent omission or empty blocks.",
+    "Keep peer installs, full suites, and native applications at existing composed checkpoints; no new per-slice dependency or validation lane is introduced.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL; peer status, raw-byte extraction, and issue reports cannot promote support claims."
+  ],
+  "validation": {
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed",
+    "fullSuiteRun": false,
+    "nativeCadRun": false
+  }
+}

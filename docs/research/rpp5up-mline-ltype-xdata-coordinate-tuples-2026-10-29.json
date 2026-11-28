@@ -1,0 +1,70 @@
+{
+  "id": "RPP-5up",
+  "title": "MLINE-referenced simple LTYPE XDATA coordinate tuples",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "18ee7de3",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated LTYPE and APPID records; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "xdata": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1010, "xyz": [1.25, -2.5, 3.75], "role": "3D point" },
+      { "code": 1011, "xyz": [4.0, 5.0, 6.0], "role": "world-space position" },
+      { "code": 1012, "xyz": [-7.0, -8.0, -9.0], "role": "world-space displacement" },
+      { "code": 1013, "xyz": [0.25, 0.5, 0.75], "role": "world-space direction" },
+      { "code": 1000, "value": "provider-owned-xdata" }
+    ]
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "document": "DXF Group Codes in Numerical Order Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+    "relevant_rule": "XDATA codes 1010 through 1013 introduce coordinate tuples; their Y and Z components use the corresponding 102x and 103x groups."
+  },
+  "proof": {
+    "source": "The runtime-generated source contains all four complete ordered XYZ tuples under one source-bound APPID. Source parsing produces four typed coordinate variants; the simple-LTYPE source admission checks coordinate type and finite components, and the physical-source profile requires the matching X/Y/Z group sequence for each tuple.",
+    "output": "For all four ASCII/binary source/output combinations, an independent physical token observer checks the exact 1010–1013 coordinate component codes, order and values. A fresh import checks all four typed tuple codes and XYZ values, the adjacent APPID and trailing string, and the source-bound APPID provider. Existing LTYPE and APPID output identity inspectors also pass.",
+    "failure_retry": "Removing the required APPID provider refuses export and preserves a pre-existing destination sentinel; restoring the provider succeeds on the same adapter. A late APPID mutation after its writer callback also refuses without replacing the destination, then succeeds on the corrected same adapter.",
+    "slice_counts": {
+      "positive_profiles": 4,
+      "successful_readbacks": 9,
+      "refusals_with_destination_preservation": 5,
+      "same_adapter_retries": 5
+    },
+    "cumulative_test_counts": {
+      "positive_profiles": 40,
+      "successful_readbacks": 88,
+      "refusals_with_destination_preservation": 48,
+      "same_adapter_retries": 48
+    }
+  },
+  "validation": {
+    "build_command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2",
+    "build_result": "PASS",
+    "focused_command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+    "focused_result": "PASS (1/1, 3.26 seconds)",
+    "runtime_counts_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "runtime_counts_result": "profiles=40; readbacks=88; refusals=48; retries=48",
+    "diff_check": "PASS",
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineLtypeAppIdXdataControls",
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This qualifies one AC1027 simple-LTYPE profile containing exactly one of each XDATA coordinate code 1010, 1011, 1012 and 1013, in the authored order, under one APPID. It does not qualify other coordinate values, tuple orders, nesting/layouts, source versions or LTYPE schemas.",
+    "The 1011 position, 1012 displacement and 1013 direction are transported as typed values; application-specific interpretation and native transform behavior are not established.",
+    "Other XDATA types/ranges and compositions, multiple coordinate tuples, cross-APPID list compositions, code-1005 object-handle dependencies, three-or-more APPID groups and APPID metadata remain open.",
+    "This receipt establishes selected transport, exact output fields and APPID dependency binding only. It does not establish application-specific XDATA meaning, MLINE rendering, native CAD semantics, recursive document closure or a broader format-support claim."
+  ]
+}

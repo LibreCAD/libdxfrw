@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader peer-route and ModelDocViewStyle name-completeness review",
+  "mode": "Primary-source web review plus local source/generated-test audit; plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh current open-source DWG/DXF peer route boundaries and downstream LibreCAD_3 policy.",
+    "Compare advertised version/direction support with route, entity, retention, writer, and semantic evidence limits.",
+    "Probe the existing PAR-138 generated style graph for typed property completeness and add implementation-ready work without promoting support claims."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review, local checkout revision audit, generated adapter probe, and plan/receipt update",
+    "localPeerClones": {
+      "LibreCAD_3": {"head": "132265a0573253980451facf9109678f8bffe743", "date": "2026-10-11", "worktreeDirty": true},
+      "LibreDWG": {"head": "6d6a33987a1a97095b069c799c3d8a793320f812", "date": "2026-04-09", "worktreeDirty": true},
+      "ACadSharp": {"head": "3a52a52047e84670759c1f9ad3916ec3ce85ff56", "date": "2026-05-23", "worktreeDirty": false},
+      "ezdxf": {"head": "dd7f6cc34983fdbf0b2b910f2497e0720d06dd16", "date": "2026-05-14", "worktreeDirty": false}
+    },
+    "localProbe": {
+      "input": "Generated ASCII and Binary DXF ModelDocViewStyle graph in tests/dwg2dxf_adapter_tests.cpp",
+      "styleNamesInDictionary": ["Detail Primary", "Detail Secondary", "Section Standard"],
+      "typedCallbackNameObserved": "empty for DetailViewStyle and SectionViewStyle",
+      "dictionaryAndRawGraph": "keys and owner graph are retained by existing checks"
+    },
+    "sources": [
+      "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "https://github.com/LibreDWG/libredwg",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "https://github.com/DomCR/ACadSharp",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+      "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-ManagedRefGuide/files/OREFNET-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_DetailViewStyle.html",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_SectionViewStyle_Name.html"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "limitations": "Upstream master pages are mutable and no peer executable was run. The generated object graph demonstrates the local typed-name omission but is not normative wire evidence; the representation rule must still be confirmed against ODA and/or a producer-authored graph before semantic claims change. Adjacent local peer clones are stale and are not treated as current behavioral evidence."
+  },
+  "observations": {
+    "peerRouteBoundaries": [
+      {
+        "project": "LibreCAD_3",
+        "observation": "Current policy document describes opt-in read-only DWG import, a frozen ledger with 15 read claims (11 EXPERIMENTAL, 4 PENDING_NATIVE, none PROMOTED), and no write claims.",
+        "evidenceCeiling": "Downstream product policy and claim gate, not an independent codec or 3D/native acceptance result."
+      },
+      {
+        "project": "LibreDWG",
+        "observation": "README discloses advanced-object read skips and version-qualified DWG writer limitations; class maturity labels do not encode complete field-level or native-writer evidence.",
+        "evidenceCeiling": "Optional pinned structural/semantic comparator only, with exact version, direction, build options, and skipped outcomes recorded."
+      },
+      {
+        "project": "ACadSharp",
+        "observation": "Public compatibility table is direction-by-version and marks AC1021 DWG writing unsupported despite later writer rows.",
+        "evidenceCeiling": "Route denominator only, not per-entity completeness or native acceptance."
+      },
+      {
+        "project": "ezdxf",
+        "observation": "DXF-focused model/read-write implementation with selective import and XY projection; its drawing renderer does not render ACIS, and ACIS payload authoring requires an external library.",
+        "evidenceCeiling": "Pinned DXF syntax/field/carrier checks only, not a DWG reader or general solid-semantic oracle."
+      }
+    ],
+    "par138TypedNameGap": {
+      "localResult": "Generated dictionary graph carries names, but typed DetailViewStyle and SectionViewStyle callbacks receive empty DRW_TableEntry::name.",
+      "sourceEvidence": "Autodesk exposes Name on DetailViewStyle and SectionViewStyle; local style object parsing dispatches before any order-independent dictionary-to-style name resolution.",
+      "classification": "Confirmed local typed-property omission under existing PAR-138; no new top-level finding ID.",
+      "nextStep": "Resolve from ODA plus an independent/producer style graph, then implement bounded order-independent owner-checked dictionary-key association and generated reorder/ambiguity controls."
+    }
+  },
+  "planEffect": {
+    "existingOwners": ["PAR-138", "PAR-07/S8"],
+    "newConfirmedLocalFindings": 1,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "verification": {
+    "localBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedSelector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+    "owningCtest": "PASS: dwg2dxf_named_object_callback_storage (1/1)",
+    "diffCheck": "PASS: git diff --check -- tests/dwg2dxf_adapter_tests.cpp",
+    "fullSuiteRun": false,
+    "commitAttempted": false
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw-deeper-broader-compiler-spec-link-runtime-closure-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Research-only refinement of existing 7AG.4 effective compiler, selected linker-input, and runtime-image closure gates.",
+  "sources": [
+    {
+      "name": "GCC 15.1 spec files",
+      "url": "https://gcc.gnu.org/onlinedocs/gcc-15.1.0/gcc/Spec-Files.html",
+      "finding": "File-level and spec-function includes use GCC's specs mechanism; include targets are not ordinary source-relative paths."
+    },
+    {
+      "name": "GCC driver source",
+      "url": "https://codebrowser.dev/gcc/gcc/gcc.cc.html",
+      "finding": "The current driver resolves %include and %:include through startfile_prefixes with multilib lookup enabled; %include_noerr allows missing targets."
+    },
+    {
+      "name": "GCC developer options",
+      "url": "https://gcc.gnu.org/onlinedocs/gcc-15.1.0/gcc/Developer-Options.html",
+      "finding": "-print-search-dirs and -print-sysroot report search context, not exact files read by a build invocation."
+    },
+    {
+      "name": "GCC overall options",
+      "url": "https://gcc.gnu.org/onlinedocs/gcc/Overall-Options.html",
+      "finding": "-### reports driver-generated child commands without executing them; -v prints commands during execution."
+    },
+    {
+      "name": "Clang configuration files and toolchains",
+      "url": "https://clang.llvm.org/docs/UsersManual.html#configuration-files",
+      "secondaryUrl": "https://clang.llvm.org/docs/Toolchain.html",
+      "finding": "Default and nested @file configurations may inject options; -### previews commands, while actual commands and consumed bytes remain separate evidence."
+    },
+    {
+      "name": "GNU ld scripts, file commands, and options",
+      "url": "https://sourceware.org/binutils/docs/ld/Scripts.html",
+      "secondaryUrls": [
+        "https://sourceware.org/binutils/docs/ld/File-Commands.html",
+        "https://sourceware.org/binutils/docs/ld/Options.html"
+      ],
+      "finding": "Links use a linker script; external scripts can include other scripts and load object/archive inputs. Link maps and verbose diagnostics provide selected-input evidence but do not prove runtime closure."
+    },
+    {
+      "name": "MSVC include and link diagnostics",
+      "url": "https://learn.microsoft.com/en-us/cpp/build/reference/showincludes-list-include-files?view=msvc-170",
+      "secondaryUrls": [
+        "https://learn.microsoft.com/en-us/cpp/build/reference/verbose-print-progress-messages?view=msvc-170",
+        "https://learn.microsoft.com/en-us/cpp/build/reference/link-input-files?view=msvc-170"
+      ],
+      "finding": "/showIncludes and /VERBOSE:LIB expose paths/selection; response files, default libraries, Windows SDK, and runtime identity still need explicit binding."
+    }
+  ],
+  "planChanges": {
+    "existingSubplan": "7AG.4",
+    "findingsAdded": 0,
+    "topLevelSubplansAdded": 0,
+    "implementationFilesChanged": [],
+    "testFilesChanged": [],
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "recommendations": [
+      "Do not resolve GCC specs includes relative to the including file or via PATH; require exact resolved paths and content identities or retain unavailable/partial status.",
+      "Use a small synthetic include-policy matrix locally, then one native GNU/Linux audit with actual driver/linker diagnostics at the composed checkpoint.",
+      "Use MSVC /showIncludes, /VERBOSE:LIB, and /MAP only in a native Windows audit profile; hash selected inputs and preserve SDK/toolset/CRT identity.",
+      "Keep linked input closure and post-link runtime image closure as separate typed profiles.",
+      "Keep ordinary slices on focused fast tests; paired builds and platform audits remain scheduled checkpoints, not per-slice blockers."
+    ]
+  },
+  "validation": {
+    "nativeToolchainsRun": false,
+    "peerOrApplicationRun": false,
+    "localBuildOrTestRun": false,
+    "status": "research-only; no implementation claim"
+  },
+  "qualificationDisposition": {
+    "implicitConfiguration": "partial",
+    "compileContractMode": "direct-options-only",
+    "compileContractEnforced": false,
+    "pairedReceiptEligibilityChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 124,
+      "topLevelSubplans": 71
+    }
+  }
+}

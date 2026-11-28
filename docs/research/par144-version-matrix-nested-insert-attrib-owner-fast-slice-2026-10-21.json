@@ -1,0 +1,55 @@
+{
+  "slice": "PAR-144 version-matrix nested attributed INSERT owner closure",
+  "date": "2026-10-21",
+  "status": "implemented_and_fast_validated",
+  "scope": "Generated callback-driven tests only; no production DWG format logic changed and no persistent drawing fixture added.",
+  "files": [
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "tests/CMakeLists.txt"
+  ],
+  "version_matrix": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+  "generated_graph": {
+    "layout_owner": "named paper-space BLOCK_RECORD",
+    "outer_insert": "layout-owned INSERT + ATTRIB + SEQEND -> LOCAL_LAYOUT_INSERT_TARGET",
+    "nested_insert": "LOCAL_LAYOUT_INSERT_TARGET-owned INSERT + ATTRIB + SEQEND -> LOCAL_LAYOUT_NESTED_TARGET",
+    "fixtures": "DWG generated under the test temporary directory and removed after each run"
+  },
+  "checks": [
+    "Readback retains both block definitions and their distinct marker lines.",
+    "Readback retains the paper-layout INSERT target and its ATTRIB/SEQEND.",
+    "Readback retains the nested INSERT target and its ATTRIB/SEQEND.",
+    "Writer/reader owner ledgers close all entity handles to the owning block record.",
+    "Reverse INSERT references close from each target block to the correct INSERT handles.",
+    "Coverage exercises AC1015 first/last chains and AC1018/AC1021/AC1024/AC1027/AC1032 explicit ownership paths."
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "result": "passed"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --layout-plot-dpi-read-controls",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg_layout_compound_insert_owner_roundtrip$' --output-on-failure",
+      "result": "passed; 1/1 tests, 0.12 seconds"
+    },
+    {
+      "command": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "passed"
+    }
+  ],
+  "support_claim_promoted": false,
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit": null,
+  "commit_note": "Not committed because the shared worktree has broad mixed changes and the test target depends on them.",
+  "next_self_unblocking_item": "Extend the finalized HANDLES-section/map check to AC1024 while retaining the AC1015 legacy control; do not merge their page parsers if the wire structures differ."
+}

@@ -1,0 +1,42 @@
+{
+  "title": "AC1032 associative osnap action-parameter raw-only shell recovery",
+  "date": "2026-11-12",
+  "scope": "Bounded frame recovery for one unmodeled AC1032 OBJECTS class after independent common-shell validation; no class-body, semantic, or output support claim.",
+  "source_observation": {
+    "repository": "/Users/dli/dev/libredwg",
+    "path": "test/test-data/example_2018.dwg",
+    "sha256": "7bc7721224003062b237845842b7a976e46771c37eba6833b9ed3712e7a5a65a",
+    "headerVersion": "AC1032",
+    "producerProvenance": "Not established by repository location or AC1032 file header.",
+    "recordName": "ACDBASSOCOSNAPPOINTREFACTIONPARAM",
+    "className": "AcDbAssocOsnapPointRefActionParam",
+    "objectHandle": "0x393",
+    "priorOutcome": "One class-body parse failure; 473/474 observed frames published; strict output refused."
+  },
+  "implementation": {
+    "file": "src/intern/dwgreader.cpp",
+    "change": "Permit the existing independent RawObjectShell recovery for this exact class name at AC1027 or AC1032. The failed class-specific body remains raw-only and unvalidated; unrelated versions/classes do not enter this path.",
+    "generatedControl": "Extend the existing persistent-manager prefix dispatch selector with AC1032 failed-body, common-shell validation, opaque-byte retention, and following-frame publication assertions."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg_reader_matrix_tests -j4: PASS",
+    "focusedCtest": "ctest --test-dir build -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure: 1/1 PASS",
+    "physicalReadCommand": "build/dwg2dxf/dwg2dxf /Users/dli/dev/libredwg/test/test-data/example_2018.dwg -y -d -v2018 /tmp/libdxfrw-example-2018.dxf",
+    "physicalReadResult": "operationSucceeded=true; entityParseFailures=0; objectParseFailures=0; 474/474 observed frames published; exact AC1032 raw-only diagnostic for class AcDbAssocOsnapPointRefActionParam handle 0x393.",
+    "strictOutputResult": "Refused before output because strict-complete conversion requires complete DWG disposition; no DXF was created.",
+    "gitDiffCheck": "PASS"
+  },
+  "limitations": [
+    "No PERSUBENTMGR class-body grammar, field roles, or associative semantics are inferred.",
+    "The raw-only class remains an unsupported/unvalidated carrier and strict DXF output remains refused.",
+    "The LibreDWG sample is read in place and is not copied into or committed with libdxfrw.",
+    "No DWG or DXF fixture was added."
+  ],
+  "artifact_sha256": {
+    "src/intern/dwgreader.cpp": "19647b50136bda357382b51aaed60ab947d6bce4d6ad5a4966ef8007d4af899d",
+    "tests/dwg_reader_matrix_tests.cpp": "77a53864267c502e78a9baece238e91820535aeeda0967ad7592bcfe3387a29a",
+    "build/dwg2dxf/dwg2dxf": "a977e79b7718320cbf1bb7fcfbbf15a4183b00d7a330266085ea7cd4c2a68498",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ba424b1fa1b542403818238a0a16cb0c81142868a93e7ed92d7da7b88efb8851",
+    "/Users/dli/dev/libredwg/test/test-data/example_2018.dwg": "7bc7721224003062b237845842b7a976e46771c37eba6833b9ed3712e7a5a65a"
+  }
+}

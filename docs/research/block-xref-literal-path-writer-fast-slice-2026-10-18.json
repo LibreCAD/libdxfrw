@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "BLOCK/XREF literal path writer fast slice",
+  "mode": "implementation and focused local fast validation",
+  "scope": [
+    "Preserve DRW_Block::xrefPath in BLOCK group 1 when writing DXF",
+    "Exercise ASCII and Binary DXF through dx_iface parse/write/readback",
+    "Verify raw XREF identity, flag, literal path, and immediate ENDBLK boundary without resolving a filesystem path"
+  ],
+  "method": {
+    "kind": "Generated scratch DXF derived from an already-tracked repository fixture; strict target build and focused selector/CTest",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesChanged": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/block-xref-literal-path-writer-fast-slice-2026-10-18.json"
+    ],
+    "limitations": "The check covers the BLOCK group-1 path only. It does not qualify consumer path resolution, dependency packaging, BLOCK_RECORD flags/handles, XREF object ownership, BLOCK description storage, or trailing XDATA. The test was not run through LibreCAD/FreeCAD or an independent peer. Changes are uncommitted because the shared worktree contains extensive existing work."
+  },
+  "input": {
+    "sourceFixture": "tests/fixtures/dxf/block_record_preview_r2007.dxf",
+    "sourceFixtureAlreadyTracked": true,
+    "scratchPath": "system temporary directory; generated per test invocation and removed by scope cleanup",
+    "xrefName": "XREF_TEST",
+    "xrefFlag": 4,
+    "literalGroup1Path": "../external/references/plant.dwg",
+    "referentFileRequiredOrResolved": false
+  },
+  "implementation": {
+    "owner": "PAR-65/7AM.1 first path-preservation slice",
+    "change": "dxfRW::writeBlock now uses writer->writeUtf8String(1, bk->xrefPath) instead of writing an empty group-1 value",
+    "testSelector": "--block-xref-path-roundtrip",
+    "rawAssertions": [
+      "BLOCK name XREF_TEST",
+      "BLOCK flags group 70 equals 4",
+      "BLOCK group 1 equals the literal authored relative path",
+      "the next record after the path is ENDBLK"
+    ],
+    "semanticAssertion": "a fresh dx_iface import retains the same block name, flag, and exact path"
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_xref_path_roundtrip$' --output-on-failure",
+      "git diff --check -- src/libdxfrw.cpp tests/dxf_fixture_tests.cpp CMakeLists.txt"
+    ],
+    "beforeFix": "Focused selector failed in both ASCII and Binary output: raw group 1 was empty and output re-import lost the path.",
+    "afterFix": "Strict target built; focused selector passed; owning CTest passed 1/1 in 0.27 seconds; diff check passed."
+  },
+  "assessment": {
+    "sliceComplete": true,
+    "parentSubplanComplete": false,
+    "remainingParentScope": [
+      "BLOCK description storage, parse, reset, and copy behavior",
+      "BLOCK trailing XDATA preservation",
+      "Separate BLOCK_RECORD flags/handles and XREF object ownership checks"
+    ],
+    "findingsCount": 134,
+    "topLevelSubplansCount": 76,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "supportClaimChanged": false,
+    "committed": false
+  }
+}

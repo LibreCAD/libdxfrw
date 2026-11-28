@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-14",
+  "scope": "Typed DIMSTYLE DIMTXTDIRECTION output at AC1024 and later",
+  "evidence": {
+    "code": "dxfRW::writeDimstyle now emits the typed DRW_Dimstyle::dimtxtdirection field through writeBool(295) when the target is AC1024+ and no dynamic group-295 value has already been selected. This fills the typed-only gap while preserving dynamic-variable precedence.",
+    "references": [
+      {
+        "title": "ODA Open Design Specification for .dwg files",
+        "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "section": "DIMSTYLE R2010+ fields",
+        "observation": "DIMTXTDIRECTION is mapped to field code 295."
+      },
+      {
+        "title": "Autodesk DIMTXTDIRECTION system variable",
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-Core/files/GUID-06B9BE91-A2E9-45CB-9B3D-7D5BDD238F5B.htm",
+        "observation": "Default is 0; value controls dimension text reading direction."
+      }
+    ],
+    "control": "libdxfrw_dimstyle_table_allocation writes a typed value of 1 at AC1024 in ASCII and Binary; ASCII record scanning confirms group 295 is in the DIMSTYLE row, and fresh parser readback confirms dimtxtdirection == 1.",
+    "test_command": "cmake --build build --target libdxfrw_dimstyle_table_allocation_tests -j4 && ctest --test-dir build -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure",
+    "test_result": "passed: 1/1 in 1.34 seconds",
+    "fixture_policy": "Generated controls write only to the system temporary directory; no DWG or DXF fixture added to the repository.",
+    "limits": [
+      "This proves field serialization and self-readback only, not application-level dimension appearance.",
+      "Group 295 remains refused for older targets when nondefault; no older spelling is assumed."
+    ]
+  }
+}

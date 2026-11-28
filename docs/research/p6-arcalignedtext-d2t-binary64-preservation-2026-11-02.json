@@ -1,0 +1,73 @@
+{
+  "evidenceId": "p6-arcalignedtext-d2t-binary64-preservation-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P6",
+  "status": "LOCAL_GENERATED_DXF_ADAPTATION_AND_DWG_STRING_STREAM_PRESERVATION",
+  "qualificationEligible": false,
+  "supportClaimsPromoted": false,
+  "scope": "Preserve binary64 values when adapting numeric DXF ARCALIGNEDTEXT groups 41-46 into DWG D2T text-backed fields, preserve the encoder's fallback D2T string, and keep retained-byte admission sufficient for every finite double spelling.",
+  "sourceEvidence": [
+    {
+      "title": "LibreDWG ARCALIGNEDTEXT field map",
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/ENTITIES.html",
+      "observation": "The ARCALIGNEDTEXT map identifies fields 41-46 as D2T and maps them to DXF groups 41-46."
+    },
+    {
+      "title": "LibreDWG BITCODE_D2T definition",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/include/dwg.h",
+      "observation": "BITCODE_D2T is defined as a text string. The public source defines the carrier type and mapping, not a six-significant-digit precision rule."
+    }
+  ],
+  "inference": "DXF numeric groups are parsed as binary64 values. Since D2T is a text carrier and the reviewed mapping supplies no lossy decimal precision requirement, max_digits10 formatting is used to preserve the parsed finite binary64 value. This is a local precision-preservation choice, not a claim about native ARCALIGNEDTEXT rendering.",
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/numeric_locale_tests.cpp"
+    ],
+    "changes": [
+      "arcAlignedD2T now uses DxfNumeric::formatDouble's max_digits10 default instead of six significant digits; the same helper is used for DXF-read D2T adaptation and DWG fallback text emission.",
+      "The parser's transient D2T bound is 24 bytes: max_digits10 digits plus sign, decimal point, and signed three-digit exponent.",
+      "The existing fast numeric test covers all six DXF D2T groups with adjacent representable doubles and a negative maximum-finite value. A 47-byte retained budget refuses the 24-byte value atomically; retry with 48 bytes succeeds and retains exactly 24 bytes.",
+      "A direct AC1027 DWG string-stream control encodes an empty D2T field from height=nextafter(2,3), reads the emitted TU using the version-configured text codec, and confirms exact binary64 recovery."
+    ],
+    "fixturePolicy": "All inputs are generated in memory. No DWG or DXF fixture is added.",
+    "sourceSha256": {
+      "src/drw_entities.cpp": "e2528866fd975d19c4dd81438202ca75a05a0918c334868f0616e09b7579c670",
+      "tests/numeric_locale_tests.cpp": "ad21205ebfae3e678967af53dec0d6053e402912f3a3dc65f3d5915381c31b1f"
+    }
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_numeric_locale_tests libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_numeric_locale$' --output-on-failure",
+        "passed": 1,
+        "failed": 0,
+        "runtimeSeconds": 0.55
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_numeric_process_locale$' --output-on-failure",
+        "passed": 1,
+        "failed": 0,
+        "runtimeSeconds": 0.08
+      }
+    ]
+  },
+  "sha256": {
+    "src/drw_entities.cpp": "2a63b9e55367daf256ea49011cbb1c3f6c56237311e035a4fd2b7993dca0250a",
+    "tests/numeric_locale_tests.cpp": "e2836ee578293a20b721b1feed8549c1798bbb844e6490bd12d124d18027177c",
+    "build-gcc/libdxfrw.a": "0b0f6ea72b90dec4e759b24f07b256f2587d04efd6a03ad170d39a6b4433a2fe",
+    "build-gcc/tests/libdxfrw_numeric_locale_tests": "a7945a45c016d9447c6d7bf45e1d9c615f9363458cf22c89d0cfa01ea9e0a15c"
+  },
+  "claimBoundary": [
+    "The controls verify numeric field adaptation and a directly encoded DWG TU string; they do not verify a full physical DWG-to-DXF-to-DWG cycle.",
+    "No independent CAD producer/reader, native ARCALIGNEDTEXT rendering, platform behavior, or broader annotation support is qualified.",
+    "Raw/typed ERANGE policy remains open. Do not promote DWG/DXF, FreeCAD, LibreCAD, LibreCAD_3, or ARCALIGNEDTEXT support claims from this receipt."
+  ],
+  "followUp": {
+    "evidenceId": "p6-arcalignedtext-d2t-erange-policy-2026-11-02",
+    "receipt": "docs/research/p6-arcalignedtext-d2t-erange-policy-2026-11-02.json",
+    "result": "The open ERANGE boundary in this slice was resolved by the subsequent bounded policy receipt; other claim boundaries remain unchanged."
+  }
+}

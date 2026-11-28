@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commits": {
+    "true_color": "6bc1b834c4280b956927e1c43712c3eb746adcd5",
+    "paper_block": "3c453af084c0825c5b5dcc23414673df56b98fd1"
+  },
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "authority": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+  "findings": [
+    "Entity group 420 RGB and 430 color name were ignored by the consumer and round-trips reduced values to a palette color. True black downgraded to palette index 0, meaning BYBLOCK.",
+    "A model-only DXF import produced an unused application-created *Paper_Space0 block in binary output; independent audit removed the orphan block record."
+  ],
+  "changes": [
+    "Preserve source true color, color name and indexed fallback in shared entity color metadata, retaining it through geometry edits. Write true color for DXF R2004 and later; for earlier versions, choose a nonzero palette entry and report an approximation. HATCH fallback drops conflicting entity true-color data when the separate MPOLYGON fill is used.",
+    "After a complete DXF read with source block-record selection, omit the empty application-created paper block only when it was absent from both source records and block bodies, no unknown graph requires it and no paper content or INSERT refers to it. DWG and older-codec paths remain conservative."
+  ],
+  "validation": [
+    "70 DXF round-trip, three DXF export, 17 DWG/persistence and 17 layout tests passed; plan full, worktree and base-ref checks and 31 plan-checker tests passed. Older bundled codec headers pass syntax checking.",
+    "Focused tests first reproduced RGB loss, black becoming BYBLOCK, and the orphaned model-only binary paper block. The negative controls retain a source paper BLOCK_RECORD and a headerless source BLOCK.",
+    "ezdxf 1.4.5 independently checked the generated RGB 0xC86432, true black, source ACI fallback, color name, and legacy index fallback. The selected ASCII, binary and legacy outputs audit with zero errors and zero repairs after both commits.",
+    "A DWG test binary compiled before the adapter header layout changed crashed against the rebuilt library; it was rebuilt with matching headers and all 17 tests then passed."
+  ],
+  "artifacts": {
+    "source_sha256": "165b7d78126f7523079ec74a721098912d3d696a4709d2b11992aad6b1c949fd",
+    "ascii_sha256": "021030d4e6ab6329b1b0c28b6c24ea95c20a79edaefcd3972583345f68d604a7",
+    "binary_sha256": "c3a12f14666ee5464e7f5c857e49c125e920ae697055a53528ff0309cd5382e7",
+    "legacy_sha256": "545504439a7f5d24eae6de82537d8503c83e4924c45241d5efd448089cc8be87"
+  },
+  "limits": [
+    "Generated source only; no generated DXF committed.",
+    "Color books, transparency, MPOLYGON fill true color and broader native producer semantics remain unqualified.",
+    "No final-head native GUI, Linux or Windows qualification; hosted checks pending."
+  ],
+  "supportClaimEffect": "none"
+}

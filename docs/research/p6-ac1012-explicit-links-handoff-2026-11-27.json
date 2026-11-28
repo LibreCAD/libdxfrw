@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-explicit-links-handoff-2026-11-27",
+  "supportClaimEffect": "none",
+  "sourceReceipt": "docs/research/p6-ac1012-explicit-entity-links-2026-11-27.json",
+  "generator": "tools/research/package_ac1012_populated_pair.py --profile explicit-links",
+  "scratchHandoff": "/private/tmp/ac1012-native-explicit-links-final-20261127",
+  "manifestSha256": "5198a1addedd1cb2d54c9c7dca4b048623367855ab672cf307c448dbd991dbba",
+  "checks": [
+    "PASS package verifies receipt hashes, selected source dictionary graph and frame CRC, model LINE frame and handle roles, and ODA output hashes before publishing.",
+    "PASS altered source hash refuses without publishing; existing destination refuses without overwriting.",
+    "PASS original ODA-produced pair package path remains functional.",
+    "No DWG or DXF fixture was added to the repository."
+  ],
+  "limits": [
+    "Native AutoCAD host, normal open, merge behavior, and full graph validity remain unqualified.",
+    "The host must verify manifest hashes and work on disposable copies."
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P3 selected unmarked MATERIAL normal auto-transform edit",
+  "date": "2026-10-28",
+  "codeCommit": "aeb1b369a5e983883581db7f3e3490303e6594ae",
+  "scope": "Unchanged imported modern-DXF MATERIAL source with an inferred complete normal tuple and qualified common carrier; isolated or composed typed normal AutoTransform change.",
+  "contract": {
+    "operation": "Bind exactly two outer integer group-75 fields around the inferred second group-42 boundary, verify their distinct decoded diffuse/normal values, and replace only the selected normal field.",
+    "policy": "The 0x07 allowed-bit mask is the existing parser/writer model admission policy. Autodesk names normal mapper group 75 and documents diffuse mapper flags 1, 2 and 4; it does not independently establish native normal bit meanings.",
+    "atomicity": "Reject invalid bits, unqualified field/presence/common/raw changes and late mutations without changing destination or caller; corrected retry succeeds on the same adapter. The emitted record is decoded and checked against the requested represented model.",
+    "unqualified": "Changed source bodies or unsupported normal fields, ambiguous/incomplete tuple or procedural profiles, cross-format caret strings, arbitrary source versions, native rendering, normal bit semantics and whole-document conversion."
+  },
+  "sourceBindings": {
+    "materialBodyHeaderSha256": "bc5c8cbbcbb3c90b4dd3cd61a15726ae31721fc164dfa6d34eb7af95b896c0aa",
+    "testSourceSha256": "66843927cce29de6ce5d9f8674307fecea01aed8db2a62c91426c97e3fbac729",
+    "normalAdapterObjectSha256": "e55c4db54e00494dc4f0b77898b912dc8d0b43d4bfa444b8a329af58b2706098",
+    "normalLibrarySha256": "c6003b971d9ba96b89d2d97ad2eb911a57022b067aac0c10508760b3d62239e9",
+    "normalTestExecutableSha256": "b2a8000f043bee6ce8e6f92dfc122a7c44cab8fb6a9a5df73f44243a48a21976",
+    "asanAdapterObjectSha256": "ea9c068d687f4d592b3aa20764129b3bc69d70d44bb73d150a6f3c9ab2464596",
+    "asanLibrarySha256": "813d295f6ae9d15580305ed9cf388e2906979f1c45cdd861cfcd8a4c435bf3c7",
+    "asanTestExecutableSha256": "8bfd5c1347bc093d799413a9b103f5e83a82dd131bf6ccc4fbf2d3bcbeb77c8d"
+  },
+  "validation": {
+    "normal": {
+      "selector": "libdxfrw_material_normal_roles",
+      "result": "PASS"
+    },
+    "asan": {
+      "selector": "libdxfrw_material_normal_roles",
+      "result": "PASS",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "Seven edited values in 0..7 except unchanged 4 over four ASCII/binary source-output combinations (28), four combined blend/projection/tiling/auto edits, 20 invalid-bit/changed diffuse/presence/conflicting raw refusals with retry, and six late-callback mutation refusals with retry. Existing source-common, procedural and replay controls continue.",
+    "chronology": "Final normal and ASan builds used the frozen committed sources; the normal adapter object is byte-identical to the scratch peer-probe adapter object."
+  },
+  "independentPeer": {
+    "version": "ezdxf 1.4.5",
+    "reportPath": "build/p3-normal-autotransform-scratch/independent-final.json",
+    "reportSha256": "41b18ba1e1bd17658f697f7f82719d063e52781f922f744736f99602b222c483",
+    "reportScriptSha256": "b88754fe6c1c24c36acb235c0aeef8aeaabf7e4f03bdf07c68b85cd5e793e154",
+    "probeSourceSha256": "d3c02f055b88bdc4e0befa85677d4737347cb993cbcc1ecb108399c5d6575112",
+    "probeExecutableSha256": "13e6e6ba97764a877c3b6248fda432c6b16b704d11cae3d5e63251af1c0a681e",
+    "originalSourceSha256": "73dde2657340ba362c79b9d49439f6296008aefa24a2ce433033c23465adbab8",
+    "derivedInputSha256": "f3bcd7af1275cb98f0502ee3429987dcb36c5baac72a72e6ccc647845094eee3",
+    "derivation": "The retained selected source removes unrelated EZDXF_META root and DICTIONARY/DICTIONARYVAR objects; its selected MATERIAL identity and all 55 host fields match the independently authored original before document setup.",
+    "sourceMaterialHandle": "2F",
+    "sourceMaterialOwner": "E",
+    "sourceGroup75": [
+      2,
+      4
+    ],
+    "outputGroup75": [
+      2,
+      1
+    ],
+    "outputs": [
+      {
+        "format": "ascii",
+        "sha256": "9e5843f195a2728e5379f0f891e787a0c45e9d3864e2f051267d5ea7c4e78903"
+      },
+      {
+        "format": "binary",
+        "sha256": "79398b1ab9a4b734dfd3458f1174112f650b79b10905950f4f27d16f9b63b553"
+      }
+    ],
+    "observations": "Independent physical tag loader matched all 55 selected MATERIAL host fields and source identity in each output, changing only the second group-75 value. Ordinary peer tag interpretation does not establish native rendering or validity of the other allowed mask combinations."
+  },
+  "references": [
+    {
+      "title": "Autodesk MATERIAL DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm"
+    }
+  ],
+  "limitations": [
+    "The peer experiment uses a derived source with unrelated objects removed; it is not proof of whole-document fidelity.",
+    "No native CAD normal bit semantics, rendering, arbitrary source profiles, DWG parity or broad support claim follows.",
+    "No drawing fixture is committed."
+  ]
+}

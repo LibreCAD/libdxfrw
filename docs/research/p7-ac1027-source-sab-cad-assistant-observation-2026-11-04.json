@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-04",
+  "status": "BOUNDED_EXTERNAL_READER_OBSERVATION_NOT_SUPPORT_QUALIFICATION",
+  "supportClaimEffect": "none",
+  "scope": "User-selected official CAD Assistant independently imports three exact SAB payloads associated with one public AC1027 source; compare the solid's displayed properties and topology to the separately implemented cq-acis parser/converter. This is not a second independent geometry kernel, source-native oracle, complete 3D consumer test or support claim.",
+  "reader": {
+    "application": "Official CAD Assistant 1.6.0 macOS ARM64, read-only mounted bundle; macOS 27.0.1 build 26A434",
+    "dmg_sha256": "a1a21d2b3294ca556b7a0172df8ed1a8046450894033147be09a9fd1549f2b2d",
+    "executable_sha256": "aeb1cb18e53193dbf502e34986e7e2047cedf61cf0895fb237caed1be63b91aa",
+    "integrity": "Earlier native mount passed strict deep code signature and Gatekeeper notarization assessment, documented in p7-cad-assistant-arm64-integrity-preflight-2026-11-01.json.",
+    "procedure": "Open each explicitly named extracted .sab from /private/tmp/p7-ac1027-semantic in CAD Assistant, select the loaded document, inspect its Actual properties, Location and Stats panels. The solid was initially hidden by the application's file browser; an explicit reopen produced a visible model and populated properties. A separate unrelated system authentication dialog was not touched. Screenshots are cropped to the application's properties panel and remain scratch-only."
+  },
+  "association": {
+    "source_dwg_sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "fresh_oda_dxf_sha256": "9def652271ffc95aec998c5f56ea69eb7006ece0d38ccf45ddc891aabbb06e08",
+    "method": "ODA File Converter 27.1.0 produced ACAD2013 DXF with audit=0, exit 0, empty stdout/stderr and no .err. tests/ac1027_acds_source_compare.py rejoined the hashed DWG, source probe, physical AcDs records, model-space entity frames and exact ODA group-310 payloads for all three handles. This independently binds carrier bytes and source entities; the source probe reports three object parse failures and one orphan DataStorage record.",
+    "payloads": {"176": "596d37aaf81ebe9662bd22ba199bce876403dec8da71dd3287b0255adb354782", "37D": "fabe3e9804c44472907987ea96409b30b7db35575a34688430b0157d1b6c5566", "2E1": "5ca4756434d068b932ac6e0100e5ff07eae36c7eed29a43367eeff8113cca0ec"}
+  },
+  "observations": {
+    "2E1_3DSOLID": {
+      "cad_assistant_display": "Selected document 2e1.sab: Location Identity; Validation properties None; centroid 3220.26, 13922.5, 2 mm; area 36067 mm²; volume 4243.18 mm³; 1 part, 1 solid, 1 shell, 8 planar faces, 10 wires, 18 line edges, 12 vertices.",
+      "screenshot_sha256": "fc1547b110bd09919af22035842654a836f8859f50e78f8f332d808a46f69be5",
+      "cq_acis_comparison": "cq-acis 0.3.12 / CadQuery 2.8 / OCCT 7.9.3.1.1 reports identical topology, centroid (3220.261140483563, 13922.518386864795, 1.9999999999997942), area 36067.01752598919, volume 4243.178532518388. Agreement is only to the GUI's displayed precision. cq-acis reports valid=true after its conversion pipeline and bounds [2229.632278886831,13562.283472337987,0,4237.09785008781,14169.087206813578,4.000000000000003]; the CAD Assistant panel did not display bounds or validity."
+    },
+    "176_REGION": {
+      "cad_assistant_display": "Selected document 176.sab: Location Identity; Validation properties None; area 1.29106e+7 mm²; 1 part, 1 shell, 1 planar face, 1 wire, 4 line edges and 4 vertices. No solid or volume was displayed.",
+      "screenshot_sha256": "3803172f1de89eb299c0b63b9100d68853797d44ba8e8afa60e589de5cf658da",
+      "cq_acis_comparison": "cq-acis conversion failed: shell $3 sewing produced no shell; there is no independent cq-acis numeric comparison."
+    },
+    "37D_REGION": {
+      "cad_assistant_display": "Selected document 37d.sab: Location Identity; Validation properties None; area 2.29431e+6 mm²; 1 part, 1 shell, 1 planar face, 1 wire, 4 line edges and 4 vertices. No solid or volume was displayed.",
+      "screenshot_sha256": "b18d3d9cdc4981ee62a23bf65fbf44da4f318d9bed210d3965e5fd2cc0149cf5",
+      "cq_acis_comparison": "cq-acis conversion failed: shell $3 sewing produced no shell; there is no independent cq-acis numeric comparison."
+    }
+  },
+  "limits": "CAD Assistant's Validation properties None is not a validity result. Displayed measurements are rounded and may follow import repair; native producer values, placed DWG bounds/units, and before-repair state remain unknown. CAD Assistant and cq-acis use separate ACIS decoding paths but share the OCCT kernel family. cq-acis retained raw asmheader and solid-history attribute records whose geometry/placement effects are unproven. The two REGION numeric observations have no independent semantic oracle. No DWG/DXF/SAB fixture, application binary or screenshot is committed; this does not qualify general P7 support, native FreeCAD, platforms or independent-kernel semantics."
+}

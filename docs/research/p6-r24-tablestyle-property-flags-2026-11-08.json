@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "R24 TABLESTYLE property override and AutoScale flags",
+  "date": "2026-11-08",
+  "supportClaimEffect": "none",
+  "source": {
+    "specification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.3",
+    "finding": "Group 90 property-override bits are defined through 0x40000. Content-format override bits occupy 0x1ff; group 91 contains only the Auto Scale value bit 0x100, which is meaningful only when the matching override bit is selected."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "The AC1024 TABLESTYLE DXF writer now admits documented style override masks through 0x7ffff and content-format masks through 0x1ff, while requiring group-91 AutoScale to stay within 0x100 and be selected by the content-format override mask. Existing profile and value gates remain."
+  },
+  "validation": {
+    "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4 && ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+    "result": "Build passed; focused CTest passed 1/1. Generated ASCII/Binary controls verify group-90/group-91 field positions, typed/raw flag readback, rejection of an unknown style bit and AutoScale without its override, destination preservation, and successful same-adapter retry.",
+    "fixturesAdded": 0
+  },
+  "qualificationLimits": [
+    "Generated codec controls do not qualify independent producer wire behavior.",
+    "Native CAD AutoScale semantics and rendering remain unqualified.",
+    "No whole-file DWG/DXF support claim is promoted."
+  ],
+  "hashes": {
+    "src/libdxfrw.cpp": "92d708f1116b0af74d6daef4de23dfab9f86997cca2c14f42bf1f6df4e75bffa",
+    "tests/dwg2dxf_adapter_tests.cpp": "cb24ab0773ff42260c82d53227bef5f2281291478fd8385cf7687f6e09b1530b"
+  }
+}

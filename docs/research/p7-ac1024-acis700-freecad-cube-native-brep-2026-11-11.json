@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-acis700-freecad-cube-native-brep-2026-11-11",
+  "purpose": "Check whether the selected AC1024 ACIS 700 SAT serialization can be parsed by an independent SAT reader and built as a valid placed native FreeCAD Part solid.",
+  "sourceChain": {
+    "publicSat": {
+      "url": "https://raw.githubusercontent.com/monozukuri-ai/cq-acis/main/corpus/data/ezdxf/cube_sat_700.sat",
+      "sha256": "343766d21e6653260aebed3a9c09171c3c7ab3d2f76ed7427642cc02f4ff58dd"
+    },
+    "odaDwG": {
+      "path": "/tmp/libdxfrw-acis21500/dwg/cube.dwg",
+      "sha256": "852227fac827598b14a3f3be19228d8ce3177e7c862d805767f6be6242505710",
+      "producer": "ODA File Converter 27.1.0.0",
+      "version": "AC1024"
+    },
+    "extractedSab": {
+      "path": "/tmp/libdxfrw-acis21500/cube.sab",
+      "sha256": "4b5919bc0188358a279ba833aec5d879fa2067ba8af42a8ea86e585d420fb8a8",
+      "extractedBy": "LibreDWG 0.14",
+      "byteLength": 7007,
+      "header": "ACIS BinaryFile v700, recordCount=0, terminal marker present"
+    },
+    "libdxfrwSat": {
+      "path": "/tmp/libdxfrw-acis21500/libdxfrw-roundtrip.sat",
+      "sha256": "119ed8a97ce3d4d72d8d197157244f4f310fb0fccde6c0dd780becba1ef08920",
+      "emittedBy": "libdxfrw drw_convertSabToSatV1, target AC1024"
+    },
+    "odaSatReference": {
+      "path": "/tmp/libdxfrw-acis21500/oda-roundtrip.sat",
+      "sha256": "2ac28bcc2f03394abfddc2dac14d2c5dfe6c50a9babed80ff677c6b4cf688ff7",
+      "extractedFrom": "ODA File Converter 27.1.0.0 ACAD2010 DXF export using ezdxf 1.4.5"
+    }
+  },
+  "runtime": {
+    "hostArchitecture": "arm64",
+    "macOS": "27.2.1",
+    "freecadCommand": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+    "freecadVersion": "1.1.4, Libs 1.1.4R20260928, commit 4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "execution": "FreeCADCmd -c with the checked-in Python probe and the required environment variables, outside the sandbox so Qt could query the host NEON feature",
+    "exitStatus": 0
+  },
+  "readerAndNativeBuild": {
+    "reader": "Pinned InventorLoader Acis.py at e94bdf5e29052a0dc7ce6fdf755e956ae507caec",
+    "acisPySha256": "ec84f9528355f0df2e28bd94eecf7d9e4be89c5b9f7a77eef9b9cccbc21366bb",
+    "importerUtilsSha256": "ce95b3dd5cd1c5a69adf61a03549e196a88e14b254dc3f482d694e3e78404715",
+    "importerConstantsSha256": "f7db288e42fdd1653caccbdc2b4f3e73c13d0dcf41b2a0856dc71f6b1d65807e",
+    "compatibilityAdjustment": "The unmodified InventorLoader _getNextText header helper rejects standard ACIS 700 @length strings with int('...'). The checked-in probe applies a runtime-only one-method adjustment to accept that prefix. Its record tokenizer, entity builders and FreeCAD Part operations are unchanged.",
+    "nativeOperations": "InventorLoader AcisReader.readText, typed body/lump/shell/face entity builders, face.build, FreeCAD Part.Shell, Part.makeSolid, and applying the body's referenced Transform placement to the resulting solid"
+  },
+  "result": {
+    "bodyCount": 1,
+    "faceCount": 6,
+    "shellClosed": true,
+    "shapeValid": true,
+    "topologyFacesEdgesVertices": [
+      6,
+      12,
+      8
+    ],
+    "bodySpaceBounds": [
+      -388.5,
+      -388.5,
+      -388.5,
+      388.5,
+      388.5,
+      388.5
+    ],
+    "bodyTransform": "Placement [Pos=(388.5,388.5,388.5), Yaw-Pitch-Roll=(0,0,0)]",
+    "bounds": [
+      0.0,
+      0.0,
+      0.0,
+      777.0,
+      777.0,
+      777.0
+    ],
+    "area": 3622373.9999999995,
+    "analyticCubeArea": 3622374.0,
+    "relativeAreaError": 1.2855141056879805e-16,
+    "volume": 469097432.99999994,
+    "analyticCubeVolume": 469097433.0,
+    "relativeVolumeError": 1.2706239809116719e-16
+  },
+  "reproduction": {
+    "script": "tools/research/freecad_acis700_sat_probe.py",
+    "scriptSha256": "c8b87de550c69ca973777bfc30e21ff2544a16808c50d37abb4fbf83d621933d",
+    "environment": {
+      "P7_SAT_PATH": "/tmp/libdxfrw-acis21500/libdxfrw-roundtrip.sat",
+      "P7_INVENTORLOADER_PATH": "/private/tmp/p7-inventorloader"
+    }
+  },
+  "limitations": [
+    "This is a single selected cube profile derived from an ODA-produced AC1024 DWG; it is not an Autodesk-native producer sample.",
+    "The runtime header compatibility adjustment is research-only and does not change the pinned InventorLoader source or production code.",
+    "InventorLoader and FreeCAD Part use the same OpenCASCADE kernel, so the check is not an independent-kernel comparison.",
+    "The check uses FreeCAD's native Part library but does not exercise GUI DWG/DXF import or the bundled importerSAT application route.",
+    "The SAT body Transform is applied, but this does not validate the upstream DWG entity-to-AcDs placement/ownership association.",
+    "It does not qualify DWG placement/history, broader ACIS/ACDS profiles, whole-source output admission, or general 3D support."
+  ],
+  "claimEffect": "Adds bounded native FreeCAD Part B-rep and analytic cube measurement evidence for the exact AC1024 ACIS 700 SAT payload, including its body-space-to-world Transform. It does not promote DWG, DXF, ACIS/ACDS, or general 3D support claims."
+}

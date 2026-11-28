@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw-acds-peer-status-and-visualstyle-roundtrip-v1",
+  "reviewedAt": "2026-10-15",
+  "scope": "Read-only characterization of a tracked LibreDWG 2013 DXF/DWG pair, one installed LibreDWG 0.14 DXF re-write, and current public ACadSharp/LibreDWG ACDS work. No checked-in drawing, production code, or support claim changed.",
+  "trackedPair": {
+    "repository": "/Users/dli/dev/libredwg",
+    "head": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "workingTree": "Dirty before and after inspection; no files changed by this pass.",
+    "dxfPath": "test/test-data/example_2013.dxf",
+    "dxfSha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3",
+    "dwgPath": "test/test-data/example_2013.dwg",
+    "dwgSha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "introducingCommit": "ebbefbf870006db9d4bc116276ab5466170bc74d",
+    "commitMessage": "add better example DWG and DXF for test coverage; body says the example coverage file was converted across versions",
+    "lastSavedBy": "rurban",
+    "provenanceLimit": "The repository commit and header tie the DXF to LibreDWG project history, but do not establish an independent original producer or source-authored field manifest."
+  },
+  "trackedDxfObservation": {
+    "visualStyleRecords": 24,
+    "recordsWithR2013bCount58": 24,
+    "group176CompanionsPerRecord": 58,
+    "group177": "3 on all 24 records",
+    "group291": "Both 0 and 1 occur",
+    "slots": {
+      "31_bProp1f": {
+        "primaryTag": 290,
+        "values": ["0"],
+        "companions": ["0", "1"]
+      },
+      "33_bProp21": {
+        "primaryTag": 290,
+        "values": ["0"],
+        "companions": ["0", "1"]
+      },
+      "45_bProp2d": {
+        "primaryTag": 290,
+        "values": ["0"],
+        "companions": ["0", "1"]
+      }
+    },
+    "limits": "The Boolean values are all false; there is no true-value witness. This is a tracked peer-history file, not an independent producer oracle."
+  },
+  "sameLibraryRewrite": {
+    "binary": "/opt/homebrew/bin/dxfwrite",
+    "version": "0.14",
+    "binarySha256": "b288cd8442dc76820da9ed1f236b3c3c27880dc76b5d48b2e6e3b9dfc6ab269c",
+    "command": "dxfwrite --as r2013 -I DXF -o /tmp/libredwg-vstyle-j9QD9B/example_rewrite.dxf /Users/dli/dev/libredwg/test/test-data/example_2013.dxf",
+    "exitResult": "SUCCESS; stderr contained numerous unsupported-reference/style warnings and some writer errors (including modeler entity revision/preview diagnostics).",
+    "outputSha256": "96b63083b4266e325c8b75527b192fbfa601a296b0c5a9fdaabd7b11ecbcc003",
+    "outputVisualStyleRecords": 24,
+    "outputCount58": 24,
+    "outputGroup176Count": 56,
+    "changedSlotIndexes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 55, 56, 57],
+    "unchangedSlotIndexes": [24, 54],
+    "missingCompanionSlots": [31, 33],
+    "slot31_33_45": {
+      "31_bProp1f": {"input": [[290, "0"], [176, "1"]], "output": [[290, "0"]]},
+      "33_bProp21": {"input": [[290, "0"], [176, "1"]], "output": [[290, "0"]]},
+      "45_bProp2d": {"input": [[290, "0"], [176, "1"]], "output": [[290, "0"], [176, "0"]]}
+    },
+    "evidenceLimit": "Same-library transcode of a LibreDWG repository-history sample. It is direct evidence of this binary's output on this input, not an independent writer/readback, not a producer-authored semantic oracle, and not a normative group-code contract. Warning-heavy SUCCESS must not be treated as preservation success."
+  },
+  "externalPeerStatus": {
+    "ACadSharp_1154": "Merged and included in release 3.6.51; it adds full Prototype1b section parsing.",
+    "ACadSharp_1156": "Closed after #1154 merged; the contributor states ResolveDataEntry handles blob01 reassembly and reports end-to-end corpus validation. This is peer evidence, not a local test.",
+    "ACadSharp_1174": "Open schema/storage refactor; its discussion records a contributor branch run where one DXF ACDS read test hit NotImplementedException. Do not generalize that branch observation to current master.",
+    "ACadSharp_1150": "Open writer proposal; contributor reports DWG TrueView checks across R2000/R2004/R2007/R2010/R2013 and both formats, while maintainer says writer review waits for Prototype1b reader stability. Reports are not independently reproduced here.",
+    "ACadSharp_1240": "Open three-commit ACIS-entity writer proposal, declared dependent on #1174; page shows no reviews.",
+    "LibreDWG_1411": "Open issue reporting silent loss of R2013+ ACDS SAB payloads in LibreDWG 0.14.8593. Issue repro is user-supplied and was not rerun here."
+  },
+  "planImpact": {
+    "visualStyle": "Keep typed VISUALSTYLE output blocked. First resolve actual primary values, all per-slot companion retention, CMC/RGB interpretation, group177/291 context, and independent parser/readback on an eligible producer-authored control. The same-library rewrite is a negative preservation result, not a path to infer desired semantics.",
+    "acds": "Local parser already assembles referenced blob01 pages, but tests/graph_preservation_tests.cpp only covers inline schema values. Add a locally-authored in-memory two-page chain with exact payload/owner assertions, physically nonmonotonic segment placement, and malformed page-reference mutations before writer expansion.",
+    "runtime": "The repository-local LibreDWG source checkout has no usable built dxfwrite target in its current state; the installed 0.14 binary was used only for this exact scratch rewrite. Uniquely-valued writer qualification still needs a generated control and pinned, reproducible runtime receipts."
+  },
+  "validation": {
+    "localDxfParsing": "Read-only ASCII tag parsing and SHA-256 verification; no repository DWG/DXF fixture added or modified.",
+    "sameLibraryWriter": "One command against a tracked DXF; output only under /tmp; no downstream independent readback or native CAD launch.",
+    "fullTests": "NOT RUN",
+    "supportClaimsPromoted": false,
+    "externalJStatuses": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sources": [
+    "https://github.com/DomCR/ACadSharp/pull/1139",
+    "https://github.com/DomCR/ACadSharp/pull/1154",
+    "https://github.com/DomCR/ACadSharp/pull/1156",
+    "https://github.com/DomCR/ACadSharp/pull/1174",
+    "https://github.com/DomCR/ACadSharp/pull/1150",
+    "https://github.com/DomCR/ACadSharp/pull/1240",
+    "https://github.com/DomCR/ACadSharp/issues/1152",
+    "https://github.com/DomCR/ACadSharp/issues/1195",
+    "https://github.com/LibreDWG/libredwg/issues/1411",
+    "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51"
+  ]
+}

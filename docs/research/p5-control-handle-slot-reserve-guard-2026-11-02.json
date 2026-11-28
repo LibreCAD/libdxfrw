@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-02",
+  "gate": "P5_PROXY_LAYER_SLOT_ALLOCATION_SAFETY",
+  "result": "IMPLEMENTED_FAST_CONTROL_PASS",
+  "scope": "Exception-safe allocation for bounded declared control-handle slots and the corresponding proxy layer-name index. This does not establish proxy-cache output or native rendering semantics.",
+  "implementation": {
+    "source": "src/intern/dwgreader.cpp",
+    "source_sha256": "f8b4c8987ecfba207c36f37720cb4ec473de74ee850e1da6c114d4a355bb711d",
+    "behavior": [
+      "DRW_ObjControl::parseDwg bounds the declared child handle count and now uses DRW::reserve before filling orderedHandleSlots; failure returns through the parser's existing fail path.",
+      "readDwgTables uses DRW::reserve before building m_layerNameOrder; failure aborts the table phase.",
+      "The existing handle-slot fast selector verifies null entries at source indices 44 through 48 remain in the ordered slot vector while the ownership reference list remains compact."
+    ]
+  },
+  "test": {
+    "source": "tests/dwg_reader_matrix_tests.cpp",
+    "source_sha256": "9f5f74eeb8e26cd64e41c2ada953d3109ba0025517c4030314059529758b5f75",
+    "registration": "CMakeLists.txt",
+    "registration_sha256": "01306fd7d08c964b00a1721606ec1e9a7f8aec6eb30e50065445ae9667a2dbe2",
+    "binary": "build-gcc/libdxfrw_dwg_reader_matrix_tests",
+    "binary_sha256": "7c5b7ce8a0c9046dee91a791cdabe71b3673e4c35e0bdd81e2fb3d1fab1c6f82",
+    "build_command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2",
+    "build_result": "PASS",
+    "test_command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_control_handle_slots$' --output-on-failure",
+    "test_result": "PASS 1/1; 0.03 seconds on current integrated worktree",
+    "diff_check": "PASS",
+    "workspace_note": "The focused test binary was rebuilt and run on the current integrated worktree. These source hashes identify the isolated layer-slot patch; unrelated in-progress parser/test edits are excluded from this commit."
+  },
+  "limits": [
+    "No allocator fault injection was performed; the generated selector verifies slot correctness, and the allocation guard uses the project's exception-catching DRW::reserve helper.",
+    "No DWG/DXF fixture was added.",
+    "No support claim was promoted."
+  ]
+}

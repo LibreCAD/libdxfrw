@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Cross-project peer route-claim and evidence-boundary audit",
+  "mode": "deeper/broader primary-source research and plan synthesis",
+  "scope": [
+    "Refresh source-level scope and current project documentation for the main open-source DWG/DXF comparators",
+    "Separate DWG read, DXF read/write, callback projection, container parsing, and semantic/native claims",
+    "Reconcile related projects by implementation lineage so derivatives are not counted as independent parser votes",
+    "Translate route limits into a concise peer-admission and writer-acceptance gate without changing local queue order"
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/issues"
+      ],
+      "status": "current_manual_readme_and_issue_index_reviewed",
+      "observation": "The manual describes ongoing broad DWG reading but reports writer limits: R2007 is unsupported and R2010-R2018 output still has CRC/audit issues. The issue board shows residual reports in distinct read/write and DXF paths.",
+      "limits": "Manual and issue state do not prove a particular build's behavior or a libdxfrw defect. No peer source was built and no peer drawing was downloaded."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "status": "current_api_documentation_release_history_and_issue_index_reviewed",
+      "observation": "The project documents separate DWG/DXF reader routes and a typed document model; current issue reports are specific to writer or reader operations, versions, and record families.",
+      "limits": "Issue reports are not format authority or release-wide results. No package/source commit was executed in this pass."
+    },
+    {
+      "project": "ezdxf",
+      "references": [
+        "https://github.com/mozman/ezdxf",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "status": "current_project_and_route_documentation_reviewed",
+      "observation": "The project documents ASCII/Binary DXF read/write, preservation of unfamiliar content except comments, and route-specific omissions in XREF import (including ACAD_TABLE and unknown entities); ACIS parsing is limited to a subset. The optional ODA converter is a separate external DWG route.",
+      "limits": "No DXF file was run through ezdxf. Base read/write, XREF import, ACIS parsing, and ODA conversion are not interchangeable evidence paths."
+    },
+    {
+      "project": "QCAD and dxflib",
+      "references": [
+        "https://github.com/qcad/qcad",
+        "https://www.qcad.org/en/license/",
+        "https://www.qcad.org/en/what-is-dxflib"
+      ],
+      "status": "official_source_and_edition_boundary_reviewed",
+      "observation": "The public QCAD Community Edition is an open-source 2D DXF application, while the official license page says DWG and enhanced DXF support are supplied by proprietary Professional plugins. dxflib is described as a callback-oriented DXF library.",
+      "limits": "A QCAD CE/dxflib run cannot qualify DWG, proprietary QCAD Professional routes, full-model retention, or data not surfaced by callbacks."
+    },
+    {
+      "project": "dwg-rs",
+      "references": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "status": "current_project_scope_reviewed",
+      "observation": "The project describes a pre-alpha, spec-first DWG reader with container/object-stream work ahead of entity decoder coverage, no DXF parser, and a narrow permissive-license niche.",
+      "limits": "No build or run; self-reported corpus figures are not accepted as a comparable support denominator or semantic/native evidence."
+    },
+    {
+      "project": "ACadRust, CADKit, and OpenCADStudio",
+      "references": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/storytold/cadkit",
+        "https://github.com/HakanSeven12/OpenCADStudio"
+      ],
+      "status": "lineage_reconciled_with_existing_plan_inventory",
+      "observation": "These are useful downstream implementation/application routes but share ACadSharp/ACadRust ancestry and should not be counted as independent DWG decoder votes.",
+      "limits": "No source similarity audit or executable run was performed in this pass; the lineage note is limited to documented project dependencies already inventoried by the plan."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY_PLAN_SYNTHESIS",
+    "implementationSummary": "Consolidated peer-admission limits across DWG readers, DXF parsers/writers, callback libraries, application editions, and derived lineages. Made exact operation, version, family, identity/disposition accounting, and independent writer reopen explicit without adding a peer lane.",
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "nextImplementation": "Continue the existing local fast implementation queue. Select no more than one peer for a specific unanswered question at its planned composed checkpoint; unavailable or out-of-profile routes are recorded and do not block local work.",
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRunThisPass": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-cross-project-route-claim-audit-2026-10-20.json"
+    ],
+    "limitations": "Public documentation and issue indexes can change; mutable routes were not frozen to commit IDs in this research-only pass. The analysis is evidence classification, not an interoperability execution or compatibility result."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on plan and receipt paths)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

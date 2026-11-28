@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-ac1018-physical-table-body-cache-whole-file-roundtrip-2026-11-12",
+  "date": "2026-11-12",
+  "question": "Can the selected physical AC1018 TABLE typed body, retained subrecord spans, and exact proxy cache be emitted in a bounded whole-file envelope and recovered by a fresh libdxfrw reader?",
+  "source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea6d4d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "provenance": "Scratch-only ODA-converted AC1018 source. Related provenance and same-vendor conversion receipts are p5-ac1018-oda-table-physical-peer-profile-2026-11-09.json and p5-ac1018-table-style-ltype-resource-wire-2026-11-11.json. The drawing is not a repository fixture and was not committed."
+  },
+  "operation": {
+    "selector": "build/libdxfrw_dwg_local_roundtrip --physical-ac1018-table-body-roundtrip SOURCE OUTPUT",
+    "sourceTableHandle": "0x9c",
+    "outputTableHandle": "0xa720",
+    "sourceStyleHandle": "0x6b",
+    "outputStyleHandle": "0xa700",
+    "sourceBlockRecordHandle": "0x9d",
+    "outputLayer": "implicit default layer 0",
+    "outputExtensionDictionary": "omitted; source xDict 0xbb is not emitted",
+    "outputBlockChildren": "generated bounded *T1 envelope: 8 LINE and 7 MTEXT records",
+    "sourceProxyBytes": 2104,
+    "sourceRetainedSubrecordRanges": 8,
+    "failureRecovery": "PASS; shortened the final physical retained-range span by one bit; output was refused without replacing a sentinel destination or mutating TABLE/block handles; restored the exact span and retried on the same adapter/writer successfully",
+    "outputSha256": "9eeba03a6efd96a6b8877561f1dd876f165bd612b385982f116164c86ecb1ae2",
+    "outputDisposition": "scratch-only; no DWG or DXF fixture was added to the repository"
+  },
+  "checks": {
+    "sourceImport": "AC1018; one complete typed TABLE; 3 rows x 3 columns; seven nonempty text cells; 2104 proxy bytes; eight retained ranges",
+    "serialization": "whole-file AC1018 output succeeded after remapping only the selected table/style/block handles and layer-0 reference; the selected TABLE proxy bytes were supplied unchanged",
+    "freshLibdxfrwReadback": "PASS; exact 2104-byte proxy string, count, 3x3 typed cell content/merge roles, column widths, row heights, value flag, and each ordered retained range's name, bit size, version, count, handle role and completeness verified, along with style/block references and omitted extension dictionary",
+    "independentLibreDWG": {
+      "version": "LibreDWG 0.14",
+      "sourceJsonSha256": "6a02ce1d91201535ce092d6d9af01209b9bb9768184cbeff93cb9ecc0074b0fd",
+      "outputJsonSha256": "73f1b6a88ee263d665a7063be7cbc409bdcdbefba53f5250f13bbdbc2680950b",
+      "outputRead": "SUCCESS",
+      "sourceAndOutputPreviewBytes": 2104,
+      "sourceAndOutputPreviewSha256": "20a1fa7066c9ff71eebbd4e3fc69cbbc8e3b740fb8ddf9b30c941136c0dc5b22",
+      "observedOutputBlockChildren": 15,
+      "limitation": "LibreDWG exposes the preview/cache and selected TABLE header fields but does not decode this table cell body into a semantic grid."
+    },
+    "focusedGeneratedRegression": "libdxfrw_table_ac1018_whole_file_roundtrip passes"
+  },
+  "scope": {
+    "qualified": "A selected AC1018 TABLE typed body, its recognized retained zero-mask ranges, and exact proxy cache can be carried through whole-file output and fresh libdxfrw readback when placed in the existing bounded generated style/block envelope.",
+    "notQualified": [
+      "source TABLE extension dictionary 0xbb and its XRECORD, TABLECONTENT, TABLEGEOMETRY, DATATABLE, and nested XRECORD graph",
+      "native AutoCAD/ODA acceptance or rendering",
+      "producer-wide TABLE semantics or general AC1018 TABLE output",
+      "semantic interpretation of the proxy cache"
+    ],
+    "preservedGates": "Do not weaken strict refusal for populated or unsupported extension graphs. The source HEADER integrity observation is unrelated and remains outside this selected projection."
+  }
+}

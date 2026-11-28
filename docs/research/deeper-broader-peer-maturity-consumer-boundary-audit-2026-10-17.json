@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-maturity-consumer-boundary-audit-v1",
+  "completedAt": "2026-10-17",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Refresh public open-source DWG/DXF peer capability statements and active issue reports; reconcile them with existing local implementation and consumer gates without promoting support.",
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg",
+      "observed": "README says the reader covers DWG versions with some advanced R2010+ objects skipped; the writer cannot create R2007 and R2010-R2018 output has CRC failures.",
+      "evidenceClass": "mutable project self-description"
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp",
+      "observed": "README version matrix advertises DWG read/write by AC version, with AC1021 writing excluded and AC1024/1027/1032 writing marked available.",
+      "evidenceClass": "mutable project self-description"
+    },
+    {
+      "project": "ACadSharp issue reports",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1283",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1278",
+        "https://github.com/DomCR/ACadSharp/issues/1253",
+        "https://github.com/DomCR/ACadSharp/issues/1259",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": "Reports cover resource/recursion failure modes, classic POLYLINE/VERTEX parsing, strict DXF wire rejection, CP949 label/byte disagreement, and ACIS writer omission. #1240 remains open, without reviews/deployment on the inspected page, and depends on schema work.",
+      "evidenceClass": "issue and pull-request reports; not local defects or released capability evidence"
+    },
+    {
+      "project": "LibreCAD_3",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "observed": "Current DWG policy documentation describes read-only, default-off import; its ledger contains read-direction claims only and reports no promoted claims at the documented pinned library state.",
+      "evidenceClass": "mutable downstream policy documentation"
+    }
+  ],
+  "researchFindings": [
+    "Peer capability must be keyed by exact version, operation, entity/carrier family, and consumer; version matrices are not aligned tests.",
+    "Peer issue reports sharpen existing resource, classic-entity, strict-writer, and codepage test families but do not establish matching libdxfrw defects.",
+    "An open/unreviewed/unreleased PR is not a released peer writer capability.",
+    "LibreCAD_3's current stated DWG direction is read-only; compatibility and 3D consumer expansion remain separate gates."
+  ],
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "existingOwnersReinforced": [
+      "version-and-operation-specific peer matrix",
+      "XDATA/EED size accounting and traversal budgets",
+      "classic POLYLINE/VERTEX framing and malformed-record isolation",
+      "strict DXF wire census and codepage label-plus-byte validation",
+      "ACIS owner/block membership and release-vs-PR distinction",
+      "LibreCAD/LibreCAD_3 compatibility and downstream direction split"
+    ]
+  },
+  "limits": {
+    "peerSourceCommitsPinned": 0,
+    "peerPackagesBuiltOrRun": 0,
+    "nativeCadRuns": 0,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

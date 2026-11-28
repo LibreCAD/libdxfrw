@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-25",
+  "scope": "Share the version-aware DXF raw carrier frame and handle-lexeme checks for future image dictionary closure",
+  "librecadCommit": "4c3bb8bbdaa23d53a91f69f0db8ce69a6ebd5bf3",
+  "codecImplementationDigestSha256": "73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad",
+  "implementation": "Move the bounded handle parser and selected-version self/owner/reactor frame visitor out of the MATERIAL-specific lambda; the caller still validates type and profile-specific body. Unknown application groups remain outside this helper profile.",
+  "validation": {
+    "systemCodecBuild": "PASS",
+    "focusedSystemTests": "4/4 PASS, 336 assertions, including wrong-version, malformed carrier, role mismatch, refusal, destination preservation and corrected retry",
+    "fullSuite": "not run"
+  },
+  "limits": [
+    "The helper is ready for but not yet connected to IMAGE graph admission.",
+    "This refactor does not prove native producer semantics or close the IMAGE resave failure."
+  ]
+}

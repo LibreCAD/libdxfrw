@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Independent DXF import of physical AC1021 RASTERVARIABLES selected output",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Run LibreDWG 0.14 against the exact ASCII/Binary DXF outputs produced by the bounded AC1021 physical RASTERVARIABLES bridge. Distinguish parsing the DXF from successful independent output graph preservation.",
+  "physicalSource": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "revision": "AC1021",
+    "sourceObject": "RASTERVARIABLES handle 0x2D2, direct NOD key ACAD_IMAGE_VARS",
+    "sourceFields": {
+      "classVersion": 0,
+      "imageFrame": 1,
+      "imageQuality": 1,
+      "units": 1
+    },
+    "provenanceLimit": "Existing local source; author/producer are unauthenticated."
+  },
+  "outputGeneration": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1021-direct-nod /Users/dli/doc/dwg/children-room-decoration.dwg /private/tmp/ac1021-rastervariables-independent-output",
+    "result": "PASS, exit 0. The bounded physical-source wrapper, ASCII/Binary export, local typed readback, invalid-state atomic refusal and same-adapter retry all ran. Only DXF outputs were retained under /private/tmp; no fixture was committed.",
+    "ascii": {
+      "bytes": 10266,
+      "sha256": "8256b5223942ba2af6f9f1b2816f498aad7454471bfba5c1050e703fd7f91cb7"
+    },
+    "binary": {
+      "bytes": 8404,
+      "sha256": "457f1a8cf720a7899a0dd93180105d6bb7317e077e01892cc3f895a6fac574e1"
+    }
+  },
+  "independentReader": {
+    "implementation": "GNU LibreDWG 0.14 dxf2dwg and dwgread",
+    "version": "0.14",
+    "asciiAndBinaryDxfImport": "Both ASCII and Binary inputs parse the RASTERVARIABLES object. Verbose trace reports object handle 0xB500; NOD owner/reactor handle 0xC; class_version=0, image_frame=1, image_quality=1, units=1. Conversion with --as r2004 exits 0 for both files.",
+    "r2007Boundary": "The DXF parse reaches the same typed fields for both encodings, then dxf2dwg exits 1 because LibreDWG 0.14 does not encode R2007. No R2007 DWG is produced.",
+    "r2004DowngradeReadback": "dwgread parses each generated R2004 DWG and finds one RASTERVARIABLES object with class_version=0, image_frame=1, image_quality=1 and units=1. The NOD ACAD_IMAGE_VARS edge and reactor-to-NOD are present. However, the decoded object ownerhandle is [12,2,46324,12], and no object with handle 0xB4F4/46324 is present in OBJECTS. This independent conversion therefore does not preserve a closed owner graph; do not interpret it as successful semantic roundtrip.",
+    "interpretation": "Independent DXF syntax and selected-field parsing is demonstrated. Independent graph-preserving roundtrip, native raster display/unit meaning, producer-wide behavior and whole-source conversion remain unqualified."
+  },
+  "validation": {
+    "focusedBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4 (-Werror).",
+    "physicalSelector": "PASS, exit 0 for the AC1021 source bridge and both encodings.",
+    "independentAsciiBinaryImport": "PASS; LibreDWG reports the selected fields for both.",
+    "independentR2004GraphReadback": "FAIL CLOSED for owner closure: target handle 46324 is missing, despite the expected NOD membership/reactor and scalar fields.",
+    "fullSuites": "NOT RUN",
+    "fixturesCommitted": false
+  },
+  "nextAction": "Keep the RASTERVARIABLES bridge bounded. Native consumer checks for display and unit semantics and broader source/version coverage remain open; the LibreDWG R2004 owner anomaly is peer-route evidence and does not justify changing libdxfrw without an independent defect in this repository."
+}

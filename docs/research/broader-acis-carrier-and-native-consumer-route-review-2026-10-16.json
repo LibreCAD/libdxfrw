@@ -1,0 +1,129 @@
+{
+  "schema": "libdxfrw-broader-acis-carrier-and-native-consumer-route-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden open-source and downstream research around modern ACIS carrier creation, AcDs loss visibility, FreeCAD's actual converter/importer routes, and the boundary between raw transport and semantic 3D acceptance.",
+  "method": {
+    "kind": "Primary project documentation/source review plus scoped peer issue reports",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "freeCADRuns": false,
+    "geometryKernelsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "GitHub default-branch pages and help pages are mutable. Peer issue reports are dated leads, not independently reproduced results. Any future execution must pin exact application/library revision, executable hash, OS/architecture, route/options and input/output hashes.",
+    "evidenceRule": "Separate carrier syntax, exact byte transport, DataStorage/owner association, downstream importer disposition and independent B-rep semantics. A surviving entity record, successful conversion, visual display, or same-writer/reader round-trip cannot alone establish geometry preservation."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG modern AcDs loss report provides a source-generated reproduction recipe",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "observed": "LibreDWG issue #1411 (opened 2026-09-02) reports loss of R2013+ REGION/3DSOLID/BODY SAB data through its DXF→DWG→DXF route. It includes an ezdxf AC1032 REGION recipe using body_from_mesh(cube()), reports 5,489 source SAB bytes, and reports zero SAB bytes/no ACDSDATA records after the peer round-trip. It also describes a confidential AutoCAD R2018 file, but that source cannot be inspected or reproduced from the report. ezdxf documentation distinguishes inline SAT for R2000-R2010 from SAB/ACDSDATA for R2013+ and exposes raw ACIS inspection/export.",
+      "doesNotEstablish": [
+        "a libdxfrw defect or local reproduction",
+        "an authoritative DWG/ACDS specification",
+        "that the issue reporter's DXF is an independent producer witness",
+        "complete SAB geometry semantics from the stated byte count",
+        "that one version/type route generalizes to every REGION, 3DSOLID, BODY, or DWG profile"
+      ],
+      "planUse": "Use the ezdxf recipe only as an optional transient, source-generated carrier-control lead at a composed route checkpoint. Capture source geometry/units, entity handle/type/owner, SAB length and hash before conversion; then separately check output entity inventory, AcDs/ACDSDATA association, exact payload and destination semantic disposition. Store outputs only under temp/build. Do not add the issue's files or generated binaries as fixtures; do not use the peer report as defect proof."
+    },
+    {
+      "topic": "FreeCAD DWG acceptance is a converter-to-DXF-to-importer route, and stock ACIS is not a semantic oracle",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": "FreeCAD documentation describes a native C++ DXF importer/exporter and a separate legacy Python importer. It says FreeCAD does not directly read/write DWG and instead calls external converters including LibreDWG, ODA File Converter, or QCAD. In issue #18454, a maintainer response states that stock FreeCAD cannot interpret ACIS blobs. The issue is dated 2024 and does not establish behavior for future plugins or every later build.",
+      "doesNotEstablish": [
+        "direct FreeCAD DWG parser support",
+        "that every version/importer backend handles the same DXF entities",
+        "ACIS semantic interpretation through the stock DXF importer",
+        "a negative result for separately installed CAD Exchanger or other add-ons"
+      ],
+      "planUse": "Retain Linux/Windows FreeCAD as a composed downstream gate with separate rows for OS/build, chosen DWG converter, exact argv, intermediate DXF hash, selected importer backend/preferences, warnings, source-handle and owner inventory, and resulting geometry. Label CAD Exchanger→BREP→FreeCAD as a distinct external-importer route. Do not let a stock FreeCAD open or visual pass clear the ACIS/ACDS semantic gate."
+    },
+    {
+      "topic": "ezdxf is a useful ACIS carrier tool but not a general ACIS kernel",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "observed": "The project documents carrier inspection/export, separate DXF SAT and SAB profiles, and ACIS-entity authoring that requires ACIS data from an external library. Its documented geometry extraction is limited to flat polygonal profiles, and its drawing add-on does not render ACIS or provide a 3D rendering engine.",
+      "doesNotEstablish": [
+        "general curved or arbitrary B-rep validity",
+        "DWG AcDb:AcDsPrototype_1b semantics from DXF ACDSDATA behavior",
+        "native CAD acceptance or exact topology for arbitrary SAB",
+        "a semantic pass from raw-byte parsing or visualization"
+      ],
+      "planUse": "Use ezdxf for generating small transient carriers and inspecting/extracting bytes. Keep inline SAT, DXF ACDSDATA/SAB and DWG AcDs as separate routes. Treat flat polyhedron checks as narrow profile tests and exact payload/hash equality as transport evidence only."
+    },
+    {
+      "topic": "ACadSharp's reported solid-only block omission reinforces the owner-aware ledger",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observed": "A user report against ACadSharp 3.4.9 says DXF output omitted 3DSOLID/REGION entities without notification, including entities that were the only contents of blocks. The associated writer PR is a proposal, not a released result.",
+      "doesNotEstablish": [
+        "a libdxfrw defect",
+        "that the peer still has this behavior in a current release",
+        "shape validity from entity counts or preserved INSERTs"
+      ],
+      "planUse": "Retain source-handle→emitted entity→owning block→destination disposition accounting. Include a solid-only block in the composed route test where supported, and classify every body as emitted, omitted, rejected or unknown with a diagnostic. Do not add a duplicate finding based only on peer behavior."
+    },
+    {
+      "topic": "OCCT-based lineage does not imply an installed ACIS reader",
+      "sources": [
+        "https://dev.opencascade.org/sites/default/files/pdf/Release_Notes_6.6.0.pdf"
+      ],
+      "observed": "Open CASCADE's release notes list ACIS SAT import/export under its added-value product components. This is not evidence that the standard OCCT core or a stock FreeCAD package contains or is licensed to use that component.",
+      "doesNotEstablish": [
+        "current component availability or licensing",
+        "acceptance of the exact ASM/SAB profile under study",
+        "independence from another reader that also uses OCCT"
+      ],
+      "planUse": "Before counting an OCCT-derived tool as an ACIS semantic oracle, verify the exact product component, version, entitlement, parser lineage, and tested SAB profile. Do not infer capability from a FreeCAD/OCCT dependency alone."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Continue local fast AcDs/modeler work without waiting for external samples or applications; retain exact handle/key, schema/index, owner, payload, permutation, duplicate/orphan and unchanged-section controls.",
+    "At one composed checkpoint, generate a known-cube AC1032 DXF carrier transiently and hash it before the route. Track source recipe/manifest and assertions, not downloaded or binary DWG/DXF/SAB output.",
+    "Evaluate source parse, target-version output, modeler inventory, owner/block membership, ACDSDATA/AcDs record association, exact carrier bytes, destination importer result and B-rep semantics as distinct observations.",
+    "Use a pinned eligible independent reader/kernel plus source-authored dimensions and analytic bounds/area/volume for semantic qualification. If only ezdxf or stock FreeCAD is available, report NOT QUALIFIED for ACIS semantics.",
+    "Keep native FreeCAD checks on a composed Linux/Windows route matrix with exact converter, intermediate file, and DXF importer mode; classify CAD Exchanger-to-BREP as its own external-importer route.",
+    "Preserve affected-target/focused-test validation per slice and the planned scheduled/composed full-suite, fuzz, native, and peer gates. External entitlement gaps do not block local implementation."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "newLocalFindingAdded": false,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRunForResearch": false,
+    "peerRuntime": "NOT RUN",
+    "nativeFreeCADQualification": "NOT RUN",
+    "geometryKernel": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

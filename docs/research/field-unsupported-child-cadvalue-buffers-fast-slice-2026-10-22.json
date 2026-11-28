@@ -1,0 +1,41 @@
+{
+  "id": "par134-field-unsupported-child-cadvalue-buffers",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "e398f034ed7d897e917ad822d2fe146ee991cf094c80baaf14b79c5efb136603",
+  "scope": {
+    "class": "DRW_Field / DRW_CadValue",
+    "versions": ["AC1021", "AC1024"],
+    "field": "unsupported child CadValue buffer kinds 128 and 256",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "evidence": {
+    "localGap": "The unsupported-buffer parser and writer policy had no direct positive-frame/negative-writer controls when encountered inside FIELD child values.",
+    "change": "Added generated bounded frames for child types 128/256; both versions retain an incomplete FIELD shell without publishing a child entry. Constructed writer cases reject both kinds before emitting body, string, or handle bits.",
+    "evidenceCeiling": "The parser vectors exercise a local generated wire shape and establish fail-closed behavior only. No undocumented payload layout is guessed, and no independent producer/consumer or broad support claim follows."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_field_unsupported_child_cadvalue_buffers$' --output-on-failure: PASS (1/1)",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_field_(oversized_child_value_count|cadvalue_.*|child_cadvalue_types|unsupported_child_cadvalue_buffers)|libdxfrw_dwg_object_vectors)$' --output-on-failure: PASS (12/12)",
+    "git diff --check -- CMakeLists.txt tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "productionBehaviorChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "remaining": [
+    "Characterize unknown child types in AC1024 as well as AC1021.",
+    "Add an invalid type-64 handle-role control if a clean byte-level mutation can be isolated.",
+    "Keep FIELD format flag 0x02 semantics unqualified absent authoritative or independently traced evidence."
+  ],
+  "deferredExternal": [
+    "J256", "J260", "J268", "J284", "J293", "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

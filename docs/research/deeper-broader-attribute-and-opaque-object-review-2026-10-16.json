@@ -1,0 +1,143 @@
+{
+  "schema": "libdxfrw-deeper-broader-attribute-and-opaque-object-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "planFile": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "45cde3a8d93a492db470badf476b1aaa8585b90b912a6ad601ece536480e9046",
+  "scope": "Broaden current peer/source review, audit R2018 multiline ATTRIB/ATTDEF fields against ODA and local DWG codecs, and refine existing implementation readiness without promoting support.",
+  "method": {
+    "kind": "Local authoritative ODA PDF inspection, local source audit, current peer issue/release/source review",
+    "liveReferencesRecheckedAt": "2026-10-16",
+    "peerRepositoriesCloned": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "localImplementationTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "evidenceBoundary": "ODA v5.4.1 §§20.4.4–20.4.5 define the documented ATTRIB/ATTDEF field order. Peer issues, manuals, release notes and source trees guide test selection but do not establish local runtime behavior or feature parity. The local audit establishes absent modeled/read/write fields, not production prevalence or native acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "R2018 multiline ATTRIB/ATTDEF outer annotative-data fields",
+      "sources": [
+        "file:~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf#§20.4.4-20.4.5"
+      ],
+      "observed": "ODA v5.4.1 describes an R2010+ version RC, R2018+ attribute-type RC, and for multiline attributes an outer annotative-data BS size, conditional bytes, registered-application hard pointer and zero-valued BS before tag/flags/lock. This block is distinct from the embedded MTEXT object's own annotation state.",
+      "doesNotEstablish": [
+        "that every multiline attribute has nonzero annotation data",
+        "which bytes or registered-application handle are present in arbitrary producer drawings",
+        "local runtime failure or native consumer acceptance"
+      ],
+      "planUse": "Add PAR-125 under existing 7M as 7M.2. Use generated AC1032 ATTRIB type-2 and ATTDEF type-4 controls for zero and nonzero sizes, exact bit positions, handle closure, and a following-record sentinel."
+    },
+    {
+      "topic": "Local ATTRIB/ATTDEF codec and data-model audit",
+      "sources": [
+        "src/drw_entities.cpp:13716-13890",
+        "src/drw_entities.cpp:13959-14120",
+        "src/drw_entities.h:2148-2187"
+      ],
+      "observed": "The local readers process R2010/R2018 attribute versions, nested MTEXT, tag, field length, flags, lock bit and style handle. The public DRW_Attrib model has no separate outer annotation-byte or application-handle carrier, and the inspected ATTRIB/ATTDEF DWG codecs do not consume or emit the outer ODA-described conditional block.",
+      "doesNotEstablish": [
+        "that all existing AC1032 attributes fail or that any particular production file uses this branch",
+        "compatibility of a proposed public field/API until source-compatibility checks run",
+        "that writer/reader self-round-trip alone would prove wire correctness"
+      ],
+      "planUse": "Add an explicit typed or exactly retained model carrier with complete copy/move/reset behavior; preserve common single-line and 2D callback paths; resolve/remap the application reference safely or refuse before publication."
+    },
+    {
+      "topic": "LibreDWG ATTRIB version-field report",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1399",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.spec"
+      ],
+      "observed": "The open peer report describes an AC1032 ATTRIB/ATTDEF contrast and claims the peer reads an additional R2010+ byte for ATTRIB, losing style-handle decoding in later versions. A WIP commit is linked, but no independent retest or released fix is established by the reviewed report.",
+      "doesNotEstablish": [
+        "the same defect in libdxfrw",
+        "a correct local field-count change without the local ODA-based trace",
+        "general ATTRIB/ATTDEF parity"
+      ],
+      "planUse": "Use as a version-boundary test lead for paired ATTRIB/ATTDEF style-handle assertions; keep it separate from the local outer-annotation finding."
+    },
+    {
+      "topic": "PERSUBENTMGR unknown-object readiness",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1398",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html"
+      ],
+      "observed": "An older LibreDWG manual lists candidate PERSUBENTMGR counters and arrays. Current 0.14.1 release notes demote the type to Debugging; open issue #1398 reports an implausibly large num_subents under a proposed ordering and leaves the field sequence unresolved.",
+      "doesNotEstablish": [
+        "an authoritative DWG layout or stable semantic model for PERSUBENTMGR",
+        "a local libdxfrw defect",
+        "safe raw replay when references are unresolved or relocated"
+      ],
+      "planUse": "Keep the type in PAR-06's unsupported/debugging inventory. Do not parse from the older peer manual alone; use bounded opaque retention only where reference closure is known, otherwise report or refuse."
+    },
+    {
+      "topic": "Peer scale risks and ACadSharp release freshness",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1395",
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.7.16",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0"
+      ],
+      "observed": "LibreDWG #1395 reports quadratic growth of block-owned handle arrays in that peer's public DWG add API. ACadSharp v3.7.16 lists indexing inserts by block and other writer changes; v3.8.0 at signed commit 3a1c66b (2026-09-21) lists assembly visibility only.",
+      "doesNotEstablish": [
+        "a performance or complexity defect in libdxfrw",
+        "that ACadSharp v3.8.0 adds broad semantic or ACIS writer support",
+        "an independently reproduced peer benchmark"
+      ],
+      "planUse": "Keep complexity checks tied to source-confirmed local hot paths and one composed scale smoke; avoid timing gates/full-scale runs in every slice. Use v3.8.0 as an optional reader/structural comparator, not proof of unrelated writer capability."
+    }
+  ],
+  "implementationReadiness": {
+    "existingTopLevelOwner": "7M — Canonical embedded attributes and explicit downgrade outcomes",
+    "newFinding": "PAR-125 — R2018 multiline ATTRIB/ATTDEF outer annotation fields are not represented or handled by the local DWG codecs",
+    "newNestedSubplan": "7M.2 — R2018 outer annotation state",
+    "newTopLevelSubplans": 0,
+    "generatedControls": [
+      "AC1032 single-line ATTRIB/ATTDEF controls",
+      "AC1032 ATTRIB type 2 and ATTDEF type 4 with zero and distinctive nonzero outer annotation sizes",
+      "application-handle resolution/remapping and distinct style-handle checks",
+      "truncated/invalid size and unresolved application negative cases",
+      "following-sibling/object alignment"
+    ],
+    "compatibility": "Preserve single-line and established 2D callback behavior; do not add a pure virtual callback. Any public model fields need copy/move/reset semantics and target/LibreCAD_3 compile checks.",
+    "validationBudget": "Touched strict build, focused generated attribute target, lc3_compat_check when API/data layout changes, and git diff --check; defer full suites and native/peer execution to composed checkpoints.",
+    "fixturePolicy": "No external drawing was downloaded or committed. Generate controls from scratch and use temporary outputs; any future producer/native witness stays at one composed gate.",
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "planImpact": {
+    "findings": 125,
+    "topLevelSubplans": 71,
+    "externalJDispositionChanged": false,
+    "codeChanged": false,
+    "implementationTestsRun": false,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "planUpdated": true,
+    "planSha256Recorded": true,
+    "planDiffWhitespaceCheck": "passed",
+    "receiptJsonParsed": "passed",
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "geometryKernel": "NOT RUN",
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 HATCH gradient CMC ByLayer and ByBlock methods",
+  "mode": "spec-backed local implementation with generated fast controls",
+  "scope": [
+    "Decode supported R2004+ CMC C0 ByLayer and C1 ByBlock method payloads for HATCH/MPOLYGON gradient stops",
+    "Emit explicit C0/C1 CMC method bytes for validated gradient stop tuples",
+    "Preserve DXF group-63 ACI 256/0 mappings in ASCII and Binary DXF",
+    "Keep unknown CMC methods and invalid method/value combinations fail-closed"
+  ],
+  "evidence": {
+    "odaDwgSpecification": {
+      "document": "Open Design Specification for .dwg files v5.4.1, local copy /Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "section": "2.11 Common Color (CMC)",
+      "finding": "The R2004+ CMC record has a reserved zero BS followed by a method-packed color BL and optional-name flags. Existing libdxfrw getCmColor() maps C0 to ACI 256 (ByLayer) and C1 to ACI 0 (ByBlock)."
+    },
+    "decision": "Support only the standard C0/C1 tuples whose 24-bit payload is zero; retain fail-closed behavior for C4-C7 and other unimplemented CMC methods."
+  },
+  "changes": {
+    "reader": "src/drw_entities.cpp accepts C0/C1 only with zero low-24-bit payload and retains rgb=-1 with ACI 256/0.",
+    "writer": "src/intern/dwgbufferw.cpp and .h emit C0/C1 CMC values only for matching explicit tuples; src/drw_entities.cpp routes validated gradient stop metadata through the method-aware writer.",
+    "dxfMapping": "src/drw_entities.cpp maps group 63 values 256 and 0 to C0/C1, and src/libdxfrw.cpp retains both values during HATCH/MPOLYGON gradient output, including explicit ACI zero.",
+    "generatedTests": "tests/dwg_local_roundtrip_tests.cpp checks independent C0/C1 wire fields, AC1018 inline parsing, and AC1024 generated file readback plus following-LINE alignment. tests/wave1_tests.cpp checks ASCII and Binary DXF output and parsing for group-63 values 256 and 0. The direct AC1018 verifier consumes inline optional CMC CP8 text between stops.",
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicLayoutOrVtableChanged": false,
+    "fullSuiteRun": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_wave1_tests -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-gradient-cmc",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_code_type_boundaries|libdxfrw_wave1|libdxfrw_dxf_fixtures|libdxfrw_dwg_local_roundtrip)$' --output-on-failure",
+        "result": "PASS (4/4)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.cpp src/drw_entities.h src/intern/dwgbufferw.cpp src/intern/dwgbufferw.h src/libdxfrw.cpp tests/dwg_local_roundtrip_tests.cpp tests/wave1_tests.cpp",
+        "result": "PASS"
+      }
+    ]
+  },
+  "limits": [
+    "Generated controls are locally authored test data, not independent producer samples.",
+    "CMC C4-C7 and other unimplemented methods remain unsupported.",
+    "This does not establish complete HATCH/MPOLYGON gradient semantics or consumer acceptance.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "No persistent DWG/DXF fixture was added; the shared worktree remains broadly dirty and the slice is uncommitted."
+  ],
+  "next": "Continue PAR-03 associative-action dwgResbufValueKind context research only with an exact ODA consumer field layout; keep remaining CMC methods, broader gradient semantics, and independent external/platform qualification separate."
+}

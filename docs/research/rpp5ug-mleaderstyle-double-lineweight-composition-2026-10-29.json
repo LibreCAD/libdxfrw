@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE DOUBLE and group-92 composition",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "25d52e00ce68013a09a7d1c2e40d0b434618767d",
+  "scope": "A runtime-authored AC1027 MLEADERSTYLE source admits simultaneous edits to the thirteen mapped DOUBLE fields with INT32 group 92 leaderLineWeight. The admitted mixed profile has exactly one non-DOUBLE code, group 90 or group 92; other mixed combinations remain refused.",
+  "fieldEvidence": {
+    "groupCodes": [40, 41, 42, 43, 44, 45, 46, 47, 49, 92, 140, 141, 142, 143],
+    "fieldRoles": "The thirteen DOUBLE field roles are mapped and source-tested; group 92 leaderLineWeight has separate source-bound signed INT32 field evidence in RPP-5lj.",
+    "sourceEvidence": "The focused test authors an AC1027 source with unique INTEGER groups 90 and 92 (values 0 and 25) and one unique DOUBLE group for each mapped code. It edits the DOUBLE fields with group 92, then compares exact output fields and typed readback.",
+    "classification": "Authored source-bound AC1027 transport, output, readback and transaction evidence. This is not independent producer variation, native annotation meaning, DWG editing, cross-version qualification, whole-document closure or a format support claim."
+  },
+  "contract": {
+    "admission": "For source and target AC1027, one or more mapped DOUBLE fields may compose with exactly one changed INT32 group 90 or group 92. Each changed source group must be unique, present in the immutable baseline with its expected type, and unchanged in the raw carrier. A simultaneous group-90/group-92 change or any other mixed-type edit set remains refused; existing single-field and all-DOUBLE routes retain their admission rules.",
+    "projection": "The selected fields are restored to their original values in a normalized copy before checking that all remaining typed payload is unchanged. Requested DOUBLE and group-92 values are projected into their source-matched physical groups; order and untouched raw/opaque fields are retained.",
+    "outputAndReadback": "Runtime-authored ASCII and binary sources are exported to both ASCII and binary targets. The test verifies all thirteen DOUBLE values, exact group-90 and group-92 INTEGER values, typed readback, and preservation of the opaque group-302 sentinel.",
+    "failureAndRetry": "Across all four source/output encoding combinations, a conflicting raw group-45 value refuses while preserving a sentinel destination, and the same adapter retries successfully. The DOUBLE/group-92 profile writes group 92 from 25 to 50. A simultaneous group-90/group-92 edit and a group-91 ACI addition are each refused with destination preservation and same-adapter correction/retry. A late group-42 mutation refuses without replacing its sentinel; correction permits a same-adapter retry of the selected group-90 mixed profile.",
+    "compatibility": "Untouched bodies retain raw replay. Mixed compositions are limited to AC1027 DXF and exactly one INT32 group from {90, 92} alongside mapped DOUBLE edits. Simultaneous groups 90 and 92, ACI/enums/strings/handles, other versions and DWG-origin writes remain outside this profile."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp authors the AC1027 sources at runtime, including group 90=0 and group 92=25. Inputs and outputs are temporary and removed by the focused test; no drawing fixture is committed.",
+    "implementationCommit": "25d52e00ce68013a09a7d1c2e40d0b434618767d",
+    "dwg2dxf/dx_iface.cpp": "835b4a89ab428d29904ea977ffe0f2e61d21fe0329eb85674101e189a1b5beaa",
+    "tests/dwg2dxf_adapter_tests.cpp": "f303443e2e148e97ddbfb65a0185b960289e2eb2b519bb7c0618bc44ad8305d1",
+    "adapterTestExecutableSha256": "94ba764ef808e727ca54370e841111d6eaa3b86d4a01c656e7ec216988cc82f4",
+    "dwg2dxfExecutableSha256": "e3060e612c1f90cc9831eb882e5f9ccb79bc901928f5ce95780886280fffc38e"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "toolchain": "CMake 4.4.4, Unix Makefiles, Apple clang 21.0.0, -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mleaderstyle_writer_closure$' --output-on-failure",
+      "summary": "1/1 passed in 2.26s. All four ASCII/binary source/output combinations cover exact output/readback, group-90 and group-92 field checks, ACI and simultaneous 90/92 refusals, destination preservation and retries. Late mutation rollback/retry covers the selected mixed path.",
+      "testRecipeCorrection": "An initial selector run exposed that the authored group-92 value had been passed in the generator's wrong-reference argument slot. The call was corrected to pass 25 as standardLeaderLineWeight; the final focused build and selector then passed."
+    },
+    "productBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target dwg2dxf -j2"
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN",
+    "asan": "NOT_RUN; this scalar-only edit adds no ownership, lifetime, bounds or handle path."
+  },
+  "limitations": [
+    "This profile covers source-bound AC1027 DXF MLEADERSTYLE transport only. It does not prove native annotation behavior, independent producer acceptance, cross-version behavior, DWG editing, complete-document conversion, FreeCAD interoperability or 3D support.",
+    "Only mapped DOUBLE edits with exactly one changed INT32 group 90 or 92 are admitted. Simultaneous 90/92 and all other mixed-type compositions remain refused.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select the next current distinguishing geometry/schema witness in P2; keep remaining MLEADERSTYLE mixed types and independent native annotation evidence separate."
+}

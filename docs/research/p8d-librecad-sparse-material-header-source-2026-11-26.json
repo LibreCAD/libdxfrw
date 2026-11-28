@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-26",
+  "scope": "Bind parsed source HEADER $CMATERIAL presence and numeric handle for the bounded sparse-MATERIAL preflight; no replay admission",
+  "libdxfrw_commit": "b1eea19e5900c1e55e2316ba215213071c8fc9b2",
+  "libdxfrw_implementation_digest": "06ba732933db713765991ea93821f76e28915ba5b9ccc9488dc5499ab55c97c1",
+  "librecad_commit": "d04cf16c7b632f8f0c6e3b3205b942c48904c315",
+  "evidence": [
+    "For opted-in small files, capture the parsed source version and distinguish an absent $CMATERIAL from an explicit null or nonzero group-347 handle. Duplicate or malformed HEADER structure makes capture unavailable.",
+    "The preflight checks that the live value and presence match the captured source and that nonzero references resolve through the selected material dictionary.",
+    "Locally authored ASCII controls cover absent, null, nonzero, modified and duplicate declarations, wrong version, destination preservation and restored-state retry. The generated Binary DXF control carries a nonzero source reference.",
+    "System MATERIAL tests: 714 assertions in 6 cases. System linetype: 4967 assertions in 56 cases; bundled linetype: 1282 assertions in 52 cases; IMAGE: 84 system and 46 bundled assertions.",
+    "The libdxfrw hosted fast run passed on b1eea19e5900c1e55e2316ba215213071c8fc9b2: https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290",
+    "All test drawings were generated locally and no fixture files were committed."
+  ],
+  "remaining": "The HEADER observation is derived from parsed source state, not an independent physical source-span proof. Staged output, remapping, independent readback and successful raw-only replay remain unqualified and refused."
+}

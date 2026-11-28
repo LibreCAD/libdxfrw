@@ -1,0 +1,43 @@
+{
+  "title": "SHAPE DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory SHAPE transaction controls only; no producer or support claim.",
+  "implementation": {
+    "writer": "DRW_Shape::encodeDwg",
+    "behavior": [
+      "Use the shared private entity transaction helper to stage body and handle streams.",
+      "Preserve caller alias routing, SHAPE object type, and SHAPEFILE hard-pointer output.",
+      "Keep the existing finite-field and required non-null SHAPEFILE preconditions."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1015", "profile": "SHAPE with SHAPEFILE handle", "reached_allocation_failures": 14},
+    {"version": "AC1018", "profile": "SHAPE with SHAPEFILE handle", "reached_allocation_failures": 14},
+    {"version": "AC1021", "profile": "SHAPE with SHAPEFILE handle", "reached_allocation_failures": 14},
+    {"version": "AC1024", "profile": "SHAPE with SHAPEFILE handle", "reached_allocation_failures": 14}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body and handle bytes, bit counts, handle occurrences, and prior class ID remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output.",
+    "All-stream alias controls preserve state and succeed on retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --shape-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1015 SHAPE": 14,
+      "AC1018 SHAPE": 14,
+      "AC1021 SHAPE": 14,
+      "AC1024 SHAPE": 14
+    },
+    "entity_writer_transaction_cohort": "21/21 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish transaction behavior only.",
+    "SHAPE/STYLE graph closure, physical producer coverage, native glyph behavior, and broader support remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}

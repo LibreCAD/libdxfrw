@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-batch-output-publication-target-snapshot-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Reject atomic output publication when the destination changes after the transaction opens.",
+  "implementation": {
+    "files": [
+      "src/intern/dwg_dxf_output_transaction.h",
+      "src/intern/dwg_dxf_output_transaction.cpp",
+      "tests/writer_primitives_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "Capture destination existence, file identity, and platform metadata at temporary creation; recheck after flush and immediately before atomic publication. Reject create, replace, and in-place modification conflicts and preserve the concurrent writer's destination.",
+    "testsAdded": 3,
+    "testRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "platform": "Darwin 27.0.0 arm64",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_writer_primitives_tests -j2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_writer_primitives$' --output-on-failure",
+      "git diff --check -- src/intern/dwg_dxf_output_transaction.h src/intern/dwg_dxf_output_transaction.cpp tests/writer_primitives_tests.cpp"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "owningCTest": "passed: 1/1, 0.28 seconds",
+      "diffCheck": "passed",
+      "fullSuite": "not run",
+      "windowsLinuxBuildOrRuntime": "not run"
+    }
+  },
+  "limits": {
+    "guarantee": "Optimistic destination snapshot validation; observed conflicts are rejected before publication.",
+    "notGuaranteed": [
+      "No mutual exclusion or lock is acquired.",
+      "A narrow race remains between the final snapshot recheck and atomic rename/replace.",
+      "Windows and Linux implementations have not been compiled or run in this slice."
+    ]
+  },
+  "qualification": {
+    "findingsAndSubplans": "127/71",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing changes"
+  }
+}

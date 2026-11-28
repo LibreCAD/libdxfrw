@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-classes-corpus-identity-recheck-2026-11-25",
+  "date": "2026-11-25",
+  "status": "SAME_TEN_INPUTS_NO_NEW_FAILURE_TRIGGER",
+  "supportClaimEffect": "none",
+  "sourceRevision": "2eab63cfd7c14885cab6111351986d6cd2818dc3",
+  "comparedReceipt": "docs/research/p6-ac1024-classes-current-corpus-recheck-2026-11-24.json",
+  "method": "Compare SHA-256 of each of the ten current corpus paths with the recorded hashes; do not invoke the DWG reader.",
+  "inputs": {
+    "receiptCount": 10,
+    "matched": 10,
+    "changed": 0,
+    "missing": 0
+  },
+  "disposition": "The corpus is unchanged. Per the existing no-repeat rule, no conversion/reread or speculative parser edit was made.",
+  "limitations": [
+    "This identity-only check does not resolve failures on a different AutoCAD 2010 RTM save.",
+    "Resume only with a new hash-bound failing file and producer/maintenance-version metadata.",
+    "No DWG/DXF fixture was added to the repository."
+  ]
+}

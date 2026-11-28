@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-insert-attrib-chain-2026-11-12",
+  "purpose": "Verify selected attached ATTRIB fields and SEQEND presence through generated nested INSERT DXF readback into the headless consumer.",
+  "changes": [
+    "Attached one runtime-authored ATTRIB to the nested parent INSERT and retained an explicit SEQEND object.",
+    "Checked attribute count, tag/text, elevated insertion point, extrusion, height, rotation, width scale, oblique angle, flags, field length, lock-position, style, and sequence-end presence.",
+    "Repeated assertions for AC1027 ASCII and Binary DXF readback under ext=false and ext=true."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.42 seconds"
+  },
+  "scopeLimit": "Same-library DXF callback transport only. No independent ATTRIB interoperability, DWG ownership/handle semantics, text placement, or native rendering is established.",
+  "fixturePolicy": "DXF files are generated under a temporary directory and removed; no drawing fixture was added.",
+  "claimEffect": "No support claim changes."
+}

@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-04",
+  "authority": "Open Design Specification for .dwg files v5.4.1 sections 20.2 and 20.4.9; physical ODA producer witnesses and independent LibreDWG decoding documented in docs/research/p6-ac1015-empty-attributed-insert-source-2026-11-04.json.",
+  "scope": "Separate opt-in DRW_DwgLegacyInsertChainProvider extends the predeclared AC1015 model-space chain with attributed INSERTs targeting exactly one explicitly defined ordinary empty named block. Each parent, block record, boundary, ATTRIB and SEQEND has an identity reserved before emission. INSERTs remain in model order; each ATTRIB list is independent and each SEQEND is isolated. Parent/child links and block reverse INSERT references are validated before publication, with immutable per-frame receipts. Existing non-opt-in behavior is unchanged.",
+  "source_witness": "ODA File Converter 27.1 authored AC1015 from locally authored empty-block DXF, then back-converted to DXF. LibreDWG independently confirmed block boundary, block reverse references, INSERT block/ATTRIB/SEQEND and child owner/link roles. A second producer witness establishes a 30-degree INSERT angle. See the source receipt for exact hashes and reproduction commands.",
+  "oda_output": {
+    "reader": "ODA File Converter 27.1.0 to ACAD2013 DXF; actual DXF content and absence of .err inspected. Explicit model chain, INSERT chain and default plotstyle providers were enabled.",
+    "two_inserts": {
+      "dwg_sha256": "7880bafef33e13869b45a550f1ac350d6faf8a9a213db58322d9aaa34d8ac3dc",
+      "dxf_sha256": "69156eab3b3d2d28fdec26c20d1edd283a8f58ece01412b155fdc43fa2817716",
+      "observed": "Two INSERTs refer to the empty block and retain, respectively, two and one ATTRIBs with expected tags, text, positions, heights and text angles, surrounded by the expected LINE and CIRCLE entities."
+    },
+    "rotated_insert": {
+      "dwg_sha256": "34b7485f731f9f450a0634081f3548e89abe03d48ab953784d987d07a2abed72",
+      "dxf_sha256": "c4b4b27d4904b1684e30585d79a542b6783177a35cb56a5a86f3b68a5c0a32f7",
+      "observed": "INSERT rotation is 30 degrees in DXF; attributes and their positions retain the expected values. LibreDWG independently reports pi/6 radians and the expected topology."
+    }
+  },
+  "validation": "The focused libdxfrw_dwg_legacy_insert_chain CTest passes exact parent/child/SEQEND and block reference receipts, nonmonotonic identities, singleton and two-attribute lists, all planned identity ownership-alias controls including ignored failures, aggregate budget and unsupported field gates. Injected SEQEND failure and early/late exceptions preserve destination, caller mutation state and complete raw APPID/LAYER references, followed by same-facade successful retry. LibreDWG independently verifies generated normal and rotated topology and geometry. Its group-mode verifier also checks output SHA 983b0ee3c5858188dfddf3f8b4f2597a0781d3a9504ad0be7efc9e0924bcfb08: GROUP 0xF20 owner role 4 points to ACAD_GROUP 0xD, and member role 5 points to INSERT 0x451. Existing legacy model and POLYLINE chains, HEADER sealing, plotstyle controls and LC3 compatibility are checked separately.",
+  "limits": "The supported profile is intentionally narrow: one empty block with zero base and units; ASCII names/tags and printable ASCII single-line default 2D attributes; unit INSERT scaling and default extrusion. ATTDEF, block content, MINSERT, paper space, raw replay, nondefault attribute layout and unsupported caller metadata are refused. No general INSERT parity, rendering, native CAD editing, cross-platform or broad AC1015 interoperability claim follows. No generated DWG or DXF fixture is committed."
+}

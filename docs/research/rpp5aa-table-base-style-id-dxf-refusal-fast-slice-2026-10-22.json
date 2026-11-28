@@ -1,0 +1,75 @@
+{
+  "slice": "RPP-5aa",
+  "title": "DXF TABLE base-style-ID loss-prevention gate",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "research": {
+    "primary_source": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+    "finding": "Autodesk's published TABLE DXF group-code schema contains no numeric base-style-ID group for columns, rows, or cells. Group 91 is the row count and repeated cell override flag; group 92 is the column count and repeated extended cell flags from AutoCAD 2007.",
+    "decision": "Do not invent a DXF group-code mapping. Refuse nonzero DWG-origin base-style IDs until a documented, lossless conversion route exists."
+  },
+  "scope": [
+    "make dxfRW::writeTable refuse nonzero row and column style IDs that it previously ignored",
+    "retain the existing refusal for nonzero cell style IDs",
+    "verify refusal for each reference role in ASCII and Binary DXF output with destination preservation"
+  ],
+  "generated_controls": [
+    "valid rooted AC1021 TABLESTYLE graph with nonzero column style ID refuses ASCII and Binary DXF export",
+    "valid rooted AC1021 TABLESTYLE graph with nonzero row style ID refuses ASCII and Binary DXF export",
+    "valid rooted AC1021 TABLESTYLE graph with nonzero cell style ID refuses ASCII and Binary DXF export",
+    "existing destination sentinel remains unchanged for every refusal"
+  ],
+  "validation": {
+    "build_adapter": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+      "result": "PASS",
+      "notes": "-Werror build"
+    },
+    "compatibility": {
+      "command": "cmake --build build-gcc --target lc3_compat_check --parallel 2",
+      "result": "PASS"
+    },
+    "focused_ctests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_table_base_style_id_dxf_refusal|dwg2dxf_table_content_style_reference_census|libdxfrw_cellstylemap_dxf_writer|libdxfrw_table_callback_owner_order|libdxfrw_table_content_style_id_domains)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 5,
+      "failed": 0,
+      "elapsed_seconds": 0.73
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- src/libdxfrw.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/rpp5aa-table-base-style-id-dxf-refusal-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    },
+    "receipt_json_parse": {
+      "command": "jq empty docs/research/rpp5aa-table-base-style-id-dxf-refusal-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    }
+  },
+  "fixtures": {
+    "persistent_external_fixtures_added": 0,
+    "input_origin": "generated in-memory objects"
+  },
+  "qualification_limits": {
+    "lossless_dxf_base_style_id_serialization": "NOT_AVAILABLE_IN_PUBLISHED_TABLE_DXF_SCHEMA; WRITER_FAILS_CLOSED",
+    "native_dwg_table_content_writer": "NOT_IMPLEMENTED",
+    "production_tablestyle_cellstylemap_graph_handoff": "NOT_IMPLEMENTED",
+    "custom_cell_style_authoring": "INCOMPLETE",
+    "dwg_version_upconvert": "NOT_IMPLEMENTED",
+    "native_freecad_linux": "NOT_RUN",
+    "native_freecad_windows": "NOT_RUN",
+    "independent_acis_acds_semantic_evidence": "NOT_RUN",
+    "support_claim_promoted": false,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "changed_paths": [
+    "src/libdxfrw.cpp",
+    "tests/dwg2dxf_adapter_tests.cpp",
+    "tests/CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/rpp5y-tablecontent-style-id-capture-domain-fast-slice-2026-10-22.json",
+    "docs/research/rpp5z-tablecontent-style-reference-census-fast-slice-2026-10-22.json",
+    "docs/research/rpp5aa-table-base-style-id-dxf-refusal-fast-slice-2026-10-22.json"
+  ],
+  "next": "Keep nonzero TABLECONTENT base-style IDs fail-closed on DXF output. Investigate a native DWG TABLE writer and production graph-writer source handoff, while continuing other TABLESTYLE/MATERIAL slices that are locally representable.",
+  "commit": "NONE"
+}

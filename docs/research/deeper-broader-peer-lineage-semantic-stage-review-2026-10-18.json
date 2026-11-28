@@ -1,0 +1,169 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader DWG/DXF peer lineage and semantic-stage review",
+  "mode": "primary-source peer review and read-only local-code audit; plan-only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile LibreDWG fixed-type labels with its current reported AcDs/SAB boundaries",
+    "Distinguish ACadRust synthetic and self-roundtrip tests from independent semantic evidence",
+    "Refresh OpenCADStudio's current mutable source dependency identity without equating it to a released binary",
+    "Audit ezdxf raw ACIS inspection versus rendering and semantic scope",
+    "Use ACadSharp's reported nested-block solid loss as a local inventory-control design lead",
+    "Reconcile Autodesk AcDbSun's hard-owner classes with the VIEW DXF group-361 schema",
+    "Separate stock FreeCAD converter/importer qualification from the optional InventorLoader SAT/SAB consumer route and refresh current public issue reports",
+    "Map peer boundaries to the existing libdxfrw DWG, AcDs, DXF SAT/SAB, adapter, and semantic routes"
+  ],
+  "method": {
+    "kind": "Read-only review of primary project source/documentation and local implementation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/intern/dwgreader.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "src/drw_acis.h",
+      "docs/research/deeper-broader-acis-payload-profile-peer-independence-2026-10-18.json",
+      "docs/research/deeper-broader-background-owner-and-type-census-2026-10-18.json"
+    ],
+    "limitations": "The reviewed GitHub main/master pages are mutable. OpenCADStudio's current manifest pins source dependencies, but this pass did not resolve a matching released binary/lockfile, compare opencadcodec source against canonical ACadRust, build or run any peer, or inspect a DWG/DXF payload through an external implementation. ACadSharp and LibreDWG issue reports remain peer-reported outcomes for their stated builds."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Mutable master schema/news and issue #1411 as viewed 2026-10-18; issue-reported build 0.14.8593 at 8a1ae764",
+      "observed": "The current object schema labels 3DSOLID fixed-type support STABLE. Project history and issue #1411 separately report incomplete R2013+ AcDs/SAB behavior; #1411 reports loss of a 5,489-byte SAB record while an AC1032 REGION shell survives. This is not an independently reproduced current-main result."
+    },
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "revision": "Mutable main/README, package version advertised as 0.6.4, viewed 2026-10-18",
+      "observed": "The README advertises broad DWG/DXF and ACIS modeling coverage. Roundtrip tests include same-implementation writer-reader checks, locally constructed planar geometry, and a fabricated marker-bearing SAB helper. These are internal regression evidence, not an independent parser, kernel, or native-acceptance result."
+    },
+    {
+      "project": "OpenCADStudio",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/README.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/releases"
+      ],
+      "revision": "Mutable main manifest/README and public release index viewed 2026-10-18",
+      "observed": "The main manifest aliases package acadrust as codec from HakanSeven12/opencadcodec at revision 12d68e4 and pins HakanSeven12/opencadkernel at 80a8a26; the README advertises DWG/DXF and 3D application functionality. These mutable source pins do not identify a tested release binary or resolve a full release dependency lock. The current codec source overlap with canonical ACadRust was not audited."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html#browse-acis",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html"
+      ],
+      "revision": "Stable documentation viewed 2026-10-18",
+      "observed": "The project documents ACIS-related DXF operations and raw SAT/SAB browsing, while its drawing add-on documents no ACIS rendering and no 3D rendering engine. This supports carrier inspection, not complete B-rep semantics or DWG AcDs ownership."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "revision": "Open issue #1195, peer-reported ACadSharp 3.4.9 behavior, viewed 2026-10-18",
+      "observed": "The report describes silent DWG-to-DXF omission of 3DSOLID/REGION, including block-nested entities. The issue was not reproduced and is used only to sharpen complete source-handle/output-disposition checks."
+    },
+    {
+      "project": "FreeCAD stock DXF importer and optional InventorLoader route",
+      "urls": [
+        "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py",
+        "https://github.com/jmplonka/InventorLoader#limitations",
+        "https://github.com/jmplonka/InventorLoader/issues/102",
+        "https://github.com/jmplonka/InventorLoader/issues/103",
+        "https://github.com/jmplonka/InventorLoader/issues/110",
+        "https://github.com/jmplonka/InventorLoader/issues"
+      ],
+      "revision": "Mutable public documentation/source viewed 2026-10-18; InventorLoader issues #102/#103/#110 are open on the issue pages. Issue #109 concerns native IPT feature import and is explicitly excluded from DXF/SAT/SAB evidence.",
+      "observed": "FreeCAD documentation and issue #18454 state that stock DXF import does not consume embedded ACIS solids, so a DWG converter producing DXF does not establish solid consumption. The optional InventorLoader DXF wrapper separately uses ezdxf to extract each entity's SAT/SAB and passes the payload to its own reader before FreeCAD/OCCT shape construction; its README lists unsupported surface classes. Issue #102 reports SAB conversion failure on an attached model, #103 reports no face recognized for a SAT sample, and #110 describes a SAT reader-state problem with a user-provided workaround and remaining face-normal concerns. These are reporter-scoped observations; the workaround is not a pinned independent pass and no issue payload was downloaded or run."
+    },
+    {
+      "project": "Autodesk ObjectARX and DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbSun.html",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-BB191D89-9302-45E4-9904-108AB418FAE1.htm"
+      ],
+      "revision": "Autodesk ObjectARX 2027 and DXF references 2024, viewed 2026-10-18",
+      "observed": "AcDbSun documentation identifies AcDbViewportTableRecord and AcDbViewport as hard-owner classes and documents the viewport setSun/sunId API. The VIEW DXF schema also lists group 361, creating a contract tension for AcDbViewTableRecord ownership. The plan keeps VIEW 361 fail-closed pending producer/authoritative reconciliation and treats Skylight code 340 as a separate reference from the hard owner."
+    },
+    {
+      "project": "Local libdxfrw implementation",
+      "urls": [],
+      "revision": "Working tree at baseline commit de27a3391a624aba03ca71f3583c4b3a6e6396a9 plus current uncommitted edits, audited 2026-10-18",
+      "observed": "dwgreader.cpp separates modeler parsing from DataStorage association and only normalizes qualified REGION/3DSOLID records after unique handle-linked SAB signature selection; BODY remains outside that proven external-carrier mapping. drw_acis.h documents a bounded wireframe/projection reader with unsupported-node accounting rather than a complete kernel. This is a source audit, not a complete runtime qualification."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines the existing peer-lineage, source-to-output inventory, ACIS/AcDs semantic, composed consumer, and PAR-40 SUN-owner gates. Distinguishes mutable application manifests from released binaries, current fixed-type recognition from AcDs payload closure, raw carrier checks from complete shape operations, stock FreeCAD conversion/import from optional plug-in consumption, and documented VPORT/VIEWPORT SUN ownership from the unresolved VIEW group-361 contract. Local PAR-40/7G.2 work remains independent of optional peer availability.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep DWG entity parsing, AcDs section decode, entity-to-record association, DXF SAT/SAB carrier retention, payload parse completeness, semantic body validity, operations, and native acceptance as separate status fields.",
+    "For the next SUN graph slice, allow only one matching VPORT or VIEWPORT hard owner per SUN; retain fail-closed behavior for VIEW 361 and Skylight-to-SUN until their separate contract edges are resolved.",
+    "Before using OpenCADStudio as evidence, bind the exact app release/source commit, resolved lockfile, codec and kernel commits, operating system and architecture, input profile, and tested operation; do not map mutable-main dependencies onto a released artifact.",
+    "Keep stock FreeCAD converter-to-DXF-import evidence separate from InventorLoader's ezdxf-to-SAT/SAB-reader-to-OCCT path; an open add-on issue is a route-readiness warning, not proof of universal failure.",
+    "Treat OpenCADStudio and ACadRust as related codec evidence until a source-level overlap audit establishes any independent implementation. A separate UI/renderer is a consumer stage, not a second parser vote.",
+    "At the composed peer gate, record every source entity handle across modelspace, layouts, and nested blocks with carrier hash/chunk inventory, owner join, output disposition, and diagnostics.",
+    "Use locally authored small asymmetric controls and independent analytic expectations; same-codec round trips and synthetic marker payloads establish internal consistency only.",
+    "A missing required body, unjoined carrier, unsupported required topology, explicit incomplete marker, or fallback-only display is not a semantic pass; prefer atomic refusal over successful-looking loss.",
+    "Continue fast touched-target builds and focused generated tests per implementation slice; keep peer/native runs and full suites at the existing composed checkpoints.",
+    "Do not add peer-derived fixtures, dependencies, CTest entries, or per-slice peer work from this review.",
+    "Do not promote J256, J260, J268, J284, J293, or J295 without their specific external/platform qualification and independent semantic evidence."
+  ],
+  "validation": {
+    "receiptJsonValidation": true,
+    "planDiffCheck": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  }
+}

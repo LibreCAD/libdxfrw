@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 LIGHT CMC flags and reserved-index retention",
+  "mode": "generated AC1024 DWG object-vector fast slice",
+  "scope": [
+    "Retain R2004+ LIGHT CMC source flags and reserved index",
+    "Preserve flagged-empty optional CMC strings through DWG rewrite",
+    "Refuse invalid or unsupported source metadata before output",
+    "Leave LIGHT-specific DXF color mapping and producer semantics unqualified"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor"],
+      "finding": "R2004+ CMC has a leading BS color index that is always zero, a packed BL method/value, and an RC byte whose low bits indicate optional color-name and book-name TV values. This slice preserves that generic CMC state at the existing LIGHT color field path; it does not establish class-specific LIGHT semantics."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.h", "src/drw_entities.cpp"],
+      "finding": "The LIGHT parser retained method/scalar/RGB and optional strings but omitted raw flags/index. The writer reconstructed flags from nonempty strings, which discarded an explicitly flagged empty name."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append LIGHT CMC flags, reserved index, and metadata-presence fields; reset clears them.",
+      "Capture source flags/index in the bounded parser and replay supported source flags, including flagged-empty strings.",
+      "Reject nonzero index, unknown flag bits, strings without their flags, unsupported methods, and absent detached streams before output."
+    ],
+    "generatedTestChanged": true,
+    "focusedSelector": "--light-cmc-rgb",
+    "focusedCtests": ["libdxfrw_light_cmc_rgb", "libdxfrw_dwg_object_vectors"],
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": true,
+    "publicApiOrLayoutNote": "Appended CMC provenance fields increase DRW_Light object size; downstream consumers must rebuild.",
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "dwgVectors": "Generated AC1024 frames cover C0-C3, black RGB, nonempty names/books, flagged-empty color name, and a C3-to-C5 parser mutation.",
+    "wireWalk": "Independent cursor asserts CMC method/value, raw flags/index, and following LIGHT fields/handle alignment.",
+    "lifecycle": "Copy construction, assignment, reset, and raw metadata presence are asserted.",
+    "failClosed": "Invalid scalar/RGB state, unsupported C5 output, nonzero reserved index, unknown flags, inconsistent string flags, and flagged-empty names without detached string storage are refused before output."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_wave1_tests libdxfrw_hardening_tests dwg2dxf lc3_compat_check -j4",
+    "buildResult": "PASS (-Werror strict build)",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --light-cmc-rgb",
+    "focusedSelectorResult": "PASS",
+    "focusedCtestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_light_cmc_rgb|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "focusedCtestResult": "PASS (2/2; 0.08 sec)",
+    "diffCheck": "git diff --check -- src/drw_entities.cpp src/drw_entities.h tests/dwg_object_vectors_tests.cpp",
+    "diffCheckResult": "PASS"
+  },
+  "evidenceLimits": [
+    "Generated local frame/wire tests establish local implementation consistency, not independent producer semantics for LIGHT CMC fields.",
+    "No persistent fixture, external reader, native CAD application, full suite, or platform qualification was run.",
+    "No LIGHT-specific DXF color/name/book mapping is asserted or added.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue PAR-134 scalar-only CMC reader/writer and class-specific DXF projection audit; then resume exact-source PAR-03/PAR-04 associative-action classification."
+}

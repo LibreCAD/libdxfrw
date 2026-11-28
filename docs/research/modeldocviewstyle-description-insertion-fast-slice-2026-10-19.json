@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ModelDocViewStyle description insertion fast slice",
+  "mode": "Generated local ASCII/Binary implementation slice",
+  "scope": [
+    "Serialize a changed DetailViewStyle model-document description when group 3 is absent from the captured subclass.",
+    "Insert in the AcDbModelDocViewStyle subclass using its recognized field order while retaining opaque group relative order.",
+    "Verify typed same-version ASCII and Binary readback without adding repository fixtures or CTest registrations."
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "Added a bounded subclass-scoped insertion helper for ModelDocViewStyle fields. Recognized model-document fields are ordered 70, 3, 290, 300, 90; an absent requested code is inserted before the next higher-ranked recognized field, without reordering opaque groups. Raw-value vectors remain aligned for ASCII and Binary carriers.",
+    "generatedControl": "The generated secondary DetailViewStyle omits group 3 from its model-document subclass. The test confirms the typed description starts empty, edits it to DOC_DESCRIPTION_2_EDITED, verifies the exact raw sequence, and asserts typed ASCII/Binary readback."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/modeldocviewstyle-description-insertion-fast-slice-2026-10-19.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "repositoryFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "commitCreated": false
+  },
+  "limitations": [
+    "Only same-version generated DXF insertion of this model-document string field is covered.",
+    "Other missing ModelDocViewStyle fields remain fail-closed when edited.",
+    "No DWG-origin typed output, cross-version translation, native style rendering, or consumer support qualification follows."
+  ],
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimPromoted": false,
+    "findings": 138,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

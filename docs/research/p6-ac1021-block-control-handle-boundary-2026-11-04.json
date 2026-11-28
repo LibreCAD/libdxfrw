@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1021-block-control-handle-boundary-2026-11-04",
+  "date": "2026-11-04",
+  "status": "AC1021_BLOCK_CONTROL_BOUNDARY_AND_BOUNDED_LEGACY_READER",
+  "supportClaimEffect": "none",
+  "authority": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 sections 20.1 and 20.4.51: R2007 object RL marks the pre-handle boundary; BLOCK_CONTROL carries null owner, optional extension dictionary, user-block soft owners, and model/paper hard owners.",
+    "libredwg": "LibreDWG 0.14 src/dwg.spec BLOCK_CONTROL uses CONTROL_HANDLE_STREAM, user entry vector and separate model/paper handles; the independently built decoder was used on physical files below.",
+    "earlier": "docs/research/p6-block-control-handle-boundary-2026-11-04.json"
+  },
+  "problem": "The deferred AC1021 BLOCK_CONTROL writer put handles inline in the body. dwgWriter21::finishObject instead treated its separate handle buffer as the handle stream, so the RL was patched to the end of all handle bytes; LibreDWG saw no model/paper references. The local reader incorrectly consumed handles immediately after the body string bit rather than seeking to the RL boundary, masking this loss for locally generated files.",
+  "change": "Stage AC1021 BLOCK_CONTROL handles for the existing version-specific frame assembler. For AC1021 BLOCK_CONTROL only, parse the handle stream at the RL bit position, validate the absent-string footer and ensure no more than seven trailing padding bits. Preserve older local malformed inline frames only when the exact observed historical signature is met: full-frame RL, fixed control handle, zero reactors and EED, extension-present flag with typed null owner/xdictionary, absent string flag, absolute soft-owner child handles, fixed absolute model/paper hard-owner handles and zero padding. Inconsistent/truncated signatures fail without publication; reuse after failure is tested. Other AC1021 control record profiles and other versions retain their existing routing.",
+  "oda_authored_control": {
+    "source": "Existing repository tests/fixtures/dxf/ac1015_ellipse_freecad_control.dxf",
+    "source_sha256": "078a9982f049ee4c669f878b6cc8cc6dfcd292b72d8f394fe7c2c258b9fa7cc7",
+    "producer": "ODA File Converter 27.1.0, ACAD2007 DWG, locally generated; no .err output",
+    "dwg_sha256": "042c8e4f4910c462ada4b1b2df9a73799f20666b5c89793941d9ea98e0b5dca7",
+    "independent": "LibreDWG decodes BLOCK_CONTROL size 14 bytes, RL 66 bits, owner 4.0, no xdictionary handle, model 3.1.0x01, paper 3.1.0x02.",
+    "local": "libdxfrw reads the source and publishes BLOCK_CONTROL slot order [0x01,0x02] and three ELLIPSE callbacks."
+  },
+  "controlled_writer_comparison": {
+    "method": "Two scratch static-library variants were compiled from identical writer15 source at 7549be9b25c23e378afeccd6087445f3141664fd and identical other library objects; the only source difference is whether AC1021 BLOCK_CONTROL stages its handles. Both wrote one scratch LINE via the same dwgWriter21 producer.",
+    "before_sha256": "e2b72b8730242fe332393c2213ec2580cf120cb0d5747f90eb9a850db4db64d6",
+    "after_sha256": "bf7c59d44bcf980f979eba5c7b148f8c0b109d948a4263a6e47335f0aeabe667",
+    "independent": "Before: LibreDWG reports RL 120 bits, empty handle stream and zero model/paper. After: RL 72 bits, owner 4.0, null extension 3.0, model 3.1.0x17, paper 3.1.0x18. Both complete source files contain the following LINE.",
+    "local": "With the updated reader, both exact old and corrected scratch files publish control slots [0x17,0x18] and the following LINE.",
+    "oda": "ODA File Converter 27.1.0 ACAD2013 DXF reports Invalid input for both files, creates .err for each and no DXF. Exit status alone is not evidence of acceptance."
+  },
+  "writer_one_user_control": {
+    "sha256": "84826034ad09dbd5e7e26f38546a9eaf40f2adef403442f0f178465927d06704",
+    "result": "One locally authored AC1021 output has RL 80 bits; LibreDWG decodes ordered user-block handle 2.1.0x30, model 3.1.0x17 and paper 3.1.0x18. The local reader publishes [0x30,0x17,0x18] and the following LINE. This scratch build included unrelated in-progress source edits; no whole-file ODA claim is made."
+  },
+  "focused_tests": {
+    "selectors": [
+      "libdxfrw_dwg_block_control_handle_boundary",
+      "libdxfrw_dwg_group_dictionary_controls",
+      "libdxfrw_dwg_header_writer_sealing"
+    ],
+    "result": "All pass. The boundary selector previously failed when AC1021 was first added before the writer fix. Controls cover AC1015/1018/1021/1024/1027/1032 frames and CRC, an AC1021 user-block child role, exact native/legacy slots, invalid offsets, invalid string footer, truncated legacy handle, nonzero legacy padding, changed legacy role, reset and same-parser retry; the GROUP suite exercises writer rollback/retry and a following entity."
+  },
+  "limits": "One ODA-authored producer and one independent executable do not qualify general AC1021 writing. The ODA source has a 66-bit unaligned boundary; the current writer has a 72-bit boundary with intervening zero bits. LibreDWG accepts it but ODA whole-file acceptance and the general R2007 alignment/framing policy remain open. Other AC1021 table controls still require separate investigation. No DWG/DXF fixtures were committed."
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-wide-dxf-inventory-query64-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "d692f31fbf2a31b19ea170939d886f16082866e5",
+  "implementationDigestSha256": "151623ec636cffc0b2a63dd8c2bb9f1f8014d2cc5c0953cce5cdc32d2c60d23a",
+  "inputCount": 781,
+  "scope": "Expose exact 64-bit emitted-record count, identity, and owner queries during an active DXF write without changing the existing 32-bit APIs. Identity and owner require a unique self handle.",
+  "validation": {
+    "platform": "macOS ARM64, Release build",
+    "fast": "2/2 focused emitted-inventory and generated-dictionary source-metadata CTests passed.",
+    "controls": [
+      "Actual staged ASCII and binary wide-self XRECORD at 0x100000000, correct owner C and wrong type/section/handle/owner rejection",
+      "Synthetic inventory with 64-bit self and 64-bit owner rejects low-word alias",
+      "Duplicate numeric handles refuse identity before finalization",
+      "Write error and post-publication query expiration",
+      "Existing destination-preserving wide-reference refusal and corrected retry remain exercised"
+    ],
+    "independent": "ezdxf 1.4.5 reopened the generated ASCII and binary outputs, retaining XRECORD handle 100000000, owner C and HANDSEED 100000001 with zero audit errors or fixes. ASCII SHA256 fc29e961ee129a0eb21675905aca00b8df30525b8a8d8d1d5c5bb449eb5d7eb3; binary SHA256 499df6ad7ff2c43ca17018dbce9af71ab76b7fdce018dd7179c14a1dc3457b26.",
+    "cleanCandidate": "At committed candidate 83ac5c65, the official qualification digest check passed with 151623ec636cffc0b2a63dd8c2bb9f1f8014d2cc5c0953cce5cdc32d2c60d23a and 781 inputs; qualified format support check passed with 15 claims, 2 candidate routes, and 0 advertised."
+  },
+  "digestMethod": "Computed from the staged tracked Git index using the qualification manifest selection and digest_records algorithm. The ordinary worktree checker refuses user-owned untracked files in selected paths; they were neither removed nor incorporated. Recheck from a clean final candidate.",
+  "limits": [
+    "The synthetic wide-owner test does not enable or qualify production wide-owner publication.",
+    "Queries are tentative emitted-record evidence, not source binding, remapping, role, graph closure, publication, or native semantic proof.",
+    "Full 64-bit references and owner graphs, non-macOS platforms, and native consumers remain open."
+  ]
+}

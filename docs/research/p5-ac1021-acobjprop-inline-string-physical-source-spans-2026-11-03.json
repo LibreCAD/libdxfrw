@@ -1,0 +1,61 @@
+{
+  "id": "p5-ac1021-acobjprop-inline-string-physical-source-spans-2026-11-03",
+  "date": "2026-11-03",
+  "status": "physical_span_and_reference_roles_identified_spec_conflict_unresolved",
+  "source": {
+    "path": "tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "provenance": "pre-existing untracked local sample; not added to repository",
+    "version": "AC1021"
+  },
+  "question": "What occupies the 258-bit and 210-bit unmodeled object-data tails of the 42 AcObjProp.16.2 FIELD roots, and what are the roles and targets of the child and field-object handles?",
+  "result": {
+    "source_record_count": 42,
+    "source_record_selection": "FIELD evaluator AcObjProp.16.2, root CadValue flags 4/type 2; the original 42 handles from the AC1021 profile census",
+    "body_positions": "Positions are bits relative to the decompressed DWG object frame, not source-file offsets. The ObjectPropertyName child starts at bit 287 in 38 frames and bit 295 in four frames. Its flags/type decode as BL 0 or 2 and BL 4; the next BL is 32 in 41 frames and 26 in one. The following bytes decode as NUL-terminated UTF-16LE: UpdatedDistance (41) or Window Width (handle 0x1481E). The subsequent BL(0) ends exactly at the separately framed R2007 string-stream start, leaving no extra object-body bits under that observed sequence.",
+    "misinterpretation_explained": "The current documented TV interpretation obtains an empty detached value and interprets the in-body byte count as the unit, leaving 256+2 or 208+2 bits. This explains the observed 258-bit and 210-bit tail lengths; it does not justify changing the parser while the normative specification conflicts.",
+    "handle_roles": "Each of the 42 physical handle streams has relative parent code 8 with no payload, resolving to the FIELD handle minus one; the next two handles are 3-byte code-4 soft pointers to the same target, in ObjectPropertyId then FIELD object order. The ODA DXF puts the same references in child group 330 and FIELD group 331, and ACadSharp reports the FIELD object target. This supplies concrete handle-role evidence for this source only.",
+    "examples": [
+      {"field": "0x144FA", "property": "UpdatedDistance", "bytes": 32, "owner": "0x144F9", "both_targets": "0x144F4", "child_bit": 287, "value_bit": 309, "body_end_bit": 567},
+      {"field": "0x1481E", "property": "Window Width", "bytes": 26, "owner": "0x1481D", "both_targets": "0x14811", "child_bit": 287, "value_bit": 309},
+      {"field": "0x149B2", "property": "UpdatedDistance", "bytes": 32, "owner": "0x149B1", "both_targets": "0x149A5", "child_bit": 287, "value_bit": 309, "body_end_bit": 567}
+    ]
+  },
+  "independent_differential": {
+    "oda": {
+      "product": "ODA File Converter 27.1.0, macOS ARM64 native verified application",
+      "executable_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+      "operation": "single source to ACAD2007 ASCII DXF, recursion disabled, audit disabled",
+      "input_sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+      "dxf_sha256": "a908320cf5653a257b63abe3659a61b47c8cf07e88a041ebe0ee39ee65b22d7f",
+      "result": "42/42 selected source handles match exact ObjectPropertyName bytes and group-330/group-331 targets. Converter output is interpreted as field/transport evidence; native evaluation is not asserted."
+    },
+    "acadsharp": {
+      "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "assembly": "src/ACadSharp/bin/Release/net9.0/ACadSharp.dll",
+      "assembly_sha256": "99f24d71403ecdbda2272473ebd995d5d2e773b4a6e887bcdb404293cbf18b77",
+      "probe": "tests/ac1021_field_acadsharp_probe.cs",
+      "replay_log_sha256": "849d6ae26851b54bff3f86ce877a8e07189438d418e855a48c3e582cb6c7a883",
+      "result": "42/42 selected property strings and FIELD object targets match. ACadSharp does not expose the child ObjectPropertyId as a nonnull resolved value in these records; its child target is established by raw handle tokens and ODA output instead."
+    },
+    "libredwg_boundary": "LibreDWG 0.14 reports an empty ObjectPropertyName, unit 32/26 and four anomalous ObjectPropertyId data types for this profile. It is not used as the semantic or field-span oracle."
+  },
+  "authority_conflict": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["2 bit codes", "20.1 common object data", "20.4.76 FIELD", "20.4.99 Value"],
+    "conflict": "The specification describes type-4 CadValue as TV, defines R2007+ TV as TU, and requires Unicode text to be read from the detached object string stream. The physically observed body contains a BL byte count and UTF-16LE payload, matching ACadSharp and ODA conversion, without an authoritative specification correction explaining the exception.",
+    "disposition": "The user-provided repository instructions make this specification authoritative for DWG layouts. Retain raw shells and strict output refusal; do not implement an inline-string fallback, mark records complete, or promote support without a qualifying authoritative resolution."
+  },
+  "reproducibility": {
+    "raw_probe": "libdxfrw_ac1021_field_source_raw_probe is an EXCLUDE_FROM_ALL CMake target; it accepts an explicit input and bounds FIELD count and frame size. Its output is captured only in process memory by the Python checker.",
+    "raw_probe_executable_sha256": "48f171470155694b5ae937aeb404d47a124b0a1591243edfe18db197ee62460e",
+    "checker": "tests/ac1021_field_source_span_probe.py checks the fixed source SHA-256 and caller-supplied ODA/ACadSharp SHA-256 values, exact logical bit positions, complete body bounds, raw handle roles and targets, and both peer projections. It bounds input and capture sizes. This is scoped to the frozen sample, not a general DWG parser.",
+    "build_command": "cmake --build <build> --target libdxfrw_ac1021_field_source_raw_probe",
+    "oda_command": "ODAFileConverter <scratch-input-dir> <scratch-output-dir> ACAD2007 DXF 0 0 field.dwg",
+    "acadsharp_command": "Copy tests/ac1021_field_acadsharp_probe.cs and .csproj to a scratch directory; dotnet run --project <scratch>/ac1021_field_acadsharp_probe.csproj -c Release -p:ACadSharpDll=<absolute-path-to-ACadSharp.dll> -- <source.dwg> > <acadsharp.log>. Bind the assembly to the recorded revision/hash before running.",
+    "checker_command": "python3 -B tests/ac1021_field_source_span_probe.py --source <source.dwg> --raw-probe <build>/libdxfrw_ac1021_field_source_raw_probe --oda-dxf <oda.dxf> --oda-sha256 <oda-dxf-sha256> --acadsharp-log <acadsharp.log> --acadsharp-sha256 <acadsharp-log-sha256>",
+    "observed_run": "PASS: 42 exact FIELD body spans and owner/soft-pointer roles; byte counts 32:41 and 26:1; both supplied peer outputs digest-checked.",
+    "negative_controls": "Generated standalone source-frame self-test passed. Changes to the count, text, handle code, target or truncation were refused; an actual source raw-byte mutation was also refused. CTest libdxfrw_ac1021_field_source_span_self_test passed. No external drawing or generated fixture was added."
+  },
+  "support_claim_effect": "none"
+}

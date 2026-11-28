@@ -1,0 +1,46 @@
+{
+  "title": "VIEWPORT DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory VIEWPORT transaction controls and existing bounded ambient-CMC wire/readback check; no producer or support claim.",
+  "implementation": {
+    "writer": "DRW_Viewport::encodeDwg",
+    "behavior": [
+      "Stage body, version-routed stylesheet/CMC strings, and handle output through the shared private transaction helper.",
+      "Preserve the existing VIEWPORT field order, subtype code 34, legacy inline text, and versioned handle roles.",
+      "Keep the fail-closed requirement for a distinct string stream when R2007+ ambient CMC carries optional names."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1015", "profile": "viewport fields, stylesheet, frozen layers, and UCS/clip references; default ambient color", "reached_allocation_failures": 19},
+    {"version": "AC1018", "profile": "viewport fields, stylesheet, frozen layers, and UCS/clip references; default ambient color", "reached_allocation_failures": 19},
+    {"version": "AC1021", "profile": "viewport fields, stylesheet, frozen layers, UCS/clip/visual references, alias-compatible ambient CMC", "reached_allocation_failures": 27},
+    {"version": "AC1024", "profile": "viewport fields, stylesheet, frozen layers, UCS/clip/visual references, alias-compatible ambient CMC", "reached_allocation_failures": 27}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body, string, and handle bytes, bit counts, handle occurrences, and prior type code remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output.",
+    "All-stream alias controls preserve state for profiles whose string fields are representable in an aliased stream.",
+    "Named R2007+ ambient CMC remains covered by the existing independent wire-walk and typed parser readback test."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --viewport-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1015 VIEWPORT": 19,
+      "AC1018 VIEWPORT": 19,
+      "AC1021 VIEWPORT": 27,
+      "AC1024 VIEWPORT": 27
+    },
+    "ambient_cmc_readback_ctest": "libdxfrw_viewport_ambient_color_method: PASS",
+    "entity_writer_transaction_cohort": "33/33 passed",
+    "focused_ctest_cohort": "35/35 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish transaction and bounded codec behavior only.",
+    "VIEWPORT group-91 semantics, layer override rendering, producer coverage, native behavior, and broader support remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}

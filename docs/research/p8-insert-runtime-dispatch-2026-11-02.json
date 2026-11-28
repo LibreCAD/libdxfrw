@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-insert-runtime-dispatch-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "INSERT_RUNTIME_DISPATCH_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Prevent the concrete BLOCK adapter from treating an entity with public eType INSERT as a DRW_Insert without confirming its runtime type.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "INSERT serialization requires a DRW_Insert runtime object, the exact runtime type, and the matching public eType.",
+      "A mismatched object is refused through the adapter's fail-closed entity path before the writer reads INSERT-only members.",
+      "Correcting the public type tag permits a same-adapter retry."
+    ]
+  },
+  "validationProfile": {
+    "source": "A locally constructed DRW_Point captured through dx_iface; the test mutates only its public eType. No DWG/DXF fixture is used or committed.",
+    "mismatchedTag": "DRW_Point tagged as DRW::INSERT",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "The mismatched INSERT attempt is refused atomically and preserves a pre-existing destination.",
+      "The same adapter retries after restoring DRW::POINT and re-imports one POINT with its source coordinates intact."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_insert_runtime_dispatch$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; ASCII/Binary refusal, destination preservation, same-adapter retry, and POINT readback.",
+    "diffCheck": "PENDING before commit",
+    "fixturePolicy": "No drawing fixture was added or committed."
+  },
+  "limitations": [
+    "This validates adapter runtime-type safety and generated POINT transport only; it does not qualify INSERT body semantics, BLOCK graph closure, physical producer coverage, or native consumer behavior.",
+    "No support claim is promoted; P8 remains open."
+  ]
+}

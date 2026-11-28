@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 DICTIONARYWDFLT same-version output and strict-gap recheck",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/lineweights.dwg",
+    "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+    "version": "AC1021",
+    "producerProvenance": "Existing local source; producer and author are not independently authenticated. No DWG/DXF fixture was committed."
+  },
+  "sourceGraph": {
+    "dictionary": "DICTIONARYWDFLT 0xE / fixed object type 500, rooted by NOD key ACAD_PLOTSTYLENAME; owner and reactor are NOD 0xC; cloning 1, hard-owner 0; one Normal entry and default target PLACEHOLDER 0xF.",
+    "placeholder": "PLACEHOLDER 0xF / fixed object type 80; owner and reactor are DICTIONARYWDFLT 0xE; no extension dictionary, appData or extData.",
+    "independentSourceObservation": "LibreDWG 0.14 minJSON reports NOD 0xC, DICTIONARYWDFLT 0xE with Normal -> 0xF, and the ACAD_PLOTSTYLENAME root edge. JSON SHA-256: 6832531f5abd1e3baa3e4121a8c617b9a947f9f2e2f1f3b409f5ac1cdc15d592.",
+    "independentOutputObservation": "LibreDWG 0.14 R2007 DXF output retains ACDBDICTIONARYWDFLT 0xE, Normal -> PLACEHOLDER 0xF, the root edge and reactor roles. DXF SHA-256: e4c1d37444bea46790f888d12b754a78b3beff6d0a36465ec54141147956ac94. The converter logged unrelated unstable-class/thumbnail warnings but exited successfully; this is field corroboration only."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "The physical source-bound AC1021 DICTIONARYWDFLT/PLACEHOLDER output inspector now admits the source-version AC1021 DXF target as well as its established AC1024 target. Debug strict-finalization diagnostics print up to 32 unqualified callback identities and object types before failing closed.",
+    "guard": "Admission remains limited to the captured Normal/PLACEHOLDER graph and the existing typed source identity, root, owner, reactor and callback-frame checks. Strict output is not relaxed."
+  },
+  "verification": {
+    "focusedBuild": "PASS: cmake --build build --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4 (-Werror).",
+    "sameVersionPhysicalSelector": "PASS: --dictionary-default-ac1021-same-version-output-readback lineweights.dwg; ASCII and Binary output/readback, source identity, root/default/owner/reactor roles, invalid-reactor atomic refusal and same-adapter retry.",
+    "existingAc1024Compatibility": "PASS: --dictionary-default-physical-output-readback children-room-decoration.dwg; the established AC1024 target route remains valid.",
+    "strictWholeSource": "EXPECTED FAIL CLOSED after DXF serialization: 41/49 callbacks qualified. Debug output identifies the residual MLINESTYLE 0x18, LAYOUT 0x22/0x102/0x108, and VIEWPORT 0x104/0x105/0x10A/0x10B. Log SHA-256: 5be1b2e04819f2a5bee52807b6d3c49d30141f66770fd7d59793b21a604a28d1.",
+    "diffCheck": "PASS: git diff --check.",
+    "fullSuites": "NOT RUN; focused physical selectors and one strict source probe only.",
+    "fixturesCommitted": false
+  },
+  "limits": [
+    "Selected graph output does not qualify whole-source conversion, native CAD acceptance, producer breadth or semantic plot-style behavior.",
+    "Strict conversion remains refused while eight callbacks lack output qualification.",
+    "The LibreDWG observation corroborates source/output fields but is not independent native-application qualification."
+  ],
+  "nextAction": "Close the eight debug-identified MLINESTYLE/LAYOUT/VIEWPORT callbacks using source-matched field and ownership evidence, exact ASCII/Binary selected output, readback, rollback and retry; rerun strict conversion to expose the next gate."
+}

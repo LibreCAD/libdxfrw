@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Exact ACIS/SAB profile and semantic-evidence gate",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Reconcile the selected CADMPEG v0.6.2 release source with its published SAT/ASM support claims",
+    "Separate ACIS BinaryFile 217/218 from ASM BinaryFile4/8 carrier profiles and reference widths",
+    "Refine the existing optional semantic-comparison gate without adding a routine peer dependency",
+    "Keep parser, kernel, DWG/AcDs ownership, and native-consumer evidence separate"
+  ],
+  "method": {
+    "webResearchPerformed": true,
+    "exactReleaseSourceFetched": true,
+    "localPlanAndCarrierContractsInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing optional CADMPEG/cq-acis profile, lineage, and analytics gate",
+      "src/drw_acis.cpp: locally admitted ACIS BinaryFile and ASM BinaryFile4 signature families",
+      "src/drw_entities.h: retained modeler-carrier fields and source-version distinctions",
+      "docs/3D_CONSUMER_CONTRACT.md: exact carrier evidence remains narrower than general semantic 3D support"
+    ]
+  },
+  "sources": [
+    {
+      "project": "CADMPEG release v0.6.2",
+      "urls": [
+        "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.2",
+        "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/format-support.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/formats/asm.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/formats/asm-open-items.md"
+      ],
+      "revision": "v0.6.2 tag commit 7bcc95276548de4e4876894b9a650a84ea9c4d6d; exact file API returned source hashes for asm.md 2566bd5a11b4b067e841f009118a0a66b453b187 and asm-open-items.md 3cfdc3fc7998e0c903c33b0d4b59adb19ab1aebc",
+      "observed": "The release's exact source scores the standalone SAT/ASM envelope at L1 while describing selected typed solved-record transfer to connected neutral B-rep. Its format notes distinguish ACIS BinaryFile save formats 217/218 from ASM BinaryFile4 and BinaryFile8, whose tag integer/reference width differs. It publishes record-family open items and score criteria covering real-file evidence, byte disposition, loss reporting, deterministic decode, generated re-decode, geometry/topology validity, and fuzzing.",
+      "limits": "The release was not downloaded or run. Its own profile and source do not prove the behavior of a particular libdxfrw-extracted payload, complete support across all body records, an independent kernel result, DWG/AcDs ownership, or native CAD acceptance. Self-authored reverse-engineering documentation is a candidate-profile description, not the ODA DWG byte-layout authority."
+    },
+    {
+      "project": "cq-acis",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/THIRD_PARTY_NOTICES.md"
+      ],
+      "revision": "Public repository sources reviewed 2026-10-20; mutable main refs used only as current documentation, not as an immutable runtime artifact",
+      "observed": "The project documents a limited ACIS/SAT/SAB subset, converts supported records through CadQuery/OpenCascade, and errors on unsupported shape conversion rather than claiming a complete result. Its notices disclose CADMPEG/ezdxf format-discovery references.",
+      "limits": "Parser/format discovery is correlated with CADMPEG and its kernel family is OCCT, shared with FreeCAD. It is not an independent kernel vote and cannot validate the outer DWG entity-to-AcDs payload join."
+    },
+    {
+      "project": "Local libdxfrw carrier scope",
+      "localFiles": [
+        "src/drw_acis.cpp",
+        "src/drw_entities.h",
+        "docs/3D_CONSUMER_CONTRACT.md"
+      ],
+      "revision": "Shared local workspace state inspected 2026-10-20; no remote revision or uncommitted source change is implied by these links",
+      "observed": "Local carrier admission tracks ACIS BinaryFile and ASM BinaryFile4 as distinct signatures. Existing consumer contract states that byte/association evidence covers only named local cases, not general semantic solid support.",
+      "limits": "Source-level signature recognition or a nonempty extracted payload does not prove a candidate parser accepts that exact format, reconstructs a connected valid body, or agrees with an independent native consumer."
+    }
+  ],
+  "decision": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimPromoted": false,
+    "externalGatesChanged": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "inventory": "141 findings / 78 top-level subplans",
+    "planDelta": "Tightened the existing optional semantic comparison. It now requires inspection of the extracted bytes' exact signature family, save/header words, BinaryFile4/8 reference width, modeler stamp, and digest before selecting a parser. ACIS 217/218 claims cannot be inherited by an ASM-family carrier. Candidate semantic output must account for all body-reachable records and be compared with independently authored topology and analytic expectations; parser completeness, kernel validity, owner association, and native consumer acceptance remain separate."
+  },
+  "implementationReadyChecks": [
+    "Complete and record the local entity -> DataStorage record -> Blob01 page -> exact SAB byte join and owner identity before passing a payload to a bare-stream parser.",
+    "Select no fallback: record exact magic/signature, version words, reference width, modeler version, payload digest, and target body identity; require exact candidate profile overlap.",
+    "Require strict candidate completion and every body-reachable record to be typed, validated-opaque with stated nonparticipation, or a failure; unknown topology, placement, transform, or carrier on the body path fails the semantic check.",
+    "Use a source-authored analytic manifest for connected component/topology counts, orientation/closure, units/transforms, bounding box, area, and volume; report parser graph checks and kernel validity separately.",
+    "Label candidate profile mismatch NOT_APPLICABLE and missing runtime NOT_RUN, then continue local implementation; do not add peer binaries or fixture files to regular build/test workflows."
+  ],
+  "validation": {
+    "testsRun": "None; research and plan-only update",
+    "receiptJsonValidation": "jq empty docs/research/deeper-broader-exact-acis-sab-profile-semantic-gate-2026-10-20.json — passed",
+    "planDiffCheck": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-exact-acis-sab-profile-semantic-gate-2026-10-20.json — passed",
+    "commitCreated": false,
+    "commitBlocker": "No commit attempted; shared worktree is broadly user-modified and Git metadata is read-only in this environment."
+  }
+}

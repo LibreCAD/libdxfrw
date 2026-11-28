@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "kind": "research-only-plan-update",
+  "date": "2026-10-19",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": "Cross-project completeness audit of recent DXF/DWG issue reports against existing local source and test owners; no code, test, fixture, dependency, or external execution.",
+  "sources": [
+    "https://github.com/LibreDWG/libredwg/issues/1409",
+    "https://github.com/LibreDWG/libredwg/issues/1410",
+    "https://github.com/LibreDWG/libredwg/issues/1418",
+    "https://github.com/LibreDWG/libredwg/issues/1419",
+    "https://github.com/LibreDWG/libredwg/issues/1421",
+    "https://github.com/DomCR/ACadSharp/issues/1194",
+    "https://github.com/DomCR/ACadSharp/issues/1201",
+    "https://github.com/DomCR/ACadSharp/issues/1264",
+    "https://github.com/DomCR/ACadSharp/issues/1277",
+    "https://github.com/DomCR/ACadSharp#compatible-dwgdxf-versions",
+    "https://www.gnu.org/software/libredwg/manual/html_node/CLASSES.html",
+    "https://github.com/mozman/ezdxf/issues/1326",
+    "https://ezdxf.readthedocs.io/en/stable/acis.html",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+    "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm"
+  ],
+  "crosswalk": [
+    {
+      "peer": "LibreDWG #1409",
+      "finding": "Reported DWG-to-DXF block traversal skips later named/anonymous/paper-space block bodies and has an ASCII/Binary mirror.",
+      "local_owner": "tests/block_owner_tests.cpp generated ASCII/Binary body-identity and attributed-INSERT matrix",
+      "disposition": "Existing local serializer invariant covers the trigger and output closure. Does not test LibreDWG's mechanism or provide customer-DWG reader evidence; no duplicate test."
+    },
+    {
+      "peer": "LibreDWG #1410",
+      "finding": "DXF-to-DWG parser reports zero HATCH ordinate, unusual ATTDEF tag, and embedded-MTEXT field boundaries.",
+      "local_owner": "Existing HATCH, ATTDEF, and embedded-MTEXT PAR-05/7M generated controls",
+      "disposition": "Existing controls and Autodesk field contracts remain the local authority; do not copy broad unknown-code skipping."
+    },
+    {
+      "peer": "ACadSharp #1194",
+      "finding": "Peer reader dropped zero-height text-derived records; issue is closed and linked to #1201.",
+      "local_owner": "DRW_Text::parseCode, DRW_Attrib/DRW_Attdef delegation, testHiddenZeroHeightAttrib",
+      "disposition": "No local defect found. Conditionally add generated zero-height standalone TEXT and ATTDEF cases to the existing focused test when the shared group-40 route is next changed."
+    },
+    {
+      "peer": "ACadSharp #1264 and #1277",
+      "finding": "TABLE block-cell DWG/DXF representation discrepancy; separate AC1032 DWG-writer MLEADER-context corruption report.",
+      "local_owner": "Existing PAR-126 typed incomplete TABLE state; PAR-07/S8 standalone object-context and writer-evidence boundaries",
+      "disposition": "Keep UNKNOWN/EMPTY/block references distinct; DWG-writer behavior is not a libdxfrw DWG-writer requirement."
+    },
+    {
+      "peer": "LibreDWG #1419",
+      "finding": "Malformed timestamp reaches Windows UCRT strftime with invalid tm_mday and aborts.",
+      "local_owner": "DWG header time read/write paths and existing dwgHeaderTime split selector",
+      "disposition": "No analogous local calendar formatter found. Keep a conditional Windows hardening lead; add no test absent a corresponding local call path or reproduced abort."
+    },
+    {
+      "peer": "LibreDWG #1418/#1421",
+      "finding": "Peer test-data golden-reference workflow and SHX sidecar provenance/permission are questioned.",
+      "local_owner": "Existing fixture admission, provenance, and no-new-external-fixture constraints",
+      "disposition": "Repository presence is not enough to establish correctness, rights, or sidecar completeness; bind provenance and resource identity before composed use."
+    },
+    {
+      "peer": "ezdxf #1326 and ACIS documentation",
+      "finding": "Proxy-preferred viewer placement issue is a projection problem; ACIS entity parsing/export is explicitly partial.",
+      "local_owner": "Existing proxy carrier/placement checks and PAR-07/S8 ACIS evidence gate",
+      "disposition": "Keep viewer behavior separate from codec correctness and ezdxf ACIS use bounded to pinned carrier/projection checks."
+    }
+  ],
+  "plan_delta": {
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "conditional_test_refinement": "Under existing PAR-05/7AR, add zero-height standalone TEXT and ATTDEF generated positives only when the shared group-40 text-family route is next changed.",
+    "finding_count_after": 137,
+    "top_level_subplan_count_after": 77,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "implementation_order_changed": false,
+    "validation_frequency_changed": false,
+    "support_claim_promoted": false
+  },
+  "verification": {
+    "local_source_test_inventory_only": true,
+    "build_run": false,
+    "test_run": false,
+    "peer_executable_run": false,
+    "native_cad_run": false,
+    "fixture_added": false,
+    "dependency_added": false,
+    "commit_attempted": false
+  }
+}

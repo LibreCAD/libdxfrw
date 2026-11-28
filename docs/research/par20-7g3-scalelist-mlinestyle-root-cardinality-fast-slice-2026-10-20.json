@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 SCALELIST and MLINESTYLE root cardinality and alias refusal",
+  "mode": "Generated local ASCII/Binary fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Apply the bounded NOD-root validator to ACAD_SCALELIST and ACAD_MLINESTYLE.",
+    "Reject case-folded duplicate root keys and a differently named NOD key aliasing either canonical dictionary.",
+    "Verify seeded-destination preservation, corrected same-adapter retry, and strict root/dictionary readback."
+  ],
+  "implementation": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationAdded": false,
+    "behavior": "The shared adapter validator now covers ACAD_SCALELIST and ACAD_MLINESTYLE in addition to GROUP and MLEADERSTYLE. For each supplied canonical root, it enforces a unique case-insensitive key, exactly one NOD-owned DICTIONARY target, owner-zero NOD identity, and no same-target alias. Existing generated SCALE and MLINESTYLE routes exercise duplicate and alias negatives in ASCII/Binary, byte-preserving refusal, corrected same-adapter retry, strict unique-root readback, and their family-specific resource assertions."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "selector": "PASS: libdxfrw_named_resource_import_evidence (owning CTest executes generated ASCII/Binary SCALE and MLINESTYLE controls)",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp",
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadOrKernelRun": false
+  },
+  "supportImpact": {
+    "supportPromotion": false,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "staged": false,
+    "reason": "Shared worktree is broadly dirty and Git metadata is read-only."
+  }
+}

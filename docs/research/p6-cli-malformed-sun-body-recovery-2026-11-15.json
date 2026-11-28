@@ -1,0 +1,41 @@
+{
+  "title": "Generated SUN body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_SUN_BODY_RECOVERY_AC1021_AC1024_AC1027_AC1032_PASS",
+  "scope": "CLI disposition for bounded malformed SUN OBJECTS bodies in four generated DWG revisions.",
+  "selection": {
+    "source": "P6-F typed OBJECTS parser and writer inventory",
+    "reason": "DRW_Sun has a bounded typed DWG parser and writer from AC1021 onward. Its generated body can be tested through the same strict/partial CLI disposition contract used for other typed OBJECTS records."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-sun-body-source",
+    "profile": "A SUN object at handle 0x700 with class version 2, enabled state, ACI 7, finite intensity, and bounded shadow fields, followed by a LINE sentinel.",
+    "mutation": "The generator searches the bounded SUN body for a one-bit mutation rejected by DRW_Sun::parseDwg while retaining the source handle and common prologue."
+  },
+  "revision_results": {
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024"},
+    "AC1027": {"controls": 3, "status": "reader recovery and atomic strict/partial refusal at the unqualified source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "Each source reports one failed OBJECTS frame, continues to the following LINE, and balances source, published, and failed frame counts.",
+    "Strict ASCII and Binary conversion refuses atomically and preserves the destination sentinel at AC1021, AC1024, and AC1032.",
+    "Explicit-partial ASCII and Binary conversion at AC1021, AC1024, and AC1032 reopens successfully and retains the following LINE.",
+    "AC1027 strict and explicit-partial conversion both refuse atomically at the existing source-reference gate.",
+    "Partial-output warnings state that output is not a completeness or support claim."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j4 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed before receipt/plan-only edits.",
+    "diff_check": "git diff --check passed before receipt/plan-only edits.",
+    "targeted": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_sun_recovery$' passed 1/1 in 0.87 seconds and reported 18 controls.",
+    "aggregate": "The dwg2dxf_cli_partial_read_disposition aggregate remains at its latest recorded 917 controls / 29.40 seconds and was not rerun for this isolated profile."
+  },
+  "limits": [
+    "Generated parser recovery and CLI disposition evidence only; SUN lighting behavior and native consumer semantics are not qualified.",
+    "AC1027 has no admitted output profile; AC1015 and AC1018 are outside the SUN writer's supported version range.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

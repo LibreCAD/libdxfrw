@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw-deeper-broader-dxf-hatch-pattern-phase-transform-boundary-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Refresh the existing HATCH pattern-retention and transformed-phase comparator boundary using primary DXF references, a recent independent peer report, current peer source, and the newly published peer release artifact.",
+  "method": {
+    "kind": "Read-only primary documentation, package-release metadata, peer issue/source review, and local plan reconciliation",
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7C05C0EC-B0FB-4A86-A164-B9E5C6C03990.htm",
+      "https://github.com/mozman/ezdxf/issues/1402",
+      "https://github.com/mozman/ezdxf/pull/1407",
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/polygon.py",
+      "https://pypi.org/project/ezdxf/1.4.5/"
+    ],
+    "peerRepositoryCloned": false,
+    "peerSourceRevisionPinned": false,
+    "peerPackageVersionMetadataReviewed": "ezdxf 1.4.5",
+    "peerArtifactInspectedOrRun": false,
+    "nativeCadRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "evidenceBoundary": "Autodesk references establish the documented DXF field vocabulary and repeated pattern-line structure, not every consumer's transform behavior. Issue #1402 contains reporter-provided peer reproduction and plot-comparison claims that were not reproduced here. Current mutable ezdxf master source contains a translation-aware base-point transform and an explicit non-uniform-scale limitation, but this does not establish the contents or behavior of the exact 1.4.5 release artifact."
+  },
+  "releaseArtifact": {
+    "project": "ezdxf",
+    "version": "1.4.5",
+    "artifact": "ezdxf-1.4.5.tar.gz",
+    "publishedAt": "2026-10-16",
+    "sha256": "a6c3bbc1a65ce764d97c5beafe6ae693d8ed14c6cdae366b50e1974a79d4a00",
+    "contentsInspected": false,
+    "transformFixVerified": false
+  },
+  "evidence": [
+    {
+      "topic": "Authoritative HATCH field structure",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7C05C0EC-B0FB-4A86-A164-B9E5C6C03990.htm"
+      ],
+      "observed": [
+        "HATCH is defined with OCS elevation and optional extrusion direction, boundary path data, and a counted sequence of pattern-definition lines.",
+        "Each pattern line includes angle (53), base point components (43/44), offset components (45/46), dash count (79), and repeated dash lengths (49)."
+      ],
+      "doesNotEstablish": [
+        "A universal consumer transform algorithm for preserving visual pattern phase",
+        "That boundary-coordinate equality implies pattern-base equality or equivalent hatch appearance"
+      ],
+      "planUse": "Keep local raw/typed HATCH field retention separate from consumer transform calibration."
+    },
+    {
+      "topic": "Peer-reported translation phase drift",
+      "sources": [
+        "https://github.com/mozman/ezdxf/issues/1402"
+      ],
+      "observed": [
+        "The issue author reports ezdxf 1.4.4 and 1.4.5b0 moving boundary paths under translation without moving pattern-line base points.",
+        "The issue was closed by PR #1407, merged into master on 2026-08-19 as c111eef0; the PR maps original pattern base points through the full OCS transform after existing scale/rotation handling.",
+        "The plan already records a six-case controlled run against ezdxf 1.4.4 dd7f6cc3: four discrepancies and two positive controls. The PR reports three focused upstream regression tests and 195 passed/3 skipped in its pattern-related suite; those upstream results are not new local runs.",
+        "The issue author reports an AutoCAD plot comparison and a 1,254-window A/B result; neither was independently reproduced in this research turn."
+      ],
+      "doesNotEstablish": [
+        "A libdxfrw defect",
+        "A normative DXF requirement beyond the cited field definitions",
+        "A verified result for ezdxf 1.4.5 release"
+      ],
+      "planUse": "Treat the issue as corroboration of the existing ezdxf 1.4.4 calibration, not an open peer bug or a new local finding. Do not repeat the six-case 1.4.4 matrix."
+    },
+    {
+      "topic": "Current ezdxf master source behavior",
+      "sources": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/polygon.py"
+      ],
+      "observed": [
+        "The inspected DXFPolygon.transform source captures original pattern base points, applies scale/rotation to pattern lines, then transforms the original base points through the full OCS transform.",
+        "PR #1407 identifies translation as its own change and points to prior rotation and scaling fixes; the inspected implementation explicitly marks non-uniform pattern scaling unsupported."
+      ],
+      "doesNotEstablish": [
+        "Behavior of a released or locally executed artifact",
+        "Native CAD acceptance",
+        "Support for non-uniform scale or reflection"
+      ],
+      "planUse": "Treat mutable master as source-level calibration only. The exact ezdxf 1.4.5 release artifact is a separate, not-yet-verified question."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersRefined": [
+      "7AH/7AQ/7N/S5 transformed-HATCH comparator boundary",
+      "7AH.pattern-retention generated local control"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "optionalPeerInstallOrRunAddedToFastLoop": false,
+    "testsOrRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionChanges": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "nextActions": [
+    "Reuse the integrated 7AH.pattern-retention and six-case ezdxf 1.4.4 calibration; do not rerun them for this plan refresh.",
+    "At the existing composed optional comparator checkpoint only, if ezdxf 1.4.5 is already available, bind the source archive hash and inspect the exact transform implementation. If a runtime check is warranted, run only translation and combined rotation/translation with analytic OCS expectations for boundary and pattern base points.",
+    "Keep non-uniform-scale/reflection out of qualified cases, mark unobservable phase NOT_OBSERVABLE, and record unavailable exact-release checks as NOT_RUN. Do not install a peer during an implementation slice."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonSyntaxChecked": true,
+    "planDiffCheckPassed": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

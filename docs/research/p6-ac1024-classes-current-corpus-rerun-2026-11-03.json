@@ -1,0 +1,151 @@
+{
+  "date": "2026-11-03",
+  "gate": "P6_AC1024_CLASSES_CURRENT_CORPUS_RECHECK",
+  "result": "HISTORICAL_CLASSES_FAILURE_NOT_REPRODUCED",
+  "scope": "Read-only rerun of the nine AC1024 DWGs currently available in /Users/dli/doc/dwg. This does not establish behavior for the missing tenth file, identify the historical AutoCAD 2010 RTM set, qualify general AC1024 support, or qualify strict whole-file DXF output or native consumers.",
+  "repository": {
+    "commit": "6724ac546b108c3e3f495794284712a6dc872983",
+    "sourceFingerprints": {
+      "src/intern/dwgreader.cpp": "430c4452fff6272b2866aabf16d070203391a6e6fbca089e89e78a3017fad88e",
+      "src/intern/dwgreader18.cpp": "232741fdc78628aec0c77d34e5d1e22d65c027ffec30cd85b9512d8c449f7b80",
+      "src/intern/dwgheadersection.h": "45c38ba5277d98be33177f9fcb7e060b44497f45fc36f29bbeda13bc31e1b89e"
+    }
+  },
+  "tool": {
+    "path": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "efdd99dcddc013dc607cf01e9c7954c227afcc6d352fdcebe9b4bed2ff82e843"
+  },
+  "commandTemplate": "build-gcc/dwg2dxf/dwg2dxf <input.dwg> -y -d -v2010 /private/tmp/<stem>-current-ac1024-rerun.dxf",
+  "observedReadResult": "All nine traces reach dwgReader24::readDwgClasses END and report operationSucceeded=true, legacyError=0, classesCrcMismatch=0, and entityParseFailures=0. The historical CLASSES high-size-extension failure is not reproduced in this available corpus.",
+  "observedConversionResult": "Only mechanical_example-imperial.dwg exits 0 and produces a DXF. The other eight exit 1 and produce no DXF. Strict callback-finalization failures are explicit for architectural_example-imperial.dwg and the two title_block drawings; the condominium and conference-room traces report three object parse failures each. The remaining nonzero exits are not attributed here. None is a CLASSES-stage failure.",
+  "cases": [
+    {
+      "name": "architectural_example-imperial.dwg",
+      "inputSha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "traceSha256": "02ebba30dcafd542ffaf6b2fa80a8ba3a5ae18f4e073cba0bfffdace14d4d3e7",
+      "exitCode": 1,
+      "readSucceeded": true,
+      "classesEndReached": true,
+      "legacyError": 0,
+      "classesCrcMismatch": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "strictDxfPublished": false,
+      "explicitStrictFinalizationFailure": true
+    },
+    {
+      "name": "civil_example-imperial.dwg",
+      "inputSha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "traceSha256": "38fa8ae513f35357413ff5cb68bd8b3a05a414ddc62f6cf1b23089fb27f5e632",
+      "exitCode": 1,
+      "readSucceeded": true,
+      "classesEndReached": true,
+      "legacyError": 0,
+      "classesCrcMismatch": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "strictDxfPublished": false,
+      "explicitStrictFinalizationFailure": false
+    },
+    {
+      "name": "mechanical_example-imperial.dwg",
+      "inputSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "traceSha256": "e156dc95e4181af1f7bfbf9bfa6ec828c545378932468cb017ac29a91e3dd747",
+      "exitCode": 0,
+      "readSucceeded": true,
+      "classesEndReached": true,
+      "legacyError": 0,
+      "classesCrcMismatch": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "strictDxfPublished": true,
+      "explicitStrictFinalizationFailure": false
+    },
+    {
+      "name": "title_block-arch.dwg",
+      "inputSha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+      "traceSha256": "5148a27ef344bea4931549b04659db2fb59221a8c4855bf536ab7c7713bee606",
+      "exitCode": 1,
+      "readSucceeded": true,
+      "classesEndReached": true,
+      "legacyError": 0,
+      "classesCrcMismatch": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "strictDxfPublished": false,
+      "explicitStrictFinalizationFailure": true
+    },
+    {
+      "name": "title_block-iso.dwg",
+      "inputSha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+      "traceSha256": "4efa9da2acba19e8e9415257cb8e34152a52e641bcd35c8220c15cd35f512cbb",
+      "exitCode": 1,
+      "readSucceeded": true,
+      "classesEndReached": true,
+      "legacyError": 0,
+      "classesCrcMismatch": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "strictDxfPublished": false,
+      "explicitStrictFinalizationFailure": true
+    },
+    {
+      "name": "visualization_-_aerial.dwg",
+      "inputSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+      "traceSha256": "ec1d2d91c66aa9535441dbf57096d338505471291c2365a7813d4a30025120f1",
+      "exitCode": 1,
+      "readSucceeded": true,
+      "classesEndReached": true,
+      "legacyError": 0,
+      "classesCrcMismatch": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "strictDxfPublished": false,
+      "explicitStrictFinalizationFailure": false
+    },
+    {
+      "name": "visualization_-_condominium_with_skylight.dwg",
+      "inputSha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "traceSha256": "6fa882894e01e32d4938cca0b8d853408ecacc8d512459d5187d457947ea47c2",
+      "exitCode": 1,
+      "readSucceeded": true,
+      "classesEndReached": true,
+      "legacyError": 0,
+      "classesCrcMismatch": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 3,
+      "strictDxfPublished": false,
+      "explicitStrictFinalizationFailure": false
+    },
+    {
+      "name": "visualization_-_conference_room.dwg",
+      "inputSha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "traceSha256": "4373f3fcef6a1ee751cacdac94ecb131bc7768d79668c9a45bd739537d9efc46",
+      "exitCode": 1,
+      "readSucceeded": true,
+      "classesEndReached": true,
+      "legacyError": 0,
+      "classesCrcMismatch": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 3,
+      "strictDxfPublished": false,
+      "explicitStrictFinalizationFailure": false
+    },
+    {
+      "name": "visualization_-_sun_and_sky_demo.dwg",
+      "inputSha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+      "traceSha256": "086d5a58cf142f4f16a4b8cb0cbb8b28319d57fc2694b376b0b71e30b33251ed",
+      "exitCode": 1,
+      "readSucceeded": true,
+      "classesEndReached": true,
+      "legacyError": 0,
+      "classesCrcMismatch": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "strictDxfPublished": false,
+      "explicitStrictFinalizationFailure": false
+    }
+  ],
+  "fixturePolicy": "Source DWGs remained in /Users/dli/doc/dwg; generated DXFs and traces remained under /private/tmp. No test fixture was added to the repository.",
+  "validation": "Nine current-code dwg2dxf CLI reruns; no full test suite was run."
+}

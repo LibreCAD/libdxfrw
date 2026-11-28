@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-21500-face-flag-projection-2026-11-11",
+  "purpose": "Lock the generated control and local source observation for face boolean fields in the exact rooted ACIS 21500 profile.",
+  "source": {
+    "dwg": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "version": "AC1024",
+    "producerProvenance": "Not independently authenticated",
+    "entity": "3DSOLID",
+    "handle": "0x183",
+    "sabPath": "/private/tmp/p7-ac1024-aerial-solid.sab",
+    "sabSha256": "00f7dd11b8993d066a25e33a05dd97fb14f8b35eb7a4d7614c596b6b41d6d79b"
+  },
+  "profileObservation": {
+    "faceRows": 6,
+    "fieldScan": "After the 21500 common EntityType/attribute-Pointer/entity-ID prefix and six geometry pointer fields, the rooted projection exposes face sense followed by sidedness; containment is only present when double-sided is true.",
+    "localParserResults": [
+      { "faceNode": 9, "sensePresent": true, "senseReversed": false, "doubleSidedPresent": true, "doubleSided": false, "containmentPresent": false },
+      { "faceNode": 11, "sensePresent": true, "senseReversed": true, "doubleSidedPresent": true, "doubleSided": false, "containmentPresent": false },
+      { "faceNode": 16, "sensePresent": true, "senseReversed": true, "doubleSidedPresent": true, "doubleSided": false, "containmentPresent": false },
+      { "faceNode": 22, "sensePresent": true, "senseReversed": true, "doubleSidedPresent": true, "doubleSided": false, "containmentPresent": false },
+      { "faceNode": 32, "sensePresent": true, "senseReversed": true, "doubleSidedPresent": true, "doubleSided": false, "containmentPresent": false },
+      { "faceNode": 54, "sensePresent": true, "senseReversed": true, "doubleSidedPresent": true, "doubleSided": false, "containmentPresent": false }
+    ],
+    "evidenceLimit": "Values are parsed from one source by libdxfrw through the selected rooted view. They do not independently prove ACIS 21500 field semantics, outward orientation, surface-normal meaning, or B-rep validity."
+  },
+  "generatedControl": {
+    "origin": "The ACIS 21500 rooted body SAB is generated in memory by tests/graph_preservation_tests.cpp.",
+    "fields": "The synthetic face stores six pointer fields, then BoolFalse sense, BoolTrue double-sided, and BoolTrue containment. The control verifies these values are projected from the bounded 21500-prefixed record view.",
+    "fixtures": "No DWG/DXF fixture was added."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4 && build-gcc/libdxfrw_graph_preservation_tests",
+    "result": "PASS: Graph/preservation tests",
+    "sourceProbe": {
+      "command": "g++ -std=c++17 -Isrc /private/tmp/p7_face_flags_probe.cpp build-gcc/libdxfrw.a -lz -o /private/tmp/p7_face_flags_probe && /private/tmp/p7_face_flags_probe /private/tmp/p7-ac1024-aerial-solid.sab",
+      "result": "PASS: six projected faces; sense states [forward, reversed, reversed, reversed, reversed, reversed]; all single-sided; no containment fields present.",
+      "independence": "Probe uses the current libdxfrw implementation and is not independent semantic evidence."
+    },
+    "diffCheck": "PASS: git diff --check"
+  },
+  "unresolved": [
+    "Independent source/schema confirmation of these ACIS 21500 face flag positions and meanings.",
+    "Face orientation relative to surface normals, loop orientation, and closed-shell validity.",
+    "Transform/unit application, direct B-rep lift, native/kernel acceptance, and output qualification."
+  ],
+  "claimEffect": "Generated parser behavior and one local source observation only; no ACIS/ACDS, 3D, DWG, or DXF support claim is promoted.",
+  "sourceFileSha256": {
+    "tests/graph_preservation_tests.cpp": "3a9e1e47d060f46a3bd51a3e8ee4ee5e343a5cd7d3128c5e9909fb3fb514eec3",
+    "build-gcc/libdxfrw_graph_preservation_tests": "42688baef66cecc5271d22e5d0ae6bb8cefa5482a95d0f758f3b465ce15cedf6"
+  }
+}

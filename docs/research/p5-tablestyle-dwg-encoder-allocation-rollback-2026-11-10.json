@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-10",
+  "phase": "P5",
+  "finding": "DRW_TableStyle::encodeDwg previously wrote directly into caller-owned body, string, and handle buffers. Allocation failure could escape after partially mutating those streams.",
+  "change": "Stage each distinct output destination, preserve intentional stream aliases, publish only after all output streams remain good, and convert std::bad_alloc to false.",
+  "profiles": [
+    {
+      "version": "AC1021",
+      "route": "legacy TABLESTYLE",
+      "allocationFailuresInjected": 38,
+      "rollback": true,
+      "sameObjectRetry": true,
+      "exactCleanOutput": true,
+      "allStreamAlias": true
+    },
+    {
+      "version": "AC1032",
+      "route": "R24 TABLESTYLE",
+      "allocationFailuresInjected": 45,
+      "rollback": true,
+      "sameObjectRetry": true,
+      "exactCleanOutput": true,
+      "allStreamAlias": true
+    }
+  ],
+  "rollbackAssertions": [
+    "body, string, and handle destination bytes are unchanged",
+    "all three bit cursors are unchanged",
+    "handle occurrence ledger is unchanged",
+    "same object and same destination buffers retry successfully",
+    "retry output equals clean seeded-buffer output byte-for-byte and cursor-for-cursor"
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^(libdxfrw_tablestyle_dwg_encode_allocation_rollback|libdxfrw_cellstylemap_dwg_encode_roundtrip|libdxfrw_tablestyle_content_format_enum_domains)$' --output-on-failure",
+    "result": "3/3 passed",
+    "directSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --tablestyle-dwg-encode-allocation-rollback",
+    "directSelectorResult": "PASS; AC1021 injected 38 failures and AC1032 injected 45 failures",
+    "diffCheck": "git diff --check passed"
+  },
+  "files": [
+    "CMakeLists.txt",
+    "src/drw_objects.cpp",
+    "tests/dwg_object_vectors_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "limitations": [
+    "Generated encoder transaction and alias behavior only; no new physical-source field profile or producer qualification.",
+    "No native application acceptance or TABLESTYLE semantic support claim is established.",
+    "Other DWG object encoders and whole-file failure paths are outside this control."
+  ]
+}

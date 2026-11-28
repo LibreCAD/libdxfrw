@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "purpose": "Execute the pinned independent ACadRust SAT parser against the exact existing ACIS torus payload after setting up an isolated official macOS ARM64 Rust toolchain.",
+  "reader": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "revision": "7717afb7bdcc0a1b6b2fd0ba5ef6e18dda847f0c",
+    "crate_version": "0.6.8",
+    "license": "MPL-2.0",
+    "role": "independent open-source SAT parser; not a geometry kernel"
+  },
+  "toolchain": {
+    "distribution": "official rust-lang stable ARM64 toolchain",
+    "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "cargo 1.99.1 (5f94df478 2026-08-27)",
+    "home": "/private/tmp/rustup-p7 and /private/tmp/cargo-p7",
+    "repository_modified": false
+  },
+  "input": {
+    "path": "/private/tmp/acsh-semantic-probe/torus-precision.sat",
+    "sha256": "4917d971df23651987e01f18cf8635d19dab7ec2c306c910734ba0093641da08",
+    "size_bytes": 1057,
+    "format_header": "21500 0 2 26 "
+  },
+  "probe": {
+    "scratch_manifest": "/private/tmp/acadrust-sat-probe/Cargo.toml",
+    "command": "cargo run --offline --manifest-path /private/tmp/acadrust-sat-probe/Cargo.toml (after successful online dependency resolution)",
+    "result": "Build and execution pass. ACadRust parses 13 records, reports one validation error: record 4 pointer $3000 at token[42] does not resolve. It finds one body, one lump, one shell, one face, no edges or vertices.",
+    "torus_record_index": 11,
+    "raw_tokens": "[Pointer(-1), Pointer(-1), Float(1383.6151200595348), Float(418.50000000000074), Float(1158.755189492682), Float(-0.5014237824134797), Float(-1.6431677767887314e-16), Float(-0.8652018206350235), Integer(19), Float(2.7899834596164137), Float(-0.8652018206350235), Float(-3.8945365021134883e-17), Float(0.5014237824134797), Ident(forward_v), Ident(I), Ident(I), Ident(I), Ident(I)]",
+    "accessor_result": "center=(0, 1383.6151200595348, 418.50000000000074), normal=(1158.755189492682, -0.5014237824134797, approximately 0), major_radius=-0.8652018206350235, minor_radius=19; the documented SatTorusSurface accessor reads token positions for a one-prefix-pointer record, while this exact record has two leading pointer tokens before its numeric geometry fields.",
+    "interpretation": "The exact parser run is useful negative evidence: ACadRust cannot currently supply a validated full graph or trustworthy torus accessor output for this payload. The invalid pointer and accessor-layout disagreement require resolving the SAT version/profile before deriving semantics. Do not alter libdxfrw fields, promote support, or treat the apparent torus values as an independent geometry result."
+  },
+  "evidence_sources": [
+    {
+      "url": "https://docs.rs/acadrust/latest/src/acadrust/entities/acis/types.rs.html",
+      "relevance": "Pinned source implementation of SatTorusSurface::center/normal/radius accessors."
+    },
+    {
+      "url": "https://docs.rs/acadrust/latest/src/acadrust/entities/acis/parser.rs.html",
+      "relevance": "SAT parse implementation and supported format family claims."
+    },
+    {
+      "url": "https://rust-lang.org/tools/install/",
+      "relevance": "Official Rust installation instructions; official toolchain was isolated under /private/tmp."
+    }
+  ],
+  "fixture_policy": "Input remains in /private/tmp; no DWG/DXF or SAT fixture was added to the repository."
+}

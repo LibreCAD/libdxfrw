@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-line-edge-hatch-elevation-2026-11-21",
+  "date": "2026-11-21",
+  "status": "DOWNSTREAM_INCREMENTAL_PATCH_FOCUSED_VERIFICATION_PASSED_NATIVE_PENDING",
+  "supportClaimEffect": "none",
+  "problem": "On the reconstructed LibreCAD_3 candidate, a default-normal elevated HATCH with line-edge boundaries imported at Z=0; saving and reopening also lost its source elevation. A generated control failed before the patch.",
+  "authority": [
+    {
+      "title": "Autodesk HATCH (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "scope": "HATCH and MPOLYGON share an OCS elevation and extrusion."
+    },
+    {
+      "title": "Autodesk Boundary Path Data (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+      "scope": "Line endpoints and polyline vertices in boundary paths are 2D OCS coordinates."
+    }
+  ],
+  "patch": {
+    "path": "docs/patches/librecad3-p8-hatch-line-edge-elevation-2026-11-21.patch",
+    "sha256": "502f99a6e3a59421b12993348ce111c90cc569e857f8f7bb66192fcfd85c175d",
+    "base": "Incremental patch against the candidate reconstructed from LibreCAD_3 master 4fb48312708b39d499f7e6668104a3b54a8601c7, after the prior ordered P8 MPOLYGON, ABI, lineweight and two elevation patches. Not standalone on master.",
+    "adapterPreimageGitBlob": "c021a5c1729f8cb19a30a59dd69904770073412d",
+    "testsPreimageGitBlob": "27707e8386171a4dfab2cc86f687537cfe6cf9bb",
+    "application": "git apply --check and apply PASS against isolated exact preimages; patched files byte-match the tested files. Existing user LibreCAD_3 checkout untouched.",
+    "implementation": "Lift eligible default-normal line endpoints onto the entity OCS elevation; infer output elevation across eligible line-edge and one-polyline paths via a shared finite, equal-Z check. Mixed or nonfinite checked elevations retain the existing loss note and do not fabricate a plane."
+  },
+  "validation": {
+    "baseline": "Generated three-line nonzero-elevation HATCH fails the import and ASCII/Binary reopen checks without the patch.",
+    "baselineLogSha256": "eae0be8bd7e42f19100e3cf5d4c9460a50a0c67142e45459c3383882aaf93579",
+    "focused": "6/6 tests pass for both current installed shared codec and bundled codec: line-edge ASCII/Binary import/save/reopen, mixed line/polyline loops, mixed-elevation loss warning and corrected same-document retry, and four prior MPOLYGON/HATCH controls.",
+    "currentLibrarySourceCommit": "b46f448b9611374c286674fe2619715572bca67a",
+    "currentLibraryImplementationDigest": "18a77d51abb44da94a659d99d26657645f57e570ce19b8fea4c76f5cbd65c95d",
+    "currentSharedLibrarySha256": "e61efec8166c2e6f12d1e180fd039de682989fe1768a138ed704ba147eef848f",
+    "currentPersistenceSha256": "dec82eca4948d83596060d5963864f799de2ded2271978466603eca00af90e10",
+    "bundledPersistenceSha256": "5d4703429054e0a45aa72bf8bed8bd63d814631f7fea1b928c42a41c8e75dbc2",
+    "currentTestLogSha256": "f8d2bc095389813602f758ea5ba81d5871436ed7339dbfc74951f97db327c1fc",
+    "bundledTestLogSha256": "f721601e9a5153c56665acae0ad3509ef9fad949acf5d2c076fad8c600d1db63",
+    "dynamicLoad": "DYLD_PRINT_LIBRARIES confirms the test loads the newly built current shared codec.",
+    "independentReader": "ezdxf 1.4.5 checks physical ASCII/Binary signatures, group-30 elevation and all three XY line endpoints for normal output, mixed-elevation fallback and corrected retry for both codec builds.",
+    "independentOutputs": {
+      "current": {
+        "line-ascii.dxf": {
+          "sha256": "c2a3c77cac53c514aa612e3bf8ea232ac301308db3f7f93e9db2a6a709ca4ee4",
+          "elevation": 3.0,
+          "edges": 3
+        },
+        "line-binary.dxf": {
+          "sha256": "1fd0f07579c42424b41b5d5b90fff3bb09692070a2d4a56d205a8e1933c2f687",
+          "elevation": 3.0,
+          "edges": 3
+        },
+        "mixed.dxf": {
+          "sha256": "24b68a1aae506b28b43d10c27615b7ce2796312163a5200a0df9e7cd6fc18f27",
+          "elevation": 0.0,
+          "edges": 3
+        },
+        "retry.dxf": {
+          "sha256": "c2a3c77cac53c514aa612e3bf8ea232ac301308db3f7f93e9db2a6a709ca4ee4",
+          "elevation": 3.0,
+          "edges": 3
+        }
+      },
+      "bundled": {
+        "line-ascii.dxf": {
+          "sha256": "11a9f579a2c39a17b0b06f74cd364089853d35be43405c40a984fe520635c0d4",
+          "elevation": 3.0,
+          "edges": 3
+        },
+        "line-binary.dxf": {
+          "sha256": "37e5da262daa0660682dd7423b2d4bbf4487e9a14583e51bb6f759c7f93bc7b5",
+          "elevation": 3.0,
+          "edges": 3
+        },
+        "mixed.dxf": {
+          "sha256": "0de0093f61c6bb6d1d5b229d3d8d99fec96e501a374fd0f7df8e822e27b19412",
+          "elevation": 0.0,
+          "edges": 3
+        },
+        "retry.dxf": {
+          "sha256": "11a9f579a2c39a17b0b06f74cd364089853d35be43405c40a984fe520635c0d4",
+          "elevation": 3.0,
+          "edges": 3
+        }
+      }
+    }
+  },
+  "limits": [
+    "This is an unmerged downstream incremental patch and does not qualify LibreCAD_3 GUI behavior, other platforms or full output.",
+    "Tilted planes, DWG MPOLYGON mapping, and non-line edge elevation inference remain outside this patch. ARC, ELLIPSE and SPLINE edge paths still require a separate source, import/export and loss-reporting audit.",
+    "The mixed-elevation route reports loss and writes a flattened fallback; the retry test does not claim atomic refusal. No DWG/DXF fixture was committed."
+  ]
+}

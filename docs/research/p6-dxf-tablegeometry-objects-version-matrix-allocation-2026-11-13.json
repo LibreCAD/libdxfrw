@@ -1,0 +1,47 @@
+{
+  "id": "p6-dxf-tablegeometry-objects-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "scope": "Generated bounded TABLEGEOMETRY OBJECTS writer allocation failure, destination rollback, unchanged caller state, same-codec byte-identical retry, and typed readback across every currently admitted revision.",
+  "profile": {
+    "source": "DRW_TableGeometry generated in tests/tablegeometry_objects_allocation_tests.cpp",
+    "targetRevisions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "repositoryFixtureAdded": false,
+    "admissionGate": "dxfRW::writeTableGeometry accepts versions AC1021 through AC1032; test enumerates the currently modeled target revisions"
+  },
+  "implementation": {
+    "test": "tests/tablegeometry_objects_allocation_tests.cpp",
+    "testSha256": "524d02f7b8367484c89756fc58214c285910f66998664fe6722986ee1a6c8b48",
+    "normalBinarySha256": "f28c9f1c21e09d1de0d5efa979d91e24b85612f501ba3040f0cc3bd4c1fd6345"
+  },
+  "environment": {
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "build": "build-gcc",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_tablegeometry_objects_allocation_tests -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_tablegeometry_objects_allocation$' -V"
+    ]
+  },
+  "result": {
+    "status": "PASS",
+    "selector": "libdxfrw_tablegeometry_objects_allocation",
+    "durationSeconds": 0.61,
+    "revisions": {
+      "AC1021": {"asciiAllocationOffsets": 11, "binaryAllocationOffsets": 11, "rollbackRetryReadback": true},
+      "AC1024": {"asciiAllocationOffsets": 11, "binaryAllocationOffsets": 11, "rollbackRetryReadback": true},
+      "AC1027": {"asciiAllocationOffsets": 11, "binaryAllocationOffsets": 11, "rollbackRetryReadback": true},
+      "AC1032": {"asciiAllocationOffsets": 11, "binaryAllocationOffsets": 11, "rollbackRetryReadback": true}
+    },
+    "totalAllocationOffsets": 88,
+    "sourceRevisionReadbackChecked": true,
+    "callerStatePreservedAtEveryOffset": true,
+    "retryBytesMatchCalibration": true,
+    "suite": "focused normal CTest selector only; no full suite or ASan rerun"
+  },
+  "limits": [
+    "Generated typed writer transaction evidence only; it does not establish independent producer semantics or consumer support.",
+    "ODA §20.4.103 calls the cell reference an unknown soft pointer; non-null references remain outside this admitted writer profile.",
+    "Does not close P6-G's full public-writer inventory."
+  ],
+  "next": "Continue the P6-G writer-route inventory and select the next admitted transaction gap from current writer/version gates."
+}

@@ -1,0 +1,42 @@
+{
+  "title": "Generated NAVISWORKSMODELDEF body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_NAVISWORKSMODELDEF_BODY_RECOVERY_PASS",
+  "scope": "CLI disposition for malformed generated NAVISWORKSMODELDEF bodies across six DWG revisions, including frame continuation, strict refusal, and explicit-partial output readback.",
+  "selection": {
+    "source": "P6-F OBJECTS typed-parser and writer/readback inventory",
+    "reason": "The existing custom-class dispatcher has a typed NAVISWORKSMODELDEF route. Its bounded body parser covers flags, a path string, status, minimum and maximum 3D extents, and host visibility; the local writer/readback suite already contains a generated seed. The CLI malformed-body disposition inventory had no profile for this parser."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-navisworks-modeldef-body-source",
+    "profile": "One NAVISWORKSMODELDEF with flags 3, a non-empty NWD path, enabled status, finite non-default minimum/maximum extents, enabled host visibility, and a following LINE. The bounded one-bit mutation search begins after common-prologue parsing."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 5, "output_revision": "AC1021"},
+    "AC1018": {"controls": 5, "output_revision": "AC1021"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024"},
+    "AC1027": {"controls": 3, "output": "refused by the existing source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "Each generated source is read with exactly one failed OBJECTS frame; the following LINE remains available and frame accounting balances.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel for output-qualified revisions.",
+    "Explicit-partial ASCII/Binary conversion and fresh typed DXF readback pass for AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "AC1027 strict and partial conversion remain refused by the source-reference gate."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
+    "diff_check": "git diff --check passed.",
+    "focused_test": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure passed; runtime 27.77 seconds.",
+    "cohort": "891 controls, up from 863; 28 profile controls added.",
+    "dedicatedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_navisworks_modeldef_recovery$' --output-on-failure: PASS 1/1 in 1.49 seconds (28 controls)."
+  },
+  "limits": [
+    "Generated local recovery and output-disposition evidence only; no producer-authored NAVISWORKSMODELDEF, NWD file interpretation, native behavior, or external interoperability is qualified.",
+    "AC1027 output remains unqualified because the existing source-reference gate refuses conversion.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

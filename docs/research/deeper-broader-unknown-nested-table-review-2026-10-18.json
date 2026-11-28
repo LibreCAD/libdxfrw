@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader unknown nested TABLE parity and loss-reporting review",
+  "mode": "primary-source web research and read-only plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare the DXF TABLES contract with current open-source parser/writer structures",
+    "Separate unknown nested symbol tables from ACAD_TABLE entities, custom classes, and malformed bare TABLE recovery",
+    "Resolve PAR-36/7U toward bounded, observable skip behavior without introducing a generic retention API",
+    "Specify fast generated validation and bounded diagnostic overflow behavior"
+  ],
+  "method": {
+    "kind": "Read primary Autodesk references, current project source/docs and issues, then inspect local parser/diagnostic paths",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/libdxfrw.cpp",
+      "src/drw_base.h",
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp"
+    ],
+    "limitations": "Autodesk sources define the published standard table set but do not prove vendor-specific table names cannot occur. Peer source/issues were reviewed, not executed. No representative producer drawing for an unknown nested table was available, so the plan explicitly declines generic preservation claims."
+  },
+  "sources": [
+    {
+      "project": "Autodesk DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D939EA11-0CEC-4636-91A8-756640A031D3.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A66D0ACA-3F43-4B2E-A0C2-2B490C1E5268.htm",
+        "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm"
+      ],
+      "revision": "Versioned online DXF references reviewed 2026-10-18",
+      "observed": "The standard TABLES section documents APPID, BLOCK_RECORD, DIMSTYLE, LAYER, LTYPE, STYLE, UCS, VIEW, and VPORT, with TABLE header, records, ENDTAB, and ENDSEC framing. Group 70 is a maximum/allocation hint rather than an exact record count. The separate graphical TABLE entity is ACAD_TABLE with entity-specific subclasses and cell payload."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/sections/tables.py",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/sections/table.py",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst"
+      ],
+      "revision": "Mutable master source/docs reviewed 2026-10-18",
+      "observed": "The TABLES implementation exposes a fixed mapping of standard table names to explicit collections and serializes those collections; the reviewed path shows no generic opaque symbol-table writer. The XREF/cross-document operation separately lists ACAD_TABLE and preserved unknown tag-storage entities/objects as unsupported/ignored. That operation-specific behavior is not evidence about base parsing or same-document rewriting."
+    },
+    {
+      "project": "ACadSharp issue #1128",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1128"
+      ],
+      "revision": "Open feature request opened 2026-06-30; page reviewed 2026-10-18",
+      "observed": "The requested recovery handles a bare TABLE token outside a SECTION/TABLES wrapper in some older NC/CAM/plotting exports. It is not a request about unknown nested table names, and the issue contains no public input drawing. It remains a separate nonstandard compatibility lead."
+    },
+    {
+      "project": "LibreDWG documentation",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "revision": "Mutable master documentation reviewed 2026-10-18",
+      "observed": "The unknown-type discussion concerns application-defined DWG classes and opaque object bytes, with retention dependent on class/profile and in some cases same-version rewrite with a complete unknown bit blob. This is not equivalent to a DXF group-pair symbol table."
+    },
+    {
+      "project": "Local libdxfrw and LibreCAD adapter paths",
+      "urls": [],
+      "revision": "Working-tree source reviewed 2026-10-18",
+      "observed": "dxfRW::processTables consumes an unrecognized nested table through ENDTAB and rejects ENDSEC first. OperationDiagnostic can carry non-failing secondary entries but is capped at 16; dx_iface snapshots the read diagnostic. The plan does not claim that every frontend currently presents advisories."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingDecisionResolved": "PAR-36/7U now prefers a bounded, observable skip for well-framed nested unknown symbol tables; arbitrary retention is deferred until a named consumer and valid producer evidence justify it.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies format/peer boundaries; makes loss reporting and diagnostic-cap overflow explicit; specifies generated ASCII and safely typed Binary DXF tests, malformed terminator controls, following-known-table sentinel, adapter diagnostic snapshot check, and the existing focused-test cadence."
+  },
+  "implementationReadyChecks": [
+    "Keep nested unknown symbol tables, ACAD_TABLE graphical entities, custom CLASS/PROXY objects, and bare TABLE outside TABLES as separate behaviors.",
+    "Do not use group 70 as an exact body count; skip only to ENDTAB, reject malformed termination, and retain forward-progress checks.",
+    "Use a non-failing TABLES-phase unsupported-table-skipped advisory; when the 16-entry secondary budget is exceeded, expose a bounded aggregate count and detail-truncation outcome.",
+    "Generate the positive and malformed inputs locally; cover repeated tags, app data, XDATA, handle groups, and a following known table in ASCII, with Binary DXF only where group widths are already recognized.",
+    "Verify the adapter snapshots the advisory, but do not claim a CLI warning unless the actual frontend presents it.",
+    "Run the focused generated selector and owning DXF-fixture/hardening CTest only; no peer runtime, full suite, external fixture, dependency, or new CTest registration is needed for the leaf."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "This was a research and plan-only update in a broadly modified shared worktree; no code/test changes were made and no unrelated changes were staged."
+  }
+}

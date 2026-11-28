@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw-r12-effective-output-downgrade-review-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Reconcile exact AC1009 output, requested-version promotion, and semantic downgrade behavior across open-source writer claims, Autodesk SAVEAS policy, and the local DXF writer; refine only existing versioned output and peer-comparison gates.",
+  "method": {
+    "kind": "Primary-source documentation/source review and read-only local implementation/test audit",
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/ESP/Save-as-R12-DXF-format-from-AutoCAD.html",
+      "https://github.com/hakanaktt/acadrust",
+      "https://docs.rs/acadrust/latest/src/acadrust/io/dxf/writer/section_writer.rs.html",
+      "https://github.com/monozukuri-ai/cad2d-ir"
+    ],
+    "localInspection": [
+      "src/libdxfrw.cpp: target-version selection, header emission, AC1009 structural gates, and writer refusal paths",
+      "src/intern/dxfwriter.cpp: R12 versus R13+ binary group-code implementations",
+      "tests/dxf_fixture_tests.cpp: generated R12 ASCII/binary writer, identity, sequence, downgrade, and refusal controls",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing PAR-02, PAR-09, PAR-80, R12 owner and peer-artifact provenance entries"
+    ],
+    "limitations": "The ACadRust source URL and cad2d-ir README are mutable and were not bound to an installed package artifact or executed. Autodesk's R12 SAVEAS page was available in a localized rendering marked automatically translated. Capability statements and source code do not establish native acceptance or comprehensive R12 semantics."
+  },
+  "evidence": [
+    {
+      "topic": "Autodesk R12 application downgrade policy",
+      "observed": "The Autodesk Support article says R12 DXF retains only the last active layout as paper space, removes unsupported objects/features including proxy objects, and can suppress dimensions or change appearance/properties.",
+      "doesNotEstablish": [
+        "a complete normative R12 DXF grammar",
+        "that third-party writers should silently apply the same omissions",
+        "that a parseable R12 file preserves all source semantics"
+      ],
+      "planUse": "Track per-record mapping, explicit omission/refusal, diagnostic, and publication outcome independently from R12 parseability."
+    },
+    {
+      "topic": "ACadRust requested versus effective DXF output version",
+      "observed": "The public matrix advertises AC1009 read/write, while the current SectionWriter source normalizes a requested AC1009 target to AC1012 because its output path emits R13+ handles, owners, subclass markers, and OBJECTS structure; its header uses the normalized version.",
+      "doesNotEstablish": [
+        "a requirement that libdxfrw upgrade an R12 request",
+        "runtime behavior of a pinned ACadRust release",
+        "that every AC1009 read/write matrix cell means exact AC1009 output"
+      ],
+      "planUse": "Capture requested version and actual emitted $ACADVER/structural profile independently; score R12-source-to-R13-output as version promotion, not R12 output."
+    },
+    {
+      "topic": "cad2d-ir explicit AC1009 lowering policy",
+      "observed": "The project README describes AC1009 output with feature-specific conversions and ExportDiagnostic entries for skipped, approximated, exploded, or normalized content, and lists R12 semantic limitations for true color, lineweight, and INSUNITS.",
+      "doesNotEstablish": [
+        "behavior of a particular published wheel or sdist",
+        "independent runtime or native CAD acceptance",
+        "raw-record identity preservation for derived geometry"
+      ],
+      "planUse": "Consider only as a provenance-qualified optional downgrade comparator; compare to a source-authored expected mapping, not peer-generated expected bytes."
+    },
+    {
+      "topic": "Local AC1009 writer and existing test coverage",
+      "observed": "The local writer selects R12 binary group-code framing for AC1009, emits the requested revision in the header, gates handles/owners/subclasses, and has generated R12 ASCII/binary controls for several entity, carrier, downgrade, and refusal paths.",
+      "doesNotEstablish": [
+        "complete R12 semantic parity",
+        "that every unsupported field or object family is diagnosed",
+        "native CAD acceptance on any platform"
+      ],
+      "planUse": "Reuse current focused test owners; bind the effective emitted version and per-source-record outcome at the composed versioned-output checkpoint."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "refinedOwners": [
+      "PAR-02 versioned DXF write and independent acceptance matrix",
+      "PAR-09 exact output-version policy",
+      "PAR-80 and existing R12 derived-entity/downgrade owners",
+      "composed peer output identity/type/owner inventory"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "record source version, requested target, actual emitted $ACADVER, and structural version profile separately",
+      "distinguish exact R12 output from a modern-version promotion of an R12 source",
+      "for intentional R12 lowering, bind source identity to exact or derived output, diagnostics, refusal/omission, and strict reopen",
+      "defer mutable peer runtime comparison until exact artifact/source correspondence is resolved"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

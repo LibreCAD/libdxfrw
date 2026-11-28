@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-typed-xdata-binary-chunk-views-fast-slice-v1",
+  "date": "2026-10-17",
+  "slice": "7S.2c.d.17.43",
+  "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / TYPED_XDATA_1004_COPY_SCOPED",
+  "objective": "Avoid whole-payload hex materialization and per-chunk substring copies in typed XDATA binary group-1004 emission.",
+  "implementation": {
+    "changed_files": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/typed-xdata-binary-chunk-views-fast-slice-2026-10-17.json"
+    ],
+    "behavior": [
+      "Binary-vector input is encoded directly into a fixed 254-character stack buffer per at-most-127-byte XDATA chunk.",
+      "Already-hex string input is validated and emitted as synchronous 254-character string_view slices instead of copied substrings.",
+      "Empty-payload group behavior, uppercase encoding, chunk order, byte limit, and write-failure propagation are unchanged."
+    ],
+    "compatibility": "Internal writer path only; no installed API, public class layout, or DRW_Interface callback changed."
+  },
+  "tests": {
+    "build_fixture_target": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "build_fixture_target_result": "PASS",
+    "focused_selector": "build-gcc/libdxfrw_dxf_fixture_tests --xdata-binary-chunk-boundary",
+    "focused_selector_result": "PASS",
+    "adjacent_hardening_build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+    "adjacent_hardening_build_result": "PASS",
+    "adjacent_hardening_selectors": [
+      "build-gcc/libdxfrw_hardening_tests --dxf-binary-chunk-stack-buffer",
+      "build-gcc/libdxfrw_hardening_tests --dxf-ole-binary-chunk-stack-buffer"
+    ],
+    "adjacent_hardening_selectors_result": "PASS",
+    "owning_adjacent_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "owning_adjacent_ctest_result": "PASS (1/1)",
+    "diff_check": "PASS",
+    "receipt_json_validation": "PASS"
+  },
+  "controls": [
+    "The existing generated 126/127/128-byte matrix covers byte-vector and already-hex-string input across ASCII and Binary DXF.",
+    "Controls assert exact group-1004 chunk order/boundaries, public import readback, and alignment of a following LINE; generated files are removed."
+  ],
+  "limits": [
+    "Source-level full-copy and per-chunk-copy avoidance is established by the view/stack-buffer paths; allocator counts, peak RSS, and throughput were not measured.",
+    "No full fixture suite, peer runtime, native CAD application, external drawing, or sanitizer/fuzz campaign was run."
+  ],
+  "artifacts": {
+    "external_dwgdxf_fixtures_added": false,
+    "persistent_fixture_added": false,
+    "dependencies_added": false,
+    "ctest_registration_added": false,
+    "support_claim_promoted": false
+  },
+  "plan_ledger": {
+    "finding_count": 129,
+    "top_level_subplan_count": 72,
+    "queue_order_changed": false
+  },
+  "next_unblocked_slice": "Continue auditing bounded DXF binary and text writers, preserving error propagation and exact serialization while preferring existing focused controls.",
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit_status": "UNCOMMITTED; broad shared worktree and .git metadata is read-only in this environment"
+}

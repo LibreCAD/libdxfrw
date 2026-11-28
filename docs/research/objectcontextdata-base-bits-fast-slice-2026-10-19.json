@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "title": "AC1024+ OBJECTCONTEXTDATA base-bit correction fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-20/7F.1",
+  "scope": "Implement the ODA v5.4.1 R2010+ standalone AcDbObjectContextData base bit between classVersion and defaultFlag, with generated exact-boundary controls.",
+  "changes": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionBehaviorChanged": true,
+    "versionScope": "AC1024 and later; AC1027+ common hasDsData handling unchanged",
+    "model": "Added m_hasFileToExtensionDictionary with ODA default true; common xDictFlag remains separate.",
+    "publicApiOrLayoutChanged": true,
+    "virtualInterfaceChanged": false,
+    "generatedControls": {
+      "versions": ["AC1024", "AC1032"],
+      "contextDictionaryBit": [false, true],
+      "defaultFlag": [false, true],
+      "commonXDictFlag": [0, 1],
+      "independentBodyCursorAndSentinel": true,
+      "independentCommonAndScaleHandleOrder": true,
+      "handleStreamSentinel": true,
+      "malformedExactBoundary": [
+        "missing context dictionary bit",
+        "missing following default bit"
+      ],
+      "failedFieldCursor": true,
+      "resetAndSameParserRetry": true
+    },
+    "newCtestRegistration": false,
+    "repositoryFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerOrNativeRun": false,
+    "fullSuiteRun": false,
+    "commitAttempted": false
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --object-context-base-bits",
+      "result": "PASS"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "elapsedSeconds": 0.05
+    },
+    "compatibilityCompile": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+      "result": "PASS"
+    },
+    "scopedDiffCheck": {
+      "command": "git diff --check -- src/drw_objects.h src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "receiptValidation": {
+      "command": "jq empty docs/research/objectcontextdata-base-bits-fast-slice-2026-10-19.json",
+      "result": "PASS"
+    },
+    "fullSuite": "NOT_RUN",
+    "externalPeer": "NOT_RUN",
+    "nativeCad": "NOT_RUN"
+  },
+  "evidenceLimits": [
+    "The DWG vectors are generated in memory and are not producer-authored samples.",
+    "The class type prefix is synthetic and is used only for direct parseDwg tests; no dispatch type code is inferred.",
+    "The body and handle sentinels establish local framing and field order, not a following independent DWG object or producer interoperability.",
+    "No external producer trace was available to qualify a potentially distinct producer-specific profile.",
+    "The slice does not preserve standalone context raw frames through DWG-to-DXF conversion and does not implement full MLeader context semantics."
+  ],
+  "planImpact": {
+    "existingFindingAndSubplanOnly": true,
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "sliceStatus": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / UNCOMMITTED",
+    "broaderPAR20": "REMAINS_IN_PROGRESS",
+    "nextLocalItem": "Standalone OBJECTCONTEXTDATA adapter loss/refusal closure under PAR-20/7F.1",
+    "supportClaimsPromoted": 0,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

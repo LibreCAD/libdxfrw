@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-acsh-proxy-class-codec-readback-2026-11-05",
+  "date": "2026-11-05",
+  "status": "GENERATED_CODEC_READBACK_PASS_NON_PROMOTING",
+  "supportClaimEffect": "none",
+  "question": "Can the DXF codec and graph-closed adapter emit a bounded ACAD_PROXY_OBJECT with its custom CLASS metadata, reject a bad source revision atomically, retry through the same adapter, and recover both records on a fresh read?",
+  "method": {
+    "control": "locally authored in-memory proxy object and CLASS row; output is written to a temporary path and removed by the test",
+    "versions": ["AC1027"],
+    "encodings": ["ASCII", "Binary"],
+    "test": "tests/dwg2dxf_adapter_tests.cpp:acdsOpaqueProxyCodecReadback",
+    "selector": "--acds-opaque-proxy-codec-readback",
+    "ctest": "dwg2dxf_acds_opaque_proxy_codec_readback",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4"
+  },
+  "generatedProfile": {
+    "proxyHandle": "0xA501",
+    "classRecordName": "ACSH_GENERATED_PROXY_CLASS",
+    "classId": 0,
+    "bodyBitSize": 16,
+    "bodyBytes": "DE AD",
+    "proxyObjectIdReferences": 0
+  },
+  "checks": [
+    "whole DXF writer emitted the OBJECTS proxy and custom CLASS row",
+    "fresh DXF read returned one matching CLASS row and one typed plus raw proxy callback",
+    "raw proxy identity, ordered group codes/types/values and body spelling matched in ASCII and Binary",
+    "typed proxy payload recovered the exact two generated body bytes",
+    "dx_iface::fileExport with requireResolvedOwners=true rejected a raw proxy tagged with the wrong source revision without replacing an existing destination",
+    "the corrected raw proxy retried through the same adapter and fresh readback verified the CLASS row plus ordered raw proxy values in ASCII and Binary"
+  ],
+  "result": {
+    "ascii": "pass",
+    "binary": "pass"
+  },
+  "limits": [
+    "This is a generated codec test, not a physical DWG source witness.",
+    "The adapter control uses a locally authored DXF-origin document and the fixed NOD owner; it does not prove physical DWG source owner/reactor/xDictionary graph closure, EED dependency closure, or whole-source strict export.",
+    "It does not establish ACSH geometry, ACIS semantics, or any broader support claim."
+  ]
+}

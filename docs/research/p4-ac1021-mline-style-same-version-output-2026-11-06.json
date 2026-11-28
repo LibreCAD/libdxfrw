@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 MLINESTYLE same-version selected output on lineweights",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/lineweights.dwg",
+    "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+    "version": "AC1021",
+    "provenance": "Existing local input; producer and author are not independently authenticated. No DWG/DXF fixture was committed."
+  },
+  "independentPeer": {
+    "implementation": "LibreDWG 0.14",
+    "sourceJson": "/private/tmp/libredwg-lineweights-min.json",
+    "sourceJsonSha256": "6832531f5abd1e3baa3e4121a8c617b9a947f9f2e2f1f3b409f5ac1cdc15d592",
+    "sourceFields": "MLINESTYLE 0x18, owner dictionary 0x17, name STANDARD, empty description, flags 0, ByLayer fill, start/end angles pi/2, two lines at offsets +0.5 and -0.5 with ByLayer colors and linetype index 32767.",
+    "peerDxf": "/private/tmp/libredwg-lineweights-current.dxf",
+    "peerDxfSha256": "e4c1d37444bea46790f888d12b754a78b3beff6d0a36465ec54141147956ac94",
+    "peerRoleObservation": "The peer DXF output contains NOD ACAD_MLINESTYLE -> owner dictionary 0x17 -> Standard -> MLINESTYLE 0x18, plus the reciprocal style/owner reactors and the two inline elements. This is field corroboration, not native application qualification."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "The existing exact physical MLINESTYLE source-profile gate now permits AC1021 DXF output when its DWG source is AC1021, while retaining the existing AC1024 output route. No model or source-field admission was widened.",
+    "projection": "The selected graph contains the source MLINESTYLE, its NOD root edge and owner DICTIONARY, their source-frame evidence, and required source read receipt. Unrelated document records are excluded only from this selected proof."
+  },
+  "verification": {
+    "focusedBuild": "PASS: cmake --build build --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4 (-Werror).",
+    "physicalSelector": "PASS: --mline-style-ac1021-same-version-selected-output lineweights.dwg; ASCII and Binary AC1021 output, fresh local readback, exact fields and graph roles, invalid-fill-index destination preservation, and same-adapter retry.",
+    "existingTargetRegression": "PASS: --mline-style-ac1021-selected-output children-room-decoration.dwg; the established AC1024 route remains valid for ASCII and Binary.",
+    "sameVersionPartialWholeSource": "PASS: the lineweights source reaches staged output and qualifies MLINESTYLE during AC1021 AllowPartial conversion; this is not a completeness qualification.",
+    "strictWholeSource": "EXPECTED FAIL CLOSED after serialization: 42/49 callbacks qualified. Remaining identities are LAYOUT 0x22/0x102/0x108 and VIEWPORT 0x104/0x105/0x10A/0x10B. Log SHA-256: 453c52751907068938735746de9f65f2129f0f0b2f21875afd50443fb800ba15.",
+    "fullSuites": "NOT RUN; focused source selectors and one strict source probe only.",
+    "fixturesCommitted": false
+  },
+  "limits": [
+    "One existing local source and one exact STANDARD MLINESTYLE profile only.",
+    "Selected output does not qualify LAYOUT/VIEWPORT closure, whole-drawing conversion, producer-wide support, or native CAD behavior.",
+    "LibreDWG field agreement and fresh local readback are not independent native acceptance."
+  ],
+  "nextAction": "Close the seven remaining source-bound AC1021 LAYOUT/VIEWPORT identities, then rerun strict same-version conversion and update the queue from its next debug gap list."
+}

@@ -1,0 +1,37 @@
+{
+  "receipt_version": 1,
+  "id": "p5-ac1021-cellstylemap-content-format-enum-combination-matrix-2026-11-12",
+  "date": "2026-11-12",
+  "title": "AC1021 CELLSTYLEMAP Content Format enum combination matrix",
+  "status": "GENERATED_CODEC_ROUNDTRIP_CONTROL",
+  "supportClaimEffect": "none",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["20.4.99", "20.4.101.3", "20.4.101.4", "20.4.102"],
+    "scope": "ODA-listed value data types 0,1,2,4,8,16,32,64,128,256,512; DWG unit types 0,1,2,4,8; and cell alignments 1 through 9"
+  },
+  "implementation": {
+    "file": "tests/dwg_object_vectors_tests.cpp",
+    "test": "testCellStyleMapDwgEncodeRoundTrip",
+    "profile": "AC1021 generated CELLSTYLEMAP object with one populated custom style, detached string stream, text-style pointer, common owner/reactor/extension-dictionary links, and existing border payload",
+    "combinations": 495,
+    "checks": [
+      "source object encodes for every enum combination",
+      "generated object frame parses in a fresh object",
+      "data type, unit type, and alignment survive together",
+      "content format string and text-style handle survive readback"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_cellstylemap_dwg_encode_roundtrip$' --output-on-failure",
+    "result": "PASS 1/1; all 495 enum combinations encoded and read back"
+  },
+  "limits": [
+    "Generated AC1021 codec evidence only; no independent physical producer sample was used.",
+    "Does not qualify arbitrary property flags, later-version standalone CELLSTYLEMAP writing, graph closure, native table meaning/rendering, or whole-document output.",
+    "No DWG or DXF fixture was added."
+  ],
+  "next": "Resolve source- or consumer-backed Content Format/CELLSTYLEMAP profiles and remaining payload/flag interactions without promoting support claims from generated matrices."
+}

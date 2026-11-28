@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw-acadrust-065-acis-peer-kernel-lineage-research-v1",
+  "observedAt": "2026-10-21",
+  "title": "ACadRust 0.6.5 ACIS peer route and kernel-lineage boundary",
+  "evidenceKind": "primary-source review",
+  "plans": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "method": {
+    "peerRuntimeRun": false,
+    "nativeCadRuntimeRun": false,
+    "geometryKernelRun": false,
+    "externalDrawingDownloaded": 0,
+    "persistentFixtureAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "sources": [
+      "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.5",
+      "https://github.com/hakanaktt/acadrust/commit/289a616",
+      "https://github.com/hakanaktt/acadrust/blob/289a616/tests/roundtrip.rs",
+      "https://raw.githubusercontent.com/hakanaktt/acadrust/289a616/Cargo.toml",
+      "https://docs.rs/acadrust/0.5.5/acadrust/entities/acis/types/struct.SatDocument.html",
+      "https://docs.rs/acadrust/0.5.5/acadrust/entities/acis/sab/struct.SabReader.html",
+      "https://github.com/HakanSeven12/opencadkernel",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://github.com/ixmilia/dxf"
+    ],
+    "evidenceRule": "Release notes, documentation, and project tests identify a candidate route and test shapes but do not independently establish exact parser behavior, arbitrary ACIS semantics, DWG AcDs completeness, or native CAD acceptance. Bind every future run to an immutable release/source/package identity and keep carrier, graph, owner association, geometry, and application outcomes separate."
+  },
+  "evidence": [
+    {
+      "route": "ACadRust 0.6.5 structural and transport candidate",
+      "observed": "The v0.6.5 release at commit 289a616 advertises SAT/SAB model APIs and DWG/DXF read/write, with release notes for modeler colors, body splitting, wireframe data, pcurves, BODY history, and boolean history. It reports 1,957 default-feature tests and 2,022 all-feature tests. Its roundtrip tests include generated planar bodies, AcDs owner-order controls, and fabricated SAB-shaped marker data.",
+      "planUse": "Keep as CANDIDATE_STRUCTURAL_AND_TRANSPORT_ROUTE; NOT_QUALIFIED. Same-project tests and release claims are not an independent semantic oracle or application result. Treat fake marker payload tests as transport-only."
+    },
+    {
+      "route": "Version/source identity boundary",
+      "observed": "The fetched docs.rs ACIS API pages identify as version 0.5.5, while the GitHub latest release is 0.6.5 at 289a616. The release source and package correspondence must be checksum-bound before using API/source details as 0.6.5 evidence.",
+      "planUse": "Do not use docs.rs/latest as release-specific evidence. If source, package, and API versions cannot be reconciled at the optional checkpoint, record NOT_QUALIFIED and continue local work."
+    },
+    {
+      "route": "Kernel and application lineage",
+      "observed": "OpenCADKernel describes its ACIS lift/lower layer as early, with most operations unwritten. ACadRust identifies itself as OpenCADStudio's core DWG/DXF engine. The reviewed sources do not establish three independently qualified implementations or a mature independent geometry kernel.",
+      "planUse": "Track parser, kernel, and consumer lineage separately. Do not count ACadRust, OpenCADStudio, and OpenCADKernel as independent votes. Require independent expected geometry for any exact semantic result."
+    },
+    {
+      "route": "FreeCAD native consumer boundary",
+      "observed": "Official FreeCAD docs describe selectable C++ and legacy Python DXF importer routes with different entity coverage. DWG import is converter-to-DXF followed by the chosen importer; embedded ACIS/SAT solids are currently unreadable by stock FreeCAD.",
+      "planUse": "Bind native evidence to converter, output DXF hash/version, importer backend/options, FreeCAD build/platform, and per-source-entity disposition. Keep FreeCAD out of ACIS semantic-reader evidence."
+    },
+    {
+      "route": "Cross-peer loss/failure shapes",
+      "observed": "LibreDWG NEWS, ACadSharp issue 1195, ezdxf ACIS docs, and IxMilia.Dxf compatibility notes document or report separate SAT truncation, silent solid omission, limited ACIS conversion, and typed-entity application-acceptance risks. These are not local libdxfrw reproductions.",
+      "planUse": "Retain the complete per-source disposition denominator, including nested and solid-only blocks. Reuse existing local carrier and owner tests; add no duplicate peer-mirroring case absent a local source-audited gap."
+    }
+  ],
+  "implementationReadiness": [
+    "No peer test, external sample, full suite, new fixture, dependency, or CI job is required per implementation slice.",
+    "At the existing composed PAR-07/S8 checkpoint only, pin release tag, source/archive checksum, license, and version-matched source; mark unresolved artifact drift NOT_QUALIFIED.",
+    "Use only ephemeral locally generated asymmetric geometry controls with independent expected incidence, component, bound, and volume values, plus curved-face and owner-order negative controls.",
+    "Keep DXF SAT, DXF SAB, pre-AcDs inline DWG, and R2013+ AcDs owner/key association as separate exact-profile lanes.",
+    "A same-codec roundtrip, SatDocument::validate(), parse success, or nonempty shape cannot satisfy all evidence lanes.",
+    "If the optional route is unavailable or not profile-matched, record the missing evidence and self-unblock to local PAR-07/S8 work."
+  ],
+  "planImpact": {
+    "newLibdxfrwFinding": false,
+    "newTopLevelSubplan": false,
+    "existingOptionalComparatorReadinessImproved": true,
+    "newTestOrTestRegistration": false,
+    "persistentFixtureOrDependencyAdded": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": [
+    "No ACadRust, FreeCAD, LibreDWG, ezdxf, or geometry-kernel runtime was executed.",
+    "The ACadRust API pages examined are 0.5.5 and cannot be attributed to 0.6.5 without matching source verification.",
+    "Peer release/test claims do not establish independent semantic correctness or native CAD acceptance.",
+    "OpenCADKernel is an early-stage route and was not qualified as an independent geometry kernel.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

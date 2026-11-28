@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Seven-variable HEADER wire regression fast slice",
+  "mode": "Generated local implementation validation",
+  "scope": [
+    "Add raw wire regression coverage for $FILLETRAD, $ELEVATION, $THICKNESS, $CHAMFERA, $CHAMFERB, $ANGBASE, and $ANGDIR under PAR-27/7L.4.",
+    "Separate absent source fields, explicit zero values, public parsed values, and canonical output presence.",
+    "Verify exact group code, value, uniqueness, output order, and following-record alignment before and after parseback."
+  ],
+  "method": {
+    "generatedProfiles": [
+      "AC1015 ASCII DXF",
+      "AC1015 Binary DXF",
+      "AC1032 ASCII DXF",
+      "AC1032 Binary DXF"
+    ],
+    "sourceStates": [
+      "all seven fields present with distinct nonzero values",
+      "all seven fields present with explicit zero values",
+      "all seven fields absent from the source HEADER"
+    ],
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "productionCodeChanged": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "limitations": "The source and output are generated and read by this libdxfrw checkout. These controls verify local serialization and parser consistency only; they do not establish independent-producer conformance or native application acceptance."
+  },
+  "implementation": {
+    "sourceFiles": [
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "selector": "--header-wide-variable-wire-values",
+    "behavior": "Generated source DXFs are parsed into DRW_Header, then written and inspected with a code-aware raw HEADER scanner before secondary parseback. Present fields retain exact typed values; absent fields are confirmed absent in the parsed source model and emitted once with canonical zero defaults.",
+    "expectedGroups": {
+      "$FILLETRAD": 40,
+      "$ELEVATION": 40,
+      "$THICKNESS": 40,
+      "$CHAMFERA": 40,
+      "$CHAMFERB": 40,
+      "$ANGBASE": 50,
+      "$ANGDIR": 70
+    },
+    "outputOrder": [
+      "$FILLETRAD",
+      "$ELEVATION",
+      "$THICKNESS",
+      "$CHAMFERA",
+      "$CHAMFERB",
+      "$ANGBASE",
+      "$ANGDIR"
+    ],
+    "followingRecord": "LINE endpoint values are checked in both source and output parseback."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --header-wide-variable-wire-values",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "python3 -m json.tool docs/research/header-wide-variable-wire-fast-slice-2026-10-19.json",
+      "git diff --check -- tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/header-wide-variable-wire-fast-slice-2026-10-19.json"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "focusedSelector": "PASS",
+      "owningCTest": "PASS (1/1, 3.82 seconds)",
+      "receiptJson": "PASS",
+      "scopedDiffCheck": "PASS",
+      "fullSuiteRun": false
+    }
+  },
+  "planImpact": {
+    "findingCountChanged": false,
+    "subplanCountChanged": false,
+    "implementationQueueChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "sliceStatus": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / OWNING_CTEST_PASS; left unstaged and uncommitted because the shared worktree contains broad overlapping user changes."
+  }
+}

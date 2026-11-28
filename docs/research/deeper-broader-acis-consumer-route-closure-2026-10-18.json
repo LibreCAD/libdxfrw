@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader ACIS consumer-route closure and independent-kernel boundary",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Broaden the candidate route inventory for DXF-carried SAT/SAB solids beyond stock FreeCAD and codec-only claims",
+    "Confirm whether standard open-source OCCT provides an ACIS importer or relies on separately licensed components",
+    "Separate parser independence, geometry-kernel lineage, application consumption, and DWG AcDs scope",
+    "Refine the one-time optional external evidence gate without changing per-slice validation cadence"
+  ],
+  "method": {
+    "kind": "Primary project source, application manifests, FreeCAD Addon Reports, and official Open CASCADE documentation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-lineage-semantic-stage-review-2026-10-18.json",
+      "docs/research/deeper-broader-opencadkernel-acis-liftlower-and-lineage-refresh-2026-10-18.json",
+      "docs/research/deeper-broader-freecad-cadmpeg-3d-route-review-2026-10-18.json"
+    ],
+    "limitations": "GitHub main/master pages and app manifests are mutable. No FreeCAD/plugin compatibility run, OCCT component installation, peer payload parse, or kernel measurement was performed. Project statements establish declared route scope only, not behavior on this repository's target payloads."
+  },
+  "sources": [
+    {
+      "project": "Open CASCADE Technology",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+        "https://github.com/Open-Cascade-SAS/OCCT/wiki"
+      ],
+      "revision": "Official project announcement and current public documentation reviewed 2026-10-18",
+      "observed": "The official 2026 component announcement separates open-source OCCT data-exchange formats from commercial extensions and lists ACIS SAT/SAB import/export among the commercial components. The standard open-source OCCT/FreeCAD installation therefore cannot be presumed to include an ACIS parser."
+    },
+    {
+      "project": "InventorLoader / FreeCAD Addon Reports",
+      "urls": [
+        "https://freecad.github.io/Addon-Reports/",
+        "https://github.com/jmplonka/InventorLoader",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerSAT.py",
+        "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py",
+        "https://github.com/jmplonka/InventorLoader/issues/102",
+        "https://github.com/jmplonka/InventorLoader/issues/103",
+        "https://github.com/jmplonka/InventorLoader/issues/110"
+      ],
+      "revision": "Mutable project source and current addon catalog reviewed 2026-10-18; catalog identifies version 1.5.1 with a stale last-update indication",
+      "observed": "The DXF importer uses ezdxf to extract each 3DSOLID SAT/SAB payload and calls InventorLoader's own AcisReader before constructing FreeCAD Part shapes. The project documents no export and unsupported blend surfaces, some helix surfaces, and law-defined interpolated geometry without spline data. Its README's FreeCAD minimum-version guidance is old. Public issue reports describe sample-specific conversion/face/normal problems; none was acquired or reproduced. This is a DXF-carrier parser plus FreeCAD/OCCT geometry route, not a DWG or AcDs parser and not a second geometry kernel."
+    },
+    {
+      "project": "OpenCADStudio composed codec/kernel candidate",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/README.md",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "revision": "Mutable main manifest reviewed 2026-10-18",
+      "observed": "The manifest identifies application version 2026.41.0, pins the acadrust-named codec to opencadcodec revision 5d4f11a, and pins opencadkernel revision a60f18f with the acis feature enabled. Existing source review records OpenCADCodec as an ACadRust descendant and OpenCADKernel as an unreleased candidate with explicit loss/fallback reporting. This is a composed application route; the manifest alone does not identify a released binary's actual dependency graph or validate its rendering output."
+    },
+    {
+      "project": "cq-acis / acis-core and CADMPEG profile boundary",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://docs.rs/acis-core/latest/acis_core/",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+        "https://docs.rs/cadmpeg-codec-sat/latest/cadmpeg_codec_sat/"
+      ],
+      "revision": "Current public docs/release profiles reviewed 2026-10-18; mutable main docs distinguished from pinned artifacts",
+      "observed": "cq-acis accepts only documented bare SAT/SAB profiles, retains unknown records/history, and states that AcisModel construction proves reference closure rather than B-rep validity; supported conversion is bounded and uses CadQuery/OCCT. CADMPEG is a separate read-only bare-payload route with L1/profile limitations. Shared cited format references mean these projects' assumptions are not wholly uncorrelated, and neither reads DWG AcDs ownership."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Adds an optional route-choice gate: FreeCAD stock import is 2D-only; InventorLoader can independently parse DXF-carried SAT/SAB but uses the FreeCAD/OCCT kernel and is compatibility/coverage-limited; standard open-source OCCT does not include its commercial ACIS exchange component; OpenCADStudio is a composed ACadRust-descended codec plus unreleased kernel; cq-acis/CADMPEG are exact-profile bare-payload candidates. No released, reproducible independent non-OCCT kernel route is qualified by this research.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Close the local carrier/graph and exact payload identity gate before passing bytes to an external parser.",
+    "Score stock FreeCAD only for its selected 2D route; mark its unconsumed ACIS entities NOT_CONSUMED_BY_STOCK_DXF_ROUTE.",
+    "Consider InventorLoader only as a pinned optional DXF SAT/SAB parser-to-FreeCAD/OCCT route; preflight current FreeCAD/Python compatibility and report every source entity's disposition.",
+    "Use cq-acis or CADMPEG only when the extracted bare-stream signature/save profile exactly matches the pinned package's admitted subset; never infer AcDs linkage from it.",
+    "Separate parser lineage from kernel lineage. FreeCAD, InventorLoader, and cq-acis share OCCT-family geometry; OpenCADStudio remains an unreleased composed candidate, not an independent source vote.",
+    "Require externally authored or from-scratch analytic expectations, complete body disposition, valid closed topology, units, transforms, bounds, area, volume, centroid, and explicit loss/fallback status.",
+    "If independent semantic evidence remains unavailable, record CARRIER_PRESERVED / SEMANTICS_NOT_QUALIFIED and continue local implementation.",
+    "Keep all six external J items DEFERRED_EXTERNAL and do not change the fast per-slice validation loop."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "planDiffCheckPassed": true,
+    "receiptJsonParsed": true,
+    "researchChangedSourceCode": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

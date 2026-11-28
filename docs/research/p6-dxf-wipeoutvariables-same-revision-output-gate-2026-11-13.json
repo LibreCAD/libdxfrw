@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p6-dxf-wipeoutvariables-same-revision-output-gate-2026-11-13",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6-F disposition and P6-G caller-state audit",
+  "source": {
+    "kind": "deterministic from-scratch local AC1027 DWG generated in the test scratch directory",
+    "profile": "One typed WIPEOUTVARIABLES object owned by the Named Objects Dictionary, class version 0, display frame 1.",
+    "fixtureFilesAdded": 0
+  },
+  "sameRevisionGate": {
+    "productionRule": "prepareDwgWipeoutVariablesOutput requires the target DXF revision to equal the imported DWG revision for a non-empty typed WIPEOUTVARIABLES profile.",
+    "acceptedControl": "AC1027 DWG to AC1027 DXF; ASCII and Binary writer transaction controls pass.",
+    "rejectedControls": [
+      {"target": "AC1021", "result": "Refused before output; prior destination bytes preserved."},
+      {"target": "AC1024", "result": "Refused before output; prior destination bytes preserved."}
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wipeoutvariables_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_wipeoutvariables_objects_allocation_retry$' --output-on-failure: PASS 1/1",
+    "directControl": "build-gcc/tests/libdxfrw_wipeoutvariables_objects_allocation_tests /tmp/libdxfrw-wipeout-cross-revision: PASS",
+    "allocationOffsets": {"AC1027_ASCII": 12, "AC1027_Binary": 11},
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated adapter refusal and callback transaction evidence only; no cross-revision serialization or producer interoperability claim.",
+    "Only AC1027 source with AC1021 and AC1024 mismatched targets is covered by the new negative controls.",
+    "The previous AC1027 whole-operation allocation receipt remains the evidence for its larger 541 ASCII and 535 Binary sweeps."
+  ],
+  "supportClaimEffect": "none"
+}

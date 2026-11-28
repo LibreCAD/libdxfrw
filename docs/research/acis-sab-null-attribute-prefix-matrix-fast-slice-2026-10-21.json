@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-acis-sab-null-attribute-prefix-matrix-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "scope": "Generated in-memory ACIS BinaryFile 21800 record-prefix matrix",
+  "implementation": {
+    "tests": "tests/graph_preservation_tests.cpp",
+    "plan": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionCodeChanged": false,
+    "change": "Add an explicit null attribute-pointer sentinel positive and a separate malformed entity-ID-tag negative alongside the existing non-null attribute-pointer and malformed attribute-pointer cases.",
+    "profile": "ACIS BinaryFile 21800 only",
+    "fixtureFileAdded": false
+  },
+  "generatedCoverage": {
+    "inMemoryOnly": true,
+    "nullAttributePointerSentinel": -1,
+    "nullAttributeParsedAndPreserved": true,
+    "entityIdPreserved": true,
+    "semanticVertexPointReferencePreserved": true,
+    "wireframePointExpectationChecked": true,
+    "nonNullAttributePointerCaseRetained": true,
+    "malformedAttributePointerTagRejectedAndOutputCleared": true,
+    "malformedEntityIdTagRejectedAndOutputCleared": true
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    {
+      "command": "git diff --check -- tests/graph_preservation_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "limits": [
+    "This is parser/model structural evidence, not complete SAB grammar or ACIS geometry semantics.",
+    "No full suite, persistent drawing fixture, external reader, native CAD application, or independent kernel was run.",
+    "No support claim was promoted; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL.",
+    "The shared worktree remains broadly dirty and uncommitted; Git metadata is read-only."
+  ],
+  "next": "Continue the remaining locally actionable S3.7 profile-boundary and structural-matrix controls without waiting for external/native qualification."
+}

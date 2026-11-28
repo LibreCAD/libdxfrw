@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-32-image-graphs-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "59d07b6e",
+  "codecCommit": "985a48c89",
+  "codecDylibSha256": "7cd5ff40a29f6f7cbd85e4a05d62f42d731c74f451102d25e21c5df2ec81badc",
+  "scope": "Expand the already-audited same-version AC1021 ASCII model-space IMAGE graph from at most three to at most 32 images, matching the existing per-kind capture bound. Source, live, and staged field/identity/owner/reactor checks remain mandatory; unsupported graph profiles still refuse.",
+  "checks": [
+    "PASS: macOS ARM64 system-codec focused MATERIAL and IMAGE suite: 2871 assertions in 15 cases. Generated shapes include 4, 8, and 32 images, one shared through 32 distinct definitions, and a 33-image refusal preserving an existing destination.",
+    "PASS: source reactor-owner mutation, late mutation of the last image, destination preservation and corrected retries for each admitted larger graph. Existing scalar, source-carrier, dictionary and late-change tests also run at 4 and 32 images with and without a typed MATERIAL reference.",
+    "PASS: bundled-codec LibreCAD filter object compilation.",
+    "PASS: ezdxf 1.4.5 independently compares source/output IMAGE geometry and paths, resolves every image/definition/reactor and dictionary owner, checks reciprocal definition reactor sets, and audits both source and output without errors or fixes for five graph shapes. Two additional 4/32-image mixed graphs resolve the LINE's MATERIAL target and image links, with clean audits."
+  ],
+  "outputSha256": {
+    "4_images_1_definition": "de6afde26b7981ee6619fb7e36766678202ebd4c5f7c51ec483377addde4eeeb",
+    "8_images_4_definitions": "06b8f3e89245ea45c51c1b01a13d70251205413ba7fa75e228fc18da1be3c62b",
+    "32_images_1_definition": "21771d6667d9d54d0c68a6546dceec70f796239b2798053a455fcf766d33a661",
+    "32_images_4_definitions": "66d866799e070a2bffe4a43ec889eef52a6a9563380db97cd6d60838aa89571a",
+    "32_images_32_definitions": "d38de35d96276c0999d1f61448de8aa7c75d11594033e85fbe3639fbd70d3eaf",
+    "4_images_3_definitions_material": "9e16acfdf14deaf1d22eff9a4dd792873006d7a2aaca3cd577ed2dd1cf09911a",
+    "32_images_3_definitions_material": "0f2dbeb3df784bfe3d0a8855a7e03ff44c383e68f8ead6b29e9a7dc9e55e98b7"
+  },
+  "limits": [
+    "Only the previously admitted model-space, default-pen, ASCII-path and scalar profile is expanded; other versions, binary output, block multi-image, clipping variants, native rendering and other platforms remain open.",
+    "More than 32 images remain refused. The source-capture bound and aggregate-memory accounting must be addressed before raising the cap.",
+    "All drawings were generated locally and remain scratch-only; no fixtures were committed."
+  ]
+}

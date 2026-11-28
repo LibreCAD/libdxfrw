@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader source inventory and open-source route audit",
+  "mode": "Current primary-source repository and application documentation review, cross-checked against local implementation and plan",
+  "scope": [
+    "Reconcile current LibreCAD-generated route inventories with their declared evidence level.",
+    "Screen newly surfaced open-source CAD application routes for independent DWG/DXF parser lineages and relevant consumer evidence.",
+    "Reconcile current primary-source reports about modern AcDs/SAB carrier loss, silent solid omission, and FreeCAD's exact DXF consumer boundary.",
+    "Convert findings into implementation-ready plan guidance without growing the mandatory peer matrix or promoting support claims.",
+    "Continue the dependency-ready SCALE/DICTIONARYVAR serializer slice by closing the source-origin and generic CLASS version-boundary controls."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_downloaded": 0,
+    "peer_fixtures_copied": 0,
+    "full_suite_run": false,
+    "local_checks": [
+      "Read the current LibreCAD DWG/DXF coverage inventory and DWG version inventory, including their explicit static-analysis and fixture-needed qualifications.",
+      "Read the current LibreCAD_3 DWG support policy and inspected its read-only claim boundary.",
+      "Read current KumCAD, NextGIS lib_opencad, and historical sandyre/libopencad project READMEs; cross-checked lineage with existing plan notes for GDAL and LibreDWG wrappers.",
+      "Reopened current LibreDWG issue #1411 and NEWS/manual, ACadSharp issue #1195, FreeCAD's current DXF/DWG import documentation, and ezdxf's entity/ACIS authoring and browse-acis documentation.",
+      "Reproduced forged DWG-origin named-resource admission refusal and destination preservation in generated ASCII/Binary controls, followed by same-adapter retry with an internally valid synthetic receipt.",
+      "Added a direct DRW_Class writer boundary assertion: group 91 absent at AC1015 and present at AC1018.",
+      "Strengthened generated ASCII/Binary SCALE and DICTIONARYVAR root-closure vectors from one leaf to two leaves and asserted output CLASS instance count equals 2 on raw-replay and synthetic typed routes.",
+      "Built libdxfrw_dwg2dxf_adapter_tests, dwg2dxf, and lc3_compat_check with strict project warning settings; ran the owning named-resource CTest and scoped diff check."
+    ],
+    "limitations": "Remote inventory figures describe the reviewed current LibreCAD source snapshot and can change. Project README claims and application capability lists are not behavioral evidence. Public issue reports are route/build scoped and were not reproduced against current peer releases. No external peer, converter, consumer, or semantic geometry route was run. The synthetic DWG-origin receipt is only a serializer-route test and does not qualify real DWG import/output."
+  },
+  "sources": [
+    {
+      "name": "LibreCAD generated DWG/DXF coverage inventory",
+      "url": "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md",
+      "observed": "The report explicitly identifies itself as deterministic source inventory rather than byte-level conformance. The reviewed snapshot reports 72 fixed DWG entity probes, 38 object/table probes, 264 named/custom routes, 20 validated fixed entity shells, zero validated fixed object shells, 158 DXF entity names, 197 DXF object names, and 524 DXF class names; listed rows remain fixture-needed.",
+      "evidence_ceiling": "Candidate/change-detection index only. Registration and static source presence do not prove correct parse, graph closure, output, semantic support, or consumer acceptance."
+    },
+    {
+      "name": "LibreCAD generated DWG version-support status",
+      "url": "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_VERSION_SUPPORT_STATUS.md",
+      "observed": "The report describes a static dispatch/readiness matrix and keeps positive and negative fixture evidence blocked until corpus-backed checks.",
+      "evidence_ceiling": "Version-dispatch bookkeeping only; not byte-level or semantic qualification."
+    },
+    {
+      "name": "LibreCAD_3 DWG support policy",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "observed": "The consumer documentation distinguishes read from write and describes DWG as read-only through its opt-in reader integration; the referenced claim ledger is not a writer qualification contract.",
+      "evidence_ceiling": "Consumer policy and claim-scope evidence only; not an independent format implementation."
+    },
+    {
+      "name": "KumCAD DWG and 3D integration description",
+      "url": "https://github.com/todorw/KumCAD",
+      "observed": "The README describes optional DWG import/export via LibreDWG and a separate OpenCASCADE-backed 3D modeling feature set.",
+      "evidence_ceiling": "Potential downstream integration only. The codec lineage is LibreDWG, and the README does not independently establish DWG modeler-carrier import or B-rep semantics."
+    },
+    {
+      "name": "NextGIS lib_opencad current README",
+      "url": "https://github.com/nextgis-borsch/lib_opencad",
+      "observed": "The README states that the library supports DWG R2000 only.",
+      "evidence_ceiling": "Narrow optional AC1015/basic-geometry route; no evidence for newer DWG versions, writing, full object graphs, or ACIS/AcDs semantics."
+    },
+    {
+      "name": "Historical sandyre/libopencad predecessor README",
+      "url": "https://github.com/sandyre/libopencad",
+      "observed": "The repository marks itself abandoned, points users to NextGIS, and lists limited R15 reading in its old feature table.",
+      "evidence_ceiling": "Lineage/provenance context only; predecessor reports do not establish current successor behavior."
+    },
+    {
+      "name": "LibreDWG issue #1411, current NEWS, and manual",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "observed": "The still-open issue provides a scratch-generated AC1032 DXF REGION with 5,489 SAB bytes and separate dxf2dwg/dwg2dxf steps; the named LibreDWG 0.14.8593 Linux build preserves the entity shell but reports no AcDs/SAB output. Its separate R2018 drawing is confidential. The current manual still lists ACDSRECORD/ACDSSCHEMA as unhandled, while NEWS describes modern AcDs extraction as incomplete/brute-force.",
+      "evidence_ceiling": "A version/build/direction-specific public peer report and source-status observation; not reproduced here, not a current-master result, not a libdxfrw defect, and not B-rep evidence."
+    },
+    {
+      "name": "ACadSharp issue #1195 and linked writer PR #1240",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "observed": "The open issue reports a 3.4.9 DWG reader retaining typed 3DSOLID/REGION records while its DXF writer silently omits them, including solid-only blocks. The linked writer work is unmerged and does not establish latest-release behavior.",
+      "evidence_ceiling": "Issue/release-scoped peer report only; no result for current ACadSharp release and no evidence of a libdxfrw defect."
+    },
+    {
+      "name": "FreeCAD DXF and DWG import documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "observed": "FreeCAD documents separate selectable DXF import backends with different object coverage, stock inability to read embedded ACIS/SAT solids, and DWG conversion through an external converter to DXF; its DWG-import documentation identifies CADExchanger as the current 3D DWG route.",
+      "evidence_ceiling": "Defines the exact downstream consumer route and unsupported-object boundary; does not judge carrier correctness or ACIS semantics."
+    },
+    {
+      "name": "ezdxf ACIS entity, authoring, and browse-acis documentation",
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html#ezdxf.acis.api.body_from_mesh",
+      "observed": "The docs expose ACIS-bearing DXF entity classes and a read-only SAT/SAB browser; selected mesh-derived SAB generation is available through its bounded body_from_mesh API, but the library is not a DWG reader or ACIS geometry kernel.",
+      "evidence_ceiling": "Useful pinned DXF carrier authoring/inspection route only; not AcDs owner association, arbitrary ACIS editing, or semantic/native geometry qualification."
+    }
+  ],
+  "plan_impact": {
+    "inventory_policy": "Use source-generated registration and version inventories only to detect candidate changes and prioritize family-level reviews. Require the existing receipt, identity/owner, wire, semantic, and native evidence tiers before closing or promoting a support row.",
+    "lineage_policy": "Count KumCAD under LibreDWG; keep the NextGIS lib_opencad/GDAL CAD route narrow and read-only; do not count application wrappers or renderer/modeler feature lists as independent parser or semantic votes.",
+    "implementation_finding": "The SCALE/DICTIONARYVAR typed route could accept an in-memory DWG origin marker without a source-matched successful named-resource import receipt. Export now checks the existing all-four-family receipt predicate at entry. Generated invalid-origin tests assert refusal and sentinel preservation; a separate internally valid synthetic receipt exercises same-adapter serializer retry.",
+    "version_boundary": "Generated direct DRW_Class::write controls now assert that group 91 is absent for AC1015 and present for AC1018. This verifies only the generic CLASS serialization boundary and does not qualify either named-resource family at those object target versions.",
+    "implementation_speed": "Keep this work within f.4b.1a and its existing fast CTest. Generated SCALE and DICTIONARYVAR vectors now use two rooted leaves to detect hardcoded group91 cardinality. Do not add a peer dependency, fixture, CTest registration, or full-suite run; continue the next local dependency-ready item without waiting for native or external evidence.",
+    "support_claims": "No claim promotion. J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "finding_subplan_totals": {
+      "findings": 134,
+      "top_level_subplans": 76
+    }
+  },
+  "implementation_receipt": "docs/research/named-resource-class-manifest-fast-slice-2026-10-19.json",
+  "repository_state": "Plan, research receipt, and focused source/test edits are in a broadly dirty shared worktree. Nothing was staged or committed; Git metadata is read-only in this task environment."
+}

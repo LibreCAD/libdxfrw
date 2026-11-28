@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1032-large-radial-picture-block-resolution-2026-11-02",
+  "date": "2026-11-02",
+  "title": "Resolve and transport the AC1032 large-radial picture-block graph",
+  "status": "SOURCE_BLOCK_POINTER_RESOLVED; ASCII_BINARY_SELECTED_GRAPH_READBACK_PASS; NATIVE_DISPLAY_OPEN",
+  "supportClaimEffect": "none",
+  "scope": "Resolve a DWG DIMENSION common handle to its canonical DXF group-2 picture-block name, preserve the selected source block graph through ASCII/Binary DXF output and typed readback, and refuse strict output when a non-null source pointer has no resolved name.",
+  "priorEvidence": {
+    "receipt": "docs/research/p6-ac1032-large-radial-record-dxf-transport-2026-11-02.json",
+    "role": "Retains the already-verified center/chord/jog and common dimension-field comparisons; this slice adds source block-name resolution and picture-block graph output/readback."
+  },
+  "source": {
+    "path": "tests/fixtures/dwg/large_radial.dwg",
+    "repositoryStatus": "Already tracked in libdxfrw; no fixture added or modified",
+    "version": "AC1032",
+    "sizeBytes": 12632,
+    "sha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+    "dimensionRecordCount": 1,
+    "resolvedPictureBlockName": "*D1",
+    "matchingBlockDefinitionCount": 1,
+    "matchingBlockRecordCount": 1
+  },
+  "authority": {
+    "name": "Open Design Specification for .dwg files v5.4.1",
+    "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": {
+      "20.4.22": "Common Dimension Data; common handle tail includes H code 2 for the anonymous BLOCK hard pointer.",
+      "20.4.30": "LARGE_RADIAL_DIMENSION; repeats the DIMSTYLE hard pointer and anonymous BLOCK hard pointer in Common Entity Handle Data."
+    },
+    "decision": "Resolve the already-parsed source handle through the BLOCK_RECORD map. The matching BLOCK delimiter name is the canonical DXF group-2 representation; do not alter DWG byte parsing."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.cpp",
+      "src/intern/dwgreader.h",
+      "src/libdxfrw.cpp",
+      "tests/dwg_fixture_tests.cpp",
+      "tests/wave1_tests.cpp"
+    ],
+    "behavior": [
+      "Before entity delivery, read valid BLOCK delimiter names and normalize their BLOCK_RECORD names, so dimension-to-block name resolution is independent of unordered block traversal order.",
+      "Populate the DIMENSION group-2 name from its parsed DWG blockH reference for aligned, linear, angular, radial, diametric, arc and large-radial dimension callbacks.",
+      "In strict DXF output, reject a non-null source picture-block handle whose group-2 name is unresolved, before writing the entity record."
+    ],
+    "selectedOutputReadback": "The tracked large-radial record and its one matching picture-block definition/record are projected to ASCII and Binary DXF. Readback requires one typed dimension with the same group-2 name, one matching block, and the same ordered entity-type sequence in that block.",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "normalBuilds": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_fixture_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_wave1_tests -j2",
+        "result": "PASS"
+      }
+    ],
+    "normalFocusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_fixtures|libdxfrw_dxf_code_type_boundaries)$' --output-on-failure",
+      "result": "PASS, 2/2"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg_fixture_tests libdxfrw_wave1_tests -j2",
+      "result": "PASS"
+    },
+    "asanFocusedTests": {
+      "command": "ctest --test-dir build-asan-custom -R '^(libdxfrw_dwg_fixtures|libdxfrw_dxf_code_type_boundaries)$' --output-on-failure",
+      "result": "PASS, 2/2"
+    },
+    "strictUnresolvedHandleControl": "The ASCII and Binary wave1 controls inject a non-null DWG picture-block handle with no group-2 name; strict write fails with unresolved-dimension-picture-block and leaves the preexisting output prefix unchanged.",
+    "sourceSha256": {
+      "src/intern/dwgreader.cpp": "0a7a6c0a3a0f0b7b9c6b5839426a1f8d00adbea025aca84e6902156def7a50e4",
+      "src/intern/dwgreader.h": "a1f6126c6e3e02b7eb950a61217c0dcaf40c9122ab7b2367d464c1986cc337f8",
+      "src/libdxfrw.cpp": "942f5288f454e30d551d5f6cb3a08494c2478338c48acb0671c04771ff9eec55",
+      "tests/dwg_fixture_tests.cpp": "96decfcd6e2cb5f4d91f776e87b84d29251d429c890433188d3d68c617c0842c",
+      "tests/wave1_tests.cpp": "198f19b843b69e501c838268d8cb349405345aec8d94b5424b7a2e617003306f"
+    },
+    "normalExecutableSha256": {
+      "build-gcc/libdxfrw_dwg_fixture_tests": "ff9a7d19c2b6375c6f9b88563b28a271b96bd7420072748c21ea0790f23c1d2b",
+      "build-gcc/libdxfrw_wave1_tests": "4f5b67b2e61424df76c2efaf6c9e012cfb1407181a217c39f981bdfe515cf30a"
+    },
+    "asanExecutableSha256": {
+      "build-asan-custom/libdxfrw_dwg_fixture_tests": "1c3694eac2f18c7367ad4c236b59023baa2941266082ee788115bcd3c92ea661",
+      "build-asan-custom/libdxfrw_wave1_tests": "53932615275debed2090dddf34374236761cab49f81d53bdd8ccc93839c756a6"
+    },
+    "fullSuites": false,
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "This qualifies one tracked AC1032 large-radial source profile and typed field/block-entity-type transport only.",
+    "It does not verify exact geometry for each picture-block member or native CAD display/regeneration semantics.",
+    "Whole-document strict conversion, other dimension producers/versions, and general dimension support remain unqualified."
+  ],
+  "planImpact": {
+    "phase": "P6",
+    "status": "OPEN",
+    "completedSlice": "The tracked AC1032 large-radial DWG hard pointer resolves to group-2 name *D1; its selected dimension and picture-block graph survive production ASCII/Binary output and typed readback. Strict output refuses a non-null handle without a resolved name.",
+    "remaining": "Native dimension display, whole-document conversion, other DIMENSION/annotation profiles, and remaining P6 semantic/version boundaries.",
+    "nextReadyPacket": "Continue the P6 residual audit on another source-backed annotation or geometry profile; do not change DWG field layouts without an ODA-backed producer trace."
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-sunstudy-whole-operation-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_SUNSTUDY_VERSION_MATRIX_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep whole-operation SUNSTUDY allocation failures at AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary; verify destination/caller/identity rollback, same-codec retry, source revision and typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One SUNSTUDY with two date entries, three modeled hours, subset and range selection, nondefault viewport settings and no external references. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-sunstudy-whole-operation-version-matrix-allocation-2026-11-13.json"
+    ],
+    "method": "For each revision and encoding, warm the writer, seed and calibrate the destination, inject one-shot allocation failures at every measured offset, and check prior destination bytes, complete caller graph, source-handle binding rollback and staging cleanup. Retry on the same codec and require exact output bytes plus fresh typed readback of source revision, dates, hours, subset/range and viewport fields.",
+    "revisions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "allocationOffsets": {
+      "AC1021_ASCII": 93,
+      "AC1021_BINARY": 91,
+      "AC1024_ASCII": 100,
+      "AC1024_BINARY": 98,
+      "AC1027_ASCII": 93,
+      "AC1027_BINARY": 91,
+      "AC1032_ASCII": 93,
+      "AC1032_BINARY": 91,
+      "total": 750
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_sunstudy_allocation_transaction$' --output-on-failure: PASS 1/1 (1.49 sec)",
+    "directRun": "PASS; all eight revision/encoding profiles reached the listed allocation offsets and passed rollback, same-codec retry and typed readback.",
+    "fullSuites": "NOT RUN",
+    "asan": "NOT RUN for this version-matrix extension"
+  },
+  "limitations": [
+    "Generated transaction evidence does not establish producer-authored source semantics or native SUNSTUDY behavior.",
+    "The profile has no external references and does not qualify owner graph closure or rendering semantics.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue the P6-G public-writer inventory with another exact uncovered route or overload, keeping generated transaction evidence separate from source and consumer qualification."
+}

@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Semantic adapter interface callback overload inventory",
+  "mode": "local fast implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Repair the semantic-adapter builder's current DRW_Interface inventory self-test failure",
+    "Explicitly recognize only reviewed ownership-transfer overloads",
+    "Keep adapter callback coverage name-based while rejecting unreviewed overload declarations"
+  ],
+  "implementation": {
+    "files": [
+      "tools/build_semantic_adapter.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "The inventory parser now accepts the exact const-reference/rvalue-reference overload pairs for addDataStorage, addModelerGeometry, and addUnsupportedObject.",
+      "The callback-name inventory remains unique for adapter coverage; overload signatures are separately checked against an explicit allowlist so additive API overloads cannot silently disappear into the name-only digest.",
+      "Builder self-tests now reject an arbitrary overloaded callback, an added third addDataStorage overload, and a duplicated declaration of an allowed overload."
+    ],
+    "productionCodeChanged": false,
+    "testRegistrationChanged": false,
+    "persistentFixturesAdded": false,
+    "externalFixturesImported": false,
+    "dependenciesAdded": false,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "pythonCompile": {
+      "command": "python3 -B -m py_compile tools/build_semantic_adapter.py",
+      "result": "passed"
+    },
+    "builderSelfTest": {
+      "command": "python3 -B tools/build_semantic_adapter.py --self-test",
+      "result": "passed"
+    },
+    "differentialRunnerSelfTest": {
+      "command": "python3 -B tools/run_qualified_differential_v2.py --self-test",
+      "result": "passed"
+    },
+    "diffCheck": "passed for tools/build_semantic_adapter.py",
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "planStatus": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "findingsAndSubplansRemain": "130/73",
+    "implementationOrderChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This closes only the current source-inventory parser mismatch and its fast self-test boundary. It does not complete the 7AG.4 effective compiler/SDK/runtime contract, 7F.1b typed result migration, native GNU/MSVC qualification, semantic qualification, or any DWG/DXF support claim.",
+  "workingTree": "The shared worktree is broadly modified. This slice remains unstaged and uncommitted; unrelated edits were preserved."
+}

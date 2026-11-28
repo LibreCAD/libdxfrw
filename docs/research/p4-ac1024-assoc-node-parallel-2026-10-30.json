@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-parallel-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative parallel-constraint node",
+  "status": "OBSERVED_PROFILE_IMPLEMENTED_REMAINDER_RAW",
+  "supportClaimEffect": "none",
+  "scope": "Decode the witnessed AC1024 version-0 AcParallelConstraint body without consuming a node handle, while preserving the remaining unsupported graph and strict export refusal.",
+  "input": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "committedFixture": false,
+    "groupHandle": "42B",
+    "sourceGroupVersion": 0,
+    "readerModelVersion": 2,
+    "serializedNodeIndex": 39,
+    "nodeId": 408,
+    "connections": [360, 295]
+  },
+  "independentReader": {
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "commit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+    "sourcePath": "src/io/dwg/dwg_stream_readers/object_reader/associative.rs",
+    "sourceGitBlobSha1": "0a4e0b7ea2e660ea32b90ee826617d171a22ccbd",
+    "sourceFileSha256": "08ae91fe60fc78f08a24af1d59b0256e82419c7c7cbc4a7e791684d96c8740fa",
+    "runtime": "official macOS ARM64 Rust 1.99.1",
+    "harnessSource": "/private/tmp/libdxfrw-acadrust-qualifier/src/main.rs",
+    "harnessSourceSha256": "14fde9d771cccd88ba8afc6e62a3bfb19461fb4d4518a468e1780d08b32ca484",
+    "harnessSha256": "fc05c3db378015bcc96963bc754e94d148ea0bab56d0ec1d7bd890d682155712",
+    "outputPath": "/private/tmp/arc-peer.txt",
+    "outputSha256": "a74d3cdccb8e11d2b144fe218ac9fc4d12b83483b5582b4bd54f7a82e88012bc",
+    "outputIndexNote": "The peer's node[0] is an empty in-memory sentinel; node[39] is the fortieth vector entry and the thirty-ninth serialized node."
+  },
+  "sourceProfile": {
+    "peerDecodedNode": "Parallel { owner_id: 0, is_implied: false, is_active: true, datum_line_index: None }",
+    "peerWireInterpretation": "The peer calls read_geometrical_constraint(reader, legacy). For this source version-0 group, legacy makes active=true a synthesized model value; no active bit is read. The AcParallelConstraint branch does not read datum_line_index or a class-specific handle. Horizontal and Vertical nodes use a different conditional index path and are not included here.",
+    "wireLayout": [
+      "Owner ID: BL.",
+      "Implied: B.",
+      "Active: absent on the version-0 wire; the peer's true is normalized state.",
+      "Datum-line index: absent for AcParallelConstraint.",
+      "Node-specific handle-stream fields: none."
+    ],
+    "localTrace": {
+      "result": "The real source decodes node ID 408, owner 0, implied false, activePresent false; body position advances from bit 6353 to 6356 while the handle position remains bit 218420.",
+      "otherInstance": "The same group also decodes node ID 247 with the same body profile and unchanged handle position.",
+      "logSha256": "5567d65026727c03c7870fa9073866821dafcb791fe9f30ca993a59c58237d54"
+    },
+    "odaSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "Bit Codes and Data Definitions, page 7: B and BL are bit-level values.",
+        "Handle References, page 16: typed handle role meanings; this class body contains no handle field."
+      ],
+      "result": "ODA defines the generic primitive encodings and handle roles; the peer source and same-input trace identify this class body."
+    },
+    "limitations": [
+      "The independent reader is structural evidence only and does not qualify consumer semantics or promote a support claim.",
+      "The implementation is limited to this version-0 inline profile; other constraint classes and registry layouts remain separate.",
+      "AcDistanceConstraint node 77 is the next unsupported body; the real group remains partial and strict export refusal is required.",
+      "Full associative closure, DXF serialization, readback and consumer meaning remain unqualified."
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "change": "Added AcParallelConstraint to the already-verified version-0 geometrical-body path. It reuses the owner-ID/implied decoder and keeps the active flag explicitly absent.",
+    "generatedControl": "A from-scratch Parallel node is followed by a non-null code-4 AcConstrainedImplicitPoint. Exact decoded point fields, the one-handle decoded count, complete node body and following sentinel prove Parallel consumes no handle and leaves the next dependency aligned.",
+    "strictExport": "dwg-associative-graph-not-serialized remains active; no DXF output is created.",
+    "persistentDrawingFixturesAdded": 0
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "realSourceNormal": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/parallel-check.dxf",
+      "result": "Trace decodes both observed Parallel nodes and advances from 39 to 49 node envelopes, stopping at AcDistanceConstraint node 77. Expected strict export refusal; no DXF was created.",
+      "logSha256": "5567d65026727c03c7870fa9073866821dafcb791fe9f30ca993a59c58237d54"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS with -fsanitize=address"
+    },
+    "asanFocusedTest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "realSourceAsan": {
+      "command": "build-asan-custom/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/parallel-check-asan.dxf",
+      "result": "Same Parallel decoding and next-node boundary; no AddressSanitizer diagnostic and no DXF output.",
+      "logSha256": "5567d65026727c03c7870fa9073866821dafcb791fe9f30ca993a59c58237d54"
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "4b1d4c93494b1e290f38ac36e20808d2e03613580e7187b94d7450a98defebd6",
+    "tests/dwg_reader_matrix_tests.cpp": "7a89ac15b0b21472039440d2d097f208eafdf93fa2045875b4eafd85bfd0c516",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "2056e8de4ed56766653a72366f44fa910671ae58b949862f53d99c4f8d311186",
+    "build/dwg2dxf/dwg2dxf": "f38f4934bcfd6795515d9fbef0f8654160c14b30c56c8a20e3797382ecc36db7",
+    "build/libdxfrw_dwg_reader_matrix_tests": "05b96e59f169588075d1df6e5378532556b2d9605b77686d64bc0d564b0faeb8",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "39e8efc1a57b4ac84590e26181095a4c8658eb0cec4ecbb350cfb9054e2cadcc",
+    "build-asan-custom/libdxfrw_dwg_reader_matrix_tests": "e29dc0d5d1e89774ce105a126015e319582908c10be6566ee0ae5884dcef6d05"
+  },
+  "nextAction": "Implement source-matched AcDistanceConstraint node 77; probe its two handle roles/references and conditional direction/distance body fields before consuming them."
+}

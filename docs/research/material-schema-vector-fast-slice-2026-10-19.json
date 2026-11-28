@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw-material-schema-vector-fast-slice-v1",
+  "date": "2026-10-19",
+  "status": "PASS_LOCAL_FAST_SLICE",
+  "planOwner": "PAR-20/7G.3f.4b.2 MATERIAL DXF raw payload schema-vector completion",
+  "scope": "Extend the existing generated AC1027 ASCII/Binary MATERIAL raw-capture and replay control to cover color fields and complete contextual mapper matrices; no production parser/writer changes.",
+  "implementation": {
+    "filesChangedThisSlice": [
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256AfterSlice": {
+      "tests/dxf_fixture_tests.cpp": "72b8785be97a0ee11e74f47ccf21ae818edd4c248a74cb7a3677565912493ae1",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "27c661ea1f36b03d20fbb1ee1619ac1b5f0a60ae1ccc30d86ed14f71c44e523f"
+    },
+    "generatedCoverage": [
+      "Ambient and diffuse color method/factor/value fields (70/40/90 and 71/41/91).",
+      "Diffuse-map context with 16 distinct row-major group-43 values.",
+      "Normal-map context with repeated contextual codes and a second 16-value group-43 transform.",
+      "ASCII and Binary DXF import/replay verifies ordered group codes, color methods/factors/values, map blend values, map names, both matrix vectors, ASCII raw-value retention, and output payload equality.",
+      "Existing owner/root closure, remapped entity group-347 edge, following LINE, dangling-reference sentinel refusal, and same-adapter correction retry remain in the focused selector."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "newTestTarget": false,
+    "newCTestRegistration": false,
+    "committedFixtureFiles": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --material-raw-capture",
+        "result": "PASS",
+        "summary": "Scratch-generated ASCII/Binary MATERIAL raw capture and graph/replay controls passed."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+        "result": "PASS",
+        "summary": "1/1 passed in 3.77 seconds."
+      },
+      {
+        "command": "git diff --check -- tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/material-schema-vector-fast-slice-2026-10-19.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuitesRun": false,
+    "peerRuntimesRun": 0,
+    "nativeCadRuns": 0,
+    "externalFilesDownloaded": 0
+  },
+  "limits": {
+    "provesRenderedMaterialSemantics": false,
+    "provesEveryMaterialExtension": false,
+    "provesDwgOriginMaterialProjection": false,
+    "provesNativeAcceptanceOr3dBRepSemantics": false,
+    "promotesSupportClaims": false,
+    "findings": 137,
+    "topLevelImplementationSubplans": 77,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "gitMetadataWritable": false,
+    "committed": false
+  }
+}

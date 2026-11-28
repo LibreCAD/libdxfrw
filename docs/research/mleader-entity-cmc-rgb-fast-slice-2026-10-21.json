@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 MLEADER entity-level CMC RGB retention",
+  "mode": "generated AC1024/AC1032 parser-writer fast slice",
+  "scope": [
+    "Retain the three entity-level CMC RGB values specified for MLEADER",
+    "Emit retained C2 RGB while preserving indexed C0/C1/C3 behavior",
+    "Independently inspect generated wire fields and reject invalid values before output"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.48 MLEADER",
+      "finding": "The entity-level leader, style text, and style block colors are CMC fields (DXF groups 91, 92, and 93 respectively); §2.11 defines the R2004+ method-packed CMC representation."
+    },
+    "localSource": {
+      "files": [
+        "src/drw_entities.h",
+        "src/drw_entities.cpp",
+        "src/intern/dwgbufferw.cpp"
+      ],
+      "finding": "The bounded parser previously retained only normalized scalar colors and the writer used index-only CMC output. The typed MLEADER model now retains C2 RGB independently for all three fields and emits it through the existing CMC writer.",
+      "compatibility": "The appended RGB fields change the public DRW_MLeader class size; consumers must rebuild. No vtable or DRW_Interface callback changed."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024", "AC1032"],
+      "finding": "The independent wire walk checks all three CMC positions, reserved index, method, payload, flags, and following fields. Parser checks verify normalized scalar/RGB values and the trailing handle sentinel. Invalid 24-bit range and scalar/RGB mismatch are refused before body, string, or handle output.",
+      "limit": "Generated local vectors do not establish producer validity, native consumer behavior, class-specific DXF truecolor/name semantics, or external semantic qualification."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append three RGB companions to DRW_MLeader and include them in copy, assignment, and parser reset.",
+      "Retain C2 RGB in the bounded parser and emit C2 from the writer when present.",
+      "Reject invalid RGB ranges or non-normalized scalar/RGB pairs before entity output."
+    ],
+    "generatedTestChanged": true,
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (7/7)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp CMakeLists.txt",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "DXF truecolor and optional CMC color/book name semantics require their own class-specific contract or producer evidence.",
+    "Independent producer and native qualification remain separate gates.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

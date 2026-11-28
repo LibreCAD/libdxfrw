@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "downstream DWG application lineage and ACIS exchange boundary",
+  "mode": "Broader primary-source consumer-route and ACIS component review",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen current downstream DWG applications and bind their parser lineages from manifests or lockfiles.",
+    "Separate downstream projection/rendering from independent DWG parser evidence.",
+    "Distinguish OCCT kernel availability from its separately packaged ACIS SAT/SAB exchange component.",
+    "Preserve fixture provenance limits, fast-validation policy, and the six deferred external items."
+  ],
+  "method": {
+    "kind": "Mutable primary repository manifests, lockfiles, READMEs, issue reports, and product documentation",
+    "peerRepositoriesCloned": false,
+    "peerExecutablesOrPackagesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "candidatePin": null,
+    "evidenceRule": "A downstream application that embeds the same DWG codec is not an independent parser vote. Projection/rendering is scoped to its documented entity subset and does not establish whole-file or 3D semantic parity. Commercial exchange components require exact artifact, license, options, and input identity before any semantic use."
+  },
+  "evidence": [
+    {
+      "route": "backkem/codecad",
+      "sources": [
+        "https://github.com/backkem/codecad",
+        "https://github.com/backkem/codecad/blob/main/Cargo.lock"
+      ],
+      "observed": "The repository describes CodeCAD as a browser-based 2D DWG viewer/editor. Its current Cargo.lock resolves acadrust 0.3.4. This is a downstream projection path in an older acadrust version, not an independent DWG parser or 3D/ACIS consumer result.",
+      "limits": "No peer binary was run and no input corpus was inspected. A browser rendering claim cannot establish parser completeness, omitted-content retention, or current codec behavior.",
+      "planUse": "Register as a same-lineage, optional 2D downstream route only. Do not add to routine validation or use for 3D/ACIS support claims."
+    },
+    {
+      "route": "diskd-ai/dwg2png",
+      "sources": [
+        "https://github.com/diskd-ai/dwg2png",
+        "https://raw.githubusercontent.com/diskd-ai/dwg2png/main/Cargo.toml",
+        "https://github.com/diskd-ai/dwg2png/blob/main/MEASUREMENTS.md"
+      ],
+      "observed": "The manifest pins acadrust 0.4.0. The README reports 11 AC1032 files and 23 rendered pages, while its renderer limitations explicitly omit 3D solids, hatch fills, dimensions, leaders, and raster images. The measurements report a 46 MB external DWG taking about 18.5 seconds to parse with approximately 2.8 GB peak memory in the documented container.",
+      "limits": "These are project-reported results over an external corpus and are not independent parser correctness or libdxfrw performance measurements. The corpus is not available for repository fixtures.",
+      "planUse": "Keep as a same-lineage 2D projection/resource-risk reference only. Use no sample files. Retain bounded allocation and resource-complexity checks; do not claim performance parity from these measurements."
+    },
+    {
+      "route": "milkway/dwg2geo",
+      "sources": [
+        "https://github.com/milkway/dwg2geo",
+        "https://raw.githubusercontent.com/milkway/dwg2geo/main/Cargo.toml",
+        "https://github.com/milkway/dwg2geo/blob/main/README.md"
+      ],
+      "observed": "The current v0.2.5 manifest declares an acadrust 0.5.1 optional native-backend dependency requirement; this is not an exact pin, so a future run must resolve the lockfile version. The documented native conversion is a stated subset of 2D entities to GeoJSON, with explicit CRS controls and strict/failsafe distinctions; the repository says its reference drawing and derived metadata are excluded.",
+      "limits": "Same parser family as other acadrust routes. Geometry/CRS projection is downstream, lossy, and not independent expected semantic truth. The peer's external reference file is not a fixture source.",
+      "planUse": "At most inspect source for a specific projection question after pinning source/version and denominator. Do not install/run it absent a concrete unmet question; GeoJSON success does not qualify DWG/DXF parsing or 3D support."
+    },
+    {
+      "route": "OCCT ACIS Import-Export component",
+      "sources": [
+        "https://www.occt3d.com/components/acis-exchange/"
+      ],
+      "observed": "The current OCCT product page presents SAT/SAB exchange as a distinct component translating ACIS data to OCCT shapes/XDE, with configurable shape healing and approximation behavior for some geometry. Its requirements table describes SAT/SAB import as using a commercial ACIS reader.",
+      "limits": "The product page does not establish that stock OCCT or FreeCAD Part installations include this component, nor does its existence create an open-source independent reader route. Healing/approximation settings can alter geometry semantics.",
+      "planUse": "Do not infer a stock FreeCAD ACIS reader from OCCT kernel presence or historical ACIS release notes. Any future route requires exact component version, entitlement/license, artifact, profile, conversion settings, and independently authored expectations."
+    },
+    {
+      "route": "LibreDWG issue #1411 status refresh",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "The issue remains open and records a locally generable ezdxf REGION/cube SAB reproducer for a reported R2013+ AcDs/ACDSDATA preservation gap.",
+      "limits": "It is a peer failure shape and preservation lead, not an authoritative specification, a general ACIS semantic oracle, or proof that every modern file uses the same carrier layout.",
+      "planUse": "Keep the existing generated-control recipe and separate carrier/owner/parser/shape gates. Do not use LibreDWG conversion to produce modern AcDs positives or promote libdxfrw support."
+    },
+    {
+      "route": "Local plan reconciliation",
+      "sources": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "Added a route table and time-saving admission rules to existing PAR-07/S8, resource-complexity, and 3D-semantic gates. Same-codec applications are clustered by parser lineage; output evidence is limited to the documented downstream subset; OCCT ACIS exchange is not assumed to ship with the base kernel.",
+      "limits": "No parser family, finding, support claim, comparator admission, implementation priority, or validation cadence changed. Historical count discrepancy was not recalculated.",
+      "planUse": "Use source/lockfile inspection before any optional peer run. Missing external evidence remains NOT_RUN / DEFERRED_EXTERNAL and must not block bounded local implementation work."
+    }
+  ],
+  "assessment": {
+    "newCandidateFamiliesScreened": 0,
+    "newSameFamilyDownstreamRoutesScreened": 3,
+    "newCommercialComponentBoundariesScreened": 1,
+    "newEligibleIndependentComparatorRoutes": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8: classify peers by parser lineage before treating downstream apps as independent routes.",
+      "Resource-complexity: peer memory/time figures motivate bounded checks but are not local performance results.",
+      "3D semantics: separate ACIS exchange component availability, profile conversion, healing/approximation, expected geometry, and consumer acceptance."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq syntax and deferred-external/no-promotion invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on plan; untracked receipt parsed and invariants checked with jq)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

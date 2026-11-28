@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-linetype-equivalent-total-preservation-2026-11-25",
+  "supportClaimEffect": "none",
+  "libraryCommit": "d5fd8011",
+  "consumerCommit": "3bb01572eb78399ccf12d6310cc85e19ab4f302a",
+  "implementationDigestSha256": "335261b9750f6cda518170ed91531b3282600f44e0233552cba599c19f81af5e",
+  "digestInputCount": 775,
+  "problem": "LTYPE normalization always re-summed the dash lengths, changing some declared built-in group-40 totals by one binary floating-point ULP in both DXF and DWG. The old consumer snapshot also expected a stale table count, fixed handle allocation order and shorter decimal spellings.",
+  "change": "Preserve an unchanged, size-consistent declared total when it equals the calculated sum or is one adjacent double away; recompute for actual pattern edits or materially inconsistent totals. The system-codec snapshot control compares every group semantically, requires the actual table count and unique handles, and checks each declared built-in total exactly; the bundled snapshot remains byte-exact.",
+  "validation": [
+    "Focused LTYPE total preservation and block-handle CTests pass, alongside the existing mirror-authority and complex-R12 refusal/retry controls. Whole-file ASCII/binary controls preserve the destination on invalid patterns and succeed on corrected same-codec retry with typed readback.",
+    "The system [filter][linetype] selector passes 4905 assertions in 52 cases; the bundled selector passes 1282 assertions in 52 cases.",
+    "Independent ezdxf 1.4.5 readback matches all 32 selected built-in totals in generated R12, R2000 and R2007 DXFs, with zero audit errors or repairs. Their SHA-256 values are 2afa4d2080621f8fab33857c0eddf4f12ad5faf800c7582e34f18d476d498961, 8621adc2b5d16cce8024be3b39c3a9c20c4c009a007f23a32137d234619c7bca and 0b6d4a43a6abfc0a8783c648466ffaaca6656ae41c90fb4fd68c5bad5d1b134a respectively.",
+    "Independent GNU LibreDWG 0.14 reports success and matches the 32 selected pattern totals in generated R2000 and R2004 DWGs; SHA-256 d520202e757b98af7b6ef51c8b54d83cd2b417482bb8858fab64e2feae3c167b and daf6dc4c58879ef83ae92edf915d693d72e70775fae037049b59a54e3984145d."
+  ],
+  "limits": [
+    "These generated profiles do not qualify native UI behavior, arbitrary linetype graphs, DWG versions or platform release support.",
+    "The new implementation digest reopens digest-bound hosted, platform and native qualification; no support claim is promoted.",
+    "No generated DWG or DXF fixture was committed."
+  ],
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm"
+  ]
+}

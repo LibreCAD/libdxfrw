@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "id": "p5-ac1021-metric-table-first-failure-cell-trace-2026-11-09",
+  "purpose": "Localize the first current-parser AC1021 TABLE CadValue type-48 candidate to its exact row and cell without changing production parsing.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "producer": "Autodesk sample; exact save application/revision is not established by this trace"
+  },
+  "diagnostic": {
+    "method": "Temporary row/column/body/string/handle cursor logging around the existing AC1021 legacy TABLE cell parser; source instrumentation was reverted after capture.",
+    "trace_path": "/private/tmp/current-metric-table-cell-index.trace",
+    "trace_sha256": "45d5aebdcd6d385543288d63a4c173772129efb1c878e3b2bcfbb48d2a70be27",
+    "instrumented_executable_sha256": "a5ac6b655034dfeb91a26e0d6557b350568d85eb3ef00cb353d416e85856397a",
+    "unmodified_source_sha256": "10970cf3f43103c620f9fba00f1f4b31e811d92db4d3f28357e7c19eea955839"
+  },
+  "first_failures": [
+    {
+      "table_handle": "0x2856e",
+      "row": 8,
+      "column": 0,
+      "cell_start_bits": {
+        "body": 278571,
+        "string": 285694,
+        "handle": 286955
+      },
+      "cad_value": {
+        "format_flags": 18137348,
+        "data_type": 48,
+        "payload_start_body_bit": 278726
+      }
+    },
+    {
+      "table_handle": "0x2a974",
+      "row": 9,
+      "column": 0,
+      "cell_start_bits": {
+        "body": 312752,
+        "string": 320295,
+        "handle": 321684
+      },
+      "cad_value": {
+        "format_flags": 18141444,
+        "data_type": 48,
+        "payload_start_body_bit": 312907
+      }
+    }
+  ],
+  "evidence_review": {
+    "authority": "ODA v5.4.1 \u00a7\u00a720.4.96.1 and 20.4.99 define cell alignment as raw RS, followed after the separate R2007+ unknown BL by CadValue flags/type. libdxfrw follows that sequence. The pinned ACadSharp source is not identical for alignment: readTableCellData uses ReadBitShort (variable BS) for the RS field, so its decoded cell values do not independently prove the physical span.",
+    "peer_limit": "ACadSharp at commit 3a52a52047e84670759c1f9ad3916ec3ce85ff56 successfully decodes the table values but reads the alignment override differently from ODA. LibreDWG 0.14 retains these ACAD_TABLE bodies as unknown bits. Neither peer supplies independent source spans for the candidate type-48 positions.",
+    "interpretation": "The first unsupported candidate is localized to row 8/column 0 in handle 0x2856e and row 9/column 0 in handle 0x2a974. Both cells carry alignment override flag 0x01 in the local cursor trace. A generated raw-RS boundary control now covers the normative alignment field and following CadValue/sentinel, but does not resolve the physical candidate. The exact preceding cursor difference remains open; do not add a type-48 decoder or claim malformed source data until an independent source-span walk resolves it.",
+    "disposition": "No production parser change. Keep both TABLE bodies semantically incomplete and output-gated until exact source spans or an independent producer decode resolve the preceding fields. No support claim is promoted.",
+    "generated_control": "docs/research/p5-ac1021-table-alignment-raw-rs-boundary-2026-11-09.json",
+    "decision": "Historical raw-RS trace localized candidate type 48 at two cells. Follow-up shows the AC1021 alignment override at the same source position is read as raw RS 42049, outside the defined domain; the bounded BitShort compatibility candidate parses all 171 CadValues in the metric and imperial sources. Do not add a type-48 decoder. Current code keeps the alternative candidate semantically incomplete pending producer/schema and semantic qualification; see docs/research/p5-ac1021-metric-table-bitshort-fallback-2026-11-09.json."
+  },
+  "fixture_policy": "The external DWG is existing local sample material; no fixture was added or committed.",
+  "supersededBy": "docs/research/p5-ac1021-metric-table-bitshort-fallback-2026-11-09.json"
+}

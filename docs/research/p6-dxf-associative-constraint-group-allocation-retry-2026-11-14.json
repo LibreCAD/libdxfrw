@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-dxf-associative-constraint-group-allocation-retry-2026-11-14",
+  "date": "2026-11-14",
+  "status": "AC1024_ASSOCIATIVE_CONSTRAINT_GROUP_TRANSACTION_CONTROL_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Generated direct-writer allocation rollback, failed-session reset, same-writer retry, and bounded raw-group readback for the admitted AC1024 constraint-group profile.",
+  "source": {
+    "format": "locally generated in-memory DRW_AssociativeObject",
+    "revision": "AC1024",
+    "record": "ACDBASSOC2DCONSTRAINTGROUP",
+    "nodeProfile": "one AcFixedConstraint geometrical node",
+    "fixtureFilesAdded": 0,
+    "testSource": {
+      "path": "tests/associative_constraint_group_allocation_tests.cpp",
+      "sha256": "79ffe42c4be48a06c0a8494b82aa90a07ba771541e9a7b461ee3c56579dd26f0"
+    }
+  },
+  "coverage": {
+    "writerRoute": "dxfRW::writeAssociativeConstraintGroup",
+    "encodings": ["ASCII", "Binary"],
+    "allocationFailureOffsetsPerEncoding": 9,
+    "transactionAssertions": [
+      "Each injected failure is observed and returns failure.",
+      "The preallocated destination sink remains empty after every injected failure.",
+      "The caller object's modeled profile and source identity remain unchanged.",
+      "The source-handle remap context is rolled back.",
+      "After resetting the failed write session and writer error state, the same dxfRW and writer retry successfully.",
+      "Retry bytes are identical to clean output.",
+      "A fresh low-level DXF reader finds the constraint-group record, AcFixedConstraint node, and following sentinel."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_associative_constraint_group_allocation_tests -j4",
+      "result": "PASS",
+      "executableSha256": "6ecd5dbcbf9f1b7d27d6e3b220bd42879a3477ae2a184f94cbb7c5d02e65f108"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_associative_constraint_group_allocation_retry$' --output-on-failure",
+      "result": "PASS (1/1, 0.03 seconds)"
+    },
+    "directRun": {
+      "command": "build-gcc/tests/libdxfrw_associative_constraint_group_allocation_tests",
+      "result": "PASS; ASCII and Binary each passed 9 allocation offsets with rollback, same-writer retry, byte identity, and bounded raw-group readback."
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated AC1024 transaction and bounded self-readback only; no producer, native consumer, graph-closure, or semantic support claim is established.",
+    "The direct writer's failed-session error state is explicitly reset before retry; this does not test a full dxfRW::write facade retry.",
+    "No DWG or DXF fixture was committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The generated AC1024 constraint-group direct writer now has allocation rollback/retry/readback coverage in both encodings.",
+    "remaining": "P6-G remains open for the complete public-writer inventory and its remaining untested overloads and variable-size routes."
+  }
+}

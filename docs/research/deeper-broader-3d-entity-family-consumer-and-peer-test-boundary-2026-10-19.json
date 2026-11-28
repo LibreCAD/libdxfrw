@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "3D entity-family consumer and peer test-boundary audit",
+  "mode": "Primary-source standards, project documentation, live peer issue/PR, and local source review; research-only plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktreeState": "Dirty shared worktree; inspected only plan and relevant writer source, preserved unrelated changes",
+  "scope": [
+    "Reconcile FreeCAD's documented DXF importer/exporter routes by entity family, including explicit MESH and 3DFACE applicability.",
+    "Cross-check the current local MESH and ACIS-carrier DXF writer boundaries against Autodesk's DXF contract.",
+    "Refresh ezdxf, LibreDWG, and ACadSharp capability/test-evidence boundaries for explicit 3D and ACIS paths.",
+    "Refine existing implementation and composed native/peer gates without adding dependencies or promoting support claims."
+  ],
+  "sources": [
+    {
+      "name": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm"
+      ],
+      "observed": "The 3DSOLID DXF shell uses AcDbModelerGeometry, group 70, proprietary data groups 1/3, and an AcDb3dSolid subclass with optional history group 350. This shell contract does not establish payload syntax or geometric semantics."
+    },
+    {
+      "name": "FreeCAD official Draft DXF guide",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observed": "The built-in C++ and legacy Python DXF importer lists differ. The legacy list includes 3DFACE while neither published list names MESH; the guide says stock FreeCAD cannot read embedded ACIS solids. The C++ exporter emits selected straight edge linework from 3D faces, limits curved-edge output to XY-parallel cases, and may duplicate lines; the legacy exporter flattens 3D objects to 2D views. Neither is a general solid round-trip oracle. DWG import remains converter-to-DXF followed by the selected importer."
+    },
+    {
+      "name": "ezdxf 1.4.5 ACIS and drawing documentation",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html"
+      ],
+      "observed": "The ACIS API documents bounded SAT/SAB load/export, SAT 700 for DXF R2000-R2010 and SAB 21800 for R2013/R2018, and limited supported ACIS entities. Unsupported entities can become NONE_ENTITY and lose data when exported. Body-to-mesh extraction loses faces with curved boundaries; the drawing add-on does not render ACIS and projects 3D into XY."
+    },
+    {
+      "name": "LibreDWG 0.13.4 manual",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/Overview.html",
+        "https://www.gnu.org/software/libredwg/manual/html_node/ENTITIES.html"
+      ],
+      "observed": "The manual describes distinct 3DSOLID SAT/SAB carrier, wireframe, silhouette, revision, and history fields. Its coverage chapter separately lists MESH, BODY, and POLYLINE/VERTEX families among missing example-corpus test cases, demonstrating that data structures/project coverage declarations and sample-backed test coverage are different measures."
+    },
+    {
+      "name": "ACadSharp live writer issue and pull request",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1150"
+      ],
+      "observed": "Issue #1195 reports silent 3DSOLID/REGION omission in ACadSharp 3.4.9 DXF output. PR #1150 remains open/undeployed; its comments describe selected TrueView opens, later schema redesign, and a post-refactor repeated-group-310 reader concern. These are branch-specific reports, not released behavior or independent semantic qualification."
+    },
+    {
+      "name": "Local current-worktree writer source",
+      "paths": [
+        "src/libdxfrw.cpp: dxfRW::writeMesh",
+        "src/libdxfrw.cpp: dxfRW::writeModelerGeometry"
+      ],
+      "observed": "The current checkout emits version-dependent typed MESH DXF with AcDbSubDMesh; modeler-geometry DXF emission contains qualified SAT-v1/AC1027 SAB gates and refuses unqualified carriers. This is source inspection only; no test or native application was run."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 135,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Corrects FreeCAD acceptance to an importer/entity-specific matrix: built-in documented subset, legacy 3DFACE, MESH not documented, and stock ACIS not applicable. Tightens distinction among DXF carrier handling, limited ezdxf mesh projection, LibreDWG per-family test coverage, and ACadSharp branch-only writing. Existing implementation gates and infrequent composed native/peer checks remain in place."
+  },
+  "method": {
+    "kind": "Read-only review of official documentation, current primary project sources, live issue/PR state, and local current-worktree writer code",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "limitations": "Project documentation and live issue/PR pages can change; no peer artifact was pinned, built, or run. FreeCAD documentation establishes a published importer scope, not actual runtime behavior for MESH. Local source inspection does not establish independent reader or native-application acceptance. No claim was made about a local defect or general format support."
+  }
+}

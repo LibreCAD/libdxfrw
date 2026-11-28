@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DXF wire-order, reference-role, recovery, and comparator-maturity boundary",
+  "mode": "Primary-source web research and read-only plan/test audit; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile official DXF wire-order and handle-role rules with the current implementation plan and generated tests.",
+    "Distinguish strict DXF parsing from recovery/audit and distinguish peer support declarations by exact operation, direction, version, and tool.",
+    "Refine existing PAR-05/7AR, PAR-16/7A, PAR-20/7G, and PAR-07/S8 readiness without duplicating controls or promoting external support claims."
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF documentation",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+        "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-89CB823D-614D-4D1E-8204-568EC72DF869.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html"
+      ],
+      "revision": "Current public Autodesk help pages reviewed 2026-10-20.",
+      "observed": "Autodesk explicitly warns that group-code table order is not a guaranteed entity order and can vary. DXF remains a sequence of code/value pairs with structural record/section markers and omission defaults. The group-code ranges distinguish arbitrary IDs (320-329), soft pointers (330-339), hard pointers (340-349), soft owners (350-359), and hard owners (360-369); XDATA 1005 handle values have soft-pointer translation behavior."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/handles.html",
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+        "https://ezdxf.readthedocs.io/en/stable/drawing/drawing.html"
+      ],
+      "revision": "Stable documentation pages reviewed 2026-10-20; versioned docs identify ezdxf 1.4.5 for recovery/audit.",
+      "observed": "The handle model specifies unique handles and at most one owner per object, with $HANDSEED above the greatest handle as the expected high-water value. Strict loading and recover/audit are separate paths. Recovery can retain unrecoverable decode diagnostics and the documentation warns that rewriting such input may lose information or produce invalid DXF. This defines a useful diagnostic boundary, not an independent semantic oracle for all DXF content."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgwrite.1"
+      ],
+      "revision": "Mutable repository README and current dwgwrite man page reviewed 2026-10-20; man page identifies dwgwrite 0.14 and June 2026.",
+      "observed": "The repository README describes broader reader/writer capabilities but includes caveats for advanced read objects and later-version write errors. The current dwgwrite man page describes DWG writing as R2000-only; the README also identifies dxf2dwg as R2000-only. Treat each exact tool/operation contract as distinct rather than inferring coverage from the repository name or general README text."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp#compatible-dwgdxf-versions"
+      ],
+      "revision": "Mutable master README support matrix reviewed 2026-10-20.",
+      "observed": "The published direction-specific matrix declares AC1021 DWG reading supported and AC1021 DWG writing unsupported, while neighboring versions are marked differently. This is a project-declared capability, not per-feature correctness evidence or an executed differential."
+    }
+  ],
+  "localEvidence": [
+    "The plan's existing PAR-16/7A policy distinguishes arbitrary handles, pointer/owner roles, contextual group codes, and XDATA 1005 translation.",
+    "The plan already records HANDSEED integrity and finalization controls, plus generated tests for legal source-order variation, record sentinels, graph closure, and atomic refusal/retry.",
+    "The plan already separates strict parsing, recovery/audit, peer parsing, native-consumer acceptance, and geometry/modeler semantics; no duplicate test owner was identified in this research pass."
+  ],
+  "validation": {
+    "commands": [],
+    "result": "Plan-only update. No build, unit/CTest, peer executable, converter, native CAD application, or geometry kernel was run. Local checks were read-only searches of the plan and existing test sources."
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-05/7AR DXF wire-order and strict-output acceptance",
+      "PAR-16/7A handle role, remap, and ownership closure",
+      "PAR-20/7G object graph closure and output validation",
+      "PAR-07/S8 composed comparator and consumer evidence"
+    ],
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportClaimPromotion": false,
+    "implementationReadinessDelta": "Use at most one generated legal-order permutation in an existing parser test owner if an actual uncovered path is found; keep structural delimiters and repeated payload order fixed. At the composed checkpoint, bind a peer to exact tool/revision, operation, direction, version, and feature, and record strict and recovery/audit results separately. Continue local work if optional external evidence is unavailable."
+  },
+  "limitations": [
+    "Public project documentation describes declared scope and may be mutable; it does not establish per-feature interoperability or the behavior of an unpinned binary.",
+    "No peer or native output was produced, parsed, or compared, and no external sample was downloaded.",
+    "This research does not resolve ACIS/ACDS semantics or any of the six DEFERRED_EXTERNAL qualification items."
+  ],
+  "planChanges": [
+    "Added a cross-cutting readiness refinement under existing PAR owners; no duplicate finding, new test registration, dependency, fixture, or support claim was introduced.",
+    "Updated the plan synopsis and added this research receipt."
+  ]
+}

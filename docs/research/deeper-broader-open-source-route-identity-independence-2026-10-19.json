@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Open-source route identity, independence, and fast peer selection",
+  "mode": "Primary-source research and implementation-readiness update; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Disambiguate GDAL DXF, CAD/libopencad, and ODA-backed DWG driver routes.",
+    "Reconcile FreeCAD import/export backends and its DWG converter chain.",
+    "Preserve LibreCAD 3 as a same-codec downstream consumer rather than an independent DWG parser.",
+    "Provide a minimal question-driven peer route selector without adding routine validation."
+  ],
+  "sources": [
+    {
+      "project": "GDAL",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://gdal.org/en/stable/drivers/vector/cad.html",
+        "https://gdal.org/en/stable/drivers/vector/dwg.html",
+        "https://gdal.org/en/stable/development/building_from_source.html"
+      ],
+      "revision": "Stable documentation reviewed 2026-10-19; exact runtime artifact remains to be pinned before any comparison.",
+      "observed": "The DXF driver is a separate route and accepts Binary DXF starting in 3.12. The read-only CAD driver uses internal or external libopencad and projects a documented subset of POINT, LINE, CIRCLE/ARC, and 3DFACE. The separate DWG driver uses ODA Teigha. OGR projections and direct DXF transport are different evidence lanes."
+    },
+    {
+      "project": "libopencad",
+      "urls": [
+        "https://github.com/nextgis-borsch/lib_opencad"
+      ],
+      "revision": "Mutable repository README reviewed 2026-10-19.",
+      "observed": "The successor project states support only for DWG R2000. This is a source-declared scope boundary, not independently executed evidence. GDAL CAD and direct libopencad must not be double-counted as two parser lineages."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py"
+      ],
+      "revision": "Mutable documentation/source pages reviewed 2026-10-19; no application binary or converter was run.",
+      "observed": "FreeCAD documents distinct C++ and legacy Python import profiles and distinct C++ R14 and legacy R12 exporter profiles. The C++ importer omits text, dimensions, and attributes inside blocks; stock FreeCAD does not read ACIS/SAT solids. DWG passes through an external converter to DXF before the selected importer."
+    },
+    {
+      "project": "LibreCAD 3",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/README.md"
+      ],
+      "revision": "Mutable master documentation reviewed 2026-10-19; no LibreCAD 3 build was run.",
+      "observed": "DWG import is documented as opt-in, disabled by default, and read-only through libdxfrw's dwgRW. It is a downstream integration/consumer check using the same parser family, not an independent DWG decoder."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing PAR-07/S8 route-specific comparator, consumer, and evidence ledger",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing GDAL DXF/CAD, FreeCAD, LibreCAD 3, and independent ACIS/AcDs boundaries",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: fixture policy excludes downloaded external drawings and permits local-from-scratch controls"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds a stage-aware route identity and independence rule plus a fast question-driven selection procedure. GDAL driver/backend and FreeCAD importer/exporter directions are not interchangeable; LibreCAD 3 is a same-codec consumer check. No new peer cadence, tests, fixtures, dependencies, or support claims are added."
+  },
+  "method": {
+    "kind": "Read-only primary-source web review plus local plan crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The reviewed project documentation and main branches are mutable and describe candidate scope, not executed behavior of a pinned artifact. No claim of codec independence is made without source/build lineage evidence. GDAL OGR geometry projections and FreeCAD application pipelines are consumer evidence only for their declared profile; they are not whole-document or general ACIS semantics evidence."
+  }
+}

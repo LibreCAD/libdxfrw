@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-root-dictionary-setter-byte-bound-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bound caller-owned root NamedObjectsDictionary name/handle entry staging by row count and retained bytes.",
+  "source": {
+    "parentCommit": "233647a262e0948ba7322ef7c4619040b9b325a2",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "cmake": "4.4.5",
+    "files": {
+      "src/libdxfrw.cpp": "73960d80b8a81d55984fdb7a0d1123c3c1fc490fd9a47255c8777bb5936f9ec5",
+      "src/libdxfrw.h": "1fad34e578bbb4e84674f4df3c27017f97859adce7e9d15374a9933f82ef773a",
+      "tests/dxf_fixture_tests.cpp": "e1ce8ba8ed94140726ec4a5a5613d2af49c832b3065544f25772a5ddb5875097",
+      "tests/CMakeLists.txt": "e5a6478a9306f59362ff35f24e7d32b6f53974b7d7ad9e154555655ff0bb6d34"
+    }
+  },
+  "limit": {
+    "entries": 100000,
+    "logicalRetainedBytes": 67108864,
+    "countedPayload": [
+      "root entry vector slots",
+      "entry name bytes plus one terminator",
+      "hex-handle string bytes plus one terminator"
+    ],
+    "formatMaximum": false
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "behavior": [
+      "Const and move setters estimate row slots and both strings before copying or moving.",
+      "The const setter stages into a temporary and catches allocation failure. Rejected count, byte-budget or copy input clears stale entries and latches write refusal until corrected.",
+      "Rejected move input remains caller-owned. A corrected setter clears the rejection and supports same-codec retry.",
+      "A pending rejection is checked before output initialization, while writeObjects retains its defensive rejection check.",
+      "The existing NOD/group-plan freeze rule is preserved."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_root_dict_entry_count_bound|libdxfrw_dxf_class_count_bound|libdxfrw_dxf_source_table_metadata_setter_bounds|libdxfrw_no_raw_sections' --output-on-failure",
+      "result": "PASS 4/4; 0.80 seconds",
+      "coverage": "Exact and one-byte-under estimator boundaries, exact row-count acceptance, over-count const/move refusal, caller preservation and stale-state clearing, injected const-copy allocation failure/retry, ASCII/Binary write destination preservation and corrected same-writer retry, plus neighboring setter/no-raw controls."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_root_dict_entry_count_bound|libdxfrw_dxf_class_count_bound|libdxfrw_dxf_source_table_metadata_setter_bounds|libdxfrw_no_raw_sections' --output-on-failure",
+      "result": "PASS 4/4; 1.52 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The estimate covers logical vector slots and string payloads, not allocator capacity or process RSS.",
+    "This internal resource ceiling is not a DXF format maximum or support claim.",
+    "The root setter's out-of-line implementation requires downstream consumers to rebuild/relink; ABI and packaging qualification remain open under P8."
+  ],
+  "next": "Continue the P6 safety audit on other unbounded setup/assembly paths, rollback after earlier staged records, source lifetime, platform numeric/string policies and scoped concurrency."
+}

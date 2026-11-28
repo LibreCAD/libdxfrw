@@ -1,0 +1,81 @@
+{
+  "title": "DXF LAYER independent color-group order retention",
+  "date": "2026-11-04",
+  "status": "bounded implementation with focused validation; no broader support claim",
+  "base_commit": "156b3946e32e85c1a40246d581b5287005bb86d0",
+  "problem": "Parsing a group 62 after groups 420 or 430 clears RGB and color-name state even though the fields are independently supplied and DXF group order cannot be assumed. A negative group 62 remains the signed ACI/off state.",
+  "change": "For a LAYER group 62 update the ACI only while retaining already observed 420/430 and their retained-string accounting; retain existing DWG CMC metadata reset. Per-layer reset still clears previous rows. No public class, vtable or ABI changes.",
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+      "relevance": "Warns not to assume group order."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+      "relevance": "LAYER group 62 negative denotes off."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "relevance": "Group ranges 420 and 430 encode true colors and color names."
+    }
+  ],
+  "physical_observations": {
+    "tool": "ODA File Converter 27.1, ACAD2013 DWG then ACAD2013 DXF; local invocation observed manually, hashes bind files but do not prove the converter lineage",
+    "source_layer": "COLORCHECK; ODA-returned groups 62=-148 and 420=1193046; input ACI was -7. ODA changed ACI fallback while preserving signed off state and true color.",
+    "projection": "The selected record is copied from ODA output into an independently auditable minimal AC1027 DXF. A second projection swaps only the adjacent 62 and 420 groups, as verified by the audit; this alternate ordering is a controlled edit, not claimed to be ODA-authored.",
+    "black": "Separately authored BLACKCHECK input carried 62=7 and explicit 420=0; ODA return carried 62=18 and explicit 420=0. Both inputs and output have zero ezdxf 1.4.5 audit errors and fixes.",
+    "before": "A native probe linked to unmodified 156b3946 read the reordered projection as color=-148, color24=-1. The fixed probe reads color=-148, color24=1193046."
+  },
+  "validation": {
+    "native": "Focused CTest passes all six input permutations of 62/420/430 in ASCII and binary, selected source output/reread in both encodings, signed ACI, 420=0 versus absent, color name without RGB, duplicate fields last-wins per field, per-record reset and failed-read corrected same-reader retry.",
+    "existing": "Existing libdxfrw_layer_dwg_cmc_roundtrip CTest passes, and lc3_compat_check object compiles.",
+    "peer": "ezdxf 1.4.5 validates physical source, both selected projections, both output encodings and explicit-black input/output with no audit errors or fixes; audit under python -O enforces input hashes and rereads them afterward.",
+    "librecad": "Read-only inspection of LibreCAD RS_FilterDXFRW addLayer/attributesToPen shows the callback reads color24 when present and colorName when present; the existing legacy 2D adapter compile guard succeeds. No native LibreCAD application or rendering test is claimed."
+  },
+  "limits": [
+    "This qualifies selected color fields, not full physical-source graph or file roundtrip.",
+    "A 430 color name is existing libdxfrw transport behavior exercised synthetically; the physical producer witness contains 420 only. No color-book rendering or unspecified precedence is claimed.",
+    "Duplicate-group tests document current per-field last-value behavior, not a claim of ODA behavior for malformed duplicates.",
+    "Physical DWG/DXF sample files stay outside the repository; no binary fixtures are added."
+  ],
+  "artifacts_sha256": {
+    "/private/tmp/layer-color-order/in/source.dxf": "cf0b5b6083087ad02729659db4f27a692079450ef8d33a302730557bd997e2db",
+    "/private/tmp/layer-color-order/dwg/source.dwg": "e52fb897a62dacd8fcb6ab597e23bfb3a1eed5d96dc44745908bd88a7a43e8a6",
+    "/private/tmp/layer-color-order/out/source.dxf": "5d6abb8efd651dcdedaaebf3de1edf370ef2ec2b62e4202f6e77f7358c4b1a04",
+    "/private/tmp/layer-color-order/producer-order.dxf": "4bbea0081a7369c1f0b67b6dcbe7b9ac868536868cefbc5fdb085ba15561a130",
+    "/private/tmp/layer-color-order/reordered.dxf": "f8a6f17c488991a18b16d5ad4cfc4ffc7f808b6a29977817cfc5cd907be317e5",
+    "/private/tmp/layer-color-order/emitted/ascii.dxf": "59f79b8cf519becddc90facaac4945fe3afbb5442ad7182d47ee516fed40cf4b",
+    "/private/tmp/layer-color-order/emitted/binary.dxf": "c930a52c6a51ff452a32f14db50a5a09d18e72b97d61d0148ef2a53d077c6bdc",
+    "/private/tmp/layer-color-black/in/black.dxf": "bce51962159fdf430865d21f19fbdefa11bba0611c5a491c757052e9f1a89a7b",
+    "/private/tmp/layer-color-black/dwg/black.dwg": "abe7b6ba05fd23a6f85dc5dec9184aeeb111c6831769c3a4317c19a936a4dd7d",
+    "/private/tmp/layer-color-black/out/black.dxf": "6e723a0fa963b591ad4438bf30872b3af352c9cdc5f910cf69ef49841c2f2bfb"
+  },
+  "candidate_files_sha256": {
+    "src/drw_objects.cpp": "bc90968e43f31717903c3fac72cf28bcbbe2a134e32b4f5cd06bcf87fdb3b8bc",
+    "tests/CMakeLists.txt": "46d3649335943a9aeda17ad06d1b2601decc3624705330cdae64437d54458014",
+    "tests/dxf_layer_color_order_tests.cpp": "89fe14b29d2642045ece724a2cf6a3985bb9ecd1a6c9721793192062e40ab908",
+    "tools/author_selected_layer_color.py": "d69120e05c22fbfa358d4a915d80ead15f287d4d2ddbee845dbf4203e236df53",
+    "tools/audit_layer_color_order.py": "57e5db67722a195aa8ddbbe55b29ee627975fde35787f93fe39b4a7047f09a00"
+  },
+  "patch": {
+    "path": "/private/tmp/layer-color-order/layer-color-order.patch",
+    "sha256": "d5ffa506073942023fcc83b42970ad6694ba774185215d232d32b53458ebc68b"
+  },
+  "commands": {
+    "configure": "cmake -S . -B /private/tmp/layer-color-order/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_BUILD_TESTS=ON",
+    "build": "cmake --build /private/tmp/layer-color-order/build --target lc3_compat_check libdxfrw_dxf_fixture_tests libdxfrw_dxf_layer_color_order_tests -j4",
+    "test": "ctest --test-dir /private/tmp/layer-color-order/build -R '^(libdxfrw_dxf_layer_color_order|libdxfrw_layer_dwg_cmc_roundtrip)$' --output-on-failure",
+    "producer_projection": "python3 tools/author_selected_layer_color.py /private/tmp/layer-color-order/out/source.dxf /private/tmp/layer-color-order/producer-order.dxf --sha256 5d6abb8efd651dcdedaaebf3de1edf370ef2ec2b62e4202f6e77f7358c4b1a04 --order producer",
+    "reordered_projection": "python3 tools/author_selected_layer_color.py /private/tmp/layer-color-order/out/source.dxf /private/tmp/layer-color-order/reordered.dxf --sha256 5d6abb8efd651dcdedaaebf3de1edf370ef2ec2b62e4202f6e77f7358c4b1a04 --order truecolor-first",
+    "native_selected": "/private/tmp/layer-color-order/build/tests/libdxfrw_dxf_layer_color_order_tests /private/tmp/layer-color-order/reordered.dxf /private/tmp/layer-color-order/emitted",
+    "audit": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_layer_color_order.py --source /private/tmp/layer-color-order/out/source.dxf --source-sha256 5d6abb8efd651dcdedaaebf3de1edf370ef2ec2b62e4202f6e77f7358c4b1a04 --producer /private/tmp/layer-color-order/producer-order.dxf --producer-sha256 4bbea0081a7369c1f0b67b6dcbe7b9ac868536868cefbc5fdb085ba15561a130 --reordered /private/tmp/layer-color-order/reordered.dxf --reordered-sha256 f8a6f17c488991a18b16d5ad4cfc4ffc7f808b6a29977817cfc5cd907be317e5 --ascii /private/tmp/layer-color-order/emitted/ascii.dxf --ascii-sha256 59f79b8cf519becddc90facaac4945fe3afbb5442ad7182d47ee516fed40cf4b --binary /private/tmp/layer-color-order/emitted/binary.dxf --binary-sha256 c930a52c6a51ff452a32f14db50a5a09d18e72b97d61d0148ef2a53d077c6bdc --black-input /private/tmp/layer-color-black/in/black.dxf --black-input-sha256 bce51962159fdf430865d21f19fbdefa11bba0611c5a491c757052e9f1a89a7b --black-output /private/tmp/layer-color-black/out/black.dxf --black-output-sha256 6e723a0fa963b591ad4438bf30872b3af352c9cdc5f910cf69ef49841c2f2bfb"
+  },
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_(dxf_layer_color_order|layer_dwg_cmc_roundtrip)$' --output-on-failure: 2/2 passed.",
+  "scratch_candidate_files_sha256": {
+    "src/drw_objects.cpp": "bc90968e43f31717903c3fac72cf28bcbbe2a134e32b4f5cd06bcf87fdb3b8bc",
+    "tests/CMakeLists.txt": "46d3649335943a9aeda17ad06d1b2601decc3624705330cdae64437d54458014",
+    "tests/dxf_layer_color_order_tests.cpp": "89fe14b29d2642045ece724a2cf6a3985bb9ecd1a6c9721793192062e40ab908",
+    "tools/author_selected_layer_color.py": "d69120e05c22fbfa358d4a915d80ead15f287d4d2ddbee845dbf4203e236df53",
+    "tools/audit_layer_color_order.py": "57e5db67722a195aa8ddbbe55b29ee627975fde35787f93fe39b4a7047f09a00"
+  }
+}

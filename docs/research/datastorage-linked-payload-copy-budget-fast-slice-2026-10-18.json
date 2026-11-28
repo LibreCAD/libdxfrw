@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "AC1027 DataStorage linked payload-copy budget",
+  "mode": "local in-memory implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-07 / S8.3 / 7S.3 / libdxfrw_graph_preservation_tests",
+  "sourceAudit": {
+    "readerPaths": [
+      "src/intern/dwgreader18.cpp::captureRawDwgDataSections",
+      "src/intern/dwgreader21.cpp::captureRawDwgDataSections",
+      "src/intern/dwgreader.cpp::linkDataStorage"
+    ],
+    "invariants": [
+      "Each reader captures at most one header-selected Prototype/AcDs section into its typed index.",
+      "The section parser retains aggregate record payload bytes only within PAYLOAD_BLOB_SECTION_CAP.",
+      "m_dataStorageLinkedRecords permits each section/record identity to attach to at most one entity.",
+      "The attached entity payload is a second reader-owned vector copy; callback/document and writer staging copies are separate ownership stages."
+    ]
+  },
+  "implementation": {
+    "productionFiles": [
+      "src/drw_datastorage.h",
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader.cpp",
+      "src/intern/dwgreader18.cpp",
+      "src/intern/dwgreader21.cpp"
+    ],
+    "testFiles": ["tests/graph_preservation_tests.cpp"],
+    "changes": [
+      "Added explicit m_dataStorageLinkedPayloadBytes accounting with an 8 MiB cumulative admission check.",
+      "Stage payload and string copies and claim the unique source record before publishing entity fields; failed staging leaves the entity and byte counter unchanged and increments the existing link-failure count.",
+      "Reset linked-byte accounting when R2004/R2007-family reader file state is reset.",
+      "Extended the generated five-record shared-blob control to link the four retained records, assert exact aggregate linked bytes, verify the cap, retry an already-linked entity without double accounting, and retain an orphan disposition for the omitted fifth payload."
+    ],
+    "fixturesOrDependenciesAdded": false,
+    "newCTestRegistration": false,
+    "scopeLimit": "This measures reader-owned entity attachment copies. It does not bound raw section storage, transient blob-page buffers, consumer-owned document/callback copies, writer staging, or process RSS."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+    "buildResult": "PASS; strict target compiled and linked.",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "testResult": "PASS; 1/1 in 0.88 seconds.",
+    "diffCheck": "PASS for scoped production, test, plan, and receipt paths.",
+    "fullSuite": "NOT RUN; fast-slice cadence retained.",
+    "peerRuntime": "NOT RUN.",
+    "nativeConsumer": "NOT RUN.",
+    "physicalDrawingFixture": "NOT CREATED; generated DataStorage bytes exist only in memory."
+  },
+  "planImpact": {
+    "finding": "Existing PAR-07 / S8.3 / 7S.3 memory-accounting lane.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelImplementationSubplans": 73
+    },
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "commitCreated": false,
+    "worktreeNote": "The shared worktree was already broadly dirty. Nothing was staged or committed."
+  }
+}

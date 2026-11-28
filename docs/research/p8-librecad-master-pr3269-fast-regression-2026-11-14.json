@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad-master-pr3269-fast-regression-2026-11-14",
+  "date": "2026-11-14",
+  "title": "Clean LibreCAD master build and PR #3269 LTYPE regression slice",
+  "status": "clean_consumer_fast_slice_passed",
+  "supportClaimEffect": "none",
+  "scope": "Build the clean upstream LibreCAD master DWG/DXF fast-test target and run its focused named-LTYPE tests, including the merged changed-definition save/readback cases. This qualifies consumer behavior on LibreCAD's configured bundled libdxfrw, not a linked build against this upstream repository.",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "head": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+    "headDate": "2026-11-13T17:12:30-05:00",
+    "workingTreeState": "clean",
+    "changedLTypePrMergeCommit": "4060fb6bb6319034fb391485bb1a4d07f6a3ab6e",
+    "changedLTypePrIsAncestorOfHead": true,
+    "bundledLibdxfrwTree": "e54467504d5f0f717cc4e9f2bd894bd72ac12760",
+    "testSource": "librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp",
+    "testSourceSha256": "82171e3964e7551006a20b8aa29ba536673b5619341e6e5db56e47437d976433",
+    "adapterSource": "librecad/src/lib/filters/rs_filterdxfrw.cpp",
+    "adapterSourceSha256": "17f3f6782898081054adff58fd02da4ecbdd0e4d0d709174f3fafc9ad90a4be6"
+  },
+  "environment": {
+    "platform": "macOS ARM64",
+    "cmake": "4.4.5",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "qt": "6.12.0",
+    "buildType": "Debug",
+    "preset": "dwg-fast"
+  },
+  "commands": [
+    "cmake --preset dwg-fast",
+    "cmake --build build/dwg-fast --target librecad_dxf_fast_tests --parallel 8",
+    "./build/dwg-fast/librecad_dxf_fast_tests '[linetype][named][table]'"
+  ],
+  "result": {
+    "build": "PASS",
+    "buildTarget": "librecad_dxf_fast_tests",
+    "focusedSelector": "[linetype][named][table]",
+    "testCasesPassed": 18,
+    "assertionsPassed": 465,
+    "failed": 0,
+    "includedPr3269Cases": [
+      "DXF writes a changed line type definition over its record",
+      "DWG writes a changed line type definition over its record",
+      "DXF writes a redefined built-in from the table",
+      "DXF writes a changed complex line type without its segments",
+      "DXF writes a twin archived spelling as it came beside a changed record"
+    ]
+  },
+  "fixturePolicy": {
+    "committedDwgOrDxfFixturesAdded": false,
+    "generatedTestData": "The regression cases construct DXF input strings in test code; the DWG roundtrip is generated in the test temporary directory and removed by the test. No fixture files were added to LibreCAD or libdxfrw repositories."
+  },
+  "limitations": [
+    "The fast-test executable compiles and links LibreCAD's bundled libdxfrw subtree, not /Users/dli/dev/libdxfrw.",
+    "This does not prove LibreCAD source or binary compatibility when linked to the upstream libdxfrw checkout.",
+    "This does not qualify LibreCAD_3, ABI stability, Linux/Windows behavior, or independent DWG/DXF producer semantics.",
+    "The test selector exercises the relevant named-LTYPE regression neighborhood and the five PR #3269 cases; it is not the full LibreCAD test suite."
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "AC1024 associative network action and parent-chain audit",
+  "mode": "P4 bounded source-bound network closure slice",
+  "baselineCommit": "89b0343a",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Resolve each parsed AC1024 associative-network action reference to its typed target and validate target ownership/owning-network roles.",
+    "Validate reciprocal parent-network action links and ensure every associative-network owningNetwork chain reaches a root without cycles.",
+    "Keep root dictionary membership, other associative descendants and DXF output closure as separate unresolved requirements."
+  ],
+  "evidence": {
+    "runtimeSources": [
+      {
+        "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "logPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/architectural_example-imperial-assoc-network-audit.log",
+        "logSha256": "25e86ccd8a7c716cea23b827627de57613a80b06d0e63a079d36e3fd51dcc56a",
+        "callbacks": 120,
+        "networkRecords": 5,
+        "networkActionListsParsed": 5,
+        "networkActionReferences": 28,
+        "networkActionTargetsVerified": 28,
+        "networkParentEdgesVerified": 4,
+        "networkRootRecords": 1,
+        "networkActionLimitExceeded": false,
+        "networkActionClosureComplete": true,
+        "associativeNetworkParentChainsComplete": true,
+        "selectedBodyDependencyGroupNetworkEdges": [14, 14, 14, 14],
+        "result": "Expected strict refusal: dwg-associative-graph-not-serialized."
+      },
+      {
+        "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "logPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/civil_example-imperial-assoc-network-audit.log",
+        "logSha256": "e32350f9bc49278a6a813ab5ba0390047c2b8201fbffa9f8ff31239dbff7affb",
+        "callbacks": 104,
+        "networkRecords": 4,
+        "networkActionListsParsed": 4,
+        "networkActionReferences": 23,
+        "networkActionTargetsVerified": 23,
+        "networkParentEdgesVerified": 3,
+        "networkRootRecords": 1,
+        "networkActionLimitExceeded": false,
+        "networkActionClosureComplete": true,
+        "associativeNetworkParentChainsComplete": true,
+        "selectedBodyDependencyGroupNetworkEdges": [13, 13, 13, 13],
+        "result": "Expected strict refusal: dwg-associative-graph-not-serialized."
+      },
+      {
+        "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "version": "AC1024",
+        "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "logPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/mechanical_example-imperial-assoc-network-audit.log",
+        "logSha256": "ceebc463f1152fab68215b18c68e95852daa484d1a438f6ca39533b53fa13edc",
+        "callbacks": 138,
+        "networkRecords": 2,
+        "networkActionListsParsed": 2,
+        "networkActionReferences": 19,
+        "networkActionTargetsVerified": 19,
+        "networkParentEdgesVerified": 1,
+        "networkRootRecords": 1,
+        "networkActionLimitExceeded": false,
+        "networkActionClosureComplete": true,
+        "associativeNetworkParentChainsComplete": true,
+        "selectedBodyDependencyGroupNetworkEdges": [17, 17, 17, 17],
+        "result": "Expected strict refusal: dwg-associative-graph-not-serialized."
+      }
+    ],
+    "independentPeerProfile": {
+      "repository": "https://github.com/LibreDWG/libredwg",
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "schemaPath": "src/dwg2.spec",
+      "schemaSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "sourceProjection": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+      "sourceProjectionSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+      "matchingInputSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "observedRelationships": [
+        "Root ASSOCNETWORK 0x422 has a non-owned action reference to child ASSOCNETWORK 0x424.",
+        "Child ASSOCNETWORK 0x424 has owningnetwork 0x422 and 18 owned action references: one ACDBASSOC2DCONSTRAINTGROUP and 17 ASSOCVARIABLE objects.",
+        "The constraint group and all 17 variables name network 0x424 as their owning network; the variables and group are directly owned by network 0x424.",
+        "Both network objects are values of an ACAD_ASSOCNETWORK dictionary entry; runtime root-dictionary membership is not checked by this slice."
+      ],
+      "scopeLimit": "Independent network-role evidence is for the matching mechanical input. Runtime closure checks the implemented profile on all three local AC1024 inputs; no global format claim follows."
+    }
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Added bounded runtime checks for network action list integrity, target class, ownership and owningNetwork values, reciprocal parent-network action links, and acyclic parent chains ending at a null owningNetwork.",
+    "allowedActionTargets": [
+      "ASSOCNETWORK (non-owned parent-network action reference)",
+      "ASSOC2DCONSTRAINTGROUP (owned network action)",
+      "ASSOCVARIABLE (owned network action)"
+    ],
+    "actionReferenceLimitPerImport": 100000,
+    "supportClaimPromoted": false,
+    "persistentFixturesAdded": 0
+  },
+  "validation": {
+    "buildCommands": [
+      "cmake --build build --target dwg2dxf -j 4",
+      "cmake --build build --target libdxfrw_dwg_reader_matrix_tests -j 4"
+    ],
+    "buildResult": "PASS for both touched executables with configured warning settings.",
+    "focusedTestCommand": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1.",
+    "focusedTestExecutableSha256": "be365b633754232a8596b4cd3a776e6f1515e6b47cac43b87db83040007b7e57",
+    "runtimeCommand": "build/dwg2dxf/dwg2dxf <AC1024 source> -y -d -v2010 <temporary DXF>",
+    "runtimeResult": "All parsed network action targets and network parent chains pass the bounded profile on three local AC1024 inputs; each conversion remains refused because no associative writer exists.",
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Root network ACAD_ASSOCNETWORK dictionary membership has independent peer evidence but is not verified by this runtime receipt.",
+    "The local DWGs are investigation inputs only and are not committed fixtures.",
+    "Other associative descendant classes and dependencies remain outside the audited network action profile.",
+    "Constraint-group node layout, complete document closure, associative DXF serialization, handle remapping, output readback and consumer semantics remain unqualified.",
+    "Strict associative export refusal remains active; no support claim is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Bounded reciprocal network-action relationships and acyclic associative owningNetwork chains for the observed AC1024 profile across three local inputs.",
+    "remainingP4Scope": "Verify root ACAD_ASSOCNETWORK dictionary membership in the running implementation; resolve constraint-group node tails; classify other required descendants; implement complete-graph DXF output/remapping/readback or retain strict refusal.",
+    "nextImplementationPacket": "Bind the root network's parent dictionary handle to its exact ACAD_ASSOCNETWORK entry using the retained source-matched DWG dictionary memberships, then continue with newly reachable associative descendants.",
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_data.h": "20857a140140872d2c501feda8c8588173b648fe431ecfec63e9b07986830115",
+    "dwg2dxf/dx_iface.cpp": "a1a53635d1ad9a2669934299f7b361d83890909987ac849ce53abc25a824882b",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "29d93bbe40a2e18e234c827ba07e455c531a8ceba33f1cfdb4a73e1d87834407",
+    "build/dwg2dxf/dwg2dxf": "76d1fd2a0407d1bfa3c41f869349a9f91bff68d55be25fc260018625bf606faf",
+    "build/libdxfrw_dwg_reader_matrix_tests": "be365b633754232a8596b4cd3a776e6f1515e6b47cac43b87db83040007b7e57"
+  },
+  "commitCreated": true,
+  "worktree": "Only the network audit implementation, plan and this receipt are in scope; unrelated untracked workspace files and DWG samples remain excluded."
+}

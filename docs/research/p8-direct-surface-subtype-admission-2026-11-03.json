@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-direct-surface-subtype-admission-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "DIRECT_SURFACE_SUBTYPE_RUNTIME_ADMISSION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise each direct low-level SURFACE serializer's exact runtime-type gate in both DXF encodings.",
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "subtypes": [
+      { "runtimeType": "DRW_PlaneSurface", "record": "PLANESURFACE", "marker": "AcDbSurface" },
+      { "runtimeType": "DRW_ExtrudedSurface", "record": "EXTRUDEDSURFACE", "marker": "AcDbExtrudedSurface" },
+      { "runtimeType": "DRW_RevolvedSurface", "record": "REVOLVEDSURFACE", "marker": "AcDbRevolvedSurface" },
+      { "runtimeType": "DRW_SweptSurface", "record": "SWEPTSURFACE", "marker": "AcDbSweptSurface" },
+      { "runtimeType": "DRW_LoftedSurface", "record": "LOFTEDSURFACE", "marker": "AcDbLoftedSurface" },
+      { "runtimeType": "DRW_NurbsSurface", "record": "NURBSSURFACE", "marker": "AcDbNurbSurface" }
+    ],
+    "failureBehavior": "Each matching-tag derived subtype is refused before record publication and leaves a prewritten destination prefix unchanged.",
+    "retryBehavior": "A fresh low-level writer accepts the corresponding exact built-in runtime class and emits the expected group-0 record, group-5 identity, and subtype marker. Low-level writer errors remain sticky, so retry uses a fresh writer."
+  },
+  "validation": {
+    "input": "Locally authored C++ objects; no DWG/DXF fixture was added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "selector": "libdxfrw_wave1_tests --direct-surface-subtype-admission",
+    "ctest": "libdxfrw_direct_surface_subtype_admission",
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_direct_surface_subtype_admission$' --output-on-failure",
+    "result": "PASS; 1/1 test, 0.50 seconds"
+  },
+  "limitations": [
+    "The control parses emitted group records but does not establish native consumer acceptance or semantic equivalence of surface payloads.",
+    "It does not qualify physical producer profiles, ACIS/SAB syntax, topology, graph closure, or support claims.",
+    "The exact DRW_Surface base representation for PLANESURFACE remains covered by the existing low-level plane-surface control."
+  ],
+  "next": "Continue the source-contract-backed 3D reference-ID audit and target graph closure. Keep DWG-origin LOFTEDSURFACE reference output refused until exact group-310 encoding, source binding, target role/ownership, and native readback are established."
+}

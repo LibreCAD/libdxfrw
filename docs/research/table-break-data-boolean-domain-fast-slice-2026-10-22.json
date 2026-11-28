@@ -1,0 +1,31 @@
+{
+  "id": "par134-ac1024-table-break-data-boolean-domain",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": {
+    "class": "DRW_Table",
+    "version": "AC1024",
+    "field": "R2010 TABLE postamble break-data flag",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.96.2"
+  },
+  "change": "Accept only 0 and 1. For other values, preserve the validated TABLECONTENT prefix, mark semantic content incomplete, and record the optional break-data tail as incomplete.",
+  "regression": "Before the parser change, full generated frames with -1, 2, and INT32_MAX plus a complete optional payload were accepted as semantically complete.",
+  "generated_controls": [
+    {"break_data_flag": 0, "expected": "complete parse without break-data payload"},
+    {"break_data_flag": 1, "expected": "complete parse with break-data payload"},
+    {"break_data_flag": -1, "expected": "retain TABLECONTENT and mark tail incomplete"},
+    {"break_data_flag": 2, "expected": "retain TABLECONTENT and mark tail incomplete"},
+    {"break_data_flag": 2147483647, "expected": "retain TABLECONTENT and mark tail incomplete"}
+  ],
+  "validation": [
+    "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4: PASS (-Werror)",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_table_break_data_flag_domain|libdxfrw_dwg_object_vectors)$' --output-on-failure: PASS (2/2; 0.36 s)",
+    "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp: PASS"
+  ],
+  "fixtures_added": false,
+  "full_suite_run": false,
+  "external_producer_or_native_application_run": false,
+  "support_claim_changed": false,
+  "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+}

@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-mtext-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "title": "MTEXT DWG encoder allocation rollback and retry",
+  "scope": "Generated local transaction evidence for DRW_MText::encodeDwg; no physical producer or output-support claim.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The encoder stages body, string and handle buffers, retains caller alias routing, and swaps staged output into caller buffers only after all writes succeed. MTEXT oType is published only after successful buffer publication.",
+    "versions": ["AC1024", "AC1032"],
+    "profiles": [
+      "Separate body/string/handle streams with variable UTF-8 text, background RGB CMC and named color data",
+      "All-streams-aliased route without background CMC, where the CMC API requires a detached string stream"
+    ]
+  },
+  "allocationSweep": {
+    "mechanism": "One-shot global allocation failure countdown in the generated object-vector test",
+    "result": "32 reached allocation-failure offsets per version returned false without throwing, preserved seeded body/string/handle bytes, bit counts, handle occurrences and the caller record's original oType, and succeeded on same-object retry with output equal to the clean encoding and oType=44.",
+    "aliasControl": "Failure at the first reached allocation preserved the aliased destination; retry on the same object matched a clean aliased encoding."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --mtext-dwg-encode-allocation-rollback",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_mtext_(dwg_encode_allocation_rollback|background_cmc)$' --output-on-failure",
+    "result": "PASS: focused selector; both focused CTests passed (2/2)."
+  },
+  "limitations": [
+    "Generated vectors establish local failure/retry behavior only; they do not qualify MTEXT wire semantics or physical producer interoperability.",
+    "No native consumer rendering, complete-document output, or broad DWG support claim follows.",
+    "The test keeps the existing requirement for a detached string stream when background CMC metadata requires one."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added."
+}

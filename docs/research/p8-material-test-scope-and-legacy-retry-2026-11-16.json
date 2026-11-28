@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-16",
+  "scope": "Repair two pre-existing MATERIAL test failures without expanding production support",
+  "baseline": "Both controls failed against source preceding the AC1021 sparse MATERIAL reader change.",
+  "normal_boundaries": "The direct dxfRW codec control inherited dx_iface's whole-document finalizer despite not preparing its graph. Its fixture now finalizes using the direct write result; adapter fileExport controls still use the real graph finalizer. All 64 profiles, 542 readbacks, 24 callback-mutation refusals and 46 retries pass.",
+  "sparse_raw": "Keep modern AC1027 sparse-material refusal and destination rollback. A manually authored material lacks the exact modern retained-source body required for replay; test same-writer invalid/corrected retry at legacy AC1018, whose manual codec is already supported. Both ASCII and binary input iterations pass.",
+  "validation": "Focused CTest: material_normal_boundaries, sparse_material_control_groups, dwg_material_replay_refusal and dxf_sparse_material_raw: 4/4 PASS.",
+  "limitations": "This is test maintenance, not new MATERIAL format or consumer qualification. The AC1027 exact-source replay guard remains unchanged."
+}

@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c BLOCK_RECORD parser staging and context-projection retained-byte accounting",
+  "scope": "Remove parallel parser-owned BLOCK_RECORD copies and account the public record and persistent parsing-context projections before publication.",
+  "files": {
+    "src/libdxfrw.cpp": "56816a0e9ef64a0f89ee011770b26395c678e99679c5abd4243dbfa528c1dc76",
+    "tests/hardening_tests.cpp": "5049ab2b749e1099175754e04a5d1d5f4c980ca82ad716eeba9859604f740fbf",
+    "CMakeLists.txt": "09435f8807629916c578c2eae604bd5be3c71b5ab78c8a621de7ed8c6ff1c5c8"
+  },
+  "change": {
+    "summary": "The parser now stages one DRW_Block_Record by move, charges its name/preview/BLKREFS payload to its retained lease, scopes duplicate-detection scratch to the active row, and reserves the persistent BlockRecordInfo context projection before callbacks.",
+    "fixtureAdded": false,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimPromoted": false,
+    "externalQualificationChanged": false
+  },
+  "generatedControl": {
+    "formatVersion": "AC1027",
+    "input": "Locally generated in-memory ASCII DXF with two BLOCK_RECORD rows, distinct long names, 32/48-byte previews, and two/one BLKREFS handles.",
+    "checks": [
+      "exact measured limit publishes both callback records and complete context projections",
+      "post-read retained-byte usage equals one public owner plus one context projection",
+      "one byte below the exact limit refuses before any callback or context-map publication",
+      "resource diagnostic is dxf-retained-byte-budget",
+      "same-facade exact-budget retry succeeds and both handles resolve"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_block_record_parser_retained_budget|libdxfrw_dxf_ltype_retained_owner_budget|libdxfrw_hardening|libdxfrw_dxf_fixtures)$' --output-on-failure",
+      "result": "PASS (4/4; 5.48 seconds)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/libdxfrw.cpp tests/hardening_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "evidenceCeiling": "The generated controls verify retained-byte accounting and callback/context publication boundaries for the named BLOCK_RECORD parser path. They do not establish DWG/DXF format conformance or support qualification.",
+  "fullSuiteRun": false,
+  "externalPeersRun": false,
+  "nativeCadRun": false,
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "planTotals": {
+    "findings": 144,
+    "topLevelSubplans": 78
+  },
+  "selfUnblockingContinuation": "Continue the exact-source audit across remaining compound/class registries and parser staging containers. If that audit finds no local owner gap, resume evidence-ready PAR-03/PAR-04 associative field-context work or a locally demonstrated HATCH/DWG semantic issue. External qualification remains optional and does not block local implementation."
+}

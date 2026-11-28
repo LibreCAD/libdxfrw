@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-null-background-local-candidate-screen-2026-11-19",
+  "date": "2026-11-19",
+  "status": "TWO_LAYOUT_NULL_BACKGROUND_CANDIDATE_FOUND_OUTPUT_READBACK_PENDING",
+  "supportClaimEffect": "none",
+  "scope": "One bounded scan of distinct local AC1024 samples sought a complete null-background layout profile after the aerial source's SUN owner mismatch and the conference-room candidate's incomplete read. No sample or generated DXF was added to the repository.",
+  "screen": {
+    "inventory": "tests/samples/AC1024 plus /Users/dli/doc/dwg; duplicate byte hashes were collapsed; the four visualization candidates were not rerun because existing receipts cover them.",
+    "candidates": [
+      {
+        "file": "architectural_example-imperial.dwg",
+        "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "strictAscii": "PASS",
+        "strictBinary": "PASS",
+        "disposition": "Selected for the next P4-D output-readback slice."
+      },
+      {
+        "file": "mechanical_example-imperial-alt.dwg",
+        "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "strictAscii": "PASS",
+        "strictBinary": "not attempted",
+        "disposition": "Alternate candidate; not promoted."
+      },
+      {
+        "file": "civil_example-imperial.dwg",
+        "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "strictAscii": "REFUSED",
+        "reason": "strict-complete conversion requires successful, complete DWG read disposition; trace reports a TLTYPE_CONTROL integrity mismatch."
+      },
+      {
+        "file": "title_block-arch.dwg",
+        "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+        "strictAscii": "REFUSED",
+        "reason": "SORTENTSTABLE BLOCK_RECORD/DICTIONARY resolution."
+      },
+      {
+        "file": "title_block-iso.dwg",
+        "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+        "strictAscii": "REFUSED",
+        "reason": "DXF output generation failed during LAYER table."
+      }
+    ]
+  },
+  "selectedCandidate": {
+    "source": {
+      "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+      "bytes": 148638,
+      "version": "AC1024",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "fixtureCommitted": false,
+      "provenance": "Local sample; producer identity is not authenticated."
+    },
+    "libdxfrw": {
+      "asciiOutput": {
+        "path": "/private/tmp/p4d-local-candidate-screen-20261119/architectural_example-imperial.dxf",
+        "sha256": "6bda57e8f5d4ba81c444dac8cc8d41e8b23ef8c5b75da841f9e5da6cdb0d7566"
+      },
+      "binaryOutput": {
+        "path": "/private/tmp/p4d-local-candidate-screen-20261119/architectural_example-imperial-binary.dxf",
+        "sha256": "308e27cc9a6b14fb8bc0d701505f3f7f45dae211c86112d128b1538a78d2c0e5"
+      },
+      "debugLogSha256": "9f9ab9b0be5293b306d9c0cf49a2ccc67db7bbb2d5d68759c594eb60a86680d3",
+      "diagnostics": "entityParseFailures=0, objectParseFailures=0, sourceFrames=663, published=663, pending/deferred/failed/unresolved=0. Strict ASCII and Binary conversion both return success."
+    },
+    "sourcePeer": {
+      "reader": "LibreDWG 0.13.3.553_6d6a_dirty local build",
+      "jsonPath": "/private/tmp/p4d-local-candidate-screen-20261119/architectural-libredwg.json",
+      "jsonSha256": "a84378f7fcb44069d42b7b81ee8c8898810bc8c217fe20ad0561c6a429ddb2a2",
+      "objectCount": 663,
+      "layoutCount": 2,
+      "layoutHandles": ["0x22", "0x59"],
+      "rootEntryCount": 15,
+      "acadLayoutEntries": {"Layout1": "0x59", "Model": "0x22"},
+      "backgroundAndSunObjects": 0,
+      "acadBackgroundRootPresent": false
+    },
+    "asciiGraphComparison": {
+      "runnerResultPath": "/private/tmp/p4d-local-candidate-screen-20261119/layout-graph-comparison.json",
+      "runnerResultSha256": "34cd2e95896e28cf158b7f802a37d061249a7102f058a39a2332333107b3eda7",
+      "result": "PASS",
+      "checks": "The source and ASCII output have identical 15-entry NOD names/targets and the same two ACAD_LAYOUT entries, handles, names, flags, tab order and extension-dictionary handles. Both layout owners resolve to the emitted mapped BLOCK_RECORD name matching the source name (*Model_Space or *Paper_Space); one block-record handle is remapped."
+    },
+    "binaryPeerAttempt": {
+      "reader": "LibreDWG dwgwrite 0.13.3.553_6d6a_dirty",
+      "result": "REFUSED",
+      "reason": "The peer DXF importer rejects EVALUATION_GRAPH group code 92 before producing a DWG, so it cannot supply independent Binary output readback for this sample."
+    }
+  },
+  "limitations": [
+    "This selects a useful local null-background source profile; it does not establish producer provenance, native layout appearance, or product support.",
+    "The peer source decode is from a dirty local LibreDWG build. Its binary DXF importer cannot read this candidate output profile.",
+    "The output parity check is a raw group/identity comparison for NOD and LAYOUT structure; it is not a complete semantic readback of all 663 objects.",
+    "The existing aerial source still refuses at the documented VIEW/SUN owner mismatch. This candidate does not repair or reinterpret that graph.",
+    "No DWG/DXF fixture files were committed; all generated outputs remain in /private/tmp."
+  ],
+  "next": "Use this exact two-layout, no-ACAD_BACKGROUND profile for a focused independent ASCII/Binary DXF readback when a qualified reader is available; keep P4-D and native consumer claims open."
+}

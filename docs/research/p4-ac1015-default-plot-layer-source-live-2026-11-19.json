@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "scope": "Generated AC1015 default-plot LAYER source and live comparison; no output authority",
+  "implementationDigestSha256": "44900ba587f8534d1a854b61344e16e2ff96d0de339490a3d6fa96b600a6b4a0",
+  "provenance": "The owning regression generates ASCII and binary DXFs from scratch in temporary directories. No DWG or DXF fixture is added.",
+  "sourceEvidence": [
+    "The selected generated profile has one physical LAYER, handle 0x10 and LAYER table owner 0x2, with the exact eleven observed groups and plot target 0xF.",
+    "The original callback, raw-to-typed replay, physical identity and immutable source model are bound to the same import and source codec context.",
+    "The live LAYER is compared against the original; changed plot target or color, missing or duplicate layer, and a source target changed from F to E are rejected and restored in both encodings.",
+    "The legacy profile uses separate match and origin flags. A regression checks that the general raw/typed and origin flags stay unset and the general legacy resource report remains unchanged."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedCtests": "PASS (5: default plot source probe and graph, XRECORD binary transport and faults, and standard DWG profile isolation)",
+    "supportMetadata": "PASS (15 claims, 2 candidate routes, 0 advertised)"
+  },
+  "limits": [
+    "This narrow same-writer generated profile is not independent native producer or semantic evidence.",
+    "Integrate the source/live class, root, dictionary, placeholder and layer checks into immutable per-write snapshots, staged target output verification, atomic failure/retry and independent readback.",
+    "AC1015-to-AC1018 output remains refused; no support claim is promoted. P8-F is open for this digest."
+  ]
+}

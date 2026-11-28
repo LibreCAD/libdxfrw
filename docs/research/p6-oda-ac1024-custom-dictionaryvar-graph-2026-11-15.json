@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "title": "ODA AC1024 custom DICTIONARYVAR graph source and peer crosscheck",
+  "status": "SELECTED_AC1024_TWO_OWNER_ASCII_BINARY_OUTPUT",
+  "supportClaimEffect": "none",
+  "sources": "The locally generated polyface and closed-mesh DXF controls were converted to AC1024 DWG and returned to DXF by ODA 27.1. Input and output hashes and the independent LibreDWG 0.14 JSON hashes are recorded in p6-oda-ac1024-visualstyle-extension-graph-2026-11-15.json. No fixture is committed.",
+  "sourceGraph": "Each DWG has one NOD EZDXF_META entry to an NOD-owned hard-owner DICTIONARY. It has two unique entries CREATED_BY_EZDXF and WRITTEN_BY_EZDXF; their DWG handle links use code 2. Both DICTIONARYVARs have owner equal to this dictionary, schema 0, no reactors and no extension dictionary. Each DWG separately also has six system DICTIONARYVARs under AcDbVariableDictionary with one owner reactor apiece.",
+  "crosscheck": "For both inputs, follow the source and ODA-output dictionary edges independently and match on the two dictionary keys. ODA DXF values/schema/owner and LibreDWG DWG JSON agree; libdxfrw typed callbacks match each source value and report zero reactors. The owner dictionary has an import-matched standard frame (type 42); each variable has an opaque source frame present, but this presence check alone does not prove bit spans or typed frame equality.",
+  "reasonForCurrentRefusal": "prepareExtensionObjectGraph only admits system-variable ownership for DWG. prepareDwgDictionaryVars and inspectDwgDictionaryVars also assume exactly one owner, and the snapshot path requires one reactor for every variable. Allowing the graph preflight alone would therefore remain incomplete and unsafe.",
+  "nextImplementation": "Diagnose the later LAYER-table write failure with typed source fields, emitted handle plans and independent DWG/DXF comparisons. Change only a demonstrated gap; preserve transactional refusal and strict HEADER integrity policy.",
+  "probeHashes": {
+    "source": "0ce087da62ca61551629efc342e02506ddc6066ef03ae18e58ec37a9da0fa43b",
+    "executable": "380053a4d04594c347d5901cb8f55c3927cbd9e10634253a33fa1700c2b89ae8",
+    "polyfaceLog": "85c1a1df7bf546044c4ac78db25773d79291b9efded8ddc7231ecb32521c66de",
+    "closedmeshLog": "c6b3b9dcdaf7671914e700c0bbfcd7a6ed3181ff4f42acd2a1fa933e89c6fe9a",
+    "comparisonScript": "ebaa0732ad496772e12205577b2ae7893606ddb7f309803269025d56884d7b75"
+  },
+  "limits": [
+    "The source samples are generated locally and converted by ODA; they are not independently authored producer examples.",
+    "Peer and typed comparison is not a native user-semantics or source-bit-span proof.",
+    "Selected-graph output only; whole-document output, independent variable semantics, native consumers and support claims remain unqualified."
+  ],
+  "implementation": {
+    "scope": "AC1024 NOD-owned EZDXF_META dictionary with exactly the CREATED_BY_EZDXF and WRITTEN_BY_EZDXF entries alongside the existing AcDbVariableDictionary. The two custom records require schema 0, no reactors and source-compatible common links. Both owners must have unique identities and complete, non-aliased membership.",
+    "snapshotAndProof": "Snapshot both dictionaries plus NOD and typed variables. Output inspection checks remapped NOD edges without aliases, owner dictionaries and members, and every variable owner, reactor, schema and value. Existing one-owner AC1018/AC1021/AC1024 routes remain supported.",
+    "preflight": "Count dictionary-variable membership for AC1024 DWG and admit the witnessed root only; no DXF-only state is used to certify DWG."
+  },
+  "verification": {
+    "focusedCtest": "17/17 dictionary-variable and VISUALSTYLE tests passed, including a new fixture-free test for wrong custom key, owner, reactor and aliased root, atomic refusal and same-writer retry.",
+    "selectedPhysical": "Both generated ODA AC1024 sources passed selected graph ASCII/Binary output/readback with six system and two custom variables; late custom-value mutation preserved the existing destination and restoring it allowed a same-writer retry. The existing AC1021 selected graph also passed with its 12 system variables.",
+    "independentAscii": "For both AC1024 samples, selected libdxfrw ASCII output was followed by key through its emitted NOD and custom-owner graph. Both source keys, owners, schemas and values agreed with independent LibreDWG source JSON; output handles were followed rather than assumed identical.",
+    "wholeDocument": "Explicit partial-mode conversion of each sample now passes VISUALSTYLE and DICTIONARYVAR preflight and refuses during LAYER table output, with no file published. Strict conversion continues to refuse the unexplained HEADER suffix.",
+    "testExecutableSha256": "8324dfd7f8611fb1ffdf4b8a691c6397632509e58998621f0bcc5c1fee1c32ee",
+    "cliExecutableSha256": "05c02157465a1366b52dbdd8d9e831fcd3a87433a75d5782bee8b00a266cbd4b",
+    "digest": "6d676da488b7e00f99d468ef8b39158dfe6de3a00360e6aa2111fa78848cd525",
+    "frozenCtestInventory": "1367 tests, adding only libdxfrw_dictionaryvar_ac1024_mixed_graph"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "receipt_version": 1,
+  "id": "p5-ac1018-table-nod-tablestyle-whole-file-2026-11-10",
+  "date": "2026-11-10",
+  "profile": "generated AC1018 NOD to TABLESTYLE named-dictionary graph in a finalized DWG",
+  "result": "pass",
+  "generated_input": {
+    "path": "/tmp/libdxfrw-ac1018-tablestyle-nod-external.dwg",
+    "sha256": "ecdaaaf47a7fb50c4ead17d94177cecc583ba6e2981eb552f62e5c4721ce6003",
+    "producer": "libdxfrw full dwgRW::write lifecycle",
+    "profile": "AC1018, one NOD ACAD_TABLESTYLE registration, one NOD-owned DICTIONARY, one typed TABLESTYLE with three legacy row styles"
+  },
+  "local_readback": {
+    "reader": "fresh dwgRW reader and dx_iface callback instance",
+    "checks": [
+      "whole file finalized and opened successfully",
+      "exactly one ACAD_TABLESTYLE NOD key resolves to one dictionary",
+      "dictionary parent is the NOD and hardOwner is set",
+      "Standard dictionary key resolves to one TABLESTYLE",
+      "TABLESTYLE parent points back to the selected dictionary",
+      "style name and all three generated row text heights read back"
+    ],
+    "test": "libdxfrw_tablestyle_nod_whole_file_roundtrip"
+  },
+  "independent_reader": {
+    "implementation": "GNU LibreDWG",
+    "version": "dwgread 0.14",
+    "command": "dwgread -O JSON -o /tmp/libdxfrw-ac1018-tablestyle-nod-external.json /tmp/libdxfrw-ac1018-tablestyle-nod-external.dwg",
+    "json_sha256": "b577b9efb89c68c08a65c61d0c215c374425a6943bd62fcab187fe066a00c6c1",
+    "result": "SUCCESS",
+    "semantic_checks": [
+      "NOD items contain ACAD_TABLESTYLE -> handle 0xA6FF",
+      "dictionary 0xA6FF owner is NOD, hard-owner flag is 1, and Standard -> 0xA700",
+      "TABLESTYLE 0xA700 owner is dictionary 0xA6FF and name is Standard",
+      "independent row-style decode returns text heights [1,2,3] and alignments [5,5,5]"
+    ]
+  },
+  "limits": [
+    "generated TABLESTYLE graph only; no TABLE entity was emitted",
+    "does not qualify TABLE cell content, physical *T geometry, or rendering",
+    "LibreDWG independent parse is not native CAD acceptance or producer evidence",
+    "public dwgRW::writeTable remains fail-closed"
+  ],
+  "fixture_policy": "The DWG and JSON outputs were created under /tmp; no fixture was added to the repository.",
+  "next": "Use source-backed TABLE content and anonymous *T geometry evidence to define the admitted entity projection, then add whole-file output and independent readback for that graph"
+}

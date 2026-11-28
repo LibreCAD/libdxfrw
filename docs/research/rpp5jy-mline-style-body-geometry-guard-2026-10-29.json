@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5jy MLINESTYLE body geometry guard",
+  "date": "2026-10-29",
+  "codeCommit": "58a6092586436e5e79ab4d5e964b19629bb14d9f",
+  "scope": "Connects the selected AC1027 MLINESTYLE body source/live proof to the AC1021+ modern MLINESTYLE geometry-edit preflight and finalization gates. A prepared transaction is admitted only when its live style matches the prepared model, retained raw data matches the source baseline, and its planned output body decodes to the prepared projection. The guard does not authenticate the complete staged document, enable consumed-style edits, or promote support claims.",
+  "contract": {
+    "selection": "Runs for the existing selected whole-source or legacy-identity observation profile when a modern MLINESTYLE geometry transaction is prepared. Other profiles retain their existing behavior or fail closed through their existing admission rules.",
+    "preflight": "The source/live proof recognizes the prepared offset transaction rather than comparing its intended live model directly with the unchanged source body. It bounds and charges planned model, projection and output snapshots, verifies the prepared raw body remains equal to its captured baseline, and checks that decoding the planned body yields the prepared projection.",
+    "finalization": "Finalization repeats the selected LAYER, root/child DICTIONARY, empty-pattern LTYPE and MLINESTYLE body source/live proofs after writer callbacks. A test consumer first confirms the prepared MLINESTYLE transaction passes the proof, then mutates its description before base finalization; the changed live model causes atomic refusal.",
+    "failureAndRetry": "Across all four source/output encoding combinations, finalization refusal preserves the destination sentinel and the caller's intended offset. The test consumer restores its injected description after base finalization returns. Retrying the same adapter succeeds; readback confirms the edited offset and unchanged description.",
+    "compatibility": "No public API or LibreCAD callback changes. Existing MLINESTYLE transaction routes and source/live carrier checks pass in the affected normal and ASan cohorts. The selected geometry edit is admitted only inside the already opt-in profile.",
+    "limits": "The source profile is the selected AC1027 MLINESTYLE dictionary/body grammar. This guard does not close other object, block or entity carriers; authenticate all actual staged sections, generated CLASSES or final HANDSEED; prove consumed MLINE geometry; qualify count, retarget, legacy or MLEADERSTYLE operations; or establish native rendering or whole-document semantics. It does not enable consumed-style offset edits."
+  },
+  "controls": {
+    "profiles": 4,
+    "matrix": [
+      "ASCII source -> ASCII DXF output",
+      "ASCII source -> binary DXF output",
+      "binary DXF source -> ASCII output",
+      "binary DXF source -> binary DXF output"
+    ],
+    "preparedTransactionProofs": 4,
+    "finalizationMutationRefusals": 4,
+    "destinationSentinelsPreserved": 4,
+    "sameAdapterRetries": 4,
+    "readbacks": 4,
+    "readbackChecks": "The unique selected MLINESTYLE retains its expected edited first-element offset, original description and two-element count.",
+    "sourceConstruction": "The AC1027 DXF source is authored in the test; binary input is encoded locally. The style offset edit and finalization-time description mutation are performed in memory. Temporary files are removed. No DWG/DXF fixture was added to Git."
+  },
+  "validation": {
+    "normalBuild": {
+      "result": "PASS",
+      "command": "cmake --build build --target libdxfrw_mline_source_dependency_tests libdxfrw_dxf_fixture_tests -j4"
+    },
+    "directNormal": {
+      "result": "PASS",
+      "command": "build/tests/libdxfrw_mline_source_dependency_tests --mline-style-body-geometry-guard",
+      "summary": "profiles=4, transaction-proofs=4, late-refusals=4, retries=4, readbacks=4"
+    },
+    "normalCohort": {
+      "result": "PASS",
+      "count": "13/13",
+      "seconds": 28.75,
+      "command": "ctest --test-dir build -R 'libdxfrw_(no_raw_sections|mline_style_body_transactions|mline_source_dependency|mline_layer_source_live|mline_layer_carrier_geometry_guard|mline_dictionary_carrier_geometry_guard|mline_ltype_provider_geometry_guard|mline_style_body_geometry_guard|mline_ltype_source_live|mline_deleted_consumer_geometry_guard|mline_raw_section_geometry_guard|whole_source_capture|legacy_blockref_relation)' --output-on-failure"
+    },
+    "asanBuild": {
+      "result": "PASS",
+      "command": "cmake --build build/rpp5fa-evidence.4xKADX/asan-build --target libdxfrw_mline_source_dependency_tests libdxfrw_dxf_fixture_tests libdxfrw_whole_source_tests libdxfrw_legacy_blockref_relation_tests libdxfrw_no_raw_sections_tests -j4"
+    },
+    "asanCohort": {
+      "result": "PASS",
+      "count": "13/13",
+      "seconds": 19.63,
+      "sanitizer": "AddressSanitizer-instrumented targets in the configured ASan build; CTest default environment",
+      "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R 'libdxfrw_(no_raw_sections|mline_style_body_transactions|mline_source_dependency|mline_layer_source_live|mline_layer_carrier_geometry_guard|mline_dictionary_carrier_geometry_guard|mline_ltype_provider_geometry_guard|mline_style_body_geometry_guard|mline_ltype_source_live|mline_deleted_consumer_geometry_guard|mline_raw_section_geometry_guard|whole_source_capture|legacy_blockref_relation)' --output-on-failure"
+    },
+    "diffCheck": "PASS (git diff --check before code commit; plan and receipt JSON validated separately)"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "10ca1d345d43b5ef67c5df4382354157a98616137303ed2c7fb4e5ce77264555",
+    "dwg2dxf/dx_iface.h": "1f77700e486117752ac25160e4a98d250b1385672924dc945bac76f5910376aa",
+    "tests/CMakeLists.txt": "dc942aa38f0f17f42701a6edaf6cf898efd0861716290b78d129c9d881a894fd",
+    "tests/dxf_mline_source_dependency_tests.cpp": "e3033e2f78a17c6e6b85889d18645d569412a65892c6f3c9082e5358b27d9dec"
+  },
+  "binaryBindings": {
+    "normalMlineSourceDependencyTests": "90a6d1deaa499bc7564dbe1d6dab31978f66bd5016615702e54afec63f9c152f",
+    "normalDxfFixtureTests": "3760c328437b200c17e9da55a74c5ce2e926cb4c15e262404d0f8f8e266e79f0",
+    "asanMlineSourceDependencyTests": "7a4fa48de19858828b0c56b558b9eeebcea48da0f4881cd9e62e82cc63904f5b",
+    "asanDxfFixtureTests": "d2c3cdbd7ebd720399f8ce0c0d59b259d5eba6d41de538a566c6266e0bfc21f3",
+    "asanWholeSourceTests": "7f095b6a5b61da80756b8ff74c4b9aba56a0e6c7551251b54f4c17145919d752",
+    "asanLegacyBlockrefRelationTests": "24905a2a9f3852c6ff02c9aea4d5d18a771d97bc681db2de67e7051bb350b04b",
+    "asanNoRawSectionsTests": "ad066153e03bc7c794842c2b2e444191a44a54cdc45f6e677f052536cf81589e"
+  },
+  "next": "Extend the selected geometry-edit gate to the next exact admitted graph carrier, then authenticate actual staged output including generated CLASSES and final HANDSEED before considering consumed geometry. Keep count, retarget, legacy and other operations on their own witnesses and exit criteria."
+}

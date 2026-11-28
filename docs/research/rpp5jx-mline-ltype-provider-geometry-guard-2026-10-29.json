@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5jx MLINE empty-pattern LTYPE provider geometry guard",
+  "date": "2026-10-29",
+  "codeCommit": "a5c98356b8aab997c2b28c857c02df431cea832a",
+  "scope": "Connects the selected bounded empty-pattern LTYPE source/live proof to AC1021+ MLINESTYLE geometry-edit export preflight and rechecks it during finalization, alongside the existing selected LAYER and root/child dictionary proofs. The receipt does not qualify patterned LTYPEs or complete the dependency graph/output proof, enable consumed geometry, or promote support claims.",
+  "contract": {
+    "selection": "Runs only for a selected whole-source or legacy-identity observation profile with a modern MLINESTYLE geometry transaction. The LTYPE proof requires its admitted source grammar and provider bodies; unsupported profiles fail closed. Ordinary unobserved routes retain their existing behavior.",
+    "preflight": "The selected AC1027 empty-pattern LTYPE source/live proof rejects a live LTYPE description change before output publication.",
+    "finalization": "Finalization repeats the selected LTYPE source/live proof after writer callbacks. A test consumer mutates a provider description immediately before base finalization; the mutation causes atomic refusal and the test consumer restores the injected value after the base finalizer returns.",
+    "failureAndRetry": "Preflight refusal preserves the caller's provider mutation, destination sentinel and edited MLINESTYLE offset. Finalization refusal preserves destination and edited offset. Restoring the preflight-mutated provider or disabling the test mutation permits same-adapter retry. Readback confirms the selected empty-pattern LTYPE body and edited style offset.",
+    "compatibility": "No public API or LibreCAD callback changes. Existing unobserved MLINESTYLE transaction routes pass in the focused suite. Source/live proof work uses the configured bounded logical-work ceiling.",
+    "limits": "Only the selected empty-pattern LTYPE profile is admitted (at most 64 observed LTYPE records under the helper's bounded profile). Patterned/shape LTYPEs, other source versions, native rendering, all provider-to-consumer roles, other carriers and actual whole-document staged output remain open. This does not enable consumed style offsets or other refused operations."
+  },
+  "controls": {
+    "profiles": 4,
+    "matrix": [
+      "ASCII source -> ASCII DXF output",
+      "ASCII source -> binary DXF output",
+      "binary DXF source -> ASCII output",
+      "binary DXF source -> binary DXF output"
+    ],
+    "providerPreflightRefusals": 4,
+    "finalizationProviderMutationRefusals": 4,
+    "destinationSentinelsPreserved": 8,
+    "sameAdapterCorrectedRetries": 4,
+    "readbacks": 4,
+    "readbackChecks": "Unique selected LTYPE name; description, flags, size, length, alignment and path match the original selected empty-pattern provider; the MLINESTYLE retains the edited offset.",
+    "sourceConstruction": "AC1027 DXF source text is authored in the test; binary input is encoded locally. Provider mutations are performed in memory and temporary files are removed. No DWG/DXF fixture was added to Git."
+  },
+  "validation": {
+    "normalBuild": {
+      "result": "PASS",
+      "command": "cmake --build build --target libdxfrw_mline_source_dependency_tests libdxfrw_dxf_fixture_tests -j4"
+    },
+    "asanBuild": {
+      "result": "PASS",
+      "command": "cmake --build build/rpp5fa-evidence.4xKADX/asan-build --target libdxfrw_mline_source_dependency_tests libdxfrw_dxf_fixture_tests libdxfrw_whole_source_tests libdxfrw_legacy_blockref_relation_tests libdxfrw_no_raw_sections_tests -j4"
+    },
+    "directNormal": {
+      "result": "PASS",
+      "command": "build/tests/libdxfrw_mline_source_dependency_tests --mline-ltype-provider-geometry-guard",
+      "summary": "profiles=4, refusals=4, late-refusals=4, retries=4, readbacks=4"
+    },
+    "normalCohort": {
+      "result": "PASS",
+      "count": "12/12",
+      "seconds": 28.80,
+      "command": "ctest --test-dir build -R 'libdxfrw_(no_raw_sections|mline_style_body_transactions|mline_source_dependency|mline_layer_source_live|mline_layer_carrier_geometry_guard|mline_dictionary_carrier_geometry_guard|mline_ltype_provider_geometry_guard|mline_ltype_source_live|mline_deleted_consumer_geometry_guard|mline_raw_section_geometry_guard|whole_source_capture|legacy_blockref_relation)' --output-on-failure"
+    },
+    "asanCohort": {
+      "result": "PASS",
+      "count": "14/14",
+      "seconds": 1.78,
+      "sanitizer": "AddressSanitizer-instrumented targets; ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+      "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R 'libdxfrw_(no_raw_sections|mline_source_dependency|mline_layer_source_live|mline_dictionary_carrier_geometry_guard|mline_layer_carrier_geometry_guard|mline_ltype_provider_geometry_guard|mline_ltype_source_live|mline_root_dictionary_source_live|mline_style_dictionary_source_live|mline_style_body_source_live|mline_deleted_consumer_geometry_guard|mline_raw_section_geometry_guard|whole_source_capture|legacy_blockref_relation)' --output-on-failure"
+    },
+    "diffCheck": "PASS (git diff --check and git diff --cached --check before code commit; JSON parsed with python3 -m json.tool)"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "c570106a3e2fe85ea0f8302699e601692c983258a9028b725ec4517330626bd4",
+    "tests/CMakeLists.txt": "06ab285d46f1adca93520cf82e3163cc88a415577e3e8e7c9e8bf7152a2a43df",
+    "tests/dxf_mline_source_dependency_tests.cpp": "04f5a7474ac30d78f7e6b7835b4e84742e43af003b1b6e25e4182b7a7a83ba55"
+  },
+  "binaryBindings": {
+    "normalMlineSourceDependencyTests": "8f9caa01ad961cd085b88cddd433c353621828cfc44f3c6639627ff4760a2e5d",
+    "normalDxfFixtureTests": "37f810f42e0aa5e01bb777de9372945f2fce781806a68402a5d171826963830f",
+    "asanMlineSourceDependencyTests": "8b00f362314f82a423c10b2788a29f36452c5b814086fadd32e2ce86b2c1481e"
+  },
+  "next": "Select and bind the next exact carrier profile, then authenticate actual staged sections, especially generated CLASSES and the final HANDSEED backpatch. Do not expand to consumed geometry until remaining affected references and emitted geometry are independently proved."
+}

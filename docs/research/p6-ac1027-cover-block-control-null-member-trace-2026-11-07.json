@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1027 Cover BLOCK_CONTROL null-member source trace",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "provenanceLimit": "Existing local source; producer is not independently authenticated and the drawing is not committed."
+  },
+  "execution": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Cover.dwg -y -d -v2013 /private/tmp/cover-control-trace.dxf",
+    "executableSha256": "24f0c8a3538b079d8c38a02271bc698c873de5f7c725a3b7a5f45ba7dc39098c",
+    "tracePath": "/private/tmp/cover-control-trace.log",
+    "traceSha256": "39e05de6e331cbc225421283c9b3b3fabd8839970077224ae01700d1e7bf9ca8"
+  },
+  "observedControl": {
+    "handle": "0x1",
+    "objectType": "BLOCK_CONTROL (0x30)",
+    "objectSizeBits": 43,
+    "declaredEntryCount": 1,
+    "decodedDeclaredMemberSlots": ["0x0"],
+    "modelSpacePhantomHandle": "0x1f",
+    "paperSpacePhantomHandle": "0x1b",
+    "diagnostic": {
+      "severity": "Error",
+      "phase": "SectionParser",
+      "kind": "TableControlNullMember",
+      "logicalSection": "OBJECTS",
+      "fileOffset": 4,
+      "logicalHandle": "0x1",
+      "expected": 2,
+      "observed": 2,
+      "interpretation": "The declared member target is null. expected/observed are the expected and encoded ownership-role codes for that slot; they are not member counts."
+    }
+  },
+  "readAndConversionOutcome": {
+    "readerOperationSucceeded": true,
+    "sourceFramesPublished": "111/111",
+    "blockCallbacks": 2,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "integrityRows": 3,
+    "outputPublished": false,
+    "strictRefusal": "AC1027 DWG source references are not fully qualified"
+  },
+  "decision": {
+    "preserveIntegrityError": true,
+    "allowWholeSourceExport": false,
+    "selectedTableStyleScope": "Not yet admitted. Distinct handles and a separate root path do not by themselves prove that a partial projection cannot emit or depend on omitted BLOCKS content.",
+    "nextAction": "Add a source-bound selected-graph admission proof that freezes the included TABLESTYLE/NOD/DICTIONARY/STYLE/LTYPE records and mandatory DXF defaults, enumerates omitted source frames, and proves no omitted BLOCK_CONTROL/BLOCKS/entity frame is emitted or referenced. If the writer cannot enforce this scope, keep refusal and use only generated TABLESTYLE controls."
+  },
+  "fixturePolicy": "No DWG/DXF fixture was added to the repository."
+}

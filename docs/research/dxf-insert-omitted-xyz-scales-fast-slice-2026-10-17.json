@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-dxf-insert-omitted-xyz-scales-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Complete the generated ASCII/Binary AC1015 DXF coverage for all optional INSERT scale groups 41/42/43, including omission/default, export and second-parse behavior.",
+  "implementation": {
+    "files": {
+      "tests/dxf_fixture_tests.cpp": "c3859e7a3181d5e7eabaa2265bc724a0514477bd53db93d7e7e3fbbaa0beaa69",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "9e34f25d9fcb982c3998d690b3c05454d19864ed8664ee3df49f75a5566f42dc"
+    },
+    "generatedControls": [
+      "All eight presence masks across INSERT groups 41, 42, and 43 in ASCII and Binary AC1015",
+      "Source wire scan confirms omitted scale groups are physically absent",
+      "Present source scales retain distinct 2/3/4 values; each omitted scale defaults to 1",
+      "Following LINE sentinel retains all six exact coordinates after initial read and second parse",
+      "Export wire scan requires all scale groups explicitly present with decoded values"
+    ],
+    "testMode": "--insert-omitted-scale-roundtrip",
+    "compatibilityAlias": "--insert-missing-zscale-roundtrip",
+    "testDataDisposition": "Generated during execution and written only to temporary-directory files; no DWG/DXF fixture is added to the repository."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "buildResult": "PASS",
+    "focusedMode": "build-gcc/libdxfrw_dxf_fixture_tests --insert-omitted-scale-roundtrip",
+    "focusedResult": "PASS (16 presence/encoding combinations)",
+    "compatibilityAliasMode": "build-gcc/libdxfrw_dxf_fixture_tests --insert-missing-zscale-roundtrip",
+    "compatibilityAliasResult": "PASS",
+    "diffCheck": "PASS (tests/dxf_fixture_tests.cpp and DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullProjectSuite": "NOT RUN",
+    "lc3CompatCheck": "NOT RUN; no public or adapter API changed"
+  },
+  "limits": [
+    "This establishes generated local DXF codec behavior only; no independent producer/reader or native CAD application was used.",
+    "Explicit finite zero scale policy and consumer-side repair/refusal remain separate.",
+    "LibreCAD, LibreCAD_3, and FreeCAD runtime behavior was not exercised.",
+    "No production code, fixture, dependency, or CTest registration was added.",
+    "The shared worktree is broadly modified; Git metadata is read-only here, so no stage or commit was attempted."
+  ],
+  "planBoundary": {
+    "findingCount": 127,
+    "topLevelImplementationSubplans": 71,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

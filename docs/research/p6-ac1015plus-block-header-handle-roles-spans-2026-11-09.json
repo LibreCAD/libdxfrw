@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw-dwg-handle-role-evidence-v1",
+  "date": "2026-11-09",
+  "implementationCommit": "6607186dad50668417b407dfa3dff53596cec79a",
+  "slice": "AC1015+ BLOCK_HEADER body handle roles and exact spans",
+  "supportClaimEffect": "none",
+  "normativeSource": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.52 BLOCK_HEADER",
+    "page": 165,
+    "fieldRoles": {
+      "blockControl": "soft pointer",
+      "xrefBlock": "null hard pointer",
+      "block": "hard owner",
+      "firstEntity": "soft pointer; R13-R2000 only for non-XREF and non-overlaid blocks",
+      "lastEntity": "soft pointer; R13-R2000 only for non-XREF and non-overlaid blocks",
+      "ownedEntity": "hard owner; repeated Owned Object Count times in R2004+",
+      "endBlock": "hard owner",
+      "insert": "soft pointer; R2000+ repeated Insert Count times",
+      "layout": "hard pointer; R2000+"
+    },
+    "commonTableRecordRoles": "Reactor and extension-dictionary roles stay covered by DRW_TableEntry's common parser and are outside this body-span vector."
+  },
+  "generatedProfiles": [
+    {
+      "version": "AC1015",
+      "kind": "non-XREF",
+      "bodyFields": ["blockControl", "xrefBlock", "block", "firstEntity", "lastEntity", "endBlock", "insert", "insert", "layout"],
+      "result": "All fields parsed with expected role codes and references; exact parser spans independently re-read from generated input bytes match each raw H token's start, end, role, and reference."
+    },
+    {
+      "version": "AC1018",
+      "kind": "XREF",
+      "bodyFields": ["blockControl", "xrefBlock", "block", "endBlock", "layout"],
+      "result": "XREF profile parsed without first/last or owned-entity fields; exact input-wire spans and expected references match."
+    },
+    {
+      "version": "AC1018",
+      "kind": "non-XREF",
+      "bodyFields": ["blockControl", "xrefBlock", "block", "ownedEntity", "ownedEntity", "endBlock", "insert", "insert", "layout"],
+      "result": "Owned Object Count, two hard-owner entity references, two soft-pointer INSERT references, and the hard-pointer LAYOUT reference remain aligned; exact input-wire spans and references match."
+    }
+  ],
+  "physicalCompatibility": {
+    "source": {
+      "repository": "https://github.com/ACadSharp/ACadSharp",
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018.dwg",
+      "sha256": "7d26f908516ec5fb89cc8054af33aff233b68a7b63208bbc5b7f9f4d9bff9866",
+      "header": "AC1018",
+      "provenance": "Tracked ACadSharp repository sample; authoring producer is not certified by this receipt."
+    },
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1018.dwg -y -d -v2004 /private/tmp/ac1018-after-block-header-role-validation.dxf",
+    "executableSha256": "0dd19b5211619c79b6df6c254798a189f2e224171718e37132664fbee59a7d4f",
+    "traceSha256": "17c95b28166cdfa9e9c6c0b57599bb950c8798761f8d40fc57583a93bfb6b1c5",
+    "result": "DWG read succeeds (operationSucceeded=true, legacyError=0); 1014/1014 frames are published, entity/object parse failures are zero, and no BLOCK_HEADER role-mismatch diagnostic appears. Strict DXF export stops at the pre-existing IMAGEDEF/reactor source-correlation gate before output preparation.",
+    "qualificationLimit": "Whole-file read compatibility for this input only. It does not expose or independently scan a selected physical BLOCK_HEADER handle span, establish producer role semantics, or qualify DXF output."
+  },
+  "failureAndRetry": {
+    "wrongRole": "Each body field in each generated profile is independently assigned the opposite pointer/owner role. Parsing fails, the object resets without published spans or stale layout/insert state, and corrected input succeeds on the same object.",
+    "truncation": "The final layout handle is truncated in each profile. Parsing fails with no published spans; the complete input then succeeds on the same object.",
+    "nullHandling": "Canonical null code/target pairs are accepted for fields whose reference is null; the generated XREF profile exercises the null xrefBlock and LAYOUT references."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": "DRW_Block_Record transactionally validates BLOCK_HEADER body handle roles and publishes ordered DRW_DwgSubrecordRange records only after full parse success. reset() clears them."
+  },
+  "bindings": {
+    "src/drw_objects.h": "aae016b05457ce2333b61bf95c6300049f0fc5a6f9ef4f4933eba91bc71ac1a8",
+    "src/drw_objects.cpp": "a2ce7a901ccb464d6bf7af4b192ca9e550807801a24a6681f55395d0483932c8",
+    "tests/dwg_reader_matrix_tests.cpp": "b382df665948595f2588fa8ffb65f0bdd95d9df6628ae2c58d4dd2807053d737",
+    "tests/CMakeLists.txt": "99c23d48fbe18462b8ea9b9f28fa3987d330aa1335170774f9cbdcc8804ef03c",
+    "normalTestExecutable": "cf33bc157c3ad1c01a8827a85664ecdd527b0a67653aea5a98ea0b57a601c63a",
+    "asanTestExecutable": "779d253c3dbf28ed86c0bbe61cefa2b0b3288f1a3f0f4569d8ba5dc341b4146f",
+    "dwg2dxfExecutable": "0dd19b5211619c79b6df6c254798a189f2e224171718e37132664fbee59a7d4f"
+  },
+  "validation": {
+    "normalBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j4",
+    "normalTest": "PASS 1/1: ctest --test-dir build-gcc -R '^libdxfrw_block_record_body_handle_roles$' --output-on-failure",
+    "asanBuild": "PASS: cmake --build build-asan-custom --target libdxfrw_dwg_reader_matrix_tests -j4",
+    "asanTest": "PASS: ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 build-asan-custom/libdxfrw_dwg_reader_matrix_tests --block-record-body-handle-roles",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "limits": [
+    "Generated codec and transaction evidence only; no hash-bound physical DWG BLOCK_HEADER role/span scan or independent peer match is claimed.",
+    "Common table-record reactor and extension-dictionary spans are not exposed by this slice.",
+    "Target resolution, recursive graph closure, strict DXF/DWG output eligibility, application meaning, producer-wide compatibility, and platform qualification remain open.",
+    "No DWG or DXF fixture file was added."
+  ],
+  "next": "Continue the remaining P4/P6 queue with a distinct source-backed action; keep physical BLOCK_HEADER role proof and graph/output qualification open."
+}

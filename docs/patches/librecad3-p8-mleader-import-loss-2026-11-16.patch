@@ -1,0 +1,43 @@
+diff --git a/persistence/libdxfrw/dxfimpl.h b/persistence/libdxfrw/dxfimpl.h
+index 9690b99..a054c91 100644
+--- a/persistence/libdxfrw/dxfimpl.h
++++ b/persistence/libdxfrw/dxfimpl.h
+@@ -148,0 +149,4 @@ public:
++    void addMLeader(const DRW_MLeader* data) override {
++        if (data != nullptr) recordLoss("MULTILEADER");
++    }
++
+diff --git a/unittest/persistence/dwgimporttest.cpp b/unittest/persistence/dwgimporttest.cpp
+index b04312f..2819fa8 100644
+--- a/unittest/persistence/dwgimporttest.cpp
++++ b/unittest/persistence/dwgimporttest.cpp
+@@ -1018,0 +1019,29 @@ TEST(DwgImportTest, WipeoutLossIsReportedForDxfAndDwg) {
++
++TEST(DwgImportTest, MLeaderLossIsReportedForDxfAndDwg) {
++    const char* dxf = std::getenv("LC3_MLEADER_DXF");
++    const char* dwg = std::getenv("LC3_MLEADER_DWG");
++    if (!dxf || !*dxf || !dwg || !*dwg) GTEST_SKIP() << "Set LC3_MLEADER_DXF and LC3_MLEADER_DWG to generated controls";
++    const char* lineOnly = std::getenv("LC3_LINE_DXF");
++    if (lineOnly && *lineOnly) {
++        auto control = newDwgDocument();
++        const auto result = lc::persistence::File::importFile(
++            control, lineOnly, lc::persistence::File::Library::LIBDXFRW);
++        ASSERT_TRUE(result.ok);
++        EXPECT_EQ(result.loss.droppedByType.count("MULTILEADER"), 0u);
++        EXPECT_EQ(control->entityContainer().asVector().size(), 1u);
++    }
++    for (const char* path : {dxf, dwg}) {
++        SCOPED_TRACE(path);
++        auto doc = newDwgDocument();
++        const auto result = lc::persistence::File::importFile(
++            doc, path, lc::persistence::File::Library::LIBDXFRW);
++        ASSERT_TRUE(result.ok);
++        const auto dropped = result.loss.droppedByType.find("MULTILEADER");
++        ASSERT_NE(dropped, result.loss.droppedByType.end());
++        EXPECT_EQ(dropped->second, 1u);
++        std::size_t lines = 0;
++        for (const auto& entity : doc->entityContainer().asVector())
++            if (std::dynamic_pointer_cast<const lc::entity::Line>(entity)) ++lines;
++        EXPECT_EQ(lines, 1u);
++    }
++}

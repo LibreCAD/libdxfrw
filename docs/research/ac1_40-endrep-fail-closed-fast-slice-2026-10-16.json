@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw-ac1_40-endrep-fail-closed-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Fail closed on an independently encountered AC1.40 T_ENDREP after preserving the existing fixed-body bounds check; do not infer historical array semantics or label a producer sequence malformed.",
+  "implementation": {
+    "filesChanged": [
+      "src/intern/dwgreaderR1_40.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionBehavior": "After the existing 20-byte T_ENDREP body bound check, return BAD_READ_ENTITIES and record unsupported-legacy-endrep at the record offset instead of consuming and discarding row/column counts and spacings.",
+    "testFunction": "testR140EndrepFailsClosed",
+    "cases": [
+      {
+        "case": "generated_standalone_T_ENDREP_with_following_POINT",
+        "expected": "read fails at the entity stage; diagnostic phase/cause/code/offset match; following POINT callback does not occur"
+      },
+      {
+        "case": "same_reader_retry_without_T_ENDREP",
+        "expected": "ordinary AC1.40 POINT stream succeeds and clears the prior failure diagnostic"
+      }
+    ],
+    "sourceHashesSha256": {
+      "src/intern/dwgreaderR1_40.cpp": "272bf8381251df22ec58a1bb371b21ae1c84da5aaa2d60ae086e0402d4a4a887",
+      "tests/dwg_reader_matrix_tests.cpp": "4e73c2cb96286d13b1897c174f1c8719e0fa58ec14699aa3181586ca7d55e361"
+    },
+    "externalSamplesOrPoCsUsed": 0,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build --target libdxfrw_dwg_reader_matrix_tests dwg2dxf --parallel 2",
+        "result": "passed; rebuilt reader, library, dwg2dxf, and matrix test"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+        "result": "passed; 1/1 in 1.75s"
+      },
+      {
+        "command": "git diff --check -- src/intern/dwgreaderR1_40.cpp tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "passed"
+      },
+      {
+        "command": "jq empty docs/research/ac1_40-endrep-fail-closed-fast-slice-2026-10-16.json",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "sanitizerOrFuzzerRun": false,
+    "externalDrawingDownloadedOrCommitted": 0,
+    "nativeCadRun": false
+  },
+  "planImpact": {
+    "existingFinding": "PAR-123",
+    "existingSubplan": "7BS",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktreeCommitted": false,
+    "reasonNotCommitted": "The shared worktree contains broad in-progress changes and Git metadata is read-only under the active workspace permissions."
+  },
+  "semanticLimits": [
+    "This refusal does not implement REPEAT or array expansion.",
+    "The test's counts and spacings are control values, not an authoritative historical semantics oracle.",
+    "The guard does not assert that a particular historical producer's standalone ENDREP sequence is malformed.",
+    "No rollback is promised for callbacks preceding the unsupported marker."
+  ]
+}

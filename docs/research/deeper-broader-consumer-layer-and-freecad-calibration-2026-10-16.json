@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw-deeper-broader-consumer-layer-and-freecad-calibration-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Reconcile primary open-source DWG/DXF implementation claims with distinct semantic, carrier, projection, and native-consumer evidence layers; calibrate the existing FreeCAD scale/annotation acceptance gate.",
+  "method": {
+    "sourceTypes": [
+      "Autodesk DXF reference pages",
+      "LibreDWG manual and repository documentation",
+      "ACadSharp public repository/release documentation",
+      "ezdxf documentation and README",
+      "GDAL DXF driver documentation",
+      "FreeCAD current importer source, documentation, and issue tracker"
+    ],
+    "localPlanAreasReviewed": [
+      "PAR-07 / PAR-37 / 7V POLYLINE and mesh routes",
+      "PAR-124 / S8.3 AcDs record-anchor route",
+      "FreeCAD native-consumer and DXF unit-scaling gates"
+    ],
+    "peerLibrariesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceRule": "Repository capabilities and issue reports are route-specific leads, not a semantic vote. Mutable source/docs require a revision pin before runtime qualification; application behavior must be measured on an exact build and profile."
+  },
+  "evidence": [
+    {
+      "topic": "Complementary open-source evidence layers",
+      "sources": [
+        "https://www.gnu.org/software/libredwg/manual/LibreDWG.html",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/mozman/ezdxf/blob/master/README.md",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observed": "LibreDWG explicitly assigns class stability levels and distinguishes same-version unknown-bit persistence from general conversion. ACadSharp advertises typed versioned DWG/DXF routes but needs per-class/release evidence. ezdxf documents ASCII/binary DXF read/write and third-party content retention while its ACIS handling is limited. GDAL exposes projected explicit geometry and a separate raw ASM carrier mode for AC1027+; it does not create 3D solid geometry. These sources are mutually useful but no one source proves end-to-end format, graph, solid, and consumer semantics.",
+      "doesNotEstablish": [
+        "complete support by every class/version/direction",
+        "exact handle/owner/reference preservation",
+        "ACIS B-rep validity or native CAD acceptance",
+        "runtime behavior of an unpinned mutable source revision"
+      ],
+      "planUse": "Keep exact wire, typed parse, opaque carrier, entity attachment, projection, shape semantics, and native-consumer results as separate matrix cells. Pin the exact peer route/build at composed checkpoints; do not add peer installs/runs to every fast implementation slice."
+    },
+    {
+      "topic": "Autodesk's compound POLYLINE/VERTEX contract",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm"
+      ],
+      "observed": "Legacy POLYLINE encodes distinct 2D, 3D-polyline, polygon-mesh, and polyface modes using flags and child VERTEX roles. Polyface coordinate and face vertices differ; face indices are signed one-based references, negative signs mark invisible starting edges, and readers should tolerate noncanonical coordinate/face ordering even though writers should emit coordinate vertices first.",
+      "doesNotEstablish": [
+        "validity of every malformed index/order variant",
+        "surface manifoldness or B-rep semantics",
+        "a libdxfrw gap beyond existing PAR-37/7V scope"
+      ],
+      "planUse": "Retain the existing mode-specific and completed-pool tests; no duplicate issue or test owner is warranted by this cross-check."
+    },
+    {
+      "topic": "FreeCAD documentation freshness and importer profile",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp"
+      ],
+      "observed": "GitHub marks the FreeCAD documentation repository archived on 2026-04-01. The documentation remains a route-profile snapshot distinguishing C++ and optional legacy Python importers and configurable import behavior. Current mutable C++ source reads a manual dxfScaling option and records selected import settings; source inspection is not a run of an exact application build.",
+      "doesNotEstablish": [
+        "effective options for any particular installed FreeCAD binary",
+        "current support for every documented entity",
+        "native semantic acceptance by source inspection alone"
+      ],
+      "planUse": "Pin the FreeCAD build/backend and capture effective preferences/import statistics at the existing composed native checkpoint; do not require native runs for individual parser slices."
+    },
+    {
+      "topic": "Confirmed FreeCAD text-height scale-multiplier issue",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/issues/30043",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp"
+      ],
+      "observed": "As reviewed on 2026-10-16, issue #30043 is open and labeled confirmed. The reporter reproduces in FreeCAD 1.1.1 that a Draft text Scale Multiplier of 10 is also applied to imported text height when text/dimension import is enabled. Current importer source separately records its manual scale setting. This is a reported application-consumer defect, not a DXF/libdxfrw failure, and may vary by build/profile.",
+      "doesNotEstablish": [
+        "the issue's status on a later run date",
+        "a defect in libdxfrw writer or DXF unit metadata",
+        "behavior of every annotation or importer backend"
+      ],
+      "planUse": "Split the existing FreeCAD gate into geometry-only identity/nonidentity scale checks, annotation-height identity-scale checks, and optional nonidentity annotation calibration reported separately. Record exact build/backend/effective settings/document values and recheck issue status before the scheduled native run. If reproduced, do not score the annotation failure as a file-format loss."
+    }
+  ],
+  "implementationReadiness": {
+    "localFastCadence": "No change: touched strict targets, one focused existing fast test, required compatibility compile, and diff check per slice; no routine native/peer/full-suite execution.",
+    "nativeCadence": "One composed native checkpoint with exact platform, build, importer backend, effective preferences, converter and intermediate file identity.",
+    "newLocalFindingOrSubplan": false,
+    "newTestsOrRegistrations": 0,
+    "supportClaimsPromoted": 0
+  },
+  "planImpact": {
+    "findings": 124,
+    "topLevelImplementationSubplans": 71,
+    "existingOwnersOnly": true,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalCorpusDownloaded": false
+  }
+}

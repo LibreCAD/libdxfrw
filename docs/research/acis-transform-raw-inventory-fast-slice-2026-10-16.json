@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-acis-transform-raw-inventory-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Preserve rooted SAB body-transform record tokens as an explicit raw-only observation without interpreting or applying a matrix.",
+  "implementation": {
+    "filesChanged": [
+      "src/drw_acis.h",
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "apiBehavior": [
+      "Absent transform pointers are distinct from resolved transform nodes.",
+      "Resolved transform nodes expose source node identity, NotParsed state, the first decoded LiteralStr candidate, and a copy of the complete decoded record-token sequence.",
+      "Unknown and trailing hint tokens are retained without interpretation.",
+      "Raw token and literal copies consume the existing extraction-work, output-item, token-capacity, and cumulative-string budgets.",
+      "Transform application, matrix parsing, unit scaling, and WCS claims remain disabled."
+    ],
+    "testCoverage": [
+      "Preserves an asymmetric transform literal plus integer, floating-point, and unknown trailing literal hint tokens.",
+      "Distinguishes an absent transform pointer.",
+      "Preserves a resolved transform record that has no LiteralStr candidate as NotParsed with the complete remaining token sequence.",
+      "A transform-token capacity limit rejects the snapshot cleanly."
+    ],
+    "evidenceBoundary": "This is decoded-token preservation only. The pinned ezdxf profile remains corroborative implementation evidence, not normative ACIS authority. No matrix convention, multiplication order, body-local/WCS placement, units, or semantic geometry is qualified."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j 2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure"
+    ],
+    "buildPassed": true,
+    "lc3CompatTargetPassed": true,
+    "focusedCTestPassed": true,
+    "focusedCTestPassedCount": 1,
+    "focusedCTestFailedCount": 0,
+    "gitDiffCheckPassed": false,
+    "fullTestSuiteRun": false,
+    "nativeCadOrKernelRun": false
+  },
+  "planDelta": {
+    "owners": ["S3.7c transform boundary", "PAR-07 ACIS evidence"],
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "newFindings": 0,
+    "newSubplans": 0,
+    "newCTestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "followUp": {
+    "nextLocalSlice": "Define and test a fail-closed candidate parser for the exact reviewed 21800 literal profile, preserving raw tokens and hints on every parse outcome. Do not apply placement until generated asymmetric vectors prove matrix layout and composition semantics.",
+    "externalQualificationBlocking": false,
+    "commitCreated": false,
+    "commitNote": "The worktree already contains overlapping uncommitted changes in the touched ACIS and plan files; no broad or partial staging was made."
+  }
+}

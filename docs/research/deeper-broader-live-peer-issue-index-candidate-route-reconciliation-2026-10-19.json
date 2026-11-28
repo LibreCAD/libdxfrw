@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Live peer issue index and candidate-route reconciliation",
+  "mode": "Primary-source issue/release refresh and local plan-owner crosswalk; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh the visible LibreDWG issue-index horizon and reconcile new/open titles with existing local owners.",
+    "Recheck ACadSharp release and ACIS-writer PR state so unmerged candidate work is not counted as released support.",
+    "Confirm whether the fresh peer snapshot adds local findings, tests, support claims, or a validation-cadence change."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues",
+        "https://github.com/LibreDWG/libredwg/issues/1450",
+        "https://github.com/LibreDWG/libredwg/issues/1451",
+        "https://github.com/LibreDWG/libredwg/issues/1452",
+        "https://github.com/LibreDWG/libredwg/issues/1436",
+        "https://github.com/LibreDWG/libredwg/issues/1439",
+        "https://github.com/LibreDWG/libredwg/issues/1419",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_handle_data.spec"
+      ],
+      "revision": "Open issue index reviewed 2026-10-19; mutable source links are not immutable runtime evidence",
+      "observed": "The current open-issue index includes reports titled around R2007+ LTYPE dash text (#1450), FIELD with zero child values (#1451), misaligned BITCODE_RS in EED encoding (#1452), JSON LWPOLYLINE-width import (#1439), R2007+ material/plotstyle flag interpretation (#1436), and Windows timestamp fail-fast (#1419). The current issue index supplies discovery/status, not a reproduction or local defect. Earlier detailed evidence and owner crosswalks are retained in the plan."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "revision": "Release and PR pages reviewed 2026-10-19",
+      "observed": "The formal release page lists v3.7.1 as latest. PRs #1150, #1174, and #1240 display as open; #1240 has no deployment and depends on #1174. A #1150 comment says '#1174 is in', while the live #1174 PR page still displays Open. This status conflict is resolved conservatively: do not treat the comment as proof of merge/release; pin source commits and inspect the actual tested tree. Contributor-reported native-reader checks on an open branch remain self-reported and do not establish B-rep semantics."
+    },
+    {
+      "project": "Open Design Alliance DWG specification",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Version 5.4.1",
+      "observed": "Remains the controlling byte-layout reference. The material/plotstyle disagreement raised by LibreDWG #1436 remains an open spec/producer-trace reconciliation question; a peer issue title or mutable peer source is not normative authority."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing PAR-14/7BF LTYPE and FIELD owner controls",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing PAR-26 EED/XDATA writer and alignment crosswalk",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing PAR-33 ODA-led material/plotstyle flag and handle reconciliation",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing Windows date-path applicability review",
+    "Existing ACIS/AcDs carrier, owner-association, independent-reader, and semantic-solid evidence gates"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refreshes peer issue/release status, confirms that the recent LibreDWG titles map to existing local owners or an unsupported JSON route, preserves the unresolved ODA-led #1436 reconciliation, and separates ACadSharp v3.7.1 from open PR branches. No support, implementation, fixture, or test claims are promoted."
+  },
+  "method": {
+    "kind": "Read-only primary-source web review plus local plan crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalSampleDownloads": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-live-peer-issue-index-candidate-route-reconciliation-2026-10-19.json"
+    ],
+    "limitations": "Recent LibreDWG issue pages were not all fetchable in this research pass; the refreshed issue index establishes their current listing/title only. Detailed issue semantics are cited from prior source reviews already recorded in the plan. Mutable issue, release, and PR pages do not qualify a built artifact or runtime behavior."
+  },
+  "implementationReadyChecks": [
+    "Reuse existing exact local controls for LTYPE text flags, zero-child FIELD ownership, and EED/XDATA boundaries when those owners change; do not duplicate them from peer titles.",
+    "Resolve #1436 only with ODA v5.4.1 plus a producer witness that distinguishes both material and plotstyle handles and validates the following-handle boundary.",
+    "Keep ACadSharp release v3.7.1 separate from open PR heads #1150/#1174/#1240; pin exact commits and dependencies before any optional comparison.",
+    "Keep ACIS carrier preservation, section/entity association, independent parse, native open/regeneration, and analytic solid validity as distinct outcomes.",
+    "Do not add peer installations, fuzzing, native CAD runs, or full suites to ordinary fast slices."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-live-peer-issue-index-candidate-route-reconciliation-2026-10-19.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-live-peer-issue-index-candidate-route-reconciliation-2026-10-19.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "f99dec91190155fbca3ce39dd4dce62b881fb6e987b44c56d229675ab92a67bb"
+}

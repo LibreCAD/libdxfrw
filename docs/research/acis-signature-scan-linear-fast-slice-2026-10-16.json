@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-acis-signature-scan-linear-fast-slice-v1",
+  "date": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "planSlice": "S3.7 convenience decoder signature discovery",
+  "scope": "Replace repeated SAB signature candidate comparisons with a linear-time scan without changing candidate precedence or parse behavior.",
+  "changes": {
+    "algorithm": "Knuth-Morris-Pratt per signature and bit alignment; bounded prefix table is proportional to the fixed short signature, and input scanning is linear.",
+    "preservedPrecedence": [
+      "ACIS BinaryFile before ASM BinaryFile4",
+      "lower bit alignment before higher alignment",
+      "earliest byte offset within each signature/alignment pair"
+    ],
+    "generatedControls": [
+      "Byte-aligned ASM BinaryFile4 header decode",
+      "5-bit-shifted ASM BinaryFile4 header decode",
+      "ACIS stream selected over an earlier ASM signature marker",
+      "Existing 3-bit-shifted ACIS vertex projection remains covered"
+    ],
+    "resourceBehavior": "No DWG/DXF wire format, parser budget, public API, or support disposition changed."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_graph_preservation_tests --parallel 2",
+    "ctestCommand": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "compatibilityBuildCommand": "cmake --build build --target lc3_compat_check --parallel 2",
+    "results": {
+      "strictTargetBuild": "PASS",
+      "ctest": "PASS (1/1)",
+      "lc3CompatCheck": "PASS (no work to do)",
+      "gitDiffCheck": "PASS"
+    }
+  },
+  "fixturesAdded": 0,
+  "dependenciesAdded": 0,
+  "testRegistrationsAdded": 0,
+  "externalRuntimesRun": 0,
+  "supportClaimsPromoted": 0,
+  "externalJStatusesChanged": 0,
+  "implementationStatus": "local uncommitted slice"
+}

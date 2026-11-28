@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Peer status reconciliation and route evidence ceilings",
+  "mode": "Deeper/broader primary-source research and implementation-readiness update",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "worktreeState": "Broadly modified and uncommitted before this pass; preserve all unrelated changes and do not stage or commit.",
+    "changedFiles": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-status-reconciliation-route-evidence-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "LibreDWG issue #1411 and manual",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observation": "The public reproducer uses ezdxf to generate AC1032 DXF and then invokes LibreDWG's dxf2dwg and dwg2dxf. The public sequence cannot isolate the reader when the intermediate DWG lacks the expected AcDs section. A separate confidential AutoCAD-authored DWG is not available for independent reproduction.",
+      "evidenceCeiling": "Open issue and author-provided reproduction; no peer run or input fetched.",
+      "planDisposition": "Inspect intermediate DWG section/page/index/blob state and exact owner/key join before attributing a reader failure."
+    },
+    {
+      "project": "ACadSharp PRs #1154, #1174, and #1240",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observation": "#1154 is merged and adds full Prototype_1b parsing. The PR discussion includes early 423-DWG payload discrepancies and later contributor-reported corrections/matching referenced payload hashes. #1174 and dependent modeler writer #1240 remain open in the reviewed pages.",
+      "evidenceCeiling": "Mutable PR status and contributor-reported corpus results; no exact release or test artifact executed here.",
+      "planDisposition": "Pin exact release/head and retain separate section, referenced-payload, entity-attachment, and writer-route evidence."
+    },
+    {
+      "project": "OpenCADStudio issue #1078",
+      "references": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1078"
+      ],
+      "observation": "The issue is closed after the maintainer reported a fix to R2013+ entity headers and LAYOUT serialization plus byte-identical copying of an unchanged source AcDs section on same-version saves.",
+      "evidenceCeiling": "Project-authored issue report; no independent binary or target application run performed here.",
+      "planDisposition": "Treat same-version unchanged-section copy-through separately from rebuilding, remapping, version conversion, and new AcDs writing."
+    },
+    {
+      "project": "CADKernel README and LibreCAD bundled coverage inventory",
+      "references": [
+        "https://github.com/kernalix7/CADKernel",
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md"
+      ],
+      "observation": "CADKernel's broad format summary conflicts with its detailed table, which leaves ACIS SAT/SAB read/write planned. LibreCAD's inventory lists MESH typed routes but marks them fixture-needed and disclaims byte-level conformance.",
+      "evidenceCeiling": "Project documentation/source inventory only; no runtime or independent parser evidence.",
+      "planDisposition": "Use CADKernel as not-admitted claim-conflict evidence and the LibreCAD inventory as same-lineage migration discovery only."
+    },
+    {
+      "project": "ACadSharp issue #1297",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1297"
+      ],
+      "observation": "The issue remains open with no linked PR in the reviewed page. It reports AC1032 AutoCAD rejection despite an MTEXT entity object being byte-identical to an AutoCAD-written object; the cause is unresolved.",
+      "evidenceCeiling": "Version-specific reporter claim; not an independently reproduced libdxfrw failure.",
+      "planDisposition": "Retain whole-document writer/native validation beyond entity-body equality and same-codec readback."
+    }
+  ],
+  "assessment": {
+    "existingOwners": [
+      "PAR-07/S8 carrier, semantic, and consumer evidence",
+      "PAR-59 staged modeler-loss attribution",
+      "PAR-144 optional peer and compatibility checkpoint",
+      "S3.7c generated graph/resource fast-test lane"
+    ],
+    "newFinding": null,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerBinariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "testsRun": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "defaultAction": "Continue the dependency-ready local S3.7c graph/resource work; use external peers only at the already-composed checkpoint.",
+    "sequence": [
+      "Keep local generated fast tests attached to the owning parser/projection contract; do not mirror peer issue titles when an owner already covers it.",
+      "For any optional modern-DWG peer run, verify the intermediate AcDs section before evaluating read-side behavior.",
+      "Record section entries, referenced payload bytes, entity owner/key joins, DXF carrier output, semantic result, and native acceptance as distinct outcomes.",
+      "Pin exact peer release/source/test state; mark unavailable or mismatched routes NOT_RUN or NOT_QUALIFIED and self-unblock.",
+      "Do not download or commit peer fixtures, add routine peer dependencies, run the full suite for this research update, or promote any J item."
+    ]
+  },
+  "limitations": [
+    "This is a primary-source status/documentation review, not an executed peer comparison or native CAD qualification.",
+    "GitHub pages and mutable project docs may change; recheck exact refs before a future optional run.",
+    "ODA Open Design Specification v5.4.1 remains authoritative for DWG byte-layout questions.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

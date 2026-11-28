@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-11",
+  "scope": "Generated AC1018 DXF serializer/parser control for the ordered root TABLE XRECORD values after reference projection. No physical-source replay, graph closure, or support qualification.",
+  "procedure": [
+    "Use the exact ordered 13-entry profile produced by the bounded AC1018 raw/typed candidate and projection helpers.",
+    "Write a complete DXF through dxfRW in ASCII and Binary modes with mappings 0xbc→0x400, 0xbb→0x401, 0x501→0x901, 0x502→0x902, and 0x503→0x903.",
+    "Import each output with a fresh dxfRW instance and inspect the single XRECORD callback."
+  ],
+  "assertions": [
+    "The record handle, owner and reactor read back as 0x400, 0x401 and 0x401.",
+    "The three ordered application values retain codes 360/361/360 and read back as 0x901/0x902/0x903.",
+    "All three ASCII profile markers and the ordered entry count survive typed readback in both encodings."
+  ],
+  "focused_validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_table_roundtrip_xrecord_ac1018_candidate_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_roundtrip_xrecord_ac1018_candidate$' --output-on-failure",
+    "result": "Build passed; 1/1 focused CTest passed."
+  },
+  "limitations": [
+    "The generated targets are supplied mappings; this test does not prove they name emitted TABLECONTENT, TABLEGEOMETRY or DATATABLE nodes of the right type/owner.",
+    "No native producer drawing, whole-source conversion, output rollback/retry, ODA/AutoCAD acceptance, or semantic text/codepage proof is included.",
+    "Physical TABLE subtree export remains refused."
+  ],
+  "next": "Connect target mappings to a complete output identity/role inventory and recursively closed emitted graph; only then stage the physical source XRECORD behind final capability revalidation, transaction rollback, CRC regeneration, and fresh readback."
+}

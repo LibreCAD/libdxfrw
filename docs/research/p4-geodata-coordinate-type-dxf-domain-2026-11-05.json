@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Modern GEODATA DXF coordinate-type domain",
+  "date": "2026-11-05",
+  "status": "MODERN_DXF_WRITER_DOMAIN_GUARD_VERIFIED",
+  "scope": "For GEODATA object versions 2 and 3, the DXF writer accepts coordinate type values 0 through 3 and refuses values outside that documented enumeration before output mutation. Version 1 group 70 remains its distinct legacy control-flags field. Parsing remains tolerant.",
+  "normativeSource": {
+    "title": "Autodesk GEODATA (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm",
+    "group70": "Type of design coordinates: 0 unknown, 1 local grid, 2 projected grid, 3 geographic"
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": "dxfRW::writeGeoData checks m_coordinatesType in the modern v2/v3 path before output or caller-state mutation. The legacy v1 group-70 control flag profile is unchanged."
+  },
+  "regressionControl": {
+    "file": "tests/wave1_tests.cpp",
+    "test": "libdxfrw_geodata_versioned_writer",
+    "coverage": "For v2 and v3 in ASCII and Binary, values -1 and 4 preserve an output prefix and caller identity, then corrected same-writer output reads back with the corrected value. Generated ASCII/Binary input with v2 group 70 value 4 remains parseable and retains that value.",
+    "fixturePolicy": "All controls are authored locally in memory; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "buildResult": "passed",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_geodata_versioned_writer$' --output-on-failure",
+    "focusedTestResult": "passed",
+    "diffCheck": "git diff --check passed"
+  },
+  "sourceBinding": {
+    "baseRevision": "b30c42a4",
+    "files": {
+      "src/libdxfrw.cpp": "945ef441004dd4b6b11ece92227259825edd0f6f151b1f058ed753b9e18ede4d",
+      "tests/wave1_tests.cpp": "c4120d2b9d1cf32b8bfcfc8d651aec73dc3c12db4a83c5d9164e6f048a1ffa94"
+    }
+  },
+  "fixturePolicy": {
+    "newDwgOrDxfFixtureCommitted": false,
+    "generatedInputs": "In-memory ASCII/Binary DXF controls only."
+  },
+  "nonClaims": [
+    "No physical producer or native geospatial consumer was qualified.",
+    "This does not qualify GEODATA ownership, whole-document graph closure, map projection behavior or DWG encoding semantics."
+  ]
+}

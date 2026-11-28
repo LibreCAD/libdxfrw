@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-19",
+  "scope": "Restore legacy LibreCAD aggregate field order for payload and DWG subrecord ranges.",
+  "librecad_master": "deaedc327850349ceb9b4825b3efcc68ac2a52eb",
+  "libdxfrw_parent": "8e41c4b799b73b8beb8c2bf9cb7b079f04c840f1",
+  "implementation_digest_sha256": "8269dc8a3d7a85d10378f728d966ef458bea9c7c2cfac45a630c3ab3f8cea843",
+  "scratch_probe_sha256": "c82e39ca2a5c69b808f3f846e7bf61e074bc13c75083c6f078e6384424816687",
+  "probe": {
+    "bundled_before": "0 17 23; exit 0",
+    "upstream_before": "1 17 0; exit 1",
+    "upstream_after": "0 17 23; exit 0",
+    "meaning": "parseComplete, payload offset, payload length"
+  },
+  "change": "Append the DWG bit offset and raw handle code after the original aggregate prefixes instead of inserting them within those prefixes.",
+  "validation": [
+    "Bundled and current upstream headers ran the same aggregate-initialization probe.",
+    "The focused graph-preservation CTest passed with legacy and extended initializer value checks; lc3_compat_check built.",
+    "Current LibreCAD metadata source compiled with current in-tree upstream headers.",
+    "Source-release inventory, support-overlay, and exact 750-input digest checks passed."
+  ],
+  "limitations": [
+    "The aggregate-prefix compatibility check is source evidence and does not establish binary ABI compatibility.",
+    "Additional bundled types lose aggregate initialization due to private bookkeeping; see the remaining plan queue.",
+    "Hosted fast and focused-native CI for this digest is pending.",
+    "No external DWG or DXF fixtures were committed."
+  ]
+}

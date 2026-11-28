@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6h-oda-linux-ac1018-mline-source-2026-11-18",
+  "date": "2026-11-18",
+  "status": "P6-H_REPRODUCED_AND_INDEPENDENTLY_COMPARED",
+  "scope": "Convert the exact locally authored scratch DXF to AutoCAD 2004 DWG and compare the selected MLINE and MLINESTYLE using libdxfrw and GNU LibreDWG.",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/private/tmp/libdxfrw-p6h-oda-linux.ZztZf5/scratch_mline_ac1027.dxf",
+    "sha256": "6fede7d730a2de2189b9749591e090f8e3cc22830d6efaa9f8d6e80da343ebb1",
+    "format": "AC1027 ASCII DXF",
+    "createdLocallyFromScratch": true,
+    "priorAttemptReceipt": "docs/research/p6-h-scratch-mline-source-attempt-2026-11-17.json"
+  },
+  "converter": {
+    "documentation": "https://www.opendesign.com/guestfiles/oda_file_converter",
+    "packageUrl": "https://www.opendesign.com/guestfiles/get?filename=ODAFileConverter_QT6_lnxX64_11dll.deb",
+    "packageIdentity": "odafileconverter 27.10.0.0 amd64",
+    "packageSha256": "c432002cc688f89ddf6a68ad68e877cd16da1d99ab8729386009c552cf73beb5",
+    "binarySha256": "bda7c79a901be17d4e0a76ea6e9dfddb24b83601e98cf41d66c158a9c428ca24",
+    "transport": "Official HTTPS download. The locally recorded hash binds the bytes used in this run.",
+    "command": "xvfb-run -a ODAFileConverter /source /out ACAD2004 DWG 0 0 '*.dxf'",
+    "runtime": "Docker Desktop 29.5.3 Linux on ARM64 with Ubuntu 24.04 x64 image under emulation, package extracted with dpkg-deb -x; Qt xcb and Xvfb; no container network, read-only source/package, no capabilities, unprivileged uid 65534, writable scratch output only.",
+    "baseImageId": "sha256:78d4744ead1f5b19b04d0df558ab182a5300903900755e515b2ca4d10eb2044d",
+    "runtimeImageId": "sha256:c8bf2d80c87c3685d5974aadf7968e5451cb41e543d2a7ab7f25f99007afc29f",
+    "firstLaunch": "Stopped before conversion because libOpenGL.so.0 was absent. Added Ubuntu's standard OpenGL runtime in the disposable image and retried the same source.",
+    "runtimeBuildFile": {
+      "path": "/private/tmp/libdxfrw-p6h-oda-linux.ZztZf5/runtime/Dockerfile",
+      "sha256": "de8ab5d355466b3879392598a4a8e8f9f3727eb64243189b7856f3a19b9d1167"
+    },
+    "script": {
+      "path": "/private/tmp/libdxfrw-p6h-oda-linux.ZztZf5/convert.sh",
+      "sha256": "a26e319bd4bf8e2f62128c184fbf8cfba290fbdd1e5759d75f131addcca92fce"
+    },
+    "logSha256": "116bf748542cc1fdebe8a14ae34c26c41d0c84ee79b1ec1c6aa72477f007e57c",
+    "exit": 0
+  },
+  "dwg": {
+    "path": "/private/tmp/libdxfrw-p6h-oda-linux.ZztZf5/out/scratch_mline_ac1027.dwg",
+    "magic": "AC1018",
+    "sha256": "73dccea575f7404c88dcfbb5acb2eade7abacaa81ecbf9e6266183f9e6550dbc",
+    "sizeBytes": 15593
+  },
+  "libraryRead": {
+    "probePath": "/private/tmp/libdxfrw-p6h-oda-linux.ZztZf5/probe.cpp",
+    "probeSha256": "bb5c2a9d44d00d8fc252492db0ebb2f2c2e7c1b9df7f89ce2b57968b246f99ca",
+    "executableSha256": "ee690802d886df66e199f4f7ace760886e2883aec0c8b089c5aef18759fff25c",
+    "adapterObjectSha256": "d74f9cc57fb113a05a8e97ac451d3c7c1dc1813e90f1f1450fffe5941cbe54b4",
+    "linkedArchiveSha256": "7d9f57866a409f1461f8058bb9e7e00d80f5861f71c57890b9a5f766514a241a",
+    "jsonSha256": "3111fbe8e6b23aa75d104f8d3b134567f474dee40203b933a6a7d94448bcc783",
+    "logSha256": "5816b87e079cff8e8cb6474125d43a5ce0f6a040ca43cfff5094bd6a1bcd6d67",
+    "result": "AC1018 import success, 165/165 observed source frames published, no entity or object parse failures. The current clean-package CLI separately agrees on the version and read disposition."
+  },
+  "independentRead": {
+    "tool": "GNU LibreDWG dwgread 0.14",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -O minJSON -o peer.json out/scratch_mline_ac1027.dwg",
+    "jsonSha256": "3e90551982914d3dfa4c5483f89f896c10efaed8b7e8115caf5d2e7a583d8648",
+    "logSha256": "3e64f7c6692575249a3bfb8a48f08c4b619bcbebec9699c379056f02f593efcf",
+    "exit": 0,
+    "comparison": {
+      "scriptPath": "/private/tmp/libdxfrw-p6h-oda-linux.ZztZf5/compare.py",
+      "scriptSha256": "d8dba0013e0eb0dba225e53fa475c4ed3a45b50bd02936bede3c07df11f49661",
+      "logSha256": "5e4fddf1cb6a40b9110e92452dc0400b450f003bab5df1895a919b60209b769c",
+      "result": "PASS. Both identify one MLINE 0x300 in model space, layer 0, linked to SCRATCH_MLINE 0xD under dictionary 0xA. Endpoints (0,0,0) and (20,0,0), directions, extrusion, miter, segment/fill arrays, scale and justification agree. The selected style has offsets +0.5 and -0.5, BYLAYER colors and linetype indexes, and 90-degree start/end angles. A separate producer-created Standard style exists. Binding is by the entity's actual style handle."
+    }
+  },
+  "strictExport": {
+    "cliSha256": "ff34478a4db77cb84b22e7dd637304836bbd347bd4e668a80a4eb061672a65a3",
+    "command": "dwg2dxf out/scratch_mline_ac1027.dwg -d -y -v2004 libdxfrw-out.dxf",
+    "logSha256": "acd003f9588d0095ca374206637d43027735345e96941dc7458b432a39c8af99",
+    "exit": 1,
+    "result": "Strict-complete preflight refused and no DXF was published. Read observations include HeaderSectionUnclaimedData (expected end 621, observed decoded section length 1360). The difference of 739 bytes is not a mapping for the AC1024 suffix."
+  },
+  "limits": [
+    "One scratch-authored source and one exact ODA converter release. This comparison binds typed reader results, not exact DWG bit spans or native rendering.",
+    "The initial placement screen interpreted the adapter model-space container's default *U0 name as an anonymous source block. Direct container identity and the peer model-space BLOCK_HEADER membership confirm correct placement.",
+    "No macOS ODA package was run or installed. The local macOS application signature/desktop problem remains separate.",
+    "Complete P6-H's conversion and independent-read requirement. P8-D remains the owner of actual native GUI checks and can use its already recorded selected-output source. Do not use the new scratch DWG as evidence of strict whole-file output.",
+    "No drawing or converter package was added to the repository."
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-134 MLEADER CMC flags and reserved-index retention",
+  "mode": "generated AC1024/AC1032 DWG object-vector and DXF loss-guard fast slice",
+  "scope": [
+    "Retain R2004+ CMC flags, reserved index, and provenance across MLEADER leader-line, annotation-context, and entity-level colors",
+    "Preserve supported C0-C3 optional color/book names, including flagged-empty strings, on DWG rewrite",
+    "Refuse malformed CMC provenance and unavailable detached strings before DWG output",
+    "Refuse unsupported source methods and unrepresentable CMC metadata before scalar-only MLEADER DXF output"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "20.4.48 MLEADER", "20.4.86 MLeaderAnnotContext"],
+      "finding": "The generic R2004+ CMC representation has a reserved leading BS index of zero, packed BL method/value, and RC flags for optional color-name/book TV strings. ODA identifies the MLEADER entity and embedded annotation-context color slots as CMC; it does not define additional semantics for unknown CMC methods."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.h", "src/drw_entities.cpp", "src/libdxfrw.cpp"],
+      "finding": "The seven MLEADER color slots previously retained normalized colors, methods, and optional names but dropped the raw CMC flags/index. The scalar-only DXF writer also did not reject a retained unsupported source method or a flagged-empty optional name."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append raw flags, reserved index, and metadata-presence fields for the per-line color, three embedded context colors, and three entity-level colors; copy/reset paths preserve or clear provenance as appropriate.",
+      "Capture CMC flags/index through bounded parsing and clear DWG-only provenance when the corresponding DXF scalar color group is updated.",
+      "Replay supported source flags through DWG encoding, including flagged-empty strings; preflight index, flag domain, string/flag agreement, method/scalar agreement, and detached R2007+ string storage before common-prefix output.",
+      "Extend scalar-only MLEADER DXF loss checks to refuse RGB/name/book metadata, flagged-empty names, nonzero indices, and source CMC methods that do not match their scalar C0/C1/C3 projection."
+    ],
+    "generatedTestChanged": true,
+    "focusedSelectors": [
+      "--mleader-line-cmc-rgb",
+      "--mleader-writer-validation"
+    ],
+    "focusedCtests": [
+      "libdxfrw_mleader_line_cmc_rgb",
+      "libdxfrw_mleader_writer_version",
+      "libdxfrw_dwg_object_vectors"
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": true,
+    "publicApiOrLayoutNote": "Appended fields increase DRW_MLeaderLeaderLine, DRW_MLeaderAnnotContext, and DRW_MLeader object sizes; downstream consumers must rebuild.",
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "dwgVectors": "Generated AC1024/AC1032 vectors exercise flags/index across the MLEADER leader line, text/background/block context, and leader/text/block entity colors. A flagged-empty color-name vector checks source replay and parser retention.",
+    "wireWalk": "An independent cursor checks the reserved index, method/value, raw flags, optional strings, and subsequent MLEADER fields; production parsing also checks the following-handle sentinel.",
+    "lifecycle": "Tests cover parser copy, assignment, reset, and DWG rewrite of flagged-empty metadata.",
+    "failClosed": "DWG controls reject nonzero reserved index, unknown flags, unflagged names, unsupported C5 rewrite, and flagged-empty names without a detached stream before emitting bytes. DXF controls reject C5 and flagged-empty CMC across scalar-only fields before publication."
+  },
+  "validation": {
+    "strictBuild": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg_object_vectors_tests dwg2dxf lc3_compat_check -j4",
+    "strictBuildResult": "PASS (-Werror)",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --mleader-line-cmc-rgb",
+    "focusedSelectorResult": "PASS",
+    "dxfGuardSelector": "build-gcc/libdxfrw_wave1_tests --mleader-writer-validation",
+    "dxfGuardSelectorResult": "PASS",
+    "focusedCtestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mleader_writer_version|libdxfrw_mleader_line_cmc_rgb|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "focusedCtestResult": "PASS (3/3; 0.21 sec)",
+    "diffCheck": "git diff --check -- src/drw_entities.cpp src/drw_entities.h src/libdxfrw.cpp tests/dwg_object_vectors_tests.cpp tests/wave1_tests.cpp",
+    "diffCheckResult": "PASS"
+  },
+  "evidenceLimits": [
+    "Generated vectors establish local wire/parser/writer consistency, not independent MLEADER producer semantics.",
+    "Unknown CMC methods remain unqualified and fail closed; this slice does not define C4-C8 payload semantics or class-specific HATCH gradient behavior.",
+    "No persistent drawing fixture, external producer, native CAD application, full suite, or platform qualification was run.",
+    "No support claim was promoted. J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue the PAR-134 class-by-class CMC/DXF projection audit, focusing on remaining MLEADERSTYLE provenance and unresolved HATCH C5/C4/C6-C8 semantics; then resume exact-source PAR-03/PAR-04 associative-action classification without guessing payload widths."
+}

@@ -1,0 +1,181 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "P5-D AC1024 TABLE ObjectARX witness packet readiness",
+  "date": "2026-11-19",
+  "supportClaimEffect": "none",
+  "scope": "Prepare a scratch-only native AutoCAD producer packet for one controlled AC1024 TABLE profile, including a block-content cell with a known nonconstant ATTDEF and non-default value. This receipt covers packet readiness only; it is not a host build, producer capture, DWG field-span proof, or support qualification.",
+  "hostIntake": {
+    "availability": "The user confirmed a remote ObjectARX host is available.",
+    "productReleaseBuild": "pending",
+    "windowsVersionBuild": "pending",
+    "sdkCompilerToolset": "pending",
+    "artifactReturnRoute": "pending",
+    "packetProfile": "full AutoCAD 2024 on Windows x64 with .NET Framework 4.8",
+    "profileDecision": "Build only on the matching profile. Review/adapt as a separate producer profile if the remote host differs."
+  },
+  "packet": {
+    "source": {
+      "path": "tools/research/p5d_ac1024_table_witness.cs",
+      "sha256": "d2f0ea3b4762aebc132e7721be794be8a64f83645fdc61d7d2c9f76f200b4afa"
+    },
+    "project": {
+      "path": "tools/research/p5d_ac1024_table_witness.csproj",
+      "sha256": "53219c720ef97b311a2057c4e5ede8aad813f3b8972d3c68c320ac540e1b1912"
+    },
+    "operatorReadme": {
+      "path": "tools/research/P5D_AC1024_TABLE_WITNESS_README.md",
+      "sha256": "175f057f856225e1774167977b605df9799b38cbff91adde1e17cda7981c8eec"
+    },
+    "commands": [
+      "DXFRW_P5D_CREATE",
+      "DXFRW_P5D_REPORT"
+    ],
+    "outputs": [
+      "table-ac1024.dwg",
+      "table-ac1024-ascii.dxf",
+      "table-ac1024-binary.dxf",
+      "creation.log",
+      "one native-reopen report per output"
+    ],
+    "authoredState": {
+      "rows": 4,
+      "columns": 3,
+      "cells": [
+        [
+          "P5-D AC1024 TABLE",
+          "Source profile",
+          "1"
+        ],
+        [
+          "KEY",
+          "VALUE",
+          "UNIT"
+        ],
+        [
+          "A",
+          "42",
+          "mm"
+        ],
+        [
+          "B",
+          "7",
+          "Block cell: P5D_NOTE=OVERRIDDEN_NOTE"
+        ]
+      ],
+      "tableStyle": "Current database TableStyle, recorded by handle and name",
+      "uniformRowHeight": 6.0,
+      "uniformColumnWidth": 32.0,
+      "linkedObjects": [
+        "table owner",
+        "table style",
+        "anonymous table block",
+        "block-cell BlockTableRecord",
+        "ATTDEF referenced by the block cell"
+      ],
+      "blockCell": {
+        "row": 3,
+        "column": 2,
+        "blockNamePrefix": "P5D_ATTR_",
+        "attributeDefinition": {
+          "tag": "P5D_NOTE",
+          "constant": false,
+          "default": "DEFAULT_NOTE",
+          "cellValue": "OVERRIDDEN_NOTE",
+          "expectedDifference": "cell value must differ from ATTDEF default"
+        },
+        "reopenProof": "Resolve the cell BTR; require exactly one ATTDEF in the BTR with the expected tag and Constant=false; record its handle/default and read the effective cell value."
+      }
+    },
+    "safetyAndRetry": "Creates a fresh GUID scratch directory under an existing operator-selected directory. Requires a saved, unmodified drawing and empty Model space. Never writes DWG/DXF fixture files into the repository. Failed/partial captures remain incomplete; retry only in a fresh directory."
+  },
+  "sourceReleaseInventory": {
+    "generator": "python3 -B tools/generate_build_inventory.py --check",
+    "result": "PASS",
+    "releasedFileCount": 1342,
+    "manifests": {
+      "source-release-files.am": "9d92a818a4dc11b4f9607786878cd196e2546bc159d70735ab3f0233802b36e7",
+      "source-release-files.txt": "2020c9f2c092da64b1c3d0efa3e79d0672aea8c8979f9f1962ff0da7825821fb"
+    },
+    "includedPacketFiles": [
+      "tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md",
+      "tools/research/P5D_AC1024_TABLE_WITNESS_README.md",
+      "tools/research/p5d_ac1024_table_witness.cs",
+      "tools/research/p5d_ac1024_table_witness.csproj"
+    ],
+    "reason": "Hosted fast CI reported the newly tracked packet files were missing from the source-release manifests. The generated manifests now include the packet."
+  },
+  "apiResearch": {
+    "references": [
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table.html",
+        "finding": "Table wraps AcDbTable; native API supports table style, size, dimensions, placement, and cell text/block content."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table_GenerateLayout.html",
+        "finding": "GenerateLayout computes geometry from definition/style; posting/closing creates the table block."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_SaveAs_string_DwgVersion.html",
+        "finding": "Database.SaveAs accepts DwgVersion.AC1024 for AutoCAD 2010 DWG."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_DxfOut_string_int__MarshalAsUnmanagedType_U1__bool.html",
+        "finding": "DxfOut precision -1 selects Binary DXF; ordinary nonnegative precision writes ASCII DXF."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table_SetBlockTableRecordId_int_int_int_ObjectId__MarshalAsUnmanagedType_U1__bool.html",
+        "finding": "AutoCAD 2024 Table.SetBlockTableRecordId(row,column,contentIndex,blockId,autoFit) selects a block BTR for a specific cell content; Autodesk marks this overload obsolete."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table_SetBlockAttributeValue_int_int_ObjectId_string.html",
+        "finding": "AutoCAD 2024 Table.SetBlockAttributeValue(row,column,attributeDefinitionId,value) sets the selected block cell attribute; Autodesk marks this overload obsolete."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-DevGuide-Managed/files/GUID-2107599E-9405-4D8B-A6DD-83D603B41568.htm",
+        "finding": "AutoCAD 2024 managed guide documents creating AttributeDefinition objects inside a BlockTableRecord and setting tag, prompt, default text, height, and attribute modes."
+      },
+      {
+        "title": "Open Design Specification for .dwg files v5.4.1",
+        "sourcePath": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+        "section": "20.4.97 TABLECONTENT",
+        "finding": "For block cell content, H/340 is a hard pointer to the block record; BL/91 is the attribute count; each attribute uses H/330 as a soft pointer to ATTDEF, TV/301 as its value, and BL/92 as a one-based index."
+      }
+    ],
+    "sourceType": "Official Autodesk managed API documentation and ODA Open Design Specification v5.4.1 §20.4.97",
+    "limit": "The ObjectARX API binds the authored semantic state, and ODA supplies the expected field roles; neither alone establishes this producer file’s serialized bit spans, actual handle codes, boundary alignment, independent semantics, or support qualification."
+  },
+  "readiness": {
+    "packetPrepared": true,
+    "syntaxOrSdkBuild": "not run; matching Autodesk assemblies and host profile are unavailable locally",
+    "nativeProducerCapture": "not run; remote host availability confirmed but product/build/OS/SDK and return route remain pending",
+    "nativeCloseReopen": "not run",
+    "wireSpanAndRoleProof": "not established",
+    "independentSemanticReadback": "pending",
+    "nativeAppearance": "pending",
+    "p5eCellStyleMap": "not included",
+    "p5fLayerOverrides": "not included"
+  },
+  "next": [
+    "Complete the one-time remote host profile intake; adapt and review the packet if the available host differs from AutoCAD 2024 Windows x64/.NET Framework 4.8.",
+    "Build and run the packet on the checked host profile; capture the AC1024 DWG, paired ASCII/Binary DXFs, creation receipt, three close/reopen reports, and appearance observation as scratch artifacts only.",
+    "Use the known block BTR, single ATTDEF, and distinct value to reconcile ODA v5.4.1 §20.4.97 field spans, actual handle roles, references, and following-record boundary against source-bound traces before typed parser changes.",
+    "Keep P5-D open and strict output refused until physical source proof, graph closure, strict output/readback, refusal/atomicity/retry, and native appearance gates pass."
+  ],
+  "explicitDxfVersionCorrection": {
+    "date": "2026-11-19",
+    "reason": "The previous bool DxfOut overload did not explicitly request a target version; reloading an AC1024 DWG alone was not proof of the emitted DXF version.",
+    "sourceSha256": "300447c2763e5c31d9e5c45de7a10960e5156992b070593b571f9a758892e5d7",
+    "readmeSha256": "828e33dec34eeb1816de5c187f1b37b00d67e0e4f95072447e8364526e62f6ab",
+    "change": "Use DxfOut(path, precision, DwgVersion.AC1024) for both ASCII and Binary; log the requested version and require independent marker verification.",
+    "authority": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_DxfOut_string_int_DwgVersion.html",
+    "limits": "SDK build and AutoCAD execution not run; requested version is not proof of emitted markers. The earlier packet hashes and inventory receipt above are historical."
+  },
+  "dxfHeaderAudit": {
+    "script": "tools/research/audit_p5d_dxf_versions.py",
+    "sha256": "75715d0e039c7928a8682adc499b31f19a4c8bf69e4b013b268211e38fc4a194",
+    "dependency": "tools/research/audit_binary_dxf_layout_nod.py",
+    "scope": "Requires matching ASCII/Binary encoding, exactly one HEADER $ACADVER with group 1 value AC1024, and records SHA-256 and file size. Stops at the end of HEADER.",
+    "validation": "PASS on existing source-derived AC1024 ASCII/Binary P4-D pair; locally generated ASCII/Binary controls reject duplicate versions, missing ENDSEC and incorrect version group code.",
+    "limits": "No AutoCAD-generated P5-D output has been received. This header screen is not a whole-file DXF parser, native readback or proof of TABLE semantics."
+  }
+}

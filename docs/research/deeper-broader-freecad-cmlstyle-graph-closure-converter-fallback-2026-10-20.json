@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "FreeCAD CMLSTYLE graph closure and converter fallback",
+  "mode": "Primary-source project issue/PR and Autodesk DXF reference review with local source/test inventory; no peer runtime",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Trace the FreeCAD DXF-export dangling-CMLSTYLE report through its merged producer fix and the reported LibreDWG release/master behavior difference.",
+    "Separate FreeCAD converter-wrapper fallback behavior from libdxfrw codec behavior and refine the existing composed consumer route.",
+    "Crosswalk the MLINESTYLE root/owner report against existing generated local positive and negative controls, without importing peer drawings or adding mandatory validation cadence."
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD issue #31836 and merged PR #31896",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/issues/31836",
+        "https://github.com/FreeCAD/FreeCAD/pull/31896"
+      ],
+      "revision": "Issue opened 2026-08-09; PR merged into FreeCAD main on 2026-08-17; mutable issue/PR reviewed 2026-10-20.",
+      "observed": "The reporter identified R12/R14 DXF output with $CMLSTYLE=STANDARD but no ACAD_MLINESTYLE dictionary or MLINE entity. The merged FreeCAD fix removes the four-line $CMLSTYLE group from both header templates. The PR initially added a regression test but removed it before merge at maintainer request.",
+      "limits": "The original DXF was not downloaded or tested here. The issue and PR describe FreeCAD behavior, not a libdxfrw defect or normative rule for every file carrying an unused current-style name."
+    },
+    {
+      "project": "LibreDWG behavior reported in FreeCAD issue #31836",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/31836",
+      "revision": "Mutable issue thread reviewed 2026-10-20; reporter's named builds were LibreDWG 0.14 release and master nightly 0.14.8578.",
+      "observed": "The author reports LibreDWG 0.14 aborting during unresolved MLINESTYLE dictionary resolution with a misleading Out of memory message, while the named master nightly completed with a null CMLSTYLE handle and still logged the unresolved lookup.",
+      "limits": "These are reporter-run results, not our runtime observations. They do not establish current release behavior, correct MLINE semantics, or successful owner-graph closure."
+    },
+    {
+      "project": "FreeCAD issue #31835 and current DWG wrapper source",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/issues/31835",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Open issue opened 2026-08-09; current mutable source and issue status reviewed 2026-10-20.",
+      "observed": "The reporter provides a headless FreeCAD 1.1.3 Windows reproduction in which convertToDwg returns after the first configured converter failure without checking the output artifact or attempting the next converter in Automatic mode. The issue contrasts import-side convertToDxf behavior that checks output existence and falls through.",
+      "limits": "No FreeCAD build, converter, or DXF/DWG was run in this pass. This concerns FreeCAD orchestration, not libdxfrw serialization."
+    },
+    {
+      "project": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+        "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm"
+      ],
+      "revision": "Official DXF reference pages reviewed 2026-10-20.",
+      "observed": "The HEADER table identifies group 2 $CMLSTYLE as the current multiline style name. The MLINESTYLE table specifies ownership by the ACAD_MLINESTYLE named-object dictionary, and the MLINE reference says a style entry must exist for MLINE entities.",
+      "limits": "These references distinguish name, object, and owner-graph roles but do not alone specify the disposition of an otherwise-unused dangling current-style name when no MLINE entity exists."
+    },
+    {
+      "project": "Local libdxfrw implementation and fast-test inventory",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "src/drw_header.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp"
+      ],
+      "revision": "Working tree inspected 2026-10-20; no source edits or test execution.",
+      "observed": "Existing generated MLINESTYLE tests cover rooted style identity, NOD dictionary key and owner, style reference closure, and wrong-owner/target/name refusal. No test was found for the exact header-only dangling $CMLSTYLE shape without an MLINE entity and without a rooted MLINESTYLE dictionary.",
+      "limits": "This is a scoped test inventory, not proof of a production defect or complete header/MLINESTYLE audit."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-20/7G.3 MLINESTYLE graph: retain the existing positive root/owner/reference controls and consider one generated dangling-header control only if local source review confirms the touched route lacks a disposition.",
+      "PAR-07/S8 FreeCAD route: force and bind the selected converter for codec evidence; test Automatic fallback only as a distinct FreeCAD wrapper requirement.",
+      "Writer acceptance: distinguish a successful conversion process from a fresh, version-identified artifact, strict reopen, and object/reference closure."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a current source-backed crosswalk for the merged FreeCAD dangling-$CMLSTYLE producer fix and the corresponding older LibreDWG release versus named master-nightly behavior.",
+    "Refined the MLINESTYLE root-graph owner with one conditional scratch-generated header-only negative control; current positive/root-closure selectors remain the fast validation path.",
+    "Separated FreeCAD Automatic converter fallback from libdxfrw codec qualification and retained explicit-converter, artifact-identity, strict-reopen, and per-object disposition requirements.",
+    "Added no implementation finding, mandatory test cadence, peer dependency, external fixture, native platform result, or support promotion."
+  ],
+  "limitations": [
+    "Issue and PR reports are source-specific; the original FreeCAD DXF and peer runtime results were not independently reproduced.",
+    "No external DWG/DXF was downloaded or committed; no peer or native CAD program was run.",
+    "The appropriate policy for an unused dangling $CMLSTYLE name is not settled by the issue report or the cited DXF field descriptions alone; preserve/refuse disposition must follow local source/spec review.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on plan; receipt whitespace scan)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

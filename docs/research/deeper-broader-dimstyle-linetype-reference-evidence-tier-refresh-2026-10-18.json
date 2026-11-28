@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-18",
+  "topic": "DIMSTYLE R2007+ linetype references, cross-implementation evidence, and bounded local closure",
+  "research_only": true,
+  "sources": [
+    {
+      "name": "ODA Open Design Specification for DWG files, DIMSTYLE section 20.4.68",
+      "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "evidence": "For R2007+, DIMSTYLE handle stream fields 345 dimltype, 346 dimltex1, and 347 dimltex2 are hard pointers.",
+      "limit": "Authoritative DWG binary layout evidence; not DXF tag spelling or native rendering qualification."
+    },
+    {
+      "name": "Autodesk ObjectARX Managed Reference: DimStyleTableRecord linetype properties",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DimStyleTableRecord_Dimltype.html",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DimStyleTableRecord_Dimltex1.html",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DimStyleTableRecord_Dimltex2.html"
+      ],
+      "evidence": "All three are read/write ObjectId properties for dimension and extension-line linetypes.",
+      "limit": "Object model evidence; public Autodesk DXF DIMSTYLE table still omits codes 345-347."
+    },
+    {
+      "name": "ezdxf DIMSTYLE internals, API, and implementation",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/tables/dimstyle_table.html",
+        "https://ezdxf.readthedocs.io/en/stable/tables/dimstyle_table_entry.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dimstyle.py"
+      ],
+      "evidence": "Documents 345-347 as R2007+ LTYPE handle references, provides name-facing APIs, and implements name-to-handle/resource resolution. It labels the fields unofficial and absent from Autodesk's DXF reference.",
+      "limit": "Independent implementation evidence, not normative authority or AutoCAD acceptance; exact source/version must be pinned for future differential use."
+    },
+    {
+      "name": "LibreDWG source model snapshot",
+      "url": "https://github.com/benegon/libredwg/blob/master/src/dwg.h",
+      "evidence": "The inspected DWG DIMSTYLE structure includes DIMLTYPE, DIMLTEX1, and DIMLTEX2 as BITCODE_H fields.",
+      "limit": "Source model only; inspected URL is a mirror/fork, and no converter execution or round-trip was performed."
+    },
+    {
+      "name": "Autodesk public DIMSTYLE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+      "evidence": "Lists modern table reference codes 340-344 but omits 345-347.",
+      "limit": "Omission is retained as a producer acceptance caveat."
+    },
+    {
+      "name": "ezdxf pre-R2007 per-DIMENSION linetype override documentation",
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/tables/dimstyle_table.html#extended-settings-as-special-xdata-groups",
+      "evidence": "Describes undocumented ACAD_DSTYLE XDATA keys 380-382 with 1005 LTYPE handles for entity-level linetype overrides.",
+      "limit": "Separate from table codes 345-347; schedule only after versioned producer evidence establishes exact XDATA framing and null/default semantics."
+    }
+  ],
+  "local_review": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "confirmed_gap": "DRW_Dimstyle stores and parses 345-347 handles, and the DWG path carries these fields for AC1021+. The strict full-conversion DXF writer resolves 340 and 341-344 but does not yet close source LTYPE identity for 345-347; generic variable emission can pass these through without remapping to emitted output handles.",
+    "classification": "One local PAR-23/7J graph-closure gap; not proof of consumer rejection or overall support status."
+  },
+  "implementation_readiness": {
+    "owner": "Existing PAR-23/7J DIMENSION style-resource closure",
+    "sequence": [
+      "Add transactional source-LTYPE identity mapping (source handle, normalized name, emitted handle), including fixed BYBLOCK/BYLAYER/CONTINUOUS targets.",
+      "Resolve strict modern full-conversion 345-347 references by identity; require name/handle consistency and distinguish explicit null from absent.",
+      "Extend the existing generated ASCII/Binary dimension_picture_block_full_conversion control for custom/builtin linetypes, remap, forward ordering, version gates, missing/mismatched references, rollback, and following-record integrity.",
+      "Run focused adapter build and owning CTest only; defer full suite and external consumers to composed gates.",
+      "Keep 380-382 plus XDATA 1005 as a separate deferred compatibility investigation pending producer evidence."
+    ],
+    "fixtures": "No committed test drawings. Generate controls locally from scratch in temporary test paths.",
+    "support_claim_promotion": false,
+    "finding_count_change": 0,
+    "top_level_subplan_count_change": 0,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "actions_performed": {
+    "peer_runtime_or_native_cad_run": false,
+    "external_drawing_downloaded": false,
+    "fixture_added": false,
+    "dependency_added": false,
+    "full_test_suite_run": false
+  }
+}

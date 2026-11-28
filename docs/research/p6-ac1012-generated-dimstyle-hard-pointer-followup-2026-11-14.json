@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-generated-dimstyle-hard-pointer-followup-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_HEADER_DIMSTYLE_REFERENCE_RESOLVED_NEXT_OPAQUE_GATE",
+  "supportClaimEffect": "none",
+  "scope": "Follow up the AC1012 generated-source strict-output refusal by giving the locally generated drawing a real HEADER DIMSTYLE hard pointer. The change is made in a scratch-only LibreDWG helper, not libdxfrw. Establish that null DIMSTYLE was generator state, then identify the next independent strict-output refusal without relaxing preflight.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": {"AcDb:Header variable layout": "DIMSTYLE is a hard pointer."},
+    "implementation": {
+      "reader": "src/intern/dwgreader.cpp:resolveDwgHeaderCurrentReferences",
+      "rule": "A non-null HEADER reference must have hard-pointer role, resolve to a table record with matching handle, and agree with the modeled HEADER name. Otherwise an error diagnostic remains and strict output refuses."
+    }
+  },
+  "producer": {
+    "application": "LibreDWG dwgadd 0.14 plus a local LibreDWG C API mutation helper",
+    "executable": "/opt/homebrew/bin/dwgadd",
+    "executableSha256": "66c435deb0f081ab72be21bb9ba36e5d149f9352d71ddf1e83ac95b3fc07f282",
+    "generatorInput": "/private/tmp/p6-e-ac1012-source-with-dimstyle.dwgadd",
+    "generatorInputSha256": "69a870d55b4c8ef3dd9ca6bfcf8f1d253e70a9b489b6e31dcdbc58e57fa92ca5",
+    "generatorOutput": "/private/tmp/p6-e-ac1012-generated-with-dimstyle.dwg",
+    "generatorOutputSha256": "56f48737bbc1d9fc07a93389c2bd614d419338c3e28009efba8b6465b53178bc",
+    "mutationHelper": "/private/tmp/p6-e-set-header-dimstyle.c",
+    "mutationHelperSha256": "8a0d53dd1f8c7889442376e9dbbbb74ce7f31e3d6f5dac3a314eba87660020aa",
+    "helperExecutableSha256": "edafb92a3d9f0bf801c0783cad55f888ad938e63216a4ce68f87af1fab5f72da",
+    "mutation": "Read the generated AC1012 DWG with LibreDWG, locate its DIMSTYLE table object at handle 0x2c, assign header_vars.DIMSTYLE = dwg_add_handleref(..., DWG_HDL_HARDPTR, 0x2c, NULL), then serialize a separate scratch output.",
+    "mutatedOutput": "/private/tmp/p6-e-ac1012-header-linked.dwg",
+    "mutatedOutputSha256": "8d897bf94d568a305f459e7e88e5878a86942fc25fcbbb0a531bfbe2422260e0",
+    "mutatedOutputSize": 2608,
+    "version": "AC1012",
+    "provenance": "Created from scratch and mutated locally for this audit; all generated DWG/DXF files remain under /private/tmp and are not committed."
+  },
+  "observation": {
+    "readerCommand": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/p6-e-ac1012-header-linked.dwg -y -d -v2000 /private/tmp/p6-e-ac1012-header-linked-out.dxf",
+    "readerTrace": "/private/tmp/p6-e-ac1012-header-linked-reader.log",
+    "readerTraceSha256": "7cd725787ff98b1c83efc035c3eb6e6d9a3bc59f6ed55930bd55300d32f9895a",
+    "readerObservations": {
+      "headerDimstyle": "raw DWG trace prints DIMSTYLE: 5.1.0x2c",
+      "operationSucceeded": true,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "integrityRows": 0,
+      "sourceFrames": 30,
+      "publishedFrames": 30,
+      "unresolvedFrames": 0
+    },
+    "strictOutput": {
+      "result": "REFUSED",
+      "reason": "Output finalization requires qualification for every opaque DWG callback; four of five are qualified.",
+      "unqualifiedCallback": "handle=24 (0x18), type=73 (MLINESTYLE)",
+      "meaning": "This is a separate output qualification gap. It does not reinstate the previous null HEADER DIMSTYLE failure and does not establish MLINESTYLE producer semantics."
+    }
+  },
+  "limitations": [
+    "This is a locally generated AC1012 sample, not a producer-authored interoperability witness.",
+    "The pointer is linked using LibreDWG's API. No independent native CAD semantic observation was made.",
+    "The file's complete frame publication is not whole-file DXF output support; strict output remains refused at the unqualified MLINESTYLE callback.",
+    "No libdxfrw parser or strict-output behavior was loosened."
+  ]
+}

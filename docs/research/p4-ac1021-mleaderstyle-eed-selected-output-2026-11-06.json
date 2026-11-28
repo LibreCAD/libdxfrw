@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 MLEADERSTYLE EED selected output and readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify one bounded selected AC1021 MLEADERSTYLE graph emitted as AC1024 DXF, with pointer-backed EED snapshot, APPID table dependency, ASCII/Binary serialization, readback, refusal and retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "profile": {
+    "styleHandle": "0x12E",
+    "sourceFrame": "Object type 508; record MLEADERSTYLE; class AcDbMLeaderStyle.",
+    "owner": "Unique NOD key ACAD_MLEADERSTYLE to owner dictionary to the style identity/key.",
+    "eed": [
+      {
+        "order": 0,
+        "code": 1001,
+        "type": "STRING",
+        "value": "ACAD_MLEADERVER"
+      },
+      {
+        "order": 1,
+        "code": 1070,
+        "type": "INTEGER",
+        "value": 2
+      }
+    ],
+    "appid": "Exactly one source APPID row named ACAD_MLEADERVER. Output proof uses the emitted source-table binding and confirms the APPID TABLES record identity; it does not assume the generic handle remap is the emitted table handle.",
+    "references": "The LTYPE and STYLE references resolve to their declared source rows. Arrow block and block references are null in this profile.",
+    "projection": "NOD MLEADERSTYLE owner graph, one style, mandatory LTYPE rows/control, referenced STYLE, APPID and class metadata. Unrelated source graph is excluded only in this test projection."
+  },
+  "qualification": {
+    "result": "PASS for this bounded local source profile only.",
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "targetVersion": "AC1024",
+    "checks": [
+      "Deep source snapshot copies pointer-backed EED values and refuses in-place EED mutation before output; restoring the source permits same-adapter retry.",
+      "Output inspector requires unique APPID name closure and verifies the APPID record under TABLES using dxfWriteEmittedSourceTableHandle.",
+      "Fresh readback checks exact ordered EED code/type/value sequence, source-to-emitted APPID table binding, owner dictionary/key/target, MLEADERSTYLE identity and class census, typed style payload, and LTYPE/STYLE reference roles.",
+      "Late style mutation and owner graph mutation refuse atomically with destination preservation; restored source succeeds on the same adapter."
+    ],
+    "limits": [
+      "One existing local source with unauthenticated author/producer; this does not establish producer-wide interoperability.",
+      "Selected graph output is not whole-document output qualification.",
+      "No native MLEADERSTYLE semantics or unmodeled EED profiles are qualified.",
+      "Adds one opaque carrier and one standard-object owner dictionary frame to the bounded AC1021 output inventory."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "sourceProfile": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mleaderstyle-ac1021-eed-source-profile /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS; deep EED snapshot mutation/refusal and restored retry"
+    },
+    "ac1021SelectedOutput": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mleaderstyle-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS; ASCII and Binary selected output/readback, EED and APPID proof, destination-preserving refusal and same-adapter retry"
+    },
+    "ac1024Regression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mleaderstyle-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS; existing AC1024 ASCII and Binary physical output/readback route"
+    },
+    "fullSuites": "NOT RUN; focused adapter selectors only."
+  },
+  "strictStagedProof": {
+    "result": "PASS for MLEADERSTYLE 0x12E within the children-room strict staged-output transaction.",
+    "targetProfiles": [
+      "AC1021 source to AC1021 DXF",
+      "AC1021 source to AC1024 DXF",
+      "AC1024 source to AC1024 DXF regression"
+    ],
+    "checks": [
+      "frozen MLEADERSTYLE typed fields and pointer-backed EED snapshot",
+      "unique ACAD_MLEADERVER APPID source table binding and staged APPID identity",
+      "NOD ACAD_MLEADERSTYLE owner dictionary and unique style key",
+      "staged MLEADERSTYLE payload body/string decode at the actual target version",
+      "mapped LTYPE, STYLE, and nullable BLOCK_RECORD target roles",
+      "ASCII/Binary selected readback, atomic late mutation/owner refusal and same-adapter retry"
+    ],
+    "strictWholeSource": "Advanced from 181/186 to 182/186 and then failed closed on the four section/detail view-style callbacks; no whole-source DXF was created.",
+    "strictDebugLogSha256": "57ec52e8d43e23fdbdf7cf04b39e3b49389862e3ca4bc333cf66f638b1776ca5",
+    "supportClaimEffect": "none"
+  },
+  "nextAction": "Qualify SECTIONVIEWSTYLE 0x21A/0x18081 and DETAILVIEWSTYLE 0x21C/0x18082 in the current strict staged transaction."
+}

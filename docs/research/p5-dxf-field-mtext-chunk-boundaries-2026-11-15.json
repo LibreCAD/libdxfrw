@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-15",
+  "scope": "Locally authored DXF _text FIELD expression, primary string and cache continuation decoding; not graph or dynamic evaluation qualification.",
+  "defect": "Decoding each physical record separately corrupted multibyte characters and escape sequences split across continuation records.",
+  "change": "Stage adjacent continuation records under a temporary retained-byte lease, then decode and charge the assembled semantic string before publication. Reject potentially ambiguous text decoded before a late _text evaluator, including backslashes and non-ASCII bytes in either encoding.",
+  "validation": [
+    "libdxfrw_dxf_field_mtext: ASCII and Binary AC1027 UTF-8 scalar and Unicode escape interior splits, AC1018 CP932 split lead/trail byte, caret syntax and late-evaluator refusal; existing strict/compatible output and retry checks.",
+    "libdxfrw_field_retained_owner_budget: staged MTEXT budget denial and scoped allocation failures, pending and model owner teardown, ASCII and Binary.",
+    "libdxfrw_dxf_mtext_caret passed.",
+    "Independent ezdxf 1.4.5 source FIELD A9 tag readback recheck: ASCII/Binary expression and primary/cache hashes unchanged; original CAD producer unverified.",
+    "libdxfrw_dwg2dxf_adapter_tests --field-dxf-multichunk-value passed; two diagnostics are expected negative controls."
+  ],
+  "source_receipt": "docs/research/p5-dxf-field-mtext-text-transport-2026-11-15.json",
+  "limits": [
+    "Split sequences are synthetic controls, not independent producer witnesses.",
+    "Whole FIELD/FIELDLIST graph, other nested values, dynamic evaluation and native application acceptance remain unqualified.",
+    "No DWG/DXF fixture added."
+  ]
+}

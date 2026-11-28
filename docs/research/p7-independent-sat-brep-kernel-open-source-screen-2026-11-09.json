@@ -1,0 +1,39 @@
+{
+  "title": "Open-source independent SAT-to-B-rep kernel screen",
+  "date": "2026-11-09",
+  "purpose": "Find an eligible ACIS SAT/SAB reader plus B-rep kernel that is independent of Open CASCADE for the selected AC1021 torus semantic gate.",
+  "candidateFindings": [
+    {
+      "project": "cq-acis",
+      "source": "https://github.com/monozukuri-ai/cq-acis",
+      "finding": "The project parses SAT/SAB and converts supported geometry through CadQuery/OpenCascade. Its README labels the project experimental and ties support to save-version and producer profile.",
+      "disposition": "Independent parser, but not an independent B-rep kernel; it cannot close the kernel-independence gate."
+    },
+    {
+      "project": "ACadRust",
+      "source": "https://github.com/LibreCAD/ACadRust",
+      "finding": "The pinned parser independently decodes SAT records and exposes typed torus fields. It does not construct or validate a B-rep with a geometric kernel.",
+      "disposition": "Independent parser evidence only; existing receipt already records its exact torus-field comparison."
+    },
+    {
+      "project": "opencadkernel",
+      "source": "https://github.com/HakanSeven12/opencadkernel",
+      "finding": "The repository describes its B-rep kernel as early, says most operations are unwritten, and places ACIS-to-B-rep lifting in a feature layer still under development.",
+      "disposition": "Research lead only; no usable SAT-to-kernel route was established in this screen."
+    }
+  ],
+  "localRuntime": {
+    "application": "/Applications/FreeCAD.app",
+    "binary": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+    "architecture": "arm64",
+    "command": "freecadcmd --version",
+    "result": "aborts before startup: Incompatible processor; Qt build requires neon",
+    "disposition": "The local native FreeCAD runtime cannot perform a new qualification in this environment. The prior ODA/FreeCAD cross-check remains Open CASCADE-based and does not qualify kernel independence."
+  },
+  "conclusion": "No eligible independent SAT-to-B-rep kernel was found. Keep the independent-kernel gate open; do not promote the existing ACadRust/FreeCAD results to kernel-independent semantics. Resume only with a usable independent kernel implementation or a materially changed native environment.",
+  "limits": [
+    "This is a bounded project/runtime screen, not proof that no suitable independent kernel exists.",
+    "No new geometry measurements or support claims are made.",
+    "No fixture or downloaded project source was added to the repository."
+  ]
+}

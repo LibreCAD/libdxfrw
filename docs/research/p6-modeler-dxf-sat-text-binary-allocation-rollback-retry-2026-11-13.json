@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-modeler-dxf-sat-text-binary-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_AC1024_MODELER_DXF_ASCII_BINARY_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend modeler SAT text whole-operation allocation rollback/retry coverage to Binary DXF alongside ASCII for a generated AC1024 3DSOLID profile.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DXF modeler record",
+    "profile": "One AC1024 E3DSOLID with 600 generated text bytes in three ordered group-1/3 chunks (255, 255, and 90 bytes), written in ASCII and Binary DXF. The text is a transport stress payload and is not asserted to be valid ACIS geometry. No external drawing fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "39da4aaa",
+    "files": [
+      "tests/modeler_dxf_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-modeler-dxf-sat-text-binary-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Extend the focused generated modeler write failure sweep to both writer encodings. Warm each encoding, measure its allocation offsets, inject failure at every offset and require destination/caller/identity rollback plus staging cleanup. Retry the same codec and require clean-byte identity and fresh typed fileImport readback of the chunk sequence."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_modeler_dxf_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeler_dxf_allocation_transaction$' --output-on-failure: PASS 1/1 (0.76 sec)",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_modeler_dxf_allocation_tests -j4: PASS",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^dwg2dxf_modeler_dxf_allocation_transaction$' --output-on-failure: PASS 1/1 (4.30 sec)",
+    "directRun": "PASS; ASCII 102 and Binary 101 whole-write allocation offsets injected; rollback, staging cleanup, same-codec retry and typed import readback passed in both encodings.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "The generated payload is not parsed or validated as ACIS syntax and provides no geometry semantics.",
+    "Only the AC1024 text carrier is covered; producer interoperability and other modeler carriers or target versions remain open.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's inventory with another exact missing variable-size writer or uncovered whole-operation caller-state route."
+}

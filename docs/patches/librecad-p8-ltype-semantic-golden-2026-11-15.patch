@@ -1,0 +1,124 @@
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9284,7 +9284,25 @@
+              (gotX ? x : std::string("<end>")) + "', written '" +
+              (gotY ? y : std::string("<end>")) + "'";
+   }
++}
++
++// Parse the table as ordered DXF pairs so harmless writer formatting and
++// generated handles do not obscure changes to actual linetype fields.
++DxfRecordGroups tablePairs(const std::string &table) {
++  std::istringstream in(table);
++  DxfRecordGroups pairs;
++  std::string code, value;
++  while (std::getline(in, code) && std::getline(in, value))
++    pairs.emplace_back(trimDxfToken(code), trimDxfToken(value));
++  return pairs;
+ }
++
++template <typename T, typename = void>
++struct HasCanonicalLTypeMetadataForGolden : std::false_type {};
++template <typename T>
++struct HasCanonicalLTypeMetadataForGolden<T, std::void_t<decltype(
++    std::declval<T&>().setCanonicalLineTypeMetadata(
++        std::declval<const std::vector<DRW_LType>&>()))>> : std::true_type {};
+ 
+ // Group 73 and the group 40 literal of the 35 writeLType() calls at the head
+ // of writeLTypes() as of 86d2c9325 (rs_filterdxfrw.cpp:19100-19169), in call
+@@ -9358,6 +9376,15 @@
+         Target{RS2::FormatDXFRW12, "ltype_table_ac1009.dxf"}}) {
+     INFO("format " << static_cast<int>(target.format) << ", golden "
+                    << target.golden);
++    // R12 cannot represent explicit layer lineweights.  Set the neutral
++    // default for this LTYPE-specific test; the refusal is checked separately.
++    if (target.format == RS2::FormatDXFRW12) {
++      RS_Layer *layer = graphic.findLayer("0");
++      REQUIRE(layer != nullptr);
++      RS_Pen pen = layer->getPen();
++      pen.setWidth(RS2::WidthDefault);
++      layer->setPen(pen);
++    }
+     const std::string out = tmpFile("builtin_ltype_table.dxf");
+     std::filesystem::remove(out);
+     {
+@@ -9374,9 +9401,78 @@
+     const std::string written = ltypeTableSection(out);
+     REQUIRE_FALSE(written.empty());
+     INFO(firstDifference(expected, written));
+-    CHECK(written == expected);
++    const auto expectedPairs = tablePairs(expected);
++    const auto actualPairs = tablePairs(written);
++    REQUIRE(actualPairs.size() == expectedPairs.size());
++    std::set<std::string> recordHandles;
++    std::string tableHandle;
++    bool inHeader = false;
++    for (std::size_t i = 0; i < actualPairs.size(); ++i) {
++      const auto &a = actualPairs[i];
++      const auto &e = expectedPairs[i];
++      INFO("pair " << i << ": code " << a.first);
++      REQUIRE(a.first == e.first);
++      if (a.first == "0")
++        inHeader = a.second == "TABLE";
++      if (a.first == "5") {
++        REQUIRE_FALSE(a.second.empty());
++        REQUIRE(a.second != "0");
++        CHECK(recordHandles.insert(a.second).second);
++        if (inHeader) tableHandle = a.second;
++      } else if (a.first == "330") {
++        CHECK(a.second == (inHeader ? "0" : tableHandle));
++      } else if (a.first == "70" && inHeader) {
++        const int expectedCount =
++            HasCanonicalLTypeMetadataForGolden<dxfRW>::value ? 35 : 4;
++        CHECK(std::stoi(a.second) == expectedCount);
++      } else if (a.first == "40") {
++        const double av = std::stod(a.second), ev = std::stod(e.second);
++        CHECK(std::isfinite(av));
++        CHECK(std::abs(av - ev) <= 1e-12 * std::max(1.0, std::abs(ev)));
++      } else if (a.first == "49") {
++        CHECK(std::stod(a.second) == std::stod(e.second));
++      } else {
++        CHECK(a.second == e.second);
++      }
++    }
+     std::filesystem::remove(out);
++  }
++}
++
++TEST_CASE("R12 export observes layer lineweight codec policy",
++          "[dxf][roundtrip][filter][linetype][ltype][named]") {
++  ensureSettings();
++  RS_Graphic graphic;
++  graphic.initForNewDocument();
++  RS_Layer *layer = graphic.findLayer("0");
++  REQUIRE(layer != nullptr);
++  RS_Pen pen = layer->getPen();
++  pen.setWidth(RS2::Width07);
++  layer->setPen(pen);
++  const std::string out = tmpFile("r12_ltype_layer_lineweight.dxf");
++  writeText(out, "previous destination\n");
++  RS_FilterDXFRW filter;
++  const bool written = filter.fileExport(graphic, QString::fromStdString(out),
++                                         RS2::FormatDXFRW12);
++  if (HasCanonicalLTypeMetadataForGolden<dxfRW>::value) {
++    CHECK_FALSE(written);
++    CHECK(textWithoutCR(out) == "previous destination\n");
++  } else {
++    CHECK(written); // The older bundled writer permits the lossy export.
+   }
++  CHECK(layer->getPen().getWidth() == RS2::Width07);
++  pen.setWidth(RS2::WidthDefault);
++  layer->setPen(pen);
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(out),
++                            RS2::FormatDXFRW12));
++  CHECK(countRecords(out, "LTYPE") == 35);
++  RS_Graphic reopened;
++  RS_FilterDXFRW reader;
++  REQUIRE(reader.fileImport(reopened, QString::fromStdString(out),
++                            RS2::FormatDXFRW12));
++  CHECK(reopened.findLayer("0") != nullptr);
++  CHECK(reopened.findLineType("DASHED") != nullptr);
++  std::filesystem::remove(out);
+ }
+ 
+ #ifdef DWGSUPPORT

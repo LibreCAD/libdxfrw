@@ -1,0 +1,50 @@
+{
+  "id": "RPP-5ra",
+  "title": "MLINE mixed simple and text-bearing LTYPE segments",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "authority": [
+    {
+      "title": "Autodesk LTYPE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+      "used_for": "Selected LTYPE segment groups 49, 74, 75, 340, 46, 50, 44, 45 and 9."
+    },
+    {
+      "title": "Autodesk STYLE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-EF68AF7C-13EF-45A1-8175-ED6CE66C8FC9.htm",
+      "used_for": "STYLE table-record provider identity and selected font-file field."
+    }
+  ],
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated two-element LTYPE profile with one simple dash followed by one text-bearing complex segment; no external fixture is used.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, declared count 2, total pattern length 2.0; segment 1 has length 1.5 and group 74 value 0; segment 2 has length 0.5, group 74 value 2, group 75 value 0, text DXF, scale 0.75, wire rotation 0.25, and offsets 0.125/-0.25.",
+    "style_provider": "ComplexText at source handle 1F3; the second LTYPE segment's group 340 points to this STYLE record, whose selected group-3 font filename is txt.shx.",
+    "consumer": "The MLINESTYLE references EditDash; its source MLINE consumers remain unchanged."
+  },
+  "proof": {
+    "source": "Physical source projection verifies the two segment lengths/order, flags and text parameters, STYLE provider row, and group-340 source pointer before import. Typed input verifies the simple segment has no STYLE reference and the text segment binds to the parsed STYLE handle.",
+    "output": "Physical output verifies segment order and fields and requires group 340 to equal the emitted STYLE identity. Fresh readback verifies both segments, the remapped handle, text values and MLINE consumer links.",
+    "failure_retry": "Removing the required STYLE provider causes export refusal, preserves a destination sentinel and leaves caller authority/provider state unchanged. Restoring the provider succeeds on the same adapter.",
+    "counts": {
+      "profiles": 4,
+      "successful_readbacks": 8,
+      "missing_provider_refusals_with_destination_preservation": 4,
+      "same_adapter_retries": 4
+    }
+  },
+  "validation": {
+    "selector": "libdxfrw_mline_ltype_mixed_segments",
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_mixed_segments$' --output-on-failure",
+    "result": "PASS",
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineLtypeMixedSegmentControls",
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This qualifies the selected AC1027 two-element mixed simple/text transport profile only. It does not establish native font availability, glyph identity, rendered text, or full document closure.",
+    "Other segment orders and counts, shape/text mixtures, flags, field placements, providers, versions, font identity, rendering, and composed consumer semantics remain open."
+  ]
+}

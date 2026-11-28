@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Current FreeCAD DXF route and independent DXF/DWG peer boundaries",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Recheck current FreeCAD DWG converter and DXF importer routes",
+    "Separate wrapper success, converter output validity, importer selection, and semantic dispositions",
+    "Reassess ezdxf direct DXF, transfer, and ACIS inspection boundaries",
+    "Reconfirm LibreDWG version/direction limits relevant to comparative evidence"
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD Draft importDWG implementation",
+      "reference": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "status": "mutable_main_source_snapshot_reviewed_2026-10-20",
+      "observation": "The adapter contains LibreDWG, ODA, and QCAD conversion paths. Its subprocess helpers wait for completion but do not inspect process return status. DWG-to-DXF accepts a produced path based on existence; the DWG export helper returns the requested path after converter completion without validating that output."
+    },
+    {
+      "project": "FreeCAD Import/Export preferences documentation",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "status": "mutable_documentation_snapshot_reviewed_2026-10-20",
+      "observation": "Documents automatic/selected DWG converters and separate legacy Python versus C++ DXF importer/exporter preferences with different feature sets."
+    },
+    {
+      "project": "FreeCAD Draft DXF documentation",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "status": "mutable_documentation_snapshot_reviewed_2026-10-20",
+      "observation": "Lists distinct C++ and legacy Python DXF importer coverage; notes 3DFACE support in the legacy importer, omissions such as text/dimensions/attributes inside blocks in the C++ route, and that stock FreeCAD cannot read DXF ACIS/SAT solids. Documentation claims are not a runtime qualification."
+    },
+    {
+      "project": "ezdxf current scope, XREF documentation, and launcher documentation",
+      "reference": "https://github.com/mozman/ezdxf/blob/master/docs/source/index.rst",
+      "relatedReferences": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "status": "mutable_project_documentation_snapshot_reviewed_2026-10-20",
+      "observation": "ezdxf declares ASCII/Binary DXF read/write across named versions and third-party content retention. Its XREF transfer documentation says unsupported entities and many HEADER/OBJECTS features are not supported and may be ignored. The ACIS browser exposes raw SAT/SAB inspection/export, not a semantic B-rep validator."
+    },
+    {
+      "project": "LibreDWG current manual and repository scope",
+      "reference": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "relatedReferences": [
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "status": "mutable_project_documentation_snapshot_reviewed_2026-10-20",
+      "observation": "The manual documents broad DWG read coverage with some advanced R2010+ objects skipped, R2007 write limitations, and R2010-R2018 writes that still fail CRC/audit checks in external CAD applications. These are project-reported limitations, not a run of a pinned artifact in this workspace."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Strengthened the existing composed FreeCAD gate to bind the converter and DXF importer independently, inspect converter exit status/output/version rather than trusting wrapper return paths, and score source-object dispositions. Clarified ezdxf transfer/ACIS limits and LibreDWG high-version writer caveats without creating per-slice prerequisites.",
+    "nextImplementation": "Continue the existing local-ready implementation queue and fast per-slice validation; apply the route tuple only at the already-scheduled composed consumer checkpoint.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-current-freecad-dxf-route-peer-boundaries-2026-10-20.json"
+    ],
+    "limitations": "All web sources are mutable main-branch source or documentation snapshots. No exact FreeCAD build, converter artifact, ezdxf release, or LibreDWG binary was installed or executed; no operational result or semantic support claim follows from this research."
+  },
+  "validation": {
+    "planEdit": "Added current FreeCAD converter/importer route constraints and output-validation steps, plus precise ezdxf and LibreDWG evidence boundaries. No findings or plan counts changed.",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan; trailing-whitespace scan passed for the new receipt",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Git metadata is read-only in this workspace; changes remain unstaged and uncommitted."
+  }
+}

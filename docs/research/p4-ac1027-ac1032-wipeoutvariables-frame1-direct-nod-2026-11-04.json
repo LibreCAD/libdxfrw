@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_AC1027_AC1032_DIRECT_NOD_FRAME1_GENERATED_OUTPUT",
+  "scope": "Admit an unchanged same-revision AC1027 or AC1032 direct-NOD WIPEOUTVARIABLES display-frame 1 with the two observed role-4 references, missing XDictionary, zero data-storage bit and exact 10-bit BS value. Existing frame-0, AC1024 and nested profile paths retain their separate checks. This is selected-record graph evidence, not physical whole-document or native rendering qualification.",
+  "source": {
+    "provenance": "A scratch R2010 DXF with one WIPEOUT and ACAD_WIPEOUT_VARS.frame=1 was authored from scratch using ezdxf 1.4.5 (tools/author_wipeout_ac1024_frame1.py). ODA File Converter 27.1.0 converted it separately to AC1027 and AC1032 DWG and back to matching-revision DXF; no .err occurred. No binary drawing fixture was added. Regeneration can produce different hashes.",
+    "input_dxf_sha256": "25837132680f405474425647efed839351dbf7fc92e1554bf15269a71eca3b5b",
+    "ac1027_dwg_sha256": "3d17c285fdfec50337acf55039d55f7eae0130bbe0bd39c1f3de50a7c6230b00",
+    "ac1027_dxf_sha256": "edfaf85bff961732617b7f5c6ac2fa36df9987e9b26cdb9548042094734c7a36",
+    "ac1032_dwg_sha256": "35cb7d3c4056efd03499b6e29988c99981d319e22a7706a721f6e533e513f95c",
+    "ac1032_dxf_sha256": "ead5e6a80b3a69f980a484f7fd15309911f419e33ff859f2463c68a296567c15",
+    "independent": "GNU LibreDWG 0.14 independently decodes type 516 object 0x30 with frame 1, NOD 0xA owner role 4, one reactor role 4 to 0xA, missing XDictionary, data-storage flag 0 and 51 data bits in each DWG. Both CRC traces report 0x197E matching the computed CRC. ezdxf independently reads frame 1 from both ODA-returned DXFs.",
+    "source_frame": "For each hash-bound source, in-tree adapter capture plus a separate bit walk observes an 11-byte frame with 37 handle-stream bits: type [0,10), self [10,26), empty EED [26,28), reactor count [28,38), XDictionary-missing [38,39), zero data-storage bit [39,40), frame BS [40,50)=0x101, absent string marker [50,51), owner role-4 [51,67), reactor role-4 [67,83), five zero pad bits [83,88). The physical bytes/roles are identical for these two object frames; the enclosing DWG formats remain separately bound and no version-wide equivalence is inferred. In-tree capture is not an independent DWG page decoder.",
+    "whole_source": "The scratch candidate CLI observed 109/109 source frames on AC1027 and 105/105 on AC1032, but both strict full-source exports refused at the existing two HEADER integrity observations. Each preserved the preexisting destination. Generated adapter readback does not establish physical whole-file conversion, source-NOD remapping or WIPEOUT preview/rendering."
+  },
+  "implementation": "Add AC1027 and AC1032 to the direct-NOD frame-1 graph and preflight gates, reusing the existing same-version source/class/owner/uniqueness checks. Their raw observer requires the versioned zero data-storage bit and the source-observed 10-bit BS frame-1 form, and compares it to the typed callback. Frame-1 values on AC1018 remain refused; no alternate BS form or additional owner/reactor pattern is admitted.",
+  "validation": {
+    "scratch_base": "bbfa98901528891e57132e478f88f282e400a9c8",
+    "focused_command": "ctest --test-dir /private/tmp/wipeout-frame1/build-modern -R '^dwg2dxf_wipeoutvariables_(ac102[47]_(frame1|direct_nod)|ac1032_(frame1|direct_nod|nested_refusal)|ac1018_direct_nod|ac1024_nested_refusal)$' --output-on-failure",
+    "result": "9/9 pass, plus the existing AC1027 nested transport selector 1/1. Each new generated version exports strict RequireComplete ASCII and Binary with resolved owners and verifies typed NOD/owner/reactor/root/handle/frame readback. Negative controls cover typed/source mismatch, changed wire value, noncanonical 18-bit BS, storage bit/metadata, owner/reactor wire roles, wrong version, duplicate/aliased/missing roots, cross-version and unsupported display modes, with preserved destination and same-adapter retry. The alternative BS test constructs value 1 in the legal longer form and independently decodes it and the unchanged marker/handle tail before requiring refusal.",
+    "source_audit": "Compile tools/probe_wipeout_ac1027_1032_frame1_source.cpp against the candidate adapter object and libdxfrw.a; invoke tools/audit_wipeout_ac1027_1032_frame1_source.py AC1027|AC1032 <witness.dwg> <probe>. The wrapper checks each exact source SHA before and after capture.",
+    "adapter_test_sha256": "53999a509653188196ddd96a52b9b3799b38c07c6ee47fe53a7fbea77c787c34",
+    "integrated_focused": "Built the adapter test on the integrated candidate and ran the nine frame, direct-NOD and nested-refusal selectors: 9/9 passed."
+  },
+  "tools_sha256": {
+    "tools/probe_wipeout_ac1027_1032_frame1_source.cpp": "3d2341113337f72b59ec6cd763eceafbce8b5e8dca21aef3c4455a8c266c8bad",
+    "tools/audit_wipeout_ac1027_1032_frame1_source.py": "1908470ade963089d508a7a97054004c76f6f81e1a6eb7ddb0c5babd03665d9b"
+  },
+  "remaining": "Physical whole-document conversion and native rendering/preview, additional BS encodings, other revisions, nested owner shapes and broader dependencies remain open."
+}

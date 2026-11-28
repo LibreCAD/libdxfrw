@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "scope": "Source-presence and output-projection investigation for AC1012 DICTIONARY cloning, prompted by the MLINESTYLE conversion gate. No parser or admission behavior changed.",
+  "authority": {
+    "odaSpecification": "Open Design Specification for .dwg files v5.4.1 sections 20.4.44 and 20.4.73: DICTIONARY cloning and hard-owner fields are R2000+, whereas MLINESTYLE has a pre-R2018 linetype index.",
+    "autodeskDictionary": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+    "interpretation": "Autodesk describes group 281 value 0 as not applicable and 1 as keep existing; these are distinct. No authoritative R13-to-modern-DXF default rule was found."
+  },
+  "inputs": {
+    "locallyAuthoredLineDxfSha256": "5231136f75eb726717e94aefef59174408a7850227437d347482eddf56ae92a5",
+    "odaProducedAc1012DwgSha256": "8111ef8c0297b16c0593deb97bc65f125b5b0309dfa0496ddb3dc37a1449edb4",
+    "odaR2010DxfSha256": "a097a877a54532822271908121c6b2f03fb09fac56cf9f50dc941941225824be",
+    "libredwgR2010DxfSha256": "96a8c6bc8e8cfca34ac62a7e8a1913f524b5b75ee72737e3dc6de06bc654b7ac",
+    "independentLocalAc1012Sha256": "b6b8138445fd74c88c394e3f0565037127fcd06baac2853eec4f1b5a5a5d9f19",
+    "independentLocalSourceProvenance": "Local Bowlingova_kuzelka.dwg; original producer unknown; not committed."
+  },
+  "observations": [
+    "ODA File Converter 27.1 produced and reopened the locally authored line drawing as AC1012. On conversion to R2010 DXF it emitted 42 DICTIONARY records, all with group 281=1; the ACAD_MLINESTYLE root was handle 0x10, owned by NOD 0xA, with one soft-owned Standard entry 0x22.",
+    "LibreDWG 0.14 converted the same AC1012 bytes to R2010 DXF with group 281 absent from all 42 DICTIONARY records, including the same root and entry handles; its log reports unstable-class warnings. ezdxf 1.4.5 assigns its own default 1 to an absent cloning attribute. This is an independent reader convention, not proof of AutoCAD semantics.",
+    "A separate locally generated LibreDWG AC1012 control parsed 30/30 frames in libdxfrw. A scratch-only extension of existing source-bound MLINESTYLE admission converted it in strict mode and passed mutation/refusal, retry and ASCII/Binary readback. Its four emitted source dictionaries explicitly use 281=0. ODA rejected this generated DWG before conversion with an AcDbDictionary-to-AcDbEntity cast error, and three related LibreDWG-generated controls were likewise rejected or required recovery. The candidate was reverted and its output is not qualification evidence.",
+    "The independently available Bowlingova_kuzelka AC1012 source is accepted by ODA; its MLINESTYLE fields and NOD\u2192dictionary\u2192style identity agree with libdxfrw, but its original producer is unknown and libdxfrw observes an unrelated object parse failure. Whole partial export also meets a separate LAYOUT/BLOCK_RECORD backlink gate. The raw dictionary key differs in case from the style name and must be preserved rather than normalized silently."
+  ],
+  "tool": {
+    "path": "tools/research/audit_dxf_dictionary_cloning.py",
+    "behavior": "Bounded ASCII-DXF group inventory reports an explicit cloning value or null for absence and the rooted MLINESTYLE entry, without assigning a default. Its built-in controls check group framing, reactor versus owner, absent versus explicit values, duplicate flags and malformed input.",
+    "fixtures": "All drawings and conversions remain in scratch/local locations; no DWG or DXF fixture was committed."
+  },
+  "next": "Establish a source-presence-aware projection for legacy dictionaries, including NOD and nested paths, caller edits, versioned duplicate-merge semantics and exact staged output. Resolve the ODA/LibreDWG/default distinction with an eligible native or independent semantic witness before admitting this profile or claiming lossless output.",
+  "limits": "The successful scratch candidate involved an ODA-rejected generated source and was removed. The separate ODA-readable source proves only bounded MLINESTYLE fields and ownership, not full output or native clone behavior. No support claim or phase gate is promoted."
+}

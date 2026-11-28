@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-pointcloudex-required-reference-output-guard-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P4",
+  "status": "GENERATED_REQUIRED_REFERENCE_REFUSAL_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Low-level DXF admission of the required definition and reactor references on POINTCLOUDEX records.",
+  "sourceEvidence": {
+    "kind": "official Autodesk API contract",
+    "references": [
+      {
+        "title": "AutoCAD 2024 AcDbPointCloudEx API",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PointCloudEx.html",
+        "finding": "A PointCloudEx entity requires a linked AcDbPointCloudDefEx and a linked AcDbPointCloudDefReactorEx."
+      },
+      {
+        "title": "AutoCAD 2027 AcDbPointCloudEx API",
+        "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbPointCloudEx.html",
+        "finding": "Confirms the definition and reactor links are part of the PointCloudEx contract."
+      }
+    ]
+  },
+  "parentCommit": "80742a5251eab9c3159e3734c567a5207fe7c341",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "writePointCloudEx refuses a zero source definition or reactor handle.",
+      "writePointCloudEx refuses when resolver/remap output for either required reference is zero, before staging the entity record.",
+      "The guard applies to direct low-level output and preserves destination bytes on refusal."
+    ]
+  },
+  "validation": {
+    "source": "Locally constructed in-memory POINTCLOUDEX records; no repository DWG/DXF fixtures were added.",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "cases": [
+      "resolver returns zero for the required definition reference",
+      "resolver returns zero for the required reactor reference",
+      "source definition handle is zero",
+      "source reactor handle is zero",
+      "every refusal preserves a preexisting destination sentinel",
+      "corrected references succeed through a fresh writer"
+    ],
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "result": "PASS",
+      "executableSha256": "6d5d90a4494db5622ab390428100b9c78652222c2fa901ec2866e9c5bf7705b6"
+    },
+    "focused": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_pointcloud_reference_remapping$' --output-on-failure",
+      "result": "PASS 1/1; 0.46 seconds"
+    },
+    "diffCheck": "PASS: git diff --check",
+    "filesSha256": {
+      "src/libdxfrw.cpp": "9167806189035940e4f61de6399fcf12ed7011db0fb0e1f9faea575b496387c5",
+      "tests/wave1_tests.cpp": "2f4fc3efbb2372c1d3f5b6e9f3a4db63ac1f15714fa672ec8c1c5a5d74a56e09",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "d11263b7fc892feb899ade344f15caf0705931d55f7dc4b691611bb3a7dc5149"
+    }
+  },
+  "limitations": [
+    "This is generated low-level reference admission evidence; it does not prove either target exists or has the required object kind, ownership, or complete graph closure.",
+    "No physical producer profile, point-cloud asset availability/loading, rendering behavior, or native consumer qualification is established.",
+    "No DWG/DXF fixture was committed and no support claim is promoted."
+  ],
+  "next": "Continue the remaining supported 3D pointer-role audit; retain target-kind, ownership, whole-graph, physical-producer, and consumer qualification gates."
+}

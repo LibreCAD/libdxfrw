@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p6-hatch-elevated-ocs-mixed-scale-cancellation-2026-11-11",
+  "status": "GENERATED_SMALL_COMPONENT_PRESERVED_AFTER_ELEVATION_OVERFLOW",
+  "scope": "HATCH/MPOLYGON boundary-point conversion through the four-term stable OCS transform selected when elevation plus boundary Z overflows.",
+  "finding": {
+    "operation": "transformOcsCoordinateWithZOffsetStable",
+    "priorBehavior": "The four-term transform normalized boundary X/Y/Z and elevation by one common maximum magnitude. This could underflow a small nonzero coordinate before the remaining elevation and boundary terms were rotated and canceled/distributed.",
+    "change": "When common scaling erases any nonzero term, recompute the four bounded basis products at their original exponent scale, combine the largest opposite-sign pair first, and accumulate remaining products and fused multiplication residuals with compensation.",
+    "scopeBoundary": "Only the finite mixed-scale cancellation case is covered. HATCH entity storage, serialization and native meaning are unchanged."
+  },
+  "generatedControl": {
+    "normal": [1.0, 1.0, 0.0],
+    "baseElevation": "0.6 * DBL_MAX",
+    "boundaryPoint": [0.0, 1e-100, "0.6 * DBL_MAX"],
+    "elevationAndBoundaryZScale": "Each Z contribution is 0.6 * DBL_MAX; their direct sum overflows.",
+    "expectedWcsOverDBL_MAX": [0.848528137423857, 0.848528137423857, 0.0],
+    "expectedWcsZ": 1e-100,
+    "purpose": "Verify finite rotated elevation/boundary-Z components and preservation of the tiny orthogonal coordinate that common normalization previously erased."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "focusedCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_hatch_ocs_wcs_coordinate$' --output-on-failure",
+    "focusedResult": "PASS 1/1",
+    "diffCheck": "PASS",
+    "drawingFixturesAdded": 0
+  },
+  "unresolved": [
+    "Correct rounding for every finite four-term OCS input is not established.",
+    "Native CAD rendering and external producer qualification remain open."
+  ],
+  "claimEffect": "Closes only the generated tiny-coordinate loss in the HATCH/MPOLYGON elevated OCS point path. No DWG/DXF support claim is promoted."
+}

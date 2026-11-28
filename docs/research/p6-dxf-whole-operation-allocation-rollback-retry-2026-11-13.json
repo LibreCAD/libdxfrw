@@ -1,0 +1,1038 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-13",
+  "topic": "Whole-operation DXF write allocation rollback and retry",
+  "purpose": "Sweep one-shot allocation failures across public dxfRW::write, including setup, LINE/3DFACE/ARC/ELLIPSE/POINT/3DLINE/SOLID/TRACE/TEXT/MTEXT/RAY/XLINE/LWPOLYLINE/CIRCLE/IMAGE/MESH/SPLINE/HATCH/LEADER/MLINE/classic POLYLINE/INSERT-ATTRIB/ATTDEF compound emission, OBJECTS emission, finalization, generated custom BLOCK/BLOCK_RECORD/INSERT/ATTRIB/SEQEND plus NOD/GROUP, ACAD_IMAGE_DICT/IMAGEDEF, nested named DICTIONARY/XRECORD/DATALINK dependencies, and output publication.",
+  "source": {
+    "kind": "locally-authored-generated-control",
+    "targetVersion": "AC1027",
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "records": [
+      {
+        "kind": "LINE",
+        "sourceHandle": "0xD900"
+      },
+      {
+        "kind": "LWPOLYLINE",
+        "sourceHandle": "0xD918",
+        "closed": true,
+        "vertices": [
+          {
+            "x": 1.0,
+            "y": 1.5,
+            "bulge": 0.0
+          },
+          {
+            "x": 4.0,
+            "y": 5.5,
+            "bulge": 0.5
+          },
+          {
+            "x": 8.0,
+            "y": 9.5,
+            "bulge": 0.0
+          }
+        ]
+      },
+      {
+        "kind": "CIRCLE",
+        "sourceHandle": "0xD902",
+        "center": [
+          -7.0,
+          8.5,
+          9.25
+        ],
+        "radius": 2.75
+      },
+      {
+        "kind": "MESH",
+        "sourceHandle": "0xD919",
+        "vertices": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            2.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            3.0,
+            0.0
+          ]
+        ],
+        "faces": [
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        "edges": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "creases": [
+          0.5
+        ],
+        "propertyOverrides": [
+          {
+            "subEntityMarker": 7,
+            "propertyTypes": [
+              0,
+              2
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "SPLINE",
+        "sourceHandle": "0xD91A",
+        "degree": 1,
+        "controlPoints": [
+          [
+            -1.0,
+            0.0,
+            2.0
+          ],
+          [
+            3.0,
+            4.0,
+            5.0
+          ]
+        ],
+        "knots": [
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ],
+        "weights": []
+      },
+      {
+        "kind": "HATCH",
+        "sourceHandle": "0xD91B",
+        "pattern": "ANSI31",
+        "solid": 0,
+        "patternType": 0,
+        "patternAngleRadians": 0.25,
+        "scale": 1.5,
+        "polylineBoundary": {
+          "closed": true,
+          "vertices": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              2.0,
+              0.0
+            ],
+            [
+              2.0,
+              3.0
+            ],
+            [
+              0.0,
+              3.0
+            ]
+          ]
+        },
+        "patternLines": [
+          {
+            "angleRadians": 0.5,
+            "base": [
+              0.25,
+              -0.5
+            ],
+            "offset": [
+              0.0,
+              1.25
+            ],
+            "dashList": [
+              0.5,
+              -0.25,
+              1.0
+            ]
+          }
+        ],
+        "seedPoints": [
+          [
+            0.5,
+            0.5
+          ]
+        ]
+      },
+      {
+        "kind": "LEADER",
+        "sourceHandle": "0xD91C",
+        "style": "STANDARD",
+        "vertices": [
+          [
+            1.0,
+            2.0,
+            3.0
+          ],
+          [
+            4.0,
+            5.0,
+            6.0
+          ],
+          [
+            7.0,
+            8.0,
+            9.0
+          ]
+        ],
+        "offsetFromBlock": [
+          0.25,
+          0.5,
+          0.75
+        ]
+      },
+      {
+        "kind": "MLINE",
+        "sourceHandle": "0xD91D",
+        "styleHandle": "0xD91E",
+        "styleName": "WHOLE_OPERATION_MLINESTYLE",
+        "vertices": [
+          {
+            "position": [
+              2.0,
+              3.0,
+              0.0
+            ],
+            "vertexDirection": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "miterDirection": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "segmentParameters": [
+              [
+                0.25
+              ]
+            ],
+            "areaFillParameters": [
+              [
+                0.0
+              ]
+            ]
+          },
+          {
+            "position": [
+              7.0,
+              3.0,
+              0.0
+            ],
+            "vertexDirection": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "miterDirection": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "segmentParameters": [
+              [
+                -0.5,
+                0.75
+              ]
+            ],
+            "areaFillParameters": [
+              [
+                0.125
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "MLINESTYLE",
+        "sourceHandle": "0xD91E",
+        "ownerHandle": "0xC",
+        "name": "WHOLE_OPERATION_MLINESTYLE",
+        "elements": [
+          {
+            "offset": 0.5,
+            "color": 256,
+            "linetype": "BYLAYER"
+          }
+        ]
+      },
+      {
+        "kind": "POLYLINE",
+        "sourceHandle": "0xD91F",
+        "flags": 0,
+        "elevation": 2.5,
+        "vertices": [
+          {
+            "sourceHandle": "0xD920",
+            "x": 1.0,
+            "y": 2.0,
+            "bulge": 0.25
+          },
+          {
+            "sourceHandle": "0xD921",
+            "x": 4.0,
+            "y": 6.0,
+            "bulge": 0.0
+          }
+        ],
+        "sequenceEnd": "generated-by-writer"
+      },
+      {
+        "kind": "BLOCK",
+        "sourceHandle": "0xD925",
+        "name": "WHOLE_OPERATION_INSERT_BLOCK",
+        "blockRecord": "generated",
+        "entities": [
+          {
+            "kind": "POINT",
+            "sourceHandle": "0xD923",
+            "position": [
+              6.0,
+              7.0,
+              8.0
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "INSERT",
+        "sourceHandle": "0xD922",
+        "blockName": "WHOLE_OPERATION_INSERT_BLOCK",
+        "position": [
+          10.0,
+          20.0,
+          0.0
+        ],
+        "attributes": [
+          {
+            "kind": "ATTRIB",
+            "sourceHandle": "0xD924",
+            "ownerSourceHandle": "0xD922",
+            "tag": "WHOLE_OPERATION_TAG",
+            "text": "whole operation attribute",
+            "position": [
+              11.0,
+              21.0,
+              0.0
+            ],
+            "height": 2.5
+          },
+          {
+            "kind": "ATTRIB",
+            "sourceHandle": "0xD932",
+            "ownerSourceHandle": "0xD922",
+            "tag": "WHOLE_OPERATION_TAG2",
+            "text": "second whole operation attribute",
+            "position": [
+              12.0,
+              22.0,
+              1.0
+            ],
+            "height": 1.25
+          }
+        ],
+        "sequenceEnd": "generated-by-writer"
+      },
+      {
+        "kind": "XRECORD",
+        "sourceHandle": "0xD901",
+        "payload": "whole operation payload",
+        "ownerSourceHandle": "0xD914"
+      },
+      {
+        "kind": "GROUP",
+        "sourceHandle": "0xD912",
+        "memberSourceHandles": [
+          "0xD900",
+          "0xD902"
+        ],
+        "dictionaryPath": "NOD[ACAD_GROUP] -> GROUP dictionary[WHOLE_OPERATION_ALLOCATION_GROUP] -> GROUP"
+      },
+      {
+        "kind": "IMAGE",
+        "sourceHandle": "0xD903",
+        "imageDefinitionSourceHandle": "0xD913",
+        "insertionPoint": [
+          2.0,
+          3.0,
+          4.0
+        ],
+        "uVector": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "vVector": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "pixelSize": [
+          640.0,
+          480.0
+        ]
+      },
+      {
+        "kind": "IMAGEDEF",
+        "sourceHandle": "0xD913",
+        "name": "whole-operation-image.png",
+        "pixelSize": [
+          640.0,
+          480.0
+        ],
+        "loaded": 1,
+        "resolution": 5
+      },
+      {
+        "kind": "DICTIONARY",
+        "sourceHandle": "0xD914",
+        "name": "WHOLE_OPERATION_CUSTOM",
+        "ownerSourceHandle": "0xD910",
+        "entries": [
+          {
+            "name": "NESTED_XRECORD",
+            "sourceHandle": "0xD901",
+            "role": "soft owner"
+          },
+          {
+            "name": "MAIN_DATALINK",
+            "sourceHandle": "0xD915",
+            "role": "soft owner"
+          },
+          {
+            "name": "TARGET_ALPHA",
+            "sourceHandle": "0xD916",
+            "role": "soft owner"
+          },
+          {
+            "name": "TARGET_BETA",
+            "sourceHandle": "0xD917",
+            "role": "soft owner"
+          }
+        ]
+      },
+      {
+        "kind": "DATALINK",
+        "sourceHandle": "0xD915",
+        "ownerSourceHandle": "0xD914",
+        "dataAdapter": "EXCEL",
+        "description": "whole operation data link",
+        "customDataCount": 2,
+        "customData": [
+          {
+            "targetSourceHandle": "0xD916",
+            "text": "sheet alpha"
+          },
+          {
+            "targetSourceHandle": "0xD917",
+            "text": "sheet beta"
+          }
+        ]
+      },
+      {
+        "kind": "DATALINK",
+        "sourceHandle": "0xD916",
+        "ownerSourceHandle": "0xD914",
+        "dataAdapter": "EXCEL",
+        "description": "alpha target"
+      },
+      {
+        "kind": "DATALINK",
+        "sourceHandle": "0xD917",
+        "ownerSourceHandle": "0xD914",
+        "dataAdapter": "EXCEL",
+        "description": "beta target"
+      },
+      {
+        "kind": "3DFACE",
+        "sourceHandle": "0xD926",
+        "corners": [
+          [
+            0.0,
+            0.0,
+            1.0
+          ],
+          [
+            3.0,
+            0.0,
+            2.0
+          ],
+          [
+            3.0,
+            4.0,
+            3.0
+          ],
+          [
+            0.0,
+            4.0,
+            4.0
+          ]
+        ],
+        "invisibleEdges": [
+          "FirstEdge",
+          "ThirdEdge"
+        ],
+        "geometryProfile": "nonplanar WCS corners"
+      },
+      {
+        "kind": "ARC",
+        "sourceHandle": "0xD927",
+        "center": [
+          -3.0,
+          2.0,
+          5.0
+        ],
+        "radius": 6.5,
+        "startAngleRadians": 0.25,
+        "endAngleRadians": 2.75,
+        "thickness": 1.25
+      },
+      {
+        "kind": "ELLIPSE",
+        "sourceHandle": "0xD928",
+        "center": [
+          7.0,
+          -4.0,
+          2.0
+        ],
+        "majorAxis": [
+          4.0,
+          1.0,
+          0.0
+        ],
+        "minorToMajorRatio": 0.5,
+        "startParameter": 0.2,
+        "endParameter": 2.4,
+        "extrusion": [
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      {
+        "kind": "POINT",
+        "sourceHandle": "0xD929",
+        "position": [
+          -2.0,
+          3.0,
+          4.0
+        ],
+        "xAxisAngle": 0.75
+      },
+      {
+        "kind": "3DLINE",
+        "sourceHandle": "0xD92A",
+        "start": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "end": [
+          4.0,
+          5.0,
+          6.0
+        ]
+      },
+      {
+        "kind": "SOLID",
+        "sourceHandle": "0xD92B",
+        "elevation": 1.5,
+        "corners": [
+          [
+            0.0,
+            0.0,
+            1.5
+          ],
+          [
+            3.0,
+            0.0,
+            1.5
+          ],
+          [
+            3.0,
+            2.0,
+            1.5
+          ],
+          [
+            0.0,
+            2.0,
+            1.5
+          ]
+        ]
+      },
+      {
+        "kind": "TRACE",
+        "sourceHandle": "0xD92C",
+        "elevation": 2.0,
+        "corners": [
+          [
+            0.0,
+            0.0,
+            2.0
+          ],
+          [
+            3.0,
+            0.0,
+            2.0
+          ],
+          [
+            3.0,
+            2.0,
+            2.0
+          ],
+          [
+            0.0,
+            2.0,
+            2.0
+          ]
+        ]
+      },
+      {
+        "kind": "TEXT",
+        "sourceHandle": "0xD92D",
+        "insertionPoint": [
+          12.0,
+          -3.0,
+          1.0
+        ],
+        "text": "whole-operation TEXT",
+        "height": 2.0,
+        "rotationDegrees": 15.0,
+        "widthFactor": 1.2,
+        "style": "STANDARD"
+      },
+      {
+        "kind": "MTEXT",
+        "sourceHandle": "0xD92E",
+        "insertionPoint": [
+          4.0,
+          5.0,
+          6.0
+        ],
+        "text": "whole-operation MTEXT",
+        "height": 1.5,
+        "width": 12.0,
+        "style": "STANDARD",
+        "definedHeight": 2.25,
+        "definedHeightPresent": true,
+        "backgroundFlags": 1,
+        "backgroundScale": 1.35,
+        "backgroundACI": 3,
+        "backgroundTrueColor": "0x123456",
+        "backgroundColorName": "WHOLE_OPERATION_BACKGROUND_COLOR",
+        "backgroundTransparency": "0x02000000"
+      },
+      {
+        "kind": "RAY",
+        "sourceHandle": "0xD92F",
+        "basePoint": [
+          -5.0,
+          7.0,
+          2.0
+        ],
+        "direction": [
+          1.0,
+          2.0,
+          3.0
+        ]
+      },
+      {
+        "kind": "XLINE",
+        "sourceHandle": "0xD930",
+        "basePoint": [
+          8.0,
+          -6.0,
+          4.0
+        ],
+        "direction": [
+          -2.0,
+          1.0,
+          0.5
+        ]
+      },
+      {
+        "kind": "ATTDEF",
+        "sourceHandle": "0xD931",
+        "owningBlockSourceHandle": "0xD925",
+        "tag": "BLOCK_TAG",
+        "prompt": "Enter block value",
+        "defaultText": "Default value",
+        "insertionPoint": [
+          2.0,
+          4.0,
+          0.0
+        ],
+        "height": 1.75,
+        "style": "STANDARD"
+      }
+    ],
+    "fixtureFilesCommitted": false,
+    "generatedObjectGraph": {
+      "namedObjectDictionarySourceHandle": "0xD910",
+      "namedObjectDictionaryOutputHandle": "0xC",
+      "groupDictionarySourceHandle": "0xD911",
+      "groupDictionaryOutputHandle": "0xD",
+      "groupOutputHandle": "remapped and verified through dictionary edge",
+      "memberOutputHandle": "remapped LINE handle verified in GROUP membership",
+      "memberOutputHandles": "Both remapped LINE and CIRCLE handles verified in GROUP membership",
+      "imageDefinitionSourceHandle": "0xD913",
+      "imageDefinitionOutputHandle": "remapped and verified through IMAGE and ACAD_IMAGE_DICT readback",
+      "imageDictionaryPath": "NOD[ACAD_IMAGE_DICT] -> IMAGE dictionary -> IMAGEDEF -> IMAGE reference",
+      "namedDictionarySourceHandle": "0xD914",
+      "namedDictionaryOutputHandle": "remapped and verified through root entry",
+      "nestedXrecordPath": "NOD[WHOLE_OPERATION_CUSTOM] -> named DICTIONARY[NESTED_XRECORD] -> XRECORD",
+      "nestedDictionaryPath": "NOD[WHOLE_OPERATION_CUSTOM] -> named DICTIONARY -> XRECORD and three DATALINK records",
+      "dataLinkSourceHandles": [
+        "0xD915",
+        "0xD916",
+        "0xD917"
+      ],
+      "dataLinkTargetReferences": [
+        "0xD915 -> 0xD916",
+        "0xD915 -> 0xD917"
+      ]
+    }
+  },
+  "implementation": {
+    "productionCodeChanged": true,
+    "test": "tests/dxf_write_allocation_transaction_tests.cpp",
+    "testSha256": "7b8105a3edf4a81d4f7b1d327b025eb617818ebbdd35474e94c866ea878c6d14",
+    "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
+    "ctestName": "libdxfrw_dxf_write_allocation_transaction",
+    "normalExecutableSha256": "5aa1b5de776e437a961694b6338250010182cb821fa3262374305fd396dd869c",
+    "asanExecutableSha256": "3e68db34be81f3d2364c18ee8686fc77b11d321564255f71e1a73843f2a52be2",
+    "productionFiles": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "src/intern/dxfwriter.h",
+      "src/intern/dwg_dxf_output_transaction.cpp"
+    ],
+    "productionBehavior": "EntityRecordScope now latches writer-local staged-record errors into the enclosing dxfRW operation before record abort restores the local writer error bit. DxfWriterRecordScope also converts commit/materialization exceptions into sticky writer failure. This prevents a failed variable-length entity record from being silently omitted while the document publishes. Custom BLOCK and ENDBLK handles are reserved only for the active write, so failed attempts do not shift retry handles. During whole-file writing, INSERT/ATTRIB caller handles are restored when each compound callback returns; emitted identities remain in the codec map. This avoids retaining borrowed callback records. Standalone writeInsert calls retain their existing successful handle-preserving behavior. POSIX temporary registration now uses a no-throw path swap after exclusive creation so allocation failure cannot leave an untracked staging file; abort closes descriptors even when failure occurred before a temporary path was registered.",
+    "productionSourceSha256": {
+      "src/libdxfrw.cpp": "e1ad28425d2ebc283335a2a99714270bb8fad7aae1bd8f8852f93be0e61e166e",
+      "src/intern/dxfwriter.h": "33840e371b58cb68fdacd3cfe89907656c72b15de6e905a4b1726ac54fe04c7e",
+      "tests/dxf_write_allocation_transaction_tests.cpp": "7b8105a3edf4a81d4f7b1d327b025eb617818ebbdd35474e94c866ea878c6d14",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "src/intern/dwg_dxf_output_transaction.cpp": "5c98c2d4a634b6da8706e92fb5948f2f023aebed1f2ea57a67c843a15446a363"
+    },
+    "details": [
+      "Generated elevated TRACE output with four planar corners now participates in the whole-operation sweep; typed readback checks the callback, elevation and all four corners.",
+      "Generated MESH output now participates in the whole-operation sweep, including faces, edges, crease values and property overrides.",
+      "Generated SPLINE output now participates in the whole-operation sweep with a degree-1 control-point/knot profile and exact typed readback.",
+      "Generated patterned HATCH output now participates in the whole-operation sweep with a closed polyline boundary, pattern dash vector and seed point.",
+      "Generated LEADER output with three 3D vertices and a nondefault block offset now participates in the whole-operation allocation sweep.",
+      "Generated custom BLOCK/BLOCK_RECORD output with one owned POINT and a name-resolved INSERT now participates in the whole-operation sweep.",
+      "The INSERT carries two ATTRIB children and synthesized SEQEND. Typed readback verifies the block body, target/name/position, and both attribute owners, tags, text, positions and heights.",
+      "Whole-file write callbacks restore INSERT/ATTRIB caller handles locally, avoiding a borrowed-pointer journal; standalone writeInsert keeps its handle-preserving behavior. The custom BLOCK/ENDBLK identities remain attempt-scoped.",
+      "Generated nonplanar 3DFACE output with four distinct WCS corners and FirstEdge/ThirdEdge invisibility flags now participates in the whole-operation sweep; typed readback verifies all corners and edge flags.",
+      "The 3DFACE caller record remains unchanged on failed and successful whole-file writes; same-codec retry reproduces the clean bytes in ASCII and Binary.",
+      "Generated ARC output with a non-origin 3D center, radius, partial angular span, and nonzero thickness now participates in the whole-operation sweep; typed readback verifies its geometry.",
+      "Generated partial ELLIPSE output with a non-origin center, tilted major axis in the XY plane, minor-to-major ratio, and bounded parameter span now participates in the sweep; its perpendicular extrusion and typed readback are checked.",
+      "ARC and ELLIPSE caller records remain unchanged on failed and successful whole-file writes; same-codec retry reproduces clean ASCII/Binary bytes.",
+      "Generated POINT output with a nonzero 3D position and X-axis angle now participates in the whole-operation sweep; typed readback verifies all values and both failed/successful writes preserve the caller record.",
+      "Generated 3DLINE output with distinct 3D endpoints now participates in the sweep; typed readback verifies the 3DLINE callback and endpoint values.",
+      "Generated planar SOLID output at nonzero elevation now participates in the sweep; typed readback verifies all four corners and elevation.",
+      "The test readback adapter delegates POINT, 3DLINE and SOLID callbacks to dx_iface storage before capturing values, preserving block-body graph reconstruction.",
+      "Generated TEXT output with a non-origin 3D insertion point, simple content, height, rotation, width factor and STANDARD style now participates in the whole-operation sweep; typed readback checks every field.",
+      "Generated MTEXT output with a non-origin insertion point, simple content, box width, height, STANDARD style and explicitly present R2007+ defined height now participates in the whole-operation sweep; typed readback checks these fields.",
+      "Generated RAY and XLINE output with non-origin 3D base points and non-axis-aligned direction vectors now participates in the whole-operation sweep. Typed readback verifies each handle, base point and normalized direction; whole-file failure and success checks preserve the caller’s original direction vectors.",
+      "The generated custom BLOCK now contains both its POINT and an ATTDEF. Whole-operation failure/success checks preserve both source records; typed readback verifies the ATTDEF remains owned by the emitted block with its tag, prompt, default text, insertion point, height and style.",
+      "The generated named BLOCK INSERT now contains two ATTRIB children with distinct handles, tags, text, positions and heights. Every injected failure preserves both child records and retry/readback checks both attributes plus the synthesized SEQEND.",
+      "An ASCII publication-race control creates a destination directory and marker after staged output is finalized but before commit; commit refuses with BAD_OPEN without replacing the concurrent destination, then corrected same-codec retry succeeds with typed readback.",
+      "The allocation sweep checks that each failed whole-file write and corrected retry leaves no target-prefixed staging file. A fresh pre-fix run had left two zero-byte staging files; the production fix makes ownership registration non-throwing and closes setup descriptors on all abort paths. Test startup removes only stale files with this control’s generated target prefixes.",
+      "The generated MTEXT profile now includes background-fill flags, box scale, ACI, true color, named color, and transparency. Whole-operation allocation failure preserves the caller record; same-codec retry reproduces clean bytes and typed readback checks all background fields."
+    ],
+    "currentTestOnlyExtension": "Added MTEXT background-fill groups with ACI, true color, color name, and transparency to the generated whole-file rollback/retry profile; no production source changed in this extension."
+  },
+  "procedure": {
+    "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j 4",
+    "validation": "cmake --build build-gcc --target libdxfrw_writer_primitives_tests libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-gcc -R ^(libdxfrw_writer_primitives|libdxfrw_dxf_write_allocation_transaction)$ --output-on-failure; cmake --build build-asan-custom --target libdxfrw_writer_primitives_tests libdxfrw_dxf_write_allocation_transaction_tests -j 4; ctest --test-dir build-asan-custom -R ^(libdxfrw_writer_primitives|libdxfrw_dxf_write_allocation_transaction)$ --output-on-failure",
+    "allocationScope": "Global operator-new fault injection is armed only during dxfRW::write. One-time writer/codec setup allocations are warmed before calibrating each encoding. Each failure is one-shot so diagnostic handling and same-codec retry run normally. The operation test also asserts that no staging pathname remains after each injected refusal or same-codec retry.",
+    "asanConfiguration": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer' -DCMAKE_BUILD_TYPE=Debug",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
+    "asanValidation": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure"
+  },
+  "result": {
+    "testExitCode": 0,
+    "ctest": "Normal writer-primitives and whole-write selectors: 2/2 passed in 2.60 seconds; ASan: 2/2 passed in 17.79 seconds.",
+    "ascii": {
+      "measuredAllocationOffsets": 1184,
+      "allOffsetsFailedAsExpected": true,
+      "destinationPreserved": true,
+      "callerLineAndRawObjectPreserved": true,
+      "sameCodecRetryMatchedCleanBytes": true,
+      "typedLineAndRawObjectReadbackMatched": true,
+      "derivedIdentityMappingsRolledBack": true,
+      "generatedNodGroupGraphReadbackMatched": true,
+      "circleReadbackMatched": true,
+      "groupLineAndCircleMembershipMatched": true,
+      "imageReadbackMatched": true,
+      "imageDefinitionAndNodDictionaryGraphMatched": true,
+      "typedImageAndImageDefinitionReadbackMatched": true,
+      "groupImageAndNamedDictionaryGraphReadbackMatched": true,
+      "nestedNamedDictionaryXrecordAndDataLinkGraphReadbackMatched": true,
+      "dataLinkCustomTargetsAndDictionaryEntriesMatched": true,
+      "callerDataLinkRecordsPreserved": true,
+      "variableLengthLwPolylineReadbackMatched": true,
+      "lWPolylineAllocationFailureAbortsWholeWrite": true,
+      "callerLwPolylinePreserved": true,
+      "meshReadbackMatched": true,
+      "meshAllocationFailureAbortsWholeWrite": true,
+      "callerMeshPreserved": true,
+      "splineReadbackMatched": true,
+      "splineAllocationFailureAbortsWholeWrite": true,
+      "callerSplinePreserved": true,
+      "hatchReadbackMatched": true,
+      "hatchAllocationFailureAbortsWholeWrite": true,
+      "callerHatchPreserved": true,
+      "leaderReadbackMatched": true,
+      "leaderAllocationFailureAbortsWholeWrite": true,
+      "callerLeaderPreserved": true,
+      "mlineReadbackMatched": true,
+      "mlineStyleAndReferenceReadbackMatched": true,
+      "mlineAllocationFailureAbortsWholeWrite": true,
+      "callerMLineAndStylePreserved": true,
+      "destinationAndDerivedIdentitiesRolledBack": true,
+      "polylineParentAndVertexReadbackMatched": true,
+      "polylineAllocationFailureAbortsWholeWrite": true,
+      "callerPolylineParentAndVertexHandlesPreserved": true,
+      "insertAttributeReadbackMatched": true,
+      "generatedBlockAndBodyReadbackMatched": true,
+      "insertAttribWholeOperationHandleRollback": true,
+      "blockStructuralHandleRetryIdentityStable": true,
+      "callerInsertAttribAndBlockRecordsPreserved": true,
+      "wholeWriteCallerHandlesUnchangedOnSuccess": true,
+      "threeDFaceReadbackMatched": true,
+      "threeDFaceAllocationFailureAbortsWholeWrite": true,
+      "callerThreeDFacePreserved": true,
+      "arcReadbackMatched": true,
+      "arcAllocationFailureAbortsWholeWrite": true,
+      "callerArcPreserved": true,
+      "ellipseReadbackMatched": true,
+      "ellipseAllocationFailureAbortsWholeWrite": true,
+      "callerEllipsePreserved": true,
+      "pointReadbackMatched": true,
+      "pointAllocationFailureAbortsWholeWrite": true,
+      "callerPointPreserved": true,
+      "3DLineReadbackMatched": true,
+      "3DLineAllocationFailureAbortsWholeWrite": true,
+      "caller3DLinePreserved": true,
+      "solidReadbackMatched": true,
+      "solidAllocationFailureAbortsWholeWrite": true,
+      "callerSolidPreserved": true,
+      "traceReadbackMatched": true,
+      "traceAllocationFailureAbortsWholeWrite": true,
+      "callerTracePreserved": true,
+      "textReadbackMatched": true,
+      "textAllocationFailureAbortsWholeWrite": true,
+      "callerTextPreserved": true,
+      "mtextReadbackMatched": true,
+      "mtextAllocationFailureAbortsWholeWrite": true,
+      "callerMTextPreserved": true,
+      "rayReadbackMatched": true,
+      "rayAllocationFailureAbortsWholeWrite": true,
+      "callerRayPreserved": true,
+      "xlineReadbackMatched": true,
+      "xlineAllocationFailureAbortsWholeWrite": true,
+      "callerXlinePreserved": true,
+      "attdefBlockReadbackMatched": true,
+      "attdefAllocationFailureAbortsWholeWrite": true,
+      "callerBlockAndAttdefPreserved": true,
+      "insertMultipleAttribReadbackMatched": true,
+      "twoAttribAllocationFailureAbortsWholeWrite": true,
+      "callerInsertAndBothAttribsPreserved": true,
+      "stagedOutputsRemovedOnEveryFailureAndRetry": true
+    },
+    "binary": {
+      "measuredAllocationOffsets": 1160,
+      "allOffsetsFailedAsExpected": true,
+      "destinationPreserved": true,
+      "callerLineAndRawObjectPreserved": true,
+      "sameCodecRetryMatchedCleanBytes": true,
+      "typedLineAndRawObjectReadbackMatched": true,
+      "derivedIdentityMappingsRolledBack": true,
+      "generatedNodGroupGraphReadbackMatched": true,
+      "circleReadbackMatched": true,
+      "groupLineAndCircleMembershipMatched": true,
+      "imageReadbackMatched": true,
+      "imageDefinitionAndNodDictionaryGraphMatched": true,
+      "typedImageAndImageDefinitionReadbackMatched": true,
+      "groupImageAndNamedDictionaryGraphReadbackMatched": true,
+      "nestedNamedDictionaryXrecordAndDataLinkGraphReadbackMatched": true,
+      "dataLinkCustomTargetsAndDictionaryEntriesMatched": true,
+      "callerDataLinkRecordsPreserved": true,
+      "variableLengthLwPolylineReadbackMatched": true,
+      "lWPolylineAllocationFailureAbortsWholeWrite": true,
+      "callerLwPolylinePreserved": true,
+      "meshReadbackMatched": true,
+      "meshAllocationFailureAbortsWholeWrite": true,
+      "callerMeshPreserved": true,
+      "splineReadbackMatched": true,
+      "splineAllocationFailureAbortsWholeWrite": true,
+      "callerSplinePreserved": true,
+      "hatchReadbackMatched": true,
+      "hatchAllocationFailureAbortsWholeWrite": true,
+      "callerHatchPreserved": true,
+      "leaderReadbackMatched": true,
+      "leaderAllocationFailureAbortsWholeWrite": true,
+      "callerLeaderPreserved": true,
+      "mlineReadbackMatched": true,
+      "mlineStyleAndReferenceReadbackMatched": true,
+      "mlineAllocationFailureAbortsWholeWrite": true,
+      "callerMLineAndStylePreserved": true,
+      "destinationAndDerivedIdentitiesRolledBack": true,
+      "polylineParentAndVertexReadbackMatched": true,
+      "polylineAllocationFailureAbortsWholeWrite": true,
+      "callerPolylineParentAndVertexHandlesPreserved": true,
+      "insertAttributeReadbackMatched": true,
+      "generatedBlockAndBodyReadbackMatched": true,
+      "insertAttribWholeOperationHandleRollback": true,
+      "blockStructuralHandleRetryIdentityStable": true,
+      "callerInsertAttribAndBlockRecordsPreserved": true,
+      "wholeWriteCallerHandlesUnchangedOnSuccess": true,
+      "threeDFaceReadbackMatched": true,
+      "threeDFaceAllocationFailureAbortsWholeWrite": true,
+      "callerThreeDFacePreserved": true,
+      "arcReadbackMatched": true,
+      "arcAllocationFailureAbortsWholeWrite": true,
+      "callerArcPreserved": true,
+      "ellipseReadbackMatched": true,
+      "ellipseAllocationFailureAbortsWholeWrite": true,
+      "callerEllipsePreserved": true,
+      "pointReadbackMatched": true,
+      "pointAllocationFailureAbortsWholeWrite": true,
+      "callerPointPreserved": true,
+      "3DLineReadbackMatched": true,
+      "3DLineAllocationFailureAbortsWholeWrite": true,
+      "caller3DLinePreserved": true,
+      "solidReadbackMatched": true,
+      "solidAllocationFailureAbortsWholeWrite": true,
+      "callerSolidPreserved": true,
+      "traceReadbackMatched": true,
+      "traceAllocationFailureAbortsWholeWrite": true,
+      "callerTracePreserved": true,
+      "textReadbackMatched": true,
+      "textAllocationFailureAbortsWholeWrite": true,
+      "callerTextPreserved": true,
+      "mtextReadbackMatched": true,
+      "mtextAllocationFailureAbortsWholeWrite": true,
+      "callerMTextPreserved": true,
+      "rayReadbackMatched": true,
+      "rayAllocationFailureAbortsWholeWrite": true,
+      "callerRayPreserved": true,
+      "xlineReadbackMatched": true,
+      "xlineAllocationFailureAbortsWholeWrite": true,
+      "callerXlinePreserved": true,
+      "attdefBlockReadbackMatched": true,
+      "attdefAllocationFailureAbortsWholeWrite": true,
+      "callerBlockAndAttdefPreserved": true,
+      "insertMultipleAttribReadbackMatched": true,
+      "twoAttribAllocationFailureAbortsWholeWrite": true,
+      "callerInsertAndBothAttribsPreserved": true,
+      "stagedOutputsRemovedOnEveryFailureAndRetry": true
+    },
+    "addressSanitizerCtest": "Writer-primitives and whole-write selectors: 2/2 passed in 17.79 seconds.",
+    "failureFoundAndFixed": {
+      "asciiOffset": 115,
+      "symptom": "Injected allocation failure set the staged writer error, but record-scope cleanup restored its prior clear bit; the whole DXF write returned success with the LWPOLYLINE omitted.",
+      "fix": "When EntityRecordScope sees a writer-local failure, it now sets dxfRW::m_writeError before DxfWriterRecordScope cleanup restores the writer’s prior local error bit. The record-scope commit path also latches exceptions during byte materialization or inspection.",
+      "regression": "The new whole-operation allocation sweep reaches this case and requires atomic refusal, unchanged destination/caller state, successful same-codec retry, and complete readback."
+    },
+    "currentRun": {
+      "normalDirectRun": "ASCII 1184 allocation offsets; Binary 1160; every injected whole-file failure preserves destination, caller records and staging directory, then same-codec retry matches clean bytes and typed readback, including MTEXT background-fill fields.",
+      "normalCtest": "ctest --test-dir build-gcc -R ^libdxfrw_dxf_write_allocation_transaction$ --output-on-failure: PASS 1/1 in 9.17 seconds.",
+      "asanCtest": "Writer-primitives and whole-write selectors: 2/2 passed in 17.79 seconds.",
+      "threeDFaceReadback": "Generated nonplanar 3DFACE corners and FirstEdge/ThirdEdge invisibility flags match in ASCII/Binary readback.",
+      "arcReadback": "Generated ARC center, radius, angular span, and thickness match typed readback; angular comparisons allow 1e-12 radians for degree conversion.",
+      "ellipseReadback": "Generated partial ELLIPSE center, major axis, ratio, parameter range, and perpendicular extrusion match typed readback.",
+      "pointReadback": "Generated POINT position and X-axis angle match typed readback. The callback delegates to dx_iface so existing BLOCK point storage remains intact.",
+      "3dLineReadback": "Generated 3DLINE callback and both 3D endpoints match typed readback.",
+      "solidReadback": "Generated SOLID elevation and all four corners match typed readback.",
+      "traceReadback": "Generated elevated TRACE callback, elevation and all four corners match typed readback.",
+      "textReadback": "Generated TEXT insertion point, content, height, rotation, width factor and style match typed readback. The adapter delegates to dx_iface to retain normal text storage.",
+      "mtextReadback": "Generated MTEXT insertion point, content, height, box width, style and explicitly present defined height match typed readback. The adapter delegates to dx_iface to retain normal text storage.",
+      "rayXlineReadback": "Generated RAY/XLINE handles, base points, and unit-normalized direction vectors match typed readback; the source caller records retain the original vector magnitudes.",
+      "attdefReadback": "Generated BLOCK body contains POINT plus ATTDEF. Typed readback checks ATTDEF owner block, tag, prompt, default text, insertion point, height and style.",
+      "insertReadback": "A generated named BLOCK contains a POINT and ATTDEF; a name-resolved INSERT has two ATTRIB children and generated SEQEND. ASCII/Binary readback checks target, each attribute owner/tag/text/position/height, and block body records.",
+      "allocatorRetryDefect": "Injected failure at offset 43 left the next retry with shifted minted handles because BLOCK/ENDBLK reservations persisted. Replacing reserve() with reserveForWrite() restores byte-identical retry.",
+      "callerHandleRollbackDefect": "Injected failure at offset 255 exposed INSERT/ATTRIB handles before later failure. Full-file write callbacks now restore caller handles before returning, while codec identity mappings preserve output references. Standalone writeInsert keeps existing handle mutation semantics.",
+      "publicationRace": "ASCII finalization hook creates a destination directory with marker data after staged writes; final publication refuses with BAD_OPEN, preserves marker and source records, then the same codec succeeds after clearing the destination and typed readback matches.",
+      "stagingCleanup": "A pre-fix direct run left two zero-byte target-prefixed staging files after one-shot allocation failures. After changing POSIX temporary registration to no-throw swap and making abort close descriptors without a registered path, the fresh ASCII/Binary sweep leaves no staging files on any failure or retry.",
+      "currentAsanStatus": "Not rerun for this test-only MTEXT background profile extension; the prior ASan result predates the current test-source hash."
+    },
+    "additionalFailuresFoundAndFixed": [
+      {
+        "asciiOffset": 43,
+        "symptom": "Failed custom BLOCK output left its derived BLOCK and ENDBLK handles in the persistent explicit-reservation set; same-codec retry shifted a later VPORT handle and differed from clean output.",
+        "fix": "Reserve generated BLOCK/ENDBLK handles with reserveForWrite(), which scopes them to the current attempt.",
+        "regression": "All offsets now require same-codec retry bytes to match the clean output exactly."
+      },
+      {
+        "asciiOffset": 255,
+        "symptom": "An INSERT with an ATTRIB completed and exposed minted caller handles, then a later allocation failure aborted the full drawing but left those new handles in caller records.",
+        "fix": "For whole-file writes, restore INSERT and ATTRIB caller handles at the end of the compound callback; rely on the codec identity ledger for later references. This avoids storing borrowed entity pointers beyond callback lifetime. Standalone writeInsert calls retain prior behavior.",
+        "regression": "All offsets check original INSERT/ATTRIB and block caller state; successful calibration also confirms caller records remain unchanged. Same-codec retry reproduces exact bytes and typed readback verifies the graph."
+      },
+      {
+        "failure": "A one-shot allocation failure after POSIX O_EXCL creation but before m_temporary path registration left a zero-byte staging file; abort also skipped closing the containing-directory descriptor when the path was empty.",
+        "fix": "Register the already-created candidate with std::filesystem::path::swap (no-throw) before returning from createExclusiveTemporary, and close owned descriptors unconditionally at abort completion.",
+        "regression": "The whole-file allocation sweep checks no target-prefixed temporary exists after every failure and corrected retry in ASCII and Binary; stale test scratch artifacts with those exact prefixes are cleared at startup."
+      }
+    ],
+    "publicationRace": {
+      "encoding": "ASCII",
+      "destinationCreatedDuringFinalization": true,
+      "allEntityAndObjectCallbacksReached": true,
+      "commitRejectedWith": "BAD_OPEN",
+      "concurrentDestinationMarkerPreserved": true,
+      "callerRecordsUnchanged": true,
+      "sameCodecRetryAfterClearingDestination": true,
+      "retryTypedReadbackMatched": true,
+      "scope": "Generated local filesystem publication-race transaction control; not native-format semantic or cross-platform filesystem qualification.",
+      "stagingFileRemovedOnFailure": true
+    },
+    "mtextReadback": "Generated MTEXT insertion point, content, height, box width, style, explicitly present defined height, and background flags/scale/ACI/true-color/name/transparency match typed readback."
+  },
+  "limits": [
+    "This generated transaction control exercises LINE, nonplanar 3DFACE with selected invisible edges, partial ARC, partial ELLIPSE, POINT, 3DLINE, planar SOLID, elevated TRACE, TEXT, MTEXT, RAY and XLINE, variable-length LWPOLYLINE, CIRCLE, IMAGE, MESH vertices/faces/edges/creases/property overrides, degree-1 SPLINE control points/knots, patterned HATCH boundary/pattern/seed data, three-point LEADER and block offset, MLINE with a referenced MLINESTYLE and nested per-vertex segment/area-fill parameters, classic POLYLINE with two owned VERTEX records and SEQEND, custom BLOCK/BLOCK_RECORD containing POINT and ATTDEF, name-resolved INSERT with two ATTRIB/SEQEND, IMAGEDEF, raw XRECORD, three DATALINK records with two custom target references, and rooted NOD/GROUP, ACAD_IMAGE_DICT, and named-DICTIONARY graphs; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
+    "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
+    "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding.",
+    "The publication-race control exercises one ASCII generated destination-directory replacement race on this macOS host; it does not establish behavior for every filesystem or platform.",
+    "The injected temporary-path allocation failure and staging cleanup control ran on macOS POSIX. Windows uses a separate temporary-create implementation; its behavior is not qualified by this run."
+  ],
+  "baseRevision": "547965fa",
+  "planImpact": {
+    "completedSlice": "The generated whole-file ASCII/Binary allocation sweep now exercises variable MTEXT background-fill output (including group 431 color-name serialization), caller-state rollback, same-codec retry, and typed readback.",
+    "remainingP6G": "Continue the public-writer inventory and caller-state audit for uncovered direct routes, compound variants, and variable-size OBJECTS builders.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "266 completed slices and 35 remaining packages: 266/(266+35)=88.4%; count-based, not effort-weighted."
+  }
+}

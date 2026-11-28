@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-04",
+  "scope": "Investigate the first fatal LAYER boundary in the generated opt-in default-plotstyle AC1024 drawing. The experiments do not establish complete LAYER decoding, material semantics, or AC1024 interoperability.",
+  "authority": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 section 20.4.54 describes the LAYER material handle from R2007 onward. The source graph below supplies the observed ownership and class evidence, not the spec alone.",
+    "independent_decoder": "LibreDWG 0.14 dwgread; source dwg.spec LAYER and dwg2.spec MATERIAL. Decoder results show interpreted values and handle roles, not independent acceptance of the generated file by ODA."
+  },
+  "producer_control": {
+    "description": "ODA File Converter 27.1.0 resaved the locally authored LINE source AC1021 DWG as AC1024 DWG; LibreDWG independently decoded it. The input AC1021 is itself ODA generated from local DXF, as recorded in p6-default-plotstyle-graph-research-2026-11-04.json.",
+    "input_ac1021_sha256": "e3b717509c386e07baceb9cc9073392999af9144c6c2aae4139120b755b59d91",
+    "output_ac1024_sha256": "9b57612966203a9284d8ad722986e95d331669506282b4bf7f688a492aa3",
+    "source_command": "ODAFileConverter <AC1021-input-dir> <AC1024-output-dir> ACAD2010 DWG 0 0 '*.dwg'",
+    "decoded_graph": {
+      "nod_handle": "0xA",
+      "nod_to_acad_material": "soft owner 0xE",
+      "material_dictionary": "owner 0xA; soft owner entries ByBlock=0x1F, ByLayer=0x20, Global=0x21",
+      "global_material": "AcDbMaterial class 503; handle 0x21; soft owner 0xE and reactor reference 0xE; name Global",
+      "layer_0_material": "hard pointer 0x21",
+      "material_class": "DXF MATERIAL, C++ AcDbMaterial, application ObjectDBX Classes, proxy flags 1153, three instances; class number is file-local"
+    },
+    "layer_0_other_fields": "name 0; missing xdictionary flag 1; xref hard-pointer null; flags 0x3f0; CMC index 256 rgb 0xc3000007; plotstyle and linetype nonzero hard pointers. All these fields match the local writer semantically except distinct file-local reference identities."
+  },
+  "controls": {
+    "method": "Created an isolated git archive of production writer 5a2ba92e (plus documentation-only successor f34cb683), built its opt-in test, and changed only the test-copy code. TU-terminator change affects all nonempty TU writes in the copy, not just LAYER; material change forces typed hard-pointer null only for null layer material values. Four generated AC1024 files were submitted to ODA File Converter 27.1.0 for DXF conversion. No candidate or generated DWG is committed.",
+    "conversion_command": "ODAFileConverter <input-dir> <output-dir> ACAD2013 DXF 0 0 '*.dwg'",
+    "converter_binary_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "matrix": [
+      {"tu_terminated": true, "material_wire": "00 untyped null", "sha256": "6a9d9b87fc494201fb72db0c35bba9a001757ae0d51c708ba49669b2fac03b7d", "oda": "No DXF; multiple earlier object warnings; fatal AcDbLayerTableRecord 0x12."},
+      {"tu_terminated": true, "material_wire": "50 hard-pointer null", "sha256": "75f07f770430d3a3cd690ee0b1b12cd2982d1ab3ff5e12865287064300e4775e", "oda": "No DXF; LAYER warning; fatal AcDbViewportTableRecord 0x16; earlier object warnings remain."},
+      {"tu_terminated": false, "material_wire": "00 untyped null", "sha256": "fbb6014084f4f7c8a1391a9de3655d62156a743634bccae249c8ddde2ef98908", "oda": "No DXF; multiple earlier object warnings; fatal AcDbLayerTableRecord 0x12."},
+      {"tu_terminated": false, "material_wire": "50 hard-pointer null", "sha256": "f140d6ec62cb590c8dc6d35797d3c003bcddd0d6ee1560be3697fe1858633620", "oda": "No DXF; LAYER warning; fatal AcDbViewportTableRecord 0x16; earlier object warnings remain."}
+    ],
+    "field_check": "LibreDWG decoded original LAYER material as (0,0,0) and typed-null candidate as (5,0,0), keeping other decoded LAYER fields unchanged. Source Global is a nonzero pointer, not a typed null.",
+    "interpretation": "Changing material-null role moves the first fatal boundary under both string variants but does not eliminate the LAYER warning or establish a valid material graph. The TU experiment does not isolate layer-only strings and establishes no global TU encoding rule. ODA process exit status alone is not evidence of success; inspect output and error files."
+  },
+  "remaining_work": [
+    "Characterize independently produced AC1021, AC1024, AC1027 and AC1032 material graphs and physical object field spans, including the exact complete Global payload, per-version class metadata, reactors, names, ownership and dictionary roles. Search for authentic typed-null LAYER material before interpreting such a value as supported.",
+    "Design an explicit early graph admission before class freeze, preserving legacy defaults and caller-provided material/NOD objects. Reserve identities transactionally; reject collisions, conflicting late registrations and malformed ownership without data loss; bind only synthesized or explicitly selected layers.",
+    "Implement only source-backed MATERIAL defaults and complete NOD to dictionary to material ownership/reactor and LAYER pointer graph, or fail closed. Verify all three observed defaults rather than assuming Global alone suffices; respect source/caller overrides, class counts, rollback and same-facade retry.",
+    "Compare physical field and handle spans with independent readers and source records; require ODA DXF output plus semantic readback and no recovery warnings. Diagnose preceding BLOCK, control, DICTIONARY, STYLE and VPORT warnings independently; the moved fatal boundary is not success."
+  ],
+  "changes": "Research only; no production change or support claim."
+}

@@ -1,0 +1,32 @@
+{
+  "id": "p5-ac1018-table-extension-dictionary-one-sided-binding-2026-11-11",
+  "scope": "Opt-in reader-origin CRC-bound fixed DICTIONARY + previously selected root/three custom candidates/nine XRECORD children. One-sided dictionary evidence, not output authority or complete TABLE graph.",
+  "format_evidence": "ODA v5.4.1 \u00a720.4.44 says dictionary itemhandle is soft-owner H code 2; the hardOwner policy byte 1 is distinct. The parent reference in the observed profile is code 4. Byte-for-byte walk and separately retained LibreDWG observation agree.",
+  "physical_source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "source_sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "dictionary_body_sha256": "1051497049c7cc9b335b0dd2b9a76b4b3300c07c678fed7fee69996047763dab",
+    "probe": "tools/research/p5_ac1018_table_dictionary_binding_probe.cpp",
+    "result": "PASS: same import DICTIONARY 0xbb, raw body/data end 253 bits, code-4 owner to numeric 0x9c at 253..269, single ACAD_XREC_ROUNDTRIP entry code-2 target 0xbc at 269..285; root owner/reactor both dictionary. The physical whole read retains one unrelated HEADER integrity observation."
+  },
+  "generated_control": {
+    "command": "cmake --build build --target libdxfrw_dwg_table_candidate_binding_tests -j 3 && ctest --test-dir build -R ^libdxfrw_dwg_table_candidate_binding$ --output-on-failure",
+    "result": "PASS 1/1",
+    "construction": "Locally generated AC1018 file, with root and children hand-constructed from scratch and a locally generated DICTIONARY adjusted to the observed name framing before recalculating frame CRC and page checksums. No test DWG/DXF added.",
+    "coverage": [
+      "Prior nine-child source API remains available and accepts CRC-valid wrong dictionary parent/entry-target controls; the stricter dictionary selection refuses both.",
+      "Source role code 2 with hardOwner policy 1 passes; CRC-valid wrong parent/entry roles, owner/target/key/policy mutations refuse and retry.",
+      "Typed dictionary spoof, live typed/raw mutation, changed publication ordinal, duplicate typed dictionary, source bundle transplant and selection alias refusal.",
+      "Three sealing allocation faults sampled, same and cross adapter reentry, strict output sentinel preserved, selected dictionary frame CRC failure with valid page checksums and untruncated target-frame diagnostics, and successful same-adapter retries.",
+      "Standalone observer tested all truncations, malformed name length, reserved count, >32-bit handle claim, duplicate owner/target and padding, with all 2 observed observer allocations faulted and retried.",
+      "Last of 2838 end-to-end query allocations faulted and retried; not an exhaustive query allocation sweep. Existing aggregate quota controls remain passing."
+    ]
+  },
+  "probe_build": "c++ -std=c++17 -Wall -Wextra -Werror -I src -I dwg2dxf tools/research/p5_ac1018_table_dictionary_binding_probe.cpp build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build/libdxfrw.a -o /private/tmp/p5_ac1018_table_dictionary_binding_probe",
+  "probe_run": "/private/tmp/p5_ac1018_table_dictionary_binding_probe /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+  "limitations": [
+    "The supplied selected TABLE handle is only a numeric owner target: this proof does not authenticate that the target exists, is a TABLE, or has a reciprocal H code-3 extension-dictionary link.",
+    "TABLESTYLE/resources, whole source graph closure, codepage semantics, independent native interoperability and populated output transaction remain open.",
+    "The selected physical source has an unrelated HEADER integrity observation. One physical source and a locally generated control do not establish general version/producer coverage."
+  ]
+}

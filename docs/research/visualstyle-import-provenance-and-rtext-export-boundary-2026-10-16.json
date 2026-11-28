@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "title": "VISUALSTYLE import provenance and RTEXT export boundary",
+  "date": "2026-10-16",
+  "baseline": {
+    "head": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+    "worktree": "dirty; observations bind the source hashes below and are not a clean-HEAD or commit receipt"
+  },
+  "sourceHashes": {
+    "tests/fixtures/dwg/rtext_arctext.dwg": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+    "dwg2dxf/dx_iface.cpp": "076d7b973479b6f254d6b943fbdc363446f9ab36e5a17cd78dd8dad947b371a8",
+    "dwg2dxf/dx_iface.h": "c4f6446fa9c6dbebf03d14418cd7907730d221f03e258d01136ac4920d277481",
+    "dwg2dxf/dx_data.h": "45ea13bfbcbb7d928751bf276906417264ed473a904bc61372226d53f27ef78d",
+    "tests/dwg2dxf_adapter_tests.cpp": "d0bf29f83ad763f650a8a5ae8705a5e894cafb4d53369682da60fde3b4cc8901",
+    "tests/run_freecad_dwg2dxf_compat_test.cmake": "e5dfc0a4a76ca395bff586ced1fdedcef9ad7f45e35287faf8e6aa2eb0fab5de",
+    "build/dwg2dxf/dwg2dxf": "4572236f25a5414a7adf6dce27c098015d955430667da39fc7cdd86cc8694e8b",
+    "build/tests/libdxfrw_dwg2dxf_adapter_tests": "e3f6e90dc83836555b90f0c394cbe6671589deeb84b1ecdb51f9e58813abdc0c"
+  },
+  "reproduction": {
+    "provenanceTests": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_visual_style_import_evidence|libdxfrw_named_resource_import_evidence)$' --output-on-failure",
+      "result": "passed 2/2 in 0.32 seconds after rebuilding dwg2dxf and the adapter test target",
+      "coverage": [
+        "ASCII and binary DXF import provenance",
+        "authored and unknown provenance refusal",
+        "reused/mixed import generations and corrected retry",
+        "failed import and missing raw companion",
+        "DWG-origin versus DXF-carrier mismatch refusal",
+        "tracked AC1032 typed-only 58-operation/8-CMC source-profile completeness and partial-metadata refusal"
+      ]
+    },
+    "freecadFormCli": {
+      "command": "ctest --test-dir build -R '^dwg2dxf_freecad_cli_compat$' --output-on-failure",
+      "result": "failed at export preflight; no successful DXF was published",
+      "dwgRead": {
+        "sourceVersion": "AC1032",
+        "operationSucceeded": true,
+        "legacyError": 0,
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "classesCrcMismatchCount": 1
+      },
+      "actualFailure": "Extension graph diagnostic: invalid-graph; detail=VISUALSTYLE carrier coverage",
+      "explanation": "DWG import supplies typed VISUALSTYLE records, not raw DXF tag carriers. The current rooted replay gate requires one source-identity/owner-matched raw carrier for every typed style, so export refuses until the separately qualified typed serializer and graph emitter exist.",
+      "traceSha256": "43bcd2e6178d76c6b7a68eebffd668386635ea3cfdcfe2e11c18b593457b17b3",
+      "ctestLogSha256": "6b2ebb7c4dd5e6e5ff9d1979f02a944c17c18050f7bb552114c85c4fef6e897b",
+      "crcWarning": {
+        "section": "AcDb:Classes",
+        "stored": 420,
+        "calculated": 61198,
+        "role": "warn-only observation; not the conversion failure"
+      }
+    }
+  },
+  "specificationReview": {
+    "source": "local ODA Open Design Specification for .dwg files v5.4.1, section 5.8 AcDb:Classes and class-string footer material",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "result": "No DWG parser change was warranted by this export failure. The reader completed; the failure is a downstream typed-to-DXF carrier/graph admission gap."
+  },
+  "scope": {
+    "visualStyleProvenance": "local implementation-complete at this checkpoint",
+    "visualStyleTypedDxfSerializer": "not implemented/admitted; group-176 and CMC mapping review remains open",
+    "nativeQualification": "not run",
+    "supportClaimsPromoted": false,
+    "externalJItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "fixturesAdded": false,
+    "dependenciesAdded": false,
+    "fullSuiteRun": false
+  }
+}

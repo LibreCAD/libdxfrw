@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-local-compat-and-generated-3d-probe-2026-11-02",
+  "date": "2026-11-02",
+  "status": "LOCAL_API_COMPAT_AND_GENERATED_3D_PROBE_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Recheck the LibreCAD_3 mirrored callback/API surface and the standalone generated ASCII/Binary 3D DXF consumer probe after the P6 HEADER changes, including the S8.3.1 typed ELLIPSE vector.",
+  "implementationReadiness": {
+    "baselineHead": "2d696da07ae6a2913e81433f04f2e8feba0481b6",
+    "sourceObservation": "The lc3_compat_check OBJECT target mirrors the LibreCAD_3 DRW_Interface override surface and selected public fields. The separate libdxfrw_3d_consumer_probe authors representative 3D DXF values at runtime, writes AC1027 ASCII and Binary DXFs, reads them through dxfRW into a local public-interface sink, and asserts fields including Z values, OCS normals, topology, dimensions, and legacy extrusion projection. Neither target launches LibreCAD_3, LibreCAD, FreeCAD, or an independent renderer.",
+    "change": "No production code changed in this slice. The compile guard passed and the generated runtime 3D probe passed after relinking against the current library. The plan now records the limited evidence and preserves native application/platform qualification as open."
+  },
+  "binding": {
+    "sourceSha256": {
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "5d8c9ba15e33399c394bf7198cfe4c5a51b286404e3b349922c342000da29ae5",
+      "CMakeLists.txt": "098a3e232e55a7cf3ec8146f2c64a3954a5bce4fe1ce52202d4d4fc988799af7",
+      "tests/CMakeLists.txt": "96bbc9376247d1b2fecb8e008cc016fff481f50f3fe8fc4b6b7eca844ff3ec19",
+      "tests/lc3_compat_check.cpp": "743762fb6f3068dc011c25b680b10aa16e68810e25b3beebe2b5eb0687386bad",
+      "tests/semantic_differential_adapter.cpp": "ec61008e1cfea40b5a09104e33238479fc4ceb310563cfef0415fd41092a68e8",
+      "src/libdxfrw.cpp": "a298e8084adda7282d348ad2ed22d26f027b9826984c635893f9b066fe08a0d1",
+      "src/drw_entities.cpp": "0a43000f3eaec4eb2102af59d2165e7d3d72d80dd3b1b267c55131a5925d4ecc",
+      "src/drw_interface.h": "110bb7ac91e9420b939f2d984d47db9d5a547ccff6c1f83586525b61d7dc0454",
+      "src/drw_objects.h": "548a572114b8b76c09ef0db87987ec01f24654a8c190bf41d4ee61f3775c6559"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2), invoked as /usr/bin/g++",
+      "platform": "Darwin arm64"
+    },
+    "artifacts": {
+      "build-gcc/libdxfrw.a": "dc405500fe7d6489c1014485cc66d9d3c8f47d16496b04767f59049e111f1851",
+      "build-gcc/tests/libdxfrw_3d_consumer_probe": "90cfb520e125fafc1ae9e3ec830f88fb9a594c5168f6ea40651080aa1ce0b26e",
+      "build-gcc/tests/CMakeFiles/libdxfrw_3d_consumer_probe.dir/semantic_differential_adapter.cpp.o": "6561b9dc53433e199e7fe1b421aa43539e9e54ac1772a3afdd4f11b782235781",
+      "build-gcc/tests/CMakeFiles/lc3_compat_check.dir/lc3_compat_check.cpp.o": "5179f3dbe3c1ec4a6a75e2d196f3e3da5e9b2041c4314b149859297989f632ae"
+    }
+  },
+  "controls": {
+    "compileTarget": "lc3_compat_check",
+    "compileCommand": "cmake --build build-gcc --target lc3_compat_check libdxfrw_3d_consumer_probe -j2",
+    "runtimeProbe": "libdxfrw_3d_consumer_probe --self-test",
+    "ctest": "libdxfrw_3d_consumer_probe",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "The LibreCAD_3 mirrored callback signatures and selected public field references compile against current headers.",
+      "The public-interface sink receives generated CIRCLE and ARC values for default, oblique and negative-Z OCS profiles, with dimensional, thickness, normal, and angle checks.",
+      "S8.3.1 ELLIPSE vectors cover a default-plane full ellipse and an oblique-plane partial ellipse; center, WCS major-axis vector, ratio, start/end parameters, and normal are checked in both ext=false and legacy ext=true modes.",
+      "The legacy applyExtrusion route is checked independently from unprojected 3D callback values.",
+      "The probe authors and removes its ASCII/Binary DXFs at runtime; no fixture is added to the repository."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target lc3_compat_check libdxfrw_3d_consumer_probe --parallel 2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+      "result": "PASS 1/1 (0.31 seconds; 2026-11-02 fresh rerun)"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "This is a compile guard plus a generated dxfRW writer-to-reader sink self-test, not an external application or independent DXF implementation.",
+    "It does not qualify native LibreCAD/LibreCAD_3 rendering, FreeCAD, 3D B-rep meaning, Windows/Linux behavior, ABI binary layout, or packaging.",
+    "No support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue independent local P6 implementation while preserving P8 native/platform gates. UCS table-record group 346 remains fail-closed until the conflicting Autodesk group-79 descriptions are resolved by an eligible producer record and native save/reopen behavior."
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-nonclamped-spline-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_HEADLESS_CONTROL_PASSED",
+  "supportClaimEffect": "none",
+  "consumerPullRequest": "https://github.com/LibreCAD/LibreCAD_3/pull/462",
+  "consumerCommit": "44bdb7dd2d385042ab5f15c62f3abb75a5c3be5c",
+  "scope": "Generated nonperiodic, non-clamped 3D quadratic with nine uniform knots, six distinct controls and both unit and positive nonunit weights.",
+  "reference": "ezdxf 1.4.5 BSpline.point at source-domain endpoints and four interior half-spans.",
+  "validation": [
+    "Before the change, the focused ordinary control produced incorrect endpoints/interiors and duplicate segments on rebuild; the rational control produced only fallback segments.",
+    "28 focused geometry tests pass, including exact ordinary endpoints/interior samples, rational endpoints and bounded distance to independent samples, and idempotent rebuilding.",
+    "Four focused standalone spline round-trip tests pass with each bundled and current shared codec, including generated non-clamped ordinary and rational splines saved and reopened in ASCII and Binary DXF.",
+    "Six bundled-codec and ten current shared-codec focused HATCH/MPOLYGON controls pass.",
+    "Python binding plan-sync check passes."
+  ],
+  "logSha256": {
+    "lc3-nonclamped-negative.log": "f4b63f9ede0e28f2883a273c5e00d84f2fcbd992953fe722a9cd60d0737b50ff",
+    "lc3-nonclamped-test.log": "625e2b70da243c8c3cbac3f99ef8114db0704b43cb55ba0b44b70b46e56b8e8d",
+    "lc3-nonclamped-persistence-test.log": "8abad17e2999e963182733bfac4437f21b51d6ff4a9aedd85b0019cc83d6f5f3",
+    "lc3-nonclamped-current-test.log": "43924788d57844675813421e9788f4fa1270e6b5ab4b1f3d0c965216307988c3",
+    "lc3-nonclamped-bundled-hatch.log": "a1be8a5c16e19a1b536d5d89fec11710ec900691b1cbab0d92a2b456cc053832",
+    "lc3-nonclamped-current-hatch.log": "5604430f099a804505f5375264b71bc0fcb36248d53b629b4746027239ae6a19"
+  },
+  "limitations": [
+    "macOS ARM64 headless only; other platforms, native GUI and hosted checks remain open.",
+    "The rational result is approximated and other non-clamped knot, degree, and producer profiles remain unqualified.",
+    "Current shared-codec build uses separate scratch CMake glue."
+  ]
+}

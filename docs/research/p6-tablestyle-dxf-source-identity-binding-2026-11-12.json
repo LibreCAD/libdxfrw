@@ -1,0 +1,32 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "scope": "Bind typed TABLESTYLE source identities for legacy-ordered and R24 DXF OBJECTS output.",
+  "result": "PASS",
+  "supportClaimEffect": "none",
+  "change": "Both writeTableStyle emission paths now promote an exact pre-reserved minted identity transactionally, when present, then bind the source handle to the emitted TABLESTYLE record before commit. The shared promotion helper restores the minted mapping if record publication rolls back.",
+  "validation": {
+    "normal_tablestyle_profiles": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_tablestyle_r24_typed_writer|libdxfrw_tablestyle_legacy_ordered_writer)$' --output-on-failure",
+      "result": "PASS, 2/2; legacy-ordered and R24 typed output/readback and transaction controls"
+    },
+    "normal_cellstylemap_promotion_regression": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_cellstylemap_source_identity|libdxfrw_cellstylemap_dxf_writer)$' --output-on-failure",
+      "result": "PASS, 2/2; source identity promotion, rollback, retry, and existing typed output/readback"
+    },
+    "address_sanitizer_writer_cohort": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^(libdxfrw_tablestyle_r24_typed_writer|libdxfrw_tablestyle_legacy_ordered_writer|libdxfrw_cellstylemap_source_identity|libdxfrw_cellstylemap_dxf_writer)$' --output-on-failure",
+      "result": "PASS, 4/4"
+    }
+  },
+  "limitations": [
+    "The checks cover the current generated TABLESTYLE profiles and object-identity transaction only; source-producer breadth, complete document graph closure, and native TABLE rendering remain open.",
+    "No support claim is promoted."
+  ],
+  "source_sha256": {
+    "src/libdxfrw.cpp": "5fd074c3aa62ce013b647a0f14a05f9f46a46116ccd995dce23d288f7e66e921",
+    "src/libdxfrw.h": "34b2a5db3c9c4c21c4423a7629361353d8d68c994b988c5c1894816d97b7ff24",
+    "tests/CMakeLists.txt": "cf0a497ffae85dcad87ec96ca093835835aab4034de2af26072bb965e68039b6",
+    "tests/wave1_tests.cpp": "ff69a78c434cffef5499a0bd97f0602956e6431356b1895e11d80229ee2360dc"
+  }
+}

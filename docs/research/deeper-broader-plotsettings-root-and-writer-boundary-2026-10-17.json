@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader standalone PLOTSETTINGS root and writer boundary",
+  "mode": "primary-source and independent implementation review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Standalone PLOTSETTINGS dictionary root and owner identity",
+    "Page-setup dictionary key semantics",
+    "Optional code-333 shade-plot target boundary",
+    "Smallest safe writer implementation and generated validation slice"
+  ],
+  "method": {
+    "kind": "Read-only review of Autodesk DXF/API documentation, LibreDWG source mapping, and local writer/adapter boundaries",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Documentation and source review establish the dictionary route but do not constitute a producer-authored sample, printer/device qualification, or semantic plotting acceptance. Current shade APIs and published DXF mode tables differ; non-null code-333 target closure remains unqualified."
+  },
+  "sources": [
+    {
+      "project": "Autodesk DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-1113675E-AB07-4567-801A-310CDE0D56E9.htm",
+      "revision": "published reference reviewed 2026-10-17",
+      "observed": "PLOTSETTINGS DXF codes define handle, owner dictionary/object links, page setup name, plot settings fields, and optional code-333 ShadePlot ID/Handle. The published page lists shade modes 0-3."
+    },
+    {
+      "project": "Autodesk ObjectARX Managed API",
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_PlotSettingsDictionaryId.html",
+      "revision": "2026 API page reviewed 2026-10-17",
+      "observed": "Database.PlotSettingsDictionaryId accesses the ACAD_PLOTSETTINGS dictionary."
+    },
+    {
+      "project": "Autodesk .NET Developer Guide",
+      "url": "https://help.autodesk.com/cloudhelp/2026/DEU/OARX-DevGuide-Managed/files/GUID-56BD3247-471C-4471-A238-FFDFDC3BD2E4.htm",
+      "revision": "2026 guide reviewed 2026-10-17",
+      "observed": "Standalone PlotSettings objects are stored in the drawing PlotSettings dictionary; dictionary iteration returns named page setups, and creating a setup assigns PlotSettingsName then adds it to that dictionary. Layout derives from PlotSettings but is distinct because Layout has a BlockTableRecord."
+    },
+    {
+      "project": "Autodesk ObjectARX shade-plot API",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OREF-AcDbPlotSettings__ShadePlotType.html",
+      "revision": "2027 API page reviewed 2026-10-17",
+      "observed": "Current shade-plot API includes object-referencing modes beyond the published DXF reference's 0-3 list; mode-specific target types must be resolved separately."
+    },
+    {
+      "project": "LibreDWG source",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c",
+      "revision": "mutable master source reviewed 2026-10-17",
+      "observed": "The DWG table/object mapping routes PLOTSETTINGS through the ACAD_PLOTSETTINGS dictionary. This is an independent implementation cross-check, not a normative serialization oracle."
+    },
+    {
+      "project": "Local libdxfrw source",
+      "url": "src/libdxfrw.cpp and dwg2dxf/dx_iface.cpp",
+      "revision": "worktree source reviewed 2026-10-17",
+      "observed": "dxfRW::writePlotSettings already emits the supported field set and owner group, and validates Custom DPI. dx_iface currently captures standalone records then refuses export; named dictionary-root closure and code-333 remapping are not yet wired."
+    }
+  ],
+  "assessment": {
+    "qualifiedRoute": "ACAD_PLOTSETTINGS named dictionary entry keyed by page setup name; the standalone object is owned by that dictionary.",
+    "unresolvedRoute": "Non-null PLOTSETTINGS group-333 references: target class and valid target type vary with shade mode and product/version evidence.",
+    "safeInitialProfile": "Null/omitted code 333 only, with otherwise qualified plot values; preserve full object data and reject unsupported/non-null reference cases atomically.",
+    "implementationReadiness": [
+      "Preflight exactly one ACAD_PLOTSETTINGS NOD edge, unique matching dictionary, unique keyed object, and consistent owner handles.",
+      "Plan handle mapping before output and verify root entry, dictionary entry, record identity, and owner all use it.",
+      "Use existing dxfRW::writePlotSettings field serialization and test ASCII/Binary structural round-trip with generated vectors."
+    ],
+    "peerEvidenceRule": "Use LibreDWG only as independent corroboration of root naming. It does not establish local writer correctness or semantic/consumer support."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-plotsettings-root-and-writer-boundary-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "awk '/[ \\t]+$/ { print FNR \": trailing whitespace\"; failed=1 } END { exit failed }' docs/research/deeper-broader-plotsettings-root-and-writer-boundary-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

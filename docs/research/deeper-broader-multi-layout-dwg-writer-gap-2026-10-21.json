@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Multi-layout DWG writer source-confirmed capability gap",
+  "mode": "Deeper/broader primary-source research and implementation-plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "worktreeState": "The writer/test sources inspected are substantially modified and uncommitted; observations describe the current worktree, not a clean origin/master checkout.",
+    "sourcesInspected": [
+      "src/intern/dwgwriter15.cpp: defineBlock(DRW_Block_Record), emitBlockRecord, emitDeferredBlockControl, prepareBlockOwnedEntity, recordBlockOwnedEntity, encodeEntity",
+      "src/libdwgr.cpp: dwgRW::writeLayout",
+      "src/drw_objects.h: DRW_Block_Record::layoutHandle",
+      "tests/block_owner_tests.cpp: testConsecutiveNamedBlockOwnership",
+      "tests/dwg_local_roundtrip_tests.cpp: standalone LAYOUT writer/readback cases"
+    ],
+    "evidence": "The current worktree rejects DRW_Block_Record values with nonzero layoutHandle, emits a null BLOCK_RECORD layout-handle slot, and defers only the fixed *Model_Space and first *Paper_Space owners. Existing tests cover DXF Paper_Space0 as a block body and selected standalone LAYOUT fields, not a closed multi-layout DWG ownership graph.",
+    "classification": "Source-confirmed capability gap; writer refuses the unrepresented association, so this is not classified as silently corrupted output."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance DWG specification v5.4.1",
+      "references": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "sections": ["20.4.2", "20.4.51", "20.4.52"],
+      "observation": "The specification distinguishes versioned entity owner/mode representations, fixed Model/Paper roots and other BLOCK_CONTROL entries, and a hard-pointer Layout Handle in the BLOCK_HEADER/BLOCK_RECORD form.",
+      "planDisposition": "Use as authoritative byte-layout contract. Keep R13-R14 chain/mode behavior separate from R2004+ owned-object lists and validate every changed target version."
+    },
+    {
+      "project": "Autodesk AutoCAD documentation",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-A0FDAE4E-9DAE-4256-8CE0-E3BD8D81A058.htm",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm"
+      ],
+      "observation": "The published contracts identify BLOCK_RECORD as layout entity owner, document predefined Model/Paper/Paper_Space0 records, define BLOCK_RECORD group 340 as a hard pointer to its LAYOUT, and describe LAYOUT properties/links separately.",
+      "planDisposition": "Require independent identities for layout, block record, owner, active/current role, and entity placement; do not infer them from suffix or PaperSpace boolean alone."
+    },
+    {
+      "project": "CADCraft / ACadRust paper-space writer reports",
+      "references": [
+        "https://github.com/storytold/cadcraft/issues/1463",
+        "https://github.com/storytold/cadcraft/pull/1080",
+        "https://github.com/hakanaktt/acadrust/issues/143",
+        "https://github.com/hakanaktt/acadrust/commit/a106f1e087233851bfd31c38ee0c6755ed50e213"
+      ],
+      "observation": "CADCraft #1463 remains an open report of non-active layout entities appearing on the first sheet in ZWCAD 2025 despite same-codec membership readback; PR #1080 changes the app-side non-active owner/mode path. ACadRust #143 is closed as completed and reports duplicate bare *Paper_Space names after suffix stripping. Current pinned ACadRust source documents a helper that reserves the bare name for the active record while avoiding collisions; issue body warns raw suffix preservation alone did not establish a correct active record.",
+      "planDisposition": "Use as distinct failure shapes and a future pinned comparison route, not as normative format authority, local reproduction, or support proof. Verify ownership/mode by ODA and exact target version."
+    },
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observation": "The manual documents distinct ModelSpace, PaperSpace, and Blocks containers and BLOCK_CONTROL/BLOCK_HEADER access, but the reviewed material is not a version-specific multi-layout writer acceptance result.",
+      "planDisposition": "Optional exact-pinned independent structural reopen at the composed checkpoint only; no peer executable was run."
+    }
+  ],
+  "assessment": {
+    "newFinding": "PAR-144: multi-layout DWG writer does not currently represent/emit reciprocal LAYOUT to BLOCK_RECORD ownership in the inspected worktree",
+    "existingOwner": "7G.3 layout graph / DWG writer owner ledger",
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "fastTestOwner": "Extend existing DWG local roundtrip tests with from-scratch generated in-memory multi-layout cases; no external or persistent fixture and no new CTest target.",
+    "initialVersionBoundary": ["AC1015", "AC1024"],
+    "followupVersions": ["AC1018", "AC1021", "AC1027", "AC1032"],
+    "acceptance": [
+      "Reciprocal one-to-one LAYOUT/BLOCK_RECORD identity and correct dictionary reachability",
+      "Unique active/default and inactive paper-space owner names without suffix-only identity inference",
+      "Exact entity, viewport, INSERT, ATTRIB/SEQEND and owner-membership disposition per layout",
+      "Atomic refusal, preexisting-destination preservation, and corrected same-writer retry",
+      "Independent pinned structural reopen and separate native-application qualification only at composed checkpoint"
+    ],
+    "progressPolicy": "Update the plan/receipt after each implemented item, report progress and commit identity after each committed slice, and self-unblock past unavailable external/native gates."
+  },
+  "limitations": "The local audit was performed on a heavily modified uncommitted worktree, not origin/master or a clean checkout. No parser/production change, test, peer executable, or native application was run. CADCraft/ACadRust issue reports and source are project evidence, not independent native acceptance or format authority."
+}

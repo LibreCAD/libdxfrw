@@ -1,0 +1,43 @@
+{
+  "title": "OLE2FRAME DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory OLE2FRAME transaction controls only; no producer or support claim.",
+  "implementation": {
+    "writer": "DRW_Ole2Frame::encodeDwg",
+    "behavior": [
+      "Use the shared private entity transaction helper to stage body and handle streams.",
+      "Preserve opaque payload bytes, actual payload length, R2000+ trailing byte, object type, and buffer alias routing.",
+      "Keep existing malformed/truncated/oversized and declared-length mismatch refusals."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1015", "profile": "five-byte opaque OLE2FRAME payload", "reached_allocation_failures": 13},
+    {"version": "AC1018", "profile": "five-byte opaque OLE2FRAME payload", "reached_allocation_failures": 13},
+    {"version": "AC1021", "profile": "five-byte opaque OLE2FRAME payload", "reached_allocation_failures": 13},
+    {"version": "AC1024", "profile": "five-byte opaque OLE2FRAME payload", "reached_allocation_failures": 13}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body and handle bytes, bit counts, handle occurrences, and prior class ID remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output.",
+    "All-stream alias controls preserve state and succeed on retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --ole2frame-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1015 OLE2FRAME": 13,
+      "AC1018 OLE2FRAME": 13,
+      "AC1021 OLE2FRAME": 13,
+      "AC1024 OLE2FRAME": 13
+    },
+    "entity_writer_transaction_cohort": "22/22 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish transaction behavior only.",
+    "OLE2FRAME payload semantics, physical producer coverage, native consumer behavior, and broader support remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}

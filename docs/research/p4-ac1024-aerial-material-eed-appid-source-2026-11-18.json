@@ -1,0 +1,193 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-material-eed-appid-source-2026-11-18",
+  "date": "2026-11-18",
+  "status": "GLOBAL_EED_SAME_IMPORT_SOURCE_BOUND_OUTPUT_STAGING_PENDING",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "libreDwgJsonSha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832",
+    "odaAsciiDxfSha256": "911acff2824c5d75043a074381aea9d2274601ca62391b14786a224444f6c0eb",
+    "rawCaptureSha256": "d00313d6d65f1482df5215cf3247ad28cf8bb2a5d2063f5dbd3bd6647972e18e",
+    "typedCapture": "Original source import with a69b-compatible header and matching saved adapter; local corpus provenance is not independent producer authentication.",
+    "reference": "ODA DWG v5.4.1 \u00a728: BS application-data length, H role-5 APPID, typed item bytes and zero terminator."
+  },
+  "appid": {
+    "handle": "0x12",
+    "name": "ACAD",
+    "wireReference": "H(5,1,0x12)",
+    "evidence": "Unique APPID typed import and pinned LibreDWG object identify handle 0x12 as ACAD; pinned ODA DXF has the same APPID handle and name. The APPID object\u2019s own wire was not independently decoded in this slice."
+  },
+  "profile": {
+    "chunkCountPerMaterial": 1,
+    "payloadBytes": 20,
+    "eedBitsPerMaterial": 188,
+    "eedTerminator": "BS zero",
+    "payloadWireCodes": [
+      70,
+      70,
+      70,
+      0,
+      71,
+      70
+    ],
+    "typedDxfCodes": [
+      1001,
+      1070,
+      1070,
+      1070,
+      1000,
+      1071,
+      1070
+    ],
+    "utf16String": "empty",
+    "records": [
+      {
+        "handle": "0x98",
+        "frameSha256": "c5c510cfaa05123453e26c52032995fd4ae10a4553ec263f9ccf75e1f7ad9c6e",
+        "eedBits": [
+          26,
+          214
+        ],
+        "signedDataValues": [
+          0,
+          3,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "handle": "0x2c2",
+        "frameSha256": "5a42df2b48ca8f66b7abc3703a43feae22a979b851d8ff11c24ff28b9153e06c",
+        "eedBits": [
+          34,
+          222
+        ],
+        "signedDataValues": [
+          -1,
+          3,
+          1,
+          72,
+          0
+        ]
+      },
+      {
+        "handle": "0x2cc",
+        "frameSha256": "334c593d0035b3cd91b2bc45170d590c1a41c3127fddba086ca309b583bc2923",
+        "eedBits": [
+          34,
+          222
+        ],
+        "signedDataValues": [
+          -1,
+          3,
+          1,
+          72,
+          0
+        ]
+      },
+      {
+        "handle": "0x2d6",
+        "frameSha256": "b3a3f716c041c9b4fdd4fe460e2e108f1a156d312ec1fd3427bc1cb31543f793",
+        "eedBits": [
+          34,
+          222
+        ],
+        "signedDataValues": [
+          -1,
+          3,
+          1,
+          72,
+          0
+        ]
+      },
+      {
+        "handle": "0x2e0",
+        "frameSha256": "1fd718f9646fec4490f4e78ac5119d3d7d52887ca7425f0c4bf375bcfb55c9c7",
+        "eedBits": [
+          34,
+          222
+        ],
+        "signedDataValues": [
+          -1,
+          3,
+          1,
+          8,
+          0
+        ]
+      },
+      {
+        "handle": "0x2ea",
+        "frameSha256": "0e90bf252f8c624522aa42ab41035be90e7c6bddc8eedcb190d1fea03da3d2b8",
+        "eedBits": [
+          34,
+          222
+        ],
+        "signedDataValues": [
+          -1,
+          3,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "handle": "0x32e",
+        "frameSha256": "578cb79e97e18162f428ed8c417227905fc9cdfaff31d6dcd38ff47113535ec1",
+        "eedBits": [
+          34,
+          222
+        ],
+        "signedDataValues": [
+          -1,
+          3,
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    "signedNormalization": "The source short 0xffff is exposed by the typed model and ODA as DXF 1070 value -1; LibreDWG JSON records it as unsigned 65535."
+  },
+  "validation": {
+    "command": "PYTHONPATH=/private/tmp/p8-ezdxf-oracle python3 -B /private/tmp/p4-aerial-material-eed/eed_trace.py",
+    "result": "PASS all seven original EED wire sequences match typed imported values, pinned LibreDWG and ODA 27.10 DXF, including unique APPID 0x12/name ACAD and every payload field.",
+    "negativeControls": "PASS 1,316 individual EED-bit flips rejected, with an original-frame retry for each source record. These are scratch decoder controls, not production observer/transaction tests.",
+    "otherMaterialRecords": "ByBlock 0x97 and ByLayer 0x96 have no EED in the pinned source and ODA output."
+  },
+  "productionSourceBinding": {
+    "observer": "dwg2dxf/dx_ac1024_material_eed_wire.h::observeGlobal",
+    "binding": "The AC1024 Global MATERIAL frame at handle 0x98 is bound to its same-import typed frame publication and completed CLASSES attempt. Its APPID token is checked through the same-import, uniquely named ACAD APPID 0x12 proof. The independent observer checks the one 20-byte EED chunk, all six typed item codes and values, the 188-bit source span [26,214), and agreement with the seven typed variants.",
+    "adapterReceipt": "dx_iface retains the source publication, typed MATERIAL snapshot and raw frame bytes only after the source observer succeeds. Requalification requires the same adapter/data owner, import generation, joined class attempt, APPID evidence, unchanged raw frame and unchanged typed model.",
+    "focusedControls": "The existing --ac1024-material-appid-source-capture selector flips each of the 188 EED bits, changes the typed EED value, changes the APPID name, changes the bound source offset, and injects a failed capture receipt. Each mutation is refused and the corrected source is accepted again.",
+    "result": "PASS for the local existing AC1024 source and the exact Global MATERIAL EED profile only. No output, root graph, producer authentication or support claim is established."
+  },
+  "scratchEvidence": {
+    "root": "/private/tmp/p4-aerial-material-eed",
+    "sha256": {
+      "typed.cpp": "25275d22250b723938f3d56ee8408818f5cbb397c384ad8f3ce758c6efcc714c",
+      "typed.out": "7c585c1cbbdc8b94c435f1afaee1e9e17adabd6a75569071d7089d576abce50e",
+      "typed.log": "066cdf21fdecec66a0cc75a0d209abb7de13991b2508d80138dfa8216e686f4b",
+      "eed_trace.py": "92eb43b986943008032689e00c26580372e3a89c2d4ad76c3a94702245bb505c",
+      "eed_trace.log": "28fee49d051adebb506424b88ee878fcff6d1297b65e095ca1a876c27070f561",
+      "eed-spans.json": "d806e3b227c5048e6cfefd0890805e24fa5447015e81213e2fb953b89ee266ae",
+      "dx_iface.h": "654e005f1cec61790e39c98b48d180decb62b44fc3ace7e130e70112da7d34df"
+    },
+    "adapterObjectSha256": "3d69f4b585c770996ebc489d92e366c636fa925e79ebbfe8c77fe044af99408b",
+    "archiveSha256": "008861d3d378e9fe2a6e0fcf40175a69647848c300033fa469db11ac207f5654",
+    "privacy": "Source frames remain in scratch; no source drawing, texture path or fixture was committed."
+  },
+  "nextImplementation": [
+    "At real TABLES/OBJECTS staging and finalization require one emitted APPID identity, exact EED groups and remapped roles; add original-frame/model/appid corruption, atomic destination preservation and corrected same-writer retry in ASCII/Binary.",
+    "Qualify seven material bodies and descendants separately. This EED evidence does not admit a complete MATERIAL root."
+  ],
+  "limitations": [
+    "APPID own raw body and independent source name wire are not established here.",
+    "Only the Global MATERIAL EED profile is source-bound by production code. The other six EED-bearing MATERIALs remain at census-only evidence; this does not admit a MATERIAL root/output profile.",
+    "No writer admission or output qualification changed.",
+    "ODA output and LibreDWG are external software observations; no native MATERIAL, texture or FBX semantic qualification is established."
+  ],
+  "next": "At paired real TABLES and OBJECTS staging, require exactly one remapped APPID 0x12/ACAD row and the Global MATERIAL EED values from this retained source proof in ASCII and Binary; verify output readback, refusal, destination preservation and corrected retry. Then bind the other six EED-bearing MATERIALs without admitting the full root. Keep native producer provenance and full MATERIAL graph/output qualification open."
+}

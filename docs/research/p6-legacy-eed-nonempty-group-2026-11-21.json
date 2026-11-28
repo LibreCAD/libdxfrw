@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-eed-nonempty-group-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_LEGACY_EED_NONEMPTY_GROUP_GRAPH",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.72 GROUP",
+    "observation": "GROUP member handles are hard pointers; the original dwgadd scratch output used a soft-owner role and was correctly rejected by the existing parser."
+  },
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py --nonempty-group",
+  "construction": "Locally generated R13/R14 drawings with a corrected bounded GROUP source graph. The source root 0x35 owns group dictionary 0x34, which contains GROUP 0x31 and its hard-pointer LINE 0x2E; ACAD APPID is 0x33. LibreDWG JSON readback independently confirms the dictionary entry, GROUP owner and member handle role. UTF-8 variants use the separately established fixed-size codepage-45 EED patch and verified object CRC. No generated drawings are committed.",
+  "sourceSha256": {
+    "r13Utf8": "4a96c6a00f99f77d5118153e9d35c8bc73b4fefbdde54bfa19c0db206f01cde0",
+    "r14Utf8": "c69d10d7f1675e45a90c14b8c414cad29ca0ebd10330d9a17082470f563bc7e4",
+    "r13WrongMemberRole": "0072296ff588a219fe6e3640b5fae2a01d02c76d5b977302035ed0beda67c650",
+    "r14WrongMemberRole": "6b2c2ae7851d54bc1644db63b49f27e2b84a6d565f991a230063bf270d12957b"
+  },
+  "checks": [
+    "The existing version-aware source observer validates every bounded dictionary entry and handle role; staged output proves dictionary-to-GROUP ownership and GROUP-to-entity references. The empty-only admission restriction is removed.",
+    "The R14 EED-free nonempty baseline passed strict conversion before the change; the matching EED source was refused at opaque-output qualification. The selected ASCII and UTF-8 EED profiles now pass R14 strict and R13 explicit partial output.",
+    "ASan tests cover original and remapped source handles, EED/APPID edits, group dictionary entry and GROUP member mutations, wrong member handle role, wrong root graph, pre-inspection and late source mutations, atomic refusal and corrected same-adapter retry.",
+    "Independent ezdxf 1.4.5 reads the group dictionary EED caf\u00e9 and integer 42, its MYGROUP record, and a LINE from (1,2,3) to (4,6,9), in ASCII and Binary output for each source version."
+  ],
+  "limits": [
+    "Only the selected named GROUP and its single LINE member have independent readback here. Multiple groups, other entity types, arbitrary EED and native grouping semantics require their own evidence.",
+    "Strict R13, native dictionary duplicate/clone behavior and general DWG/DXF format support remain unqualified."
+  ]
+}

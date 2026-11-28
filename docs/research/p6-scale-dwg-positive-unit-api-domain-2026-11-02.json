@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-p6-scale-dwg-positive-unit-api-domain-v1",
+  "completedAt": "2026-11-02",
+  "status": "DWG_SCALE_UNIT_DOMAIN_ENFORCED",
+  "supportClaimEffect": "none",
+  "specification": {
+    "dwg": "Open Design Specification for .dwg files v5.4.1, section 20.4.92, page 221: SCALE stores paper units and drawing units as BD fields; drawing units are represented with the specified ratio convention.",
+    "apiDomain": "Autodesk AcDbAnnotationScale setters require paper units and drawing units to be positive and nonzero. The model additionally requires finite values for safe numeric transport."
+  },
+  "implementation": {
+    "dwgRead": "DRW_Scale::parseDwg rejects zero, negative, and non-finite paper/drawing units and resets the object on failure.",
+    "dwgWrite": "DRW_Scale::encodeDwg rejects zero, negative, and non-finite paper/drawing units before emitting body or string-stream bits.",
+    "scope": "Enforces the annotation-scale API unit invariant across the DWG read/write boundary. DXF read/write guards are covered by the separate SCALE receipts. This does not qualify annotation rendering, version-specific native acceptance, or consumer behavior."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_scale_dwg_unit_domains$' --output-on-failure",
+    "result": "PASS (1/1)",
+    "coverage": [
+      "DWG writer checks zero, negative, NaN, and positive-infinity paper and drawing values before output for AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032.",
+      "Positive finite writer controls pass at each of the six DWG writer revisions.",
+      "Generated AC1014 parser vectors reject zero, negative, NaN, and positive-infinity values for both paper and drawing units and confirm failed records publish no partial state."
+    ]
+  },
+  "sources": [
+    "Open Design Specification for .dwg files v5.4.1, §20.4.92, p. 221 (local authoritative copy: ~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf)",
+    "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OREF-AcDbAnnotationScale__setPaperUnits_double.html",
+    "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OREF-AcDbAnnotationScale__setDrawingUnits_double.html"
+  ],
+  "inputFixturesAdded": 0,
+  "supportClaimsPromoted": 0
+}

@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-linetype-display-scale-dxf-domain-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_LINETYPE_DISPLAY_SCALE_DOMAIN_AND_VERSION_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Enforce documented PSLTSCALE/MSLTSCALE DXF HEADER scalar domains, preserve tolerant input, and refuse MSLTSCALE on target format revisions older than AC1021.",
+  "implementationReadiness": {
+    "baselineHead": "1be31a405b01f91c985e1a416961ccfcc3cd5da7",
+    "sourceObservation": "PSLTSCALE has a dedicated HEADER writer path that defaults to 1; MSLTSCALE is retained/emitted through unknown HEADER variables. Both parser paths retain INTEGER values. Before this change, typed output accepted wrong group types, invalid values, alias collisions, and MSLTSCALE in targets older than the format family in which Autodesk documents it.",
+    "normativeEvidence": [
+      {
+        "source": "Autodesk AutoCAD 2026 PSLTSCALE System Variable",
+        "url": "https://help.autodesk.com/view/ACD/2026/ENU/?caas=caas%2Fdocumentation%2FCIV3D%2F2014%2FENU%2FfilesACD/GUID-23EA4D64-AE7D-41E5-A8D0-20F060313D62-htm.html",
+        "relevantRule": "PSLTSCALE controls linetype scaling in paper-space viewports and documents values 0 and 1."
+      },
+      {
+        "source": "Autodesk AutoCAD 2020 MSLTSCALE System Variable",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENG/AutoCAD-Core/files/GUID-023B046C-56EA-463C-A867-DF713666A69E.htm",
+        "relevantRule": "MSLTSCALE is an integer saved in the drawing, has initial value 1, documents values 0 and 1, and is set to 0 when opening drawings created in Release 2007 or earlier."
+      },
+      {
+        "source": "Autodesk Support: How to manage linetype scale system variables (MSLTSCALE and PSLTSCALE) in AutoCAD",
+        "url": "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/Linetype-Scale-MSLTSCALE-and-PSLTSCALE.html",
+        "relevantRule": "Autodesk states model-space MSLTSCALE behavior starts with AutoCAD 2008; PSLTSCALE controls paper-space viewport behavior."
+      }
+    ],
+    "change": "A non-consuming HEADER preflight accepts absence or exactly one canonical-case PSLTSCALE/MSLTSCALE key or dollar/bare alias whose value is INTEGER group 70 with value 0 or 1. It rejects wrong group/type, out-of-domain values, duplicate aliases, and case-folded spellings that would collide with the canonical PSLTSCALE writer or another case-insensitive HEADER variable. PSLTSCALE absence keeps the existing emitted default 1; MSLTSCALE absence remains omitted. MSLTSCALE is refused for target versions before AC1021, the earliest available target family that can carry AutoCAD 2008 fields. The target enum cannot distinguish AutoCAD 2007 from 2008/2009, all of which use AC1021; that exact product-version boundary remains unqualified."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_header.cpp": "50c5270cbece8b8bba5def4c5c82c588baa239968e1ba6131128eae094a7ec30",
+      "src/drw_header.h": "4b790ba1973017751635bdb66c72d42fac21ddeeb04a6158b3a8d9b18b754183",
+      "src/libdxfrw.cpp": "74e9f0a316a2c7b6ea69a043022fe55e0e68d9380a1f0ed2f788e855e38fd26e",
+      "tests/hardening_tests.cpp": "5ea6634afb5f55bab29dd11d97eccbc72e3e4b95318201c42182b89835a68fa8",
+      "CMakeLists.txt": "030879dbe2e8a5c8e036b95b8806d240f92b6fe8cd699542491e764321dde2eb",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "90fce2cae6cbd401236c4d1005b3c29d9f9543b4d470962c6e186e62f95fb735"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2), invoked as /usr/bin/g++",
+      "platform": "Darwin arm64"
+    },
+    "testExecutableSha256": "298a56b5105c309df834c51f496ef14ec5778da8a50d51213971d144ce73132b"
+  },
+  "controls": {
+    "selector": "--linetype-display-scale-domains",
+    "ctest": "libdxfrw_linetype_display_scale_domains",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF", "Generated AC1018 ASCII/Binary target header", "Generated AC1021 ASCII/Binary target header"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "PSLTSCALE and MSLTSCALE values 0 and 1 write and read back in ASCII and Binary DXF.",
+      "Values -1 and 2, wrong variant type, wrong group code, duplicate dollar/bare aliases, and lower-case aliases are atomically refused.",
+      "Input parsing retains an out-of-domain value 2 for diagnosis and caller repair.",
+      "Absent PSLTSCALE emits its existing default value 1; absent MSLTSCALE remains absent.",
+      "An invalid value rolls back the HEADER record without leaving the writer failed; the same writer accepts and reads back a corrected value.",
+      "MSLTSCALE is refused for AC1018 and is emitted/read back for AC1021."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "affectedFastCohort": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_(linetype_display_scale_domains|ltype_group9_encoded_length|ltype_scale_header_domain|scale_units_dxf_domain|scale_flag_output_guard)$' --output-on-failure",
+      "result": "PASS 5/5"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated scalar admission, tolerant parsing, and typed readback only; no native CAD application or viewport/model-space renderer was run.",
+    "AC1021 represents AutoCAD 2007, 2008, and 2009. The DRW::Version target cannot express the AutoCAD 2008 introduction boundary within that shared format code; the pre-AC1021 refusal is a format-family guard, not exact product-version qualification.",
+    "The default MSLTSCALE omission behavior is preserved; this slice does not qualify native defaults or consumer-specific resource selection.",
+    "No support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue P6 units/inheritance by resolving UCS base-UCS group-346 reference roles and writer closure. Reuse current handle remapping and typed-reference inventory; admit only a resolvable UCS target and preserve atomic refusal for absent/wrong-role targets. Use generated runtime DXF data and focused ASCII/Binary readback, with the existing dxf_fixture_tests UCS selector only if its granularity can be narrowed. Do not add fixture files or infer coordinate-transform behavior from field transport."
+}

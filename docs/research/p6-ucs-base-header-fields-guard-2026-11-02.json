@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ucs-base-header-fields-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "DXF_UCS_BASE_FIELD_GUARD_FAST_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Prevent malformed DXF HEADER $UCSBASE and $PUCSBASE fields from being silently replaced by empty strings during typed output.",
+  "implementationReadiness": {
+    "baselineHead": "5682f73b",
+    "sourceObservation": "DRW_Header::write obtains both values through the destructive getStr helper and writes an empty group-2 string when the lookup does not return a string. Before this slice, a wrong variant type or group code therefore could be silently erased by output.",
+    "normativeEvidence": [
+      {
+        "source": "Autodesk AutoCAD DXF HEADER Section Group Codes",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+        "relevantRule": "$UCSBASE and $PUCSBASE are group-code 2 names of the UCS used as the base for orthographic UCS settings; PUCSBASE applies in paper space."
+      },
+      {
+        "source": "Autodesk UCSBASE System Variable",
+        "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-MAC-Core/files/GUID-1ACE78C5-459C-4BC1-85DA-18FC9C5FD572.htm",
+        "relevantRule": "UCSBASE is a saved drawing string, defaults to an empty string, and accepts a named UCS."
+      },
+      {
+        "source": "Autodesk PUCSBASE System Variable",
+        "url": "https://help.autodesk.com/cloudhelp/2025/ENG/AutoCAD-Core/files/GUID-1A64F4F1-3A28-4630-B0E0-D83DDB877E51.htm",
+        "relevantRule": "PUCSBASE is a saved drawing string for paper-space orthographic UCS settings and defaults to an empty string."
+      }
+    ],
+    "change": "Added a non-consuming preflight for both variables. It accepts absence or one canonical dollar/bare key whose value is a STRING at group 2. It refuses wrong types/groups, duplicate aliases, case-folded aliases, and known-variable entries placed in the custom map. Tolerant parsing remains unchanged; both direct HEADER output and whole-file DXF output preflight use the guard."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_header.cpp": "5e0122fb8eac48d92bc232a342ad3c0b3c45f875817adbd7e700401e7f5aaf84",
+      "src/drw_header.h": "2e944b6c416b2553ea0a9b38dfe089c7ed7305c52e60167c8eaf3d06cb5383ab",
+      "src/libdxfrw.cpp": "ac1202f5a049f2a36326e50c93121fc09807eccec3d49d89d6bc29737c749b1e",
+      "tests/hardening_tests.cpp": "dec32be509dab95bf301ce392c2e8e7e70e5f70c95548fd44c2b581f1b4d02b3",
+      "CMakeLists.txt": "0acb1c19c63e4293e525fb091e60e74e19b00e6aa12ee7f6e136576c6768a46a",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "b2bb36e1a341630a4757e05496826d059eb15a15ba912485bc56972d45c65c4d"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0, invoked as /usr/bin/g++",
+      "platform": "Darwin arm64"
+    },
+    "testExecutableSha256": {
+      "build-gcc/libdxfrw_hardening_tests": "5ea059cc3f780354add3358556e3a2168b2d654cfb71f5efa42edb677584fe54"
+    }
+  },
+  "controls": {
+    "selector": "--dxf-ucs-base-header-fields",
+    "ctest": "libdxfrw_ucs_base_header_fields",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "Valid nonempty $UCSBASE and $PUCSBASE names round-trip as group-2 strings in ASCII and Binary DXF.",
+      "Absent values serialize using the existing empty-string defaults.",
+      "Wrong value type, wrong group, duplicate dollar/bare aliases, and case-folded aliases are refused before publishing HEADER bytes.",
+      "Malformed input remains parseable and its wrong typed value remains available for diagnosis; typed output then refuses it.",
+      "A refused attempt rolls back its writer state, and the same writer accepts corrected names with typed readback."
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+    "ctest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_ucs_base_header_fields$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check",
+    "receiptJson": "PASS: parsed with Python json"
+  },
+  "limitations": [
+    "This verifies field representation and atomic typed output only; it does not resolve either string to a UCS table record or qualify orthographic restoration in a native CAD consumer.",
+    "The P6 UCS base relation remains open. Do not promote nonzero DWG base-handle output from this DXF field guard.",
+    "The AGENTS.md ODA DWG specification PDF is unavailable at ~/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf in this environment; this slice changes no DWG byte layout."
+  ],
+  "nextReadyPacket": "Obtain an eligible source and independent consumer evidence for UCSBASE/PUCSBASE table-name resolution and orthographic restoration. Keep current DWG base-handle output refusal until the previously identified group-79/group-346 source conflict is adjudicated."
+}

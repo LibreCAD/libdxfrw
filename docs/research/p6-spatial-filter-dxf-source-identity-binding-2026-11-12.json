@@ -1,0 +1,29 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "scope": "Bind typed SPATIAL_FILTER source identity before committing the DXF OBJECTS record.",
+  "result": "PASS",
+  "supportClaimEffect": "none",
+  "change": "writeSpatialFilter now binds its source handle to the emitted handle inside the existing record/state transaction.",
+  "validation": {
+    "normal_boundary_writer": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_spatial_filter_simple_boundary$' --output-on-failure",
+      "result": "PASS, 1/1"
+    },
+    "normal_allocation": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_spatial_filter_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1; rollback, same-codec retry, and typed readback"
+    },
+    "address_sanitizer_allocation": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_spatial_filter_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1"
+    }
+  },
+  "limitations": [
+    "Generated SPATIAL_FILTER transaction and boundary evidence only; no producer coverage or native clipping semantics are established.",
+    "No support claim is promoted."
+  ],
+  "source_sha256": {
+    "src/libdxfrw.cpp": "b71a86dd0ccd49baffbce7c5519c36b76685297befd95255bc8f8f1f0855f3bb"
+  }
+}

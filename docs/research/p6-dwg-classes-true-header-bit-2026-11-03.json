@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-classes-true-header-bit-2026-11-03",
+  "date": "2026-11-03",
+  "status": "CLASSES_HEADER_BIT_CORRECTED_ODA_REJECTION_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "authority": "Open Design Specification for .dwg files v5.4.1, section 10.2 specifies a true bit following the maximum class number and two zero RC values in the R2004+ CLASSES header.",
+  "finding": "Both the shared R2004-family and R2007+ CLASSES writers emitted false. Independent physical decoding showed max=564, RC=0/0, bit=0 on the old generated AC1021 output, versus max=514, RC=0/0, bit=1 in the ODA-generated control SHA-256 f3bb8e438a7df7ecb2a45535f548e8b035af253272d8b70cfa6056e7ec32dae3.",
+  "change": "Emit true at this existing one-bit field in both dwgWriter18 and dwgWriter24; AC1015 uses a different section layout and is unchanged. No class ordinal, manifest, or placeholder identity is altered.",
+  "validation": {
+    "selector": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_r2007_class_string_footer|libdxfrw_dwg_header_current_references|libdxfrw_dwg_header_writer_sealing)$' --output-on-failure: PASS 3/3",
+    "coverage": "Generated complete AC1018, AC1021, AC1024, AC1027 and AC1032 DWGs are decoded through their physical container sections; their CLASSES headers each contain RC=0/0, bit=1 and the immediately following class number 500, and the existing version-specific reader accepts each section. HEADER writer and source-reference controls pass.",
+    "oldInputCompatibility": "The current reader still accepts the pre-fix generated AC1021 SHA-256 0181777ea2b8963e83992984b4d138215438c74d1e6061cba2b6265fb8bc0e86, whose CLASSES header bit is false; the ordinary DWG sample probe succeeds with zero recorded CRC, entity, object or integrity errors."
+  },
+  "independentConverter": {
+    "tool": "ODA File Converter 27.1.0",
+    "inputSha256": "56689d4cab4a5ac3cf937a3346a8b5ea9c3712ca7d6b69f83da0a40bf89f4ba5",
+    "operation": "ACAD2013 DXF, recursion disabled, audit disabled",
+    "result": "The freshly generated one-LINE AC1021 output has the corrected true bit but the converter returns zero with only an .err reporting Invalid input and no DXF.",
+    "interpretation": "The bit is a spec-backed writer defect independently corroborated by the ODA control. Its correction does not resolve the broader rejection."
+  },
+  "limits": [
+    "The experimental unique-placeholder-names drawing was also rejected by ODA; it does not prove placeholders are valid. Spec section 20.4 describes object type minus 500 as a class-list index, so placeholder removal or class renumbering requires separate reference/ordinal proof and is not part of this change.",
+    "No external fixture was committed or support claim promoted."
+  ]
+}

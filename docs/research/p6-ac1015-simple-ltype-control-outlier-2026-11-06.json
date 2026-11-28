@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "title": "AC1015 simple.dwg LTYPE_CONTROL outlier screen",
+  "date": "2026-11-06",
+  "scope": "Investigate one local AC1015 read failure against the authoritative ODA wire description and an independent reader. No parser behavior or support claim is changed.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/simple.dwg",
+    "provenance": "Unauthenticated local corpus file; not committed.",
+    "version": "AC1015",
+    "bytes": 12117,
+    "sha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58"
+  },
+  "localReader": {
+    "tool": "build/dwg2dxf/dwg2dxf",
+    "sha256": "cbe1474b97de3786234d33f7be6c1287e2102b44023885626a94ead2b3d678e5",
+    "command": "dwg2dxf /Users/dli/doc/dwg/simple.dwg -y -d -v2000 /private/tmp/simple-clean-debug.dxf",
+    "traceSha256": "1ac6ed8443e71de91d6efaa0803e5889b6a09c267bd2716c4f77390e925f973c",
+    "observation": "The LTYPE_CONTROL is type 56, handle 0x05. Its parsed object size is 520 bits, equal to the full 520-bit frame. Count decodes as 25, but the reader's bounded control parser refuses at the LTYPE count/boundary check before callbacks; the file returns BAD_READ_TABLES."
+  },
+  "authoritativeSpecification": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.57 LINETYPE CONTROL (56)",
+    "page": 170,
+    "relevantRule": "For R2000, Obj size is the size in bits of the object, not including end handles. The common handle-reference sequence is described after the object fields."
+  },
+  "independentReader": {
+    "tool": "/opt/homebrew/bin/dwgread",
+    "version": "LibreDWG 0.14",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -O JSON -o /private/tmp/simple-libredwg-clean.json /Users/dli/doc/dwg/simple.dwg",
+    "jsonSha256": "81310315c0ab6edba0c14b000043e078205a5a2ce7336628bdbb973eb4fd0e9c",
+    "result": "SUCCESS; JSON reports LTYPE_CONTROL handle 0x05, size 65 bytes / 520 bits, and 25 entries. This is independent tolerant-reader evidence, not proof that the local frame matches the ODA layout.",
+    "decodedControlProfile": {
+      "entryCount": 25,
+      "firstEntries": [
+        {
+          "handle": "0x0F",
+          "headerRole": "BYBLOCK"
+        },
+        {
+          "handle": "0x10",
+          "headerRole": "BYLAYER"
+        },
+        {
+          "handle": "0x11",
+          "headerRole": "CONTINUOUS"
+        }
+      ],
+      "firstEntryRawHandleCodes": [
+        4,
+        4,
+        4
+      ],
+      "separateSpecialHandles": {
+        "byblock": {
+          "handle": "0x46",
+          "rawHandleCode": 4
+        },
+        "bylayer": {
+          "handle": "0x47",
+          "rawHandleCode": 4
+        }
+      },
+      "comparison": "The independent JSON places BYBLOCK and BYLAYER in the counted entries and also reports separate, different BYBLOCK/BYLAYER fields. It reports raw H code 4 (soft pointer) for these rows. ODA v5.4.1 \u00a720.4.57 says the count excludes BYBLOCK/BYLAYER, counts soft-owner references, and ends the references with BYLAYER/BYBLOCK hard-owner references. This is a peer-decoded profile inconsistent with the authoritative layout, not evidence for relaxing the local boundary."
+    }
+  },
+  "trackedControlComparison": {
+    "path": "tests/fixtures/dwg/ordinary_enc_AC1015.dwg",
+    "sha256": "80690dc45b2e32b4d378df4be860c51c6b3c952400aa762eb73a654e93a728dd",
+    "traceSha256": "6dd4462e4f6d62cdf6e9011a3ba82888190dc72bac88d1013cc7a33db6390505",
+    "observation": "The local reader parses its type-56 LTYPE_CONTROL (reported object size 72 bits) without a LTYPE-control failure; its later strict conversion refusal is the separate incomplete-read gate."
+  },
+  "decision": "The latest local read reproduces the failure. LibreDWG parses the object but exposes a control profile that conflicts with ODA v5.4.1 \u00a720.4.57: BYBLOCK/BYLAYER are included in the counted entries, duplicated as different special fields, and all are reported as soft pointers rather than the specified owner roles. Keep strict refusal and do not relax the AC1015 parser from this unauthenticated nonconforming source. Reconsider only with producer provenance or an independent spec-conforming source profile.",
+  "latestLocalReaderRecheck": {
+    "date": "2026-11-07",
+    "toolSha256": "ce1e0113e1f1c09a0ddf22593423e22c516b1196929aba0e20bad5bac6319dd4",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/simple.dwg -y -d -v2000 /private/tmp/simple-current-ac1015.dxf",
+    "traceSha256": "1ac6ed8443e71de91d6efaa0803e5889b6a09c267bd2716c4f77390e925f973c",
+    "result": "Same BAD_READ_TABLES at the LTYPE_CONTROL count/boundary check before any table callbacks; source and failure remain unchanged."
+  }
+}

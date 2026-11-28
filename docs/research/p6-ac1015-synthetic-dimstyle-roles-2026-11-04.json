@@ -1,0 +1,219 @@
+{
+  "date": "2026-11-04",
+  "authority": "Open Design Specification for .dwg files v5.4.1 section 20.4.68 specifies DIMSTYLE xdictionary hard-owner and xref, DIMTXSTY and dimension block hard-pointer roles.",
+  "scope": "Internally synthesized AC1015 STANDARD DIMSTYLE emits typed null xdictionary, xref and four dimension block handles and points DIMTXSTY to the emitted STANDARD text style. Explicit caller DIMSTYLE state and other versions are preserved; HEADER current TEXTSTYLE is independently resolved.",
+  "independent_source": {
+    "producer": "ODA File Converter 27.1.0 ACAD2000 from local LINE input",
+    "sha256": "43e86b11010b68f7e46fe229a7bf3c373d4544492acda950ec0c106c14f4cec6",
+    "libredwg": "LibreDWG 0.14 decodes physical STANDARD DIMSTYLE xdictionary (3.0.0), xref and four block slots (5.0.0); DIMTXSTY is a nonzero hard pointer to STANDARD text style."
+  },
+  "oda_factorial": {
+    "reader": "ODA File Converter 27.1.0 ACAD2013 DXF on local generated opt-in graph; inspect actual .err and DXF rather than exit status.",
+    "mask_bits": "1=typed xdictionary, 2=typed xref, 4=typed null DIMTXSTY, 8=four typed null block handles, 16=nonzero emitted STANDARD style target; bit 4 has no effect when 16 is set",
+    "cases": [
+      {
+        "mask": 0,
+        "sha256": "c2c5a94b3363edf1f473461e34463b34a0b6ad4c48486c2d53fc299dcf2c3882",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 1,
+        "sha256": "88c96a5503fb070f54c59b4883cf454c1313666365e17b1d753b27806621e12b",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 2,
+        "sha256": "ac9e67c6369faf0fb2d51acc585ecd24a79ee75a9c38c22dd00ff1cbd7326ccd",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 3,
+        "sha256": "a83f2fcdadf8d11cabca82f93016eb949aa7a8d6138f585fd49c3d06f29e37e1",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 4,
+        "sha256": "6fc29525665b7520762a0ee428dc19ada25e718243730563a880fe80310cc3d7",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 5,
+        "sha256": "421d7111317fe87392600092d098c9d087bafd854a42a393e128a8b8b9f9aa5d",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 6,
+        "sha256": "d8e86dc30f770ab21e602a6d70e9a1334dbb477e3288e47498f7d52be9a86615",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 7,
+        "sha256": "60856b6e84d091c79c586eaa7c9e8b1d099312244b12f4c92d00e0326a492954",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 8,
+        "sha256": "3e94b78972afc5febdbfc822aec897b954135c12add4e0d24fad9fbcd3bd76c4",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 9,
+        "sha256": "0d0a2a5bf1ffeb2d2ee12e17264ac96997cea8ea32a0521025091d4ba7712b12",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 10,
+        "sha256": "f7f98cecec4eeec30b87edcec7594a8ee781fbafb8387773d56adc6e53d72ea6",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 11,
+        "sha256": "ec48044f2d169df8da74f9df714f6b61aa689e0341088ca3d8f1a7d04b73729c",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 12,
+        "sha256": "8a4b7535324bde8f05cd29868c334894505da5f378b28c950e45149048c21df7",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 13,
+        "sha256": "b1cea95f657489dd8e843d2207a3fde3189d9de7a4267b5f2b1bad35fac9b989",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 14,
+        "sha256": "4ad9c34011207662b4b8b16388cb373be78c5f5c1c2f009cfdc5acf175e52755",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 15,
+        "sha256": "67a039dbdebf9aefc558996ac0a960d32b22ff9e5075d57fac10f0ebebe44264",
+        "first_error": "Object improperly read: <AcDbPlaceHolder> (31)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 16,
+        "sha256": "98c4f5c72a47c8fc6740ba0df1887bd25b90e55d6c6e319d54902a1a6bbd07ef",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 17,
+        "sha256": "230d443c4f213483b8eed897b27ab0eda7b47c35be44c44d8b5eba920818b521",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 18,
+        "sha256": "b471f8703d4c02dc08a612d1d151a01d20d8e34e2e2b43d335171a3cede04332",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 19,
+        "sha256": "fd4128b8cedb7b47c53ff0466196f224643465e957573ed8b7d3bc189551e4aa",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 20,
+        "sha256": "98c4f5c72a47c8fc6740ba0df1887bd25b90e55d6c6e319d54902a1a6bbd07ef",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 21,
+        "sha256": "230d443c4f213483b8eed897b27ab0eda7b47c35be44c44d8b5eba920818b521",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 22,
+        "sha256": "b471f8703d4c02dc08a612d1d151a01d20d8e34e2e2b43d335171a3cede04332",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 23,
+        "sha256": "fd4128b8cedb7b47c53ff0466196f224643465e957573ed8b7d3bc189551e4aa",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 24,
+        "sha256": "eb0d32528e181c47e465dd1c99a651e591d8db9222659d478d9264886bbf7620",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 25,
+        "sha256": "327659cdf2c8475d6576680ab548eb84d6f007386fb5998980df988998d7f7da",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 26,
+        "sha256": "aeacaaed4361628c103e2acbb5fc00e48725e85f326b31afe131580bf79a050c",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 27,
+        "sha256": "b562b80ce610c8c08c54fdaba6837f6ec3dc2b0e7371b0fb20f7be94bb127b2a",
+        "first_error": "Object improperly read: <AcDbPlaceHolder> (31)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 28,
+        "sha256": "eb0d32528e181c47e465dd1c99a651e591d8db9222659d478d9264886bbf7620",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 29,
+        "sha256": "327659cdf2c8475d6576680ab548eb84d6f007386fb5998980df988998d7f7da",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 30,
+        "sha256": "aeacaaed4361628c103e2acbb5fc00e48725e85f326b31afe131580bf79a050c",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 31,
+        "sha256": "b562b80ce610c8c08c54fdaba6837f6ec3dc2b0e7371b0fb20f7be94bb127b2a",
+        "first_error": "Object improperly read: <AcDbPlaceHolder> (31)",
+        "dxf_exists": false
+      }
+    ],
+    "result": "Only mask 15 (typed-null DIMTXSTY) and masks 27/31 (actual STANDARD target) advance to AcDbPlaceHolder (31); all other masks fail at AcDbDimStyleTableRecord (15). None produces DXF. Production output matches mask 27 SHA exactly. No inference about the later error cause or general acceptance follows."
+  },
+  "validation": {
+    "result": "PASS libdxfrw_dwg_header_writer_sealing in isolated build across six versions: exact AC1015 handle bytes; caller null and non-null DIMSTYLE, explicit caller STANDARD font with a distinct HEADER current CUSTOM style; target identity equals emitted STANDARD style handle; invalid target style and invalid DIMSTYLE cause no-output rollback and retry; following LINE readback. LibreDWG verifies the candidate handle target and typed-null roles.",
+    "isolation": "Clean archive cde47be4563a24d7dcb31a6243999a5ee2655b19 plus committed APPID change 15263bc3 and the isolated DIMSTYLE slice, while material graph changes remain in progress.",
+    "source_sha256": {
+      "src/drw_objects.cpp": "7d30252300f661b77ea06cf09cbbe06d5e7d6f4fb38ba2a7272af9aa9c82378e",
+      "src/intern/dwgwriter15.cpp": "4e9b145670f1ca2e190f0160e51d67f94abf5354763b1313e6b94ac4f94b6e71",
+      "tests/dwg_reader_matrix_tests.cpp": "9449a1e6d8856a18c61912f8d98a46a4ab4f0485bef3650134e9ccabd7b540c6"
+    }
+  },
+  "limits": "No broad AC1015 interoperability claim; scratch files are not committed."
+}

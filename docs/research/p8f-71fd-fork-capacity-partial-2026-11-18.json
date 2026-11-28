@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8f-71fd-fork-capacity-partial-2026-11-18",
+  "date": "2026-11-18",
+  "status": "FORK_FAST_PASSED_FOCUSED_MATRIX_INCOMPLETE",
+  "supportClaimEffect": "none",
+  "headSha": "71fd9592e9fd305b578194da70bcb5616af4f66c",
+  "implementationDigestSha256": "4d054a406e80075b9f17d312ed45d2e15a8caeb6fbaf21b784c81aae0a4c09b5",
+  "fork": {
+    "fastRun": "https://github.com/dxli/libdxfrw/actions/runs/44386815396",
+    "fastResult": "Attempt 1 passed, including source inventory, fixture policy and fast CLI regressions.",
+    "focusedRun": "https://github.com/dxli/libdxfrw/actions/runs/44386815283",
+    "focusedResult": {
+      "schema": "partial-native-artifact-evidence-v1",
+      "runId": 44386815283,
+      "attempt": 1,
+      "runConclusion": "failure",
+      "headSha": "71fd9592e9fd305b578194da70bcb5616af4f66c",
+      "aggregateAccepted": false,
+      "platforms": [
+        {
+          "platform": "linux-gcc",
+          "jobId": 135093613608,
+          "jobConclusion": "success",
+          "artifactId": 14466872988,
+          "archiveSha256": "b34a6a8e3ca0c21562879fb39044ded1fa36acd0bc426ffaf3fd8cee54ab0f34",
+          "receiptSha256": "6f575e09a4aaf7739eb4c01c445dbb7147d135e3ca8da5767ddef22a7e3a5b6e",
+          "implementationDigest": "4d054a406e80075b9f17d312ed45d2e15a8caeb6fbaf21b784c81aae0a4c09b5",
+          "receiptContentCheck": "pass"
+        },
+        {
+          "platform": "windows-msvc",
+          "jobId": 135093613880,
+          "jobConclusion": "success",
+          "artifactId": 14466644112,
+          "archiveSha256": "d6ad7d89708aa8c8a7e39bee476a0f5ea0430fb3cb14058cae7b862316d06a75",
+          "receiptSha256": "9f2bd8d534b143862e704b2773d8f75e7907ad9638e615486fc694776c025733",
+          "implementationDigest": "4d054a406e80075b9f17d312ed45d2e15a8caeb6fbaf21b784c81aae0a4c09b5",
+          "receiptContentCheck": "pass"
+        }
+      ]
+    },
+    "macosJob": {
+      "id": 135093614417,
+      "createdAt": "2026-11-18T20:02:55Z",
+      "cancelledAt": "2026-11-18T20:17:57Z",
+      "result": "Cancelled before any runner or steps; GitHub annotation reports no hosted macOS ARM64 runner acquired. No artifact or test result."
+    }
+  },
+  "upstream": {
+    "pr": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44386833953",
+    "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44386833974",
+    "observed": "The fast job and the focused workflow contract were still queued without assigned runners at this observation.",
+    "masterPolicy": "Authenticated master branch protection reported strict required-status checks with empty contexts and checks, and enforce_admins enabled. The effective rules API returned an empty list. PR mergeable_state was blocked. These responses do not identify a named check or establish merge authorization."
+  },
+  "validation": {
+    "captureScript": "/private/tmp/p8f_partial_71fd.py",
+    "method": "Fetch attempt, jobs, artifacts and the two archive ZIPs from the authenticated API. Match job and run identity, ZIP digests and sizes, canonical receipts, observation, JUnit and inventory. Each platform reports 7/7 tests and the exact implementation digest.",
+    "scratchRoot": "/private/tmp/libdxfrw-p8f-71fd-fork-partial",
+    "apiResponseSha256": {
+      "run.json": "6f573dcaccceec712a30ad4295a544314b6a45f36b234943051a50298ca811c8",
+      "jobs.json": "e61cc7f9f9ebc627057f112b9fa92c0f8808a48b3194c41df32389832cc1d187",
+      "artifacts.json": "c415ebf8dbc30fea281d31966c3e134447bf94107d34590b6cc18e080c4d350d"
+    }
+  },
+  "remaining": "Keep the current PR merge-ref identity stable until the queued runs resolve. Authenticate a complete three-platform focused set for the selected digest. The existing verifier requires a successful run attempt for each accepted job; a successful macOS-only retry cannot qualify the prior otherwise-failed attempt by itself. Reserve broad and fuzz runs for final integration."
+}

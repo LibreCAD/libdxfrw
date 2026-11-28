@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Second physical AC1021 DICTIONARYVAR selected graph",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Reuse the bounded AC1021 AcDbVariableDictionary selected-output proof on a second existing local source, with a different six-record graph. This supplements the 12-record children-room profile but does not qualify source frames or whole-drawing conversion.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; producer, author and independence from other local samples are not authenticated. No drawing fixture or derivative is committed."
+  },
+  "graph": {
+    "root": "One AcDbVariableDictionary NOD key to its owner dictionary.",
+    "records": 6,
+    "checks": "Each selected typed DICTIONARYVAR retains its source identity, owner/reactor relation, schema, value and ordered dictionary membership in fresh ASCII/Binary output readback.",
+    "projection": "Only the rooted variable dictionary and its six selected records are passed to the serializer. Unrelated document content is excluded by the test projection."
+  },
+  "qualification": {
+    "result": "PASS for selected typed graph output and readback only.",
+    "encodings": ["ASCII", "Binary"],
+    "targetVersion": "AC1021",
+    "failureRetry": "A post-OBJECTS source value mutation refuses atomically and preserves the existing destination; restoring the source allows the same writer to retry successfully.",
+    "sourceFrameQualification": "The selector reports zero newly output-qualified opaque source frames for this source; this receipt makes no opaque-frame qualification claim.",
+    "wholeSource": "Not attempted as a qualifying route; this receipt establishes no whole-drawing completeness or conversion result."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-ac1021-physical-selected-graph /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg /private/tmp/architectural-dictionaryvar",
+      "result": "PASS; six values, rooted owner graph, typed/raw fields, ASCII/Binary output, mutation refusal, destination preservation and same-writer retry"
+    },
+    "binding": {
+      "testSourceSha256": "29aa72486243709fd3b0015389d2c236069a11bc77318ab09371ecd22ae5fb70",
+      "executableSha256": "9cbb888ebf6a691ece7def64ff57f0cd5d6ab193870ffb598b00be648d58f8c5"
+    },
+    "existingProfileRegression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-ac1021-physical-selected-graph /Users/dli/doc/dwg/children-room-decoration.dwg /private/tmp/children-room-ac1021-dictionaryvar",
+      "result": "PASS; existing 12-record source profile remains passing"
+    },
+    "fullSuites": "NOT RUN; focused selectors only."
+  },
+  "limits": [
+    "The sample's origin and producer are not authenticated; a different pathname/hash does not prove an independent producer.",
+    "No opaque source-frame qualification is established by this selector for the second source.",
+    "No native getvar/setvar behavior, consumer acceptance, other version profile or support claim is established.",
+    "No new drawing fixtures were created or committed."
+  ],
+  "nextAction": "Continue with a profile that closes an explicit remaining output or semantic gate; do not count this typed selected graph as opaque-frame qualification."
+}

@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 AcExpr physical FIELD graph output readiness screen",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Determine whether the 15 complete AC1021 AcExpr FIELD records in the existing local source form an output-eligible graph with exact ownership, FIELDLIST membership, and consumer-visible references.",
+  "source": {
+    "path": "tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "provenance": "Pre-existing untracked local input. It was read for this census and was not staged or committed."
+  },
+  "observations": {
+    "fieldCensus": {
+      "typedFields": 86,
+      "rawFieldFrames": 142,
+      "rawOnlyFields": 56,
+      "completeAcExprFields": 15,
+      "allAcExprParentsTyped": true,
+      "allAcExprParentsListTheirChild": true,
+      "allAcExprRecordsHaveOneFieldListMembership": true
+    },
+    "fieldList": {
+      "count": 1,
+      "handle": "0xDBD3",
+      "owner": "0xC",
+      "orderedSlots": 142,
+      "slotsPointingToTypedFields": 86,
+      "remainingSlotsPointingToRawOnlyFields": 56
+    },
+    "consumerReferences": {
+      "typedTableCount": 2,
+      "typedTableContentObjectCount": 0,
+      "typedTableCellFieldReferencesToAcExpr": 0,
+      "sourceAcExprRootsHaveConsumerVisibleRelation": false
+    },
+    "acExprSourceFrames": "All 15 records are complete flags=4/type=2 AcExpr FIELDs; the focused selector reports each handle, parent handle, FIELDLIST membership, source record offset, value profile, and table-reference count. Each is nested under a typed _text FIELD parent."
+  },
+  "decision": "No physical FIELD output route is admitted from this witness. Although the 15 AcExpr bodies and parent-child links are complete, the enclosing FIELDLIST includes 56 raw-only FIELD handles and the available typed tables have no references to these AcExpr roots. The source therefore lacks a complete FIELDLIST/output graph for this candidate.",
+  "implementationBoundary": {
+    "changed": "The opt-in AC1021 FIELD census selector now checks and reports owner, parent-child, FIELDLIST membership, TABLE/TABLECONTENT relation, and physical frame publication details. The source inventory selector prints typed DICTIONARY/XRECORD owner and payload summaries for the standard-object frames.",
+    "notChanged": "No parser or writer admission was broadened. Physical FIELD output, FIELDLIST membership output, expression semantics, and native evaluation remain unqualified.",
+    "excluded": "The 42 raw-only AcObjProp records, nine unresolved AcSm records, the negative-count record, 71 checksum child suffix cases, and other unexplained FIELD tails remain outside the candidate."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS with -Werror"
+    },
+    "selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --field-ac1021-physical-profile-census tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+      "result": "PASS; 15/15 parent links, 15/15 single FIELDLIST memberships, zero TABLE/TABLECONTENT field references; 142 slots versus 86 typed and 56 raw-only FIELDs.",
+      "logPath": "/private/tmp/ac1021-field-census.log",
+      "logSha256": "7d9e49e34255cb7c32c3f42d4ced94b66400f60aa4f5f937976981e4ba1762a5"
+    },
+    "standardObjectInventory": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --opaque-dwg-source-inventory /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS; current AC1021 source inventory prints standard DICTIONARY/XRECORD owners, entry/value counts, reactors, and extension dictionary handles.",
+      "logPath": "/private/tmp/children-room-inventory-current.log",
+      "logSha256": "9ee6bf366301bc520d600cd3f307f231a54e6ec5eabd6133d552cbd721e9eec3"
+    },
+    "testSourceSha256": "320a261937e1702e67e86f6c48dc00b369a834de3795eba0578f3d0de1976914",
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN",
+    "fixturesCommitted": false
+  },
+  "nextAction": "This FIELD candidate is screened out. Do not repeat the completed children-room DICTIONARY/XRECORD inventory: its 112 standard-object frames have selected-output proof. Reopen FIELD output only with a source that has complete FIELDLIST membership and a consumer-visible FIELD root relation; otherwise select a distinct evidence-ready implementation slice from the plan."
+}

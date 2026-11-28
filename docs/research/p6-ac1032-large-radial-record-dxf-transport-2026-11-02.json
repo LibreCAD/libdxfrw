@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1032-large-radial-record-dxf-transport-2026-11-02",
+  "date": "2026-11-02",
+  "title": "Selected AC1032 large-radial dimension output and typed readback",
+  "status": "SELECTED_RECORD_ASCII_BINARY_TYPED_READBACK_PASS; PICTURE_GRAPH_AND_NATIVE_DISPLAY_OPEN",
+  "supportClaimEffect": "none",
+  "scope": "Verify selected-record DXF transport of the tracked AC1032 LARGE_RADIAL_DIMENSION fixture, including its common dimension fields and jogged radial points. This does not qualify the source drawing's complete graph or visual rendering.",
+  "source": {
+    "path": "tests/fixtures/dwg/large_radial.dwg",
+    "repositoryStatus": "Already tracked in libdxfrw; no fixture added or modified",
+    "version": "AC1032",
+    "sizeBytes": 12632,
+    "sha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+    "largeRadialRecordCount": 1
+  },
+  "method": {
+    "reader": "FixtureInterface::fileImport through the production DWG reader and dx_iface callbacks",
+    "selection": "Copy the single typed DRW_DimLargeRadial record into a fresh dx_data together with the source HEADER and line type, layer, DIMSTYLE, text-style and APPID tables. Clear group 2 on the isolated copy so no edge points to the deliberately omitted named picture block; other source records and that block graph are not copied.",
+    "writer": "Production dx_iface::fileExport to AC1032 ASCII and Binary DXF",
+    "readback": "Fresh FixtureInterface::fileImport and require exactly one typed DRW_DimLargeRadial callback per emitted file"
+  },
+  "fieldsCompared": [
+    "dimension name, explicit text, style, type and attachment",
+    "text-line style/factor, direction and horizontal direction",
+    "flip-arrow flags and measurement value",
+    "extrusion vector, center point and text point",
+    "chord point, overridden center, jog vertex and jog angle"
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "files": [
+      "tests/dwg_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_fixtures$' --output-on-failure",
+      "result": "PASS, 1/1; tracked AC1032 fixture import plus selected-record ASCII/Binary writer output and typed readback"
+    },
+    "testSourceSha256": "7e33edfae331179c83b4871470e83b9570638eeb2e4dee26f86ed868b734a6f0",
+    "testExecutableSha256": "ee7cbb278c5af9f43b5d7d0ce2cb00d307d2d3c06c3a1e23eaec3690bd0084c5",
+    "diffCheck": "PASS",
+    "fullSuites": false
+  },
+  "limitations": [
+    "The isolated projection clears group 2 and does not include the fixture's named dimension picture block; picture-block graph closure and rendered appearance are not qualified.",
+    "Typed DXF readback verifies field transport only. No independent geometry engine or native CAD evaluation was used.",
+    "The result does not qualify strict whole-document conversion, other producers or versions, or general dimension support."
+  ],
+  "planImpact": {
+    "phase": "P6",
+    "status": "OPEN",
+    "completedSlice": "The single typed AC1032 large-radial record from the tracked fixture survives production ASCII and Binary DXF output and typed readback for the compared common and jog-specific fields.",
+    "remaining": "Dimension picture-block graph closure, native display/evaluation, additional source profiles, and other P6 semantic/version boundaries.",
+    "nextReadyPacket": "Continue the P6 residual audit on a source-backed annotation or geometry profile; preserve strict graph closure and keep native behavior claims unqualified."
+  }
+}

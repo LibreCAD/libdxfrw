@@ -1,0 +1,41 @@
+{
+  "id": "RPP-5qx",
+  "title": "MLINESTYLE APPID and ordered XDATA profile",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated MLINESTYLE authority recipe; no external fixture is used.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "appid": "MLINE_XDATA_PROFILE",
+    "xdata": [
+      { "code": 1001, "value": "MLINE_XDATA_PROFILE" },
+      { "code": 1000, "value": "profile-owned-xdata" }
+    ],
+    "edit": "MLINESTYLE description changed to 'edited MLINE XDATA profile'."
+  },
+  "proof": {
+    "source": "Physical source groups and fresh reader show one APPID table provider and the exact ordered MLINESTYLE XDATA pair.",
+    "output": "Physical output groups show one APPID provider and the exact ordered MLINESTYLE XDATA pair; fresh libdxfrw readback verifies provider, typed values, and edited description.",
+    "failure_retry": "A 32-byte group-1001 APPID value is refused for each output encoding, preserves the pre-existing destination sentinel and caller state, then succeeds after restoring the valid APPID on the same adapter.",
+    "counts": {
+      "profiles": 4,
+      "successful_readbacks": 8,
+      "refusals_with_destination_preservation": 4,
+      "same_adapter_retries": 4
+    }
+  },
+  "validation": {
+    "selector": "libdxfrw_mline_style_xdata",
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_style_xdata$' --output-on-failure",
+    "result": "PASS",
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineStyleXdataControls",
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This qualifies selected AC1027 XDATA transport for one MLINESTYLE host and one APPID provider profile; it is not independent native semantic evidence.",
+    "Other XDATA groups, ordering, APPID identity/collision cases, consumer schemas, versions, proxy/unknown subclasses, native rendering, and composed document closure remain open."
+  ]
+}

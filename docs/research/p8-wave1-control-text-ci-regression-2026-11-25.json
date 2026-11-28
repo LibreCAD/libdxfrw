@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-wave1-control-text-ci-regression-2026-11-25",
+  "libraryCommit": "f320f1b8",
+  "previousDigest": "b274f634af9aeb2ca0e8a3b6ddc907a2429f391d6f9c5bfed6b2cbf200ffe44b",
+  "implementationDigestSha256": "6dd91b2be8f6dd49ddd13bccb0064a5c4a23c2652eb798605c29017b91e5500e",
+  "problem": "The hosted fast-regressions job failed because an older Wave 1 test expected ASCII and binary typed TEXT containing CR/LF to be refused after the single-line transport change intentionally made those values writable.",
+  "change": "Verify both encodings export successfully, reimport the exact control text and then retain the following LINE. The raw ASCII framing refusal and binary framing controls remain intact.",
+  "validation": [
+    "The complete libdxfrw_wave1_tests executable passed on macOS ARM64 against the corrected test.",
+    "A clean checkout at f320f1b8 produced the stated 775-input digest; updating the excluded status overlay passes its digest check.",
+    "The hosted fast-regressions job must be rerun on the new head."
+  ],
+  "limitations": [
+    "The test-only change reopens digest-bound qualification; earlier native and platform receipts are not transferred.",
+    "All claims remain EXPERIMENTAL and no new route is advertised."
+  ],
+  "supportClaimEffect": "none"
+}

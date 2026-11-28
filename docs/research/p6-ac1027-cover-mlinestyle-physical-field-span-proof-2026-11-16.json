@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1027-cover-mlinestyle-physical-field-span-proof-2026-11-16",
+  "date": "2026-11-16",
+  "status": "AC1027_MLINESTYLE_SPAN_DIFFERENTIAL_PASS",
+  "scope": "Physical field spans and common handle roles for producer-authored AC1027 MLINESTYLE handle 0x18 in Cover.dwg. No output, MLINE entity, graph closure, or native semantic claim is made.",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "producer": "Not independently established by this span proof",
+    "objectNumber": 20,
+    "objectHandle": "0x18",
+    "objectType": 73,
+    "objectBytes": 84,
+    "objectAddress": 2852
+  },
+  "odaReference": {
+    "edition": "Local copy labeled Open Design Specification for .dwg files v5.4.1; identity against canonical copy not verified",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["20.1", "20.4.73"],
+    "pages": [103, 104, 192, 193],
+    "interpretation": "The hash-pinned local copy describes MLINESTYLE field order as flags, fill CMC, start/end angles, line count, repeated offset/CMC/pre-R2018 linetype index, then the R2007+ string stream and common handle stream. Its framing places the string-size short at bits 622-638, has_strings at 638, and handles at bit 639. The payload ends at bit 672 with one alignment bit after the handles; the CRC follows the 84-byte object payload. This interpretation is provisional until the local copy is verified against the canonical authoritative file."
+  },
+  "peer": {
+    "implementation": "GNU LibreDWG",
+    "sourceCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "sourceArchive": "/private/tmp/libredwg-mlinestyle-span-20261116",
+    "binaryPath": "/private/tmp/libredwg-mlinestyle-span-20261116/build-span/dwgread",
+    "binarySha256": "30d22e2bd3d0452ec9f3d31e515f635ebf8493b1b5f8bbfb7f6c64e8ebff53fe",
+    "buildCommand": "cmake -S . -B build-span -DDISABLE_WERROR=ON -DHAVE_C_FSTACK_CLASH_PROTECTION=OFF -DCMAKE_C_FLAGS='-D_GNU_SOURCE -D_DARWIN_C_SOURCE -DLIBREDWG_MLINESTYLE_SPAN_TRACE' && cmake --build build-span --target dwgread -j4",
+    "runCommand": "build-span/dwgread -v5 -OminJSON -o /private/tmp/p6-h1-ac1027-cover-peer-span.json /Users/dli/doc/dwg/Cover.dwg > /dev/null 2> /private/tmp/p6-h1-ac1027-cover-peer-span.log",
+    "tracePath": "/private/tmp/p6-h1-ac1027-cover-peer-span.log",
+    "traceSha256": "34bd7c8028da79c07f78cfc21e5a08a149a15f53b3f60e6d0faecb4e43e78b8c",
+    "jsonPath": "/private/tmp/p6-h1-ac1027-cover-peer-span.json",
+    "jsonSha256": "dc5a1594e25166a4c5426f35000843494e56a60e1b2bf352d75ecf3190f59af3",
+    "instrumentationFiles": {
+      "src/dwg.spec": "0c347a84ba061e260e8fed200a082d63b0e78e236ad2b577b80b3c267b1cfa65",
+      "src/dec_macros.h": "98763983d573a5405cf53e5e32805934d1e43f98a4bc712fb0716047f9f1fe24",
+      "src/enc_macros.h": "2d7b7b37cf5dd90f71390813a3150cc32c1ea8a9b12e6e0fe7b8a821b73a35a5",
+      "jsmn/jsmn.h": "321db4597e73251910ffa3f746cf004bb151a53ba8d0ccca560bd4a4949fa25d"
+    },
+    "submodule": {
+      "path": "jsmn",
+      "commit": "85695f3d5903b1cd5b4030efe50db3b4f5f3c928"
+    },
+    "exitStatus": 0
+  },
+  "libdxfrwObserverRun": {
+    "parserSource": "src/drw_objects.cpp",
+    "parserSourceSha256": "fcbffe51f10f66b332fcc9452ef6d5893595db53ddc893b6cd2731da326613bd",
+    "binaryPath": "/private/tmp/libdxfrw-p6-h1-build/dwg2dxf/dwg2dxf",
+    "binarySha256": "58f40dc5d69b4699fdb398574dd5958d08b75b460ffe4b5674519c4b48309879",
+    "buildCommand": "cmake -S . -B /private/tmp/libdxfrw-p6-h1-build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_FLAGS=-DDRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE && cmake --build /private/tmp/libdxfrw-p6-h1-build --target dwg2dxf -j4",
+    "runCommand": "/private/tmp/libdxfrw-p6-h1-build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Cover.dwg -y -d -v2010 /private/tmp/p6-h1-ac1027-libdxfrw.dxf > /dev/null 2> /private/tmp/p6-h1-ac1027-libdxfrw.log",
+    "tracePath": "/private/tmp/p6-h1-ac1027-libdxfrw.log",
+    "traceSha256": "893372f41c19ed61d87abbc3a793b5add1315b8de47386acc4dc182f7c3508b5",
+    "observerMacro": "DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE",
+    "observerMacroDefinedInNormalBuilds": false,
+    "exitStatus": 1,
+    "exitInterpretation": "DWG decoding reached the target MLINESTYLE and emitted observer spans. Strict DXF export refused unrelated unqualified AC1027 source references. The partial output is not used as evidence and no full-file conversion is claimed."
+  },
+  "object": {
+    "objectNumber": 20,
+    "handleDecimal": 24,
+    "handleHex": "0x18",
+    "type": 73,
+    "xDictionaryMissing": 1,
+    "handleRoles": {
+      "ownerhandle": {"rawCode": 4, "target": 23},
+      "reactors[0]": {"rawCode": 4, "target": 23}
+    }
+  },
+  "frame": {
+    "sizeBytes": 84,
+    "fixedType": 73,
+    "address": 2852,
+    "preHandleBits": 639,
+    "stringDataBits": 140,
+    "stringSizeFieldBits": [622, 638],
+    "hasStringsBit": 638,
+    "handleStartBit": 639,
+    "handleEndBit": 671,
+    "handlePaddingBits": 1,
+    "payloadEndBit": 672,
+    "crcHex": "6D13",
+    "crcCoverageStart": 2849,
+    "crcCoverageEnd": 2936,
+    "crcCoverageBytes": 87
+  },
+  "spans": [
+    {"stream": "body", "field": "flags", "startBit": 40, "endBit": 42},
+    {"stream": "body", "field": "fill_color", "startBit": 42, "endBit": 86},
+    {"stream": "body", "field": "start_angle", "startBit": 86, "endBit": 152},
+    {"stream": "body", "field": "end_angle", "startBit": 152, "endBit": 218},
+    {"stream": "body", "field": "num_lines", "startBit": 218, "endBit": 226},
+    {"stream": "body", "field": "element[0].offset", "startBit": 226, "endBit": 292},
+    {"stream": "body", "field": "element[0].color", "startBit": 292, "endBit": 336},
+    {"stream": "body", "field": "element[0].lt.index", "startBit": 336, "endBit": 354},
+    {"stream": "body", "field": "element[1].offset", "startBit": 354, "endBit": 420},
+    {"stream": "body", "field": "element[1].color", "startBit": 420, "endBit": 464},
+    {"stream": "body", "field": "element[1].lt.index", "startBit": 464, "endBit": 482},
+    {"stream": "string", "field": "name", "startBit": 482, "endBit": 620},
+    {"stream": "string", "field": "description", "startBit": 620, "endBit": 622},
+    {"stream": "string", "field": "fill_color.embedded", "startBit": 622, "endBit": 622},
+    {"stream": "string", "field": "element[0].color.embedded", "startBit": 622, "endBit": 622},
+    {"stream": "string", "field": "element[1].color.embedded", "startBit": 622, "endBit": 622},
+    {"stream": "handle", "field": "ownerhandle", "startBit": 639, "endBit": 655, "rawCode": 4, "target": 23},
+    {"stream": "handle", "field": "reactors[0]", "startBit": 655, "endBit": 671, "rawCode": 4, "target": 23}
+  ],
+  "verification": {
+    "peerAndLocalSpans": "exact match across body, string, and handle streams after normalizing peer flag -> flags and lines[i] -> element[i] labels",
+    "peerHandleRoles": "owner and reactor role targets agree with the independently parsed common handle stream",
+    "frame": "object size, string flag/length, handle boundary, alignment, and CRC frame are consistent with the hash-pinned local v5.4.1-labeled copy; canonical authoritative file identity remains to be verified",
+    "focusedSelector": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4 && ctest --test-dir build-gcc -R '^dwg2dxf_mline_style_typed_capture_limits$' --output-on-failure",
+      "result": "PASS 1/1 in 0.32 seconds",
+      "fixturesAdded": 0
+    },
+    "negativeControl": "the verifier shifts one span by one bit and requires the differential check to reject it",
+    "fixturesAdded": 0
+  },
+  "limitations": [
+    "One AC1027 file and one MLINESTYLE object only; this does not qualify other DWG versions or producer prevalence.",
+    "No MLINE entity referencing this style was bound in Cover.dwg; MLINE geometry/output remain separate gates.",
+    "The observer build deliberately refuses full-file strict DXF export because unrelated AC1027 references are not qualified.",
+    "No field decoding change was required or made by this physical-span comparison.",
+    "The canonical ODA PDF path was unavailable; verify the hash-pinned local PDF copy against the authoritative file before using its details to justify a decoder edit.",
+    "No support claim is promoted."
+  ]
+}

@@ -1,0 +1,257 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p7-ac1018-sat1-opencadkernel-lift-2026-11-12",
+  "purpose": "Check all seven source-bound AC1018 SAT-v1 solids with an independent SAT parser and non-OCCT B-rep kernel after exact DXF carrier extraction.",
+  "sourceBinding": {
+    "dwgReceipt": "docs/research/p7-ac1018-sat-v1-bounded-extraction-2026-11-11.json",
+    "projectionReceipt": "docs/research/p7-ac1018-sat-v1-physical-dxf-projection-2026-11-12.json",
+    "dwgPath": "/private/tmp/p7-trattocad-pulley.dwg",
+    "dwgSha256": "6002b39780e7c1c3980c885f319c1b03721aa8ae216ca3c16d3a619ebaa11ad6",
+    "dwgVersion": "AC1018",
+    "entity": "3DSOLID",
+    "sourceHandle": "0x2d",
+    "sourcePayloadBytes": 234503,
+    "producerProvenance": "Unverified public TrattoCAD sample; no native producer or signed provenance claim."
+  },
+  "carrierBinding": {
+    "asciiDxfPath": "/private/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-ac1018-sat-v1-physical-projection/solid-ascii.dxf",
+    "asciiDxfSha256": "9bc70c57104f5f126ed5158288c862d582be9e2f6492ed8e8795bfd3dcf06529",
+    "selectedDxfHandle": "0x40",
+    "extraction": "tools/research/decode_dxf_sat1.py reverses the SAT-v1 transform from the exact handle 0x40; the output is checked byte-for-byte against the source payload through the physical-projection selector.",
+    "satPath": "/private/tmp/p7-ac1018-largest.sat",
+    "satBytes": 234503,
+    "satSha256": "242ec62ba86e49ff3c09175837230118f044c3fe5a13f712f2aaa722e08d5b5f",
+    "satHeader": "400 3781 1 0",
+    "endMarker": "End-of-ACIS-data (unprefixed)"
+  },
+  "independentRoute": {
+    "repository": "https://github.com/HakanSeven12/OpenCADStudio",
+    "revision": "36981c6abe76e4b69d0a8ac5e210c35a0e8f681c",
+    "crate": "ocs_acis",
+    "satParser": "ACadRust",
+    "parserRevision": "ce8a148568e7a80a80f50797bf287a651d1259c7",
+    "kernel": "OpenCADKernel",
+    "kernelRevision": "802f75134a5606d34bd34dac0d3508565537b067",
+    "scratchProbe": "/private/tmp/opencadstudio-p7/crates/ocs_acis/tests/libdxfrw_ac1018_sat1_probe.rs",
+    "scratchProbeSha256": "283162ea7a855dc3530630454de19c93da7127c6f2c33e0280d4bb9ff3948855",
+    "cargoTargetDir": "/private/tmp/opencad-p7-target",
+    "normalization": "None; the extracted SAT stream was passed directly to SatDocument::parse and ocs_acis::lift."
+  },
+  "result": {
+    "headerVersion": "4.0.0",
+    "declaredBodies": 1,
+    "recordCount": 3781,
+    "recordInventory": {
+      "body": 1,
+      "lump": 1,
+      "shell": 1,
+      "face": 200,
+      "loop": 202,
+      "coedge": 1192,
+      "edge": 596,
+      "vertex": 396
+    },
+    "liftedBodies": 1,
+    "kernelBody": {
+      "lumps": 1,
+      "shells": 1,
+      "faces": 200,
+      "loops": 202,
+      "coedges": 1192,
+      "edges": 596,
+      "vertices": 396,
+      "surfaces": 200,
+      "curves": 596,
+      "validationFlaws": 0
+    },
+    "loss": {
+      "surfaces": 0,
+      "curves": 0,
+      "brokenReferences": 0
+    },
+    "allSelectedCarriers": [
+      {
+        "sourceHandle": "0x27",
+        "satBytes": 14581,
+        "satSha256": "627c04e6acbbf3d830d8e88b74ff86638593c3dbaaa717a372a9de9bb2d13e13",
+        "headerVersion": "4.0.0",
+        "recordCount": 353,
+        "liftedBodies": 1,
+        "kernelBody": {
+          "faces": 22,
+          "loops": 42,
+          "coedges": 96,
+          "edges": 48,
+          "vertices": 36,
+          "surfaces": 22,
+          "curves": 48,
+          "validationFlaws": 0
+        },
+        "loss": {
+          "surfaces": 0,
+          "curves": 0,
+          "brokenReferences": 0
+        },
+        "result": "PASS"
+      },
+      {
+        "sourceHandle": "0x28",
+        "satBytes": 1289,
+        "satSha256": "5c366bfc8b4a3b2feedf125a99b14936a9372fcbfca824ce804cb7b6e5ef1cc7",
+        "headerVersion": "4.0.0",
+        "recordCount": 25,
+        "liftedBodies": 1,
+        "kernelBody": {
+          "faces": 3,
+          "loops": 4,
+          "coedges": 4,
+          "edges": 2,
+          "vertices": 2,
+          "surfaces": 3,
+          "curves": 2,
+          "validationFlaws": 0
+        },
+        "loss": {
+          "surfaces": 0,
+          "curves": 0,
+          "brokenReferences": 0
+        },
+        "result": "PASS"
+      },
+      {
+        "sourceHandle": "0x29",
+        "satBytes": 9986,
+        "satSha256": "4013cd8b418a5bb0fd4454cb43440263730638666cae99862b755d6ddcd82211",
+        "headerVersion": "4.0.0",
+        "recordCount": 235,
+        "liftedBodies": 1,
+        "kernelBody": {
+          "faces": 20,
+          "loops": 48,
+          "coedges": 48,
+          "edges": 24,
+          "vertices": 24,
+          "surfaces": 20,
+          "curves": 24,
+          "validationFlaws": 0
+        },
+        "loss": {
+          "surfaces": 0,
+          "curves": 0,
+          "brokenReferences": 0
+        },
+        "result": "PASS"
+      },
+      {
+        "sourceHandle": "0x2a",
+        "satBytes": 2417,
+        "satSha256": "f18ca1d2b79c1be74974107ae55d7440c7f62a7cd8ac1d0c7ac8a4a9531b08ce",
+        "headerVersion": "4.0.0",
+        "recordCount": 63,
+        "liftedBodies": 1,
+        "kernelBody": {
+          "faces": 6,
+          "loops": 12,
+          "coedges": 12,
+          "edges": 6,
+          "vertices": 6,
+          "surfaces": 6,
+          "curves": 6,
+          "validationFlaws": 0
+        },
+        "loss": {
+          "surfaces": 0,
+          "curves": 0,
+          "brokenReferences": 0
+        },
+        "result": "PASS"
+      },
+      {
+        "sourceHandle": "0x2b",
+        "satBytes": 2430,
+        "satSha256": "b05d39f033af3ebd34bd2fed1c37e053e0f4f9b4f1201768c23164c7a329618f",
+        "headerVersion": "4.0.0",
+        "recordCount": 63,
+        "liftedBodies": 1,
+        "kernelBody": {
+          "faces": 6,
+          "loops": 12,
+          "coedges": 12,
+          "edges": 6,
+          "vertices": 6,
+          "surfaces": 6,
+          "curves": 6,
+          "validationFlaws": 0
+        },
+        "loss": {
+          "surfaces": 0,
+          "curves": 0,
+          "brokenReferences": 0
+        },
+        "result": "PASS"
+      },
+      {
+        "sourceHandle": "0x2c",
+        "satBytes": 233110,
+        "satSha256": "f053364962f328109c10c62f9c34069c449ffc2e04c6d9294428f222c26d5c12",
+        "headerVersion": "4.0.0",
+        "recordCount": 3781,
+        "liftedBodies": 1,
+        "kernelBody": {
+          "faces": 200,
+          "loops": 202,
+          "coedges": 1192,
+          "edges": 596,
+          "vertices": 396,
+          "surfaces": 200,
+          "curves": 596,
+          "validationFlaws": 0
+        },
+        "loss": {
+          "surfaces": 0,
+          "curves": 0,
+          "brokenReferences": 0
+        },
+        "result": "PASS"
+      },
+      {
+        "sourceHandle": "0x2d",
+        "satBytes": 234503,
+        "satSha256": "242ec62ba86e49ff3c09175837230118f044c3fe5a13f712f2aaa722e08d5b5f",
+        "headerVersion": "4.0.0",
+        "recordCount": 3781,
+        "liftedBodies": 1,
+        "kernelBody": {
+          "faces": 200,
+          "loops": 202,
+          "coedges": 1192,
+          "edges": 596,
+          "vertices": 396,
+          "surfaces": 200,
+          "curves": 596,
+          "validationFlaws": 0
+        },
+        "loss": {
+          "surfaces": 0,
+          "curves": 0,
+          "brokenReferences": 0
+        },
+        "result": "PASS"
+      }
+    ]
+  },
+  "validation": {
+    "command": "For each source handle 0x27\u20130x2d, set LIBDXFRW_SAT_PATH to the corresponding extracted /private/tmp/p7-ac1018-<handle>.sat and run cargo test --manifest-path /private/tmp/opencadstudio-p7/Cargo.toml -p ocs_acis --test libdxfrw_ac1018_sat1_probe -- --nocapture with CARGO_TARGET_DIR=/private/tmp/opencad-p7-target.",
+    "result": "PASS: all seven exact AC1018 SAT-v1 payloads parse as SAT 4.0 and lift one body each; every lift has zero surface/curve/reference loss and zero kernel validation flaws.",
+    "warnings": "The pinned OpenCADStudio build emits existing unexpected-cfg and unused-variable Rust warnings; the probe completed successfully.",
+    "repositoryArtifacts": "Probe, SAT, and DXF are scratch-only. No DWG/DXF/SAT fixture or external repo edit was added to libdxfrw."
+  },
+  "limitations": [
+    "All seven exact SAT-v1 carriers come from one unauthenticated AC1018 source; this does not qualify a producer family or broader versions.",
+    "The SAT parser/kernel route does not independently decode the DWG container or verify the DWG entity-to-AcDs association; exact payloads are bound through the separate physical projection receipt.",
+    "No native AutoCAD/ODA rewrite, FreeCAD GUI DWG/DXF import, placement/units comparison, source-level expected topology oracle, or platform qualification was performed.",
+    "This is selected independent geometry evidence only; strict whole-document output and general 3D support remain open."
+  ],
+  "claimEffect": "Adds independent SAT parser and non-OCCT kernel evidence for all seven exact AC1018 SAT-v1 carriers from one unauthenticated source. Does not promote general DWG, DXF, ACIS/ACDS, or 3D support claims."
+}

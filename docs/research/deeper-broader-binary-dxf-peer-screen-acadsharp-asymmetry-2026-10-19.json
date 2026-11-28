@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-19",
+  "type": "primary-source-research",
+  "scope": [
+    "Broaden peer review to narrow Binary DXF parsers",
+    "Verify ACadSharp released read-side versus in-progress write-side ACIS/AcDs work",
+    "Translate only implementation-ready and independently bounded evidence into the parity plan"
+  ],
+  "sources": [
+    {
+      "name": "ACadSharp v3.6.51 release notes",
+      "url": "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+      "observation": "Release notes list ACIS payload reading for 3DSOLID/REGION/BODY, AcDs payload-area offset handling, and Prototype1b parsing. This is source/release evidence of reader work, not independent semantic qualification."
+    },
+    {
+      "name": "ACadSharp v3.8.0 release notes",
+      "url": "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "observation": "The reviewed release notes do not claim corresponding ACIS entity writer support."
+    },
+    {
+      "name": "ACadSharp issue 1195",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "observation": "Documents prior omission of ACIS-backed entities on DXF writing; used to distinguish read capability from write/round-trip evidence."
+    },
+    {
+      "name": "ACadSharp pull request 1240",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+      "observation": "ACIS entity writing remains an open proposal at review time; not counted as released implementation or qualification."
+    },
+    {
+      "name": "xorgy/dxfscan",
+      "url": "https://github.com/xorgy/dxfscan",
+      "observation": "README describes a narrow one-pass Binary DXF parser for R13+, typed support for listed entity families, and an Unknown fallback. The repository page presented one commit and no release series at review time; no source audit, build, or run was performed."
+    },
+    {
+      "name": "xorgy/dxfbin",
+      "url": "https://github.com/xorgy/dxfbin",
+      "observation": "README describes ASCII DXF to Binary DXF conversion, not independent Binary DXF parsing; do not count it as a second reader or independent vote."
+    }
+  ],
+  "disposition": {
+    "plan_file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "new_local_findings": 0,
+    "new_top_level_subplans": 0,
+    "new_tests_or_gates": 0,
+    "new_fixtures_or_dependencies": 0,
+    "implementation_order_changed": false,
+    "validation_frequency_changed": false,
+    "support_claims_promoted": false,
+    "external_only_items_promoted": [],
+    "counts": {
+      "findings": 139,
+      "top_level_subplans": 77
+    }
+  },
+  "implementation_readiness": [
+    "Keep current PAR-07/S8 strict Binary-DXF local reopen as the gate.",
+    "If a specific parser question remains at that composed checkpoint, optionally inspect dxfscan at a revision pinned when the experiment is run; compare normalized semantic fields and typed/unknown/rejected dispositions, not byte identity or whole-document preservation.",
+    "If an AcDs/Prototype1b owner/offset join question remains, source-audit the released ACadSharp reader path at that composed checkpoint; keep parser discovery, payload extraction, entity attachment, and modeler semantics as separate evidence grades.",
+    "No third-party drawing fixture was downloaded or committed. Any future control is to be generated locally from scratch and kept temporary unless it independently qualifies under existing fixture policy."
+  ],
+  "validation": {
+    "local_builds": 0,
+    "local_tests": 0,
+    "peer_builds_or_runs": 0,
+    "external_drawings_downloaded": 0,
+    "basis": "Source/release/issue/PR page review only; no implementation correctness claim is made."
+  }
+}

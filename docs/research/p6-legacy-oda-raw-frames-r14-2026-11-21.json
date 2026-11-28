@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-oda-raw-frames-r14-2026-11-21",
+  "date": "2026-11-21",
+  "status": "R13_R14_BOUNDED_RAW_SOURCE_ONLY",
+  "supportClaimEffect": "none",
+  "priorReceipts": ["docs/research/p6-ac1012-oda-dictionary-default-raw-shell-2026-11-21.json", "docs/research/p6-legacy-eed-codepage45-utf8-witness-2026-11-21.json"],
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.44, 20.4.45, and 20.4.102. The cloning field is absent from plain R13/R14 DICTIONARY, and CELLSTYLEMAP postdates those revisions. Subsequent producer-frame evidence found a cloning field in the observed legacy DICTIONARYWDFLT subclass; see p6-legacy-dictionary-default-typed-2026-11-21.json.",
+  "generator": "tools/research/generate_legacy_eed_utf8_witness.py",
+  "runDirectory": "/private/tmp/libdxfrw-ac1012-eed-utf8-runs/legacy-eed-utf8-mohl9bsf",
+  "runReceiptSha256": "f4d6dbdae471b19bcbb87f91c965d58ac0b2333c108eccf10c855e765772b9da",
+  "r14DwgSha256": "7ed80e53376f4b4380b698007473dd0f979a101941c772381362ecf7ab0632dc",
+  "candidateTestSha256": "81d8cef1e149384a45abd17f28da231f381df60d6f0014484744136d2599860e",
+  "observedFrames": [
+    {"record": "ACDBDICTIONARYWDFLT", "class": "AcDbDictionaryWithDefault", "handle": "12", "offset": 5221, "bytes": 28, "sha256": "70f340dd3e45bbc87489a1f5a4627fbbe27acc3fe004c282b25f35a383b56de5"},
+    {"record": "CELLSTYLEMAP", "class": "AcDbCellStyleMap", "handle": "C1", "offset": 17516, "bytes": 708, "sha256": "f953a97f4680e916d27f5921abc64331270dd1d196f4098870422f78ab652338"}
+  ],
+  "checks": [
+    "The generated AC1012 and AC1014 controls pass the candidate physical-source test. The AC1014 pair is retained byte-for-byte with no typed callback or output qualification and no object parse failures.",
+    "For each AC1014 frame, flipping a self-handle bit and recomputing the object CRC rejects the damaged frame while retaining the other. Strict ASCII and binary output preserve an existing destination; corrected import using the same adapter succeeds.",
+    "The version/class selector controls and focused AC1012/AC1014 transaction tests pass under ASan."
+  ],
+  "limits": [
+    "Raw retention and complete frame disposition do not prove class bodies, native semantics, graph closure, lossless output, or whole-file support.",
+    "The out-of-version CELLSTYLEMAP and unqualified dictionary cloning/default semantics remain explicitly skipped; strict output is refused.",
+    "All generated and deliberately corrupted drawing files remain outside the repository."
+  ]
+}

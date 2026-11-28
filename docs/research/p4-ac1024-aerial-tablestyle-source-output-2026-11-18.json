@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-tablestyle-source-output-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SELECTED_TABLESTYLE_SOURCE_AND_STAGED_GRAPH_VERIFIED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "6b6b6c92edcd2243b68297b01c4c65b7f56a784667adc935f93968ab1396965c",
+  "source": {
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "basis": "docs/research/p4-ac1024-aerial-tablestyle-source-boundary-2026-11-18.json",
+    "frames": {
+      "86": {
+        "bytes": 34,
+        "sha256": "22784350f16cdb2059d1dabf95ab06c9201335fe14ed5083c58470dd11ab903c"
+      },
+      "238": {
+        "bytes": 10,
+        "sha256": "7ef4ca99a9a06670fb0fd06282a714665ccf5b1811d022b78da48090e8b6669a"
+      },
+      "87": {
+        "bytes": 837,
+        "sha256": "fe042e8776e3ab819db111ee0d577f7154f967d56e5a23f675f2bf8da1f8907b"
+      }
+    },
+    "scope": "The selected AC1024 aerial ACAD_TABLESTYLE root from NOD C, owner dictionary 86, Standard TABLESTYLE 87, owned empty dictionary 238, and STYLE 11.",
+    "class": "Original class publication and CLASSES row bind encoded type 504, TABLESTYLE / AcDbTableStyle / ObjectDBX Classes, proxy flags 4095, object class and one emitted instance.",
+    "wire": {
+      "reference": "ODA DWG v5.4.1 sections 2.11–2.13, 20.1, 20.4.44 and 20.4.101.2–.4 with independent bit extraction. The observed per-cell BL prefix values 1, 2 and 3 are preserved as evidence of order; ODA omits this field.",
+      "ranges": "Style scalars [0,5867), detached UTF-16 strings [5867,6421), footer [6421,6438), handles [6438,6696) including two terminal 1 bits.",
+      "cells": "Table has one null text STYLE and no borders. Title, header and data each point to STYLE 11 via H(5,1). Each has six ordered borders with masks 1, 2, 4, 8, 16 and 32 and H(5,0) null linetype.",
+      "links": "The style owner H(8,0) and reactor H(4,1) resolve to 86, extension H(3,2) resolves to 238. The owner dictionary points to 87 via H(2,1); the empty dictionary owner H(4,1) resolves to 87."
+    }
+  },
+  "transaction": {
+    "source": "Recognize the imported graph before physical evidence assessment. Bind the original importer, generation and class ordinal, immutable style frame, exact dictionary frames, and the same-import typed Standard STYLE row.",
+    "output": "Use actual TABLES, CLASSES and staged OBJECTS. Decode the whole version-specific nested TABLESTYLE grammar, normalize only serializer-defined color and handle representations, and compare cell/border fields and reference roles. Preserve the source empty extension dictionary and its owner. Finalization rechecks immutable frames, frozen class and finalized STYLE ledger.",
+    "observerSha256": "5145d776bb580eef3778a0bba760bca22551684af9796df0d3eba9bcd78c54f8"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j 3",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-tablestyle-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "wireControls": "All three physical frames pass; all 7048 single-bit changes fail. Truncation, appended byte and typed target edit refuse, with restored retry.",
+    "faultRetry": "Ten cases per encoding verify a seeded destination and the same codec after restoration. The staged height, border, remapped STYLE, terminator, empty extension owner and hard-owner flag faults refuse in OBJECTS. Wrong STYLE font refuses during TABLES. TABLESTYLE and extension wire corruption refuses before staging, and owner dictionary wire corruption refuses during finalization.",
+    "independentReadback": "ezdxf 1.4.5 verifies the remapped 86/87/238 graph as A086/A087/A238, STYLE as A011, and 38 ordered Table tags against the source decode. All 104 compared tags for each of the three rich cells match the normalized independent ODA CELLSTYLEMAP. The STYLE row matches the source-traced flags and the other ODA table fields.",
+    "focused": "Eleven owning and neighbor CTests, plus the previous aerial MLEADERSTYLE physical selector, pass. Release inventory has 1318 files; 741 selected inputs and zero advertised routes.",
+    "wholeSource": "The original full aerial DWG still refuses strict export at VIEW 242, SUN 24C and incompatible common parent XRECORD 246. The existing file survives.",
+    "scratchRoot": "/private/tmp/p4-aerial-tablestyle-wire",
+    "sha256": {
+      "trace_complete.py": "71ed6cc90c4cc488d0705a709bdb5a085730e7553eeb89528cbb24a5d2a0f431",
+      "trace_complete.log": "37b5cf0df6b6c27befbb71ee8574703ba617445d500b0f4d44b722f5cf739e69",
+      "complete-spans.json": "a88ba09fafe7b35d8dc96c1658802068583e98772f19198aa11dc24fedd6c032",
+      "compare_oda.py": "2109fb10bd3d993b4d7aee208c568c9e3e87812b28adf634058ac4fd42c02233",
+      "compare_oda.log": "13210bc3e519c8a98f69a40de428fcea13ff5bd3f43608edff79e8398565bddb",
+      "test.cpp": "0a3699379105bd4a799e4653bd2a392b64830c15c92f1fdcb024e7ac3e821ed4",
+      "test.log": "37de717cbab004fe6ea258e80dd7fac4514552ccd7694e64373995652bd75dd5",
+      "selected.cpp": "2eba0bd6b22ee4edf67d2c79cf0033f085e89c62f8cea202e6daaab93ed5f5d9",
+      "selected.log": "cfe684c2d843160f4ae6fcafc48aee09c2ace4b921123cc5caf0ca4684b9c430",
+      "selected-ascii.dxf": "95c9c01ca745b5d837bef03051d6f924794201ab3eba84a34da33cb9008002ca",
+      "selected-binary.dxf": "adb03341fd4e6547b9463b0b7072f21926ef16a35b03ec892112f6134fe656df",
+      "readback_selected.py": "21d79b77cd66e9909b85a3dc5e07b9c6ee4a93d1392743f4b6d23b52344f360e",
+      "readback_selected.log": "3f773e8b4e5764ded984b843bbebc13d911f97870cef4c213d3d14768a5cfd49",
+      "official-selector.log": "cfe684c2d843160f4ae6fcafc48aee09c2ace4b921123cc5caf0ca4684b9c430",
+      "focused-ctest.log": "419c529fb37d93f6e6ab2986c238b144245a5001e63d50cba0ed4cfad58ab286",
+      "mleader-neighbor.log": "47fe51cf516e6677fe9782c099a690207eb1d110cd6348f3ee744741e0cfb5af",
+      "full-source.log": "c512d7582f552d47a7ddc4b9c6d9c20a48105097b6724300f287936eb8e634e9",
+      "ac1021-neighbor.log": "3cd064482a23e97da2ff319e079eb654a9e78aceb6e644f445bd7b4198b56085",
+      "ac1021-profile.cpp": "84fde73df6f4af460a6823ea6583ddac090d20aa574b6a864dad6292f8ee1f66",
+      "ac1021-before.log": "01f9a8717f3c9eeaa4087c53af9f1c6eb9fe161247ce2c5c5f047385638273ee"
+    },
+    "legacyPhysicalControl": "The optional AC1021 annotation TABLESTYLE selector stopped at its existing 172/171 fixture assertion. An independent baseline import linked to the unchanged 34eab337 adapter reads style 87, owner 86, Standard and three legacy rows on that exact input. The generated legacy and source-proof controls pass; this optional run provides no physical export result."
+  },
+  "limits": [
+    "This is a selected transaction with the same input model and production inspectors. The untouched full drawing needs SUN ownership and other root closure.",
+    "ODA 27.10 converts the empty source extension dictionary into a generated CELLSTYLEMAP graph. It also writes STYLE group 70 as 0 whereas the source trace and our output preserve 64. Autodesk documents bit 64 as last-edit reference status and optional for writers. No native table or xref behavior is inferred.",
+    "Native TABLE rendering, whole-source and cross-producer equivalence remain unqualified."
+  ],
+  "references": {
+    "Autodesk STYLE group 70": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-EF68AF7C-13EF-45A1-8175-ED6CE66C8FC9.htm"
+  }
+}

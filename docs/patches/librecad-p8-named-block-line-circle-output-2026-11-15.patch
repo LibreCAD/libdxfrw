@@ -1,0 +1,387 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index eb7cd8e6..69e942ae 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3452,6 +3452,7 @@ public:
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
+     std::shared_ptr<const DRW_Block_Record> boundedEntitySource;
+     std::map<std::uint32_t, std::shared_ptr<const DRW_Line>> boundedLineSources;
++    std::map<std::uint32_t, std::shared_ptr<const DRW_Circle>> boundedCircleSources;
+ #endif
+     bool hasUnsupportedOutputState = false;
+     std::string name;
+@@ -3558,47 +3559,50 @@ public:
+   }
+ 
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
+-  void observeSelectedBoundedBlockLine(const DRW_Line &line) noexcept {
+-    noteSelectedSourceCallback();
+-    const auto found = m_blockRecordLinks.find(line.parentHandle);
++  static bool selectedPlainPlanarPoint(const DRW_Point &point) noexcept {
++    return point.layer == "0" && point.lineType == "BYLAYER"
++        && point.color == DRW::ColorByLayer && point.color24 == -1 && point.colorName.empty()
++        && point.lWeight == DRW_LW_Conv::widthByLayer && point.ltypeScale == 1.0
++        && point.visible && point.material == DRW::MaterialByLayer
++        && point.plotStyle == DRW::DefaultPlotStyle && point.transparency == DRW::Opaque
++        && point.shadow == DRW::CastAndReceieveShadows && point.shadowHandle == 0u
++        && point.fullVisualStyleHandle == 0u && point.faceVisualStyleHandle == 0u
++        && point.edgeVisualStyleHandle == 0u && point.numProxyGraph == 0 && point.proxyGraphics.empty()
++        && point.dwgReactorCount() == 0 && point.reactorHandles.empty()
++        && point.dwgXDictionaryFlag() == 1u && point.xDictHandle == 0u
++        && point.hasDwgCommonLinkTail() && !point.hasDataStorageBinaryData()
++        && !point.hasDataStorageRecord && point.dataStorageHandle == 0u
++        && point.dataStorageHandleKey.empty() && point.dataStorageData.empty()
++        && point.dataStorageSegmentIndex == 0u && point.dataStorageSchemaIndex == 0u
++        && !point.hasDataStoragePayloadMarker && point.dataStoragePayloadMarkerOffset == 0u
++        && point.dataStoragePayloadMarkerLength == 0u && point.dataStoragePayloadMarkerSection.empty()
++        && point.appData.empty() && point.extData.empty()
++        && point.pendingAppIdResolutions.empty() && point.pendingLayerRefResolutions.empty()
++        && point.basePoint.z == 0.0 && point.thickness == 0.0
++        && point.extPoint.x == 0.0 && point.extPoint.y == 0.0 && point.extPoint.z == 1.0
++        && point.xAxisAngle == 0.0 && std::isfinite(point.basePoint.x)
++        && std::isfinite(point.basePoint.y);
++  }
++  template <typename T>
++  void retainSelectedBoundedBlockPoint(
++      const T &value, std::map<std::uint32_t, std::shared_ptr<const T>> BlockRecordLinkObservation::*member) noexcept {
++    const auto found = m_blockRecordLinks.find(value.parentHandle);
+     if (m_blockRecordLinkCaptureFailed || found == m_blockRecordLinks.end()
+         || found->second.sourceEntityCount == 0u || found->second.sourceEntityCount > 128u
+         || !found->second.boundedEntitySource)
+       return;
+-    // Restrict the first profile to unextended planar default-style LINEs.
+-    // A richer source requires separate evidence, even if LibreCAD can show it.
+-    if (line.eType != DRW::LINE || line.layer != "0" || line.lineType != "BYLAYER"
+-        || line.color != DRW::ColorByLayer || line.color24 != -1 || !line.colorName.empty()
+-        || line.lWeight != DRW_LW_Conv::widthByLayer || line.ltypeScale != 1.0
+-        || !line.visible || line.material != DRW::MaterialByLayer
+-        || line.plotStyle != DRW::DefaultPlotStyle || line.transparency != DRW::Opaque
+-        || line.shadow != DRW::CastAndReceieveShadows || line.shadowHandle != 0u
+-        || line.fullVisualStyleHandle != 0u || line.faceVisualStyleHandle != 0u
+-        || line.edgeVisualStyleHandle != 0u || line.numProxyGraph != 0 || !line.proxyGraphics.empty()
+-        || line.dwgReactorCount() != 0 || !line.reactorHandles.empty()
+-        || line.dwgXDictionaryFlag() != 1u || line.xDictHandle != 0u
+-        || !line.hasDwgCommonLinkTail() || line.hasDataStorageBinaryData()
+-        || line.hasDataStorageRecord || line.dataStorageHandle != 0u
+-        || !line.dataStorageHandleKey.empty() || !line.dataStorageData.empty()
+-        || line.dataStorageSegmentIndex != 0u || line.dataStorageSchemaIndex != 0u
+-        || line.hasDataStoragePayloadMarker || line.dataStoragePayloadMarkerOffset != 0u
+-        || line.dataStoragePayloadMarkerLength != 0u || !line.dataStoragePayloadMarkerSection.empty()
+-        || !line.appData.empty() || !line.extData.empty()
+-        || !line.pendingAppIdResolutions.empty() || !line.pendingLayerRefResolutions.empty()
+-        || line.basePoint.z != 0.0 || line.secPoint.z != 0.0 || line.thickness != 0.0
+-        || line.extPoint.x != 0.0 || line.extPoint.y != 0.0 || line.extPoint.z != 1.0
+-        || line.xAxisAngle != 0.0 || !std::isfinite(line.basePoint.x)
+-        || !std::isfinite(line.basePoint.y) || !std::isfinite(line.secPoint.x)
+-        || !std::isfinite(line.secPoint.y))
+-      return;
+     try {
+       constexpr std::size_t maxBytes = 32u * 1024u * 1024u;
+-      constexpr std::size_t charge = sizeof(DRW_Line) + 64u;
+-      if (line.handle == 0u || line.handle == DRW::NoHandle
+-          || found->second.boundedLineSources.size() >= found->second.sourceEntityCount
++      constexpr std::size_t charge = sizeof(T) + 64u;
++      auto &observation = found->second;
++      auto &destination = observation.*member;
++      if (value.handle == 0u || value.handle == DRW::NoHandle
++          || observation.boundedLineSources.size() + observation.boundedCircleSources.size()
++                 >= observation.sourceEntityCount
++          || observation.boundedLineSources.count(value.handle) != 0u
++          || observation.boundedCircleSources.count(value.handle) != 0u
+           || m_blockRecordLinkBytes > maxBytes - charge
+-          || !found->second.boundedLineSources.emplace(
+-                 line.handle, std::make_shared<const DRW_Line>(line)).second) {
++          || !destination.emplace(value.handle, std::make_shared<const T>(value)).second) {
+         m_blockRecordLinks.clear(); m_blockRecordLinkBytes = 0u;
+         m_blockRecordLinkCaptureFailed = true;
+         return;
+@@ -3609,6 +3613,21 @@ public:
+       m_blockRecordLinkCaptureFailed = true;
+     }
+   }
++  void observeSelectedBoundedBlockLine(const DRW_Line &line) noexcept {
++    noteSelectedSourceCallback();
++    if (line.eType != DRW::LINE || !selectedPlainPlanarPoint(line)
++        || line.secPoint.z != 0.0 || !std::isfinite(line.secPoint.x)
++        || !std::isfinite(line.secPoint.y))
++      return;
++    retainSelectedBoundedBlockPoint(line, &BlockRecordLinkObservation::boundedLineSources);
++  }
++  void observeSelectedBoundedBlockCircle(const DRW_Circle &circle) noexcept {
++    noteSelectedSourceCallback();
++    if (circle.eType != DRW::CIRCLE || !selectedPlainPlanarPoint(circle)
++        || !std::isfinite(circle.radious) || circle.radious <= 0.0)
++      return;
++    retainSelectedBoundedBlockPoint(circle, &BlockRecordLinkObservation::boundedCircleSources);
++  }
+ #endif
+ 
+   const std::map<std::uint32_t, BlockRecordLinkObservation> &
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index b9f6d34e..f9ab0349 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -7068,6 +7068,10 @@ bool canCreatePlanarEntity(const T &entity, const char *typeName) {
+ } // namespace
+ 
+ void RS_FilterDXFRW::addCircle(const DRW_Circle &data) {
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++  if (m_graphic != nullptr)
++    m_graphic->dwgAdvancedMetadata().observeSelectedBoundedBlockCircle(data);
++#endif
+   RS_DEBUG->print("RS_FilterDXF::addCircle");
+   if (!canCreatePlanarEntity(data, "addCircle"))
+     return;
+@@ -11696,16 +11700,17 @@ double RS_FilterDXFRW::importedHatchAngle(double drwAngle, bool legacyRadians,
+  * @param type
+  */
+ #if defined(LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY)
+-// A bounded set of source-owned planar LINEs is the selected nonempty-block
+-// profile. Each staged output identity is checked during finalization.
+-static bool selectedSourceLines(RS_Graphic &graphic, std::uint32_t blockHandle,
+-                                std::vector<std::uint32_t> &lineHandles, std::string &blockName) noexcept {
++// Bounded source-owned planar LINE/CIRCLE profiles. Each staged output
++// identity is checked during finalization.
++static bool selectedSourceEntities(RS_Graphic &graphic, std::uint32_t blockHandle,
++    std::vector<std::pair<std::uint32_t, const char *>> &entities, std::string &blockName) noexcept {
+   try {
+     const auto &metadata = graphic.dwgAdvancedMetadata();
+     const auto found = metadata.blockRecordLinks().find(blockHandle);
+     if (found == metadata.blockRecordLinks().end() || found->second.sourceEntityCount == 0u
+         || found->second.sourceEntityCount > 128u || !found->second.boundedEntitySource
+-        || found->second.boundedLineSources.size() != found->second.sourceEntityCount)
++        || found->second.boundedLineSources.size() + found->second.boundedCircleSources.size()
++               != found->second.sourceEntityCount)
+       return false;
+     const auto &source = found->second;
+     const RS_Block *block = nullptr;
+@@ -11720,40 +11725,60 @@ static bool selectedSourceLines(RS_Graphic &graphic, std::uint32_t blockHandle,
+     if (block == nullptr || block->sourceHandle() != blockHandle)
+       return false;
+     std::vector<std::uint32_t> observed;
++    std::vector<std::pair<std::uint32_t, const char *>> selected;
+     observed.reserve(source.sourceEntityCount);
++    selected.reserve(source.sourceEntityCount);
+     lc::LC_ContainerTraverser walk{*block, RS2::ResolveNone};
+     for (RS_Entity *entity = walk.first(); entity != nullptr; entity = walk.next()) {
+       if (observed.size() >= source.sourceEntityCount || entity->isDeleted()
+-          || !entity->getFlag(RS2::FlagVisible)
+-          || entity->rtti() != RS2::EntityLine || entity->sourceHandle() == 0u
++          || !entity->getFlag(RS2::FlagVisible) || entity->sourceHandle() == 0u
+           || entity->sourceHandle() == DRW::NoHandle)
+         return false;
+-      const auto lineIt = source.boundedLineSources.find(entity->sourceHandle());
+-      if (lineIt == source.boundedLineSources.end() || !lineIt->second)
+-        return false;
+-      const auto &original = *lineIt->second;
+-      const auto *current = static_cast<const RS_Line *>(entity);
+-      const RS_Layer *layer = current->getLayer(false);
+-      const RS_Pen pen = current->getPen(false);
++      const RS_Layer *layer = entity->getLayer(false);
++      const RS_Pen pen = entity->getPen(false);
+       if (layer == nullptr || layer->getName() != QStringLiteral("0")
+           || pen.getLineType() != RS2::LineByLayer || pen.getWidth() != RS2::WidthByLayer
+-          || !pen.getColor().isByLayer() || original.handle != entity->sourceHandle()
+-          || original.parentHandle != blockHandle
+-          || current->getStartpoint().x != original.basePoint.x
+-          || current->getStartpoint().y != original.basePoint.y
+-          || current->getEndpoint().x != original.secPoint.x
+-          || current->getEndpoint().y != original.secPoint.y)
++          || !pen.getColor().isByLayer())
++        return false;
++      const DRW_Point *original = nullptr;
++      const char *dxfType = nullptr;
++      int dwgType = 0;
++      if (entity->rtti() == RS2::EntityLine) {
++        const auto it = source.boundedLineSources.find(entity->sourceHandle());
++        if (it == source.boundedLineSources.end() || !it->second) return false;
++        const auto *current = static_cast<const RS_Line *>(entity);
++        const auto &line = *it->second;
++        if (current->getStartpoint().x != line.basePoint.x
++            || current->getStartpoint().y != line.basePoint.y
++            || current->getEndpoint().x != line.secPoint.x
++            || current->getEndpoint().y != line.secPoint.y)
++          return false;
++        original = &line; dxfType = "LINE"; dwgType = 19;
++      } else if (entity->rtti() == RS2::EntityCircle) {
++        const auto it = source.boundedCircleSources.find(entity->sourceHandle());
++        if (it == source.boundedCircleSources.end() || !it->second) return false;
++        const auto *current = static_cast<const RS_Circle *>(entity);
++        const auto &circle = *it->second;
++        if (current->getCenter().x != circle.basePoint.x
++            || current->getCenter().y != circle.basePoint.y
++            || current->getRadius() != circle.radious)
++          return false;
++        original = &circle; dxfType = "CIRCLE"; dwgType = 18;
++      } else {
++        return false;
++      }
++      if (original->handle != entity->sourceHandle() || original->parentHandle != blockHandle)
+         return false;
+       const DRW_DwgFramePublication *publication = nullptr;
+       const DRW_DwgFrameCoverageEntry *coverage = nullptr;
+       for (const auto &item : metadata.dwgFramePublications())
+-        if (item.m_handle == original.handle) { if (publication) return false; publication = &item; }
++        if (item.m_handle == original->handle) { if (publication) return false; publication = &item; }
+       for (const auto &item : metadata.dwgFrameCoverageReport().m_entries)
+-        if (item.m_handle == original.handle) { if (coverage) return false; coverage = &item; }
++        if (item.m_handle == original->handle) { if (coverage) return false; coverage = &item; }
+       if (!publication || !coverage || !publication->m_hasSourceLocation
+           || (publication->m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+               && publication->m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+-          || publication->m_encodedType != 19 || publication->m_resolvedType != 19
++          || publication->m_encodedType != dwgType || publication->m_resolvedType != dwgType
+           || !publication->m_isEntity || publication->m_isCustomClass
+           || publication->m_carrier != DRW_DwgFramePublication::Carrier::Typed
+           || !publication->m_commonHandleDataValidated
+@@ -11766,11 +11791,12 @@ static bool selectedSourceLines(RS_Graphic &graphic, std::uint32_t blockHandle,
+           || coverage->m_publicationCount != 1u)
+         return false;
+       observed.push_back(entity->sourceHandle());
++      selected.emplace_back(entity->sourceHandle(), dxfType);
+     }
+     if (observed.size() != source.sourceEntityCount
+         || !source.boundedEntitySource->matchesEntityMap(observed))
+       return false;
+-    lineHandles = std::move(observed);
++    entities = std::move(selected);
+     blockName = source.name;
+     return true;
+   } catch (...) {
+@@ -12400,12 +12426,12 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+         hasNamed = true;
+         if (block->second.sourceEntityCount != 0u) {
+ #if defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY)
+-          std::vector<std::uint32_t> lineHandles;
++          std::vector<std::pair<std::uint32_t, const char *>> selectedEntities;
+           std::string blockName;
+-          if (!selectedSourceLines(*m_graphic, sort.blockOwnerHandle, lineHandles, blockName)
+-              || lineHandles.size() > 128u - experimentalSelectedLineCount)
++          if (!selectedSourceEntities(*m_graphic, sort.blockOwnerHandle, selectedEntities, blockName)
++              || selectedEntities.size() > 128u - experimentalSelectedLineCount)
+             return refuseExperimentalSort();
+-          experimentalSelectedLineCount += lineHandles.size();
++          experimentalSelectedLineCount += selectedEntities.size();
+           experimentalNeedsLineInventory = true;
+ #else
+           return refuseExperimentalSort();
+@@ -28340,18 +28366,18 @@ bool RS_FilterDXFRW::finalizeDxfWrite() {
+       const auto source = metadata.blockRecordLinks().find(sort.blockOwnerHandle);
+       if (source == metadata.blockRecordLinks().end()) return false;
+       if (source->second.sourceEntityCount == 0u) continue;
+-      std::vector<std::uint32_t> lineHandles;
++      std::vector<std::pair<std::uint32_t, const char *>> selectedEntities;
+       std::string blockName;
+       if (!metadata.matchesSelectedAc1024SortEntsOwnerChain(
+               sort.blockOwnerHandle, sort.parentHandle, sort.handle)
+-          || !selectedSourceLines(*m_graphic, sort.blockOwnerHandle, lineHandles, blockName))
++          || !selectedSourceEntities(*m_graphic, sort.blockOwnerHandle, selectedEntities, blockName))
+         return false;
+       const auto emittedOwner = m_dxfW->getBlockRecordHandleToWrite(blockName);
+       if (emittedOwner == 0u || emittedOwner == DRW::NoHandle) return false;
+-      for (const auto lineHandle : lineHandles) {
+-        const auto emittedLine = m_dxfW->remapEntityHandle(lineHandle);
++      for (const auto &entity : selectedEntities) {
++        const auto emittedEntity = m_dxfW->remapEntityHandle(entity.first);
+         if (!m_dxfW->dxfWriteSourceEntityHasIdentity(
+-                lineHandle, emittedLine, "LINE", "BLOCKS", emittedOwner))
++                entity.first, emittedEntity, entity.second, "BLOCKS", emittedOwner))
+           return false;
+       }
+     }
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index c33270dd..f6b35831 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -74,6 +74,7 @@
+ #include "rs_hatch.h"
+ #include "rs_entity.h"
+ #include "rs_block.h"
++#include "rs_circle.h"
+ #include "rs_layer.h"
+ #include "rs_leader.h"
+ #include "rs_line.h"
+@@ -10026,6 +10027,83 @@ TEST_CASE("Named block export preserves one verified source line",
+ #endif
+ 
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY
++TEST_CASE("Named block export preserves verified LINE and CIRCLE",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_LINE_CIRCLE_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_NAMED_BLOCK_LINE_CIRCLE_FIXTURE to a locally generated ODA AC1024 DWG");
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  const auto &metadata = graphic.dwgAdvancedMetadata();
++  REQUIRE(metadata.matchesSelectedAc1024SortEntsOwnerChain(0x30u, 0xB003u, 0xB100u));
++  const auto &observation = metadata.blockRecordLinks().at(0x30u);
++  REQUIRE(observation.sourceEntityCount == 2u);
++  REQUIRE(observation.boundedLineSources.size() == 1u);
++  REQUIRE(observation.boundedCircleSources.size() == 1u);
++  RS_Block *block = nullptr;
++  for (unsigned i = 0; i < graphic.countBlocks(); ++i)
++    if (graphic.blockAt(i)->getName() == QStringLiteral("Named")) block = graphic.blockAt(i);
++  REQUIRE(block != nullptr);
++  lc::LC_ContainerTraverser walk{*block, RS2::ResolveNone};
++  RS_Entity *first = walk.first(); RS_Entity *second = walk.next();
++  REQUIRE(first != nullptr); REQUIRE(second != nullptr); REQUIRE(walk.next() == nullptr);
++  REQUIRE(first->rtti() == RS2::EntityLine); REQUIRE(second->rtti() == RS2::EntityCircle);
++  auto *circle = static_cast<RS_Circle *>(second);
++  REQUIRE(circle->getRadius() == Catch::Approx(2.5));
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  const char *keep = std::getenv("LIBRECAD_KEEP_NAMED_BLOCK_LINE_CIRCLE_DXF");
++  const std::string path = keep && *keep ? keep : tmpFile("named_sort_line_circle.dxf");
++  const std::string sentinel = "previous destination\n";
++  writeText(path, sentinel);
++  circle->setRadius(3.0);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  circle->setRadius(2.5);
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  RS_Graphic reread; RS_FilterDXFRW rereader;
++  REQUIRE(rereader.fileImport(reread, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  const RS_Block *readBlock = nullptr;
++  for (unsigned i = 0; i < reread.countBlocks(); ++i)
++    if (reread.blockAt(i)->getName() == QStringLiteral("Named")) readBlock = reread.blockAt(i);
++  REQUIRE(readBlock != nullptr);
++  lc::LC_ContainerTraverser readWalk{*readBlock, RS2::ResolveNone};
++  const auto *outLine = readWalk.first(); const auto *outCircle = readWalk.next();
++  REQUIRE(outLine != nullptr); REQUIRE(outCircle != nullptr); REQUIRE(readWalk.next() == nullptr);
++  REQUIRE(outLine->rtti() == RS2::EntityLine); REQUIRE(outCircle->rtti() == RS2::EntityCircle);
++  const auto *result = static_cast<const RS_Circle *>(outCircle);
++  CHECK(result->getCenter().x == Catch::Approx(5.0));
++  CHECK(result->getCenter().y == Catch::Approx(6.0));
++  CHECK(result->getRadius() == Catch::Approx(2.5));
++  REQUIRE(reread.dwgAdvancedMetadata().sortEntsTables().size() == 1u);
++  if (!(keep && *keep)) std::filesystem::remove(path);
++}
++
++TEST_CASE("Named block export refuses an unqualified nonplanar CIRCLE",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_CIRCLE_3D_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_NAMED_BLOCK_CIRCLE_3D_FIXTURE to a locally generated ODA AC1024 DWG");
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  const auto &observation = graphic.dwgAdvancedMetadata().blockRecordLinks().at(0x30u);
++  REQUIRE(observation.sourceEntityCount == 2u);
++  CHECK(observation.boundedLineSources.size() == 1u);
++  CHECK(observation.boundedCircleSources.empty());
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  const std::string path = tmpFile("named_sort_circle_3d_refusal.dxf");
++  const std::string sentinel = "previous destination\n";
++  writeText(path, sentinel);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  std::filesystem::remove(path);
++}
++
+ TEST_CASE("Named block export preserves verified ordered source lines",
+           "[dwg][roundtrip][sortentssource][source]") {
+   const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_TWO_LINES_FIXTURE");

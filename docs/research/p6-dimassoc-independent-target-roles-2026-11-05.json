@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw-dimassoc-independent-target-roles-v1",
+  "date": "2026-11-05",
+  "scope": "Independent resolution of DIMASSOC annotation and geometry target classes",
+  "primary_sources": [
+    {
+      "title": "Autodesk AcDbDimAssoc Methods",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbDimAssoc.html",
+      "relevant_statement": "updateDimension updates the dimension or leader when associated geometry changes"
+    },
+    {
+      "title": "Autodesk AcDbMLeader Reference",
+      "url": "https://help.autodesk.com/cloudhelp/2017/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbMLeader.html",
+      "relevant_statement": "AcDbMLeader is an AcDbEntity representing the multi-leader object"
+    },
+    {
+      "title": "Autodesk DIMASSOC DXF Reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C0B96256-A911-4B4D-85E6-EB4AF2C91E27.htm",
+      "relevant_statement": "DIMASSOC records identify the dimension object and main/intersection geometry objects"
+    }
+  ],
+  "independent_reader": {
+    "name": "LibreDWG",
+    "version": "0.14",
+    "command": "dwgread -O minJSON -o <scratch.json> <source.dwg>",
+    "status": "SUCCESS",
+    "json_was_scratch_only": true
+  },
+  "independent_output_oracle": {
+    "name": "LibreDWG 0.14 DXF-to-DWG and minJSON roundtrip",
+    "generated_source": "locally-authored adapter DIMASSOC DXF success control",
+    "observation": "dxf2dwg returned exit code 0 but warned 'Object DIMASSOC unsupported'; the AC1024 resave contained zero DIMASSOC objects",
+    "disposition": "excluded as output interoperability evidence; exit code 0 is not proof of record preservation"
+  },
+  "inputs": [
+    {
+      "path": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+      "minjson_sha256": "dd253499a7c54f72d60e4dd7896b1c20a2012e56dc248aa59d30374cca53fa01",
+      "version": "AC1021",
+      "dimassoc_records": 7,
+      "dimensionobj_targets": {
+        "AcDbRotatedDimension": 2,
+        "AcDbMLeader": 5
+      },
+      "geometry_references": 10,
+      "unresolved_geometry_references": 0,
+      "libdxfrw_physical_transport": "7/7 selected records with resolved annotation and geometry targets; ASCII and Binary typed readback passed"
+    },
+    {
+      "path": "/Users/dli/doc/dwg/Extruder2.dwg",
+      "sha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+      "minjson_sha256": "3a44136652e84a0a2e840eaede0a00acc3d68fb7eb422b50318db224b79fb388",
+      "version": "AC1018",
+      "dimassoc_records": 23,
+      "dimensionobj_targets": {
+        "AcDbDiametricDimension": 6,
+        "AcDbAlignedDimension": 4,
+        "AcDbRotatedDimension": 13
+      },
+      "geometry_references": 34,
+      "unresolved_geometry_references": 0,
+      "libdxfrw_physical_transport": "23/23 selected records with resolved annotation and geometry targets; ASCII and Binary typed readback passed; whole-file source has 474 unrelated entity parse failures"
+    }
+  ],
+  "implementation_change": "The DWG-to-DXF adapter accepts typed LEADER and MLEADER targets for the DIMASSOC dimensionobj edge, in addition to dimension subtypes. Geometry targets still must resolve to emitted entities.",
+  "limitations": [
+    "The physical AC1021 source establishes MLEADER as an observed DIMASSOC target, while Autodesk's general AcDbDimAssoc API documents dimension-or-leader behavior; native update behavior was not executed.",
+    "The independent reader labels DIMASSOC unstable/debugging in LibreDWG 0.14; this is independent class/handle evidence, not a semantic support qualification.",
+    "The full AC1018 file is not exportable by the current adapter because of 474 unrelated entity parse failures; whole-document adapter output has not been demonstrated for either source.",
+    "No support claim promoted and no DWG/DXF fixture was committed."
+  ]
+}

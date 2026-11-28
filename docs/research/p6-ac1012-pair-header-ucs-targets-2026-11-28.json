@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-header-ucs-targets-2026-11-28",
+  "supportClaimEffect": "none",
+  "candidateCommit": "8ed51a5ab",
+  "implementationDigestSha256": "9944e586474c9f22075f2173cffd13588bc0a29d645e3419ea2ff1c57f6f8dda",
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "9 AcDb:Header; AC1012 prefix through model-space UCSNAME"
+    ]
+  },
+  "scope": "Extend the existing generated-pair HEADER prefix audit through current handles, paper-space and model-space coordinates/UCS.",
+  "checks": [
+    "The independent bit walker records 122 field spans over the first 2,752 of 3,760 payload bits in each file; its values agree with LibreDWG 0.14 minJSON.",
+    "The five selected current-object handles bind to the expected layer, text style, linetype, dimension style and multiline style object types and names in the 32-object source census; HANDSEED is above all observed handles.",
+    "Repaired-CRC wrong viewport and current-layer handle roles, an invalid bitdouble tag and a changed DIMASO value are rejected; a mismatched decoded layer target type is rejected, and clean input succeeds after each control.",
+    "The combined source census and focused legacy BLOCK_HEADER adapter probe pass for both drawings. No generated fixture is committed."
+  ],
+  "hashes": {
+    "prefixTool": "65f11a36757d27153a94383d2e60058854602cd3e1c220e353738e751e6e9536",
+    "censusTool": "8935d2b4d7729d1bcd8fb42220ce42653e82b3c9b2a87b1e8f70c6e4f49cf247",
+    "prefixResults": "e0dd97fb0f23230c675f8ec0e51f1aa0a5b96966e6ff7cc42899d3ed542df230",
+    "combinedCensus": "ba1d871e6d8c2fda3bc0498816008efc60054ac878d620e5a2dca945d5207c4c"
+  },
+  "limits": [
+    "The producer and peer decoder are both LibreDWG; the Python wire walk is independent of libdxfrw, but not an independent producer or native acceptance witness.",
+    "The remaining 1,008 payload bits, native field semantics, complete graph/output, normal-open and dictionary cloning remain unqualified."
+  ]
+}

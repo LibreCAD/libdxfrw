@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Cross-project solid-carrier failure chains and evidence ceilings",
+  "mode": "Primary-source documentation, release-note, and issue-report review; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile DWG/DXF and ACIS support claims by direction, version, entity family, and carrier route.",
+    "Separate opaque carrier preservation from body topology, kernel semantics, and native consumer results.",
+    "Refine the existing PAR-07/S8 gates without adding peer dependencies or routine validation cost."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "NEWS and issue page reviewed 2026-10-19. Issue #1411 names LibreDWG 0.14.8593, source short revision 8a1ae764, Linux x86-64.",
+      "observed": "NEWS reports historical incomplete AcDsPrototype_1b parsing and brute-force extraction of R2013+ SAB blobs; newer notes describe modeler-carrier work. Open issue #1411 reports an ezdxf-generated AC1032 DXF control losing the AcDs/SAB payload through dxf2dwg and dwg2dxf while retaining the REGION record, plus a separate confidential DWG observation.",
+      "limitation": "This is a peer issue report for a pinned old build, not a verified current-master result and not a confirmed libdxfrw defect. The confidential drawing is not available and was not downloaded."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "revision": "Stable documentation identifies ezdxf 1.4.5; reviewed 2026-10-19. No package artifact or source revision was resolved or executed.",
+      "observed": "The ACIS API documents SAT/SAB load and export helpers, a mesh-to-ACIS body route, and version-dependent SAT/SAB selection. It warns that only a limited subset of ACIS entities is supported and that mesh extraction handles flat polygonal faces, not curved faces. The FAQ says only SAT writing is supported and no ACIS creation is provided, contradicting the API documentation.",
+      "limitation": "The documentation conflict must be resolved against a pinned artifact/source before using ezdxf as a scratch producer. Same-library production and readback are not independent semantic evidence."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/blob/master/README.md",
+        "https://github.com/DomCR/ACadSharp/issues/1172",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/issues/1253"
+      ],
+      "revision": "README and issue pages reviewed 2026-10-19; issue list showed the cited reports open. No package/source was executed.",
+      "observed": "The README advertises DWG/DXF readers and writers through AC1032. Open issue reports allege AC1032 INSERT reader loss (#1172), silent 3DSOLID/REGION omission by the DXF writer (#1195), and DXF output rejected by AutoCAD for specific group-code values (#1253).",
+      "limitation": "These are route- and version-specific reports, not independently reproduced results. They demonstrate why a broad version matrix cannot establish every direction/entity/writer-acceptance profile."
+    },
+    {
+      "project": "GDAL",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/cad.html",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Stable driver documentation reviewed 2026-10-19; no runtime artifact was pinned or executed.",
+      "observed": "The read-only CAD driver documents POINT, LINE, CIRCLE/ARC, and 3DFACE projection. The DXF driver can optionally expose AC1027+ ASM carrier bytes and transform values but does not convert these records into OGR solid geometry.",
+      "limitation": "OGR output is a declared projection/transport lane, not complete document equivalence, B-rep semantics, or DWG AcDs association proof."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines existing PAR-07/S8 evidence by exact route tuple (container, AC code, direction, entity family, carrier route, source handle), explicit carrier and semantic outcomes, a per-handle association ledger, pinned peer artifact admission, and analytic/topology expectations. Peer issue reports remain advisory and non-promoting."
+  },
+  "implementationReadiness": [
+    "Keep fast local validation as the per-slice gate; invoke at most one peer only at an existing composed checkpoint for a named unresolved question.",
+    "Keep DXF inline SAT, DXF ACDSDATA/SAB, DWG inline SAB, and DWG AcDsPrototype_1b/DataStorage routes as separate rows; passing one does not promote another.",
+    "Record source entity identity, owner/history links, modeler version, carrier byte length/hash, payload disposition, strict reopen, and semantic outcome independently.",
+    "Use ezdxf as a scratch producer only after resolving the current documentation contradiction against an exact package/source; do not use its own roundtrip as semantic truth.",
+    "Treat LibreDWG #1411 and ACadSharp #1172/#1195/#1253 as peer failure leads, not libdxfrw findings; use locally authored generated controls and preserve explicit missing/extra/unsupported/loss counts.",
+    "Commit no external DWG/DXF fixture from this research. Any future regression control must be already in the named upstream corpus or generated from scratch locally and reviewed under repository fixture policy.",
+    "Leave J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL until their own platform and independent semantic criteria are met."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review plus local plan crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Project documentation and issue reports are mutable and have different evidentiary strength. No peer behavior was reproduced. A raw carrier/hash is not decoded geometry; self-roundtrip is not independent evidence; OGR projection is not B-rep semantics."
+  }
+}

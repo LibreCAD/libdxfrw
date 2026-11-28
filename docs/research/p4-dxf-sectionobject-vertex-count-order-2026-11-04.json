@@ -1,0 +1,83 @@
+{
+  "title": "DXF SECTIONOBJECT late counts and bounded vertex pairing",
+  "date": "2026-11-04",
+  "status": "bounded implementation with focused validation; no broad native-rendering claim",
+  "base_commit": "c438125775483b40d88143529659dc91e05b8204",
+  "problem": "SECTIONOBJECT group 92/93 currently clears already decoded section/back-line vertices. Moving each count after its otherwise unchanged complete vertex triples causes a successful native read with both arrays empty. A following typed write can therefore publish empty section geometry.",
+  "change": "In dxfRW::processSectionObject only, locally track independent section and back-line vertex sequences and observe 92/93 as bounded counts while retaining their raw groups, without passing those counts to the destructive per-entity parseCode branch. Validate observed counts and unambiguous component pairing before any typed or raw callback. No public class layout, interface or protected direct parseCode behavior is changed.",
+  "authority": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-8B60CBAB-B226-4A5F-ABB1-46FD8AABB928.htm",
+      "scope": "SECTION defines group 92 as count of repeated 11/21/31 vertices, and 93 as count of repeated 12/22/32 back-line vertices."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+      "scope": "DXF group order is not guaranteed."
+    }
+  ],
+  "producer_source": "An in-tree authored SECTIONOBJECT with two section points and two back-line points was converted through ODA File Converter 27.1 to AC1027 DWG and back to DXF. The return contains 92=2 then two 11/21/31 triples and 93=2 then two 12/22/32 triples. The author tool moves only the two count groups in that ODA-returned record and creates an exact selected-record wrapper. The baseline probe returns read=1, verts=0, back=0; the candidate reports verts=2, back=2. Hashes bind source and projection; converter lineage is an observed manual join.",
+  "oda_controls": "Controlled inputs derived from the authored source omit zero-valued 31/32, omit 92/93, or move those counts after their triples. ODA roundtrip preserves both arrays for omitted Z and emits explicit zero coordinates; it drops both arrays for the late-count and absent-count controls. This is an implementation observation, not a producer qualification of those alternate inputs. Existing native absent-count input remains supported by this candidate as requested.",
+  "pairing_and_admission": "Each array has its own cursor, so interleaving the two arrays is accepted when each X anchors its Y and any Z. Y is required per point, Z may be omitted with default zero, and each coordinate must be finite. An observed count must occur once, be in [0,512] and match the final X count. Existing records with both no counts and complete coordinate pairs remain accepted. Newly refused cases include repeated or mismatched counts, missing or duplicate Y/Z, components before an X, grouped X values that cannot be paired safely, nonfinite coordinates, and counts/arrays above 512; several were previously silently misbound or normalized. Raw-only 411 opt-in also refuses these malformed arrays before callback rather than bypassing validation. Codes in 102 application groups and outside AcDbSection are unaffected.",
+  "validation": "Fixture-free ASCII/Binary controls cover early, late and omitted counts, omitted Z, interleaved arrays, X/Y/Z and X/Z/Y component order within anchored points, copy/assignment, second-record isolation and the SECTION_OBJECT alias; application groups inside AcDbSection contain misleading count and coordinate codes; input 411 is exercised on valid arrays and malformed arrays under both default and raw-only policies. Failure controls cover both count mismatches, duplicate counts, 512/513 boundary, missing/duplicate components, unanchored/grouped coordinates, finite-value rejection and same-reader corrected retry, with no callbacks on malformed records. Successful typed re-emission/readback preserves geometry in ASCII and binary. Existing SECTIONOBJECT 411 and indicator-color reader/writer selectors pass, as does lc3_compat_check. Independent ezdxf 1.4.5 audit binds the exact ODA-source record reordering, selected projection, emitted geometry and ODA late/no-Z/no-count observations.",
+  "limits": [
+    "The correction applies to the public dxfRW SECTIONOBJECT read path; an external subclass directly invoking protected parseCode is not covered.",
+    "No semantic claim is made for output rendering or full native CAD use; the selected ODA record includes proxy data and only its callback is qualified, while generated typed output controls use fixture-free records.",
+    "The source late-count projection and omitted-Z/count controls are explicitly edited inputs, not producer-authored alternate orders.",
+    "The separately hash-bound ODA conversion joins are manual session observations.",
+    "No fixtures or shared-workspace edits."
+  ],
+  "candidate_files_sha256": {
+    "src/libdxfrw.cpp": "74b0dc14f4882664aaf20191830d01d3c83340b636e5a1fcd923e563e7d680d2",
+    "tests/CMakeLists.txt": "7aeb97af104716e94c7baae02131c656593f73e222f81691ec6c2185ccd97bec",
+    "tests/dxf_sectionobject_vertices_tests.cpp": "e5190c998c2471d3eb96cc37d9f6e6c02039ac1384900d887c85f0cd84c389c3",
+    "tools/author_sectionobject_late_counts.py": "cafd1ab0545ceaf0dff5b6885a2679296d3946201134a9eb66398e3714c1396e",
+    "tools/author_sectionobject_count_variants.py": "fcadba8c1bfbea9dd22cfc3e17abdce923d4a40306bbb3023891ec7486be4933",
+    "tools/author_sectionobject_counts.cpp": "0a30dfc5f3acd8ebb3f91ea22ca1798ed84edd0d40fb14efc9709443a887b4e8",
+    "tools/probe_sectionobject_counts.cpp": "cbd1e7acb0901e57ddc7772db21958deadb6d6b8632b46c745d7992c43ef5bc8",
+    "tools/audit_sectionobject_late_counts.py": "605c39643a27c62ed4405cbe6fb5eed96c7725ad6f4dba507142047f0f1cb457"
+  },
+  "patch": {
+    "path": "/private/tmp/section-counts/section-counts.patch",
+    "sha256": "84b9737bd17dfaca8c0e30eb1b66862988693a9f4f31bff6aa8e69da944e2765"
+  },
+  "artifacts_sha256": {
+    "/private/tmp/section-counts/in/source.dxf": "426450407ea1d4fad130df27a0f39823d25b2f11f1a159775bfd84620fd2f681",
+    "/private/tmp/section-counts/dwg/source.dwg": "d76b7f3a5aad449e9fbe472db30975e2c16cce8423e062fdce3e61d696080588",
+    "/private/tmp/section-counts/out/source.dxf": "207d54b82638046109066894e226ecc23553096be62de0c11619bc16caa40e1c",
+    "/private/tmp/section-counts/full-reordered.dxf": "0eb6d630d398c4d5f49eedaa2c1dd1bfa02bb7f774f00664179c9d7cc94b9a47",
+    "/private/tmp/section-counts/reordered.dxf": "7c1012c2f3ecdbe75f5c5c7941152230dfd0bcf27cb6dad8f134802932000768",
+    "/private/tmp/section-counts/emitted/ascii.dxf": "e68c8abfe24d8ab557fa6acf35a50360bb91f5e6563833377ea33f32c9f20538",
+    "/private/tmp/section-counts/emitted/binary.dxf": "17d028794c393981b4b1d79cee33a5bd183ca19943dfb17214076213b2ab8a45",
+    "/private/tmp/section-counts/variants/in/late.dxf": "8be6f10d07b433cd7f362b93dcb173fa06e581e2351f2d32ff582a4fdb8fa7c3",
+    "/private/tmp/section-counts/variants/in/noz.dxf": "12e9f46dad50c4d49ac5cd90199d41861e44958dbd5f020f4de6b2746f7b073f",
+    "/private/tmp/section-counts/variants/in/nocount.dxf": "e1586e45833863f27bc2e2456696b25aa5dc7ec35f27cdfd6cff782a9b3a31d7",
+    "/private/tmp/section-counts/variants/out/late.dxf": "e0e85600f7ac4d328e5b25566d4352ae836aaacc6a7a440eb560b2219c53b0fc",
+    "/private/tmp/section-counts/variants/out/noz.dxf": "6116feb169e669206ddd14d093f94d0745a797cdb2dbca821f6f5f68a16055ba",
+    "/private/tmp/section-counts/variants/out/nocount.dxf": "49408d57dfa90e27fc2bbf89702e94052f8f4657e3a5b719fc34f2196619a749",
+    "/private/tmp/section-counts/variants/dwg/late.dwg": "85acb0356ee504df1d714d3cd775af88fa619283288c1bd093034ea47ed6ff4b",
+    "/private/tmp/section-counts/variants/dwg/noz.dwg": "95e684bc80e52e4a8118afd06ba536d7a37a175d07e11a299202c47ba3fb0cb1",
+    "/private/tmp/section-counts/variants/dwg/nocount.dwg": "226f1de10e16aa3204665c5b314b850ebcd7834d6814efa2857abe98d32fb690"
+  },
+  "commands": {
+    "configure": "cmake -S . -B /private/tmp/section-counts/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_BUILD_TESTS=ON",
+    "build": "cmake --build /private/tmp/section-counts/build --target libdxfrw_dxf_sectionobject_vertices_tests libdxfrw_dxf_sectionobject_411_tests libdxfrw_wave1_tests libdxfrw_hardening_tests lc3_compat_check -j4",
+    "test": "ctest --test-dir /private/tmp/section-counts/build -R '^libdxfrw_(dxf_sectionobject_vertices|dxf_sectionobject_411|sectionobject_indicator_color_wire|sectionobject_indicator_color_groups)$' --output-on-failure",
+    "project": "python3 tools/author_sectionobject_late_counts.py /private/tmp/section-counts/out/source.dxf /private/tmp/section-counts/full-reordered.dxf /private/tmp/section-counts/reordered.dxf --sha256 207d54b82638046109066894e226ecc23553096be62de0c11619bc16caa40e1c",
+    "variants": "python3 tools/author_sectionobject_count_variants.py /private/tmp/section-counts/in/source.dxf /private/tmp/section-counts/reproduced-variants --sha256 426450407ea1d4fad130df27a0f39823d25b2f11f1a159775bfd84620fd2f681",
+    "emit": "SECTION_COUNT_OUTPUT=/private/tmp/section-counts/emitted /private/tmp/section-counts/build/tests/libdxfrw_dxf_sectionobject_vertices_tests",
+    "selected": "/private/tmp/section-counts/build/tests/libdxfrw_dxf_sectionobject_vertices_tests /private/tmp/section-counts/reordered.dxf",
+    "peer_audit": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_sectionobject_late_counts.py --source /private/tmp/section-counts/out/source.dxf --source-sha256 207d54b82638046109066894e226ecc23553096be62de0c11619bc16caa40e1c --reordered /private/tmp/section-counts/full-reordered.dxf --reordered-sha256 0eb6d630d398c4d5f49eedaa2c1dd1bfa02bb7f774f00664179c9d7cc94b9a47 --projection /private/tmp/section-counts/reordered.dxf --projection-sha256 7c1012c2f3ecdbe75f5c5c7941152230dfd0bcf27cb6dad8f134802932000768 --ascii /private/tmp/section-counts/emitted/ascii.dxf --ascii-sha256 e68c8abfe24d8ab557fa6acf35a50360bb91f5e6563833377ea33f32c9f20538 --binary /private/tmp/section-counts/emitted/binary.dxf --binary-sha256 17d028794c393981b4b1d79cee33a5bd183ca19943dfb17214076213b2ab8a45 --authored /private/tmp/section-counts/in/source.dxf --authored-sha256 426450407ea1d4fad130df27a0f39823d25b2f11f1a159775bfd84620fd2f681 --late-input /private/tmp/section-counts/variants/in/late.dxf --late-input-sha256 8be6f10d07b433cd7f362b93dcb173fa06e581e2351f2d32ff582a4fdb8fa7c3 --noz-input /private/tmp/section-counts/variants/in/noz.dxf --noz-input-sha256 12e9f46dad50c4d49ac5cd90199d41861e44958dbd5f020f4de6b2746f7b073f --nocount-input /private/tmp/section-counts/variants/in/nocount.dxf --nocount-input-sha256 e1586e45833863f27bc2e2456696b25aa5dc7ec35f27cdfd6cff782a9b3a31d7 --oda-late /private/tmp/section-counts/variants/out/late.dxf --oda-late-sha256 e0e85600f7ac4d328e5b25566d4352ae836aaacc6a7a440eb560b2219c53b0fc --oda-noz /private/tmp/section-counts/variants/out/noz.dxf --oda-noz-sha256 6116feb169e669206ddd14d093f94d0745a797cdb2dbca821f6f5f68a16055ba --oda-nocount /private/tmp/section-counts/variants/out/nocount.dxf --oda-nocount-sha256 49408d57dfa90e27fc2bbf89702e94052f8f4657e3a5b719fc34f2196619a749",
+    "oda": "ODAFileConverter IN_DIR DWG_DIR ACAD2013 DWG 0 1 \"*.dxf\"; ODAFileConverter DWG_DIR OUT_DIR ACAD2013 DXF 0 1 \"*.dwg\"; source/variant directories and hashes listed above."
+  },
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_(dxf_sectionobject_vertices|dxf_sectionobject_411|sectionobject_indicator_color_wire|sectionobject_indicator_color_groups)$' --output-on-failure: 4/4 passed.",
+  "integrated_files": {
+    "src/libdxfrw.cpp": "74b0dc14f4882664aaf20191830d01d3c83340b636e5a1fcd923e563e7d680d2",
+    "tests/CMakeLists.txt": "b8e4f23b5f8a71b55f40e10ea9c86d3920a7260dbfaed86cb29ae941b175aef9",
+    "tests/dxf_sectionobject_vertices_tests.cpp": "e5190c998c2471d3eb96cc37d9f6e6c02039ac1384900d887c85f0cd84c389c3",
+    "tools/author_sectionobject_late_counts.py": "cafd1ab0545ceaf0dff5b6885a2679296d3946201134a9eb66398e3714c1396e",
+    "tools/author_sectionobject_count_variants.py": "fcadba8c1bfbea9dd22cfc3e17abdce923d4a40306bbb3023891ec7486be4933",
+    "tools/author_sectionobject_counts.cpp": "0a30dfc5f3acd8ebb3f91ea22ca1798ed84edd0d40fb14efc9709443a887b4e8",
+    "tools/probe_sectionobject_counts.cpp": "cbd1e7acb0901e57ddc7772db21958deadb6d6b8632b46c745d7992c43ef5bc8",
+    "tools/audit_sectionobject_late_counts.py": "605c39643a27c62ed4405cbe6fb5eed96c7725ad6f4dba507142047f0f1cb457"
+  }
+}

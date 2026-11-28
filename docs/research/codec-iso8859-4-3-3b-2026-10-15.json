@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "date": "2026-10-15",
+  "planSlice": "Slice3.3b",
+  "state": "LOCAL_TABLE_AND_FACTORY_COMPLETE",
+  "parent3_3a": "IN_PROGRESS",
+  "parent3_2": "IN_PROGRESS",
+  "parentCommit": "ec6711760706c9561a752eeb94e9cea656f2aea9",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "scope": "Fixed ISO8859-4 exact input-side converter/table, offline reproduction and notice delivery. Not a public reader policy, actual DXF HEADER handoff, DWG metadata change, new format profile or native support qualification.",
+  "sourceHashes": {
+    "CMakeLists.txt": "56545d0b7e316d01ecfb914fba8d31bbe418bcdc132f770225d1e022b44bd619",
+    "Makefile.am": "632510c492dba1b0ee4a6468ed089eebc7d0cc4ee1cf06e673b20dfe60ad8a4c",
+    "README.md": "088d328582e04af689a6a534099df9f0d18b830b2553286c81d5952b5a24d898",
+    "conanfile.py": "966f97a1833539162cb72133848f3d5395d7710901c4b74d3cf8b32abe21f058",
+    "libdxfrw_sources.cmake": "cba7eed51f77aeafe5d730b35d66b9419a7ca4d890be20965b95b51bf4347993",
+    "src/Makefile.am": "e0272581635d8cc2f5f3a2bc7c10be5a0e43cde2d6ee08a3b222372f56944793",
+    "src/intern/drw_textcodec.cpp": "0a036ddf1f2ba88adae7773e1b3af5b73550a24419473894705ea4910ef616ee",
+    "src/intern/drw_textcodec.h": "b4fc31a41a5f3f870ed5e78a765632d3da574f063eaf3b4db1732a7278ea1f7d",
+    "src/intern/drw_cptable_iso8859_4.h": "f766bf321345437b4a1cf0e673fe8c421585656392809bf230f2b424637629bc",
+    "tests/gbk_codepage_tests.cpp": "dc7172806a754b52e3728e687f2fab85b3074bcc11f25133f9f5005375bd0144",
+    "tools/generate_iso8859_4.py": "d9e67a1fb10ad2ec51085931bc0f4f118860cda61526791834efb37193e95e63",
+    "tools/check_staged_package.py": "e722ed1124810d347e848d8ed45a7aa863ac82e03a7c6e61d9813066cb17b8ad",
+    "LICENSES/Unicode-3.0.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+  },
+  "artifactHashes": {
+    "build/libdxfrw.a": "b15051087160e98bed319f834081144351b50f04e2c73041a261de3bd2b0f428",
+    "build/libdxfrw_gbk_codepage_tests": "2afc834e053e0f456cb3a2c7790e32cf5dc7d668b7a3d537a8a8ef10e97fd2ee",
+    "build/dwg2dxf/dwg2dxf": "8db9ea297e66d1d2fffd6ee890c30145a5f318d1970ee5f64f68916f7ac96fe4",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests": "cb3c483bb6a9e383d8ef93c6aad5b8077358af1da5724c2e52b2cbc8381c0427",
+    "/private/tmp/libdxfrw-iso8859-4.3vQzza/focused-ctest.xml": "ca72d17ba303a1be8fcca7b2da015bd8c17d01daf1983be67fd914a8983e74b0",
+    "/private/tmp/libdxfrw-iso8859-4.3vQzza/compat-probe": "873d0d40e882526423a05da4510764c9fcb30e7b6711bd98990cf59e85c4d053",
+    "/private/tmp/libdxfrw-iso8859-4.3vQzza/qa.py": "c4f18c1a88c548117d9734e3142d98e3ef7df7a6d905c8d9ffd8eae23da5f78a"
+  },
+  "mapping": {
+    "sourceUrl": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-4.TXT",
+    "sourceSha256": "e717699903bef2144234279a598ce39b44502942c9cc23a2ce2069a65f46b00d",
+    "sourceTableVersion": "2.0; ISO/IEC8859-4:1998;1999-07-27 with2015 notice update",
+    "definedBytes": 256,
+    "uniqueScalars": 256,
+    "storedUpperEntries": 128,
+    "c1IdentityEntries": 32,
+    "graphicEntries": 96,
+    "literalAnchors": {
+      "80": "U+0080",
+      "A1": "U+0104",
+      "A2": "U+0138",
+      "FF": "U+02D9"
+    },
+    "independentExpected": "Test literals come from strict CPython3.9 iso8859_4/cp1257, not the production generated header. QA compares every Unicode source, Python strict-codec, generated production and literal test scalar; all256 agree. Windows upper128 source/test/Python definitions agree separately.",
+    "factory": "DRW_TextCodec::createExactCodePageConverter; internal input-side factory, null for unavailable/unknown mappings. Compact/hyphen/case ISO forms resolve to the actual ISO table; original CompatibilityAlias/Unavailable declaration categories remain unchanged.",
+    "canonical": "Existing canonical implementations are reused without mutating a caller codec. Factory availability is input-side only; existing UTF16 encoder remains a stub. ISO/Windows inverse support is tested separately, not inferred for all factories.",
+    "compatibility": "configureCodePage remains explicitly Compatible; ISO source declarations still use their historical default Windows selections unless the future explicit reader profile selects the factory. All140 frozen outputs and178 historical selections remain unchanged.",
+    "observations": "All ISO bytes including NUL/C1 are defined at codec level, with zero conversion issue bits; high bytes correctly observe legacy/nonASCII. This is not admission of those controls to any DXF physical field/framing."
+  },
+  "generator": {
+    "path": "tools/generate_iso8859_4.py",
+    "command": "python3 tools/generate_iso8859_4.py /private/tmp/libdxfrw-deeper-readiness.cvvmLR/8859-4.TXT --check src/intern/drw_cptable_iso8859_4.h",
+    "controls": 3,
+    "scope": "Success with the pinned local source/exact generated header; altered source and wrong header return1. Bounded65537-byte read, SHA before parse,256 complete unique BMP mappings,ASCII/C1 identity and deterministic128-entry emission. No network/download/write; ordinary C++ builds/tests need no Python or mapping file."
+  },
+  "tests": {
+    "mode": {
+      "command": "build/libdxfrw_gbk_codepage_tests --iso8859-4",
+      "exitCode": 0,
+      "aliases": 4,
+      "byteInversePairs": 1024,
+      "windowsDefined": 244,
+      "windowsUndefined": 12,
+      "canonicalInputFactoryControls": 9,
+      "resolutionSelections": 84,
+      "historicalSelections": 178,
+      "others": "Full-range batches with NUL/C1, adjacent ISO/CIF and suffix, unmapped BMP CIF fallback, malformed UTF8 fallback/suffix, eight unavailable/unknown factories, embeddedNUL rejection, forced factory bad_alloc preserving retained converter and retry"
+    },
+    "build": {
+      "command": "cmake --build build --target libdxfrw_gbk_codepage_tests dwg2dxf lc3_compat_check --parallel 2",
+      "exitCode": 0,
+      "scope": "Affected library/test/CLI and lc3 target; not a fresh native consumer run"
+    },
+    "strict": {
+      "command": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -I. -fsyntax-only src/intern/drw_textcodec.cpp tests/gbk_codepage_tests.cpp",
+      "exitCode": 0
+    },
+    "ctest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_gbk_codepage|dwg2dxf_cli_contract)$' --output-on-failure --output-junit /private/tmp/libdxfrw-iso8859-4.3vQzza/focused-ctest.xml",
+      "tests": 2,
+      "failures": 0,
+      "skipped": 0,
+      "wallSeconds": 9.2,
+      "cliSeconds": 8.86,
+      "codecSeconds": 0.33,
+      "scope": "Existing full codec executable and501-control CLI only; configured160 inventory not run in full"
+    },
+    "asanUbsan": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 /private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests --iso8859-4",
+      "exitCode": 0,
+      "flags": "-fsanitize=address,undefined -fno-omit-frame-pointer -O1",
+      "scope": "Focused macOS ARM64 factory/codec mode; leak detection disabled for Apple runtime; not native/full-suite/leak qualification"
+    },
+    "frozenCompatibility": {
+      "unchangedCells": 140,
+      "profiles": [
+        "C xDXF/nonDXF",
+        "tr_TR.ISO8859-9 xDXF/nonDXF"
+      ],
+      "source": "docs/research/broader-codec-policy-research-2026-10-15.json result.vectors and reproduction.probe_cpp",
+      "compile": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc /private/tmp/libdxfrw-broader-codec.YMVBfJ/probe.cpp src/intern/drw_textcodec.cpp -o /private/tmp/libdxfrw-iso8859-4.3vQzza/compat-probe",
+      "comparison": "70rows/locale joined by(alias,input_hex), compare selected/decoded_utf8_hex/reencoded_hex/redecoded_utf8_hex exactly; timeout15s and bounded1MiB output. Reconstruct original probe_cpp from frozen receipt if scratch source is absent. Wrong historical mappings remain wrong, not newly qualified."
+    },
+    "qa": {
+      "command": "python3 /private/tmp/libdxfrw-iso8859-4.3vQzza/qa.py",
+      "exitCode": 0,
+      "source": "import ast\nimport hashlib\nimport json\nfrom pathlib import Path\nimport re\nimport subprocess\nimport sys\n\nrepo = Path('/Users/dli/dev/libdxfrw')\nscratch = Path(__file__).resolve().parent\nmapping = Path('/private/tmp/libdxfrw-deeper-readiness.cvvmLR/8859-4.TXT')\nwindows_source = mapping.parent / 'CP1257.TXT'\n\ndef parse_source(path):\n    result = {}\n    for line in path.read_text().splitlines():\n        fields = line.split('#',1)[0].split()\n        if len(fields) >= 2:\n            result[int(fields[0],16)] = int(fields[1],16)\n    return result\n\ndef array(text,name):\n    body = re.search(r'\\b' + re.escape(name) + r'\\s*(?:\\[128\\]|\\[\\])\\s*=\\s*\\{(.*?)\\};', text, re.S).group(1)\n    body = re.sub(r'//[^\\n]*','',body)\n    return [int(value,16) for value in re.findall(r'0x[0-9a-fA-F]+',body)]\n\nsource = parse_source(mapping)\nassert len(source) == len(set(source.values())) == 256\nheader = repo / 'src/intern/drw_cptable_iso8859_4.h'\nupper = array(header.read_text(),'DRW_TableISO8859_4')\nassert len(upper) == 128\ntest_text = (repo/'tests/gbk_codepage_tests.cpp').read_text().split('void testExactIso8859_4(',1)[1]\ngraphic = array(test_text,'graphic')\nwindows = array(test_text,'windows')\nassert len(graphic) == 96 and len(windows) == 128\nfor byte in range(256):\n    expected = ord(bytes([byte]).decode('iso8859_4',errors='strict'))\n    assert source[byte] == expected\n    assert (byte if byte < 128 else upper[byte-128]) == expected\n    assert (byte if byte < 160 else graphic[byte-160]) == expected\nwin_source = parse_source(windows_source)\nassert len(win_source) == 244\nfor byte in range(128,256):\n    try: expected = ord(bytes([byte]).decode('cp1257',errors='strict'))\n    except UnicodeDecodeError: expected = 0\n    assert windows[byte-128] == expected == win_source.get(byte,0)\ncases = [(mapping,header,0), (scratch/'invalid-source.txt',header,1),\n         (mapping,scratch/'invalid-header.h',1)]\nfor input_path,check_path,expected in cases:\n    result = subprocess.run([sys.executable,str(repo/'tools/generate_iso8859_4.py'),\n                             str(input_path),'--check',str(check_path)],\n                            capture_output=True,timeout=5)\n    assert result.returncode == expected and len(result.stdout)+len(result.stderr)<65536\nnotice = repo/'LICENSES/Unicode-3.0.txt'\nassert hashlib.sha256(notice.read_bytes()).hexdigest() == 'e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96'\nassert 'src/intern/drw_cptable_iso8859_4.h' in (repo/'libdxfrw_sources.cmake').read_text()\nassert 'intern/drw_cptable_iso8859_4.h' in (repo/'src/Makefile.am').read_text()\nassert 'LICENSES/Unicode-3.0.txt' in (repo/'Makefile.am').read_text()\ntree = ast.parse((repo/'conanfile.py').read_text())\nexports = [node for node in ast.walk(tree) if isinstance(node,ast.Assign)\n           and any(isinstance(target,ast.Name) and target.id=='exports_sources' for target in node.targets)]\nassert len(exports)==1 and 'LICENSES/**' in ast.literal_eval(exports[0].value)\nassert hashlib.sha256((repo/'src/intern/drw_cptables.h').read_bytes()).hexdigest() == '76cbf82944d5a33a5e770dc8f469a1a2e360348f80c8fa5732ef66fb1a5c10a0'\nsubprocess.run(['git','diff','--check'],cwd=repo,check=True,timeout=5)\nprint('ISO8859-4 QA: PASS (256 source/CPython/production/test scalar agreements,128 Windows source/test upper rows,3 generator controls,notice/source manifests/Conan export,unchanged historical tables)')\n"
+    },
+    "upgradePlan": {
+      "command": "python3 tools/update_upgrade_plan.py --check",
+      "exitCode": 0
+    }
+  },
+  "delivery": {
+    "notice": "LICENSES/Unicode-3.0.txt; exact retrieved Unicode LicenseV3 notice retained, with2015 mapping copyright in generated header",
+    "noticeUrl": "https://www.unicode.org/license.txt",
+    "noticeSha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+    "cmake": "Unconditional install alongside COPYING under CMAKE_INSTALL_DATADIR/licenses/libdxfrw; runtime-only install rule unchanged in placement",
+    "automake": "Root dist_license_DATA and source dist_noinst_HEADERS include notice/table; generator in EXTRA_DIST. Manifest/source checks only, not a full legacy Autotools build.",
+    "conan": "LICENSES/** included in exports_sources, matching existing source-tree export pattern; no installed Conan/toolchain run",
+    "checker": "assert_installed_license requires both source-identical in-prefix notices while preserving existing GPL-digest return/report; assert_install_manifest requires both entries. Self-tests cover each notice missing/truncated/extra-newline/CRLF, relocation and Unicode-manifest omission.",
+    "checkerCommand": "python3 tools/check_staged_package.py --self-test",
+    "checkerExitCode": 0,
+    "actualInstall": {
+      "command": "cmake --install build --prefix /private/tmp/libdxfrw-iso8859-4.3vQzza/install",
+      "scope": "Actual macOS static developer install; both notices source-identical and entries checked with current package helper. Installed CLI bytes equal build CLI; all36 archive object members identical.",
+      "archiveWholeFileEqual": false,
+      "archiveMembersIdentical": 36,
+      "installedArchiveSha256": "0f12aa5aef4f89bc7a83fc5d529118652975e2651ffc7d946eb782c24b95f904",
+      "note": "Whole archive cmp returned1 after install because CMake ranlib rewrites archive-index metadata. Subsequent explicit per-member audit passes36/36; no whole-archive byte identity or runtime-only/native/Conan qualification claim."
+    }
+  },
+  "reviewCorrection": "The first added canonical-factory smoke assumed UTF16 inverse writing, causing one assertion failure in normal/sanitized modes before CTest. Source inspection showed existing DRW_ConvUTF16::fromUtf8 intentionally returns empty. Final input-side smoke now asserts UTF16LE decoding and retained read-only boundary explicitly; ISO1024 inverse controls remain intact, no production UTF16/DWG behavior or assertion is suppressed. Final focused/strict/sanitizer gates pass.",
+  "notRun": [
+    "full160 suite",
+    "native LibreCAD/LC3/FreeCAD",
+    "Conan create/package",
+    "full legacy Autotools build",
+    "runtime-only install reconfiguration",
+    "DWG numeric/TV/TU/EED ingest or native producer/ACIS qualification"
+  ],
+  "fixturePolicy": "No DWG/DXF payload, new CTest registration or runtime dependency added. Generator test source/header negatives authored locally; official mapping/license are public text data with hashes/notices, not external CAD fixtures.",
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ],
+  "supportPromotion": false,
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "ledger": 149,
+    "committed": 128,
+    "blocked": 6,
+    "inProgress": 3,
+    "other": 12,
+    "readyParents": 0
+  },
+  "next": "Slice3.3c functional explicit input policy snapshot, original-declaration reapplication, per-field exact mapping observations, owned converter outcome and source/target/CLI admission. Public policy under3.3a and parent3.2 remain open; default2D behavior and six external gates unchanged."
+}

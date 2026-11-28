@@ -18,11 +18,18 @@ only in full AutoCAD for Windows, not AutoCAD LT:
    unchanged.
 3. Keep all five generated files outside the repository. Preserve the manifest
    verbatim and calculate SHA-256 for each file after AutoCAD exits.
-4. Independently inspect each DWG with ODA File Converter and at least one
-   separately implemented ACIS reader. Compare the exact DWG→DXF output, ACDS
-   owner key, schema/history references, SAB bytes/hash, raw extents, converted
+4. Independently inspect each DWG with ODA File Converter and two separately
+   implemented ACIS geometry readers, as required by the 3D support plan.
+   Count parser and geometry-kernel lineage separately: two frontends sharing
+   OCCT do not independently validate the kernel. Compare the exact DWG→DXF
+   output, ACDS owner key, schema/history references, SAB bytes/hash, raw extents, converted
    millimetre extents, volume, and topology against the manifest's analytic
    box. Record all versions, commands, logs, hashes, and tolerances.
+
+AC1027 is the requested drawing format, not a forced ACIS/ASM payload version.
+The script does not select or inspect ACIS-218/ASM-230. Inspect and record each
+extracted SAB header/profile before assigning the outputs to that qualification
+lane. A different profile is a separate witness, not a successful ACIS-218 run.
 
 The dimensions are center `(13,-17,19)` and lengths `(5,7,11)`, giving expected
 WCS bounds `(10.5,-20.5,13.5)` to `(15.5,-13.5,24.5)` and volume `385` in

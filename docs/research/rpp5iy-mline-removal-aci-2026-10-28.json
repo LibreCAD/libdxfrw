@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2.4 unused modern MLINESTYLE removal with retained-element ACI edit",
+  "date": "2026-10-28",
+  "codeCommit": "5e2181d538d483a3de7c92cb7bcaf9b3d5781625",
+  "scope": "Selected same-version AC1027 DXF core, contiguous 49/62/6 tuples, rooted dictionary and qualified LTYPE providers; original/live/output ordinary MLINE census demonstrates unused definition. ASCII and binary source/output are tested.",
+  "contract": {
+    "operation": "Remove any subset leaving a nonempty ordered survivor list while changing the survivor ACI color. Exact full-tuple subsequence retains the established route; otherwise each survivor must uniquely match exactly one original on every non-ACI modeled field, in order.",
+    "sourceAndAtomicity": "Original and live raw tuples and ASCII spellings must agree; conflicting raw edits, ambiguous anchors, invalid changed ACI, changed offsets or linetype references, consumed or missing ordinary consumers, missing providers and late changes refuse atomically. Corrected same-adapter retry is tested.",
+    "bounds": "Exact matching checks ACI before anchor strings and precharges both linear passes; fallback precharges the source-element/string-byte cross-product. The private production helper has exact and one-below limit, long-string, accumulated, zero-pass and overflow controls.",
+    "typedCopyLimit": "The pre-existing typed/model copy and its string traversal are accounted by retained-byte limits; the comparison-work precharge is not a total CPU, RSS, allocator or concurrency bound.",
+    "limits": "No claim of edit history or general identity; 1\u21920 edits remain refused after the peer audit. Offset/linetype edits composed with removal, consumed geometry, other versions and unknown/proxy dependencies require separate proof. Native rendering and whole-document support remain unqualified."
+  },
+  "sourceBindings": {
+    "adapterCppSha256": "fc30e9127a30a1faf8bf37b76e293232c938f447edba96ea66ccb86f3c613aac",
+    "adapterHeaderSha256": "da54d3b5bac6a60a65133d56634d893c6f154e8c702b6a4fe9a93bddb0a3fa3e",
+    "testSourceSha256": "161a094dff0642e7a4434c3be75b50b592ec18df9e9b5f0fa61fdc1d395253a0",
+    "normalAdapterObjectSha256": "6916242f5c652940962b79cc0e78b84930f11d69b1a41225a45ecd0f85d779a2",
+    "normalTestExecutableSha256": "135fa699fad07252542dff8ee44f850a469407045a2951ff833723c1d7976a64",
+    "normalLibrarySha256": "c6003b971d9ba96b89d2d97ad2eb911a57022b067aac0c10508760b3d62239e9",
+    "asanAdapterObjectSha256": "bf0778686b31ad16d6e59d66863b42b42a3afa4fe1824876f3de699d2264e5aa",
+    "asanTestExecutableSha256": "fefa4d4bfeb8aa5b44c68ffad7347fff855e5fe15fab69643866f5bc6ad6346f",
+    "asanLibrarySha256": "813d295f6ae9d15580305ed9cf388e2906979f1c45cdd861cfcd8a4c435bf3c7"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_mline_style_body_transactions",
+        "libdxfrw_mline_style_authority"
+      ],
+      "result": "PASS",
+      "count": "2/2"
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_mline_style_body_transactions",
+        "libdxfrw_mline_style_authority"
+      ],
+      "result": "PASS",
+      "count": "2/2",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "newControls": {
+      "profiles": 12,
+      "refusals": 18,
+      "lateMutations": 8,
+      "ambiguousAnchors": 2,
+      "correctedRetries": 28,
+      "255ElementBoundaries": 8
+    },
+    "prechargeControls": "Long strings, accumulated exact quotas, one-below rejection without changing work, zero-pass and overflowing pass count. The helper is the one used by export; this is not an end-to-end oversized-LTYPE quota fixture.",
+    "logNote": "Results observed directly; simultaneous CTest runs can overwrite LastTest.log."
+  },
+  "independentPeer": {
+    "program": "ezdxf 1.4.5",
+    "pythonSha256": "15c72833c1ffc09bc4e05d1e1866784d126721ad548d9c4d8f943641262535cb",
+    "sourceSha256": "7585e5f21620b018d399b71b94c4a532ba50902a980403dc7716a1f6bc42fe77",
+    "probeSourceSha256": "23f83d5c6754b2a83c569b2f99e05183eb8a90cd9cbe2df9be3da48796387318",
+    "probeExecutableSha256": "74524e06bc0a6215cbdc79ef060ad2a07523cbfad5e53f6030122c1a68750c26",
+    "outputAsciiSha256": "9f0f5cb89a685de64faa1ab9f160f593752c03ac0429103151517eebd7116296",
+    "outputBinarySha256": "9fb155f24a5273422c8cae150b9cf96626740184248fb34bf5e24b86bcd936b1",
+    "physicalAndReadbackReportSha256": "d52590898a5a120f1f3097934991bc7303ed1b598daf7f6dd02fe5ef506ed864",
+    "physicalProjectionScriptSha256": "9e4285532b7d9683521d876bca3c5d129d163cd9e5377679f4ed492bbdbfa8d9",
+    "auditReportSha256": "6360aea4b0d92d3de612e9eb98f5bef710b6cf97ea11c352138fc370df512413",
+    "auditScriptSha256": "413231473381ce9dc59c355934abec11849e6763dcc3798fce257613316c49ff",
+    "result": "Locally authored source and actual ASCII/binary outputs have selected tuples, dictionary and provider relationships, ENTITIES/BLOCKS consumer identities, ownership and modeled geometry as projected. Independent ordinary read and auditor report zero errors and fixes for source and both outputs. No native or renderer claim."
+  },
+  "claimsPromoted": false,
+  "fixtures": "All DXF drawings and probe artifacts remain in ignored build scratch; no external fixture was committed."
+}

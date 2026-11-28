@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-27",
+  "scope": "Generated AC1027 ASCII and binary DXF with two independent NOD dictionary to XRECORD chains and wide handles, strict same-version same-encoding converter route.",
+  "implementationDigestSha256": "89628cfa70ec5718265fa3bc6b127b92abcae2cd46827e57de6ce96a8212c251",
+  "converterSha256": "dbe44aafc439110b9db877141d99f8fb29e1df153654dd56c32dbc9d5acb4c39",
+  "sourceAndOutputSha256": {
+    "ascii": {
+      "source": "abb5b36272ef1fb7f88c116ab9812476409b087359e6608bfa69e019f7f80b86",
+      "output": "88c343661f943afeae252090c84a8df95a01fa48de4e21e93c7fe36b5960d455"
+    },
+    "binary": {
+      "source": "32df0d0b2a3c7422c10633a3a50b818d52759b0b45a688ae22cc879318e6e17e",
+      "output": "b9f8d0f114751f457b05433c354db97b9253b2669919e6f234698b753e4b1071"
+    }
+  },
+  "peerReadback": {
+    "ezdxf": "1.4.5; each encoding: 27 mapped objects, 26 dictionary entries, 14 root entries, two layers, owners, reactors, both XRECORD 340 references, materials and dictionary values matched; source and output audit each 0 errors and 0 fixes",
+    "libredwg": "0.14 dxf2dwg r2004 and dwgread JSON: both child dictionary owners, XRECORD owners and 340 references resolved; peer reported unsupported MATERIAL fields, so this proves only the selected graph, not whole-file semantics"
+  },
+  "focusedChecks": [
+    "ASCII and binary with alias collisions",
+    "captured source snapshot survives file changes",
+    "second chain target and late payload mutation refuse export and preserve destination; corrected retries pass",
+    "malformed second-chain owner, reference and unknown reference refused with destination preserved",
+    "cross-version and cross-encoding refused with destination preserved",
+    "whole-source capture and existing plot/material regressions pass"
+  ],
+  "limits": [
+    "Up to eight independent chains with distinct dictionary and XRECORD identities; two- and eight-chain locally generated examples independently read back.",
+    "Only selected AC1027 same-encoding profile with audited plot/material graph",
+    "Original-source observation modes do not opt into alias projection",
+    "Direct dxfRW semantic callbacks and existing adapters retain 32-bit identity behavior",
+    "No native producer or native LibreCAD/FreeCAD qualification is established",
+    "No broad DWG/DXF support claim is promoted"
+  ],
+  "fixtures": "Generated locally from scratch in temporary storage; no DWG or DXF fixture added to the repository.",
+  "boundaryReadback": {
+    "description": "Locally generated eight-chain graph; ezdxf 1.4.5 verifies all dictionary and XRECORD owners and 340 references in source and output, with no audit errors or fixes. Nine chains are refused with destination preserved in both encodings; same-adapter corrected retry is covered by the focused regression.",
+    "ascii": {
+      "source": "e471e11c480a58985c63c475378388c4426a918c32fb5e23813822c99693f088",
+      "output": "78bc6dc4b8ecb79fae67e63b5e3aaf8fdd0cfab751ac043dc9fdd9dbc8570f90"
+    },
+    "binary": {
+      "source": "4b69a4f866c4d5ea37a1217c0b0cd0540e6a5b4017df1c3a538d08023d00e91c",
+      "output": "df4789e229c285021be54345c1bfaef948fb47a64c2c5032b71a08bdfc17ecc7"
+    }
+  }
+}

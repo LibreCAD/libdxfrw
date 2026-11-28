@@ -1,0 +1,43 @@
+{
+  "id": "par134-ac1021-ac1024-table-cadvalue-point-values",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "56898a57e3379aaa327f136ad02f316c747eff147642e074bc5884e6edee051b",
+  "scope": {
+    "class": "DRW_Table / DRW_TableContentObject",
+    "version": "AC1021 and AC1024",
+    "field": "TABLE CadValue point types 16 and 32",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "change": "Extended generated in-memory TABLE vectors for type-16 2D points and type-32 3D points with trailing bytes. Production point decoding already retained coordinates and extra payload bytes; this slice adds regression coverage only.",
+  "generatedControls": {
+    "coordinates": "Both types use x=1.25 and y=-2.5; type 32 also uses z=3.75.",
+    "trailingBytes": "Each payload declares coordinate bytes plus C1 D2 E3; tests verify the suffix is retained exactly.",
+    "ac1021": "Standalone TABLECONTENT asserts the typed coordinate, declared size, suffix, display/cell text, and semantic completeness.",
+    "ac1024": "Embedded TABLE asserts the same and the exact following-tail bit boundary."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_table_cadvalue_points$' --output-on-failure: PASS (1/1)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "productionParserChanged": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

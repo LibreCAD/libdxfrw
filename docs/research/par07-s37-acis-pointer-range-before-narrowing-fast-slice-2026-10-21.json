@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-07/S3.7 ACIS pointer range-before-narrowing guard",
+  "mode": "Generated in-memory implementation fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Avoid narrowing an untrusted raw signed 64-bit graph pointer before range validation",
+    "Pin exact rooted-projection disposition for an out-of-range in-memory reference",
+    "Keep validation focused on the owning graph-preservation target"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 1,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S3.7: compare raw pointer values to node-table bounds before converting to int",
+      "PAR-07/S3.7: retain raw token evidence and require exact InvalidReference disposition at rooted projection"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "testsRun": 2,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "The graph builder now retains unresolved -1 for any pointer outside the node table and narrows only a nonnegative in-range value. The raw token remains available for the rooted validator, which fails closed with the precise InvalidReference node and pointer ordinal."
+  },
+  "method": {
+    "webResearchPerformed": false,
+    "repositoryClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "tests": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests --parallel 2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_graph_preservation_tests",
+        "result": "PASS"
+      }
+    ],
+    "changedFiles": [
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/par07-s37-acis-pointer-range-before-narrowing-fast-slice-2026-10-21.json"
+    ],
+    "limitations": "The regression uses an in-memory caller-built graph and does not establish a wire-level SAB producer case, ACIS semantics, or any DWG/DXF/native consumer support. No full suite or external reader was run."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on changed source, test, plan, and receipt paths)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

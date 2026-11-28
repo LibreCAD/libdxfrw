@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-04",
+  "authority": "Open Design Specification for .dwg files v5.4.1 section 20.4.44 describes the DICTIONARY parent as a soft pointer; section 2.13 defines handle codes.",
+  "physical_evidence": {
+    "reader": "LibreDWG 0.14 JSON decoder",
+    "controls": [
+      {"version":"AC1018", "producer":"ODA File Converter 27.1.0 from locally authored LINE DXF", "sha256":"5ea10bccd692850c548e3ef9126acfb5414d4e012edd2179244f5775fad63850", "root_owner":[4,0,0]},
+      {"version":"AC1021", "producer":"local scratch source; provenance not independently established", "sha256":"70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a", "root_owner":[4,0,0]},
+      {"version":"AC1024", "producer":"ODA File Converter 27.1.0 from locally authored LINE DXF", "sha256":"283fe2a2959c7bf501a2f2388edce65d4b8241f258d3b0bbd911a5a73a2677f8", "root_owner":[4,0,0]},
+      {"version":"AC1027", "producer":"ODA File Converter 27.1.0 from locally authored LINE DXF", "sha256":"3aaa3ccff83ad8e5280ad810ae0b66d9f0c825105ed46c1e3f40a321d26aaaf9", "root_owner":[4,0,0]},
+      {"version":"AC1032", "producer":"ODA File Converter 27.1.0 from locally authored LINE DXF", "sha256":"ef442a26ad5bd6caf8473f9a7c177e7efb7c869fb316008bbb493be3b52a78d3", "root_owner":[4,0,0]}
+    ],
+    "previous_generated_ac1018_root_owner": [0,0,0],
+    "corrected_generated_ac1018": {"sha256":"20eb7474a93b7c9e97ff24fbdaf52712c5be7644b18d461248b1fb706376642c", "root_owner":[4,0,0], "root_item_count":1, "group_owner":[4,1,12], "line_count":1}
+  },
+  "implementation": "Emit the typed-null soft-pointer parent for zero-owner AC1018+ dictionaries. Preserve non-null parents and pre-AC1018 behavior; DICTIONARYWDFLT shares the dictionary prefix. No public API is changed.",
+  "validation": {
+    "result":"PASS",
+    "selectors":["libdxfrw_dictionary_item_wire_role", "libdxfrw_dictionary_default_handle_role", "libdxfrw_dwg_r2004_system_terminators", "dwg_read_AC1024_mechanical_example-imperial"],
+    "coverage":"Exact raw owner and next-item bytes for null and non-null parents AC1015 through AC1032, plus independent complete AC1018 physical file decoding."
+  },
+  "limits": "The ODA application was unavailable because the Mac session was locked. It is not established whether this valid role correction resolves the ODA dictionary error or general DWG interoperability. The extension-dictionary missing flag is preserved as caller state; source differences do not establish that its previous encoding is invalid. No sample files were committed."
+}

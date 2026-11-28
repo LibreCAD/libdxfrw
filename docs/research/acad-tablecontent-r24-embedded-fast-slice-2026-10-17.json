@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-acad-tablecontent-r24-embedded-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Add and validate a generated AC1024 inline TABLECONTENT parser vector in the existing DWG object-vector test owner.",
+  "implementation": {
+    "filesChangedInSlice": [
+      "tests/dwg_object_vectors_tests.cpp"
+    ],
+    "productionCodeChanged": false,
+    "testRegistrationChanged": false,
+    "externalDrawingFixturesAdded": 0,
+    "generatedInMemoryVectors": 1,
+    "peerOrNativeConsumersRun": false,
+    "description": "The vector directly invokes DRW_Table::parseDwg on one minimal AC1024 inline TABLECONTENT frame. It checks bounded strings, one column, one typed numeric cell, style handle, parser completion and the exact table-tail cursor. The source-authored frame uses byte-counted UTF-16LE strings to exercise the current reader assumption; this is not producer-confirmed byte-layout evidence."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure"
+    ],
+    "buildResult": "passed",
+    "focusedCtest": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "fullSuiteRun": false
+  },
+  "limitations": [
+    "Does not validate dynamic object-type dispatch or full-file reading.",
+    "Does not establish exact producer string lengths/stream storage; the generated vector follows the current parser's byte-counted UTF-16 assumption.",
+    "Does not cover all TABLECONTENT field variants, merged-cell/style mappings, AC1027/AC1032, native consumer behavior, or support parity.",
+    "No external DWG/DXF fixture was copied, added, or committed."
+  ],
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 125,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktreeStatus": "uncommitted shared checkout; no files staged or committed"
+}

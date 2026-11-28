@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-15",
+  "finding": "Upstream emits the mandatory ByBlock, ByLayer and Continuous LTYPE rows before invoking the consumer callback, and offers setCanonicalLineTypeMetadata to preserve their source table-entry metadata. LibreCAD did not call that hook, so it could not preserve those application groups through the upstream-linked filter.",
+  "consumerChange": {
+    "branch": "codex/upstream-libdxfrw-consumer",
+    "commit": "9f82b2b",
+    "parent": "44ef026",
+    "patch": "docs/patches/librecad-p8-canonical-ltype-metadata-2026-11-15.patch",
+    "scope": "Collect the three archived canonical LTYPE records and pass them before write. Compile-time detection makes the call a no-op for the older bundled codec, which has no hook."
+  },
+  "validation": [
+    "The upstream-linked LibreCAD filter imports all three generated application groups, writes them on their respective mandatory rows, and reimports them: 18 assertions pass.",
+    "A bundled-linked incremental probe compiles and passes 12 assertions for the preexisting fallback behavior. Its lack of metadata preservation remains a limitation of that older codec.",
+    "The upstream-linked MTEXT selector, DIMASSOC/MPOLYGON selector and legacy DIMSTYLE linetype roundtrip remain green.",
+    "The patch passes forward apply check on parent 44ef026 and reverse apply check on 9f82b2b. Clean-clone source inventory regeneration and check pass with 1,181 released files."
+  ],
+  "limits": "The consumer commit is local and unmerged; the bundled fallback does not preserve this metadata. The incremental bundled probe is not a clean platform qualification. No support claim or phase gate is promoted."
+}

@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "FIELD CADVALUE emission preflight",
+  "mode": "local fast implementation slice with generated ASCII/Binary controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Make FIELD CADVALUE checks reject payloads that the selected DXF sinks cannot safely encode",
+    "Ensure malformed root and child values fail before the FIELD record prefix",
+    "Keep valid FIELD wire output and version profiles unchanged"
+  ],
+  "evidence": {
+    "localSource": [
+      "src/libdxfrw.cpp:canWriteDxfFieldValue",
+      "src/libdxfrw.cpp:canWriteDxfField",
+      "src/libdxfrw.cpp:dxfRW::writeField",
+      "src/intern/dxfwriter.cpp:dxfWriterAscii::writeDouble",
+      "src/intern/dxfwriter.cpp:dxfWriterBinary::writeDouble"
+    ],
+    "sourceObservation": "writeField performs a whole-field admission check before emitting its prefix. The admission helper previously checked variant kinds but not non-finite doubles/coordinates or a null public string carrier; writer sinks reject non-finite doubles, while DRW_Variant::c_str() dereferences content.s."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "FIELD CADVALUE preflight now rejects non-finite scalar values, null STRING carriers, non-finite XY/XYZ coordinates according to data type, and binary lengths larger than INT_MAX before narrowing to the DXF length group.",
+    "wireBehaviorChanged": true,
+    "wireBehaviorDetail": "Malformed caller-provided CADVALUEs now fail before any direct FIELD bytes are emitted. Valid sink encodings are unchanged.",
+    "publicApiOrLayoutChanged": false,
+    "supportClaimPromoted": false
+  },
+  "generatedControls": {
+    "asciiAndBinaryNegative": [
+      "Root data-type-2 NaN is rejected with no output.",
+      "Root data-type-32 infinite Z is rejected with no output.",
+      "Child data-type-4 STRING with a null content.s carrier is rejected with no output and no dereference.",
+      "Child data-type-2 negative infinity is rejected with no output."
+    ],
+    "oversizedBinaryLengthControl": "The INT_MAX guard is source-verified; no multi-gigabyte vector was allocated for a test.",
+    "persistentFixturesAdded": 0,
+    "newCTestRegistrations": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_wave1_tests -j4",
+      "build/libdxfrw_wave1_tests --field-cadvalue-emission-preflight",
+      "ctest --test-dir build -R '^libdxfrw_wave1$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "passed with -Wall -Wextra -pedantic -Werror",
+      "focusedSelector": "passed",
+      "owningWave1CTest": "passed (1/1)",
+    "diffCheck": "passed after the plan/receipt changes; git diff --check on scoped implementation and plan files returned success"
+    },
+    "compiler": {
+      "path": "/usr/bin/clang++",
+      "reportedVersion": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+      "languageFlag": "-std=c++17"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "sanitizerOrFuzzRun": false,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "localMismatchFound": "FIELD preflight admitted a non-finite payload or null STRING carrier based only on variant type. A later typed sink could reject after FIELD prefix emission, and the public DRW_Variant content pointer could be dereferenced.",
+    "claim": "The covered malformed FIELD CADVALUE payloads now fail during the existing whole-field preflight before any output; the null child string case is rejected without dereference.",
+    "limitations": "This does not establish all FIELD schema semantics, object-reference closure, native CAD acceptance, enormous-allocation behavior, or complete FIELD/DWG support. The oversized binary-length guard is not exercised with an allocation above INT_MAX."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "staged": false,
+    "committed": false,
+    "unrelatedChangesPreserved": true
+  }
+}

@@ -1,0 +1,1235 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1021-imperial-sortents-body-reference-peer-differential-2026-11-14",
+  "date": "2026-11-14",
+  "status": "HASH_BOUND_AC1021_SORTENTSTABLE_BODY_REFERENCE_DIFFERENTIAL_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Compare every retained SORTENTSTABLE body-reference list in one physical AC1021 source against an independent LibreDWG minJSON decode, with the ODA wire-role definition and LibreDWG parser schema bound. This is not physical subfield-span proof, recursive target closure, output qualification, or native draw-order qualification.",
+  "formatAuthority": {
+    "odaSpecification": "Open Design Specification for .dwg files v5.4.1",
+    "odaPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "\u00a720.4.93 SORTENTSTABLE, pp. 221\u2013222",
+    "rules": [
+      "The body declares an entry count and places the ordered sort handles in the main bit stream using H code 0.",
+      "The handle stream stores the block owner as a soft pointer and the ordered entity handles as soft pointers.",
+      "A missing sort handle uses the entity handle as its ordering key."
+    ]
+  },
+  "source": {
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_imperial.dwg",
+    "version": "AC1021",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "sourceUnchangedDuringAudit": true,
+    "fixtureFilesAdded": 0,
+    "capturedFrameIdentities": 1176,
+    "unexhaustivelyDecodedFramesBefore": 673,
+    "unexhaustivelyDecodedFramesAfter": 657
+  },
+  "independentPeer": {
+    "name": "LibreDWG minJSON",
+    "createdBy": "LibreDWG 0.13.3.553_6d6a_dirty",
+    "jsonPath": "/private/tmp/p6-mlinestyle-ac1021-imperial-peer.json",
+    "jsonSha256": "f5675a85f73566ceec3065db2b0239a44ad9825defdbc254eab4fc285e63a12d",
+    "schemaPath": "/Users/dli/dev/libredwg/src/dwg2.spec",
+    "schemaSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "sortentsSchemaBlockSha256": "da524f0760b077faa6b62b8ca988f9decc444cdab7a5990ce08ad61ef76b00b8",
+    "verifiedSchemaRoles": "num_ents and sort_ents (H code 0) precede START_OBJECT_HANDLE_STREAM; block_owner and ents (H code 4) are in that stream."
+  },
+  "matchedProfiles": [
+    {
+      "tableHandle": "0x6C3A",
+      "blockOwnerHandle": "0x1F",
+      "entryCount": 165,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": [
+        {
+          "entityHandle": 22766,
+          "ordinal": 0,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23513
+        },
+        {
+          "entityHandle": 72858,
+          "ordinal": 1,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13449
+        },
+        {
+          "entityHandle": 72866,
+          "ordinal": 2,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72868
+        },
+        {
+          "entityHandle": 28723,
+          "ordinal": 3,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61504
+        },
+        {
+          "entityHandle": 13921,
+          "ordinal": 4,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 19437
+        },
+        {
+          "entityHandle": 22774,
+          "ordinal": 5,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23965
+        },
+        {
+          "entityHandle": 13937,
+          "ordinal": 6,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 19443
+        },
+        {
+          "entityHandle": 22782,
+          "ordinal": 7,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23976
+        },
+        {
+          "entityHandle": 22679,
+          "ordinal": 8,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23173
+        },
+        {
+          "entityHandle": 22790,
+          "ordinal": 9,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 24164
+        },
+        {
+          "entityHandle": 22687,
+          "ordinal": 10,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23286
+        },
+        {
+          "entityHandle": 13444,
+          "ordinal": 11,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13504
+        },
+        {
+          "entityHandle": 28660,
+          "ordinal": 12,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61437
+        },
+        {
+          "entityHandle": 28668,
+          "ordinal": 13,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61445
+        },
+        {
+          "entityHandle": 28405,
+          "ordinal": 14,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61403
+        },
+        {
+          "entityHandle": 13595,
+          "ordinal": 15,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13802
+        },
+        {
+          "entityHandle": 13452,
+          "ordinal": 16,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13509
+        },
+        {
+          "entityHandle": 13866,
+          "ordinal": 17,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 19419
+        },
+        {
+          "entityHandle": 16329,
+          "ordinal": 18,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 21251
+        },
+        {
+          "entityHandle": 13476,
+          "ordinal": 19,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13538
+        },
+        {
+          "entityHandle": 22767,
+          "ordinal": 20,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23514
+        },
+        {
+          "entityHandle": 72859,
+          "ordinal": 21,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13444
+        },
+        {
+          "entityHandle": 72867,
+          "ordinal": 22,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72869
+        },
+        {
+          "entityHandle": 28724,
+          "ordinal": 23,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61505
+        },
+        {
+          "entityHandle": 13898,
+          "ordinal": 24,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 19435
+        },
+        {
+          "entityHandle": 13500,
+          "ordinal": 25,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13675
+        },
+        {
+          "entityHandle": 13508,
+          "ordinal": 26,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13749
+        },
+        {
+          "entityHandle": 23942,
+          "ordinal": 27,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 28769
+        },
+        {
+          "entityHandle": 13413,
+          "ordinal": 28,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13416
+        },
+        {
+          "entityHandle": 13532,
+          "ordinal": 29,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13750
+        },
+        {
+          "entityHandle": 26118,
+          "ordinal": 30,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61312
+        },
+        {
+          "entityHandle": 13429,
+          "ordinal": 31,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13431
+        },
+        {
+          "entityHandle": 22680,
+          "ordinal": 32,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23174
+        },
+        {
+          "entityHandle": 22791,
+          "ordinal": 33,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 24165
+        },
+        {
+          "entityHandle": 13437,
+          "ordinal": 34,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13441
+        },
+        {
+          "entityHandle": 28661,
+          "ordinal": 35,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61438
+        },
+        {
+          "entityHandle": 28669,
+          "ordinal": 36,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61446
+        },
+        {
+          "entityHandle": 13564,
+          "ordinal": 37,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13801
+        },
+        {
+          "entityHandle": 22696,
+          "ordinal": 38,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23299
+        },
+        {
+          "entityHandle": 13477,
+          "ordinal": 39,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13540
+        },
+        {
+          "entityHandle": 72860,
+          "ordinal": 40,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72862
+        },
+        {
+          "entityHandle": 72868,
+          "ordinal": 41,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72870
+        },
+        {
+          "entityHandle": 28725,
+          "ordinal": 42,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61506
+        },
+        {
+          "entityHandle": 28733,
+          "ordinal": 43,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61532
+        },
+        {
+          "entityHandle": 22768,
+          "ordinal": 44,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23938
+        },
+        {
+          "entityHandle": 23943,
+          "ordinal": 45,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 28774
+        },
+        {
+          "entityHandle": 13740,
+          "ordinal": 46,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 16789
+        },
+        {
+          "entityHandle": 13533,
+          "ordinal": 47,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13751
+        },
+        {
+          "entityHandle": 22673,
+          "ordinal": 48,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23136
+        },
+        {
+          "entityHandle": 26119,
+          "ordinal": 49,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61329
+        },
+        {
+          "entityHandle": 13796,
+          "ordinal": 50,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 19412
+        },
+        {
+          "entityHandle": 22681,
+          "ordinal": 51,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23223
+        },
+        {
+          "entityHandle": 72853,
+          "ordinal": 52,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13748
+        },
+        {
+          "entityHandle": 28662,
+          "ordinal": 53,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61439
+        },
+        {
+          "entityHandle": 28670,
+          "ordinal": 54,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61447
+        },
+        {
+          "entityHandle": 16323,
+          "ordinal": 55,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 21248
+        },
+        {
+          "entityHandle": 22705,
+          "ordinal": 56,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23507
+        },
+        {
+          "entityHandle": 13462,
+          "ordinal": 57,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13515
+        },
+        {
+          "entityHandle": 13478,
+          "ordinal": 58,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13542
+        },
+        {
+          "entityHandle": 72861,
+          "ordinal": 59,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72863
+        },
+        {
+          "entityHandle": 72869,
+          "ordinal": 60,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72871
+        },
+        {
+          "entityHandle": 28718,
+          "ordinal": 61,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61485
+        },
+        {
+          "entityHandle": 28726,
+          "ordinal": 62,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61507
+        },
+        {
+          "entityHandle": 13741,
+          "ordinal": 63,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 16790
+        },
+        {
+          "entityHandle": 16787,
+          "ordinal": 64,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 21531
+        },
+        {
+          "entityHandle": 22777,
+          "ordinal": 65,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23971
+        },
+        {
+          "entityHandle": 13415,
+          "ordinal": 66,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13417
+        },
+        {
+          "entityHandle": 13534,
+          "ordinal": 67,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13752
+        },
+        {
+          "entityHandle": 22674,
+          "ordinal": 68,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23138
+        },
+        {
+          "entityHandle": 20635,
+          "ordinal": 69,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 22837
+        },
+        {
+          "entityHandle": 27711,
+          "ordinal": 70,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61335
+        },
+        {
+          "entityHandle": 72854,
+          "ordinal": 71,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13676
+        },
+        {
+          "entityHandle": 28663,
+          "ordinal": 72,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61440
+        },
+        {
+          "entityHandle": 28671,
+          "ordinal": 73,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61448
+        },
+        {
+          "entityHandle": 28400,
+          "ordinal": 74,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61399
+        },
+        {
+          "entityHandle": 62667,
+          "ordinal": 75,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 27712
+        },
+        {
+          "entityHandle": 20803,
+          "ordinal": 76,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 22839
+        },
+        {
+          "entityHandle": 22690,
+          "ordinal": 77,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23290
+        },
+        {
+          "entityHandle": 23121,
+          "ordinal": 78,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 24180
+        },
+        {
+          "entityHandle": 28111,
+          "ordinal": 79,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 16372
+        },
+        {
+          "entityHandle": 13479,
+          "ordinal": 80,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13543
+        },
+        {
+          "entityHandle": 72862,
+          "ordinal": 81,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72864
+        },
+        {
+          "entityHandle": 72870,
+          "ordinal": 82,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72872
+        },
+        {
+          "entityHandle": 28719,
+          "ordinal": 83,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61486
+        },
+        {
+          "entityHandle": 28727,
+          "ordinal": 84,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61527
+        },
+        {
+          "entityHandle": 13742,
+          "ordinal": 85,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 19357
+        },
+        {
+          "entityHandle": 16788,
+          "ordinal": 86,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 21534
+        },
+        {
+          "entityHandle": 13424,
+          "ordinal": 87,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13426
+        },
+        {
+          "entityHandle": 27712,
+          "ordinal": 88,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13826
+        },
+        {
+          "entityHandle": 13981,
+          "ordinal": 89,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 19453
+        },
+        {
+          "entityHandle": 22794,
+          "ordinal": 90,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 24167
+        },
+        {
+          "entityHandle": 13440,
+          "ordinal": 91,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13443
+        },
+        {
+          "entityHandle": 72855,
+          "ordinal": 92,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13442
+        },
+        {
+          "entityHandle": 28672,
+          "ordinal": 93,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61449
+        },
+        {
+          "entityHandle": 28401,
+          "ordinal": 94,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61400
+        },
+        {
+          "entityHandle": 62668,
+          "ordinal": 95,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 26593
+        },
+        {
+          "entityHandle": 13862,
+          "ordinal": 96,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 19418
+        },
+        {
+          "entityHandle": 23122,
+          "ordinal": 97,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 24181
+        },
+        {
+          "entityHandle": 22707,
+          "ordinal": 98,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23508
+        },
+        {
+          "entityHandle": 72863,
+          "ordinal": 99,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72865
+        },
+        {
+          "entityHandle": 72871,
+          "ordinal": 100,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72873
+        },
+        {
+          "entityHandle": 28720,
+          "ordinal": 101,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61487
+        },
+        {
+          "entityHandle": 28728,
+          "ordinal": 102,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61528
+        },
+        {
+          "entityHandle": 65524,
+          "ordinal": 103,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72858
+        },
+        {
+          "entityHandle": 13695,
+          "ordinal": 104,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 16371
+        },
+        {
+          "entityHandle": 22771,
+          "ordinal": 105,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23953
+        },
+        {
+          "entityHandle": 13743,
+          "ordinal": 106,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 19372
+        },
+        {
+          "entityHandle": 16789,
+          "ordinal": 107,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 21536
+        },
+        {
+          "entityHandle": 26114,
+          "ordinal": 108,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61306
+        },
+        {
+          "entityHandle": 13536,
+          "ordinal": 109,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13789
+        },
+        {
+          "entityHandle": 16813,
+          "ordinal": 110,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 22810
+        },
+        {
+          "entityHandle": 22684,
+          "ordinal": 111,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23237
+        },
+        {
+          "entityHandle": 22795,
+          "ordinal": 112,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 24168
+        },
+        {
+          "entityHandle": 13441,
+          "ordinal": 113,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13448
+        },
+        {
+          "entityHandle": 28665,
+          "ordinal": 114,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61442
+        },
+        {
+          "entityHandle": 28673,
+          "ordinal": 115,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61450
+        },
+        {
+          "entityHandle": 13990,
+          "ordinal": 116,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 19454
+        },
+        {
+          "entityHandle": 13831,
+          "ordinal": 117,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 19413
+        },
+        {
+          "entityHandle": 16318,
+          "ordinal": 118,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 21247
+        },
+        {
+          "entityHandle": 22700,
+          "ordinal": 119,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23506
+        },
+        {
+          "entityHandle": 28113,
+          "ordinal": 120,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 22838
+        },
+        {
+          "entityHandle": 13656,
+          "ordinal": 121,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13825
+        },
+        {
+          "entityHandle": 23171,
+          "ordinal": 122,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 27708
+        },
+        {
+          "entityHandle": 72856,
+          "ordinal": 123,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13480
+        },
+        {
+          "entityHandle": 72864,
+          "ordinal": 124,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72866
+        },
+        {
+          "entityHandle": 72872,
+          "ordinal": 125,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72896
+        },
+        {
+          "entityHandle": 72896,
+          "ordinal": 126,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72899
+        },
+        {
+          "entityHandle": 28729,
+          "ordinal": 127,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61529
+        },
+        {
+          "entityHandle": 65525,
+          "ordinal": 128,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72859
+        },
+        {
+          "entityHandle": 13688,
+          "ordinal": 129,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 16370
+        },
+        {
+          "entityHandle": 22772,
+          "ordinal": 130,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23956
+        },
+        {
+          "entityHandle": 13744,
+          "ordinal": 131,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 19373
+        },
+        {
+          "entityHandle": 16790,
+          "ordinal": 132,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 21667
+        },
+        {
+          "entityHandle": 22669,
+          "ordinal": 133,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 22967
+        },
+        {
+          "entityHandle": 26115,
+          "ordinal": 134,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61309
+        },
+        {
+          "entityHandle": 16814,
+          "ordinal": 135,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 22811
+        },
+        {
+          "entityHandle": 22677,
+          "ordinal": 136,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23171
+        },
+        {
+          "entityHandle": 22788,
+          "ordinal": 137,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 24162
+        },
+        {
+          "entityHandle": 13442,
+          "ordinal": 138,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13455
+        },
+        {
+          "entityHandle": 28737,
+          "ordinal": 139,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61536
+        },
+        {
+          "entityHandle": 28658,
+          "ordinal": 140,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61435
+        },
+        {
+          "entityHandle": 28666,
+          "ordinal": 141,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61443
+        },
+        {
+          "entityHandle": 28674,
+          "ordinal": 142,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61451
+        },
+        {
+          "entityHandle": 28403,
+          "ordinal": 143,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61401
+        },
+        {
+          "entityHandle": 22693,
+          "ordinal": 144,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23291
+        },
+        {
+          "entityHandle": 22908,
+          "ordinal": 145,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 24169
+        },
+        {
+          "entityHandle": 13633,
+          "ordinal": 146,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13810
+        },
+        {
+          "entityHandle": 72857,
+          "ordinal": 147,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13478
+        },
+        {
+          "entityHandle": 72865,
+          "ordinal": 148,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72867
+        },
+        {
+          "entityHandle": 72873,
+          "ordinal": 149,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 72898
+        },
+        {
+          "entityHandle": 28722,
+          "ordinal": 150,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61503
+        },
+        {
+          "entityHandle": 28730,
+          "ordinal": 151,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61531
+        },
+        {
+          "entityHandle": 16399,
+          "ordinal": 152,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 21523
+        },
+        {
+          "entityHandle": 22773,
+          "ordinal": 153,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23957
+        },
+        {
+          "entityHandle": 16791,
+          "ordinal": 154,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 22809
+        },
+        {
+          "entityHandle": 27707,
+          "ordinal": 155,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13544
+        },
+        {
+          "entityHandle": 22678,
+          "ordinal": 156,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 23172
+        },
+        {
+          "entityHandle": 22789,
+          "ordinal": 157,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 24163
+        },
+        {
+          "entityHandle": 13443,
+          "ordinal": 158,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13479
+        },
+        {
+          "entityHandle": 28380,
+          "ordinal": 159,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 28778
+        },
+        {
+          "entityHandle": 28659,
+          "ordinal": 160,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61436
+        },
+        {
+          "entityHandle": 28667,
+          "ordinal": 161,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61444
+        },
+        {
+          "entityHandle": 28404,
+          "ordinal": 162,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 61402
+        },
+        {
+          "entityHandle": 13562,
+          "ordinal": 163,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 13792
+        },
+        {
+          "entityHandle": 21447,
+          "ordinal": 164,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 22841
+        }
+      ]
+    },
+    {
+      "tableHandle": "0x6ED3",
+      "blockOwnerHandle": "0x23",
+      "entryCount": 5,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": [
+        {
+          "entityHandle": 56899,
+          "ordinal": 0,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 56899
+        },
+        {
+          "entityHandle": 53348,
+          "ordinal": 1,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 53348
+        },
+        {
+          "entityHandle": 26649,
+          "ordinal": 2,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 26649
+        },
+        {
+          "entityHandle": 56454,
+          "ordinal": 3,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 56454
+        },
+        {
+          "entityHandle": 26652,
+          "ordinal": 4,
+          "sortFallsBackToEntity": false,
+          "sortHandle": 26652
+        }
+      ]
+    },
+    {
+      "tableHandle": "0x6FF1",
+      "blockOwnerHandle": "0x6FD4",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x11C2F",
+      "blockOwnerHandle": "0xDC00",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x12380",
+      "blockOwnerHandle": "0x12375",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x1273A",
+      "blockOwnerHandle": "0x11ECD",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x12E00",
+      "blockOwnerHandle": "0x11FA1",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x2BC0C",
+      "blockOwnerHandle": "0x2B3FF",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x2C1B9",
+      "blockOwnerHandle": "0x2C1A9",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x2C1F3",
+      "blockOwnerHandle": "0x2C1E3",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x2C22D",
+      "blockOwnerHandle": "0x2C21D",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x2C287",
+      "blockOwnerHandle": "0x2C277",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x2C2EA",
+      "blockOwnerHandle": "0x2C2DA",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x2C340",
+      "blockOwnerHandle": "0x2C330",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x2C3A3",
+      "blockOwnerHandle": "0x2C393",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    },
+    {
+      "tableHandle": "0x2C3DD",
+      "blockOwnerHandle": "0x2C3CD",
+      "entryCount": 0,
+      "matchesLibdxfrwAndLibreDWG": true,
+      "odaRoleRule": "ODA-20.4.93",
+      "orderedPairs": []
+    }
+  ],
+  "summary": {
+    "sourceTableCount": 16,
+    "peerMatchedTableCount": 16,
+    "tableCountsMatch": true,
+    "orderedPairCount": 170,
+    "nonemptyTableCount": 2,
+    "emptyTableCount": 14,
+    "exactOrderedHandlePairAgreement": true,
+    "remainingFramesWithoutExhaustiveBodyReferenceDecode": 657
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tools/research/audit_ac1027_source_references.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testSourceSha256": "c37b28bde79ad4aba4cab40158d2b4f3fb32ce2a9d3bd3792dacc1920bbf40cf",
+    "verifierSha256": "585a9e32ff74f4d9a69e4e44f2ff6000d16cd0cba7343023e41c47679366e342",
+    "executableSha256": "0a331ec26407f414e0d80e1a6d6923ca550cd71d65063a1bc4ad2be52e2d1028",
+    "fullInventoryAuditOutputSha256": "5435f80cba194cfe429616a19e317824b65324141a62cce3975d7f520211c128",
+    "crossVersionRegressionAuditOutputSha256": "cbb55e854010f0f0d6b76d0ef4ba0fb0d18a334aaa558ce3b0140ee815c9ed5b",
+    "change": "Extend the source diagnostic to publish parser-owned SORTENTSTABLE pair profiles. Extend the source audit to require one profile per captured SORTENTSTABLE, validate all peer handle codes and ordered targets, and check LibreDWG schema ordering for the ODA-defined body/handle-stream split. Add generated positive/mutation controls for peer pair comparison.",
+    "fullInventoryAuditOutputPath": "/private/tmp/p6-mlinestyle-ac1021-sortents-audit-final.json"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4: PASS",
+    "sourceAudit": "audit_ac1027_source_references.py on the AC1021 imperial source and hash-pinned LibreDWG minJSON: PASS; 16/16 table identities; 170/170 ordered pairs; all roles and counts match.",
+    "secondSourceAudit": "AC1027 Cover inventory audit: PASS, 88/88 frame identities; no SORTENTSTABLE records in this profile.",
+    "verifierSelfTest": "audit_ac1027_source_references.py --self-test: PASS; generated entity-target, sort-target, and handle-code mutations rejected.",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_mline_style_typed_capture_limits$' --output-on-failure: PASS 1/1",
+    "failClosedControl": "--sortents-typed-capture-limits: PASS; three malformed capture profiles remain refused during output preflight.",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limits": [
+    "The comparison verifies decoded ordered handles, counts, fallback state, and owner role, not independent physical bit offsets for each field.",
+    "It does not prove that referenced targets resolve in every source namespace or recursively close the containing graph.",
+    "It does not qualify DXF output, source-wide conversion, producer prevalence, or native ordering semantics.",
+    "The remaining 657 AC1021 frames without exhaustive body-reference decoding are unchanged and unqualified."
+  ],
+  "planImpact": {
+    "completedSlice": "All 16 AC1021 SORTENTSTABLE body-reference profiles now match an independent LibreDWG decode in exact order, including empty profiles; ODA \u00a720.4.93 and the peer parser schema agree on the code-0 sort stream and code-4 soft-pointer stream.",
+    "remaining": "P6-D remains open for physical field spans, recursive graph closure and the other 657 frames without exhaustive body-reference decoding; strict output and native ordering claims remain separate.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "283 completed slices and 35 remaining packages: 283/(283+35)=89.0%; count-based activity proxy only."
+  }
+}

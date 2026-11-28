@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-03",
+  "topic": "Imported DXF POINTCLOUDEX bounded physical field-profile gate",
+  "scope": {
+    "source_format": "DXF",
+    "source_revision": "AC1027+",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "record_scopes": ["ENTITIES", "named BLOCKS"],
+    "fixture_policy": "Generated from scratch in temporary test paths; no DWG/DXF fixture added to the repository"
+  },
+  "implementation": {
+    "physical_profile": [
+      "Requires a complete physical POINTCLOUDEX record and the exact AcDbEntity then AcDbPointCloud subclass sequence.",
+      "Accepts only the bounded modeled common and POINTCLOUDEX group-code/type/cardinality inventory; refuses application data, XDATA, proxy payload, and unknown groups.",
+      "Binds physical group 5 and common group 330 to the retained entity identity and owner.",
+      "Binds POINTCLOUDEX group 330 and 360 to the retained DefinitionEx and ReactorEx handles, respectively.",
+      "Checks represented common entity field values against the retained typed model, then requires source callback and current output model equality."
+    ],
+    "writer_correction": "Removed a duplicate AcDbEntity subclass marker from both POINTCLOUD and POINTCLOUDEX writers; writeEntity already emits that marker.",
+    "failure_retry": "A generated imported graph with a deliberately changed DefinitionEx handle fails source binding without changing the destination. Restoring the original handle allows the same adapter to complete binding. At the time of this receipt, imported graph output remained refused and preserved the destination."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_wave1_tests -j4",
+      "result": "passed"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_pointcloud_definition_source_spans|dwg2dxf_point_cloud_adapter_transport' --output-on-failure",
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        "libdxfrw_pointcloud_definition_source_spans",
+        "dwg2dxf_point_cloud_adapter_transport"
+      ]
+    },
+    "full_suite": "Not run"
+  },
+  "limitations": [
+    "Generated transport controls are not independent producer evidence or native-consumer qualification.",
+    "The body group inventory is bounded, but this receipt does not establish independent semantic value mapping for every physical POINTCLOUDEX body group.",
+    "Imported DXF point-cloud graph output remains refused pending complete source-derived graph identity and output closure.",
+    "DWG source CLASS/frame/output binding, asset loading, physical producer breadth, and native 3D semantics remain open."
+  ],
+  "support_claim_effect": "None; no support claim promoted."
+}

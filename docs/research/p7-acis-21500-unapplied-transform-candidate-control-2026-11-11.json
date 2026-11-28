@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-acis-21500-unapplied-transform-candidate-control-2026-11-11",
+  "purpose": "Close the generated ACIS 21500 rooted-projection regression gap for preserving a resolved body transform record and its bounded candidate values without applying it.",
+  "implementation": {
+    "files": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "control": "Extend the existing from-scratch rootedVertexBodySab(1, false, 21500) graph assertion to require bodyTransformNodeIndex 13, a resolved pointer, raw transform literal token index 3 and exact literal `1 0 0 0 1 0 0 0 1 0 0 0`, all twelve candidate components, ParsedUnapplied state, and false bodyTransformsApplied/sourceUnitScaleApplied.",
+    "productionCodeChanged": false,
+    "fixturesAdded": false
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4 && build-gcc/libdxfrw_graph_preservation_tests",
+    "result": "PASS",
+    "output": "Graph/preservation tests: PASS"
+  },
+  "scopeLimits": [
+    "The vector is created from scratch and proves only local parser/projection consistency for this generated ACIS 21500 record shape.",
+    "No physical AC1024 transform-bearing source was found in the screened conference-room drawing; the source-screen receipt records its 33 parsed 21500 solids with no non-null body transform.",
+    "The candidate components retain no assigned matrix convention, scale meaning, source-unit interaction, placement, or application semantics.",
+    "Transforms remain unapplied; this does not establish B-rep validity, independent-kernel meaning, native acceptance, output qualification, or any ACIS/DWG/DXF support claim."
+  ],
+  "claimEffect": "Adds a focused regression guard for raw transform-candidate retention and explicit non-application only. All semantic and support gates remain open."
+}

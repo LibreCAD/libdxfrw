@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader Autodesk modeler contract, peer loss, and local matrix reconciliation",
+  "mode": "primary-source research and local source/test audit",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh the authoritative DXF modeler-entity contract from current Autodesk references",
+    "Reconcile the documented 3DSOLID/REGION/BODY carriers against the local parser, writer, and generated test matrix",
+    "Recheck whether open-source peer loss reports change the S8 implementation or acceptance plan"
+  ],
+  "sources": [
+    {
+      "name": "Autodesk 3DSOLID DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "assessment": "Documents AcDbModelerGeometry, modeler version group 70, group-1 proprietary text and group-3 continuation for preceding group-1 strings over 255 characters; for 3DSOLID only it documents AcDb3dSolid and group 350 history soft-owner. This is the legacy inline DXF contract, not DWG internals or modern ACDSDATA schema."
+    },
+    {
+      "name": "Autodesk BODY DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7FB91514-56FF-4487-850E-CF1047999E77.htm",
+      "assessment": "Documents the modeler subclass, group 70, group 1 and optional group 3 carrier; the reviewed entity table does not add the 3DSOLID history subclass."
+    },
+    {
+      "name": "Autodesk REGION DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-644BF0F0-FD79-4C5E-AD5A-0053FCC5A5A4.htm",
+      "assessment": "Documents the modeler subclass, group 70, group 1 and optional group 3 carrier; it does not describe the modern DWG AcDs/SAB route."
+    },
+    {
+      "name": "Local modeler parser, writer, and generated matrix",
+      "url": "https://github.com/LibreCAD/libdxfrw",
+      "assessment": "Read-only inspection of src/drw_entities.cpp, src/libdxfrw.cpp, and tests/modeler_dxf_writer_matrix_tests.cpp found group-1/3 chunk preservation, caret decoding, version-specific inline-SAT versus AC1027 ACDSDATA/SAB paths, history-handle emission, ASCII/Binary lengths 254/255/256/509/510/511 for 3DSOLID/REGION/BODY across AC1015/1018/1021/1024, and export-import-export ordered-tag checks. This is self-consistency coverage, not independent producer acceptance."
+    },
+    {
+      "name": "ACadSharp issue #1195",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "assessment": "Open issue reports silent DWG-to-DXF omission of ACIS-bearing 3DSOLID/REGION entities, including block-contained solids, on ACadSharp 3.4.9. It is not a runtime finding for the current release or libdxfrw."
+    },
+    {
+      "name": "ACadSharp PR #1240",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+      "assessment": "Open, undeployed writer proposal for ACIS-dependent entities; not released capability evidence."
+    },
+    {
+      "name": "ACadSharp release list",
+      "url": "https://github.com/DomCR/ACadSharp/releases",
+      "assessment": "Latest listed release at review time is v3.8.0 at 3a1c66b; the release page does not list the open #1240 writer work."
+    },
+    {
+      "name": "LibreDWG issue #1411",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "assessment": "Open report provides a scratch-generated AC1032 DXF recipe with a 5,489-byte SAB and describes entity-shell survival with SAB/AcDs loss through exact LibreDWG build 0.14.8593 at 8a1ae764. A confidential R2018 example is not available and no runtime was executed in this review."
+    },
+    {
+      "name": "LibreDWG NEWS",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "assessment": "Records a separate 0.14.1 final-SAT-block DXF export fix and continued incompleteness of AcDsPrototype_1b; these do not imply one another or establish current-master runtime behavior."
+    }
+  ],
+  "planChanges": {
+    "implementationQueueChanged": false,
+    "validationCadenceChanged": false,
+    "newMandatoryPeerGate": false,
+    "newDependency": false,
+    "newFixture": false,
+    "newTestRegistration": false,
+    "newConfirmedLocalFinding": 0,
+    "newTopLevelSubplan": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "Source/document/test review only. No external DWG/DXF or issue attachment was downloaded; no peer was built or run; no native CAD application or geometry kernel was executed. Issue and release claims remain operation- and artifact-scoped."
+}

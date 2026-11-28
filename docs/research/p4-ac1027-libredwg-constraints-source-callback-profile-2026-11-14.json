@@ -1,0 +1,149 @@
+{
+  "associativeProfile": {
+    "classVersions": {
+      "992": 2,
+      "994": 2,
+      "995": 2,
+      "996": 0,
+      "997": 0
+    },
+    "networkIndexCandidates": {
+      "992": {
+        "baseActionIndex": 1,
+        "networkActionIndex": 1,
+        "networkVersion": 0,
+        "writerQualified": false
+      },
+      "994": {
+        "baseActionIndex": 0,
+        "networkActionIndex": 1,
+        "networkVersion": 0,
+        "writerQualified": false
+      }
+    },
+    "peerAssociativeReferenceTargetsPresent": true,
+    "peerObjectCount": 160,
+    "records": {
+      "992": {
+        "captureKind": "opaque",
+        "className": "AcDbAssocNetwork",
+        "commonEvidence": 1,
+        "customClass": true,
+        "objectSize": 25,
+        "ownerHandle": 991,
+        "peerClassVersion": 2,
+        "peerObject": "ASSOCNETWORK",
+        "reactorHandles": [
+          991
+        ],
+        "recordName": "ACDBASSOCNETWORK",
+        "sourceOffset": 32993,
+        "type": 517
+      },
+      "994": {
+        "captureKind": "opaque",
+        "className": "AcDbAssocNetwork",
+        "commonEvidence": 1,
+        "customClass": true,
+        "objectSize": 22,
+        "ownerHandle": 993,
+        "peerClassVersion": 2,
+        "peerObject": "ASSOCNETWORK",
+        "reactorHandles": [
+          993
+        ],
+        "recordName": "ACDBASSOCNETWORK",
+        "sourceOffset": 14418,
+        "type": 517
+      },
+      "995": {
+        "captureKind": "opaque",
+        "className": "AcDbAssoc2dConstraintGroup",
+        "commonEvidence": 1,
+        "customClass": true,
+        "objectSize": 536,
+        "ownerHandle": 992,
+        "peerClassVersion": 2,
+        "peerObject": "ASSOC2DCONSTRAINTGROUP",
+        "reactorHandles": [],
+        "recordName": "ACDBASSOC2DCONSTRAINTGROUP",
+        "sourceOffset": 33113,
+        "type": 518
+      },
+      "996": {
+        "captureKind": "opaque",
+        "className": "AcDbAssocGeomDependency",
+        "commonEvidence": 1,
+        "customClass": true,
+        "objectSize": 22,
+        "ownerHandle": 995,
+        "peerClassVersion": 0,
+        "peerObject": "ASSOCGEOMDEPENDENCY",
+        "reactorHandles": [],
+        "recordName": "ACDBASSOCGEOMDEPENDENCY",
+        "sourceOffset": 33683,
+        "type": 519
+      },
+      "997": {
+        "captureKind": "opaque",
+        "className": "AcDbAssocGeomDependency",
+        "commonEvidence": 1,
+        "customClass": true,
+        "objectSize": 23,
+        "ownerHandle": 995,
+        "peerClassVersion": 0,
+        "peerObject": "ASSOCGEOMDEPENDENCY",
+        "reactorHandles": [],
+        "recordName": "ACDBASSOCGEOMDEPENDENCY",
+        "sourceOffset": 33655,
+        "type": 519
+      }
+    }
+  },
+  "date": "2026-11-14",
+  "frameCensus": {
+    "acdsHistoryFrames": 0,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "opaqueCallbacks": 123,
+    "opaqueCaptured": 123,
+    "publishedFrames": 160,
+    "retainedOpaqueFrames": 85,
+    "sourceFrames": 160,
+    "standardFramesCapturedAndMatched": 38,
+    "unrepresentedSourceIdentities": 0
+  },
+  "id": "p4-ac1027-libredwg-constraints-source-callback-profile-2026-11-14",
+  "limits": [
+    "Producer and peer are the same LibreDWG implementation lineage; minJSON is not independent semantic corroboration.",
+    "Only five associative object frame identities and their LibreDWG-described links are inventoried; no source-to-entity semantic or native constraint-evaluation result is established.",
+    "Strict-complete DWG-to-DXF export refuses this sample on unqualified AC1027 source references; no output support claim is made.",
+    "The external DWG is kept in temporary storage and is not committed as a test fixture."
+  ],
+  "schema": "libdxfrw-research-receipt-v1",
+  "source": {
+    "fixtureCommitted": false,
+    "formatRevision": "AC1027",
+    "path": "test/test-data/2013/Constraints.dwg",
+    "peerMinJsonSha256": "bbdfba4c290a84282b7c0092e67025c270f4abb09503bfeab6d9065746acf798",
+    "producer": "LibreDWG 0.14",
+    "provenanceLimit": "The file is LibreDWG-authored; no original CAD application or release is claimed.",
+    "repository": "LibreDWG/libredwg",
+    "sha256": "bdd7458bda6c1464faa5836b8aa85640199fbd01c510fa00e25550c043185429",
+    "url": "https://github.com/LibreDWG/libredwg/blob/master/test/test-data/2013/Constraints.dwg"
+  },
+  "status": "P4_A_AC1027_SOURCE_AND_CALLBACK_IDENTITY_CAPTURED",
+  "supportClaimEffect": "none",
+  "tools": {
+    "ac1027CandidateProfileOutput": "Physical AC1027 class-version-2 associative-network candidate fields, base/network index separation, and owner/action graph PASS; writer qualification remains false",
+    "ac1027CandidateProfileReturnCode": 0,
+    "adapterInventoryExecutable": "/Users/dli/dev/libdxfrw/build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests",
+    "adapterInventorySha256": "3c8377fcdd0ff35850941fedabbc765c17474885c8b93d7965206f475b53fe0c",
+    "inventoryLimit": "The inventory prints the complete source identity projection, then exits nonzero at a pre-existing Cover-specific SCALE profile assertion; this receipt does not treat that later assertion as a sample failure or pass.",
+    "inventoryReturnCode": 1,
+    "libredwgPeerVersion": "dwgread 0.14",
+    "strictCliDisposition": "refused before output preparation because AC1027 DWG source references are not fully qualified",
+    "strictCliOutputPublished": false,
+    "strictCliReturnCode": 1
+  }
+}

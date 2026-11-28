@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Cross-project release, block-closure, and FreeCAD consumer-boundary refresh",
+  "mode": "deeper and broader research; plan refinement only",
+  "scope": [
+    "Refresh named LibreDWG release-history evidence for parser/writer robustness and payload completeness",
+    "Cross-check an open LibreDWG block-export loss report against existing local block identity tests",
+    "Reconcile FreeCAD's documented stock DWG/DXF consumer route with 2D and 3D qualification gates",
+    "Refine existing implementation subplans without adding duplicate tests or support claims"
+  ],
+  "sources": [
+    {
+      "name": "LibreDWG NEWS, version 0.14.1",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "observed": "The named 2026-07-25 beta release records security/robustness fixes involving R2004 decompression sizes, R2007 page offsets, 3DSOLID SAT block bounds, HATCH fit pointers, and writer bounds/finite values; project history also records HATCH per-path state and SAT-block export fixes.",
+      "limit": "Independent project release history only; master is mutable. It is not DWG byte-layout authority and does not demonstrate a libdxfrw defect or runtime parity."
+    },
+    {
+      "name": "LibreDWG issue #1409",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1409",
+      "observed": "The open report describes named block bodies silently omitted by a DXF export traversal that advances its own object-array loop index. The author compares block-owned identities/types against same-tree JSON and reports a successful exit despite the loss.",
+      "limit": "Issue report against a named peer revision; not a libdxfrw reproduction, not proof of current LibreDWG behavior, and no attached drawing was used."
+    },
+    {
+      "name": "FreeCAD archived Draft DXF documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "observed": "The documentation repository is archived read-only. The page distinguishes a built-in C++ importer and legacy Python importer, says embedded ACIS/SAT solids cannot currently be read, and publishes a limited entity list for the C++ path. DWG is converted through DXF.",
+      "limit": "Published docs are a consumer-scope boundary, not a runtime test or a current source/API guarantee."
+    },
+    {
+      "name": "FreeCAD archived Import/Export capability list",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export.md",
+      "observed": "The list labels DWG and DXF support as 2D geometry only.",
+      "limit": "Documentation-only scope statement; exact current backend and runtime require separate source/runtime verification."
+    }
+  ],
+  "localAudit": {
+    "files": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/block_owner_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/hatch_reference_tests.cpp"
+    ],
+    "observed": [
+      "PAR-49 already owns distinct block bodies, ordered child identities, INSERT targets, and BLOCK/ENDBLK closure in ASCII and Binary; its exact identity oracle should be reused instead of duplicating aggregate-count tests.",
+      "The plan already separates HATCH path codec fidelity, graph closure, native associative recompute, ACIS/AcDs carrier checks, and independent semantic/native consumer evidence.",
+      "FreeCAD native acceptance is already route-specific; this update explicitly excludes stock FreeCAD from 3D ACIS/AcDs qualification while retaining its 2D converter/importer lane."
+    ],
+    "sourceFilesChangedByResearch": false
+  },
+  "findings": {
+    "newLocalFinding": false,
+    "newTopLevelSubplan": false,
+    "findingCount": 140,
+    "topLevelSubplanCount": 78,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "implementationReadiness": {
+    "reuseExistingOwners": [
+      "PAR-140/7N.4: use scratch-generated HATCH and MPOLYGON paths with uneven per-path handle counts, an empty path, exact soft-pointer roles, and path/entity sentinels.",
+      "PAR-49: preserve block-name to ordered child identity/type mappings and INSERT targets in ASCII/Binary; add an integration test only if a concrete uncovered adapter route is identified.",
+      "Reuse existing bounded SAT/SAB/AcDs carrier and owner-closure gates; payload presence and object counts do not establish topology or semantics."
+    ],
+    "freecadScope": "Stock FreeCAD is a converter-to-DXF-to-2D-importer consumer route. Its ACIS/3D-solid path is UNSUPPORTED_CONSUMER; any selected add-on/kernel route is a separate pinned consumer lane.",
+    "fixturePolicy": "No downloaded or committed external drawing. Generated controls remain local and scratch-only.",
+    "validationCadence": "Research-only update; no tests or full suite. Continue one focused local selector/CTest per implementation slice, with broader suites at scheduled composed checkpoints.",
+    "selfUnblock": "Peer availability and native consumer limitations do not block local-ready work; update plan/receipt after each slice and continue to the next one."
+  },
+  "validation": {
+    "codeChanged": false,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRepositoryClonedOrBuilt": false,
+    "peerOrNativeExecutableRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimChanged": false
+  }
+}

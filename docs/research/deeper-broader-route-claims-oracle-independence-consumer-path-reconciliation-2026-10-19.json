@@ -1,0 +1,127 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Route claims, test-oracle independence, and consumer-path reconciliation",
+  "mode": "Primary-source project documentation/test review and local plan audit",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Broaden the DWG/DXF peer screen across project declarations, test routes, and downstream consumer routes",
+    "Separate operation-specific read/write/convert claims from source declarations and native acceptance",
+    "Identify when a peer test composes with an external converter or performs a lossy projection",
+    "Refine the existing PAR-07/S8 and FreeCAD composed evidence gates without creating duplicate findings",
+    "Preserve scratch-only fixture policy and reduced local validation cadence"
+  ],
+  "sources": [
+    {
+      "name": "LibreDWG current README and test scripts",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/test-dxf.sh",
+        "https://github.com/LibreDWG/libredwg/blob/master/dxf-roundtrip.sh"
+      ],
+      "observed": "The current README describes a reader that covers DWG versions but may skip advanced R2010+ objects; it describes DWG writing as generally working through R2004, excludes R2007, and notes R2010-R2018 CRC concerns. It states approximate dwg2dxf/dxf2dwg coverage and version scope. test-dxf.sh filters converted DXF and compares it with a paired corpus DXF where available. dxf-roundtrip.sh composes LibreDWG conversion with ODA File Converter and a subsequent DWG read.",
+      "evidenceCeiling": "Mutable project declarations and test method, not a release-pinned result for every object; the ODA roundtrip path is not open-source-only or an independent ACIS semantic oracle."
+    },
+    {
+      "name": "IxMilia.Dxf direction-specific compatibility declarations",
+      "urls": [
+        "https://github.com/ixmilia/dxf"
+      ],
+      "observed": "The README declares DXF R10-R2014 support with entity exceptions and separately lists written entity classes or required-field combinations that may not be accepted by AutoCAD.",
+      "evidenceCeiling": "Self-published DXF scope and caveats, not a DWG result, native run, or per-entity libdxfrw qualification."
+    },
+    {
+      "name": "ezdxf XREF, ACIS, and recovery boundaries",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html"
+      ],
+      "observed": "The XREF copy/import API explicitly ignores unsupported entities and document features without raising; this is a projection operation distinct from core document parsing. ACIS support remains profile-limited, while recovery is documented separately from strict parsing.",
+      "evidenceCeiling": "Project documentation of API behavior; no executable or drawing was run in this pass."
+    },
+    {
+      "name": "FreeCAD selectable DXF importer and DWG conversion routes",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observed": "FreeCAD documents distinct C++ and Python legacy DXF importers with different object coverage, states that stock import cannot read embedded ACIS solids, and routes DWG through a converter before the selected DXF importer.",
+      "evidenceCeiling": "Current documentation/source route inspection; no Linux or Windows FreeCAD qualification was executed."
+    },
+    {
+      "name": "LibreCAD_3 downstream DWG policy",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "observed": "LibreCAD_3 documents experimental/read-only DWG import through its bundled libdxfrw and no DWG writer commitment.",
+      "evidenceCeiling": "Downstream product policy and compatibility route, not an independent parser or writer result."
+    },
+    {
+      "name": "Open CASCADE official ACIS component boundary",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md"
+      ],
+      "observed": "Open CASCADE identifies SAT/SAB ACIS import/export as a commercial component distinct from the open-source default data-exchange formats.",
+      "evidenceCeiling": "Vendor component availability/licensing disclosure; it does not establish any local ACIS parser or kernel result."
+    }
+  ],
+  "localEvidence": [
+    "The existing PAR-07/S8 evidence ledger already separates entity shell, inline/AcDs carrier, owner association, output closure, semantic interpretation, and consumer acceptance; this review sharpens route metadata and evidence tiers rather than creating another owner.",
+    "The current FreeCAD checkpoint already treats DWG conversion and DXF import as separate stages; pinning the actual importer/settings is needed because the two documented backends have different coverage.",
+    "The existing local implementation cadence calls for generated fast controls, touched strict target, owning CTest, and scoped diff checks, with peer/native work deferred to composed checkpoints."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "PAR-07/S8",
+      "existing FreeCAD composed consumer checkpoint",
+      "existing modeler/AcDs and downstream compatibility owners"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines PAR-07/S8 and the existing FreeCAD gate with exact route identity, operation/direction/version, backend/settings, source/output identity and owner closure, explicit omissions, and distinct evidence tiers. Uses the intended/default FreeCAD route as the required composed case; a second importer is conditional on being an intended product route or useful diagnosis. ACIS remains a separate profile-bounded semantic route; stock open-source OCCT is not an ACIS importer. No new mandatory peer lane, finding, fixture, dependency, or support claim is introduced."
+  },
+  "method": {
+    "kind": "Read-only web research and local plan inspection",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-route-claims-oracle-independence-consumer-path-reconciliation-2026-10-19.json"
+    ],
+    "limitations": "Mutable project documentation and self-reported issue/test evidence establish only the cited route and revision. No behavior was independently executed, and no conclusion establishes a new libdxfrw defect or support promotion."
+  }
+}

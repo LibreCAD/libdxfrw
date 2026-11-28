@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_AC1027_DIRECT_NOD_GENERATED_OUTPUT",
+  "supportClaimEffect": "none",
+  "scope": "Admit only the AC1027 DWG WIPEOUTVARIABLES direct-NOD graph with ACAD_WIPEOUT_VARS, display frame 0, one owner-matching NOD reactor and missing extension dictionary; keep the prior nested profile. This does not qualify source drawing, raster preview or native wipeout behavior.",
+  "physical_source": {
+    "provenance": "ezdxf 1.4.5 authored a new R2013 DXF with one WIPEOUT; ODA File Converter 27.1.0 converted it to AC1027 DWG and back to DXF. No DWG or DXF fixture was added. tools/author_wipeout_direct_nod.py produces a new scratch source; timestamps cause different hashes.",
+    "input_dxf_sha256": "51d1b6bbb06cc32ba16b831bb7990599bb123959d51f9126e50a9a225ff30bfc",
+    "dwg_sha256": "39a63109851de9ef044a87bf4f88042468267340e52dfb4038047d4c5972e5f7",
+    "oda_dxf_sha256": "1064f377e6780aaa1659ad6404b2eb662bbf9a9b148ecbaa122d19519c8394cf",
+    "tool_sha256": "fa44cf19efa8d26ac7e4b859fcfb8d883b40444b421275f0daf5333daa3984d1",
+    "independent": "GNU LibreDWG 0.14 reports NOD 0xA entry ACAD_WIPEOUT_VARS -> WIPEOUTVARIABLES 0x30, owner role 4 -> 0xA, one reactor role 4 -> 0xA, extension dictionary missing, no data-storage bit, and display-frame 0. ODA DXF independently opened by ezdxf 1.4.5 contains the same key, owner, reactor and frame.",
+    "frame": "The in-tree source capture and separate bit observer inspect the 10-byte body: scalar fields end at bit 42; bit 42 is the no-string flag; handles begin at bit 43. Parent token spans [43,59), reactor [59,75), and five zero pad bits complete the body. Source handle 0x30 and class type 516 are checked. The observer is separate from the typed parser, but its page extraction is in-tree."
+  },
+  "implementation": "Graph traversal recognizes only the exact direct-NOD shape and otherwise retains prior refusal. Source preflight binds one unchanged CLASS and opaque source frame, exact raw scalar/owner/reactor role bytes, unique root key and target, and staged output. NOD output selection includes the typed record and the existing generated-root output proof checks emitted root entries and target owner. The direct-NOD profile refuses display modes other than 0, unrelated or duplicate roots, changed raw role, wrong owner/reactor and extra common metadata; the pre-existing nested profile still allows mode 1.",
+  "validation": {
+    "focused": "ctest --test-dir build-gcc -R ^dwg2dxf_wipeoutvariables_(dwg_adapter_transport|ac1027_direct_nod)$ --output-on-failure: 2/2 passed. The new test generates its own direct-root DWG and checks ASCII and Binary typed readback of object, owner, reactor and NOD entry. Wrong target version, display values 2/3, owner, reactor, extension flag, alias, duplicate root key, wrong key, and changed retained owner role refuse without altering a sentinel; corrected same-adapter retries pass. The pre-existing nested-profile selector also passes.",
+    "physical": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-physical-ac1027-direct-nod /private/tmp/p4-wipeout-candidate/ac1027/source.dwg passed; verify the recorded source hash before and after because the selector is witness-specific.",
+    "source_author": "build/rpp5gh-evidence/peer/bin/python tools/author_wipeout_direct_nod.py <scratch>/in/source.dxf; ODAFileConverter <scratch>/in <scratch>/dwg ACAD2013 DWG 0 0 *.dxf; ODAFileConverter <scratch>/dwg <scratch>/dxf ACAD2013 DXF 0 0 *.dwg. Shell-quote the wildcard arguments."
+  },
+  "limits": [
+    "The physical drawing includes WIPEOUT proxy preview data and other retained objects; physical whole-document output and preview preservation were not qualified.",
+    "One producer source with frame 0 does not qualify other modes, revisions, aliases, native CAD frame/plot semantics, or whole-document correctness.",
+    "The physical source observer, generated source and typed readback involve in-tree logic; external LibreDWG and ODA/ezdxf observations are independent evidence of the selected physical graph, not a native rendering certificate."
+  ]
+}

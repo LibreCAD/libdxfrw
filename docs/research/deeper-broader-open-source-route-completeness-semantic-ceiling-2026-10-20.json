@@ -1,0 +1,154 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Open-source DWG/DXF route completeness and 3D semantic ceiling",
+  "mode": "Broader primary-source implementation and consumer-route review",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Compare screened DWG/DXF codecs, bare ACIS/ASM parsers, geometry conversion routes, and downstream consumers by exact processing stage.",
+    "Refine the existing PAR-07/S8 evidence handoff without creating a new finding, implementation subplan, dependency, or routine external gate.",
+    "Keep external qualification items J256, J260, J268, J284, J293, and J295 advisory and explicitly deferred."
+  ],
+  "method": {
+    "kind": "Primary project documentation, published route matrices, issue pages, and implementation-contract review",
+    "peerRepositoriesBuiltOrRun": false,
+    "peerPackagesInstalledOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "mutableSourcePolicy": "Mutable branch documentation is capability context only. Any future execution must pin an immutable release/commit, artifact hash, route, version, and profile.",
+    "evidenceRule": "DWG/DXF container decoding, graph/owner association, raw SAT/SAB retention, independent parser acceptance, B-rep validity/analytic semantics, and native application behavior are distinct results."
+  },
+  "evidence": [
+    {
+      "project": "LibreDWG",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "The project distinguishes broad DWG read behavior from writer and tool-specific version coverage, notes some advanced R2010+ objects may be skipped, and documents incomplete AcDsPrototype_1b/SAB handling including a brute-force extraction approach in its historical notes.",
+      "limits": "Project declarations and NEWS do not establish exact current object semantics, AcDs association completeness, arbitrary SAB geometry, or native acceptance.",
+      "planUse": "Use only direction/revision/version/entity-scoped structural comparison; do not treat a solid shell, successful exit status, or DXF emission as modeler evidence."
+    },
+    {
+      "project": "ACadSharp",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md"
+      ],
+      "observed": "The README publishes separate DWG/DXF reader/writer columns by version and exposes notifications in reader examples. Issue #1195 reports 3DSOLID/REGION DXF-writer omissions in a named older release.",
+      "limits": "The matrix is not per-entity semantic validation; the old issue is not evidence of current-master behavior; no peer run or sample inspection occurred.",
+      "planUse": "Admit only exact operation/version/entity cells and capture diagnostics and per-source-record disposition. Do not infer geometry from document load or counts."
+    },
+    {
+      "project": "ezdxf",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst"
+      ],
+      "observed": "The DXF library exposes SAT/SAB data inspection and bounded parser/export functionality. Its authoring guide requires an external ACIS-data producer; the renderer documents that ACIS rendering and a 3D rendering engine are unsupported.",
+      "limits": "These sources do not establish general ACIS editing, complete B-rep interpretation, arbitrary producer compatibility, or native CAD acceptance.",
+      "planUse": "Use for strict DXF structure, exact carrier extraction, or explicitly bounded record checks only."
+    },
+    {
+      "project": "CADMPEG, acis-core, and cq-acis",
+      "sources": [
+        "https://github.com/cadmpeg/cadmpeg",
+        "https://docs.rs/acis-core/latest/acis_core/",
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+      ],
+      "observed": "These projects expose selected bare SAT/SAB/ASM profiles. Their public contracts separate framing/reference decoding from a supported subset of geometry construction; cq-acis uses CadQuery/OCCT for shape conversion.",
+      "limits": "They are not DWG/DXF containers or AcDs ownership readers. Profile coverage is bounded; parser/reference closure does not prove a complete B-rep or correct geometry. Some format-research and kernel lineage is shared.",
+      "planUse": "Only pass independently associated raw carriers after signature/version selection. Record parser lineage and keep parser success, kernel validity, and independently authored analytic expectations separate."
+    },
+    {
+      "project": "Open CASCADE Technology",
+      "sources": [
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md"
+      ],
+      "observed": "Official sources distinguish the open-source OCCT core exchange formats from separately distributed commercial exchange components, including ACIS SAT/SAB support.",
+      "limits": "A stock OCCT or FreeCAD installation does not imply availability of the commercial translator; no local entitlement or execution was checked.",
+      "planUse": "Treat any authorized commercial translator as optional license-bound corroboration, not an open-source gate or required dependency."
+    },
+    {
+      "project": "FreeCAD",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observed": "The documented DWG route converts to DXF and then uses a selected DXF importer. Current documentation says stock DXF import cannot read ACIS/SAT solids and lists a bounded set of explicit DXF entities.",
+      "limits": "Documentation is not execution evidence for any local build, platform, converter, optional workbench, or geometry result.",
+      "planUse": "Keep FreeCAD native checks scoped to a pinned converter/importer/platform and supported explicit entity profile. Do not use this route to unblock ACIS/AcDs semantics."
+    },
+    {
+      "project": "Local plan reconciliation",
+      "sources": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "Added a staged result handoff for container, graph association, raw carrier, independent parser/profile, geometry semantics, and native consumer evidence under existing PAR-07/S8 and consumer owners.",
+      "limits": "No production code or test was changed or run. The review does not resolve platform qualification or independent semantic evidence.",
+      "planUse": "Use existing generated fast tests per implementation slice; reserve the composed external checkpoint for a payload that matches an admitted candidate profile and has an independent expected-value path."
+    }
+  ],
+  "assessment": {
+    "newPeerCandidates": 0,
+    "newEligibleIndependentEndToEndRoutes": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: keep container decoding, object graph/AcDs association, carrier bytes/profile, bare-carrier parser, B-rep semantics, and application behavior as separate evidence cells.",
+      "FreeCAD consumer qualification: restrict the documented converter-to-DXF-to-import route to its supported explicit DXF entity set; it is not ACIS/AcDs semantic evidence.",
+      "External validation cadence: use existing generated local fast tests per slice; run composed external routes only when exact profile and independent expected values are available."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-route-completeness-semantic-ceiling-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsOrGeometryKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Reconciled screened repositories by stage rather than headline feature labels: codec/version route, DXF ACIS carrier handling, bare SAT/SAB profile parsing, geometry conversion, and downstream consumer acceptance.",
+    "Made explicit that no screened open-source route currently serves as a single end-to-end DWG/AcDs-to-native-B-rep qualification oracle.",
+    "Refined existing consumer guidance: documented FreeCAD converter-to-DXF import is useful only for its explicit supported entity subset and cannot qualify ACIS/AcDs semantics.",
+    "Specified the readiness handoff from exact container/owner association through carrier profile, independent parser, analytic geometry expectations, and consumer observation; missing external conditions remain non-blocking and self-unblock to local work."
+  ],
+  "limitations": [
+    "This is a source/documentation review of screened projects, not an exhaustive census of all open-source CAD projects.",
+    "Mutable branch sources were treated as current-source observations, not immutable release guarantees.",
+    "No peer binary, package, native application, geometry kernel, or external drawing was run or downloaded.",
+    "No external/platform qualification was completed; the six J items remain advisory and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md; JSON parsed by jq)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

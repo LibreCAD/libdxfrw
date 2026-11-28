@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-dimstyle-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DIMSTYLE_DIRECT_WRITER_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Generated direct DIMSTYLE table-writer allocation rollback, same-codec retry, typed readback, and referenced TEXTSTYLE handle closure across supported DXF revisions.",
+  "source": {
+    "kind": "deterministic locally-authored DRW_Dimstyle and DRW_Textstyle generated during each test run",
+    "profile": "One custom DIMSTYLE with generated text, scale, arrow size, precision, text placement and a group-340 reference to one emitted Standard TEXTSTYLE.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dimstyle_table_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-dimstyle-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "0bc73f883654a2844fde9e25e2aff5d0401f88a8c7df2e9d361e09b172342859",
+    "testExecutableSha256": "944012be80bb063e3cd6a8d6f95be699765451318c1dd435f6a57c0af52d5f3b",
+    "method": "Emit the referenced TEXTSTYLE before direct writeDimstyle(); calibrate callback allocation count; inject std::bad_alloc at each measured DIMSTYLE callback allocation; require failure and destination-sentinel plus caller-row preservation; retry with the same codec; compare exact bytes with clean output; and freshly read back both rows, including group-340 handle resolution."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 10, "Binary": 11},
+    "AC1015": {"ASCII": 10, "Binary": 10},
+    "AC1018": {"ASCII": 10, "Binary": 10},
+    "AC1021": {"ASCII": 9, "Binary": 9},
+    "AC1024": {"ASCII": 15, "Binary": 15},
+    "AC1027": {"ASCII": 9, "Binary": 9},
+    "AC1032": {"ASCII": 9, "Binary": 9},
+    "totals": {"ASCII": 72, "Binary": 73, "all": 145}
+  },
+  "validation": {
+    "configure": "cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "build": "cmake --build build --target libdxfrw_dimstyle_table_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure: PASS 1/1 in 1.25 seconds",
+    "directControl": "build/tests/libdxfrw_dimstyle_table_allocation_tests: PASS; seven revisions, both encodings, all 145 measured offsets",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated writer transaction and typed readback evidence only; producer interoperability and native dimension semantics are not qualified.",
+    "One DIMSTYLE profile does not cover all legacy/modern dimension-variable combinations, downgrade cases, optional reference combinations, or native rendering.",
+    "Does not implement LibreCAD PR #3269's adapter-side reconciliation of edited LC_LineType definitions against archived DRW_LType records.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Direct DIMSTYLE writing passes allocation rollback, caller-state preservation, exact same-codec retry, and typed readback with group-340 TEXTSTYLE handle closure for one generated profile across AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 in ASCII and Binary.",
+    "remainingP6G": "Continue public-writer inventory for distinct uncovered routes, overloads, and compound variants; P6-G remains open.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "216 completed slices and 35 remaining packages: 216/(216+35)=86.1%; count-based activity proxy only."
+  },
+  "previousReceipt": "docs/research/p6-dxf-appid-version-matrix-allocation-2026-11-13.json"
+}

@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Open-source ACIS kernel candidates and modern AcDs reader boundaries",
+  "mode": "Deeper/broader primary-source research and plan-readiness refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The worktree was already broadly modified and uncommitted. This research pass edited the parity plan and its 3D-plan summary and created two research receipts; no prior or unrelated work was staged or committed.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-inventorloader-independent-acis-reader-2026-10-21.json",
+      "docs/research/deeper-broader-open-source-acis-kernel-candidates-acds-boundaries-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "ACadSharp Prototype_1b reader discussion and merged reader",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1152",
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgPrototype1bReader.cs"
+      ],
+      "observation": "The issue/PR discussion surfaces multi-schema files, distinctions between blobs and data entries, payloads split across non-sequential blob01 records, and the evolution from signature scanning to a full specification-oriented reader. The PR and maintainer report corpus comparisons, but these statements are not an independently reproduced run against an exact release artifact.",
+      "planDisposition": "Refine the optional PAR-07/S8 and PAR-144 structural comparison to include multiple schemas, split/reordered blobs, blob-versus-indexed-entry accounting, and entity-handle attachment, with separate denominators and exact artifact/source pinning. ODA v5.4.1 and local producer traces remain authoritative."
+    },
+    {
+      "project": "OpenCADKernel",
+      "references": [
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "observation": "The project describes an ACIS feature that lifts SatDocument into a project-owned B-rep and lowers it back, which could eventually supply a geometry-kernel lineage distinct from OCCT. Its README labels the project early and says most operations are not yet written; the ACIS feature depends on opencadcodec, so its outer DWG/DXF codec route is not independent of the ACadRust-derived family.",
+      "planDisposition": "Record as a future candidate only. Do not treat it as an available resolver, semantic pass, or reason to wait. Admission requires an exact commit/build, a demonstrated supported ACIS profile, complete body/face disposition, valid topology, and pre-authored analytic expectations."
+    },
+    {
+      "project": "OpenCADStudio and PID-CAD tessellation route",
+      "references": [
+        "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md",
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://github.com/HakanSeven12/OpenCADStudio"
+      ],
+      "observation": "The published rendering pipeline describes lifting ACIS data into a kernel B-rep and a direct per-surface fallback when a face cannot be expressed; incomplete tessellation is explicitly marked. OpenCADStudio v2026.42 release notes add a SAT/ACIS import workflow. This is a useful display-projection lead, not evidence of arbitrary B-rep validity or an independent DWG parser, because its file codec follows the ACadRust lineage and a rendered mesh is downstream output.",
+      "planDisposition": "At most an optional composed-checkpoint projection diagnostic. Pin application, codec, and kernel revisions; record per-handle and per-face complete-lift/fallback/omitted/failed states. Never count a rendered mesh as semantic support or another parser vote."
+    },
+    {
+      "project": "LibreDWG and ezdxf capability boundary",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "observation": "LibreDWG has a modern AcDs section reader but its project documentation describes remaining incompleteness. ezdxf exposes and inspects DXF SAT/SAB data, while its documentation says generation of valid ACIS content requires an external library. These capabilities occupy different sections of the parse/carrier/author/semantic pipeline.",
+      "planDisposition": "Retain them as exact-version structural and DXF-carrier comparators only. No support claim follows from section presence, raw carrier access, or broad version declarations."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8: staged modern-AcDs structural, association, semantic, and consumer evidence",
+      "PAR-59: modeler carrier versus semantic-loss attribution",
+      "PAR-144: optional peer checkpoint and generated boundary cases"
+    ],
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "sequence": [
+      "Continue local slices without waiting for peers; use the owning fast selector after code changes.",
+      "At the existing optional AcDs checkpoint, add scratch-generated one/multi-schema, split/non-sequential blob, blob-versus-indexed-entry, alignment/count-boundary, and missing/duplicate-key controls.",
+      "Keep section framing, record bytes, payload reconstruction, handle/key association, B-rep semantics, and native acceptance as separate outcomes with separate denominators.",
+      "Revisit OpenCADKernel only when a pinned artifact demonstrably implements an exercised ACIS lift path and complete analytic-solid controls; otherwise record NOT_READY and continue.",
+      "Keep third-party DWG/DXF files out of committed fixtures; generated controls must be created locally from scratch or remain scratch-only.",
+      "After each implementation item, update the plan and receipt, show progress after the slice commit, and self-unblock to the next dependency-ready local item."
+    ],
+    "supportBoundary": "No peer project description, same-codec roundtrip, raw payload match, or incomplete tessellation can promote DWG/DXF or ACIS semantic support."
+  },
+  "limitations": "No external drawing was downloaded. No peer executable, OpenCADStudio build, geometry kernel, or native CAD application was run. Peer discussion and project documentation are discovery/readiness evidence only. No finding or deferred J item was resolved; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+  "validation": {
+    "jsonValidation": "PASS",
+    "scopedDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

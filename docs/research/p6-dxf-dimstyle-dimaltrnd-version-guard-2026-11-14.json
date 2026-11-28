@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-14",
+  "scope": "Pre-AC1015 DXF DIMSTYLE DIMALTRND group-148 output",
+  "evidence": {
+    "format_crosswalk": "The current DIMSTYLE variable descriptor maps group 148 to DIMALTRND with minimum revision AC1015. Autodesk's AutoCAD 2007 DIMSTYLE table includes group 148; the archived R12 DIMSTYLE table does not. Autodesk system-variable reference documents DIMALTRND. The source model default is 0.0.",
+    "references": [
+      {
+        "title": "Autodesk AutoCAD 2007 DXF Reference",
+        "url": "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2007.pdf",
+        "section": "DIMSTYLE group codes",
+        "observation": "Lists group 148 as DIMALTRND."
+      },
+      {
+        "title": "Autodesk AutoCAD Release 12 DXF Reference",
+        "url": "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_r12_dxf.pdf",
+        "section": "DIMSTYLE table entry",
+        "observation": "The listed group codes do not include group 148."
+      },
+      {
+        "title": "Autodesk D System Variables",
+        "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-LT-MAC/files/GUID-79A00CD5-A431-4460-8EA3-7F8707AEECA0.htm",
+        "observation": "Documents DIMALTRND as the alternate dimension unit rounding setting."
+      }
+    ],
+    "code": "dxfRW::writeDimstyle now refuses pre-AC1015 output when the typed dimaltrnd field or dynamic group-148 override is nonzero. The default zero remains omitted as before.",
+    "control": "libdxfrw_dimstyle_table_allocation generates typed and dynamic nonzero cases and verifies atomic refusal plus same-writer retry after restoring zero in ASCII and Binary AC1014; it also checks that clean ASCII R14 DIMSTYLE output has no group 148.",
+    "test_command": "cmake --build build --target libdxfrw_dimstyle_table_allocation_tests -j4 && ctest --test-dir build -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure",
+    "test_result": "passed: 1/1 in 1.32 seconds",
+    "fixture_policy": "Generated controls write only to the system temporary directory; no DWG or DXF fixture added to the repository.",
+    "limits": [
+      "The version threshold follows the existing project descriptor and is not independently stated in the cited Autodesk group-code table.",
+      "This does not qualify other DIMSTYLE downgrade fields or consumer rendering semantics."
+    ]
+  }
+}

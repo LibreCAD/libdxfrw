@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-mpolygon-annotation-domain-consumer-control-2026-11-15",
+  "date": "2026-11-15",
+  "status": "consumer_fixture_corrected_and_negative_control_verified",
+  "supportClaimEffect": "none",
+  "finding": "LibreCAD trailer-position test used MPOLYGON annotated-boundary group 73 value 42, which the upstream reader rejects because it is outside the documented boolean domain.",
+  "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+  "downstream": {
+    "base": "4c301ea1c0a80dddba7e7ccbcea0fa4b21550088",
+    "commit": "7a1fb7d78818fd4ac2d65ef18015aba6d71e3520",
+    "patch": "docs/patches/librecad-p8-mpolygon-annotation-test-2026-11-15.patch",
+    "merged": false,
+    "change": "Use value 1 and assert 1 while retaining all four boundary/trailer cases."
+  },
+  "verification": [
+    "The corrected consumer test passes all four cases with 40 assertions against each of the upstream overlay and clean bundled build.",
+    "The generated libdxfrw_mpolygon_fill_default selector now checks invalid annotation 42 is rejected before either typed or legacy callbacks for ASCII and Binary; its existing default and explicit-fill tests still pass.",
+    "Forward apply check passed against the stated clean downstream base, and reverse apply check passed on the resulting commit.",
+    "The upstream combined DIMASSOC/MPOLYGON selector improves to 5/11 passing; 6 cases and 13 assertions still fail."
+  ],
+  "limits": [
+    "Only valid-domain trailer test setup was changed; no general parity or native rendering claim is made.",
+    "The downstream commit remains local; the patch has not been checked against a newer remote head.",
+    "No DWG/DXF fixtures added."
+  ]
+}

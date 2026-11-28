@@ -1,0 +1,59 @@
+{
+  "id": "p6-dxf-rastervariables-objects-allocation-failure-retry-2026-11-05",
+  "date": "2026-11-05",
+  "scope": "Generated AC1027 RASTERVARIABLES OBJECTS callback allocation failure, destination rollback, same-adapter retry and typed readback.",
+  "source": {
+    "kind": "DWG generated from scratch by the test and removed on exit",
+    "revision": "9b3189ea97d65358ab4439d24b575841896ee462",
+    "profile": "Direct NOD ACAD_IMAGE_VARS root entry to one RASTERVARIABLES object, with the observed named-object dictionary reactor relationship.",
+    "repositoryFixtureAdded": false
+  },
+  "implementation": {
+    "test": "tests/rastervariables_objects_allocation_tests.cpp",
+    "testSha256": "c19e5da120eedef1e876fbe0c0c419a30757e7a752d203751eddd3f9328abeef",
+    "cmakeSha256": "db7e0b29d828b0aab5a67ae2be331e12da3ab85bf50a2b7777494abe36ad75c1",
+    "normalBinarySha256": "ad7e42942e3a7ee87746b2c5311803ac768eaa472df9d80ceb786fb1b5830f32",
+    "asanBinarySha256": "381351b368fff11fcfa166b6d9ebe3e7d7709ed9e7b3bcc2b075f2d049ae966e"
+  },
+  "environment": {
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "normalBuild": "build-gcc",
+    "asanBuild": "build-asan-custom",
+    "commands": [
+      "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "cmake --build build-gcc --target libdxfrw_rastervariables_objects_allocation_tests -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_rastervariables_objects_allocation_retry$' -V",
+      "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "cmake --build build-asan-custom --target libdxfrw_rastervariables_objects_allocation_tests -j4",
+      "ctest --test-dir build-asan-custom -R '^libdxfrw_rastervariables_objects_allocation_retry$' -V"
+    ]
+  },
+  "result": {
+    "status": "PASS",
+    "selector": "libdxfrw_rastervariables_objects_allocation_retry",
+    "normal": {
+      "asciiAllocationOffsets": 11,
+      "binaryAllocationOffsets": 10,
+      "destinationSentinelPreservedAtEveryOffset": true,
+      "sameAdapterRetryAtEveryOffset": true,
+      "typedReadbackAtEveryRetry": true,
+      "durationSeconds": 0.8,
+      "callerTypedRecordPreservedAtEveryOffset": true
+    },
+    "asan": {
+      "asciiAllocationOffsets": 11,
+      "binaryAllocationOffsets": 10,
+      "destinationSentinelPreservedAtEveryOffset": true,
+      "sameAdapterRetryAtEveryOffset": true,
+      "typedReadbackAtEveryRetry": true,
+      "durationSeconds": 1.7,
+      "callerTypedRecordPreservedAtEveryOffset": true
+    },
+    "suite": "focused normal and ASan selectors only; no full suite"
+  },
+  "limits": [
+    "Generated transport and transaction evidence only; it does not qualify physical producer breadth or native image behavior.",
+    "Covers this direct-NOD RASTERVARIABLES graph and callback allocations, not other OBJECTS builders or shared-instance concurrency."
+  ],
+  "next": "Continue P6 safety/caller-state work with another distinct, locally ready OBJECTS builder or staged family."
+}

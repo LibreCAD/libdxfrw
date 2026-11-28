@@ -1,0 +1,65 @@
+{
+  "title": "S3.7c ACIS torus-face normal",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Evaluate the normalized local differential normal dP/du cross dP/dv for the documented torus parameterization, then apply the retained face-sense flag.",
+    "parameterContract": "u and v are radians in drw_evaluateAcisTorusSurface's local parameterization.",
+    "profile": "Positive finite major/minor radii with decoded finite center, nonzero axis, U direction, and caller-supplied orthogonality tolerance.",
+    "singularityPolicy": "Refuse when majorRadius + minorRadius*cos(v) is zero; preserve the signed radial factor so spindle inner-nappe orientation is handled by the differential.",
+    "semanticLimit": "This is the differential normal of the library's explicit local parameterization, not an independently qualified native ACIS parameter/face-sense contract.",
+    "non_claims": [
+      "native producer/version torus parameter direction",
+      "native producer/version face-sense equivalence",
+      "trim or pcurve interpretation",
+      "placement or source-unit application",
+      "containment or shell winding",
+      "B-rep validity",
+      "native consumer qualification",
+      "independent semantic support"
+    ]
+  },
+  "coverage": {
+    "parser_fed_torus_forward_and_reversed_sense": "PASS",
+    "oblique_non_unit_axis_and_major_direction": "PASS",
+    "spindle_inner_nappe_orientation": "PASS",
+    "generated_centered_finite_difference_ring_and_spindle_matrix": "PASS",
+    "horn_pinch_singularity_refuses": "PASS",
+    "unknown_sense_and_invalid_tolerance_refuse_atomically": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.29 seconds)",
+    "symbol_check": "PASS (nm -gC build-gcc/libdxfrw.a exports drw_evaluateAcisTorusFaceNormal)",
+    "diff_check": "PASS (scoped implementation, test, and plan paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_exported_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED",
+    "reason": "Shared worktree has broad pre-existing user changes; no broad staging or commit was attempted."
+  }
+}

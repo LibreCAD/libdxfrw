@@ -1,0 +1,139 @@
+{
+  "schema": "libdxfrw-application-level-3d-consumer-and-versioned-solid-disposition-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "planFiles": [
+    "DWG_DXF_3D_SUPPORT_PLAN.md",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "scope": "Broaden the existing open-source comparison from format libraries to application-level DWG/DXF-to-3D consumer routes; check entity-family/version behavior, parser lineage, projection type, diagnostics, and efficient optional qualification readiness.",
+  "method": {
+    "sourceTypes": [
+      "Application README and developer-maintenance notes",
+      "Application package manifest",
+      "Visualization toolkit README and route matrix",
+      "Detailed supported-format table cross-check"
+    ],
+    "sourcesReviewed": [
+      "https://github.com/stoatworks-labs/arraycad/blob/master/README.md",
+      "https://github.com/stoatworks-labs/arraycad/blob/master/AGENTS.md",
+      "https://github.com/stoatworks-labs/arraycad/blob/master/package.json",
+      "https://github.com/pyvista/pyvista-cad",
+      "https://github.com/kernalix7/CADKernel#supported-file-formats"
+    ],
+    "peersInstalledBuiltOrRun": false,
+    "peerSourceCloned": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "sourceFreshness": "GitHub master/main pages are mutable and the package manifest uses semver ranges; no immutable source commit or resolved dependency lock was available in this source-only pass. Any future run must pin them.",
+    "evidenceBoundary": "README and maintainer notes establish project-reported route behavior and known limitations, not independent reproduction. Application conversion to convex-hull/mesh geometry is not B-rep semantics. Existing ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "findings": [
+    {
+      "topic": "ArrayCAD versioned DWG/DXF consumer behavior",
+      "sources": [
+        "https://github.com/stoatworks-labs/arraycad/blob/master/README.md",
+        "https://github.com/stoatworks-labs/arraycad/blob/master/AGENTS.md"
+      ],
+      "observed": [
+        "ArrayCAD advertises explicit DXF 3DFACE, polyface, SOLID, curve, and INSERT-array ingestion, plus selected 3DSOLID outer-volume projection.",
+        "The project describes R2000-R2004 DXF ACIS-body use as a convex-hull projection; it is not a B-rep or topology-preserving route.",
+        "The project reports ACIS solids from DWG 2004 are read, while its AC1032 example loses most solids in acad-ts 3.2: 5 of 45 reportedly remain, with no body or wires; its acad-ts 2.4 comparison reportedly returned all 45.",
+        "The version regression is based on a named real-world drawing in project notes; this review did not access or reproduce that drawing, and it is not an admitted fixture.",
+        "The same developer notes say dxf-parser lacks a native 3DSOLID handler and discards POLYMESH group 71/72 counts; ArrayCAD adds handling for some of those cases."
+      ],
+      "doesNotEstablish": [
+        "An independently reproducible AC1032 parser defect or a libdxfrw defect",
+        "General ACIS entity coverage or B-rep topology/trim/Boolean correctness",
+        "Native CAD acceptance or lossless DWG/DXF round-trip",
+        "The exact dependency versions used for the reported observations"
+      ],
+      "planUse": "Optional composed consumer/projection profile only. Pin the app commit, package lock, exact parser versions, runtime, and command. Record every source entity/body disposition and warnings. Keep AC1018 and AC1032 separate; treat convex hulls as outer-envelope projection only. Never fetch or commit the cited private/unavailable drawing."
+    },
+    {
+      "topic": "ArrayCAD parser lineage and dependency-version admission",
+      "sources": [
+        "https://github.com/stoatworks-labs/arraycad/blob/master/AGENTS.md",
+        "https://github.com/stoatworks-labs/arraycad/blob/master/package.json"
+      ],
+      "observed": [
+        "The project identifies acad-ts as an ACadSharp port for DWG parsing.",
+        "The inspected manifest declares @node-projects/acad-ts ^3.2.0 and dxf-parser ^1.1.2; mutable source and ranges do not bind the exact runtime to the reported file result.",
+        "ArrayCAD's developer notes describe DXF and DWG adapters as translations into a shared CadDocument and identify parser-specific angle/flag losses."
+      ],
+      "planUse": "Count its DWG route in the ACadSharp-derived lineage, not as an independent DWG parser vote. Treat the DXF route as integration around its declared parser until the exact lock and lineage are audited. Pin immutable commit and lockfile before any optional execution."
+    },
+    {
+      "topic": "PyVista CAD projection route",
+      "source": "https://github.com/pyvista/pyvista-cad",
+      "observed": [
+        "The base install uses ezdxf for DXF read/write and offers a layer-aware PyVista projection.",
+        "Its route matrix does not list DWG or ACIS input.",
+        "B-rep/cached-kernel behavior in its documentation belongs to separate STEP/IGES and kernel-backed routes, not to DXF parsing."
+      ],
+      "planUse": "Optional visualization/consumer smoke test only, sharing ezdxf parser lineage. It cannot establish DWG, ACIS/AcDs, owner graph, exact-tag, or B-rep support and must not be added to per-slice validation."
+    },
+    {
+      "topic": "CADKernel broad format headline versus detailed ACIS row",
+      "source": "https://github.com/kernalix7/CADKernel#supported-file-formats",
+      "observed": [
+        "The overview advertises a broad 60+ format set that includes ACIS among categories, but the detailed supported-format table marks ACIS SAT/SAB read and write as unsupported/planned."
+      ],
+      "planUse": "Retain its existing discovery-only, ACIS-unsupported classification; do not elevate headline format counts into a peer capability or oracle."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "refinesExistingOwners": [
+      "PAR-07",
+      "S8 composed peer comparison",
+      "7AG peer admission",
+      "existing explicit-geometry versus ACIS-carrier/B-rep evidence lanes"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "newValidationJobs": 0,
+    "newPerSlicePeerRuns": 0,
+    "requiredArrayCadReceiptFields": [
+      "immutable app source commit and package-lock hash",
+      "exact acad-ts and dxf-parser resolved versions and lineage",
+      "runtime/browser and invocation",
+      "input file hash and exact AC version",
+      "source handles/types and declared per-body counts",
+      "emitted/projected/omitted/unresolved disposition and warnings",
+      "result geometry kind: convex hull, wire/isoline, tessellation, or B-rep",
+      "units, transform, bounds, and independent expected values"
+    ],
+    "continueIfPeerUnavailable": true,
+    "noExternalPrivateDrawing": true,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "productionSourceChanged": false,
+    "localTestsRun": false,
+    "peerRuntime": "NOT_RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "jDispositionChanged": false
+  }
+}

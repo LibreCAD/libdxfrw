@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-image-transforms-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "5fa0038b",
+  "scope": "Selected LibreCAD_3 IMAGE move, rotate, component-wise scale and reflection geometry.",
+  "reproduction": "rotate, scale and mirror returned null before the fix.",
+  "implementation": "Use a shared geometry-copy helper that preserves identity, layer, metadata, block and display parameters. Transform insertion point and direction vectors with the existing coordinate operations. Mirror uses this project\u2019s reflection about a 3D line; normalize a finite nonzero axis and refuse invalid axes.",
+  "validation": [
+    "The new transform test fails before the fix because rotate returns null.",
+    "Nine focused image, elevated geometry, area and layer tests pass.",
+    "Checks include rotated and nonuniformly scaled 3D axes, planar scaling, shared 3D-line reflection, tiny and large finite mirror axes, zero/non-finite axis refusal, unchanged identity and metadata.",
+    "After zero/non-finite-axis refusals the same source image remains unchanged and a corrected mirror succeeds with the expected axes."
+  ],
+  "testLogSha256": "1aa019b128e9ed4140a6755e041b989e4c6adfc9b676be6eb6a326de5c2ceefc",
+  "limits": [
+    "No native rendering, import/export, undo/redo, 3D-plane reflection, arbitrary nonfinite input or general IMAGE semantics are qualified."
+  ]
+}

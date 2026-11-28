@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-open-source-schema-screen-2026-11-08",
+  "date": "2026-11-08",
+  "status": "NO_IMPLEMENTATION_READY_BODY_SCHEMA_FOUND",
+  "supportClaimEffect": "none",
+  "scope": "Screen current LibreDWG open-source sources for a direct ACSH_SWEEP_CLASS action-body layout that could resolve the bounded AC1027 Sweep tail.",
+  "sources": [
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "file": "src/objects.in",
+      "observation": "ACSH_SWEEP_CLASS is categorized as DEBUGGING in the current class map (around line 1275); this identifies class handling status, not a serialized field layout."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "file": "NEWS",
+      "observation": "The release notes list ACSH_SWEEP_CLASS among debugging classes requiring debug support; they do not define action-body fields or byte/bit boundaries."
+    }
+  ],
+  "comparison": {
+    "localPinnedSource": "AC1027 source /private/tmp/example_2013.dwg, SHA-256 ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f; 326-byte bounded Sweep body.",
+    "existingSpanEvidence": "The current production parser consumes a 174-bit prefix of a 2,571-bit body and correctly reports Partial; see p4-ac1027-sweep-action-body-exact-span-2026-11-08.json.",
+    "result": "The screened public sources provide no independently inspectable complete Sweep action-body schema, so they cannot justify decoding or assigning semantics to the remaining tail."
+  },
+  "decision": "No parser, writer, role, or support-claim change. Retain exact-bounded-end completion gate and output refusal for the Sweep profile.",
+  "limitations": [
+    "The sources are open-source implementation references, not normative DWG byte-layout authority.",
+    "This source screen does not disprove that a field layout exists in other branches, builds, or inaccessible/private implementations.",
+    "No independent producer rewrite or native semantic qualification was performed."
+  ],
+  "nextAction": "Continue another locally source-backed implementation slice; revisit Sweep only when an authoritative schema or independently captured, field-boundary-complete producer trace becomes available."
+}

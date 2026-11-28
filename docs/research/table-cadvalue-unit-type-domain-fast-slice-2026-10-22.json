@@ -1,0 +1,45 @@
+{
+  "id": "par134-ac1021-ac1024-table-cadvalue-unit-type-domain",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "017a02afc28369e2bc1ea4aee7c30faaf6321bf01b0c7fc5a82aa7841051e56c",
+  "scope": {
+    "class": "DRW_Table / DRW_TableContentObject",
+    "version": "AC1021 and AC1024",
+    "field": "TABLE CadValue unit-type enum",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "change": "readTableCadValue now accepts only the ODA-documented TABLE unit values 0, 1, 2, 4, and 8; invalid unit values fail closed. FIELD unit semantics are untouched.",
+  "compatibilityQualification": {
+    "peer": "LibreDWG shared TABLE_value_fields macro suppresses DXF group 302 when unit_type is 12.",
+    "localPeerCapture": "../LibreDWG/examples/alldxf_TABLESTYLE.inc attributes unit_type 12 to an AutoCAD 2021 TABLESTYLE row style; the original source drawing is absent from that checkout.",
+    "disposition": "Different TABLESTYLE field context, not a direct TABLE-cell CadValue wire witness. Keep the ODA-defined cell enum gate fail-closed and seek a producer-saved cell-value sample before generalizing the 12 rule. No support claim promoted.",
+    "source": "https://github.com/LibreDWG/libredwg/blob/665b8dde6c018825f8098309f8983e6ef39451b5/src/dwg_spec_shared.h"
+  },
+  "generated_controls": {
+    "validUnitTypes": [0, 1, 2, 4, 8],
+    "invalidUnitTypes": [3, 5, 12, -1],
+    "ac1021": "Valid values parse and remain in DRW_CadValue; invalid values fail TABLECONTENT parsing.",
+    "ac1024": "Valid values parse and remain in DRW_CadValue; invalid values preserve the readable TABLE frame while withholding incomplete cell semantics."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_table_cell_(state_flag|content_type|unit_type)_domain$' --output-on-failure: PASS (3/3)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "fullSuiteRun": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ],
+  "commit": "not created; pre-existing worktree changes were preserved and no files were staged"
+}

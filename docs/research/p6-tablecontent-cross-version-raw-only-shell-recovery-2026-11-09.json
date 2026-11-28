@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-tablecontent-cross-version-raw-only-shell-recovery-2026-11-09",
+  "date": "2026-11-09",
+  "status": "GENERATED_AC1021_AC1024_RAW_ONLY_SHELL_RECOVERY",
+  "supportClaimEffect": "none",
+  "scope": "Extend exact raw-only TABLECONTENT frame recovery to AC1021 and AC1024 when typed parsing fails but an independent bounded common-shell and handle-stream parse succeeds.",
+  "authority": {
+    "wireFormat": "ODA v5.4.1 §§2 and 20.4.97 remain authoritative for the common object shell and TABLECONTENT body. No disputed TABLECONTENT body field or target role was reinterpreted.",
+    "implementationPolicy": "Discard the failed typed parse, retry from the pristine object-frame cursor, and publish only the exact raw frame plus validated common links. Do not expose a partial typed object or authorize selected/whole-file DXF output."
+  },
+  "implementation": {
+    "file": "src/intern/dwgreader.cpp",
+    "profile": "Exact AC1021, AC1024, AC1027, or AC1032 version; record TABLECONTENT; class AcDbTableContent; failed typed parser; successful independent RawObjectShell common-header and handle parse.",
+    "behavior": "The bounded raw-only fallback now covers all four supported R2007+ reader versions. An unsuccessful shell parse continues to be a record failure."
+  },
+  "generatedControl": {
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "selector": "--persistent-manager-prefix-dispatch",
+    "method": "Existing from-scratch AC1027/AC1032 TABLECONTENT fallback controls remain in the selector. Added AC1021 and AC1024 class-700 TABLECONTENT frames whose typed parse fails, followed by a valid typed PERSUBENTMGR sentinel. Assertions require zero object parse failures, no TABLECONTENT callback, exact source raw bytes, validated owner/reactor links, Raw carrier disposition, and typed-and-raw publication of the following sentinel.",
+    "fixturesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_dwg_reader_matrix_tests -j2",
+    "focusedTest": "PASS: ctest --test-dir build -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure (1/1; 0.47 seconds)",
+    "diffCheck": "PASS: git diff --check; receipt parses with jq",
+    "fullSuites": "NOT RUN"
+  },
+  "limits": [
+    "Generated failure frames do not establish physical producer prevalence or TABLECONTENT value semantics.",
+    "Raw-only retention does not authorize replay, selected output, strict whole-file conversion, or a support claim.",
+    "Physical-source TABLECONTENT records remain gated on exact versioned body/string/handle spans and semantic field/target evidence."
+  ],
+  "next": "Continue the P4/P6 queue only with an evidence-backed local slice; retain raw-only behavior and strict output refusal for incomplete TABLECONTENT profiles."
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-05",
+  "title": "AC1024 mechanical alternate strict DWG-to-DXF conversion",
+  "status": "STRICT_CONVERSION_SUCCEEDED",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "fixture_policy": "Used as a locally available corpus input; not added to or changed in the commit.",
+    "identityAudit": {
+      "comparisonPath": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "comparisonSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "sameBytesAsRecordedSource": true,
+      "consequence": "The alternate filename is a byte-identical alias of the previously passing mechanical source and does not add an independent source or producer witness."
+    }
+  },
+  "converter": {
+    "path": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "9b757361e17985fac4c3f4d0755b1163c9f6c3bf2c5a23d130fe0872e4c92c0d",
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/mechanical_example-imperial-alt.dwg -y -d -v2010 /private/tmp/libdxfrw-mechanical-alt-current.dxf",
+    "exit_code": 0,
+    "result": "Success: converted tests/samples/AC1024/mechanical_example-imperial-alt.dwg to /private/tmp/libdxfrw-mechanical-alt-current.dxf"
+  },
+  "output": {
+    "path": "/private/tmp/libdxfrw-mechanical-alt-current.dxf",
+    "sha256": "f75dbf3683385f7a7deee8874e267e15ef3b2c54d0057c083bf5c78e3903671a",
+    "bytes": 449945
+  },
+  "limits": [
+    "This is one unique AC1024 input; the alternate filename is byte-identical to the previously passing mechanical_example-imperial.dwg.",
+    "This does not establish a new producer/version profile, native semantics or full AC1024 support.",
+    "The re-import uses the same libdxfrw codebase; independent consumer readback and broader producer/version coverage remain unqualified."
+  ],
+  "support_claim_effect": "none; verifies current-code strict conversion and typed readback for the same unique AC1024 mechanical input bytes, not a second source profile",
+  "no_new_fixture_committed": true,
+  "typed_readback": {
+    "operation": "Fresh dx_iface::fileImport of the emitted ASCII DXF into new dx_data.",
+    "result": "PASS; sourceVersion enum 16 (AC1024), 90 model-space entities including 56 LINE records, 8 XRECORDs and 23 dictionaries.",
+    "probe_source": "/private/tmp/dxf_typed_readback.cpp",
+    "probe_sha256": "eb3cdba29d418c205c7dd821d6a67010de5eb25e89957e823acad26843e2d563",
+    "probe_binary_sha256": "092e6b0e31cb08d74023b395cafe1a877f0ac6e06f072a3fd01778fa3bd219f0",
+    "linked_adapter_object_sha256": "30adc66ba9e7262ca28a8115e124aa785cc4cfde9fdbb1fcadf7fcf72c3ede95",
+    "linked_library_sha256": "9263f4e2e85c74747ac5fc11b66c4bb0cf71ddd955883e31c36efd34d1f849e5",
+    "command": "/private/tmp/dxf_typed_readback /private/tmp/libdxfrw-mechanical-alt-current.dxf",
+    "build_command": "/usr/bin/g++ -std=c++17 -I dwg2dxf -I src /private/tmp/dxf_typed_readback.cpp build-gcc/dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o build-gcc/libdxfrw.a -framework CoreFoundation -o /private/tmp/dxf_typed_readback"
+  },
+  "additionalProfileProbe": {
+    "path": "tests/samples/AC1024/civil_example-imperial.dwg",
+    "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "converterSha256": "7c76c6ebddbe72d822c153e18a2ac2ad822fcc88e87f33dcddb190d1dd14c99b",
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/civil_example-imperial.dwg -y -v2010 /private/tmp/libdxfrw-civil-strict.dxf",
+    "exitCode": 1,
+    "result": "AC1024 reader published all 335 observed frames with zero entity/object parse failures, but strict output refused because the read disposition is incomplete; no DXF was produced.",
+    "logPath": "/private/tmp/libdxfrw-civil-strict.log",
+    "logSha256": "64f7c1a3d246750574d35ccf900fea07bba9f04944d5d36e826c4fa417d410d8",
+    "supportClaimEffect": "none"
+  }
+}

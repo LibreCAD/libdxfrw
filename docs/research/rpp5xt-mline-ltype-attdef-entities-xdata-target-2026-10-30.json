@@ -1,0 +1,75 @@
+{
+  "id": "RPP-5xt",
+  "title": "AC1027 standalone ENTITIES ATTDEF LTYPE XDATA target binding",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "be7d3b077f6e785003ac1ac1939210bebd0a2fc3",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated original ASCII and binary DXF records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One model-space ENTITIES ATTDEF code-1005 target across all four source/output encoding pairs.",
+    "target": {
+      "type": "ATTDEF",
+      "handle": "0xA900",
+      "owner_block_record": "0x201",
+      "section": "ENTITIES",
+      "text": "TARGET_DEFAULT",
+      "tag": "TARGET_TAG",
+      "prompt": "TARGET_PROMPT",
+      "base_point": [1.25, 2.5, 3.75],
+      "height": 2.5,
+      "attribute_flags": 0
+    },
+    "xdata": {
+      "provider": "source-bound simple LTYPE EditDash and APPID MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "reference": {"code": 1005, "source_handle": "0xA900"}
+    }
+  },
+  "proof": {
+    "source": "Candidate indexing requires the physical ATTDEF span and model-space owner, the paired AttdefSource/addAttDef delivery events with exact type/handle/owner identity, a unique exact DRW_Attdef model equal to its captured profile, and attdefPairReady() for the standalone source context. The standalone source/profile/origin gate remains independent; raw/typed pointer identity is not assumed.",
+    "output": "All four ASCII/binary input/output combinations verify emitted ATTDEF identity, ENTITIES section and remapped model-space owner, selected physical text/tag/prompt/point/height/flag fields, ordered LTYPE code-1005 remapping, and fresh typed ATTDEF/LTYPE readback.",
+    "failure_retry": "Each encoding pair removes the target and verifies destination preservation followed by same-adapter retry. An additional late handle mutation refuses with destination preservation and succeeds after restoring the target identity.",
+    "counts": {
+      "attdef_success_profiles": 4,
+      "attdef_readbacks_including_retry_and_mutation_retry": 9,
+      "attdef_refusals_with_destination_preservation": 5,
+      "attdef_same_adapter_retries": 5,
+      "whole_focused_test_profiles": 436,
+      "whole_focused_test_readbacks": 1002,
+      "whole_focused_test_refusals": 566,
+      "whole_focused_test_retries": 566
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 26.11 seconds)"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_bindings": {
+      "implementation_commit": "be7d3b077f6e785003ac1ac1939210bebd0a2fc3",
+      "source_sha256": {
+        "dwg2dxf/dx_iface.cpp": "86a0fef7b72ed4d6770b714ba30baf7ff98d82c538ef41dc1ef3c6aa4da5433d",
+        "tests/dxf_fixture_tests.cpp": "fdf9866dcab0aeefcfae68236dd9d36eae732fcda3c8189245c61fbb416fead2"
+      },
+      "normal_executable_sha256": "6d43d675c9a9b711eefc57261e8fadde5325c7dd352876b7eb65850f70dc8b29",
+      "converter_executable_sha256": "1c38556f3fe9ab049f79e15dba2bde2638093eae4c0e64966b4a09d361535a63",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4"
+    }
+  },
+  "limits": [
+    "This qualifies one AC1027 standalone ENTITIES ATTDEF source profile only. Other ATTDEF field/subclass/version profiles and multiple-target combinations remain unqualified.",
+    "The selected transport proof does not establish ATTRIB/INSERT attribute association, ATTDEF editing support, recursive dependency closure, complete-document conversion, or independent CAD semantics.",
+    "P2 remains open for other code-1005 target types, mixed target sets and broader source/output profiles."
+  ],
+  "next": "Select the next current P2 target only after reproducing a concrete parser, source-binding or emitted-output gap; retain the existing ATTDEF source/profile gate and avoid adding unqualified type/profile coverage."
+}

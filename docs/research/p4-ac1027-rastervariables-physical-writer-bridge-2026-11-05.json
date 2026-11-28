@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Physical AC1027 RASTERVARIABLES writer bridge",
+  "date": "2026-11-05",
+  "status": "BOUNDED_PHYSICAL_AC1027_WRITER_BRIDGE_PASSED",
+  "supportClaimEffect": "none",
+  "scope": "The existing physical AC1027 Cover.dwg witness is imported and its direct NOD RASTERVARIABLES record is checked. Its captured modeled fields seed a locally authored AC1027 wrapper DWG, which is re-imported and exercised through ASCII/Binary DXF output, atomic invalid-value refusal, same-adapter retry, and fresh typed rooted readback. This does not convert Cover.dwg as a whole or qualify native image display.",
+  "physicalWitness": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256BeforeAndAfter": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "revision": "AC1027",
+    "objectHandle": "0x6E",
+    "ownerPath": "NOD 0x0C -> ACAD_IMAGE_VARS -> RASTERVARIABLES",
+    "fields": {
+      "classVersion": 0,
+      "imageFrame": 0,
+      "imageQuality": 1,
+      "units": 1
+    },
+    "commonMetadata": {
+      "reactorCount": 1,
+      "reactorTarget": "0x0C (owner NOD)",
+      "xDictMissingFlag": 1,
+      "xDictionaryHandle": 0,
+      "dataStorage": false,
+      "appDataGroups": 0,
+      "extDataItems": 0
+    },
+    "sourceLimitations": "Two retained AC1027 HEADER suffix-integrity observations remain. Prior whole-source preflight stopped at the independent ACAD_LAYOUT entry-count gate; this receipt adds no whole-source output evidence."
+  },
+  "wrapper": {
+    "kind": "locally authored AC1027 DWG generated in the focused selector",
+    "fieldSource": "The physical typed fields and common metadata seed the wrapper. The source NOD key and reactor target are emitted in the wrapper graph with its own NOD identity.",
+    "outputs": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "checks": [
+      "physical source-frame/profile validation",
+      "wrapper DWG re-import field comparison",
+      "root/object/reactor readback",
+      "invalid class version refusal",
+      "invalid reactor refusal",
+      "out-of-range units refusal",
+      "destination preservation",
+      "same-adapter retry",
+      "typed readback",
+      "wrapper source-frame output binding"
+    ],
+    "strictness": "The wrapper is selected-object evidence. It does not relax or bypass whole-source AC1027 strict qualification.",
+    "fixturePolicy": "The wrapper DWG and output DXFs are generated under temporary storage and removed after the selector. Cover.dwg is read-only; no DWG/DXF fixture was committed."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R 'dwg2dxf_rastervariables_.*adapter_transport' --output-on-failure",
+      "result": "9/9 focused generated transport tests passed"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1027-direct-nod /Users/dli/doc/dwg/Cover.dwg",
+      "result": "passed; imported physical witness, generated wrapper re-import, ASCII/Binary refusal/retry and typed readback"
+    },
+    {
+      "command": "shasum -a 256 /Users/dli/doc/dwg/Cover.dwg (before and after selector)",
+      "result": "same SHA-256 before/after: 3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "nonClaims": [
+    "No physical whole-drawing conversion qualification follows.",
+    "No native AutoCAD, LibreCAD, LibreCAD_3, FreeCAD, or independent image-display/unit semantic acceptance was run.",
+    "This does not establish additional source-origin tuples, broader graph closure, or a support claim."
+  ],
+  "remaining": [
+    "Physical whole-source output on a drawing with complete source and layout closure.",
+    "Additional producer/version and RASTERVARIABLES profile coverage.",
+    "Native image display/unit semantics.",
+    "Remaining P4 source and graph closure."
+  ]
+}

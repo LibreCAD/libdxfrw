@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dynamic-block-two-point-parameter-allocation-rollback-2026-11-12",
+  "date": "2026-11-12",
+  "status": "TWO_POINT_PARAMETER_DIRECT_ALLOCATION_SWEEPS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add direct AC1024 ASCII/Binary allocation-failure sweeps for BLOCKLINEARPARAMETER, BLOCKHORIZONTALCONSTRAINTPARAMETER, and BLOCKVERTICALCONSTRAINTPARAMETER, including caller/source identity rollback, references, and retry/readback.",
+  "binding": {
+    "repositoryHead": "6c2a8096",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "27ac70a55b86da086ad484392b099de2b2777c7c9acb80b61f84b0061185cae3",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "tests/dynamic_block_objects_allocation_tests.cpp": "c16077621fc25bea4a45fbfe7c5cf0a76e7c506e80e7f56947e32a5d1a158b84",
+      "tests/CMakeLists.txt": "7a6d869bd778a362a1552bb5c8c48c6a0b8d5b7e0fac8bc7aa24a9fd5b171469",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "6c23083b520e98890fb071ae1228a6e73be3d02ec1b79d3a89a3bd378f125c3f"
+    },
+    "artifactSha256": {
+      "build/tests/libdxfrw_dynamic_block_objects_allocation_tests": "bfc1584dbf68be53c4f4b08d10a860ff4ffde25b397dbdd918edbf398a59af53",
+      "build-asan-custom/tests/libdxfrw_dynamic_block_objects_allocation_tests": "33fde3776c5c8de1bed686dec16571e5bbac6828e8417062234b88e34ce64412"
+    }
+  },
+  "change": {
+    "testCoverage": "Three generated two-point parameter profiles cover linear bounds and value arrays, plus horizontal/vertical constraint variants with a remapped dependency handle, expression metadata, flags, bounds, increment, and allowed values. Each includes the shared two-point fields and nested property vectors.",
+    "perEncoding": "Each of the three profiles exercises 14 ASCII and 14 Binary allocation offsets. Every injected failure preserves caller fields and removes partial source identity. Fresh-writer retry reads back the owner/dependency roles, points, property state/code/name order, subtype-specific values, and subclass.",
+    "existingAdapterControl": "The existing dwg2dxf_dynamic_block_two_point_parameter_writer test passes for the supported generated two-point parameter family."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS"
+    },
+    "normalFocusedTests": {
+      "command": "ctest --test-dir build -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_two_point_parameter_writer' --output-on-failure",
+      "result": "PASS 2/2; 0.82 seconds total"
+    },
+    "asanFocusedTests": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_two_point_parameter_writer' --output-on-failure",
+      "result": "PASS 2/2; 1.82 seconds total"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Fault injection covers each low-level record writer, not the enclosing whole-file transaction.",
+    "A fresh writer is used after failure because the failed writer may retain partial stream bytes and a sticky error.",
+    "Generated transaction controls do not qualify physical producer breadth, recursive graph closure, or native constraint evaluation.",
+    "No DWG/DXF fixture is added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue P6 residual semantic/version work rather than infer production support from generated caller-state controls."
+}

@@ -1,0 +1,146 @@
+{
+  "artifacts": {
+    "asan_log": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/asan-final-test.log",
+      "sha256": "d8d84d21617be31544f3d7008982f8327dc812b143700e3d8b8fbfc1c3e87179"
+    },
+    "bad_header_crc": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/crc-repro/bad-header-included.dwg",
+      "sha256": "237f17c375d9494bb2356d80d147c25754338b3cce5198104dc4158521523000"
+    },
+    "bad_header_log": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/final-7e/bad-header-included.log",
+      "sha256": "7c4e8a2edafa21c471edaf29d8097487b4478eb748ea7685ac66fcded4a7928f"
+    },
+    "bad_layer_crc": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/crc-repro/bad-layer.dwg",
+      "sha256": "e8c3fc974cd28505d5272ba8406db441cffd69f4a63fe44a43107f857c50bcff"
+    },
+    "bad_layer_log": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/final-7e/bad-layer.log",
+      "sha256": "30bc0fb224c23cadb67b8081b2965b3fb1b195eb05c2c6d24180980e40bf28f1"
+    },
+    "ctest_log": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/final-7e/ctest.log",
+      "sha256": "1fab04deb6d7fdb6678344343dd25114af4c20d24db4473fbb5da0a1a378efc2"
+    },
+    "generated_dwg": {
+      "path": "/private/tmp/ac1027-header-profile/production-in/line.dwg",
+      "sha256": "bc0b76f71565532763c635172b765cf41e4ba20cf86a7f412ba8329d3d4486cc"
+    },
+    "generated_probe_log": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/final-7e/generated-probe.log",
+      "sha256": "75afe9304d257bad5c374b7fa1b8d78c7e05409e12e60417129dc993029f73b9"
+    },
+    "libredwg": {
+      "path": "/opt/homebrew/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "oda_ascii_dwg": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/oda-dwg/ascii.dwg",
+      "sha256": "cd7a071d7d61c5422a6d7ad0510965493a9bff62f443fb20d4630dff3c7412c2"
+    },
+    "oda_ascii_return": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/oda-back/ascii.dxf",
+      "sha256": "69e3d320945a2e8d0633775bf34cdbef07984920c5cc63f91d1cafdf0f422fa8"
+    },
+    "oda_binary_dwg": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/oda-dwg/binary.dwg",
+      "sha256": "b445fef8be61421b6664583e2774a11a854a362c76e299c8960304449cb12667"
+    },
+    "oda_binary_return": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/oda-back/binary.dxf",
+      "sha256": "11a76b2249228432854beff0631ec8c5b3f0b6f979f4896fcf1472a7ba0c2de6"
+    },
+    "oda_executable": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "oda_forward_log": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/oda-forward.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "oda_return_log": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/oda-return.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "producer_probe_log": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/final-7e/producer-probe.log",
+      "sha256": "c035816793beb3503b37d0a361d4eccde06dbfcf1958a48df14d9f83bfb64d9c"
+    },
+    "producer_strict_log": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/final-7e/producer-strict.log",
+      "sha256": "b0d021d4a0e1b2fae2da4d5b048f794467a617f88ce65022418261097bfefb10"
+    },
+    "source_oda": {
+      "path": "/private/tmp/modern-writer-investigation/source-dwg/AC1027/line.dwg",
+      "sha256": "1bab740b1f96b88534b4f8238828b9044cffd58b2975ec4b6b00db0c4560cd09"
+    },
+    "strict_ascii": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/final-7e/ascii.dxf",
+      "sha256": "1d2814932f1038194eb6b0c20a0da0fcc8baccf2b2ce7e55c1eaffaa75a72d90"
+    },
+    "strict_binary": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/final-7e/binary.dxf",
+      "sha256": "c3924f3cb61babb32186d6e81bb274bab8ddfe9c92bc38a94a06732cda2e066b"
+    }
+  },
+  "authority": "ODA v5.4.1 \u00a7\u00a77, 20.1, 20.4.44, 20.4.45 and 20.4.54 for HEADER/material and dictionary/LAYER framing and handle roles. The PDF does not specify the MATERIAL body: exact canonical bytes are bounded by ODA-produced source and 64-field LibreDWG 0.14 comparisons. Autodesk DXF ACDBDICTIONARYWDFLT group-0 spelling: https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A6605C05-1CF4-42A4-95EC-42190B2424EE.htm.",
+  "base_commit": "7e30b42b",
+  "commands": {
+    "asan": "ctest --test-dir /private/tmp/ac1027-material-strict-diagnostic/asan -R '^libdxfrw_dwg_ac1027_default_graph_strict$' --output-on-failure",
+    "crc_controls": "python3 -B tools/mutate_ac1027_default_graph_crc.py --source /private/tmp/ac1027-header-profile/production-in/line.dwg --sha256 bc0b76f71565532763c635172b765cf41e4ba20cf86a7f412ba8329d3d4486cc --output-dir NEW_EMPTY_DIRECTORY --layer-offset 155",
+    "focused_ctest": "ctest --test-dir /private/tmp/ac1027-material-strict-diagnostic/test-build -R '^libdxfrw_(dwg_ac1027_default_graph_strict|dxf_compact_material_graph|dwg_modern_header_section_size|dwg_ac1024_default_material|dxf_dimension_oblique|dwg2dxf_dimension_angle)$' --output-on-failure",
+    "generated_probe": "/private/tmp/ac1027-material-strict-diagnostic/final-7e/source-probe /private/tmp/ac1027-header-profile/production-in/line.dwg",
+    "inventory": "python3 -B tools/generate_build_inventory.py --check",
+    "peer_ascii": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_ac1027_default_graph_dxf.py --dxf /private/tmp/ac1027-material-strict-diagnostic/final-7e/ascii.dxf --sha256 1d2814932f1038194eb6b0c20a0da0fcc8baccf2b2ce7e55c1eaffaa75a72d90",
+    "peer_binary": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_ac1027_default_graph_dxf.py --dxf /private/tmp/ac1027-material-strict-diagnostic/final-7e/binary.dxf --sha256 c3924f3cb61babb32186d6e81bb274bab8ddfe9c92bc38a94a06732cda2e066b",
+    "peer_negatives": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tests/ac1027_default_graph_dxf_peer_negatives.py --dxf /private/tmp/ac1027-material-strict-diagnostic/final-7e/ascii.dxf --sha256 1d2814932f1038194eb6b0c20a0da0fcc8baccf2b2ce7e55c1eaffaa75a72d90",
+    "producer_probe": "/private/tmp/ac1027-material-strict-diagnostic/final-7e/source-probe /private/tmp/modern-writer-investigation/source-dwg/AC1027/line.dwg"
+  },
+  "output_proof": "Private explicitly marked layer/dictionary projections preserve default direct-writer paths. Staged TABLES raw inspection requires the source-bound 347 Global and 390 Normal handles; staged HEADER raw inspection requires CMATERIAL ByLayer; OBJECTS proof requires emitted target types/owners and canonical ACDBDICTIONARYWDFLT class and record names. Strict read/opaque qualification is not weakened, and source bytes are not replayed as DXF.",
+  "physical_controls": "The CRC-negative tool mutates the selected input only after validating SHA-256 and original inner and outer checksums. It emits an alternate legal size-includes-high-word HEADER with an intentionally wrong inner CRC, and a LAYER frame with intentionally wrong inner CRC; both outer data-page checksums are resealed. HEADER failure is a retained CRC warning plus refusal for missing header evidence; LAYER fails BAD_READ_TABLES at its frame gate. Both existing output sentinels remain intact. These are scratch-only corruption tests.",
+  "scope": "DWG source AC1027 to DXF AC1027 only. Exact three canonical default MATERIAL body/string profiles; one source layer 0 with exact source-witnessed flags, color, handles and two string encodings; one Normal/PLACEHOLDER dictionary pair with zero reactors. Unknown values, other drawing shapes/revisions and cross-revision output remain outside this profile.",
+  "source_proof": "The parser marks AC1027 MATERIAL semantic fields only when all 550 body bits and detached name/description/map strings match exact default builder bytes; the adapter reparses the immutable captured body and checks full typed/common equality, class rows, source-frame census, dictionary membership and literal owner/reactor roles. A separate bounded LAYER observer checks CRC-validated source bytes, complete flag/CMC/string fields and exact owner/xref/plotstyle/material/linetype/unknown handle tail; unique table publication joins source generation, handle, offset, ordinal and address space. HEADER CMATERIAL comes from a new optional callback on the original handle token only after a matching noncompact HEADER CRC and under an active import lease; no DRW_Interface or DRW_Header class layout changes.",
+  "source_provenance": "The physical source was an ezdxf 1.4.5 one-LINE DXF converted by ODA File Converter 27.1; conversion lineage is a separately observed manual join. Its LAYER 0 frame and header token are matching source-span evidence only: that source also has Defpoints, a second layer, and an unclaimed HEADER suffix, so it does not pass this one-layer strict profile. Strict output success is demonstrated only for the separately generated, explicitly material/plotstyle-opted-in LINE drawing.",
+  "source_sha256": {
+    "dwg2dxf/dx_ac1027_layer_wire.h": "e099a048c4f780c7124223f5e3244d8afd9da07cc3535e5a31fe2b39e47a732c",
+    "dwg2dxf/dx_ac1027_material_wire.h": "e6bd4bc18123488ab326efe7721386f5fc36012b300b6bcc7b4b94d67d9efa87",
+    "dwg2dxf/dx_ac1027_plotstyle_wire.h": "bd355e52e045fa99933d23eb00e59457c2f259fc26bf76e5889429e2aed2dbd5",
+    "dwg2dxf/dx_data.h": "bda64b553799a98a54bbedd10ea79a469404b43c1d3515fe0a9f2fc464e22001",
+    "dwg2dxf/dx_iface.cpp": "f7a3bc1d677860f02ed7f3561abe64c039858f3211a5f9dcc92fa092efd49c72",
+    "dwg2dxf/dx_iface.h": "80e9171b793a608622586ef0a0dd73239675b14c786b2859d58ab52a2d94e136",
+    "dwg2dxf/source-files.am": "141524601f196d37d21346fc5cd4c2c978df0ceb87670c63f9d279fa7f571840",
+    "dwg2dxf/source-files.cmake": "beb58b1db6417e7501de99c4b02fa7f43ea21b787d03f311e541024ff2d0c514",
+    "libdxfrw_sources.cmake": "bf65f4051e53d45c2e597bbde20231fb314160dca4dcdc550bcd7cb762067dae",
+    "source-release-files.am": "4943d20742194c76a6ee14ccb38d4d2bb8bb1f482b06f62e4f9f817600f2fa37",
+    "source-release-files.txt": "62de6c895ed8d4c395db8ddc0089b0b03181f22665a6993bbd9f0c41d308a796",
+    "src/drw_header.cpp": "c67dc1f2847adf077626deba45b2409b029cf9cff6e68e39df7585e51e64b634",
+    "src/drw_header.h": "1333ea7eb0288abe7bd7549b1c38add5a7d976aae1ec9f00daa2f79747fa1218",
+    "src/drw_interface.h": "928ceadb452358c791ae6243324db44bda3ccc8fc76c6576c8e6489c2d07208e",
+    "src/drw_objects.cpp": "0fcf251daf596a1e83bc98507ee8ef7f43624b0c4ccde32e528323722315516e",
+    "src/drw_objects.h": "4b7783268a3d696d081ae0940cd23c081b3ef3ddcb71c557a297c7126b4152ec",
+    "src/intern/dwgreader.cpp": "2888caab388107d9a0fd6bb8b6f6bcfaa8dab7193585b38f3a340a94155c3c22",
+    "src/intern/dwgreader.h": "ee9515f82011769bf6a1a40eec0dfbde012a4e94fae9b50e6032a14575da6b97",
+    "src/intern/dxf_ac1027_bound_layer.h": "992aa45f1d0fd2eac64861ca5ab9518291ca7115c099a87d56236a82db403d66",
+    "src/libdwgr.cpp": "fc553a3eb6215f6eabf671299c01606af0fb44cdd8bcfaba43f9c9a53a26fe2f",
+    "src/libdxfrw.cpp": "9ce1070905aa394f7668cf0014fd51082ab37b522cedbfa9a49bc5e96b072b8c",
+    "src/source-files.am": "d7b6e18c74d1b2ce8a8cfceb7b8ffd0cf9be75c50291155f28c35aa5d0dd8785",
+    "tests/CMakeLists.txt": "d7ad556aab58d93218452461e5d46196f38a55446e13e6090a2f728e55550a96",
+    "tests/ac1027_default_graph_dxf_peer_negatives.py": "63d357c59edb1d7d7349b614e8275146b0cdde4d7bf99732814d0bc140a40b3e",
+    "tests/dwg_ac1027_default_graph_strict_tests.cpp": "e9ad95c569fca718dc2cd4f4b9043f5560f23eb8f65b13316cca9a2d3c972046",
+    "tools/audit_ac1027_default_graph_dxf.py": "3baa4add9c46ea8d6d3ef8e04c179f6dc65cf89c8d967efc8e003ace4a2a6377",
+    "tools/mutate_ac1027_default_graph_crc.py": "b9932c4d052d3c6ba705481dff3e74120c207b00504ce9d25e99cedf5ecd6cda",
+    "tools/probe_ac1027_default_graph_source.cpp": "e13a27584a00247713559ccecabee25224bb38767626cf6be21cb8aba1f53205"
+  },
+  "title": "AC1027 selected default material/plotstyle graph strict DXF projection",
+  "validation": "Six focused CTests pass after rebase: strict generated graph, AC1024 default-material, modern HEADER sizes, compact DXF material and two adjacent DIMENSION selectors. New strict test exercises both encodings, generated source, target-version refusal, source class/coverage, material common/body/owner/reactor, dictionary names/roles and NOD aliases, HEADER token and LAYER receipt/flags/roles mutations, destination preservation and same-adapter retry. ASan strict graph CTest passes. Source-release inventory check passes. The hash-bound raw-tag/ezdxf peer auditor passes selected strict ASCII and Binary outputs and both ODA DXF\u2192DWG\u2192DXF returns; five separately SHA-rebound malformed-output controls fail the auditor under python -O. ODA forward/return logs are empty and no .err was observed; input/output lineage is an observed manual join. This is selected graph/LINE readback, not general DWG/DXF, FreeCAD or native CAD qualification.",
+  "integration_status": "Implementation integrated with bounded selected AC1027 graph admission; broader source/consumer qualification remains open.",
+  "combined_branch_validation": {
+    "focused_ctest": "6/6 passed on build-gcc",
+    "strict_cli": "Unmodified selected generated AC1027 DWG converted by combined-branch dwg2dxf to DXF with exit 0",
+    "output_path": "/private/tmp/ac1027-integrated-strict.dxf",
+    "output_sha256": "1d2814932f1038194eb6b0c20a0da0fcc8baccf2b2ce7e55c1eaffaa75a72d90",
+    "peer_audit": "raw-tag and ezdxf graph audit passed; HEADER compatibility warning remains"
+  }
+}

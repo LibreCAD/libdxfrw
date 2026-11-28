@@ -1,0 +1,60 @@
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 842c0a1..c33270d 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -10088,6 +10088,55 @@ TEST_CASE("Named block export preserves verified ordered source lines",
+ #endif
+ 
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY
++TEST_CASE("Named block LINE limit is transactional at 128 and 129",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *atLimit = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_128_LINES_FIXTURE");
++  const char *overLimit = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_129_LINES_FIXTURE");
++  if (atLimit == nullptr || *atLimit == '\0' || overLimit == nullptr || *overLimit == '\0')
++    SKIP("Set the locally generated ODA 128- and 129-line fixture variables");
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(atLimit), RS2::FormatDWG));
++  const auto &observation = graphic.dwgAdvancedMetadata().blockRecordLinks().at(0x30u);
++  REQUIRE(observation.sourceEntityCount == 128u);
++  REQUIRE(observation.boundedLineSources.size() == 128u);
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  const char *keepPath = std::getenv("LIBRECAD_KEEP_NAMED_BLOCK_128_LINES_DXF");
++  const std::string path = keepPath && *keepPath ? keepPath : tmpFile("named_sort_128_lines.dxf");
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  RS_Graphic reread; RS_FilterDXFRW rereader;
++  REQUIRE(rereader.fileImport(reread, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  const RS_Block *block = nullptr;
++  for (unsigned i = 0; i < reread.countBlocks(); ++i)
++    if (reread.blockAt(i)->getName() == QStringLiteral("Named")) block = reread.blockAt(i);
++  REQUIRE(block != nullptr);
++  lc::LC_ContainerTraverser walk{*block, RS2::ResolveNone};
++  std::size_t count = 0u;
++  for (RS_Entity *entity = walk.first(); entity != nullptr; entity = walk.next()) {
++    REQUIRE(entity->rtti() == RS2::EntityLine);
++    const auto *line = static_cast<const RS_Line *>(entity);
++    CHECK(line->getStartpoint().x == Catch::Approx(static_cast<double>(count)));
++    CHECK(line->getStartpoint().y == Catch::Approx(0.0));
++    CHECK(line->getEndpoint().x == Catch::Approx(static_cast<double>(count)));
++    CHECK(line->getEndpoint().y == Catch::Approx(1.0));
++    ++count;
++  }
++  REQUIRE(count == 128u);
++  RS_Graphic large;
++  REQUIRE(filter.fileImport(large, QString::fromUtf8(overLimit), RS2::FormatDWG));
++  const auto &oversized = large.dwgAdvancedMetadata().blockRecordLinks().at(0x30u);
++  REQUIRE(oversized.sourceEntityCount == 129u);
++  CHECK_FALSE(oversized.boundedEntitySource);
++  const std::string sentinel = "previous destination\n";
++  writeText(path, sentinel);
++  CHECK_FALSE(filter.fileExport(large, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  if (!(keepPath && *keepPath)) std::filesystem::remove(path);
++}
++
+ TEST_CASE("Named block export refuses a partially qualified mixed line set",
+           "[dwg][roundtrip][sortentssource][source]") {
+   const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_MIXED_LINES_FIXTURE");

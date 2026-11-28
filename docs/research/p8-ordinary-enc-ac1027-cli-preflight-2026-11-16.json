@@ -1,0 +1,45 @@
+{
+  "id": "p8-ordinary-enc-ac1027-cli-preflight-2026-11-16",
+  "date": "2026-11-16",
+  "status": "STRICTLY_REFUSED_BEFORE_DXF_PUBLICATION",
+  "supportClaimEffect": "none",
+  "scope": "Check whether the tracked ordinary AC1027 source can serve as the native FreeCAD baseline through the current strict dwg2dxf CLI.",
+  "source": {
+    "path": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+    "sha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83",
+    "size": 179710,
+    "version": "AC1027",
+    "gitTracked": true
+  },
+  "tool": {
+    "path": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "50d289c2ecdc510f7356cfb40f41303a0e3974102d8fd66cc7a79ce1b4de8d0f",
+    "repositoryHead": "dfe6b98bd7bbc343fd2c8fa08668798776f2fdaa"
+  },
+  "attempt": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/fixtures/dwg/ordinary_enc_AC1027.dwg -y -v2013 /private/tmp/libdxfrw-p8-baseline-20261116/ordinary_enc_AC1027.dxf",
+    "exitCode": 1,
+    "read": {
+      "operationSucceeded": true,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "classCrcMismatches": 0,
+      "dataStorageLinkFailures": 0,
+      "dataStorageOrphanRecords": 0
+    },
+    "outputPreflight": "DXF export preflight failed: AC1027 DWG source references are not fully qualified",
+    "publication": "No DXF was created. The strict output refusal remained in force.",
+    "integrityDiagnostics": "The read report included LTYPE_CONTROL and BLOCK_CONTROL count/reference diagnostics plus AcDb:Header rows. This receipt does not assign a wire cause to those observations."
+  },
+  "disposition": {
+    "useAsFreeCADBaseline": false,
+    "reason": "Whole-file conversion does not reach publication; no FreeCAD run would exercise this source through dwg2dxf.",
+    "next": "Use the existing locally generated AC1021/AC1024/AC1032 primitive controls in the native FreeCAD platform workflow for the early open/insert handoff. Revisit this tracked profile only after its AC1027 source-reference gate has source-bound closure.",
+    "fixtureChanged": false
+  },
+  "limits": [
+    "FreeCAD was not launched.",
+    "This CLI refusal is not a parser or consumer support qualification.",
+    "Do not weaken strict whole-file output policy or repeat this attempt without a source-reference change."
+  ]
+}

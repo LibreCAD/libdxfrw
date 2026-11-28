@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P3 AC1027 unmarked MATERIAL diffuse-map Scene-to-File plus filename transaction",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "codeCommit": "8e7a5164704cfa5b16bcb4eedab70626fee25aab",
+  "scope": {
+    "profile": "One unchanged runtime-authored AC1027 MATERIAL profile with a complete diffuse/refraction prefix, inferred complete normal tuple, both outer group-72 source fields, and both group-3 filenames.",
+    "operation": "Change the selected diffuse source from 0 to 1 and replace only its group-3 filename in the same export transaction.",
+    "encodingMatrix": "ASCII and binary source, each exported as ASCII and binary DXF.",
+    "newFilename": "edited-diffuse-Ω.png"
+  },
+  "contract": {
+    "admission": "Only the selected unchanged source profile is admitted. Diffuse source 0-to-1 requires a simultaneous diffuse filename edit. Standalone diffuse selector changes, procedural fields, luminance/explicit normal-strength profiles, other typed edits, changed raw bodies, and unsupported source profiles remain refused.",
+    "output": "The physical output writes the first group-72 selector as 1 and the first group-3 filename as requested, retaining the second selector and filename and other checked map fields. Fresh libdxfrw readback matches the full represented model.",
+    "atomicity": "Changing the captured first group-72 raw value to a conflicting value refuses while preserving the destination sentinel and caller's requested source/file values. Restoring the captured raw body permits same-adapter retry and successful readback. A selector-only attempt also refuses without replacing the destination."
+  },
+  "sourceBindings": {
+    "fixture": "Generated at runtime by tests/material_normal_role_tests.cpp from scratch; no DWG/DXF fixture is committed.",
+    "testSourceSha256": "0596626892599a5cb2ac970511568bac71e8b89e612bdb525f381c3ea44abcf8",
+    "adapterHeaderSha256": "8d90c601de6d3d6d08e8c91f1526d90883437aaa492e91f0aef415a7b458691d",
+    "adapterObjectSha256": "b2828055dc2a817c4a44b0508b76e9e561d131c2dbc5d5567271e0c7fad93036",
+    "testExecutableSha256": "173435fb1683abffe3705b1790d73f86a530a65be96ee3b5ed569eea0298aa86"
+  },
+  "validation": {
+    "configure": "Existing build-gcc configuration",
+    "toolchain": "CMake 4.4.4; Apple clang 21.0.3",
+    "build": "cmake --build build-gcc --target libdxfrw_material_normal_role_tests --parallel 2",
+    "buildResult": "PASS",
+    "selector": "ctest --test-dir build-gcc -R '^libdxfrw_material_normal_roles$' --output-on-failure",
+    "result": "PASS (1/1; 6.40 seconds)",
+    "focusedControls": "Four positive ASCII/binary source/output combinations with exact physical fields and readback; four selector-only refusals; four conflicting-source refusals with destination/caller preservation and same-adapter retries.",
+    "fullSuite": "NOT_RUN"
+  },
+  "references": [
+    {
+      "title": "Autodesk MATERIAL DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm"
+    },
+    {
+      "title": "Autodesk MaterialMap Source enumeration",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_GraphicsInterface_Source.html",
+      "use": "The enum members are Scene, File, Procedural in that order; this supports the selected 0-to-1 field transition."
+    }
+  ],
+  "limitations": [
+    "This proves selected DXF field transport, identity, readback, refusal, rollback, and retry only. It does not prove native image lookup, file availability, map evaluation, rendering, or whole-document conversion.",
+    "No diffuse selector-only transaction, procedural-source coupling, other source-profile boundary, other version, DWG path, or support claim is promoted."
+  ]
+}

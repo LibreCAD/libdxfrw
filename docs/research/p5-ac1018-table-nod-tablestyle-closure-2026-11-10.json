@@ -1,0 +1,48 @@
+{
+  "receipt_version": 1,
+  "id": "p5-ac1018-table-nod-tablestyle-closure-2026-11-10",
+  "date": "2026-11-10",
+  "profile": "generated AC1018 TABLE to NOD dictionary to TABLESTYLE reference closure",
+  "result": "pass",
+  "implementation": {
+    "dictionary_ledger": {
+      "capture_scope": "only emitted DICTIONARY objects whose handles are registered as named NOD children",
+      "retained_fields": [
+        "dictionary handle and parent handle",
+        "cloning and hard-owner flags",
+        "ordered name/child-handle entries"
+      ],
+      "transaction": "CompoundWriteCheckpoint snapshots the ledger length; rollback removes appended dictionary records"
+    },
+    "table_style_ledger": {
+      "retained_fields": ["TABLESTYLE handle", "TABLESTYLE parent handle", "TABLESTYLE name"],
+      "transaction": "the TABLESTYLE ledger is checkpointed and rolled back with its class instance and object frame"
+    },
+    "closure_checks": [
+      "exactly one pending ACAD_TABLESTYLE NOD registration selects the emitted dictionary",
+      "the selected dictionary has NOD as parent and hardOwner=1",
+      "the selected dictionary has exactly one entry for the TABLESTYLE handle",
+      "the dictionary entry name matches the full emitted TABLESTYLE name using ASCII-only case folding and exact byte length",
+      "the emitted TABLESTYLE parent handle is the selected dictionary handle",
+      "exactly one emitted dictionary and TABLESTYLE ledger entry exists for each selected handle",
+      "TABLE and TABLECONTENT style handles agree and resolve to the typed TABLESTYLE class instance",
+      "the TABLE frame references that TABLESTYLE and its *T BLOCK_RECORD exactly once"
+    ]
+  },
+  "control": {
+    "test": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "ctest": "libdxfrw_dwg_table_cell_overrides",
+    "generated_graph": "ACAD_TABLESTYLE registration -> NOD-owned dictionary -> TABLESTYLE -> TABLE, plus TABLE -> *T BLOCK_RECORD and owned LINE",
+    "negative_cases": ["a dictionary key differs from the TABLESTYLE name", "the emitted TABLESTYLE has a different parent handle", "the emitted TABLESTYLE name contains an embedded NUL and suffix while the dictionary key matches only the prefix", "the dictionary has a second named entry aliasing the same TABLESTYLE handle"],
+    "rollback_retry": "each negative outer transaction is rolled back; the same writer retries with a matching key and parent",
+    "result": "PASS"
+  },
+  "limits": [
+    "generated bookkeeping and serialization control only; no DWG fixture or output file was added",
+    "the whole-file finalization path that emits the NOD frame was not run",
+    "no independent reader or native CAD readback was performed",
+    "TABLESTYLE rendering values and correspondence between cell contents and *T geometry remain unqualified",
+    "public dwgRW::writeTable remains fail-closed"
+  ],
+  "next": "serialize a complete candidate through whole-file finalization, verify the NOD/dictionary/TABLESTYLE graph with a fresh independent reader, then qualify exact style values and generated *T geometry"
+}

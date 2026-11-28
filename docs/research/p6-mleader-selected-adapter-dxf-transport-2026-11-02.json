@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-02",
+  "status": "GENERATED_AC1027_MLEADER_ADAPTER_DXF_TRANSPORT_PASS_NATIVE_SEMANTICS_OPEN",
+  "baselineHead": "bf56689f",
+  "scope": "Connect the existing bounded dxfRW MULTILEADER writer to the strict dx_iface entity route for one generated AC1027 rooted MLEADER profile; preserve all unsupported graph and field refusals",
+  "authority": [
+    {
+      "title": "Autodesk MLeader Context Data Group Codes (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-EC56D0DE-026D-46AB-87B1-9692393B0C22.htm",
+      "rules": [
+        "The documented context group set includes the content base position, text normal/location/direction, block content fields, MLeader plane vectors, and leader vertices.",
+        "Context group 290 indicates MTEXT presence and group 296 indicates block content presence; their field payloads are distinct."
+      ]
+    },
+    {
+      "title": "Autodesk MLeader Leader Line Group Codes (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-B2E6436A-F17D-4F59-9DE8-DBDB61AD36C6.htm",
+      "rule": "Leader-line DXF records contain repeated vertex and break data plus line-specific override fields and references."
+    }
+  ],
+  "implementation": {
+    "files": [
+      {
+        "path": "dwg2dxf/dx_iface.cpp",
+        "sha256": "1bf8ed3917a5ac6da1ab897cf8096eb80bbaab1604fda5ab16b43c59b97f2596"
+      },
+      {
+        "path": "tests/dwg2dxf_adapter_tests.cpp",
+        "sha256": "86c98af664a33fd2911282d162673d04d77c7a08bddd254006c9f45512164964"
+      },
+      {
+        "path": "tests/CMakeLists.txt",
+        "sha256": "65abf2558b6a729dee72b2077d143f98f8e8bc5344c39e197aee934857ff5a98"
+      },
+      {
+        "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "sha256": "055c2a1ea08fc6cf948276ebeac25f4e3ead5725325f4eaa674c81dad7b7834f"
+      }
+    ],
+    "behavior": [
+      "Strict adapter preflight still validates the MLEADER owner, rooted MLEADERSTYLE, and every selected reference role before entity emission.",
+      "The prior unconditional rejection was removed; DRW::MLEADER now dispatches to dxfRW::writeMultiLeader, whose version, payload, CMC, legacy-array, and handle-remap guards remain active.",
+      "A generated AC1027 source with a rooted STANDARD MLEADERSTYLE, text STYLE, LTYPE, BLOCK_RECORD targets, one context root, one leader line, and MTEXT content exports in both ASCII and Binary DXF.",
+      "Fresh readback verifies selected root/line/context coordinates and text plus unique remapped MLEADERSTYLE, STYLE, LTYPE, and BLOCK_RECORD target roles.",
+      "Unrooted ownership/reference graphs and each existing wrong-kind/dangling/owner graph control remain refused with destination preservation.",
+      "An unrepresentable DWG CMC RGB extension is refused atomically; after restoring the model field, the same dx_iface instance successfully retries and reads back. Successful write and retry preserve the caller's source handle, owner, references, and corrected model state."
+    ]
+  },
+  "control": {
+    "selector": "--mleader-adapter-writer",
+    "generator": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp; both input encodings and temporary output files are created and removed at runtime",
+    "fixtureDisposition": "No drawing fixture was added or committed.",
+    "profileLimit": "The adapter integration control is AC1027 only. The existing low-level writer version test retains the pre-AC1021 refusal check."
+  },
+  "validation": {
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.0 (arm64-apple-darwin27.0.0)",
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCohort": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleader_writer_version|libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_adapter_writer)$' --output-on-failure",
+      "result": "PASS, 3/3 in 3.01 seconds",
+      "adapterExecutableSha256": "92017d1c6e14206929e7a949dd6d204c0b2f55a7f4d26b5da1d698d44d947314"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated source/typed readback verifies selected transport only; it does not establish a producer-authored legal tuple matrix or independent semantic interpretation.",
+    "No physical DWG producer, LibreCAD/LibreCAD_3, FreeCAD, or native CAD display/evaluation was exercised.",
+    "Other MLEADER field combinations, legacy/pre-R2010 profiles, unsupported content types, unsupported CMC forms, and DWG AcDbMLeaderObjectContextData source-to-output behavior remain unqualified or refused.",
+    "No format-support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue the P6 residual audit on a current independently actionable local source/schema or consumer route; retain producer/native MLEADER semantics as open evidence gates."
+}

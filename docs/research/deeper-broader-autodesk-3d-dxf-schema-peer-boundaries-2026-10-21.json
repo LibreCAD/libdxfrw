@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Autodesk 3D DXF schema contracts and open-source peer evidence boundaries",
+  "mode": "Deeper/broader primary-source research and implementation-readiness refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The worktree was already broadly modified and uncommitted. This pass edited only the two plan documents and added this receipt; no prior or unrelated work was staged or committed.",
+    "changedFiles": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-autodesk-3d-dxf-schema-peer-boundaries-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "Autodesk DXF reference",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm"
+      ],
+      "observation": "The MESH table enumerates subdivision level, base cage, face list, edge, crease, and subentity override fields. The 3DSOLID table separates group-1/3 modeler carrier data from group-350 history reference. Common entity group ordering can vary.",
+      "planDisposition": "Keep MESH separate from classic polyface and 3DFACE; preserve modeler chunks and history edge separately; dispatch fields by group code without assuming serialized order. These are DXF field contracts only, not topology evaluation or ACIS/DWG semantics."
+    },
+    {
+      "project": "FreeCAD",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observation": "Documentation lists distinct built-in C++ and optional legacy DXF import sets, states embedded binary ACIS/SAT is unreadable, and routes DWG through an external converter to DXF followed by the selected importer.",
+      "planDisposition": "At composed native qualification, pin OS/architecture, FreeCAD build, converter, backend/preferences, and per-source disposition. Do not promote ACIS or undocumented MESH support from a generic import success."
+    },
+    {
+      "project": "ezdxf",
+      "references": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "observation": "browse-acis inspects and exports raw SAT/SAB; the drawing add-on does not render ACIS and has no 3D engine, projecting 3D entities into XY.",
+      "planDisposition": "Optional raw carrier/profile inspection only; not a general ACIS kernel, analytic geometry oracle, or 3D rendering acceptance route."
+    },
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/ODA-5.4.2-libredwg.patch"
+      ],
+      "observation": "The v0.14.1 release notes state that the R2013+ AcDs store is not fully implemented and SAB blobs are extracted by a brute-force path; current source recognizes/dispatches the AcDs section. Those facts do not prove exact handle/key association, complete body extraction, writer preservation, or shape semantics.",
+      "planDisposition": "Use only as version-pinned differential evidence and compare entity handle, AcDs key, payload hash/profile, and body record disposition independently. Do not infer support from section detection, conversion success, or aggregate coverage claims."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1038",
+        "https://github.com/DomCR/ACadSharp/pull/1067",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "observation": "The MESH DXF writer report first included a clone/setup workaround for an imported entity, but a later from-scratch MESH still serialized as ACAD_PROXY_ENTITY; the maintainer then identified writer defects and linked a fix listed in a release.",
+      "planDisposition": "Treat only as an exact-release writer test lead. At the optional peer checkpoint, use a generated from-scratch MESH; do not generalize issue status to all versions or add a duplicate local test without an uncovered invariant."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8: separate entity/schema, raw carrier, body topology, independent geometry, AcDs association, and native consumer acceptance",
+      "Existing DXF MESH owners: reuse typed fields, property overrides, version/class identity, ASCII/Binary profiles, and continuation boundaries",
+      "Existing modeler-carrier owners: test group-1/3 chunks and group-350 history references as distinct fields with following-record alignment",
+      "Existing composed peer checkpoint: exact-version ACadSharp MESH, LibreDWG AcDs, FreeCAD importer, and ezdxf raw-inspection routes"
+    ],
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "sequence": [
+      "Continue the current dependency-ready local implementation queue; reuse existing generated ASCII/Binary, carrier, typed MESH, and ownership tests.",
+      "If a concrete local invariant is uncovered, add the smallest generated in-memory test with a following-record sentinel and run its fast owner only.",
+      "At the existing composed checkpoint, bind exact peer release/source/runtime and record per-entity and per-block carrier disposition; unavailable routes are NOT_RUN/NOT_QUALIFIED.",
+      "Keep explicit topology, ACIS carrier bytes, complete body-reachable records, independent analytic geometry, and native acceptance separate.",
+      "Keep external DWG/DXF fixtures out unless already tracked or created locally from scratch under the existing fixture policy; do not run full suites per slice."
+    ],
+    "supportBoundary": "DXF schema coverage, MESH field roundtrip, raw SAT/SAB inspection, section recognition, parser success, and writer success do not establish evaluated 3D topology, ACIS shape semantics, entity-to-AcDs association, native acceptance, or any J item."
+  },
+  "limitations": "Primary-source documentation and peer issue/release pages were reviewed online. No peer executable, native CAD application, external drawing, or customer corpus was run/imported. The review found no new local defect and makes no support claim.",
+  "validation": {
+    "jsonValidation": "PASS",
+    "scopedDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

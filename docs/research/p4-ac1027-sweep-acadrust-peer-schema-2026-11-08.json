@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-acadrust-peer-schema-2026-11-08",
+  "date": "2026-11-08",
+  "status": "IMPLEMENTATION_LEAD_REQUIRES_LOCAL_FIELD_SPAN_REPRODUCTION",
+  "supportClaimEffect": "none",
+  "scope": "Inspect the pinned current ACadRust DWG Sweep-history parser and corrective commits as a candidate source for a bounded libdxfrw parser implementation.",
+  "sources": [
+    {
+      "url": "https://github.com/hakanaktt/acadrust/blob/eababc03c625eaf9cfc5169953d7ee88f2015338/src/io/dwg/dwg_stream_readers/object_reader/dynamic_block.rs",
+      "file": "src/io/dwg/dwg_stream_readers/object_reader/dynamic_block.rs",
+      "observation": "Pinned current read_history_sweep order is operation major/minor BL; direction 3BD; six BD scalars (draft, start/end distance, twist, scale, align); flags/options (align-start-present bit, align/miter BS, align-start/bank/294/295 bits); DWG vector 3BD; flag 296; two 16-BD transforms; then profile and path entities."
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/commit/25227f504006d62373c44d5064116607865b813a",
+      "commit": "25227f504006d62373c44d5064116607865b813a",
+      "observation": "Commit message says the revised Sweep/extrusion order was checked against reference DWG and DXF output; it explicitly places scalars, flags, a DWG-only 3BD and flag 296 before both matrices, followed by profile/path entities. This is an implementation author's report, not normative specification."
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/commit/c353ea18fad8cf9c207b071aef26b382131339f3",
+      "commit": "c353ea18fad8cf9c207b071aef26b382131339f3",
+      "observation": "The follow-up handles embedded modeler wire-body profiles specially: presence bit and modeler payload rather than the ordinary type-plus-bit-length entity path. It also corrects Sweep option flag meanings and DXF field ordering."
+    }
+  ],
+  "comparison": {
+    "localPinnedSource": "AC1027 source /private/tmp/example_2013.dwg, SHA-256 ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f.",
+    "localSpan": "Existing local trace reports a 2,571-bit bounded ACSH_SWEEP_CLASS action body; the production prefix consumes 174 bits and reports Partial. Existing exact-span receipt: p4-ac1027-sweep-action-body-exact-span-2026-11-08.json.",
+    "currentLocalParserMismatch": "The local SWEEP/EXTRUSION arm currently reads direction, ignored longs and byte-counted blobs before six doubles. That differs from the pinned reader and must be replaced only after the local sample's field-by-field cursor trace confirms the candidate layout and exact bounded end."
+  },
+  "decision": "Treat ACadRust as a concrete implementation lead only. Do not claim DWG wire-format authority, semantic support, writer support, graph closure or native compatibility. Implement a bounded reader with field-span tracing and exact-body-end completion; preserve strict output refusal until independent graph and writer gates close.",
+  "limitations": [
+    "ACadRust is an independent open-source implementation, not ODA's normative specification; the cited commits are unsigned and their reference-output claim was not independently reproduced here.",
+    "No local field-by-field span comparison or fresh independent producer decode was performed in this research slice.",
+    "ODA v5.4.1 contains no ACSH_SWEEP_CLASS-specific serialized action-body schema.",
+    "Special modeler wire-body variants require separately bounded SAT/SAB parsing and must not be treated as ordinary embedded DXF entity bodies.",
+    "This evidence does not add a Sweep writer, close unrelated source failures, qualify native consumers, or promote support claims."
+  ],
+  "nextAction": "Add a hash-bound diagnostic cursor trace for the pinned AC1027 Sweep body that checks candidate field starts/ends against boundedBodyEnd, including ordinary embedded entities and modeler wire-body alternatives. Then port the validated sequence behind bounded reads, add generated truncation/count/rollback/retry controls, and retain output refusal."
+}

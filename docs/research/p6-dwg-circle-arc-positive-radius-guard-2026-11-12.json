@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-dwg-circle-arc-positive-radius-guard-2026-11-12",
+  "purpose": "Prevent DWG CIRCLE and ARC output from silently serializing invalid nonpositive or non-finite radii.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": ["20.4.18 ARC (object type 17)", "20.4.20 CIRCLE (object type 18)"],
+    "pages": [122, 124],
+    "localPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "wireMapping": "ARC and CIRCLE encode radius as BD group 40. Autodesk AcDbArc::setRadius and AcDbCircle::setRadius references require radius greater than zero and return invalid input otherwise."
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "DWG ARC and CIRCLE encoders reject non-finite and nonpositive radii before creating staged bodies or publishing record state. This matches existing DXF writer admission.",
+    "scope": "Writer admission only; tolerant DWG parsing behavior is unchanged."
+  },
+  "generatedControls": {
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "entities": ["CIRCLE", "ARC"],
+    "refusedRadii": ["0", "-2.5", "NaN", "+Infinity"],
+    "acceptedRadius": 2.5,
+    "failureRetry": "Every refused write preserves a pre-existing destination. The corrected profile then succeeds using the same dwgRW writer instance and reads back with the exact radius and zero entity/object parse failures.",
+    "fixturePolicy": "All inputs are authored by the test in scratch storage; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j6 PASS",
+    "focusedSelector": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_circle_arc_radius_domain$' --output-on-failure PASS 1/1 in 0.36 seconds"
+  },
+  "limitations": [
+    "The generated control proves invalid-input refusal, destination preservation, correction/retry, and readback for these writer profiles; it does not establish producer prevalence or native consumer rendering.",
+    "This slice does not close the broader P6 per-version geometry/no-loss audit."
+  ],
+  "supportClaimEffect": "Closes one bounded DWG writer admission gap; no broad DWG/DXF support claim is promoted."
+}

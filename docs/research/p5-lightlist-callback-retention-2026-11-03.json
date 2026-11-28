@@ -1,0 +1,45 @@
+{
+  "receipt_id": "p5-lightlist-callback-retention",
+  "date": "2026-11-03",
+  "state": "LOCAL_TYPED_CAPTURE_ONLY",
+  "source_callback": "DRW_Interface::addLightList",
+  "implementation": {
+    "adapter": "dwg2dxf/dx_iface",
+    "store": "dx_data::lightLists",
+    "limits": {
+      "records": 100000,
+      "aggregate_items": 1000000,
+      "lights_per_record": 100000,
+      "retained_bytes": 67108864
+    },
+    "accounted_payload": "inline model, DRW_TableEntry-owned name/reactors/pending references/extension data/app data, light-reference vector slots, each light name, and two list links",
+    "failure_behavior": "record/item/byte limits, invalid light count, or allocation failure sets a sticky dx_data flag; output preflight reports capture failure and refuses publication",
+    "output_behavior": "typed copies are not emitted by a new adapter LIGHTLIST writer; existing raw-DXF and opaque-DWG preservation routes remain separate"
+  },
+  "validation": {
+    "configure": "cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "production_build": "cmake --build build --target dwg2dxf -j4",
+    "focused_tests": "ctest --test-dir build -R '^(dwg2dxf_action_path_object_capture_limits|dwg2dxf_sunstudy_callback_capture_limits|dwg2dxf_lightlist_callback_capture_limits)$' --output-on-failure",
+    "focused_test_result": "all three tests passed",
+    "assertions": [
+      "LIGHTLIST common metadata, light handles, and names survive typed retention",
+      "aggregate retained-byte estimate matches the selected input values",
+      "record and aggregate item limits reject the next callback without partial retention",
+      "one-byte-over-budget and invalid reported-count profiles are refused",
+      "capture failure prevents output publication with a specific diagnostic"
+    ]
+  },
+  "fixtures": {
+    "committed_test_dwg_or_dxf": false,
+    "test_inputs": "locally constructed in-memory DRW models"
+  },
+  "not_qualified": [
+    "physical source-span-to-LIGHTLIST callback matching",
+    "source owner and LIGHT target existence/kind closure",
+    "strict output identity/reference binding and fresh readback",
+    "native lighting, photometric behavior, or renderer semantics",
+    "producer breadth or format support"
+  ],
+  "next_work": "Bind a physical LIGHTLIST source profile to its owner and exact LIGHT target identities, then implement source-bound output and consumer validation before promoting any lighting claim."
+}

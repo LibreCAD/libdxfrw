@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-ac1015-unchanged-plotsettings-reexport-2026-11-19",
+  "date": "2026-11-19",
+  "status": "GENERATED_SOURCE_UNCHANGED_DWG_REEXPORT_REFUSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/private/tmp/libdxfrw-librecad-system-smoke/edit-final.dwg",
+    "sha256": "0949376f64f635d3ba132662ae31de87082a874ad3714783d4f10a45c2e4707a",
+    "provenance": "Created locally from scratch by the isolated LibreCAD candidate installed-codec executable converting source.dxf; no downloaded fixture.",
+    "version": "AC1015",
+    "inputPath": "/private/tmp/libdxfrw-librecad-system-smoke/source.dxf",
+    "inputSha256": "593518f6affc9a968dcbba6509bfb57d6b3acae24faea0d890c08e581b3e3106"
+  },
+  "experiment": {
+    "consumerBase": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
+    "candidate": "6c1cb619f50cde22551928090ba86cccc2c26a19",
+    "method": "Scratch-only focused test imports the existing generated DWG, calls onLoadingCompleted, and attempts a same-version DWG export without editing the drawing or adding APPIDs. It prints typed/raw metadata and the admission report.",
+    "binary": "/private/tmp/libdxfrw-librecad-plotsettings-trace-binary",
+    "binarySha256": "85ca3561b8b048f1bec6384a00758294cc7d651800d5031313ac18d999096da8",
+    "log": "/private/tmp/libdxfrw-librecad-plotsettings-unchanged-trace.log",
+    "logSha256": "88288e5eded4dadca92a6133ccc55f3c2970af16c6943af2d1f59d892eae1dfc",
+    "result": "PASS as a refusal characterization: unchanged re-export returns false. This is not a successful re-export."
+  },
+  "observations": [
+    "The generated source contains DICTIONARY 0x30 referencing custom PLOTSETTINGS 0x56. The typed PlotSettings callback reports handle 0x56, owner 0x30 and page setup LIBDXFRW_PLOTSETTINGS_86.",
+    "The raw PLOTSETTINGS callback retains 50 bytes at handle 0x56; its exposed parent handle is 0 and its typed payload validation flag is false. A zero exposed raw parent is not proof of the on-wire owner.",
+    "The admission report records same-version-raw selection for handle 0x56. Final reference validation reports DICTIONARY producer 0x30 committed, target 0x56 unresolved and not committed.",
+    "The same failure occurs without the DIMSTYLE edit or extra source APPID used in the prior experiment; neither is needed to reproduce it."
+  ],
+  "next": [
+    "Bind this exact raw carrier to its common header, parent and dependent handle spans using the ODA common-object layout and independent source/decoder evidence; a zero raw metadata owner cannot establish owner stability.",
+    "Make DICTIONARY references use the actually selected and committed carrier kind, with strict duplicate, ambiguity, class, source/target and remap checks. Fixing the receipt kind alone must not admit a raw object whose owner or references are unproven.",
+    "Add generated-source success and fresh readback plus malformed, wrong-owner, remap, rollback and corrected-retry controls; independently qualify emitted semantics before broadening claims."
+  ],
+  "limits": [
+    "Generated self-roundtrip is not independent producer evidence or native semantic qualification.",
+    "The temporary harness, binary, logs and drawing are outside the repository; no DWG/DXF fixture was committed.",
+    "No parser or writer changes were made for this finding."
+  ],
+  "ledgerTrace": {
+    "method": "Scratch-only trace logs each raw-object transaction after commit and repeats the unchanged-source export.",
+    "binary": "/private/tmp/libdxfrw-librecad-plotsettings-ledger-trace-binary",
+    "binarySha256": "08e0bfa69750d6ca6e59c50772f957cf2ae2151ab74a44cd43c949aec3ac1fb9",
+    "log": "/private/tmp/libdxfrw-librecad-plotsettings-ledger-trace.log",
+    "logSha256": "2e4627ffeab524ce22e8b77fd9d04c313d9e4f871fbe26c626c587c14f117821",
+    "result": "The PLOTSETTINGS 0x56 raw carrier commits; the final DICTIONARY 0x30 reference receipt still names an Object target and reports target uncommitted. sanitizeDictionaryEntries resolves and records Object, whereas raw objects commit under RawCarrier. This is a concrete identity-kind mismatch, not evidence of a missing frame."
+  },
+  "referenceSpecification": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.1 Common non-entity object format",
+      "20.4.84 LAYOUT, embedded plot-settings prefix"
+    ],
+    "limit": "The layout prefix is not independent proof of every standalone PLOTSETTINGS profile or the selected raw frame owner."
+  }
+}

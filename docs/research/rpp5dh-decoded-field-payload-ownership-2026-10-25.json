@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5dh decoded FIELD payload ownership",
+  "date": "2026-10-25",
+  "parentCommit": "586e7d83a1f851342f7660a444bb3ac09181c1a3",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "DECODED_FIELD_LOGICAL_PAYLOAD_OWNERSHIP_IMPLEMENTED_FULL_SOURCE_GRAPH_LIVE_OUTPUT_AND_PARITY_OPEN",
+  "scope": {
+    "decoder": "Shared production DXF FIELD state machine used by import and bounded source-proof replay",
+    "ownersAdded": [
+      "Evaluator, field-code, outer-format, error-message and displayed-value strings",
+      "CadValue string, format and cached-value strings",
+      "Raw binary buffer and separate variant binary view",
+      "Child/object handle logical elements",
+      "Child-value logical slots plus child keys and decoded values"
+    ],
+    "lease": "Existing DRW_TableEntry owner lease; only private friendship added to the public header",
+    "publicModelLayoutChanged": false,
+    "drwInterfaceVtableChanged": false,
+    "nativeDwgLayoutChanged": false,
+    "globalCodecChanged": false,
+    "consumerCopyPolicy": "Copies share one origin logical lease; distinct parsed siblings aggregate separately",
+    "excluded": [
+      "Allocator metadata and string/vector capacity",
+      "Consumer-created copies or edited-model sizes",
+      "Whole-model, complete common-owner or process RSS guarantees",
+      "Independent FIELD/CadValue/DATALINK role/value semantics",
+      "Native/platform, live-state, output and format-support qualification"
+    ],
+    "outputEligible": false,
+    "supportClaimsPromoted": false
+  },
+  "baseline": {
+    "productionParent": "586e7d83",
+    "test": "libdxfrw_field_retained_owner_budget",
+    "status": "FAILED_AS_EXPECTED",
+    "firstRoute": {
+      "version": "AC1015",
+      "encoding": "ASCII",
+      "logicalModelPayloadBytes": 406,
+      "retainedLeaseBytes": 0,
+      "usedAfterReaderTeardown": 0
+    },
+    "log": "/tmp/rpp5dh-baseline-test.log",
+    "limitation": "The regression stopped on its first failing route; 406 is the measured logical control payload on this host, not a portable object size"
+  },
+  "implementation": {
+    "admission": "Precharge destination growth before append/copy/reserve/push; replacement admits new value before releasing old charge",
+    "rollback": "Existing lease checkpoints restore uncommitted charges on quota or allocation failure",
+    "pendingChild": "Incomplete child is lexical to decoder; teardown releases only its key/value/binary charges while retaining closed siblings",
+    "binaryFailure": "If binary view creation succeeds before child-slot admission fails, the pending view stays charged until decoder teardown; failed imports publish no incomplete FIELD callback",
+    "completedChild": "Move into the model instead of an extra payload copy; nothrow child move checked by the owning test",
+    "vectorGrowth": "Geometric capacity growth retained for handles/child values; logical elements only are charged",
+    "context": "Reject a different budget passed to an active parser rather than migrating the existing owner lease",
+    "publicRetry": "Existing public same-codec corrected-read controls rerun in auxiliary-source-proof test; settings apply to subsequent reads",
+    "commonAccounting": "Existing base common/application/XDATA accounting is not replaced or newly claimed complete",
+    "autotoolsRuntimeQualified": false
+  },
+  "generatedControls": {
+    "provenance": "All new controls authored locally from scratch; no external DWG/DXF payload committed",
+    "ownershipVersions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "ownershipRoutes": 12,
+    "boundaryVersion": "AC1032",
+    "exactAndOneByteBelowOperationPairs": 42,
+    "allocationSchedules": 210,
+    "allocationScheduleRange": "0..4 allocations before refusal for each operation/encoding; schedules may complete when no further allocation is needed",
+    "pendingBinarySchedules": 16,
+    "pendingBinaryScheduleRange": "Per encoding: exact slot refusal, unrestricted success, allocation schedules 0..5",
+    "otherCoverage": [
+      "Initial owner creation from an empty child slot",
+      "Scalar replacement and string/chunk append",
+      "Both binary representations",
+      "Pending child cleanup with a closed sibling",
+      "Copy construction/assignment, move and reset lifetime",
+      "Independent sibling aggregate budget",
+      "Disabled accounting",
+      "Active budget-context mismatch without lease migration"
+    ],
+    "boundaryMethod": "Current input/getter record is already admitted; unrelated reserved pressure leaves exactly the destination-growth charge or one byte less. This isolates owner admission, not an end-to-end input-size limit",
+    "ownerLog": "/tmp/rpp5dh-final-owner.log",
+    "finalOwnerScope": "Final 42-pair/210-schedule version is recorded by both cohort owning-test outputs"
+  },
+  "independentObserver": {
+    "schemaVersion": 4,
+    "ezdxfVersion": "1.4.4",
+    "python": "/private/tmp/libdxfrw-rpp5cq-runtime.eu0KY0/venv/bin/python",
+    "normal": {
+      "schemaVersion": 4,
+      "status": "GENERATED_AUXILIARY_OBSERVATIONS_MATCH",
+      "routes": 8,
+      "qualificationEligible": false
+    },
+    "asan": {
+      "schemaVersion": 4,
+      "status": "GENERATED_AUXILIARY_OBSERVATIONS_MATCH",
+      "routes": 8,
+      "qualificationEligible": false
+    },
+    "normalLog": "/tmp/rpp5dh-independent-auxiliary.json",
+    "asanLog": "/tmp/rpp5dh-asan-independent-auxiliary.json",
+    "scope": "Original handle/name scalar positions and values only; not complete cached values or context-dependent role/target semantics",
+    "dependencyAttestation": false,
+    "qualificationEligible": false
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21.0.0; build-gcc is a directory name, not Linux/GCC evidence",
+    "normal": {
+      "passed": 58,
+      "total": 58,
+      "elapsedSeconds": 48.83,
+      "log": "/tmp/rpp5dh-normal-cohort.log"
+    },
+    "asan": {
+      "passed": 58,
+      "total": 58,
+      "elapsedSeconds": 101.71,
+      "log": "/tmp/rpp5dh-asan-cohort.log",
+      "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0"
+    },
+    "cohortScope": "Parent RPP-5dg exact 57 tests plus new FIELD owner test. Normal and ASan CTest runtimes ran sequentially; no production or C++ test changes after these cohorts",
+    "tests": [
+      "dwg2dxf_basic_table_typed_capture_limits",
+      "dwg2dxf_datalink_typed_capture_limits",
+      "dwg2dxf_field_carrier_raw_capture_limits",
+      "dwg2dxf_field_carrier_typed_capture_limits",
+      "dwg2dxf_field_dxf_multichunk_value",
+      "dwg2dxf_sort_table_style_raw_capture_limits",
+      "dwg2dxf_table_base_style_id_dxf_refusal",
+      "dwg2dxf_table_content_style_reference_census",
+      "dwg2dxf_table_style_typed_capture_limits",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_acad_field_writer_candidate",
+      "libdxfrw_auxiliary_source_proof",
+      "libdxfrw_cellstylemap_dwg_encode_roundtrip",
+      "libdxfrw_cellstylemap_dxf_writer",
+      "libdxfrw_cellstylemap_identity_domains",
+      "libdxfrw_cellstylemap_source_profiles",
+      "libdxfrw_cellstylemap_source_proof",
+      "libdxfrw_complex_symbol_bindings",
+      "libdxfrw_datalink_text_owner_budget",
+      "libdxfrw_dxf_ltype_retained_owner_budget",
+      "libdxfrw_dxf_shape_style_name_owner_budget",
+      "libdxfrw_dxf_source_table_identities",
+      "libdxfrw_dxf_table_cell_text_owner_budget",
+      "libdxfrw_dxf_tables_write_inspection",
+      "libdxfrw_extension_graph_limits",
+      "libdxfrw_field_cadvalue_date_payload",
+      "libdxfrw_field_cadvalue_double",
+      "libdxfrw_field_cadvalue_general_format_flag",
+      "libdxfrw_field_cadvalue_long",
+      "libdxfrw_field_cadvalue_object_id",
+      "libdxfrw_field_cadvalue_points",
+      "libdxfrw_field_cadvalue_string",
+      "libdxfrw_field_cadvalue_unknown_type",
+      "libdxfrw_field_child_cadvalue_types",
+      "libdxfrw_field_child_object_id_invalid_handle_role",
+      "libdxfrw_field_graph_export_refusal",
+      "libdxfrw_field_oversized_child_value_count",
+      "libdxfrw_field_unknown_child_cadvalue_versions",
+      "libdxfrw_field_unqualified_format_flags",
+      "libdxfrw_field_unsupported_child_cadvalue_buffers",
+      "libdxfrw_linetype_extension_graph",
+      "libdxfrw_ltype_mirror_authority",
+      "libdxfrw_symbol_source_proof",
+      "libdxfrw_table_callback_owner_order",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_table_content_dwg_object_roundtrip",
+      "libdxfrw_table_content_dwg_payload_encoder",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_content_reference_observer_selftest",
+      "libdxfrw_table_content_source_proof",
+      "libdxfrw_table_content_style_id_domains",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_table_geometry_observer_selftest",
+      "libdxfrw_table_resource_reference_observer_selftest",
+      "libdxfrw_tablestyle_nested_raw_net",
+      "libdxfrw_tablestyle_source_proof",
+      "libdxfrw_field_retained_owner_budget"
+    ],
+    "lc3CompileGates": {
+      "normal": "PASS",
+      "asan": "PASS",
+      "scope": "Source compile only; not native application runtime"
+    },
+    "strictWarningsRetained": true,
+    "fullProjectSuiteRepeated": false,
+    "leakCheckRun": false,
+    "externalExamplesRerun": false,
+    "buildLogs": [
+      "/tmp/rpp5dh-normal-cohort-build.log",
+      "/tmp/rpp5dh-normal-final-owner-build.log",
+      "/tmp/rpp5dh-asan-cohort-build.log",
+      "/tmp/rpp5dh-asan-final-owner-build.log"
+    ],
+    "configureLog": "/tmp/rpp5dh-asan-configure.log"
+  },
+  "sourceSha256": {
+    "src/intern/dxffield.h": "30424f3651ab159ebe2771cc4757945acaacc4f6fd4f45f3871cf822f6a89c44",
+    "src/drw_objects.h": "4ef7587712afe7bb3b12ced993ad11373e06468e7e7db4caebd9bc9e9df53091",
+    "tests/field_retained_budget_tests.cpp": "1960d96395cf57b33802d235e31261b59bf581886cf308e3b95b8c3e7044ac15",
+    "tests/CMakeLists.txt": "0289a9264edeb6b9dd38a8c14946849190b9209b51af4b7374235eb843264884",
+    "README.md": "4ebde29d0b4c160743b9b24938d5c53f5306a42f2c6d266336db5f34dee0aa8e",
+    "docs/3D_CONSUMER_CONTRACT.md": "a1e41c474c0811b58c0a6a8ee552850e9c708264777fb0ca5269644ae1cdac3b",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "66f902ae0d4f4ce32e617e510f2815fb228c099e5e39da82d22c493e1415b6ac"
+  },
+  "remaining": [
+    "Dictionary/XRECORD/ATTDEF/block and explicit opt-in APPID/LAYER/table-owner source proof",
+    "Full FIELD/DATALINK child/object/custom/common target, ownership, null, cycle and collision closure",
+    "Complete TABLE parent/wrapper/cache and editable/frozen equality with fully proved atomic output",
+    "Independent nonzero LTYPE angle and FIELD/CadValue/DATALINK semantic profiles",
+    "Original native/document, IMAGE, surface and LibreCAD/LibreCAD_3 2D plus 3D/dwg2dxf/FreeCAD parity"
+  ],
+  "qualification": {
+    "supportLedger": "CLOSED",
+    "outputEligible": false,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "remoteWritesPerformed": false,
+    "externalFixturesCommitted": false,
+    "fullImplementationGoalComplete": false
+  }
+}

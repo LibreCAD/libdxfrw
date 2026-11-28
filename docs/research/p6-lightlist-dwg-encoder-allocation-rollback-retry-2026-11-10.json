@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-lightlist-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "status": "GENERATED_DWG_ENCODER_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dimassoc_dwg_encoder_allocation_tests.cpp"
+    ],
+    "behavior": "DRW_LightList::encodeDwg stages its body, string and handle destinations, including body-resident hard-pointer light references and detached common handles. It preserves intentional stream aliases, returns false on allocation failure, and publishes only after each unique stream is good."
+  },
+  "generatedProfile": {
+    "version": "AC1021",
+    "modeledFields": "class version, three named light hard-pointer references, three names, and common owner/reactor/extension-dictionary handles",
+    "layouts": [
+      {"streams": "separate body/string/handle", "allocationOffsets": 36},
+      {"streams": "shared string/handle", "allocationOffsets": 32},
+      {"streams": "body string, detached handles", "allocationOffsets": 32},
+      {"streams": "separate string, body-aliased handles", "allocationOffsets": 31},
+      {"streams": "all body", "allocationOffsets": 26}
+    ],
+    "totalAllocationOffsets": 157,
+    "result": "Every injected failure preserves caller streams and their cursors/handle ledgers; same-object retry into the same streams matches clean output."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests -j2",
+    "test": "libdxfrw_dwg_object_encoder_allocation_retry",
+    "result": "PASS (1/1; generated allocation target includes all five LightList layouts)",
+    "fullSuites": "not run"
+  },
+  "limitations": [
+    "Generated AC1021 transaction evidence only; no physical producer or native consumer qualification.",
+    "Does not establish LIGHTLIST reference semantics, graph closure, or whole-file output support.",
+    "No drawing fixture was added and no support claim is promoted."
+  ]
+}

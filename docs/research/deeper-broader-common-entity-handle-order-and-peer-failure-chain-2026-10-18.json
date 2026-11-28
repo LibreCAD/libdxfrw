@@ -1,0 +1,155 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader common entity handle ordering and cross-peer failure chain",
+  "mode": "primary-source web research and read-only plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile LibreDWG's current R2007+ material/plotstyle issue lead with the ODA common entity data and handle layouts",
+    "Audit the corresponding libdxfrw common entity parse/handle order and identify whether a focused local vector exists",
+    "Refresh selected ACadSharp parser-safety and zero-height-data reports plus existing LibreDWG writer failure crosswalks",
+    "Add an implementation-ready generated test refinement without changing support claims, peer cadence, or the finding ledger"
+  ],
+  "method": {
+    "kind": "Read the repository-pinned ODA snapshot and official ODA copy, inspect current peer source/issues, rebuild the local converter, trace existing corpus files, then inspect parser, encoder, tests, and plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": true,
+    "localBuildTargets": ["dwg2dxf"],
+    "localSampleConversionsRun": 22,
+    "traceSuccessfulSamples": 14,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "CMakeLists.txt",
+      "tests/samples/AC1021/*.dwg",
+      "tests/samples/AC1024/*.dwg",
+      "/Users/dli/doc/dwg/*.dwg",
+      "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf"
+    ],
+    "limitations": "LibreDWG issue #1436 was visible only through its current issue-index title; its body/reproducer and fix status could not be verified. The exact repository AGENTS path ~/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf is absent, but the repo-pinned local v5.4.1 snapshot with the (1).pdf suffix exists and was reviewed; SHA-256 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7. No existing sample exercises shadowFlag == 3. No parser/encoder source was changed, and no fixture was added. Peer issue reports and peer source remain corroboration or risk leads, not local conformance results."
+  },
+  "sources": [
+    {
+      "project": "Open Design Specification v5.4.1",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Repo-pinned local ODA v5.4.1 snapshot, §§20.4.1-20.4.2, printed pp. 109-111, SHA-256 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7; official ODA-hosted copy also checked (printed pp. 106-107); reviewed 2026-10-18",
+      "localFile": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "observed": "The common entity object-data flags and common entity handle references are different ordered streams. The reviewed §20.4.1 contract places R2000+ linetype/plotstyle flags before R2007+ material/shadow values. Section 20.4.2 describes conditional linetype, R2007+ material, R2000+ plotstyle, and R2010+ visual-style references in version order; it does not document a conditional shadow handle. This is silence about the branch, not proof that such a handle cannot occur."
+    },
+    {
+      "project": "GNU LibreDWG issue index and common entity source",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues",
+        "https://github.com/LibreDWG/libredwg/issues/1436",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_handle_data.spec"
+      ],
+      "revision": "Mutable issue index, master source, and API docs reviewed 2026-10-18; issue #1436 opened 2026-10-11 per index",
+      "observed": "The live index title for #1436 alleges an R2007+ material-handle/plotstyle confusion associated with swapped flags. The body was not retrievable. Current source expresses data flags as linetype, plotstyle, material, shadow and handle references as linetype, material, shadow, plotstyle, then visual styles. The source consumes a shadow reference when shadow_flags == 3; the API describes raw value 3 as 'has handle' while the common-data source comment associates 3 with 'no' shadow behavior. The conditional shadow reference is not documented in ODA §20.4.2; this peer behavior identifies a discrepancy but does not verify #1436 or establish a local defect."
+    },
+    {
+      "project": "ACadSharp repeated-input parser and zero-height ATTRIB reports",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1194",
+        "https://github.com/DomCR/ACadSharp/pull/1201",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "revision": "Current issue pages/index reviewed 2026-10-18",
+      "observed": "Open #1281 describes three peer-specific recursive ASCII DXF paths with 20,000 repeated items that terminate the ACadSharp process by stack exhaustion. The closed #1194 report and merged #1201 fix describe hidden zero-height ATTRIB preservation; the local plan already contains a generated zero-height ATTRIB control. Neither peer report establishes a libdxfrw defect or a general file-format cap."
+    },
+    {
+      "project": "ACadSharp current common-entity DWG reader source",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+        "https://coveralls.io/builds/81353195/source?filename=src%2FACadSharp%2FIO%2FDWG%2FDwgStreamReaders%2FDwgObjectReader.cs"
+      ],
+      "revision": "master source retrieved 2026-10-18; supporting coverage mirror build 32834351116 from 2026-08-25",
+      "observed": "The reviewed common-entity reader conditionally consumes a material reference, reads shadow flags as a byte, and conditionally consumes the plotstyle reference; no conditional shadow-handle consume appears in that path. It is evidence of implementation variation, not proof that ACadSharp's omission or libdxfrw/LibreDWG's extra reference is correct."
+    },
+    {
+      "project": "Autodesk DXF Common Group Codes for Entities",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm"
+      ],
+      "revision": "2024 documentation reviewed 2026-10-18",
+      "observed": "DXF group code 284 defines semantic shadow modes 0 through 3, with 3 meaning ignores shadows, and notes the property is obsolete but supported in AutoCAD 2016-based products. This is not DWG handle-stream documentation and does not decide whether raw DWG shadow_flags == 3 also conditions a separate reference."
+    },
+    {
+      "project": "Previously catalogued LibreDWG conversion reports",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1351",
+        "https://github.com/LibreDWG/libredwg/issues/1354",
+        "https://github.com/LibreDWG/libredwg/issues/1355",
+        "https://github.com/LibreDWG/libredwg/issues/1357",
+        "https://github.com/LibreDWG/libredwg/issues/1408"
+      ],
+      "revision": "Issue pages and current issue statuses reviewed 2026-10-18",
+      "observed": "These reports concern separate writer/conversion boundaries: INSERT followed by required ATTRIB/SEQEND structure, pre-R13 REPEAT/ENDREP/LOAD disposition, incomplete DXF output despite success status, unresolved-reference traversal, and CR-containing text corrupting physical DXF lines. They remain distinct peer risk leads and are already cross-referenced by the plan."
+    },
+    {
+      "project": "Local libdxfrw common entity code and generated test owners",
+      "urls": [],
+      "revision": "Working-tree source reviewed 2026-10-18",
+      "observed": "The source flag order matches ODA, while parseDwgEntHandle consumes conditional material, shadow, and plotstyle handles before R2010+ visual-style handles. After rebuilding the current dwg2dxf target, 22 existing AC1021/AC1024/AC1027 sample conversions were traced read-only: 14 AC1021/AC1024 reads reached entities, all showing only shadowFlag == 0; two AC1021 fixtures and four AC1024 fixtures failed at header error 6, dwgreader21_230.dwg failed at file-header error 5, and AC1027 Cover.dwg failed at header error 6 before entity parsing. No sample resolves shadowFlag == 3. The reviewed DWG vector/reader/round-trip tests also contain no focused positive vector with distinct material and plotstyle references active in one entity. A material+plotstyle vector with shadowFlag == 0 is independent of the unresolved shadow branch and can proceed."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingDecisionRefined": "Add the material+plotstyle order vector now with shadowFlag == 0, including one-reference/default controls and a tail sentinel; this exercises ODA's documented ordering without entering the unresolved branch. Investigate shadowFlag == 3 separately using a source/producer trace, because pinned ODA is silent, LibreDWG consumes a shadow handle, ACadSharp does not in the reviewed path, and no existing sample exercises the value. Preserve current code and avoid guessed expectations if evidence remains inconclusive. Correct stale common-entity §19.4.1/.2 source/header citations to §20.4.1/.2 in the same narrow slice.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds a non-blocking research question and speeds an existing test-readiness item by allowing the documented material+plotstyle ordering vector to proceed with shadowFlag == 0. Separates object-data flag order from handle-stream order, records peer disagreement and local corpus absence for shadowFlag == 3, treats #1436 as title-only, calls for scoped stale citation cleanup, reuses the existing zero-height ATTRIB control, and keeps writer closure/sequence/traversal/text-wire peer failures distinct. No production change, queue/cadence change, new finding/subplan, or support promotion."
+  },
+  "implementationReadyChecks": [
+    "Use the repo-pinned local ODA v5.4.1 snapshot (suffix (1).pdf; verified SHA-256 recorded above) as the byte-layout authority; the exact no-suffix AGENTS path is absent. Treat issue #1436 as title-only until a body/reproducer is available.",
+    "Generate an AC1021 vector with materialFlag == 3 and plotFlags == 3, distinct references, shadowFlag == 0, and an independent next-handle/object sentinel. Assert exact destinations and cursor position; add material-only, plotstyle-only, and both-default controls.",
+    "Optionally add an AC1024/AC1032 vector with R2010 visual-style references while keeping shadowFlag == 0, so the documented tail is tested without asserting the disputed branch.",
+    "Keep a separate shadowFlag == 3 investigation: pinned ODA is silent, LibreDWG consumes a reference, ACadSharp does not in the reviewed path, Autodesk DXF group 284 defines semantic 3 as ignore-shadows but is not DWG layout authority, and no local corpus sample reaches value 3. Find a source/producer trace or locally generated independent-wire case before asserting behavior; if unresolved, preserve code and do not add a guessed test.",
+    "Correct only the touched common-entity ODA section citations from §19.4.1/.2 to §20.4.1/.2, verifying adjacent references against the pinned snapshot.",
+    "Construct expected bits/handles independently of libdxfrw's encoder; a same-codec round-trip alone cannot prove order.",
+    "Build the existing libdxfrw_dwg_object_vectors_tests target, run its focused selector, then run only the existing libdxfrw_dwg_object_vectors CTest for a leaf implementation slice.",
+    "Do not add a persistent DWG/DXF fixture, test registration, peer runtime, native CAD run, global parser cap, full-suite frequency, ABI change, or J-item evidence from this research."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "This pass updated the plan and receipt, rebuilt only the dwg2dxf target from current source, and wrote temporary conversion DXFs/logs under /tmp. No tracked production/test file or committed fixture was changed; unrelated dirty changes were preserved."
+  }
+}

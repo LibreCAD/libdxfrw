@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Shared typed named-resource callback capture bounds",
+  "mode": "Implementation slice with generated controls and fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Bound persistent typed callback copies for SCALE, DICTIONARYVAR, MLINESTYLE, and MLEADERSTYLE under one container-lifetime record and retained-byte budget.",
+    "Keep MLINESTYLE's per-family item cap and account successful copies in the shared budget.",
+    "Make rejected or incomplete named-resource typed capture invalidate import evidence and refuse output publication.",
+    "Add generated boundary/deep-copy controls and run only the owning focused build and CTests."
+  ],
+  "implementation": {
+    "families": ["SCALE", "DICTIONARYVAR", "MLINESTYLE", "MLEADERSTYLE"],
+    "sharedTypedRecordLimit": 100000,
+    "sharedTypedRetainedByteLimit": 67108864,
+    "mlineStyleItemLimit": 1000000,
+    "accounting": "Table-entry metadata and dynamic strings; MLINESTYLE element slots, nested strings, and parser-retained validation masks. Counters advance only after successful deep-copy insertion.",
+    "failureBehavior": "Sticky typed capture/resource-limit receipt; export preflight refuses before destination publication.",
+    "semanticSupportPromoted": false
+  },
+  "tests": {
+    "generatedControls": [
+      "Exact SCALE/DICTIONARYVAR/MLEADERSTYLE retained-byte and record accounting",
+      "Deep-copy checks after source mutation",
+      "Null MLEADERSTYLE callback ignored",
+      "Shared record cap exercised across MLINESTYLE then SCALE",
+      "Shared byte and record refusal, sticky retry, and no-output export refusal",
+      "Stale-generation MLEADERSTYLE retry refusal",
+      "Existing ASCII/Binary typed/raw named-resource import evidence",
+      "Synthetic DWG receipt accounting closure"
+    ],
+    "fixturesAdded": 0,
+    "ctest": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_named_resource_typed_capture_limits|dwg2dxf_mline_style_typed_capture_limits|dwg2dxf_named_resource_raw_capture_limits|libdxfrw_named_resource_import_evidence)$' --output-on-failure",
+      "passed": 4,
+      "failed": 0
+    },
+    "build": {
+      "command": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "passed": true
+    }
+  },
+  "assessment": {
+    "newConfirmedWireOrSemanticDefect": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "planChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Continue the 7S.2c typed persistent callback-store census; this closes the four named-resource families only.",
+    "commitState": "Not committed: .git is read-only in the current workspace, and the working tree contains broader user-owned changes."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^(dwg2dxf_named_resource_typed_capture_limits|dwg2dxf_mline_style_typed_capture_limits|dwg2dxf_named_resource_raw_capture_limits|libdxfrw_named_resource_import_evidence)$' --output-on-failure",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp dwg2dxf/dx_data.h tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt",
+      "shasum -a 256 DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "15b19ba58b5fb8e6027a0300cba7fd711f180df2f633f080d18050ecbbf05e85"
+}

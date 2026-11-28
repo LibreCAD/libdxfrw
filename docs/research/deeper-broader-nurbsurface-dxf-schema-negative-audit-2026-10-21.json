@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-nurbsurface-dxf-schema-negative-audit-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary DXF schema review, independent open-source field-map cross-check, and local parser/writer audit",
+  "question": "Does NURBSURFACE DXF encode a repeated control-point/grid array whose component-order selectors need auditing?",
+  "sources": [
+    {
+      "project": "Autodesk AutoCAD DXF Reference",
+      "authority": "Primary published DXF schema",
+      "reference": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-BB62483A-89C3-47C4-80E5-EA3F08979863.htm",
+      "observation": "The published SURFACE page defines common modeler payload groups 1/3 and U/V isoline counts 71/72. It does not define a repeated NURBS control-point grid or grid dimensions.",
+      "limitation": "The page lists common surface fields and is not a complete detailed table for every subtype-specific NURBSURFACE field."
+    },
+    {
+      "project": "LibreDWG 0.13.4 manual",
+      "authority": "Independent open-source field-map cross-check; not wire-format authority",
+      "reference": "https://www.gnu.org/software/libredwg/manual/html_node/ENTITIES.html",
+      "observation": "The NURBSURFACE field listing maps fixed scalar fields 170/290 and four fixed 3D vectors at DXF groups 10-13; it does not list grid dimensions, knot arrays, or repeated control-point slots. Modeler/ACIS data is represented separately.",
+      "limitation": "Peer documentation can corroborate field inventory but cannot overrule Autodesk schema or qualify semantic preservation."
+    },
+    {
+      "project": "Autodesk ObjectARX AcDbNurbSurface API",
+      "authority": "Official in-memory object API, not DXF serialization schema",
+      "reference": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbNurbSurface.html",
+      "observation": "The get/getControlPoints methods describe an in-memory array of AcGePoint3d control points and say the v index varies first.",
+      "limitation": "An in-memory API's array order does not establish any DXF group-code sequence; do not transfer it into the DXF parser absent wire-format evidence."
+    }
+  ],
+  "localAudit": {
+    "parser": "src/drw_entities.cpp: DRW_NurbsSurface::parseCode",
+    "writer": "src/libdxfrw.cpp: NURBSURFACE branch in writeSurface",
+    "observedFields": [
+      "Fixed scalar fields 170 and 290",
+      "Four fixed vectors uvec1/vvec1/uvec2/vvec2 encoded at point groups 10/11/12/13, each with X/Y/Z components",
+      "No repeated grid-point selector, grid dimensions, or NURBS knot/control-point arrays"
+    ],
+    "existingComponentHandling": "Independent component masks track the X/Y/Z fields for each of the four fixed vectors.",
+    "disposition": "The hypothesized repeated NURBSURFACE grid-point permutation is not applicable to the mapped DXF wire fields. No production change or generated grid probe is warranted.",
+    "semanticBoundary": "This negative parser-order audit does not qualify NURBS surface geometry, ACIS/modeler payload semantics, rendering, or DWG behavior."
+  },
+  "planDelta": {
+    "closedCandidate": "NURBSURFACE repeated grid/control-point component-order audit",
+    "status": "NOT_APPLICABLE_SCHEMA_DOES_NOT_DEFINE_REPEATED_GRID",
+    "remainingLocalComponentOrderCandidates": [],
+    "nextStep": "Proceed to the already-planned composed checkpoint: reconcile source/typed/raw/dropped-field dispositions under existing owners and run one pinned peer comparison. Keep native FreeCAD and independent ACIS/kernel qualification as separate external gates.",
+    "noCodeChange": true,
+    "noNewFixture": true,
+    "noNewTestLane": true,
+    "supportClaimsPromoted": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

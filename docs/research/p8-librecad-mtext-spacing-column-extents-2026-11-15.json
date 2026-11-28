@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-15",
+  "scope": "DXF MTEXT group-73 output and LibreCAD R2018 column-extents test compatibility",
+  "references": [
+    {
+      "name": "Autodesk MTEXT group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm",
+      "relevance": "Group 73 defines 1 for at least and 2 for exact."
+    },
+    {
+      "name": "ezdxf MTEXT internals",
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mtext.html",
+      "relevance": "R2018 column data resides in an embedded object and carries total extents."
+    }
+  ],
+  "line_spacing": {
+    "before": "Standalone MTEXT and embedded MTEXT wrote group 73 directly from the public unsigned style, including invalid values 0 and 7.",
+    "after": "Both DXF writers emit 2 only for source 2 and otherwise emit default 1; the caller model is not mutated. This deliberately normalizes out-of-domain styles on output.",
+    "scope_limit": "DXF output only; DWG serialization and the reader remain unchanged."
+  },
+  "source_column_witness": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "path": "samples/sample_AC1032_ascii.dxf",
+    "git_blob": "e4401ec6d62d940c11c9346a39a84887344797c9",
+    "sha256": "c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2",
+    "handle": "3EC",
+    "reader": "ezdxf 1.4.5",
+    "total_width": 13.49522510231923,
+    "total_height": 2.944292860391086,
+    "provenance_limit": "Repository provides the sample; the original CAD authoring application is not independently verified here."
+  },
+  "consumer_patch": {
+    "patch": "docs/patches/librecad-p8-mtext-column-extents-2026-11-15.patch",
+    "local_branch": "codex/upstream-libdxfrw-consumer",
+    "local_commit": "9a66c6a",
+    "reason": "Change a stale test that expected the embedded R2018 column extents to be discarded to check the observed retained values."
+  },
+  "validation": {
+    "generated": "40 standalone outputs: AC1018/AC1021/AC1027/AC1032, ASCII/Binary, styles 0/1/2/7/65535. Ten embedded AC1032 ASCII/Binary outputs use the same styles. Fresh libdxfrw readback checks style and unchanged caller models.",
+    "independent_peer": "ezdxf 1.4.5 parsed all 40 generated standalone outputs and saw the expected group-73 style.",
+    "librecad": "Disposable upstream-linked fast target, with previously documented test API patch and the column test correction, passed [mtext]~[dwg]: 4 cases / 215 assertions; [dxf_codec] passed 21 cases / 487 assertions.",
+    "known_existing_failure": "The upstream libdxfrw mtext-column-object-scope selector still fails ten fresh embedded orientation assertions and logs six BAD_CODE_PARSED reads. Recompiling the HEAD version of src/libdxfrw.cpp into an otherwise identical test binary reproduces exactly the same ten failures and six read errors; root cause remains to be investigated."
+  },
+  "limits": [
+    "The local LibreCAD test patch is not merged upstream.",
+    "No LibreCAD_3 or native FreeCAD qualification follows from these controls.",
+    "No external DWG/DXF fixture was committed."
+  ],
+  "orientation_follow_up": "The previously observed ten embedded-orientation failures were fixed; the six BAD_CODE_PARSED diagnostic lines are expected malformed-input negative controls. See p8-embedded-mtext-legacy-orientation-2026-11-15.json."
+}

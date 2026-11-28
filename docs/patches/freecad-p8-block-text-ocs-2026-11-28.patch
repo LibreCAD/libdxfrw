@@ -1,0 +1,72 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -1298,2 +1297,0 @@
+-    // Note that our parameters do not contain all the information needed to properly orient the
+-    // text. As a result the text will always appear on the XY plane.
+@@ -1306 +1304,2 @@
+-    auto makeText = [this, rotation, point, text, height](
++    const Base::Matrix4D textOrientation = OCSOrientationTransform;
++    auto makeText = [this, rotation, point, text, height, textOrientation](
+@@ -1315 +1314,2 @@
+-            PyObject* placement = new Base::PlacementPy(Base::Placement(transform * localTransform));
++            const Base::Matrix4D textTransform = transform * textOrientation;
++            PyObject* placement = new Base::PlacementPy(Base::Placement(textTransform * localTransform));
+@@ -1317 +1317 @@
+-            double xScale = Base::Vector3d(transform[0][0], transform[1][0], transform[2][0]).Length();
++            double xScale = Base::Vector3d(textTransform[0][0], textTransform[1][0], textTransform[2][0]).Length();
+@@ -1887 +1887 @@
+-    App::FeaturePython* shape = shapeBuilder(Reader.OCSOrientationTransform);
++    App::FeaturePython* shape = shapeBuilder(Base::Matrix4D());
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1451,0 +1452,48 @@
++    def test_nested_text_own_ocs(self):
++        """Text keeps its own plane inside an INSERT as well as at top level."""
++        import sys
++        import types
++        draft = types.ModuleType("Draft")
++        calls = []
++        def make_text(text, placement, *args):
++            calls.append((text, placement))
++            return self.document.addObject("App::FeaturePython", "OwnOCSText")
++        draft.make_text = make_text
++        old_draft = sys.modules.get("Draft")
++        sys.modules["Draft"] = draft
++        try:
++            options = FreeCAD.ParamGet(self.option_source)
++            options.SetBool("dxftext", True)
++            tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                    (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                    (0, "BLOCK"), (8, "0"), (2, "B"), (70, 0), (10, 1), (20, 2), (30, 3),
++                    (0, "LINE"), (8, "0"), (10, 1), (20, 2), (30, 3), (11, 2), (21, 2), (31, 3),
++                    (0, "TEXT"), (8, "0"), (10, 4), (20, 6), (30, 8), (40, 1), (1, "CHILD"),
++                    (50, 90), (210, 0), (220, 1), (230, 0), (0, "ENDBLK"), (8, "0"),
++                    (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                    (0, "INSERT"), (8, "0"), (2, "B"), (10, 10), (20, 20), (30, 30), (50, 90),
++                    (0, "TEXT"), (8, "0"), (10, 4), (20, 6), (30, 8), (40, 1), (1, "TOP"),
++                    (50, 90), (210, 0), (220, 1), (230, 0), (0, "ENDSEC"), (0, "EOF")]
++            path = os.path.join(self.temp_dir, "nested-text-own-ocs.dxf")
++            with open(path, "w", encoding="ascii", newline="\n") as stream:
++                stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++            for mode in (2, 3):
++                with self.subTest(mode=mode):
++                    options.SetInt("DxfImportMode", mode)
++                    calls.clear()
++                    Import.readDXF(path, self.document.Name, True, self.option_source)
++                    self.assertEqual(len(calls), 2)
++                    by_text = dict(calls)
++                    for name, expected in (("CHILD", (4, 15, 33)), ("TOP", (-4, 8, 6))):
++                        placement = by_text[name]
++                        axis = placement.Rotation.multVec(FreeCAD.Vector(1, 0, 0))
++                        for value, wanted in zip((placement.Base.x, placement.Base.y, placement.Base.z), expected):
++                            self.assertAlmostEqual(value, wanted, delta=0.00001)
++                        for value, wanted in zip((axis.x, axis.y, axis.z), (0, 0, 1)):
++                            self.assertAlmostEqual(value, wanted, delta=0.00001)
++        finally:
++            if old_draft is None:
++                del sys.modules["Draft"]
++            else:
++                sys.modules["Draft"] = old_draft
++

@@ -1,0 +1,34 @@
+{
+  "kind": "librecad-hatch-observed-source-roles",
+  "date": "2026-11-28",
+  "consumerCommit": "4bd25db49bbecc625fcbed995246920e02ae030c",
+  "codecCommit": "e7e40c6ec",
+  "scope": "For selected ASCII files up to 16 KiB, observe one HATCH and one LWPOLYLINE in a complete ENTITIES section and record selected original owner, self, forward boundary and reverse reactor roles only after successful file import. Shared carrier-frame validation checks raw handle lexemes against typed values; ordered source ordinals, byte intervals and counts are checked.",
+  "checks": {
+    "systemCodec": {
+      "cases": 5,
+      "assertions": 325,
+      "result": "pass, including mixed IMAGE/MATERIAL and hatch controls",
+      "logSha256": "693bab1342caaa4368631d875017e17e65febc84945e917ab7693196cc3a1f8e"
+    },
+    "bundledCodec": {
+      "cases": 4,
+      "assertions": 225,
+      "result": "pass; optional physical observer unavailable and deassociation unchanged",
+      "logSha256": "3e8566e771e9e88822a7e59b227d1c2eb860772202c805fd6d8a5cfd514e19f3"
+    }
+  },
+  "controls": [
+    "Altered raw handle, overlapping span, invalid scope identity and ordinal gap reject evidence.",
+    "Duplicate observer delivery, duplicate owner and extra null reactor reject evidence.",
+    "Truncated import records no evidence; corrected import succeeds using the same filter.",
+    "Selected IMAGE/MATERIAL composition remains valid with automatic HATCH source observation enabled."
+  ],
+  "limits": [
+    "The observer records are not yet bound to a separately retained source-file snapshot; source group geometry and whole-source header/version evidence are not established.",
+    "Source model-space identity, whole-graph closure, immutable live snapshots at finalization, and native edit behavior remain open.",
+    "Observer evidence is not independent semantic support and does not enable association replay.",
+    "No drawings committed; inputs are authored from scratch by the test."
+  ],
+  "supportClaimsPromoted": false
+}

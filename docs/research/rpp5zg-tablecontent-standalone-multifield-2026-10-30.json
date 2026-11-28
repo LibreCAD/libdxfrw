@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "RPP-5zg",
+  "date": "2026-10-30",
+  "title": "Standalone TABLECONTENT multiple FIELD references",
+  "mode": "P5 bounded AC1027 serializer and DXF-origin replay implementation",
+  "baselineCommit": "bd5d9e68",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": {
+    "version": "AC1027",
+    "tableShape": "One column, one row, one cell.",
+    "fieldObjects": "Two simple childless AcExpr FIELD objects with string cached values.",
+    "cellSequence": [
+      {"type": 2, "field": "first"},
+      {"type": 1, "string": "standalone between fields"},
+      {"type": 2, "field": "second"},
+      {"type": 2, "field": "first"}
+    ],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "sourceCreation": "Runtime-generated locally from scratch; no persistent drawing fixture was added. DXF-origin replay starts from the generated writer output, so it is round-trip transport evidence, not an independent producer witness."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "The standalone TABLECONTENT writer accepts a bounded ordered sequence of supported string scalars and FIELD references. It validates every reference against the emitted FIELD identity map and applies the existing aggregate field-reference and text budgets. The library writer independently verifies the remapped output identity and written-object role for each reference before serialization.",
+    "failureAndRetry": "Missing standalone FIELD targets preserve the destination sentinel and leave the caller's mutated handle intact. Correcting the target permits export through the same adapter. DXF-origin replay applies the same missing-target refusal and corrected retry.",
+    "persistentFixturesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "proof": {
+    "wire": "ASCII and Binary output is physically scanned for the one-cell CONTENT order, remapped FIELD handles [1740,1741,1740], and the intervening string value.",
+    "readback": "Fresh typed readback verifies the 1x1 shape, ordered scalar/reference sequence, both FIELD identities, and repeated first target. DXF-origin replay remaps handles to 2740/2741 and preserves typed order.",
+    "closure": "The missing second target is rejected for adapter-authored output and DXF-origin replay without replacing the destination. Restoring the exact target enables same-adapter retry.",
+    "compatibility": "Existing 2x2 multiple-field grid, mixed scalar/reference ordering, childless FIELD schema, and other TABLECONTENT profiles remain covered by the same focused selector."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_fixture_tests dwg2dxf --parallel 4",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_tablecontent_multicell_field_reference$' --output-on-failure",
+    "result": "PASS 1/1 in 0.61 seconds",
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limits": [
+    "Only the selected AC1027 one-cell sequence using simple childless string-result FIELD objects and string scalar content is implemented and exercised.",
+    "This does not qualify FIELDLIST membership, child/object dependency graphs, other FIELD body/value profiles, native expression evaluation, native TABLE rendering, DWG output, or independent producer semantics.",
+    "No whole-document closure, consumer/platform qualification, or general DWG/DXF support claim follows."
+  ],
+  "planAction": "Remove the completed standalone 1x1 multi-reference serialization and remapping action from P5; retain FIELDLIST/child graphs, additional source/version forms and native semantics as open work.",
+  "sourceHashesSha256": {
+    "src/libdxfrw.cpp": "123b1472f8f73eb40a0c4dbf3d85823c58e9d08f49aa274a23907499e364a3f0",
+    "dwg2dxf/dx_iface.cpp": "8c45ab25adebba63a809905ab8e814f9d5e680287f81fb4501324e41b86b45d2",
+    "tests/dxf_fixture_tests.cpp": "0bb0d06fb357b171b731cf3d04293aa1dc2c014f59e4d330080dcda49ae03eba",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "c5ae378e49ac69293f4f80d1e1220642fa62fc9938dd2db7402cd515c5501bc7"
+  },
+  "committedExternalFixture": false
+}

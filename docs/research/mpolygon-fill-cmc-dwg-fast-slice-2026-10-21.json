@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 MPOLYGON fill CMC name/book retention",
+  "mode": "generated DWG production-writer/reader roundtrip fast slice",
+  "scope": [
+    "Retain MPOLYGON fill CMC optional color name and separate color-book name through DWG parsing, copying, and typed callback capture",
+    "Emit supported C0-C3 fill CMC values without losing names on non-RGB methods; refuse unsupported or unrepresentable values before the common entity prefix",
+    "Keep undocumented MPOLYGON DXF book-name output fail-closed and verify destination-preserving retry"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "20.4.75 HATCH/MPOLYGON boundary data"],
+      "finding": "ODA §2.11 defines the CMC reserved index, method-tagged payload, optional color-name and color-book-name flags/text, and versioned string-stream behavior. The existing MPolygon parser reads its fill CMC before the 2RD x-direction and degenerate-path count."
+    },
+    "dxfMappingAudit": {
+      "reference": "Autodesk DXF Reference, MPOLYGON entity",
+      "finding": "The reviewed class-specific reference establishes group 63 for the MPOLYGON fill ACI value; it does not establish a distinct fill color-book group. Existing DXF groups remain unchanged and book-bearing output is refused rather than assigned an invented group."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.h", "src/drw_entities.cpp", "src/libdwgr.cpp", "src/libdxfrw.cpp", "dwg2dxf/dx_iface.cpp"],
+      "finding": "The bounded parser already retained normalized color and C2 RGB/name, but discarded the separate book name. The writer used an overload that omitted book name and fell back to indexed output when RGB was absent. The model now retains the book name through copy/reset, adapter memory accounting includes it, and DWG preflight validates scalar/RGB pairing, string bounds, supported methods, old-version representability, and detached modern strings before common-prefix output. dwgRW::writeMPolygon escalates failed color-bearing records to required output failures so a non-gradient entity is not silently omitted.",
+      "compatibility": "Appending the public DRW_MPolygon member changes class size; downstream consumers must rebuild. No virtual interface or existing DXF group mapping changed."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_local_roundtrip_tests.cpp",
+      "versions": ["AC1018", "AC1024", "AC1032"],
+      "finding": "Production DWG writer/reader roundtrips cover named C0 ByLayer, named C1 ByBlock, named black C2 RGB, and named C3 ACI. Readback verifies scalar/RGB/name/book values, callback capture, and the following LINE sentinel. Invalid C2 scalar/RGB state refuses publication, preserves a seeded destination, and a corrected named C0 retry succeeds on the same writer. Generated DXF output with a book name is refused and preserves the seeded destination; a corrected no-book write succeeds on the same dxfRW instance.",
+      "fixturePolicy": "All DWG/DXF outputs are generated under the test temporary directory and removed. No persistent drawing fixture was added.",
+      "limit": "Generated codec roundtrip evidence is not producer-authored or independent semantic evidence and does not qualify undocumented DXF color-group mappings."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Retain the separate MPOLYGON fill color-book name through public model copy/reset and typed adapter capture accounting.",
+      "Validate and explicitly encode DWG C0-C3 fill CMC values with optional names/book names; refuse lossy pre-R2004 color state and missing detached R2007+ strings, and propagate color-bearing record refusal to the overall transaction.",
+      "Fail closed on book-bearing MPOLYGON DXF output because no class-specific mapping was established; preserve existing DXF groups for other values."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestAdded": "libdxfrw_mpolygon_fill_cmc",
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mpolygon_fill_cmc|dwg2dxf_typed_entity_capture_limits)$' --output-on-failure",
+        "result": "PASS (2/2)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (12/12)"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/drw_entities.h src/drw_entities.cpp src/libdwgr.cpp src/libdxfrw.cpp dwg2dxf/dx_iface.cpp tests/dwg_local_roundtrip_tests.cpp tests/dwg2dxf_adapter_tests.cpp docs/research/mpolygon-fill-cmc-dwg-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "Other PAR-134 CMC consumers and class-specific DXF truecolor/name/book mappings remain under audit.",
+    "HATCH gradient producer behavior and unsupported CMC method semantics remain unqualified.",
+    "PAR-03/PAR-04 associative-action field-context classification remains open.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and cannot promote support claims."
+  ]
+}

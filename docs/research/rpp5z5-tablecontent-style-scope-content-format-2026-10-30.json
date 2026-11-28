@@ -1,0 +1,60 @@
+{
+  "id": "RPP-5z5",
+  "date": "2026-10-30",
+  "title": "Bounded TABLECONTENT CONTENTFORMAT across four style scopes",
+  "scope": {
+    "operation": "Write the selected CONTENTFORMAT profile at cell, row, column and table style scopes.",
+    "profile": "Generated AC1027 2x2 scalar grid, one selected type-1, type-2, type-3 or type-4 style at a time, in ASCII and binary DXF.",
+    "source_basis": "The TABLECONTENT writer already emitted CONTENTFORMAT fields for all style scopes, but its admission path required default content formats for cell, row and column styles. The preceding RPP-5z4 corrected the distinct table-scope gate. This slice extends only the same bounded format profile across the three remaining scopes and rechecks all four.",
+    "format": {
+      "property_override_flags": "0x1BF",
+      "property_flags": "0x100",
+      "value_data_type": 2,
+      "value_unit_type": 1,
+      "value_format_string": "0.000",
+      "rotation": 0.125,
+      "block_scale": 2.0,
+      "cell_alignment": 5,
+      "content_color": 7,
+      "text_style_handle": 0,
+      "text_height": 3.25
+    },
+    "limits": [
+      "One selected style per generated table at a time, for each scope type 1 through 4",
+      "No margins, borders or TABLESTYLE/CELLSTYLEMAP dependency",
+      "AC1027 DXF output only"
+    ],
+    "claim_boundary": "Selected DXF serializer and typed readback evidence only; no native rendering, DWG serialization, dependency graph or general table formatting claim."
+  },
+  "implementation": [
+    "Allow the selected nonempty-string CONTENTFORMAT profile at each of the four TABLEFORMAT style scopes while preserving all other style restrictions.",
+    "Revalidate style format strings after plain cell values are counted so the existing aggregate text budget covers cell values, style formats and per-content formats together.",
+    "Keep field-domain validation active and refuse unsupported unit values before destination mutation."
+  ],
+  "evidence": {
+    "generated_runtime_input": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary": true,
+    "physical_wire": "For each scope type 1, 2, 3 and 4, an independent scalar walker finds exactly one CONTENTFORMAT span with exact field order, group-code value types and expected values, including the 0.000 format string. It also confirms the selected style's margin override is zero.",
+    "typed_readback": "Fresh imports locate the selected cell, row, column or table style and preserve hasData, scope type, all selected format values, the 0.000 value-format string and absent margins.",
+    "failure_control": "Unit type 3 is refused for every scope and encoding; destination sentinels, table collection and explicit caller values remain unchanged.",
+    "retry_control": "Restoring unit type 1 permits same-adapter retry for every scope and encoding; fresh typed readback confirms the corrected value."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focused_selector": "build/tests/libdxfrw_table_content_dxf_tests --table-style-format-write",
+    "focused_ctest": "ctest --test-dir build -R '^libdxfrw_table_content_table_style_format_write$' --output-on-failure",
+    "focused_ctest_result": "6/6 passed; the style-format selector covers four scopes x ASCII/binary and refusal/retry controls, with adjacent grid, linked-data, margin and border regressions",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "tests/table_content_dxf_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "The parent P5 rendering/TABLE phase remains open.",
+    "Other format strings, remaining format-domain combinations, native rendering and DWG output are not claimed."
+  ]
+}

@@ -1,0 +1,357 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bl",
+  "date": "2026-10-24",
+  "objective": "Implement the plan's independent CLASSES/text evidence prerequisite without substituting unit vectors for native source qualification.",
+  "parentCommit": "4c8a6283ba4ebcc31859852e6bf46546fe6d1d32",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "INDEPENDENT_RECORD_OBSERVER_READY_SOURCE_CAPTURE_FRAMING_AND_NATIVE_JOINS_PENDING",
+  "implemented": {
+    "header": "dwg2dxf/dx_dwg_class_wire.h",
+    "test": "tests/dwg_class_wire_tests.cpp",
+    "target": "libdxfrw_class_dwg_wire_tests",
+    "ctest": "libdxfrw_class_dwg_independent_wire",
+    "functions": [
+      "Exact bounded-record observation",
+      "One-record prefix scanning with consumed cursors",
+      "Canonical UTF-8 comparison from independent byte/UTF-16 observations"
+    ],
+    "fields": [
+      "Class number",
+      "Proxy flag",
+      "App/C++/record length and unit spans",
+      "Zombie bit",
+      "Raw item-class flag",
+      "Instance count",
+      "DWG version",
+      "Maintenance version",
+      "Distinct unknown1 and unknown2"
+    ],
+    "independentOf": [
+      "Production DWG parser",
+      "Production dwgBuffer and writer",
+      "Production text codec",
+      "libdxfrw linkage",
+      "Peer decoder implementation code"
+    ],
+    "allocationFreeObserver": true,
+    "language": "C++14, no extensions",
+    "strictFlags": [
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-Werror"
+    ],
+    "installedOrPublicApiChanged": false,
+    "productionParserWriterReaderOrAdmissionChanged": false,
+    "privateHeaderVisibility": "Explicit .gitignore exception prevents missing source in the local checkpoint."
+  },
+  "research": {
+    "primaryPdf": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "version": "Open Design Specification v5.4.1",
+      "relevantSections": [
+        "2: bit codes/data definitions, including little-endian default, BS/BL and TV/TU",
+        "10: CLASSES"
+      ],
+      "completeRenderedPagesInspected": [
+        7,
+        8,
+        9,
+        86,
+        87,
+        88
+      ],
+      "pdfModified": false,
+      "finding": "Documented class DWG/maintenance fields are BS; BL compatibility is not silently relabeled the authoritative schema."
+    },
+    "peers": [
+      {
+        "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/decode.c",
+        "finding": "Inspected active R2004/2010+ class decoder uses BS version fields. It also assigns both trailing unknown reads to unknown_1, so resulting metadata cannot prove distinct unknown values.",
+        "boundary": "Accessed master URL observation, not a pinned source-semantic qualification result."
+      },
+      {
+        "url": "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgClassesReader.cs",
+        "finding": "Version/maintenance values use ReadBitLong despite BS comments; unknown values are consumed/discarded.",
+        "localSnapshotHead": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+        "boundary": "Read-only pinned local reader/writer also inspected; no equality between cached head and remote master is asserted."
+      }
+    ],
+    "policy": "Keep explicit OdaBitShort and ProducerBitLong profiles. Common compact values may match under both; no profile inference, standards qualification or native support promotion from successful parsing/self-readback.",
+    "peerCodeCopied": false
+  },
+  "boundsAndText": {
+    "recordWindowBits": 3146192,
+    "encodedTextUnitsPerFieldMax": 65535,
+    "scalarAndStringReadsBounded": true,
+    "splitOverlapAndInvalidViewsRefused": true,
+    "exactFormRequiresAllRecordBitsConsumed": true,
+    "prefixFormDoesNotCertifySectionCompletion": true,
+    "textIssues": [
+      "Unknown legacy codepage for non-ASCII bytes",
+      "Invalid Unicode surrogate sequence",
+      "Embedded NUL"
+    ],
+    "issuePolicy": "Known wire widths can remain Observed with text issues; canonical name comparison refuses those issues and independently rechecks scalar sequences.",
+    "unknownItemClassPreserved": true,
+    "codepageOrLayerByteOrderQualification": false
+  },
+  "controls": {
+    "positiveCases": 163,
+    "refusalOrTruncationCases": 20670,
+    "textCases": 10,
+    "revisions": [
+      13,
+      14,
+      2000,
+      2004,
+      2007,
+      2010,
+      2013,
+      2018
+    ],
+    "explicitTrailerProfiles": [
+      "OdaBitShort",
+      "ProducerBitLong"
+    ],
+    "bitAlignments": 8,
+    "literalAnchors": {
+      "classRecordBits": 93,
+      "unicodeFieldBits": 26
+    },
+    "cases": [
+      "Every shorter scalar and detached-string prefix",
+      "Version/maintenance257/329 distinguish explicit trailer widths",
+      "Common compact1/2 values retain caller-selected profile ambiguity",
+      "Primitive BS/BL boundaries and unused BL tag11",
+      "Negative instance count and class499 refusal",
+      "Null/short/reversed/oversized/overlapping views",
+      "ASCII, BMP, surrogate pair, invalid/lone surrogates, NUL and empty text",
+      "Legacy non-ASCII remains unqualified; clearing issue bits cannot bypass scalar checks",
+      "Two adjacent record prefixes expose consumed cursors; exact form rejects the aggregate as one record"
+    ],
+    "fixtureOrigin": "Scratch-authored byte vectors and manually specified bit anchors, no production encoder.",
+    "nativeFilesQualified": 0
+  },
+  "validation": {
+    "build": {
+      "result": "PASS",
+      "actualStandard": "-std=c++14",
+      "warningSuppression": false,
+      "log": "/tmp/rpp5bl-wire-build.log"
+    },
+    "controls": {
+      "result": "PASS",
+      "log": "/tmp/rpp5bl-wire-controls.log"
+    },
+    "focused": {
+      "result": "PASS",
+      "passed": 4,
+      "total": 4,
+      "wallSeconds": 5.85,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_class_dwg_independent_wire",
+        "libdxfrw_raster_dwg_independent_wire",
+        "libdxfrw_adapter_build_context",
+        "libdxfrw_cli_optional_build"
+      ],
+      "log": "/tmp/rpp5bl-fast-tests.log"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 1,
+      "total": 1,
+      "wallSeconds": 0.15,
+      "options": "halt_on_error=1:detect_leaks=0",
+      "log": "/tmp/rpp5bl-asan-tests.log"
+    },
+    "asanUbsanStandalone": {
+      "result": "PASS",
+      "standard": "C++14",
+      "flags": "-fsanitize=address,undefined -fno-omit-frame-pointer",
+      "options": [
+        "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+        "UBSAN_OPTIONS=halt_on_error=1"
+      ],
+      "log": "/tmp/rpp5bl-sanitized-controls.log"
+    },
+    "linkage": {
+      "result": "PASS",
+      "runtimeLibraries": [
+        "libc++",
+        "libSystem"
+      ],
+      "dxfrwLinked": false,
+      "log": "/tmp/rpp5bl-compile-link-audit.log"
+    },
+    "consumerSourceCompatibility": {
+      "result": "PASS",
+      "target": "lc3_compat_check",
+      "boundary": "Existing compile-only gate, unchanged public interface; not native LibreCAD GUI qualification.",
+      "log": "/tmp/rpp5bl-lc3-build.log"
+    },
+    "defaultRegistration": {
+      "result": "PASS",
+      "priorTestsWithUnchangedCommandAndProperties": 385,
+      "newTests": 1,
+      "log": "/tmp/rpp5bl-cohort-audit.log"
+    },
+    "diffCheck": "PASS",
+    "notRun": [
+      "Full-project suite",
+      "Production owning-suite rerun (no production change)",
+      "LSan",
+      "Native source-section correlation",
+      "Native Linux/Windows FreeCAD qualification",
+      "Independent external semantic/kernel qualification"
+    ],
+    "timingBoundary": "Local shared-host fast-check observations, not performance claims."
+  },
+  "evidenceNotYetImplemented": {
+    "immutableNativeClassSourceCapture": false,
+    "independentSectionHeaderCountFooterCrcSentinelAndConsumption": false,
+    "generationQualifiedSourceOrdinalIdentityAndTextJoins": false,
+    "profileIssueOrSupportCounterPromotion": false,
+    "currentParserDerivedCoverageRelabeledIndependent": false,
+    "classEnvelopeOrTextSemanticsIssueCleared": false
+  },
+  "next": [
+    "Opt-in immutable source bytes beside parser-derived coverage, with default-false non-pure request callback and charged bounded retention.",
+    "Capture actual physical/decoded bytes from all three reader storage lifetimes and bind profile/descriptor/address-space/generation; never reconstruct source from metadata.",
+    "Independently frame/count/iterate whole sections with explicit candidate layouts, empty max499 tables, footer/CRC/sentinel evidence and ambiguity states.",
+    "Match all native class values/text/ranges and IMAGEDEF/reactor identities to frozen import data; reject mutation, duplicate and cross-generation envelopes.",
+    "Cap/allocation/callback/partial-read failure and retry tests before native corpus joins; maintain LibreCAD/LibreCAD_3 source compatibility.",
+    "Producer LAYER/codepage byte-order, full IMAGE/NOD/document and broader semantic/platform queues remain open."
+  ],
+  "planUpdate": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "section": "Implementation progress — RPP-5bl independent CLASSES record/text observer (2026-10-24)",
+    "parentItemComplete": false,
+    "prerequisiteComplete": true,
+    "commitBoundary": "Implementation, plan and capture-time receipt checkpoint together; actual local commit ID reported at handoff.",
+    "historicalReceipts": "Unchanged"
+  },
+  "supportClaims": {
+    "promoted": false,
+    "strictAdmission": "CLOSED",
+    "broaderPlanComplete": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN"
+  },
+  "scope": {
+    "newDwgDxfFixturesCommitted": false,
+    "drawingsDownloaded": false,
+    "unrelatedUntrackedDrawingsExcluded": 17,
+    "remoteMutation": false,
+    "newPublicVirtualsOrTypes": false,
+    "newDwgObjectDispatch": false
+  },
+  "bindings": [
+    {
+      "path": ".gitignore",
+      "sha256": "b6e438e65c59ea068d74cf3abaa7f2e4110139f3863579bdc259fe97d08f3bf3"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "001756e61b655ab1921b37660adeb38ef1531f2b0f46b100ee9be481e6b380c5"
+    },
+    {
+      "path": "dwg2dxf/dx_dwg_class_wire.h",
+      "sha256": "3ee59826a90a051668b70423d782d92db3a491c3502174bb459ace6697391f5a"
+    },
+    {
+      "path": "tests/dwg_class_wire_tests.cpp",
+      "sha256": "aea55fb47ded276dc2bda63b93337984f0a713051142a1319f0ce3df0cbd5cca"
+    },
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "sha256": "3506cc247997a8158b4ef2e4552596eeb69e5b552785b828997e467571c52cc9"
+    },
+    {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+    },
+    {
+      "path": "/private/tmp/lc2961-impl-evidence.9GtLO2/independent-fixtures/tooling/ACadSharp/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgClassesReader.cs",
+      "sha256": "6c13f0d3c59fc6b7f0ffa083c098ef5e072c71e3626170a30a0bbcf8bc96d4a5"
+    },
+    {
+      "path": "/private/tmp/lc2961-impl-evidence.9GtLO2/independent-fixtures/tooling/ACadSharp/src/ACadSharp/IO/DWG/DwgStreamWriters/DwgClassesWriter.cs",
+      "sha256": "485a1771be8a393ae858d381a87a69373d97d5de9629007170712949242f722a"
+    },
+    {
+      "path": "/tmp/rpp5bl-wire-build.log",
+      "sha256": "8f46a2e6b4ddfd8168c213c49f462dfdbca830de13153ac9aa2e928a3e2d3da4"
+    },
+    {
+      "path": "/tmp/rpp5bl-wire-controls.log",
+      "sha256": "84637e11ef97919a0433e206ec54cd2339d25c6431c0b1bf930234e1acb9569f"
+    },
+    {
+      "path": "/tmp/rpp5bl-fast-tests.log",
+      "sha256": "9158cc53e6bd088d348854ee6acdabb54bb136213276595e5cf30f8e22f5f4be"
+    },
+    {
+      "path": "/tmp/rpp5bl-asan-build.log",
+      "sha256": "930519712b0839fddd1021ebe71e880636819bdaf6742fca81114ea4a115a137"
+    },
+    {
+      "path": "/tmp/rpp5bl-asan-tests.log",
+      "sha256": "a4d9c48218414269cce9d18cf70e8326c1054b573ec4b401d9f111b49da96c3c"
+    },
+    {
+      "path": "/tmp/rpp5bl-sanitized-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/rpp5bl-sanitized-controls.log",
+      "sha256": "84637e11ef97919a0433e206ec54cd2339d25c6431c0b1bf930234e1acb9569f"
+    },
+    {
+      "path": "/tmp/rpp5bl-cohort-audit.log",
+      "sha256": "f7b61816d168791fc61c769edb3a2a98be28ad2efec6b05bf9383a81ffd05fcd"
+    },
+    {
+      "path": "/tmp/rpp5bl-compile-link-audit.log",
+      "sha256": "ac7e4a1361c7f650317855bad0c99f6de16b21ecf102c9e0d7b8dbbc114fe350"
+    },
+    {
+      "path": "/tmp/rpp5bl-lc3-build.log",
+      "sha256": "d672af4178a2acb754193cc23449b43c2d489693a95d2f998f4f289f5607c568"
+    },
+    {
+      "path": "/tmp/rpp5bl-bits-page-007.png",
+      "sha256": "6fba0e39bc32c867734020335eb6c1ac9499beb0c0d03c36a20f8f3adee8ea38"
+    },
+    {
+      "path": "/tmp/rpp5bl-bits-page-008.png",
+      "sha256": "761e0eb2e8e2d29592b3e68776f3e349749508032a44d03c30d548c5b794e736"
+    },
+    {
+      "path": "/tmp/rpp5bl-bits-page-009.png",
+      "sha256": "25055d91bf524dd7e8fbe3def4a1c84930d1e2ef8c9a5119a9dc02f5a038d5cf"
+    },
+    {
+      "path": "/tmp/rpp5bl-classes-page-086.png",
+      "sha256": "addd12d29eb98c2c87896cb0a9df2cc7929967a85cfc318b2ec97bb6c47d52b4"
+    },
+    {
+      "path": "/tmp/rpp5bl-classes-page-087.png",
+      "sha256": "303411861101289a4a58ac592b46262e3c76d4b3222632447ac405261c11909a"
+    },
+    {
+      "path": "/tmp/rpp5bl-classes-page-088.png",
+      "sha256": "94559b0d248ef6efbed269fe4efb5d811c27ab7e637a273968aa956d6daa2ecf"
+    }
+  ]
+}

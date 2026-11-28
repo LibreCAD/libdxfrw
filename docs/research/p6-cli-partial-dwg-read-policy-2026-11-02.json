@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-partial-dwg-read-policy-2026-11-02",
+  "date": "2026-11-02",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Verify the CLI strict default, explicit partial-read publication and DXF readback on locally authored AC1021 and AC1027 DWGs, each with one rejected entity frame followed by one valid entity.",
+  "control": {
+    "sourceGenerator": "tests/dwg_local_roundtrip_tests.cpp --generate-cli-partial-read-source <path> [AC1021|AC1027]; default AC1027",
+    "sourceProfile": "AC1021 and AC1027; each generated from scratch by ReadOutcomeControl(kind=1), which writes a non-finite LINE followed by a valid LINE",
+    "file": "tests/dwg2dxf_cli_contract_tests.py",
+    "function": "check_partial_dwg_read_cli",
+    "selector": "--partial-read-only; included in --fast-only",
+    "cases": [
+      {
+        "policy": "strict default on each source revision",
+        "expect": "the DWG operation returns success with entityParseFailures=1 and failed=1; strict export exits 1 and preserves a destination sentinel"
+      },
+      {
+        "policy": "--allow-partial-dwg-read on each source revision",
+        "expect": "warning states possible omissions and strict owner checks; conversion exits 0 and publishes same-revision ASCII DXF containing the one valid LINE"
+      },
+      {
+        "policy": "readback on each source revision",
+        "expect": "published DXF reopens through dwg2dxf with exactly one LINE; source and first output remain unchanged"
+      }
+    ],
+    "controls": 6,
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j2",
+    "test": "PASS: python3 -B tests/dwg2dxf_cli_contract_tests.py --converter $PWD/build-gcc/dwg2dxf/dwg2dxf --writer $PWD/build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only (6 controls); PASS: python3 -B tests/dwg2dxf_cli_contract_tests.py --converter $PWD/build-gcc/dwg2dxf/dwg2dxf --writer $PWD/build-gcc/libdxfrw_dwg_local_roundtrip --fast-only (103 option controls, 47 batch controls, 2 read-observation controls, 6 partial-read controls, 4 source-disposition controls)",
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "tests/dwg2dxf_cli_contract_tests.py": "99ff74492f789b193d2b44a210c59b4a37f12acc65a7a57c97a360b4eb00c357",
+      "tests/dwg_local_roundtrip_tests.cpp": "ee765a23f31804d9bdd8d7af9a83fb0625e9ae3b116cea9841e29a63641ab7c2",
+      "build-gcc/dwg2dxf/dwg2dxf": "32a09aebcad165c22f60288a927ea1b0e40775c52829d08233eba8affd7c832f",
+      "build-gcc/libdxfrw_dwg_local_roundtrip": "8936fc40deb2e7d553632f7bbfa22428e45dfccbc5453f5c9cbce5f7dd462aaf"
+    }
+  },
+  "limits": [
+    "These controls cover one generated entity parse failure at AC1021 and AC1027, the strict/partial switch, and returned LINE readback. They do not qualify other failure patterns or versions, repair/skip projections, or owner/reference failures as partial-output eligible."
+  ]
+}

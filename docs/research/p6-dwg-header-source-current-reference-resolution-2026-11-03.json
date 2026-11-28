@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-header-source-current-reference-resolution-2026-11-03",
+  "date": "2026-11-03",
+  "status": "SOURCE_HANDLE_RESOLUTION_IMPLEMENTED_SCOPED_QUALIFICATION",
+  "supportClaimEffect": "none",
+  "authority": "Open Design Specification for .dwg files v5.4.1, sections 2.13 and 9: HEADER CLAYER, TEXTSTYLE, CELTYPE and DIMSTYLE are hard-pointer handle references.",
+  "problem": "The DWG HEADER parser consumed the four source handles but discarded them. Existing consumers received no current table names, so DXF output substituted defaults and DWG replay could not preserve explicit source selections.",
+  "implementation": "Private parse overloads stage the four complete handle tokens into the internal reader only after successful HEADER parsing. After successful table loading and before addHeader, the reader resolves each code-5, nonzero, representable handle against the corresponding typed source table, checks the record identity and exposes its exact name through the existing HEADER variables and group codes. The DRW_Header object layout, existing protected parser signatures and DRW_Interface virtual callbacks remain unchanged. Missing, wrong-kind, invalid-role, wide, duplicate or unproven-collation references emit an error-severity integrity diagnostic while the tolerant read continues; strict-complete conversion therefore refuses rather than silently selecting a default. For a resolved but ambiguous name, the exact source spelling remains visible to callbacks. Repeating resolution of an unchanged resolved source is idempotent.",
+  "unicodePolicy": "When another table record contains non-ASCII text, or a selected non-ASCII name has another table record, bytewise case matching cannot prove Unicode collation uniqueness. The exact source name is still published but an integrity error keeps strict output unqualified. A sole non-ASCII name is retained without inventing collation.",
+  "generatedValidation": {
+    "selector": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_header_current_references|libdxfrw_dwg_header_writer_sealing|libdxfrw_dwg_header_reference_roles)$' --output-on-failure: PASS 3/3",
+    "scope": "All six writer revisions generate default and nondefault current table references, followed by reader callback verification of exact source names. Focused controls cover invalid role, zero/wide/missing and wrong-table handles, mismatched target identity, duplicate names, non-ASCII collation ambiguity, exact Unicode visibility and retry on the same reader/header. Existing output destination preservation and same-writer retry remain covered."
+  },
+  "physicalValidation": {
+    "sample": "Locally held mechanical_example-imperial.dwg, AC1024; not added to the repository",
+    "sampleSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "independentOracle": "LibreDWG 0.14 minJSON: CLAYER code 5 handle 0x10 -> LAYER 0; TEXTSTYLE code 5 handle 0x178 -> STYLE Notes; CELTYPE code 5 handle 0x15 -> LTYPE ByLayer; DIMSTYLE code 5 handle 0x242 -> DIMSTYLE MEP.",
+    "consumerProbe": "A locally compiled dx_iface-derived addHeader consumer received 0, Notes, ByLayer and MEP, with successful read and no integrity diagnostics. The opt-in test executable selector --header-current-mechanical accepts this local path and checks these callback values and absence of current-reference diagnostics.",
+    "strictCli": "Rebuilt dwg2dxf AC1024 -> AC1024 ASCII DXF conversion exited 0 and emitted HEADER group values CLAYER/8=0, TEXTSTYLE/7=Notes, CELTYPE/6=ByLayer and DIMSTYLE/2=MEP. Output SHA-256 a3e30d707e2badf573a8427dd29d3fd7499ae3afd616f4dc10469396e4c14204.",
+    "secondaryProducer": "An independently ODA-generated AC1021 one-LINE file delivered 0, Standard, ByLayer, Standard through the same callback. It separately retains a pre-existing unclaimed HEADER suffix warning."
+  },
+  "invalidPhysicalControl": {
+    "source": "Locally generated pre-fix single-LINE AC1021 DWG",
+    "sha256": "76c26f3c1d36d2f96c88313a190fd7c34b9e9861c0549d825a770e6670970403",
+    "independentObservation": "LibreDWG and the physical source contain code-0 nulls for all four current references.",
+    "outcome": "A tolerant read succeeds but reports four current-reference errors and publishes no guessed names. Strict dwg2dxf conversion exits 1 and preserves an existing output sentinel."
+  },
+  "limits": [
+    "Reader integrity diagnostics must be observed by consumers that require complete output; general consumer code that intentionally ignores read diagnostics is not automatically made lossless.",
+    "Only the named producer/profile evidence is qualified; general native application semantics, Unicode collation and the broader ODA-generated-DWG rejection remain open.",
+    "No new fixture was committed."
+  ]
+}

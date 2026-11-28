@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-file-extension-ascii-fold-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Make DXF/DWG file-extension dispatch deterministic and defined for arbitrary path bytes without conflating filenames with symbol keys.",
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "sha256": "d77fa0cbef41619753b941d4e871ae1317ba71ab88f01ffbc7dbb218310975ec",
+    "behavior": "Extension dispatch folds only ASCII a-z to A-Z, preserves non-ASCII suffix bytes, and avoids passing plain possibly-negative char values to locale-sensitive ::toupper."
+  },
+  "test": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "sha256": "185975dfd26fc84b573af93560e3e36cbdd330b94e21205939274b567ecf1044",
+    "coverage": [
+      "generated uppercase .DXF suffix selects the DXF reader and succeeds",
+      "generated UTF-8 non-ASCII suffix is rejected before either DXF or DWG reader is attempted"
+    ],
+    "ctestRegistration": {
+      "file": "tests/CMakeLists.txt",
+      "sha256": "5778a10a499703b117303c304dc5a55b1e64b66157383370031f2ae5074f7d26",
+      "name": "dwg2dxf_file_extension_case",
+      "labels": ["fast", "dxf", "adapter", "paths"]
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_file_extension_case|dwg2dxf_mleader_fail_closed|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "passed": 3,
+      "failed": 0,
+      "reportedElapsedSeconds": 0.09
+    },
+    "diffCheck": "git diff --check on production, test, CTest, and plan files passed",
+    "fullSuiteRun": false
+  },
+  "limits": {
+    "r12StyleFilenameSemanticsResolved": false,
+    "headerPathSemanticsResolved": false,
+    "unicodeFilesystemQualification": false,
+    "nativeCadRun": false,
+    "supportClaimsPromoted": 0,
+    "fixturesAdded": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; Git metadata is read-only in this task"
+  }
+}

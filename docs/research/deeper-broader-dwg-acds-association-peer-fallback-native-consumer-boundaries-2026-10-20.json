@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader DWG AcDs association, peer fallback, and native consumer boundaries",
+  "mode": "primary-source web research and read-only local plan/test-owner reconciliation",
+  "scope": [
+    "Crosswalk the ODA v5.4.1 AcDb:AcDsPrototype_1b DataStorage layout with the current LibreDWG implementation path",
+    "Recheck current FreeCAD and OpenCADStudio release routes for their ability to qualify DWG/DXF carrier preservation versus ACIS semantics",
+    "Refine the existing PAR-07/S8 implementation sequence without creating duplicate tests, findings, or validation dependencies"
+  ],
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "planFilesUpdated": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "ODA v5.4.1 is the normative source for the DWG byte layout, but its DataStorage chapter is historical and exact producer/version behavior still requires exact authored samples. LibreDWG master is mutable and was inspected through public source pages only; no immutable checkout or executable comparison was made. FreeCAD documentation is archived route documentation, not current-build runtime qualification. OpenCADStudio v2026.42 release notes and lockfile identify advertised workflows and source pins but do not establish runtime ACIS/AcDs semantics. No local parser, peer, or native application was run."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+      "urls": [
+        "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Official PDF, §24 AcDb:AcDsPrototype_1b DataStorage reviewed 2026-10-20",
+      "observed": "The file header identifies segment-index, DataIndex, schema-index, and search segments. DataIndex entries point to segment/local offset/schema. Data record headers carry a UInt64 handle and local offset. Data records may be inline or use the 0xbb106bb1 blob-reference sentinel and ordered Blob01 pages. The spec says search data may be ignored when reading but that AutoCAD ignores the entity if schema-search data is not created. It documents version-dependent SAB suffixes.",
+      "limits": "The PDF describes a 2012-era R2013 DataStorage layout and explicitly scopes detailed ACIS/SAB semantics out. It is not a substitute for exact version/producer samples or geometric validation."
+    },
+    {
+      "project": "LibreDWG current source",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+      ],
+      "revision": "Mutable master pages reviewed 2026-10-20",
+      "observed": "The AcDs schema describes parsing the segment catalogue and indexes/schema/search structures; _data_ and blob01 segment bodies are left unhandled there. The R2007 decoder separately scans decompressed section bytes for ACIS BinaryFile and End-of-ASM-data and attaches found streams to queued ACIS-solid handles in encounter order. This fallback is not equivalent to the ODA DataIndex/record-handle/page-chain join.",
+      "limits": "No immutable master commit was pinned or built, and no runtime association outcome was tested. Do not generalize the source observation to every released LibreDWG binary."
+    },
+    {
+      "project": "FreeCAD importer documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "Published repository pages reviewed 2026-10-20; documentation repository reports archived",
+      "observed": "The documented DWG workflow converts DWG to DXF and then invokes one of the selectable DXF importers. The Draft DXF page states that ACIS/SAT solid blobs cannot currently be read by stock FreeCAD importers.",
+      "limits": "This is route documentation, not qualification of a current Windows/Linux FreeCAD build, selected importer, converter binary, or any specific libdxfrw output. It cannot provide ACIS semantic evidence."
+    },
+    {
+      "project": "OpenCADStudio and OpenCADKernel",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.42/Cargo.lock",
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "revision": "OpenCADStudio v2026.42 released 2026-10-18 at b6fbac3; locked acadrust 0.6.4 at 5d4f11ae38758caec540bc9819ff2c4120eeadb4 and opencadkernel at a60f18ff033b5a3f7d842e2398f393e4d6cfcd32",
+      "observed": "Release notes advertise a separate SAT/ACIS model import workflow. The locked graph uses the ACadRust-family codec and OpenCADKernel; the kernel README characterizes the project as early and says most operations are not written yet.",
+      "limits": "A standalone SAT import is not evidence for DWG AcDs owner/key association. Shared ACadRust-family lineage and unrun release binaries prevent counting this as an independent DWG parser or semantic oracle. It remains an optional application-level observer if an exact build and locally generated expected-profile input are later tested."
+    }
+  ],
+  "decision": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimPromoted": false,
+    "externalGatesChanged": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "inventory": "141 findings / 78 top-level subplans",
+    "planDelta": "Strengthen PAR-07/S8 evidence ordering to require segment/DataIndex validation, record-header-handle resolution, complete direct/blob page-chain reconstruction, entity/owner join, and separate search-schema visibility. Keep LibreDWG marker scanning non-authoritative; FreeCAD native qualification is limited to its selected documented DXF subset; OpenCADStudio is optional and cannot independently promote DWG AcDs or ACIS semantics. Reuse existing local bounds/blob/DataIndex-order tests, keep fast-first validation, and self-unblock after external NOT_RUN outcomes."
+  }
+}

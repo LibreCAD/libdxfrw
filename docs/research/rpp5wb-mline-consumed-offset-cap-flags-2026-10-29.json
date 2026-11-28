@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 consumed-style MLINE offset edit with cap-suppression flags",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "48fa1233377dfb2fd25ae6d50a5ec6f40beecacc",
+  "scope": "Permit one selected AC1027 direct consumed-style offset edit for a two-element MLINESTYLE while preserving MLINE group-71 flags 5, 9 or 13 and reprojecting the affected per-vertex group-41 values.",
+  "specEvidence": {
+    "authority": "Autodesk AutoCAD DXF Reference 2025, MLINE (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "group71": {
+      "value1": "Has at least one vertex",
+      "value2": "Closed",
+      "value4": "Suppress start caps",
+      "value8": "Suppress end caps"
+    },
+    "group41": "Element parameters describe per-element segment intersections, starts and cuts. Cap suppression is carried separately in group 71.",
+    "interpretation": "The selected direct edit changes the first style offset from 1.25 to 1.5, preserves the second offset, and recomputes the two open consumers' per-vertex parameters. Preserving group-71 cap bits does not qualify native cap rendering."
+  },
+  "contract": {
+    "admission": "AC1027 only, direct edit of a source-bound consumed MLINESTYLE with exactly two elements and an offset-only style change. The selected nondefault MLINE group-71 values 5, 9 and 13 are admitted. Closed value 3 and unknown-bit value 17 refuse. MLINESTYLE flags remain 2.",
+    "projection": "For the authored offsets [1.25,-0.75] → [1.5,-0.75], preserve two MLINE consumers (ENTITIES and BLOCKS), their vertex geometry and group-71 flags, and emit exact per-vertex group-41 parameters for both elements. Group 49 style offsets, group 71 entity flags and group 41 parameters are checked in physical output and fresh typed readback.",
+    "outputAndReadback": "Twelve positive combinations cover flags 5/9/13 × ASCII/binary input/output. Physical output checks exact group 49 offsets, group 71 flags and group 41 values for both consumers. Fresh readback verifies style offsets, entity flags, geometry, miter data and typed parameters.",
+    "failureAndRetry": "Closed and unknown group-71 profiles each refuse for both output encodings while preserving a destination sentinel and caller state; corrected flag-13 sources then succeed through the same adapter. A late consumer-parameter mutation refuses without replacing the destination and succeeds on the same adapter after restoring caller state.",
+    "compatibility": "The nondefault-cap admission is restricted to the selected AC1027 direct consumed-style two-element offset-edit path. Plain group-71=1 offset edits, cap-flag append/removal, and offset/angle retarget selectors also pass. Other offsets, cap combinations, style counts, routes, versions and native cap appearance remain outside this receipt. All source/output files are runtime-generated; no drawing fixtures were committed."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "tests/dxf_fixture_tests.cpp generates the source MLINESTYLE and two MLINE records at runtime. The output proof checks physical group codes and freshly imports serialized output.",
+    "implementationCommit": "48fa1233377dfb2fd25ae6d50a5ec6f40beecacc",
+    "dwg2dxf/dx_iface.cpp": "7b73a3e119f58470cb977c47646705bf2dd4d23480aee21a62d8e2fade7f07ec",
+    "tests/dxf_fixture_tests.cpp": "76fc06b16dd246224107eb4a00586bf04e38c0d1bc3fbce16f2325696eb3d140",
+    "tests/CMakeLists.txt": "bde1292e30523ff5756c795f3f41394f546559d245ac5600b17361a9bbb2ce50",
+    "fixtureTestExecutableSha256": "69cde53325ea77cd5982d2fe1a2934bf49bcb24d1756f44f30dd6aee210a87f8",
+    "dwg2dxfExecutableSha256": "ad155d0238db835115c0da95109be3f5033e4b380747842f7085001a358fb4bb",
+    "cmakeCacheSha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+  },
+  "validation": {
+    "focusedBuilds": {
+      "result": "PASS",
+      "commands": [
+        "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "cmake --build build-gcc --target dwg2dxf -j2"
+      ]
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "commands": [
+        "ctest --test-dir build-gcc -R 'libdxfrw_mline_(consumed_offset_projection|consumed_offset_cap_flags|consumed_append_cap_flags|consumed_removal_cap_flags)$' --output-on-failure",
+        "ctest --test-dir build-gcc -R 'libdxfrw_mline_consumed_style_(append|removal)_cap_flags$' --output-on-failure",
+        "ctest --test-dir build-gcc -R '^libdxfrw_mline_retarget_(offset|angle)_projection$' --output-on-failure"
+      ],
+      "summary": "6/6 selected tests passed. The new selector covers 12 positive encoding/flag profiles, 4 closed/unknown refusals with same-adapter retry, and 2 late-mutation refusals with same-adapter retry; plain consumed-offset, cap-flag append/removal, and offset/angle-retarget regressions pass."
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds no new allocation, ownership, lifetime, bounds or handle path."
+  },
+  "limitations": [
+    "Only the selected AC1027 direct consumed-style two-element offset edit with group-71 flags 5, 9 and 13 is covered.",
+    "Group-71 values are preserved and read back, but native cap appearance and rendered geometry are not qualified.",
+    "Other offset values, cap combinations, versions, carriers, full document closure and format support claims remain outside this receipt."
+  ],
+  "next": "Select a current distinguishing MLINE style/consumer schema or alternate LTYPE provider; bind one source and expected output before implementation."
+}

@@ -4,4 +4,5 @@ libdxfrw
 See README.md for the current build, package, compatibility, and support
 documentation. This file is retained for distributions and older source links.
 
-The current release line is 2.0.0. It requires C++17 and CMake 3.28 or newer.
+The current development package version is 3.0.0. It requires C++17 and CMake
+3.28 or newer; consumers must rebuild across the 2.x ABI boundary.

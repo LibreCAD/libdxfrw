@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-arcalignedtext-d2t-output-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_AC1027_D2T_INVALID_REFUSAL_AND_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Prevent DXF output from silently substituting defaults for malformed nonempty ARCALIGNEDTEXT D2T parameters. Preserve defaults for absent strings. No DWG grammar or DXF field layout changed.",
+  "implementationReadiness": {
+    "baselineHead": "37aaa94d86611e13f3479a79691300baaf82eee2",
+    "sourceObservation": "Before this slice, arcAlignedDxfValue returned the fallback when DxfNumeric::parsePrefix rejected a nonempty field. writeArcAlignedText emitted that fallback as the record's numeric DXF field.",
+    "fields": {
+      "group 41": "m_xScale",
+      "group 42": "m_textSize",
+      "group 43": "m_charSpacing",
+      "group 44": "m_offsetFromArc",
+      "group 45": "m_rightOffset",
+      "group 46": "m_leftOffset"
+    },
+    "change": "Only empty strings use the established fallback. Nonempty strings must parse under the existing prefix policy and produce finite doubles; otherwise reject before starting the entity record. Existing prefix-parse compatibility is unchanged."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "edbca99bc34cd8f7af5b6252c84bf1716fc3657c277be9109793150df5786083",
+      "tests/dwg2dxf_adapter_tests.cpp": "d69da051d92578f6b19c90e53c3e9e69cfd454b1ef12076fce2c316a35326606",
+      "tests/CMakeLists.txt": "96bbc9376247d1b2fecb8e008cc016fff481f50f3fe8fc4b6b7eca844ff3ec19"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2), arm64-apple-darwin27.0.0"
+    },
+    "adapterExecutableSha256": "50d27ed78c3e33c1e19c8573660d8fc257b3fbf8e4cb2e53ae6bb039ff2de8d0"
+  },
+  "controls": {
+    "selector": "--arcalignedtext-d2t-output-guard",
+    "ctest": "dwg2dxf_arcalignedtext_d2t_output_guard",
+    "profiles": ["AC1027 ASCII DXF", "AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "All six empty fields retain the established defaults and survive typed reimport in both encodings.",
+      "Each of six fields is independently tested with malformed text and a nonfinite token; all 24 export attempts refuse and preserve a preexisting destination.",
+      "Every refusal is corrected and retried through the same dx_iface; typed reimport verifies all six numeric parameters.",
+      "Caller D2T values, entity handle, and owner handle remain unchanged across refusal, retry, and successful export."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_arcalignedtext_d2t_output_guard$' --output-on-failure",
+      "result": "PASS 1/1 in 0.64 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated adapter transport and loss refusal only; no physical ARCALIGNEDTEXT producer, native display, or independent semantic reader was exercised.",
+    "The existing numeric prefix acceptance policy remains unchanged.",
+    "No support claim is promoted; the external ARCALIGNEDTEXT exclusion and broader text/annotation gates remain open."
+  ],
+  "nextReadyPacket": "Reassess current P6 source/schema residuals and choose another independently actionable local gap. Prepare its exact witness and execution brief before editing; do not promote external or native support claims from this generated control."
+}

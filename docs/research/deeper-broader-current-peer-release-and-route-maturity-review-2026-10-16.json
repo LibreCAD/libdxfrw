@@ -1,0 +1,147 @@
+{
+  "schema": "libdxfrw-deeper-broader-current-peer-release-and-route-maturity-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh current open-source DWG/DXF/3D peer release and development-branch boundaries; update existing PAR-07/S2/S3/S8 peer-admission readiness without inferring local behavior or promoting support claims.",
+  "method": {
+    "kind": "Primary upstream release, source, issue, and pull-request review",
+    "sourcesReviewed": [
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+      "https://github.com/DomCR/ACadSharp/pull/1139",
+      "https://github.com/DomCR/ACadSharp/pull/1146",
+      "https://github.com/DomCR/ACadSharp/pull/1154",
+      "https://github.com/DomCR/ACadSharp/issues/822",
+      "https://github.com/DomCR/ACadSharp/pull/1270",
+      "https://github.com/DomCR/ACadSharp/pull/1174",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/LibreDWG/libredwg/releases",
+      "https://github.com/LibreDWG/libredwg",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "freshnessLimit": "The exact merge SHA/status of ACadSharp PR #1270 was not independently resolved. GitHub issue #822 shows closed as completed through #1270 after the v3.8.0 release; the issue-close event is not treated as a peer runtime result.",
+    "evidenceRule": "A release/tag, mutable master, pull-request branch, issue closure, or project-reported corpus result is version- and route-scoped. None alone establishes libdxfrw correctness, complete entity support, exact owner attachment, valid B-rep semantics, or native CAD acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "ACadSharp release and read-side ACIS/Prototype1b route",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+        "https://github.com/DomCR/ACadSharp/pull/1139",
+        "https://github.com/DomCR/ACadSharp/pull/1146",
+        "https://github.com/DomCR/ACadSharp/pull/1154"
+      ],
+      "observed": "v3.8.0 is signed at commit 3a1c66b. The v3.6.51 release notes list #1139 raw ACIS payload extraction for 3DSOLID/REGION/BODY across DWG and DXF, #1146 payload-area anchoring, and #1154 full DWG Prototype1b parsing. #1139 describes an author-reported 306-file corpus and more than 16,000 extracted payloads, with a multi-blob limitation at that stage. #1154 describes remaining unknown values and read-only scope for its Prototype1b data model.",
+      "doesNotEstablish": [
+        "independently reproduced peer runtime behavior",
+        "B-rep validity or curved-solid semantics",
+        "complete support across all producers, versions, schemas, or blob layouts",
+        "ACIS DXF writer capability in v3.8.0"
+      ],
+      "planUse": "Admit v3.8.0 only as an optional, exact-pinned read-side structural comparator. Check raw payload identity and per-entity owner attachment on locally authored controls; separate carrier extraction from semantic geometry."
+    },
+    {
+      "topic": "Post-release ACadSharp development and writer status",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/822",
+        "https://github.com/DomCR/ACadSharp/pull/1270",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observed": "Issue #822 is closed as completed through PR #1270 after the v3.8.0 tag; the exact merged commit was not resolved. PR #1174 remains open; a contributor reported an owner-attachment test failure on that branch, not on the released package. PR #1240 remains open, depends on #1174, and shows no deployment. Issue #1195 describes silent modeler-entity omission on ACadSharp 3.4.9, not a reproduced v3.8.0 failure.",
+      "doesNotEstablish": [
+        "that #1270 is included in v3.8.0",
+        "a general current-master ACIS writer capability",
+        "a local libdxfrw defect",
+        "successful arbitrary-schema write or native acceptance"
+      ],
+      "planUse": "Keep released-v3.8.0, exact current-master commit, and open-PR builds as separate comparison lanes. Before any newer-source run, resolve immutable SHAs and pass a focused owner-attachment test. Do not infer writer support from the issue closure."
+    },
+    {
+      "topic": "LibreDWG release versus nightly provenance",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/releases",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "observed": "The latest visible prerelease is 0.14.8612 at f860b0f, dated Oct 13 and labeled a Windows nightly/pre-release. Project documentation continues to describe advanced R2010+ read omissions and DWG writer/version caveats, including stable writing limited through R2004 and CRC/audit problems for R2010-R2018 output.",
+      "doesNotEstablish": [
+        "a new stable release with changed capability",
+        "uniform entity-family success from a broad version-coverage statement",
+        "independent ACIS shape semantics"
+      ],
+      "planUse": "Pin stable and prerelease artifacts separately; report version, entity family, direction, owner path, and outcome. No headline coverage percent promotes local support."
+    },
+    {
+      "topic": "DXF comparator and downstream-consumer route boundaries",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "observed": "GDAL 3.12 adds Binary DXF reading and an AC1027+ option exposing raw ASM bytes and a 12-real transform; modeler entities are skipped by default and are not made into OGR solids. ezdxf 1.4.5 documents selected SAT/SAB read/write and flat-polygon mesh extraction, but warns unsupported ACIS structures may be lost. FreeCAD documents distinct C++ and legacy Python DXF importer paths and requires an external DWG converter.",
+      "doesNotEstablish": [
+        "an independent open-source DWG parser in GDAL",
+        "arbitrary curved B-rep support in ezdxf",
+        "one uniform FreeCAD import result across backends or converter versions",
+        "native CAD acceptance from file-open success"
+      ],
+      "planUse": "Keep GDAL raw ASM, ezdxf bounded carrier/projection, and named FreeCAD importer/converter routes separate. Capture backend, converter, skipped bodies, warnings, and projection/semantic outcome explicitly."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "PAR-07",
+      "S2",
+      "S3",
+      "S8"
+    ],
+    "optionalPeerGateOrder": [
+      "Continue with local generated vectors and focused tests; no peer is required for an ordinary implementation slice.",
+      "At the composed checkpoint, prefer a released, immutable ACadSharp package for raw read/owner checks; resolve and pin any post-release master or PR source separately.",
+      "Run DXF inline SAT, DXF ACDSDATA/SAB, pre-AC1027 DWG inline modeler data, and AC1027+ DWG Prototype1b/AcDs as separate carrier profiles.",
+      "Compare source entity/handle and owner path to exact payload length/hash and peer notifications; counts or successful parse status alone do not establish attachment.",
+      "Only after carrier and owner closure may ACIS parser, kernel, analytic metrics, or named-native-consumer gates run."
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "parityPlanUpdated": true,
+    "threeDSupportPlanUpdated": true,
+    "receiptJsonParsed": true,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "localTestsRun": false,
+    "productionBehaviorChangedByResearch": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "githubApiCli": "UNAVAILABLE: unable to connect to api.github.com from this environment; exact PR #1270 merge SHA not resolved"
+  }
+}

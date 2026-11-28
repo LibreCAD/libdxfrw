@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "7S.3 INSERT/ATTRIB frame-batch rollback",
+  "mode": "Generated local implementation slice and focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Replace per-write full compound snapshots for eligible contiguous INSERT/ATTRIB/SEQEND frames with bounded retained-frame rollback.",
+    "Retain the reverse BLOCK_RECORD insert-reference edge in the rollback contract.",
+    "Cover attributed and preserved legacy empty-ATTRIB INSERT sequences in the existing fast selector and CTest."
+  ],
+  "implementation": {
+    "files": [
+      "src/libdwgr.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "behavior": "dwgRW::writeInsert selects retained frame-batch rollback for attribute-bearing INSERTs and preserved legacy empty-ATTRIB sequences when the writer advertises last-entity rollback. dwgWriter15 batch validation accepts at most one reverse insert-reference edge on the first frame and validates all owner/object-map/emitted-handle/index suffixes before rolling frames back in reverse order.",
+    "fallback": "Writers without retained-frame rollback and any frame associated with a custom DWG class keep the comprehensive transaction path.",
+    "generatedControls": [
+      "Two-ATTRIB INSERT receipt roles and target-block insert-reference registration.",
+      "Explicit rollback of bytes, object-map/emitted handles, BLOCK_RECORD owner membership, reverse insert-reference vector/index, and caller INSERT/ATTRIB fields.",
+      "Missing frame receipt after parent plus first ATTRIB rolls back the published prefix and restores caller state.",
+      "Injected SEQEND failure after both ATTRIB frames rolls back the batch and allows retry.",
+      "Explicit class-associated INSERT handle 0xF100/class 500 takes the comprehensive fallback; injected missing receipt restores class-owner/raw-instance/emission ledgers and reverse-reference indexes, then retry and explicit rollback succeed.",
+      "Preserved AC1015 empty-ATTRIB sequence Parent/SEQEND batch rollback and original sentinel-handle restoration.",
+      "Enclosing caller-mutation-tracking transaction uses exactly one comprehensive checkpoint."
+    ],
+    "selector": "tests/dwg_local_roundtrip_tests.cpp --block-owner-membership-index"
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+    "fastSelector": "PASS: build-gcc/libdxfrw_dwg_local_roundtrip --block-owner-membership-index",
+    "ctest": "PASS (4/4): libdxfrw_dwg_block_owner_membership_index, libdxfrw_dwg_local_roundtrip, libdxfrw_dwg_block_record_xref_roundtrip, dwg_dxf_issue_1410_cross_codec",
+    "gitDiffCheck": "PASS: git diff --check on scoped implementation, test, and plan files",
+    "fullSuiteRun": false,
+    "wallClockBenchmarkRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionAndTestChanges": true,
+    "newCtestRegistrations": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "The zero-full-checkpoint assertion is deterministic work evidence, not a wall-clock throughput benchmark.",
+    "The shared worktree contains extensive unrelated dirty changes and Git metadata is read-only in this session; no commit was created."
+  ],
+  "commitCreated": false
+}

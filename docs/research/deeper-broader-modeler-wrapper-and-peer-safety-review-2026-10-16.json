@@ -1,0 +1,135 @@
+{
+  "schema": "libdxfrw-deeper-broader-modeler-wrapper-and-peer-safety-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "planFile": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "c8f90db517e4ee98a3ec713297ae9be2955fc38e13f77052c04d29cee1f4bed5",
+  "scope": "Broaden the open-source comparison of DWG modeler wrapper fields, current ACadRust and ACadSharp release evidence, and safe admission of peer executables; update the existing PAR-07/S8 implementation readiness without promoting 3D support.",
+  "method": {
+    "kind": "Primary ODA specification review, peer release/issue/PR status review, and local modeler API cross-check",
+    "liveReferencesRecheckedAt": "2026-10-16",
+    "peerRepositoriesCloned": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "localImplementationTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "evidenceBoundary": "ODA v5.4.1 is authoritative for documented DWG framing, but explicitly does not completely decrypt ACIS entities. Peer releases, source APIs, issue reports, reporter retests, and PR states guide test design only. No peer result was independently reproduced; no geometry semantics or native acceptance is claimed."
+  },
+  "evidence": [
+    {
+      "topic": "DWG modeler wrapper fields and AcDs separation",
+      "sources": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "observed": "ODA v5.4.1 §20.4.41 documents modeler version and empty/unknown flags, inline SAT/SAB blocks, optional wireframe point/isoline/wire/transform and per-view silhouette data, secondary ACIS data, and a versioned history handle. §24 describes R2013+ AcDs segment/index/page storage separately and states the modeler format is not fully understood/decrypted.",
+      "doesNotEstablish": [
+        "that every optional wrapper field exists in every DWG generation",
+        "complete ACIS/SAB record grammar or a valid B-rep",
+        "that matching payload size or hash proves sibling frame-state parity"
+      ],
+      "planUse": "Extend existing PAR-07/S8.4/S8.5 evidence with per-field typed, exact-opaque, absent, unreadable, or unsupported/lost disposition. Keep body bytes, wrapper/cache fields, AcDs resolution, history linkage, and geometry semantics separate."
+    },
+    {
+      "topic": "ACadRust v0.6.4 solid/surface strict-read retest",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4",
+        "https://github.com/hakanaktt/acadrust/issues/129",
+        "https://docs.rs/acadrust/latest/acadrust/entities/solid3d/struct.AcisData.html"
+      ],
+      "observed": "The reporter states that six privately supplied AutoCAD 2004/2018 drawings that failed strict reading on v0.6.3 all read on v0.6.4 without skips; ODA also reopened ACadRust-written outputs with matching solid/surface counts and ACIS data sizes. The peer API documents separate SAT/SAB, revision/material, wireframe, empty-bit, and optional secondary-stream fields.",
+      "doesNotEstablish": [
+        "sample-hash-bound independent reproduction or availability of the private drawings",
+        "payload byte identity from equal size",
+        "topology, dimensions, volume, units, shape validity, or independent kernel semantics",
+        "that every API field applies to every DWG generation"
+      ],
+      "planUse": "Treat v0.6.4 at source commit 8d5c46d as an optional strict structural comparator at one composed checkpoint. Capture per-handle entity/owner/wrapper disposition and diagnostics; do not promote equal counts or ACIS sizes to geometry parity."
+    },
+    {
+      "topic": "Peer malformed-input safety admission",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/123",
+        "https://github.com/hakanaktt/acadrust/issues/124",
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4"
+      ],
+      "observed": "Issues #123 and #124 describe object-data count inflation/unbounded allocation and malformed-header panics on v0.6.3. Fix commits are referenced and v0.6.4 followed, but the reviewed issue pages still request reporter retests; the exact release behavior was not exercised here.",
+      "doesNotEstablish": [
+        "that v0.6.4 remains vulnerable",
+        "that the referenced fixes cover every malformed-input path",
+        "any analogous defect in libdxfrw"
+      ],
+      "planUse": "Inspect and verify the exact pinned peer artifact before use, isolate it in a separate process with time, memory, and output limits, and do not pass hostile vectors until the release-specific fixes have been verified."
+    },
+    {
+      "topic": "ACadSharp current release versus unmerged ACIS writer work",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observed": "As checked on 2026-10-16, v3.7.1 is the latest listed ACadSharp release, while #1150 and #1240 remain open and #1240 has no deployment and depends on schema/storage work; issue #1195 remains open.",
+      "doesNotEstablish": [
+        "that current released ACadSharp writes all ACIS DXF/DWG routes",
+        "any local libdxfrw writer defect",
+        "ACIS geometry correctness or native application acceptance"
+      ],
+      "planUse": "Use only an exact released version with relevant code confirmed shipped for writer comparisons; do not treat open PR source as released capability or block local work on those PRs."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "affectedOwners": [
+      "PAR-07 modeler payload and wrapper-state handling",
+      "S8.4 versioned carrier and frame-state checks",
+      "S8.5 end-to-end identity/owner/semantic route census",
+      "external peer and geometry-kernel admission"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Use the existing modeler/graph test owner for tiny source-generated wrapper-presence and stale-raw-replay invalidation controls.",
+      "Keep exact body transport and wrapper/cache/history disposition separate from an independently measured geometry result.",
+      "At a single composed checkpoint, optionally run exact ACadRust v0.6.4 in strict mode with resource isolation; record NOT RUN if the artifact or isolation cannot be established.",
+      "Use ACadSharp only at a released version whose relevant writer code is confirmed shipped.",
+      "For future local implementation slices, run the touched strict target, owning fast test, required API compatibility check, and git diff --check; do not add a full-suite run for this research update."
+    ],
+    "fixturePolicy": "No third-party DWG/DXF/SAT/SAB fixtures were downloaded or added; future controls remain generated in memory or in temporary paths from source."
+  },
+  "planImpact": {
+    "findings": 124,
+    "topLevelSubplans": 71,
+    "externalJDispositionChanged": false,
+    "codeChanged": false,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "planUpdated": true,
+    "planSha256Recorded": true,
+    "planDiffWhitespaceCheck": "passed",
+    "receiptJsonParsed": "passed",
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "geometryKernel": "NOT RUN",
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0
+  }
+}

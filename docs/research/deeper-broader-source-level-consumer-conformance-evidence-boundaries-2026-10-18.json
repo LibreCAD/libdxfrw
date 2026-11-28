@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader source-level consumer and conformance-evidence boundaries",
+  "mode": "primary-source repository and adapter review; plan-only refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Inspect the exact CodeCAD DWG reader-to-application-model and application-model-to-writer route",
+    "Separate CodeCAD fresh-document output from its existing-DWG overlay route",
+    "Screen IFCCAD's conformance corpus for applicability to DWG/DXF codec testing",
+    "Refine optional comparator admission and local fixture/evidence policy"
+  ],
+  "method": {
+    "kind": "Read current project README, manifest, lockfile, architecture, adapter source, and conformance-corpus description",
+    "repositoriesCloned": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "drawingsDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localBuildRun": false,
+    "localTestsRun": false,
+    "limitations": "Reviewed mutable GitHub main pages rather than immutable peer commits or release artifacts. CodeCAD's lockfile pins ACadRust 0.3.4 for the reviewed source state, but no binary was built or run. IFCCAD corpus applicability was judged from its project scope; none of its files were downloaded or inspected."
+  },
+  "sources": [
+    {
+      "project": "CodeCAD",
+      "urls": [
+        "https://github.com/backkem/codecad",
+        "https://github.com/backkem/codecad/blob/main/crates/cadview-core/Cargo.toml",
+        "https://github.com/backkem/codecad/blob/main/Cargo.lock",
+        "https://github.com/backkem/codecad/blob/main/docs/architecture.md",
+        "https://github.com/backkem/codecad/blob/main/crates/cadview-core/src/dwg.rs"
+      ],
+      "revision": "Mutable main pages retrieved 2026-10-18 local date; exact commit SHA not captured",
+      "observed": "cadview-core declares acadrust 0.3 and the checked Cargo.lock resolves 0.3.4. The DWG adapter calls ACadRust's reader then builds an app-owned document; architecture describes 2D Kurbo projection, including tessellated curves and flattened INSERT display. Fresh-document save creates AC1015 CAD documents; a separate overlay route rereads a source DWG and adds selected entities. These are distinct application transformations sharing one ACadRust parser lineage, not independent parser or full semantic roundtrip evidence."
+    },
+    {
+      "project": "IFCCAD Python prototype",
+      "urls": [
+        "https://github.com/OpenAEC-Foundation/ifccad-prototype",
+        "https://github.com/OpenAEC-Foundation/ifccad-prototype/tree/main/conformance"
+      ],
+      "revision": "Mutable main repository page retrieved 2026-10-18 local date; exact commit SHA not captured",
+      "observed": "The project describes an experimental model-first Python implementation of a distinct IFCX/IFCDR/IFCPR package format. It demonstrates semantic roundtrips for a bounded 2D CAD subset using ezdxf and says its conformance corpus is an interoperability handoff for that package. It explicitly is not a general DWG/DXF replacement and lists 3D and complete source-record preservation among gaps."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingPlanGatesRefined": [
+      "Keep CodeCAD within the ACadRust parser lineage and limit it to an optional 2D consumer/projection route",
+      "Score CodeCAD fresh-document and source-DWG overlay writes as distinct transformations",
+      "Use IFCCAD only as a manifest/conformance-method reference, not as a DWG/DXF codec peer or fixture source",
+      "Keep external fixture files out of the repository; author local generated controls and expected values independently"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "No new independent DWG/DXF parser or 3D semantic witness was found. Tighten optional consumer scoring and expected-manifest methodology without creating peer-runtime work or changing implementation priority/cadence."
+  },
+  "workingTree": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "receiptCreated": "docs/research/deeper-broader-source-level-consumer-conformance-evidence-boundaries-2026-10-18.json",
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared worktree already contains extensive user/work-in-progress changes; only the requested plan and research receipt were changed by this pass."
+  }
+}

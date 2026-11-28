@@ -1,0 +1,372 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1032 TABLECONTENT bounded raw-only shell recovery",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+    "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+    "version": "AC1032",
+    "provenance": "Tracked external ACadSharp sample; used read-only, not copied into this repository."
+  },
+  "authority": {
+    "oda": "ODA v5.4.1 §2 requires R2007+ object Unicode strings in the detached string stream; §20.4.99 describes TABLECONTENT value strings as TV. The peer's body-byte-count interpretation remains unreconciled.",
+    "implementationPolicy": "Do not change TABLECONTENT field parsing or infer semantic values. Preserve only the common shell and exact raw frame when the typed parser fails and RawObjectShell validates."
+  },
+  "typedFailureTrace": {
+    "sourceCommand": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg -y -d -v2018 /private/tmp/sample-AC1032-tablecontent-trace3.dxf",
+    "traceFile": "/private/tmp/sample-AC1032-tablecontent-trace3.log",
+    "traceSha256": "5db37f3337346262fc0695cba3c2c5d5c33bbe17b04b72676414c9145211957e",
+    "observedFailures": [
+      {
+        "handle": "0xE5F",
+        "boundary": "first cell attribute handle",
+        "observedHandleCode": "0x5",
+        "observedReference": "0x00",
+        "expectedOdaRole": "soft pointer (code 0x4)"
+      },
+      {
+        "handle": "0x747",
+        "boundary": "first cell attribute handle",
+        "observedHandleCode": "0x5",
+        "observedReference": "0x00",
+        "expectedOdaRole": "soft pointer (code 0x4)"
+      }
+    ],
+    "interpretation": "The ordinary parser's cursor reaches code 0x5 at its interpreted first cell-attribute slot. The subsequent body/string span probe shows that this interpretation is likely displaced; see handleAndBodySpanRecheck. It does not establish a producer/spec role violation or qualify typed payload or output.",
+    "codeChange": "Added debug-only boundary diagnostics in src/drw_entities.cpp; no parser interpretation or output behavior changed."
+  },
+  "handleAndBodySpanRecheck": {
+    "traceCommand": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg -y -d -v2018 /private/tmp/sample-AC1032-tablecontent-final-trace.dxf",
+    "tracePath": "/private/tmp/sample-AC1032-tablecontent-final-trace.log",
+    "traceSha256": "595d08ff78fe6e16bf3b2d99d65e42485238fa4d98a4e672100357d8ce9db0af",
+    "converterSha256": "38acdbdbc1e0665dab674e183a488c54865f957dd4b77309f971989d29148fd3",
+    "observations": [
+      {
+        "handle": "0xE5F",
+        "objectSizeAndHandleStartBit": 26135,
+        "handleEndBit": 26584,
+        "commonOwner": {
+          "span": "26135..26151",
+          "code": "0x7",
+          "reference": "0xE62"
+        },
+        "currentInterpretation": {
+          "parsedUnit": 44,
+          "parsedAttributeCount": 32,
+          "nextHandle": {
+            "span": "26151..26167",
+            "code": "0x5",
+            "reference": "0x11",
+            "interpretedAs": "ATTDEF soft pointer; rejected"
+          }
+        },
+        "bodyStringCandidate": {
+          "byteCount": 44,
+          "payloadSpan": "634..996",
+          "unit": 0,
+          "attributeCount": 0,
+          "contentFormatOverrideFlag": 1,
+          "format": "",
+          "display": "Hello this is a title",
+          "contentFormatTextStyle": {
+            "span": "26151..26167",
+            "code": "0x5",
+            "reference": "0x11"
+          }
+        },
+        "alternateParse": {
+          "parseComplete": true,
+          "semanticComplete": false,
+          "bodySpan": "40..12042/12042",
+          "stringEndBit": 26118,
+          "handleSpan": "26135..26583/26584",
+          "unconsumedStringToHandleGapBits": 17,
+          "stringGapBits": "11111100001101101",
+          "trailingTvDecodeSucceeded": false,
+          "terminalHandleBit": 1,
+          "exactDetachedStringStream": {
+            "cursorAtEndBit": 26118,
+            "dataStartBit": 12042,
+            "dataEndBit": 26118,
+            "dataSizeBits": 14076,
+            "footerSpan": "26118..26135",
+            "footerLowSize": 14076,
+            "footerHighSize": 0,
+            "stringPresent": true,
+            "interpretation": "The previously reported 17-bit pre-handle gap is exactly the raw 16-bit string-size word plus the final string-present bit. The candidate cursor is at the ODA-defined string-data end.",
+            "terminalHandlePadding": {
+              "bits": 1,
+              "value": 1,
+              "candidateCursorBitModulo8": 7,
+              "handleEndBitModulo8": 0,
+              "requiredByteAlignmentBits": 1,
+              "matchesOdaObjectPadding": true
+            }
+          }
+        }
+      },
+      {
+        "handle": "0x747",
+        "objectSizeAndHandleStartBit": 53223,
+        "handleEndBit": 55080,
+        "commonOwner": {
+          "span": "53223..53247",
+          "code": "0x7",
+          "reference": "0xE58"
+        },
+        "currentInterpretation": {
+          "parsedUnit": 26,
+          "parsedAttributeCount": 80,
+          "nextHandle": {
+            "span": "53247..53255",
+            "code": "0x5",
+            "reference": "0x00",
+            "interpretedAs": "ATTDEF soft pointer; rejected"
+          }
+        },
+        "bodyStringCandidate": {
+          "byteCount": 26,
+          "payloadSpan": "466..684",
+          "unit": 0,
+          "attributeCount": 0,
+          "contentFormatOverrideFlag": 1,
+          "format": "",
+          "display": "Table sample",
+          "contentFormatTextStyle": {
+            "span": "53247..53255",
+            "code": "0x5",
+            "reference": "0x00"
+          }
+        },
+        "alternateParse": {
+          "parseComplete": true,
+          "semanticComplete": false,
+          "bodySpan": "40..39838/39838",
+          "stringEndBit": 53206,
+          "handleSpan": "53223..55079/55080",
+          "unconsumedStringToHandleGapBits": 17,
+          "stringGapBits": "00111000001101001",
+          "trailingTvDecodeSucceeded": false,
+          "terminalHandleBit": 1,
+          "exactDetachedStringStream": {
+            "cursorAtEndBit": 53206,
+            "dataStartBit": 39838,
+            "dataEndBit": 53206,
+            "dataSizeBits": 13368,
+            "footerSpan": "53206..53223",
+            "footerLowSize": 13368,
+            "footerHighSize": 0,
+            "stringPresent": true,
+            "interpretation": "The previously reported 17-bit pre-handle gap is exactly the raw 16-bit string-size word plus the final string-present bit. The candidate cursor is at the ODA-defined string-data end.",
+            "terminalHandlePadding": {
+              "bits": 1,
+              "value": 1,
+              "candidateCursorBitModulo8": 7,
+              "handleEndBitModulo8": 0,
+              "requiredByteAlignmentBits": 1,
+              "matchesOdaObjectPadding": true
+            }
+          }
+        }
+      }
+    ],
+    "interpretation": "A debug-only alternate parse treats the type-4 value as a BL byte-counted body string, then reads unit 0, zero attributes, content-format fields and the observed code-0x5 text-style handle. Both records reach the exact body boundary, and the candidate string cursors equal the exact R2007+ detached-stream ends: the 14,076/13,368-bit spans match the footer size words and the following 17 bits are the size word plus string-present bit. The earlier failed trailing-TV probe had treated that footer as text. Each final unconsumed handle bit is exactly the padding needed to align the handle stream to a byte boundary, consistent with ODA v5.4.1 §20.1. The candidate remains semantically incomplete and conflicts with ODA v5.4.1 §§2 and 20.4.99; this does not independently establish its schema.",
+    "implementationPolicy": "Keep the production interpretation, raw-only fallback and strict-output refusal unchanged. Resolve the candidate's complete string/handle framing and its conflict with the authoritative ODA text before adopting it."
+  },
+  "peerParserRecheck": {
+    "parser": "dwgTs",
+    "revision": "216e5c4ba744d753ebe3e6891712034bafd96de7",
+    "command": "node /Users/dli/dev/dwgTs/dist/cli/cad-to-json.cjs /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg -o /private/tmp/dwgt-sample-ac1032.json --pretty 2",
+    "outputSha256": "21817e9674a467b7dbcf79621ac8a0cbec688fd28099e6765b799a555ebba671",
+    "observations": [
+      {
+        "handle": "0x747",
+        "declaredRows": 7,
+        "declaredColumns": 3,
+        "firstCellDeclaredAttributes": 80,
+        "firstCellContentFormatOverrideFlag": 61199,
+        "firstCellStopBoundary": "cell-geometry"
+      },
+      {
+        "handle": "0xE5F",
+        "declaredRows": 4,
+        "declaredColumns": 5,
+        "firstCellDeclaredAttributes": 32,
+        "firstCellContentFormatOverrideFlag": 256,
+        "firstCellStopBoundary": "cell-geometry"
+      }
+    ],
+    "interpretation": "These malformed-looking nested values and premature geometry boundaries show that this local peer build is also desynchronized on the same sample. It is not independent field/span evidence and cannot resolve the ODA role mismatch.",
+    "fixturePolicy": "Input is the existing external ACadSharp sample; no file was copied into this repository."
+  },
+  "peerSourceCodeReview": {
+    "ACadSharp": {
+      "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "files": [
+        "/Users/dli/dev/ACadSharp/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Entities.cs",
+        "/Users/dli/dev/ACadSharp/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Objects.cs"
+      ],
+      "observation": "TABLECONTENT string values route through readStringCadValue: BL byte count followed by bytes; the source comment says this also seems valid for string values. The caller then reads unit, format TV and display TV. The comment is a reader observation, not normative evidence."
+    },
+    "LibreDWG": {
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "files": [
+        "/Users/dli/dev/libreDWG/src/dwg_spec_shared.h",
+        "/Users/dli/dev/libreDWG/src/dwg2.spec"
+      ],
+      "observation": "TABLE_value_fields uses FIELD_T for type 4 and suppresses the payload when flags & 3 is nonzero; TABLECONTENTs_fields declares the ATTDEF field with handle code 5. These assumptions differ from the ACadSharp body-byte-count route and from ODA v5.4.1's bit-0 payload suppression and soft-pointer ATTDEF role. LibreDWG 0.14 leaves the two physical TABLECONTENT frames unknown, so these macros do not provide a successful independent parse."
+    },
+    "independenceLimit": "The ACadSharp-inspired dwgTs parser is not a separate implementation family. Neither the inspected source comments nor an unsupported LibreDWG object classification can adjudicate the physical source."
+  },
+  "implementation": {
+    "baseRevision": "f8b8d5c7",
+    "files": [
+      "src/intern/dwgreader.cpp",
+      "src/drw_entities.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "For only AC1032 TABLECONTENT / AcDbTableContent, a failed typed-body parse may publish raw-only after an independent RawObjectShell validates the common header and handle tail. The raw carrier has typedPayloadValidated=false and no TableContent callback is sent. An invalid shell remains failed. Strict output remains blocked by the raw-object/context replay gates."
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+      "result": "PASS",
+      "dwg2dxfSha256": "2f47d5188bcf5c67c923b46034a88421b4dbfaf17e2accaba135961af3fdd5ff"
+    },
+    "generatedControl": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure",
+      "result": "PASS, 1/1, 0.52 seconds",
+      "coverage": [
+        "raw-only publication occurs only after AC1032 shell validation",
+        "the full source payload, class identity and common owner/reactor roles are retained",
+        "no typed TABLECONTENT callback is sent for the raw-only source",
+        "a following typed associative object still publishes",
+        "the generated body is deliberately not a TABLECONTENT schema vector"
+      ]
+    },
+    "asanControl": {
+      "buildCommand": "cmake --build build-asan-custom --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+      "buildResult": "PASS",
+      "testCommand": "ctest --test-dir build-asan-custom -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure",
+      "testResult": "PASS, 1/1, 0.88 seconds"
+    },
+    "physicalRead": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg -y -d -v2018 /private/tmp/sample-AC1032-tablecontent-raw-only.dxf",
+      "binarySha256": "2f47d5188bcf5c67c923b46034a88421b4dbfaf17e2accaba135961af3fdd5ff",
+      "logSha256": "6112e14dc0876f80cd2fe968fcbf0ec79c60aed8676d7ddc452254ca77efd492",
+      "result": "Read completed; CLI returned 1 because strict DXF preparation correctly refused the existing standalone OBJECTCONTEXTDATA replay gate.",
+      "rawOnlyTrace": [
+        "AcDbTableContent handle 0xE5F",
+        "AcDbTableContent handle 0x747"
+      ],
+      "sourceFrames": 842,
+      "publishedFrames": 842,
+      "failedFrames": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "dataStorageLinkFailures": 0,
+      "dataStorageOrphanRecords": 0
+    },
+    "spanDiagnosticValidation": {
+      "buildCommand": "cmake --build build-gcc --target dwg2dxf -j4",
+      "buildResult": "PASS",
+      "physicalTraceCommand": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg -y -d -v2018 /private/tmp/sample-AC1032-tablecontent-final-trace.dxf",
+      "physicalTraceSha256": "595d08ff78fe6e16bf3b2d99d65e42485238fa4d98a4e672100357d8ce9db0af",
+      "generatedControlCommand": "ctest --test-dir build-gcc -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure",
+      "generatedControlResult": "PASS, 1/1, 0.49 seconds",
+      "scope": "Debug diagnostics and raw-only recovery validation only; no TABLECONTENT production interpretation or support claim changed."
+    },
+    "fixturePolicy": "No DWG or DXF fixture was added; the regression control is generated in memory.",
+    "stringFooterBoundaryDiagnostic": {
+      "buildCommand": "cmake --build build --target dwg2dxf -j4",
+      "buildResult": "PASS",
+      "physicalTraceCommand": "build/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg -y -d -v2018 /private/tmp/tablecontent-boundary-final.dxf",
+      "sourceSha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+      "binarySha256": "85c20d6dd66c5bc32a37ce4ef1513a09f1570b8973ee717c2a01b9dc3aa8e77c",
+      "logPath": "/private/tmp/tablecontent-boundary-final.log",
+      "logSha256": "09ff2f6800668f29d7e97f187a290a08303becaf8bdfd9471e52f58b9f016e0a",
+      "result": "Both AC1032 candidate cursors equal the exact detached string-stream end calculated from the R2007+ footer. The low-size word matches the string-data span, high-size word is zero, and the presence bit is one. Each one-bit handle tail exactly aligns the decoded handle stream to the next byte boundary as specified by ODA §20.1; candidate semanticComplete remains false.",
+      "observations": [
+        {
+          "handle": "0xE5F",
+          "stringDataSpan": "12042..26118",
+          "stringDataBits": 14076,
+          "footerSpan": "26118..26135",
+          "footerLowSize": 14076,
+          "footerHighSize": 0,
+          "stringPresent": true,
+          "candidateStringCursor": 26118,
+          "handleStream": "26135..26584",
+          "candidateHandleCursor": 26583,
+          "terminalHandlePadding": {
+            "bits": 1,
+            "value": 1,
+            "candidateCursorModulo8": 7,
+            "handleEndModulo8": 0,
+            "expectedBytePaddingBits": 1,
+            "matchesOdaPadding": true
+          }
+        },
+        {
+          "handle": "0x747",
+          "stringDataSpan": "39838..53206",
+          "stringDataBits": 13368,
+          "footerSpan": "53206..53223",
+          "footerLowSize": 13368,
+          "footerHighSize": 0,
+          "stringPresent": true,
+          "candidateStringCursor": 53206,
+          "handleStream": "53223..55080",
+          "candidateHandleCursor": 55079,
+          "terminalHandlePadding": {
+            "bits": 1,
+            "value": 1,
+            "candidateCursorModulo8": 7,
+            "handleEndModulo8": 0,
+            "expectedBytePaddingBits": 1,
+            "matchesOdaPadding": true
+          }
+        }
+      ],
+      "scope": "Debug-only diagnostics and source-bound span accounting; no parser interpretation, typed publication, output eligibility or support claim changed."
+    }
+  },
+  "scopeLimit": "This closes raw frame publication for the two current AC1032 TABLECONTENT objects only. The debug-only body-byte-count candidate reaches exact body, detached-string, and byte-aligned handle-stream boundaries, but remains in conflict with ODA v5.4.1 §§2 and 20.4.99 and its typed projection is semantically incomplete. The acadrust parser is ACadSharp-derived and its fixture was unavailable locally; this lead is closed unless the exact producer bytes become available through an already authorized source. No output support, other version/producer qualification, or native TABLE rendering is established.",
+  "externalResearchLead": {
+    "project": "acadrust",
+    "repository": "https://github.com/hakanaktt/acadrust",
+    "sourceRevision": "dynamic public main branch as inspected 2026-11-07; exact tested commit still must be pinned if fixture bytes become available",
+    "testSource": "https://github.com/hakanaktt/acadrust/blob/main/tests/table_dwg_read.rs",
+    "writerSource": "https://docs.rs/acadrust/latest/src/acadrust/io/dwg/dwg_stream_writers/object_writer/entities.rs.html",
+    "observedClaims": [
+      "The test identifies tests/roundtrip/blocks_and_tables_metric.dwg as a real AutoCAD-authored R2007 fixture and asserts two ACAD_TABLE entities and known schedule cell values.",
+      "The test writes the parsed document to DWG and rereads it, then checks selected cell values; this self-roundtrip is not independent evidence.",
+      "The current writer source encodes R2007+ table string values as UTF-16LE with a trailing NUL, writes a BL byte count, then writes bytes to its merged writer; type code 4 takes this route."
+    ],
+    "status": "CLOSED_UNAVAILABLE_FOR_IMPLEMENTATION; PARSER_NOT_INDEPENDENT",
+    "independenceLimits": [
+      "The acadrust THIRD_PARTY_NOTICES.md explicitly states its DWG reader and writer include code ported and adapted from ACadSharp. Its TABLECONTENT parser and self-roundtrip are therefore not independent evidence against the ACadSharp-derived profile.",
+      "The test claims its fixture is a real AutoCAD-authored R2007 drawing, but exact fixture availability, provenance, checksum, AC code and source object spans have not been locally verified.",
+      "The inspected writer is implementation evidence, not proof of what an external producer emitted.",
+      "No TABLECONTENT support or schema claim is promoted."
+    ],
+    "boundedNextSteps": [
+      "Reopen only if the exact claimed fixture becomes available through an already authorized/local source.",
+      "If reopened, pin repository commit and fixture provenance/version/SHA-256; inspect raw TABLECONTENT bytes and exact stream spans directly against ODA v5.4.1 §§2, 20.1 and 20.4.99.",
+      "Treat acadrust reader/writer output and self-roundtrip as non-independent because its DWG reader/writer derives from ACadSharp."
+    ],
+    "lineageEvidence": "https://raw.githubusercontent.com/hakanaktt/acadrust/main/THIRD_PARTY_NOTICES.md states that the DWG reader and writer include code ported and adapted from ACadSharp.",
+    "availabilityCheck": {
+      "localSearchRoots": [
+        "/Users/dli/dev",
+        "/Users/dli/doc"
+      ],
+      "exactFixtureFound": false,
+      "testBehavior": "The upstream test returns without executing when the fixture path does not exist; repository guidance says tests requiring unavailable drawings are skipped and directs users to supply the file.",
+      "publicBinaryRetrieved": false,
+      "result": "No producer bytes or source spans were available to inspect. This lead is closed for current implementation; no schema/support claim changes."
+    }
+  }
+}

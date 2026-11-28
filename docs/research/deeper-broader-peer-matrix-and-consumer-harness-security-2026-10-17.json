@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader peer-matrix drift and optional consumer harness security boundary",
+  "mode": "primary-source repository README and advisory review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile the current ACadRust AC1009 DWG documentation against the earlier mutable snapshot",
+    "Assess operational safety of the existing optional OpenCADStudio consumer qualification route",
+    "Separate peer evidence status and application control-plane risk from libdxfrw format and geometry evidence"
+  ],
+  "method": {
+    "kind": "Read-only primary-source web research plus local plan inspection",
+    "peerRepositoryClonedOrBuilt": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false,
+    "networkServiceStarted": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Both GitHub sources are mutable. The current README corrects a prior documentation snapshot but does not bind behavior to a pinned ACadRust package runtime. The OpenCADStudio advisory is scoped to the disclosed application-control modes and versions; no binary or parser path was exercised."
+  },
+  "sources": [
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust",
+      "revision": "mutable main README reviewed 2026-10-17; quickstart names package 0.6.4",
+      "observed": "The current detailed version table lists AC1009/R12 DWG as R/W, followed by an explicit note that AC1009 DWG fidelity is incomplete. This supersedes the earlier plan snapshot of a table cell marked unavailable, but does not establish runtime behavior or completeness for a pinned artifact."
+    },
+    {
+      "project": "OpenCADStudio",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/security/advisories/GHSA-c27p-xfx2-9r5x",
+      "revision": "GHSA published 2026-09-30; reviewed 2026-10-17",
+      "observed": "The advisory lists desktop builds <=2026.39.0 as affected when --http or --serve is enabled and 2026.40 as patched. It describes unauthenticated loopback REST access with wildcard CORS and open/command/save operations. It states ordinary GUI launch does not open this port and describes stdio MCP as using a token-protected GUI bridge."
+    },
+    {
+      "project": "OpenCADStudio",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio",
+      "revision": "mutable main README reviewed 2026-10-17",
+      "observed": "The README documents one-shot --export and separate --serve/--mcp automation modes. These options identify possible harness routes, not format qualification."
+    },
+    {
+      "project": "Existing plan lineage record",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "revision": "local working tree reviewed 2026-10-17",
+      "observed": "OpenCADStudio is already classified in the ACadRust codec lineage as an optional application/consumer route, not an independent parser vote or automatic B-rep semantic oracle."
+    }
+  ],
+  "assessment": {
+    "acadrustDisposition": "ADVERTISED_R/W / FIDELITY_INCOMPLETE / NOT_RUN; keep AC1009 DWG peer evidence NOT_ESTABLISHED until a pinned artifact and exact operation are exercised. Do not change libdxfrw's support status.",
+    "harnessSecurityDisposition": "For optional OpenCADStudio qualification, pin exact release/artifact and platform. Prefer ordinary GUI or one-shot offline CLI. Never start --http or --serve on a release at or below 2026.39.0; the advisory lists 2026.40 as patched. Do not introduce MCP/network-service setup into the plan.",
+    "findingClassification": "Documentation evidence-status correction plus optional test-harness security/readiness note only; not a libdxfrw parser, writer, format, or geometry defect.",
+    "routeLineage": "OpenCADStudio remains in the ACadRust codec lineage; its application/kernel stages do not create an independent file-format parser vote.",
+    "nonPromotion": "Neither an advertised version-table cell nor a safe harness, app launch, parse, audit, or self-reopen promotes DWG/DXF support, owner closure, or ACIS semantic claims."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "peerDispositionCorrection": {
+      "peer": "ACadRust",
+      "format": "DWG",
+      "version": "AC1009",
+      "advertisedStatus": "R/W",
+      "fidelityNote": "Incomplete",
+      "runtimeEvidence": "NOT_RUN",
+      "qualificationDisposition": "NOT_ESTABLISHED"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-peer-matrix-and-consumer-harness-security-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

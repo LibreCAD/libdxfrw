@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-12",
+  "topic": "Whole-operation DXF write allocation rollback and retry",
+  "purpose": "Sweep one-shot allocation failures across the public dxfRW::write operation, including setup, record emission, finalization, and output publication, to complement per-callback P6 transaction controls.",
+  "source": {
+    "kind": "locally-authored-generated-control",
+    "targetVersion": "AC1027",
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "records": [
+      {
+        "kind": "LINE",
+        "sourceHandle": "0xD900"
+      },
+      {
+        "kind": "XRECORD",
+        "sourceHandle": "0xD901",
+        "payload": "whole operation payload"
+      }
+    ],
+    "fixtureFilesCommitted": false
+  },
+  "implementation": {
+    "productionCodeChanged": false,
+    "test": "tests/dxf_write_allocation_transaction_tests.cpp",
+    "testSha256": "0a60c52b4d5123939c5741db2c46f96190c231288b93499328498c8bdcb1ae4a",
+    "cmakeTarget": "libdxfrw_dxf_write_allocation_transaction_tests",
+    "ctestName": "libdxfrw_dxf_write_allocation_transaction"
+  },
+  "procedure": {
+    "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
+    "validation": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure",
+    "allocationScope": "Global operator-new fault injection is armed only during dxfRW::write. One-time warm-up writer state is initialized before calibrating each encoding. Each failure is one-shot so diagnostic handling and same-codec retry can proceed normally."
+  },
+  "result": {
+    "testExitCode": 0,
+    "ctest": "1/1 passed in 0.56 seconds",
+    "ascii": {
+      "measuredAllocationOffsets": 95,
+      "allOffsetsFailedAsExpected": true,
+      "destinationPreserved": true,
+      "callerLineAndRawObjectPreserved": true,
+      "sameCodecRetryMatchedCleanBytes": true,
+      "typedLineAndRawObjectReadbackMatched": true
+    },
+    "binary": {
+      "measuredAllocationOffsets": 93,
+      "allOffsetsFailedAsExpected": true,
+      "destinationPreserved": true,
+      "callerLineAndRawObjectPreserved": true,
+      "sameCodecRetryMatchedCleanBytes": true,
+      "typedLineAndRawObjectReadbackMatched": true
+    }
+  },
+  "limits": [
+    "This generated transaction control exercises one LINE and one raw XRECORD; it is not exhaustive coverage of every whole-drawing allocation path, record family, platform, or filesystem failure mode.",
+    "Same-library typed readback and byte-identical retry establish transaction behavior only, not independent interoperability or format-support claims.",
+    "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
+  ],
+  "baseRevision": "0c98c43c7b24a8e4743adf806b8123d62c8ab694"
+}

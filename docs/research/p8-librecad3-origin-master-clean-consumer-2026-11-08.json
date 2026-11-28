@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad3-origin-master-clean-consumer-2026-11-08",
+  "date": "2026-11-08",
+  "title": "LibreCAD_3 clean origin/master compatibility probe",
+  "status": "PR_OPEN_CI_PENDING",
+  "supportClaimEffect": "none",
+  "sources": {
+    "libdxfrwCommit": "045a389252bd465fb385d348960a05f331883ca1",
+    "libreCAD3OriginMaster": "5cf435f4a5a57d8dba1599c720917b902e74b25b",
+    "consumerPatchBranch": "codex/libdxfrw-upstream-compat",
+    "consumerPatchCommit": "36082e71",
+    "libreCAD3PinnedSubmodules": {
+      "lckernel/nano-signal-slot": "d4d199e5d3fdde59490ac891333af35990889558",
+      "lckernel/tinyspline": "bb3b02cdfaa039aa236a5240f2ba8bce66bea527",
+      "third_party/kaguya": "2f20d965aa30aaee0cb01d04aea93e508c43225d",
+      "third_party/libdxfrw": "replaced in scratch by libdxfrwCommit",
+      "third_party/pybind11": "97bf890db679505a14dfe547a5e77bb2bd05dc90",
+      "persistence/libopencad": "556c64aaba7388476c4b2b5a7861994e688ed2ac"
+    },
+    "sourceMode": "git archive of origin/master; no dirty LibreCAD_3 working-tree content was used"
+  },
+  "configuration": {
+    "command": "cmake -S <clean-origin-master> -B <scratch-build> -DCMAKE_BUILD_TYPE=Release -DWITH_PERSISTENCE=ON -DWITH_PYTHONSCRIPT=OFF -DWITH_QT_UI=OFF",
+    "result": "PASS",
+    "build": "cmake --build <scratch-build> --target persistence -j4",
+    "buildResult": "PASS; current libdxfrw compiled as a subdirectory and LibreCAD_3 persistence linked"
+  },
+  "validation": {
+    "runnerBuild": "cmake --build <scratch-build> --target lcunittest -j4",
+    "runnerBuildResult": "PASS",
+    "selector": "lcunittest --gtest_filter='DxfExportTest.*:DxfRoundTripTest.*'",
+    "initial": {
+      "result": "48/64 passed",
+      "finding": "LibreCAD_3 DXFimpl::writeHeader supplied $INSUNITS for R12/R14 targets in both preserved-header and default-header paths. libdxfrw correctly refuses the unsupported variable before AC1015, so the adapter made otherwise representable 2D drawings fail to save."
+    },
+    "scratchFixes": [
+      {
+        "location": "LibreCAD_3 persistence/libdxfrw/dxfimpl.cpp",
+        "change": "Emit $INSUNITS only when the selected export version is newer than AC1014, in both preserved and default header paths.",
+        "status": "COMMITTED on consumerPatchBranch"
+      },
+      {
+        "location": "LibreCAD_3 unittest/persistence/fixtures/raw_objects.dxf and raw_objects_low_handles.dxf",
+        "change": "Remove the non-null group-330 owner from the first OBJECTS DICTIONARY. The reader correctly refuses an owned first dictionary instead of misclassifying it as the root named-object dictionary.",
+        "sourceSha256Before": "fa5ae3e7594863b188de85655e9cf873ce07fcbc6f726ae7104b8a0c7a08373d",
+        "status": "COMMITTED on consumerPatchBranch; only pre-existing LibreCAD_3 DXF fixtures were corrected"
+      }
+    ],
+    "afterScratchFixes": {
+      "result": "PASS",
+      "tests": 64,
+      "failures": 0
+    }
+  },
+  "implementation": {
+    "repository": "/private/tmp/librecad3-p8",
+    "branch": "codex/libdxfrw-upstream-compat",
+    "commit": "36082e71",
+    "commitSubject": "Fix LibreCAD DXF exports for legacy versions",
+    "files": [
+      "persistence/libdxfrw/dxfimpl.cpp",
+      "unittest/persistence/dxfroundtriptest.cpp",
+      "unittest/persistence/fixtures/raw_objects.dxf",
+      "unittest/persistence/fixtures/raw_objects_low_handles.dxf"
+    ],
+    "buildCommand": "cmake --build /private/tmp/librecad3-p8/build --target persistence lcunittest -j4",
+    "buildResult": "PASS",
+    "testCommand": "/private/tmp/librecad3-p8/build/bin/lcunittest --gtest_filter='DxfExportTest.*:DxfRoundTripTest.*'",
+    "testResult": "PASS; 64/64 tests"
+  },
+  "pullRequest": {
+    "url": "https://github.com/LibreCAD/LibreCAD_3/pull/456",
+    "number": 456,
+    "base": "LibreCAD/LibreCAD_3:master",
+    "head": "dxli/LibreCAD_3:codex/libdxfrw-upstream-compat",
+    "headCommit": "8269dd7be7209436d26ceb022c913b76bd92f7e8",
+    "opened": "2026-11-08",
+    "mergeability": "GitHub reports no conflicts",
+    "checksAtObservation": {
+      "workflowRunsQueued": 4,
+      "result": "pending",
+      "commit": "8269dd7b"
+    },
+    "previousHeadPlanSync": {
+      "commit": "762a0f1ea69d9c1e994c101c2aa6b97132aced25",
+      "result": "failure: mapped persistence/test changes lacked a same-change plan update",
+      "resolvedBy": "8269dd7be7209436d26ceb022c913b76bd92f7e8"
+    }
+  },
+  "currentHeadFocusedRerun": {
+    "command": "./build/bin/lcunittest --gtest_filter='DxfExportTest.*:DxfRoundTripTest.*'",
+    "commit": "762a0f1e",
+    "result": "PASS; 64/64 tests, including R12/R14 unitless and nonzero-unit cases"
+  },
+  "followupCommits": [
+    {
+      "commit": "93354846165b3ca206d7071f2b99519e3a2f183d",
+      "change": "Extend the legacy unit-loss check from R12 to R12 and R14."
+    },
+    {
+      "commit": "762a0f1ea69d9c1e994c101c2aa6b97132aced25",
+      "change": "Cover unitless inputs and require zero loss notes for R12/R14; keep one loss note for each nonzero insertion-unit input."
+    },
+    {
+      "commit": "8269dd7be7209436d26ceb022c913b76bd92f7e8",
+      "change": "Add the same-change LibreCAD_3 plan receipt after the hosted Plan Sync check rejected the missing receipt. Local --full, actual-base, and 31 checker tests pass; hosted rerun is queued."
+    }
+  ],
+  "interpretation": "This records LibreCAD_3 consumer/test-fixture changes, not a libdxfrw parser or writer defect. The changes are proposed in PR #456 against LibreCAD_3 origin/master; latest PR head 8269dd7b is mergeable and has four workflow runs queued. The preceding Plan Sync failure was caused by the missing same-change receipt; commit 8269dd7b adds the receipt, and local --full, actual-base, and 31 checker tests pass. Keep the unsupported-version $INSUNITS refusal and first-root-DICTIONARY validation. Evidence is a macOS clean-consumer build and 64/64 focused export/readback run on unchanged code head 762a0f1e; latest hosted CI, application behavior and other platforms remain unqualified.",
+  "limitations": [
+    "The PR is open but has not been reviewed or merged; four workflow runs for head 8269dd7b were queued at the recorded observation.",
+    "The aggregate test suite was not run; the current focused selector covers the 3 DxfExportTest and 61 DxfRoundTripTest cases.",
+    "No native LibreCAD_3 application run or Linux/Windows FreeCAD/LibreCAD qualification was performed.",
+    "No DWG/DXF fixture was added to libdxfrw or any repository.",
+    "No support claim or external J disposition changed."
+  ],
+  "next": "Review PR #456 CI and feedback; then qualify native Linux/Windows and application behavior. Keep those gates separate from this macOS result."
+}

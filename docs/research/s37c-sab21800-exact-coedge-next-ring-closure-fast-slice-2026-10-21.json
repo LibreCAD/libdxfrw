@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c SAB 21800 exact coedge next-ring closure",
+  "mode": "Generated parser-fed fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Use the reviewed SAB 21800 loop-start and next-link pointer ordinals instead of first-type-match lookup",
+    "Expose whether a rooted coedge ring returns to its starting coedge",
+    "Classify missing or non-start cycle closure as a known projection gap"
+  ],
+  "implementation": {
+    "profile": "ACIS BinaryFile SAB 21800 only for exact pointer ordinals and closure status",
+    "pointerOrdinalsZeroBased": {
+      "faceFirstLoop": 2,
+      "loopNext": 1,
+      "loopStartCoedge": 2,
+      "coedgeNext": 1
+    },
+    "closureRule": "Closed only when the exact coedge-next walk revisits its starting coedge. A null/absent next pointer or cycle that enters another already-seen coedge remains unclosed.",
+    "coverageRule": "An observed unclosed ring sets projected coverage to ProjectedSubsetWithKnownGaps; no B-rep validity is inferred.",
+    "compatibility": "DRW_AcisFaceLoop layout changes; downstream consumers must rebuild. DRW_Interface vtable and 2D callbacks are unchanged."
+  },
+  "tests": {
+    "positive": [
+      "Generated two-loop graph reports exact next-link ring closure for each loop",
+      "Parser-fed SAB projection preserves closure state alongside ordered coedge identities"
+    ],
+    "negative": [
+      "Parser-fed coedge with null next but non-null previous/partner links is not extended using those links",
+      "The partial coedge row remains visible, reports unclosed status, and classifies as a known gap"
+    ],
+    "validation": {
+      "build": "PASS (libdxfrw_graph_preservation_tests and lc3_compat_check)",
+      "ctest": "PASS (libdxfrw_graph_preservation, 1/1, 1.27 seconds)",
+      "scopedDiffCheck": "PASS (git diff --check on changed source/test/contract/plan files)"
+    }
+  },
+  "assessment": {
+    "semanticClaimsPromoted": 0,
+    "pcurveEvaluation": false,
+    "trimEvaluation": false,
+    "fullBrepValidity": false,
+    "nativeConsumerQualification": false,
+    "externalSemanticEvidence": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "fullSuiteRun": false,
+    "dependenciesAdded": 0,
+    "productionFilesChanged": [
+      "src/drw_acis.cpp",
+      "src/drw_acis.h"
+    ],
+    "testFilesChanged": [
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "documentationFilesChanged": [
+      "docs/3D_CONSUMER_CONTRACT.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "This exposes a profile-scoped structural observation only. It does not evaluate curves or trims, validate face orientation, construct a kernel B-rep, or establish native support."
+  },
+  "plan": {
+    "findings": 144,
+    "topLevelSubplans": 78,
+    "selfUnblock": "Continue the next dependency-ready local S3.7c topology invariant without waiting for external qualification."
+  }
+}

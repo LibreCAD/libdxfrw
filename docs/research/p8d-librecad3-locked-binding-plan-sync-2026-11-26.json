@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "d0c4a77a2b200734557f43ccc04312a0b6cf4bfa",
+  "pr_base": "60727c6c55a84d416d42b4b3d1664d0feb10cf61",
+  "finding": "The new locked-layer scripting documentation was unmapped in the binding-plan checker and would fail PR changed-path coverage.",
+  "change": "Assign the exact documentation path to S0 and DOC and add a current receipt covering all mapped PR gates without changing their completion states.",
+  "validation": [
+    "Full-plan, actual-PR-base and worktree coverage checks pass. The worktree check explicitly excluded the pre-existing untracked sample.log.",
+    "All 31 plan-checker regression tests pass.",
+    "The underlying candidate d23c27af passed the recorded 173 focused macOS ARM64 compatibility tests; hosted platform checks are pending."
+  ],
+  "limits": [
+    "No platform, native GUI or file-format support gate was promoted."
+  ],
+  "supportClaimEffect": "none"
+}

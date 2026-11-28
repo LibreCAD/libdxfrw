@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-acis-sab-rooted-transform-candidate-offset-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "scope": "Generated wire-form 21800 rooted-body transform inventory regression",
+  "implementation": {
+    "tests": "tests/graph_preservation_tests.cpp",
+    "plan": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionCodeChanged": false,
+    "fixtureFileAdded": false
+  },
+  "generatedCoverage": {
+    "wireParsed": true,
+    "transformRecordCommonPrefixChecked": {
+      "entityType": "transform",
+      "nullAttributePointer": -1,
+      "entityId": 14
+    },
+    "rawTokenCount": 4,
+    "rawLiteralTokenIndex": 3,
+    "twelveCandidateComponentsChecked": [
+      1, 0, 0, 0,
+      1, 0, 0, 0,
+      1, 0, 0, 0
+    ],
+    "transformState": "ParsedUnapplied",
+    "bodyTransformsApplied": false,
+    "wcsOrPlacementClaimed": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    {
+      "command": "git diff --check -- tests/graph_preservation_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "limits": [
+    "No matrix convention, point/direction multiplication, transform application, units, WCS placement, or B-rep semantics are established.",
+    "No full suite, external producer/reader, native application, or independent kernel was run.",
+    "No support claim was promoted; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL.",
+    "The shared worktree remains broadly dirty and uncommitted; Git metadata is read-only."
+  ],
+  "next": "Continue with the next plan-backed local implementation item; preserve the transform and external semantic qualification gates."
+}

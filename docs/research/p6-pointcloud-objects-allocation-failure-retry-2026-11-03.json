@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-pointcloud-objects-allocation-failure-retry-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_TRANSACTION_ROLLBACK_SWEEP",
+  "supportClaimEffect": "none",
+  "scope": "Verify generated POINTCLOUDDEFINITIONEX/REACTOREX OBJECTS allocation rollback, same-adapter retry, and typed graph readback in ASCII and Binary DXF.",
+  "source": {
+    "parentCommit": "29b59f6f",
+    "kind": "locally authored generated DXF graph",
+    "repositoryFixture": false,
+    "repositoryFixturesAdded": 0,
+    "files": {
+      "tests/dxf_fixture_tests.cpp": "c3f2747dd79bc6e83fa31c947afa1af25e01ff305af8183d5b76067c0da853e9",
+      "tests/CMakeLists.txt": "d3df5142a9441c2f5177c37e3ab81f57dbb34d6b3cb590069cd0555ccf4272f6",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "03ed0a5f0ea2c3d619380603b13c8468ee9fcb9b5a6d7c81d14024700306faf4"
+    }
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "graph": "A generated NOD soft-owner entry points to an ACAD_POINTCLOUD_EX_DICT. That dictionary's hard-owner entry targets POINTCLOUDDEFINITIONEX; the definition owns a POINTCLOUDDEFREACTOREX, and a POINTCLOUDEX entity references both records.",
+    "method": [
+      "For each encoding, calibrate the number of allocations performed inside dx_iface::writeObjects using a high allocation countdown.",
+      "Inject std::bad_alloc at every calibrated offset. Require callback entry, exactly one injected failure, export refusal, and byte-for-byte preservation of a preexisting destination sentinel.",
+      "After each failure, disable injection and retry with the same dx_iface instance and dx_data. Import the result and verify the NOD/dictionary owner and key, definition/reactor records, and entity-to-definition/reactor references."
+    ],
+    "temporaryArtifacts": "Generated ASCII/Binary DXFs are created under the system temporary directory and removed by the test."
+  },
+  "validation": {
+    "normalConfigure": {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+      "result": "PASS",
+      "executableSha256": "e58da0f4cfb73aca1a49aa5ef082b7e8ca67502427117095a782ee8645a96b41"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_pointcloud_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS 1/1; 0.83 seconds"
+    },
+    "asanConfigure": {
+      "command": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "PASS"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests --parallel 4",
+      "result": "PASS",
+      "executableSha256": "f5a3c9f37b3f5f0d3864fca576b02a454740faa4e7a6d30464f8c8e21d203573"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_pointcloud_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS 1/1; 1.63 seconds"
+    },
+    "diffCheck": "PASS",
+    "existingReceiptJsonValidation": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "This is generated local graph and transaction evidence for one POINTCLOUDEX profile; it does not establish physical producer coverage, point-cloud asset loading, or native consumer semantics.",
+    "Other OBJECTS builders, broader whole-drawing failure states, source lifetime, platform numeric/string policies, and general thread safety remain open.",
+    "Classic and Ex transaction controls are generated local graph evidence only; native point-cloud asset semantics and producer interoperability remain unqualified."
+  ],
+  "next": "Continue the P6 OBJECTS safety audit on another independent uncovered builder; retain separate source-lifetime, platform numeric/string, scoped-concurrency, and broader whole-drawing failure gates.",
+  "updatedDate": "2026-11-08",
+  "supplementalScope": "The same focused test now also sweeps every allocation in the classic POINTCLOUDDEFINITION/POINTCLOUDDEFREACTOR OBJECTS path in ASCII and Binary, with local source graph, destination rollback, caller graph preservation, same-adapter retry, and typed readback.",
+  "supplementalValidation": {
+    "normalBuild": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests --parallel 4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build -R '^libdxfrw_pointcloud_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS 1/1; 1.30 seconds; includes EX and classic profiles in ASCII and Binary"
+    },
+    "repositoryFixturesAdded": 0,
+    "fullSuites": "NOT RUN"
+  },
+  "supplementalSourceDigestsSha256": {
+    "tests/dxf_fixture_tests.cpp": "6d54657a5dca739c88a8822416cebb4d8adf07409eb08f799afbabd1e6497d8f",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "3f003abd65b15999a7bfefed0fbfc1bda41257c01c16bf08081e9724908672dd",
+    "docs/research/p6-pointcloud-objects-allocation-failure-retry-2026-11-03.json": "3bd47f88df7cde47ec0c965a30bc8986c33ad145c878d091ec4ace34cb43e45b"
+  }
+}

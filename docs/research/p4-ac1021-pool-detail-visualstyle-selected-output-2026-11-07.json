@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Pool_Detail AC1021 VISUALSTYLE selected graph rollback and retry",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Bind and verify the Pool_Detail AC1021 ACAD_VISUALSTYLE root graph through selected ASCII/Binary DXF output, typed/raw readback, late-mutation refusal, destination preservation and same-adapter retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Pool_Detail.dwg",
+    "sha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local sample; author and producer are not independently authenticated. The input and derivatives are not committed."
+  },
+  "sourceGraph": {
+    "root": "NOD handle 0xC has one ACAD_VISUALSTYLE edge to dictionary 0x33CC (decimal 13260).",
+    "styles": "The rooted dictionary has 16 entries, corresponding to 16 typed AC1021 VISUALSTYLE records; source inventory reports each style owned by and reacting to dictionary 0x33CC.",
+    "sourceRead": "The ordinary reader published all 6,163 observed frames with zero entity/object parse failures. This does not establish whole-source output completeness."
+  },
+  "implementation": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "change": "The existing physical AC1021 VISUALSTYLE selector now exercises a late description mutation after OBJECTS staging. It requires export refusal without replacing a pre-existing destination sentinel, restores the selected source object, retries on the same adapter, and freshly reads all 16 typed/raw records while checking the selected record's description, type, owner and reactor-owner role."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS",
+      "executableSha256": "9c9834f92174b879e28d2b420f78665336c72571d2d9b879dcfb83df0f14edd3",
+      "testSourceSha256": "040910949b73079fe8aa996178df4218eda6fd29047a3452ffce52f29c5de1b0"
+    },
+    "poolDetailPhysicalGraph": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --visual-style-ac1021-physical-output /Users/dli/doc/dwg/Pool_Detail.dwg /private/tmp/pooldetail-vs-output-validated",
+      "result": "PASS; ASCII and Binary selected graph writes freshly reimported as 16 typed/raw VISUALSTYLE records; late mutation was refused, destination sentinel preserved, and same-adapter retry passed.",
+      "asciiOutputSha256": "1875e0c9889a5b7ec0ad8083308e289b78586a398ea682449e81e5d265acc384",
+      "binaryOutputSha256": "c82c8c0f274802454fe84698096b28ee7286d3a1f35cca1acee1551c27f018b6"
+    },
+    "existingProfileRegression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --visual-style-ac1021-physical-output /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg /private/tmp/architectural-vs-output-validated",
+      "result": "PASS; the prior 16-style AC1021 selected-source profile passes the expanded refusal/retry control."
+    },
+    "diffCheck": "PASS; git diff --check and receipt JSON parsing passed."
+  },
+  "limits": [
+    "This proves selected graph transport for one unauthenticated AC1021 source; it does not qualify whole-source conversion or producer-wide support.",
+    "No independent peer comparison, native rendering, or application acceptance is established.",
+    "No DWG/DXF fixture was added to the repository."
+  ],
+  "next": "Continue with a different source-bound OBJECTS graph. Pool_Detail ACAD_MATERIAL is a candidate, but the existing selector currently fails because its physical extension-XRECORD census differs from the children-room profile; inventory exact dependencies and payloads before changing the profile. Keep Pool_Detail SORTENTSTABLE null-target output refused."
+}

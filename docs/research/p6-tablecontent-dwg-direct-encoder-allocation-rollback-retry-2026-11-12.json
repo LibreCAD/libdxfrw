@@ -1,0 +1,29 @@
+{
+  "id": "p6-tablecontent-dwg-direct-encoder-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "scope": "Direct DRW_TableContentObject::encodeDwg allocation-failure behavior for one locally authored AC1021 scalar-cell profile.",
+  "change": {
+    "production": "The direct encoder now catches exceptions across validation, staged-buffer copies, and serialization, returning false while leaving caller buffers untouched.",
+    "test": "The generated direct-call control sweeps every calibrated operator-new offset, checks seeded bytes, partial-bit positions, bit counts, and exact handle-occurrence ledgers after each failure, then retries the same object and buffers and compares with clean output.",
+    "fixturePolicy": "No DWG/DXF fixture was added; the source object is constructed in memory."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_tablecontent_objects_allocation_tests -j2 && ctest --test-dir build-gcc -R '^libdxfrw_tablecontent_objects_allocation_retry$' --output-on-failure",
+    "result": "PASS",
+    "asanCommand": "cmake --build build-asan-custom --target libdxfrw_tablecontent_objects_allocation_tests -j2 && ctest --test-dir build-asan-custom -R '^libdxfrw_tablecontent_objects_allocation_retry$' --output-on-failure",
+    "asanResult": "PASS; no AddressSanitizer diagnostics",
+    "owningObjectVectorCheck": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure: PASS (1/1)",
+    "directEncoderAllocationOffsets": 34,
+    "adapterAllocationOffsets": {
+      "ascii": 13,
+      "binary": 11
+    },
+    "ctest": "1/1 passed in normal and ASan builds"
+  },
+  "limits": [
+    "This establishes local exception containment and transaction behavior, not TABLECONTENT DWG semantic support or native rendering.",
+    "The existing adapter-level sweep remains separate evidence and does not substitute for the new direct-call sweep.",
+    "Other OBJECTS builders and whole-drawing failure paths remain open."
+  ],
+  "nextAction": "Continue with the next source-evidenced, locally actionable P4/P6 slice; preserve raw-only TABLECONTENT source profiles and strict output refusal where semantic gates are unresolved."
+}

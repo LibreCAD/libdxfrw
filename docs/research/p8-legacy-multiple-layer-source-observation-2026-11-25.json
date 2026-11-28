@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-25",
+  "baseline": "b724ef29b891dfc9e87159e44641a76e2650543b",
+  "implementation_digest_sha256": "cb9839bacff40c95b33b1f7d9f3123652b2eb79309cf55c9c1dc73edd2389e7b",
+  "input_count": 775,
+  "change": "Replay and isolate the existing 11-group legacy LAYER source shape at any nonzero valid handle under the same layer table; no general resource or output proof is conferred.",
+  "tests": [
+    "Generated AC1015 ASCII and binary two-layer drawings bind raw/typed bodies and physical origins for both layers while the single-layer output gate remains false.",
+    "Strict cross-version export of the two-layer source preserves a sentinel destination; the same exporter then accepts the corrected single-layer source.",
+    "Three focused default-plot/raster CTests pass.",
+    "On the previously captured locally generated IMAGE source, handles 10 and D25A both bind isolated raw/body/origin evidence; the source-class proof passes and the multi-layer output gate still refuses."
+  ],
+  "limits": [
+    "Only the bounded 11-group legacy source shape is observed.",
+    "Each live layer, plot-style target and actual output row still needs complete proof; this change does not authorize multi-layer export.",
+    "No externally supplied DWG/DXF fixture committed."
+  ]
+}

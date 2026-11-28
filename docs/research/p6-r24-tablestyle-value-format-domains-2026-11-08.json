@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-08",
+  "topic": "R24 TABLESTYLE content-format value type and unit domains",
+  "status": "bounded_generated_writer_domain_pass",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "tableStyleFields": "§20.4.101.3: BL group 92 Value data type; BL group 93 Value unit type",
+    "valueDomains": "§20.4.99: data types 0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512; R2007+ unit types 0, 1, 2, 4, 8"
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "sha256": "582108a982b373e5ca7ebbd9329ec8a99496d9f304e73df1f536352cfc4bc27b",
+    "change": "R24 TABLESTYLE profile validation accepts the ODA §20.4.99 data types and R2007+ unit types rather than only 512 and 0. Unit validation is R24-specific and excludes values accepted by the older general TableStyle validator but not documented for this field. The writer emits both values in groups 92 and 93."
+  },
+  "control": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "sha256": "ecbf166d7f321744e24a0830e1808fc8eba9ea1b35b6df5a02f408bdc2ea84c4",
+    "selector": "--tablestyle-r24-typed-writer",
+    "generated_from_scratch": true,
+    "coverage": [
+      "Every ODA data-type code is emitted and freshly typed-read in ASCII and Binary with unit type 0.",
+      "Each nonzero ODA unit type is emitted and freshly typed-read in ASCII and Binary with data type 512.",
+      "Undocumented data type 3 and unit type 0x10 are refused with destination preservation.",
+      "Existing TABLESTYLE rollback, unresolved/wrong-kind border-LTYPE refusal, same-adapter retry, and readback checks remain in the same selector."
+    ],
+    "fixture_policy": "No drawing fixture is committed; all output is temporary and removed."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "test": "ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+    "result": "passed; 1/1 selected CTest, 1.73 seconds"
+  },
+  "limits": [
+    "This verifies bounded generated writer/readback transport for documented numeric codes only.",
+    "It does not establish every type/unit pairing's application meaning, native table rendering, physical DWG producer coverage, or whole-source conversion.",
+    "It does not change unsupported-profile refusal for other R24 TABLESTYLE fields."
+  ]
+}

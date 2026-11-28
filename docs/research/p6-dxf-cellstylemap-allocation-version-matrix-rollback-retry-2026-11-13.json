@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-cellstylemap-allocation-version-matrix-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_CELLSTYLEMAP_ALLOCATION_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep the public CELLSTYLEMAP OBJECTS writer at its oldest, R2010, and latest supported revision boundaries.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory CELLSTYLEMAP and TEXTSTYLE",
+    "profile": "One CELLSTYLEMAP containing a data-bearing style, content-format values, one ordered border, and a TEXTSTYLE reference resolved through the emitted TABLES record.",
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "test": "libdxfrw_dxf_cellstylemap_allocation",
+    "result": "PASS",
+    "elapsedSeconds": 2.12,
+    "testSourceSha256": "d67ba2c5f9fd9938ea59c8260172059e482e501b0134c50cc82ee5b5ffadcac2",
+    "testExecutableSha256": "ca921d990ccd42e1584c5e4cc99e973d131b9958202715982a8567bbf7512584",
+    "allocationOffsets": {
+      "AC1021_ASCII": 12,
+      "AC1021_Binary": 12,
+      "AC1024_ASCII": 12,
+      "AC1024_Binary": 12,
+      "AC1027_ASCII": 12,
+      "AC1027_Binary": 12,
+      "AC1032_ASCII": 12,
+      "AC1032_Binary": 12
+    },
+    "checks": [
+      "All 72 measured callback allocation offsets refuse the write",
+      "Each refusal preserves the prior destination bytes and complete modeled caller map",
+      "Same-codec retry reproduces clean calibration bytes at every version and encoding",
+      "Fresh typed readback checks map/style fields, ordered border values, and the emitted text-style handle resolves to the expected TABLES record"
+    ]
+  },
+  "limitations": [
+    "Generated transaction and internal-reference evidence only; it does not establish source producer semantics or native TABLE display.",
+    "CELLSTYLEMAP membership in a real TABLESTYLE extension dictionary and independent producer profiles remain open."
+  ]
+}

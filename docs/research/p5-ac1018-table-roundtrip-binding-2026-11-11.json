@@ -1,0 +1,33 @@
+{
+  "scope": "Optional same-import binding of one observed AC1018 roundtrip XRECORD root to three reader-verified custom TABLE candidates. No output, whole-graph closure or semantic interoperability authority.",
+  "profile": "Root observer requires observed RS-length and codepage 45 marker encoding and 360/361/360 64-bit group values, not DWG H owner-role fields. It cross-checks immutable typed m_dataEntries and raw body; existing live snapshot equality conservatively also checks legacy mirrors.",
+  "physical_source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "probe": "tools/research/p5_ac1018_table_roundtrip_binding_probe.cpp",
+    "outcome": "PASS: XRECORD 0xbc, DATATABLE 0xbd with nine owned children 0xbe-0xc6, TABLECONTENT 0xb9 and TABLEGEOMETRY 0xba; root 360/361/360 targets exactly b9/ba/bd. One unrelated HEADER integrity observation; fixture not committed."
+  },
+  "probe_build": "c++ -std=c++17 -Wall -Wextra -Werror -I src -I dwg2dxf tools/research/p5_ac1018_table_roundtrip_binding_probe.cpp build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build/libdxfrw.a -o /private/tmp/p5_ac1018_table_roundtrip_binding_probe",
+  "probe_run": "/private/tmp/p5_ac1018_table_roundtrip_binding_probe /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+  "generated_test": {
+    "command": "cmake --build build --target libdxfrw_dwg_table_candidate_binding_tests -j 3 && ctest --test-dir build -R ^libdxfrw_dwg_table_candidate_binding$ --output-on-failure",
+    "outcome": "PASS 1/1",
+    "construction": "Locally authored AC1018 writer-produced object is replaced with locally authored hand-encoded root profile, preserving object frame length; object CRC and enclosing page data/header checksums are recomputed and validated. No generated DWG/DXF fixture is committed.",
+    "controls": [
+      "Existing 2/3 candidate API compatibility; old 3-candidate selection accepts root writer codepage 0, narrow opt-in refuses it.",
+      "Three wrong targets, swapped and duplicated targets, wrong group and codepage use valid selected-frame CRC and page checksums and are accepted by the old three-frame observation but refused by new binding; RS-length corruption also refused.",
+      "Typed m_dataEntries, legacy values and handles, root raw snapshot mutation, duplicated root and cross-import source owner transplant invalidate the bundle; missing geometry and retry.",
+      "Three joint sealing allocation failures, and first and last of 2798 observed query allocations, all with no partial capability/outputs and successful retry. These faults are samples, not an exhaustive sweep.",
+      "Reader callback attempts downgrade during import and is rejected; spoofed typed root callback, same/cross adapter reentry, and retries.",
+      "Root frame CRC corruption with reconstructed valid page checksums produces selected ObjectFrameBounds diagnostic; truncation/saturation checks exclude omitted integrity records.",
+      "Strict DXF export refuses and preserves a sentinel. Existing combined aggregate 2 MiB and three-frame 4 KiB quota controls remain in the same test."
+    ]
+  },
+  "limitations": [
+    "Other TABLE graph dependencies, root owner meaning, role semantics beyond the three source group pairs, text/codepage meaning and native downstream interoperability remain unproved.",
+    "The RS-length and codepage 45 are observed narrow profile evidence; ODA specification documents a conflicting marker length and no generalization is claimed.",
+    "This generated writer body is hand-patched for the observed profile; it is not an independent producer witness.",
+    "No geometry-specific aggregate-cap stress added beyond existing two-candidate 2 MiB and geometry 4 KiB controls.",
+    "One physical source profile is not proof of all producers or versions."
+  ]
+}

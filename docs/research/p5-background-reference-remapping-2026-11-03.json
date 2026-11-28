@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-03",
+  "scope": "Generated IBL secondary Background reference-identity transport.",
+  "field": {
+    "record": "IBLBACKGROUND",
+    "member": "m_secondaryBackgroundHandle",
+    "group_code": 340
+  },
+  "mapping_policy": "After the existing check that the nonzero source handle is in the registered Background target set, use the configured reference resolver when present; otherwise use remapObjectHandle. Zero, DRW::NoHandle and absent target registration retain their existing behavior.",
+  "validation": {
+    "input": "Generated in-memory IBL and a locally registered secondary Background source handle; no DWG/DXF fixture was added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "selectors": ["libdxfrw_wave1_tests --background-reference-remapping"],
+    "result": "PASS for exact group-340 output under resolver precedence and remap fallback.",
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4"
+  },
+  "qualification_limits": [
+    "Generated low-level transport only; registration does not prove that the target Background record was emitted.",
+    "Does not establish physical producer spans, target role/ownership, recursive graph closure, or native lighting semantics.",
+    "Skylight SUN references remain refused without a qualified owner/link route."
+  ]
+}

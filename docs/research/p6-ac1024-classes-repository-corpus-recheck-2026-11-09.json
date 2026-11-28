@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "purpose": "Check whether the current repository AC1024 sample set reproduces the reported R2010 CLASSES high-bit-size failure.",
+  "source_revision": "ad2bfd8eaf167c06af4f6b1fd3a7070445ad0301",
+  "source_tree": "current worktree, including existing user modification to src/drw_objects.cpp",
+  "source_sha256": {
+    "src/intern/dwgreader18.cpp": "232741fdc78628aec0c77d34e5d1e22d65c027ffec30cd85b9512d8c449f7b80",
+    "src/intern/dwgreader.cpp": "d134d976b67fbf48e89a54a71c9bc6069d167964a9ecee01f8f80c67b0218b9d",
+    "src/intern/dwgreader.h": "ddd79000086c5d253250b2a43c1d96485a5804050542b6b4da11b2801e418f9c",
+    "src/drw_objects.cpp": "9f5bfeaa152b6116970005cad056635eb6b04ffc1ce81dced6b8def9802a9da0",
+    "tests/dwg_reader_matrix_tests.cpp": "a893eba89844a850e90878eaf901849ef1a1189b5a3ce9334be6aabc31686352"
+  },
+  "tool": {
+    "path": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "d913c44d8738814fe71ec9bea32e47552a25e031776b85e1f05c5fedc49183b2",
+    "build": "cmake --build build-gcc --target dwg2dxf -j4"
+  },
+  "operation": "For every tests/samples/AC1024/*.dwg and every AC1024 DWG under /Users/dli/doc/dwg, run dwg2dxf <input> -y -d -v2010 <temporary-output>; inspect final operationSucceeded/legacyError fields and CLASSES CRC diagnostics. The wrapper END marker alone is not treated as proof of parser success.",
+  "summary": {
+    "sample_paths": 10,
+    "unique_source_sha256": 9,
+    "readDwgClasses_end": 10,
+    "classes_crc_mismatch": 0,
+    "dxf_output_created": 2,
+    "interpretation": "The alleged CLASSES failure is not reproduced by the current repository corpus. Most command failures occur later during strict output qualification or read-completeness checks; they are not CLASSES failures. The additional AGENTS.md-referenced /Users/dli/doc/dwg tree contains nine AC1024 DWGs, and all nine also report operationSucceeded=true and legacyError=0 with no CLASSES CRC mismatch. The stated six-of-ten result therefore remains unverified for the current available source set; the referenced tree contains nine AC1024 paths, not ten."
+  },
+  "additionalExternalInputRoot": {
+    "path": "/Users/dli/doc/dwg",
+    "dwgPaths": 29,
+    "ac1024Paths": 9,
+    "ac1024UniqueSourceSha256": 9,
+    "operationSucceeded": 9,
+    "legacyErrorZero": 9,
+    "classesCrcMismatch": 0
+  },
+  "onlineSampleSearch": {
+    "searched": "2026-11-09",
+    "sources": [
+      {
+        "url": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/6XGQklp3ZcBFqljLPjrnQ9.html",
+        "description": "Autodesk's public AutoCAD sample collection is labeled for AutoCAD 2010 and later.",
+        "producerProvenance": "The page does not identify the release that saved each individual DWG; it cannot establish an AutoCAD 2010 RTM witness."
+      },
+      {
+        "url": "https://github.com/nextgis/dwg_samples",
+        "description": "Public cross-version DWG sample repository includes AC1024 / 2010-named examples.",
+        "producerProvenance": "Repository states the samples were produced with trial AutoCAD 2016 M.49.0.0; these are AC1024 format samples but not AutoCAD 2010 RTM producer samples."
+      }
+    ],
+    "result": "Found public AC1024 candidates, but no online sample with verifiable AutoCAD 2010 RTM provenance or a known matching CLASSES failure. Existing corpus recheck remains the only reproduced evidence; the missing tenth source and reported RTM failure remain unresolved. External files were not added to the repository."
+  },
+  "generatedIntegrationControl": {
+    "selector": "build-gcc/libdxfrw_dwg_reader_matrix_tests --r2007-class-string-footer",
+    "result": "PASS",
+    "profile": "A from-scratch AC1024 DWG contains a class 600 definition with 2048-character app, C++ class and DXF record names. Its combined UTF-16 string stream exceeds the 0x7fff-bit short footer limit; the extended high-size word is decoded and the complete strings are recovered through readDwgClasses().",
+    "fixture": "Generated entirely in memory; no DWG/DXF fixture file added.",
+    "validationCommand": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4 && build-gcc/libdxfrw_dwg_reader_matrix_tests --r2007-class-string-footer"
+  },
+  "inputs": [
+    {"path":"tests/samples/AC1024/architectural_example-imperial.dwg","sha256":"52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7","classes_end":true,"classes_crc_mismatch":false,"dxf_output_created":false},
+    {"path":"tests/samples/AC1024/civil_example-imperial.dwg","sha256":"45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc","classes_end":true,"classes_crc_mismatch":false,"dxf_output_created":false},
+    {"path":"tests/samples/AC1024/mechanical_example-imperial-alt.dwg","sha256":"854c8ebed8726add72ba4a2a19ba0d010372f5cadefb40e648cdf881cad858","classes_end":true,"classes_crc_mismatch":false,"dxf_output_created":true},
+    {"path":"tests/samples/AC1024/mechanical_example-imperial.dwg","sha256":"854c8ebed8726add72ba4a2a19ba0d010372f5cadefb40e648cdf881cad858","classes_end":true,"classes_crc_mismatch":false,"dxf_output_created":true},
+    {"path":"tests/samples/AC1024/title_block-arch.dwg","sha256":"59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d","classes_end":true,"classes_crc_mismatch":false,"dxf_output_created":false},
+    {"path":"tests/samples/AC1024/title_block-iso.dwg","sha256":"b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2","classes_end":true,"classes_crc_mismatch":false,"dxf_output_created":false},
+    {"path":"tests/samples/AC1024/visualization_-_aerial.dwg","sha256":"edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1","classes_end":true,"classes_crc_mismatch":false,"dxf_output_created":false},
+    {"path":"tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg","sha256":"1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4","classes_end":true,"classes_crc_mismatch":false,"dxf_output_created":false},
+    {"path":"tests/samples/AC1024/visualization_-_conference_room.dwg","sha256":"0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4","classes_end":true,"classes_crc_mismatch":false,"dxf_output_created":false},
+    {"path":"tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg","sha256":"fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881","classes_end":true,"classes_crc_mismatch":false,"dxf_output_created":false}
+  ],
+  "disposition": "The generated high-bit footer path now has full AC1024 writer-to-reader regression coverage. No parser change was indicated by the available nine AC1024 source files. Keep the reported six-of-ten failure unresolved pending the missing tenth sample or exact failing sample hashes and a reproducible BAD_READ_CLASSES result. Do not commit any sample files."
+}

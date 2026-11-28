@@ -1,0 +1,152 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-dynamic-block-grip-location-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Qualify the isolated AC1024 BLOCKGRIPLOCATIONCOMPONENT output profile",
+  "status": "ISOLATED_RECORD_AND_SINGLETON_OWNER_GRAPH_QUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "records": [
+      {
+        "record": "BLOCKGRIPLOCATIONCOMPONENT / AcDbEvalExpr / AcDbBlockGripExpr",
+        "handle": "0x111A",
+        "evaluationGraph": "0x1117",
+        "ownerDictionary": "0x1116",
+        "blockRecord": "0x127",
+        "sourceFields": {
+          "nodeId": 18,
+          "evalExprMajor": 29,
+          "evalExprMinor": 2,
+          "valueCode": 40,
+          "value": 0.0,
+          "gripType": 16,
+          "gripExpression": "UpdatedX"
+        },
+        "independentDxfFields": {
+          "group98": 33,
+          "group99": 29
+        }
+      },
+      {
+        "record": "BLOCKGRIPLOCATIONCOMPONENT / AcDbEvalExpr / AcDbBlockGripExpr",
+        "handle": "0x111B",
+        "evaluationGraph": "0x1117",
+        "ownerDictionary": "0x1116",
+        "blockRecord": "0x127",
+        "sourceFields": {
+          "nodeId": 19,
+          "evalExprMajor": 29,
+          "evalExprMinor": 2,
+          "valueCode": 40,
+          "value": 0.0,
+          "gripType": 16,
+          "gripExpression": "UpdatedY"
+        },
+        "independentDxfFields": {
+          "group98": 33,
+          "group99": 29
+        }
+      }
+    ],
+    "sourceRead": {
+      "implementation": "LibreDWG",
+      "version": "0.14",
+      "command": "/opt/homebrew/bin/dwgread -O JSON /Users/dli/doc/dwg/title_block-arch.dwg",
+      "observed": "The independent JSON read reports EvalExpr major/minor 29/2 for handles 0x111A and 0x111B."
+    },
+    "independentOutput": {
+      "implementation": "LibreDWG",
+      "version": "0.14",
+      "command": "/opt/homebrew/bin/dwg2dxf -y --as r2010 -o /tmp/title_block_arch_libredwg.dxf /Users/dli/doc/dwg/title_block-arch.dwg",
+      "outputSha256": "dea419cf73dc1a135918d76f6a4bfc422b8fab6e3aeebbc43fe18c0c54188678",
+      "observed": "The records with handles 0x111A and 0x111B emit group 98 = 33 and group 99 = 29, followed by group 1 empty, group 70 = 40, group 40 = 0.0, AcDbBlockGripExpr, group 91 = 16 and their UpdatedX/UpdatedY expression."
+    },
+    "schemaSource": {
+      "repository": "LibreDWG/libredwg",
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "file": "src/dwg2.spec",
+      "sha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "observed": "AcDbEvalExpr_fields reads evalexpr.major/minor as DWG fields, but its DXF branch emits literal group 98 = 33 and group 99 = 29."
+    },
+    "profileBoundary": "The real owner DICTIONARY has three entries and the EvaluationGraph has additional visibility records. This receipt qualifies the exact record body with a singleton EvaluationGraph/DICTIONARY/BLOCK_RECORD route only; it does not admit the mixed source graph.",
+    "fixturePolicy": "The existing DWG was read in place. Test input is authored in C++; no DWG or DXF fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/drw_objects.h",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "src/libdxfrw.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "Decode only the exact AC1024 EvalExpr value-code-40 body and BlockGripExpr body. Preserve source DWG EvalExpr 29/2 in the model and emit the DXF schema identifiers 33/29. Admit only the source-backed AC1024 singleton EvaluationGraph route, with each node resolving uniquely to a GripLocationComponent whose node ID matches the graph index. Register one exact CLASS instance and retain fail-closed behavior outside this profile.",
+    "scope": "AC1024 DWG source to AC1024 ASCII/Binary DXF output, exactly one GripLocationComponent in a one-node EvaluationGraph and a singleton ACAD_ENHANCEDBLOCK owner dictionary. Other EvalExpr variants, multiple-node graphs, other source/target versions, mixed owner dictionaries and DXF-origin typed/raw replay remain unqualified."
+  },
+  "qualification": {
+    "outputVersion": "AC1024",
+    "sourceToDxfVersionMapping": "PASS: source model pair 29/2 emits group 98 = 33 and group 99 = 29, matching both the independent LibreDWG conversion and its DXF schema branch.",
+    "ascii": "PASS: exact emitted EvalExpr/value-pair/BlockGripExpr sequence, remapped object and graph handles, owner DICTIONARY, BLOCK_RECORD edge, CLASS count and fresh import agree.",
+    "binary": "PASS: the same exact body and ownership checks pass through Binary DXF output and fresh import.",
+    "valuePair": "PASS: only value code 40 with its DXF group 40 payload is admitted; unsupported selector/group combinations remain outside the typed profile.",
+    "canonicalDxfPair": "PASS: DXF parsing admits only schema pair 33/29; a locally authored group-98 value 34 remains an opaque, incomplete body.",
+    "gripType": "PASS: only source-backed grip type 16 is admitted by this narrow profile.",
+    "nodeRoleAndIdentity": "PASS: each singleton graph expression handle resolves once to an admitted GripLocationComponent, and its next-node index matches the child's source node ID.",
+    "unsupportedGraph": "PASS refusal: unsupported source EvalExpr version pair, node-ID mismatch, incomplete graph and mixed owner graph do not publish output."
+  },
+  "failureAndRetry": {
+    "negativeControls": [
+      "A DWG-source EvalExpr pair other than 29/2 is refused while an existing destination sentinel remains byte-for-byte unchanged.",
+      "A graph next-node index that disagrees with the GripLocationComponent node ID is refused while the destination sentinel remains unchanged."
+    ],
+    "retry": "After correcting the source pair and graph node ID, retrying on the same adapter succeeds; fresh import returns the emitted 33/29 DXF schema fields and corrected object/graph bindings.",
+    "result": "PASS"
+  },
+  "compositionCheck": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/title_block-arch.dwg -y -v2010 /private/tmp/title_block_arch_after_grip_mapping.dxf",
+    "exitCode": 1,
+    "result": "Expected strict refusal at SORTENTSTABLE ownership/target graph validation; no destination was published. The mixed three-entry owner dictionary and remaining graph targets are not admitted by this isolated profile."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "focusedProfiles": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_(purge_preventer|grip_location)$' --output-on-failure",
+      "result": "PASS, 2/2; exact ASCII/Binary output and readback, source-to-DXF version normalization, graph binding, destination preservation and corrected same-adapter retry."
+    },
+    "strictInputSmoke": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/title_block-arch.dwg -y -v2010 /private/tmp/title_block_arch_after_grip_mapping.dxf",
+      "result": "Expected SORTENTSTABLE graph refusal; destination absent."
+    },
+    "hygiene": "git diff --check passed.",
+    "fullSuites": "NOT RUN; only touched production/test targets and focused selectors were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Implement and qualify the isolated AC1024 BLOCKGRIPLOCATIONCOMPONENT body, its 29/2 DWG to 33/29 DXF version mapping, and singleton EvaluationGraph/DICTIONARY/BLOCK_RECORD route with ASCII/Binary readback and failure/retry proof."
+    ],
+    "nextPacket": "Compose the source's three-entry BLOCK_RECORD owner dictionary: qualify BLOCKVISIBILITYPARAMETER 0x1118 and BLOCKVISIBILITYGRIP 0x1119, bind four EvaluationGraph nodes (IDs 16–19) and three edges including GripLocation handles 0x111A/0x111B, preserve all 117 visibility-parameter block handles, then close SORTENTSTABLE reciprocity and prove sibling bodies, roles and remapped references in staged output and fresh readback. Resolve ACDB_BLOCKREPRESENTATION_DATA 0xDD6 with owner 0xDD5 separately. Keep strict conversion refused until the whole required graph closes.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "80dad9f4ff00a1ddd72b741e55853fe0759d2769c286a339ede077096569b3d0",
+    "src/libdxfrw.cpp": "35a8272451b3992d1d9b2d6fc7bbbc44d2786fa21a3315d09fae62a6298d7593",
+    "src/drw_objects.h": "dac1662de644889432d8fc243040eef3b9835a6a285ffdc58ceb01d98c210b31",
+    "dwg2dxf/dx_iface.cpp": "1ecadeee81f86aa8bb3324a8aa8f0af4a1cb9cdcb5c9813205691925c057d8da",
+    "dwg2dxf/dx_iface.h": "ba1dc2746598d9a5cd53927002225b7c4dc9408fd337c0de83bd03efe1299941",
+    "src/libdxfrw.h": "ad01ee1c93c16eb16efb433c6d3c4e2ecbcad029b30c1d103e863090ac6ad288",
+    "tests/dwg2dxf_adapter_tests.cpp": "301a4ac7f4f290feaed1173f1365da915bb82224ec353f5d8552c05d106c781e",
+    "tests/CMakeLists.txt": "4cd1c01ebd5b0b2edce6509770a1b97cd901bc8bc50e3d9f2e40762ba66d1fab",
+    "sourceDWG": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "LibreDWGSchemaSource": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "LibreDWGSourceJSON": "1494365d7a28f64c0ee154832d46dac5029e01853ac73cdc7a04bc669327d719",
+    "LibreDWGOutputDXF": "dea419cf73dc1a135918d76f6a4bfc422b8fab6e3aeebbc43fe18c0c54188678"
+  }
+}

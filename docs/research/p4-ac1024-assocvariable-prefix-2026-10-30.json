@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assocvariable-prefix-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 AcDbAssocVariable typed-prefix capture",
+  "status": "PREFIX_CAPTURED_SUFFIX_UNRESOLVED_OUTPUT_NOT_ADMITTED",
+  "supportClaimEffect": "none",
+  "baselineCommit": "ba83461a",
+  "scope": "Decode the physically witnessed AC1024 AcDbAssocVariable fields needed for later source-bound graph work while retaining an explicit partial status for the unclassified remainder. This slice does not add a DXF writer or promote associative support.",
+  "sourceProfile": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "objectCount": 17,
+    "observedClassVersion": 2,
+    "observedEvalVariantCodes": [40, 90],
+    "observedFields": [
+      "name",
+      "expression (LibreDWG t58)",
+      "evaluator",
+      "description",
+      "real or signed 32-bit EvalVariant",
+      "has_t78",
+      "t78",
+      "b290"
+    ],
+    "wireStatus": "The typed fields are read for all 17 objects, but the enclosing object span is not fully accounted for; each remains ParseStatus::Partial and wireComplete=false.",
+    "committedDwgFixturesAdded": 0
+  },
+  "independentSchema": {
+    "implementation": "LibreDWG",
+    "repository": "../libredwg",
+    "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "sourceFiles": [
+      "src/dwg2.spec:5726 (ASSOCVARIABLE body order)",
+      "src/dwg2.spec:1809 (EvalVariant discriminator and supported field forms)"
+    ],
+    "projection": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+    "projectionSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+    "dxfOutput": "/private/tmp/libdxfrw-p4-libredwg-mechanical.dxf",
+    "dxfOutputSha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+    "observation": "LibreDWG identifies 17 ASSOCVARIABLE objects. The independent JSON projection supplies the source values and uses value codes 40 and 90 in this profile; the DXF projection orders the AcDbAssocVariable fields as class version, four strings, value discriminator/payload, has_t78, t78 and b290.",
+    "limits": "LibreDWG's unknown_bits field preserves an opaque object-data region and does not explain the remaining libdxfrw cursor span. The source schema corroborates field order and supported EvalVariant types, not the residual bits or consumer semantics."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "AC1024 AcDbAssocVariable now captures the witnessed class-version-2 field sequence and real/int32 EvalVariant forms. Unsupported discriminators remain typed-shell failures. The model copies and resets these fields, and the prefix ledger reports Complete only when the bounded body and text streams are fully consumed with at most seven zero padding bits; otherwise it reports Partial. The strict associative graph serialization gate is unchanged.",
+    "physicalConversion": "dwg2dxf reads the source and continues to refuse export with dwg-associative-graph-not-serialized; no DXF destination is published.",
+    "supportClaimEffect": "none"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j2",
+      "result": "PASS with -Werror"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_variable_generated$' --output-on-failure",
+      "result": "PASS 1/1. Generated real and int32 profiles, field values, copy/assignment and unsupported-discriminator refusal; no DWG/DXF fixture files added."
+    },
+    "physicalSource": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/libdxfrw-assoc-variable-check.dxf",
+      "result": "Expected strict refusal; source graph audits complete, but graph output remains unqualified and no destination file is published."
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN; the focused generated profile and physical-source strict-refusal checkpoint cover this slice."
+  },
+  "remaining": "Classify and consume the remaining physical body/handle span for this profile before marking it wire-complete. Then bind its identity and references through the P4 source-to-planned-to-emitted graph path, independently inspect staged bytes, and prove readback and whole-operation rollback/retry."
+}

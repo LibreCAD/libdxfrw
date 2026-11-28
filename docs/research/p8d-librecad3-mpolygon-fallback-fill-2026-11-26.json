@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "9b3f3ad80a4cea20a1a75a3ba40452dc34ac67a4",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "problem": "When a non-rigid edit forced a solid MPOLYGON to HATCH, its separate entity color was written instead of the supported fill color. A red-line/green-fill test reproduced red output before the fix.",
+  "change": "For a supported explicit ACI solid fill, write the fill as the HATCH entity color and report when the separate boundary color cannot be retained.",
+  "validation": {
+    "dwg_persistence": "17 passed including failed-before/red and passed-after/green reimport and explicit boundary-color loss note",
+    "layout": "15 passed",
+    "canvas": "4 passed",
+    "dxf": "71 passed",
+    "plan": "full/worktree/base and 31 checker tests passed",
+    "independent": "ezdxf 1.4.5 read a locally scaled fallback as HATCH ACI 3 with zero audit errors or fixes"
+  },
+  "source_sha256": "f1399bfe05ef200685dd741c4956e21beaf2c7262345b5ec8ced155d9dd505ce",
+  "output_sha256": "8d8bec1c9a3c42676a4b2c0d12663946428251d3dc524a3814617d4894aaee35",
+  "persistence_library_sha256": "bac412743c0879eccf660f336ccc258016120ac9a7122281ad73c48083623d4e",
+  "limits": [
+    "Separate MPOLYGON boundary color cannot be represented by the fallback HATCH and is explicitly reported.",
+    "Only supported explicit ACI solid fills are covered; gradients, named/true colors, native MPOLYGON editing and other platforms remain open."
+  ],
+  "supportClaimEffect": "none"
+}

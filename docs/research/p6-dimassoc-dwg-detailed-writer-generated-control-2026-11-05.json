@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-05",
+  "title": "Generated AC1024 DIMASSOC detailed DWG writer control",
+  "scope": "Bounded encoder and transport evidence for one locally authored AC1024 DIMASSOC object containing AcDbOsnapPointRef types 1, 6, and 13. The source DWG was written to /private/tmp and is not a repository fixture.",
+  "implementation": {
+    "modeled_fields": [
+      "ordered main object handles",
+      "main subentity type and GS marker",
+      "main XREF path string",
+      "near parameter and osnap point",
+      "intersection object handle, subentity type, and GS marker",
+      "intersection XREF path string",
+      "last-point reference flag"
+    ],
+    "profile": "AC1024 generated object, associativity flags 0x07; type 1 has two main handles; type 6 has one main and one intersection handle plus an intersection XREF path; type 13 has one main handle plus a main XREF path.",
+    "limitations": [
+      "Generated referenced entity handles are intentionally not emitted, so the full-file probe verifies decoding and callback delivery, not reference-graph closure.",
+      "This generated vector does not establish native associative behavior or producer compatibility."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dimassoc_physical_transport_tests -j4",
+    "focused_test": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimassoc_dwg_detail_readback$' --output-on-failure",
+      "result": "passed, 1/1"
+    },
+    "encoder_failure_retry": "An unsupported-detail encode is refused with body, string, and handle buffers empty; correcting the same source and retrying with those same buffers succeeds.",
+    "full_file_readback": {
+      "command": "build-gcc/libdxfrw_dimassoc_physical_transport_tests /private/tmp/libdxfrw-dimassoc-paths-lastzero.dwg",
+      "read_observation": "sourceVersion=16 (AC1024), entityParseFailures=0, objectParseFailures=0, callbacks=1, and all three authored types, ordered handle values, and both path strings were reported by the typed callback.",
+      "exit_status": 1,
+      "reason": "The harness correctly refuses to claim closure because the generated DIMENSION, main-reference, and intersection-reference target entities were not emitted."
+    },
+    "libredwg_peer": {
+      "version": "dwgread 0.14",
+      "path_free_control": "The same generated profile with both path counts zero decoded types 1, 6, and 13 and all authored fields and handle values.",
+      "path_vector_observation": "When XREF paths are present, LibreDWG reads the path count but reports a buffer overflow while reading the path string from the scalar cursor; subsequent ref decoding is lost.",
+      "source_explanation": "In the local LibreDWG source, FIELD_T reads R2007+ text from str_dat (dec_macros.h:656-674), while FIELD_VECTOR_T invokes bit_read_T(dat) (dec_macros.h:1248-1274). DIMASSOC uses FIELD_VECTOR_T for both XREF path vectors (dwg2.spec:3689-3690, 3704-3705), explaining why this peer cannot qualify the path-bearing vector. This identifies a peer-reader limitation; it does not itself prove the writer interoperable."
+    },
+    "oda": "ODA File Converter 27.1.0.0 was attempted locally; this invocation exited 134 with macOS PasteBoard/XPC connection errors, so no ODA conversion result is claimed.",
+    "adapterStrictOutputProbe": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-dimassoc-paths-lastzero.dwg -y -v2010 /private/tmp/libdxfrw-dimassoc-adapter-current.dxf",
+      "result": "refused atomically",
+      "diagnostic": "strict-complete conversion requires output qualification for every opaque DWG callback (qualified=2/3)",
+      "interpretation": "The generated DIMASSOC frame remains unqualified by the dwg2dxf adapter. This is fail-closed behavior; no DXF output was published. The next implementation slice is typed adapter retention, dimension/entity target closure, and exact source-frame output qualification."
+    },
+    "odaRetryAfterUserUnlock": {
+      "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "command": "ODAFileConverter /private/tmp/libdxfrw-dimassoc-oda-retry/in /private/tmp/libdxfrw-dimassoc-oda-retry/out ACAD2013 DXF 0 0",
+      "exitCode": 134,
+      "stderr": [
+        "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]",
+        "PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]",
+        "Connection Invalid error for service com.apple.hiservices-xpcservice."
+      ],
+      "interpretation": "No independent ODA DIMASSOC validation was produced."
+    }
+  },
+  "support_effect": "No producer, native semantic, graph-closure, or platform support claim is promoted. Keep broader DWG DIMASSOC qualification open until an independent implementation correctly reads the path vectors and the target graph is closed."
+}

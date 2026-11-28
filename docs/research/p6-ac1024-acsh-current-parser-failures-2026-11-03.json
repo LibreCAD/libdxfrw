@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-acsh-current-parser-failures-2026-11-03",
+  "date": "2026-11-03",
+  "status": "REPRODUCED_LAYOUT_UNRESOLVED_RAW_ONLY_STRICT_REFUSAL_RETAINED",
+  "supportClaimEffect": "none",
+  "scope": "Reproduce and localize current AC1024 ACSH_LOFT_CLASS and ACSH_REVOLVE_CLASS object-frame failures using two existing local DWGs. No DWG/DXF fixture was added or copied into the repository.",
+  "repository": {
+    "commit": "5af297bfb052aa146cf050c6844423fc061e3bbf",
+    "tool": "build-gcc/dwg2dxf/dwg2dxf",
+    "toolSha256": "d8adf9a7d1e1d42dcfcafb7e821daafa8fca3b3e8ada088213a22929a44020c7",
+    "parserSourceSha256": "3f9666b6a967b0d4086e2fd84a3eb2e854f806ce9e60cb74d71b2c94362b58c1",
+    "parserHeaderSha256": "c43ebc0ca9261f316745f08ecece24ff68a28afc995346aee454debc4a15a5b9"
+  },
+  "commandTemplate": "build-gcc/dwg2dxf/dwg2dxf <input.dwg> -y -d -v2010 /private/tmp/acsh-recheck-<name>.dxf",
+  "cases": [
+    {
+      "name": "visualization_-_condominium_with_skylight.dwg",
+      "path": "tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+      "inputSha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "sizeBytes": 1415699,
+      "sourceVersion": "AC1024",
+      "exitCode": 1,
+      "objectParseFailures": 3,
+      "strictDxfPublished": false,
+      "trace": {
+        "path": "/private/tmp/acsh-recheck-condo.log",
+        "sha256": "6fa882894e01e32d4938cca0b8d853408ecacc8d512459d5187d457947ea47c2"
+      },
+      "failedFrames": [
+        {
+          "handle": "0xDF9",
+          "class": "ACSH_LOFT_CLASS",
+          "objectType": 533,
+          "frameLocation": 2373737,
+          "frameOrdinal": 870,
+          "objectDataBits": 1936,
+          "bodyObservation": "Shared prefix ends at body bit 847. BL numCrossSections decodes as 272 (bits 847-881); BL numGuides decodes as 1380040704 (bits 881-915); bounded count validation refuses the record."
+        },
+        {
+          "handle": "0xDEE",
+          "class": "ACSH_LOFT_CLASS",
+          "objectType": 533,
+          "frameLocation": 2704930,
+          "frameOrdinal": 859,
+          "objectDataBits": 1628,
+          "bodyObservation": "Shared prefix ends at body bit 847. BL numCrossSections decodes as 272 (bits 847-881); BL numGuides decodes as 1380040704 (bits 881-915); bounded count validation refuses the record."
+        },
+        {
+          "handle": "0xC6C",
+          "class": "ACSH_REVOLVE_CLASS",
+          "objectType": 532,
+          "frameLocation": 2704286,
+          "frameOrdinal": 793,
+          "objectDataBits": 3070,
+          "bodyObservation": "Shared prefix ends at bit 783; the current 3BD axis point ends at bit 917; the following 2RD direction ends at bit 1045 with an implausibly large component; the next BD begins with code 3 and is rejected."
+        }
+      ]
+    },
+    {
+      "name": "visualization_-_conference_room.dwg",
+      "path": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+      "inputSha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "sizeBytes": 973730,
+      "sourceVersion": "AC1024",
+      "exitCode": 1,
+      "objectParseFailures": 3,
+      "strictDxfPublished": false,
+      "trace": {
+        "path": "/private/tmp/acsh-recheck-conference.log",
+        "sha256": "4373f3fcef6a1ee751cacdac94ecb131bc7768d79668c9a45bd739537d9efc46"
+      },
+      "failedFrames": [
+        {
+          "handle": "0x6FC",
+          "class": "ACSH_REVOLVE_CLASS",
+          "objectType": 526,
+          "frameLocation": 1540229,
+          "frameOrdinal": 282,
+          "objectDataBits": 2374,
+          "bodyObservation": "Shared prefix ends at bit 975; 3BD axis point ends at bit 1173; 2RD direction ends at bit 1301 with an implausibly large component; the next BD begins with code 3 and is rejected."
+        },
+        {
+          "handle": "0x6D3",
+          "class": "ACSH_REVOLVE_CLASS",
+          "objectType": 526,
+          "frameLocation": 1498769,
+          "frameOrdinal": 245,
+          "objectDataBits": 2374,
+          "bodyObservation": "Shared prefix ends at bit 975; 3BD axis point ends at bit 1173; 2RD direction ends at bit 1301; the next BD begins with code 3 and is rejected."
+        },
+        {
+          "handle": "0x6AA",
+          "class": "ACSH_REVOLVE_CLASS",
+          "objectType": 526,
+          "frameLocation": 1457309,
+          "frameOrdinal": 208,
+          "objectDataBits": 2374,
+          "bodyObservation": "Shared prefix ends at bit 975; 3BD axis point ends at bit 1173; 2RD direction ends at bit 1301 with an implausibly large component; the next BD begins with code 3 and is rejected."
+        }
+      ]
+    }
+  ],
+  "authorityAndDifferentials": {
+    "odaSpecification": "The extracted ODA v5.4.1 specification contains no AcDbShLoft, AcDbShRevolve, ACSH_LOFT_CLASS or ACSH_REVOLVE_CLASS layout entry. Its primitive bit encodings do not identify these proprietary class field sequences.",
+    "peerSchemas": {
+      "libreDwgDwg2SpecSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "dwgTsTableParsersSha256": "f4e51b62674f279f1e2e96a1e4fe7bf5a3348a085619014e5e8e9df1d22873fd",
+      "observation": "The available peer schemas describe the same shared-prefix, 2RD revolve-direction and Loft count sequence. They do not adjudicate this profile: the current local decodes fail or produce implausible values, and peer field declarations are not independent producer/semantic evidence."
+    }
+  },
+  "disposition": "Keep the failed frames raw-retained but unvalidated, keep reader completeness partial, and keep strict-complete DXF output refused. Do not change field offsets/types or admit the records from count plausibility alone.",
+  "next": "Obtain an authoritative class-specific layout or an independent producer/consumer trace that pins the exact shared-prefix and body spans, including following-handle alignment and meaningful Revolve direction/angle values. Then add a source-bounded AC1024 parser/readback control without committing these local DWGs."
+}

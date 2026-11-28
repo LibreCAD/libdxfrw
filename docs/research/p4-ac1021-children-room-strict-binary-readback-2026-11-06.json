@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 children-room strict Binary DXF output and readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Check whether the already qualified children-room AC1021 source graph completes strict Binary DXF output and survives repeated fresh Binary DXF import/export using the current dwg2dxf build.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local input; author and producer are unauthenticated. No fixture was committed."
+  },
+  "commands": [
+    {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/children-room-decoration.dwg -y -b -v2007 /private/tmp/children-room-strict-binary.dxf",
+      "result": "PASS: strict whole-source Binary conversion completed.",
+      "outputSha256": "4b7e7095d845288d45e5cf8ac4486bc6f7b803efb06c1466e5d84bc774e96c30"
+    },
+    {
+      "command": "build/dwg2dxf/dwg2dxf /private/tmp/children-room-strict-binary.dxf -y -b -v2007 /private/tmp/children-room-strict-binary-reexport.dxf",
+      "result": "PASS: fresh Binary DXF import and strict Binary re-export completed.",
+      "outputSha256": "5a3bd6960d89bba654bfbc9be356f69b2409cf1025f0a5a65925b969d3983a37"
+    },
+    {
+      "command": "build/dwg2dxf/dwg2dxf /private/tmp/children-room-strict-binary-reexport.dxf -y -b -v2007 /private/tmp/children-room-strict-binary-readback.dxf",
+      "result": "PASS: second fresh Binary DXF import and strict Binary re-export completed.",
+      "outputSha256": "41ea41cbb577312f9f8aa000e070ceccd765d631fd1490a4a1052c6cf10fae54"
+    }
+  ],
+  "validation": {
+    "commandExitCodes": [0, 0, 0],
+    "allOutputsCreated": true,
+    "outputEncoding": "Binary DXF",
+    "readbackCount": 2,
+    "fullSuites": "NOT RUN",
+    "fixturePolicy": "All outputs remained under /private/tmp; no DWG/DXF fixture was added to the repository."
+  },
+  "limits": [
+    "This qualifies only the exact local AC1021 source profile and current Binary DXF read/write path.",
+    "Output hashes differ across successive exports; this receipt does not claim byte-for-byte stability or exact semantic equivalence of all records.",
+    "No independent native consumer, producer-wide, cross-version, or support claim is established."
+  ]
+}

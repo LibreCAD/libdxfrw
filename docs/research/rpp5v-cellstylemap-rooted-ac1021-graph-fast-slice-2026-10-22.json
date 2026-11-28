@@ -1,0 +1,72 @@
+{
+  "slice": "RPP-5v",
+  "title": "Generated AC1021 TABLESTYLE extension DICTIONARY to CELLSTYLEMAP graph write/read",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": [
+    "compose the existing TABLESTYLE, DICTIONARY, and CELLSTYLEMAP DWG writers into the canonical AC1021 owner graph",
+    "write TABLESTYLE extension-dictionary handle and DWG common flag with the flag-zero handle-present semantics",
+    "verify dictionary ownership/key/target and CELLSTYLEMAP parent through whole-file readback"
+  ],
+  "graph": {
+    "table_style_handle": "0xCF00",
+    "extension_dictionary_handle": "0xCF20",
+    "cell_style_map_handle": "0xCF10",
+    "dictionary_key": "ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP",
+    "extension_dictionary_flag": 0,
+    "extension_dictionary_flag_semantics": "zero means the hard extension-dictionary handle follows; one suppresses it",
+    "dictionary_owner": "TABLESTYLE 0xCF00",
+    "map_owner": "extension DICTIONARY 0xCF20"
+  },
+  "generated_controls": [
+    "whole-file AC1021 writer/readback validates TABLESTYLE extension-dictionary handle and flag",
+    "readback validates complete one-entry extension DICTIONARY, hard owner, canonical key, and target handle",
+    "readback validates CELLSTYLEMAP owner and nested custom style content",
+    "object/raw-carrier census includes the additional typed dictionary frame",
+    "other generated versions retain the previous no-CELLSTYLEMAP behavior"
+  ],
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip lc3_compat_check --parallel 2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "elapsed_seconds": 5.73
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "receipt_json_parse": {
+      "command": "jq empty docs/research/rpp5v-cellstylemap-rooted-ac1021-graph-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    }
+  },
+  "fixtures": {
+    "persistent_external_fixtures_added": 0,
+    "input_origin": "generated locally by the existing whole-file round-trip harness"
+  },
+  "qualification_limits": {
+    "automatic_arbitrary_source_graph_conversion": "NOT_IMPLEMENTED",
+    "ac1024_plus_writer": "NOT_IMPLEMENTED",
+    "independent_producer_reopen": "NOT_RUN",
+    "full_test_suite": "NOT_RUN",
+    "sanitizers": "NOT_RUN",
+    "native_freecad_linux": "NOT_RUN",
+    "native_freecad_windows": "NOT_RUN",
+    "independent_acis_acds_semantic_evidence": "NOT_RUN",
+    "support_claim_promoted": false,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "changed_paths": [
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/rpp5v-cellstylemap-rooted-ac1021-graph-fast-slice-2026-10-22.json"
+  ],
+  "next": "Add locally verifiable writer-side graph rejection controls for dangling/duplicate targets and noncanonical keys, without widening beyond AC1021 or promoting external support claims.",
+  "commit": "NONE"
+}

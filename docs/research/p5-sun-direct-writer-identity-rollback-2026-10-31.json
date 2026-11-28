@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-sun-direct-writer-identity-rollback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "SUN direct-writer identity remapping and record rollback",
+  "status": "DIRECT_WRITER_IDENTITY_AND_ROLLBACK_QUALIFIED",
+  "supportClaimEffect": "none",
+  "operation": {
+    "scope": "Direct dxfRW::writeSun record API; ASCII and Binary DXF",
+    "source": "Generated DRW_Sun records authored in the C++ test; no physical DWG/DXF source fixture",
+    "fixturePolicy": "No persistent DWG/DXF fixtures added. Test records and outputs are in-memory.",
+    "changes": [
+      "Allocate a nonzero output handle when a direct SUN record has no source handle.",
+      "Apply caller handle remapping and reserve the emitted identity for explicit source handles; bind source object identity only after record serialization succeeds.",
+      "Remap the SUN owner, check each serialized field write, and commit bytes and record-local state together.",
+      "Preserve the documented group-63 color projection and existing refusal of unsupported CMC RGB/name/book metadata."
+    ]
+  },
+  "evidence": {
+    "asciiBinary": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_sun_cmc_dxf_projection$' --output-on-failure",
+      "result": "PASS (1/1). The selector exercises ASCII and Binary: default handle allocation and root owner C; explicit 0xA500/0xA501 to 0xB500/0xB501 identity/owner remapping; documented color group 63; and continued refusal of unrepresentable CMC color/name state."
+    },
+    "rollbackAndRetry": {
+      "result": "PASS in ASCII and Binary. An invalid XDATA variant is rejected after the SUN body has been staged; the pre-existing destination prefix remains byte-for-byte unchanged. A corrected record succeeds with a fresh writer. The writer's failure flag is sticky, so this direct-record selector does not claim same-instance retry."
+    },
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "result": "PASS with the configured warning-as-error build."
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "This qualifies the direct codec writer's identity and transaction behavior only; dx_iface does not yet route DWG-origin typed SUN records through it.",
+    "The existing physical sun-and-sky DWG does not qualify the scalar-only color route because its SUN objects contain CMC RGB metadata that the documented SUN DXF group set cannot represent faithfully.",
+    "No physical DWG owner graph, VPORT/VIEWPORT consumer closure, native rendering, independent CAD acceptance, full suite, or support claim is qualified."
+  ],
+  "nextAction": "Implement the DWG-origin typed-only SUN output route for group-63-faithful profiles, close/remap VPORT and VIEWPORT owner/reference edges, preserve DXF-origin raw replay, and keep unsupported CMC states refused. Then inspect staged output and fresh readback before any native consumer qualification.",
+  "sourceHashesSha256": {
+    "src/libdxfrw.cpp": "3318f13d77963c307c90d98d0e2248e581ebaf77263295123100cd4c3f1d954b",
+    "tests/wave1_tests.cpp": "8b33c127014e2e6fc72252326decd8d13b40e5da065755a94d9cc843df68a940"
+  }
+}

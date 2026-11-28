@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "R13_R14_IMPOSSIBLE_IMAGEDEF_SIZE_FAILS_CLOSED",
+  "supportClaimEffect": "none",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.81 specifies an object-size RL in the nonempty R13/R14 IMAGEDEF body. A zero size cannot describe that body.",
+  "source": {
+    "provenance": "A scratch image drawing was converted to AC1014 using ODA File Converter 27.1.0. The original and modified drawings remain outside the repository.",
+    "sourceSha256": "26e46e206b35ab23152aad4ed1d96116d8c97c5dfa67a7df1e5b9b1a8cb3f70e",
+    "modifiedSha256": "f2edc743d18648be7154d51ec278f81f052a70ae1c222112098d6d94fddd6a34",
+    "method": "tools/probe_ac1014_imagedef_zero_size.py checks the exact source hash, IMAGEDEF handle and field boundaries and original object CRC; it replaces the 435-bit size with zero in the scratch copy, recalculates that object's CRC, and refuses to overwrite an existing output. It does not establish any other changed field or a valid producer profile.",
+    "toolSha256": "b2084b4160589ad6f7d875b2b3187bef31758d76f1f8d9ce100aaa88729aa51b"
+  },
+  "before": "The in-tree raster wire observer, separate from the typed parser, classified the zero size as generic Unsupported before checking the IMAGEDEF owner role, allowing this modified source past the raster correlation preflight. Strict conversion still refused because two unrelated objects failed parsing; explicit partial conversion was refused by the separate proxy-graphics preservation gate. No published output bypass was demonstrated.",
+  "change": "The raster source observer classifies a zero or truncated R13/R14 IMAGEDEF object size as malformed instead of Unsupported. The existing reactor Unsupported classification remains unchanged. The native DWG reader and its callbacks are unchanged.",
+  "validation": "The focused wire selector passes R13 and R14 valid controls, zero sizes with owner roles 3 and 4 followed by a fresh scan of the valid control, and zero/truncated reactor compatibility controls. A rebuilt CLI refused the exact modified AC1014 source at the raster correlation preflight in ASCII and Binary, both strict and explicit partial modes, preserving an existing destination each time. The input SHA-256 was checked before and after the four runs.",
+  "limits": "No change to supported ownership roles, no general malformed-file or producer claim, and no evidence that the original source or modified drawing can complete strict conversion. No drawing fixture was committed."
+}

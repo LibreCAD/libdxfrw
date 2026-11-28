@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "topic": "bounded DATATABLE DXF typed read projection",
+  "status": "local_generated_codec_control",
+  "source_profile": {
+    "basis": "Previously recorded ODA-converted AC1018 TABLE/DATATABLE source profile and its DXF group sequence",
+    "independent_producer_sample": false,
+    "fixture_file_committed": false,
+    "input_version": "AC1024 DXF header in generated scratch input"
+  },
+  "implementation": {
+    "dispatch": ["DATATABLE", "ACDBDATATABLE"],
+    "projected_fields": [
+      "group 70 flags",
+      "group 90 column count",
+      "group 91 row count",
+      "group 1 table name",
+      "ordered group 92 column type and group 2 column name",
+      "type-matched group 40, 93, and 3 scalar rows",
+      "ordered group 360 row-child handles"
+    ],
+    "raw_object_retained": true,
+    "unsupported_or_incomplete_projection": "retain raw object and omit addDataTable callback",
+    "writer_enabled": true,
+    "target_resolution_enabled": false,
+    "graph_closure_enabled": false,
+    "dwg_wire_claim": false,
+    "semantic_support_promotion": false
+  },
+  "generated_controls": {
+    "ascii": {
+      "complete_profile_typed_callback": true,
+      "incomplete_child_reference_count_raw_only": true,
+      "unsupported_column_type_raw_only": true,
+      "duplicate_singleton_header_raw_only": true,
+      "missing_or_duplicate_column_name_raw_only": true,
+      "duplicate_or_owner_aliased_row_handle_raw_only": true
+    },
+    "binary": {
+      "complete_profile_typed_callback": true,
+      "incomplete_child_reference_count_raw_only": true,
+      "unsupported_column_type_raw_only": true,
+      "duplicate_singleton_header_raw_only": true,
+      "missing_or_duplicate_column_name_raw_only": true,
+      "duplicate_or_owner_aliased_row_handle_raw_only": true
+    },
+    "temporary_files_removed": true
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_datatable_read_tests -j4",
+    "build_result": "passed",
+    "consumer_build": "cmake --build build-gcc --target dwg2dxf -j4",
+    "consumer_build_result": "passed",
+    "focused_test": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_datatable_read$' --output-on-failure",
+    "focused_test_result": "1/1 passed; duplicate singleton/column-name and row-handle graph-integrity controls included",
+    "diff_check": "git diff --check passed"
+  },
+  "limitations": [
+    "Generated codec consistency does not independently validate the DATATABLE DXF schema.",
+    "Group 360 handles are retained in order but are not resolved to XRECORD identities or owner roles.",
+    "The typed DXF projection does not establish cell meaning, native application behavior, or DWG output correctness.",
+    "Generated DataTable writer transaction and fresh readback exist in the companion writer receipt, but physical source identities, owner roles, recursive graph closure, and strict source-output admission remain unproven."
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "RPP-5yx",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE pre-R2010 version refusal",
+  "scope": {
+    "operation": "Reject MLEADERSTYLE styleVersion values that cannot be represented by an AC1021 DXF target.",
+    "target_version": "AC1021",
+    "field": {
+      "group_code": 179,
+      "name": "styleVersion",
+      "expected_value": 2
+    },
+    "authority": "ODA Open Design Specification for .dwg files v5.4.1, \u00a720.4.87 lists group 179 only for R2010 and says its expected value is 2. AC1021 predates R2010 and has no group-179 representation.",
+    "sources": [
+      "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    ],
+    "claim_boundary": "Direct MLEADERSTYLE writer admission for the AC1021 version field only; no broader style, DXF, DWG or consumer support claim."
+  },
+  "implementation": [
+    "Refuse styleVersion values other than 2 before publication for every target version, including AC1021 where group 179 is omitted.",
+    "Preserve the caller's unsupported value and the existing destination on refusal; allow a same-adapter retry after restoring the representable default."
+  ],
+  "evidence": {
+    "input": "Runtime-generated typed MLEADERSTYLE objects; no fixture files committed.",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "invalid_values": [
+      1,
+      3,
+      65535
+    ],
+    "refusal": "Each invalid AC1021 value is refused in both encodings while preserving the destination sentinel and caller field.",
+    "retry": "The same adapter retries with styleVersion 2; output succeeds and omits group 179 for AC1021.",
+    "matrix": "Three nondefault values \u00d7 two encodings, each with destination/caller preservation and corrected same-adapter retry. Existing RPP-5yu covers AC1024/AC1027 group-179 value-2 emission and refusal/retry."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_wave1_tests --parallel 4",
+    "focused_test": "ctest --test-dir build -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+    "result": "Passed, 1/1 test in 0.63 seconds.",
+    "diff_check": "PASS: git diff --check.",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "tests/wave1_tests.cpp"
+  ],
+  "remaining": [
+    "Other MLEADERSTYLE version/source-presence fields, dependency profiles and native semantics remain open; P2 remains open."
+  ]
+}

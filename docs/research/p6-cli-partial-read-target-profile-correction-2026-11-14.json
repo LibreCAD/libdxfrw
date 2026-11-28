@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-partial-read-target-profile-correction-2026-11-14",
+  "date": "2026-11-14",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Correct the partial-DWG-read CLI matrix for legacy VPORT target representability and verify exact partial frame disposition in both DXF encodings.",
+  "finding": {
+    "sourceRevisions": ["AC1015", "AC1018"],
+    "observation": "Generated partial-read sources contain VPORT fields refused by the current writer when targeting AC1015/AC1018. The --allow-partial-dwg-read option relaxes source read completeness only; it does not authorize DXF version-loss.",
+    "disposition": "Keep the downgrade guard. Select AC1021 explicitly for the successful AC1015/AC1018 partial-output controls.",
+    "separate_guard": "AC1027 partial-read output remains refused because source references are not fully qualified."
+  },
+  "target_matrix": {
+    "AC1015": "AC1021",
+    "AC1018": "AC1021",
+    "AC1021": "AC1021",
+    "AC1024": "AC1024",
+    "AC1027": "refused by source-reference closure gate",
+    "AC1032": "AC1032"
+  },
+  "controls": {
+    "source_generator": "tests/dwg_local_roundtrip_tests.cpp --generate-cli-partial-read-source",
+    "partial_projection": "For each successful source: one entity parse failure, zero object parse failures, partial frame coverage, exactly one failed frame, zero unresolved/unrecognized frames, and disposition counts summing to the source-frame count.",
+    "output": "ASCII and Binary; one retained LINE; exact output revision; source remains byte-identical.",
+    "readback": "Direct dxfRW parser helper verifies exactly one LINE and one VPORT; output bytes remain unchanged.",
+    "strict": "Strict default conversion refuses all generated partial sources and preserves destination sentinels.",
+    "ac1027": "Explicit partial-read output remains atomically refused in ASCII and Binary by the source-reference closure gate."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j4",
+    "test": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
+    "result": "PASS: 33 strict/partial/readback controls",
+    "diff_check": "PASS: git diff --check"
+  },
+  "limits": [
+    "The direct readback asserts LINE and VPORT record counts, not full VPORT field-by-field semantic equivalence.",
+    "The controls use locally generated inputs and do not qualify native producer files or consumer behavior.",
+    "No DWG/DXF fixture files were added; generated files are temporary."
+  ]
+}

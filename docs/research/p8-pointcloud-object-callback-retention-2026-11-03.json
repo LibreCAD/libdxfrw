@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pointcloud-object-callback-retention-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "BOUNDED_TYPED_CALLBACK_RETENTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Retain typed point-cloud definition, reactor, Navisworks definition, and color-map callbacks in the concrete DXF adapter without implying output support.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "POINTCLOUDDEFINITION, POINTCLOUDDEFINITIONEX, POINTCLOUDDEFREACTOR, POINTCLOUDDEFREACTOREX, NAVISWORKSMODELDEF, and POINTCLOUDCOLORMAP typed callbacks are retained in dedicated containers.",
+      "A shared adapter budget limits aggregate records, nested items, and estimated retained bytes across all three callback families; object fields and nested color schemes are validated before retention.",
+      "Malformed callback capture sets a sticky failure state without retaining a partial record.",
+      "DXF export is refused atomically when any point-cloud definition/reactor/color-map callback is retained, because source-bound graph closure and adapter output bindings are not yet qualified."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed typed in-memory callback objects only; no external files and no DWG/DXF fixture files.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "All three callback families retain representative values and aggregate accounting under the common budget.",
+      "A malformed declared color-ramp count is rejected atomically and marks capture incomplete.",
+      "Export with the retained object graph preserves pre-existing destination bytes."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_point_cloud_adapter_transport$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; both ASCII and Binary callback-retention, malformed-capture and atomic output-refusal controls.",
+    "diffCheck": "PASS: git diff --check",
+    "fixturePolicy": "No drawing fixture was added or committed."
+  },
+  "limitations": [
+    "Typed callback retention does not prove definition/reactor graph relationships, owner scopes, target kinds, source identity bindings, or output serialization.",
+    "Point-cloud assets are not loaded or independently interpreted by this test.",
+    "Physical producer and native consumer semantics remain unqualified; no support claim is promoted."
+  ],
+  "next": "Continue P4 source-bound provider/owner/dependency closure and qualified output bindings for point-cloud definitions and reactors; keep adapter export fail-closed until that graph round-trips completely."
+}

@@ -1,0 +1,197 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1027-cover-ac1032-datastorage-role-profile-2026-11-02",
+  "date": "2026-11-02",
+  "title": "Retain the observed AC1027 DataStorage table-role profile in the ODA AC1032 resave",
+  "status": "AC1032_DATASTORAGE_PROFILE_PARSED; STRICT_OUTPUT_REFUSED_FOR_HEADER_INTEGRITY",
+  "supportClaimEffect": "none",
+  "scope": "Bounded DataStorage parser compatibility and current-reader recheck for an existing ODA-resaved AC1032 Cover sample. This does not decode the unclaimed HEADER suffix or qualify complete output.",
+  "inputLineage": {
+    "ac1027Source": {
+      "path": "/Users/dli/doc/dwg/Cover.dwg",
+      "repositoryFixture": false,
+      "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "bytes": 18880,
+      "version": "AC1027"
+    },
+    "odaResave": {
+      "path": "/private/tmp/libdxfrw-cover-oda-20261102/output/Cover.dwg",
+      "repositoryFixture": false,
+      "producer": "ODA File Converter 27.1.0.0, prior GUI run recorded in p6-ac1027-cover-oda-resave-recheck-2026-11-02",
+      "sha256": "2cde86d3971860a1177e1123b8bf7d5a648ff865c75d7ecff5899de3124ca535",
+      "bytes": 18888,
+      "version": "AC1032"
+    }
+  },
+  "independentStructuralEvidence": {
+    "tool": "LibreDWG dwgread 0.14",
+    "ac1027Json": {
+      "path": "/private/tmp/libredwg-cover-ac1027.json",
+      "sha256": "00a6fa03f02b89fbaf29e00c7d1913aa9b6ebb661b7f87af5730aeab2aff3b84"
+    },
+    "ac1032Json": {
+      "path": "/private/tmp/libredwg-cover-ac1032-v5.json",
+      "sha256": "81334e4748aecb0757e56af7a1b46d8de7f15f520ee2e8c6332ec618bc385962"
+    },
+    "commonObservedDataStorageLayout": {
+      "schemaIndexSegmentIndex": 6,
+      "schemaIndexSegmentBytes": 448,
+      "schemaDataSegmentIndex": 5,
+      "schemaDataSegmentBytes": 448,
+      "schemaRootLocalOffsets": [
+        64,
+        128,
+        192,
+        210,
+        228,
+        246
+      ],
+      "unknownPropertyLocalOffsets": [
+        0,
+        8,
+        16,
+        24,
+        32,
+        40,
+        48,
+        56
+      ],
+      "schemaRootsReferenceSchemaDataSegment": true,
+      "unknownPropertyHeadersReferenceSchemaDataSegment": true
+    },
+    "interpretation": "The two JSON views report the same bounded alternate table-role profile after ODA resaves the AC1027 input to AC1032. This is structural evidence for retaining that exact parser profile across those two observed revisions; it does not establish property semantics or broader producer behavior."
+  },
+  "implementation": {
+    "source": "src/drw_datastorage.cpp",
+    "behavior": "The existing exact structural guard now permits the observed AC1027-origin reversed schema-index table roles for AC1032 as well as AC1027. All existing segment, count, reference, offset-order, bounds, and contiguous-layout checks remain required; ODA-described table order remains the default.",
+    "diagnostic": "datastorage-ac1027-schema-table-role-compatibility",
+    "testSource": "tests/graph_preservation_tests.cpp",
+    "testBehavior": "A locally generated section vector matching the observed alternate profile is accepted for AC1027 and AC1032. A malformed reference remains structurally invalid and does not select the compatibility path for either revision.",
+    "testFixtureFilesAdded": 0
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests --parallel 2",
+    "buildResult": "PASS",
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_datastorage_bounds$' --output-on-failure",
+      "result": "PASS, 1/1, 0.26 seconds"
+    },
+    "aggregateGraphCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS, 1/1, 1.23 seconds"
+    },
+    "currentReaderRecheck": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-cover-oda-20261102/output/Cover.dwg -y -d -v2018 /private/tmp/libdxfrw-cover-oda-20261102/output/libdxfrw-ac1032-after-profile-fix.dxf",
+      "executableSha256": "8b91a651e100ffb2432ce97a57af79db03535ec677a5a43a06226e1736e78bf4",
+      "tracePath": "/private/tmp/libdxfrw-cover-ac1032-after-profile-fix.log",
+      "traceSha256": "24f6479c98bf0130aeb186fbda75009e030f91263f4c840673a82564e8d6ecb9",
+      "exitCode": 1,
+      "readerResult": {
+        "classParsingReachedEnd": true,
+        "operationSucceeded": true,
+        "legacyError": 0,
+        "sourceFrames": 115,
+        "publishedFrames": 115,
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "dataStorageLinkFailures": 0,
+        "dataStorageOrphanRecords": 0
+      },
+      "strictOutputResult": "Refused before output preparation because the source read disposition contains two HEADER warning diagnostics; the requested DXF file was not created.",
+      "headerIntegrityObservations": [
+        {
+          "kind": "HeaderSectionCompatibility",
+          "severity": "Warning",
+          "fileOffset": 16,
+          "declaredSize": 802,
+          "highSizeWord": 0,
+          "acceptedProfile": "declared size excludes the optional high-size word",
+          "expectedPayloadEndIfHighSizeWordWereIncluded": 822,
+          "observedPayloadEnd": 826
+        },
+        {
+          "kind": "HeaderSectionUnclaimedData",
+          "severity": "Warning",
+          "fileOffset": 844,
+          "expectedEnd": 844,
+          "observedEnd": 1583,
+          "unclaimedSuffixBytes": 739
+        }
+      ]
+    },
+    "currentFocusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_datastorage_bounds|libdxfrw_graph_preservation)$' --output-on-failure",
+      "result": "PASS, 2/2 (DataStorage bounds 0.01s; aggregate graph preservation 1.27s)",
+      "fixtureFilesAdded": 0
+    },
+    "currentFullBuild": {
+      "command": "cmake --build build-gcc --parallel 4",
+      "result": "PASS"
+    }
+  },
+  "limitations": [
+    "The AC1027 source still has an unclaimed 731-byte post-HEADER suffix; the AC1032 ODA resave has a separately observed 739-byte suffix.",
+    "No normative or producer-backed explanation of either suffix was established.",
+    "The AC1032 output still fails strict-complete conversion because compatibility and unclaimed-suffix warnings make the source read disposition incomplete; no DXF output was produced.",
+    "The accepted DataStorage compatibility diagnostic is SupportedOpaque; no DataStorage writer, source-to-output association, native consumer, or 3D semantic claim is qualified.",
+    "The ODA resave and LibreDWG output files remain outside the repository."
+  ],
+  "binding": {
+    "sourceSha256": {
+      "src/drw_datastorage.cpp": "42f97f2af41e6c2f093c822b5caae39e2a42062ac99c183bccbb2074356be82f",
+      "tests/graph_preservation_tests.cpp": "1e985e908400f89739ce6757d0f79a3211f96e31ae790fb42bdd42a596f25eb0",
+      "CMakeLists.txt": "1e0be255900b02ef1dfb1ec995d47c8dc6a37b534f02578849098cdc95628f24",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "bfd446322b0ee948fb4fabf70c52a17eb93b24dede22e99c3af71d868a5c5112"
+    },
+    "newCTest": "libdxfrw_datastorage_bounds",
+    "fixtureFilesAdded": 0,
+    "generatedDwgDxfFilesCommitted": 0,
+    "supportClaimEffect": "none",
+    "priorReceiptSourceSha256": {
+      "src/drw_datastorage.cpp": "42f97f2af41e6c2f093c822b5caae39e2a42062ac99c183bccbb2074356be82f",
+      "tests/graph_preservation_tests.cpp": "1e985e908400f89739ce6757d0f79a3211f96e31ae790fb42bdd42a596f25eb0",
+      "CMakeLists.txt": "90036e4b9a461bfc33fa52074352d502485281c01a678999398465e0ff9877a8"
+    },
+    "validatedWorkingTreeSha256": {
+      "src/drw_datastorage.cpp": "42f97f2af41e6c2f093c822b5caae39e2a42062ac99c183bccbb2074356be82f",
+      "tests/graph_preservation_tests.cpp": "1e985e908400f89739ce6757d0f79a3211f96e31ae790fb42bdd42a596f25eb0",
+      "CMakeLists.txt": "10786d70b54be40850494c9b845e03332dffd7566b5239d83fa42d49167c0a16"
+    }
+  },
+  "next": "Keep strict output refused. Resolve the source and resaved HEADER integrity/suffix layouts with authoritative evidence, then re-run strict conversion and bind source records, emitted DXF bytes, and consumer meaning before any support claim.",
+  "currentCodeReaderRecheck": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-cover-oda-20261102/output/Cover.dwg -y -d -v2018 /private/tmp/libdxfrw-ac1032-current-profile-check.dxf",
+    "inputSha256": "2cde86d3971860a1177e1123b8bf7d5a648ff865c75d7ecff5899de3124ca535",
+    "executableSha256": "5e18351a257edec3197851b14efcdb9c1dc5fca72b7c0e7e95ed0e77deec4570",
+    "tracePath": "/private/tmp/libdxfrw-ac1032-current-profile-check.log",
+    "traceSha256": "0ca0e1f6dcbdb240fe6f95ccbc212532319bf0ff182ba33500ae657ade40c5ae",
+    "exitCode": 1,
+    "readerResult": {
+      "dataStorageDiagnostic": "DataStorage alternate AC1027 schema-table profile accepted: schemas=6 unknown-properties=8",
+      "operationSucceeded": true,
+      "sourceVersion": "AC1032",
+      "sourceFrames": 115,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "dataStorageLinkFailures": 0,
+      "dataStorageOrphanRecords": 0
+    },
+    "headerWarnings": [
+      {
+        "kind": "HeaderSectionCompatibility",
+        "fileOffset": 16,
+        "expected": 822,
+        "observed": 826
+      },
+      {
+        "kind": "HeaderSectionUnclaimedData",
+        "fileOffset": 844,
+        "expected": 844,
+        "observed": 1583,
+        "unclaimedBytes": 739
+      }
+    ],
+    "strictOutput": "Refused before output preparation because strict-complete requires a complete read disposition.",
+    "outputCreated": false
+  }
+}

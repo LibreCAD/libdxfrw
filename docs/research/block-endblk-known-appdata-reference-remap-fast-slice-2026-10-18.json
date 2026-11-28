@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ENDBLK recognized appData reference remap control",
+  "mode": "generated local fast test slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Export and re-import a retained ENDBLK with ACAD_REACTORS group 330 and ACAD_XDICTIONARY group 360 appData references still present.",
+    "Verify the emitted appData handles match the corresponding typed footer reference fields and differ from source handles.",
+    "Use the existing repository fixture plus in-memory source edits and temporary outputs only."
+  ],
+  "sourceCrosswalk": {
+    "planOwner": "PAR-65/7AM.2",
+    "codePaths": [
+      "dxfRW::writeAppData",
+      "dxfRW::writeEntityReferenceGroups",
+      "dxfRW::writeBlockEndCommonFields",
+      "dx_iface::addBlockEnd"
+    ],
+    "evidenceBoundary": "Local handle-remap equivalence for the recognized reactor and extension-dictionary application-data groups; arbitrary application-group handle semantics, complete graph closure, and native CAD acceptance remain unqualified."
+  },
+  "verification": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_xref_path_roundtrip$' --output-on-failure"
+    ],
+    "targetBuild": "passed",
+    "focusedSelector": "passed",
+    "owningCTest": {
+      "name": "libdxfrw_block_xref_path_roundtrip",
+      "result": "passed",
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.03
+    },
+    "diffCheck": "passed with git diff --check on tests/dxf_fixture_tests.cpp and DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md; receipt parsed with jq empty"
+  },
+  "assessment": {
+    "productionFilesChanged": false,
+    "publicApiChanged": false,
+    "newFixtures": 0,
+    "newCtestRegistrations": 0,
+    "fullSuitesRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "remaining": [
+    "Arbitrary application-defined group-102 handle semantics are not translated without a qualified contract.",
+    "Complete BLOCK/BLOCK_RECORD/ENDBLK and broader 7G reference-graph closure.",
+    "Independent semantic/native acceptance at existing composed checkpoints."
+  ],
+  "workingTree": {
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "The shared worktree was already broadly modified. This slice adds coverage to the existing DXF fixture test owner, updates the parity plan, and adds this receipt; unrelated edits were preserved."
+  }
+}

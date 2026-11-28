@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-09",
+  "scope": "Exact public Platte AC1032 PERSUBENTMGR six-scalar profile retained through the validated raw-only route",
+  "evidence_class": "hash-bound physical DWG trace; two paired AutoCAD DXF outputs; generated from-scratch raw-only dispatch regression",
+  "physical_source": {
+    "issue": "https://github.com/LibreDWG/libredwg/issues/1021",
+    "dwg": "Platte.dwg",
+    "dwg_sha256": "146c9fbc33a7b9636ea462f4b6b1476a1c73fcaebc3cbb173cdf81e7ce04c82c",
+    "handle": "0x20c50",
+    "record_name": "ACDBPERSSUBENTMANAGER",
+    "class_name": "AcDbPersSubentManager",
+    "body_bits": 84,
+    "observed_scalar_sequence": [2, 0, 2, 0, 0, 0],
+    "body_boundary": "The sixth BL ends at bit 84. The following candidate num_subents read has no bits available before the absent-string footer.",
+    "current_disposition": "Validated common shell retained raw-only; no typed class body or output claim."
+  },
+  "paired_dxf_observations": [
+    {
+      "file": "Platte-2019-obj.dxf",
+      "sha256": "0da03ee6a6a64327b85d6324867865aaef4fb6726f1b76efd2a7de0f8639fe18",
+      "record_handle": "20C50",
+      "subclass": "AcDbPersSubentManager",
+      "group_90_values": [2, 0, 2, 0, 0, 0]
+    },
+    {
+      "file": "Platte-2027.dxf",
+      "sha256": "a977e267fe513f0f6ddbb935304a7e077d69d932546673b4294a5f14c83764d2",
+      "record_handle": "20C50",
+      "subclass": "AcDbPersSubentManager",
+      "group_90_values": [2, 0, 2, 0, 0, 0]
+    }
+  ],
+  "independent_implementation_context": {
+    "peer_issue": "https://github.com/LibreDWG/libredwg/issues/1398",
+    "finding": "LibreDWG reports the same six BL values and insufficient remaining bits for the expected final count; the issue author explicitly says multiple field layouts remain possible. A merged change mentioned in the discussion addressed ASSOCPERSSUBENTMANAGER, a different class.",
+    "limitation": "Two DXF serializations preserve the same values but cannot distinguish field meanings because the three trailing values are all zero. The public ODA DWG specification does not define this custom class body."
+  },
+  "generated_regression": {
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "profile": "AC1032 class version 2, scalar sequence [2,0,2,0,0,0], absent-string footer, no following num_subents field",
+    "assertions": [
+      "raw frame is byte-exact and remains m_typedPayloadValidated=false",
+      "common owner/reactor roles validate independently",
+      "following object is published",
+      "no object parse failure is reported for the raw-only profile",
+      "existing truncation refusal and corrected-input retry remain covered"
+    ],
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4 && build-gcc/libdxfrw_dwg_reader_matrix_tests --persistent-manager-prefix-dispatch",
+    "result": "PASS"
+  },
+  "evidence_ceiling": "This establishes one AC1032 empty/six-scalar raw-only profile and matching DXF value sequences. It does not identify the three trailing fields, establish nonzero array behavior, prove a cross-version schema, enable typed output, or promote support claims."
+}

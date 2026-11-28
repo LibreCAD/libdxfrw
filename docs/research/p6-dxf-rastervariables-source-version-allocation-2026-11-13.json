@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-rastervariables-source-version-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_RASTERVARIABLES_SOURCE_VERSION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated RASTERVARIABLES DWG-to-DXF allocation transaction evidence across matching AC1018, AC1021, AC1024, AC1027, and AC1032 profiles.",
+  "source": {
+    "kind": "deterministic locally-authored DWG records generated during each test run",
+    "profile": "One ACAD_IMAGE_VARS rooted RASTERVARIABLES object; a matching-version DWG is generated, imported into the adapter, and exported to ASCII and Binary DXF. The locally authored AC1018/AC1024/AC1032 profiles use image units 3, as required by the currently admitted object profiles; AC1021/AC1027 use units 1.",
+    "versionsQualified": ["AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/rastervariables_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-rastervariables-source-version-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each qualified source version and encoding, generate/import a matching-version DWG, calibrate the DXF export, inject std::bad_alloc at every measured callback allocation, require unchanged destination sentinel and caller source record, retry with the same adapter, compare bytes with clean output, and freshly read the typed raster variables graph."
+  },
+  "allocationOffsets": {
+    "AC1018": {"ASCII": 12, "Binary": 11},
+    "AC1021": {"ASCII": 12, "Binary": 11},
+    "AC1024": {"ASCII": 12, "Binary": 11},
+    "AC1027": {"ASCII": 12, "Binary": 11},
+    "AC1032": {"ASCII": 12, "Binary": 11},
+    "totals": {"ASCII": 60, "Binary": 55, "all": 115}
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_rastervariables_objects_allocation_tests -j2: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_rastervariables_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 2.39 seconds",
+    "directControl": "build/tests/libdxfrw_rastervariables_objects_allocation_tests /tmp/libdxfrw-rastervariables-ac1018: PASS for AC1018/AC1021/AC1024/AC1027/AC1032; ASCII 12 and Binary 11 offsets per version",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated source data is locally authored; no independent producer interoperability or native consumer semantics are established.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Matching-source AC1018, AC1021, AC1024, AC1027, and AC1032 RASTERVARIABLES export profiles pass allocation rollback, same-adapter retry, byte comparison, and typed readback. The AC1018, AC1024, and AC1032 generated profiles use their admitted units value 3; earlier value-1 attempts failed the existing bounded profile gate before allocation injection.",
+    "remainingP6G": "Continue remaining public-writer route/variant inventory; producer-profile and consumer semantics remain open.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "249 completed slices and 35 remaining packages: 249/(249+35)=87.7%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-geodata-allocation-version-matrix-2026-11-13.json"
+}

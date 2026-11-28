@@ -1,0 +1,16 @@
+{
+  "id": "p5-ac1018-tablestyle-xrecord-generated-reader-crc-2026-11-11",
+  "scope": "Locally authored AC1018 TABLESTYLE extension XRECORD-shaped selected frame, using generic verified-XRECORD reader plus the independent bounded profile observer. This does not construct or validate the complete stronger TABLESTYLE bundle or authorize output.",
+  "generation": "The test writes an AC1018 drawing from a locally authored DRW_XRecord with ten ordered values and H4 owner/reactor. It replaces the body with a locally generated bit-buffer version carrying RS length and observed page byte 45, recomputes object CRC and enclosing uncompressed page checksums, and verifies frame reread. All drawings are scratch-only.",
+  "controls": [
+    "A real reader-origin XRECORD ticket and bounded profile observer accept the generated source.",
+    "A locally regenerated, equal-size group-90 value mutation retains a valid object CRC and valid page checksums; the generic verified reader ticket still succeeds while the profile observer rejects the changed value.",
+    "The test corrupts the selected frame CRC while recomputing the enclosing page data/header checksums, verifies the candidate is revoked and untruncated diagnostics contain ObjectFrameBounds for 0xdc with no DataPageChecksum or DataPageCrc failure, then restores the source and retries the same reader successfully."
+  ],
+  "commands": {
+    "build": "cmake --build build --target libdxfrw_dwg_tablestyle_xrecord_reader_binding_tests -j 3",
+    "test": "ctest --test-dir build -R '^libdxfrw_dwg_tablestyle_xrecord_reader_binding$' --output-on-failure"
+  },
+  "full_bundle_feasibility": "Separately, a scratch variant of the existing complete TABLE whole-file writer with locally generated 2104-byte proxy wrote and read a valid AC1018 TABLE and empty extension dictionary; a CRC-validated captured TABLE frame passed DwgTableEntityXDictionaryAc1018Candidate. As of this receipt, a generated complete eleven-XRECORD TABLESTYLE bundle and its selected-frame valid-CRC and bad-CRC whole-bundle failure controls remain open.",
+  "limits": "No non-ASCII semantics or source interoperability is inferred. The generic ticket and profile observer are tested together, not the stronger eleven-XRECORD graph gate. No drawing fixture was added."
+}

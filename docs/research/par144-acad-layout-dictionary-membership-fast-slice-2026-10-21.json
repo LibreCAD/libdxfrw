@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-144 ACAD_LAYOUT dictionary membership fast slice",
+  "mode": "Generated test-only serialized-frame validation",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "worktreeState": "Broadly modified and uncommitted; no files staged.",
+    "changedFiles": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par144-acad-layout-dictionary-membership-fast-slice-2026-10-21.json"
+    ],
+    "change": "The existing two-layout generated selector now captures the emitted ACAD_LAYOUT dictionary and independently decodes its bounded frame, versioned object-data/string-stream boundary, exact name keys, ordered child-handle tokens, and dictionary parent handle. Each key/child handle resolves to the corresponding captured LAYOUT frame, and each LAYOUT parent token resolves back to the dictionary. Frame CRC and sentinel adjacency are checked. AC1015/AC1018 use inline name strings; AC1021/AC1024/AC1027/AC1032 use the detached string stream. Common-prefix self/null handles are intentionally excluded from child-token comparison.",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "validation": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --block-record-layout-association",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$|^dwg_layout_compound_insert_owner_roundtrip$' --output-on-failure",
+        "result": "PASS: 2/2, 0.32 seconds total"
+      },
+      {
+        "command": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq -e . docs/research/par144-acad-layout-dictionary-membership-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fixturesAdded": 0,
+    "productionCodeChanged": false,
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false,
+    "supportClaimsPromoted": 0
+  },
+  "evidenceCeiling": "Generated writer bytes plus test-local bounded frame/token/string decoders and writer receipts. This validates internal serialized graph structure across six target versions only; it is not an independent DWG reader, a third-party producer artifact, native CAD acceptance, or general multi-layout qualification.",
+  "implementationReadiness": {
+    "existingOwner": "PAR-144 under the existing 7G.3 layout graph/DWG writer owner ledger",
+    "completedSlice": "Generated ACAD_LAYOUT dictionary name-to-child-handle membership, reciprocal LAYOUT parent tokens, frame CRC/extent, and following sentinel boundaries for the two-layout selector.",
+    "nextLocalSlice": "Self-unblock to the next dependency-ready local PAR-07/S3.7c invariant in the existing implementation queue. Keep independent DWG reader and native CAD qualification at their composed checkpoints.",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 SECTIONOBJECT indicator-color DWG CMC name/book retention",
+  "mode": "generated AC1024/AC1032 parser-writer fast slice",
+  "scope": [
+    "Retain optional CMC color-name and color-book-name strings at the existing SECTIONOBJECT indicator-color field",
+    "Emit named C0/C1/C2/C3 through the bounded R2007+ detached stream",
+    "Verify method/payload/flags, parser string retention, following geometry/handle alignment, copy/reset, and fail-before-output behavior"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor"],
+      "finding": "ODA §2.11 defines generic CMC name/book flags and optional TV strings. It does not specify SECTIONOBJECT-specific color semantics or establish producer-authored RGB/name behavior."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.h", "src/drw_entities.cpp"],
+      "finding": "The existing SECTIONOBJECT indicator-color path already uses readBoundedCmColor/putCmColor. It previously retained C2 RGB only and discarded CMC name/book strings. The typed model now appends and preserves both strings; the bounded reader captures them and the writer emits method-specific C0/C1/C2/C3 with optional strings.",
+      "compatibility": "Two public strings were appended after the existing RGB companion, preserving earlier member offsets but changing DRW_SectionObject size. Downstream consumers must rebuild; no virtual method changed."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024", "AC1032"],
+      "finding": "Generated cases cover named C0 ByLayer, C1 ByBlock, C3 ACI, C2 black RGB, and nonzero C2 RGB. An independent bit walk verifies reserved index, method, payload, flags, and subsequent vertices; the production parser verifies each scalar/RGB/name/book value plus section-settings and following-handle alignment. Copy/assignment/reset and missing-detached-string fail-before-output controls pass.",
+      "limit": "Generated vectors establish local codec consistency only. They are not producer-authored evidence for SECTIONOBJECT field semantics."
+    },
+    "dxfMappingAudit": {
+      "reference": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+      "finding": "The MLEADERSTYLE DXF reference documents its class-specific color fields as groups 91, 93, and 94 but gives no class-specific truecolor/name/book mapping. Generic entity color extensions were not assigned to these different fields by inference. This result does not resolve SECTIONOBJECT group 411."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append indicator-color name/book fields and preserve them through copy/assignment/reset.",
+      "Capture optional CMC strings from the bounded detached string stream.",
+      "Write explicit C0/C1/C2/C3 method and optional strings through strBuf.",
+      "Refuse named output when the required detached stream is missing or aliases the body, before writing the common entity prefix."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestReused": "libdxfrw_sectionobject_cmc_rgb",
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_sectionobject_cmc_rgb$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (8/8)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "SECTIONOBJECT producer-authored CMC color semantics remain unqualified.",
+    "SECTIONOBJECT DXF group 411 meaning remains unresolved; no DWG CMC or generic group-code inference was made.",
+    "HATCH C5 producer semantics, the remaining CMC consumer audit, and native/external qualification remain open.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-shared-staged-image-common-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "acab980dfbceb5cc649c61c4465e9fae747fc44f689607e249747255d2b6557e",
+  "scope": "Optional staged IMAGE inspector canonical common-entity profile; no consumer or native qualification",
+  "observations": [
+    "The opt-in profile checks the emitted self/owner, ordered subclass boundaries, layer 0, ByLayer linetype, ByLayer color and lineweight, and rejects application groups, unsupported common and unknown raster fields.",
+    "Fast generated tests cover R2000 through R2018, ASCII and binary, both compatibility profiles, modified common fields, destination-preserving failure and corrected retry. Existing R14 generic reference tests remain unchanged.",
+    "Focused test passed on macOS ARM64 and under AddressSanitizer; leak detection is unavailable on this macOS ASan runtime.",
+    "Follow-up controls also mutate the common field code and entity subclass marker across the version/encoding matrix; normal and ASan runs refuse each corruption and retry successfully.",
+    "Offline Linux ARM64 GCC 13.3 warning-as-error syntax checks pass for the staged inspector and its focused test."
+  ],
+  "limits": [
+    "The canonical check is not a general IMAGE common-field validator and does not establish producer or native consumer semantics.",
+    "Hosted Windows qualification remains pending; no support claim was promoted."
+  ],
+  "followupImplementationDigestSha256": "d51f3204eadc44842903914b883c2d91e18ec2d77a3d185aed21e701f4b09b8a"
+}

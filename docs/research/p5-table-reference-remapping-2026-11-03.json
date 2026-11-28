@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-03",
+  "scope": "Generated ACAD_TABLE hard-reference identity transport.",
+  "fields": [
+    {
+      "member": "DRW_Table::m_tableStyleHandle",
+      "group_code": 342,
+      "role": "Hard pointer ID of the TABLESTYLE object"
+    },
+    {
+      "member": "DRW_Table::m_ownerBlockRecordHandle",
+      "group_code": 343,
+      "role": "Hard pointer ID of the owning BLOCK_RECORD"
+    }
+  ],
+  "format_evidence": {
+    "source": "Autodesk TABLE DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+    "supports": "The ACAD_TABLE group-code list assigns group 342 to a TABLESTYLE hard pointer and group 343 to the owning BLOCK record hard pointer."
+  },
+  "mapping_policy": "For each nonzero modeled source handle, use the configured reference resolver when present; otherwise use remapObjectHandle. Refuse zero or NoHandle resolver/remap results for nonzero source targets. Existing TABLESTYLE registration remains a source-admission check, not proof of emitted target closure.",
+  "validation": {
+    "input": "Generated in-memory semantic DRW_Table; no DWG/DXF fixture was added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "selector": "libdxfrw_wave1_tests --table-reference-remapping",
+    "controls": [
+      "Exact groups 342/343 under resolver precedence and remap fallback",
+      "Atomic destination preservation when either nonzero target resolves to zero",
+      "Corrected output through a fresh low-level writer after the failed write's sticky error state"
+    ],
+    "result": "PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4"
+  },
+  "qualification_limits": [
+    "Generated low-level transport only; the registered source TABLESTYLE and modeled owner are not proof that their target records are emitted or correctly owned.",
+    "Does not establish recursive table graph closure, physical producer breadth, native table semantics/rendering, or support-claim eligibility."
+  ]
+}

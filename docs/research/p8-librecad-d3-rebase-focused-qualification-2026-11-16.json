@@ -1,0 +1,83 @@
+{
+  "date": "2026-11-16",
+  "package": "P8-D3",
+  "scope": "Replay and focused qualification of the local LibreCAD consumer/CMC stack on the recorded origin/master snapshot",
+  "upstream": "LibreCAD/LibreCAD",
+  "base": {
+    "priorStackBase": "b007bff6e798425aa14ae507f7e884db68916e88",
+    "qualifiedBase": "d40f178b9708b54ad34b15f721d22abb2315aa2b",
+    "relationship": "The qualified base is a descendant of the prior base. The b007..d40f delta changes only the MSIX store workflow and its development documentation."
+  },
+  "candidate": {
+    "branch": "codex/librecad-p8-mlinestyle-stack-20261116",
+    "checkout": "/private/tmp/librecad-p8-d40f-20261116",
+    "status": "Clean local scratch checkout; not published or merged.",
+    "head": "28c032977a8f852306853b0e28ac9c2b303099fc",
+    "tree": "34efb484525a79db4ca979b0661956fd1bad3ee5",
+    "commits": [
+      {"commit": "c180e1930a7edd41ee7233c30ec687622c061ca7", "subject": "Integrate upstream libdxfrw consumer compatibility"},
+      {"commit": "d46e1e8613c6f7b3079d29295e413bb723cb6601", "subject": "Test binary DXF line type import and editing"},
+      {"commit": "3668297dd8de9c91bbfc3fd9da52f00352a6c773", "subject": "Cover binary LTYPE import across DXF revisions"},
+      {"commit": "c75d0eeaa58afab2aa0d3aef5a9a3b11505309a6", "subject": "Preserve DXF export errors and test R13 imports"},
+      {"commit": "d5771c76698eff628e6e9e9ec6536cc9845cc51b", "subject": "Preserve multiline style color metadata"},
+      {"commit": "28c032977a8f852306853b0e28ac9c2b303099fc", "subject": "Track DWG dictionary source verification implementation"}
+    ],
+    "clean_checkout_dependency": {
+      "path": "librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp",
+      "sha256": "ba92ff4cb051f6351de35936b91f88b195fae39ca09bab60f50c6001dd90ae10",
+      "finding": "The earlier candidate referenced this translation unit from CMake but left it untracked. The clean configure exposed the omission; the locally authored file is now committed in the candidate."
+    }
+  },
+  "build": {
+    "tool": "CMake 4.4.5",
+    "configuration": "cmake -S /private/tmp/librecad-p8-d40f-20261116 -B /private/tmp/librecad-p8-d40f-build-20261116 -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_TESTS=ON -DLIBRECAD_USE_SYSTEM_LIBDXFRW=OFF -DLIBRECAD_ENABLE_OPENTYPE=OFF",
+    "configure": "PASS",
+    "configureLog": {"path": "/private/tmp/librecad-p8-d40f-configure.log", "sha256": "fdaf8b9ea0d7b480787a25380af3b9a387136ae044cc1eafd327990c2ce2f3b0"},
+    "buildCommand": "cmake --build /private/tmp/librecad-p8-d40f-build-20261116 --target librecad_tests -j4",
+    "build": "PASS; clean bundled-codec Release build",
+    "buildLog": {"path": "/private/tmp/librecad-p8-d40f-build.log", "sha256": "38ff337e39b133700977df357b838355fa44aebb409120f5668ef2578229e4af"},
+    "testExecutable": {"path": "/private/tmp/librecad-p8-d40f-build-20261116/librecad_tests", "sha256": "b8751b789e728ad2e25936d3e0804e584126c86b70a47e1ab04edd47f3784011"}
+  },
+  "focusedValidation": [
+    {
+      "selection": "MLINESTYLE color state is retained or refused safely",
+      "result": "PASS: 1 case, 2 assertions",
+      "log": {"path": "/private/tmp/librecad-p8-d40f-mline-cmc.log", "sha256": "e479232c0b28a8e7e3f22d204c9ebbded2d55a8908ce5bab028d9170f1895505"},
+      "scope": "Bundled codec compatibility control; the bundled codec does not expose the newer CMC fields. Installed-codec field retention/refusal evidence remains in docs/research/p8-librecad-mlinestyle-cmc-retention-2026-11-16.json."
+    },
+    {
+      "selection": [
+        "DXF writes a changed line type definition over its record",
+        "DWG writes a changed line type definition over its record",
+        "DXF writes a redefined built-in from the table",
+        "DXF writes a changed complex line type without its segments",
+        "DXF writes a twin archived spelling as it came beside a changed record"
+      ],
+      "result": "PASS: 5 cases, 49 assertions",
+      "log": {"path": "/private/tmp/librecad-p8-d40f-pr3269.log", "sha256": "9afe4ac81c36c4caca1303d5b2867c7dad3f7f0a57d7e0385fd40fd1e23bfd79"}
+    },
+    {
+      "selection": "[ltype]~[dwg]",
+      "result": "PASS: 29 cases, 4321 assertions, no skips",
+      "environment": {
+        "LIBRECAD_R13_LTYPE_ASCII": "/private/tmp/librecad-p8-r13-recipe-20261116/ascii/source.dxf",
+        "LIBRECAD_R13_LTYPE_BINARY": "/private/tmp/librecad-p8-r13-recipe-20261116/binary/source.dxf"
+      },
+      "inputHashes": {
+        "ascii": "38e9ba8ec2bb5299c07d8caea09a316c9ba1e2d9ff16a1ae6b7d59500bb38293",
+        "binary": "6aabd42b600b641dbf92a4a7ced8a45f2105ed13a110d4887e0901a44b74ba0b"
+      },
+      "inputReceipt": "docs/research/p8-librecad-r13-dxf-diagnostic-2026-11-16.json",
+      "log": {"path": "/private/tmp/librecad-p8-d40f-ltype-r13.log", "sha256": "de1479a9e98713b2e024447be107173a15c49b9db6e43e8f9e22036761a823b9"}
+    }
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added to the consumer source tree. The two R13 inputs were locally generated earlier, hash-verified against their receipt, and used from scratch storage.",
+  "notRepeated": "The source-release inventory was not rerun for this focused D3 qualification; reserve the broad inventory/package lane for P8-F. Existing receipt docs/research/p8-librecad-abi3-clean-consumer-2026-11-16.json records the related d40f source inventory and tracked translation unit.",
+  "remaining": [
+    "P8-D1 LibreCAD 2 interactive LINE translate/save/close/reopen qualification.",
+    "P8-D2 LibreCAD 3 interactive MPOLYGON save/reopen qualification.",
+    "P6-H3 native MLINE display/edit/save/reopen qualification, conditional on a source-bound MLINE witness.",
+    "Upstream integration and platform/ABI qualification remain separate gates."
+  ],
+  "limits": "This is a local macOS ARM64 bundled-codec build and focused test qualification. It does not establish GUI behavior, producer-authored extended CMC semantics, full MLINESTYLE graph closure, LibreCAD_3 behavior, non-macOS qualification, upstream integration, or new format support. No support claim or package exit gate is promoted."
+}

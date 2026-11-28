@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-group-vector-setter-count-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bounded the legacy const-vector GROUP setter before it copies caller-owned data.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "behavior": [
+      "setGroups refuses vectors above DRW_Dictionary::kMaxEntries before copying and marks the input rejected so a later writer plan cannot serialize stale groups.",
+      "In-limit vectors are copied into a temporary and swapped only after a successful copy; allocation failure marks input rejected and preserves the previous vector state.",
+      "A valid setter call or successful list adoption clears the rejected-input state. The independent planner refuses while that state remains set.",
+      "The focused control verifies ASCII/Binary refusal without changing the staged output stream, then applies corrected input and successfully replans on the same codec."
+    ]
+  },
+  "validation": {
+    "build": [
+      "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4"
+    ],
+    "focused": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_group_adoption_count_bound$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "List adoption cap plus const-vector no-copy refusal, staged-stream preservation and same-codec corrected replan in ASCII/Binary."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_group_adapter_roundtrip$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "Existing GROUP adapter graph/output/readback path."
+      }
+    ],
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The count ceiling is internal and aligned with the dictionary entry limit; it is not a DXF format maximum or support claim.",
+    "The setter control proves admission, stream preservation and planner retry; it does not add native GROUP semantic qualification.",
+    "Other writer/import work bounds, allocation-failure injection across other builders, source lifetime and scoped concurrency remain open."
+  ],
+  "next": "Continue the safety and caller-state audit on the other bounded staging and rollback paths."
+}

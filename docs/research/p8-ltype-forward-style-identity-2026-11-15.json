@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-ltype-forward-style-identity-2026-11-15",
+  "date": "2026-11-15",
+  "status": "bounded_fix_verified",
+  "supportClaimEffect": "none",
+  "problem": "A whole-file consumer without STYLE preallocation cannot write a complex LTYPE referencing a later STYLE table record.",
+  "implementation": "Reserve a STYLE output handle during LTYPE emission and record the source/output identity. After STYLE emission require the source STYLE name and reciprocal committed table identity to match. The table transaction rolls back recorded references, and each write session clears them.",
+  "controls": {
+    "focused": "libdxfrw_ltype_forward_style_identity: PASS; ASCII/Binary forward reference and readback; absent target and wrong-kind LAYER preserve existing output; same-codec corrected retry and STYLE/LTYPE reference readback; cross-kind entity collision refusal",
+    "related": "MLINE complex text and shape STYLE provider controls PASS (2/2); rebuilt LTYPE table allocation control PASS (1/1)",
+    "consumer": "Disposable LibreCAD master 8a82e359 with existing temporary DIMSTYLE overload and group helper corrections, upstream-linked target: original named-only MLINESTYLE test PASS (5 assertions). Four of five PR #3269 cases PASS (15, 9, 5, 6 assertions); changed complex case still fails in OBJECTS emission. Instrumentation confirms MLINESTYLE write returns false with VENDOR_MLS and BYLAYER elements, but the specific refusal cause is not yet established.",
+    "broaderSelector": "10/18 passed; eight other failures remain. These cases include pre-existing consumer expectations and cannot be assigned to this change without further investigation."
+  },
+  "limitations": [
+    "Generated local controls do not qualify native behavior or broader consumer integration.",
+    "The edited complex LTYPE fixture still fails during MLINESTYLE emission; do not claim all PR #3269 cases pass with the unmodified fixture.",
+    "LibreCAD_3, platforms, ABI and full consumer build remain open."
+  ],
+  "fixtures": "No DWG or DXF fixture file was added."
+}

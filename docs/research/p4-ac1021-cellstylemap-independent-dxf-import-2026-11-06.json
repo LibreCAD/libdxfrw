@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Independent DXF import of selected AC1021 TABLESTYLE/CELLSTYLEMAP output",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Check whether LibreDWG 0.14 independently parses this repository’s selected physical AC1021 TABLESTYLE/CELLSTYLEMAP ASCII and Binary DXF outputs, and identify the boundary imposed by LibreDWG’s versioned DWG encoder.",
+  "source": {
+    "dwg": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "fixtureDisposition": "Existing local DWG used as source. ASCII/Binary outputs and converted DWGs were generated under /private/tmp and are not committed."
+  },
+  "reader": {
+    "implementation": "GNU LibreDWG 0.14 dxf2dwg",
+    "versionCommand": "dxf2dwg --version",
+    "version": "0.14",
+    "r2007Commands": [
+      "dxf2dwg -v4 --as r2007 -y -o <temporary-output.dwg> <temporary-ascii.dxf>",
+      "dxf2dwg -v4 --as r2007 -y -o <temporary-output.dwg> <temporary-binary.dxf>"
+    ],
+    "r2007Result": "The DXF parser reaches the CELLSTYLEMAP identity, owner/reactor handles, all three cell names and IDs, and all three group-62 value 257 no-color sentinels in both encodings. The process then exits 1 with “encode does not work for R2007”; no DWG is created. This is parser/field evidence, not successful conversion.",
+    "r2004Commands": [
+      "dxf2dwg -v4 --as r2004 -y -o <temporary-output.dwg> <temporary-ascii.dxf>",
+      "dxf2dwg -v4 --as r2004 -y -o <temporary-output.dwg> <temporary-binary.dxf>"
+    ],
+    "r2004Result": "Both encodings exit 0 and the verbose import trace reports the same CELLSTYLEMAP identity/owner/reactor, three named cells and three no-color tags.",
+    "r2004DowngradeReadback": "dwgread 0.14 parses both resulting R2004 DWGs successfully, but each has zero CELLSTYLEMAP objects while the extension dictionary retains ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP -> handle 5730. This is a lossy downgrade and fails graph closure; it cannot qualify the newer object for output preservation."
+  },
+  "selectedOutput": {
+    "generator": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-ac1021-cellstylemap-selected-output /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg /private/tmp/ac1021-cellstylemap-independent-output",
+    "ascii": {
+      "sha256": "7df88667504097bc6fd3a72cf8867e7436798a533c5dd2e139c0fef4b9b9c074",
+      "bytes": 18822
+    },
+    "binary": {
+      "sha256": "953c7fd3cabb97476defd633a9e63463dc5190cb1847b1595a13ec0e66408896",
+      "bytes": 14526
+    },
+    "localValidation": "Both selected projections pass fresh local readback, source graph checks, dangling STYLE atomic refusal, and same-adapter correction/retry."
+  },
+  "observedIndependentFields": {
+    "mapHandle": "0x1662 in emitted DXF; remapped from source identity",
+    "ownerAndReactor": "Both refer to extension dictionary 0x1659 in the emitted DXF",
+    "cells": [
+      "1 _TITLE",
+      "2 _HEADER",
+      "3 _DATA"
+    ],
+    "background": "Three group-62 values 257 are parsed for the no-color background sentinel."
+  },
+  "interpretation": "LibreDWG independently parses the emitted ASCII and Binary DXF and recovers the selected fields. Its supported R2004 encode route drops CELLSTYLEMAP and leaves its dictionary key unresolved; its R2007 encoder is unavailable. Therefore exact independent DXF parser evidence is established, while independent version-capable output roundtrip, semantic acceptance, native application behavior, and whole-source qualification remain open.",
+  "validation": {
+    "focusedBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "physicalAsciiBinarySelector": "PASS for both encodings, including graph closure, atomic failure, and same-adapter retry.",
+    "independentDxfParse": "PASS for selected TABLESTYLE/CELLSTYLEMAP fields in ASCII and Binary; R2004 conversion succeeds but loses the object on DWG readback.",
+    "r2007Encoding": "UNAVAILABLE in LibreDWG 0.14; explicit encoder error after DXF parse.",
+    "fullSuites": "NOT RUN",
+    "fixturesCommitted": false
+  },
+  "nextAction": "Keep the AC1021 output profile exact and whole-source refusal intact. Obtain a version-capable independent consumer/reader that preserves and semantically resolves CELLSTYLEMAP, or move to the next independently ready local P4 implementation slice; do not treat the R2004 downgrade as qualification."
+}

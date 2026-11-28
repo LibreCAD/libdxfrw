@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-dxf-implementation-receipt-v1",
+  "date": "2026-10-31",
+  "status": "SCOPED_IMPLEMENTATION_COMPLETE_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / AC1027 TABLECONTENT single border type and lineweight overrides",
+  "basis": {
+    "authoritativeSpecification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.4.",
+    "localSpecification": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "specFields": {
+      "borderTypeOverride": "property bit 0x01; Single=1, Double=2",
+      "lineWeightOverride": "property bit 0x02; BL in DXF group 92"
+    },
+    "lineWeightDomainSource": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDb__LineWeight.html",
+      "supports": "Autodesk AcDb::LineWeight values: -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211; -4 is internal use only."
+    }
+  },
+  "profile": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixture": "Runtime-authored 2x2 TABLECONTENT based on tableContentScalarGrid; no drawing fixture files were added.",
+    "coverage": [
+      "One-hot and grouped non-overlapping edge masks",
+      "Border type Single=1 alone and combined with visibility/color/lineweight",
+      "Lineweight values 25, 50, and ByBlock=-2, combined with other admitted properties",
+      "Indexed colors 3, 7, 12 and visibility values 0/1 in the same profiles"
+    ],
+    "admittedPropertyBits": ["0x01", "0x02", "0x08", "0x10"],
+    "unsupportedCompanions": "Double border type, linetype handle, double-line spacing, and extended CMC payloads remain refused."
+  },
+  "implementation": {
+    "files": ["src/libdxfrw.cpp", "tests/table_content_dxf_tests.cpp"],
+    "behavior": "The bounded TABLECONTENT writer admits property masks composed from border-type Single, validated lineweight, indexed color 1-255, and visibility. A flagged type must equal 1; flagged lineweight must match the exact 27-value Autodesk enum. Unflagged companions must remain at their model defaults.",
+    "physicalWire": "The independent scalar wire walk checks ordered edge masks, all property masks, group-91 type, group-62 indexed color, group-92 lineweight, group-93 visibility, default companions, and closing markers.",
+    "typedReadback": "Fresh ASCII and binary imports preserve edge masks, property masks, color, Single type, lineweight and visibility.",
+    "failureRetry": "Lineweight 26 and property mask 0x40 each refuse without replacing the destination sentinel or changing the caller field; restoring the captured values permits same-adapter output and readback.",
+    "fixturePolicy": "All inputs are generated at runtime; no external drawing fixtures were added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_table_content_dxf_tests -j2",
+      "result": "PASS",
+      "compiler": "/usr/bin/g++",
+      "generator": "Unix Makefiles"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_content_cell_border_visibility_edges$' --output-on-failure",
+      "result": "PASS, 1/1, 0.60 seconds"
+    },
+    "diffCheck": "git diff --check passed",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "c0286a33583b87841fe9bd12cac88bd34e3803f739ecb8b5687d0f6c063b8e1d",
+      "tests/table_content_dxf_tests.cpp": "e91a431456bd98276d63185942e7157867237f86a447f692fe38e1b41b5d2704",
+      "focusedExecutable": "6dda0bc0cc3dfcf043a181a4fa75d4b0989f984431d4394ed275c80bd9116cf7"
+    }
+  },
+  "limits": [
+    "Only the AC1027 TABLECONTENT serializer/readback profile is covered; this is not DWG TABLECONTENT output or other DXF version qualification.",
+    "Only Single border type is admitted. Double type and its spacing, linetypes, extended CMC/name colors, and overlapping edge declarations remain refused or unqualified.",
+    "Wire and typed readback do not establish native CAD rendering, producer completeness, whole-document closure, or public support claims."
+  ],
+  "next": "Continue with the next source- or consumer-backed TABLECONTENT/CELLSTYLEMAP property or remaining rendering/dynamic-block profile; keep other border properties refused."
+}

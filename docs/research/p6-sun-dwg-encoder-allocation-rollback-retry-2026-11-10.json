@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-sun-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "status": "GENERATED_DWG_ENCODER_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dimassoc_dwg_encoder_allocation_tests.cpp"
+    ],
+    "behavior": "DRW_Sun::encodeDwg now stages body, CMC string and handle destinations. CMC preparation is inside the exception boundary, and success requires every distinct staged stream to remain good. Body, string and handle outputs publish only after complete encoding; alias layouts retain their routing."
+  },
+  "generatedProfiles": [
+    {
+      "version": "AC1024",
+      "streams": "separate body/string/handle",
+      "allocationOffsets": 32,
+      "result": "rollback and same-object retry pass"
+    },
+    {
+      "version": "AC1024",
+      "streams": "shared string/handle",
+      "allocationOffsets": 28,
+      "result": "rollback and same-object retry pass"
+    },
+    {
+      "version": "AC1024",
+      "streams": "separate string, body-aliased handles",
+      "allocationOffsets": 29,
+      "result": "rollback and same-object retry pass"
+    }
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j2",
+    "tests": [
+      "libdxfrw_dwg_object_encoder_allocation_retry",
+      "libdxfrw_dwg_object_vectors"
+    ],
+    "results": "PASS (2/2)",
+    "fullSuites": "not run"
+  },
+  "limitations": [
+    "Generated controls prove rollback only for the selected AC1024 SUN record and three stream arrangements.",
+    "This does not qualify physical producer behavior, native SUN semantics, graph closure or support claims.",
+    "The vector test exercises existing SUN CMC parser/writer readback; the allocation sweep itself compares retry bytes with clean encoding."
+  ]
+}

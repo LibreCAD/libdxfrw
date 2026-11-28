@@ -1,0 +1,86 @@
+{
+  "receiptVersion": 1,
+  "phase": "P5",
+  "profile": "AC1024 architectural_example-imperial dynamic-block source inventory",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "version": "AC1024",
+    "fixtureCommittedByThisWork": false
+  },
+  "localTypedInventory": {
+    "dynamicBlockObjects": 65,
+    "fullyDecodedBodies": 65,
+    "evaluationGraphs": [
+      {
+        "handle": "0x110F",
+        "ownerDictionary": "0x110E",
+        "nodes": 38,
+        "edges": 43
+      },
+      {
+        "handle": "0x1155",
+        "ownerDictionary": "0x1146",
+        "blockRecord": "0x1145",
+        "blockName": "Window - Imperial",
+        "nodes": 19,
+        "edges": 14
+      }
+    ],
+    "dynamicObjectClassCounts": {
+      "ACDB_DYNAMICBLOCKPROXYNODE": 1,
+      "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION": 2,
+      "BLOCKALIGNMENTGRIP": 2,
+      "BLOCKALIGNMENTPARAMETER": 2,
+      "BLOCKBASEPOINTPARAMETER": 1,
+      "BLOCKFLIPACTION": 3,
+      "BLOCKFLIPGRIP": 3,
+      "BLOCKFLIPPARAMETER": 3,
+      "BLOCKGRIPLOCATIONCOMPONENT": 23,
+      "BLOCKHORIZONTALCONSTRAINTPARAMETER": 1,
+      "BLOCKLINEARGRIP": 4,
+      "BLOCKLINEARPARAMETER": 2,
+      "BLOCKMOVEACTION": 2,
+      "BLOCKPARAMDEPENDENCYBODY": 6,
+      "BLOCKSCALEACTION": 1,
+      "BLOCKSTRETCHACTION": 6,
+      "BLOCKVERTICALCONSTRAINTPARAMETER": 1,
+      "BLOCKVISIBILITYGRIP": 1,
+      "BLOCKVISIBILITYPARAMETER": 1
+    },
+    "observedRequiredMetadata": [
+      "one BLOCKFLIPPARAMETER carries two XDATA records, including an APPID dependency",
+      "constraint parameters have persistent reactor targets and constraint dependency handles",
+      "actions have nonempty dependency-handle lists",
+      "the Window - Imperial owner dictionary has ACAD_ASSOCNETWORK, ACAD_ENHANCEDBLOCK, ACAD_SORTENTS, and a dynamic-block purge preventer"
+    ]
+  },
+  "independentImplementationProbe": {
+    "implementation": "GNU LibreDWG dwg2dxf 0.14",
+    "sourceCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "output": "/private/tmp/window-libredwg.dxf",
+    "limitations": "The converter reports unstable dynamic/associative class warnings and parse errors elsewhere in this sample. Its output is used only as a structural field-order comparison; it is not a semantic oracle and cannot qualify support."
+  },
+  "outputQualification": {
+    "strictCompleteConversion": false,
+    "bothGraphOwnersQualified": false,
+    "allDynamicRecordsEmitted": false,
+    "freshReadbackQualified": false,
+    "nativeDynamicSemanticsQualified": false,
+    "supportClaimsPromoted": false
+  },
+  "implementationReadiness": {
+    "sequence": [
+      "project bounded DXF fields for the typed classes present in both graphs",
+      "bind action, reactor, EED APPID, constraint, and graph references to emitted identities",
+      "compose both owner graphs with the nested associative network and six parameter-dependency bodies",
+      "verify staged bytes and fresh ASCII/Binary readback, then refusal and retry",
+      "run one strict-complete conversion for this exact source"
+    ],
+    "mustRemainRefused": [
+      "unknown or partially decoded dynamic-block subclasses",
+      "source references without an exact typed role or emitted identity",
+      "native dynamic-block semantics without independent consumer evidence"
+    ]
+  }
+}

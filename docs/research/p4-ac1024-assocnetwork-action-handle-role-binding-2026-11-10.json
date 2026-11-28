@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-assocnetwork-action-handle-role-binding-2026-11-10",
+  "date": "2026-11-10",
+  "status": "AC1024_CLASS_VERSION_1_ACTION_ROLE_BINDING_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Bind the qualified AC1024 class-version-1 associative-network action ownership bit to the corresponding DWG action handle reference role, without changing the AC1032 candidate path.",
+  "evidence": {
+    "profile": {
+      "version": "AC1024",
+      "className": "AcDbAssocNetwork",
+      "classVersion": 1,
+      "roleRule": "isOwned=true requires DwgHardOwnership; isOwned=false requires DwgSoftPointer; null references are permitted by the role reader.",
+      "basis": [
+        "The selected AC1024 source profile and the existing writer map owned actions to DXF group 360 and non-owned actions to group 330.",
+        "LibreDWG dwg2.spec at the pinned peer revision serializes each action ownership bit, then uses DWG_HDL_HARDOWN when owned and DWG_HDL_SOFTPTR otherwise. This is corroborating peer source, not the ODA specification."
+      ]
+    },
+    "physicalSource": {
+      "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "version": "AC1024",
+      "provenance": "Existing local sample; producer provenance is not independently established.",
+      "result": "The rebuilt source-inventory reader parses five class-version-1 network records and 28 logical action references; all prefixes complete and the operation succeeds with the role guard enabled."
+    },
+    "peer": {
+      "repository": "/Users/dli/dev/libredwg",
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "file": "src/dwg2.spec",
+      "profile": "ASSOCNETWORK actions encode an ownership bit followed by a hard-owner handle when owned, or a soft-pointer handle otherwise."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "change": "For AC1024 class-version-1 only, transactionally decode action references against the role selected by each ownership bit. Mismatches fail the typed record instead of silently publishing a DXF projection with a contradictory 330/360 relationship. AC1032 candidate parsing and m_networkFieldsParsed=false are unchanged.",
+    "fixturePolicy": "No DWG/DXF fixture added; malformed and corrected frames are generated in memory."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+    "buildResult": "PASS",
+    "focusedCtests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_associative_network_writer|libdxfrw_associative_network_objects_allocation_retry|libdxfrw_associative_network_action_index_generated|libdxfrw_assocnetwork_ac1032_candidate_generated|libdxfrw_assocnetwork_ac1032_multi_action_generated|dwg2dxf_associative_dwg_root_network_value_dependency_export|dwg2dxf_associative_dwg_nested_network_sortents_output|dwg2dxf_generated_selected_associative_networks_output)$' --output-on-failure",
+      "result": "PASS 8/8"
+    },
+    "physicalSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocnetwork-source-inventory /Users/dli/doc/dwg/architectural_example-imperial.dwg",
+      "result": "PASS; operationSucceeded=true, sourceVersion=AC1024, five networks and 28 action references published with complete action/network prefixes."
+    },
+    "receiptJson": "PASS",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "The AC1024 source producer provenance is not independently certified.",
+    "The peer specification corroborates role mapping but does not replace ODA normative class-schema coverage.",
+    "This guard proves neither target existence nor recursive graph closure, native semantics, or whole-source output.",
+    "AC1032 role/schema candidates remain unqualified and output remains refused."
+  ],
+  "developmentTriage": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+      "finding": "Initial test compile rejected a const vector passed to the mutable dispatch-reader API; the generated mutation helper now takes a mutable vector reference.",
+      "resolution": "Rebuilt successfully."
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R ^libdxfrw_associative_network_action_index_generated$ --output-on-failure",
+      "finding": "The first generated AC1024 class-version-1 frame included owned-parameter and value-parameter version fields from the later class-version profile. The bounded parser exposed the wrong network-prefix span; subsequent role attempts therefore had no action list. The corrected-frame retry also accumulated prior failure counts in the test reader.",
+      "resolution": "Matched the generated body to the existing AC1024 version-1 layout, reset per-read diagnostic counts in the test reader, and reran the role mutations and same-reader retry successfully."
+    }
+  ]
+}

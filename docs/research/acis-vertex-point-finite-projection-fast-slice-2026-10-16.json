@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw-acis-vertex-point-finite-projection-fast-slice-v1",
+  "date": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "planSlice": "S3.7b",
+  "scope": "Replace the unresolved-vertex-only local SAB fast control with a real point-to-vertex graph and assert finite projection and reference-failure visibility.",
+  "changes": {
+    "profile": "Generated ACIS BinaryFile SAB version 21800, reviewed local projection profile.",
+    "positiveControl": "One point record at (1,2,3), one vertex pointing to that point, and one exact terminal record; asserts valid vertex and degenerate exact bounds at (1,2,3).",
+    "referenceFailures": [
+      "Vertex pointer resolves to a record of the wrong type.",
+      "Vertex pointer is outside the record table."
+    ],
+    "nonFiniteFailures": [
+      "Point X coordinate is NaN.",
+      "Point X coordinate is positive infinity."
+    ],
+    "scopeBoundary": "Existing complete-stream behavior for unresolved geometry remains explicit through invalid vertex/report counts; this slice does not claim B-rep completeness or change format support."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_dwg_local_roundtrip lc3_compat_check -j4",
+    "ctestCommand": "ctest --test-dir build -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+    "results": {
+      "strictTargetBuild": "PASS",
+      "lc3CompatCheckBuild": "PASS",
+      "ctest": "PASS (1/1)",
+      "gitDiffCheck": "PASS"
+    }
+  },
+  "fixturesAdded": 0,
+  "dependenciesAdded": 0,
+  "testRegistrationsAdded": 0,
+  "externalRuntimesRun": 0,
+  "supportClaimsPromoted": 0,
+  "implementationStatus": "local uncommitted slice"
+}

@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "SORT-owner lookup release fast slice",
+  "mode": "Implementation slice; focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Trace the temporary SORT owner lookup set to its final use.",
+    "Release the duplicate membership index once BLOCK_RECORD projection is complete.",
+    "Preserve the source SORT-owner list and filtered writer graph."
+  ],
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "change": "Make the local sortOwners set movable and swap it with an empty set immediately after filtering sourceBlockRecords.",
+    "lifetimeEvidence": "The set is queried only in the filtering loop to decide whether an identity record retains xDictHandle. Later writer setup uses the unchanged m_sortOwnerHandles and the resulting projected records, not the temporary membership set.",
+    "unchanged": [
+      "SORTENTSTABLE owner handles and graph validation",
+      "BLOCK_RECORD identity projection",
+      "Extension-dictionary filtering and serialized output",
+      "Writer retry/source data behavior"
+    ],
+    "performanceClaim": "No measured throughput/RSS gain is claimed; the temporary set's bucket storage is released after its proven last use."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "ctest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_sortents_adapter|libdxfrw_block_owners|libdxfrw_dxf_fixtures)$' --output-on-failure",
+      "passed": 3,
+      "failed": 0,
+      "totalTimeSeconds": 4.52
+    },
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "jsonValidation": "jq empty passed"
+  },
+  "assessment": {
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

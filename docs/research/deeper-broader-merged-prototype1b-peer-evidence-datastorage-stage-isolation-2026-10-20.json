@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Merged Prototype1b peer evidence and DataStorage stage isolation",
+  "mode": "Primary-source cross-project research and implementation-plan refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh the ACadSharp Prototype1b/DataStorage parser evidence and distinguish section parsing, Blob01 reconstruction, entity wiring, payload preservation, and geometry semantics.",
+    "Cross-check the peer evidence against ODA v5.4.1, current LibreDWG source/report, Autodesk DXF/ObjectARX documentation, FreeCAD's current DXF route, and OCCT shape-validity documentation.",
+    "Refine existing PAR-07/S8 and PAR-14 procedures while preserving fast local validation, existing fixture policy, LibreCAD 2D compatibility, and external evidence ceilings."
+  ],
+  "sources": [
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "ODA Open Design Specification v5.4.1, sections 24.2.2.3-24.2.2.4; read as the project's authoritative DWG-layout source.",
+      "observed": "Documents DWG AcDs/DataStorage record and Blob01 layout used by the local reader plan.",
+      "limits": "Peer discussion alleges an empirical formula/anchor conflict; the allegation does not supersede the repository's instruction that ODA v5.4.1 is authoritative. Any local exception needs a versioned sample trace and explicit evidence."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/pull/1156",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgPrototype1bReader.cs"
+      ],
+      "revision": "PR #1154 merged into master on 2026-07-28; current master source and PR #1156 closure/review thread inspected 2026-10-20. No release artifact was run.",
+      "observed": "The merged parser models the full Prototype1b section; #1156 was closed after the merged ResolveDataEntry route was reported to cover Blob01 reassembly. The review thread separates full section parsing, entity wiring, referenced versus stale/unreferenced entries, and exact payload hashes. Current source shows a schema type-size array access without a visible range check.",
+      "limits": "Mutable source and contributor comments are not a bound package run or independent semantic result. The old parser branch had a reported stale secondary index failure; that is a comparator qualification lead, not a claim that a current release fails. Source-level array access is not a reproduced vulnerability."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Mutable current source, NEWS, and issue #1411 inspected 2026-10-20; no peer build or sample executed.",
+      "observed": "Issue #1411 describes an AC1027+ AcDs/SAB carrier-loss route. Current source has an AcDs reader path and NEWS describes modern extraction as incomplete/heuristic, so the report is route/profile-specific rather than proof of no reader implementation.",
+      "limits": "Issue report and current source are different evidence; no result establishes current-master behavior or libdxfrw support."
+    },
+    {
+      "project": "Autodesk, FreeCAD, and OCCT",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDb3dSolid.html",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://dev.opencascade.org/doc/refman/html/class_b_rep_check___analyzer.html"
+      ],
+      "revision": "Public documentation pages inspected 2026-10-20; no native application or kernel run.",
+      "observed": "Autodesk describes AcDb3dSolid as a container/interface over ShapeManager; the public DXF table documents inline proprietary group 1/3 data. FreeCAD documents that its stock DXF importer cannot read ACIS/SAT blobs and that DWG conversion precedes DXF import. OCCT BRepCheck_Analyzer checks validity of shapes.",
+      "limits": "Neither a FreeCAD open nor an OCCT validity result alone proves source-to-output geometric equivalence, DWG association, or behavior on an unselected platform/build."
+    },
+    {
+      "project": "Local plan reconciliation",
+      "urls": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Existing PAR-07/S8 and PAR-14 procedures and generated DataStorage test owners inspected and refined 2026-10-20.",
+      "observed": "The plan now requires a live index/reference-to-entity join and per-payload digest rather than aggregate counts; existing generated direct/blob, schema-boundary, and stale-index controls are reused.",
+      "limits": "No local code or tests were changed or run; no external fixture was added."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: compare modern AcDs payloads through current-header index, live segment/data/schema references, exact record/page bytes, and entity-handle association; do not compare aggregate counts alone.",
+      "PAR-07/S8: ACadSharp #1154 is an optional pinned reader-stage comparator, not write support, semantic evidence, or proof that mutable master/released packages pass.",
+      "PAR-14: local malformed schema-type and stale-index tests remain local generated controls; do not duplicate completed coverage or run hostile mutation inputs against an unqualified peer.",
+      "PAR-07/S8: ODA v5.4.1 remains authoritative for DWG layout; peer-reported discrepancies require exact versioned sample traces before any exception is considered.",
+      "Consumer/semantic gate: FreeCAD explicit/2D entity acceptance, ACIS carrier preservation, parser profile, kernel validity, and independent geometric expectations remain separate results."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-merged-prototype1b-peer-evidence-datastorage-stage-isolation-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a precise optional ACadSharp Prototype1b comparator boundary based on merged #1154 and closed #1156, while keeping release/source pinning mandatory.",
+    "Replaced aggregate DataStorage payload-count comparison with a live index/schema/record/Blob01/entity-handle join and per-payload hashes.",
+    "Separated stale/unreferenced segment records and pre-2013 inline payloads from live referenced AcDs payloads.",
+    "Recorded peer source-level robustness leads without calling them reproduced vulnerabilities or adding peer hostile-input runs.",
+    "Reaffirmed ODA v5.4.1 authority and required versioned sample-trace evidence before accepting a peer-reported specification discrepancy.",
+    "Kept local generated fast tests, fixture policy, sparse full suites, FreeCAD 2D compatibility, and all six deferred J items unchanged."
+  ],
+  "limitations": [
+    "GitHub master/issue pages are mutable. ACadSharp PR history is source/review evidence, not evidence from a current released package executed here.",
+    "No ACadSharp or LibreDWG executable/package, native CAD application, geometry kernel, external drawing, or test corpus was run or downloaded.",
+    "ODA v5.4.1 remains authoritative for DWG layout. Peer discussion about a possible spec error is only a hypothesis until validated against the relevant ODA text and a supported-version sample trace.",
+    "No new local finding, implementation slice, test, fixture, dependency, claim promotion, or J-item transition was established.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "planUpdaterCheck": "PASS (python3 tools/update_upgrade_plan.py --check)",
+    "scopedDiffCheck": "PASS (git diff --check for the plan)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Research-only plan update; the shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

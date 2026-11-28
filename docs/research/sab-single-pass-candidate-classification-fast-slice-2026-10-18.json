@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-18",
+  "title": "7S.3/S3.7 single-pass SAB candidate classification",
+  "planOwner": "PAR-07/S8; 7S.3/S3.7 bounded SAB extraction work",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": [
+    "Replace three complete candidate-node scans for vertex, edge, and face classification with one pass",
+    "Preserve per-category output order and historical vertex/edge/face diagnostic order",
+    "Add generated operation-count, exact/one-under budget, and diagnostic-order controls"
+  ],
+  "changedFiles": [
+    "src/drw_acis.cpp",
+    "tests/graph_preservation_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/sab-single-pass-candidate-classification-fast-slice-2026-10-18.json"
+  ],
+  "behavior": {
+    "candidateClassificationPasses": 1,
+    "categoryOutputOrderPreserved": true,
+    "diagnosticCategoryOrderPreserved": [
+      "vertex",
+      "edge",
+      "face"
+    ],
+    "projectionCacheLifetime": "one extraction invocation",
+    "publicApiOrLayoutChanged": false,
+    "budgeting": "Candidate visits and diagnostic finalization are charged to extraction work; diagnostic strings and entries retain existing string/output-item admission. Existing curve, surface, vertex, and loop cache budgets are unchanged."
+  },
+  "generatedControls": {
+    "input": "Locally generated SAB 21800 containing one and eight otherwise unprojected record nodes; separate in-memory model has mixed face/vertex/edge source order and three diagnostic cases",
+    "assertions": [
+      "Empty geometry output remains empty for unprojected-only nodes",
+      "Growing from one to eight unprojected records increases extraction work by exactly seven units",
+      "Exact extraction-work and output-item budgets admit the eight-record case",
+      "One-under extraction-work budget refuses and clears output",
+      "Mixed source ordering still emits diagnostics in vertex, edge, face category order"
+    ],
+    "measurementLimit": "Deterministic work-counter and semantic-output checks; no wall-clock benchmark or allocator/RSS bound"
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "build-gcc/libdxfrw_graph_preservation_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq empty docs/research/sab-single-pass-candidate-classification-fast-slice-2026-10-18.json"
+    ],
+    "buildPassed": true,
+    "testExecutablePassed": true,
+    "owningCTest": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.58
+    },
+    "diffCheckPassed": true,
+    "receiptJsonValidation": true,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "nextLocalAction": "Continue through the existing dependency-ready 7S.2c-d/7S.3 retention and accounting queue. Add no further projection cache without a source-level repeated invariant traversal or unaccounted retained allocation. If an item depends on unavailable peer/native evidence, record only that cell NOT_RUN and resume the next local item.",
+  "workingTree": {
+    "preExistingBroadChangesPreserved": true,
+    "unrelatedChangesStaged": false,
+    "commitCreated": false,
+    "reasonUncommitted": "The shared worktree contains broad overlapping user changes; no isolated commit could be made safely."
+  }
+}

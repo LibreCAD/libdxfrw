@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mesh-tail-canonical-profile-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "OBSERVED_CROSS_READER_PROFILE_BOUNDED; SCHEMA_AND_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "scope": "Prevent unqualified AcDbSubDMesh trailing-bit patterns from being accepted or emitted while retaining the shared physical profile.",
+  "basis": {
+    "ambiguityReceipt": "p6-mesh-tail-peer-span-ambiguity-2026-11-02",
+    "physicalCorpusReceipt": "p6-mesh-dwg-trailing-bit-fields-recheck-2026-11-02",
+    "observedTail": "10",
+    "compatibleInterpretations": [
+      "two one-bit fields unknown_b1=1, unknown_b2=0",
+      "one BitLong with value zero"
+    ],
+    "normativeStatus": "ODA v5.4.1 does not publish an AcDbSubDMesh body layout."
+  },
+  "implementation": {
+    "parser": "Accept only trailing candidate bits 10. Reject the other three two-bit patterns and reset the typed entity on refusal. This avoids treating a possible nonzero BitLong prefix as two flags.",
+    "writer": "Emit the canonical 10 sequence for model default unknown=0 and observed-profile unknown=1. Reject unknown masks 2 and 3 before writing any body, string, or handle bits.",
+    "apiComment": "Document the observed-profile bound and default canonical encoding without claiming flag semantics."
+  },
+  "validation": {
+    "builds": [
+      {
+        "target": "libdxfrw_hardening_tests",
+        "result": "PASS"
+      },
+      {
+        "target": "libdxfrw_dwg_object_vectors_tests",
+        "result": "PASS"
+      },
+      {
+        "target": "libdxfrw_dwg_local_roundtrip",
+        "result": "PASS"
+      }
+    ],
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_(mesh_crease_value_domains|mesh_dwg_crease_count_guard)$' --output-on-failure",
+      "result": "PASS (2/2)",
+      "coverage": "Generated parser vectors admit only 10 and check atomic reset for other candidates. Writer vectors check exact 10 output and refusal of masks 2/3 across AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032."
+    },
+    "composedRoundTrip": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "FAIL (existing broader AC1021 object-stream failure)",
+      "detail": "The generated MESH capability/readback assertions pass after updating their expected canonical mask. The full round-trip test still fails at AC1021 with 'dwg-object-callback \u2014 DWG object callback reported a required write failure', followed by 507 aggregate assertions. This packet did not isolate or resolve that independent object callback failure."
+    },
+    "fixtureFilesAdded": 0
+  },
+  "supersedes": {
+    "receipt": "p6-mesh-dwg-trailing-bit-fields-recheck-2026-11-02",
+    "scope": "Its all-mask parser/writer controls establish implementation mechanics only. This receipt narrows parser admission and writer output to the observed shared 10 profile; it does not resolve the underlying schema."
+  },
+  "limitations": [
+    "The body layout and meaning of the trailing data remain unresolved.",
+    "The other three two-bit patterns remain unsupported until a normative layout or a discriminating, traceable producer resolves them.",
+    "This does not qualify MESH topology, subdivision semantics, crease effects, native geometry, or whole-document conversion.",
+    "The composed local DWG round-trip test remains failing at an AC1021 object callback."
+  ],
+  "fileHashes": {
+    "src/drw_entities.cpp": "75313ca1b76afa9b81ec196f5f69dbe87d7a072b786aeff9a6d32e028f0d64cd",
+    "src/drw_entities.h": "6f8a74777fdbbaf356fca71e406acc964656ee7756bd44e3255f8fd8dc3dedfa",
+    "tests/dwg_object_vectors_tests.cpp": "f05b427230f91f130d1d5b78b72f59623832cff0bd8d59d86166b217e9bdb1e7",
+    "tests/hardening_tests.cpp": "daa1c8c1a33b6994a7d759ef586af7b606ed17562ccb2e86457f96e3f0f7b527",
+    "tests/dwg_local_roundtrip_tests.cpp": "f7e0c5c0625d7048bc7a504cfd2f156d777e710261da986bc8fe11f96e2bf582",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "822e3ddb2071991abee4857fcbe868048460986b1988803f7b4da26107e1dcd5"
+  },
+  "currentTurnValidation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests --parallel 4",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mesh_crease_value_domains|libdxfrw_mesh_dwg_crease_count_guard|libdxfrw_mesh_dxf_allocation_failure)$' --output-on-failure",
+    "passed": 3,
+    "failed": 0,
+    "elapsedSeconds": 0.41
+  },
+  "stagedInputHashes": {
+    "src/drw_entities.cpp": "90444975aea47189d45bc0ca752c834a49a9d4cdfa9444e16960df687bc581b2",
+    "tests/dwg_object_vectors_tests.cpp": "437da8f7bc00df9f817aae47172731cbd4864b11402a2885a98bf7dc0645b3b1",
+    "tests/hardening_tests.cpp": "82516e1a3059d1d47836c5682a7c8fde9e660f8e5864af0a4549de3e1612ae2b",
+    "tests/dwg_local_roundtrip_tests.cpp": "8e051681e201c34b11a180584fc1dc8b66f6fba152d2433ab1a367001c020a9d",
+    "CMakeLists.txt": "d1c8714988f9cd41e787983cd28586c1495f1aa07ecfe883a4e34151a539fb33",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ca6184dc175f0fa7feb8e069f75b53dc8ee78a271fb0117ef5ee259d37e49ce7"
+  },
+  "repositoryState": {
+    "baseHead": "a49c90a3",
+    "stagedScope": "bounded MESH DWG parse/output profile; DXF loss guards; generated vectors",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

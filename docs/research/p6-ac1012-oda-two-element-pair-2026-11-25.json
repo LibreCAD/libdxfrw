@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-oda-two-element-pair-2026-11-25",
+  "date": "2026-11-25",
+  "status": "TWO_ELEMENT_ODA_GENERATED_REOPEN_AND_LIBREDWG_READ_PASS_NATIVE_OPEN_AND_MERGE_PENDING",
+  "supportClaimEffect": "none",
+  "previousControl": "docs/research/p6-ac1012-oda-linux-generated-pair-2026-11-25.json",
+  "scratchDirectory": "/private/tmp/ac1012-linux-oda-20261125",
+  "construction": "Starting from ODA's R2010 DXF re-exports of the locally generated collision pair, replace the zero-element SAME_KEY and unique MLINESTYLE records with two BYLAYER elements at offsets +0.5 and -0.5 and set end angle to 90 degrees; preserve their distinct start angles and dictionary links. ODA File Converter 27.10.0.0 in an offline linux/amd64 container generated AC1012 DWGs and reopened them to R2010 DXF.",
+  "samples": {
+    "destination": {
+      "path": "valid-style-dwg/destination.dwg",
+      "sha256": "5798fab165d1914c6fa511b6c9cf4ed8b4a4a99cf3a4c8527aabb87b3e34de6c",
+      "reopenedDxfSha256": "4c88472ee09fcb66289d505dd9336def55ae3d8b3b7fbd6ce3cb01cbaa718214",
+      "stylesDegrees": {"SAME_KEY": 15, "DEST_ONLY": 22}
+    },
+    "source": {
+      "path": "valid-style-dwg/source.dwg",
+      "sha256": "be5c6dd4c0afe41c2e397a973229826a59cd370f7b7c8543d4d2b698197dadb7",
+      "reopenedDxfSha256": "e02352c01b699fb87a5441a4ebd5966ef22fc56b2eadefe146831439404fba32",
+      "stylesDegrees": {"SAME_KEY": 37, "SOURCE_ONLY": 51}
+    }
+  },
+  "checks": [
+    "Both files have AC1012 magic; ODA reopened both without a per-file error.",
+    "The bounded DXF audit resolves the ACAD_MLINESTYLE dictionary and selected style owners, names, angles and two-element counts in both ODA exports.",
+    "GNU LibreDWG 0.14 independently reads both DWGs and reports the same dictionary owners and selected start angles; every selected style has offsets +0.5 and -0.5 and BYLAYER linetype index 32767.",
+    "The locally rebuilt dwg2dxf (SHA-256 f099c97f515cea3d1c6948449a808647e8ac818d5a0e1cbff4dd9e6af946b436) observes 203/203 frames published and zero entity/object parse failures in each source. Strict ASCII and binary AC1024 output each refuse at the unqualified AC1012 dictionary merge-semantics preflight and preserve the preexisting destination. Each source also reports one skipped custom-class instance and one skipped unsupported object instance, so complete frame coverage is not whole-file semantic completeness."
+  ],
+  "limits": [
+    "ODA reopened its own generated files; independent LibreDWG readback is not native AutoCAD acceptance, style validation or duplicate-merge behavior.",
+    "The DWGs originate in local explicit-partial DXF projections; no source-completeness claim follows.",
+    "Files remain in temporary scratch space and were not committed."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-26",
+  "candidate_commit": "fe6c7f17fa7ce343b94d29f2e0e363840ed09752",
+  "implementation_digest": "922ee37ffca0420ca161ac977da8e0a60397b5e12b49b337d120f2ff396a31b3",
+  "source": "The locally generated pair recorded in p6-ac1012-user-request-generated-pair-2026-11-26.json; existing scratch frames reused, no fixture regenerated or committed.",
+  "focused_test_sha256": "150f7f3cfcbbf32b860750c70f071c9154d2aab9f37e8fef232ecc725fe3b059",
+  "destination_frame_sha256": "0d005170285d2dbdc3887520bc5a018a708e58aff8568324818f1f918da95d07",
+  "source_frame_sha256": "fbaf235e03a52ceacff32f57b3e0334dd4cb0a535b42e659eaa66bdd7c7a49c7",
+  "results": [
+    "PASS generated AC1012/AC1014/AC1015 dictionary version and transaction test",
+    "PASS both AC1012 physical frames, shared version-aware dictionary and handle-role checks, malformed-role refusal and corrected retry"
+  ],
+  "limits": [
+    "Generated self-consistency does not establish AutoCAD normal-open, cloning defaults, native duplicate-key behavior, or whole-source output.",
+    "No new support claim or fixture."
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader open-source implementation and evidence-route review",
+  "mode": "primary-source web research and read-only plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare current open-source DWG/DXF codec and application routes by exact parser, writer, projection, carrier, and kernel operation",
+    "Refresh peer release/source identity and evidence ceilings",
+    "Refine the implementation-ready comparator sequence without expanding per-slice validation"
+  ],
+  "method": {
+    "kind": "Read current official project documentation, release pages, and source manifests; reconcile with existing plan gates",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-dwg-dxf-3d-route-native-acceptance-2026-10-18.json",
+      "docs/research/deeper-broader-cross-project-dxf-writer-dimension-type-review-2026-10-18.json"
+    ],
+    "limitations": "Mutable upstream docs and project release claims were not executed. Peer changelogs, feature matrices, source manifests, issue discussions, and fuzz infrastructure do not establish libdxfrw conformance or native acceptance. Existing unrelated/in-progress worktree edits were preserved."
+  },
+  "sources": [
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/Overview.html",
+        "https://github.com/LibreDWG/libredwg/releases",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg-fuzz"
+      ],
+      "revision": "Published 0.13.4 manual and current GitHub release/source pages reviewed 2026-10-18",
+      "observed": "The 0.13.4 manual describes incomplete/versioned capabilities; the current release page lists 0.14.86xx prereleases separately. NEWS and fuzz documentation offer source-specific robustness and implementation signals, not semantic qualification for libdxfrw."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.7.16"
+      ],
+      "revision": "Release page reviewed 2026-10-18; v3.8.0 source commit 3a1c66b",
+      "observed": "The latest listed release is signed v3.8.0; its release note is assembly visibility. The prior v3.7.16 changelog records format-related work including AcDs/ACIS and DXF/DWG writer/read fixes. Release contents identify a comparator candidate but are not per-family acceptance evidence."
+    },
+    {
+      "project": "OpenCADStudio and ACadRust codec/kernel lineage",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "revision": "Mutable main manifest reviewed 2026-10-18",
+      "observed": "The app manifest pins the acadrust package from opencadcodec revision 12d68e4 and opencadkernel revision 80a8a26 as separate dependencies. Application, codec, and kernel outcomes must be recorded as a composed route, not independent parser votes."
+    },
+    {
+      "project": "GDAL DXF driver",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Stable documentation reviewed 2026-10-18",
+      "observed": "GDAL projects selected explicit DXF entities to OGR geometry; documents tessellation and unsupported OCS/elevation/style cases; reads Binary DXF starting in 3.12; exposes raw ASM plus transform only for AC1027+ when enabled, without solid-geometry conversion."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/xref.html"
+      ],
+      "revision": "Stable documentation reviewed 2026-10-18",
+      "observed": "The docs describe a limited ACIS entity subset with unsupported entities loaded as NONE_ENTITY and data loss on re-export, and an XREF importer that intentionally ignores certain unsupported entities/objects. This is not a generic opaque-preservation oracle."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "revision": "Current documentation and project issue reviewed 2026-10-18",
+      "observed": "FreeCAD documents a native C++ DXF importer with incomplete format coverage, an optional legacy Python route, and DWG conversion through external tools. The ACIS discussion describes unsupported proprietary payload handling, so successful DXF conversion or import cannot be scored as solid semantics."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines existing peer-lineage, PAR-07, PAR-39, PAR-92, ACIS/AcDs, and native-consumer gates. Recommends one exact comparator per unanswered question at the composed checkpoint, with parser, writer, projection, raw carrier, semantic conversion, and native application outcomes recorded separately.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Keep the per-slice loop to strict touched-target build, focused generated selector, relevant compatibility check, and owning CTest; schedule full suites and peer/native/fuzz tools at milestone or composed checkpoints.",
+    "Choose one peer for one question: GDAL for supported explicit-DXF projection, ezdxf for selected syntax/typed-field comparison, LibreDWG for an exact DWG operation/version, and ACadSharp for a pinned structural-object/AcDs check.",
+    "Bind each observation to input/output hashes, package or commit, build/features, source/target versions, options, importer, parser/kernel lineage, diagnostics, per-handle disposition, and operation.",
+    "Treat unavailable optional tools or samples as NOT_RUN. Raw hashes, same-library reopen, renderer output, and fuzz cleanliness do not establish semantic correctness or native acceptance.",
+    "Use only local generated or from-scratch test material in ordinary slices; add no third-party/customer drawings to the committed fixture corpus."
+  ]
+}

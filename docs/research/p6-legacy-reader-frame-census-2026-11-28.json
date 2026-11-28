@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-28",
+  "scope": "Optional AC1012/AC1014 adapter evidence, not output qualification",
+  "implementation": "Bound a maximum of 65536 reader-published physical object-map frames to one successful import generation and attempt; require a complete publication-only frame report, unique handles, offsets and ordinals, and one unchanged published CLASS entry for a requested class number. Reject incomplete or stale evidence without changing import success or result on failure.",
+  "controls": [
+    "Unit controls cover zero and nonzero counts, generation and attempt mismatch, duplicate handle/offset/ordinal, missing location, wrong version, incomplete or inconsistent report, unknown or failed dispositions, invalid type/handle, failed read, post-seal callback, bounded capacity, AC1014 synthetic control, and corrected retry.",
+    "The two locally authored rooted AC1012 resaves were imported through the actual adapter. Each reports 0 GEODATA, 2 LAYOUT and 1 ACDBDICTIONARYWDFLT frame; changing the import generation rejects the query and restoring it permits retry.",
+    "A separate bounded physical CLASS and object-map walker reports the same counts and 44 mapped frames in each sample. A scratch instrumented reader comparison matched the 44 published handle, type and offset tuples in the destination to that physical census."
+  ],
+  "samples": [
+    {"role": "source resave", "sha256": "93cb1e6c0d62c53ef485b9c74eda41151e28db60c1514cecd0607bbcf30b77aa", "mappedFrames": 44},
+    {"role": "destination resave", "sha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5", "mappedFrames": 44}
+  ],
+  "independentWalker": "tools/research/audit_ac1012_class_census.py",
+  "limits": [
+    "Generated sample binaries are local scratch artifacts and are not committed.",
+    "The independent physical walker covers only the selected bounded AC1012 files; AC1014 is currently a synthetic adapter control.",
+    "A complete reader publication census is not independent semantic proof or permission to omit a CLASS or relax output guards. Native cloning, target CLASS behavior, graph closure and staged output remain open."
+  ]
+}

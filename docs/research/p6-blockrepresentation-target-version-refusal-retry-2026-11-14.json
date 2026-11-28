@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-blockrepresentation-target-version-refusal-retry-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_AC1024_ONLY_VERSION_GATE_REFUSAL_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Verify ACDB_BLOCKREPRESENTATION_DATA atomic refusal outside its implemented AC1024 target and corrected same-codec AC1024 retry in ASCII and Binary DXF; retain the existing AC1024 writer allocation sweeps.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DXF OBJECT",
+    "profile": "One decoded DRW_BlockRepresentationData with handle 0xE803, owner/reactor 0xE802, block handle 0xE804, and flag 1. No external drawing fixture is used or committed.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "d1af48a0b93ced79ca2f9ef5ca289df974623916",
+    "files": [
+      "tests/blockrepresentation_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-blockrepresentation-target-version-refusal-retry-2026-11-14.json"
+    ],
+    "method": "Extend the existing AC1024 allocation rollback/retry target with refusal controls for AC1009, AC1014, AC1015, AC1018, AC1021, AC1027, and AC1032 in both encodings. Every refusal must preserve a sentinel destination and the complete caller object; reusing the same codec at AC1024 must reproduce the clean output bytes and typed readback. The readback now also checks the emitted DXF source revision."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_blockrepresentation_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R 'blockrepresentation_objects_allocation' --output-on-failure: PASS 1/1 (0.34 sec)",
+    "directRun": "PASS; AC1024 writer sweeps reached 9 allocation offsets in each encoding; all 14 unsupported-target refusal and same-codec retry controls passed.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "The implementation currently admits this writer only at AC1024; tests confirm refusal elsewhere and do not establish that other target versions should support the object.",
+    "Generated writer transaction and version-gate evidence only; it does not qualify producer object graphs or native application behavior.",
+    "No external fixture was committed and no support claim is promoted."
+  ],
+  "nextAction": "Continue the remaining P6-G writer inventory and resolve source-backed version profiles before broadening this OBJECT route."
+}

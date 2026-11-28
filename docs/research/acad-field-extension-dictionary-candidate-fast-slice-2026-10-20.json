@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "ACAD_FIELD extension-dictionary writer candidate characterization",
+  "mode": "Generated local implementation and focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Characterize the low-level ASCII/Binary output shape for an entity extension dictionary containing an ACAD_FIELD entry and a sibling key.",
+    "Keep extension-dictionary attachment, DICTIONARY entry code, FIELD child code, FIELD expression-object reference, and sibling target as separate edges.",
+    "Exercise the actual regenerated NOD writer separately for ACAD_FIELDLIST to FIELDLIST group-350 membership.",
+    "Strictly reread the generated ASCII sections to verify local typed graph retention without promoting native semantic support."
+  ],
+  "implementation": {
+    "files": [
+      "tests/wave1_tests.cpp::testAcadFieldExtensionDictionaryWireCandidate",
+      "tests/wave1_tests.cpp::--acad-field-writer-candidate",
+      "CMakeLists.txt::libdxfrw_acad_field_writer_candidate",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "generatedCases": [
+      "ASCII and Binary direct-writer projections",
+      "actual regenerated NOD ACAD_FIELDLIST group-350 edge to FIELDLIST",
+      "flag 280 clear with ACAD_FIELD group 360 candidate and sibling group 350",
+      "LINE extension-dictionary attachment group 360",
+      "FIELD child handle group 360 and expression object ID group 331",
+      "owner identity follows the emitted/reminted LINE handle",
+      "strict local ASCII section reread checks NOD root and FIELDLIST membership, typed extension-dictionary entries and owner, FIELD edges, entity attachment, and sibling XRECORD target"
+    ],
+    "policy": [
+      "No production policy/default change for ACAD_FIELD was made.",
+      "No FIELD/FIELDLIST export support was enabled in dx_iface.",
+      "The test characterizes serialization and same-library parsing only; it does not prove native consumer semantics or a normative 360 requirement.",
+      "No persistent DWG/DXF fixture or external drawing was added."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "result": "PASS"
+    },
+    "focusedTests": [
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --acad-field-writer-candidate",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_acad_field_writer_candidate$' --output-on-failure",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false,
+    "commitStatus": "Not created; Git metadata is read-only in this workspace."
+  },
+  "assessment": {
+    "asciiBinaryWireProjectionVerified": true,
+    "localTypedAsciiReadbackVerified": true,
+    "nodFieldListRouteSeparatelyVerified": true,
+    "nativeConsumerSemanticsVerified": false,
+    "adapterFieldExportEnabled": false,
+    "newFindingIds": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G: characterize ACAD_FIELD extension-dictionary output independently of generic DICTIONARY flag policy and NOD ACAD_FIELDLIST.",
+      "PAR-20/7G: keep entity attachment 360, dictionary entry 350/360, FIELD child 360, and expression object 331 as separate typed edges."
+    ],
+    "nextLocalAction": "Add a generated strict missing-target/wrong-owner refusal case with seeded-destination preservation, and separately characterize NOD ACAD_FIELDLIST without enabling adapter FIELD export.",
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

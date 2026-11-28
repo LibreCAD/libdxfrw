@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_AC1024_DIRECT_NOD_FRAME1_GENERATED_OUTPUT",
+  "scope": "Admit an unchanged AC1024 direct-NOD WIPEOUTVARIABLES display-frame 1 with exactly the observed reactor, owner and short-value encoding, same-revision output and existing graph/class/identity preflight. Existing AC1024 frame 0 and other revision profiles remain unchanged. This is a selected-record graph qualification, not a physical whole-document or native rendering claim.",
+  "source": {
+    "provenance": "A local R2010 DXF with one WIPEOUT and ACAD_WIPEOUT_VARS.frame=1 was created from scratch with ezdxf 1.4.5. ODA File Converter 27.1.0 converted it to AC1024 DWG and back to AC1024 DXF without .err. No DWG/DXF fixture was added; timestamps mean regenerated files need not match these hashes.",
+    "input_dxf_sha256": "25837132680f405474425647efed839351dbf7fc92e1554bf15269a71eca3b5b",
+    "source_dwg_sha256": "42b5820eebe1b85dfe687cdfaee2ffa754b2adf61d0c892ce7b9f7507546f1a7",
+    "oda_output_dxf_sha256": "7e8bcc6c44d49951a0bca976fa99831555051f4cd9d20b51b1e3fef40bc9ee07",
+    "independent": "GNU LibreDWG 0.14 observes dynamic type 516, object 0x30, display frame 1, NOD 0xA as role-4 owner and sole role-4 reactor, and missing XDictionary. ezdxf reads frame 1 in the authored input and ODA-returned DXF. LibreDWG reports object CRC D1FD matching its computed value.",
+    "frame": "The source-specific hash-bound in-tree capture plus separate bit walk observes an 11-byte frame with 38 handle-stream bits: type [0,10), self [10,26), empty EED [26,28), reactor count [28,38), XDictionary-missing [38,39), frame BS [39,49)=0x101, absent string marker [49,50), owner role-4 [50,66), reactor role-4 [66,82), six zero pad bits [82,88). Page/frame extraction and typed callback remain in-tree; LibreDWG is the independent DWG decoder.",
+    "whole_source": "The scratch candidate CLI read all 157 observed source frames but strict full-file export refused at the existing two HEADER integrity observations; it preserved the preexisting destination. No physical full-document output, source-NOD remapping, preview or native image rendering is claimed."
+  },
+  "implementation": "Graph and output preflight accept frame 1 only for AC1024 direct NOD with the existing owner/reactor, XDictionary, capture, CLASS, uniqueness and same-version checks. The independent raw-body observer compares the typed value and enforces the witnessed 10-bit BS encoding for frame 1 while retaining the existing version-specific frame-0 path. Frame 1 on other revisions and alternate encodings are not newly admitted.",
+  "validation": {
+    "scratch_base": "f04130c1f02319c1bcc95fd50a794b4030d0c18d",
+    "test_command": "ctest --test-dir /private/tmp/wipeout-frame1/build -R '^dwg2dxf_wipeoutvariables_(ac1024_(frame1|direct_nod|nested_refusal)|ac1027_direct_nod|ac1032_direct_nod|ac1018_direct_nod)$' --output-on-failure",
+    "result": "6/6 pass. Frame-one generated DWG is exported in ASCII and Binary DXF with RequireComplete and resolved owners; typed readback verifies NOD owner/reactor, root entry, handle and display value. Mutation controls cover invalid display, typed/wire mismatch, changed raw value, source version, owner/reactor roles, storage, duplicate/alias/root keys and cross-version output, with destination sentinel preservation and same-adapter retry. The unwitnessed 18-bit BS encoding of value 1 is independently decoded by the test, with intact string marker and handle tokens, then refused atomically. Existing other-version and nested-refusal controls pass.",
+    "test_sha256": "9c3e81dfa6a6e8d8b941926692c8e77e56b561ea3a1b92b67f74775c830b3ed9",
+    "source_audit": "Compile tools/probe_wipeout_ac1024_frame1_source.cpp against the built adapter object and libdxfrw.a, then run python3 tools/audit_wipeout_ac1024_frame1_source.py /private/tmp/wipeout-frame1/ac1024/source.dwg <probe>; source SHA is checked before and after the probe.",
+    "integrated_focused": "Built libdxfrw_dwg2dxf_adapter_tests in build-gcc and ran the same six focused selectors: 6/6 passed on the integrated candidate.",
+    "integrated_asan": "After rebuilding in build-asan-custom, ctest -R ^dwg2dxf_wipeoutvariables_ac1024_frame1$ passed 1/1."
+  },
+  "tools_sha256": {
+    "tools/author_wipeout_ac1024_frame1.py": "d1c165c8385211eac5b301e290a93ab77d9c1055b28a2449fb2937d37de0c4aa",
+    "tools/probe_wipeout_ac1024_frame1_source.cpp": "100956ab2455d8474821e741425dbf902da8256983fe538f0305a81124498492",
+    "tools/audit_wipeout_ac1024_frame1_source.py": "df8a4893262fca3172ed70a83eac7d474e300501601dcb1d69860524aa3947e0"
+  },
+  "remaining": "Physical full-file output and native rendering, alternate BS encodings, nested owners, other revisions' frame-1 modes and broader object dependencies remain open."
+}

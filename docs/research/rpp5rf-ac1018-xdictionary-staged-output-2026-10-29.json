@@ -1,0 +1,49 @@
+{
+  "schema": "ac1018-xdictionary-staged-output-v1",
+  "date": "2026-10-29",
+  "codeCommit": "d233d697c70c125415231f14abf078dbc7421892",
+  "scope": "Actual DXF emission and fresh readback for the one source-bound empty AC1018 BLOCK_RECORD XDICTIONARY child admitted by the selected ATTDEF profile. This is a narrow output proof; it does not establish recursive graph closure, complete document conversion, native semantics or a support claim.",
+  "inheritedEvidence": {
+    "sourceOwnerAndPhysicalBody": "docs/research/rpp5rd-ac1018-blockrecord-xdictionary-source-binding-2026-10-29.json",
+    "uniqueLiveTypedModel": "docs/research/rpp5re-ac1018-xdictionary-live-model-binding-2026-10-29.json"
+  },
+  "implementation": {
+    "preflight": "Before output, recheck every selected join against its immutable source snapshot and unique live DICTIONARY model. Build an owner-to-child map, reject conflicting child handles, and stage the child once in the extension-dictionary writer list.",
+    "ownerEmission": "Require exactly one source BLOCK_RECORD for each selected owner, reject a conflicting existing xDictHandle, and retain the authenticated child handle in source BLOCK_RECORD identity rows, including structural aliases.",
+    "scope": "Only sourceFormat DXF, source version AC1018 and nonempty selected legacy ATTDEF joins use this path. Arbitrary BLOCK_RECORD extension graphs remain outside the selection. No public interface or callback was added."
+  },
+  "witness": {
+    "construction": "The focused test creates its own AC1018 drawing at runtime in scratch storage; no DWG/DXF fixture was added to the repository.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "inputProfile": "Unique MY_BLOCK BLOCK_RECORD points by group 360 inside ACAD_XDICTIONARY to one empty DICTIONARY. Its body has self handle, owner handle, AcDbDictionary, hardOwner=1 and cloning=1. APPID rows satisfy the fixture XDATA registration requirements.",
+    "outputReadback": "A fresh opt-in reader imports the produced file. It finds exactly one MY_BLOCK with a nonzero xDictHandle, exactly one BLOCK_RECORD with that owner handle, and exactly one typed DICTIONARY at the referenced handle. The dictionary parent matches the owner; hardOwner and cloning are 1; entries are empty; the DXF entry stream is complete; XDATA, app data, reactors and nested extension-dictionary state are empty."
+  },
+  "failureAndRetry": {
+    "failure": "For each encoding, mutate the live source child's hardOwner to 0 while a sentinel already exists at the output path. Export is refused during preflight and the sentinel bytes remain unchanged.",
+    "retry": "Restore hardOwner=1 and retry with the same dx_iface exporter instance. Export succeeds and the fresh readback satisfies the selected owner/child assertions."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_attdef_source_tests -j4",
+    "normalSelector": "ctest --test-dir build-gcc -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "normal": "PASS 1/1; the selector exercises the runtime-authored ASCII and binary paths, output/readback, destination preservation on refusal, and same-adapter retry.",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_attdef_source_tests -j4",
+    "asanSelector": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "asan": "PASS 1/1.",
+    "diffCheck": "PASS git diff --check before the code commit.",
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.3 (clang-2100.3.34.2), arm64 macOS"
+  },
+  "bindings": {
+    "dwg2dxf/dx_iface.cpp": "1df55cc45a23c3fbb075324d6e07b7ac9164cd1e9bc22756160da3aa371ccb56",
+    "dwg2dxf/dx_iface.h": "a034531fad6f90f5024774d193dd6b7636f220287cdb6f541b0c1b4df0f6c1f5",
+    "dwg2dxf/dx_data.h": "9e0c88da012262d5755a00ddcb9c976ba03ad8f52aea3238eb3ee59d13c6d932",
+    "tests/attdef_source_tests.cpp": "d55f7d884cbb1b47512149650170bc93f40b893b07e2526fdb92539139821445",
+    "tests/legacy_attdef_scope_controls.h": "638a828558d2fd70b2191ad0c096a152a53fc9e0fe92889198f939bb4ae06f49",
+    "normalTestExecutableSha256": "a8b7b9629bd886287fbc68102bcd315d89fd14237e546675971eacfd1310f23a",
+    "asanTestExecutableSha256": "c509f306d66dea68ff6196e49e2dde342ee22c4c71152820fad770556a8cdb1f"
+  },
+  "limits": [
+    "Readback is through libdxfrw itself. A fresh import does not recreate the original selected ATTDEF source join for the emitted fixture, whose remaining BLOCK_RECORD fields are outside this selected output proof.",
+    "No arbitrary dictionary entry schema, nonempty child, other version, DWG output, recursive dependency closure, full original-body preservation, external/native consumer acceptance or support claim is established.",
+    "The public 2D consumer callback contract remains unchanged; this is an opt-in private DXF export path."
+  ]
+}

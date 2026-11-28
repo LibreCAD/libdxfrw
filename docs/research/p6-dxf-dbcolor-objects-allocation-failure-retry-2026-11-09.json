@@ -1,0 +1,41 @@
+{
+  "title": "Generated DBCOLOR OBJECTS allocation rollback and retry",
+  "date": "2026-11-09",
+  "scope": "Direct AC1027 DBCOLOR DXF OBJECTS callback under dxfRW::write; one generated color record with an ACAD_COLOR dictionary owner, ASCII and Binary.",
+  "source": {
+    "kind": "locally-authored in-memory records",
+    "dictionaryHandle": "0xD7AF",
+    "colorHandle": "0xD7B0",
+    "colorDictionaryKey": "LOCAL_COLOR_BOOK$LOCAL_COLOR_ENTRY",
+    "rgb": "0x345678",
+    "bookName": "LOCAL_COLOR_BOOK",
+    "name": "LOCAL_COLOR_ENTRY",
+    "fixtureCommitted": false
+  },
+  "implementation": "Added tests/dbcolor_objects_allocation_tests.cpp and a focused CTest target. The test sweeps allocation failures through the public dxfRW::writeDbColor API. reserveHandle now records handles reserved during an admitted DXF write as attempt-local allocator state so a failed attempt cannot raise HANDSEED on same-codec retry.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dbcolor_objects_allocation_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dbcolor_objects_allocation_retry$' --output-on-failure",
+    "result": "PASS",
+    "asciiAllocationOffsets": 8,
+    "binaryAllocationOffsets": 8,
+    "perOffset": "one-shot std::bad_alloc; failed write preserves the prior destination and caller DBCOLOR state; same dxfRW codec retry reproduces clean calibration bytes and typed DBCOLOR readback",
+    "gitDiffCheck": "PASS"
+  },
+  "limits": [
+    "Generated serializer transaction and typed DXF readback evidence only.",
+    "Does not qualify a physical producer, ACAD_COLOR graph semantics, native color-book behavior, DWG output, or broad support.",
+    "No DWG/DXF fixture was added; test output uses its build scratch directory."
+  ],
+  "recheck_2026_11_12": {
+    "testSourceSha256": "83d2b060e672e5620ce164e1443d3204253abb5918dc723ec1a45e4df89af535",
+    "cmakeSourceSha256": "e219dc760ca2ddfedeb314c7308d8dce4d1c35aeb22c2f6332afc20b5b225175",
+    "normalTestExecutableSha256": "2817660e82cc0fd65aaa275b6e819009f9de78e33e3e1a8b9ebbe6894d7b6b3b",
+    "asanTestExecutableSha256": "f2df268c7ca121ff968c2f220ef7232efeae20b08b5438c5f7bfbf998ccd5a4c",
+    "explicitOffsetAssertion": "Each injected failure is confirmed at exactly offset+1, with a one-shot bad_alloc; ASCII and Binary each reach all 8 callback allocations.",
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_dbcolor_objects_allocation_tests -j6",
+    "normalTest": "ctest --test-dir build-gcc -R '^libdxfrw_dbcolor_objects_allocation_retry$' --output-on-failure: PASS 1/1",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dbcolor_objects_allocation_tests -j6",
+    "asanTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_dbcolor_objects_allocation_retry$' --output-on-failure: PASS 1/1"
+  }
+}

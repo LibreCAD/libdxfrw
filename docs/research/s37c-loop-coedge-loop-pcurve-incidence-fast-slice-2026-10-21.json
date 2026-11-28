@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c face-loop coedge-to-loop and pcurve incidence",
+  "mode": "Generated parser-fed fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Expose each loop-ordered coedge's owning-loop pointer",
+    "Expose each loop-ordered coedge's optional pcurve pointer",
+    "Retain exact per-coedge alignment with identity, edge, and sense rows",
+    "Mark unresolved owning-loop association as a known structural gap"
+  ],
+  "implementation": {
+    "profile": "ACIS BinaryFile SAB 21800 only",
+    "pointerRoles": {
+      "edge": 4,
+      "loop": 5,
+      "pcurve": 6
+    },
+    "expectedTypes": {
+      "edge": "edge",
+      "loop": "loop",
+      "pcurve": "pcurve"
+    },
+    "unknownDisposition": "Null, absent, unsupported-profile, or untyped targets remain -1. A coedge loop link that does not equal the containing projected loop marks known-gap coverage. Null pcurve is retained as optional absence.",
+    "resourceAccounting": "Each cache row charges one output item per emitted pointer slot; each per-face copied row is charged before copying; each source coedge link lookup charges extraction work.",
+    "compatibility": "Public DRW_AcisFaceLoop layout changes and requires downstream rebuild; DRW_Interface and its 2D callback lane are unchanged."
+  },
+  "tests": {
+    "positive": [
+      "Generated multi-loop graph preserves exact per-coedge owning-loop identities",
+      "Generated multi-loop graph preserves one pcurve identity and explicit null pcurve slots",
+      "Parser-fed SAB projection matches the in-memory graph rows"
+    ],
+    "negative": [
+      "Null coedge owning-loop pointer remains -1 while coedge identity is retained",
+      "Owning-loop absence classifies projected output as having a known gap",
+      "Existing wrong-type/out-of-range pointer matrix still refuses malformed graph references"
+    ],
+    "validation": {
+      "build": "PASS (libdxfrw_graph_preservation_tests and lc3_compat_check)",
+      "ctest": "PASS (libdxfrw_graph_preservation, 1/1, 1.24 seconds)",
+      "scopedDiffCheck": "PASS (git diff --check on changed source/test/contract files)"
+    }
+  },
+  "assessment": {
+    "semanticClaimsPromoted": 0,
+    "pcurveEvaluation": false,
+    "trimEvaluation": false,
+    "fullBrepValidity": false,
+    "nativeConsumerQualification": false,
+    "externalSemanticEvidence": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "fullSuiteRun": false,
+    "dependenciesAdded": 0,
+    "productionFilesChanged": [
+      "src/drw_acis.cpp",
+      "src/drw_acis.h"
+    ],
+    "testFilesChanged": [
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "documentationFilesChanged": [
+      "docs/3D_CONSUMER_CONTRACT.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Pointer slots are read only from the admitted SAB 21800 model and validated against the expected node family. A pcurve pointer identity is structural reference capture only and is not curve or trim evaluation."
+  },
+  "plan": {
+    "findings": 144,
+    "topLevelSubplans": 78,
+    "selfUnblock": "Continue the next dependency-ready local S3.7c topology invariant without waiting for external qualification."
+  }
+}

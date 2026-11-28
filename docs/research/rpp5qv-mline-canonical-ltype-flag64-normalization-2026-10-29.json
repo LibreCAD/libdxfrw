@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 selected AC1027 MLINE references to canonical LTYPE providers with group-70 bit 64",
+  "date": "2026-10-29",
+  "status": "AC1027_BYLAYER_CONTINUOUS_FLAG64_NORMALIZATION_QUALIFIED",
+  "codeCommit": "5151d94f5046a1aa3157b8793ff4aa30fccfeffc",
+  "scope": "Admit selected source-bound ByLayer or Continuous providers whose LTYPE group 70 is 64, normalize their emitted mandatory rows to flags 0, and qualify a typed or raw MLINE-style linetype retarget to the other canonical provider.",
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "change": "The selected simple-LTYPE gate now admits group-70 bit 64 for ByLayer and Continuous only. Actual-output validation projects the canonical fixed-row flags to zero and compares the decoded physical row to that normalized model. Runtime-generated ASCII and binary profiles verify source-provider binding, all three mandatory canonical handles/owners/group-70 fields, fresh readback, and typed/raw style-reference retargets. ByBlock bit-64 input remains explicitly outside the selected admission profile.",
+    "productionBehavior": "Enables the selected AC1027 MLINE provider proof and retarget for source-bound ByLayer/Continuous canonical providers carrying only the advisory referenced bit. The writer emits its existing fixed canonical rows with flags 0; other canonical metadata, source versions, and provider features remain unchanged and unqualified."
+  },
+  "evidence": [
+    {
+      "source": "Autodesk LTYPE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+      "finding": "Group 70 bit 64 records whether a linetype was referenced during the last edit; Autodesk says readers may ignore it and writers need not set it. The implementation therefore treats this bit as advisory while preserving the exact selected source audit and verifying the writer's canonical flags-0 output."
+    }
+  ],
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "focusedTest": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --material-body-transactions",
+      "result": "PASS: MATERIAL body profiles=16, values=3334, presence=314, readbacks=1084, compositions=16, refusals=36, callbacks=72, retries=532, lexical=2, corruptions=800, signedZeros=4, opaqueReplays=4, allocationFaults=256, baselineSwaps=8, textProfiles=96"
+    },
+    "diffCheck": "PASS (git diff --check)",
+    "fullSuite": "NOT_RUN"
+  },
+  "fixturePolicy": "The source DXF cases and output files are authored at runtime in a temporary directory. No DWG/DXF fixture was committed.",
+  "limits": [
+    "Only AC1027 source-bound ByLayer and Continuous rows with flags 0 or 64, the selected simple pattern grammar, and the exercised MLINE style references are qualified.",
+    "The independent check proves fixed output rows use handles 14/15/16, owner 5, and flags 0, plus libdxfrw readback; it does not establish native rendering or behavior in other consumers.",
+    "ByBlock flag-64 input, other group-70 values, canonical row metadata/extensions, alternate field order, earlier versions, complex linetypes, and broader source schemas remain unqualified."
+  ],
+  "next": "Select one witnessed alternate LTYPE field ordering/header profile or richer MLINE consumer schema. Do not expand canonical provider admission without separate source and output evidence."
+}

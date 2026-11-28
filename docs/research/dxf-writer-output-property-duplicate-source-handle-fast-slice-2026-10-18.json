@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-12/S13 generated whole-output DXF property and duplicate source-handle fix",
+  "mode": "local implementation fast slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Implement the bounded generated ASCII/Binary DXF output property under the existing PAR-12/S13 owner",
+    "Check complete framing, terminal EOF, unique emitted self-handles, and LINE owner closure to the Model_Space BLOCK_RECORD",
+    "Resolve the ordinary typed-entity duplicate source-handle gap while preserving explicitly preclassified ambiguous-handle behavior",
+    "Verify destination atomicity and same-writer retry after a lossless-text refusal"
+  ],
+  "implementation": {
+    "productionFile": "src/libdxfrw.cpp",
+    "testFile": "tests/hardening_tests.cpp",
+    "planFile": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "changes": [
+      "Reject a repeated non-ambiguous source identity when a second ordinary typed entity attempts to reuse it; retain prior fail-closed handling for modeler identities and modeler-backed source mappings.",
+      "Preserve the existing explicit ambiguous-source route, which mints unique output handles and deliberately omits ambiguous source-key remapping.",
+      "Add a bounded independent ASCII/Binary DXF tokenizer and structural inventory to the existing hardening target, with zero and fixed-low source-handle controls.",
+      "Add a focused --dxf-writer-output-property selector and include the property in the owning hardening test without adding CTest registrations.",
+      "Test sentinel preservation on unsafe record text, then repair and retry using the same dxfRW instance."
+    ],
+    "observedDefect": "Before the production guard, two ordinary typed entities with the same non-ambiguous source handle could reuse the first entity's emitted handle. The focused generated property now requires atomic refusal; explicitly preclassified ambiguous identities remain separately mintable.",
+    "fixturesAdded": 0,
+    "externalSamplesDownloaded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "peerRepositoriesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_hardening_tests -j4",
+    "buildResult": "PASS; strict target built and linked.",
+    "focusedCommand": "build-gcc/libdxfrw_hardening_tests --dxf-writer-output-property",
+    "focusedResult": "PASS; generated ASCII and Binary DXF properties, duplicate-handle refusal, ambiguous-handle compatibility, and destination retry passed.",
+    "owningTestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "owningTestResult": "PASS; 1/1 in 0.32 seconds.",
+    "fullSuite": "NOT RUN per fast-slice cadence.",
+    "diffCheck": "PASS; scoped git diff --check emitted no whitespace diagnostics; the untracked receipt also passed git diff --no-index --check.",
+    "nativeOrIndependentPeer": "NOT RUN."
+  },
+  "planImpact": {
+    "finding": "Existing PAR-12/S13 only.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelImplementationSubplans": 73
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commitCreated": false,
+    "worktreeNote": "The shared worktree is broadly dirty with pre-existing user changes. This fast slice is intentionally left uncommitted and unstaged."
+  }
+}

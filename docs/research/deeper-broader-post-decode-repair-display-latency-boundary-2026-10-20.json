@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Post-decode repair and display-latency boundary",
+  "mode": "Primary project issue review; no runtime or attachment access",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Review a newly opened downstream DWG-consumer report for evidence relevant to parser, unknown-record, and consumer-stage claims.",
+    "Determine whether the report establishes a libdxfrw defect, a new DWG/DXF feature requirement, or only a consumer-stage observation.",
+    "Refine the existing composed-consumer evidence boundary without introducing new dependencies, fixtures, or per-slice tests."
+  ],
+  "sources": [
+    {
+      "project": "OpenCADStudio issue #1923",
+      "url": "https://github.com/HakanSeven12/OpenCADStudio/issues/1923",
+      "revision": "Issue opened and reviewed 2026-10-20; mutable issue thread.",
+      "observed": "The maintainer attributes a repair prompt to about 80 DGN-derived LSDEFINITION/LSSTROKEPATTERNCOMPONENT records that are retained raw but not decoded as typed classes. The maintainer reports that 278,036 drawing objects were decoded and display preparation took 21.7 seconds; the reporter says zoom/pan remained sluggish after repair.",
+      "limits": "The source DWG is confidential and not attached. The only linked attachment is a repair log. Neither observation was independently reproduced; issue diagnostics do not establish normative format behavior, a libdxfrw defect, or support for the reported DGN-specific records."
+    },
+    {
+      "project": "Local plan scope and route boundary",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "revision": "Current local working plan reviewed 2026-10-20.",
+      "observed": "The existing adapter/converter transfers an exchange document and does not construct a rendered scene or eagerly expand the document for display. Existing composed-consumer checks already separate codec evidence from downstream application acceptance.",
+      "limits": "This source review does not constitute a full implementation audit or native consumer run."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8 composed consumer evidence: separate object decoding and unknown-class diagnostics from scene construction and interaction responsiveness.",
+      "Support matrix: do not add DGN-origin classes to the DWG/DXF denominator or infer typed support from raw preservation."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a concise newest-research summary and a detailed crosswalk for OpenCADStudio issue #1923.",
+    "Refined the existing composed consumer record to distinguish decode, unknown-record/repair, scene-preparation, and interaction stages.",
+    "Explicitly excluded DGN-origin typed support and peer-specific latency thresholds; kept all external claims non-promoting."
+  ],
+  "limitations": [
+    "The issue is mutable and issue-author/maintainer evidence only; no exact application binary or runtime was pinned.",
+    "The confidential source DWG was unavailable; the repair-log attachment was not downloaded.",
+    "The report is outside libdxfrw's parser/output responsibility absent a local source/spec-backed reproduction."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (plan diff and receipt whitespace checked)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "peer release/source drift and DWG-writer evidence boundary",
+  "mode": "Broader primary-source peer implementation and test-evidence review",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh source and package identity for the ACadSharp-derived acad-ts DWG/DXF reader/writer route.",
+    "Compare the published package support matrix with current mutable repository claims and test behavior.",
+    "Reconcile independent-peer declarations with operation-specific, per-record evidence requirements.",
+    "Keep the fast-validation policy, fixture provenance restriction, and deferred external gates unchanged."
+  ],
+  "method": {
+    "kind": "Current peer repositories, immutable package-version documentation, test source, issue reports, and DXF tool documentation",
+    "peerRepositoriesCloned": false,
+    "peerExecutablesOrPackagesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "candidatePin": null,
+    "evidenceRule": "A version matrix is a capability declaration, not a measured result for every operation, version, entity, or object. A port remains in its upstream parser lineage. Output existence is weaker than correct target signature, independent structural reopen, complete per-source disposition, or consumer acceptance."
+  },
+  "evidence": [
+    {
+      "route": "node-projects/acad-ts mutable repository snapshot",
+      "sources": [
+        "https://github.com/node-projects/acad-ts",
+        "https://raw.githubusercontent.com/node-projects/acad-ts/master/package.json",
+        "https://raw.githubusercontent.com/node-projects/acad-ts/master/README.md",
+        "https://raw.githubusercontent.com/node-projects/acad-ts/master/tests/IO/PortedIOTests.test.ts"
+      ],
+      "observed": "At review time the mutable repository manifest identifies version 3.5.0. Its README marks the reader and writer matrix available through AC1032, including AC1021, and identifies acad-ts as a TypeScript port of ACadSharp. The generic PortedIOTests helper permits writes for versions >= AC1014; its output assertion checks file existence and nonzero size. The repository README advertises a separate optional DWG interoperability document, but that route was not executed in this research pass.",
+      "limits": "The repository ref is mutable. Its matrix and generic output-existence tests do not independently establish the AC1021 container signature, section integrity, per-handle preservation, or external acceptance. The port does not add an independent parser lineage.",
+      "planUse": "Pin an immutable repository commit or package artifact before comparison. Keep any AC1021 route separate and require signature, strict independent reopen, and source-record disposition; do not count output presence as a writer pass."
+    },
+    {
+      "route": "node-projects/acad-ts published npm 3.4.0",
+      "sources": [
+        "https://www.npmjs.com/package/%40node-projects/acad-ts/v/3.4.0"
+      ],
+      "observed": "The published 3.4.0 README marks AC1021 DWG writing unsupported and records that earlier releases wrote an R2004 container with an R2007 signature that external CAD engines rejected. The package version is distinct from the 3.5.0 value in the current repository manifest; the published matrix does not include the newer repository claim that AC1021 writing is available.",
+      "limits": "This is a version-specific package/documentation observation, not a reproduced failure of 3.5.0 and not evidence that 3.5.0 passes an external reader. The package page does not by itself provide a local artifact run or source-handle semantic comparison.",
+      "planUse": "Do not attribute current master behavior to npm 3.4.0 or project a prior release failure onto a later release. Bind package integrity/source commit and exact target version to every result."
+    },
+    {
+      "route": "ACadSharp source family",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "observed": "ACadSharp publishes separate DWG/DXF reader and writer version columns and currently marks AC1021 DWG writing unavailable. acad-ts explicitly identifies ACadSharp as its source port, so its newer AC1021 claim is a port divergence rather than independent agreement.",
+      "limits": "A published version table is not a per-entity test denominator and cannot decide which implementation is conformant for a specific file profile.",
+      "planUse": "Deduplicate ACadSharp and acad-ts as one parser lineage. Use the divergence only to select a precise, pinned version-specific probe if such a question remains at the composed checkpoint."
+    },
+    {
+      "route": "LibreDWG and ezdxf evidence boundaries",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "observed": "LibreDWG's manual distinguishes unhandled object families and types without test coverage from broad version claims; issue #1411 remains a version/build-specific modern AcDs/SAB loss report with a generated DXF reproducer. ezdxf documents separate raw browsing and audit/recovery routes, so normalized summaries or repaired files must not be mistaken for untouched wire-level observations.",
+      "limits": "Peer documentation and issues are route/failure-shape evidence, not authoritative DWG byte-layout rules, a current local defect, or semantic truth. No peer tool or issue sample was run or downloaded.",
+      "planUse": "Retain exact operation/version/family boundaries. Keep strict parse, raw carrier, graph association, audit/recovery, writer disposition, and semantic consumer results distinct; ODA v5.4.1 remains the DWG layout authority."
+    },
+    {
+      "route": "Local plan reconciliation",
+      "sources": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "Updated the existing PAR-07/S8 comparator-admission and AC1021 writer-qualification guidance to distinguish published package from mutable repository source, port lineage, output-byte creation, correct version/container, independent reopen, and per-source preservation.",
+      "limits": "No production code, test, fixture, dependency, peer runtime, native application, or external drawing changed or ran. Historical plan count discrepancies were not recalculated.",
+      "planUse": "Use an exact-pinned optional comparator only for a still-unanswered route question at the composed checkpoint; otherwise record NOT_RUN and continue local implementation."
+    }
+  ],
+  "assessment": {
+    "newCandidateFamiliesScreened": 0,
+    "existingPeerRoutesFreshnessChecked": 4,
+    "newEligibleIndependentComparatorRoutes": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-07/S8: bind exact package or repository source identity and deduplicate ports by parser lineage.",
+      "DWG writer qualification: separate nonempty output from correct target signature, independent strict reopen, and per-source preservation.",
+      "AC1021: qualify the exact distribution/version independently; do not transfer claims between current master and an older npm package."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq syntax and deferred-external/no-promotion invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on the plan; receipt parsed and invariants checked with jq)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

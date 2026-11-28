@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Associative DXF object name retained-budget fast slice",
+  "mode": "Local parser accounting implementation with generated fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge the associative OBJECTS record name to its typed record retained-byte lease before copying the name.",
+    "Verify aggregate raw-carrier and typed app-data retained-byte ownership at exact admission and one byte below the threshold.",
+    "Keep the test generated in memory and preserve the focused validation cadence."
+  ],
+  "changes": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistrationChanged": false,
+    "persistentDwgDxfFixtureAdded": false,
+    "dependencyChanged": false,
+    "implementation": "processAssociativeObject precharges nextentity.size() through retainDxfReadBytes into DRW_AssociativeObject.m_dxfRetainedStringLease before assigning m_recordName. Admission/allocation failure returns BAD_CODE_PARSED before callback publication.",
+    "test": "Generated ASCII OBJECTS associative app-data case locates the minimum successful retained budget; checks exact raw plus typed aggregate charges, lease release as callback copies are destroyed, preservation of the following raw group, and one-byte-under refusal before either typed or raw callback."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-captured-appdata-retained-budget",
+      "result": "passed"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "passed 1/1"
+    },
+    "fullTestSuite": "not run",
+    "scopedDiffCheck": "passed"
+  },
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "3f7341e6385222ec441bb54fb49c20790f04dd39d0661bf7ddeae8fdc5acd97c",
+    "findings": 139,
+    "topLevelSubplans": 77
+  },
+  "nonClaims": [
+    "This bounds charged retained string bytes for the tested parser destinations; it does not claim allocator-capacity or RSS bounds.",
+    "This does not establish complete parser-wide retained-memory accounting or change format support claims.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is extensively dirty; no staging or commit occurred."
+  ]
+}

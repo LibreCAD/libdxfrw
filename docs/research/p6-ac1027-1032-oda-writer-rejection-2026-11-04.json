@@ -1,0 +1,48 @@
+{
+  "status": "OPEN_DIAGNOSTIC_NO_FIX",
+  "base_commit": "5d6d3b30f552ffa9e547bb0917beb7e1320a2613",
+  "authority": "ODA DWG v5.4.1 \u00a7\u00a74.1,7,8,9: file-header version and maintenance fields, R2013 and R2018 container similarity and extended HEADER fields. Metadata values are not standalone interchangeability proofs.",
+  "producer": "ezdxf 1.4.5 authored source-in/line.dxf with LINE (1,2,3)\u2192(4,5,6); ODA File Converter 27.1.0 converted to AC1027 and AC1032 DWGs then each returned to AC1027 DXF. ODA positive-control DXFs pass ezdxf audit with exact coordinates; conversion lineage is locally observed, not inferred by hashes.",
+  "generated": "Clean isolated 5d6d3b30 writer outputs AC1027 and AC1032 single LINE, 2D POLYLINE and 3D POLYLINE, with plotstyle opt-in enabled and material opt-in disabled (not supported for these revisions). All six reject through ODA: AC1027 Out of range, AC1032 CRC does not match. No DXFs, .err files present; converter logs empty. LibreDWG 0.14 decodes the generated LINE endpoint values, which is not an acceptance claim.",
+  "factorial": "Scratch variants replace each subset of fixed header bytes 0x0B,0x0C,0x11,0x12 with corresponding producer values; every one of 32 variants remains rejected. AC1027 variants with 0x0B replaced report CRC does not match and others Out of range; all AC1032 variants report CRC does not match. This is a local negative control, not identification of root cause or a byte-layout fix.",
+  "material_experiment": "Scratch-only material-diagnostic.patch temporarily enables default material graph for AC1027/AC1032 and adopts source-observed typed null VPORT and LAYER visualstyle roles; it is broader than a supported patch. LibreDWG 0.14 decodes the three source/candidate MATERIAL records to matching modeled fields after excluding class number and identity/framing fields, but both material-enabled LINE DWGs still receive the same ODA errors. No material opt-in production widening is justified by this result.",
+  "verification": "The portable CLI accepts an evidence directory, expected manifest SHA-256 and expected LibreDWG executable SHA-256; it requires all observed files, checks each digest before/after use, validates ODA positive DXF geometry/audit, peer LINE and modeled material fields, reconstructs all header variants and checks all recorded error outcomes. It passed with Python -O. ODA conversion lineage is separately observed, not inferred by hashes.",
+  "tools": {
+    "file_hashes": {
+      "tools/probe_ac1027_1032_writer_rejection.cpp": "fead505550a6b915625818e3c11a9ad54fb052a681a3e478ae0c44b01b3adb4c",
+      "tools/author_ac1027_1032_writer_control.py": "ef7d590ed025b2ba73f2840305b338757f87d38fe743b9be1347618ec1341e72",
+      "tools/prepare_modern_material_diagnostic.py": "1258ff4cf9ec207735cc6d8a743104468f4465c841e2540765795bdeb57f8c1a",
+      "tools/prepare_modern_header_differential.py": "aa8338d7f64437c2877867225ab570d7f9cc6744e2c4d9e991f772a626b2138d",
+      "tools/audit_modern_writer_rejection.py": "845b815507c096838590612a141f2bc504a87d11b67ce81122903bf5a6152e7d",
+      "tests/modern_writer_rejection_audit_tests.py": "b66f998dd578a9cc661b1aa90fcfb6079f5920c0e827bb8aa9fc91de30f52a96"
+    },
+    "manifest_path": "docs/research/p6-ac1027-1032-oda-writer-rejection-manifest-2026-11-04.json",
+    "manifest_sha256": "3cb1dfdd5fe6d954e0827d60c32bd3ae16e7a1e8d6eb41e117634fa80e79c0a3",
+    "oda_executable_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "libredwg_executable_sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+  },
+  "limitations": [
+    "No root cause, implementation fix, general support or native application semantics are claimed.",
+    "Positive producer sources are not byte-identical to generated files; comparisons cover stated fields only.",
+    "ODA .err messages are generic and cannot identify the failing section; no warning-free generated result exists.",
+    "No binary fixtures committed; all artifacts remain scratch."
+  ],
+  "validation": {
+    "generated_source_reproduction": "The portable producer rebuilt against a clean 5d6d3b30 library exactly reproduces all six baseline DWG SHA-256 values. Rebuilt against the separately prepared diagnostic graph it exactly reproduces both material-enabled DWGs.",
+    "header_reproduction": "The portable header-preparation utility reproduced all 32 mutated DWGs byte-for-byte.",
+    "material_reproduction": "The source-hash-locked material diagnostic preparer reproduced all three modified source files byte-for-byte without changing the source tree. This is diagnostic, not a production patch.",
+    "negative_controls": "Four fixture-free unittest groups pass normally and with Python -O, including header-field mutation/outcomes, manifest mismatch/omission/path escape, source-hash mismatch and no-overwrite checks. CTest libdxfrw_modern_writer_rejection_audit passes in clean isolated build."
+  },
+  "reproduction": [
+    "Use tools/author_ac1027_1032_writer_control.py NEW_DXF with ezdxf 1.4.5; ODA-convert to ACAD2013 and ACAD2018 DWG and return to ACAD2013 DXF with audit enabled. GUID/metadata may differ; the recorded manifest binds this exact run.",
+    "Build 5d6d3b30, compile tools/probe_ac1027_1032_writer_rejection.cpp with -std=c++17 -I src -I tests and link libdxfrw; run MODE VERSION NEW_DWG for line/polyline2d/polyline3d and AC1027/AC1032.",
+    "Run tools/prepare_modern_material_diagnostic.py CLEAN_SOURCE EMPTY_EXTERNAL_DIR, apply its three source copies to a separate scratch checkout, rebuild, and run the producer with --material for each LINE. This is solely a diagnostic control.",
+    "Run tools/prepare_modern_header_differential.py --base BASE --base-sha256 SHA --source SOURCE --source-sha256 SHA --out EMPTY_OUTPUT --version VERSION for AC1027 and AC1032, then convert inputs through ODA.",
+    "Copy the recorded manifest to EVIDENCE_DIR/manifest.json; run tools/audit_modern_writer_rejection.py EVIDENCE_DIR --manifest-sha256 MANIFEST_SHA --dwgread READER --dwgread-sha256 READER_SHA under ezdxf 1.4.5."
+  ],
+  "next_steps": [
+    "Localize ODA failure to a section using a genuinely independent diagnostic or validated source-to-generated container/object spans; do not infer location from generic error strings.",
+    "Compare R2013/R2018 HEADER, CLASSES, section framing and dependency graph against physically authored controls, preserving the v5.4.1 authority and documented version selectors.",
+    "Only implement a bounded change after a controlled correction clears ODA without recovery warnings and independently preserves geometry and object graph."
+  ]
+}

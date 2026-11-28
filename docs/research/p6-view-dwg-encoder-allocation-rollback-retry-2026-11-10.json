@@ -1,0 +1,36 @@
+{
+  "title": "VIEW DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated local VIEW direct-codec transaction control across legacy inline, detached, separate, and aliased stream layouts",
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "method": "DRW_View::encodeDwg",
+    "behavior": "Stage the body, detached string destination, and detached handle destination while preserving aliasing and version-specific VIEW fields, ambient color encoding, UCS data, and common/resource handle roles. Publish only after every staged stream succeeds."
+  },
+  "control": {
+    "file": "tests/dimassoc_dwg_encoder_allocation_tests.cpp",
+    "profile": "Locally generated VIEW with two reactors, extension dictionary, UCS association, nondefault view geometry and twist, modern lighting fields, and all modeled xref/background/visual-style/sun/live-section handles.",
+    "tested_route": "Protected direct encodeDwg exposed through a test-only derived probe",
+    "cases": [
+      {"version": "AC1012", "mode": "inline", "reached_allocation_offsets": 10},
+      {"version": "AC1018", "mode": "inline text with detached handles", "reached_allocation_offsets": 15},
+      {"version": "AC1021", "mode": "separate string and handle streams", "reached_allocation_offsets": 28},
+      {"version": "AC1021", "mode": "shared string and handle stream", "reached_allocation_offsets": 24},
+      {"version": "AC1021", "mode": "all body", "reached_allocation_offsets": 18},
+      {"version": "AC1021", "mode": "body-aliased string and detached handles", "reached_allocation_offsets": 23},
+      {"version": "AC1021", "mode": "separate string and body-aliased handles", "reached_allocation_offsets": 23}
+    ],
+    "failure_assertions": "Every reached one-shot allocation failure leaves caller body, strings, handles, cursors, health, and handle-occurrence ledgers unchanged. The same object and buffers then retry to clean output.",
+    "fixtures_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests libdxfrw_table_content_dxf_tests libdxfrw_dwg_view_angle_units_tests libdxfrw_dwg_ac1027_empty_view_ucs_controls_tests -j2",
+    "focused_tests": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|libdxfrw_dwg_object_encoder_allocation_retry|libdxfrw_dwg_view_angle_units|libdxfrw_dwg_ac1027_empty_view_ucs_controls|libdxfrw_ac1027_empty_view_ucs_peer|libdxfrw_view_ucs_original_sources)$' --output-on-failure",
+    "result": "The allocation control reports all seven layouts passing rollback/retry across 141 offsets. All six focused CTests passed, including generated peer and original-source VIEW/UCS checks."
+  },
+  "limits": [
+    "Generated local transaction evidence only; it does not add VIEW producer profiles or establish native rendering semantics.",
+    "The selected peer control covers its generated AC1027 empty-VIEW profile only; it does not qualify the generated AC1021 allocation profile independently.",
+    "Whole-document graph closure and broad producer/platform qualification remain open."
+  ]
+}

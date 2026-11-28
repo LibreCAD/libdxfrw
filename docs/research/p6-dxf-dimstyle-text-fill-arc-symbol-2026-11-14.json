@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-14",
+  "title": "DIMSTYLE typed text-fill and arc-symbol DXF projection",
+  "scope": [
+    "Parse and emit typed DIMTFILL and DIMARCSYM scalar values for the bounded R2007+ DXF profile",
+    "Reject invalid domains and nondefault downgrade loss before output",
+    "Project DIMTFILLCLR as the peer-documented second R2007+ group-70 ACI index while preserving the documented first occurrence as table-entry flags",
+    "Reject third and later group-70 occurrences, unsupported color methods, and nondefault pre-R2007 downgrade loss",
+    "Accept the exact dynamic override key $DIMTFILLCLR for the peer-defined second group-70 field; reject other dynamic aliases using group 70",
+    "Record the LibreCAD PR #3269 compatibility regression in the P8-D exit criteria"
+  ],
+  "evidence": {
+    "formatReferences": [
+      {
+        "title": "Open Design Specification for .dwg files v5.4.1, §20.4.68",
+        "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "finding": "The DWG DIMSTYLE field inventory assigns R2007+ DIMTFILL to group 69 and DIMARCSYM to group 90; this is DWG layout evidence, not by itself an Autodesk DXF schema definition."
+      },
+      {
+        "title": "Autodesk DIMARCSYM system variable",
+        "url": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-LT/files/GUID-1B843AB0-7976-4DD9-9464-6B0A71A34D81.htm",
+        "finding": "DIMARCSYM is an integer with values 0, 1, and 2."
+      },
+      {
+        "title": "Autodesk DIMSTYLE DXF reference",
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+        "finding": "The published DIMSTYLE record schema lists group 70 as table-entry flags and does not list groups 69 or 90. The new 69/90 mapping is therefore treated as peer-documented compatibility, not an Autodesk-documented DXF guarantee."
+      },
+      {
+        "title": "ezdxf DIMSTYLE Table, unofficial R2007+ variables",
+        "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/tables/dimstyle_table.html",
+        "finding": "ezdxf explicitly documents DIMTFILL as group 69 and DIMTFILLCLR as a second group-70 ACI color index, while labeling these fields unofficial and absent from Autodesk's DXF reference."
+      },
+      {
+        "title": "LibreDWG manual, DIMSTYLE fields",
+        "url": "https://www.gnu.org/software/libredwg/manual/LibreDWG.html",
+        "finding": "The independent open-source implementation documents DIMTFILL group 69 and DIMARCSYM group 90."
+      },
+      {
+        "title": "ezdxf DIMSTYLE table documentation",
+        "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/tables/dimstyle_table.html",
+        "finding": "The R2007+ DIMTFILL mapping is explicitly classified as unofficial; its described values are 0 through 2."
+      }
+    ],
+    "localSource": {
+      "files": [
+        "src/drw_objects.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dimstyle_table_allocation_tests.cpp"
+      ],
+      "finding": "DIMSTYLE parsing and typed synchronization retain group 69 DIMTFILL, group 90 DIMARCSYM, and the second R2007+ group-70 DIMTFILLCLR ACI index. The first group 70 remains table-entry flags; the second is accepted only for AC1021+ and the third is refused. Typed output and the exact dynamic key $DIMTFILLCLR write the second group 70, with dynamic precedence over typed state. Only index-style colors are projected; RGB/book-color CMC details are refused. Nondefault pre-AC1021 loss is refused."
+    },
+    "compatibilityScope": {
+      "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3269",
+      "state": "merged",
+      "finding": "The LibreCAD adapter fix is outside this libdxfrw repository. P8-D now explicitly requires clean-consumer coverage for modified LTYPE definitions, archived DXF/DWG records, preserved table-entry metadata, untouched complex records, and fresh save/readback."
+    },
+    "libreCadDimstyleAdapter": {
+      "repositoryRevision": "078aac8922874eddd7fa46590b5f306e3aee6423",
+      "file": "librecad/src/lib/filters/rs_filterdxfrw.cpp",
+      "finding": "The committed LibreCAD adapter registers $DIMTFILLCLR as an integer DIMSTYLE variable and maps it to setExplicitBackgroundFillColor() through DIMSTYLE group 70. libdxfrw now publishes that exact key for the second group-70 peer profile.",
+      "evidenceLevel": "read-only source contract review; not a clean adapter build, runtime import, save/readback, or native color rendering result"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dimstyle_table_allocation_tests -j4",
+      "result": "PASS (-Werror build)"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure",
+      "result": "PASS (1/1; generated ASCII/Binary DIMTFILLCLR typed output/readback, dynamic override precedence/readback, third-occurrence refusal, nonrepresentable RGB CMC atomic refusal and ACI same-writer retry, and typed/dynamic pre-AC1021 atomic refusal with same-writer retry; existing DIMTFILL/DIMARCSYM controls remain green)"
+    },
+    "consumerCompatibility": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+      "result": "PASS; public consumer interface compile target"
+    },
+    "consumerProbe": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+      "result": "PASS (1/1; existing generated 3D callback probe; does not qualify native application import)"
+    },
+    "persistentDwgDxfFixturesAdded": 0,
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "supportClaimsPromoted": false
+  },
+  "remaining": [
+    "The group-70 DIMTFILLCLR projection is peer-documented only; Autodesk producer acceptance, true-color/book-color behavior, and native consumer semantics remain unqualified.",
+    "Producer-authored and native-consumer validation for the 69/90 compatibility mapping remains open.",
+    "LibreCAD PR #3269's adapter regression still needs to be run as part of P8-D clean-consumer qualification."
+  ]
+}

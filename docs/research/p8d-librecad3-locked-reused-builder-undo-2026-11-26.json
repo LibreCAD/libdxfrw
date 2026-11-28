@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "d23c27af44ca4f70ddca02e43a011c5918d6ae47",
+  "problem": "Reusing an EntityBuilder that had already committed an unlocked addition, then attempting a locked edit, could clear the same builder journal referenced by the previous undo entry.",
+  "change": "EntityBuilder retains its last applied journal. It prepares restoration before processing, restores that journal on a locked-layer refusal, and prepares the next journal before changing the document.",
+  "validation": [
+    "A focused regression commits an unlocked addition, reuses the same builder for a refused locked edit, then verifies that one undo removes the earlier addition and redo restores it while the locked object remains unchanged.",
+    "A macOS ARM64 fast compatibility run passed 173 tests spanning entity/compound builders, layers, selection, canvas, DXF export/roundtrip, DWG import and Lua/Python scripting."
+  ],
+  "limits": [
+    "The control covers one direct builder reuse profile; complex repeated operation stacks and mixed compound Builder atomicity remain open.",
+    "Low-level storage mutation, native consumers and platform qualification remain open; no support claim or fixture was added."
+  ],
+  "supportClaimEffect": "none"
+}

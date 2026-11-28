@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-point-3d-layer-edits-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "772ad7cc6c80fd16c06a05683f057d3c34cc40be",
+  "change": "Preserve all three POINT coordinates through copy construction, move, copy, rotate, scale, mirror and layer/metadata modification. Add the exact POINT type to the shared known-projection and forced same-name layer-rebind check.",
+  "validation": [
+    "The pre-change regression reproduced Z loss and stale layer rebinding.",
+    "On macOS ARM64, 57 BuilderTest and EntityBuilderTest cases passed, including the new POINT 3D movement/copy/rotation/scaling/mirror elevation, lock refusal, override, target-layer edit and undo/redo controls.",
+    "The existing flat/nested built-in compound stack matrix now also covers POINT across nine operation modes, refusal before partial execution, retry with explicit override, identity and undo/redo.",
+    "The focused build passed with existing compiler/linker warnings."
+  ],
+  "logsSha256": {
+    "red": "af7b13a1c0796c33ff2ca830fb1ca550b500bf634d47b60be2b6228e7a2c2a65",
+    "focused": "0699d9be91d3de5b887f4d43874a104d754fb71102cb432dfc961aa31db6062d",
+    "operations": "a449d179c2e31ee79def4ea65c1c6cf86e388cdf8e522acd18b0012a079ec565",
+    "build": "a4f3485f8369833b37b2f17fe99b35d95d5a3428512b6cb9f0b634720dbc4786"
+  },
+  "limitations": [
+    "This does not qualify arbitrary entity subclasses, other operation types, 3D rendering or native platform coverage.",
+    "POINT mirror XY behavior is unchanged; the new control asserts elevation preservation only."
+  ]
+}

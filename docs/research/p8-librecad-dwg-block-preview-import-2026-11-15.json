@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-dwg-block-preview-import-test-2026-11-15.patch",
+  "patchSha256": "bfd1378d180a5ae4e15730a4feae1979048e66c2b4a2dca980bb215d33c47ca8",
+  "scope": "The thirty-first unmerged LibreCAD patch adds an optional installed-upstream importer regression for the existing AC1024 title fixture. It requires the updated DWG reader from commit 50d075a4 or later.",
+  "validation": [
+    "The actual LibreCAD importer test passed all five assertions: the Title_Block-ISO block exists with source handle 127, the preview is 2088 bytes, and its FNV-1a-64 content fingerprint is f881aec25d524b4f. The upstream focused regression compares all bytes directly against the BLOCK_HEADER callback.",
+    "The three focused installed-codec CTests passed. The test patch applies after the prior 30, and the older bundled-codec filter compile target still builds.",
+    "Source-release inventory passes with 1228 files and 18 refusal controls; the 725-input implementation digest remains d2fbf3b7e98738e05bc8f6a097b74ee429b43f58bcc8988a7bc92e6554a539c7."
+  ],
+  "limits": "This is one existing fixture and an unmerged optional test. Preview rendering, output, richer title metadata and other platforms remain open; no drawing fixture was committed and no support claim is promoted."
+}

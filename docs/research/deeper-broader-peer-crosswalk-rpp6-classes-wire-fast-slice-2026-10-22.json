@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-6 CLASSES exact writer-wire canary fast slice",
+  "mode": "Generated ASCII/Binary DXF writer-wire conformance controls",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "983397f34d6303db81dd58983252f9e83aa2e10b93b96d288e2f305f7b2193ca",
+  "authoritativeReference": {
+    "title": "Class Group Codes in DXF Files, Autodesk AutoCAD 2021 DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-42E19B4F-61E1-4795-93E7-C8769CE2D7C0.htm",
+    "accessed": "2026-10-22",
+    "groups": [0, 1, 2, 3, 90, 91, 280, 281]
+  },
+  "implementation": {
+    "changes": [
+      "Added a generated exact CLASSES writer-wire census for AC1014, AC1015, AC1018, and AC1024 in ASCII and Binary DXF, asserting group order and values and the writer's version-gated group 91 boundary.",
+      "Registered the CLASSES census as a focused fast CTest.",
+      "Registered the existing version-specific DIMSTYLE table/record subclass wire census as a focused fast CTest."
+    ],
+    "touchedFiles": [
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp6-classes-wire-fast-slice-2026-10-22.json",
+      "tests/dxf_fixture_tests.cpp"
+    ]
+  },
+  "validation": {
+    "configure": "PASS: cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: libdxfrw_classes_wire_census and libdxfrw_dimstyle_subclass_wire_census (2/2; 0.41 s)",
+    "diffCheck": "PASS: git diff --check -- CMakeLists.txt tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "downloadedDrawingsAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "autocadOrNativeAcceptanceProven": false,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-5: implement the bounded typed TABLESTYLE DXF nested row/cell state parser while retaining raw-net fallback and following-object isolation",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

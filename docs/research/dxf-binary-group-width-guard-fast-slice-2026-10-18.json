@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Binary-DXF primitive/group-width guard fast slice",
+  "mode": "local focused test implementation; uncommitted",
+  "scope": [
+    "Exercise low-level Binary-DXF primitive/code width validation for I16 and I32 group classes",
+    "Verify rejected writes emit no bytes and valid records preserve following-record alignment",
+    "Add a fast focused selector and CTest registration without changing production writer behavior"
+  ],
+  "method": {
+    "kind": "Generated in-memory unit controls using the existing binary DXF writer",
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "changedFiles": [
+      "tests/dxf_fixture_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "controls": [
+    {
+      "case": "I32 supplied for group 73",
+      "expected": "failure, writer error set, zero bytes emitted"
+    },
+    {
+      "case": "I32 supplied for group 74",
+      "expected": "failure, writer error set, zero bytes emitted"
+    },
+    {
+      "case": "I16 supplied for group 90",
+      "expected": "failure, writer error set, zero bytes emitted"
+    },
+    {
+      "case": "valid I16 groups 73/74 and I32 groups 90/93 followed by group-0 string",
+      "expected": "exact expected byte widths, values, and aligned following string sentinel"
+    }
+  ],
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --dxf-binary-group-width-guard",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_binary_group_width_guard$' --output-on-failure"
+    ],
+    "strictTargetBuildPassed": true,
+    "directSelectorPassed": true,
+    "focusedCTestPassed": true,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "productionBehaviorChanged": false,
+    "scopeLimitation": "This tests the low-level type guard and byte framing only; it does not audit all serializer call sites or prove every higher-level caller propagates a rejected write."
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "findingsAndSubplans": {
+      "findings": 133,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "workingTree": {
+    "containsOtherUncommittedChanges": true,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

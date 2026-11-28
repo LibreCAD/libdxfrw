@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-12",
+  "id": "p5-ac1018-generated-table-full-grid-readback-2026-11-12",
+  "title": "AC1018 generated TABLE typed-grid and cached-geometry readback",
+  "question": "Does the bounded generated AC1018 TABLE whole-file control verify every typed cell value, row/column dimension, merge role, and its existing *T cached-geometry graph after fresh readback?",
+  "finding": {
+    "change": "Extended the existing whole-file TABLE control to check all nine cell contents and content types, all three column widths and row heights, and the merged title anchor/covered-cell roles after reading the emitted DWG with a fresh libdxfrw reader.",
+    "existing_graph_checks": "The selector also checks the TABLESTYLE NOD/dictionary path, TABLE-to-*T BLOCK_RECORD relation, reverse INSERT membership, and all 15 ordered cached LINE/MTEXT children including text and geometry fields.",
+    "scope": "Generated AC1018 plain-text TABLE writer/readback regression coverage only. The authored model and child geometry are local controls; this does not independently decode TABLE cell semantics from a producer file or prove native rendering.",
+    "fixtures": "No drawing fixture was added. The test creates its DWG in a temporary directory and removes it after the run."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg_local_roundtrip -j4",
+    "focused": "ctest --test-dir build -R '^libdxfrw_table_ac1018_whole_file_roundtrip$' --output-on-failure",
+    "result": "PASS, 1/1",
+    "source_sha256": "2b6db53c765d9ce37dd1dd09c62d5e0d6a1aea13d7ab6d73d92d882cce46621c",
+    "executable_sha256": "c18c7d4ef78c7bfc85209aafb7cfab0bd282620d9ac9c4ccf1c4df383cc66d63"
+  },
+  "limitations": [
+    "The generated control is not producer-backed interoperability evidence.",
+    "The physical AC1018 peer's TABLE cell body remains opaque to the independent reader; native AutoCAD/ODA acceptance and rendering remain open.",
+    "No broader source profile, strict whole-document output route, or support claim is promoted."
+  ]
+}

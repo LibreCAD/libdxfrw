@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "R24 TABLESTYLE border lineweight domain",
+  "date": "2026-11-08",
+  "supportClaimEffect": "none",
+  "source": {
+    "specification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.4; same project's CELLSTYLEMAP writer domain",
+    "finding": "Border group 92 carries lineweight. The accepted numeric domain matches the adjacent CELLSTYLEMAP writer: -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "The AC1024 TABLESTYLE writer admits the established lineweight set instead of only ByBlock (-2), while preserving the other border profile checks."
+  },
+  "validation": {
+    "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4 && ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+    "result": "Final build passed; focused CTest passed 1/1. Generated ASCII/Binary controls round-trip representative negative/default/positive lineweights across six borders, verify raw group-92 order and typed values, refuse value 1 with destination preservation, and retry on the same adapter.",
+    "fixturesAdded": 0
+  },
+  "qualificationLimits": [
+    "The supported set matches the existing CELLSTYLEMAP writer domain; no physical producer witness is added.",
+    "Generated codec controls do not qualify native lineweight rendering.",
+    "No whole-file DWG/DXF support claim is promoted."
+  ],
+  "hashes": {
+    "src/libdxfrw.cpp": "1050a88bc87e25cb96842fa315e515a2bca311509cafcafbcda2bc35b8515c4e",
+    "tests/dwg2dxf_adapter_tests.cpp": "43ad0e20de3a923d735b954728c553bb3801f2078f2b822186a759e41abaa1f2"
+  }
+}

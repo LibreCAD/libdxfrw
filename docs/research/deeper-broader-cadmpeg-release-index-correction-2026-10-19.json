@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "CADMPEG release-index correction and artifact reconciliation",
+  "mode": "Primary-source release/package revalidation; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile the plan's v0.6.2 / 7bcc952 CADMPEG release claim against the current upstream release index.",
+    "Bind the currently discoverable CADMPEG SAT/SAB candidate to its versioned package and platform artifact limits.",
+    "Keep optional ACIS peer use separate from DWG/DXF/AcDs and native FreeCAD qualification."
+  ],
+  "sources": [
+    {
+      "project": "CADMPEG GitHub Releases",
+      "url": "https://github.com/cadmpeg/cadmpeg/releases",
+      "observed": "The currently indexed release page identifies v0.6.1 as Latest with short tag hash 9e8f6d6. It lists checksummed Apple Silicon macOS, Intel macOS, x64 Windows, x64 Linux, and ARM64 Linux archives. The Apple Silicon archive SHA-256 shown is 932a5067d76617707366c7a913e92e2c48484ccacd4f1ceecb065bbeb97dad4b; x64 Windows archive SHA-256 shown is 2ad2cefabe6162d699753e5d86cadf300ca5bd7554970cf1a42b286d93b66b85. The visible release list does not include v0.6.2.",
+      "limitation": "A direct v0.6.2 tag lookup was unavailable through the research tool. The release index snapshot does not prove that such a tag or artifact never existed."
+    },
+    {
+      "project": "CADMPEG SAT codec package",
+      "urls": [
+        "https://docs.rs/crate/cadmpeg-codec-sat/latest",
+        "https://docs.rs/crate/cadmpeg-asm/latest"
+      ],
+      "observed": "The currently served package pages identify version 0.6.1. The codec describes a read-only bare SAT/SMT/SAB/SMB parser and neutral geometry-transfer path with an explicitly verified ACIS 217/218 band.",
+      "limitation": "The codec does not parse outer DWG/DXF/AcDs ownership or write SAT/SAB. Package documentation is not an executed result."
+    },
+    {
+      "project": "CADMPEG release/build configuration",
+      "urls": [
+        "https://github.com/cadmpeg/cadmpeg/blob/main/dist-workspace.toml",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/Cargo.toml"
+      ],
+      "observed": "The release configuration lists Apple Silicon macOS, Intel macOS, x64 Windows, and x64/ARM64 Linux targets and declares crate publication in the release workflow. The inspected mutable workspace manifest says 0.6.0 while public release/package surfaces say 0.6.1.",
+      "limitation": "No source checkout, source build, or binary provenance comparison was performed. Mutable main cannot establish the exact source/dependency set embedded in a release binary."
+    }
+  ],
+  "reconciliation": {
+    "earlier_plan_claim": "CADMPEG v0.6.2 at short commit 7bcc952 with platform archive hashes",
+    "current_evidence": "The currently indexed upstream release page shows v0.6.1 as Latest and the currently served SAT/ASM crates are 0.6.1. A direct v0.6.2 tag lookup was unavailable.",
+    "decision": "Mark the v0.6.2 release claim and its archived hashes UNCONFIRMED; do not use them as actionable pins. Treat v0.6.1 as a separately discoverable optional route and verify its exact release/package artifacts before any run."
+  },
+  "implementation_readiness": [
+    "Do not add a peer dependency, build target, test, CTest, fixture, or per-slice validation step.",
+    "At the existing composed ACIS checkpoint only, pin one v0.6.1 route (release binary or published crate), verify its checksum/version/source identity, and record the exact invocation.",
+    "Feed only an exact owner-closed bare SAT/SAB payload; compare only the admitted 217/218 profile with independently authored analytic expectations and report every loss/unknown record.",
+    "Keep parser/geometry evidence separate from DWG/DXF/AcDs linkage, native FreeCAD Linux/Windows results, and all support claims.",
+    "Generate any control from scratch locally; do not add third-party DWG/DXF/SAT/SAB files."
+  ],
+  "validation": {
+    "peer_runtime": "not run",
+    "packages_downloaded": false,
+    "local_build_or_tests": false,
+    "fixtures_added": false,
+    "dependencies_changed": false,
+    "support_claim_changed": false,
+    "finding_or_subplan_count_changed": false,
+    "reported_plan_totals": "139 findings / 77 top-level subplans",
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

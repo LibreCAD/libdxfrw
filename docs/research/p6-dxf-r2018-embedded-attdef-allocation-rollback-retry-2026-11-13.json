@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-r2018-embedded-attdef-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_R2018_EMBEDDED_ATTDEF_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the direct AC1032 ATTDEF writer route with embedded MTEXT, alongside the already qualified INSERT-owned ATTRIB route, across whole-file allocation failures, same-codec retry, and fresh typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory graph",
+    "profile": "One INSERT-owned multiline ATTRIB (type 2) plus one direct ATTDEF with embedded two-paragraph MTEXT (type 4), emitted to AC1032 ASCII and Binary. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "5b1fd5f5",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-r2018-embedded-attdef-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Extend the focused AC1032 transaction profile to call public writeAttdef() for a multiline ATTDEF in addition to writeInsert() for the ATTRIB. For each encoding, calibrate the whole dxfRW::write allocation count, inject failures at each measured offset, check the destination sentinel and every initialized caller ATTRIB/ATTDEF/MTEXT field, then retry the same codec and require byte-identical output and readback of both embedded payloads and their type values."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 4: PASS; ASan target build: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_r2018_embedded_attribute_allocation_transaction$' --output-on-failure: PASS 1/1 (0.76 sec)",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_r2018_embedded_attribute_allocation_transaction$' --output-on-failure: PASS 1/1 (4.54 sec)",
+    "directRun": "PASS; combined R2018 embedded ATTRIB/ATTDEF profile reaches 120 ASCII and 119 Binary allocation offsets. Each injected failure preserved prior destination and initialized caller fields; same-codec retry matched clean bytes and fresh readback verified the ATTRIB type-2 and ATTDEF type-4 nested MTEXT values.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated profile evidence does not qualify producer-authored AC1032 attribute variants, outer annotative metadata, or native ATTRIB/ATTDEF behavior.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue the P6-G public-writer inventory; keep writer transaction evidence separate from source-profile and native semantic qualification."
+}

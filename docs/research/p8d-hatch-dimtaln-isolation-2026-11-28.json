@@ -1,0 +1,16 @@
+{
+  "kind": "libdxfrw-hatch-dimtaln-output-isolation",
+  "date": "2026-11-28",
+  "implementationDigestSha256": "9944e586474c9f22075f2173cffd13588bc0a29d645e3419ea2ff1c57f6f8dda",
+  "scope": "In staged TABLES handle isolation, accept DIMSTYLE groups 3, 4 and 290 and only the exact trailing ACAD_DSTYLE_DIMTALN group with two 1070 integers, first equal to 392. Extra XDATA including handle references is refused.",
+  "checks": {
+    "focused": "PASS: 16 version/encoding/profile/order combinations; valid modeled trailer accepted, extra XDATA refused, existing destination preserved, corrected same-writer retry passes",
+    "sanitizers": "PASS: ASan and UBSan, leak detection disabled",
+    "consumer": "The locally generated LibreCAD drawing reaches its checked HATCH output path; full integrated consumer tests continue separately."
+  },
+  "limits": [
+    "Recognizes a modeled LibreCAD trailer, not arbitrary DIMSTYLE XDATA or complete DIMSTYLE semantics.",
+    "No support claims promoted."
+  ],
+  "supportClaimsPromoted": false
+}

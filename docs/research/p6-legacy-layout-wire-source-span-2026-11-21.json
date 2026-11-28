@@ -1,0 +1,199 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-layout-wire-source-span-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-F",
+  "status": "LEGACY_LAYOUT_SOURCE_SPANS_GENERATED_CONTROLS_ONLY",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.13",
+      "20.1",
+      "20.4.84"
+    ]
+  },
+  "sourceObserver": "Allocation-free independent bit observer checks common framing, bounded ASCII text, all modeled legacy plot/layout scalar values including exact signed zero, bit/body boundary, typed roles, targets and terminal padding. Captured callback type 82 is normalized; the source bytes contain class 502, which the separate test joins to unique unchanged published LAYOUT/AcDbLayout class evidence.",
+  "observed": {
+    "r13": {
+      "sourceSha256": "999c41fa2d243b145f36db8e3a797648dcced79f8c7257eb17aefd3d90287242",
+      "objects": [
+        {
+          "handle": 46,
+          "objectOffset": 4747,
+          "bodyOffset": 4749,
+          "bodyBitEnd": 634,
+          "classNumber": 502,
+          "handleBitSpans": {
+            "owner": [
+              634,
+              650
+            ],
+            "reactors": [
+              650,
+              650
+            ],
+            "xdictionary": [
+              650,
+              658
+            ],
+            "blockRecord": [
+              658,
+              674
+            ],
+            "viewport": [
+              674,
+              682
+            ],
+            "baseUcs": [
+              682,
+              690
+            ],
+            "namedUcs": [
+              690,
+              698
+            ]
+          }
+        },
+        {
+          "handle": 47,
+          "objectOffset": 4839,
+          "bodyOffset": 4841,
+          "bodyBitEnd": 634,
+          "classNumber": 502,
+          "handleBitSpans": {
+            "owner": [
+              634,
+              650
+            ],
+            "reactors": [
+              650,
+              650
+            ],
+            "xdictionary": [
+              650,
+              658
+            ],
+            "blockRecord": [
+              658,
+              674
+            ],
+            "viewport": [
+              674,
+              682
+            ],
+            "baseUcs": [
+              682,
+              690
+            ],
+            "namedUcs": [
+              690,
+              698
+            ]
+          }
+        }
+      ]
+    },
+    "r14": {
+      "sourceSha256": "c057bba383107ea8906d4dc887eb7857628419306e36f37a8cb261a117319bdb",
+      "objects": [
+        {
+          "handle": 46,
+          "objectOffset": 4761,
+          "bodyOffset": 4763,
+          "bodyBitEnd": 634,
+          "classNumber": 502,
+          "handleBitSpans": {
+            "owner": [
+              634,
+              650
+            ],
+            "reactors": [
+              650,
+              650
+            ],
+            "xdictionary": [
+              650,
+              658
+            ],
+            "blockRecord": [
+              658,
+              674
+            ],
+            "viewport": [
+              674,
+              682
+            ],
+            "baseUcs": [
+              682,
+              690
+            ],
+            "namedUcs": [
+              690,
+              698
+            ]
+          }
+        },
+        {
+          "handle": 47,
+          "objectOffset": 4853,
+          "bodyOffset": 4855,
+          "bodyBitEnd": 634,
+          "classNumber": 502,
+          "handleBitSpans": {
+            "owner": [
+              634,
+              650
+            ],
+            "reactors": [
+              650,
+              650
+            ],
+            "xdictionary": [
+              650,
+              658
+            ],
+            "blockRecord": [
+              658,
+              674
+            ],
+            "viewport": [
+              674,
+              682
+            ],
+            "baseUcs": [
+              682,
+              690
+            ],
+            "namedUcs": [
+              690,
+              698
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "validation": {
+    "inputs": "All eight ACadRust-generated R13/R14 null/bound original and producer-resaved controls passed the source observer; files stay in scratch and are correlated with ACadSharp lineage.",
+    "mutations": "For both generated profiles, captured source bytes are compared to the input file; changed model fields, typed reference roles/targets, physical handle-role bits and changed class evidence refuse; restoring each source passes. In-memory controls verify signed zero, full-width handle metadata, failure atomicity and same-observer retry.",
+    "tests": [
+      "libdxfrw_legacy_layout_handles",
+      "libdxfrw_AC1012_layout_wire_external",
+      "libdxfrw_AC1014_layout_wire_external"
+    ],
+    "asan": "The fully instrumented library and generated in-memory observer controls pass under AddressSanitizer.",
+    "reproduction": "Generate inputs with tools/research/generate_acadrust_legacy_shape.py; set LIBDXFRW_AC1012_LAYOUT_WIRE_SAMPLE and LIBDXFRW_AC1014_LAYOUT_WIRE_SAMPLE to corresponding scratch resaved DWGs when configuring tests; build libdxfrw_dwg_ac1014_output_external_tests and run the two external CTests."
+  },
+  "sourceFiles": {
+    "dwg2dxf/dx_legacy_layout_wire.h": "6c9e71b63887d270b1d271771409425402b5848be0f8a1655952db6ae77619db",
+    "tests/legacy_layout_handle_tests.cpp": "0e4821f55a178f7d12ad434af3ed469fb922baa692cb7b41b3327e79a88ccabb",
+    "tests/dwg_ac1014_output_external_tests.cpp": "b1faeb32d9e5b0a2fb104316aeee1fb3f6c53dffe0de12d95a29235e9c735a6e"
+  },
+  "limits": [
+    "Observer and external control are bounded to no EED, ASCII strings, no viewport list and the tested callback profile; they do not qualify arbitrary legacy layouts.",
+    "Class binding uses the existing unchanged import evidence; the external test additionally matches retained raw bytes to the selected small source-frame offsets.",
+    "No native AutoCAD witness, dictionary merge semantics, complete source graph, target projection, emitted DXF physical-link proof or independent output readback is established. The export refusal remains in place."
+  ]
+}

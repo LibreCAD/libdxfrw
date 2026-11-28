@@ -1,0 +1,147 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "AC1024 SORTENTSTABLE owner dictionary with associative-network sibling",
+  "mode": "Primary-source research, local source audit, diagnostic-only existing AC1024 sample, bounded implementation, and focused fast-test verification",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Re-evaluate the SORTENTSTABLE extension-dictionary reciprocity failure after the Model LAYOUT 331/VPORT correction.",
+    "Determine whether ACAD_ASSOCNETWORK may legally coexist with ACAD_SORTENTS under a BLOCK_RECORD extension dictionary.",
+    "Broaden comparison against the current LibreCAD bundled inventory and LibreDWG source while separating inventory/stability labels from semantic qualification.",
+    "Refine PAR-06/7BV and PAR-49/7G.3 implementation readiness without promoting support or importing fixtures."
+  ],
+  "sources": [
+    {
+      "name": "Autodesk AssocNetwork.GetInstanceFromObject",
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_AssocNetwork_GetInstanceFromObject_ObjectId__MarshalAsUnmanagedType_U1__bool__MarshalAsUnmanagedType_U1__bool_string.html",
+      "observed": "The associative network is owned through a special subdictionary under the owning object's extension dictionary; the default dictionary key is ACAD_ASSOCNETWORK.",
+      "limits": "API ownership description; does not define the complete DXF group grammar or prove arbitrary network serialization semantics."
+    },
+    {
+      "name": "Autodesk Networks of Actions developer guide",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-DevGuide/files/GUID-BD833D49-DD90-4815-B576-8E7B5831A5BC.htm",
+      "observed": "Describes a top-level network under the NOD through a subdictionary, and block-table-record-associated networks under their extension dictionaries through the same subdictionary pattern; network ownership and evaluation relationships can be logical and/or physical.",
+      "limits": "Establishes documented hierarchy patterns, not the target roles of every group in a specific AC1024 file."
+    },
+    {
+      "name": "Autodesk SORTENTSTABLE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm",
+      "observed": "The SORTENTSTABLE object is attached to a Model/Paper Space block extension dictionary under ACAD_SORTENTS and contains owner and entity-handle references.",
+      "limits": "Documents the SORTENTS branch; does not say the containing extension dictionary has no other entries."
+    },
+    {
+      "name": "Autodesk DICTIONARY DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "observed": "Dictionary entry keys are unique; group 280 controls whether entries are treated as hard-owned, and group 350 is a soft-owner reference to each entry object. Dictionary owner and persistent-reactor links are serialized separately.",
+      "limits": "Defines generic DICTIONARY representation, not the complete DXF field layout or graph semantics of every associative class."
+    },
+    {
+      "name": "Autodesk pointer and ownership references",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-704F5152-B2A4-4DAC-A0FD-03D8ABFC0A4F.htm",
+      "observed": "An object may have multiple pointer references but only one owner; ownership and pointer relations are distinct graph edges.",
+      "limits": "Generic object-reference semantics; does not enumerate every associative-network edge type."
+    },
+    {
+      "name": "LibreCAD current bundled DWG/DXF coverage inventory",
+      "url": "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md",
+      "observed": "The inventory calls itself a deterministic source inventory rather than byte-level conformance. DXF-object ASSOCNETWORK is marked raw-preserved/read-write yes/yes/fixture-needed, while DWG custom-class ACDBASSOCNETWORK is typed-custom/read-write no/no/fixture-needed. The inventory summary reports zero validated fixed DWG object shells.",
+      "limits": "Mutable consumer-fork source inventory; raw-preserved and read/write flags do not constitute fixture-backed or semantic qualification, nor establish standalone-upstream behavior."
+    },
+    {
+      "name": "LibreDWG current mutable object stability table",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "observed": "Current objects.in marks ASSOCNETWORK and ASSOCGEOMDEPENDENCY STABLE, while the current manual still lists ASSOCNETWORK among unhandled/broken-or-undertested fields and NEWS retains an older/new unstable inventory.",
+      "limits": "Mutable branch with contradictory status artifacts. Pin a release/commit and inspect matching code/tests before comparator use; class stability is not semantic qualification."
+    },
+    {
+      "name": "LibreDWG current NEWS and manual",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "secondaryUrl": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "observed": "The current manual classifies ASSOCNETWORK among fields that are specified but broken/undertested; NEWS also describes it in an unstable inventory, conflicting with the current objects.in STABLE label.",
+      "limits": "Source documentation/status artifacts are not fully synchronized; this mismatch is itself a reason not to promote support from the status table alone."
+    },
+    {
+      "name": "Local source and generated tests",
+      "paths": [
+        "dwg2dxf/dx_iface.cpp",
+        "dwg2dxf/dx_iface.h",
+        "dwg2dxf/dx_data.h",
+        "tests/dwg2dxf_adapter_tests.cpp"
+      ],
+      "observed": "DWG SORTENTSTABLE uses a separate bounded typed membership receipt rather than the DXF raw companion. The validator accepts only ACAD_SORTENTS plus one ACAD_ASSOCNETWORK sibling, validates the nested dictionary identity/owner/reactor/single entry, then rejects explicitly because the DWG associative shell is not retained for DXF replay. Generated DXF-source and DWG-source graph tests exercise ASCII and Binary DXF output modes, sentinel preservation, and same-adapter corrected retry.",
+      "limits": "The generated route does not prove a complete associative nested graph or its serializer; ASCII/Binary modes are output modes on in-memory graph tests, not persistent ASCII/Binary fixture-file coverage."
+    },
+    {
+      "name": "Diagnostic-only local AC1024 trace",
+      "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/architectural_example-imperial.dwg -y --allow-partial-dwg-read -d -v2010 <temporary-output.dxf>",
+      "observed": "After PAR-142, partial read reports 663 observed/published frames, zero entity/object parse failures, and 14 skipped ASSOCDIMDEPENDENCYBODY instances. SORTENTSTABLE handle 8336 has parent/extension dictionary 8331 and owner BLOCK_RECORD *U7 handle 8311; its reactor points to 8331. The complete owner dictionary has ACAD_ASSOCNETWORK -> 8332 and ACAD_SORTENTS -> 8336. Dictionary 8332 has parent 8331, one reactor to 8331, and one ACAD_ASSOCNETWORK entry -> 8333; the callback identifies handle 8333 as ACDBASSOCNETWORK owned by 8332. Export exits nonzero at SORTENTSTABLE ACAD_ASSOCNETWORK lacks safe DXF replay closure.",
+      "limits": "This is diagnostic-only on a pre-existing sample of unverified provenance. The trace does not establish all network/action/dependency edges, semantic safety of omission, or consumer acceptance. It is not a successful conversion or support claim. Output and log were written only under a disposable system temporary directory."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "existingOwners": [
+      "PAR-06 / 7BV associative object closure",
+      "PAR-49 / 7G.3 ownership and graph validation"
+    ],
+    "planTotals": {
+      "findings": 142,
+      "topLevelSubplans": 78
+    },
+    "implementationStatus": "SIBLING_TOPOLOGY_VALIDATED; ASSOCIATIVE_REPLAY_CLOSURE_EXPLICITLY_FAILS_CLOSED; FOCUSED_FAST_TESTS_PASS",
+    "decision": "Do not reject solely because the extension dictionary also contains ACAD_ASSOCNETWORK, but do not relax to permissive export until its nested graph is retained/remapped or safely atomically omitted under an explicit partial-output policy.",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a current research checkpoint that distinguishes documented ACAD_SORTENTS and ACAD_ASSOCNETWORK sibling branches from serializer readiness.",
+    "Refined existing PAR-06/7BV and PAR-49/7G.3; no duplicate finding or top-level subplan was added.",
+    "Specified bounded associative subdictionary identity/owner/reference closure and strict fail-before-publication behavior for unresolved leaves.",
+    "Defined an explicit policy choice between full branch retention/remapping and bounded atomic omission under partial output; atomic omission must also account for top-level-network references and remain semantically valid for evaluated 2D geometry.",
+    "Implemented narrow sibling-topology validation and explicit missing-DXF-replay-closure rejection; generated in-memory DXF-source/DWG-source graph tests exercise ASCII/Binary output modes, sentinel preservation, and same-adapter corrected retry.",
+    "Added DICTIONARY ownership/reference semantics to the research boundary and clarified that LibreCAD's DXF ASSOCNETWORK route and DWG ACDBASSOCNETWORK route have different inventory statuses.",
+    "Corrected peer-evidence interpretation: LibreDWG current objects.in and its manual/NEWS disagree on ASSOCNETWORK maturity; none of these mutable labels qualifies semantic support."
+  ],
+  "method": {
+    "localProductionCodeChangedInThisResearchPass": true,
+    "testsChangedInThisResearchPass": true,
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "implementationFilesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "researchReceiptAdded": true,
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "fullTestSuitesRun": 0,
+    "diagnosticCliRuns": 2,
+    "validation": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests dwg2dxf --parallel 2 passed with the repository's existing warning-as-error settings.",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_sortents_adapter|libdxfrw_dxf_fixtures)$' --output-on-failure passed (2/2; 4.64 seconds).",
+      "One diagnostic-only existing AC1024 conversion still exits nonzero at SORTENTSTABLE ACAD_ASSOCNETWORK lacks safe DXF replay closure; this confirms only the deliberate fail-closed boundary.",
+      "The source comparison used official Autodesk documentation and current primary repository files; no peer binary was run."
+    ]
+  },
+  "limitations": [
+    "The AC1024 drawing remains partial-observed with 14 skipped associative dependency-body records; these findings cannot promote format support.",
+    "The nested ACAD_ASSOCNETWORK key target is identified as the ACDBASSOCNETWORK shell, but its action/dependency closure is not retained or semantically validated.",
+    "No complete associative DXF grammar, DWG byte-layout modification, graph remapping, or atomic omission implementation is established in this pass.",
+    "Current LibreCAD bundled inventory flags associative routes fixture-needed, and its fork is not an independent second parser for standalone libdxfrw.",
+    "LibreDWG's mutable objects.in stability labels conflict with broader NEWS/manual prose; exact revision and matching tests are required for any future peer comparison.",
+    "The broad shared worktree has overlapping uncommitted changes; no commit or staging was attempted.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

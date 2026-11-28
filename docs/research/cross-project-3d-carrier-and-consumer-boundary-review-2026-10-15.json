@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw-cross-project-3d-carrier-and-consumer-boundary-review-v1",
+  "reviewedAt": "2026-10-15",
+  "baseline": "11c8fe7",
+  "scope": "Broader open-source comparison of DWG/DXF 3D carrier routing, ACIS parser boundaries, and consumer-specific acceptance limits.",
+  "method": {
+    "kind": "Primary format references plus current open-source project documentation, source, and issue reports",
+    "runtimeTestsRun": false,
+    "peerLibrariesRun": false,
+    "nativeCadRun": false,
+    "fixturesDownloadedOrCommitted": 0,
+    "evidenceRule": "ODA v5.4.1 governs DWG layout and Autodesk documentation governs published DXF group codes. Project docs/issues are implementation evidence only; bind mutable versions before runtime comparisons. Separate carrier retention, display projection, geometry semantics, and native acceptance."
+  },
+  "findings": [
+    {
+      "id": "DXF_SAT_SAB_CARRIER_SPLIT",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/acis/api.py",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/acis.py#L1931-L1991",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/acis.py#L2227-L2236"
+      ],
+      "evidence": "Autodesk's general 3DSOLID table lists modeler group70, proprietary groups1/3 and group350 history handle but does not describe the modern SAB section route. Current ezdxf docs/source distinguish inline SAT for DXF R2000-R2010 from SAB in ACDSDATA for R2013+.",
+      "confidence": "Autodesk is authoritative for the published group-code table; the version-era ACDSDATA route is supported by current ezdxf docs/source but exact output still requires a pinned generated-file check.",
+      "planUse": "Separate DXF R2000-R2010 SAT groups1/3, DXF R2013+ SAB/ACDSDATA, pre-2013 DWG inline modeler bytes, and AC1027+ DWG AcDb:AcDsPrototype_1b. Do not infer identical DXF/DWG envelopes."
+    },
+    {
+      "id": "EZDXF_MODERN_DXF_ACDS_LINK_SCHEMA",
+      "sources": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/acis.py#L1931-L1991"
+      ],
+      "evidence": "Current ezdxf source documents R2013+ entity-side group2 UID and group290 flag while groups70/1/3 are absent, plus an ACDSDATA ACDSRECORD-to-ASM_Data route with group320 associated modeler-entity handle and group94 size/group310 binary payload. Its source comments are peer implementation evidence, not an Autodesk normative schema certificate.",
+      "confidence": "Current peer source inspection; no ezdxf executable or generated DXF was run in this research pass.",
+      "planUse": "Use these fields to design a pinned generated-vector audit, then confirm them from actual output and any applicable primary format reference. Verify per-record entity association and byte bounds; do not reuse DWG AcDs parser assumptions automatically."
+    },
+    {
+      "id": "EZDXF_CURRENT_API_VS_STALE_FAQ",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/acis.py#L2127-L2144"
+      ],
+      "evidence": "Current ezdxf 1.4.4 ACIS API docs expose export_sat and export_sab for limited version profiles. The FAQ states it contains old entries until late 2023 and still says ezdxf only writes SAT, contradicting the current API documentation. Current source also removes SAB when mapping to pre-R2013 DXF and removes SAT when mapping to R2013+; it does not convert one stream to the other.",
+      "confidence": "Direct documentation comparison; no installed package/API call or output was executed in this review.",
+      "planUse": "Resolve by exact package version, public API inspection and observed output; do not rely on stale FAQ text or an unpinned branch for generator availability. Treat unsupported version conversion as explicit refusal/loss, not a successful geometry-preserving downgrade."
+    },
+    {
+      "id": "EZDXF_ACIS_AND_PROJECTION_LIMITS",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/acis.py#L2127-L2144"
+      ],
+      "evidence": "The current docs describe only selected ACIS structures, say unsupported entities become NONE_ENTITY with data loss, state arbitrary ACIS load/edit/re-export is not a goal, and limit mesh_from_body to flat polygon faces. The drawing add-on does not render ACIS or general 3D. Source also drops carrier data on unsupported SAT/SAB version conversion rather than translating it.",
+      "confidence": "Current project documentation; no parser or renderer run performed.",
+      "planUse": "Use ezdxf as a pinned carrier/syntax generator and limited planar projection comparator, not an arbitrary raw-preservation, curved-geometry, or B-rep semantic oracle."
+    },
+    {
+      "id": "OPEN_SOURCE_PEER_CAPABILITY_IS_ROUTE_SPECIFIC",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454",
+        "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/ixmilia/dxf",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "evidence": "LibreDWG's versioned history and issue reports separate AcDs recognition from complete SAB/body recovery; FreeCAD's stock importer is documented/maintainer-described as unable to consume ACIS blobs and importer modes differ on some explicit entities; GDAL exposes raw modern ASM rather than a geometry kernel; IxMilia warns listed ACIS entity classes may not produce AutoCAD-accepted files; ACadSharp writer PRs remain proposals until merged/released.",
+      "confidence": "Project docs/issues and mutable source declarations; no current peer runtime or native app was executed.",
+      "planUse": "Require exact peer release/build/configuration and report decode, raw/typed/skip, write, reopen and semantic results independently. Test FreeCAD importer modes separately where claimed; do not use a peer class list or entity count as support evidence."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Clarify S8.4's version matrix: DXF inline SAT groups1/3 for R2000-R2010; DXF SAB in ACDSDATA for R2013+; older DWG inline modeler payload; AC1027+ DWG AcDs section. Keep the two ACDSDATA/AcDs envelopes distinct.",
+    "For each route, assert actual target version, group70 modeler version, inner SAT/SAB version, carrier bytes/section, owner/index and group350 history closure, ordinary reopen, and explicit loss/refusal disposition.",
+    "Pin the exact ezdxf package/API before optional generated-profile tests; use generated data only ephemerally and preserve the no-new-dependency/no-fixture policy.",
+    "Keep explicit 3DFACE/POLYFACE/MESH support separate from ACIS. Qualify FreeCAD by exact platform, app build and importer mode while preserving the 2D LibreCAD/LibreCAD_3 gates.",
+    "Keep fast focused tests per slice and reserve full-suite and peer/native checks for the composed gate."
+  ],
+  "scopeBoundary": {
+    "findings": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChanged": false,
+    "testFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "runtimeValidation": "NOT RUN; source/document research only"
+  }
+}

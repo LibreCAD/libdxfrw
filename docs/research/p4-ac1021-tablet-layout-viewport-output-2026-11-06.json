@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "date": "2026-11-06",
+  "scope": "selected AC1021 tablet.dwg LAYOUT, VIEWPORT and OLE2FRAME source/output proof",
+  "source": {
+    "path": "/Users/dli/doc/dwg/tablet.dwg",
+    "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+    "provenance": "local corpus; producer provenance unauthenticated",
+    "version": "AC1021",
+    "opaque_callback_count": 51
+  },
+  "independent_peer_inventory": {
+    "tool": "LibreDWG 0.14.0 minJSON",
+    "path": "/private/tmp/tablet-libredwg.json",
+    "sha256": "54f69c22c8528f0d20f4c010446baecb581463c362430a413a40feeec5224f4d",
+    "layouts": [
+      {"handle": "0x22", "name": "Model", "type": "LAYOUT"},
+      {"handle": "0x1B18", "name": "ISO A2 Plot", "type": "LAYOUT"},
+      {"handle": "0x2B16", "name": "ANSI C Plot", "type": "LAYOUT"}
+    ],
+    "viewports": ["0x1B1A", "0x1B1B", "0x2B18", "0x2B19"],
+    "ole2frame": {
+      "handle": "0x2B80",
+      "model_space_block_header": "0x1F",
+      "membership": "listed in *Model_Space BLOCK_HEADER entities by LibreDWG minJSON"
+    }
+  },
+  "implementation": {
+    "layout_profile": "Exact three-layout source inventory; existing proof validates rooted ACAD_LAYOUT dictionary, source fields, reciprocal BLOCK_RECORD identity/backlinks, and staged ASCII/Binary output fields before qualifying the three LAYOUT callback identities.",
+    "viewport_profile": "Exact four type-34 callback identities; existing proof validates typed VIEWPORT projection, unique paper-space LAYOUT membership, reciprocal BLOCK_RECORD ownership, emitted record identity/owner and derived DXF groups 68/69.",
+    "ole2frame_profile": "Exact AC1021 tablet handle 0x2B80 route; generation-bound immutable model/payload snapshot, matching type-74 raw source callback/frame, fixed model-space output owner, staged OLE fields/payload comparison, and physical readback/failure/retry controls.",
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_data.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4; passed with -Werror",
+    "focused_command": "build/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/tablet.dwg",
+    "result": "passed in ASCII and Binary; four VIEWPORT projections and the OLE2FRAME were freshly read back with typed fields, payload and container ownership; a changed OLE payload preserved the destination and did not publish qualifications; correction and retry passed on the same adapter",
+    "strict_cli_command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/tablet.dwg -y -v2007 /private/tmp/tablet-ole2frame-strict.dxf",
+    "strict_cli_result": "passed; same-version strict whole-source conversion succeeded for this exact local source profile",
+    "qualified_opaque_callbacks": 51,
+    "source_opaque_callbacks": 51,
+    "strict_whole_source_conversion": "passed for the exact AC1021 tablet.dwg source profile; this is not broad AC1021 producer qualification"
+  },
+  "ole2frame_output_proof": {
+    "source_handle": "0x2B80",
+    "typed_container": "*U0",
+    "staged_section": "ENTITIES",
+    "emitted_block_record_handle": "0x1F",
+    "emitted_entity_handle": "0x4516",
+    "owner_identity_proved": true,
+    "immutable_snapshot": "generation-bound DRW_Ole2Frame copy, including raw DWG frame and opaque payload; retained estimate includes vector/string payload and map index, with a 64 MiB aggregate cap",
+    "staged_output_proof": "exact type-74 source callback/frame and typed mBlock identity; staged OLE2FRAME record decoded in ENTITIES and checked for remapped handle, owner 0x1F, OLE version/client/corners/type/mode/lock-aspect, declared payload length and byte-identical payload",
+    "fresh_readback": "ASCII and Binary DXF both reimport exactly one model-space OLE2FRAME with owner 0x1F and matching OLE fields/payload",
+    "failure_retry": "changed payload refused atomically in both encodings; destination preserved and qualification count unchanged; restoring the payload succeeds on the same writer",
+    "independent_peer_membership": "LibreDWG 0.14 minJSON lists OLE2FRAME 0x2B80 in the *Model_Space BLOCK_HEADER entity list (BLOCK_RECORD handle 0x1F). It is absent from both paper-space lists. The entity has entmode=2 and no direct ownerhandle; BLOCK_HEADER membership is the owner evidence.",
+    "local_adapter_mapping": "The reader callback places the entity in synthetic dx_data.mBlock (*U0), which is serialized as model space using the fixed model-space BLOCK_RECORD role. A temporary name-based lookup of *U0 returned zero and was an invalid owner probe.",
+    "disposition": "implemented and verified for the exact tablet source profile; do not generalize without additional source evidence",
+    "note": "LibreDWG 0.14 minJSON independently lists 0x2B80 under the model-space BLOCK_HEADER. The adapter binds its synthetic mBlock delivery to the fixed model-space DXF owner; it does not infer ownership from entmode or resolve *U0 as a BLOCK_RECORD table name. The output entity handle is writer-minted and may differ from the source handle."
+  },
+  "hatch_circle_regression": {
+    "source": "generated AC1021 DWG authored locally for the control; no fixture is committed",
+    "test": "dwg_hatch_circle_boundary_output",
+    "command": "ctest --test-dir build -R '^dwg_hatch_circle_boundary_output$' --output-on-failure",
+    "result": "passed; ASCII and Binary DXF fresh readback preserve the HATCH boundary reference to the remapped CIRCLE handle"
+  },
+  "limitations": [
+    "Selected source/output transport evidence only; no native CAD consumer semantics or broad AC1021 producer claim.",
+    "OLE2FRAME qualification is limited to this exact AC1021 tablet.dwg source profile; producer provenance is unauthenticated and no native CAD semantic acceptance has been tested.",
+    "No DWG or DXF fixture was added to the repository."
+  ]
+}

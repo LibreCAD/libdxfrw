@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-current-consumer-compile-and-probe-recheck-2026-11-12",
+  "date": "2026-11-12",
+  "status": "LOCAL_COMPATIBILITY_AND_GENERATED_3D_PROBE_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Recheck LibreCAD_3 API compatibility, the downstream C++ standard contract, and the generated 3D DXF consumer probe against the current implementation after the latest OBJECTS writer identity changes.",
+  "binding": {
+    "repositoryHead": "f35540b9a3f3979c2f527a48ae30907950407ecd",
+    "platform": "Darwin arm64",
+    "compiler": "/usr/bin/g++",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "a5d2b3e5a5b3a34c2a9d2fe274d2c3c429b6256753a7a6419bdd60683fe23e51",
+      "src/libdxfrw.h": "34b2a5db3c9c4c21c4423a7629361353d8d68c994b988c5c1894816d97b7ff24",
+      "src/drw_interface.h": "362c4df9d062c94628baffc397995450f45177df9b8ee4f1d690efda09f57f51",
+      "tests/lc3_compat_check.cpp": "743762fb6f3068dc011c25b680b10aa16e68810e25b3beebe2b5eb0687386bad",
+      "tests/consumer_cxx17_contract.cpp": "d6ef0249a9559ca05d38c46029f4e1f502dd568d088f2ac6c95c263941608279",
+      "tests/semantic_differential_adapter.cpp": "585f22b365e7f03968aa0d88d82bf40fac653d57c11160584af2d4d38540cef7",
+      "tests/CMakeLists.txt": "cf0a497ffae85dcad87ec96ca093835835aab4034de2af26072bb965e68039b6"
+    },
+    "artifactSha256": {
+      "build-gcc/libdxfrw.a": "20605ff0dafd9e1ccff1ce82eb80f8119baaa80d584f67e602eaa6dda7d1c369",
+      "build-gcc/tests/libdxfrw_3d_consumer_probe": "fc385dcbd7b8edc83c09918317c18c1c32f4441c4c713ed14857184374b3d298"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target lc3_compat_check libdxfrw_consumer_cxx17_contract libdxfrw_3d_consumer_probe -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+      "result": "PASS 1/1 (0.40 seconds)"
+    }
+  },
+  "limitations": [
+    "The compile targets check mirrored API use and language-level propagation; they do not establish binary ABI compatibility or a clean downstream application build.",
+    "The runtime probe writes and reads locally generated ASCII/Binary DXF through libdxfrw only; it does not establish native rendering or independent-consumer semantics.",
+    "Linux/Windows native consumer runs, LibreCAD/LibreCAD_3 application behavior, FreeCAD qualification, and packaging remain open.",
+    "No DWG/DXF fixture was added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue the independent source-backed P6 writer/reader audit; retain the P4-P9 phase gates and refusal policy."
+}

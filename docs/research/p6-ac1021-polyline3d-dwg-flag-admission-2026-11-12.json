@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-ac1021-polyline3d-dwg-flag-admission-2026-11-12",
+  "purpose": "Align AC1021 DWG POLYLINE_3D writer admission with the documented fields and prevent loss of unrepresentable DXF group-70 values.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.17 3D POLYLINE (object type 16)",
+    "page": 121,
+    "localPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "wireMapping": "The first RC represents spline curve type 5 or 6 and implies DXF group-70 bit 4; the second RC carries only the closed bit. Object type 16 supplies the 3D bit."
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "Reject conflicting 3D/mesh/polyface topology, closed-N without mesh topology, unsupported 3D group-70 bits, non-DWG 3D curve type 8, and disagreement between spline-fit bit 4 and curve type 5/6. Preserve supported closed and spline-fit mappings. Refusals occur before the staged DWG body is published."
+  },
+  "generatedControls": {
+    "supportedClosedProfile": {"dxfFlags": 9, "dwgFlagBytes": [0, 1], "readbackFlags": 9},
+    "supportedSplineFitProfile": {"dxfFlags": 12, "curveType": 5, "readbackFlags": 12, "readbackCurveType": 5},
+    "refusedProfiles": [
+      {"dxfFlags": 10, "reason": "curve-fit flag has no 3D DWG field"},
+      {"dxfFlags": 136, "reason": "continuous-linetype flag has no 3D DWG field"},
+      {"dxfFlags": 24, "reason": "conflicting 3D and mesh topology"},
+      {"dxfFlags": 72, "reason": "conflicting 3D and polyface topology"},
+      {"dxfFlags": 32, "reason": "closed-N flag without mesh topology"},
+      {"dxfFlags": 12, "curveType": 0, "reason": "spline-fit bit without subtype"},
+      {"dxfFlags": 12, "curveType": 8, "reason": "unsupported curve type"},
+      {"dxfFlags": 8, "curveType": 5, "reason": "spline subtype without group-70 bit 4"}
+    ],
+    "failureRetry": "Each refusal preserves the writer buffer; a corrected flags-9 profile succeeds on the same writer."
+  },
+  "validation": {
+    "focusedSelector": "dwg_r2007_polyline3d_closed_flag_roundtrip PASS",
+    "affectedFastCohort": "ctest -R polyline: PASS 23/23 in 4.33 seconds",
+    "fixturePolicy": "All controls are generated in memory; no DWG/DXF fixture was added."
+  },
+  "limitations": [
+    "This is writer/parser field-domain and transaction evidence for the AC1021 3D POLYLINE body, not native curve rendering or producer prevalence.",
+    "The selected FreeCAD closed-3D-polyline importer gap remains separate; this change preserves the correct DXF/DWG flags and does not alter consumer output."
+  ],
+  "supportClaimEffect": "Closes a bounded silent-loss risk for the documented AC1021 3D POLYLINE flags; no broad DWG/DXF support claim is promoted."
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-named-block-arc-wrap-test-2026-11-15.patch",
+  "patchSha256": "74bb0f7b437d582e953e09236f0304d377193dee418da1c4d2cfa440d81b1277",
+  "scope": "The thirty-eighth unmerged LibreCAD patch adds an optional actual-consumer test of a source-matched planar ARC crossing the zero-angle boundary in the explicit default-off named-block path.",
+  "validation": [
+    "LibreDWG independently reports ARC type 17, owner 0x30 and angles 300 to 30 degrees in locally authored ODA-converted AC1024 DWG SHA-256 d870895a78c193880f5cb8bb4868d76e6061550349108ba2bf14409a024909e0.",
+    "The actual LibreCAD test passes 32 assertions, including source membership, radius mutation refusal, destination preservation, same-filter retry, readback of wrapped angles and refusal after an angle edit.",
+    "LibreCAD output SHA-256 ae347fc81a1a8d5a7caa4c320809b7598b63d38ba8d6a6193e6a67308c4115fe was converted by ODA to DWG 99e6b526a0715ea53b492b48df333344b246ad7ce03ed63ce7a28930fa44c539 and back to DXF c50712ec14ef720c74b3e4d68bd091e18590e6af345ee956a0ec28f7cf25c8f8. LibreDWG confirms intermediate entity and sort ownership and the wrapped angles; ezdxf confirms final geometry, angles, entity ownership and zero audit errors/fixes.",
+    "The test patch applies after the prior 37 and reverse-checks in both consumer trees. The older bundled-codec filter compiles. Source-release inventory passes with 1235 files and 18 refusal controls; the 725-input implementation digest remains d2fbf3b7e98738e05bc8f6a097b74ee429b43f58bcc8988a7bc92e6554a539c7."
+  ],
+  "limits": "This generated AC1024-to-ASCII-DXF example is not broad ARC or producer qualification. The opt-in stays default-off and requires unchanged exact source angles and the existing graph gates. Other geometry, styles, nonplanar content, native applications and whole-document closure remain open. No drawing fixture is committed and no support claim is promoted."
+}

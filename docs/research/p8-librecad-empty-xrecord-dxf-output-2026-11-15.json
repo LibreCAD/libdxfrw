@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-empty-xrecord-dxf-output-2026-11-15.patch",
+  "patchSha256": "23e02f35d21262c1fa7b3b7d8b29a67ac3453d07760acd27badff64691750eda",
+  "implementation": "The twenty-ninth unmerged LibreCAD patch extends the default-off programmatic AC1024 named-block SORTENTSTABLE export to selected empty XRECORD dictionary dependencies. It requires the already sealed and matched source dictionary/XRECORD relationship, refuses fixed structural handle collisions and duplicate or unverified entries, reserves each selected identity, preserves both dictionary entries, and rechecks the source relationship before writing each empty XRECORD. Unsupported payloads remain refused.",
+  "validation": [
+    "The actual LibreCAD importer/exporter test passed 23 assertions, including altered cloning and nonempty payload refusal with destination preservation, same-filter successful retry, and fresh LibreCAD readback of block, dictionary, SORTENTSTABLE and empty XRECORD relationships. The workspace-local title drawing remains refused with its destination preserved. All three installed-codec focused CTests passed.",
+    "The locally authored ODA-produced AC1024 source has dictionary B003 with ACAD_SORTENTS B100 and OTHER XRECORD B200. LibreCAD output SHA-256 d2bcfab8850b81ed7a02133787d4f137d219102f99f62b48847ed14c8c7f6a79 has block B27B, dictionary B003 owned by B27B, table B100 owned by B003 and pointing to B27B, and empty XRECORD B200 owned by B003. ezdxf 1.4.5 reports zero audit errors/fixes.",
+    "ODA File Converter 27.1.0 converted that ASCII DXF to AC1024 DWG and back to DXF; the result SHA-256 410b788322403c814448dbedef8533854d0a1f7d6523234f7c3432cc126d2340 preserves the same identities and links, with zero ezdxf audit errors/fixes.",
+    "The patch applies after the prior 28 patches and the older bundled-codec filter compiles with the experimental additions excluded. Source-release inventory passes with 1225 files and 18 refusal controls; the 724-input implementation digest remains 64a2959853ace89b7d87ce130bdedda8c2a6f64aaec1cb203295dfe1b3220d83."
+  ],
+  "limits": "The consumer option is programmatic and default-off. This is one locally authored empty-block, empty-XRECORD AC1024-to-ASCII-DXF example, not general source/output closure or native AutoCAD/FreeCAD qualification. Nonempty XRECORD payloads, structural handle collisions, nondefault block metadata, complex title dynamic data, GUI exposure and other platforms remain open. Autodesk documents only space owners and LibreDWG drops the named-block table on conversion. No support claim is promoted and no drawing fixture is committed."
+}

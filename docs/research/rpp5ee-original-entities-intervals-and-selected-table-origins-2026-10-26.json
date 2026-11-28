@@ -1,0 +1,321 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5ee original ENTITIES intervals and selected TABLE origins",
+  "date": "2026-10-26",
+  "parentCommit": "52eb6f4fe54e28249deb02c1479f8560c21ef971",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "ORIGINAL_ENTITIES_TRANSPORT_AND_SELECTED_TABLE_PHYSICAL_ORIGINS_VERIFIED_DISPATCH_BODY_SPACE_COMMON_LIVE_OUTPUT_AND_EXTERNAL_QUALIFICATION_OPEN",
+  "scope": {
+    "api": "Additive DRW_DxfEntitiesSource/limits and optional handler facet; existing DRW_Interface, observer-facet vtables and drawing-model layouts unchanged",
+    "interval": "Actual pending first code-0 marker after readEntityBoundary through accepted ENDSEC; empty interval begins/ends at ENDSEC; excludes section header and comments before first marker",
+    "contents": "Original scalar kinds/values, ASCII spellings, record names, byte/ordinal spans, compound subrecords and observer-identified ignored comments, not callback reconstruction",
+    "sharedCore": "Neutral templated physical transport factored from BLOCK collector with separate ENDBLK/ENDSEC wrappers; shared CLI physical-copy validation/accounting, existing BLOCK budgets preserved",
+    "callbacks": "Ordinary timing unchanged, no whole-section callback staging; opt-in latched per section; source callback after accepted ENDSEC/ordinary callbacks, observer detached before publication",
+    "failure": "Aborted/truncated/throwing section publishes no completed source report; later whole-file failure cannot qualify an earlier completed interval; own evidence quota/allocation failure soft, shared reader ceilings can still reject read",
+    "context": "Immutable CLI snapshots require successful actual first-generation DXF import, pinned container/generation/version/owner context and ordered nonreused scope intervals; report concerns retained opted-in scopes only",
+    "tableGate": "After direct roles, selected TABLE records additionally join scoped outer identities, pinned physical owners and exact literal raw scalar/type/spelling transport, excluding only observer-identified ignored comments",
+    "tableLimit": "Presence/body transport, not all TABLE semantics, observed primary callbacks, model/paper/BLOCK_RECORD associations, native collation, common targets, editable/live/output or support proof",
+    "index": "Only actual ACAD_TABLE origins get the bounded identity index, not a map allocation for every physical entity",
+    "collectorDefaults": {
+      "records": 65536,
+      "groups": 262144,
+      "logicalBytes": 33554432,
+      "logicalWorkUnits": 67108864
+    },
+    "cliAggregateDefaults": {
+      "scopes": 1024,
+      "chargedRecordsIncludingScopeSentinels": 100000,
+      "groups": 4000000,
+      "logicalBytes": 67108864,
+      "logicalWorkUnits": 67108864
+    },
+    "accounting": "Original scalar copy payloads include dormant variant owners; forged native/assembled carriers refused before cloning; conservative copy/temporary/index allowances, not RSS, every allocator, strict CPU or leak proof",
+    "publicHeaderExtended": true,
+    "existingDrawingModelLayoutsChanged": false,
+    "existingDrwInterfaceVtableChanged": false,
+    "existingObserverFacetVtablesChanged": false,
+    "nativeDwgByteParserOrEncoderChanged": false,
+    "geometryDecoderChanged": false,
+    "externalDrawingFixturesCommitted": false,
+    "drawings": "All new inputs authored locally at runtime; unrelated untracked samples preserved",
+    "completenessLimit": "Physical observations and selected literal TABLE origins only; unresolved/opaque/no-callback records can be transported without acquiring semantic/graph/output qualification",
+    "rawProxyRouting": "Generic raw entity loop stops common proxy-only 92/160/310 parsing after first foreign subclass or embedded-object boundary; application-isolated markers do not change that state; later repeated AcDbEntity cannot reopen. Layer/color/linetype routing is unchanged.",
+    "proxyDecoderMathOrOpcodesChanged": false,
+    "productionDxfProxyFieldRoutingChanged": true
+  },
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-995ABB55-571A-4D0F-882E-8A74A738643E.htm",
+      "role": "ENTITIES section/record boundaries and ENDSEC; not a native validity witness"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "role": "Separate owner/space fields motivating unclosed association work, not a completed space claim"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm",
+      "role": "Model/paper block distinctions; actual owner/layout association remains open"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-CC5ACB1B-BBA3-463B-84A5-6CCD320C66E7.htm",
+      "role": "Class-specific DXF data is segregated by subclass markers; reused field codes must not be interpreted as another class's common proxy cache"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/OARX-DevGuide/files/GUID-A0E46BAC-ECE3-4E31-854A-3616A532C826.htm",
+      "role": "Custom class representation permits 160..169 as I64 and 310..319 as binary; vendor payload not intrinsically an invalid proxy length"
+    }
+  ],
+  "owningControlsPerConfiguration": {
+    "ctest": "libdxfrw_entities_source_transport",
+    "selector": "--entities-source",
+    "actualModernSourceRoutes": 12,
+    "axes": "Four modern revisions x ASCII LF/CRLF/Binary, repeated/empty scopes",
+    "independentOriginalScalarSpans": 1344,
+    "spanScope": "Exact original scalar values/bits/spellings, ordinals and byte bounds; BLOCKS/custom-section lookalikes and pre-interval comments excluded",
+    "semanticsLimit": "Authored inputs deliberately include unresolved dependencies and mixed space metadata/no-callback records; not external CAD validity or semantic/kernel evidence",
+    "legacyOptOutCallbackOrderUnchanged": true,
+    "rawRecordCountInMainScope": 12,
+    "noRecordCallbackCountEquivalenceClaimed": true,
+    "malformedCarrierAndCorrectedImportRetries": 26,
+    "exactAndOneUnderAggregateLimits": 20,
+    "exactAndOneUnderCollectorLimits": 16,
+    "observedImmutableCopyAllocationFaults": 78,
+    "isolatedCollectorAllocationFaults": 10,
+    "collectorControls": "Actual-reader prior-observer chaining and ignored-comment/pending-marker accounting; isolated synthetic-view allocation faults restore prior observer and logical leases, then reader teardown releases remaining token owner",
+    "allocationLimit": "Environment-specific observed schedules, not portable STL counts, all allocator sites or leak detector certification",
+    "copiedAliasLatchedAppendedStaleTeardownContexts": 12,
+    "sourceOrdinaryCallbackExceptionRetryPairs": 6,
+    "selectedTablePhysicalOriginControls": 14,
+    "tableControls": [
+      "Successful original origin",
+      "Missing transport",
+      "Body scalar mismatch",
+      "Self identity mismatch",
+      "Numerically equivalent but different handle string",
+      "Owner mismatch",
+      "Immutable physical owner replacement/restoration"
+    ],
+    "abortedSectionWholeImportRetryPairs": 10,
+    "abortControls": [
+      "Missing ENDSEC",
+      "Truncated entity",
+      "Oversized actual common-scope proxy count",
+      "Missing sequence footer",
+      "Failure in a later section after an earlier complete interval"
+    ],
+    "legacyAsciiFileRoutes": 2,
+    "legacyRevisions": [
+      "AC1009",
+      "AC1015"
+    ],
+    "publicReadAsciiAndFileReuseRoutes": 14,
+    "publicAxes": "Six source revisions x LF/CRLF, then Binary file read followed by ASCII memory reuse",
+    "attdefRawTypedMatched": false,
+    "outputEligible": false,
+    "rawProxyClassProfiles": 144,
+    "rawProxyClassAxes": "Four modern versions x ASCII/Binary x BLOCKS/ENTITIES x nine shapes",
+    "rawProxyShapes": [
+      "Opaque vendor group 160 I64",
+      "Vendor negative 92/chunks are not common proxy data",
+      "Genuine common cache before vendor group 160",
+      "Application-isolated fake subclass/count/chunks before genuine cache",
+      "Repeated AcDbEntity cannot reopen common cache",
+      "Legacy no-subclass genuine cache",
+      "Common partial cache cannot complete with vendor chunks",
+      "Vendor-only cache does not render",
+      "Embedded-object boundary closes common cache"
+    ],
+    "genuineCommonCountRefusalAndSameReaderRetryPairs": 16,
+    "rawProxyChecks": "Exact raw scalar/spelling transport, original host-layer circle geometry when genuine, no circle from opaque chunks, and following POINT; existing local recipe not independent CAD/kernel evidence"
+  },
+  "findings": [
+    {
+      "status": "INTEGRATED_SELECTED_TABLE_ORIGINAL_ENTITIES_PREREQUISITE",
+      "before": "Direct resource/table-body role proof does not establish a selected TABLE's actual ENTITIES physical origin",
+      "after": "Actual retained scope owner, scoped self identity and literal source body must match; directRolesBound stays distinct on source-only refusals",
+      "limit": "Not all entity callback/body/space/dependency or live/output proof; no pristine-parent released-defect qualification"
+    },
+    {
+      "status": "REPRODUCED_GENERIC_RAW_PROXY_SUBCLASS_SCOPE_DEFECT_FIXED",
+      "before": "Generic raw reader treated vendor-subclass group 160 with a 4 GiB I64 as common proxy length and could decode opaque class-specific 310 chunks",
+      "redLog": "/tmp/rpp5ee-fixture-old-cli-trace.log",
+      "redEvidenceLimit": "Pre-fix CLI trace establishes the vendor I64 rejection; not all nine final shapes were independently run against a pristine released parent",
+      "after": "Original vendor group 160 remains the positive; common proxy count/chunks stop at foreign subclass or embedded boundaries. Genuine oversized common counts remain negative with same-reader recovery",
+      "limit": "DXF common proxy-field routing only; no new primitive/math or complete application/XDATA/specialized grammar or native/kernel support qualification"
+    },
+    {
+      "status": "LEGACY_CALLBACK_TIMING_AND_BLOCK_TRANSPORT_RETAINED",
+      "before": "BLOCK collector is ENDBLK-specific and ENTITIES callbacks are immediate",
+      "after": "Shared neutral collector retains BLOCK contract and distinct ENTITIES scope without staging callbacks or inventing one section owner",
+      "limit": "Local code/API/control evidence, not formal ABI or native consumer/platform certification"
+    }
+  ],
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21.0.0",
+    "languageWarnings": "C++17 -Wall -Wextra -pedantic -Werror",
+    "normal": {
+      "passed": 58,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 80.34
+    },
+    "asan": {
+      "passed": 58,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 171.69
+    },
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "sequentialRuntimeCohorts": true,
+    "strictBuildsCompletedBeforeRuntimeCohorts": false,
+    "timingLimit": "Elapsed times are not a paired speed benchmark",
+    "tests": [
+      "libdxfrw_dxf_operation_admission",
+      "libdxfrw_dxf_entity_boundary_token_transfer",
+      "libdxfrw_dxf_appdata_retained_owner_budget",
+      "libdxfrw_dxf_block_record_parser_retained_budget",
+      "libdxfrw_dxf_raw_carrier_retention_budget",
+      "libdxfrw_block_owners",
+      "dwg2dxf_dynamic_block_fail_closed",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_attdef_source_transport",
+      "libdxfrw_nested_mtext_common_owner_budget",
+      "libdxfrw_attdef_immutable_capture",
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_block_source_capture",
+      "libdxfrw_block_source_proof",
+      "libdxfrw_block_children_source",
+      "libdxfrw_raw_application_identity",
+      "libdxfrw_raw_proxy_application_scope",
+      "libdxfrw_raw_application_writer",
+      "libdxfrw_raw_shell_application_scope",
+      "libdxfrw_acsh_projection_application_scope",
+      "libdxfrw_block_child_delivery",
+      "libdxfrw_attdef_original_origin",
+      "libdxfrw_block_original_membership",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_block_record_source_proof",
+      "dwg2dxf_acsh_history_capture_limits",
+      "dwg2dxf_raw_dxf_entity_capture_limits",
+      "dwg2dxf_raw_dxf_section_capture_limits",
+      "dwg2dxf_dynamic_block_capture_limits",
+      "dwg2dxf_proxy_object_capture_limits",
+      "dwg2dxf_raw_dxf_object_list_node_accounting",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_compound_body_replay",
+      "dxf_polyface_completed_pool",
+      "dwg2dxf_mtext_orientation_ascii_cli",
+      "dwg2dxf_mtext_orientation_binary_cli",
+      "libdxfrw_compound_source_profile",
+      "libdxfrw_application_handle_width",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_table_content_source_proof",
+      "libdxfrw_cellstylemap_source_profiles",
+      "libdxfrw_cellstylemap_source_proof",
+      "libdxfrw_tablestyle_source_proof",
+      "libdxfrw_symbol_source_proof",
+      "libdxfrw_complex_symbol_bindings",
+      "libdxfrw_auxiliary_source_proof",
+      "libdxfrw_spine_source_proof",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_field_retained_owner_budget",
+      "libdxfrw_table_block_source_bindings",
+      "libdxfrw_table_block_name_bindings",
+      "libdxfrw_entities_source_transport",
+      "libdxfrw_dxf_proxy_subclass_marker_view",
+      "libdxfrw_dxf_proxy_retained_budget",
+      "libdxfrw_dxf_proxy_object_id_terminator",
+      "libdxfrw_dxf_proxy_graphic_loss_policy"
+    ],
+    "strictBuildTargets": [
+      "libdxfrw_attdef_source_tests",
+      "libdxfrw_hardening_tests",
+      "libdxfrw_block_owner_tests",
+      "libdxfrw_table_content_dxf_tests",
+      "libdxfrw_table_geometry_dxf_tests",
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_3d_consumer_probe",
+      "dwg2dxf",
+      "lc3_compat_check",
+      "libdxfrw_dwg_local_roundtrip",
+      "libdxfrw_dxf_fixture_tests",
+      "libdxfrw_field_retained_budget_tests"
+    ],
+    "fullProjectSuiteRepeated": false,
+    "autotoolsDistributionSuiteRepeated": false,
+    "formalAbiCertification": false,
+    "nativeLibreCadOrLibreCad3Execution": "NOT_RUN",
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "normalBuildLog": "/tmp/rpp5ee-final-normal-build.log",
+    "asanBuildLog": "/tmp/rpp5ee-final-asan-build.log",
+    "normalLog": "/tmp/rpp5ee-final-normal-affected.log",
+    "asanLog": "/tmp/rpp5ee-final-asan-affected.log",
+    "buildOverlap": "Normal runtime overlapped ASan compilation; both final builds succeeded, normal and ASan runtime cohorts sequential",
+    "supersededBeforeRawProxyScopeFix": {
+      "normal": {
+        "passed": 54,
+        "seconds": 80.83,
+        "log": "/tmp/rpp5ee-normal-affected.log"
+      },
+      "asan": {
+        "passed": 54,
+        "seconds": 170.8,
+        "log": "/tmp/rpp5ee-asan-affected.log"
+      },
+      "limit": "Historical results before final production raw proxy class-scope change; not final verification"
+    }
+  },
+  "claimState": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "ledger": "CLOSED",
+    "outputEligible": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "supportClaimsPromoted": false,
+    "remoteMutations": false,
+    "fullGoalComplete": false
+  },
+  "remaining": [
+    "Independent actual ENTITIES dispatch/callback origins tied to real scope IDs without delaying legacy callbacks or dropping TABLE/ATTDEF source facets",
+    "Per-primary/linked-compound original owner/space/layout association and complete body/profile proof, with raw/no-callback/secondary/header forms explicit",
+    "Common/style/APPID/LAYER/object/default dependencies, specialized application/proxy/codepage contexts and adequate native collation evidence",
+    "B2b/B3/C source/live/editable/output identities, complete fields/names/references, remapping, atomic rollback/retry/destination preservation",
+    "Original IMAGE/document/native-bit/decimal/carrier/schema/owner, performance/memory and 2D/3D/dwg2dxf/FreeCAD parity",
+    "Native consumer/platform and independent external ACIS/ACDS semantic/kernel qualification",
+    "Self-update plan/receipts, commit/report verified slices, continue available local work with fast owning and exact integration checks; no external drawing fixture commits"
+  ],
+  "sha256": {
+    "CMakeLists.txt": "42736cb9c37d09b4fde16115b24c6aab2eae6b8efb37ce099fa88955ad07439a",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "1557dd90b163976767633f17dacd69d3fc57d930406effbbfe1421f129ee4845",
+    "dwg2dxf/dx_data.h": "25113c2dc768380087d399eb6d9ca458e981a69d4ad27467170cdf6a7447d96d",
+    "dwg2dxf/dx_iface.cpp": "b0f77727f84a13d0b7463fa14d90d41f2a42081326dd6d3ed6e6ef0eab6c04db",
+    "dwg2dxf/dx_iface.h": "6434da57a5ff70caeb39eb7a2c04ed8161f6f0182128cc329a894ed766cf9e1d",
+    "libdxfrw_sources.cmake": "a9a0e6136cf45ecb5ea8d3f85ef15abeb2760f81cbefddfc685636c59398f0e9",
+    "src/Makefile.am": "6d4cae1a9f26d9c795931d576afb18e6d1d7c7b36cd2f5c9998be8ec81c53a40",
+    "src/drw_interface.h": "b08e03f8c2be618c926acd5e24c48433d2f38e8f2b725607cc8a8c60e4128c35",
+    "src/intern/dxfblockchildren.h": "6bd3c3eb5445bbce8ea0c94b87b4f1318c4c53e36dc6a8bdfa3213b92d94c059",
+    "src/intern/dxfphysicalentities.h": "6a88435a83cc8938f10a33a2fa15e01adcffac38d9b3b33e276d924da30404d0",
+    "src/intern/dxfentitiessource.h": "6fef695995847ac14ed890cc2d86cad257e7e5e0cf094e5c53054d0f28b2daa2",
+    "src/libdxfrw.cpp": "9fc8753a6a05a8b309bcded6d04840e8c6081dd840c7597b8957789780c91646",
+    "tests/CMakeLists.txt": "7276c2d4c5eb80f8c0e86cef056848443b18a33915e95a1b8b2cdc0ae679e82e",
+    "tests/table_content_dxf_tests.cpp": "f3dcda1bf6b146a015e4dfe11502bc1ff72d4577ec3d9c286f75fe3e3cdf24c7",
+    "tests/entities_source_controls.h": "b4ba39d03c49a0d5a4fcf0fb0d7d29c3b14a90b4d236848a6b768544622652b8",
+    "/tmp/rpp5ee-final-normal-build.log": "e78d3c6aa50e8a76d3d7bc969afbba59b5cc77fd4fbb7780a403aa4007126aeb",
+    "/tmp/rpp5ee-final-asan-build.log": "c7e9f8f6c17fccbf9c0ac444a616eaffdaf3030cecda897fa7ae92ba73365d5c",
+    "/tmp/rpp5ee-final-normal-affected.log": "a1f0c590623b328384c7c0bc99278fed7441d88b8f7a99081205d2f0db30e437",
+    "/tmp/rpp5ee-final-asan-affected.log": "1fd0782cbc8a5a7aecabf73b632f1854d51ae6e373c754d39908a4d83946807f",
+    "/tmp/rpp5ee-fixture-old-cli-trace.log": "039f2da56597edd91c7827f2cd5ea2a3ed20e44696bc2bc4475e06ef6f82da57"
+  }
+}

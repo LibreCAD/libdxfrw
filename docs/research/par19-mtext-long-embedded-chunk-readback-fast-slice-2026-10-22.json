@@ -1,0 +1,86 @@
+{
+  "id": "par19-mtext-long-embedded-chunk-readback",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Close the local long-text parser/readback coverage gap for canonical R2018 embedded MTEXT in ATTRIB and ATTDEF.",
+    "Register the existing 7E scope matrix as an independently runnable fast CTest."
+  ],
+  "implementation": {
+    "files_changed": [
+      "CMakeLists.txt",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "input_profile": {
+      "dxf_version": "AC1032",
+      "encodings": ["ASCII", "Binary"],
+      "embedded_hosts": ["ATTRIB", "ATTDEF"],
+      "text_characters": 501,
+      "wire_chunks": [
+        {"group": 3, "characters": 250},
+        {"group": 3, "characters": 250},
+        {"group": 1, "characters": 1}
+      ]
+    },
+    "asserted": [
+      "Nested MTEXT text exactness on source parse and write/readback",
+      "Distinct embedded annotation height and rotation",
+      "Background ACI, truecolor, name and transparency",
+      "Outer fallback text, tag, ATTDEF prompt and host XDATA",
+      "Following LINE preservation"
+    ],
+    "selector": "--mtext-column-object-scope",
+    "ctest": "libdxfrw_mtext_column_object_scope",
+    "production_code_changed": false,
+    "public_api_changed": false,
+    "fixture_added": false,
+    "support_claim_changed": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+        "result": "PASS",
+        "notes": "Strict configured compiler flags; compatibility target succeeds."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_mtext_column_object_scope$' --output-on-failure",
+        "result": "PASS",
+        "tests_passed": 1,
+        "tests_total": 1,
+        "elapsed_seconds": 0.49
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq -e . docs/research/par19-mtext-long-embedded-chunk-readback-fast-slice-2026-10-22.json",
+        "result": "PASS"
+      }
+    ],
+    "full_fixture_suite_run": false,
+    "independent_producer_run": false,
+    "native_cad_run": false
+  },
+  "assessment": {
+    "evidence_ceiling": "Generated local ASCII/Binary parser and same-codec writer/readback controls; no independent producer or native layout/rendering qualification.",
+    "remaining": [
+      "Independent producer-authored MTEXT column evidence.",
+      "Native CAD layout/rendering qualification."
+    ],
+    "deferred_external": [
+      "J256", "J260", "J268", "J284", "J293", "J295",
+      "FreeCAD Linux qualification",
+      "FreeCAD Windows qualification",
+      "independent ACIS/ACDS semantic qualification"
+    ]
+  },
+  "commit": "not created; no files were staged"
+}

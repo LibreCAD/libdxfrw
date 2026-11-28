@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "dwg-rs status, denominator, container-boundary evidence, and codec-lineage refresh",
+  "mode": "Broader primary-source OSS implementation review and plan refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh the previously identified dwg-rs candidate and nearby wrapper routes against current public source pages.",
+    "Assess dwg-rs as a possible bounded DWG container/object-walk cross-check, separating its implementation independence from shared spec authority and disclosed algorithm-comment lineage.",
+    "Deduplicate LibreDWG-backed wrappers and separate DWG, DXF, writer, visualization, and 3D semantic evidence.",
+    "Refine only existing comparator admission, frame-boundary, and evidence-denominator gates; preserve fixture and reduced-validation constraints."
+  ],
+  "method": {
+    "kind": "Read-only primary-source GitHub repository, README, status, clean-room, and threat-model review",
+    "webResearchPerformed": true,
+    "peerRepositoriesCloned": false,
+    "peerExecutablesOrPackagesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "immutableCandidatePin": null,
+    "evidenceRule": "A distinct parser implementation can be a useful cross-check, but a shared ODA specification is not an independent normative authority. Capability tables and aggregate decode percentages do not establish per-version, per-record semantic fidelity or writer acceptance."
+  },
+  "evidence": [
+    {
+      "route": "dwg-rs public mutable main",
+      "sources": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/STATUS.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/CLEANROOM.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/THREAT_MODEL.md"
+      ],
+      "observed": "The project declares an Apache-2.0 Rust DWG reader authored from ODA Open Design Specification v5.4.1. Its README marks it pre-alpha, source-only/unpublished 0.1.0-alpha.1, with a shipping container/object-walker layer and incomplete entity decoders. It reports a dated 19-file corpus with 3,911 decoded, 525 skipped, 9 errored, and 88.0% aggregate coverage, but only one AC1032 sample. It documents no DXF reader, alpha writer paths, no automated external CAD acceptance, incomplete owner/block graph traversal, and approximate glTF tessellation. The threat model lists bounded parsing but says extended fuzz runs are not yet logged. The project claims it did not consult/import LibreDWG source, while disclosing ACadSharp algorithm-comment consultation for an LZ77 offset ambiguity.",
+      "limits": "Mutable main was not bound to an immutable commit or built artifact and was not executed. The same README later repeats older 90.3% aggregate / 85.9% AC1032 and 649-test figures, while the dated STATUS states 88.0% and 774 tests; this is documentation freshness conflict. The clean-room account is a project declaration, not an independent legal/source audit. Shared ODA v5.4.1 means it cannot independently settle normative byte-layout questions; its disclosed ACadSharp comment lineage further limits an independent LZ77 vote.",
+      "planUse": "Classify as OPTIONAL_CONTAINER_CANDIDATE / NOT_RUN. If a uniquely useful local ambiguity remains, pin commit, source archive/build hash, Cargo.lock, toolchain, command, input hashes, and exact denominator. Use it for section/object-frame diagnostics only; do not admit aggregate scores, writer, 3D, or ACIS semantics."
+    },
+    {
+      "route": "uncad mixed DWG/DXF route",
+      "sources": [
+        "https://github.com/iyulab/uncad"
+      ],
+      "observed": "The project describes DWG parsing through LibreDWG FFI and DXF parsing through the separate pure-Rust undxf crate, with JSON/SVG/PNG output and no current DWG/DXF writer API.",
+      "limits": "No exact release/source pin or execution was made. DWG results share LibreDWG parser lineage; DXF syntax/projection cannot establish DWG parity or writer fidelity.",
+      "planUse": "Do not count as a new DWG codec. Consider only as a separately pinned DXF observer if a remaining exact DXF question warrants it."
+    },
+    {
+      "route": "mlightcad LibreDWG wrappers",
+      "sources": [
+        "https://github.com/mlightcad/libredwg-web",
+        "https://github.com/mlightcad/cad-viewer"
+      ],
+      "observed": "Public project descriptions identify LibreDWG as the default DWG parsing/conversion backend beneath web and rendering layers.",
+      "limits": "Wrapper, UI, and renderer behavior are not independent codec implementations and were not run.",
+      "planUse": "Deduplicate with LibreDWG for parser-lineage counts; treat rendering as a separate consumer operation."
+    },
+    {
+      "route": "Existing parity plan reconciliation",
+      "sources": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "Added a source-backed candidate classification and a bounded optional run recipe under existing PAR-07/S8 and PAR-14 owners; recorded test-denominator and codec-lineage limits.",
+      "limits": "No local parser correctness result follows from peer documentation. Existing historical plan count entries vary between 141 and 142 and were not recalculated in this pass.",
+      "planUse": "Use an exact-pinned optional route only if it answers a specific unresolved question; otherwise record NOT_RUN and continue local work."
+    }
+  ],
+  "assessment": {
+    "newSourceFamiliesScreened": 0,
+    "existingCandidateRoutesFreshnessChecked": 4,
+    "newEligibleIndependentDWGComparatorRoutes": 0,
+    "optionalUnadmittedContainerCandidates": 1,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: classify dwg-rs as an optional, not-yet-admitted container/object-boundary candidate; pin immutable source and run only at a composed checkpoint when it answers a local question.",
+      "PAR-07/S8: deduplicate uncad and mlightcad wrappers by their underlying DWG codec lineage; separate DXF parser, consumer, and rendering roles.",
+      "PAR-14: compare exact section/object boundaries and per-record decoded/skipped/errored dispositions; avoid aggregate percentages and source-doc/test-count drift."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "currentWorkingSummaryFindings": 142,
+      "topLevelSubplans": 78,
+      "historicalCountConflict": "141 vs 142; no reconciliation performed"
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonSyntax": "PASS (jq syntax and deferred-external/no-promotion invariants)",
+    "scopedPlanDiffCheck": "PASS (git diff --check on the plan; trailing-whitespace scan on the receipt)",
+    "peerRuntime": false,
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "receiptVersion": 1,
+  "phase": "P5",
+  "profile": "AC1024 ACDB_DYNAMICBLOCKPROXYNODE exact DXF record writer",
+  "state": "RECORD_TRANSPORT_AND_READBACK_PASS_DOCUMENT_GRAPH_OPEN",
+  "profileBinding": {
+    "recordName": "ACDB_DYNAMICBLOCKPROXYNODE",
+    "sourceVersion": "AC1024",
+    "sourceFields": {
+      "subclass": "AcDbEvalExpr",
+      "nodeId": 226,
+      "major": 29,
+      "minor": 2,
+      "valueCode": -9999,
+      "parentId": 4294967295
+    },
+    "outputFields": {
+      "major": 33,
+      "minor": 29
+    },
+    "acceptedSourceFieldProfiles": [
+      {"sourceFormat": "DWG", "major": 29, "minor": 2},
+      {"sourceFormat": "DXF", "major": 33, "minor": 29}
+    ],
+    "sourceHandle": "0x1164",
+    "ownerHandle": "0x1155",
+    "inputConstruction": "in-memory typed AC1024 DWG-profile record based on the physical source observation; no fixture file created"
+  },
+  "implementation": {
+    "source": "dxfRW::writeDynamicBlockObject",
+    "admission": "exact AC1024 DWG EvalExpr-only record, complete typed body, source schema 29/2, valid signed node ID, no value/element/reactor payload",
+    "emittedBody": [
+      [100, "AcDbEvalExpr"],
+      [90, 226],
+      [98, 33],
+      [99, 29]
+    ],
+    "handleBehavior": "common self and owner handles pass through the standard DXF remapper and reservation path"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-proxy-node-dxf-writer",
+      "result": "PASS",
+      "formats": ["ASCII DXF", "Binary DXF"],
+      "sourceProfiles": ["DWG 29/2", "DXF 33/29"],
+      "checks": [
+        "incomplete typed body refuses without replacing a pre-existing destination",
+        "corrected body retries on the same writer and destination",
+        "fresh parser readback matches typed fields and ordered raw groups"
+      ]
+    },
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "cc1c11ffacc971e80e33c2474d92b06c8afe17f78c74d20bada9f4710103f172",
+      "tests/dwg2dxf_adapter_tests.cpp": "c31da59ab5786ad4c2c7f4d928be25a9d793cffaedd0676b636f9d3ff37927a3"
+    },
+    "executableSha256": {
+      "build-gcc/dwg2dxf/dwg2dxf": "be82aa32c8972bd3860f14834667f5a41aa05c54089cbfa867320f3ecffe4acf",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "c20b254e399bc88c6d043820a8964dd9cb26f6872d8cb8b375f19a9947a08f0f"
+    },
+    "drawingsCommitted": false
+  },
+  "qualification": {
+    "recordSerializerProfile": true,
+    "standaloneRecordHandleReadback": true,
+    "sourceToOutputIdentityBinding": false,
+    "bothEvaluationGraphOwnersClosed": false,
+    "nestedAssociativeAndParameterDependencyClosure": false,
+    "strictCompleteConversion": false,
+    "nativeDynamicBlockSemantics": false,
+    "supportClaimsPromoted": false
+  },
+  "next": "Project and serialize the other source-required dynamic-block subclasses, bind identities and references, then close the complete two-graph source document. This standalone record transport is not a graph or consumer qualification."
+}

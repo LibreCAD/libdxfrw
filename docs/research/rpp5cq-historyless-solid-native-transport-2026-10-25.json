@@ -1,0 +1,360 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5cq historyless 3DSOLID native transport and advisory geometry witness",
+  "date": "2026-10-25",
+  "parentCommit": "4cf0bed34fab40d6862a49d0d3b057b5be8dd187",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "HISTORYLESS_SOLID_BOUNDED_NATIVE_PROJECTION_FIXED_TWO_LANES_TESTED_ADVISORY_GEOMETRY_OBSERVED_RAW_ACSH_GRAPH_OWNER_REEXPORT_OPEN",
+  "productionChanges": [
+    "Zero-history REGION and 3DSOLID continue without inventing operation graphs in proxy and typed BOX collectors",
+    "Existing inspected entity-kind, nonzero-history closure and final unused-history/proxy inventories remain unchanged"
+  ],
+  "unchanged": [
+    "Native production parsing/encoding",
+    "Public API/ABI/callbacks",
+    "Support masks, strict admission and completeness policies",
+    "Version/schema/retention/owner predicates",
+    "BODY refusal",
+    "cq-acis verifier qualificationEligible=false"
+  ],
+  "research": {
+    "specification": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/private/tmp/lc2961-impl-evidence.9GtLO2/independent-fixtures/tooling/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sha256": "fa7d94932897c65887b1b6eb8b43a8c6f7a0567192f4483db98b9f4f856fce2e",
+    "sections": [
+      "24.2.1 segment headers",
+      "24.2.2.1/.2/.3 inline data records",
+      "24.2.2.5/.6/.7 schema and search"
+    ],
+    "officialHistoryReference": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-Core/files/GUID-AE581A57-7045-41AC-B1C4-3E8FDED0ACBA.htm",
+    "historyReferenceScope": "BREP removes solid history; this is not a full DWG byte-layout or producer qualification"
+  },
+  "baseline": {
+    "unchangedProduction": true,
+    "generatedControls": {
+      "log": "/tmp/rpp5cq-baseline-tests.log",
+      "historylessInline": "FAIL",
+      "historylessPaged": "FAIL",
+      "existingPagedRegion": "PASS",
+      "ctestReportedFailed": 2,
+      "wallSeconds": 1.06
+    },
+    "genuineWitness": {
+      "log": "/tmp/rpp5cq-valid-witness-baseline.log",
+      "actualHarnessExitCode": 1,
+      "actualNativeImportBeforeProjection": true
+    },
+    "attribution": "Both zero-history guards allowed REGION only; native whole-file 3DSOLID import and actual decoded schema/payload joins succeed before projection refusal"
+  },
+  "harness": {
+    "boundedInlineGrowthOptIn": true,
+    "existingSmallFixtureDefaultsPreserved": true,
+    "schemaCarrier": "Six inline segments or eight paged segments; ODA schema/search order and widths retained",
+    "entityTypes": [
+      "REGION",
+      "3DSOLID"
+    ],
+    "versions": [
+      "AC1027",
+      "AC1032"
+    ],
+    "nativeModelerHandle": "708",
+    "nativeLayerHandle": "12",
+    "dataStorageTuple": {
+      "segment": 2,
+      "schema": 1,
+      "key": "708"
+    },
+    "noPostImportSchemaRecordTransplant": true,
+    "wholeRawSectionByteEquality": true,
+    "optionalWitnessInput": "Regular file, 15..262144 bytes, SAB signature required; harness alone does not validate geometry",
+    "optionalWitnessSelector": "--native-historyless-solid-witness[-faults] SAB_FILE EMPTY_DIRECTORY",
+    "optionalWitnessSidecars": "Actual imported native payloads and decoded DXF record bytes; original modeler frames/source fields retained",
+    "generatedThumbnailScope": "PNG signature only, not a decoded valid image",
+    "occupiedDirectory": {
+      "actualHarnessExitCode": 1,
+      "existingArtifactHashesUnchanged": 20,
+      "log": "/tmp/rpp5cq-occupied-refusal.log"
+    }
+  },
+  "controls": {
+    "newCTests": [
+      "dwg2dxf_native_historyless_solid_paged",
+      "dwg2dxf_native_historyless_solid_paged_faults",
+      "dwg2dxf_native_historyless_solid_inline",
+      "dwg2dxf_native_historyless_solid_inline_faults",
+      "dwg2dxf_acds_typed_historyless_companion"
+    ],
+    "generatedHistorylessSolid": {
+      "nativeInstancesPerCohort": 8,
+      "successfulProjectionsReadbacks": 96,
+      "actualParsedOppositeEncodingReexports": 96,
+      "sourceFaultRestorationRetries": 88,
+      "strictSentinelRefusals": 16,
+      "carrierKinds": [
+        "513-byte marker-only inline",
+        "262145-byte marker-only paged"
+      ],
+      "semanticWitness": false
+    },
+    "faults": [
+      "Incomplete retained section or blob",
+      "Logical length mismatch",
+      "Missing marker or underfull blob page sum",
+      "Record/modeler byte divergence",
+      "Changed handle key",
+      "Wrong schema role",
+      "Changed schema count",
+      "Modeler/record byte divergence",
+      "Unresolved nonzero history",
+      "Unused proxy inventory",
+      "Unsupported BODY kind"
+    ],
+    "typedMixedLane": {
+      "profile": "Authored typed BOX closure plus a distinct historyless 3DSOLID and second payload",
+      "encodings": 2,
+      "atomicRefusalsAndRestoredReadbacks": 10,
+      "finalDirectProjectionReadbacks": 2,
+      "faults": [
+        "Erase original solid history while leaving graph",
+        "Unresolved neighbor history",
+        "BODY neighbor",
+        "Unused typed ACSH record",
+        "Unused EvaluationGraph"
+      ],
+      "verification": "Exactly two solids with distinct remapped payload associations; one existing history, one absent history; typed graph/classes/material closure checked",
+      "parsedDxfReexport": "FAIL_CLOSED_UNRESOLVED_RAW_ACSH_OWNER",
+      "atomicReexportSentinelRefusals": 2,
+      "successfulParsedDxfReexports": 0
+    }
+  },
+  "genuineWitness": {
+    "generator": "tools/create_acis218_mesh_witness.py",
+    "locallyAuthoredFromScratch": true,
+    "directory": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-acis218-box-v0z0tp8i",
+    "sabBytes": 5489,
+    "sabSha256": "3cad1eb39ac210fd5c4b5c05fadf6dc1301d941840e0be89f52c592afecfc9d1",
+    "entityKind": "3DSOLID preserved; never relabeled REGION",
+    "normal": {
+      "positiveDirectory": "/private/tmp/libdxfrw-rpp5cq-valid.mmo7a6",
+      "faultDirectory": "/private/tmp/libdxfrw-rpp5cq-valid-faults.bFstLK",
+      "successfulProjectionsReadbacks": 48,
+      "parsedOppositeEncodingReexports": 48,
+      "restoredRetries": 44,
+      "strictRefusals": 8,
+      "logs": [
+        "/tmp/rpp5cq-valid-positive.log",
+        "/tmp/rpp5cq-valid-faults.log"
+      ]
+    },
+    "asan": {
+      "positiveDirectory": "/private/tmp/libdxfrw-rpp5cq-asan-valid.ntjbu2",
+      "faultDirectory": "/private/tmp/libdxfrw-rpp5cq-asan-valid-faults.6pxvmJ",
+      "successfulProjectionsReadbacks": 48,
+      "parsedOppositeEncodingReexports": 48,
+      "restoredRetries": 44,
+      "strictRefusals": 8,
+      "logs": [
+        "/tmp/rpp5cq-asan-valid-positive.log",
+        "/tmp/rpp5cq-asan-valid-faults.log"
+      ]
+    },
+    "normalNativeHashes": {
+      "AC1027": "aea245818fd2b7e0fc1c305343df9a6d0460a80b00f04a90e779f1fb05c6aa17",
+      "AC1032": "fafb0817497a2aafe58525608849ad1affc9070a8076e2a3de3d234cf771f983"
+    },
+    "independentDxfReader": {
+      "tool": "ezdxf",
+      "version": "1.4.4",
+      "retainedOutputFilesActuallyParsed": 16,
+      "scope": "Eight final positive and eight final corrected-fault ASCII/binary outputs/reexports; not independent parsing of every overwritten intermediate attempt",
+      "observations": "One historyless 3DSOLID, no REGION, exact source SAB bytes, output revision/layer/handle",
+      "report": "/tmp/rpp5cq-independent-dxf-readback.json",
+      "sha256": "a9574380bece7e0d6edf068180529582ec23bea85b07f598fde4cff9de1de623"
+    },
+    "advisoryGeometry": {
+      "verifier": "tools/verify_acis218_sab_cqacis.py",
+      "versions": {
+        "cqAcis": "0.3.12",
+        "cadquery": "2.8.0",
+        "occtBinding": "7.9.3.1"
+      },
+      "runtimeAttestation": "version-strings-only",
+      "sourceReport": "/tmp/rpp5cq-source-cqacis.json",
+      "sourceReportSha256": "9e7ce3701260d279a196f8d883708717072246cec5b43f389ddf580c183e6d39",
+      "outputReport": "/tmp/rpp5cq-output-cqacis.json",
+      "outputReportSha256": "df4b7c04d08eaea55db94b687a0bdf4b148acad86e7c317c42b764513d18fba7",
+      "outputActuallyParsed": "AC1032-binary.dxf.sab extracted after actual native import and DXF readback",
+      "valid": true,
+      "shapeType": "Solid",
+      "solidCount": 1,
+      "closedShellCount": 1,
+      "faces": 6,
+      "edges": 12,
+      "boundsAfterHeaderScale": [
+        -2.5,
+        -3.5,
+        -5.5,
+        2.5,
+        3.5,
+        5.5
+      ],
+      "volume": 384.9999999999999,
+      "surfaceArea": 334,
+      "headerScaleMmPerSourceUnit": 1,
+      "drawingUnitTruth": "notEstablished",
+      "sourceUnitEvidence": "parserHeaderDeclared",
+      "geometryObservationEligible": true,
+      "qualificationEligible": false,
+      "qualificationBlockers": [
+        "locally-authored-not-source-native-dimensional-truth",
+        "shared-OCCT-kernel",
+        "no-DWG-ACDS-native-consumer-or-general-ACIS-qualification"
+      ]
+    },
+    "peerNativeReader": {
+      "tool": "GNU LibreDWG dwgread",
+      "version": "0.14",
+      "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "bothProcessExitCodes": 0,
+      "stderrResult": "SUCCESS",
+      "reports": {
+        "AC1027": {
+          "path": "/tmp/rpp5cq-peer-AC1027.json",
+          "sha256": "6f194e297637ca768cdf73bf19a6a09cb9be6090dcc024a6e7df6f5eaf0cd337"
+        },
+        "AC1032": {
+          "path": "/tmp/rpp5cq-peer-AC1032.json",
+          "sha256": "333a8b8a4ad9e3554c40b33399dd9ba42a9eab162d0f6cb8871d08ce7fb01564"
+        }
+      },
+      "observations": "Both native sources contain fixed type38/3DSOLID handle708, null history, DS flag1, modeler version2, layer hard-pointer5 to handle12, version2 DataStorage fileSize6784 and six segment names",
+      "fullSchemaPayloadSabQualification": false,
+      "limitations": "Same independently recorded schema-role/hardcoded decoder/search-width gaps as RPP-5cp; counts and SUCCESS do not qualify complete native schema or semantics"
+    }
+  },
+  "validation": {
+    "normal": {
+      "log": "/tmp/rpp5cq-normal-final-tests.log",
+      "tests": [
+        "dwg2dxf_modeler_acds_blob_faults",
+        "dwg2dxf_xrecord_owned_extension",
+        "dwg2dxf_native_paged_datastorage_faults",
+        "dwg2dxf_xrecord_owned_extension_faults",
+        "dwg2dxf_selected_raster_reactor_metadata",
+        "dwg2dxf_modeler_acds_blob_projection",
+        "dwg2dxf_native_paged_datastorage",
+        "libdxfrw_wave1",
+        "libdxfrw_table_entry_datastorage_refusal",
+        "libdxfrw_acds_exact_record_wire_controls",
+        "dwg2dxf_modeler_dxf_writer_matrix",
+        "dwg2dxf_acds_multi_record_projection",
+        "dwg2dxf_modeler_acds_r2013plus_projection",
+        "libdxfrw_dwg_acds_dataindex_order",
+        "libdxfrw_datastorage_page_boundaries",
+        "dwg2dxf_acds_raw_dxf_source_baseline",
+        "dwg2dxf_modeler_acds_block_projection",
+        "dwg2dxf_datastorage_capture_limits",
+        "dwg2dxf_datastorage_move_callback",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_raw_modeler_acds_replay",
+        "libdxfrw_dxf_fixtures",
+        "dwg2dxf_native_historyless_solid_paged",
+        "dwg2dxf_native_historyless_solid_paged_faults",
+        "dwg2dxf_native_historyless_solid_inline",
+        "dwg2dxf_native_historyless_solid_inline_faults",
+        "dwg2dxf_acds_typed_historyless_companion"
+      ],
+      "allPass": true,
+      "wallSeconds": 18.25
+    },
+    "asan": {
+      "log": "/tmp/rpp5cq-asan-final-tests.log",
+      "tests": [
+        "dwg2dxf_modeler_acds_blob_faults",
+        "dwg2dxf_xrecord_owned_extension",
+        "dwg2dxf_native_paged_datastorage_faults",
+        "dwg2dxf_xrecord_owned_extension_faults",
+        "dwg2dxf_selected_raster_reactor_metadata",
+        "dwg2dxf_modeler_acds_blob_projection",
+        "dwg2dxf_native_paged_datastorage",
+        "libdxfrw_wave1",
+        "libdxfrw_table_entry_datastorage_refusal",
+        "libdxfrw_acds_exact_record_wire_controls",
+        "dwg2dxf_modeler_dxf_writer_matrix",
+        "dwg2dxf_acds_multi_record_projection",
+        "dwg2dxf_modeler_acds_r2013plus_projection",
+        "libdxfrw_dwg_acds_dataindex_order",
+        "libdxfrw_datastorage_page_boundaries",
+        "dwg2dxf_acds_raw_dxf_source_baseline",
+        "dwg2dxf_modeler_acds_block_projection",
+        "dwg2dxf_datastorage_capture_limits",
+        "dwg2dxf_datastorage_move_callback",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_raw_modeler_acds_replay",
+        "libdxfrw_dxf_fixtures",
+        "dwg2dxf_native_historyless_solid_paged",
+        "dwg2dxf_native_historyless_solid_paged_faults",
+        "dwg2dxf_native_historyless_solid_inline",
+        "dwg2dxf_native_historyless_solid_inline_faults",
+        "dwg2dxf_acds_typed_historyless_companion"
+      ],
+      "allPass": true,
+      "wallSeconds": 38.37
+    },
+    "normalAsanOwningCohortsSequential": true,
+    "parallelismInsideCohort": 3,
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "normalBuildLog": "/tmp/rpp5cq-normal-final-build.log",
+    "asanBuildLog": "/tmp/rpp5cq-asan-final-build.log",
+    "bothLibreCAD3CompileGates": "PASS",
+    "cliOptionalBuild": {
+      "log": "/tmp/rpp5cq-cli-optional.log",
+      "allPass": true,
+      "wallSeconds": 2.71
+    },
+    "fullSuite": "NOT_RUN",
+    "leakQualification": "NOT_RUN",
+    "nativeLinuxWindowsQualification": "NOT_RUN"
+  },
+  "discoveredOpenGap": {
+    "code": "prepareExtensionObjectGraph EvaluationGraph owner references",
+    "diagnostic": "EvaluationGraph owner is unresolved or not representable",
+    "source": "Actual DXF import of typed BOX/history plus historyless neighbor; base typed projection and all ten restored source retries pass",
+    "debugLog": "/tmp/rpp5cq-mixed-replay-debug-tests.log",
+    "nextAction": "Model and independently prove selected raw ACSH owner/expression roles, common links, emitted identity and complete history closure before allowing DXF reexport; keep existing sentinel-preserving refusal",
+    "reexportBugFixed": false,
+    "rawGraphOwnerContractBypassed": false
+  },
+  "supportBoundaries": {
+    "strictAdmission": "CLOSED",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxFreeCAD": "NOT_RUN",
+    "nativeWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsSemanticKernelQualification": "NOT_RUN",
+    "supportClaimsPromoted": false,
+    "wholePlanComplete": false
+  },
+  "remaining": [
+    "Selected raw ACSH/EvaluationGraph owner/expression DXF reexport contract and exact field/reference proof",
+    "Independent complete native schema/payload/owner and producer-paired semantic/kernel evidence",
+    "General native raw-carrier/schema propagation and cumulative retention/owner bounds",
+    "Owning/common-extension/source-generation aliases, callbacks, names/body/path/EED, sparse classes, full IMAGE and named-root/document closure",
+    "Native Linux/Windows FreeCAD qualification; preserve LibreCAD/LibreCAD_3 2D and full 3D objective",
+    "Isolate remaining fixed temporary paths before concurrent cross-build owning cohorts"
+  ],
+  "exclusions": {
+    "drawingsCommitted": false,
+    "preexistingUntrackedDrawingsExcluded": 17,
+    "unrelatedUntrackedFilesExcluded": true,
+    "earlierReceiptsModified": false,
+    "remoteMutation": false
+  }
+}

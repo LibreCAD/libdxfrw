@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw-acis-sab-parser-fed-nonfinite-plane-normal-udir-v1",
+  "observedAt": "2026-10-21",
+  "title": "Generated SAB plane normal and U-direction finite-value refusal fast slice",
+  "evidenceKind": "local generated regression test",
+  "source": "tests/graph_preservation_tests.cpp",
+  "profile": {
+    "container": "ACIS BinaryFile",
+    "version": 21800,
+    "fixtureOrigin": "generated in memory and serialized by the test",
+    "record": "plane-surface",
+    "ownerPointerCount": 1
+  },
+  "cases": [
+    {"field": "normal.x", "value": "NaN", "parseAndModel": "pass", "rootedProjection": "refused as InvalidModel", "failedNode": "owning body", "output": "cleared transactionally"},
+    {"field": "normal.x", "value": "+infinity", "parseAndModel": "pass", "rootedProjection": "refused as InvalidModel", "failedNode": "owning body", "output": "cleared transactionally"},
+    {"field": "normal.x", "value": "-infinity", "parseAndModel": "pass", "rootedProjection": "refused as InvalidModel", "failedNode": "owning body", "output": "cleared transactionally"},
+    {"field": "uDirection.x", "value": "NaN", "parseAndModel": "pass", "rootedProjection": "refused as InvalidModel", "failedNode": "owning body", "output": "cleared transactionally"},
+    {"field": "uDirection.x", "value": "+infinity", "parseAndModel": "pass", "rootedProjection": "refused as InvalidModel", "failedNode": "owning body", "output": "cleared transactionally"},
+    {"field": "uDirection.x", "value": "-infinity", "parseAndModel": "pass", "rootedProjection": "refused as InvalidModel", "failedNode": "owning body", "output": "cleared transactionally"}
+  ],
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_graph_preservation_tests -j4",
+    "buildResult": "PASS",
+    "test": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "testResult": "PASS (1/1)"
+  },
+  "nonClaims": [
+    "No production parser defect was found.",
+    "No ACIS surface semantics, orientation, or geometry support is established.",
+    "No persistent CAD fixture, test registration, peer/native run, or full-suite run was added."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ]
+}

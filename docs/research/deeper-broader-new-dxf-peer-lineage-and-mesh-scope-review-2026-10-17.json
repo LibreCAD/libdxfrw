@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.peer-research.v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden the open-source DWG/DXF peer screen to recently published DXF implementations, establish route and source-lineage boundaries, and update the existing parity and 3D plans without increasing the fast validation loop.",
+  "method": {
+    "primarySourcesReviewed": [
+      "https://pkg.go.dev/github.com/kedazo/dxf-go@v0.3.3",
+      "https://github.com/kedazo/dxf-go",
+      "https://github.com/ixmilia/dxf-go",
+      "https://pkg.go.dev/github.com/kedazo/dxf-go@v0.3.3#DWG2DXF"
+    ],
+    "peerRepositoriesCloned": 0,
+    "peerPackagesInstalled": 0,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": 0,
+    "productionCodeChanged": false,
+    "localTestCodeChanged": false,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ]
+  },
+  "findings": [
+    {
+      "candidate": "kedazo/dxf-go v0.3.3",
+      "evidence": "The tagged pre-v1 Go package documentation reports ASCII/binary DXF R12-AC1032 read/write and exposes typed APIs for explicit entities including MESH, 3DFACE, SOLID and polyface/polygon mesh. Package documentation and README are capability claims, not executed conformance results.",
+      "licenseAndRelease": "pkg.go.dev identifies MIT license and publication on 2026-10-01; v0.3.3 is pre-v1.",
+      "lineage": "Its README explicitly calls it a fork of ixmilia/dxf-go and enumerates changes. Exact source delta and test-provenance audit were not performed.",
+      "dwgRoute": "Documented DWG/xref conversion invokes LibreDWG dwg2dxf; it is not an independent DWG reader.",
+      "acisRoute": "No ACIS/AcDs parser or B-rep kernel route was documented in the reviewed package documentation.",
+      "classification": "CORRELATED_IXMILIA_DXF_FORK / OPTIONAL / NOT_RUN",
+      "planUse": "Only consider a narrowly scoped DXF structural/explicit-entity comparison if a concrete local gap remains. Pin source and artifact, inspect changed code/test provenance, and compare scratch-authored asymmetric controls to independent expectations. No CI dependency or per-slice invocation."
+    },
+    {
+      "candidate": "Other newly surfaced explicit-geometry routes",
+      "evidence": "The expanded search returned CADKernel, ft_model, Cadze, and other routes already covered by existing plan entries; their reviewed roles remain unsupported ACIS, 2D/projection, or LibreDWG-correlated consumer paths.",
+      "planUse": "No duplicate peer entry, execution, issue, or implementation task was added."
+    }
+  ],
+  "decision": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "queueReordered": false,
+    "newDependency": false,
+    "newFixture": false,
+    "testRegistrationChanged": false,
+    "supportClaimsPromoted": false,
+    "validationCadenceChanged": false,
+    "externalJStatusesChanged": false,
+    "externalJStatuses": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "readiness": {
+    "entryConditions": [
+      "A specific unresolved local DXF structural or explicit-entity gap exists.",
+      "Exact tagged source/artifact is pinned and the fork delta from IxMilia is inspected.",
+      "The comparison lane is DXF-only, with input/version/mode and omitted records accounted for.",
+      "The expected values are independently authored; peer output is not its own oracle."
+    ],
+    "excludedClaims": [
+      "independent DWG parser parity",
+      "ACIS or AcDs semantic support",
+      "closed B-rep validity",
+      "native application acceptance",
+      "general 3D support"
+    ]
+  },
+  "planSection": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-new-dxf-peer-lineage-and-explicit-mesh-scope-review-2026-10-17-research-only"
+}

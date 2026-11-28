@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1027 Cover current strict-output guard probe",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "provenanceLimit": "Existing local source; producer is not independently authenticated and no DWG/DXF fixture is committed."
+  },
+  "currentRead": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Cover.dwg -y -d -v2013 /private/tmp/cover-current-strict.dxf",
+    "tracePath": "/private/tmp/cover-current-strict.log",
+    "traceSha256": "39e05de6e331cbc225421283c9b3b3fabd8839970077224ae01700d1e7bf9ca8",
+    "result": "Reader operation succeeded; 111/111 observed frames published; 88 opaque callbacks captured; 13 standard-object source receipts and typed payload matches; zero entity/object parse failures, class CRC mismatches or DataStorage link/orphan failures. No DXF was published."
+  },
+  "strictBlockers": {
+    "sourceReferenceGuard": {
+      "result": "Strict preflight refuses before output preparation with 'AC1027 DWG source references are not fully qualified'.",
+      "implementation": "fileImport keeps dx_data::m_unqualifiedAc1027DwgImport sticky for AC1027 DWG imports; strict fileExport checks it before planning output.",
+      "diagnosticLimit": "The sticky marker is an aggregate gate and does not enumerate which callback references or owner roles are unresolved. The current trace therefore cannot nominate a safe small writer change."
+    },
+    "headerSuffix": {
+      "result": "The validated HEADER trailer ends at byte 844; bytes 844-1575 remain a 731-byte unclaimed suffix.",
+      "disposition": "Keep the source read disposition incomplete and strict whole-source output refused until authoritative meaning is established."
+    }
+  },
+  "codeEvidence": {
+    "guardField": "dwg2dxf/dx_data.h::dx_data::m_unqualifiedAc1027DwgImport",
+    "guardSet": "dwg2dxf/dx_iface.cpp::fileImport marks the aggregate before DWG read and retains it for AC1027",
+    "guardCheck": "dwg2dxf/dx_iface.cpp::fileExport checks the marker before output preparation"
+  },
+  "planImpact": {
+    "decision": "Do not clear the sticky guard or claim a selected graph based on callback counts. The next Cover slice must first add a source-bound inventory that identifies every required owner/reference role for this exact source; only then may a bounded output route be considered.",
+    "separateGate": "That inventory cannot resolve or waive the independent unclaimed HEADER suffix.",
+    "externalItemsPromoted": 0,
+    "fixturesAdded": 0
+  }
+}

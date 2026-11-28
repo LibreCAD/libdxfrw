@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "date": "2026-11-11",
+  "phase": "P5",
+  "topic": "Generated FIELD/FIELDLIST DXF raw-handle carrier and allocation retry",
+  "control": {
+    "test": "libdxfrw_partial_viewing_index_objects_allocation_retry",
+    "source": "locally authored DXF written to scratch by the generated OBJECTS callback",
+    "encodings": ["ASCII", "Binary"],
+    "allocation_failure_offsets": {
+      "ASCII": 44,
+      "Binary": 42
+    }
+  },
+  "assertions_added": [
+    "fileImport retains exactly one raw FIELD and one raw FIELDLIST carrier",
+    "each raw carrier has exactly one group-5 string whose handle matches the typed callback handle",
+    "FIELDLIST's typed member handle resolves to the generated FIELD",
+    "every injected callback allocation failure preserves destination bytes and caller state, and retry produces exact calibrated bytes and typed readback"
+  ],
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_partial_viewing_index_objects_allocation_tests -j4",
+    "ctest": "ctest --test-dir build -R '^libdxfrw_partial_viewing_index_objects_allocation_retry$' --output-on-failure",
+    "result": "passed 1/1; direct run reports 44 ASCII and 42 Binary allocation offsets"
+  },
+  "decision": "The exact generated FIELD/FIELDLIST profile preserves group-5 identity in both raw carriers across fileImport and retry. This narrows the historical synthetic code-5 raw-capture failure; it does not identify that prototype's cause, qualify physical FIELD graphs, authorize strict output, or establish FIELD semantics.",
+  "artifacts": "Generated DXF files are written under the test scratch directory and removed; no DWG/DXF fixture is committed."
+}

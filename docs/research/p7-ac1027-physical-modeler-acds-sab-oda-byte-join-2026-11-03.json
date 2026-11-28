@@ -1,0 +1,63 @@
+{
+  "id": "p7-ac1027-physical-modeler-acds-sab-oda-byte-join-2026-11-03",
+  "date": "2026-11-03",
+  "status": "PHYSICAL_SOURCE_TO_ODA_PAYLOAD_JOIN_ONLY",
+  "supportClaimEffect": "none",
+  "scope": "Bind the modeler entity identities, source model-space role, AcDs schema and data-index locations, and exact SAB carrier bytes in one public AC1027 DWG to an independent ODA-produced DXF. This is not native 3D semantic evidence.",
+  "source": {
+    "repository": "realDragonium/dwg-verifier",
+    "path": "fixtures/libredwg/example_2013.dwg",
+    "url": "https://raw.githubusercontent.com/realDragonium/dwg-verifier/main/fixtures/libredwg/example_2013.dwg",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "version": "AC1027",
+    "fixture_added": false,
+    "provenance_limit": "The public drawing's original authoring application and production history are not established."
+  },
+  "source_entity_role": {
+    "specification": "Open Design Specification for .dwg files v5.4.1 sections 20.2 and 20.4.1",
+    "rule": "Entmode 2 is model space without an owner handle; R2013+ common entity data includes the Has DS binary data bit.",
+    "physical_observation": "The raw entity frames have graphic flag zero and entmode bits 10 (source bit 37 for handles 0x176 and 0x2E1; bit 111 after one bounded EED chunk for 0x37D). All three have Has DS binary data=1. The same source supplies exactly one case-folded *MODEL_SPACE BLOCK_RECORD, handle 0x1F. ODA DXF places the corresponding entities in ENTITIES with group-330 owner 0x1F.",
+    "boundary": "Source model-space ownership is established by the entmode role and unique source block record; these entity frames do not carry an explicit owner handle, and the typed parentHandle remains zero."
+  },
+  "physical_acds": {
+    "section_name": "AcDb:AcDsPrototype_1b",
+    "section_bytes": 20352,
+    "section_sha256": "6447fe7ae583c89ef0ef4cd28446848968363b600fce7012df8f1f391d078ee8",
+    "schema": "1: AcDbDs::ID type 10; ASM_Data type 15",
+    "data_index_rows": [[0,0,0],[1,9,0],[0,9,20],[1,9,40],[1,9,60]],
+    "record_note": "Tuples are schema index, segment index and local index offset. These three modeled records are inline, and their extracted section slices match the typed payload exactly.",
+    "entities": [
+      {"handle":"0x176", "type":"REGION", "segment":9, "local_offset":0, "payload_offset":5252, "length":1709, "payload_sha256":"596d37aaf81ebe9662bd22ba199bce876403dec8da71dd3287b0255adb354782", "oda_group_330":"0x1F"},
+      {"handle":"0x2E1", "type":"3DSOLID", "segment":9, "local_offset":60, "payload_offset":11448, "length":8798, "payload_sha256":"5ca4756434d068b932ac6e0100e5ff07eae36c7eed29a43367eeff8113cca0ec", "oda_group_330":"0x1F", "history_handle":"0x2E4"},
+      {"handle":"0x37D", "type":"REGION", "segment":9, "local_offset":40, "payload_offset":9248, "length":2196, "payload_sha256":"fabe3e9804c44472907987ea96409b30b7db35575a34688430b0157d1b6c5566", "oda_group_330":"0x1F"}
+    ],
+    "other_record": "The schema-0 thumbnail record 0x22 also matches the ODA output byte-for-byte, but is not a modeler entity."
+  },
+  "independent_oda": {
+    "product": "ODA File Converter 27.1.0, verified macOS ARM64 application",
+    "executable_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "operation": "ACAD2013 ASCII DXF; recursion 0; audit 0",
+    "dxf_sha256": "fb361cc2ed1517e1828a03bc8bda995ca577179dc1cefa5cf57fcf9b042ecb75",
+    "result": "All three same-handle entity type, schema, payload length and complete assembled group-310 payloads agree byte-for-byte. Each starts with ACIS BinaryFile. The 3DSOLID source history handle and DXF group 350 both equal 0x2E4."
+  },
+  "harness": {
+    "source_probe": "tests/ac1027_acds_source_probe.cpp",
+    "source_probe_sha256": "fb5225348ce0224bc4e997cd39fdb62e79519fa2f9b6387e35024d85e9f076fb",
+    "compare": "tests/ac1027_acds_source_compare.py",
+    "compare_sha256": "fb529ddc2a58013ca2320e4537d600089ec0fe7f39c061c9702ff79cc55117c8",
+    "source_build": "Clean git-archive source of commit df7d6017 with these two added harness files; separate Debug CMake build. The extraction uses the current library, and ODA is the independently implemented output path.",
+    "executable_sha256": "dd3de9c37a0961b123be0d76546ded5ad81407f06b5c1e975be8fb1bfb4e1ff3",
+    "build": "cmake --build <build> --target libdxfrw_ac1027_acds_source_probe",
+    "target_policy": "EXCLUDE_FROM_ALL; no external sample is part of ordinary builds or tests.",
+    "oda_command": "ODAFileConverter <scratch-input-dir> <scratch-output-dir> ACAD2013 DXF 0 0 example.dwg",
+    "comparison_command": "python3 -B tests/ac1027_acds_source_compare.py --source <example_2013.dwg> --probe <build>/libdxfrw_ac1027_acds_source_probe --oda-dxf <example.dxf> --oda-sha256 <example-dxf-sha256>",
+    "result": "PASS: all three entities and complete SAB payloads match; fixed source SHA and decoded AcDs section SHA and caller-supplied DXF SHA are checked before join.",
+    "focused_validation": "CTest libdxfrw_ac1027_acds_source_compare_self_test passed with a locally generated entity prefix, mode/storage flag mutations and truncation. Mutations to the actual probe output for model-space mode, DataStorage handle and one payload byte were separately rejected. Input/frame/output byte bounds are enforced."
+  },
+  "limitations": [
+    "This is physical source association and carrier-byte transport evidence for one AC1027 input and one ODA conversion, not complete graph, writer replay or broad producer/version qualification.",
+    "The source conversion still reports three object parse failures and one orphan DataStorage record; strict complete DXF output remains refused.",
+    "Neither independent-kernel topology/placement nor native FreeCAD/LibreCAD or other 3D consumer acceptance was tested. No support claims follow.",
+    "No DWG, DXF or extracted SAB fixture was added to the repository."
+  ]
+}

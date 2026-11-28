@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-proxy-class-r13-r14-census-2026-11-28",
+  "supportClaimEffect": "none",
+  "scope": "Three locally authored bounded AC1012/AC1014 samples with complete reader publication coverage; no production output guards are relaxed.",
+  "samples": [
+    {"version": "AC1012", "role": "source resave", "sha256": "93cb1e6c0d62c53ef485b9c74eda41151e28db60c1514cecd0607bbcf30b77aa"},
+    {"version": "AC1012", "role": "destination resave", "sha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5"},
+    {"version": "AC1014", "role": "bound producer resave", "sha256": "c057bba383107ea8906d4dc887eb7857628419306e36f37a8cb261a117319bdb"}
+  ],
+  "checks": [
+    "For each sample the adapter's bound class census reports zero GEODATA, RASTERVARIABLES and WIPEOUTVARIABLES frames, two LAYOUT frames and one dictionary-with-default frame; changing the import generation rejects the query without changing its result and restoring it permits retry.",
+    "The independent physical object-map and CLASS walker verifies frame, map and CLASS CRCs and agrees with LibreDWG on the complete 44-handle/type census. It independently reports zero mapped frames for each of the three proxy families in all three samples.",
+    "The R14 selected CLASS numbers are 531 GEODATA, 527 RASTERVARIABLES and 523 WIPEOUTVARIABLES. The producer revision is 534ff8abaf112d9c9ec3e08292080002b0e9de3a."
+  ],
+  "limits": ["These are bounded local producer controls, not native AutoCAD semantics or a general instance-count rule.", "Absence of mapped frames alone does not prove that unused CLASS rows, proxy ordinals, graph references or target output may be discarded. Strict and partial export guards remain unchanged.", "No generated drawing was committed."]
+}

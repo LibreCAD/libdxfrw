@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "title": "PERSUBENTMGR ACadSharp cross-version DXF projection and DWG parser conflict",
+  "date": "2026-11-09",
+  "scope": "Hash-bound local AutoCAD SAVEAS sample pairs and LibreDWG 0.14 minJSON/trace observations for PERSUBENTMGR handle 0xD63",
+  "source": {
+    "repository": "/Users/dli/dev/ACadSharp",
+    "sample_generator": "samples/sample_base/save_samples.lsp",
+    "sample_generator_sha256": "7cf09372fc29f8103a12a36ed57f54d2e96658e964a4b7d84ea2e4bfed07f9eb",
+    "generator_history_commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "generator_history_date": "2025-12-02",
+    "generator_routes": [
+      "SAVEAS LT98 -> sample_AC1014.dwg",
+      "SAVEAS 2000 -> sample_AC1015.dwg",
+      "SAVEAS 2007 -> sample_AC1021.dwg",
+      "SAVEAS 2010 -> sample_AC1024.dwg",
+      "SAVEAS 2013 -> sample_AC1027.dwg",
+      "SAVEAS 2018 -> sample_AC1032.dwg",
+      "ASCII DXF SAVEAS outputs are generated for AC1015 through AC1032; no AC1014 ASCII DXF output appears in this script"
+    ]
+  },
+  "reader": {
+    "name": "LibreDWG",
+    "version": "0.14",
+    "command": "dwgread -O minJSON <source.dwg>",
+    "ac1015_trace_command": "dwgread -v5 -O minJSON sample_AC1015.dwg",
+    "note": "The PERSUBENTMGR class is marked Unstable Class by LibreDWG. minJSON output is a peer parser observation, not an authoritative schema."
+  },
+  "oda_boundary_reference": {
+    "source": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.1 Common non-entity object format",
+    "printed_page": 104,
+    "scope": "Defines the RL pre-handles object-data boundary for R2000-R2007 and the handle-stream start. It does not define the class-specific PERSUBENTMGR field schema."
+  },
+  "records": [
+    {
+      "version": "AC1014",
+      "dwg": {"path": "samples/sample_AC1014.dwg", "sha256": "d1ec4519be14ac49ecab5ec024ad951271e00261a1851f623a784a97ba6ede73"},
+      "dxf": null,
+      "object": {"handle": "0xD63", "size_bytes": 24, "bitsize": 150, "class_version": 2, "unknown_0": 0, "unknown_2": 2, "numassocsteps": 4, "numassocsubents": 0, "steps": [3, 4], "num_subents": null, "reported_subents": [12783812, 0, 0, 256], "reported_unknown_bits": 106}
+    },
+    {
+      "version": "AC1015",
+      "dwg": {"path": "samples/sample_AC1015.dwg", "sha256": "8ffbdc713f5838cbbb1596a8422e2b607e5c9e79921e852cbb5abee4af76ea4e"},
+      "dxf": {"path": "samples/sample_AC1015_ascii.dxf", "sha256": "4f7d7f0d3957d4d32c6c43e4c600eea8e90fc0fcb1b36b11256095a9789a923f", "object_line": 36817, "handle": "D63", "group_90_values": [2, 0, 2, 4, 0, 2, 3, 4]},
+      "object": {"handle": "0xD63", "size_bytes": 24, "bitsize": 150, "class_version": 2, "unknown_0": 0, "unknown_2": 2, "numassocsteps": 4, "numassocsubents": 0, "steps": [3, 4], "num_subents": null, "reported_subents": [12783812, 0, 0, 256], "reported_unknown_bits": 106}
+    },
+    {
+      "version": "AC1021",
+      "dwg": {"path": "samples/sample_AC1021.dwg", "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a"},
+      "dxf": {"path": "samples/sample_AC1021_ascii.dxf", "sha256": "39ebdd9a48fef7a6240a04e3b5ca6d45ba5bb30b560fb9dadf26774e1af83731", "object_line": 37642, "handle": "D63", "group_90_values": [2, 0, 2, 4, 0, 2, 3, 4]},
+      "object": {"handle": "0xD63", "size_bytes": 23, "bitsize": 152, "class_version": 2, "unknown_0": 0, "unknown_2": 2, "numassocsteps": 4, "numassocsubents": 0, "steps": [3, 4], "num_subents": null, "reported_subents": [], "reported_unknown_bits": 97}
+    },
+    {
+      "version": "AC1024",
+      "dwg": {"path": "samples/sample_AC1024.dwg", "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce"},
+      "dxf": {"path": "samples/sample_AC1024_ascii.dxf", "sha256": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372", "object_line": 37682, "handle": "D63", "group_90_values": [2, 0, 2, 4, 0, 2, 3, 4]},
+      "object": {"handle": "0xD63", "size_bytes": 18, "bitsize": 112, "class_version": 2, "unknown_0": 0, "unknown_2": 2, "numassocsteps": 4, "numassocsubents": 0, "steps": [3, 4], "num_subents": null, "reported_subents": [], "reported_unknown_bits": 97}
+    },
+    {
+      "version": "AC1027",
+      "dwg": {"path": "samples/sample_AC1027.dwg", "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6"},
+      "dxf": {"path": "samples/sample_AC1027_ascii.dxf", "sha256": "4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6", "object_line": 37100, "handle": "D63", "group_90_values": [2, 0, 2, 0, 0, 0]},
+      "object": {"handle": "0xD63", "size_bytes": 14, "bitsize": 77, "class_version": 2, "unknown_0": 0, "unknown_2": 2, "numassocsteps": 0, "numassocsubents": 0, "steps": [], "num_subents": null, "reported_subents": [], "reported_unknown_bits": 64}
+    },
+    {
+      "version": "AC1032",
+      "dwg": {"path": "samples/sample_AC1032.dwg", "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528"},
+      "dxf": {"path": "samples/sample_AC1032_ascii.dxf", "sha256": "c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2", "object_line": 37122, "handle": "D63", "group_90_values": [2, 0, 2, 0, 0, 0]},
+      "object": {"handle": "0xD63", "size_bytes": 14, "bitsize": 77, "class_version": 2, "unknown_0": 0, "unknown_2": 2, "numassocsteps": 0, "numassocsubents": 0, "steps": [], "num_subents": null, "reported_subents": [], "reported_unknown_bits": 64}
+    }
+  ],
+  "ac1015_trace": {
+    "object_observations": [
+      "PERSUBENTMGR type 549, handle 0xD63, object size 24 bytes, bitsize 150",
+      "LibreDWG reports common_size 68 bits and then class_version=2, unknown_0=0, unknown_2=2, numassocsteps=4, numassocsubents=0, num_steps=2, steps 3 and 4",
+      "The candidate next field decodes as num_subents=4, after which byte reads overrun the 24-byte object; reported subents are not trustworthy"
+    ],
+    "evidence_file": "/tmp/ac1015-read.log",
+    "libdxfrw_readback": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf sample_AC1015.dwg -y -d -v2000 /tmp/ac1015-libdxfrw.dxf",
+      "source_frames": 1047,
+      "published_frames": 1041,
+      "object_parse_failures": 6,
+      "strict_export_result": "refused before output due to unrelated DWG IMAGEDEF/reactor source-capture failure",
+      "evidence_file": "/tmp/ac1015-libdxfrw.log"
+    }
+  },
+  "interpretation": [
+    "The AC1015/AC1021/AC1024 paired DXF objects project exactly eight group-90 values: class_version, two unknown scalars, association step count, association subentity count, step-vector count, and two step values under the candidate mapping. No additional group-90 num_subents value is present in those object records.",
+    "The AC1027/AC1032 paired DXF objects project six group-90 values: the first three candidate scalars followed by zero association counts; no num_steps, num_subents, or vector values are present.",
+    "This is cross-version DXF projection evidence, not proof of the DWG body field spans. For AC1015, the peer DWG parser tries to consume a further count and overruns; its decoded subents must not be treated as valid values."
+  ],
+  "decision": "Keep PERSUBENTMGR evidence partial and raw-carried. Preserve only the narrowly source-bound AC1015/AC1021/AC1024 partial-prefix callbacks; do not mark a body Complete or promote the candidate num_subents interpretation, conditional omission rule, strict DXF output, or semantic support. AC1014 has matching peer-reader values but no paired DXF in this corpus and remains raw-only.",
+  "implementation_update": {
+    "change": [
+      "The DWG dispatcher now treats every non-Complete PERSUBENTMGR prefix status, including Missing on legacy AC1018 and earlier profiles, as insufficient evidence to mark the raw payload typed-validated. It retains the callback contract and raw frame.",
+      "The AC1015 bounded partial-prefix admission accepts only the hash-bound D63 profile [class_version=2, unknown_0=0, unknown_2=2, numassocsteps=4, numassocsubents=0, num_steps=2, steps=[3,4]] when it reaches the RL pre-handles boundary. It does not read a trailing num_subents count and the raw carrier stays unvalidated.",
+      "The AC1024 bounded partial-prefix admission includes the same D63 profile at its exact body boundary."
+    ],
+    "regression": "Generated AC1018 controls verify Missing body status and unvalidated raw payload. Generated AC1015 controls verify short-vector rollback, corrected-input retry on the same parser, the [3,4] partial prefix, raw-byte retention, and following-object recovery. Generated AC1024 mode 7 exercises the D63 [3,4] partial prefix.",
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4 && build-gcc/libdxfrw_dwg_reader_matrix_tests --persistent-manager-prefix-dispatch",
+    "result": "PASS",
+    "physical_readbacks": [
+      {
+        "version": "AC1015",
+        "input_sha256": "8ffbdc713f5838cbbb1596a8422e2b607e5c9e79921e852cbb5abee4af76ea4e",
+        "command": "build-gcc/dwg2dxf/dwg2dxf sample_AC1015.dwg -y -d -v2000 /tmp/ac1015-libdxfrw-after-persubent.dxf",
+        "observed_body_bits": {"start": 86, "end": 150, "bound": 150, "values": [2, 0, 2, 4, 0, 2, 3, 4]},
+        "source_frames": 1047,
+        "published_frames": 1041,
+        "entity_parse_failures": 3,
+        "object_parse_failures": 6,
+        "strict_output": "refused because IMAGEDEF/reactor source capture or immutable payload correlation failed"
+      },
+      {
+        "version": "AC1021",
+        "input_sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+        "command": "build-gcc/dwg2dxf/dwg2dxf sample_AC1021.dwg -y -d -v2007 /tmp/ac1021-libdxfrw-persubent.dxf",
+        "observed_body_bits": {"start": 87, "end": 151, "bound": 151, "values": [2, 0, 2, 4, 0, 2, 3, 4]},
+        "source_frames": 925,
+        "published_frames": 925,
+        "entity_parse_failures": 0,
+        "object_parse_failures": 0,
+        "strict_output": "refused because DWG IMAGEDEF owner role is unqualified for output"
+      },
+      {
+        "version": "AC1024",
+        "input_sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+        "command": "build-gcc/dwg2dxf/dwg2dxf sample_AC1024.dwg -y -d -v2010 /tmp/ac1024-libdxfrw-after-persubent.dxf",
+        "observed_body_bits": {"start": 47, "end": 111, "bound": 111, "values": [2, 0, 2, 4, 0, 2, 3, 4]},
+        "source_frames": 923,
+        "published_frames": 923,
+        "entity_parse_failures": 0,
+        "object_parse_failures": 0,
+        "strict_output": "refused because standalone DWG OBJECTCONTEXTDATA has no qualified replay path"
+      }
+    ]
+  },
+  "next": "Capture an independent bit-span trace for the D63 DWG object in AC1015/AC1021/AC1024 and identify exact class-body end, any trailing count bits, the object handle-stream start, and versioned padding. Reconcile those spans with paired DXF group-90 projections before broadening any typed-prefix path. Preserve the existing AC1021/AC1024 profile gates and generated truncation/retry tests."
+}

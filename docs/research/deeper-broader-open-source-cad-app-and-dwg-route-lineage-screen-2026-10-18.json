@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader open-source CAD application and DWG route-lineage screen",
+  "mode": "primary-source repository and documentation research",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen KumCAD as a newly surfaced open-source DWG/DXF CAD application",
+    "Separate application-level 3D modeling capability from ACIS/DWG-solid import evidence",
+    "Refresh GDAL CAD, DXF, and ODA-DWG route identities",
+    "Recheck whether libopencad adds a current independent AC1015 comparator",
+    "Reconcile route findings with current FreeCAD consumer gates and implementation cadence"
+  ],
+  "method": {
+    "kind": "Read public primary project repositories and official documentation; compare route identities against the local parity plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/samples/README.md",
+      "tests/samples/"
+    ],
+    "limitations": "Project documentation and README claims are route declarations, not conformance runs. KumCAD implementation source, exact current build configuration, linked LibreDWG binary, and test results were not inspected or executed. The libopencad commit page was used only to assess recency, not to audit parser independence or runtime behavior. No FreeCAD, GDAL, or peer runtime was executed."
+  },
+  "sources": [
+    {
+      "project": "KumCAD",
+      "urls": [
+        "https://github.com/todorw/KumCAD",
+        "https://github.com/todorw/KumCAD/blob/main/CMakeLists.txt"
+      ],
+      "revision": "Mutable main README reviewed 2026-10-18; CMake source link not audited",
+      "observed": "The README states that optional DWG read/write uses LibreDWG, documents LibreDWG 0.13.3 as its suggested build source, and enables DWG R2000 save. It describes its OCCT-backed parametric modeling window and STEP/IGES/native 3D interchange separately, and does not document ACIS/DWG-solid import. The README self-describes the project as young and not production-tested. These facts do not establish the exact current linked library, DXF parser semantics, or any file-family conformance result."
+    },
+    {
+      "project": "GDAL CAD driver",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/cad.html",
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/cad/gdalcaddataset.cpp"
+      ],
+      "revision": "Stable driver documentation and mutable source page reviewed 2026-10-18",
+      "observed": "GDAL documents the CAD driver as based on internal libopencad, read-only, and projecting a limited set of explicit geometries. It is not the same route as GDAL's DXF driver or its separate ODA-backed DWG driver."
+    },
+    {
+      "project": "GDAL DXF and ODA drivers",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://gdal.org/en/stable/drivers/vector/oda.html"
+      ],
+      "revision": "Stable driver documentation reviewed 2026-10-18",
+      "observed": "GDAL documents Binary DXF reading starting in 3.12. DXF_3D_EXTENSIBLE_MODE can expose AC1027+ ASM bytes and a 12-value transform without converting the solid to an OGR geometry. The separate DWG driver requires the ODA Platform/Drawings SDK; a generic GDAL result must therefore identify the actual driver/backend."
+    },
+    {
+      "project": "nextgis-borsch/lib_opencad",
+      "urls": [
+        "https://github.com/nextgis-borsch/lib_opencad",
+        "https://github.com/nextgis-borsch/lib_opencad/commits/master/",
+        "https://github.com/nextgis-borsch/lib_opencad/tree/master/tests"
+      ],
+      "revision": "README, commit-history page, and tests directory listing reviewed 2026-10-18",
+      "observed": "The README states support only for DWG R2000 (AC1015). The visible public commit history page currently shows latest entries dated 2023-03-29. GDAL's CAD driver uses this library lineage. This supports only a conditional, potentially stale AC1015 structural/projection candidate; it is not evidence of current broad DWG, writer, owner-graph, or 3D support."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "Current documentation pages reviewed 2026-10-18",
+      "observed": "The documentation distinguishes a native C++ DXF importer from a legacy Python importer, describes DWG as external-converter input/output through DXF, and does not qualify the stock route as ACIS solid import."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Adds KumCAD as an application-level route-discovery lead, not an independent DWG implementation or ACIS consumer; restates exact GDAL driver/backend separation; keeps libopencad at a trigger-based AC1015 projection boundary; and preserves exact-route FreeCAD qualification. No required implementation or validation work is added.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Do not treat an application's 3D modeling kernel as proof it reads or preserves DWG/DXF ACIS entities.",
+    "Treat KumCAD DWG behavior as LibreDWG-correlated unless an exact current source/build audit proves another route; record its actual linked dependency rather than relying on a suggested 0.13.3 setup command.",
+    "Identify GDAL CAD, DXF, and ODA-DWG driver names and backend versions separately; raw ASM/transform projection is not B-rep semantics.",
+    "Use libopencad only for a concrete AC1015 structural question, after pinning the source/build; avoid making the stale route a mandatory or recurring peer dependency.",
+    "For FreeCAD, retain the exact converter, importer backend, operation, platform, and settings in the existing composed consumer profile.",
+    "Use only eligible existing controls or data authored locally from scratch; add no external drawing fixture for this research.",
+    "Keep all six J items DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared worktree contains extensive pre-existing tracked and untracked changes. This research pass edited only the parity plan and its new receipt; other work was preserved."
+  }
+}

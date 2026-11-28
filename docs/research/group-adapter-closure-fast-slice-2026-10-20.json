@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "plan_owner": "PAR-20/7G.3",
+  "slice": "GROUP adapter retention, name association, and member closure",
+  "status": "implemented_locally_uncommitted",
+  "problem": "The DXF codec emitted GROUP objects and the regenerated ACAD_GROUP dictionary, but the concrete dx_iface adapter did not retain GROUP callbacks or pass them to the writer. Unresolved member handles were silently omitted.",
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Retain typed GROUP callbacks under record, aggregate-member, and retained-byte limits.",
+      "After the DXF read completes, resolve each new GROUP's name by the positional NOD ACAD_GROUP key, the unique target DICTIONARY, and its name-to-handle entries.",
+      "Reject adapter export after failed or ambiguous imported GROUP name resolution.",
+      "Pass retained GROUP records to dxfRW::writeObjects().",
+      "Reject empty or duplicate normalized names, duplicate/invalid member handles, and member 340 references without an emitted entity mapping."
+    ],
+    "interface_contract_changed": false,
+    "persistent_fixtures_added": 0,
+    "external_dependencies_added": 0,
+    "support_claims_promoted": 0
+  },
+  "generated_controls": [
+    "Construct a LINE and named GROUP in memory; export, import, export again, and re-import both ASCII and Binary AC1032 DXF.",
+    "Assert dictionary-derived group name, description, and member entity identity after each read.",
+    "Supply a missing member entity handle, duplicate member handles, case-folded duplicate names, and an input with an unresolved ACAD_GROUP dictionary target; require export refusal.",
+    "For each invalid export, seed the destination with a sentinel and verify refusal preserves it."
+  ],
+  "validation": {
+    "build": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focused_selector": {
+      "command": "build/tests/libdxfrw_dwg2dxf_adapter_tests --group-adapter-roundtrip",
+      "result": "passed"
+    },
+    "consumer_compat_compile": {
+      "command": "cmake --build build --target lc3_compat_check -j2",
+      "result": "passed",
+      "scope": "Compile compatibility only; not binary ABI or LibreCAD runtime qualification."
+    },
+    "owning_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_group_adapter_roundtrip$' --output-on-failure",
+      "result": "passed",
+      "passed": 1
+    },
+    "scoped_diff_check": "passed",
+    "full_suite": "not-run"
+  },
+  "fixture_policy": "Controls are authored in memory; temporary ASCII/Binary drawings are removed by the test. No external/customer drawing or persistent testing fixture was added.",
+  "evidence_ceiling": "Generated ASCII/Binary AC1032 DXF adapter graph preservation only. No DWG-origin GROUP, native CAD, LibreCAD runtime, arbitrary external GROUP, all-version, or 3D support claim follows.",
+  "next_unresolved": "Continue the dependency-ready local PAR-20/7G.3 root/owner closure queue using the next bounded generated control and focused owning CTest.",
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Broadly dirty shared worktree; this slice is uncommitted and nothing was staged."
+}

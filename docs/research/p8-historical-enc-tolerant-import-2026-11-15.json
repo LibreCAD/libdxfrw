@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-15",
+  "scope": "Tolerant reading of bounded historical LibreCAD ENC model/paper-space and default-layer DWG handle-role profiles.",
+  "authoritative_spec": "Open Design Specification for .dwg files v5.4.1, sections 2.13, 20.4.52 and 20.4.54: LAYER linetype hard pointer, BLOCK/owned/ENDBLK hard owner, LAYOUT hard pointer.",
+  "peer": "LibreDWG dwgread 0.14 minJSON independently reads the tracked AC1015, AC1018, AC1021, and AC1027 fixtures: default layer uses code-4 linetype pointer; named model/paper BLOCK_HEADER uses code-4 BLOCK/owned/ENDBLK and null code-3 LAYOUT.",
+  "fixture_sha256": {
+    "ordinary_enc_AC1015.dwg": "80690dc45b2e32b4d378df4be860c51c6b3c952400aa762eb73a654e93a728dd",
+    "ordinary_enc_AC1018.dwg": "981b982b7e6414e5dd6cd6b33a88c8e385d14f298b125faba4c94e80dec15f96",
+    "ordinary_enc_AC1021.dwg": "25685bec2d9d537a2f04dfd081f2a0933078cc19c59ebc3473dc011dfad970c8",
+    "ordinary_enc_AC1027.dwg": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83",
+    "ordinary_enc_ac1027_ansi932.dwg": "449a386ccc677dcb93848f583d812afcfd0194631973406394e782233c463aba"
+  },
+  "change": "Keep the existing AC1021 compatibility route. Admit the evidenced additional LAYER code-4 linetype role only for layer 0 with zero reactors, absent extension dictionary and null xref in AC1018/AC1027. Admit the observed BLOCK_HEADER legacy roles for non-XREF model/paper-space records with no insert references, reactors, extension dictionary or xref in AC1015/AC1018/AC1027. Record accepted BLOCK_HEADER role mismatches as errors for all relevant versions; LAYER linetype role errors remain recorded by the existing resolver.",
+  "validation": [
+    "Five tracked ENC fixtures import with expected header, code page, three lines and applicable typed color fields; each retains explicit LAYER and BLOCK_HEADER role integrity errors.",
+    "Strict ASCII and Binary export refusal preserves a seeded destination for each fixture; CLI controls also verify expected refusal.",
+    "Generated BLOCK_HEADER invalid-role/reset/retry and AC1018-plus LAYER body role controls pass.",
+    "Full local DWG fixture test still fails two large-radial ASCII/Binary output assertions, down from 19 in the hosted baseline; it is not claimed green."
+  ],
+  "limits": [
+    "Permits bounded tolerant import only; anomalous roles remain integrity errors and cannot promote strict output or broader producer support.",
+    "No new DWG/DXF fixture committed."
+  ],
+  "followup": "The subsequently corrected isolated large-radial fixture projection passes the complete local fixture test; see p8-large-radial-fixture-projection-2026-11-15.json.",
+  "hosted_linux_followup": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43720529635/job/132831392926",
+    "source_commit": "58f5452c617e60a2761c0b5e3533772482378fc9",
+    "result": "The focused Linux run still fails, but confirms DWG fixture assertions fall from 19 to two and reader-matrix assertions from 13 to nine; the independent large-radial test-projection correction was committed later and is not in this run. The local roundtrip retains 363 cascading failures."
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-01",
+  "id": "ac1015-layout-nod-output-2026-11-01",
+  "profile": "AC1015 five-key NOD and rooted Model/Layout1 output to AC1024 DXF",
+  "classification": "BOUNDED_OUTPUT_PROFILE_COMPLETE_NO_CLAIM_PROMOTION",
+  "support_claim_effect": "none",
+  "source": {
+    "generation": "GNU LibreDWG dwgadd 0.14 from the locally authored recipe",
+    "recipe": "tests/fixtures/dwg/ac1015_3d_polyline_freecad_control.dwgadd",
+    "recipe_sha256": "81df81c3b44b28236795c23f40d87f4230882bbd923aac69a0c5949d4ae6a235",
+    "generated_path": "/private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg",
+    "generated_sha256": "9d2222640e73f9ce9ef54a7f0c91712d2524894ef49c7c81cf3bfaba99e4b92d",
+    "version": "AC1015",
+    "committed_as_fixture": false
+  },
+  "independent_source_decode": {
+    "tool": "GNU LibreDWG dwgread 0.14",
+    "command": "dwgread -O JSON -o /private/tmp/libdxfrw-ac1015-mlinestyle-libredwg.json /private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg",
+    "json_sha256": "c6e6c42bb5806124e81d407cda4327ecc87ef02cb78d107dc8a2a63647a783f4",
+    "graph": {
+      "NOD": "0x0c; exactly five entries",
+      "ACAD_GROUP": "DICTIONARY 0x0d, empty, owner/reactor NOD 0x0c",
+      "ACAD_PLOTSTYLENAME": "DICTIONARYWDFLT 0x0e; Normal/default target PLACEHOLDER 0x0f",
+      "ACAD_MLINESTYLE": "DICTIONARY 0x17; Standard target MLINESTYLE 0x18",
+      "ACAD_PLOTSETTINGS": "DICTIONARY 0x19, empty, owner/reactor NOD 0x0c",
+      "ACAD_LAYOUT": "DICTIONARY 0x1a; Model 0x27 and Layout1 0x29",
+      "layout_owners": "Both LAYOUT records point to ACAD_LAYOUT 0x1a; their BLOCK_RECORDs point back to the matching LAYOUT."
+    },
+    "reference": "Independent JSON binds every NOD key to its typed target and independently records the two layout names and reciprocal block references."
+  },
+  "source_frame_boundary": {
+    "layout_type": 82,
+    "layout_handles": ["0x27", "0x29"],
+    "common_link_projection": "The raw AC1015 LAYOUT callback has parent=0, commonHandleDataValidated=false, and common-link evidence Unknown. The typed parser reports parent=0x1a and reactor=[0x1a].",
+    "admission_rule": "Use the exact source frame identity/version and independently checked typed LAYOUT owner/reactor fields rooted at the exact ACAD_LAYOUT dictionary. Do not treat absent raw common-link fields as a wildcard."
+  },
+  "qualified_scope": {
+    "target": "AC1024 DXF",
+    "encodings": ["ASCII", "Binary"],
+    "output_profile": "Exact five-key NOD; typed ACAD_GROUP and ACAD_PLOTSETTINGS empty children; ACAD_LAYOUT with Model/Layout1; existing qualified MLINESTYLE and DICTIONARYWDFLT/PLACEHOLDER roots; exact root entry roles, child owners/reactors, staged OBJECTS identities, and reciprocal BLOCK_RECORD layout links.",
+    "layout_fields": "Fresh readback compares all retained DRW_Layout DXF fields and verifies both layout dictionary membership and reciprocal BLOCK_RECORD references. Reserved model-space symbol spelling is compared using ASCII case-insensitive semantics.",
+    "callback_inventory": "The local control contains exactly ten opaque callbacks: 0x0c, 0x0d, 0x0e, 0x0f, 0x17, 0x18, 0x19, 0x1a, 0x27, and 0x29."
+  },
+  "failure_and_retry": {
+    "negative_control": "Replace Layout1.paperSpaceBlockRecordHandle with DRW::NoHandle; both encodings refuse before publication, preserve the existing destination sentinel, and leave every selected callback qualification unchanged.",
+    "retry": "Restore the original block-record handle and retry through the same adapter instance. ASCII and binary outputs each pass fresh import and exact NOD/layout/owner/readback checks.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS with target-local -Werror"
+    },
+    "physical_selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback '/private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg'",
+      "result": "PASS for ASCII and binary; exact graph readback, 10/10 callback qualification, refusal/rollback, and same-adapter retry"
+    },
+    "compatibility_controls": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback '/Users/dli/doc/dwg/mechanical_example-imperial.dwg'",
+        "result": "PASS for existing AC1024 layout profile in ASCII and binary"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-ac1018-output-readback '/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg'",
+        "result": "PASS for existing AC1018 three-layout/NOD profile in ASCII and binary"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-style-physical-output-readback '/private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg'",
+        "result": "PASS for the existing AC1015 MLINESTYLE profile"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-output-readback '/private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg'",
+        "result": "PASS for the existing AC1015 DICTIONARYWDFLT/PLACEHOLDER profile"
+      }
+    ],
+    "strict_conversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf '/private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg' -y -v2010 '/private/tmp/libdxfrw-ac1015-layout-strict.dxf'",
+      "result": "PASS; strict whole-file conversion now succeeds for this exact locally authored AC1015 control",
+      "output_sha256": "3a1c60fbce04d3657d8f092d38d964d0ce68547f91eb6cf379cd12c58d837855"
+    },
+    "fixture_admission": "PASS (zero binary drawing candidates admitted)",
+    "plan_check": "PASS",
+    "diff_check": "PASS"
+  },
+  "limits": [
+    "This qualifies the exact five-key AC1015 NOD and rooted two-layout output profile only.",
+    "The generated drawing and converted DXF remain in /private/tmp; no test payload was added to the repository.",
+    "Strict conversion of this local control does not qualify native FreeCAD consumption or general 3D DWG/DXF semantics.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL; native-platform and independent ACIS/ACDS evidence gates remain open."
+  ]
+}

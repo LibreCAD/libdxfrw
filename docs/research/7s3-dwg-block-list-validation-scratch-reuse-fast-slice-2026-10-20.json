@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DWG BLOCK_RECORD list validation and scratch reuse",
+  "mode": "Local source-backed implementation and focused generated round-trip validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reduce writer-owned copies on the deferred DWG BLOCK_RECORD emission path.",
+    "Replace per-member complete object-map scans and owner-list prefix scans in final list validation.",
+    "Preserve legacy sorted handle emission and modern callback-order emission.",
+    "Bound the one reusable owner-list validation/sort scratch by the existing per-list count cap."
+  ],
+  "localChange": {
+    "files": [
+      "src/intern/dwgwriter15.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "emitDeferredBlockControl now borrows modern block/model/paper entity vectors for output, reuses one vector for legacy filtering/sorting and per-list validation, sorts the existing object map before closure validation, and uses lower_bound plus sorted adjacent duplicate detection. Later writeDwgHandles sorting remains in place because structural frames append after closure validation.",
+    "scratchBound": {
+      "countLimit": 1000000,
+      "element": "uint32_t",
+      "payloadBytesMaximum": 4000000,
+      "payloadMiBApproximate": 3.814697265625,
+      "scope": "one owner list at a time; excludes vector allocator capacity overhead"
+    },
+    "wireBehavior": "No format fields or handle roles changed. Legacy AC1015-and-earlier lists remain sorted before emission; modern lists retain callback/source order."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_local_roundtrip|libdxfrw_dwg_block_record_xref_roundtrip)$' --output-on-failure",
+      "git diff --check -- src/intern/dwgwriter15.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/7s3-dwg-block-list-validation-scratch-reuse-fast-slice-2026-10-20.json"
+    ],
+    "results": [
+      "GCC -Werror target build passed.",
+      "libdxfrw_dwg_local_roundtrip passed (3.50 s), including the generated version matrix and non-empty block membership paths.",
+      "libdxfrw_dwg_block_record_xref_roundtrip passed (0.13 s), covering six DWG versions.",
+      "Scoped diff check passed."
+    ],
+    "testCount": "2/2 CTests",
+    "notRun": [
+      "full test suite",
+      "sanitizers/fuzzing",
+      "peer executable or independent producer",
+      "native CAD application",
+      "performance benchmark"
+    ]
+  },
+  "assessment": {
+    "newConfirmedFormatDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": true,
+    "testsAddedOrRegistered": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "remainingWork": [
+    "recordBlockOwnedEntity still scans its target vector before each append; evaluate a rollback-safe membership index with explicit aggregate memory accounting.",
+    "recordRawBlockOwnedEntity has a related insertion-time membership scan.",
+    "Other DWG live/work accounting and the independent DXF writer-copy audit remain open under 7S."
+  ],
+  "limitations": [
+    "The algorithmic work reduction was not measured with a timing benchmark; correctness was checked through generated writer/reader round trips.",
+    "The object-map vector is sorted before validation and is sorted again after structural frames are appended; the second sort remains the authoritative final handle-map ordering.",
+    "The scratch cap limits logical vector elements; allocator capacity/metadata and RSS are not claimed as bounded by the payload calculation.",
+    "The source worktree is broadly dirty. No unrelated files were reverted, and no commit was created because repository metadata is read-only in this workspace."
+  ]
+}

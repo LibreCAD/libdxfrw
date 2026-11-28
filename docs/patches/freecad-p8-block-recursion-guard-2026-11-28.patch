@@ -1,0 +1,91 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -583 +583 @@
+-void ImpExpDxfRead::ComposeFlattenedBlock(const std::string& blockName, std::set<std::string>& composed)
++void ImpExpDxfRead::ComposeFlattenedBlock(const std::string& blockName, std::set<std::string>& composed, std::set<std::string>& active)
+@@ -596,0 +597 @@
++    active.insert(blockName);
+@@ -612 +613,5 @@
+-            ComposeFlattenedBlock(nestedInsert.Name, composed);
++            if (active.count(nestedInsert.Name) || active.size() >= 128) {
++                UnsupportedFeature("Cyclic or excessively nested block reference");
++                continue;
++            }
++            ComposeFlattenedBlock(nestedInsert.Name, composed, active);
+@@ -652,0 +658 @@
++    active.erase(blockName);
+@@ -656 +662 @@
+-void ImpExpDxfRead::ComposeParametricBlock(const std::string& blockName, std::set<std::string>& composed)
++void ImpExpDxfRead::ComposeParametricBlock(const std::string& blockName, std::set<std::string>& composed, std::set<std::string>& active)
+@@ -669,0 +676 @@
++    active.insert(blockName);
+@@ -687 +694,5 @@
+-            ComposeParametricBlock(nestedInsert.Name, composed);
++            if (active.count(nestedInsert.Name) || active.size() >= 128) {
++                UnsupportedFeature("Cyclic or excessively nested block reference");
++                continue;
++            }
++            ComposeParametricBlock(nestedInsert.Name, composed, active);
+@@ -803,0 +815 @@
++    active.erase(blockName);
+@@ -809,0 +822 @@
++    std::set<std::string> activeBlocks;
+@@ -815 +828 @@
+-                ComposeFlattenedBlock(pair.first, composedBlocks);
++                ComposeFlattenedBlock(pair.first, composedBlocks, activeBlocks);
+@@ -823 +836 @@
+-                ComposeParametricBlock(pair.first, composedBlocks);
++                ComposeParametricBlock(pair.first, composedBlocks, activeBlocks);
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.h b/src/Mod/Import/App/dxf/ImpExpDxf.h
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.h
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.h
+@@ -192,2 +192,2 @@
+-    void ComposeParametricBlock(const std::string& blockName, std::set<std::string>& composed);
+-    void ComposeFlattenedBlock(const std::string& blockName, std::set<std::string>& composed);
++    void ComposeParametricBlock(const std::string& blockName, std::set<std::string>& composed, std::set<std::string>& active);
++    void ComposeFlattenedBlock(const std::string& blockName, std::set<std::string>& composed, std::set<std::string>& active);
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1004,0 +1005,40 @@
++    def test_block_reference_cycles_and_retry(self):
++        """Drop recursive edges, report loss, and retain valid shared children."""
++        reason = "Cyclic or excessively nested block reference"
++        names = ["A"] + [f"D{i:03}" for i in range(1, 129)]
++        deep = {name: ((names[i + 1],) if i + 1 < len(names) else ())
++                for i, name in enumerate(names)}
++        for mode in (2, 3):
++            FreeCAD.ParamGet(self.option_source).SetInt("DxfImportMode", mode)
++            for kind, edges, expected_length, rejected in (
++                ("self", {"A": ("A",)}, 1.0, True),
++                ("mutual", {"A": ("B",), "B": ("A",)}, 2.0, True),
++                ("deep", deep, 128.0, True),
++                ("shared", {"A": ("B", "B"), "B": ()}, 3.0, False),
++            ):
++                with self.subTest(mode=mode, kind=kind):
++                    tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                            (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                            (0, "SECTION"), (2, "BLOCKS")]
++                    for name, children in edges.items():
++                        tags.extend([(0, "BLOCK"), (8, "0"), (2, name), (70, 0),
++                                     (10, 0), (20, 0), (30, 0), (0, "LINE"), (8, "0"),
++                                     (10, 0), (20, 0), (30, 0), (11, 1), (21, 0), (31, 0)])
++                        for i, child in enumerate(children):
++                            tags.extend([(0, "INSERT"), (8, "0"), (2, child),
++                                         (10, 0), (20, i + 1), (30, 0)])
++                        tags.extend([(0, "ENDBLK"), (8, "0")])
++                    tags.extend([(0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                                 (0, "INSERT"), (8, "0"), (2, "A"),
++                                 (10, 0), (20, 0), (30, 0), (0, "ENDSEC"), (0, "EOF")])
++                    path = os.path.join(self.temp_dir, f"cycle-{mode}-{kind}.dxf")
++                    with open(path, "w", encoding="ascii", newline="\n") as stream:
++                        stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                    previous = set(self.document.Objects)
++                    stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                    self.assertEqual(reason in stats["unsupportedFeatures"], rejected)
++                    links = [obj for obj in self.document.Objects if obj not in previous
++                             and obj.Name.startswith("Link_A")]
++                    self.assertEqual(len(links), 1)
++                    self.assertAlmostEqual(links[0].Shape.Length, expected_length)
++

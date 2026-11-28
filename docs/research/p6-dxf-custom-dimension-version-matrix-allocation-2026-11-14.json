@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-custom-dimension-version-matrix-allocation-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_ARC_AND_LARGE_RADIAL_DIMENSION_SEVEN_REVISION_ASCII_BINARY_ALLOCATION_ROLLBACK_RETRY_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated dimension transaction coverage to ARC_DIMENSION and LARGE_RADIAL_DIMENSION across all seven target revisions and both DXF encodings.",
+  "source": {
+    "kind": "records authored from scratch in memory and serialized beneath the build test directory",
+    "profiles": [
+      "ARC_DIMENSION with nondefault center and extension points, partial-arc state, leader points, and angles",
+      "LARGE_RADIAL_DIMENSION with nondefault center, chord, overridden center, jog point, and jog angle",
+      "seven standard concrete DIMENSION subtypes and current/legacy dynamic-constraint controls in the same generated drawing",
+      "generated TEXTSTYLE and DIMSTYLE dependencies"
+    ],
+    "versions": [
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "fixtureFilesAdded": 0,
+    "sampleDwgDxfFixturesCommitted": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-custom-dimension-version-matrix-allocation-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Prime each version and encoding with an untracked write, measure allocations in the clean output write, inject std::bad_alloc at every measured allocation, require destination and caller-state rollback, retry with the same codec, compare exact clean bytes, and freshly read typed standard/custom dimension callbacks and selected subtype fields."
+  },
+  "allocationOffsets": {
+    "AC1014": {
+      "ASCII": 273,
+      "Binary": 272
+    },
+    "AC1015": {
+      "ASCII": 276,
+      "Binary": 274
+    },
+    "AC1018": {
+      "ASCII": 276,
+      "Binary": 274
+    },
+    "AC1021": {
+      "ASCII": 269,
+      "Binary": 267
+    },
+    "AC1024": {
+      "ASCII": 278,
+      "Binary": 276
+    },
+    "AC1027": {
+      "ASCII": 269,
+      "Binary": 267
+    },
+    "AC1032": {
+      "ASCII": 269,
+      "Binary": 267
+    }
+  },
+  "allocationOffsetTotal": 3807,
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j 4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dxf_dimension_version_allocation_transaction$' --output-on-failure: PASS 1/1 in 27.09 seconds",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated DXF transaction and self-readback evidence only; producer interoperability, independent semantics, and native rendering are not qualified.",
+    "This exercises the generated ARC_DIMENSION partial-arc/leader profile and one LARGE_RADIAL_DIMENSION jog profile; other producer variants and drawing-level semantic behavior remain unqualified.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Generated ARC_DIMENSION and LARGE_RADIAL_DIMENSION now have whole-operation ASCII/Binary allocation rollback, caller-state preservation, same-codec retry, byte-identical clean output, and typed readback across AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032.",
+    "remainingP6G": "P6-G remains open for public-writer inventory reconciliation, remaining direct routes and compound variants, and uncovered variable-size OBJECTS builders.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "299 completed slices and 34 remaining packages: 299/(299+34)=89.8%; equal-weight count, not effort-weighted."
+  }
+}

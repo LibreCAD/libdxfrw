@@ -1,0 +1,33 @@
+{
+  "title": "VXCONTROL DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated local VXCONTROL direct-codec transaction control across legacy, detached-handle, raw-payload, and aliased stream layouts",
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "method": "DRW_VxControl::encodeDwg",
+    "behavior": "Stage the body and detached handle destination, preserving version-specific class/flag/count prefix, exact-version raw body bits, common handles, and soft-ownership record references. Publish only after all body and handle writes succeed."
+  },
+  "control": {
+    "file": "tests/dimassoc_dwg_encoder_allocation_tests.cpp",
+    "profile": "Locally generated VXCONTROL with class version, flags, three record handles, parent, two reactors, extension dictionary, and a 13-bit raw payload for AC1021.",
+    "tested_route": "Public encodeDwg",
+    "cases": [
+      {"version": "AC1015", "mode": "inline handles", "reached_allocation_offsets": 9},
+      {"version": "AC1018", "mode": "detached handles", "reached_allocation_offsets": 9},
+      {"version": "AC1021", "mode": "separate body and handle streams with raw payload", "reached_allocation_offsets": 13},
+      {"version": "AC1021", "mode": "body-aliased handle stream with raw payload", "reached_allocation_offsets": 11}
+    ],
+    "failure_assertions": "Every reached one-shot allocation failure leaves caller body, strings, handles, cursors, health, and handle-occurrence ledgers unchanged. The same object and buffers then retry to clean output.",
+    "fixtures_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j2",
+    "focused_tests": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_encoder_allocation_retry|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "result": "Both focused CTests passed. Generated controls swept 42 allocation offsets. git diff --check passed. A broader libdxfrw_dwg_local_roundtrip CTest failed 357 assertions after its MATERIAL writer refused an out-of-profile record; no baseline comparison was made, so that result is recorded without attribution to this encoder change."
+  },
+  "limits": [
+    "Generated local transaction evidence only; it does not qualify additional VXCONTROL producer profiles or whole-document output.",
+    "The broader DWG local-roundtrip failure remains untriaged at the earlier MATERIAL profile refusal.",
+    "Source/reference graph closure and broad DWG/DXF output qualification remain open."
+  ]
+}

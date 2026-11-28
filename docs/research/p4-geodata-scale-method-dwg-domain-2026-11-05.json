@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Modern GEODATA DWG scale-method domain",
+  "date": "2026-11-05",
+  "status": "MODERN_DWG_SCALE_METHOD_DOMAIN_GUARD_VERIFIED",
+  "scope": "GEODATA object versions 2 and 3 accept scale-estimation method values 1 through 4 in DWG output. Invalid values fail before low-level body/string/handle buffers mutate and are rejected by dwgWriter15 before caller handle/class staging. Version 1 retains its distinct field map and accepts only default method 1, which is not serialized by that layout.",
+  "normativeSources": [
+    {
+      "title": "Autodesk GEODATA (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-104FE0E2-4801-4AC8-B92C-1DDF5AC7AB64.htm",
+      "group95": "1 none; 2 user-specified scale factor; 3 grid scale at reference point; 4 prismoidal."
+    },
+    {
+      "title": "Open Design Alliance DbGeoData API reference",
+      "url": "https://docs.dev.graebert.com/html/2025.0.1/cfx/d7/d0f/_db_geo_data_8h_source.html",
+      "enum": "ScaleEstimationMethod uses 1 for unity, then user-defined, reference-point and prismoidal methods in order."
+    },
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1, §20.4.78",
+      "scope": "The GEODATA object body contains the scale-estimation method field; this change validates the field domain and does not change its byte layout."
+    }
+  ],
+  "implementation": {
+    "files": ["src/drw_objects.cpp", "src/intern/dwgwriter15.cpp"],
+    "behavior": "DRW_GeoData::encodeDwg rejects invalid modern methods before writing to any supplied buffer. dwgWriter15::writeGeoData repeats the profile guard before common object-state preparation, handle allocation or class registration. DRW_GeoData defaults/reset use method 1."
+  },
+  "regressionControl": {
+    "file": "tests/dwg_object_vectors_tests.cpp",
+    "test": "libdxfrw_geodata_dwg_scale_method_domain",
+    "coverage": "For v2 and v3, values -1, 0 and 5 leave sentinel-prefilled body, string and handle buffers unchanged; the same object and buffers then encode successfully with valid boundary methods 1 or 4. The GEODATA CIVIL-tail target matrix continues to verify valid v1/v2/v3 encode/parse field alignment and typed readback.",
+    "fixturePolicy": "All controls are authored locally in memory; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "buildResult": "passed",
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_geodata_dwg_scale_method_domain$' --output-on-failure",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_(geodata_versioned_writer|geodata_civil_tail_target_matrix|geodata_dwg_scale_method_domain)$' --output-on-failure",
+        "result": "passed"
+      }
+    ],
+    "diffCheck": "git diff --check passed"
+  },
+  "sourceBinding": {
+    "baseRevision": "a87e5e3b",
+    "files": {
+      "src/drw_objects.cpp": "724e4fb5346b6b7c8d583a6fdf87b78ff870c4618e04a637127abb3f3bfa8d83",
+      "src/intern/dwgwriter15.cpp": "d5989b666b5f21a3beea419262d5b6094f5bdfa63ad7b59cd4150bbebcf1dd2b",
+      "src/drw_objects.h": "4174a13f41e7330d3d8606f40885a4d0218f9c0dbfb7cd96d58a63f37cd0785c",
+      "tests/dwg_object_vectors_tests.cpp": "eb844c5e8700fc3ea33833c875fcd6d592013b55fbb2edfe5f64c2a2944da02d",
+      "CMakeLists.txt": "e1c6e155fc72f7833b37d50dcd9c271f3f0ea8e66d2ba0b902f09ad758e9f0ba"
+    }
+  },
+  "nonClaims": [
+    "No physical producer or native geospatial consumer was qualified.",
+    "This does not qualify GEODATA ownership, whole-document graph closure, map projection behavior or DWG encoding semantics beyond the tested field domain and existing vector controls."
+  ]
+}

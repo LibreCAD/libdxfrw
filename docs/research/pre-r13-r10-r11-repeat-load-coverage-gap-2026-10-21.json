@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw-pre-r13-repeat-load-route-audit-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary-source review plus local source audit and generated fast validation",
+  "question": "Does the local AC1006/AC1009 pre-R13 reader preserve or explicitly reject REPEAT, ENDREP, and LOAD semantics?",
+  "localRoute": {
+    "reader": "src/intern/dwgreaderR11.cpp::dwgReaderR11::readEntityR11",
+    "versions": ["AC1006 / R10", "AC1009 / R11-R12"],
+    "observedBehavior": "The former R11_REPEAT (5), R11_ENDREP (6), and R11_LOAD (10) no-op branch accepted records after consuming their bounded envelopes and common fields. The route now restores the shared cursor, records a marker-specific unsupported-r11-* validation diagnostic at the record offset, and fails the entity read. The dwg2dxf adapter reports these incomplete-conversion diagnostics.",
+    "testAudit": "The existing dwg_reader_matrix now generates controls for AC1006 and AC1009, each marker, a following block/end-block sentinel, and marker-free retry on the same reader. The existing dwg2dxf CLI contract test generates six scratch-only files and checks refusal, no output publication, destination preservation, and source immutability.",
+    "classification": "SOURCE_CONFIRMED_FALSE_SUCCESS_ROUTE; immediate route is guarded locally; semantic legality and mapping remain unqualified"
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "reference": "https://github.com/LibreDWG/libredwg/issues/1354",
+      "observedStatus": "Open issue reviewed 2026-10-21; report describes R1.4 and R2.10 examples",
+      "observation": "The report states that a pre-R13 REPEAT/ENDREP span around one entity can lose repeated instances when converted, and that literal REPEAT/ENDREP/LOAD names are emitted as if they were DXF entities. The reporter explicitly leaves the intended mapping unresolved.",
+      "limit": "This is not normative evidence and does not establish AC1006/AC1009 legality, seed inclusion, array order/axes, nesting, or the correct DXF lowering."
+    },
+    {
+      "project": "LibreDWG",
+      "reference": "https://github.com/LibreDWG/libredwg/issues/1386",
+      "observedStatus": "Open issue reviewed 2026-10-21",
+      "observation": "The report separately discusses pre-R13 writer block-offset and R12-source-to-R2000 structure gaps after simple conversion paths had been addressed.",
+      "limit": "This is direction-specific peer issue evidence; it provides no result for libdxfrw and is not evidence about the AC1006/AC1009 reader grammar."
+    },
+    {
+      "project": "Open Design Alliance",
+      "reference": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "scope": "v5.4.1, §§20.4.9-20.4.10, pp.112-114",
+      "observation": "The document describes INSERT and MINSERT layouts for R13 and later, including modern MINSERT row/column fields.",
+      "limit": "This ODA specification is not the authority for pre-R13 REPEAT/ENDREP/LOAD layout or semantics; modern MINSERT fields do not prove a legacy mapping."
+    }
+  ],
+  "existingPlanSeparation": {
+    "ac140": "PAR-123 / 7BS.1-7BS.2 remains limited to AC1.40 / Release 1.4.",
+    "ac1006_ac1009": "New PAR-143 / 7BS.3 is scoped only to dwgReaderR11's AC1006/AC1009 route.",
+    "modern": "R13+ INSERT/MINSERT and general DXF array behavior remain separate."
+  },
+  "planDelta": {
+    "finding": "PAR-143",
+    "priority": "P1",
+    "immediateAction": "Fail closed with marker-specific diagnostics before claiming a complete read/conversion; prove dwg2dxf does not publish output after failure.",
+    "fastValidation": [
+      "Build the existing reader-matrix target with -Werror.",
+      "Generated in-memory AC1006 and AC1009 controls exercise each marker, a following block/end-block sentinel, and marker-free same-reader retry.",
+      "The focused selector and owning reader-matrix CTest pass; marker-specific code/offset and failed-read status are asserted.",
+      "Six focused CLI controls pass: nonzero refusal, no output creation, existing-destination preservation, and source immutability.",
+      "Scoped diff check passes; no public callback was added and no new CTest registration was needed.",
+      "Do not add/commit external fixtures, add a CTest registration, run a full suite per slice, or wait on an external/native gate."
+    ],
+    "semanticWorkDeferredUntilEvidence": [
+      "AC1006/AC1009 marker legality and record-specific framing",
+      "REPEAT group scope, seed inclusion, nesting, row/column order, axes, spacing, and count limits",
+      "LOAD string encoding, resource identity, lookup policy, and missing-resource behavior",
+      "Any mapping to DXF MINSERT or expanded entities"
+    ],
+    "implementationStatus": "Guard, adapter diagnostic surfacing, generated reader controls, and CLI publication controls are implemented locally and remain uncommitted in the pre-existing dirty worktree.",
+    "validationRun": [
+      "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j4",
+      "./build/libdxfrw_dwg_reader_matrix_tests --r11-unsupported-markers",
+      "ctest --test-dir build -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "python3 tests/dwg2dxf_cli_contract_tests.py --converter build/dwg2dxf/dwg2dxf --pre-r13-marker-only",
+      "cmake --build build --target lc3_compat_check -j4"
+    ],
+    "noCodeChange": false,
+    "noTestsRun": false,
+    "noExternalFixture": true,
+    "noPeerRuntimeExecuted": true,
+    "noSupportPromotion": true,
+    "deferredExternalItemsRemain": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

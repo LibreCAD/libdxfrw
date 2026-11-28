@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-tolerance-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_TOLERANCE_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add fast full-operation allocation rollback, same-writer retry and typed readback for the direct TOLERANCE writer across all admitted revisions.",
+  "source": {
+    "kind": "locally generated in-memory DRW_Tolerance entity",
+    "profile": "One TOLERANCE entity with explicit STANDARD DIMSTYLE name, nonempty tolerance text, nondefault insertion point, default extrusion and nondefault x-axis direction.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-tolerance-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "b2927b07df652ee8af9dcf3daaa559aa79b808c7ee233e0f853d1e6ad93e554f",
+    "testExecutableSha256": "bf7839ea1a8802008fcf3bd8ceea7e9dc7639c8d5d42f1de61332c76cb1f1ea9",
+    "method": "For each revision and encoding, calibrate the successful full-document write, inject std::bad_alloc at every measured allocation, require sentinel destination bytes, caller TOLERANCE fields and identity maps to survive, retry on the same codec and compare exact bytes, then freshly import and verify the revision and typed TOLERANCE fields."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 85, "Binary": 84},
+    "AC1015": {"ASCII": 87, "Binary": 86},
+    "AC1018": {"ASCII": 87, "Binary": 86},
+    "AC1021": {"ASCII": 87, "Binary": 86},
+    "AC1024": {"ASCII": 94, "Binary": 93},
+    "AC1027": {"ASCII": 87, "Binary": 86},
+    "AC1032": {"ASCII": 87, "Binary": 86},
+    "totals": {"ASCII": 614, "Binary": 607, "all": 1221}
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_tolerance_version_allocation_transaction$' --output-on-failure: PASS 1/1 in 2.85 seconds",
+    "directRun": "build-gcc/tests/libdxfrw_dxf_write_allocation_transaction_tests build-gcc/tests/tolerance-version-allocation tolerance: PASS; all 1,221 measured allocation offsets passed rollback, same-writer byte-identical retry and typed readback.",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated writer transaction and same-library self-readback evidence only; producer and native tolerance rendering semantics remain unqualified.",
+    "One dimension-style name and one text/geometry profile are covered; broader producer-specific TOLERANCE variants remain outside this receipt.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Generated TOLERANCE whole-operation rollback, caller-state preservation, same-writer byte-identical retry and typed readback now span AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 in ASCII and Binary.",
+    "remainingP6G": "Continue the exact public-writer inventory and uncovered version/profile variants; source semantics and native tolerance display remain separate gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "273 completed slices and 35 remaining packages: 273/(273+35)=88.6%; count-based activity proxy only."
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1018-table-cached-string-exact-match-2026-11-09",
+  "date": "2026-11-09",
+  "status": "IMPLEMENTED_FAST_CONTROL_PASS",
+  "title": "AC1018 TABLE cached string exact-match guard",
+  "scope": "Reject a generated AC1018 TABLE model when the cached DRW_Variant string differs from the cell text, including differences hidden after an embedded NUL.",
+  "finding": {
+    "before": "DRW_Table::encodeDwg compared DRW_Variant::c_str() to the cell text. C-string comparison can stop at an embedded NUL and accept a longer cached value whose suffix would not be emitted.",
+    "after": "DRW_Variant::stringEquals compares the complete stored UTF8STRING only when the variant type is STRING. The TABLE direct-codec preflight uses this exact comparison.",
+    "profile": "Generated AC1018 plain-text TABLE direct-codec candidate only; dwgRW::writeTable remains refused."
+  },
+  "control": {
+    "input": "In-memory one-cell AC1018 TABLE; cached value is 24 bytes: `retry AC1018 text`, NUL, then `hidden`; emitted cell text is the 17-byte prefix.",
+    "refusal": "Encoder returns false and preserves seeded body and handle destination bytes.",
+    "retry": "After replacing the cached value with the exact cell text, the same TABLE object and destination buffers encode successfully.",
+    "fixture": "No DWG/DXF fixture file was created or committed."
+  },
+  "files": [
+    "src/drw_base.h",
+    "src/drw_entities.cpp",
+    "tests/dwg_object_vectors_tests.cpp"
+  ],
+  "bindings": {
+    "src/drw_base.h": "142a549ff0b2c037d5301db3e0511701773ca7553ee354dde1b45a728d18fef9",
+    "src/drw_entities.cpp": "571fe9f7ba21b6505091aca263ab11757b7c68a5e47f869ce9625b5d708081e3",
+    "tests/dwg_object_vectors_tests.cpp": "ad9355ff0fd3790db039d864cee36d8aad75c70d1f7f4fa06d713ef4b70a87d8"
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "test": "PASS 1/1: ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure (0.36 sec)",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "limitations": [
+    "Generated refusal and retry evidence only; it does not qualify a physical AC1018 TABLE source or native TABLE interoperability.",
+    "The AC1018 compound writer remains disconnected from public writeTable pending the physical body, *T graph, outer-transaction, and independent-readback gates."
+  ],
+  "supportClaimEffect": "none"
+}

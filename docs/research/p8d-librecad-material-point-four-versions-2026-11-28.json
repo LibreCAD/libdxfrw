@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-material-point-four-versions-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "329203040e8de2f3772bbcea682eaafd674a0111",
+  "codecCommit": "1e8cd41fc",
+  "scope": "Locally authored same-version ASCII AC1021, AC1024, AC1027 and AC1032 sparse material with planar model-space POINT; selected AC1024/AC1027 body uses the opaque codec route.",
+  "checks": [
+    "The selected regression passes 116 assertions across the four versions, including edited point coordinates, reopen/repeat save, cross-version refusal, unsupported live LINE and source elevation, physical and typed-delivery mismatches, destination preservation and corrected same-adapter retry.",
+    "The affected material suite passes 4735 assertions in 24 cases. A targeted AddressSanitizer build of the changed consumer filter and test translation units passes the selected 116-assertion case; other linked translation units and the shared codec were not instrumented and leak detection was disabled. The bundled-codec filter translation unit compiles.",
+    "ezdxf 1.4.5 independently checks each source/output material dictionary owner and entry, 63 channel flag, POINT coordinates and references from POINT, LAYER and $CMATERIAL; all eight audits have zero errors and fixes. ODA File Converter 27.1.0 resaved the selected AC1024 and AC1027 outputs, and independent readback verifies the same graph and clean audits."
+  ],
+  "independentFiles": [
+    {
+      "version": "AC1021",
+      "stage": "source",
+      "sha256": "7193d8307370ddbabc15be45dceedd9860f7896f6bd1ee3526e184ad3b744bc5",
+      "bytes": 601,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1021",
+      "stage": "output",
+      "sha256": "15790bab1d6a28fd2be48aad87d5672ff6356959eee5361aa6788c482cbd62cf",
+      "bytes": 21535,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1024",
+      "stage": "source",
+      "sha256": "322e7ee88e7a8950780ce9312dc98cd5f590f14186701fa5e2b6a4573dfc7988",
+      "bytes": 601,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1024",
+      "stage": "output",
+      "sha256": "ca22d0fafc8d7bd136e0bc7dfb536f63c5e21f7a03cfa0ac96b190aa77b899c7",
+      "bytes": 21659,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1027",
+      "stage": "source",
+      "sha256": "62f56dfdc04b3641ddf1bbaf6b21860cf50f26e9a5b147b23622185dfae8d23d",
+      "bytes": 601,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1027",
+      "stage": "output",
+      "sha256": "c3ab81a621ea051e91e06ddb40ce0ff0b9dfbd3885fff3018d2f4072606fc7a9",
+      "bytes": 21652,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1032",
+      "stage": "source",
+      "sha256": "75b6aa3ff2bcdee0991e208142b11803f2e8325b73ce10f591c6a4962e586eeb",
+      "bytes": 601,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1032",
+      "stage": "output",
+      "sha256": "b683ae59759538c07a2c374030cf023c59ab1d0e49fb6d8cb004aea97322de5e",
+      "bytes": 21652,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1024",
+      "stage": "oda-resave",
+      "sha256": "e09a120bec0b0b99fdb020ab9e5e3bb715017933c16beabf04c8f57199588dfc",
+      "bytes": 131294,
+      "audit": "clean"
+    },
+    {
+      "version": "AC1027",
+      "stage": "oda-resave",
+      "sha256": "8cad6a7c63a3fe9daecfe3e39980725e36dc4df58ba7c2600caaceb49639457d",
+      "bytes": 84813,
+      "audit": "clean"
+    }
+  ],
+  "hashes": {
+    "focusedLog": "b83cb60b8982d2c8f75527d9ffb6725b42fea599dfa1b764b948a60289bde9d9",
+    "materialSuiteLog": "c581b686b94a2858abd30ed44ee1ecb64b7e67b024e01bc28a36bb43bbf22886",
+    "targetedAsanLog": "b856f08ac828af162f55a2f056a962bfb482a1bad5104ccc859059e284ed4842",
+    "sharedCodec": "af4e1c1f040c11be32fe8ae449d77d4d77098c82acf7b2f80870f9b4118bfe7c"
+  },
+  "limits": [
+    "Only the selected ASCII source/consumer profile is qualified; the codec has separate binary controls, but consumer binary, other entity and producer profiles, native GUI, rendering and other platforms remain open.",
+    "The ODA resaves are peer validation of locally authored inputs, not independent native AutoCAD producer or rendering evidence. No drawing fixtures are committed."
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw-acis-sab-record-header-alignment-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "scope": "Generated in-memory SAB 21800 parser/model structural correction",
+  "researchBasis": [
+    {
+      "source": "ODA Open Design Specification v5.4.1, section 24.2.2.3",
+      "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf#page=246",
+      "finding": "Defines the relevant DWG/SAB envelope and 21800+ End-of-ASM-data marker; does not define detailed SAB entity-record grammar."
+    },
+    {
+      "source": "ODA, Working with .sat and .sab Files in Teigha",
+      "url": "https://www.opendesign.com/blog/2017/october/working-sat-and-sab-files-teigha",
+      "finding": "Identifies 20800+ SAT/SAB formats as Autodesk-modified rather than native Spatial ACIS; profile assumptions are bounded accordingly."
+    },
+    {
+      "source": "ezdxf sab.py and entities.py at dd7f6cc34983fdbf0b2b910f2497e0720d06dd16",
+      "url": "https://github.com/mozman/ezdxf/tree/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis",
+      "finding": "For the inspected binary record path, raw indexes are entity type, shared attribute pointer, entity ID, then type-specific data; the bounded semantic start is index 3."
+    },
+    {
+      "source": "CADMPEG v0.6.2 pinned format documentation",
+      "url": "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/formats/asm.md",
+      "finding": "ACIS 217/218 documentation is useful comparator context but does not establish that every numeric version/profile is equivalent to Autodesk-modified 21800. No CADMPEG run was performed."
+    }
+  ],
+  "implementation": {
+    "source": "src/drw_acis.cpp",
+    "tests": "tests/graph_preservation_tests.cpp",
+    "plan": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "Validate the exact 21800 common record prefix at wire parse, derive semantic token start 3 privately and use it consistently in reference planning/resolution, geometry cursors, intcurve points, transform classification, and rooted pointer ordinals while preserving raw tokens and full raw-token budgets.",
+    "profileScope": "ACIS BinaryFile 21800 only; not native Spatial ACIS, other SAB versions, or ASM",
+    "publicDRWSabRecordLayoutChanged": false,
+    "callerBuiltRecordsWithoutWirePrefixKeepOffsetZero": true,
+    "terminalRecordsExemptFromCommonPrefix": true,
+    "malformedPrefixRejected": true
+  },
+  "generatedCoverage": {
+    "inMemoryOnly": true,
+    "attributePointerExcludedFromSemanticReferences": true,
+    "rawTokensPreserved": true,
+    "wireframePointProjection": true,
+    "rootedBodyProjection": true,
+    "transformRawTokenIndexChecked": true,
+    "malformedPrefixNegativeControl": true,
+    "callerBuiltOffsetZeroControl": true,
+    "version21800Terminator": "End-of-ASM-data",
+    "fixtureFileAdded": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+      "result": "PASS",
+      "scope": "Library/test target build and compile-only public API compatibility check"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    {
+      "command": "ctest --test-dir build -R '^dwg2dxf_modeler_acds_block_projection$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    {
+      "command": "git diff --check -- src/drw_acis.cpp src/drw_acis.h tests/graph_preservation_tests.cpp DWG_DXF_3D_SUPPORT_PLAN.md DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-sab-record-header-alignment-2026-10-21.json docs/research/acis-sab-record-header-alignment-fast-slice-2026-10-21.json",
+      "result": "PASS"
+    }
+  ],
+  "scopeLimits": [
+    "No full test suite was run.",
+    "No persistent DWG/DXF/SAB fixture, package, dependency, external peer executable, native FreeCAD, or independent kernel was added or run.",
+    "This does not establish complete SAB grammar, attribute semantics, transform/unit application, B-rep validity, volume/area, or consumer acceptance.",
+    "No support claim or finding disposition was promoted; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL.",
+    "The shared worktree remains broadly dirty and uncommitted; Git metadata is read-only."
+  ],
+  "next": "Continue with the next generated S3.7c structural-matrix case locally; refresh the plan and receipt after each slice, without waiting for external/native qualification."
+}

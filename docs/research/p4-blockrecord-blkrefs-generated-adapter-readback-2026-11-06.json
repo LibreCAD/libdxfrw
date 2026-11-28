@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Generated BLKREFS adapter output and readback control",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Close the generated positive adapter-output gap for BLOCK_RECORD.insertHandles while keeping physical source membership, producer semantics, and whole-document support separate.",
+  "implementation": {
+    "testSource": "tests/dwg2dxf_adapter_tests.cpp",
+    "testSourceSha256": "015d9ab54f52b6ed598be3bf0c3919071b3e70a57594eedec17b06e065393947",
+    "selector": "--ownerless-fixed-space-insert-output",
+    "test": "dwg2dxf_ownerless_fixed_space_insert_output",
+    "executable": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests",
+    "executableSha256": "a02413f00ba0357e1ddc99ac052461a6adb7805a7622e1ff3e6827e5795c2c4c"
+  },
+  "generatedGraph": {
+    "encoding": "ASCII and Binary DXF",
+    "sourceRoute": "Locally authored in-memory DWG-origin dx_data; no DWG/DXF fixture is written to the repository.",
+    "blockRecord": "One named BLOCK_RECORD has one BLKREFS source handle naming the selected INSERT.",
+    "blockClosure": "The selected block definition has BLOCK and ENDBLK identities; the INSERT refers to the unique named target BLOCK_RECORD.",
+    "ownerProfile": "Source INSERT uses the documented ownerless ModelSpace context; output readback resolves its owner to the emitted ModelSpace BLOCK_RECORD.",
+    "readback": "Fresh DXF readback requires one target BLOCK_RECORD, one matching INSERT, exactly one insertHandles entry equal to the emitted INSERT handle, and ModelSpace ownership."
+  },
+  "failureAndRetry": {
+    "invalidSource": "An unknown INSERT owner is refused with the preseeded destination unchanged.",
+    "retry": "Correcting the same source to the permitted ownerless ModelSpace profile succeeds on the same dx_iface instance for both encodings.",
+    "limitation": "The control does not exercise arbitrary named-block owner profiles, source-authored membership completeness, or native BLKREFS meaning."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4.",
+    "focusedTest": "PASS: ctest --test-dir build-gcc -R ^dwg2dxf_ownerless_fixed_space_insert_output$ --output-on-failure (1/1).",
+    "fullSuites": "NOT RUN",
+    "fixturesCommitted": false
+  },
+  "remaining": "Physical-source selected output/readback and complete producer-backed BLKREFS membership remain open. Autodesk’s published BLOCK_RECORD field table does not enumerate BLKREFS; group-331 classification and this generated transport control do not establish application semantics. Keep whole-document support claims closed."
+}

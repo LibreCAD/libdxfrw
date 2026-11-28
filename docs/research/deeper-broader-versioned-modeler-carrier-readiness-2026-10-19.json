@@ -1,0 +1,127 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Versioned modeler-carrier truth and stale peer-writer readiness",
+  "mode": "Primary-source web review and local parity-plan crosswalk",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "planSha256": "f55543a04487d0ce3d2a5a07c5ae7d6affb694f5404335912d60bb5430ab8ca7",
+  "scope": [
+    "Reconcile Autodesk's type-specific DXF modeler record shapes and soft-owner reference semantics",
+    "Separate SAT/SAB inner-format compatibility from DWG and DXF outer-carrier framing",
+    "Refresh open ACadSharp and released LibreDWG evidence without treating branch claims as support or local defects",
+    "Refine existing PAR-07/S8 implementation readiness and fast validation ordering"
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-644BF0F0-FD79-4C5E-AD5A-0053FCC5A5A4.htm",
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html"
+      ],
+      "observed": "The published 3DSOLID and REGION records both use the AcDbModelerGeometry subclass, group 70 and proprietary group-1/group-3 data; the 3DSOLID table additionally documents AcDb3dSolid and group 350 history ID. The ObjectARX group-code table classifies 350-359 as soft ownership, distinct from hard ownership."
+    },
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "https://www.opendesign.com/blog/2017/october/working-sat-and-sab-files-teigha"
+      ],
+      "observed": "ODA's DWG specification documents the AcDs container and SAB envelope while stating detailed SAB encoding is outside scope. ODA's Teigha note describes AutoCAD-modified SAT/SAB versions from 20800 as not directly usable by native Spatial ACIS without conversion."
+    },
+    {
+      "project": "ezdxf 1.4.5 documentation",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html"
+      ],
+      "observed": "The docs map DXF R2000-R2010 to SAT and R2013+ to SAB, expose raw carrier browsing, warn that ACIS entity support is limited and unsupported records may be lost, and describe mesh projection that loses curved-boundary faces."
+    },
+    {
+      "project": "LibreDWG 0.14.1 NEWS",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "observed": "The release notes describe the R2013+ AcDsPrototype_1b datastore as not yet reliably parsed and report brute-force extraction of new SAB blobs; they also report SAB-v2 conversion to legacy encrypted SAT-v1 for pre-R2013 DXF."
+    },
+    {
+      "project": "ACadSharp issue and writer proposals",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1150"
+      ],
+      "observed": "#1195 reports silent 3DSOLID/REGION omission in ACadSharp 3.4.9. #1240 is open and has no deployment on the reviewed page. #1150 describes version-specific DXF/DWG carriers, token-aware SAT grouping, a reported 2007 subclass boundary, and an Oct. 1 reader-refactor conflict; the maintainer acknowledged a fix in #1268 and preferred a schema-driven writer. These are mutable peer reports, not independently reproduced results or normative format facts."
+    }
+  ],
+  "localEvidence": [
+    "Existing PAR-07/S8 work already separates older inline modeler payloads, modern DXF/DWG ACDSDATA or AcDs carriers, bounded section parsing, entity-owner linkage, and optional semantic/native gates.",
+    "Current local output dispatch includes DRW_ModelerGeometry handling; the plan already requires independent source-to-output inventory and fail-closed outcomes for unsupported profiles.",
+    "No new local defect, missing owner, or changed test requirement was established; this pass sharpens existing type/version/ownership cases and guards against cross-profile ACIS assumptions.",
+    "Findings/subplans remain 139/77; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "planImpact": {
+    "existingOwnersRefined": [
+      "PAR-07/S8 modeler carrier capture, writer replay and semantic qualification",
+      "Existing source-to-output loss ledger and LibreCAD/LibreCAD_3 2D contract"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "readiness": "Keep REGION and 3DSOLID schemas distinct; treat group 350 as soft ownership; preserve source/target and inner ACIS profile identity; test complete repeated chunks and sentinels; require an explicit translator for cross-profile conversion; qualify independent parser, kernel metrics and native consumer only as composed external gates."
+  },
+  "method": {
+    "kind": "Review primary documentation, live peer issue/PR pages and release notes, then reconcile claims with the existing local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "filesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-versioned-modeler-carrier-readiness-2026-10-19.json"
+    ],
+    "limitations": "Peer issues and PR branches are mutable. The ACadSharp reports and PR validation were not reproduced; ODA is authoritative for DWG container layout but explicitly not a complete ACIS grammar; documentation scope does not guarantee behavior of arbitrary downstream binaries."
+  },
+  "assessment": {
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrCTestRegistrations": 0,
+    "fullSuiteRun": false,
+    "peerRun": false,
+    "nativeRun": false,
+    "supportPromotion": false
+  },
+  "validation": {
+    "commands": [
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq empty docs/research/deeper-broader-versioned-modeler-carrier-readiness-2026-10-19.json",
+      "shasum -a 256 DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "planDiffCheck": true,
+    "receiptJsonValidation": true,
+    "planSha256Matches": true,
+    "buildRun": false,
+    "testsRun": false
+  }
+}

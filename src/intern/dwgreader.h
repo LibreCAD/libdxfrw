@@ -16,14 +16,19 @@
 
 #include "../drw_entities.h"
 #include "../drw_objects.h"
+#include "../drw_datastorage.h"
 #include "../libdwgr.h"
 #include "drw_textcodec.h"
 #include "dwgbuffer.h"
+#include "dwgappinfo.h"
+#include "dwgobjectframe.h"
+#include "dwg_xrecord_verified_source.h"
 #include "dwgsafety.h"
 #include "dwgutil.h"
 #include <algorithm>
 #include <limits>
 #include <list>
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
@@ -46,6 +51,919 @@ public:
   std::uint64_t sourceOrdinal{0};
   DRW_DwgFrameOffsetSpace sourceOffsetSpace{DRW_DwgFrameOffsetSpace::Unknown};
 };
+
+namespace dwgReaderDetail {
+
+/// Class/version pairs whose CELLSTYLEMAP body is retained raw-only when its
+/// typed decoder refuses it. These are narrowly observed compatibility
+/// profiles; the caller must still validate the common object shell before
+/// publishing the frame.
+inline bool isCellStyleMapRawOnlyProfile(DRW::Version version,
+                                         const DRW_Class *objectClass) {
+  return objectClass != nullptr
+      && objectClass->recName == "CELLSTYLEMAP"
+      && objectClass->className == "AcDbCellStyleMap"
+      && (version == DRW::AC1012 || version == DRW::AC1014 || version == DRW::AC1015
+          || version == DRW::AC1018);
+}
+
+/// Legacy dictionary-with-default records may fall back to raw retention if
+/// their typed body is unrecognized. The common object shell must still pass.
+inline bool isLegacyDictionaryWithDefaultRawOnlyProfile(
+    DRW::Version version, const DRW_Class *objectClass) {
+  return objectClass != nullptr && (version == DRW::AC1012 || version == DRW::AC1014)
+      && objectClass->recName == "ACDBDICTIONARYWDFLT"
+      && objectClass->className == "AcDbDictionaryWithDefault";
+}
+
+/// Observed R14 render classes may carry newer, unmodeled bodies. Preserve
+/// their bounded source frames when typed decoding fails, without qualifying
+/// their fields or output.
+inline bool isR14RenderRawOnlyProfile(DRW::Version version,
+                                      const DRW_Class *objectClass) {
+  return version == DRW::AC1014 && objectClass != nullptr
+      && ((objectClass->recName == "RAPIDRTRENDERSETTINGS"
+           && objectClass->className == "AcDbRapidRTRenderSettings")
+          || (objectClass->recName == "MENTALRAYRENDERSETTINGS"
+              && objectClass->className == "AcDbMentalRayRenderSettings")
+          || (objectClass->recName == "RENDERGLOBAL"
+              && objectClass->className == "AcDbRenderGlobal"));
+}
+
+/// Immutable ordering key for the bounded catch-all ENTITIES sweep. The
+/// source map is unordered; retaining only this key lets the reader reproduce
+/// its established sourceOrdinal/location/handle order without keeping
+/// invalidatable map iterators across frame detach/erase operations.
+struct DwgResidualEntityKey {
+  std::uint64_t sourceOrdinal{0};
+  std::uint32_t location{0};
+  std::uint32_t handle{0};
+};
+
+inline bool residualEntityKeyLess(const DwgResidualEntityKey &lhs,
+                                  const DwgResidualEntityKey &rhs) noexcept {
+  if (lhs.sourceOrdinal != rhs.sourceOrdinal)
+    return lhs.sourceOrdinal < rhs.sourceOrdinal;
+  if (lhs.location != rhs.location)
+    return lhs.location < rhs.location;
+  return lhs.handle < rhs.handle;
+}
+
+/// Snapshot and sort a source-map identity set before the reader mutates the
+/// map. `maxScratchBytes` accounts for the temporary key vector separately
+/// from the already-admitted DWG source frames, including any old output
+/// capacity retained through the atomic swap. On any admission/allocation
+/// failure, `output` remains unchanged.
+template <typename ObjectMap, typename Allocator>
+bool buildDwgResidualEntityOrder(
+    const ObjectMap &objects,
+    std::vector<DwgResidualEntityKey, Allocator> &output,
+    std::size_t maxEntries, std::size_t maxScratchBytes,
+    std::size_t *comparisonCount = nullptr) noexcept {
+  if (comparisonCount != nullptr)
+    *comparisonCount = 0u;
+  const std::size_t count = objects.size();
+  const std::size_t maxKeyCapacity =
+      maxScratchBytes / sizeof(DwgResidualEntityKey);
+  if (count > maxEntries || count > maxKeyCapacity ||
+      output.capacity() > maxKeyCapacity ||
+      count > maxKeyCapacity - output.capacity()) {
+    return false;
+  }
+
+  try {
+    std::vector<DwgResidualEntityKey, Allocator> prepared(
+        output.get_allocator());
+    prepared.reserve(count);
+    if (prepared.capacity() > maxKeyCapacity - output.capacity()) {
+      return false;
+    }
+    for (const auto &entry : objects) {
+      prepared.push_back({entry.second.sourceOrdinal, entry.second.loc,
+                          entry.first});
+    }
+    std::sort(prepared.begin(), prepared.end(),
+              [comparisonCount](const DwgResidualEntityKey &lhs,
+                                const DwgResidualEntityKey &rhs) noexcept {
+                if (comparisonCount != nullptr)
+                  ++*comparisonCount;
+                return residualEntityKeyLess(lhs, rhs);
+              });
+    output.swap(prepared);
+    return true;
+  } catch (...) {
+    return false;
+  }
+}
+
+/// A residual frame may be restored only for one bounded soft-failure retry.
+/// The caller separately verifies that the restored map entry still has the
+/// exact immutable source identity captured in its ordering key.
+inline bool canRetryResidualEntity(
+    bool firstAttempt, bool mapContainsSameSource, bool readSucceeded,
+    bool frameFailure, bool hasCoverage,
+    DRW_DwgFrameDisposition disposition,
+    std::uint8_t publicationCount) noexcept {
+  return firstAttempt && mapContainsSameSource && !readSucceeded &&
+         !frameFailure && hasCoverage &&
+         disposition == DRW_DwgFrameDisposition::Pending &&
+         publicationCount == 0u;
+}
+
+inline bool fitsByteBudget(std::size_t retainedBytes,
+                           std::size_t additionalBytes,
+                           std::size_t limitBytes) noexcept {
+  return retainedBytes <= limitBytes &&
+         additionalBytes <= limitBytes - retainedBytes;
+}
+
+template <typename DeclaredHandles>
+bool buildPolylineDeclaredIndex(
+    const DeclaredHandles &declaredHandles,
+    std::vector<std::pair<std::uint32_t, std::size_t>> &sortedIndex,
+    std::vector<std::uint8_t> &stagedSlots,
+    std::size_t maxBytes) noexcept {
+  using HandleIndex = std::pair<std::uint32_t, std::size_t>;
+  const std::size_t count = declaredHandles.size();
+  if (count > static_cast<std::size_t>(dwgSafety::MaxOwnedObjectCount))
+    return false;
+
+  std::size_t priorOutputBytes = 0u;
+  if (sortedIndex.capacity() > maxBytes / sizeof(HandleIndex))
+    return false;
+  priorOutputBytes = sortedIndex.capacity() * sizeof(HandleIndex);
+  if (!fitsByteBudget(priorOutputBytes, stagedSlots.capacity(), maxBytes))
+    return false;
+  priorOutputBytes += stagedSlots.capacity();
+  constexpr std::size_t bytesPerChild = sizeof(HandleIndex) + sizeof(std::uint8_t);
+  if (count > (maxBytes - priorOutputBytes) / bytesPerChild)
+    return false;
+
+  std::vector<HandleIndex> index;
+  std::vector<std::uint8_t> received;
+  try {
+    index.reserve(count);
+    std::size_t slot = 0u;
+    for (const std::uint32_t handle : declaredHandles) {
+      index.emplace_back(handle, slot);
+      ++slot;
+    }
+    std::sort(index.begin(), index.end());
+    received.resize(count, 0u);
+  } catch (...) {
+    return false;
+  }
+
+  std::size_t actualBytes = priorOutputBytes;
+  if (!fitsByteBudget(actualBytes, index.capacity() * sizeof(HandleIndex),
+                      maxBytes)) {
+    return false;
+  }
+  actualBytes += index.capacity() * sizeof(HandleIndex);
+  if (!fitsByteBudget(actualBytes, received.capacity(), maxBytes))
+    return false;
+
+  sortedIndex.swap(index);
+  stagedSlots.swap(received);
+  return true;
+}
+
+template <typename Index, typename Less>
+bool findPolylineDeclaredChildSlot(const Index &sortedIndex,
+                                   std::uint32_t handle, std::size_t &slot,
+                                   bool requireExactlyOnce,
+                                   Less less) noexcept {
+  if (handle == DRW::NoHandle)
+    return false;
+  const auto found = std::lower_bound(
+      sortedIndex.cbegin(), sortedIndex.cend(), handle,
+      [&less](const auto &entry, std::uint32_t target) {
+        return less(entry.first, target);
+      });
+  if (found == sortedIndex.cend() || found->first != handle ||
+      (requireExactlyOnce && (found + 1) != sortedIndex.cend() &&
+       (found + 1)->first == handle)) {
+    return false;
+  }
+  slot = found->second;
+  return true;
+}
+
+// Charge an explicit, allocator-independent model for red-black tree nodes.
+// Five pointer widths cover the parent/child links plus conservative node
+// linkage/alignment overhead across the supported standard libraries;
+// allocator metadata is not represented by this ceiling.
+constexpr std::size_t PolylineTreeNodeLinkChargeBytes = 5u * sizeof(void *);
+constexpr std::size_t PolylineClaimOwnerNodeChargeBytes =
+    sizeof(std::uint32_t) + PolylineTreeNodeLinkChargeBytes;
+constexpr std::size_t PolylineClaimHandleNodeChargeBytes =
+    sizeof(std::pair<const std::uint32_t, std::set<std::uint32_t>>) +
+    PolylineTreeNodeLinkChargeBytes +
+    // The mapped set may allocate its own head/sentinel node independently
+    // of the map node, notably with the MSVC standard library.
+    PolylineClaimOwnerNodeChargeBytes;
+constexpr std::size_t PolylineOwnershipClaimNodeChargeBytes =
+    sizeof(std::pair<const std::uint32_t, std::uint32_t>) +
+    PolylineTreeNodeLinkChargeBytes;
+constexpr std::size_t PolylineOwnershipReferenceChargeBytes =
+    sizeof(std::uint32_t);
+
+// Preflight claims need only the first parent for each child: each later
+// competing parent is marked invalid as it is observed. This avoids retaining
+// a copy of every parent's child vector while keeping deterministic lookup.
+// The accounting charges each scanned reference (including repeats) to bound
+// work, plus conservative map/set node estimates for retained scratch state.
+// It is an explicit policy model, not an allocator/RSS measurement.
+class PolylineOwnershipPreflightIndex {
+public:
+  using FirstOwnerMap = std::map<std::uint32_t, std::uint32_t>;
+  using InvalidOwnerSet = std::set<std::uint32_t>;
+
+  bool registerClaim(std::uint32_t owner, std::uint32_t handle,
+                     std::size_t otherRetainedBytes,
+                     std::size_t maxBytes) noexcept {
+    if (owner == DRW::NoHandle || handle == DRW::NoHandle ||
+        !fitsByteBudget(otherRetainedBytes, m_chargedBytes, maxBytes)) {
+      return false;
+    }
+
+    const auto first = m_firstOwner.find(handle);
+    const bool newHandle = first == m_firstOwner.end();
+    const bool conflict = !newHandle && first->second != owner;
+    std::size_t additionalBytes = PolylineOwnershipReferenceChargeBytes;
+    if (newHandle &&
+        !fitsByteBudget(additionalBytes,
+                        PolylineOwnershipClaimNodeChargeBytes,
+                        (std::numeric_limits<std::size_t>::max)())) {
+      return false;
+    }
+    if (newHandle)
+      additionalBytes += PolylineOwnershipClaimNodeChargeBytes;
+
+    const auto needsInvalidOwner = [this](std::uint32_t candidate) {
+      return m_invalidOwners.find(candidate) == m_invalidOwners.end();
+    };
+    if (conflict && needsInvalidOwner(first->second)) {
+      if (!fitsByteBudget(additionalBytes,
+                          PolylineClaimOwnerNodeChargeBytes,
+                          (std::numeric_limits<std::size_t>::max)())) {
+        return false;
+      }
+      additionalBytes += PolylineClaimOwnerNodeChargeBytes;
+    }
+    if (conflict && needsInvalidOwner(owner)) {
+      if (!fitsByteBudget(additionalBytes,
+                          PolylineClaimOwnerNodeChargeBytes,
+                          (std::numeric_limits<std::size_t>::max)())) {
+        return false;
+      }
+      additionalBytes += PolylineClaimOwnerNodeChargeBytes;
+    }
+    if (!fitsByteBudget(otherRetainedBytes + m_chargedBytes,
+                        additionalBytes, maxBytes)) {
+      return false;
+    }
+
+    try {
+      if (newHandle)
+        m_firstOwner.emplace(handle, owner);
+      if (conflict) {
+        m_invalidOwners.insert(first->second);
+        m_invalidOwners.insert(owner);
+      }
+    } catch (...) {
+      return false;
+    }
+    m_chargedBytes += additionalBytes;
+    ++m_referenceCount;
+    return true;
+  }
+
+  bool markInvalid(std::uint32_t owner, std::size_t otherRetainedBytes,
+                   std::size_t maxBytes) noexcept {
+    if (owner == DRW::NoHandle ||
+        !fitsByteBudget(otherRetainedBytes, m_chargedBytes, maxBytes)) {
+      return false;
+    }
+    if (m_invalidOwners.find(owner) != m_invalidOwners.end())
+      return true;
+    if (!fitsByteBudget(otherRetainedBytes + m_chargedBytes,
+                        PolylineClaimOwnerNodeChargeBytes, maxBytes)) {
+      return false;
+    }
+    try {
+      m_invalidOwners.insert(owner);
+    } catch (...) {
+      return false;
+    }
+    m_chargedBytes += PolylineClaimOwnerNodeChargeBytes;
+    return true;
+  }
+
+  bool isInvalid(std::uint32_t owner) const noexcept {
+    return m_invalidOwners.find(owner) != m_invalidOwners.end();
+  }
+  bool hasInvalidOwners() const noexcept { return !m_invalidOwners.empty(); }
+  std::size_t invalidOwnerCount() const noexcept {
+    return m_invalidOwners.size();
+  }
+  std::size_t referenceCount() const noexcept { return m_referenceCount; }
+  std::size_t chargedBytes() const noexcept { return m_chargedBytes; }
+
+private:
+  FirstOwnerMap m_firstOwner;
+  InvalidOwnerSet m_invalidOwners;
+  std::size_t m_referenceCount{0u};
+  std::size_t m_chargedBytes{0u};
+};
+
+// Reverse ownership index: for any vertex handle, locate every pending
+// POLYLINE that declares it without scanning all pending parents. The ordered
+// maps/sets give deterministic logarithmic lookup and retain every competing
+// owner so the reader can reject and terminalize the same groups as before.
+template <typename Compare = std::less<std::uint32_t>>
+class PolylineDeclaredClaimIndex {
+public:
+  using OwnerSet = std::set<std::uint32_t, Compare>;
+  using ClaimMap = std::map<std::uint32_t, OwnerSet, Compare>;
+
+  explicit PolylineDeclaredClaimIndex(Compare compare = Compare{})
+      : m_claims(compare) {}
+
+  // Add one observed orphan-child owner. This single-entry operation is used
+  // by the reader's inverse index so a later parent can test ownership in
+  // logarithmic time without scanning every orphan vector.
+  bool addOwner(std::uint32_t owner, std::uint32_t handle,
+                std::size_t otherRetainedBytes, std::size_t maxBytes,
+                std::size_t &addedBytes) noexcept {
+    if (owner == DRW::NoHandle || handle == DRW::NoHandle ||
+        !fitsByteBudget(otherRetainedBytes, m_bytes, maxBytes)) {
+      return false;
+    }
+
+    auto existing = m_claims.find(handle);
+    const bool newHandle = existing == m_claims.end();
+    if (!newHandle && existing->second.find(owner) != existing->second.end())
+      return false;
+
+    std::size_t charge = PolylineClaimOwnerNodeChargeBytes;
+    if (newHandle) {
+      if (!fitsByteBudget(charge, PolylineClaimHandleNodeChargeBytes,
+                          std::numeric_limits<std::size_t>::max())) {
+        return false;
+      }
+      charge += PolylineClaimHandleNodeChargeBytes;
+    }
+    if (!fitsByteBudget(otherRetainedBytes, m_bytes, maxBytes) ||
+        !fitsByteBudget(otherRetainedBytes + m_bytes, charge, maxBytes)) {
+      return false;
+    }
+
+    typename ClaimMap::iterator claimIt = m_claims.end();
+    bool insertedHandle = false;
+    try {
+      const auto claim = m_claims.try_emplace(handle, m_claims.key_comp());
+      claimIt = claim.first;
+      insertedHandle = claim.second;
+      if (!claimIt->second.insert(owner).second) {
+        if (insertedHandle && claimIt->second.empty())
+          m_claims.erase(claimIt);
+        return false;
+      }
+    } catch (...) {
+      if (insertedHandle && claimIt != m_claims.end() &&
+          claimIt->second.empty()) {
+        m_claims.erase(claimIt);
+      }
+      return false;
+    }
+    m_bytes += charge;
+    addedBytes = charge;
+    return true;
+  }
+
+  // Removal is idempotent so cleanup can repair a partially observed state
+  // without allocating. The returned charge is zero when this owner was not
+  // present for the handle.
+  bool removeOwner(std::uint32_t owner, std::uint32_t handle,
+                   std::size_t &releasedBytes) noexcept {
+    const auto claim = m_claims.find(handle);
+    if (claim == m_claims.end() ||
+        claim->second.find(owner) == claim->second.end()) {
+      releasedBytes = 0u;
+      return true;
+    }
+    std::size_t released = PolylineClaimOwnerNodeChargeBytes;
+    const bool removesHandle = claim->second.size() == 1u;
+    if (removesHandle)
+      released += PolylineClaimHandleNodeChargeBytes;
+    if (released > m_bytes)
+      return false;
+    claim->second.erase(owner);
+    if (removesHandle) {
+      m_claims.erase(claim);
+    }
+    m_bytes -= released;
+    releasedBytes = released;
+    return true;
+  }
+
+  template <typename Index>
+  bool addParent(std::uint32_t owner, const Index &sortedIndex,
+                 std::size_t otherRetainedBytes, std::size_t maxBytes,
+                 std::size_t &addedBytes) noexcept {
+    if (owner == DRW::NoHandle ||
+        !fitsByteBudget(otherRetainedBytes, m_bytes, maxBytes)) {
+      return false;
+    }
+
+    std::size_t newlyChargedBytes = 0u;
+    bool havePrevious = false;
+    std::uint32_t previousHandle = DRW::NoHandle;
+    for (const auto &entry : sortedIndex) {
+      const std::uint32_t handle = entry.first;
+      if (havePrevious && handle == previousHandle)
+        continue;
+      havePrevious = true;
+      previousHandle = handle;
+
+      const auto existing = m_claims.find(handle);
+      const bool newHandle = existing == m_claims.end();
+      std::size_t charge = PolylineClaimOwnerNodeChargeBytes;
+      if (newHandle) {
+        if (!fitsByteBudget(charge, PolylineClaimHandleNodeChargeBytes,
+                            std::numeric_limits<std::size_t>::max())) {
+          rollbackParent(owner, sortedIndex);
+          return false;
+        }
+        charge += PolylineClaimHandleNodeChargeBytes;
+      } else if (existing->second.find(owner) != existing->second.end()) {
+        rollbackParent(owner, sortedIndex);
+        return false;
+      }
+
+      if (!fitsByteBudget(otherRetainedBytes, m_bytes, maxBytes) ||
+          !fitsByteBudget(otherRetainedBytes + m_bytes, charge, maxBytes)) {
+        rollbackParent(owner, sortedIndex);
+        return false;
+      }
+
+      try {
+        auto claim = m_claims.try_emplace(handle, m_claims.key_comp());
+        try {
+          if (!claim.first->second.insert(owner).second) {
+            if (claim.second && claim.first->second.empty())
+              m_claims.erase(claim.first);
+            rollbackParent(owner, sortedIndex);
+            return false;
+          }
+        } catch (...) {
+          if (claim.second && claim.first->second.empty())
+            m_claims.erase(claim.first);
+          throw;
+        }
+      } catch (...) {
+        rollbackParent(owner, sortedIndex);
+        return false;
+      }
+      m_bytes += charge;
+      newlyChargedBytes += charge;
+    }
+    addedBytes = newlyChargedBytes;
+    return true;
+  }
+
+  template <typename Index>
+  bool removeParent(std::uint32_t owner, const Index &sortedIndex,
+                    std::size_t &releasedBytes) noexcept {
+    std::size_t newlyReleasedBytes = 0u;
+    bool havePrevious = false;
+    std::uint32_t previousHandle = DRW::NoHandle;
+    for (const auto &entry : sortedIndex) {
+      const std::uint32_t handle = entry.first;
+      if (havePrevious && handle == previousHandle)
+        continue;
+      havePrevious = true;
+      previousHandle = handle;
+
+      const auto claim = m_claims.find(handle);
+      if (claim == m_claims.end() || claim->second.erase(owner) == 0u)
+        continue;
+      newlyReleasedBytes += PolylineClaimOwnerNodeChargeBytes;
+      if (claim->second.empty()) {
+        m_claims.erase(claim);
+        newlyReleasedBytes += PolylineClaimHandleNodeChargeBytes;
+      }
+    }
+    if (newlyReleasedBytes > m_bytes)
+      return false;
+    m_bytes -= newlyReleasedBytes;
+    releasedBytes = newlyReleasedBytes;
+    return true;
+  }
+
+  const OwnerSet *ownersFor(std::uint32_t handle) const noexcept {
+    const auto claim = m_claims.find(handle);
+    return claim == m_claims.end() ? nullptr : &claim->second;
+  }
+
+  bool containsParent(std::uint32_t owner, std::uint32_t handle) const noexcept {
+    const OwnerSet *owners = ownersFor(handle);
+    return owners != nullptr && owners->find(owner) != owners->end();
+  }
+
+  bool containsOwner(std::uint32_t owner, std::uint32_t handle) const noexcept {
+    return containsParent(owner, handle);
+  }
+
+  const ClaimMap &entries() const noexcept { return m_claims; }
+  std::size_t bytes() const noexcept { return m_bytes; }
+  bool empty() const noexcept { return m_claims.empty(); }
+
+  bool validateAccounting() const noexcept {
+    std::size_t measuredBytes = 0u;
+    for (const auto &entry : m_claims) {
+      if (entry.second.empty() ||
+          !fitsByteBudget(measuredBytes, PolylineClaimHandleNodeChargeBytes,
+                          std::numeric_limits<std::size_t>::max())) {
+        return false;
+      }
+      measuredBytes += PolylineClaimHandleNodeChargeBytes;
+      if (entry.second.size() >
+          (std::numeric_limits<std::size_t>::max() - measuredBytes) /
+              PolylineClaimOwnerNodeChargeBytes) {
+        return false;
+      }
+      measuredBytes += entry.second.size() * PolylineClaimOwnerNodeChargeBytes;
+    }
+    return measuredBytes == m_bytes;
+  }
+
+private:
+  template <typename Index>
+  void rollbackParent(std::uint32_t owner, const Index &sortedIndex) noexcept {
+    std::size_t ignored = 0u;
+    (void)removeParent(owner, sortedIndex, ignored);
+  }
+
+  ClaimMap m_claims;
+  std::size_t m_bytes{0u};
+};
+
+// A late-arriving parent may adopt an orphan only when the observed child's
+// owner matches it. `sortedIndex` is the parent's sorted handle/slot index;
+// repeated declared handles are examined once.
+template <typename Index, typename ClaimIndex>
+bool hasForeignPolylineOrphanOwner(
+    std::uint32_t owner, const Index &sortedIndex,
+    const ClaimIndex &orphanOwners) noexcept {
+  bool havePrevious = false;
+  std::uint32_t previousHandle = DRW::NoHandle;
+  for (const auto &entry : sortedIndex) {
+    const std::uint32_t handle = entry.first;
+    if (havePrevious && handle == previousHandle)
+      continue;
+    havePrevious = true;
+    previousHandle = handle;
+    const auto *owners = orphanOwners.ownersFor(handle);
+    if (owners == nullptr)
+      continue;
+    for (const std::uint32_t observedOwner : *owners) {
+      if (observedOwner != owner)
+        return true;
+    }
+  }
+  return false;
+}
+
+template <typename ClaimIndex>
+bool hasForeignPolylineOrphanHandleOwner(
+    std::uint32_t owner, std::uint32_t handle,
+    const ClaimIndex &orphanOwners) noexcept {
+  const auto *owners = orphanOwners.ownersFor(handle);
+  if (owners == nullptr)
+    return false;
+  return std::any_of(owners->cbegin(), owners->cend(),
+                     [owner](std::uint32_t observedOwner) {
+                       return observedOwner != owner;
+                     });
+}
+
+// Reserve for one more staged child without defeating vector's amortized
+// growth. `reserve(size() + 1)` on every child can force a copy on each append
+// on standard-library implementations that honor the requested capacity
+// exactly. Keep the element ceiling explicit and clamp geometric growth to it.
+template <typename Vector>
+bool vectorCapacityForOneMore(const Vector &values, std::size_t maxCount,
+                              std::size_t &targetCapacity) noexcept {
+  if (values.size() >= maxCount || values.size() >= values.max_size())
+    return false;
+  const std::size_t needed = values.size() + 1u;
+  if (needed <= values.capacity()) {
+    targetCapacity = values.capacity();
+    return true;
+  }
+  if (values.capacity() > maxCount)
+    return false;
+
+  std::size_t target = 1u;
+  if (values.capacity() != 0u) {
+    target = values.capacity() > maxCount / 2u
+                 ? maxCount
+                 : values.capacity() * 2u;
+  }
+  target = std::max(target, needed);
+  if (target > maxCount || target > values.max_size())
+    return false;
+  targetCapacity = target;
+  return true;
+}
+
+template <typename Vector>
+bool reserveVectorForOneMore(Vector &values, std::size_t maxCount,
+                             std::size_t *plannedCapacity = nullptr) noexcept {
+  std::size_t targetCapacity = 0u;
+  if (!vectorCapacityForOneMore(values, maxCount, targetCapacity))
+    return false;
+  if (plannedCapacity != nullptr)
+    *plannedCapacity = targetCapacity;
+  if (targetCapacity <= values.capacity())
+    return true;
+  const std::size_t needed = values.size() + 1u;
+  try {
+    values.reserve(targetCapacity);
+  } catch (...) {
+    return false;
+  }
+  return values.capacity() >= needed;
+}
+
+// unordered_map::reserve accepts an element count rather than a bucket count.
+// Estimate the current element capacity using its configured load factor, then
+// reserve geometrically with the same hard count ceiling as the staged owners.
+template <typename UnorderedMap>
+bool planUnorderedMapForOneMore(const UnorderedMap &values,
+                                std::size_t maxCount,
+                                std::size_t &target) noexcept {
+  target = 0u;
+  if (values.size() >= maxCount || values.size() >= values.max_size())
+    return false;
+  const std::size_t needed = values.size() + 1u;
+  const long double available =
+      static_cast<long double>(values.bucket_count()) *
+      static_cast<long double>(values.max_load_factor());
+  const std::size_t elementCapacity =
+      available >= static_cast<long double>(maxCount)
+          ? maxCount
+          : static_cast<std::size_t>(available);
+  if (needed <= elementCapacity) {
+    if (!values.empty() || values.bucket_count() > 1u)
+      return true;
+
+    // Some standard libraries report one implicit bucket for a freshly
+    // constructed empty map while deferring the actual bucket allocation
+    // until reserve()/first insertion. Explicitly reserve the first element
+    // before insertion so its bucket delta can be charged. Do not repeat this
+    // for a cleared map: that one may retain a much larger allocated array.
+    target = needed;
+    return true;
+  }
+
+  const std::size_t geometric =
+      elementCapacity == 0u
+          ? 1u
+          : (elementCapacity > maxCount / 2u ? maxCount
+                                              : elementCapacity * 2u);
+  target = std::max(needed, geometric);
+  if (target > maxCount || target > values.max_size())
+    return false;
+  return true;
+}
+
+// Bound bucket-array growth before reserve. Standard-library implementations
+// may round to primes or powers of two; allow up to 2x the minimum required
+// count plus one, then verify the actual count after reserve and roll back an
+// implementation that exceeds this explicit accounting policy.
+template <typename UnorderedMap>
+bool unorderedMapBucketGrowthUpperBound(const UnorderedMap &values,
+                                        std::size_t targetElements,
+                                        std::size_t &additionalBytes,
+                                        std::size_t &transientRehashBytes)
+    noexcept {
+  additionalBytes = 0u;
+  transientRehashBytes = 0u;
+  if (targetElements == 0u)
+    return true;
+  const long double loadFactor =
+      static_cast<long double>(values.max_load_factor());
+  if (!(loadFactor > 0.0L))
+    return false;
+  const long double requiredBucketsExact =
+      static_cast<long double>(targetElements) / loadFactor;
+  const long double maxValue = static_cast<long double>(
+      (std::numeric_limits<std::size_t>::max)());
+  if (requiredBucketsExact > maxValue)
+    return false;
+  std::size_t requiredBuckets =
+      static_cast<std::size_t>(requiredBucketsExact);
+  if (static_cast<long double>(requiredBuckets) < requiredBucketsExact) {
+    if (requiredBuckets == (std::numeric_limits<std::size_t>::max)())
+      return false;
+    ++requiredBuckets;
+  }
+  if (requiredBuckets >
+      ((std::numeric_limits<std::size_t>::max)() - 1u) / 2u)
+    return false;
+  const std::size_t roundedUpperBound = requiredBuckets * 2u + 1u;
+  const std::size_t upperBuckets =
+      std::max(values.bucket_count(), roundedUpperBound);
+  if (upperBuckets < values.bucket_count())
+    return false;
+  const std::size_t addedBuckets = upperBuckets - values.bucket_count();
+  if (addedBuckets > (std::numeric_limits<std::size_t>::max)() /
+                         sizeof(void *) ||
+      upperBuckets > (std::numeric_limits<std::size_t>::max)() /
+                         sizeof(void *)) {
+    return false;
+  }
+  additionalBytes = addedBuckets * sizeof(void *);
+  // During rehash, the old bucket array may remain live while the replacement
+  // array is allocated. The retained charge is only the net growth; admission
+  // must separately allow this conservative full replacement-array peak.
+  transientRehashBytes = upperBuckets * sizeof(void *);
+  return true;
+}
+
+template <typename UnorderedMap>
+bool reserveUnorderedMapForOneMore(UnorderedMap &values,
+                                   std::size_t maxCount) noexcept {
+  std::size_t target = 0u;
+  if (!planUnorderedMapForOneMore(values, maxCount, target))
+    return false;
+  if (target == 0u)
+    return true;
+  try {
+    values.reserve(target);
+  } catch (...) {
+    return false;
+  }
+  return true;
+}
+
+template <typename UnorderedMap>
+bool reserveUnorderedMapForOneMoreWithinBudget(
+    UnorderedMap &values, std::size_t maxCount,
+    std::size_t maxAdditionalBucketBytes,
+    std::size_t maxTransientRehashBytes,
+    std::size_t &actualAdditionalBucketBytes) noexcept {
+  actualAdditionalBucketBytes = 0u;
+  std::size_t target = 0u;
+  if (!planUnorderedMapForOneMore(values, maxCount, target))
+    return false;
+  if (target == 0u)
+    return true;
+
+  std::size_t upperBoundBytes = 0u;
+  std::size_t transientRehashBytes = 0u;
+  if (!unorderedMapBucketGrowthUpperBound(values, target, upperBoundBytes,
+                                          transientRehashBytes) ||
+      upperBoundBytes > maxAdditionalBucketBytes ||
+      transientRehashBytes > maxTransientRehashBytes) {
+    return false;
+  }
+
+  const std::size_t oldBucketCount = values.bucket_count();
+  try {
+    values.reserve(target);
+  } catch (...) {
+    const std::size_t retainedBuckets = values.bucket_count();
+    if (retainedBuckets > oldBucketCount &&
+        retainedBuckets - oldBucketCount <=
+            (std::numeric_limits<std::size_t>::max)() / sizeof(void *)) {
+      actualAdditionalBucketBytes =
+          (retainedBuckets - oldBucketCount) * sizeof(void *);
+    }
+    return false;
+  }
+
+  const std::size_t newBucketCount = values.bucket_count();
+  if (newBucketCount >= oldBucketCount &&
+      newBucketCount - oldBucketCount <=
+          (std::numeric_limits<std::size_t>::max)() / sizeof(void *)) {
+    actualAdditionalBucketBytes =
+        (newBucketCount - oldBucketCount) * sizeof(void *);
+  } else {
+    return false;
+  }
+  if (newBucketCount - oldBucketCount <=
+      upperBoundBytes / sizeof(void *))
+    return actualAdditionalBucketBytes <= maxAdditionalBucketBytes;
+
+  // The implementation rounded beyond our charged upper bound. Restore the
+  // prior capacity if possible; if not, expose the retained bytes to the
+  // caller so the reader can account them and fail closed.
+  try {
+    values.rehash(oldBucketCount);
+  } catch (...) {
+  }
+  const std::size_t afterRollbackBuckets = values.bucket_count();
+  actualAdditionalBucketBytes =
+      afterRollbackBuckets > oldBucketCount &&
+              afterRollbackBuckets - oldBucketCount <=
+                  (std::numeric_limits<std::size_t>::max)() / sizeof(void *)
+          ? (afterRollbackBuckets - oldBucketCount) * sizeof(void *)
+          : 0u;
+  return false;
+}
+
+// Build the POLYLINE's source-order mapping through a sorted handle/index
+// scratch vector. This replaces one full staged-child scan per declared child
+// while keeping the declaration vector authoritative and bounding temporary
+// storage, including the caller's already-reserved output vectors.
+template <typename DeclaredHandles, typename StagedVertices,
+          typename HandleOf, typename Less>
+bool buildPolylineVertexOrder(const DeclaredHandles &declaredHandles,
+                              const StagedVertices &stagedVertices,
+                              HandleOf handleOf, Less less,
+                              std::vector<std::size_t> &orderedIndices,
+                              std::size_t additionalScratchBytes,
+                              std::size_t maxScratchBytes) noexcept {
+  using HandleIndex = std::pair<std::uint32_t, std::size_t>;
+  const std::size_t count = declaredHandles.size();
+  if (count != stagedVertices.size() ||
+      count > static_cast<std::size_t>(dwgSafety::MaxOwnedObjectCount) ||
+      additionalScratchBytes > maxScratchBytes) {
+    return false;
+  }
+  if (orderedIndices.capacity() >
+      (maxScratchBytes - additionalScratchBytes) / sizeof(std::size_t)) {
+    return false;
+  }
+  additionalScratchBytes +=
+      orderedIndices.capacity() * sizeof(std::size_t);
+  constexpr std::size_t scratchBytesPerChild =
+      sizeof(HandleIndex) + sizeof(std::size_t) + sizeof(std::uint8_t);
+  if (count >
+      (maxScratchBytes - additionalScratchBytes) / scratchBytesPerChild) {
+    return false;
+  }
+
+  std::vector<HandleIndex> stagedByHandle;
+  std::vector<std::uint8_t> selected;
+  std::vector<std::size_t> ordered;
+  try {
+    stagedByHandle.reserve(count);
+    for (std::size_t index = 0; index < count; ++index)
+      stagedByHandle.emplace_back(handleOf(stagedVertices[index]), index);
+    std::sort(stagedByHandle.begin(), stagedByHandle.end(),
+              [&less](const HandleIndex &lhs, const HandleIndex &rhs) {
+                return less(lhs.first, rhs.first);
+              });
+    selected.resize(count, 0u);
+    ordered.reserve(count);
+  } catch (...) {
+    return false;
+  }
+
+  std::size_t actualScratchBytes = additionalScratchBytes;
+  const auto chargeCapacity = [&actualScratchBytes,
+                               maxScratchBytes](std::size_t capacity,
+                                                std::size_t elementBytes) {
+    if (elementBytes != 0u &&
+        capacity > (maxScratchBytes - actualScratchBytes) / elementBytes) {
+      return false;
+    }
+    actualScratchBytes += capacity * elementBytes;
+    return true;
+  };
+  if (!chargeCapacity(stagedByHandle.capacity(), sizeof(HandleIndex)) ||
+      !chargeCapacity(selected.capacity(), sizeof(std::uint8_t)) ||
+      !chargeCapacity(ordered.capacity(), sizeof(std::size_t))) {
+    return false;
+  }
+
+  for (const std::uint32_t expected : declaredHandles) {
+    if (expected == DRW::NoHandle)
+      return false;
+    const auto vertex = std::lower_bound(
+        stagedByHandle.cbegin(), stagedByHandle.cend(), expected,
+        [&less](const HandleIndex &candidate, std::uint32_t handle) {
+          return less(candidate.first, handle);
+        });
+    if (vertex == stagedByHandle.cend() || vertex->first != expected ||
+        ((vertex + 1) != stagedByHandle.cend() &&
+         (vertex + 1)->first == expected) ||
+        selected[vertex->second] != 0u) {
+      return false;
+    }
+    selected[vertex->second] = 1u;
+    ordered.push_back(vertex->second);
+  }
+  orderedIndices.swap(ordered);
+  return true;
+}
+
+} // namespace dwgReaderDetail
 
 /// File-level code-page identity captured from the DWG metadata envelope.
 /// `present` distinguishes a missing field from an explicit undefined id;
@@ -104,8 +1022,19 @@ std::uint16_t dwgCodePageId(const char *name);
 /// it. Otherwise fall back to the file-level @p fallback decoder. Empty input
 /// returns empty. R2007+ entity-EED strings are UTF-16LE and bypass this
 /// helper entirely (caller handles them inline).
+/// When a fallback codec exists, merge per-value decode and unknown/aliased
+/// selection issues into its accumulated envelope without changing its file
+/// codec or last primary-conversion snapshot on the named-codec path. Empty
+/// values retain their declared-profile observation. This is not exhaustive
+/// codepage/table qualification; no read/decoding policy is made stricter.
+/// Observed R13/R14 EED codepage 45 is UTF-8. Pass the source revision only
+/// for common EED; an unknown revision keeps the legacy unknown-page behavior.
+/// Legacy XRECORD application strings also use this value conversion for a
+/// nonzero RC codepage, but retain their separate application-body framing
+/// and established zero/file-default convention.
 std::string decodeEedString(std::uint16_t cp, const std::string &raw,
-                            DRW_TextCodec *fallback);
+                            DRW_TextCodec *fallback,
+                            DRW::Version eedVersion = DRW::UNKNOWNV);
 
 struct DwgEedHandleRef {
   std::size_t itemIndex{0};
@@ -125,6 +1054,13 @@ struct DwgEedChunk {
 readDwgEed(DRW::Version version, dwgBuffer &buffer,
            std::vector<DwgEedChunk> &chunks,
            std::uint64_t endBit = (std::numeric_limits<std::uint64_t>::max)());
+
+/// Coalesce physical EED chunks that belong to the same APPID into one
+/// logical application group for DRW::extData. Preserve first-seen APPID
+/// order and each application's item order; DXF permits one XDATA group per
+/// APPID on a record. This does not change readDwgEed's physical-chunk API.
+[[nodiscard]] bool coalesceDwgEedChunksByApp(
+    std::vector<DwgEedChunk> &chunks);
 
 /// Read one or more handle references without publishing a partial result.
 /// `offset` selects the DWG relative-handle transformation used by common
@@ -216,10 +1152,27 @@ public:
   void reset() {
     DRW_TableEntry::reset();
     handlesList.clear();
+    phantomHandles.clear();
+    orderedHandleSlots.clear();
+    orderedHandleRoles.clear();
+    historicalAppIdControlRead = false;
+    unclaimedObjectDataBits = 0;
   }
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
   std::list<std::uint32_t> handlesList;
+  std::list<std::uint32_t> phantomHandles;
+  // Declared table-entry references in wire order, preserving null handles.
+  // Phantom entries, when present, follow the declared entries.
+  std::vector<std::uint32_t> orderedHandleSlots;
+  // Original four-bit H codes for orderedHandleSlots. Offset references are
+  // normalized in dwgHandle::code, so retain rawCode for source graph checks.
+  std::vector<std::uint8_t> orderedHandleRoles;
+  // Narrow tolerant read profile for historical LibreCAD APPID_CONTROL
+  // frames. Any object-data bits left outside the understood fields are
+  // surfaced as an integrity error by readDwgTables.
+  bool historicalAppIdControlRead{false};
+  std::uint32_t unclaimedObjectDataBits{0};
 };
 
 class DwgCodePageTestAccess;
@@ -251,6 +1204,9 @@ public:
     std::int16_t type{-1};
     std::uint32_t blockRecordHandle{DRW::NoHandle};
     DwgEntityFailurePhase phase{DwgEntityFailurePhase::None};
+    bool handleMismatch{false};
+    bool ownerMismatch{false};
+    std::uint32_t missingOwnerRecordHandle{DRW::NoHandle};
   };
 
   dwgReader(std::unique_ptr<dwgBuffer> buffer, dwgRW *p)
@@ -258,6 +1214,15 @@ public:
         m_readObjectBudget{p != nullptr
                                ? p->dwgReadObjectBudget()
                                : dwgSafety::MaxDwgReadObjectCount} {
+    std::size_t ownerMapBucketBytes = 0u;
+    if (polylineOwnerMapBucketBytes(ownerMapBucketBytes) &&
+        ownerMapBucketBytes <= dwgSafety::MaxPolylineStagingBytes) {
+      m_polylineStagingBytes = ownerMapBucketBytes;
+    } else {
+      m_polylineStagingBytes = (std::numeric_limits<std::size_t>::max)();
+      m_dwgFrameCoverageIntegrityViolation = true;
+    }
+    if (p != nullptr) m_eedLayerByteOrder = p->dwgEedLayerByteOrder();
     decoder.setVersion(DRW::AC1021, false); // default 2007 in utf8(no convert)
     decoder.setCodePage("UTF-16", false);
     //        blockCtrl=0; //RLZ: temporary
@@ -273,6 +1238,55 @@ public:
     return m_readObjectCount;
   }
 
+private:
+  // Only dwgRW may flush after successful whole-read completion.
+  void deliverVerifiedXRecord(DRW_Interface& target) noexcept;
+  void deliverVerifiedTableCandidates(DRW_Interface& target) noexcept;
+  void deliverVerifiedTableCacheSources(DRW_Interface& target) noexcept;
+  struct VerifiedXRecordPending {
+    DRW::Version version{DRW::UNKNOWNV};
+    std::uint32_t handle{0u}, offset{0u};
+    std::uint64_t ordinal{0u};
+    DRW_DwgFrameOffsetSpace space{DRW_DwgFrameOffsetSpace::Unknown};
+    DwgObjectFrame frame;
+  };
+  std::vector<VerifiedXRecordPending> m_verifiedXRecordPending;
+  std::size_t m_verifiedXRecordPendingBytes{0u};
+  bool m_verifiedXRecordPendingFailed{false};
+  struct VerifiedTableCandidatePending {
+    DwgVerifiedTableCandidateKind kind{DwgVerifiedTableCandidateKind::TableContent};
+    DRW::Version version{DRW::UNKNOWNV};
+    std::uint16_t classNumber{0u};
+    std::uint32_t handle{0u},offset{0u};
+    std::uint64_t ordinal{0u};
+    DRW_DwgFrameOffsetSpace space{DRW_DwgFrameOffsetSpace::Unknown};
+    DwgObjectFrame frame;
+    std::shared_ptr<const DRW_Table> tableModel;
+    std::shared_ptr<const DRW_LType> ltypeModel;
+    std::shared_ptr<const DRW_Textstyle> styleModel;
+  };
+  std::shared_ptr<const DRW_Table> m_verifiedTableParsedModel;
+  std::vector<std::uint8_t> m_verifiedTableParsedBody;
+  std::uint32_t m_verifiedTableParsedHandle{0u},m_verifiedTableParsedOffset{0u};
+  std::uint64_t m_verifiedTableParsedOrdinal{0u};
+  DRW_DwgFrameOffsetSpace m_verifiedTableParsedSpace{DRW_DwgFrameOffsetSpace::Unknown};
+  std::uint16_t m_verifiedTableParsedClass{0u};
+  std::vector<VerifiedTableCandidatePending> m_verifiedTableCandidates;
+  std::size_t m_verifiedTableCandidateBytes{0u};
+  bool m_verifiedTableCandidateFailed{false};
+  struct VerifiedTableCacheSourcePending {
+    DwgVerifiedTableCacheSourceKind kind{DwgVerifiedTableCacheSourceKind::BlockRecord};
+    DRW::Version version{DRW::UNKNOWNV};
+    std::uint32_t handle{0u}, offset{0u};
+    std::uint64_t ordinal{0u};
+    DRW_DwgFrameOffsetSpace space{DRW_DwgFrameOffsetSpace::Unknown};
+    DwgObjectFrame frame;
+    std::shared_ptr<const DRW_Block_Record> blockRecordModel;
+    std::shared_ptr<const DRW_Block> blockModel;
+  };
+  std::vector<VerifiedTableCacheSourcePending> m_verifiedTableCacheSources;
+  std::size_t m_verifiedTableCacheSourceBytes{0u};
+  bool m_verifiedTableCacheSourceFailed{false};
 protected:
   struct DwgSourceFrameLease;
   struct DwgFramePublicationArtifacts {
@@ -346,11 +1360,19 @@ protected:
 
     virtual ~DwgEntityOutput();
 
+    void appendValue(
+        const DRW_UnsupportedObject &value,
+        void (DRW_Interface::*callback)(const DRW_UnsupportedObject &));
+
     template <typename T, typename Callback>
     void appendValue(const T &value, Callback callback);
+    void appendUnsupportedObject(DRW_UnsupportedObject &&value);
+    void appendModelerGeometry(DRW_ModelerGeometry &&value);
+    [[nodiscard]] bool appendProxySubentityMarker(
+        std::uint32_t sourceHostHandle, std::uint32_t marker);
     [[nodiscard]] SourceScope
     bindSource(const DwgSourceFrameId &source) noexcept;
-    [[nodiscard]] bool appendEndBlock();
+    [[nodiscard]] bool appendEndBlock(const DRW_Block &data);
     [[nodiscard]] bool
     appendFramePublication(dwgReader &reader,
                            const DRW_DwgFramePublication &publication,
@@ -526,12 +1548,16 @@ protected:
   [[nodiscard]] virtual bool readPreview() { return false; }
   [[nodiscard]] virtual bool readFileHeader() = 0;
   [[nodiscard]] virtual bool readDwgHeader(DRW_Header &hdr) = 0;
+  [[nodiscard]] virtual bool readDwgTemplate(DRW_Header&) { return true; }
   [[nodiscard]] virtual bool readDwgClasses() = 0;
   [[nodiscard]] virtual bool readDwgHandles() = 0;
   [[nodiscard]] virtual bool readDwgTables(DRW_Header &hdr) = 0;
   [[nodiscard]] virtual bool readDwgBlocks(DRW_Interface &intfa) = 0;
   [[nodiscard]] virtual bool readDwgEntities(DRW_Interface &intfa) = 0;
   [[nodiscard]] virtual bool readDwgObjects(DRW_Interface &intfa) = 0;
+  [[nodiscard]] bool entitySweepFailureContained() const noexcept {
+    return m_entitySweepContained;
+  }
 
   [[nodiscard]] virtual bool
   readDwgEntity(dwgBuffer *dbuf, objHandle &obj, DRW_Interface &intfa,
@@ -561,6 +1587,21 @@ protected:
   void finalizeDwgFrameCoverageNoThrow(DRW_Interface &intfa,
                                        bool readCompleted) noexcept;
   void beginDwgClassCoverage() noexcept;
+  void prepareDwgClassSource(DRW_DwgClassSourceHandler *handler) noexcept;
+  void prepareDwgStyleEedSource(
+      DRW_DwgStyleEedSourceHandler *handler) noexcept;
+  void prepareVerifiedTableCandidateSink(
+      DwgVerifiedTableCandidateSink *sink) noexcept;
+  void publishDwgStyleEedSource(const DRW_Textstyle &style) noexcept;
+  void captureDwgClassSource(const std::uint8_t *bytes, std::uint64_t size,
+                            std::int32_t descriptor, std::uint64_t declaredSize) noexcept;
+  void capturePhysicalDwgClassSource(dwgBuffer &buffer, std::uint64_t base,
+                                    std::uint64_t size, std::int32_t descriptor) noexcept;
+  void finalizeDwgClassSourceNoThrow(bool classReadCompleted) noexcept;
+  [[nodiscard]] std::shared_ptr<std::vector<std::uint8_t>>
+  allocateDwgClassSource(std::uint64_t size, std::int32_t descriptor,
+                        DRW_DwgFrameOffsetSpace space, std::uint64_t base,
+                        std::uint64_t declaredSize, bool backingValid) noexcept;
   void finalizeDwgClassCoverage(DRW_Interface &intfa, bool classReadCompleted);
   void finalizeDwgClassCoverageNoThrow(DRW_Interface &intfa,
                                        bool classReadCompleted) noexcept;
@@ -600,7 +1641,10 @@ protected:
                                   bool hasOffset = false) noexcept;
   void parseAttribs(DRW_Entity *e);
   void parseAttribs(DRW_TableEntry *e);
+  void resolveLayerLineTypeReference(DRW_Layer *layer) noexcept;
   std::string findTableName(DRW::TTYPE table, std::int32_t handle);
+  void resolveDimensionTableReferences(DRW_Dimension &dimension);
+  std::string findAppIdName(std::uint32_t handle) const;
 
   void setCodePage(const std::string &c) { decoder.setCodePage(c, false); }
   std::string getCodePage() { return decoder.getCodePage(); }
@@ -625,7 +1669,30 @@ protected:
   bool recordSourceCodePage(std::uint16_t id, bool present,
                             bool applyPrimaryCodec);
   [[nodiscard]] bool readDwgHeader(DRW_Header &hdr, dwgBuffer *buf,
-                                   dwgBuffer *hBuf);
+                                   dwgBuffer *hBuf,
+                                   DwgIntegrityAddressSpace offsetSpace =
+                                       DwgIntegrityAddressSpace::DecodedBuffer,
+                                   std::int32_t sectionId = -1,
+                                   std::uint64_t sectionOffset = 0);
+  /// Resolve the source HEADER current-table handles after all table maps
+  /// have been loaded, before publishing the header to the consumer.
+  void resolveDwgHeaderCurrentReferences(DRW_Header& hdr);
+  void validateDwgHeaderMLineStyle();
+  const DRW_DwgAc1027LayerSource* ac1027DefaultLayerSource() const noexcept {
+    return m_ac1027DefaultLayerSource ? &*m_ac1027DefaultLayerSource : nullptr;
+  }
+  const std::vector<DRW_DwgAc1024LayerSource>&
+  ac1024LayerSources() const noexcept { return m_ac1024LayerSources; }
+  std::optional<dwgHandle> ac1027HeaderMaterialSource() const noexcept {
+    if (version != DRW::AC1027 || !m_haveDwgHeaderCurrentReferences
+        || !m_ac1027HeaderMaterialCrcValidated) return std::nullopt;
+    return m_dwgHeaderCurrentReferences[4];
+  }
+  [[nodiscard]] bool decodeDwgTemplate(DRW_Header& hdr,
+                                       const std::uint8_t* data,
+                                       std::size_t size,
+                                       std::int32_t sectionId);
+  [[nodiscard]] bool missingDwgTemplate();
   [[nodiscard]] bool readDwgHandles(
       dwgBuffer *dbuf, std::uint64_t offset, std::uint64_t size,
       std::uint64_t locationLimit = (std::numeric_limits<std::uint64_t>::max)(),
@@ -640,6 +1707,22 @@ protected:
     return true;
   }
   void addIntegrityDiagnostic(DwgIntegrityDiagnostic diagnostic) noexcept;
+  /// Record a bounded public read diagnostic from a version-specific reader.
+  /// The legacy error enum still reports the enclosing section failure; this
+  /// detail identifies semantic input that cannot be converted losslessly.
+  void recordReadDiagnostic(DRW::OperationPhase phase,
+                            DRW::OperationCause cause, const char *code,
+                            const char *message, std::uint64_t offset = 0,
+                            bool hasOffset = false) noexcept {
+    if (parent == nullptr)
+      return;
+    try {
+      parent->recordOperationDiagnostic(phase, cause, code, message, offset,
+                                        hasOffset);
+    } catch (...) {
+      // Diagnostic allocation must never replace the legacy read result.
+    }
+  }
   void recordIntegrityDiagnostic(
       DwgIntegritySeverity severity, DwgIntegrityAddressSpace offsetSpace,
       DwgIntegrityPhase phase, DwgIntegrityCheckKind kind,
@@ -651,19 +1734,48 @@ protected:
       bool hasValues = false) noexcept;
   void recordObjectFrameFailure(const objHandle &object,
                                 DwgIntegrityAddressSpace offsetSpace) noexcept;
+  void recordDanglingControlHandle(std::uint32_t controlHandle,
+                                   std::uint32_t recordHandle) noexcept;
+  /// Preserve tolerant LTYPE callbacks while recording strict-output errors
+  /// for null member slots or mismatched source ownership roles.
+  void recordLtypeControlMemberRoleError(
+      const objHandle &source, const DRW_ObjControl &control,
+      DwgIntegrityAddressSpace offsetSpace) noexcept;
+  /// Preserve tolerant BLOCK_CONTROL imports while recording non-ODA member
+  /// roles as strict-output errors.
+  void recordBlockControlMemberRoleError(
+      const objHandle &source, const DRW_ObjControl &control,
+      DwgIntegrityAddressSpace offsetSpace) noexcept;
+  void recordOrphanedEntity(const objHandle &object,
+                            std::uint32_t ownerHandle,
+                            DwgIntegrityAddressSpace offsetSpace) noexcept;
+  void recordErasedBlockReference(const objHandle &object,
+                                  std::uint32_t blockRecordHandle,
+                                  DwgIntegrityAddressSpace offsetSpace) noexcept;
+  bool hasUsableDwgNodReference() const noexcept;
+  void warnDwgNodReference(std::uint64_t expected, std::uint64_t observed,
+                          const objHandle *object = nullptr,
+                          DwgIntegrityAddressSpace offsetSpace =
+                              DwgIntegrityAddressSpace::None) noexcept;
   void
   recordEntityFailure(const objHandle &object, std::int16_t type,
                       DwgEntityFailurePhase phase,
-                      std::uint32_t blockRecordHandle = DRW::NoHandle) noexcept;
+                      std::uint32_t blockRecordHandle = DRW::NoHandle,
+                      bool handleMismatch = false,
+                      bool ownerMismatch = false,
+                      std::uint32_t missingOwnerRecordHandle =
+                          DRW::NoHandle) noexcept;
   [[nodiscard]] bool readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
                                    DwgIntegrityAddressSpace offsetSpace =
                                        DwgIntegrityAddressSpace::DecodedBuffer);
   bool checkSentinel(dwgBuffer *buf, enum secEnum::DWGSection, bool start);
   //! Advance over the version-dependent bytes between the CLASSES CRC and
-  //! its closing sentinel.  Real-world R18/R2007 files use both the legacy
+  //! its closing sentinel. Real-world R18/R2007 files use both the legacy
   //! two-byte/no-tail layout and the newer eight-byte layout emitted by our
-  //! writer.
-  [[nodiscard]] bool readDwgClassesTail(dwgBuffer &buffer);
+  //! writer. A missing or incomplete sentinel is reported as a warning and
+  //! left for the caller to skip without reading beyond the decoded section.
+  [[nodiscard]] bool readDwgClassesTail(dwgBuffer &buffer,
+                                        bool &hasCompleteSentinel);
   [[nodiscard]] bool
   publishDwgClasses(std::vector<DwgStagedClass> &stagedClasses);
 
@@ -831,10 +1943,28 @@ protected:
     StagedAttribState &operator=(StagedAttribState &&) noexcept = default;
   };
 
+  struct StagedAttributeLocation {
+    std::uint32_t owner{DRW::NoHandle};
+    std::size_t index{0u};
+  };
+
+  struct LegacyTableDelivery {
+    DRW_Table entity;
+    std::optional<DRW_UnsupportedObject> raw;
+    bool splitGrid{false};
+    bool gridRequested{false};
+  };
+
   struct PendingInsertState {
     DRW_Insert entity;
+    std::shared_ptr<LegacyTableDelivery> table;
+    bool deferCommit{false};
     DwgStagedFrame frame;
     std::vector<StagedAttribState> attributes;
+    // Modern INSERT membership is checked through a sorted, unique projection
+    // built once when the owner arrives. The original handle order remains in
+    // entity.attribHandles and continues to define callback ordering.
+    std::vector<std::uint32_t> expectedAttributeHandles;
 
     PendingInsertState() = default;
     PendingInsertState(const PendingInsertState &) = delete;
@@ -879,6 +2009,9 @@ protected:
     DRW_Polyline entity;
     DwgStagedFrame frame;
     std::vector<StagedVertexState> vertices;
+    std::vector<std::pair<std::uint32_t, std::size_t>> declaredChildIndex;
+    std::vector<std::uint8_t> stagedChildSlots;
+    std::size_t retainedBytes{0};
 
     PendingPolylineState() = default;
     PendingPolylineState(const PendingPolylineState &) = delete;
@@ -889,6 +2022,8 @@ protected:
 
   struct OrphanPolylineVertexState {
     std::vector<StagedVertexState> vertices;
+    std::set<std::uint32_t> childHandles;
+    std::size_t retainedBytes{0};
 
     OrphanPolylineVertexState() = default;
     OrphanPolylineVertexState(const OrphanPolylineVertexState &) = delete;
@@ -964,7 +2099,9 @@ protected:
   [[nodiscard]] DwgMappedEntityOutcome
   stagePendingInsert(DRW_Insert &&insert,
                      const DRW_DwgFramePublication &publication,
-                     DRW_Interface &intfa);
+                     DRW_Interface &intfa,
+                     std::shared_ptr<LegacyTableDelivery> table = nullptr,
+                     bool deferCommit = false);
   [[nodiscard]] DwgMappedEntityOutcome
   stageMappedInsertAggregate(DRW_Insert &&insert,
                              const DRW_DwgFramePublication &publication,
@@ -974,7 +2111,8 @@ protected:
   stageLegacyInsertAggregate(DRW_Insert &&insert,
                              const DRW_DwgFramePublication &publication,
                              dwgBuffer *dbuf, DRW_Interface &intfa,
-                             DwgIntegrityAddressSpace offsetSpace);
+                             DwgIntegrityAddressSpace offsetSpace,
+                             std::shared_ptr<LegacyTableDelivery> table = nullptr);
   [[nodiscard]] DwgMappedEntityOutcome
   stageMappedPolylineAggregate(DRW_Polyline &&polyline,
                                const DRW_DwgFramePublication &publication,
@@ -1035,9 +2173,34 @@ protected:
                               DwgInsertTerminalReason reason);
   void abandonPendingInsertState(std::uint32_t handle);
   void terminalizeOrphanAttribOwner(std::uint32_t owner);
+  void eraseStagedAttributeIndex(
+      std::uint32_t owner,
+      const std::vector<StagedAttribState> &attributes) noexcept;
+  void releaseInsertExpectedAttributeCount(
+      const PendingInsertState &pending) noexcept;
   void terminalizePendingPolylineState(std::uint32_t handle,
                                        DwgInsertTerminalReason reason);
   void terminalizeOrphanPolylineVertexOwner(std::uint32_t owner);
+  [[nodiscard]] bool polylineOwnerMapBucketBytes(
+      std::size_t &bytes) const noexcept;
+  [[nodiscard]] bool reservePendingPolylineOwnerMapForOneMore(
+      std::size_t stagedAdditionalBytes) noexcept;
+  [[nodiscard]] bool reserveOrphanPolylineOwnerMapForOneMore(
+      std::size_t stagedAdditionalBytes) noexcept;
+  void releasePolylineStagingBytes(std::size_t &bytes) noexcept;
+  bool addPolylineDeclaredClaims(
+      std::uint32_t owner,
+      const std::vector<std::pair<std::uint32_t, std::size_t>> &declaredIndex)
+      noexcept;
+  void removePolylineDeclaredClaims(
+      std::uint32_t owner,
+      const std::vector<std::pair<std::uint32_t, std::size_t>> &declaredIndex)
+      noexcept;
+  bool addPolylineOrphanClaim(std::uint32_t owner,
+                              std::uint32_t child) noexcept;
+  void removePolylineOrphanClaims(
+      std::uint32_t owner,
+      const std::set<std::uint32_t> &children) noexcept;
   [[nodiscard]] bool
   readMappedDwgEntity(dwgBuffer *dbuf, DwgFrameMapLease &lease,
                       DRW_Interface &intfa, bool *frameFailure,
@@ -1056,28 +2219,43 @@ public:
   DwgObjectMap remainingMap; // debug-only unconsumed records
   std::vector<DRW_UnsupportedObject> m_deferredRawObjects;
   std::vector<DRW_DwgFramePublication> m_deferredTableFramePublications;
+  std::optional<DRW_DwgAc1024LayerControlSource> m_ac1024LayerControlSource;
+  std::optional<DRW_DwgAc1024AppIdSource> m_ac1024AppIdSource;
+  std::optional<DRW_DwgAc1024AppIdControlSource>
+      m_ac1024AppIdControlSource;
   std::unordered_map<std::uint32_t, DRW_LType *> ltypemap;
   std::unordered_map<std::uint32_t, DRW_Layer *> layermap;
-  /// Layer / linetype names in file storage order (the handlesList iteration
-  /// order). This is the index space the proxy-graphics ATTRIBUTE_LAYER(16) /
-  /// ATTRIBUTE_LINETYPE(18) opcodes reference; each slot is index-aligned with
-  /// the control's handlesList (empty string for a missing record). Verified
-  /// byte-identical to the dwgread/LibreDWG layer order. See
+  /// Layer names in declared LAYER_CONTROL slot order, retaining null slots;
+  /// source proxy ATTRIBUTE_LAYER indices address this space. Linetype order
+  /// remains the existing compact non-null control-handle order because the
+  /// effect of legal null LTYPE_CONTROL slots on proxy indices is unqualified.
+  /// See
   /// DRW_ProxyGraphicDecoder::decode.
   std::vector<std::string> m_layerNameOrder;
   std::vector<std::string> m_ltypeNameOrder;
   std::unordered_map<std::uint32_t, DRW_Block *> blockmap;
   std::unordered_map<std::uint32_t, DRW_Textstyle *> stylemap;
+  struct DwgStyleEedSourceReferences {
+    std::vector<DRW_TableEntry::PendingHandleRef> appIds;
+    bool allAppIdsResolve{false};
+  };
+  std::unordered_map<std::uint32_t, DwgStyleEedSourceReferences>
+      m_dwgStyleEedSourceReferences;
+  DRW_DwgStyleEedSourceHandler *m_dwgStyleEedSourceHandler{nullptr};
+  DwgVerifiedTableCandidateSink *m_verifiedTableCandidateSink{nullptr};
   std::unordered_map<std::uint32_t, DRW_Dimstyle *> dimstylemap;
   std::unordered_map<std::uint32_t, DRW_Vport *> vportmap;
   std::unordered_map<std::uint32_t, DRW_Block_Record *> blockRecordmap;
 
   /// Resolved DBCOLOR (AcDbColor) lookup, populated as the OBJECTS section
-  /// is decoded.  Key: handle of the AcDbColor object.  Value: pair of
-  /// (24-bit RGB, display name) — entities referencing this handle (via
-  /// ENC flag 0x40) get color24 + colorName patched from this map after
-  /// their parseDwg returns.  Names are formatted as "BOOK$ENTRY" when a
-  /// book name is present, otherwise just the entry name.
+  /// is decoded. Key: handle of the AcDbColor object. Value: pair of
+  /// (24-bit RGB, display name) — an entity parsed after its referenced
+  /// object is available (via ENC flag 0x40) gets color24 + colorName patched
+  /// after parseDwg returns. Normal DWG callback order delivers entities
+  /// before OBJECTS, so consumers must also reconcile late addDbColor
+  /// callbacks by handle when they need the resolved appearance. Names are
+  /// formatted as "BOOK$ENTRY" when a book name is present, otherwise just
+  /// the entry name.
   std::unordered_map<std::uint32_t, std::pair<std::int32_t, std::string>>
       dbColorMap;
   /// MLINESTYLE handle → style name. Populated as MLINESTYLE objects are
@@ -1099,6 +2277,9 @@ public:
   /// Section-level (structural) failures still propagate via the
   /// bool return from each section method.
   size_t m_entityParseFailures = 0;
+  std::unordered_set<std::uint32_t> m_danglingBlockRecords;
+  std::uint64_t m_orphanedEntityRejections{0};
+  bool m_entitySweepContained{false};
   /// Per-object parseDwg failures accumulated in readDwgObjects. Mirrors
   /// m_entityParseFailures — non-fatal warnings tracked for caller reporting.
   size_t m_objectParseFailures = 0;
@@ -1126,6 +2307,9 @@ public:
   /// AC1027+ DataStorage records not referenced by a parsed modeler/surface
   /// entity. This is a non-fatal diagnostic.
   size_t m_dataStorageOrphanRecords = 0;
+  /// Payload bytes copied from the retained AcDs record index onto unique
+  /// entity records. Bounded independently from the section's source copies.
+  std::size_t m_dataStorageLinkedPayloadBytes{0};
   /// Custom-class entities (oType >= 500, recName not in our hardcoded
   /// dwgType map) that fell through readDwgEntity's default branch and
   /// got stuffed into objObjectMap.  Keyed by the DXF recName (eg
@@ -1144,6 +2328,15 @@ public:
   /// as reactors, filters, TABLECONTENT, dynamic-block graphs, etc.
   std::unordered_map<std::string, size_t> m_skippedUnsupportedObjects;
   std::vector<DRW_RawDwgSection> m_rawDwgSections;
+  std::optional<dwgHandle> m_dwgNodReference;
+  std::array<dwgHandle, 20> m_dwgHeaderCurrentReferences{};
+  std::unique_ptr<DRW_MLineStyle> m_dwgHeaderCurrentMLineStyle;
+  bool m_haveDwgHeaderCurrentReferences{false};
+  bool m_ac1027HeaderMaterialCrcValidated{false};
+  std::optional<DRW_DwgAc1027LayerSource> m_ac1027DefaultLayerSource;
+  std::vector<DRW_DwgAc1024LayerSource> m_ac1024LayerSources;
+  bool m_dwgNodPublished{false};
+  bool m_dwgNodFailureReported{false};
   //! Typed AcDb:AcDsPrototype_1b index (PR-2a). Parallel to raw section store.
   std::vector<DRW_DataStorageSection> m_dataStorageSections;
   //! Preferred DataStorage records successfully linked while the entity
@@ -1180,6 +2373,12 @@ public:
   bool m_dwgFrameCoverageIntegrityViolation{false};
   bool m_dwgFrameCoveragePublished{false};
   DRW_DwgClassCoverageReport m_dwgClassCoverageReport;
+  DRW_DwgClassSourceHandler *m_dwgClassSourceHandler{nullptr};
+  DRW_DwgClassSourceReport m_dwgClassSourceReport;
+  std::size_t m_dwgClassSourceByteLimit{DRW::kMaxDwgClassSourceBytes};
+  bool m_dwgClassSourceRequested{false};
+  bool m_dwgClassSourceRequestFailed{false};
+  bool m_dwgClassSourceDelivered{false};
   //    std::uint32_t currBlock;
   std::uint8_t maintenanceVersion{0};
   // Application maintenance release version (file-header byte 0x12). This —
@@ -1194,15 +2393,31 @@ protected:
   std::unique_ptr<dwgBuffer> fileBuf;
   dwgRW *parent{nullptr};
   DRW::Version version{DRW::UNKNOWNV};
+  // AC1021 spans multiple AutoCAD releases. Unknown producer metadata must
+  // not select the pre-2008 TABLE cell layout.
+  dwgAppInfo::R21ProducerProfile m_dwgTableProducerProfile{
+      dwgAppInfo::R21ProducerProfile::Unknown};
 
   // A compound child owns its parsed representation, coverage receipt, and
   // detached source node together until one parent reaches a terminal result.
   std::unordered_map<std::uint32_t, PendingInsertState> m_pendingInsertStates;
   std::unordered_map<std::uint32_t, OrphanAttribState> m_orphanAttribStates;
+  // One deterministic logarithmic lookup per staged ATTRIB. Its size is
+  // admitted against MaxDwgReadObjectCount before every insertion.
+  std::map<std::uint32_t, StagedAttributeLocation> m_stagedAttributeIndex;
+  // Aggregate count of retained sorted expected-handle projections. Bounding
+  // this as well as staged child nodes prevents many malformed INSERT owners
+  // from multiplying per-owner index allocations.
+  std::size_t m_stagedInsertExpectedAttributeCount{0u};
   std::unordered_map<std::uint32_t, PendingPolylineState>
       m_pendingPolylineStates;
   std::unordered_map<std::uint32_t, OrphanPolylineVertexState>
       m_orphanPolylineVertexStates;
+  dwgReaderDetail::PolylineDeclaredClaimIndex<> m_polylineDeclaredClaims;
+  // Inverse index for staged child-first POLYLINE vertices. A later-arriving
+  // parent can detect foreign ownership without walking all orphan vectors.
+  dwgReaderDetail::PolylineDeclaredClaimIndex<> m_polylineOrphanClaims;
+  std::size_t m_polylineStagingBytes{0};
   std::unordered_map<std::uint32_t, StagedSeqEndState> m_stagedSeqEnds;
   DwgTerminalizerFailurePoint m_terminalizerFailurePointForTest{
       DwgTerminalizerFailurePoint::None};
@@ -1248,6 +2463,7 @@ protected:
   std::unordered_map<std::uint32_t, std::uint64_t> m_dwgClassNumberOrdinals;
   bool m_dwgClassCoveragePublished{false};
   bool m_dwgClassCoverageCaptureFailed{false};
+  DRW::DwgEedLayerByteOrder m_eedLayerByteOrder{DRW::DwgEedLayerByteOrder::LegacyLittleEndian};
   DRW_TextCodec decoder;
   DwgSourceCodePage m_sourceCodePage;
 
@@ -1269,6 +2485,14 @@ protected:
   // Model/paper-space ownership is identified by the BLOCK_RECORD name, not
   // by format-specific handle values.
   bool ownerlessSpaceWalk{false};
+  // Once a typed entity has passed the active block-owner check, derive the
+  // DXF space flag from its containing BLOCK_RECORD. DWG entmode alone does
+  // not identify entities in every numbered paper-space layout.
+  void normalizeEntitySpaceFromCurrentBlock(DRW_Entity &entity);
+  // Compound INSERT/ATTRIB and POLYLINE/VERTEX children inherit their
+  // validated parent's space when the aggregate is ready for delivery.
+  void inheritCompoundEntitySpace(DRW_Entity &child,
+                                  const DRW_Entity &parent) noexcept;
   // ObjectMap key currently being decoded; typed entity callbacks must not
   // publish a body carrying a different object handle.
   std::uint32_t expectedParsedEntityHandle{DRW::NoHandle};
@@ -1305,6 +2529,21 @@ private:
   template <class T>
   bool entryParse(T &e, dwgBuffer &buff, std::uint32_t bs, bool &ret) {
     ret = e.parseDwg(version, &buff, bs);
+    return finishEntryParse(e, buff, ret);
+  }
+
+  bool entryParse(DRW_Table &e, dwgBuffer &buff, std::uint32_t bs,
+                  bool &ret, bool legacyGridRequested = false) {
+    ret = e.parseDwgWithR21Profile(
+        version, &buff, bs,
+        m_dwgTableProducerProfile
+            == dwgAppInfo::R21ProducerProfile::AutoCAD2007,
+        legacyGridRequested);
+    return finishEntryParse(e, buff, ret);
+  }
+
+  template <class T>
+  bool finishEntryParse(T &e, dwgBuffer &buff, bool &ret) {
     // Some legacy object parsers return true after an optional/common
     // handle helper has failed.  The bounded frame cursor is authoritative
     // for structural validity; never publish such a partially parsed
@@ -1332,12 +2571,22 @@ private:
                 ownerIt->second->entMap.cbegin(),
                 ownerIt->second->entMap.cend(),
                 [&](std::uint32_t handle) { return handle == e.handle; });
-        ownerMismatch =
-            e.eType != DRW::ATTRIB && e.eType != DRW::SEQEND &&
-            e.parentHandle != DRW::NoHandle
-            // The R2004+ ownership list is authoritative. A stale
-            // owner value without an entMap claim remains recoverable.
-            && ownerClaimsEntity;
+        const bool ordinaryEntity = e.eType != DRW::ATTRIB &&
+                                    e.eType != DRW::SEQEND &&
+                                    e.parentHandle != DRW::NoHandle;
+        if (ordinaryEntity && ownerIt == blockRecordmap.end()) {
+          // The entity names a block record that the file no longer contains.
+          // Reject only this frame; the phase runner reports the contained
+          // orphan after the sweep and continues with the rest of the file.
+          if (m_orphanedEntityRejections !=
+              std::numeric_limits<std::uint64_t>::max())
+            ++m_orphanedEntityRejections;
+          ownerMismatch = true;
+        } else {
+          // The R2004+ ownership list is authoritative. A stale owner value
+          // without an entMap claim remains recoverable.
+          ownerMismatch = ordinaryEntity && ownerClaimsEntity;
+        }
       } else if (expectedBlockEntityOwner != DRW::NoHandle) {
         ownerMismatch = e.eType != DRW::ATTRIB && e.eType != DRW::SEQEND &&
                         e.parentHandle != expectedBlockEntityOwner;
@@ -1351,6 +2600,8 @@ private:
         m_currentEntityFailurePhase = DwgEntityFailurePhase::Identity;
       }
     }
+    if (ret)
+      normalizeEntitySpaceFromCurrentBlock(e);
     if (ret) {
       parseAttribs(&e);
       if (m_activeEntityFrameCapture != nullptr &&

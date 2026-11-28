@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-overwrite-authorization-2026-11-02",
+  "date": "2026-11-02",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Verify overwrite authority for legacy positional and FreeCAD-compatible -o conversion routes across prompt refusal, noninteractive refusal and explicit ASCII/Binary replacement.",
+  "control": {
+    "file": "tests/dwg2dxf_cli_contract_tests.py",
+    "function": "check_options",
+    "selector": "--options-only",
+    "runtimeAuthoredInput": "A minimal AC1021 DXF is written from SOURCE bytes in a temporary directory; destination contents use the local SENTINEL bytes. No fixture is committed.",
+    "cases": [
+      {
+        "route": "legacy positional, existing destination, no -y/-Y",
+        "result": "stdin is EOF under run_bounded; the prompt appears, conversion cancels, and source/destination bytes remain unchanged"
+      },
+      {
+        "route": "FreeCAD -o, existing destination, no -y/-Y",
+        "result": "noninteractive refusal without prompt; source/destination bytes remain unchanged"
+      },
+      {
+        "route": "FreeCAD -o with -y and -Y, existing destination",
+        "result": "each token replaces the sentinel with AC1021 output in ASCII and Binary; source remains unchanged"
+      }
+    ],
+    "controls": 6,
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: dwg2dxf executable from cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j2",
+    "test": "PASS: python3 -B tests/dwg2dxf_cli_contract_tests.py --converter $PWD/build-gcc/dwg2dxf/dwg2dxf --writer $PWD/build-gcc/libdxfrw_dwg_local_roundtrip --fast-only (103 option controls, 47 batch controls, 2 read-observation controls, 6 partial-read controls, 4 source-disposition controls)",
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "tests/dwg2dxf_cli_contract_tests.py": "99ff74492f789b193d2b44a210c59b4a37f12acc65a7a57c97a360b4eb00c357",
+      "build-gcc/dwg2dxf/dwg2dxf": "32a09aebcad165c22f60288a927ea1b0e40775c52829d08233eba8affd7c832f"
+    }
+  },
+  "limits": [
+    "The legacy prompt control verifies the safe EOF-cancel path; the explicit -y/-Y bypass path verifies successful replacement. It does not simulate typed interactive Y/N input."
+  ]
+}

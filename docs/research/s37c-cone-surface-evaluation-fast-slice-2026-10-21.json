@@ -1,0 +1,70 @@
+{
+  "title": "S3.7c local ACIS cone-surface evaluation",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Evaluate the untrimmed cone-surface locus under an explicit local parameterization",
+    "parameterization": "O + (R + v*sinAngle) * (cos(u)*M + ratio*sin(u)*N) + v*cosAngle*A; A is normalized axis, M is normalized projected major axis, N=normalize(A cross M), and R is projected major-axis magnitude",
+    "domain": "Finite decoded cone face; finite u and signed v; positive finite ratio; positive cosine half-angle; normalized sine/cosine within caller frame tolerance; nondegenerate axis and major-axis frame",
+    "tolerance_policy": "Caller-supplied finite nonnegative dimensionless tolerance bounds both normalized major-axis axial residual and sine/cosine norm residual; no ACIS/modeler default inferred",
+    "numeric_policy": "Each of six coordinate terms is represented as a binary mantissa/exponent; terms are accumulated at a shared exponent with compensated summation; reject unrepresentable final coordinates and preserve output on refusal",
+    "non_claims": [
+      "normative ACIS cone ratio or native parameterization semantics",
+      "edge trims, pcurves, face bounds, or surface projection",
+      "body transforms or source-unit application",
+      "B-rep validity, manifoldness, or shell closure",
+      "native consumer or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_generated_sab_21800_profile": "PASS",
+    "reference_section": "PASS",
+    "major_and_minor_axis_generators_with_ratio_0_5": "PASS",
+    "oblique_nonunit_axis_with_independent_analytic_expectation": "PASS",
+    "negative_generator_parameter": "PASS",
+    "cylinder_limiting_profile": "PASS",
+    "invalid_ratio_frame_angle_parameter_refusals_are_atomic": "PASS",
+    "representable_large_coordinate_cancellation": "PASS",
+    "unrepresentable_output_refusal_is_atomic": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.29 seconds)",
+    "symbol_check": "PASS (nm -gC build-gcc/libdxfrw.a exports drw_evaluateAcisConeSurface)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_exported_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  },
+  "source": {
+    "implementation_references": [
+      "https://docs.rs/acadrust/latest/src/acadrust/entities/acis/types.rs.html",
+      "https://docs.rs/acadrust/latest/src/acadrust/entities/acis/writer.rs.html",
+      "https://occt3d.com/dev/doc/refman/html/class_geom___conical_surface.html",
+      "https://help.altair.com/2024/hwdesktop/hwd/topics/reference/hm/hm_extapicreatesurfacecone.htm"
+    ],
+    "reference_reviewed": "ACadRust's current typed accessor/source documents the cone-surface field positions, ratio as minor-to-major, and writer reference-radius convention; the writer is mutable and same-lineage implementation corroboration. Open CASCADE documents the circular conical-surface equation used as a cross-check when ratio=1. Altair documents a minor/major ellipse ratio for a cone API. None is normative ACIS evidence for this exact SAB profile, and no independent geometry kernel was run; the formula is therefore exposed as an explicit local contract only."
+  }
+}

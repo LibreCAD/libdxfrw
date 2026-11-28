@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-10",
+  "scope": "DXF VIEWPORT ambient color name ordering and retained-string budget",
+  "finding": "Reading group 63 or 421 cleared an already parsed group 431 name, making input order change the result. Commit cd700a3a fixed this previously; 995f25596 reintroduced the clearing.",
+  "change": "Preserve the group 431 name and retained-byte lease when reading groups 63 or 421, while still clearing stale DWG-specific color metadata.",
+  "references": [
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm"
+  ],
+  "validation": {
+    "before": "Existing libdxfrw_dxf_viewport_ambient_color_order failed against the uncorrected code.",
+    "after": "Focused CTest cohort libdxfrw_dxf_viewport_ambient_color_order and libdxfrw_dxf_viewport_text_owner_budget passed 2/2.",
+    "coverage": "Existing test checks all six group permutations in ASCII and binary, write/readback, repeated groups, failed-read retry, and prior-name preservation. Owner-budget control checks replacement failure, live leases, and reset in both encodings. Updated its stale expectation to require retaining the previous name; registered it as a fast CTest."
+  },
+  "limits": "Local DXF transport and resource-budget evidence only; does not establish native rendering or broad format support. No drawing fixtures added."
+}

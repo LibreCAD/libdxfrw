@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.peer-research.v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden open-source DXF peer comparison and distinguish explicit 3D entities from similarly named planar SOLID and proprietary ACIS carriers.",
+  "method": {
+    "evidenceKinds": [
+      "open-source project README and compatibility statement",
+      "open-source entity class source",
+      "Autodesk DXF group-code reference",
+      "local parity-plan cross-check"
+    ],
+    "reviewedAtUtcDate": "2026-10-16",
+    "notPerformed": [
+      "IxMilia.Dxf or netDxf build or runtime",
+      "AutoCAD or other native CAD acceptance test",
+      "external drawing download",
+      "project build or CTest run"
+    ],
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "evidence": [
+    {
+      "route": "IxMilia.Dxf typed entity and writer capability claims",
+      "sources": [
+        "https://github.com/ixmilia/dxf"
+      ],
+      "observed": [
+        "The project README states DXF read/write coverage from R10 through R2014, except for MESH, MLEADER, SURFACE, TABLE, and VIEWPORT.",
+        "Its AutoCAD compatibility section names Dxf3DSolid, DxfRegion, and DxfBody among entity types that may not open when written.",
+        "The documentation is project-authored and was reviewed as mutable main; no exact release/runtime or payload behavior was tested."
+      ],
+      "limits": [
+        "Typed class existence does not show that raw SAT/SAB bytes are retained or that R2013+ ACDSDATA keys resolve to the correct entity.",
+        "The README does not establish geometry construction, B-rep validity, current AutoCAD acceptance, or semantic behavior.",
+        "The broad version range is not a per-entity support result."
+      ],
+      "planAction": "Admit only as an optional exact-release typed-entity/round-trip characterization at the composed peer checkpoint. Record parse recognition, source handle/type/owner, carrier observability/hash, output disposition, and native acceptance independently. Treat unavailable bytes as NOT_OBSERVED and do not use its writer as a positive native acceptance oracle."
+    },
+    {
+      "route": "netDxf Solid entity taxonomy",
+      "sources": [
+        "https://github.com/haplokuon/netDxf/tree/master/netDxf/Entities",
+        "https://github.com/haplokuon/netDxf/blob/master/netDxf/Entities/Solid.cs",
+        "https://github.com/haplokuon/netDxf/blob/master/netDxf/Entities/EntityType.cs"
+      ],
+      "observed": [
+        "GitHub marks the netDxf repository archived on 2023-10-11.",
+        "The inspected Solid class stores four Vector2 vertices in OCS with separate elevation and thickness, matching classic planar DXF SOLID rather than ACIS 3DSOLID.",
+        "The source review did not establish support or lack of support for every other proprietary modeler entity."
+      ],
+      "limits": [
+        "This is historical source evidence, not a current peer runtime result.",
+        "A Solid API name cannot be counted as a 3DSOLID/SAT/SAB/AcDs capability."
+      ],
+      "planAction": "Keep classic SOLID/TRACE, explicit 3DFACE/polyface/MESH, and proprietary 3DSOLID/REGION/BODY ACIS carriers as separate coverage rows. Never infer B-rep support from an API class name."
+    },
+    {
+      "route": "Autodesk 3DSOLID DXF record boundary",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "observed": [
+        "The documented 3DSOLID record identifies AcDbModelerGeometry and AcDb3dSolid subclass markers, modeler-format group 70, proprietary payload chunks in groups 1 and 3, and optional history soft-owner handle group 350.",
+        "The record reference does not make group 70 an embedded ACIS save version or geometry-validity indicator."
+      ],
+      "limits": [
+        "The group-code table does not define all embedded ACIS/ASM semantics or the R2013+ AcDs ownership/index schema.",
+        "Documented carrier fields do not prove a peer reader interpreted or preserved them."
+      ],
+      "planAction": "Keep modeler-format version, embedded ACIS version, carrier chunks/hash, history closure, typed geometry, and downstream acceptance as separate observations. No parser behavior is inferred from peer class names."
+    }
+  ],
+  "implementationReadiness": {
+    "localImplementationBlocked": false,
+    "peerCheckpoint": "Optional composed-stage comparison only; no per-slice peer runtime.",
+    "entityMatrix": [
+      "classic planar SOLID and TRACE",
+      "explicit 3DFACE, polyface, polygon mesh, and subdivision MESH",
+      "proprietary ACIS 3DSOLID, REGION, and BODY carriers"
+    ],
+    "evidenceSeparation": "Entity-name recognition, raw carrier bytes, ownership/key association, typed geometry, B-rep semantics, and native acceptance remain distinct outcomes.",
+    "inputPolicy": "Locally generated ephemeral controls only; no external drawing fixtures.",
+    "dependenciesOrRegistrations": "None"
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCtestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "peerOrNativeRuntimeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader cross-project interoperability and failure-localization refresh",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck normative Autodesk DXF group-code ordering and SPLINE field contracts",
+    "Cross-map current ACadSharp DWG/DXF reports for whole-file rejection, SPLINE output, MLeader context objects, and recursive DXF parsing",
+    "Reconcile LibreDWG conversion-integrity reports with existing output closure and record-identity gates",
+    "Reconcile FreeCAD's documented converter-to-DXF-to-importer route with converter-success verification",
+    "Refine implementation readiness without adding peer execution or per-slice test cost"
+  ],
+  "method": {
+    "kind": "Read-only review of primary Autodesk documentation, public project documentation/issues, and local plan/source/test inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Issue reports remain reporter evidence, not normative rules or local reproductions. ACadSharp #1299's linked drawing archive was not downloaded; its report supplies no raw SPLINE arrays or exact GDAL diagnostics. Mutable master documentation was inspected as of 2026-10-17 and is not an immutable release qualification."
+  },
+  "sources": [
+    {
+      "project": "Autodesk DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+      "revision": "official online reference reviewed 2026-10-17",
+      "observed": "The object/entity processing guidance says entity group-code order may vary and recommends table-driven processing and ignoring undefined codes. This does not authorize reordering compound or repeated sequences."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+      "revision": "official SPLINE group table reviewed 2026-10-17",
+      "observed": "The DXF table distinguishes degree and count fields, repeated knot/weight values, control points, fit points, and optional start/end tangents. It is a wire-field reference, not a complete curve-validity oracle."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1297",
+      "revision": "open issue body reviewed 2026-10-17; report names AutoCAD 2025 and ACadSharp 3.8.14/master or 3.8.0",
+      "observed": "The report says AutoCAD 2025 rejects a whole AC1032 file containing an MTEXT with frame-only background flags, while a combined flag and an AC1027 file reportedly open. The reporter says one MTEXT object's bytes matched an AutoCAD object after a writer change, but could not isolate the whole-file cause; missing VisualStyle/detail-view objects are a hypothesis only."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1277",
+      "revision": "open issue body and maintainer response reviewed 2026-10-17; report names AutoCAD LT 2026 and ACadSharp 3.7.16",
+      "observed": "The reporter says a no-op AC1032 DWG rewrite failed native AUDIT and removed standalone AcDbMLeaderObjectContextData objects. The report distinguishes DWG extension-dictionary-owned context objects from DXF MLEADER entity fields. No shareable DWG is attached."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "revision": "open issue body reviewed 2026-10-17; reporter names NuGet v3.8.0",
+      "observed": "The reporter says DWG-to-DXF output contains SPLINE data rejected by GDAL. The issue provides no offending handle, raw SPLINE arrays, expected curve, or exact GDAL error details; a linked archive was not downloaded."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1281",
+      "revision": "open issue body reviewed 2026-10-17; report names ACadSharp 3.8.0/master",
+      "observed": "The report describes recursive parsing of long comment, XDATA application-block, and WIPEOUT clip-boundary runs, with generated 20,000-item sequences causing process stack exhaustion in the cited reader. The threshold is peer/platform-specific."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1355",
+      "revision": "open issue reviewed 2026-10-17",
+      "observed": "The report describes a DWG-to-DXF path that can stop before ENTITIES/EOF while returning exit status zero; this is a peer output-integrity report, not a local result."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1351",
+      "revision": "open issue reviewed 2026-10-17",
+      "observed": "The report describes an INSERT with group 66=1 but no ATTRIB/SEQEND chain in one generated conversion route; it does not prove a matching libdxfrw failure."
+    },
+    {
+      "project": "FreeCAD documentation and issue tracker",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "revision": "mutable documentation reviewed 2026-10-17",
+      "observed": "FreeCAD describes DWG import as an external converter producing DXF followed by the selected DXF importer; this is a composed route, not native FreeCAD DWG decoding."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/31835",
+      "revision": "open issue reviewed 2026-10-17",
+      "observed": "The report concerns the reverse DXF-to-DWG export wrapper: automatic mode may return after a failed converter without verifying output or reaching later alternatives. It is a FreeCAD wrapper report, not evidence about the DWG-import wrapper, libdxfrw behavior, or all packaged FreeCAD releases."
+    },
+    {
+      "project": "Local plan",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "revision": "working-tree plan over baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-17",
+      "observed": "The reports map to existing SPLINE, DWG object graph, bounded DXF parser, output closure, and FreeCAD composed-consumer owners. Existing tests already cover the narrow MTEXT 0/16/17 body vector and repeated-record safety classes; no duplicate owner is justified."
+    }
+  ],
+  "assessment": {
+    "wireRule": "Follow Autodesk's order-flexibility guidance only for independent fields. Repeated arrays, subclass scopes, XDATA, child-record sequences, and opaque payload chunks retain their format-defined order.",
+    "dwgWriterAcceptance": "Exact entity-body bytes and successful self-read do not establish full-document acceptance. Compare object/type/handle/owner closure, required sections, diagnostics, and native audit separately.",
+    "splineEvidence": "A downstream parser error is an interoperability signal, not a semantic oracle. Any local investigation needs raw per-handle arrays, exact version/route, parser diagnostic, and independently expected curve geometry.",
+    "converterEvidence": "For DWG import, pin the converter and importer separately; verify fresh DXF output, process status, target version, strict parsing, and source-to-output manifest before scoring the importer result. Treat reverse DXF-to-DWG fallback behavior as a separate consumer route.",
+    "implementationSpeed": "Reuse existing source-generated selectors and owning CTests; keep peer/native/fuzz/full-suite work at the existing composed or scheduled checkpoint."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-cross-project-interoperability-failure-localization-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/deeper-broader-cross-project-interoperability-failure-localization-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

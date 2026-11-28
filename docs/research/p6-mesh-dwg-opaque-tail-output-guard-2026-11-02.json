@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mesh-dwg-opaque-tail-output-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "NONZERO_UNRESOLVED_DWG_TAIL_REFUSED; PHYSICAL_SCHEMA_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "scope": "Prevent DWG MESH serialization from emitting a nonzero trailing field whose source layout has not been established.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "function": "DRW_Mesh::encodeDwg",
+    "guard": "Reject unknown != 0 before encodeDwgCommon or any output-stream mutation; keep the default zero value admitted pending producer-backed layout evidence.",
+    "failureBehavior": "A rejected model leaves data, handle, and string streams empty."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests -j2",
+    "buildResult": "PASS",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_mesh_(crease_value_domains|dwg_crease_count_guard)$' --output-on-failure",
+    "focusedTestResult": "PASS (2/2)",
+    "coverage": [
+      "Generated DWG MESH vectors verify nonzero unresolved-tail refusal before emission across AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032.",
+      "Every refusal leaves data, handles, and strings empty.",
+      "The existing MESH DXF loss guard, geometry and crease domains, malformed crease-count refusal/retry, and face-vector controls pass their focused selectors.",
+      "No DWG or DXF fixture files were added."
+    ]
+  },
+  "inputHashesBeforePlanUpdate": {
+    "src/drw_entities.cpp": "bfeae0b38c4ff48c310055947edf0909f0a9db5d2379ab5572d0afaa32335d00",
+    "tests/hardening_tests.cpp": "e5ecd2d867a1f2f9e4403bfe57689743bfd320f91f05a0010979d7c68cded10d",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "dfde432bb85fc6ae8e6333fddf3fbff85e483632b5084af838f0ddfc8c2b3888"
+  },
+  "finalHashes": {
+    "src/drw_entities.cpp": "bfeae0b38c4ff48c310055947edf0909f0a9db5d2379ab5572d0afaa32335d00",
+    "tests/hardening_tests.cpp": "e5ecd2d867a1f2f9e4403bfe57689743bfd320f91f05a0010979d7c68cded10d",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "f4636b0f1ad971204b6a5ad86535b0dae161419ad104fff83b33128520071ae0"
+  },
+  "fixtureFilesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "The DWG MESH trailing field's physical layout remains unresolved; the guard does not qualify the zero/default profile for producer compatibility.",
+    "ODA v5.4.1 does not document an AcDbSubDMesh DWG body, and LibreDWG's peer schema labels its differing tail fields undocumented/unstable.",
+    "No modern MESH DWG was found in the 170-file local LibreDWG-readable corpus; the peer Surface.dxf could not be converted to DWG because unrelated records failed.",
+    "This guard does not establish MESH geometry, topology, subdivision, crease effects, overrides, or native consumer semantics."
+  ]
+}

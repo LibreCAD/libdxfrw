@@ -1,0 +1,43 @@
+{
+  "title": "TOLERANCE DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory TOLERANCE transaction controls only; no producer or support claim.",
+  "implementation": {
+    "writer": "DRW_Tolerance::encodeDwg",
+    "behavior": [
+      "Stage body, detached text, and entity-handle streams through the shared private entity transaction helper.",
+      "Preserve the entity class ID, legacy pre-AC1015 prefix behavior, dimension-style hard pointer, and caller stream aliases.",
+      "Do not change the existing fallback dimension-style handle or text encoding policy."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1015", "profile": "UTF-8 text, non-default insertion/axis/extrusion, explicit DIMSTYLE handle", "reached_allocation_failures": 18},
+    {"version": "AC1018", "profile": "UTF-8 text, non-default insertion/axis/extrusion, explicit DIMSTYLE handle", "reached_allocation_failures": 18},
+    {"version": "AC1021", "profile": "UTF-8 text, non-default insertion/axis/extrusion, explicit DIMSTYLE handle", "reached_allocation_failures": 22},
+    {"version": "AC1024", "profile": "UTF-8 text, non-default insertion/axis/extrusion, explicit DIMSTYLE handle", "reached_allocation_failures": 22}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body, string, and handle bytes, bit counts, handle occurrences, and prior class ID remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output.",
+    "All-stream alias controls preserve state and succeed on retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --tolerance-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1015 TOLERANCE": 18,
+      "AC1018 TOLERANCE": 18,
+      "AC1021 TOLERANCE": 22,
+      "AC1024 TOLERANCE": 22
+    },
+    "entity_writer_transaction_cohort": "25/25 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish transaction behavior only.",
+    "TOLERANCE field semantics, producer coverage, native consumer behavior, and broader support remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}

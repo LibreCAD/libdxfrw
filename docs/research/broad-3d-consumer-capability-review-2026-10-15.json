@@ -1,0 +1,153 @@
+{
+  "schema": "libdxfrw-broad-3d-consumer-capability-review-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "0ffa5b2",
+  "scope": "Broadened comparison of explicit DXF 3D geometry, ACIS carriers, AcDs DWG storage, open-source reader/writers, and FreeCAD consumer boundaries",
+  "method": {
+    "kind": "static review of current primary DXF documentation, public project source/documentation, and live issue/PR pages",
+    "runtimeTestsRun": false,
+    "nativeFreeCADRun": false,
+    "peerLibrariesRun": false,
+    "sourcePinning": "GitHub main/master documentation and source pages were read on 2026-10-15 but not pinned to immutable commit IDs unless their URLs identify an issue or pull request. Recheck mutable sources before external qualification.",
+    "evidenceRule": "Peer issue reports and proposed changes are leads/counterexamples, not normative schema or independent support qualification. No reported reproduction was executed in this review."
+  },
+  "capabilityLayers": [
+    {
+      "name": "opaque_payload_retention",
+      "proves": "Bytes and chunk boundaries remain associated with the correct record through a defined same-profile transfer.",
+      "doesNotProve": "Typed structure, valid geometry, placement, units, history graph, editability, display, or consumer acceptance."
+    },
+    {
+      "name": "typed_structure_and_reference_closure",
+      "proves": "Versioned entities/objects, owners, payload carriers, handles, and reference joins are structurally decoded and remapped.",
+      "doesNotProve": "Kernel validity, mass properties, topology equivalence, or display."
+    },
+    {
+      "name": "explicit_geometry_semantics",
+      "proves": "Coordinates, connectivity, flags, transforms, and units for explicit faces/meshes/curves match a defined source manifest.",
+      "doesNotProve": "ACIS/B-rep feature/history semantics."
+    },
+    {
+      "name": "kernel_geometry_semantics",
+      "proves": "A named independent geometry kernel reads valid bodies and matches source-authored bounds, units, volume/area, topology, and applicable placement/history measures.",
+      "doesNotProve": "Whole-document DXF/DWG references or arbitrary consumer support."
+    },
+    {
+      "name": "named_consumer_acceptance",
+      "proves": "A pinned application/platform/importer/converter configuration accepts the target profile and exposes the expected content.",
+      "doesNotProve": "Other application routes, importer modes, operating systems, or unsupported representations."
+    }
+  ],
+  "sources": [
+    {
+      "id": "AUTODESK_DXF_EXPLICIT_GEOMETRY",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm"
+      ],
+      "evidence": "3DFACE stores WCS corners and invisible-edge flags. MESH stores subdivision/version data, vertex and face-index lists, edges/creases, and per-subentity overrides. OCS/WCS treatment varies by entity family. Polyface face records use ordered indices and signed values for invisible edges.",
+      "assessment": "Published entity contracts. Useful for structural/explicit-geometry tests; not a native writer/readback or kernel oracle.",
+      "planUse": "Test connectivity, orientation, invisible edges, crease/override records, WCS versus OCS, nested INSERT transforms, units, and malformed/count-bounded lists; do not accept matching entity/vertex totals as a semantic pass."
+    },
+    {
+      "id": "AUTODESK_ACIS_AND_PROXY_CONTRACTS",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-89A690F9-E859-4D57-89EA-750F3FB76C6B.htm"
+      ],
+      "evidence": "3DSOLID has a modeler format version, proprietary payload strings/chunks, and a separate soft-owner history reference. ACAD_PROXY_ENTITY has separate binary graphics and entity-data areas, class identity, format version and possible object IDs.",
+      "assessment": "Published DXF group-code contracts; version/profile compatibility and payload semantics require additional evidence.",
+      "planUse": "Keep ACIS modeler payloads, proxy display graphics, and custom entity data as separate payload/reference lanes. Validate bounds and reference closure; opaque retention must not be called typed/semantic support."
+    },
+    {
+      "id": "LIBREDWG_ACDS_SILENT_LOSS_REPORT",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+      ],
+      "evidence": "Open issue #1411 reports an AC1032 generated REGION whose 5,489-byte SAB is lost in a dxf2dwg/dwg2dxf trip while the entity remains, and an unavailable real R2018 file with 88 empty-body regions. Current NEWS says AcDsPrototype_1b is not yet fully decoded and newer ACIS SAB extraction is brute-force; current source includes an AcDs section decoder/schema path.",
+      "assessment": "The issue's reported repro and confidential sample were not run or independently inspected here. NEWS/source establish a peer implementation status, not normative DWG semantics. The apparent difference between source section support and incomplete body/schema handling is important: recognizing a section is not complete object/payload decoding.",
+      "planUse": "AC1027+ AcDs container, DataStorage records, prototype-owner joins, per-body SAB mapping and handle lifecycle must be proven before an inline-only entity writer is considered complete. No silent success on entity count when has_ds_data indicates a missing body."
+    },
+    {
+      "id": "ACADSHARP_BLOCK_NESTED_ACIS_LOSS",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "evidence": "Open issue #1195 reports 252 3DSOLID objects omitted from one DXF and 51 3DSOLID plus 3 REGION omitted from another, including blocks consisting entirely of solids; the author says LibreDWG census confirmed the source records. The issue asks for warning/notification or opaque passthrough. PR #1240 is open and linked to the issue, and depends on ACDS/ACIS schema refactor #1174; a distinct PR #1150 also proposes ACIS payload writing.",
+      "assessment": "Issue examples are customer drawings that were not attached or reproduced here. The open PRs are proposals, not merged runtime capability or format authority.",
+      "planUse": "Add block-definition-only and nested INSERT solid cases to loss/disposition tests; census by source handle, owning block, payload source (inline versus AcDs), raw/typed route, and emitted/refused outcome. Compare peer proposals only after pinning executable revisions."
+    },
+    {
+      "id": "EZDXF_AND_IXMILIA_CAPABILITY_BOUNDARIES",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+        "https://github.com/mozman/ezdxf/discussions/1295",
+        "https://github.com/ixmilia/dxf"
+      ],
+      "evidence": "ezdxf can inspect/export ACIS carrier text and generate some ACIS DXF entities, but documents no ACIS rendering/general 3D drawing support and describes ACIS support as basic. IxMilia/dxf lists several ACIS/proxy classes while warning that certain entity writers, including 3DSOLID, may not be AutoCAD accepted and listing MESH and SURFACE gaps.",
+      "assessment": "Mutable current docs/project declarations and one maintainer discussion; no runtime was executed. API/entity registration and carrier inspection do not establish geometry interpretation.",
+      "planUse": "Use ezdxf for tag/carry inspection and generated transport vectors, not as the ACIS kernel/display oracle. Treat peer writer declarations as candidate syntax only; require independent parser readback and named-target application acceptance."
+    },
+    {
+      "id": "FREECAD_ROUTE_AND_IMPORTER_SCOPE",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "evidence": "Current mutable C++ importer source has a generic TopoDS_Shape-to-Part::Feature path with a 3DFACE example comment; this alone does not establish all 3DFACE/MESH/polyface forms enter or survive that path. FreeCAD documentation repo was archived 2026-04-01; its Draft DXF guide distinguishes C++ and legacy importers, lists legacy 3D-face support, and says standard import cannot read ACIS blobs. DWG guides describe converter-to-DXF followed by the standard importer and separately identify CAD Exchanger as the 3D DWG route. The current wrapper delegates conversion to external tools.",
+      "assessment": "Current source is mutable and not pinned to a commit; the archived docs can lag source. No native FreeCAD process was run. Neither source snippet nor old support table qualifies the present build/configuration.",
+      "planUse": "Keep native Linux and Windows FreeCAD checks but report exact app/build, platform, C++/legacy importer, converter, settings and file hashes. Separate standard 2D/explicit-entity compatibility from optional commercial CAD Exchanger 3D import; do not use stock FreeCAD as the ACIS B-rep oracle or count its expected ACIS rejection against converter fidelity."
+    }
+  ],
+  "implementationReadiness": {
+    "revisedOrder": [
+      "Fast per-handle disposition and payload-presence census; cover modelspace, BLOCKS, nested INSERTs and OBJECTS; preserve the existing 2D adapter behavior.",
+      "Version-profiled explicit 3D entity map and generated controls: WCS/OCS, units, topology/index order, invisible-edge and crease data, transforms and malformed bounds.",
+      "Pre-AC1027 inline SAT/SAB container/profile and history-link path, then AC1027+ AcDsDataStorage decode, owner/prototype/history graph closure and SAB association; no entity-only shortcut.",
+      "Exact version-aware DXF/DWG write/transfer and independently parsed readback; reject unsupported/lossy profiles before publishing output.",
+      "Native consumer matrix and independent kernel semantic measurements only at composed checkpoints; distinguish stock FreeCAD from optional CAD Exchanger route."
+    ],
+    "minimumNoSilentLossAssertions": [
+      "source and emitted counts are compared by type and owning block, not only document totals",
+      "each ACIS entity with an external AcDs body has a resolved nonempty body or conversion refuses",
+      "every payload has an explicit retained, translated, refused, or unsupported-with-diagnostic disposition",
+      "class counts, handles, owner/history refs and payload associations describe only the final admitted emitted set",
+      "a failed conversion does not publish a stale/partial destination"
+    ],
+    "fastValidation": "Use locally-authored in-memory/generated controls and structural parser assertions after each slice; existing tracked fixtures only. Run composed FreeCAD/Linux+Windows and independent kernel gates once per completed capability/profile, not per field edit.",
+    "fixturePolicy": "No new third-party DWG/DXF fixtures. Keep generated files and reports in disposable build/tmp storage; existing repository or locally authored fixtures remain eligible under existing fixture policy."
+  },
+  "scopeBoundary": {
+    "findings": 122,
+    "topLevelImplementationSubplans": 70,
+    "threeDLedgerItems": 149,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "projectBuild": "NOT RUN; documentation/research-only change",
+    "tests": "NOT RUN; documentation/research-only change",
+    "externalDrawingsAdded": 0,
+    "newDependencies": 0,
+    "nativeFreeCAD": "NOT RUN",
+    "peerExecutables": "NOT RUN"
+  }
+}

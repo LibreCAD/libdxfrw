@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "DWG LAYOUT viewport list versus DXF entity-space representation",
+  "mode": "Primary-source DXF specification review plus independent open-source implementation cross-check",
+  "scope": [
+    "Determine whether the DWG LAYOUT counted viewport-handle list has a direct DXF LAYOUT group-code counterpart.",
+    "Separate LAYOUT 331, VIEWPORT 68/69, and per-entity layout ownership roles.",
+    "Refine the local PAR-20/7G.3 output contract without promoting consumer or support claims."
+  ],
+  "method": {
+    "kind": "Official Autodesk DXF reference review and ezdxf published API review",
+    "peer_executables_run": true,
+    "peer_runtime": "LibreDWG dwgread 0.14, installed at /opt/homebrew/bin/dwgread; read-only JSON output over the 10 existing AC1024 repository samples.",
+    "native_cad_applications_run": false,
+    "drawings_downloaded": 0,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "local_tests_changed": true,
+    "full_suite_run": false,
+    "limitations": "Autodesk DXF tables define the documented interchange roles but do not establish how any native consumer reconstructs or orders every DWG-only viewport-list entry. ezdxf is corroborating implementation evidence, not a normative source or native AutoCAD result. LibreDWG 0.14 runtime observations cover only the existing AC1024 sample corpus; its static dwggrep.c matcher labels the list target VPORT while its JSON runtime resolves these samples' listed handles to VIEWPORT entities. The sequence-order semantics remain unresolved."
+  },
+  "sources": [
+    {
+      "name": "Autodesk LAYOUT DXF group-code table",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm",
+      "reviewed": "2026-10-18",
+      "observed": "The documented LAYOUT fields include the associated paper-space BLOCK_RECORD (330), last-active viewport (331), shade-plot reference (333), and UCS references (345/346); there is no counted viewport-handle-list field in the table."
+    },
+    {
+      "name": "Autodesk common DXF entity group-code table",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "reviewed": "2026-10-18",
+      "observed": "Graphical entity common fields identify code 330 as the owner BLOCK_RECORD and code 410 as the layout tab name, providing the DXF entity-space ownership route."
+    },
+    {
+      "name": "Autodesk VIEWPORT DXF group-code table",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "reviewed": "2026-10-18",
+      "observed": "Code 68 expresses off/off-screen/active stacking state; code 69 is viewport ID. Neither table says either value is the DWG LAYOUT list ordinal."
+    },
+    {
+      "name": "Autodesk ObjectARX AcDbLayout::getViewportArray API",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbLayout__getViewportArray.html",
+      "reviewed": "2026-10-18",
+      "observed": "The API returns IDs for all AcDbViewport entities in the layout's paperspace; the first ID is the paperspace viewport, and an empty result means the layout has never been activated. This is first-party object-model evidence for VIEWPORT entity targets, distinct from DXF group-code documentation."
+    },
+    {
+      "name": "LibreDWG dwggrep LAYOUT matcher",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/programs/dwggrep.c",
+      "reviewed": "2026-10-18",
+      "observed": "The current static matcher declares LAYOUT.viewports[i] with target type VPORT. Treat this as a peer implementation label, not a DWG format authority."
+    },
+    {
+      "name": "LibreDWG 0.14 JSON runtime on repository AC1024 corpus",
+      "url": "https://github.com/LibreDWG/libredwg",
+      "revision": "dwgread 0.14; local installed binary; source files under tests/samples/AC1024/; command: dwgread -O JSON <sample>",
+      "reviewed": "2026-10-18",
+      "observed": "All listed handles in the 8 samples with populated LAYOUT.viewports arrays resolved by handle to JSON records with entity=VIEWPORT; 2 of 10 samples had no populated array. In title_block-iso.dwg, LAYOUT viewport list and active_viewport both target handle 0x52, whose record is VIEWPORT; a separate VPORT record uses handle 0x7f. This conflicts with the static matcher label and remains AC1024 corpus evidence only."
+    },
+    {
+      "name": "ezdxf 1.4.5 Layout Types API",
+      "url": "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html",
+      "reviewed": "2026-10-18",
+      "observed": "The API describes layouts as owners of their entity space, exposes paperspace viewports(), and provides main_viewport() separately. This corroborates entity-space reconstruction but does not set a normative DWG-list-to-DXF-order mapping."
+    }
+  ],
+  "plan_effect": {
+    "local_output_contract": "For the reviewed AC1024 corpus, treat the DWG listed targets as typed paper-space VIEWPORT entities; represent membership in DXF through the complete retained paper-space entity set with resolved BLOCK_RECORD ownership and layout identity, while serializing the distinct LAYOUT 331 last-active reference separately. Other versions/profiles remain trace-gated.",
+    "prohibited_inference": "Do not equate DWG viewport-list order to DXF groups 68 stacking order or 69 identity without producer/consumer evidence.",
+    "next_evidence": "At the composed native-consumer checkpoint, compare source list order, emitted 68/69 values, layout ownership and reopened active viewport as separate observations; capture object type for each listed handle on any newly admitted version/profile.",
+    "claim_ceiling": "No native consumer, full conversion, or support claim is established."
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Plan and locally generated fast test updated in a broadly dirty shared worktree; no changes staged or committed."
+}

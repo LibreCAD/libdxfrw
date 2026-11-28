@@ -1,0 +1,220 @@
+{
+  "date": "2026-11-16",
+  "scope": "Opt-in hosted Linux and Windows build and focused headless probe for the pinned downstream FreeCAD importer candidate.",
+  "freecadCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+  "archiveSha256": "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4",
+  "workflow": ".github/workflows/freecad-platform-qualification.yml",
+  "dispatchInput": "candidate=true",
+  "platforms": [
+    "ubuntu-24.04",
+    "windows-2022"
+  ],
+  "environment": "FreeCAD upstream Pixi release presets, upstream-pinned setup-pixi action and Pixi version, locked environment",
+  "checks": [
+    "actionlint .github/workflows/freecad-platform-qualification.yml passed.",
+    "Existing push-triggered release qualification jobs remain enabled; candidate matrix is opt-in for dispatch.",
+    "Candidate source application and headless runtime guards were separately exercised on macOS."
+  ],
+  "status": "LINUX AND WINDOWS FOCUSED HEADLESS PASS; GUI AND BROADER QUALIFICATION OPEN",
+  "limitations": [
+    "Linux and Windows passed the selected headless candidate tests. GUI rendering, independent semantics and broad support remain open.",
+    "Submodule gitlink status is recorded; binary reproducibility, full build provenance and independent semantic support are not established.",
+    "Headless checks do not establish native GUI rendering or complete DWG/DXF support.",
+    "The downstream FreeCAD patch series remains unmerged."
+  ],
+  "firstDispatch": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43847823489",
+    "commit": "a72e440a9c8c6c99fa46d118aa4913ba6d7d1308",
+    "outcome": "Both OS jobs failed in source replay before build. The application helper captured the underlying error and did not expose it, so its cause is not established."
+  },
+  "followupChecks": [
+    "The application helper now includes replay stderr on failure; a wrong archive produces its specific hash-mismatch diagnostic.",
+    "CMakeCache source identity rejects a candidate source paired with a different build; the matching macOS source/build passes all ten headless tests.",
+    "actionlint and Python syntax checks pass.",
+    "The public codeload archive downloaded locally matched the previously pinned SHA-256; the hosted download hash was not recorded by the first dispatch.",
+    "With global and system Git config disabled, the previous replay failed at the same second patch. Explicit core.autocrlf=input now makes replay and clean-worktree application pass with exact expected output hashes.",
+    "With global and system Git config disabled, injected fifth-patch failure restored the original bytes and a clean retry passed.",
+    "A disposable checkout including the exact FreeCAD attributes file reproduced the direct-application failure.",
+    "The helper now checks clean source bytes against the pinned archive, installs only five files produced by isolated replay, and compares the result with a second replay. On the attributes checkout it passed with global and system Git configuration disabled.",
+    "An injected failure during file installation restored all five original byte sequences, and a retry passed on the same attributes checkout.",
+    "Replay refuses a nonempty export directory without modifying its sentinel."
+  ],
+  "secondDispatch": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43848459758",
+    "commit": "61343ece",
+    "outcome": "Both OS jobs failed applying the second patch to dxf.h during archive replay. The archive hash check had passed."
+  },
+  "rootCause": "Archive replay required core.autocrlf=input. The full FreeCAD checkout also has src/Mod/.gitattributes marking Import/** -text, which prevents the same intermediate normalization during direct git apply. Earlier local sparse worktrees omitted that attributes file.",
+  "thirdDispatch": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43849052380",
+    "commit": "7550a785",
+    "outcome": "Archive replay passed, but applying the second patch to the full checkout failed on both hosts. The helper reported restoration of original bytes."
+  },
+  "fourthDispatch": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43849681525",
+    "commit": "cab8f700",
+    "outcome": "Linux x86_64 and Windows x64 built the candidate and passed the same ten focused headless tests without skips.",
+    "linux": {
+      "jobUrl": "https://github.com/dxli/libdxfrw/actions/runs/43849681525/job/133238708049",
+      "artifactId": 14218345361,
+      "receiptSha256": "84bcbec8c392372b8894c387bab7e337f8c633af70bb2582311ec45294acac2b",
+      "sourceCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+      "sourceArchiveSha256": "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4",
+      "patchCount": 20,
+      "gitBaseVerified": true,
+      "cmakeCacheSha256": "42c1d56cc2b325882db14ab67fd354ed18042a46eb1cd4ccfcf8566bc99fd2bc",
+      "freecadcmdSha256": "1f4aa8a150fe20e9973b835fc2ef4f07f666ed316a2aeb4ee8a34b88628293f6",
+      "importModuleSha256": "5f03d8ba008a4a530203b6c82ddc481e919fc5e935c9b942b302c63ef204d9bb",
+      "probeSha256": "75d69cf492f7aa410590438beb0cec9a739799fd5a040ab745d97a04cde2e240",
+      "platform": "linux",
+      "machine": "x86_64",
+      "freecadVersion": [
+        "27",
+        "1",
+        "0",
+        "20261115 (Git shallow)",
+        "Unknown",
+        "2026/11/15 20:17:45",
+        "(HEAD detached at 157bfcb)",
+        "157bfcb7462a733b03a7d041aeaa79fee7aff7a3"
+      ],
+      "pythonVersion": "3.13.18 | packaged by conda-forge | (main, Oct 26 2026, 11:50:24) [GCC 15.3.0]",
+      "tests": [
+        "test_read_lines",
+        "test_dimension_ocs_orientation_axes",
+        "test_read_solid_ocs_vertices",
+        "test_classic_polyline_header_flags_and_mesh_disposition",
+        "test_bounded_polyface_geometry_and_rejections",
+        "test_bounded_polygon_mesh_grid_and_rejections",
+        "test_off_layer_without_grouping_reports_visibility_loss",
+        "test_frozen_layer_without_grouping_remains_reported",
+        "test_out_of_range_layer_colors_report_and_keep_off_state",
+        "test_malformed_layer_colors_report_and_keep_off_state"
+      ],
+      "testsRun": 10,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "guiUp": 0,
+      "submoduleStatusSha256": "513a9d2a445fe55ca7812eb6563fe44d6958307f2d21ea92a8b223000120c773",
+      "patchedSourceSha256": {
+        "src/Mod/Import/App/dxf/ImpExpDxf.cpp": "46a7b9f0f72d80bf4df6584e458ae48ddd24354c01a889964679468c017b6583",
+        "src/Mod/Import/App/dxf/ImpExpDxf.h": "c9c95156d7c2b8b4e8e10d4bfaae996baafb32a9a3a6b96c8d3d3878590de6f2",
+        "src/Mod/Import/App/dxf/dxf.cpp": "b40d3fbab00ec760229e775aafec5f29466c42de5505a50a0719b2866d74c934",
+        "src/Mod/Import/App/dxf/dxf.h": "9afc81e16bc7c06fddf67fea70c8790afdc02027146c7c16a631676e3be4c34f",
+        "src/Mod/Import/importtests/TestImportDXF.py": "d07db2e046bc934f0220d5cdffe9080d2bb8807a9245f27b32a5b4a375188402"
+      },
+      "submodules": [
+        {
+          "commit": "543d0dd3fe966ddf20e884b44e5fdbf12cb43784",
+          "path": "src/3rdParty/GSL"
+        },
+        {
+          "commit": "4be80eef02a3486cda0d78f3ccbb308d207a9639",
+          "path": "src/3rdParty/OndselSolver"
+        },
+        {
+          "commit": "dc05ca0469f2b3b10ea4a93b468d95b5a5374bac",
+          "path": "src/3rdParty/coin"
+        },
+        {
+          "commit": "118ac5a21bcf57f0f90e2b0e681c9dcbf07074c2",
+          "path": "src/3rdParty/coin/cpack.d"
+        },
+        {
+          "commit": "6217657eef6aec24a0e4ecea4695031c1a622cf3",
+          "path": "src/3rdParty/coin/docs/doxygen-awesome"
+        },
+        {
+          "commit": "515f038d32f163a976acd8a8cd9e8d26e1d0b884",
+          "path": "src/3rdParty/pivy"
+        },
+        {
+          "commit": "745c1b1ebc8bc684439210c5fa237d2c6287153b",
+          "path": "src/Mod/AddonManager"
+        }
+      ]
+    },
+    "windows": {
+      "jobUrl": "https://github.com/dxli/libdxfrw/actions/runs/43849681525/job/133238707164",
+      "artifactId": 14218323389,
+      "receiptSha256": "58b7d2b287f3adf761a846026ccf2504118e58cb46de9c7a2665041f545d8559",
+      "sourceCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+      "sourceArchiveSha256": "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4",
+      "patchCount": 20,
+      "patchedSourceSha256": {
+        "src/Mod/Import/App/dxf/ImpExpDxf.cpp": "46a7b9f0f72d80bf4df6584e458ae48ddd24354c01a889964679468c017b6583",
+        "src/Mod/Import/App/dxf/ImpExpDxf.h": "c9c95156d7c2b8b4e8e10d4bfaae996baafb32a9a3a6b96c8d3d3878590de6f2",
+        "src/Mod/Import/App/dxf/dxf.cpp": "b40d3fbab00ec760229e775aafec5f29466c42de5505a50a0719b2866d74c934",
+        "src/Mod/Import/App/dxf/dxf.h": "9afc81e16bc7c06fddf67fea70c8790afdc02027146c7c16a631676e3be4c34f",
+        "src/Mod/Import/importtests/TestImportDXF.py": "d07db2e046bc934f0220d5cdffe9080d2bb8807a9245f27b32a5b4a375188402"
+      },
+      "gitBaseVerified": true,
+      "cmakeCacheSha256": "d532b802aaf8615253ba4e2885d542c1636ee2766a8ed94e4abb2ae059076c26",
+      "freecadcmdSha256": "21191555cc8f4a27672784a1b6605fef05b2af1607cf6c7455967b3095c9fee9",
+      "importModuleSha256": "c8b70e274033b5af2daf4bec4d5b258701f2f23baba615a3af69ada0c096a461",
+      "probeSha256": "75d69cf492f7aa410590438beb0cec9a739799fd5a040ab745d97a04cde2e240",
+      "platform": "win32",
+      "machine": "AMD64",
+      "freecadVersion": [
+        "27",
+        "1",
+        "0",
+        "20261115 (Git shallow)",
+        "Unknown",
+        "2026/11/15 20:17:45",
+        "(HEAD detached at 157bfcb)",
+        "157bfcb7462a733b03a7d041aeaa79fee7aff7a3"
+      ],
+      "pythonVersion": "3.13.18 | packaged by conda-forge | (main, Oct 26 2026, 11:30:40) [MSC v.1944 64 bit (AMD64)]",
+      "tests": [
+        "test_read_lines",
+        "test_dimension_ocs_orientation_axes",
+        "test_read_solid_ocs_vertices",
+        "test_classic_polyline_header_flags_and_mesh_disposition",
+        "test_bounded_polyface_geometry_and_rejections",
+        "test_bounded_polygon_mesh_grid_and_rejections",
+        "test_off_layer_without_grouping_reports_visibility_loss",
+        "test_frozen_layer_without_grouping_remains_reported",
+        "test_out_of_range_layer_colors_report_and_keep_off_state",
+        "test_malformed_layer_colors_report_and_keep_off_state"
+      ],
+      "testsRun": 10,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "guiUp": 0,
+      "submoduleStatusSha256": "cd8da55067a70a1eca8df8aa5185425be972b0518d524cca094f7e1b0a1920df",
+      "submodules": [
+        {
+          "commit": "543d0dd3fe966ddf20e884b44e5fdbf12cb43784",
+          "path": "src/3rdParty/GSL"
+        },
+        {
+          "commit": "4be80eef02a3486cda0d78f3ccbb308d207a9639",
+          "path": "src/3rdParty/OndselSolver"
+        },
+        {
+          "commit": "dc05ca0469f2b3b10ea4a93b468d95b5a5374bac",
+          "path": "src/3rdParty/coin"
+        },
+        {
+          "commit": "118ac5a21bcf57f0f90e2b0e681c9dcbf07074c2",
+          "path": "src/3rdParty/coin/cpack.d"
+        },
+        {
+          "commit": "6217657eef6aec24a0e4ecea4695031c1a622cf3",
+          "path": "src/3rdParty/coin/docs/doxygen-awesome"
+        },
+        {
+          "commit": "515f038d32f163a976acd8a8cd9e8d26e1d0b884",
+          "path": "src/3rdParty/pivy"
+        },
+        {
+          "commit": "745c1b1ebc8bc684439210c5fa237d2c6287153b",
+          "path": "src/Mod/AddonManager"
+        }
+      ]
+    }
+  }
+}

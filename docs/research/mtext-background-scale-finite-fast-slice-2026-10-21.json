@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 MTEXT background-scale finite preflight",
+  "mode": "focused AC1024/AC1032 local writer/parser fast slice; scratch peer-producer trace",
+  "scope": [
+    "Reject non-finite MTEXT background scale before the standalone MTEXT DWG common prefix is written",
+    "Share finite-scale validation with embedded MTEXT DWG output",
+    "Investigate the ODA BL versus BD field-width discrepancy without changing its unresolved width"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.46 MTEXT",
+      "finding": "The MTEXT background-scale row labels the field BL while giving a default of 1.5, which cannot be represented by an integer bit-long. No production width change is justified from this internally conflicting row alone."
+    },
+    "localPeerProducer": {
+      "implementation": "GNU LibreDWG 0.14.0 installed locally",
+      "scratchInput": "/private/tmp/libdxfrw-mtext-producer.add",
+      "scratchInputSha256": "504636bd6919416ba60e06998ef61747c269a4e7edae5bed3a1fc0756fc51d36",
+      "output": "/private/tmp/libdxfrw-mtext-producer-scale2.dwg",
+      "outputSha256": "1e855c96d1f1acf6fa315c1110d90145ddccb1a0933af270253b7e35d1a9b743",
+      "signature": "AC1018",
+      "finding": "A locally authored scratch MText with background fill and integer scale 2 was emitted by LibreDWG; its writer trace labels the field bg_fill_scale: 2 [BL 45]. LibreDWG's own read-to-DXF output retains group 45 as 2.0. This proves the LibreDWG 0.14.0 route uses BL, not that all producers do."
+    },
+    "conflictingPeerEvidence": {
+      "odaReference": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "libreDwgReference": "https://www.gnu.org/software/libredwg/refman/dwg_8h_source.html",
+      "acadSharpReference": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamWriters/DwgObjectWriter.Entities.cs",
+      "finding": "ODA and LibreDWG's current published structure describe BL, while ACadSharp's source uses WriteBitDouble for this field despite its BL comment; a separately published Rust binding also reports BD. The peer implementations therefore disagree, and no AutoCAD/ODA-authored non-integral MTEXT background-scale sample is available in the checked-in corpus."
+    },
+    "localReaderLimitation": {
+      "finding": "The libdxfrw converter rejected the LibreDWG-produced AC1018 scratch file at BAD_READ_FILE_HEADER (legacy error 5), before object/entity parsing; it does not provide a libdxfrw parser trace for this MTEXT field. No sample file was copied into the repository."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.cpp"],
+      "finding": "The shared standalone/embedded CMC preparation path now rejects a non-finite background scale. Standalone rejection occurs before the common MTEXT prefix; the embedded path shares the same validation."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024", "AC1032"],
+      "finding": "A generated AC1032 NaN background-scale control verifies refusal with body, detached string, and handle buffers all untouched. Existing finite-scale background CMC vectors continue to exercise the production parser/writer round trip.",
+      "limit": "Generated controls establish local codec behavior only; the LibreDWG scratch output is a peer-specific locally created sample, not native AutoCAD/ODA evidence."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Pass background scale through shared CMC preflight and reject non-finite values before standalone output.",
+      "Apply the same finite check to the embedded MTEXT writer without changing its field width.",
+      "Retain BD output pending authoritative producer evidence that resolves the ODA row/default contradiction."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestAdded": null,
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --mtext-background-cmc",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mtext_background_cmc|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (2/2)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (10/10)"
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "Resolve BL versus BD using an AutoCAD/ODA-authored sample with non-integral background scale or another authoritative producer trace before changing the field width.",
+    "The locally generated LibreDWG AC1018 file fails libdxfrw at file-header parsing, so it cannot qualify libdxfrw's entity-level read path.",
+    "Standalone MTEXT source-method identity, HATCH C5 producer semantics, class-specific DXF mappings, and external/native qualification remain open.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "TABLESTYLE DWG unit wire domain and generated identity vectors",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": {
+    "classes": [
+      "DRW_TableStyle",
+      "DRW_TableStyleContentFormat"
+    ],
+    "versions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "productionChanges": [
+      "src/drw_objects.cpp"
+    ],
+    "testControlChange": "tests/dwg_object_vectors_tests.cpp",
+    "fixturesAdded": false
+  },
+  "authorities": [
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sections": [
+        "20.4.99 Value",
+        "20.4.101.2 R24 TABLESTYLE format",
+        "20.4.101.3 Content format"
+      ],
+      "finding": "\u00a720.4.99 enumerates serialized DWG unit types 0=unitless, 1=distance, 2=angle, 4=area, and 8=volume. \u00a720.4.101.3 points TABLESTYLE content unit type to that shared DWG value definition. \u00a720.4.101.2 documents the R24 standard style IDs 1-4 and custom IDs starting at 101."
+    },
+    {
+      "title": "Autodesk AutoCAD DatabaseServices.UnitType Enumeration",
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_UnitType.html",
+      "finding": "The API additionally defines Currency=0x10, Percentage=0x20, and AngleNotTransformed=0x10000. This API enumeration alone does not qualify these values as serialized DWG values in the TABLESTYLE field."
+    },
+    {
+      "title": "Existing local AC1024 TABLESTYLE producer receipt",
+      "path": "docs/research/ac1024-tablestyle-standard-identities-fast-slice-2026-10-22.json",
+      "finding": "The physical architectural_example-imperial.dwg TABLESTYLE at handle 135 exposed repeated style ID 1 with raw class 0. Preserve class 0 as opaque compatibility state; do not assign it data/label meaning."
+    }
+  ],
+  "implementation": {
+    "unitTypePolicy": "DWG content-format and legacy-row readers now use the strict serialized-wire domain shared with DWG payload validation/output: versions AC1021+ and values 0, 1, 2, 4, 8. The broader API/DXF enum validator remains separate. Unsupported API-only values fail parsing atomically through the existing TABLESTYLE reset path.",
+    "identityControl": "The generated repeated-style frame now writes the repeated style index equal to the repeated style ID, satisfying the existing parser relation. The prior generated value zero caused all repeated-style identity vectors to be rejected before ID/class retention could be checked.",
+    "compatibility": "Class zero remains accepted only within the already established AC1024 repeated-style compatibility range and remains uninterpreted. This change does not broaden output qualification or support claims."
+  },
+  "verification": {
+    "build": {
+      "commands": [
+        "cmake --build build --target dwg2dxf libdxfrw_dwg_object_vectors_tests -j4",
+        "cmake --build build --target libdxfrw_dwg_object_vectors_tests -j4"
+      ],
+      "result": "passed"
+    },
+    "focusedTests": {
+      "commands": [
+        "ctest --test-dir build -R '^libdxfrw_tablestyle_(nested_raw_net|identity_domains|content_format_enum_domains)$' --output-on-failure",
+        "ctest --test-dir build -R '^libdxfrw_tablestyle_legacy_unit_type_domains$' --output-on-failure",
+        "build/libdxfrw_dwg_object_vectors_tests --tablestyle-content-format-enum-domains"
+      ],
+      "result": "all passed; prior adjacent controls passed 3/3, the AC1021 legacy parser control passed 7 generated profiles (five accepted wire values, invalid 3 and 16), and the AC1032 content-format domain control passed",
+      "coverage": "The AC1021 frame is assembled locally from a production-encoded valid TABLESTYLE and has its body size/footer/handle stream bounded as an R2007 object. An independent bit-buffer walk locates each row's serialized unit BL before mutation. Invalid records clear stale typed state; a fresh following valid frame parses after each refusal. No DWG/DXF fixture is added."
+    },
+    "diffCheck": "git diff --check passed",
+    "externalFixtures": "none added",
+    "existingPhysicalRegression": {
+      "source": "/Users/dli/doc/dwg/colorwh.dwg",
+      "sourceSha256": "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+      "version": "AC1021",
+      "strictConversionCommand": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/colorwh.dwg -y -v2007 /private/tmp/colorwh-tablestyle-domain-ac1021.dxf",
+      "strictConversionResult": "passed",
+      "freshReadbackCommand": "build/dwg2dxf/dwg2dxf /private/tmp/colorwh-tablestyle-domain-ac1021.dxf -y -v2007 /private/tmp/colorwh-tablestyle-domain-ac1021-roundtrip.dxf",
+      "freshReadbackResult": "passed",
+      "firstDxfSha256": "2fc4031c0000836fc2ffd4db7b1971fe09f1dcce62a12ea9019ec7357afbbd73",
+      "roundtripDxfSha256": "03a955a9791fa51e6192f79743c54a513057a6a26b45a59b16c4f9a10ac13c41",
+      "limits": "This is regression evidence for one existing local source. No field-by-field semantic comparator was run, and the source is not an authenticated independent producer witness."
+    },
+    "relatedCellStyleMapRegression": {
+      "command": "ctest --test-dir build -R '^libdxfrw_cellstylemap_(dwg_encode_roundtrip|identity_domains)$' --output-on-failure",
+      "result": "passed, 2/2",
+      "scope": "Confirms AC1021 CELLSTYLEMAP rejects API-only unit type 0x10 before mutating body, string, or handle buffers, while valid CELLSTYLEMAP encoding, readback, and identity-domain controls remain intact."
+    }
+  },
+  "limits": [
+    "Generated object vectors prove parser behavior for the specified values, not producer breadth.",
+    "No serialized DWG witness for the API-only unit values was found or claimed.",
+    "No native CAD semantic, graph-closure, or whole-file output qualification is added.",
+    "P5 and the overall DWG/DXF parity objective remain open."
+  ]
+}

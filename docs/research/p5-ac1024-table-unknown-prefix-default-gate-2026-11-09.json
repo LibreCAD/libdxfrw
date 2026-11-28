@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-table-unknown-prefix-default-gate-2026-11-09",
+  "date": "2026-11-09",
+  "status": "GENERATED_UNKNOWN_PREFIX_DEFAULT_GATE_PASSES",
+  "supportClaimEffect": "none",
+  "scope": "Keep R2010/R2013+ TABLE semantic projection incomplete when ODA-documented unknown preamble fields differ from their stated defaults.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files",
+    "version": "5.4.1",
+    "section": "20.4.96.2",
+    "fields": [
+      {"type": "RC", "default": 0},
+      {"type": "H", "role": "soft pointer", "default": "NULL"},
+      {"type": "BL", "default": 0},
+      {"version": "R2010", "type": "B", "default": true},
+      {"version": "R2013+", "type": "BL", "default": 0}
+    ],
+    "interpretation": "The fields are explicitly unknown. A non-default value is retained as an unqualified profile and must not be projected as complete TABLE semantics."
+  },
+  "implementation": {
+    "baseRevision": "7da70ef4821ad1a49c180c56eb0e70b519a4fdde",
+    "source": "src/drw_entities.cpp",
+    "behavior": "AC1024+ TABLE parsing accepts the documented preamble defaults. A nonzero unknown RC/BL, non-null unknown soft pointer, false R2010 Boolean, or nonzero R2013+ BL commits the structurally readable entity prefix with semantic completeness false. The unknown soft pointer is not used as a TABLESTYLE identity; the TABLECONTENT style reference remains authoritative for the modeled field.",
+    "sourceSha256AfterEdit": "4802d6df7ca14ea9e11a38c9786177f18570c17fb85341d48c76b76f15fe4cc6"
+  },
+  "generatedControls": {
+    "source": "tests/dwg_object_vectors_tests.cpp",
+    "sourceSha256AfterEdit": "79ee15ccc997fa50e157454693de07bc05b098e7e08fc99e00711fc52f203b3c",
+    "cases": [
+      {"revision": "AC1024", "mutation": "unknown RC = 1", "result": "semantic projection incomplete"},
+      {"revision": "AC1024", "mutation": "unknown soft pointer = 0xA701", "result": "semantic projection incomplete; pointer not mapped to TABLESTYLE"},
+      {"revision": "AC1024", "mutation": "null H encoded as hard pointer", "result": "frame parse refused by bounded soft-pointer role check"},
+      {"revision": "AC1024", "mutation": "unknown BL = 1", "result": "semantic projection incomplete"},
+      {"revision": "AC1024", "mutation": "R2010 unknown Boolean = false", "result": "semantic projection incomplete"},
+      {"revision": "AC1027", "mutation": "R2013+ unknown BL = 1", "result": "semantic projection incomplete"},
+      {"revision": "AC1027", "mutation": "documented unknown-field defaults", "result": "complete TABLECONTENT and style reference parsed"},
+      {"revision": "AC1032", "mutation": "R2018+ unknown BL = 1", "result": "semantic projection incomplete"},
+      {"revision": "AC1032", "mutation": "documented unknown-field defaults", "result": "complete TABLECONTENT and style reference parsed"}
+    ],
+    "frameFilesAdded": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build --target libdxfrw_dwg_object_vectors_tests -j2",
+      "result": "PASS"
+    },
+    "focused": {
+      "command": "ctest --test-dir build -R '^libdxfrw_table_r2010_unknown_prefix_defaults$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "defaultProfileCompatibility": {
+      "command": "build/libdxfrw_dwg_object_vectors_tests --table-content-reference-roles",
+      "result": "PASS"
+    },
+    "testExecutableSha256": "8d7c33c88e6de5d96e773e1a19a26745a5c652aceb787ef37311175d89c28e1e"
+  },
+  "limitations": [
+    "No meaning is assigned to non-default unknown fields.",
+    "The generated controls verify parser disposition, not producer interoperability or native rendering.",
+    "AC1027/AC1032 default and unknown-BL vectors are generated; physical producer values for those prefixes remain unqualified.",
+    "Exact raw-frame preservation and strict end-to-end output are separate gates and were not established by this vector.",
+    "No drawing fixture was added."
+  ],
+  "next": "Continue with the next locally ready source-backed P4/P6 slice; keep physical TABLE, native rendering, and non-default-prefix semantics unqualified."
+}

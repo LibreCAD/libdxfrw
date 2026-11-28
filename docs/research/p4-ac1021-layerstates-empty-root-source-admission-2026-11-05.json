@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1021-layerstates-empty-root-source-admission-2026-11-05",
+  "date": "2026-11-05",
+  "status": "BOUNDED_SOURCE_GRAPH_ADMITTED_OUTPUT_NOT_QUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "version": "AC1021",
+    "fixtureDisposition": "Pre-existing local file; not tracked or committed"
+  },
+  "change": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "The source-profile preparer now admits the observed AC1021 LAYER_CONTROL extension graph only when its three named roots, ACAD_LAYERSTATES child, two empty companion DICTIONARYs, and source-bound object frames match. The captured source snapshot rejects mutation and permits retry after restoration.",
+    "nonBehavior": "No production DXF write or full-source support claim is established by this admission check."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1021-source-admission tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "result": "Passed. Source frame roles, root set, empty child/companion dictionaries, mutation refusal/restoration, and strict-output destination preservation were checked.",
+    "strictWholeSource": "Refused atomically at output preparation: 36 unpreserved MLEADER proxy caches; destination sentinel remained unchanged."
+  },
+  "remaining": [
+    "Build a test-only projection with a dependency-closed source BLOCK_RECORD/BLOCK graph and prove AC1021 empty LayerStates output/readback in ASCII and Binary, with correction/retry and destination rollback.",
+    "Keep original whole-source export refused until MLEADER proxy caches and all other source dispositions are qualified.",
+    "Qualify nonempty LayerStates records and broader AC1021/producer profiles independently."
+  ]
+}

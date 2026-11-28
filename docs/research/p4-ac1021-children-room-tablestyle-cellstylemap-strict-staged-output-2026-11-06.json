@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 children-room TABLESTYLE/CELLSTYLEMAP strict staged-output proof",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Admit and inspect one exact AC1021 TABLESTYLE/CELLSTYLEMAP source profile inside strict staged output; qualify only the two captured callbacks when their complete graph and emitted bodies match.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local sample; author and producer are unauthenticated. No source or derivative fixture is committed."
+  },
+  "profile": {
+    "tableStyle": {
+      "handle": "0x7F",
+      "class": "AcDbTableStyle",
+      "name": "Standard",
+      "ownerDictionary": "0x7E",
+      "extensionDictionary": "0x162",
+      "margins": [1.5, 1.5],
+      "rows": [
+        {"height": 4.5, "alignment": 2, "valueDataType": 512, "borders": 6},
+        {"height": 6.0, "alignment": 5, "valueDataType": 512, "borders": 6},
+        {"height": 4.5, "alignment": 5, "valueDataType": 512, "borders": 6}
+      ]
+    },
+    "cellStyleMap": {
+      "handle": "0x3C3F7",
+      "class": "AcDbCellStyleMap",
+      "ownerAndReactor": "0x162",
+      "cells": ["_TITLE", "_HEADER", "_DATA"],
+      "textStyle": "0x11",
+      "borderLinetype": "0x14"
+    },
+    "graph": "NOD ACAD_TABLESTYLE -> DICTIONARY 0x7E -> TABLESTYLE 0x7F -> extension DICTIONARY 0x162 -> canonical CELLSTYLEMAP entry 0x3C3F7"
+  },
+  "implementation": {
+    "sourceAdmission": "Added a distinct exact AC1021 profile with source frame/class identity, owner and extension dictionary roles, exact row/cell fields, and unique STYLE/LTYPE dependencies.",
+    "stagedInspection": "The inspector now decodes the emitted TABLESTYLE and CELLSTYLEMAP bodies, compares modeled fields and mapped references, validates both dictionary bodies and canonical edges, and checks the serialized reciprocal ACAD_REACTORS group before source identities are registered.",
+    "formatNormalization": "TABLESTYLE border/style references are checked after handle remap. CELLSTYLEMAP no-color CMC 256/C8 is normalized to DXF index 257; DWG-only reactor-count and extension flags are excluded only after exact emitted reactor-group validation."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4 (-Werror).",
+    "lineweightsRegression": "PASS: existing AC1021 physical TABLESTYLE selected ASCII/Binary readback, destination preservation and same-adapter retry selector.",
+    "childrenRoomSelectedOutput": "PASS: existing physical TABLESTYLE/CELLSTYLEMAP selected ASCII/Binary output/readback, exact graph closure, invalid STYLE destination preservation and same-adapter retry selector.",
+    "strictWholeSource": "FAIL CLOSED as intended for remaining scope: qualified callbacks advanced 179/186 -> 181/186; remaining handles are 0x12E, 0x21A, 0x18081, 0x21C and 0x18082. No output DXF was created.",
+    "strictDebugLog": {
+      "path": "/private/tmp/libdxfrw-children-room-strict-finalization-probe.log",
+      "sha256": "43d717beda7e902b4b4eb0fc2045a2b41e3eb373472a2f1343881d2cb96e20e7"
+    },
+    "fullSuites": "NOT RUN",
+    "fixturesCommitted": false
+  },
+  "limits": "One unauthenticated AC1021 source profile only. Strict whole-source conversion remains refused by five other opaque callbacks. This does not establish producer-wide, native consumer, cross-version, TABLE rendering, or support-claim qualification.",
+  "nextAction": "Connect the existing AC1021 MLEADERSTYLE source/EED/APPID snapshot to staged output inspection, then qualify the two SECTIONVIEWSTYLE and two DETAILVIEWSTYLE roots with field and dictionary graph proof."
+}

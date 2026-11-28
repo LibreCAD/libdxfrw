@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-material-source-layer-control-audit-2026-11-27",
+  "supportClaimEffect": "none",
+  "prior": "docs/research/p7-wide-dxf-literal-backslash-2026-11-27.json",
+  "problem": "The default MATERIAL test generator omitted the LAYER table handle, owner and subclass and the LAYER row owner in its single-layer mode. The previous independent source audit repaired the table head.",
+  "change": "Generate the existing table-control identity and row owner for both single-layer and multi-layer controls. The focused test checks that the imported source control is handle 2 with no extension dictionary and owns the selected LAYER record. An explicit scratch emitter supports reproducible ASCII/Binary audits without committing drawings.",
+  "controls": {
+    "AC1024-ascii-to-binary": {
+      "sourceSha256": "1bc3b046c5aa8da39b5e36df52d3964a9286beb02374c5ad0466e5bd75d8e1c0",
+      "outputSha256": "9d91133abde5edf74be5454cd94ef8376d741a967b13deaf08c137e5797d50ca",
+      "sourceAudit": [
+        0,
+        0
+      ],
+      "outputAudit": [
+        0,
+        0
+      ],
+      "materialBodies": 3
+    },
+    "AC1024-binary-to-ascii": {
+      "sourceSha256": "f83ce72fb247ab900475f7459707b199a5aa2b925f4ead1144e781a354fe9ba8",
+      "outputSha256": "eff50e8e1b6cd223fd8274be6039eeb7f5c8e57695c748699e9c1e4c2274a8bb",
+      "sourceAudit": [
+        0,
+        0
+      ],
+      "outputAudit": [
+        0,
+        0
+      ],
+      "materialBodies": 3
+    },
+    "AC1027-ascii-to-binary": {
+      "sourceSha256": "327f8689f900c5b515148f2beb5a15ada1ac66a1d02f8d773b6dec8d4de25319",
+      "outputSha256": "a00ae14d2f93f7ac2c687ab3355fd3853b4fd6782f6e59b4297cce1cf6c2a888",
+      "sourceAudit": [
+        0,
+        0
+      ],
+      "outputAudit": [
+        0,
+        0
+      ],
+      "materialBodies": 3
+    },
+    "AC1027-binary-to-ascii": {
+      "sourceSha256": "e4b99c89ecb0bdbc68d3b068f8cc090b470b82d4eca0a8960f5b9c69611f9bfa",
+      "outputSha256": "398772de48f7088d864f3e1c10183e30ffac203baf9c697312d26bb7c213d107",
+      "sourceAudit": [
+        0,
+        0
+      ],
+      "outputAudit": [
+        0,
+        0
+      ],
+      "materialBodies": 3
+    }
+  },
+  "generatorSha256": "13bb11bae7925e87f768a556cbf923029c9fda193698a5b0ba1c4326dedd55c7",
+  "converterSha256": "6d0d92a6854f2681ccb46eee0986f1a8c8c8bfc4f6d40b687fed965aeb31344d",
+  "verification": [
+    "The affected material graph and whole-source CTests pass on macOS ARM64 after rebuilding the test executable.",
+    "ezdxf 1.4.5 reports zero errors and zero fixes for all four AC1024/AC1027 ASCII/Binary source and output controls; it compares all three full normalized MATERIAL bodies, parent/reactor graph and layer/current material links in both conversion directions.",
+    "The current generator emitted byte-identical copies of all independently audited sources. Existing paths, dangling symlinks, unsupported versions and unsupported encodings were refused without modifying the destination."
+  ],
+  "limits": [
+    "These are locally generated controls, not independent producer or native application qualification.",
+    "The corrected source does not establish general MATERIAL, wide-handle, text, cross-version or DWG support; other gates remain unchanged.",
+    "Generated drawings remain in scratch storage; no DXF or DWG fixture was committed."
+  ]
+}

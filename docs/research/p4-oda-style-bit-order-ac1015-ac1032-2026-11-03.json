@@ -1,0 +1,349 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-oda-style-bit-order-ac1015-ac1032-2026-11-03",
+  "date": "2026-11-03",
+  "title": "ODA-authored STYLE vertical and shape flag differential across DWG revisions",
+  "status": "PRODUCER_DIFFERENTIAL_REPRODUCED_ODA_SPEC_CONFLICT_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "authoring": {
+    "tool": "ezdxf 1.4.5",
+    "recipe": "Create R2004 DXF with setup=True; add EX_NORMAL flag 0/txt.shx, EX_VERTICAL flag 4/txt.shx, EX_SHAPE flag 1/ltypeshp.shx, EX_BOTH flag 5/ltypeshp.shx; add one TEXT using EX_VERTICAL. Save once, then convert scratch copies. Input handles are 8A/8B/8C/8D.",
+    "inputPath": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-style-oda-omk9muiy/in/styles.dxf",
+    "inputSha256": "ed723fc043c3f3bce6da26c8ed6b7f631ffa448178ce654fe478fde541fbff09",
+    "fixtureCommitted": false
+  },
+  "producer": {
+    "name": "ODA File Converter",
+    "version": "27.1.0.0",
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "integrity": "native deep strict codesign verification passed outside sandbox",
+    "commandShape": "ODAFileConverter <input-dir> <output-dir> ACAD<year> DWG 0 0 styles.dxf",
+    "audit": false,
+    "recursive": false,
+    "result": "All six commands returned 0. The ODA DWGs retain EX_NORMAL, EX_VERTICAL and EX_SHAPE; EX_BOTH is not separately present, so no conclusion is based on it."
+  },
+  "peer": {
+    "name": "GNU LibreDWG",
+    "version": "0.14",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "method": "dwgread -O minJSON plus AC1018 -v5 bit offsets",
+    "ac1018VerboseLog": "/private/tmp/style-oda-2004-v5.log",
+    "ac1018VerboseLogSha256": "88af3cbdde32cc852ad8db224ba8f3b9240283203eab0100a6d2e7918442c876",
+    "physicalBits": "EX_VERTICAL shape/vertical bits 0,1 at 20.6/20.7; EX_SHAPE bits 1,0 at 17.6/17.7, relative to each decoded object frame."
+  },
+  "local": {
+    "method": "Scratch dwgReader15/18/21/24/27/32 subclasses read metadata, file header and handle map; extract exact OBJECTS frames 8A/8B/8C and call current DRW_Textstyle::parseDwg; no HEADER admission was needed. All probes exit 0 and preserve names and fonts.",
+    "olderProbeSourceSha256": "1a77b98b644f2ccf84f5dfe457029f026ecacefd706b101097956d3bb0715dde",
+    "olderProbeBinarySha256": "4d30bf5e7082583c0ba4642779390a0832997732c33aab53fe7630c67fdb5007",
+    "modernProbeSourceSha256": "0d13bf7851040ccc82e38553330f06d9e7c4212535f8f672f40336e802338fd7",
+    "modernProbeBinarySha256": "9fb8e9a6244dbace7698ae49408ad45b81199f1ed037772bdf9dcf43f497c23a",
+    "result": "Current local parser swaps the shape and vertical flags at AC1015 and AC1018 relative to the authored source and peer; AC1021/24/27/32 match these fields. Flag 64 is the decoded xref-reference bit."
+  },
+  "odaReadback": {
+    "target": "AC1018 DWG converted to AC1018 ASCII DXF with audit=0",
+    "path": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-style-oda-omk9muiy/back/styles.dxf",
+    "sha256": "972240121d0b50ddc0b432b40bb112bdc094e04e607f32537dce0f592ef9a94f",
+    "observation": "EX_NORMAL and EX_VERTICAL remain named STYLE rows with group 70 values 0 and 4. ODA omits the authored shape STYLE rows in this conversion, so this readback alone cannot establish their output disposition."
+  },
+  "versions": [
+    {
+      "target": 2000,
+      "source": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-style-oda-omk9muiy/dwg2000/styles.dwg",
+      "sha256": "d58d883c4feca08852aec265dede5761844c1ca50556606fa1caed6dd0630989",
+      "magic": "AC1015",
+      "localProbeExit": 0,
+      "localProbeOutput": [
+        "handle=8a loc=5760 parsed=1 good=1 name=EX_NORMAL flags=64 font=txt.shx",
+        "handle=8b loc=5806 parsed=1 good=1 name=EX_VERTICAL flags=65 font=txt.shx",
+        "handle=8c loc=5854 parsed=1 good=1 name=EX_SHAPE flags=68 font=ltypeshp.shx"
+      ],
+      "libredwgMinJsonSha256": "f2223bc3aef561e09220ca8ca48ca18a43896e4ab0ec53e53f368cdd351ff9fe",
+      "libredwgStyles": [
+        {
+          "name": "EX_NORMAL",
+          "is_shape": 0,
+          "is_vertical": 0,
+          "handle": [
+            0,
+            1,
+            138
+          ]
+        },
+        {
+          "name": "EX_VERTICAL",
+          "is_shape": 0,
+          "is_vertical": 1,
+          "handle": [
+            0,
+            1,
+            139
+          ]
+        },
+        {
+          "name": "EX_SHAPE",
+          "is_shape": 1,
+          "is_vertical": 0,
+          "handle": [
+            0,
+            1,
+            140
+          ]
+        }
+      ]
+    },
+    {
+      "target": 2004,
+      "source": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-style-oda-omk9muiy/dwg/styles.dwg",
+      "sha256": "acb962732fe5a1ed17b405b8316bd290471c919614724ea39bf198981ed6053e",
+      "magic": "AC1018",
+      "localProbeExit": 0,
+      "localProbeOutput": [
+        "handle=8a loc=2737 parsed=1 good=1 name=EX_NORMAL flags=64 font=txt.shx",
+        "handle=8b loc=2782 parsed=1 good=1 name=EX_VERTICAL flags=65 font=txt.shx",
+        "handle=8c loc=2829 parsed=1 good=1 name=EX_SHAPE flags=68 font=ltypeshp.shx"
+      ],
+      "libredwgMinJsonSha256": "efa646725390825e13816b28bac5f76252a21a3215a39fc531963d1d9584e5e7",
+      "libredwgStyles": [
+        {
+          "name": "EX_NORMAL",
+          "is_shape": 0,
+          "is_vertical": 0,
+          "handle": [
+            0,
+            1,
+            138
+          ]
+        },
+        {
+          "name": "EX_VERTICAL",
+          "is_shape": 0,
+          "is_vertical": 1,
+          "handle": [
+            0,
+            1,
+            139
+          ]
+        },
+        {
+          "name": "EX_SHAPE",
+          "is_shape": 1,
+          "is_vertical": 0,
+          "handle": [
+            0,
+            1,
+            140
+          ]
+        }
+      ]
+    },
+    {
+      "target": 2007,
+      "source": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-style-oda-omk9muiy/dwg2007/styles.dwg",
+      "sha256": "4935be455896d4b467d02f113fe3471b73982fdca880a52ce889055f7960a6fc",
+      "magic": "AC1021",
+      "localProbeExit": 0,
+      "localProbeOutput": [
+        "handle=8a loc=4242 parsed=1 good=1 name=EX_NORMAL flags=64 font=txt.shx",
+        "handle=8b loc=4305 parsed=1 good=1 name=EX_VERTICAL flags=68 font=txt.shx",
+        "handle=8c loc=4372 parsed=1 good=1 name=EX_SHAPE flags=65 font=ltypeshp.shx"
+      ],
+      "libredwgMinJsonSha256": "f61121800b8c404dcd3c43a2685f469df13832b9421b0abb7f1015dc638fd855",
+      "libredwgStyles": [
+        {
+          "name": "EX_NORMAL",
+          "is_shape": 0,
+          "is_vertical": 0,
+          "handle": [
+            0,
+            1,
+            138
+          ]
+        },
+        {
+          "name": "EX_VERTICAL",
+          "is_shape": 0,
+          "is_vertical": 1,
+          "handle": [
+            0,
+            1,
+            139
+          ]
+        },
+        {
+          "name": "EX_SHAPE",
+          "is_shape": 1,
+          "is_vertical": 0,
+          "handle": [
+            0,
+            1,
+            140
+          ]
+        }
+      ]
+    },
+    {
+      "target": 2010,
+      "source": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-style-oda-omk9muiy/dwg2010/styles.dwg",
+      "sha256": "d373629dec4a0cd391998db0c94f40ad1e612d439d2664c3550564fb670fdd69",
+      "magic": "AC1024",
+      "localProbeExit": 0,
+      "localProbeOutput": [
+        "handle=8a loc=4074 parsed=1 good=1 name=EX_NORMAL flags=64 font=txt.shx",
+        "handle=8b loc=4134 parsed=1 good=1 name=EX_VERTICAL flags=68 font=txt.shx",
+        "handle=8c loc=4198 parsed=1 good=1 name=EX_SHAPE flags=65 font=ltypeshp.shx"
+      ],
+      "libredwgMinJsonSha256": "9010823b533a0c2ea4b51843611c3857ed85f17d2c08c4060213f6d2581be050",
+      "libredwgStyles": [
+        {
+          "name": "EX_NORMAL",
+          "is_shape": 0,
+          "is_vertical": 0,
+          "handle": [
+            0,
+            1,
+            138
+          ]
+        },
+        {
+          "name": "EX_VERTICAL",
+          "is_shape": 0,
+          "is_vertical": 1,
+          "handle": [
+            0,
+            1,
+            139
+          ]
+        },
+        {
+          "name": "EX_SHAPE",
+          "is_shape": 1,
+          "is_vertical": 0,
+          "handle": [
+            0,
+            1,
+            140
+          ]
+        }
+      ]
+    },
+    {
+      "target": 2013,
+      "source": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-style-oda-omk9muiy/dwg2013/styles.dwg",
+      "sha256": "81f6ce6733443d4a48f9e07aec1959088d391c15d33f7f274ce80609760c1fb3",
+      "magic": "AC1027",
+      "localProbeExit": 0,
+      "localProbeOutput": [
+        "handle=8a loc=4076 parsed=1 good=1 name=EX_NORMAL flags=64 font=txt.shx",
+        "handle=8b loc=4136 parsed=1 good=1 name=EX_VERTICAL flags=68 font=txt.shx",
+        "handle=8c loc=4200 parsed=1 good=1 name=EX_SHAPE flags=65 font=ltypeshp.shx"
+      ],
+      "libredwgMinJsonSha256": "6107c7e5f21d118cb40b4262ffe6baab8ab354043a8e30d897e7a99e7da14f6a",
+      "libredwgStyles": [
+        {
+          "name": "EX_NORMAL",
+          "is_shape": 0,
+          "is_vertical": 0,
+          "handle": [
+            0,
+            1,
+            138
+          ]
+        },
+        {
+          "name": "EX_VERTICAL",
+          "is_shape": 0,
+          "is_vertical": 1,
+          "handle": [
+            0,
+            1,
+            139
+          ]
+        },
+        {
+          "name": "EX_SHAPE",
+          "is_shape": 1,
+          "is_vertical": 0,
+          "handle": [
+            0,
+            1,
+            140
+          ]
+        }
+      ]
+    },
+    {
+      "target": 2018,
+      "source": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-style-oda-omk9muiy/dwg2018/styles.dwg",
+      "sha256": "9f9544c4bfbe15097b75632bd8f2fc3a8dc00fdd99befba5bd7ef6819ea2534c",
+      "magic": "AC1032",
+      "localProbeExit": 0,
+      "localProbeOutput": [
+        "handle=8a loc=4076 parsed=1 good=1 name=EX_NORMAL flags=64 font=txt.shx",
+        "handle=8b loc=4136 parsed=1 good=1 name=EX_VERTICAL flags=68 font=txt.shx",
+        "handle=8c loc=4200 parsed=1 good=1 name=EX_SHAPE flags=65 font=ltypeshp.shx"
+      ],
+      "libredwgMinJsonSha256": "bf2a6ed9dbeab2f320549a427f6627a4cc48192b579cea935783d5e25f1b2c8c",
+      "libredwgStyles": [
+        {
+          "name": "EX_NORMAL",
+          "is_shape": 0,
+          "is_vertical": 0,
+          "handle": [
+            0,
+            1,
+            138
+          ]
+        },
+        {
+          "name": "EX_VERTICAL",
+          "is_shape": 0,
+          "is_vertical": 1,
+          "handle": [
+            0,
+            1,
+            139
+          ]
+        },
+        {
+          "name": "EX_SHAPE",
+          "is_shape": 1,
+          "is_vertical": 0,
+          "handle": [
+            0,
+            1,
+            140
+          ]
+        }
+      ]
+    }
+  ],
+  "normativeConflict": {
+    "source": "Open Design Specification for .dwg files v5.4.1 section 20.4.56",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "finding": "The common STYLE body lists Vertical then shape without a version boundary, and its descriptive parenthetical bit numbers disagree with Autodesk DXF group-70 flag names. ODA converter output and LibreDWG both put shape then vertical in the observed AC1015/18 frames. Repository AGENTS.md names this PDF authoritative, so this differential does not authorize an implicit layout override."
+  },
+  "limits": [
+    "Authored DXF plus ODA conversion is a controlled producer witness, not an AutoCAD-native save or native rendering qualification.",
+    "AC1018 reads of ODA output now reach tables but strict conversion remains refused due to the unclaimed HEADER suffix and an independent CELLSTYLEMAP failure. Isolated STYLE frame parsing does not establish whole-document completeness.",
+    "No fixture or support claim added; retain strict refusal for unresolved ET Border STYLE disposition."
+  ],
+  "next": "Resolve the PDF-versus-producer contradiction via authoritative ODA clarification or an explicitly authorized spec correction; verify source/reference closure, output and native behavior before enabling affected profiles.",
+  "etBorderOdaCrossCheck": {
+    "sourceSha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "converter": "ODA File Converter 27.1.0.0, native verified, recursion=0, audit=0",
+    "outputs": [
+      {
+        "target": "AC1018 ASCII DXF",
+        "sha256": "c843a86c44960143a3bfd0e50ed319a82563408b1eb2a3c48f3cfec3751ab93f"
+      },
+      {
+        "target": "AC1027 ASCII DXF",
+        "sha256": "451270672bc780554813c0790284fa8c612c88c3ef2c8e5ceb69a16223c31514"
+      }
+    ],
+    "observation": "Each output contains STYLE 0xDF, empty name, group 70=1, font ltypeshp.shx. The observed source record therefore has an explicit ODA DXF shape projection. This is not native shape loading or proof that other representations may be omitted.",
+    "rawDwgOutput": "The AC1018 ODA resave has 739 unclaimed HEADER suffix bytes, now diagnosed after CRC and sentinel validation; one CELLSTYLEMAP parse fails and strict output remains refused. See p6-ac1018-oda-header-suffix-diagnostic-admission-2026-11-03.json."
+  }
+}

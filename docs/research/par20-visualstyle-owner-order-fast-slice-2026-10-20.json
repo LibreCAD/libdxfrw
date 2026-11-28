@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 ACAD_VISUALSTYLE owner order fast slice",
+  "mode": "Locally generated ASCII/Binary implementation and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Assert NOD-first output and ACAD_VISUALSTYLE DICTIONARY-before-VISUALSTYLE physical order in the existing generated graph control.",
+    "Use handles resolved from strict readback and retain existing typed/raw/root/reference assertions.",
+    "Validate only the touched adapter/CLI targets and existing owning focused CTest."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "filesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par20-visualstyle-owner-order-fast-slice-2026-10-20.json"
+    ],
+    "generatedControls": [
+      "The existing two-style VisualStyle graph is exported in ASCII and Binary DXF while preserving its deliberately non-monotonic dictionary-key order.",
+      "Physical OBJECTS scan requires the actual NOD first and its ACAD_VISUALSTYLE dictionary before both remapped VISUALSTYLE children.",
+      "Existing strict readback retains typed/raw VisualStyle identity, root owner, and entity/view/viewport references."
+    ],
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 2",
+    "directSelector": "PASS (exit 0): build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --extension-graph-limits",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_extension_graph_limits$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check on tracked scoped files; receipt parsed by jq and trailing-whitespace scanned",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0
+  },
+  "assessment": {
+    "closes": "Physical NOD-first and root-DICTIONARY-before-child output order for the existing generated two-style VisualStyle graph in ASCII and Binary DXF.",
+    "doesNotClose": [
+      "A generic OBJECTS scheduler or every root/owner family.",
+      "Every VisualStyle variant, external producer behavior, or native application acceptance.",
+      "Broad named-resource, DWG/DXF, or 3D semantic support."
+    ],
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "commitCreated": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

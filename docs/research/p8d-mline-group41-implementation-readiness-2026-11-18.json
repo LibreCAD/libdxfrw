@@ -1,0 +1,191 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-mline-group41-implementation-readiness-2026-11-18",
+  "date": "2026-11-18",
+  "status": "ONE_PLANAR_PROFILE_READY_FOR_BOUNDED_IMPLEMENTATION",
+  "supportClaimEffect": "none",
+  "question": "How can the selected source-bound planar MLINE preserve its per-vertex miter distances through a LibreCAD 2 projection and unchanged save, without claiming cuts, fills, native rendering or arbitrary edits?",
+  "authority": [
+    {
+      "title": "Autodesk AutoCAD DXF Reference: MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "points": [
+        "Group 71 bit 1 means at least one vertex and bit 2 means closed; bits 4 and 8 suppress start/end caps.",
+        "At each vertex and style element, group 74 counts the following group 41 values. The first is signed distance along the miter; later values specify line-element start/cut intervals. Group 75 counts group 42 fill parameters.",
+        "Group 340 identifies the MLINESTYLE; group 2 is a redundant name."
+      ]
+    },
+    {
+      "title": "Autodesk ObjectARX Extended Data",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-EA919C1C-C09D-4428-9913-E22DF2D3D0BF.htm",
+      "points": [
+        "XDATA is limited to 16K and specific group types; per-entity space is shared with other applications."
+      ]
+    }
+  ],
+  "source": {
+    "cleanAdapterReceipt": "docs/research/p8d-mline-clean-candidate-2026-11-18.json",
+    "headlessConsumerReceipt": "docs/research/p8d-mline-librecad-headless-style-order-2026-11-18.json",
+    "originalDwg": "/Users/dli/dev/libredwg/test/test-data/2004/Multiline.dwg",
+    "originalDwgSha256": "4b0aa7336fbf71491653fdcf3f8fa58d325817fa1997987e4896275d5392f544",
+    "selectedAscii": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/selected-mline/libdxfrw-mline-ac1018-ascii.dxf",
+    "selectedAsciiSha256": "dd7b814c5314bebddb19c9e2f9ea02afc551dd361a7b5e4f892e0b56cab360b9",
+    "selectedBinary": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/selected-mline/libdxfrw-mline-ac1018-binary.dxf",
+    "selectedBinarySha256": "6aa63d331b627c32f38aaf6ecac6e8e862dbc4d7370b033df798e001512af750",
+    "provenance": "Source and selected output lineage are bounded in the linked clean-build receipt. The selected DXF record was inspected by group pairs; do not infer additional producer semantics."
+  },
+  "observedProfile": {
+    "dxfVersion": "AC1018",
+    "mlineHandle": "194",
+    "owner": "1F",
+    "styleName": "STANDARD",
+    "styleHandle": "18",
+    "scale": 1.0,
+    "justificationGroup70": 0,
+    "flagsGroup71": 1,
+    "flagInterpretation": "Has a vertex and is open according to Autodesk group-71 bit definitions.",
+    "vertices": 6,
+    "elements": 2,
+    "styleFlagsGroup70": 0,
+    "styleOffsets": [
+      0.5,
+      -0.5
+    ],
+    "sourceXdataApplicationGroups": 0,
+    "coordinates": "All selected vertex position, segment direction and miter Z values are 0; no explicit extrusion group 210 occurs, so default +Z applies.",
+    "miterNorms": "Unit 2D direction vectors to displayed precision.",
+    "group74PerVertexPerElement": 2,
+    "group41Element0": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "group41Element1": [
+      [
+        -1,
+        0
+      ],
+      [
+        -1.153700119057325,
+        0
+      ],
+      [
+        -1.8855118655290135,
+        0
+      ],
+      [
+        -1.4075461468462933,
+        0
+      ],
+      [
+        -1.3087884054041377,
+        0
+      ],
+      [
+        -1,
+        0
+      ]
+    ],
+    "group75PerVertexPerElement": 0,
+    "group42Values": [],
+    "secondVertex": {
+      "baseline": [
+        18.79472695829095,
+        10.005742690150306
+      ],
+      "miter": [
+        -0.044951425620632486,
+        0.9989891737825155
+      ],
+      "distance": -1.153700119057325,
+      "expectedElement1Intersection": [
+        18.846587423381273,
+        8.85320876142044
+      ]
+    },
+    "boundedInterpretation": "For this zero-start/no-cut/no-fill profile, the first signed 41 already defines the element/miter intersection. For a verified unit 2D miter use baseline plus that signed distance times the miter direction; do not multiply the stored distance by style scale or justification again."
+  },
+  "currentConsumer": {
+    "checkout": "/private/tmp/librecad-p8d-current-20261117",
+    "baseHead": "d9c0ae435ed5892611d6bec3c628033004dbcaf4",
+    "implementationScope": "The independent scratch candidate has a timing fix under development; these findings also concern its later queue and reconstruction, and are not evidence that the candidate is committed.",
+    "decoder": "DRW_MLine and dxfRW retain vertex positions, vertexDir, miterDir and per-element segParms/areaFillParms, validate finite fields/counts and can serialize them in writeMLine.",
+    "import": "The original addMLine projection uses one style-derived effective offset per element and normalized miter; it therefore misses the varying 41s. The timing-fix pending queue as reviewed retains position and miter only. Source MLINE extData copied by setEntityAttributes is subsequently replaced by LibreCAD_MLINE marker data.",
+    "save": "extractMLineMeta/makeMLineSidecarDescriptor require a complete unedited marker group and compare visible geometry to baseline + normalized miter times a constant member offset. reconstructMLines creates default vertexDir, group-41 [0] per element and empty group-42 lists. Incomplete or edited groups fall back to visible ordinary polylines instead of a reconstructed MLINE.",
+    "sourceXdataLimit": "The selected MLINE has no XDATA; therefore it does not test preservation of external applications\u2019 data. Other source XDATA, existing LibreCAD_MLINE marker collisions, extension metadata and style-reference remapping need explicit design and controls; do not overwrite them or claim they survive."
+  },
+  "boundedFirstSlice": {
+    "target": "The single 2D, unit-miter, two-element, six-vertex, open, group-74=2/[distance,0], group-75=0, no-style-cap/fill, no-source-XDATA profile evidenced above. Guard on structural properties and current source metadata; do not hardcode the example handle or six distances as a general authorization.",
+    "guard": [
+      "Require finite values, matching vertex/element/list counts, supported flags, default +Z extrusion and representable planar positions/directions, reliable nonzero unit 2D miters, unambiguous style identity and an independently bounded retained-data size.",
+      "Do not assume group 41 may be derived from style offsets at joins; preserve the signed values exactly. Compare the visible projection with each stored per-vertex distance, and preserve source vertexDir, miterDir, base point, extrusion, flags, both parameter-list families and necessary source attributes for exact reconstruction.",
+      "A guard miss must not silently become a claimed lossless MLINE. Retain/document a visible-polyline lossy fallback or refuse strict export according to the consumer save contract; do not claim cuts/fills/caps are rendered."
+    ],
+    "sidecarAlternatives": [
+      {
+        "kind": "bounded document-owned original model",
+        "considerations": "Retain one immutable source model, keyed by a unique document/container/anchor lineage and verified against every live group member. Define cloning, undo, deletion, block/INSERT and stale-identity behavior; it must survive until a valid unchanged native MLINE save. On later reopen the saved MLINE can rebuild the internal model. Document what happens if an edited group is exported as ordinary polylines."
+      },
+      {
+        "kind": "versioned externally serialized sidecar",
+        "considerations": "Use a versioned, unambiguous schema with bounded counts, a unique lineage, and strict version/type/size checks; preserve unrelated existing XDATA, register any app identifier and stay within the shared 16K XDATA limit and DXF value restrictions. Explicitly fail or choose another storage path on overflow/collision. Test clone, persistence, transforms and tampering. Do not reinterpret the current constant-offset marker as the new schema."
+      }
+    ],
+    "choice": "Pick the smallest route compatible with LibreCAD document lifetime, undo/copy semantics and save behavior after checking those contracts; this receipt does not authorize assuming either option is complete."
+  },
+  "implementationChecks": [
+    "Use the existing scratch regression harness /private/tmp/libdxfrw-mline-red-20261118/mline_regression.cpp and generated controls to add a focused source-bound red test for all twelve first-41 distances and the second-vertex coordinate above. Keep model/block order, missing style and partial-read/reuse controls. Assert open status from bit 2.",
+    "After the narrowly guarded change, run red/green on both clean selected ASCII and binary inputs, verify all baseline intersections and unchanged source parameters, and preserve the existing absent/mismatched-style behavior.",
+    "Save an unchanged isolated drawing to new scratch DXF and independently parse/read it back: compare MLINE style reference, base/extrusion, all vertex directions, exact group 71 flags and ordered group 74/41/75/42 lists; reimport and compare rendered projection. Include independent style-object/340 closure.",
+    "Mutate/delete/reorder one member and alter/malformed/duplicate a sidecar; check that stale MLINE reconstruction is rejected or explicitly falls back, while visible geometry and destination-safety behavior match the existing contract. Test a preexisting source application XDATA case separately before broadening the no-XDATA admission.",
+    "Add scratch-generated +scale and -scale cases carrying independently specified 41 values to catch double-scaling; treat them as algorithmic controls until an independent producer confirms native semantics. Add explicit cut (more than two group 41 values), fill (group 42), caps and nonplanar/invalid-vector refusal or documented fallback controls."
+  ],
+  "limits": [
+    "The current timing-only green test checks style-projection geometry, not native miter distances or source flags; it cannot qualify this slice.",
+    "The second 41 value, additional cut/fill lists, end caps and nonplanar extrusion require their own rendering and preservation evidence; preserving opaque values alone does not prove correct display.",
+    "One local producer-derived sample and generated controls do not establish negative-scale, all-version, native AutoCAD open/reopen, display, undo/clone or every DXF consumer behavior.",
+    "No external drawing fixture is added and no support claim is promoted."
+  ],
+  "headlessSaveReproduction": {
+    "status": "ACTUAL_SAVE_LOSS_CONFIRMED_BOTH_INPUT_ENCODINGS",
+    "probeSource": "/private/tmp/librecad-p8d-mline-save-probe-20261118/save_probe.cpp",
+    "compileCommand": "python3 -B /private/tmp/librecad-p8d-mline-save-probe-20261118/build.py /private/tmp/librecad-p8d-mline-closure-baseline-20261118/liblibrecad_lib.a",
+    "runCommand": "save_probe <selected AC1018 ASCII or binary DXF> <fresh temporary AC1018 DXF destination>",
+    "probeSourceSha256": "e6b548d89cf3345bd927ba858ce415307bdcdf3684294867bc26c9b1a187a7e7",
+    "probeBinarySha256": "514ea22854710c2f36b929c323d8512c670d48f0bc098098ec71a03f256713d5",
+    "libreCADTimingOnlyArchiveSha256": "11c3efbb6c13069d45e91dbda8abe8526e9b965ad45ceacc87e065351d5ffed9",
+    "comparison": "Pinned ezdxf 1.4.5 read the selected originals and fresh ASCII saves. Original and fresh files each supply one AC1018 MLINE and resolve group 340 to its actual STANDARD MLINESTYLE with offsets +0.5/-0.5. Each original passes all six nonzero group-12 direction vectors and two values per element in group 41. All six direction vectors became zero and all twelve group-41 lists became [0.0] on save.",
+    "reopen": "The LibreCAD filter successfully reopened both saves and produced two fallback-projection polylines. Successful save and reopen do not preserve the source path geometry.",
+    "freshAsciiSha256": {
+      "ascii": "cfebb2fbaa36b18a5da975b4b10c51319007ee52c8f30e1a1be929e56ae69f34",
+      "binary": "cfebb2fbaa36b18a5da975b4b10c51319007ee52c8f30e1a1be929e56ae69f34"
+    },
+    "logSha256": {
+      "ascii": "58e268cd12e8df35c747c360964f55fdf5aceb96d4032ee9e0abbe89fbcf29ef",
+      "binary": "58e268cd12e8df35c747c360964f55fdf5aceb96d4032ee9e0abbe89fbcf29ef"
+    },
+    "fullObservationPath": "/private/tmp/librecad-p8d-mline-save-probe-20261118/observation.json",
+    "fullObservationSha256": "ae94492a2b67c0a0ddc765988c9cacd2f815bb6e0b07dfee50dea94f0914f8b9"
+  }
+}

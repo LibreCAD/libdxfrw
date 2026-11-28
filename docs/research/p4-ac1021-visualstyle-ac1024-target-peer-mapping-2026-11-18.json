@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1021-visualstyle-ac1024-target-peer-mapping-2026-11-18",
+  "date": "2026-11-18",
+  "status": "DEFERRED_NATIVE_CROSS_VERSION_VISUALSTYLE_SEMANTICS",
+  "supportClaimEffect": "none",
+  "baseCommit": "1aeca7e9",
+  "scope": "Investigate the VISUALSTYLE source-version equality guard encountered after the separate DICTIONARYVAR gate in strict AC1021 truetype to AC1024 DXF. The production gate and writer are unchanged.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "version": "AC1021",
+    "limit": "Existing local drawing; author and producer are unauthenticated. No fixture or derivative is added to the repository."
+  },
+  "currentImplementation": {
+    "gates": [
+      "prepareDxfVisualStyles requires target version equal to DWG source version",
+      "hasUnchangedDxfVisualStyles requires the frozen target and active writer version equal the source version",
+      "writeVisualStyleRaw requires same-version DWG output",
+      "validateVisualStyleReferences recognizes the typed DWG route only at the same target version"
+    ],
+    "layouts": "The AC1021 builder emits legacy group 62, group 174 and reserved group 45. The AC1024 builder emits group 177 and 28 group 176 companions, and its ACI fallback maps any C2 true color to 7. A legacy model does not contain source 176/177 or AC1024 source-isoline evidence. Passing that model unchanged to the AC1024 builder would generate extLightingModel 0, not the peer-observed 2, and would use ACI 7 where a target peer uses 9.",
+    "sourceModelProbe": "/private/tmp/truetype_visualstyle_source_values.cpp",
+    "sourceModelProbeSha256": "85488ec98260232358acf284b7858b09fb91c4ebcb7089cab296adf85e625486",
+    "sourceModelLog": "/private/tmp/truetype_visualstyle_source_values.log",
+    "sourceModelLogSha256": "5c925705cc4ccadd7042ee2305421039f86c99f954b4646a0ed3e78ec942605d",
+    "sourceModelResult": "All 16 locally imported styles pass the existing AC1021 profile; each has legacyReserved=0, edgeStyleApply=0, edgeIsolines=0, no source companion/extended-lighting evidence, and no extension dictionary or EED. The default extLightingModel value in the AC1021 model is 0, not a captured AC1024 field."
+  },
+  "peer": {
+    "tool": "GNU LibreDWG dwg2dxf 0.14",
+    "executable": "/opt/homebrew/bin/dwg2dxf",
+    "executableSha256": "e4cca8e3f5af9a878eb0085ed14e992f64d35f03065743847701274a46781c99",
+    "commands": [
+      "dwg2dxf --as r2007 -y -o /private/tmp/truetype-libredwg-target2007.dxf /Users/dli/doc/dwg/truetype.dwg",
+      "dwg2dxf --as r2010 -y -o /private/tmp/truetype-libredwg-target2010.dxf /Users/dli/doc/dwg/truetype.dwg"
+    ],
+    "exitCodes": [
+      0,
+      0
+    ],
+    "output2007": "/private/tmp/truetype-libredwg-target2007.dxf",
+    "output2007Sha256": "560851c2d0b1265099f32ecc60ee4dbb82f354c3e50aa97f3641c84b361499bc",
+    "output2010": "/private/tmp/truetype-libredwg-target2010.dxf",
+    "output2010Sha256": "eaeaafc859f7c36e1d862dbcbbdc496b37137f2bdbd7724c6e0178e9e97f2d27",
+    "stderrSha256": "b54e0b89f85e7999a27ab9c7f7fb3b35932b9f6e703bda438db3ee8b5a9ac7f5",
+    "stderrLimit": "Both conversions report invalid preview/page and unstable TABLESTYLE/MATERIAL warnings/errors despite exit 0. Evidence is limited to the inspected VISUALSTYLE records, not acceptance or whole-file conversion.",
+    "comparisonScript": "/private/tmp/compare_visualstyle_peer_versions.py",
+    "comparisonScriptSha256": "456ef1c8e51fcb2f838c8e8806ff1a94d5f3d410cd1d4b96a492ba5631e114e4",
+    "comparison": "/private/tmp/truetype-visualstyle-peer-version-comparison.json",
+    "comparisonSha256": "6951ba7d08a45b511fc32d65ba46f81016a9addab595d4d506de51f59fb3b6ab",
+    "finding": "Both output headers have requested versions and contain the same 16 VISUALSTYLE handles. Selected shared property groups match after numeric normalization. The 2010 output has 448 group-176 values, all 0, and 16 group-177 values, all 2. The 2007 output has one group 45=0, 62=5, and 174=0 per style; these groups are absent from the 2010 peer output. For ColorChange handle 0x902, packed C2808080 appears as group 421 and 424 with the corresponding group 63/66 ACI value 9."
+  },
+  "sameVersionComparison": {
+    "script": "/private/tmp/compare_visualstyle_same_version.py",
+    "scriptSha256": "ca9553dc7a6d8b70db9f4b85862f56aa9d27e7cc425beec129be22470c9e0ce9",
+    "result": "/private/tmp/truetype-visualstyle-same-version-comparison.json",
+    "resultSha256": "b98fc5fd7b53881ed4d561afe1009a3d0f2a40157f7a8dd7f46dd00833203d2a",
+    "finding": "All 16 handles match the existing local AC1021 strict ASCII output and the peer 2007 output, with no mismatch in compared property values after numeric normalization. Identity/common-link codes 5, 102 and 330 were excluded; this is not native behavior or 2010 target evidence."
+  },
+  "peerImplementationNote": {
+    "path": "/Users/dli/dev/libredwg/src/dwg2.spec",
+    "gitHead": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "sha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "finding": "This local source sets a default ext_lighting_model of 2 for a missing pre-2010 source when writing an R2010 DXF; the 2010 property companions are separate source-model fields. The local checkout has not been established as the source of the installed binary. This is evidence of an implementation choice, not a normative conversion rule."
+  },
+  "formatReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm",
+      "finding": "Autodesk documents VISUALSTYLE property groups, including legacy edge-style-apply, but this page does not establish the 2007\u21922010 treatment of groups 176/177 or the reserved 45 field."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2017/ENU/OARXMAC-RefGuide/files/OREFMAC-AcGiVisualStyleOperations__Operation.html",
+      "finding": "Visual style property operations have distinct inherit, set, disable and enable meanings; no claim that a particular group-176 value is a given operation is made here."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_GraphicsInterface_VisualStyle_Operation_VisualStyleProperty.html",
+      "finding": "The native API exposes the operation associated with each visual-style property."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbDatabase__dxfOut_ACHAR__int_AcDb__AcDbDwgVersion_bool.html",
+      "finding": "dxfOut supports the 2010 output version and ASCII or binary output precision selection."
+    }
+  ],
+  "odaAttempt": {
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "command": "ODAFileConverter /private/tmp/truetype-visualstyle-oda2010/input /private/tmp/truetype-visualstyle-oda2010/output ACAD2010 DXF 0 0 *.dwg (wildcard passed as one literal argument)",
+    "exitCode": 134,
+    "log": "/private/tmp/truetype-visualstyle-oda2010/converter.log",
+    "logSha256": "7ff4b1927be8a6004718286e54af7006fd2638bb4a3376f8b9ccea69ead8ef87",
+    "result": "Pasteboard creation and macOS XPC connection errors; converter aborted and output directory was empty. Do not repeat until the host session state or a supported headless converter changes."
+  },
+  "nextChangedStateTrigger": [
+    "On the user-provided remote AutoCAD/ObjectARX host, determine the actual release, OS and SDK; do not assume a host is configured or transfer input without an authorized route.",
+    "With an authorized source copy, export a native 2010 DXF using AcDbDatabase::dxfOut, preserve source/output hashes and host/version, and reopen it in a native application. Capture all 16 named styles and their per-property values and operations before and after conversion; bind viewport-to-style identities and, where feasible, compare rendered behavior.",
+    "Use locally authored or user-provided controls with changed style properties, both supported operation values and nondefault reserved/edge-apply values; determine whether source-only fields map, are refused, or need explicit retention. Do not extrapolate the peer default 176=0 or 177=2 without that evidence.",
+    "Once independently established, implement a bounded target mapping with per-style source wire/class provenance, source/destination graph and writer-ledger proof, target-2010 ASCII/Binary staged inspection, failure preservation and same-adapter retry. Then independently resolve the separate DICTIONARYVAR, LAYOUT and remaining whole-source gates."
+  ],
+  "limits": [
+    "No libdxfrw AC1024-target output was produced; same-version transport and one peer conversion do not establish native visual or property-operation equivalence.",
+    "The AC1021\u2192AC1024 VISUALSTYLE admission remains closed; no support claim is promoted.",
+    "No production source code or drawing fixture was changed or committed."
+  ]
+}

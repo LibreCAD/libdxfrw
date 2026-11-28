@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 typed EVALUATION_GRAPH NOD owner route",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Audit the typed ACAD_EVALUATION_GRAPH OBJECTS route for a missing focused root/owner-order assertion.",
+    "Extend the existing generated callback-capture selector with a local ASCII DXF export, strict re-import, owner-graph checks, and output-order assertions.",
+    "Reuse the current fast CTest registration and retain the existing over-budget refusal control."
+  ],
+  "sourceChange": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "change": "evaluationGraphCaptureLimitsFailClosed now exports a generated EvaluationGraph owned by the NOD, with a generated LINE expression target; it checks first-record NOD identity, unique OBJECTS handles, graph-after-NOD placement, exact re-imported owner, and unique expression resolution before continuing the existing over-budget refusal check.",
+    "reason": "The admitted typed output route had callback-bound checks but no focused assertion that its emitted graph record survives with its NOD owner edge and resolvable expression target.",
+    "productionBehaviorChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --evaluation-graph-capture-limits",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_evaluation_graph_capture_limits$' --output-on-failure",
+      "result": "PASS (1/1; 0.02 sec)"
+    },
+    "scopedDiffCheck": "PASS (git diff --check -- tests/dwg2dxf_adapter_tests.cpp)",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

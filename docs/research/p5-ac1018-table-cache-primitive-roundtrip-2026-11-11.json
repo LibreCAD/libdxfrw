@@ -1,0 +1,52 @@
+{
+  "id": "p5-ac1018-table-cache-primitive-roundtrip-2026-11-11",
+  "scope": "Isolated AC1018 *T1 cached-primitive export to ASCII DXF and fresh libdxfrw readback. This is bounded model transport evidence only; it does not authorize TABLE output or promote display/native support.",
+  "input": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "source_profile": "AC1018; selected TABLE *T1, BLOCK_RECORD 0x9d, BLOCK 0xa6; 15 ordered entities"
+  },
+  "method": [
+    "Import the physical source and select its unique *T1 BLOCK and BLOCK_RECORD.",
+    "Copy only the selected MTEXT and LINE callbacks into an isolated output block; use generated Layer 0 and Standard text style records to avoid importing Layer 0's unrelated extension-dictionary/XRECORD dependency graph.",
+    "Write ASCII DXF through dx_iface and freshly import it through a second dx_iface instance.",
+    "Compare entity count, order and kind, common visible layer/color/linetype/lineweight/visibility/transparency fields, LINE endpoints/extrusion/thickness, and MTEXT content/style/placement/height/angle/width/oblique/alignment/spacing/defined-height/background fields. Floating-point geometry is compared with a relative tolerance of 1e-10."
+  ],
+  "result": "PASS: all 15 ordered members matched the selected modeled fields; 7 MTEXT and 8 LINE.",
+  "output": {
+    "path": "/private/tmp/p5-t1-cache-isolated.dxf",
+    "sha256": "e8181b88dcfeceb9ca7d3650a0bd7a3a50dc1eba7bb00f6388b460e1d60ad1f8"
+  },
+  "probe": {
+    "source": "tools/research/p5_ac1018_table_cache_primitive_roundtrip_probe.cpp",
+    "sha256": "1d5c3bdfb05b136e191d69b3b08a3744a196faa7f4ec4f033355b62197e5ba53",
+    "scope_limit": "The source-to-DXF modeled-field comparison uses libdxfrw for both parsing and writing. A separate LibreDWG 0.14 dxf2dwg+dwgread JSON path independently agrees on the selected insertion, direction, text, layout and LINE endpoint fields. Generated replacement layer/style records mean the original TABLE entity, complete source resource graph and Layer 0 extension dictionary are not in the isolated output. Neither check establishes native display equivalence, rendering, whole-drawing conversion or output authority."
+  },
+  "verification": {
+    "command": "c++ -std=c++17 -Wall -Wextra -Werror -I src -I dwg2dxf tools/research/p5_ac1018_table_cache_primitive_roundtrip_probe.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /private/tmp/p5_ac1018_table_cache_primitive_roundtrip_probe && /private/tmp/p5_ac1018_table_cache_primitive_roundtrip_probe /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg /private/tmp/p5-t1-cache-isolated.dxf",
+    "result": "Compiled with -Wall -Wextra -Werror and completed successfully."
+  },
+  "fixtures": "No DWG or DXF fixture was added to the repository; source and generated output remain in /private/tmp.",
+  "source_resource_closure_probe": {
+    "physical_chain": [
+      "Layer 0 handle 0x10 points to extension DICTIONARY 0xc7.",
+      "DICTIONARY 0xc7 is hard-owned by Layer 0 and contains ACAD_XREC_ROUNDTRIP -> XRECORD 0xc8.",
+      "XRECORD 0xc8 is owned by DICTIONARY 0xc7 and has one code-340 handle target, MATERIAL 0x47 (trace identifies it as Global)."
+    ],
+    "attempt": "A second isolated export copied the source Layer 0, Standard text style, DICTIONARY 0xc7, XRECORD 0xc8, MATERIAL 0x47, and *T1 primitives into dx_data.",
+    "result": "Refused during extension-object graph preflight: XRECORD code 340 target 0x47 was not admitted as an emitted AC1018 MATERIAL record. The writer currently source-qualifies typed DWG MATERIAL extension output for AC1021/AC1024/AC1027, not AC1018. The destination was not independently compared before/after this refusal; the generated-layer/style primitive-only output is a separate earlier run.",
+    "authority_gap": "The supplied ODA v5.4.1 specification has no MATERIAL class-body prescription, and this one ODA-converted physical source is not independent producer/semantic evidence. Preserve strict refusal until an eligible AC1018 MATERIAL profile is evidenced; do not widen admission from the callback alone.",
+    "scope": "This explains why the successful primitive-only round-trip generated replacement Layer 0/style resources. It does not justify dropping the XRECORD, target material, or extension dictionary from a complete source conversion."
+  },
+  "independent_peer_readback": {
+    "reader": "LibreDWG 0.14",
+    "path": "emitted ASCII DXF -> dxf2dwg --as r2004 -> dwgread -O JSON",
+    "output_dxf_sha256": "e8181b88dcfeceb9ca7d3650a0bd7a3a50dc1eba7bb00f6388b460e1d60ad1f8",
+    "decoded_json_path": "/private/tmp/p5-t1-cache-libre.json",
+    "decoded_json_sha256": "03d87967eb39e9c3c35f5b99806b7deee33c404c0bd83d209238178abec389f4",
+    "comparison_tool": "tools/research/p5_compare_table_cache_libredwg_dxf_json.py",
+    "comparison_tool_sha256": "876bc49387db28d5e89c3779bee56c32158261c848bff965d25a9603e96a22a5",
+    "result": "PASS: 51 ordered fields agree across seven MTEXT and eight LINE records: MTEXT insertion points, WCS x-axis directions, text strings, attachment and flow values; LINE start/end points.",
+    "limits": "MTEXT group-40/group-41 meaning, width/height/extents, native rendering, the original TABLE entity and full source resource graph were excluded. LibreDWG emitted nonfatal header/handle warnings recorded in the P6 MTEXT peer-compatibility receipt."
+  }
+}

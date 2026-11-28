@@ -1,0 +1,59 @@
+{
+  "slice": "PAR-144 version-matrix paper-layout compound INSERT owner closure",
+  "date": "2026-10-21",
+  "status": "implemented_and_fast_validated",
+  "scope": "Generated callback-driven AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 tests; no production format logic changed and no persistent drawing fixture added.",
+  "files": [
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "tests/CMakeLists.txt"
+  ],
+  "generated_case": {
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "owner": "named paper-space BLOCK_RECORD / layout",
+    "compound_entity": "INSERT + ATTRIB + SEQEND",
+    "target_block": "generated LOCAL_LAYOUT_INSERT_TARGET",
+    "fixture_lifecycle": "generated under the test temporary directory and removed after the run"
+  },
+  "checks": [
+    "The paper-space block receives the INSERT/ATTRIB/SEQEND through normal beginBlockContent routing.",
+    "Readback preserves INSERT target name and block-record handle, attribute tag/value, and nonzero ATTRIB/SEQEND handles.",
+    "The emitted paper-space owner manifest contains the exact compound handles.",
+    "The target block's insert-reference list contains both paper-space and model-space INSERT handles.",
+    "The AC1015 legacy first/last chain and the AC1018/AC1021/AC1024/AC1027/AC1032 modern owned-object paths roundtrip the compound owner.",
+    "Other layout and version cases in the existing selector continue to pass."
+  ],
+  "validation": [
+    {
+      "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "result": "passed"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "result": "passed"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --layout-plot-dpi-read-controls",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg_layout_compound_insert_owner_roundtrip$' --output-on-failure",
+      "result": "passed; 1/1 tests, 0.11 seconds"
+    },
+    {
+      "command": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "passed"
+    }
+  ],
+  "support_claim_promoted": false,
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit": null,
+  "commit_note": "Not committed because the shared worktree has broad mixed changes and this target depends on them.",
+  "next_self_unblocking_item": "Audit planned nested compound-owner and viewport-reference combinations; add one missing callback-to-wire relationship through existing APIs if locally expressible, otherwise document the bounded gap and proceed to another local PAR-07/PAR-144 task."
+}

@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw-deeper-broader-acad-table-datalink-cross-peer-readiness-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Refresh PAR-126 implementation readiness across ACAD_TABLE DXF references, linked-cell range semantics, peer writer maturity, and existing local fail-closed behavior.",
+  "method": {
+    "kind": "Read-only primary format/API documentation, open-source implementation/test source review, and local source inspection",
+    "testsRun": false,
+    "implementationChanged": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_LinkedTableData.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Methods_Autodesk_AutoCAD_DatabaseServices_Cell.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Methods_Autodesk_AutoCAD_DatabaseServices_DataLink.html",
+      "https://github.com/DomCR/ACadSharp/issues/995",
+      "https://github.com/DomCR/ACadSharp/pull/1040",
+      "https://github.com/DomCR/ACadSharp/blob/2e85a07/src/ACadSharp.Tests/IO/TableEntityTests.cs",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+      "https://github.com/mozman/ezdxf/discussions/955",
+      "https://github.com/mozman/ezdxf/blob/master/examples/addons/table_painter_addon.py",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+    ],
+    "localInspection": [
+      "src/drw_entities.h: DRW_TableCell typed content, content-indexed ATTDEFs, and linked-cell fields",
+      "src/drw_entities.cpp: parseTableContent and writeTable admission boundary",
+      "src/drw_objects.cpp: DRW_DataLink DXF/DWG parsing and owner/custom-data fields",
+      "src/libdxfrw.cpp: processDataLink callback path",
+      "dwg2dxf/dx_iface.cpp and dwg2dxf/dx_data.h: retained callbacks and fail-closed export",
+      "Existing generated object-vector and adapter selectors for linked TABLE and DATALINK"
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "ACAD_TABLE reference graph",
+      "observed": "Autodesk's DXF reference separately identifies table style, owning block record, FIELD, block-cell block record, ATTDEF handles and values, plus the anonymous rendering block surface.",
+      "doesNotEstablish": [
+        "complete wire grammar for all multiple-content and linked-data combinations",
+        "that anonymous rendered geometry replaces the table semantic object",
+        "a producer-valid handle graph for libdxfrw output"
+      ]
+    },
+    {
+      "topic": "DATALINK semantics",
+      "observed": "Autodesk's API describes linked-cell ranges, source files and targets, and explicit update operations; cell contents may be ordered values, fields or blocks.",
+      "doesNotEstablish": [
+        "serialized DWG/DXF field order or link-range layout",
+        "that a converter should resolve or refresh any external source",
+        "a complete owner/reactor/extension-dictionary graph"
+      ]
+    },
+    {
+      "topic": "ACadSharp peer route maturity",
+      "observed": "Issue #995 remained open at review time for DXF and DWG table writing. Merged PR #1040 added a DWG TableEntity writer but explicitly disabled linked-data serialization. The read test enables unknown nongraphical-object retention and exercises a bounded anonymous-block/XRecord sample.",
+      "doesNotEstablish": [
+        "DXF TABLE writer support",
+        "linked-data serialization or refresh",
+        "universal XRecord sidecar requirements"
+      ]
+    },
+    {
+      "topic": "Other peer boundaries",
+      "observed": "ezdxf documents ACAD_TABLE as unsupported for xref import while retaining unknown tags and offers a primitive-rendering example; LibreDWG's source registry labels TABLE/TABLECONTENT DEBUGGING and DATALINK UNSTABLE.",
+      "doesNotEstablish": [
+        "cross-peer parity or runtime behavior",
+        "a normative support classification"
+      ]
+    },
+    {
+      "topic": "Local implementation boundary",
+      "observed": "The current local model retains ordered content, content-indexed ATTDEF tuples, linked metadata, and DATALINK callback values; export remains fail-closed for an unclosed linked TABLE/DATALINK graph.",
+      "doesNotEstablish": [
+        "producer/native semantic support",
+        "complete TABLE or DATALINK writer support"
+      ]
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "fixtureOrDependencyAdded": false,
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

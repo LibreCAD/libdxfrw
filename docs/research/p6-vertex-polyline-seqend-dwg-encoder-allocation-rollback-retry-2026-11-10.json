@@ -1,0 +1,62 @@
+{
+  "title": "VERTEX, POLYLINE, and SEQEND DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory transaction and legacy-link-context controls only; no producer or support claim.",
+  "implementation": {
+    "writers": [
+      "DRW_Vertex::encodeDwg",
+      "DRW_Polyline::encodeDwg",
+      "DRW_SeqEnd::encodeDwg"
+    ],
+    "behavior": [
+      "A shared private transaction helper stages body and handle streams and preserves buffer alias routing.",
+      "The helper restores the object's prior DWG class ID after refusal or allocation failure.",
+      "POLYLINE remaps the active AC1015 legacy entity-link scope to staged streams before encoding."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1024", "profile": "VERTEX_2D", "reached_allocation_failures": 14},
+    {"version": "AC1024", "profile": "VERTEX_3D", "reached_allocation_failures": 14},
+    {"version": "AC1024", "profile": "VERTEX_MESH", "reached_allocation_failures": 14},
+    {"version": "AC1024", "profile": "VERTEX_PFACE coordinate", "reached_allocation_failures": 14},
+    {"version": "AC1024", "profile": "VERTEX_PFACE_FACE", "reached_allocation_failures": 12},
+    {"version": "AC1015", "profile": "SEQEND", "reached_allocation_failures": 12},
+    {"version": "AC1021", "profile": "SEQEND", "reached_allocation_failures": 12},
+    {"version": "AC1024", "profile": "SEQEND", "reached_allocation_failures": 12},
+    {"version": "AC1018", "profile": "2D POLYLINE with two VERTEX records and SEQEND", "reached_allocation_failures": 13},
+    {"version": "AC1021", "profile": "2D POLYLINE with two VERTEX records and SEQEND", "reached_allocation_failures": 14},
+    {"version": "AC1024", "profile": "2D POLYLINE with two VERTEX records and SEQEND", "reached_allocation_failures": 13}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body and handle bytes, bit counts, handle occurrences, and prior class ID remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output.",
+    "All-stream alias controls preserve buffer bytes and recover on retry.",
+    "AC1015 POLYLINE output retains both scoped previous/next soft-pointer references after stream staging."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --vertex-polyline-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1024 VERTEX_2D": 14,
+      "AC1024 VERTEX_3D": 14,
+      "AC1024 VERTEX_MESH": 14,
+      "AC1024 VERTEX_PFACE": 14,
+      "AC1024 VERTEX_PFACE_FACE": 12,
+      "AC1015 SEQEND": 12,
+      "AC1021 SEQEND": 12,
+      "AC1024 SEQEND": 12,
+      "AC1018 POLYLINE_2D": 13,
+      "AC1021 POLYLINE_2D": 14,
+      "AC1024 POLYLINE_2D": 13
+    },
+    "entity_writer_transaction_cohort": "18/18 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls prove transaction behavior and one bounded legacy link route only.",
+    "No producer wire-layout, whole-chain graph, semantic preservation, native consumer, or support claim is established.",
+    "No DWG or DXF fixture was added."
+  ]
+}

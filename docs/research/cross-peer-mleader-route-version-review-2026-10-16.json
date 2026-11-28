@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-cross-peer-mleader-route-version-review-v1",
+  "completedAt": "2026-10-16",
+  "scope": "Compare public peer evidence for canonical MLEADER DXF spelling, DWG custom-class route, and per-version writer declarations; refine route-specific evidence gates without treating declarations as semantic proof.",
+  "sources": [
+    {
+      "name": "LibreCAD bundled-fork coverage inventory",
+      "url": "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md",
+      "observations": [
+        "Inventory lists DXF MULTILEADER as typed read/write, MLEADER as not typed, and DWG ACDBMULTILEADER plus MLEADERSTYLE custom-object routes as not typed.",
+        "Inventory marks these routes fixture-needed; rows are coverage claims, not independent semantic or native-application results."
+      ]
+    },
+    {
+      "name": "LibreCAD bundled-fork libdxfrw API",
+      "url": "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/src/libdxfrw.h",
+      "observations": [
+        "The header declares writeMultiLeader and processMultiLeader; declarations alone do not prove implementation completeness or interoperability."
+      ]
+    },
+    {
+      "name": "LibreDWG project documentation",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "observations": [
+        "Project documentation says its DWG writer cannot create R2007 DWG and describes DXF/DXFB/JSON conversion routes, illustrating why writer support must be version- and operation-scoped."
+      ]
+    },
+    {
+      "name": "ACadSharp published compatibility matrix",
+      "url": "https://github.com/DomCR/ACadSharp",
+      "observations": [
+        "Published matrix marks AC1021 DWG writing unsupported while several later AC versions are listed supported; this is a project capability declaration, not MLEADER-specific test evidence."
+      ]
+    },
+    {
+      "name": "Local libdxfrw source",
+      "url": "local:src/libdxfrw.cpp",
+      "observations": [
+        "This checkout dispatches and low-level writes canonical MULTILEADER; adapter export still refuses because no qualified dx_iface entity serializer exists."
+      ]
+    }
+  ],
+  "method": "Inspected public source/documentation and local dispatch/output code. No peer binary, CAD application, downloadable drawing, or external test corpus was run or added.",
+  "sourceRevisionStatus": "GitHub branch-head links were inspected as live source pages; exact commit SHAs were not pinned in this research pass. Pin immutable revisions before executing differential tests or treating these declarations as release-qualified evidence.",
+  "planChanges": [
+    "Separate DXF entity spelling/parse/write from DWG custom-class read and MLEADERSTYLE object closure.",
+    "Keep canonical MULTILEADER as the only supported token pending explicit alias controls.",
+    "Require peer ledger rows to pin exact revision, format, direction, token/class, target AC version, control provenance, semantic fields, and result.",
+    "Do not infer native or semantic support from inventory labels, API declarations, or library-wide writer matrices."
+  ],
+  "evidenceLimits": {
+    "peerRuntimeValidation": "NOT_RUN",
+    "nativeApplicationQualification": "NOT_RUN",
+    "producerConsumerPairing": "NOT_RUN",
+    "supportClaimsPromoted": 0,
+    "findingOrSubplanCountChanged": false,
+    "fixtureOrDependencyAdded": false,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-40 / 7G.2 Background/SUN typed-to-raw pairing preflight",
+  "mode": "local generated DXF implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Require DXF typed Background/SUN callbacks to pair with raw OBJECTS records by handle, owner, record kind, and captured source version",
+    "Keep DWG typed-only callback behavior separate from DXF raw carrier pairing",
+    "Reject malformed or incomplete pairs before writer publication",
+    "Keep rooted Background serialization, SUN owner qualification, external evidence, and support claims separate"
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Added a preflight pairing validator for typed/raw Background and SUN callbacks.",
+      "DXF pairing checks exact identity, owner, accepted record-name-to-kind mapping, and source revision; duplicate or unpaired carriers reject before writing.",
+      "DWG typed-only records do not require fabricated raw DXF carriers and remain subject to the pre-existing export refusal.",
+      "Correctly paired but unrooted Background/SUN records remain fail-closed at the existing ACAD_BACKGROUND/owner-graph guard."
+    ],
+    "generatedControls": [
+      "Generated AC1027 ASCII/Binary records prove a valid typed/raw pair reaches the later unrooted-graph refusal.",
+      "Removing the raw Background companion proves incomplete coverage is rejected by the new pairing preflight.",
+      "The test preserves destination refusal and same-adapter retry controls."
+    ],
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "dwgParseOrEncodeChanged": false,
+    "drwInterfaceVirtualContractChanged": false,
+    "dxDataFieldsAdded": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+    "buildPassed": true,
+    "focusedCommands": [
+      "build-gcc/libdxfrw_dxf_fixture_tests --background-sun-callback-retention",
+      "build-gcc/libdxfrw_dxf_fixture_tests --view-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --viewport-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-shadeplot-retention",
+      "git diff --check"
+    ],
+    "focusedResults": [
+      "Background/SUN typed and raw callback retention: PASS",
+      "VIEW Background/SUN fail-closed export: PASS",
+      "VIEWPORT Background/SUN fail-closed export: PASS",
+      "VPORT Background/SUN fail-closed export: PASS",
+      "VPORT shade-plot retention and fail-closed output: PASS; malformed negative controls print expected diagnostics",
+      "Whitespace check: PASS"
+    ],
+    "fullFixtureCTestRun": false,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "assessment": {
+    "closedScope": "DXF typed/raw Background and SUN callback pairing is checked as a pre-publication invariant; invalid/incomplete pairs have a distinct early failure boundary.",
+    "remaining": "ACAD_BACKGROUND root/dictionary ownership, Background raw replay and reference closure, non-sharing rules, SUN exact owner closure, and positive writer/readback remain open.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "repositoryState": {
+      "worktreeBroadlyDirty": true,
+      "staged": false,
+      "committed": false
+    }
+  }
+}

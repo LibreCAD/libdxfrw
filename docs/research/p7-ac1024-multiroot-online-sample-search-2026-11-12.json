@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p7-ac1024-multiroot-online-sample-search-2026-11-12",
+  "purpose": "Find a source-distinct AC1024 DWG with multiple rooted ACIS records that could discriminate candidate meanings of the 21500 SAB third header word.",
+  "question": "Did the public source search identify an accessible AC1024 multi-root ACIS sample with enough provenance to test whether the third word counts saved roots or marks the first owned-record boundary?",
+  "searches": [
+    "AC1024 DWG sample 3D model free download AutoCAD 2010 multiple solids",
+    "site:github.com .dwg AC1024 sample 3dsolid",
+    "AC1024 DWG sample corpus open source DWG 2010",
+    "AC1024 3DSOLID example DWG github sample",
+    "AutoCAD 2010 3D solid DWG sample download visualization 2010",
+    "FreeCAD test sample DWG AC1024 3DSOLID",
+    "R2010 3DSOLID sample .dwg"
+  ],
+  "sources": [
+    {
+      "title": "Autodesk AutoCAD Sample Files",
+      "url": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/6XGQklp3ZcBFqljLPjrnQ9.html",
+      "finding": "Lists the AutoCAD 2010-and-later sample set, including four visualization drawings. These exact AC1024 candidates are already represented in the local carrier census and the existing 21500 receipts; this search supplied no new witness."
+    },
+    {
+      "title": "nextgis/dwg_samples",
+      "url": "https://github.com/nextgis/dwg_samples",
+      "finding": "The repository identifies its files as trial AutoCAD 2016 output and lists versioned point and polyline examples. It is useful for basic entity checks but the published inventory did not expose an AC1024 ACIS multi-root candidate."
+    },
+    {
+      "title": "TrattoCAD sample drawings",
+      "url": "https://trattocad.com/samples",
+      "finding": "The publisher offers two 3D drawings for testing/teaching, but says only three of six drawings were saved with TrattoCAD and does not identify which ones. Existing receipts already cover source-distinct SAT-v1 AC1018 samples; no AC1024 provenance or sample was established."
+    },
+    {
+      "title": "ACadSharp repository sample producer clarification",
+      "url": "https://github.com/DomCR/ACadSharp/discussions/520",
+      "finding": "The maintainer says repository samples are used by reader tests. The surfaced sample is AC1032, not an AC1024 21500 witness; test-corpus presence alone does not establish original producer provenance."
+    }
+  ],
+  "existingEvidenceNotRepeated": [
+    "The Autodesk AC1024 visualization carrier census and its 129 3DSOLID payloads across four drawings are already recorded in docs/3D_SUPPORT_STATUS.md and the linked P7 receipts.",
+    "The public nextgis/dwg_samples AC1024 collection was previously screened for other reader issues; its README names AutoCAD 2016 M.49.0.0 as producer. No ACIS multi-root file was found by this targeted web search."
+  ],
+  "conclusion": "No new eligible AC1024 multi-root ACIS witness was located in this targeted public-source search. The available Autodesk AC1024 visualization inputs remain the already-screened, nondiscriminating one-root examples. This is a bounded search result, not proof that no such online sample exists.",
+  "implementationDecision": "No parser, writer, or field naming change. Continue preserving the third 21500 header integer raw; require an eligible version-specific schema or a hash-bound multi-root source whose root semantics are independently established before using it.",
+  "claimEffect": "No 21500 semantics, B-rep, native-consumer, platform, or DWG/DXF support claim is promoted.",
+  "limitations": [
+    "Search engines may omit unindexed CAD attachments or files in repositories without descriptive metadata.",
+    "No new DWG was downloaded or added to the repository.",
+    "The publisher statements do not authenticate exact file-producing applications unless they identify the specific file.",
+    "A multi-root source by itself would not qualify field semantics without an independent source-bound root interpretation."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "SectionViewStyle group-4 hatch scale insertion with zero angles",
+  "mode": "generated local implementation slice",
+  "scope": [
+    "Insert a missing typed group-4 hatch scale when the hatch-angle vector is empty",
+    "Place the code-40 scale before group-4 transparency/count fields and preserve ASCII raw lexemes",
+    "Verify same-version ASCII and Binary raw-carrier insertion and typed readback"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "The SectionViewStyle overlay inserts an absent hatch scale for zero-angle styles using a group-4 code-40 position before transparency/count/Boolean fields. Non-finite scale values remain refused; angle cardinality is unchanged.",
+    "generatedControl": "The existing --modeldoc-view-style-callbacks selector removes the scale and two angle values, changes the group-4 angle count to zero, confirms imported default scale 1.0 and an empty angle vector, changes scale to 3.5, and checks canonical raw order, typed readback, companion raw style, resource closure, and following POINT in ASCII and Binary DXF.",
+    "persistentFixtureAdded": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2 — passed",
+    "focusedSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks — passed for ASCII and Binary",
+    "owningCtest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure — passed, 1/1",
+    "fullSuite": false,
+    "peerOrNativeRun": false,
+    "scopedDiffCheck": "git diff --check passed for the plan, adapter, and focused adapter test",
+    "jsonValidation": "jq empty passed"
+  },
+  "planImpact": {
+    "findingAdded": false,
+    "topLevelSubplanAdded": false,
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "next": "Continue with remaining group-4 fields and the separate hatch-angle cardinality implementation; do not wait for external qualification."
+  },
+  "limitations": [
+    "The insertion test covers the zero-angle profile only; it does not qualify angle-vector growth/shrink, transparency insertion, strict independent parser acceptance, or native CAD behavior.",
+    "The worktree is broadly dirty; unrelated changes were preserved.",
+    "Git metadata is read-only, so no staging or commit was possible."
+  ]
+}

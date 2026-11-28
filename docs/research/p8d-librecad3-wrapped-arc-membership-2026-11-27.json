@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-wrapped-arc-membership-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "919a91f1",
+  "problem": "Angle membership could treat a point outside a wrapped ARC as inside when equivalent angles differed by more than one turn; endpoint choice also compared unwrapped angles, and entity snapping omitted the nearest endpoint.",
+  "implementation": "Use normalized directed angular differences while retaining explicit full-turn spans, compare wrapped endpoint angles, and use nearest-on-entity for ARC snaps.",
+  "validation": [
+    "The locally constructed elevated wrapped-arc endpoint and snap checks failed before the fix.",
+    "151 focused math, ARC, LINE, IMAGE, viewer, intersection, builder and scripting tests pass, including clockwise and counterclockwise wrap and full-turn controls. All 80 DXF round-trip tests pass."
+  ],
+  "redLogSha256": "210b9091ac8ac6a4d4e24d6cb68b0d956bdcc43bb9c764229767585299eac7e8",
+  "testLogSha256": "86d3ab178d70da957605c4212f7447f57a6645f4556e3b536ed5f43037f2e846",
+  "roundTripLogSha256": "edd511bd90d3b32a66aad1e912e7bed6f7b8c4d71e95bb4aa08cdff00104ad45",
+  "limits": [
+    "Selected planar circular-arc profiles only; tilted planes, very large or nonfinite angles and native GUI behavior remain unqualified."
+  ]
+}

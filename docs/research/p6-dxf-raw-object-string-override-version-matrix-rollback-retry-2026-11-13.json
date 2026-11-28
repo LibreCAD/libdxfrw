@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-raw-object-string-override-version-matrix-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_RAW_OBJECT_STRING_OVERRIDE_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Repeat the raw XRECORD string-only and combined string/Int32 override allocation sweeps at AC1021, AC1024, AC1027, and AC1032.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory XRECORD",
+    "profile": "One raw XRECORD with group-code overrides 1, 3, 2, 6, and 300 plus Int32 replacements for 90 and 91.",
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "test": "libdxfrw_raw_object_string_override_allocation",
+    "result": "PASS",
+    "elapsedSeconds": 1.19,
+    "testSourceSha256": "dc3d9167503ae127f75809a9c4b73e1dbbd855e90538e2da39d39c40cad2da4a",
+    "testExecutableSha256": "305df6f2a04f0dc69e589288827dffd4c1562de968a55e3ffe43f4ef6fbb5727",
+    "allocationOffsets": {
+      "each_version_string_ASCII": 6,
+      "each_version_string_Binary": 5,
+      "each_version_string_Int32_ASCII": 6,
+      "each_version_string_Int32_Binary": 5,
+      "total": 88
+    },
+    "checks": [
+      "Each measured allocation offset refuses the write and preserves the previous destination",
+      "The entire caller raw XRECORD remains unchanged after every refusal",
+      "Same-codec retry reproduces byte-identical clean output at each revision and encoding",
+      "Fresh typed raw-object readback verifies every overridden string and both Int32 values"
+    ]
+  },
+  "limitations": [
+    "Generated transport and transaction evidence only; no producer prevalence or semantic meaning is established.",
+    "Other untested revisions, raw object types, and override profiles remain open."
+  ],
+  "priorReceipt": "docs/research/p6-dxf-raw-object-string-group-code-overrides-allocation-rollback-retry-2026-11-13.json"
+}

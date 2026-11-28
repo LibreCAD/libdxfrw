@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1021-ctablestyle-ac1024-crossversion-blocker-2026-11-18",
+  "date": "2026-11-18",
+  "status": "DEFERRED_CROSS_VERSION_SOURCE_AND_OUTPUT_QUALIFICATION",
+  "supportClaimEffect": "none",
+  "baseCommit": "1aeca7e9",
+  "scope": "Investigate the first DICTIONARYVAR snapshot refusal in strict AC1021 truetype to AC1024 DXF, its CTABLESTYLE dependency, and the next gate. The production target allowlist remains unchanged.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing, author and producer unauthenticated; no drawing fixture or derivative added."
+  },
+  "specification": {
+    "oda": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "20.1 common non-entity object",
+        "20.4.74 DICTIONARYVAR"
+      ],
+      "finding": "R2007 object data is delimited by BS type and RL body end, detached Unicode string footer and the handle stream; DICTIONARYVAR has schema byte, string value and parent/reactor links."
+    },
+    "autodesk": [
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-MAC-Core/files/GUID-2D875E84-2CE1-44B3-A15A-374C42EFDFC7.htm",
+        "finding": "CTABLESTYLE names the current table style."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-ActiveX-Reference/files/GUID-095F270A-0770-4886-AB4D-1AE8034B951F.htm",
+        "finding": "The official sample resolves CTABLESTYLE through the ACAD_TABLESTYLE dictionary."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+        "finding": "A TABLESTYLE object is owned by the ACAD_TABLESTYLE dictionary."
+      }
+    ]
+  },
+  "independentSource": {
+    "tool": "GNU LibreDWG dwgread 0.14",
+    "trace": "/private/tmp/layerstate-truetype-libredwg.log",
+    "traceSha256": "95a8a73e153119cf0029ae1b0200fde9961adc3b2e04d71405727f01f8b3b45e",
+    "json": "/private/tmp/layerstate-truetype-libredwg.json",
+    "jsonSha256": "3705d4fc9eb239ad6d027ce2ac6b7a08a49b58af269b5896a7ce1d9e5506b6a5",
+    "graph": "NOD 0xC \u2192 AcDbVariableDictionary 0x5AB \u2192 CTABLESTYLE DICTIONARYVAR 0x5AC, schema 0 and string STANDARD; NOD 0xC \u2192 ACAD_TABLESTYLE 0x567 \u2192 Standard TABLESTYLE 0x568.",
+    "dictionaryVarWire": "Source object 0x5AC type 504, size 36 bytes, body end bit 250, 138 detached string bits; owner role 8 length 0 and reactor role 4 length 2 to 0x5AB. Peer source fields are evidence for this physical frame, not a complete executable source-wire or class-publication proof.",
+    "tableStyleLimit": "LibreDWG identifies the Standard style, but its debug JSON retains unknown TABLESTYLE bits and reports anomalous later rowstyle fields; it is not independent full TABLESTYLE semantics."
+  },
+  "sameVersionReadback": {
+    "scope": "Local libdxfrw fresh import of existing AC1021 strict outputs from the two-root repair receipt; not independent native or cross-version proof.",
+    "sourceDump": "/private/tmp/dictvar-style-source.log",
+    "sourceDumpSha256": "d31e40f8497ff6a42100d7df0799f0128aa16bf0d948186432d6c2d6ed84c228",
+    "ascii": "/private/tmp/layerstates-ac1021-wire-strict/truetype-strict-ascii.dxf",
+    "asciiSha256": "6f7fdfdb2eade44f0c135f1cf7cd61053e3aa79f34a6f1bc9c4e9df071a3e5d4",
+    "binary": "/private/tmp/layerstates-ac1021-wire-strict/truetype-strict-binary.dxf",
+    "binarySha256": "6f5db1de93103d91f854f4c0dc6af41a237c20c74deaed0399370dbd83c70f80",
+    "probeSource": "/private/tmp/dictvar_style_graph.cpp",
+    "probeSourceSha256": "eed0cecfa3a93cd7f8e90653f2d9caeb6d804f74b8c90a0ca7d7f5c53b463346",
+    "outputLogSha256": "e5851df393d9e31693ecf271ff74922fbddf9589a4dc5c485ddac4eb9ef801aa",
+    "finding": "In both outputs the variable value is STANDARD and the ACAD_TABLESTYLE dictionary contains a Standard TABLESTYLE remapped from source 0x568 to output 0x947."
+  },
+  "diagnosis": {
+    "baselineCommand": "/private/tmp/ac1021_layerstates_target1024 /Users/dli/doc/dwg/truetype.dwg",
+    "baselineResult": "FAIL CLOSED at DICTIONARYVAR DWG source/output snapshot before serialization; prepareDwgDictionaryVars and its unchanged-snapshot recheck explicitly restrict AC1021 source to AC1021 target.",
+    "baselineLog": "/private/tmp/ac1021-dictionaryvar-cross-current.log",
+    "baselineLogSha256": "e674688130d1e2818b18ddf62848eeb0de32a75d61b4cc434729b0bd591cd675",
+    "temporaryDiagnostic": "A /private/tmp-only copy of dx_iface.cpp relaxes only the two DICTIONARYVAR target checks to identify the next obstruction; it is not an implementation or support test and was not committed.",
+    "diagnosticSourceSha256": "d5899387762b818247d71e7f7243851ff332f053930b60f3338150bcf27d27b3",
+    "diagnosticBinarySha256": "0dcc91e754982fd9c8f4b89acbb4b6fc7d8e2b7c292246bc09e350f8b3e24ed3",
+    "diagnosticCommand": "/private/tmp/ac1021_dictvar_cross_diagnostic /Users/dli/doc/dwg/truetype.dwg",
+    "diagnosticResult": "FAIL CLOSED before serialization at VISUALSTYLE physical source/body/output snapshot; LAYOUT separately reports target outside exact source-version profile. No target-2010 output was produced.",
+    "diagnosticLog": "/private/tmp/ac1021-dictvar-next-gate.log",
+    "diagnosticLogSha256": "feb824b43a976738a9708f32fda9abf26741098276a813ee28fb8084a48d8e90"
+  },
+  "nextTriggers": [
+    "Complete independent AC1021 DICTIONARYVAR source-wire, unique same-read custom-class publication and original-import binding for the selected variable and its NOD/owner graph.",
+    "Join the CTABLESTYLE name to a unique source ACAD_TABLESTYLE key and qualified TABLESTYLE source; require actual target-version staged TABLESTYLE identity, owner, emitted name, writer ledger and finalization proof.",
+    "Resolve or independently qualify the distinct VISUALSTYLE and LAYOUT target-version gates without omitting original NOD roots. Then run original-source target-2010 ASCII/Binary strict output, independent semantic/readback checks, missing/duplicate/wrong-target controls, destination preservation and same-writer retry."
+  ],
+  "limits": [
+    "Same-version source and output observations do not establish target-2010 behavior.",
+    "The temporary target bypass is diagnostic only; the production code, admission, and support claims remain unchanged.",
+    "Do not infer TABLESTYLE target semantics or full wire preservation from its peer name and partial decode."
+  ]
+}

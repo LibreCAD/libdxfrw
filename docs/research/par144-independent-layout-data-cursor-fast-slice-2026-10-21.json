@@ -1,0 +1,60 @@
+{
+  "slice": "PAR-144 independent LAYOUT DATA cursor",
+  "date": "2026-10-21",
+  "status": "implemented_and_fast_validated",
+  "scope": "Independent bounded cursor over generated in-memory LAYOUT frames across AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032; no production DWG logic or persistent fixture changed.",
+  "files": [
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "checks": [
+    "Independent object-type/object-size and preamble walk to the versioned LAYOUT fields.",
+    "Independent decoding of the R2004+ viewport count from current generated writer bytes; AC1015 confirms the earlier no-count layout profile.",
+    "Inline pre-R2007 text and detached AC1021+ Unicode string-stream fields are checked against generated sentinel values.",
+    "AC1021+ R2007 string footer bounds and zero separator bits are independently decoded; AC1024+ DATA/handle framing is bounded by the outer handle-bit length.",
+    "Typed DATA/string cursors reject out-of-bounds reads and validate only bounded zero padding after expected fields."
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "result": "passed"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --block-record-layout-association",
+      "result": "passed; six version controls"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$' --output-on-failure",
+      "result": "passed; 1/1 tests, 0.18 seconds"
+    },
+    {
+      "command": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par144-independent-layout-data-cursor-fast-slice-2026-10-21.json",
+      "result": "passed"
+    }
+  ],
+  "evidence_ceiling": "The cursor independently walks generated writer bytes and does not use receipt handle-token offsets to locate viewportCount. It is not an independent DWG parser or external/native qualification. ODA v5.4.1 §20.4.84 labels the count RL while the current writer/source-trace rationale uses BL; this slice does not resolve that conflict.",
+  "spec_crosscheck": {
+    "source": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "section": "ODA v5.4.1 §20.4.84",
+    "text_extraction": "Viewport count RL — # of viewports in this layout",
+    "disposition": "Conflicts with current BL writer/reader and the existing three-file AC1024 same-cursor traces; keep the version-profile discrepancy explicit and do not change code from the generated-writer slice."
+  },
+  "fixtures_added": 0,
+  "dependencies_added": 0,
+  "support_claim_promoted": false,
+  "plan_totals": {
+    "findings": 144,
+    "top_level_subplans": 78
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit": null,
+  "commit_note": "Not committed because the shared worktree contains broad mixed changes.",
+  "next_self_unblocking_item": "Avoid duplicating PAR-144's already-covered six-version full-file layout/owner roundtrips and viewport-list negative controls. Continue to the next dependency-ready local PAR-07/S8 implementation item; keep independent-reader/native qualification at its composed checkpoint."
+}

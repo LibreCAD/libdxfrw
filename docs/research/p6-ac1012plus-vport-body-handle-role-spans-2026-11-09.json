@@ -1,0 +1,212 @@
+{
+  "schema": "libdxfrw-dwg-handle-role-evidence-v1",
+  "date": "2026-11-09",
+  "slice": "AC1012+ VPORT common and versioned handle roles/spans",
+  "supportClaimEffect": "none",
+  "normativeAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "\u00a720.4.64, pp. 178\u2013180",
+    "roleSummary": {
+      "control": "soft pointer",
+      "reactors": "soft pointers",
+      "xdict": "hard owner",
+      "xrefBlock": "hard pointer",
+      "namedUcs/baseUcs": "hard pointers, R2000+",
+      "background": "soft pointer, R2007+",
+      "visualStyle": "hard pointer, R2007+",
+      "sun": "hard owner, R2007+"
+    }
+  },
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "unchangedDuringAudit": true,
+    "object": {
+      "type": "VPORT",
+      "handle": "0x29",
+      "name": "*Active",
+      "fields": [
+        {
+          "bitSize": 16,
+          "code": 4,
+          "complete": true,
+          "role": "control",
+          "startBit": 1291,
+          "targetHandle": 8
+        },
+        {
+          "bitSize": 8,
+          "code": 5,
+          "complete": true,
+          "role": "xrefBlock",
+          "startBit": 1307,
+          "targetHandle": 0
+        },
+        {
+          "bitSize": 8,
+          "code": 4,
+          "complete": true,
+          "role": "background",
+          "startBit": 1315,
+          "targetHandle": 0
+        },
+        {
+          "bitSize": 16,
+          "code": 5,
+          "complete": true,
+          "role": "visualStyle",
+          "startBit": 1323,
+          "targetHandle": 47
+        },
+        {
+          "bitSize": 16,
+          "code": 3,
+          "complete": true,
+          "role": "sun",
+          "startBit": 1339,
+          "targetHandle": 109
+        },
+        {
+          "bitSize": 8,
+          "code": 5,
+          "complete": true,
+          "role": "namedUcs",
+          "startBit": 1355,
+          "targetHandle": 0
+        },
+        {
+          "bitSize": 8,
+          "code": 5,
+          "complete": true,
+          "role": "baseUcs",
+          "startBit": 1363,
+          "targetHandle": 0
+        }
+      ]
+    }
+  },
+  "independentPeer": {
+    "implementation": "LibreDWG 0.14",
+    "sourceJson": "/tmp/libredwg-cover-minjson-final.json",
+    "sourceJsonSha256": "12a88999c8a23a63aa82062bc867432afd62df558c74fd0cd446520acaa0e0e9",
+    "matchedAllSevenFields": true,
+    "matchedFields": [
+      {
+        "matchesSource": true,
+        "peerField": "ownerhandle",
+        "peerRoleCode": 4,
+        "peerTargetHandle": 8,
+        "role": "control"
+      },
+      {
+        "matchesSource": true,
+        "peerField": "xref",
+        "peerRoleCode": 5,
+        "peerTargetHandle": 0,
+        "role": "xrefBlock"
+      },
+      {
+        "matchesSource": true,
+        "peerField": "background",
+        "peerRoleCode": 4,
+        "peerTargetHandle": 0,
+        "role": "background"
+      },
+      {
+        "matchesSource": true,
+        "peerField": "visualstyle",
+        "peerRoleCode": 5,
+        "peerTargetHandle": 47,
+        "role": "visualStyle"
+      },
+      {
+        "matchesSource": true,
+        "peerField": "sun",
+        "peerRoleCode": 3,
+        "peerTargetHandle": 109,
+        "role": "sun"
+      },
+      {
+        "matchesSource": true,
+        "peerField": "named_ucs",
+        "peerRoleCode": 5,
+        "peerTargetHandle": 0,
+        "role": "namedUcs"
+      },
+      {
+        "matchesSource": true,
+        "peerField": "base_ucs",
+        "peerRoleCode": 5,
+        "peerTargetHandle": 0,
+        "role": "baseUcs"
+      }
+    ],
+    "limit": "LibreDWG exposes resolved fields and raw role codes, not physical bit spans",
+    "dwgSpecPath": "/Users/dli/dev/LibreDWG/src/dwg.spec",
+    "dwgSpecSha256": "c3c6dec791321721b0ff75854d3ac2e8832986b62fce832cc053e2ac85f2e9fd"
+  },
+  "implementation": {
+    "productionChanges": [
+      "transactionally validates the VPORT control soft pointer, reactor soft pointers, optional xdictionary hard owner, xref hard pointer, and versioned background/visual-style/SUN/named-UCS/base-UCS roles",
+      "accepts only the expected role or canonical code-0/target-0 null",
+      "records exact ordered physical spans and raw handle role codes",
+      "reset clears span metadata; standard copy/assignment retain it"
+    ],
+    "versionGates": {
+      "namedUcs/baseUcs": "AC1015+",
+      "background/visualStyle/sun": "AC1021+"
+    }
+  },
+  "generatedControls": {
+    "versions": [
+      "AC1012",
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027"
+    ],
+    "checks": [
+      "each expected role and target",
+      "each field mutated to a wrong role rejects atomically",
+      "same-object corrected retry after every wrong-role failure",
+      "canonical null role for every field",
+      "independent field-by-field wire walk and exact span comparison",
+      "following hard-pointer sentinel remains aligned",
+      "copy/assignment/reset of span metadata",
+      "final-field truncation and corrected retry"
+    ],
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "focusedCTest": "5/5 passed",
+    "tests": [
+      "libdxfrw_ac1012plus_vport_handle_roles",
+      "libdxfrw_vport_reference_remapping",
+      "libdxfrw_dwg_object_vectors",
+      "libdxfrw_dwg_vport_angle_units",
+      "libdxfrw_ac1027_active_vport_peer"
+    ],
+    "sourceAudit": {
+      "path": "/tmp/ac1027-vport-audit-final.json",
+      "sha256": "27a4799a3601724b107f8bebfc7ad560651e5a11c3ab33ca6daa8ed7528ca50c",
+      "diagnosticOutputSha256": "d75085d24205bd74e476751c85bc6b1cd68fcea77c62bdeccfc591c96276acd1",
+      "executableSha256": "5506160fe900f289e756c69e052474916e783dee1c79633afeec3102851d4fca",
+      "verifierSha256": "3a936c78d5505207cef377d3949ea3d9454302129bee28ceb99f0ecb5ad7d611",
+      "sourceBoundProfiles": 1,
+      "sourceFieldRows": 7,
+      "peerMatchedAllSeven": true
+    }
+  },
+  "limits": [
+    "one hash-bound AC1027 Cover VPORT profile plus generated version controls",
+    "LibreDWG independently confirms raw role codes and targets but not physical bit spans",
+    "target closure is not proven by typed field equality; strict output graph gate remains independent",
+    "Cover visual-style/SUN targets are a selected profile, not recursive graph closure or display semantics",
+    "no producer-wide or native application qualification",
+    "no new DWG/DXF fixture committed"
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw-deeper-broader-mesh-peer-release-and-dxf-identity-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh the ACadSharp MESH DXF writer failure status, compare its released fix notes with the Autodesk MESH wire contract, and close the local raw-record identity assertion gap without changing support claims.",
+  "method": {
+    "kind": "Primary project issue/release and Autodesk DXF documentation review, plus local source/test inspection",
+    "sourcesOpened": [
+      "https://github.com/DomCR/ACadSharp/issues/1038",
+      "https://github.com/DomCR/ACadSharp/pull/1067",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.12",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalledOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFilesReviewed": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "evidenceBoundary": "Issue and release notes identify a historical peer failure class and a shipped fix, not current runtime behavior. Autodesk's DXF reference controls the documented MESH field labels; it does not specify a DWG AcDbSubDMesh layout or complete property-override value grammar. No peer runtime result or new libdxfrw format-support result was established."
+  },
+  "evidence": [
+    {
+      "topic": "ACadSharp MESH-to-proxy report is resolved in a release",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1038",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.12",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0"
+      ],
+      "observed": [
+        "Issue #1038 is closed by #1067 and reports a DXF output represented to AutoCAD as ACAD_PROXY_ENTITY with proxy DXF name MESH and class AcDbSubDMesh.",
+        "The v3.6.12 release note describes #1067 as updating MESH version handling, DXF assertions, and edge-crease handling; the reviewed v3.8.0 release is later and listed current.",
+        "The exact current ACadSharp runtime was not executed, so the historical report is not evidence that current releases still fail."
+      ],
+      "doesNotEstablish": [
+        "a current ACadSharp defect",
+        "a libdxfrw defect",
+        "MESH subdivision evaluation, solid/B-rep semantics, or DWG MESH field layout"
+      ],
+      "planUse": "At the existing optional comparator checkpoint, require actual native DXF identity MESH plus AcDbSubDMesh, not proxy metadata or successful save alone; record version, topology, creases, owner/block path, and diagnostics."
+    },
+    {
+      "topic": "Autodesk's documented MESH DXF fields and local raw-wire gap",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+        "src/libdxfrw.cpp",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "observed": [
+        "The Autodesk reference labels the AcDbSubDMesh subclass, version, blend-crease flag, subdivision level, base-level vertices, face-list framing, edge indices, edge creases, and property-override framing/types.",
+        "dxfRW::writeMesh() emits a MESH record and AcDbSubDMesh subclass marker.",
+        "Before this slice, testMeshRawFieldTags() asserted the raw record name, version, crease/override fields, and following LINE, plus typed self-readback, but did not require the raw subclass marker."
+      ],
+      "doesNotEstablish": [
+        "complete MESH property-override value semantics",
+        "a named ODA DWG AcDbSubDMesh layout",
+        "that a self-round-trip is independent conformance evidence"
+      ],
+      "planUse": "Add a focused raw subclass identity assertion to the existing generated ASCII/binary MESH test. Keep DWG property overrides fail-closed and separate DXF cage semantics from ACIS/B-rep claims."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": [
+      "MESH DXF raw-wire fast test",
+      "PAR-07 MESH evidence",
+      "S5 DXF writer and S8 consumer qualification"
+    ],
+    "localChange": "testMeshRawFieldTags now requires exactly one 0=MESH record and one 100=AcDbSubDMesh marker for both generated ASCII and binary output.",
+    "validation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 2",
+      "buildPassed": true,
+      "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "focusedCTestPassed": true,
+      "focusedCTestResult": "1/1 passed",
+      "gitDiffCheckPassed": true
+    },
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "supportClaimsPromoted": 0
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "AC1027 DataStorage default schema and schidx table-order correction",
+  "mode": "local in-memory implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-07 / S8.3 / libdxfrw_graph_preservation_tests",
+  "specification": {
+    "source": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sections": ["24.2.2.5", "24.2.2.6", "24.3"],
+    "relevantLayout": "The first schidx table contains opaque unknown-property references. The following tag/count header precedes a second table of schema references encoded as segment index, local offset, index. The schema-only default has five schemas and four unknown-property headers, with a search segment and no data records."
+  },
+  "implementation": {
+    "productionFiles": ["src/drw_datastorage.cpp"],
+    "publicHeaderFiles": ["src/drw_datastorage.h"],
+    "testFiles": ["tests/graph_preservation_tests.cpp"],
+    "changes": [
+      "Mapped the first schidx table to schemaPropertyEntries and the second table to schemaIndexEntries, matching ODA field order and downstream readers.",
+      "Matched reserve targets, count labels, and diagnostics to the actual destination vectors.",
+      "Updated the existing generated schema-index test vector to ODA table order.",
+      "Added an in-memory ODA §24.3 default schema-only section covering segment kinds, search metadata, five schemas, four opaque property headers, and no data records.",
+      "Added bounded negative controls for UINT32_MAX counts in each schidx table; each asserts a count-cap diagnostic and replay refusal."
+    ],
+    "regressionObserved": "The first schema-only test run failed with out-of-range unknown-property references and misdecoded schema entries under the old reversed table mapping.",
+    "fixturesOrDependenciesAdded": false,
+    "newCTestRegistration": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+    "buildResult": "PASS; strict target compiled and linked.",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "testResult": "PASS; 1/1 in 0.69 seconds after the malformed-count controls were added.",
+    "diffCheck": "PASS for scoped implementation, plan, and receipt paths.",
+    "fullSuite": "NOT RUN; fast-slice cadence retained.",
+    "peerRuntime": "NOT RUN.",
+    "nativeConsumer": "NOT RUN.",
+    "physicalDrawingFixture": "NOT CREATED; all generated section bytes exist only in memory."
+  },
+  "planImpact": {
+    "finding": "Existing PAR-07 / S8.3.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelImplementationSubplans": 73
+    },
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "commitCreated": false,
+    "worktreeNote": "The worktree was already broadly dirty. No unrelated changes were staged or committed."
+  }
+}

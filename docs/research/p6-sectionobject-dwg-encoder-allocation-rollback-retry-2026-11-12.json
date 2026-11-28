@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-sectionobject-dwg-encoder-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "BOUNDED_SECTIONOBJECT_DWG_ENCODER_TRANSACTIONAL_ROLLBACK_RETRY",
+  "supportClaimEffect": "none",
+  "scope": "Make DRW_SectionObject DWG encoding transactional across body, detached strings, and handle streams, and test allocation-failure rollback with same-object retry.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "method": "DRW_SectionObject::encodeDwg",
+    "changes": [
+      "Run common header, section name, plane and height fields, indicator color, vertex/back-line vectors, handles, and oType mutation through encodeEntityDwgTransaction.",
+      "Keep existing version and value validation and field ordering unchanged."
+    ],
+    "test": "tests/dwg_hatch_encoder_allocation_tests.cpp",
+    "failureBehavior": "Injected allocation failure preserves caller stream bytes and bit positions and restores oType; retrying the same object with the same buffers reproduces clean output."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_entity_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j4",
+    "allocationSweep": "PASS: 3,330 allocation offsets across HATCH, MPOLYGON, MLEADER, ARCALIGNEDTEXT, LIGHT, and SECTIONOBJECT; 6 HATCH-family/ARCALIGNEDTEXT versions, 3 MLEADER versions and 4 LIGHT/SECTIONOBJECT versions; 145 entity/version/stream-layout profiles",
+    "focusedTests": "ctest --test-dir build-gcc -R '^(dwg_entity_encoder_allocation_rollback_retry|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "result": "PASS (2/2)",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "coverage": [
+    "The generated SECTIONOBJECT includes a detached section name, plane direction, positive and negative heights, indicator color, two section vertices, one back-line vertex, and a section-settings handle.",
+    "Writer revisions AC1021, AC1024, AC1027, and AC1032 are exercised with five body/string/handle alias layouts per revision.",
+    "Each injected allocation failure checks caller-stream rollback, oType restoration and exact same-object/same-buffer retry."
+  ],
+  "inputHashes": {
+    "src/drw_entities.cpp": "7aa3c03d4377b7f443dc9588b7d8d5df367177ba61f9a3c11d44ce34e9d51eed",
+    "tests/dwg_hatch_encoder_allocation_tests.cpp": "36cc32fef28988047862b3a182841946e6de32bb0257ce64d53c454bab31360a"
+  },
+  "fixtureFilesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "This establishes transaction/failure behavior only, not SECTIONOBJECT wire semantics, 3D section evaluation, native consumer behavior, or source-producer breadth.",
+    "No DWG or DXF drawing fixture was added."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "scope": "Two locally authored LINE drawings converted to AC1024 with ODA File Converter; inspect the resulting *ACTIVE VPORT using independent LibreDWG. This is producer evidence for the represented null references, not a general VPORT interoperability claim.",
+  "authority": "Open Design Specification for .dwg files v5.4.1 section 20.4.64 lists background as soft pointer, visual style as hard pointer, SUN as hard owner, and named/base UCS as hard pointers for R2007+ VPORT.",
+  "author": "tools/audit_ac1024_vport_null_roles.py with ezdxf 1.4.5; all DWG/DXF outputs are scratch-only",
+  "without_optional_styles": {
+    "input_dxf_sha256": "2ce30d109b2757b9032268d14abbe96959800857a906a155a326100902dcd61e",
+    "oda_ac1024_dwg_sha256": "8f740e549a7b396079dcbffffcca4e64e44d9a947b87a048464e2d7feea1e07f",
+    "vport": "0x23: xdictionary missing; owner [4,1,8,8]; xref [5,0,0,0]; background [4,0,0,0]; visualstyle [5,0,0,0]; SUN [3,0,0,0]; named/base UCS [5,0,0,0]."
+  },
+  "with_optional_styles": {
+    "input_dxf_sha256": "af551a4189c6faa6a82956f4c837b54638f4165d06391c6fd8b64727e1bd4258",
+    "oda_ac1024_dwg_sha256": "6207de742e03ec740f14ef8efa67a07e8d89d10ba880c41716c32502b1e4449e",
+    "vport": "Background and SUN have the same typed nulls; visualstyle [5,1,90,90] resolves to a real VISUALSTYLE named 2dWireframe. A non-null referenced style must be preserved, and typed null cannot replace it."
+  },
+  "pre_fix_generated": "LibreDWG on opt-in material-graph AC1024 output found background, visualstyle, and SUN all [0,0,0,0], while xref/named/base UCS were [5,0,0,0]. Generated field values also differ from ODA defaults and are not claimed equivalent.",
+  "validation": "The independent verifier checks both source profiles, reference targets and roles, following VPORT fields, and the authored LINE. A source witness does not establish correctness for other versions or arbitrary caller records."
+}

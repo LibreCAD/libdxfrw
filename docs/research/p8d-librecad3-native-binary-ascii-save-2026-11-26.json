@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "01e82b84b49a34f8bc9bcfebb4c5f782fdab6691",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "status": "SAVE_OBSERVED_CURRENT_PERSISTENCE_OLDER_VIEWER_REOPEN_RENDER_NOT_QUALIFIED",
+  "scope": "A locally generated AC1018 binary three-layout source was opened and saved as AC1018 ASCII using the native File and Save As menus.",
+  "application": "Isolated locally built test bundle; current persistence sources, but viewer and hook-manager sources from older consumer commit b1d8aaa4; scratch main/window-manager identity and title adjustments.",
+  "process_id": 60791,
+  "executable_sha256": "d31d4aafe540e1c9958d6fb564450af9dd3c6f0cd8c80ce4e6eb67499d4cfbbe",
+  "loaded_persistence_path": "/private/tmp/lc3-native-pr461-20261126-build/persistence/libpersistence.dylib",
+  "loaded_persistence_sha256": "dfbd803cf2667d556d31f8b946c1fd5286c1e5c704543d72bd04f2e0344c1522",
+  "source_sha256": "bb82db25c8191aa79f11bea5e366c2af276f432fa7d76b845b831873cce302e0",
+  "output_sha256": "6930bb1ffb659b1fe0f286e2f97d732f16f4eacba7fb7ed0e7fe0caca71b53d7",
+  "independent_readback": "ezdxf 1.4.5 and tools/research/check_lc3_binary_layout_pair.py: exposed layout and block-record fields, dictionary/Normal plot-style links, and both paper-space LINEs match; zero audit errors and fixes.",
+  "limits": [
+    "The viewer and hook-manager were older than the consumer head; this does not qualify the current full GUI candidate.",
+    "The isolated test bundle has nonproduct title and identity adjustments.",
+    "The paper-space canvas was black; no rendering or editing claim.",
+    "Automation timed out in the reopen file dialog; no native reopen claim.",
+    "One generated AC1018 source, one macOS ARM64 host; no independent producer or Windows/Linux qualification."
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-assocnetwork-acadsharp-aec-sample-screen-2026-11-10",
+  "date": "2026-11-10",
+  "status": "CANDIDATE_SCREEN_BLOCKED_BEFORE_OBJECTS",
+  "supportClaimEffect": "none",
+  "scope": "Screen a newly found AC1032 sample that declares ACDBASSOCNETWORK classes and add a reusable read-only inventory selector for eligible physical inputs.",
+  "source": {
+    "repository": "DomCR/ACadSharp",
+    "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "path": "samples/aec_objects/AecObjects.dwg",
+    "sha256": "dc196e99b8944d169493c9f3205d45f8a579c0c96e81dbc7fc2f90cd971f7a7e",
+    "headerVersion": "AC1032",
+    "sampleHistory": "The file entered the ACadSharp repository in commit cd170b23080deec3ab7b2578cdbef5e37532ba40, which moved it into samples/aec_objects and added AEC wall tests. Its DWG producer and integrity provenance are not established.",
+    "fixturePolicy": "Read in place from the adjacent ACadSharp checkout; not copied or modified."
+  },
+  "screen": {
+    "classTable": {
+      "recordName": "ACDBASSOCNETWORK",
+      "classNumber": 973,
+      "declaredInstanceCount": 4,
+      "classDwgVersion": 27,
+      "classMaintenanceVersion": 45
+    },
+    "reader": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/aec_objects/AecObjects.dwg -y -d -v2018 /tmp/acadsharp-AecObjects.dxf",
+      "readerSha256": "936c8bf368b1e6ab727f67b3a32de1961b20efc7712f0589a633b3cec8c94737",
+      "traceSha256": "9d57896699617292c48819875594d4e6a673eb2843a5e24e19f896923776ffdf",
+      "result": "FAIL before OBJECTS callbacks: format 18 error 7 (BAD_READ_HANDLES); no typed network records were published.",
+      "handleMap": {
+        "declaredSectionBytes": 5557,
+        "consumedBytesBeforeRefusal": 5295,
+        "unconsumedBytes": 262,
+        "sourceFramesPublished": 0
+      },
+      "otherIntegrityObservation": "The AC1024+ header envelope reports expected 901 bytes and observed 905 bytes at logical offset 16. This candidate therefore has multiple integrity discrepancies before associative-object decoding."
+    },
+    "inventorySelectorOnCandidate": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocnetwork-source-inventory /Users/dli/dev/ACadSharp/samples/aec_objects/AecObjects.dwg",
+      "result": "FAIL as expected: import stops at BAD_READ_HANDLES before object callbacks, so no ACDBASSOCNETWORK rows are available to the inventory selector."
+    },
+    "existingInventorySelectorSanity": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocnetwork-source-inventory /Users/dli/dev/libredwg/test/test-data/example_2018.dwg",
+      "testExecutableSha256": "e362522f17531c3f8b182237cefb1dd4b6b0e9552f5e836c06c9705294ac79db",
+      "result": "PASS; reports the two already-qualified candidate records from the LibreDWG sample, including bounded field spans, separate action indexes and handle roles."
+    }
+  },
+  "implementation": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "change": "Add --assocnetwork-source-inventory to print all imported ACDBASSOCNETWORK handles, owner/action candidates, prefix spans and reader status for a caller-supplied DWG. It makes no output or support decision and adds no fixture."
+  },
+  "decision": "This is not an associative-network field witness: the class count is only CLASSES metadata, the reader never reached OBJECTS, the declared handle-map tail is unexplained, and producer provenance is unknown. Do not weaken handle-map or HEADER integrity checks, do not infer network fields from the class count, and retain the AC1032 writer refusal. Resume only with a structurally eligible AC1032 source whose OBJECTS frames can be decoded, plus independent source/native evidence for the exact class-version-2 profile.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "PASS",
+    "noFixtureAdded": true
+  }
+}

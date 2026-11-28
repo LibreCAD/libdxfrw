@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bv generated NOD/GROUP common-reference traversal",
+  "date": "2026-10-24",
+  "parentCommit": "4ad6452f8b4cfddcf6747cf0ebb703f9f72bcf29",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "GENERATED_ROOT_COMMON_TRAVERSAL_FIXED_FINAL_OUTPUT_AND_SEMANTIC_PROOF_OPEN",
+  "baseline": {
+    "result": "GAP_REPRODUCED",
+    "observation": "Public authored export succeeds, but its first exercised NOD-common graph loses required metadata/ownership on actual DXF readback",
+    "testExitCode": 8,
+    "wallSeconds": 0.40,
+    "log": "/tmp/rpp5bv-baseline-tests.log",
+    "allMatrixCellsExercisedBeforeBaselineAbort": false
+  },
+  "implementation": {
+    "scope": "Adapter generated-root common-reference DFS handoff; existing codec generated dictionary emission retained",
+    "inventory": "Bound NOD lookup edges and name bytes; require complete unique generated NOD/ACAD_GROUP source ownership and consistent retained HEADER identity",
+    "graph": "Root supported extension dictionaries and reactors; recognize generated roots as reactor targets, extension parents and translated XRECORD back-reference destinations",
+    "refusal": "Missing, wrong-kind, nonreciprocal, duplicate and unresolved targets refuse instead of silently disappearing",
+    "resources": "Reuse existing source-record, edge, node, staged-handle and XRECORD payload limits and per-attempt rollback",
+    "compatibility": "Both explicit resolved-owner and default-compatible export routes preserve the tested graph",
+    "opaqueApplicationData": "Custom ROOT_META text and handle lexemes remain opaque lexical data; no unknown application-group330 translation or semantic certificate claimed",
+    "dwgParserGrammarOrDispatchChanged": false,
+    "publicApiCallbackOrAbiLayoutChanged": false,
+    "documentMergePolicyChanged": false,
+    "issueMasksWaivedOrSupportClaimsPromoted": false
+  },
+  "controls": {
+    "newCTest": "dwg2dxf_generated_root_common_closure",
+    "unitBinarySelector": "--generated-root-common-closure",
+    "source": "Scratch-authored public typed models followed by actual DXF imports and reexports; no independent native root-source fixture",
+    "targetRevisions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "binary"],
+    "rootModes": ["NOD common graph only", "ACAD_GROUP dictionary common graph only", "Both generated roots"],
+    "authoredAndActualImportReexportCells": 36,
+    "exportsPerPrimaryCell": 2,
+    "defaultCompatibleExportReadbackCells": 6,
+    "readbackChecks": ["Actual root/owner identities", "Cloning and hard-owner flags", "GROUP dictionary key and soft-owner edge", "GROUP entity membership", "EED", "Supported common extension/reactor links", "Reciprocal extension ownership", "XRECORD translated root back-references", "Opaque custom application-data lexical preservation"],
+    "invalidGraphAtomicRefusalRestorationRetries": 24,
+    "mutationsPerEncoding": 12,
+    "destinationSentinelPreserved": true,
+    "sameFacadeCorrectedSourceReadbackRetries": true,
+    "oneUnitUnderBudgetRefusalExactLimitRetries": 5,
+    "resourceDimensions": ["nodes", "edges", "staged handles", "source records", "XRECORD payload slots"],
+    "nativeGeneratedRootSourceQualification": "NOT_RUN",
+    "newIndependentRootOutputFieldFaultAndLateSourceControls": "NEXT_SLICE"
+  },
+  "specification": {
+    "title": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "relevantPages": [103, 104, 152, 153],
+    "use": "HEADER reachability, DICTIONARY common references and ownership; not a new DWG grammar or dispatch implementation"
+  },
+  "validation": {
+    "build": {
+      "result": "PASS",
+      "strictWarnings": true,
+      "warningSuppression": false,
+      "affectedSeparatelyCompiledAdaptersRebuilt": true,
+      "logs": ["/tmp/rpp5bv-commit-build.log", "/tmp/rpp5bv-commit-consumer-build.log"]
+    },
+    "focused": {
+      "result": "PASS", "passed": 11, "total": 11, "wallSeconds": 10.40, "parallelism": 3,
+      "tests": ["dwg2dxf_generated_root_common_closure", "dwg2dxf_rooted_image_dictionary_closure", "dwg2dxf_rooted_custom_imagedef", "dwg2dxf_selected_raster_reactor_metadata", "libdxfrw_group_adapter_roundtrip", "dwg2dxf_xrecord_group_reference_admission", "libdxfrw_extension_graph_limits", "libdxfrw_generated_dictionary_source_metadata", "libdxfrw_generated_dictionary_metadata_allocation", "libdxfrw_graph_preservation", "libdxfrw_public_header_hygiene"],
+      "log": "/tmp/rpp5bv-commit-fast-final.log"
+    },
+    "owning": {
+      "result": "PASS", "passed": 5, "total": 5, "wallSeconds": 9.27, "parallelism": 3,
+      "tests": ["libdxfrw_wave1", "libdxfrw_dwg_local_roundtrip", "libdxfrw_dwg_object_vectors", "libdxfrw_hardening", "libdxfrw_dxf_fixtures"],
+      "log": "/tmp/rpp5bv-commit-owning-final.log"
+    },
+    "readerConsumers": {
+      "result": "PASS", "passed": 4, "total": 4, "wallSeconds": 2.07, "parallelism": 3,
+      "tests": ["libdxfrw_dwg_reader_matrix", "libdxfrw_dwg_fixtures", "libdxfrw_named_resource_import_evidence", "libdxfrw_3d_consumer_probe"],
+      "log": "/tmp/rpp5bv-commit-readers-final.log"
+    },
+    "asan": {
+      "result": "PASS", "passed": 6, "total": 6, "wallSeconds": 6.20, "parallelism": 3,
+      "tests": ["dwg2dxf_generated_root_common_closure", "dwg2dxf_rooted_image_dictionary_closure", "dwg2dxf_selected_raster_reactor_metadata", "libdxfrw_group_adapter_roundtrip", "dwg2dxf_xrecord_group_reference_admission", "libdxfrw_extension_graph_limits"],
+      "options": "halt_on_error=1:detect_leaks=0",
+      "buildLog": "/tmp/rpp5bv-commit-asan-build.log",
+      "log": "/tmp/rpp5bv-commit-asan-tests.log"
+    },
+    "normalLibreCAD3CompileGate": "PASS",
+    "asanLibreCAD3CompileGate": "PASS",
+    "owningAndReaderCohortsSequential": true,
+    "fullSuite": "NOT_RUN",
+    "externalPlatformSemanticOrThroughputQualificationClaim": false
+  },
+  "remaining": [
+    "Attempt-only immutable generated NOD/GROUP writer views if needed for final proof",
+    "Independent actual generated DICTIONARY field/role checks, validated reserved-appData normalization and bounded modeled comparison",
+    "Final frozen-source comparison, emitted identity/owner/reference cardinality and direct root late-source/output-fault refusal retries",
+    "Native generated-root source qualification, empty roots and broader named-dictionary/document closure",
+    "Independent name/body/path/EED/source profiles, full IMAGE/common state, sparse native class cardinality and APPID/LAYER/XRECORD dependencies",
+    "Explicit verified ownership/remapping contract before multi-document composition"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL", "J260": "DEFERRED_EXTERNAL", "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL", "J293": "DEFERRED_EXTERNAL", "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0,
+    "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false,
+    "unrelatedUntrackedFilesPreserved": true,
+    "remoteMutations": false
+  }
+}

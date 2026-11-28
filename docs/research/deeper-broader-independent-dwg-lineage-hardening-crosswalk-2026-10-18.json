@@ -1,0 +1,150 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Independent DWG lineage, route limits, and hardening crosswalk",
+  "mode": "Deeper/broader primary-source research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "baselineQualification": "The shared worktree was already broadly dirty. Local code observations describe the current worktree, not a clean checkout at baselineCommit.",
+  "scope": [
+    "Reconcile independent open-source DWG/DXF implementation lineages and operation/version claims.",
+    "Cross-check recent LibreDWG security fixes against local R2004 decompression, page-map, and object-lifetime owners.",
+    "Refine optional peer use and next-slice readiness without expanding routine validation, fixtures, or dependencies."
+  ],
+  "method": {
+    "kind": "Primary-source web review plus local read-only source/test crosswalk",
+    "worktreeDirtyAtStart": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localTestsRun": false,
+    "localFilesReviewed": [
+      "src/intern/dwgutil.cpp",
+      "src/intern/dwgreader18.cpp",
+      "tests/wave1_tests.cpp"
+    ],
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Peer README, NEWS, and main-branch pages are mutable unless pinned. The source crosswalk is static inspection of a pre-existing dirty worktree and is not a sanitizer, fuzz, peer-runtime, or clean-commit reproduction. Peer security reports are not normative DWG evidence. The ODA Open Design Specification v5.4.1 remains authoritative for DWG byte layouts."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "revision": "0.14.1 NEWS entry dated 2026-07-25; page reviewed 2026-10-18; no artifact run",
+      "observed": "Release notes document R2004 decompression allocation-capacity/logical-size drift, pre-R2004 VIEWPORT pointer invalidation across object-table growth, and an R2004 header read using an unvalidated section-page-map offset. They are peer implementation failures, not reproduced libdxfrw defects or semantic results."
+    },
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "revision": "Mutable README and coverage report reviewed 2026-10-18; exact commit and peer corpus not pinned or run",
+      "observed": "The Apache-2.0 project identifies as pre-alpha, distinguishes container/object enumeration from alpha per-entity decoding, and reports a 19-file self-measured corpus with per-version decoded, skipped, and errored counts. It is an independent spec-led reader family but not a qualified DWG writer or broad entity oracle."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md"
+      ],
+      "revision": "Mutable README and reader documentation reviewed 2026-10-18; no release binary run",
+      "observed": "The current compatibility table is operation/version-specific and lists AC1021 DWG reading but not DWG writing, despite broad read/write project description. Reader notifications provide diagnostics but do not alone establish a complete object-loss ledger or semantic acceptance."
+    },
+    {
+      "project": "uncad",
+      "urls": [
+        "https://github.com/iyulab/uncad"
+      ],
+      "revision": "Current README reviewed 2026-10-18; no build or runtime",
+      "observed": "The project declares DWG reading through LibreDWG FFI, DXF reading through the separate undxf crate, and no DWG/DXF writer. Its DWG route is therefore correlated with LibreDWG; undxf is a separate DXF-only parser route."
+    },
+    {
+      "project": "GDAL / libopencad",
+      "urls": [
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/cad/gdalcaddataset.cpp",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Current source/documentation pages reviewed 2026-10-18; no build or runtime",
+      "observed": "The DWG CAD driver identifies itself as based on libopencad and exposes an OGR feature projection. The DXF driver is a separate route with its own parsing, projection, and writer limits; a GDAL result must be labeled by driver and operation."
+    }
+  ],
+  "localCrosswalk": [
+    {
+      "peerSignal": "LibreDWG R2004 decompression capacity/logical-size drift",
+      "localOwners": [
+        "dwgCompressor::decompress18",
+        "dwgReader18::parseDataPage"
+      ],
+      "result": "Static current-worktree inspection found bounded output windows and a fresh, section-local decoded allocation published only after all pages succeed. The specific live-buffer shrink sequence is absent by construction; no peer PoC was run and no local defect is established."
+    },
+    {
+      "peerSignal": "LibreDWG invalid page-map offset and object pointer invalidation",
+      "localOwners": [
+        "dwgReader18::readFileHeader",
+        "dwgReader18::parseSectionPageMap",
+        "Existing PAR-14/PAR-26 checked page and stable-identity owners"
+      ],
+      "result": "Current source uses checked offset addition, bounded page parsing and referenced-page range checks. This is a static guard-location observation, not full malformed-input qualification; test only an uncovered invariant if its owning path is changed."
+    },
+    {
+      "peerRoutes": [
+        "dwg-rs",
+        "ACadSharp",
+        "LibreDWG",
+        "uncad",
+        "GDAL/libopencad"
+      ],
+      "localOwners": [
+        "Existing composed route-evidence matrix",
+        "PAR-20/7G.3 LAYOUT output contract",
+        "Existing fast selector and scheduled composed test checkpoints"
+      ],
+      "result": "Select one exact peer route per named question at the composed checkpoint; deduplicate wrappers by parser lineage and separate typed read, raw retention, projection, writer output, native acceptance, and B-rep semantics. The immediate local queue remains the LAYOUT viewport-list output contract; no external executable is needed to continue it."
+    }
+  ],
+  "assessment": {
+    "confirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrCtestRegistrations": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies peer independence and evidence ceilings, maps fresh peer hardening examples to existing local owners, and preserves the next PAR-20/7G.3 output slice and fast-validation cadence. No local defect, support status, or implementation order changed."
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonSyntaxChecked": true,
+    "markdownDiffCheck": true,
+    "localTestsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-ellipse-2026-11-27",
+  "supportClaimEffect": "bounded selected consumer profile only",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "pullRequest": 3289,
+    "commit": "95f27b67a56042495497993adf4c4a4512d26f6f",
+    "parent": "f6753acac9d302c5367a59bd3e73982ae5dd818b"
+  },
+  "authority": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-107CB04F-AD4D-4D2F-8EC9-AC90888063AB.htm",
+  "profile": "Selected ASCII AC1021 model-space sparse MATERIAL graphs with finite planar ELLIPSE geometry, a nonzero WCS major axis, ratio in (0,1], and supported full or partial parameter intervals. Physical values and delivered geometry are compared and delivery identities are included in the MATERIAL graph. Unsupported fields, tilted or elevated geometry, reversed live ellipses, and nearly full edited intervals that would be normalized by the importer remain refused.",
+  "checks": {
+    "beforeFix": "The ordinary-save ellipse reproducer failed before implementation. A separate regression for a nearly full edited interval initially exposed successful export and destination replacement before the guard was added.",
+    "focused": "94 assertions in 2 cases; full, partial and wrapped intervals, rotated major axis, move/reopen/resave, suppressed callback, altered typed and physical source, invalid profiles and live edits, destination preservation and corrected same-filter retry.",
+    "material": "3315 assertions in 19 cases with system codec.",
+    "bundled": "Affected filter and test translation units compile with the bundled codec; no bundled runtime test is claimed.",
+    "independentPeer": "ezdxf 1.4.5 read three locally generated outputs, confirmed center, rotated major axis, ratio, parameter interval and four MATERIAL references, compared four points against independent analytic ellipse geometry, and reported zero audit errors and fixes.",
+    "scratchOnly": "Generated DXF outputs remain in scratch storage and are not committed."
+  },
+  "logSha256": {
+    "initialRed": "9ba430e68e471890148bcf95d81ea10cb10ee2d390fd33acf054c6e71fb11cec",
+    "nearFullRed": "5ca8c00215bbf9b80f1412c0bdbd2716063afee15099769789c307156db11c4d",
+    "focused": "03840a9905f5207f6b41df4c9331e9285e18bbd792705792c6b3f3a98ed8db5e",
+    "material": "e762b0029f3ff33d91641f8f0d6c97ae677f5419c0a4452824774027ac6142ad",
+    "bundled": "cdbd97d2b95f6bc4a698068af58b47ba2d1df536784162e5f84ea4f777eee8e0",
+    "peer": "cb8c9fe9957198d466e50e7b984b0cd19c3c840d75f6e64936d676555a5845d5"
+  },
+  "limits": [
+    "The peer check covers these generated examples, not arbitrary ellipse geometry, external producer behavior, native GUI behavior, other versions or platforms.",
+    "Nearly full partial intervals, reversed live ellipses, nondefault normals, elevated planes and unsupported metadata remain guarded; this is not a general ellipse support claim."
+  ]
+}

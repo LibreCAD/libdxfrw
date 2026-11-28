@@ -1,0 +1,89 @@
+{
+  "title": "Deeper and broader research: new direct DWG and binary-DXF peer routes",
+  "date": "2026-10-17",
+  "classification": "research-only",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "new direct DWG reader/render candidate and documentation consistency",
+    "binary-DXF-only parser candidate and actual route limits",
+    "DWG wrapper parser lineage and independent-evidence classification",
+    "public-source visibility versus reuse license and open-source status",
+    "optional composed-peer qualification order and fast validation boundary"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/hhcme/ft_model",
+      "kind": "candidate DWG/DXF reader and 2D renderer repository README/metadata",
+      "finding": "Claims self-developed MIT C++20 parsing for AC1015/1018/1021/1024/1027/1032, a limited entity set, JSON scene export, and regression_smoke; repository page lists main/100 commits and no release. Claims remain unverified because no build or parser run was performed."
+    },
+    {
+      "url": "https://github.com/hhcme/ft_model/blob/main/docs/dwg_object_type_reference.md",
+      "kind": "candidate DWG object-dispatch documentation",
+      "finding": "Documents dynamic class dispatch for types 500 and above."
+    },
+    {
+      "url": "https://github.com/hhcme/ft_model/blob/main/docs/dwg_version_deltas.md",
+      "kind": "candidate DWG version-delta documentation",
+      "finding": "States R2000 has only fixed object types, conflicting with the candidate's own class-dispatch document and ODA's R13-R15 Classes section. Treat as documentation inconsistency, not a demonstrated source-code defect."
+    },
+    {
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "kind": "authoritative ODA DWG specification, section 10.1 R13-R15",
+      "finding": "The R13-R15 Classes section describes drawing-defined classes and their records, confirming that the candidate's R2000 fixed-only statement must not be used as a format fact."
+    },
+    {
+      "url": "https://github.com/xorgy/dxfscan",
+      "kind": "binary-DXF parser README/metadata",
+      "finding": "Describes a zero-copy single-pass no_std binary-DXF scanner for AC1015+ with a limited typed-entity set and unknown-entity retention; repository page lists one commit and no release. ASCII conversion is delegated to another tool."
+    },
+    {
+      "url": "https://github.com/iyulab/uncad",
+      "kind": "DWG/DXF application wrapper README and dependency route",
+      "finding": "Explicitly uses LibreDWG FFI for DWG and the undxf crate for DXF before mapping into a shared application model; therefore its DWG parse is not an independent parser vote."
+    },
+    {
+      "url": "https://github.com/seaflower205/Sea-DXF-Core",
+      "kind": "public repository README and license notice",
+      "finding": "The project states it is pre-1.0 and its visible source is proprietary with no use/copy/modify/redistribute permission; it is DXF-only. Exclude it from open-source peer qualification and reuse."
+    }
+  ],
+  "local_audit": {
+    "files_reviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "tests/hardening_tests.cpp",
+      "tests/gbk_codepage_tests.cpp",
+      "src/drw_datastorage.cpp"
+    ],
+    "existing_controls_confirmed": [
+      "The plan already treats peer version badges, entity survival, parser lineage, and consumer projection as separate evidence dimensions.",
+      "The local repeated-DXF-record 20,000-item control and Turkish CP1254 route are already represented; the new candidate screen does not duplicate those local tasks.",
+      "The existing composed peer checkpoint can host optional candidate qualification without per-slice external runs."
+    ],
+    "defect_reproduced": false,
+    "peer_built_or_run": false,
+    "fixture_or_dependency_added": false
+  },
+  "plan_effect": {
+    "existing_work_refined": [
+      "S8",
+      "PAR-07",
+      "composed peer provenance and parser-lineage gate",
+      "support evidence separation for 2D projection versus document/3D semantics"
+    ],
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "findings_total": 130,
+    "top_level_subplans_total": 73,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "support_claim_promotions": 0,
+    "validation_cadence_changed": false,
+    "implementation_sequence_changed": false
+  }
+}

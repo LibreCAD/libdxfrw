@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "AC1009 paper-space projection fast slice",
+  "mode": "Generated implementation and focused local validation",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The worktree was already extensively modified and uncommitted. This slice changed only the AC1009 R11 reader projector, its generated matrix test and CLI refusal harness/CTest registration, the parity plan, and this receipt. The generated DWG/DXF files were scratch-only and removed by the tests; no fixture was added.",
+    "changedFiles": [
+      "src/intern/dwgreaderR11.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/run_r11_paper_space_cli_test.cmake.in",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/ac1009-paper-space-projection-fast-slice-2026-10-21.json"
+    ]
+  },
+  "implementation": {
+    "route": "AC1009 dwgRW::readBuffer -> dwgReaderR11::applyAttrs -> dx_iface typed capture -> AC1009/R12 fileExport -> libdxfrw DXF reopen",
+    "change": "Project FLAG_HAS_PSPACE (0x40) into DRW_Entity::space for typed AC1009 entities in the common R11 attribute path. The mapping is explicitly gated to AC1009; AC1006/R10 remains unchanged. Existing extension-byte consumption remains unchanged.",
+    "generatedControl": "Three in-memory POINT records: one paper-space point with a zero extra_r11 byte, then two model-space points including a distinctive alignment sentinel.",
+    "assertions": [
+      "flagged source point is PaperSpace with expected XYZ",
+      "unflagged points remain ModelSpace",
+      "the record after the extension-byte record is decoded at the expected coordinates",
+      "the 2D adapter retains three source points and the paper-space classification",
+      "AC1009 DXF output contains three POINT records and exactly one group-67 value of 1",
+      "libdxfrw DXF reopen retains exact three-point model/paper membership"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j4",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --r11-paper-space-projection",
+      "result": "PASS"
+    },
+    "ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_r11_paper_space_(projection|cli_refusal)$|^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "result": "PASS; 3/3 tests"
+    },
+    "cliFailClosedControl": {
+      "command": "dwg2dxf generated-ac1009.dwg -y -d -R12 generated-ac1009-r12.dxf",
+      "result": "Expected refusal at strict-complete preflight because semanticCoverage is unknown; no output was published. The minimal synthetic control does not qualify positive CLI conversion."
+    },
+    "diffCheck": {
+      "command": "git diff --check -- src/intern/dwgreaderR11.cpp tests/dwg_reader_matrix_tests.cpp tests/run_r11_paper_space_cli_test.cmake.in CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "notRun": [
+      "full suite",
+      "positive dwg2dxf CLI conversion using a complete AC1009 source",
+      "independent DXF parser",
+      "native CAD qualification",
+      "producer-sample qualification"
+    ]
+  },
+  "evidenceLimits": {
+    "oda": "The reviewed ODA DWG Specification v5.4.1 copy contains no applicable AC1009/R11 record-level contract for FLAG_HAS_PSPACE.",
+    "peer": "LibreDWG source and issue/PR reports remain corroborative, not normative and not independently reproduced here.",
+    "claim": "Confirms the generated local reader-to-adapter-to-R12-writer route only. Does not promote format-wide AC1009 support or native CAD compatibility.",
+    "externalDeferred": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "commit": {
+    "committed": false,
+    "reason": "The worktree has extensive pre-existing uncommitted changes and Git metadata is read-only in this environment; this slice was not staged or committed."
+  }
+}

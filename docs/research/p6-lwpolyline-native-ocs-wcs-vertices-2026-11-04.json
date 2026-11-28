@@ -1,0 +1,52 @@
+{
+  "title": "Opt-in 3D WCS LWPOLYLINE vertices from native OCS",
+  "authority": [
+    "Autodesk DXF LWPOLYLINE (https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-748FC305-F3F2-4F74-825A-61F04D757A50.htm): points in OCS, group 38 elevation, group 210 extrusion.",
+    "Autodesk arbitrary-axis algorithm (https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm): the strict 1/64 test applies to both X and Y components."
+  ],
+  "problem": "The historical ext=true LWPOLYLINE callback transforms each point to WCS and then retains only its X and Y, leaving one unchanged elevation. For a tilted frame the WCS Z varies by vertex, so 3D positions cannot be recovered from this projected callback. LibreCAD expects that legacy 2D projection and skips non-axial frames; altering callback behavior would change its contract.",
+  "change": "New optional DRW_DxfGeometry::lwPolylineVerticesToWcs extracts WCS vertex positions from an untouched native OCS entity, such as one received by DXF read(ext=false). It preserves the source, replaces the output only on success, and leaves the existing ext=true callbacks unchanged. Zero/nonfinite normals, nonfinite elevation/XY, null vertices, wrong tag, nonfinite results and normals/bases with lost or subnormal components fail without modifying output.",
+  "limits": "Callers must establish the untouched native OCS precondition: the entity cannot identify a prior legacy applyExtrusion call. The vector represents vertex positions only; it does not transform or tessellate bulges, widths, thickness, closure or curves. Conversion uses ordinary binary64 arithmetic and conservatively rejects extreme normals with lost/subnormal direction or basis components. This does not fix prior ext=true 2D projections, establish native CAD rendering or qualify arbitrary full-source reads.",
+  "physical_source": "The ODA AC1027 DXF recorded in docs/research/p6-ac1021-lwpolyline-footer-2026-11-04.json has SHA fd2fdcf79e3d1e64aa3915d5ac3836d56bac0720a78950dbae7be7b7231eac32. ezdxf 1.4.5 independently observes native XY [(0,0),(5,0),(5,3)], elevation 2 and normal (0,1,0), with WCS points [(0,2,0),(-5,2,0),(-5,2,3)]. The in-tree reader emits a matching callback with ext=false and the helper returns the same points, but the overall read subsequently returns false. This is selected-callback evidence only, not a successful full-file read.",
+  "tests": "ctest --test-dir /private/tmp/lwpoly-ocs-review/build -R ^libdxfrw_dxf_lwpoly_wcs_vertices$ --output-on-failure: 1/1. Controls cover native DXF read, unchanged legacy ext=true projected XY, +Z/-Z/+Y, nonunit and tiny axial normal, (1,1,1), independent 1/64 X and Y boundary values, bulge/width source preservation, nonfinite/zero normals, null vertices, invalid XY/tag/elevation and overflow, underflowed or subnormal normalized direction and axis products, unchanged output on refusal and corrected retry.",
+  "audit_command": "/private/tmp/p7-ac1027-semantic/cqenv/bin/python -B tools/audit_lwpolyline_wcs_physical.py --dxf /private/tmp/ac1021-lwpoly-rich/source-out/tilt.dxf --sha256 fd2fdcf79e3d1e64aa3915d5ac3836d56bac0720a78950dbae7be7b7231eac32 --probe build-gcc/tests/libdxfrw_dxf_lwpoly_wcs_vertices_tests",
+  "artifacts": [
+    {
+      "path": "/private/tmp/lwpoly-ocs-review/wcs-helper.patch",
+      "sha256": "adcfe2d292dce7f43e796b3eb029e5365377d1e1e6ac7112e48386e8cddecbae"
+    },
+    {
+      "path": "/private/tmp/lwpoly-ocs-review/work/src/drw_entities.cpp",
+      "sha256": "7373408ae6351d32c5e8fc239c2990309c3559187729b24ef59d18c01588c430"
+    },
+    {
+      "path": "/private/tmp/lwpoly-ocs-review/work/src/drw_dxf_extrusion.h",
+      "sha256": "d0148b078001d8efb5550e80ff1dd59a6877af96eea957dd6d0db86452185878"
+    },
+    {
+      "path": "/private/tmp/lwpoly-ocs-review/work/tests/dxf_lwpoly_wcs_vertices_tests.cpp",
+      "sha256": "76a49f702c119234729b72f41fdc8ccdce8cfca1911262e04449888a1c663711"
+    },
+    {
+      "path": "tools/audit_lwpolyline_wcs_physical.py",
+      "sha256": "19c75ffaa38bef722586a6263e9db8a9ed6013d2d33446f8b39f0fb7f8459c50"
+    },
+    {
+      "path": "/private/tmp/lwpoly-ocs-review/build/tests/libdxfrw_dxf_lwpoly_wcs_vertices_tests",
+      "sha256": "533370f7f3707e86d00c11c157a40a3ec34d9e0f1dc0ed8ff5ce36497102443e"
+    },
+    {
+      "path": "/private/tmp/ac1021-lwpoly-rich/source-out/tilt.dxf",
+      "sha256": "fd2fdcf79e3d1e64aa3915d5ac3836d56bac0720a78950dbae7be7b7231eac32"
+    },
+    {
+      "path": "/private/tmp/p7-ac1027-semantic/cqenv/bin/python",
+      "sha256": "ab825fde913c394f6fb8dc57da39108ad98e1827a5404119993de3d3bc6d8fb7"
+    },
+    {
+      "path": "/opt/homebrew/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    }
+  ],
+  "integrated_validation": "cmake --build build-gcc --target libdxfrw_dxf_lwpoly_wcs_vertices_tests -j 4; ctest --test-dir build-gcc -R ^libdxfrw_dxf_lwpoly_wcs_vertices$ --output-on-failure: 1/1 passed."
+}

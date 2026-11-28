@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-spec-pair-refresh-2026-11-23",
+  "status": "SPEC_DIRECTED_PAIR_REGENERATED_AND_LOCAL_CHECKS_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "sections": [
+      "9 HEADER VARIABLES: DIMSTYLE is an H hard pointer",
+      "20.4.44 DICTIONARY",
+      "20.4.73 MLINESTYLE"
+    ],
+    "layoutApplied": "The AC1012 DICTIONARY body uses counted entry names and soft-owner item handles; the R2000+ cloning and hard-owner fields are absent. Both drawings use NOD -> ACAD_MLINESTYLE -> SAME_KEY, with the target MLINESTYLE owned by ACAD_MLINESTYLE and the current DIMSTYLE header reference bound to Standard."
+  },
+  "producer": {
+    "name": "GNU LibreDWG 0.14",
+    "role": "scratch sample generation only; not native AutoCAD evidence",
+    "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py",
+    "generatorSha256": "46b36ecef6bfb5340bdb6aa00cf277b0fd1dd577d83d20827450ff8d095ab6eb",
+    "executables": {
+      "dwgaddSha256": "66c435deb0f081ab72be21bb9a36e5d149f9352d71ddf1e83ac95b3fc07f282",
+      "dwgreadSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "dwgwriteSha256": "8c5dfd7f733e924723155e5040dd33f3fefdf4682071867a4c1d3499adf73e74"
+    }
+  },
+  "scratchDirectory": "/private/tmp/ac1012-spec-retry-20261123/ac1012-dictionary-merge-amfom4wy",
+  "samples": {
+    "destination": {
+      "sha256": "aceefa78e2e83470dfeac355c15d304ec27697972afc1bc1491a81f9d5112f38",
+      "dictionaryKey": "SAME_KEY",
+      "targetHandle": 46,
+      "targetOwnerHandle": 23,
+      "targetStartAngleRadians": 0.26179938779915,
+      "dictionaryFrameSha256": "f742211bff5f5da8008ca8dbf2c1fd61a128fabe657b4f1ddc2d86e51c8fb75a",
+      "physicalFrameTest": "PASS",
+      "strictConversion": "REFUSED_WITH_DESTINATION_PRESERVED",
+      "explicitPartialAscii": "PASS_BOUNDED_WIRE_AUDIT",
+      "explicitPartialBinary": "PASS_BOUNDED_WIRE_AUDIT"
+    },
+    "source": {
+      "sha256": "d902705e15bd91c0fdc6b95a86e394ab0c1dba89edc4ae40799a9a4a02498fe5",
+      "dictionaryKey": "SAME_KEY",
+      "targetHandle": 46,
+      "targetOwnerHandle": 23,
+      "targetStartAngleRadians": 0.6457718232379,
+      "dictionaryFrameSha256": "f742211bff5f5da8008ca8dbf2c1fd61a128fabe657b4f1ddc2d86e51c8fb75a",
+      "physicalFrameTest": "PASS",
+      "strictConversion": "REFUSED_WITH_DESTINATION_PRESERVED",
+      "explicitPartialAscii": "PASS_BOUNDED_WIRE_AUDIT",
+      "explicitPartialBinary": "PASS_BOUNDED_WIRE_AUDIT"
+    }
+  },
+  "limits": [
+    "The samples are locally generated, specification-directed controls, not AutoCAD-authored files.",
+    "The producer and consumer roundtrip do not establish AutoCAD normal-open behavior or native duplicate-merge semantics for the absent AC1012 cloning field.",
+    "Strict output remains refused for unqualified callbacks; partial ASCII/Binary evidence is limited to the recorded projection.",
+    "The DWG and DXF files remain in scratch storage and are not repository fixtures."
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1032 TABLECONTENT body-string profile decoded by ACadSharp",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg",
+    "sha256": "1b719034b3d65a66830db64ae65662f0c9249f8f05ce906d212f7ffd4b34473c",
+    "version": "AC1032",
+    "provenance": "The external dwg-parser PROVENANCE.md identifies an ACAD_TABLE scaffold from an ezdxf MIT fixture, with locally authored cell text, saved by ODA File Converter as R2018. The file was read in place and was not copied into libdxfrw. This is an ODA-exported profile, not a native AutoCAD/ObjectARX witness."
+  },
+  "authority": {
+    "specification": "Open Design Specification for .dwg files v5.4.1",
+    "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "§20.4.99",
+    "normativeRule": "kString (data type 4) is TV; keep this as the primary parser layout."
+  },
+  "independentDecoder": {
+    "name": "ACadSharp",
+    "version": "3.6.15",
+    "versionSource": "/private/tmp/libdxfrw-acadsharp-p6c/src/ACadSharp/ACadSharp.csproj",
+    "sourceFiles": [
+      {
+        "path": "src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Objects.cs",
+        "sha256": "1104e937ab6d56b270cea7fd34c6c55a38b3340a69860f3f67c5fb40c0b137d7",
+        "observation": "readCadValue routes General and String to readStringCadValue after reading the type."
+      },
+      {
+        "path": "src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Entities.cs",
+        "sha256": "47033f42cb9b048e7505499c3be88107f567adc22c1e559842ab14ebbc49e7c8",
+        "observation": "readStringCadValue reads a BL byte count and body bytes, decodes R2007+ bytes as UTF-16LE, and notes this also appears valid for String. readTableEntity invokes readTableContent for R2010+."
+      },
+      {
+        "path": "src/ACadSharp/IO/DWG/DwgStreamReaders/DwgMergedReader.cs",
+        "sha256": "79059b25f270ebe423162d9c858efe9f659ac0c5ea1b79aa5789062f5dbbad15",
+        "observation": "ReadBitLong and ReadBytes route to the main object-data stream, distinguishing this from a detached TV read."
+      },
+      {
+        "path": "src/ACadSharp/IO/DWG/DwgStreamReaders/DwgStreamReaderAC21.cs",
+        "sha256": "c825eefb337f0fa4c950e4cd2498a896bcbb8bd5dbfc5a17bf2613efa79f3f29",
+        "observation": "R2007+ variable text reads use the detached Unicode string stream."
+      }
+    ],
+    "buildNote": "An isolated source copy was retargeted to the installed .NET 10 SDK for this read-only inspector. The DWG reader source files above were not edited. This is independent implementation evidence, not format authority.",
+    "command": "DOTNET_CLI_HOME=/private/tmp/libdxfrw-acadsharp-p6c/dotnet-home DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 dotnet /private/tmp/libdxfrw-acadsharp-p6c/inspect/bin/Debug/net10.0/inspect.dll /Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg",
+    "inspectorSha256": "fab541f71a65f4ce07d219eaab224cceee77e150b7aeaf390979065c30d5c8b3",
+    "outputSha256": "002b1dd89d4b8add2dc7b579fb280cd8d0f3bc6c4194f7017f27d2b699667175",
+    "result": "One model-space TABLE, handle 0xCF, 5 columns by 10 rows. Decoded values include Title, 1, 10, and a merged-cell string; other cells include explicit Unknown values."
+  },
+  "libdxfrwChange": {
+    "file": "src/drw_entities.cpp",
+    "sha256": "4bdf058daf96551cb9ac8314d8279c149800008966713d74f6bfd9c82dd50f0e",
+    "behavior": "The normal ODA TV parse runs first. Only AC1032 retries with the observed BL-counted body-string candidate, and only when the TV candidate fails. The candidate must parse the full TABLECONTENT through bounded body, string, and handle streams. It is retained as semantically incomplete so it cannot emit a typed support claim or satisfy strict output. The original frame remains available as raw. No fixture DWG was added."
+  },
+  "libdxfrwRun": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg -y -d -v2018 /private/tmp/acad-table-cells-p6c-final.dxf",
+    "binarySha256": "656fc96c11c2b4c9b3ba3747c96516d8f11166f74312a9e8500adfc398861c0d",
+    "logPath": "/private/tmp/acad-table-cells-p6c-final.log",
+    "logSha256": "d1de5e06b462eed59ef845fa2e0fe01d3cbdca8b88ec2ed8d0018b99a73e6b94",
+    "exitCode": 1,
+    "observation": "The TV candidate reaches the first-cell mismatch (unit type 12 and an implausible attribute count); the bounded body-string candidate parses TABLECONTENT and retains the ACAD_TABLE as incomplete raw. All 182 source frames are published, with zero entity/object parse failures. Strict DXF export is correctly refused before output because the source still has two HEADER integrity warnings and 739 unclaimed bytes. No output DXF was produced."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j4",
+    "focusedTest": "ctest --test-dir build-gcc -R dwg_reader_matrix --output-on-failure",
+    "focusedTestResult": "passed in 0.59s; locally generated body-byte-count control decodes as incomplete, truncation rolls back, retry with detached-TV control succeeds, and a following typed sentinel frame still publishes while the table stays raw-only."
+  },
+  "unresolved": [
+    "ODA v5.4.1 §20.4.99 conflicts with the observed ACadSharp/ODA-exported profile. Do not replace the normative TV path or claim AC1032-wide semantics from one sample.",
+    "Resolve the source HEADER integrity rows at file offsets 16 and 830 and the 739-byte unclaimed region independently before strict conversion can pass.",
+    "Obtain a second matching producer-bound profile or versioned authority, compare all meaningful cell values and reference roles, then implement complete typed callbacks/output only where the model closes.",
+    "Strict ASCII/Binary output, fresh independent readback, refusal atomicity, corrected retry, and native TABLE semantics remain open."
+  ],
+  "nextAction": "Continue local TABLECONTENT field-span and graph-closure work with generated controls while preserving raw-only refusal. Do not repeat the ACadSharp run or commit the external DWG."
+}

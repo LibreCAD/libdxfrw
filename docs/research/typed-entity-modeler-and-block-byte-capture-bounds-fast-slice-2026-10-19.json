@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Typed entity/compound-geometry and BLOCK byte capture bounds",
+  "mode": "Local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Add aggregate adapter-byte admission to existing typed entity callback record limits",
+    "Account common DRW_Entity dynamic values, the DRW_ModelerGeometry ACIS/SAB carrier path, ACIS surfaces, explicit MESH topology, curves, compound boundaries, DIMENSION/LEADER/MLEADER members, TABLE copies and INSERT-owned attributes",
+    "Account BLOCK start and ENDBLK dynamic metadata, including the inline dx_ifaceBlock storage estimate",
+    "Use generated fast controls without adding or downloading drawing fixtures"
+  ],
+  "implementation": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistrationChanged": false,
+    "limits": {
+      "typedEntityRecords": 100000,
+      "typedEntityLogicalRetainedBytes": 67108864,
+      "typedBlockLogicalRetainedBytes": 67108864
+    },
+    "controls": [
+      "Entity estimates include concrete inline size and common dynamic base fields before copying",
+      "Modeler and surface estimates include raw, DWG ACIS/SAB, DataStorage, chunk/range, subtype binary/reference, and optional decoded-wireframe payloads",
+      "MESH estimates include cage/subdivision vertices, nested face indices, edge/crease data and override-property vectors",
+      "SPLINE, polyline, hatch, MLINE, TEXT/MTEXT, DIMENSION, LEADER, MLEADER, INSERT/ATTRIB, and TABLE estimates include their audited nested vectors, strings and deep-copied children",
+      "The extra typed TABLE snapshot shares the aggregate entity-byte budget with its block-entity copy",
+      "BLOCK estimates cover start-record dynamic fields and separately admitted ENDBLK dynamic fields",
+      "Counters advance only after successful container insertion or assignment",
+      "Over-budget and allocation failures remain sticky and fileExport refuses before publication"
+    ],
+    "limitations": "Logical slot/payload accounting is not an allocator or RSS bound. Dynamic members in entity-specific families outside the enumerated modeler/surface/mesh/curve/compound/table paths, and remaining auxiliary stores, are not covered by this slice; 7S.2c census remains open."
+  },
+  "localEvidence": [
+    "Generated LINE capture accounted for proxy-graphics string bytes in addition to the concrete inline object size.",
+    "Generated ModelerGeometry capture accounted for raw frame bytes, exact DWG ACIS/SAB bytes, and DataStorage bytes without conflating their meanings.",
+    "Generated ExtrudedSurface capture accounted for ACIS carrier and subtype binary data; generated MESH capture accounted for nested topology and override-property vectors.",
+    "Generated SPLINE, LWPOLYLINE, POLYLINE, MLINE, and HATCH controls covered curve arrays, vertex/XDATA/SEQEND state, nested parameter arrays, boundary loops, and deep-copied boundary entities.",
+    "Generated TEXT and INSERT controls covered text strings, attribute-owned nested MTEXT data, R2018 attribute arrays, attribute handles, and SEQEND state.",
+    "Generated DIMENSION, LEADER, and MLEADER controls covered private dimension strings, leader vertices, nested roots/lines/breaks, block labels, text, and column sizes.",
+    "Generated TABLE controls covered the separate typed snapshot and block entity copy, nested cell text/attributes, CAD values and raw bytes, with aggregate byte refusal before partial table retention.",
+    "A byte-budget refusal left entity counters and the block entity list unchanged and set sticky capture failure.",
+    "Generated BLOCK start and ENDBLK controls accounted for preview and description bytes; seeded over-budget controls refused before retention.",
+    "Existing record-count boundary and destination-preservation controls remain in the same focused selector.",
+    "No source drawing fixture was downloaded, added, or committed."
+  ],
+  "planImpact": {
+    "existingOwnerRefined": "7S.2c adapter-owned persistent callback retention census",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "remainingCensus": "Continue per-family dynamic-member estimates for RTEXT, OLE/underlay and other uncovered entity families; complete the remaining auxiliary-store inventory.",
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "src/drw_entities.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/typed-entity-modeler-and-block-byte-capture-bounds-fast-slice-2026-10-19.json"
+    ],
+    "stagedOrCommitted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_typed_entity_capture_limits$' --output-on-failure",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_mleader_writer_version|dwg2dxf_mleader_fail_closed|libdxfrw_dimension_picture_block_full_conversion|libdxfrw_block_owners|dwg2dxf_modeler_geometry_move_callback|dwg2dxf_modeler_dxf_move_dispatch)$' --output-on-failure",
+      "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "strictTargetsBuilt": true,
+    "focusedTestsPassed": "7/7",
+    "fullSuiteRun": false,
+    "receiptJsonValidation": true
+  },
+  "assessment": {
+    "typedEntityCommonDynamicBytesBounded": true,
+    "modelerAcisCarrierAdapterCopyBounded": true,
+    "surfaceAcisCarrierAdapterCopyBounded": true,
+    "meshTopologyAdapterCopyBounded": true,
+    "curveAndCompoundEntityNestedCopiesPartiallyBounded": true,
+    "dimensionLeaderAndMLeaderNestedCopiesBounded": true,
+    "typedTableSnapshotAndEntityCopiesBounded": true,
+    "blockStartAndEndDynamicBytesBounded": true,
+    "allEntitySpecificDynamicMembersBounded": false,
+    "completeAdapterMemoryBound": false,
+    "serializerOrSemanticSupportPromoted": false
+  },
+  "planSha256": "d198431ef4f92290c5a7b1e3e05ee1ffb714a2b38d0edc160698977e771a9c78"
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p6-dxf-surface-family-allocation-rollback-retry-2026-11-13",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6 safety and caller-state audit",
+  "scope": "Extend the generated whole-operation allocation rollback/retry control to the remaining typed DXF surface subclasses.",
+  "profile": {
+    "targetVersion": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "addedSubclasses": {
+      "PLANESURFACE": ["modeler version", "U/V isolines"],
+      "EXTRUDEDSURFACE": ["class ID", "binary carrier", "sweep/reference vectors", "draft/twist/scale/alignment fields", "flags", "selected transforms"],
+      "REVOLVEDSURFACE": ["ID", "binary carrier", "axis point/vector", "revolve/start/draft/twist fields", "flags", "selected transform values"],
+      "NURBSSURFACE": ["modeler version", "U/V isolines", "short 170", "hull display", "U/V vectors"]
+    },
+    "existingSubclassesInSameControl": ["LOFTEDSURFACE", "SWEPTSURFACE"]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure",
+    "result": "PASS, 1/1 test",
+    "allocationOffsets": {
+      "ascii": 519,
+      "binary": 512,
+      "eachOffset": "Injected failure refused the write, preserved the prior destination and all tested caller surface fields/carriers, and allowed same-codec retry to reproduce clean output and typed readback."
+    }
+  },
+  "scopeLimit": "This adds transaction coverage for the remaining generated AC1027 surface writer subclasses. It does not qualify external interoperability, DWG layouts, embedded geometry, dependency closure, surface evaluation, or native rendering.",
+  "fixturePolicy": "All drawings are generated under scratch storage; no DWG/DXF fixture was added.",
+  "claimEffect": "No format support claim changes."
+}

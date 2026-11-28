@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-ezdxf-acis-subset-correction-v1",
+  "observedAt": "2026-10-21",
+  "title": "ezdxf ACIS subset-reader route correction",
+  "evidenceKind": "primary-source review",
+  "plans": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "method": {
+    "ezdxfVersion": "1.4.5",
+    "ezdxfTagCommit": "84ae319",
+    "ezdxfRuntimeRun": false,
+    "packageOrSourceArtifactInspected": false,
+    "nativeCadRuntimeRun": false,
+    "geometryKernelRun": false,
+    "externalDrawingDownloaded": 0,
+    "persistentFixtureAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "sources": [
+      "https://github.com/mozman/ezdxf/releases/tag/v1.4.5",
+      "https://ezdxf.readthedocs.io/en/stable/",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://ezdxf.readthedocs.io/en/stable/faq.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/issues/1398"
+    ],
+    "evidenceRule": "Version-specific API documentation establishes candidate operations and stated limits, not that an uninspected package artifact works or that general ACIS/B-rep semantics are supported. Carrier framing, ACIS graph parsing, polyhedral mesh extraction, analytic-kernel validity, DWG AcDs owner mapping, and native application acceptance are distinct results."
+  },
+  "evidence": [
+    {
+      "route": "ezdxf v1.4.5 limited ACIS graph and polyhedral converter",
+      "observed": "The versioned ACIS API documents SAT/SAB loading, mesh-to-Body creation, SAT/SAB export for supported structures, topology entity models, and mesh extraction from flat polygonal Face records. It also documents that unsupported entities become NONE_ENTITY and lose data, arbitrary ACIS cannot be loaded/re-exported, and curved faces require an ACIS kernel for tessellation.",
+      "planUse": "Admit ezdxf as CONDITIONAL_LIMITED_ACIS_GRAPH_AND_POLYHEDRAL_CONVERTER, not RAW_CARRIER_ONLY and not a general ACIS kernel. Use only as an optional exact-artifact comparison for the documented subset, preserving unsupported counts and partial outcomes."
+    },
+    {
+      "route": "conflicting FAQ and ACIS module documentation",
+      "observed": "The v1.4.5 FAQ states that ezdxf cannot create/edit ACIS and only writes SAT, while the more specific ACIS API documents body_from_mesh, export_sat, and export_sab. This pass did not inspect or execute the tagged package source to establish artifact-level behavior.",
+      "planUse": "Treat the FAQ as stale or overly broad for v1.4.5 candidate discovery; require isolated source/artifact inspection and a smoke test before any comparator execution. Do not infer all API paths work in a chosen wheel from documentation alone."
+    },
+    {
+      "route": "DXF 3DSOLID carrier versus semantic payload",
+      "observed": "Autodesk's 2026 DXF reference describes modeler version group 70, proprietary group-1 lines, optional group-3 continuation lines, and optional history handle group 350. These fields frame carrier data but do not define ACIS grammar or DWG AcDs storage and ownership.",
+      "planUse": "Keep carrier reconstruction, raw SAT/SAB parsing, graph closure, mesh extraction, DWG AcDs associations, and consumer acceptance in separate result lanes."
+    },
+    {
+      "route": "LibreDWG PERSUBENTMGR DXF fix versus open DWG layout report",
+      "observed": "LibreDWG 0.14.1 NEWS identifies a DXF PERSUBENTMGR fix that reads num_subents/subents. Issue #1398 remains open and discusses a separate DWG class-object field sequence whose subentity count is implausible; the issue author distinguishes AcDbPersSubentManager from AcDbAssocPersSubentManager.",
+      "planUse": "Keep peer DXF field parsing separate from the unresolved DWG object layout. Do not use the DXF fix as a DWG parser or local type-515 support result."
+    }
+  ],
+  "implementationReadiness": [
+    "Do not add ezdxf as a mandatory dependency, CI step, or per-slice validation tool.",
+    "At the composed optional semantic checkpoint, pin the 1.4.5 source/package artifact, checksum, license, and runtime; otherwise record NOT_RUN/UNAVAILABLE and self-unblock.",
+    "Use a locally generated asymmetric closed polyhedron with independently specified face loops and expected topology; do not download or commit DXF/SAT/SAB fixtures.",
+    "Exercise SAT v700 and SAB v21800 separately. Direct SAB bytes do not qualify AC1027+ DWG AcDs extraction or association.",
+    "Compare graph reachability and flat-face mesh topology against the independently specified model. Record unsupported nodes, NONE_ENTITY, parser errors, incomplete closure, and partial output as non-passes.",
+    "Use a curved-face negative control; no analytic surface, curved tessellation, volume, manifold, B-rep-kernel, or native-application claim follows from ezdxf mesh output."
+  ],
+  "planImpact": {
+    "newLibdxfrwFinding": false,
+    "newTopLevelSubplan": false,
+    "existingExternalSemanticRouteReadinessImproved": true,
+    "newTestOrTestRegistration": false,
+    "persistentFixtureOrDependencyAdded": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": [
+    "No ezdxf package/runtime, CAD application, or geometry kernel was run.",
+    "The v1.4.5 FAQ conflicts with the more specific ACIS API reference; artifact-level source inspection remains a precondition for any future run.",
+    "The documented mesh path is restricted to flat polygonal faces and loses unsupported ACIS entity data.",
+    "This route does not establish DXF application acceptance, DWG AcDs handling, or general ACIS semantic support.",
+    "LibreDWG's DXF PERSUBENTMGR fix does not resolve its separate open DWG object-layout issue #1398.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

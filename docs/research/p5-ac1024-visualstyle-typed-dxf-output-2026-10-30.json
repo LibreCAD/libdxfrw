@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-visualstyle-typed-dxf-output-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 typed VISUALSTYLE to DXF projection",
+  "status": "LOCAL_GENERATED_ASCII_BINARY_SERIALIZER_PROFILE",
+  "supportClaimEffect": "none",
+  "baselineCommit": "d723b41c",
+  "implementationCommit": "646a973810c62b8c47ac7a357b9414d9fed23e8a",
+  "sourceProfile": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "observed": "The typed set has 19 styles. Each style is owned by and has one reactor to the ACAD_VISUALSTYLE dictionary, has 28 captured group-176 companions and five R2004+ CMC values, has no extension-dictionary target, EED, application data, or data-storage payload, and has a complete decoded body."
+  },
+  "independentProjection": {
+    "tool": "/opt/homebrew/bin/dwg2dxf",
+    "version": "0.14",
+    "inputSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "output": "/private/tmp/mechanical-libredwg-r2010.dxf",
+    "outputSha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+    "scope": "Used to corroborate DXF property order, group-176 placement, reactor/owner fields, and the observed C2/C3/C8 projection. This peer output does not establish source semantic correctness or consumer acceptance."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "src/intern/dxfreader.cpp",
+      "src/intern/dxfreader.h",
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/CMakeLists.txt",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Admit only same-version AC1024 DWG imports with complete typed bodies, exact reactor/owner relation, no extension dictionary, EED, or data-storage payload, 28 property companions, five CMC roles, and supported C2/C3/C8 methods. Serialize the 28 DXF properties and companions in the peer-observed order. ASCII and binary writers preserve unsigned packed CMC group values 421-425; the ASCII reader accepts unsigned values only in the scoped VISUALSTYLE record path.",
+    "colorProjection": "C2 emits the peer-observed fallback ACI 7 plus packed unsigned group 421-425; C3 emits its normalized ACI scalar; C8 emits the observed DXF None scalar 257. C8 meaning remains unqualified beyond reproducing this peer projection.",
+    "failureAndRetry": "The generated selector changes a CMC flag outside the admitted profile, verifies refusal preserves a pre-existing destination, restores the source field, then successfully retries through the same adapter.",
+    "fixturePolicy": "The serializer test graph is authored in memory. Temporary outputs are deleted. No DWG/DXF fixtures were added."
+  },
+  "proof": {
+    "selector": "--visual-style-ac1024-typed-writer",
+    "ctest": "libdxfrw_visual_style_ac1024_typed_writer",
+    "readback": "ASCII and binary output reimport as one typed/raw pair. The selector checks exact property group-code order, all 28 companion values, both high-bit-set packed CMC values, description/type, rollback, destination preservation, and corrected retry.",
+    "focusedValidation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "buildResult": "PASS",
+      "ctest": "ctest --test-dir build-gcc -R 'visual_style' --output-on-failure",
+      "ctestResult": "PASS 5/5; 0.67 seconds"
+    },
+    "physicalDiagnostic": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -d -y -v2010 /private/tmp/mechanical-after-visualstyle.dxf",
+      "result": "Expected refusal advances past VISUALSTYLE carrier coverage to ACDBASSOC2DCONSTRAINTGROUP admission. It reports 129 typed callbacks, 228 typed-and-opaque callbacks, and zero opaque frames retained for correlation. No output is published; strict complete-export admission remains closed.",
+      "log": "/private/tmp/mechanical-after-visualstyle.log",
+      "logSha256": "33ef3c7c86afdfd5646047c9a1625bc8fa8fcb8bd177e122cd61c4607d70feff"
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "sourceBindings": {
+    "implementationCommit": "646a973810c62b8c47ac7a357b9414d9fed23e8a",
+    "sourceSha256": {
+      "dwg2dxf/dx_data.h": "ca3f3a47400ce923fdc3036feff1a1ea62dd5e8e15c0d474870b84c1eeb44bbd",
+      "dwg2dxf/dx_iface.cpp": "f78758eb55e131be68fd3a44dbd7b844b9e975ef025953600be49e78765ff643",
+      "dwg2dxf/dx_iface.h": "cfb591ab0140bafe3800c0bb144ee4b3c50f2ed1a96068c5bdd3ba6d37bd96c2",
+      "src/intern/dxfreader.cpp": "c8020a827038bed1a7c3a3771418ea68026d6169c4e18b1ef2e57bda63535a62",
+      "src/intern/dxfreader.h": "9fcd9cdadc2adb78c05b1bb79f4907a2231d94cb105bfaf3c02218bad0fabbea",
+      "src/libdxfrw.cpp": "3d01bdd0bf9d098708c78bff824642c561c6711f4e96241f2a2412f3e9ab78a7",
+      "src/libdxfrw.h": "7acf16672d81b62ae873f5a203f662edd50c2b72e14cf71862201b94da6645ed",
+      "tests/CMakeLists.txt": "2bfc9d20e72415740174983bcf7f82766b1bafdef1c0b0b864eadbd5367243d8",
+      "tests/dwg2dxf_adapter_tests.cpp": "03527eb11e070000ec3c696a0a454232114115c1e18738f11d3e1cb7b2338839"
+    },
+    "normalArtifactSha256": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "10dede199753e01b9176934b8d381d7f782f979afb829a41ff91eb8e3b339612"
+    }
+  },
+  "limits": [
+    "This proves a locally generated AC1024 typed serializer profile and peer-observed tag projection, not output of the physical DWG's 19 styles through the full document graph.",
+    "The physical document still refuses at ACDBASSOC2DCONSTRAINTGROUP; 228 typed-and-opaque callback identities still lack retained opaque frames.",
+    "C8 independent semantic meaning, independent consumer acceptance, strict complete-export admission, native 3D support, and broader DWG/DXF parity remain unqualified."
+  ],
+  "remainingP4Scope": "Bind the existing AC1024 constraint-group writer to the source-bound physical graph and emitted output, qualify required descendants, map all required callback identities, and pass strict complete-export admission without weakening refusal.",
+  "nextAction": "Route only the witnessed AC1024 version-0 constraint-group node DataKinds and handle roles already admitted by p4-ac1024-associative-constraint-group-dxf-writer-2026-10-30.json; add generated ASCII/Binary graph readback and failure rollback/retry, then rerun the physical partial diagnostic."
+}

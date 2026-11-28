@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1027-cover-header-suffix-logical-span-2026-11-12",
+  "date": "2026-11-12",
+  "status": "COVER_HEADER_SUFFIX_BOUND_WITHIN_SECTION_MAP_SPAN",
+  "supportClaimEffect": "none",
+  "scope": "Distinguish the Cover DWG's unclaimed AC1027 HEADER bytes from decompressor/page capacity and from the ODA specification's separately located R13C3+ padding, using a current-source trace and ODA v5.4.1.",
+  "binding": {
+    "repositoryHead": "e0d446bf3a4da86b70695145fb92d9b011447eff",
+    "sourceSha256": {
+      "/Users/dli/doc/dwg/Cover.dwg": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "build/dwg2dxf/dwg2dxf": "a977e79b7718320cbf1bb7fcfbbf15a4183b00d7a330266085ea7cd4c2a68498",
+      "/private/tmp/libdxfrw-header-suffix-audit/Cover.trace.log": "585ca1b4dc72defcdd81a0bc8c17f8f68517d78ea5a99246063f204ccfbcc7d4",
+      "ODA v5.4.1 PDF": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+    }
+  },
+  "observations": {
+    "source": "The local Cover.dwg identifies as AC1027. Its input SHA-256 matches the existing Cover source bound by earlier receipts.",
+    "pageAndSectionTrace": {
+      "section": "AcDb:Header",
+      "sectionId": 1,
+      "sectionMapDataSize": 1575,
+      "pageUncompressedSize": 1600,
+      "decompressorOutputWindow": 29696,
+      "internalHeaderDeclaredSize": 802,
+      "internalPayloadEnd": 826,
+      "crcAndEndingSentinelEnd": 844,
+      "unclaimedWithinSectionMapSpan": 731,
+      "pageTailOutsideSectionMapDataSize": 25
+    },
+    "traceLines": "The receipt-bound current-source trace prints the section name/id, page uSize, parser input size, internal declared size, payload end, trailer end, and unclaimed byte count. The parser bounds the logical header envelope at the section-map data size (1575), not the 1600-byte page uSize or the 29696-byte decompressor window."
+  },
+  "authorities": {
+    "odaSection9": "ODA v5.4.1 §9, printed p.72: HEADER is a contiguous stream consisting of beginning sentinel, declared size, data, CRC and ending sentinel; the section text says there are no gaps and only bit padding to the next byte boundary.",
+    "odaSection11": "ODA v5.4.1 §11, printed p.89: the 0x200 R13C3+ padding chapter follows §10 AcDb:Classes; it does not describe bytes inside the AcDb:Header section.",
+    "odaSectionMap": "ODA v5.4.1 §4 page/section map: the section map's Data size and per-page uncompressed size are distinct fields; the concatenated pages form the section."
+  },
+  "interpretation": {
+    "proven": "For this Cover source, 731 unclaimed bytes are inside the section-map-declared 1575-byte AcDb:Header span. They are not the separate 25-byte page-uSize tail or the documented post-CLASSES 0x200 padding.",
+    "notProven": "The content or producer role of the 731 bytes is unknown. This single-source span does not explain the 28,852/28,844-byte AC1027 controlled ODA outputs or establish a universal rule across producers/revisions.",
+    "decision": "Keep the Cover suffix unclaimed and strict complete output refused. Do not change parser admission or label the bytes as padding from this evidence."
+  },
+  "validation": {
+    "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Cover.dwg -y -d -v2010 /private/tmp/libdxfrw-header-suffix-audit/Cover.dxf",
+    "result": "Trace reached HEADER parsing; recorded data-size boundaries and existing 731-byte unclaimed-suffix refusal. No fixture or generated DWG was committed.",
+    "diffCheck": "PASS"
+  },
+  "nextReadyPacket": "For any further ODA-resaved suffix comparison, bind section-map Data size separately from page uSize and decompressor capacity, and obtain eligible source-level producer/layout evidence before changing the strict gate."
+}

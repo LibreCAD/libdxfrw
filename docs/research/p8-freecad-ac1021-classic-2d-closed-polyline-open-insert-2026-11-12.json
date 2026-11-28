@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-freecad-ac1021-classic-2d-closed-polyline-open-insert-2026-11-12",
+  "purpose": "Qualify closed classic 2D POLYLINE geometry through AC1021 DWG writing, installed dwg2dxf conversion and FreeCAD native C++ DXF import.",
+  "source": {
+    "provenance": "Generated from scratch in /tmp; no DWG/DXF fixture is committed.",
+    "generator": "tests/dwg_local_roundtrip_tests.cpp --generate-freecad-primitives-source",
+    "generatorExecutableSha256": "801fd677c1a73fa25d8dbb7e5df32bac38716a9cd71357e825f29c1933c6673c",
+    "version": "AC1021",
+    "sha256": "db0d3ca2dbb243e55dfda6bfa062b1c4ff97dd62e6de1135bb50efac3efcf547",
+    "polyline": {
+      "dxfEntity": "POLYLINE",
+      "flags": 1,
+      "vertexSubtype": "Vertex2D",
+      "coordinatesWcs": [[91, 92, 0], [95, 92, 0], [95, 96, 0], [91, 96, 0]],
+      "expectedTopology": {"closedWires": 1, "edges": 4, "vertices": 4},
+      "expectedBoundsWcs": [91, 92, 0, 95, 96, 0],
+      "expectedTotalLength": 16
+    }
+  },
+  "converter": {
+    "buildPath": "build-gcc/dwg2dxf/dwg2dxf",
+    "installedPath": "/private/tmp/libdxfrw-freecad-current-install/bin/dwg2dxf",
+    "sha256": "36ccaf73892eba809aed7316272d5e02d1ce2f4b645c4d3057109df391f506f1",
+    "buildAndInstalledBytesMatch": true
+  },
+  "convertedDxf": {
+    "sha256": "d4c5ff573ba25f4ad83ec398cccbdae3a95e29b20b25728afdf06eaa0230fd31",
+    "recordCheck": "The generated profile is imported through FreeCAD's exact installed-converter subprocess; closed-wire topology and ordered WCS points pass."
+  },
+  "consumer": {
+    "application": "FreeCAD 1.1.4",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "macOS 27.2.1 arm64",
+    "importer": "C++ DXF importer",
+    "route": "FreeCAD Draft DWG open/insert -> hash-checked installed dwg2dxf -> C++ DXF importer",
+    "operations": {"open": "PASS", "insert": "PASS"},
+    "entityCounts": {
+      "POINT": 1,
+      "LINE": 1,
+      "CIRCLE": 1,
+      "ARC": 1,
+      "ELLIPSE": 1,
+      "LWPOLYLINE": 1,
+      "POLYLINE": 2,
+      "SPLINE": 1
+    },
+    "closedClassic2dPolyline": {
+      "pointsWcsInOrder": [[91, 92, 0], [95, 92, 0], [95, 96, 0], [91, 96, 0]],
+      "boundsWcs": [91, 92, 0, 95, 96, 0],
+      "closedWires": 1,
+      "edges": 4,
+      "vertices": 4,
+      "totalLength": 16
+    },
+    "unsupportedFeatures": {}
+  },
+  "validation": {
+    "focusedCtest": "dwg2dxf_freecad_generated_ac1021_primitives_open/insert: PASS 2/2 in 3.05 seconds",
+    "generatorExecutableSha256": "801fd677c1a73fa25d8dbb7e5df32bac38716a9cd71357e825f29c1933c6673c",
+    "macroSha256": "6b3aaa8aa3e05bb20c4afa2e9ded284d22e1e1a123cbc8928a647c192db6d734",
+    "fixturePolicy": "Generated DWG/DXF files stay in isolated temporary directories; no fixture is added."
+  },
+  "limitations": [
+    "This qualifies one generated AC1021 closed classic 2D POLYLINE on FreeCAD 1.1.4 macOS ARM64 only.",
+    "Physical producer breadth, FreeCAD 1.1.3/Linux/Windows, other legacy POLYLINE flags, complete document output and broad application semantics remain open. It does not resolve the separate closed classic 3D POLYLINE gap."
+  ],
+  "supportClaimEffect": "Adds bounded consumer evidence for the generated closed classic 2D POLYLINE profile; no broad format-support claim is promoted."
+}

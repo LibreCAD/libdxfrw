@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dynamic-block-purge-preventer-allocation-rollback-2026-11-12",
+  "date": "2026-11-12",
+  "status": "PURGEPREVENTER_DIRECT_ALLOCATION_SWEEP_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add direct ASCII/Binary allocation-failure coverage for the admitted AC1024 dynamic-block PurgePreventer OBJECTS record, including source identity rollback and clean wire readback.",
+  "binding": {
+    "repositoryHead": "920d8ed5aae29d65397d910f4afb5000762dc61d",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "27ac70a55b86da086ad484392b099de2b2777c7c9acb80b61f84b0061185cae3",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "tests/dynamic_block_objects_allocation_tests.cpp": "8063f5612af5ed088715bec9db1cc6106d4aa730d0a6600484be854183be4c1c",
+      "tests/CMakeLists.txt": "7a6d869bd778a362a1552bb5c8c48c6a0b8d5b7e0fac8bc7aa24a9fd5b171469",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "5ec467551d42037a9f78b05c3502cb0f52d4c39edfdbd2d0e11a2d124a8cd22c"
+    },
+    "artifactSha256": {
+      "build-gcc/libdxfrw.a": "9128ba9aab53890e22b739561b804e8186ed8a4b78e645ea26d2747d3367c170",
+      "build-gcc/tests/libdxfrw_dynamic_block_objects_allocation_tests": "48af5fe05581372c4b0fae8bc1b28e0f4e2166584c163abce18e594c47215770",
+      "build-asan-custom/libdxfrw.a": "a143a4e14823ee2ebe06bc6bde6251faff4e128ea8443985b547df02122dc4e2",
+      "build-asan-custom/tests/libdxfrw_dynamic_block_objects_allocation_tests": "c881103c3c5fbdeb169f94892e660ddf7abda7ace8c7ad06d7fdaa382c28fc0a"
+    }
+  },
+  "change": {
+    "testCoverage": "Added a standalone generated record test target. It configures the private dxfRW writer through a named friend test seam, calibrates the allocation count, and sweeps every allocation during direct writeDynamicBlockObject calls for the AC1024 PurgePreventer profile.",
+    "perEncoding": "ASCII and Binary each exercise 11 allocation offsets. Every refusal preserves source fields and leaves no sourceHandleToWrittenObjectMap entry. The clean control checks the exact handle, both owner/reactor references, subclass marker, flag, and WIRE_END boundary.",
+    "existingAdapterControl": "The existing dwg2dxf_dynamic_block_purge_preventer CTest continues to verify the full NOD/dictionary/block owner graph and typed import readback."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dynamic_block_objects_allocation_tests -j2",
+      "result": "PASS"
+    },
+    "normalAllocationSweep": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dynamic_block_objects_allocation$' --output-on-failure",
+      "result": "PASS 1/1 (0.22 seconds); 11 offsets each for ASCII and Binary"
+    },
+    "normalAdapterProfile": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_purge_preventer$' --output-on-failure",
+      "result": "PASS 1/1 (0.06 seconds)"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dynamic_block_objects_allocation_tests -j2",
+      "result": "PASS"
+    },
+    "asanAllocationSweep": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_dynamic_block_objects_allocation$' --output-on-failure",
+      "result": "PASS 1/1 (0.41 seconds)"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "The allocation sweep calls the low-level record writer directly; it does not inject faults across the complete file adapter or prove file-level destination rollback for this class.",
+    "Only the bounded PurgePreventer record profile is covered; other dynamic-block subclasses, producer schemas, graph closure variants, and native behavior remain open.",
+    "The test authors records in memory; no DWG/DXF fixture is added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue the P6 object-writer transaction audit for another concretely uncovered OBJECTS builder; preserve schema, graph, producer, and native-consumer gates."
+}

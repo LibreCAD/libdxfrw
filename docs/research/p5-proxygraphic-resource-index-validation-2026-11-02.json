@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "p5-proxygraphic-resource-index-validation-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_RESOURCE_INDEX_DIAGNOSTIC_ONLY",
+  "scope": "Validate source-order resolution of proxy ATTRIBUTE_LAYER/ATTRIBUTE_LINETYPE indices and report unresolved table references without failing the enclosing DWG read.",
+  "implementation": {
+    "files": [
+      "src/intern/proxygraphicdecoder.h",
+      "src/intern/proxygraphicdecoder.cpp",
+      "src/intern/dwgreader.cpp",
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "behavior": {
+      "omittedLookupTable": "Keep the parent layer/linetype inherited, as the decoder API contract specifies.",
+      "suppliedLookupTable": "Resolve the proxy index against the supplied source-storage-order vector.",
+      "missingOrOutOfRangeLayer": "Increment unresolvedResourceReferenceCount, retain the prior decoded layer or parent layer, and continue decoding.",
+      "missingOrOutOfRangeLinetype": "Increment unresolvedResourceReferenceCount, retain the existing BYLAYER rendering fallback, and continue decoding.",
+      "diagnostic": "The DWG reader traces the per-stream unresolved reference count without failing the record.",
+      "sentinels": "Existing BYBLOCK/BYLAYER sentinel decoding is unchanged."
+    }
+  },
+  "generatedControl": {
+    "testTarget": "libdxfrw_graph_preservation_tests",
+    "profiles": [
+      "ATTRIBUTE_LAYER index 1 maps to SOURCE_LAYER_1 even when the parent layer has a different name.",
+      "ATTRIBUTE_LINETYPE index 1 maps to SOURCE_LTYPE_1 even when the parent linetype has a different name.",
+      "An omitted linetype lookup table leaves the parent linetype inherited.",
+      "A supplied linetype vector missing index 1 reports one unresolved reference and continues with BYLAYER fallback.",
+      "A supplied layer vector with an empty entry at index 1 reports one unresolved reference and continues with the parent layer."
+    ],
+    "fixturePolicy": "Proxy bytes are generated in memory. No DWG/DXF fixture was added."
+  },
+  "physicalObservation": {
+    "sourcePath": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sourceSha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "version": "AC1021",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg -y -v2007 /private/tmp/architectural-proxy-index-check.dxf",
+    "exit": 1,
+    "result": "DWG reading succeeds, but output preflight refuses with typed-proxy-graphics-not-preserved count=36 firstHandle=11344. decodedProxyPrimitives=0 shows that this refusal occurs before proxy-cache decoding.",
+    "evidenceCeiling": "The physical run confirms whole-cache output remains refused; it does not exercise or qualify the new generated unresolved-index diagnostic, cache replay, or native rendering.",
+    "cacheIndexCensus": {
+      "probeSource": "/private/tmp/inspect_proxy_index_diagnostics.cpp",
+      "probeSourceSha256": "070536a708b7491434754dfa1aa671dae07a22d5bb1adbd3c087eda29845052b",
+      "probeExecutable": "/private/tmp/inspect_proxy_index_diagnostics",
+      "probeExecutableSha256": "cf73e19db8ca7902641b562223bc0420fa0776d5028cf159e00a1bd65319848e",
+      "log": "/private/tmp/proxy-index-diagnostics.log",
+      "logSha256": "a2d766b263cdaf19feb429b3d02d52ed965273b303d74d25d57866ef1d489342",
+      "compileCommand": "c++ -std=c++17 -Isrc -Idwg2dxf /private/tmp/inspect_proxy_index_diagnostics.cpp build-gcc/dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o build-gcc/libdxfrw.a -o /private/tmp/inspect_proxy_index_diagnostics",
+      "runCommand": "/private/tmp/inspect_proxy_index_diagnostics /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "result": {
+        "read": true,
+        "proxyRecords": 36,
+        "sourceLayerNameCount": 49,
+        "sourceLinetypeNameCount": 6,
+        "attributeLayerIndices": {
+          "51": 24,
+          "52": 8,
+          "53": 4
+        },
+        "attributeLinetypeIndices": {
+          "32767": 36
+        },
+        "decoderCompletedRecords": 36,
+        "unresolvedResourceReferences": 36,
+        "emittedPrimitiveRange": [
+          4,
+          8
+        ]
+      },
+      "evidenceCeiling": "The source layer indices do not resolve against the captured 49-name table. The probe does not establish what layer names indices 51\u201353 should reference or native rendering semantics."
+    }
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests dwg2dxf -j2",
+    "buildResult": "PASS",
+    "focusedCommand": "build-gcc/libdxfrw_graph_preservation_tests",
+    "focusedResult": "PASS: Graph/preservation tests"
+  },
+  "claimBoundary": [
+    "The change reports unresolved references and preserves tolerant record-level reading.",
+    "Legacy rendering fallback for invalid references remains and is not proof of correct native appearance.",
+    "It does not remap embedded raw proxy-cache indices for a destination DXF resource order.",
+    "It does not qualify whole-cache output, the AC1021 sample, or native rendering semantics.",
+    "Support claim effect: none."
+  ]
+}

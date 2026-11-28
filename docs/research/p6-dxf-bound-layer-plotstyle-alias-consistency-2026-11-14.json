@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.dxf.writer-alias-consistency-receipt.v1",
+  "slice": "P6-D AC1027 bound LAYER group-390 alias consistency",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "repositoryEvidence": {
+    "source": "src/intern/dxf_ac1027_bound_layer.h",
+    "finding": "The private DRW_Ac1027BoundLayer adapter stores sourcePlotStyle separately from inherited public DRW_Layer group-390 text/native fields. The writer emitted sourcePlotStyle without checking whether supplied inherited aliases disagreed."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/layer_table_allocation_tests.cpp"
+    ],
+    "change": "writeLayer validates an explicit inherited group-390 handle against DRW_Ac1027BoundLayer::sourcePlotStyle before starting output. Conflicts now fail through the existing transactional writer path."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_layer_table_allocation_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_layer_table_allocation$' --output-on-failure",
+      "result": "PASS (1/1, 0.51 seconds)",
+      "coverage": "Generated AC1027 ASCII and Binary exports with bound handle 0x123 and conflicting inherited group-390 handle 0x456 refuse while preserving a destination sentinel. Clearing the inherited text alias on the same writer permits retry; fresh DXF readback sees group 390 as 123."
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "The test proves alias consistency and serialized handle output, not existence of the referenced PlotStyleName object or recursive ownership closure.",
+    "No native DXF consumer or plot-style semantic roundtrip was run."
+  ]
+}

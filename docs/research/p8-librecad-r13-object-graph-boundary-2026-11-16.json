@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-16",
+  "consumerBase": "b007bff6e798425aa14ae507f7e884db68916e88",
+  "candidateCommit": "6a2d0119de368ace035d11084a83ee928b5ca613",
+  "status": "OPEN: exploratory owner bypass was reverted and is not in the candidate.",
+  "fixtures": {
+    "/private/tmp/librecad-p8-r13-recipe-20261116/ascii/source.dxf": "38e9ba8ec2bb5299c07d8caea09a316c9ba1e2d9ff16a1ae6b7d59500bb38293",
+    "/private/tmp/librecad-p8-r13-recipe-20261116/binary/source.dxf": "6aabd42b600b641dbf92a4a7ced8a45f2105ed13a110d4887e0901a44b74ba0b",
+    "/private/tmp/librecad-r13-owner-output-ascii-source.dxf": "94eff5a9953bee0b17935ceab50ac4fab4c2c4e3c3afccc5c0948ffe868c4129",
+    "/private/tmp/librecad-r13-owner-output-binary-source.dxf": "8e948f4bcb8b438e8d2f296a59ed7055d8dad9dc287075bb364aab340a3fa3ae"
+  },
+  "observations": [
+    "Temporary instrumentation located the first failed OBJECTS callback at writeMLineStyle; later MATERIAL callbacks failed after the sticky error. The source Standard style has handle 0x22, owner 0x10, fill ByLayer and two ByLayer elements.",
+    "A separate instrumented writer located the failure at the end-of-record preflight, before object identity binding. The consumer mapped the style owner to 0x76 before calling the current codec, whose object writer also resolves owner references. This is consistent with double mapping but the exact resolver failure still requires direct proof.",
+    "A scratch-only change that supplies the source owner when the adapter considers it reachable let both ASCII and Binary source runs export and pass selected LTYPE/LINE checks. Each export reported 65 source objects left out because of the cross-version route. The shortcut was reverted; no output was promoted.",
+    "A direct ASCII OBJECTS group-code census found 85 source records, including 44 ACAD_PROXY_OBJECT and 6 XRECORD records. The scratch output has 23 OBJECTS records, including no ACAD_PROXY_OBJECT or XRECORD. Counts are physical records, not graph-equivalence proof.",
+    "An independent ezdxf read also showed source and scratch output object inventories differ; ezdxf upgrades R13 to R2000 and adds default objects in memory, so its counts are not used as physical source totals.",
+    "Both original source file and installed archive were restored after instrumentation; all 47 archive object members match the original installation. No test drawing was committed.",
+    "Temporary runtime tracing of the unmodified owner route reports dxfReference source=0x76, dropped=1, suppressed=0 for both R13 encodings; the source-reference resolver rejects that output handle because it collides with the source XRECORD. The trace instrumentation was reverted."
+  ],
+  "nextSteps": [
+    "Implement a capability-aware, exactly-once owner mapping for the selected style, preserving both current and bundled codec contracts; first close or strictly refuse the other cross-version object dependencies.",
+    "Inventory all source records reported left out and their dependencies; preserve them through an admitted cross-version path or refuse publication without altering the destination.",
+    "Only then land a bounded owner correction with tests for old and current codec contracts, alias collisions, failure/retry, and independent full graph readback."
+  ],
+  "logs": [
+    "/private/tmp/librecad-p8-r13-object-trace2.log",
+    "/private/tmp/librecad-p8-r13-style-trace2.log",
+    "/private/tmp/librecad-p8-r13-guard-trace.log",
+    "/private/tmp/librecad-p8-r13-binding-trace.log",
+    "/private/tmp/librecad-p8-r13-owner-graph.log",
+    "/private/tmp/librecad-p8-r13-owner-runtime.log"
+  ],
+  "limits": "Source and generated outputs are scratch only. Selective successful re-export and reader audit do not prove full graph preservation, native behavior, version parity, or support; all phase and external gates remain unchanged.",
+  "selectedPhysicalGraph": {
+    "source": {
+      "rootDictionary": "A",
+      "dictionaryKey": "ACAD_MLINESTYLE",
+      "styleDictionary": "10",
+      "styleKey": "STANDARD",
+      "style": "22",
+      "styleOwner": "10",
+      "sourceHandle76": {
+        "type": "XRECORD",
+        "owner": "75"
+      }
+    },
+    "scratchOutput": {
+      "rootDictionary": "C",
+      "dictionaryKey": "ACAD_MLINESTYLE",
+      "styleDictionary": "76",
+      "styleKey": "STANDARD",
+      "style": "22",
+      "styleOwner": "76"
+    },
+    "interpretation": "The source and output graphs share the selected keyed style relationship, but source handle 76 is a different XRECORD. Runtime tracing confirms dxfReference receives 0x76, finds it in the dropped-source set and rejects it. The codec receives an already remapped owner as though it were a source reference. Full graph closure remains outstanding."
+  }
+}

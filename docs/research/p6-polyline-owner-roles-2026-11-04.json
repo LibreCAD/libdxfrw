@@ -1,0 +1,167 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "scope": "Correct AC1018\u2013AC1032 2D/3D POLYLINE VERTEX and SEQEND ownership roles. Preserve AC1015 and mesh/polyface encoding; this does not qualify ODA child geometry or whole-file interoperability.",
+  "authority": "ODA v5.4.1 \u00a720.4.16\u201317 specifies hard-owner VERTEX handles for R2004+ and hard-owner SEQEND. Independently authored ODA producer samples in all five revisions contain role 3 for all three child references and SEQEND, with child owner role 4.",
+  "witness": "ezdxf 1.4.5 scratch source, ODA File Converter 27.1.0 with audit=1 DXF\u2192requested DWG, LibreDWG 0.14 peer decoding; source role counts and XYZ are checked by tools/audit_polyline_owner_census.py with SHA-bound DWG and version argument. Output DXF target in the AC1021 conversion matrix is AC1027.",
+  "changes": "For AC1018+ fixed POLYLINE_2D/3D only, emit each child and SEQEND as role-3 hard owner. Legacy AC1015, mesh and polyface paths remain unchanged. The source caller handle values and ordering are unchanged.",
+  "controlled_oda_results": {
+    "baseline": "Native reader and LibreDWG find all three children and geometry in generated role-5 DWG. ODA AC1027 DXF contains only two (0,0,0) VERTEX records for 2D and mixed; 3D has Out of range .err and no DXF.",
+    "role_factorial": "Both roles independently set to 3 or 5 (four parent-role combinations), for 2D and 3D: 2D still outputs two zero vertices, 3D still produces .err/no DXF. This role fix is justified by spec/source and does not resolve the ODA geometry defect.",
+    "diagnostic_only": "A scratch explicit absent-string bit on the 3D parent removes its fatal and yields a DXF, but still two zero vertices. Scratch exact parent/child/SEQEND boundaries, with role 3 or 5 and with independently changed xdictionary/BYLAYER defaults, also retain the two-zero-vertex loss. Those changes are not included in this patch.",
+    "production": "ODA final role-3 production output: 2D and mixed still lose a vertex and coordinates; 3D still fails. Preserve these results as unresolved, despite successfully parsed source and native peer readback."
+  },
+  "artifact_sha256": {
+    "source-in": {
+      "line.dxf": "5d129f3e2059586abc060094aac460b88b4e9f25438b8ddb6da6b16c293977a1",
+      "spline.dxf": "4494773987516429b5d2989872ea26a1919a44481af29f89c6e89dca75c5cf5b",
+      "hatch.dxf": "f6b44fb641b8494bd122f807f7feb5747a83bd61325f439ce556b0aa5f43875f",
+      "polyline2d.dxf": "e0a6d47a1041a0fd43357d475c0fe050b4f02e179536c3f3cc083c6c4e349818",
+      "polyline3d.dxf": "4a3b40829724d094407287f66a4e538b486f07e8d5cae82ced1c8e43c8feb180",
+      "mixed.dxf": "2944facaaab4197a164ec571504d600fe0b8be975b92830beffc6351a253156a"
+    },
+    "source-dwg": {
+      "line.dwg": "b86551c679e003fce806f6f62903a868d4677adce34e89d044c9b6327621d18d",
+      "spline.dwg": "f0d0d2d9a4b65967461dec0808f1e00c132563bc15ef17d116bbf9bb2f15c259",
+      "hatch.dwg": "286811bcee4793b4e0103664c9bca8eaba151da57e1d41f99360fab29435ceeb",
+      "polyline2d.dwg": "1c48b5c0e229a9ce8d8d4d0649d8e741b391c1e187bbee64b0b4aeac31cfaea4",
+      "polyline3d.dwg": "4f96c477b47399b3a244fc87e26521feef9d3688311b3e50db2d2be211b07d2b",
+      "mixed.dwg": "2df0e3fee77f0a5b0de99e525b92e897ce631a9ec5e7477fbde5625a0a06d35f"
+    },
+    "source-out": {
+      "line.dxf": "3b9c3c49d168133b5ed1dd4fc0701c9837df5d46825a01a0535c66793810d35f",
+      "spline.dxf": "b0802449e1307f1bceb3fac4154f90160e183cc98d2016127a818ea10758ff63",
+      "hatch.dxf": "1245c2081668519b5aeb702a7ec22a915e6363297ebb4f93c21204ce1656a750",
+      "polyline2d.dxf": "1f5e51067f8ad3982a2e2e294e41af8cac3cf6d8314c804c5d69a7cfed833f85",
+      "polyline3d.dxf": "c52154692968de827e1877f0abdd4c7bcbc9f9bdb0127db8e84f95f850c4161b",
+      "mixed.dxf": "bb2bff96242d15368bf358ad8bd6570411b2b10d0d10b9b647ffe31599f74480"
+    },
+    "gen-in": {
+      "line.dwg": "aac8f6cae5f5abc3e932ff172be94b523e2a9a3bbe0739368eb716498a0af639",
+      "spline.dwg": "83c26c8dd1cfc37e3ef5171b46163e02eea2b364f710745b35ee75d8e6fe4a80",
+      "hatch.dwg": "8d01c88d7d24659229632a7e34da6c4104bcd6ecf951808a80e08604ef60a7b8",
+      "polyline2d.dwg": "d8bbafa94df7b1475541cb835bdcfee4feea7d198869ac43f3ddb75e84618bef",
+      "polyline3d.dwg": "704c13567d3c5237b2d0b08132b8bbeaa4140d6e1a6043f477b26b2a18417caa",
+      "mixed.dwg": "f6e8d2ab875bf15f0e2018f2f7f34274ede8507b00e1454ef401072c9911dc55"
+    },
+    "gen-out": {
+      "line.dxf": "51314dd658a8c63bad7b738e880d79ac326551380526635fb1402fd9294503ff",
+      "spline.dxf": "e545170fefb55e3540961ab1123b66c72a026743beb2639417e3a9a785d5dc0b",
+      "hatch.dxf": "76f041eb550029b52a843fa3b28843a56b747dd4e52721ee54d1e69a22b98eef",
+      "polyline2d.dxf": "d671f0e8b2a0ba8a54932d58c035d07fcb5300b06ebd6dc28dd333149a518a72",
+      "polyline3d.dxf.err": "3e1e77cdcbe64f0be6a33f520ec8a694a2fff18988dfe5d32b4d075273a41bd9",
+      "mixed.dxf": "c5ad7f4fd21028976f943f0951ca442429ea75d0db5ca91e1c4b0a651f1eabdd"
+    },
+    "production-in": {
+      "polyline2d.dwg": "a57800bd8ad5f29d6b9d0e6fae44c90e49c26168c3069b650c746dc355a263d2",
+      "polyline3d.dwg": "48c0285ba01d27a9fb8459e4b0161d4d522e31acdc0afdd1a9dc22fcca891323",
+      "mixed.dwg": "c4c95ac780ffdb8640699ee902eeae22821c054a6bf1ef34b5ae2375d96f8b69"
+    },
+    "production-out": {
+      "polyline2d.dxf": "e2b668c4488bf2755c4190983ec53b5f456c1b1a8fe91f90038456b22b429252",
+      "polyline3d.dxf.err": "276e0f9828f93e7d25c7551e1cf2fa4c1d6ba9c22421a19a665338f92578529e",
+      "mixed.dxf": "f7a4615a147da537013db07615f5d0e8ee84eecba4e97020735087dd157172a0"
+    },
+    "AC1018": {
+      "polyline2d.dwg": "71d451c62937020db647b7edad4a24f1d0ee36442c5808201232849c7ebe47a3",
+      "polyline3d.dwg": "6c938773ab6718a4ae748f0745e2eda7132d3f4ab7fb122bb2c8835919a59952"
+    },
+    "AC1024": {
+      "polyline2d.dwg": "0e48ecd373fb83f148f13b25e03693295895d82b23edac4048b0ce839ed1ae24",
+      "polyline3d.dwg": "15d9c3715514a093ce44da343bd4e6adf11c0c9de32bf93a50451984f3ea29ec"
+    },
+    "AC1027": {
+      "polyline2d.dwg": "5f29f3f0c8e6402dd23e07a42bda6b8eb0ee3ab3e7499ea7e742fc186baae1f9",
+      "polyline3d.dwg": "703eecaa714d544f4ab1c0c8f4b6d9d40fa15a3b557ffcb11c276e3c00401083"
+    },
+    "AC1032": {
+      "polyline2d.dwg": "97a9dc938be90221bf4b9974ec39af7a517d85dc1b91dbeeec0a96f49e86a99f",
+      "polyline3d.dwg": "36b3c3e837b0ef10e12c6b1c2292e12afae6b94bba46f082cfd8a83cb64db924"
+    },
+    "role3-in": {
+      "mixed.dwg": "c4c95ac780ffdb8640699ee902eeae22821c054a6bf1ef34b5ae2375d96f8b69",
+      "polyline2d.dwg": "a57800bd8ad5f29d6b9d0e6fae44c90e49c26168c3069b650c746dc355a263d2",
+      "polyline3d.dwg": "48c0285ba01d27a9fb8459e4b0161d4d522e31acdc0afdd1a9dc22fcca891323"
+    },
+    "role3-out": {
+      "mixed.dxf": "bd89e310ea82d49d7c9491e7779a9b30ca3d1f46723dcc431a22f5acb2918fba",
+      "polyline2d.dxf": "c124fd13bdad59a8eecf641ac0984acd3407bd29c37fc811e802ba95006e6ac4",
+      "polyline3d.dxf.err": "223d69bbb381f0b6d27f648afee85a7addcc89ddb9e55d82f04107893a962899"
+    },
+    "role12-in": {
+      "polyline2d-1.dwg": "81499549ceb19d88d0c0f8aa3a352ed27928a4775213d8f41313c582fc2d559f",
+      "polyline2d-2.dwg": "d0b0536fad6408d0d0fe3094590dafc7c6a723dffbb132ba1095883f392747b4",
+      "polyline3d-1.dwg": "6708ad1635b24174bfc5e35598266804241fceea4eb2810971933e75566b61de",
+      "polyline3d-2.dwg": "4761695d9441cf0e250062cc65ada3dcba3524460f819a69e985f6319e04a40d"
+    },
+    "role12-out": {
+      "polyline2d-1.dxf": "a20d95360da7a0d1ec005de1d0a0fec2571b6abafd2f301061943654a40096ce",
+      "polyline2d-2.dxf": "6a92a22a76ff4d61e48437bd3ddcf82fef4a71de15eed195620e079aedd6c217",
+      "polyline3d-1.dxf.err": "bd32a9a8b5fc190fa97d7326448cdfd02ddc51cc30fa73099a912ed5a06c9a7e",
+      "polyline3d-2.dxf.err": "e708d205b458036b75bc7412d2279f42b4c73e0a01686bc6ef81342c781b63d1"
+    },
+    "marker-in": {
+      "marker-role3.dwg": "403bd39e90e603670af00b5da35e9e46b6e9bec4195c9e0f0d80b92302d868f0",
+      "marker.dwg": "6840f93690fa87f98faef4ac68d742bb6067bab4eb2f73ea72bc9d9a08478b92"
+    },
+    "marker-out": {
+      "marker-role3.dxf": "a235521c6d1311327b60968f5f551e016c2d2c80ce3ea1e19ca89a4ab9797f4f",
+      "marker.dxf": "bfd170debe1207ec90c70ceb83f779d90438d64f231e19a1cd79dad5ea542fbe"
+    },
+    "exact-in": {
+      "polyline2d-roles3.dwg": "e54e04ee59294430d5a4da01f1c9327bd2bc1404f600b7d69866c202eb1b0482",
+      "polyline2d-roles5.dwg": "5eaa44681cbc5d68a21dd8908c24d2c364e4dadc547a6eb11e5a8c72d79c2b60",
+      "polyline3d-roles3.dwg": "38b73dbd815c0c174cfabdcf10d10fe7a93519710e51c6e1421c52a464cdfca8",
+      "polyline3d-roles5.dwg": "a856a847fd3ce4f831748c3aeeba5b6767c7999847b54f0f151c14caae61098a"
+    },
+    "exact-out": {
+      "polyline2d-roles3.dxf": "fae2098c70bd5fa7de21aa8dd343bf8744f757e8f4f5215ded865e688ec4d50e",
+      "polyline2d-roles5.dxf": "104634bb9a6a062f6e7595d58313acaa9ae29b9230a50b26f91c3d43fce40b96",
+      "polyline3d-roles3.dxf": "776a686d622c664e0bfedfcf77538bc7ab26f68d9dcb9280f2b545b0ee4f92b4",
+      "polyline3d-roles5.dxf": "a0ff228fc439a543ef315fe07170ce8133bbbffd28fec606196849298589cddc"
+    },
+    "common-in": {
+      "polyline2d-1.dwg": "3ba302258e5c7934c58e79018caf29ee741ff8c935d675ecabdec839b664e2de",
+      "polyline2d-2.dwg": "947dc55cc1b0dc5fd8c762a76598b7be6c8224089346a53db69067823162ea6d",
+      "polyline2d-3.dwg": "8b26196ce8cdd77f4d74e188d23bdb887e711382cef1fdf8ee28abde891272e3",
+      "polyline3d-1.dwg": "ba69960b6f3723490f79c97d4c62f02463a25cfadd600fba1397a8459b638fbe",
+      "polyline3d-2.dwg": "ced289f8945a013239127a9a06c3e357ffec0ebf5229b26a320e36bfb0c46f38",
+      "polyline3d-3.dwg": "6a3c83a4d3a2f34eb64c213bb0d28d3b9bf59c28923757d403e4fb9e5e0aa7e6"
+    },
+    "common-out": {
+      "polyline2d-1.dxf": "043230ec6c9762ff2a6305fef8c87fede2e4391944206be4347ca98128f6dd15",
+      "polyline2d-2.dxf": "16a405093277b75e14650cd6a46fb947f81a38ebe66c1f7172d0bb2176aec318",
+      "polyline2d-3.dxf": "00ca9ffb52c400c6b208ff3bd51c571d8054452d0f7cf48f7e11d2081d957236",
+      "polyline3d-1.dxf": "ac2de3968a65dcc407c044bf4356666772c1875b520af60ae50a338c71234f29",
+      "polyline3d-2.dxf": "918ba7519e250acfeee24f558eadcc82d5d2a4f2c3e57e95db7dfb18a9ce1bd0",
+      "polyline3d-3.dxf": "a10bdb5caa64659f2aa026f999f4a90222a4cd28b1fcc56eca20fede8cdfd3b6"
+    }
+  },
+  "procedure": [
+    "build/rpp5gh-evidence/peer/bin/python tools/author_ac1021_curve_geometry.py EMPTY_SOURCE_DIR",
+    "c++ -std=c++17 -I. -Isrc -Isrc/intern -Itests tools/probe_ac1021_curve_geometry.cpp build-gcc/libdxfrw.a -o PRODUCER; run PRODUCER MODE NEW_OUTPUT.dwg with MODE line, spline, hatch, polyline2d, polyline3d or mixed",
+    "Convert source DXFs with ODA ACAD2004/2007/2010/2013/2018 DWG audit=1; for each producer DWG run python3 -B tools/audit_polyline_owner_census.py --dwgread /opt/homebrew/bin/dwgread --dwg DWG --sha256 RECORDED_SHA --version AC1018|AC1021|AC1024|AC1027|AC1032 --mode 2d|3d",
+    "Use ODA ACAD2013 DXF on AC1021 DWGs for the recorded output matrix, and inspect expected geometry with tools/audit_ac1021_curve_geometry_peer.py; pairing reflects the recorded local converter run, not proof of lineage from hashes alone."
+  ],
+  "validation": {
+    "facade": "tests/dwg_polyline_owner_facade_tests.cpp: 10 cases across five versions and two subtypes verify a duplicate-child collision is refused with caller state restored, corrected same-facade retry, compound receipt, following LINE and native readback.",
+    "independent": "ODA-produced source census 10/10 and peer geometry source/generated role controls. Fixture-free AC1021 direct parser test checks reconstructed historical role-5 and role-3 child/SEQEND tokens; full pre-fix generated files also parsed three exact vertices natively.",
+    "literal": "tests/dwg_polyline_owned_handle_roles_tests.cpp: six revisions, two subtypes, direct role and following-handle assertions; mesh/polyface and AC1015 unchanged, plus AC1021 role-5 historical and role-3 native parser controls. Red control against a pre-fix scratch archive fails on AC1018 as expected.",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_ac1021_curve_geometry_peer_audit$|^libdxfrw_dwg_polyline_(owned_handle_roles|owner_facade)$' --output-on-failure: 3/3 passed",
+    "addressSanitizer": "ctest --test-dir build-asan-custom -R '^libdxfrw_dwg_polyline_(owned_handle_roles|owner_facade)$' --output-on-failure: 2/2 passed after rebuilding the role-fix targets with AddressSanitizer."
+  },
+  "limits": [
+    "No whole-file ODA success claim or claim that role correction fixes observed child loss.",
+    "Only source-witnessed 2D and 3D POLYLINE types are changed, excluding mesh/polyface.",
+    "No new binary fixtures; local path artifacts are reproducible scratch and hashes are run-specific."
+  ],
+  "evidence_tools": {
+    "tools/probe_ac1021_curve_geometry.cpp": "86b2b2e2f0d1f99114f456a3861af1e0315c4f3a8ead7c4a03664c38b183eefd",
+    "tools/author_ac1021_curve_geometry.py": "ff733b323e5af8de01982d085e6da51e874b98f3135f58d1fc71b69072858742",
+    "tools/audit_ac1021_curve_geometry_peer.py": "13999df2c9e47765a34f03e1293bc7c6c738f12c7f7bec9ec9ec059a6d8409b7",
+    "tests/ac1021_curve_geometry_peer_audit_tests.py": "ffd28fe185ab491682cccf83c199efa8c1b9325dc30d5a0334d62bfa5ea1454d",
+    "tools/audit_polyline_owner_census.py": "beaae3f7c49541ceac115f106104aff9cc833d8676bf871d761ee1ba96cd2b4a",
+    "tests/dwg_polyline_owner_facade_tests.cpp": "78702332f20c3dc0ff6601ae2c2e8da3b5b990183a2c6e62f267333bd9ee033a",
+    "tests/dwg_polyline_owned_handle_roles_tests.cpp": "fd39a5c65c06c4d22059effe115cda8c29968f58946eeb50f034f3e3086b2149"
+  }
+}

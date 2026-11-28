@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw-dxf-emitted-inventory-raw-routes-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "GENERATED_RAW_OBJECTS_AND_OPAQUE_SECTION_INVENTORY_PARITY_PASSES",
+  "scope": "Extend exact published-output inventory parity to one raw OBJECTS XRECORD and one record in a permitted opaque DXF section, in both ASCII and binary output.",
+  "generatedControl": {
+    "rawObject": {
+      "type": "XRECORD",
+      "section": "OBJECTS",
+      "handle": "A300",
+      "owner": "C"
+    },
+    "opaqueSectionRecord": {
+      "type": "RAW_INVENTORY_RECORD",
+      "section": "LOCAL_RAW_INVENTORY",
+      "handle": "A301",
+      "owner": "C"
+    },
+    "existingGeneratedRoutesRetained": [
+      "typed modelspace entity",
+      "typed named-block entity",
+      "generated TABLES records",
+      "generated BLOCKS records"
+    ],
+    "readbackFields": [
+      "self handle",
+      "normalized record type",
+      "containing section",
+      "first post-identity group-330 owner when present"
+    ],
+    "encodings": [
+      "ASCII DXF",
+      "binary DXF"
+    ],
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target libdxfrw_wave1_tests -j4",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_wave1$' --output-on-failure",
+      "passed": 1,
+      "failed": 0
+    },
+    "diffCheck": "passed",
+    "fullTestSuite": "not run; focused fast cadence retained",
+    "externalPeerOrNativeRun": "not run"
+  },
+  "changedFileHashes": [
+    {
+      "path": "tests/wave1_tests.cpp",
+      "sha256": "a9f549ba5aa8d47448aeb52a6c16323b34c603ec2149df729600a9207a04e5c8"
+    }
+  ],
+  "evidenceBoundary": {
+    "establishes": [
+      "the writer inventory observes one raw OBJECTS XRECORD with exact type, section, handle and owner",
+      "the writer inventory observes one permitted unknown-section record with exact type, section, handle and owner",
+      "the complete generated inventory equals the local-reader inventory parsed from the exact published ASCII and binary bytes"
+    ],
+    "doesNotEstablish": [
+      "all raw entity/object, typed, generated, table, block, layout, or section paths are covered",
+      "enclosing section or OBJECTS rollback leaves no partial inventory in every route",
+      "a pre-publication staged-byte verifier is unnecessary",
+      "independent third-party reader agreement",
+      "FIELD/FIELDLIST or TABLE group-344 wire semantics or serializer support"
+    ]
+  },
+  "nextReadyAction": "Cover remaining raw entity/object and enclosing rollback routes; only add a private staged-byte verifier if the writer event hooks cannot demonstrate full bounded inventory coverage.",
+  "planImpact": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "committed": false,
+    "commitReason": "The test file contains unrelated pre-existing workspace edits."
+  }
+}

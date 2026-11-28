@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-tablecontent-writer-allocation-fail-closed-2026-11-02",
+  "date": "2026-11-02",
+  "status": "IMPLEMENTED_FOCUSED_GENERATED_ROUNDTRIP_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Make TABLECONTENT typed-writer validation return false through the repository allocation guards when its bounded scratch vectors cannot be allocated.",
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "sourceSha256": "deb75d3d4f67406efa03111e8a8f441907fb887d461f993088e7e5c538d11abb",
+    "changes": [
+      "Guard the FIELD-reference multiset scratch-vector reserve with DRW::reserve.",
+      "Replace the unguarded copy of the FIELD ownership list with guarded reserve and bounded element copies.",
+      "Replace vector<bool> merged-cell allocation with DRW::resize on an explicit byte vector; validation returns false if allocation fails."
+    ],
+    "limits": {
+      "maxFieldReferences": 100000,
+      "maxVisitedCells": 200000
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg_object_vectors_tests --parallel 4",
+      "result": "PASS",
+      "binary": "build-gcc/libdxfrw_dwg_local_roundtrip",
+      "binarySha256": "83ba83ad39c13473ff81ab817e690e7991280aec06b23cc14c6b7fc7d4561be4"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_content_dwg_object_roundtrip$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.62,
+      "coverage": "Generated AC1021 object encoding/parser readback, field-reference multiset validation, merged-range bounds/overlap refusal, and atomic encoder refusal."
+    },
+    "diffCheck": "PASS",
+    "allocationFailureInjection": "Not available in this selector; failure paths are guarded through the existing DRW::reserve/resize helpers and no broad allocation-failure claim is made."
+  },
+  "fixturePolicy": "No DWG/DXF fixture added; the selector authors its input locally.",
+  "binding": {
+    "preChangeHead": "5e4fad180fe9c32b39429cd1a28639a716adc82b",
+    "sourceModifiedAfterBuild": false,
+    "committed": false,
+    "commitLimitation": "The workspace grants read-only access to .git; no commit was created."
+  },
+  "doesNotEstablish": [
+    "injected out-of-memory execution of these three failure paths",
+    "whole-document TABLECONTENT output or source-profile support",
+    "physical producer coverage or native TABLE semantics",
+    "allocation safety for other writer/parser paths"
+  ]
+}

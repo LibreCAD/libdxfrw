@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-07/S8 DataIndex target segment-kind guard",
+  "mode": "ODA-guided generated fast regression",
+  "scope": [
+    "Require the header DataIndex reference to identify a DataIndex segment",
+    "Ensure a wrong-kind segment is rejected before DataIndex entries or record associations are exposed",
+    "Update the open-source parity plan with the completed local slice"
+  ],
+  "method": {
+    "webResearchPerformed": false,
+    "localRepositoryInspected": true,
+    "externalSamplesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "testsRun": true,
+    "fullTestSuiteRun": false,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "localCodeInspection": [
+      "src/drw_datastorage.cpp::readSchemaIndex already validates the referenced segment kind, while readDataIndex previously accepted any in-range segment",
+      "tests/graph_preservation_tests.cpp::testDataStorageRecordCountAlignmentAnchors generates the four-record AC1027 DataStorage section and owns the header/index/payload boundary assertions"
+    ],
+    "limitations": "The generated wrong-kind case establishes local parser role validation and fail-closed exposure only. It does not establish arbitrary producer compatibility, complete DataStorage conformance, ACIS validity, kernel semantics, or native consumer acceptance."
+  },
+  "formatBasis": {
+    "source": "Open Design Specification v5.4.1, §24.1–§24.2.2.2",
+    "authority": "The header's data-index reference is interpreted according to DataStorage segment roles and the documented DataIndex lookup chain; peer behavior is not the expected-value oracle.",
+    "expectedDisposition": "A header reference that resolves to a non-DataIndex segment is structurally invalid and must not be parsed as DataIndex rows or used to expose records."
+  },
+  "implementation": {
+    "sourceFiles": [
+      "src/drw_datastorage.cpp",
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "behavior": [
+      "readDataIndex now emits datastorage-data-index-kind-invalid and returns when the header target is not classified as a DataIndex segment.",
+      "The generated four-record AC1027 case redirects the header DataIndex slot to the segment-index segment and verifies structural invalidity, non-replayability, and empty DataIndex/record exposure.",
+      "The generated profile restores its positive DataIndex slot before the separate payload-region boundary mutation."
+    ],
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests --parallel 2 — passed",
+    "focusedExecutable": "build-gcc/libdxfrw_graph_preservation_tests — passed",
+    "owningCTest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure — 1/1 passed in 0.70 seconds",
+    "diffCheck": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md src/drw_datastorage.cpp tests/graph_preservation_tests.cpp — passed",
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree contains extensive user-owned changes; no files were staged."
+  },
+  "decision": {
+    "localProductionDefectFixed": true,
+    "newTopLevelSubplan": false,
+    "inventory": "141 findings / 78 top-level subplans",
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "externalGatesChanged": false,
+    "fixturePolicyRespected": true,
+    "nextAction": "Self-unblock to the next source-backed local PAR-07/S8 invariant; keep independent semantics and native consumers at their composed gates."
+  }
+}

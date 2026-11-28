@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 ACAD_MATERIAL physical owner-order fast slice",
+  "mode": "Scratch-generated ASCII/Binary DXF graph and wire-order regression",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Verify actual NOD identity and first OBJECTS position, then NOD dictionary owner, MATERIAL dictionary child order, and exact owner handles after generated ASCII/Binary round-trip.",
+    "Provide a direct selector for the existing fixture function without changing the frozen CTest inventory."
+  ],
+  "sources": [
+    {
+      "project": "Local DXF fixture test",
+      "urls": [],
+      "references": [
+        "tests/dxf_fixture_tests.cpp",
+        "CMakeLists.txt",
+        "metadata/qualification-required-tests-v1.json"
+      ],
+      "observed": "The source DXF is written from scratch for both ASCII and Binary encodings. The output scanner reads OBJECTS records through the final EOF, then the assertions bind physical positions to strict-readback handles for NOD, ACAD_MATERIAL dictionary, and MATERIAL. The focused selector runs this test function directly; no CTest registration was added because the repository freezes its broad CTest inventory."
+    }
+  ],
+  "assessment": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "directSelectorAdded": "--material-object-order",
+    "focusedCtestRegistered": false,
+    "existingCTestOwner": "libdxfrw_dxf_fixtures",
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "targetBuild": "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 2",
+    "directSelector": "PASS: build-gcc/libdxfrw_dxf_fixture_tests --material-object-order (ASCII and Binary)",
+    "existingFocusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure (1/1; 3.88 sec)",
+    "scopedDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "peerOrNativeValidation": false,
+    "commitCreated": false,
+    "commitBlocker": "The shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

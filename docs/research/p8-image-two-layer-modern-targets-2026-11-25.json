@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-25",
+  "baseline": "489cab904b4d7a5d49e72bce406593b64b868428",
+  "implementation_digest_sha256": "0a5588c22585c4c9ea894e6c81e2e1b0b11981ba2825ee98688e88a644850ed8",
+  "input_count": 775,
+  "scope": "Extend the existing bounded AC1015 two-null-layer source profile to AC1018, AC1021, AC1024, AC1027 and AC1032 DXF targets; retain all source, class, layer, IMAGE graph and transactional output gates.",
+  "checks": [
+    "20 source/target encoding cells and 100 atomic failure-and-retry controls pass.",
+    "Four focused image, plot-style and raster CTests pass.",
+    "ezdxf 1.4.5 pre-audit graph comparison matches the generated AC1015 source against AC1021, AC1024, AC1027 and AC1032 ASCII/binary outputs, including IMAGE dictionary and two IMAGEDEF records, extension/XRECORD owner backlinks, reactors, application data, EED and both layers.",
+    "A separate layer-only projection for each modern target has the expected exact two-row wire shape and canonical classes; ezdxf audit reports zero errors and repairs for those limited projections."
+  ],
+  "peer_limitations": [
+    "The complete IMAGE graph causes the same reproducible ezdxf dictionary-extension audit repair described in the prior receipt, including in an ezdxf-authored control.",
+    "LibreDWG 0.14 supplies only partial extension-owner evidence and does not preserve the IMAGEDEF or 1003 EED fields in its converter.",
+    "No native application qualification or general format support is claimed."
+  ],
+  "remaining": "The broader original matrix proceeds to AC1018 source -> AC1015 target and remains guarded; qualify its own source and output profile separately.",
+  "artifacts": "All drawings are locally generated scratch files; no DWG/DXF fixture committed."
+}

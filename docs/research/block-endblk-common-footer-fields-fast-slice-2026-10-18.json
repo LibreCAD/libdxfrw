@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "BLOCK ENDBLK common footer fields and reference emission fast slice",
+  "mode": "Local source review plus generated scratch-only ASCII/Binary regression",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Complete the current 7AM.2 specialized ENDBLK writer for common typed references and style handles",
+    "Preserve footer space and group-102 reactor/xDictionary references without duplicating parsed application-data copies",
+    "Verify the ordinary entity common reference path remains unchanged after factoring shared emission logic"
+  ],
+  "sources": [
+    {
+      "path": "src/libdxfrw.cpp",
+      "identity": "Local dxfRW::writeEntity and dxfRW::writeBlockEnd",
+      "observation": "Ordinary entity output emits typed reactor and xDictionary groups unless equivalent ACAD_REACTORS or ACAD_XDICTIONARY appData groups are present. The specialized ENDBLK writer did not share this path and omitted material, full visual-style, plot-style, and paper-space fields.",
+      "boundary": "The shared helper preserves existing omission/remap behavior; special raw appData reference rewriting and graph closure remain separate work."
+    },
+    {
+      "path": "src/drw_entities.cpp",
+      "identity": "Local DRW_Entity::parseCode and DRW_Entity::parseDxfGroups",
+      "observation": "The common entity parser maps codes 67, 347, 348, 360, and 390 into typed footer state and resolves typed reactor/xDictionary state from group-102 groups.",
+      "boundary": "The generated semantic check tests codec retention, not whether each referenced handle points to an object of the correct DWG/DXF class."
+    },
+    {
+      "path": "tests/fixtures/dxf/block_record_preview_r2007.dxf",
+      "identity": "Existing repository fixture extended in memory by the test",
+      "observation": "The focused regression adds one ENDBLK footer with paper-space, reactor, xDictionary, material, visual-style, and plot-style values, then clears parsed group copies to force typed writer emission.",
+      "boundary": "The modified DXF is written only to the system temporary directory and removed by the test cleanup."
+    }
+  ],
+  "implementation": {
+    "productionChange": "Factored dxfRW::writeEntityReferenceGroups and reused it in ordinary entity and ENDBLK serialization. The ENDBLK writer now emits paper-space group 67, R2007+ material 347, full visual style 348, plot style 390, and typed reactor/xDictionary groups; the footer parser admits group 348.",
+    "generatedFields": [
+      {"code": 67, "type": "space", "value": "PaperSpace"},
+      {"code": 102, "type": "reactor application group", "value": "one handle"},
+      {"code": 102, "type": "extension-dictionary application group", "value": "one handle"},
+      {"code": 347, "type": "material handle"},
+      {"code": 348, "type": "full visual-style handle"},
+      {"code": 360, "type": "extension-dictionary handle"},
+      {"code": 390, "type": "plot-style handle"}
+    ],
+    "coverage": [
+      "Generated AC1021 ASCII and Binary parse-write-reimport retains footer fields",
+      "Clearing parsed appData copies proves typed reactor/xDictionary references are reconstructed once",
+      "Re-import confirms one reactor, one xDictionary reference, and two expected group-102 application-data groups",
+      "Existing BLOCK path/XDATA and ENDBLK-following-record alignment assertions remain in the focused selector",
+      "Existing ordinary entity appData/reference resolver selector passes after helper extraction"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "cmake --build build-gcc --target libdxfrw_block_owner_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_xref_path_roundtrip$' --output-on-failure",
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_owners$' --output-on-failure",
+      "build-gcc/libdxfrw_dxf_fixture_tests --reference-resolver-appdata",
+      "cmake --build build-gcc --target lc3_compat_check -j4",
+      "git diff --check -- src/libdxfrw.cpp src/libdxfrw.h tests/dxf_fixture_tests.cpp"
+    ],
+    "strictTargetBuild": true,
+    "blockXrefFocusedSelectorPassed": true,
+    "ordinaryReferenceAppdataSelectorPassed": true,
+    "malformedFooterSameFacadeRetryPassed": true,
+    "owningCtest": {"passed": 1, "failed": 0, "elapsedSeconds": 0.03},
+    "lc3SourceCompatibilityTargetPassed": true,
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "crossVersionMatrixRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {"findings": 134, "top_level_subplans": 76},
+    "remaining7AM": [
+      "Fixed model/paper-space footer source carrier routing",
+      "Source ENDBLK self-handle and explicit owner identity mapping",
+      "Footer-specific reset/copy and writer-operation retry coverage",
+      "Special ACAD_REACTORS/ACAD_XDICTIONARY raw appData handle translation and validated graph closure",
+      "Cross-version XDATA policy and BLOCK/BLOCK_RECORD/ENDBLK handle-graph closure"
+    ],
+    "limitations": [
+      "AC1021 only; no cross-version claim",
+      "The generated handles establish serialization/reparse shape, not semantic referent type or object-graph validity",
+      "The writer still mints the ENDBLK self handle and uses the emitted BLOCK_RECORD owner",
+      "No external XREF resolution or external drawing access"
+    ],
+    "deferredExternal": {
+      "status": "DEFERRED_EXTERNAL",
+      "nonPromoting": true,
+      "items": ["J256", "J260", "J268", "J284", "J293", "J295"]
+    },
+    "worktree": "Changes remain unstaged/uncommitted because the shared worktree contains extensive unrelated modifications."
+  }
+}

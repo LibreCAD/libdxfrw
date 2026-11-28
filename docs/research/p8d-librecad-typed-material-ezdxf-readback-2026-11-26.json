@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-typed-material-ezdxf-readback-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "865f95020",
+  "implementationDigestSha256": "ccb23103e05093b9d0ea9338e66ddd2798b6a59d814e2a0f903277e63fe85ac5",
+  "librecadCommit": "ff9e56154bee8ae54acd7209a364eee7953dd48b",
+  "outputSha256": "458cdb0cc034dadcd4977fbc20b97ee2f5f6875bfa7ff348b972abc4857005d8",
+  "producer": "Existing locally authored LibreCAD system-codec material test; same-filter save/reopen/retry output, ASCII AC1021. The generated DXF remains scratch-only.",
+  "peer": "ezdxf 1.4.5; independent low-level ASCII tagger and high-level document loader",
+  "checks": [
+    "PASS: physical root C has owner 0 and exactly one ACAD_MATERIAL soft-owner entry targeting dictionary A0; physical dictionary A0 has owner C and exactly one PlainMat soft-owner entry targeting MATERIAL A1.",
+    "PASS: physical MATERIAL A1 has owner A0 outside reactor scopes, and the RAWTEST LAYER group 347 points to A1. The high-level reader resolves the same selected identities and reports zero audit errors or fixes.",
+    "The physical root also contains generated ACAD_GROUP and ACAD_PLOTSTYLENAME entries; their complete target graphs were not checked by this receipt."
+  ],
+  "limits": [
+    "The high-level ezdxf load exposes four material entries while the physical source dictionary contains one; its synthesized defaults are not counted as output evidence.",
+    "This is one locally generated typed-material profile, without a current-material HEADER reference. It does not qualify raw-only replay, binary consumer output, other graph families or native CAD semantics."
+  ]
+}

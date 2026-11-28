@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-139.5a affine SPATIAL_FILTER matrix controls fast slice",
+  "mode": "Generated local regression test update and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Replace sequential SPATIAL_FILTER matrix sentinels in the generated adapter control with non-identity affine matrices derived from the two INSERT transforms.",
+    "Add test-local known-point mapping checks for inverse INSERT and clip-boundary matrices before and after DXF replay.",
+    "Keep tests scratch-generated and preserve existing fast validation cadence."
+  ],
+  "changes": {
+    "files": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par1395a-spatial-filter-affine-matrix-controls-fast-slice-2026-10-19.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "newCtestRegistration": false,
+    "persistentDwgDxfFixtureAdded": false,
+    "generatedProfiles": 16,
+    "matrixProfile": {
+      "insertTransforms": [
+        "translation (1,2,0), scale (2,3,1), rotation +30 degrees",
+        "translation (7,8,9), scale (4,0.5,2), rotation -15 degrees"
+      ],
+      "inverseInsertMatrices": [
+        [0.43301270189221935, 0.24999999999999997, 0.0, -0.9330127018922193, -0.16666666666666666, 0.2886751345948129, 0.0, -0.4106836025229592, 0.0, 0.0, 1.0, 0.0],
+        [0.24148145657226708, -0.06470476127563018, 0.0, -1.172732105800828, 0.5176380902050415, 1.9318516525781366, 0.0, -19.078279852060383, 0.0, 0.0, 0.5, -4.5]
+      ],
+      "clipBoundaryMatrices": [
+        [0.0, -2.0, 0.0, 5.0, 3.0, 0.0, 0.0, -4.0, 0.0, 0.0, 1.0, 2.0],
+        [0.0, 4.0, 0.0, -2.0, -0.5, 0.0, 0.0, 6.0, 0.0, 0.0, 2.0, 3.0]
+      ],
+      "knownPointChecks": "Test-local affine mapping sends known WCS points back to known block points through each inverse matrix, and maps (2,1,0) to (3,2,2) and (2,1,0) to (2,5,3) through the respective clip-boundary matrices. Exact matrix arrays and mapped results are checked after write/reimport."
+    }
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --spatial-filter-graph-roundtrip",
+      "result": "passed"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "passed 1/1 in 0.33 sec"
+    },
+    "fullSuiteRun": false,
+    "scopedDiffCheck": true,
+    "receiptJsonValidation": true
+  },
+  "assessment": {
+    "findingCountChanged": false,
+    "topLevelSubplanCountChanged": false,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "claimBoundary": "The slice establishes local preservation and test-local affine mapping only. It does not establish DWG/DXF cross-format agreement, native clipping/display/plot behavior, inversion semantics, or consumer support."
+  },
+  "method": {
+    "externalPeerRepositoriesUsed": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "generatedFiles": "Unique temporary directory created by the existing adapter test and removed when the selector completes.",
+    "limitations": "The test-local matrix arithmetic validates the generated controls and roundtrip preservation under the chosen documented 4x3 layout. Native or independent cross-format semantic qualification remains at PAR-139.6."
+  }
+}

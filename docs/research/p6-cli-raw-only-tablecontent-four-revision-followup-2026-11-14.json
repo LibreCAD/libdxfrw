@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-raw-only-tablecontent-four-revision-followup-2026-11-14",
+  "date": "2026-11-14",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated raw-only TABLECONTENT CLI disposition checks across source revisions with viable output preflight profiles.",
+  "profiles": [
+    {
+      "sourceVersion": "AC1018",
+      "targetVersion": "AC1021",
+      "reason": "The generated VPORT state is not representable by the AC1018 DXF target."
+    },
+    {"sourceVersion": "AC1021", "targetVersion": "AC1021"},
+    {"sourceVersion": "AC1024", "targetVersion": "AC1024"},
+    {"sourceVersion": "AC1032", "targetVersion": "AC1032"}
+  ],
+  "generatedSource": {
+    "origin": "Generated from scratch in temporary test directories; no DWG/DXF fixtures are committed.",
+    "rawOnlyObjectsPerSource": 2,
+    "sourceFrames": 28,
+    "publishedFrames": 28,
+    "frameCoverage": "complete",
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "skippedCustomClassInstances": 2,
+    "skippedUnsupportedObjectInstances": 2,
+    "failedFrames": 0,
+    "unresolvedFrames": 0,
+    "unrecognizedDispositions": 0
+  },
+  "controlsPerProfile": [
+    "Strict ASCII and Binary conversion refuses before replacing destination sentinels, reports exact raw-only counts, and preserves the source.",
+    "Explicit partial ASCII and Binary conversion succeeds with the omission warning, preserves the source, and emits no TABLECONTENT.",
+    "Direct dxfRW ASCII and Binary readback finds exactly one LINE and one VPORT."
+  ],
+  "excludedProfile": {
+    "sourceVersion": "AC1027",
+    "reason": "The generated source is refused by the independent AC1027 DWG source-reference closure preflight before raw-only output disposition can be isolated. This profile remains uncovered by this receipt."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j4",
+    "test": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --skipped-record-only",
+    "result": "PASS: 42 version/profile controls; focused selector completes in under two seconds"
+  },
+  "limits": [
+    "Synthetic malformed-body controls establish raw-only routing and CLI disposition only; they do not establish TABLECONTENT semantics, graph closure, or export support.",
+    "AC1027 is not qualified because its independent reference-closure refusal prevents isolating this CLI disposition path.",
+    "No testing DWG/DXF fixture files were committed."
+  ]
+}

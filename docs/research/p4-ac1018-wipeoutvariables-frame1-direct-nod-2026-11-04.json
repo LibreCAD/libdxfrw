@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_SOURCE_BACKED_MINIMAL_GRAPH_OUTPUT",
+  "base_commit": "5b666eafed189d228d59ed4dc544d2e67319d213",
+  "scope": "AC1018 direct-NOD WIPEOUTVARIABLES frame=1 only, matching exact canonical 10-bit BS and existing minimal root/empty ACAD_GROUP graph, role and capture gates. Existing frame=0 behavior retained.",
+  "authority": "ODA v5.4.1 sections 10.2, 20.1 and 20.4.44 cover common framing; the single BS object value is bounded by physical producer evidence, not a claimed WIPEOUTVARIABLES normative layout.",
+  "physical_source": {
+    "authored_dxf": "/private/tmp/wipeout-frame1/in/source.dxf",
+    "authored_dxf_sha256": "25837132680f405474425647efed839351dbf7fc92e1554bf15269a71eca3b5b",
+    "oda_dwg": "/private/tmp/wipeout-frame1/ac1018/source.dwg",
+    "oda_dwg_sha256": "9d2d16b67c070b1ab71fb41c84f2ca6afd4921fe6d7bbca25efe0652ce6a7006",
+    "oda_returned_dxf": "/private/tmp/wipeout-frame1/out18/source.dxf",
+    "oda_returned_dxf_sha256": "6436fe83ec65e138cf5d953fe0a8134aaedc9f97a7c9e3dfaa12a30d783d0083",
+    "producer": "ezdxf 1.4.5 then ODA File Converter 27.1 AC1018, with separate ODA DXF return; lineage is an observed conversion, not inferred from hashes",
+    "wire": "WIPEOUTVARIABLES class/type 516, handle 0x30, 16-byte body, RL scalar boundary 89 bits; frame=1 is canonical 10-bit BS; role-4 owner [89,105) and role-4 reactor [105,121) both resolve to NOD 0xA; zero pad [121,128); object CRC 0x5844. The source NOD has additional entries and does not match the minimal output profile."
+  },
+  "physical_audit": "python3 /private/tmp/wipeout-frame1/work-ac1018/tools/audit_wipeout_ac1018_frame1_source.py /private/tmp/wipeout-frame1/ac1018/source.dwg /private/tmp/wipeout-frame1/probe18: PASS; uses source SHA gate and in-tree reader/independent raw span walker, not an independent whole-file decoder. LibreDWG 0.14 independently observed class, scalar and owner/reactor values and CRC. Probe compilation: g++ -std=c++17 -Wall -Wextra -Werror -I<source> -I<source>/src -I<source>/dwg2dxf <source>/tools/probe_wipeout_ac1018_frame1_source.cpp <build>/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o <build>/libdxfrw.a -o <probe>.",
+  "generated_controls": "10/10 focused adapter CTests passed: frame1 and preexisting direct NOD controls in AC1018/1024/1027/1032, nested refusal and transport. AC1018 frame1 exercises strict ASCII/Binary resolved owners, exact output frame, raw value and noncanonical 18-bit BS mutations, graph/class/identity conflicts, destination preservation and same-adapter retry, plus direct root-owner query rejection and restore.",
+  "strict_full_physical_source": "Scratch dwg2dxf strict AC1018 conversion exits 1 at output preparation: strict-complete conversion requires successful, complete DWG read disposition; preexisting destination sentinel PRIOR_WIPEOUT_DEST remains intact. The physical NOD also contains additional entries and is outside the minimal source graph. No whole-source conversion or native application qualification is asserted.",
+  "reproduction": "cmake --build /private/tmp/wipeout-frame1/build-ac1018 --target libdxfrw_dwg2dxf_adapter_tests -j4; ctest --test-dir /private/tmp/wipeout-frame1/build-ac1018 -R \"^(dwg2dxf_wipeoutvariables_ac1018_(frame1|direct_nod)|dwg2dxf_wipeoutvariables_ac102[47]_(frame1|direct_nod)|dwg2dxf_wipeoutvariables_ac1032_(frame1|direct_nod)|dwg2dxf_wipeoutvariables_ac1024_nested_refusal|dwg2dxf_wipeoutvariables_dwg_adapter_transport)$\" --output-on-failure",
+  "patch_sha256": "369d69b79997c43fbf6f65aef596caaf36a7230ad3f77711d87b399f10c78ed9",
+  "limits": [
+    "No DWG/DXF fixture was added; source and output samples remain scratch-only.",
+    "Physical whole-source output and full application semantics remain unqualified; generated graph tests and physical raw source observation are distinct.",
+    "No relaxation for other source revisions, frame values, ownership roles, classes, or noncanonical frame=1 encoding."
+  ],
+  "integrated_validation": "Built the adapter on the integrated candidate and ran the ten frame, direct-NOD and nested-refusal selectors: 10/10 passed.",
+  "scratch_files_sha256": {
+    "dwg2dxf/dx_iface.cpp": "1722d31632c62a6f7ca1c49a5c737a4863e13e1887583ff2a3b053a035f937b7",
+    "tests/dwg2dxf_adapter_tests.cpp": "5c75e48f8d92c32562b3079c835351da6a14e39b5758a4f0dce42ed9f98dc550",
+    "tests/CMakeLists.txt": "4e9bbfa1670000712e8785660329cc96e782fe6b2618eb8a9fa9f91a7646b543",
+    "tools/probe_wipeout_ac1018_frame1_source.cpp": "e507c33da06c5c5f610af8b79ec602b007b170bb5002d824f51c1cd33004b989",
+    "tools/audit_wipeout_ac1018_frame1_source.py": "276158fe3dc48acc7a199b6ae173bd8a128cd1257633b8d8b57a65e5e4f1dfd8"
+  }
+}

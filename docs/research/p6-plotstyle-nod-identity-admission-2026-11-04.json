@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-plotstyle-nod-identity-admission-2026-11-04",
+  "date": "2026-11-04",
+  "status": "PLOTSTYLE_NOD_ASCII_COLLISION_GUARD_ONLY",
+  "supportClaimEffect": "none",
+  "authority": {
+    "autodesk_dictionary": "https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbDictionary.html: AcDbDictionary keys are case-insensitive and entries have unique objects.",
+    "autodesk_lookup": "https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbDictionary__has_ACHAR__const.html: dictionary key lookup is case-insensitive.",
+    "earlier_graph_research": "docs/research/p6-default-plotstyle-graph-research-2026-11-04.json"
+  },
+  "problem": "The pending DWG Named Objects Dictionary indexed names with case-sensitive bytes, so an already registered aCaD_PlotStyleName did not prevent ACAD_PLOTSTYLENAME with a different child. A second unrelated NOD key could also alias the plotstyle target handle. Both leave an ambiguous default plotstyle root.",
+  "baseline_probe": "Against the prior writer source blob 8e6ab82d8392152794d75d7d2584d36b2e4f0528, direct registration produced first=1 duplicate=1 alias=1; the focused test executable exited 1. The guarded writer produced first=1 duplicate=0 alias=0 and the focused test passed.",
+  "scope": "Only the ASCII-reserved ACAD_PLOTSTYLENAME key is compared with locale-independent ASCII folding. Admission rejects a second case variant, a DRW::NoHandle target and any NOD alias of that specific target in either registration order. Existing GROUP/NOD identity collision checks remain active. The emitted key keeps the caller's original spelling. Unrelated NOD names retain their existing admission/collation behavior, including differently cased names; Unicode dictionary collation is not implemented or claimed.",
+  "rollback": "A rejected candidate is checked before reservation or pending-list mutation. The derived pending index is revalidated with the same narrow rules after a public-transaction rollback; a new spelling/target can then be registered on the same low-level writer. Facade duplicate rejection leaves an existing output untouched, and a corrected retry through the same dwgRW succeeds.",
+  "caller_compatibility": "Tests confirm both an early root registration from writeDwgClasses and a late root registration from writeLTypes before deferred OBJECTS still work; class registration remains early in both. The graph is caller-supplied and no new default graph is synthesized.",
+  "tests": {
+    "selector": "libdxfrw_dwg_plotstyle_nod_admission",
+    "result": "PASS for AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032: mixed-case collision, NOD target aliases in both orders, GROUP handle collision in both orders, no-handle, public checkpoint rollback/retry, distinct unrelated names, facade atomic failure and same-writer retry, early/late NOD registration and typed root/dictionary/default/placeholder readback.",
+    "independent": "LibreDWG 0.14 independently decoded the exact mixed-case NOD key, its dictionary target, Normal entry/default handle and placeholder presence in all six scratch outputs. The generated writer HEADER still does not bind this caller-supplied plotstyle dictionary; these are admission and object readback controls, not complete plotstyle graph support.",
+    "sha256": {
+      "AC1015": "ab5bfb4cb6f41fccc9d1a3af7e1da212cb5b7100472c5caeda49ced42b8724c0",
+      "AC1018": "cb10ccfa20732c9e01a4fee5dae11713e2dde93d2e4d384496ce8a6afb43d7a3",
+      "AC1021": "eee54e2011ad99ef5dbb6f65176eb98de52c2735e325d006ac4d5e6140be35c6",
+      "AC1024": "537ea14e081d03fb1f278ce237c11b62a1dd85024ff9ed95628abecc05908e43",
+      "AC1027": "1623cf2e61dcb2450729167c3691ae0681d4eea4487f679647941504b9af5286",
+      "AC1032": "cd544922009798786c004676d69c58079204ec7b9e04617d75a71521cb29bf9c"
+    }
+  },
+  "remaining": "Default graph synthesis remains open: caller NOD registration may happen after HEADER/CLASSES emission, so synthesizing early would preempt a valid late caller. Resolve that lifecycle explicitly; then prove early class admission, identity allocation, header and default-layer binding, graph completeness, caller overrides, rollback/retry and native/independent output. No ODA acceptance or complete DWG plotstyle support is claimed. No DWG/DXF fixtures were committed."
+}

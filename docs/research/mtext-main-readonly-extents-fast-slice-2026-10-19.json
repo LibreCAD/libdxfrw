@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-mtext-main-readonly-extents-fast-slice-v1",
+  "completedAt": "2026-10-19",
+  "status": "PASS_LOCAL_FAST_SLICE",
+  "scope": "Ignore main-context read-only MTEXT groups 42/43 while preserving standalone R2018 column-object total extents.",
+  "evidence": {
+    "authority": "Autodesk MTEXT DXF reference documents main-context groups 42 and 43 as read-only computed values ignored on input.",
+    "reference": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm",
+    "existingScope": "DRW_MText::parseCode has a marker-scoped StandaloneColumnObject parser that assigns groups 42/43 to column total extents.",
+    "change": "The main MTEXT switch now consumes groups 42/43 without mutating column-only extent fields."
+  },
+  "implementation": {
+    "filesChanged": [
+      "src/drw_entities.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionCodeChanged": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "newTestTarget": false,
+    "newCTestRegistration": false,
+    "committedFixtureFiles": 0,
+    "dependenciesAdded": 0,
+    "generatedControls": [
+      "ASCII and Binary no-column MTEXT with main-context 42/43 values leaves column extent fields at their defaults",
+      "ASCII and Binary static/dynamic standalone column profiles retain nested 42/43 total extents",
+      "existing write/readback and malformed-profile controls remain in the focused selector"
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dxf_fixture_tests --mtext-column-object-scope",
+        "result": "PASS",
+        "notes": "Expected diagnostics are emitted by malformed-profile rejection controls; ASCII and Binary DXF cases pass."
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mtext-main-readonly-extents-fast-slice-2026-10-19.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuitesRun": false,
+    "ctestRun": false,
+    "peerRuntimesRun": 0,
+    "nativeCadRuns": 0,
+    "externalFilesDownloaded": 0
+  },
+  "limits": {
+    "claimsAutoCADOrBricsCADRenderingAcceptance": false,
+    "promotes3dConsumerSupport": false,
+    "promotesSupportClaims": false,
+    "findings": 137,
+    "topLevelImplementationSubplans": 77,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

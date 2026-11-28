@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "id": "s8-1b-ole-block-adapter-2026-11-02",
+  "date": "2026-11-02",
+  "status": "COMMITTED_IMPLEMENTATION",
+  "implementationCommit": "c6ab3b3d8d768c9a001239f83db0817c185cb072",
+  "scope": {
+    "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P8 / BLOCK callback coverage",
+    "operation": "Retain OLE2FRAME and OLEFRAME callback values in the concrete BLOCK adapter and route them through the existing typed DXF serializers.",
+    "behavior": [
+      "Typed capture rejects a callback whose public eType disagrees with its concrete OLE frame type.",
+      "Retained-byte accounting charges OLE2 client text, source raw bytes, and DXF payload bytes; legacy OLE charges source and DXF payload bytes. The copy remains subject to the adapter aggregate record/byte limits.",
+      "BLOCK export dispatch runtime-checks the stored type before calling writeOle2Frame or writeOleFrame.",
+      "Generated ASCII and Binary named-BLOCK readback checks both payload byte sequences and OLE2 version, client, frame points, flags, mode, and lock-aspect metadata."
+    ]
+  },
+  "supportClaimEffect": "none",
+  "binding": {
+    "branchHead": "c6ab3b3d8d768c9a001239f83db0817c185cb072",
+    "implementationFilesSha256": {
+      "dwg2dxf/dx_iface.h": "8771959ea1dc6d882c2e92693a8110c487cb3bf7ff4afad6f2b679511396e692",
+      "dwg2dxf/dx_iface.cpp": "d5120bba8b76ad2b4773ff646f7c2f6f55d5a13f6c4fba1cf299f5729af816ad",
+      "tests/dwg_local_roundtrip_tests.cpp": "231116d8d037f2520f9ac879189b80d117e958101adcfad4029ed821224467b1"
+    },
+    "artifactsSha256": {
+      "build-gcc/dwg2dxf/dwg2dxf": "36fdac940f95107640a8b19b94d06406f91150c5cc19aab6b63791dfceb0e252",
+      "build-gcc/libdxfrw_dwg_local_roundtrip": "536b13e9c61efbff2a85bf72b2b7666deab4b96adda329ac5604f9eb1d337b77"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j4",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS (1/1; 7.29 seconds)"
+    },
+    "diffCheck": "PASS",
+    "fullSuiteRun": false,
+    "asanRun": false,
+    "persistentFixtureAdded": false
+  },
+  "limitations": [
+    "The round-trip uses locally authored in-memory values and does not establish external producer or native OLE consumer semantics.",
+    "Retaining and emitting OLE payloads does not establish complete enclosing document output or support for every OLE profile.",
+    "No support claim is promoted."
+  ]
+}

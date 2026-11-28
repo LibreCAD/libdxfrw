@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw-freecad-importer-source-scope-handoff-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Reconcile the FreeCAD 3DFACE documentation split against current importer source and sharpen the converter-to-importer qualification receipt without adding per-slice validation work.",
+  "method": {
+    "kind": "Primary-source web research and local plan cross-check",
+    "peerSourceRevisionsPinned": false,
+    "freecadExecutableBuiltOrRun": false,
+    "converterRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md"
+    ],
+    "limitations": "FreeCAD main and documentation pages are mutable; this pass did not pin a release revision or execute the importer. Current-source routing is not a released-build, OS-specific, or runtime acceptance result."
+  },
+  "evidence": [
+    {
+      "topic": "Current C++ importer has a generic shape output path naming 3DFACE",
+      "observed": "ImpExpDxf.cpp contains a generic-shape branch described as applying to examples including 3DFACE, and wraps the supplied TopoDS_Shape in a generic Part::Feature. The importer also exposes individual-shape and fused-shape modes and reads geometry-affecting settings. This is source-scope evidence only; it does not prove parser dispatch, complete field interpretation, or a released build's behavior.",
+      "doesNotEstablish": [
+        "3DFACE DXF parsing for every supported version",
+        "correct XYZ, winding, edge flags, layer, or block semantics",
+        "runtime acceptance by a pinned FreeCAD release or platform",
+        "ACIS/SAB interpretation or B-rep semantics"
+      ],
+      "planUse": "Reclassify the previous broad-versus-legacy documentation discrepancy as SOURCE_SCOPE_SPLIT / RUNTIME_PENDING. At the composed native checkpoint, pin source/build/backend and verify an asymmetric generated 3DFACE profile in the selected individual/fused mode."
+    },
+    {
+      "topic": "FreeCAD DWG converter handoff success is not semantic import success",
+      "observed": "Current importDWG.py routes DWG through a selected external converter and then the DXF importer. Its converter branches wait for the subprocess and decide conversion success from the expected output path existing; the wrapper does not thereby establish a successful downstream DXF parse or valid imported shape.",
+      "doesNotEstablish": [
+        "successful converter exit from output-file existence alone",
+        "a valid or complete DXF artifact",
+        "successful FreeCAD import or geometry preservation",
+        "native Linux/Windows qualification"
+      ],
+      "planUse": "At the composed checkpoint record the process status/logs, output path/hash/AC code, independent DXF parse/import result, and per-source-handle geometry disposition. Treat converter messaging and artifact existence as handoff evidence only."
+    },
+    {
+      "topic": "Separate ordinary DWG conversion from optional 3D modeler workflows",
+      "observed": "FreeCAD documentation describes the ordinary DWG workflow as conversion to DXF followed by the selected DXF importer. It identifies CAD Exchanger Workbench as its documented workflow for working with 3D DWG. This is a route distinction, not a qualification result or open-source peer vote.",
+      "doesNotEstablish": [
+        "that CAD Exchanger is part of the stock importer or an allowed dependency",
+        "that ordinary converters produce complete 3D modeler data",
+        "that stock FreeCAD consumes ACIS or ACDS semantics",
+        "that any exact platform/application tuple passed"
+      ],
+      "planUse": "Keep stock 2D/explicit-entity handoff checks separate from separately named modeler plugins. Keep ACIS consumer disposition NOT_APPLICABLE for stock runs unless an exact route proves otherwise."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "existingFindingsAndSubplansOnly": true,
+    "findings": 127,
+    "implementationSubplans": 71,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "classify FreeCAD 3DFACE as a current-source route candidate with runtime still pending, not as a documentation-only conflict or support pass",
+      "capture exact importer backend, import mode, geometry-affecting settings, and converter-to-DXF handoff at the existing composed checkpoint",
+      "keep explicit 3D entities, ACIS carrier preservation, AcDs association, B-rep semantics, and native application operations as separate claims",
+      "add no per-slice test, fixture, dependency, or native application run"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

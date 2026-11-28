@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader cross-project consumer abstraction and nested-block placement review",
+  "mode": "primary-source repository/documentation and issue review with local plan reconciliation",
+  "scope": [
+    "Assess current FreeCAD block-placement reports as downstream consumer evidence rather than libdxfrw defects",
+    "Refine the existing composed FreeCAD qualification around nested INSERT identity, transforms, backend and importer settings",
+    "Reconcile callback-only dxflib and geometry-conversion BRL-CAD routes against whole-document parity claims",
+    "Preserve fast local validation, scratch-only generated controls, and external support deferrals"
+  ],
+  "method": {
+    "sourceRevisionsPinned": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/FreeCAD/FreeCAD/issues/25451",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.wikitext",
+      "https://www.qcad.org/doc/dxflib/2.5/reference/overview.html",
+      "https://www.qcad.org/en/what-is-dxflib/",
+      "https://brl-cad.github.io/docs/tutorials/converting/chapter4.html",
+      "https://github.com/BRL-CAD/brlcad/issues/228",
+      "https://github.com/BRL-CAD/brlcad/pull/245"
+    ],
+    "limitations": "Public main/documentation is mutable. FreeCAD issue #25451 attachments and claimed input were not downloaded or independently reproduced. The dxflib detailed guide is historical. BRL-CAD issue/PR details are peer-reported/proposed, not independently tested here."
+  },
+  "evidence": [
+    {
+      "topic": "FreeCAD #25451 is a downstream block-placement lead",
+      "source": "https://github.com/FreeCAD/FreeCAD/issues/25451",
+      "observed": [
+        "The issue is open and carries a Confirmed label.",
+        "The report says some blocks are missing or misplaced in both C++ and legacy Python DXF import paths and multiple Import As modes.",
+        "The reporter identifies FreeCAD 1.0.2 as reproducible and supplies a 1.2.0dev build identity with commit be7d41dea75f7f2966d7b431d24f7060c6907339.",
+        "The attached source DXF and result document were not downloaded; no expected block transform manifest was present in the reviewed body."
+      ],
+      "doesNotEstablish": [
+        "A matching libdxfrw parser or writer defect",
+        "Whether the original DXF, the selected importer, or object grouping/display caused each reported symptom",
+        "General behavior of every FreeCAD release, importer backend, platform, or setting"
+      ],
+      "planUse": "At the existing composed consumer gate only, use a locally generated nested INSERT control with nonzero block base, asymmetric child geometry, and independently computed composed transforms. Record backend/mode/settings and object grouping separately from expected geometry. Do not use the attached file as a fixture."
+    },
+    {
+      "topic": "FreeCAD DWG and DXF importer routes must remain separate",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.wikitext"
+      ],
+      "observed": [
+        "The application workflow uses an external DWG converter before the selected DXF importer.",
+        "The C++ and legacy Python DXF importer routes and their feature/settings surfaces differ.",
+        "A converter handoff or successful file-open does not establish the imported block geometry."
+      ],
+      "planUse": "Keep direct DXF import separate from DWG→converter→DXF→FreeCAD; record converter identity, exit status, fresh intermediate DXF hash/version, backend, settings, and geometry disposition."
+    },
+    {
+      "topic": "dxflib is callback-oriented rather than a whole-document parity model",
+      "sources": [
+        "https://www.qcad.org/doc/dxflib/2.5/reference/overview.html",
+        "https://www.qcad.org/en/what-is-dxflib/"
+      ],
+      "observed": [
+        "The detailed guide says the reader dispatches supported entities/objects to consumer callbacks and does not store an entity/document model.",
+        "The detailed guide dates to 2004–2005 and does not establish a current complete entity/version matrix."
+      ],
+      "planUse": "Retain as an optional callback/2D probe only; score the exact adapter's callbacks and values, not document identity/owner preservation."
+    },
+    {
+      "topic": "BRL-CAD dxf-g/g-dxf is a lossy geometry conversion route with an unresolved hostile-PFACE report",
+      "sources": [
+        "https://brl-cad.github.io/docs/tutorials/converting/chapter4.html",
+        "https://github.com/BRL-CAD/brlcad/issues/228",
+        "https://github.com/BRL-CAD/brlcad/pull/245"
+      ],
+      "observed": [
+        "The tutorial describes polygons/meshes becoming BOT, layers becoming regions, lines/circles/arcs becoming NMG, points becoming spheres, and absent units defaulting to millimeters with scale/tolerance options.",
+        "The inverse g-dxf path is documented as faceted output, with 3DFACE default and POLYFACE available via -p.",
+        "Issue #228 reports an out-of-bounds POLYFACE face-index read in dxf-g; proposed PR #245 was still open in the inspected public view and was not independently built or reviewed."
+      ],
+      "planUse": "Keep BRL-CAD as an optional explicit-facet geometry projection, not identity/owner parity. Do not send malformed PFACE input until a merged immutable fix is checked for bounds, signed visibility, and the zero terminator."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newConfirmedLocalFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "newCTestRegistrations": 0,
+    "committedFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerOrNativeExecutions": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 129,
+    "topLevelImplementationSubplans": 72,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextActions": [
+      "At the existing composed FreeCAD checkpoint, run one locally generated nested-INSERT placement control on each native platform/backend tuple being qualified.",
+      "Record direct-DXF and DWG-converter handoff as separate operations with intermediate DXF identity and importer settings.",
+      "Keep dxflib callbacks and BRL-CAD faceted output scoped to their documented observations; do not use them as whole-document parity votes.",
+      "Continue local fast implementation slices without waiting for these optional external consumer observations."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheck": true,
+    "codeChanged": false,
+    "testsRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "notes": "jq empty and scoped git diff --check passed. No local test, peer executable, converter, or native CAD route is in scope for this research-only plan update."
+  }
+}

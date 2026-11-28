@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-27",
+  "scope": "Generated AC1027 ASCII and binary DXF XRECORD referencing the verified named-object root dictionary with group 341.",
+  "implementationDigestSha256": "2f93149bf4699cf7aeb9c59e03867c229a36c8443fdff1d6484be662b33be387",
+  "converterSha256": "93aa154b836f12f72e57f1eddb1911a6653f20d802aac6c3bc3d725fdcac1b78",
+  "change": "Allow a selected XRECORD pointer to target the already-verified root dictionary, reusing source identity, alias, live binding and staged output checks. Unselected dictionaries and other unqualified target types remain refused.",
+  "hashes": {
+    "ascii": {
+      "source": "f5203e7ee1f56bdda9ba4a4e2bc44cfb45d6df1f70027373628e07e5e126062b",
+      "output": "a317fc0adc98f5a0474e3eed4f4e223a4ab99bf30ccdbb1609e939248deab3d5"
+    },
+    "binary": {
+      "source": "0d0eee99726c9bf19d195c48e40a6cf9623ca05d7115525b9899accc6484df87",
+      "output": "c025186b60c1c5e399dbd213b4bdc605745462a554c41debdcf9d865086c9693"
+    }
+  },
+  "peerReadback": {
+    "ezdxf": "1.4.5 matches 28 objects, 27 dictionary entries, all owner/reactor links and payloads, including the root target, for both encodings; source/output audits have zero errors/fixes.",
+    "libredwg": "0.14 dxf2dwg r2004 and dwgread JSON verify XRECORD owner and group-341 target to root in both encodings; MATERIAL warnings limit evidence to selected graph."
+  },
+  "checks": [
+    "Focused whole-source, compact-material graph and AC1024 plot-style CTests pass",
+    "Unselected dictionary, unrelated MATERIAL, dangling handle, wrong owner, unsupported role, cross-version and cross-encoding controls refuse with destination preserved",
+    "Handle collision, pointer order/code and late mutation controls retain corrected same-adapter retry",
+    "GCC strict test syntax check passes"
+  ],
+  "limits": [
+    "Selected AC1027 same-version/same-encoding graph only; at most eight chains and 16 references per record",
+    "Other graph shapes, arbitrary targets, native producers and consumers remain unqualified",
+    "LibreDWG 0.14 still drops body group 330/331; the independent check here uses 341",
+    "No support claims promoted; no external DWG/DXF fixture committed"
+  ]
+}

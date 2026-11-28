@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-16",
+  "scope": "Close two invalid ASCII-name admission gaps in the explicit canonical-layer profile and refine the open Unicode name-identity work; no general support claim is promoted.",
+  "authority": [
+    {
+      "name": "Autodesk AcDbSymbolUtilities::Services::compareSymbolName",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbSymbolUtilities__Services__compareSymbolName_ACHAR___ACHAR___const.html",
+      "observation": "Compares normalized symbol names case-insensitively and is sensitive to the current locale."
+    },
+    {
+      "name": "Autodesk AcDbSymbolUtilities::Services::preValidateSymbolName",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbSymbolUtilities__Services__preValidateSymbolName_ACHAR____bool_const.html",
+      "observation": "Documents normalization and removal of leading/trailing whitespace, and the EXTNAMES-dependent case policy."
+    },
+    {
+      "name": "Autodesk AcDbDictionary symbol-name rules",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbDictionary.html",
+      "observation": "Lists comma and grave accent among invalid symbol-name characters."
+    }
+  ],
+  "change": "The selected extended ASCII canonical-layer profile rejects comma and grave accent before output. The ordinary non-opted-in writer is unchanged.",
+  "validation": "Focused material/profile CTest tests both newly rejected names at AC1021/AC1024/AC1027 with EXTNAMES=1. Each preserves preexisting destination and caller data and retries on the same writer; adjacent default plot-style, AC1024 layer binding and layer handle-role selectors pass. The LC3 compatibility target builds.",
+  "extendedNamesOdaExperiment": {
+    "source": "Locally generated AC1027 with EXTNAMES=1 using a scratch-only relaxation of the protected material-edge guard; no fixture committed.",
+    "dwgSha256": "ff136f90ffc2d1a0e1cf76c7f2c0b19fbcb1d64ec2a868ad730615283c07e49d",
+    "odaDxfSha256": "2c7d4821c42d146fe28d8a43e8c8bbf09b0bafe21478d3269873bb0e36ffc36f",
+    "libreDwgLayerNames": [
+      "0",
+      "ß",
+      "SS",
+      "ẞ",
+      "İ",
+      "i",
+      "ı",
+      "Σ",
+      "σ",
+      "ς",
+      "café",
+      "café",
+      "Ｋ",
+      "K",
+      "K",
+      "ω",
+      "Ω",
+      "ﬀ",
+      "FF"
+    ],
+    "odaDxfLayerNames": [
+      "0",
+      "ẞ",
+      "SS",
+      "İ",
+      "i",
+      "ı",
+      "σ",
+      "ς",
+      "café",
+      "café",
+      "Ｋ",
+      "K",
+      "Ω",
+      "ﬀ",
+      "FF",
+      "Defpoints"
+    ],
+    "interpretation": "For this one ODA version and locale, the output loses one spelling from observed sharp-S, sigma, Kelvin and omega pairs, but retains SS versus sharp-S, final versus ordinary sigma, precomposed versus decomposed accent, and ligature versus FF. The source author already deduplicated the ASCII I/i pair before DWG output. These observations are not an AutoCAD collation specification. In particular, default Unicode full casefold would merge some retained pairs and cannot simply be substituted for the target consumer's locale-sensitive normalized comparison."
+  },
+  "implementationDigestSha256": "606ad10000a1e397c10b9f43bd31417c6ce10da9fa35eba3eca1a4ecbb7390e8",
+  "remaining": "The generic writer's Unicode duplicate-name risk remains open. Obtain target CAD comparison results for specified locales/platforms and implement a consumer-aware identity policy with collision, rollback and readback tests. The selected profile remains ASCII-only; imported layers, general platform qualification and J256/J260/J268/J284/J293/J295 remain open or DEFERRED_EXTERNAL."
+}

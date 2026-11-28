@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw-deeper-broader-procad-renderer-acis-route-reconciliation-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Refresh open-source renderer and ACIS consumer route admission for implementation readiness without changing parser, validation, or support scope.",
+  "method": {
+    "kind": "Public primary project documentation, repository metadata, project references, and source-tree index review",
+    "sourcesOpened": [
+      "https://github.com/wieslawsoltes/ProCad",
+      "https://raw.githubusercontent.com/wieslawsoltes/ProCad/main/.gitmodules",
+      "https://github.com/wieslawsoltes/ProCad/blob/main/ProCad.IO/ProCad.IO.csproj",
+      "https://github.com/wieslawsoltes/ProCad/blob/main/ProCad.Rendering/ProCad.Rendering.csproj",
+      "https://github.com/wieslawsoltes/ProCad/tree/main/ProCad.Rendering",
+      "https://github.com/wieslawsoltes/ProCad/tree/main/ProCad.TraceCli",
+      "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md",
+      "https://github.com/wieslawsoltes/ProGPU/blob/main/docs/PROGPU_CAD_ARCHITECTURE.md",
+      "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/entities.py",
+      "https://github.com/DomCR/ACadSharp"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "peerSourceBodiesAudited": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "ProCad metadata establishes an ACadSharp-family file reader and the renderer tree's listed ACIS component names, but the mutable source files themselves were not audited or run. ProGPU evidence remains mutable project documentation and its published schema conflict is profile-scoped to pinned ezdxf 21800; neither route supplies normative ACIS grammar or independent semantic evidence."
+  },
+  "findings": [
+    {
+      "topic": "ProCad has a renderer-local ACIS projection lead without a new DWG/DXF reader lineage",
+      "sources": [
+        "https://github.com/wieslawsoltes/ProCad/blob/main/ProCad.IO/ProCad.IO.csproj",
+        "https://raw.githubusercontent.com/wieslawsoltes/ProCad/main/.gitmodules",
+        "https://github.com/wieslawsoltes/ProCad/blob/main/ProCad.Rendering/ProCad.Rendering.csproj",
+        "https://github.com/wieslawsoltes/ProCad/tree/main/ProCad.Rendering"
+      ],
+      "observed": [
+        "ProCad.IO and ProCad.Rendering reference the ACadSharp source project; the submodule URL is wieslawsoltes/ACadSharp, a fork route in the ACadSharp family.",
+        "The ProCad.Rendering tree lists RenderAcisSabDecoder.cs, RenderAcisSatParser.cs, RenderAcisSatTessellator.cs, and ModelerGeometryRenderHandler.cs.",
+        "The project advertises a headless Trace CLI and renderer diagnostics, but no immutable app revision, submodule gitlink SHA, build, input, or result was established in this pass.",
+        "Individual ACIS component source pages could not be retrieved; file names and project-authored capability descriptions do not establish the implementation's profile, behavior, call path, or completeness."
+      ],
+      "doesNotEstablish": [
+        "that the renderer-local parser is reached for any selected DXF/DWG carrier",
+        "a validated DWG source-handle to owner/carrier to ACIS-body association",
+        "complete SAT/SAB schema coverage or valid/closed B-rep semantics",
+        "an independent geometry kernel, native CAD acceptance, or reproducible runtime result"
+      ],
+      "planUse": "Retain ProCad as one optional application/render projection at the existing composed checkpoint. Count its file decode with the ACadSharp family. Before any result is scored, pin app and submodule SHAs, audit how the ACadSharp modeler payload reaches the renderer parser/tessellator, and compare per-body disposition and output with an independently authored manifest. Rendering/tessellation is not exact B-rep acceptance."
+    },
+    {
+      "topic": "ProGPU's published ACIS decoder remains discovery-only and legacy-path scoped",
+      "sources": [
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md",
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/docs/PROGPU_CAD_ARCHITECTURE.md",
+        "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/entities.py"
+      ],
+      "observed": [
+        "DXF.md describes a netDxf-style ingestion route and a custom AcisSabParser with edge-coordinate projection.",
+        "The architecture document says ACadSharp owns the active model while ProGPU.Dxf remains as an older renderer package with SAT/SAB readers.",
+        "The documented four-pointer shell/face fallback conflicts with the pinned ezdxf 21800 profile's five ordered references; that discrepancy rejects the description as authority but does not establish a universal ACIS schema."
+      ],
+      "doesNotEstablish": [
+        "which exact immutable source revision matches the mutable pages",
+        "complete SAB schema support or transforms, units, and producer coverage",
+        "valid/closed B-rep geometry from the described edge projection"
+      ],
+      "planUse": "Keep ProGPU DISCOVERY_ONLY / NOT_ORACLE. Do not import its tags, pointer fallback, or transform assumptions into libdxfrw. Reconsider only after an immutable implementation audit and a scoped result against independently expected structure and geometry."
+    }
+  ],
+  "planDelta": {
+    "filesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "existingOwnersOnly": [
+      "7AG optional peer admission",
+      "S3/S5/S8 composed consumer and semantic evidence gates"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "validationCadenceChanged": false,
+    "implementationOrderChanged": false,
+    "planTotals": {
+      "findings": 127,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue the current local fast implementation loop; do not install .NET, initialize peer submodules, build ProCad, or wait on external availability.",
+      "At the existing optional composed checkpoint, admit ProCad only if exact app and ACadSharp gitlink revisions are already available and the renderer payload path is source-audited.",
+      "Keep source record/owner/carrier identity, ACIS parser disposition, and rendered/tessellated output as distinct evidence stages.",
+      "Require independent expected body inventory and analytic geometry values before treating renderer output as semantic corroboration.",
+      "Keep ProGPU discovery-only unless its immutable parser implementation and a scoped conformance result become auditable."
+    ]
+  },
+  "validation": {
+    "planLinksAdded": true,
+    "receiptJsonParsed": true,
+    "scopedPlanDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

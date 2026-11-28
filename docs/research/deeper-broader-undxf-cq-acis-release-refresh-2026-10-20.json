@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DXF-only reader route and reproducible ACIS artifact refresh",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Assess undxf as a separate DXF-only parser/projection route",
+    "Recheck the undxf/uncad data-model, DWG lineage, test corpus, and ACIS limits",
+    "Refresh cq-acis artifact identity and platform availability from current PyPI provenance",
+    "Refine optional comparison steps without changing local implementation cadence"
+  ],
+  "sources": [
+    {
+      "project": "undxf README",
+      "reference": "https://github.com/iyulab/undxf",
+      "status": "mutable_main_source_snapshot_reviewed_2026-10-20",
+      "observation": "undxf describes a separate no-native-code DXF reader into uncad-model, currently a 0.x spike. It documents ASCII input, Binary DXF through the same text path, handle-based identities, unknown entity name retention, unresolved layer/block names, selected HEADER group values and entity projections, and no DWG or write path. Its ACIS exposure is a wireframe/carrier view, not B-rep reconstruction."
+    },
+    {
+      "project": "uncad scope and caveats",
+      "reference": "https://github.com/iyulab/uncad/blob/main/docs/CAVEATS.md",
+      "relatedReferences": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/iyulab/uncad/blob/main/docs/ARCHITECTURE.md"
+      ],
+      "status": "mutable_main_source_snapshot_reviewed_2026-10-20",
+      "observation": "uncad routes DWG through LibreDWG FFI and DXF through undxf. Its real-file tests use LibreDWG's test corpus, with additional hand-authored fixtures and synthetic goldens; the project says its sample directory is git-ignored. The caveats distinguish parser/read diagnostics, model projection and unsupported data, and state that its ACIS route is a wireframe/carrier view rather than full solid semantics."
+    },
+    {
+      "project": "cq-acis 0.3.12 PyPI release and attestations",
+      "reference": "https://pypi.org/project/cq-acis/0.3.12/",
+      "relatedReferences": [
+        "https://github.com/monozukuri-ai/cq-acis/tree/e05a8f470d2f6799277f7b7df467d2fc35625889",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+      ],
+      "status": "published_release_metadata_and_current_documentation_reviewed_2026-10-20",
+      "observation": "PyPI lists version 0.3.12 released 2026-10-16 with Trusted Publishing provenance bound to commit e05a8f470d2f6799277f7b7df467d2fc35625889. The macOS ARM64 wheel SHA-256 is 94204f623d752e7dacf494bf631551277a985acbeb612ee3a24464ea0f0daab5 and the source archive SHA-256 is eba52992abcf6afce57b0f3526c3afeeed29cc60fbbb61c275958703d597de3a. Project scope remains experimental, profile-limited, and backed by CadQuery/OpenCascade conversion."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Added undxf as an optional DXF-only reader/projection comparator with explicit non-writer, corpus-provenance, and ACIS-wireframe limits. Refreshed the already-inventoried cq-acis route to its attested 0.3.12 artifact and added hash/pin guidance. No local code or validation cadence changed.",
+    "nextImplementation": "Continue the locally actionable plan queue with fast focused owner tests. Use undxf or cq-acis only at the existing composed checkpoint if a specific unresolved question remains and the exact artifact/profile is available.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-undxf-cq-acis-release-refresh-2026-10-20.json"
+    ],
+    "limitations": "GitHub source pages are mutable snapshots and the undxf/uncad statements are project-reported. PyPI attestations establish artifact provenance, not software correctness. No package, peer corpus, sample drawing, or CAD application was installed or run."
+  },
+  "validation": {
+    "planEdit": "Appended a route-specific undxf assessment and updated the optional cq-acis route to the attested 0.3.12 release without altering findings, implementation order, or support claims.",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan and receipt",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitNote": "No commit attempted; this is a scoped plan/receipt update in a broadly dirty shared worktree."
+  }
+}

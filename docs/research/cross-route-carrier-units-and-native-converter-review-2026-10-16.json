@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw-cross-route-carrier-units-native-converter-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Trace DWG-to-DXF and DXF-to-consumer routes, identify unit/frame boundaries for ACIS projection, and refine implementation readiness without claiming a reproduced defect.",
+  "method": {
+    "kind": "Primary upstream source/documentation review plus read-only inspection of the current local working tree",
+    "repositoriesClonedOrBuilt": false,
+    "peerProgramsRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localSourceInspection": [
+      "src/drw_acis.h: DRW_SabHeader carries unitsInMm; DRW_AcisBrep has no unit/frame member",
+      "src/drw_acis.cpp: readHeader assigns unitsInMm; drw_decodeAcisWireframeWithLimits returns the projected geometry without a separate header result"
+    ],
+    "evidenceRule": "A source-level contract gap is a readiness item until a profile-backed local example demonstrates incorrect output. Keep ACIS units, drawing INSUNITS, block units, modeler transforms, carrier framing, and native consumer behavior separate."
+  },
+  "evidence": [
+    {
+      "topic": "FreeCAD DWG conversion path is profile-dependent and the ODA branch targets ACAD2000 DXF",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/wiki/Import_Export_Preferences"
+      ],
+      "observed": "The current importDWG.py source selects among LibreDWG, ODA, and QCAD converters. The ODA invocation explicitly requests ACAD2000 DXF. The LibreDWG/QCAD branches use different invocations. In the shown converter branches, success is determined from the expected output path's existence after communicate(), not from the subprocess return code.",
+      "doesNotEstablish": [
+        "that every installed converter emits a particular carrier or preserves a specific entity",
+        "that FreeCAD accepts ACIS/SAB as a solid",
+        "that a generated DXF is fresh, complete, or semantically correct merely because it exists"
+      ],
+      "planUse": "Record exact converter path/version/hash, argv, return code, output DXF magic/version/hash, carrier profile, importer backend/settings, and per-source-handle disposition. A FreeCAD result using ODA's ACAD2000 target is not evidence for R2013+ DXF ACDSDATA/SAB preservation."
+    },
+    {
+      "topic": "ACIS modeler units and drawing/block insertion units are separate transform inputs",
+      "sources": [
+        "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/Controlling-the-drawing-units-when-exporting-to-an-ACIS-SAT-file.html",
+        "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/Solids-from-SAT-file-from-Advance-Steel-are-25-times-smaller-in-other-application.html",
+        "https://help.autodesk.com/cloudhelp/2025/ENG/AutoCAD-Core/files/GUID-A58A87BB-482B-4042-A00A-EEF55A2B4FD8.htm",
+        "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-Core/files/GUID-6C46049D-8636-442D-8BAC-CF4FD515FDC0.htm"
+      ],
+      "observed": "Autodesk says SAT export units depend on INSUNITS at export; its SAT note describes a header factor of 1 for mm, 25.4 for inches, and -1 for unitless. The current INSUNITS reference describes automatic scaling for inserted blocks, images, or xrefs, with 0 unspecified; block units and insertion scale factor are separate inputs to insertion scaling.",
+      "doesNotEstablish": [
+        "that every SAB/ASM or DWG carrier uses an identical unit contract",
+        "that drawing INSUNITS should be applied directly to raw ACIS points",
+        "a universal normalization target or transform order for this library"
+      ],
+      "planUse": "Preserve ACIS header units, drawing units, block unit metadata, entity/modeler transforms, and nested INSERT transforms separately. Use local generated controls to settle source-specific behavior before applying a scale or promoting semantic geometry claims."
+    },
+    {
+      "topic": "Local ACIS convenience projection drops unit/frame provenance from its public result",
+      "sources": [],
+      "observed": "The working tree reads an ACIS/SAB header unitsInMm value, but DRW_AcisBrep exposes points/edges/faces/bounds without unit or frame metadata. The convenience drw_decodeAcisWireframeWithLimits operation returns only the projected result and outcome, not the full parsed header. This is an interface-contract observation, not a demonstrated wrong drawing.",
+      "doesNotEstablish": [
+        "that current consumers apply a wrong scale",
+        "that unitsInMm has been fully qualified for every accepted profile",
+        "that normalization should happen inside the parser instead of in a consumer"
+      ],
+      "planUse": "Before geometry normalization, define whether projected coordinates are modeler-native and expose or retrieve exact unit/frame provenance additively. Add generated unit-value controls with unchanged raw coordinates and distinct metadata, then separate drawing/block/INSERT transform controls. Preserve compatibility and avoid speculative scaling."
+    },
+    {
+      "topic": "Open DXF consumers separate raw modern ACIS carriage from geometry interpretation",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "observed": "GDAL's DXF extensible mode exposes raw ASM data and a 12-value affine transform for AC1027+ but does not convert those records into OGR solid geometry. ezdxf documents selected ACIS support, warns unsupported entities may be lost on read/re-export, and separates SAT for DXF R2000-R2010 from SAB for R2013/R2018. Autodesk documents the 3DSOLID entity fields but that DXF table does not define the DWG AcDs container.",
+      "doesNotEstablish": [
+        "general B-rep validity from a raw carrier or transform",
+        "arbitrary-carrier round-trip correctness in ezdxf",
+        "DWG AcDs layout from the DXF entity table"
+      ],
+      "planUse": "Keep carrier framing, entity association, transform, SAB parsing, wireframe projection, closed B-rep validity, and native import as independent result dimensions. Use GDAL only for raw carrier/transform evidence and ezdxf as a bounded syntax/producer/parser comparator."
+    },
+    {
+      "topic": "LibreCAD_3 distinguishes optional DWG reading from support promotion and writing",
+      "sources": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/README.md"
+      ],
+      "observed": "The current policy describes DWG import as optional/off by default, uses machine-readable qualification metadata, and separates experimental/pending-native read claims from promoted claims. It states that DWG writing is not implemented or planned under the current policy.",
+      "doesNotEstablish": [
+        "that an upstream compatibility compile qualifies reader semantics",
+        "DWG writer support",
+        "ACIS or 3D support promotion"
+      ],
+      "planUse": "Keep lc3_compat_check as an API/2D compatibility gate; preserve read versus write and native qualification as separate claims. At a composed downstream checkpoint, compare exact metadata claim identities/statuses rather than deriving qualification from a successful build."
+    }
+  ],
+  "implementationReadinessUpdates": [
+    "Define the ACIS wireframe coordinate space and decide how callers retrieve the parsed unit factor; do not apply scale speculatively.",
+    "Generate in-memory profile-appropriate ACIS header controls with multiple unit factors and identical geometry coordinates; check exact metadata and raw-coordinate retention.",
+    "Separately test absent/zero/explicit DXF INSUNITS, block unit fields, and nested INSERT transforms, preserving transform order and source provenance.",
+    "For every composed DWG-to-DXF-to-consumer route, capture converter identity, argv, exit code, output freshness/hash/AC code, carrier type, importer backend, and source-handle disposition.",
+    "Maintain separate modern AC1027+ DXF ACDSDATA/SAB controls and FreeCAD/ODA ACAD2000 DXF controls; do not treat the latter as modern carrier qualification.",
+    "Retain fast per-slice strict builds, focused generated tests, lc3_compat_check, and git diff --check. Keep platform-native runs, peer comparison, sanitizers/fuzz, and full suites at composed checkpoints.",
+    "Do not add downloaded fixtures, external dependencies, or new support claims from this research pass."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "newFindingAdded": false,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

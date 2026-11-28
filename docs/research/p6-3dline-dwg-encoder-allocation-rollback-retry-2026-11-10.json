@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-3dline-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "title": "3DLINE DWG encoder allocation rollback and retry",
+  "scope": "Generated local transaction evidence for DRW_3DLine::encodeDwg; no physical producer or output-support claim.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The encoder stages body, detached-string and handle destinations with alias-aware publication. It preserves the writer-local custom class ordinal and restores the original oType after failure.",
+    "versions": ["AC1021", "AC1024"],
+    "profile": "Generated modern custom-class 3DLINE with nonzero start/end/extrusion coordinates, thickness, common owner/reactor/extension handles and seeded caller buffers."
+  },
+  "allocationSweep": {
+    "mechanism": "One-shot global allocation failure countdown in the generated object-vector test",
+    "result": "Each version reached 16 allocation-failure offsets. Every failure returned false without throwing, preserved seeded body/string/handle bytes, bit counts, handle occurrences and original oType, then succeeded on same-object retry with output equal to clean encoding and class ordinal 562.",
+    "aliasControl": "For each version, failure at the first reached allocation preserved the all-streams-aliased destination and original oType; same-object retry matched the clean aliased encoding."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --3dline-dwg-encode-allocation-rollback",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3dline_dwg_encode_allocation_rollback$' --output-on-failure",
+    "result": "PASS: 3DLINE selector; eleven-test core entity writer allocation cohort passed (11/11); git diff --check passed."
+  },
+  "limitations": [
+    "Generated vectors establish local failure/retry behavior only; they do not qualify 3DLINE class registration, wire semantics or physical producer interoperability.",
+    "No native consumer rendering, complete-document output, or broad DWG support claim follows."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added."
+}

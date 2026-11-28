@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1021-plotsettings-physical-selected-output-2026-11-06",
+  "date": "2026-11-06",
+  "status": "PASS_BOUNDED_PHYSICAL_SOURCE_OUTPUT_READBACK",
+  "supportClaimEffect": "none",
+  "question": "Can the AC1021 children-room source's empty ACAD_PLOTSETTINGS NOD dictionary be emitted with its exact target, owner and reactor, and does output refuse late graph mutation atomically?",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "producerProvenance": "Existing local source; author and producer are not independently authenticated."
+  },
+  "sourceGraph": {
+    "namedObjectDictionary": {
+      "handle": "0xC",
+      "parentHandle": "0x0",
+      "hardOwner": 0,
+      "cloning": 1
+    },
+    "entry": {
+      "key": "ACAD_PLOTSETTINGS",
+      "targetHandle": "0x19",
+      "occurrences": 1,
+      "outputDxfHandleRole": "soft-owner, inferred from the source NOD hardOwner=0 when the source entry role is unspecified"
+    },
+    "target": {
+      "type": "DICTIONARY (standard object type 42)",
+      "handle": "0x19",
+      "ownerHandle": "0xC",
+      "hardOwner": 0,
+      "cloning": 1,
+      "entries": 0,
+      "reactors": ["0xC"],
+      "extensionDictionary": "0x0",
+      "appData": 0,
+      "extData": 0,
+      "dataStorage": false,
+      "commonLinkTail": false
+    },
+    "sourceFrame": {
+      "fileOffset": 2817,
+      "fileSize": 16,
+      "retainedBodyBytes": 16,
+      "bodyBitSize": 0,
+      "typedPayloadMatched": true,
+      "standardSourceEligible": true
+    }
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "The existing source-bound LAYOUT output profile now snapshots one empty AC1021 ACAD_PLOTSETTINGS child dictionary when the exact NOD edge, owner/reactor shape and typed/raw standard-object source frame match. Source mutation is checked before publication, and successful output qualifies the captured standard-object frame."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "selector": "--plotsettings-empty-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --plotsettings-empty-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS for ASCII and Binary AC1021 DXF output and fresh typed readback. The NOD key is unique; the target is uniquely typed as DICTIONARY, has the expected soft-owner entry role, NOD owner, empty entries, cloning and reactor identity. A reactor mutation after OBJECTS writing is refused with the pre-existing destination sentinel intact; restoring the graph lets the same adapter retry. The frame is present in the finalized standard DWG output proof set.",
+    "outputPolicy": "AllowPartial with unresolved-owner strictness disabled. This selected source route is not strict whole-document output.",
+    "logPath": "/private/tmp/p4-ac1021-plotsettings-selected-output-2026-11-06.log",
+    "logSha256": "8eaacf2cde217f9244b6f4967d2953ab18e02c8bf8edcedea3f1678a811d997b",
+    "testSourceSha256": "85a440685a973daebb45684cef02c6f163d7b09e920f871fae0ea3c1fb7bca7c",
+    "executableSha256": "b1a945ac08d8fd2827bb81eedae229d38d7ac02f4ad842f5a3c792993d2db894"
+  },
+  "limits": [
+    "One unauthenticated local producer profile is covered.",
+    "The source NOD contains additional entries whose complete target graph is not qualified by this test; whole-source strict output remains refused.",
+    "No native plot-settings semantics, independent encoder roundtrip, or producer-wide support claim is established.",
+    "The DWG source and generated output are not committed as fixtures."
+  ],
+  "nextAction": "Continue the AC1021 standard-object inventory with the empty ACAD_GROUP dictionary only after accounting for its generated/special root path; otherwise select the next smallest source-closed graph. Keep whole-source refusal and all unrelated support gates unchanged."
+}

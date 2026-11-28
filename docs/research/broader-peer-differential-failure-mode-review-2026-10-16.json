@@ -1,0 +1,153 @@
+{
+  "schema": "libdxfrw-broader-peer-differential-failure-mode-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden comparison of open-source DWG/DXF implementations with source-backed failure-mode reports and Autodesk DXF processing guidance; map each signal to existing local plan owners without inferring a libdxfrw defect from peer behavior.",
+  "method": {
+    "kind": "Primary project issue/source and Autodesk documentation review",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "peerIssuesRetested": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "lineageRule": "ACadRust and applications identifying it as their core CAD engine are one parser lineage, not independent parser votes.",
+    "evidenceRule": "Peer issue reports and candidate commits establish a test lead scoped to their stated revision/corpus. They do not establish a libdxfrw defect, a normative DWG layout, a released peer fix, or semantic geometry validity."
+  },
+  "evidence": [
+    {
+      "topic": "DXF record ordering and preservation",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A4D-8533-E61D8A423D62.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm"
+      ],
+      "observed": "Autodesk guidance says not to depend on typical group-code ordering and notes future releases can add codes. It separately states repeated XDATA order is significant; group-0 records frame subsequent entities/objects.",
+      "doesNotEstablish": [
+        "that every field may be reordered",
+        "that unknown group codes may be discarded in a preservation workflow",
+        "that parser success proves complete graph retention"
+      ],
+      "existingPlanOwners": ["PAR-20", "PAR-63", "7AG"],
+      "planUse": "Vary only order-independent fields; preserve XDATA, chunk, subclass and compound-child sequence; use following-record sentinels and explicit bounded raw/loss outcomes."
+    },
+    {
+      "topic": "Malformed DWG bounds, counts and allocation",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/123",
+        "https://github.com/hakanaktt/acadrust/issues/124"
+      ],
+      "observed": "ACadRust issue reporters describe generated AC1024 inputs based on the peer's own writer. In 0.6.3, targeted mutations reportedly yielded over 100,000 zero-filled polyline vertices, an attempted roughly 12 TiB allocation, or a header-size slice panic. Issue activity links maintainer commits for record-bounded decoding and truncated-header handling, but does not publish a corpus retest or establish released behavior.",
+      "doesNotEstablish": [
+        "a corresponding libdxfrw defect",
+        "that the candidate peer commits pass their complete regression corpus",
+        "that peer byte offsets are valid for libdxfrw-generated files"
+      ],
+      "existingPlanOwners": ["PAR-14", "7F.1"],
+      "planUse": "For any missing local coverage on a touched path, mutate one source-located field in a locally generated in-memory input; assert bounded disposition, no semantic zero-padding, no oversized reservation and intact framing."
+    },
+    {
+      "topic": "Unknown classes, named colors and table/block XDATA",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/132",
+        "https://github.com/hakanaktt/acadrust/releases"
+      ],
+      "observed": "The 0.6.3 report distinguishes DXF-origin unknown/custom records lacking compatible DWG raw frames, DXF group-430 color-book names versus DWG DBCOLOR references, and table/block-record XDATA. A candidate commit and 0.6.4 release claims exist; the issue page does not publish a retest.",
+      "doesNotEstablish": [
+        "that these behaviors are defects in libdxfrw",
+        "that DXF raw group codes are a valid DWG proxy frame",
+        "that color-book names and DBCOLOR handles are interchangeable"
+      ],
+      "existingPlanOwners": ["PAR-20", "7C", "PAR-63", "PAR-64", "7AG"],
+      "planUse": "Keep opaque-frame, named-color-reference and table-XDATA conversion as distinct routes; require an explicit per-source disposition and avoid duplicating existing work items."
+    },
+    {
+      "topic": "Block ownership and orphaned entities",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/133"
+      ],
+      "observed": "The reporter describes a private 351-file corpus and an AC1032 case in which re-homing children of an absent anonymous dimension block reportedly creates 51 extra phantom model-space objects. A maintainer commit is linked, but no public corpus retest is shown and the drawings are unavailable.",
+      "doesNotEstablish": [
+        "a libdxfrw orphan-recovery defect",
+        "that every absent owner should be dropped rather than reported or retained",
+        "full ownership correctness from equal total entity counts"
+      ],
+      "existingPlanOwners": ["PAR-49", "7G.3"],
+      "planUse": "Preserve the distinction among null/fixed-space, valid, unresolved non-null and orphan owners; never silently re-home a missing non-null owner into model space; compare by handle and logical block."
+    },
+    {
+      "topic": "Versioned auxiliary object boundaries",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/134",
+        "https://github.com/hakanaktt/acadrust/issues/135"
+      ],
+      "observed": "Issue #134 reports strict-bound failures in AC1032 files after a peer release, concentrated in MLeader context objects, and links a candidate compatibility commit without a public private-corpus retest. Issue #135 reports AC1024 associative dependency records that are rejected in 0.6.4, decoded incorrectly in 0.6.3, and reportedly made Unknown on main; no drawing is attached. The reporters' proposed record-layout interpretations are hypotheses, not format authority.",
+      "doesNotEstablish": [
+        "that libdxfrw has the same record layout or defect",
+        "that global record-bound checks should be softened",
+        "that Unknown output or successful document opening preserves the source object"
+      ],
+      "existingPlanOwners": ["PAR-14", "7F.1", "versioned MLeader and associative-object subplans"],
+      "planUse": "Consult ODA v5.4.1 and a real traced sample before changing a parser. Separate outer frame truncation from bounded record-local auxiliary failure; require a following-object sentinel and visible typed/skipped/unknown outcome."
+    },
+    {
+      "topic": "Binary DXF value-width oracle",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/issues/136",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "observed": "Issue #136 reports 60 fixed-width call sites spanning 15 group codes in ACadRust 0.6.4 binary-DXF output, and says the same implementation's reader accepts its own malformed output. The round-trip test source also fabricates marker-bearing SAB and exercises the same implementation's writer/reader association path.",
+      "doesNotEstablish": [
+        "that the reported binary widths are a libdxfrw defect",
+        "independent wire-format confirmation from a self-reader",
+        "valid ACIS topology from a marker-bearing fabricated SAB payload"
+      ],
+      "existingPlanOwners": ["PAR-39", "AcDs/ACIS semantic qualification gates"],
+      "planUse": "Keep raw binary code/width parsing independent of the writer and reader under test. Treat fabricated SAB plus internal round-trip as structure/transport-only; require an independent eligible geometry consumer and shape invariants for semantics."
+    },
+    {
+      "topic": "Peer capability and lineage",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/issues",
+        "https://github.com/hakanaktt/acadrust#used-by"
+      ],
+      "observed": "ACadRust advertises broad version/entity coverage while its live issue tracker contains reports involving malformed input, conversion loss, ownership and version-specific object decoding. Open CAD Studio identifies ACadRust as its core engine, so it is not an independent parser vote.",
+      "doesNotEstablish": [
+        "per-entity completeness from a version matrix or entity count",
+        "independence from the same parser lineage through a downstream application name",
+        "current behavior of an unpinned release or mutable main branch"
+      ],
+      "existingPlanOwners": ["cross-reader comparator protocol", "semantic qualification gates"],
+      "planUse": "Use one exact revision at the already planned composed checkpoint; record parser/consumer lineage, version, direction, options, per-handle disposition and diagnostics."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Keep the current top implementation item: generate and structurally validate a nonempty AcDs data record, then bind record handle, modeler entity, owner and payload before enabling storage-backed replay.",
+    "Use the peer failure signals only as targeted negative/positive test patterns under existing owners; do not create duplicate findings or subplans.",
+    "Keep focused strict-build and generated-test checks per slice; run peer comparison at the existing composed checkpoint and retain full-suite, long fuzz/sanitizer and native CAD work at their scheduled gates.",
+    "Generate local controls in memory. Do not import peer/private drawings, reuse peer mutation offsets, add peer runtime dependencies, or commit new DWG/DXF fixtures."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRunForResearch": false,
+    "externalRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

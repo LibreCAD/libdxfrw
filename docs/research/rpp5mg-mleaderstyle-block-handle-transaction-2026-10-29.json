@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5mg selected MLEADERSTYLE blockHandle retarget",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_QUALIFIED",
+  "codeCommit": "d6106c421879e46140882f566d0e3cc6449b354d",
+  "scope": "Extends the one-field source-bound AC1027 MLEADERSTYLE transaction to group 343 blockHandle, retargeted to one unique source BLOCK_RECORD with a complete block body. This qualifies only the selected group-343 profile; it makes no claim for other handle roles, native block-content meaning or full document support.",
+  "contract": {
+    "admission": "A runtime-authored AC1027 DXF contains one STANDARD MLEADERSTYLE whose existing group 343 names Paper_Space BLOCK_RECORD 0x1E, plus one unique alternate BLOCK_RECORD 0x21 named MLEADER_ALT_ARROW and a BLOCK/LINE/ENDBLK body owned by it. The caller changes only blockHandle to that source provider. Existing graph validation must resolve the target to exactly one BLOCK_RECORD and its block body.",
+    "output": "The transaction authenticates original raw groups against the captured typed style, admits exactly one changed group-343 field, emits its remapped handle, and inspects the output through the source BLOCK_RECORD name-to-output mapping. Fresh import verifies exactly one raw group 343 names the emitted BLOCK_RECORD, typed blockHandle resolves to that record, and the emitted record owns the complete block body.",
+    "failureAndRetry": "A dangling target 0x55 and a wrong-kind LTYPE target 0x30 refuse for ASCII and binary output. Each refusal preserves a pre-existing destination and the caller's invalid handle. Repairing the same caller object to BLOCK_RECORD 0x21 and retrying on the same dx_iface succeeds and passes output/readback checks.",
+    "compatibility": "No public API or DRW_Interface virtual changes. The ASCII/binary sources and converted outputs are generated and removed at runtime; no DWG/DXF fixtures are committed. Fixed Model_Space/Paper_Space names are covered by the shared block-symbol key normalization used in MLEADERSTYLE raw-output inspection.",
+    "limits": "One AC1027 MLEADERSTYLE group-343 edit profile only. This does not qualify other versions, multiple edits, other block schemas, producer variation, native block-content meaning, complete document closure, external semantic evidence or 3D support. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII AC1027 output",
+      "ASCII source -> binary AC1027 output",
+      "binary source -> ASCII AC1027 output",
+      "binary source -> binary AC1027 output"
+    ],
+    "referenceProof": "Source group 343 begins at 0x1E; the unique alternate BLOCK_RECORD is 0x21 and owns the generated block body. Exact raw group-343 output and typed readback resolve to the remapped alternate BLOCK_RECORD handle.",
+    "failureAndRetry": "Dangling and wrong-kind targets each refuse for both output encodings; destination bytes and caller references are preserved, and corrected retries on the same adapter succeed."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "summary": "1/1 MLEADERSTYLE writer-closure selector passed. Group-343 is tested separately from group-341 across four source/output encoding combinations, with exact raw and typed output/readback, an owned BLOCK/LINE/ENDBLK body, dangling and wrong-kind refusals, destination/caller preservation and corrected same-adapter retries.",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mleaderstyle_writer_closure$' --output-on-failure"
+    },
+    "diffCheck": "git diff --check; PASS before commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "mleaderStyleBlockRecordHandleTransaction in tests/dwg2dxf_adapter_tests.cpp authors the alternate BLOCK_RECORD and its BLOCK/LINE/ENDBLK body, then changes only group 343 for this receipt's profile. Runtime-generated inputs and outputs are removed by the focused test.",
+    "implementationCommit": "d6106c421879e46140882f566d0e3cc6449b354d",
+    "dwg2dxf/dx_iface.cpp": "5e17579ade3fc34576d17652fc7c48919abe7252fe730a2bd88378c8be58ed2f",
+    "tests/dwg2dxf_adapter_tests.cpp": "6ff062d9995d73ae57818a144855e059b5770d9295ee0445ed38abbdb63fbe3b",
+    "testExecutableSha256": "247d7f938b603395f84d0284df31ffdefc2c461bed6b197ddce50c689b562f94"
+  },
+  "next": "Select a current source-backed P2 MLINE geometry/schema/provider witness. Other counts, append/removal batches, angle/offset combinations, legacy authority, and remaining LTYPE providers are still unqualified."
+}

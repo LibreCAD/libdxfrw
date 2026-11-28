@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "IMAGEDEF plan failure and corrected-retry transaction control",
+  "mode": "generated local fast-test slice; no production change",
+  "scope": [
+    "Force a later entity write failure after a planned IMAGE has been emitted",
+    "Verify failure leaves the previous output destination untouched and clears derived identity maps",
+    "Retry with the same writer after removing the induced failure and verify IMAGEDEF/reactor graph closure"
+  ],
+  "control": {
+    "plannedSource": {
+      "importGeneration": 9,
+      "sourceHandle": "0xD720",
+      "definitionName": "planned-transaction.png",
+      "pixelDimensions": [640, 480],
+      "pixelSize": [0.25, 0.5]
+    },
+    "failure": "The adapter writes the planned IMAGE, then calls writeLine(nullptr) to fail the following record.",
+    "failureAssertions": [
+      "write returns false with BAD_OPEN",
+      "previous destination sentinel bytes remain unchanged",
+      "sourceHandleToMintedMap and writtenSourceEntityHandles are empty"
+    ],
+    "retryAssertions": [
+      "The same dxfRW instance writes successfully after the induced failure is disabled",
+      "A fresh DXF import sees one IMAGE bound to one matching IMAGEDEF",
+      "IMAGEDEF has one reactor handle and IMAGE has a nonzero IMAGEDEF_REACTOR handle"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure"
+    ],
+    "results": [
+      "Strict -Werror fixture target built successfully.",
+      "libdxfrw_dxf_fixtures passed 1/1."
+    ],
+    "fixturesAdded": 0,
+    "newCTestRegistrations": 0,
+    "fullSuitesRun": false
+  },
+  "limitsAndNextSteps": {
+    "notCovered": [
+      "Dictionary sibling traversal order",
+      "Independent byte-scanner and versioned producer evidence for IMAGEDEF groups 12/21",
+      "Transformed U/V consumer bounds",
+      "Native CAD failure/recovery behavior"
+    ],
+    "productionMappingChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalPeersRun": false,
+    "nativeCadRun": false
+  },
+  "planImpact": {
+    "existingOwner": "PAR-59 / 7P.5b",
+    "completedSubstep": "7P.5b.4 planned-graph failure/corrected retry",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "repositoryState": {
+    "worktreeWasBroadlyDirty": true,
+    "unrelatedChangesPreserved": true,
+    "receiptAndPlanAreUncommitted": true
+  }
+}

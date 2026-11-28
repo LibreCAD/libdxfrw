@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p6-dxf-solidbackground-allocation-rollback-retry-2026-11-13",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6 safety and caller-state audit",
+  "scope": "Add generated whole-operation allocation rollback/retry coverage for an OBJECTS SOLIDBACKGROUND record.",
+  "profile": {
+    "targetVersion": "AC1027",
+    "encoding": ["ASCII", "Binary"],
+    "record": "SOLIDBACKGROUND",
+    "fields": {
+      "kind": "Solid",
+      "classVersion": 1,
+      "solidColor": "0x010203",
+      "owner": "Named Objects Dictionary"
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 4",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure",
+    "result": "PASS, 1/1 test",
+    "allocationOffsets": {
+      "ascii": 530,
+      "binary": 524,
+      "eachOffset": "Injected failure refused the write, preserved the previous destination and caller SOLIDBACKGROUND state, and allowed same-codec retry to reproduce clean output with typed SOLIDBACKGROUND and SCALE readback."
+    }
+  },
+  "scopeLimit": "This closes allocation transaction coverage for one generated AC1027 SOLIDBACKGROUND OBJECTS record within the whole-operation profile. It does not qualify physical producer semantics, other background kinds, image dependencies, or native rendering.",
+  "fixturePolicy": "The drawing is generated under a scratch directory; no DWG/DXF fixture was added.",
+  "claimEffect": "No format support claim changes."
+}

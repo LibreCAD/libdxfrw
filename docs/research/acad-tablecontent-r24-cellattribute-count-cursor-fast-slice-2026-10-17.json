@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-acad-tablecontent-r24-cellattribute-count-cursor-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Add generated negative cell attribute-definition count controls to the existing AC1024 inline TABLECONTENT parser vector.",
+  "method": {
+    "kind": "In-memory generated parser-vector extension using the existing test target",
+    "productionCodeChanged": false,
+    "fixtureFilesAdded": 0,
+    "testTargetsAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "validation": [
+      "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure (1/1)",
+      "jq empty docs/research/acad-tablecontent-r24-cellattribute-count-cursor-fast-slice-2026-10-17.json",
+      "git diff --check for touched test, plan, and receipt"
+    ]
+  },
+  "controls": [
+    {
+      "cellAttributeCount": 10000,
+      "expected": "Reject before attribute iteration because the at-limit count's minimum item width cannot fit the remaining bounded body."
+    },
+    {
+      "cellAttributeCount": 10001,
+      "expected": "Reject the count above the configured maximum."
+    }
+  ],
+  "assertions": [
+    "The generated frame reaches the attribute-definition count after a valid numeric cell value.",
+    "The outer TABLE prefix remains readable and the input buffer remains good.",
+    "Semantic TABLECONTENT is incomplete and no partial columns or rows are published.",
+    "The committed input cursor remains at TABLECONTENT start."
+  ],
+  "limitations": [
+    "The vectors are source-authored parser profiles, not producer-qualified AC1024 samples.",
+    "No production parser behavior changed.",
+    "Attribute handle/text payloads, linked-data framing, and full-file dispatch were not tested.",
+    "No full suite, peer, or native application was run."
+  ],
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "findingCountChanged": false,
+    "topLevelSubplanCountChanged": false,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

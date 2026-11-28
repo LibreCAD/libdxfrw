@@ -1,0 +1,72 @@
+{
+  "schema": "ac1018-blockrecord-multi-appid-source-binding-v1",
+  "date": "2026-10-29",
+  "codeCommit": "6c721307488e2290bfa29574fe2bad31d4569cb4",
+  "scope": "Private, opt-in AC1018 source-role binding for every APPID name in a selected one- or two-name BLOCK_RECORD EED profile. This authenticates provider identity and source order only; it does not interpret EED payload meaning, close target dependencies, qualify output or promote a support claim.",
+  "externalSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "blobSha": "9b3128164a6d242159fc04e1afb5fef539ea30d7",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "inspection": "Pinned GitHub blob inspected in memory; no external sample was copied into the worktree or committed.",
+    "selectedProfile": {
+      "record": "BLOCK_RECORD 6F2 (MyBlock)",
+      "lineSpan": "[4435,4477)",
+      "tableHandle": "1",
+      "orderedEedFields": [
+        { "line": 4461, "code": 1001, "value": "AcDbDynamicBlockGUID" },
+        { "line": 4463, "code": 1000, "value": "{AF4CD1DE-22F5-46CB-967C-41B95DEED31F}" },
+        { "line": 4465, "code": 1001, "value": "ACAD" },
+        { "line": 4467, "code": 1000, "value": "DesignCenter Data" },
+        { "line": 4469, "code": 1002, "value": "{" },
+        { "line": 4471, "code": 1070, "value": "1" },
+        { "line": 4473, "code": 1070, "value": "4" },
+        { "line": 4475, "code": 1002, "value": "}" }
+      ]
+    },
+    "providers": [
+      {
+        "record": "APPID 6FA",
+        "lineSpan": "[3461,3475)",
+        "tableHandle": "9",
+        "name": "AcDbDynamicBlockGUID"
+      },
+      {
+        "record": "APPID 12",
+        "lineSpan": "[3265,3279)",
+        "tableHandle": "9",
+        "name": "ACAD"
+      }
+    ],
+    "censusResiduals": [
+      "The file also has two one-name ACAD BLOCK_RECORD profiles (77F and A0B); the automatic single-ACAD selector therefore remains ambiguous on this file.",
+      "BLOCK_RECORD A7E has four APPID names and is outside this two-name profile.",
+      "BLOCK_RECORD A91 and A96 carry AcDbBlockRepBTag EED with 1070=1 and 1005=A7E; their group-1005 target role is the next selected source-census item, not covered here."
+    ]
+  },
+  "implementation": {
+    "binding": "The BLOCK_RECORD EED names are preserved in source order. Each name must resolve case-insensitively to exactly one APPID TABLES row whose table parent, identity record, whole-source physical row, raw record, typed model, and unique live model agree. Owner group-1001 and provider group-2 fields retain their exact source ordinal and byte span.",
+    "automaticSelection": "Bounded finish logic retains only a unique one-name ACAD profile or a unique two-name {AcDbDynamicBlockGUID, ACAD} profile. Other source rows do not trigger repeated full identity-index construction. The general bounded helper can validate a selected one- or two-name owner directly.",
+    "boundsAndPromotion": "Index work, whole-source scans, replay, raw/model retention and joins are charged against the existing 64 MiB work/byte limits. Missing, duplicate, wrong-owner or wrong-name providers leave the selected join absent without changing general import success. Source evidence does not set outputEligible or ownerTargetsResolved.",
+    "runtimeFixture": "tests/legacy_attdef_scope_controls.h authors the selected two-name owner and APPID providers from scratch at runtime and writes ASCII and binary inputs in temporary storage. It also calls the bounded helper on a one-name TEST_APP owner. No external DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_attdef_source_tests -j4",
+    "buildResult": "PASS; adapter and test target compiled under the repository warning-as-error policy.",
+    "selector": "ctest --test-dir build-gcc -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "testResult": "PASS 1/1 (0.66 s). ASCII/binary positives validate the selected two-provider map and direct single-provider helper; missing, duplicate, wrong-owner and wrong-name faults for each provider produce 16 refusals and 16 corrected same-adapter retries. Zero-budget refusal/recovery and no-output-promotion assertions pass.",
+    "diffCheck": "PASS git diff --check before the implementation commit."
+  },
+  "bindings": {
+    "dwg2dxf/dx_data.h": "02c088f6d8acbb8d40eee2fc686e97118ff1b78bfd665b6e574c19012e09d346",
+    "dwg2dxf/dx_iface.cpp": "6fd35b6ed84433c2aca63278c8db7ac69093fa50b32557cdd8bb16e16ee30cb1",
+    "tests/attdef_source_tests.cpp": "381fbbdf7d13aea21eb192af9376a54fd80f4cec02d61cafde1f45f0bdbdc1c7",
+    "tests/legacy_attdef_scope_controls.h": "3c63c56766caa6d6a92084e55f01a50340ead62f380222c252770251bab2a454"
+  },
+  "limits": [
+    "This receipt qualifies one observed dual-name source profile and focused source-role capture controls; it is not proof that the full pinned drawing converts or that all six EED-bearing BLOCK_RECORDs are modeled.",
+    "Four-name BLOCK_RECORD profiles and group-1005 EED handles remain outside the current audit. The selected 1000/1002/1070 payload is retained as ordered source data without semantic interpretation.",
+    "No target-closure, emitted-output, native-consumer, complete-document, or format-support claim is promoted."
+  ]
+}

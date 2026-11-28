@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "7F.1b schema-3 optional-field capability consistency",
+  "mode": "Local generated fast self-test; typed-result validator only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Bind schema-3 optional modeler/surface result fields to the reviewed target and standalone adapter capability profiles.",
+    "Require exact exclusion dispositions for unavailable fields and typed observations for available fields, including zero counts.",
+    "Bound payload-range validation work by the result's field denominator, require the exact declared range-index set, and add negative mutation controls."
+  ],
+  "changes": {
+    "files": [
+      "tools/run_qualified_differential_v2.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/7f1b-schema3-optional-field-capability-consistency-fast-slice-2026-10-20.json"
+    ],
+    "validatorCoverage": [
+      "MODELER_GEOMETRY dwgSourceVersion",
+      "MODELER_GEOMETRY modelerPayloadStatus",
+      "MODELER_GEOMETRY hasDwgInlineAcisPayload and dwgInlineAcisByteCount",
+      "MODELER_GEOMETRY dxfPayloadChunk.count",
+      "MODELER_GEOMETRY payloadRange.N.bitOffset",
+      "surface dxfAcisChunk.count, including generic SURFACE records"
+    ],
+    "negativeControls": [
+      "fabricated target optional field",
+      "missing target exclusion row",
+      "inflated payload-range count",
+      "out-of-range target bit-offset exclusion",
+      "fabricated target surface field",
+      "out-of-range standalone bit-offset field",
+      "missing standalone modeler zero-count field",
+      "missing standalone surface zero-count field"
+    ],
+    "runtimeBehaviorChanged": false,
+    "publicResultSchemaChanged": false,
+    "adapterOutputChanged": false,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "python3 -B tools/run_qualified_differential_v2.py --self-test",
+        "result": "PASS",
+        "elapsedSeconds": 0.38
+      },
+      {
+        "command": "python3 -B -m py_compile tools/run_qualified_differential_v2.py",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- tools/run_qualified_differential_v2.py",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "ctestRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "commitCreated": false
+  },
+  "planState": {
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextExternalGate": "7AG.4 native GNU/MSVC compiler profile and complete system/runtime closure at the composed checkpoint; does not block local slices",
+    "worktreeState": "Shared worktree is broadly dirty; this slice was left uncommitted and no other files were staged."
+  }
+}

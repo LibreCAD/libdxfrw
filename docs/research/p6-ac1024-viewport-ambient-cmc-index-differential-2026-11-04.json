@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "PHYSICAL_VIEWPORT_CMC_INDEX_DISCREPANCY_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 \u00a72.11 describes R2004+ CMC as BS color index, BL RGB, RC color byte and says the index is always zero. \u00a720.4.38 uses CMC for VIEWPORT ambient color. The two source objects below physically decode to a nonzero index; the source observation does not override the authoritative PDF.",
+    "dxf": "The DXF output here has group 63 for ambient color index and group 421 for RGB. No claim is made about consumer rendering or precedence from this comparison."
+  },
+  "provenance": {
+    "source": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "source_sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "source_producer": "Local source; original producer is not independently attested.",
+    "native": "Current build-gcc dwg2dxf strict AC1024-to-AC1024 ASCII output, process exits 0; output SHA-256 f75dbf3683385f7a7deee8874e267e15ef3b2c54d0057c083bf5c78e3903671a.",
+    "oda": "ODA File Converter 27.1.0 binary SHA-256 21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783, scratch source copy, ACAD2010 DXF, recursion 0, audit 0; process exits 0, output SHA-256 49981765adf36522fe0ac7ce501eb8af623145044530311c17df6be0f21ef962.",
+    "oracle": "GNU LibreDWG 0.14 -v5 trace SHA-256 0327db901e0cc610e2cae30d4329209e170ac59e8aad160c0c47aa5669d1832b, JSON SHA-256 79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367. ezdxf 1.4.5 reads both scratch DXFs."
+  },
+  "observations": {
+    "source_viewports": [
+      "0x28B",
+      "0x290"
+    ],
+    "source_values": "LibreDWG decodes each ambient CMC with index 250, raw RGB/method 0xC2333333 and flags 0.",
+    "output": "Both corresponding ODA DXF VIEWPORTs carry group 63 = 250 and group 421 = 3355443. Both corresponding native strict DXF VIEWPORTs carry group 63 = 256 and group 421 = 3355443. The 88 model-space entity types and order also matched; no broad comparison claim follows.",
+    "implementation": "DRW_Viewport::parseDwg stores the raw field separately in ambientColorDwgIndex while getCmColor normalizes the public ambientColor when true color is present. writeViewport emits the public ambientColor for group 63."
+  },
+  "disposition": "Do not change output or claim incorrect rendering on this evidence. The source index conflicts with the authoritative CMC description. The retained raw index is mutable source metadata without an immutable snapshot tying it to all directly mutable public color fields; blindly emitting it after a caller edit could use stale state. Obtain authoritative meaning or an official correction, plus producer/consumer controls covering unchanged and mutated colors before selecting a bounded implementation. Retain caller compatibility and strict graph/output requirements.",
+  "limits": "Two viewport instances in one local drawing and one ODA conversion; no native application rendering, interoperability parity, or consumer fallback claim. No external fixture is committed."
+}

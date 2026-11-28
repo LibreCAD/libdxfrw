@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader BRL-CAD explicit-mesh consumer safety and admission refresh",
+  "mode": "primary-source web research and read-only local plan/source/test reconciliation",
+  "scope": [
+    "Refresh BRL-CAD's optional role as an independent 3D consumer of explicit DXF facets and meshes",
+    "Reconcile current and legacy converter-scope documentation with the open dxf-g POLYLINE face-index safety report and proposed fix",
+    "Refine the existing composed-checkpoint route so it remains safe, measurable, optional, and non-blocking"
+  ],
+  "sources": [
+    {
+      "project": "BRL-CAD conversion tutorial",
+      "references": [
+        "https://brl-cad.github.io/docs/tutorials/converting/chapter4.html"
+      ],
+      "status": "project_documentation_reviewed_2026-10-20",
+      "observation": "The guide describes dxf-g importing polygons/meshes into BOT primitives and mapping DXF layers to regions; absent unit metadata defaults to millimeters, and scale/tolerance options affect the conversion.",
+      "limits": "The documentation does not provide a current exact entity/version support matrix or executed result for any pinned build."
+    },
+    {
+      "project": "BRL-CAD legacy conversion guide",
+      "references": [
+        "https://brlcad.org/w/images/5/5f/Geometry_Conversions.pdf"
+      ],
+      "status": "project_documentation_reviewed_2026-10-20",
+      "observation": "The older guide says dxf-g predates ACIS and converts 3DFACE and 3DMESH entities.",
+      "limits": "The guide is older than the current tutorial and cannot establish exact current behavior."
+    },
+    {
+      "project": "BRL-CAD issue #228",
+      "references": [
+        "https://github.com/BRL-CAD/brlcad/issues/228"
+      ],
+      "status": "open_issue_reviewed_2026-10-20",
+      "observation": "The report describes a full dxf-g import-path heap out-of-bounds read from untrusted POLYLINE face indices and includes an ASan trace.",
+      "limits": "Issue content is a reporter claim about BRL-CAD, not an independently reproduced finding in this workspace, a normative DXF rule, or evidence of a libdxfrw defect."
+    },
+    {
+      "project": "BRL-CAD pull request #245",
+      "references": [
+        "https://github.com/BRL-CAD/brlcad/pull/245"
+      ],
+      "status": "open_pull_request_reviewed_2026-10-20",
+      "observation": "The proposed change says it adds in-range checks before face indices are passed to triangle generation and skips invalid faces; the PR was still open in the reviewed snapshot.",
+      "limits": "An open PR is not a released or verified fix and does not define the legal signed PFACE semantics."
+    },
+    {
+      "project": "Autodesk DXF references",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm"
+      ],
+      "status": "primary_format_references_reviewed_2026-10-20",
+      "observation": "3DFACE and MESH are explicit DXF record families distinct from the modeler-geometry route.",
+      "limits": "These references do not qualify a BRL-CAD build or establish ACIS/B-rep semantics."
+    }
+  ],
+  "localReconciliation": {
+    "references": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing BRL-CAD explicit-mesh route and PAR-37/7V safety boundary",
+      "src/drw_entities.cpp: DRW_Polyline::validatePolyfaceDxf",
+      "tests/dwg_local_roundtrip_tests.cpp: runDxfPolyfaceCompletedPool"
+    ],
+    "observation": "Existing generated local polyface controls cover signed indices, zero termination, advisory counts, child ordering, invalid ranges, and INT16_MIN. This review inspected source/test inventory only; it did not run these tests.",
+    "limits": "Local parser/writer correctness and test-source presence do not establish any BRL-CAD behavior."
+  },
+  "planImpact": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "existingOwnersRefined": [
+      "PAR-37",
+      "7V",
+      "S5",
+      "S8"
+    ],
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY_OPTIONAL_ROUTE_REFINEMENT",
+    "implementationSummary": "Keep BRL-CAD as an optional composed-checkpoint candidate only for pinned, scratch-generated, safe 3DFACE/3DMESH profiles; exclude POLYLINE/PFACE until the open safety concern is resolved and a pinned released route is verified. Record converter aggregation, units, scale, tolerance, output geometry, and independent expected invariants. Do not use it as a parser-security, DWG, ACIS/AcDs, or B-rep oracle.",
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "mandatoryPeerGateAdded": false,
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "localPlanAndSourceInspected": true,
+    "peerRepositoryClonedOrBuilt": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationOrKernelRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-brl-cad-mesh-consumer-safety-admission-2026-10-20.json"
+    ],
+    "limitations": "The BRL-CAD sources are documentation and issue/PR snapshots rather than a pinned, executed artifact. No peer geometry was generated or imported, and no security claim about the peer or local library follows from this plan update."
+  },
+  "validation": {
+    "jsonValidation": "PASS: jq empty",
+    "scopedDiffCheck": "PASS: git diff --check for the plan and receipt paths",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit was requested; the shared worktree contains extensive pre-existing changes and Git metadata is read-only in this session."
+  }
+}

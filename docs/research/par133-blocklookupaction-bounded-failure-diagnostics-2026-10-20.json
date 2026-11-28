@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-133 AC1024 BLOCKLOOKUPACTION candidate cursor probe and bounded evidence follow-up",
+  "mode": "Primary-source comparison, local parser audit, diagnostic-only candidate probe, one targeted LibreDWG JSON read, and focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Bind the AC1024 BLOCKLOOKUPACTION class record, object handle, and parser cursor/boundary state from an existing local sample.",
+    "Compare libdxfrw's current lookup-action shape with the ACadSharp reader and LibreDWG's published field inventory.",
+    "Probe the peer-described candidate over independent local data/string cursors without publishing fields.",
+    "Refine PAR-133 implementation readiness without guessing at wire order, importing peer fixtures, or promoting support claims."
+  ],
+  "sources": [
+    {
+      "name": "Local ODA Open Design Specification v5.4.1 text search",
+      "path": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+      "method": "pdftotext -layout; inspected section 20.4 object prescriptions and section 10 class-table context; searched extracted text for BLOCKLOOKUPACTION, AcDbBlockLookupAction, lookup action, dynamic block, and block parameter/action terms",
+      "observed": "The local v5.4.1 copy explains generic entity/object and class-table structure but contains no class-specific BLOCKLOOKUPACTION field prescription in the searched/examined text.",
+      "limits": "A text/search coverage miss is not proof that no relevant generic object/custom-class rule or cross-reference exists. ODA remains authoritative; no field-order change is justified by this pass."
+    },
+    {
+      "name": "ACadSharp merged Dynamic parameters PR #1151",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1151",
+      "observed": "The merged change includes a BLOCKLOOKUPACTION reader and related dynamic-block model/writer work. The reviewed reader reads the common block-action prefix, row and column BitLongs, rows-times-columns variable-text values, then one column record per column, followed by a final bit.",
+      "limits": "Peer implementation evidence, not a normative specification. The current master source is mutable and no ACadSharp executable was run against the local drawing in this pass."
+    },
+    {
+      "name": "ACadSharp current DWG object reader",
+      "url": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Objects.cs",
+      "observed": "readBlockLookupAction reads the block-action prefix; two BitLong dimensions; rows*columns variable-text row values; columns instances of readLookupActionColumn; and one final bit. The candidate column sequence is three BitLongs, a bit, variable text, another bit, variable text.",
+      "limits": "Mutable branch source. The code shows one candidate reader order but does not provide independent proof of every version-specific bit, string, or handle boundary."
+    },
+    {
+      "name": "LibreDWG 0.13.4 OBJECTS manual",
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "secondaryUrl": "https://www.gnu.org/software/libredwg/manual/LibreDWG.html",
+      "observed": "The field inventory separates numrows, numcols, a lut array, exprs as TV*, and the final B280 flag. A lookup-table element contains connection points plus B282/B281; each connection point contains a BL code and TV name.",
+      "limits": "The field inventory does not specify exact serialized ordering, array cardinalities, all version deltas, or correctness on the local sample."
+    },
+    {
+      "name": "LibreDWG current object stability table",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "observed": "The current objects.in row classifies BLOCKLOOKUPACTION as UNSTABLE.",
+      "limits": "Mutable branch status is not semantic qualification or a wire-layout specification."
+    },
+    {
+      "name": "LibreDWG current NEWS",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "observed": "The current NEWS lists BLOCKLOOKUPACTION among unstable types and states unstable objects are not preserved through DXF conversion.",
+      "limits": "NEWS is a project status artifact; it does not establish the exact serialized order for this record or libdxfrw's behavior."
+    },
+    {
+      "name": "Local libdxfrw lookup-action parser and debug diagnostics",
+      "paths": [
+        "src/drw_objects.cpp",
+        "src/drw_objects.h"
+      ],
+      "observed": "The current parser reads rows and columns, caps their product, then preflights rows*columns items at a minimum of 8 inline bits per item. It proceeds to read one expression plus three connection pairs and flags 282/281 for every product item, then a final flag 280. New debug-only messages record failure cursor, dynamic data end, object size, handle bits/end, dimensions, consumed expression/connection counts, and the count-preflight rejection.",
+      "limits": "This source audit identifies a structural difference from the peer reader and manual inventory. It does not by itself prove the peer sequence is correct or that the local parser's candidate field layout is wrong for every version."
+    },
+    {
+      "name": "Diagnostic-only local AC1024 sample trace",
+      "path": "tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg -y --allow-partial-dwg-read -d -v2010 <temporary-output.dxf>",
+      "observed": "The per-file CLASSES table identifies class 528 as AcDbBlockLookupAction / BLOCKLOOKUPACTION. The object map trace binds handle 0x22F (decimal 559), objSizeBit=72891, handleBits=21, and computed handleStreamEndBit=72912. The parser reads rows=41 and columns=7; current dataBit=301, dynamic dataEndBit=510, leaving 209 data bits. It rejects before any expressions or connection sets are read because 287*8=2296 minimum inline bits are requested. The debug-only candidate probe then follows ACadSharp's row-value/column-record sequence on independent cursors: all 287 row texts and 7 column records plus final bit are consumed, data cursor ends exactly at 510/510, string cursor ends exactly at 72858/72858, and the declared handle stream remains 72891..72912. The main parser remains fail-closed and publishes no lookup-action fields. The overall run remains partial-observed with 393/395 frames published, two object parse failures, and one Classes CRC mismatch.",
+      "candidateProbeCommand": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg -y --allow-partial-dwg-read -d -v2010 <temporary-output.dxf>",
+      "candidateProbeStatus": "candidateComplete=1 candidateStage=final-flag candidateDataBit=510 candidateStringBit=72858 stringEndBit=72858 handleStartBit=72891 handleEndBit=72912",
+      "limits": "Existing local sample with unverified provenance. Cursor fit on one record is not independent producer proof or semantic validation. The run is partial and unsuccessful as complete conversion evidence; it does not establish a support claim. No sample was modified or committed."
+    },
+    {
+      "name": "Focused fast validation",
+      "commands": [
+        "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 2",
+        "ctest --test-dir build-gcc -R '^(dwg2dxf_dynamic_block_fail_closed|dwg2dxf_dynamic_block_capture_limits)$' --output-on-failure",
+        "git diff --check -- src/drw_objects.cpp",
+        "jq empty docs/research/par133-blocklookupaction-bounded-failure-diagnostics-2026-10-20.json"
+      ],
+      "observed": "Both targets built with -Werror; the two selected fast adapter CTests passed; scoped source diff check passed; receipt JSON parses. The sample command exits 1 in allowed-partial mode as before and reports the candidate cursor result without accepting the object.",
+      "limits": "The CTests cover adapter fail-closed and capture limits, not DWG parseDwg field order. The sample trace is diagnostic, not a passing conversion. No full suite was run."
+    },
+    {
+      "name": "LibreDWG 0.14 targeted JSON read of the same existing AC1024 sample",
+      "command": "dwgread -O JSON tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+      "observed": "dwgread reports version 0.14 and exits 0. Its object index 188 / type 528 / handle 559 output has numrows=41, numcols=7, and 287 exprs, but has no lut field, reports num_unknown_bits=72873, and the expr strings contain non-text/binary-looking values. The run reports SUCCESS overall, but this record is materially opaque and does not decode the candidate columns or establish semantic lookup values.",
+      "limits": "The class is marked UNSTABLE by LibreDWG and its NEWS says unstable objects are not preserved through DXF. Exit status and object recognition are not complete field parsing or semantic validation. Temporary JSON/log files were written only under /tmp."
+    },
+    {
+      "name": "Bounded local tracked AC1024 corpus scan",
+      "files": [
+        "tests/samples/AC1024/visualization_-_aerial.dwg",
+        "tests/samples/AC1024/visualization_-_conference_room.dwg",
+        "tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+        "tests/samples/AC1024/architectural_example-imperial.dwg"
+      ],
+      "method": "Run the local debug dwg2dxf converter in allowed-partial mode and search traces for the lookup-action preflight/parse diagnostic.",
+      "observed": "None of the four runs hit the BLOCKLOOKUPACTION candidate preflight diagnostic; each partial conversion exited 1 for other failures.",
+      "limits": "This is not proof the files contain no such classes or that their provenance is independent. Existing fixtures were not modified; no new fixture was added."
+    }
+  ],
+  "assessment": {
+    "newNumberedFindings": 0,
+    "candidateLocalIssue": "Current AC1024 BLOCKLOOKUPACTION data-budget preflight rejects the observed 41x7 sample before reading any expression. A debug-only candidate probe using independent data/string cursors reaches the declared data and string ends with the peer-described row-values-plus-columns sequence. LibreDWG 0.14 recognizes the object and counts but leaves 72,873 bits unknown, omits LUT fields, and yields non-text expression values. The candidate remains a one-sample bounded cursor fit, not independent field-order proof or semantic validation.",
+    "newSupportClaims": 0,
+    "existingOwners": [
+      "PAR-06 / PAR-07 dynamic-block object preservation and read disposition",
+      "PAR-133 BLOCKLOOKUPACTION and PERSUBENTMGR residual-object investigation"
+    ],
+    "planTotals": {
+      "findings": 142,
+      "topLevelSubplans": 78,
+      "note": "Older plan sections still contain a historical 141/78 count; this pass does not perform a plan-wide finding recount."
+    },
+    "implementationStatus": "ONE_SAMPLE_CANDIDATE_CURSOR_FIT; NO_TYPED_PUBLICATION; PRODUCTION_FAIL_CLOSED; FAST_ADAPTER_TESTS_PASS",
+    "decision": "Keep the production parser's current fail-closed behavior. The candidate sequence reaches the current sample's declared data/string boundaries without entering the handle stream, but LibreDWG's unstable-object result is opaque and does not confirm the column sequence. A second independently authored sample or authoritative field-order source is still required before changing production parse order. Continue other local implementation work; do not wait on this evidence gate."
+  },
+  "limitations": [
+    "No DWG/DXF fixture was downloaded, imported, or committed; the existing sample was not modified.",
+    "One targeted LibreDWG 0.14 JSON read was run; it did not fully decode the lookup-action body and is not a positive semantic result.",
+    "The ODA PDF class-name search was textual only and is not a complete chapter review.",
+    "The sample's overall read remains partial-observed and has an unrelated Classes CRC mismatch.",
+    "No finding count, support claim, or external qualification status was promoted.",
+    "No full suite was run; focused adapter tests do not exercise parseDwg field order."
+  ],
+  "planChanges": [
+    "Bind PAR-133 to the exact local class/handle and data/object/handle boundaries now present in the trace.",
+    "Record that the preflight rejects before the first expression, distinguishing a candidate count/layout issue from a failed field decode.",
+    "Add and execute a non-publishing, non-allocating candidate cursor probe over independent AC1024 data/string buffers, reporting both endpoints and the handle-stream range.",
+    "Keep generated non-square-grid, truncation, budget, and sentinel controls sequenced after field-order proof; they are not yet decoder acceptance evidence.",
+    "Record the targeted LibreDWG runtime result as recognized-but-opaque, not a positive layout/semantic witness; do not use its zero exit status as a support claim.",
+    "Record that four other tracked AC1024 samples did not hit the local candidate diagnostic; do not infer object absence or independent sample provenance from that negative trace filter.",
+    "Keep PERSUBENTMGR opaque/unsupported and all external gates DEFERRED_EXTERNAL."
+  ]
+}

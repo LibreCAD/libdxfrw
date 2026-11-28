@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 Pool_Detail SORTENTSTABLE null-target read recovery",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Preserve the complete typed SORTENTSTABLE payload when counted entity soft-pointer slots decode to null, while retaining strict output refusal for unresolved targets.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Pool_Detail.dwg",
+    "bytes": 420256,
+    "sha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+    "version": "AC1021",
+    "provenance": "Existing local corpus input, not committed. LibreDWG minJSON identifies Autodesk AutoCAD 2009 Trusted DWG metadata; that header claim is not an authenticated acquisition chain."
+  },
+  "object": {
+    "record": "SORTENTSTABLE / AcDbSortentsTable",
+    "handle": "0x4097",
+    "sourceOffset": 479167,
+    "objectBits": 103210,
+    "objectBytes": 25752,
+    "entryCount": 3222,
+    "nullEntityTargetCount": 14,
+    "firstNullEntityTargetOrdinal": 135,
+    "targetRole": "Soft pointer (handle code 4); decoded null ref is zero.",
+    "owner": "0x4096"
+  },
+  "formatEvidence": {
+    "authority": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.93 SORTENTSTABLE",
+    "finding": "The body carries one sort handle per entry; the handle stream carries the owner and numentries entity handles as soft pointers. This specifies the field role and count, but does not establish null entity targets as valid members.",
+    "independentPeer": {
+      "tool": "GNU LibreDWG dwgread 0.14",
+      "binaryPath": "/opt/homebrew/bin/dwgread",
+      "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "projectionPath": "/private/tmp/pool-detail-minjson.json",
+      "projectionSha256": "24a62eabc2f8cf8baf1ef1484b7109e45449bb3e98d8b8226246df0bceafeeaa",
+      "finding": "The same object has 3,222 sort handles and 3,222 entity slots; exactly 14 entity slots decode to handle zero. Peer success corroborates payload shape and values, not validity of the null graph edges."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "The SORTENTSTABLE parser accepts a correctly typed soft-pointer slot with ref zero and retains it in sequence. Static source-membership validation keeps the counted row and ordinal instead of rejecting the decoded null value. The adapter's strict owner/target graph continues to reject target zero before publication to DXF. The DWG writer also refuses null entity targets.",
+    "scopeLimit": "Tolerant read preservation only. The source graph is not qualified for DXF output, and no format-level validity claim is made for null members."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j4",
+    "localRoundtrip": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip",
+      "result": "PASS",
+      "binarySha256": "55ab1e4c68a13471d7d4bd398c2754847a9fc13dfa6a2b2744ca10bb21c39fde"
+    },
+    "generatedAdapterControl": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-adapter /private/tmp/sortents-adapter-null",
+      "result": "PASS; the null-target graph is refused with the destination sentinel preserved, and corrected graph retry/readback succeeds.",
+      "binarySha256": "bf2884268a81ef79212cb52b0de07edd817be3a57308707231eae3bc8246d0fa"
+    },
+    "physicalSourceRead": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Pool_Detail.dwg -y -d -v2007 /private/tmp/pool-detail-after-null.dxf",
+      "binarySha256": "878eb38945e31c004d8b58192fb4c059d1e20992657e0468dfd25c6a3b2bb7dc",
+      "logPath": "/private/tmp/pool-detail-after-null.log",
+      "logSha256": "5000c760e18c61d24e0bccd4a0dad0087a0d70fb03e3e66562c4e365e6f87184",
+      "exitCode": 1,
+      "sourceFrames": 6163,
+      "publishedFrames": 6163,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "opaqueCallbacksNotOutputQualified": 113,
+      "outputCreated": false,
+      "strictRefusal": "Read disposition remains incomplete due error-severity LTYPE_CONTROL and BLOCK_CONTROL null-member rows and unresolved HEADER $CLAYER handle 0x0E. The 113 unqualified opaque callbacks are an additional later output gate."
+    },
+    "diffCheck": "PASS"
+  },
+  "nextAction": "Keep this SORTENTSTABLE graph refused for output. Select a different source-ready graph; do not infer that zero soft pointers are valid or waive source integrity rows.",
+  "fixturePolicy": "No DWG/DXF fixtures or derivatives were added to the repository."
+}

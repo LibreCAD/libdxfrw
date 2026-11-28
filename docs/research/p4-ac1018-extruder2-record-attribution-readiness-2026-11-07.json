@@ -1,0 +1,31 @@
+{
+  "receipt": "p4-ac1018-extruder2-record-attribution-readiness-2026-11-07",
+  "date": "2026-11-07",
+  "scope": "Bounded current-reader triage of the local AC1018 Extruder2 candidate; not a parser qualification or support claim.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Extruder2.dwg",
+    "sha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+    "provenance": "Local corpus sample; producer provenance is not established."
+  },
+  "reader": {
+    "path": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "878eb38945e31c004d8b58192fb4c059d1e20992657e0468dfd25c6a3b2bb7dc",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Extruder2.dwg -y -d -v2004 /private/tmp/extruder2-current.dxf",
+    "exit_code": 1,
+    "log_sha256": "d09beb1e1228c50c9f325b6cb9b0de1bdb2044032fab2776b46aaf94d0606d42"
+  },
+  "observations": {
+    "source_frames": 14713,
+    "published_frames": 14239,
+    "failed_frames": 474,
+    "entity_parse_failures": 474,
+    "object_parse_failures": 0,
+    "integrity_rows_recorded": 476,
+    "integrity_rows_retained_in_bounded_summary": 16,
+    "integrity_rows_omitted_from_summary": 460,
+    "first_retained_error": "BLOCK_CONTROL table-control role diagnostic at file offset 3869384, logical handle 1; expected and observed role values are both 2.",
+    "record_attribution": "The aggregate failed-entity count and captured summary do not identify the failed entities' source handles/types. No affected parser record or wire-layout defect has been isolated."
+  },
+  "decision": "Do not change entity parsers based on this aggregate result. First obtain record-level failure attribution for source handles/types, then select a bounded failure only if source evidence and ODA v5.4.1 support a concrete implementation hypothesis.",
+  "fixture_policy": "No DWG/DXF fixture was added."
+}

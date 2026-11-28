@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-vport-version-matrix-followup-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_VPORT_SEVEN_REVISION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Fill the AC1024 and AC1027 gaps in the existing generated VPORT writer transaction matrix.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW_Vport generated during each test run",
+    "profile": "One active VPORT with nondefault geometry, per-viewport UCS fields, post-AC1018 lighting/grid fields, AC1021+ shade-plot mode, and XDATA; optional reference handles remain null.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/vport_table_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-vport-version-matrix-followup-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "020d0cfcb40c14e67e6f10b571d6a6de826179dcacf5d80b7f750e8a986f8e42",
+    "testExecutableSha256": "2c7b65bcada8a12bff7832bc2dcee9d1192eeabeca4fce54bd79e67dd046683f",
+    "method": "The existing transaction sweep now also calibrates both added revisions, injects std::bad_alloc at every measured allocation, requires destination sentinel and full initialized caller-state preservation, retries on the same codec, compares exact output bytes with clean calibration, and checks typed readback."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 24, "Binary": 25},
+    "AC1015": {"ASCII": 24, "Binary": 25},
+    "AC1018": {"ASCII": 24, "Binary": 25},
+    "AC1021": {"ASCII": 24, "Binary": 25},
+    "AC1024": {"ASCII": 24, "Binary": 25},
+    "AC1027": {"ASCII": 24, "Binary": 25},
+    "AC1032": {"ASCII": 24, "Binary": 25},
+    "totals": {"ASCII": 168, "Binary": 175, "all": 343}
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_vport_table_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_vport_table_allocation$' --output-on-failure: PASS 1/1 in 0.92 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_vport_table_allocation_tests: PASS; seven revisions, both encodings, all 343 measured offsets",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated writer transaction/readback evidence only; producer interoperability and native VPORT behavior are not qualified.",
+    "Optional background, visual-style, shade-plot-target, SUN, and UCS reference-graph closure remains open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The generated VPORT writer transaction matrix now includes AC1024 and AC1027, completing seven local revision lanes with full allocation rollback, caller-state preservation, same-codec exact retry, and typed readback.",
+    "remainingP6G": "Continue the exact public-writer inventory and caller-state audit; P6-G remains open.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "212 completed slices and 35 remaining packages: 212/(212+35)=85.8%; count-based activity proxy only."
+  },
+  "previousReceipt": "docs/research/p6-dxf-vport-table-allocation-rollback-retry-2026-11-13.json"
+}

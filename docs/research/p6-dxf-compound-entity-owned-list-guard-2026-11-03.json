@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-compound-entity-owned-list-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Resource bounds and allocation-safe rollback scratch for compound DXF POLYLINE and INSERT serialization.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/intern/dwgsafety.h",
+      "tests/dxf_fixture_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "POLYLINE child-handle rollback storage now uses DRW::reserve after the existing MaxOwnedObjectCount validation.",
+      "INSERT attribute chains above dwgSafety::MaxOwnedObjectCount (1,000,000) refuse before validating or staging each child.",
+      "INSERT child-handle rollback storage now uses DRW::reserve and fails through the compound output rollback path on reservation failure."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "focused": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_insert_attribute_count_bound$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "ASCII/Binary file exports with 1,000,001 valid shared ATTRIB references refuse and preserve a pre-existing destination."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_insert_child_handle_rollback$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "Existing INSERT rollback/retry and fresh typed readback control."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_classic_vertex_xdata$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "Existing compound POLYLINE/VERTEX rollback, retry, and readback controls."
+      }
+    ],
+    "repositoryFixturesAdded": 0,
+    "allocationFailureInjected": false
+  },
+  "limitations": [
+    "The 1,000,000 child limit is an internal resource ceiling, not a DXF semantic maximum or support claim.",
+    "The DRW::reserve allocation-failure branch was not fault-injected; broader copy/work bounds and other compound writer scratch remain open."
+  ],
+  "next": "Continue the P6 safety audit on remaining output assembly paths and add allocation-failure injection only where an existing seam can target the exact reserve without broad allocator changes."
+}

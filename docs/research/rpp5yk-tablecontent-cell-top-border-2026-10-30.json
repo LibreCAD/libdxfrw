@@ -1,0 +1,47 @@
+{
+  "id": "RPP-5yk",
+  "date": "2026-10-30",
+  "scope": "One AC1027 TABLECONTENT cell style with the previously qualified six margins and one top-edge invisibility override.",
+  "basis": {
+    "authoritativeSpecification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.3–.4, cell style and GRIDFORMAT fields.",
+    "sourceUrl": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "selectedSemantics": "Cell-style border property bit 0x10 selects invisibility; edge flag 1 selects top; group 93 value 1 means invisible. The project DXF decoder confirms the TABLEFORMAT/GRIDFORMAT marker and field order.",
+    "semanticLimit": "The spec supports the selected field meanings. The locally authored source and round-trip establish transport only, not a native CAD renderer result."
+  },
+  "profile": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "generatedAtRuntime": true,
+    "tableContentHandle": "0x721",
+    "styleScope": "one row's one cell, style type 1, has-data flag 1",
+    "margins": [0.125, 0.25, 0.375, 0.5, 0.625, 0.75],
+    "borderCount": 1,
+    "border": {
+      "edgeFlags": 1,
+      "propertyOverrideFlags": "0x10",
+      "borderType": 0,
+      "color": 0,
+      "lineWeight": 0,
+      "lineTypeHandle": "0",
+      "invisibility": 1,
+      "doubleLineSpacing": 0.0
+    }
+  },
+  "implementation": {
+    "writer": "The AC1027 TABLECONTENT writer now emits the selected GRIDFORMAT after the cell-style margins. Admission remains limited to one top-edge invisibility border with default border type, color, lineweight, null linetype, and spacing; other edges and border property combinations remain refused.",
+    "physicalOutput": "ASCII and binary spans assert border count 1, edge flag 1, property flag 0x10, border type 0, color 0, lineweight 0, group-340 null handle, group-93 invisibility 1, spacing 0, and exact closing markers.",
+    "typedReadback": "Both encodings read back the selected border fields and the six previously qualified margins.",
+    "negativeControl": "Unknown border override bit 0x40 refuses while preserving the destination sentinel; restoring 0x10 permits same-adapter retry.",
+    "generatedFixtureFilesCommitted": false
+  },
+  "validation": {
+    "command": "git diff --check && cmake --build build --target libdxfrw_dxf_fixture_tests -j4 && ./build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+    "result": "PASS",
+    "focusedOutput": "Generated DATALINK writer and adapter routes: PASS"
+  },
+  "limitations": [
+    "Only a top-edge invisibility override is qualified; other edge sets, visibility, border type, lineweight, linetype, color, and double-line profiles remain refused or unqualified.",
+    "Only the AC1027 single-cell writer profile is covered; source-authored native semantics, renderer acceptance, other versions, and whole-document closure are not established.",
+    "This runtime-generated recipe does not promote public DWG/DXF support claims."
+  ]
+}

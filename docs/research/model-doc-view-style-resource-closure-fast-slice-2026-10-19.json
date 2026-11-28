@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-20/7G.3f.4b.2 ModelDocViewStyle resource-reference closure",
+  "mode": "local implementation slice with Autodesk API/DXF schema cross-check",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": {
+    "families": [
+      "DETAILVIEWSTYLE",
+      "SECTIONVIEWSTYLE"
+    ],
+    "referenceRoles": {
+      "identifierAndLabelTextStyle": "STYLE table record",
+      "arrowSymbol": "BLOCK_RECORD table record",
+      "viewAndSectionLineType": "LTYPE table record",
+      "dxfGroupCodes": "340 hard-pointer references"
+    },
+    "zeroReferences": "Allowed as absent optional references",
+    "uniquenessBoundary": "Exactly one target among STYLE, LTYPE, and BLOCK_RECORD collections; not a global drawing-handle census",
+    "exportBehavior": "Require a valid import receipt and closed resource references, then fail closed before output publication because no qualified serializer exists",
+    "rootedOutputOrWriterImplemented": false,
+    "supportPromotion": false
+  },
+  "sources": [
+    {
+      "name": "Autodesk AutoCAD DetailViewStyle properties",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_DetailViewStyle.html",
+      "observed": "Identifier and label styles are text-style table records; arrow symbols are block table records; boundary, connection, and border references are linetype records."
+    },
+    {
+      "name": "Autodesk AutoCAD SectionViewStyle properties",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_SectionViewStyle.html",
+      "observed": "Identifier and label styles are text-style table records; start/end symbols are block table records; plane and bend references are linetype records."
+    },
+    {
+      "name": "Autodesk DXF common group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "observed": "Groups 340–349 are hard-pointer handle references."
+    }
+  ],
+  "testControls": [
+    "Generated AC1027 ASCII and Binary DXFs parse all six DETAILVIEWSTYLE and six SECTIONVIEWSTYLE resource-edge roles against LTYPE, STYLE, and BLOCK_RECORD records.",
+    "Reject a missing target, a target found only in the wrong table-entry family, and a duplicate same-family target.",
+    "An invalid reference reaches the fileExport preflight and preserves an existing destination.",
+    "A closed valid reference graph still fails closed before output because the style serializer is unqualified.",
+    "Temporary test drawings are authored from scratch and removed; no committed fixture or CTest registration is added."
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    {
+      "command": "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "validationScope": {
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "externalDrawingDownloaded": false,
+    "fixtureAdded": false,
+    "newCTestRegistered": false,
+    "dependenciesAdded": false
+  },
+  "remaining": [
+    "Establish complete/global source-handle identity and NOD-root closure for styles and their resources.",
+    "Close BLOCK_RECORD-to-BLOCK-body requirements and handle-remap behavior for arrow symbol resources.",
+    "Implement a typed or exact-profile raw serializer for complete style payloads; otherwise retain the fail-closed output boundary.",
+    "Validate version-specific replay and native rendering separately before making conversion or consumer-support claims."
+  ],
+  "evidenceCeiling": "Local generated DXF reference-role and fail-closed export controls only; not global graph closure, style serialization, DWG field-layout correctness, cross-version conversion, native rendering, or 3D support.",
+  "filesSha256": {
+    "dwg2dxf/dx_data.h": "e77962bbb8e53e1833eed36137bdfdabd331e31724718bae6eb3c39070df4203",
+    "dwg2dxf/dx_iface.cpp": "fb47bd8f4f43c27803270981d8ea703eadcbc1e61109839b8295292194070bab",
+    "tests/dwg2dxf_adapter_tests.cpp": "b99e2a23507728ac6f0ff5d97b91265ade25a312c81d77fa23518c9583ba4fcc",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "3d70783e1df82d20bfd77c48044d130d1521e9bb53c975287ed7ebaa1ae17830"
+  },
+  "planTotals": {
+    "findings": 137,
+    "topLevelSubplans": 77
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "worktree": "Uncommitted; changes are kept unstaged and unrelated existing edits are untouched."
+}

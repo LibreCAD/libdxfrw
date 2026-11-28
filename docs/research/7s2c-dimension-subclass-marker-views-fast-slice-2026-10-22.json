@@ -1,0 +1,56 @@
+{
+  "slice": "7S.2c dimension subclass-marker views",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "paths": [
+    "src/drw_entities.cpp",
+    "tests/hardening_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "change": {
+    "copy_only_marker_comparisons_use_record_scoped_string_views": [
+      "DRW_DimLargeRadial::parseCode",
+      "DRW_DimArc::parseCode"
+    ],
+    "generated_32k_ascii_and_binary_controls": true,
+    "unknown_and_known_marker_routing_unchanged": true,
+    "following_record_alignment_checked": true,
+    "persistent_fixture_added": false,
+    "public_api_or_layout_changed": false,
+    "wire_behavior_changed": false,
+    "support_claim_changed": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_borrowed_subclass_markers$' --output-on-failure",
+      "result": "PASS (1/1; 0.30 seconds; nine parser routes plus ATTRIB/MTEXT, ASCII/Binary)"
+    },
+    {
+      "command": "git diff --check -- src/drw_entities.cpp tests/hardening_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "full test suites",
+    "native FreeCAD Linux/Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "external_gates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "inventory_totals": {
+    "findings": 144,
+    "subplans": 78,
+    "note": "Inventory totals; not open-item counts."
+  },
+  "next": "Continue the exact-source 7S.2c audit of real parser staging/owner copies, retained-byte charges, and writer-side copies; then advance to a locally evidenced PAR-03/PAR-04 or other DWG/DXF semantic gap without waiting for external qualification."
+}

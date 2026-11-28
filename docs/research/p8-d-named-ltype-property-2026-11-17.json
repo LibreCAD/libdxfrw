@@ -1,0 +1,114 @@
+{
+  "date": "2026-11-17",
+  "profile": "P8-D LibreCAD 2 entity Properties named-LTYPE selector",
+  "status": "IMPLEMENTED_LOCALLY; PACKAGE_GATE_OPEN",
+  "candidate": {
+    "repository": "LibreCAD/LibreCAD",
+    "branch": "codex/p8d-named-linetype-property",
+    "commit": "d9c0ae435",
+    "base": "3ad089398976feb96ee01b8dee006c141edd8d3e (current local origin/master reference)",
+    "checkout": "/private/tmp/librecad-p8d-current-20261117"
+  },
+  "behavior": {
+    "property": "Entity Line Type",
+    "implementation": "Expose exact names from the drawing LTYPE table; append exact current names for all selected entities when a name has no table row; set only the pen LTYPE name. The single-selection regression selects through the configured combo; the mixed-selection regression creates the row view through the property view factory and drives the real LC_PropertyViewMultiple event wrapper before selecting the missing name.",
+    "compatibility": "Keep seeded canonical choices, including DASHED, and preserve pen color and width.",
+    "consumer_effect": "Entity properties can display and select imported nonstandard LTYPE names without reducing existing built-in choices."
+  },
+  "validation": {
+    "configure": "cmake -S . -B /private/tmp/librecad-p8d-build-20261117 -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON",
+    "build": "cmake --build /private/tmp/librecad-p8d-build-20261117 --target librecad_tests -j2",
+    "selector": "./librecad_tests 'Entity properties display and change imported named linetypes,Entity properties retain a named linetype missing from the drawing table,A new drawing writes the built-in LTYPE table as before' --reporter compact",
+    "result": "PASS: 76 assertions across 3 test cases.",
+    "covered": [
+      "Import a scratch-authored AC1027 ASCII DXF with VENDOR_BINARY and VENDOR_OTHER table rows and a VENDOR_BINARY LINE.",
+      "Property descriptor exposes DASHED and both exact imported custom names.",
+      "Create the configured entity property QComboBox, select VENDOR_OTHER by its exact item, and apply the edit, preserving color and lineweight.",
+      "Undo restores VENDOR_BINARY and redo restores VENDOR_OTHER.",
+      "Export and fresh-import; verify entity group 6 resolves to VENDOR_OTHER, the LTYPE pattern is [6,-3], and color/lineweight remain unchanged.",
+      "In a mixed selection, run the row's actual view factory and LC_PropertyViewMultiple event wrapper, select another entity's current non-table name from the created combo, and verify the selected set receives it."
+    ],
+    "fixture_policy": "The DXF input is generated from scratch inside the test's QTemporaryDir. No downloaded or repository fixture was added.",
+    "diff_check": "PASS"
+  },
+  "not_proved": [
+    "The live Move/Copy GUI action delivered both false override values at its action boundary.",
+    "An edited GUI drawing preserves and visibly renders the selected custom pattern after save and fresh reopen.",
+    "Native LibreCAD_3 MPOLYGON GUI save/reopen or pinned ezdxf 1.4.5 acceptance."
+  ],
+  "guiQualificationReadiness": {
+    "status": "WAITING_FOR_FUNCTIONAL_AQUA_GUI",
+    "observedAt": "2026-11-17",
+    "evidence": "The user said they would unlock the session. After that response, direct execution of the existing Contents/MacOS/LibreCAD binary produced only `sysmon request failed with error: sysmond service not found`; a screen capture failed with `could not create image from display`, and process inspection remains unavailable. The latest lightweight probe ran `screencapture -x /private/tmp/libdxfrw-p8d-preflight.png` and again received `could not create image from display`; `open -Ra 'LibreCAD'` printed `Unable to find application named 'LibreCAD'`; `/Applications` contained no LibreCAD.app and listed many unrelated applications, including FreeCAD.app, ODAFileConverter.app, and BRL-CAD. No app launch was attempted in this probe. Earlier direct candidate launch attempts returned LaunchServices kLSNoExecutableErr (-10827) or aborted during AppKit/HIServices registration with pasteboard XPC errors. No usable desktop, app window, or GUI test interaction was observed.",
+    "retryWhen": "Resume only after the exact built candidate opens with working pasteboard/XPC registration and the display can be captured. The latest user-reported unlock retry still has no capturable display and no registered LibreCAD app; do not repeat until app registration or display access changes.",
+    "retryHistory": [
+      {
+        "date": "2026-11-17",
+        "trigger": "The user reported another attempt to unlock the Mac session.",
+        "candidate": {
+          "path": "/private/tmp/librecad-p8d-build-20261117/LibreCAD.app",
+          "commit": "d9c0ae435ed5892611d6bec3c628033004dbcaf4"
+        },
+        "attempts": [
+          {
+            "command": "open -n /private/tmp/librecad-p8d-build-20261117/LibreCAD.app",
+            "result": "LaunchServices kLSNoExecutableErr (-10827), although Contents/MacOS/LibreCAD exists."
+          },
+          {
+            "command": "/private/tmp/librecad-p8d-build-20261117/LibreCAD.app/Contents/MacOS/LibreCAD",
+            "result": "Exit 134 / SIGABRT; pasteboard creation failed for clipboard and find (-4960), then com.apple.hiservices-xpcservice connection invalid. Crash log: /private/tmp/librecad-p8d-build-20261117/LibreCAD.app/Contents/MacOS/LibreCAD.54229.1794949356.crash.log."
+          },
+          {
+            "command": "screencapture -x /private/tmp/p8d-candidate-unlocked.png",
+            "result": "could not create image from display"
+          }
+        ],
+        "outcome": "Unlocking did not expose a capturable Aqua display or working app/pasteboard registration in this execution environment. No GUI interaction or support qualification ran."
+      },
+      {
+        "date": "2026-11-17",
+        "trigger": "The user reported unlocking the macOS session again.",
+        "candidate": {
+          "path": "/private/tmp/librecad-p8d-build-20261117/LibreCAD.app",
+          "commit": "d9c0ae435ed5892611d6bec3c628033004dbcaf4"
+        },
+        "attempts": [
+          {
+            "command": "open -n /private/tmp/librecad-p8d-build-20261117/LibreCAD.app",
+            "result": "LaunchServices kLSNoExecutableErr (-10827)."
+          },
+          {
+            "command": "screencapture -x /private/tmp/p8d-candidate-unlocked-2026-11-17.png",
+            "result": "could not create image from display."
+          }
+        ],
+        "outcome": "The unlock report did not change app registration or expose a capturable Aqua display. No GUI interaction or P8-D qualification ran."
+      },
+      {
+        "date": "2026-11-17",
+        "trigger": "The user reported they would unlock the macOS session again.",
+        "attempts": [
+          {
+            "command": "screencapture -x /private/tmp/libdxfrw-p8d-preflight.png",
+            "result": "could not create image from display"
+          },
+          {
+            "command": "open -Ra 'LibreCAD'",
+            "result": "Unable to find application named 'LibreCAD'"
+          },
+          {
+            "command": "ls -1 /Applications",
+            "result": "FreeCAD.app and ODAFileConverter.app were listed; LibreCAD.app was absent"
+          }
+        ],
+        "outcome": "The lightweight preflight still found no capturable display and no registered LibreCAD application. No candidate launch or GUI qualification ran."
+      }
+    ]
+  },
+  "gate_disposition": {
+    "gate": "P8-D",
+    "status": "OPEN",
+    "does_not_promote_support_claims": true
+  },
+  "next_slice": "When a normal Aqua launch works, run the native GUI checks: record both Move/Copy options at the action boundary; perform one controlled move; verify edited named-LTYPE save/reopen/render; then run LibreCAD_3 MPOLYGON GUI save/reopen and pinned ezdxf 1.4.5 readback. Until then, continue independent source/profile work."
+}

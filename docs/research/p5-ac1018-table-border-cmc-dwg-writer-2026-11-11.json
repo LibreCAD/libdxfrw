@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "status": "completed_bounded_generated_writer_slice",
+  "date": "2026-11-11",
+  "scope": "AC1018 TABLE-level 18-bit border-color CMC DWG output",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.96.1 Until R21",
+    "finding": "An optional border-color Boolean precedes an 18-bit mask. One CMC value follows for each selected mask bit, in ascending bit order, before the lineweight and visibility mask groups."
+  },
+  "implementation": {
+    "codec": "DRW_Table::encodeDwgWithExtension now writes the optional border-color flag, mask, and selected CMC entries in 18-slot order. It accepts C0/ByLayer, C1/ByBlock and C3/indexed ACI only. The parser marks other methods, color/book strings, unknown CMC flags and invalid indices semantically incomplete. Unselected nondefault color slots refuse.",
+    "readback_model": "The shared bounded TABLE CMC reader stores the normalized payload index, preserving the ACI value independently from the reserved leading BS.",
+    "compatibility": "No public virtuals, public object layout or drawing fixture files were changed. DXF per-row border CMC output remains refused when distinct title/header/data values cannot be represented by one entity-level group value."
+  },
+  "generated_control": {
+    "mask": "0x00020081",
+    "colors": [
+      { "slot": 0, "method": "0xC0", "index": 256 },
+      { "slot": 7, "method": "0xC1", "index": 0 },
+      { "slot": 17, "method": "0xC3", "index": 255 }
+    ],
+    "checks": [
+      "Sparse selected border colors encode and read back with the exact mask and normalized CMC methods/indices",
+      "Wire walk verifies ascending selected-slot order and the subsequent empty lineweight/visibility flags",
+      "The table override range ends at the exact body cursor and the following sentinel remains readable",
+      "Selected truecolor and unselected nondefault values refuse without publishing output"
+    ],
+    "fixture_policy": "Generated in memory from test code; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4 passed with repository warning-as-error settings",
+    "ctest": {
+      "libdxfrw_dwg_table_cell_overrides": "passed",
+      "libdxfrw_table_scalar_override_output": "passed"
+    },
+    "diff_check": "git diff --check passed"
+  },
+  "limits": [
+    "The generated wire vector proves codec/parser consistency, not physical producer ordering or profile prevalence.",
+    "Native TABLE border rendering and precedence remain unqualified.",
+    "The separately refused DXF per-row border CMC profile remains constrained by entity-level group-code representability; parsed TABLE source-range replay remains open."
+  ]
+}

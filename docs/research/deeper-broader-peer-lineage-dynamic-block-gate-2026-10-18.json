@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Peer parser lineage and BLOCKLOOKUPACTION evidence gate",
+  "mode": "broadened primary-source review and plan refinement; no code execution",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare implementation families, not merely repository/package counts.",
+    "Reassess PAR-133 type 528 / BLOCKLOOKUPACTION using current peer declarations and lineage.",
+    "Refine implementation readiness without changing support claims or external qualification status."
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "finding": "LibreDWG 0.14.1 categorizes BLOCKLOOKUPACTION and BLOCKLOOKUPPARAMETER as unstable, not stable.",
+      "evidenceClass": "independent implementation status, not semantic validation"
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "finding": "The class-status source table independently exposes the unstable classification for these dynamic-block classes.",
+      "evidenceClass": "source-level support-status confirmation"
+    },
+    {
+      "url": "https://github.com/node-projects/acad-ts/blob/master/README.md",
+      "finding": "acad-ts documents itself as a TypeScript port of ACadSharp from commit 3010994939c1bc21df0c9e2931e9baee4564815a and last compared with upstream commit 014e9e84414fbca0ad5efa40b4fcdc0453734097; it is not an independent parser lineage.",
+      "evidenceClass": "lineage declaration"
+    },
+    {
+      "url": "https://github.com/node-projects/acad-ts/blob/master/src/Objects/Evaluations/BlockLookupAction.ts",
+      "finding": "A typed BlockLookupAction object model is present, but this declaration by itself does not demonstrate correct DWG decoding for any particular version.",
+      "evidenceClass": "model declaration, not wire-format qualification"
+    },
+    {
+      "url": "https://www.npmjs.com/package/@node-projects/acad-ts?activeTab=versions",
+      "finding": "The published package metadata and version history were checked against the repository's declared lineage.",
+      "evidenceClass": "published-artifact metadata; no runtime was executed"
+    },
+    {
+      "url": "https://github.com/mlightcad/libredwg-web",
+      "finding": "libredwg-web explicitly describes its parser as based on LibreDWG; browser/WASM delivery does not create an independent DWG parser vote.",
+      "evidenceClass": "lineage declaration"
+    },
+    {
+      "url": "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md",
+      "finding": "The downstream bundled inventory marks BLOCKLOOKUPACTION fixture-needed; it is consumer/port evidence, not an independent parser.",
+      "evidenceClass": "downstream coverage inventory"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-Core/files/GUID-AA47163A-9ECC-49FE-92DB-AB05D2691E1C.htm",
+      "finding": "Autodesk documents lookup tables as mappings from input parameter values to lookup properties, with optional reverse lookup affecting block-reference properties/display.",
+      "evidenceClass": "semantic/API behavior; not wire-layout authority"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-Core/files/GUID-B69D58AD-7920-4198-AB2A-0E24B944F6CD.htm",
+      "finding": "Autodesk documents associating a lookup action with a lookup parameter to create a lookup table.",
+      "evidenceClass": "semantic/API behavior; not wire-layout authority"
+    }
+  ],
+  "assessment": {
+    "type528": "Unresolved and partial. The existing same-input local and LibreDWG failures are not independent producer witnesses, and LibreDWG labels the class unstable.",
+    "lineageRule": "Count parser families by source lineage: ACadSharp and acad-ts are one family; LibreDWG and libredwg-web are one family; LibreCAD's bundled libdxfrw is a downstream fork.",
+    "semanticAcceptance": "A lookup action must be validated with its associated parameter, table inputs/outputs, expected block-reference property/display behavior, and consumer outcome; parsing one action object is insufficient.",
+    "supportClaims": "No claims promoted. Raw retention, a typed model, proxy display, and same-lineage roundtrip are insufficient to assert dynamic-block semantics."
+  },
+  "planUpdate": [
+    "Keep type 528 under PAR-133's unresolved residual; do not infer grammar from peer status or partial JSON.",
+    "Require ODA cross-reference plus a versioned producer witness before parser edits.",
+    "Prepare generated bounded positive/malformed vectors, separate input parsing from local writer/readback, and check strict conversion remains fail-closed.",
+    "Require independent semantic evidence for the parameter/action/table graph and observable block-reference behavior; explicitly record parser lineage before support promotion.",
+    "No new finding/subplan, fixture, dependency, implementation ordering change, or validation-cadence change."
+  ],
+  "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+  "verification": {
+    "planDiffReview": "passed: reviewed the new top summary and appended evidence/gate section; no unrelated content intentionally changed by this slice",
+    "receiptJsonParse": "passed with jq",
+    "markdownDiffCheck": "passed with git diff --check",
+    "codeTests": "not applicable; research-only plan update"
+  },
+  "workingTree": "Extensively modified before this review. No files other than the plan and this receipt were intentionally changed; no commit or staging performed."
+}

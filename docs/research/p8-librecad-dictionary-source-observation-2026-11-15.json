@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-dictionary-source-observation-2026-11-15.patch",
+  "patchSha256": "adb2c337b7db22cea94ebbf52c93b8984179b4dde64c6c98b8cac02df570a50b",
+  "problem": "LibreCAD dictionary metadata omits common flags, validated link-tail state and per-entry DXF edge roles, so it cannot serve as the full typed source baseline for the AC1024 verifier.",
+  "implementation": "An unmerged, feature-macro-guarded downstream patch retains bounded copies of complete no-EED, no-reactor, no-extension-dictionary typed observations with non-null parent. Ambiguous handles, invalid identity, budget overflow or copy exceptions clear and latch the observation set; clear resets it. Non-profile dictionaries, including the parentless root, are skipped. This observation neither changes nor authorizes export.",
+  "validation": [
+    "A standalone macOS ARM64 consumer compiled with C++17 and -Werror against the installed current verifier archive (SHA-256 673313955db14028f667e7d2d1fa8f98715a2f4c35769cea2dc98d1f57ea8e12). It checks deep-copy behavior, duplicate/invalid-handle refusal, clear/retry, non-profile skipping, and the 32 MiB bound.",
+    "On the existing libdxfrw AC1024 title-block DWG it retained eight eligible typed dictionaries; all three named-block dictionaries 22D3, 21CD and 2120 matched their independently captured raw frame, publication, and membership through matchesAc1024DwgFrame. This scratch harness did not test the LibreCAD application adapter.",
+    "Older bundled-codec headers passed a C++17 -Werror syntax control; the new observation code is feature-macro excluded. The ordered patch applied and reverse-checked cleanly after the preceding 18 patches.",
+    "Source-release inventory and its 18 refusal controls passed with 1210 release files; the implementation digest remains c668c708cbf212bd3fe75a330c2f459867901dbd2e8cf8e0c87f03b8c308677b.",
+    "The clean installed-codec application test target rebuilt after the final header revision and all three focused CTests passed (0.92 seconds), including the new snapshot controls."
+  ],
+  "limits": "Source observations and helper agreement do not establish authentic producer data, frame CRC, immutable import generation, full source graph or safe output. Live LibreCAD metadata is not yet compared with this snapshot, and the exporter is unchanged. Broader platforms and native semantic qualification remain open."
+}

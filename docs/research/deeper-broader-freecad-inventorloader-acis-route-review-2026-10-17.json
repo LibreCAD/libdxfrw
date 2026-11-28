@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader FreeCAD native and InventorLoader ACIS route review",
+  "mode": "research-only",
+  "scope": [
+    "FreeCAD stock DXF/DWG consumer route and its ACIS limitations",
+    "Source-available SAT/SAB reader and add-on route availability",
+    "Evidence independence, failure reports, and implementation readiness"
+  ],
+  "sources": [
+    {
+      "name": "FreeCAD import/export format limits",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+      "evidence": "Current documentation states FreeCAD DXF is limited to 2D because DXF 3D data uses proprietary ACIS encoding; DWG inherits the same limitation."
+    },
+    {
+      "name": "FreeCAD DWG import chain",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "evidence": "FreeCAD uses external DWG converters to produce DXF, then invokes its standard DXF importer; the documentation describes the CADExchanger route as the only documented 3D DWG option and identifies it as commercial."
+    },
+    {
+      "name": "FreeCAD issue 18454",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "evidence": "A FreeCAD maintainer response says the stock importer cannot read ACIS blobs in DXF. This is project discussion, not a format specification."
+    },
+    {
+      "name": "InventorLoader repository and license",
+      "url": "https://github.com/jmplonka/InventorLoader",
+      "evidence": "Repository identifies GPL-2.0 and publishes a FreeCAD add-on with SAT/SAB and DXF-solid import routes."
+    },
+    {
+      "name": "InventorLoader DXF route",
+      "url": "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py",
+      "evidence": "The route uses ezdxf to read DXF, extracts SAT/SAB from entity objects, and passes the payloads to the add-on's AcisReader."
+    },
+    {
+      "name": "InventorLoader ACIS parser and shape import",
+      "url": "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py",
+      "evidence": "The source contains SAT/SAB parsing, typed ACIS entities, and geometry reconstruction; Law.evaluate invokes Python eval. Mutable master was reviewed; no runtime was executed."
+    },
+    {
+      "name": "InventorLoader SAT/SAB import pipeline",
+      "url": "https://github.com/jmplonka/InventorLoader/blob/master/importerSAT.py",
+      "evidence": "The pipeline creates FreeCAD Part shapes or converts ACIS data through STEP; these are different consumer/projection strategies."
+    },
+    {
+      "name": "InventorLoader open issue 100",
+      "url": "https://github.com/jmplonka/InventorLoader/issues/100",
+      "evidence": "Reporter documents a DXF import strategy KeyError and an empty document using a FreeCAD 1.1 development build."
+    },
+    {
+      "name": "InventorLoader open issue 102",
+      "url": "https://github.com/jmplonka/InventorLoader/issues/102",
+      "evidence": "Reporter documents a SAB conversion TypeError."
+    },
+    {
+      "name": "InventorLoader open issue 103",
+      "url": "https://github.com/jmplonka/InventorLoader/issues/103",
+      "evidence": "Reporter documents a SAT shell-construction failure because no face was recognized."
+    }
+  ],
+  "assessment": {
+    "inventorloader_role": "Optional distinct ACIS parser candidate; uses FreeCAD/OCCT kernel and ezdxf for DXF parsing, so it is not an independent-kernel vote or complete DXF graph-preservation witness.",
+    "dwg_acds_role": "Not applicable to DWG AcDs section decoding, record-key joins, ownership, or chunk association; can only be evaluated downstream of independently extracted payload bytes.",
+    "security": "The inspected source includes Python eval in Law.evaluate. File-to-evaluation reachability was not audited or executed; require exact-source review and process isolation before any untrusted-input use. This is a risk flag, not a demonstrated exploit.",
+    "failure_reports": "Open issues are version- and artifact-scoped reports; they bar assuming route readiness but do not prove all versions fail."
+  },
+  "implementation_readiness": {
+    "existing_plan_owners_only": true,
+    "new_finding_or_subplan": false,
+    "fastest_sequence": [
+      "Inventory exact FreeCAD/OCCT/importer/converter/add-on/dependency versions on each requested platform; if the add-on is absent, record NOT_AVAILABLE and continue without installing it.",
+      "Separate stock 2D/explicit-geometry baseline from ACIS payload behavior and record converter diagnostics separately from importer diagnostics.",
+      "If InventorLoader is already available, pin its source and dependencies, inspect eval reachability, and run locally generated short-lived SAT/SAB controls with independent analytic expectations in an isolated process.",
+      "Record native-ACIS and STEP-import results separately, including shape validity, body count, bounds, volume, units/transforms, omissions, and diagnostics.",
+      "Keep DWG AcDs handle/key/chunk/owner association as a separate prerequisite; InventorLoader cannot close that edge."
+    ],
+    "fixture_policy": "No external drawing added or committed; only already-available repository/user material or scratch files created locally from scratch at the composed gate.",
+    "per_slice_external_validation": false
+  },
+  "validation": {
+    "web_research_only": true,
+    "local_peer_or_freecad_runtime": false,
+    "code_or_tests_changed": false,
+    "fixture_added": false,
+    "dependency_added": false,
+    "support_claim_promoted": false
+  },
+  "ledger": {
+    "finding_count": 128,
+    "top_level_subplan_count": 71,
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

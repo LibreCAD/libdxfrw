@@ -1,0 +1,65 @@
+{
+  "title": "S3.7c local circular ACIS cone projection and distance",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Closest point and unsigned Euclidean distance to the untrimmed circular-cone surface under the local decoded-field parameterization",
+    "domain": "Finite decoded cone face with ratio exactly 1, positive cosine angle, normalized sine/cosine within caller frame tolerance, nonzero axis and projected major-axis, finite query, and representable reference radius",
+    "algorithm": "Normalize a temporary cone frame, scale query/origin/radius, solve the closest point on both signed generator lines in the meridian plane, and map the selected nonnegative meridian radius along the query's radial direction",
+    "ambiguity_policy": "Projection refuses distinct equal-distance meridian results and axial queries whose closest point lies on a nonzero-radius circle; the distance predicate remains available for non-unique minima. An axial query within 16 machine epsilons in scaled axial coordinates of the analytic apex is canonicalized to that apex.",
+    "tolerance_policy": "Projection uses the caller frame tolerance; distance checks an explicit finite nonnegative linear tolerance, with equality accepted",
+    "numeric_policy": "Scale local coordinates before solving; construct output coordinates from exponent-scaled products and compensated sums; reject overflowing output atomically",
+    "non_claims": [
+      "elliptic cone projection for ratio other than one",
+      "normative ACIS ratio, nappe, orientation, or parameter semantics",
+      "edge trims, pcurves, or finite face-domain clipping",
+      "body transforms or source-unit application",
+      "B-rep validity, manifoldness, or shell closure",
+      "native consumer or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_generated_sab_21800_cone_profile": "PASS",
+    "exact_and_off_locus_projection": "PASS",
+    "positive_and_negative_nappe_projection": "PASS",
+    "unique_apex_projection": "PASS",
+    "oblique_nonunit_axis_projection": "PASS",
+    "cylinder_limit_projection_and_exact_distance_boundary": "PASS",
+    "distance_only_nonunique_axial_query": "PASS",
+    "just_outside_tolerance_refusal": "PASS",
+    "noncircular_ratio_projection_refusal": "PASS",
+    "invalid_profile_and_nonfinite_input_refusal": "PASS",
+    "unrepresentable_projection_output_refused_atomically": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.27 seconds)",
+    "symbol_check": "PASS (nm -gC build-gcc/libdxfrw.a exports drw_projectPointToAcisConeSurface and drw_pointWithinToleranceOfAcisConeSurface)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_exported_symbols": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

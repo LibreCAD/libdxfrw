@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-relative-owner-digest-refresh-2026-11-23",
+  "date": "2026-11-23",
+  "sourceCommit": "7d92fa043c634315e751ae3cf0c385711273a1ac",
+  "supportClaimEffect": "none",
+  "failure": {
+    "workflow": "qualification workflow contract",
+    "runId": 45235504549,
+    "jobId": 137906014096,
+    "reason": "The selected implementation digest was stale after the shared legacy relative-owner test changed."
+  },
+  "repair": {
+    "method": "Compute the digest in a clean worktree at the exact source head and update only the excluded qualified-format status overlay.",
+    "implementationDigestSha256": "c4a5c04e41d56ad6bc14249048a8e1dc9232b03bd1e3af8df8875c1bf1694e4a",
+    "implementationInputs": 774,
+    "claimStatusesChanged": false
+  },
+  "validation": [
+    {
+      "command": "python3 -B tools/check_qualification_digest.py",
+      "result": "PASS in a clean worktree at source commit 7d92fa043c634315e751ae3cf0c385711273a1ac after applying the refreshed excluded status overlay."
+    },
+    {
+      "command": "python3 -B tools/check_qualification_workflow.py --workflow .github/workflows/build.yml --manifest metadata/qualification-required-tests-v1.json",
+      "result": "PASS in the clean worktree."
+    },
+    {
+      "command": "python3 -B tools/check_qualified_format_support.py",
+      "result": "PASS: 15 claims, 2 candidate routes, 0 advertised."
+    }
+  ],
+  "limits": [
+    "The digest refresh and test controls do not promote a format or support claim.",
+    "Hosted fast regressions were still running at the failed head; recheck CI after the digest repair is published."
+  ]
+}

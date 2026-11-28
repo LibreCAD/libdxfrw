@@ -1,0 +1,55 @@
+{
+  "title": "S3.7c SAB 21800 open coedge-chain disposition",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "evidence": {
+    "public_model_reference": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+    "observed_contract": "Open loops may terminate with null next on the last coedge and null previous on the first; coedges are documented as doubly linked.",
+    "scope_limit": "This semantic/model reference does not establish SAB 21800 binary token layout or local pointer ordinals."
+  },
+  "implementation": {
+    "profile": "ACIS BinaryFile SAB 21800",
+    "field": "DRW_AcisFaceLoop::coedgeRingOpen",
+    "classification": "Observed null-terminated chain with null outer links and reciprocal next/previous identities among retained coedges.",
+    "coverage_effect": "Two boundary nulls alone do not create a known gap; broken or non-reciprocal chains remain gaps.",
+    "nonclaims": [
+      "complete owner-linked coedge census",
+      "source-loop completeness",
+      "face/shell validity",
+      "manifoldness",
+      "trim closure",
+      "B-rep validity",
+      "native CAD acceptance"
+    ]
+  },
+  "tests": {
+    "parser_fed_reciprocal_open_chain": "PASS",
+    "parser_fed_broken_ring_negative": "PASS",
+    "coverage_open_endpoints_only": "PASS",
+    "coverage_rejects_inconsistent_open_flag": "PASS",
+    "parser_fed_in_memory_state_equivalence": "PASS",
+    "new_fixture_added": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS 1/1 in 1.16 seconds",
+    "diff_check": "PASS",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "public_struct_layout_changed": true,
+    "consumer_rebuild_required": true,
+    "DRW_Interface_vtable_changed": false,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "findings": 144,
+    "top_level_subplans": 78,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "evidence_promotes_support": false
+  }
+}

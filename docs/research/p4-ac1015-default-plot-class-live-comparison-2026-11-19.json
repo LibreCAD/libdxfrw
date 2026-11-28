@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "scope": "Generated AC1015 default-plot CLASS source versus live model comparison; no output authority",
+  "implementationDigestSha256": "64bbf8cbe55593654174e74443a9f85a80c283ddac3776beab514ccb79d74979",
+  "provenance": "The test generates source DXF from scratch in a temporary directory in both ASCII and binary; no DWG/DXF fixture is committed.",
+  "behavior": [
+    "The same-import CLASS-shape observation remains separate from the mutable live drawing rows.",
+    "The live comparison requires exactly the two expected class rows, complete retained capture, and canonical record, class, application, proxy, instance-count, zombie and entity fields.",
+    "Changed fields, duplicate, missing and extra rows are rejected; restoring each mutation makes the live comparison pass again.",
+    "The report is source/live evidence only; owner-target resolution and output eligibility remain false."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedCtests": "PASS (5: default plot source probe, default plot graph, XRECORD binary transport and faults, and standard DWG profile isolation)",
+    "faults": "Seven individual class-field mutations, duplicate, missing, and extra row; each restored and retried for both generated encodings."
+  },
+  "limitations": [
+    "No target CLASS record, object emission, or native semantics were tested by this slice.",
+    "The AC1015 to AC1018 export remains refused and no support claim is promoted.",
+    "P8-F remains open: the new selected-input digest needs hosted fast and authenticated focused-native replay."
+  ]
+}

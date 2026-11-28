@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-14",
+  "scope": "Pre-AC1021 DXF DIMSTYLE DIMFXL group-49 output",
+  "evidence": {
+    "format_crosswalk": "The implementation's DIMSTYLE variable descriptor maps group 49 to DIMFXL with minimum revision AC1021. Autodesk identifies DIMFXL as a new AutoCAD 2007 system variable and documents its initial value as 1.0. Autodesk's AutoCAD 2007 DIMSTYLE group-code table does not list group 49; ezdxf documents DIMFXL group 49 as an unofficial R2007+ DIMSTYLE variable.",
+    "references": [
+      {
+        "title": "Autodesk: New system variables in AutoCAD 2007",
+        "url": "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/New-system-variables-in-AutoCAD-2007.html"
+      },
+      {
+        "title": "Autodesk: DIMFXL system variable",
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-LT/files/GUID-CC0F54D4-688B-4A14-9926-9840BCB30FCA.htm",
+        "documented_initial_value": 1.0
+      },
+      {
+        "title": "Autodesk AutoCAD 2007 DXF Reference",
+        "url": "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2007.pdf",
+        "section": "DIMSTYLE group codes",
+        "observation": "Group 49 is not listed in the DIMSTYLE table."
+      },
+      {
+        "title": "ezdxf DIMSTYLE internals",
+        "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/tables/dimstyle_table.html",
+        "observation": "Records DIMFXL group 49 as an unofficial R2007+ variable; peer documentation, not Autodesk authority."
+      }
+    ],
+    "code": "dxfRW::writeDimstyle no longer emits its DIMFXL default group 49 before AC1021. Before that revision, a nondefault typed dimfxl value or nondefault dynamic group-49 override fails before record output.",
+    "control": "libdxfrw_dimstyle_table_allocation verifies that ASCII AC1014/AC1018 output contains no DIMSTYLE group 49, checks atomic refusal and same-writer retry for typed and dynamic nondefault values in ASCII/Binary, and retains the existing seven-revision allocation rollback/retry matrix.",
+    "test_command": "cmake --build build --target libdxfrw_dimstyle_table_allocation_tests -j4 && ctest --test-dir build -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure",
+    "test_result": "passed: 1/1 in 1.25 seconds",
+    "fixture_policy": "Generated controls write only to the system temporary directory; no DWG or DXF fixture added to the repository.",
+    "limits": [
+      "The Autodesk 2007 schema does not list DIMFXL group 49; the mapping and revision threshold are additionally corroborated by the existing implementation crosswalk and ezdxf, not an explicit Autodesk group-code entry.",
+      "This does not qualify other unofficial DIMSTYLE variables or native AutoCAD/LibreCAD rendering semantics."
+    ]
+  }
+}

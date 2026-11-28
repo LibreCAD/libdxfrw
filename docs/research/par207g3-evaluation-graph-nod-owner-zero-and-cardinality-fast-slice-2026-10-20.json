@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 EVALUATION_GRAPH owner closure, NOD identity, and record cardinality",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Close the local EVALUATION_GRAPH owner-reference gap, NOD owner-zero identity, and typed record cardinality on the generated output route.",
+    "Require a resolvable owner for ordinary generated EVALUATION_GRAPH records and exactly one re-imported record in both ASCII and Binary DXF while preserving existing unique-handle, expression-target, and NOD-first checks.",
+    "Reuse the existing focused adapter test and CTests without changing fixture inventory or test registration."
+  ],
+  "sourceChange": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "change": "evaluationGraphCaptureLimitsFailClosed now runs in both ASCII and Binary DXF and requires the re-imported NOD to have owner handle zero and exactly one typed EVALUATION_GRAPH record, in addition to NOD-first ordering, unique OBJECTS handles, exact graph-to-NOD owner identity, one resolvable LINE expression target, and an atomic refusal when the graph owner is changed to an unresolved handle. dx_iface::prepareExtensionObjectGraph now validates ordinary EvaluationGraph owner references against accepted empty/default roots, the NOD, registered BLOCK_RECORD identities, and owners already traversed through supported object routes; the separately validated ACDS history lane is not conflated with this ordinary graph route.",
+    "reason": "Autodesk defines the common object 330 field as an optional owner-dictionary pointer and an owner-object pointer. A test-first generated DXF mutation showed that strict export previously accepted a dangling EvaluationGraph owner and replaced the destination. The same closure check also preserves the selected root's owner-zero identity and exact typed record count without guessing a root dictionary key.",
+    "productionBehaviorChanged": true
+  },
+  "scopeDecision": {
+    "candidateNodDictionaryEntryAssertion": "NOT_ADDED",
+    "evidence": "An initial generated-output probe found no ACAD_EVALUATION_GRAPH entry in the NOD. The current route emits the graph with its owner set to the NOD; no authoritative source or current plan requirement found in this slice establishes a required NOD key for this object.",
+    "policy": "Do not infer that a root dictionary key is required or alter output from this observation alone. Keep root-entry semantics open for a source-backed follow-up."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --evaluation-graph-capture-limits",
+      "result": "PASS (exit 0; both ASCII and Binary DXF; expected over-budget preflight refusal diagnostic appears in each existing negative control)"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_evaluation_graph_capture_limits$' --output-on-failure",
+      "result": "PASS (1/1; 0.03 sec)"
+    },
+    "adjacentFocusedCTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_named_resource_import_evidence|dwg2dxf_acds_history_dwg_frame_capture_limits)$' --output-on-failure",
+      "result": "PASS (2/2; 0.16 sec; ordinary object graph and separate ACDS history path)"
+    },
+    "converterBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf --parallel 2",
+      "result": "PASS"
+    },
+    "scopedDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": true,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

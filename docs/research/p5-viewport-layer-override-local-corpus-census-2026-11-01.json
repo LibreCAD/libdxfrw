@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-viewport-layer-override-local-corpus-census-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Local AC1024 VIEWPORT layer-override witness census",
+  "status": "NO_WITNESS_IN_AVAILABLE_LIBREDWG_OUTPUTS",
+  "supportClaimEffect": "none",
+  "scope": "Check whether existing local AC1024 DWGs and LibreDWG 0.14 outputs provide physical VIEWPORT groups 335, 343, 344 or 91 suitable for a bounded implementation profile.",
+  "environment": {
+    "host": "macOS ARM64",
+    "peer": "LibreDWG 0.14",
+    "dwg2dxf": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwg2dxf",
+      "sha256": "e4cca8e3f5af9a878eb0085ed14e992f64d35f03065743847701274a46781c99"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    }
+  },
+  "formatReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "finding": "Autodesk lists VIEWPORT groups 335, 343, 344 and 91 as soft-pointer references for layer viewport-property overrides."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/concepts/layers.html",
+      "finding": "ezdxf documents per-viewport layer overrides as layer-table data and says their DXF structure is undocumented; this does not resolve target roles or native behavior for the four VIEWPORT references."
+    }
+  ],
+  "commands": {
+    "peerVersion": "dwg2dxf --version => dwg2dxf 0.14; dwgread --version => dwgread 0.14",
+    "dxfConversion": "/opt/homebrew/bin/dwg2dxf -y -o /private/tmp/viewport-research/<stem>.dxf <input.dwg>",
+    "directJson": "/opt/homebrew/bin/dwgread -O JSON -o /private/tmp/<stem>-direct.json <input.dwg>",
+    "inspection": "Pair ASCII DXF group-code/value lines, count VIEWPORT records, and inspect their groups; inspect direct JSON OBJECTS for entity=VIEWPORT and override-related member names."
+  },
+  "inputs": [
+    {"path":"/Users/dli/doc/dwg/architectural_example-imperial.dwg","sha256":"52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7","directJsonValid":true,"directViewports":2,"libreDxf":"343729c597267cb81a3a4adbd3ec75dd1c961c4c6765eabe9eb20873f196f418","libreDxfViewports":2},
+    {"path":"/Users/dli/doc/dwg/civil_example-imperial.dwg","sha256":"45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc","directJsonValid":true,"directViewports":2,"libreDxf":"5f9a17df6e5f697d56291e404944f64835784e8205815b8b88d9de26834689f6","libreDxfViewports":2},
+    {"path":"/Users/dli/doc/dwg/mechanical_example-imperial.dwg","sha256":"854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858","directJsonValid":true,"directViewports":2,"libreDxf":"918a9fe724f7ffcede3cf2cad2dc9546247444ef617e3b86dd7bd36b051a2f00","libreDxfViewports":2},
+    {"path":"/Users/dli/doc/dwg/title_block-arch.dwg","sha256":"59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d","directJsonValid":true,"directViewports":1,"libreDxf":"6dd6fa62f034c33542362790c3b3f48d0d13e7b6f85b1569ff0168d6faedcd37","libreDxfViewports":1},
+    {"path":"/Users/dli/doc/dwg/title_block-iso.dwg","sha256":"b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2","directJsonValid":true,"directViewports":1,"libreDxf":"7a38d97881de4fc9b8ea9b05e539ab93c308a2fc66b8cf34741db49013a160a1","libreDxfViewports":1},
+    {"path":"/Users/dli/doc/dwg/visualization_-_aerial.dwg","sha256":"edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1","directJsonValid":true,"directViewports":0,"libreDxf":"006331812c41b01f6f93361fc709f2f2a303f91e576efa27474a137cf76d7de4","libreDxfViewports":0},
+    {"path":"/Users/dli/doc/dwg/visualization_-_condominium_with_skylight.dwg","sha256":"1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4","directJsonValid":false,"directViewports":null,"libreDxf":"34e72f0fa1ec07267c0460a744c773ed898c4978742dfe456fa85b2bfebf8ee2","libreDxfViewports":4},
+    {"path":"/Users/dli/doc/dwg/visualization_-_conference_room.dwg","sha256":"0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4","directJsonValid":true,"directViewports":0,"libreDxf":"da8b5d1d9b6fefa555f7b76437ece2f4415fc4c801c18db2f218894c9d937451","libreDxfViewports":0},
+    {"path":"/Users/dli/doc/dwg/visualization_-_sun_and_sky_demo.dwg","sha256":"fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881","directJsonValid":true,"directViewports":4,"libreDxf":"c914f4804cbe48bfbf545fb0082c9e7864c0312310d8fdfd79fb21695a1262fb","libreDxfViewports":4}
+  ],
+  "observations": {
+    "sourceVersion": "AC1024 for all nine inputs",
+    "libreDxfViewportRecords": 16,
+    "libreDxfOverrideReferences": 0,
+    "parseableDirectJsonViewportRecords": 12,
+    "parseableDirectJsonViewportRecordsWithOverrideNamedMembers": 0,
+    "directJsonParseFailures": ["visualization_-_condominium_with_skylight.dwg"],
+    "inputsWithNoDirectJsonViewportRecords": ["visualization_-_aerial.dwg", "visualization_-_conference_room.dwg"]
+  },
+  "limitations": [
+    "LibreDWG is a peer parser/writer, not a normative producer or native consumer for these fields; its omission cannot establish that source DWGs lack the references.",
+    "The direct JSON schema does not expose raw DWG groups and may omit fields its parser does not model; its missing member names are non-evidence of physical absence.",
+    "No physical group-335/343/344/91 witness, resolved target-kind proof, coupled dictionary/key/name/body proof, or native viewport-layer behavior was established.",
+    "The input DWGs were pre-existing local material and remain outside the repository; generated DXFs and JSON were written under /private/tmp and were not committed."
+  ],
+  "disposition": "No typed mapping or support claim is justified from this census. Obtain a conforming physical source with the reference targets and coupled layer/dictionary records, then prove native behavior; preserve strict refusal until then.",
+  "nextAction": "Continue independently actionable P4/P5-P8 implementation work. Revisit these four fields only when a physical producer witness supplies exact encodings and target roles.",
+  "fixturePolicy": "No DWG/DXF fixture was added or committed."
+}

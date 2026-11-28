@@ -1,0 +1,35 @@
+{
+  "id": "par134-r24-tablestyle-cell-style-type-domain",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": {
+    "class": "DRW_TableStyle",
+    "version": "AC1032",
+    "field": "R24 cell-style type",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.101.4"
+  },
+  "change": "Reject TABLESTYLE cell-style type values outside the documented 1..5 enumeration.",
+  "generated_controls": [
+    {"style_type": 1, "expected": "parse"},
+    {"style_type": 2, "expected": "parse"},
+    {"style_type": 3, "expected": "parse"},
+    {"style_type": 4, "expected": "parse"},
+    {"style_type": 5, "expected": "parse"},
+    {"style_type": -1, "expected": "refuse and clear state"},
+    {"style_type": 0, "expected": "refuse and clear state"},
+    {"style_type": 6, "expected": "refuse and clear state"},
+    {"style_type": 2147483647, "expected": "refuse and clear state"}
+  ],
+  "validation": [
+    "cmake --build build-gcc --target dxfrw libdxfrw_dwg_object_vectors_tests -j4: PASS",
+    "ctest --test-dir build-gcc -R ^libdxfrw_tablestyle_(data_flag|type)_domain$ --output-on-failure: PASS (2/2)",
+    "ctest --test-dir build-gcc -R ^libdxfrw_dwg_object_vectors$ --output-on-failure: PASS (1/1)",
+    "cmake --build build-gcc --target lc3_compat_check -j4: PASS",
+    "git diff --check -- src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp CMakeLists.txt: PASS"
+  ],
+  "fixtures_added": false,
+  "full_suite_run": false,
+  "external_producer_or_native_application_run": false,
+  "support_claim_changed": false,
+  "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+}

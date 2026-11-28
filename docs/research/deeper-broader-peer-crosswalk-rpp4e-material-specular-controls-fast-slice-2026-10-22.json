@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-4e MATERIAL specular controls generated fast slice",
+  "mode": "Local implementation and generated ASCII/Binary validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "52b1fbd9eeafd7f6eefa5896455431f80ddd4b638c03c7ae8fcdcfd56a3af7ba",
+  "authoritativeReference": {
+    "title": "Autodesk MATERIAL DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+    "accessed": "2026-10-22",
+    "fields": [
+      {
+        "group": 44,
+        "description": "Specular gloss factor",
+        "default": 0.5,
+        "validation": "finite real"
+      },
+      {
+        "group": 76,
+        "description": "Specular color method",
+        "default": 0,
+        "validValues": [0, 1]
+      },
+      {
+        "group": 45,
+        "description": "Specular color factor",
+        "default": 1.0,
+        "validRange": [0.0, 1.0]
+      },
+      {
+        "group": 92,
+        "description": "Specular color value",
+        "format": "unsigned 32-bit AcCmEntityColor"
+      }
+    ]
+  },
+  "implementation": {
+    "typedModel": [
+      "DRW_Material retains groups 44/76/45/92 with documented defaults and independent presence flags.",
+      "Copy/reset behavior preserves values and restores defaults with presence false."
+    ],
+    "parser": [
+      "Parse group 44 only when finite; accept the documented group-76 domain 0..1 and group-45 range 0..1.",
+      "Parse group 92 as unsigned 32-bit only in MATERIAL DXF context; preserve signed integer behavior elsewhere.",
+      "Capture group 92 in the ordered raw net with unsigned ASCII spelling and four-byte Binary DXF bit pattern."
+    ],
+    "writer": [
+      "Emit the Autodesk-listed sequence 44, 76, 45, 92 when each field is present.",
+      "Reject non-finite/out-of-domain authored fields before output replacement; encode group 92 without sign loss."
+    ],
+    "touchedFiles": [
+      "src/intern/dxfreader.cpp",
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "generatedControls": [
+    "ASCII and Binary generated MATERIAL records assert specular fields, raw tag order, following LINE alignment, and UINT32 high-bit color parsing.",
+    "Assert same-encoding and ASCII/Binary cross-encoding raw replay, including group-92 unsigned color value.",
+    "Assert typed-model defaults, presence, copy/reset behavior, and direct typed-writer round-trip.",
+    "Reject invalid group-76 method and group-45 factor in both encodings; reject non-finite group 44 and ASCII group-92 overflow before callback publication.",
+    "Assert typed writer transactionally refuses invalid specular factor, method, and non-finite gloss, preserves existing output, and succeeds after correction.",
+    "Invalid ASCII tokens are applied only to temporary files generated locally from scratch; no persistent DXF/DWG fixture is added."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: libdxfrw_dxf_fixtures, libdxfrw_hardening, and libdxfrw_dxf_binary_group_width_guard (3/3)",
+    "diffCheck": "PASS: git diff --check on changed source, test, and plan files",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "dwgMaterialBodyChanged": false,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-4f: specular map fields and 16-value mapper matrix",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

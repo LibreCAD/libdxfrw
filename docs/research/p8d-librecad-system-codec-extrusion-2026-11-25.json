@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-codec-extrusion-2026-11-25",
+  "status": "LOCAL_COORDINATE_CONTROLS_PASS_BROADER_SYSTEM_FILTER_GAPS_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "76cdccbb0c46844f17d6e21c13bd1a8ba093ac08",
+    "previousHead": "633d7ac09790e400b0fe1273b060da08bf36aaf1",
+    "master": "b91fbdcf1adeee764938a183018978416d0a8c90"
+  },
+  "problem": "The installed codec's ext=true DXF read projects TEXT, INSERT and 2D POLYLINE coordinates that LibreCAD's bundled reader delivers in their source frames. LibreCAD then applied its bundled-reader assumptions, causing reflected coordinates to be transformed twice and successive saves to change them.",
+  "change": "The system-codec adapter reads DXF source coordinates and, using one shared helper, projects the CIRCLE, ARC, TRACE/SOLID, LWPOLYLINE and ATTDEF callbacks for which the bundled reader supplies projected values. TEXT, INSERT, attributes, legacy POLYLINE, dimensions and underlays retain their source callback frames. A negative-normal DXF ELLIPSE keeps its WCS center and major axis and reverses its parameter interval when normalized to +Z. The DXF reader pointer is cleared after both success and failure so later DWG callbacks on the same filter are not mistaken for DXF callbacks. The library's default 3D-facing read behavior is unchanged.",
+  "authority": [
+    "Autodesk ELLIPSE DXF reference identifies center and major-axis vector as WCS: https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-107CB04F-AD4D-4D2F-8EC9-AC90888063AB.htm",
+    "Autodesk arbitrary-axis algorithm defines the OCS basis from the extrusion normal: https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm"
+  ],
+  "validation": {
+    "host": "macOS ARM64, AppleClang 21, Release",
+    "implementationDigest": "ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b",
+    "systemLibrarySha256": "dc1ce5ab6dae2855cf2ffb39789c6047df128b5753a79ecd58f8a42a5ed41981",
+    "systemTestSha256": "6882b3f8df67677ff71de47c1a8d2ed4864028a373ed08bd8bdd5b3c2aaa8a98",
+    "systemFast": "PASS: 413 assertions in 22 cases. The lane includes reflected LWPOLYLINE and 2D POLYLINE, TEXT, MINSERT and ELLIPSE controls, repeat-save checks, and same-filter DXF then DWG reads after both successful and failed DXF reads.",
+    "asanTestSha256": "fc451982175e07309f008d7a59d2640163135d1597a3645eadf1d4d806f93ced",
+    "asan": "PASS: the same 413 assertions with the consumer and test instrumented; detect_leaks=0. The installed libdxfrw dylib was not instrumented.",
+    "bundledTestSha256": "40651a7ee14943befe623b982dbdcd57cc127df6698971e42669028a32d177d0",
+    "bundledDxfFast": "PASS: 41492 assertions; 841 cases passed and 3 skipped.",
+    "broaderSystemFilter": "The same 131 existing [dxf][roundtrip][filter] cases yielded 86 passed / 45 failed before the fix and 91 passed / 40 failed after it. Failed assertion counts fell from 133 to 116; comparison by assertion expression found no new or increased categories. This is an exploratory failing lane, not a qualification pass."
+  },
+  "remaining": [
+    "Classify and resolve the 40 still-failing broader cases by source semantics and intended refusal behavior. Initial groups include underlay version handling, single-line caret/control transport, linetype naming, raw objects and handle/graph behavior; some expectations may require correction rather than a writer change.",
+    "Qualify binary DXF, other normals and producers, native GUI behavior and new-head hosted CI separately. No broad format or geometry support claim follows from these controls."
+  ],
+  "fixtures": "Generated scratch inputs only; no DWG/DXF fixture was committed."
+}

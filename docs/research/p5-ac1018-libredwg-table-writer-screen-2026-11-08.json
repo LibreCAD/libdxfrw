@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1018-libredwg-table-writer-screen-2026-11-08",
+  "date": "2026-11-08",
+  "title": "LibreDWG 0.14 from-scratch AC1018 TABLE writer screen",
+  "status": "EXCLUDED_WRITER_ROUTE_TABLE_NOT_EMITTED",
+  "supportClaimEffect": "none",
+  "peer": {
+    "project": "LibreDWG",
+    "version": "0.14",
+    "writer": "dwgwrite",
+    "reader": "dwgread"
+  },
+  "generatedInput": {
+    "path": "/private/tmp/libdxfrw-generated-table-ac1018.dxf",
+    "createdFromScratch": true,
+    "sha256": "b07d9055248327128a281906dee0f692e19ad841dd3f5d22d9a73076361457e0",
+    "candidate": "one-row, one-column ACAD_TABLE with an inline plain-text cell"
+  },
+  "conversion": {
+    "command": "dwgwrite --as r2004 -I DXF -o /private/tmp/libdxfrw-generated-table-ac1018.dwg -y /private/tmp/libdxfrw-generated-table-ac1018.dxf",
+    "outputPath": "/private/tmp/libdxfrw-generated-table-ac1018.dwg",
+    "outputMagic": "AC1018",
+    "outputSha256": "fd98cc9fbb4c09997092f259a62eace6dfff046321b53ba7b61eceae2d93fa77",
+    "writerLogSha256": "a9d44f5b46543c4324b8544cd5c925ff4808151725df52161c9831342b030b48",
+    "diagnostics": [
+      "ERROR: dwg.block_control and HEADER.BLOCK_CONTROL_OBJECT missing",
+      "Warning: Unknown DXF code 343 for TABLE",
+      "Warnings: TABLE row/column geometry and cell groups 171–176 and 1 are ignored",
+      "Warning: Unknown TABLE.block_header *T1",
+      "Warning: Object TABLE unsupported",
+      "Warning: No class for TABLE type 721 found",
+      "The process printed SUCCESS, which is not evidence the TABLE was emitted."
+    ]
+  },
+  "readback": {
+    "command": "dwgread -O minJSON /private/tmp/libdxfrw-generated-table-ac1018.dwg -o /private/tmp/libdxfrw-generated-table-ac1018.json",
+    "jsonSha256": "8ccf292cdd5f6264d1d9cf0fd69bcd557768c99a6e5f9c6ce9da93e94645a2f3",
+    "readerLogSha256": "3e64f7c6692575249a3bfb8a48f08c4b619bcbebec9699c379056f02f593efcf",
+    "classes": 0,
+    "objects": [
+      "BLOCK_HEADER",
+      "LTYPE_CONTROL",
+      "LTYPE",
+      "LAYER_CONTROL",
+      "LAYER"
+    ],
+    "tableEntityOrObjectCount": 0
+  },
+  "disposition": "This is not a TABLE body/profile witness: the peer discarded the candidate during DXF import and emitted no TABLE class/frame/entity. The temporary source and output are scratch-only and are not committed. Do not infer TABLE interoperability from the command's SUCCESS line.",
+  "next": "Keep LibreDWG 0.14 excluded as an AC1018 TABLE generator. Continue only with a producer route that actually emits and independently reads the TABLE body and its complete *T/style graph; otherwise preserve the output refusal."
+}

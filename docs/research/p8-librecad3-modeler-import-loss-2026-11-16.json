@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-16",
+  "consumerRepository": "LibreCAD/LibreCAD_3",
+  "consumerBase": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "localCandidateCommit": "125311e408964f75ca8cdcb41eaeb6d02dafea4e",
+  "pinnedLibdxfrwCommit": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "change": "Count unhandled modeler callbacks as 3DSOLID, REGION, BODY or generic MODELERGEOMETRY loss.",
+  "reproduction": "A locally constructed DXF carrying LINE and synthetic 3DSOLID, REGION and BODY shells imported successfully without reporting any modeler loss before this change.",
+  "test": "On macOS ARM64 three focused tests pass for each separately installed current and pinned codec. The runtime-generated DXF test verifies each synthetic callback is counted once while its LINE is retained. MPOLYGON and legacy-layer regression tests pass.",
+  "logs": [
+    "/private/tmp/lc3-modeler-current-test.log",
+    "/private/tmp/lc3-modeler-pinned-test.log"
+  ],
+  "replay": "Patch applied in order to the prior candidate replay and both changed files matched the committed consumer candidate.",
+  "limits": "The payload is synthetic opaque text, not valid or independently qualified ACIS geometry. This is callback loss reporting, not parser semantic, DWG, rendering or editing evidence. The candidate is local and unmerged; native GUI and other platforms remain open. No drawing fixture is committed; no phase gate or external-only support claim is promoted."
+}

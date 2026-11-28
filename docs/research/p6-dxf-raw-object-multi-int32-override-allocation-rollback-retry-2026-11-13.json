@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-raw-object-multi-int32-override-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_RAW_XRECORD_MULTI_INT32_OVERRIDE_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated raw XRECORD string and combined string/Int32 override rollback/retry controls to verify multiple Int32 override entries in ASCII and Binary DXF.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DXF raw object",
+    "profile": "Generated AC1027 XRECORD includes string groups 1 and 3, Int32 groups 90 and 91, and identity/owner/class groups. String-only output preserves both original Int32 values; combined output replaces both with 2718 and -91. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "0d208c21",
+    "files": [
+      "tests/raw_object_string_override_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-raw-object-multi-int32-override-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Extend the existing focused whole-write allocator control from one Int32 override to two group-index overrides. For each of string-only and combined profiles in ASCII and Binary, inject failures at every measured callback allocation offset, require the source raw object and prior destination to remain unchanged, retry the same codec, compare exact bytes with clean output, and read back the exact values."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_raw_object_string_override_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_raw_object_string_override_allocation$' --output-on-failure: PASS 1/1 (0.47 sec)",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_raw_object_string_override_allocation_tests -j4: PASS",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_raw_object_string_override_allocation$' --output-on-failure: PASS 1/1 (1.22 sec)",
+    "directRun": "PASS; all four ASCII/Binary string-only and combined profiles reached five allocation offsets each and passed rollback, same-codec retry, exact-byte comparison, and typed readback.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated multi-value override evidence does not establish source-producer prevalence or native consumer semantics.",
+    "Other raw-object override variants and the wider P6-G writer inventory remain open.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's public-writer inventory with another exact uncovered overload or variable-size OBJECTS builder."
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-dbcolor-identity-remapping-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "GENERATED_IDENTITY_TRANSPORT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Low-level DXF group-5 identity emission for DBCOLOR.",
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "The writer remaps and reserves a nonzero source identity, or allocates an identity when the source handle is zero.",
+      "The source object identity is bound only after staged record output succeeds.",
+      "A fixed output identity is refused before publishing record bytes.",
+      "Late invalid-XDATA failure restores staged bytes, emitted-record inventory, and source-object identity-map changes; corrected retry is verified with a fresh writer."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed in-memory AC1032 DBCOLOR records. No DWG/DXF fixtures were added.",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "cases": [
+      "Mapped group-5 identity, OBJECTS inventory identity, and source-object binding.",
+      "Typed callback readback checks true-color and color-book names.",
+      "Allocated group-5 identity when the source handle is zero, with typed readback.",
+      "Fixed-handle remap refusal preserves the destination.",
+      "Late invalid-XDATA rollback checks destination bytes, emitted-record inventory, and source-object identity map.",
+      "Corrected retry and typed readback use a fresh writer.",
+      "Existing standard object-identity, unsupported CMC-method, and retained color-book budget controls still pass."
+    ],
+    "validation": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "buildResult": "PASS",
+      "focusedCommand": "ctest --test-dir build-gcc -R 'dbcolor_identity_remapping|dbcolor_unsupported_method_refusal|dbcolor_book_name_owner_budget|dxf_standard_object_identities' --output-on-failure",
+      "focusedResult": "PASS: 4/4; 1.04 seconds total",
+      "diffCheck": "PASS: git diff --check"
+    }
+  },
+  "limitations": [
+    "Generated identity and field transport only; physical DBCOLOR producer prevalence and complete-document support are not established.",
+    "Native color-book acceptance and consumer color appearance remain open.",
+    "The late-failure test verifies byte, inventory, and source-object identity-map rollback, not handle-allocator reservation rollback; retry is verified on a fresh writer.",
+    "No support claim is promoted."
+  ],
+  "next": "Continue checking remaining low-level OBJECTS identity routes; keep physical producer and native color semantics gated on independent evidence."
+}

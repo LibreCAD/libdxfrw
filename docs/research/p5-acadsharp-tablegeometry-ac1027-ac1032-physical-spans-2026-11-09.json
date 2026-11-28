@@ -1,0 +1,151 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "title": "ACadSharp AC1027/AC1032 TABLEGEOMETRY physical body and handle spans",
+  "scope": "Independently walk the captured source object bytes for standalone TABLEGEOMETRY records; compare spans with a separately sequenced C++ scan, typed libdxfrw callbacks, and LibreDWG 0.14 values.",
+  "sources": {
+    "AC1027": {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg",
+      "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6",
+      "producer": "ACadSharp sample corpus; exact originating CAD application/build is not asserted",
+      "LibreDWG_json_sha256": "502bdef67435a424e744e4e9b28d2d5d1e4a3d5e09134031e6267d3cf6bfd212",
+      "libdxfrw_callback_log_sha256": "295e89b8d4f55a39479761967d6f220c2d037b514b9bc0ef8df90e21bb01cb96"
+    },
+    "AC1032": {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+      "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+      "producer": "ACadSharp sample corpus; exact originating CAD application/build is not asserted",
+      "LibreDWG_json_sha256": "06061271abeeeb717c6ed572ed79ef64cd07531cdeb0d36d883fc386b810f970",
+      "libdxfrw_callback_log_sha256": "aa01ce5aa654057214bac96a318b26733351be3c3c88583ba68de49f4083c0f6"
+    }
+  },
+  "tools": {
+    "libdxfrw": "Current worktree build-gcc/dwg2dxf/dwg2dxf; samples reach successful import; zero entity/object parse failures. Whole-document output remains subject to unrelated strict gates.",
+    "peer": "LibreDWG 0.14",
+    "python_independent_decoder": "tools/research/tablegeometry_physical_span_verify.py; independently implements MSB-first DWG bit, raw integer/double, BL, BS, BD, 3BD, and handle walks.",
+    "second_span_walk": "tools/research/tablegeometry_dwg_span_scan.cpp; sequenced separately using dwgBuffer's primitive codecs; exact interval equality is checked against the Python walk."
+  },
+  "records": [
+    {
+      "version": "AC1027",
+      "handle": "0x748",
+      "object_type": 525,
+      "raw_object_bytes": 1523,
+      "raw_object_sha256": "e52a86381a1b732edff476a7d2835fe8411b72339faa9f8b52fa903c0f686abf",
+      "handle_stream_bits": 199,
+      "object_data_end_bit": 11985,
+      "body_start_bit": 40,
+      "geometry_end_bit": 11984,
+      "geometry_values": 296,
+      "geometry_physical_field_spans": 220,
+      "cells": 21,
+      "contents": 19,
+      "handle_stream": {
+        "start_bit": 11985,
+        "end_bit": 12177,
+        "end_padding_bits": 7,
+        "observed_alignment_bits": "1111111",
+        "owner": { "role": "relative soft pointer", "code": 10, "resolved_handle": "0xe6c" },
+        "reactor_count": 0,
+        "extension_dictionary_absent": true,
+        "cell_references": { "count": 21, "role": "soft pointer", "code": 4, "all_null": true }
+      }
+    },
+    {
+      "version": "AC1027",
+      "handle": "0xe7a",
+      "object_type": 525,
+      "raw_object_bytes": 1401,
+      "raw_object_sha256": "cb511f8b9e9a094ce07ae3b3415249db974e7e2bb145d9d2234b569628af96cf",
+      "handle_stream_bits": 181,
+      "object_data_end_bit": 11027,
+      "body_start_bit": 40,
+      "geometry_end_bit": 11026,
+      "geometry_values": 281,
+      "geometry_physical_field_spans": 209,
+      "cells": 20,
+      "contents": 18,
+      "handle_stream": {
+        "start_bit": 11027,
+        "end_bit": 11203,
+        "end_padding_bits": 5,
+        "observed_alignment_bits": "11111",
+        "owner": { "role": "relative soft pointer", "code": 10, "resolved_handle": "0xe7c" },
+        "reactor_count": 0,
+        "extension_dictionary_absent": true,
+        "cell_references": { "count": 20, "role": "soft pointer", "code": 4, "all_null": true }
+      }
+    },
+    {
+      "version": "AC1032",
+      "handle": "0x748",
+      "object_type": 525,
+      "raw_object_bytes": 1523,
+      "raw_object_sha256": "cb12a958752699dcb874fab3a806dab96f920963d97a46a79bab0ed9fb2febe7",
+      "handle_stream_bits": 199,
+      "object_data_end_bit": 11985,
+      "body_start_bit": 40,
+      "geometry_end_bit": 11984,
+      "geometry_values": 296,
+      "geometry_physical_field_spans": 220,
+      "cells": 21,
+      "contents": 19,
+      "handle_stream": {
+        "start_bit": 11985,
+        "end_bit": 12177,
+        "end_padding_bits": 7,
+        "observed_alignment_bits": "1111111",
+        "owner": { "role": "relative soft pointer", "code": 10, "resolved_handle": "0xe58" },
+        "reactor_count": 0,
+        "extension_dictionary_absent": true,
+        "cell_references": { "count": 21, "role": "soft pointer", "code": 4, "all_null": true }
+      }
+    },
+    {
+      "version": "AC1032",
+      "handle": "0xe60",
+      "object_type": 525,
+      "raw_object_bytes": 1401,
+      "raw_object_sha256": "e41a3f7e4e349141d6b48cb562c5c4092bc0888c0844375e3c63ece8df0e0b02",
+      "handle_stream_bits": 181,
+      "object_data_end_bit": 11027,
+      "body_start_bit": 40,
+      "geometry_end_bit": 11026,
+      "geometry_values": 281,
+      "geometry_physical_field_spans": 209,
+      "cells": 20,
+      "contents": 18,
+      "handle_stream": {
+        "start_bit": 11027,
+        "end_bit": 11203,
+        "end_padding_bits": 5,
+        "observed_alignment_bits": "11111",
+        "owner": { "role": "relative soft pointer", "code": 10, "resolved_handle": "0xe62" },
+        "reactor_count": 0,
+        "extension_dictionary_absent": true,
+        "cell_references": { "count": 20, "role": "soft pointer", "code": 4, "all_null": true }
+      }
+    }
+  ],
+  "comparisons": {
+    "independent_span_walks": "The Python bit-level decoder and the separately sequenced C++ dwgBuffer scan agree on all common-field, count, per-cell, per-content, standalone BD, owner, and cell-reference bit intervals for all four source objects.",
+    "typed_and_peer_semantics": "For all four objects, row/column/cell counts, cell flags and dimensions, ordered content coordinates/scalars, zero unknown BD values, owner targets, and null cell references match the typed libdxfrw callback and LibreDWG 0.14 within 1e-12 for floating values.",
+    "raw_peer_crosscheck": "For each record, the captured libdxfrw raw object bytes after the five-byte type prefix are byte-identical to LibreDWG's reported unknown_bits bytes.",
+    "standalone_unknown_field": "All 37 per-version content unknown fields are zero and each occupies the two-bit BD zero selector; this corpus does not decide nonzero value encoding against the conflicting shared-cell schema.",
+    "padding_and_boundaries": "The body cursor ends one bit before the object-data end in all four records; the verifier checks that R2007+ absent-string flag and confirms it is zero. Handle spans terminate with five or seven alignment bits before the object byte boundary; the observed alignment bit values are retained per record without treating them as a normative requirement."
+  },
+  "disposition": {
+    "completed": "Physical body/string boundary and handle-role span proof for these four null-cell-reference AC1027/AC1032 TABLEGEOMETRY records.",
+    "not_completed": [
+      "A non-null TABLEGEOMETRY cell soft-pointer target and its reachable graph.",
+      "A nonzero standalone unknown BD field from an independently attributable producer.",
+      "Native TABLE rendering and broader producer/version interoperability."
+    ],
+    "output_policy": "Do not broaden the existing null-reference DXF writer profile. Keep non-null cell references and nonzero unknown values refused until their source semantics and representability are independently established. Whole-source export remains gated by unrelated records.",
+    "fixture_policy": "DWG, LibreDWG JSON, captured object bodies, and probe logs remain in their existing external/sample or scratch locations; no external DWG/DXF fixtures were copied into or committed to the repository."
+  },
+  "rerun": {
+    "scanner_build": "c++ -std=c++17 -Wall -Wextra -Werror -Isrc -Isrc/intern tools/research/tablegeometry_dwg_span_scan.cpp build-gcc/libdxfrw.a -o /private/tmp/tgspan-tracked",
+    "verifier": "python3 tools/research/tablegeometry_physical_span_verify.py --version <AC1027|AC1032> --peer-json <libredwg.json> --adapter-log <libdxfrw-log> --raw-prefix <raw-prefix> --span-prefix <span-prefix> --record <handle>:<handle-stream-bits> (repeat --record per object)"
+  }
+}

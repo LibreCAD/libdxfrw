@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-04",
+  "authority": "Open Design Specification for .dwg files v5.4.1 sections 20.2 and 20.4.52; independent ODA source and LibreDWG physical graph evidence in docs/research/p6-ac1015-attributed-insert-block-contents-source-2026-11-04.json.",
+  "scope": "Separate DRW_DwgLegacyBlockContentProvider extends the opted-in AC1015 model/attributed-INSERT profile with a nonempty, predeclared LINE/CIRCLE/ARC chain within its one named block. Block entries are reserved together with model and compound identities, emitted in one complete block scope before model entities, and retain explicit planned order and per-owner links in immutable frame receipts. Unplanned scopes, contents, aliases, wrong owners and incomplete lists fail the transaction. Previous opt-ins and non-opt-in behavior remain unchanged.",
+  "oda_output": {
+    "reader": "ODA File Converter 27.1.0 converts generated DWG to ACAD2013 DXF; output content and absence of .err inspected. Explicit model chain, attributed-INSERT chain, block-content chain and default plotstyle providers enabled.",
+    "nonmonotonic": {
+      "dwg_sha256": "d8bec1462ecda5fa07dccb21ee936768bd3b0f1c5e6777760ac4f56704c27eff",
+      "dxf_sha256": "a377a945bd784c7fb706fe4166ac9480d261c6f2a5f35e404de5c7c537bc8a3e",
+      "observed": "Block LINE (1,2,3) to (4,5,6), CIRCLE center (7,8,9) radius 2.5, and ARC center (21,22,23) radius 4.5, 20 to 110 degrees retained; model INSERT and attribute FIRST=ONE retained. LibreDWG independently verifies block first/last 0x901/0xA22 and ordered chain 0x901 to 0x550 to 0xA22, each owner 0xD00."
+    },
+    "singleton": {
+      "dwg_sha256": "13ef1b711214f90153a51f010742bb54355f8e22d4241ee3edf6fba7bcd0e85e",
+      "dxf_sha256": "1aae351aab1016e713b7ddec60e5abac0175ef9d905d9911b110ee7f1fb61ee4",
+      "observed": "Exactly one block LINE and the model INSERT with its attribute retained. LibreDWG verifies first=last 0x901, owner 0xD00 and typed-null predecessor and successor."
+    }
+  },
+  "validation": "Focused block-content CTest covers immutable exact link/owner receipts, nonmonotonic and singleton chains, scope, identity, type, owner and ordering refusals, 18 early/late NOD, GROUP, dictionary and XRECORD ownership-alias attempts across all three content identities, sentinel destination and same-facade retry. Early and late injected exceptions after block-entity mutation restore caller owner/identity, raw APPID and LAYER reference vectors and absent receipt; caught failures latch and prevent publication. Independent LibreDWG tests verify exact ownership, first/last, links and geometry. Existing model, POLYLINE, INSERT, HEADER and plotstyle CTests pass; LC3 compatibility target builds.",
+  "limits": "Exactly one ordinary zero-base named block, only concrete LINE/CIRCLE/ARC contents and the separately bounded attributed-INSERT profile. Multiple blocks, ATTDEF, nested INSERT, other content types, paper space and opaque replay are outside this profile. No native editing/rendering, platform-wide or broad DWG/DXF support claim follows; no generated DWG/DXF fixture is committed."
+}

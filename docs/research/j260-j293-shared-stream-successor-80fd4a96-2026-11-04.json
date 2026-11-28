@@ -1,0 +1,832 @@
+{
+  "advisory": true,
+  "diagnosticsBySourceSha256": {
+    "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4": {
+      "category": "export-preflight-refused",
+      "messageSha256": "cbd7c4043f7ae5f6d324851cfb9a69d405093965e567c438917b99525fd47956"
+    },
+    "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654": {
+      "category": "export-preflight-refused",
+      "messageSha256": "45673a62e645665ebb16ef263763048884f0e4afcab90c3e28a9b3c7cdf065aa"
+    },
+    "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4": {
+      "category": "export-preflight-refused",
+      "messageSha256": "cbd7c4043f7ae5f6d324851cfb9a69d405093965e567c438917b99525fd47956"
+    },
+    "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92": {
+      "category": "export-preflight-refused",
+      "messageSha256": "d5865864bff0d834c38b0767b4b662cc8daddb555d4870535549a6f59907e121"
+    },
+    "21b49e383cc43171fd13e2bbcd1c235bc1a57804be97f63a0d581fb944e743ff": {
+      "category": "read-failed"
+    },
+    "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42": {
+      "category": "export-preflight-refused",
+      "messageSha256": "cbd7c4043f7ae5f6d324851cfb9a69d405093965e567c438917b99525fd47956"
+    },
+    "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07": {
+      "category": "export-preflight-refused",
+      "messageSha256": "9b08d2b045e09c48617efbcc815c6749dcc24670e58717b0bc2b16a51d7da78b"
+    },
+    "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71": {
+      "category": "export-preflight-refused",
+      "messageSha256": "d5865864bff0d834c38b0767b4b662cc8daddb555d4870535549a6f59907e121"
+    },
+    "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc": {
+      "category": "export-preflight-refused",
+      "messageSha256": "4366f19c6bf1381d80dd822ff98f90a689035473754f7b90372a506e6c83467e"
+    },
+    "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7": {
+      "category": "export-serialization-failed",
+      "messageSha256": "4cd877bc5ee77a4ffde4e6cd0f40b13fabdaffb9240cbaebdfb19b2b93e90fb7"
+    },
+    "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d": {
+      "category": "export-serialization-failed",
+      "messageSha256": "4cd877bc5ee77a4ffde4e6cd0f40b13fabdaffb9240cbaebdfb19b2b93e90fb7"
+    },
+    "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58": {
+      "category": "read-failed"
+    },
+    "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344": {
+      "category": "export-preflight-refused",
+      "messageSha256": "d5865864bff0d834c38b0767b4b662cc8daddb555d4870535549a6f59907e121"
+    },
+    "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1": {
+      "category": "export-preflight-refused",
+      "messageSha256": "3d52699ef06cb616323cf253ff2ee743fa7df363bc98d724bb814551db2f684e"
+    },
+    "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4": {
+      "category": "export-preflight-refused",
+      "messageSha256": "d5865864bff0d834c38b0767b4b662cc8daddb555d4870535549a6f59907e121"
+    },
+    "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858": {
+      "category": "converter-success"
+    },
+    "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b": {
+      "category": "export-serialization-failed",
+      "messageSha256": "be7bf4e444cc89a23563cf2635d2c19dbddb1345be437401b2f3b61734a6d84c"
+    },
+    "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142": {
+      "category": "export-preflight-refused",
+      "messageSha256": "cbd7c4043f7ae5f6d324851cfb9a69d405093965e567c438917b99525fd47956"
+    },
+    "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d": {
+      "category": "export-preflight-refused",
+      "messageSha256": "d5865864bff0d834c38b0767b4b662cc8daddb555d4870535549a6f59907e121"
+    },
+    "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2": {
+      "category": "export-serialization-failed",
+      "messageSha256": "4cd877bc5ee77a4ffde4e6cd0f40b13fabdaffb9240cbaebdfb19b2b93e90fb7"
+    },
+    "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce": {
+      "category": "export-preflight-refused",
+      "messageSha256": "d498829ac7b7bb7f5f45dc4853786d700ab3371f036b74e2528689e18fa52eef"
+    },
+    "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1": {
+      "category": "export-preflight-refused",
+      "messageSha256": "f6e323fed0b37142f8c0464d797cbbf0b803ee02f5d14fee2bc526a8646cea57"
+    },
+    "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c": {
+      "category": "export-preflight-refused",
+      "messageSha256": "cbd7c4043f7ae5f6d324851cfb9a69d405093965e567c438917b99525fd47956"
+    },
+    "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881": {
+      "category": "export-preflight-refused",
+      "messageSha256": "42fd1e9ef811028c82d46d05ea223c1ade33f93b9178806ae8ecfc7eaf307e5c"
+    }
+  },
+  "historicalItems": [
+    "J260",
+    "J293"
+  ],
+  "historicalSetDigestSha256": "741bb8e2fb2468a3aa40e1ab8dda9d9738538337a879315cf104687bdd3063b7",
+  "interpretation": {
+    "actionable": "Among 23 unsuccessful DWG attempts, 21 reached export refusal/failure markers and two reported read failure. Select each exact digest and diagnostic hash for source-specific next steps; do not globally soften strict-complete or infer source support from conversion exit alone.",
+    "disposition": "J260 and J293 remain DEFERRED_EXTERNAL and non-promoting; J256 remains deferred. Artifact admission, field-level independent semantics, target equivalence and same-digest platforms remain open.",
+    "historicalComparison": "J260/J293 historical 29-path runs included all four mislabelled DXF aliases and an extra duplicate execution, and used different source versions and permissiveness. These current 24-DWG strict-output results are not a directly comparable rate or a claim of regressions."
+  },
+  "kind": "j260-j293-shared-stream-successor-v1",
+  "limitations": "Content classification and strict-output behavior differ from historical suffix-only runs; exit status is not semantic or platform qualification. No input or generated drawing is retained.",
+  "observedSummary": {
+    "classification": "Failure categories derive from stable CLI markers; retained message hashes do not substitute for field-level diagnostics. A successful conversion does not prove semantic fidelity.",
+    "convertedWithNonemptyOutput": 1,
+    "deduplicatedDwgInvocations": 24,
+    "duplicatePaths": 1,
+    "dwgStreams": 24,
+    "exportPreflightRefused": 17,
+    "exportSerializationFailed": 4,
+    "mislabeledDxfStreams": 4,
+    "readFailed": 2,
+    "registeredAliases": 29,
+    "timeouts": 0,
+    "uniqueStreams": 28
+  },
+  "promotesSupportClaims": false,
+  "reproduction": {
+    "build": "git archive 80fd4a9605461f473e1ab0303c451e2e89bd7227 | tar -x -C SOURCE; cmake -S SOURCE -B BUILD -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_TESTS=OFF; cmake --build BUILD --parallel 4 --target dwg2dxf",
+    "policy": "The source root must already contain all 29 registered aliases. Each alias is hashed before and after; scratch copies and generated DXFs are discarded. No drawing is added to the repository.",
+    "run": "python3 -B tools/j260_shared_corpus_successor.py --source-root EXTERNAL_CORPUS --converter BUILD/dwg2dxf/dwg2dxf --output REPORT.json",
+    "test": "python3 -B tools/j260_shared_corpus_successor.py --self-test; python3 -B tools/run_external_advisory.py --self-test; python3 tools/check_external_evidence_resolution.py",
+    "verification": "Two independently invoked successor runs produced byte-identical metadata; each stream has exactly one diagnostic category consistent with its converter status. The outer verification run is separate from the 24 once-per-stream executions inside each report."
+  },
+  "run": {
+    "advisory": true,
+    "classificationPolicy": "content magic before suffix; SHA-256 deduplication before limit",
+    "duplicatePathCount": 1,
+    "dwgCount": 24,
+    "dwgVersionCounts": {
+      "AC1015": 1,
+      "AC1018": 2,
+      "AC1021": 11,
+      "AC1024": 9,
+      "AC1027": 1
+    },
+    "fixturePolicy": "external-only; never committed",
+    "formatCounts": {
+      "DWG": 24,
+      "DXF_ASCII": 4
+    },
+    "generation": {
+      "converterEnabled": true,
+      "converterSha256": "791bd8d48a474f3c7ad01c74f64ade243e050bc5d50c398bf1540c704108ef63",
+      "generator": "tools/run_external_advisory.py",
+      "generatorSchema": 2,
+      "inventorySha256": "ce91a48dcfacd3ce08ea5698d1ed324417275fc09345c69eeccbd10cdbb03126",
+      "limit": null,
+      "selectionOrder": "detected DWG streams ordered by sourceSha256",
+      "timeoutSeconds": 4.0
+    },
+    "generationReceipt": {
+      "algorithm": "sha256-canonical-json-v1",
+      "sha256": "d941bec95324c8cf8bab7a1e206e51d4c1e10f6dd58071dd5b9ba6c30e74998b"
+    },
+    "inputCount": 24,
+    "invalidMislabeledPathCount": 4,
+    "invalidMislabeledRows": [
+      {
+        "classification": "mislabeled",
+        "declaredFormat": "DWG",
+        "detectedFormat": "DXF_ASCII",
+        "pathAlias": "#Pool_Detail.dwg",
+        "reason": "suffix-does-not-match-magic",
+        "sourceSha256": "8cfad4e4090ce5fead86c8fd4ed17020f6d13a4dda86f67d92953f10e8bf04ca"
+      },
+      {
+        "classification": "mislabeled",
+        "declaredFormat": "DWG",
+        "detectedFormat": "DXF_ASCII",
+        "pathAlias": "#blocks_and_tables_-_metric.dwg",
+        "reason": "suffix-does-not-match-magic",
+        "sourceSha256": "e22c24d315c9f5819b2e8c3763c6dbb2a8d3ee450754f0f180763fd581a1ac17"
+      },
+      {
+        "classification": "mislabeled",
+        "declaredFormat": "DWG",
+        "detectedFormat": "DXF_ASCII",
+        "pathAlias": "#mechanical_example-imperial.dwg",
+        "reason": "suffix-does-not-match-magic",
+        "sourceSha256": "57ec80c861976ea8b100033f2f92fcaf230e134a3a40d3ec9f3417bb173c6fcc"
+      },
+      {
+        "classification": "mislabeled",
+        "declaredFormat": "DWG",
+        "detectedFormat": "DXF_ASCII",
+        "pathAlias": "#title_block-iso.dwg",
+        "reason": "suffix-does-not-match-magic",
+        "sourceSha256": "47bb4c784621b50b4b5395c8374a9e7c8cb9ad4886fd7f901aa25019a1a53987"
+      }
+    ],
+    "invalidPathCount": 0,
+    "inventoryRows": [
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "visualization_-_conference_room.dwg"
+        ],
+        "sourceSha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+        "sourceSize": 973730
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "architectural_-_annotation_scaling_and_multileaders.dwg"
+        ],
+        "sourceSha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+        "sourceSize": 188992
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "visualization_-_condominium_with_skylight.dwg"
+        ],
+        "sourceSha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+        "sourceSize": 1415699
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "truetype.dwg"
+        ],
+        "sourceSha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+        "sourceSize": 70464
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "dwgreader21_230.dwg",
+          "tArch/dwgreader21_230.dwg"
+        ],
+        "sourceSha256": "21b49e383cc43171fd13e2bbcd1c235bc1a57804be97f63a0d581fb944e743ff",
+        "sourceSize": 522
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1027",
+        "inputVersion": "AC1027",
+        "pathAliases": [
+          "Cover.dwg"
+        ],
+        "sourceSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+        "sourceSize": 18880
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "blocks_and_tables_-_imperial.dwg"
+        ],
+        "sourceSha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+        "sourceSize": 227008
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "plot_screening_and_fill_patterns.dwg"
+        ],
+        "sourceSha256": "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71",
+        "sourceSize": 85952
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "civil_example-imperial.dwg"
+        ],
+        "sourceSha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "sourceSize": 169592
+      },
+      {
+        "detectedFormat": "DXF_ASCII",
+        "detectedMagic": "0/SECTION",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "#title_block-iso.dwg"
+        ],
+        "sourceSha256": "47bb4c784621b50b4b5395c8374a9e7c8cb9ad4886fd7f901aa25019a1a53987",
+        "sourceSize": 111516
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "architectural_example-imperial.dwg"
+        ],
+        "sourceSha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "sourceSize": 148638
+      },
+      {
+        "detectedFormat": "DXF_ASCII",
+        "detectedMagic": "0/SECTION",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "#mechanical_example-imperial.dwg"
+        ],
+        "sourceSha256": "57ec80c861976ea8b100033f2f92fcaf230e134a3a40d3ec9f3417bb173c6fcc",
+        "sourceSize": 67441
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "title_block-arch.dwg"
+        ],
+        "sourceSha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+        "sourceSize": 126985
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1015",
+        "inputVersion": "AC1015",
+        "pathAliases": [
+          "simple.dwg"
+        ],
+        "sourceSha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+        "sourceSize": 12117
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "colorwh.dwg"
+        ],
+        "sourceSha256": "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+        "sourceSize": 1786976
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "blocks_and_tables_-_metric.dwg"
+        ],
+        "sourceSha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+        "sourceSize": 258848
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "tablet.dwg"
+        ],
+        "sourceSha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+        "sourceSize": 438656
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "mechanical_example-imperial.dwg"
+        ],
+        "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "sourceSize": 142267
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1018",
+        "inputVersion": "AC1018",
+        "pathAliases": [
+          "ET-Drawing-with-Border.dwg"
+        ],
+        "sourceSha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+        "sourceSize": 30217
+      },
+      {
+        "detectedFormat": "DXF_ASCII",
+        "detectedMagic": "0/SECTION",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "#Pool_Detail.dwg"
+        ],
+        "sourceSha256": "8cfad4e4090ce5fead86c8fd4ed17020f6d13a4dda86f67d92953f10e8bf04ca",
+        "sourceSize": 1228697
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "Pool_Detail.dwg"
+        ],
+        "sourceSha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+        "sourceSize": 420256
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "lineweights.dwg"
+        ],
+        "sourceSha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+        "sourceSize": 58496
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "title_block-iso.dwg"
+        ],
+        "sourceSha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+        "sourceSize": 128233
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "children-room-decoration.dwg"
+        ],
+        "sourceSha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+        "sourceSize": 1715680
+      },
+      {
+        "detectedFormat": "DXF_ASCII",
+        "detectedMagic": "0/SECTION",
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "#blocks_and_tables_-_metric.dwg"
+        ],
+        "sourceSha256": "e22c24d315c9f5819b2e8c3763c6dbb2a8d3ee450754f0f180763fd581a1ac17",
+        "sourceSize": 378774
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "visualization_-_aerial.dwg"
+        ],
+        "sourceSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+        "sourceSize": 733036
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1018",
+        "inputVersion": "AC1018",
+        "pathAliases": [
+          "Extruder2.dwg"
+        ],
+        "sourceSha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+        "sourceSize": 2856002
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "visualization_-_sun_and_sky_demo.dwg"
+        ],
+        "sourceSha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+        "sourceSize": 553297
+      }
+    ],
+    "mislabeledPathCount": 4,
+    "nonDwgCount": 4,
+    "pathCount": 29,
+    "rows": [
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "visualization_-_conference_room.dwg"
+        ],
+        "sourceSha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+        "sourceSize": 973730,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "architectural_-_annotation_scaling_and_multileaders.dwg"
+        ],
+        "sourceSha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+        "sourceSize": 188992,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "visualization_-_condominium_with_skylight.dwg"
+        ],
+        "sourceSha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+        "sourceSize": 1415699,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "truetype.dwg"
+        ],
+        "sourceSha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+        "sourceSize": 70464,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "dwgreader21_230.dwg",
+          "tArch/dwgreader21_230.dwg"
+        ],
+        "sourceSha256": "21b49e383cc43171fd13e2bbcd1c235bc1a57804be97f63a0d581fb944e743ff",
+        "sourceSize": 522,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1027",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1027",
+        "pathAliases": [
+          "Cover.dwg"
+        ],
+        "sourceSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+        "sourceSize": 18880,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "blocks_and_tables_-_imperial.dwg"
+        ],
+        "sourceSha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+        "sourceSize": 227008,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "plot_screening_and_fill_patterns.dwg"
+        ],
+        "sourceSha256": "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71",
+        "sourceSize": 85952,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "civil_example-imperial.dwg"
+        ],
+        "sourceSha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "sourceSize": 169592,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "architectural_example-imperial.dwg"
+        ],
+        "sourceSha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "sourceSize": 148638,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "title_block-arch.dwg"
+        ],
+        "sourceSha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+        "sourceSize": 126985,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1015",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1015",
+        "pathAliases": [
+          "simple.dwg"
+        ],
+        "sourceSha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+        "sourceSize": 12117,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "colorwh.dwg"
+        ],
+        "sourceSha256": "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+        "sourceSize": 1786976,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "blocks_and_tables_-_metric.dwg"
+        ],
+        "sourceSha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+        "sourceSize": 258848,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "tablet.dwg"
+        ],
+        "sourceSha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+        "sourceSize": 438656,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "diagnosticCode": "success",
+        "exitStatus": 0,
+        "inputVersion": "AC1024",
+        "outputSha256": "f75dbf3683385f7a7deee8874e267e15ef3b2c54d0057c083bf5c78e3903671a",
+        "outputSize": 449945,
+        "pathAliases": [
+          "mechanical_example-imperial.dwg"
+        ],
+        "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "sourceSize": 142267,
+        "status": "converted"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1018",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1018",
+        "pathAliases": [
+          "ET-Drawing-with-Border.dwg"
+        ],
+        "sourceSha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+        "sourceSize": 30217,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "Pool_Detail.dwg"
+        ],
+        "sourceSha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+        "sourceSize": 420256,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "lineweights.dwg"
+        ],
+        "sourceSha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+        "sourceSize": 58496,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "title_block-iso.dwg"
+        ],
+        "sourceSha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+        "sourceSize": 128233,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1021",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1021",
+        "pathAliases": [
+          "children-room-decoration.dwg"
+        ],
+        "sourceSha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+        "sourceSize": 1715680,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "visualization_-_aerial.dwg"
+        ],
+        "sourceSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+        "sourceSize": 733036,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1018",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1018",
+        "pathAliases": [
+          "Extruder2.dwg"
+        ],
+        "sourceSha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+        "sourceSize": 2856002,
+        "status": "failed"
+      },
+      {
+        "detectedFormat": "DWG",
+        "detectedMagic": "AC1024",
+        "diagnosticCode": "conversion-failed",
+        "exitStatus": 1,
+        "inputVersion": "AC1024",
+        "pathAliases": [
+          "visualization_-_sun_and_sky_demo.dwg"
+        ],
+        "sourceSha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+        "sourceSize": 553297,
+        "status": "failed"
+      }
+    ],
+    "schema": 2,
+    "selectedDwgCount": 24,
+    "statusCounts": {
+      "converted": 1,
+      "failed": 23
+    },
+    "uniqueStreamCount": 28,
+    "versionCounts": {
+      "AC1015": 1,
+      "AC1018": 2,
+      "AC1021": 11,
+      "AC1024": 9,
+      "AC1027": 1
+    }
+  },
+  "schema": 1,
+  "sourceBinding": {
+    "advisoryRunner": "tools/run_external_advisory.py",
+    "advisoryRunnerSha256": "75addbc9a0a775452d739528426eaf0cdd3f42e255ac13448694aec87db7dc3a",
+    "candidateCommit": "80fd4a9605461f473e1ab0303c451e2e89bd7227",
+    "cmake": "4.4.5",
+    "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+    "converterSha256": "791bd8d48a474f3c7ad01c74f64ade243e050bc5d50c398bf1540c704108ef63",
+    "generator": "tools/j260_shared_corpus_successor.py",
+    "generatorSha256": "bd90a19d4a4d288580603e79df3b2d3b0a8dcb2be4535110bb45899f8497aa41",
+    "host": "macOS ARM64",
+    "limitation": "Executable/source hashes are recorded, but full compiler, runtime library and dependency closure is not sealed. This is not platform qualification.",
+    "source": "immutable git archive of candidateCommit"
+  }
+}

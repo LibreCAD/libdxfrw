@@ -1,0 +1,57 @@
+{
+  "title": "S3.7c oriented straight-coedge evaluation",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Untrimmed locus of a decoded finite straight ACIS edge",
+    "public_api": "drw_evaluateAcisStraightCoedge maps normalized traversal fraction through the retained coedge sense and delegates to drw_evaluateAcisStraightEdge.",
+    "sense_policy": "0 follows raw edge start-to-end; 1 reverses that direction; all other values are rejected.",
+    "tolerance_policy": "Endpoint-to-supporting-line consistency tolerance is finite, nonnegative, and explicit; no modeler default is inferred.",
+    "refusal_policy": "Unknown sense, non-finite/out-of-range fraction, invalid tolerance, malformed edge, or unrepresentable point returns false without changing output.",
+    "non_claims": [
+      "curved-edge evaluation",
+      "pcurve or trim evaluation",
+      "face-surface evaluation or orientation",
+      "body transform or source-unit application",
+      "B-rep validity",
+      "native consumer or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "forward_start_and_quarter_point": "PASS",
+    "reversed_start_quarter_point_and_end": "PASS",
+    "unknown_sense_atomic_refusal": "PASS",
+    "out_of_range_fraction_atomic_refusal": "PASS",
+    "invalid_tolerance_atomic_refusal": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.22 seconds)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

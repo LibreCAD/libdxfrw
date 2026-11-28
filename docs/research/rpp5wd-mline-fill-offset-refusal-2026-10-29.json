@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 MLINE nonempty group-42/75 offset-edit refusal and unchanged preservation",
+  "date": "2026-10-29",
+  "status": "BOUNDED_REFUSAL_AND_PRESERVATION_QUALIFIED",
+  "evidenceCommit": "9514620a08221420ed98412d004140a9a3e0f394",
+  "productionChange": "None. The existing consumed-style offset projector continues to refuse nonempty areaFillParms; this slice adds a source recipe and verifies refusal, unchanged output preservation, and retry behavior.",
+  "scope": "Runtime-authored AC1027 DXF with a two-element MLINESTYLE, two MLINE consumers in ENTITIES and BLOCKS, three vertices, group-71 flags 13, and two group-42 fill parameters for each element at each vertex. Attempt a first style offset change from 1.25 to 1.5, then restore the original value and retry through the same adapter.",
+  "specEvidence": {
+    "primaryAuthority": "Autodesk AutoCAD DXF Reference 2025, MLINE (DXF)",
+    "primaryUrl": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "relevantFields": "Group 75 gives the count of area-fill parameters for each element; group 42 carries those parameters. Autodesk describes the complete group-42 parameterization across all line elements as defining each segment's fill boundary, and notes that MLEDIT crossing cuts can produce two group-42 parameters per element.",
+    "independentImplementation": "The ezdxf MLINE implementation documents that line-break gaps are preserved when an MLINE stays unchanged, but editing removes line-break features: https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/mline.py (MLineVertex fill parameterization and lines 152-154). This supports conservative refusal; it does not supply a general fill-boundary reprojection algorithm.",
+    "interpretation": "The references establish that group-42 arrays encode a boundary and may represent cut intervals. They do not provide enough evidence here to regenerate arbitrary boundaries after style geometry changes. The test therefore qualifies the existing refusal and preservation contract only; it makes no fill/cut semantic or edited-output support claim."
+  },
+  "contract": {
+    "admission": "AC1027 runtime recipe with exactly two style elements, three vertices, flags 13, two group-41 values and two group-42 values per element/vertex, and two consumers (one ENTITIES, one BLOCKS). The first style offset is edited 1.25 to 1.5 while nonempty fill arrays are present.",
+    "refusal": "Four source/output encoding combinations cover ASCII and binary source crossed with ASCII and binary output. Each edit is refused; a pre-existing destination sentinel and the complete caller snapshot remain unchanged.",
+    "retryAndOutput": "For each refused transaction, restore the source offset and retry on the same adapter. All four retries succeed. Physical output checks group-75 counts, ordered group-42 arrays, group-41 arrays, style offsets and both consumers. Fresh typed readback checks the two style offsets, two consumers, all vertices, and every line/fill parameter array.",
+    "compatibility": "The directly affected consumed-offset, cap-flag, vertex-flag, retarget, append and removal controls pass. The generated inputs are created at runtime; no external drawing fixture is committed. This evidence applies only to the authored AC1027 DXF profile."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "tests/dxf_fixture_tests.cpp generates the two-element style and MLINE ENTITIES/BLOCKS records at runtime, imports them, applies the offset edit, retries with original style state, decodes physical output, and performs fresh typed import.",
+    "evidenceCommit": "9514620a08221420ed98412d004140a9a3e0f394",
+    "tests/dxf_fixture_tests.cpp": "e45c44abf07ed95857519beaa14e71bf2e0084425f17574e05449d39dba72a9d",
+    "tests/CMakeLists.txt": "bcaba98f5374b0247699080054765ada2723d2493188216eb714a2d72a6a005e",
+    "fixtureTestExecutableSha256": "ba39d3204d1111ff2ab193f88715a5c42d3e7fc1caa3eda6fd466447358df17d",
+    "cmakeCacheSha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_fill_offset_refusal$' --output-on-failure",
+      "summary": "1/1 passed in 0.55s"
+    },
+    "affectedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_(consumed_offset_projection|consumed_offset_cap_flags|vertex_flag_profiles|fill_offset_refusal|retarget_offset_projection|retarget_angle_projection|consumed_style_append_cap_flags|consumed_style_removal_cap_flags)$' --output-on-failure",
+      "summary": "8/8 passed in 2.91s"
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN",
+    "asan": "NOT_RUN; test-only change with no production allocation, ownership or parser path change."
+  },
+  "limitations": [
+    "No fill-boundary projection or edited nonempty group-42/75 support is qualified; the tested edit remains refused.",
+    "No native producer or renderer semantics, DWG behavior, other versions, other vertex counts, or arbitrary cut intervals are established.",
+    "The independent ezdxf note is advisory implementation evidence and does not promote support claims."
+  ],
+  "next": "Select the next P2 local geometry/schema packet from a current distinguishing source witness. Keep nonempty group-42/75 edits refused until an independently supported per-vertex boundary transform is available; do not treat this receipt as fill/cut support."
+}

@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-conference-21500-opencadkernel-topology-lift-2026-11-11",
+  "purpose": "Record a second source-distinct ACIS 21500 topology lift with exact source-byte binding, complete incidence comparison, and independent-kernel validation.",
+  "source": {
+    "dwg": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+    "dwgBytes": 973730,
+    "dwgSha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+    "version": "AC1024",
+    "entity": "3DSOLID",
+    "handle": "0x1FB",
+    "libreDwgMinJsonIndex": 80,
+    "embeddedProducerMetadata": "LibreDWG 0.14 minJSON reports AppInfo version 18.1.49.0.0 and AutoCAD product metadata; the DWG also carries a Trusted DWG comment. These embedded claims are not independently authenticated.",
+    "committedAsFixture": false
+  },
+  "sourceExtraction": {
+    "implementation": "LibreDWG",
+    "version": "0.14",
+    "command": "dwgread -O minJSON tests/samples/AC1024/visualization_-_conference_room.dwg -o /private/tmp/p7-conference-min.json",
+    "jsonSha256": "f5c7e2db9c959041bd9179e2434782721c4af189dae518bbfb4e75b3cdda219b",
+    "entityHandleRepresentation": "minJSON handle array [0,2,507], matching hexadecimal handle 0x1FB",
+    "acisDataJoin": "Concatenate the separately reported ACIS BinaryFile signature and the object's full hexadecimal acis_data payload.",
+    "sabBytes": 38506,
+    "sabSha256": "bd3232ad504732b311f70b4280f294f1dbd38d77794910fda2cce393ebc1267b",
+    "sabHeader": {
+      "version": 21500,
+      "recordCount": 0,
+      "thirdIntegerRaw": 2,
+      "flags": 24
+    },
+    "libreDwgObject": {
+      "version": 2,
+      "size": 38676,
+      "bitsize": 309340,
+      "wireframeDataPresent": true,
+      "point": [151.67986244009913, -8.18971072579038, 60.0]
+    }
+  },
+  "libdxfrwProjection": {
+    "operation": "drw_convertSabToSatV1",
+    "targetVersion": "AC1024",
+    "scratchHelper": "/private/tmp/p7_sab_to_sat.cpp",
+    "scratchHelperSha256": "78e514cc924cf05ecc145c1556258382ccbcd0a775844f1ff6117e7d37436f4f",
+    "satBytes": 38081,
+    "satSha256": "6801837cc8e3d461091e30451b8a18d01df484e599a300cd82bcd6ef84205b5b",
+    "satHeader": "21500 626 2 0",
+    "parsedRecords": 626
+  },
+  "independentLift": {
+    "repository": "https://github.com/HakanSeven12/OpenCADStudio",
+    "revision": "36981c6abe76e4b69d0a8ac5e210c35a0e8f681c",
+    "crate": "ocs_acis",
+    "kernel": "OpenCADKernel",
+    "kernelRevision": "802f75134a5606d34bd34dac0d3508565537b067",
+    "satParser": "ACadRust",
+    "satParserRevision": "ce8a148568e7a80a80f50797bf287a651d1259c7",
+    "probe": "/private/tmp/opencadstudio-p7/crates/ocs_acis/tests/libdxfrw_ac1024_21500_conference_topology_probe.rs",
+    "probeSha256": "899f868cc67d707ca4fa069483c3e06e7e95effc4f598d9f2a77a58021735c6c",
+    "probeStatus": "scratch-only; no changes were committed to either external repository",
+    "bridgeNormalization": {
+      "scope": "Disposable parsed-record copy used only to align typed accessor offsets before the kernel lift.",
+      "rows": {
+        "bodyLumpShell": "remove leading null pointer",
+        "faceCoedgeEdge": "remove second null pointer",
+        "loop": "remove third null pointer",
+        "pointPlaneSurfaceStraightCurve": "remove leading null pointer",
+        "vertex": "retain the first two null pointers and final point pointer"
+      },
+      "coedgeSense": "Map F to forward and I to reversed for this scratch lift."
+    },
+    "result": {
+      "recordTypeCounts": {
+        "body": 1,
+        "lump": 1,
+        "shell": 1,
+        "face": 26,
+        "loop": 26,
+        "coedge": 144,
+        "edge": 72,
+        "vertex": 48
+      },
+      "bodies": 1,
+      "lostOrBrokenReferences": 0,
+      "kernelTopology": {
+        "lumps": 1,
+        "shells": 1,
+        "faces": 26,
+        "loops": 26,
+        "coedges": 144,
+        "edges": 72,
+        "vertices": 48,
+        "curves": 72,
+        "surfaces": 26
+      },
+      "sourceIncidenceAssertions": {
+        "faceToLoopOrder": "all 26 match",
+        "loopToCoedgeOrder": "all 26 complete rings match",
+        "loopOwner": "all 26 match",
+        "coedgeOwnerAndEdge": "all 144 match",
+        "edgeEndpointsAndSense": "all 72 match",
+        "faceAndCoedgeOrientation": "all 170 orientation fields match"
+      },
+      "kernelValidation": {
+        "passed": true,
+        "flawCount": 0
+      }
+    },
+    "command": "LIBDXFRW_AC1024_SAT=/private/tmp/p7-conference-507.sat CARGO_TARGET_DIR=/private/tmp/opencad-p7-target cargo test --manifest-path /private/tmp/opencadstudio-p7/Cargo.toml -p ocs_acis --test libdxfrw_ac1024_21500_conference_topology_probe -- --nocapture",
+    "result": "PASS: exact source incidence and orientation comparisons pass; OpenCADKernel validates the lifted body with zero flaws."
+  },
+  "limitations": [
+    "This is a second source-distinct local drawing, not an independently authenticated producer release.",
+    "The direct lift requires scratch-only type-specific row normalization and F/I coedge-sense mapping; it does not validate the unmodified SAT parser or establish a version-wide grammar.",
+    "The ACIS 21500 header third integer remains semantically unresolved; raw value 2 is not called a body count.",
+    "This is not native AutoCAD/FreeCAD acceptance, a whole-DWG output test, a Linux/Windows qualification, or a general 3D support claim.",
+    "No DWG or DXF fixture was added to the repository."
+  ],
+  "claimEffect": "Adds one bounded second-source ACIS 21500 topology lift after scratch normalization. It advances the source-distinct incidence gate while leaving header semantics, producer authentication, production SAT layout, native acceptance, whole-file output, and support promotion open."
+}

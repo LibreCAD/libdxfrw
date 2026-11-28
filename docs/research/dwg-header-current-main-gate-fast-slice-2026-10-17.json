@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-dwg-header-current-main-gate-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "CURRENT_WORKTREE_FOCUSED_GATE_PASS_UNCOMMITTED",
+  "scope": "Rebind the current 7BE HEADER reader/writer implementation to its focused main-worktree test owners.",
+  "rootCause": "The hardening MTEXT orientation control put group 50 inside the R2018 embedded-column grammar, where it is an unknown nested group, and treated nested insertion groups as the nested X-axis. The parser correctly rejected the invalid nested tag.",
+  "implementation": {
+    "files": [
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "Corrected the generated positive to encode main orientation separately from nested column direction, insertion, and heights; added a dedicated unknown nested-group rejection and main-orientation preservation assertion.",
+    "productionBehaviorChanged": false,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "platform": "Darwin 27.0.0 arm64",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests libdxfrw_hardening_tests libdxfrw_dwg_local_roundtrip -j2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_(dwg_reader_matrix|hardening|dwg_local_roundtrip)$'",
+      "git diff --check -- tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dwg-header-current-main-gate-fast-slice-2026-10-17.json"
+    ],
+    "results": {
+      "strictTargetBuilds": "passed for all three targets",
+      "focusedHardeningCTest": "passed: 1/1",
+      "combinedCurrentMainCTests": "passed: 3/3 in 4.48 seconds",
+      "readerMatrixIncludes": "HEADER structural/checksum controls and six writer-sealing versions",
+      "fullSuite": "not run",
+      "sanitizer": "not run"
+    }
+  },
+  "remaining7BE": [
+    "Real-producer logical-size and maintenance witnesses for each distinct container lineage; generated AC1018/1021/1024/1027/1032 profiles already exist",
+    "Full R13/R14 section/body-path evidence; AC1012/AC1014 envelope-only controls already exist",
+    "Scheduled bounded-cursor sanitizer checkpoint if the shared cursor code changes",
+    "Fresh tracked AC1032 CLI conversion is blocked after successful read at typed VISUALSTYLE DXF serializer preflight; this is a downstream writer-graph gate, not a HEADER failure"
+  ],
+  "qualification": {
+    "findingsAndSubplans": "127/71",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad mixed changes"
+  }
+}

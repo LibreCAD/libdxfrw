@@ -1,0 +1,127 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "XREF unload/resolved state, BLOCK identity, paths, and overlay semantics",
+  "mode": "deeper/broader primary-source research with local correctness correction",
+  "scope": [
+    "Resolve whether the DWG loaded bit maps to DXF BLOCK group-70 bit 32 or a separate DXF property",
+    "Cross-check ODA and Autodesk DXF/ObjectARX definitions against independent open-source reader/writers",
+    "Separate XREF structure/path preservation from filesystem resolution, nested-reference expansion, and consumer acceptance",
+    "Audit the repository's actual DXF-to-DWG integration boundary and update PAR-65/7AM.4 readiness without adding per-slice peer/native prerequisites"
+  ],
+  "sources": [
+    {
+      "project": "ODA Open Design Specification for .dwg files v5.4.1",
+      "reference": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "localCopy": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+      "status": "authoritative_local_spec_section_reviewed_2026-10-20",
+      "observation": "§20.4.52, pp. 164-165, says the R2000+ BLOCK_HEADER Loaded Bit is zero when the XREF is loaded; the surrounding record separately carries the XREF/index/dependency/overlay state, path, and common NULL hard-pointer slot."
+    },
+    {
+      "project": "Autodesk BLOCK DXF and ObjectARX references",
+      "reference": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm",
+      "relatedReferences": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbBlockTableRecord__setIsUnloaded_bool.html",
+        "https://help.autodesk.com/cloudhelp/2022/ENU/AutoCAD-LT/files/GUID-0D7D1315-B58A-4BCD-9953-282FF578B144.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-Core/files/GUID-A987D2FF-45BD-474E-99C1-E6316A42F667.htm"
+      ],
+      "status": "official_documentation_snapshot_reviewed_2026-10-20",
+      "observation": "BLOCK group 70 bit 32 is resolved/dependent status and ignored on input; bit 64 is referenced-XREF status and ignored on input. ObjectARX explicitly maps isUnloaded to the first bit of BLOCK group 71. BLOCK_RECORD carries separate units/explodability/scaling/preview metadata. Autodesk describes literal full/relative/empty paths, immediate-host resolution for nested relative paths, attachment nesting, and overlay exclusion from downstream nesting."
+    },
+    {
+      "project": "ezdxf 1.4.5 XREF documentation",
+      "reference": "https://ezdxf.readthedocs.io/en/stable/xref.html",
+      "status": "current_project_documentation_snapshot_reviewed_2026-10-20",
+      "observation": "The documented XREF definition is a flagged/path-bearing BLOCK without inline referenced-file contents and can be referenced by multiple INSERTs; attachment and overlay nesting differ. Its load/embed/import operation is distinct and has documented unsupported-record omissions, so it is not a complete-document semantic oracle."
+    },
+    {
+      "project": "ACadSharp current reader and writer source",
+      "reference": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+      "relatedReferences": [
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Blocks/Block.cs",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Blocks/BlockTypeFlags.cs",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DXF/DxfStreamWriter/DxfBlocksSectionWriter.cs"
+      ],
+      "status": "mutable_main_source_crosscheck_reviewed_2026-10-20",
+      "observation": "The reader maps the DWG bit directly to Block.IsUnloaded, while the model keeps IsUnloaded separate from BlockTypeFlags including XRefResolved, and the DXF writer writes group 71 separately. This corroborates, but does not replace, ODA and Autodesk evidence."
+    },
+    {
+      "project": "LibreDWG current NEWS",
+      "reference": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "status": "mutable_main_source_snapshot_reviewed_2026-10-20",
+      "observation": "A current API/ABI note renames BLOCK_HEADER.loaded_bit to xref_loaded. This is a useful source-maintenance cross-check only; no peer executable or sample was run."
+    },
+    {
+      "project": "libdxfrw local integration source audit",
+      "reference": "src/libdwgr.h: dwgRW::write; dwg2dxf/dx_iface.cpp: dx_iface::fileImport and dx_iface::fileExport; dwg2dxf/main.cpp",
+      "status": "current_worktree_source_audit_reviewed_2026-10-20",
+      "observation": "The public dwgRW writer is callback-driven and separate from the concrete dx_iface converter. dx_iface::fileImport selects DXF or DWG readers, while fileExport constructs dxfRW; the dwg2dxf CLI uses that DWG/DXF-input-to-DXF-output path. No production in-tree DXF-to-DWG adapter or source BLOCK↔BLOCK_RECORD join exists. A downstream consumer may compose the public read/write APIs, but that is not automatic libdxfrw conversion behavior."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "CORRECTED_LOCAL_SLICE_UNCOMMITTED",
+    "implementationSummary": "Corrected the PAR-65/7AM.4 loaded/resolved conflation: added separate xrefUnloaded state, DXF BLOCK group-71 parsing/writing, direct DWG raw-bit mapping and BLOCK callback propagation; added generated direct-writer and DXF-field controls and clarified the direct-writer versus converter boundary. DXF-origin BLOCK↔BLOCK_RECORD identity pairing is conditional on a future built-in DXF-to-DWG adapter, which the current source tree does not provide.",
+    "nextImplementation": "Do not add a speculative DXF-to-DWG bridge. Continue the next source-confirmed, locally actionable item in the existing implementation queue. If a built-in DXF-to-DWG route becomes an explicit deliverable, create a separate subplan for BLOCK/BLOCK_RECORD identity pairing, field reconciliation, transactional conflict rejection, and generated end-to-end DXF→adapter→DWG controls.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testsChangedOrRun": true,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/block-record-xref-writer-fast-slice-2026-10-20.json",
+      "docs/research/deeper-broader-xref-state-identity-overlay-2026-10-20.json",
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/intern/dwgreader.cpp",
+      "src/intern/dwgwriter15.h",
+      "src/intern/dwgwriter15.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "limitations": "Official references and peer source documentation establish a field crosswalk, not external-file resolution or native interoperability. Peer main-branch sources are mutable. No external drawing, peer executable, native CAD application, full suite, or cross-platform build was used."
+  },
+  "validation": {
+    "strictBuild": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg_reader_matrix_tests libdxfrw_dxf_fixture_tests --parallel 2",
+    "strictBuildResult": "PASS",
+    "directFocused": [
+      "build-gcc/libdxfrw_dwg_local_roundtrip --block-record-xref-roundtrip",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --block-record-xref-index",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip"
+    ],
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_block_record_xref_index|libdxfrw_dwg_block_record_xref_roundtrip|libdxfrw_block_xref_path_roundtrip|libdxfrw_block_owners)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 4,
+      "failed": 0
+    },
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "worktreeNote": "The repository is broadly dirty and shared. No staging or commit was performed."
+  }
+}

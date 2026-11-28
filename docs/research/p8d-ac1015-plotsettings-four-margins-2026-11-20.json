@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-ac1015-plotsettings-four-margins-2026-11-20",
+  "date": "2026-11-20",
+  "status": "CURRENT_CANDIDATE_FOCUSED_AND_PEER_PASS_NATIVE_OPEN",
+  "supportClaimEffect": "none",
+  "priorReceipt": "docs/research/p8d-ac1015-plotsettings-case-guard-2026-11-20.json",
+  "consumer": {
+    "candidateHead": "eed6bd2c7e0dd6b2694a3eba3c71c21752a2a113",
+    "patchBase": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
+    "testBase": "26dd8817b37f59242a17fa1d0f8c61d6f1cfb410",
+    "baseDelta": "Only the unrelated picfile plugin differs; tests were not rebuilt on patchBase.",
+    "combinedPatch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
+    "combinedPatchSha256": "803ed0576bd08cbbdbaf95c5a0985f803b3c0e1b9b57a1ff2277720f4837cc1f",
+    "patchVerification": "Applying the combined patch to an alternate index at patchBase reproduces candidateHead exactly."
+  },
+  "change": "Extend the verified AC1015 source-derived edit path to all four finite margins, individually or in combination, while preserving unmapped fields and source graph. Snapshot and recheck every margin during emission; unsupported edits and non-finite margins refuse.",
+  "validation": {
+    "currentCodec": {
+      "log": "/private/tmp/libdxfrw-plotsettings-four-margins.log",
+      "sha256": "e1cc2bdd6e812d4c4d8ad866bdeaf82be4ba3243279c498f0b22a7808730f8a9",
+      "result": "PASS: 169 assertions in 2 focused cases; all four margins changed together and individually with fresh readback, plus non-finite rejection, destination preservation, wrong graph/class/frame controls, and corrected retry."
+    },
+    "bundledCodec": {
+      "log": "/private/tmp/libdxfrw-plotsettings-four-margins-bundled.log",
+      "sha256": "e63ce1643bd0895e1d2813a160e7fc36c244b73062da43b0df2d1585113addfd",
+      "result": "PASS: 60 assertions in 2 focused cases; the newer raw route remains unavailable."
+    },
+    "peer": {
+      "reader": "GNU LibreDWG dwgread 0.14",
+      "drawings": {
+        "source": {
+          "sha256": "0949376f64f635d3ba132662ae31de87082a874ad3714783d4f10a45c2e4707a",
+          "decodedJsonSha256": "b22d75d22062d073a8be1202b4813df01f9936948d1933c02fd1288aa9f2ea55",
+          "stderrSha256": "e3734bd455ccd89d100c27ec1feadb13e4fe452aa0f17bc988e3c95e0771a20b"
+        },
+        "raw": {
+          "sha256": "7fb4c581726c449ff59e3b0c162adc4023d47ab1da48b0277ffe21a6250dca57",
+          "decodedJsonSha256": "3d76787a0ac62d5e4e178969b1dc3d2428df9ab66ec828b1a02a4435f67765c7",
+          "stderrSha256": "94f0d8d6a4c0c9484e573eba9fa18f2132b5233ba8d0e47091143d9b12b76246"
+        },
+        "edited": {
+          "sha256": "4b43726f8fb17a14196b311576ecb05e324128e3cb75459ba9130459bf0b51fa",
+          "decodedJsonSha256": "0139af3034805aefd05a5e6c9394107d31544309758e830e9190c3127472866b",
+          "stderrSha256": "12e89d43c1b3a9e6feb7cc7a151d0c7b88e7cd29c59d55d894717d9a7f83f223"
+        }
+      },
+      "comparisonLog": "/private/tmp/libdxfrw-plot-nod-eed-peer-comparison.log",
+      "comparisonLogSha256": "97acf431a2bf4d34335287b4e3f24c572faf6e157eded089f8cd0330613e183e",
+      "result": "PASS: exact source/raw/edited NOD -> dictionary -> plot graph, source line endpoints, class tuple and plot semantic fields. The edited object differs only in left/top/right/bottom margins 1/2/3/4 mm; its encoded frame is larger. Missing-object diagnostics match the respective HANDSEED values; no whole-file integrity claim."
+    }
+  },
+  "limits": [
+    "Same generated AC1015/no-EED bounded graph as prior receipts; no broader source/version/consumer support claim.",
+    "The candidate is unmerged; native GUI, external producer, and cross-platform consumer qualification remain open.",
+    "No DWG/DXF fixture was committed."
+  ],
+  "libraryImplementationDigestSha256": "7d8df8433c94a99ad19cf94d0d772787e200cea3b41263749ca0101e68405156"
+}

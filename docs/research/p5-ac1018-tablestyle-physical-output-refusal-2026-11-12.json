@@ -1,0 +1,32 @@
+{
+  "id": "p5-ac1018-tablestyle-physical-output-refusal-2026-11-12",
+  "date": "2026-11-12",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": "Reconcile the opt-in physical AC1018 TABLESTYLE selector with the pinned source profile and verify that the current full-source export refusal is atomic.",
+  "source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "provenance": "ODA File Converter 27.1.0 ACAD2004 conversion from locally authored ezdxf acad_table_simple.dxf; source chain and limits are in p5-ac1018-table-descendant-graph-wire-2026-11-11.json.",
+    "fixture_policy": "Input remains in scratch storage. No DWG/DXF fixture was added to the repository."
+  },
+  "bound_profile": {
+    "version": "AC1018",
+    "tableStyle": "Standard, handle 0x6b, parent dictionary 0x6a",
+    "sourceFrame": "object type 505, custom AcDbTableStyle/TABLESTYLE, typed payload validated; common-link evidence remains Unknown",
+    "header": "flow 0, flags 0, margins 1.5/1.5, title/header suppression false",
+    "rows": "heights [4.5, 6.0, 4.5], alignments [2, 5, 5], text color 0/C1, fill scalar 256 with opaque CMC C8, and 6 ordered borders per row",
+    "graph": "NOD ACAD_TABLESTYLE entry resolves to dictionary 0x6a; its sole Standard entry resolves to TABLESTYLE 0x6b. This does not close the extension graph or resource dependencies."
+  },
+  "verification": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-ac1018-output-refusal /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "result": "PASS. Source profile checks pass. AC1024 ASCII and Binary full-import exports both refuse at output preparation with the current ModelDocViewStyle exact-source-version gate; each preserves the seeded destination sentinel and leaves TABLESTYLE/dictionary output-qualification flags false.",
+    "selector_status": "Opt-in manual selector; it is not registered in CTest because its input is a local scratch sample."
+  },
+  "limits": [
+    "This is source-profile and fail-closed refusal evidence, not TABLESTYLE DXF output or readback evidence.",
+    "The failure occurs in an unrelated source-version-bound graph before TABLESTYLE serialization; no attempt was made to prune or repair source records.",
+    "The TABLESTYLE extension dictionary, XRECORD/CELLSTYLEMAP descendants, resource closure, independent semantics, native rendering and platform qualification remain open.",
+    "Generated legacy TABLESTYLE ASCII/Binary group ordering is separately covered by p5-generated-tablestyle-legacy-group-order-2026-11-12.json."
+  ]
+}

@@ -1,0 +1,73 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index e49887f..099c7c8 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -3569 +3568,0 @@ bool CDxfRead::ReadLayer()
+-    SetupValueAttribute(eColor, layerColor);
+@@ -3572 +3571,26 @@ bool CDxfRead::ReadLayer()
+-    ProcessAllAttributes();
++    bool colorSeen = false;
++    bool invalidColor = false;
++    bool negativeColorSeen = false;
++    while (get_next_record() && m_record_type != eObjectType) {
++        if (m_record_type == eColor) {
++            if (colorSeen) invalidColor = true;
++            colorSeen = true;
++            const auto first = m_record_data.find_first_not_of(" \t\r\n");
++            if (first != std::string::npos && m_record_data[first] == '-') negativeColorSeen = true;
++            std::istringstream stream(m_record_data);
++            stream.imbue(std::locale("C"));
++            long long parsed = 0;
++            if (!(stream >> parsed) || !(stream >> std::ws).eof()
++                || parsed < std::numeric_limits<ColorIndex_t>::min()
++                || parsed > std::numeric_limits<ColorIndex_t>::max()) {
++                invalidColor = true;
++            }
++            else {
++                layerColor = static_cast<ColorIndex_t>(parsed);
++            }
++        }
++        else {
++            ProcessAttribute();
++        }
++    }
++    repeat_last_record();
+@@ -3576,0 +3601,4 @@ bool CDxfRead::ReadLayer()
++    if (invalidColor) {
++        UnsupportedFeature("Invalid or duplicate layer color");
++        layerColor = negativeColorSeen ? -7 : 7;
++    }
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index be0df66..028ea5c 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -53,0 +54,29 @@ class TestImportDXF(TestImportBase):
++    def test_malformed_layer_colors_report_and_keep_off_state(self):
++        """Reject malformed and duplicate layer colors, preserving a negative sign."""
++        invalid_reason = "Invalid or duplicate layer color"
++        off_reason = "Off-layer visibility without layer grouping"
++        cases = ((("+2 ",), False, False), (("-2 ",), False, True),
++                 (("2junk",), True, False), (("-oops",), True, True),
++                 (("-2147483649",), True, True), (("2147483648",), True, False),
++                 (("2", "1"), True, False), (("-2", "2"), True, True))
++        for colors, invalid, off in cases:
++            with self.subTest(colors=colors):
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (0, "ENDSEC"), (0, "SECTION"), (2, "TABLES"), (0, "TABLE"),
++                        (2, "LAYER"), (70, 1), (0, "LAYER"), (2, "TEST"), (70, 0)]
++                tags.extend((62, color) for color in colors)
++                tags.extend([(6, "CONTINUOUS"), (0, "ENDTAB"), (0, "ENDSEC"),
++                             (0, "SECTION"), (2, "ENTITIES"), (0, "LINE"), (8, "TEST"),
++                             (10, 0), (20, 0), (30, 0), (11, 2), (21, 0), (31, 0),
++                             (0, "ENDSEC"), (0, "EOF")])
++                path = os.path.join(self.temp_dir, f"malformed-layer-{len(self.document.Objects)}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                objects = [obj for obj in self.document.Objects if obj not in previous
++                           and obj.isDerivedFrom("Part::Feature")]
++                self.assertEqual(len(objects), 1)
++                self.assertEqual(invalid_reason in stats["unsupportedFeatures"], invalid)
++                self.assertEqual(off_reason in stats["unsupportedFeatures"], off)
++

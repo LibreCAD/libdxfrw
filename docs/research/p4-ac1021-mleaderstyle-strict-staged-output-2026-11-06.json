@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 children-room MLEADERSTYLE strict staged-output proof",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Connect the existing physical AC1021 MLEADERSTYLE source/EED/APPID profile to strict staged-body inspection and qualify its exact opaque frame only after graph closure.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local sample; producer and author unauthenticated. No source or derivative fixture is committed."
+  },
+  "profile": {
+    "styleHandle": "0x12E",
+    "type": 508,
+    "record": "MLEADERSTYLE",
+    "class": "AcDbMLeaderStyle",
+    "owner": "NOD ACAD_MLEADERSTYLE key -> one complete DICTIONARY -> unique style key/handle",
+    "eed": [
+      {"order": 0, "code": 1001, "type": "STRING", "value": "ACAD_MLEADERVER"},
+      {"order": 1, "code": 1070, "type": "INTEGER", "value": 2}
+    ],
+    "appid": "Exactly one ACAD_MLEADERVER APPID row; output uses the emitted source-table binding, not a generic handle remap.",
+    "dependencies": "LTYPE and STYLE references resolve to their source table rows; arrow-head and block references are null."
+  },
+  "implementation": {
+    "targetVersions": "Strict inspection now covers AC1021 source to AC1021 or AC1024 DXF; the existing AC1024 source to AC1024 route remains admitted. The MLEADERSTYLE payload comparator now uses the actual target version.",
+    "stagedInspection": "Decodes the MLEADERSTYLE body and string stream, compares typed values and ordered EED, maps LTYPE/STYLE/BLOCK_RECORD references, and verifies NOD/owner dictionary identities and emitted APPID identity before source-frame qualification."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4 (-Werror).",
+    "sameVersionPhysicalSelectedOutput": "PASS: --mleaderstyle-ac1021-same-version-output on children-room-decoration.dwg; ASCII/Binary readback, EED and APPID, owner/target roles, mutation and owner refusal, same-adapter retry.",
+    "ac1024Regression": "PASS: --mleaderstyle-physical-output-readback on mechanical_example-imperial.dwg; ASCII/Binary readback/refusal/retry.",
+    "strictWholeSource": "FAIL CLOSED as intended for remaining scope: qualified callbacks advanced 181/186 -> 182/186; remaining handles are 0x21A, 0x18081, 0x21C and 0x18082. No output DXF was created.",
+    "strictDebugLog": {
+      "path": "/private/tmp/libdxfrw-children-room-mleader-stage.log",
+      "sha256": "57ec52e8d43e23fdbdf7cf04b39e3b49389862e3ca4bc333cf66f638b1776ca5"
+    },
+    "fullSuites": "NOT RUN",
+    "fixturesCommitted": false
+  },
+  "limits": "One unauthenticated AC1021 source profile. Whole-source export remains refused by four view-style callbacks; this does not establish native or producer-wide MLEADERSTYLE support.",
+  "nextAction": "Bind and inspect the two SECTIONVIEWSTYLE and two DETAILVIEWSTYLE roots and their exact dictionary/XRECORD graph in strict staged output."
+}

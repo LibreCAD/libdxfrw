@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw-material-resource-graph-replay-fast-slice-v1",
+  "date": "2026-10-19",
+  "status": "PASS_LOCAL_FAST_SLICE",
+  "planOwner": "PAR-20/7G.3f.4b.2 MATERIAL DXF resource closure and ordered payload replay",
+  "scope": "Emit DXF-origin MATERIAL only when the imported NOD/dictionary/material/entity-reference graph closes, preserving the ordered raw payload on its exact source profile.",
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256": {
+      "dwg2dxf/dx_iface.cpp": "c874dc89110eb4edc885b5da8cefb2fe921440b568376cc1d98b7ddb67d62b60",
+      "dwg2dxf/dx_iface.h": "527896d1df28fbc6009604ac30212c4727bd59a6cf8b52815886bef78b1b8d9b",
+      "tests/dxf_fixture_tests.cpp": "21dafd8e72dfb39d57a4f3dd94489d92296c986f08e83f1445e85517e9b3a4b1"
+    },
+    "behavior": [
+      "Requires the complete successful single-generation DXF typed/raw MATERIAL receipt and an exact AC1021-AC1032 source/target profile.",
+      "Requires one unaliased ACAD_MATERIAL NOD edge to a complete NOD-owned dictionary whose unique names and handles cover every paired typed/raw MATERIAL exactly once.",
+      "Validates each raw MATERIAL top-level group-5 self handle and group-330 owner against captured metadata, including retained ASCII spellings.",
+      "Requires each nonzero typed or raw entity group-347 handle in the AcDbEntity subclass to resolve to exactly one emitted MATERIAL; app-data, XDATA, and other entity subclasses are not mistaken for common entity references.",
+      "Reserves and remaps material/dictionary handle collisions, remaps the generated ACAD_MATERIAL root edge, and replays each admitted ordered raw MATERIAL exactly once.",
+      "Refuses incomplete/ambiguous graph and payload cases before destination publication; same-adapter retry succeeds after source correction."
+    ],
+    "generatedProfiles": [
+      "Scratch-authored AC1027 ASCII MATERIAL graph with repeated contextual map tags and fixed source handles that force dictionary/material remapping",
+      "Scratch-authored AC1027 Binary MATERIAL graph with the same record/reference shape",
+      "ASCII/Binary re-import compares ordered group codes, non-identity typed values, ASCII raw spellings, owner/root closure, raw/typed identities, and remapped group-347 target",
+      "Dangling group-347, missing ACAD_MATERIAL root, duplicate dictionary target, and raw group-330 owner mismatch preserve a sentinel destination; each is corrected and retried on the same adapter"
+    ],
+    "productionCodeChanged": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "newPublicApi": false,
+    "newTestTarget": false,
+    "newCTestRegistration": false,
+    "committedFixtureFiles": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build/libdxfrw_dxf_fixture_tests --material-raw-capture",
+        "result": "PASS",
+        "summary": "Generated ASCII/Binary complete graph round trips, ordered payload, fixed-handle remaps, fail-closed sentinel controls, and same-adapter retries"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+        "result": "PASS",
+        "summary": "1/1 passed in 3.74 seconds"
+      },
+      {
+        "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md dwg2dxf/dx_data.h dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dxf_fixture_tests.cpp src/libdxfrw.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuitesRun": false,
+    "peerRuntimesRun": 0,
+    "nativeCadRuns": 0,
+    "externalFilesDownloaded": 0
+  },
+  "limits": {
+    "provesAllProducerMaterialEncodings": false,
+    "provesDwgOriginMaterialProjection": false,
+    "provesNativeAcceptanceOrRendering": false,
+    "promotes3dConsumerSupport": false,
+    "promotesSupportClaims": false,
+    "findings": 137,
+    "topLevelImplementationSubplans": 77,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "gitMetadataWritable": false,
+    "committed": false
+  }
+}

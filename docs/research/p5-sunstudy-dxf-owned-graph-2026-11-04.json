@@ -1,0 +1,24 @@
+{
+  "status": "bounded_dxf_profile_only",
+  "profile": "One AC1027 DXF SUNSTUDY beneath one ordinary soft-owner dictionary entry and a one-entry NOD; output remains AC1027. The source CLASS is the exact canonical SUNSTUDY row with instance count one and no additional class fields. Import must explicitly enable whole-DXF source observation before reading. The retained record, its owner and reactor, the two dictionary records, and their live state are bound to that same import. No 340-343 references or calendar range are admitted.",
+  "source_evidence": {
+    "method": "Locally authored full R2013 DXF using ezdxf 1.4.5 and an explicitly inserted SUNSTUDY record; ODA File Converter 27.1.0 was used for DXF to AC1027 DWG and DWG back to DXF. The source and converted DXF study fields and owner/reactor/dictionary edges were checked by tools/audit_sunstudy_dxf_graph.py.",
+    "input_dxf": "/private/tmp/sunstudy-p5/class-in/source.dxf",
+    "input_sha256": "caf22d285d0b1c0a5f65236ad580294ab5eb808f3ae77537c7bf183f647b593b",
+    "intermediate_dwg": "/private/tmp/sunstudy-p5/class-dwg/source.dwg",
+    "intermediate_sha256": "b5bce7e6c2ecabdb1a3f7b74032941787179d995c85650f14e2152bc03d96753",
+    "output_dxf": "/private/tmp/sunstudy-p5/class-out/source.dxf",
+    "output_sha256": "153fab27bdc2ab9594956f2a325482f8580ba9b687b0bbf64a76da6a884a4a5d",
+    "limitations": "LibreDWG identifies the intermediate as PROXY_OBJECT from DXF, not a native SUNSTUDY. The ODA output changes the class row from instance count 1/proxy 0 to count 2/proxy 1. This is evidence of the sampled DXF fields and edges, not native DWG, rendering, whole-source interchange, or CLASS preservation through that conversion. The minimal scratch DXF used by the focused test has separately authored global structure and is not claimed as an ODA-accepted complete drawing."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j 4",
+    "tests": "ctest --test-dir build-gcc -R '^(dwg2dxf_sunstudy_dxf_graph|libdxfrw_sunstudy_dxf_hour_count|dwg2dxf_sunstudy_callback_capture_limits|libdxfrw_ac1018_minimal_dictionary_source)$' --output-on-failure",
+    "result": "4/4 passed",
+    "controls": "ASCII and Binary output and readback, exact graph and CLASS binding, missing observation, unsupported source fields and dictionary roles, class count and unknown field, identity aliases and duplicates, neighboring source/target versions, mutable and late graph changes, destination sentinel preservation and same-exporter corrected retry.",
+    "physical_checks": "python3 tools/audit_sunstudy_dxf_graph.py inspect /private/tmp/sunstudy-p5/class-in/source.dxf; python3 tools/audit_sunstudy_dxf_graph.py inspect /private/tmp/sunstudy-p5/class-out/source.dxf; shasum -a 256 /private/tmp/sunstudy-p5/class-in/source.dxf /private/tmp/sunstudy-p5/class-dwg/source.dwg /private/tmp/sunstudy-p5/class-out/source.dxf",
+    "addressSanitizer": "ctest --test-dir build-asan-custom -R '^dwg2dxf_sunstudy_dxf_graph$' --output-on-failure: 1/1 passed after rebuilding the final adapter with AddressSanitizer."
+  },
+  "open": "Other versions, source classes, graph shapes, cross-references, unobserved imports, native DWG SUNSTUDY, and native rendering remain unqualified. The emitted root also contains an auto-generated ACAD_GROUP entry: the SUNSTUDY output inspector verifies the selected SUNSTUDY edge, not an independent decoded proof of that extra edge. The output does not meet this narrow input profile for a second conversion.",
+  "subsequent_evidence": "The bounded generated ACAD_GROUP edge and repeated conversion are now verified by p5-sunstudy-repeat-graph-2026-11-04.json; the earlier observation in open describes the original revision."
+}

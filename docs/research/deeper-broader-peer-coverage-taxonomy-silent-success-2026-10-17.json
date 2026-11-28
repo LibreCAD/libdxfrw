@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw-peer-coverage-taxonomy-silent-success-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Compare primary-source peer support statements with explicit maturity and coverage limitations; refine only the existing composed peer-comparison and conversion-completeness evidence rules.",
+  "method": {
+    "kind": "Primary-source documentation review plus read-only local plan inspection",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sources": [
+      "https://github.com/LibreDWG/libredwg",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "https://ezdxf.readthedocs.io/en/stable/xref.html",
+      "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md already treats peer versions, directions, semantic results, and consumer acceptance as distinct; this review refined the evidence vocabulary without adding a finding or test owner.",
+      "The plan already records LibreCAD_3's pinned read-only claim ledger; this pass confirms that it is downstream governance evidence rather than an upstream writer or runtime result."
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG aggregate coverage and explicit maturity/test-coverage categories",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observed": "README wording claims broad DWG read coverage while acknowledging skipped advanced R2010+ objects, limited writer versions, and CRC issues in R2010-R2018 output. The manual's approximate 99% statement coexists with explicit version/direction limits and separate unstable/undertested, unhandled/pass-through-without-DXF-fields, halfway, missing, and no-test-coverage lists. The no-test-coverage list describes corpus gaps, not necessarily absent parser code; categories can overlap and documentation is not pinned to a binary here.",
+      "doesNotEstablish": [
+        "per-entity semantic completeness from an aggregate percentage",
+        "that a class listed without test coverage is unimplemented",
+        "that pass-through without DXF fields equals typed decode or cross-version preservation",
+        "current behavior of a pinned LibreDWG executable"
+      ],
+      "planUse": "At the existing composed comparator checkpoint, record exact peer revision and operation, then separately capture advertised status, source dispatch, peer corpus coverage, runtime diagnostics, typed/raw/ignored disposition, emitted output, and strict readback. Use listed corpus gaps only to prioritize candidate test cells."
+    },
+    {
+      "topic": "ezdxf unsupported entities can be ignored without an exception",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/xref.html"
+      ],
+      "observed": "The documentation says ACAD_TABLE is unsupported, unsupported entities are ignored without raising exceptions, and unknown entities/objects may instead be wrapped in DXFTagStorage. These are distinct result classes: ignored, opaque-retained, and typed.",
+      "doesNotEstablish": [
+        "that every unsupported entity is silently ignored in every version or API route",
+        "that opaque DXFTagStorage has correct semantic behavior or survives every conversion",
+        "that a successful read/write return proves source-to-output completeness"
+      ],
+      "planUse": "For the existing ezdxf differential, capture exact package/commit, diagnostics/audit changes, and a source-identity/type/owner census. Report typed, raw, ignored, and failed records independently, then strict-reopen and compare output identity."
+    },
+    {
+      "topic": "LibreCAD_3's pinned ledger is a read-only downstream policy boundary",
+      "sources": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "observed": "The policy documents opt-in DWG import, no DWG write path, and a pinned ledger with 15 read claims (11 EXPERIMENTAL, 4 PENDING_NATIVE, none PROMOTED). It distinguishes read evidence from writer qualification.",
+      "doesNotEstablish": [
+        "runtime behavior of this upstream checkout or a future LibreCAD_3 build",
+        "DWG write acceptance or 3D semantic behavior",
+        "native application qualification from a source/API compile check"
+      ],
+      "planUse": "Retain existing source/API, opt-in product runtime, direction-specific support claim, and native acceptance gates as separate evidence. No new runtime job follows from this research-only policy confirmation."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "refinedOwners": [
+      "peer comparator admission and source pinning",
+      "PAR-49 / 7F.1 conversion-completeness and identity/owner census",
+      "PAR-76 / 7AP proxy-carrier differential",
+      "S8 / 7AG downstream consumer and qualification boundaries"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "fullSuiteOrSanitizerCadenceChanged": false,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "evidenceRule": "Treat advertised support, implementation presence, corpus coverage, runtime decode, typed semantics, opaque preservation, conversion output, strict re-read, and native consumer acceptance as separate evidence. A successful exit or aggregate count cannot establish completeness without source-identity/type/owner disposition."
+}

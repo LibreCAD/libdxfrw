@@ -1,0 +1,141 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 AutoCAD 2007 TABLE full cell spans and value references",
+  "date": "2026-11-24",
+  "supportClaimEffect": "none",
+  "scope": "Extend the source-bound AC1021 AutoCAD 2007 TABLE trace from two alignment fields to every cell body/text/handle range and per-cell value reference in the same two table objects.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "localPdf": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.2",
+      "20.4.96.1",
+      "20.4.98",
+      "20.4.99"
+    ],
+    "relevantRules": [
+      "ODA \u00a72.2 assigns handle reference code 5 to a hard pointer.",
+      "ODA \u00a720.4.96.1 defines per-cell H group 344 (text) and 340 (block) value references as hard pointers; ATTDEF references are soft pointers.",
+      "ODA \u00a720.4.96.1 defines the pre-R24 cell layout and separate R2007+ cell data/value streams.",
+      "ODA \u00a720.4.99 defines CadValue fields independently of the per-cell value-handle reference."
+    ]
+  },
+  "source": {
+    "path": "tests/samples/AC1021/blocks_and_tables_-_metric.dwg",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "version": "AC1021",
+    "producer": "AutoCAD 2007 per docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json",
+    "fixtureDisposition": "Existing local external sample; read-only. No DWG/DXF fixture or derivative was committed."
+  },
+  "independentReaderTrace": {
+    "reader": "DomCR/ACadSharp",
+    "sourceCommit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "sourceCheckoutStatus": "clean",
+    "instrumentedScratchCopy": "/private/tmp/acadsharp-p5i-20261124",
+    "instrumentation": "Scratch-only instrumentation records field bit positions, cell/value/stream bounds, object-map boundaries, and the raw high nibble at each cell value-handle H. It restores the reader position before ordinary handle decode; the pinned ACadSharp checkout was not modified.",
+    "instrumentedFiles": [
+      {
+        "path": "src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Entities.cs",
+        "sha256": "e670274ffcf241cfa02a96b8fba73ce252eb6363c2bd6656e085a74661f6c7fd"
+      },
+      {
+        "path": "src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+        "sha256": "f4232a630eb19736f14f27c2b38d827293f516a18b7cbf68e2e25ffcdd848290"
+      }
+    ],
+    "instrumentationPatchSha256": "1d04d4c47ea6cfffd47dde05f5d867a9b186f80379282a51117a22ce4b58641a",
+    "assemblySha256": "534fe9d8ff4cbf684308922da44da86b47858d6d511fea4176eb12662095318a",
+    "build": {
+      "command": "dotnet build /private/tmp/acadsharp-p5i-20261124/probe/P5iProbe.csproj --no-restore -v:q",
+      "result": "Succeeded, 0 errors; peer build reported 1489 warnings."
+    },
+    "probeCommand": "dotnet run --no-build --project /private/tmp/acadsharp-p5i-20261124/probe/P5iProbe.csproj -- tests/samples/AC1021/blocks_and_tables_-_metric.dwg <15 source FIELD handles>",
+    "tracePath": "/private/tmp/acadsharp-p5i-20261124/probe/output18-role-codes.log",
+    "traceSha256": "b4ad6a7cb0f0d55c3eb2bf97f70f012fe31d28d441a778b86a08e77bce23fe74",
+    "replayAudit": {
+      "path": "/private/tmp/acadsharp-p5i-20261124/probe/audit_output18_role_trace.py",
+      "sha256": "0ca0f1ce64e9a83a3c069f76982c04d9a8f0d21b15739de8149167821df84179",
+      "result": "PASS"
+    },
+    "observations": {
+      "tableCount": 2,
+      "cellCount": 171,
+      "fieldBoundaryEvents": 1887,
+      "cadValueFieldEvents": 1011,
+      "cellRanges": "Every row-major cell has contiguous, non-overlapping body, text, and handle ranges.",
+      "valueHandles": {
+        "count": 171,
+        "rawCode5HardPointerCount": 171,
+        "nullCount": 156,
+        "nonnullCount": 15,
+        "nonnullTargetClass": "ACadSharp.Objects.Field",
+        "targetObjectsResolve": true
+      },
+      "objects": [
+        {
+          "handle": "0x2856E",
+          "rows": 9,
+          "columns": 9,
+          "objectMapOffsetBytes": 190877,
+          "objectStartBit": 1527048,
+          "objectSizeBytes": 35882,
+          "objectEndBit": 1814104,
+          "cellBodyBitRange": [
+            1792407,
+            1807042
+          ],
+          "cellTextBitRange": [
+            1807046,
+            1813154
+          ],
+          "cellHandleBitRange": [
+            1813283,
+            1814099
+          ],
+          "followingObject": {
+            "handle": "0x2A974",
+            "objectMapOffsetBytes": 226765
+          }
+        },
+        {
+          "handle": "0x2A974",
+          "rows": 10,
+          "columns": 9,
+          "objectMapOffsetBytes": 226765,
+          "objectStartBit": 1814152,
+          "objectSizeBytes": 40223,
+          "objectEndBit": 2135936,
+          "cellBodyBitRange": [
+            2112377,
+            2128359
+          ],
+          "cellTextBitRange": [
+            2128363,
+            2134891
+          ],
+          "cellHandleBitRange": [
+            2135020,
+            2135932
+          ],
+          "followingObject": {
+            "handle": "0x25",
+            "objectMapOffsetBytes": 266994
+          }
+        }
+      ],
+      "documentRead": "P5I|DOCUMENT_READ_COMPLETE"
+    }
+  },
+  "libdxfrwCrossCheck": {
+    "binary": "build-gcc/dwg2dxf/dwg2dxf",
+    "binarySha256": "b7c308bf5ca08fb4859dd1b926279d3c098845d5591bf3bd7a00b2d754794650",
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1021/blocks_and_tables_-_metric.dwg -y -d -v2010 /private/tmp/libdxfrw-p5i-current-table-read-20261124.dxf",
+    "tracePath": "/private/tmp/libdxfrw-p5i-current-table-read-20261124.log",
+    "traceSha256": "0120a02ea9a340d58398841ec8a5f5bb5328ffed1bdb162b609df36bd1df598e",
+    "exitCode": 1,
+    "readResult": "The source read completed with 4408/4408 observed frames, zero entity/object parse failures, zero pending frames, and no R2007 TABLE cell-incomplete diagnostic.",
+    "writeResult": "Output preparation stopped at the existing FIELD/FIELDLIST serializer preflight; strict conversion did not qualify selected-TABLE output."
+  },
+  "qualificationBoundary": "This binds exact per-cell spans and value-handle roles for two tables in the classified AutoCAD 2007 source. Peer interpretation is not wire authority; ODA v5.4.1 supplies field/role mapping. It does not prove full FIELD graph semantics, selected-TABLE output/readback, native rendering, or other AC1021 producer layouts. P5-I and P5-B remain open; no support claim is promoted."
+}

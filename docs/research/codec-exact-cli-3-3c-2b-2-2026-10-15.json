@@ -1,0 +1,381 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "parentCommit": "7d21d2e00abe79110709b26381c2b70d00eddb45",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "planSlice": "Slice3.3c.2b.2",
+  "state": "LOCAL_IMPLEMENTATION_COMPLETE",
+  "parent3_3": "IN_PROGRESS",
+  "supportPromotion": false,
+  "scope": "Explicit complete-token DXF codepage CLI selection forwarded through positional, FreeCAD and batch routes under the existing closed compatibility-source/target contract. Not raw ISO producer qualification, a broad all-green DWG smoke or native support.",
+  "sourceHashes": {
+    "dwg2dxf/dx_cli.h": "a2000b632da5e8d69a5166ca9ce76822299452b0484bb4cf61e9304fa57e125a",
+    "dwg2dxf/main.cpp": "cfde7e95ec304c13918a5988c54ffecc88e640986190dd273711e7897cd3bf6e",
+    "dwg2dxf/dwg2dxf.1": "13cb691d58d31e64ee41d9edb261a2592a1e907d29b668e9551c0e4f7a5293ac",
+    "tests/dwg2dxf_cli_contract_tests.py": "9e1e33b9659a3aa11dbb7d0e308d8601816a7fecb68948ff3167289909d53003",
+    "tests/dwg2dxf_version_tests.cpp": "165bb8cd5f500bcca5da949551140d716d1ce91ac774d35fff4dc0d428e44dcc",
+    "README.md": "8663dd874158448b04dcd6462d896b375e429318b33a076c4ae8b8dd9810bc9f",
+    "docs/3D_CONSUMER_CONTRACT.md": "b7b7518a325ccf3e5fa838a0e478d0a6f724ca05eaa5eec2af0fb428da8fa4f0",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "c84305c4040bb1b5ad68469dc8efd4b39224e38f072bb889d8e3b6ff5bd3aa90",
+    "DWG_DXF_3D_SUPPORT_PLAN.md": "c35f3e28b73b11240d323fea74ed29218a710d8ea9d65bbad272c56957f7353b"
+  },
+  "artifactHashes": {
+    "build/dwg2dxf/dwg2dxf": "b1b190b6cfae3e6f5cd8f0ce59207ed74f878990ed205cfd2a32996d062ff825",
+    "build/tests/libdxfrw_dwg2dxf_version_tests": "e7b8374cd761c32956f5c56cf84692da076a445689e8e8e188ac77a2dca53356",
+    "build/libdxfrw.a": "7902a87220bce93eea1b4a4cc2e5be21474980759f194fb18e5fb36a950ba8af",
+    "build/libdxfrw_gbk_codepage_tests": "d456e7362557dcc8e5e98453392050a3886354c162c05f4ed11083b8fe5d76e3",
+    "/private/tmp/libdxfrw-exact-cli.lhsape/dwg2dxf-asan": "7e9033decabb65a682e30c3b05a5b8ef69bf7f58a6ba17dd3cfe0186d905866b",
+    "/private/tmp/libdxfrw-exact-cli.lhsape/focused-cli.log": "8601a1a7b1433d88a38df959f1b09a3adf23054829db8b3f057e23bf991ee75b",
+    "/private/tmp/libdxfrw-exact-cli.lhsape/asan-cli.log": "8601a1a7b1433d88a38df959f1b09a3adf23054829db8b3f057e23bf991ee75b",
+    "/private/tmp/libdxfrw-exact-cli.lhsape/parent-dwg2dxf": "5cc838451df5ebd03949d1806381b87689848c56e2355aced1067b7268498e3d",
+    "/private/tmp/libdxfrw-exact-cli.lhsape/parent-main.cpp": "41fed5e133441da4f7cfae0cbc9c094aef081488cceb9eb3e9ea188785ac292e",
+    "/private/tmp/libdxfrw-exact-cli.lhsape/dx_cli.h": "139215bf44a40751c20abc22663c93f00148ae6d3369973ca3da459dd9ae790d",
+    "/private/tmp/libdxfrw-exact-cli.lhsape/check_dwg.py": "1c77421bb29e6455492a15be4d74f0f84a8117035af84ba67c0022c49197c1b2",
+    "/private/tmp/libdxfrw-exact-cli.lhsape/dwg-controls.json": "2fca115a19d08204cbafb082021283ac32f85291f2ba7f592a7b167fdd154353"
+  },
+  "contract": {
+    "tokens": [
+      "--dxf-codepage-policy=compatible",
+      "--dxf-codepage-policy=exact-named"
+    ],
+    "default": "Compatible",
+    "duplicateOrConflictingTokens": "Reject before conversion",
+    "unknownOrMissingValues": "Reject before conversion",
+    "scope": "DXF inputs only; DWG ignores this DXF-specific selection. Batch forwards the same policy independently per item.",
+    "preserved": [
+      "Original FreeCAD four-argument invocation",
+      "Source-revision default in noninteractive -o form",
+      "Strict source-text admission",
+      "RequireLossless target text",
+      "Required owner resolution",
+      "Independent overwrite authorization",
+      "Atomic failed destination preservation",
+      "Independent batch continuation"
+    ],
+    "qualification": "Correct ISO4 decoding alone still yields UnsupportedProfile for raw high-byte ISO source under strict conversion. Modern inert metadata and represented ASCII escapes remain eligible. No automatic recovery/default change/native claim.",
+    "installedLibraryApiChanged": false,
+    "newPureCallbacks": false
+  },
+  "tests": {
+    "focusedMode": "tests/dwg2dxf_cli_contract_tests.py --converter <binary> --exact-input-only",
+    "optionRefusals": 22,
+    "twoPassRoutes": 32,
+    "independentAndSourceDefaultPositives": 10,
+    "atomicSourceRefusals": 24,
+    "correctedRetries": 12,
+    "mixedBatches": 1,
+    "derivedFocusedCliInvocations": 133,
+    "positiveMatrix": "Canonical Windows1252 legacy input × ASCII/binary source × explicit compatible/exact policy × positional/FreeCAD form × AC1018/AC1021 target × ASCII/binary first output. Second output uses unchanged default input and ASCII physical projection.",
+    "projection": "Dependency-free scanner inspects actual ASCII physical pairs for exact TEXT group1 bytes/type/count, actual ACADVER and distinct nonzero-Z LINE coordinates. Binary first output requires signature and actual default-input second conversion before ASCII projection. Not an independent CAD reader/native result.",
+    "independentScope": "Exact ISO metadata with modern UTF8 or ASCII CIF across both source framings/forms, plus FreeCAD source-version default without explicit output version.",
+    "negativeScope": "ISO raw exact profile must report unsupported-source-profile issueMask=0 (proves option reaches reader/admission); unavailable page and malformed modern UTF8 remain observed-source-issues. Each absent/sentinel destination remains unchanged with no leaked staging entry; corrected source retries succeed.",
+    "batchScope": "Exact raw ISO failure preserves destination; a later canonical entry succeeds, with list/source bytes unchanged.",
+    "cppOptionChecks": "Existing version-policy executable now checks exact/compatible option state, malformed tokens and duplicate/conflict rejection without changing selected state.",
+    "scopedAcceptance": {
+      "packet": {
+        "path": "/private/tmp/libdxfrw-exact-cli.lhsape/acceptance-ctest.xml",
+        "sha256": "2a038ac215e5a8efd5279dad17281a8ab219048582c28e7bc499416b4f381efd",
+        "suite": {
+          "name": "(empty)",
+          "tests": "3",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "11",
+          "timestamp": "2026-10-15T16:31:22"
+        },
+        "cases": [
+          {
+            "name": "dwg2dxf_cli_contract",
+            "classname": "dwg2dxf_cli_contract",
+            "time": "11.0472",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_gbk_codepage",
+            "classname": "libdxfrw_gbk_codepage",
+            "time": "0.404667",
+            "status": "run"
+          },
+          {
+            "name": "dwg2dxf_version_policy",
+            "classname": "dwg2dxf_version_policy",
+            "time": "0.00252788",
+            "status": "run"
+          }
+        ]
+      },
+      "tests": 3,
+      "failures": 0,
+      "skips": 0,
+      "reportedWallSeconds": 11.46,
+      "scope": "CLI contract, version policy, codec; explicitly excludes unresolved broader RTEXT smoke."
+    },
+    "widerGate": {
+      "packet": {
+        "path": "/private/tmp/libdxfrw-exact-cli.lhsape/focused-ctest.xml",
+        "sha256": "262862895bbb2396c1bade11e6bfefde64d87471c5285e39c5995c418e00adb3",
+        "suite": {
+          "name": "(empty)",
+          "tests": "4",
+          "failures": "1",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "11",
+          "timestamp": "2026-10-15T16:26:34"
+        },
+        "cases": [
+          {
+            "name": "dwg2dxf_cli_contract",
+            "classname": "dwg2dxf_cli_contract",
+            "time": "10.8449",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_gbk_codepage",
+            "classname": "libdxfrw_gbk_codepage",
+            "time": "0.464103",
+            "status": "run"
+          },
+          {
+            "name": "dwg2dxf_version_policy",
+            "classname": "dwg2dxf_version_policy",
+            "time": "0.0628801",
+            "status": "run"
+          },
+          {
+            "name": "dwg2dxf_freecad_cli_compat",
+            "classname": "dwg2dxf_freecad_cli_compat",
+            "time": "0.158666",
+            "status": "fail"
+          }
+        ]
+      },
+      "tests": 4,
+      "failures": 1,
+      "reportedWallSeconds": 11.54,
+      "failedTest": "dwg2dxf_freecad_cli_compat",
+      "scope": "Retained failed extended gate, not relabeled as green or skipped."
+    },
+    "strict": {
+      "translationUnits": [
+        "dwg2dxf/main.cpp",
+        "tests/dwg2dxf_version_tests.cpp"
+      ],
+      "exitCode": 0,
+      "command": "clang++ -std=c++17 -Wall -Wextra -Wpedantic -Werror -I. -Isrc -Idwg2dxf -fsyntax-only <source>"
+    },
+    "syntax": {
+      "python": "in-memory compile(..., 'exec') with -B",
+      "exitCode": 0
+    },
+    "build": {
+      "targets": [
+        "dwg2dxf",
+        "libdxfrw_dwg2dxf_version_tests"
+      ],
+      "exitCode": 0
+    },
+    "asanUbsan": {
+      "exitCode": 0,
+      "mode": "CLI --exact-input-only (same final22/32/10/24/12/1 counts)",
+      "command": "clang++ -std=c++17 -Wall -Wextra -Wpedantic -Werror -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. -Isrc -Idwg2dxf dwg2dxf/main.cpp dwg2dxf/dx_iface.cpp <unchanged instrumented core archive> -o <scratch CLI>",
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=0",
+        "UBSAN_OPTIONS": "halt_on_error=1"
+      },
+      "scope": "Manual scratch link because existing ASan CMake tree has LIBDXFRW_BUILD_DWG2DXF=OFF; that cache was not changed. Core remains identical to prior bound profile acceptance."
+    },
+    "dwgNoninterference": {
+      "calls": [
+        {
+          "args": [
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_gbk_codepage_tests",
+            "--target-dwg-control",
+            "/private/tmp/libdxfrw-exact-cli.lhsape/authored policy DWG.dwg"
+          ],
+          "exitCode": 0,
+          "stdout": "Authored target DWG witness: PASS\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-exact-cli.lhsape/authored policy DWG.dwg",
+            "-o",
+            "/private/tmp/libdxfrw-exact-cli.lhsape/authored policy default.dxf"
+          ],
+          "exitCode": 0,
+          "stdout": "Success: converted /private/tmp/libdxfrw-exact-cli.lhsape/authored policy DWG.dwg to /private/tmp/libdxfrw-exact-cli.lhsape/authored policy default.dxf\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_gbk_codepage_tests",
+            "--verify-target-dxf-control",
+            "/private/tmp/libdxfrw-exact-cli.lhsape/authored policy default.dxf"
+          ],
+          "exitCode": 0,
+          "stdout": "Target DXF witness: PASS\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-exact-cli.lhsape/authored policy DWG.dwg",
+            "-o",
+            "/private/tmp/libdxfrw-exact-cli.lhsape/authored policy compatible.dxf",
+            "--dxf-codepage-policy=compatible"
+          ],
+          "exitCode": 0,
+          "stdout": "Success: converted /private/tmp/libdxfrw-exact-cli.lhsape/authored policy DWG.dwg to /private/tmp/libdxfrw-exact-cli.lhsape/authored policy compatible.dxf\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_gbk_codepage_tests",
+            "--verify-target-dxf-control",
+            "/private/tmp/libdxfrw-exact-cli.lhsape/authored policy compatible.dxf"
+          ],
+          "exitCode": 0,
+          "stdout": "Target DXF witness: PASS\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "/private/tmp/libdxfrw-exact-cli.lhsape/authored policy DWG.dwg",
+            "-o",
+            "/private/tmp/libdxfrw-exact-cli.lhsape/authored policy exact.dxf",
+            "--dxf-codepage-policy=exact-named"
+          ],
+          "exitCode": 0,
+          "stdout": "Success: converted /private/tmp/libdxfrw-exact-cli.lhsape/authored policy DWG.dwg to /private/tmp/libdxfrw-exact-cli.lhsape/authored policy exact.dxf\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_gbk_codepage_tests",
+            "--verify-target-dxf-control",
+            "/private/tmp/libdxfrw-exact-cli.lhsape/authored policy exact.dxf"
+          ],
+          "exitCode": 0,
+          "stdout": "Target DXF witness: PASS\n",
+          "stderr": ""
+        }
+      ],
+      "rows": [
+        {
+          "policy": "default",
+          "sourceSha256": "224d4707aa5b78034ec586d0a6fa256a07640b13bcf4128ebab0e2802c381a46",
+          "outputSha256": "6b3ca3e91566766a5dc6cfee0bd8288f5e73fab9dff814f6bebfe128e795ff24",
+          "scope": "Generated AC1027 DWG to ASCII DXF; exact emoji/literal TEXT and following nonzero-Z LINE verifier"
+        },
+        {
+          "policy": "compatible",
+          "sourceSha256": "224d4707aa5b78034ec586d0a6fa256a07640b13bcf4128ebab0e2802c381a46",
+          "outputSha256": "6b3ca3e91566766a5dc6cfee0bd8288f5e73fab9dff814f6bebfe128e795ff24",
+          "scope": "Generated AC1027 DWG to ASCII DXF; exact emoji/literal TEXT and following nonzero-Z LINE verifier"
+        },
+        {
+          "policy": "exact",
+          "sourceSha256": "224d4707aa5b78034ec586d0a6fa256a07640b13bcf4128ebab0e2802c381a46",
+          "outputSha256": "6b3ca3e91566766a5dc6cfee0bd8288f5e73fab9dff814f6bebfe128e795ff24",
+          "scope": "Generated AC1027 DWG to ASCII DXF; exact emoji/literal TEXT and following nonzero-Z LINE verifier"
+        }
+      ],
+      "independentProducerQualification": false,
+      "generatorSourceSha256": "b06c5d4de6f2b5e000d4c9db78d16dd61466873bca9067e353794c60e8b7fa11",
+      "converterSha256": "b1b190b6cfae3e6f5cd8f0ce59207ed74f878990ed205cfd2a32996d062ff825",
+      "codecSha256": "d456e7362557dcc8e5e98453392050a3886354c162c05f4ed11083b8fe5d76e3"
+    }
+  },
+  "parentSourceBaseline": {
+    "scope": "Exact byte-matching parent main.cpp/dx_cli.h compiled with unchanged parent/current adapter and byte-identical parent core, then the full existing smoke harness invoked. Not a clean full-parent checkout/build or frozen original parent executable.",
+    "sourceByteMatches": {
+      "dwg2dxf/main.cpp": true,
+      "dwg2dxf/dx_cli.h": true
+    },
+    "binarySha256": "5cc838451df5ebd03949d1806381b87689848c56e2355aced1067b7268498e3d",
+    "coreSha256": "7902a87220bce93eea1b4a4cc2e5be21474980759f194fb18e5fb36a950ba8af",
+    "fixture": "tests/fixtures/dwg/rtext_arctext.dwg",
+    "fixtureSha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+    "harness": "tests/run_freecad_dwg2dxf_compat_test.cmake",
+    "command": "cmake -DDWG2DXF=/private/tmp/libdxfrw-exact-cli.lhsape/parent-dwg2dxf -DSAMPLE=/Users/dli/dev/libdxfrw/tests/fixtures/dwg/ordinary_enc_AC1027.dwg -DRTEXT_SAMPLE=/Users/dli/dev/libdxfrw/tests/fixtures/dwg/rtext_arctext.dwg -DMPOLYGON_SAMPLE=/Users/dli/dev/libdxfrw/tests/fixtures/dwg/mpolygon_solid.dwg -DPYTHON=/opt/homebrew/bin/python3.12 -DOUTPUT_DIR=/private/tmp/libdxfrw-exact-cli.lhsape/parent-smoke -P /Users/dli/dev/libdxfrw/tests/run_freecad_dwg2dxf_compat_test.cmake",
+    "exitCode": 1,
+    "firstError": {
+      "value": 6,
+      "enum": "BAD_READ_HEADER",
+      "sourceVersion": "AC1032"
+    },
+    "secondaryObservation": {
+      "classesCrcMismatch": 1,
+      "expected": 420,
+      "observed": 61198,
+      "rootCauseEstablished": false
+    },
+    "scopeOfFailure": "Ordinary LINE/predicate prefix succeeds; harness stops on RTEXT/ARCTEXT before later feature assertions. Sticky first header failure is not assigned to the later CRC warning or entity dispatcher."
+  },
+  "openFollowup": {
+    "owner": "7BE / 7F / Slice5",
+    "state": "OPEN_LOCAL_READER_FAILURE",
+    "next": "Read relevant authoritative local ODA HEADER/stream chapter and source-bound trace of tracked AC1032 fixture; isolate the first header failure before repair. Do not suppress CRC/stream validation or weaken the fixture/assertion, and do not infer a text-entity dispatch bug from stage6.",
+    "authoritativeSpecFromAgents": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf"
+  },
+  "reproduction": {
+    "dwgRecipe": "import hashlib\nimport json\nfrom pathlib import Path\nimport sys\n\nrepo = Path('/Users/dli/dev/libdxfrw')\nroot = Path(__file__).resolve().parent\nsys.path.insert(0, str(repo / 'tools'))\nfrom bounded_process import run_bounded\n\ndef invoke(args):\n    result = run_bounded([str(x) for x in args], 10, 131072, cwd=root)\n    assert result.returncode == 0, (args, result.returncode, result.stdout, result.stderr)\n    return {'args': [str(x) for x in args], 'exitCode': result.returncode,\n            'stdout': result.stdout.decode('utf8'), 'stderr': result.stderr.decode('utf8')}\n\ndef digest(path):\n    return hashlib.sha256(path.read_bytes()).hexdigest()\n\nsource = root / 'authored policy DWG.dwg'\ncodec = repo / 'build/libdxfrw_gbk_codepage_tests'\nconverter = repo / 'build/dwg2dxf/dwg2dxf'\ncalls = [invoke([codec, '--target-dwg-control', source])]\noriginal = digest(source)\nrows = []\nfor label, options in [('default', []), ('compatible', ['--dxf-codepage-policy=compatible']),\n                       ('exact', ['--dxf-codepage-policy=exact-named'])]:\n    output = root / ('authored policy ' + label + '.dxf')\n    calls.append(invoke([converter, source, '-o', output, *options]))\n    calls.append(invoke([codec, '--verify-target-dxf-control', output]))\n    assert digest(source) == original\n    rows.append({'policy': label, 'sourceSha256': original, 'outputSha256': digest(output),\n                 'scope': 'Generated AC1027 DWG to ASCII DXF; exact emoji/literal TEXT and following nonzero-Z LINE verifier'})\nreport = {'calls': calls, 'rows': rows, 'independentProducerQualification': False,\n          'generatorSourceSha256': digest(repo / 'tests/gbk_codepage_tests.cpp'),\n          'converterSha256': digest(converter), 'codecSha256': digest(codec)}\n(root / 'dwg-controls.json').write_text(json.dumps(report, indent=2) + '\\n')\nprint('DWG input policy noninterference: 3 actual routes/7 bounded processes pass; source unchanged, typed text/LINE verified.')\n",
+    "dwgRecipeScope": "Locally authored AC1027 TEXT/LINE DWG, three default/compatible/exact CLI routes and typed verifier; seven bounded processes, source hash unchanged. Author/reader stack consistency only."
+  },
+  "corrections": [
+    "Initial build named nonexistent dwg2dxf_version_tests; resolved actual registered target libdxfrw_dwg2dxf_version_tests and rebuilt successfully.",
+    "Initial python -m py_compile tried an ambient unwritable cache location; replaced with -B in-memory syntax validation, not a cache permission escalation.",
+    "Initial focused run preceded the two additional source-default cells (8 independent positives); final normal/sanitizer/CTest runs include all10."
+  ],
+  "notRun": [
+    "Full suite",
+    "Clean full-parent checkout/build",
+    "New installed/native FreeCAD/LibreCAD/LC3 or Windows/Linux qualification",
+    "New DWG parser/body/spec edit",
+    "Raw ISO producer or independent ACIS/AcDs semantic qualification"
+  ],
+  "fixturePolicy": "No new drawing committed/downloaded. CLI inputs and generated DWG are authored at runtime in scratch; existing tracked RTEXT fixture is read only. User-owned untracked files preserved.",
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "threeDLedgerItems": 149
+  },
+  "deferredExternal": [
+    {
+      "id": "J256",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J260",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J268",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J284",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J293",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J295",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1018-datatable-raw-only-shell-recovery-2026-11-09",
+  "date": "2026-11-09",
+  "status": "AC1018_DATATABLE_BOUNDED_RAW_ONLY_RECOVERY",
+  "supportClaimEffect": "none",
+  "scope": "Retain AC1018 DATATABLE frames raw-only when typed body parsing fails but an independent R2004 common shell and inline handle stream validate.",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018.dwg",
+    "sha256": "7d26f908516ec5fb89cc8054af33aff233b68a7b63208bbc5b7f9f4d9bff9866",
+    "provenance": "Tracked ACadSharp sample, read-only; not copied into this repository.",
+    "version": "AC1018",
+    "frames": [
+      {"handle":"0xFEF","decimalHandle":4079,"location":324496,"typeCode":550,"ordinal":966,"recordName":"DATATABLE","className":"AcDbDataTable"},
+      {"handle":"0xFD3","decimalHandle":4051,"location":319272,"typeCode":550,"ordinal":938,"recordName":"DATATABLE","className":"AcDbDataTable"}
+    ]
+  },
+  "authority": {
+    "oda": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "section": "20.1",
+      "finding": "The common non-entity object shell and handle stream are defined. This receipt makes no claim about the DATATABLE class-specific variable body; it is retained opaque."
+    },
+    "policy": "Do not infer DataTable fields or semantics from shell validation. Preserve the exact frame only and retain strict output refusal."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "profile": "Exact AC1018 version, record DATATABLE, class AcDbDataTable, failed typed parse, and successful independent RawObjectShell parse.",
+    "behavior": "Publish the unvalidated raw carrier with no typed DATATABLE callback after the common shell succeeds. A shell failure remains an object parse failure."
+  },
+  "generatedControl": {
+    "selector": "libdxfrw_persistent_manager_prefix_dispatch",
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "coverage": "Two from-scratch AC1018 DATATABLE frames with bounded common fields and deliberately absent class body are framed with valid CRCs. Assertions require exact raw payloads, no typed callbacks, raw publication, and following-frame recovery. A negative control shortens the declared common-body bound by one bit: it must not publish the malformed DATATABLE raw-only, records one object failure, and still publishes the following independently valid DATATABLE. Rebuilding the corrected frame then passes the same raw-only route with zero failures. No DWG/DXF fixture was added.",
+    "malformedShellControl": {
+      "failure": "The one-bit-short declared body is rejected by the independent common-shell probe; it is not promoted to a raw-only publication.",
+      "continuation": "The object reader returns false for this malformed frame, records exactly one object failure, and nevertheless publishes the following valid DATATABLE raw-only.",
+      "correctedRetry": "A corrected in-memory frame is accepted by a fresh reader with zero object failures; both corrected and following frames publish exact raw payloads without typed callbacks."
+    }
+  },
+  "verification": {
+    "normal": {
+      "build": "PASS: cmake --build build --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+      "focused": "PASS: ctest --test-dir build -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure (1/1; 0.50 s)"
+    },
+    "asan": {
+      "build": "PASS: cmake --build build-asan-custom --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "focused": "PASS: ctest --test-dir build-asan-custom -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure (1/1; 0.85 s)"
+    },
+    "physicalRead": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1018.dwg -y -d -v2004 /tmp/sample_AC1018-raw-only-all-unknown-tables.dxf",
+      "binarySha256": "08895e1f1f9828a24d988ae98d95a030915ad60649b8e0fb4b48a539d4532f91",
+      "logSha256": "ff6a814308a7269d6b90f9cd5bef0aea9b829e4a5bfcac6570f472d6547cbd28",
+      "result": "Both DATATABLE records use the raw-only route. Together with the preceding four TABLECONTENT/TABLEGEOMETRY recoveries, the read publishes 1014/1014 frames with zero entity/object parse failures. Strict DXF export remains refused by the independent IMAGEDEF/reactor source-correlation gate."
+    },
+    "beforeThisSlice": {
+      "logSha256": "e40c24329f08bbb91682b6a009af57984c7a1354fdd67af392a4d380c421eb58",
+      "result": "The same source/command had 2 AcDbDataTable object failures and 1012/1014 frames published after TABLECONTENT/TABLEGEOMETRY recovery."
+    },
+    "diffCheck": "PASS: git diff --check",
+    "fullSuites": "NOT RUN"
+  },
+  "limits": [
+    "This recovers exact frames/common shell only; DATATABLE body semantics remain unqualified.",
+    "No selected or whole-file DXF output is authorized by this raw fallback.",
+    "No external fixture was added."
+  ],
+  "next": "Continue with another evidence-backed local version/layout gap; preserve the strict output gate."
+}

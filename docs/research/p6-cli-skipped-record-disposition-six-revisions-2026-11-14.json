@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.cli.disposition-generated-profile-receipt.v1",
+  "id": "p6-cli-skipped-record-disposition-six-revisions-2026-11-14",
+  "date": "2026-11-14",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6-F CLI disposition matrix",
+  "supportClaimEffect": "none",
+  "sourceEvidence": {
+    "authority": "ODA Open Design Specification v5.4.1, §20.1 Common non-entity object format",
+    "finding": "The object common header, pre-R2010 data-end-bit field, R2004+ extension-dictionary flag, R2007+ string stream, and object handle stream vary by revision. The prior test helper emitted only its AC1027-style encoding and could not produce valid AC1015/AC1018/AC1021 controls."
+  },
+  "implementation": {
+    "files": [
+      "tests/generated_raw_dwg_object.h",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "The from-scratch raw custom-object helper now emits the explicit object-data end bit for AC1015 through AC1021, the versioned XDictionary and DataStorage flags, and the bounded R2007+ empty string stream. The CLI disposition selector now exercises six supported writer revisions."
+  },
+  "profiles": {
+    "sourceVersions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "targetVersion": "AC1027",
+    "cases": [
+      {"name": "single custom object", "customClassInstances": 1, "unsupportedObjectInstances": 1},
+      {"name": "three same-class objects", "customClassInstances": 3, "unsupportedObjectInstances": 3},
+      {"name": "three distinct custom classes", "customClassInstances": 3, "unsupportedObjectInstances": 3, "distinctSourceNames": 3}
+    ],
+    "caseCount": 18,
+    "fixtureFilesAdded": 0
+  },
+  "observations": {
+    "projection": "Every generated case reports the exact skipped custom-class and unsupported-object counts; the distinct-class profile reports three source names.",
+    "frameDisposition": "All cases report complete source-frame disposition with no parse failures.",
+    "strictOutput": "Every conversion is refused before output publication; the pre-existing destination sentinel and source bytes remain unchanged.",
+    "manualEarlierRevisionChecks": {
+      "AC1015": "one source frame published as skipped custom/unsupported object, zero parse failures, complete coverage; strict output refused",
+      "AC1018": "one source frame published as skipped custom/unsupported object, zero parse failures, complete coverage; strict output refused",
+      "AC1021": "one source frame published as skipped custom/unsupported object, zero parse failures, complete coverage; strict output refused"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j4",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_skipped_record_disposition$' --output-on-failure",
+      "result": "PASS (1/1, 0.69 seconds)",
+      "coverage": "Six source revisions by three locally generated skipped-custom-class profiles, with exact count projection, complete frame accounting, strict refusal, destination sentinel preservation, and unchanged source bytes."
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated custom-class/object profiles qualify disposition accounting only, not semantic support or successful output for these skipped objects.",
+    "Other malformed, partial, recovery, and raw-only CLI disposition profiles remain open under P6-F.",
+    "All generated files are temporary; no DWG/DXF fixtures were added."
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw-deeper-broader-polyface-wire-output-and-rust-peer-lineage-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the DXF peer screen and convert a credible polyface wire-compatibility lead into an implementation-ready, low-cost local validation refinement.",
+  "method": {
+    "externalSources": [
+      {
+        "url": "https://github.com/ixmilia/dxf-rs/issues/96",
+        "kind": "issue report",
+        "use": "A user reports polyface coordinate VERTEX flags 192 being emitted as 128. This was treated as a lead, not reproduced behavior for a current release."
+      },
+      {
+        "url": "https://github.com/ixmilia/dxf-rs",
+        "kind": "project documentation",
+        "use": "Classifies the Rust project as a DXF/DXB reader/writer and documents that its ODA File Converter interoperability tests require Windows and the proprietary converter."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+        "kind": "format reference",
+        "use": "Defines polyface VERTEX role flags, index terminator, and signed invisible-edge semantics."
+      },
+      {
+        "url": "https://docs.rs/dxf-tools-rs/0.1.3/dxf_tools_rs/",
+        "kind": "versioned package documentation",
+        "use": "Identifies the published package API surface; not treated as proof of independent implementation lineage or semantic support."
+      },
+      {
+        "url": "https://github.com/hakanaktt/dxf-tools-rs",
+        "kind": "repository identity check",
+        "use": "The former URL redirects to the canonical ACadRust repository, so this package is not counted as an independent peer vote."
+      }
+    ],
+    "localInspection": [
+      "src/libdxfrw.cpp: dxfRW::writePolyline emits 128 for face VERTEX records and ORs 192 onto polyface coordinate VERTEX records.",
+      "tests/dxf_fixture_tests.cpp: generated ASCII/binary polyface tests cover role/subclass, signed indices, caller immutability, and local parseback.",
+      "The current raw record helper does not preserve group 70, leaving a narrow gap where readback normalization could conceal a writer-byte regression."
+    ],
+    "notPerformed": [
+      "No peer package was installed, built, or executed.",
+      "No external DWG/DXF was downloaded or added as a fixture.",
+      "No source-code test or full suite was run; this change updates plans and records research only."
+    ]
+  },
+  "findings": [
+    {
+      "subject": "Polyface VERTEX output flags",
+      "evidence": "Autodesk's DXF reference specifies bit 128 for polyface vertices, with bit 64 additionally set on coordinate vertices (group 70 = 192); face records use 128. IxMilia dxf-rs issue #96 reports a peer writer losing bit 64.",
+      "localDisposition": "libdxfrw production writer already constructs the intended values; the plan identifies a direct raw-wire test-precision gap, not a local implementation defect.",
+      "plannedAction": "Extend the existing generated fast-test scanner to capture group 70 from emitted VERTEX records and assert coordinate=192 and face=128 for ASCII and Binary DXF. Preserve existing checks for parent flag 64, coordinate-before-face order, zero face location, and signed 71-74 indices.",
+      "validationCost": "Owning strict target build, focused existing fast test, and git diff --check only for that implementation slice; no new CTest, fixture, peer process, or full suite."
+    },
+    {
+      "subject": "dxf-tools-rs peer independence",
+      "evidence": "The former GitHub repository URL redirects to ACadRust, while versioned docs.rs documentation exists for package 0.1.3.",
+      "localDisposition": "Historical/versioned package evidence within ACadRust lineage, not an independent parser vote.",
+      "plannedAction": "Do not create a separate peer harness or count it as independent evidence absent a concrete, pinned need."
+    }
+  ],
+  "planImpact": {
+    "documentsUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "newFindingCount": 0,
+    "newTopLevelImplementationSubplanCount": 0,
+    "newFixtures": 0,
+    "newTestTargets": 0,
+    "newDependencies": 0,
+    "newSupportClaims": 0,
+    "externalItemsPromoted": [],
+    "existingPlanTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternalItems": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

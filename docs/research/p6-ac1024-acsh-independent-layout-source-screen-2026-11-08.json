@@ -1,0 +1,46 @@
+{
+  "id": "p6-ac1024-acsh-independent-layout-source-screen-2026-11-08",
+  "date": "2026-11-08",
+  "status": "NO_INDEPENDENT_LAYOUT_EVIDENCE_NO_PARSER_CHANGE",
+  "supportClaimEffect": "none",
+  "scope": "Read-only source screen for the remaining AC1024 ACSH_LOFT_CLASS and ACSH_REVOLVE_CLASS body-boundary failures. No parser or fixture changes.",
+  "odaSpecification": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "searchResult": "The v5.4.1 text contains the general REGION/3DSOLID ACIS data section, but no ACSH_LOFT_CLASS, ACSH_REVOLVE_CLASS, AcDbShLoft, or AcDbShRevolve layout entries. It does not resolve their object body or following-handle boundaries."
+  },
+  "peerImplementations": [
+    {
+      "repository": "LibreDWG",
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "objectRegistryPath": "/Users/dli/dev/libredwg/src/objects.in",
+      "objectRegistrySha256": "135ee2d131023b2e3fc4cdbfab9feee6e76572ed584799c3d08c3eeb91bd9a70",
+      "status": "ACSH_LOFT_CLASS and ACSH_REVOLVE_CLASS are both registered DEBUGGING.",
+      "schemaPath": "/Users/dli/dev/libredwg/src/dwg2.spec",
+      "schemaSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "limitation": "The schema lists a candidate common-prefix and field sequence; the pinned AC1024 runtime receipt demonstrates this implementation also reports an invalid Loft count and malformed Revolve values on the same inputs. Do not treat the schema as an independent successful decode."
+    },
+    {
+      "repository": "dwg-writer / dwg-parser project lineage",
+      "revision": "70bb845b207443866c03a86cbf12d451d5c736cb",
+      "remote": "git@gitlab.currentcad.com:2d/dwg-parser.git",
+      "sourcePath": "/Users/dli/dev/dwg-writer/cpp/src/dwg/tables/TableParsers.cpp",
+      "sourceSha256": "a837233da0f89f0e8a7fa06cd093328f95e946b26f9063235cfc2db4596d2c0d",
+      "limitation": "Its Loft and Revolve readers use the same candidate sequence and the related parser lineage is not an independent oracle for the observed failures."
+    },
+    {
+      "repository": "ACadSharp",
+      "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "sourceTree": "/Users/dli/dev/ACadSharp/src/ACadSharp",
+      "search": "No ACSH_LOFT_CLASS, ACSH_REVOLVE_CLASS, AcDbShLoft, or AcDbShRevolve implementation was found.",
+      "limitation": "No independent class-body parse result is available from this checkout."
+    }
+  ],
+  "existingPhysicalFailureEvidence": "docs/research/p6-ac1024-acsh-libredwg-runtime-differential-2026-11-03.json",
+  "disposition": "Keep the named AC1024 LOFT/REVOLVE frames raw-retained and unvalidated; strict output remains refused. Do not port the candidate peer field sequence or guess a correction. Resume this parser issue only with an authoritative class layout or a provenance-qualified independent producer/consumer trace that binds exact body and handle spans.",
+  "fixturesAdded": 0,
+  "validation": {
+    "type": "read-only source inspection and hash capture",
+    "fullTestsRun": false
+  }
+}

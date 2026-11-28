@@ -1,0 +1,33 @@
+{
+  "id": "p5-ac1018-table-parsed-cell-override-reencode-2026-11-11",
+  "scope": "canonical AC1018 TABLE re-encoding when complete parsed nonempty cell override ranges are retained",
+  "status": "implemented-local-control-passed",
+  "specification": "Open Design Specification for .dwg files v5.4.1 §20.4.96.1, Until R21",
+  "implementation": {
+    "rangeAdmission": [
+      "AC1018 only",
+      "complete ordered r2007-table-cell-overrides spans",
+      "range count equals the parsed cell override mask",
+      "exact body-bit span equals canonical encoding of the typed override fields",
+      "typed hard-pointer handles remain in the parallel handle stream",
+      "the table-level retained override span continues to require its exact typed bit length"
+    ],
+    "output": "The writer canonically encodes typed fields; it does not replay retained source bytes."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+    "result": "1/1 focused test passed. A generated AC1018 0x0F populated-cell override was encoded, parsed into retained spans, and re-encoded with identical typed body and handle bytes. The parsed fields and source boundary matched, a following-body sentinel survived, one-bit-short span metadata refused without changing destination buffers, and corrected same-object retry succeeded.",
+    "diff_check": "git diff --check passed"
+  },
+  "limits": [
+    "The source was locally generated; this is parser/encoder consistency evidence, not a native producer witness.",
+    "No raw TABLE frame replay is authorized; nested source handle values are not copied from retained bytes.",
+    "No native AutoCAD/ODA acceptance, rendering, producer ordering, or broader TABLE support claim is established."
+  ],
+  "files": [
+    "src/drw_entities.cpp",
+    "tests/dwg_object_vectors_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ]
+}

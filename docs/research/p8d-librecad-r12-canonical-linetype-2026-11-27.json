@@ -1,0 +1,12 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-r12-canonical-linetype-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "23af01b4",
+  "finding": "The standalone codec pre-emits canonical LTYPE records. LibreCAD omitted their metadata predeclaration for R12, so a valid nondefault CONTINUOUS flags value caused output to fail in the LTYPE table. A minimal generated control reproduced the failure.",
+  "change": "Use the existing canonical metadata predeclaration for R12 as well as later versions; the codec still refuses extension dictionary data not representable in R12.",
+  "validation": "On macOS ARM64, 77 assertions across four standalone cases and 64 assertions across three bundled cases pass. Controls include R12 flags 64, unsupported extension dictionary refusal, unchanged destination, same-filter retry, selected imported HATCH loss reporting and existing hatch/reactor/R12 fallback checks.",
+  "limits": "Selected locally generated and imported test profiles only. No native or independent R12 producer semantics or broader legacy metadata support claimed; no drawing fixture committed."
+}

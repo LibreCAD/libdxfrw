@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "FreeCAD DWG export provenance and source-DXF validity gate",
+  "mode": "read-only primary-source research",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck FreeCAD native DWG import/export route composition",
+    "Determine whether converter invocation and returned output path prove export success",
+    "Trace the LibreDWG conversion failure to the source DXF and verify upstream fix status",
+    "Refine the existing composed native-consumer qualification without adding per-slice work"
+  ],
+  "method": {
+    "sourceTypes": [
+      "FreeCAD issue reports and linked pull request/merge state",
+      "Current FreeCAD importDWG.py source",
+      "FreeCAD DWG workflow documentation"
+    ],
+    "sourceCommitsClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "drawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "The current FreeCAD main source is mutable and was inspected through GitHub's source view, not cloned at a commit. Issue #31835 is bound to the reporter's FreeCAD 1.1.3 build and Windows 11 environment; no independent runtime reproduction was made."
+  },
+  "sources": [
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/31835",
+      "revision": "Open issue checked 2026-10-17; reporter identifies FreeCAD 1.1.3 build hash 145529fe741292ff0b3977a01195bf0247425794, Windows 11, LibreDWG 0.14, and ODA File Converter 27.1.0",
+      "observed": "The report says automatic DWG export appears successful when a selected converter fails. The issue remains open at review time."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "revision": "Mutable main source inspected 2026-10-17, convertToDwg() lines 1622-1717",
+      "observed": "Each LibreDWG, ODA, and QCAD export branch calls communicate() and returns the requested DWG path without checking child return code or output existence. Under automatic selection, the first available converter branch returns before later backends are tried."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/31836",
+      "revision": "Issue closed by merged PR #31896; issue report references FreeCAD 1.1 DXF export and LibreDWG 0.14",
+      "observed": "The reported DXF exporter wrote $CMLSTYLE=STANDARD without an ACAD_MLINESTYLE dictionary, causing LibreDWG dxf2dwg to fail during missing-dictionary resolution. This is a producer-side dangling reference, not evidence of a libdxfrw defect."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/pull/31896",
+      "revision": "Merged to FreeCAD main on 2026-08-17 as commit 3389881",
+      "observed": "The fix removes the unused dangling $CMLSTYLE header entry from the R12 and R14 DXF header plates."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "revision": "Mutable current documentation reviewed 2026-10-17",
+      "observed": "DWG import converts through an external DWG-to-DXF tool and then invokes FreeCAD's standard DXF importer; LibreDWG is described as a work in progress with some unsupported DWG entities."
+    }
+  ],
+  "assessment": {
+    "routeRule": "Treat external conversion, intermediate DXF validity, native DXF import, and final object/geometry state as distinct stages.",
+    "artifactRule": "A wrapper return value, process invocation, or process exit code is not enough. Use an initially absent unique destination and independently verify fresh artifact size/hash and DWG magic/version before readback.",
+    "producerRule": "Strictly validate the intermediate DXF before assigning a conversion failure to a converter or downstream libdxfrw; stale FreeCAD builds may contain the now-fixed dangling $CMLSTYLE reference.",
+    "speedRule": "Keep this at the existing composed native-consumer checkpoint. No per-slice peer setup, external platform run, or additional mandatory test is introduced."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "evidenceLimits": [
+    "The issue report is not an independent reproduction; exact behavior remains platform/build specific.",
+    "The current FreeCAD source view is mutable and not release-pinned.",
+    "The merged CMLSTYLE fix repairs one upstream producer defect only; it does not qualify LibreDWG, libdxfrw, or a FreeCAD converter route.",
+    "No external semantic evidence or native Linux/Windows qualification was produced."
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader ezdxf SAB authoring scope and cross-peer independence refresh",
+  "mode": "primary-source web research and read-only plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Resolve the documented scope of ezdxf SAT/SAB authoring for generated 3D controls",
+    "Reconcile the detailed ACIS API with the conflicting FAQ statement",
+    "Refresh the open-source DWG/DXF peer independence and semantic-evidence boundary",
+    "Make the already-planned optional SAB comparator step implementation-ready without adding mandatory validation"
+  ],
+  "method": {
+    "kind": "Read current primary project docs, source index, package metadata, issue evidence, and local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acds-loss-ezdxf-sab-authoring-review-2026-10-16.json",
+      "docs/research/deeper-broader-peer-test-and-freecad-route-review-2026-10-18.json"
+    ],
+    "limitations": "The stable Read the Docs pages and mutable GitHub master are not themselves an executed, release-pinned runtime. PyPI provides an exact 1.4.5 source-artifact hash, but that artifact was not downloaded or run. The Autodesk/BricsCAD acceptance statement is project documentation without a published test artifact, model hash, or audit report. The peer landscape screen is not exhaustive."
+  },
+  "sources": [
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://pypi.org/project/ezdxf/1.4.5/",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/acis/api.py",
+        "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "revision": "PyPI ezdxf 1.4.5 source artifact uploaded 2026-10-16, SHA-256 a6c3bbc1a65ce764d97c5beafe6ae693d8ed14c6cdae366b50e1974a79d4a00a; stable docs and GitHub master reviewed 2026-10-18",
+      "observed": [
+        "The current detailed ACIS API publishes body_from_mesh(), export_sab(), and export_dxf(); its API module imports export_sab into the public API.",
+        "The docs state SAB version 21800 is sufficient for DXF R2013 and R2018 and describe exporting mesh-derived polyhedra as SAT/SAB that load in Autodesk products and BricsCAD.",
+        "The same guide limits the implementation to simple/known ACIS structures, states that there is no ACIS kernel, and warns that unsupported nodes become NONE_ENTITY and lose data; mesh_from_body() projects only flat polygonal faces.",
+        "The stable FAQ contradicts the detailed API by saying ezdxf writes SAT only and provides no ACIS creation/editing. The conflict is retained rather than silently normalized; exact-release runtime execution remains required to qualify actual behavior."
+      ],
+      "evidenceLimit": "This supports only a candidate bounded faceted-polyhedron DXF carrier producer. It does not establish arbitrary ACIS editing, curved B-rep semantics, DWG/AcDs reading, a general kernel, or independently reproduced native acceptance."
+    },
+    {
+      "project": "Open-source DWG/DXF peer landscape",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/mozman/ezdxf",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/FreeCAD/FreeCAD"
+      ],
+      "revision": "Current public project/repository routes reviewed 2026-10-18; mutable heads and project capability claims kept distinct from release and runtime evidence",
+      "observed": [
+        "No newly surfaced independent mature implementation was admitted to the existing comparison set.",
+        "The plan continues to distinguish independent DWG codecs, ACadRust-correlated application routes, DXF-only readers/writers, projected geometry consumers, raw-carrier inspection, and ACIS kernels.",
+        "No single open-source route in this survey supplies an independently qualified chain from version-correct DWG object graph through complete ACIS/AcDs association to general solid semantics and native cross-platform acceptance."
+      ],
+      "evidenceLimit": "This is a scoped source/provenance survey, not proof that no additional implementation exists, and it creates no local defect finding."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines existing PAR-07/S2/S3/S8 comparator evidence only. Treat ezdxf as a candidate exact-pinned producer of faceted SAT/SAB DXF controls; preserve the API/FAQ conflict and require any runtime/native observation to be separately recorded. At the existing optional composed checkpoint, prioritize an AC1027 SAB/ACDSDATA owner-association case; do not add per-slice validation or block implementation if unavailable.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "If the optional composed check is reached and ezdxf 1.4.5 is already locally available, author one source-generated closed polyhedron; prioritize AC1027 SAB and generate under temporary storage.",
+    "Pin runtime and package identity; capture independent expected vertices/faces/orientation/closure and analytic measures before conversion.",
+    "Compare modeler entity identity, group-70 value, SAB size/hash, ACDSDATA key/owner and output disposition separately; a surviving entity or nonempty carrier is not a pass.",
+    "Only an optional native run can qualify application acceptance; capture application/version/platform, audit, and measured geometry, otherwise record NOT_RUN and continue.",
+    "Keep generated test drawings out of the repository and do not add ezdxf, Python, a peer executable, or native CAD tooling to mandatory build/test dependencies.",
+    "Keep existing fast per-slice tests and implementation order unchanged; do not promote any deferred J item or general 3D support claim."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout contains extensive pre-existing tracked modifications and untracked artifacts. This pass changed the plan and research receipt only, plus closed the prior FIELD receipt's already-validated diff-check status; no unrelated work was altered."
+  }
+}

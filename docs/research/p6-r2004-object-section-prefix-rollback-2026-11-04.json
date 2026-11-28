@@ -1,0 +1,7 @@
+{
+  "date":"2026-11-04",
+  "problem":"R2004-derived writer prepended its four-byte AcDbObjects prefix before the base writer's transactional checkpoint. When object emission failed, rollback left the prefix behind, and a retry or a repeated successful call appended another prefix.",
+  "change":"The wrapper remembers the aligned pre-prefix buffer boundary, removes its own prefix on failure or stack unwinding, and returns early if object emission has already succeeded. The base writer retains responsibility for object-map and graph state rollback.",
+  "tests":"libdxfrw_dwg_header_writer_sealing: AC1015 control and AC1018/1021/1024/1027/1032 inherited writers all compare the buffer and empty output to the pre-attempt state after rejecting invalid STANDARD STYLE, correct the input and retry the same writer, check repeat object emission is byte-idempotent, then read a following LINE. Adjacent GROUP and HEADER selectors pass.",
+  "limits":"The runtime failure/retry path is exercised. Exception unwinding uses the same prefix guard but is not independently fault-injected."
+}

@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-26",
+  "candidate_base": "08eef976ea5a2c8aa2c7f582d149e0971a7df335",
+  "implementation_digest_sha256": "f24a6570b24bf1f90324444814a3be1c5b924edc6ac4776fbd9fc214f8c50676",
+  "implementation_input_count": 775,
+  "scope": "Repair test-only direct dxfRW caller setup for the imported IMAGE dictionary controls; no production writer behavior changed.",
+  "cause": [
+    "The direct caller omitted imported CLASS records and the required declared default plot-style dictionary and placeholder graph.",
+    "Canonical linetype metadata must be supplied before generated rows are emitted; imported canonical names use mixed case and retain nondefault flags."
+  ],
+  "change": [
+    "Predeclare the selected CLASS records, default plot-style source handles, NOD entry, and case-insensitively matched canonical linetype metadata.",
+    "Emit the imported plot dictionary and placeholder through the existing direct writeObjects callback.",
+    "Report write, readback and root-finalization failure separately without weakening graph, observer, or transaction guards."
+  ],
+  "validation": {
+    "optimized_build": "PASS: libdxfrw_dwg2dxf_adapter_tests, project warnings as errors",
+    "focused_ctest": "PASS 5/5: imported-common, legacy-two-layers, owned-XRECORD source probe, default-plotstyle layer graph, raster observer profile faults",
+    "imported_common": {
+      "actual_dxf_sources": 12,
+      "common_metadata_reexports": 144,
+      "source_retries": 20,
+      "late_retries": 24,
+      "compatible_text_cells": 4,
+      "wire_retries": 176,
+      "inspector_retries": 10,
+      "isolation_cells": 2,
+      "output_budget_controls": 2
+    },
+    "qualification_inventory": "PASS: 1403 tests",
+    "qualification_required_test_contract": "PASS",
+    "qualification_workflow_contract": "PASS",
+    "clean_checkout_digest": "PASS (775 inputs)"
+  },
+  "limitations": [
+    "Synthetic and locally generated tests demonstrate this bounded profile and its rollback/retry behavior, not independent native IMAGE semantics.",
+    "The qualification digest changed; earlier digest-specific platform, integration, and native qualifications do not transfer.",
+    "All format claims remain EXPERIMENTAL; other layer shapes, reference roles, IMAGE graphs, and native/platform behavior remain open."
+  ],
+  "fixture_policy": "No drawing fixture added."
+}

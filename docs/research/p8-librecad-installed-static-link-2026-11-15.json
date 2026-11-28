@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-15",
+  "scope": "Incremental LibreCAD consumer test with separately installed libdxfrw static archive on macOS ARM64.",
+  "consumer": {
+    "baseline": "9a66c6a516776f9ad7be74cf9b04901ad9e126a7",
+    "configuration": "Disposable source overlay and existing build directory, with the canonical LTYPE metadata hook and test added; exploratory modifications were also present in dxf_object_tests.cpp. CMake was changed to remove bundled libdxfrw compilation and link the installed libdxfrw::libdxfrw target.",
+    "privateHeaders": "The SHP and JWW filters still obtain intern/drw_textcodec.h from the matching source overlay. This is not a public-headers-only build. The overlay lacks the later associative-prefix compatibility guard and emits switch warnings."
+  },
+  "library": {
+    "source": "Library-bearing source as of c32a4dac; subsequent commits through 8f896cb0 change documentation, installation handling, or qualification metadata rather than compiled library sources.",
+    "installedArchiveSha256": "e19459778a0660cc11efb868a045681c4baa40106acdf4d31724fa939a60cf5f",
+    "linkProof": "The test link command names the installed archive; the LibreCAD static archive contains no drw_objects, drw_entities, drw_base, libdxfrw or dwgbuffer object members."
+  },
+  "environment": "macOS 27.2.1 (26B131), Apple clang 21.0.0, ARM64, Release build, Qt offscreen",
+  "testBinarySha256": "e4e8afe7798f68a9e531df9d568a0887dad192e9ee31daef5fe702f0dccf716d",
+  "focusedResults": [
+    "Canonical LTYPE application data: 1 case, 18 assertions passed.",
+    "[mtext]~[dwg]: 4 cases, 215 assertions passed.",
+    "[dimassoc],[mpolygon]~[dwg]: 12 cases, 163 assertions passed.",
+    "[dxf_codec]: 21 cases, 487 assertions passed.",
+    "Legacy LibreCAD DIMSTYLE groups: 1 case, 13 assertions passed."
+  ],
+  "limits": "The consumer is modified and incrementally built, not a clean upstream build. No DWG consumer tests, other operating systems, full suite, ABI comparison, or public-headers-only integration were qualified. Source headers remain necessary for the two legacy filters. P8-A, P8-D and P8-E remain open and no support claim is promoted."
+}

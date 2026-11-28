@@ -1,0 +1,27 @@
+{
+  "id": "p5-ac1018-style-record-reader-source-capture-2026-11-11",
+  "scope": "Opt-in CRC-checked STYLE source-frame ticket paired with a private typed DRW_Textstyle snapshot for later source revalidation.",
+  "implementation": {
+    "candidate_kind": "DwgVerifiedTableCandidateKind::StyleRecord",
+    "selection": "The reader captures only STYLE handles selected by the verified-table-candidate sink.",
+    "source_frame": "Reuses the DwgObjectFrame already read and CRC-checked for typed AC1018 STYLE parsing; records the source offset, frame ordinal, decoded-buffer space, version and class number.",
+    "typed_snapshot": "Copies the successfully parsed DRW_Textstyle into the private ticket pending state and exposes it as a const model on delivery.",
+    "bounds": "Uses the existing maximum of eight pending table candidates, with each selected STYLE body limited to 4096 bytes and the aggregate candidate-body budget checked before staging.",
+    "delivery": "Uses the existing post-finalization, all-or-nothing verified table candidate queue; the selected sink is attached at DWG import setup."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "result": "PASS: the target and library compiled and linked after wiring the candidate sink into DWG reader setup.",
+    "runtime": "Not run for this slice. Exact physical STYLE source-frame/model correspondence and candidate delivery remain unqualified."
+  },
+  "next": [
+    "Add a focused fast control selecting a STYLE handle and checking ticket identity, CRC-checked frame, typed STYLE snapshot and same-import APPID references.",
+    "Re-run the selected AC1018 source diagnostic and verify the candidate appears only after complete import; verify partial/failing import delivers no ticket.",
+    "Implement writer-stage/finalization revalidation, ordered STYLE/APPID resource emission, rollback and fresh independent readback before changing output admission."
+  ],
+  "limitations": [
+    "This changes only reader-side evidence capture; it does not open strict or partial output.",
+    "No runtime or physical-source result is claimed for this new STYLE record ticket.",
+    "No DWG/DXF fixture was added to the repository."
+  ]
+}

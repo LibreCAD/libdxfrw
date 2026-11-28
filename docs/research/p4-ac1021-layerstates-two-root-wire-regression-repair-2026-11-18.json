@@ -1,0 +1,150 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1021-layerstates-two-root-wire-regression-repair-2026-11-18",
+  "date": "2026-11-18",
+  "status": "AC1021_WITNESSED_TWO_ROOT_REGRESSION_REPAIRED",
+  "supportClaimEffect": "none",
+  "regression": {
+    "priorEvidence": "p4-ac1021-truetype-layerstates-view-xrecord-selected-output-2026-11-07.json and p4-ac1021-truetype-strict-dxf-output-readback-2026-11-07.json document passing AC1021 same-version transport before the marker change.",
+    "cause": "Commit eb304795 marked the decoded R2007+ DICTIONARY common-link tail present while the LayerStates two-root admission still required an absent marker. The true marker alone is not complete wire, provenance, or semantic proof.",
+    "baselineCommands": [
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1021-view-xrecord-output-readback /Users/dli/doc/dwg/truetype.dwg",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1021-output-readback tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg"
+    ],
+    "baselineResult": "Both previously passing historical selectors failed on the committed baseline. Truetype skipped the two-root LayerStates path then rejected group 370; the annotation selection skipped its source path and failed later in STYLE output. The annotation STYLE dependency remains independently blocked (p4-ac1021-annotation-empty-layerstates-style-chain-2026-11-18.json)."
+  },
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "version": "AC1021",
+    "provenance": "Existing local drawing; producer/author not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "independentEvidence": {
+    "oda": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "20.1 common non-entity object",
+        "20.4.44 DICTIONARY",
+        "20.4.104 XRECORD"
+      ],
+      "scope": "R2007 BS type and RL body end, optional detached Unicode strings and footer, counted dictionary entries and common/item handle roles; XRECORD ordered group-code payload and object handle tail."
+    },
+    "libredwg": {
+      "tool": "GNU LibreDWG dwgread 0.14",
+      "command": "dwgread -v4 -O JSON -o /private/tmp/layerstate-truetype-libredwg.json /Users/dli/doc/dwg/truetype.dwg 2> /private/tmp/layerstate-truetype-libredwg.log",
+      "traceSha256": "95a8a73e153119cf0029ae1b0200fde9961adc3b2e04d71405727f01f8b3b45e",
+      "jsonSha256": "3705d4fc9eb239ad6d027ce2ac6b7a08a49b58af269b5896a7ce1d9e5506b6a5",
+      "frames": [
+        {
+          "handle": "0x59B",
+          "sizeBytes": 91,
+          "bodyEndBit": 664,
+          "stringBits": 548,
+          "owner": "role 4 length 1 to 0x02",
+          "items": "two role 2 length 2 to 0x5E5 and 0x59C"
+        },
+        {
+          "handle": "0x59C",
+          "sizeBytes": 60,
+          "bodyEndBit": 422,
+          "stringBits": 298,
+          "owner": "role 8 length 0 to 0x59B",
+          "reactor": "role 4 length 2 to 0x59B",
+          "item": "role 2 length 2 to 0x5E3"
+        },
+        {
+          "handle": "0x5E5",
+          "sizeBytes": 18,
+          "bodyEndBit": 100,
+          "stringBits": 0,
+          "owner": "role 12 length 1 to 0x59B",
+          "reactor": "role 4 length 2 to 0x59B"
+        },
+        {
+          "handle": "0x5E3",
+          "type": "XRECORD",
+          "sizeBytes": 239,
+          "bodyEndBit": 1868,
+          "stringBits": 0,
+          "owner": "role 12 length 1 to 0x59C",
+          "reactor": "role 4 length 2 to 0x59C",
+          "payload": "27 ordered values, four group-330 LAYER and four group-331 LTYPE references, four group-370 values of -3"
+        }
+      ]
+    }
+  },
+  "implementation": {
+    "scope": "Requalifies only the two-root AC1021 shape whose dictionary/XRECORD bodies, string/footer and complete role-specific tails match the independent observer and the witnessed named-view payload vocabulary. Every prepare and later snapshot recheck verifies retained source publication, location/ordinal indexes, membership, raw/model identity and bounded wire. The source candidate is recognized from its immutable baseline even if editable root shape or name changes, so failed checks cannot fall back to generic output. Existing AC1024 wrappers remain version-pinned.",
+    "files": {
+      "dwg2dxf/dx_iface.cpp": "9c4ea4d6f87990ef3aeae9bac2bba16888719c821e3004e45a16c60912514f8a",
+      "dwg2dxf/dx_iface.h": "05e7e38f8371198bf8781d3c628506e1316e9ef508af2637edc7eff86c5c8e4d",
+      "dwg2dxf/dx_layerstates_dwg_wire.h": "b744d3ddc37fbc4c66f4b2e8b416e67f19bf832787f1daaa6f96b3dd00d67e8d",
+      "tests/dwg2dxf_adapter_tests.cpp": "3bd2b829f0ae281bebefbf3c743f213b976686f0b515c4d40c7109e91ae79150"
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "buildResult": "PASS with -Werror",
+    "executableSha256": "0918fa933a04feb5650dfe26846b6eb5657d3464f184846df797cb7edfe1912a",
+    "selectors": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1021-wire-controls /Users/dli/doc/dwg/truetype.dwg",
+        "result": "PASS: body/type/boundary/string/footer and per-role/target bit faults, extra-byte and truncation, late-state rejection, root removal/rename/expansion, source ordinal corruption, restoration and same-adapter preflight retry.",
+        "logSha256": "6fd26c67bc113af8797234d3e0dc8d7b9c3f7caef86feecb6dafa88b103e1d24"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1021-view-xrecord-output-readback /Users/dli/doc/dwg/truetype.dwg",
+        "result": "PASS in ASCII and Binary: selected output/readback, late XRECORD mutation, renamed root failure with preserved destination, restored same-writer retry.",
+        "logSha256": "290220ffd21805161221362ebb4dd221dd83d626bc0979c5e8d700f26b3d3145"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --truetype-ac1021-strict-output-readback /Users/dli/doc/dwg/truetype.dwg /private/tmp/layerstates-ac1021-wire-strict",
+        "result": "PASS in ASCII and Binary: strict full-source output and fresh readback, failure rollback and retry; 173 source frames. Expected intentional fault diagnostics precede the success line.",
+        "logSha256": "024dd1663197a1ef731cdabd655fe288c15cd8dad15e53c211bab77cc48e94a8"
+      },
+      {
+        "command": "python3 tools/research/probe_ac1024_layerstates_eed.py tests/samples/AC1024/visualization_-_aerial.dwg /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg-trace.log --peer-json /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg.json",
+        "result": "PASS: existing hash-bound AC1024 dictionary, XRECORD and SCALE source observers and corruption controls.",
+        "logSha256": "5782dc0b44531fc9c32b30ab7c81ee9fe57479f54d0ed0f026baead33280aecd"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1024-output-readback tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+        "result": "PASS",
+        "logSha256": "13cd25ea00b6001bc760e2647286133b6b1270d5a6593c8ddb628e9a24bc5902"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-dependency-views tests/samples/AC1024/visualization_-_aerial.dwg",
+        "result": "PASS",
+        "logSha256": "1735e2ae549d98589f1036c68d98175ef58664b8d00ba183f81870b82307341c"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-fallback-refusal tests/samples/AC1024/visualization_-_aerial.dwg",
+        "result": "PASS",
+        "logSha256": "d6edbc4f620305d5eb0df3324c3069f054f493b1c4222986ac9df60b1f95b5a4"
+      }
+    ],
+    "boundsSanitizer": {
+      "compileCommand": "g++ -std=c++17 -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -I dwg2dxf -I src /private/tmp/ls_ac1021_wire_asan.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /private/tmp/ls_ac1021_wire_asan",
+      "runCommand": "/private/tmp/ls_ac1021_wire_asan /Users/dli/doc/dwg/truetype.dwg",
+      "sourceSha256": "ae712fbcc352ccca6a3cc19057c74f6d7f344a53de75a7eede4bd037e17ef13b",
+      "binarySha256": "4989cffa65cf5e5f80028022f9b8ab4bea611ecd8e6e23f78ef00f6b736fff61",
+      "logSha256": "069abc7fab88cd1361718610115a9e7ba4665acc507af214243d7604a6825325",
+      "result": "PASS: 3672 one-bit mutation and every-prefix truncation executions across four physical frames without sanitizer reports. All truncated prefixes were refused; one-bit changes were used as bounds stress and are not all claimed to be semantically invalid. Only the header observer harness was instrumented; linked adapter/library objects were not."
+    },
+    "crossVersion": {
+      "command": "/private/tmp/ac1021_layerstates_target1024 /Users/dli/doc/dwg/truetype.dwg",
+      "harnessSha256": "6b8efc15afe8023d21a7b9cdf34d02d759f096834de345a119aa7b68de317400",
+      "binarySha256": "590c9746c2d20dcf48996bd3249caebb7c38d31ea568a4929272d244f1b7581d",
+      "logSha256": "e674688130d1e2818b18ddf62848eeb0de32a75d61b4cc434729b0bd591cd675",
+      "result": "FAIL CLOSED before serialization: DICTIONARYVAR DWG source/output snapshot preflight. No AC1024-target output was produced; no cross-version success is claimed."
+    }
+  },
+  "limits": [
+    "The accepted AC1021 two-root payload is restricted to the independently witnessed structure and value vocabulary; no general LayerStates, producer-wide or native evaluation semantics are established.",
+    "The AC1021 three-root annotation witness and its EED/STYLE chain remain separately blocked.",
+    "The AC1024 three-root P4-D admission remains closed; the existing AC1024 one-root and source-only observer checks were not widened.",
+    "No drawing fixture or derivative was added or committed."
+  ]
+}

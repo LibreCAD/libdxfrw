@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-named-dictionary-core-objects-allocation-retry-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_TRANSACTION_ROLLBACK_SWEEP",
+  "supportClaimEffect": "none",
+  "scope": "Verify core OBJECTS rollback and same-writer retry at every calibrated allocation point for a rooted named DICTIONARY, including in-write handle reservation.",
+  "source": {
+    "parentCommit": "b272469f",
+    "files": {
+      "src/libdxfrw.cpp": "87d171d9be7ed48efac532325915c815874f890f42a6853b5c680b097bc61232",
+      "src/libdxfrw.h": "54af5f45476a14c6046ddaed33ef290c0779eaa02c2eb2ac6141d5f6101a36d3",
+      "tests/dxf_fixture_tests.cpp": "5697692c9787cc0859fc9b029c5f555e889afb7a64ba8f9b7832125f5b5facb4",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "b6af0d6b156c8dcca7e78c33dc798b6dc9930e21d7e8aca4b4f809b729862d34"
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "The generated source graph roots named DICTIONARY handle E000 from the NOD and gives it one GROUP_DICTIONARY target; the default core writer emits the named dictionary in OBJECTS.",
+      "ASCII and Binary controls measure the successful empty OBJECTS baseline and the named-dictionary path, then inject a one-shot allocation failure at every measured offset before the adapter OBJECTS callback.",
+      "Every failure preserves a pre-existing sentinel and clears derived written-object identities. At the offset where reserveHandle itself fails during the write, the current attempt now sets m_writeError instead of queuing a stale reservation-failure generation for the next attempt.",
+      "The same writer retries after every injection. Fresh typed DXF import verifies dictionary handle E000, owner C, and its GROUP_ALIAS entry to handle D.",
+      "A separate pre-write reserveHandle allocation control verifies that external reservation failures still trigger the existing one-attempt generation guard, then a corrected later write succeeds.",
+      "The allocator disarms at the first injected failure to avoid cascading failures during error handling. No repository DWG/DXF fixtures are added and no support claim is established."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_image_definition_plan_failure_retry$'",
+      "result": "PASS 1/1; 1.02 seconds",
+      "coverage": "The selector runs callback rollback controls, all calibrated IMAGEDEF and rooted named-dictionary core OBJECTS allocation offsets, destination preservation, identity rollback, same-writer retries after each failure, and typed readback in ASCII and Binary; it also retains pre-write reservation-failure guard coverage."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom --output-on-failure -R '^libdxfrw_image_definition_plan_failure_retry$'",
+      "result": "PASS 1/1; 2.21 seconds"
+    },
+    "namedDictionaryAllocationCalibration": {
+      "result": "PASS in ASCII and Binary DXF",
+      "method": "The test measures the empty OBJECTS baseline and named-dictionary path per encoding, requires additional allocations for the named path, and injects at every measured offset before the callback. Each offset fails exactly once, the callback is not reached, and same-writer retry/readback succeeds."
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "This covers one rooted named-dictionary profile and the generated IMAGEDEF path; other independent core OBJECTS builders and staged families remain open.",
+    "Allocation failures normalized by bounded helpers may report generic emit-failure rather than allocation-failure; this control proves atomic rollback and retry.",
+    "Generated transport evidence does not qualify physical producer breadth, native consumer semantics, or independent interoperability."
+  ],
+  "next": "Exercise allocation and rollback in remaining core OBJECTS builders, then continue source lifetime, platform numeric/string policy, and scoped concurrency audits."
+}

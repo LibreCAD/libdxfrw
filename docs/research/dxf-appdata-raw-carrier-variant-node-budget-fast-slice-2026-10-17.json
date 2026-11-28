@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "DXF appData and raw-carrier variant-node admission",
+  "mode": "local implementation and generated fast verification",
+  "scope": [
+    "Charge entity and table-entry application-data variants before materialization",
+    "Charge typed groups materialized by the common raw-carrier capture path",
+    "Charge distinct variants copied from raw groups into raw-backed appData",
+    "Keep the per-read resource diagnostic and exact-cap retry behavior"
+  ],
+  "implementation": {
+    "planItem": "7S.2d.9",
+    "files": [
+      "src/drw_entities.cpp",
+      "src/drw_objects.cpp",
+      "src/intern/dxfreader.h",
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "Entity/table-entry parseDxfGroups charges the opener and each child appData variant. captureRawGroup charges each typed raw carrier group and restores its prior retained-byte lease amount if node admission fails. Raw-backed appData charges the opener and each copied raw-group variant as distinct materializations. The installed API note describes these selected routes and exclusions.",
+    "diagnosticCode": "dxf-typed-variant-node-budget",
+    "publicApiSignatureChanged": false,
+    "publicClassLayoutChanged": false,
+    "installedHeaderDocumentationChanged": true,
+    "privateHeaderMethodSignatureChanged": false,
+    "downstreamRebuildRequiredByThisSlice": false,
+    "binaryAbiClaimed": false,
+    "fixtureAdded": false,
+    "temporaryGeneratedBinaryInputRemoved": true,
+    "ctestRegistrationAdded": false,
+    "supportClaimPromoted": false,
+    "findingsOrSubplansChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-application-raw-typed-variant-budget",
+      "build-gcc/libdxfrw_hardening_tests --dxf-xrecord-typed-variant-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "jq empty docs/research/dxf-appdata-raw-carrier-variant-node-budget-fast-slice-2026-10-17.json",
+      "git diff --check -- src/drw_entities.cpp src/drw_objects.cpp src/intern/dxfreader.h src/libdxfrw.cpp src/libdxfrw.h tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dxf-appdata-raw-carrier-variant-node-budget-fast-slice-2026-10-17.json"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "lc3CompatibilityCheck": "PASS",
+      "focusedApplicationRawSelector": "PASS: exact/one-under limits, callback refusal, ResourceLimit diagnostic, same-facade retry for entity/table appData, raw groups, and raw-backed appData copies",
+      "focusedXrecordSelector": "PASS: generated ASCII/Binary exact aggregate, one-under refusal, ResourceLimit diagnostic, and same-facade retry including raw group nodes",
+      "owningCtest": "PASS: libdxfrw_hardening 1/1, 0.27 seconds",
+      "receiptJsonValidation": true,
+      "scopedDiffCheck": true,
+      "fullSuite": "NOT_RUN",
+      "peerRuntime": "NOT_RUN",
+      "nativeCad": "NOT_RUN"
+    }
+  },
+  "limitations": [
+    "This is selected typed-variant-node admission, not a global parser allocation, memory, capacity, or RSS bound.",
+    "Custom object maps, other typed containers, raw-variant paths bypassing captureRawGroup, and uninstrumented allocations remain outside this slice.",
+    "Callback/user copies and vector/container capacity are not separately charged.",
+    "Controls are locally generated; no external drawing was downloaded or committed.",
+    "The shared worktree is broadly dirty and Git metadata is read-only; this slice is uncommitted."
+  ],
+  "planTotals": {
+    "findings": 129,
+    "topLevelSubplans": 72
+  }
+}

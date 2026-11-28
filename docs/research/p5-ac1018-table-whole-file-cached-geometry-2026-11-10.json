@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "date": "2026-11-10",
+  "purpose": "Verify the bounded AC1018 plain-text TABLE writer through full file finalization, rollback/retry, fresh libdxfrw readback, and an independent LibreDWG reader.",
+  "profile": {
+    "version": "AC1018",
+    "table_class": "AcDbTable / ACAD_TABLE",
+    "cell_content": "plain text values only",
+    "merge_profile": "legacy unmerged anchor span with covered cells carrying merged=true and unit spans",
+    "display_geometry": "one *T1 BLOCK_RECORD with eight LINE and seven MTEXT children",
+    "graph": "TABLE -> *T1 BLOCK_RECORD; TABLE -> TABLESTYLE; NOD ACAD_TABLESTYLE -> dictionary -> TABLESTYLE",
+    "limitations": [
+      "Generated profile only; it does not qualify general TABLE support or native AutoCAD acceptance/rendering.",
+      "No FIELD, block, attribute, linked-data, retained source subrecord, or R24 TABLECONTENT route is admitted.",
+      "The seed geometry is derived from one ODA-converted AC1018 peer profile; producer breadth remains unqualified."
+    ]
+  },
+  "transaction_checks": {
+    "failure": "An intentionally incorrect ACAD_TABLESTYLE NOD registration key causes final TABLE graph closure to fail.",
+    "destination": "A pre-existing sentinel file is byte-identical after the failed whole-file attempt.",
+    "caller_state": "TABLE class number, cached BLOCK_RECORD reference, handle, and parent are restored after failure.",
+    "retry": "The same dwgRW facade and adapter retry with the corrected NOD key and publish the finalized file."
+  },
+  "caller_state_rollback": {
+    "implementation": "The top-level TABLE rollback restores scalar entity state and swaps EED and INSERT vectors from the retained snapshot without allocating.",
+    "verification": "The focused late-closure failure verifies TABLE class number, cached BLOCK_RECORD reference, handle, and parent restoration, then verifies corrected same-facade retry.",
+    "limitation": "The regression does not inject allocation failure specifically during rollback."
+  },
+  "libdxfrw_check": {
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_(table_ac1018_whole_file_roundtrip|tablestyle_nod_whole_file_roundtrip)$' --output-on-failure",
+    "result": "2/2 passed",
+    "coverage": "Full file write/finalization, destination preservation, caller TABLE-state rollback, corrected same-adapter retry, and fresh typed readback of the TABLE, TABLESTYLE graph, merge roles, cached child coordinates, text extents, attachments, and text values."
+  },
+  "independent_reader": {
+    "tool": "GNU LibreDWG dwgread 0.14",
+    "command": "dwgread -O minJSON /tmp/libdxfrw-table-ac1018-verified.dwg",
+    "result": "SUCCESS",
+    "checks": {
+      "table_handle": "0xA720",
+      "table_class": "AcDbTable / ACAD_TABLE (class number 505 in this file)",
+      "block_record": "0xA701, name *T1",
+      "table_style": "0xA700",
+      "owned_children": 15,
+      "lines": 8,
+      "mtexts": 7,
+      "child_owner_handles": "all 15 reference BLOCK_RECORD 0xA701",
+      "line_endpoints": "all eight exact endpoints match the expected cached-geometry profile",
+      "mtext_values": ["Title", "1", "2", "3", "4", "5", "6"],
+      "mtext_insertions": [[228, -5.5, 0], [76, -15.5, 0], [228, -15.5, 0], [380, -15.5, 0], [76, -21.5, 0], [228, -21.5, 0], [380, -21.5, 0]],
+      "mtext_widths": [453, 149, 149, 149, 149, 149, 149],
+      "mtext_attachments": [5, 5, 5, 5, 2, 2, 2]
+    },
+    "limitation": "LibreDWG recognizes the TABLE class and graph handles but leaves this TABLE body opaque (unknown_bits; no decoded columns/rows). This independent check verifies the object/graph and cached display geometry, not cell-semantic decoding."
+  },
+  "scratch_artifacts": {
+    "dwg_path": "/tmp/libdxfrw-table-ac1018-verified.dwg",
+    "dwg_sha256": "a01e1f275c2d0cabf7e15a60e3e6bf95835f77a962ee6249632311d1677710d6",
+    "libredwg_json_path": "/tmp/libdxfrw-table-ac1018-verified.json",
+    "libredwg_json_sha256": "51f0fa96aa9038aefc774ed398fac4cc7905bd1f2886d5ac7221283f355b1903",
+    "committed_as_fixtures": false
+  },
+  "support_claim": "No general DWG/DXF support claim is promoted. Native AutoCAD/ODA acceptance, rendering, additional producer profiles, and broader TABLE semantic equivalence remain open."
+}

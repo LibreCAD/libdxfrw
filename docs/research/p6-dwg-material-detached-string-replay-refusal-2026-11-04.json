@@ -1,0 +1,21 @@
+{
+  "scope": "Retained modern DWG MATERIAL body replay; no support claim promotion",
+  "source": "Locally generated AC1024 MATERIAL frame using tests/material_dwg_test_helpers.h; six map filename slots contain distinct nonempty strings.",
+  "observation": {
+    "raw_body_retained": true,
+    "semantic_fields_parsed": true,
+    "diffuse_filename": "diffuse-map.png",
+    "specular_filename": "specular-map.png",
+    "previous_encoder_result": true,
+    "previous_detached_strings": ["ByBlock", "generated AC1024 MATERIAL"],
+    "missing": "The following map filename slot was absent from the detached string stream. All six map slots are omitted by raw-body replay, including explicit empty slots."
+  },
+  "independent_context": "The existing p6-ac1024-default-material-source-profile-2026-11-04.json describes an ODA-produced default MATERIAL with detached map slots. The nonempty-map observation above is a local codec control, not independent producer qualification.",
+  "decision": "Reject retained modern raw MATERIAL replay before output mutation, including modern-source to legacy-target facade writes. The opaque raw body excludes detached strings, and mutable semantic fields do not establish an immutable source baseline or original selector/slot presence. This remains true when the current public filename fields happen to be empty. Non-raw encoding and the separately proven default-material graph retain existing behavior.",
+  "validation": {
+    "focused_tests": ["libdxfrw_dwg_material_replay_refusal", "libdxfrw_dwg_default_material_optin", "libdxfrw_dwg_ac1024_default_material"],
+    "result": "All three passed; the first was rerun after expanding the facade check across AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032 and passed again.",
+    "checks": "Parsed six-filename source, empty mutable-field counterexample, unknown opaque modern bodies, unchanged output buffers on refusal, ignored object callback failure with destination rollback for six target versions, and same-facade non-raw retry/readback."
+  },
+  "remaining": "Complete replay requires bounded immutable capture of the detached source slots and bytes, version-specific selector validation, and independent source and output semantic checks. This receipt does not qualify generic MATERIAL interoperability."
+}

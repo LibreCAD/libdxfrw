@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-windows-reader-matrix-crash-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "00eb0a316d3935a9f0e02a4aba0e24d6bbdc9b7b12e54c4da7d05886f4939726",
+  "observations": [
+    "Hosted Windows MSVC focused job 139902673928 failed: libdxfrw_dwg_reader_matrix exited with a segmentation fault; six other focused cases passed.",
+    "The same Windows job failed on earlier PR head b1eea19e5, before the staged IMAGE changes. The observed output reaches the NOD refusal controls, but does not identify the failing function.",
+    "The same reader matrix passes on macOS ARM64 normally, with a 1 MiB process stack, and with AddressSanitizer. This does not rule out an MSVC-specific stack or memory issue.",
+    "Hosted traced job 139915908419 completed all NOD variants and corrected retries, then crashed after reaching the header-writer group. The NOD diagnostics were not the crash location.",
+    "The test executable now receives the same MSVC-only 16 MiB stack reserve as the existing local-roundtrip matrix, and has markers around its large packed-header test. Stack exhaustion is a hypothesis pending another Windows run.",
+    "Hosted Windows MSVC focused job 139925554346 on 6f49a372c passed all seven tests, including libdxfrw_dwg_reader_matrix, after the test-only stack reserve change.",
+    "The focused Linux GCC job and PR fast regression job passed on the same head."
+  ],
+  "limits": [
+    "The stack change correlates with a passing hosted run but does not prove the exact root cause.",
+    "The result applies to head 6f49a372c only; revalidate the final candidate. No general Windows or format support claim is promoted."
+  ]
+}

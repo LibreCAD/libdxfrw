@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-16",
+  "scope": "Extend the explicit source-independent canonical-layer profile to unique ASCII names with the staged Global material and qualified Normal plot-style graph, at AC1021/AC1024/AC1027. This is not general DWG writer qualification.",
+  "authority": [
+    "ODA Open Design Specification v5.4.1 sections 2.13, 20.1, 20.4.53 and 20.4.54 define the selected handle roles and LAYER control membership.",
+    "Autodesk EXTNAMES documentation defines 31-character restricted and 255-character extended name modes: https://help.autodesk.com/cloudhelp/2025/ENG/AutoCAD-Core/files/GUID-8EC065EC-D551-4E02-9C5A-A33D1DB80B05.htm . Its layer-name documentation lists disallowed characters: https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-LT/files/GUID-28E52FA3-248E-4F65-94DD-7C47BE761D58.htm ."
+  ],
+  "implementation": [
+    "For selected versions and an optional provider, freeze the effective EXTNAMES mode immediately before HEADER emission. Admit unique ASCII names within its 31/255-character limits and conservative supported character domains; reject empty, invalid, overlong, non-ASCII, leading/trailing-space and case-colliding names. A non-selected layer added after a selected layer cannot reuse an existing name. Before publication, all retained layer names in the mixed graph must meet the same safe profile so non-selected Unicode or trimmed names cannot collide with selected names in a CAD consumer.",
+    "The canonical handle index is maintained in sorted order and uses binary search; the existing library object-count safety limit bounds it rather than asserting a file-format maximum. Only selected queued layers may use the staged Global reference in AC1021/AC1027; exact emitted roles, graph/owner identities and the version-specific Normal reactors remain checked. AC1024 also accepts the separately staged default Normal graph with its witnessed reactor profile; its existing no-reactor manually supplied path remains supported.",
+    "No public class layout or DRW_Interface virtual changed. The name restriction is limited to this explicit opt-in and its mixed output graph; general non-opted-in writing is not claimed fixed."
+  ],
+  "validation": [
+    "Four focused CTests pass: default-material, default-plotstyle, AC1024 source binding and AC1018+ layer-handle vectors. The LC3 compatibility target builds. The default-material selector checks 134 legacy-mode and 136 extended-mode layers per revision, including out-of-order insertion of layer 0 and 31-/255-character boundaries, then repeats success after invalid name, length, ASCII case collision, mixed Unicode, mixed trimmed-name, and injected allocation failures. Every failure preserves the preexisting destination and caller values and retries on the same writer. Header callbacks that change EXTNAMES after emission test both frozen-mode directions.",
+    "ODA File Converter 27.1.0 converted all six from-scratch DWGs to ACAD2013 DXF without .err. A reproducible independent audit uses LibreDWG 0.14 and ezdxf 1.4.5 to verify exact layer name sets and counts, EXTNAMES, LAYER hard-pointer roles, Global material and Normal placeholder graph identity/ownership, linetype, AC1027 trailing null, and one LINE with its 3D endpoints. The tested layer counts are observations, not claimed maxima.",
+    "Run build-gcc/tests/libdxfrw_dwg_default_material_optin_tests --keep, convert its canonical-bulk-{15,16,17}-{legacy,extended}.dwg files with ODA, then run tools/research/audit_canonical_bulk_layers.py --dwg-dir <dir> --dxf-dir <dir> --dwgread <dwgread> with ezdxf available. All drawing files are generated locally and none are committed."
+  ],
+  "peerAudit": {
+    "scope": "generated canonical-layer profiles only",
+    "ezdxfVersion": "1.4.5",
+    "results": [
+      {
+        "version": "AC1021",
+        "mode": "legacy",
+        "layers": 134,
+        "dwgSha256": "74a7a52430515b53d762f43df092f60aeef7368ce07fe1d2a8ff8993d5e9329d",
+        "dxfSha256": "0ddc3df574939a1a005b186cdd429a61d8207d68831a9037a18cb9c4318051de"
+      },
+      {
+        "version": "AC1021",
+        "mode": "extended",
+        "layers": 136,
+        "dwgSha256": "815125b77da05366a7e3ab3ed390dda35b3b238d268854f81884835a0f3f4597",
+        "dxfSha256": "d38c0ffd138d2f7a7ceff16623bad2b8977750d1a13ad21eb9350576def3bd4a"
+      },
+      {
+        "version": "AC1024",
+        "mode": "legacy",
+        "layers": 134,
+        "dwgSha256": "0a716c5b7d441badaa43a127ce1729e72786e1c0e2bdff302dadc07bccfb80cb",
+        "dxfSha256": "02d59948e031f697afc090d103c96c7877c677ed1d2c0907e141c16f550b7f8b"
+      },
+      {
+        "version": "AC1024",
+        "mode": "extended",
+        "layers": 136,
+        "dwgSha256": "02d9b8c871d9d71794a0ae14277cb6365b957aff95a100548ad2c837b93a43d1",
+        "dxfSha256": "675d9101552c16f2eae962c170826faf8f1b5ca15d32240c33ea0c85f216d511"
+      },
+      {
+        "version": "AC1027",
+        "mode": "legacy",
+        "layers": 134,
+        "dwgSha256": "3cf30570f7d2e4d46aaa67d556ab51a84f6e8bba010f49310d9c75721e166a78",
+        "dxfSha256": "1264dd06b11e9f7a428687139afbb0ddee573b2d16f3da4fd3507969a3f86a7f"
+      },
+      {
+        "version": "AC1027",
+        "mode": "extended",
+        "layers": 136,
+        "dwgSha256": "19c2ec1b7770529fef5e353e17ac1668ead3110bca5af6a1f1c698959f8d9967",
+        "dxfSha256": "80803a1e2be228b4c16474e586c819356d293a6dd965760d25f00dedfd4cf015"
+      }
+    ]
+  },
+  "unicodeCollisionExperiment": {
+    "inputNames": [
+      "0",
+      "CAFÉ",
+      "café",
+      "Ä",
+      "ä",
+      "Σ",
+      "σ"
+    ],
+    "odaOutputNames": [
+      "0",
+      "café",
+      "ä",
+      "σ",
+      "Defpoints"
+    ],
+    "inputDwgSha256": "d2d95e44fe9f2c5f12f641da0b92a054b8841995c5db64f971159b2781c0c1dc",
+    "outputDxfSha256": "4176ebec6a3b7b3340c37fe5ca7bdbaa6e07246ad8a8f1bf47e3569e33b9f3e1",
+    "interpretation": "A scratch AC1027 graph authored with the material-edge guard experimentally relaxed kept all Unicode spellings in LibreDWG, while ODA output retained only one member of each case pair. This is an observed collision risk, not a complete Unicode collation specification. The explicit opt-in rejects Unicode and refuses mixed non-selected Unicode until a portable consumer-compatible policy is qualified; general non-opted-in writer behavior remains an open issue."
+  },
+  "auditScriptSha256": "a9241f15f6bbec24065d0521723975ddfbf1bfa93d9ab9d67327fee89e56d0e8",
+  "implementationDigestSha256": "8a29f54a11d571572a9fbe9b8d4c62e8e778cf989904a696227ee383349d0ed6",
+  "limits": "One generated default-graph profile and one ODA version; ASCII names only. Imported source layers, arbitrary references, Unicode identity, native material/plot rendering, platform support and broader formats remain open. P4–P8 remain open and J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL. No support claim or phase gate is promoted."
+}

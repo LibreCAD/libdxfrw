@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-imagedef-xdata-layer-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "bfbb2842bd3a6eaff4ce5002aa561b932c073238",
+  "implementation": "Retain selected ASCII IMAGEDEF XDATA layer names with weak references to the source layers. At planning, preserve each APPID group only if every referenced layer is still the same imported layer or a supported state-only descendant in the same document; otherwise omit that whole group, report IMAGEDEF metadata loss and leave independent groups intact. Include provenance storage in the shared logical metadata budget.",
+  "validation": [
+    "The new layer-reference assertion failed before the change. Fifteen focused IMAGE, dictionary and paper-space tests and eighteen layout tests pass afterward.",
+    "Tests cover case-insensitive name lookup, a missing source layer, layer removal, a different same-named layer, rename, state-only replacement, foreign-document image transfer and corrected retry on the same writer. Dropped groups do not emit their APPID registration; other XDATA groups survive.",
+    "Independent ezdxf 1.4.5 reads the locally authored R2000 source, binary output and ASCII reopen with two IMAGEs sharing a definition. Each retains group 1003 value ref, resolves it to layer REF and has a LAYERREF APPID; all audit with zero errors and zero fixes.",
+    "The adapter syntax-checks with older bundled codec headers; their runtime behavior is not qualified."
+  ],
+  "redLogSha256": "2d20cfcefc1ff250607b46f2c7be8c78c8c8a39748d932ee3f5b4444a7cadea6",
+  "testLogSha256": "093db210db9d86495ce8ffdbc39aec7ddbeb50b3b445fbdd1b5a6959776dafca",
+  "layoutLogSha256": "863bd9f515e80506fd6bbb868aa20f80363636827555ef5e030d53b0ff1f43c4",
+  "olderHeaderLogSha256": "5548c6c12b5e8266d965ad1c1ad4460d388c942551bcb8a532643eef350dc376",
+  "sourceSha256": "f9fb71375c8ca047d98f694dc671d5346f3645b96733a24364c46375d30c2c0f",
+  "asciiSha256": "891d3a6e7eb320c43985ebc3bbd35157f66828369b81444982d7b1c125c6eab8",
+  "binarySha256": "773f174a2772947eb503cbf95dc5bee0839dfb169954beb032ae300ef3713fd9",
+  "limits": [
+    "A rename or arbitrary layer replacement is not mapped to a new source identity; the dependent group is omitted and reported. The selected test is an authored R2000 DXF profile, not DWG layer-handle or native application qualification.",
+    "XDATA handle references, binary/coordinate values, non-ASCII text, APPID source identity, complete IMAGEDEF/reactor identity and broader graphs remain unqualified. Generated files stay in scratch storage."
+  ]
+}

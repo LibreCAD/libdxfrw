@@ -1,0 +1,57 @@
+{
+  "title": "S3.7c analytic straight-curve point projection",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "profile": "Decoded ACIS straight-curve fields; parser-fed SAB 21800 rooted projection also exercised",
+    "public_api": "drw_projectPointToAcisStraightCurve projects a point orthogonally to the infinite line p0 + t*p1 and returns the raw parameter and projected point.",
+    "parameter_policy": "The stored direction is not normalized and the parameter is not clamped to edge endpoints.",
+    "tolerance_policy": "No ACIS/modeler tolerance is applied; the caller chooses any distance threshold.",
+    "refusal_policy": "Wrong/unresolved curve kind, zero direction, non-finite inputs, unrepresentable point offset, or non-finite result returns false without mutating either output.",
+    "non_claims": [
+      "edge trim interval validation",
+      "ellipse or intcurve evaluation",
+      "pcurve or surface evaluation",
+      "body transform or source-unit application",
+      "B-rep validity or native consumer qualification"
+    ]
+  },
+  "coverage": {
+    "off_line_point_returns_raw_parameter_and_orthogonal_projection": "PASS",
+    "extreme_scale_preserves_representable_projected_component": "PASS",
+    "wrong_curve_kind_refuses_atomically": "PASS",
+    "zero_direction_refuses_atomically": "PASS",
+    "nonfinite_point_refuses_atomically": "PASS",
+    "unrepresentable_offset_refuses_atomically": "PASS",
+    "parser_fed_sab21800_rooted_edge_endpoints_project_at_parameters_0_and_1": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.21 seconds)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS (jq empty)",
+    "address_sanitizer": "NOT_RUN"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "2d_callback_lane_changed": false,
+    "consumer_rebuild_required_for_new_symbol": true
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

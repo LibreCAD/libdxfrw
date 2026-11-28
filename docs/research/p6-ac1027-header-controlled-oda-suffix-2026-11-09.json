@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "id": "p6-ac1027-header-controlled-oda-suffix-2026-11-09",
+  "date": "2026-11-09",
+  "purpose": "Check whether one controlled HEADER variable change is accompanied by a structural change in the post-sentinel bytes of ODA-produced AC1027 DWGs.",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "provenanceLimit": "Existing local sample; original producer is unauthenticated. No source or derived drawing was added to the repository."
+  },
+  "controlConstruction": {
+    "converter": "ODA File Converter 27.1.0.0",
+    "coverDxfSha256": "154609021a81c81a33efb88f35dde995f3c5da89df0f25219a0d4cc014d55ff9",
+    "conversion": "Cover.dwg to ACAD2013 ASCII DXF in scratch storage",
+    "pair": "Two copies of the ODA-produced DXF differ in exactly one HEADER value: $LTSCALE group 40, 1.0 versus 2.0.",
+    "scale1DxfSha256": "154609021a81c81a33efb88f35dde995f3c5da89df0f25219a0d4cc014d55ff9",
+    "scale2DxfSha256": "51cca5310a50c4425171989543f9ae651c5d9358c4e2fb8641281412d26002c3",
+    "odafcCommand": "ODAFileConverter <input-directory> <output-directory> ACAD2013 DWG 0 1",
+    "limitation": "ODA rejected two separate locally authored minimal AC1027 DWGs with '.dwg file needs recovery'; those were not used as controls. The qualified pair was built from an existing sample's ODA-produced DXF with only the stated scalar changed."
+  },
+  "outputs": [
+    {
+      "path": "/private/tmp/libdxfrw-ac1027-header-suffix-controlled/paired-dwg/scale_1/Cover.dwg",
+      "sha256": "369333dcd5a35ad6e1f9fcbb8d666746d946a5cdc43ea6346595a28669de5c7d",
+      "bytes": 19339,
+      "version": "AC1027",
+      "independentLtscale": 1.0,
+      "libdxfrw": {
+        "operationSucceeded": true,
+        "sourceFrames": 119,
+        "publishedFrames": 119,
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "classesCrcMismatch": false,
+        "strictOutput": "Refused at the existing AC1027 source-reference gate; no DXF published."
+      },
+      "headerSection": {
+        "decompressedBytes": 29696,
+        "decompressedSha256": "39083f53988be15ddbee7f2f6222ce8c56ef26fe50922cfcfe64114539f4171f",
+        "sizeWord": 802,
+        "payloadEnd": 826,
+        "storedCrc16": 44811,
+        "sentinelEnd": 844,
+        "suffixBytes": 28852,
+        "suffixSha256": "6741a65980a417db98a02690775f7d66d116f9c9377c6f222d67843dd173399e"
+      }
+    },
+    {
+      "path": "/private/tmp/libdxfrw-ac1027-header-suffix-controlled/paired-dwg/scale_2/Cover.dwg",
+      "sha256": "bc915ed8385d2e1995273a44585181232e0a327b180f50a7a2e0f5a7635ef8b1",
+      "bytes": 19339,
+      "version": "AC1027",
+      "independentLtscale": 2.0,
+      "libdxfrw": {
+        "operationSucceeded": true,
+        "sourceFrames": 119,
+        "publishedFrames": 119,
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "classesCrcMismatch": false,
+        "strictOutput": "Refused at the existing AC1027 source-reference gate; no DXF published."
+      },
+      "headerSection": {
+        "decompressedBytes": 29696,
+        "decompressedSha256": "66a43235450dee9e72f78343b10a49a636d74cb8fa8df2350b98ea72c85f4e43",
+        "sizeWord": 810,
+        "payloadEnd": 834,
+        "storedCrc16": 15503,
+        "sentinelEnd": 852,
+        "suffixBytes": 28844,
+        "suffixSha256": "1bf4544286b86a954e77cb5c5ac92ec5f0f1cf2e12f6aaeb5219fad887a9db19"
+      }
+    }
+  ],
+  "validation": {
+    "headerEnvelope": "Both extracted logical HEADER sections contain the expected start/end sentinels and pass the existing CRC16 check.",
+    "independentDecoder": "LibreDWG 0.14 JSON reports HEADER.LTSCALE 1.0 and 2.0 respectively.",
+    "suffixComparison": "The suffix SHA-256 values differ and lengths differ by 8 bytes. No byte role, suffix boundary, padding rule, or causal mapping to $LTSCALE is established.",
+    "interpretation": "The controlled pair confirms the scalar change survives ODA AC1027 output. The different HEADER sizes and suffix lengths are an observation only; keep all post-sentinel bytes unclaimed and strict output refused."
+  },
+  "fixturePolicy": "All generated DXF, DWG, raw-page, JSON and log files remain under /private/tmp; none was committed."
+}

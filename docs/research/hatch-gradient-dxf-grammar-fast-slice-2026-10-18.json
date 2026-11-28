@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "HATCH gradient DXF field-grammar fast slice",
+  "mode": "source-backed local implementation and generated fast verification",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Implement HATCH gradient group-presence and companion-field validation for ASCII and Binary DXF",
+    "Apply equivalent active-gradient writer preflight checks",
+    "Preserve retained-text budget replacement behavior for repeated group 470"
+  ],
+  "sources": [
+    {
+      "title": "Autodesk HATCH DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "finding": "When group 450 is present, the gradient control block requires groups 451, 452, 453, 460, 461, 462, and 470; group 453 is zero for a solid fill and two for a gradient fill. The group 451 and 463 role values are reserved/defined by the documented block. The table does not define duplicate-group handling."
+    },
+    {
+      "title": "Autodesk Group Code Value Types Reference",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "finding": "Codes 430-439 are strings, 450-459 are 32-bit integers, 460-469 are doubles, and 470-479 are strings; group 431 cannot be emitted as a typed integer based on generic group-code classification."
+    }
+  ],
+  "localAudit": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "observations": [
+      "The parser now tracks required gradient-field presence, detects orphan companion groups, and checks the complete companion block at entity validation.",
+      "Active gradient validation requires mode 1, reserved field zero, single-color mode 0/1, two stops at positions 0 and 1, finite scalar values, and tint in [0,1] only for single-color mode.",
+      "Solid mode requires a zero stop count with no stop records but ignores other present companion values.",
+      "Group 470 uses retained-string replacement and remains last-value-wins because the Autodesk grammar reviewed does not specify duplicate policy; this preserves the pre-existing retained-budget contract.",
+      "The generated ASCII/Binary selector covers complete positive blocks, malformed presence/duplicates/count/order, tint boundaries, and repeated group-470 replacement."
+    ]
+  },
+  "validation": {
+    "productionCodeChanged": true,
+    "testSourceChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "builds": [
+      "PASS: libdxfrw_wave1_tests",
+      "PASS: libdxfrw_hardening_tests",
+      "PASS: libdxfrw_dxf_fixture_tests"
+    ],
+    "focusedSelector": "PASS: build-gcc/libdxfrw_wave1_tests --hatch-gradient-dxf-grammar",
+    "ctest": [
+      "PASS: libdxfrw_wave1 (1/1)",
+      "PASS: libdxfrw_hardening (1/1)",
+      "PASS: libdxfrw_dxf_fixtures (1/1)"
+    ],
+    "compatibility": "PASS: lc3_compat_check after the public-header parser-state addition",
+    "fullSuite": "NOT_RUN",
+    "diffCheck": "PASS"
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "externalJItemsPromoted": 0,
+    "remaining": [
+      "HATCH gradient 431 mapping remains unresolved and is not emitted as an integer.",
+      "HATCH-specific semantic meaning of gradient name/book groups 432/433 remains unresolved.",
+      "Cross-consumer gradient rendering and full HATCH interoperability remain unqualified."
+    ],
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-native-material-mixed-reopen-2026-11-28",
+  "supportClaimEffect": "selected profile only",
+  "parent": "p8d-librecad-native-material-mixed-move-2026-11-28",
+  "consumerCommit": "7d175ccf5c611bbaa07e5e45b1b5303bcbbf582d",
+  "codecCommit": "1e8cd41fc",
+  "scope": "Reopen the previously saved locally authored AC1024 mixed planar entity and sparse material drawing in the same macOS ARM64 LibreCAD candidate.",
+  "observation": "The native Open Drawing panel selected the exact hash-matched saved file. The application displayed its filename, RAWTEST layer, loaded-document message and rendered drawing without an intervening error dialog. The process mapped the recorded shared codec. The previous independent readback checks the six translated geometries and material graph; visual reopening alone does not check hidden metadata.",
+  "sha256": {
+    "savedDrawing": "f7d840ec8d5eac9c050776e62517aa9082090a2405310394560b371a47329a2f",
+    "application": "8b3feb1703bf1f99c27d80dac42a02c6a7b66a244ea51a6040800475bbac2fe7",
+    "sharedCodec": "af4e1c1f040c11be32fe8ae449d77d4d77098c82acf7b2f80870f9b4118bfe7c"
+  },
+  "limits": ["This is one previously generated drawing and an earlier codec input, not final-head, cross-platform, native attribute inspection or general interoperability qualification.", "No drawing fixture was committed."]
+}

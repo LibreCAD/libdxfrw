@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-package-and-focused-39320-2026-11-20",
+  "date": "2026-11-20",
+  "status": "CURRENT_REVISION_PACKAGE_FAST_AND_FOCUSED_PASSED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "7d8df8433c94a99ad19cf94d0d772787e200cea3b41263749ca0101e68405156",
+  "prHeadSha": "39320dd325fa8f1003faaca34925ab02b5293853",
+  "focusedCheckedOutPrMergeSha": "4728989e1a328afcec2b7c5022bd3f2d114bf112",
+  "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44677913250",
+  "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44677913165",
+  "fastJobId": 136094076223,
+  "fastResult": "PASS: 52 selected tests, including one skipped optional locale test.",
+  "fastLogSha256": "2021093762145212e83594ba332045cf5a92421a0a7d98c65afda4d652fa0e2d",
+  "packageRun": "https://github.com/dxli/libdxfrw/actions/runs/44677904431",
+  "packageHeadSha": "39320dd325fa8f1003faaca34925ab02b5293853",
+  "packageEvent": "push",
+  "platforms": {
+    "linux-gcc": {
+      "focused": {
+        "jobId": 136094174740,
+        "artifactId": 14603212483,
+        "archiveSha256": "7ece35a3d3db94a3bc89f219cc924512e98c22f9602a8a2507012c7af49fbc84",
+        "receiptSha256": "ef4cde29f8eeea564a1797036a033103b78acf8cf74b268ac5eaa615d63ac3eb"
+      },
+      "package": {
+        "jobId": 136094048633,
+        "artifactId": 14603262247,
+        "archiveSha256": "74c2363430cb8b0d1cf8f5a435dc0e6a05dde77b21adb730e823c35dd1f90678",
+        "sharedReceiptSha256": "18c9fccc19ecc93242d935e697885a9715ec354fae01f7dabd99ab950ac0ade0",
+        "staticReceiptSha256": "1658ee12fd4c94890b41021ff8a5bc0a7f638950a0a26e9ed1bef440e21efc34"
+      }
+    },
+    "macos-clang": {
+      "focused": {
+        "jobId": 136094174790,
+        "artifactId": 14603956127,
+        "archiveSha256": "db435b59e88b7fb2cd7b9b52b5f800fed267ca166a3809e080cb9c1be2f3d3de",
+        "receiptSha256": "a03b2ab5824316259ef5398ce5f45e288fd1ac690ce2452e569f09f254873261"
+      },
+      "package": {
+        "jobId": 136094048656,
+        "artifactId": 14603431340,
+        "archiveSha256": "11af2cb9d91d21bd15121e052d1cc664e8af3f5d0c025b2efe33b8fd6fe16560",
+        "sharedReceiptSha256": "5fc60f237b260d529eaedf72b504e7c0fe92cb3980c8eb00fc750f8fcd3de097",
+        "staticReceiptSha256": "6c132d3a81c364d672309aa9f8b8d4bf7ff5607ad5f069b4a80ffb96fb303ecb"
+      }
+    },
+    "windows-msvc": {
+      "focused": {
+        "jobId": 136094174729,
+        "artifactId": 14602729566,
+        "archiveSha256": "a4def69546f41c797dc4d7a43a810adda6e0403aa7593fb1f086e381adabfbad",
+        "receiptSha256": "0c9c807b2da910c63d5569eb388bc1a5c1f9ecbed412532659fd925d81fb3f04"
+      },
+      "package": {
+        "jobId": 136094048163,
+        "artifactId": 14604006121,
+        "archiveSha256": "a6fcaa268132d15ca4ad86b32be1b7269922aa147d3923cbdfd3bad78bafdeb9",
+        "sharedReceiptSha256": "d8fecb9191405a9d1217b000d5d08906b3cf7f5a4d27987a2391661966452bbc",
+        "staticReceiptSha256": "46e75756cb82339b531bb43b6e61d4c5019bbbcd798b4c4dbc7d2fa878405289"
+      }
+    }
+  },
+  "verification": {
+    "focused": "PASS: three focused artifacts authenticated against live GitHub API responses, tested PR merge, required focused contracts, and downloaded artifact archives using verify_native_qualification_receipts.py --pre-native --live-token-env.",
+    "package": "PASS: authenticated push run, successful platform/probe/upload steps, artifact archive SHA-256 and size against GitHub, exactly two receipts per artifact; both receipt profiles checked for ABI 2 rejection, ABI 3 acceptance, relocation and selected installed target, plus loaded shared-runtime identity and relocated CLI where applicable.",
+    "focusedScratchRoot": "/private/tmp/libdxfrw-p8f-393",
+    "packageScratchRoot": "/private/tmp/libdxfrw-p8-package-393",
+    "focusedApiSha256": {
+      "run.json": "15e0e18c0e3abfb6a2842ebfb93dc72361828f588cc11a5173ddb8b63628f828",
+      "jobs.json": "14ff1678ccd88cf9202c42453d1c3b0ab2195d1c7cc7030983a662f7faad65d0",
+      "artifacts.json": "ec7d58acf679fa75bc0b5df2e114d60468778ab8873060839a43865d574f47ce",
+      "workflow.json": "a58414e67dc6260208bb6d58df39932204475419d6873bfa4c019f38fd8ba9b0"
+    },
+    "packageApiSha256": {
+      "run.json": "e610f564576a7334d0cf0cec9dd557cad76a1384c9446907538c9833cb00e5a6",
+      "jobs.json": "2cb4c3382614aff2b83ac587571b35c81638be915f6bc37b4d09fafd901c121c",
+      "artifacts.json": "8889269a62d9cc8028427990439bd9336127ce98b7a7c8734fc318e99fb7c1fa"
+    }
+  },
+  "limits": [
+    "P8-A, P8-E, and P8-F close only for these exact source/configuration/platform profiles; reopen if selected inputs or workflow/configuration change.",
+    "The final broad and fuzz lanes are not covered. FreeCAD, LibreCAD GUI, and external semantic qualification remain open.",
+    "The package probes cover package selection, installation, relocation, minimal consumer and CLI usage, not complete C++ ABI or drawing semantics.",
+    "The optional locale test was skipped; no support claim is promoted."
+  ]
+}

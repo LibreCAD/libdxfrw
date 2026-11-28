@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-libdxfrw-ltype-edit-preservation-2026-11-14",
+  "date": "2026-11-14",
+  "title": "Generated imported-LTYPE edit preserves application metadata and complex segments",
+  "status": "focused_fast_control_passed",
+  "supportClaimEffect": "none",
+  "scope": "One locally generated AC1027 LTYPE profile through libdxfrw DXF import, caller edit, and ASCII/Binary export plus fresh typed readback for seven target revisions.",
+  "sourceProfile": {
+    "origin": "generated locally by libdxfrw test code; no external drawing fixture",
+    "version": "AC1027",
+    "record": "LTYPE",
+    "initialPath": [
+      10.0,
+      -5.0
+    ],
+    "complexTextSegment": {
+      "length": 10.0,
+      "shapeFlags": 2,
+      "text": "X"
+    },
+    "applicationData": [
+      [
+        [
+          102,
+          "{LTYPE_EDIT_METADATA"
+        ],
+        [
+          1,
+          "preserve while editing definition"
+        ],
+        [
+          102,
+          "}"
+        ]
+      ]
+    ]
+  },
+  "edit": {
+    "description": "Edited after import",
+    "path": [
+      3.0,
+      -1.0
+    ]
+  },
+  "readbackAssertions": [
+    "edited description and dash lengths override imported values",
+    "name, alignment, element count and total pattern length remain coherent",
+    "ordered complex text element fields remain present with updated first length",
+    "application-data opener, payload and closer remain unchanged"
+  ],
+  "binding": {
+    "testSource": "tests/ltype_table_allocation_tests.cpp",
+    "testSourceSha256": "f0956ef5c641c47273e2e912aaae6520e9288b854bb9cb4bc12f353cfb0df8fb",
+    "executable": "build-gcc/tests/libdxfrw_ltype_table_allocation_tests",
+    "executableSha256": "acf547aa2f8fc6c082a3f92e5d4d7015700a6576cb508df9b8150d1de952b362",
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_ltype_table_allocation_tests -j4",
+    "selector": "ctest --test-dir build-gcc -R '^libdxfrw_ltype_table_allocation$' --output-on-failure",
+    "result": "PASS 1/1 in 0.82 seconds; one generated imported-and-edited LTYPE verifies ASCII and Binary outputs at all seven supported DXF revisions (14 target/encoding combinations)."
+  },
+  "limitations": [
+    "This is generated codec and typed-readback evidence for one source profile, not a LibreCAD application/adapter regression run.",
+    "It does not establish native AutoCAD or other consumer acceptance, other LTYPE metadata groups, arbitrary complex elements, or producer interoperability.",
+    "No DWG/DXF fixture was added to the repository."
+  ],
+  "outputProfiles": {
+    "targetRevisions": [
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "count": 14
+  }
+}

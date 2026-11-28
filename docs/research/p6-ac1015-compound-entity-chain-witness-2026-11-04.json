@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "title": "AC1015 attributed INSERT and 2D/3D POLYLINE source chain roles",
+  "status": "INDEPENDENT_SOURCE_WITNESS_ONLY",
+  "supportClaimEffect": "none",
+  "authority": "ODA Open Design Specification for .dwg files v5.4.1 common entity handle data and sections 20.4.8 (SEQEND), 20.4.9 (INSERT), 20.4.16 (2D POLYLINE), 20.4.17 (3D POLYLINE). The source observations resolve the two independent linked lists, implicit no-links example, ownership roles and typed nulls for this producer/profile.",
+  "provenance": {
+    "author": "Locally authored from scratch with ezdxf 1.4.5 by tools/audit_ac1015_compound_entity_chains.py; no borrowed drawing, no binary fixture committed.",
+    "producer": "ODA File Converter 27.1.0 converted the authored R2000 DXF to ACAD2000 DWG. Independently decoded and verified with GNU LibreDWG 0.14 dwgread JSON, with -v9 trace for physical role boundaries.",
+    "firstDxfSha256": "d1030203450cb536189ccd37cc74a77f3d901e8c94a1d8d716f7d3c79ea9d766",
+    "firstDwgSha256": "2b08faa79f8846168072ac50df5d82afafd0e740817b06749c8e8e1ee417e36d",
+    "repeatScriptDxfSha256": "ece4117a69464acb24b29738be2a8ad38351f1c19951b07742a87c9edb1d9b71",
+    "repeatScriptDwgSha256": "3a3d7abbe4d8ff5a51ab3bb9be5b0699154467b0dd89f51e0443e3d2af7ba5a6",
+    "hashNote": "Fresh producer outputs can differ in file metadata; the verifier checks authored identities, roles and values. No claim of deterministic file bytes."
+  },
+  "reproduction": [
+    "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python tools/audit_ac1015_compound_entity_chains.py author <input-dir>/compound.dxf",
+    "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter <input-dir> <output-dir> ACAD2000 DWG 0 0 '*.dxf'",
+    "python3 tools/audit_ac1015_compound_entity_chains.py verify <output-dir>/compound.dwg /opt/homebrew/bin/dwgread"
+  ],
+  "observedModelChain": {
+    "blockRecord": "0x17; first entity soft pointer 0x90, last entity soft pointer 0xA4",
+    "entities": ["LINE 0x90", "INSERT 0x91", "CIRCLE 0x95", "INSERT 0x96", "LINE 0x99", "POLYLINE_2D 0x9A", "POLYLINE_3D 0x9F", "LINE 0xA4"],
+    "prevRoleCodes": [4, 8, 12, 8, 12, 8, 12, 12],
+    "nextRoleCodes": [6, 10, 6, 10, 6, 10, 10, 4],
+    "interpretation": "Children and SEQENDs are not members of the parent BLOCK_RECORD chain. Endpoint nulls are role 4. Roles 6/8 encode +/-1, roles A/C encode plus/minus offset; decoded absolute references match adjacent top-level identities. Every observed model entity has entmode 2 and nolinks 0."
+  },
+  "observedCompoundChains": [
+    {"parent": "INSERT 0x91", "firstChild": "soft pointer 0x93", "lastChild": "soft pointer 0x94", "seqend": "hard owner 0x92", "children": "ATTRIB 0x93 and 0x94 each soft-pointer owner 0x91; 0x93 prev typed-null and next relative +1; 0x94 prev relative -1 and next typed-null", "seqendCommon": "owner soft-pointer 0x91; prev and next typed-null; entmode 0"},
+    {"parent": "INSERT 0x96", "firstChild": "soft pointer 0x98", "lastChild": "soft pointer 0x98", "seqend": "hard owner 0x97", "children": "singleton ATTRIB 0x98 owner soft-pointer 0x96 and prev/next typed-null", "seqendCommon": "owner soft-pointer 0x96; prev and next typed-null; entmode 0"},
+    {"parent": "POLYLINE_2D 0x9A", "firstChild": "soft pointer 0x9C", "lastChild": "soft pointer 0x9E", "seqend": "hard owner 0x9B", "children": "VERTEX_2D 0x9C/0x9D/0x9E each owner soft-pointer 0x9A. First/last have typed-null boundary and relative interior link; middle has nolinks 1 and omits both handle tokens, implying adjacent handle -1/+1.", "seqendCommon": "owner soft-pointer 0x9A; prev and next typed-null; entmode 0"},
+    {"parent": "POLYLINE_3D 0x9F", "firstChild": "soft pointer 0xA1", "lastChild": "soft pointer 0xA3", "seqend": "hard owner 0xA0", "children": "VERTEX_3D 0xA1/0xA2/0xA3 each owner soft-pointer 0x9F. First/last have typed-null boundary and relative interior link; middle has nolinks 1 and omits both handle tokens, implying adjacent handle -1/+1.", "seqendCommon": "owner soft-pointer 0x9F; prev and next typed-null; entmode 0"}
+  ],
+  "implementationRequirements": [
+    "Treat BLOCK_RECORD-owned model/paper chains and compound-owned child chains as separate lists. Do not append ATTRIB, VERTEX or SEQEND to the enclosing model-space list. Preserve entity order and source/caller ownership.",
+    "For AC1015 emit parent first/last child soft pointers and a separate hard-owner SEQEND reference with matching child and SEQEND owner pointers. Cover empty, one-child and multi-child attributed INSERT separately; empty form requires its own evidence.",
+    "When nolinks is clear, write bounded predecessor/successor roles and explicit typed-null endpoints. When nolinks is set, omit both tokens only if actual adjacent identities satisfy implicit +/-1 and no boundary is lost. Treat unrelated numeric handle gaps, reordered children, width transitions and handle overflow/underflow explicitly.",
+    "Reserve all parent, child and SEQEND identities before encoding any irreversible list edge; reject unplanned or unsupported compounds before publication. Use compound transaction checkpoints to restore bytes, object/class counts, parent/child ledgers, references and caller state on every late failure; test same-facade retry.",
+    "A bounded model-space LINE/CIRCLE/ARC opt-in should fail closed on INSERT/POLYLINE until compound-specific planning and child callbacks are implemented and tested; do not broaden it solely from this witness.",
+    "Independently decode physical output and compare exact parent/child/SEQEND and predecessor/successor roles with this source profile; run ODA with actual output and inspect error logs. Add topology, malformed ownership, duplicate handles, singleton/empty/closed paths, page/handle width boundaries, exception rollback and compatibility controls."
+  ],
+  "limits": "This is one ODA-produced AC1015 source witness and a repeat of its locally authored topology. No generated libdxfrw compound output, other versions, CAD editing, rendering, native platform qualification or interoperability support is established."
+}

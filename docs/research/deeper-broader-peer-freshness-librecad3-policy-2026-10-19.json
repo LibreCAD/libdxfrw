@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Peer release freshness and LibreCAD 3 DWG write policy",
+  "mode": "Current primary-source release/issue review plus local plan and claim-ledger crosswalk; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh public release artifacts and issue indexes for LibreDWG and ACadSharp, with particular attention to report dates relative to artifact dates.",
+    "Reconcile the current LibreCAD 3 read-only DWG-import policy with the local frozen qualified-format claim and status ledgers.",
+    "Recheck the comparator boundaries for GDAL/libopencad, GDAL/ODA, ezdxf, and FreeCAD, then update the existing implementation sequence without duplicating issue owners."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG releases and issues",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/releases",
+        "https://github.com/LibreDWG/libredwg/releases/tag/0.14.8612",
+        "https://github.com/LibreDWG/libredwg/issues/1450",
+        "https://github.com/LibreDWG/libredwg/issues/1451",
+        "https://github.com/LibreDWG/libredwg/issues/1452"
+      ],
+      "revision": "Public release and issue pages reviewed 2026-10-19. The latest listed artifact was prerelease 0.14.8612, commit f860b0f, released 2026-10-13; issues #1450–#1452 were opened 2026-10-14.",
+      "observed": "#1450 reports a heap overread in LTYPE dash-text handling, #1451 a heap use-after-free for FIELD with no child values, and #1452 a misaligned access in an R2007+ EED encoder path. These reports postdate the latest listed prerelease.",
+      "evidenceCeiling": "The issue reports are discovery inputs and do not establish behavior in 0.14.8612 or in libdxfrw. The mutable default branch is not an immutable implementation identity. No peer artifact or executable was downloaded or run."
+    },
+    {
+      "project": "ACadSharp releases and issues",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1281"
+      ],
+      "revision": "Public pages reviewed 2026-10-19. The latest stable release shown was v3.8.0 at commit 3a1c66b, released 2026-09-21. #1297 names master v3.8.14; recent issue reports are newer than the stable release.",
+      "observed": "The issue board includes recent reports of AC1032 whole-file AutoCAD rejection involving frame-only MTEXT, recursive DXF reader stack exhaustion, and other field-specific read/write failures. In #1297, missing style objects are presented as a hypothesis, not a demonstrated cause.",
+      "evidenceCeiling": "Current source reports are not results for v3.8.0 and do not demonstrate a libdxfrw defect. No peer package, source checkout, or native AutoCAD run was used."
+    },
+    {
+      "project": "LibreCAD 3 DWG support policy and local claim ledgers",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+        "local: metadata/qualified-format-claims-v1.json",
+        "local: metadata/qualified-format-status-v1.json"
+      ],
+      "revision": "Mutable LibreCAD_3 master policy reviewed 2026-10-19. Local files inspected in the shared dirty workspace.",
+      "observed": "LibreCAD 3 documents opt-in, off-by-default, read-only DWG import and no DWG write path or product commitment until separate gates are met. Its document reports 15 read claims: 11 EXPERIMENTAL and 4 PENDING_NATIVE, none PROMOTED. Local claim metadata has 15 read-direction claims; local frozen status metadata independently has the same 11/4 status split and no promoted claim.",
+      "evidenceCeiling": "This is downstream consumer policy and local claim-ledger state, not evidence that another application accepts a libdxfrw output. LibreCAD 3 owns any future policy or ledger transition."
+    },
+    {
+      "project": "GDAL, ezdxf, and FreeCAD route documentation",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/cad.html",
+        "https://gdal.org/en/stable/drivers/vector/dwg.html",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Current project documentation reviewed 2026-10-19.",
+      "observed": "GDAL's CAD driver is a read-only libopencad projection with a small documented geometry subset; the separate GDAL DWG driver uses ODA. ezdxf documents limited ACIS support. FreeCAD documents DWG conversion through DXF and says its stock DXF importer cannot read embedded ACIS solids.",
+      "evidenceCeiling": "These sources establish route and product-scope boundaries only, not cross-version semantic parity, complete object preservation, or ACIS/B-rep correctness."
+    },
+    {
+      "project": "Local plan and claim-state crosswalk",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "metadata/qualified-format-claims-v1.json",
+        "metadata/qualified-format-status-v1.json"
+      ],
+      "revision": "Shared working tree inspected 2026-10-19; no implementation or tests were run.",
+      "observed": "The plan already assigns the peer failure shapes to bounded-progress, EED, MTEXT/version and full-file closure, FIELD, LTYPE, route-specific differential, and consumer-policy owners. The next local behavior slice remains PAR-20/7F.1's generated AC1024/AC1032 standalone object-context base-profile vectors.",
+      "evidenceCeiling": "Plan coverage and ledger state do not prove implementation behavior; the local code and focused tests must be exercised when the corresponding implementation slice is performed."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-20/7F.1",
+      "PAR-05/PAR-136",
+      "PAR-14/PAR-26/7K",
+      "PAR-19/PAR-29",
+      "consumer-policy and qualified-format ledgers"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Record the current peer-release/report date boundary and make immutable artifact identity mandatory for any optional comparison. Preserve LibreCAD 3 as an opt-in read-only 2D consumer and do not create a DWG-write objective for it. No duplicate defect or test was added; proceed with the existing fast local PAR-20/7F.1 work and keep broad peer/native runs at composed checkpoints."
+  },
+  "implementationReadiness": [
+    "Do not use LibreDWG 0.14.8612 to claim behavior for issues #1450–#1452; if a composed comparison needs one, pin/build a post-report commit and record sanitizers/toolchain.",
+    "For ACadSharp, report v3.8.0 package results separately from results on an immutable newer master commit; retain complete file-level inventory and native audit as distinct evidence from entity-byte comparison.",
+    "Keep LibreCAD/LibreCAD 3 compatibility testing on their 2D API/import route; do not add DWG write claims or treat these consumers as independent parser votes.",
+    "Continue PAR-20/7F.1 with generated AC1024/AC1032 vectors and existing focused validation; do not wait for external samples or add downloaded DWG/DXF fixtures.",
+    "Keep local validation at strict touched-target build, focused selector, owning existing CTest, scoped diff check, and receipt validation; no per-slice full test suite."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review plus local plan and metadata inspection",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Release and issue pages are mutable and were reviewed as of 2026-10-19. LibreCAD 3's current policy page was not bound to an immutable commit. No peer package/source was executed and no claim is made about whether a newer unreviewed peer commit fixes an open issue."
+  }
+}

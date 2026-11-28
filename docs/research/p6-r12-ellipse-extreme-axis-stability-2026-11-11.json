@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-r12-ellipse-extreme-axis-stability-2026-11-11",
+  "date": "2026-11-11",
+  "problem": "DRW_Ellipse::toPolyline computed normal, major-axis and minor-axis lengths by squaring components. Locally authored ellipses with finite nonzero major axis (1e200,0,0) or (1e-200,0,0), ratio 0.5 and a valid normal returned no vertices, because intermediate squares overflowed or underflowed. R12 output routes use this tessellator.",
+  "authority": {
+    "autodesk": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-107CB04F-AD4D-4D2F-8EC9-AC90888063AB.htm",
+    "scope": "ELLIPSE represents a WCS center and major-axis vector, plane normal, minor/major ratio, and start/end parameters. A finite vector is not invalid merely because an intermediate square exceeds binary64 range."
+  },
+  "change": "Use scaled hypot for normal and major lengths; form and normalize the cross product using normalized vectors before multiplying by the finite positive minor radius. Sum opposite-sign center/axis contributions first to avoid avoidable intermediate overflow. If any resulting vertex is nonfinite, clear the partial polyline so the R12 writer refuses atomically. Existing full/partial and direction decisions are unchanged.",
+  "validation": {
+    "negativeControl": "A scratch probe linked against the pre-change library printed 0 vertices for both 1e200 and 1e-200 major axes. Rebuilding the same probe against the changed library printed 8 vertices for each.",
+    "focusedCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_r12_ellipse_(wrap|boundary)|dwg2dxf_r12_ellipse_carriers_.*_cli)$' --output-on-failure",
+    "focusedResult": "4/4 passed with the configured -Werror build, including ASCII/Binary CLI carrier checks",
+    "coverage": "Locally generated direct and ASCII/Binary R12 ellipse-to-polyline tests cover 1e-200 and 1e200 axes and normals independently, planar and tilted 3D orientations, full and partial arcs, analytic endpoints, correct 2D/3D and closed flags, and readback both with and without extrusion application. A near-binary64-limit partial arc whose positive center/major sum would overflow but whose minor term cancels it yields finite endpoints and readback. A genuinely nonrepresentable vertex preserves a seeded destination on refusal, then succeeds after correcting the center with the same writer. Existing ordinary wrap and boundary cases pass. Finite normal (1.5e308,1.5e308,0) and finite major vector (1.5e308,1.5e308,0) have nonrepresentable Euclidean norms and are explicitly refused in both direct and R12 paths; each preserves the destination and retries after correction.",
+    "fixtures": "All drawings are locally authored temporary files and removed; no DWG/DXF fixture was added."
+  },
+  "limits": "The converter still approximates curves with straight segments. Finite axis or normal components whose Euclidean norm overflows binary64 are currently refused, even if a direction or some generated vertices would be representable; the shared DXF extrusion/ellipse preflight also rejects them. Extremely small minor radii that underflow to zero or radii outside finite binary64 are refused; this is not a claim about every representable point on a very large partial ellipse. Tiny out-of-plane tolerance in 2D/3D classification, native consumer rendering, producer breadth, and platform qualification remain open.",
+  "followUp": "The later p6-r12-ellipse-overflowing-vector-norm-2026-11-11 receipt supersedes this receipt's norm-overflow and near-XY classification limitations for its explicitly tested ellipse profiles; this receipt records the earlier bounded slice and its then-current tests."
+}

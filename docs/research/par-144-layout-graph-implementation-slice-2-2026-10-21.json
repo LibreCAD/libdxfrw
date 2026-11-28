@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-144 slice 2: explicit layout ownership and reciprocal graph validation",
+  "mode": "Implementation progress receipt",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "The worktree was already dirty from broader implementation. No unrelated edits were reverted and no commit was created.",
+    "changedPaths": [
+      "src/intern/dwgwriter.h",
+      "src/intern/dwgwriter15.cpp",
+      "src/intern/dwgwriter15.h",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "implementation": [
+      "Pending block records distinguish ordinary blocks from paper-layout owners while retaining the exact associated layout handle.",
+      "Successful LAYOUT writes retain their output handle, name, parent dictionary, and associated BLOCK_RECORD handle; successful ACAD_LAYOUT dictionary writes retain exact child names and handles.",
+      "Before BLOCK_CONTROL publication, validate unique layout identities, one-to-one reciprocal owner links, NOD/ACAD_LAYOUT reachability, and exact dictionary name/handle closure. Fixed Model/Paper owners and layout-linked user block records are supported by the validator.",
+      "The emitted association ledgers participate in bounded object-frame and compound-write rollback."
+    ],
+    "limits": "This is still partial multi-layout output. Active/current-layout identity and compound/viewport owner coverage are incomplete; no general support claim is promoted."
+  },
+  "contract": {
+    "authority": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+    "references": [
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    ],
+    "sections": ["20.4.2", "20.4.51", "20.4.52", "20.4.84"],
+    "disposition": "The BLOCK_RECORD-to-LAYOUT hard pointer and LAYOUT-to-paperspace-BLOCK_RECORD soft pointer are validated reciprocally. R13-R14 entity mode and R2000+ owner-list formats were not changed in this slice."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$' --output-on-failure",
+        "result": "PASS (1/1; 0.36 s)"
+      }
+    ],
+    "coverage": [
+      "Independent emitted handle-token checks at AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032.",
+      "Generated whole-file AC1015 and AC1024 writes include fixed Layout1 plus *Paper_Space7 and *Paper_Space19 with distinct LINE sentinels; the LAYOUT objects and dictionary entries are deliberately ordered differently from owner definition order.",
+      "The reader confirms exact LAYOUT and BLOCK_RECORD identities, dictionary reachability, and each marker in its associated owner block.",
+      "A nonreciprocal LAYOUT-to-BLOCK_RECORD link is refused without replacing a preexisting destination; a corrected write and reread succeeds using the same dwgRW façade."
+    ],
+    "fixturesAdded": 0,
+    "fullSuite": "NOT_RUN",
+    "independentPeerOrNativeQualification": "NOT_RUN"
+  },
+  "status": {
+    "PAR-144": "IMPLEMENTATION_IN_PROGRESS",
+    "completedSlices": [1, 2],
+    "nextAction": "Expand exact owner routing to VIEWPORT and INSERT/ATTRIB/SEQEND across multiple paper layouts; then add remaining malformed dictionary/duplicate-owner controls and the narrow version matrix for touched writer branches.",
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commit": null,
+    "commitReason": "Existing unrelated dirty edits overlap the implementation files; no broad staging or commit was made."
+  }
+}

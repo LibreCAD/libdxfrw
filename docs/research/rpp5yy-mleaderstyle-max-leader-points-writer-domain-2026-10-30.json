@@ -1,0 +1,70 @@
+{
+  "id": "RPP-5yy",
+  "date": "2026-10-30",
+  "title": "MLEADERSTYLE maximum leader-points writer domain",
+  "scope": {
+    "operation": "Validate direct MLEADERSTYLE group-90 maxLeaderPoints values before output.",
+    "target_versions": [
+      "AC1021",
+      "AC1024",
+      "AC1027"
+    ],
+    "field": {
+      "group_code": 90,
+      "name": "maxLeaderPoints",
+      "wire_type": "signed 32-bit integer"
+    },
+    "authority": "ODA Open Design Specification v5.4.1 \u00a720.4.87 maps group 90 to maximum leader points. Autodesk AcDbMLeaderStyle::setMaxLeaderSegmentsPoints documents -1 as unlimited and otherwise requires values >= 2. The libdxfrw DRW_MLeaderStyle model has an existing default of 0; preserve that value for compatibility without claiming native semantic acceptance.",
+    "sources": [
+      "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbMLeaderStyle__setMaxLeaderSegmentsPoints_int.html"
+    ],
+    "claim_boundary": "Direct-writer group-90 value admission and emitted integer only; no MLEADER rendering, mutation API, or whole-style semantic claim."
+  },
+  "implementation": [
+    "Accept -1, the library's compatibility default 0, and values >= 2.",
+    "Refuse values below -1 and the documented invalid value 1 before publication.",
+    "Preserve the caller and existing destination on refusal."
+  ],
+  "evidence": {
+    "input": "Runtime-generated typed MLEADERSTYLE objects; no fixture files committed.",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "target_versions": [
+      "AC1021",
+      "AC1024",
+      "AC1027"
+    ],
+    "accepted_values": [
+      -1,
+      0,
+      2,
+      2147483647
+    ],
+    "refused_values": [
+      -2147483648,
+      -2,
+      1
+    ],
+    "accepted_output": "Every selected accepted value is emitted as the exact group-90 signed integer.",
+    "refusal": "Each selected invalid value preserves the destination sentinel and caller field.",
+    "retry": "Each refusal is followed on the same adapter by value 2 and exact group-90 output.",
+    "matrix": "Four accepted values \u00d7 three target versions \u00d7 two encodings; three invalid values \u00d7 three versions \u00d7 two encodings with refusal and retry."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_wave1_tests --parallel 4",
+    "focused_test": "ctest --test-dir build -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+    "result": "Passed, 1/1 test in 0.64 seconds.",
+    "diff_check": "PASS: git diff --check.",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "tests/wave1_tests.cpp"
+  ],
+  "remaining": [
+    "Other MLEADERSTYLE integer, source-presence, dependency and native semantic profiles remain open; P2 remains open."
+  ]
+}

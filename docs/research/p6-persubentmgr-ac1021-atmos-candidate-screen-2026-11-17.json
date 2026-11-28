@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-persubentmgr-ac1021-atmos-candidate-screen-2026-11-17",
+  "date": "2026-11-17",
+  "title": "PERSUBENTMGR AC1021 nonzero peer candidate screen",
+  "status": "PROMISING_NONZERO_PEER_CANDIDATE_API_STATE_UNPROVEN",
+  "supportClaimEffect": "none",
+  "scope": "Screen a source-distinct local LibreDWG sample outside the five-file AC1032 issue archive for a nonzero PERSUBENTMGR payload. This is an eligibility lead only; it does not establish native operation/API state, physical field spans, member meaning, or a parser schema.",
+  "source": {
+    "path": "/Users/dli/dev/libredwg/test/test-data/2007/ATMOS-DC22S.dwg",
+    "repository": "LibreDWG local test corpus",
+    "repositoryCommit": "eb763b3e9ce1995e11e06c63d84dddd93cce10c8",
+    "commitDate": "2020-06-12",
+    "commitSubject": "test-data: add coverage dwg for some ACSH classes",
+    "gitBlob": "a7b5486a0f132746f73eacb5949a15a07cff9667",
+    "bytes": 398400,
+    "version": "AC1021",
+    "sha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+    "md5": "ab520974a12e52f02f3da9dd1d723e1a",
+    "externalCatalog": {
+      "url": "https://www.cadforum.cz/catalog_en/block.asp?blk=4475",
+      "observation": "Catalog entry lists the same MD5 and labels the drawing DWG2007.",
+      "limitation": "This does not identify the exact AutoCAD producer/build or establish the drawing's original API state. The file was already present in the LibreDWG repository; no external copy was downloaded or added here."
+    }
+  },
+  "corpusScreen": {
+    "tool": "LibreDWG dwgread 0.14",
+    "binaryPath": "/opt/homebrew/bin/dwgread",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -O minJSON <DWG>",
+    "corpusRoots": [
+      "/Users/dli/dev/libredwg/test/test-data",
+      "/Users/dli/dev/ACadSharp/samples"
+    ],
+    "filesScanned": 156,
+    "candidateExitCode": 0,
+    "candidateElapsedSeconds": 0.46,
+    "peerObject": {
+      "objectType": 525,
+      "handle": "0,2,850",
+      "recordSizeBytes": 25642,
+      "reportedBodyBits": 205100,
+      "reportedUnknownBits": 205049,
+      "classVersion": 2,
+      "unknown0": 0,
+      "unknown2": 2,
+      "reportedAssocSteps": 392,
+      "reportedAssocSubents": 298
+    },
+    "limitation": "These are LibreDWG peer-decoder field interpretations. The large unknown payload is deliberately not copied into this receipt. The counts and values are not independent physical-span or semantic proof."
+  },
+  "eligibility": {
+    "producerBuildAndNativeApiState": "unknown",
+    "targetEntityAndSelectedPersistentPath": "unknown",
+    "exactTargetClassCreationOperation": "unknown",
+    "independentMemberMeaning": "not established",
+    "libdxfrwSourceTrace": "not recorded in this screen",
+    "disposition": "candidate only; run an exact-class/API-state smoke check before tracing or implementation"
+  },
+  "artifacts": {
+    "fullCorpusReport": "/private/tmp/libdxfrw-p6-persubentmgr-local-corpus-scan.json",
+    "repositoryChanges": "Only this metadata receipt is added; no DWG, DXF, archive, or derivative is copied into the repository."
+  },
+  "next": "Check whether a supported native AutoCAD/ObjectARX operation can be tied to this exact AcDbPersSubentManager record and nonzero selected path. If not, retain the existing raw/partial profile and close this candidate branch without schema changes. If yes, capture exact producer/API state and independently bind member fields, references, and the following-object boundary before implementation."
+}

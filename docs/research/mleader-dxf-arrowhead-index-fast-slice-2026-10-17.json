@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "7AA.2 partial DXF MLEADER arrowhead-index preservation",
+  "mode": "local implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Separate DXF group-94 arrowhead index from the DWG legacy default bit",
+    "Preserve the exact DXF index and associated handle through AC1021 ASCII/Binary output",
+    "Refuse conversions for which the local data model lacks an exact mapping"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "ArrowHeadEntry now carries an int32 DXF index and explicit presence bit separately from isDefault. DXF parsing retains the integer without Boolean coercion. The AC1021 writer emits the stored code-94 index and associated remapped code-345 handle. It fails before entity publication if an entry lacks a DXF index or the target is newer than AC1021, because current DWG default flags and modern targets do not have an evidenced mapping in this model.",
+    "dwgByteLayoutChanged": false,
+    "publicNestedStructLayoutChanged": true,
+    "abiCompatibilityClaimed": false,
+    "downstreamRebuildRequired": true,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "limitations": "Does not resolve DWG default-bit-to-DXF-index semantics, provide an independent producer witness, establish modern DXF arrowhead-array representation, or claim general MLEADER support."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_wave1_tests lc3_compat_check -j2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --mleader-context-roundtrip",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --mleader-writer-validation",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+        "result": "passed 1/1"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_wave1|libdxfrw_mleader_writer_version)$' --output-on-failure",
+        "result": "libdxfrw_mleader_writer_version passed; libdxfrw_wave1 failed with 8 assertions in testGeneratedDictionaryGroupCommonMetadata. That test path was not edited in this slice; failure cause remains unresolved and is not attributed to this change."
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.h src/drw_entities.cpp src/libdxfrw.cpp tests/hardening_tests.cpp tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planImpact": {
+    "subplan": "7AA.2",
+    "status": "PARTIAL_LOCAL_DXF_IMPLEMENTATION",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

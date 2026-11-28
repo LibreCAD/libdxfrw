@@ -1,0 +1,145 @@
+{
+  "schema": "libdxfrw-deeper-rooted-sab-projection-profile-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden implementation-readiness research for rooted SAB projection, version admission, explicit 3D comparison, and FreeCAD consumer-route qualification.",
+  "method": {
+    "kind": "Primary format/project documentation and pinned peer source review",
+    "sourcesOpened": [
+      "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/entities.py",
+      "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/const.py",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+      "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "ezdxf's ACIS entity relationships are a pinned implementation profile learned from analyzed BricsCAD exports, not normative ACIS authority. ODA v5.4.1 governs DWG AcDs framing/linkage but explicitly excludes detailed SAB internals. Autodesk DXF references govern documented explicit-geometry fields. FreeCAD docs identify configurable routes, not a guarantee for every build. No external or local runtime result was obtained."
+  },
+  "findings": [
+    {
+      "topic": "SAB 21800 rooted graph traversal profile",
+      "sources": [
+        "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/entities.py",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": [
+        "The source describes body/lump/shell/face/loop/coedge/edge/vertex/point relationships, linked chains, and optional transform/wire/surface/curve branches.",
+        "Face loops and coedge chains are ordered; coedges can have cyclic partner relationships, including more than two partners for non-manifold cases.",
+        "The source states that a vertex endpoint's parent edge need not be the current edge.",
+        "The documentation says the profile is based on analyzing BricsCAD output and ignores pre-700 differences; its mesh conversion handles only flat polygonal faces and loses curved faces without a kernel."
+      ],
+      "doesNotEstablish": [
+        "a normative ACIS schema or all-version pointer layout",
+        "validity/closure of a body or correctness of curved analytic geometry",
+        "that the local SAB parser resolves every documented relationship"
+      ],
+      "planUse": "Limit the additive rooted projection to exact embedded ACIS 21800 until other version deltas are reviewed. Preserve loops/orientation and multiple lumps/shells, bound cycles, validate only defined owners, do not impose vertex.edge reverse equality, and report unimplemented branches and unreachable nodes structurally."
+    },
+    {
+      "topic": "Embedded ACIS version is distinct from DXF target version",
+      "sources": [
+        "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/acis/const.py",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": [
+        "The peer lists 20800, 21800, and 22300 ACIS save profiles; 21800 is its default SAB profile for R2013/R2018 while 22300 is another R2018 profile."
+      ],
+      "doesNotEstablish": [
+        "universal producer compatibility for every target/profile pairing",
+        "safe interpretation of 20800 or 22300 with the local 21800 parser"
+      ],
+      "planUse": "Add explicit negative tests for unreviewed 20800 and 22300 inputs; do not infer the embedded schema from DXF ACADVER."
+    },
+    {
+      "topic": "DWG AcDs and SAB authority boundary",
+      "sources": [
+        "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "observed": [
+        "ODA §24 describes segment/data indexes, data records, paged blobs, per-record handles, and SAB payloads for ACIS entities.",
+        "ODA explicitly places detailed SAB content outside the specification."
+      ],
+      "doesNotEstablish": [
+        "ACIS body graph semantics from the DWG container description",
+        "B-rep validity from correct handle-to-record association"
+      ],
+      "planUse": "Keep ODA-spec AcDs linkage and local SAB profile projection as separate gates."
+    },
+    {
+      "topic": "Explicit 3D geometry and FreeCAD route identity",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm",
+        "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "observed": [
+        "Autodesk documents 3DFACE WCS corners and invisible-edge flags; polyface declared counts may be inaccurate and readers should tolerate unusual child ordering.",
+        "FreeCAD's documentation repository was archived in April 2026; its Draft DXF page describes configurable C++ and optional legacy Python DXF importers, a route-specific 3DFACE support difference, and no stock ACIS blob reading.",
+        "FreeCAD DWG open/import uses an external converter followed by a selected DXF importer."
+      ],
+      "doesNotEstablish": [
+        "current behavior of every FreeCAD release/build or selected importer",
+        "ACIS B-rep semantics from explicit-face import",
+        "lossless DWG-to-DXF conversion for arbitrary object graphs"
+      ],
+      "planUse": "At the existing composed consumer checkpoint pin the exact FreeCAD build, converter, importer preference, and operation. Keep explicit face/polyface results separate from ACIS and DWG AcDs evidence."
+    }
+  ],
+  "planDelta": {
+    "filesUpdated": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": [
+      "S3.7c rooted SAB projection",
+      "PAR-07 ACIS semantic evidence",
+      "7AG peer admission",
+      "existing explicit-geometry and FreeCAD consumer gates"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Implement the rooted projection only under an exact embedded-version 21800 guard.",
+      "Preserve graph ordering, multi-root identity, and supported owner/cycle diagnostics; keep transforms and source-unit scaling unapplied.",
+      "Use generated test-local graph data and only the focused graph-preservation test/build plus compatibility compile checks for the slice.",
+      "Keep unreviewed ACIS versions, native FreeCAD qualification, semantic-reader routes, and all six external J items non-blocking and non-promoting."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

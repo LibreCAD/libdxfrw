@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-acis-rooted-nonzero-output-budget-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "slice": "S3.7c rooted ACIS output-budget refusal after nonzero admission",
+  "change": {
+    "files": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testBehavior": "A generated rooted model with maxOutputItems=4 exhausts the logical output budget after initial admissions; the extractor must refuse with ResourceLimit and clear a pre-populated caller output vector.",
+    "productionSourceChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.69
+    },
+    "librecad3CompatibilityTarget": {
+      "command": "cmake --build build --target lc3_compat_check --parallel 2",
+      "result": "PASS"
+    },
+    "researchReceiptJson": "PASS",
+    "gitDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeApplicationRun": false
+  },
+  "evidenceBoundary": "Generated test-only resource refusal control. It does not establish an allocator/RSS bound, ACIS grammar, B-rep validity, transform semantics, or format support.",
+  "commitState": "UNCOMMITTED_GIT_METADATA_READ_ONLY"
+}

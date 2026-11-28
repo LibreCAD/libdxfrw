@@ -16,9 +16,23 @@
 #include <string>
 #include <iostream>
 #include <memory>
+#include <atomic>
+#include <mutex>
 #include <utility>
 #include "../drw_base.h"
 //#include <iomanip>
+
+// The debug wrappers are inline in this private header and read one shared
+// atomic when dwg2dxf links against a Windows DLL.  Export/import that data
+// explicitly: CMake's automatic symbol export does not reliably include
+// private static data members referenced from another image.
+#if defined(_WIN32) && defined(LIBDXFRW_DRW_DBG_EXPORTS)
+#define LIBDXFRW_DRW_DBG_DATA __declspec(dllexport)
+#elif defined(_WIN32) && defined(LIBDXFRW_DRW_DBG_IMPORTS)
+#define LIBDXFRW_DRW_DBG_DATA __declspec(dllimport)
+#else
+#define LIBDXFRW_DRW_DBG_DATA
+#endif
 
 #define DRW_DBGSL(a) DRW_dbg::getInstance()->setLevel(a)
 #define DRW_DBGGL DRW_dbg::getInstance()->getLevel()
@@ -67,23 +81,23 @@ public:
     // attribute rather than erroring -- a missed optimization there, not a
     // build break.
     template<typename T> [[gnu::always_inline]] static void dbg(T&& v) {
-        if (s_enabled) getInstance()->print(std::forward<T>(v));
+        if (s_enabled.load(std::memory_order_relaxed)) getInstance()->print(std::forward<T>(v));
     }
     template<typename T> [[gnu::always_inline]] static void dbgH(T&& v) {
-        if (s_enabled) getInstance()->printH(std::forward<T>(v));
+        if (s_enabled.load(std::memory_order_relaxed)) getInstance()->printH(std::forward<T>(v));
     }
     template<typename T> [[gnu::always_inline]] static void dbgB(T&& v) {
-        if (s_enabled) getInstance()->printB(std::forward<T>(v));
+        if (s_enabled.load(std::memory_order_relaxed)) getInstance()->printB(std::forward<T>(v));
     }
     template<typename C, typename S, typename H>
     [[gnu::always_inline]] static void dbgHL(C&& c, S&& s, H&& h) {
-        if (s_enabled) getInstance()->printHL(std::forward<C>(c),
+        if (s_enabled.load(std::memory_order_relaxed)) getInstance()->printHL(std::forward<C>(c),
                                               std::forward<S>(s),
                                               std::forward<H>(h));
     }
     template<typename X, typename Y, typename Z>
     [[gnu::always_inline]] static void dbgPT(X&& x, Y&& y, Z&& z) {
-        if (s_enabled) getInstance()->printPT(std::forward<X>(x),
+        if (s_enabled.load(std::memory_order_relaxed)) getInstance()->printPT(std::forward<X>(x),
                                               std::forward<Y>(y),
                                               std::forward<Z>(z));
     }
@@ -140,13 +154,15 @@ public:
 
 private:
     DRW_dbg();
-    static DRW_dbg *instance;
-    static bool s_enabled;   // mirror of (level == Debug); updated in setLevel
+    std::shared_ptr<DRW::DebugPrinter> printerSnapshot() const;
+    // A relaxed hint only: printerSnapshot verifies the authoritative level
+    // under stateMutex. No printer lifetime or publication depends on it.
+    LIBDXFRW_DRW_DBG_DATA static std::atomic<bool> s_enabled;
+    mutable std::mutex stateMutex;
     Level level{Level::None};
-    DRW::DebugPrinter silentDebug;
-    std::unique_ptr< DRW::DebugPrinter > debugPrinter;
-    DRW::DebugPrinter* currentPrinter{nullptr};
+    std::shared_ptr<DRW::DebugPrinter> debugPrinter;
 };
 
+#undef LIBDXFRW_DRW_DBG_DATA
 
 #endif // DRW_DBG_H

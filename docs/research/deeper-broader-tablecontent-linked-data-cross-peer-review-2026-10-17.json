@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw-tablecontent-linked-data-cross-peer-review-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Deepen the existing TABLECONTENT route review for linked cell data, ATTDEF cell attributes, object ownership, and loss-reporting completeness across DWG and DXF paths.",
+  "sources": [
+    {
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "kind": "authoritative format specification, ODA v5.4.1 section 20.4.97",
+      "localArtifact": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+      "observed": [
+        "A TABLECONTENT cell has a linked-data flag; if set, it contains a hard pointer to a DATALINK object, a row count, a column count, and an unknown BL96 value before the cell-content count.",
+        "Cell-content items can contain ATTDEF handle, attribute text, and index tuples.",
+        "R24 DWG embeds TABLECONTENT in the TABLE entity, while DXF keeps TABLECONTENT as a separate object including R24; earlier DWG uses a separate TABLECONTENT object."
+      ],
+      "doesNotEstablish": [
+        "Every extension-dictionary/NOD owner edge for a producer-authored linked table.",
+        "Spreadsheet refresh behavior or native CAD UI acceptance.",
+        "The exact byte profile of any drawing not inspected."
+      ]
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "kind": "official Autodesk ACAD_TABLE entity DXF reference",
+      "observed": "The documented ACAD_TABLE entity includes TABLESTYLE, owner BLOCK_RECORD, FIELD, block-cell and attribute references, but is not the complete schema for a separate TABLECONTENT object.",
+      "doesNotEstablish": [
+        "Absence of a DataLink reference in the separate TABLECONTENT object.",
+        "TABLECONTENT object ownership or DATALINK graph membership."
+      ]
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "kind": "official Autodesk DXF group-code type reference",
+      "observed": "Groups 340-349 are hard-pointer handles, consistent with ODA's H340 DataLink field.",
+      "doesNotEstablish": [
+        "Which TABLECONTENT object record owns or roots a given DATALINK.",
+        "Whether the format mapping preserves linked spreadsheet semantics."
+      ]
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/tree/3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "kind": "peer implementation source snapshot, inspected locally only",
+      "sourceRevision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "observed": [
+        "DWG read code stores the linked-data handle in a generic template ValueHandle and reads the three linked metadata values.",
+        "The inspected template Build body performs no DataLink assignment; the public TableEntity.Cell model exposes HasLinkedData but not the link identity or row/column metadata.",
+        "The inspected DWG writer emits a null handle and zero metadata when HasLinkedData is true, then throws."
+      ],
+      "doesNotEstablish": [
+        "Behavior of every ACadSharp release or branch.",
+        "Producer-format truth or independent semantic correctness.",
+        "Runtime behavior; this source snapshot was not built or executed."
+      ]
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/tree/6d6a33987a1a97095b069c799c3d8a793320f812",
+      "kind": "peer implementation schema snapshot, inspected locally only",
+      "sourceRevision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "observed": "The schema and public structs expose cell has_linked_data/data_link/num_rows/num_cols/unknown fields and a distinct DATALINK object model with an owner handle.",
+      "doesNotEstablish": [
+        "Complete stable writer/read support for the route.",
+        "An independent semantic witness for producer-authored cell links.",
+        "Current upstream master behavior; this local snapshot is dated 2026-04-09."
+      ]
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/discussions/955",
+      "kind": "maintainer statement about a DXF peer route",
+      "observed": "The maintainer characterizes ACAD_TABLE as preserved raw tags rather than a generally editable/queryable typed entity; a small text extraction helper does not provide full graph semantics.",
+      "doesNotEstablish": [
+        "DWG TABLECONTENT semantics.",
+        "DATALINK preservation through all ezdxf operations.",
+        "Native CAD acceptance."
+      ]
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+      "kind": "peer project documentation for cross-document copy route",
+      "observed": "ACAD_TABLE is listed as unsupported by the xref route, and unsupported entities may be ignored without raising.",
+      "doesNotEstablish": [
+        "Ordinary same-file parse behavior.",
+        "Exact preservation of linked data under other operations."
+      ]
+    }
+  ],
+  "localSourceAudit": {
+    "repositoryBaseCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "worktreeWasDirty": true,
+    "filesReviewed": [
+      "src/drw_entities.cpp: parseTableCell and DRW_Table::parseDwg semantic-completeness assignment",
+      "src/drw_entities.h: DRW_TableCell and DRW_TableCellAttribute",
+      "src/drw_interface.h: DRW_Interface::addDataLink default callback",
+      "src/libdxfrw.cpp: dxfRW::processDataLink",
+      "dwg2dxf/dx_iface.h and dwg2dxf/dx_iface.cpp: absent DataLink retention override"
+    ],
+    "observed": [
+      "The parser consumes but does not retain the cell DataLink handle and three BL metadata fields.",
+      "The parser consumes but does not retain ATTDEF handle, attribute text, and index tuples in the existing cell attribute vector.",
+      "The parsed TABLECONTENT can be marked semantically complete after these losses.",
+      "The generic DataLink callback is no-op by default and dx_iface does not retain the object, so the converter has no closed cell-to-DATALINK output graph."
+    ]
+  },
+  "planImpact": {
+    "newFinding": "PAR-126",
+    "findingCountBefore": 125,
+    "findingCountAfter": 126,
+    "topLevelSubplanCountBefore": 71,
+    "topLevelSubplanCountAfter": 71,
+    "existingOwnersRefined": [
+      "PAR-20",
+      "7G.3d.3"
+    ],
+    "nextImplementationSlice": "7G.3d.3a immediate semantic-loss guard preserving TABLE prefix and INSERT fallback",
+    "sourceCodeChanged": false,
+    "fixturesAdded": 0,
+    "testTargetsAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

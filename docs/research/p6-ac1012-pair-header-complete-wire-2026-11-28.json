@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-pair-header-complete-wire-2026-11-28",
+  "supportClaimEffect": "none",
+  "candidateCommit": "a3d1d8b1d",
+  "implementationDigestSha256": "9944e586474c9f22075f2173cffd13588bc0a29d645e3419ea2ff1c57f6f8dda",
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "9 AcDb:Header; AC1012 fields, hard-handle roles and alignment bits"
+    ]
+  },
+  "scope": "Physical HEADER field and selected target accounting for the existing LibreDWG-generated populated-links AC1012 pair.",
+  "checks": [
+    "The independent bit walker accounts for 195 fields covering bits 0 through 3755 of each 470-byte payload, followed by four permitted alignment bits. All decoded values and handle roles agree with LibreDWG 0.14 minJSON.",
+    "Twenty-four current/table-control/dictionary/block/linetype targets match expected decoded object types and selected names in the 32-frame census. The named-object root, ACAD_GROUP and ACAD_MLINESTYLE entries, and Standard multiline-style membership are checked by role and target; HANDSEED exceeds the observed object handles.",
+    "Six repaired-CRC wrong-value, bad-tag or wrong-role controls are rejected; an alignment-bit change is accepted without changing fields. Wrong decoded target type and wrong same-type dictionary membership are rejected; clean retry passes.",
+    "Both drawings pass the combined census and focused legacy BLOCK_HEADER probe. Source-release inventory remains unchanged; no drawing fixtures are committed."
+  ],
+  "hashes": {
+    "headerTool": "6e7af9e28a17178beafe1cbb9d606d2b2d601f477a0ea41010e775c500584c87",
+    "censusTool": "a8953186ea4632ffa21ede2a84d58d932f2bc1f721190b538e816ffb570d6749",
+    "headerResults": "51a5de9a251d4e14a59497dfa4887c5b38b4899433505d732d73bf717f10928e",
+    "combinedCensus": "19d512bb1b9e74533deddbd14f2f53835e56fed62aa76cff63e852cdf07b75d9"
+  },
+  "limits": [
+    "The source producer and peer decoder are both LibreDWG. The Python wire walk is independent of libdxfrw, but is not independent producer or native AutoCAD evidence.",
+    "This proves physical accounting and selected target matching for these two generated files, not full dependency closure, strict output, native open or clone semantics. Native DIMTIH and omitted DXF group behavior remain unresolved."
+  ]
+}

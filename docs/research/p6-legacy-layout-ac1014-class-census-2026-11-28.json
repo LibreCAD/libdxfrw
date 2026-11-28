@@ -1,0 +1,40 @@
+{
+  "authority": "ODA Open Design Specification v5.4.1 sections 3.2.6 and 23.1 describe the R13\u2013R15 section locator and physical object map; section 10.1 describes R13\u2013R15 CLASS records.",
+  "checks": [
+    "Freshly regenerate the bound R14 sample, matching the previously recorded SHA-256.",
+    "The candidate adapter source proof, missing and contradictory census refusal, destination preservation, failed read and trusted-adapter retry pass on the R14 sample.",
+    "A separate bounded physical class/map/frame CRC walker agrees exactly with GNU LibreDWG 0.14 on all 44 handle/type pairs and reports two mapped LAYOUT frames; the selected physical CLASS row is 502.",
+    "The same walker still returns 44 mapped frames and two LAYOUT frames on the selected AC1012 destination. Synthetic tests cover both version headers, rejecting AC1015 and the existing corruption controls."
+  ],
+  "classSection": {
+    "classCount": 38,
+    "crcValid": true,
+    "sectionOffset": 530,
+    "sectionSha256": "8082286b32cf64d20af243e9dba8c5ed3d74f4b66ed06476e2331d9bc560b1a9",
+    "sectionSize": 2134,
+    "selected": {
+      "app": "ObjectDBX Classes",
+      "cpp": "AcDbLayout",
+      "dxf": "LAYOUT",
+      "flags": 0,
+      "itemClassId": 499,
+      "number": 502,
+      "physicalDxfValueStartBit": 5668,
+      "physicalEndBit": 5735,
+      "physicalStartBit": 5402,
+      "zombie": 0
+    }
+  },
+  "id": "p6-legacy-layout-ac1014-class-census-2026-11-28",
+  "limits": [
+    "One locally authored bounded single-page AC1014 source; producer and independent decoder are not native AutoCAD and do not establish cloning semantics or target output qualification.",
+    "No generated drawing was committed."
+  ],
+  "mapSha256": "a2439044436e370d31f6d0bee0197b8403294a68f306b4b9f837979bb07e1e9d",
+  "mappedFrameCount": 44,
+  "producer": "ACadRust 0.6.8, revision 534ff8abaf112d9c9ec3e08292080002b0e9de3a; generated and resaved locally",
+  "schema": "libdxfrw.research-receipt.v1",
+  "selectedLayoutFrames": 2,
+  "sourceSha256": "c057bba383107ea8906d4dc887eb7857628419306e36f37a8cb261a117319bdb",
+  "supportClaimEffect": "none"
+}

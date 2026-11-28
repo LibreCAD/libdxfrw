@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "date": "2026-11-04",
+  "base_commit": "3bce2f36",
+  "status": "interim fail-closed guard; no graph closure claimed",
+  "reason": "CRC-resealed selected DWG references to LTYPE and entity LAYER/LTYPE targets or roles previously survived strict conversion as silently substituted output. LTYPE_CONTROL membership and LTYPE owner source role/width and entity references remain unqualified.",
+  "behavior": "RequireComplete, AllowPartial, and Legacy with requireResolvedOwners refuse any dx_data aggregate that has imported an AC1027 DWG, even after later imports or public source-field/capture edits. Legacy without owner checks retains its prior path. The guard applies to every output revision and to all AC1027 DWG imports, not only the selected graph; this deliberately narrows previously accepted output.",
+  "source_marker": "A private sticky boolean is conservatively set while DWG import is active, retained for AC1027 including incomplete captures, and preserved across later imports into the same aggregate. An allocation-free thread-local scoped lease rejects same-data fileImport during strict synchronous export even through a different adapter, without relying on the virtual finalizer.",
+  "limitations": [
+    "No source graph is newly qualified and no automatic conversion is claimed.",
+    "The export/import lease protects same-thread synchronous fileImport only; concurrent access and arbitrary whole-object replacement or mutation of dx_data during a write are not supported or claimed safe.",
+    "The private boolean changes the binary layout of in-tree dx_data; users linking against that adapter must rebuild. Installed DRW_Interface and its vtable are unchanged.",
+    "The historical strict positive graph, source-mutation and DXF repeat controls are retained in the test source behind --historical-positive-controls but are suspended until the source graph is qualified. Their former coverage is not provided by the interim refusal selector.",
+    "The selected default Legacy projection may still fail at later TABLES emission. The guard does not claim Legacy output success."
+  ],
+  "validation": {
+    "ctest_command": "ctest --test-dir /private/tmp/ltype-closure/build -R '^(libdxfrw_dwg_ac1027_default_graph_strict|libdxfrw_dxf_compact_material_graph)$' --output-on-failure",
+    "ctest": "2/2 passed",
+    "guard_test": "ASCII and binary, RequireComplete/AllowPartial with and without owner checks, and Legacy with owner checks; repeated sentinel-preserving refusals; public source-field mutation and missing capture/failure states; later DXF reimport; same-thread reentrant import through a separate adapter with virtual finalizer override.",
+    "physical_audit_command": "python3 /private/tmp/ltype-closure/physical-audit.py /private/tmp/ltype-closure/build/dwg2dxf/dwg2dxf /private/tmp/ltype-closure/audit-output.dxf",
+    "physical_audit_sha256": "9689b17fd8cef25b1a27ba46cc598b96431f3210c6338a26bc7502e5cc8a4cbc",
+    "physical_controls": "36/36 passed: 9 hash-bound valid or CRC-resealed generated inputs, ASCII/Binary and strict/AllowPartial; each refused with its destination sentinel preserved. The six entity variants derive from the two-layer diagnostic drawing; LAYER variants derive from the one-layer selected drawing. This is refusal evidence, not producer readback or a source-graph proof.",
+    "physical_inputs": {
+      "/private/tmp/ac1027-header-profile/production-in/line.dwg": "bc0b76f71565532763c635172b765cf41e4ba20cf86a7f412ba8329d3d4486cc",
+      "/private/tmp/ltype-closure/missing.dwg": "c7e5d71c010ec59e86b58893fb12c93cfd78b9c3f54a6c8f5e907f12dba1bc7f",
+      "/private/tmp/ltype-closure/wrong.dwg": "829e2348325c31442db904443c78922d47733a1b3b864c0f321bf783a7859046",
+      "/private/tmp/ac1027-two-layer/reviewer-entity-layer-missing.dwg": "3912e5850aee17151d2637bf11b8f118fa501af96d0e29d636b9e00d73e79cc9",
+      "/private/tmp/ac1027-two-layer/reviewer-entity-layer-wrong.dwg": "3849ce612bb41eeb68e4bf12acb59f930558cf99a89d29238601373366e8a48f",
+      "/private/tmp/ac1027-two-layer/reviewer-entity-ltype-missing.dwg": "81e3cc0776663c97fe97d239878155c12ae7a0f5a7260b0c1a3dc3ef03820234",
+      "/private/tmp/ac1027-two-layer/reviewer-entity-ltype-wrong.dwg": "c4152107bc810e115e69cf6a9585b99472a27df0095cef0e6f3a3735e3872123",
+      "/private/tmp/ac1027-two-layer/reviewer-entity-layer-role.dwg": "6eb37515f8139f93485a34d6c917041fddf90747710804c49dde0cdcb4dbe7b8",
+      "/private/tmp/ac1027-two-layer/reviewer-entity-ltype-role.dwg": "0e31637f60b384cd334e6fd4ab49767c2de88609183e06223432a746b11311d2"
+    },
+    "binary_sha256": "5991e50b2cb95fc1b4a6f34748b58d68861639bc22659ef912b77cd38c879308"
+  },
+  "source_sha256": {
+    "dwg2dxf/dx_data.h": "f34ce62d5cbcc09233d6da81b922f8314ca63736d19dc38844b0b92a41619b81",
+    "dwg2dxf/dx_iface.cpp": "e907ac5737396094ac1f62383cc516514bd098b35e1f5b789215db7bd92a57a8",
+    "tests/dwg_ac1027_default_graph_strict_tests.cpp": "3db31c78e16dab73e3acb6b29110c106e0823d55fe1d6fdefa367b8100a73e8e"
+  },
+  "integrated_validation": {
+    "base": "3bce2f36",
+    "result": "Main-workspace focused CTests passed 2/2 after rebuild.",
+    "test_source_sha256": "5bffdf08a9fd442308a37bace35cd39b8088347123f98dd9f0514dbbd724cf4c",
+    "note": "Removed an extra final blank line from the reviewed scratch test; source behavior is unchanged."
+  }
+}

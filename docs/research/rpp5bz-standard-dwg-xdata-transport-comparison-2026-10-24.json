@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bz standard DWG object XDATA transport comparison",
+  "date": "2026-10-24",
+  "parentCommit": "188327ff8e3b9d34ad543698990c7886f4dda14a",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "STANDARD_OBJECT_CHUNK_COMPARISON_FIXED_SOURCE_AND_SEMANTIC_QUALIFICATION_UNCHANGED",
+  "baseline": {
+    "result": "GAP_REPRODUCED",
+    "testExitCode": 8,
+    "wallSeconds": 1.71,
+    "sourceRevision": "AC1021",
+    "targetRevision": "AC1015",
+    "encoding": "ASCII",
+    "sourceObject": "Ordinary DICTIONARY B010 with128-byte common EED BINARY value",
+    "observation": "Compatible export succeeds but the eligible modeled-output fact is absent because commonEqual requires source/decoded variant cardinality parity",
+    "notAnExportRefusal": true,
+    "allMatrixCellsExercisedBeforeBaselineAbort": false,
+    "groupAndXrecordBaselineAssertionsReachedForFailingCell": false,
+    "buildLog": "/tmp/rpp5bz-baseline-build.log",
+    "testLog": "/tmp/rpp5bz-baseline-tests.log"
+  },
+  "implementation": {
+    "sharedMatcher": "Move the established allocation-free per-source-value XDATA transport matcher into dx_standard_output.h; use it from standard commonEqual and generated dictionary common comparison",
+    "contract": "Require each source1004 value's exact prescribed127-byte chunks, byte content, final length and explicit empty values; preserve ordering and adjacent source boundaries without aggregate concatenation",
+    "cleanup": "Remove duplicate generated matcher and temporary ownership swaps of deep-copied extData; compare copied common state directly through shared helper",
+    "accounting": "Retain generated projection expansion precharges and existing bounded standard decoding; matcher adds no payload copy or normalized chunk array",
+    "sourceEligibility": "Typed baseline, payload correlation, nonopaque profile, text/codepage observations, common-link evidence and APPID/LAYER source/output name joins remain required",
+    "finalization": "Existing actual identity/owner joins, unique reference cardinality and GROUP dictionary-name closure remain unchanged",
+    "legacyQualification": "AC1015/AC1018 standard common-link evidence remains unqualified",
+    "publicApiDataRecordLayoutOrDrwInterfaceVirtualsChanged": false,
+    "dwgParserGrammarDispatchOrWriterEncodingChanged": false,
+    "documentMergePolicyChanged": false,
+    "issueMasksWaivedOrSupportClaimsPromoted": false
+  },
+  "controls": {
+    "newCTest": "dwg2dxf_standard_dwg_binary_transport",
+    "selector": "--standard-dwg-binary-transport",
+    "source": "Public scratch native DWG writer followed by actual import and actual bounded source-frame correlation; no fabricated private receipt",
+    "objectFamilies": ["Ordinary DICTIONARY", "Named GROUP", "Typed XRECORD with recognized application values/references"],
+    "sourceRevisions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "commonEedBinaryByteLengths": [0, 127, 128, 254, 255],
+    "nativeSources": 30,
+    "targetRevisions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "binary"],
+    "actualExportReadbackCells": 360,
+    "modernCellsRequiringAllThreeModeledFacts": 240,
+    "legacyCellsRequiringAllThreeFactsAbsent": 120,
+    "readbackAssertions": ["Common APPID name", "Exact127-byte chunk framing", "Exact payload bytes", "Empty payload token", "Ordinary dictionary XRECORD entry", "GROUP/XRECORD presence"],
+    "copiedReadbackComparatorFaultRestorationControls": 2160,
+    "comparatorFaults": ["Byte edit", "Chunk deletion", "Chunk duplication", "Wrong group code", "Same aggregate bytes and field count with a byte moved across prescribed chunk boundary"],
+    "comparatorFaultEvidenceBoundary": "Only deep-copied actual readback is mutated; these are direct comparator controls, not physical wire fault/refusal tests or source-frame qualification",
+    "actualStrictPolicySentinelRefusalsThenCompatibleReadbackRetries": 60,
+    "retryFacade": "Same exporter facade",
+    "independentProducerEvidence": "NOT_RUN"
+  },
+  "validation": {
+    "build": {
+      "result": "PASS",
+      "strictWarnings": true,
+      "warningSuppression": false,
+      "affectedSeparatelyCompiledAdaptersRebuiltBeforeFinalChecks": true,
+      "normalLog": "/tmp/rpp5bz-final-build.log",
+      "asanLog": "/tmp/rpp5bz-asan-build.log"
+    },
+    "focused": {
+      "result": "PASS", "passed": 25, "total": 25, "wallSeconds": 14.89, "parallelism": 3,
+      "tests": ["libdxfrw_public_header_hygiene", "libdxfrw_generated_dictionary_source_metadata", "libdxfrw_standard_dwg_output_allocation", "libdxfrw_standard_dwg_payload_profile_and_allocation", "libdxfrw_generated_dictionary_metadata_allocation", "libdxfrw_standard_dwg_source_baseline", "libdxfrw_rooted_standard_dwg_output_proof", "libdxfrw_standard_dwg_group_metadata", "libdxfrw_rooted_standard_dwg_xrecord_eed", "libdxfrw_rooted_standard_dwg_layer_reference", "libdxfrw_material_root_output_compatibility", "libdxfrw_group_adapter_roundtrip", "libdxfrw_extension_graph_limits", "dwg2dxf_standard_dwg_object_source_capture", "dwg2dxf_standard_dwg_object_payload_correlation", "dwg2dxf_standard_dwg_source_text_observations", "dwg2dxf_standard_dwg_source_eed_text_observations", "dwg2dxf_standard_dwg_appid_dependencies", "dwg2dxf_standard_dwg_layer_dependencies", "dwg2dxf_xrecord_group_reference_admission", "dwg2dxf_generated_root_common_closure", "dwg2dxf_generated_dictionary_binary_chunks", "dwg2dxf_generated_dictionary_chunk_faults", "dwg2dxf_standard_dwg_binary_transport", "dwg2dxf_image_dictionary_imported_common"],
+      "log": "/tmp/rpp5bz-fast-final.log"
+    },
+    "owning": {
+      "result": "PASS", "passed": 5, "total": 5, "wallSeconds": 9.34, "parallelism": 3,
+      "tests": ["libdxfrw_wave1", "libdxfrw_dwg_local_roundtrip", "libdxfrw_dwg_object_vectors", "libdxfrw_hardening", "libdxfrw_dxf_fixtures"],
+      "log": "/tmp/rpp5bz-owning-final.log"
+    },
+    "readerConsumers": {
+      "result": "PASS", "passed": 4, "total": 4, "wallSeconds": 2.15, "parallelism": 3,
+      "tests": ["libdxfrw_dwg_reader_matrix", "libdxfrw_dwg_fixtures", "libdxfrw_named_resource_import_evidence", "libdxfrw_3d_consumer_probe"],
+      "log": "/tmp/rpp5bz-readers-final.log"
+    },
+    "asan": {
+      "result": "PASS", "passed": 9, "total": 9, "wallSeconds": 24.57, "parallelism": 3,
+      "options": "halt_on_error=1:detect_leaks=0",
+      "tests": ["dwg2dxf_standard_dwg_binary_transport", "dwg2dxf_generated_dictionary_binary_chunks", "dwg2dxf_generated_dictionary_chunk_faults", "dwg2dxf_image_dictionary_imported_common", "dwg2dxf_generated_root_common_closure", "libdxfrw_rooted_standard_dwg_output_proof", "libdxfrw_standard_dwg_group_metadata", "libdxfrw_rooted_standard_dwg_xrecord_eed", "libdxfrw_rooted_standard_dwg_layer_reference"],
+      "log": "/tmp/rpp5bz-asan-final.log"
+    },
+    "normalAndAsanLibreCAD3CompileGates": "PASS",
+    "owningAndReaderCohortsSequential": true,
+    "fullSuite": "NOT_RUN",
+    "platformIndependentSemanticOrBenchmarkQualificationClaim": false
+  },
+  "remaining": [
+    "Reproduce writer-accepted scalar1071 INTEGER64 versus signed32-bit transport corners before changing comparison",
+    "Audit unrelated OBJECTS profiles and XRECORD application-code framing without claiming an unobserved profile isolation bug",
+    "Independent APPID/LAYER/XRECORD source profiles, native sparse class cardinality, full IMAGE/common geometry and broader named-root/document closure",
+    "Explicit ownership/remapping contract before multi-document composition"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL", "J260": "DEFERRED_EXTERNAL", "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL", "J293": "DEFERRED_EXTERNAL", "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0, "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false, "unrelatedUntrackedFilesPreserved": true, "remoteMutations": false
+  }
+}

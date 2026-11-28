@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-17",
+  "status": "PARTIAL_IMPLEMENTATION",
+  "slice": "PAR-39 / 7BU binary DXF writer sink-kind guard",
+  "scope": [
+    "Propagate the selected standalone-safe or LibreCAD-master-legacy classifier profile to the binary DXF writer.",
+    "Reject known group-code/value-kind mismatches before writing the code or payload.",
+    "Keep binary chunk framing explicit and isolate unknown string replay behind writeRawString, called only from validated raw-group emission.",
+    "Retain group-999 rejection and AC1009/R12 code framing as separate wire controls.",
+    "Add a generated independent byte walk for ordered code framing, scalar widths, Boolean payload, binary chunk length, and final EOF sentinel."
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests dwg2dxf libdxfrw_writer_primitives_tests libdxfrw_writer_version_matrix_tests -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '(writer_primitives|writer_version_matrix|dxf_fixtures|binary_cli|mleader_writer)' -E 'r12_ellipse_carriers_binary' --output-on-failure",
+      "result": "PASS (15/15)"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "known_failure": {
+    "test": "dwg2dxf_r12_ellipse_carriers_binary_cli",
+    "result": "FAIL: generated adapter conversion exits with DXF emit-failure",
+    "isolation": "The same failure reproduced after temporarily disabling both new numeric and string value-kind checks. The guard is not sufficient to explain this failure. A clean-HEAD baseline was not tested because the shared worktree contains extensive unrelated changes.",
+    "artifacts": "Only generated files under build-gcc/tests; no fixture was added to the source tree."
+  },
+  "not_completed": [
+    "The exhaustive PAR-39/7X literal and dynamic writer call-site census is still outstanding.",
+    "Remaining serializer-family corrections and the full independent binary-DXF matrix are not complete.",
+    "No general binary-DXF support or interoperability claim is promoted."
+  ],
+  "claim_boundary": {
+    "findings": 130,
+    "top_level_subplans": 73,
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-sortents-direct-record-identity-rollback-2026-11-12",
+  "date": "2026-11-12",
+  "status": "SORTENTSTABLE_DIRECT_IDENTITY_ROLLBACK_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Make the low-level SORTENTSTABLE DXF writer roll back source-object identity mutations when a record attempt fails, and test the direct and enclosing whole-file transaction boundaries.",
+  "binding": {
+    "repositoryHead": "2a4474648e9e9421885fc9a9e9139a5ea7c5aca7",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "27ac70a55b86da086ad484392b099de2b2777c7c9acb80b61f84b0061185cae3",
+      "src/libdxfrw.h": "20ac730803496d614651c72d97b29c035c1af339cb7b7817544ab499b571c533",
+      "tests/sortents_objects_allocation_tests.cpp": "77188fb7d48a77071f2fd904d622b99355a19682db856e3e861a5752c1f7935a",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "1e2952c58d793db1d04b1f87a0c68a36f76f089bb8fa47feb4d148c425e3179c"
+    },
+    "artifactSha256": {
+      "build-gcc/libdxfrw.a": "cd43aa64b3c4bc3bbf4a0d72c64fef95a3167fda2a887499450fb88c528f7713",
+      "build-gcc/tests/libdxfrw_sortents_objects_allocation_tests": "0ed29c80942635aadca07026be93edb1771f61c0c9a2bec5e71e3ae3b2f0f602",
+      "build-asan-custom/libdxfrw.a": "9b9e4c6220acfc5c3ba1590d631a2fa27d9ae7b550f0aec4e71b8ac5dab2fe58",
+      "build-asan-custom/tests/libdxfrw_sortents_objects_allocation_tests": "fcf69e0654d3b61e1eb683a3a147641af0f1db63a06e418d9d05ec3aeb24686a"
+    }
+  },
+  "change": {
+    "implementation": "writeSortEntsTable now opens RecordStateScope before staging, binds its source handle before record commit, and commits state only after the record commits.",
+    "testSeam": "A named friend test-access class attaches an ASCII/Binary writer to exercise the public low-level record writer directly; it adds no object layout or virtual API change.",
+    "directControl": "The generated ASCII/Binary allocation sweep calibrates each allocation point, verifies each failed direct call preserves the caller record and leaves no sourceHandleToWrittenObjectMap entry, and confirms clean control output parses back as the typed SORTENTSTABLE record.",
+    "wholeFileControl": "The existing sweep continues to verify that the enclosing write preserves a seeded destination on every injected failure, then retries on the same adapter and matches clean output/readback."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_sortents_objects_allocation_tests -j2",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_sortents_objects_allocation$' --output-on-failure",
+      "result": "PASS 1/1 (0.55 seconds)"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_sortents_objects_allocation_tests -j2",
+      "result": "PASS"
+    },
+    "asanFocusedTest": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_sortents_objects_allocation$' --output-on-failure",
+      "result": "PASS 1/1 (0.99 seconds)"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "A low-level record writer cannot retract bytes already accepted by a generic ostream on a short append; the enclosing whole-file transaction is responsible for destination rollback and is separately covered.",
+    "This does not qualify named-block SORTENTSTABLE ownership, producer prevalence, sort ordering semantics, or native application behavior.",
+    "All test records are generated in memory or scratch files; no DWG/DXF fixture is added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue the P6 OBJECTS rollback/source-state audit for other concrete uncovered writer paths; preserve independent producer, ownership, and native semantic gates."
+}

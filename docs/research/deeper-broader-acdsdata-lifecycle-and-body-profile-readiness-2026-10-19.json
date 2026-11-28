@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ACDSDATA preservation lifecycle and modern BODY profile readiness",
+  "mode": "Primary-source release, pull-request, repository, official format documentation, local specification, and local implementation review",
+  "scope": [
+    "Review current open-source ACDSDATA preservation behavior for lifecycle cases that affect serialization readiness.",
+    "Separate legacy BODY DXF group-1/3 payload from modern AcDs/SAB record association.",
+    "Define a bounded decision path for modern BODY without blocking unrelated implementation or promoting unsupported claims."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_downloaded": 0,
+    "peer_fixtures_copied": 0,
+    "local_code_or_tests_changed": false,
+    "full_suite_run": false,
+    "local_checks": [
+      "Read-only inspection of the AC1027 DXF writer qualification predicate and nearby dispatch.",
+      "Cross-reference against existing generated ACDSDATA owner, multi-record, block/INSERT, payload, and transactional-refusal coverage.",
+      "Reviewed local authoritative ODA Open Design Specification v5.4.1 passages §§20.4.41, 20.4.1, and 24.2.2.3."
+    ],
+    "limitations": "CADCraft PR behavior and its real-file byte-preservation statement were not independently reproduced. The reviewed ODA passages establish modern AcDs/SAB details for REGION/3DSOLID but do not establish the modern BODY owner/key mapping. No modern BODY profile is qualified by this research."
+  },
+  "sources": [
+    {
+      "name": "CADCraft merged ACDSDATA lifecycle change",
+      "urls": [
+        "https://github.com/storytold/cadcraft/pull/781",
+        "https://github.com/storytold/cadcraft/releases/tag/v0.7.0",
+        "https://github.com/storytold/cadcraft/blob/main/Cargo.lock"
+      ],
+      "observed": "PR #781 merged on 2026-10-13 and is listed in v0.7.0. Its description reports retaining ACDSDATA through save, filtering records for entities no longer emitted, omitting the section for pre-2013 output or when no associated owner remains, version-aware loss reporting, and byte-identical SAB for 627 bodies in a real drawing. The current lockfile pins ACadRust 0.6.4.",
+      "evidence_ceiling": "Useful application-level lifecycle design and contributor-reported preservation result only. Not normative record-schema evidence, independently reproduced runtime behavior, B-rep semantic evidence, or an independent DWG parser lineage."
+    },
+    {
+      "name": "Autodesk BODY DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7FB91514-56FF-4487-850E-CF1047999E77.htm",
+      "observed": "The BODY entity uses AcDbModelerGeometry, modeler format version, proprietary group-1 data, and optional group-3 continuation lines.",
+      "evidence_ceiling": "Legacy DXF entity grammar only; it does not specify the modern AcDs section association."
+    },
+    {
+      "name": "Local ODA Open Design Specification v5.4.1",
+      "observed": "Reviewed §§20.4.41, 20.4.1, and 24.2.2.3 for modeler and AcDs carrier details. These passages cover the relevant modern AcDs/SAB route for REGION/3DSOLID but do not resolve the corresponding BODY owner/key mapping.",
+      "evidence_ceiling": "Authoritative local byte-layout source; absence of a BODY rule in the reviewed passages is not proof that no other specification passage or real profile defines one."
+    },
+    {
+      "name": "Local AC1027 DXF writer guard",
+      "path": "src/libdxfrw.cpp",
+      "observed": "hasQualifiedAc1027AcdsRecord accepts DRW::E3DSOLID and DRW::REGION, then validates source version/modeler profile, SAB signature, owner handle/key, and a unique AC1027 ACDSDATA section. BODY is excluded from that qualified route and the writer fails closed.",
+      "evidence_ceiling": "Current local implementation boundary only; does not establish normative format support or a defect."
+    },
+    {
+      "name": "obj2cad source-generated ACIS carrier candidate",
+      "url": "https://github.com/cbassuarez/obj2cad",
+      "observed": "The pre-release project advertises a custom SAT/SAB writer and analytic primitive samples; it labels DXF verified and DWG/curved surfaces beta pending AutoCAD acceptance. Its documented readback routes are ezdxf and ACadRust.",
+      "evidence_ceiling": "Optional from-scratch carrier producer only; no independent semantic or kernel proof, no BODY AcDs join evidence, and no runtime executed here."
+    },
+    {
+      "name": "LibreDWG current AcDs reader path, release notes, and issue",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "Current source contains an R2013+ AcDsPrototype_1b reader path. NEWS still calls the store incomplete and describes brute-force SAB extraction; issue #1411 is scoped to a reported release/build and REGION SAB loss.",
+      "evidence_ceiling": "Section-reader investigation lead only; does not establish complete BODY record association or semantic solid validity."
+    }
+  ],
+  "plan_impact": {
+    "cadcraft_lifecycle": "Use retained-owner, deleted-owner, no-owner, and target-version downgrade as lifecycle cases under the existing ACDSDATA carrier owner. Treat CADCraft as same-ACadRust-lineage application evidence, not an independent DWG vote.",
+    "body_profile": "Keep legacy BODY group-1/3 handling separate. Modern BODY remains NOT_QUALIFIED / PROFILE_DISCOVERY_PENDING until exact ODA text or a traceable, locally generated, independently interpreted profile defines the section/key/owner mapping. Preserve current transactional refusal and do not coerce BODY into REGION/3DSOLID.",
+    "implementation_readiness": "If a modern BODY route becomes qualified, test only the missing delta with a local in-memory or from-scratch vector: exact payload, owner-key closure, duplicate/missing/orphan handling, applicable ASCII/Binary behavior, target downgrade, and transactional destination preservation. Reuse existing ACDSDATA multi-record and block/INSERT tests for shared invariants.",
+    "speed_and_unblocking": "Use source/spec preflight first. If the mapping remains unspecified, record the profile boundary and continue unrelated local implementation. Keep strict focused tests per code slice and full/platform/native suites at the scheduled composed checkpoint; external samples and peer runtimes are not prerequisites.",
+    "obj2cad": "Optional composed-checkpoint source-generated carrier candidate only, pinned to an immutable revision and checked against a separate analytic manifest. No dependency, committed generated fixture, or semantic support promotion.",
+    "implementation_change": "No local defect reproduced; no code/test, new finding, top-level subplan, fixture, dependency, peer/native execution, full-suite run, validation-cadence change, or support claim added."
+  },
+  "finding_subplan_totals": {
+    "findings": 134,
+    "top_level_subplans": 76
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Plan and research receipt only in a broadly dirty shared worktree. This pass did not stage or commit any files."
+}

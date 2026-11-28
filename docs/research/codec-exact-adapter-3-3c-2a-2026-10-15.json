@@ -1,0 +1,207 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "parentCommit": "109f695aeac43077cb1d60850eb98dea7f8b2591",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "planSlice": "Slice3.3c.2a",
+  "state": "LOCAL_IMPLEMENTATION_COMPLETE",
+  "parent3_3": "IN_PROGRESS",
+  "supportPromotion": false,
+  "scope": "Explicit default-Compatible converter adapter input policy, owned requested/applied policy handoff and conservative source-profile refusal. Not closed exact-source profile/CLI admission, installed-library API expansion or new producer/native support.",
+  "sourceHashes": {
+    "dwg2dxf/dx_data.h": "59a2052a45978e1a9e96ddcbbf437cab38513ef70f6bf48d692eeea58bff7547",
+    "dwg2dxf/dx_iface.h": "6928d97836cfdc089336bb03f6ae04b15e2aab0abe8fc03794e026a7f67d4c8c",
+    "dwg2dxf/dx_iface.cpp": "2674619947f3ac41e10b26f7e422123da76ad22b656bbcbf10d6893889d473b6",
+    "tests/gbk_codepage_tests.cpp": "397bd26babce485b9f9b1c523f622be3b8410a5c9c99e90a9ebe671376d3ccdb",
+    "README.md": "74c42a1cfd748a671259b529a4b66fde21c40f89406c1d547702132d6d8b2d6c",
+    "docs/3D_CONSUMER_CONTRACT.md": "cc97d0f1b33f4698fe2ac262ce30058a007ce1dee6684b1b495fafb89de9dcae",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "060e40615e34704c55a45c57f449cedcc8107a5a33faa7d7fa5c16b053f1b061",
+    "DWG_DXF_3D_SUPPORT_PLAN.md": "572bedad1aa763d22308f4ff878aa481d02191b1df8cdd0e3a67f10b14e7e67a"
+  },
+  "unchangedCoreSources": {
+    "src/drw_base.h": "f8aeceaec12ed15990feba179fdc8627c515efb9b50a12865ffafe4a3d7ec060",
+    "src/drw_header.cpp": "0479d21bb73c5fde605fed24c7f1a618a1bd308f9d42e089d773b2a4f2f7c555",
+    "src/intern/drw_textcodec.cpp": "8b1e0d8b04c3c093eb1d2052993077e49c0b414a40550a4038ffc211f330a09e",
+    "src/intern/drw_textcodec.h": "4a072e48fae933ae9d04eff12db4c2d6b1457061b30febcaebf43eccf5df8ddb",
+    "src/intern/dxfreader.cpp": "a68fdea3a0d87501f0bb20abc33e89f8bc1eb237490e05fd2fd9ce142f9c3ed5",
+    "src/intern/dxfreader.h": "6bb66a27064a135474ce9b9bd9bcef33faef71720105c69ae2065b86351a6d65",
+    "src/libdxfrw.cpp": "1b62a9b68d055c3a6e5887f209cabb94e1779995f5e1048abfd1ca0f031609aa",
+    "src/libdxfrw.h": "2baa52bc1d20ec8bf4229eb13aee19468c3733b3a983536266d39f4ebded2c2b"
+  },
+  "artifactHashes": {
+    "build/libdxfrw.a": "e40076cd91d59c4f53a496a597d9079f7739a03ffa7c4d9b5d5ce94c0e3c7fc6",
+    "build/dwg2dxf/dwg2dxf": "98bddba5af640a876825e860858d6b1e394c150d12852196f63f941de0d5abf6",
+    "build/libdxfrw_gbk_codepage_tests": "b88a52efb6cbabe1a21e1c005b0619dd991fb11052d1a5663bfeb3ec2532a46a",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw.a": "da0ad22a0b359782a3668f1966ffe5232a6df9d2cfe5f65ae2711771a244e5f0",
+    "/private/tmp/libdxfrw-hatch-asan.Nc6BqC/libdxfrw_gbk_codepage_tests": "6c42cbf5c2f3de91a0d7be35b52a417ea8ce91206bafe9635651459ee9dfbf99",
+    "/private/tmp/libdxfrw-exact-adapter.FWccHI/focused.log": "6a996f47f08a123cae85a14f4802142a6b61bfcb163264709ea0ac82f4d6139d",
+    "/private/tmp/libdxfrw-exact-adapter.FWccHI/asan-focused.log": "6a996f47f08a123cae85a14f4802142a6b61bfcb163264709ea0ac82f4d6139d"
+  },
+  "behavior": {
+    "input": "dx_iface::fileImport(file,data,debug,DRW::DxfCodePagePolicy) has a Compatible default. Request recorded in the DXF outcome before facade construction; setter applied before debug/read.",
+    "outcome": "Appended requestedCodePagePolicy is separate from observations.codePagePolicy and readReturned/readThrew/operationSucceeded. Return/unwind/diagnostic-copy failures retain evidence; non-DXF attempts reset DXF-specific state.",
+    "lifecycle": "Per-import outcome reset preserves existing append-to-model behavior. Copied request/applied values survive later caller policy mutation/default import.",
+    "admission": "Unknown requested policy or request/applied disagreement is EvidenceUnavailable. Existing issues remain ObservedIssues. Pending closed per-consumption profile review, simultaneous exactNamedDecodeCalls and nonAsciiDecodeCalls under ExactNamed cause UnsupportedProfile, regardless of a later canonical HEADER or zero issue mask.",
+    "guardLimit": "Counters overlap across fields; this is conservative refusal only, not exact family identification/producer qualification. Decoder-independent ASCII/represented escapes and modern inert metadata retain existing eligibility. Some mixed-profile harmless cases can conservatively refuse until3.3c.2b replaces the guard.",
+    "export": "Caller-explicit Compatible source admission can export exact-decoded data under the independent RequireLossless target guard. Actual two-pass outputs preserve literal text/LINE and reimport with default Compatible; this does not qualify input producer grammar.",
+    "defaults": "No CLI option or default changes. Existing three-argument source calls compile; the internal adapter signature is not a member-pointer/binary-ABI promise. Installed library sources/API/callbacks are unchanged by this slice."
+  },
+  "tests": {
+    "focusedMode": "--exact-codepage-import",
+    "exactImports": 8,
+    "twoPassExports": 16,
+    "atomicStrictSourceRefusals": 8,
+    "coreMatrix": "Two ISO spellings × legacy/modern × ASCII/binary input. Each performs two exports plus third read, with opposite legacy/modern target and matching ASCII/binary output framing.",
+    "semanticAssertions": [
+      "Literal U+0104 typed TEXT",
+      "distinct nonzero-Z LINE endpoints",
+      "original physical declaration",
+      "requested/applied policy",
+      "no decoder issues for actual exact mapping",
+      "modern inert metadata",
+      "default Compatible readback",
+      "original owned outcome unchanged by exports"
+    ],
+    "lifecycleControls": [
+      "early missing-file return with zero events",
+      "late invalid-handle return with completed exact prefix",
+      "next defaulted import resets policies/events without changing copied result",
+      "invalid-extension reset without invented DXF request",
+      "unavailable-family high-byte issues versus decoder-independent ASCII CIF",
+      "later canonical HEADER cannot qualify earlier exact high bytes",
+      "request/applied disagreement",
+      "unknown policy enum values"
+    ],
+    "callbackRetryControls": 3,
+    "callbackScope": "Caller argument mutation during text callback; returned success, original nonallocating callback sentinel unwind, diagnostic-copy allocation failure. All corrected same-adapter retries use fresh default policy.",
+    "existingOutcomeControls": {
+      "handoffs": 36,
+      "versionControls": 5,
+      "reuseContext": 10,
+      "exceptionRetryPairs": 3
+    },
+    "existingSourceAdmissionControls": {
+      "handoffs": 40,
+      "profileControls": 1,
+      "envelopeControls": 17
+    },
+    "ctest": {
+      "packet": {
+        "path": "/private/tmp/libdxfrw-exact-adapter.FWccHI/focused-ctest.xml",
+        "sha256": "90c8e3b73ee693f3fb36ca6e5d11828e1ba68ddf4d6d4c39c2c1356b014b31fb",
+        "suite": {
+          "name": "(empty)",
+          "tests": "2",
+          "failures": "0",
+          "disabled": "0",
+          "skipped": "0",
+          "hostname": "",
+          "time": "8",
+          "timestamp": "2026-10-15T15:47:15"
+        },
+        "cases": [
+          {
+            "name": "dwg2dxf_cli_contract",
+            "classname": "dwg2dxf_cli_contract",
+            "time": "8.51722",
+            "status": "run"
+          },
+          {
+            "name": "libdxfrw_gbk_codepage",
+            "classname": "libdxfrw_gbk_codepage",
+            "time": "0.371982",
+            "status": "run"
+          }
+        ]
+      },
+      "reportedWallSeconds": 8.9,
+      "tests": 2,
+      "failures": 0,
+      "skips": 0
+    },
+    "strict": {
+      "translationUnits": [
+        "dwg2dxf/dx_iface.cpp",
+        "tests/gbk_codepage_tests.cpp"
+      ],
+      "exitCode": 0,
+      "command": "clang++ -std=c++17 -Wall -Wextra -Wpedantic -Werror -I. -Isrc -Idwg2dxf -fsyntax-only <source>"
+    },
+    "build": {
+      "targets": [
+        "libdxfrw_gbk_codepage_tests",
+        "dwg2dxf"
+      ],
+      "exitCode": 0
+    },
+    "asanUbsan": {
+      "mode": "--exact-codepage-import",
+      "exitCode": 0,
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=0",
+        "UBSAN_OPTIONS": "halt_on_error=1"
+      },
+      "scope": "Rebuilt changed adapter/test TUs and fresh focused mode; core instrumented archive remains identical to preceding reader acceptance."
+    }
+  },
+  "notRun": [
+    "Full test suite",
+    "New consumer/native/installed-package qualification",
+    "New DWG parser/spec layout work",
+    "New CLI exact-input route",
+    "Independent ACIS/AcDs semantic qualification"
+  ],
+  "limits": [
+    "Before-facade request recording is source-reviewed; constructor/setup allocation failure was not newly fault-injected.",
+    "Returned read and callback/diagnostic-copy exceptions are executed; this does not promise whole-model rollback or concurrency safety.",
+    "Existing140 codec defaults are not rerun because all core sources and regular/instrumented archives are identical to prior bound acceptance; new adapter defaults are checked by actual codec/CLI tests.",
+    "No issue mask or count is treated as a charset/producer/whole-drawing certificate."
+  ],
+  "next": {
+    "item": "Slice3.3c.2b",
+    "action": "Record closed cumulative consumed mapping-profile identity and review explicit compatibility eligibility before broader CLI opt-in. Replace the conservative guard only with tested per-consumption rules; retain native/producer/support gates independently."
+  },
+  "countsUnchanged": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "threeDLedgerItems": 149
+  },
+  "deferredExternal": [
+    {
+      "id": "J256",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J260",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J268",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J284",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J293",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    },
+    {
+      "id": "J295",
+      "status": "DEFERRED_EXTERNAL",
+      "canPromoteSupport": false
+    }
+  ],
+  "fixturePolicy": "Only scratch runtime-authored DXF inputs; no downloaded drawings, committed fixtures, new dependency or CTest registration. Existing user-owned untracked files preserved.",
+  "documentation": [
+    "README.md internal adapter requested/applied policy and conservative admission",
+    "docs/3D_CONSUMER_CONTRACT.md separate input/source/target policies",
+    "both implementation plans updated with actual scope/results/next gate"
+  ]
+}

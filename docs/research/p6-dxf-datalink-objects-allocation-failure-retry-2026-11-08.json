@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-datalink-objects-allocation-failure-retry-2026-11-08",
+  "date": "2026-11-08",
+  "status": "GENERATED_ASCII_BINARY_DATALINK_OBJECTS_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep allocation failures in a rooted generated AC1027 DXF OBJECTS callback containing a DATALINK with two custom-data target references and two target DATALINK records.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "Generated NOD ACAD_DATALINK entry -> DICTIONARY E000 -> primary DATALINK E001; its ordered custom-data links target DATALINK E002/E003.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "dae48a9b",
+    "files": {
+      "tests/datalink_objects_allocation_tests.cpp": "ed051f79c016b17cfaaccb13da9086dd0f3629286dd36acee764809159049483",
+      "tests/CMakeLists.txt": "24ef13f4844e188d93c8147649d34c8a1d9f0d32b9926c08c891ba07fdb528a8"
+    },
+    "method": "Warm the writer and calibrate callback allocations per encoding. Inject one std::bad_alloc at every offset; require publication refusal, destination sentinel preservation, complete caller dictionary/DATALINK state preservation, and same-writer retry followed by typed import of all three records and both ordered remapped custom-data targets."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_ENABLE_FREECAD_DESKTOP_CONTROL=OFF -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_LINE_CONTROL=OFF: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_datalink_objects_allocation_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_datalink_objects_allocation_retry$' --output-on-failure: PASS 1/1",
+    "ascii": "28/28 callback allocation offsets injected; destination/caller-state preservation, same-writer retry, and typed graph readback passed.",
+    "binary": "25/25 callback allocation offsets injected; destination/caller-state preservation, same-writer retry, and typed graph readback passed.",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_datalink_objects_allocation_tests --parallel 4: PASS",
+    "asanFocusedCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_datalink_objects_allocation_retry$' --output-on-failure: PASS 1/1",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated serialization and transaction evidence only; no physical producer prevalence or native spreadsheet semantics are established.",
+    "No external workbook or service is accessed; connection strings are inert generated values.",
+    "This closes only the selected typed DATALINK writer path."
+  ],
+  "nextAction": "Continue the receipt-driven OBJECTS allocation audit with the smallest independently testable writer among FIELD, FIELDLIST, and TABLECONTENT."
+}

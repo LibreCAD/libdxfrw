@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ModelDocViewStyle absent header field-set insertion fast slice",
+  "mode": "Generated local ASCII/Binary implementation follow-up",
+  "scope": [
+    "Serialize all five modeled ModelDocViewStyle header fields when absent: class version, description, modified flag, display name, and view-style flags.",
+    "Preserve the recognized wire order and opaque-group relative order; encode the full unsigned flags word through its signed DXF long representation.",
+    "Verify typed same-version ASCII and Binary readback without adding repository fixtures or CTest registrations."
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "Subclass-scoped insertion supports recognized ModelDocViewStyle codes 70, 3, 290, 300, and 90. It inserts before the next recognized higher-ranked field in the 70,3,290,300,90 sequence, rejects an already-present target code when insertion is requested, and keeps ASCII raw values/Binary placeholders aligned. The 32-bit flags value is mapped to its signed int32 wire representation without dropping high bits.",
+    "generatedControl": "The secondary DetailViewStyle starts with an empty ModelDocViewStyle subclass. The test sets all five typed fields, including flags 0xF000000D, verifies the full expected raw stream in ASCII and Binary, and asserts typed same-version readback of every field."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/modeldocviewstyle-header-field-set-insertion-fast-slice-2026-10-19.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "repositoryFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "commitCreated": false
+  },
+  "limitations": [
+    "Only same-version generated DXF insertion of the five model-document header fields is covered.",
+    "The signed-wire group 90 round trip proves bit preservation, not semantic interpretation of unknown style flags.",
+    "No DWG-origin typed output, cross-version translation, native style rendering, or consumer support qualification follows."
+  ],
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimPromoted": false,
+    "findings": 138,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

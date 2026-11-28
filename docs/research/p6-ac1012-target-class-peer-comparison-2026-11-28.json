@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-target-class-peer-comparison-2026-11-28",
+  "supportClaimEffect": "none",
+  "sourceSha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5",
+  "method": "For the locally authored rooted AC1012 destination resave, compare physical R2000 ASCII CLASSES records from the intentionally unsafe guard-bypass/projection scratch build with ODA File Converter 27.1.0 output. Then convert the scratch DXF with ODA and inspect physical layout backlinks and CLASS rows.",
+  "observations": [
+    "The diagnostic DXF emits DICTIONARYWDFLT and ACDBPLACEHOLDER classes, but no LAYOUT, GEODATA, RASTERVARIABLES or WIPEOUTVARIABLES class. The independent source object-map census reports two LAYOUT frames and no frames for the three proxy families in this source.",
+    "ODA's direct source conversion emits all four class names among other classes. Converting the diagnostic DXF through ODA retains both selected physical layout/backlink pairs and emits LAYOUT along with other classes, but does not add the three unused proxy-family classes.",
+    "Autodesk documents CLASSES for application-defined instances and the group-code meanings; this comparison does not establish whether an absent LAYOUT row is valid for the selected target or whether unused source CLASS rows may always be omitted."
+  ],
+  "authority": ["https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6160F1F1-2805-4C69-8077-CA1AEB6B1005.htm", "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-DBD5351C-E408-4CED-9336-3BD489179EF5.htm"],
+  "sha256": {
+    "diagnosticDxf": "357f7f970829df77ce554a5a800673a55100608870f64da7316fd546456a32e3",
+    "odaDirectDxf": "6346f4737c756b31d86dc8a936436cadac215956484f5cd884456cc628c85bae",
+    "odaResavedDiagnosticDxf": "eeba022a9f4bfaadf7c78e8c722d95b6be91e20105a48ce9774072b22d9bc26a"
+  },
+  "limits": ["Scratch output bypassed three production guards and the legacy layout refusal; it is not a qualified export.", "ODA conversion may add or repair records. No native AutoCAD, proxy ordinal, general class-table or binary-target conclusion follows.", "No drawing fixture was committed."]
+}

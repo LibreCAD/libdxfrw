@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-15",
+  "scope": "Independent ODA File Converter roundtrip of locally generated experimental empty named-block SORTENTSTABLE ASCII and binary DXF files.",
+  "generator": "build-gcc/tests/libdxfrw_dxf_empty_named_sortents_tests --keep; no DWG/DXF file from this experiment is committed.",
+  "inputSha256": {
+    "ascii": "275ee784081fe6c6642debccc1950f1b1249b2f8517f3432815f83dfa190fa24",
+    "binary": "c9bfb0ce39508f0073a261022d8ee0f4e9103038982ae8e8775184fe6e4e4b57"
+  },
+  "odaVersion": "27.1.0.0 macOS ARM64",
+  "odaExecutableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+  "procedure": "ODA File Converter CLI converted both inputs with audit enabled to ACAD2010 DWG, then converted those DWGs to ACAD2010 DXF with audit enabled. ezdxf 1.4.5 inspected the result before and after audit.",
+  "dwgSha256": {
+    "ascii": "02c8a7dc65d6517e57211adb596ce546130fb3ad651eada8363c1f2a496545e8",
+    "binary": "806f4279e0ed3b8f4eea01e070f1b6be9de17a1bdedf0abb5f5b69308645264e"
+  },
+  "readbackDxfSha256": {
+    "ascii": "608f997c9d26048fb2f1cc280562e6e16754350f8d8e3204220d67fac2f545e8",
+    "binary": "a1ba7ed79c5ef90f23e32ba47f4264c988064c45a09737eb6d25a16289c71936"
+  },
+  "findings": [
+    "Both ODA conversions and readbacks exited zero. Both readback DXFs retain named block 0x30, extension dictionary 0xB003, SORTENTSTABLE 0xB100, other XRECORD 0xB200, their reciprocal owners, and the empty redraw-order mapping. ezdxf reported zero audit errors and zero fixes for both.",
+    "The sandboxed ODA invocation aborted with pasteboard/XPC errors. The same local converter worked outside the sandbox; this run does not establish that a locked desktop is generally usable.",
+    "A separate actual LibreCAD title-fixture import census identified source BLOCK_RECORD handles 2, C, 127, 20A8 and 225B; its three named graphic blocks retain source handles/names 127/Title_Block-ISO, 20A8/*U1 and 225B/*U4. This is import correlation only, not export qualification."
+  ],
+  "limits": "The ODA generated-file roundtrip is independent evidence for this single experimental empty-table profile, not a native AutoCAD, LibreCAD or FreeCAD qualification. Autodesk DXF documents only Model/Paper Space owners; LibreDWG conversion dropped the table. Default refusal remains, J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL and no support claim or phase gate is promoted."
+}

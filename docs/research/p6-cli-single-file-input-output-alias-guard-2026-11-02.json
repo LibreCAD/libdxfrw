@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "id": "P6-CLI-SINGLE-FILE-INPUT-OUTPUT-ALIAS-GUARD",
+  "date": "2026-11-02",
+  "state": "IMPLEMENTED_LOCAL_SLICE",
+  "goal": "Refuse single-file CLI conversion when the output resolves to the same filesystem object as its input, before prompting or opening the writer.",
+  "plan_scope": "P6 CLI and oracle contracts: exact overwrite admission and namespace/collision checks",
+  "source_binding": {
+    "git_head": "7dd3db935fa4bd115bb99297645d527f42c6fbaf",
+    "converter": "build-gcc/dwg2dxf/dwg2dxf",
+    "converter_sha256_before": "18f418a85085473cceacef98fb0efd16d25b3e91ae27b619b646b26787b50f73"
+  },
+  "reproduction": {
+    "input": "131-byte DXF authored from scratch in a temporary directory; SHA-256 1cea781dbabd037786b78c23ad01b4121c6525771bcf6f893b4a29aab2d574f2",
+    "argv_shape": ["dwg2dxf", "<same.dxf>", "-y", "-v2010", "<same.dxf>"],
+    "observed_exit": 0,
+    "observed_stdout": "Success: converted <same.dxf> to <same.dxf>",
+    "observed_effect": "Input changed from 131 bytes to 10068 bytes and the original LINE was absent from the resulting file."
+  },
+  "affected_routes": ["legacy positional", "FreeCAD -o"],
+  "focused_validation": {
+    "selector": "dwg2dxf_cli_contract_tests.py --options-only",
+    "generated_cases": ["same path", "symlink alias when supported", "hard-link alias when supported"],
+    "assertions": ["exit 1", "explicit alias diagnostic", "input bytes unchanged", "alias unchanged"]
+  },
+  "implementation": {
+    "summary": "Before overwrite authorization, compare existing input/output filesystem identity with std::filesystem::equivalent; refuse aliases, fail closed if identity cannot be checked, and keep the source bytes unchanged.",
+    "files": ["dwg2dxf/main.cpp", "tests/dwg2dxf_cli_contract_tests.py"],
+    "behavior": "convertFile checks std::filesystem::equivalent before overwrite prompting; same-file, symlink and hard-link aliases are refused, and identity-check errors fail closed.",
+    "tests_added": "Generated temporary aliases exercise positional overwrite, FreeCAD -o overwrite, and positional no-overwrite routes. On this host, same-path, symlink and hard-link aliases each pass through all three routes (9 refusal cases). No fixture files were added.",
+    "main_cpp_sha256": "4d8e49b3ec5e2423ac9079da6ae720dab27141fa54148ae49c8244b58b700e42",
+    "test_script_sha256": "edd46e2767349c1b9122d0186eeb1880ea1ffdd351a349853e5acaf5338dde63"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf -j2 — PASS",
+    "focused_selector": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --options-only — PASS (76 controls)",
+    "owning_fast_test": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_contract$' --output-on-failure — PASS (1/1, 6.55 seconds)",
+    "binary_sha256_after_build": "4cc8365208d3b80db73d9a8f609548c1597b5bc1a30cba3f4a50cfbe792edad0",
+    "diff_check": "git diff --check — PASS"
+  },
+  "escalation": "This local CLI identity guard does not qualify cross-platform filesystem behavior, atomic publication against concurrent path replacement, or broader output semantics. No full suite or independent format oracle is needed for this slice."
+}

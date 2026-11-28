@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-point-3d-editing-2026-11-21",
+  "date": "2026-11-21",
+  "status": "DRAFT_CONSUMER_FIX_FOCUSED_TESTS_PASS",
+  "supportClaimEffect": "no platform or native GUI qualification",
+  "pullRequest": "https://github.com/LibreCAD/LibreCAD_3/pull/463",
+  "commit": "054f42341cd1523f2706135df436262319a5ea85",
+  "base": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "baseline": "Both added POINT unit tests fail against the prior consumer kernel; elevation is lost and mirror does not reflect.",
+  "fix": "Preserve xyz in copy, move, rotation, scale, mirror, metadata changes, bounds, snap and drag; preserve identity for in-place edits and provide valid degenerate-axis behavior.",
+  "validation": {
+    "bundled": "5 focused tests passed: POINT editing and coordinates, ASCII/binary POINT save/reopen, 3D LINE roundtrip, ASCII format checks. Additional POINT unit tests passed after adding 2D mirror and stack-allocated degenerate-axis controls.",
+    "currentLibdxfrw": "4 focused tests passed including POINT ASCII/binary roundtrip and 3D LINE roundtrip, with PR #460 reserved-linetype correction applied only to the test build; unmodified LibreCAD_3 master fails the existing LTYPE output check.",
+    "candidateLibrarySha256": "42b6e477162228307f9c72df47d2e4b3ac78920dbea2b6f642534849218592b8",
+    "independent": "ezdxf 1.4.5 checked five edited POINT coordinates in both encodings and both codec builds: 20 locally generated outputs.",
+    "independentReceiptSha256": "65527ed17e0333560a8709dc9137080ba0b0dbfeecf39465b78e285da802cc1a"
+  },
+  "limits": [
+    "No native GUI or OS-platform qualification.",
+    "No third-party DWG/DXF fixture added.",
+    "Current codec validation requires the #460 reserved-linetype fix."
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Open-source peer capability and FreeCAD integration-route refresh",
+  "mode": "primary-source research with focused local implementation revalidation",
+  "scope": [
+    "Compare modern DIMSTYLE resource reference handling across Autodesk DXF documentation and ezdxf",
+    "Reconcile LibreDWG and ACadSharp published routes with exact operation/version limits",
+    "Clarify FreeCAD's external DWG converter to DXF to selected-importer pipeline",
+    "Refine PAR-23/7J readiness without promoting support or expanding routine validation"
+  ],
+  "sources": [
+    {
+      "name": "Autodesk DIMSTYLE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+      "observation": "Documents group 340 as referenced STYLE handle and groups 341-344 as referenced BLOCK handles; the page does not list DIMSTYLE codes 345-347."
+    },
+    {
+      "name": "ezdxf DIMSTYLE internals",
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/tables/dimstyle_table.html",
+      "observation": "Describes name-to-handle resource mapping and R2007+ DIMSTYLE linetype handle codes 345-347 as undocumented."
+    },
+    {
+      "name": "ezdxf Dimension API and source",
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dimension.py",
+      "observation": "Maps handle 0 to the default closed-filled arrow, resolves named arrows through BLOCK_RECORDs, and separates dimension entities from their anonymous graphical blocks."
+    },
+    {
+      "name": "ezdxf linear dimension tutorial",
+      "url": "https://ezdxf.readthedocs.io/en/stable/tutorials/linear_dimension.html",
+      "observation": "Distinguishes arrow blocks from tick-size behavior and documents implementation-specific dimension rendering limitations."
+    },
+    {
+      "name": "GNU LibreDWG 0.13.4 programs manual and overview",
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/Programs.html",
+      "relatedUrl": "https://www.gnu.org/software/libredwg/manual/html_node/Overview.html",
+      "observation": "Documents full/minimal dwg2dxf routes, revision selection, binary DXF maturity caveats, and separate DWG read/write maturity."
+    },
+    {
+      "name": "ACadSharp current README/version matrix",
+      "url": "https://github.com/DomCR/ACadSharp",
+      "observation": "Publishes direction-specific version availability through AC1032 but not per-entity, graph, or native consumer semantics."
+    },
+    {
+      "name": "FreeCAD current DWG importer",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "observation": "Routes DWG through an external converter and then DXF import; the reviewed LibreDWG path checks the expected output path exists after conversion, which does not prove semantic completeness."
+    },
+    {
+      "name": "FreeCAD DWG preferences",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "observation": "Distinguishes converter choices and documents known LibreDWG fidelity limits."
+    }
+  ],
+  "planUpdate": {
+    "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "updatedTopProgressSummary": true,
+    "updatedReadinessRow": "7J",
+    "addedResearchSection": true,
+    "addedImplementationProgress": true,
+    "findingsAdded": 0,
+    "topLevelSubplansAdded": 0,
+    "dependenciesAdded": 0,
+    "persistentFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalQualificationItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationSlice": {
+    "identifier": "PAR-23/7J-DIMSTYLE-resource-closure",
+    "scope": "Strict modern DXF conversion group 340-344 resource identity and target body closure",
+    "coverage": [
+      "group 340 resolves to emitted STYLE row",
+      "groups 341-344 resolve to planned BLOCK_RECORDs and emitted BLOCK/ENDBLK bodies",
+      "source handle/name identity and output handle remapping",
+      "empty and closed-filled/zero arrow sentinel behavior",
+      "ASCII and Binary generated positive/negative controls",
+      "DXF import then re-export reference remapping"
+    ],
+    "notEstablished": [
+      "standard named arrow block synthesis",
+      "DIMSTYLE codes 345-347 or other version-specific reference fields",
+      "dimension picture geometry/rendering",
+      "constraint classification",
+      "FreeCAD native acceptance",
+      "independent semantic support"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimension_picture_block_full_conversion$' --output-on-failure",
+      "result": "passed (1/1)"
+    },
+    "receiptJson": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan, implementation, test, and receipts",
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "gitCommitted": false,
+    "commitReason": "The shared worktree contains broad unrelated edits in the same plan, implementation, and test files; this slice cannot be isolated safely without capturing unrelated changes."
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "IMAGEDEF pixel-size code-12/code-21 parser discriminator",
+  "mode": "generated local fast-test slice; no production mapping change",
+  "scope": [
+    "Exercise absent, group-12-only, group-21-only, and both-order IMAGEDEF pixel-size records",
+    "Run each generated record form in ASCII and Binary DXF",
+    "Observe raw tag order before fresh semantic import and check following IMAGEDEF fields"
+  ],
+  "controlMatrix": {
+    "encodings": ["ASCII", "Binary"],
+    "forms": [
+      {"name": "absent", "rawCodes": [], "expectedVp": 0.0},
+      {"name": "code12", "rawCodes": [12], "expectedVp": 0.125},
+      {"name": "code21", "rawCodes": [21], "expectedVp": 0.375},
+      {"name": "both12then21", "rawCodes": [12, 21], "expectedVp": 0.375},
+      {"name": "both21then12", "rawCodes": [21, 12], "expectedVp": 0.125}
+    ],
+    "followingSentinels": {
+      "loadedCode280": 1,
+      "resolutionCode281": 5
+    },
+    "observation": "The current parser maps both aliases to vp and later occurrences win. This is behavior evidence only; it does not settle normative producer spelling."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure"
+    ],
+    "results": [
+      "Strict -Werror DXF fixture target built successfully.",
+      "libdxfrw_dxf_fixtures passed 1/1 with all ten generated encoding/form cases."
+    ],
+    "fixturesAdded": 0,
+    "newCTestRegistrations": 0,
+    "fullSuitesRun": false
+  },
+  "limitsAndNextSteps": {
+    "independentRawScanner": "Not yet implemented: raw code order is captured through the repository low-level DXF reader before a separate semantic import, not an independent binary framing implementation.",
+    "normativeMapping": "Unresolved; no writer change or support claim follows from these tests.",
+    "remaining": [
+      "Byte-independent raw binary/ASCII scanner and versioned producer witness",
+      "Earlier/later sibling dictionary ordering",
+      "Destination-preserving failure and corrected-retry of the full IMAGE graph"
+    ],
+    "supportClaimsPromoted": 0,
+    "externalPeersRun": false,
+    "nativeCadRun": false
+  },
+  "planImpact": {
+    "existingOwner": "PAR-59 / 7P.5b",
+    "completedSubstep": "7P.5b.3 generated parser discriminator",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "repositoryState": {
+    "worktreeWasBroadlyDirty": true,
+    "unrelatedChangesPreserved": true,
+    "receiptAndPlanAreUncommitted": true
+  }
+}

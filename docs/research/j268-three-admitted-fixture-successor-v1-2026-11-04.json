@@ -1,0 +1,113 @@
+{
+  "advisory": true,
+  "execution": {
+    "converterSha256": {
+      "baseline": "cd9bfe3ed74d2516c08f99f2580f0f89c56eded378ee0b4ec8b3507e5a89008a",
+      "current": "a0b6e5ae7dc9daa71b2096a3fa5906e91d7de1c3fe286bd7973c803a3fd465e3"
+    },
+    "targetDxfVersion": "AC1024",
+    "timeoutSeconds": 4
+  },
+  "historicalJ268ContentHashesRecovered": false,
+  "historicalJ268MembershipRecovered": false,
+  "historicalJ268PathRowsRecovered": true,
+  "kind": "j268-three-admitted-fixture-successor-v1",
+  "promotesSupportClaims": false,
+  "research": {
+    "diagnosticAnalysis": {
+      "baseline": "Exit 0, nonempty AC1024 DXF; aligned DXF group-0 scan finds no RTEXT, ARCALIGNEDTEXT, DETAILVIEWSTYLE or MODELDOCVIEWSTYLE records. This demonstrates omission of selected source records, not semantic equivalence.",
+      "classification": "Current strict refusal is loss-avoiding for a source and requested target whose baseline output drops these records. It is an observed compatibility difference, not a proven functionality regression or a support claim.",
+      "current": "Exit 1 before publication: typed DWG ModelDocViewStyle serialization requires the exact DWG source version; input AC1032, target AC1024. A separate -v2018 attempt also exits 1 due strict-complete source import disposition.",
+      "independentReader": "/opt/homebrew/bin/dwgread 0.14 -O JSON, executable SHA256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff, returns 0 and SUCCESS on stderr; reports RTEXT handle 1440 and text RTEXT-DIESEL-TEST, ARCALIGNEDTEXT handle 1441, and AcDbModelDocViewStyle subclass in a DETAILVIEWSTYLE object. Only identity and selected fields observed here; not a full semantic or warning-free qualification.",
+      "source": "tests/fixtures/dwg/rtext_arctext.dwg"
+    },
+    "historicalRecord": {
+      "changedFiles": [
+        "LIBRECAD_DXFRW_UPGRADE_PLAN.md"
+      ],
+      "commit": "f01244497409e388585d50bb9a7fb314d95c0f6b",
+      "date": "2026-09-15",
+      "githubCheck": "Authenticated connector fetch_commit_workflow_runs returned zero pull-request-triggered runs for the historical commit in both LibreCAD/libdxfrw and dxli/libdxfrw; that endpoint filters to PR-triggered runs and first page, so this is not proof that all historical artifacts are absent.",
+      "retainedSummary": "28 available paths; four seconds per input; five upgraded improvements; zero baseline-success/current-failure results; colorwh.dwg timed out in upgraded run and baseline failed.",
+      "unresolved": "The commit did not contain per-row results. A later review recovered all 28 path basenames and exit-status rows from the original local execution transcript; see j268-original-execution-transcript-recovery-2026-11-04.json. Source-byte hashes at sweep time and the historical set digest remain unproven. No inference that these three successor fixtures were members of J268."
+    },
+    "nextSteps": [
+      "Recover the original S292 sweep input bytes or contemporaneous per-file hashes, proving immutable association with the recovered 28 row basenames before asserting any historical set digest.",
+      "Run a separately versioned successor with exact target/standalone source and tool dependency closure, semantic preservation and error-disposition checks; extend the eligible fixture cohort only with documented provenance.",
+      "Keep J268 DEFERRED_EXTERNAL and non-promoting; never substitute this successor set digest for the unknown historical set digest."
+    ],
+    "reproduction": {
+      "baseline": "git archive 92d7466ed9146badcd4fb44c82d1dd8302b3c7db | tar -x -C BASE_SRC; cd BASE_SRC && patch -p1 < PATH_TO_REPO/tools/j268_scratch_baseline.patch; cmake -S BASE_SRC -B BASE_BUILD -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DLIBDXFRW_BUILD_DOC=OFF; cmake --build BASE_BUILD --parallel 4",
+      "candidate": "git archive 46697bee7bebd25d8682f0fc294e245fb0275bd1 | tar -x -C CURRENT_SRC; cmake -S CURRENT_SRC -B CURRENT_BUILD -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_TESTS=OFF; cmake --build CURRENT_BUILD --parallel 4 --target dwg2dxf",
+      "execute": "python3 -B tools/j268_three_fixture_successor.py --baseline BASE_BUILD/dwg2dxf/dwg2dxf --current CURRENT_BUILD/dwg2dxf/dwg2dxf --output REPORT.json",
+      "repeat": "Two consecutive runs of the generated report were byte-identical. Hash tampering of a selected fixture identity was rejected before any result was written. Paths named BASE_SRC, BASE_BUILD, CURRENT_SRC and CURRENT_BUILD are distinct temporary directories."
+    },
+    "sourceBinding": {
+      "baselinePatchLimit": "Pristine baseline fails -Werror on this host. Patch fixes signed sscanf argument types and indentation in the scratch source only. Changing signed to unsigned can affect conversion for out-of-range values, so this is not a byte-identical or behavior-proven historical baseline build.",
+      "baselineRepositoryCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
+      "baselineScratchPatch": "tools/j268_scratch_baseline.patch",
+      "baselineScratchPatchSha256": "c7d9352f6e3369441a991636a6a6283ebd792d3d9efc9a2f35c4e27b20393f37",
+      "candidateInputs": "git archive of the exact commit, not the mutable worktree",
+      "candidateRepositoryCommit": "46697bee7bebd25d8682f0fc294e245fb0275bd1",
+      "cmake": "4.4.5",
+      "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+      "generator": "tools/j268_three_fixture_successor.py",
+      "generatorSha256": "50965c56ea8a63b38097ffc8fedc6985d46de2a6875eda45565c172e25b3c24a",
+      "host": "macOS ARM64",
+      "toolchainLimit": "Executables are hash-bound; system library and compiler executable closure are not fully sealed. This is advisory, not a platform qualification."
+    }
+  },
+  "rows": [
+    {
+      "baseline": {
+        "exitStatus": 1,
+        "nonemptyOutput": false,
+        "status": "failed"
+      },
+      "current": {
+        "exitStatus": 1,
+        "nonemptyOutput": false,
+        "status": "failed"
+      },
+      "inputVersion": "AC1032",
+      "source": "tests/fixtures/dwg/large_radial.dwg",
+      "sourceSha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a"
+    },
+    {
+      "baseline": {
+        "exitStatus": 1,
+        "nonemptyOutput": false,
+        "status": "failed"
+      },
+      "current": {
+        "exitStatus": 1,
+        "nonemptyOutput": false,
+        "status": "failed"
+      },
+      "inputVersion": "AC1032",
+      "source": "tests/fixtures/dwg/mpolygon_solid.dwg",
+      "sourceSha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29"
+    },
+    {
+      "baseline": {
+        "exitStatus": 0,
+        "nonemptyOutput": true,
+        "outputSha256": "b768fcf5b2aca08ce6198973d7db394c647188303d50b90aa6f39fdba7e54216",
+        "outputSize": 38623,
+        "status": "converted"
+      },
+      "current": {
+        "exitStatus": 1,
+        "nonemptyOutput": false,
+        "status": "failed"
+      },
+      "inputVersion": "AC1032",
+      "source": "tests/fixtures/dwg/rtext_arctext.dwg",
+      "sourceSha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511"
+    }
+  ],
+  "schema": 1,
+  "scope": "Three selected already-admitted J284 fixtures; no assertion about membership in J268.",
+  "setDigestDefinition": "SHA-256 over LF-terminated sorted unique source hashes",
+  "setDigestSha256": "00032ac6c0ab764338b3c96a36f9252654ccdf5885ff470ff243516b6839b681"
+}

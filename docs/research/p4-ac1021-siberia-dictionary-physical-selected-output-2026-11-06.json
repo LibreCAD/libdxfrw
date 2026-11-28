@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 Siberia nested dictionary selected physical output/readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the two-frame AC1021 NOD-rooted Siberia dictionary graph in selected ASCII and Binary DXF output, including owner roles, exact readback, late-mutation refusal, destination preservation and same-adapter retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceProfile": {
+    "nod": {
+      "handle": "0xC",
+      "hardOwner": 0,
+      "entry": "Siberia -> 0x38F4B"
+    },
+    "rootDictionary": {
+      "handle": "0x38F4B",
+      "sourceFrameType": 42,
+      "offset": 8638,
+      "size": 38,
+      "owner": "0xC",
+      "hardOwner": 1,
+      "reactors": ["0xC"],
+      "entry": "Styles -> 0x38F4C"
+    },
+    "childDictionary": {
+      "handle": "0x38F4C",
+      "sourceFrameType": 42,
+      "offset": 1996105,
+      "size": 19,
+      "owner": "0x38F4B",
+      "hardOwner": 1,
+      "reactors": ["0x38F4B"],
+      "entries": 0
+    },
+    "otherPayload": "Both dictionaries have no xdictionary, EED, APPDATA, or data-storage binary payload. The common-link-tail accessor reports false for both; no common-link-tail claim is made."
+  },
+  "result": "PASS. The selected projection contains exactly the Siberia NOD edge and both source dictionaries. ASCII and Binary outputs read back the root key, nested Styles key, empty child dictionary, remapped owner/reactor graph and 350/360 handle roles derived from each owning dictionary's hardOwner flag. Clearing the child reactor after OBJECTS writing refuses publication and preserves the destination sentinel; restoring the source reactor lets the same adapter retry successfully.",
+  "selector": "--ac1021-siberia-dictionary-physical-output-readback",
+  "build": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "result": "PASS",
+    "testSourceSha256": "d247b073bbc33b72c45a31006310d89661e8dec53890d51768e17fe40bb91b1b",
+    "adapterSourceSha256": "5b5b4697d0e28faea714552be009f58668cdeb07d070e5aabfb70b36dcf15828",
+    "executableSha256": "89089545a99ea02586ff622ab515f1583fdd6906a8cedb9c0348887bc6e2f2e7"
+  },
+  "inventory": {
+    "selector": "--opaque-dwg-source-inventory",
+    "result": "PASS; 186 source callbacks, 74 opaque carriers and 112 standard-object frames observed.",
+    "logPath": "/tmp/p4-ac1021-opaque-inventory-post-siberia-output-2026-11-06.log",
+    "logSha256": "26568efae6219f75419ee2f31bcea322f9245e33631a8a3eb59debf38d4f8499",
+    "qualifiedStandardFramesAfterSlice": 100,
+    "remainingStandardFrames": 12
+  },
+  "limits": [
+    "This is a bounded selected graph from one unauthenticated local source, not whole-drawing or producer-wide qualification.",
+    "The source-frame match and typed callback do not independently prove DWG wire-role encoding; common-link-tail fields were not observed through the typed accessor.",
+    "No fixture or derivative is committed."
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACIS route and mobile consumer lineage review",
+  "mode": "Deeper/broader primary-source research; research-only plan update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen ada-py as a newly surfaced local SAT/ACIS conversion candidate and establish its current artifact and evidence limits.",
+    "Distinguish the code592/CADView Community mobile viewer from the previously reviewed browser CADView and trace its DWG/DXF parser lineage.",
+    "Cross-check current official OCCT exchange disclosures for open-source availability, healing/approximation, and native-format boundaries.",
+    "Update only the research plan; do not add implementation gates, dependencies, fixtures, tests, or support claims without qualifying evidence."
+  ],
+  "method": {
+    "kind": "Read-only review of primary project, package-index, and product documentation",
+    "sourcePagesMutableUnlessPinned": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "peerPackagesInstalled": false,
+    "mobileApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "peerCorpusFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localTestsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "ada-py 0.116.0 artifact hashes were recorded from PyPI, but no immutable source commit, SAT parser call graph, backend selection, profile coverage, or semantic result was established. Its 2023 maintainer statement is historical and cannot be projected onto the current release. CADView Community claims and dependency notices were not built or runtime-verified; its declared DWG route is ACadRust 0.4.1 and its 3D scene is mesh-oriented. OCCT product pages describe separately commercial components and do not establish access or runtime behavior in any local application."
+  },
+  "sources": [
+    {
+      "project": "ada-py 0.116.0 package metadata",
+      "urls": [
+        "https://pypi.org/project/ada-py/"
+      ],
+      "revision": "Release 0.116.0 reviewed 2026-10-18; sdist and wheel hashes recorded, source commit not mapped",
+      "observed": "PyPI advertises local SAT/ACIS input through ada convert, labels the project experimental and Alpha, declares GPL-3.0-or-later, and lists release-file SHA-256 hashes. The metadata does not identify the exact parser path, accepted ACIS profiles, output loss contract, or source commit corresponding to those release files.",
+      "evidenceClass": "primary package-index metadata; no artifact installed or executed"
+    },
+    {
+      "project": "Krande/adapy project README",
+      "urls": [
+        "https://github.com/Krande/adapy"
+      ],
+      "revision": "Mutable main branch reviewed 2026-10-18",
+      "observed": "The README lists SAT/ACIS among ada convert input formats and acknowledges OpenCascade, PythonOCC-Core, and IfcOpenShell among important dependencies; it does not map the SAT route to a specific parser or geometry backend.",
+      "evidenceClass": "primary project README; no source checkout or runtime"
+    },
+    {
+      "project": "InventorLoader issue #65 historical maintainer statement",
+      "urls": [
+        "https://github.com/jmplonka/InventorLoader/issues/65"
+      ],
+      "revision": "Issue opened 2023-01-20; reviewed 2026-10-18",
+      "observed": "The adapy maintainer described an earlier in-project SAT parser attempt as having stopped around 2D shells. This historical statement is not evidence of current ada-py 0.116.0 behavior.",
+      "evidenceClass": "primary issue comment; historical statement only"
+    },
+    {
+      "project": "code592/CADView Community",
+      "urls": [
+        "https://github.com/code592/CADView"
+      ],
+      "revision": "Mutable main branch reviewed 2026-10-18",
+      "observed": "The project describes an offline Android/iOS viewer, DWG support as Beta, and normalized 2D/3D scene interactions. It is distinct from the previously reviewed wiscaksono/cadview browser project.",
+      "evidenceClass": "primary project README; no application built or run"
+    },
+    {
+      "project": "code592/CADView Community third-party notices",
+      "urls": [
+        "https://github.com/code592/CADView/blob/main/THIRD_PARTY_NOTICES.md"
+      ],
+      "revision": "Mutable main branch reviewed 2026-10-18",
+      "observed": "The notices identify unmodified acadrust 0.4.1 as the DWG reader, a separate dxf crate as the DXF parser, and Open CASCADE as planned rather than currently linked.",
+      "evidenceClass": "primary dependency and license notice; no build"
+    },
+    {
+      "project": "OCCT3D ACIS and exchange documentation",
+      "urls": [
+        "https://occt3d.com/components/acis-exchange/",
+        "https://www.occt3d.com/data-exchange-formats/",
+        "https://github.com/Open-Cascade-SAS/OCCT"
+      ],
+      "revision": "Current official product and repository pages reviewed 2026-10-18",
+      "observed": "Official product documentation marks ACIS SAT/SAB exchange as a commercial component, discusses healing and approximation, and separates native application-format support from exchange-format support. The catalog distinguishes open-source core formats from commercial exchange components.",
+      "evidenceClass": "official product and project documentation; no licensed component evaluated"
+    }
+  ],
+  "planCrosswalk": [
+    {
+      "route": "ada-py SAT/ACIS conversion",
+      "classification": "DISCOVERY_ONLY / CANDIDATE_UNQUALIFIED / NOT_RUN / LINEAGE_UNRESOLVED",
+      "planUse": "Do not install or count as independent semantic evidence. If reconsidered, map an exact artifact to immutable source, audit parser dispatch/backend/license, and only then run a local source-authored analytic control with diagnostics and geometry expectations."
+    },
+    {
+      "route": "code592/CADView Community mobile viewer",
+      "classification": "OPTIONAL_MOBILE_CONSUMER / ACADRUST_LINEAGE / MESH_PROJECTION / NOT_RUN",
+      "planUse": "Do not count as a separate DWG parser or B-rep/kernel witness. A mobile consumer smoke is conditional on an explicit Android/iOS requirement and must pin app revision, dependencies, platform/device, and local input."
+    },
+    {
+      "route": "Official OCCT ACIS SDK",
+      "classification": "COMMERCIAL_COMPONENT / ENTITLEMENT_REQUIRED / OPTIONAL",
+      "planUse": "Retain the existing optional route only with exact component entitlement/version and recorded healing/approximation settings. Do not infer SAT/SAB support from core OCCT or a native-format application's OCCT linkage."
+    }
+  ],
+  "assessment": {
+    "localDefectsConfirmed": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "testsRun": false,
+    "peerExecutablesRun": 0,
+    "peerPackagesInstalled": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "findingSubplanTotalsRemain": "134/76",
+    "deferredExternalItemsRemain": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

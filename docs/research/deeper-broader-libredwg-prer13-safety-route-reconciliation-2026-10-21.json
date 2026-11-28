@@ -1,0 +1,94 @@
+{
+  "title": "Deeper/broader LibreDWG pre-R13 safety advisory and local route reconciliation",
+  "date": "2026-10-21",
+  "status": "RESEARCH_ONLY",
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "artifact": "GHSA-7625-26gc-xqvp / CVE-2026-62250 and 0.14.1 NEWS",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/security/advisories/GHSA-7625-26gc-xqvp",
+        "https://github.com/LibreDWG/libredwg/issues/1131",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "evidence_role": "peer pre-R13 corrupt-end/no-progress/OOM failure shape",
+      "limits": [
+        "peer-specific control flow and allocation behavior",
+        "does not demonstrate a matching libdxfrw defect",
+        "published minimized input was not downloaded or run"
+      ]
+    },
+    {
+      "project": "libdxfrw local source",
+      "artifact": "dwgReaderR1_40 and dwgReaderR11 route source audit",
+      "references": [
+        "src/intern/dwgreaderR1_40.cpp",
+        "src/intern/dwgreaderR11.cpp",
+        "tests/dwg_reader_matrix_tests.cpp"
+      ],
+      "evidence_role": "local implementation architecture and existing regression crosswalk",
+      "limits": [
+        "source review only; no tests rerun during this research pass",
+        "does not qualify pre-R13 format support",
+        "does not prove bounded total memory for arbitrarily large valid inputs"
+      ]
+    },
+    {
+      "project": "LibreDWG",
+      "artifact": "GHSA-gp83-hcvh-g255 and GHSA-5p98-8245-6hxq",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/security/advisories/GHSA-gp83-hcvh-g255",
+        "https://github.com/LibreDWG/libredwg/security/advisories/GHSA-5p98-8245-6hxq"
+      ],
+      "evidence_role": "distinct class-count resource and const-input mutation comparator failure shapes",
+      "limits": [
+        "class-count layout is different from local ODA length-delimited R13-R15 CLASSES",
+        "const-input defect is not an observed local text-conversion defect"
+      ]
+    },
+    {
+      "project": "LibreDWG / ACadSharp / IxMilia.Dxf / OCCT",
+      "artifact": "current primary project docs and API reference pages reviewed 2026-10-21",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/ixmilia/dxf",
+        "https://dev.opencascade.org/doc/occt-7.3.0/refman/html/annotated.html"
+      ],
+      "evidence_role": "route-specific testing and declared version/operation/semantic boundaries",
+      "limits": [
+        "project declarations and test workflows are not measured local parity",
+        "no peer executable, native CAD application, or OCCT runtime was used"
+      ]
+    }
+  ],
+  "reconciliation": {
+    "local_findings_added": 0,
+    "top_level_subplans_added": 0,
+    "existing_owners": [
+      "PAR-14 parser-safety crosswalk",
+      "PAR-07/7BE/7BS pre-R13 reader bounds, progress, and fail-closed handling",
+      "libdxfrw_dwg_reader_matrix / testR140HeaderBounds"
+    ],
+    "stale_route_wording_corrected": "Pre-R13/R11 is outside the qualified support denominator, but it is not absent from the local implementation; experimental AC1.40 and AC1006/AC1009 readers exist.",
+    "pre_r13_peer_analog": "The exact corrupt-end implementation shape is different; existing generated AC1.40 tests cover a locally authored 496-byte case, declared end beyond physical input, malformed bounds, exact boundary, no callbacks on header refusal, and same-reader retry.",
+    "const_input_conversion_analog": "No analogous mutation was found in the reviewed local std::string_view-to-owned-std::string conversion path.",
+    "external_support_promotion": false,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "readiness": {
+    "local_next_step": "Continue the existing dependency-ready implementation queue; if pre-R13 section/cursor code changes, reuse the owning reader-matrix target and focused CTest.",
+    "additional_test_required_now": false,
+    "full_suite_or_peer_runtime_required_now": false,
+    "new_fixture_or_dependency_added": false,
+    "tests_run_this_research_pass": false,
+    "existing_regression_receipt": "docs/research/ac1_40-header-bounds-fast-slice-2026-10-16.json"
+  }
+}

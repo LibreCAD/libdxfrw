@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p7-acis-21500-raw-header-word-framing-regression-2026-11-12",
+  "purpose": "Guard the existing ACIS 21500 parser behavior while the third SAB header word's version-specific meaning remains unresolved.",
+  "evidence": {
+    "references": [
+      {
+        "title": "ACIS SAT File Format, SAT Format 7.0, Save File Header",
+        "url": "https://paulbourke.net/dataformats/sat/sat.pdf",
+        "relevantFinding": "The third integer is described as a count of entities in the original entity list saved to the part file.",
+        "scopeLimit": "This describes SAT Format 7.0, not Autodesk-modified ACIS 21500."
+      },
+      {
+        "title": "Working with .sat and .sab Files in Teigha",
+        "url": "https://www.opendesign.com/blog/2017/october/working-sat-and-sab-files-teigha",
+        "relevantFinding": "Maps DWG R24/2010 to format 21500 and says 20800+ Autodesk SAT/SAB formats are modified from Spatial ACIS.",
+        "scopeLimit": "The article does not define the third header word."
+      },
+      {
+        "title": "CADMPEG ASM and ACIS stream format specification",
+        "url": "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md",
+        "relevantFinding": "Defines an entity-count boundary for explicitly admitted 217/218 streams.",
+        "scopeLimit": "217/218 semantics cannot be transferred to 21500 without version-specific evidence."
+      }
+    ],
+    "existingPhysicalObservation": "Two hash-bound AC1024/21500 one-body payloads have raw third word 2. Their source and independent-reader evidence do not establish the field's 21500 meaning."
+  },
+  "implementation": {
+    "file": "tests/acis_sat_allocation_tests.cpp",
+    "sourceSha256": "05965ec9a8851edceab1ce30ce7ae00f7e11d21ce240a9d3f250adc03e0c6dac",
+    "control": "A locally generated ACIS BinaryFile 21500 stream declares recordCount=0 and raw third word 2, contains one initial body plus three additional records, and ends with the explicit terminal marker.",
+    "assertions": [
+      "Parsing completes only at the explicit terminal marker.",
+      "recordCountKnown remains false for the zero record-count profile.",
+      "The raw third word is preserved as numEntities=2.",
+      "All five records including the terminal record are retained; the third word is not applied as a record limit.",
+      "AC1024 SAT conversion writes the raw third word back as 2 and independently writes the four nonterminal records as the record count."
+    ],
+    "test": "acis_sat_allocation_rollback_retry",
+    "result": "PASS 1/1"
+  },
+  "claimEffect": "Regression protection only. No semantic interpretation, source boundary, output eligibility, B-rep qualification, or support claim is promoted.",
+  "decision": "Keep the field raw and version-specific. Require eligible 21500 producer/schema evidence, ideally a discriminating multi-root source, before semantic use."
+}

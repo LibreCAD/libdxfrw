@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p9-j295-independent-reader-triage-2026-11-04",
+  "date": "2026-11-04",
+  "scope": "Independent RTEXT-reader admission and diagnostic classification for the two locally authored AC1024 v3 successor controls",
+  "status": "DIAGNOSTIC_NOT_QUALIFIED",
+  "supportClaimEffect": "none; J295 remains DEFERRED_EXTERNAL",
+  "predecessor": "docs/research/p9-j295-rtext-successor-v3-2026-11-04.json",
+  "inputs": {
+    "fixturePolicy": "Runtime scratch inputs only; no DWG/DXF output or independent application binary is committed.",
+    "original": {"handle": "ED00", "dwgSha256": "514991af7dc9b37e38b46107360c694dcf65ca9406dd96d44cf4c01655748e39"},
+    "compact": {"handle": "30", "dwgSha256": "9eb16ebecbb1d6afcc6399fcf6c389b2093fe6d49e4be777d08d5a744ee21ba1"},
+    "binding": "metadata/ac1024-candidate-fields-v3-experiment.json records exact author executable, source, peer executable and library hashes. The author library came from a shared dirty build, so exact clean-commit provenance is not established."
+  },
+  "libredwgDiagnosticAnalysis": {
+    "reader": "LibreDWG dwgread 0.14 from the Homebrew binary and dylib pinned in the v3 experiment manifest; -v4 full JSON",
+    "selectedValues": "Both controls independently decode one RTEXT with insertion (90,91,0) and rotation 0.26179938779915 radians, within 1e-12 degrees of 15 degrees; zero ERROR lines for these isolated drawings.",
+    "unstableClass": "Both logs warn twice that class 521 RTEXT is unstable. The upstream 0.14 classes.inc classifies RTEXT as DEBUGGING_CLASS and the matching decode path emits this warning; it is a decoder support classification, not a per-field corruption verdict. It does not prove semantic correctness and is not waived.",
+    "handseed": "The other common warning is resolving the HEADER.HANDSEED as a missing object: ED01 for ED00 and 31 for 30. Full JSON and -v4 object-reference trace show the exact target. It is the next unused handle and has no corresponding object by design; this local observation does not waive a diagnostic requirement.",
+    "sparseHandle": "Only ED00 emits `Ignore invalid handleoff (@63)`. A handle-only control at 30 removes it. The peer's 0.14 src/decode.c uses an hdl_dat.size*2 bound in a multi-condition handle-offset warning; the observed ED00 next handle delta is 0xECE2. The exact branch was not instrumented, so the cause remains a bounded hypothesis.",
+    "source": {"tag": "0.14", "annotatedTag": "428d380aea8fdbff479bf7fa3f64d88e8c4a4259", "commit": "d9468ae948b8f07a08efa756c19f8916052358c0", "classes": "https://github.com/LibreDWG/libredwg/blob/d9468ae948b8f07a08efa756c19f8916052358c0/src/classes.inc", "handleDecoder": "https://github.com/LibreDWG/libredwg/blob/d9468ae948b8f07a08efa756c19f8916052358c0/src/decode.c"}
+  },
+  "odaReader": {
+    "tool": "ODA File Converter 27.1.0.0 macOS ARM64",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "command": "ODAFileConverter INPUT_DIR OUTPUT_DIR ACAD2010 DXF 0 0",
+    "result": "An unlocked-session run exited 0 but produced only compact.dxf.err and original.dxf.err, no DXF. Both contain multiple object-read warnings and terminate with AcDbLayerTableRecord handle 0x12 improperly read, drawing needs recovery. The log files contain the temporary input paths, so their hashes are session-specific.",
+    "compactErrSha256": "06acf969ab1ead292c24c453420b18fafaf8c377dd0ee3a4b2294889ec78647c",
+    "originalErrSha256": "bab2264f4a531091fc621e883a8e58b868523cf82effa42879ad956bd29aa482",
+    "interpretation": "ODA reaches neither an output RTEXT nor independent selected-field semantic comparison. The process exit code alone is not a conversion success."
+  },
+  "acadSharpReader": {
+    "probe": "tools/acadsharp_rtext_probe.cs",
+    "probeSourceSha256": "e48d951d41c17264479d36328c1c1b1b5b87d5547387c7ad35f2cd3ae3be159a",
+    "probeAssemblySha256": "059b2ec05df1c8b344c9b1045d6f9d7a0265814560dd325d40961808abe1c39f",
+    "readerAssemblySha256": "99f24d71403ecdbda2272473ebd995d5d2e773b4a6e887bcdb404293cbf18b77",
+    "localSource": "A clean local ACadSharp checkout reports commit 3a52a52047e84670759c1f9ad3916ec3ce85ff56 and project version 3.6.15. The pre-existing reader DLL was observed and hashed; a reproducible build binding it to that checkout was not established.",
+    "runtime": ".NET SDK 10.0.403, macOS ARM64; project references the local ACadSharp net9.0 DLL; offline NuGet.Config has no sources.",
+    "result": "Default reader configuration exposed zero model entities and warned RTEXT was read as UnknownEntity. With KeepUnknownEntities=true, lookup finds the selected ED00/30 identity as ACadSharp.Entities.UnknownEntity; the probe intentionally returns 3 and SEMANTIC_EVIDENCE=NO. Both cases also reported two CLASSES sentinel warnings and a DIMSTYLE 0x15 error.",
+    "limit": "These observations apply to the exact tested assembly and controls; they do not claim no other ACadSharp version or configuration can read RTEXT."
+  },
+  "odaIndependentProducer": {
+    "generator": "tools/make_p9_rtext_oda_input.py",
+    "base": "tests/fixtures/dxf/ac1015_ellipse_freecad_control.dxf, repository-authored fixture",
+    "inputDxfSha256": "3318ee6cb63e1937034023881ae6972a6a0526acf40629cee680f46d7917df40",
+    "command": "ODAFileConverter INPUT_DIR OUTPUT_DIR ACAD2010 DWG 0 0",
+    "outputDwgSha256": "1391cbcf2640afacca2b0617ed2afff1b23aea5cf70ed081aff584749cb96df2",
+    "result": "ODA returned 0, wrote a DWG and no error file; LibreDWG -v4 observes the authored ED00 as a PROXY_ENTITY with from_dxf=1 rather than RTEXT, and reports a proxy-body buffer overflow. Its full JSON contains non-UTF-8 proxy data and fails strict UTF-8 decoding; it is not admissible four-field RTEXT semantic evidence.",
+    "scope": "This result is specific to this authored DXF and selected converter version, not a general ODA RTEXT capability claim."
+  },
+  "requiredNextSteps": [
+    "After writer graph/integrity changes stabilize, rebuild from a clean exact commit and rerun the same scratch controls. Compare ODA .err content and produced-file presence, not process exit alone.",
+    "Obtain a source-pinned independent reader that actually publishes RTEXT insertion and rotation, or rerun LibreDWG with a predeclared field-scoped discrepancy policy that explicitly resolves all integrity diagnostics under the repository's qualified-evidence rules. Do not silently treat warnings as harmless.",
+    "Bind source, full writer binary/dependency closure, peer and output hashes, then run the four-field native assertions on Linux, Windows and macOS using current-digest focused and final-broad qualification plus authenticated API/artifact verification."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-05",
+  "scope": "AC1021 architectural source FIELD/FIELDLIST output gate triage",
+  "claim_status": "ordinary-read census only; no FIELD serialization or semantic support claim",
+  "source": {
+    "path": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "version": "AC1021",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "repository_fixture": false
+  },
+  "independent_peer": {
+    "implementation": "LibreDWG",
+    "version": "0.14",
+    "minjson_path": "/private/tmp/ac1021-architectural.json",
+    "minjson_sha256": "dd253499a7c54f72d60e4dd7896b1c20a2012e56dc248aa59d30374cca53fa01",
+    "field_objects": 66,
+    "fieldlist_objects": 1,
+    "fieldlist_member_count": 66
+  },
+  "reader_observation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg -y -d -v2007 /private/tmp/ac1021-architectural-debug.dxf",
+    "typed_field_callbacks": 29,
+    "raw_field_frames": 66,
+    "raw_only_field_shells": 37,
+    "complete_flags4_type2_roots": 0,
+    "complete_checksum_children": 29,
+    "fieldlist_member_count": 66,
+    "entity_parse_failures": 0,
+    "object_parse_failures": 0,
+    "diagnostics": [
+      "FIELD CadValue flags 4 is unsupported in root-value records",
+      "FIELD child-value count exceeds the bounded parser profile in multiple records",
+      "FIELD CadValue flags 76 is unsupported in child-value records",
+      "one FIELD retains an unmodeled 146-bit object-data tail"
+    ]
+  },
+  "output_observation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg -y -v2007 /private/tmp/ac1021-architectural-current.dxf",
+    "result": "atomic preflight refusal: FIELD/FIELDLIST carriers have no qualified DXF serializer",
+    "destination_created": false
+  },
+  "format_authority": {
+    "specification": "Open Design Specification for .dwg files, v5.4.1",
+    "local_copy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sections": ["20.4.76 FIELD", "20.4.77 FIELDLIST", "20.4.99 Value"],
+    "finding": "The Value flags grammar documents only bit 0x01 as suppressing the typed payload. The observed root flags 4 and child flags 76 have no defined layout here; treating them as zero or applying an unrelated flag mask would be speculative."
+  },
+  "disposition": "Retain the current refusal for this source. The 29 checksum children are complete transport values but do not make their enclosing records or the 66-member FIELDLIST graph output-complete. Find a separately source-qualified composition or resolve the unknown value flags/count framing before enabling this profile.",
+  "fixture_policy": "No DWG/DXF fixture was added to the repository."
+}

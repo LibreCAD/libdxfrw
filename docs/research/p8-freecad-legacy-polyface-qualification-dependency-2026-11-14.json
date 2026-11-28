@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw.freecad_legacy_polyface_qualification.v2",
+  "date": "2026-11-14",
+  "result": "PASS_BOUNDED_OPEN_INSERT",
+  "claim_scope": "One locally generated AC1021 POLYFACE quad imported through FreeCAD 1.1.4's optional legacy Python importer on macOS ARM64.",
+  "environment": {
+    "freecad_version": "1.1.4",
+    "freecad_revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "macOS ARM64",
+    "importer": "Draft importDXF.py legacy Python route",
+    "freecad_cmd_sha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60",
+    "import_dxf_source_sha256": "c0520e31a75a8e4dcb002c606d606855b1a9a565da0f13400d62761dccf9a992"
+  },
+  "legacy_addon": {
+    "repository": "https://github.com/yorikvanhavre/Draft-dxf-importer",
+    "commit": "e060ef0d8fe7143c2e0ce34734b686ba073f3cc1",
+    "dxf_library_version": "1.42",
+    "freecad_required_version": "1.42",
+    "files": {
+      "dxfReader.py": "7c61f540a4b0a484097c2ef1b42fa9f692babe59f45be9541b32cfb1805bc445",
+      "dxfLibrary.py": "0bae42b630a9797ea56dcbe9a6dfa648369a089289f7fb33ab928c9784cac7c8",
+      "dxfColorMap.py": "4b4a66749c68944502c4ba4c981427563b2adb8e125877626710c585d07de4b0",
+      "dxfImportObjects.py": "4f897ec54f5669cedf42274574a0d38cdf543333e25f7452075c00be8a7365b5"
+    },
+    "location": "temporary checkout only; not installed into the FreeCAD user directory"
+  },
+  "scratch_profile": {
+    "created_from_scratch": true,
+    "dwg_version": "AC1021",
+    "dwg_sha256": "86e9252b24020aeaa0aa3a7823f65fd52ff4af608ece892ec5366f4d35841ea0",
+    "dxf_sha256": "5bf26fe678a305446cd0bca5bd83b2b798f064a4a59a783a3f05527e5276a14c",
+    "converter_sha256": "7a7d4098b3dda51bff824f70ce63bdc675dc5ae217a8b4fd37f8b74201d6f3ea",
+    "generator_sha256": "0ef852377621ea5fd45e592ecbbe868bcbbdd5367cf196b007a661a340d66343",
+    "qualification_macro_sha256": "32bdef318d0f2531f65a001e2bf796cb5d186b582a6a4233be0f7266bf20fa5a",
+    "runner_sha256": "450bf8e270f0f76ad83975cc8a64b1117aabbffd00f60fc42ba718674e2aa85a",
+    "ctest_registration_sha256": "1a91ec5b99f498c3818be563cd3ff2740e9147b9fe16fa60d6aba380fdb9e0fd",
+    "polyface": {
+      "vertices": [[121, 122, 1], [124, 122, 4], [124, 126, 8], [121, 126, 5]],
+      "face_records": 1,
+      "quad_triangles": 2,
+      "bounds": [121, 122, 1, 124, 126, 8]
+    },
+    "files": "scratch DWG/DXF and macro were removed after hashing; no fixture was added to the repository"
+  },
+  "operations": [
+    {
+      "operation": "open",
+      "ctest": "dwg2dxf_freecad_legacy_polyface_open",
+      "process_exit": 0,
+      "macro_assertion_marker": "LIBDXFRW_FREECAD_LEGACY_POLYFACE_PASS=",
+      "document_objects": 13,
+      "mesh_objects": 1,
+      "facets": 2,
+      "points": [[121, 122, 1], [121, 126, 5], [124, 122, 4], [124, 126, 8]],
+      "bounds": [121, 122, 1, 124, 126, 8]
+    },
+    {
+      "operation": "insert",
+      "ctest": "dwg2dxf_freecad_legacy_polyface_insert",
+      "process_exit": 0,
+      "macro_assertion_marker": "LIBDXFRW_FREECAD_LEGACY_POLYFACE_PASS=",
+      "document_objects": 13,
+      "mesh_objects": 1,
+      "facets": 2,
+      "points": [[121, 122, 1], [121, 126, 5], [124, 122, 4], [124, 126, 8]],
+      "bounds": [121, 122, 1, 124, 126, 8]
+    }
+  ],
+  "interpretation": {
+    "proves": "The pinned FreeCAD legacy importer accepts this generated AC1021 POLYFACE profile and constructs the expected two-triangle mesh for both open and insert.",
+    "does_not_prove": [
+      "The default FreeCAD C++ importer supports this POLYFACE profile; its separately recorded result remains a wireframe with no faces.",
+      "Physical-producer interoperability, other POLYFACE topologies, DWG versions, operating systems, other consumers, or general 3D support.",
+      "Native editing, rendering, save/reopen preservation, or equivalence to a target-produced DWG/DXF pair."
+    ],
+    "support_claim_effect": "NONE; retain the backend-specific bounded result and the C++ importer boundary separately."
+  },
+  "reproducibility_notes": {
+    "preference_profile": "Legacy importer enabled; Draft visibility groups disabled for headless compatibility; points enabled; texts disabled.",
+    "ctest_result": "2/2 passed in 1.29 seconds with the opt-in LIBDXFRW_ENABLE_FREECAD_LEGACY_POLYFACE_CONTROL profile and addon directory supplied explicitly.",
+    "ctest_selector": "ctest --test-dir build-gcc -VV -R '^dwg2dxf_freecad_legacy_polyface_(open|insert)$'",
+    "user_preferences_restored_after_run": true,
+    "addon_dependency_is_optional": true,
+    "source_code_reference": "https://github.com/FreeCAD/FreeCAD/blob/4fd3bf320d9566a27e60069fc8387448aaa3a094/src/Mod/Draft/importDXF.py"
+  }
+}

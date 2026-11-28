@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "id": "p6-ac1027-header-variable-controlled-conversion-lock-2026-11-09",
+  "date": "2026-11-09",
+  "question": "Can a known HEADER-variable change on a from-scratch AC1027 control isolate any relationship to the post-sentinel HEADER suffix through the ODA GUI route?",
+  "supportClaimEffect": "none",
+  "sources": [
+    {
+      "path": "/private/tmp/libdxfrw-header-variable-control/generated/scale_1.dwg",
+      "sha256": "745ad691cbcba7bf9c471b146b7e7d7150a5c86e414c7418eb5b69a14d3eee3b",
+      "sizeBytes": 180019,
+      "magic": "AC1027",
+      "authoredControl": "From-scratch one-LINE DWG; the temporary writer supplied $LTSCALE=1.0. Its source edit was removed after generation."
+    },
+    {
+      "path": "/private/tmp/libdxfrw-header-variable-control/generated/scale_2.dwg",
+      "sha256": "d4b6c46ca22b5566aca0fe11183909da5fbf2ed3e798984cec52353ea06f25ab",
+      "sizeBytes": 180019,
+      "magic": "AC1027",
+      "authoredControl": "Same from-scratch one-LINE writer/profile as scale_1; the temporary writer supplied $LTSCALE=2.0."
+    }
+  ],
+  "reader": {
+    "tool": "build-gcc/dwg2dxf/dwg2dxf",
+    "operation": "Read each generated AC1027 source and request 2013 DXF output",
+    "scale_1": {
+      "operationSucceeded": true,
+      "sourceFrames": 26,
+      "publishedFrames": 26,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "output": "Refused during preflight because AC1027 source references are not fully qualified."
+    },
+    "scale_2": {
+      "operationSucceeded": true,
+      "sourceFrames": 26,
+      "publishedFrames": 26,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "output": "Refused during preflight because AC1027 source references are not fully qualified."
+    },
+    "limitation": "Read success does not independently verify the decoded $LTSCALE values; no DXF readback was published because of the separate strict source-reference gate."
+  },
+  "converter": {
+    "product": "ODA File Converter 27.1.0 GUI",
+    "state": "The app was running and its window tree was observed, but the next accessibility check reported that the Mac was locked and automatic unlock failed.",
+    "conversionStarted": false,
+    "outputFiles": [],
+    "limitation": "No ODA output was generated, so no HEADER bytes or variable values were compared.",
+    "verificationRetry": {
+      "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter --help",
+      "exitStatus": 134,
+      "stderr": "PasteBoard clipboard/find initialization failed with -4960; Hiservices XPC connection invalid; process aborted before input processing.",
+      "conversionStarted": false,
+      "outputFiles": []
+    }
+  },
+  "interpretation": "The controls isolate a writer-side $LTSCALE input difference and both are readable, but this attempt supplies no independent ODA result and no suffix evidence. Existing suffix-only mutation results remain unchanged. Keep all AC1027/AC1032 post-sentinel bytes unclaimed and strict-complete output refused.",
+  "fixturePolicy": "Both DWGs were authored locally from scratch under /private/tmp and are not committed. The temporary source-generator edit was removed from the worktree.",
+  "nextAction": "After the ODA GUI becomes accessible, use the verified controlled pair to perform exactly one audited ACAD2013 conversion, record the generated output hashes, and compare independently decoded HEADER fields against CRC/sentinel-validated source/output envelopes. Do not infer meaning or padding from suffix byte differences alone. Continue other source-backed implementation while this external route is unavailable.",
+  "independent_header_check": {
+    "tool": "LibreDWG dwgread 0.14",
+    "command": "dwgread -v5 -O JSON <input.dwg>",
+    "result": "Both files decode as AC1027; LTSCALE values independently match the intended controlled difference.",
+    "scale_1": {
+      "decodedLtscale": 1.0,
+      "jsonPath": "/private/tmp/libdxfrw-header-variable-control/scale_1-libredwg.json",
+      "jsonSha256": "4959da295d7d885079c6f5253f9de8702d1ac777ddcde8b52ccda0eb6a1b313b",
+      "tracePath": "/private/tmp/libdxfrw-header-variable-control/scale_1-libredwg.log",
+      "traceSha256": "8b01bcedead3b0456d158ff980c02969251cc3943cb0c63f59ebee40576314c6"
+    },
+    "scale_2": {
+      "decodedLtscale": 2.0,
+      "jsonPath": "/private/tmp/libdxfrw-header-variable-control/scale_2-libredwg.json",
+      "jsonSha256": "5037352352bf11c0215fb397f0f611c0909f8fc529366c6aeae7b54c2aa62bc7",
+      "tracePath": "/private/tmp/libdxfrw-header-variable-control/scale_2-libredwg.log",
+      "traceSha256": "7c0febcd814082d665155cc3209f2c87c310260d121ac5c5608d077f62aebddb"
+    },
+    "limitation": "This verifies decoded input values only; it does not map either value to the trailing HEADER bytes or establish output/suffix behavior."
+  }
+}

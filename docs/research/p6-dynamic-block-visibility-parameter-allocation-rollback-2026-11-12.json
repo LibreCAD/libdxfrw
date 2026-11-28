@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dynamic-block-visibility-parameter-allocation-rollback-2026-11-12",
+  "date": "2026-11-12",
+  "status": "VISIBILITY_PARAMETER_DIRECT_ALLOCATION_SWEEP_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add direct ASCII/Binary allocation-failure coverage for a bounded AC1024 dynamic-block VisibilityParameter OBJECTS record, including source identity rollback, remapped reference checks, and fresh-writer retry.",
+  "binding": {
+    "repositoryHead": "c013fecd03e02e4e9b3117f1d767e6a070a8e0e4",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "27ac70a55b86da086ad484392b099de2b2777c7c9acb80b61f84b0061185cae3",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "tests/dynamic_block_objects_allocation_tests.cpp": "df4f63ef8998043047c878150b5d3911e951da1f7b4640e8d1f9a866b9fff198",
+      "tests/CMakeLists.txt": "7a6d869bd778a362a1552bb5c8c48c6a0b8d5b7e0fac8bc7aa24a9fd5b171469",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "6664ef306d5bdb5d0e47c4f9640a247b98afaf2e73c36292d9e9d04034336140"
+    },
+    "artifactSha256": {
+      "build/libdxfrw.a": "87bac49173b4d27017ee41870fa642fbfc37a6cf332eea503fc41a027eabf7b1",
+      "build/tests/libdxfrw_dynamic_block_objects_allocation_tests": "085ccaf7278a365af8d0968f21a2d38c08fc8f62fd888fedaa0aced63d06ff6d",
+      "build-asan-custom/libdxfrw.a": "a143a4e14823ee2ebe06bc6bde6251faff4e128ea8443985b547df02122dc4e2",
+      "build-asan-custom/tests/libdxfrw_dynamic_block_objects_allocation_tests": "055f0e955dd723768d201065ef684b244d196ae2825f5d239d77a4134e4925bd"
+    }
+  },
+  "change": {
+    "testCoverage": "Extended the generated allocation-failure target with the full bounded VisibilityParameter shape used by the admitted adapter profile: 117 flat block handles, four named states with 29 block memberships each, and empty state-parameter lists. Fault injection covers every allocation made by direct writeDynamicBlockObject calls.",
+    "perEncoding": "ASCII and Binary each exercise 379 allocation offsets. Every injected failure preserves the caller's modeled source fields and leaves no sourceHandleToWrittenObjectMap entry. After each refusal, the same source writes successfully through a fresh writer. Clean output checks record handle, owner, and all 117 flat-list and 116 state-membership remapped handles.",
+    "existingAdapterControl": "The existing dwg2dxf_dynamic_block_visibility_parameter CTest retains full exact-wire and typed readback checks for the 117-block, four-state profile, including its validation refusal and same-writer correction path."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target libdxfrw_dynamic_block_objects_allocation_tests libdxfrw_dwg2dxf_adapter_tests",
+      "result": "PASS"
+    },
+    "normalFocusedTests": {
+      "command": "ctest --test-dir build -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_visibility_parameter$' --output-on-failure",
+      "result": "PASS 2/2; 0.55 seconds total"
+    },
+    "normalSweepCounts": {
+      "command": "build/tests/libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS; PurgePreventer 11 offsets per encoding, VisibilityParameter 379 offsets per encoding"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dynamic_block_objects_allocation_tests libdxfrw_dwg2dxf_adapter_tests",
+      "result": "PASS"
+    },
+    "asanFocusedTests": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_visibility_parameter$' --output-on-failure",
+      "result": "PASS 2/2; 1.55 seconds total"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "The injected sweep exercises the direct record writer. It does not inject failures across the whole-file adapter transaction or prove destination-file rollback for this class.",
+    "Retries use a fresh low-level writer because the failed writer may contain partial stream bytes and its write error is sticky.",
+    "Only the bounded VisibilityParameter candidate and existing PurgePreventer profile are covered. Physical producer/schema breadth, complete graph qualification, other dynamic-block variants, and native consumer behavior remain open.",
+    "The test authors all control records in memory; no DWG/DXF fixture is added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue the P6 object-writer transaction audit for another concretely uncovered OBJECTS builder; preserve schema, graph, producer, and native-consumer gates."
+}

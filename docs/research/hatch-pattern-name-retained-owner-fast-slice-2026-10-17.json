@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "HATCH pattern-name retained owner and base-reset release",
+  "mode": "local fast implementation slice with generated controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge the parser-owned DXF HATCH group-2 pattern name to its entity retained-string owner",
+    "Preserve the field counter through HATCH copy, assignment, and move operations",
+    "Release the retained base lease when HATCH parser state is reset",
+    "Leave HATCH boundary semantics, gradient-name/color strings, and caller mutation outside this slice"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "DRW_Hatch::parseCode now routes group-2 name through replaceDxfRetainedStringField with a dedicated byte counter. The explicit copy constructor/assignment preserve the counter; default move operations transfer it. A generated one-byte-under test exposed that the prior DRW_Hatch::resetDwgState did not call DRW_Point::resetDwgState, leaving the base shared retained lease charged after field reset. HATCH reset now invokes the base reset before clearing HATCH-specific state.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": true,
+    "layoutChange": "A private retained-byte counter was added to public DRW_Hatch layout. Downstream consumers must rebuild; binary ABI compatibility is not claimed.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-hatch-pattern-name-owner-budget",
+      "build-gcc/libdxfrw_hardening_tests --dxf-mtext-background-color-name-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "cmake --build build-gcc --target dwg2dxf -j2",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_fixtures|dwg2dxf_hatch_tangents_ascii_cli|dwg2dxf_hatch_tangents_binary_cli)$' --output-on-failure",
+      "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/hardening_tests.cpp"
+    ],
+    "results": {
+      "strictHardeningTargetAndCompatibilityCompile": "passed",
+      "focusedHatchAndMTextSelectors": "passed (2/2)",
+      "owningHardeningCTest": "passed (1/1; 0.30 s)",
+      "owningDxfFixtureAndHatchCliCTests": "passed (3/3; 4.19 s)",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "The selected parser-owned HATCH group-2 name is charged to the shared logical retained-byte budget, follows HATCH copy/move values, and is released by the now base-aware reset path. The one-byte-under control preserves the prior name/charge. Existing DXF fixture and HATCH tangent CLI checks show no observed regression in those routes; no broad HATCH semantic or DWG support claim follows.",
+    "coverage": "Generated ASCII direct-parser controls verify minimum-cap discovery, successful replacement, one-byte-under refusal, copy construction/assignment, move construction/assignment, and final reset release. Existing hardening, DXF-fixture, and ASCII/Binary HATCH-tangent CLI CTests pass.",
+    "limitations": "No HATCH gradient-name/color-string accounting, boundary semantics, complete-document support, external reader, native CAD, full suite, allocation benchmark, or support/J promotion was tested. Public post-parse mutation of name is not covered by parser-retained accounting."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "gitMetadataReadOnly": true,
+    "staged": false,
+    "committed": false
+  }
+}

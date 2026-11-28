@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-table-extension-caught-exception-2026-11-11",
+  "date": "2026-11-11",
+  "problem": "A consumer callback could catch an exception thrown by a frame operation before normal failure accounting; a previously emitted empty extension DICTIONARY could then satisfy TABLE graph validation despite the interrupted attempt.",
+  "implementation": "An internal allocation-free unwind scope marks the existing extension-profile unknown-failure state at public frame, registration, table-record, block and transaction entry points. Exceptions propagate unchanged. The state rejects the extension profile at final graph validation and is restored by explicit transaction rollback. The scope does not itself roll back frame bytes, handles, or caller state.",
+  "controls": [
+    "A consumer catches a throwing entity attempt against the extension handle before TABLE staging; the destination stays unchanged and output refuses.",
+    "A test seam throws after the target fixed DICTIONARY frame is emitted. The callback observes its valid frame receipt and catches the exception; without rollback the guarded file refuses and preserves its sentinel destination.",
+    "With an explicit transaction, the same post-frame exception is caught and rolled back; writing the same DICTIONARY handle again and fresh TABLE/DICTIONARY readback succeed.",
+    "A fail-once operator-new probe catches the first tracked allocation failure in a duplicate fixed DICTIONARY operation and in a generic TABLESTYLE operation targeting the extension handle. Without rollback output refuses and same-facade retry succeeds; with explicit rollback the original valid graph succeeds.",
+    "A scratch build removing only unwind-scope calls reproduces the post-frame defect: the file write succeeds and replaces the sentinel after the exception is caught.",
+    "An isolated extraction of the actual scope compiles and runs with -std=c++14 -Wall -Wextra -Werror; C++14 uses conservative boolean unwinding detection. The repository-wide build itself uses C++17."
+  ],
+  "validation": "Six focused CTests pass, including 115 tracked fail-once TABLE facade allocations, direct codec allocation retry, normal TABLE/DBCOLOR readback and the caught-exception cases. AddressSanitizer with detect_stack_use_after_return=1 passes the nested rollback/readback selector. No drawing fixture was added.",
+  "limits": [
+    "The scope refuses the generated empty extension profile only; it is not a generic strong-exception guarantee for other writer output. An explicit transaction is required to restore partially emitted frames before retry.",
+    "Inline reservation and non-emitting observational helpers are outside the frame-entry exception scope. Non-throwing administrative failures retain the narrower accounting described in the empty-extension receipt.",
+    "The ODA physical TABLE has a populated extension subtree, and parsed-source binding, native consumer behavior and broader version qualification remain open."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-windows-mpolygon-cleanup-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "755fb2b1",
+  "hostedJob": "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45974266062/job/140421975840",
+  "finding": "The Windows job at 98303884 linked the formerly failing test executables and reached runtime. Three MPOLYGON tests then failed while deleting their own open input/output streams, with Windows sharing violation 32.",
+  "change": "Close four source readers and two mixed-output readers before their existing file-removal calls, preserving all assertions and cleanup error handling.",
+  "validation": "macOS ARM64: the three affected tests pass; Python binding plan structural, complete worktree (pre-existing sample.log excluded), actual-base coverage, 31 checker tests and whitespace checks pass.",
+  "limits": "The updated head still requires hosted Windows build and runtime confirmation. No Windows platform gate or broad format support is promoted."
+}

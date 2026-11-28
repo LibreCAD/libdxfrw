@@ -1,0 +1,122 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-ac1032-sparse-point-and-raster-versions-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "6c382f03518b7a75643db59fbdd3f37ff98742dc",
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm"
+  ],
+  "material": {
+    "scope": "Locally authored same-version ASCII AC1032 source with one planar model-space POINT and one sparse material; AC1021 is a control. The AC1032 automatic route admits only POINT live and source entities. No binary, other entity, other producer, or general material profile is claimed.",
+    "checks": [
+      "Before the change AC1032 export refused the raw-only graph. The current selected test passes 50 assertions, including moved point, repeat import/export, source/delivery mismatches, unsupported elevation and live LINE, cross-version rejection, destination preservation and same-filter corrected retries.",
+      "The affected material suite passed 4669 assertions in 24 cases before the fixture-only addition of a valid LAYER table header; the final selected test used the corrected source.",
+      "ezdxf 1.4.5 independently checks current-material, LAYER and POINT references, material dictionary ownership and sparse channel flag on both versions and stages; all four inputs and outputs have zero audit errors and fixes.",
+      "ODA File Converter 27.1.0 reopened and resaved the edited AC1032 output; ezdxf verifies its POINT location, material dictionary membership, current-material, LAYER and POINT links, with no audit errors or fixes.",
+      "An AddressSanitizer build of the changed consumer filter and test translation units passes the selected test; the shared codec and other linked translation units were not instrumented, and leak detection was disabled.",
+      "The bundled-codec filter translation unit compiles."
+    ],
+    "independentFiles": [
+      {
+        "version": "AC1021",
+        "stage": "source",
+        "sha256": "7193d8307370ddbabc15be45dceedd9860f7896f6bd1ee3526e184ad3b744bc5",
+        "bytes": 601,
+        "material": "A1",
+        "dictionary": "A0",
+        "point": "A5",
+        "auditErrors": 0,
+        "auditFixes": 0
+      },
+      {
+        "version": "AC1021",
+        "stage": "output",
+        "sha256": "15790bab1d6a28fd2be48aad87d5672ff6356959eee5361aa6788c482cbd62cf",
+        "bytes": 21535,
+        "material": "A1",
+        "dictionary": "A0",
+        "point": "A5",
+        "auditErrors": 0,
+        "auditFixes": 0
+      },
+      {
+        "version": "AC1032",
+        "stage": "source",
+        "sha256": "75b6aa3ff2bcdee0991e208142b11803f2e8325b73ce10f591c6a4962e586eeb",
+        "bytes": 601,
+        "material": "A1",
+        "dictionary": "A0",
+        "point": "A5",
+        "auditErrors": 0,
+        "auditFixes": 0
+      },
+      {
+        "version": "AC1032",
+        "stage": "output",
+        "sha256": "b683ae59759538c07a2c374030cf023c59ab1d0e49fb6d8cb004aea97322de5e",
+        "bytes": 21652,
+        "material": "A1",
+        "dictionary": "A0",
+        "point": "A5",
+        "auditErrors": 0,
+        "auditFixes": 0
+      }
+    ],
+    "odaResaveSha256": "1833a21a42ec632f6595026a0bc3c341a573eaa1685014c6d7737d45966e81dc",
+    "limitations": [
+      "The same minimal MATERIAL body is rejected by the current codec in AC1024 and AC1027, whose parser has deliberately narrower disambiguation. No widening of that parser or semantic interpretation is justified by the AC1032 witness.",
+      "The synthetic selected source and ODA resave do not establish native AutoCAD acceptance, other object graphs or 3D material rendering."
+    ]
+  },
+  "raster": {
+    "scope": "512 IMAGE entities, 512 distinct IMAGEDEFs and 512 reactors in each selected same-version AC1021, AC1024, AC1027 and AC1032 ASCII graph.",
+    "checks": [
+      "Current selected regression passes 2120 assertions, including late edit refusal, destination preservation, corrected retry, graph counts, readback and repeat save.",
+      "ezdxf 1.4.5 compares source and output IMAGE fields and paths, all definition fields, model owners, distinct reactor owners and reciprocal definition links; each source/output audit has no errors or fixes.",
+      "The separate AC1024 source-size boundary regression passes 35 assertions. The prior 513-image refusal remains tested in AC1021 and AC1024; it is not newly claimed for all four versions."
+    ],
+    "versions": [
+      {
+        "acadver": "AC1021",
+        "sourceBytes": 319989,
+        "sourceSha256": "47470a678e688065311e98d7bdfa16d6475b775a006fb3789e700a1d0d606b6f",
+        "outputSha256": "f166af0bf1a472988441523160ac3bdf8c02a61b866ce0a75bd8502dc29d672a",
+        "independentGraphAudit": "clean"
+      },
+      {
+        "acadver": "AC1024",
+        "sourceBytes": 323185,
+        "sourceSha256": "72dde891428c28db824a3d06138521c47efb365c176933453aabc8257fa00ef7",
+        "outputSha256": "bd246210cb183b4da999fc7cc94a9cbf436d5ae92a64436f61ed813f660f48f4",
+        "independentGraphAudit": "clean"
+      },
+      {
+        "acadver": "AC1027",
+        "sourceBytes": 323178,
+        "sourceSha256": "39ae6b0869ef08f9bcdd60b028c4f68146a0179d165beddc332ada88edc0d80a",
+        "outputSha256": "eda4159ca1e49f9dc2dc5f475ca2f58e12975327827fbe47ae932c28fa0788ba",
+        "independentGraphAudit": "clean"
+      },
+      {
+        "acadver": "AC1032",
+        "sourceBytes": 323178,
+        "sourceSha256": "72702d06b44f31c11b1af5f78c854ed8f92978e7bfee62a74f71f31f00dfb749",
+        "outputSha256": "c7561edbe872fc59e49afab841e60f5ef4981c29e139fb398ae837d1b6aba4ab",
+        "independentGraphAudit": "clean"
+      }
+    ],
+    "limitations": [
+      "Native rendering, other graph shapes, larger drawings and platforms are not covered. The shared six MiB budget is logical source accounting, not total resident memory."
+    ]
+  },
+  "validationHashes": {
+    "materialFocusedLog": "26498ba0ff3a3d0935f682963aa9163b2801867d9d28531eb11cc623463a70cb",
+    "materialSuiteEarlierFixtureLog": "8567b398c88607b097642281c97e754cb91ddab997331b9edba732fbd7ec64c1",
+    "materialTargetedAsanLog": "f3c0df7060e1a332cc70c120bf9fabebe2c29d3b71efc137f76985c309a5d372",
+    "rasterMatrixLog": "0afd8db6360ae4e1add283cbdddc058bed1e84f6de78450cb7b87d6458cae590",
+    "testBinary": "d0c9faa3d9ffd7e26f70e6c9664e81ec20930bb2b3e9eac768d002d1e7b9d766"
+  },
+  "fixturePolicy": "Only locally authored drawings were used; none is committed."
+}

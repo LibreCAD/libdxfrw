@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-8c1c3d7a-freecad-native-qualification-2026-11-18",
+  "date": "2026-11-18",
+  "status": "FAST_AND_LINUX_WINDOWS_PASS_MACOS_NATIVE_RETRY_QUEUED",
+  "testedCommit": "8c1c3d7aec1599b952f25d0fd77dd8c73684065c",
+  "implementationDigestSha256": "b784d8420cd193b671307a5f16bb53dfd3bdc11be5089c43b866129a3d1332f7",
+  "supportClaimEffect": "none",
+  "freecad": {
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44336900137",
+    "scope": "Pinned FreeCAD 1.1.4 generated open/insert and installed converter handoff profile; not producer-authored DWG qualification.",
+    "freecadRevision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "legacyImporterVersion": "v1.42 - 2023.12.04",
+    "legacyImporterCommit": "e060ef0d8fe7143c2e0ce34734b686ba073f3cc1",
+    "generatedAc1032PolyfaceSha256": "7df817c97a68064cf2df6823ca5b4a1b0b6c47b427d66de8d8fb5bc77fcd69f8",
+    "platforms": [
+      {"platform": "linux-x64", "result": "PASS 16/16", "jobId": 134915970073, "artifactId": 14442536986, "artifactSha256": "dbac4cb088b2db9fefc751f84f173e68041080232833dc1d93e2645c6448121b", "installedConverterSha256": "58d2dce1d60094cebac234b1437690610983bf8b391d63fe578ae52558d023ae"},
+      {"platform": "windows-x64", "result": "PASS 17/17", "jobId": 134915969106, "artifactId": 14443216562, "artifactSha256": "d96197fd27b358f74a0a07eadb593197a33ddd7f5b549f79f7321079d0ef88e0", "installedConverterSha256": "cd1422738583d8475c46f225ca4f68f9bb59818675a5daf8f8a37ee67168d113"}
+    ],
+    "gateEffect": "P8-B/C can close for exactly these generated Linux/Windows consumer profiles and tested source/binaries. Any changed input, binary, configuration, platform or operation requires reassessment."
+  },
+  "focusedNative": {
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44336852309",
+    "workflowContract": "PASS, including frozen implementation digest preflight.",
+    "platforms": [
+      {"platform": "linux-gcc", "result": "PASS 7/7; receipt sealed and enforced", "jobId": 134915900088, "receiptSha256": "93265dda1fe6f6a30177e30d4d3a8c2a637c400c7c34fb88e8db422259ca29ab", "artifactId": 14441503720, "artifactSha256": "8a8a2c6ca06faad6106808c87ea06c664962430d6a83ffb41e34cec08192c6ba"},
+      {"platform": "windows-msvc", "result": "PASS 7/7; receipt sealed and enforced", "jobId": 134915899952, "receiptSha256": "e5ff70428a3b375f84cc9068dee3fc2425df807adbb09c7784e3ceafa13d25f9", "artifactId": 14442966692, "artifactSha256": "f42b14eebe196a17b31aeb22c724753f03499b06c57d9e5c98e9052c1bd407ba"},
+      {"platform": "macos-clang", "result": "CANCELLED after queuing; no focused test or sealed receipt", "jobId": 134915900084}
+    ],
+    "broadAndFuzz": "Skipped as planned.",
+    "macosRetry": {"jobId": 134927564189, "statusAtReceipt": "CANCELLED", "result": "Cancelled while queued; no runner, test result or sealed receipt."},
+    "gateEffect": "P8-F remains open until the exact implementation digest has a sealed passing macOS focused receipt and a passing fast profile, with branch policy rechecked."
+  },
+  "fastParity": {
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44336852648",
+    "jobId": 134915787117,
+    "result": "PASS: bounded fast regressions on tested commit 8c1c3d7a.",
+    "gateEffect": "The fast component passes for the recorded digest; P8-F still needs the hosted macOS focused receipt and branch-policy recheck."
+  },
+  "packageMatrix": {
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44336852326",
+    "linux": {"result": "PASS: shared/static relocation, ABI version selection, consumer runtime identity and shared CLI launch", "jobId": 134915785273, "artifactId": 14443126174, "artifactSha256": "4505c63e290ea083d97ee93212ccf716e3de7338aa0414396b2d657258e13d37", "sharedFileCount": 30, "staticFileCount": 26, "loadedRuntimePath": "lib/libdxfrw.so.3.0.0", "loadedRuntimeSha256": "f18d209dfb6edcd81bf5ae7e3c356bf78066938321c6d9cb9012bc079bafa014", "cliSha256": "bec7bfa3e23cdd608bf88300cd6bc7f3f903dc2fc37958078046c80a6f2eacea", "staticArchiveSha256": "552db31fce9244c930ac5778148fc906f8e776b766b9d1d29dfba908ab09811b"},
+    "windows": {"result": "PASS: shared/static relocation, ABI version selection, consumer runtime identity and shared CLI launch", "jobId": 134915785214, "artifactId": 14441404009, "artifactSha256": "ca4293c077a89df88e07b21740cc1c6af8376f618424ee3f431d9a040eeb69f3", "sharedFileCount": 29, "staticFileCount": 26, "loadedRuntimePath": "bin/dxfrw-3.dll", "loadedRuntimeSha256": "f7f068ed0e044416b4a41714a6b6ac624801a879f626266b6a89fe8023604d11", "cliSha256": "544b7c2389b5de7d1144b8cabdf6ce866c6e5c55e4cdcc33410e0ede5b624702", "staticArchiveSha256": "64c8325c8cfaf0af9def6c454756692a2539d287bff736d16e046dd81200d25d"},
+    "hostedMacos": {"result": "CANCELLED after queuing; no hosted package result", "jobId": 134915784574},
+    "localMacos": {
+      "source": "Clean git archive of 8c1c3d7aec1599b952f25d0fd77dd8c73684065c, excluding untracked workspace files.",
+      "platform": "macOS 27.2.1 arm64; AppleClang 21.0.0.21000334; CMake 4.4.5",
+      "configuration": "Release; CMAKE_POLICY_VERSION_MINIMUM=3.5; docs and tests disabled. Shared builds dxfrw and dwg2dxf; static builds dxfrw.",
+      "shared": {"result": "PASS: 30 installed files, relocated inventory and C++17 consumer, ABI 2 rejected/3 accepted, CLI usage launch with loader overrides cleared.", "cliSha256": "0a7964817997b5032882eeca3f5511d224a92004acda4627ee4fff2a9c12d3b8", "loadedRuntimePath": "lib/libdxfrw.3.0.0.dylib", "loadedRuntimeSha256": "7a0b42cdae111c7c63f121ab206427bd69a19bfb8953da7c9d32af36e89c3960", "installManifestSha256": "4920951b87907728a84a0d62f67eea1777f2fa1fba4b6673a349dcfe00fcc3c7", "receiptSha256": "67c0cb9d15912fb118ee0aa6be0df59a7c6f10d7a3ba2b3b9c556d7990ff0a97"},
+      "static": {"result": "PASS: 26 installed files, relocated inventory and C++17 consumer, ABI 2 rejected/3 accepted.", "archivePath": "lib/libdxfrw.a", "archiveSha256": "cf029adccadedec4ccb35c5adde84a74fc43ac2b2c16d7ba51c26a0b17383922", "installManifestSha256": "3d801887d85779e0698e0c71a00c264b9e3c946f4c03c02afa655a88f50c4a93", "receiptSha256": "f7b3ddf8e0be1d5d4780221eefc63497eaa164adad18614c722fc2567014f754"}
+    },
+    "gateEffect": "P8-A/E package profile can close for exact 8c package inputs with hosted Linux/Windows and local macOS results. Reassess upon changes to relevant source, build inputs, configuration, probes, toolchain or operation. Hosted native macOS remains separately unqualified."
+  },
+  "limits": [
+    "Generated consumer controls do not establish producer-authored DWG wire semantics or general 3D support.",
+    "Focused native controls do not substitute for broad/fuzz release qualification.",
+    "The cancelled macOS jobs supply no platform evidence."
+  ]
+}

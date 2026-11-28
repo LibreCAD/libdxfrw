@@ -1,0 +1,150 @@
+{
+  "schema": "libdxfrw-acis-decoder-lineage-standalone-acds-qualification-v1",
+  "title": "Deeper/broader ACIS decoder lineage and standalone-to-AcDs qualification",
+  "date": "2026-10-21",
+  "status": "research_only",
+  "repository": "LibreCAD/libdxfrw",
+  "plans": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "scope": [
+    "Refresh the already-admitted open-source ACIS/SAB candidate and its geometry/consumer boundaries.",
+    "Separate a bare ACIS/SAB decoder from DXF carrier parsing, DWG AcDs extraction/ownership, kernel semantics, and native consumer acceptance.",
+    "Audit parser/kernel lineage and release/provenance limits before adding an optional differential candidate.",
+    "Refine the existing PAR-07/S8 and PAR-14 composed checkpoints without adding per-slice peer work or changing support claims."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review",
+    "dateReviewed": "2026-10-21",
+    "peerSourceRevisionsPinned": false,
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalledOrRun": false,
+    "peerOrNativeRuntimeRun": false,
+    "externalDrawingsDownloaded": 0,
+    "generatedOutputs": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "productionSourceChanged": false,
+    "sources": [
+      "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/architecture.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/LEGAL.md",
+      "https://github.com/monozukuri-ai/cq-acis",
+      "https://docs.rs/acis-core/latest/acis_core/",
+      "https://github.com/monozukuri-ai/inventor-kit",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "https://www.opencascade.com/products/cad-assistant/",
+      "https://github.com/HakanSeven12/OpenCADStudio",
+      "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+      "https://github.com/advisories/GHSA-gp83-hcvh-g255"
+    ],
+    "evidenceRule": "Mutable project documentation establishes declared scope and route only. No local, semantic, native, security, or interoperability result is established without pinned execution or a local reproducer."
+  },
+  "evidence": [
+    {
+      "topic": "cadmpeg-codec-sat as an existing optional differential route",
+      "sources": [
+        "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/architecture.md"
+      ],
+      "observed": "The existing v0.6.1 candidate is a read-only bare ASM/ACIS SAT/SAB stream codec, not a DWG or DXF document reader. Its published ACIS/ASM score is L1 while its docs describe geometry transfer for a bounded supported subset. The source repository has a separate clean-room/provenance policy, but mutable main was not verified against the crate archive.",
+      "doesNotEstablish": [
+        "A tested build or decoded result for this task's carrier profiles",
+        "Support for DWG section, AcDs DataStorage, record, owner, or entity mapping",
+        "Complete ACIS/SAB grammar or full B-rep semantics",
+        "Native consumer acceptance or platform qualification"
+      ],
+      "planUse": "Admit only as a candidate exact-payload differential decoder after a one-time source, package, dependency, license, platform, and profile fingerprint. Keep its L1 declaration and unsupported subset visible."
+    },
+    {
+      "topic": "Parser and kernel independence boundary",
+      "sources": [
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://docs.rs/acis-core/latest/acis_core/",
+        "https://github.com/monozukuri-ai/inventor-kit",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/LEGAL.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md"
+      ],
+      "observed": "cq-acis describes experimental SAT/SAB parsing and conversion to CadQuery/OpenCascade shapes. acis-core states that reference closure does not prove B-rep validity; inventor-kit consumes that same acis-core/acis-py-bridge lineage. cadmpeg-codec-sat is a different codec package, but its policy permits compatible open-source knowledge and its SAB notes identify ezdxf plus cadmpeg format notes as sources.",
+      "doesNotEstablish": [
+        "That separate package names equal independent decoding algorithms or independent derivations",
+        "A normative ACIS/ASM reference specification",
+        "Three independent evidence votes from cq-acis, acis-core, and inventor-kit",
+        "B-rep validity merely from reference closure or a parser success result"
+      ],
+      "planUse": "Compare exact source/dependency lineage. Treat inventor-kit and cq-acis as one shared parser/model family. Treat cadmpeg as useful differential implementation evidence but not an oracle for fields whose knowledge lineage overlaps ezdxf or its own mutable notes."
+    },
+    {
+      "topic": "Native consumer and licensed kernel routes",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://www.opencascade.com/products/cad-assistant/",
+        "https://github.com/HakanSeven12/OpenCADStudio"
+      ],
+      "observed": "FreeCAD docs state stock DXF import does not read embedded ACIS solids and describe DWG as a converter-to-DXF handoff. CAD Assistant lists ACIS SAT/SAB import through commercial Open CASCADE components. OpenCADStudio advertises ACIS entity tessellation but its codec is associated with the ACadRust lineage already in the plan.",
+      "doesNotEstablish": [
+        "Native Linux or Windows execution in this environment",
+        "That a stock FreeCAD pass validates ACIS semantics",
+        "An open-source ACIS import component in the default OCCT/FreeCAD build",
+        "An independent DWG parser from an ACadRust-derived consumer"
+      ],
+      "planUse": "Keep FreeCAD native qualification scoped to its actual 2D import route. Any 3D consumer check names the exact application, component, license, kernel, version, and operation; commercial routes stay optional."
+    },
+    {
+      "topic": "Low-frequency parser-safety checkpoint refresh",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+        "https://github.com/advisories/GHSA-gp83-hcvh-g255"
+      ],
+      "observed": "LibreDWG documents multiple input/output and round-trip fuzz modes. The advisory describes an R13-R2000 class-count resource-exhaustion case fixed in LibreDWG 0.14. The existing plan already records the issue and a local ODA-backed length-delimited class-parser architecture audit.",
+      "doesNotEstablish": [
+        "A matching libdxfrw vulnerability",
+        "Current peer harness health from historical HACKING text",
+        "A reason to add fuzzing or sanitizer runs to each implementation slice"
+      ],
+      "planUse": "Retain PAR-14's bounded count/length/progress review and scheduled route-matched fuzz checkpoint; do not create a duplicate peer-shaped finding or import a peer corpus file."
+    }
+  ],
+  "planImpact": {
+    "existingCandidatesAndGatesOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "peerOrNativeRuntimeRun": false,
+    "externalFilesDownloaded": 0,
+    "generatedOutputs": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "jDispositionChanged": false
+  },
+  "limitations": [
+    "GitHub, docs.rs, and project documentation are mutable; no commit, package archive hash, or installed binary was captured in this research-only pass.",
+    "No candidate decoder, OCCT commercial component, FreeCAD build, or native consumer was installed or executed.",
+    "A generated geometry control is a proposed qualification method, not evidence until executed against independently calculated expectations.",
+    "No route closes DWG AcDs extraction/ownership, independent ACIS semantics, or native Linux/Windows qualification."
+  ]
+}

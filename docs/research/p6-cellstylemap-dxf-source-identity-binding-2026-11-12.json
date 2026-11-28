@@ -1,0 +1,35 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "scope": "Bind typed CELLSTYLEMAP source identities to emitted DXF OBJECTS records, including promotion of an already-reserved minted identity.",
+  "result": "PASS",
+  "supportClaimEffect": "none",
+  "change": "writeCellStyleMap now transactionally promotes a matching sourceHandleToMintedMap reservation into sourceHandleToWrittenObjectMap before record commit. A mismatched reservation refuses; failed promotion restores the prior reservation when the record scope rolls back.",
+  "validation": {
+    "normal_identity_promotion_rollback_retry": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_cellstylemap_source_identity$' --output-on-failure",
+      "result": "PASS, 1/1; ASCII/Binary identity mapping, duplicate binding rollback, minted-identity promotion and rollback restoration"
+    },
+    "normal_profile_writer": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_cellstylemap_dxf_writer$' --output-on-failure",
+      "result": "PASS, 1/1; generated ASCII/Binary CELLSTYLEMAP fields, graph readback, refusal and corrected same-adapter retry"
+    },
+    "address_sanitizer_identity_promotion_rollback_retry": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_cellstylemap_source_identity$' --output-on-failure",
+      "result": "PASS, 1/1"
+    },
+    "address_sanitizer_profile_writer": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_cellstylemap_dxf_writer$' --output-on-failure",
+      "result": "PASS, 1/1"
+    }
+  },
+  "limitations": [
+    "This is bounded writer identity and transaction evidence; it does not establish producer-wide CELLSTYLEMAP coverage or native TABLE semantics.",
+    "No support claim is promoted."
+  ],
+  "source_sha256": {
+    "src/libdxfrw.cpp": "8c9a99fce9437f031b411e6214545af5eac61894f77e3be5e3caaeb3b42734f2",
+    "tests/wave1_tests.cpp": "ff69a78c434cffef5499a0bd97f0602956e6431356b1895e11d80229ee2360dc",
+    "tests/CMakeLists.txt": "cf0a497ffae85dcad87ec96ca093835835aab4034de2af26072bb965e68039b6"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "scope": "Focused fixture-test correction for an isolated large-radial geometry projection; no additional source-graph or native-app support.",
+  "problem": "The test copied source LAYER plot-style and MATERIAL references into an isolated document while omitting their target graphs; current writer correctly refused those detached references, causing two fixture assertions.",
+  "change": "For each ASCII/Binary case assert the unmodified detached-reference projection refuses and preserves a seeded destination. On the same exporter, clear only the copied layers\u2019 omitted plot-style/material references and verify the large-radial fields and picture-block geometry by fresh readback. Original imported source data is not modified.",
+  "validation": [
+    "libdxfrw_dwg_fixtures configured CTest passes 1/1; previous hosted baseline had 19 fixture assertions, with 17 resolved by historical ENC import and the last two by this explicit test setup.",
+    "The local reader matrix separately remains failed with nine assertions versus the hosted baseline 13; no reader-matrix gate is claimed green."
+  ],
+  "limits": [
+    "The successful projection deliberately omits original LAYER plot/material dependencies; it does not establish their graph output, rendering or native plotting semantics.",
+    "No DWG/DXF fixture was added."
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p7-ac1024-modeler-wireframe-presence-2026-11-12",
+  "date": "2026-11-12",
+  "scope": "Read and compare the bounded common wireframe-presence bit for inline AC1024 SAB modeler entities. This does not decode the optional wireframe body.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.41",
+    "finding": "The common modeler layout places Wireframe data present after the ACIS carrier; a true bit is followed by wireframe and optional silhouette records.",
+    "localExtract": "/private/tmp/oda-spec-p7.txt"
+  },
+  "source": {
+    "repositoryPath": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "version": "AC1024",
+    "entityType": "3DSOLID",
+    "expectedTrueHandles": [
+      "0x183",
+      "0x191",
+      "0x195",
+      "0x1da",
+      "0x20f"
+    ],
+    "fixturePolicy": "The drawing already exists in libdxfrw; no new fixture was added."
+  },
+  "independentComparison": {
+    "implementation": "LibreDWG 0.14",
+    "outputPath": "/private/tmp/p7-visualization-aerial-libredwg.json",
+    "outputSha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832",
+    "result": "The exact source yields five AC1024 3DSOLID records. All five report wireframe_data_present=1; handle 0x1da contains seven wire records."
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "When exact inline SAB end-marker framing is recognized on AC1018/AC1021/AC1024, the parser positions a bounded probe at the marker end and reads the next bit into DRW_ModelerGeometry::m_hasWireframe. The SAT-v1 path reads the bit after the zero-size block terminator.",
+    "focusedTest": "libdxfrw_dwg_ac1024_modeler_wireframe_presence",
+    "testSource": "tests/dwg2dxf_adapter_tests.cpp",
+    "ctestRegistration": "tests/CMakeLists.txt"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "passed with -Werror",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_ac1024_modeler_wireframe_presence$' --output-on-failure",
+    "ctestResult": "passed 1/1 in 0.76 seconds",
+    "ctestCoverage": "Imports the tracked AC1024 source; requires exactly the five peer-listed 3DSOLID handles, typed nonempty extracted SAB payloads, true wireframe-presence values, and no duplicate or unexpected 3DSOLID handles.",
+    "satV1Regression": "All 48 AC1018 SAT-v1 handles 0x2a through 0x59 passed the selected ASCII/Binary projection selector again, including source unit, payload equality, refusal and retry checks.",
+    "testSourceSha256": "636f12016943fcfb8bf4c81d616e35e4471a32859c762d6a5ae198c15980043b",
+    "testExecutableSha256": "1d723cbbdf23325eeaa44120cac84e522782fef2269660d7042a9c9c9fca39bb"
+  },
+  "limitations": [
+    "This compares one presence bit across two observed profiles; it does not qualify producer-family coverage.",
+    "When the bit is true, point, isoline, wire, silhouette, viewport and transform fields remain opaque and are not surfaced as typed data.",
+    "The result does not establish ACIS placement, geometry semantics, native consumer acceptance, whole-document output or support claims."
+  ]
+}

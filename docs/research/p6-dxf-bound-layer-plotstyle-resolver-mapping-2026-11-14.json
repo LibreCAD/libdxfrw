@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.dxf.reference-resolver-mapping-receipt.v1",
+  "slice": "P6-D AC1027 bound LAYER PlotStyleName resolver mapping",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/layer_table_allocation_tests.cpp"
+    ],
+    "change": "The DRW_Ac1027BoundLayer group-390 route now resolves sourcePlotStyle through the caller's configured reference resolver when present, falling back to remapObjectHandle only when no resolver is installed. This matches the behavior for ordinary explicit DRW_Layer plot-style handles."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_layer_table_allocation_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_layer_table_allocation$' --output-on-failure",
+      "result": "PASS (1/1, 0.58 seconds)",
+      "coverage": "Generated AC1027 ASCII/Binary write first refuses a conflicting inherited public handle and preserves the prior destination. Same-codec retry clears that alias and maps bound sourcePlotStyle 0x123 to final handle 0x789 via the installed resolver; a fresh reader observes 789 in group 390."
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "The generated resolver is trusted as the source-to-output graph authority; this test does not establish that handle 0x789 exists in the output or prove recursive ownership closure.",
+    "No independent DXF consumer or native plot-style semantic qualification was run."
+  ]
+}

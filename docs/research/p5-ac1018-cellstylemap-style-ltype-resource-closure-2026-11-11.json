@@ -1,0 +1,31 @@
+{
+  "id": "p5-ac1018-cellstylemap-style-ltype-resource-closure-2026-11-11",
+  "scope": "Same-import STYLE and LTYPE source/control closure for the selected AC1018 TABLESTYLE/CELLSTYLEMAP profile. This is selected source evidence only; it grants no output, font/rendering, semantic interoperability, or general producer authority.",
+  "source": {
+    "path": "/private/tmp/p5-desc-input/input.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "profile": "ODA File Converter 27.1.0 audited ACAD2004 conversion described in p5-ac1018-tablestyle-cellstylemap-graph-wire-2026-11-11.json",
+    "selected_resources": {
+      "style_control": "0x3",
+      "style": "0x11",
+      "ltype_control": "0x5",
+      "continuous_ltype": "0x16",
+      "byblock_ltype": "0x14",
+      "bylayer_ltype": "0x15"
+    },
+    "cellstylemap": "0xdd carries ordered style IDs [3,1,2]; each text-style reference targets STYLE 0x11 and all eighteen border linetype references target ByBlock 0x14. The independently inspected wire profile is recorded in p5-ac1018-tablestyle-cellstylemap-graph-wire-2026-11-11.json."
+  },
+  "implementation": "dx_iface composes the existing reader-bound TABLESTYLE extension dictionary, XRECORD and CELLSTYLEMAP bundle with the same import's selected STYLE_CONTROL/STYLE and LTYPE_CONTROL/Continuous/ByBlock/ByLayer tickets. The query checks unchanged reader-bound resource bundles, the selected map's unique typed model, all three style targets, and all eighteen border targets. Existing selector modes and default behavior remain unchanged.",
+  "controls": {
+    "physical_probe": {
+      "source": "tools/research/p5_ac1018_cellstylemap_binding_probe.cpp SHA256 99a67185fb2b6ecfdfe9abb26ecd8ef2bc9f148d81b77279642838eaf005c8c8",
+      "command": "clang++ -std=c++17 -Wall -Wextra -Werror -Idwg2dxf -Isrc tools/research/p5_ac1018_cellstylemap_binding_probe.cpp build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build/libdxfrw.a -framework CoreFoundation -o /private/tmp/p5-cellstylemap-binding-probe; /private/tmp/p5-cellstylemap-binding-probe /private/tmp/p5-desc-input/input.dwg",
+      "binary_sha256": "b077e7a5ae0d0d441e21108e94cc8efb2f7f429de3870dbd4427e08cb3ec7df9",
+      "log_sha256": "e72616f7092c11b76308ce3925f71b3ff036edd322a3ba8c9fad1f260db64796",
+      "result": "PASS. Source order [3,1,2], TABLESTYLE dictionary targets, same-import STYLE/LTYPE tickets, and exact selected references verified. Mutating selected STYLE name, STYLE EED APPID 0x12 name, ByBlock description, CELLSTYLEMAP modeled values/references or retained raw frame invalidates observation; restoration succeeds. Duplicate models, callback spoof/duplicate/throw, missing profile, allocation failure and same-adapter selector correction/retry, cross-generation transplant and nested/cross-adapter reentry controls pass. Legacy XRECORD-only and dictionary-only modes retain their previous result. Strict output is refused and the sentinel destination remains unchanged."
+    },
+    "focused_tests": "The portable generated reader-source CTest now checks selector rejection for duplicate, NoHandle, selected-graph/XRECORD-overlap and conflicting resource profiles, then verifies the valid selection remains usable. Source SHA256 e5b0b9aa6734388bec6d8ca747925e30ec5695348b932373e279e490f57d21e4. cmake --build build --target libdxfrw_dwg_cellstylemap_reader_source_tests -j 3; ctest --test-dir build -R 'libdxfrw_dwg_cellstylemap_(reader_source|ac1018_candidate)' --output-on-failure. PASS, 2/2. git diff --check passes.",
+    "fixture_policy": "The DWG remains in /private/tmp and is not committed. No DWG/DXF fixture was added."
+  },
+  "remaining": "This closes same-import STYLE/LTYPE source/control and selected handle-target evidence only for this exact profile. APPID/EED dependencies, native font availability and font semantics, layer/plotstyle/xdict and block descendants, source-to-output ordering, writer-stage and finalization capability checks, strict whole-graph emission/readback, independent consumer semantics, other producers/revisions, and native Linux/Windows qualification remain open. The map's text ordering [3,1,2] differs from same-vendor DXF ordering [1,2,3]; no output-order conversion is inferred."
+}

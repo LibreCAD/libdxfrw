@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-hatch-unidentified-boundaries-2026-11-28",
+  "date": "2026-11-28",
+  "supportClaimEffect": "selected deassociation/refusal profile only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "10cebdede5fec875bebdb548bf2754abf601d85e",
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+    "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbHatch.html"
+  ],
+  "scope": "Selected locally generated DXF HATCH and boundary graphs, ordinary same-version DXF and AC1018 DWG output in LibreCAD on macOS ARM64.",
+  "finding": "An imported associative HATCH with no usable source handle was omitted from the deassociation loss count; its named boundary could retain a dangling reactor. A copied HATCH duplicated the undercount.",
+  "change": "Retain association provenance on the hatch through copies; remember unidentified source boundaries across hatch deletion and cross-document copies; refuse saves with unresolved or ambiguous selected boundary reactors, recheck at finalization, preserve the destination, and provide a repair message. Retain uniquely identified POINT, LINE, CIRCLE and ARC targets in the checked ordinary profile; advanced-object graphs remain guarded.",
+  "checks": [
+    {
+      "name": "System codec focused HATCH association selectors",
+      "result": "pass",
+      "cases": 2,
+      "assertions": 191,
+      "logSha256": "5027f8c063f687689ea61c202e2e7b69771bf4b491fa993f2fd61cf40700bfec"
+    },
+    {
+      "name": "Bundled codec focused HATCH association selectors",
+      "result": "pass",
+      "cases": 2,
+      "assertions": 186,
+      "logSha256": "3c7c697b7ccf89c3b62db7fabee603f6427c8cbc94bf9f8a95916661eedfabe6"
+    },
+    {
+      "name": "AddressSanitizer system-codec selector",
+      "result": "pass",
+      "cases": 2,
+      "assertions": 191,
+      "logSha256": "f4f56c2645151b29ca3fd1216e610e6308d32b312a1fcb9328b8444502e638d1",
+      "limits": "Qt leak detection disabled; linked system codec was not instrumented."
+    },
+    {
+      "name": "Independent DXF graph and audit",
+      "result": "pass",
+      "reader": "ezdxf 1.4.5",
+      "outputs": 20,
+      "receiptSha256": "9a08d4672883fcc3c7677c38b4a811609fcebd1b69b80ed86e7b268042fb1bd6",
+      "details": "Direct DXF and libdxfrw DWG-to-DXF readback, for both codecs; checks deassociation, boundary reactors, output identity uniqueness where applicable, target kinds and clean audits."
+    },
+    {
+      "name": "Affected image-size and sparse-material checks",
+      "result": "pass",
+      "assertions": [
+        42,
+        604
+      ]
+    }
+  ],
+  "coverage": "Handleless import, valid non-associative control, copy and cross-document paste, removed hatch, missing and duplicate targets, typed-dictionary collision, unsupported target and advanced-object guard; preflight and selected late-mutation failures preserve the destination and permit corrected retry. R12 refusal/retry is checked separately.",
+  "limits": [
+    "The source with an absent HATCH handle is a locally authored malformed/recovery control, not a qualified producer file.",
+    "HATCH loops remain reconstructed and non-associative. This does not establish associative editing, arbitrary object targets, complete metadata collision detection, general graph closure or native CAD behavior.",
+    "The late check covers newly unresolved boundary references; it is not a full immutable snapshot of all drawing edits.",
+    "DWG output was read by libdxfrw and then independently audited as DXF, not independently decoded as DWG. Linux/Windows and native GUI qualification are pending.",
+    "No generated DXF or DWG fixture was committed."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-15",
+  "scope": "Public non-mutating source-correlation helper for a bounded AC1024 fixed DICTIONARY profile with no EED, reactors, extension dictionary or data storage; raw frame size at most 4 MiB.",
+  "implementation": "DRW_Dictionary::matchesAc1024DwgFrame reparses the retained object bytes with the existing DWG parser and AC1024 text codec, matches common fields, ordered name/handle/role entries, cloning/hard-owner values, exact frame publication identity and source location, and complete dictionary membership. It refuses decode issues, incomplete or incompatible metadata, unmodeled dependencies and exceptions. LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY advertises this additive nonvirtual method.",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.4.44 and 20.4.93 were consulted; no parseDwg body was changed.",
+  "physicalSource": "tests/samples/AC1024/title_block-iso.dwg; SHA-256 b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+  "validation": [
+    "Three physical named-block dictionaries 22D3, 21CD and 2120 match their typed callbacks, raw frames, frame publications and dictionary memberships.",
+    "Focused tests refuse changed typed owner, cloning and entry, raw type/truncation/version/storage/extension/common evidence, oversized frame, changed publication location/carrier, incomplete or changed membership and mismatched ordinal; each original source remains usable.",
+    "194 calibrated single-allocation failures across the three physical records refuse safely and pass immediate retry.",
+    "Focused dictionary, AC1024 layer binding and plot-style graph CTests passed; the final strengthened dictionary test and LC3 compatibility target also passed under -Wall -Wextra -pedantic -Werror.",
+    "Source-release inventory passed with 1208 files. Frozen CTest inventory increased from 1372 to 1373 with exactly libdxfrw_dwg_ac1024_dictionary_source_verify added; native contract/self-test and the 720-input qualification digest passed."
+  ],
+  "implementationDigestSha256": "c668c708cbf212bd3fe75a330c2f459867901dbd2e8cf8e0c87f03b8c308677b",
+  "limits": "This helper correlates caller-supplied data using the existing parser; it does not authenticate source origin, check the enclosing frame CRC, prove unknown fields or unrelated references, establish graph/output closure, or qualify native semantics. It is not yet connected to LibreCAD export and does not promote a support claim or phase gate."
+}

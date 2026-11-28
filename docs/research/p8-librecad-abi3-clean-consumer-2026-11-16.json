@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-16",
+  "scope": "Complete the local LibreCAD patch chain's source inventory and require the matching installed ABI",
+  "latest_librecad_master": "d40f178b9708b54ad34b15f721d22abb2315aa2b",
+  "prior_chain_base": "b007bff6e798425aa14ae507f7e884db68916e88",
+  "prior_candidate": "014075bb1b7548e76b242e1bc0f1217ce8a83ba4",
+  "codec_commit": "0eeec30f7fb5b8311e174d82dfaa00cda0104fe1",
+  "patch": "docs/patches/librecad-p8-abi3-complete-source-2026-11-16.patch",
+  "patch_sha256": "b725a9843a57e2cafdc69e35e3f0c81baa5447dab5c979cdba12d78ac71d3802",
+  "problem": "The prior candidate committed a CMake reference to lc_dwg_dictionary_source.cpp but left that source untracked. A clean checkout at 014075b could not generate a build. Its unversioned installed-package lookup also allowed an incompatible 2.x codec.",
+  "change": "Carry the locally authored 346-line dictionary-source translation unit in the follow-up patch, require libdxfrw 3.0 CONFIG in installed-codec mode, and document the rebuild requirement. Bundled mode remains the default.",
+  "replay": "The cumulative prior-chain diff and follow-up patch (with --unidiff-zero) apply cleanly to latest master d40f178. Its only changes from b007bff are MSIX workflow and documentation. The 19 affected tracked source paths and restored translation unit match the tested candidate byte-for-byte; this is a cumulative replay, not a new independent sequential replay of every historical patch.",
+  "validation": {
+    "before_fix": "Clean candidate configure failed because lc_dwg_dictionary_source.cpp was missing.",
+    "configure": "PASS: clean installed-codec configure with 3.0.0, explicit rejection of installed 2.0.1, and separate bundled-mode configure.",
+    "compile": "PASS: clean macOS ARM64 Release build of librecad_lib and librecad_system_codec_tests; executable links to @rpath/libdxfrw.3.dylib. The restored source also passes bundled-mode syntax compilation.",
+    "focused_tests": "PASS: LTYPE 18 cases/4159 assertions, source/block graph 24/1145, PR #3269 5/49 and MLEADERSTYLE 1/9. The LTYPE case initially skipped the optional R13 pair; it was rerun with both hash-verified locally generated ODA samples and passed without skips. All 16 hash-verified existing local graph inputs were supplied for the graph test.",
+    "logs": [
+      "/private/tmp/librecad-abi3-clean-configure.log",
+      "/private/tmp/librecad-abi3-old-package-reject.log",
+      "/private/tmp/librecad-abi3-bundled-configure.log",
+      "/private/tmp/librecad-abi3-clean-build-j10.log",
+      "/private/tmp/librecad-abi3-clean-tests-verbose.log",
+      "/private/tmp/librecad-abi3-ltype-no-skip.log",
+      "/private/tmp/librecad-abi3-bundled-tests-configure.log",
+      "/private/tmp/librecad-abi3-bundled-build.log",
+      "/private/tmp/librecad-abi3-bundled-ltype.log",
+      "/private/tmp/librecad-abi3-bundled-pr3269.log",
+      "/private/tmp/librecad-abi3-bundled-legacy_units.log"
+    ],
+    "bundled": "PASS: clean macOS ARM64 Release librecad_tests target with BUILD_TESTS=ON and bundled codec. LTYPE: 29 cases/4321 assertions; PR #3269: 5/49; R12/R14 non-unitless refusal and unitless retry: 1/18. The hash-verified locally generated R13 ASCII/Binary pair was supplied, with no skips. The executable has no dynamic libdxfrw dependency."
+  },
+  "limits": "No drawing files are committed. The local samples include a workspace-local title drawing of unestablished origin and do not establish producer-wide support. The full BUILD_TESTS suite, GUI, LibreCAD_3, native Linux/Windows and upstream integration remain open. No broad support claim or external gate is promoted.",
+  "local_integration_candidate": {
+    "commit": "fe1fea1c2aad9534a687378808d3bdbb11b07f15",
+    "parent": "d40f178b9708b54ad34b15f721d22abb2315aa2b",
+    "branch": "codex/libdxfrw-abi3-integration-20261116",
+    "checkout": "/private/tmp/librecad-abi3-master-replay-20261116",
+    "status": "Local only; clean scratch checkout, not published or merged.",
+    "scope": "All 20 changed files, including the restored source; no DWG/DXF fixtures."
+  }
+}

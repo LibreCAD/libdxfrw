@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-02",
+  "status": "GENERATED_DXF_CLASSIC_POLYLINE_OCS_TRANSFORM_PASS_NATIVE_SEMANTICS_OPEN",
+  "baselineHead": "31519acaa72d041a9c8356de7c91422ba26ef0a0",
+  "scope": "DXF reader callback coordinate preparation for classic POLYLINE when dxfRW::read explicitly requests applyExtrusion; no physical-source or support claim",
+  "authority": [
+    {
+      "title": "Autodesk POLYLINE (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+      "rules": [
+        "A 2D POLYLINE's group-30 elevation is in OCS; 3D POLYLINE elevation is in WCS.",
+        "Flag 8 identifies a 3D POLYLINE, flag 16 identifies a 3D polygon mesh, and flag 64 identifies a polyface mesh."
+      ]
+    },
+    {
+      "title": "Autodesk VERTEX (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+      "rule": "2D vertex location is in the owning polyline's OCS; 3D vertex location is in WCS."
+    },
+    {
+      "title": "Autodesk Vertex2d.Position Property",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Vertex2d_Position.html",
+      "rule": "The vertex's OCS Z member is not the effective elevation; the owning 2D polyline supplies OCS Z through its elevation."
+    },
+    {
+      "title": "Autodesk Object Coordinate Systems (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm",
+      "rule": "The OCS basis is computed from the extrusion normal using the arbitrary-axis algorithm."
+    }
+  ],
+  "implementation": {
+    "files": [
+      {
+        "path": "CMakeLists.txt",
+        "sha256": "5ef942b8d8bfadcaf37a5008913aa2929a90c6c2c595cfa3abd6f692c17d0a6f"
+      },
+      {
+        "path": "src/drw_entities.cpp",
+        "sha256": "0e0cff09ead76ca07dac5c934313884e962dfb4d2c80a583853b9fc19f3074e6"
+      },
+      {
+        "path": "src/drw_entities.h",
+        "sha256": "e599a538a522dfa4a3b475f1b0616093c0bf32a915d33810ece814f466d2f8b9"
+      },
+      {
+        "path": "src/libdxfrw.cpp",
+        "sha256": "7fad2d7469efc22ece68fd1e6b358a911ef29e3ecaf718e20d8bd373c57af223"
+      },
+      {
+        "path": "tests/dxf_fixture_tests.cpp",
+        "sha256": "e1c0fcdeb07bdd1f9f9c4ea6cf42f7362cb87643cbc7877b305cac878eff130e"
+      }
+    ],
+    "behavior": [
+      "DRW_Polyline::applyExtrusion converts ordinary 2D POLYLINE vertices using the owning polyline's elevation and the existing arbitrary-axis basis.",
+      "The 2D header elevation anchor is transformed to WCS; each vertex's historical Z value does not override the parent elevation.",
+      "3D POLYLINE, 3D polygon mesh, and polyface mesh flags bypass this OCS transform because their coordinates are WCS.",
+      "The processPolyline callback invokes this only when dxfRW::read(..., applyExtrusion=true) is selected; the default false option preserves OCS data."
+    ]
+  },
+  "generatedControl": {
+    "generator": "writePolylineOcsExtrusionControl in tests/dxf_fixture_tests.cpp",
+    "generatorSha256": "e1c0fcdeb07bdd1f9f9c4ea6cf42f7362cb87643cbc7877b305cac878eff130e",
+    "sourceRevision": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "normal": [1.0, 0.0, 0.0],
+    "2dPolyline": {
+      "flags": 0,
+      "ocsElevation": 4.0,
+      "ocsVertices": [[2.0, 3.0, 0.0], [5.0, 6.0, 0.0]],
+      "applyExtrusionFalse": {
+        "elevationAnchor": [0.0, 0.0, 4.0],
+        "vertices": [[2.0, 3.0, 0.0], [5.0, 6.0, 0.0]]
+      },
+      "applyExtrusionTrue": {
+        "elevationAnchor": [4.0, 0.0, 0.0],
+        "vertices": [[4.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+      }
+    },
+    "3dPolyline": {
+      "flags": 8,
+      "wcsVertices": [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],
+      "expected": "unchanged with applyExtrusion false or true"
+    },
+    "framingControl": "A following WCS LINE is read with its endpoints unchanged after both owned VERTEX/SEQEND sequences.",
+    "fixtureDisposition": "Generated in a temporary directory by the test and deleted; no DWG/DXF fixture committed."
+  },
+  "validation": {
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.0 (arm64-apple-darwin27.0.0)",
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --polyline-ocs-extrusion",
+      "result": "PASS",
+      "executableSha256": "4d4ed1bd9fc4625c52ecf7e1310b2adc8e99f999775bbf1d1118026d344c22a8"
+    },
+    "focusedCohort": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_(text|polyline)_ocs_extrusion$' --output-on-failure",
+      "result": "PASS, 2/2 in 0.54 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated parser/callback controls only; no physical producer or paired-source evidence was used.",
+    "No native LibreCAD, LibreCAD_3, FreeCAD or other consumer geometry check was performed.",
+    "The control does not qualify mesh/polyface producer profiles, 3D rendering, whole-document output, or broader polyline fit/width/bulge semantics.",
+    "This does not promote a format-support claim."
+  ]
+}

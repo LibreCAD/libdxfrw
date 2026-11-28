@@ -1,0 +1,488 @@
+{
+  "schema": "libdxfrw-material-consumer-publication-proof-v1",
+  "slice": "RPP-5gg",
+  "date": "2026-10-28",
+  "dateTimezone": "America/Toronto",
+  "observedAtUtc": "2026-10-28T08:32:30.008604+00:00",
+  "parentCommit": "d744e408d72ed35158a432ce27793db1cdac8024",
+  "state": "VERIFIED_LOCAL_IMPLEMENTATION",
+  "scope": "Selected same-version modern DXF MATERIAL transactions with the supplied normal-map-strength 465 boundary before reused luminance-mode 270 / normal-method 271 when luminance 464 is absent. Preserve existing 464 output ordering; support coherent luminance removal without invented defaults. Current-model/wire/owning-parser evidence only; no arbitrary source order, native producer, renderer, whole-document or external support qualification.",
+  "baseline": {
+    "productionParent": "d744e408",
+    "command": "build/libdxfrw_dxf_fixture_tests --material-normal-boundaries",
+    "exitCode": 1,
+    "result": "An authored 465-only source imports successfully, then adding represented normal mode/method fields is refused by canonical body validation. The selector/CMake registration alone were added for reproduction; production code was the parent.",
+    "logSha256": "5cfabd43cb3650ff1f353f9ed91e5f6a496813383ed84db5127adfd8b9edaf5a"
+  },
+  "fileSha256": {
+    "CMakeLists.txt": "784b01baee101fccacb10ef9403f778125a9739084b6ad5b59300a6dfc79306a",
+    "dwg2dxf/dx_material_body.h": "abca98aa15f2440d23a698d5681da3eda724f8dfac7becf1f25d363b5d2d52e1",
+    "src/intern/dxfmaterial.h": "c058c5fe3ed7b3a7bffa223502748628050e3f5951d8a004321619e703a1659a",
+    "tests/dxf_fixture_tests.cpp": "f370c0b364f0aa76b4ca76414a4f84d26fd88f05738c5663c2f680d638be25c0"
+  },
+  "primaryReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+      "observed": "2026-10-28",
+      "supports": "Identifies luminance 464, luminance mode 270, normal-map method 271, normal strength 465 and the reused bump/normal mapping codes. The table does not certify optional omissions or native acceptance of the selected boundary-first projection."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+      "observed": "2026-10-28",
+      "supports": "General DXF guidance cautions against depending on the published group order and describes optional groups. This supports avoiding fabricated default values, but is not a complete grammar for ambiguous repeated MATERIAL codes."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/material.py",
+      "observed": "2026-10-28",
+      "supports": "Primary peer code cross-checks repeated normal/bump roles and optional material fields. Advisory only: no peer code copied, no pinned peer runtime qualification. The default local Python has no ezdxf installation."
+    }
+  ],
+  "implementation": [
+    "Treat supplied 464 or 465 as an actual normal boundary for mode/method admission. Models with neither boundary still refuse dependent reused fields; never synthesize luminance, strength, methods or other defaults.",
+    "The shared direct/facade body serializer emits supplied 465 before 270/271 only when 464 is absent. Preserve the existing ordering when luminance is present. Existing owning parser already recognizes 465; no reader, installed instance/virtual, callback or DWG byte-layout changes.",
+    "Compute effective merged boundary presence after per-field typed/raw reconciliation. Use that boundary order for inserted represented fields. When removing 464, relocate existing 465 before the existing normal mode/method fields; reject ambiguous repeated strengths if relocation would be required.",
+    "Retain the actual numeric carrier and ASCII spelling for layout-only strength relocation, including signed zero and surrounding whitespace. If strength itself is edited, emit its canonical edited value. Keep existing conflict, full model/source freeze, actual-output inspection and failure/retry contracts.",
+    "The existing body presence owner now accepts coherent luminance removal. The procedural-end removal refusal remains. All unrelated raw groups, opaque procedural values and common graph behavior retain their prior ownership paths."
+  ],
+  "controls": {
+    "counterLine": "MATERIAL normal-boundary profiles=64; insertions=64; removals=16; readbacks=542; refusals=6; callbacks=24; retries=46; direct=4; transitions=128; compositions=32; lexical=4; corruptions=798",
+    "counts": {
+      "profiles": 64,
+      "insertions": 64,
+      "removals": 16,
+      "readbacks": 542,
+      "refusals": 6,
+      "callbacks": 24,
+      "retries": 46,
+      "direct": 4,
+      "transitions": 128,
+      "compositions": 32,
+      "lexical": 4,
+      "corruptions": 798
+    },
+    "profiles": "64 authored projections: four modern versions x two input encodings x two output encodings x four original mode/method presence shapes. Each admits represented mode/method insertion and separately checks all four resulting presence combinations.",
+    "insertions": "64 actual absent-to-present mode/method fields across the original shapes; subsequent presence combinations exercise both removal and retention.16 full-source luminance removals are counted separately.",
+    "transitions": "128 explicit alternate-to-luminance and back-to-alternate typed presence exports, from the same imported source container, with independent selected wire-role checks and owning readbacks.",
+    "compositions": "32 raw-mode/typed-luminance-removal compositions, half also editing strength itself. Literal repeated-code roles and selected strength values are checked on emitted bytes/readback.",
+    "refusals": "Six preflight/direct-writer cases: conflicting raw/typed method values, missing both normal boundaries, and direct-writer missing-boundary refusal, each across ASCII/binary. Sentinel destination bytes remain intact; corrected same-adapter/writer retries pass.",
+    "callbacks": "24 actual write callback mutations across four phases x three boundary/method changes x two encodings. Publication refuses and sentinels remain; corrected same-adapter writes/readbacks pass.",
+    "lexical": "Four exact preserved ASCII strength spellings across two source recipes and two MATERIAL records per recipe, including negative zero. Only the first material undergoes boundary relocation; the second is an unchanged replay control.",
+    "corruptions": "798 mutated completed OBJECTS field views refuse through the actual MATERIAL inspector during another real export; corrected views pass. Replayed inspector controls, not798 filesystem-corruption attempts.",
+    "readbacks": "542 owning-parser readbacks in the new selector. The four direct-writer successes are checked through independent selected physical field roles and are not counted as these owning readbacks.",
+    "existingBodyOwner": "The previous MATERIAL body selector passes with two additional successful luminance removals: presence314,readbacks1084,refusals36. Its previous allocation/callback/text/opaque and value coverage is retained; all other existing counter values remain as recorded."
+  },
+  "validation": {
+    "registrationsMatch": true,
+    "frozenInputs": 592,
+    "bothBuildsBeforeRuntime": true,
+    "normalBeforeAsan": true,
+    "countersMatchAcrossConfigurations": true,
+    "scope": "Focused MATERIAL codec and adapter boundary checkpoint, all existing MATERIAL registrations plus shared source/dictionary/finalization and CLI/consumer compatibility controls. No full-suite, native CAD/kernel, release/ABI/RSS or external-platform qualification.",
+    "selected": [
+      "libdxfrw_build_inventory",
+      "libdxfrw_public_header_hygiene",
+      "dwg2dxf_acds_strict_material_closure",
+      "libdxfrw_material_raw_scalar_wire_controls",
+      "libdxfrw_dxf_operation_admission",
+      "libdxfrw_dxf_material_text_owner_budget",
+      "libdxfrw_material_body_transactions",
+      "libdxfrw_material_normal_boundaries",
+      "libdxfrw_header_material_bindings",
+      "libdxfrw_layer_material_bindings",
+      "libdxfrw_material_consumer_bindings",
+      "libdxfrw_material_root_output_compatibility",
+      "libdxfrw_material_color_lexemes",
+      "libdxfrw_material_strict_color_closure",
+      "libdxfrw_dxf_consumer_finalization",
+      "dwg2dxf_material_typed_capture_limits",
+      "libdxfrw_dictionary_source_origins",
+      "dwg2dxf_generated_root_common_closure",
+      "libdxfrw_shade_consumer_output",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe"
+    ],
+    "builds": {
+      "normal": {
+        "start": "2026-10-28T08:27:55.936355+00:00",
+        "end": "2026-10-28T08:28:15.071779+00:00",
+        "seconds": 19.13515908300178,
+        "exitCode": 0,
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check"
+        ]
+      },
+      "asan": {
+        "start": "2026-10-28T08:28:15.200624+00:00",
+        "end": "2026-10-28T08:29:48.682484+00:00",
+        "seconds": 93.4808356249996,
+        "exitCode": 0,
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check"
+        ]
+      }
+    },
+    "results": {
+      "normal": {
+        "start": "2026-10-28T08:30:12.898467+00:00",
+        "end": "2026-10-28T08:30:44.767176+00:00",
+        "seconds": 31.868262750009308,
+        "exitCode": 0,
+        "executed": [
+          {
+            "name": "dwg2dxf_generated_root_common_closure",
+            "status": "Passed    4.13 sec"
+          },
+          {
+            "name": "libdxfrw_material_strict_color_closure",
+            "status": "Passed    3.53 sec"
+          },
+          {
+            "name": "libdxfrw_material_color_lexemes",
+            "status": "Passed    3.64 sec"
+          },
+          {
+            "name": "libdxfrw_material_body_transactions",
+            "status": "Passed   13.27 sec"
+          },
+          {
+            "name": "libdxfrw_header_material_bindings",
+            "status": "Passed    2.85 sec"
+          },
+          {
+            "name": "libdxfrw_material_consumer_bindings",
+            "status": "Passed    1.78 sec"
+          },
+          {
+            "name": "libdxfrw_layer_material_bindings",
+            "status": "Passed    1.75 sec"
+          },
+          {
+            "name": "libdxfrw_shade_consumer_output",
+            "status": "Passed    1.47 sec"
+          },
+          {
+            "name": "libdxfrw_dxf_consumer_finalization",
+            "status": "Passed    0.38 sec"
+          },
+          {
+            "name": "dwg2dxf_freecad_installed_cli_compat",
+            "status": "Passed    1.11 sec"
+          },
+          {
+            "name": "libdxfrw_material_root_output_compatibility",
+            "status": "Passed    0.28 sec"
+          },
+          {
+            "name": "libdxfrw_dictionary_source_origins",
+            "status": "Passed    0.28 sec"
+          },
+          {
+            "name": "dwg2dxf_freecad_cli_compat",
+            "status": "Passed    0.91 sec"
+          },
+          {
+            "name": "libdxfrw_build_inventory",
+            "status": "Passed    0.10 sec"
+          },
+          {
+            "name": "dwg2dxf_material_typed_capture_limits",
+            "status": "Passed    0.02 sec"
+          },
+          {
+            "name": "libdxfrw_3d_consumer_probe",
+            "status": "Passed    0.29 sec"
+          },
+          {
+            "name": "libdxfrw_dxf_material_text_owner_budget",
+            "status": "Passed    0.23 sec"
+          },
+          {
+            "name": "libdxfrw_dxf_operation_admission",
+            "status": "Passed    0.08 sec"
+          },
+          {
+            "name": "libdxfrw_public_header_hygiene",
+            "status": "Passed   11.20 sec"
+          },
+          {
+            "name": "libdxfrw_material_raw_scalar_wire_controls",
+            "status": "Passed    0.02 sec"
+          },
+          {
+            "name": "dwg2dxf_acds_strict_material_closure",
+            "status": "Passed    5.53 sec"
+          },
+          {
+            "name": "libdxfrw_material_normal_boundaries",
+            "status": "Passed    7.33 sec"
+          }
+        ],
+        "passed": 22,
+        "counters": [
+          "HEADER material profiles=80; independent fields=1634; readbacks=80; callback rollbacks=66; corrected retries=246; malformed/target refusals=52; staged field refusals=16; direct profiles=6; inspector guards=8; reached post-header writer faults=128; unreached offsets=0; scalar-only diagnostics=128; inactive/null2D profiles=4",
+          "Layer material profiles=32; independent fields=748; readbacks=32; callback rollbacks=82; corrected retries=108; exact/one-under limits=4; invalid pointer refusals=34; staged field refusals=72; reached inspector faults=50; unreached offsets=4; inactive2D profiles=2; legacy projection models=2",
+          "MATERIAL body profiles=16; values=3334; presence=314; readbacks=1084; compositions=16; refusals=36; callbacks=72; retries=532; lexical=2; corruptions=800; signedZeros=4; opaqueReplays=4; allocationFaults=256; baselineSwaps=8; textProfiles=96",
+          "MATERIAL normal-boundary profiles=64; insertions=64; removals=16; readbacks=542; refusals=6; callbacks=24; retries=46; direct=4; transitions=128; compositions=32; lexical=4; corruptions=798",
+          "Material consumer profiles=64; independent fields=4992; readbacks=64; callback rollbacks=50; corrected retries=72; exact/one-under limits=4; invalid target rollbacks=18; staged field refusals=104; reached finalizer faults=12; unreached offsets=4; corrected finalizations=16; extra rooted profiles=2; inactive2D profiles=2; raw provider body rollbacks=2; unqualified raw rollbacks=8; tolerant root profiles=2",
+          "Shade consumer output profiles=38; independent fields=588; observed mutations=120; valid preflight edits=22; callback/extra-record rollbacks=152; exact/one-under limits=4; reached finalization faults=4; unreached offsets=4; corrected finalizations=8; corrected retries=156; inactive 2D streaming profiles=4"
+        ],
+        "writerOutputPropertyExitCode": 0,
+        "ctestSeconds": 31.83
+      },
+      "asan": {
+        "start": "2026-10-28T08:30:44.814007+00:00",
+        "end": "2026-10-28T08:31:06.621606+00:00",
+        "seconds": 21.807362207997357,
+        "exitCode": 0,
+        "executed": [
+          {
+            "name": "libdxfrw_material_body_transactions",
+            "status": "Passed    8.18 sec"
+          },
+          {
+            "name": "dwg2dxf_generated_root_common_closure",
+            "status": "Passed    2.53 sec"
+          },
+          {
+            "name": "libdxfrw_public_header_hygiene",
+            "status": "Passed   11.34 sec"
+          },
+          {
+            "name": "libdxfrw_material_strict_color_closure",
+            "status": "Passed    1.90 sec"
+          },
+          {
+            "name": "libdxfrw_material_color_lexemes",
+            "status": "Passed    1.89 sec"
+          },
+          {
+            "name": "libdxfrw_shade_consumer_output",
+            "status": "Passed    0.96 sec"
+          },
+          {
+            "name": "libdxfrw_header_material_bindings",
+            "status": "Passed    2.10 sec"
+          },
+          {
+            "name": "libdxfrw_material_consumer_bindings",
+            "status": "Passed    1.23 sec"
+          },
+          {
+            "name": "libdxfrw_layer_material_bindings",
+            "status": "Passed    1.13 sec"
+          },
+          {
+            "name": "dwg2dxf_freecad_installed_cli_compat",
+            "status": "Passed    0.92 sec"
+          },
+          {
+            "name": "dwg2dxf_freecad_cli_compat",
+            "status": "Passed    0.56 sec"
+          },
+          {
+            "name": "libdxfrw_material_root_output_compatibility",
+            "status": "Passed    0.26 sec"
+          },
+          {
+            "name": "libdxfrw_dxf_consumer_finalization",
+            "status": "Passed    0.25 sec"
+          },
+          {
+            "name": "libdxfrw_dictionary_source_origins",
+            "status": "Passed    0.19 sec"
+          },
+          {
+            "name": "libdxfrw_build_inventory",
+            "status": "Passed    0.10 sec"
+          },
+          {
+            "name": "libdxfrw_3d_consumer_probe",
+            "status": "Passed    0.27 sec"
+          },
+          {
+            "name": "dwg2dxf_material_typed_capture_limits",
+            "status": "Passed    0.02 sec"
+          },
+          {
+            "name": "libdxfrw_dxf_material_text_owner_budget",
+            "status": "Passed    0.20 sec"
+          },
+          {
+            "name": "libdxfrw_dxf_operation_admission",
+            "status": "Passed    0.28 sec"
+          },
+          {
+            "name": "libdxfrw_material_raw_scalar_wire_controls",
+            "status": "Passed    0.29 sec"
+          },
+          {
+            "name": "dwg2dxf_acds_strict_material_closure",
+            "status": "Passed    2.92 sec"
+          },
+          {
+            "name": "libdxfrw_material_normal_boundaries",
+            "status": "Passed    4.30 sec"
+          }
+        ],
+        "passed": 22,
+        "counters": [
+          "HEADER material profiles=80; independent fields=1634; readbacks=80; callback rollbacks=66; corrected retries=246; malformed/target refusals=52; staged field refusals=16; direct profiles=6; inspector guards=8; reached post-header writer faults=128; unreached offsets=0; scalar-only diagnostics=128; inactive/null2D profiles=4",
+          "Layer material profiles=32; independent fields=748; readbacks=32; callback rollbacks=82; corrected retries=108; exact/one-under limits=4; invalid pointer refusals=34; staged field refusals=72; reached inspector faults=50; unreached offsets=4; inactive2D profiles=2; legacy projection models=2",
+          "MATERIAL body profiles=16; values=3334; presence=314; readbacks=1084; compositions=16; refusals=36; callbacks=72; retries=532; lexical=2; corruptions=800; signedZeros=4; opaqueReplays=4; allocationFaults=256; baselineSwaps=8; textProfiles=96",
+          "MATERIAL normal-boundary profiles=64; insertions=64; removals=16; readbacks=542; refusals=6; callbacks=24; retries=46; direct=4; transitions=128; compositions=32; lexical=4; corruptions=798",
+          "Material consumer profiles=64; independent fields=4992; readbacks=64; callback rollbacks=50; corrected retries=72; exact/one-under limits=4; invalid target rollbacks=18; staged field refusals=104; reached finalizer faults=12; unreached offsets=4; corrected finalizations=16; extra rooted profiles=2; inactive2D profiles=2; raw provider body rollbacks=2; unqualified raw rollbacks=8; tolerant root profiles=2",
+          "Shade consumer output profiles=38; independent fields=588; observed mutations=120; valid preflight edits=22; callback/extra-record rollbacks=152; exact/one-under limits=4; reached finalization faults=4; unreached offsets=4; corrected finalizations=8; corrected retries=156; inactive 2D streaming profiles=4"
+        ],
+        "writerOutputPropertyExitCode": 0,
+        "ctestSeconds": 21.77
+      }
+    }
+  },
+  "compatibility": {
+    "strictWarningsRetained": true,
+    "libreCad3TargetVerified": true,
+    "newInstalledStateOrVirtuals": false,
+    "publicInterfaceCallbackChange": false,
+    "dwgParserOrByteLayoutChange": false,
+    "consumerCliProbes": "SELECTED_GENERATED_LOCAL_ONLY",
+    "formalAbiApplicationQualification": "NOT_RUN",
+    "nativeCadKernelQualification": "NOT_RUN",
+    "freshExtractedSourceCompileOrDistcheck": "NOT_RUN",
+    "freshSourceArchiveValidation": "NOT_RUN",
+    "controlledRssPerformance": "NOT_RUN",
+    "asanOptions": "halt_on_error=1:detect_leaks=0"
+  },
+  "buildInventory": {
+    "releasedFiles": 592,
+    "check": "PASS",
+    "inventoryChanged": false,
+    "newDrawingFixtures": 0
+  },
+  "buildReuse": "Reuse seven existing target profiles with their configured warnings, macros, sanitizer and PIC. Timings are cached affected-target checks after the retained normal development builds, not cold-build performance or cross-profile object sharing.",
+  "scratchArtifacts": {
+    "asan-LastTest.log": "a7abbc4eadf08f75782ba97b62c6a0e0a3c92071d77c9c1bb1cdf1f9b637caee",
+    "asan-build.json": "f6e516129070dfaf4228948bd8e468c9e105690659e8436e03f13c355506ee57",
+    "asan-build.log": "667e7a6b3ad04c1450328706b0fb346a344cb129331885d87e70e668ea1745e5",
+    "asan-tests.json": "cc0f7c9acdede64e83150678de42d5726a86f8e4055732e68a3901ec9d9ef48e",
+    "asan-tests.log": "79027c194944c8f5ccdf5ffb89f4707feaa68a3931869b5171f0527775bcac61",
+    "asan-writer-output-property.log": "cad47023b39e39a6cc3e390f78035dca0545e29a74c8c9940b0be9653ee90f65",
+    "baseline-build.log": "0e3420b89729c7eae1bc94362289b8572e6e9e0fbb1990499e6a73d90fefd693",
+    "baseline-test.log": "5cfabd43cb3650ff1f353f9ed91e5f6a496813383ed84db5127adfd8b9edaf5a",
+    "development-boundaries.log": "149355cb8ca41c83d68ce3be54d377538f9bbefa02d604be6d175c450c86ad46",
+    "development-build.log": "f5e04e8508bfd6b984b8d33d96ea672432c2a1585f2be9c2ddd43d85c4402cf4",
+    "final-owning-build.log": "889a8b1808d2ee4629b5b06243c501c621cec0d2042f1c20c99fd91dae724fe7",
+    "final-owning.log": "b5d8d050a55d38e0d081a44533d88c32d744ace69a1c0294972221dad31dc5ff",
+    "material-registrations.json": "75b55ebaeae3490e5504c36cbb6e468839d4279a87c45b362a8e750affc4ec61",
+    "normal-LastTest.log": "66d5ff982314b2d2f0d2e5eb5570f8fd742934536975775a7290089f4c075c4a",
+    "normal-build.json": "477c7044388bb1728c544e0107023766150429141570685ea63dbd22fecd5b18",
+    "normal-build.log": "c8caef32b1c3e59f00a4e325c3d6fab2ad3a4787a13a20318bda46ca81b4f674",
+    "normal-tests.json": "2d86760814159df2f3878c2374a79d1c1aaaf2521df9ae2c915dbc597847523f",
+    "normal-tests.log": "d0987d1863d0dfb4a405e8669d230b74e919b43d1f7b862c4b63ce6e8f364a22",
+    "normal-writer-output-property.log": "cad47023b39e39a6cc3e390f78035dca0545e29a74c8c9940b0be9653ee90f65",
+    "qualification.json": "f87581c6dbc30c804fe8e78bfd50f5a8041c1c8bda4215c8b82647037911fc5b",
+    "registrations.json": "ac1474cee4dfd6517e5f3505dc64b5b570973e83bd7d1878d1ef293a8f84520f",
+    "selection.json": "535f9e2ab8c12378bd6f5ed4234da1e5cb16b43a5b6ce8f4d3e378b7888fd1ec",
+    "source-check-after-asan.json": "e79e76859578c6259287403af264dd7f680e80256dfedbbbb22c31ae06779158",
+    "source-check-after-normal.json": "e79e76859578c6259287403af264dd7f680e80256dfedbbbb22c31ae06779158",
+    "source-check-before-runtime.json": "e79e76859578c6259287403af264dd7f680e80256dfedbbbb22c31ae06779158",
+    "sources-before.sha256": "c191c53b54ab11ed4b173dc00666266142b0315e2b909df6666d2291a9d36a27"
+  },
+  "gates": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "selectedOriginalLayoutReferenceDispositionsCanMatch": true,
+    "fullObjectiveComplete": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxFreecad": "NOT_RUN",
+    "nativeWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "selectedOriginalViewUcsTargetsCanMatch": true,
+    "selectedOriginalViewportTargetsCanMatch": true,
+    "selectedCanonicalPrimaryVisualStyleSourcesCanMatch": true,
+    "selectedRootedOriginalVisualStyleTargetsCanMatch": true,
+    "observedCommentedCanonicalVisualStyleSourcesCanMatch": true,
+    "selectedCanonicalRenderPresetSourcesCanMatch": true,
+    "selectedRootedOriginalLayoutPresetTargetsCanMatch": true,
+    "viewportShadeSourceQualified": false,
+    "editedRenderSettingsTypedRewritingQualified": "SELECTED_SCHEMA_FAMILY_WITH_NAME_AND_OPTIONAL_PROJECTION",
+    "selectedAc1027PresetEmittedBodiesMatchAuthoredLiterals": true,
+    "completeEmittedObjectDictionaryGraphQualified": false,
+    "selectedCapturedPresetOutputBodiesAndDictionariesInspected": true,
+    "selectedCallbackPresetEditsRefuseBeforePublication": true,
+    "rawHandleScopeControlsPass": true,
+    "macosExtractedAutotoolsStaticQualified": "PREVIOUS_CHECKPOINT_RPP5fx_ONLY",
+    "macosExtractedAutotoolsSharedQualified": "PREVIOUS_CHECKPOINT_RPP5fx_ONLY",
+    "macosExtractedCmakeSelectedQualified": "PREVIOUS_CHECKPOINT_RPP5fx_ONLY",
+    "macosAutotoolsDistcheckPassed": "PREVIOUS_CHECKPOINT_RPP5fx_ONLY",
+    "nativeLinuxGccSourceReleaseDistcheck": "NOT_RUN",
+    "nativeWindowsSourceRelease": "NOT_RUN",
+    "selectedModernShadeConsumerTransportQualified": true,
+    "commonEntityFullVisualStyleBindingQualified": false,
+    "allModernShadeProducerAndVersionProfilesQualified": false,
+    "renderPresetRenameAndSchemaChangesQualified": false,
+    "commonMetadataEditingQualified": false,
+    "allRenderPresetProfilesQualified": false,
+    "selectedPresetRenameAndOptionalPresenceQualified": true,
+    "allPresetNameAndSchemaChangesQualified": false,
+    "nativeDictionaryCollationQualified": false,
+    "rapidRtApplicationScopeReplayTrackingMatched": true,
+    "selectedExistingCommon348TransportQualified": true,
+    "selectedCommon348CallbackAndOutputFieldsInspected": true,
+    "common348NativeSemanticsQualified": false,
+    "allCommon348ProducerAndSourceProfilesQualified": false,
+    "anonymousCommon348OriginalIdentityCertified": false,
+    "selectedFullStylePreCopyBudgetBoundariesQualified": true,
+    "selectedDxfMaterialConsumerTransportQualified": true,
+    "selectedDxfMaterialReplayFrozenForTolerantExports": true,
+    "allMaterialSourceAndProducerProfilesQualified": false,
+    "nativeDwgMaterialConsumerSemanticsQualified": false,
+    "materialTypedRawBodyEditTransactionsQualified": "SELECTED_MODERN_DXF_CURRENT_MODEL_ONLY",
+    "wholeOperationAggregateRssQualified": false,
+    "selectedDxfLayerMaterialTransportQualified": true,
+    "selectedDxfLayerMaterialOutputAndRetryChecked": true,
+    "allLayerMaterialSourceAndVersionProfilesQualified": false,
+    "materialHeaderDependencyQualified": "SELECTED_DXF_SOURCE_AND_OUTPUT_BINDING",
+    "nativeDwgLayerMaterialProjectionQualified": false,
+    "anonymousLayerOriginalIdentityCertified": false,
+    "selectedHeaderMaterialScalarTransportQualified": true,
+    "selectedHeaderMaterialTargetTypeCheckedForDirectWriters": true,
+    "allHeaderMaterialNativeProfilesQualified": false,
+    "allMaterialHeaderDependenciesQualified": false,
+    "selectedModernDxfMaterialBodyTransactionsQualified": true,
+    "selectedMaterialBodyOriginalProducerSemanticsQualified": false,
+    "allMaterialBodyProfilesQualified": false,
+    "allMaterialBodyPresenceTransactionsQualified": false,
+    "selectedModernDxfMaterialAlternateBoundaryTransactionsQualified": true
+  },
+  "remaining": [
+    "Independent producer/source/version/native MATERIAL body and renderer evidence. Sources with mode/method before465 and no464 remain ambiguous to the current streaming parser and are not qualified by this output projection; broader optional boundary omission and opaque/schema/procedure edits remain open.",
+    "Remaining material/full/face/edge consumer profiles; native LAYER/HEADER/common348 evidence; reactors/IMAGE/document/control/name/application/XDATA/CEPSNID/CEPSNTYPE; arbitrary remaps/collisions and recursive/coupled/full-document ownership.",
+    "Rendering engine/schema/optional/absent/duplicate/alias/extension/active/global/environment/background/live-section/sun; independent VIEWPORT shade4/5 and335/343/344/91 and native dictionary collation.",
+    "TABLE Values/multiple-content/linked-data ownership, formatting/units/borders and native B2b/B3/C schema/bit/owner/version/corpus evidence.",
+    "Package/platform/native consumers, formal ABI/application, controlled RSS/performance and native Linux GCC release, native Linux/Windows FreeCAD and independent ACIS/ACDS semantic/kernel evidence.",
+    "Safe adapter compilation sharing only after compiler/configuration/definitions/include/sanitizer/PIC and resolved-header/preprocessed-token equivalence. No performance improvement is claimed.",
+    "J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL and nonpromoting; the complete support ledger and full output eligibility stay closed."
+  ]
+}

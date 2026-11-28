@@ -1,0 +1,198 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1014-bookviewer-partial-diagnostics-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-F",
+  "status": "DIAGNOSTICS_IMPROVED_NO_ELIGIBLE_SOURCE",
+  "supportClaimEffect": "none",
+  "source": {
+    "corpusManifest": "https://github.com/DrunkOnJava/dwg-rs/blob/51d9c1854293d9d5863a416a3cbc634f0cc43725/tools/corpus/pins.tsv",
+    "corpusRevision": "51d9c1854293d9d5863a416a3cbc634f0cc43725",
+    "repository": "https://github.com/kurema/BookViewerApp3",
+    "sourceRevision": "b8e1dcbf26183e96d199499e491c368c935fb0b0",
+    "producer": "not recorded",
+    "scratchDirectory": "/private/tmp/p6f-bookviewer",
+    "provenanceLimit": "Manifest labels repository MIT; no independent producer or per-drawing native validation was performed. No downloaded drawing is committed."
+  },
+  "authority": {
+    "document": "Open Design Specification for .dwg files, v5.4.1 section 20.4.52",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "relevance": "R13\u2013R2000 BLOCK_HEADER carries first/last entity soft pointers; the change adds attribution to existing walker failures and does not change layout interpretation or read policy."
+  },
+  "screen": {
+    "beforeDiagnosticsBinarySha256": "02215c25bb1759c0bee8a0af7c4e0310f287e40bf7eaea24de0837f979d950ee",
+    "command": "dwg2dxf <source> -o <sentinel destination> -y -d [--allow-partial-dwg-read]",
+    "results": [
+      {
+        "file": "draw.dwg",
+        "sha256": "a20770a8736b818f503bffd8aa77ede3ac4896f1046252e22fd9789690357669",
+        "entityParseFailures": 0,
+        "objectParseFailures": 2,
+        "sourceFrames": 314,
+        "publishedFrames": 312,
+        "failedFrames": 2,
+        "unresolvedFrames": 0,
+        "objectFailures": [
+          "readDwgObjects: failed frame handle/loc/type/ordinal=873/18544/518/304 encoded/resolved=518/518 record=MENTALRAYRENDERSETTINGS class=AcDbMentalRayRenderSettings",
+          "readDwgObjects: failed frame handle/loc/type/ordinal=534/18465/517/146 encoded/resolved=517/517 record=RAPIDRTRENDERSETTINGS class=AcDbRapidRTRenderSettings"
+        ],
+        "strict": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "diagnostics": [
+            "frameCoverageStatus=3 frameSourceDenominator=observed sourceFrames=314 pending=0 deferred=0 staged=0 published=312 quarantined=0 failed=2 unresolved=0 unrecognizedDispositions=0",
+            "Opaque callback dispositions: opaqueViewCallbacks=275 opaqueSourceFramesCaptured=275 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=80 standardObjectSourceReceiptsMatched=80 standardObjectTypedPayloadsMatched=80 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+            "CLI source disposition projection: schema=1 sourceRepairAction=none sourceHeaderStructure=not-applicable sourceHeaderInitialPreflight=not-applicable inputCodePagePolicy=compatible sourceDxfTextIssueMask=not-applicable sourceRequiredVersionsStatus=not-applicable sourceRequiredVersionsMask=not-applicable sourceRequiredVersionsOutput=not-applicable sourceDwgSkippedCustomClassInstances=1 sourceDwgSkippedUnsupportedObjectInstances=1 sourceDwgEntityParseFailures=0 sourceDwgObjectParseFailures=2 sourceDwgFrameCoverage=partial sourceDwgSourceFrames=314 sourceDwgFramesPending=0 sourceDwgFramesDeferred=0 sourceDwgFramesStaged=0 sourceDwgFramesPublished=312 sourceDwgFramesQuarantined=0 sourceDwgFramesFailed=2 sourceDwgFramesUnresolved=0 sourceDwgFramesUnrecognized=0 sourceDwgIntegrityRetainedRows=2 sourceDwgIntegrityErrorsAmongRetained=0 sourceDwgIntegrityWarningsAmongRetained=2 sourceDwgIntegrityExtractionOmitted=0 sourceDwgIntegrityUpstreamDroppedLowerBound=0 sourceDwgIntegrityAggregateSaturated=false",
+            "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+          ],
+          "stderrSha256": "1bef5a63d436cd6759cb7988039be99a81dd2a7a9ffdc808f89ad94696d3f7d8"
+        },
+        "partial": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "diagnostics": [
+            "frameCoverageStatus=3 frameSourceDenominator=observed sourceFrames=314 pending=0 deferred=0 staged=0 published=312 quarantined=0 failed=2 unresolved=0 unrecognizedDispositions=0",
+            "Opaque callback dispositions: opaqueViewCallbacks=275 opaqueSourceFramesCaptured=275 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=80 standardObjectSourceReceiptsMatched=80 standardObjectTypedPayloadsMatched=80 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+            "CLI source disposition projection: schema=1 sourceRepairAction=none sourceHeaderStructure=not-applicable sourceHeaderInitialPreflight=not-applicable inputCodePagePolicy=compatible sourceDxfTextIssueMask=not-applicable sourceRequiredVersionsStatus=not-applicable sourceRequiredVersionsMask=not-applicable sourceRequiredVersionsOutput=not-applicable sourceDwgSkippedCustomClassInstances=1 sourceDwgSkippedUnsupportedObjectInstances=1 sourceDwgEntityParseFailures=0 sourceDwgObjectParseFailures=2 sourceDwgFrameCoverage=partial sourceDwgSourceFrames=314 sourceDwgFramesPending=0 sourceDwgFramesDeferred=0 sourceDwgFramesStaged=0 sourceDwgFramesPublished=312 sourceDwgFramesQuarantined=0 sourceDwgFramesFailed=2 sourceDwgFramesUnresolved=0 sourceDwgFramesUnrecognized=0 sourceDwgIntegrityRetainedRows=2 sourceDwgIntegrityErrorsAmongRetained=0 sourceDwgIntegrityWarningsAmongRetained=2 sourceDwgIntegrityExtractionOmitted=0 sourceDwgIntegrityUpstreamDroppedLowerBound=0 sourceDwgIntegrityAggregateSaturated=false",
+            "WARNING: explicit partial DWG read mode; output may omit failed or unmodeled source content and is not a completeness/support claim. Owner/reference checks remain strict.",
+            "DXF export preflight failed: partial DWG output requires a successful read and finalized, bounded frame dispositions"
+          ],
+          "stderrSha256": "45dd5cd5f50db04d0bdc4bee8fa7ceabbd48c1cd91fb72fa0c64d8ded496260f"
+        }
+      },
+      {
+        "file": "draw2.dwg",
+        "sha256": "df38aaf25549a1ab22ced97fc4f687ba4ba2740e6da735ba948af6f25a7247d2",
+        "entityParseFailures": 0,
+        "objectParseFailures": 2,
+        "sourceFrames": 326,
+        "publishedFrames": 324,
+        "failedFrames": 2,
+        "unresolvedFrames": 0,
+        "objectFailures": [
+          "readDwgObjects: failed frame handle/loc/type/ordinal=1525/28516/518/314 encoded/resolved=518/518 record=MENTALRAYRENDERSETTINGS class=AcDbMentalRayRenderSettings",
+          "readDwgObjects: failed frame handle/loc/type/ordinal=534/28437/517/146 encoded/resolved=517/517 record=RAPIDRTRENDERSETTINGS class=AcDbRapidRTRenderSettings"
+        ],
+        "strict": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "diagnostics": [
+            "frameCoverageStatus=3 frameSourceDenominator=observed sourceFrames=326 pending=0 deferred=0 staged=0 published=324 quarantined=0 failed=2 unresolved=0 unrecognizedDispositions=0",
+            "Opaque callback dispositions: opaqueViewCallbacks=287 opaqueSourceFramesCaptured=287 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=83 standardObjectSourceReceiptsMatched=83 standardObjectTypedPayloadsMatched=83 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+            "CLI source disposition projection: schema=1 sourceRepairAction=none sourceHeaderStructure=not-applicable sourceHeaderInitialPreflight=not-applicable inputCodePagePolicy=compatible sourceDxfTextIssueMask=not-applicable sourceRequiredVersionsStatus=not-applicable sourceRequiredVersionsMask=not-applicable sourceRequiredVersionsOutput=not-applicable sourceDwgSkippedCustomClassInstances=1 sourceDwgSkippedUnsupportedObjectInstances=1 sourceDwgEntityParseFailures=0 sourceDwgObjectParseFailures=2 sourceDwgFrameCoverage=partial sourceDwgSourceFrames=326 sourceDwgFramesPending=0 sourceDwgFramesDeferred=0 sourceDwgFramesStaged=0 sourceDwgFramesPublished=324 sourceDwgFramesQuarantined=0 sourceDwgFramesFailed=2 sourceDwgFramesUnresolved=0 sourceDwgFramesUnrecognized=0 sourceDwgIntegrityRetainedRows=2 sourceDwgIntegrityErrorsAmongRetained=0 sourceDwgIntegrityWarningsAmongRetained=2 sourceDwgIntegrityExtractionOmitted=0 sourceDwgIntegrityUpstreamDroppedLowerBound=0 sourceDwgIntegrityAggregateSaturated=false",
+            "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+          ],
+          "stderrSha256": "b84084969d9ad79a7f2e302c4e9e2cda2f8092782d55f433d77b2a8b85301580"
+        },
+        "partial": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "diagnostics": [
+            "frameCoverageStatus=3 frameSourceDenominator=observed sourceFrames=326 pending=0 deferred=0 staged=0 published=324 quarantined=0 failed=2 unresolved=0 unrecognizedDispositions=0",
+            "Opaque callback dispositions: opaqueViewCallbacks=287 opaqueSourceFramesCaptured=287 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=83 standardObjectSourceReceiptsMatched=83 standardObjectTypedPayloadsMatched=83 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+            "CLI source disposition projection: schema=1 sourceRepairAction=none sourceHeaderStructure=not-applicable sourceHeaderInitialPreflight=not-applicable inputCodePagePolicy=compatible sourceDxfTextIssueMask=not-applicable sourceRequiredVersionsStatus=not-applicable sourceRequiredVersionsMask=not-applicable sourceRequiredVersionsOutput=not-applicable sourceDwgSkippedCustomClassInstances=1 sourceDwgSkippedUnsupportedObjectInstances=1 sourceDwgEntityParseFailures=0 sourceDwgObjectParseFailures=2 sourceDwgFrameCoverage=partial sourceDwgSourceFrames=326 sourceDwgFramesPending=0 sourceDwgFramesDeferred=0 sourceDwgFramesStaged=0 sourceDwgFramesPublished=324 sourceDwgFramesQuarantined=0 sourceDwgFramesFailed=2 sourceDwgFramesUnresolved=0 sourceDwgFramesUnrecognized=0 sourceDwgIntegrityRetainedRows=2 sourceDwgIntegrityErrorsAmongRetained=0 sourceDwgIntegrityWarningsAmongRetained=2 sourceDwgIntegrityExtractionOmitted=0 sourceDwgIntegrityUpstreamDroppedLowerBound=0 sourceDwgIntegrityAggregateSaturated=false",
+            "WARNING: explicit partial DWG read mode; output may omit failed or unmodeled source content and is not a completeness/support claim. Owner/reference checks remain strict.",
+            "DXF export preflight failed: partial DWG output requires a successful read and finalized, bounded frame dispositions"
+          ],
+          "stderrSha256": "50ab55a20f570c8b4bee39c8646596b712729dbe54b9278a8f0bae8469335a41"
+        }
+      },
+      {
+        "file": "2d.dwg",
+        "sha256": "c91b57626cfc283816308dc092ac1aaa2761f7587bbcdb349338b36bde3171d4",
+        "entityParseFailures": 0,
+        "objectParseFailures": 2,
+        "sourceFrames": 317,
+        "publishedFrames": 315,
+        "failedFrames": 2,
+        "unresolvedFrames": 0,
+        "objectFailures": [
+          "readDwgObjects: failed frame handle/loc/type/ordinal=708/18567/518/307 encoded/resolved=518/518 record=MENTALRAYRENDERSETTINGS class=AcDbMentalRayRenderSettings",
+          "readDwgObjects: failed frame handle/loc/type/ordinal=534/18488/517/146 encoded/resolved=517/517 record=RAPIDRTRENDERSETTINGS class=AcDbRapidRTRenderSettings"
+        ],
+        "strict": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "diagnostics": [
+            "frameCoverageStatus=3 frameSourceDenominator=observed sourceFrames=317 pending=0 deferred=0 staged=0 published=315 quarantined=0 failed=2 unresolved=0 unrecognizedDispositions=0",
+            "Opaque callback dispositions: opaqueViewCallbacks=276 opaqueSourceFramesCaptured=276 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=80 standardObjectSourceReceiptsMatched=80 standardObjectTypedPayloadsMatched=80 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+            "CLI source disposition projection: schema=1 sourceRepairAction=none sourceHeaderStructure=not-applicable sourceHeaderInitialPreflight=not-applicable inputCodePagePolicy=compatible sourceDxfTextIssueMask=not-applicable sourceRequiredVersionsStatus=not-applicable sourceRequiredVersionsMask=not-applicable sourceRequiredVersionsOutput=not-applicable sourceDwgSkippedCustomClassInstances=1 sourceDwgSkippedUnsupportedObjectInstances=1 sourceDwgEntityParseFailures=0 sourceDwgObjectParseFailures=2 sourceDwgFrameCoverage=partial sourceDwgSourceFrames=317 sourceDwgFramesPending=0 sourceDwgFramesDeferred=0 sourceDwgFramesStaged=0 sourceDwgFramesPublished=315 sourceDwgFramesQuarantined=0 sourceDwgFramesFailed=2 sourceDwgFramesUnresolved=0 sourceDwgFramesUnrecognized=0 sourceDwgIntegrityRetainedRows=2 sourceDwgIntegrityErrorsAmongRetained=0 sourceDwgIntegrityWarningsAmongRetained=2 sourceDwgIntegrityExtractionOmitted=0 sourceDwgIntegrityUpstreamDroppedLowerBound=0 sourceDwgIntegrityAggregateSaturated=false",
+            "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+          ],
+          "stderrSha256": "4e0785e34d46fcbc7760aee1cd9f1cfa4b0ddb8d163cdbe39d12f1c7ff9d4ece"
+        },
+        "partial": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "diagnostics": [
+            "frameCoverageStatus=3 frameSourceDenominator=observed sourceFrames=317 pending=0 deferred=0 staged=0 published=315 quarantined=0 failed=2 unresolved=0 unrecognizedDispositions=0",
+            "Opaque callback dispositions: opaqueViewCallbacks=276 opaqueSourceFramesCaptured=276 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=80 standardObjectSourceReceiptsMatched=80 standardObjectTypedPayloadsMatched=80 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+            "CLI source disposition projection: schema=1 sourceRepairAction=none sourceHeaderStructure=not-applicable sourceHeaderInitialPreflight=not-applicable inputCodePagePolicy=compatible sourceDxfTextIssueMask=not-applicable sourceRequiredVersionsStatus=not-applicable sourceRequiredVersionsMask=not-applicable sourceRequiredVersionsOutput=not-applicable sourceDwgSkippedCustomClassInstances=1 sourceDwgSkippedUnsupportedObjectInstances=1 sourceDwgEntityParseFailures=0 sourceDwgObjectParseFailures=2 sourceDwgFrameCoverage=partial sourceDwgSourceFrames=317 sourceDwgFramesPending=0 sourceDwgFramesDeferred=0 sourceDwgFramesStaged=0 sourceDwgFramesPublished=315 sourceDwgFramesQuarantined=0 sourceDwgFramesFailed=2 sourceDwgFramesUnresolved=0 sourceDwgFramesUnrecognized=0 sourceDwgIntegrityRetainedRows=2 sourceDwgIntegrityErrorsAmongRetained=0 sourceDwgIntegrityWarningsAmongRetained=2 sourceDwgIntegrityExtractionOmitted=0 sourceDwgIntegrityUpstreamDroppedLowerBound=0 sourceDwgIntegrityAggregateSaturated=false",
+            "WARNING: explicit partial DWG read mode; output may omit failed or unmodeled source content and is not a completeness/support claim. Owner/reference checks remain strict.",
+            "DXF export preflight failed: partial DWG output requires a successful read and finalized, bounded frame dispositions"
+          ],
+          "stderrSha256": "3edc5c9ffcd29767da0406316876ce397efd0fe6333b72a5cda9dcde77b0c559"
+        }
+      },
+      {
+        "file": "3d.dwg",
+        "sha256": "ab655649e8a1059d0557fb167eeb8d9a5d802afc8313d60d4bcabdce790bac4c",
+        "entityParseFailures": 1,
+        "objectParseFailures": 4,
+        "sourceFrames": 502,
+        "publishedFrames": 498,
+        "failedFrames": 4,
+        "unresolvedFrames": 0,
+        "objectFailures": [
+          "readDwgObjects: failed frame handle/loc/type/ordinal=1512/1242922/518/465 encoded/resolved=518/518 record=MENTALRAYRENDERSETTINGS class=AcDbMentalRayRenderSettings",
+          "readDwgObjects: failed frame handle/loc/type/ordinal=534/1242831/517/146 encoded/resolved=517/517 record=RAPIDRTRENDERSETTINGS class=AcDbRapidRTRenderSettings",
+          "readDwgObjects: failed frame handle/loc/type/ordinal=1123/1243059/539/289 encoded/resolved=539/539 record=RENDERGLOBAL class=AcDbRenderGlobal",
+          "readDwgObjects: failed frame handle/loc/type/ordinal=867/1675047/530/240 encoded/resolved=530/530 record=ACSH_REVOLVE_CLASS class=AcDbShRevolve"
+        ],
+        "strict": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "diagnostics": [
+            "frameCoverageStatus=3 frameSourceDenominator=observed sourceFrames=502 pending=0 deferred=0 staged=0 published=498 quarantined=0 failed=4 unresolved=0 unrecognizedDispositions=0",
+            "Opaque callback dispositions: opaqueViewCallbacks=425 opaqueSourceFramesCaptured=425 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=21 standardObjectFramesCaptured=109 standardObjectSourceReceiptsMatched=109 standardObjectTypedPayloadsMatched=109 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+            "CLI source disposition projection: schema=1 sourceRepairAction=none sourceHeaderStructure=not-applicable sourceHeaderInitialPreflight=not-applicable inputCodePagePolicy=compatible sourceDxfTextIssueMask=not-applicable sourceRequiredVersionsStatus=not-applicable sourceRequiredVersionsMask=not-applicable sourceRequiredVersionsOutput=not-applicable sourceDwgSkippedCustomClassInstances=1 sourceDwgSkippedUnsupportedObjectInstances=1 sourceDwgEntityParseFailures=1 sourceDwgObjectParseFailures=4 sourceDwgFrameCoverage=partial sourceDwgSourceFrames=502 sourceDwgFramesPending=0 sourceDwgFramesDeferred=0 sourceDwgFramesStaged=0 sourceDwgFramesPublished=498 sourceDwgFramesQuarantined=0 sourceDwgFramesFailed=4 sourceDwgFramesUnresolved=0 sourceDwgFramesUnrecognized=0 sourceDwgIntegrityRetainedRows=2 sourceDwgIntegrityErrorsAmongRetained=0 sourceDwgIntegrityWarningsAmongRetained=2 sourceDwgIntegrityExtractionOmitted=0 sourceDwgIntegrityUpstreamDroppedLowerBound=0 sourceDwgIntegrityAggregateSaturated=false",
+            "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+          ],
+          "stderrSha256": "484bd7ce8778be50e38fb8c7a77be6ffd65b3c8921ffbcb475a96994ee211780"
+        },
+        "partial": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "diagnostics": [
+            "frameCoverageStatus=3 frameSourceDenominator=observed sourceFrames=502 pending=0 deferred=0 staged=0 published=498 quarantined=0 failed=4 unresolved=0 unrecognizedDispositions=0",
+            "Opaque callback dispositions: opaqueViewCallbacks=425 opaqueSourceFramesCaptured=425 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=21 standardObjectFramesCaptured=109 standardObjectSourceReceiptsMatched=109 standardObjectTypedPayloadsMatched=109 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+            "CLI source disposition projection: schema=1 sourceRepairAction=none sourceHeaderStructure=not-applicable sourceHeaderInitialPreflight=not-applicable inputCodePagePolicy=compatible sourceDxfTextIssueMask=not-applicable sourceRequiredVersionsStatus=not-applicable sourceRequiredVersionsMask=not-applicable sourceRequiredVersionsOutput=not-applicable sourceDwgSkippedCustomClassInstances=1 sourceDwgSkippedUnsupportedObjectInstances=1 sourceDwgEntityParseFailures=1 sourceDwgObjectParseFailures=4 sourceDwgFrameCoverage=partial sourceDwgSourceFrames=502 sourceDwgFramesPending=0 sourceDwgFramesDeferred=0 sourceDwgFramesStaged=0 sourceDwgFramesPublished=498 sourceDwgFramesQuarantined=0 sourceDwgFramesFailed=4 sourceDwgFramesUnresolved=0 sourceDwgFramesUnrecognized=0 sourceDwgIntegrityRetainedRows=2 sourceDwgIntegrityErrorsAmongRetained=0 sourceDwgIntegrityWarningsAmongRetained=2 sourceDwgIntegrityExtractionOmitted=0 sourceDwgIntegrityUpstreamDroppedLowerBound=0 sourceDwgIntegrityAggregateSaturated=false",
+            "WARNING: explicit partial DWG read mode; output may omit failed or unmodeled source content and is not a completeness/support claim. Owner/reference checks remain strict.",
+            "DXF export preflight failed: partial DWG output requires a successful read and finalized, bounded frame dispositions"
+          ],
+          "stderrSha256": "78a3557cb4824b56ab2a7fb0131c1a5876c8471d5e5761f35e9aa122d333f7eb"
+        }
+      }
+    ],
+    "summary": "Three sources have zero entity and two object failures. 3d has one missing legacy block-chain link and four object failures. All strict and partial attempts refused while preserving sentinel destinations; no candidate reaches an eligible partial publication gate."
+  },
+  "change": "Record the missing or repeated link handle and block-record handle in the existing bounded entity-failure diagnostics for legacy block walks; include both in debug output. Read result, failure counters, frame publication, and strict/partial guards are unchanged.",
+  "afterChange": {
+    "binarySha256": "3d52223595ba375e43de6082c72eee99523295c2f76a321e46aa3de0717aeed9",
+    "3dFinalScreenSha256": "68787044c52fdcab9464b08843d2e8de65e8fe65e81a781dd4e1d17934db6f18",
+    "missingBlock": "0x440",
+    "missingHandle": "0x01",
+    "strictAndPartial": "Both exit 1, retain the destination, and retain one entity/four object failures."
+  },
+  "validation": {
+    "build": "macOS ARM64 AddressSanitizer with -fsanitize=address -fno-omit-frame-pointer; project warning flags retained",
+    "negativeTestSha256": "90053bf651398068d478c29ce56e5e52966773a13e4d36433422a1bedec7a359",
+    "focusedTestSha256": "c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431",
+    "spaceDelimiterTestSha256": "c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431",
+    "focused": "PASS: generated R13/R14/R2000 missing-first controls plus AC1015 missing-middle/cycle, untouched sentinel and following valid block on the same reader. The existing generated tests do not prove native producer semantics.",
+    "adjacent": "PASS: space-block-delimiter-owner, mixed-missing-block-ownership, orphan-entity-sweep-recovery, entity-space-from-block-record.",
+    "inventory": "PASS: regenerated source release inventory for two previously committed research tools; --check reports 1386 files."
+  },
+  "remaining": "P6-F stays open. Do not infer full graph closure or promote support from these source observations; the 3d trace names a missing handle, but does not establish why the link exists or whether recovery is semantically safe.",
+  "followUp": "The previously observed 3d missing handle 0x01 was a reader defect, fixed and independently investigated in docs/research/p6-ac1014-noattrib-insert-next-chain-2026-11-21.json. The prior observations remain historical; the four object failures and P6-F gate remain open."
+}

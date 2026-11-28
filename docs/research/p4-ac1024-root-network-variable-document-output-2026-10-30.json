@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-root-network-variable-document-output-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 rooted associative network/variable document output",
+  "status": "QUALIFIED_LOCAL_AC1024_ROOTED_NETWORK_VARIABLE_OUTPUT_PROFILE",
+  "supportClaimEffect": "none",
+  "implementationCommit": "47da58e628f619301bf015b2ebf82a48c1ee5dfb",
+  "scope": {
+    "version": "AC1024",
+    "source": "Source-authored dx_data graph in tests/dwg2dxf_adapter_tests.cpp; no external DWG/DXF fixture file.",
+    "graph": "NOD -> one DICTIONARY -> root ACDBASSOCNETWORK -> one owned ACDBASSOCVARIABLE.",
+    "network": {
+      "owningNetwork": 0,
+      "networkVersion": 0,
+      "networkActionIndex": 1,
+      "actions": [
+        {"role": "owned", "target": "the single ACDBASSOCVARIABLE"}
+      ],
+      "dependencies": 0,
+      "additionalOwnedActions": 0
+    },
+    "variable": {
+      "classVersion": 2,
+      "name": "AUTHORED_VALUE",
+      "expression": "17",
+      "evaluator": "AcDbAssocExpressionEvaluator",
+      "description": "locally authored graph test",
+      "value": {"group": 90, "kind": "Int32", "value": 17},
+      "hasT78": false,
+      "B290": false
+    },
+    "encodings": ["ASCII DXF", "binary DXF"]
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "src/libdxfrw.cpp",
+      "tests/CMakeLists.txt",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Admitted the bounded root network/one-variable AC1024 graph through source identity reservation, recursive dictionary/action closure, planned/emitted handle remapping and whole-file publication. Added subclass-aware associative DXF parsing for action owner/body, network counts/action references and variable fields. Unknown or extra subclass fields invalidate the typed-complete profile; DXF parsing does not set the DWG-only variable wire-complete flag.",
+    "transaction": "A late mutation before OBJECTS emission preserves the preexisting destination and permits corrected retry. An unresolved owned-action target is refused atomically and succeeds after correction on the same adapter.",
+    "fixturePolicy": "Test graph is authored in code; no DWG or DXF fixture files were added."
+  },
+  "proof": {
+    "emittedWire": "A low-level group-pair scan independent of DRW_AssociativeObject::parseCode checks the exact ASCII and binary ACDBASSOCNETWORK and ACDBASSOCVARIABLE group order, common owner/reactor roles, owning-network and action-body references, action counts, target handle, class/value fields and variable flags.",
+    "readback": "Fresh fileImport confirms dictionary membership/owner closure, remapped network identity, reactor and root owning-network references, one owned action targeting the remapped variable, network subclass fields, variable ownership and all selected variable strings/value/flags.",
+    "fixedHandleCollision": "The source network uses handle 0xD; output remaps it and all references resolve to the remapped identity. The source-handle reservation control also checks a generated LINE against an associative source identity equal to its baseline handle and exercises a fixed-handle source identity.",
+    "failureRetry": "For both ASCII and binary output, the selector checks late mutation rollback, corrected export retry, unresolved action-target refusal with destination sentinel preserved, and corrected retry on the same adapter."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "normalFocusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_associative_(source_handle_inventory|source_handle_reservation|dwg_root_network_variable_export)$' --output-on-failure",
+      "result": "PASS 3/3"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "asanFocusedCtest": {
+      "command": "ctest --test-dir build-asan-custom -R '^dwg2dxf_associative_(source_handle_reservation|dwg_root_network_variable_export)$' --output-on-failure",
+      "result": "PASS 2/2; 0.98 seconds"
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT_RUN",
+    "sourceBindings": {
+      "implementationCommit": "47da58e628f619301bf015b2ebf82a48c1ee5dfb",
+      "sourceSha256": {
+        "src/drw_objects.cpp": "c6c180b8048759955b6a5cf1df6c5cc8acc1944f44b86a0d3c8398eb516fb473",
+        "src/drw_objects.h": "2617d66390de37cddf24d3387249a84145db547e8e56bd65903e7ede1dbe8e30",
+        "src/libdxfrw.cpp": "ef7d79c0d8990ddbe31424c091678925c391ee25565f74a10b9a593f5954c0c5",
+        "dwg2dxf/dx_iface.cpp": "095524a136e36d0c1be096dc629d8850353dbb28af684e1e571a24a075f5d99f",
+        "dwg2dxf/dx_iface.h": "ac0315a971d4d00793bfbb2f2b9f455927d40305121bc97810ba58cc8b88f218",
+        "tests/CMakeLists.txt": "bc4c6d1b9d923d6890e796b65732cf7cdf05a49f31860d962c1b2e2e3292e938",
+        "tests/dwg2dxf_adapter_tests.cpp": "6e93fe66c9b9476e8f30bd21a8ccdebb2736c1534631a63d3293055f9c281557"
+      },
+      "normalArtifactsSha256": {
+        "build-gcc/dwg2dxf/dwg2dxf": "a6b6d643cfafb7b352aebddd58e33a9d6d47df9c85fbedf23bbec2bc01d10fcb",
+        "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "d97bdd8af27a8311438e466c89b2219dbd40d3c14015515f45e747a5507e64ea",
+        "build-gcc/CMakeCache.txt": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+      },
+      "asanArtifactsSha256": {
+        "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "63e6db97643909fb26713a3284f14a6cb860641fb6c9c04f18984b6e2a9e553b",
+        "build-asan-custom/CMakeCache.txt": "f1aeb154e90745f39981fadcbb2e24f1c25d9296abc19beb4ea699b49fc6bb68"
+      }
+    }
+  },
+  "limits": [
+    "This qualifies only a source-authored AC1024 root network with one owned, fully consumed ACDBASSOCVARIABLE using the selected integer value profile in ASCII and binary DXF output.",
+    "The physical mechanical AC1024 ACDBASSOCVARIABLE witness remains ineligible while its body suffix is unclassified.",
+    "Other associative bodies, dependencies, action parameters, registry versions and descendants remain unqualified and strictly refused when required.",
+    "This does not establish complete associative source coverage, native CAD semantics, LibreCAD/FreeCAD consumer behavior, 3D support or any general DWG/DXF support claim."
+  ],
+  "nextAction": "Select the next physical-source-backed required associative body or edge; prove its bounded fields and roles before extending the graph output profile."
+}

@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "scope": "Fresh LibreCAD master-based consumer build and focused LTYPE diagnostics against copied tracked upstream libdxfrw.",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "consumerPatches": "seven previously recorded local patches, through 9a66c6a; not merged",
+  "upstreamSnapshot": "858f5c33 plus subsequently copied DIMSTYLE fix f888619e in drw_objects.cpp",
+  "validation": [
+    "Fresh copied-source consumer librecad_dxf_fast_tests target builds successfully.",
+    "After the DIMSTYLE fix, MTEXT passes 4 cases/215 assertions, DXF codec 21/487, DIMASSOC and MPOLYGON 12/163, and the tagged non-DWG LTYPE selector 11/14 cases (165/172 assertions).",
+    "With two referenced STYLE rows added, the complex-LTYPE case passes 20 assertions against upstream and confirms readback references point to the emitted STYLE records. A bundled-linked incremental probe instead returns the original source handles 0x42/0x43 while STYLE records have output handles 0x31/0x32; that incomplete graph is not qualified.",
+    "The new-document golden case differs in table entry count, allocated handles and decimal spelling. Its R12 export also correctly refuses layer 0 with an explicit 0.25 mm lineweight, which that target cannot encode under the current loss guard.",
+    "A fully rebuilt local fast lane passes seven executables and all 44 required integration CTests."
+  ],
+  "limits": "The upstream consumer uses a copied-source overlay and local unmerged consumer patches; the bundled probe uses an incremental preexisting build, not a clean bundled qualification. Do not claim bundled graph correctness, R12 no-loss export, platform or 3D support from these results. Hosted fast/native/FreeCAD reruns remain in progress."
+}

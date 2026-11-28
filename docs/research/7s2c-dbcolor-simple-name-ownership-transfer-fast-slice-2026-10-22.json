@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c DBCOLOR simple-name ownership transfer",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Move a decoded DBCOLOR group-430 value directly into the retained name owner when no BOOK$ENTRY separator is present.",
+    "route": "DRW_DbColor::parseCode group 430, no-separator simple color-name form",
+    "behavior": "The BOOK$ENTRY form still splits into two independently retained names and uses the existing atomic replacement helper. Semantic decode, owner accounting, and serialized values are unchanged.",
+    "non_claims": [
+      "no public API or model-layout change",
+      "no parser meaning or DXF wire behavior change",
+      "no DWG byte-layout change",
+      "no support claim promotion",
+      "no external producer or native CAD qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dxfrw libdxfrw_hardening_tests lc3_compat_check --parallel 2",
+    "build_result": "PASS (-Werror)",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dbcolor_book_name_owner_budget$' --output-on-failure",
+    "focused_ctest_result": "PASS (1/1)",
+    "coverage": "Generated ASCII/Binary controls cover simple and book-qualified group-430 names, exact/one-byte-under admission, replacement rollback, copy/reset, and metadata state.",
+    "diff_check": "PASS (src/drw_objects.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, receipt)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue the source-backed retained-string ownership/copy scan and keep the book-qualified DBCOLOR branch's two-owner atomicity intact."
+}

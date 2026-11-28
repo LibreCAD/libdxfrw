@@ -1,0 +1,29 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "scope": "Bind typed DICTIONARYVAR source identities in the rooted DXF OBJECTS writer.",
+  "result": "PASS",
+  "supportClaimEffect": "none",
+  "change": "writeDictionaryVar now binds the source DICTIONARYVAR handle to its emitted handle before committing its existing record/state scopes.",
+  "validation": {
+    "normal_allocation": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dictionaryvar_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1; all measured allocation offsets, destination rollback, same-codec retry, and typed nested dictionary readback"
+    },
+    "normal_named_resource_graph": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "result": "PASS, 1/1; generated rooted named-resource output and readback"
+    },
+    "address_sanitizer_allocation": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_dictionaryvar_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1"
+    }
+  },
+  "limitations": [
+    "Generated transaction and rooted output evidence only; no producer breadth or native-consumer semantics are established.",
+    "No support claim is promoted."
+  ],
+  "source_sha256": {
+    "src/libdxfrw.cpp": "45ff29b748162b735fc230703f8b3e27091ee6d4086034dfe4179fbc7dd8e05d"
+  }
+}

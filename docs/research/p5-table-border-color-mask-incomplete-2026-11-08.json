@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-table-border-color-mask-incomplete-2026-11-08",
+  "date": "2026-11-08",
+  "status": "IMPLEMENTED_FAIL_CLOSED_UNMAPPED_BORDER_COLOR_MASK",
+  "supportClaimEffect": "none",
+  "scope": "Prevent nonzero TABLE group-94 border-color masks from being published as semantically complete while the selected CMC values lack a lossless typed DXF route.",
+  "authority": {
+    "source": "ODA v5.4.1 \u00a720.4.96.1, pp. 229\u2013232",
+    "observation": "The group-94 mask selects 18 title/header/data border CMC fields, with bits 0x01 through 0x20000. The independent DXF representability audit shows shared DXF border color groups cannot preserve arbitrary independent row values."
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The parser retains m_borderColorOverrideFlags and marks the table unsupported/incomplete for any nonzero group-94 mask. Existing group-95 lineweight and group-96 visibility paths are unchanged; the DWG writer's existing color-mask refusal is unchanged."
+  },
+  "generatedControls": {
+    "file": "tests/table_content_dxf_tests.cpp",
+    "selector": "libdxfrw_table_content_dxf_tests --table-row-alignment-overrides",
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "cases": [
+      "existing zero-mask border-color baseline remains complete",
+      "selected low group-94 bit is retained and marks the table incomplete",
+      "unsupported high group-94 bit is retained and marks the table incomplete"
+    ],
+    "result": "PASS (exit 0)"
+  },
+  "limitations": [
+    "Does not decode or serialize group-94-selected border CMC values.",
+    "No producer rendering, native semantics, or wider TABLE support is qualified."
+  ]
+}

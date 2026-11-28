@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-40 / 7G.2 VPORT to SUN owner-edge replay",
+  "mode": "local generated DXF implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Exercise a VPORT hard-owner SUN graph through ASCII and binary DXF replay",
+    "Verify that raw SUN owner code 330 follows a reminted VPORT table-record identity",
+    "Preserve fail-closed behavior for inconsistent typed/raw owner identity",
+    "Keep VIEWPORT positive qualification, VIEW code 361, Skylight code 340, DWG parsing, and rendering semantics separate"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "Added an owner-aware overload for raw OBJECTS replay while retaining the original one-argument API entry point. The opt-in path requires a SUN carrier registered by the adapter's resolved-SUN set, an already emitted table/entity owner identity, and exactly one code-330 group matching both the typed parent handle and explicit source owner; it writes the owner using the source-to-output mapping. VPORT handle allocation and group-361 remapping use the same output identity. Both owner-aware calls without the registered graph and the legacy one-argument raw SUN call remain fail-closed; the original one-argument API remains available for non-SUN raw objects.",
+    "generatedControls": [
+      "Generated AC1027 ASCII and binary DXF import one VPORT handle 0x721 whose group 361 references SUN 0x706, with raw SUN code 330 owning the VPORT.",
+      "Re-export and re-import assert the VPORT handle is reminted and the typed VPORT target, typed SUN owner, and raw SUN owner all converge on their emitted identities.",
+      "Changing the typed/raw owner identity without changing the VPORT reference rejects export while preserving a pre-existing destination sentinel.",
+      "A direct raw-object owner-override attempt without a resolved SUN graph and emitted owner mapping rejects without replacing a pre-existing destination.",
+      "The legacy one-argument raw SUN writer rejects without replacing a pre-existing destination."
+    ],
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "dwgParseOrEncodeChanged": false,
+    "drwInterfaceVirtualContractChanged": false,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+      "result": "passed"
+    },
+    "focusedCommands": [
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-sun-owner-graph",
+      "build-gcc/libdxfrw_dxf_fixture_tests --background-sun-callback-retention",
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --viewport-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --view-background-sun-fail-closed"
+    ],
+    "focusedResults": [
+      "VPORT/SUN owner-graph replay, handle remapping, and both direct writer bypass refusals: PASS",
+      "Background/SUN typed and raw callback retention: PASS",
+      "VPORT Background/SUN fail-closed export: PASS",
+      "VIEWPORT Background/SUN fail-closed export: PASS",
+      "VIEW Background/SUN fail-closed export: PASS"
+    ],
+    "fullCtestOrSuiteRun": false,
+    "peerOrNativeRun": false,
+    "scopedDiffCheck": "passed"
+  },
+  "assessment": {
+    "closedScope": "Generated VPORT-owned SUN structural round-trip and remapped raw owner identity pass for ASCII and binary AC1027 controls; mismatched typed/raw owner identity fails atomically.",
+    "remaining": "Add an independent positive generated VIEWPORT-owned SUN control before claiming that owner route is exercised. No native producer, rendering, sun/shadow semantics, DWG SUN path, VIEW group 361, or Skylight-to-SUN qualification is established.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "repositoryState": {
+      "worktreeBroadlyDirty": true,
+      "staged": false,
+      "committed": false
+    }
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader ACIS embedded-payload dialect and peer-independence audit",
+  "mode": "primary-source documentation and pinned-package provenance review; plan-only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck the DWG ACIS entity wrapper against ODA Open Design Specification v5.4.1",
+    "Distinguish DWG AC versions, embedded ACIS save versions, and SAT/SAB/ASM dialects",
+    "Pin the latest cq-acis publication and assess its operation, platform, and evidence limits",
+    "Review parser-reference lineage between cq-acis, CADMPEG, and ezdxf",
+    "Refresh FreeCAD and Ansys consumer-route boundaries",
+    "Refine only existing PAR-07/S8 external evidence gates"
+  ],
+  "method": {
+    "kind": "Read-only review of official ODA/FreeCAD/Ansys documentation, ezdxf documentation, cq-acis documentation, and PyPI provenance",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-independent-acis-stream-parser-and-gdal-route-matrix-2026-10-17.json",
+      "docs/research/deeper-broader-acis-peer-execution-safety-refresh-2026-10-17.json"
+    ],
+    "limitations": "cq-acis PyPI provenance pins its 0.3.12 sdist to a source commit and hash, but the repository SAB/ASM details and third-party notice reviewed here are mutable-branch documentation and were not independently checked out at that commit. No parser source, dependency graph, binary, CAD kernel, or sample payload was run or audited. ODA's 2017 profile note is a dated vendor statement and is treated as a compatibility warning, not a complete current version map."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance DWG specification",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Open Design Specification v5.4.1; §20.4.41 reviewed 2026-10-18",
+      "observed": "Describes the DWG REGION/3DSOLID/BODY ACIS wrapper, including legacy blocked SAT and direct SAT/SAB carrier identification. The same section says ODA does not completely decode the ACIS entity payload and that parts of its group stream are not fully understood. This is wrapper evidence, not a full ACIS grammar or B-rep validity oracle."
+    },
+    {
+      "project": "Open Design Alliance Teigha SAT/SAB profile article",
+      "urls": [
+        "https://www.opendesign.com/blog/2017/october/working-sat-and-sab-files-teigha"
+      ],
+      "revision": "Published 2017-10-03; reviewed 2026-10-18",
+      "observed": "The article distinguishes Spatial ACIS-compatible profiles through save version 700 from Autodesk-modified profiles at 20800 and above, and warns that native Spatial profiles above 700 are not directly usable inside DWG/DXF as-is. Its mapping is historical and not asserted as a complete current producer-version matrix."
+    },
+    {
+      "project": "cq-acis PyPI release 0.3.12",
+      "urls": [
+        "https://pypi.org/project/cq-acis/0.3.12/"
+      ],
+      "revision": "Released 2026-10-16; PyPI provenance binds the sdist to source commit e05a8f470d2f6799277f7b7df467d2fc35625889",
+      "artifact": {
+        "filename": "cq_acis-0.3.12.tar.gz",
+        "sha256": "eba52992abcf6afce57b0f3526c3afeeed29cc60fbbb61c275958703d597de3a"
+      },
+      "observed": "The publication advertises an experimental SAT/SAB parser and bounded analytic B-rep conversion through CadQuery/OCCT. PyPI lists Windows x86-64, Linux x86-64/aarch64, macOS ARM64, and macOS x86-64 wheels. Artifact availability and provenance do not establish a successful run, exact support for our payload profile, complete body conversion, or a second geometry kernel from FreeCAD."
+    },
+    {
+      "project": "cq-acis repository SAB/ASM support and third-party notices",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/THIRD_PARTY_NOTICES.md"
+      ],
+      "revision": "Mutable main documentation reviewed 2026-10-18; exact correspondence to PyPI source commit not audited",
+      "observed": "The project describes bounded SAB/ASM profiles, raw retention for unsupported records, opaque history treatment, and explicit conversion failures. Its notice says its SAB reader grammar/layout was informed by CADMPEG project commit faa73bfdaa29a7b4fb5c6998c1bdedfec8fac9d7, and cites ezdxf SAB framing and two cube fixtures. This establishes reference lineage, not identical implementations."
+    },
+    {
+      "project": "CADMPEG ACIS parser documentation",
+      "urls": [
+        "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+        "https://github.com/cadmpeg/cadmpeg/blob/main/Cargo.toml"
+      ],
+      "revision": "Published 0.6.1 API/workspace documentation reviewed 2026-10-18; source overlap with cq-acis not audited",
+      "observed": "CADMPEG is a separate bare SAT/SAB/ASM parser route. The cq-acis attribution introduces a documented grammar/reference relationship; package/repository separation alone cannot establish independent grammar corroboration."
+    },
+    {
+      "project": "ezdxf ACIS tools",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Stable documentation reviewed 2026-10-18",
+      "observed": "ezdxf states it has no ACIS kernel, supports only a limited set of ACIS entities, may lose unsupported entities as NONE_ENTITY, cannot arbitrarily load and re-export existing ACIS data, and only extracts polyhedral face geometry for mesh conversion."
+    },
+    {
+      "project": "FreeCAD DWG route",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "revision": "Current public docs/source reviewed 2026-10-18; exact release/backend not run",
+      "observed": "The documented DWG workflow is converter-to-DXF followed by FreeCAD's standard DXF importer. It does not establish stock FreeCAD parsing of embedded ACIS geometry; platform and importer backend must remain explicit in the 2D consumer matrix."
+    },
+    {
+      "project": "Ansys ACIS interface",
+      "urls": [
+        "https://ansyshelp.ansys.com/public/views/secured/corp/v261/en/ref_cad/cadACIS.html"
+      ],
+      "revision": "2026 R1 docs reviewed 2026-10-18",
+      "observed": "Documents a standalone SAT/SAB reader mode, solid/surface/line import, input versions through 2023 on Windows and Linux, no associativity, and no writer. Binary availability/license, exact build, geometry measurement route, and parser/kernel lineage for this task remain unverified."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refreshes the pinned cq-acis release/artifact identity and tightens the existing optional comparator and semantic-evidence gates. Requires exact embedded SAT/SAB/ASM dialect classification before invoking readers; treats cq-acis and CADMPEG as correlated pending source-overlap audit; keeps OCCT-backed conversion, FreeCAD native 2D route, standalone Ansys SAT/SAB route, and DWG AcDs owner association separate. No implementation order or validation cadence change.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Preserve entity handle, exact DXF modeler field or DWG AcDs path, and raw payload hash before any parsing or conversion step.",
+    "Classify SAT/SAB/ASM dialect and exact save profile; a DWG AC version or ACIS BinaryFile marker alone is insufficient.",
+    "At most, run a pinned cq-acis 0.3.12 or later artifact at an existing composed checkpoint when the exact input profile is admitted; do not add it to CMake, CI, or fast per-slice validation.",
+    "Before counting cq-acis and CADMPEG as independent grammar evidence, inspect their exact sources/dependencies and the documented CADMPEG and ezdxf reference lineage.",
+    "Treat OCCT-backed conversion as sharing geometry-kernel lineage with FreeCAD; do not count it as a second kernel.",
+    "Require zero unexplained loss for the named profile, complete valid body conversion, independent analytic invariants and declared tolerances; parse success, raw preservation, tessellation, bounds, or self-roundtrip alone do not pass.",
+    "Keep DWG AcDs ownership, FreeCAD 2D converter/importer qualification, standalone SAT/SAB readers, native OS results, and semantic shape results as separate matrix cells.",
+    "Keep Ansys optional until binary/license/profile and reproducible measurement access are established; continue local implementation if unavailable.",
+    "Do not promote J256, J260, J268, J284, J293, or J295 based on this documentation/provenance review."
+  ],
+  "validation": {
+    "receiptJsonValidation": true,
+    "planDiffCheck": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "kind": "librecad-hatch-canonical-header-field-guards",
+  "date": "2026-11-28",
+  "consumerCommit": "4deed57e21c292e9698b9c5a852d47fad691e225",
+  "codecCommit": "0e5f5c407",
+  "codecImplementationDigest": "3f27059cce760dfc69caa34aeffe45733f3b5a56fea9ead84b839da303d99d93",
+  "scope": "Use the shared writer canonical HEADER-name query and a narrow observed record/group-code allowlist before granting the selected source-handle isolation witness. Reject unknown variables, custom properties, unknown field codes and previously guarded opaque profiles. Older shared codecs without the name query conservatively withhold the witness.",
+  "checks": {
+    "systemCodec": {
+      "cases": 6,
+      "assertions": 429,
+      "result": "pass",
+      "logSha256": "d6799fd3af216e8b7af71233f9a01a8b0525305de2d3b3944b004b7c3787e93a"
+    },
+    "bundledCodec": {
+      "cases": 4,
+      "assertions": 225,
+      "result": "pass; optional source observer absent",
+      "logSha256": "0766f28e00b04c3e6fbe943b0821b692afd8795e0d4b4fd0c6586f13ab2a0d86"
+    },
+    "codec": {
+      "unknownHeaderVariableRoundtrip": "pass",
+      "stagedHatchGraph": "pass",
+      "qualificationDigestAndSupportStatus": "pass; 15 experimental claims, none advertised"
+    }
+  },
+  "controls": [
+    "Unknown vendor HEADER, nonstandard group code, canonical custom property, opaque data and unknown classes suppress isolation; independent model-space evidence remains.",
+    "The locally generated AC1024 drawing remains eligible; source geometry and reciprocal links are checked.",
+    "Selected observer tamper, failure/retry, moved-geometry and mixed IMAGE/MATERIAL controls pass."
+  ],
+  "limits": [
+    "This observed-field allowlist is a conservative exclusion gate, not full per-field semantic validation or whole-drawing closure.",
+    "Native producer behavior, output revalidation, copy/identity ambiguity and association replay remain open.",
+    "The old shared-codec fallback is guarded by feature detection; its particular build was not rerun in this slice."
+  ],
+  "fixtures": "Locally authored drawing; no DXF or DWG committed",
+  "supportClaimsPromoted": false
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "VIEWPORT trace reports the Y center coordinate",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Correct one debug-only diagnostic in DRW_Viewport::parseDwg: the Y label previously printed centerPX twice; it now prints centerPY.",
+  "change": {
+    "file": "src/drw_entities.cpp",
+    "function": "DRW_Viewport::parseDwg",
+    "effect": "Trace output only; no parser state, wire decoding, or serialized output changed."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf -j 4: PASS",
+    "source": "/Users/dli/doc/dwg/colorwh.dwg",
+    "sourceSha256": "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/colorwh.dwg -y -d -v2010 /tmp/colorwh-trace-check.dxf",
+    "traceSha256": "eed1ec0afa7bb472820b11db4353d713ab54d59cc37530e04fbc8b1ec0e68129",
+    "traceExamples": [
+      "view center X: 6.620957, Y: 4.972401",
+      "view center X: -0.468411, Y: 1.061537"
+    ],
+    "conversion": "The drawing was read; strict DXF output remained refused at the existing DICTIONARYVAR source/output snapshot gate. No output was produced.",
+    "fixtureCommitted": false
+  },
+  "limits": [
+    "This fixes debug-trace accuracy only. It does not qualify VIEWPORT field semantics, source coverage, output, or native rendering."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "id": "par134-ac1021-ac1024-table-cadvalue-object-id-role",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "6fb496fc2cb53f0649ead649f90ce506d2f7c7c8cb808d040c0bbe2b0dd610e3",
+  "scope": {
+    "class": "DRW_Table / DRW_TableContentObject",
+    "version": "AC1021 and AC1024",
+    "field": "TABLE CadValue type-64 object ID handle role",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "change": "Extended generated in-memory TABLE builders and tests for type-64 object IDs in the handle stream. Production parsing already retained the handle and enforced the soft-pointer role; this slice adds route-specific regression coverage only.",
+  "generatedControls": {
+    "positive": "Both version routes use soft-pointer handle A721 and assert typed handle, integer variant, display text, and complete semantics; AC1024 also checks the tail bit boundary.",
+    "negative": "Both routes encode a hard-pointer in the kObjectId slot and assert failure or semantic withholding."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_table_cadvalue_object_id$' --output-on-failure: PASS (1/1)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: not rerun after this slice",
+    "git diff --check -- CMakeLists.txt tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "productionParserChanged": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

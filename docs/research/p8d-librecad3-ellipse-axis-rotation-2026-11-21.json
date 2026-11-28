@@ -1,0 +1,145 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-ellipse-axis-rotation-2026-11-21",
+  "status": "DRAFT_PR_UPDATED_NATIVE_QUALIFICATION_PENDING",
+  "supportClaimEffect": "none",
+  "pullRequest": {
+    "url": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+    "head": "39cd19f",
+    "previousHead": "b36006c71f9950d016264a1b64cd4db46e910662",
+    "dependsOn": "https://github.com/LibreCAD/LibreCAD_3/pull/460"
+  },
+  "problem": "geo::Ellipse::georotate treated majorP, a center-relative vector, as a point rotated around the world-space pivot. An off-origin rotation distorted the ellipse; the geometry overload also dropped the reversed flag.",
+  "change": "Rotate the center about the pivot, rotate the major-axis vector about the origin, and retain reversed state. The existing shared XY rotation retains each coordinate Z.",
+  "validation": {
+    "platform": "macOS arm64 headless",
+    "baseline": "Before the fix, an elevated HATCH ellipse rotated about (5,7,100) by 0.5 radians emitted major axis approximately (5.7232,-0.5814) instead of (1.7552,0.9589).",
+    "baselineLogSha256": "e519534b4713e42484ef78e4990920ff18fd7011d44807f6dff4d49cc2536024",
+    "bundledCodec": "pinned d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "currentCodec": "shared libdxfrw built from ae55044b7d23ade922b0be34e17528f7579ffc90",
+    "currentLibrarySha256": "42b6e477162228307f9c72df47d2e4b3ac78920dbea2b6f642534849218592b8",
+    "bundled": "11/11 focused coordinate, ellipse and HATCH/MPOLYGON controls PASS",
+    "current": "11/11 same controls PASS",
+    "geometry": "9/9 additional coordinate, region, ellipse, arc and circle tests PASS",
+    "bundledLogSha256": "727c2573e0f07f716df78be8e07f79fd7ad237bfafb9dfd82ddd5220e71095e6",
+    "currentLogSha256": "7c1987e3d067280b76281848b5460705348a5edfd2a5a33bf1b082c48bfe9e41",
+    "geometryLogSha256": "9c3a1e0f2e693b3ace2fa978905bab2c391fb588c2554aabd215fb774420ca7f",
+    "independentReader": "ezdxf 1.4.5 independently checked ASCII and Binary output for clockwise and counterclockwise curved HATCH paths under both codecs, including center, elevation, rotated major axis, ratio, arc angles and source-relative ellipse angles",
+    "independentResultsSha256": "0215066c2222b3635ea58d99f8fa8df691eb033113135e89a357a9f82f32c202",
+    "independentResults": {
+      "bundled": {
+        "ccw-rotated-ascii.dxf": {
+          "sha256": "f6d20ad994895fe12c2ab2a87c3a26ba0ebdab8c7149ce89db157fb0a08944cb",
+          "center": [
+            3.886797445459524,
+            0.6943850361313242,
+            3.0
+          ],
+          "majorAxis": [
+            1.755165123780746,
+            0.958851077208406
+          ],
+          "orientation": "ccw"
+        },
+        "ccw-rotated-binary.dxf": {
+          "sha256": "3d5d3cf5f406c20cba8e06754d968574fb3833001871921810c46b74fa7e08e3",
+          "center": [
+            3.886797445459524,
+            0.6943850361313242,
+            3.0
+          ],
+          "majorAxis": [
+            1.7551651237807455,
+            0.958851077208406
+          ],
+          "orientation": "ccw"
+        },
+        "cw-rotated-ascii.dxf": {
+          "sha256": "7c1718a9b35e03c0cffb488a39c6826fd1102465b1b76a0e88b4590b77707c17",
+          "center": [
+            3.886797445459524,
+            0.6943850361313242,
+            3.0
+          ],
+          "majorAxis": [
+            1.755165123780746,
+            0.958851077208406
+          ],
+          "orientation": "cw"
+        },
+        "cw-rotated-binary.dxf": {
+          "sha256": "5c399348d3f0940ccaa0cbd09f8b8a840b790f4df8651c12e35abf26fa5d7878",
+          "center": [
+            3.886797445459524,
+            0.6943850361313242,
+            3.0
+          ],
+          "majorAxis": [
+            1.7551651237807455,
+            0.958851077208406
+          ],
+          "orientation": "cw"
+        }
+      },
+      "system": {
+        "ccw-rotated-ascii.dxf": {
+          "sha256": "0451427aa045dc88f0cc222741241ddebf34bdd2c37ccf791519c220cd0a3d40",
+          "center": [
+            3.886797445459524,
+            0.6943850361313242,
+            3.0
+          ],
+          "majorAxis": [
+            1.7551651237807455,
+            0.958851077208406
+          ],
+          "orientation": "ccw"
+        },
+        "ccw-rotated-binary.dxf": {
+          "sha256": "d8c6f495730f16e2485a860d9b368cec37f063b2e84c737458fa83d720d82f84",
+          "center": [
+            3.886797445459524,
+            0.6943850361313242,
+            3.0
+          ],
+          "majorAxis": [
+            1.7551651237807455,
+            0.958851077208406
+          ],
+          "orientation": "ccw"
+        },
+        "cw-rotated-ascii.dxf": {
+          "sha256": "0081dc467c0df7ae567b5092b1479f98cf141238c5c5ffe74d0227e2bbb5bd04",
+          "center": [
+            3.886797445459524,
+            0.6943850361313242,
+            3.0
+          ],
+          "majorAxis": [
+            1.7551651237807455,
+            0.958851077208406
+          ],
+          "orientation": "cw"
+        },
+        "cw-rotated-binary.dxf": {
+          "sha256": "1d559967e68b11d91f91a8f6acaff983ba8a3a23c05afda75bb7fdc81164e188",
+          "center": [
+            3.886797445459524,
+            0.6943850361313242,
+            3.0
+          ],
+          "majorAxis": [
+            1.7551651237807455,
+            0.958851077208406
+          ],
+          "orientation": "cw"
+        }
+      }
+    }
+  },
+  "limits": [
+    "Native GUI and platform checks remain open.",
+    "This covers selected default-normal HATCH curved boundaries; it does not establish tilted-plane or general DWG interoperability.",
+    "No DWG/DXF fixtures were committed."
+  ]
+}

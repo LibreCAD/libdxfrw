@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1021-ase-index-dictionary-physical-selected-output-2026-11-06",
+  "date": "2026-11-06",
+  "status": "PASS_BOUNDED_PHYSICAL_SOURCE_OUTPUT_READBACK",
+  "supportClaimEffect": "none",
+  "question": "Can the source AC1021 ASE_INDEX_DICTIONARY, its XRECORD child, and dictionary EED dependency be emitted as a closed selected graph with atomic refusal and readback?",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "producerProvenance": "Existing local source; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceGraph": {
+    "namedObjectDictionary": {
+      "handle": "0xC",
+      "hardOwner": 0,
+      "cloning": 1
+    },
+    "root": {
+      "key": "ASE_INDEX_DICTIONARY",
+      "targetHandle": "0x3B3C8",
+      "occurrences": 1,
+      "outputDxfHandleRole": "soft-owner"
+    },
+    "dictionary": {
+      "type": "DICTIONARY (standard object type 42)",
+      "handle": "0x3B3C8",
+      "ownerHandle": "0xC",
+      "hardOwner": 0,
+      "cloning": 1,
+      "frameOffset": 8539,
+      "frameSize": 95,
+      "entries": [
+        {
+          "key": "ASEBlockHierarchyIndexRecord",
+          "targetHandle": "0x3B3C9",
+          "sourceDxfHandleCode": "Unspecified",
+          "outputDxfHandleRole": "soft-owner"
+        }
+      ],
+      "reactors": ["0xC"],
+      "extensionDictionary": "0x0",
+      "sourceEed": [
+        {"code": 1001, "type": "string", "value": "DCO15"},
+        {"code": 1040, "type": "double", "preservedExactly": true}
+      ],
+      "appIdDependency": {
+        "name": "DCO15",
+        "sourceHandle": "0x4C4",
+        "uniqueSourceRow": true,
+        "uniqueOutputReadbackRow": true
+      },
+      "appData": 0,
+      "dataStorage": false,
+      "commonLinkTail": false
+    },
+    "xrecord": {
+      "type": "XRECORD (standard object type 79)",
+      "handle": "0x3B3C9",
+      "ownerHandle": "0x3B3C8",
+      "frameOffset": 1996083,
+      "frameSize": 18,
+      "values": 0,
+      "dataEntries": 0,
+      "reactors": ["0x3B3C8"],
+      "extensionDictionary": "0x0",
+      "appData": 0,
+      "extData": 0,
+      "dataStorage": false,
+      "commonLinkTailValidated": true
+    },
+    "sourceFrames": {
+      "dictionaryTypedPayloadMatched": true,
+      "dictionaryStandardSourceEligible": true,
+      "xrecordTypedPayloadMatched": true,
+      "xrecordStandardSourceEligible": true
+    }
+  },
+  "implementation": {
+    "files": ["tests/dwg2dxf_adapter_tests.cpp"],
+    "change": "Generalized the AC1021 NOD dictionary output control to cover a one-entry dictionary/XRECORD graph and its APPID-backed EED. No production writer change was needed. The control checks both physical standard-frame proofs, NOD and child ownership/reactors, EED and APPID readback, and late graph-mutation refusal/retry."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "selector": "--ase-index-dictionary-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ase-index-dictionary-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS for ASCII and Binary output and fresh typed readback. Both physical standard-frame proofs finalize. Readback verifies the unique NOD root, dictionary child membership/soft-owner role, empty XRECORD body, reciprocal owner/reactor links, the two dictionary EED groups, exact code-1040 source/output double equality and unique DCO15 APPID row. Late mutation of both dictionary and child reactors refuses without replacing the destination sentinel; restoring the source permits the same adapter to retry.",
+    "outputPolicy": "AllowPartial; unresolved-owner strictness disabled. This does not qualify strict whole-source output.",
+    "logPath": "/private/tmp/p4-ac1021-ase-index-dictionary-physical-selected-output-2026-11-06.log",
+    "logSha256": "ea2a584f53525916eda9aed987102533d3d7ed49ac4e99276d778ac0e284abfc0",
+    "testSourceSha256": "376a216d6a4c5052b49d8e4555df463e6ee7284e107a850b08986d9ac2b6a461",
+    "executableSha256": "741deeb5b2fe22dfa4c5059d739183b43467a184effe2675ba633624ad8b1f49"
+  },
+  "limits": [
+    "One unauthenticated local source profile is covered; the DWG dictionary edge's original wire code is not established by this output test.",
+    "The APPID/EED retention is proven for this exact DCO15 pair; no general APPID/EED or ASE application semantics are established.",
+    "The source contains other NOD entries whose target graphs are not closed here; strict whole-source output, native behavior and producer-wide support remain unqualified.",
+    "No independent encoder roundtrip or native consumer qualification is established.",
+    "The DWG source and generated DXF outputs are not committed as fixtures."
+  ],
+  "nextAction": "Screen ACAD_CIP_PREVIOUS_PRODUCT_INFO XRECORD handle 534 for complete payload, common-link/EED roles, unique NOD membership and APPID dependencies before selecting the next standard-object output slice."
+}

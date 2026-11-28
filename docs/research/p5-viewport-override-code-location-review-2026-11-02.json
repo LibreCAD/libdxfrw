@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-02",
+  "gate": "P5_VIEWPORT_LAYER_OVERRIDE_CODE_LOCATION",
+  "result": "IMPLEMENTATION_REQUIRES_PRODUCER_PROFILE",
+  "review_scope": "Resolve whether group codes listed by Autodesk for VIEWPORT layer overrides belong to the VIEWPORT entity itself or to the Layer extension-dictionary XRECORD payload. No code or support claim changed.",
+  "evidence": [
+    {
+      "source": "Autodesk AutoCAD 2025 VIEWPORT DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "finding": "The VIEWPORT group-code table lists 335, 343, 344, and 91 as soft pointer references for layer viewport-property overrides."
+    },
+    {
+      "source": "Autodesk AutoCAD 2027 DXF group-code type table",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+      "finding": "The generic group-code table assigns codes 90 through 99 to 32-bit integer values, conflicting with treating VIEWPORT group 91 as a soft-pointer handle."
+    },
+    {
+      "source": "ezdxf 1.4.5 Layer viewport override schema (secondary implementation cross-check)",
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/tables/layer_table.html",
+      "finding": "Its concrete Layer-owned XRECORD examples place group 335 viewport handles and use group 343 for the linetype handle and group 91 for the lineweight integer inside the XRECORD payload. This is distinct from a direct VIEWPORT-entity field."
+    },
+    {
+      "source": "Current local AC1024 corpus census",
+      "receipt": "docs/research/p5-viewport-layer-override-local-corpus-census-2026-11-01.json",
+      "finding": "No candidate field occurrence was found in the inspected LibreDWG outputs; absence from this corpus does not establish producer absence."
+    }
+  ],
+  "implementation_decision": "Keep the current Layer extension-dictionary/XRECORD profile separate. Do not add a DRW_Viewport mapping for 335/343/344/91 until an eligible producer sample establishes the physical record location, ASCII/Binary value types, target roles, and coupling to the Layer dictionary. In particular, do not reinterpret XRECORD group 91 as a handle.",
+  "validation": "Research and plan update only; no tests, fixtures, or production code changed."
+}

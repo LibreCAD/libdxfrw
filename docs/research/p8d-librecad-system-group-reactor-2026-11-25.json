@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-group-reactor-2026-11-25",
+  "status": "LOCAL_GROUP_REACTOR_CONTROL_PASS_HATCH_ASSOCIATIONS_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "c67cab9758c0af7c59893ea2d239ea42b462768e",
+    "previousHead": "aedbf6cbcdd07ac12fc0d790029b6b9bf617adac"
+  },
+  "dependency": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "implementationDigest": "2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21"
+  },
+  "problem": "In the installed-codec path the GROUP plan minted handle 91 while earlier LINE reactor references still named its original handle 90. The GROUP dictionary and members otherwise resolved, so a one-direction check alone missed the dangling reactor.",
+  "change": "Supply existing collision-free reserved GROUP identities as explicit identity mappings to the standalone writer before GROUP planning. The bundled-codec path is unchanged. The regression checks the named dictionary entry, GROUP member handles, and both member reactors against the emitted GROUP identity. The WCS extrusion test compares numeric fields with a tight floating-point tolerance and checks subsequent DXF and DWG round trips.",
+  "validation": {
+    "host": "macOS ARM64 AppleClang Release",
+    "systemFocused": "PASS: 1821 assertions in 22 system-codec-tagged cases.",
+    "systemTestSha256": "0c06c1bccf441d56f2ac4d473bcf8f70c4a6d0036e96078483d32e4babcec91b",
+    "bundledFocused": "PASS: 1494 assertions in 16 matching tagged cases; librecad_dxf_fast_tests CTest also passed.",
+    "bundledTestSha256": "1c1e9e28b75e1211588b656eb3ffcf173a8003c984856c87f433843a571c3ef2",
+    "systemBroad": "Exploratory DXF roundtrip filter: 106 of 131 cases passed, with 27 failed assertions; the previous run passed 103 of 131 with 30 failed assertions. The HATCH reactor case checks only its one-way link."
+  },
+  "openHatchFinding": "An additional local assertion found that the exported HATCH has no group-330 boundary link to the source LWPOLYLINE, although that polyline retains its reactor to the HATCH. The filter rebuilds hatch loops and does not retain the input loop association. Do not infer graph closure or associative editing support from the passing reactor test.",
+  "limits": [
+    "Controls use locally authored input and do not establish native CAD semantic qualification.",
+    "GROUP collision, other graph profiles, native GUI and current-head hosted platform checks remain open.",
+    "No DWG or DXF fixture files were committed."
+  ]
+}

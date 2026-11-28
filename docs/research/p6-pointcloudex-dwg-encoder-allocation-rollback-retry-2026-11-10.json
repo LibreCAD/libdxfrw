@@ -1,0 +1,39 @@
+{
+  "title": "POINTCLOUDEX DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory POINTCLOUDEX transaction controls; no producer or support claim.",
+  "implementation": {
+    "writer": "DRW_PointCloudEx::encodeDwg",
+    "behavior": [
+      "Stage body, version-routed strings and handle destinations using the alias-aware entity transaction helper.",
+      "Preserve uncropped display settings, cropped geometry, and definition/reactor handle roles; keep preflight refusal of omitted nondefault fields."
+    ]
+  },
+  "generated_profiles": [
+    {
+      "version": "AC1027",
+      "uncropped_failures": 44,
+      "cropped_failures": 25
+    },
+    {
+      "version": "AC1032",
+      "uncropped_failures": 44,
+      "cropped_failures": 25
+    }
+  ],
+  "assertions": [
+    "All measured allocation failures return false without throwing and preserve seeded streams, counts, handle occurrences and previous type.",
+    "Same-object retry matches clean encoding; an all-stream alias failure and retry preserve state.",
+    "Existing cropped omitted-field refusal and corrected retry remains passing."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --pointcloudex-dwg-encode-allocation-rollback",
+    "selector_result": "4/4 profiles passed",
+    "ctest_result": "4/4 focused POINTCLOUD/POINTCLOUDEX transaction and representability controls passed"
+  },
+  "limitations": [
+    "Generated controls establish local transaction behavior only; physical producer, graph and native point-cloud rendering qualification remain open.",
+    "No DWG or DXF fixture was added."
+  ]
+}

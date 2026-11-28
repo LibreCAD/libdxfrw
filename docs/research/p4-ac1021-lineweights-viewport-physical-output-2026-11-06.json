@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 lineweights physical VIEWPORT output and strict conversion",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the four physical AC1021 lineweights paper-space VIEWPORT callbacks with their previously qualified three-layout source graph, including selected ASCII/Binary output/readback, refusal/retry, and current strict full-source conversion.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/lineweights.dwg",
+    "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local sample; author and producer are unauthenticated. No DWG/DXF fixture or derivative is committed."
+  },
+  "profile": {
+    "layouts": [
+      {
+        "handle": "0x102",
+        "name": "ISO A4 Size",
+        "viewports": [
+          "0x104",
+          "0x105"
+        ]
+      },
+      {
+        "handle": "0x108",
+        "name": "Letter Size",
+        "viewports": [
+          "0x10A",
+          "0x10B"
+        ]
+      }
+    ],
+    "viewports": [
+      {
+        "handle": "0x104",
+        "status": 1,
+        "id": 1,
+        "layout": "ISO A4 Size"
+      },
+      {
+        "handle": "0x105",
+        "status": 2,
+        "id": 2,
+        "layout": "ISO A4 Size"
+      },
+      {
+        "handle": "0x10A",
+        "status": 1,
+        "id": 1,
+        "layout": "Letter Size"
+      },
+      {
+        "handle": "0x10B",
+        "status": 2,
+        "id": 2,
+        "layout": "Letter Size"
+      }
+    ],
+    "opaqueCallbackCount": 49,
+    "sourceDependencies": "Existing LAYOUT source receipt binds all four viewport handles to their owning paper-space layouts, ordered membership and BLOCK_RECORD links. The viewport output inspector checks entity identity/owner, full typed fields, extension DICTIONARY/XRECORD links and derived DXF groups 68/69."
+  },
+  "implementation": {
+    "codeChange": "No production code change in this recheck. It executes the existing exact AC1021 lineweights viewport profile in dx_iface and its physical source/readback selector.",
+    "limits": "Selected source profile and exact-source strict conversion only. No native viewport rendering, broader producer/version claim or general format support is established."
+  },
+  "validation": {
+    "selectedOutput": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/lineweights.dwg",
+      "result": "PASS: ASCII and Binary; all four typed VIEWPORTs read back, the four source callbacks qualify (49/49 total opaque callbacks), an invalid payload refuses without changing the destination or published qualification state, and restoring it permits same-adapter retry.",
+      "logPath": "/private/tmp/lineweights-viewport-current.log",
+      "logSha256": "8a9ad632607b4cf8a934ed2a2021164ad1a8c971cf803aade85b843367dd7b0f"
+    },
+    "strictWholeSource": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/lineweights.dwg -y -d -v2007 /private/tmp/lineweights-current-strict.dxf",
+      "result": "PASS: strict AC1021 source-to-AC1021 ASCII DXF conversion; successful finalization requires complete opaque callback qualification.",
+      "outputSha256": "e67f67841fd8ba841988fefc29412668cf7ecc07b49bb0b878831d42b2395038",
+      "logPath": "/private/tmp/lineweights-current-strict.log",
+      "logSha256": "5756c578a06e5a1f3ab29f9ea7a761a5e6604a63545b56ac088efe1fc3779ebe"
+    },
+    "toolDigests": {
+      "adapterTestExecutableSha256": "a48f6b89166a54d51536fbb85c5888cc221e06deccce6e56fda7608666421fd9",
+      "dwg2dxfSha256": "39ced503c370dbfcc77923a7f481b16d2958d9219cb910a71e26bf1eadb37555"
+    },
+    "fullSuites": "NOT RUN",
+    "fixturesCommitted": false
+  },
+  "nextAction": "Move to a distinct source/profile gap. Do not repeat lineweights as candidate discovery; preserve the wider P4, native-semantic and platform gates."
+}

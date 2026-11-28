@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-134 VIEWPORT entity ambient CMC flags and reserved-index retention",
+  "mode": "generated AC1024 DWG object-vector fast slice",
+  "scope": [
+    "Retain R2007+ VIEWPORT entity ambient CMC flags, reserved index, and source-presence state",
+    "Replay supported source method/optional-string flags without normalizing source metadata",
+    "Fail closed for invalid metadata, unsupported methods, missing detached strings, and ambient data dropped by legacy targets",
+    "Leave external producer/platform qualification and unverified class-specific DXF extensions open"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "20.4.38 VIEWPORT ENTITY"],
+      "finding": "ODA §20.4.38 places ambient light color as a CMC at group 63 in R2007+ VIEWPORT entities. ODA §2.11 defines the R2004+ CMC reserved BS index as zero, followed by packed BL method/value and RC optional-name flags/TV values."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.h", "src/drw_entities.cpp"],
+      "finding": "DRW_Viewport retained the CMC method, scalar/RGB, and combined optional names, but discarded flags/index. Its writer reconstructed colors and wrote the indexed-only overload for non-RGB values, losing optional CMC strings and flagged-empty state."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append VIEWPORT ambient CMC flags, reserved index, and metadata-presence fields after prior class members; reset clears them.",
+      "Capture raw flags/index in the bounded R2007+ parser; DXF color-group updates clear stale DWG provenance.",
+      "Preflight normalized method/scalar/RGB, reserved index, optional-string flags, detached string storage, and legacy-version loss before common-prefix output.",
+      "Replay source flags and method through the CMC writer, including flagged-empty strings; retain canonical encoding for caller-authored metadata without provenance."
+    ],
+    "generatedTestChanged": true,
+    "focusedSelector": "--viewport-ambient-color-method",
+    "focusedCtests": ["libdxfrw_viewport_ambient_color_method", "libdxfrw_dwg_object_vectors"],
+    "additionalRegressionCtest": "libdxfrw_dxf_fixtures",
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": true,
+    "publicApiOrLayoutNote": "Appended public fields increase DRW_Viewport object size; downstream consumers must rebuild.",
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "dwgVectors": "Generated AC1024 VIEWPORT frames cover C0 ByLayer with flagged-empty color name, C1 named color/book, C3 book-only color, and C2 truecolor with name/book.",
+    "wireWalk": "Independent cursor follows ODA §20.4.38 field order and checks reserved BS, method/value, raw flags, optional strings, and index zero.",
+    "lifecycle": "Production parser assertions cover method/scalar/RGB/names/flags/index, following-handle alignment, rewrite/readback, copy, assignment, and reset.",
+    "failClosed": "Writer rejects nonzero reserved index, unknown flags, unflagged names, C5, flagged-empty names without detached strings, and non-default ambient fields for pre-R2007 targets before writing bytes."
+  },
+  "validation": {
+    "strictBuildCommands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf lc3_compat_check -j4",
+      "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests -j4"
+    ],
+    "strictBuildResult": "PASS (-Werror)",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --viewport-ambient-color-method",
+    "focusedSelectorResult": "PASS",
+    "focusedCtestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_viewport_ambient_color_method|libdxfrw_dwg_object_vectors|libdxfrw_dxf_fixtures)$' --output-on-failure",
+    "focusedCtestResult": "PASS (3/3; 4.38 sec)",
+    "diffCheck": "git diff --check -- src/drw_entities.cpp src/drw_entities.h tests/dwg_object_vectors_tests.cpp",
+    "diffCheckResult": "PASS"
+  },
+  "evidenceLimits": [
+    "Generated vectors prove local encoding/parser consistency, not independent producer semantics for VIEWPORT ambient CMC.",
+    "No persistent DWG/DXF fixture, external reader, native CAD application, full suite, or platform qualification was run.",
+    "No new VIEWPORT DXF projection was added; DXF color groups continue to clear DWG-only provenance.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Continue the PAR-134 CMC caller and class-specific DXF projection audit; then resume exact-source PAR-03/PAR-04 associative-action classification without guessing payload widths."
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "GEODATA DWG coordinate-type field and domain",
+  "date": "2026-11-05",
+  "status": "DWG_VERSIONED_COORDINATE_TYPE_LAYOUT_AND_DOMAIN_VERIFIED",
+  "scope": "ODA v5.4.1 §20.4.78 places the Design coordinate type BitShort only in GEODATA object versions 2 and 3 (AutoCAD 2010+). Object version 1 uses the preceding legacy body layout and has no coordinate-type field. Modern values are restricted to 0 through 3. DXF input remains tolerant.",
+  "normativeSource": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.78 GEODATA",
+    "localPath": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf",
+    "relevantText": "Design coordinate type (0 unknown, 1 local grid, 2 projected grid, 3 geographic), if version is AutoCAD 2010 or later.",
+    "fieldOrder": "For object version 1, the body proceeds from the host-block handle directly into the legacy reference-point fields. Versions 2/3 include the Design coordinate type BitShort before design point."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/intern/dwgwriter15.cpp"
+    ],
+    "behavior": "DRW_GeoData::encodeDwg validates coordinate types 0..3 only for object versions 2/3 and emits the field only in those versions. parseDwg reads it only for versions 2/3 and defaults the absent v1 field to zero. dwgWriter15 repeats modern-domain validation before common-state preparation, handle reservation and class registration."
+  },
+  "regressionControl": {
+    "files": [
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "focusedTest": "libdxfrw_geodata_dwg_coordinate_type_domain",
+    "coverage": "For modern v2 DWG output, values -1 and 4 preserve sentinel-prefilled body/string/handle buffers; corrected endpoints 0 and 3 encode on the same object and buffers. The existing versioned field/tail matrix verifies v1 parsing without a coordinate-type field and v2/v3 parsing with the field. The generated high-level DWG roundtrip verifies invalid modern value 4 is refused before identity changes, corrected same-writer retry succeeds, and the emitted v2 object reads back with coordinate type 2.",
+    "fixturePolicy": "All controls are generated locally in memory; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_local_roundtrip -j4",
+    "buildResult": "passed",
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_geodata_(civil_tail_target_matrix|dwg_(scale_method|unit)_domain|dwg_coordinate_type_domain)$' --output-on-failure",
+        "result": "passed, 4/4"
+      }
+    ],
+    "owningTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "failed with 16 existing ACDS/modeler and read-outcome assertions; no GEODATA or coordinate-type retry assertion failed. The same unrelated failure set was present in the prior baseline validation recorded by the neighboring GEODATA receipts."
+    },
+    "diffCheck": "git diff --check passed"
+  },
+  "sourceBinding": {
+    "baseRevision": "54af0f04",
+    "files": {
+      "src/drw_objects.cpp": "0d5f0d42b7502e37601cc856a9a5430c7a5f1a4639b1c95aed17a12d55c3d7df",
+      "src/intern/dwgwriter15.cpp": "1134a06f768c0f1cb353813cea5e4320a3654c517fe1dbec7fcb275903b533a8",
+      "tests/dwg_object_vectors_tests.cpp": "deec736c8b304a5c35e599ff30dd1d19a0acacd121b10d5103abc22fb326a073",
+      "tests/dwg_local_roundtrip_tests.cpp": "2c57fb56e5033b4e1393d3036c7325f0bf36196060d626feb2839a26e9ae1b71",
+      "CMakeLists.txt": "3699683503b12e7326a6d48adbb50af5d06304606325763da5d827a288d43c69",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "45a4c44cdfbbd2794528c860b8c52b3569fc8735f2970f821e5ce861983ea3eb"
+    }
+  },
+  "nonClaims": [
+    "No physical producer or native geospatial consumer was qualified.",
+    "The change does not qualify GEODATA ownership, whole-document graph closure, civil-tail producer behavior, projection mathematics, or native map behavior.",
+    "The test matrix's in-memory object frames validate parser alignment against the documented version gate; they are not independent producer samples."
+  ]
+}

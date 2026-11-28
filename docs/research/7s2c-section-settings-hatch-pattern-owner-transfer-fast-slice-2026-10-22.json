@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c SECTION_SETTINGS hatch-pattern owner transfer",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Move decoded SECTION_SETTINGS group-2 hatch-pattern text into the retained-field helper instead of copying the local value into its by-value parameter.",
+    "route": "DRW_Section::parseCode group 2 in SectionGeometrySettings state",
+    "behavior": "Semantic decoding, structural-marker view handling, retained-byte admission, rollback, and final field value are unchanged.",
+    "non_claims": [
+      "no public API or model-layout change",
+      "no parser meaning or DXF wire behavior change",
+      "no DWG byte-layout change",
+      "no support claim promotion",
+      "no external producer or native CAD qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dxfrw libdxfrw_hardening_tests lc3_compat_check --parallel 2",
+    "build_result": "PASS (-Werror)",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_section_text_owner_budget$' --output-on-failure",
+    "focused_ctest_result": "PASS (1/1)",
+    "coverage": "Existing generated ASCII/Binary controls exercise nested hatch-pattern ownership, exact and one-byte-under caps, prior-field preservation, copy/assignment, and reset release.",
+    "diff_check": "PASS (src/drw_objects.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, receipt)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue auditing lvalue-to-by-value retained-string helper calls, preserving exact decode and live-owner accounting while advancing without external qualification."
+}

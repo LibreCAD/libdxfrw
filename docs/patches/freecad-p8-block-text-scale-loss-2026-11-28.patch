@@ -1,0 +1,77 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -63,0 +64 @@
++#include <cmath>
+@@ -1314,5 +1315,17 @@
+-            const Base::Matrix4D textTransform = transform * textOrientation;
+-            PyObject* placement = new Base::PlacementPy(Base::Placement(textTransform * localTransform));
+-            // Scale the text height by the INSERT's X-axis scale factor (norm of first column).
+-            double xScale = Base::Vector3d(textTransform[0][0], textTransform[1][0], textTransform[2][0]).Length();
+-            double scaledHeight = height * (xScale > 0.0 ? xScale : 1.0);
++            const Base::Matrix4D textTransform = transform * textOrientation * localTransform;
++            const Base::Vector3d xAxis(textTransform[0][0], textTransform[1][0], textTransform[2][0]);
++            const Base::Vector3d yAxis(textTransform[0][1], textTransform[1][1], textTransform[2][1]);
++            const Base::Vector3d zAxis(textTransform[0][2], textTransform[1][2], textTransform[2][2]);
++            const double xScale = xAxis.Length();
++            const double yScale = yAxis.Length();
++            // Draft text has a single height, not independent width, shear, or reflection.
++            constexpr double tolerance = 1e-10;
++            if (!std::isfinite(xScale) || !std::isfinite(yScale) || xScale == 0.0 || yScale == 0.0
++                || std::abs(xScale - yScale) > tolerance * (xScale + yScale)
++                || std::abs(xAxis * yAxis) > tolerance * xScale * yScale
++                || (xAxis % yAxis) * zAxis <= 0.0) {
++                UnsupportedFeature("Block TEXT transform loss");
++            }
++            PyObject* placement = new Base::PlacementPy(Base::Placement(textTransform));
++            // The text height follows its local Y axis after rotation.
++            const double scaledHeight = height * (std::isfinite(yScale) && yScale > 0.0 ? yScale : 1.0);
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1530,0 +1531,45 @@
++    def test_block_text_height_and_transform_loss(self):
++        """Scale text along its local Y axis and report unrepresentable transforms."""
++        import sys
++        import types
++        draft = types.ModuleType("Draft")
++        calls = []
++        def make_text(text, placement, screen, height):
++            calls.append((text, height))
++            return self.document.addObject("App::FeaturePython", "ScaledText")
++        draft.make_text = make_text
++        old_draft = sys.modules.get("Draft")
++        sys.modules["Draft"] = draft
++        try:
++            options = FreeCAD.ParamGet(self.option_source)
++            options.SetBool("dxftext", True)
++            base = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                    (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                    (0, "BLOCK"), (8, "0"), (2, "B"), (70, 0), (10, 0), (20, 0), (30, 0),
++                    (0, "LINE"), (8, "0"), (10, 0), (20, 0), (30, 0), (11, 1), (21, 0), (31, 0),
++                    (0, "TEXT"), (8, "0"), (10, 0), (20, 0), (30, 0), (40, 1), (1, "T0"),
++                    (0, "TEXT"), (8, "0"), (10, 0), (20, 0), (30, 0), (40, 1), (1, "T90"), (50, 90),
++                    (0, "ENDBLK"), (8, "0"), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")]
++            for mode in (2, 3):
++                options.SetInt("DxfImportMode", mode)
++                for sx, sy, expected, reported in ((2, 3, (3, 2), True), (2, 2, (2, 2), False),
++                                                    (-1, 1, (1, 1), True)):
++                    with self.subTest(mode=mode, scale=(sx, sy)):
++                        tags = base + [(0, "INSERT"), (8, "0"), (2, "B"), (10, 0), (20, 0),
++                                       (30, 0), (41, sx), (42, sy), (43, 1), (0, "ENDSEC"), (0, "EOF")]
++                        path = os.path.join(self.temp_dir, "block-text-scale.dxf")
++                        with open(path, "w", encoding="ascii", newline="\n") as stream:
++                            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                        calls.clear()
++                        stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                        self.assertEqual(len(calls), 2)
++                        heights = dict(calls)
++                        self.assertAlmostEqual(heights["T0"], expected[0], delta=0.00001)
++                        self.assertAlmostEqual(heights["T90"], expected[1], delta=0.00001)
++                        self.assertEqual("Block TEXT transform loss" in stats["unsupportedFeatures"], reported)
++        finally:
++            if old_draft is None:
++                del sys.modules["Draft"]
++            else:
++                sys.modules["Draft"] = old_draft
++

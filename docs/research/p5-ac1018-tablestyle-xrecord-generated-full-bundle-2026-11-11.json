@@ -1,0 +1,18 @@
+{
+  "id": "p5-ac1018-tablestyle-xrecord-generated-full-bundle-2026-11-11",
+  "scope": "Generated-source control for the opt-in AC1018 TABLESTYLE source-observation bundle, including its selected extension DICTIONARY, eleven XRECORDs and CELLSTYLEMAP. This is selected source binding, not complete graph closure, semantic interoperability or output support.",
+  "construction": "The test locally authors an AC1018 drawing with a three-by-three typed TABLE, synthetic 2104-byte proxy cache, one owned block LINE, TABLESTYLE, its extension dictionary, the root and nine child XRECORDs, style XRECORD, CELLSTYLEMAP frame, and independently generated TABLECONTENT, DATATABLE and TABLEGEOMETRY source bodies. CELLSTYLEMAP wire bytes are generated from scratch by the existing candidate control and inserted as a raw custom-class frame because the production typed DWG writer is gated to AC1021+. No drawing fixture is committed. Scratch-only equal-length source-frame rewrites normalize selected generated wire bodies and redirect the TABLE graph; each replacement checks object-frame integrity and recomputes the enclosing uncompressed page checksums. This generated graph does not establish producer validity or writer support.",
+  "reader_capacity_finding": "The reader originally capped all captured table candidates at eight, counting unselected AC1018 STYLE/LTYPE control tickets alongside the selected graph. The selected TABLESTYLE+CELLSTYLEMAP source capture reached eight candidates before its map ticket and was discarded. The bounded collector cap is now sixteen; aggregate source-byte and per-frame limits remain in force, and the adapter still requires the exact selected candidate set for sealing.",
+  "controls": [
+    "The generated full graph seals the eleven-XRECORD and selected TABLE candidate bundle, including CELLSTYLEMAP. The dedicated XRECORD and CELLSTYLEMAP accessors verify their reader-origin frames, dictionary edges, owner/reactor roles, and style order [3,1,2].",
+    "The valid baseline still fails strict DXF output and preserves a destination sentinel.",
+    "A valid-CRC local group-90 style XRECORD mutation leaves the prior 10-XRECORD dictionary query valid but prevents the stronger bundle from sealing; restoring the body succeeds on the same reader.",
+    "A selected 0xdc frame CRC corruption with recomputed page checksums causes stronger bundle refusal, retains the expected ObjectFrameBounds diagnostic without a page checksum/CRC diagnostic, and succeeds after same-reader retry.",
+    "The focused CTest passes. The selected CELLSTYLEMAP frame is present and reader-bound in this generated full graph; map-frame CRC corruption is not part of this test. No support claim is promoted."
+  ],
+  "commands": {
+    "build": "cmake --build build --target libdxfrw_dwg_tablestyle_xrecord_full_bundle_tests -j 3",
+    "test": "ctest --test-dir build -R '^libdxfrw_dwg_tablestyle_xrecord_full_bundle$' --output-on-failure"
+  },
+  "remaining": "Close STYLE/LTYPE and APPID EED dependencies, fonts, sibling graph records, exact source-order-to-DXF mapping and downstream handle remapping. Revalidate the capability at writer staging/finalization, implement transactional whole-graph output and fresh readback, and obtain independent native semantic/platform evidence. This test does not broaden support claims."
+}

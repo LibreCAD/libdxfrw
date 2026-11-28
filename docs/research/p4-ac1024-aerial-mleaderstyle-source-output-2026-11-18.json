@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-mleaderstyle-source-output-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SELECTED_MLEADERSTYLE_SOURCE_AND_STAGED_GRAPH_VERIFIED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "e8472971942d78eeddc7d5cdb88f5272e7591da138fbf085fe76a01fd87c273b",
+  "source": {
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "basis": "docs/research/p4-ac1024-aerial-mleaderstyle-source-recheck-gap-2026-11-18.json",
+    "scope": "One selected root from the pinned AC1024 aerial NOD, with live source dictionary 147, Standard 148 and Annotative 157, and two same-import symbol-table dependencies.",
+    "class": "The source publication and CLASSES row identify encoded class 513 as MLEADERSTYLE / AcDbMLeaderStyle / ACDB_MLEADERSTYLE_CLASS with flags 4095, two instances and an object class. The staged writer checks flags and the two emitted instances.",
+    "frames": [
+      {
+        "handle": "147",
+        "bytes": 60,
+        "sha256": "e456fa7f6b9f8e6c2f044606ef91865f9e6da5d28a3f500b4932a2aa3982e699"
+      },
+      {
+        "handle": "148",
+        "bytes": 122,
+        "sha256": "37a60019342ad0db9368ba51ec7c4818f889ac8aa60ccdcf1bac6ff97f4ad121"
+      },
+      {
+        "handle": "157",
+        "bytes": 123,
+        "sha256": "25f3921f1d4a64d8f172b0066e1d47c26469965ec0a7ebba43b14c4c788aeb80"
+      }
+    ],
+    "wire": {
+      "basis": "ODA DWG specification v5.4.1 sections 2.11–2.13, 20.1, 20.4.44 and 20.4.87, independent bit extraction and pinned LibreDWG decode.",
+      "styleScalars": "Bits [0,739) include common fields, versioned scalars and CMCs. The only style-body bit difference is propertyChanged.",
+      "styleText": "Bits [739,879) contain UTF-16 Standard and an empty text default. Footer [879,896) declares 140 string bits.",
+      "styleHandles": "Standard uses relative owner form 8/0; Annotative uses relative owner 12/1. Both resolve to dictionary 147. Reactor 4/2 also resolves to 147. Soft pointers 5/1 resolve to LTYPE 14 and STYLE 11, and two 5/0 values are null. The streams end exactly at bits 976 and 984.",
+      "dictionary": "The 60-byte dictionary ends at bit 480. Common owner/reactor 4/1 resolve to C; both 2/2 item references preserve Annotative 157 and Standard 148.",
+      "tableDependencies": "The LTYPE 14 and STYLE 11 typed publications precede completion of the same read. Their source rows are preserved in bounded adapter snapshots. The LTYPE is ByBlock with owner 5, flags 64 and no pattern; text style is Standard with owner 3, flags 64 and font txt. Full independent raw byte spans for the table rows were outside this slice."
+    }
+  },
+  "transaction": {
+    "sourceBinding": "Recognize the original NOD graph before testing its physical frames. Require current adapter/data/generation, unique per-attempt class and typed publications, unchanged immutable source bytes, complete dictionary membership and verified table snapshots.",
+    "output": "Compare actual staged TABLES, CLASSES and OBJECTS and finalize the emitted handle/owner ledger before publication. The fixed ByBlock LTYPE remains 14; in the test namespace the remapped STYLE is A011 and the dictionary/styles are A147/A148/A157."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_ac1027_material_dictionary_wire_tests dwg2dxf -j 3",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-mleaderstyle-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "focusedCtest": "PASS 9/9. ctest --test-dir build-gcc --output-on-failure -j 4 -R 'mleaderstyle|render_settings_owner_order|dwg_ac1027_material_dictionary_wire'",
+    "wireControls": "Independent physical decode and generated controls accept all three original profiles and reject all 2440 individual bit changes. The generated controls also refuse truncation and changed typed values and recover after restoration.",
+    "faultRetry": "Twelve faults per encoding refuse atomically and retry on the same codec. Controls cover staged scalar, reference and membership corruption; same-handle wrong STYLE name and font; a paired source/staged mutation; and early and late mutations of all three captured frames. A separate scratch control removes one immutable body snapshot after import and checks early refusal and corrected retry in both encodings.",
+    "independentReadback": "ezdxf 1.4.5 ASCII and binary tag readers confirm the selected NOD and dictionary entries, unique owners and reactor scopes, the non-null 340/342 reference roles, and the target LTYPE and STYLE rows. High-level ezdxf independently exposes the differences listed below.",
+    "artifacts": [
+      {
+        "folder": "/private/tmp/p4-aerial-mleader-wire",
+        "sha256": {
+          "decode.py": "0a772d7297e207efea368a4222df2c784cec292e827581bd84ff6f63754a04f5",
+          "test.cpp": "f461d556152d81e48b1f85e84e067e40041ad2c26b6afca751c0ac6f5745e90e",
+          "test.log": "569a6eb2833e45e6784c8477e4fa673d3ec2cb3aa2aab6dadb4822014bb7325c"
+        }
+      },
+      {
+        "folder": "/private/tmp/p4-aerial-mleader-triage",
+        "sha256": {
+          "aerial.frames": "384c55a650a2ab55bd3fdb43ca690401eee522475c4d2f78f3e046c0bd8494e2",
+          "dependencies.cpp": "23bb7577c35db435859935b27c41a732f07b6af63a32314c591373ce4259e0c8",
+          "dependencies.log": "8b6650dfc834c9df0f611c5686a734dd7b8058adaf9a0c3b1e0168a160ff5095"
+        }
+      },
+      {
+        "folder": "/private/tmp/p4-aerial-mleader-staging",
+        "sha256": {
+          "selected.cpp": "53655ad3cf07b1ad8b449a7531a908edf5af2fb25bcc84126e8d7d83322d6ed6",
+          "selected.log": "47fe51cf516e6677fe9782c099a690207eb1d110cd6348f3ee744741e0cfb5af",
+          "peer_readback.py": "d8bb2ca38b4675c8811c90e9d4a25f59cdecf78390c61ccbb9763c7182545322",
+          "peer_readback.log": "80a277278c2d1b0be3b06257ebc1ef69d5a0cdd56fd9031bf65a173a116964f3",
+          "peer_highlevel.py": "1fa0e17e4474de9f23025c355a99ffe26ebd0752c1a9e6604c301a832188f12a",
+          "peer_highlevel.log": "6e16cebbe8f0d39e31278f44fa7840f652beb0fadfad7311dafcc39ea64349d9",
+          "selected-ascii.dxf": "532a5fd25db8b025971bd8c47d06b3b47a5e7271a0480da8677819111784df2b",
+          "selected-binary.dxf": "8772d34e9750fdacbb618320c158b494e2a3df61d5c001454a36bda323afdc8e",
+          "missing.cpp": "dacec433c08877f5964d400ee8644d5b48ec5a4dc133cf48d8e6e14991b0f34b",
+          "missing.log": "6b32c67f1b659cd5cfcb55b6cbb2815f1a9d26545ef382e2b7ef9f0cbfcee8fb"
+        }
+      },
+      {
+        "folder": "/private/tmp",
+        "sha256": {
+          "libdxfrw-p4-mechanical-mleader-current-20261118.log": "552a92d56f59c885414751aa2edbeb5175b8406d8226450b10fedf528e4fea7b",
+          "libdxfrw-p4-aerial-mleader-current-20261118.log": "47fe51cf516e6677fe9782c099a690207eb1d110cd6348f3ee744741e0cfb5af",
+          "libdxfrw-p4-three-render-recheck-20261118.log": "94ef2531b831e704e6bc42ff8adcc2e92d8072ddc153e7d95701e36ef7716e1b",
+          "libdxfrw-p4-ac1021-mleader-current-20261118.log": "e651bd0a897470bd98dce362d94ece204d571706a85aa52705ab145ec50b1145"
+        }
+      }
+    ],
+    "compatibility": "The prior selected three-render writer passes all seventeen refusal/retry cases per encoding. The optional mechanical AC1024 selector again passes fresh typed ASCII/Binary readback, rejecting foreign adapters and owner alias mutations before retry on the original importing adapter. The foreign adapter lacks the existing LAYER_CONTROL proof. The mechanical selector does not exercise after-OBJECTS faults; the selected aerial selector verifies late refusal. The separate AC1021 children-room same-version physical selector also passes both encodings with EED, APPID, owner and typed target roles and its existing late-refusal/retry control.",
+    "releaseInventory": "1317 released files, 740 selected inputs and zero advertised routes.",
+    "observerSha256": "dd14bc14ce407cf87b9eb7d1a7969f02a121e5d08db79ca6825f5949475fd0ef"
+  },
+  "limits": [
+    "The libdxfrw output omits null groups 341 and 343. ODA writes explicit zeros. High-level ezdxf exposes None and 0 respectively.",
+    "For Standard 148, pinned LibreDWG reports propertyChanged=0 and isAnnotative=1. The libdxfrw DXF groups 295/296 follow that reading and the specification mapping. ODA-exported DXF reverses the pair to 1/0, affecting ezdxf is_annotative. Annotative 157 has 1/1 in both and cannot discriminate. The outputs also differ in the ordering of tags 272 and 273, both valued 9.",
+    "This is selected graph, source field and remapped reference evidence. Native MLEADER behavior and equivalence across producers remain unqualified. Whole-source strict output still needs graph closure and the SUN owner or alternate named-block draw-order witness."
+  ]
+}

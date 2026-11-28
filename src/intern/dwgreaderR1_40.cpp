@@ -151,10 +151,13 @@ bool dwgReaderR1_40::readEntity(DRW_Interface& intfa, std::uint32_t& cursor) {
         intfa.addSolid(e); break; }
     case T_SHAPE: {
         if (!bound(34)) { ok = false; break; }
-        DRW_Shape e; e.m_insertionPoint = p2();
-        e.m_scale = rd(); e.m_rotation = rd();
-        e.m_shapeIndex = fileBuf->getRawShort16();
-        intfa.addShape(e); break; }
+        recordReadDiagnostic(
+            DRW::OperationPhase::Entities,
+            DRW::OperationCause::ValidationFailure,
+            "unsupported-legacy-shape",
+            "AC1.40 SHAPE glyph identity is unresolved without its resource",
+            cursor, true);
+        return false; }                // index alone cannot identify a glyph
     case T_BLOCK: {
         DRW_Block e; e.name = readTV(end);
         if (!fileBuf->isGood() || !remaining(16)) { ok = false; break; }
@@ -171,14 +174,29 @@ bool dwgReaderR1_40::readEntity(DRW_Interface& intfa, std::uint32_t& cursor) {
         intfa.addInsert(e); break; }
     case T_ENDREP: {
         if (!bound(20)) { ok = false; break; }
-        fileBuf->getRawShort16();      // numcols
-        fileBuf->getRawShort16();      // numrows
-        rd(); rd();                    // col/row spacing
-        break; }                       // structural marker; no geometry
+        recordReadDiagnostic(
+            DRW::OperationPhase::Entities,
+            DRW::OperationCause::ValidationFailure,
+            "unsupported-legacy-endrep",
+            "AC1.40 ENDREP semantics are not resolved for complete conversion",
+            cursor, true);
+        return false; }                // do not silently discard array metadata
     case T_LOAD: {
-        readTV(end); break; }          // shapefile load directive; skip
+        recordReadDiagnostic(
+            DRW::OperationPhase::Entities,
+            DRW::OperationCause::ValidationFailure,
+            "unsupported-legacy-load",
+            "AC1.40 LOAD resources are not resolved for SHAPE conversion",
+            cursor, true);
+        return false; }                // external resource identity is unknown
     case T_REPEAT: {
-        break; }                       // structural marker; empty body
+        recordReadDiagnostic(
+            DRW::OperationPhase::Entities,
+            DRW::OperationCause::ValidationFailure,
+            "unsupported-legacy-repeat",
+            "AC1.40 REPEAT groups cannot yet be converted without semantic loss",
+            cursor, true);
+        return false; }                // do not publish a seed-only conversion
     default:
         ok = false; break;             // unknown type -> stop the walk (no size to skip)
     }

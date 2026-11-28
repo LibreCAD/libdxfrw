@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "DBCOLOR EED source dependency binding and selected graph readback",
+  "date": "2026-11-03",
+  "status": "SOURCE_DEPENDENCIES_AND_SELECTED_GRAPH_VERIFIED_COMPLETE_OUTPUT_GATE_CLOSED",
+  "scope": "Bind captured DBCOLOR EED APPID/LAYER references to immutable original name records and unique current table rows, then exercise selected ACAD_COLOR graph projection separately from complete-drawing conversion.",
+  "implementation": {
+    "baseline": "An import-time deep DBCOLOR copy is private to the adapter source sidecar; its variant pointees cannot be reached through the public read-only sidecar view. Its retention is charged to the existing bounded EED-source allowance.",
+    "validation": "The source-only preflight checks unchanged DBCOLOR common fields and EED, raw frame identity/class/common owner/reactors, unique matched source and live APPID/LAYER rows with unchanged original DWG name provenance, all required EED reference indices and role/value coverage, and bounded temporary index memory. Missing, aliased, changed and unresolved dependencies refuse before the existing DBCOLOR output gate.",
+    "outputBoundary": "This preflight proves source dependency consistency only. It never qualifies or enables DBCOLOR complete graph output; independent DWG-to-DXF fallback mapping, emitted-source proof and native semantics remain open."
+  },
+  "physicalWitness": {
+    "source": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "sourceBindings": "NOD 0xC -> ACAD_COLOR 0x6B -> RAL CLASSIC$RAL 7047 color 0x369B0; color owner/reactor 0x6B; EED source APPID handle 0x12 -> ACAD; no layer reference; 13 repeated four-value tuples.",
+    "selectedProjection": "For ASCII and Binary DXF, a selected graph emitted the original dictionary, the DBCOLOR and all 53 original XDATA values; fresh readback matched NOD and dictionary entries, owner/reactor, APPID name, RGB/name and every XDATA value. Other original drawing objects are deliberately excluded, so this is not whole-file conversion."
+  },
+  "generatedControls": "A locally authored AC1027 source has one DBCOLOR with both APPID and LAYER EED references. The dependency validator rejects edits to the EED, source fallback, live APPID/LAYER names, duplicate table rows, wrong source APPID handle and duplicated reference index, then accepts restored source data. ASCII/Binary selected graph controls reject an out-of-domain 1070 value of 65536 without replacing the existing destination and retry successfully using the same dxfRW writer, followed by fresh typed graph readback.",
+  "compatibility": "No DRW_Interface or DRW_DbColor layout change is introduced. Compile-time controls verify callers cannot obtain the private baseline or assign source reference handles through the const sidecar view. This is not a general ABI or native-application certification.",
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dbcolor_(eed_source_capture|late_callback_binding|external_evidence_gate)$' --output-on-failure",
+      "result": "PASS 3/3"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dbcolor-physical-eed-source /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS; source dependency binding, selected graph rollback/retry and exact EED readback in ASCII and Binary, with complete output still refused."
+    }
+  ],
+  "residual1070": {
+    "observation": "A value of 40000 is accepted by the generic 16-bit DXF writer, but binary DXF reader interprets the same 16-bit pattern as -25536. This can affect exact typed-value preservation for values 32768-65535. The unrelated selected-profile source value 254 is unaffected.",
+    "conflictingAuthorities": [
+      {
+        "title": "Autodesk numerical group-code reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "statement": "Describes group 1070 as signed 16-bit."
+      },
+      {
+        "title": "Autodesk About Extended Data",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+        "statement": "Describes the same 16-bit integer as signed or unsigned."
+      }
+    ],
+    "nextAction": "Determine the intended API/raw-bit contract and add a loss-aware output/readback policy without treating either conflicting description as universal."
+  },
+  "limitations": [
+    "The selected output deliberately omits unrelated original drawing objects and does not prove full conversion, independent kernel interpretation, or source DWG CMC-to-DXF 62 fallback.",
+    "The APPID/LAYER reference capture follows existing parser chunk coalescing and is not an original raw wire-chunk inventory.",
+    "The ODA resave and subsequent ODA DXF each reduced repeated original EED tuple count, as recorded separately; neither is used as lossless source proof.",
+    "The physical source and generated output files remain uncommitted."
+  ],
+  "supportClaimEffect": "none"
+}

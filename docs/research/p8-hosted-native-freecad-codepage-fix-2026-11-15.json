@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-15",
+  "sourceCommit": "c5b3f5b4014d653e806c7d66060a728c9967b2f9",
+  "nativeRun": "https://github.com/dxli/libdxfrw/actions/runs/43736626643",
+  "nativeResults": {
+    "linux-gcc": "7 passed, 0 failed or skipped",
+    "macos-clang": "7 passed, 0 failed or skipped",
+    "windows-msvc": "7 passed, 0 failed or skipped"
+  },
+  "nativeEvidence": "Downloaded each seven-file focused artifact. The receipt's checked-out commit is exact, its detached SHA-256 matches, and its status and summary report success. These focused tests include contract self-tests and do not independently prove semantics.",
+  "freecadRun": "https://github.com/dxli/libdxfrw/actions/runs/43736626653",
+  "freecadResults": {"linux": "10 passed", "windows": "11 passed"},
+  "freecadEvidence": "Both jobs succeeded and their uploaded LastTest.log files contain exactly 10 and 11 passed test markers respectively, with no failed markers.",
+  "fastRun": "https://github.com/dxli/libdxfrw/actions/runs/43736626641",
+  "fastResults": "Seven executables and 44 of 45 selected CTests passed; the optional libdxfrw_numeric_process_locale was skipped because the host lacks the requested locale. The new libdxfrw_legacy_codepage_consumer test passed. The source-release job was skipped.",
+  "limits": "The FreeCAD tests cover the limited generated LINE and primitive profiles, converter route and platform-specific batch controls. They expect 3DFACE/SOLID to be unsupported and do not qualify mesh, surface, ACIS, other sources or native LibreCAD. The later changes through a9cf65b9 add documentation and downstream patch artifacts, not compiled libdxfrw source. P8 and semantic gates remain open and no support claim is promoted."
+}

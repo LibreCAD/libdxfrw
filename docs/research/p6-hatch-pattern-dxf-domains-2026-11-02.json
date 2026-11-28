@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-hatch-pattern-dxf-domains-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_HATCH_PATTERN_DOMAIN_AND_WRITER_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Enforce documented DXF domains for HATCH/MPOLYGON pattern selectors: group 75 and 76 in 0..2, group 77 in 0/1. Apply the same limits to typed HATCH output admission.",
+  "implementationReadiness": {
+    "baselineHead": "4adeb3ed15a1be7d8d519ec9e2d043e24a17d229",
+    "sourceObservation": "DRW_Hatch::parseCode retained arbitrary values for group 75 (hatch style), group 76 (pattern type), and group 77 (double-pattern flag). The HATCH writer admitted group-75/group-76 values throughout the uint16 range even though Autodesk documents only 0..2; it already bounded group 77 to 0/1.",
+    "normativeEvidence": {
+      "source": "Autodesk AutoCAD 2024 DXF Reference, HATCH group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "relevantRule": "Group 75 hatch style is 0, 1, or 2; group 76 pattern type is 0, 1, or 2; group 77 double-pattern flag is 0 or 1. The table applies to HATCH and MPOLYGON entities."
+    },
+    "change": "The base HATCH parser rejects out-of-domain selector values before assignment. The typed HATCH writer now restricts style and pattern type to 0..2, in addition to its existing group-77 0/1 guard."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_entities.cpp": "aa00b9492c9311e4dd868d57dab121d7febf60ef005f15cef9aa14a3f83ffcf4",
+      "src/libdxfrw.cpp": "5945215871fb9d5ad6c003403eaf9d0133f66636ca10bdd0f0158ef56c2f7b5a",
+      "tests/hardening_tests.cpp": "1d9e6e142746be2264e6bca610225545e0a9488767b4fdc5c98862cb1d773e62",
+      "CMakeLists.txt": "7dd2565aeae07d9b6540d1e4d60e3723ab355b7825d29837073c48da697b6a69"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+      "platform": "Darwin 27.0.0 arm64"
+    },
+    "testExecutableSha256": "0a851fa39a9dab14200b1636f4db61f1aa51c74275f11c986b62f881c8f12db9"
+  },
+  "controls": {
+    "selector": "--hatch-pattern-dxf-domains",
+    "ctest": "libdxfrw_hatch_pattern_dxf_domains",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "The parser accepts groups 75 and 76 at values 0, 1, and 2, and group 77 at values 0 and 1 in both encodings.",
+      "The parser rejects -1 and the first value above each field domain without changing the prior typed value.",
+      "Typed ASCII and Binary HATCH writers refuse group-75 value 3, group-76 value 3, and group-77 value 2 before emitting a record."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_hatch_pattern_dxf_domains$' --output-on-failure",
+      "result": "PASS 1/1 in 0.32 seconds"
+    },
+    "regressionCtests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_hatch_mpolygon_inactive_gradient_guard|libdxfrw_dxf_hatch_ocs_wcs_coordinate|libdxfrw_hatch_boolean_dxf_domain)$' --output-on-failure",
+      "result": "PASS 3/3 in 0.14 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated field-domain controls only; no physical producer or native fill/rendering behavior was exercised.",
+    "No support claim is promoted; broader HATCH/MPOLYGON topology and native behavior remain open."
+  ],
+  "nextReadyPacket": "Continue with another independently actionable P6 local gap; keep physical producer and native HATCH semantics separate from generated field-domain evidence."
+}

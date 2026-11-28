@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-ellipse-polyline-defaults-2026-11-27",
+  "supportClaimEffect": "selected profile only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "bc9a860e6cd687dd83a4a95e8a4c0b6117c952e3",
+  "parent": "1bbbadff8c9a9d4cedb8d41d32dadced4c91430d",
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-107CB04F-AD4D-4D2F-8EC9-AC90888063AB.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-748FC305-F3F2-4F74-825A-61F04D757A50.htm"
+  ],
+  "scope": "Bounded ordinary ASCII AC1021 sparse-MATERIAL model-space ELLIPSE and LWPOLYLINE with complete explicit default extrusion (0,0,1). LWPOLYLINE also retains its previously admitted zero-thickness profile. Incomplete, duplicated, malformed, misplaced or nondefault axes remain refused.",
+  "checks": [
+    "The enlarged test reproduced export refusal before the change.",
+    "The six-entity focused test passes 339 assertions including edited geometry, reopen/resave, physical and typed mutations, malformed and nondefault fields, destination preservation and retry.",
+    "The MATERIAL selector passes 4085 assertions in 22 cases against the current installed shared codec; the bundled-codec library builds.",
+    "ezdxf 1.4.5 independently checks the edited ellipse center, major axis and parameters, all edited polyline vertices, default extrusion, PlainMat links, and zero audit errors or fixes."
+  ],
+  "hashes": {
+    "redLog": "8faed3f1d7cfe98321517c431cbe9133acbae0e6212fba6f59d7d8298c996c6d",
+    "focusedLog": "61b5c02f2d143eaa420a410210902f0cdb8f300b3d3269bdbd20434451cee9cd",
+    "materialLog": "e7e3025ae4dbc3a72cf07d1e4ad446e62d98c6c9a1cac807375d47a0f5deda68",
+    "bundledBuildLog": "33b366fa1b796685fcad8ca85434ce908ccf3af7ef470ed601123ba9f7f2e18c",
+    "scratchEllipseOutput": "d39bbef4d19906d80ccc19ec7ff9e07ac6c2a6e2366d598a8a8dcddd8b361741",
+    "scratchPolylineOutput": "7a38792bc6c6cebfac9ef83797f7aa2543a807eb60dcc823bfc9905288b68da9"
+  },
+  "limits": [
+    "Only the complete default normal is admitted; nondefault, partial, mixed or invalid values and other unqualified entity/material profiles remain guarded.",
+    "Generated ASCII AC1021 and headless macOS ARM64 only; no native GUI, binary, other producer or general parity claim. No drawing fixture was committed."
+  ]
+}

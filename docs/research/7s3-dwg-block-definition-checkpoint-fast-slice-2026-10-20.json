@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "title": "7S.3 DWG block-definition transaction checkpoint",
+  "date": "2026-10-20",
+  "scope": "Generated fast implementation slice replacing repeated document-wide snapshots in normal BLOCK/ENDBLK definition admission.",
+  "changes": [
+    "Changed ordinary defineBlockImpl() transactions to use the bounded frame checkpoint; retained full compound rollback when a generated entity handle is class-associated.",
+    "Extended the generated block-owner selector with failure injection between BLOCK and ENDBLK, exact bytes/object-map/index rollback, and same-name retry.",
+    "Added deterministic work assertions that 33 normal block definitions invoke no full compound checkpoint and produce 33 block records and 66 entity frames."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+    "focusedOwnershipCTest": "PASS: libdxfrw_dwg_block_owner_membership_index (1/1)",
+    "roundtripTests": "PASS: libdxfrw_dwg_block_record_xref_roundtrip and libdxfrw_dwg_local_roundtrip (2/2)",
+    "diffCheck": "PASS: git diff --check on touched code, test, and plan files"
+  },
+  "notPerformed": [
+    "No full CTest suite",
+    "No external drawing or persistent fixture",
+    "No external peer runtime or native CAD application",
+    "No wall-clock performance benchmark",
+    "No support claim promotion"
+  ],
+  "planInventory": {
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "worktree": {
+    "committed": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

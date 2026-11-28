@@ -1,0 +1,47 @@
+{
+  "title": "Aligned and linear DIMENSION DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory aligned/linear DIMENSION writer transaction controls only; no producer or support claim.",
+  "implementation": {
+    "writers": ["DRW_DimAligned::encodeDwg", "DRW_DimLinear::encodeDwg"],
+    "behavior": [
+      "Stage common entity data, dimension body, detached strings, and DIMSTYLE/block handle output through the shared private entity transaction helper.",
+      "Preserve subtype object codes 22 (aligned) and 21 (linear) and the existing field order/conversions.",
+      "Preserve caller stream aliases and restore the previous object type on failure."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1015", "profile": "UTF-8 aligned/linear dimensions with DIMSTYLE and anonymous-block references", "aligned_failures": 19, "linear_failures": 19},
+    {"version": "AC1018", "profile": "UTF-8 aligned/linear dimensions with DIMSTYLE and anonymous-block references", "aligned_failures": 19, "linear_failures": 19},
+    {"version": "AC1021", "profile": "UTF-8 aligned/linear dimensions with DIMSTYLE and anonymous-block references", "aligned_failures": 23, "linear_failures": 23},
+    {"version": "AC1024", "profile": "UTF-8 aligned/linear dimensions with DIMSTYLE and anonymous-block references", "aligned_failures": 23, "linear_failures": 23}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body, string, and handle bytes, bit counts, handle occurrences, and prior subtype code remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output and restores the expected subtype code.",
+    "All-stream alias controls preserve state and succeed on retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --aligned-linear-dim-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1015 aligned": 19,
+      "AC1015 linear": 19,
+      "AC1018 aligned": 19,
+      "AC1018 linear": 19,
+      "AC1021 aligned": 23,
+      "AC1021 linear": 23,
+      "AC1024 aligned": 23,
+      "AC1024 linear": 23
+    },
+    "entity_writer_transaction_cohort": "27/27 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish transaction behavior only.",
+    "Dimension field semantics, DIMSTYLE/block graph closure, producer coverage, native behavior, and broader support remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}

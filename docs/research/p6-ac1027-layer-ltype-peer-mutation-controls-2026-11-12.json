@@ -1,0 +1,34 @@
+{
+  "title": "AC1027 LAYER/LTYPE source-reference audit mutation controls",
+  "date": "2026-11-12",
+  "scope": "Generated verifier-integrity controls for the source-reference audit's LibreDWG peer comparison only; no DWG parser change or support claim.",
+  "control": {
+    "command": "python3 tools/research/audit_ac1027_source_references.py --self-test",
+    "positive_profile": "Three recognized LAYER peer fields (PlotStyle, Material, and LTYPE) match source field role codes and target handles.",
+    "mutations": [
+      {
+        "field": "LAYER lineType role code",
+        "change": "source field group-code role changed from 5 to 4",
+        "expected": "rejected"
+      },
+      {
+        "field": "LAYER lineType target",
+        "change": "source target handle changed from 22 to 23",
+        "expected": "rejected"
+      }
+    ],
+    "live_source_scope": "The pinned Cover profile continues to require four independently exposed peer fields. The fifth ODA-observed trailing hard-pointer remains unnamed and unqualified."
+  },
+  "validation": {
+    "self_test": "PASS: generated LAYER/LTYPE role and target mutation controls passed",
+    "syntax": "python3 -m py_compile tools/research/audit_ac1027_source_references.py: PASS",
+    "diff_check": "git diff --check: PASS"
+  },
+  "limitations": [
+    "This tests that the audit comparator refuses two mutated field bindings; it does not independently validate DWG bytes, ODA field meaning, or producer semantics.",
+    "No drawing fixture was created or added, and no support claim is promoted."
+  ],
+  "artifact_sha256": {
+    "tools/research/audit_ac1027_source_references.py": "cee241fbcede0f08387efe0785cbbff89976c06616cdf5f5c6fa6882703286c2"
+  }
+}

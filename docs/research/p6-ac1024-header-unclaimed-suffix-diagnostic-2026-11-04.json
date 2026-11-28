@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_AC1024_HEADER_READ_WITH_UNCLAIMED_SUFFIX",
+  "supportClaimEffect": "none",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "4.5 2004 Data section map",
+      "9 AcDb:Header"
+    ],
+    "finding": "The section directory gives the logical section size; the inner HEADER contains a size, data, CRC and end sentinel. The cited specification does not give semantics to bytes after that validated envelope."
+  },
+  "source": {
+    "description": "Locally authored ezdxf 1.4.5 new('R2010') drawing with add_image_def('source.png', (64,64)) and add_image((1,2), (3,4)); ODA File Converter 27.1.0 ACAD2010 DWG, recursion 0, audit 0. All drawings remain scratch-only.",
+    "dxf_sha256": "4a09b459a0bbef4f687e06720b41c7f2391b91174d78b5aae0c79e56884a1c68",
+    "dwg_sha256": "fc1371b35a566d916b4fd143e66333c6695dbd341aa31b2025bc5dcd45fe30ce",
+    "producer_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "command": "ODAFileConverter /private/tmp/rastervars-ac1024/in /private/tmp/rastervars-ac1024/dwg ACAD2010 DWG 0 0 '*.dxf'",
+    "app_maintenance_byte": "0x37 (55) at file offset 0x12",
+    "logical_header_bytes": 1582,
+    "section_sha256": "b53bd89f287fbdd83eddbbc410f3f410a472472b661ea4290a73534517abb506",
+    "size_word": 801,
+    "high_size_word": 0,
+    "payload_end": 825,
+    "stored_and_computed_crc": "0xe6ac",
+    "trailer_end": 843,
+    "unclaimed_suffix_bytes": 739,
+    "suffix_sha256": "63504a4846638d8dfb177d5be3683d39b3eab788fdfbb2518ca3ebe7b81b69fa"
+  },
+  "physical_validation": {
+    "local": "A scratch libdxfrw reader extracts exactly the section-directory logical size; independent Python CRC16 verification over bytes 16..824 matches the stored CRC and both sentinel and alternate-size boundary. The native reader previously failed BAD_READ_HEADER because the AC1024 suffix gate was not enabled.",
+    "independent": "GNU LibreDWG 0.14 trace locates the HEADER compressed page at physical offset 0x33c0 with 1549 compressed bytes starting at offset 13280. Its decompress_R2004_section independently produces a 29696-byte output buffer; the first 1582 bytes exactly match the complete libdxfrw logical section, SHA-256 b53bd89f287fbdd83eddbbc410f3f410a472472b661ea4290a73534517abb506. This is section-byte corroboration, not a suffix meaning or semantic support claim.",
+    "physical_check_command": "test \"$(shasum -a 256 /private/tmp/rastervars-ac1024/raster-header.bin | cut -d \" \" -f 1)\" = b53bd89f287fbdd83eddbbc410f3f410a472472b661ea4290a73534517abb506 && build-gcc/tests/libdxfrw_dwg_ac1024_header_suffix_tests /private/tmp/rastervars-ac1024/raster-header.bin"
+  },
+  "implementation": "For AC1024 app-maintenance 55 only, permit the previously supported high-size-word-excluded HEADER envelope to have a bounded, unclaimed suffix, subject to correct CRC and both sentinels. The shared HEADER code reports HeaderSectionUnclaimedData; unknown bytes are not decoded or classified, and strict-complete output must still refuse the incomplete source. Other maintenance values and canonical exact envelopes keep their previous behavior.",
+  "validation": {
+    "selector": "libdxfrw_dwg_ac1024_header_suffix",
+    "generated": "PASS: 739 unknown bytes; adjacent maintenance values refused; CRC, start/end sentinel and truncation failures rejected with same-good-input retry; nonzero high-size word rejected even after CRC resealing; exact alternate and canonical envelopes remain accepted.",
+    "physical": "After a coherent library and adapter build, the source import succeeds with 159/159 observed frames published, zero entity/object/CRC failures, 132 opaque frames, and one raster/NOD callback. HEADER diagnostics include compatibility kind 24 (offset 16, expected 821, observed 825) and unclaimed kind 25 (offset 843, expected 843, observed 1582), preserving the 739-byte suffix observation. Strict ASCII and binary output both refuse and preserve their pre-existing destination sentinel; the first reported blocker is IMAGEDEF/reactor capture or immutable-payload correlation, preceding the completeness gate. The result does not attribute the reported output refusal solely to the suffix. The optional source-specific envelope check requires the section hash and verifies maintenance 55, payloadEnd 825, trailerEnd 843 and CRC 0xe6ac."
+  },
+  "limitations": "The suffix is not proven padding or semantically redundant; strict output and support claims remain unchanged. Only a single ODA source profile has been independently decoded. No DWG or DXF fixture is committed."
+}

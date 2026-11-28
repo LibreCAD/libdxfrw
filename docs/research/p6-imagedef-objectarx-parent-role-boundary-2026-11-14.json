@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "IMAGEDEF owner edge and parent back-reference role resolution",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "scope": "Resolve the apparent DWG IMAGEDEF parent-role conflict by separating dictionary ownership from IMAGEDEF's common parent back-reference, while keeping strict output gated pending operation and roundtrip qualification.",
+  "authorities": {
+    "dwgSpecification": {
+      "document": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+      "localSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": {
+        "2.13": "Typed absolute code 4 is a soft pointer; offset codes 6/8/A/C always represent soft pointers.",
+        "20.4.81": "IMAGEDEF's parentHandle is labelled hard-owner, with following reactors labelled soft-pointer. This label conflicts with the physical code-C parent back-reference and must be interpreted with the separate dictionary ownership edge."
+      }
+    }
+  },
+  "sources": [
+    {
+      "title": "AcDbRasterImageDef Class",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbRasterImageDef.html",
+      "observation": "IMAGEDEF objects are stored in the special ISM_RASTER_IMAGE_DICT and work with RasterImage entities."
+    },
+    {
+      "title": "AcDbDictionary::setAt",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbDictionary__setAt_ACHAR__AcDbObject__AcDbObjectId_.html",
+      "observation": "When adding a dictionary entry, the dictionary is set as the entry object's owner and added to its persistent reactor list. This establishes the dictionary-to-IMAGEDEF owner edge independently of IMAGEDEF's common parent back-reference."
+    },
+    {
+      "title": "AcDbDictionary::remove",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-__OVERLOADED_remove_AcDbDictionary.html",
+      "observation": "Removing an entry removes the dictionary as owner and as a persistent reactor; the entry object remains in the database until the caller chooses to erase it. This documents dictionary membership behavior, not IMAGEDEF copy or WBLOCK semantics."
+    },
+    {
+      "title": "Common Group Codes for Objects (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+      "observation": "Common object group 330 is a soft-pointer ID/handle to the owner dictionary/object."
+    },
+    {
+      "title": "DICTIONARY (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "observation": "Dictionary entry target group 350 is a soft-owner ID/handle."
+    },
+    {
+      "title": "AcDbRasterImage::setReactorId",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbRasterImage__setReactorId_AcDbObjectId.html",
+      "observation": "A RasterImageDefReactor is added to the IMAGEDEF persistent reactor list, while the image entity owns the reactor object. This is a third, distinct graph role."
+    }
+  ],
+  "joinedEvidence": {
+    "priorReceipt": "docs/research/p6-imagedef-cross-version-soft-role-evidence-2026-11-07.json",
+    "physicalProfile": "Four hash-bound AutoCAD SAVEAS DWG/DXF pairs for AC1021/AC1024/AC1027/AC1032 resolve the IMAGEDEF parent target to the image dictionary. Each stores the IMAGEDEF-to-dictionary back-reference as code 0xC and emits the paired DXF group 330. A separate ODA File Converter AC1024 output from a locally authored DXF uses absolute code 4; it is a different producer/profile, and code 4 is also a soft pointer. The dictionary entry points to IMAGEDEF using DWG code 2 and DXF group 350. LibreDWG 0.14 independently resolves the same code/length/offset tuple and target for the four AutoCAD DWG sources.",
+    "graphInterpretation": "The dictionary entry is the owner-to-owned-object edge. IMAGEDEF's common parentHandle points back to that owner dictionary as a soft pointer (absolute code 4 or offset code 0xC, DXF group 330). The dictionary's persistent reactor entry and IMAGEDEF's image-definition-reactor links are separate relationships. ODA §20.4.81's hard-owner label conflicts with the physical back-reference encoding; ODA §2.13 and Autodesk's DXF group definitions identify the back-reference role.",
+    "cohortLimit": "The four releases are one AutoCAD drawing lineage and do not count as four independent producer witnesses."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_raster_dwg_wire.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/raster_dwg_wire_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "The independent observer now returns KnownSoftPointerOwnerBackReference for the observed standard IMAGEDEF code-4/code-C profiles. Source-to-typed correlation retains the exact role and spans without labelling the wire role unknown. Strict output remains refused by a separate explicit owner-back-reference behavior gate.",
+    "supportClaimEffect": "No output or consumer-support promotion."
+  },
+  "validation": {
+    "build": "PASS: build-gcc targets libdxfrw_dwg2dxf_adapter_tests and libdxfrw_raster_dwg_wire_tests build with -Werror.",
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_raster_dwg_independent_wire|dwg2dxf_imagedef_common_hard_owner_import|dwg2dxf_image_common_handle_role_controls)$' --output-on-failure",
+      "result": "PASS (3/3, 0.32 seconds)."
+    },
+    "broaderRelatedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_rooted_custom_imagedef|dwg2dxf_rooted_image_dictionary_closure|dwg2dxf_selected_raster_reactor_metadata)$' --output-on-failure",
+      "result": "FAIL (3/3). The first two stop at existing AC1027 source-reference qualification; the selected-reactor control reports staged DXF HEADER emission failure on readback/reexport. These are not qualified as regressions or baseline failures by this slice."
+    },
+    "manualPhysicalControl": "The manual AC1024 adapter selector was tried with ../ACadSharp/samples/sample_AC1024.dwg but stopped earlier because that drawing's RASTERVARIABLES values do not match the selector's expected profile. It did not exercise IMAGEDEF output and is not evidence for or against the role change."
+  },
+  "remaining": [
+    "Bind a native AutoCAD/ObjectARX runtime to a reproducible profile and observe IMAGEDEF ownerId plus dictionary membership through create, save/reopen, erase/unerase, copy, and WBLOCK.",
+    "Exercise the existing rooted image graph through strict ASCII and Binary output, atomic failure, same-adapter retry, fresh libdxfrw readback, and an independent consumer; compare dictionary entries, image definitions, reactors, and image references.",
+    "Keep output refused until those graph and operation checks pass. Do not promote support from the four-release single-lineage cohort or the generated codec controls."
+  ]
+}

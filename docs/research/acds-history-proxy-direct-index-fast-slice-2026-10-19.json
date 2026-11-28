@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ACIS-history proxy direct index",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Remove a redundant per-proxy vector allocation from ACIS-history proxy graph indexing.",
+    "Preserve duplicate-handle, owner, class identity, graph closure, and serialized output behavior."
+  ],
+  "sourceChange": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "function": "collectAcdsHistoryProxyGraph",
+    "before": "Index each proxy handle to a vector, reject duplicate keys before insertion, append exactly one pointer, and perform a second map lookup to find that pointer.",
+    "after": "Reserve a handle-to-proxy-pointer map, reject duplicate/zero handles on insertion, and directly resolve the unique pointer during graph traversal.",
+    "effect": "Removes one small vector allocation and an extra hash lookup per proxy; preserves the existing missing/duplicate/wrong-owner graph rejection and catches index allocation failure as a rejected graph."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+        "result": "passed",
+        "count": "1/1",
+        "elapsedSeconds": 3.41,
+        "coverageNote": "Existing generated DWG round-trip owner covers AC1027 proxy-history closure projection and duplicate-handle, mixed-class, and malformed-edge refusal cases."
+      }
+    ],
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Advances the 7S.2c per-route allocation/repeated-work audit without changing feature support, serialization semantics, test cadence, compatibility, or external qualification requirements. The broader implementation goal remains active."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict local DWG round-trip test target build",
+      "Owning generated local DWG round-trip CTest"
+    ],
+    "limitations": "The change removes a redundant per-proxy small-vector allocation and lookup. It does not measure allocator overhead or process RSS and does not establish whole-process resource bounds."
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1027-oda-header-suffix-repeatability-2026-11-05",
+  "date": "2026-11-05",
+  "status": "ODA_RESAVE_SUFFIX_SOURCE_STABLE_LSB_PATTERN_OBSERVED",
+  "supportClaimEffect": "none",
+  "question": "Does a suffix-free AC1027 HEADER acquire the same bounded post-trailer suffix under ODA 27.1, and does the per-position low-bit relation repeat for the same source?",
+  "priorReceipts": [
+    "docs/research/p6-ac1027-oda-header-suffix-controlled-producer-2026-11-04.json",
+    "docs/research/p6-ac1027-oda-header-suffix-cross-source-2026-11-04.json",
+    "docs/research/p6-ac1027-cover-oda-same-version-resave-2026-11-03.json"
+  ],
+  "converter": {
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "bundleVersion": "27.1.0.0",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "codesign": "codesign --verify --deep --strict succeeded outside the sandbox; the sandboxed check reported invalid and is treated as an unreliable sandbox result.",
+    "commandTemplate": "ODAFileConverter <scratch-input-dir> <scratch-output-dir> ACAD2013 DWG 0 0",
+    "exitCode": 0,
+    "errFilesObserved": 0
+  },
+  "extractor": {
+    "executable": "/private/tmp/libdxfrw-header-dump",
+    "sha256": "ad53fc82b570004821c8bee6bf55fbee6a73078e3148db31532e57c2f4be118b",
+    "sourceSha256": "50dcbe5a4c34d5a3e7ccd026a98a6c370c670f057e6c08706c1cc2ba320a6e75",
+    "method": "The existing dwgReader27 driver calls readMetaData, readFileHeader and parseDataPage, then writes exactly the declared logical HEADER section. This is the same libdxfrw extraction path used by the referenced receipts, not an independent DWG decoder."
+  },
+  "checker": {
+    "path": "tools/audit_ac1027_header_suffix_compare.py",
+    "sha256": "8efea719fbf75f5670aa36b12d8f7ace4fd669ea26c76522f906dafa42adefa4",
+    "checks": "Declared size, payload end, stored/computed CRC, trailer boundary, end sentinel, suffix length and exact per-position LSB XOR."
+  },
+  "runs": [
+    {
+      "name": "LibreDWG-tree Line source, fresh ODA resave",
+      "sourcePath": "/private/tmp/libredwg-tablecontent-probe-src/test/test-data/2013/Line.dwg",
+      "sourceSha256": "351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1",
+      "sourceHeader": {
+        "bytes": 810,
+        "sha256": "67feeea118e7f370cd3a706d469ea460d09139107dabf5318d110828df0612a1",
+        "trailerEnd": 810,
+        "suffixBytes": 0
+      },
+      "resavePath": "/private/tmp/libdxfrw-oda-resave-29161/output/Line.dwg",
+      "resaveSha256": "ab133d7da0a9d9836cc135b8a47eb4101420d7a9466b161174ba416012dcb69e",
+      "resaveHeader": {
+        "bytes": 1525,
+        "sha256": "2f621e745793c54f55941da29ee865494b20932525e34de15767f2496ecb6585",
+        "sizeWord": 744,
+        "payloadEnd": 768,
+        "storedAndComputedCrc": "0xB09E",
+        "trailerEnd": 786,
+        "suffixBytes": 739,
+        "suffixSha256": "40aab66250a2856e7f9e1572b16e819a69cc834cc11342d8fa7b55ffa8e852d2"
+      },
+      "priorSameSourceResaveHeaderSha256": "6b508218713aeef962124bb55a1328e42693104b2608d89c144f15f313e9a27c"
+    },
+    {
+      "name": "Cover source, fresh ODA resave",
+      "sourcePath": "/Users/dli/doc/dwg/Cover.dwg",
+      "sourceSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "sourceHeader": {
+        "bytes": 1575,
+        "sha256": "9963f027fac0daada9cbab9f3b2af56c73540534fd6a2e47ba8c0568e0571ab1",
+        "trailerEnd": 844,
+        "suffixBytes": 731,
+        "suffixSha256": "7472357c307226b9a9dd0405bae1a533cef13ce4c9f3c6c59c9f4e365d3ab5b3"
+      },
+      "resavePath": "/private/tmp/libdxfrw-oda-cover-resave-20261105-33726/output/Cover.dwg",
+      "resaveSha256": "c39591cc86cfa6bef3b64d37334ffd25308f315667c67ba13880eb3fd048505f",
+      "resaveHeader": {
+        "bytes": 1583,
+        "sha256": "9bb33034926a186fe2d1b1cb0a6c77a8af3634576d281bef00063e2c0ec0ad35",
+        "sizeWord": 802,
+        "payloadEnd": 826,
+        "storedAndComputedCrc": "0xF34B",
+        "trailerEnd": 844,
+        "suffixBytes": 739,
+        "suffixSha256": "703ce26180873f16fdacca3c3f14aa6691eb0f95e6fb7f9c2df2a04c20f2f509"
+      },
+      "priorSameSourceResaveHeaderSha256": "1190e9eb85c96d8fd9eded2a64120449c98917fffe4226f44e6f5676f36ac9a2"
+    }
+  ],
+  "pairwiseSuffixObservations": [
+    {
+      "pair": "two Line ODA resaves",
+      "positionsCompared": 739,
+      "equalBytePositions": 0,
+      "lsbXorAtEveryPosition": 0
+    },
+    {
+      "pair": "two Cover ODA resaves",
+      "positionsCompared": 739,
+      "equalBytePositions": 0,
+      "lsbXorAtEveryPosition": 0
+    },
+    {
+      "pair": "Cover and Line ODA resaves",
+      "positionsCompared": 739,
+      "equalBytePositions": 0,
+      "lsbXorAtEveryPosition": 1
+    }
+  ],
+  "interpretation": "The suffix-free Line source acquires 739 bytes after the validated HEADER trailer during ODA 27.1 resave. Fresh and prior resaves differ at all 739 byte positions. The observed low bit is stable at every position across repeated saves of the same source and inverted at every position between these two different sources. This is a source-dependent byte relation only; it does not identify the suffix structure, semantic meaning, or safe omission rule.",
+  "limits": [
+    "The source files and converter outputs are local research inputs and were not committed as DWG/DXF fixtures.",
+    "The HEADER extractor shares libdxfrw's parser/decompressor path; the checker validates the extracted envelope but does not independently decode DWG pages.",
+    "All resaves use one ODA converter version. Converter success and the observed byte relation do not establish consumer semantics or format-wide behavior.",
+    "Keep the suffix unclaimed and strict-complete output refused until authoritative or genuinely independent field/consumer evidence explains the bytes."
+  ]
+}

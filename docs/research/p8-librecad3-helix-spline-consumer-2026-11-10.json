@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-10",
+  "id": "p8-librecad3-helix-spline-consumer-2026-11-10",
+  "scope": "Clean LibreCAD_3 consumer source snapshot with pinned local submodule archives and a current libdxfrw source archive; actual persistence import/save/reopen of a locally authored HELIX DXF",
+  "sources": {
+    "consumerRepository": "LibreCAD/LibreCAD_3",
+    "consumerCommit": "0beddae8471c5b8c1b05c03b950d4b95de3294a5",
+    "consumerSource": "git archive from clean local /private/tmp/librecad-pr457; feature branch snapshot, not asserted to be origin/master",
+    "providerCommit": "78b89125dcb56ee523d7527b6d6befafbc4da700",
+    "providerSource": "git archive into scratch third_party/libdxfrw; no dirty source files",
+    "submodules": {
+      "lckernel/nano-signal-slot": "d4d199e5d3fdde59490ac891333af35990889558",
+      "lckernel/tinyspline": "bb3b02cdfaa039aa236a5240f2ba8bce66bea527",
+      "third_party/kaguya": "2f20d965aa30aaee0cb01d04aea93e508c43225d",
+      "third_party/pybind11": "97bf890db679505a14dfe547a5e77bb2bd05dc90"
+    },
+    "scratchEdits": {
+      "CMakeLists.txt": {
+        "baselineSha256": "4649ba55b5233392d911629c746dd61f51b4d3289724bdb3f8a37729f1a6b35a",
+        "scratchSha256": "ebf05712894197cb753f64a17da19400b722a675699431049d7cf5f945e0f298",
+        "scratchDiff": "--- a/CMakeLists.txt\n+++ b/CMakeLists.txt\n@@ -403,9 +403,6 @@\n     endif()\n     add_subdirectory(\"third_party/libdxfrw\")\n     set_target_properties(dxfrw PROPERTIES POSITION_INDEPENDENT_CODE ON)\n-    if(NOT MSVC)\n-        target_compile_options(dxfrw PRIVATE -Wno-error)\n-    endif()\n     add_library(libdxfrw::libdxfrw ALIAS dxfrw)\n     collect_lib(\"dxfrw\")\n     add_subdirectory(\"persistence\")\n"
+      },
+      "persistence/libdxfrw/dxfimpl.cpp": {
+        "baselineSha256": "e2d7ad29e5eac55abc7b6de50be16d6408b0676c9c8a402575aee1fe4aae1b5c",
+        "scratchSha256": "2c192d1ca74497e2a89611f76a2cc65cc33063dfe425a0d8a2b4ba62cda5c4bd",
+        "scratchDiff": "--- a/persistence/libdxfrw/dxfimpl.cpp\n+++ b/persistence/libdxfrw/dxfimpl.cpp\n@@ -2393,7 +2393,7 @@\n     const auto preserved = preservedOn(_document);\n     if (preserved != nullptr && preserved->hasHeader) {\n         data.addInt(\"$MEASUREMENT\", preserved->measurement, 70);\n-        data.addInt(\"$INSUNITS\", preserved->insUnitsCode, 70);\n+        if (_exportVersion > DRW::AC1014) data.addInt(\"$INSUNITS\", preserved->insUnitsCode, 70);\n         if (preserved->lineTypeScale > 0.0) {\n             data.addDouble(\"$LTSCALE\", preserved->lineTypeScale, 40);\n         }\n@@ -2410,7 +2410,7 @@\n     // drawing, so hard-code the sensible default rather than the DXF\n     // spec-default of 0 (unitless).\n     data.addInt(\"$MEASUREMENT\", 1, 70);       // 0 = English, 1 = Metric\n-    data.addInt(\"$INSUNITS\", 4, 70);          // 4 = Millimeter\n+    if (_exportVersion > DRW::AC1014) data.addInt(\"$INSUNITS\", 4, 70);          // 4 = Millimeter\n }\n \n // Issue #412 phase 1: populate the DRW_Dimension base header shared by all\n"
+      },
+      "unittest/persistence/dxfroundtriptest.cpp": {
+        "baselineSha256": "188147faebcf2c84847373b6449f50f0383d3ff2ad3a53df7f821a1d81f186ad",
+        "scratchSha256": "813bebbbcd2b49e40b8f123a2104dda405594953b71b63a410e68fec7c91e5bb",
+        "scratchDiff": "--- a/unittest/persistence/dxfroundtriptest.cpp\n+++ b/unittest/persistence/dxfroundtriptest.cpp\n@@ -169,6 +169,48 @@\n \n \n }  // namespace\n+\n+TEST(DxfRoundTripTest, CurrentProviderHelixReachesLegacySplineConsumer) {\n+    auto imported = newDocument();\n+    ASSERT_TRUE(lc::persistence::File::importFile(imported,\n+        \"/private/tmp/p8-lc3-current-helix.dxf\",\n+        lc::persistence::File::Library::LIBDXFRW).ok);\n+    lc::entity::Spline_CSPtr spline;\n+    std::size_t count = 0;\n+    for (const auto& entity : imported->entityContainer().asVector()) {\n+        if (auto sp = std::dynamic_pointer_cast<const lc::entity::Spline>(entity)) {\n+            spline = sp;\n+            ++count;\n+        }\n+    }\n+    ASSERT_EQ(count, 1u);\n+    ASSERT_NE(spline, nullptr);\n+    ASSERT_EQ(spline->degree(), 3u);\n+    ASSERT_EQ(spline->controlPoints().size(), 4u);\n+    EXPECT_EQ(spline->knotPoints().size(), 8u);\n+    EXPECT_DOUBLE_EQ(spline->controlPoints().back().x(), 11.0);\n+    EXPECT_DOUBLE_EQ(spline->controlPoints().back().z(), 2.0);\n+    const std::string path = uniqueTmpDxf(\"helix-fallback\");\n+    ASSERT_TRUE(lc::persistence::File::save(imported, path,\n+        lc::persistence::File::Type::LIBDXFRW_DXF_R2013));\n+    std::ifstream saved(path, std::ios::binary);\n+    const std::string bytes{std::istreambuf_iterator<char>(saved), std::istreambuf_iterator<char>()};\n+    EXPECT_NE(bytes.find(\"\\nSPLINE\\n\"), std::string::npos);\n+    EXPECT_EQ(bytes.find(\"\\nHELIX\\n\"), std::string::npos);\n+    auto reopened = newDocument();\n+    ASSERT_TRUE(lc::persistence::File::importFile(reopened, path,\n+        lc::persistence::File::Library::LIBDXFRW).ok);\n+    EXPECT_EQ(entitiesInDocument(reopened)[\"Spline\"], 1u);\n+    for (const auto& entity : reopened->entityContainer().asVector()) {\n+        if (auto sp = std::dynamic_pointer_cast<const lc::entity::Spline>(entity)) {\n+            ASSERT_EQ(sp->controlPoints().size(), 4u);\n+            EXPECT_EQ(sp->knotPoints().size(), 8u);\n+            EXPECT_DOUBLE_EQ(sp->controlPoints().back().x(), 11.0);\n+            EXPECT_DOUBLE_EQ(sp->controlPoints().back().z(), 2.0);\n+        }\n+    }\n+    boost::filesystem::remove(path);\n+}\n \n // The filed task: \"LibreCAD 3 crashes opening DXFs with 3D segments\".\n //\n"
+      },
+      "unittest/persistence/fixtures/raw_objects.dxf": {
+        "baselineSha256": "fa5ae3e7594863b188de85655e9cf873ce07fcbc6f726ae7104b8a0c7a08373d",
+        "scratchSha256": "75789b6bfd522ea060c8ef7c5bd80ab40b9069e997bd4c03096fe7c0bcb9f560",
+        "scratchDiff": "--- a/unittest/persistence/fixtures/raw_objects.dxf\n+++ b/unittest/persistence/fixtures/raw_objects.dxf\n@@ -60,8 +60,6 @@\n DICTIONARY\n 5\n 2B0\n-330\n-2B4\n 100\n AcDbDictionary\n 281\n"
+      },
+      "unittest/persistence/fixtures/raw_objects_low_handles.dxf": {
+        "baselineSha256": "b7a82a0b1a74387b8c7ea8b089a27f3da667746502bfa2eae4e8ea4cd9d3cf0b",
+        "scratchSha256": "1bfe92df75d34744466741fc1b8e84a4488763207ac54fe190dec6d450be3942",
+        "scratchDiff": "--- a/unittest/persistence/fixtures/raw_objects_low_handles.dxf\n+++ b/unittest/persistence/fixtures/raw_objects_low_handles.dxf\n@@ -60,8 +60,6 @@\n DICTIONARY\n 5\n 1F\n-330\n-2B4\n 100\n AcDbDictionary\n 281\n"
+      }
+    }
+  },
+  "build": {
+    "source": "/private/tmp/p8-lc3-current-src",
+    "build": "/private/tmp/p8-lc3-current-build",
+    "configure": "cmake -S /private/tmp/p8-lc3-current-src -B /private/tmp/p8-lc3-current-build -DCMAKE_BUILD_TYPE=Release -DWITH_PERSISTENCE=ON -DWITH_PYTHONSCRIPT=OFF -DWITH_QT_UI=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "target": "cmake --build /private/tmp/p8-lc3-current-build --target lcunittest -j4",
+    "platform": "macOS arm64, AppleClang 21.0.0.21000334",
+    "providerCompileFlags": "-std=c++17 -fPIC -Wall -Wextra -pedantic -Werror; removed consumer -Wno-error override in scratch",
+    "providerArchiveSha256": "d8682c7e492bc3f30ebd489f1eb46dcfcd7c9d74d873e4beb382cda14f77c7ec",
+    "testExecutableSha256": "59cec4528a44f4451f17dab3279a62fc4bb361ffc873513fbe6b25ca1e3ef006"
+  },
+  "input": {
+    "authorship": "locally generated from scratch by a small libdxfrw writer using writeSpline on a DRW_Helix; no drawing fixture added",
+    "generatorPath": "/private/tmp/p8_lc3_helix_generator.cpp",
+    "generatorSha256": "346b75400b8a09dad5ec9842f333562f7ca71356132f1398caf26adc881cd093",
+    "generatorSource": "#include \"libdxfrw.h\"\n#include \"lc3_compat_check.cpp\"\n#include <memory>\nclass Writer final : public LC3CompatCheck {\npublic:\n  explicit Writer(dxfRW& output) : out(output) {}\n  void writeEntities() override { ok = out.writeSpline(&helix); }\n  bool finalizeDxfWrite() override { return ok; }\n  dxfRW& out; DRW_Helix helix; bool ok = false;\n};\nint main() {\n  dxfRW file(\"/private/tmp/p8-lc3-current-helix.dxf\");\n  Writer writer(file);\n  auto& h = writer.helix;\n  h.degree=3;\n  h.knotslist={0.,0.,0.,0.,1.,1.,1.,1.};\n  h.controllist.push_back(std::make_shared<DRW_Coord>(0.,0.,0.));\n  h.controllist.push_back(std::make_shared<DRW_Coord>(3.,5.,0.));\n  h.controllist.push_back(std::make_shared<DRW_Coord>(7.,-2.,1.));\n  h.controllist.push_back(std::make_shared<DRW_Coord>(11.,4.,2.));\n  h.axisBasePt={3.,4.,5.}; h.startPt={4.,4.,5.}; h.axisVector={0.,0.,1.};\n  h.radius=4.5; h.turns=3.25; h.turnHeight=2.75; h.handedness=true; h.constraintType=2;\n  return file.write(&writer, DRW::AC1027, false) && writer.ok ? 0 : 1;\n}\n",
+    "dxfPath": "/private/tmp/p8-lc3-current-helix.dxf",
+    "dxfSha256": "18facb2086ab0bf2bd228254bddfbab71431427a96d3fcc58ae04ef5d863e7f5",
+    "fields": "AC1027 ASCII HELIX with degree 3, four control points, eight knots, last point (11,4,2), and populated helix metadata"
+  },
+  "validation": {
+    "baseline": "Before scratch legacy-header and fixture corrections, existing DxfExportTest.*:DxfRoundTripTest.* cohort produced 48/64 passing. This reproduces the earlier documented PR #456 integration gap for this snapshot.",
+    "patchedCohort": "After scratch legacy-header and first root dictionary fixture corrections, the cohort including one authored HELIX consumer test passed 65/65.",
+    "finalTest": "After strengthening only the HELIX test, DxfRoundTripTest.CurrentProviderHelixReachesLegacySplineConsumer passed 1/1. Actual LibreCAD_3 DXFimpl imported one spline, preserved four control points, eight knots and end-point x=11,z=2, saved AC1027 as SPLINE (no HELIX record), reopened one spline and retained the same checked control data.",
+    "baselineLogSha256": "7f82769f9a3a4fd9ee99c801fb78c50332328f7e5b8cb91204b8c9de522d0090",
+    "patchedLogSha256": "49d374e84fc7ad1ecf12eb30d9d16791b6432573eeba164c6874cf2560c3ed02",
+    "finalLogSha256": "8320b18567cfa6563f863d37280f8484957133a6e24cb8295eb49c9219d8710a",
+    "command": "cd /private/tmp/p8-lc3-current-src && /private/tmp/p8-lc3-current-build/bin/lcunittest --gtest_filter='DxfRoundTripTest.CurrentProviderHelixReachesLegacySplineConsumer'"
+  },
+  "limits": [
+    "Consumer adapter changes, test and fixture adjustments are scratch-only and are not claimed to be merged or identical to a PR commit.",
+    "The consumer converts HELIX to a SPLINE representation on resave and does not preserve HELIX-specific metadata; this is bounded callback compatibility, not HELIX parity.",
+    "The authored spline and helix parameters are independent test values; no native helix evaluation or geometric agreement is claimed.",
+    "Single macOS arm64 snapshot; no ABI, Linux, Windows, GUI or broad consumer qualification.",
+    "No DWG or DXF fixture was committed."
+  ]
+}

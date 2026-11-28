@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw-coverage-guided-fuzzing-and-harness-trust-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Compare current local DWG/DXF parser hardening checks with open-source coverage-guided fuzzing practice; identify actionable harness and crash-triage refinements without increasing per-slice validation or changing format-support claims.",
+  "method": {
+    "kind": "Primary-source web review plus read-only local plan, source, CMake and workflow inspection",
+    "peerRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localBuildsRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgrewrite.c",
+      "https://github.com/LibreDWG/libredwg-fuzz",
+      "https://github.com/LibreDWG/libredwg/issues/1270",
+      "https://llvm.org/docs/LibFuzzer.html"
+    ],
+    "localInspection": [
+      "tests/hardening_tests.cpp:testDxfReadFuzzSmoke and testDwgReadFuzzSmoke generate deterministic pseudo-random byte vectors with fixed iteration and length bounds",
+      "CMakeLists.txt:LIBDXFRW_BUILD_LONG_FUZZ enables libdxfrw_long_fuzz_tests",
+      ".github/workflows/build.yml:long-fuzz selects only the extended deterministic test on scheduled/manual Linux GCC runs",
+      "Repository search found no LLVMFuzzerTestOneInput or AFL target in the current checkout",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md:PAR-12/S13 already owns deterministic hardening and scheduled fuzz-related policy"
+    ],
+    "evidenceRule": "Peer harness defects and fuzzing configurations are design signals, not local defects or capabilities. Deterministic generated-input tests are not coverage-guided mutation fuzzing. Parser safety findings require direct-route reproduction; fuzz execution, corpus growth, non-crashing parses, and self-roundtrips do not establish semantic support."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG uses distinct parser and conversion-oriented fuzz routes",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgrewrite.c"
+      ],
+      "observed": "Current project guidance describes AFL++, honggfuzz and LLVM/libFuzzer paths. The documented modes distinguish DWG, ASCII DXF, binary DXF and conversion routes; dwgrewrite exercises decode-encode-decode. The guidance also describes sanitizer use and replay of saved failures.",
+      "doesNotEstablish": [
+        "behavior of a pinned peer executable on a local input",
+        "semantic correctness of rewrite or self-roundtrip output",
+        "that external peer corpora are eligible local fixtures"
+      ],
+      "planUse": "Use route separation, sanitizer/replay organization and explicit outcomes as optional design patterns only. Do not make peer installation or a long fuzz campaign a per-slice prerequisite."
+    },
+    {
+      "topic": "Fuzz harness defects can dominate reported crashes",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1270"
+      ],
+      "observed": "The closed issue describes a double-free in LibreDWG's -rw/-indxf fuzz harness and reports that the harness defect generated about 1,573 crashes before being isolated. The report identifies the issue as harness-only.",
+      "doesNotEstablish": [
+        "a corresponding defect in libdxfrw",
+        "a parser crash in every reported input",
+        "that current LibreDWG has the same defect"
+      ],
+      "planUse": "Add harness self-validation and direct-reader replay before classifying a fuzz signal as a library finding; keep harness errors separate from parser outcomes."
+    },
+    {
+      "topic": "Coverage-guided mutation needs structured-input seeds and bounded scheduled execution",
+      "sources": [
+        "https://llvm.org/docs/LibFuzzer.html"
+      ],
+      "observed": "LLVM documents the LLVMFuzzerTestOneInput byte-span target, coverage-guided corpus retention, and the value of varied valid/invalid seeds for structured input. A list of existing corpus files can be replayed without fuzzing. This is distinct from deterministic pseudo-random loops.",
+      "doesNotEstablish": [
+        "license or fixture eligibility for any third-party input",
+        "that a coverage-guided target is required for this repository",
+        "semantic support from new coverage or a non-crashing execution"
+      ],
+      "planUse": "Consider a separate optional Clang target only when a named parser-coverage gap justifies it; seed from locally authored builders, isolate generated corpus under temporary storage, and keep the route out of ordinary builds."
+    },
+    {
+      "topic": "Local long-fuzz naming should not imply coverage-guided mutation",
+      "sources": [
+        "local:tests/hardening_tests.cpp",
+        "local:CMakeLists.txt",
+        "local:.github/workflows/build.yml"
+      ],
+      "observed": "The local smoke functions synthesize deterministic pseudo-random input in memory. The opt-in CTest is built and invoked by a fixed scheduled/manual Linux GCC workflow. No LLVMFuzzerTestOneInput or AFL target was found in the checkout.",
+      "doesNotEstablish": [
+        "absence of parser bugs outside generated input coverage",
+        "coverage-guided mutation coverage",
+        "any feature, format, consumer or geometry support claim"
+      ],
+      "planUse": "Describe the existing test as deterministic generated-input fuzz/safety smoke; retain fast focused validation per implementation slice and the current scheduled cadence."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "updatedFinding": "PAR-12",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "newCoverageGuidedTargetAdded": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

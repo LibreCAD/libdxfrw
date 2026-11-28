@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5do nested MTEXT common-owner accounting prerequisite",
+  "date": "2026-10-25",
+  "parentCommit": "9bfd7320b2d4a7fd16ff169900fe3a136ee35207",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "NESTED_COMMON_RETAINED_CHARGE_OMISSION_FIXED_24_OF_24_FAST_NORMAL_AND_ASAN_ATTDEF_IMMUTABLE_SOURCE_PROOF_STILL_OPEN",
+  "scope": {
+    "productionChange": "addAttributeRetainedBytes now calls addEntityCommonRetainedBytes for each retained nested MTEXT, before its existing MTEXT-specific fields",
+    "originalInterfaceVtableChanged": false,
+    "modelLayoutChanged": false,
+    "nativeParsingOrEncodingLayoutChanged": false,
+    "callbackOrderingChanged": false,
+    "exportGuardsChanged": false,
+    "newExternalDrawingFixturesCommitted": false,
+    "newControls": "Scratch-authored models, counter-boundary/failure controls and runtime DXF documents; no external drawing payloads",
+    "converterRequestsAttdefSourceFacet": false,
+    "immutableAttdefSourceProofImplemented": false,
+    "provedConverterResourceFamiliesUnchanged": 9,
+    "outputEligible": false,
+    "supportClaimsPromoted": false
+  },
+  "reproducedRegression": {
+    "baseline": {
+      "log": "/tmp/rpp5do-baseline.log",
+      "logSha256": "99d55e2f7070d767b9f8c9ed5b86ae2bb0613cea15ceee970bc56eac17e445de",
+      "container": "ATTDEF",
+      "field": "nested MTEXT layer",
+      "authoredStringBytes": 16384,
+      "parentEstimateBefore": 2473,
+      "parentEstimateAfter": 2473,
+      "missingGrowthBytes": 16383
+    },
+    "after": "Nested common growth equals common-only LINE-sliced estimates in every tested container; source model payload and retained clone estimates remain accounted",
+    "oracleWeakened": false
+  },
+  "owningControls": {
+    "ctest": "libdxfrw_nested_mtext_common_owner_budget",
+    "selector": "--nested-common-budget",
+    "routes": [
+      "ATTDEF callback",
+      "generic ATTRIB retention test seam",
+      "INSERT callback with one ATTRIB",
+      "INSERT callback with two ATTRIBs"
+    ],
+    "payloadBytesPerIndividualCategory": 16384,
+    "categories": [
+      "layer",
+      "linetype",
+      "proxy bytes",
+      "color name",
+      "data-storage handle key",
+      "data-storage marker section",
+      "data-storage bytes",
+      "reactor handles",
+      "pending APPID refs",
+      "pending layer refs",
+      "XDATA string",
+      "XDATA binary",
+      "application-group string",
+      "proxy source-codepage metadata"
+    ],
+    "combinedProfile": true,
+    "cellsPerInvocation": 60,
+    "exactAndOneByteShortBoundariesPerInvocation": 120,
+    "budgetRetriesPerInvocation": 60,
+    "calibratedAllocationRefusalsAndRetriesPerInvocation": 119,
+    "growthCheck": "Parent estimate delta must equal the sum of common-only LINE-sliced deltas; each individual authored payload also has an independent minimum growth check",
+    "refusalCheck": "Seed logical retained counter at exact or one-byte-insufficient headroom, check expected admission/refusal, no partial record/counter update, repeated over-budget refusal and fresh-destination recovery on the same adapter",
+    "retainedCloneCheck": "Re-estimating the retained clone gives the same full estimated payload charge",
+    "allocationScope": "Every observed allocation in one combined-profile capture interval per container route, with no published partial clone or byte/record update on failure; corrected fresh-destination capture on the same adapter",
+    "counterLimit": "Logical retained-byte estimates, not exact allocator capacity, process RSS, temporary peaks or strict CPU bounds. The test seeds the counter; it does not allocate 64 MiB.",
+    "authoredMetadataLimit": "Tests retained model ownership, not serialization qualification of arbitrary proxy/codepage/native metadata",
+    "actualImports": {
+      "routesPerInvocation": 32,
+      "versions": [
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "binary"
+      ],
+      "sections": [
+        "BLOCKS",
+        "ENTITIES"
+      ],
+      "embeddedSpellings": [
+        "101 Embedded Object",
+        "legacy 100 Embedded Object"
+      ],
+      "field": "nested opaque application code-1 string, not real MTEXT content",
+      "originalText": "not-mtext",
+      "replacementBytes": 16384,
+      "exactRetainedCounterIncrease": 16375,
+      "checks": "Actual dx_iface::fileImport baseline/modified pairs, no capture failure, exact byte increase, complete retained application string and unchanged FIRST_LAST-é MTEXT content"
+    },
+    "verboseLogSha256": {
+      "/tmp/rpp5do-final-owning-normal.log": "4caf0acfe54d8b5b258fc566bb8383025cb02f9803450c2eb8947954096fee79",
+      "/tmp/rpp5do-final-owning-asan.log": "ee2401a54df25247842b6f7211489858f38cab10bf65933135bab599c4565288"
+    }
+  },
+  "readinessFindings": {
+    "pendingStateCopyReset": "DRW_Entity::init clears curr/currCoordMask; DRW_Attrib copies clear dxfInAttributeSubclass; DRW_MText DxfOrientationScope copy/move resets nested grammar. Observe/validate original callback state before freezing a copy.",
+    "nextStateRequirement": "A copied model alone cannot prove original pending/provenance state; do not sanitize unfinished/forged inputs into source proof by copying.",
+    "remainingAccountingLimit": "The identified nested-common omission is fixed. New source-proof owners/temporaries, private/native-only write state, allocation/capacity overhead and full-owner audits remain separate."
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21; build-gcc is not Linux/GCC",
+    "normal": {
+      "passed": 24,
+      "failed": 0,
+      "total": 24,
+      "skipped": 0,
+      "elapsedSeconds": 2.74,
+      "log": "/tmp/rpp5do-final-normal-cohort.log",
+      "logSha256": "ee548ccadff09ed8da5a55da23d1cc563b2b85c5e7a29a8564b5231892f93023",
+      "junit": "/tmp/rpp5do-final-normal.xml",
+      "junitSha256": "32f0b73c436ef36d4a3f69553f92719fad4a4cf3c16e02e1d532dc40b8a81278"
+    },
+    "asan": {
+      "passed": 24,
+      "failed": 0,
+      "total": 24,
+      "skipped": 0,
+      "elapsedSeconds": 8.7,
+      "log": "/tmp/rpp5do-final-asan-cohort.log",
+      "logSha256": "d55034274fa0c4a93cc054077b8ff573b79d732e4596b811684e19ce87e6a113",
+      "junit": "/tmp/rpp5do-final-asan.xml",
+      "junitSha256": "52194eb4e8d2c83c4613250497ad4d8a6846e992f5814f93d49e6150decf2676",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "tests": [
+      "dwg2dxf_mtext_orientation_ascii_cli",
+      "dwg2dxf_mtext_orientation_binary_cli",
+      "dwg2dxf_typed_entity_capture_limits",
+      "dwg_dxf_issue_1410_cross_codec",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_attdef_source_transport",
+      "libdxfrw_block_owners",
+      "libdxfrw_block_xref_path_roundtrip",
+      "libdxfrw_classic_vertex_xdata",
+      "libdxfrw_dwg_block_record_xref_roundtrip",
+      "libdxfrw_dxf_appdata_handle_token_transfer",
+      "libdxfrw_dxf_binary_group_width_guard",
+      "libdxfrw_dxf_group_310_direct_decode",
+      "libdxfrw_dxf_mtext_borrowed_chunk_view",
+      "libdxfrw_dxf_tables_write_inspection",
+      "libdxfrw_dxf_xdata_string_owner_budget",
+      "libdxfrw_group_adapter_roundtrip",
+      "libdxfrw_legacy_mtext_xdata_identity",
+      "libdxfrw_mtext_background_cmc",
+      "libdxfrw_mtext_column_object_scope",
+      "libdxfrw_nested_mtext_common_owner_budget",
+      "libdxfrw_r2018_attribute_outer_annotative",
+      "libdxfrw_writer_primitives",
+      "libdxfrw_xrecord_xdata_channels"
+    ],
+    "selection": "Exact RPP-5dn fast 22 plus nested common owner budget and existing typed-entity capture limits",
+    "cohortsSequential": true,
+    "buildLogSha256": {
+      "/tmp/rpp5do-baseline-build.log": "0924301a081f19e85adca21929c25c2f457346308847a60d2ede1c5f9cb17156",
+      "/tmp/rpp5do-final-normal-build.log": "1923cb01b23f11b6dc55ab34726d0596abbee244d4d900ca579cfd5e04cd6bf3",
+      "/tmp/rpp5do-final-asan-build.log": "058d6bf04aa66b9503234d19b78e6475714de82d3cf9cef4ac1866cf049e0ff5",
+      "/tmp/rpp5do-final-owning-normal-build.log": "0924301a081f19e85adca21929c25c2f457346308847a60d2ede1c5f9cb17156",
+      "/tmp/rpp5do-final-owning-asan-build.log": "0924301a081f19e85adca21929c25c2f457346308847a60d2ede1c5f9cb17156"
+    },
+    "strictOwningTarget": true,
+    "warningBypassAdded": false,
+    "compatibilityCompileTarget": "lc3_compat_check passes in both configurations; public API/field surface only, not native application qualification",
+    "fullSuiteRun": false,
+    "newExternalIndependentReaderRun": false,
+    "nativeFreeCADRuntimeRun": false
+  },
+  "remaining": [
+    "Actual CLI ATTDEF facet opt-in, correctly typed immutable entity/raw/context owners and original parser/pending-state observation before copying",
+    "Shared dxfAttdef::Decoder replay under actual source revision/encoding/read/extrusion context and identical application/XDATA routing",
+    "Full exposed/default/native-only common/TEXT/ATTRIB/ATTDEF/nested-MTEXT and original-state equality, one-field census/mutations, sticky callbacks, quotas/allocation/refusal/retry controls",
+    "Replace identity-only selected ATTDEF binding only after complete source proof, real block owner/identity and independent original-tag reference spans; qualify or refuse secondary AcDbXrecord profiles",
+    "Complete BLOCK/ENDBLK, ATTRIB/SEQEND, APPID/LAYER, B2b/B3/C common/target/live/output, compound ID/reference/atomic rollback proofs",
+    "IMAGE/document and native bit/decimal/carrier/schema/owner work, speed/ownership/allocation audits and original LibreCAD/LibreCAD_3 2D plus 3D/dwg2dxf/FreeCAD semantic/platform obligations"
+  ],
+  "qualification": {
+    "ledger": "CLOSED",
+    "outputEligible": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "fullGoalComplete": false
+  },
+  "sourceSha256": {
+    "dwg2dxf/dx_iface.cpp": "b12e753a9bc3c140dda7084482e981a8e4c19fc5c42a964a289f6f880ec14187",
+    "tests/CMakeLists.txt": "24400d60f4b47b9e6063f0324b569af91171c984066f4b38280d06d9a0d3aa0d",
+    "tests/attdef_source_tests.cpp": "45c7bc725c220edb630c1a2bf14a2fcd9d52809518201791a5c874bb808f55db",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "7683aaba18737dd4515db00c84430310107c488b423b3fa0b5f3981074695582",
+    "src/drw_entities.cpp": "62e0a53d7a00c1665286879ef22541a3610cf0b16d5a4f0f42e043dd4dffbdce",
+    "src/drw_entities.h": "acd7319b1e25ff4267ef6a686b38c2195926cf74b2066c0c5ebcf9c35232f01a"
+  }
+}

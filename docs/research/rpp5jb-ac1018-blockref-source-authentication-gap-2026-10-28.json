@@ -1,0 +1,38 @@
+{
+  "schema": "ac1018-blockref-source-authentication-gap-v1",
+  "date": "2026-10-28",
+  "examinedCommit": "f1e851f0cbf020f07cd524abef6bfcf587b5e1a4",
+  "status": "RESEARCH_ONLY_SAME_READ_AUTHENTICATION_REQUIRED",
+  "finding": "Existing AC1018 BLOCK_RECORD source/typed callback pairing and replay do not authenticate original body values against pre-callback physical source. A coordinated subclass can change both the raw 331 and the typed insertHandles in each callback and restore both after forwarding, while the retained pairing, replay and profile remain complete. The authenticated identity census covers self handles, not the BLOCK_RECORD 331 body.",
+  "witness": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "original": "BLOCK_RECORD 6F2 [30381,30685) has code 2 MyBlock [30499,30511) and {BLKREFS}/331 704 [30530,30538); INSERT 704 has code 2 MyBlock [200440,200452).",
+    "mutation": "In an uncommitted scratch copy, original 331 704 was changed to 703. During both callbacks the subclass temporarily changes raw 331 and typed insertHandles back to 704, then restores them. Existing diagnostics report paired=1, replay=1, profile=1 and retained 331=704 although the physical source says 703.",
+    "scratchSourceSha256": "0a57c4ae242bc303f88913d6d19f0189a27ad61960a83ea2c7a4059bc899ded4",
+    "attackSourceSha256": "5efadd42e70e60214cfd139d5aecae7181191c31a564d35cfbb0e99225743149",
+    "attackLogSha256": "99532d809684645cd34ad8400a34580dde4b863e302450db6505de0f050cfe88"
+  },
+  "provisionalComparator": {
+    "design": "A bounded scratch comparator matches the selected census record markers and all non-comment original scalar values, ASCII raw spellings or binary numeric bits against the retained BLOCK_RECORD body; separately it checks the strict application-scope profile, original TABLE-control owner, name and 331 role against the selected INSERT source join. All loops and string work must be precharged by the eventual caller.",
+    "observer": "Scratch whole-source v3 pre-callback field representation; reader fixture was reopened separately for this experiment. No same-read binding or production authority follows. The private original, synchronous ticket, verified delivery copy and accepted-import context/generation binding remain prerequisites.",
+    "observerHeaderSha256": "d66e5d7a09c9698b7c9d5fe6d9ed046d2a4ad9c5cae5ff1bcfbed28f51652e6f",
+    "bodyComparatorSha256": "c8f4ee2d79a8a677384ac4e8a30f2678833a3f9dc462d2f4353a0fe7ca712f36",
+    "sourceRelationSha256": "a3d0c9e59d3b0ce807c6519dd9167c662a5955fb0f206971b8a70db6f136dc6e",
+    "generatedControlSourceSha256": "3262705832861a33d3a2c7667c81111ca65f9cbfc399a0fd4d634e99dd8f99ec",
+    "generatedControlLogSha256": "4c213e7579174498ef1d540a1d8426ade3572a3462d012fac3efaa107d51160e",
+    "generatedControls": "Locally authored ASCII and binary positive cases and 38 source-body, role, scope, owner, context and identity negative checks; source-only controls do not prove read authentication.",
+    "realPositiveSourceSha256": "8f9fb48679194544ce4109188168247322935ca83df5f9fc85842b9c430695a8",
+    "realPositiveLogSha256": "4d77f1e4f0e9ebdbfb350ab223fe31206f29a83a53047618d59f02aa55e507ea",
+    "realAttackSourceSha256": "b2b886f9d2b0151bac8219baf1c9b9e8bd0c6ebbc00c0f8aaf6462057a298bcf",
+    "realAttackLogSha256": "e77432d6e14446405911ae59ccd4c28ef06df42194bdf9f773b00e9645cd1bde",
+    "result": "A separately reopened source admits the original 6F2\u2192704 source relation with name and 331 spans, but refuses the coordinated spoof. This is comparator characterization, not a same-read accepted-import proof."
+  },
+  "nextWork": "Complete and independently review the shared default-off codec-owned whole-read observer, authenticate exact source, callback, context, generation and successful same-stream read, then integrate and budget the selected body/role join with adversarial callback, quota, failure and retry tests.",
+  "limits": [
+    "No name uniqueness, resolved target, ownership/namespace, graph, output or native support claim follows from these scratch tests.",
+    "No external or generated drawing fixture was committed."
+  ]
+}

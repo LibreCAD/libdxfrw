@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw-deeper-broader-legacy-array-and-publication-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the DWG/DXF peer review to the AC1.40 pre-R13 reader route, repeated-entity semantics, and peer reports that distinguish partial output from successful conversion.",
+  "method": {
+    "kind": "Official Autodesk version mapping, ODA specification scope, LibreDWG issue/project sources, and a local source/test inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloadedOrCommitted": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourceChangesOutsidePlan": false,
+    "evidenceRule": "An issue report is a test-selection lead, not an authoritative byte-layout or local defect proof. Source inspection may establish current local behavior, but historical-format semantics must be frozen independently before changing the reader."
+  },
+  "evidence": [
+    {
+      "topic": "Version naming and normative-document boundary",
+      "sources": [
+        "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/drawing-version-codes-for-autocad.html",
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "observed": "Autodesk maps AC1.40 to DWG Release 1.4 and AC1014 to Release 14. The ODA specification's DWG organization chapters begin at R13-R15, followed by R2004 through R2018. The local enum spelling DRW::AC14 for AC1.40 therefore must not be confused with the AC1014/R14 profile, and ODA v5.4.1 does not settle the old REPEAT/ENDREP byte grammar.",
+      "doesNotEstablish": [
+        "the exact R1.40 REPEAT/ENDREP semantics",
+        "that every field documented for AC1014 applies to AC1.40",
+        "whether old shapes or repeat arrays should be flattened, blocked, or rejected during modern DXF output"
+      ],
+      "planUse": "Keep the new finding strictly scoped to the AC1.40 magic and require an independent semantic freeze before production changes."
+    },
+    {
+      "topic": "LibreDWG pre-R13 repeat-array loss report",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1354",
+        "https://www.gnu.org/software/libredwg/manual/html_node/DXF.html"
+      ],
+      "observed": "The open LibreDWG issue reports an R1.4 sequence REPEAT, POINT, ENDREP with 3 columns, 2 rows, and spacing 1.0, while its dwg2dxf output preserves only one POINT and emits the legacy control words as if they were DXF entities. It notes that DXF INSERT can encode array counts/spacings but leaves the correct representation unresolved. LibreDWG's manual separately says its R1.x DXF output is not planned; this limitation does not preclude converting old DWG semantics to a modern DXF representation.",
+      "doesNotEstablish": [
+        "a normative definition of count, seed inclusion, order, spacing axes, or nesting",
+        "a matching local libdxfrw runtime defect",
+        "that INSERT-array conversion or primitive expansion is always correct"
+      ],
+      "planUse": "Use the peer report to prioritize a local generated control, then freeze the exact legacy semantics before deciding whether to expand, represent as a block/array, or refuse/report."
+    },
+    {
+      "topic": "Local AC1.40 reader behavior",
+      "sources": [
+        "src/intern/dwgreaderR1_40.cpp::dwgReaderR1_40::readEntity",
+        "tests/dwg_reader_matrix_tests.cpp (version dispatch coverage)"
+      ],
+      "observed": "The local T_REPEAT branch consumes no body or state; T_ENDREP reads numcols, numrows and two spacing doubles then discards them; T_LOAD reads a TV string and discards it; T_SHAPE retains a shape index without a separate observed file-name carrier. No AC1.40 repeat/shape semantic regression test was found in the current tests. These are source observations only; no binary sample or test executable was run.",
+      "doesNotEstablish": [
+        "that the peer's exact example has byte-for-byte equivalent local behavior",
+        "the correct transformations or callback identity policy for repeated instances",
+        "that LOAD content is required when SHAPE already carries an in-document identity"
+      ],
+      "planUse": "Add PAR-123 / 7BS with an in-memory stream generator under the existing reader-matrix test target; separate repeat semantics from LOAD/SHAPE resource identity and require explicit bounded loss outcomes."
+    },
+    {
+      "topic": "Partial converter output and peer-issue correction history",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1355",
+        "https://github.com/LibreDWG/libredwg/pull/1360",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md (existing PAR-49/7F.1 and output-transaction gates)"
+      ],
+      "observed": "LibreDWG issue #1355 initially described an R2018 section-size hypothesis, then the reporter corrected that diagnosis and linked the handle-offset issue/fix #1360. The reported converter had returned success for incomplete DXF without ENTITIES/EOF, but the failure was peer-specific. The local plan already requires complete-write finalization and atomic destination handling, so this evidence reinforces composing read outcome, writer result, mandatory section/EOF, and CLI status rather than adding another local finding.",
+      "doesNotEstablish": [
+        "a corresponding local publication defect",
+        "that damaged old-format input should be silently resynchronized",
+        "that a successful native/open result alone proves source completeness"
+      ],
+      "planUse": "Do not duplicate PAR-49/7F.1; preserve the independent decode-versus-publication gates and do not copy speculative peer byte-recovery hypotheses."
+    }
+  ],
+  "implementationReadiness": {
+    "newPlanItems": [
+      "PAR-123: AC1.40 repeat-array semantic loss candidate",
+      "7BS: pre-R2.0b repeated-entity semantics, explicit output policy, and bounded expansion"
+    ],
+    "firstImplementationGate": "Confirm R1.40 repeat scope, seed inclusion, row/column ordering, spacing axes, count and nesting rules from a reliable old-format source/producer before changing parseDwg/readEntity.",
+    "fastValidation": [
+      "changed -Werror targets",
+      "existing libdxfrw_dwg_reader_matrix target and its focused test",
+      "touched adapter/CLI test only after reader semantics are fixed",
+      "lc3_compat_check only for interface/adapter changes",
+      "git diff --check"
+    ],
+    "generatedControls": "Use minimal source-authored AC1.40 byte streams in memory. Assert expected instance coordinates/order, following entity, malformed-group no-partial-publication, checked count multiplication, resource-budget refusal, and retry. Do not download or commit the peer's DWG/DXF sample.",
+    "planImpact": {
+      "newFindings": 1,
+      "newTopLevelSubplans": 1,
+      "supportClaimsPromoted": 0,
+      "externalJDispositionChanged": false,
+      "planTotals": {
+        "findings": 123,
+        "topLevelSubplans": 71
+      },
+      "deferredExternal": [
+        "J256",
+        "J260",
+        "J268",
+        "J284",
+        "J293",
+        "J295"
+      ]
+    }
+  }
+}

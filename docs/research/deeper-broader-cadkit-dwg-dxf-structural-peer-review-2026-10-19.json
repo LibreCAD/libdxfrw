@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "CADKit DWG/DXF structural peer and lineage review",
+  "mode": "Primary-source open-source implementation and package-surface review; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen newly surfaced CADKit as a possible DWG/DXF structural differential candidate.",
+    "Separate CADKit's self-reported cross-version test evidence from independent semantic evidence.",
+    "Audit claimed clean-room provenance, ACadSharp overlap, unknown ACIS carrier handling, and package identity.",
+    "Classify uncad by its actual DWG and DXF parser lineages."
+  ],
+  "sources": [
+    {
+      "project": "TNYCL/cadkit README and repository metadata",
+      "url": "https://github.com/TNYCL/cadkit",
+      "observed": "The project describes a pure-Rust, clean-room suite with DWG/DXF readers, neutral model, DXF but no DWG writer, and Rust/CLI/Python/WASM/C/C++ interfaces. It documents DWG AC1014 through AC1032 as implemented and AC1012 as untested; entity coverage is still growing.",
+      "limitation": "Claims are documentation and repository metadata, not independently reproduced behavior or a complete source audit."
+    },
+    {
+      "project": "CADKit DWG format notes",
+      "url": "https://github.com/TNYCL/cadkit/blob/main/docs/dwg/FORMAT_NOTES.md",
+      "observed": "The project reports zero mismatches in whole-document comparisons for AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032 against corresponding ASCII-DXF exports using CADKit's own DXF reader/model. It reports structural decoding without warnings of 19 Apache Tika drawings totalling 91,924 objects. AC1012 is untested. REGION/3DSOLID/BODY are partial and mapped as Unknown with ACIS version and SAT bytes retained.",
+      "limitation": "The DWG-vs-DXF comparison uses the same project's DXF reader and model and is not an independent semantic oracle. Tika results are structural reports; ACIS bytes are not semantically decoded."
+    },
+    {
+      "project": "CADKit provenance ledger",
+      "url": "https://github.com/TNYCL/cadkit/blob/main/docs/PROVENANCE.md",
+      "observed": "The project lists the ODA Open Design Specification as the primary DWG reference and ACadSharp as an MIT cross-check; it explicitly attributes the R2007 LZ77 decompressor and R2007 container read flow to ACadSharp. The ledger states GPL/LGPL/AGPL CAD code and vendor SDK sources are excluded.",
+      "limitation": "The project's clean-room and excluded-source statements are recorded as provenance claims; they were not independently audited. R2007 parser evidence is algorithm-lineage-correlated with ACadSharp."
+    },
+    {
+      "project": "CADKit package and release surfaces",
+      "urls": [
+        "https://docs.rs/crate/cadkit-dwg/latest",
+        "https://docs.rs/cadkit_dwg/latest/cadkit_dwg/",
+        "https://github.com/TNYCL/cadkit/blob/main/CHANGELOG.md",
+        "https://github.com/TNYCL/cadkit/actions"
+      ],
+      "observed": "The research interface returned inconsistent version signals: an opened docs.rs crate page identified 0.2.0, a docs.rs search result identified 0.3.0, and the repository changelog's latest dated release entry was 0.2.1. No immutable source revision was bound to a crate checksum in this pass.",
+      "limitation": "Search and opened page snapshots can be cached at different times. This establishes unresolved artifact identity, not that any package version is invalid or unavailable."
+    },
+    {
+      "project": "iyulab/uncad README",
+      "url": "https://github.com/iyulab/uncad",
+      "observed": "The project states that its DWG route uses vendored LibreDWG through Rust FFI; DXF is handled by the separate pure-Rust undxf crate. Output is read-only JSON/SVG/PNG, not DWG/DXF writing.",
+      "limitation": "No local or peer execution was performed; this is used only for parser-lineage classification."
+    },
+    {
+      "project": "CADKit security and CI claims",
+      "urls": [
+        "https://github.com/TNYCL/cadkit",
+        "https://github.com/TNYCL/cadkit/actions"
+      ],
+      "observed": "The README describes size/allocation limits, recoverable warnings, and fuzz targets for each reader in CI. The repository and workflow pages show an early project with a small history and multiple CI/release runs.",
+      "limitation": "These are project-reported design and maturity signals, not a security audit or local fuzz result."
+    }
+  ],
+  "classification": {
+    "cadkit_dwg": "OPTIONAL_STRUCTURAL_2D_CANDIDATE / NOT_RUN / VERSION_SOURCE_UNRESOLVED",
+    "cadkit_dwg_acis": "OPAQUE_CARRIER_ONLY / NO_BREP_SEMANTICS",
+    "cadkit_r2007_lineage": "ACADSharp_ALGORITHM_CORRELATED",
+    "uncad_dwg": "LIBREDWG_LINEAGE / NOT_AN_INDEPENDENT_DWG_VOTE",
+    "uncad_dxf": "SEPARATE_UNDXF_READER / OPTIONAL_2D_PROJECTION_ONLY"
+  },
+  "implementation_readiness": [
+    "Do not add CADKit or uncad as build dependencies, regular tests, CTest registrations, or per-slice blockers.",
+    "Reconsider CADKit only at an existing composed checkpoint for a named structural/2D question after resolving exact package version, source revision, package checksum, lockfile, toolchain, platform, and runtime identity.",
+    "Use locally authored or already-approved controls and an independently authored expectation; do not use CADKit's own DXF-reader comparison as independent truth.",
+    "Record Unknown, warning, skipped, and unsupported entities explicitly; do not count opaque ACIS byte retention as decoded semantics.",
+    "Count R2007 container/decompressor comparisons as correlated with ACadSharp, and do not admit uncad's DWG route as independent from LibreDWG.",
+    "Do not add third-party drawing fixtures; generate controls locally and keep transient outputs outside the repository."
+  ],
+  "validation": {
+    "peer_runtime": "not run",
+    "packages_downloaded": false,
+    "local_build_or_tests": false,
+    "fixtures_added": false,
+    "dependencies_changed": false,
+    "support_claim_changed": false,
+    "finding_or_subplan_count_changed": false,
+    "reported_plan_totals": "139 findings / 77 top-level subplans",
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-27",
+  "workflowRun": "https://github.com/dxli/libdxfrw/actions/runs/45954792219",
+  "headSha": "f6c06139829194b43f35caa5fc976e36c83bd247",
+  "implementationDigestSha256": "31042294e6ebc544fdb2894e8fff382256052a47f0b3382c6bce7bba63193e71",
+  "result": "PASS: seven executables and 58 CTests, zero failures; libdxfrw_numeric_process_locale was skipped.",
+  "limits": [
+    "Fast profile only; native, package and FreeCAD jobs run separately.",
+    "Final broad suite and extended fuzz await candidate freeze.",
+    "No support claim or package gate promoted."
+  ]
+}

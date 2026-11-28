@@ -1,0 +1,75 @@
+{
+  "date": "2026-11-02",
+  "phase": "P6",
+  "profile": "strict DXF output UCSBASE and PUCSBASE name-to-table target closure",
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "gate": "fileExport preflight when requireResolvedOwners is true or readCompletenessPolicy is RequireComplete",
+    "behavior": [
+      "Both standard HEADER variables must resolve to a unique emitted UCS table record when nonempty.",
+      "ASCII symbol names compare case-insensitively; byte-identical valid UTF-8 names are admitted.",
+      "Blank values and the built-in ASCII WORLD name do not require a serialized UCS table row.",
+      "Ambiguous names, malformed values, customVars shadow copies, and non-ASCII case variants without native collation evidence fail closed before destination publication."
+    ],
+    "limits": "This closes strict name-target preflight only. It does not establish native orthographic UCS restoration or Unicode case-collation behavior.",
+    "sha256": {
+      "dwg2dxf/dx_iface.cpp": "2ed20475e40763323018d595d52316339299f2a41da122cac0c1e14e356b4f28",
+      "tests/dwg2dxf_adapter_tests.cpp": "e1bd8eeb085c311ca3bfe503c11eef602db490e9f370263146711582ac3368a7",
+      "tests/CMakeLists.txt": "d0e7cddaf70a8c7ad28d6aa539f9c11f9bad337a055d1cc87bb830d491c8f5cf"
+    }
+  },
+  "authoritative_references": [
+    {
+      "title": "Autodesk UCSBASE system variable",
+      "url": "https://help.autodesk.com/view/ACD/2027/ENU/?caas=caas%2Fdocumentation%2FACD%2F2014%2FENU%2Ffiles%2FGUID-1ACE78C5-459C-4BC1-85DA-18FC9C5FD572-htm.html",
+      "supports": "UCSBASE is the name of the UCS used for orthographic settings; the initial value is blank and valid values include named UCS records."
+    },
+    {
+      "title": "Autodesk PUCSBASE system variable",
+      "url": "https://help.autodesk.com/view/ACD/2026/ENU/?caas=caas%2Fdocumentation%2FACDLT%2F2014%2FENU%2Ffiles%2FGUID-1A64F4F1-3A28-4630-B0E0-D83DDB877E51-htm.html",
+      "supports": "PUCSBASE identifies the paper-space orthographic UCS base and has a blank initial value."
+    },
+    {
+      "title": "Autodesk UCS DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-1906E8A7-3393-4BF9-BD27-F9AE4352FB8B.htm",
+      "supports": "UCS symbol-table group 2 carries the UCS name; absent orthographic base handles default to WORLD."
+    },
+    {
+      "title": "Autodesk ObjectARX compareSymbolName reference",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbSymbolUtilities__Services.html",
+      "supports": "Symbol names are compared case-insensitively. It does not specify the exact Unicode collation used by every native consumer."
+    },
+    {
+      "title": "Autodesk UCS dialog reference",
+      "url": "https://help.autodesk.com/view/ACD/2026/ENU/?caas=caas%2Fdocumentation%2FACDLT%2F2014%2FENU%2Ffiles%2FGUID-51CC776E-5ED6-46FC-A850-E3690B0275AF-htm.html",
+      "supports": "WORLD is always present as a built-in UCS and cannot be renamed or deleted."
+    }
+  ],
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "focused_test": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_ucs_base_name_target_closure$' --output-on-failure",
+      "result": "PASS",
+      "seconds": 0.49
+    },
+    "covered": [
+      "ASCII and Binary strict output",
+      "RequireComplete and requireResolvedOwners preflight modes",
+      "missing model-space and paper-space targets",
+      "unique ASCII case-insensitive target mapping",
+      "duplicate target ambiguity",
+      "destination preservation and same-adapter correction retry",
+      "fresh typed readback of header names and UCS table rows",
+      "blank and built-in WORLD defaults",
+      "non-ASCII case-variant refusal without changing the destination"
+    ],
+    "fixtures": "All test DXF files are authored at runtime under the system temporary directory; no drawing fixture was added."
+  },
+  "remaining": [
+    "Native orthographic restore semantics for UCSBASE and PUCSBASE.",
+    "Native-consumer Unicode case collation; differing non-ASCII case variants remain refused by strict output."
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-group-body-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_GROUP_AC1015_AC1032_BODY_RECOVERY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add bounded malformed GROUP OBJECTS-body recovery and CLI disposition controls across six DWG revisions.",
+  "source": {
+    "kind": "scratch-only DWGs authored at test runtime by the in-tree DWG writer; the valid GROUP seed is converted to a raw mutated frame and injected into a malformed carrier",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-group-body-source",
+    "object": "The valid GROUP seed has an ACAD_GROUP dictionary entry, distinct description, and one model-space LINE member. Its mutated raw frame is injected into the scratch carrier, which retains the standard ACAD_GROUP parent dictionary but does not claim the failed frame's dictionary membership. The one-bit search begins after a valid common prologue and stays within the declared body span.",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-cli-malformed-group-body-recovery-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "controls": "Each mutated source reads successfully with one object parse failure, zero entity parse failures, one failed object frame, exact source-frame accounting, and the following LINE callback. Strict ASCII/Binary conversion preserves the destination sentinel. Explicit-partial ASCII/Binary conversion succeeds and reopens with the retained LINE and VPORT. AC1027 reader recovery passes, while both CLI modes stop at the established source-reference qualification gate. The malformed carrier is designed for framed parser-recovery policy; it does not qualify GROUP dictionary membership closure."
+  },
+  "results": {
+    "readRecoveryProfiles": {
+      "AC1015": {"sourceFrames": 28, "publishedFrames": 27, "failedFrames": 1},
+      "AC1018": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1021": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1024": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1027": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1032": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1}
+    },
+    "cliDispositionControls": 28,
+    "fullFocusedDispositionCohortControls": 243,
+    "outputQualification": "AC1015, AC1018, AC1021, AC1024, and AC1032 pass strict refusal plus explicit-partial ASCII/Binary readback. AC1027 remains reader-only at the source-reference gate."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "pythonSyntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 6.46 seconds",
+    "directControl": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only: PASS; 172 existing controls, 28 VBA_PROJECT controls, 15 BLOCKREPRESENTATION_DATA controls, and 28 GROUP controls",
+    "diffCheck": "git diff --check and python3 -m json.tool: PASS"
+  },
+  "limitations": [
+    "Generated parser-recovery and CLI disposition evidence only; the malformed carrier does not establish GROUP dictionary-membership closure, application semantics, producer prevalence, or interoperability.",
+    "AC1027 output remains unqualified behind the source-reference closure gate.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-F now includes bounded GROUP malformed-body recovery controls for AC1015/AC1018/AC1021/AC1024/AC1027/AC1032, with strict refusal and explicit-partial ASCII/Binary readback at five output-qualified revisions.",
+    "remainingP6F": "Continue source/resource inventory and select only a supported OBJECTS body with a reproducible bounded parser-failure mutation; keep per-version claims tied to successful controls.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "401 completed slices and 32 remaining packages: 401/(401+32)=92.6%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-cli-malformed-blockrepresentation-body-recovery-2026-11-14.json"
+}

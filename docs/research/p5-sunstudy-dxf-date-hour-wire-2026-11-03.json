@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-sunstudy-dxf-date-hour-wire-2026-11-03",
+  "date": "2026-11-03",
+  "title": "Correct SUNSTUDY DXF date and hour field mapping",
+  "status": "DOCUMENTED_DXF_FIELD_MAPPING_AND_GENERATED_ASCII_BINARY_READBACK_PASS",
+  "scope": "Correct the standalone SUNSTUDY DXF parser/writer mapping for date counts, hour counts, and seconds since midnight. This does not qualify physical DWG producer coverage, source graph closure, adapter output, or native scene semantics.",
+  "authority": {
+    "source": "Autodesk AutoCAD DXF reference, SUNSTUDY (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-1C7C073F-4CFD-4939-97D9-7AB0C1E163A3.htm",
+    "fields": {
+      "group91": "Date input array size",
+      "group90Date": "Julian day",
+      "group90Time": "Seconds past midnight",
+      "group73": "Number of hours",
+      "group290Hours": "One Boolean per hour"
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "src/libdxfrw.cpp"
+    ],
+    "parser": "Group 91 now sets only the bounded date count. Group 73 sets the bounded hour count; following group-290 values are consumed against that exact count. Group-90 time values are parsed as seconds and converted to the model's milliseconds with overflow and negative-value refusal.",
+    "writer": "The date count remains group 91; hour count is emitted as signed-short group 73. Model milliseconds are converted to whole DXF seconds. Values with subsecond precision are refused before record output to avoid lossy serialization. Existing signed-short field bounds and finite spacing checks remain enforced.",
+    "test": "tests/wave1_tests.cpp::testSunStudyDxfHourCount; CTest libdxfrw_sunstudy_dxf_hour_count",
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "result": "PASS"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_sunstudy_dxf_hour_count$' --output-on-failure",
+      "result": "PASS, 1/1; generated ASCII and Binary output, exact group values, typed date/hour readback, subsecond refusal with destination preservation, corrected fresh-writer retry"
+    },
+    "generatedFixtureFilesCommitted": 0,
+    "supportClaimEffect": "none"
+  },
+  "limitations": [
+    "The mapping is proven against the Autodesk DXF field table and locally generated vectors; it does not establish physical producer prevalence or source-to-output graph closure.",
+    "Subsecond DWG times have no lossless carrier in the documented integer DXF field and remain refused by this writer profile.",
+    "Strict dwg2dxf output continues to refuse retained SUNSTUDY until physical source, owner/reference closure, and adapter output are qualified.",
+    "Native sun-study rendering and plotting semantics remain unqualified."
+  ]
+}

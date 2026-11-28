@@ -1,0 +1,60 @@
+{
+  "slice": "7S.2c BLOCK_RECORD preview chunk views",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "paths": [
+    "src/libdxfrw.cpp",
+    "tests/hardening_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "change": {
+    "shared_dxf_hex_decoder_accepts_string_view": true,
+    "block_record_group_310_borrows_current_reader_token": true,
+    "decoded_bytes_append_directly_to_final_preview_owner": true,
+    "payload_bound_retained_budget_and_refusal_order_preserved": true,
+    "generated_16k_preview_uses_legal_127_byte_binary_chunks": true,
+    "generated_32k_unknown_application_group_marker": true,
+    "exact_under_budget_and_retry_controls_reused": true,
+    "persistent_fixture_added": false,
+    "installed_data_or_interface_layout_changed": false,
+    "wire_behavior_changed": false,
+    "support_claim_changed": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_block_record_parser_retained_budget$' --output-on-failure",
+      "result": "PASS (1/1; 0.30 seconds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-proxy-retained-budget",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check -- src/libdxfrw.cpp tests/hardening_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "full test suites",
+    "native FreeCAD Linux/Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "external_gates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "inventory_totals": {
+    "findings": 144,
+    "subplans": 78,
+    "note": "Inventory totals; not open-item counts."
+  },
+  "next": "Continue exact-source audit of OBJECTS, CLASSES, and raw carrier staging, then advance to a locally actionable semantic gap without waiting on external qualification."
+}

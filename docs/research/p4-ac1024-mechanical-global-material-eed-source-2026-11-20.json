@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-mechanical-global-material-eed-source-2026-11-20",
+  "date": "2026-11-20",
+  "status": "EED_SOURCE_CAPTURED_OUTPUT_GRAPH_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "sources": {
+    "mechanical": {
+      "path": "tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858"
+    },
+    "aerial": {
+      "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+      "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1"
+    },
+    "provenance": "Existing untracked local references; producer provenance is not independently established. Neither drawing is committed."
+  },
+  "peer": {
+    "reader": "GNU LibreDWG dwgread 0.14",
+    "result": "Mechanical Global MATERIAL 0x98 has EED APPID 0x12 and raw first Int16 65535, interpreted as -1, where aerial has 0. Mechanical material owner is 0x72 and its extension dictionary is 0x110; aerial uses extension 0x290. Mechanical root has three materials, and 0x110 has DIFFUSETILE/0x111, BUMPTILE/0x112, OPACITYTILE/0x113 and REFLECTIONTILE/0x114; each peer XRECORD has groups 270=1 and 271=1. These peer observations do not prove all source wire roles or output semantics."
+  },
+  "implementation": "A separate source-only Global EED observer binds the exact mechanical -1/3/0/empty/0/0 profile to bits 26..214 and the source-bound ACAD APPID. The current importer captures this raw and typed source through its same-import class-frame binding. Aerial and mechanical EED profiles reject each other; output qualification remains unchanged and fail-closed.",
+  "validation": {
+    "binary": "/private/tmp/libdxfrw-plotsettings-test-build/tests/libdxfrw_dwg2dxf_adapter_tests",
+    "binarySha256": "155da94331d9b2e162425cc3aaa85a3d4791b7b714a7f8deffa7974dc77824d5",
+    "artifacts": {
+      "build": {
+        "path": "/private/tmp/libdxfrw-mechanical-material-wire-build.log",
+        "sha256": "c4393dd881434f81c34311d87b25ad41134493d0f554550dc06db49a0d99c37f"
+      },
+      "mechanicalControl": {
+        "path": "/private/tmp/libdxfrw-mechanical-material-wire.log",
+        "sha256": "ad4ffbc68675f18e65716b4f345866266c9a77a43a2b982efd16be682748266a"
+      },
+      "aerialControl": {
+        "path": "/private/tmp/libdxfrw-mechanical-material-aerial-compat.log",
+        "sha256": "a9b5cae5f726002fb1e9bd87cb9b2791f2fa2218c98389f83b817697e78e5f8d"
+      },
+      "mechanicalPeerJson": {
+        "path": "/private/tmp/libdxfrw-mechanical-material.json",
+        "sha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367"
+      },
+      "aerialPeerJson": {
+        "path": "/private/tmp/libdxfrw-aerial-material.json",
+        "sha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832"
+      },
+      "mechanicalPeerLog": {
+        "path": "/private/tmp/libdxfrw-mechanical-material-peer.log",
+        "sha256": "3e64f7c6692575249a3bfb8a48f08c4b619bcbebec9699c379056f02f593efcf"
+      },
+      "aerialPeerLog": {
+        "path": "/private/tmp/libdxfrw-aerial-material-peer.log",
+        "sha256": "3e64f7c6692575249a3bfb8a48f08c4b619bcbebec9699c379056f02f593efcf"
+      }
+    },
+    "controls": [
+      "Mechanical EED observer and source capture pass; every bit in the EED span and a changed signed value are rejected, with restoration.",
+      "Aerial full APPID and seven-material EED source controls pass; each Global source is rejected by the other profile.",
+      "The mechanical source is not admitted by the aerial output qualifier."
+    ]
+  },
+  "limits": [
+    "Source-only EED evidence does not prove MATERIAL body, APPID_CONTROL membership wire, all dictionary and XRECORD source spans, graph closure, staged output, independent readback, or native semantics.",
+    "One-root LayerStates output still fails the Global MATERIAL APPID table dependency; no successful output or support promotion is claimed.",
+    "No DWG/DXF fixture or peer-derived drawing was committed."
+  ]
+}

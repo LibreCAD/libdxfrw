@@ -1,0 +1,74 @@
+{
+  "research": "FreeCAD consumer gates and DWG-to-DXF loss attribution",
+  "date": "2026-10-21",
+  "type": "primary-source review; no peer runtime executed",
+  "scope": [
+    "Existing PAR-07/S8 and PAR-144 implementation/qualification gates",
+    "External FreeCAD Linux/Windows qualification condition",
+    "ACIS semantic-evidence separation"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "finding": "FreeCAD documents separate C++ and legacy Python DXF importers with different entity coverage; stock FreeCAD cannot read embedded ACIS/SAT solids. DWG import is converter-to-DXF followed by the selected DXF importer."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "finding": "DWG requires an external converter; converter choice is configurable and FreeCAD then applies the DXF importer limitations."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "finding": "Current source confirms the wrapper converts to DXF and calls importDXF.open; converter discovery/configuration is part of the exercised route."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "finding": "Importer and converter behavior are selectable through preferences; reproducibility requires pinning these settings and preventing fallback to another converter."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "finding": "LibreDWG reports AcDs DataStorage as incomplete and newer ACIS SAB extraction as brute-force, despite a named reader existing in current source."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+      "finding": "Current source contains a named AcDsPrototype_1b section reader. Presence of a code path does not establish correct payload coverage or owner joins."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "finding": "The public DXF-to-DWG-to-DXF loss reproducer does not isolate the DWG reader unless the intermediate DWG independently proves the writer emitted the section and payload."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/index.rst",
+      "finding": "ezdxf documents ASCII and Binary DXF read/write support across a broad version range; this is a DXF format comparator, not DWG or ACIS semantic evidence."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+      "finding": "ezdxf's browse-acis command displays/exports raw SAT/SAB entity content."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "finding": "ezdxf drawing explicitly does not render ACIS and has no 3D rendering engine."
+    }
+  ],
+  "plan_changes": [
+    "Separate converter interoperability, chosen FreeCAD DXF importer behavior, and ACIS/B-rep semantics into three reportable qualification outcomes.",
+    "Require explicit converter path/version, FreeCAD build/platform, importer backend/preferences, output signature/hash, process diagnostics, and per-handle disposition in native qualification.",
+    "Treat stock FreeCAD ACIS as UNSUPPORTED_CONSUMER for the exact build, not as converter failure or failed libdxfrw semantic evidence.",
+    "Attribute ACIS loss at the first proven conversion stage; do not infer a reader gap without independently verified intermediate DWG section and payload bytes.",
+    "Keep per-slice checks focused and fast; perform native Linux/Windows runs only at the composed checkpoint, and self-unblock when those builds are unavailable."
+  ],
+  "implementation_findings_added": 0,
+  "top_level_subplans_added": 0,
+  "support_claim_promoted": false,
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "runtime_executed": [],
+  "native_cad_run": false,
+  "external_fixture_added": false,
+  "dependency_added": false
+}

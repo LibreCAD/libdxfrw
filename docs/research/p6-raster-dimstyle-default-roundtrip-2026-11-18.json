@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-raster-dimstyle-default-roundtrip-2026-11-18",
+  "date": "2026-11-18",
+  "status": "FOCUSED_FIXES_PASS_PLATFORM_REQUALIFICATION_PENDING",
+  "supportClaimEffect": "none",
+  "sourceBase": "15539f6334985005b8f276f9c120c881cbdcbdeb",
+  "implementationDigestSha256": "9b43958e16e3beafc40e3d6dbe6b473c97014cf7bf90913ca226484ef4150df7",
+  "inputCount": 733,
+  "findings": [
+    "The selected raster reactor reexport failed for AC1021 when the writer's default plot dictionary omitted default group 280. The exact dictionary graph gate previously required explicit 280=0.",
+    "A rooted image dictionary control failed on AC1021 to AC1015 output because the DIMSTYLE default color index 0 arrived from DWG with an explicit BYBLOCK method, while the default check recognized only method 0.",
+    "Rooted raster tests still expected AC1027 exports despite the existing unqualified source-reference guard. They now assert the specific refusal and unchanged destination; the other version projections remain required."
+  ],
+  "changes": [
+    "Accept omitted or explicit zero group 280 in the existing exact AC1021 plot dictionary profile, still requiring typed hardOwner zero and all existing graph/identity checks.",
+    "Treat DIMTFILLCLR index zero and explicit BYBLOCK method as the default only when RGB, flags, raw index, and names are empty/default; nondefault values remain subject to versioned refusal.",
+    "Correct the graph test setup, add explicit/omitted/default and nonzero/duplicate refusal controls, all-null versus mixed graph controls, and AC1027 atomic refusal assertions."
+  ],
+  "authorities": [
+    "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+    "https://images.autodesk.com/adsk/files/acad_acr.pdf",
+    "https://help.autodesk.com/cloudhelp/2022/ENU/AutoCAD-Core/files/GUID-4E38E29F-DE85-4791-A2E7-4DC22842B1B4.htm"
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dimstyle_table_allocation_tests -j2",
+    "focused": "PASS 5/5: dwg2dxf_default_plotstyle_layer_graph, dwg2dxf_selected_raster_reactor_metadata, dwg2dxf_rooted_custom_imagedef, dwg2dxf_rooted_image_dictionary_closure, and libdxfrw_dimstyle_table_allocation.",
+    "coverage": "ASCII and Binary output/readback; default, nonzero and duplicate controls; destination preservation and corrected same-writer retry; successful other-version projections and AC1027 atomic refusals.",
+    "digest": "PASS: clean tracked checkout with these four selected edits staged and status overlay updated; 733 selected inputs."
+  },
+  "limits": [
+    "The controls use locally generated data and establish codec/guard behavior, not independent producer semantics or native consumer acceptance.",
+    "The IMAGEDEF owner operation witness, strict output gates, and broader profile qualification remain open.",
+    "Source and binary changes invalidate the prior current-candidate package, FreeCAD and focused-native receipts; repeat them on stabilized source."
+  ]
+}

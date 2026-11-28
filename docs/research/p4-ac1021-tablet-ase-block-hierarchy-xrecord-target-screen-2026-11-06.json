@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 tablet ASE block-hierarchy XRECORD target-role screen",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Screen one local AC1021 OBJECTS graph as a potential bounded XRECORD route. No production code or fixture changed.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/tablet.dwg",
+    "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+    "version": "AC1021",
+    "provenanceLimit": "Local user corpus; producer and repository provenance are unauthenticated. The source is not committed."
+  },
+  "localReader": {
+    "tool": "build/dwg2dxf/dwg2dxf",
+    "sha256": "cbe1474b97de3786234d33f7be6c1287e2102b44023885626a94ead2b3d678e5",
+    "observation": "The graph trace reports 40 nodes, 314 edges, 40 staged handles, 479 source records and 456 XRECORD payload slots, then refuses at XRECORD 0x2BCF code 330 target 0x1BE5 (decimal 7141). XRECORD 0x2BCF has owner/reactor 0x2BCE and 208 ordered handle values. A corrected public typed-model inventory includes dx_data::mBlock (model space): all 208 unique XRECORD targets occur exactly once there as DRW::INSERT entities; none occur in the other 2,635 entities. The model space has 2,777 entities. The earlier probe's apparent omission was a probe bug: it scanned only data.blocks and skipped mBlock. The NOD-owned dictionary 0x2BCE contains ASEBlockHierarchyIndexRecord -> 0x2BCF.",
+    "traceSha256": "e171157bef1eeec839b79cb78bd5636d7e20c4d8903c3f79e3d185498e8cee21",
+    "freshTraceSha256": "eaa82798c28eed9f95ab4449d986c75f3a29489ca124777f37a7c0cf0767d52c",
+    "probeSourceSha256": "07d7a9ea85f5beef55a3a58f6ec0e1675abf546a279d8421823bd99fc5fb45e7",
+    "probeBinarySha256": "23259ce1a29cbf1d5689f9207854b52c89936af3e9ff529084837726860d4efd",
+    "correctedInventoryProbeSourceSha256": "7341470e5f96080edaacc2367bc9d60f9463c34421de636baae0f9463e302042",
+    "correctedInventoryProbeBinarySha256": "dfd4fcb383148ba9d7e7d7a2ead54be8394e123caa02eec316ec535b1b0e8cdb"
+  },
+  "independentPeer": {
+    "tool": "LibreDWG 0.14.0 dwgread minJSON",
+    "jsonSha256": "54f69c22c8528f0d20f4c010446baecb581463c362430a413a40feeec5224f4d",
+    "observation": "XRECORD 0x2BCF is owned by DICTIONARY 0x2BCE, has one reactor to that dictionary, and contains 208 unique code-330 references. All 208 targets exist in the peer object inventory and are INSERT entities. The owner dictionary belongs to NOD 0x0C and contains ASEBlockHierarchyIndexRecord -> 0x2BCF. The first checked target, 0x1BE5, is an INSERT owned by BLOCK_RECORD 0x1BEF."
+  },
+  "implementation": {
+    "change": "Added a narrow AC1021 DWG ASEBlockHierarchyIndexRecord route for a single NOD-owned dictionary entry whose nonempty ordered code-330 XRECORD payload resolves uniquely to typed model-space INSERT handles. The XRECORD writer uses its existing source-to-output handle remapper.",
+    "generatedControl": "The locally authored adapter control writes ASCII and Binary output, reads both back, verifies the NOD/dictionary/XRECORD owner-reactor chain, cloning value, ordered 208 references, and that every remapped reference resolves to one output model-space INSERT. Wrong-kind and missing-target mutations preserve an existing sentinel destination; restoring the source graph succeeds on the same writer instance.",
+    "physicalSourceRecheck": "The tablet DWG now passes the extension-object graph preflight, including all 208 model-space INSERT target checks. Whole-source strict conversion still stops later at the independent DICTIONARYVAR DWG source/output snapshot preflight; no complete physical re-export/readback is qualified.",
+    "test": "ctest --test-dir build -R '^libdxfrw_ase_hierarchy_ac1021_insert_target_roundtrip$' --output-on-failure",
+    "testResult": "PASS; 1/1 focused fast CTest, 0.58 seconds"
+  },
+  "decision": "The exact bounded adapter route is implemented and generated ASCII/Binary readback, remapping, rollback, and same-writer retry are verified. The local source is unauthenticated, and the physical document still fails an unrelated DICTIONARYVAR output gate, so this result does not qualify strict whole-source output or promote general DWG/DXF support claims.",
+  "nextAction": "Continue P4 using the physical tablet trace: resolve the DICTIONARYVAR DWG source/output snapshot blocker or select another dependency-closed source profile. Keep whole-source output claims closed until strict conversion and fresh readback succeed.",
+  "validation": {
+    "fullSuites": "NOT RUN; only the named focused CTest was run",
+    "fixturesCommitted": false,
+    "sourceOrConverterSupportClaimPromoted": false
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "status": "BOUNDED_SOURCE_AND_MODEL_SPACE_OUTPUT",
+  "base_commit": "f04130c1",
+  "authority": "ODA v5.4.1 \u00a7\u00a720.4.16\u201317,20.4.52; producer membership evidence in docs/research/p6-polyline-cross-version-model-membership-2026-11-04.json",
+  "scope": "AC1018/AC1024 ordinary 2D/3D model-space POLYLINE with implicit or matching explicit model BLOCK_RECORD, no active user block and no mesh/polyface flags. Child VERTEX and SEQEND remain parent-owned and are omitted from BLOCK_HEADER. Other scope/version behavior remains on its prior path.",
+  "implementation": "One-shot writer-and-child-bound permit consumed before encoding, full compound checkpoint before reservation, existing guarded exception restoration and failure latch. GROUP references to newly unindexed children remain unqualified and fail closed; no vertex GROUP profile is introduced for these versions.",
+  "files_sha256": {
+    "src/libdwgr.cpp": "87afd1911287f3dfe176a6396b59ca4aa2d248734c822ef623d0a8ee0e7cc1c4",
+    "src/intern/dwgwriter15.cpp": "7fa54138180fdf4e3fb324054319e363477c406e8c8e82784460d3aed2a9f2d1",
+    "src/intern/dwgwriter24.cpp": "f3031daf286a84c144a468f1c5b87445922f74268271ee7d525aab97922fb49b",
+    "tests/dwg_polyline_1018_1024_membership_tests.cpp": "dfb625cbc32ab64d794916c85be9f09df0cf2fbca467c6547e3b8eac358463f8"
+  },
+  "patch_sha256": "50900c407daca4f7af125ca190d9591234774a182dfa2dbb46b7db48f1b74779",
+  "cmake_registration_sha256": "7ba5b70fa1f383442fd41d48f69f350ee91f0ba63d03c36f83a04df31efe850a",
+  "test_command": "ctest --test-dir /private/tmp/polyline-ac1018-1024-impl/build -R ^libdxfrw_dwg_polyline_1018_1024_membership$ --output-on-failure",
+  "test_result": "1/1 normal, 1/1 AddressSanitizer. Covers 2D/3D, explicit owner, SEQEND failure, duplicate-handle collision, early/late exception and raw EED restoration, caller state and transaction rollback, destination preservation and retry, unqualified child GROUP with and without reciprocal reactor, parent GROUP retry/native readback; unchanged paper/named, AC1027/AC1032 and mesh/polyface.",
+  "evidence": {
+    "output_sha256": {
+      "AC1018-polyline2d": {
+        "dwg": "0b43d83a037adf8b0a49a3e306fdee936f8b902277b11d6cc228b430e615084a",
+        "dxf": "07aa151f7a2481284c97f0b74d31909c0f514b20ab80f366181e5b0babc9409c"
+      },
+      "AC1018-polyline3d": {
+        "dwg": "21ae220da796117a087fe92f9c07218188d0b9f06cf8e10b7a21c5a148f6ffff",
+        "dxf": "c0f765e80fd5d96b8f0eb58c52e83ddb0b44984f66f49e5b4bcf27687924c4b8"
+      },
+      "AC1024-polyline2d": {
+        "dwg": "8fd1f32398998fb06f29eef88ea6420d704a5e4223f137f7873b740acc5318bc",
+        "dxf": "e126f5f0a6b16f28450b711d4dfa825ae98481cc165580da33a9173570c67516"
+      },
+      "AC1024-polyline3d": {
+        "dwg": "5d0f317295bd0bc3b03344faf67cfe7d26557fed11e5821f8c747432a7a50075",
+        "dxf": "4eed703035e6d7b2eef5aa1e77a8db779d706fc76d27ae553003665a1fcd0c4d"
+      }
+    },
+    "audit_command": "python3 /private/tmp/polyline-ac1018-1024-impl/audit.py",
+    "audit_script_sha256": "6233eb379bb4752fb979b29e71cb485caf1dbe95eb49bf511bb2c2bfcd62722f",
+    "hash_manifest_sha256": "0793749952adaa909416e6b60dcd79b3760a1b0191fa4457e8dc501f89faa982",
+    "result": "4/4 LibreDWG 0.14 and ezdxf 1.4.5 source/baseline/candidate graph and geometry checks passed; ODA 27.1.0 conversion to AC1027 DXF exit 0, no .err and empty stdout/stderr. ODA conversion lineage is locally observed separately, not proven by digest comparison.",
+    "provenance": "Scratch candidate built from f04130c1 with three source changes and fixture-free generator tools/probe_polyline_cross_version.cpp, opt-in plotstyle on both and opt-in material for AC1024; all four source/baseline comparisons use earlier hash-bound cross-version receipt."
+  },
+  "limits": [
+    "Sampled model-space entity and documented graph opts only; no claim of general version support, native application semantics or necessity of the opt-ins.",
+    "AC1027/AC1032 remain unresolved; paper/named and mesh/polyface intentionally unchanged.",
+    "GROUP child support for AC1018/AC1024 is unqualified and refused.",
+    "DWG and DXF witnesses remain scratch-only; no fixture was added."
+  ],
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "integrated_validation": "On the integrated candidate, focused cross-version audit, AC1018/AC1024 membership, POLYLINE-followed-by-LINE facade readback, AC1021 block membership and AC1021 GROUP tests passed 5/5. The updated existing block-membership test expects the new AC1018/AC1024 model-space ownership. The dedicated integrated AddressSanitizer membership test passed 1/1. The three production source hashes and new test hash match files_sha256 above."
+}

@@ -1,0 +1,184 @@
+{
+  "schema": "libdxfrw-3d-carrier-runtime-peer-writer-review-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "8ee7b904ec50855f79e584103ffb2292fb44ba8f",
+  "scope": "Read-only peer runtime and source research; plan update only. No libdxfrw code/test execution, drawing fixture addition, dependency installation, CTest registration, native CAD qualification, or support promotion.",
+  "runtimeComparison": {
+    "source": {
+      "path": "tests/fixtures/dwg/rtext_arctext.dwg",
+      "version": "AC1032",
+      "producer": "Not established by this experiment",
+      "sha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511"
+    },
+    "target": "R2018 ASCII DXF",
+    "libreDwg": {
+      "executable": "/opt/homebrew/bin/dwg2dxf",
+      "version": "dwg2dxf 0.14",
+      "executableSha256": "e4cca8e3f5af9a878eb0085ed14e992f64d35f03065743847701274a46781c99",
+      "argv": [
+        "/opt/homebrew/bin/dwg2dxf",
+        "-v2",
+        "--as",
+        "r2018",
+        "-y",
+        "-o",
+        "/private/tmp/libredwg-vstyle.ZHPbQo/rtext_arctext-r2018.dxf",
+        "tests/fixtures/dwg/rtext_arctext.dwg"
+      ],
+      "returnCode": 0,
+      "outputBytes": 122648,
+      "outputSha256": "f853965af242eddbcbe80c75e94d1b2c3bd183e0eb7104a88f7f885b66152bc9"
+    },
+    "oda": {
+      "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "version": "27.1.0.0",
+      "architecture": "arm64",
+      "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+      "auditRequested": false,
+      "argv": [
+        "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+        "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-input",
+        "/private/tmp/libdxfrw-graph-readiness.jzaELF/oda-2018",
+        "ACAD2018",
+        "DXF",
+        "0",
+        "0",
+        "rtext_arctext.dwg"
+      ],
+      "returnCode": 0,
+      "outputBytes": 89774,
+      "outputSha256": "946651dccbcd56b5d2d9af410da9e156ad85d245715c45fce60ac3312ee80d15",
+      "provenanceReceipt": "docs/research/broader-visualstyle-graph-readiness-2026-10-15.json"
+    },
+    "visualStyle": {
+      "record": "Flat",
+      "declaredPropertySlots": 58,
+      "primaryGroupCodeSequenceMatches": true,
+      "completeSlotTuplesEqual": 52,
+      "differingSlotIndexesZeroBased": [6, 31, 33, 41, 44, 51],
+      "libreDwgGroup176Companions": 56,
+      "odaGroup176Companions": 58,
+      "missingLibreDwgCompanionSlotIndexesZeroBased": [31, 33],
+      "group177": {
+        "libreDwg": 2,
+        "oda": 3
+      },
+      "group420ValuesAbove24Bits": [
+        {"slot": 6, "value": 3271557119, "hex": "0xC2FFFFFF"},
+        {"slot": 41, "value": 3254779904, "hex": "0xC2000000"},
+        {"slot": 44, "value": 3254780159, "hex": "0xC20000FF"}
+      ],
+      "selectedDifferentSlotValues": [
+        {
+          "slot": 6,
+          "fieldCandidate": "faceMonoColor",
+          "libreDwg": [[62, "7"], [420, "3271557119"], [176, "1"]],
+          "oda": [[62, "7"], [420, "16777215"], [176, "1"]]
+        },
+        {
+          "slot": 31,
+          "fieldCandidate": "bProp1f",
+          "libreDwg": [[290, "0"]],
+          "oda": [[290, "0"], [176, "1"]]
+        },
+        {
+          "slot": 33,
+          "fieldCandidate": "bProp21",
+          "libreDwg": [[290, "0"]],
+          "oda": [[290, "0"], [176, "1"]]
+        },
+        {
+          "slot": 41,
+          "fieldCandidate": "cProp29",
+          "libreDwg": [[62, "0"], [420, "3254779904"], [176, "1"]],
+          "oda": [[62, "18"], [420, "0"], [176, "1"]]
+        },
+        {
+          "slot": 44,
+          "fieldCandidate": "cProp2c",
+          "libreDwg": [[62, "5"], [420, "3254780159"], [176, "1"]],
+          "oda": [[62, "5"], [420, "255"], [176, "1"]]
+        },
+        {
+          "slot": 51,
+          "fieldCandidate": "cProp33",
+          "libreDwg": [[62, "0"], [176, "0"]],
+          "oda": [[62, "256"], [176, "0"]]
+        }
+      ],
+      "interpretation": "The matching primary tag sequence is useful mapping evidence only. Tuple and metadata disagreements show that neither output alone defines the source semantics; no serializer profile is admitted by this observation."
+    }
+  },
+  "sourceResearch": [
+    {
+      "project": "Autodesk DXF reference",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm"
+      ],
+      "use": "Primary DXF structures for MESH streams, 3DFACE corners/invisible edges, 3DSOLID modeler payload/history link and common true-color values."
+    },
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+      ],
+      "use": "Current open peer report and source paths provide loss/section test leads, not a normative ACDS contract."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/pull/1139",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "statusSnapshot": "On 2026-10-15, #1139 is merged; #1174, #1150 and #1240 remain open.",
+      "use": "Merged reader route and its stated multi-segment limit inform local generated coverage. Open writer PRs identify sorted-handle indexing, chunk-boundary, version-gate and container-specific risks; their proposed behavior is not treated as production support or normative truth."
+    },
+    {
+      "project": "FreeCAD",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "use": "Published stock DXF/DWG support boundary is 2D-only for proprietary ACIS blobs; stock-importer geometry failure must not be attributed to libdxfrw carrier loss."
+    }
+  ],
+  "localAudit": {
+    "mesh": {
+      "source": ["src/drw_entities.h", "src/drw_entities.cpp", "src/libdxfrw.cpp"],
+      "existingFastTest": "tests/dxf_fixture_tests.cpp:testMeshRawFieldTags",
+      "covered": ["ASCII/binary wire-order for 71/72/94/95/140", "base vertices/faces/edges/creases typed self-read", "following LINE framing"],
+      "gap": "No emitted-wire or typed-self-read positive for DRW_Mesh::propertyOverrides in this test."
+    },
+    "visualStyle": {
+      "candidateMapReceipt": "docs/research/visualstyle-slot-map-readiness-2026-10-15.json",
+      "currentCliBlocker": "Typed DWG VISUALSTYLE rows lack the validated DXF carriers required by output preflight; do not drop or fabricate carriers."
+    }
+  },
+  "implementationPlanRefinements": [
+    "Add generated ASCII/binary MESH property-override literal-tag and readback coverage, with a following-entity sentinel.",
+    "Resolve VisualStyle field values, CMC/RGB method and group-176 companions independently; peer output alone cannot promote the candidate map.",
+    "Test ACDS extraction by container and version, including nonmonotonic handles and multi-blob continuation, before broad writer expansion.",
+    "Test writer directory rank independently from physical record order; use ODA v5.4.1 and producer evidence to select wire policy.",
+    "Keep opaque preservation, kernel geometry semantics and named FreeCAD consumer acceptance as separate gates."
+  ],
+  "qualificationEligible": false,
+  "supportClaimsChanged": false,
+  "externalJStatusesChanged": false,
+  "externalJStatuses": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-dwg-ellipse-geometry-reader-admission-2026-11-12",
+  "purpose": "Prevent malformed finite DWG ELLIPSE geometry from being published as a successful typed record.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.39 ELLIPSE (object type 35)"],
+    "localPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "wireMapping": "WCS center (3BD), WCS semi-major axis vector (3BD), extrusion (3BD), axis ratio (BD), start/end eccentric anomaly (BD).",
+    "nativeContract": {
+      "source": "Autodesk ObjectARX AcDbEllipse::set",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbEllipse__set_AcGePoint3d__AcGeVector3d__AcGeVector3d__double_double_double.html",
+      "requirements": [
+        "radius ratio is in [1e-6, 1.0]",
+        "major axis and normal have squared magnitude greater than 1e-12",
+        "major axis is perpendicular to the normal within 1e-6"
+      ]
+    },
+    "dxfContract": {
+      "source": "Autodesk AutoCAD DXF ELLIPSE reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-107CB04F-AD4D-4D2F-8EC9-AC90888063AB.htm",
+      "note": "The DXF entity identifies a WCS center, WCS major-axis endpoint relative to center, extrusion, and minor-to-major ratio."
+    }
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "DRW_Ellipse::parseDwg applies the existing shared DWG ellipse representability predicate to staged fields before parsing handles or publishing model state. Failure uses the existing reset/invalidate path.",
+    "scope": "Malformed ratio/axis geometry admission only; no producer prevalence or native rendering claim."
+  },
+  "generatedControls": {
+    "version": "AC1021",
+    "method": "Encode a valid local ELLIPSE frame in memory, replace its same-width ratio BD with a finite value above 1, parse directly, then retry the original frame on the same parser object.",
+    "assertions": [
+      "valid generated WCS ellipse parses with expected typed fields",
+      "finite ratio 1.5 is refused and failed entity state is reset",
+      "the same parser instance accepts the original valid frame on retry"
+    ],
+    "fixturePolicy": "Generated frame remains in memory; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_ellipse_geometry_reader_tests -j4 PASS; cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4 PASS",
+    "focusedSelectors": [
+      "libdxfrw_dwg_ellipse_geometry_reader PASS 1/1",
+      "libdxfrw_dwg_ellipse_geometry_admission and dwg_ellipse_wcs_extrusion PASS 2/2"
+    ]
+  },
+  "limitations": [
+    "The direct control proves the out-of-range ratio refusal and valid-frame retry, not every degenerate-axis variant.",
+    "Physical producer breadth, curve equivalence, native interpretation and broader P6 geometry/no-loss gates remain open."
+  ],
+  "supportClaimEffect": "Closes bounded DWG ELLIPSE parser admission for the shared ratio/axis representability domain; no broad support claim is promoted."
+}

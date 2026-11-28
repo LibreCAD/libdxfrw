@@ -1,0 +1,18 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 section 20.4.56: STYLE R2004+ missing-xdictionary flag; STYLE xref-block handle is a hard pointer.",
+  "scope":"When the writer synthesizes STANDARD STYLE and no caller/source STANDARD is supplied, mark its nonexistent xdictionary missing and explicitly encode its null xref as hard pointer for AC1018+. Preserve caller-supplied missing flags and untyped or explicitly typed null xref, and retain AC1015 behavior.",
+  "physical_evidence":"LibreDWG 0.14 independently decodes ODA-produced AC1018, AC1024, AC1027 and AC1032 STANDARD STYLE with xdictionary-missing=1 and xref=(5,0,0). Generated production AC1018/1021/1024/1027/1032 now read the same flags and role, preserving a following LINE. AC1015 retains its old untyped null and has no xdictionary-missing flag.",
+  "oda_factorial": {
+    "reader":"ODA File Converter 27.1.0, ACAD2013 DXF, recursion=0, audit=0; inspect .err and missing DXF, not process status",
+    "controls":"All candidates include the prior HEADER, root-owner and synthetic-dictionary fixes; missing flag and typed null xref are varied only for STANDARD STYLE.",
+    "cases":[
+      {"missing_flag":0,"typed_null_xref":0,"sha256":"85d7d5b05d35344e05f41ffa4ff26ed36150be154fcc02e62ea00cab7435ae2d","error":"Object improperly read: <AcDbTextStyleTableRecord> (13); previous error .dwg file needs recovery"},
+      {"missing_flag":1,"typed_null_xref":0,"sha256":"11fc0111d28756a786850196d2ee12be3dbdef8c0519d16a5849ea9e118eec46","error":"Object improperly read: <AcDbTextStyleTableRecord> (13); previous error .dwg file needs recovery"},
+      {"missing_flag":0,"typed_null_xref":1,"sha256":"e5793233d219bccd04eb3a1ef1d956ba803988ff2dfb9b211a0696b3ef728e89","error":"Object improperly read: <AcDbTextStyleTableRecord> (13); previous error .dwg file needs recovery"},
+      {"missing_flag":1,"typed_null_xref":1,"sha256":"947166ccb9b2eb8f8efb82b977cca72c5490ce57ae18dac41a9ff2a01233b0e2","error":"Object improperly read: <AcDbBlockTable> (1); previous error Object improperly read"}
+    ],
+    "outcome":"None produces DXF. Production AC1018 file is byte-identical to the last candidate. Both corrections together advance the reported error boundary; this is not full interoperability or proof of the later failure's cause."
+  },
+  "tests":"libdxfrw_dwg_header_writer_sealing checks synthetic and caller STANDARD state, invalid STYLE rollback and same-writer retry, and following LINE across six versions. Adjacent header current-reference, GROUP graph, and dictionary role selectors pass. No generated DWG fixture is committed."
+}

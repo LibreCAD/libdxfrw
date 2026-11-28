@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-08",
+  "slice": "AC1018 TABLE cell text-style override hard pointer",
+  "status": "implemented_generated_codec_self_consistency_only",
+  "authority": "Open Design Specification for .dwg files v5.4.1, section 20.4.96.1",
+  "scope": {
+    "version": "AC1018",
+    "cell_type": "text (1)",
+    "flag": "0x00000010",
+    "wire_field": "H text-style reference, required role DwgHardPointer",
+    "handle_order": "after the cell value handle and before table-level override handles; after TABLESTYLE in the shared handle stream",
+    "writer_preflight": "requires selected flag and nonzero handle together; refuses unflagged handle residue",
+    "reader": "validates hard-pointer role and retains the reference in m_textStyleOverrideHandle"
+  },
+  "generated_control": {
+    "authenticity": "locally generated codec vector; no DWG/DXF fixture",
+    "table_style_handle": "0xA700",
+    "cell_text_style_handle": "0xA903",
+    "checks": [
+      "typed parse recovers the selected cell handle and retains the distinct TABLESTYLE handle",
+      "parser cursor reaches exact body boundary and following sentinel is readable",
+      "a combined generated vector with every currently admitted cell override bit (0x3ffff) round-trips all field values, border edges, and the interleaved hard-pointer slot",
+      "missing selected handle and unflagged handle residue fail atomically",
+      "unsupported cell flag 0x40000 remains refused"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+    "result": "passed; 1/1 focused CTest",
+    "diff_check": "git diff --check passed"
+  },
+  "limitations": [
+    "The handle reference is encoded and role-checked; this vector does not resolve it to a STYLE record or prove graph closure.",
+    "No physical producer TABLE witness, source span, source-to-output equivalence, or native CAD readback was used.",
+    "Public dwgRW::writeTable remains fail-closed."
+  ]
+}

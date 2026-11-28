@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8f-8eb-upstream-native-replay-2026-11-19",
+  "date": "2026-11-19",
+  "status": "PRIOR_DIGEST_FAST_AND_FOCUSED_NATIVE_PASSED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "c5d77a31375dc9c2ac675a25d2ac2e713125f3a1f47b2322ab2ce0cbc56c893b",
+  "implementationInputCount": 750,
+  "upstream": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44631822383",
+    "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44631822293",
+    "runAttempt": 1,
+    "fastJobId": 135940151573,
+    "fastResult": "PASS: seven executables plus 49 selected CTests; one optional locale case skipped. Configure-only 1,390-test inventory preflight passed.",
+    "fastJobDurationSeconds": 706,
+    "fastLogSha256": "02c640d1603603c575b768c7e80ee42befd229e0c03490a44d54328abd441250",
+    "headSha": "8eb236290519daa73f8fb3bce4b1c175c7d90ea9",
+    "checkedOutMergeSha": "947b908a57515288e4a8a9949d8d0a87c7703adc",
+    "mergeRef": "refs/pull/106/merge",
+    "platforms": {
+      "linux-gcc": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135940268739,
+        "artifactId": 14582313954,
+        "downloadedArchiveSha256": "843b621d70abbb762657a3f14ea928e2d77d94e921c09a66b2376df836ac6f05",
+        "receiptContentSha256": "0304c2ca8465dcb4df88e258e4e78e18f9954d1f3a92a7ef2f0d4fb1c8f6455f"
+      },
+      "macos-clang": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135940268822,
+        "artifactId": 14582787615,
+        "downloadedArchiveSha256": "8d77ffab04140d7ff95c8541b44ff54639ce86c2cb3fb93bacec427114215418",
+        "receiptContentSha256": "062e83b2726320e86fbf9a63d6f25cfe32f0e2db667e891b582bdf664936912b"
+      },
+      "windows-msvc": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135940268759,
+        "artifactId": 14581354636,
+        "downloadedArchiveSha256": "ebb5e03225c2ceb3e6a00f0317f097c41b42cb69691dc6dc779dea9b80b33c52",
+        "receiptContentSha256": "d5180a1b74700a88e02aa69ff756211af12183606fa7623b8218334c5cf11550"
+      }
+    }
+  },
+  "liveVerification": {
+    "result": "PASS: authenticated GitHub API and ZIP verification; three focused receipts and zero broad receipts.",
+    "scratchRoot": "/private/tmp/p7g-planar-source/native-verification-8eb",
+    "verifierSha256": "efeea9b3aa89f344bea5a9ffb37c64e3ba2de0f1c658c872cd0eee59112c5c2b",
+    "statusSha256": "35592b0da14ed6d4b7de62f5745f5a810b815ad6bbe539ba2b6c23d8fac6cf22",
+    "apiResponseSha256": {
+      "run.json": "4d689dd274538a299d74e10b0064413340757965bde26c8105480a5b19bea277",
+      "jobs.json": "21fe52035514a46c8a61c89bd2a1b7219888c3d70a0a0734a749ec1111610ed8",
+      "artifacts.json": "683fcf27a5e5080fa18a60dcaeb7544d21b38ce6462aea7ccd84da917b9dc0f8"
+    }
+  },
+  "limits": [
+    "These results qualify only this exact prior selected-input digest. Later local source changes reopen P8-F.",
+    "Native GUI, broad/fuzz and independent producer/semantic evidence remain open."
+  ]
+}

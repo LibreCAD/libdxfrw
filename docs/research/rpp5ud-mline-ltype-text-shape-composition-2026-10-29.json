@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 MLINE LTYPE text-then-shape composition",
+  "date": "2026-10-29",
+  "status": "AC1027_TEXT_FIRST_SHAPE_LTYPE_ORDER_QUALIFIED",
+  "codeCommit": "3f16031613489bce0a980df3485508111478c749",
+  "scope": "Qualify the reverse ordered two-segment AC1027 complex LTYPE profile: a text segment followed by a shape segment, each with a distinct source-bound STYLE provider. This is transport and source/output identity evidence only.",
+  "profile": {
+    "version": "AC1027",
+    "segments": [
+      {
+        "order": 1,
+        "kind": "text",
+        "length": 0.5,
+        "shapeFlags": 2,
+        "textProvider": "ComplexText",
+        "styleFlags": 0,
+        "styleFile": "txt.shx",
+        "scale": 0.75,
+        "rotationRadians": 0.004363323129985824,
+        "xOffset": 0.125,
+        "yOffset": -0.25,
+        "text": "DXF"
+      },
+      {
+        "order": 2,
+        "kind": "shape",
+        "length": 1.5,
+        "shapeFlags": 4,
+        "shapeNumber": 7,
+        "styleProvider": "ComplexShape",
+        "styleFlags": 1,
+        "styleFile": "ltypeshp.shx",
+        "scale": 0.75,
+        "rotationRadians": 0.004363323129985824,
+        "xOffset": 0.125,
+        "yOffset": -0.25
+      }
+    ],
+    "sourceAndOutput": "Runtime-authored AC1027 ASCII/binary source and output cross-product. Each source binds both unique STYLE rows to the ordered LTYPE group-340 references and includes two MLINE consumers.",
+    "physicalChecks": "Check STYLE provider names, identities, flags and files; LTYPE group-73 count and group-40 total; ordered group-49/74/75 values; ordered group-340 remaps; segment placement fields and text payload; MLINESTYLE references and both consumer records.",
+    "readback": "Fresh import verifies the ordered text/shape DRW_LTypeSegment models, their distinct remapped STYLE handles and metadata, and the MLINE consumer profile.",
+    "failureControls": "Remove each STYLE provider in turn. Each missing-provider case refuses output while preserving the destination sentinel and caller/provider state. Restore the provider and retry with the same adapter; output and readback pass."
+  },
+  "implementation": {
+    "files": [
+      "CMakeLists.txt",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "change": "Generalize the existing runtime recipe and proof for either segment ordering, add a focused reverse-order CTest selector, and retain the existing shape-then-text regression selector. No production behavior changed because the reader/writer already handled this exact ordering.",
+    "fixturePolicy": "All source and output DXFs are authored at runtime in a temporary directory and removed after success. No drawing fixture was committed."
+  },
+  "sourceBindings": {
+    "implementationCommit": "3f16031613489bce0a980df3485508111478c749",
+    "CMakeLists.txt": "9c7ef414636713337ea507eefe063969080b181ec4a9e083e86ba5c4b81901c5",
+    "tests/dxf_fixture_tests.cpp": "090bd1420c6e94b5a79f4cd03a9f1797239cc32c8bf9a68174dfd24f999f2233",
+    "testExecutableSha256": "0e196f335036a76d48c9732c68af423d77068b96944db57328d08e6905f56ffc"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "toolchain": "CMake 4.4.4, Unix Makefiles, AppleClang 21.0.0.21000334 via /usr/bin/g++, -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": [
+      {
+        "result": "PASS",
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_reverse_shape_text$' --output-on-failure",
+        "summary": "1/1 passed; four ASCII/binary source/output combinations, twelve successful output/readback checks including retries, eight missing-provider refusals and eight same-adapter retries."
+      },
+      {
+        "result": "PASS",
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_mixed_segments$' --output-on-failure",
+        "summary": "1/1 passed; existing forward shape/text and simple/text mixed-segment profiles remain green."
+      }
+    ],
+    "diffCheck": "git diff --check; PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Only the selected AC1027 two-segment text-then-shape profile is qualified; no other segment orders/counts, flags, provider variants or versions are implied.",
+    "SHX availability, shape-number semantics, native text/shape interpretation, rendered output and complete-document closure remain unqualified.",
+    "The support ledger remains closed; this receipt does not promote a format support claim."
+  ],
+  "next": "Select the next current distinguishing MLINESTYLE/consumer or LTYPE schema witness; retain separate boundaries for other segment sequences, provider metadata, versions and native rendering."
+}

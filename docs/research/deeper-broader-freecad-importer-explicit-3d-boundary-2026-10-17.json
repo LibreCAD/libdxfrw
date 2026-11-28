@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw-freecad-importer-explicit-3d-boundary-review-v1",
+  "title": "Deeper/broader FreeCAD importer-source and explicit-3D consumer boundary",
+  "date": "2026-10-17",
+  "status": "research_only",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Inspect current FreeCAD C++ DXF importer shape dispatch and the DWG wrapper handoff.",
+    "Reconcile source-level consumer applicability with existing explicit-geometry, 2D compatibility, and ACIS/ACDS evidence gates.",
+    "Refresh relevant open-source peer status without duplicating existing findings or promoting support."
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp#L3484-L3516",
+      "kind": "primary_consumer_source",
+      "observed": "The generic geometry-builder fallback creates a Part::Feature and comments 3DFACE as an example. A search of this source file found no explicit MESH or 3DSOLID dispatch strings.",
+      "does_not_establish": [
+        "Runtime acceptance or geometric fidelity of 3DFACE on every FreeCAD build.",
+        "Absence of MESH or 3DSOLID handling from every FreeCAD importer, add-on, or alternate route.",
+        "ACIS/SAB parsing, DWG AcDs ownership, or B-rep semantic support."
+      ]
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py#L1138-L1167",
+      "kind": "primary_consumer_source",
+      "observed": "The DWG open route calls convertToDxf() and then delegates the produced path to importDXF.open().",
+      "does_not_establish": [
+        "Successful converter exit or correct converter output based only on a returned path.",
+        "Direct DWG parsing by FreeCAD.",
+        "Semantic correctness of the resulting FreeCAD document."
+      ]
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/issues",
+      "kind": "peer_issue_index",
+      "observed": "Issues #123, #124, #125, #127, and #130–#135 include peer-reported bounds/count, angle-unit, ownership, object-loss, codepage, TABLE, MLeader-context, and class/version-specific parsing behavior. These map to existing local plan owners.",
+      "does_not_establish": [
+        "A matching libdxfrw defect.",
+        "A released peer fix unless its exact package contains it and is independently rerun.",
+        "A format rule or universal support claim."
+      ]
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "kind": "peer_release_record",
+      "observed": "Signed v3.8.0 at 3a1c66b is the latest formal release identified in this review; its listed change is assembly visibility.",
+      "does_not_establish": [
+        "ACIS DXF writer support from open PR #1240.",
+        "Per-family or semantic correctness for every advertised version."
+      ]
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+      "kind": "peer_change_candidate",
+      "observed": "PR #1240 remains distinct open ACIS-writer work, not part of the released baseline identified here.",
+      "does_not_establish": [
+        "Released peer behavior.",
+        "Independent SAT/SAB or B-rep semantics."
+      ]
+    }
+  ],
+  "plan_changes": [
+    "Refine the existing native FreeCAD consumer matrix to include a minimal explicit 3DFACE case as a source-supported candidate route, alongside the existing common-2D controls.",
+    "Keep MESH, inline SAT/SAB, and DWG AcDs/SAB as separate applicability rows; source-file search absence is not treated as a complete negative runtime result.",
+    "Keep direct DXF import separate from DWG-to-DXF conversion followed by FreeCAD import; capture converter identity, status, output identity/version, and diagnostics before judging imported semantics.",
+    "Reuse existing peer issue owners and preserve the current focused-per-slice / composed-native-checkpoint cadence."
+  ],
+  "plan_impact": {
+    "findings_added": 0,
+    "top_level_subplans_added": 0,
+    "implementation_order_changed": false,
+    "required_tests_added": 0,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "peer_or_native_runtime_run": false,
+    "support_claims_promoted": 0,
+    "findings_subplans": "128/71",
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "local_tests_run": false,
+    "freecad_runtime_run": false,
+    "peer_runtime_run": false,
+    "external_drawings_downloaded": 0,
+    "fixtures_or_dependencies_added": false,
+    "production_code_changed": false
+  },
+  "limitations": [
+    "FreeCAD main and peer issue/release pages are mutable; exact revisions must be captured before a runtime comparison.",
+    "The C++ importer source dispatch is only one route and does not establish complete FreeCAD consumer capabilities.",
+    "No local defect or independent semantic 3D support claim is inferred."
+  ]
+}

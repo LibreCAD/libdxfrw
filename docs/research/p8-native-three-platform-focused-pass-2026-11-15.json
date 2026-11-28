@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-15",
+  "workflow": "https://github.com/dxli/libdxfrw/actions/runs/43726888462",
+  "sourceCommit": "d2b65bd6642870169680267f999a58eb0f068203",
+  "implementationDigestSha256": "2a9aaf788c255f97437815a187c6b12e7c4ae1284ad7d0909fe7aebccbf223f4",
+  "results": {
+    "linux-gcc": "7/7 focused tests passed; receipt sealed and post-upload verified",
+    "macos-clang": "7/7 focused tests passed; receipt sealed and post-upload verified",
+    "windows-msvc": "7/7 focused tests passed; receipt sealed and post-upload verified"
+  },
+  "limits": "Applies only to the recorded revision, platforms and focused suite. Source changes after this revision require a fresh digest and rerun; broad suites, ABI, packaging, and other evidence gates remain open. No support claims are promoted.",
+  "viewportFixRerun": {
+    "sourceCommit": "7ecc8fb96be02228946d48a92bcb561294be3bec",
+    "workflow": "https://github.com/dxli/libdxfrw/actions/runs/43728273573",
+    "conclusion": "success; same focused platform coverage and limits as the initial result"
+  },
+  "compatibilityFixRerun": {
+    "sourceCommit": "c32a4dac9193ef02958c1518e6aeeea647d5aa6e",
+    "workflow": "https://github.com/dxli/libdxfrw/actions/runs/43731499472",
+    "conclusion": "success; same focused platform coverage and limits as initial result",
+    "implementationDigestSha256": "95f8f297b7f49195479b92b869942f1480b228d35cfca74049416dc0f2ff65ed"
+  }
+}

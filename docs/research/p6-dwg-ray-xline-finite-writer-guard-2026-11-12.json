@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-dwg-ray-xline-finite-writer-guard-2026-11-12",
+  "purpose": "Reject non-finite DWG RAY and XLINE origins or direction vectors before publishing output.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.42 RAY (object type 40)", "20.4.43 XLINE (object type 41)"],
+    "pages": [151, 152],
+    "localPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "wireMapping": "Both entities carry a 3BD point and a 3BD vector; XLINE uses the same body as RAY except for its type code.",
+    "consistencyEvidence": "The shared bounded DWG parser already refuses non-finite point/vector components."
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The shared RAY/XLINE DWG encoder requires finite origin and vector components before it stages output. It does not change the existing zero-vector policy.",
+    "scope": "Writer admission only; reader behavior unchanged."
+  },
+  "generatedControls": {
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "entities": ["RAY", "XLINE"],
+    "refusedProfiles": ["NaN origin", "infinite origin", "NaN vector", "infinite vector"],
+    "failureRetry": "Each refusal preserves a seeded destination; corrected same-writer output reads back the exact origin/vector with zero entity/object parse failures.",
+    "fixturePolicy": "All drawings are generated in scratch storage; no fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j6 PASS",
+    "focusedSelector": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_ray_xline_finite_admission$' --output-on-failure PASS 1/1 in 0.43 seconds"
+  },
+  "limitations": [
+    "This is bounded writer refusal/retry/readback evidence, not native ray/xline behavior or source prevalence.",
+    "The broader P6 no-loss and whole-document gates remain open."
+  ],
+  "supportClaimEffect": "Closes a bounded DWG RAY/XLINE finite-field writer gap; no broad support claim is promoted."
+}

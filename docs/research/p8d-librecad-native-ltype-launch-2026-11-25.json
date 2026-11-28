@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-native-ltype-launch-2026-11-25",
+  "status": "CURRENT_BUILD_PASS_GUI_STALLED_IN_LIBRARY_SCAN",
+  "supportClaimEffect": "none",
+  "consumer": {"pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289", "head": "5969364fe4d9a51b0bc1a935140fe9a62f6adcdc"},
+  "dependencyImplementationDigest": "2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21",
+  "build": {
+    "host": "macOS 27.2.1 arm64",
+    "result": "PASS: cmake --build /private/tmp/librecad-pr3289-refresh-build-20261125 --target librecad",
+    "executableSha256": "f9d0bc1200914afd93de15f4f7acd8960ad12a95cd121081247c1c9186a991e0",
+    "linkedLibrary": "@rpath/libdxfrw.3.dylib",
+    "installedLibrarySha256": "d7f595613e0ef5106c485708348e120c5c93c000c5d11989d2e6b7370cb5efff"
+  },
+  "input": {"path": "/private/tmp/p8d-native-ltype-20261125/source.dxf", "sha256": "e32176333101a243ac5968a8e551096d1e9d872ad8f348f82b0f0bba72f10acc", "provenance": "locally created from scratch with ezdxf 1.4.5; custom P8D_CUSTOM linetype, P8D_LAYER and one LINE; ezdxf audit has zero errors"},
+  "observations": [
+    "IOConsoleLocked was No and a separate ODA GUI performed a successful conversion, but selecting the exact LibreCAD bundle in Computer Use timed out twice before a window was available.",
+    "A two-second sample of the launched executable showed the main thread waiting in QG_LibraryWidget::scanTree -> appendTree -> QDir::entryList -> open; the sample is /private/tmp/p8d-librecad-gui-attach-sample-20261125.txt, SHA-256 cb51c813f1c931642e6704dc633befeae7a0355ceb79af07f8c55486a66af56a. The exact blocking path is not identified.",
+    "The isolated test process was stopped. No file was opened or saved in its GUI; no user library settings or other running LibreCAD processes were changed."
+  ],
+  "limits": [
+    "The generated input is scratch-only. There is no native save, reopen, editing or visual evidence from this attempt.",
+    "The on-disk installed library hash and link name alone do not prove runtime loading by the stalled process.",
+    "Native GUI, other platforms and all unqualified support claims remain open."
+  ]
+}

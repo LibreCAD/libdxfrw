@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-08",
+  "topic": "R24 TABLESTYLE per-style text-height transport",
+  "status": "bounded_generated_writer_readback_pass",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.101.3",
+    "field": "BD group 144 content text height"
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "sha256": "3f3eeac7c0b6d38f9b3fab0c0554e688247b7e672aaaf82c8c46442332d13139",
+    "profile": "R24 TABLESTYLE title/header/data styles retain their exact identity, alignment and other field gates; each content text height now admits any finite nonnegative value."
+  },
+  "control": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "sha256": "cbdb58eca2579d897b88c2eb984d8ffdc347dd4a4dbe4599bce0a5f60d397543",
+    "selector": "--tablestyle-r24-typed-writer",
+    "generated_from_scratch": true,
+    "profile": {
+      "encodings": ["ASCII", "Binary"],
+      "titleHeight": 0.31,
+      "headerHeight": 0.42,
+      "dataHeight": 0.53
+    },
+    "checks": [
+      "Typed readback preserves every per-style text height and the raw group-144 sequence is compared against the source style order.",
+      "Negative and infinite text heights are refused while preserving the destination sentinel.",
+      "The corrected profile succeeds on the same adapter after refusal."
+    ],
+    "fixture_policy": "No DWG/DXF fixture is committed; output is temporary and removed."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "test": "ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+    "result": "passed; 1/1 selected CTest, 1.85 seconds"
+  },
+  "limits": [
+    "This is generated field-transport and typed-readback evidence only.",
+    "Native font/layout/rendering semantics, physical DWG producer profiles, and whole-source conversion remain open.",
+    "Other R24 TABLESTYLE schema fields retain their existing gates."
+  ]
+}

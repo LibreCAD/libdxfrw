@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-native-image-picking-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "d07014c302c9494d4bea44070daf9ac844025bee",
+  "codecTestInclusiveDigest": "af2d9e8a1f4866db44def162e69f1c974fc3b08dbd0f263a4100431460e473ea",
+  "scope": "Selected manually observed pointer selection in the isolated macOS ARM64 LibreCAD build, with a locally generated 18-vertex IMAGE.",
+  "checks": [
+    "In the normal clipped drawing, clicking the visible polygon selected one IMAGE; clicking a point in the clipped-out interior of the rectangular frame selected none and began a selection window.",
+    "With inverted clipping, clicking a visible pixel selected one IMAGE and clicking the central clipped-out polygon selected none. Clicking the visible pixel again deselected it.",
+    "In the skewed output reopened from a prior native save, clicking the visible polygon selected one IMAGE; after deselection a point inside the image parallelogram but well outside the clip selected none. Clicking the image frame corner selected the image, even though that frame lay outside the visible polygon.",
+    "The application was built with a scratch-only settings organization and separate signed bundle. Inputs and raster were locally created and no drawing fixture was committed."
+  ],
+  "sha256": {
+    "normalInput": "110ece461e4ce3cae9f96e53c04ef0339a01c15180cf4130260d60252c89a001",
+    "inverseInput": "dbe3b0bb17890e6d54004facc82f0e3c34333d41d0ac43dde473220fd8b80cfe",
+    "skewOutput": "cace5e152829623444c213d5ab2409e6a52dd78f5f9f29b20578de0b8cc88f9c",
+    "raster": "cc9ba2ba453ba7b9b081582448117dd74b29c80d56f0c64b733d65ec7736d28b",
+    "nativeBinary": "fbb63c8abbfeea20145b01589949411faa4448d11d269515ef474b5846c9165d",
+    "sharedCodec": "dc4c9d0c9f396fe49d11e898d44692272e0230f1099213a75e2e58a22c2ea681"
+  },
+  "limits": [
+    "These are selected pointer clicks, not an exhaustive selection tolerance, snapping, window/crossing selection, move/copy, undo/redo or boundary semantics check.",
+    "The image frame remains selectable even where its pixels are clipped; the selected outline follows the image parallelogram.",
+    "Other image graph profiles, independent producers, printing, Linux and Windows GUI behavior remain unqualified."
+  ]
+}

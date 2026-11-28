@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-16",
+  "scope": "Extend the existing explicit source-independent canonical-layer opt-in to the generated two-layer 0/Defpoints profile in AC1021 and AC1027, tied to the staged Global material and default Normal plot-style graphs.",
+  "authority": [
+    "ODA Open Design Specification v5.4.1 sections 2.13, 20.1, 20.4.53 and 20.4.54 define handle roles, LAYER control membership and LAYER references.",
+    "The predecessor physical-source and generated single-layer evidence is in docs/research/p6-ac1027-canonical-layer-default-graph-optin-2026-11-15.json and docs/research/p6-ac1018plus-layer-body-handle-role-spans-2026-11-09.json."
+  ],
+  "implementation": [
+    "The per-layer optional provider admits only newly authored layer 0 and Defpoints, a staged Global material, the staged default plot-style placeholder, bounded null/common state and no retained source links. It stages at most two selected layers. AC1027 normalizes the trailing hard-pointer null; AC1021 and AC1024 refuse nondefault state for the unrepresented trailing field rather than discard it.",
+    "The material conflict guard accepts additional AC1021/AC1027 Global-material edges only for selected canonical layer handles, in the layer handle stream, with the expected unique occurrence. Non-opted-in queued layers retain their existing refusal.",
+    "Emitted layer roles and frame versions are checked before publication. AC1021 has its LAYER handle stream merged into the data segment at the exact bit boundary; its staged Normal dictionary and placeholder each have the observed single reactor, while AC1024/AC1027 retain their existing no-reactor profile checks. NOD, dictionary, default pointer, placeholder owner, material graph and unique frame identities remain required.",
+    "No DRW_Interface virtual or public data-class layout changed; callers not using the opt-in keep their existing behavior."
+  ],
+  "validation": [
+    "The focused default-material test writes the selected two-layer source at AC1021 and AC1027 and imports it afresh, checking both names, missing-extension flags, xref/material/plotstyle/linetype handle roles and targets, and the AC1027 trailing typed null.",
+    "Each selected profile tests eight invalid second-layer states with preexisting-destination preservation, caller-state preservation and same-writer corrected retries. AC1021 additionally refuses two explicit typed forms for its unrepresented trailing field. Without the opt-in, a queued extra Global-material layer is still refused and same-writer retry succeeds. AC1024 tests now refuse an unrepresented trailing reference and explicit typed-null variants without altering caller state.",
+    "Focused CTest selectors libdxfrw_dwg_default_material_optin, libdxfrw_dwg_default_plotstyle_optin, libdxfrw_dwg_ac1024_layer_source_binding and libdxfrw_ac1018plus_layer_body_handle_roles pass (4/4); LC3 compatibility target builds. Build inventory and qualification workflow self-checks pass.",
+    "ODA File Converter 27.1.0 converted the exact final AC1021 and AC1027 from-scratch generated DWGs to ACAD2013 DXF without .err. LibreDWG 0.14 independently confirmed both source layers, exact H5 xref, material, plotstyle and linetype roles and the AC1027 H5 trailing null. ezdxf 1.4.5 read the ODA output and confirmed each layer references Global MATERIAL 0x35 and ACDBPLACEHOLDER 0x31 (owner 0x30), with one LINE.",
+    "Run build-gcc/tests/libdxfrw_dwg_default_material_optin_tests --keep to create canonical-layers-ac1021.dwg and canonical-layers-ac1027.dwg in the reported temporary directory, then convert with ODA and inspect with dwgread -O minJSON and ezdxf. No DWG or DXF fixture is committed."
+  ],
+  "artifacts": {
+    "AC1021": {
+      "generatedDwgSha256": "ec27ff8e775652a2b9033e75ee7d64b90b245ffa323fcd22a7dba5dff6110724",
+      "odaDxfSha256": "e0fa1233f7fec926e8fc0e550db1d6e1db0e3584b760cd2d92ea76d50316927f"
+    },
+    "AC1027": {
+      "generatedDwgSha256": "30b1be7a086db2da4bee36ffe58f5dd3f301fc72ca2388ea83e19b260f67c7d6",
+      "odaDxfSha256": "00cde1c2cf29d8b85a0f1158624183daaea70ecf78713c378a4b0b50f75b0c20"
+    }
+  },
+  "implementationDigestSha256": "c972bc191ea5403a84f225a98a3b01de7d0022c26b1bfcfe35da8722b1e258b7",
+  "limits": "Two generated layers, one producer path, one independent converter version and selected graph only. Additional layer names/counts, imported layer replay, arbitrary graph dependencies, native material/plot rendering and broad version/platform support remain open. P4\u2013P8 phase gates stay open and J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL. No support claim is promoted."
+}

@@ -1,0 +1,395 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-ac1024-minsert-partial-handoff-2026-11-28",
+  "supportClaimEffect": "none",
+  "sourceCommit": "5f2c23a13ce540aaedd22240122e42932194123c",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "42 ordered local FreeCAD patches, macOS ARM64 headless",
+  "oda": {
+    "version": "27.1.0.0",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+  },
+  "dwg2dxf": {
+    "source": "fresh local no-tests CMake build at sourceCommit",
+    "executableSha256": "4ee79e55efb9987707e4446bf6dd00290cc15a5bc7ef082a63738acd2e1a3f59",
+    "implementationDigestSha256": "6ed769a92102592d9315792c80c9bfdc74a8c75222ec4b311b625d683dfc4c8b"
+  },
+  "artifacts": {
+    "locallyAuthoredEzdxfSourceSha256": "0fddbc89f4d1f0e3e68f09093bb8f8ad222c2fb774ef823d3f2e87a13cfdbe23",
+    "odaAc1024DwgSha256": "9a6b5a277068d2182e101a07d4135d6cdf3ffa8d9759016eaf0dee419aa0dfe5",
+    "odaDxFReadbackSha256": "7ae1d5a5ed75496a1347def8512289845e6451e4b5d5fff7085a96c4e13cdd41",
+    "partialDxFSha256": "7c1f1e7171bf9a614e7ab916cc27bbfa9e76d5c376b777e11be0feab60d0996f",
+    "probeSha256": "1fb72edec8c83687935234475c5699e13c9d853e7764694823869b2b01b49418",
+    "freecadImportModuleSha256": "6688958fb804a0ba4f7303f003d5dbd6cbab4b4dc6df386f8325317d108aeb62"
+  },
+  "checks": [
+    "The locally authored meter-unit DXF contains a 3-by-2 rotated, scaled and tilted INSERT array. ODA File Converter 27.1.0 generated AC1024 DWG and converted it back to DXF; ezdxf 1.4.5 audits the ODA readback without errors or fixes and independently recovers all six selected line endpoint pairs.",
+    "Strict libdxfrw dwg2dxf failed before publication and preserved the existing destination. Its integrity receipt identifies a HEADER end-offset disagreement and an unclassified 739-byte suffix; these remain strict-output blockers.",
+    "Explicit partial mode succeeded in a separate CLI process. A second CLI attempt against the previously preserved destination also succeeded and produced byte-identical output. This is a policy-change retry, not a same-reader corrected-source retry or evidence of whole-file completeness.",
+    "ezdxf audits the partial DXF without errors or fixes and recovers the selected array counts, spacing, rotation, extrusion, units and all six line endpoint pairs. The source-bound FreeCADCmd probe imports both ODA and partial DXF outputs in modes 2 and 3, comparing six endpoints in millimeters; all four checks pass. A wrong input hash is refused.",
+    "No drawing fixture was committed; paths and generated data are scratch-only."
+  ],
+  "freecadOdaProbe": {
+    "freecadVersion": [
+      "27",
+      "1",
+      "0",
+      "Dev Build",
+      "Dev Build",
+      "Dev Build"
+    ],
+    "importModule": "/private/tmp/freecad-477a704-headless-build-20261127/Mod/Import/Import.so",
+    "input": "/private/tmp/freecad-minsert-oda-20261128/dxf/minsert.dxf",
+    "inputSha256": "7ae1d5a5ed75496a1347def8512289845e6451e4b5d5fff7085a96c4e13cdd41",
+    "machine": "arm64",
+    "ok": true,
+    "platform": "macOS-27.2.1-arm64-arm-64bit",
+    "results": [
+      {
+        "edges": 6,
+        "endpoints": [
+          [
+            [
+              -10000.0,
+              30000.0,
+              20000.0
+            ],
+            [
+              -10000.0,
+              30000.0,
+              22000.0
+            ]
+          ],
+          [
+            [
+              -10000.0,
+              30000.0,
+              25000.0
+            ],
+            [
+              -10000.0,
+              30000.0,
+              27000.0
+            ]
+          ],
+          [
+            [
+              -10000.0,
+              30000.0,
+              30000.0
+            ],
+            [
+              -10000.0,
+              30000.0,
+              32000.0
+            ]
+          ],
+          [
+            [
+              -3000.0,
+              30000.0,
+              20000.0
+            ],
+            [
+              -3000.0,
+              30000.0,
+              22000.0
+            ]
+          ],
+          [
+            [
+              -3000.0,
+              30000.0,
+              25000.0
+            ],
+            [
+              -3000.0,
+              30000.0,
+              27000.0
+            ]
+          ],
+          [
+            [
+              -3000.0,
+              30000.0,
+              30000.0
+            ],
+            [
+              -3000.0,
+              30000.0,
+              32000.0
+            ]
+          ]
+        ],
+        "mode": 2,
+        "ok": true,
+        "unsupported": {}
+      },
+      {
+        "edges": 6,
+        "endpoints": [
+          [
+            [
+              -10000.0,
+              30000.0,
+              20000.0
+            ],
+            [
+              -10000.0,
+              30000.0,
+              22000.0
+            ]
+          ],
+          [
+            [
+              -10000.0,
+              30000.0,
+              25000.0
+            ],
+            [
+              -10000.0,
+              30000.0,
+              27000.0
+            ]
+          ],
+          [
+            [
+              -10000.0,
+              30000.0,
+              30000.0
+            ],
+            [
+              -10000.0,
+              30000.0,
+              32000.0
+            ]
+          ],
+          [
+            [
+              -3000.0,
+              30000.0,
+              20000.0
+            ],
+            [
+              -3000.0,
+              30000.0,
+              22000.0
+            ]
+          ],
+          [
+            [
+              -3000.0,
+              30000.0,
+              25000.0
+            ],
+            [
+              -3000.0,
+              30000.0,
+              27000.0
+            ]
+          ],
+          [
+            [
+              -3000.0,
+              30000.0,
+              30000.0
+            ],
+            [
+              -3000.0,
+              30000.0,
+              32000.0
+            ]
+          ]
+        ],
+        "mode": 3,
+        "ok": true,
+        "unsupported": {}
+      }
+    ],
+    "scope": "selected headless array geometry only"
+  },
+  "freecadPartialProbe": {
+    "freecadVersion": [
+      "27",
+      "1",
+      "0",
+      "Dev Build",
+      "Dev Build",
+      "Dev Build"
+    ],
+    "importModule": "/private/tmp/freecad-477a704-headless-build-20261127/Mod/Import/Import.so",
+    "input": "/private/tmp/freecad-minsert-oda-20261128/partial.dxf",
+    "inputSha256": "7c1f1e7171bf9a614e7ab916cc27bbfa9e76d5c376b777e11be0feab60d0996f",
+    "machine": "arm64",
+    "ok": true,
+    "platform": "macOS-27.2.1-arm64-arm-64bit",
+    "results": [
+      {
+        "edges": 6,
+        "endpoints": [
+          [
+            [
+              -10000.0,
+              30000.0,
+              20000.0
+            ],
+            [
+              -10000.0,
+              30000.0,
+              22000.0
+            ]
+          ],
+          [
+            [
+              -10000.0,
+              30000.0,
+              25000.0
+            ],
+            [
+              -10000.0,
+              30000.0,
+              27000.0
+            ]
+          ],
+          [
+            [
+              -10000.0,
+              30000.0,
+              30000.0
+            ],
+            [
+              -10000.0,
+              30000.0,
+              32000.0
+            ]
+          ],
+          [
+            [
+              -3000.0,
+              30000.0,
+              20000.0
+            ],
+            [
+              -3000.0,
+              30000.0,
+              22000.0
+            ]
+          ],
+          [
+            [
+              -3000.0,
+              30000.0,
+              25000.0
+            ],
+            [
+              -3000.0,
+              30000.0,
+              27000.0
+            ]
+          ],
+          [
+            [
+              -3000.0,
+              30000.0,
+              30000.0
+            ],
+            [
+              -3000.0,
+              30000.0,
+              32000.0
+            ]
+          ]
+        ],
+        "mode": 2,
+        "ok": true,
+        "unsupported": {}
+      },
+      {
+        "edges": 6,
+        "endpoints": [
+          [
+            [
+              -10000.0,
+              30000.0,
+              20000.0
+            ],
+            [
+              -10000.0,
+              30000.0,
+              22000.0
+            ]
+          ],
+          [
+            [
+              -10000.0,
+              30000.0,
+              25000.0
+            ],
+            [
+              -10000.0,
+              30000.0,
+              27000.0
+            ]
+          ],
+          [
+            [
+              -10000.0,
+              30000.0,
+              30000.0
+            ],
+            [
+              -10000.0,
+              30000.0,
+              32000.0
+            ]
+          ],
+          [
+            [
+              -3000.0,
+              30000.0,
+              20000.0
+            ],
+            [
+              -3000.0,
+              30000.0,
+              22000.0
+            ]
+          ],
+          [
+            [
+              -3000.0,
+              30000.0,
+              25000.0
+            ],
+            [
+              -3000.0,
+              30000.0,
+              27000.0
+            ]
+          ],
+          [
+            [
+              -3000.0,
+              30000.0,
+              30000.0
+            ],
+            [
+              -3000.0,
+              30000.0,
+              32000.0
+            ]
+          ]
+        ],
+        "mode": 3,
+        "ok": true,
+        "unsupported": {}
+      }
+    ],
+    "scope": "selected headless array geometry only"
+  },
+  "limits": [
+    "The generated input has one array and one LINE block, not a producer-authored complex drawing; array attributes, general graph preservation and actual Draft or GUI rendering are not established.",
+    "The partial flag permits omitted or unmodeled content; successful selected geometry, zero ezdxf fixes, and 159 observed published frames do not prove complete source semantics or native AutoCAD acceptance. Strict conversion remains refused.",
+    "The FreeCAD 42-patch candidate is locally patched and has not been tested for this profile on Linux or Windows."
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-dxf-proxy-object-payload-grammar-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Correct the recognized ACAD_PROXY_OBJECT DXF grammar so its data bit-size and bytes are not misread as proxy-entity graphics, while preserving the entity-specific group-92 route.",
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-F59F0EC3-D34D-4C1A-91AC-7FDA569EF016.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-89A690F9-E859-4D57-89EA-750F3FB76C6B.htm"
+  ],
+  "formatContract": {
+    "proxyEntity": "Group 92 is graphics byte size; group 310 chunks carry graphics. Group 93 is entity-data bit size and following group 310 chunks carry entity data.",
+    "proxyObject": "Group 93 is object-data bit size and group 310 chunks carry object data. Group 92 is explicitly unused; proxy objects have no graphics."
+  },
+  "implementation": {
+    "productionChange": "collectProxyDxfGroup rejects group 92 in the recognized proxy-object subclass before typed/raw callback publication; proxy-entity group-92 handling is unchanged.",
+    "testChanges": [
+      "Generated ASCII/binary object and entity payload controls check their distinct group-92/group-93 storage lanes.",
+      "Generated ASCII/binary proxy-object input using entity-only group 92 is rejected before either callback.",
+      "Proxy-object 93-bit-count mismatch rejects before callbacks.",
+      "Existing retained-budget ASCII/binary object controls now use group 93 with 16 bits and assert m_objectData plus an empty m_binaryData."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target libdxfrw_hardening_tests -j4",
+      "result": "passed"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "failed",
+      "unrelatedFailures": [
+        "DICTIONARYWDFLT copy clears default-entry parser state",
+        "DICTIONARYWDFLT assignment clears default-entry parser state",
+        "AcDs bodies bind by handle across distinct block owners and record orders"
+      ],
+      "proxyAssertionFailures": 0
+    },
+    "fullSuitesOrSanitizersRun": false,
+    "diffCheck": "passed for src/libdxfrw.cpp, tests/hardening_tests.cpp, and DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  },
+  "planImpact": {
+    "existingOwnersOnly": [
+      "PAR-20",
+      "PAR-36",
+      "7F",
+      "7G",
+      "existing proxy-capture fast tests"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 122,
+      "topLevelSubplans": 70
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

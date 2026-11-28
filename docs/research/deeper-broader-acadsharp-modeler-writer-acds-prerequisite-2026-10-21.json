@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "ACadSharp modeler-writer PR and ACDS prerequisite status",
+  "mode": "Deeper/broader primary-source research and implementation-readiness update",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "originMaster": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "worktreeState": "Broadly modified and uncommitted before this pass. This pass changed only DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md and this receipt; no unrelated edits were reverted or staged.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acadsharp-modeler-writer-acds-prerequisite-2026-10-21.json"
+    ],
+    "validation": {
+      "planDiffCheckBeforeEdit": "PASS",
+      "postEditPlanDiffCheck": "PASS: git diff --check for the plan and receipt paths"
+    }
+  },
+  "sources": [
+    {
+      "project": "ACadSharp issue #1195 and PR #1240",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "observation": "As viewed 2026-10-21, both issue #1195 and PR #1240 are open. The issue reports DWG-read 3DSOLID/REGION records silently omitted by DXF writing. The nine-commit PR describes support for Region, CadBody, Solid3D and its commit summaries include DwgObjectWriter modeler-geometry/ACIS serialization, version checks, wireframes, silhouettes, GUID metadata, and warnings for unsupported binary data. The PR depends on #1174.",
+      "evidenceCeiling": "Mutable unmerged PR/issue state; commit descriptions and user report, no branch checkout or test run.",
+      "planDisposition": "Do not treat the feature branch as released capability. Test DWG read, DXF write, DWG write, actual target version, and per-handle disposition as separate route cells after pinning base/head SHAs."
+    },
+    {
+      "project": "ACadSharp PR #1174 ACDS/ACIS schema and storage refactor",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "observation": "The PR remained open in the reviewed page. A public review comment reports that its .NET 9 branch test failed in DxfAcdsDataSectionTests.ReadAcdsDataAttachesAcisPayloadToOwnerEntity because readAcdsRecord threw NotImplementedException; the commenter reports post-2013 DXF payload loss on that tested branch.",
+      "evidenceCeiling": "Branch-specific review comment and test report; not a reproduction against current master or a later exact head.",
+      "planDisposition": "Treat #1174 as an unmet prerequisite until exact candidate head builds and passes a direct entity-owner-key-payload attachment test; record NOT_QUALIFIED and continue local work if unavailable or failing."
+    },
+    {
+      "project": "LibreDWG current NEWS and issue #1411",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observation": "Current project release notes continue to describe modern R2013+ AcDs/Prototype_1b as incomplete and SAB extraction as limited; issue #1411 is a separate version/build-specific reported loss path.",
+      "evidenceCeiling": "Project source/release documentation and unresolved issue; no peer artifact or local output tested.",
+      "planDisposition": "Use only as a pinned structural comparator; a current source path or entity shell does not prove correct data-store association or modeler semantics."
+    },
+    {
+      "project": "ezdxf ACIS documentation",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observation": "The documentation says ezdxf has no ACIS kernel and restricts its ACIS tools to simple, known structures and extraction of flat polygonal-face geometry; it explicitly disclaims arbitrary ACIS loading/editing.",
+      "evidenceCeiling": "Project capability documentation, not a run against libdxfrw output.",
+      "planDisposition": "Retain as a bounded carrier/topology/mesh observer, not a general ACIS B-rep or independent semantic oracle."
+    }
+  ],
+  "assessment": {
+    "existingOwners": [
+      "PAR-07/S8 modeler carrier, AcDs association, semantic, and consumer evidence",
+      "PAR-59 staged modeler-loss attribution",
+      "PAR-144 optional peer checkpoint"
+    ],
+    "newFinding": null,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerBinariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "testsRun": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "defaultAction": "Continue local owning fast tests; do not build or install a peer in the per-slice loop.",
+    "sequence": [
+      "Pin exact ACadSharp base/head commits and identify whether #1174 and #1240 are included.",
+      "Prove ACDS schema/index/key to exact owner entity and payload-byte attachment on the candidate head.",
+      "Evaluate DWG read, DXF write, and DWG write in separate route cells and record actual output version and per-handle disposition.",
+      "Only after carrier and association closure, send exact bytes to a profile-matched semantic route with independent analytic expectations.",
+      "If candidate tests, external sample, or platform are unavailable, mark NOT_RUN/NOT_QUALIFIED and self-unblock to local implementation."
+    ],
+    "fixturesPolicy": "No external peer fixture copied; future generated controls must be made locally from scratch or use already eligible repository fixtures.",
+    "progressPolicy": "Existing self-update/self-unblock and progress-after-commit requirements remain unchanged."
+  },
+  "limitations": "The GitHub pages are mutable snapshots. The branch-specific #1174 test failure is reported by a public commenter and was not rerun. No peer branch was fetched or built, no local tests ran, and no external or native CAD tool was executed. This research updates comparator readiness only; it is not a local defect reproduction, format authority, or support promotion."
+}

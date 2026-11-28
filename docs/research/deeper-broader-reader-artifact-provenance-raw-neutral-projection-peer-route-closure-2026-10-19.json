@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Reader artifact provenance, native/raw versus neutral projection, and peer-route closure",
+  "mode": "Deeper/broader primary-source research and local plan crosswalk",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh the current published TNYCL/cadkit reader and DXF artifact evidence against its mutable repository documentation and provenance ledger",
+    "Separate native/raw DWG decode outcomes from neutral-model projection and DXF writer outcomes",
+    "Cross-check current ACadSharp and LibreDWG report families against existing libdxfrw owners",
+    "Refine the optional composed peer-comparison recipe without adding routine validation"
+  ],
+  "sources": [
+    {
+      "project": "TNYCL/cadkit",
+      "revision": "cadkit-dwg docs.rs 0.3.3 and cadkit-dxf crates.io/docs.rs 0.3.3, published 2026-10-16; mutable GitHub main reviewed 2026-10-19",
+      "urls": [
+        "https://github.com/TNYCL/cadkit",
+        "https://docs.rs/cadkit-dwg/0.3.3/cadkit_dwg/",
+        "https://docs.rs/crate/cadkit-dxf/0.3.3",
+        "https://github.com/TNYCL/cadkit/blob/main/docs/PROVENANCE.md",
+        "https://github.com/TNYCL/cadkit/blob/main/CHANGELOG.md",
+        "https://github.com/TNYCL/cadkit/blob/main/docs/ARCHITECTURE.md"
+      ],
+      "observed": "The published DWG reader API documents a native view retaining decoded object fields and raw bytes plus a separate projection into a neutral model. The repository README marks AC1012/R13 untested and documents DXF output but no DWG writer. The provenance ledger names ODA v5.4.1 and ACadSharp as knowledge/sample sources, attributes the R2007 LZ77/container route to ACadSharp, and describes an ACadSharp-derived public sample corpus. Repository changelog currently ends at 0.2.1 while package artifacts are 0.3.3.",
+      "evidenceCeiling": "Project declarations and package documentation only. The package-to-source commit, crate checksum and runtime behavior were not bound or executed. The route is not an independent normative authority, AC1012 qualification, DWG writer, ACIS/B-rep oracle, or support result."
+    },
+    {
+      "project": "ACadSharp",
+      "revision": "Current mutable issue board, release list and version/direction matrix reviewed 2026-10-19",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues",
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp#compatible-dwgdxf-versions"
+      ],
+      "observed": "The visible issue families include route- and version-specific reports about writer field/length loss, recursive parser depth, locale-sensitive codepage lookup, compound POLYLINE/VERTEX handling, 3DSOLID/REGION output omission, AC1032 INSERT loss and native rejection. They map to existing local parser-hardening, EED/XDATA, codepage, compound-record, modeler-loss-accounting and native-writer owners.",
+      "evidenceCeiling": "Issue-board reports and project matrices, not verified behavior of every current package or libdxfrw. No reporter file was fetched and no peer binary was run."
+    },
+    {
+      "project": "LibreDWG",
+      "revision": "0.14.1 NEWS, manual, and mutable open-issue index reviewed 2026-10-19",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/issues"
+      ],
+      "observed": "NEWS and manual disclose continuing version/direction limits alongside regression and security fixes; issue reports describe silent conversion incompleteness, block/entity traversal, malformed text framing, and modern AcDs/SAB loss. Existing local owners already cover the corresponding output closure, graph disposition, parser/text safety and carrier association questions.",
+      "evidenceCeiling": "Release documentation and version-scoped issue reports only. They do not establish current-master runtime behavior or a corresponding libdxfrw defect."
+    },
+    {
+      "project": "Open Design Alliance DWG specification",
+      "revision": "Open Design Specification for .dwg files v5.4.1, current authoritative reference named by repository instructions",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "observed": "The specification remains the byte-layout authority. Independent implementations may share this document, sample corpora or implementation lineage, so matching behavior corroborates implementation hypotheses but does not replace spec resolution.",
+      "evidenceCeiling": "Normative byte-layout reference for DWG fields, not a semantic ACIS kernel or native application acceptance result. No new byte-layout disagreement was tested in this research-only pass."
+    }
+  ],
+  "localEvidence": [
+    "The plan already contains a 139-finding / 77-subplan route-aware evidence ledger and maps the refreshed ACadSharp/LibreDWG report families to existing local owners.",
+    "The existing PAR-07/S8 route ledger separates source identity, native parse/capture, owner/reference closure, emitted carrier, independent reopen, semantic interpretation and consumer acceptance.",
+    "The useful delta is to require separate native/raw and neutral-projection dispositions when a candidate exposes both, and to bind package artifacts to immutable source/provenance before any optional composed run.",
+    "Existing generated local tests remain the per-slice validation path; optional peers and native applications remain at existing composed checkpoints."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newImplementationSlices": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "testsOrCtestRegistrationsAdded": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines the existing PAR-07/S8 optional peer recipe: exact package/source/toolchain/corpus binding; separate raw/native decode, neutral projection, output, strict reopen, semantic and native outcomes; no AC1012 eligibility from a matrix claim; no per-slice peer runtime. No new local finding or support claim."
+  },
+  "method": {
+    "kind": "Read-only internet primary-source review and local plan audit",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-reader-artifact-provenance-raw-neutral-projection-peer-route-closure-2026-10-19.json"
+    ],
+    "limitations": "Current candidate package docs and mutable repository documentation disagree in version and AC1012 qualification; package-to-source provenance remains unbound. Peer issues are self-reported, version-scoped and not local reproductions. No source file or drawing payload was inspected or executed."
+  },
+  "validation": {
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planSha256": "8e1bb8e5e013c8edce053fa31599f8ad6283002c8191efc0fef445a0f672286d"
+}

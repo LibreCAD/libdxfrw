@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "DBCOLOR DXF ACI output-domain guard",
+  "date": "2026-11-05",
+  "status": "BOUNDED_LOW_LEVEL_OUTPUT_DOMAIN_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Reject out-of-domain DBCOLOR group-62 ACI values before low-level DXF publication while preserving tolerant parsing and same-object correction/retry.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "§2.11 CmColor",
+    "finding": "The CMC color-index field is an ACI value; the documented indexed/by-block/by-layer domain is 0 through 256. A DWG CMC's always-zero CMC index is distinct from an optional DXF group-62 ACI fallback."
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "change": "DRW_DbColor DXF output now rejects a present group-62 colorIndex greater than 256 before writing. DXF parsing remains tolerant and retains the input value; no DWG-to-DXF fallback is inferred or synthesized.",
+    "testFile": "tests/wave1_tests.cpp",
+    "coverage": "ASCII and Binary controls accept and round-trip 0, 254, and 256 with true color in both group orders. Output rejects 257 and 65535 without publishing bytes or mutating the caller object; a corrected 254 record writes and reads back. RGB records without explicit group-62 presence still omit the optional group."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests -j3",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dbcolor_identity_remapping$' --output-on-failure",
+      "result": "PASS 1/1 in 0.51 seconds; selector exercises ASCII and Binary behavior."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "limitations": [
+    "This validates a low-level output domain only; it does not resolve DWG CMC to DXF ACI fallback behavior.",
+    "The DBCOLOR adapter source/output graph gate, complete source graph readback, and native color-book behavior remain open.",
+    "No new DWG/DXF fixture was added; test inputs are generated locally."
+  ]
+}

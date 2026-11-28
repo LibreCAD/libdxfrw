@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 DWG GROUP dictionary ownership writer slice",
+  "mode": "Local generated implementation and focused validation; uncommitted",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Move GROUP dictionary entries from the physical NOD to the nested ACAD_GROUP dictionary using a registration path distinct from generic NOD children.",
+    "Require one registered GROUP frame with matching dictionary key, handle, owner, and emitted member entities; remove the DWG direct-NOD name fallback.",
+    "Separate the DWG GROUP TV name from DXF group-300 description storage and validate generated zero/one GROUP graphs across supported writer versions."
+  ],
+  "implementation": {
+    "writerPath": "Added registerDwgGroupDictionaryEntry through dwgRW and dwgWriter; dwgWriter15 stages normalized unique (key, handle) pairs, emits them in the ACAD_GROUP DICTIONARY, retains dictionary/frame receipts through compound transaction rollback, and validates exact frame cardinality before completing the file.",
+    "groupFrame": "writeGroup now requires a registered exact name/handle, ACAD_GROUP parent, unique frame, unique member handles, and every member to already exist in the model/paper/user-block emitted entity lists. Failed GROUP writes latch whole-file failure.",
+    "payloadFields": "DRW_Group::parseDwg and encodeDwg use the inherited name for the DWG TV group name; m_description remains the DXF group-300 description field.",
+    "adapter": "resolveGroupNames no longer accepts direct-NOD aliases; it requires the nested dictionary and exact dictionary/group owner handles, then checks the DWG TV name against the dictionary key without overwriting it. DXF parsing resolves the name from the dictionary while retaining description separately.",
+    "generatedCoverage": "Added a focused selector and CTest. Zero/one GROUP cases are generated for AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032. AC1024 negatives cover direct-NOD alias registration in both orders, case-folded duplicate keys, unregistered GROUP frame, registered entry without frame, duplicate frame emission, wrong parent, and missing member. The positive case uses two ordered entities, distinct GROUP name/description values, flags, and a following XRECORD sentinel."
+  },
+  "changedFiles": [
+    "src/intern/dwgwriter.h",
+    "src/intern/dwgwriter15.h",
+    "src/intern/dwgwriter15.cpp",
+    "src/libdwgr.h",
+    "src/libdwgr.cpp",
+    "src/drw_objects.cpp",
+    "dwg2dxf/dx_iface.cpp",
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "tests/dwg_object_vectors_tests.cpp",
+    "CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "assessment": {
+    "existingPlanFindingRefined": "PAR-20/7G.3",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "localGeneratedWriterGraphSliceImplemented": true,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "persistentFixturesAdded": 0,
+    "temporaryGeneratedDrawingsAddedToRepository": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "remainingBoundary": "External producer variants, LibreCAD/LibreCAD_3 runtime integration, native CAD acceptance, root-entry reciprocity/layout graph work, and broader 3D semantics remain unqualified/open.",
+    "inventory": "141 findings / 78 top-level subplans",
+    "deferredExternalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "builds": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg_object_vectors_tests --parallel 2",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check --parallel 2",
+        "result": "PASS"
+      }
+    ],
+    "tests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_group_dictionary_controls$' --output-on-failure",
+        "result": "PASS (1/1; six-version positive matrix and AC1024 negative controls)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_group_adapter_roundtrip$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+        "result": "PASS (1/1)"
+      }
+    ],
+    "jsonValidation": "PASS (jq empty; no trailing whitespace)",
+    "gitDiffCheck": "PASS (git diff --check on scoped tracked changes)",
+    "fullSuiteRun": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "commitCreated": false,
+    "commitStatus": "Not attempted: .git is read-only in this environment; the shared worktree also contains extensive unrelated changes."
+  }
+}

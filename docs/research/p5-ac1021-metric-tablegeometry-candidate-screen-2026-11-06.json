@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 metric TABLEGEOMETRY candidate screen",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Determine whether the local AC1021 metric TABLE source can qualify a TABLEGEOMETRY source-span or output graph slice.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "provenance": "Pre-existing local corpus input; not added to the repository."
+  },
+  "observations": {
+    "reader": "The AC1021 trace reaches TABLE CadValue records but reports unsupported data type 48 at payload bit offsets 278726 and 312907; strict output stops at the FIELD/FIELDLIST serializer gate.",
+    "peer": "The available full JSON shows TABLE entities and does not expose a direct TABLEGEOMETRY object for this candidate.",
+    "specification": "ODA v5.4.1 §20.4.99 documents CadValue data-type flags 0, 1, 2, 4, 8, 16, 32, 64, 128, 256, and 512; the observed 48 is not in that set."
+  },
+  "decision": "Not eligible as TABLEGEOMETRY source-span, graph-closure, or output evidence. The TABLE candidate is incomplete at an unsupported CadValue type and lacks a direct TABLEGEOMETRY record in the peer JSON. Do not widen parser admission from this source.",
+  "implementationBoundary": {
+    "changed": "Plan candidate status and next action only.",
+    "notChanged": "No TABLE/TABLEGEOMETRY parser, writer, or support profile changed.",
+    "excluded": "Native TABLE rendering, physical nonzero TABLEGEOMETRY source spans, and target closure remain unqualified."
+  },
+  "validation": {
+    "tracePath": "/private/tmp/ac1021-fields-trace.log",
+    "traceSha256": "9b368c130ef112c4afa56730c3dda015d28d3b6ecfc2bde18bfd9eea77024256",
+    "fullSuites": "NOT RUN",
+    "fixturesCommitted": false
+  },
+  "nextAction": "Keep this source screened out. Continue only with a complete source-bound TABLE graph or a different ready implementation slice; require exact source spans, handle roles and target closure before changing TABLEGEOMETRY admission."
+}

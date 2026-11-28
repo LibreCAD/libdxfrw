@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-implementation-slice-receipt",
+  "date": "2026-10-16",
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "b266e1c65c10b6ae7dfef87405b7ef0a34147dc740f68730e2e5df6d7fef5320"
+  },
+  "slice": "7F.1b bind DWG outputReadback version to generated artifact",
+  "change": {
+    "runnerFile": "tools/run_qualified_differential_v2.py",
+    "runnerSha256": "459a86bb52073c3ba90a42f864b7b339f293ae6b0cd835f4b097f83a4b43a8f0",
+    "behavior": "validate_result binds attempted DWG outputReadback.sourceVersion to WRITE_RESULT.version; live validation also binds it to the independently inspected output artifact; pre-output write failures remain notRun/null"
+  },
+  "validation": {
+    "runnerSelfTest": "pass",
+    "syntheticMismatchedReadbackVersion": "rejected by schema validator",
+    "target": {
+      "lockCommit": "2043e5254fbf71729e97bd54e48a184153161ff2",
+      "writerOperation": "success",
+      "outputVersionHeader": "AC1024",
+      "writeResultVersion": "AC1024",
+      "readbackAvailability": "unavailable",
+      "readbackReason": "readerApiNotPresent",
+      "readbackSourceVersion": "AC1024",
+      "schema3ResultValidation": "pass",
+      "outputSha256": "a1abaae2260de87de8c307ace56d2070c8ed0a39877a518bedf2a5e2f96def57",
+      "outputByteSize": 179910
+    },
+    "standalone": {
+      "writerOperation": "success",
+      "outputVersionHeader": "AC1024",
+      "writeResultVersion": "AC1024",
+      "readbackAvailability": "available",
+      "readbackSourceVersion": "AC1024",
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "frameStatus": "finalizedComplete",
+      "sourceFrameCount": 26,
+      "schema3ResultValidation": "pass",
+      "outputSha256": "1448e966cc9f11a3205da0a80637a9804b2e4037d0f5bf7045da8f2c828dc634",
+      "outputByteSize": 179910
+    },
+    "outputDisposition": "locally generated scratch outputs under /private/tmp; not checked into repository",
+    "targetCompileContractMode": "direct-options-only",
+    "targetCompileContractEnforced": false
+  },
+  "qualification": {
+    "pairedDifferentialRun": "not-run",
+    "supportClaimsPromoted": false,
+    "fixturesAdded": false,
+    "externalJItemsChanged": false,
+    "externalJItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

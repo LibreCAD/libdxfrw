@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-15",
+  "scope": "unmerged fourth ordered FreeCAD development default C++ importer patch; bounded POLYFACE geometry",
+  "base": "FreeCAD d956ec561639cfa83f755504b1b3358ea799428e with the three prior default-importer patches applied",
+  "patch": "docs/patches/freecad-p8-default-bounded-polyface-2026-11-15.patch",
+  "patchSha256": "00d4b7d2726ca966b958a99b8a8daf0cbecc6a0c3168fa142f814ff92d62be94",
+  "nativeBuild": "Headless macOS ARM64 FreeCADCmd built from exact source archive 29bdfe30632e084c0b6d015a1258f0ff75b8ed84fca660cec4e74fd4e2604bb9, AppleClang 21, Qt 6.12, OCCT 7.9.3; prior three patches applied",
+  "combinedImportSha256": "19d79c1ad8a0605eb79206ee6615c3bc642918da4252d94abefa5490b4a970d2",
+  "change": "Import a conservative layer-0, unstyled POLYFACE profile as a Part compound of planar WCS triangles/quads. Collect coordinate and face records independently, allowing interleaving; validate finite coordinates, integer indices, owner and unique handles, supported subclasses, SEQEND and bounded record count before constructing any output. Refuse hidden edges, per-face styling, invalid metadata/indices, nonplanar or invalid faces and incomplete profiles; report them via FreeCAD unsupported-feature statistics. Continue to refuse polygon meshes.",
+  "validation": {
+    "baseline": "The previous guarded importer rejects generated POLYFACE and fails the proposed regression; the candidate imports the bounded profile.",
+    "generatedTest": "26 named generated-DXF profiles: six accepted, 20 refused; covers triangle/quad, interleaved records, two triangles, canonical owner spelling, duplicate/invalid handles, bad ownership, invalid and hidden indices, style, subclass, nonplanar and partial-facet failure, and missing/bad SEQEND. Every case checks the following LINE. A separate same-file test verifies invalid mesh then valid mesh and LINE, with no partial geometry.",
+    "nested": "Independent ezdxf-generated two-triangle controls, in inches and millimetres, match analytic WCS outer-link vertices and area after two rotated nested INSERTs.",
+    "combined": "All six assembled FreeCAD regression tests pass for DIMENSION OCS axes, SOLID OCS, planar 3DFACE, classic polyline compatibility, bounded POLYFACE and same-file recovery. Four ordered patches apply to the exact base source; the built importer matches the assembled source."
+  },
+  "references": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm"
+  ],
+  "scratchDxfSha256": {
+    "nestedInch": "46e1fb5609f64c7938432adc87c0c1ea2ba979abc5cc371c9f1fbe0b780f3a9a",
+    "nestedMetric": "09c331fcbb70c8c9bea965af72940b9e7ec0004690b50b860be2db683f8d80aa",
+    "directQuad": "23602cc7de346ea0eacd6d31644909cd3bd08f4408de5bc171ac5091b6b53052"
+  },
+  "limits": [
+    "Four downstream FreeCAD default-importer patches are unmerged; native checks use headless Import.readDXF into fresh documents, not full GUI open/insert or Linux/Windows.",
+    "This is geometric import only; source DXF handles and editable mesh topology are not preserved as an output graph. Per-face styling, invisible edges, nonplanar faces, custom layers, unsupported metadata and polygon meshes remain explicitly refused.",
+    "No arbitrary nested transforms, binary DXF, physical producer sample, allocation-fault injection, producer/native semantic equivalence or phase-wide coverage is established.",
+    "Scratch fixture files are not committed and no format-support or phase-gate claim is promoted."
+  ]
+}

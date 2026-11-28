@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Prototype_1b peer freshness and ACIS lineage reconciliation",
+  "mode": "Deeper/broader primary-source review and implementation-readiness refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "worktreeState": "The repository already contained broad uncommitted changes. This pass changed only DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md and this research receipt; no codec or test source was edited.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-prototype1b-peer-freshness-lineage-reconciliation-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance DWG specification",
+      "references": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf"
+      ],
+      "sourcePin": "Local copy reviewed; extracted §24.2.2.3-24.2.2.4 text directly with pdftotext on 2026-10-21.",
+      "observation": "The section defines the Object Data Alignment Offset as a 16-byte-unit offset from the data-segment start and describes data headers, local record offsets, inline records, and blob01 pages. It also contains prose for the data start marker and maximum record-size calculation. Peer discussion reports disagreement between that prose and observed offsets in some files.",
+      "planDisposition": "The repository's AGENTS.md names this local PDF authoritative. A peer interpretation does not supersede it. Before any local parseDwg/AcDs implementation change, read the exact relevant section and reconcile units, terms, and sample trace; record unresolved ambiguity rather than copying a competitor's formula."
+    },
+    {
+      "project": "DomCR/ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/pull/1139",
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgPrototype1bReader.cs",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "sourcePin": "PR states and mutable master source as viewed 2026-10-21; no ACadSharp checkout, package, or executable was used.",
+      "sourceClaims": [
+        "PR #1139 merged ACIS payload extraction for modeler geometry entities across DXF/DWG carrier variants.",
+        "PR #1154 merged a full low-level DWG Prototype_1b section reader on 2026-07-28, replacing the earlier DWG signature-scan path. The current source selects the segment index from the file header and computes the data start from ObjectDataAlignmentOffset shifted by four bits.",
+        "PR #1154 discussion reports a 423-file corpus differential. After isolating section-level reading and applying an offset correction, 3,715 common referenced handles had matching payload hashes. The discussion distinguishes raw section parse from entity attachment and records a stale-index overflow on a pre-merge candidate branch.",
+        "The current reader's section catch is conditional on configured failsafe mode; strict mode propagates the exception.",
+        "As viewed 2026-10-21, writer PRs #1150 and #1240 remained open; #1240 depended on #1174. These do not establish merged/released write support."
+      ],
+      "disposition": "Optional modern-DWG structural/carrier comparator only after exact release/commit admission. Keep storage-section parsing, data-entry extraction, handle-to-entity attachment, and semantic shape construction as distinct outcomes. Historical pre-merge failures are not asserted as current defects; exact released behavior remains unqualified until a pinned run."
+    },
+    {
+      "project": "hakanaktt/acadrust and its consuming applications",
+      "references": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://raw.githubusercontent.com/hakanaktt/acadrust/main/Cargo.toml",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+        "https://docs.rs/crate/acadrust/0.2.4",
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/storytold/cadcraft"
+      ],
+      "sourcePin": "Current repository README/Cargo manifest/tests and historical 0.2.4 package documentation as viewed 2026-10-21; no package or executable was used.",
+      "sourceClaims": [
+        "ACadRust is a separate Rust codec; project documentation describes ACadSharp as an inspiration rather than a runtime dependency.",
+        "Current ACadRust tests include same-codec R2018 DWG roundtrips and transport-only controls using synthetic SAB-shaped marker/filler bytes.",
+        "OpenCADStudio and CADCraft identify ACadRust as their DWG/DXF engine, so their parser observations share that codec route."
+      ],
+      "disposition": "Treat ACadRust as a distinct implementation with a correlated design lineage to ACadSharp. Count app-level observations separately from parser evidence, but do not count multiple ACadRust-backed applications as independent parser votes. Same-codec roundtrips and synthetic marker bytes do not establish semantic ACIS validity."
+    },
+    {
+      "project": "monozukuri-ai/acis-core and cq-acis",
+      "references": [
+        "https://docs.rs/acis-core/latest/acis_core/",
+        "https://github.com/monozukuri-ai/cq-acis"
+      ],
+      "sourcePin": "Mutable documentation/repository pages as viewed 2026-10-21; no peer runtime was used.",
+      "sourceClaims": [
+        "acis-core validates indexed reference closure but states that this does not establish B-rep validity.",
+        "The documented conversion route uses cq-acis/CadQuery with OpenCascade; this is not an independent geometry-kernel vote relative to FreeCAD Part."
+      ],
+      "disposition": "Optional bounded payload-to-shape route only, requiring complete body reachability, explicit unknown-record disposition, independently calculated expectations, and an already-closed outer carrier/owner mapping."
+    }
+  ],
+  "planChanges": [
+    "Update the peer inventory: ACadSharp's full DWG Prototype_1b reader is merged; older wording that treated its DWG read path as merely proposed is historical. Do not transfer this to its unmerged writer proposals.",
+    "Require stage-separated denominators and comparisons for Prototype_1b section entries, referenced payload bytes, and entity-handle attachment; a mismatch at one layer does not identify another layer's defect.",
+    "At the composed peer checkpoint, pin a build containing #1139 and #1154, then use generated scratch-only modern DWG controls with varied owner order and data-record boundary counts; include strict/failsafe and stale-index disposition.",
+    "Keep ACadRust as a distinct implementation but correlated in design lineage to ACadSharp; group OpenCADStudio and CADCraft observations under the ACadRust codec route.",
+    "Retain acis-core/cq-acis as a bounded OCCT-family shape route rather than an independent kernel or native FreeCAD witness.",
+    "Keep immediate implementation self-unblocked: complete the local generated AC1015/AC1024 VIEWPORT frame/owner check before any optional peer execution."
+  ],
+  "assessment": {
+    "newFinding": null,
+    "existingOwners": [
+      "PAR-07/S8 versioned ACIS carrier, association, semantics, and consumer evidence",
+      "PAR-144 optional composed structural peer checkpoint and local frame/owner verification"
+    ],
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "implementationOrderChanged": false,
+    "implementationReadinessRefined": true,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This was source/specification research only. Mutable repository pages were not pinned to a release for execution; no peer package, binary, native CAD application, test suite, or downloaded drawing was used. PR discussion is not a normative DWG rule. The ODA PDF remains authoritative for local DWG byte-layout decisions. No external sample or fixture was added."
+}

@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1032 TextObjectContextData bounded raw fallback",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+    "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+    "version": "AC1032",
+    "provenance": "Tracked external ACadSharp sample; used read-only, not copied into this repository."
+  },
+  "authority": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 §20.4.89 specifies the R2010+ AcDbObjectContextData class-version, has-file-to-extension-dictionary, and default fields. It does not specify the AcDbTextObjectContextData body in this copy.",
+    "peer": "LibreDWG 0.14 minJSON exposes class version/default/scale/common links for the two frames but retains their remaining payload as unknown bits. LibreDWG src/dwg2.spec lists a candidate text body sequence; this is implementation evidence, not semantic proof for the sample."
+  },
+  "implementation": {
+    "baseRevision": "08ad8444",
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "The typed text-context body sequence is parsed transactionally. If a field does not fit the declared body boundary, the parser restores the cursor, clears partial text fields, changes the kind to Unknown, and preserves the valid common shell and handle links. The dispatcher continues to retain the original raw frame. Strict DXF export remains refused by the existing standalone-context replay gate."
+  },
+  "sourceFrames": [
+    {
+      "handle": "0x75B",
+      "location": 1191887,
+      "typeCode": 519,
+      "class": "AcDbTextObjectContextData",
+      "objectSizeBits": 320
+    },
+    {
+      "handle": "0x3C6",
+      "location": 1191836,
+      "typeCode": 519,
+      "class": "AcDbTextObjectContextData",
+      "objectSizeBits": 320
+    }
+  ],
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j2",
+      "result": "PASS"
+    },
+    "generatedControl": {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --object-context-base-bits",
+      "result": "PASS",
+      "coverage": [
+        "AC1032 incomplete typed text-body boundary",
+        "transactional body-cursor rollback",
+        "partial text values cleared and kind set to Unknown",
+        "common version/default/owner/scale metadata retained"
+      ]
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+      "result": "PASS, 1/1",
+      "elapsedSeconds": 0.13
+    },
+    "physicalReadRecheck": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg -y -d -v2018 /private/tmp/sample-AC1032-context-fallback.dxf",
+      "binarySha256": "51956bd86522ae43eed1534cfee396418c8370bf66e815dfb8ee564913a766e2",
+      "logSha256": "8108363c3efcaf70c7319519516de76fcf437197e4744fa998795e8cd4bf0aae",
+      "sourceFrames": 842,
+      "publishedFrames": 839,
+      "failedFrames": 3,
+      "remainingObjectFailures": [
+        "AcDbPersSubentManager handle 0xD63",
+        "AcDbTableContent handle 0xE5F",
+        "AcDbTableContent handle 0x747"
+      ],
+      "output": "Strict DXF output refused because standalone DWG OBJECTCONTEXTDATA has no qualified replay path."
+    },
+    "fixturePolicy": "No DWG/DXF fixture was added; the generated regression vector is authored in memory."
+  },
+  "scopeLimit": "This recovers raw frame publication and common shell metadata only. It does not decode text placement, establish independent semantic meaning, qualify native consumers, or permit strict DXF output."
+}

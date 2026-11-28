@@ -1,0 +1,53 @@
+{
+  "schema": "ac1018-opt-in-identity-observation-v1",
+  "date": "2026-10-28",
+  "codeCommit": "035b9fdfc825b4e00345043a8a903f0da4760259",
+  "scope": "Private, explicitly opted-in retention of a complete original AC1018 identity observation and its read context. No public report or diagnostic accessor; no namespace, owner, graph, output or native semantic support claim.",
+  "source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "provenance": "Repository sample; original native authoring not independently certified."
+  },
+  "probe": {
+    "result": "PASS; exit 0",
+    "default": "No retained legacy observation; no capture failure.",
+    "optIn": "AC1018 source, AC1015 codec, declared ANSI_1252, ASCII, no extrusion, generation 1; Complete, six sections, 995 records, 1003 candidates, EOF ordinal 45077, zero unmatched admissions. Retained logical bytes 278406 and work 548556.",
+    "selected": "All eight selected candidates Outer/Accepted: APPID 12 [21964,22059), APPID 6FA [23484,23596), BLOCK_RECORD table 1 [28821,28891), BLOCK_RECORD 6F2 [30381,30685), ATTDEF 6F8 [74220,74426), INSERT 704 [200354,200573), ATTRIB 705 [200573,200794), DICTIONARY 6F3 [370348,370420). Full candidate spans and repeated admissions remain in the scratch stdout.",
+    "gate": "Modern identity input and audit absent; report state NotCaptured, ownerTargetsResolved false, outputEligible false. Physical observation is not target resolution.",
+    "scratchPath": "build/agent-attribute-profile/ac1018-identity-retained-final/",
+    "probeSourceSha256": "9fd81bee0f2889759a186a0e326d50906e5b93f4895d214df0b8685ba24587da",
+    "probeBinarySha256": "2a07b9c1c773aa7d26f8264d6df821603917489f67e41baa4ff8fb98b2d09dc7",
+    "stdoutSha256": "23bb8a71c9206e4550c7537bd695a1d03fcd88e797955fe259bd4a124eb774f6",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "adapterObjectSha256": "2902efbac7a78d673ec6b174722ce7542cd9d764157bcf229fb86c167126fb8d",
+    "librarySha256": "c6003b971d9ba96b89d2d97ad2eb911a57022b067aac0c10508760b3d62239e9"
+  },
+  "bindings": {
+    "dwg2dxf/dx_data.h": "ebd090649139f99beb9bbfe8610bd653e125ba3ebd4c96575f2dddb3a20e4354",
+    "dwg2dxf/dx_iface.cpp": "7e6b71c5fc057ec4b41ec8106c953215afb2b72c8345c401dabf9376ee9a7a4d",
+    "dwg2dxf/dx_iface.h": "895bb1da0721ff5e973d2945f18c00b2fac4929a255f00855333c6d0bf42af72",
+    "tests/legacy_identity_controls.h": "35a5f64f7a401856c699360187ba02b3a283edb58b48d9ffe0e679475170113b",
+    "tests/table_content_dxf_tests.cpp": "63f33b85f65ed9cb89a6743bb9dca7cab40252794513ee704b1791905ab0adec",
+    "tests/identity_source_controls.h": "406e4358d20b7744d67ebe0805ecfc16f5c649fef25d980031eee1723759cfcc"
+  },
+  "validation": {
+    "selector": "libdxfrw_identity_source_namespace",
+    "normal": "PASS 1/1",
+    "normalBinarySha256": "683a42b596c3040ccb82c1af823afce6566bee15eb92f7d3e300d22347820bc0",
+    "normalLogSha256": "a554e5bcae3893d1b6105578c3414dad6ba493ab7ccda89b2106b8fc1675395b",
+    "asan": "PASS 1/1",
+    "asanBinarySha256": "862a61c10700576e6bc879ca4a00eb2dd52118a55c2311b36998dfb5f7cb2dfe",
+    "asanLibrarySha256": "813d295f6ae9d15580305ed9cf388e2906979f1c45cdd861cfcd8a4c435bf3c7",
+    "asanLogSha256": "0f63dbe025ad378df31166e0fa894019eb97ba6e299abdabbe44cf747e5a6495",
+    "controls": "Two authored ASCII/binary opt-in and two opt-out observations; eight exact/under budget cases, eight copied/duplicate/allocation refusals, twelve same-facade fresh-data retries and 22 late-mutation/reentrant cases with corrected retries. Additional source-observer quota, exception, late callback, same-data invalidation and snapshot lifetime controls. Focused selector only."
+  },
+  "limits": [
+    "Default legacy behavior remains opted out; the separate nonvirtual opt-in is rejected while reading.",
+    "Quota, allocation, copied/duplicate and late callback failures invalidate the retained observation; completion authenticates generation, owner, container identity, source/context and read outcome. Reusing the same data cannot relabel an old observation.",
+    "The adapter class/private data layouts change and dependent binaries must be rebuilt. No DRW_Interface virtual was added.",
+    "OpaqueBody and SortOrder scopes, uniqueness, target types, original ownership, compound membership and graph closure are not established by this private observation. No output or native CAD qualification follows.",
+    "No external or locally generated drawing fixture was committed."
+  ]
+}

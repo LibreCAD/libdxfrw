@@ -1,0 +1,56 @@
+{
+  "id": "RPP-5z7",
+  "date": "2026-10-30",
+  "title": "TABLECONTENT single-cell row, column and table margins",
+  "scope": {
+    "operation": "Write type-2 row, type-3 column and type-4 table margin-only style profiles through the legacy 1x1 serializer.",
+    "profile": "Generated AC1027 1x1 scalar TABLECONTENT, each selected scope independently, in ASCII and binary DXF.",
+    "source_basis": "The multi-cell writer already passed these row/column/table margin scopes to writeStyle and had selected ASCII/binary evidence. The legacy 1x1 branch admitted only default row/column/table scopes and emitted null style pointers, so it rejected or dropped the same metadata. This qualifies the bounded 1x1 path and complements the existing cell-scope and grid-scope margin receipts.",
+    "ordered_margins": {
+      "vertical": 0.375,
+      "horizontal": 0.5,
+      "bottom": 0.625,
+      "right": 0.75,
+      "horizontal_spacing": 0.875,
+      "vertical_spacing": 1.0
+    },
+    "limits": [
+      "One type-2, type-3 or type-4 scope per generated 1x1 table",
+      "All six margins are finite and nonnegative",
+      "No border, format, custom-data or TABLESTYLE/CELLSTYLEMAP dependency",
+      "AC1027 DXF output only"
+    ],
+    "claim_boundary": "Selected DXF serializer and typed readback evidence only; no independent producer, native rendering, DWG output or general margin-domain claim."
+  },
+  "implementation": [
+    "Admit the selected row, column and table margin-only scopes in the 1x1 path using the existing six-margin validation.",
+    "Pass the admitted column, row and table style objects into their writeStyle calls instead of emitting null/default bodies."
+  ],
+  "evidence": {
+    "generated_runtime_input": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary": true,
+    "physical_wire": "For each scope and encoding, independent wire walking confirms one selected type/hasData pair, margin override flag 1, and the exact six ordered group-40 values.",
+    "typed_readback": "Fresh imports preserve the selected type-2, type-3 or type-4 style and all six margins.",
+    "failure_control": "A negative horizontal margin is refused; the destination sentinel, table collection and explicit invalid caller value remain unchanged.",
+    "retry_control": "Restoring the positive margin permits same-adapter retry; fresh typed readback confirms the corrected value."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focused_selector": "build/tests/libdxfrw_table_content_dxf_tests --table-single-cell-style-margin-write",
+    "focused_ctest": "ctest --test-dir build -R '^(libdxfrw_table_content_(grid_write|linked_grid_write|row_margin_write|column_table_margin_write|single_cell_style_margin_write|table_style_format_write)|libdxfrw_table_content_cell_style_border_alignment)$' --output-on-failure",
+    "focused_ctest_result": "7/7 passed",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "tests/table_content_dxf_tests.cpp",
+    "tests/CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "The parent P5 rendering/TABLE phase remains open.",
+    "Other TABLEFORMAT properties, borders, dependencies, native rendering and DWG output are not claimed."
+  ]
+}

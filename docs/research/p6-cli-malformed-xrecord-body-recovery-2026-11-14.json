@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "date": "2026-11-14",
+  "slice": "P6-F malformed supported XRECORD body recovery",
+  "status": "generated fast control passed",
+  "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-xrecord-body-source",
+  "mutation": "Write a valid typed XRECORD containing one scalar string value, preserve the common prologue/type/handle, then flip a bit after the common prologue within the declared body span until DRW_XRecord::parseDwg rejects that object. Replay the bounded raw object into a new generated source.",
+  "profiles": [
+    {
+      "version": "AC1015",
+      "sha256": "81b71a5a39af24f4edfc1e213dd6dae82459c78ece4d6a2001ab5c205704a58a",
+      "source_frames": 28,
+      "published_frames": 27,
+      "failed_frames": 1,
+      "output_target": "AC1021"
+    },
+    {
+      "version": "AC1018",
+      "sha256": "3e04764b691102fea3fc0a58515a4f998deb096c5a92649bf6031d04edfb9f6f",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "output_target": "AC1021"
+    },
+    {
+      "version": "AC1021",
+      "sha256": "1ad1763601d1b3b4a725f3ca38591a7bd85455a92dab97ebc313b5cc97175ac3",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "output_target": "AC1021"
+    },
+    {
+      "version": "AC1024",
+      "sha256": "ef5a14aee74d815dca0601daa341b5e1352fd6805bde64b9363e72bafe6ce613",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "output_target": "AC1024"
+    },
+    {
+      "version": "AC1027",
+      "sha256": "8909f8f3a48e0d9a88f21efbf6dce1c46abba83a2ccf1a85c3b6dfd38cf11384",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "qualification": "reader-only for output; independent source-reference closure gate applies"
+    },
+    {
+      "version": "AC1032",
+      "sha256": "8add2503047006c39ad247998378049bcf67ee0edcca6954f914a48794891b79",
+      "source_frames": 27,
+      "published_frames": 26,
+      "failed_frames": 1,
+      "output_target": "AC1032"
+    }
+  ],
+  "per_profile_observation": {
+    "read_succeeded": true,
+    "entity_parse_failures": 0,
+    "object_parse_failures": 1,
+    "retained_line_count": 1,
+    "frame_accounting": "source = published + failed"
+  },
+  "cli_policy": {
+    "output_eligible_profiles": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "strict": "Refuses atomically before replacing the sentinel destination.",
+    "explicit_partial": "Replaces the same destination after strict refusal, emits the incomplete-output warning, and reopens with one LINE and one VPORT; the source remains unchanged.",
+    "AC1027": "Strict and explicit-partial attempts preserve the destination and stop at the source-reference closure gate."
+  },
+  "validation": {
+    "selector": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
+    "selector_result": "PASS: CLI partial DWG read (144 strict/partial/readback controls)",
+    "ctest": "dwg2dxf_cli_partial_read_disposition",
+    "ctest_result": "PASS 1/1 in 3.76 seconds"
+  },
+  "limitations": [
+    "Generated source DWGs and output DXFs are temporary and are not committed as fixtures.",
+    "This establishes parser recovery and CLI disposition for one generated XRECORD body only; it does not qualify application payload semantics or producer interoperability.",
+    "No DWG/DXF support claim is promoted."
+  ]
+}

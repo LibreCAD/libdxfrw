@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 lineweights empty ASE hierarchy cache strict output",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Close the source-bound AC1021 empty ASEBlockHierarchyIndexRecord graph gate for one existing source, verify selected ASCII/Binary readback and strict whole-file output, and preserve the existing nonempty tablet profile.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/lineweights.dwg",
+    "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; producer provenance is unauthenticated. No DWG or DXF fixture is committed."
+  },
+  "sourceGraph": {
+    "reader": {
+      "sourceFrames": 178,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "integrityErrors": 0
+    },
+    "namedObjectDictionary": {
+      "handle": "0xC",
+      "rootKey": "ASE_INDEX_DICTIONARY",
+      "rootTarget": "0x1D6",
+      "rootOccurrences": 1
+    },
+    "dictionary": {
+      "handle": "0x1D6",
+      "sourceFrameOffset": 2409,
+      "sourceFrameSize": 93,
+      "owner": "NOD 0xC",
+      "reactors": ["0xC"],
+      "hardOwner": 0,
+      "cloning": 1,
+      "entry": {
+        "key": "ASEBlockHierarchyIndexRecord",
+        "target": "0x1D7",
+        "occurrences": 1
+      },
+      "eed": {
+        "appid": "DCO15",
+        "appidHandle": "0x154",
+        "valueGroup": 1040,
+        "value": 1520582166.359
+      }
+    },
+    "xrecord": {
+      "handle": "0x1D7",
+      "sourceFrameOffset": 10511,
+      "sourceFrameSize": 16,
+      "owner": "DICTIONARY 0x1D6",
+      "reactors": ["0x1D6"],
+      "cloning": 1,
+      "valueCount": 0,
+      "handleReferenceCount": 0,
+      "dataEntryCount": 0
+    }
+  },
+  "independentPeer": {
+    "tool": "LibreDWG 0.14.0 dwgread minJSON",
+    "result": "Confirms NOD 0xC -> ASE_INDEX_DICTIONARY -> DICTIONARY 0x1D6 -> ASEBlockHierarchyIndexRecord -> XRECORD 0x1D7, the DCO15 EED APPID handle 0x154, and the empty XRECORD body.",
+    "classification": "Independent structural observation only; the custom ASE cache's application semantics are not inferred."
+  },
+  "implementation": {
+    "productionChange": "The AC1021 ASE hierarchy graph admission now requires a unique ASE_INDEX_DICTIONARY NOD edge and the existing one-entry dictionary/XRECORD graph. It admits an empty XRECORD body only when both the parsed handle-reference and data-entry vectors are empty; nonempty profiles retain unique-target and model-space INSERT validation.",
+    "generatedControl": "The generated ASCII/Binary control verifies the nested NOD/dictionary/XRECORD owner/reactor graph, empty payload readback, wrong-root and duplicate-root destination preservation, and correction/retry on the same writer.",
+    "physicalSelectedGraph": "The exact source profile passes ASCII/Binary output and fresh readback, including source-frame identity, root/key/owner/reactor links, DCO15 APPID/EED value, empty XRECORD, late-mutation refusal, destination preservation, and same-adapter retry under AllowPartial selected-output policy.",
+    "strictWholeFile": "The current AC1021 CLI strictly converts the complete DWG to AC1021 DXF. A fresh strict same-version DXF re-export also succeeds. The output contains the ASE_INDEX_DICTIONARY root, dictionary 0x1D6 with DCO15 EED and its ASE child key, and XRECORD 0x1D7 with the empty body and reciprocal dictionary links."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+    "focusedTests": "PASS: libdxfrw_ase_hierarchy_ac1021_empty_cache_roundtrip and libdxfrw_ase_hierarchy_ac1021_insert_target_roundtrip, 2/2.",
+    "physicalSelector": "PASS: --ase-empty-cache-ac1021-output-readback /Users/dli/doc/dwg/lineweights.dwg, ASCII and Binary.",
+    "strictCommands": [
+      "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/lineweights.dwg -y -d -v2007 /private/tmp/lineweights-after-ase-final.dxf",
+      "build/dwg2dxf/dwg2dxf /private/tmp/lineweights-after-ase-final.dxf -y -v2007 /private/tmp/lineweights-after-ase-final-reexport.dxf"
+    ],
+    "strictOutputSha256": "e67f67841fd8ba841988fefc29412668cf7ecc07b49bb0b878831d42b2395038",
+    "freshReexportSha256": "247c8e39a811f4837a8fbf685bcfaa6e3842b386697701a8950ae63043e9892a",
+    "fullSuites": "NOT RUN; focused generated tests and exact-source strict conversion/readback checks only."
+  },
+  "limits": [
+    "This closes one unauthenticated AC1021 source profile, not general ASEBlockHierarchyIndexRecord semantics or producer-wide support.",
+    "The existing AC1021 208-reference model-space INSERT profile remains separately bounded and is covered by its existing generated regression.",
+    "Strict whole-source success does not establish native AutoCAD, LibreCAD, LibreCAD_3, FreeCAD, or 3D semantic acceptance.",
+    "No test DWG/DXF fixture or generated output was committed."
+  ],
+  "nextAction": "Continue the P4 source census for a distinct dependency-closed mixed OBJECTS graph; keep all six J items deferred and non-promoting."
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1027-spline-fit-knot-parameterization-dxf-guard-2026-11-02",
+  "date": "2026-11-02",
+  "title": "Fail closed when DXF cannot represent a DWG fit-SPLINE knot parameterization",
+  "status": "NONDEFAULT_KNOT_PARAMETERIZATION_REFUSED; CHORD_DEFAULT_WRITABLE; CURVE_SEMANTICS_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "scope": "Prevent DXF serialization of R2013+ DWG fit-point SPLINE profiles whose knot parameterization changes curve shape but has no corresponding DXF field. Keep the documented chord-default profile available.",
+  "formatEvidence": [
+    {
+      "source": "Open Design Specification for .dwg files v5.4.1",
+      "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "section": "20.4.40 SPLINE",
+      "finding": "R2013+ Spline flags 1 are a BL; fit-method is bit 1 and use-knot-parameter is bit 8. Knot parameter values are Chord=0, Square root=1, Uniform=2, Custom=15. A fit-point scenario with an active knot parameter uses the selected parameterization."
+    },
+    {
+      "title": "Autodesk SPLINE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+      "finding": "The documented AcDbSpline group-code inventory includes fit points, tangents, fit tolerance, flags, degree, knots, controls and weights; it has no knot-parameterization selector."
+    },
+    {
+      "title": "Autodesk AcDbSpline fit-point constructor",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbSpline__AcDbSpline_AcGePoint3dArray__AcGe__KnotParameterization_int_double.html",
+      "finding": "Autodesk documents chord, square-root-chord and uniform options, states that the knot sequence affects curve shape, and identifies chord as this constructor's default."
+    },
+    {
+      "title": "Physical AC1027 fit-only SPLINE differential",
+      "receipt": "docs/research/p6-ac1027-fit-spline-field-differential-2026-11-01.json",
+      "finding": "The two public AC1027 witness splines have splFlag1=9 and knotParam=0; their decoded typed fields match LibreDWG 0.14 and ODA v5.4.1. The public sample was research input only and is not committed as a DWG fixture."
+    }
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "DRW_Spline::validateDxf rejects the R2013+ fit-only profile when m_scenario is 2, both method-fit-points/use-knot-parameter bits are set, and m_knotParam is not chord (0). Control-point splines and ordinary DXF-authored objects with no DWG-only metadata are unaffected. The guard runs before writeSpline emits the SPLINE record.",
+    "retryControl": "The existing --spline-fit-only-dxf ASCII/Binary control sets the typed model's DWG-only metadata to an AC1027 fit profile, confirms square-root-chord (1) and uniform (2) each refuse without mutating that metadata, then changes to chord (0) and successfully retries through the same dx_iface before checking raw group codes and typed readback.",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_spline_fit_only_dxf$' --output-on-failure",
+      "result": "PASS, 1/1; ASCII and Binary refusal for parameterizations 1/2 followed by same-adapter chord-default retry and output/readback"
+    },
+    "fullSuites": false
+  },
+  "limitations": [
+    "No independent curve-evaluation comparison or native CAD interpretation was run; this is a fail-closed encoding rule supported by the DWG layout and DXF field contract.",
+    "The physical AC1027 witness uses chord parameterization only; non-default source production is covered by a locally generated in-memory model, not a physical DWG fixture.",
+    "The change does not qualify whole-document AC1027 output, general SPLINE/NURBS semantics, other DWG versions, or 3D support claims."
+  ],
+  "planImpact": {
+    "phase": "P6",
+    "status": "OPEN",
+    "completedSlice": "Refused DWG fit-only SPLINE knot parameterizations that DXF cannot encode while retaining the documented chord-default export profile; covered ASCII/Binary failure and same-adapter retry.",
+    "remaining": "Curve-equivalence and native consumer evidence; physical non-default producer profiles; broad SPLINE/NURBS/geometry qualification and remaining P6 boundaries.",
+    "nextReadyPacket": "Continue the P6 residual audit on a source-backed schema family; do not alter DWG SPLINE wire parsing without a new failing producer trace."
+  }
+}

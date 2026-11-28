@@ -1,0 +1,65 @@
+{
+  "slice": "PAR-144 version-matrix finalized HANDLES section and object-frame closure",
+  "date": "2026-10-21",
+  "status": "implemented_and_fast_validated",
+  "scope": "Generated scratch-only AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032 writer output; no production format logic changed and no persistent DWG/DXF fixture added.",
+  "files": [
+    "tests/dwg_reader_matrix_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "generated_case": {
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "stress_count_per_version": 1200,
+    "ac1015_case": "type-34 VIEWPORT serializer stress frames through legacy section locator and HANDLES pages",
+    "ac1018_case": "1,200 uniquely named VPORT table records through the R2004 section-map reader",
+    "ac1021_case": "1,200 uniquely named VPORT table records through the public table callback",
+    "ac1024_case": "type-34 VIEWPORT serializer stress frames through the R2004 section map and data-page decoder",
+    "ac1027_case": "1,200 uniquely named VPORT table records through the AC1027 R2004-container wrapper",
+    "ac1032_case": "1,200 uniquely named VPORT table records through the AC1032 R2004-container wrapper",
+    "ac1015_map_path": "legacy file section locator and HANDLES pages",
+    "ac1021_map_path": "independent R2007 page map/data-page decoder",
+    "ac1024_map_path": "R2004 section map and production data-page decoder for HANDLES and OBJECTS",
+    "fixture_lifecycle": "generated in memory and removed after each focused test run"
+  },
+  "checks": [
+    "Finalized AC1015, AC1021, and AC1024 HANDLES streams end exactly after the terminator page.",
+    "Every independently decoded logical HANDLES page and terminator has a valid CRC.",
+    "AC1015, AC1018, AC1024, AC1027, and AC1032 decoded unique handle/offset pairs exactly match emitted object-map entries; modern offsets are section-relative.",
+    "AC1021 production HANDLES parser output equals the independent logical-section decode; every emitted table/control handle and generated VPORT handle is present.",
+    "AC1015 legacy HANDLES bytes are independently decoded and matched to the writer map; AC1018/AC1021/AC1024/AC1027/AC1032 maps pass their production reader parsers.",
+    "Mapped object frames are bounded, non-overlapping, and CRC-valid in their respective decoded OBJECTS byte ranges.",
+    "AC1024 frame parsing consumes the UMC handle-bit-length field and includes it in frame CRC coverage.",
+    "Every AC1024 generated VIEWPORT frame receipt closes to the final section-relative HANDLE entry and data extent."
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+      "result": "passed"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --viewport-handles-section",
+      "result": "passed; AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032 controls"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "result": "passed; 1/1 tests, 1.76 seconds"
+    },
+    {
+      "command": "git diff --check -- tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par144-version-matrix-handles-section-map-fast-slice-2026-10-21.json",
+      "result": "passed"
+    }
+  ],
+  "evidence_ceiling": "Generated wire/map/section-reader evidence only. AC1015/AC1024 type-34 VIEWPORT frames are serializer stress inputs, not asserted to be VPORT table children or complete application drawings. AC1021 exact map evidence is production-reader versus independent section decode plus public table/control-ledger handle membership; the final dwgWriter21 type does not expose its private complete writer map.",
+  "support_claim_promoted": false,
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit": null,
+  "commit_note": "Not committed because the shared worktree contains broad mixed changes.",
+  "next_self_unblocking_item": "Investigate a narrow test-only writer-map snapshot for AC1021 without widening public API; if no safe seam exists, retain the documented comparison ceiling and move to the next PAR-144 entity-ownership relationship rather than making production classes extensible for tests."
+}

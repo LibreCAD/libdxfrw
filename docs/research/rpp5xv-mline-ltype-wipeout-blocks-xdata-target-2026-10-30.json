@@ -1,0 +1,77 @@
+{
+  "id": "RPP-5xv",
+  "title": "AC1027 named-BLOCKS WIPEOUT LTYPE XDATA target binding",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "5615e44a6f1aee3a6c54faf19e0ba2a134053140",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated original ASCII and binary DXF records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One WIPEOUT code-1005 target inside named AuthorityBlock BLOCKS across all four source/output encoding pairs.",
+    "target": {
+      "type": "WIPEOUT",
+      "handle": "0xA900",
+      "owner_block_record": "0x203",
+      "section": "BLOCKS",
+      "block": "AuthorityBlock",
+      "base_point": [1.0, 2.0, 3.0],
+      "second_point": [4.0, 5.0, 6.0],
+      "pixel_vector": [0.0, 0.0, 1.0],
+      "pixel_size": [10.0, 20.0],
+      "clip_boundary_type": 2,
+      "clip_vertices": [[0.0, 0.0], [2.0, 0.0], [1.0, 1.0]],
+      "clip_mode": false
+    },
+    "xdata": {
+      "provider": "source-bound simple LTYPE EditDash and APPID MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "reference": {"code": 1005, "source_handle": "0xA900"}
+    }
+  },
+  "proof": {
+    "source": "Candidate binding requires a complete named-BLOCKS physical/delivery/membership audit, a single-record Primary member with exact WIPEOUT parser callback, block-record owner and handle identity, the unique live typed target, exact DRW_Wipeout dynamic type and valid clip boundary.",
+    "output": "All four ASCII/binary input/output combinations verify remapped WIPEOUT identity, BLOCKS section, AuthorityBlock and remapped block-record owner; AcDbWipeout subclass, base/secondary points, pixel vector and size, clip-boundary type, ordered polygon vertices and clip mode; and fresh typed WIPEOUT/LTYPE readback.",
+    "failure_retry": "Each encoding pair removes the target and verifies destination preservation followed by same-adapter retry. A late handle mutation also refuses with destination preservation and succeeds after restoring target identity.",
+    "counts": {
+      "wipeout_success_profiles": 4,
+      "wipeout_readbacks_including_retry_and_mutation_retry": 9,
+      "wipeout_refusals_with_destination_preservation": 5,
+      "wipeout_same_adapter_retries": 5,
+      "whole_focused_test_profiles": 444,
+      "whole_focused_test_readbacks": 1020,
+      "whole_focused_test_refusals": 576,
+      "whole_focused_test_retries": 576
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 26.30 seconds)"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_bindings": {
+      "implementation_commit": "5615e44a6f1aee3a6c54faf19e0ba2a134053140",
+      "source_sha256": {
+        "dwg2dxf/dx_iface.cpp": "cd34357bbff1555a5815204596f4aa985858f845939ca01c461f270d809f425b",
+        "tests/dxf_fixture_tests.cpp": "ba27ebf4176688ea2f268c347ef8119d3e87c9894f98c911a890942c1d7d0bbe"
+      },
+      "normal_executable_sha256": "f3a95837d416f41e385a7b5941d6bdfb1d40c5e07a926719db3be52efb1f7634",
+      "converter_executable_sha256": "ad27619cc401265e4ab02611bd2c7b0025cf95364a1daf487bd243f04a4750b3",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4"
+    }
+  },
+  "limits": [
+    "This qualifies one AC1027 named-BLOCKS WIPEOUT profile. Other WIPEOUT fields and versions, multiple-target combinations and other raster entities remain unqualified.",
+    "The selected transport proof does not establish rendered mask appearance, complete-document conversion or independent CAD semantics.",
+    "P2 remains open for other code-1005 target types, mixed target sets and broader source/output profiles."
+  ],
+  "next": "Select the next P2 target only after reproducing a concrete code-1005 parser, source-binding or emitted-output gap; prefer an existing callback type with a bounded independent semantic profile and avoid unqualified type or version expansion."
+}

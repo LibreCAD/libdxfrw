@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "scope": "Additive nonvirtual source-frame correlation helper for selected empty AC1024 SORTENTSTABLE custom objects with exactly one parent-dictionary reactor, no EED or extension dictionary, and a frame at most 4 MiB.",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.93 describes the entry count, inline sort handles, parent/reactor/extension links, block owner and entity handles. The existing parser was not changed. Custom type 510 is observed in the source, not assumed as a general class number.",
+  "implementation": "DRW_SortEntsTable::matchesAc1024EmptyDwgFrame verifies the bounded raw/typed common fields, class identity and source publication/membership, then reparses the source frame and compares the exact empty body and block owner. It requires matching parent reactor and rejects exceptions and unmodeled dependencies. LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY advertises the method.",
+  "physicalSource": "tests/samples/AC1024/title_block-iso.dwg; SHA-256 b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+  "validation": [
+    "Four physical source tables F3, 2121, 21D3 and 22D4 matched their raw, typed, publication and membership records. F3 is the model-space table and remains included as a control; the helper does not imply omission.",
+    "Controls reject changed typed owner, reactor and entry count; altered raw object type, truncation, reactor metadata, version and class; wrong publication ordinal/carrier; changed membership owner/count/class ordinal; and a flipped bit inside each empirically traced wire owner field. The field positions come from the existing parser diagnostic, not an independent decoder.",
+    "Across the four physical records, 164 calibrated allocation failures refused and each immediately retried successfully. The focused SORTENTSTABLE and DICTIONARY tests, AC1024 layer binding and plot-style graph tests passed. The LC3 compatibility target built under the existing strict compiler settings.",
+    "Source-release inventory and 18 generator refusal controls pass with 1212 files. Hosted-profile CTest inventory increases from 1373 to 1374, adding exactly this test. Native contract/self-test and the 721-input implementation digest pass."
+  ],
+  "implementationDigestSha256": "258228b0d62216fb0bdcb319b5e05d79e330da3d3dc806b8451ebbfb965eb015",
+  "limits": "Correlation uses caller-provided receipts and the existing parser; it does not authenticate source origin or CLASSES, validate enclosing CRC, independently prove unknown fields, establish a frozen import generation or exclude inbound references. It does not authorize omission, export, native semantics or support claims."
+}

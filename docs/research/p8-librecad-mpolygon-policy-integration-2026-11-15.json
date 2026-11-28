@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad-mpolygon-policy-integration-2026-11-15",
+  "date": "2026-11-15",
+  "status": "focused_cross_library_comparison_passes",
+  "supportClaimEffect": "none",
+  "finding": "The existing LibreCAD bundled writer refuses MPOLYGON boundaries it cannot express as polylines; upstream preserves additional edge-path forms by default. The opt-in policy permits LibreCAD's typed writer path to request the former behavior without removing the latter.",
+  "downstream": {
+    "base": "2e31fef426f4e250a056ed064d5186f8f71ef76b",
+    "commit": "ba3c1621e6b87685c6f0b729e3b23c64fa2918a5",
+    "patch": "docs/patches/librecad-p8-mpolygon-policy-2026-11-15.patch",
+    "merged": false
+  },
+  "change": "Select the polyline-only policy in the LibreCAD DXF export adapter and its strict geometry test when the upstream capability macro is present; the bundled fork keeps its existing implementation.",
+  "verification": [
+    "The upstream-linked full LibreCAD fast-test target builds and its combined DIMASSOC/MPOLYGON selector passes 12/12 cases and 163 assertions.",
+    "The clean bundled-library fast-test target builds and the same selector passes 12/12 cases and 157 assertions.",
+    "The upstream projection/policy selector, default MPOLYGON controls and adjacent HATCH boundary controls pass; the independent ezdxf 16-profile arc reconstruction also passes.",
+    "The LibreCAD_3 compile guard builds, and the downstream patch passes forward and reverse apply checks against the stated parent and commit."
+  ],
+  "limits": [
+    "The downstream patches are local and unmerged, and have not been checked against a newer LibreCAD head.",
+    "The application adapter compiles with the setting, but this is not an end-to-end application save qualification. The policy applies only to typed MPOLYGON writes, not raw replay.",
+    "Native rendering, mixed-edge full-circle projection, 3D consumers, full LibreCAD_3 and binary ABI/platform qualification remain open.",
+    "No DWG or DXF fixture files were added."
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-native-mpolygon-layout-gap-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "scope": "Native macOS MPOLYGON import, save and reopen on the current LibreCAD_3 draft PR #461 against the current libdxfrw code; independently inspect the saved drawing and classify remaining layout loss.",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "39cd19f7f6fae52a3dfab693b14ae4ecd295bec6",
+  "codecCommit": "0e6a9a83e1f3392ac4aa8dd83b5d3dd5214c34de",
+  "codecImplementationDigestSha256": "02a4ef43779142760d3e96bef5d63a6ddc6daffc80d5dec58a1c4b3742b22e32",
+  "platform": "macOS arm64",
+  "build": {
+    "method": "Fresh isolated PR #461 checkout with its libdxfrw submodule advanced to the listed candidate. Scratch-only CMake edit removed the upstream -Wno-error override for dxfrw; a scratch-only startup edit changed the organization and application settings names before packaging a temporary macOS app. Product persistence, kernel and library source were otherwise unmodified.",
+    "applicationSha256": "2c099b47639a22bb92ab5c3ee170d6b2c04eb11ad4b8193d6b78f32aef377741",
+    "persistenceLibrarySha256": "a45dfc435d9734024866b629deed833a9a7a11ea34684e3d0e1d7b40c91797e1",
+    "staticCodecSha256": "cad7209452d712a463c0a79bffc59afd72a5c32b1c6de479f3e18a65c6e3e3d2"
+  },
+  "observations": [
+    "A locally authored standard R2004 ezdxf input containing one MPOLYGON opened in recovery mode: the GUI reported two LAYOUT records not imported and one entity recovered. Its warning prevented silent replacement of the source.",
+    "A separate locally authored minimal R2004 MPOLYGON matching the existing bounded test profile opened with the explicit MPOLYGON-to-HATCH editing warning, saved through the native DXF 2004 dialog, and reopened with the same warning. No native edit or visual rendering assertion was made.",
+    "Independent ezdxf 1.4.5 readback finds the saved entity remains MPOLYGON with SOLID fill, closed triangle vertices (1,2), (4,2), (3,5), offset (2,5), zero elevation and default extrusion. Input audit reports zero errors/fixes; output reports zero errors and one fix removing orphan BLOCK_RECORD *Paper_Space0.",
+    "Physical output scanning finds zero LAYOUT records and no ACAD_LAYOUT root entry. The ezdxf object model synthesizes Model and Layout1 during read, so their presence after import is not proof of physical source layout records. LibreCAD_3 initializes *Paper_Space and *Paper_Space0 in every new document; its writer currently emits both while lacking the second layout graph."
+  ],
+  "scratchOnly": {
+    "standardSourceSha256": "47088e90c100830c52e84d2a457151597307510682329fa1c65cfd96ce19170c",
+    "minimalSourceSha256": "f1399bfe05ef200685dd741c4956e21beaf2c7262345b5ec8ced155d9dd505ce",
+    "savedOutputSha256": "7ac8e3791476128d4f0126f681dcd2bc566df1d97a8b9e7405b16f352d212850",
+    "fixturesCommitted": false
+  },
+  "limits": "The standard source was only partially imported and was not saved. The minimal control establishes selected native save/reopen and independent MPOLYGON values, not complete drawing validity, GUI editing, rendering, native layout semantics or other-platform support. The layout gap remains open; no physical drawing was committed."
+}

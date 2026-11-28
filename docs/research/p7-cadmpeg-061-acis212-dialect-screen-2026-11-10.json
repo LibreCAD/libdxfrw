@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-10",
+  "title": "CADMPEG 0.6.1 exact-profile ACIS 212.00 screen",
+  "mode": "Pinned official binary execution against existing scratch-only ACIS payloads",
+  "repository": "LibreCAD/libdxfrw",
+  "question": "Can the newly released CADMPEG ACIS reader independently qualify the selected AC1021 torus payload or its 3D semantics?",
+  "artifact": {
+    "project": "cadmpeg/cadmpeg",
+    "release": "v0.6.1",
+    "releaseDate": "2026-10-10",
+    "platform": "Apple Silicon macOS arm64",
+    "asset": "cadmpeg-aarch64-apple-darwin.tar.xz",
+    "assetUrl": "https://github.com/cadmpeg/cadmpeg/releases/download/v0.6.1/cadmpeg-aarch64-apple-darwin.tar.xz",
+    "officialAssetSha256": "932a5067d76617707366c7a913e92e2c48484ccacd4f1ceecb065bbeb97dad4b",
+    "observedAssetSha256": "932a5067d76617707366c7a913e92e2c48484ccacd4f1ceecb065bbeb97dad4b",
+    "binaryPath": "/private/tmp/cadmpeg-v0.6.1/cadmpeg-aarch64-apple-darwin/cadmpeg",
+    "binarySha256": "6e5dde674a61c84c4b3522972d3d519f2305e235b4eeee9332adbd447d5bfda9",
+    "reportedVersion": "cadmpeg 0.6.1",
+    "reportedBuild": "cadmpeg 0.6.1+g9e8f6d6b5da9",
+    "documentationUrl": "https://docs.rs/crate/cadmpeg-asm/0.6.1",
+    "documentedVerifiedAcisBands": [217, 218]
+  },
+  "inputs": [
+    {
+      "role": "source-derived SAB for selected AC1021 3DSOLID 0x452",
+      "path": "/tmp/acsh-semantic-probe/source-0x452-inline.sab",
+      "sha256": "5583ac8fb1f555d34b93c31661b810f291be20e5677200c75df851afa4a86c29",
+      "observedHeader": {
+        "format": "ACIS binary",
+        "saveFormat": 21200,
+        "referenceWidthBytes": 4
+      },
+      "inspect": {
+        "detectedDialect": "sat:acis-binary",
+        "records": 14,
+        "product": "Autodesk AutoCAD",
+        "productVersion": "ASM 12.0.1.915 NT"
+      },
+      "defaultCheck": {
+        "exitStatus": 0,
+        "status": "ok",
+        "geometryTransferred": true,
+        "unknownRecords": 0,
+        "unknownSurfaceFaces": 0,
+        "warningPresent": true,
+        "warning": "save format 212.0 is not a verified Spatial ACIS band; records were read using the 217 grammar"
+      },
+      "strictCheck": {
+        "option": "--no-salvage",
+        "exitStatus": 1,
+        "status": "refused",
+        "stage": "decode",
+        "reason": "source.kernel-dialect-unverified"
+      }
+    },
+    {
+      "role": "ODA File Converter 27.1 ACAD2010 DXF recovery of source entity 0x452",
+      "path": "/private/tmp/p7-oda-452-acad2010.sat",
+      "sha256": "361c3aa8c919ff46cacea791d0464878ba8821ef193c79296b9e5ab87730dcfe",
+      "observedHeader": {
+        "format": "ACIS text",
+        "saveFormat": 21200,
+        "recordCount": 13
+      },
+      "strictCheck": {
+        "option": "--no-salvage",
+        "exitStatus": 1,
+        "status": "refused",
+        "stage": "decode",
+        "reason": "source.kernel-dialect-unverified"
+      }
+    }
+  ],
+  "result": {
+    "classification": "NOT_QUALIFIED",
+    "reason": "Both independently carried representations of the selected torus declare ACIS save format 212.00. CADMPEG 0.6.1 documents verified record decoders for 217/218; for 212.00 it uses the 217 grammar as an unverified fallback. Its default check can transfer geometry but explicitly warns of that mismatch, and strict mode refuses the exact input.",
+    "independenceBoundary": "This route is parser/neutral-model evidence only; it is not a B-rep kernel and cannot satisfy the independent-kernel gate. The unverified fallback does not qualify this 212.00 source profile.",
+    "nextAction": "Do not use CADMPEG's 217 fallback on these 212.00 bytes as semantic evidence. Revisit only with an exact source payload in a documented 217/218 band or a reader/runtime that explicitly verifies 212.00; continue other local implementation work without promoting P7 claims."
+  },
+  "repositoryEffects": {
+    "productionCodeChanged": false,
+    "repositoryTestsAddedOrRun": 0,
+    "peerCommandsRun": ["--version", "formats", "inspect", "check --json", "check --no-salvage --json"],
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJItemsPromoted": 0,
+    "scratchArtifacts": [
+      "/private/tmp/cadmpeg-aarch64-apple-darwin-v0.6.1.tar.xz",
+      "/private/tmp/cadmpeg-v0.6.1/",
+      "/tmp/acsh-semantic-probe/source-0x452-inline.sab",
+      "/private/tmp/p7-oda-452-acad2010.sat"
+    ]
+  },
+  "sources": [
+    "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.1",
+    "https://docs.rs/crate/cadmpeg-asm/0.6.1"
+  ]
+}

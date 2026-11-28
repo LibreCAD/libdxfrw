@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-25",
+  "scope": "Restore fast CI frozen CTest inventory after the linetype-equivalent-length regression was registered",
+  "observedHostedFailure": {
+    "head": "9795d00220fd1f70c4b3e21f3f92ab4a6f76cbd6",
+    "job": "fast-regressions",
+    "url": "https://github.com/LibreCAD/libdxfrw/actions/runs/45743037856/job/139652414767",
+    "failure": "live CTest inventory differs from the frozen broad inventory"
+  },
+  "diagnosis": {
+    "fixtureFreeCleanCheckout": true,
+    "frozenCountBefore": 1401,
+    "liveCount": 1402,
+    "missingFromFrozen": [
+      "libdxfrw_ltype_equivalent_length"
+    ],
+    "missingFromLive": []
+  },
+  "fix": {
+    "frozenCountAfter": 1402,
+    "nameDigest": "850cc38b6bf70c44d0dc221146b93e426067beb00fe3d5bc8c3de3e4a4dc7f0f",
+    "generatedAtCommit": "9795d00220fd1f70c4b3e21f3f92ab4a6f76cbd6",
+    "newImplementationDigestSha256": "0f89b0a60ff246b4cce2dd51d8de4b377c2c64df6634cddb92f19aebc154bdcd",
+    "implementationInputCount": 775
+  },
+  "validation": {
+    "cleanCtestInventory": "PASS 1402/1402",
+    "requiredTestContract": "PASS",
+    "qualificationWorkflowContract": "PASS",
+    "cleanImplementationDigest": "PASS",
+    "hostedRerun": "pending"
+  },
+  "limits": [
+    "Inventory freeze does not run the broad suite or constitute native semantic qualification.",
+    "All format claims remain EXPERIMENTAL."
+  ]
+}

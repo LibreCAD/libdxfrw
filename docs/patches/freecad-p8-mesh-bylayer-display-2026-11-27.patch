@@ -1,0 +1,98 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -32,0 +33,16 @@
++
++// Explicit BYLAYER display tags have the same meaning as their omission in
++// this bounded mesh profile. Other styles must not be silently discarded.
++bool acceptDefaultMeshDisplayTag(int code, const std::string& value,
++                                 bool& linetypeSeen, bool& lineweightSeen)
++{
++    bool& seen = code == 6 ? linetypeSeen : lineweightSeen;
++    if (seen) return false;
++    seen = true;
++    if (code == 6) return value == "BYLAYER";
++    std::istringstream stream(value);
++    stream.imbue(std::locale("C"));
++    int lineweight = 0;
++    return static_cast<bool>(stream >> lineweight) && (stream >> std::ws).eof()
++        && lineweight == -1;
++}
+@@ -2466,0 +2483,2 @@
++        bool linetypeSeen = false;
++        bool lineweightSeen = false;
+@@ -2486,0 +2505,4 @@
++                    break;
++                case 6: case 370:
++                    if (!acceptDefaultMeshDisplayTag(static_cast<int>(m_record_type), m_record_data,
++                                                     linetypeSeen, lineweightSeen)) profileValid = false;
+@@ -2669,0 +2692,2 @@
++    bool linetypeSeen = false;
++    bool lineweightSeen = false;
+@@ -2697,0 +2722,4 @@
++                break;
++            case 6: case 370:
++                if (!acceptDefaultMeshDisplayTag(static_cast<int>(m_record_type), m_record_data,
++                                                 linetypeSeen, lineweightSeen)) polyfaceProfile = false;
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -493,0 +494,9 @@
++            ("explicit_bylayer_display", True, 1),
++            ("spaced_bylayer_lineweight", True, 1),
++            ("parent_nondefault_linetype", False, 0),
++            ("parent_nondefault_lineweight", False, 0),
++            ("parent_bad_lineweight", False, 0),
++            ("vertex_nondefault_linetype", False, 0),
++            ("face_nondefault_lineweight", False, 0),
++            ("duplicate_parent_linetype", False, 0),
++            ("duplicate_vertex_lineweight", False, 0),
+@@ -504,0 +514,9 @@
++                if name in ("explicit_bylayer_display", "spaced_bylayer_lineweight",
++                            "parent_nondefault_linetype", "parent_nondefault_lineweight",
++                            "parent_bad_lineweight", "duplicate_parent_linetype"):
++                    tags.extend([(6, "DASHED" if name == "parent_nondefault_linetype" else "BYLAYER"),
++                                 (370, 25 if name == "parent_nondefault_lineweight" else
++                                  "-1junk" if name == "parent_bad_lineweight" else
++                                  "  -1 " if name == "spaced_bylayer_lineweight" else -1)])
++                if name == "duplicate_parent_linetype":
++                    tags.append((6, "BYLAYER"))
+@@ -518,0 +537,6 @@
++                    if name in ("explicit_bylayer_display", "vertex_nondefault_linetype",
++                                "duplicate_vertex_lineweight"):
++                        data.extend([(6, "DASHED" if name == "vertex_nondefault_linetype" else "BYLAYER"),
++                                     (370, -1)])
++                    if name == "duplicate_vertex_lineweight":
++                        data.append((370, -1))
+@@ -532,0 +557,3 @@
++                    if name in ("explicit_bylayer_display", "face_nondefault_lineweight"):
++                        data.extend([(6, "BYLAYER"),
++                                     (370, 25 if name == "face_nondefault_lineweight" else -1)])
+@@ -619,0 +647,27 @@
++
++    def test_polyface_display_invalid_then_valid_same_file(self):
++        """Reject nondefault display metadata without contaminating the next mesh."""
++        points = [(1, 1, 1), (4, 1, 2), (4, 5, 3), (1, 5, 2)]
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")]
++        for handle, lineweight in (("A", 25), ("B", "  -1")):
++            tags.extend([(0, "POLYLINE"), (5, handle), (8, "0"),
++                         (6, "BYLAYER"), (370, lineweight), (66, 1), (70, 64)])
++            for x, y, z in points:
++                tags.extend([(0, "VERTEX"), (8, "0"), (6, "BYLAYER"), (370, "  -1"),
++                             (10, x), (20, y), (30, z), (70, 192)])
++            tags.extend([(0, "VERTEX"), (8, "0"), (6, "BYLAYER"), (370, "  -1"),
++                         (70, 128), (71, 1), (72, 2), (73, 3), (74, 4), (0, "SEQEND")])
++        tags.extend([(0, "ENDSEC"), (0, "EOF")])
++        path = os.path.join(self.temp_dir, "polyface-display-recovery.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++        self.assertEqual(stats["entityCounts"].get("POLYLINE"), 2)
++        self.assertEqual(len(stats["unsupportedFeatures"]["POLYFACE unsupported or invalid profile"]), 1)
++        meshes = [obj for obj in self.document.Objects if obj.Name.startswith("Polyface")]
++        self.assertEqual(len(meshes), 1)
++        self.assertTrue(meshes[0].Shape.isValid())
++        self.assertEqual(len(meshes[0].Shape.Faces), 1)
++        self.assertEqual(sorted((v.Point.x, v.Point.y, v.Point.z) for v in meshes[0].Shape.Vertexes),
++                         sorted(points))

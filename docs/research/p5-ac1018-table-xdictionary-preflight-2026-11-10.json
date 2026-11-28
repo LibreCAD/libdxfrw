@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-10",
+  "id": "p5-ac1018-table-xdictionary-preflight-2026-11-10",
+  "title": "AC1018 TABLE direct-encoder extension-dictionary preflight",
+  "question": "Does the bounded AC1018 TABLE direct encoder reject an extension-dictionary reference when its selected output route does not close that graph?",
+  "finding": {
+    "before": "DRW_Entity::encodeDwgCommon emits xDictHandle in the common handle stream. DRW_Table::encodeDwg did not reject a nonzero xDictHandle, while the bounded TABLE route does not stage or prove the referenced extension-dictionary graph.",
+    "change": "The AC1018 TABLE preflight now requires xDictHandle == 0. The generated vector seeds both destination buffers, verifies that a nonzero reference is refused without changing either buffer, clears the reference, and retries successfully on the same object.",
+    "scope": "Direct AC1018 TABLE frame admission only. This does not implement extension-dictionary graph output, qualify physical whole-source conversion, or establish native TABLE semantics.",
+    "fixtures": "No DWG/DXF fixture was added; the control uses a generated in-memory TABLE object."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused": "./build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS: AC1018 TABLE encoder allocation failures injected=19 rollback=PASS retry=PASS; AC1018/AC1021 TABLE cell override vectors: PASS"
+  },
+  "limitations": [
+    "The guard remains specific to the bounded AC1018 TABLE encoder.",
+    "Extension-dictionary support requires separately qualified identity, ownership, recursive closure, exact output, and readback evidence.",
+    "No support claim is promoted."
+  ]
+}

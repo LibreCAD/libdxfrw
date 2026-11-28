@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw-p6-tablegeometry-group95-profile-census-v1",
+  "completedAt": "2026-11-02",
+  "status": "DISCREPANCY_BOUNDED_SOURCE_SPAN_OPEN",
+  "supportClaimEffect": "none",
+  "question": "Which DWG bit-stream type carries the final group-95 field in TABLEGEOMETRY content geometry?",
+  "normativeEvidence": {
+    "authority": "Open Design Specification for .dwg files v5.4.1",
+    "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": {
+      "20.4.98": "Cell content geometry's final 'Unknown flags' field is BL.",
+      "20.4.103": "Standalone TABLEGEOMETRY's final group-95 'Unknown (0)' field is listed as BD."
+    },
+    "finding": "The same ODA specification gives conflicting field types for the final field in the shared cell-content-geometry sequence. Section 20.4.98 defines it as BL; the standalone TABLEGEOMETRY summary in 20.4.103 lists BD."
+  },
+  "independentImplementationEvidence": [
+    {
+      "repository": "LibreDWG",
+      "repositoryCommit": "26cff989419830beb3aaeaf447febc6b20be44b6",
+      "commitUrl": "https://github.com/LibreDWG/libredwg/commit/26cff989419830beb3aaeaf447febc6b20be44b6",
+      "source": "include/dwg.h and src/dwg2.spec",
+      "finding": "Changes CellContentGeometry.unknown from BD to BL; the source comment says the ODA BD entry is a bug, and the DWG specification mapping uses SUB_FIELD_BL for DXF group 95.",
+      "limit": "The commit does not provide a nonzero standalone TABLEGEOMETRY source span; its rationale cannot independently adjudicate the conflicting ODA entries."
+    },
+    {
+      "repository": "acadrust",
+      "repositoryCommit": "e973e4f764f2f57bdbe89ba58a66781423b457df",
+      "commitUrl": "https://github.com/hakanaktt/acadrust/commit/e973e4f764f2f57bdbe89ba58a66781423b457df",
+      "source": "src/io/dwg/dwg_stream_writers/object_writer/entities.rs::write_table_geometry",
+      "finding": "The writer emits CellContentGeometry.flags with write_bit_long after the six geometry values.",
+      "limit": "This method is used by the inline table-cell content writer. It is independent implementation evidence for the shared geometry payload, not a generated standalone TABLEGEOMETRY object or physical producer witness."
+    }
+  ],
+  "localCorpusCensus": {
+    "searchRoot": "/Users/dli/dev",
+    "dwgPaths": 2148,
+    "versionsScanned": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "uniqueFilesBySha256": 184,
+    "decoder": "LibreDWG dwgread 0.14",
+    "invocation": "dwgread -O JSON <file.dwg>",
+    "jsonOrToolFailures": 5,
+    "readableFilesWithTableGeometry": 9,
+    "tableGeometryObjects": 14,
+    "nonzeroFinalFieldValues": 0,
+    "qualificationNote": "The census extends beyond the previously targeted nine-file sample set. It establishes no nonzero candidate among the decoded local TABLEGEOMETRY records. The five failed JSON/tool decodes are not evidence that their inputs lack TABLEGEOMETRY."
+  },
+  "generatedParserControl": {
+    "test": "libdxfrw_tablegeometry_nonzero_bl_tail",
+    "selector": "--tablegeometry-nonzero-bl-tail",
+    "input": "In-memory AC1021 TABLEGEOMETRY object frame authored in the test; no DWG fixture file is added.",
+    "candidateFinalFieldValue": 74565,
+    "checks": [
+      "Nonzero final shared BL value is retained exactly as 0x12345.",
+      "Six preceding geometry coordinates and four scalar geometry values remain aligned.",
+      "Cell counts/flags remain aligned, and the following content hard pointer resolves exactly to handle 0xA720."
+    ],
+    "validation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+      "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_tablegeometry_nonzero_bl_tail$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "qualificationLimit": "Synthetic bytes encode the BL candidate by construction; this regression protects implementation behavior but does not provide an independent producer/source-span witness for the standalone TABLEGEOMETRY field. No support claim is promoted."
+  },
+  "implementationDecision": {
+    "currentLibdxfrwBehavior": "DRW_TableGeometry::parseDwg reads the final field as a bounded BL into the int32 DXF group-95 model.",
+    "decision": "Do not change the parser based on the unresolved standalone-section conflict. The existing BL path agrees with ODA §20.4.98 and both independent implementation sources for the shared cell-content-geometry payload; all decoded local standalone witnesses remain zero and therefore do not discriminate BD from BL.",
+    "nextEvidence": "Obtain a standalone TABLEGEOMETRY source with a nonzero final field from a traceable independent producer, independently decode its field span, and keep the typed readback separate from native TABLE rendering qualification."
+  },
+  "sources": {
+    "odaSpecification": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "libreDwgSchema": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec",
+    "acadrustWriter": "https://github.com/hakanaktt/acadrust/blob/e973e4f764f2f57bdbe89ba58a66781423b457df/src/io/dwg/dwg_stream_writers/object_writer/entities.rs"
+  },
+  "filesAdded": 0,
+  "dependenciesAdded": 0,
+  "supportClaimsPromoted": 0
+}

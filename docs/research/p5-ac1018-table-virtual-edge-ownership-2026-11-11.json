@@ -1,0 +1,33 @@
+{
+  "id": "p5-ac1018-table-virtual-edge-ownership-2026-11-11",
+  "scope": "AC1018 TABLE shared-border virtual-edge ownership and canonical writer/parser behavior",
+  "status": "implemented-local-control-passed",
+  "specification": "Open Design Specification for .dwg files v5.4.1 §20.4.96.1, Until R21",
+  "implementation": {
+    "edgeOrder": ["top", "right", "bottom", "left"],
+    "rules": [
+      "a virtual edge is present in the cell edge mask and has an adjacent cell",
+      "the adjacent cell carries the reciprocal edge mask without marking that edge virtual",
+      "the border property override is stored on the non-virtual adjacent edge only",
+      "the virtual cell carries no duplicate border-property mask for that edge",
+      "invalid, boundary, one-sided, or duplicate virtual relationships are semantically incomplete on read and refused on write"
+    ],
+    "wire": "The writer emits the virtual-edge byte when needed, including when it is the only cell override record; parsed range accounting includes that record."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+    "result": "1/1 focused test passed. A generated two-cell AC1018 table stores a right edge once on the neighbor and marks the adjacent cell's right edge virtual; typed parseback preserves both edge masks, the virtual byte, border color, and following-body sentinel. A one-bit mutation that creates an out-of-bounds virtual edge remains readable but semantically incomplete. A duplicate override on the virtual edge refuses without changing body/handle destinations and the corrected same-object retry succeeds.",
+    "diff_check": "git diff --check passed"
+  },
+  "limits": [
+    "The drawing was authored locally for this control; no physical producer sample was added.",
+    "This does not qualify producer ordering, AutoCAD/ODA acceptance, native TABLE rendering, or broad TABLE support.",
+    "No DXF shared-border semantic promotion is implied."
+  ],
+  "files": [
+    "src/drw_entities.cpp",
+    "tests/dwg_object_vectors_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ]
+}

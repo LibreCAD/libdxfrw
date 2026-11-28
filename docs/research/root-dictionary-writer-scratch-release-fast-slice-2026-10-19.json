@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Root-dictionary writer scratch last-use release",
+  "mode": "Local implementation fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Release fileExport root-dictionary setup collections after their actual last use.",
+    "Preserve root-entry validation, handle remapping, and Background suppression behavior.",
+    "Verify with the focused writer build and owning root/object graph CTests."
+  ],
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "changes": [
+      "Capture whether backgroundRootEntries was nonempty, consume its entries into rootEntries, then release the vector and its string storage before the named-object dictionary scan; the later filter uses only the captured presence flag.",
+      "Release rootEntryNames nodes, keys, and buckets after its final duplicate-name check in the named-object dictionary scan, before layout-root insertion and writer handoff.",
+      "Keep rootEntries, material dictionaries, source dictionaries, object-graph validation, and serialization inputs intact."
+    ],
+    "behaviorChange": false,
+    "publicApiOrAbiChange": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "tests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_fixtures|libdxfrw_block_owners|libdxfrw_named_resource_import_evidence|libdxfrw_dictionary_default_adapter_roundtrip)$' --output-on-failure",
+      "passed": 4,
+      "failed": 0,
+      "total": 4,
+      "elapsedSeconds": 4.78
+    },
+    "scopedDiffCheck": "PASS"
+  },
+  "assessment": {
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 139,
+    "topLevelSubplans": 77,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "implementationStatus": "UNCOMMITTED_SHARED_WORKTREE"
+  },
+  "method": {
+    "kind": "Source-level last-use audit plus focused build/CTest verification",
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The owning tests verify emitted root/object behavior but do not benchmark peak memory. The change only proves early release at the audited last-use boundaries; it does not close the wider 7S.2c retained-output/callback ownership census."
+  }
+}

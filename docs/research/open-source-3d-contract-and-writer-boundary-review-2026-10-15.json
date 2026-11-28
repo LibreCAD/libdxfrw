@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw-open-source-3d-contract-and-writer-boundary-review-v1",
+  "reviewedAt": "2026-10-15",
+  "scope": "Broadened the DWG/DXF 3D comparison across opaque carrier retention, render/display caches, end-state solid semantics, history/editability, and version-specific writer behavior.",
+  "method": {
+    "kind": "Primary ODA specification plus source repositories, maintainer discussions, and open issue/PR reports",
+    "runtimeTestsRun": false,
+    "peerLibrariesRun": false,
+    "nativeCadRun": false,
+    "fixturesDownloadedOrCommitted": 0,
+    "evidenceRule": "The ODA document governs DWG layout. Mutable project branches, issue reports, and maintainer claims are leads only; distinguish source claims from independently reproduced results and distinguish transport, display, shape, and modeling semantics."
+  },
+  "findings": [
+    {
+      "id": "ODA_MODELER_BODY_LAYERING",
+      "sources": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "evidence": "ODA v5.4.1 section 20.4.41 describes ACIS payload separately from optional wireframe/isoline and silhouette data, plus a R2007+ History ID handle. Section 24.2.2.3 specifically describes AcDs data records carrying SAB for REGION and 3DSOLID; it does not establish that BODY uses the same AcDs mapping. ODA says the ACIS modeler stream is incompletely decrypted and detailed SAB grammar is outside scope.",
+      "confidence": "Authoritative for the documented structural layout; explicit scope limit for BODY and ACIS semantics.",
+      "planUse": "Track payload transport, cached display data, B-rep semantics, and history/editability separately. Keep BODY as a distinct profile pending a producer trace."
+    },
+    {
+      "id": "LIBREDWG_IO_VS_KERNEL_SCOPE",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/discussions/1160"
+      ],
+      "evidence": "A LibreDWG maintainer states that ACIS describes the end result of kernel computations while operations/history are represented elsewhere in DWG objects, and that basic file IO does not require a full solid kernel. This is a maintainer's architectural description, not a normative specification.",
+      "confidence": "Primary project discussion; not independently verified as a complete statement for every DWG version/entity family.",
+      "planUse": "Avoid making a geometry kernel a runtime dependency of libdxfrw; do not imply raw-body preservation offers modeling/history editing."
+    },
+    {
+      "id": "EZDXF_OPERATIONAL_SEMANTIC_LIMIT",
+      "sources": [
+        "https://github.com/mozman/ezdxf/discussions/1295"
+      ],
+      "evidence": "A user reports an ezdxf-generated solid accepted by AutoCAD MASSPROP but behaving differently under a Dynamo intersection operation; the maintainer describes ezdxf ACIS support as basic. This is a report, not an independent reproduction.",
+      "confidence": "Primary project Q&A; unverified case.",
+      "planUse": "Include at least one known-answer Boolean/topology operation in kernel semantic qualification; mass properties and nonempty carriers alone are insufficient."
+    },
+    {
+      "id": "LOCAL_GENERATOR_FOR_ACDS_LOSS_CASE",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "evidence": "Issue #1411 documents a source recipe for a scratch-generated AC1032 REGION with a 5,489-byte SAB body, then reports silent payload loss in a specific LibreDWG 0.14.8593 DXF-to-DWG-to-DXF run. No generated file or output was independently run in this research pass.",
+      "confidence": "Reproducible issue recipe with peer-reported result; not independently executed.",
+      "planUse": "Use only as a lead for an optional pinned local generator at the composed checkpoint. Keep generated data ephemeral, add no dependency, and require independent geometry checks before semantic promotion."
+    },
+    {
+      "id": "ACADSHARP_WRITER_PR_BOUNDARIES",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "evidence": "As reviewed 2026-10-15, #1150 and #1240 remain open proposals. #1150 describes separate DXF/DWG routes and records an unsorted handle-directory bug corrected by sorting rank; its contributor reports external reader checks, not an accepted/released result. #1240 is a separate writer proposal linked to #1195 and depends on schema/storage work.",
+      "confidence": "Current public PR/issue state and author/maintainer descriptions; no branch was checked out or executed.",
+      "planUse": "Turn handle-order disagreement, DXF group 1/3 token-safe splitting, subclass/version boundaries, and per-format carrier separation into local in-memory tests. Do not describe either proposal as released peer capability."
+    },
+    {
+      "id": "IXMILIA_CLASS_VS_NATIVE_COMPATIBILITY",
+      "sources": [
+        "https://github.com/ixmilia/dxf"
+      ],
+      "evidence": "IxMilia.Dxf lists model classes for 3DSOLID, BODY, and REGION but explicitly warns that AutoCAD may not open files written with those types. Its stated DXF support is also bounded by version/entity exceptions.",
+      "confidence": "Project README claim; no runtime check performed.",
+      "planUse": "A type model/class or self-read does not qualify writer interoperability; require per-version external target acceptance separately."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Use four explicit 3D support layers: exact carrier/container bytes and references; display cache/wireframe/silhouette; valid end-state B-rep geometry; and editable history/feature semantics.",
+    "Do not assume BODY shares the ODA-documented REGION/3DSOLID AcDs data-record route without a producer sample/trace.",
+    "Add writer test slices for legacy DXF SAT groups 1/3 character transformation and token-safe splitting, R2007+ history subclass/handle gates, pre-2013 inline DWG, and R2013+ indexed AcDs/ACDSDATA paths.",
+    "Add one semantic operation witness (Boolean/topology) beyond parse success, body counts, bounds, and mass properties.",
+    "Keep local tests source-generated/in-memory; optional generated files remain ephemeral and are run once at the composed gate, with no peer fixture or runtime dependency."
+  ],
+  "scopeBoundary": {
+    "findings": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChanged": false,
+    "testFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "runtimeValidation": "NOT RUN; research-only update"
+  }
+}

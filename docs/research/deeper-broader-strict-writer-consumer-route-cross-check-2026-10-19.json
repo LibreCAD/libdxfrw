@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader strict DXF writer and consumer-route cross-check",
+  "mode": "Primary-source web review plus local source/test audit; plan and receipt update only",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile ACadSharp #1253's current strict-reader report with the local DXF CLASS, DIMSTYLE, and HATCH writers and generated wire tests.",
+    "Refresh Autodesk's general DXF writer acceptance guidance and distinguish it from entity-specific group-presence rules.",
+    "Pin consumer-route limits for FreeCAD's ODA-to-DXF conversion and ezdxf's bounded ACIS support.",
+    "Refine existing implementation-readiness and composed qualification gates without adding duplicate tests or promoting support claims."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review and local source/test audit; research receipt and plan edited",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Web sources and issue reports are mutable. ACadSharp's reported native outcome was not independently rerun and is not treated as a normative DXF rule or local reproduction. Local assertions establish generated wire behavior only, not native acceptance. The shared worktree contains broad pre-existing user changes; no unrelated files were modified."
+  },
+  "sources": [
+    {
+      "project": "Autodesk DXF documentation",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-5D1DFE5C-94FC-43B7-B535-43001D1662C1.htm"
+      ],
+      "observed": "The writing guide says AutoCAD-based acceptance depends on internal consistency and gives section/table ordering requirements while allowing optional sections and records to be omitted when appropriate.",
+      "evidenceCeiling": "General writer guidance; not a complete entity-specific group-code presence specification, and it does not settle every HATCH group-47 edge case."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1253"
+      ],
+      "observed": "The open issue reports AutoCAD/TrueView rejection involving CLASS, HATCH, and DIMSTYLE output. Its Sep. 23 follow-up describes three derived HATCH records with path flag 92=7 and nonzero group 47, and says omission from every HATCH causes TrueView to request group 47 on a derived HATCH.",
+      "evidenceCeiling": "Peer-authored report against a pinned peer writer/sample; not independently rerun. It narrows an observed profile but does not establish a universal predicate for zero-valued derived paths or MPOLYGON."
+    },
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observed": "The ODA converter invocation requests ACAD2000 DXF before the subsequent FreeCAD DXF import.",
+      "evidenceCeiling": "That specific source route does not qualify direct modern-version DXF or SAB output. A qualification must bind the selected converter/importer, exact arguments, produced version, and per-object outcomes."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": "Current documentation says only a limited ACIS entity set is supported; unsupported entities load as NONE_ENTITY and lose data, and arbitrary ACIS load/re-export is not supported. It documents version-bounded SAT/SAB use.",
+      "evidenceCeiling": "Useful for a pinned DXF structural/carrier profile or bounded authoring path, not arbitrary B-rep topology, geometry semantics, or native acceptance."
+    }
+  ],
+  "localCrosswalk": [
+    {
+      "owner": "Existing DXF writer strictness owner / PAR-07 composed comparator gate",
+      "files": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "src/drw_classes.cpp",
+        "src/libdxfrw.cpp",
+        "tests/hatch_reference_tests.cpp",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "observed": "Source audit confirms local CLASS ordering uses 90, modern 91, then 280/281; AC1024 DIMSTYLE emits 71 and 340 row handles; generated tests already assert the CLASS/DIMSTYLE sequences and HATCH zero/nonzero/path-flag profiles.",
+      "disposition": "Reuse existing focused guards; do not add duplicate tests, alter HATCH predicates, or infer native acceptance from generated serialization. At the existing composed checkpoint, report wire assertion, independent strict-reader result, and native audit as distinct evidence."
+    },
+    {
+      "owner": "Downstream consumer and optional 3D/ACIS qualification gates",
+      "files": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "docs/3D_CONSUMER_CONTRACT.md"
+      ],
+      "observed": "FreeCAD's ODA route lowers DWG to ACAD2000 DXF; ezdxf's ACIS semantics are explicitly bounded and lossy for unsupported entities.",
+      "disposition": "Bind exact converter/importer versions and output versions; inspect intermediate carrier bytes directly; qualify ACIS association, parsing, topology, and native acceptance independently."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalFindings": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "existingOwners": [
+      "PAR-07/S8",
+      "existing DXF writer strictness owner",
+      "existing FreeCAD/ACIS consumer qualification gates"
+    ],
+    "planEffect": "Clarifies that existing generated local wire coverage should be reused; keeps the reported ACadSharp strict-reader outcome, Autodesk general writer guidance, FreeCAD's downgraded conversion route, and ezdxf's bounded ACIS profile from being conflated as one support result.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "verification": {
+    "localSourceAuditOnly": true,
+    "buildRun": false,
+    "testRun": false,
+    "peerExecutableRun": false,
+    "nativeCadRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "commitAttempted": false
+  }
+}

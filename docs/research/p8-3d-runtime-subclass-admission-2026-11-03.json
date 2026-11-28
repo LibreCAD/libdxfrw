@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-3d-runtime-subclass-admission-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "3D_RUNTIME_SUBCLASS_ADMISSION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Reject unmodeled subclasses at 3D callback capture, adapter dispatch, and direct surface/modeler DXF serialization so base writers cannot silently drop additional runtime state.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "captureAdmission": {
+      "MESH/SPLINE/HELIX": "Require the exact runtime class and corresponding public tag before retaining a built-in copy.",
+      "SURFACE": "Require the exact concrete surface subtype selected by eType before retaining a built-in copy.",
+      "3DSOLID/REGION/BODY": "Require exact DRW_ModelerGeometry and one of the three supported public tags before retaining a built-in copy."
+    },
+    "writerAdmission": {
+      "adapter": "Require exact concrete surface classes and exact DRW_ModelerGeometry before dispatch.",
+      "lowLevelSurface": "Require exact concrete surface subtype; preserve the historical exact DRW_Surface base representation for PLANESURFACE.",
+      "lowLevelModeler": "Require exact DRW_ModelerGeometry and a supported modeler entity tag."
+    },
+    "failureBehavior": "Derived objects with matching public tags are refused before typed copying or serialization.",
+    "retryBehavior": "After correcting the callback input or replacing the live entity with the exact built-in class, the same adapter/writer can proceed."
+  },
+  "validationProfile": {
+    "source": "Locally authored C++ subclasses with an extra unmodeled field; all exact retry records are constructed in memory. No drawing fixture is used.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "Typed callbacks reject and then accept exact retries for MESH, SPLINE, HELIX, PLANESURFACE, and 3DSOLID.",
+      "Adapter and direct low-level MESH/HELIX controls preserve destination bytes on subclass refusal and read back exact retry geometry/payload.",
+      "Direct low-level plane-surface and modeler controls preserve destination bytes on subclass refusal and read back exact built-in retry records."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_entity_runtime_dispatch$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; 0.64 seconds, covering ASCII and Binary DXF refusal/retry/readback cases.",
+    "fixturePolicy": "No DWG/DXF fixture was added or committed."
+  },
+  "limitations": [
+    "Direct serialization retry/readback is exercised for the plane-surface and modeler families; other concrete surface subtype branches are protected by exact checks but are not each exercised by this selector.",
+    "No ACIS/SAB syntax, body association, physical producer breadth, geometric topology, kernel meaning, native consumer, whole-document closure, or support claim is qualified.",
+    "P8 remains open."
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader new native DWG and DXF peer-route screen",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Search for additional open-source DWG/DXF implementations not yet represented in the parity plan",
+    "Classify declared version and entity coverage separately from verified operation-level evidence",
+    "Determine whether any new route can provide independent 2D reader evidence or ACIS/AcDs semantics",
+    "Refine the optional composed comparator checkpoint without expanding per-slice validation"
+  ],
+  "method": {
+    "kind": "Read-only review of public primary-source repositories and package metadata, reconciled with the local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Capability statements, package metadata, and changelogs are not runtime conformance. ezdwg 0.16.3 source-distribution-to-Git-commit correspondence and parser-lineage independence were not established. No peer artifacts were installed or executed."
+  },
+  "sources": [
+    {
+      "project": "ezdwg",
+      "url": "https://github.com/monozukuri-ai/ezdwg/blob/main/README.md",
+      "revision": "Mutable main reviewed 2026-10-17; Cargo workspace reports version 0.16.3",
+      "observed": "The README advertises a Rust-core native DWG reader across AC1012-AC1032 and a native AC1015 writer. It documents experimental AC1012/AC1014 support, lists a limited high-level entity surface, says AC1021/AC1024/AC1027/AC1032 native decoding is regression-tested for only a small core entity set, and calls some modern style/layer resolution best-effort. It states that DWG-to-DXF uses ezdxf and the native writer is AC1015-only/subset."
+    },
+    {
+      "project": "ezdwg PyPI artifact",
+      "url": "https://pypi.org/pypi/ezdwg/0.16.3/json",
+      "revision": "Version 0.16.3 uploaded 2026-10-17; MIT license expression",
+      "observed": "The source distribution is available with SHA-256 77978afa63fdcc61a18abbd581b9bb1cdac09e5a1747840bb689fbd9771b230c. This provides an immutable package candidate, but the metadata does not establish a matching Git source commit. Platform wheels have separate digests and must be treated as distinct artifacts."
+    },
+    {
+      "project": "ezdwg changelog",
+      "url": "https://raw.githubusercontent.com/monozukuri-ai/ezdwg/main/CHANGELOG.md",
+      "revision": "Mutable main reviewed 2026-10-17",
+      "observed": "The changelog documents recent work on version-specific readers, writer behavior, entity handling, and checks against ODA and paired samples. These are project-reported implementation/test activities, not independently reproduced conformance results."
+    },
+    {
+      "project": "IxMilia.Dwg",
+      "url": "https://github.com/ixmilia/dwg",
+      "revision": "Mutable main reviewed 2026-10-17",
+      "observed": "The README describes a portable .NET DWG reader/writer based on the ODA specification and lists .NET 7/PowerShell build prerequisites. The reviewed repository page exposes no release and the README does not identify version coverage, entity coverage, or a qualification corpus."
+    },
+    {
+      "project": "IxMilia.Dxf",
+      "url": "https://github.com/ixmilia/dxf",
+      "revision": "Mutable main reviewed 2026-10-17; last shown NuGet release 0.8.4 dated 2024-06-13",
+      "observed": "The project documents ASCII/Binary DXF and DXB routes, advertises R10-R2014 completeness with named entity exclusions, while NuGet describes AutoCAD versions through R2018. Its README warns that AutoCAD may reject R13 output and multiple entity writers including 3DSOLID/BODY/REGION."
+    },
+    {
+      "project": "IxMilia.Dxf NuGet artifact",
+      "url": "https://www.nuget.org/packages/IxMilia.Dxf/0.8.4",
+      "revision": "Version 0.8.4, MIT, dated 2024-06-13",
+      "observed": "This supplies an exact package version for a possible optional DXF structure comparator; its version claim does not resolve the repository README's narrower R10-R2014 per-entity status wording or establish native consumer acceptance."
+    },
+    {
+      "project": "Local plan",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "revision": "Worktree plan over de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-17",
+      "observed": "The existing peer matrix already separates DWG parsing, DXF parsing/writing, projection, carrier retention, semantic solid validation, and native acceptance. The new candidate rows fit the existing composed external comparator checkpoint; no local source-confirmed defect was established."
+    }
+  ],
+  "assessment": {
+    "ezdwg": "Potential additional DWG reader evidence for precisely covered 2D entity/version rows only, pending artifact/source reconciliation, lineage audit, and a pinned execution. Its DXF writer is ezdxf-derived and its native DWG writer is AC1015/subset-only.",
+    "ixmiliaDwg": "Discovery-only until source inspection establishes exact versions, entities, and reproducible tests; do not count it in the current comparator denominator.",
+    "ixmiliaDxf": "Optional ASCII/Binary/DXB structural comparator at an exact package version; its self-described entity/version coverage and AutoCAD caveats prevent broad parity or 3D claims.",
+    "threeDSemantics": "No reviewed source establishes ACIS/AcDs payload decoding into complete B-rep semantics or native CAD acceptance. Keep all existing external semantic gates unchanged.",
+    "implementationSpeed": "Keep peer install/build/run out of the per-slice loop. If useful, perform one small scratch-generated, source-manifest comparison at the existing composed checkpoint and record each parser/writer operation independently."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "scopedDiffCheck": true,
+    "testsRun": false,
+    "peerRuntimeRun": false,
+    "nativeQualification": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "SORTENTSTABLE target-key owner-bound reserve",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Right-size the per-table target-key index to the maximum number of distinct entities that can belong to its owner.",
+    "Preserve repeated identical target/key pairs and conflicting-key rejection."
+  ],
+  "sourceChange": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "function": "dx_iface::validateSortEntsGraph",
+    "before": "The target-key map reserved bucket capacity from total pair count, even though repeated pairs can target the same entity.",
+    "after": "Use min(pair count, validated source entity count for this block owner) as the map reserve bound.",
+    "effect": "Avoids reserving hash buckets for duplicate pair entries that cannot create distinct target keys. No validation, admission, ordering, or output semantics changed."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_sortents_adapter$' --output-on-failure",
+        "result": "passed",
+        "count": "1/1",
+        "elapsedSeconds": 0.31,
+        "coverageNote": "Generated owner graph exercises two identical pairs targeting one entity, conflicting-key rejection, ASCII/Binary output, and readback."
+      }
+    ],
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes one pair-count-versus-distinct-target over-reservation case in the local SORTENTSTABLE projection scratch audit. Support claims and external qualification remain unchanged."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict adapter-test target build",
+      "Focused existing SORTENTSTABLE adapter round-trip CTest"
+    ],
+    "limitations": "This is source-level capacity sizing based on a proven upper bound; it does not measure allocator behavior, RSS, or throughput."
+  }
+}

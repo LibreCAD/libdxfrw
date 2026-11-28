@@ -1,0 +1,70 @@
+{
+  "title": "Generated FIELD/path/OBJECTPTR/PARTIAL_VIEWING_INDEX OBJECTS allocation rollback and retry",
+  "date": "2026-11-09",
+  "scope": "AC1027 whole-file dxfRW::write with locally generated LINE, POINT, and two-vertex POLYLINE entities plus FIELD, FIELDLIST member, MOTIONPATH, CURVEPATH, POINTPATH, OBJECTPTR, and one PARTIALVIEWINGINDEX entry in the same OBJECTS callback; ASCII and Binary.",
+  "source": {
+    "kind": "locally-authored in-memory records",
+    "lineHandle": "0xD7B0",
+    "lineOwner": "0x1F (model-space BLOCK_RECORD)",
+    "pointHandle": "0xD7B1",
+    "pointOwner": "0x1F (model-space BLOCK_RECORD)",
+    "point": [6.0, 5.0, 4.0],
+    "polylineHandle": "0xD7B9",
+    "polylineOwner": "0x1F (model-space BLOCK_RECORD)",
+    "polylineVertices": [
+      {"handle": "0xD7BA", "point": [10.0, 20.0, 0.0]},
+      {"handle": "0xD7BB", "point": [30.0, 40.0, 0.0]}
+    ],
+    "fieldHandle": "0xD7B3",
+    "fieldOwner": "0xC (named-object dictionary)",
+    "fieldValues": {
+      "evaluatorId": "AcExpr",
+      "fieldCode": "1+1",
+      "valueString": "2",
+      "valueStringLength": 1
+    },
+    "fieldListHandle": "0xD7B4",
+    "fieldListOwner": "0xC (named-object dictionary)",
+    "fieldListMembers": ["0xD7B3"],
+    "motionPathHandle": "0xD7B5",
+    "motionPath": {
+      "classVersion": 1,
+      "cameraPath": "CURVEPATH 0xD7B6",
+      "targetPath": "POINTPATH 0xD7B7",
+      "frames": 120,
+      "frameRate": 30,
+      "cornerDeceleration": true
+    },
+    "curvePathHandle": "0xD7B6",
+    "curvePath": {"classVersion": 1, "entityHandle": "LINE source handle 0xD7B0"},
+    "pointPathHandle": "0xD7B7",
+    "pointPath": {"classVersion": 1, "point": [9.0, 8.0, 7.0]},
+    "objectPtrHandle": "0xD7B8",
+    "partialViewingIndexHandle": "0xD7B2",
+    "partialViewingIndexOwner": "0xC (named-object dictionary)",
+    "entry": {
+      "extentsMin": [0.0, 1.0, 2.0],
+      "extentsMax": [7.0, 8.0, 9.0],
+      "target": "LINE source handle 0xD7B0"
+    },
+    "fixtureCommitted": false
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_partial_viewing_index_objects_allocation_tests -j4",
+    "test": "ctest --test-dir build -R '^libdxfrw_partial_viewing_index_objects_allocation_retry$' --output-on-failure",
+    "entityReferenceRegression": "ctest --test-dir build -R '^libdxfrw_entity_reference_remapping$' --output-on-failure",
+    "insertHandleRegression": "ctest --test-dir build -R '^libdxfrw_blockrecord_insert_reference_remapping$' --output-on-failure",
+    "polylineRegression": "ctest --test-dir build -R '^libdxfrw_polyline_vertex_role_closure$' --output-on-failure",
+    "vertexXdataRegression": "ctest --test-dir build -R '^libdxfrw_classic_vertex_xdata$' --output-on-failure",
+    "result": "PASS",
+    "asciiAllocationOffsets": 44,
+    "binaryAllocationOffsets": 42,
+    "perOffset": "one-shot std::bad_alloc across FIELD, FIELDLIST, MOTIONPATH, CURVEPATH, POINTPATH, OBJECTPTR, then PARTIALVIEWINGINDEX in one OBJECTS callback after LINE, POINT and a two-vertex POLYLINE were emitted; whole-file destination sentinel is preserved, source handles and caller object fields remain intact, same-codec retry reproduces calibration bytes, and typed readback verifies FIELD values, FIELDLIST membership, MOTIONPATH-to-CURVEPATH/POINTPATH edges, CURVEPATH-to-LINE edge, OBJECTPTR identity, POINT fields, POLYLINE/VERTEX geometry and owner identities, and LINE/PVI graph and extents",
+    "gitDiffCheck": "PASS"
+  },
+  "limits": [
+    "Ordinary entity emission and the compound POLYLINE/VERTEX sequence preserve caller source handles after success while recording minted output identities internally. INSERT/ATTRIB retains minted caller identities because the caller-visible compound path depends on those child owner IDs. This generated control verifies LINE, POINT and POLYLINE/VERTEX; other entity types and consumers require their owning controls.",
+    "Generated serializer transaction and typed DXF readback evidence only; it does not qualify native consumer behavior, external producers, DWG output, or broad support.",
+    "No DWG/DXF fixture was added; test output uses its build scratch directory."
+  ]
+}

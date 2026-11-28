@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "SPLINE artifact availability and GDAL fit-only consumer crosswalk",
+  "mode": "Primary-source issue/spec/documentation review plus local plan/source crosswalk; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh ACadSharp issue #1299's evidence tier after confirming that its public body links a source-DWG/output-DXF archive.",
+    "Compare that report with GDAL issue #10397 and current GDAL DXF driver behavior to identify consumer-side diagnostic confounders.",
+    "Refine the optional SPLINE investigation order while preserving the no-external-fixture policy, reduced validation cadence, and support-claim boundaries."
+  ],
+  "sources": [
+    {
+      "project": "DomCR/ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://github.com/user-attachments/files/33443730/0501_020_01.zip"
+      ],
+      "revision": "Issue page reviewed 2026-10-19; it identifies ACadSharp v3.8.0 NuGet and an AutoCAD-created source DWG. The archive link was not downloaded or inspected.",
+      "observed": "The issue says conversion to DXF produces bad spline data that a later GDAL-to-GeoJSON conversion rejects, and attaches a ZIP said to contain both source DWG and output DXF. The issue body does not identify the GDAL version/options, failing SPLINE handle, group arrays, full diagnostic, or an independent expected curve. This is artifact-available but uninspected peer evidence, not a reproduced malformed-DXF case."
+    },
+    {
+      "project": "OSGeo/gdal",
+      "urls": [
+        "https://github.com/OSGeo/gdal/issues/10397",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Issue and current stable DXF-driver documentation reviewed 2026-10-19; issue #10397 remains open and names GDAL 3.9.0 on Windows 11.",
+      "observed": "The issue shows a degree-3 SPLINE with five fit points (group 74 and repeated 11/21/31 tuples) and no shown control-point count/data or knot array, then reports a DXF reader error. Current documentation says SPLINE is tessellated to an OGR LINESTRING and describes eight output vertices per control point. This is a GDAL-specific fit-only failure shape/projection limit, not normative validity evidence and not proof about ACadSharp #1299."
+    },
+    {
+      "project": "Autodesk DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm"
+      ],
+      "revision": "Public SPLINE DXF group-code reference reviewed 2026-10-19.",
+      "observed": "The reference separately lists group 73/control points and 74/optional fit points, plus their respective tuples. It documents fields, not a complete mathematical-validity rule or fit-only interpolation algorithm."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing PAR-22/7H/7I/7AB owners include explicit-73=0 generated fit-only ASCII/Binary DXF controls and a following-record sentinel.",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: the existing research notes distinguish strict DXF structure, OGR projection, field preservation, and curve semantics.",
+    "AGENTS.md: DWG parseDwg changes require ODA v5.4.1 review and sample-trace support; external testing drawings must not be committed unless they satisfy the user's admitted-fixture rule."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "externalDrawingsDownloaded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines the existing SPLINE diagnostic route: ACadSharp #1299 is artifact-available but uninspected, and the separate GDAL fit-only issue prevents treating GDAL rejection as a syntax or semantic verdict. Adds a provenance-aware, no-fixture diagnostic sequence without changing implementation priority or support claims."
+  },
+  "method": {
+    "kind": "Read-only primary-source issue/spec/documentation review and local static crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": false,
+    "attachmentContentsInspected": false,
+    "limitations": "The ACadSharp archive link was visible but not fetched, so its hash, provenance, rights, DWG version, failing entity, and actual output fields are unknown. GDAL issue #10397 is a separate report and does not establish the cause of #1299. Autodesk's group table does not supply a complete spline validity/interpolation rule."
+  },
+  "implementationReadiness": [
+    "If peer-artifact analysis is later needed, verify provenance/rights first, then bind archive and extracted-file hashes, producer/release, DWG version, exact GDAL binary/version/options, and diagnostics; use disposable scratch only.",
+    "Validate DXF group syntax and framing independently before running an OGR geometry projection.",
+    "Compare source/output SPLINEs by identity and exact ordered group arrays; keep omitted group 73 distinct from explicit 73=0.",
+    "Use GDAL only as a version-pinned projection consumer; use independent NURBS evaluation or a justified native/interpolation witness for curve semantics.",
+    "Only a reproduced local defect may trigger a focused generated in-memory regression; consult ODA v5.4.1 before changing DWG parseDwg code.",
+    "Keep peer drawings out of the repository and retain focused-selector plus owning-CTest validation; defer composed peer/native checks to the planned checkpoint."
+  ],
+  "validation": [
+    "jq -e . docs/research/deeper-broader-spline-artifact-gdal-fit-only-crosswalk-2026-10-19.json",
+    "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-spline-artifact-gdal-fit-only-crosswalk-2026-10-19.json"
+  ]
+}

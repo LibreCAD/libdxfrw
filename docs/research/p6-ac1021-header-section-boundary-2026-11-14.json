@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1021-header-section-boundary-2026-11-14",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "scope": "Hash-bound AC1021 physical HEADER page and decoded envelope accounting for one external local sample; no parser behavior was changed.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sections": ["R2007 section/page map", "AcDb:Header"],
+    "rules": [
+      "The section map identifies the HEADER section and its physical page references.",
+      "The decoded AcDb:Header envelope contains a begin sentinel, declared data size, CRC, and end sentinel; compare its trailer end to the decoded logical-section size when accounting for suffix bytes."
+    ]
+  },
+  "source": {
+    "path": "../ACadSharp/samples/sample_AC1021.dwg",
+    "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+    "size": 1063168,
+    "version": "AC1021",
+    "provenanceLimit": "The file is from a local ACadSharp sample checkout; its producer and source-generation provenance were not established. It is not a repository fixture."
+  },
+  "physicalHeaderPage": {
+    "pageNumber": 34,
+    "fileOffset": 1046272,
+    "pageBytes": 1024,
+    "pageSha256": "18d9fc4c9882ff8ab32c494737e484d9ae001dae81b1cafb5d3413a53ac918f7",
+    "compressedDataBytes": 757,
+    "decompressedDataBytes": 848
+  },
+  "decodedHeaderEnvelope": {
+    "logicalSectionId": 1,
+    "inputBytes": 848,
+    "beginSentinelOffset": 0,
+    "beginSentinelHex": "cf7b1f23fdde38a95f7c68b84e6d335f",
+    "declaredSizeWordOffset": 16,
+    "declaredDataSize": 810,
+    "dataOffset": 20,
+    "payloadEndOffset": 830,
+    "crcOffset": 830,
+    "storedCrc": "0x8900",
+    "calculatedCrc": "0x8900",
+    "endSentinelOffset": 832,
+    "endSentinelHex": "3084e0dc0221c756a0839747b192cca0",
+    "trailerEndOffset": 848,
+    "unclaimedSuffixBytes": 0,
+    "crcDisposition": "The instrumented reader trace prints matching stored and calculated values; this is a reader self-check, not an independent CRC implementation."
+  },
+  "implementationObservation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf ../ACadSharp/samples/sample_AC1021.dwg -y -d -v2007 /private/tmp/p6-e-ac1021-crc-probe.dxf",
+    "executableSha256": "0c3038724b39b95ac57062fee287be3de5e819d6a90d2ed38da12d105a4eb3f6",
+    "traceSha256": "5367044a34b795b00f0bb1608d13732747f3df6c88b3fc6fd2389ee878fdea5c",
+    "exitCode": 1,
+    "observation": "The reader parsed the HEADER envelope with zero unclaimed bytes and published all 925 observed source frames. Strict DXF export later refused because the IMAGEDEF owner role is unqualified; this is not a HEADER failure."
+  },
+  "limitations": [
+    "One local sample with unknown producer provenance does not qualify an AC1021 producer profile.",
+    "This exact-envelope sample does not classify the separate AC1021 maintenance-55 unclaimed-suffix witness documented in p6-ac1021-oda-header-suffix-diagnostic-admission-2026-11-03.json.",
+    "No output or support claim is promoted; strict output continues to refuse the unqualified IMAGEDEF owner role and unexplained suffix profiles."
+  ]
+}

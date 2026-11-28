@@ -1,0 +1,10 @@
+{
+  "date": "2026-11-15",
+  "hostedRun": "https://github.com/dxli/libdxfrw/actions/runs/43731277035",
+  "finding": "The hosted fast job stopped at the generated build-inventory check because a newly tracked LibreCAD compatibility patch had not been added to the two source-release inventories.",
+  "change": "Regenerate source-release-files.am and source-release-files.txt from a clean clone at e92ab193. Both inventories add only docs/patches/librecad-p8-associative-prefix-compat-2026-11-15.patch; no scratch drawings or other untracked files are included.",
+  "validation": [
+    "The clean-clone inventory generator --write and --check both pass with 1,180 released files."
+  ],
+  "limits": "The hosted fast job stopped before compilation. Recompute the implementation digest if selected inputs changed and rerun the workflow; no support claim is promoted."
+}

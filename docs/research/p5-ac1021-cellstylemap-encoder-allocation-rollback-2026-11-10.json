@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-10",
+  "topic": "AC1021 CELLSTYLEMAP DWG encoder allocation rollback and retry",
+  "scope": "Generated writer transaction and alias-routing behavior only",
+  "failure_reproduction": {
+    "injected_offset": 0,
+    "observed_before_fix": "std::bad_alloc escaped after body, string, and handle buffers had all grown from their seeded prefixes; retry on the same object failed",
+    "source": "Generated AC1021 style map with title, custom, and data styles, content format, margins, CMC colors, and border fields"
+  },
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "method": "DRW_CellStyleMap::encodeDwg",
+    "behavior": [
+      "stage each unique destination buffer before writing",
+      "preserve caller aliasing when body, string, and handle streams share a buffer",
+      "publish staged streams only after all writer buffers remain good",
+      "catch std::bad_alloc and return false without mutating caller buffers"
+    ]
+  },
+  "generated_controls": {
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --cellstylemap-dwg-encode-roundtrip",
+    "allocation_failures": 39,
+    "per_failure_assertions": [
+      "body, string, and handle bytes and bit cursors remain at their seeded destination state",
+      "handle-occurrence ledger count remains unchanged on failure and matches the clean encoded output on retry",
+      "style count, format string, and border vector remain unchanged",
+      "same object retries into the same buffers after the one-shot fault is removed",
+      "retry bytes and cursors exactly match a clean encoding"
+    ],
+    "alias_routing": "All three output arguments sharing one buffer matches the default routing bytes and cursor",
+    "focused_ctest": "libdxfrw_cellstylemap_dwg_encode_roundtrip PASS (1/1)",
+    "fixture_policy": "No DWG or DXF fixture files were added; the style map is generated in the test."
+  },
+  "limits": [
+    "This does not add a CELLSTYLEMAP field or version profile.",
+    "It does not qualify physical producer data, native style semantics, or output support.",
+    "No DWG/DXF support claim is promoted."
+  ]
+}

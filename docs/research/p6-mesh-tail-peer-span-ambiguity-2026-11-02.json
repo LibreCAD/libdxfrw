@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mesh-tail-peer-span-ambiguity-2026-11-02",
+  "date": "2026-11-02",
+  "status": "WIRE_SPAN_AMBIGUOUS; NO_SUPPORT_CLAIM_EFFECT",
+  "supportClaimEffect": "none",
+  "scope": "Reassess the AcDbSubDMesh trailing DWG field-width claim against local peer readers and the already-censused physical samples.",
+  "evidence": {
+    "normative": {
+      "source": "Open Design Specification for .dwg files, v5.4.1",
+      "sectionsReviewed": [
+        "20.4.1 Common Entity Data",
+        "20.4.2 Common Entity Handle Data"
+      ],
+      "result": "No AcDbSubDMesh body layout was found; the specification does not adjudicate the trailing fields."
+    },
+    "libreDWG": {
+      "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "schemaFile": "src/dwg2.spec",
+      "schemaLines": "2543-2547",
+      "schemaSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "fields": [
+        "FIELD_B (unknown_b1, 0)",
+        "FIELD_B (unknown_b2, 0)"
+      ],
+      "limitation": "The MESH body fields are described as undocumented/unstable; this is implementation schema evidence, not a normative layout or semantic definition."
+    },
+    "acadSharp": {
+      "repositoryCommit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "sourceFile": "src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+      "sourceLines": "3288-3347",
+      "sourceSha256": "d93c6c8a3f0554901a69c9bbb6490f95674c821c169da0ead33a99c162ffab69",
+      "behavior": "After the crease vector, reads one ReadBitLong() into an unused local."
+    },
+    "dwgTs": {
+      "repositoryCommit": "216e5c4ba744d753ebe3e6891712034bafd96de7",
+      "sourceFile": "src/dwg/entities/parseEntityMesh.ts",
+      "sourceLines": "54-64",
+      "sourceSha256": "6550cfcec64acdc7f4035fd604fd11b1e5d5abd3084f2ea0b64c2f23c3b7909b",
+      "behavior": "After the crease vector, reads one BitLong when data remains and defaults to zero otherwise.",
+      "independence": "The project describes itself as inspired by ACadSharp; count this as a peer implementation with unestablished independence, not an independent second corroboration."
+    },
+    "physicalSamples": {
+      "sourceReceipt": "p6-mesh-dwg-trailing-bit-fields-recheck-2026-11-02",
+      "observedPattern": "All eight previously traced MESH records report unknown_b1=1 and unknown_b2=0, giving the two-bit sequence 10.",
+      "discrimination": "That same 10 prefix is the BitLong encoding of integer zero. Both candidate interpretations consume exactly two bits, so following-handle alignment and the current physical corpus do not distinguish them."
+    },
+    "bitLongEncoding": {
+      "acadSharpSource": "src/ACadSharp/IO/DWG/DwgStreamReaders/DwgStreamReaderBase.cs:500-513",
+      "dwgTsSource": "src/dwg/DwgBitReader.ts:399-416",
+      "zeroEncoding": "10"
+    }
+  },
+  "resolution": {
+    "conclusion": "The two-one-bit-fields hypothesis and the one-BitLong hypothesis remain observationally equivalent for all currently traced physical MESH tails. The current two-bit implementation is not disproved for the observed 10 profile, but its field-span claim is not resolved.",
+    "generatedControls": "Generated vectors for the four two-bit combinations prove only the current implementation's internal encoding/decoding behavior. They do not show that masks 0, 2, or 3 are valid producer output, nor discriminate the candidate schemas.",
+    "nextEvidenceRequired": "A normative body layout, or a traceable independent producer/source whose trailing value differs from the shared 10 / BitLong-zero pattern and whose subsequent handle stream can be independently checked.",
+    "codeChange": "No alternate field span or semantic meaning is selected. A conservative admission/serialization guard for the only observed cross-reader pattern is recorded in p6-mesh-tail-canonical-profile-guard-2026-11-02.json; the underlying schema remains open."
+  },
+  "fileHashes": {
+    "src/drw_entities.cpp": "9686876de2cc3349bac0d5bcabee8ea37d5a50d661bde6b99f345d0939577a09",
+    "/Users/dli/dev/libredwg/src/in_dxf.c": "e52609c4762ca71940b4c8b778501e9b9e47deb13111c0379e1ab4c1043eb144"
+  },
+  "limitations": [
+    "No native consumer or independent 3D semantic validation was performed.",
+    "The two trailing values have no established meaning.",
+    "No fixture files were added and no tests or builds were run for this documentation-only evidence update."
+  ],
+  "currentTurnValidation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests --parallel 4",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mesh_crease_value_domains|libdxfrw_mesh_dwg_crease_count_guard|libdxfrw_mesh_dxf_allocation_failure)$' --output-on-failure",
+    "passed": 3,
+    "failed": 0,
+    "elapsedSeconds": 0.41
+  },
+  "stagedInputHashes": {
+    "src/drw_entities.cpp": "90444975aea47189d45bc0ca752c834a49a9d4cdfa9444e16960df687bc581b2",
+    "tests/dwg_object_vectors_tests.cpp": "437da8f7bc00df9f817aae47172731cbd4864b11402a2885a98bf7dc0645b3b1",
+    "tests/hardening_tests.cpp": "82516e1a3059d1d47836c5682a7c8fde9e660f8e5864af0a4549de3e1612ae2b",
+    "tests/dwg_local_roundtrip_tests.cpp": "8e051681e201c34b11a180584fc1dc8b66f6fba152d2433ab1a367001c020a9d",
+    "CMakeLists.txt": "d1c8714988f9cd41e787983cd28586c1495f1aa07ecfe883a4e34151a539fb33",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ca6184dc175f0fa7feb8e069f75b53dc8ee78a271fb0117ef5ee259d37e49ce7"
+  },
+  "repositoryState": {
+    "baseHead": "a49c90a3",
+    "stagedScope": "bounded MESH DWG parse/output profile; DXF loss guards; generated vectors",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

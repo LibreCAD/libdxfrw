@@ -1,0 +1,295 @@
+{
+  "schema": "libdxfrw-dxf-group-order-coordinate-assembly-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary-source documentation review, local parser audit, and generated fast regression",
+  "scope": [
+    "DXF entity group-code order requirements",
+    "Repeated coordinate component assembly in explicit 2D/3D entity readers",
+    "Nested HATCH/MLEADER framing and repeated MLINE vectors",
+    "Implementation-ready follow-up probes and evidence limits"
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF Reference",
+      "revision": "Published 2023–2025 DXF help pages",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-EC56D0DE-026D-46AB-87B1-9692393B0C22.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-8648B8F7-5BD3-445B-A1B2-6F65EC4ECB3E.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-B2E6436A-F17D-4F59-9DE8-DBDB61AD36C6.htm",
+        "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-BB62483A-89C3-47C4-80E5-EA3F08979863.htm"
+      ],
+      "observations": {
+        "ordering": "Entity readers must not assume the code-table/display order; order can change under conditions or in future releases.",
+        "framing": "Group code 0 begins the next entity or ends the section; table advice does not authorize global tag sorting.",
+        "forwardCompatibility": "The reference recommends dispatching by group code and ignoring undefined codes where appropriate.",
+        "hatch": "Spline boundary points are repeated per-component arrays inside a count-framed edge; weights and tangents are separate fields.",
+        "mleader": "The same point group codes are reused across context, leader-node, and leader-line scopes; local permutations must not cross those scopes.",
+        "mline": "Vertex positions, segment direction vectors, and miter vectors are three repeated per-vertex vector arrays, with nested 74/41 and 75/42 parameter sequences."
+      },
+      "limitation": "DXF entity references do not define DWG bit layouts or ACIS semantics."
+    },
+    {
+      "project": "ezdxf and ACadSharp source",
+      "revision": "Mutable master source links; no checkout or execution",
+      "references": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Entities/Entity.cs"
+      ],
+      "observations": {
+        "ezdxf": "Entity loading creates a subclass processor and dispatches into DXF attribute loaders.",
+        "acadsharp": "Entity properties declare DXF group codes through attribute metadata."
+      },
+      "limitation": "Source architecture is context, not proof that either peer handles every valid permutation; neither peer was pinned or run."
+    },
+    {
+      "project": "ezdxf MULTILEADER documentation",
+      "revision": "Stable documentation crawled 2026-10-21; documentation only",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/mleader.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mleader.html"
+      ],
+      "observations": {
+        "model": "The peer exposes structured MLeaderContext, LeaderData, LeaderLine, vertex, and break models; it documents leader vertices as WCS coordinates.",
+        "risk": "Its internals explicitly describe MLeader context as complex nested data beyond simple tags, supporting a narrowly scoped context-state probe rather than global tag sorting."
+      },
+      "limitation": "Documentation is not an executed differential test and does not prove broad semantic parity."
+    }
+  ],
+  "localAudit": {
+    "confirmedAndFixed": [
+      {
+      "entity": "SPLINE",
+      "path": "src/drw_entities.cpp: DRW_Spline::parseCode",
+      "failureShape": "Control/fit points were created only on X groups, making earlier Y/Z groups disappear or misassociate.",
+      "correction": "Independent X/Y/Z occurrence cursors assemble point slots by per-component ordinal while retaining same-code order and count/cap validation.",
+      "generatedCoverage": [
+        "ASCII and Binary DXF",
+        "Control-only and fit-only SPLINE records",
+        "Y/Z component groups before X groups",
+        "Exact asymmetric point tuples",
+        "Following LINE sentinel"
+      ]
+    },
+    {
+      "entity": "MESH",
+      "path": "src/drw_entities.cpp: DRW_Mesh::parseCode",
+      "failureShape": "A legal generated vertex with Y/Z components before X was rejected before the MESH callback.",
+      "correction": "Reused phase-counter slots as bounded per-axis occurrence ordinals during vertex parsing while preserving face/edge/crease sections and counts."
+    },
+    {
+      "entity": "LWPOLYLINE",
+      "path": "src/drw_entities.cpp: DRW_LWPolyline::parseCode",
+      "failureShape": "Grouped coordinate and per-vertex optional-field arrays lost or misbound values when Y/optional arrays preceded their X slot.",
+      "correction": "Bound each supported per-vertex group to its own occurrence ordinal under declared counts and caps."
+    },
+    {
+      "entity": "LEADER",
+      "path": "src/drw_entities.cpp: DRW_Leader::parseCode",
+      "failureShape": "Y/Z arrays preceding X were discarded because points were created only by X groups.",
+      "correction": "Use independent bounded 10/20/30 occurrence ordinals while preserving advisory group-76 behavior."
+    },
+    {
+      "entity": "HATCH spline edge",
+      "path": "src/drw_entities.cpp: DRW_Hatch::parseCode",
+      "failureShape": "Y-before-X control and fit arrays lost association or were rejected in generated ASCII/Binary DXF.",
+      "correction": "Use bounded control-X/Y and fit-X/Y ordinals inside the current spline edge; preserve ordinary HATCH pair transition and nested counts/framing.",
+      "receipt": "docs/research/dxf-hatch-spline-component-order-fast-slice-2026-10-21.json"
+      },
+      {
+        "entity": "MLINE repeated vectors and nested parameters",
+        "path": "src/drw_entities.cpp: DRW_MLine::parseCode",
+        "failureShape": "A rooted MLINESTYLE ASCII control reproduced rejection when repeated vector components were emitted Y/Z-before-X.",
+        "correction": "Independent bounded occurrence ordinals for position, segment-direction, and miter vectors; separate count-framed parameter cursors and bounded early-block attachment at group 73.",
+        "generatedCoverage": [
+          "Valid rooted MLINESTYLE object graph and matching group-2/340 entity style references",
+          "ASCII/Binary controls for all three vector families with asymmetric values",
+          "Two style elements with non-empty segment/fill parameter arrays and a late group-73 count",
+          "Exact following LINE and malformed excess-component refusal before callback"
+        ],
+        "receipt": "docs/research/dxf-mline-vector-component-order-fast-slice-2026-10-21.json"
+      },
+      {
+        "entity": "MLEADER repeated leader-line vertex components",
+        "path": "src/drw_entities.cpp: DRW_MLeader::parseDxfContextCode",
+        "failureShape": "Y/Z-before-X grouped vertex components were discarded inside one LEADER_LINE scope in generated ASCII and Binary DXF.",
+        "correction": "Use independent bounded X/Y/Z occurrence ordinals for the current leader line and validate component cardinality at group-305 scope closure.",
+        "generatedCoverage": [
+          "Fixed CONTEXT_DATA / LEADER / LEADER_LINE delimiters and same-code occurrence order",
+          "Two asymmetric vertices with Y/Z arrays before X in ASCII and Binary",
+          "Post-context group-270 sentinel",
+          "Excess group-20 component rejected at scope closure"
+        ],
+        "receipt": "docs/research/dxf-mleader-vertex-component-order-fast-slice-2026-10-21.json"
+    }
+    ],
+    "followUpCandidateDispositions": [
+      {
+        "entity": "NURBSURFACE repeated grid/control-point component-order candidate",
+        "path": "src/drw_entities.cpp: DRW_NurbsSurface::parseCode",
+        "result": "NOT_APPLICABLE_SCHEMA_DOES_NOT_DEFINE_REPEATED_GRID",
+        "observation": "Autodesk's published SURFACE schema exposes common modeler data and U/V isoline counts but no repeated control-point grid. LibreDWG's independent field map identifies fixed fields 170/290 and four fixed vectors at groups 10-13. ObjectARX's in-memory control-point order is not DXF wire schema.",
+        "receipt": "docs/research/deeper-broader-nurbsurface-dxf-schema-negative-audit-2026-10-21.json"
+      }
+    ],
+    "existingPattern": {
+      "entity": "NURBS surface fixed vectors",
+      "path": "src/drw_entities.cpp: DRW_NurbsSurface::parseCode",
+      "observation": "Per-vector coordinate masks record components independently for each fixed vector; reuse this pattern only when its count and context rules match."
+    }
+  },
+  "implementationProgress": {
+    "sourceFiles": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "confirmedAndFixed": [
+      {
+        "entity": "SPLINE",
+        "receipt": "docs/research/dxf-spline-component-order-fast-slice-2026-10-21.json",
+        "privateStorage": "Reused the two prior private smart-pointer slots for component cursors; compile-time size/alignment assertions guard slot compatibility. No public field or virtual was added."
+      },
+      {
+        "entity": "MESH",
+        "receipt": "docs/research/dxf-mesh-component-order-fast-slice-2026-10-21.json",
+        "privateStorage": "Reused the three pre-existing private int32 phase-counter slots as independent per-axis occurrence counters during vertex parsing, then as face/edge/crease phase counters; compile-time size/alignment assertions guard slot compatibility. No public field or virtual was added."
+      },
+      {
+        "entity": "LWPOLYLINE",
+        "receipt": "docs/research/dxf-lwpolyline-component-order-fast-slice-2026-10-21.json",
+        "privateStorage": "Added private per-code occurrence counters for groups 10/20/40/41/42/91; no public field or virtual was added. Consumers must rebuild against the updated installed class layout."
+      },
+      {
+        "entity": "LEADER",
+        "receipt": "docs/research/dxf-leader-component-order-fast-slice-2026-10-21.json",
+        "privateStorage": "Added private per-component occurrence counters for groups 10/20/30; no public field or virtual was added. Consumers must rebuild against the updated installed class layout."
+      },
+      {
+        "entity": "HATCH spline edge",
+        "receipt": "docs/research/dxf-hatch-spline-component-order-fast-slice-2026-10-21.json",
+        "privateStorage": "Added private bounded control-X/Y and fit-X/Y occurrence counters; no public field or virtual was added. Consumers must rebuild against the updated installed class layout."
+      },
+      {
+        "entity": "MLINE repeated vectors and nested parameters",
+        "receipt": "docs/research/dxf-mline-vector-component-order-fast-slice-2026-10-21.json",
+        "privateStorage": "Added private per-component counters and bounded pending parameter blocks; no public field, callback, or virtual changed. Private class layout changed; consumers must rebuild."
+      },
+      {
+        "entity": "MLEADER scoped leader-line vertices",
+        "receipt": "docs/research/dxf-mleader-vertex-component-order-fast-slice-2026-10-21.json",
+        "privateStorage": "Added private component occurrence counters reset at each LEADER_LINE boundary; no public field, callback, or virtual changed. Private class layout changed; consumers must rebuild."
+      }
+    ],
+    "validation": [
+      {
+        "command": "cmake --build build --target libdxfrw_hardening_tests lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "build/libdxfrw_hardening_tests --dxf-spline-point-component-order",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_hardening$' --output-on-failure",
+        "result": "PASS",
+        "testsPassed": 1,
+        "testsFailed": 0
+      },
+      {
+        "command": "cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "build/libdxfrw_dxf_fixture_tests --mesh-raw-field-tags",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+        "result": "PASS",
+        "testsPassed": 1,
+        "testsFailed": 0
+      },
+      {
+        "command": "build/libdxfrw_dxf_fixture_tests --lwpolyline-point-component-order",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+        "result": "PASS",
+        "testsPassed": 1,
+        "testsFailed": 0
+      },
+      {
+        "command": "cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "build/libdxfrw_dxf_fixture_tests --leader-point-component-order",
+        "result": "PASS"
+      },
+      {
+        "command": "build/libdxfrw_dxf_fixture_tests --hatch-spline-point-component-order",
+        "result": "PASS"
+      },
+      {
+        "command": "build/libdxfrw_dxf_fixture_tests --mesh-raw-field-tags",
+        "result": "PASS"
+      },
+      {
+        "command": "build/libdxfrw_dxf_fixture_tests --lwpolyline-point-component-order",
+        "result": "PASS"
+      },
+      {
+        "command": "build/libdxfrw_hardening_tests --dxf-spline-point-component-order",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build -R '^(libdxfrw_hardening|libdxfrw_dxf_fixtures)$' --output-on-failure",
+        "result": "PASS",
+        "testsPassed": 2,
+        "testsFailed": 0
+      },
+      {
+        "command": "cmake --build build --target libdxfrw_hardening_tests lc3_compat_check -j4 && build/libdxfrw_hardening_tests --mleader-context-roundtrip && ctest --test-dir build -R '^libdxfrw_hardening$' --output-on-failure",
+        "result": "PASS",
+        "testsPassed": 1,
+        "testsFailed": 0
+      }
+    ],
+    "persistentFixtureAdded": false,
+    "externalPeerOrNativeRuntimeRun": false,
+    "fullSuiteRun": false,
+    "supportClaimsPromoted": false
+  },
+  "planDelta": {
+    "existingOwnersOnly": [
+      "PAR-05/7BQ.5 DXF syntax and ordering",
+      "PAR-22/7AB SPLINE/NURBS",
+      "Existing MESH, LWPOLYLINE, HATCH, LEADER, MLINE, MLEADER, and NURBS-surface entity owners"
+    ],
+    "implementationReadySequence": [
+      "Audit existing fast selectors once and keep framing/subclass/context markers fixed.",
+      "Generate ASCII/Binary coordinate permutations while preserving each same-code occurrence order.",
+      "SPLINE, MESH, LWPOLYLINE, LEADER, HATCH spline-edge, MLINE repeated-vector, and MLEADER scoped leader-line vertex component-order slices are implemented. The NURBSURFACE repeated-grid candidate is closed as not applicable after a negative schema audit; no production change or grid probe is warranted.",
+      "Self-unblock to the composed checkpoint: reconcile source/typed/raw/dropped-field dispositions under existing owners and run one pinned peer comparison; keep native-consumer and ACIS/kernel qualification separate.",
+      "Assert exact field tuples, counts, malformed-input refusal before callback publication, and a following entity sentinel.",
+      "Run only owning fast tests and compatibility compilation per slice; defer peers/native consumers to the composed checkpoint.",
+      "Refresh plan and receipt after each slice and self-unblock to the next local candidate if optional external routes are unavailable."
+    ],
+    "newFindingOrSubplan": false,
+    "deferredExternalItems": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "limits": [
+    "The reproduced HATCH, MLINE, and scoped MLEADER vertex component-order cases are locally fixed. The suspected NURBSURFACE repeated-grid issue was not a valid wire-schema candidate and is closed without a code change.",
+    "Generated SPLINE point association is local parser evidence, not a downstream renderer or full 3D semantics result.",
+    "No peer, CAD application, geometry kernel, external sample, or full test suite was run.",
+    "No support claim is promoted; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "ODA Open Design Specification v5.4.1 remains authoritative for DWG byte-layout questions."
+  ]
+}

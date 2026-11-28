@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-03",
+  "scope": "DXF SUNSTUDY object record identity remapping, allocation, binding and transactional retry.",
+  "source_context": {
+    "schema": "DXF group 5 is the record's object identity; the SUNSTUDY reference fields 340-343 carry separate relationships to page setup, VIEW, visual style and text style records.",
+    "implementation_gap": "dxfRW::writeSunStudy already resolved its four typed references but emitted ent->handle verbatim and did not reserve or bind the output object identity.",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-995ABB55-571A-4D0F-882E-8A74A738643E.htm",
+      "src/libdxfrw.cpp: dxfRW::writeSunStudy"
+    ]
+  },
+  "implementation": {
+    "behavior": "A supplied source identity is remapped, checked against invalid and fixed output handles, reserved, emitted as group 5, and bound to the emitted object identity after record serialization. A zero/no-source identity is allocated before record emission. RecordStateScope and DxfWriterRecordScope protect source bindings and bytes.",
+    "reference_policy": "Resolver-first handling remains limited to the four typed reference edges; the object's own group-5 identity follows the explicit source-handle remap independently.",
+    "failure_behavior": "A late invalid EED value leaves earlier destination bytes unchanged and publishes no source identity binding. A corrected fresh writer emits and binds the remapped identity."
+  },
+  "validation": {
+    "input": "Generated in-memory records only; no DWG/DXF fixture was added.",
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "controls": [
+      "the source SUNSTUDY identity remaps independently from resolver/remap selection for reference groups 340-343",
+      "a second SUNSTUDY without a source identity receives an allocated and read-back group-5 handle",
+      "late invalid EED rolls back record bytes and leaves no source identity binding",
+      "corrected fresh-writer retry emits and binds the remapped group-5 identity",
+      "unresolved typed references preserve the destination and corrected fresh-writer retries still pass"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "build-gcc/libdxfrw_wave1_tests --scene-object-reference-remapping",
+      "git diff --check"
+    ],
+    "result": "PASS"
+  },
+  "qualification_limits": [
+    "Generated controls do not establish complete physical SUNSTUDY producer coverage or source graph closure.",
+    "No independent native consumer or plotting semantics were validated.",
+    "This transport fix does not promote SUNSTUDY or rendering support claims."
+  ]
+}

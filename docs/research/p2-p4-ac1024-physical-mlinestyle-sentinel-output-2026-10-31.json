@@ -1,0 +1,118 @@
+{
+  "title": "AC1024 physical MLINESTYLE sentinel output and associative class admission",
+  "completedAt": "2026-10-31",
+  "scope": "One source-backed MLINESTYLE output profile plus the associative class-routing fixes needed to advance the existing physical witness. This does not close P4 or promote whole-file support.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "qualificationMode": "explicit partial read only; strict complete export remains blocked by the incomplete DWG read disposition"
+  },
+  "observations": {
+    "formatEvidence": {
+      "odaSpec": {
+        "file": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+        "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+        "section": "20.4.73 MLINESTYLE",
+        "finding": "Before R2018, each MLINESTYLE line stores its linetype index as BS; R2018 and later store a hard-pointer linetype handle."
+      },
+      "independentOpenSourceCrosscheck": {
+        "repository": "/Users/dli/dev/libredwg",
+        "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+        "files": ["src/dwg.c", "src/dwg.spec"],
+        "finding": "The R2018 upgrade maps index 0 to CONTINUOUS, 32767 to BYLAYER and 32766 to BYBLOCK; the DXF schema maps the same pre-R2018 indices to group 6 names."
+      }
+    },
+    "tableStyleOutputSchema": {
+      "odaSection": "20.4.101.2 R24 TABLESTYLE format, plus 20.4.101.3 Content format and 20.4.101.4 Cell style",
+      "autodeskDxfReference": {
+        "file": "/Users/dli/doc/dwg/autocad_2012_dxf-reference.pdf",
+        "sha256": "fe28e2fc0dbb2acae5d4cbf6df2c52d13b451e0500f2138efa741fd7890f4104",
+        "section": "TABLESTYLE group codes"
+      },
+      "finding": "The physical AC1024 object takes the R24 parser path. Existing DXF group codes still define description, flow, flags, margins, title/header suppression and repeated title/header/data cell style fields; R24 DWG style prefix values documented as unknown remain uninterpreted."
+    },
+    "associativeClasses": [
+      {
+        "recordName": "ACDBASSOCDEPENDENCY",
+        "handle": "1502",
+        "finding": "The selected source record had a canonical class profile and typed writer but was missing from class admission and OBJECTS writer dispatch. It is now admitted and sent to writeAssociativeDependency."
+      },
+      {
+        "recordName": "ASSOCDIMDEPENDENCYBODY",
+        "classNumber": 522,
+        "appName": "AcDbAssocDependencyBody",
+        "className": "AcDbAssocDimDependencyBody",
+        "instanceCount": 29,
+        "finding": "This source alias is admitted only from one complete, finalized, published source CLASS row with validated class number and flags; its exact source row is emitted instead of substituting generic canonical metadata."
+      }
+    ],
+    "mlineStyle": {
+      "handle": "0x18",
+      "name": "STANDARD",
+      "elementCount": 2,
+      "sourceLinetypeIndices": [32767, 32767],
+      "finding": "The AC1024 signed-BS values are the built-in BYLAYER sentinel. The writer previously rejected every set index as unresolved, even when it had a defined sentinel meaning."
+    },
+    "nextPhysicalFailure": {
+      "recordName": "TABLESTYLE",
+      "classNumber": 504,
+      "className": "AcDbTableStyle",
+      "instanceCount": 1,
+      "handle": "0x87",
+      "name": "Standard",
+      "diagnostic": "tablestyle-unsupported-profile: TABLESTYLE does not contain exactly three row styles",
+      "parsedModel": {
+        "legacyRowStyles": 0,
+        "richCellStyles": 3,
+        "tableCellStyle": {
+          "hasData": true,
+          "id": 4,
+          "class": 2,
+          "name": "Table",
+          "backgroundColor": 256,
+          "contentLayout": 1,
+          "contentValueDataType": 512,
+          "contentValueUnitType": 0,
+          "cellAlignment": 1,
+          "textHeight": 0.18,
+          "marginOverrideFlags": 1
+        },
+        "standardCellStyles": [
+          {"id": 1, "class": 1, "name": "_TITLE", "mergeFlags": 32768, "alignment": 5, "textHeight": 0.25},
+          {"id": 2, "class": 1, "name": "_HEADER", "mergeFlags": 0, "alignment": 5, "textHeight": 0.18},
+          {"id": 3, "class": 2, "name": "_DATA", "mergeFlags": 0, "alignment": 2, "textHeight": 0.18}
+        ],
+        "commonObservedStyleData": "Each standard style has six borders with edge flags 1,2,4,8,16,32; property overrides are 0, border type is 1, ACI color is 0, lineweight is -2, linetype handle is 0, source invisibility is 0, and double-line spacing is 0.045."
+      }
+    }
+  },
+  "implementation": {
+    "changes": [
+      "Admit ACDBASSOCDEPENDENCY and route it through the existing typed associative dependency writer.",
+      "Admit the source alias ASSOCDIMDEPENDENCYBODY using its exact validated published CLASS row.",
+      "Emit pre-R2018 MLINESTYLE linetype indices 0, 32767 and 32766 as CONTINUOUS, BYLAYER and BYBLOCK; continue refusing ordinary indices without a uniquely source-bound linetype name and refuse unresolved handles.",
+      "Add focused ASCII and Binary DXF controls for all three known values and for refusal of an unknown index before record publication.",
+      "Add phase-level OBJECTS and TABLESTYLE rejection diagnostics to locate the next physical witness failure."
+    ],
+    "files": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/wave1_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_wave1_tests -j4",
+    "focusedMlineStyle": "PASS: build-gcc/libdxfrw_wave1_tests --mline-style-validation",
+    "focusedAssociativeDependency": "PASS: build-gcc/libdxfrw_wave1_tests --associative-dependency-writer",
+    "physicalWitness": "EXPECTED FAILURE AFTER PROGRESS: explicit-partial AC1024 conversion passes the associative and MLINESTYLE phases, then refuses TABLESTYLE handle 0x87; process exits 1 and no DXF output is published."
+  },
+  "evidenceLimits": [
+    "The physical DWG remains outside the repository; no DWG/DXF fixture was added.",
+    "Only the three source-established built-in linetype index values are promoted by this slice. Other table indices require source-bound LTYPE identity and remain refused.",
+    "The run used --allow-partial-dwg-read and is diagnostic evidence only; strict-complete export and full source graph closure remain unqualified.",
+    "No native CAD rendering or independent consumer semantic evidence is established by serializer tests."
+  ],
+  "next": "Add an AC1024+ TABLESTYLE DXF output path for the observed R24 model. Map standard role IDs 1/2/3 to the DXF title/header/data records, preserve the ID-4 Table style and CELLSTYLEMAP dependency where representable, and refuse unknown or unrepresented R24 fields. Prove exact output/readback with locally authored ASCII/Binary controls before retrying the physical witness; keep strict-complete admission closed."
+}

@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-08",
+  "topic": "R24 TABLESTYLE merge-flag domain transport",
+  "status": "bounded_generated_writer_readback_pass",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.101.4",
+    "field": "BL group 92 merge flags; only bits 0x8000 and 0x10000 are documented"
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "sha256": "cdacd68c166b4624a2a342ae520aea2374d04baf2f9281c7bce69dc5cc81d172",
+    "change": "The R24 typed writer admits per-cell-style merge flag combinations within mask 0x18000 while preserving all other profile checks."
+  },
+  "control": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "sha256": "6b69219b3668ccae294822826406e1214df7587abaf57b16f3fcac37072c38dc",
+    "selector": "--tablestyle-r24-typed-writer",
+    "generated_from_scratch": true,
+    "profile": {
+      "encodings": ["ASCII", "Binary"],
+      "titleMergeFlags": "0x10000",
+      "headerMergeFlags": "0x8000",
+      "dataMergeFlags": "0x18000"
+    },
+    "checks": [
+      "Raw TABLEFORMAT group-92 values are checked in exact per-style order.",
+      "Fresh typed readback compares each merge flag to its source style.",
+      "Undocumented bit 0x1 is refused without replacing a destination sentinel; the restored profile then succeeds on the same adapter."
+    ],
+    "fixture_policy": "No DWG/DXF fixture is committed; output is temporary and removed."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "test": "ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+    "result": "passed; 1/1 selected CTest, 1.64 seconds"
+  },
+  "limits": [
+    "This establishes generated transport and readback of the documented mask only.",
+    "Native merge behavior, physical producer profiles, and whole-source conversion remain unqualified."
+  ]
+}

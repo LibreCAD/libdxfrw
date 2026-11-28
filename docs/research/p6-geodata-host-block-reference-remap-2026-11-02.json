@@ -1,0 +1,36 @@
+{
+  "title": "GEODATA host-block soft-pointer remapping",
+  "date": "2026-11-02",
+  "scope": "Correct the low-level DXF GEODATA writer's group-330 host-block reference handling.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files, v5.4.1",
+    "section": "20.4.78 GEODATA",
+    "printed_pages": [201, 202],
+    "field": "H — soft pointer to host block (model space layout owner block)"
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": "writeGeoData now serializes m_hostBlockHandle through remapObjectHandle. A source or mapped null/sentinel handle is refused before the GEODATA record scope publishes bytes.",
+    "compatibility": "The DRW_GeoData public layout and interface are unchanged; a zero host handle continues to omit the optional group."
+  },
+  "regression_control": {
+    "file": "tests/wave1_tests.cpp",
+    "behavior": "The GEODATA writer vector verifies remapped group-330 host handle and typed ASCII/Binary readback, caller-handle preservation, null mapping atomic refusal, and corrected same-writer retry.",
+    "fixtures_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j2",
+    "build_result": "passed",
+    "focused_codec_tests": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_geodata_civil_(tail_target_matrix|marker_views)$' --output-on-failure",
+      "result": "2/2 passed in 0.33 seconds"
+    },
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+    "test_result": "updated GEODATA assertions emitted no failures; the aggregate Wave 1 test failed with 68 assertions in unrelated UNDERLAYDEFINITION, common-object metadata/reference, XDATA ordering, and record-identity inventory controls."
+  },
+  "limits": [
+    "This proves generated low-level DXF transport only; it does not establish physical DWG producer breadth or native geospatial unit/projection semantics.",
+    "dwg2dxf still has no typed GEODATA callback retention/output route or complete source CLASS, owner, host-block dependency, and fresh output-readback proof.",
+    "No support claim is promoted."
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-insert-block-record-source-handle-binding-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Bind DWG INSERT output names through source BLOCK_RECORD handles",
+  "status": "ISOLATED_ASCII_BINARY_BINDING_QUALIFIED_PHYSICAL_OUTPUT_BLOCKED_AT_XRECORD",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "repositoryStatus": "local untracked test input; intentionally not added to Git",
+    "witness": {
+      "insertHandle": "0xCAC",
+      "decodedInsertName": "*U",
+      "blockRecordHandle": "0x11A4",
+      "sourceBlockRecordName": "*U6",
+      "reason": "Anonymous source block names are made unique in the planned DXF BLOCK_RECORD list; the decoded INSERT name alone does not identify the referenced source block."
+    },
+    "nextPhysicalBlocker": {
+      "objectHandle": "0x121F",
+      "kind": "XRECORD",
+      "groupCode": 1071,
+      "reason": "The source payload uses a code outside the documented normal XRECORD group-code domain. Strict conversion retains refusal; this receipt does not infer a DXF representation from another converter's output.",
+      "semanticAuthority": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm"
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "Strict full-document writing resolves a DWG INSERT's source blockRecH through the already planned source-handle/name maps and emits the unique planned BLOCK_RECORD name. It refuses absent targets and 64-bit source handles that cannot be represented by the current 32-bit identity map. Name-only resolution remains the fallback when no source handle is supplied; R12 behavior is unchanged.",
+    "failureBehavior": "The focused ASCII/Binary test checks unresolved target and unindexed wide-handle refusal, destination sentinel preservation, corrected same-writer retry, and exact emitted group-2 target."
+  },
+  "outputProof": {
+    "isolatedSelector": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_insert_block_record_source_handle_binding$' --output-on-failure",
+      "result": "PASS for ASCII and Binary; group 2 is *U6 for source handle 0xA002 after the reader-facing name *U, and invalid attempts preserve the destination before a corrected same-writer retry."
+    },
+    "physicalSource": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/title_block-arch.dwg -y -d -v2010 /private/tmp/title_block_arch_insert_binding.dxf",
+      "result": "Expected strict failure advanced beyond extension-graph and INSERT target admission; conversion stops before OBJECTS staging at XRECORD 0x121F, group 1071.",
+      "effect": "Physical staged-byte and whole-graph output qualification remain pending."
+    }
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_insert_block_record_source_handle_binding$|^libdxfrw_block_owners$|^dwg2dxf_block_owners_(ascii|binary)_cli$|^dwg_layout_compound_insert_owner_roundtrip$' --output-on-failure",
+      "result": "INSERT selector and compound INSERT owner roundtrip pass. The adjacent block-owner adapter/CLI controls fail during extension-graph preflight because their generated source lacks a usable LAYER TABLE control; failure occurs before INSERT emission and is not counted as resolver evidence."
+    },
+    "asan": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4 && ASAN_OPTIONS=detect_leaks=0 build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --insert-block-record-source-handle-binding",
+      "result": "PASS; no AddressSanitizer diagnostic."
+    },
+    "diffCheck": "PASS",
+    "fixturesAdded": 0
+  },
+  "planImpact": {
+    "completedActionsRemoved": [
+      "Resolve a DWG INSERT's source BLOCK_RECORD handle to its unique emitted name, including missing and wide-handle refusal, exact ASCII/Binary output, rollback and retry."
+    ],
+    "remainingP4Scope": "Keep strict refusal for the source XRECORD 0x121F group-1071 payload until a supported representation has independent semantic backing. After an eligible route exists, prove physical BLOCKREPRESENTATIONDATA staged fields, owner and block-reference role with fresh readback. Continue the separate Title_Block-ARCH dictionary 0x1116 graph and SORTENTSTABLE closure.",
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "src/libdxfrw.cpp": "eac670ae8a907377916227141e95a513d7279362fafe130ddb6bf457a577a0d9",
+    "src/libdxfrw.h": "095469b523b50176175d8be147ed293cd41636211157fdc98c892977c0ae2d91",
+    "tests/dwg2dxf_adapter_tests.cpp": "728659cc01b1c9d6510fe1537c24d08c77694d74b7bbda20d1bc0eac56e8607a",
+    "tests/CMakeLists.txt": "344ad1029057aac9c91d29befa0aac0f8d22b67b43e5ff58b7df21d6f8ee65e3",
+    "build-gcc/dwg2dxf/dwg2dxf": "d79641c49e10b97f57d26b88098f32ee4998964cd3ab30d27a92bfc2cf478b80",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "886a9143de2445c44f88bfca3d08b48d6c2afff3fa96b5085712e86ce32d41a9",
+    "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "928cfddf7e452f02d7552141b7e9fa99d9a8f877a2db0589c7e560498ac3f89e"
+  }
+}

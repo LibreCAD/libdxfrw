@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-linetype-application-group-2026-11-25",
+  "status": "LOCAL_BOTH_CODEC_CHECKS_PASS_OTHER_GAPS_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "fcdbaa7a7da690bbc29934f0154529d7471fbc25",
+    "previousHead": "2a552ed4e4d6a1df94539cbed816f7c8b26675c5"
+  },
+  "dependency": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "implementationDigest": "7827d552d5f861a0d3fd16c48d539f6bf70e332d9780132938d329e37661ff74"
+  },
+  "finding": "Two exploratory failures appeared to lose a 310 application-group value. The writer emitted it before group 2, but the test lookup ignored fields preceding the linetype name; this was a test-observation error, not established data loss.",
+  "change": "The shared test lookup collects fields across a whole record and distinguishes top-level name groups from nested application groups. A scratch control tests pre-name binary data and another record; unchanged and edited complex linetype round trips now run in the installed-codec fast lane.",
+  "validation": {
+    "host": "macOS ARM64 AppleClang 21 Release",
+    "systemFocused": "PASS: 1,554 assertions in 31 cases.",
+    "bundledFast": "PASS: librecad_dxf_fast_tests.",
+    "systemTestSha256": "8593fba0b87313d9eda4fd2a8bed19ac95a2667e0cc2e7c9aa34cf4e636319ed",
+    "systemBroad": "Exploratory [dxf][roundtrip][filter] 97/131 cases pass; 34 fail, 50 assertions fail versus 95/131 and 52 before this correction. No normalized failure expression increased."
+  },
+  "limits": [
+    "The controls validate the selected application group, not arbitrary opaque group semantics or all linetype profiles.",
+    "Current-head hosted CI, native GUI and cross-platform system-codec qualification remain open.",
+    "No drawing fixtures were added."
+  ]
+}

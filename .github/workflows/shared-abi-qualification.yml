@@ -1,0 +1,98 @@
+name: libdxfrw shared ABI boundary
+
+on:
+  push:
+    branches:
+      - 'codex/freecad-platform-qualification-*'
+      - 'codex/dwg-dxf-open-source-parity'
+    paths:
+      - '.github/workflows/shared-abi-qualification.yml'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - 'libdxfrw.pc.in'
+      - 'libdxfrw_sources.cmake'
+      - 'src/**'
+      - 'dwg2dxf/**'
+      - 'tools/probe_installed_package.py'
+      - 'tools/probe_shared_abi_package.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shared-package:
+    name: shared package / ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-gcc
+            runner: ubuntu-24.04
+            python: python3
+            cli: bin/dwg2dxf
+          - platform: macos-clang
+            runner: macos-15
+            python: python3
+            cli: bin/dwg2dxf
+          - platform: windows-msvc
+            runner: windows-2022
+            python: python
+            cli: bin/dwg2dxf.exe
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Configure shared library
+        run: >-
+          cmake -S . -B shared-build
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=ON
+          -DLIBDXFRW_BUILD_DOC=OFF
+          -DLIBDXFRW_BUILD_DWG2DXF=ON
+          -DLIBDXFRW_BUILD_TESTS=OFF
+          -DCMAKE_INSTALL_PREFIX="${{ runner.temp }}/libdxfrw-shared"
+      - name: Build and install shared package and CLI
+        run: >-
+          cmake --build shared-build --config Release --parallel 2 --target dxfrw dwg2dxf
+          && cmake --install shared-build --config Release
+      - name: Configure static library
+        run: >-
+          cmake -S . -B static-build
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DLIBDXFRW_BUILD_DOC=OFF
+          -DLIBDXFRW_BUILD_DWG2DXF=OFF
+          -DLIBDXFRW_BUILD_TESTS=OFF
+          -DCMAKE_INSTALL_PREFIX="${{ runner.temp }}/libdxfrw-static"
+      - name: Build and install static library
+        run: >-
+          cmake --build static-build --config Release --parallel 2 --target dxfrw
+          && cmake --install static-build --config Release
+      - name: Check shared package, runtime identity, and relocation
+        run: >-
+          ${{ matrix.python }} -B tools/probe_installed_package.py
+          --kind shared
+          --prefix "${{ runner.temp }}/libdxfrw-shared"
+          --install-manifest shared-build/install_manifest.txt
+          --cli "${{ matrix.cli }}"
+          --output shared-evidence/receipt.json
+      - name: Check static package and relocation
+        run: >-
+          ${{ matrix.python }} -B tools/probe_installed_package.py
+          --kind static
+          --prefix "${{ runner.temp }}/libdxfrw-static"
+          --install-manifest static-build/install_manifest.txt
+          --output static-evidence/receipt.json
+      - name: Upload shared package evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: shared-abi-${{ matrix.platform }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            shared-evidence/receipt.json
+            static-evidence/receipt.json
+          if-no-files-found: error
+          retention-days: 30

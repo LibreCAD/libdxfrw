@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-current-native-inventory-realignment-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Realign the frozen CTest inventory after recent test registration changes",
+  "status": "INVENTORY_PUSHED_NATIVE_PASS_FAST_VECTOR_FAILURE_RECORDED",
+  "supportClaimEffect": "none",
+  "packageGateEffect": "none; P8-F remains open",
+  "activityLedgerEffect": "one completed qualification-metadata alignment slice; no package gate closed",
+  "trigger": {
+    "pullRequest": "LibreCAD/libdxfrw#106",
+    "workflow": "native qualification",
+    "runId": 44256176878,
+    "job": "focused / macos-clang",
+    "jobId": 134638414025,
+    "head": "a6b413d7c36223e9f048ae8684d352fdbe79e4e0"
+  },
+  "failure": {
+    "step": "Run focused native qualification",
+    "result": "The native build completed, then qualification stopped before running CTest cases because the live CTest inventory differed from the frozen broad inventory.",
+    "frozen": {
+      "count": 1386,
+      "generatedAtCommit": "4570bc979d75575168ac390d891a0c8de54fd5ee",
+      "nameDigest": "22de23fa933bbeb29d5b47c6628c2981b18c33db415899d0adac81ccf9588069"
+    },
+    "cascade": "Receipt emission and sealing then failed because the expected qualification observation was not produced."
+  },
+  "reproduction": {
+    "checkout": "clean tracked clone at d2193961ae3653161f1b7e016d0a61f1f9f406fa; no local or untracked DWG/DXF fixtures",
+    "profile": "Ninja; AppleClang; Release; BUILD_SHARED_LIBS=OFF; docs=OFF; dwg2dxf=ON; tests=ON; qualification=OFF; long_fuzz=OFF",
+    "configure": "PASS",
+    "freezeCommand": "python3 -B tools/run_native_qualification.py freeze-inventory --root . --build-dir build --manifest metadata/qualification-required-tests-v1.json --output /private/tmp/qualification-required-tests-d219.json",
+    "live": {
+      "count": 1389,
+      "generatedAtCommit": "d2193961ae3653161f1b7e016d0a61f1f9f406fa",
+      "nameDigest": "46c255557636eb6784a1692ca24a0be200ecee5b03ffa0d6569126ab42b7815e"
+    },
+    "addedTests": [
+      "libdxfrw_datastorage_schema_profiles",
+      "libdxfrw_dwg_appinfo_profile",
+      "libdxfrw_persistent_manager_incomplete_body_tail",
+      "libdxfrw_persubentmgr_raw_only"
+    ],
+    "removedTests": [
+      "libdxfrw_associative_subentity_handle_limit"
+    ]
+  },
+  "fix": {
+    "updatedFile": "metadata/qualification-required-tests-v1.json",
+    "generationMethod": "freeze-inventory from a clean tracked checkout using the exact hosted CMake profile",
+    "newCount": 1389,
+    "noTestFixturesAdded": true
+  },
+  "pending": [
+    "The corrected 1,389-name manifest is present at f0f87e7f. Native focused qualification passed seven checks on Linux, macOS, and Windows; the current fast workflow passed inventory/build setup and then failed 19 TABLE/TABLECONTENT vector assertions (see docs/research/p8-fast-tablecontent-regression-2026-11-18.json).",
+    "Native FreeCAD Linux/Windows qualification passed on the same candidate; see docs/research/p8-candidate-native-freecad-qualification-2026-11-18.json.",
+    "Keep P8-F open until the fast regression is resolved; the observed upstream branch-protection summary is recorded in docs/research/p8-candidate-native-freecad-qualification-2026-11-18.json."
+  ],
+  "limits": [
+    "The failure occurred before CTest cases ran; it provides no pass or failure evidence about implementation behavior.",
+    "The manifest correction changes qualification metadata only and does not promote a DWG/DXF support claim.",
+    "No package gate is closed by the local inventory correction."
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-declared-utf8-scoped-input-policy-2026-11-15",
+  "date": "2026-11-15",
+  "status": "bounded_implementation_verified",
+  "supportClaimEffect": "none",
+  "scope": "Explicit input policy DeclaredUtf8 uses the exact UTF-8 decoder for a physically declared UTF-8 alias and otherwise retains Compatible code-page mapping. Existing defaults, output and DWG decoding are unchanged.",
+  "implementation": [
+    "Retain the original declaration for scoped UTF-8 selection through HEADER normalization and version discovery.",
+    "Preserve unsupported legacy-Unicode profile diagnostics, cumulative read observations and policy snapshots.",
+    "Keep the adapter strict source admission fail-closed for the new policy; no additional source profile is qualified.",
+    "Correct the normalized-page diagnostic to distinguish explicit UTF-8 input selection."
+  ],
+  "validation": {
+    "focused": "libdxfrw_declared_utf8_policy PASS, 56 ASCII/Binary/version/order/declaration profiles, file and ASCII memory routes, malformed input comparisons, fallback observations and strict-admission refusal.",
+    "regressions": "Existing --exact-codepage-reader, --text-read-observations and --source-text-admission selectors PASS.",
+    "consumer": "Disposable upstream-linked LibreCAD checkout 8a82e359: focused named LTYPE selector PASS 18/18 (465 assertions), using DeclaredUtf8 in the temporary adapter, unitless old-target INSUNITS omission, corrected group-72 fixture and prior DIMSTYLE/helper corrections; original MLINESTYLE fixture retained."
+  },
+  "limits": [
+    "Scoped policy is opt-in; it has not been integrated into LibreCAD or LibreCAD_3.",
+    "Strict source admission rejects this policy until separately qualified, including compatible fallback cases.",
+    "Legacy UTF-8 remains an unsupported source profile even when decoded.",
+    "Public headers require consumers to rebuild; no new binary ABI compatibility is claimed.",
+    "No DWG/DXF fixture files added."
+  ]
+}

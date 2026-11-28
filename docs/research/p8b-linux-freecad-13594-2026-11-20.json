@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8b-linux-freecad-13594-2026-11-20",
+  "date": "2026-11-20",
+  "status": "GENERATED_PROFILE_LINUX_PASS",
+  "supportClaimEffect": "none",
+  "testedCommit": "13594985a2e2818712a6550e5d504ce7ba57d95b",
+  "candidateAtReview": "a470c01c56e7b8521784d0c5116ba6570b77d8e9",
+  "candidateEquivalence": "Only plan and research prose changed after testedCommit; source, build, test and workflow inputs are unchanged. Recheck before reuse.",
+  "changedPaths": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/p8-package-b53-qualification-2026-11-20.json"
+  ],
+  "implementationDigestSha256": "1810ea2d6b7d7cb21aaa7b2c287308c3f0b767fdea5a4e1ffac6112e4d1c8a93",
+  "run": "https://github.com/dxli/libdxfrw/actions/runs/44685745528",
+  "jobId": 136119538415,
+  "artifactId": 14606593206,
+  "artifactArchiveSha256": "d1bbd64e998f661a911cba0cfe9be501e9c5def90e781f21b02f7b25b5082012",
+  "testLogSha256": "4630637e31fe96772cf15b806d22f0aa8bc45170a44e4c9f3b448ea0e89cafdf",
+  "apiSnapshotSha256": {
+    "run-linux.json": "2d21ba18db696e0e6982332d7512e4327a0d1b1803aee5ca34fd54952029eda9",
+    "jobs-linux.json": "dc46e363830d2dd280335085c5b40eac353272cbf37ef304a73fc16636c709f3",
+    "artifacts-linux.json": "912fffd022e233c28a4e69cd2574fa2cd0fb98ce4f8aa05f939a4c236b8e9f11"
+  },
+  "verification": "Authenticated GitHub run/job/artifact API snapshots and downloaded archive; verified successful Linux source checkout, pinned FreeCAD download, handoff and upload, exact archive size and SHA-256, and 16 passing test log entries. Windows was still running at snapshot.",
+  "platform": "Linux x86_64",
+  "freecadRelease": "1.1.4",
+  "freecadRevision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+  "releaseAppImageSha256": "f6dc6ba676e5ac96a565ebc8d657232f94c6158e85b4352141bd1a46f6b43434",
+  "legacyImporterCommit": "e060ef0d8fe7143c2e0ce34734b686ba073f3cc1",
+  "installedConverterSha256": "1e9e47007b0f59f3334d8765dc3ba295f8619ed3d793b775919984e0347d3782",
+  "result": "16/16 PASS; eight C++ importer observations and six legacy importer observations bind the same converter hash and FreeCAD revision.",
+  "tests": [
+    "dwg2dxf_freecad_cli_compat",
+    "dwg2dxf_freecad_installed_cli_compat",
+    "dwg2dxf_freecad_generated_ac1021_line_open",
+    "dwg2dxf_freecad_generated_ac1021_line_insert",
+    "dwg2dxf_freecad_generated_ac1021_primitives_open",
+    "dwg2dxf_freecad_generated_ac1021_primitives_insert",
+    "dwg2dxf_freecad_generated_ac1024_primitives_open",
+    "dwg2dxf_freecad_generated_ac1024_primitives_insert",
+    "dwg2dxf_freecad_generated_ac1032_primitives_open",
+    "dwg2dxf_freecad_generated_ac1032_primitives_insert",
+    "dwg2dxf_freecad_legacy_polyface_open",
+    "dwg2dxf_freecad_legacy_polyface_insert",
+    "dwg2dxf_freecad_legacy_polyface_ac1024_open",
+    "dwg2dxf_freecad_legacy_polyface_ac1024_insert",
+    "dwg2dxf_freecad_legacy_polyface_ac1032_open",
+    "dwg2dxf_freecad_legacy_polyface_ac1032_insert"
+  ],
+  "limits": [
+    "Generated handoff profiles only; no producer-wire, GUI or broad native DWG support claim.",
+    "The pinned C++ importer reports generated 3DFACE and SOLID unsupported and renders the selected polyface as wireframe; the separately selected legacy importer handles its bounded controls.",
+    "The source, converter, consumer, configuration and exact profile must match to reuse this evidence.",
+    "No DWG/DXF fixture was committed."
+  ]
+}

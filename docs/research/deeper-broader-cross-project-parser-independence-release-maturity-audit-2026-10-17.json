@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw-cross-project-parser-independence-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Refresh the source/package independence and capability boundaries among DWG/DXF readers, SAT/SAB payload parsers, geometry kernels, and native CAD routes; refine the existing composed evidence gate without increasing routine implementation validation.",
+  "method": {
+    "kind": "Primary-source versioned package, release, API, documentation, and issue-index review with local plan reconciliation",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+      "https://docs.rs/crate/cadmpeg-asm/0.6.1",
+      "https://github.com/cadmpeg/cadmpeg/tree/v0.6.1",
+      "https://pypi.org/project/cq-acis/0.3.12/",
+      "https://github.com/monozukuri-ai/cq-acis",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/The_FreeCAD_source_code.md",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/DomCR/ACadSharp/issues",
+      "https://github.com/DomCR/ACadSharp/releases",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: latest cross-peer evidence gate, CADMPEG v0.6.1 research, peer issue status, and deferred external J ledger",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: current implementation order and validation cadence"
+    ],
+    "limitations": "Package manifests and project documentation show distinct repository/API dependency paths but do not prove absence of all copied or derived source. No peer runtime, parser report, geometry metric, native acceptance, or source-entity-to-AcDs-to-payload join was produced. Live issue indexes are discovery evidence only; individual peer reports and release states must be pinned at any future execution."
+  },
+  "evidence": [
+    {
+      "topic": "CADMPEG and cq-acis parser/package separation",
+      "observed": "The versioned cadmpeg-codec-sat 0.6.1 package declares cadmpeg-asm, cadmpeg-core, and cadmpeg-ir dependencies and documents a read-only L1 bare SAT/SAB route. cq-acis publishes a separate repository/package and exposes Rust acis-core plus CadQuery/OCCT conversion APIs. These are separate parser/package paths suitable for a bounded payload-level cross-check.",
+      "doesNotEstablish": [
+        "a complete source-reuse or code-provenance audit between implementations",
+        "independent semantic expectations or conformance from either project's own tests",
+        "DWG/DXF/AcDs container parsing or source entity ownership by either payload parser",
+        "B-rep validity from a successful frame, typed transfer, or nonempty model"
+      ],
+      "planUse": "Classify CADMPEG as a distinct parser implementation candidate at the exact bare-payload stage, not a semantic oracle. Keep cq-acis as a separate parser route whose OCCT shape result shares a kernel lineage with FreeCAD. Require independent analytic/topology expectations and exact payload provenance."
+    },
+    {
+      "topic": "Kernel and FreeCAD route separation",
+      "observed": "cq-acis documents conversion to CadQuery/OpenCASCADE shapes. FreeCAD documents OpenCASCADE as its solid geometry kernel and its DWG wrapper converts through an external DWG-to-DXF command followed by the selected DXF importer.",
+      "doesNotEstablish": [
+        "two independent kernel observations from cq-acis and FreeCAD",
+        "stock FreeCAD ingestion of inline SAT/SAB or DWG AcDs payloads",
+        "native Linux or Windows qualification"
+      ],
+      "planUse": "Count at most one OCCT-family geometry observation; capture importer/backend and converter command for each exact native FreeCAD run. Keep explicit-entity DXF acceptance separate from ACIS/AcDs consumer applicability."
+    },
+    {
+      "topic": "DWG/DXF peer maturity and loss boundaries",
+      "observed": "LibreDWG 0.14.1 NEWS documents continuing hardening and support dispositions, while its documentation assigns per-class stability states. ACadSharp has distinct versioned releases and an active issue horizon with parser and writer failure reports. ezdxf's drawing backend explicitly does not render ACIS and projects 3D into XY; GDAL's DXF route exposes selected raw ASM carrier data rather than OGR B-rep solids.",
+      "doesNotEstablish": [
+        "the exact runtime behavior of an unexecuted release or mutable branch",
+        "a local defect from a peer-only report",
+        "3D B-rep semantics or complete object-graph preservation from render/projection/raw-carrier routes",
+        "support parity from aggregate issue counts or project-level coverage statements"
+      ],
+      "planUse": "Reuse the existing PAR/7* owners and comparator matrix. Pin exact version, operation, format profile, and route at the composed checkpoint; keep parser syntax, record survival, graph closure, carrier identity, geometry semantics, and application acceptance separate."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "record CADMPEG as a distinct but not source-audited bare-payload parser implementation candidate",
+      "keep parser independence, independent semantic expectations, outer AcDs association, kernel identity, and native consumer acceptance as separate evidence fields",
+      "use only the existing composed checkpoint for external parser/kernel/native execution; no peer installs or runs are added to local slices",
+      "retain all six external-J items as DEFERRED_EXTERNAL until their separate qualification conditions are met"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

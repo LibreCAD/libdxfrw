@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-light-adapter-transport-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "LIGHT_DXF_ADAPTER_AND_DIRECT_WRITER_GUARDS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Connect the existing LIGHT callback and AC1021+ DXF serializer through dx_iface, complete bounded LIGHT DXF parsing, preserve delivery through modelspace and named BLOCK callbacks, and enforce the same bounded payload profile through direct public writeLight calls.",
+  "references": [
+    {
+      "title": "Autodesk LIGHT (DXF), AutoCAD 2020",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-1A23DB42-6A92-48E9-9EB2-A7856A479930.htm",
+      "use": "Defines the documented AcDbLight core fields and enum meanings used by the typed parser/readback controls. It does not document the adapter's color group 63, truecolor, or DWG photometric fields."
+    }
+  ],
+  "implementation": {
+    "sourceFiles": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "src/drw_interface.h",
+      "src/intern/dxfentitiesdelivery.h",
+      "dwg2dxf/dx_block_membership.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "The DXF reader dispatches LIGHT and parses its bounded class/name/type/status, color index, position/target, intensity, attenuation, and shadow fields.",
+      "The ENTITIES delivery sink and BLOCK event sink forward LIGHT; block membership maps the callback to the LIGHT wire record.",
+      "DRW_Light::validateDxf centralizes the admitted bounded profile; both the adapter and public writeLight path use it, including exact runtime type, ACI range, DWG CMC metadata, photometric/web/extended-light payloads, enum domains, and finite numeric fields.",
+      "The direct serializer emits LIGHT color only through the bounded group-63 ACI field; it never emits group 421 for an unqualified LIGHT color mapping.",
+      "The reader refuses group 421 rather than discarding a LIGHT color value whose mapping is not qualified."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed DRW_Light models. Tests write temporary output files only; no DWG/DXF fixtures are used or committed.",
+    "scopes": ["modelspace ENTITIES", "named BLOCK"],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "The AC1018 target is refused before the LIGHT AC1021 floor and an existing destination remains byte-identical.",
+      "Unqualified truecolor and non-default photometric data are refused atomically; the same adapter retries successfully after correction.",
+      "Direct public-writer calls refuse packed DWG CMC color, CMC metadata, and photometric payloads atomically; the existing destination remains byte-identical and the same direct-write adapter retries and reads back after correction.",
+      "Modelspace and named-BLOCK output re-imports as one typed LIGHT with representative AcDbLight fields preserved.",
+      "The named-BLOCK readback exercises the staged BLOCK callback sink; modelspace readback exercises the ENTITIES delivery sink."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_light_adapter_transport$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; ASCII/Binary adapter and direct-writer refusal, destination preservation, corrected retry, and modelspace/named-BLOCK typed readback.",
+    "diffCheck": "PASS: git diff --check",
+    "fixturePolicy": "No drawing fixture was added or committed."
+  },
+  "limitations": [
+    "This is generated DXF parser/serializer and adapter-delivery consistency evidence only; it is not independent physical producer or native-consumer evidence.",
+    "The official LIGHT page does not list the color group emitted by the existing writer. Color semantics beyond the bounded generated group-63 ACI transport profile, including truecolor/name/book mapping, remain unqualified; group 421 is refused by both writer routes.",
+    "DWG photometric, web-file, and extended-light payloads remain refused by both writer routes until their output mapping is qualified.",
+    "No support claim is promoted; P8 remains open."
+  ]
+}

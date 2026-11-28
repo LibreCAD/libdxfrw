@@ -1,0 +1,48 @@
+{
+  "title": "AC1015 LTYPE_CONTROL historical import profile",
+  "date": "2026-11-12",
+  "scope": "Bounded LTYPE_CONTROL parsing only; no file-support promotion",
+  "source": {
+    "path": "/Users/dli/doc/dwg/simple.dwg",
+    "sha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+    "repository_fixture": false
+  },
+  "observation": {
+    "version": "AC1015",
+    "control_handle": "0x0f",
+    "count_encoding": "BL",
+    "count": 25,
+    "child_handle_count": 27,
+    "child_role": "soft pointer (code 4) for every entry",
+    "builtin_handles_in_order": ["0x0f", "0x10", "0x11"],
+    "named_handles_in_order": [
+      "0x30", "0x31", "0x32", "0x33", "0x34", "0x35", "0x36",
+      "0x37", "0x38", "0x39", "0x3a", "0x3b", "0x3c", "0x3d",
+      "0x3e", "0x3f", "0x40", "0x41", "0x42", "0x43", "0x44",
+      "0x45", "0x46", "0x47"
+    ],
+    "owner_and_xdictionary": "canonical null references in the physical source",
+    "integrity_effect": "The control child-role mismatch is retained as an integrity error."
+  },
+  "implementation": {
+    "file": "src/intern/dwgreader.cpp",
+    "behavior": "Admit only the exact bounded AC1015 historical all-soft-pointer control profile, separate from the ODA and current-writer profiles.",
+    "spec_boundary": "ODA v5.4.1 section 20.4.57 specifies the current ownership profile; this observed historical profile remains explicitly distinct and unqualified."
+  },
+  "generated_control": {
+    "file": "tests/dwg_ltype_multiversion_count_tests.cpp",
+    "selector": "libdxfrw_dwg_ltype_multiversion_count",
+    "coverage": [
+      "AC1015 BL count and historical fixed-handle order",
+      "all-soft-pointer member roles",
+      "canonical-null owner and XDictionary variants",
+      "non-null owner/XDictionary and wrong-role rejection",
+      "wrong built-in and duplicate child mutations",
+      "truncated-tail rejection",
+      "same-object corrected-input retry"
+    ],
+    "result": "passed 1/1"
+  },
+  "limitation": "The physical sample's LTYPE table-record bodies fail typed parsing; its whole DWG read still fails at the table phase. This receipt establishes neither record semantics nor AC1015 file interoperability.",
+  "fixtures_added": []
+}

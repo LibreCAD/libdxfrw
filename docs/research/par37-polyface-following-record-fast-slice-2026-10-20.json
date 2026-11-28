@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-20",
+  "planSlice": "PAR-37/7V POLYLINE following-record boundary",
+  "scope": "Test-only generated ASCII/Binary DXF parser and writer/readback control for POLYLINE PFACE child framing.",
+  "baselineGap": "Existing generated cases covered stale counts, interleaved/forward face ordering, signed indices, invalid-pool refusal, and canonical writer order, but the file ended at EOF after SEQEND and had no focused CTest selector.",
+  "change": {
+    "test": "Added an exact XYZ LINE sentinel after SEQEND and asserted its preservation after direct read and strict write/readback in ASCII and Binary DXF.",
+    "fastMode": "Added --polyface-completed-pool selector and dxf_polyface_completed_pool CTest.",
+    "productionCodeChanged": false,
+    "newFixtureFiles": false,
+    "externalSamplesUsed": false,
+    "dependenciesAdded": false
+  },
+  "files": [
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "tests/CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "validation": {
+    "cmakeConfigure": "passed",
+    "focusedTargetBuild": "passed",
+    "selector": "passed; ASCII and Binary",
+    "ctest": "passed; dxf_polyface_completed_pool 1/1 in 0.06 seconds",
+    "diffCheck": "passed",
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false
+  },
+  "supportClaimsPromoted": false,
+  "externalJStatuses": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "nextLocalAction": "Continue the existing S2.3.9.4.29 modeler block/INSERT census and PAR-07/S8 per-handle write/readback gate; external evidence does not block local work.",
+  "commitStatus": "uncommitted; repository git metadata is read-only"
+}

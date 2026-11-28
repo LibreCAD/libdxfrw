@@ -1,0 +1,230 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1021-inline-sab-torus-dxf-carrier-gate-2026-11-08",
+  "date": "2026-11-08",
+  "status": "INLINE_SAB_AC1024_SELECTED_ASCII_BINARY_READBACK_PASS_INDEPENDENT_PARSER_FIELDS_PASS_NATIVE_GEOMETRY_OPEN",
+  "supportClaimEffect": "none",
+  "scope": "Implement and qualify the source-bound AC1021 inline-SAB selected projection through AC1024 ASCII/Binary, exact SAT carrier and graph-role readback, failure rollback/retry, and retain strict full-source refusal.",
+  "source": {
+    "repository": "LibreDWG",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "inputRepository": "dwg-writer public committed LibreDWG fixture",
+    "inputPath": "/Users/dli/dev/dwg-writer/tests/fixtures/committed/libredwg/atmos_dc22s_2007.dwg",
+    "inputSha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+    "version": "AC1021",
+    "selectedGraph": {
+      "solid": "0x452",
+      "history": "0x453",
+      "evaluationGraph": "0x454",
+      "torus": "0x455",
+      "radii": [
+        19.0,
+        2.789983459616414
+      ],
+      "cmc": {
+        "method": "0xC3",
+        "aci": 2,
+        "rawBsIndex": 0,
+        "materialHandle": "0x0"
+      }
+    },
+    "carrier": {
+      "kind": "inline SAB in the AC1021 modeler entity body",
+      "payloadBytes": 1059,
+      "modelerVersion": 2,
+      "modelerSourceVersion": "AC1021",
+      "objectSizeBytes": 1799,
+      "dataStorageSections": 0,
+      "hasDataStorageRecord": false,
+      "signature": "ACIS BinaryFile",
+      "terminator": "tagged End-of-ACIS-data marker",
+      "interpretation": "bounded carrier extraction only; ACIS syntax and geometry remain unqualified"
+    }
+  },
+  "writerRouteResearch": {
+    "libdxfrw": "Implemented bounded AC1021 E3DSOLID inline SAB 21200 to SAT v1 carrier route for AC1021/AC1024. Exact marker-bounded span and retained source frame are required. Selected source-class and graph-role closure is independent of ACDSDATA. Emitted group 70 is 1 for the SAT v1 carrier.",
+    "libreDWG": {
+      "file": "/Users/dli/dev/libredwg/src/out_dxf.c",
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "observedStrategy": "dxf_3dsolid converts a version-2 SAB through dwg_convert_SAB_to_SAT1 before writing SAT text groups",
+      "sourceTrace": {
+        "tracePath": "/private/tmp/libdxfrw-atmos-peer-unlock.log",
+        "traceSha256": "026204bfc61bfd32e898094aaa9a837d0fdda156343a9f62977c90cd76e18851",
+        "outputPath": "/private/tmp/libdxfrw-atmos-peer-unlock.dxf",
+        "outputSha256": "68010f15fbef96067ea7a30660a9693e22a7006bd48d0b110d3c35cc299a324e",
+        "command": "dwg2dxf -y -v5 --as r2010 -o <scratch output> <pinned source>",
+        "traceEvidence": "The exact source entity 0x452 has acis_empty=0, version=2, and a 1,059-byte SAB span; the trace enters dwg_convert_SAB_to_SAT1 and reports the SAB header/body records.",
+        "sourceCodeCause": "out_dxf.c stores the final short SAT text block at index i, then assigns _obj->num_blocks = i. dxf_3dsolid iterates only to num_blocks, omitting that final block. For the sub-4096-byte result i is zero, so the exact output entity omits all SAT group-1/3 payload.",
+        "evidenceLimit": "The trace and source-code path explain the missing peer carrier but do not establish an independently valid SAT carrier or geometry semantics."
+      },
+      "sampleOutput": {
+        "path": "/private/tmp/libdxfrw-atmos-peer/atmos.dxf",
+        "sha256": "9a8c5e2cec80102088da1f78fbb5abaa345a179aa48b2fac7a35f130f095ee95",
+        "handle": "0x452",
+        "entityPairCountIncludingType": 10,
+        "groups": {
+          "70": 1,
+          "350": "453"
+        },
+        "acisPayloadGroups": [],
+        "interpretation": "No group-1/3 SAT payload or group-310 binary payload is present for this exact entity; the peer output is not a positive carrier witness."
+      },
+      "scratchCorrectedPeerControl": {
+        "archiveRevision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+        "sourceArchive": "git archive HEAD from /Users/dli/dev/libredwg; extracted under /private/tmp/libredwg-inline-sab-probe",
+        "scratchPatch": "src/out_dxf.c: _obj->num_blocks = i changed to _obj->num_blocks = i + 1, including the final short block",
+        "build": "./configure --disable-shared --disable-json; make -j4 -C src libredwg.la; make -j4 -C programs dwg2dxf — PASS",
+        "command": "./programs/dwg2dxf -y -v5 --as r2010 -o <scratch output> <pinned source>",
+        "outputPath": "/private/tmp/libdxfrw-atmos-peer-fixed.dxf",
+        "outputSha256": "5b9473aaf8b185f20dff82db77a7ca37956b134dd36bb3e062ddd2dc08a7d141",
+        "tracePath": "/private/tmp/libdxfrw-atmos-peer-fixed.log",
+        "traceSha256": "b79b29255e48a55a908d3937233e44e553d2333d5989ff2cafbb991c4839fd0c",
+        "handle": "0x452",
+        "entityPairCountIncludingType": 27,
+        "groups": {
+          "1": 17,
+          "70": 1,
+          "350": "453"
+        },
+        "interpretation": "The corrected LibreDWG scratch peer emits SAT text chunks for the exact source SAB entity. This is a differential implementation reference, not independent producer evidence or geometry validation."
+      },
+      "evidenceLimit": "implementation comparison only; neither peer output independently establishes geometry semantics"
+    },
+    "authoritativeReferences": {
+      "autodesk3dsolidDxf": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "autodeskBinaryGroupRange": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+      "odaSpecification": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "odaSection": "§20.4.41"
+    },
+    "odaCommonHandleFlag": {
+      "source": "ODA Open Design Specification v5.4.1 §14.5.2 and common object handle stream",
+      "finding": "For R2004+, XDic Missing Flag 1 means no XDictionary handle is stored. The source history record has flag 1 and no xDict handle; DXF output omits the extension edge.",
+      "supportClaimEffect": "none"
+    }
+  },
+  "reproductionResearch": {
+    "libreDwgCliRetry": {
+      "binary": "/opt/homebrew/bin/dwg2dxf",
+      "version": "0.14",
+      "sourceInputSha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+      "outputPath": "/private/tmp/libdxfrw-atmos-peer-retry/atmos.dxf",
+      "outputSha256": "68010f15fbef96067ea7a30660a9693e22a7006bd48d0b110d3c35cc299a324e",
+      "command": "dwg2dxf -y -v7 --as r2010 -o /private/tmp/libdxfrw-atmos-peer-retry/atmos.dxf <pinned source>",
+      "exitCode": 0,
+      "entity": {
+        "handle": "0x452",
+        "pairCountIncludingType": 10,
+        "groups": {
+          "70": 1,
+          "350": "453"
+        },
+        "acisPayloadGroups": [],
+        "interpretation": "The installed peer reproduced the missing carrier. A verbose trace now binds SAB conversion to this exact source entity and reveals the peer chunk-count defect; this remains negative evidence, not a carrier witness."
+      }
+    },
+    "odaFileConverterRetry": {
+      "binary": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "result": "ABORTED_BEFORE_CONVERSION",
+      "stderr": "PasteBoard errors (-4960) followed by invalid com.apple.hiservices-xpcservice connection",
+      "platformState": "The user unlocked the Mac before the retry; startup still aborted before input processing with PasteBoard/XPC errors.",
+      "supportClaimEffect": "none"
+    },
+    "independentReaderCandidate": {
+      "project": "InventorLoader",
+      "repository": "https://github.com/jmplonka/InventorLoader",
+      "observedDocumentation": "README states ACIS SAT/SAB and 3D-solid-in-DXF import are supported; native ACIS reconstruction and STEP conversion are separate strategies.",
+      "independence": "Its Acis.py parser is a separate implementation from libdxfrw; geometry construction and STEP conversion use FreeCAD Part/OpenCASCADE, so it is not an independent kernel oracle.",
+      "documentedLimitations": [
+        "blending surfaces unsupported",
+        "helix surfaces unsupported for lines",
+        "law-defined interpolated curves/surfaces without spline data omitted"
+      ],
+      "localAvailability": "InventorLoader is not installed in the FreeCAD user Mod directory. FreeCAD 1.1.4 is present; its lowercase arm64 freecadcmd exists but exits immediately with “Incompatible processor. This Qt build requires ... neon”. Computer Use reports the macOS GUI session locked. ODA File Converter is installed but its post-unlock --help startup exits 134 before input processing.",
+      "nextQualification": "Run a native FreeCAD Part import when the app runtime is usable. The parser-only scratch run does not invoke geometry construction; then capture validity, topology, placement, bounds, area, volume and centroid. Obtain an independent-kernel route separately.",
+      "supportClaimEffect": "none",
+      "pinnedRevision": "e94bdf5e29052a0dc7ce6fdf755e956ae507caec",
+      "parserSourceSha256": "ec84f9528355f0df2e28bd94eecf7d9e4be89c5b9f7a77eef9b9cccbc21366bb",
+      "repositoryCommitDate": "2024-12-17T15:15:05Z"
+    }
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg_local_roundtrip -j4 — PASS",
+    "sourceProjectionControl": "Initial pre-writer-gate probe: selected ASCII/Binary attempts refused and preserved existing destinations; strict full-source export also refused and preserved its destination. Superseded for the selected physical AC1021 inline-SAB profile by selectedPhysicalProjection and physicalSourceProbeCommand below; strict full-source refusal remains current.",
+    "sourceHashMismatchGuard": "A scratch copy with one appended byte was refused before import with exit code 2 and the observed/expected SHA-256 values; scratch copy was not added to the repository.",
+    "selectedProjectionFirstObservedGate": "Historical initial diagnostic before the inline-SAB source-bound writer route was implemented: extension-graph validation stopped at an unresolved EvaluationGraph owner, so it did not exercise entity serialization. Superseded by the selectedPhysicalProjection PASS below.",
+    "fullSourceFirstObservedGate": "DWG IMAGEDEF owner role is unqualified for output; this is the first observed full-source rejection, so this result does not prove the opaque-frame gate was reached.",
+    "focusedCtest": "cmake --build build --target libdxfrw_dwg_local_roundtrip -j4 — PASS; ctest --test-dir build -R \"^(acis_sab21200_sat_v1_token_controls|dxf_acsh_torus_typed_roundtrip|dxf_acsh_cmc_loss_guard)$\" --output-on-failure — 3/3 PASS.",
+    "diffCheck": "git diff --check — PASS",
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN",
+    "libreDwgVerboseEntityTrace": "PASS as a diagnostic: exact handle 0x452 is followed through SAB-to-SAT conversion; source-code inspection explains why the unmodified peer output drops the final block.",
+    "libreDwgScratchCorrectedPeer": "PASS: disposable source archive built with the final chunk-count correction; the resulting scratch DXF has 17 group-1 chunks for handle 0x452. This is implementation-derived differential evidence only; support claim unchanged.",
+    "postUnlockOdaStartupRetry": {
+      "binary": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "command": "--help",
+      "result": "ABORTED_BEFORE_INPUT_PROCESSING",
+      "exitCode": 134,
+      "stderr": "PasteBoard errors creating clipboard/find pasteboards (-4960), then invalid com.apple.hiservices-xpcservice connection",
+      "platformState": "User reported unlocking the Mac immediately before this retry; the startup failure persisted.",
+      "supportClaimEffect": "none"
+    },
+    "fastFocusedControls": "cmake --build build --target libdxfrw_dwg_local_roundtrip -j4 — PASS; ctest --test-dir build -R \"^(acis_sab21200_sat_v1_token_controls|dxf_acsh_torus_typed_roundtrip|dxf_acsh_cmc_loss_guard)$\" --output-on-failure — 3/3 PASS; git diff --check — PASS.",
+    "physicalWriterReadback": "PASS for the selected AC1021 inline SAB v2 profile converted to AC1024 SAT v1. This does not qualify whole-drawing export, a native third-party reader, or ACIS geometry semantics.",
+    "selectedPhysicalProjection": "PASS using the hash-pinned wrapper and the existing external LibreDWG DWG (no fixture added): selected AC1024 ASCII and Binary output/readback pass; exact SAT v1 group-1 payload and history/EvaluationGraph/torus references read back; same-adapter rollback/retry passes in each encoding.",
+    "fullSourceStrictRefusal": "PASS: strict full-source export preserves its destination and remains refused at the unrelated DWG IMAGEDEF owner-role qualification gate; opaque-frame output gate remains unreached.",
+    "physicalSourceProbeCommand": "python3 tools/research/run_acsh_torus_source_probe.py <pinned DWG> /private/tmp/acsh-final-probe --probe build/libdxfrw_dwg_local_roundtrip — PASS after exact SHA-256 admission; selected AC1024 ASCII/Binary readback and failure/retry pass; strict full-source sentinel remains unchanged at IMAGEDEF owner-role gate.",
+    "freecadAcisReaderCandidateResearch": "Pinned InventorLoader commit e94bdf5e29052a0dc7ce6fdf755e956ae507caec. Its Acis.py is an independent parser; the corrected physical SAT output was parsed in a scratch Python harness with FreeCAD/Part stubs. No B-rep was constructed.",
+    "independentParserFieldCrosscheck": {
+      "repository": "https://github.com/jmplonka/InventorLoader",
+      "revision": "e94bdf5e29052a0dc7ce6fdf755e956ae507caec",
+      "parserSource": "Acis.py",
+      "parserSourceSha256": "ec84f9528355f0df2e28bd94eecf7d9e4be89c5b9f7a77eef9b9cccbc21366bb",
+      "inputBytes": 1057,
+      "inputSha256": "4917d971df23651987e01f18cf8635d19dab7ec2c306c910734ba0093641da08",
+      "result": "PASS: 14 records, one body, typed torus; all source SAB binary64 center/axis/radius/U-origin values exactly equal values parsed from SAT text. Full U/V ranges and forward_v sense decode.",
+      "method": "Pinned Acis.py run in scratch harness with FreeCAD/Part stubs; no geometry construction."
+    },
+    "satTorusBooleanFix": "PASS: generated controls cover forward/reverse sense, full ranges, and a finite U-start value; hash-pinned AC1021 selected ASCII/Binary physical projection, rollback/retry and strict full-source refusal all pass after the converter change; focused CTest selector passes 3/3. No fixture added.",
+    "odaRetryAfterUserUnlock": {
+      "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter --help",
+      "result": "ABORTED_BEFORE_INPUT_PROCESSING",
+      "exitCode": 134,
+      "stderr": "PasteBoard errors (-4960), then invalid com.apple.hiservices-xpcservice connection",
+      "desktopInventory": "Computer Use still reported Mac locked after the user said they were unlocking it.",
+      "supportClaimEffect": "none"
+    },
+    "nonFiniteSatScalarRollback": "PASS in generated fast control: nonfinite SAB resTol is parser-visible, SAT conversion refuses, and an existing output buffer is preserved.",
+    "nonFiniteSatVectorRollback": "PASS in generated fast control: NaN in the parsed torus location vector is refused, preserving the existing SAT output buffer.",
+    "unknownTorusBooleanRollback": "PASS in generated fast control: an extra parser-valid torus-surface Boolean is refused without replacing the existing SAT output buffer.",
+    "satAllocationSweep": "PASS: generated version-21200 SAB control injects failure at all 11 observed SAT text-assembly allocation points; conversion returns false, preserves the caller output, and same-buffer retry matches baseline."
+  },
+  "remaining": [
+    "Run the exact emitted SAT through a usable native FreeCAD + pinned InventorLoader reconstruction; capture valid B-rep topology, placement, bounds, area, volume and centroid. Current parser-only check uses stubs and does not construct geometry.",
+    "Obtain a genuinely independent-kernel and source-native semantic check for the exact solid/history graph.",
+    "Qualify broader native consumer and platform behavior after semantic evidence is available. Keep AC1024/1027/1032 source profiles and unrelated whole-source IMAGEDEF/opaque-frame refusal gates separate."
+  ],
+  "implementation": {
+    "converter": "drw_convertSabToSatV1 parses only complete ACIS BinaryFile version-21200 SAB with an explicit terminal record and serializes the observed SAT v1 profile; for torus-surface it maps the first ordered SAB boolean to forward_v/reverse_v and the next four to I/F range markers. Unknown extra torus-surface booleans fail closed. Numeric SAT fields use max_digits10 and classic locale to preserve binary64 values in text.",
+    "writerGate": "writeModelerGeometry admits only AC1021 E3DSOLID, modeler version 2, one exact marker-bounded SAB body range with payload bit offset less than 8, retained complete source frame, exact SAB parse/header, and no DataStorage dependency; emits SAT group-1 text only for AC1021/AC1024 targets.",
+    "differentialOutput": {
+      "bytes": 917,
+      "sha256": "c31590592694a817bd5c67a133f729f37cd010d6e23132029d5f342a96d448ed",
+      "peer": "No longer byte-identical to corrected LibreDWG scratch output.",
+      "effect": "Independent parser field decoding agrees for the typed torus record; no native shape or kernel semantics established."
+    },
+    "sourceBoundClosure": "Unique selected AC1021 solid/history/EvaluationGraph/torus chain is validated independently of DataStorage; raw ACSH objects and the typed EvaluationGraph are written as selected records. The layer-0 extension DICTIONARY closure is retained.",
+    "readbackAndRetry": "Selected AC1024 ASCII and Binary outputs are reimported; SAT bytes, carrier group/version, and remapped solid→history→EvaluationGraph→torus roles are checked. A changed span-confidence bit forces atomic refusal with sentinel preserved, then restoring the source evidence and retrying with the same adapter succeeds.",
+    "initialPeerByteMatch": {
+      "bytes": 909,
+      "sha256": "5d82bceb0e931e4ac2c11a86fa5706e9621567990bdcaf200d607ed0a46ba7b0",
+      "interpretation": "Initial byte match with corrected LibreDWG peer was rejected by the independent typed SAT parser for the torus range fields; superseded by the record-specific mapping."
+    },
+    "precisionFix": {
+      "before": "std::setprecision(6) rounded physical SAB numeric values.",
+      "after": "std::setprecision(std::numeric_limits<double>::max_digits10) with classic locale.",
+      "physicalSatBytes": 1057,
+      "physicalSatSha256": "4917d971df23651987e01f18cf8635d19dab7ec2c306c910734ba0093641da08",
+      "exactFieldComparison": "PASS for source SAB-decoded and independent SAT-parsed center, axis, both radii, and U origin."
+    }
+  }
+}

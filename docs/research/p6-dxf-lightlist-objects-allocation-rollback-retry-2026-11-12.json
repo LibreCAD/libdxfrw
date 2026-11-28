@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-dxf-lightlist-objects-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "GENERATED_DXF_OBJECTS_CALLBACK_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": [
+      "tests/dxf_lightlist_resolver_snapshot_tests.cpp"
+    ],
+    "behavior": "The existing LIGHTLIST reference/snapshot test now injects allocation failure at every measured allocation reached inside dxfRW::writeLightList for both ASCII and Binary OBJECTS output. Each failure retains the prior destination and caller record, then retries the same codec and verifies byte-identical clean output plus typed LIGHTLIST readback."
+  },
+  "generatedProfile": {
+    "version": "AC1027",
+    "records": "One locally constructed LIGHTLIST with two named light references, owner dictionary, reactor, extension dictionary, app-data and EED metadata.",
+    "allocationOffsets": {
+      "ASCII": 38,
+      "Binary": 37
+    },
+    "totalAllocationOffsets": 75,
+    "failureChecks": [
+      "write returns failure and OBJECTS callback reports failure",
+      "pre-existing destination bytes remain unchanged",
+      "caller handle, name, owner, extension dictionary, class version, item count and both light identities/names remain unchanged",
+      "same-codec retry reproduces the no-fault output bytes",
+      "fresh typed readback matches the generated LIGHTLIST graph fields"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_lightlist_resolver_snapshot_tests -j4",
+    "test": "ctest --test-dir build -R '^libdxfrw_dxf_lightlist_resolver_snapshot$' --output-on-failure",
+    "result": "PASS (1/1; 1.05 seconds)",
+    "measuredRun": "build/tests/libdxfrw_dxf_lightlist_resolver_snapshot_tests",
+    "measuredRunResult": "PASS; ASCII 38/38 and Binary 37/37 allocation offsets",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_lightlist_resolver_snapshot_tests -j4",
+    "asanTest": "ctest --test-dir build-asan-custom -R \"^libdxfrw_dxf_lightlist_resolver_snapshot$\" --output-on-failure",
+    "asanResult": "PASS (1/1; 2.09 seconds)"
+  },
+  "limitations": [
+    "Generated AC1027 OBJECTS callback transaction evidence only; physical source profile, independent interoperability and native lighting semantics remain open.",
+    "The test verifies typed list readback and stored identities, not target-record existence or complete LIGHTLIST graph closure.",
+    "No drawing fixture was added; no support claim is promoted."
+  ]
+}

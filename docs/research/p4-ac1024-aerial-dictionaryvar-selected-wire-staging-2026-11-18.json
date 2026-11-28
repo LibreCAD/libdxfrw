@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-dictionaryvar-selected-wire-staging-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SOURCE_SPANS_AND_SELECTED_WRITER_VERIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "graph": "AC1024 root C AcDbVariableDictionary -> fixed type-42 dictionary 66 with seven type-503 DICTIONARYVAR children.",
+    "authority": "ODA v5.4.1 sections 20.1, 20.4.44 and 20.4.74 and LibreDWG 0.14 body boundaries, class/type, values and handle tuples from the exact source.",
+    "rootWire": "Dictionary 66 occupies 182 bytes with the handle stream at bit 1274. Owner and reactor use role 4 length 1 to C, followed by seven role-2 named entry handles and observed trailing bits 111111.",
+    "childWire": "Each variable has schema 0, one UTF-16 value, a complete string footer and observed trailing bits 111111. Every reactor uses role 4 length 1 to 66. Owners use three observed encodings with the same resolved target.",
+    "children": [
+      {"name": "CANNOSCALE", "handle": "162", "value": "1:1", "ownerRole": 4, "ownerLength": 1, "ownerToken": "66"},
+      {"name": "CMLEADERSTYLE", "handle": "161", "value": "STANDARD", "ownerRole": 4, "ownerLength": 1, "ownerToken": "66"},
+      {"name": "CTABLESTYLE", "handle": "89", "value": "STANDARD", "ownerRole": 12, "ownerLength": 1, "ownerToken": "23"},
+      {"name": "DIMASSOC", "handle": "67", "value": "2", "ownerRole": 8, "ownerLength": 0, "ownerToken": "0"},
+      {"name": "HIDETEXT", "handle": "6B", "value": "1", "ownerRole": 12, "ownerLength": 1, "ownerToken": "5"},
+      {"name": "LAYEREVAL", "handle": "312", "value": "1", "ownerRole": 4, "ownerLength": 1, "ownerToken": "66"},
+      {"name": "LAYERNOTIFY", "handle": "313", "value": "15", "ownerRole": 4, "ownerLength": 1, "ownerToken": "66"}
+    ]
+  },
+  "validation": {
+    "sourceCursor": "Reconcile all eight physical bodies and span boundaries with LibreDWG decoded values and owner/reactor roles. Refuse all 2648 individual bit mutations across the 331 captured bytes and accept the unchanged frames again.",
+    "selectedWriter": "Original importer and retained data. Existing preparation, variable inspection, generated-root inspection, standard-object inspection and source/ledger final rechecks succeed for ASCII and Binary. Mutating one staged variable value fails at the variable inspector, keeps the seeded bytes and allows corrected same-codec retry in both encodings.",
+    "independentReadback": "ezdxf 1.4.5 raw tags match all seven LibreDWG strings and schemas, identity links, entry roles and owner/reactor scopes in both corrected output modes.",
+    "odaComparison": "ODA DXF adds CVIEWDETAILSTYLE, CVIEWSECTIONSTYLE and XCLIPFRAME. It emits Standard for CMLEADERSTYLE and CTABLESTYLE where the source and selected writer preserve STANDARD. The other five values agree.",
+    "scratchRoot": "/private/tmp/p4-aerial-var-probe",
+    "sha256": {
+      "stage.cpp": "17640f76b6fb31ed7271e495d42a141fe1b4e0693c3032451134baef8bb2320f",
+      "stage.log": "2fe6c662ca4f202a35faebbb1b133a70ea746ed89dc8c64ed61e62a81d986c5e",
+      "frames.txt": "bff643b0e4666873d9146bab8258631d3e9f123b91aed204adb82d01d1a7b980",
+      "verify_wire.py": "4730135d521c9e13613d968821bab3d3e4d4f2175d9079320e30706b0081dd26",
+      "wire-proof.json": "e0651c8ea7eeaff9a7f2ee10f0e902bff79f507f62e5b362cb534b6291602e4a",
+      "read_vars.py": "d3b350c3f975d13fcb430c250a4d4144153393d29a74220cd171515078e7828f",
+      "selected-ascii.dxf": "e2aeadddf658d652a2912d4e14eb19002b3a93d3c0cc519f3f612886c175d13d",
+      "selected-binary.dxf": "4649ca5672270eae9ddf2c430d613b5966de54293883a4d294fb5c30c258d48c"
+    }
+  },
+  "remaining": [
+    "Bind the observed root and seven child wires to the original import and recheck them through finalization using existing production staging. Add nonidentity remap and late source-tail refusal/retry controls.",
+    "The test selects these objects with GROUP and the plot-style dependencies. Whole-source graph closure and native behavioral acceptance remain open."
+  ]
+}

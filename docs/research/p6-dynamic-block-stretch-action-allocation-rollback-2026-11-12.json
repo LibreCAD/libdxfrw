@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dynamic-block-stretch-action-allocation-rollback-2026-11-12",
+  "date": "2026-11-12",
+  "status": "STRETCH_ACTION_DIRECT_ALLOCATION_SWEEP_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add direct AC1024 ASCII/Binary allocation-failure coverage for the profiled BLOCKSTRETCHACTION writer, including caller-state and source-identity rollback, remapped references, and retry/readback.",
+  "binding": {
+    "repositoryHead": "c538a46fe1bbd2a4176ba87f8c6e9c39b96ad389",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "27ac70a55b86da086ad484392b099de2b2777c7c9acb80b61f84b0061185cae3",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "tests/dynamic_block_objects_allocation_tests.cpp": "ea09e82d2706ee9edc793398701ec990ad9832cf1825c4b704b016272b4c5bbd",
+      "tests/CMakeLists.txt": "7a6d869bd778a362a1552bb5c8c48c6a0b8d5b7e0fac8bc7aa24a9fd5b171469",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "1fee9aa8a07756e96a4728651c4420e8bae0bdf524bf489dc233d789a0626b56"
+    },
+    "artifactSha256": {
+      "build/libdxfrw.a": "87bac49173b4d27017ee41870fa642fbfc37a6cf332eea503fc41a027eabf7b1",
+      "build/tests/libdxfrw_dynamic_block_objects_allocation_tests": "23405d69f76f1b62cf4ea6cabeb2b38287a802cd9bd4cc16c1eae21f17424697",
+      "build-asan-custom/libdxfrw.a": "a143a4e14823ee2ebe06bc6bde6251faff4e128ea8443985b547df02122dc4e2",
+      "build-asan-custom/tests/libdxfrw_dynamic_block_objects_allocation_tests": "f87577f41289af0ba72ac42dd2b8e0920a5a2892a09ed4cf182593e62a78ed77"
+    }
+  },
+  "change": {
+    "testCoverage": "The generated low-level test uses one BLOCKSTRETCHACTION with two action indexes, one dependency handle, two stretch points, two remapped handle references with nested index counts, and one code-reference index vector.",
+    "perEncoding": "ASCII and Binary each exercise 14 allocation offsets. Every injected failure preserves the source fields and leaves no sourceHandleToWrittenObjectMap entry. Fresh-writer retries read back the owner and dependency handles, remapped handle-reference targets, ordered indexes, counts, connection names, stretch coordinates, and subclass.",
+    "existingAdapterControl": "The existing dwg2dxf_dynamic_block_actions_writer CTest continues to verify exact wire order, typed readback, unknown-tail handling, and destination-preserving corrected retry for MoveAction, ScaleAction, and StretchAction profiles."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS"
+    },
+    "normalFocusedTests": {
+      "command": "ctest --test-dir build -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_visibility_parameter$|dwg2dxf_dynamic_block_basepoint_parameter_writer$|dwg2dxf_dynamic_block_alignment_parameter_writer$|dwg2dxf_dynamic_block_actions_writer$' --output-on-failure",
+      "result": "PASS 5/5; 0.99 seconds total"
+    },
+    "asanFocusedTests": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_visibility_parameter$|dwg2dxf_dynamic_block_basepoint_parameter_writer$|dwg2dxf_dynamic_block_alignment_parameter_writer$|dwg2dxf_dynamic_block_actions_writer$' --output-on-failure",
+      "result": "PASS 5/5; 2.05 seconds total"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Fault injection covers the low-level record writer, not the enclosing whole-file output transaction.",
+    "A fresh writer is used after a fault because the failed writer may retain partial stream bytes and a sticky error.",
+    "The generated action profile does not establish physical producer breadth, complete graph closure, or native action semantics.",
+    "No DWG/DXF fixture is added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue P6 caller-state/no-loss auditing on a source-backed, locally implementable writer gap; keep production and native gates separate."
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-named-block-preview-output-2026-11-15.patch",
+  "patchSha256": "f9c2e2cb7b10182465c88423ac7e7db0fccbc03d2774bd71662798fa1334a5cc",
+  "implementation": "The thirty-second unmerged LibreCAD patch retains preview snapshots up to 4096 bytes within the block-observation aggregate budget. In the default-off experimental named-block path, the current unique block and its source handle, units and exact preview bytes must match the sealed source observation. Oversized previews and other unsupported block state remain refused. Older bundled-codec builds do not capture extra preview copies.",
+  "validation": [
+    "A locally authored 2x2 DIB preview embedded in a scratch DXF was converted by ODA 27.1 into an AC1024 source DWG (SHA-256 6bddd4a506002493563133175e69ab65dfb701584b478d9a6be0e482d9897b8c). LibreDWG 0.14 independently decoded its 56 preview bytes exactly, SHA-256 cf2e6aeb485fd51ed73bc7e45203f68b94d73f8d5ddd5cb10646e608bd8b1bce.",
+    "The LibreCAD importer/exporter test passed 15 assertions, including byte-altered preview refusal, destination preservation, same-filter retry, and exact preview and SORTENTSTABLE readback. The three installed-codec focused CTests passed. A standalone source-observation test injects preview-copy allocation failure, verifies capture latching and reset/retry, and confirms previews above 4096 bytes stay unsupported.",
+    "The LibreCAD ASCII DXF SHA-256 31fbcfcd3b0afd5b45efe75aecff3ec16ca17b0da3359cdf193045ef23d384fa physically contains the exact source preview in its BLOCK_RECORD 310 groups; ezdxf confirms the block/dictionary/sort links and reports zero audit errors/fixes. ODA converted it to DWG and back; LibreDWG independently confirmed exact preview bytes in the intermediate DWG, while the final DXF SHA-256 6bb75c07cae17d881e146953b12cf320e5080f6447d6568eaa9f3feed0ad4d0d retains the object links and has a clean ezdxf audit. ezdxf itself is not used as a preview-data oracle.",
+    "The patch applies after the prior 31 patches and the older bundled-codec filter compiles. Source-release inventory passes with 1229 files and 18 refusal controls; the 725-input implementation digest remains d2fbf3b7e98738e05bc8f6a097b74ee429b43f58bcc8988a7bc92e6554a539c7."
+  ],
+  "limits": "One locally authored, 56-byte preview in an empty-block AC1024 source is qualified. This does not establish native preview rendering, arbitrary previews, nonempty block fidelity, broader title metadata, GUI exposure, other platforms, or whole-document graph closure. No new drawing fixture is committed and no support claim is promoted."
+}

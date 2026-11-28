@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-hatch-boolean-dxf-domain-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_HATCH_BOOLEAN_DXF_DOMAIN_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Enforce documented 0/1 domains for base HATCH DXF groups 70 and 71 during parsing. Preserve MPOLYGON's distinct group-70 version and group-71 solid-fill meanings.",
+  "implementationReadiness": {
+    "baselineHead": "cbece130be25ed222dcf583a98dc712b29b2ee7f",
+    "sourceObservation": "DRW_Hatch::parseCode assigned DXF groups 70 and 71 directly to solid and associative without checking their documented Boolean domains. The DXF writer already rejects typed HATCH values outside 0/1 in validateHatchPayload. DRW_MPolygon::parseCode overrides both codes for its separate field meanings.",
+    "normativeEvidence": {
+      "source": "Autodesk AutoCAD 2024 DXF Reference, HATCH group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "relevantRule": "For HATCH, group 70 is the solid-fill flag (0 or 1), and group 71 is the associativity flag (0 or 1). The page separately documents MPOLYGON group 70 as its version and group 71 as its solid-fill flag."
+    },
+    "change": "Base HATCH parsing reads each flag into a temporary, rejects values other than 0 or 1, and only then updates the typed field. No MPOLYGON grammar or writer behavior changed."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_entities.cpp": "3387da8ebae3ab4615d65c6af3010234287aac2e134d1f84a1b0734f347e34a6",
+      "tests/hardening_tests.cpp": "703d09dd489b41f9edd3ca8e606329b4119d9670ee8d475e4c3e2aac5db58c4a",
+      "CMakeLists.txt": "58f138eec7b840c9d544eb420ab3c18213e58096b4ecf4ac70d1fd92e0a14dbd"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+      "platform": "Darwin 27.0.0 arm64"
+    },
+    "testExecutableSha256": "6f522da8a4e56a736b842035a140aa2f4a4ce516b967a2632af08b14d26a7391"
+  },
+  "controls": {
+    "selector": "--hatch-boolean-dxf-domain",
+    "ctest": "libdxfrw_hatch_boolean_dxf_domain",
+    "profiles": ["Generated ASCII DXF", "Generated Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "Base HATCH parser accepts all 0/1 combinations for groups 70 and 71 in ASCII and Binary DXF.",
+      "Base HATCH parser rejects -1 and 2 for either field without changing the field's prior value.",
+      "MPOLYGON still accepts group 70 as version 2 and group 71 as solid-fill 1.",
+      "The existing writer-side 0/1 guard remains in place."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_hatch_boolean_dxf_domain$' --output-on-failure",
+      "result": "PASS 1/1 in 0.28 seconds"
+    },
+    "mpolygonRegression": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_hatch_mpolygon_inactive_gradient_guard$' --output-on-failure",
+      "result": "PASS 1/1 in 0.09 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated parser field-domain evidence only; no physical HATCH producer or native fill/associativity behavior was exercised.",
+    "No support claim is promoted; broader HATCH/MPOLYGON topology, rendering and source-profile gates remain open."
+  ],
+  "nextReadyPacket": "Continue with an independently actionable source-backed P6 semantic or field-domain gap; retain HATCH topology and native behavior as separate open evidence gates."
+}

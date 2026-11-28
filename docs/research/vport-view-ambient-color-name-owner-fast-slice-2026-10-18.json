@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "VPORT and VIEW ambient color-book name retained owners",
+  "mode": "local fast implementation slice with generated controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge DXF VPORT and VIEW group-431 ambient color-book names to retained-text ownership",
+    "Preserve replacement, copy, assignment, and reset accounting",
+    "Exercise direct ASCII and Binary parsers without adding persistent fixtures"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "DRW_Vport::ambientColorName and DRW_View::m_ambientColorName now use replaceDxfRetainedStringField with private per-field byte counters on their inherited DRW_TableEntry leases. Reset clears each counter before base reset; implicit copies and assignments preserve the string, counter, and shared lease.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": true,
+    "layoutChange": "One private retained-byte counter was added to each public DRW_Vport and DRW_View layout. Downstream consumers must rebuild; binary ABI compatibility is not claimed.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+      "build-gcc/libdxfrw_hardening_tests --dxf-vport-view-ambient-color-name-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "jq empty docs/research/vport-view-ambient-color-name-owner-fast-slice-2026-10-18.json",
+      "git diff --check"
+    ],
+    "results": {
+      "strictHardeningTarget": "passed",
+      "lc3CompatibilityCompile": "passed",
+      "focusedVportViewAmbientColorNameOwnerBudget": "passed",
+      "owningHardeningCTest": "passed (1/1)",
+      "receiptValidation": "passed",
+      "diffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "newCTestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "The selected DXF VPORT and VIEW ambient color-book names are charged to the shared logical retained-byte budget. Exact-peak admission succeeds; one-byte-under replacement preserves the previous value and charge; copies retain the shared lease until final reset/destruction.",
+    "coverage": "Generated ASCII/Binary direct-parser controls exercise VPORT and VIEW independently, including exact peak, reader teardown, under-cap preservation, copy/assignment, and final reset release.",
+    "limitations": "Full TABLES callback publication and refusal, viewport/view graph closure, rendering, DWG string parsing, allocation capacity/RSS, public post-parse mutation, writer/projection copies, peer/native acceptance, and full-suite behavior are not covered."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "staged": false,
+    "committed": false
+  }
+}

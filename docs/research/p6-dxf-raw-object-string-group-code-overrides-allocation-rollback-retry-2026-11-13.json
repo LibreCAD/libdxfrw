@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-raw-object-string-group-code-overrides-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_RAW_OBJECT_STRING_GROUP_CODE_OVERRIDE_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise every admitted string group-code family in the raw OBJECTS string-override route and verify allocation rollback, retry, and readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory XRECORD",
+    "profile": "One raw XRECORD with string groups 1, 3, 2, 6, and 300, plus Int32 groups 90 and 91; the string-only and combined string/Int32 APIs are exercised.",
+    "versions": ["AC1027"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "test": "libdxfrw_raw_object_string_override_allocation",
+    "result": "PASS",
+    "elapsedSeconds": 0.89,
+    "allocationOffsets": {
+      "string_ASCII": 6,
+      "string_Binary": 5,
+      "string_Int32_ASCII": 6,
+      "string_Int32_Binary": 5
+    },
+    "checks": [
+      "All measured callback allocation failures refuse the write",
+      "The prior destination bytes remain unchanged after each failure",
+      "The complete raw source record remains unchanged after each failure",
+      "Same-codec retry reproduces byte-identical calibration output",
+      "Fresh typed raw-object readback verifies all five string groups and both Int32 values"
+    ]
+  },
+  "limitations": [
+    "Generated raw XRECORD transaction evidence only; no producer prevalence or semantic meaning is established for the overridden groups.",
+    "Other raw-object override variants, source profiles, and revisions remain open."
+  ]
+}

@@ -1,0 +1,376 @@
+{
+  "receipt": "p5-ac1021-field-flags2-child-reader-conflict-2026-11-01",
+  "recordedAt": "2026-11-01",
+  "phase": "P5",
+  "qualificationEligible": false,
+  "supportClaimsPromoted": false,
+  "question": "Do flags=2/type=2 ACFD_FIELDTEXT_CHECKSUM children carry BD payload in the local AC1021 source, or are the 34 trailing bits a separate producer body member?",
+  "sourceWitness": {
+    "path": "tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "provenance": "Pre-existing untracked local input; not staged or committed."
+  },
+  "authoritativeSpecification": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.99 Value",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "relevantText": [
+      "R2007+ Flags is BL code 93, followed by Data type BL code 90.",
+      "The type-specific variant is absent when bit 1 in Flags is set.",
+      "Data type 2 is BD."
+    ],
+    "decision": "The implementation retains the low-two-bit suppression rule used by current LibreDWG, preserves the resulting unexplained physical tail, and does not treat peer decoding as a schema override."
+  },
+  "readerDifferential": {
+    "ACadSharp": {
+      "repository": "DomCR/ACadSharp",
+      "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "readerSource": "src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Objects.cs:355-412",
+      "flagAccessorSource": "src/ACadSharp/CadValue.cs:36-55",
+      "behavior": "readCadValue gates the variant on CadValue.IsEmpty; IsEmpty tests Flags & 1, so flags=2 is read as a typed value.",
+      "physicalResult": {
+        "fieldListFields": 142,
+        "checksumChildren": 71,
+        "flags": 2,
+        "dataType": "Double",
+        "valuesByFieldHandle": [
+          {
+            "fieldHandle": "0x144F9",
+            "value": 629.0
+          },
+          {
+            "fieldHandle": "0x1455E",
+            "value": 629.0
+          },
+          {
+            "fieldHandle": "0x14582",
+            "value": 629.0
+          },
+          {
+            "fieldHandle": "0x14597",
+            "value": 629.0
+          },
+          {
+            "fieldHandle": "0x145AB",
+            "value": 629.0
+          },
+          {
+            "fieldHandle": "0x145E9",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x14620",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x1462E",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x14642",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x14657",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x146B0",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x146B3",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x146B6",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x146B9",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x146E7",
+            "value": 903.0
+          },
+          {
+            "fieldHandle": "0x14703",
+            "value": 903.0
+          },
+          {
+            "fieldHandle": "0x14730",
+            "value": 663.0
+          },
+          {
+            "fieldHandle": "0x1475D",
+            "value": 624.0
+          },
+          {
+            "fieldHandle": "0x1476D",
+            "value": 624.0
+          },
+          {
+            "fieldHandle": "0x1478B",
+            "value": 629.0
+          },
+          {
+            "fieldHandle": "0x147B5",
+            "value": 629.0
+          },
+          {
+            "fieldHandle": "0x147CA",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x147E7",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x147F5",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x14809",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x1481D",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x14831",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x1485B",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x1486F",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x14883",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x14897",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x148AB",
+            "value": 660.0
+          },
+          {
+            "fieldHandle": "0x148C0",
+            "value": 663.0
+          },
+          {
+            "fieldHandle": "0x148F4",
+            "value": 629.0
+          },
+          {
+            "fieldHandle": "0x14924",
+            "value": 641.0
+          },
+          {
+            "fieldHandle": "0x14933",
+            "value": 641.0
+          },
+          {
+            "fieldHandle": "0x14947",
+            "value": 641.0
+          },
+          {
+            "fieldHandle": "0x14964",
+            "value": 641.0
+          },
+          {
+            "fieldHandle": "0x14973",
+            "value": 641.0
+          },
+          {
+            "fieldHandle": "0x14987",
+            "value": 641.0
+          },
+          {
+            "fieldHandle": "0x1499B",
+            "value": 641.0
+          },
+          {
+            "fieldHandle": "0x149B1",
+            "value": 903.0
+          },
+          {
+            "fieldHandle": "0x24A71",
+            "value": 7685.0
+          },
+          {
+            "fieldHandle": "0x24AA3",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x24AB6",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x24AC9",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x24ADC",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x24AEF",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x24B02",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x24B15",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x24B28",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x24B3B",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x24B4E",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x24B61",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x24B74",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x24B87",
+            "value": 2730.0
+          },
+          {
+            "fieldHandle": "0x341C0",
+            "value": 1360.0
+          },
+          {
+            "fieldHandle": "0x34697",
+            "value": 1745.0
+          },
+          {
+            "fieldHandle": "0x34699",
+            "value": 1758.0
+          },
+          {
+            "fieldHandle": "0x3469B",
+            "value": 1728.0
+          },
+          {
+            "fieldHandle": "0x3469D",
+            "value": 1361.0
+          },
+          {
+            "fieldHandle": "0x3469F",
+            "value": 1368.0
+          },
+          {
+            "fieldHandle": "0x346A1",
+            "value": 1381.0
+          },
+          {
+            "fieldHandle": "0x34F20",
+            "value": 1791.0
+          },
+          {
+            "fieldHandle": "0x35E43",
+            "value": 1381.0
+          },
+          {
+            "fieldHandle": "0x36293",
+            "value": 1738.0
+          },
+          {
+            "fieldHandle": "0x36295",
+            "value": 1331.0
+          },
+          {
+            "fieldHandle": "0x36297",
+            "value": 1370.0
+          },
+          {
+            "fieldHandle": "0x36299",
+            "value": 1384.0
+          },
+          {
+            "fieldHandle": "0x3629B",
+            "value": 1375.0
+          },
+          {
+            "fieldHandle": "0x36A29",
+            "value": 1735.0
+          }
+        ]
+      }
+    },
+    "libdxfrwExperimentalCandidate": {
+      "baseRevision": "2284ef59a577b8714266c9828546c47c4b14eb3d",
+      "change": "Temporary local experiment only: changed FIELD payload presence from flags&0x03 to flags&0x01. The change was reverted and is absent from the worktree.",
+      "physicalResult": {
+        "typedFieldRecords": 86,
+        "rawOnlyFieldRecords": 56,
+        "checksumChildren": 71,
+        "matchingHandles": 71,
+        "matchingValues": 71,
+        "mismatches": 0,
+        "canonicalHandleValueMapSha256": "9779cd094f17847764158f262dbdcb91000c144899ad64aabcd4fbb09919bf28"
+      }
+    },
+    "LibreDWG": {
+      "repository": "LibreDWG/libredwg",
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "relevantChange": "e61c63ce5e999ad62af94a10b2e338a21aef07a8 (2026-03-29)",
+      "source": "src/dwg_spec_shared.h:587-655",
+      "behavior": "The active shared TABLE_value_fields macro skips the type-specific value when R2007+ format_flags & 3 is nonzero. The commit message explicitly associates bit 1 with mask 0x02 and the ODA wording.",
+      "physicalResult": "The current local reader path omits the flags=2 child payload; it therefore does not adjudicate the 34-bit suffix."
+    }
+  },
+  "comparison": {
+    "key": "FIELD handle",
+    "matchedHandles": 71,
+    "matchedDoubleValues": 71,
+    "mismatches": 0,
+    "canonicalHandleValueMapSha256": "9779cd094f17847764158f262dbdcb91000c144899ad64aabcd4fbb09919bf28",
+    "interpretation": "An exact alternative parse exists, but the two implementations share a mask-0x01 interpretation and current LibreDWG plus ODA support suppression. Equality is evidence of a competing parse, not proof that the bits belong to this CadValue."
+  },
+  "disposition": {
+    "implementation": "No FIELD flag rule change is retained. Keep the 71 containing records as raw-only incomplete shells with their 34-bit body tails preserved.",
+    "why": "The ODA layout and current LibreDWG implementation conflict with ACadSharp on whether flags=2 suppresses the value. The speculative parse consumes the additional body bits as a typed double and matches ACadSharp exactly, but no producer-bound byte-span or native semantic evidence proves that interpretation.",
+    "unblockWith": [
+      "Authoritative producer trace or schema clarification that binds the 34 bits to ACFD_FIELDTEXT_CHECKSUM under flags=2.",
+      "An independent implementation with bounded FIELD body spans that adjudicates the same physical source against ODA §20.4.99.",
+      "Native producer/consumer evidence for this exact AC1021 profile, including source version and field identity."
+    ]
+  },
+  "remainingP5": [
+    "71 flags=2/type=2 checksum child spans and the disagreement described above.",
+    "42 AcObjProp object-data tails (41 x 258 bits; handle 0x1481E x 210 bits), child type differences, and target roles.",
+    "Other unsupported FIELD flag/child profiles, strict output/readback, and native FIELD evaluation."
+  ],
+  "fixturePolicy": "No DWG or DXF fixtures were added or committed. The source DWG remains a pre-existing local untracked input.",
+  "implementationReadiness": {
+        "guardRegression": "Added a generated in-memory AC1021 FIELD with an ACFD_FIELDTEXT_CHECKSUM flags=2/type=2 child followed by an opaque 34-bit body tail. It remains incomplete, exposes no typed child value, and refuses DWG re-encoding; the same parser instance then accepts and encodes a corrected complete frame on retry.",
+    "testFile": "tests/dwg_object_vectors_tests.cpp",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+        "fastTest": "ctest --test-dir build-gcc -R ^libdxfrw_field_unqualified_format_flags$ --output-on-failure",
+        "result": "Build passed with -Werror; focused test passed 1/1, including corrected same-object retry and successful encoding. Control was authored in memory; no DWG/DXF fixture file was added."
+  }
+}

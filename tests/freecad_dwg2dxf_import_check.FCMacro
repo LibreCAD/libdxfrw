@@ -17,6 +17,10 @@
 # DWG/DXF files should remain outside the source tree.
 # In the actual FreeCAD GUI, set LIBDXFRW_FREECAD_DESKTOP_DISPATCH=1 to use
 # the same registered-importer dispatch path as the desktop open/import UI.
+# The installed LINE wrapper supplies explicit authored endpoint pairs through
+# LIBDXFRW_FREECAD_EXPECT_LINE_ENDPOINTS as well as the existing bounds. Bounds
+# alone cannot distinguish negative-slope diagonals. Run this file with ordinary
+# Python and --self-test for dependency-free predicate controls (not FreeCAD).
 
 import hashlib
 import json
@@ -27,6 +31,521 @@ import re
 import subprocess
 import sys
 import tempfile
+
+
+def finite_values(values, size, label):
+    if len(values) != size:
+        raise AssertionError("%s must contain %d coordinates" % (label, size))
+    result = []
+    for value in values:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise AssertionError("%s must contain numeric coordinates" % label)
+        try:
+            value = float(value)
+        except (ValueError, OverflowError):
+            raise AssertionError("%s coordinates must be finite" % label)
+        if not math.isfinite(value):
+            raise AssertionError("%s coordinates must be finite" % label)
+        result.append(value)
+    return tuple(result)
+
+
+def coordinates_match(actual, expected):
+    return all(abs(a - e) < 1e-9 for a, e in zip(actual, expected))
+
+
+def assert_line_geometry(document, stats, expected_bounds, expected_endpoints,
+                         line_type):
+    """Check this LINE-only witness; no FreeCAD import is needed by the predicate.
+
+    Endpoint pairs are authored expectations, not inferred from bounding boxes.
+    Native callers pass Part.Line: the pinned FreeCAD edge Curve API maps an
+    OCCT straight line to that type, not to the distinct Part.LineSegment type.
+    Benign wire/compound wrappers are allowed if they contain exactly one edge.
+    """
+    count = len(expected_bounds)
+    if count == 0 or len(expected_endpoints) != count:
+        raise AssertionError("LINE endpoint and bounds expectations must agree")
+    line_count = stats.get("entityCounts", {}).get("LINE", 0)
+    if type(line_count) is not int or line_count != count:
+        raise AssertionError("expected exactly %d source LINE records" % count)
+    expected = []
+    for bounds, pair in zip(expected_bounds, expected_endpoints):
+        bounds = finite_values(bounds, 6, "expected LINE bounds")
+        if len(pair) != 2:
+            raise AssertionError("expected LINE must have exactly two endpoints")
+        points = tuple(sorted(finite_values(point, 3, "expected LINE endpoint")
+                              for point in pair))
+        if coordinates_match(points[0], points[1]):
+            raise AssertionError("expected LINE must not be degenerate")
+        point_bounds = tuple(min(a, b) for a, b in zip(*points)) + tuple(
+            max(a, b) for a, b in zip(*points))
+        if not coordinates_match(bounds, point_bounds):
+            raise AssertionError("authored LINE endpoints disagree with bounds")
+        expected.append((bounds, points))
+
+    features = []
+    for obj in document.Objects:
+        if obj.TypeId == "Part::Feature":
+            features.append(obj)
+        elif getattr(obj, "Shape", None) is not None and not obj.Shape.isNull():
+            raise AssertionError("unexpected shaped object in LINE-only witness")
+    if len(features) != count:
+        raise AssertionError("expected exactly %d imported LINE features" % count)
+    observed = []
+    for obj in features:
+        shape = obj.Shape
+        if shape.isNull() or shape.isValid() is not True:
+            raise AssertionError("imported LINE shape must be non-null and valid")
+        if (len(shape.Edges) != 1 or len(shape.Vertexes) != 2
+                or shape.Faces or shape.Shells or shape.Solids):
+            raise AssertionError("imported LINE must have one edge/two vertices only")
+        edge = shape.Edges[0]
+        if (edge.isValid() is not True or not isinstance(edge.Curve, line_type)
+                or len(edge.Vertexes) != 2):
+            raise AssertionError("imported LINE must contain one valid straight edge")
+        points = tuple(sorted(finite_values(
+            (vertex.Point.x, vertex.Point.y, vertex.Point.z), 3,
+            "observed LINE endpoint") for vertex in edge.Vertexes))
+        box = shape.BoundBox
+        bounds = finite_values((box.XMin, box.YMin, box.ZMin,
+                                box.XMax, box.YMax, box.ZMax),
+                               6, "observed LINE bounds")
+        observed.append((bounds, points))
+    expected.sort()
+    observed.sort()
+    for (bounds, points), (wanted_bounds, wanted_points) in zip(observed, expected):
+        if not coordinates_match(bounds, wanted_bounds):
+            raise AssertionError("FreeCAD LINE bounds differ from authored values")
+        if not all(coordinates_match(point, wanted)
+                   for point, wanted in zip(points, wanted_points)):
+            raise AssertionError("FreeCAD LINE endpoints differ from authored values")
+    return {"line_bounds": [row[0] for row in observed],
+            "line_endpoints": [row[1] for row in observed]}
+
+
+def line_pass_json(result):
+    # Preserve the established JSON spelling/keys, but never publish NaN/Inf
+    # as a successful LINE-profile observation. Other outcome lanes stay separate.
+    return json.dumps(result, sort_keys=True, default=str, allow_nan=False)
+
+
+def assert_primitive_geometry(document, stats, expected_counts, expected_shapes,
+                              expected_spline_samples, expected_polyline_points,
+                              expected_closed_2d_polyline_points,
+                              excluded_object_names=()):
+    """Check authored primitive geometry after native DXF import."""
+    counts = stats.get("entityCounts", {})
+    for entity, expected in expected_counts.items():
+        actual = counts.get(entity, 0)
+        if type(actual) is not int or actual != expected:
+            raise AssertionError(
+                "expected %d imported %s records, observed %r"
+                % (expected, entity, actual)
+            )
+    features = [obj for obj in document.Objects
+                if getattr(obj, "Shape", None) is not None
+                and not obj.Shape.isNull()
+                and obj.Name not in excluded_object_names]
+    if len(features) != len(expected_shapes):
+        raise AssertionError(
+            "expected %d shaped primitive imports, observed %d"
+            % (len(expected_shapes), len(features))
+        )
+    observed = []
+    for obj in features:
+        shape = obj.Shape
+        if shape.isValid() is not True:
+            raise AssertionError("each imported primitive must be a valid shape")
+        box = shape.BoundBox
+        bounds = finite_values(
+            (box.XMin, box.YMin, box.ZMin, box.XMax, box.YMax, box.ZMax),
+            6, "observed primitive bounds")
+        edge_count = len(shape.Edges)
+        vertex_count = len(shape.Vertexes)
+        face_count = len(shape.Faces)
+        length = math.fsum(float(edge.Length) for edge in shape.Edges)
+        if not math.isfinite(length):
+            raise AssertionError("imported primitive edge length must be finite")
+        spline_curves = [edge.Curve for edge in shape.Edges
+                         if getattr(edge.Curve, "Degree", None) is not None]
+        observed.append((bool(spline_curves), bounds, edge_count,
+                         vertex_count, face_count, length, spline_curves))
+
+    expected = []
+    for profile in expected_shapes:
+        required_profile_keys = {"bounds", "edges", "vertices", "length", "spline"}
+        if (not isinstance(profile, dict)
+                or not required_profile_keys.issubset(profile)
+                or set(profile) - required_profile_keys - {"faces"}):
+            raise AssertionError(
+                "each primitive expectation needs bounds, topology, length, and spline flag")
+        if profile["spline"]:
+            if profile["bounds"] is not None:
+                raise AssertionError("SPLINE bounds must be omitted from this profile")
+            bounds = None
+        else:
+            bounds = finite_values(profile["bounds"], 6, "expected primitive bounds")
+        edge_count = profile["edges"]
+        vertex_count = profile["vertices"]
+        face_count = profile.get("faces", 0)
+        if (type(edge_count) is not int or edge_count < 0
+                or type(vertex_count) is not int or vertex_count <= 0
+                or type(face_count) is not int or face_count < 0
+                or (edge_count == 0 and vertex_count != 1)):
+            raise AssertionError("expected primitive topology counts are invalid")
+        length = float(profile["length"])
+        if (not math.isfinite(length) or length < 0.0
+                or (edge_count == 0 and length != 0.0)):
+            raise AssertionError("expected primitive length is invalid")
+        expected.append((profile["spline"], bounds, edge_count,
+                         vertex_count, face_count, length))
+
+    observed.sort(key=lambda item: (item[0], item[1]))
+    expected.sort(key=lambda item: (item[0], item[1] or ()))
+    actual_spline_count = sum(1 for item in observed if item[0])
+    expected_spline_count = sum(1 for item in expected if item[0])
+    if actual_spline_count != expected_spline_count:
+        raise AssertionError("imported SPLINE shape count differs from authored profile")
+    verified_spline_samples = []
+    for (actual_spline, actual_bounds, actual_edges, actual_vertices,
+         actual_faces, actual_length, spline_curves), (
+            wanted_spline, wanted_bounds, wanted_edges,
+            wanted_vertices, wanted_faces, wanted_length) in zip(
+            observed, expected):
+        if actual_spline != wanted_spline:
+            raise AssertionError("imported primitive curve kind differs from authored profile")
+        # OCCT's bounding box for this valid tilted planar spline is conservative
+        # but not tight. Check the spline itself at authored parameters below.
+        if not actual_spline and not coordinates_match(actual_bounds, wanted_bounds):
+            raise AssertionError(
+                "imported primitive bounds differ from authored values: "
+                "observed %r, expected %r"
+                % (actual_bounds, wanted_bounds))
+        if actual_edges != wanted_edges:
+            raise AssertionError("imported primitive edge count differs from authored value")
+        if actual_vertices != wanted_vertices:
+            raise AssertionError("imported primitive vertex count differs from authored value")
+        if actual_faces != wanted_faces:
+            raise AssertionError("imported primitive face count differs from authored value")
+        if abs(actual_length - wanted_length) > 1e-7 * max(1.0, wanted_length):
+            raise AssertionError(
+                "imported primitive edge length %.17g differs from authored value %.17g"
+                % (actual_length, wanted_length))
+        if actual_spline:
+            if len(spline_curves) != 1:
+                raise AssertionError("expected one imported spline curve")
+            curve = spline_curves[0]
+            for fraction, wanted_point in expected_spline_samples:
+                parameter = curve.FirstParameter + fraction * (
+                    curve.LastParameter - curve.FirstParameter)
+                point = curve.value(parameter)
+                actual_point = (float(point.x), float(point.y), float(point.z))
+                if not coordinates_match(actual_point, wanted_point):
+                    raise AssertionError(
+                        "imported SPLINE point at fraction %.17g differs: "
+                        "observed %r, expected %r"
+                        % (fraction, actual_point, wanted_point))
+                verified_spline_samples.append((fraction, actual_point))
+    verified_polyline_points = []
+    if expected_polyline_points:
+        for obj in features:
+            points = [(float(vertex.Point.x), float(vertex.Point.y),
+                       float(vertex.Point.z)) for vertex in obj.Shape.Vertexes]
+            if (len(points) == len(expected_polyline_points)
+                    and all(coordinates_match(actual, wanted)
+                            for actual, wanted in zip(points, expected_polyline_points))):
+                verified_polyline_points.append(points)
+        if len(verified_polyline_points) != 1:
+            raise AssertionError(
+                "expected exactly one classic 3D POLYLINE with authored ordered vertices; "
+                "observed %d matches" % len(verified_polyline_points))
+    verified_closed_2d_polylines = []
+    if expected_closed_2d_polyline_points:
+        for obj in features:
+            shape = obj.Shape
+            points = [(float(vertex.Point.x), float(vertex.Point.y),
+                       float(vertex.Point.z)) for vertex in shape.Vertexes]
+            if (len(points) == len(expected_closed_2d_polyline_points)
+                    and all(coordinates_match(actual, wanted)
+                            for actual, wanted in zip(
+                                points, expected_closed_2d_polyline_points))):
+                wires = list(shape.Wires)
+                if (len(wires) != 1 or wires[0].isClosed() is not True
+                        or len(shape.Edges) != len(expected_closed_2d_polyline_points)):
+                    raise AssertionError(
+                        "classic 2D POLYLINE vertices imported but closed-wire topology was lost")
+                verified_closed_2d_polylines.append(points)
+        if len(verified_closed_2d_polylines) != 1:
+            raise AssertionError(
+                "expected exactly one closed classic 2D POLYLINE with authored ordered vertices; "
+                "observed %d matches" % len(verified_closed_2d_polylines))
+    return {"shape_bounds": [item[1] for item in observed],
+            "edge_counts": [item[2] for item in observed],
+            "vertex_counts": [item[3] for item in observed],
+            "face_counts": [item[4] for item in observed],
+            "shape_lengths": [item[5] for item in observed],
+            "spline_bounds_checked": False if actual_spline_count else None,
+            "spline_samples": verified_spline_samples,
+            "polyline_points": verified_polyline_points,
+            "closed_2d_polyline_points": verified_closed_2d_polylines}
+
+
+def assert_polyface_geometry(document, expected_mesh):
+    """Check FreeCAD's semantic outcome for the authored POLYFACE."""
+    expected_points = [tuple(float(value) for value in point)
+                       for point in expected_mesh["points"]]
+    expected_bounds = finite_values(
+        expected_mesh["bounds"], 6, "expected POLYFACE bounds")
+    candidates = []
+    wireframe_candidates = []
+    shape_inventory = []
+    for obj in document.Objects:
+        shape = getattr(obj, "Shape", None)
+        if shape is None or shape.isNull():
+            continue
+        box = shape.BoundBox
+        bounds = (box.XMin, box.YMin, box.ZMin,
+                  box.XMax, box.YMax, box.ZMax)
+        shape_inventory.append((obj.Name, obj.TypeId, bounds,
+                                len(shape.Faces), len(shape.Edges),
+                                len(shape.Vertexes)))
+        if coordinates_match(bounds, expected_bounds):
+            candidates.append((obj, shape))
+        if (len(shape.Faces) == 0 and len(shape.Edges) == 4
+                and len(shape.Vertexes) == 5
+                and coordinates_match(
+                    (bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]),
+                    (0.0, 0.0, 0.0, expected_bounds[3], expected_bounds[4], expected_bounds[5]))):
+            wireframe_candidates.append((obj, shape, bounds))
+    if len(candidates) == 1:
+        obj, shape = candidates[0]
+    elif len(candidates) == 0 and len(wireframe_candidates) == 1:
+        obj, shape, bounds = wireframe_candidates[0]
+        actual_version = list(App.Version())
+        expected_revision = os.environ.get("LIBDXFRW_FREECAD_EXPECT_REVISION", "")
+        if (not expected_revision or len(actual_version) < 8
+                or actual_version[7] != expected_revision):
+            raise RuntimeError(
+                "known POLYFACE wireframe boundary requires the pinned FreeCAD revision")
+        observed_points = sorted(
+            (float(vertex.Point.x), float(vertex.Point.y), float(vertex.Point.z))
+            for vertex in shape.Vertexes)
+        expected_wire_points = sorted(expected_points + [(0.0, 0.0, 0.0)])
+        if (len(observed_points) != len(expected_wire_points)
+                or any(not coordinates_match(actual, wanted)
+                       for actual, wanted in zip(observed_points, expected_wire_points))):
+            raise AssertionError(
+                "pinned FreeCAD POLYFACE wireframe vertex sequence changed: %r"
+                % observed_points)
+        return {"outcome": "wireframe_includes_parent_basepoint",
+                "pinned_freecad_revision": expected_revision,
+                "object_type": obj.TypeId, "shape_type": shape.ShapeType,
+                "face_count": 0, "edge_count": len(shape.Edges),
+                "vertex_count": len(shape.Vertexes), "bounds": bounds,
+                "vertices": observed_points, "object_name": obj.Name}
+    else:
+        raise AssertionError(
+            "expected one supported POLYFACE or the pinned wireframe boundary; "
+            "supported=%d, boundary=%d, inventory=%r"
+            % (len(candidates), len(wireframe_candidates), shape_inventory))
+    # A consumer may retain the authored planar quad as one face instead of
+    # triangulating it. Verify its vertices and boundary edges in either case.
+    if shape.isValid() is True and len(shape.Faces) == 1 and len(expected_points) == 4:
+        face = shape.Faces[0]
+        points = sorted((float(vertex.Point.x), float(vertex.Point.y), float(vertex.Point.z))
+                        for vertex in face.Vertexes)
+        edges = sorted(tuple(sorted((float(vertex.Point.x), float(vertex.Point.y),
+                                     float(vertex.Point.z)) for vertex in edge.Vertexes))
+                       for edge in face.Edges)
+        expected_edges = sorted(tuple(sorted((expected_points[index], expected_points[(index + 1) % 4])))
+                                for index in range(4))
+        if (expected_mesh["triangles"] != 2 or len(points) != 4 or len(edges) != 4
+                or not math.isfinite(float(face.Area)) or face.Area <= 0
+                or any(not coordinates_match(a, b) for a, b in zip(points, sorted(expected_points)))
+                or any(len(edge) != 2 or any(not coordinates_match(a, b) for a, b in zip(edge, wanted))
+                       for edge, wanted in zip(edges, expected_edges))):
+            raise AssertionError("POLYFACE quad boundary differs from authored vertices")
+        return {"outcome": "quadrilateral_surface", "object_type": obj.TypeId,
+                "shape_type": shape.ShapeType, "face_count": 1,
+                "bounds": expected_bounds, "vertices": points,
+                "boundary_edges": edges, "object_name": obj.Name}
+    if shape.isValid() is not True or len(shape.Faces) != 2:
+        raise AssertionError(
+            "POLYFACE must produce a valid two-triangle surface; object=%s, "
+            "valid=%r, faces=%d"
+            % (obj.Name, shape.isValid(), len(shape.Faces)))
+    observed_triangles = []
+    observed_points = set()
+    for face in shape.Faces:
+        points = [(float(vertex.Point.x), float(vertex.Point.y),
+                   float(vertex.Point.z)) for vertex in face.Vertexes]
+        if len(points) != 3 or not math.isfinite(float(face.Area)) or face.Area <= 0:
+            raise AssertionError("POLYFACE surface contains a degenerate/non-triangle face")
+        observed_triangles.append(tuple(sorted(points)))
+        observed_points.update(points)
+    expected_triangles = [
+        tuple(sorted((expected_points[0], expected_points[1], expected_points[2]))),
+        tuple(sorted((expected_points[0], expected_points[2], expected_points[3]))),
+    ]
+    alternate_triangles = [
+        tuple(sorted((expected_points[0], expected_points[1], expected_points[3]))),
+        tuple(sorted((expected_points[1], expected_points[2], expected_points[3]))),
+    ]
+
+    def triangles_match(actual, wanted):
+        actual_sorted = sorted(actual)
+        wanted_sorted = sorted(wanted)
+        return len(actual_sorted) == len(wanted_sorted) and all(
+            len(actual_triangle) == len(wanted_triangle)
+            and all(coordinates_match(a, b) for a, b in zip(
+                actual_triangle, wanted_triangle))
+            for actual_triangle, wanted_triangle in zip(actual_sorted, wanted_sorted))
+
+    if not (triangles_match(observed_triangles, expected_triangles)
+            or triangles_match(observed_triangles, alternate_triangles)):
+        raise AssertionError(
+            "POLYFACE triangle vertices differ from either valid quad split: %r"
+            % observed_triangles)
+    sorted_points = sorted(observed_points)
+    if (len(sorted_points) != len(expected_points)
+            or any(not coordinates_match(actual, wanted)
+                   for actual, wanted in zip(sorted_points, sorted(expected_points)))):
+        raise AssertionError("POLYFACE vertex set differs from authored vertices")
+    return {"outcome": "triangulated_surface",
+            "object_type": obj.TypeId, "shape_type": shape.ShapeType,
+            "face_count": len(shape.Faces), "bounds": expected_bounds,
+            "vertices": sorted_points, "triangle_points": observed_triangles,
+            "object_name": obj.Name}
+
+
+def line_predicate_self_test():
+    """Dependency-free controls of the actual predicate; no CAD kernel executes."""
+    from copy import deepcopy
+    from types import SimpleNamespace as Object
+
+    class Line:
+        pass
+
+    def document(points):
+        vertices = [Object(Point=Object(x=x, y=y, z=z)) for x, y, z in points]
+        bounds = tuple(min(p[i] for p in points) for i in range(3)) + tuple(
+            max(p[i] for p in points) for i in range(3))
+        box = Object(**dict(zip(("XMin", "YMin", "ZMin", "XMax", "YMax", "ZMax"), bounds)))
+        edge = Object(Curve=Line(), Vertexes=vertices, isValid=lambda: True)
+        shape = Object(Edges=[edge], Vertexes=vertices, Faces=[], Shells=[], Solids=[],
+                       BoundBox=box, isNull=lambda: False, isValid=lambda: True)
+        return Object(Objects=[Object(TypeId="Part::Feature", Shape=shape)])
+
+    checks = 0
+    for points in [((1, 2, 0), (3, 4, 0)), ((1, 2, 3), (4, 6, 9)),
+                   ((4, 6, 9), (1, 2, 3)), ((1, 6, 3), (4, 2, 9))]:
+        doc = document(points)
+        box = doc.Objects[0].Shape.BoundBox
+        bounds = tuple(getattr(box, key) for key in
+                       ("XMin", "YMin", "ZMin", "XMax", "YMax", "ZMax"))
+        value = assert_line_geometry(doc, {"entityCounts": {"LINE": 1}},
+                                     [bounds], [points], Line)
+        assert value["line_endpoints"] == [tuple(sorted(points))]
+        checks += 1
+    pairs = [((1, 2, 0), (3, 4, 0)), ((5, 6, 0), (7, 8, 0)),
+             ((9, 10, 0), (11, 12, 0))]
+    doc = Object(Objects=[document(pair).Objects[0] for pair in reversed(pairs)])
+    doc.Objects[0].Shape.ShapeType = "Wire"
+    doc.Objects.append(Object(TypeId="App::DocumentObjectGroup"))
+    assert_line_geometry(doc, {"entityCounts": {"LINE": 3}},
+                         [a + b for a, b in pairs], pairs, Line)
+    checks += 1
+    points = ((1, 2, 3), (4, 6, 9))
+    bounds = (1, 2, 3, 4, 6, 9)
+    base = document(points)
+    mutations = [
+        ("null shape", lambda d: setattr(d.Objects[0].Shape, "isNull", lambda: True)),
+        ("invalid shape", lambda d: setattr(d.Objects[0].Shape, "isValid", lambda: False)),
+        ("invalid edge", lambda d: setattr(d.Objects[0].Shape.Edges[0], "isValid", lambda: False)),
+        ("non-line curve", lambda d: setattr(d.Objects[0].Shape.Edges[0], "Curve", object())),
+        ("extra edge", lambda d: d.Objects[0].Shape.Edges.append(d.Objects[0].Shape.Edges[0])),
+        ("missing vertex", lambda d: d.Objects[0].Shape.Vertexes.pop()),
+        ("extra vertex", lambda d: d.Objects[0].Shape.Vertexes.append(d.Objects[0].Shape.Vertexes[0])),
+        ("missing edge-only vertex", lambda d: setattr(
+            d.Objects[0].Shape.Edges[0], "Vertexes", d.Objects[0].Shape.Vertexes[:1])),
+        ("extra edge-only vertex", lambda d: setattr(
+            d.Objects[0].Shape.Edges[0], "Vertexes",
+            d.Objects[0].Shape.Vertexes + [d.Objects[0].Shape.Vertexes[0]])),
+        ("face", lambda d: d.Objects[0].Shape.Faces.append(object())),
+        ("shell", lambda d: d.Objects[0].Shape.Shells.append(object())),
+        ("solid", lambda d: d.Objects[0].Shape.Solids.append(object())),
+        ("extra feature", lambda d: d.Objects.append(deepcopy(d.Objects[0]))),
+        ("other shaped object", lambda d: setattr(d.Objects[0], "TypeId", "Part::FeaturePython")),
+        ("NaN bounds", lambda d: setattr(d.Objects[0].Shape.BoundBox, "XMin", float("nan"))),
+        ("Inf bounds", lambda d: setattr(d.Objects[0].Shape.BoundBox, "XMax", float("inf"))),
+        ("NaN endpoint", lambda d: setattr(d.Objects[0].Shape.Edges[0].Vertexes[0].Point, "x", float("nan"))),
+        ("Inf endpoint", lambda d: setattr(d.Objects[0].Shape.Edges[0].Vertexes[0].Point, "z", float("inf"))),
+        ("Boolean endpoint", lambda d: setattr(d.Objects[0].Shape.Edges[0].Vertexes[0].Point, "x", True)),
+        ("same bounds wrong endpoints", lambda d: (
+            setattr(d.Objects[0].Shape.Edges[0].Vertexes[0].Point, "y", 6),
+            setattr(d.Objects[0].Shape.Edges[0].Vertexes[1].Point, "y", 2))),
+    ]
+    for label, mutate in mutations:
+        doc = deepcopy(base)
+        mutate(doc)
+        try:
+            assert_line_geometry(doc, {"entityCounts": {"LINE": 1}},
+                                 [bounds], [points], Line)
+        except AssertionError:
+            checks += 1
+        else:
+            raise AssertionError("predicate accepted " + label)
+    for count in (0, 2, True):
+        try:
+            assert_line_geometry(base, {"entityCounts": {"LINE": count}},
+                                 [bounds], [points], Line)
+        except AssertionError:
+            checks += 1
+        else:
+            raise AssertionError("predicate accepted incorrect LINE count")
+    for value in (float("nan"), float("inf"), -float("inf")):
+        try:
+            line_pass_json({"line_bounds": [value]})
+        except ValueError:
+            checks += 1
+        else:
+            raise AssertionError("LINE PASS JSON accepted a nonfinite number")
+    assert json.loads(line_pass_json({"line_bounds": [bounds]}))["line_bounds"] == [list(bounds)]
+    checks += 1
+    print("FreeCAD LINE predicate controls: PASS (%d mocked checks; no native runtime)" % checks)
+
+
+def polyface_quad_self_test():
+    """Check the quad predicate with valid and corrupted boundary topology."""
+    from copy import deepcopy
+    from types import SimpleNamespace as Object
+
+    points = [(1, 2, 1), (4, 2, 4), (4, 6, 8), (1, 6, 5)]
+    vertices = [Object(Point=Object(x=x, y=y, z=z)) for x, y, z in points]
+    edges = [Object(Vertexes=[vertices[i], vertices[(i + 1) % 4]]) for i in range(4)]
+    face = Object(Vertexes=vertices, Edges=edges, Area=10.0)
+    box = Object(XMin=1, YMin=2, ZMin=1, XMax=4, YMax=6, ZMax=8)
+    shape = Object(Faces=[face], Edges=edges, Vertexes=vertices, BoundBox=box,
+                   ShapeType="Face", isNull=lambda: False, isValid=lambda: True)
+    doc = Object(Objects=[Object(Name="Polyface", TypeId="Part::Feature", Shape=shape)])
+    expected = {"points": points, "bounds": [1, 2, 1, 4, 6, 8], "triangles": 2}
+    assert assert_polyface_geometry(doc, expected)["outcome"] == "quadrilateral_surface"
+    broken = deepcopy(doc)
+    broken.Objects[0].Shape.Faces[0].Edges[0].Vertexes[1] = broken.Objects[0].Shape.Vertexes[2]
+    try:
+        assert_polyface_geometry(broken, expected)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("POLYFACE quad predicate accepted the wrong boundary")
+    print("FreeCAD POLYFACE quad predicate controls: PASS (no native runtime)")
+
+
+if __name__ == "__main__" and sys.argv[1:] == ["--self-test"]:
+    line_predicate_self_test()
+    polyface_quad_self_test()
+    sys.exit(0)
 
 import FreeCAD as App
 
@@ -88,6 +607,13 @@ if expect_3dface not in ("", "0", "unsupported"):
 if expect_3dface and (desktop_dispatch or expected_modeler):
     raise RuntimeError(
         "3DFACE importer qualification excludes desktop dispatch and modeler mode"
+    )
+expect_solid = os.environ.get("LIBDXFRW_FREECAD_EXPECT_SOLID", "")
+if expect_solid not in ("", "unsupported"):
+    raise RuntimeError("LIBDXFRW_FREECAD_EXPECT_SOLID must be unsupported")
+if expect_solid and (desktop_dispatch or expected_modeler or not expect_3dface):
+    raise RuntimeError(
+        "SOLID importer qualification requires the pinned mixed-profile lane"
     )
 if desktop_dispatch and not App.GuiUp:
     raise RuntimeError("desktop dispatch qualification requires the FreeCAD GUI")
@@ -221,6 +747,11 @@ def digest(path):
 
 
 def capture_convert(filename):
+    # FreeCAD's PATH resolver calls platform.system(). On Windows an uncached
+    # platform probe may spawn the system 'ver' command; resolve it before
+    # observing conversion children so it cannot masquerade as a fallback.
+    # Still require exactly one observed conversion child below.
+    platform.system()
     processes = []
 
     def capture_popen(*args, **kwargs):
@@ -269,8 +800,8 @@ def assert_converter_route(dxf_path):
     processes = captured.get("converter_processes", [])
     if len(processes) != 1:
         raise AssertionError(
-            "expected exactly one dwg2dxf child and no fallback process; got %d"
-            % len(processes)
+            "expected exactly one dwg2dxf child and no fallback process; "
+            "got %d: %r" % (len(processes), [process.args for process in processes])
         )
 
     process = processes[0]
@@ -341,8 +872,8 @@ def assert_failed_converter_route():
     processes = captured.get("converter_processes", [])
     if len(processes) != 1:
         raise AssertionError(
-            "expected one failing dwg2dxf process with fallbacks disabled; got %d"
-            % len(processes)
+            "expected one failing dwg2dxf process with fallbacks disabled; "
+            "got %d: %r" % (len(processes), [process.args for process in processes])
         )
     process = processes[0]
     args = process.args
@@ -391,25 +922,9 @@ def assert_failed_converter_route():
     }
 
 
-def bounds_for_document(document):
-    features = sorted(
-        (obj for obj in document.Objects if obj.TypeId == "Part::Feature"),
-        key=lambda obj: obj.Shape.BoundBox.XMin,
-    )
-    return [
-        (
-            obj.Shape.BoundBox.XMin,
-            obj.Shape.BoundBox.YMin,
-            obj.Shape.BoundBox.ZMin,
-            obj.Shape.BoundBox.XMax,
-            obj.Shape.BoundBox.YMax,
-            obj.Shape.BoundBox.ZMax,
-        )
-        for obj in features
-    ]
-
-
-def assert_3dface_unsupported(document, stats, unsupported):
+def assert_3dface_unsupported(document, stats, unsupported,
+                             expected_shaped_count=0,
+                             expected_other_unsupported=()):
     expected_revision = os.environ.get("LIBDXFRW_FREECAD_EXPECT_REVISION", "")
     actual_version = list(App.Version())
     if not expected_revision or len(actual_version) < 8:
@@ -436,16 +951,39 @@ def assert_3dface_unsupported(document, stats, unsupported):
         if getattr(obj, "Shape", None) is not None
         and not obj.Shape.isNull()
     )
-    if unsupported_3dface_count != 1 or shaped_count != 0:
+    other_unsupported = {}
+    for entity, count in expected_other_unsupported:
+        matches = [values for key, values in unsupported.items()
+                   if entity in key.upper()]
+        other_unsupported[entity] = sum(len(values) for values in matches)
+    unexpected_unsupported = {
+        key: values for key, values in unsupported.items()
+        if "3DFACE" not in key.upper()
+        and not any(entity in key.upper()
+                    for entity, _count in expected_other_unsupported)
+        and values
+    }
+    if (unsupported_3dface_count != 1
+            or shaped_count != expected_shaped_count
+            or any(other_unsupported[entity] != count
+                   for entity, count in expected_other_unsupported)
+            or unexpected_unsupported):
         raise AssertionError(
-            "pinned FreeCAD 3DFACE outcome changed: %d unsupported, %d shapes"
-            % (unsupported_3dface_count, shaped_count)
+            "pinned FreeCAD 3DFACE outcome changed: %d unsupported, %d shapes "
+            "(expected %d), objects %r, other unsupported %r (expected %r)"
+            % (unsupported_3dface_count, shaped_count, expected_shaped_count,
+               [(obj.Name, obj.TypeId, hasattr(obj, "Mesh"),
+                 getattr(obj, "Shape", None) is not None)
+                for obj in document.Objects],
+               {**other_unsupported, **unexpected_unsupported},
+               dict(expected_other_unsupported))
         )
     return {
         "pinned_freecad_revision": expected_revision,
         "entity_count": entity_counts.get("3DFACE", 0),
         "unsupported_count": unsupported_3dface_count,
         "created_shape_count": shaped_count,
+        "other_unsupported_counts": other_unsupported,
         "semantic_status": "unsupported_by_pinned_freecad_importer",
     }
 
@@ -537,6 +1075,119 @@ def modeler_document_inventory(document):
 
 
 expected_bounds_json = os.environ.get("LIBDXFRW_FREECAD_EXPECT_LINE_BOUNDS")
+expected_primitives = None
+expected_polyface_json = os.environ.get("LIBDXFRW_FREECAD_EXPECT_POLYFACE")
+expected_polyface = None
+if expected_polyface_json:
+    try:
+        expected_polyface = json.loads(expected_polyface_json)
+        if (set(expected_polyface) != {"triangles", "bounds", "points"}
+                or type(expected_polyface["triangles"]) is not int
+                or expected_polyface["triangles"] <= 0
+                or not isinstance(expected_polyface["bounds"], list)
+                or len(expected_polyface["bounds"]) != 6
+                or not isinstance(expected_polyface["points"], list)
+                or len(expected_polyface["points"]) < 3
+                or any(not isinstance(point, list) or len(point) != 3
+                       or any(isinstance(value, bool)
+                              or not isinstance(value, (int, float))
+                              or not math.isfinite(value) for value in point)
+                       for point in expected_polyface["points"])
+                or any(isinstance(value, bool)
+                       or not isinstance(value, (int, float))
+                       or not math.isfinite(value)
+                       for value in expected_polyface["bounds"])):
+            raise ValueError("invalid facet, bounds, or point profile")
+    except Exception as error:
+        raise RuntimeError("invalid FreeCAD mesh expectation: %s" % error)
+expected_primitive_counts = os.environ.get(
+    "LIBDXFRW_FREECAD_EXPECT_PRIMITIVE_COUNTS")
+expected_primitive_shapes = os.environ.get(
+    "LIBDXFRW_FREECAD_EXPECT_PRIMITIVE_SHAPES")
+expected_spline_samples = []
+expected_spline_samples_json = os.environ.get(
+    "LIBDXFRW_FREECAD_EXPECT_SPLINE_SAMPLES")
+if expected_spline_samples_json:
+    try:
+        for spline_sample in json.loads(expected_spline_samples_json):
+            if (not isinstance(spline_sample, list) or len(spline_sample) != 4
+                    or not all(math.isfinite(float(value)) for value in spline_sample)):
+                raise ValueError("each spline sample needs fraction,x,y,z")
+            fraction = float(spline_sample[0])
+            if fraction < 0.0 or fraction > 1.0:
+                raise ValueError("spline sample fractions must be in [0,1]")
+            expected_spline_samples.append(
+                (fraction, tuple(float(value) for value in spline_sample[1:])))
+        if not expected_spline_samples:
+            raise ValueError("expected at least one spline sample")
+    except Exception as error:
+        raise RuntimeError("invalid FreeCAD SPLINE expectations: %s" % error)
+expected_polyline_points = []
+expected_polyline_points_json = os.environ.get(
+    "LIBDXFRW_FREECAD_EXPECT_POLYLINE_POINTS")
+if expected_polyline_points_json:
+    try:
+        expected_polyline_points = [
+            tuple(float(value) for value in point)
+            for point in json.loads(expected_polyline_points_json)]
+        if (len(expected_polyline_points) < 2
+                or any(len(point) != 3 or not all(math.isfinite(value) for value in point)
+                       for point in expected_polyline_points)):
+            raise ValueError("expected at least two finite 3D POLYLINE vertices")
+    except Exception as error:
+        raise RuntimeError("invalid FreeCAD POLYLINE expectations: %s" % error)
+expected_closed_2d_polyline_points = []
+expected_closed_2d_polyline_json = os.environ.get(
+    "LIBDXFRW_FREECAD_EXPECT_CLOSED_2D_POLYLINE_POINTS")
+if expected_closed_2d_polyline_json:
+    try:
+        expected_closed_2d_polyline_points = [
+            tuple(float(value) for value in point)
+            for point in json.loads(expected_closed_2d_polyline_json)]
+        if (len(expected_closed_2d_polyline_points) < 3
+                or any(len(point) != 3 or not all(math.isfinite(value) for value in point)
+                       for point in expected_closed_2d_polyline_points)):
+            raise ValueError("expected at least three finite 3D points for closed 2D POLYLINE")
+    except Exception as error:
+        raise RuntimeError("invalid closed 2D POLYLINE expectations: %s" % error)
+if expected_primitive_counts or expected_primitive_shapes:
+    try:
+        if not expected_primitive_counts or not expected_primitive_shapes:
+            raise ValueError("both primitive count and shape expectations are required")
+        expected_counts = {}
+        for item in expected_primitive_counts.split(","):
+            entity, count = item.split(":", 1)
+            expected_counts[entity] = int(count)
+        expected_shapes = []
+        for item in expected_primitive_shapes.split("|"):
+            values = [float(value) for value in item.split(",")]
+            if (len(values) not in (10, 11) or values[6] != int(values[6])
+                    or values[7] != int(values[7])
+                    or values[9] not in (0.0, 1.0)
+                    or (len(values) == 11 and values[10] != int(values[10]))):
+                raise ValueError(
+                    "each shape expectation needs six bounds, topology, length, and spline flag, with an optional face count")
+            expected_shapes.append({"bounds": values[:6], "edges": int(values[6]),
+                                   "vertices": int(values[7]), "length": values[8],
+                                   "spline": bool(values[9]),
+                                   "faces": int(values[10]) if len(values) == 11 else 0})
+            if values[9] and any(values[:6]):
+                raise ValueError("SPLINE bound placeholder must be six zeros")
+            if values[9]:
+                expected_shapes[-1]["bounds"] = None
+        if not expected_counts or not expected_shapes:
+            raise ValueError("expected nonempty counts and shape profiles")
+        if expected_counts.get("SPLINE", 0) and not expected_spline_samples:
+            raise ValueError("SPLINE imports require expected curve sample points")
+        if expected_counts.get("POLYLINE", 0) and not expected_polyline_points:
+            raise ValueError("POLYLINE imports require expected ordered vertex points")
+        if (expected_counts.get("POLYLINE", 0) < 2
+                and expected_closed_2d_polyline_points):
+            raise ValueError("closed classic 2D POLYLINE requires a POLYLINE count of at least 2")
+        expected_primitives = {"counts": expected_counts, "shapes": expected_shapes}
+    except Exception as error:
+        raise RuntimeError(
+            "invalid FreeCAD primitive expectations: %s" % error)
 if expected_bounds_json:
     try:
         expected_bounds_data = json.loads(expected_bounds_json)
@@ -722,28 +1373,76 @@ try:
             }
         )
     elif expect_3dface == "unsupported":
-        face_outcome = assert_3dface_unsupported(doc, stats, unsupported)
+        face_outcome = assert_3dface_unsupported(
+            doc, stats, unsupported,
+            0 if expected_primitives is None
+            else len(expected_primitives["shapes"])
+            + (1 if expected_polyface is not None else 0),
+            (("SOLID", 1),) if expect_solid == "unsupported" else ())
         result = dict(common_result)
         result.update(
             {
                 "support_level": "converter-integration-only",
                 "importer_outcome": face_outcome["semantic_status"],
                 "freecad_3dface_outcome": face_outcome,
+                "freecad_solid_outcome": (
+                    "unsupported_by_pinned_freecad_importer"
+                    if expect_solid == "unsupported" else None),
             }
         )
-    else:
-        actual_bounds = bounds_for_document(doc)
-        if len(actual_bounds) != len(expected_bounds):
+        if expected_primitives is not None:
+            polyface_geometry = (assert_polyface_geometry(doc, expected_polyface)
+                                 if expected_polyface is not None else None)
+            geometry = assert_primitive_geometry(
+                doc, stats, expected_primitives["counts"],
+                expected_primitives["shapes"], expected_spline_samples,
+                expected_polyline_points, expected_closed_2d_polyline_points,
+                () if polyface_geometry is None
+                else (polyface_geometry["object_name"],))
+            result.update({
+                "expected_entity_counts": expected_primitives["counts"],
+                "expected_primitive_shapes": expected_primitives["shapes"],
+                "primitive_geometry": geometry,
+            })
+            if polyface_geometry is not None:
+                result["expected_polyface_triangles"] = expected_polyface["triangles"]
+                result["polyface_geometry"] = polyface_geometry
+    elif expected_primitives is not None:
+        polyface_geometry = (assert_polyface_geometry(doc, expected_polyface)
+                             if expected_polyface is not None else None)
+        geometry = assert_primitive_geometry(
+            doc, stats, expected_primitives["counts"],
+            expected_primitives["shapes"], expected_spline_samples,
+            expected_polyline_points, expected_closed_2d_polyline_points,
+            () if polyface_geometry is None
+            else (polyface_geometry["object_name"],))
+        if unsupported:
             raise AssertionError(
-                "expected %d imported LINE features, got %r"
-                % (len(expected_bounds), actual_bounds)
+                "FreeCAD reported unsupported features: %r" % unsupported
             )
-        for observed, expected in zip(actual_bounds, expected_bounds):
-            if any(abs(a - e) >= 1e-9 for a, e in zip(observed, expected)):
-                raise AssertionError(
-                    "FreeCAD LINE bounds differ: expected %r, got %r"
-                    % (expected, observed)
-                )
+        result = dict(common_result)
+        result.update({
+            "expected_entity_counts": expected_primitives["counts"],
+            "expected_primitive_shapes": expected_primitives["shapes"],
+            "primitive_geometry": geometry,
+        })
+        if polyface_geometry is not None:
+            result["expected_polyface_triangles"] = expected_polyface["triangles"]
+            result["polyface_geometry"] = polyface_geometry
+    else:
+        import Part
+
+        endpoints_json = os.environ.get("LIBDXFRW_FREECAD_EXPECT_LINE_ENDPOINTS")
+        if endpoints_json:
+            expected_endpoints = json.loads(endpoints_json)
+        elif expected_bounds_json:
+            raise RuntimeError("explicit LINE bounds require authored endpoint pairs")
+        else:
+            expected_endpoints = [((1, 2, 0), (3, 4, 0)),
+                                  ((5, 6, 0), (7, 8, 0)),
+                                  ((9, 10, 0), (11, 12, 0))]
+        geometry = assert_line_geometry(doc, stats, expected_bounds,
+                                        expected_endpoints, Part.Line)
         if unsupported:
             raise AssertionError(
                 "FreeCAD reported unsupported features: %r" % unsupported
@@ -752,15 +1451,51 @@ try:
         result.update(
             {
                 "expected_line_bounds": expected_bounds,
-                "line_bounds": actual_bounds,
+                "expected_line_endpoints": expected_endpoints,
+                "line_bounds": geometry["line_bounds"],
+                "line_endpoints": geometry["line_endpoints"],
             }
         )
+    if os.environ.get("LIBDXFRW_FREECAD_SAVE_REOPEN") == "1":
+        if expected_primitives is None or expected_modeler or expect_3dface == "unsupported":
+            raise RuntimeError("save/reopen requires a supported mixed primitive profile")
+        root = os.environ.get("LIBDXFRW_FREECAD_TEMP_ROOT")
+        if not root or not os.path.isdir(root):
+            raise RuntimeError("save/reopen requires the isolated test root")
+        native_path = os.path.join(root, "mixed primitives.FCStd")
+        if os.path.lexists(native_path):
+            raise RuntimeError("refusing to overwrite a native document")
+        doc.recompute()
+        doc.saveAs(native_path)
+        if not os.path.isfile(native_path):
+            raise AssertionError("FreeCAD did not save the native document")
+        native_hash = digest(native_path)
+        App.closeDocument(doc.Name)
+        doc = App.openDocument(native_path)
+        if doc is None:
+            raise AssertionError("FreeCAD did not reopen the native document")
+        doc.recompute()
+        reopened_polyface = (assert_polyface_geometry(doc, expected_polyface)
+                             if expected_polyface is not None else None)
+        reopened_geometry = assert_primitive_geometry(
+            doc, stats, expected_primitives["counts"], expected_primitives["shapes"],
+            expected_spline_samples, expected_polyline_points, expected_closed_2d_polyline_points,
+            () if reopened_polyface is None else (reopened_polyface["object_name"],))
+        result["native_save_reopen"] = {"file_sha256": native_hash,
+                                        "primitive_geometry": reopened_geometry,
+                                        "polyface_geometry": reopened_polyface}
+    result_json = (line_pass_json(result) if not expected_modeler and expect_3dface != "unsupported"
+                   else json.dumps(result, sort_keys=True, default=str))
     print(
         "FREECAD_DWG_IMPORT_ASSERTIONS_PASS="
-        + json.dumps(result, sort_keys=True, default=str)
+        + result_json
     )
 except ExpectedConversionFailureHandled:
     pass
+except Exception:
+    import traceback
+    traceback.print_exc()
+    raise
 finally:
     importDWG.convertToDxf = original_convert
     importDXF.open = original_open

@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-source-table-metadata-setter-bounds-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bound codec-owned snapshots of source BLOCK_RECORD and canonical LTYPE metadata.",
+  "source": {
+    "parentCommit": "d35f9965415c574f91813a89fc1a1a91fb97bcc4",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "cmake": "4.4.5",
+    "files": {
+      "src/libdxfrw.cpp": "8a6859ecfc39d134c83f321abbbe6e3a65b229de9c7f1a1ba1d58094a789cfa5",
+      "src/libdxfrw.h": "f0fdd44176ce42c8e64ac0f335c5f7e74a2e041e74a14fa3a9f050d33319cb0c",
+      "src/intern/dxfparserlimits.h": "ee49b19055c2c18d868d7743a751bc5fb705261d978a153384e1f11848d0204f",
+      "dwg2dxf/dx_iface.cpp": "c110f489964ebad63a67da03981554f070358196bef20c5ced44afe25d35b8fd",
+      "tests/dxf_fixture_tests.cpp": "26f6c0224aef5f1287cd0f0822391ce47f3d3d73534885002ab90eb6158ff035",
+      "tests/CMakeLists.txt": "e5a6478a9306f59362ff35f24e7d32b6f53974b7d7ad9e154555655ff0bb6d34"
+    }
+  },
+  "limit": {
+    "recordsPerSetter": 100000,
+    "accountedItemsPerSetter": 1000000,
+    "logicalRetainedBytesPerSetter": 67108864,
+    "setters": [
+      "source BLOCK_RECORD records",
+      "canonical LTYPE metadata"
+    ],
+    "adapterLimits": "The three ceilings share the existing basic typed-table adapter policy."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "src/intern/dxfparserlimits.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "The estimators account for record-vector storage, common table-entry names, reactors, pending references, XDATA variants, application-data list nodes and payloads, and the BLOCK_RECORD or LTYPE specific strings/vectors.",
+      "Const setters validate before copying, stage into temporary vectors, catch allocation failure, clear stale state on rejection and latch a write refusal until corrected.",
+      "Move setters validate before consuming caller storage; rejected moves preserve caller data and clear stale codec state.",
+      "Successful corrected setup clears only its own rejection state. A setup mutation during an active write marks the write failed without changing the active snapshot.",
+      "A rejected snapshot blocks new output before destination publication. The normal adapter limits and low-level setter limits now use the same shared internal constants."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_no_raw_sections_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_dxf_source_table_metadata_setter_bounds|libdxfrw_dxf_handle_remap_setter_bound|libdxfrw_resolved_write_reference_setter_bounds|libdxfrw_raw_dxf_section_setter_bound|libdxfrw_no_raw_sections|dwg2dxf_raw_dxf_section_capture_limits' --output-on-failure",
+      "result": "PASS 6/6; 1.57 seconds",
+      "coverage": "Exact aggregate item-boundary acceptance, over-limit const and move rejection, caller preservation, stale-data clearing, same-codec correction, injected const-copy allocation failure/retry, and ASCII/Binary destination preservation plus corrected retry across both independent guards."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests libdxfrw_no_raw_sections_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_dxf_source_table_metadata_setter_bounds|libdxfrw_no_raw_sections' --output-on-failure",
+      "result": "PASS 2/2; 1.72 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The limits estimate logical retained payload and container slots; they do not measure allocator capacity or process RSS.",
+    "The two registration vectors have independent 64 MiB ceilings and may coexist in one codec.",
+    "Private dxfRW rejection state changes class layout; downstream consumers must rebuild and ABI compatibility remains an open P8 gate.",
+    "Other setup assembly/work paths, rollback after earlier staged records, source lifetime, platform numeric/string policies and scoped concurrency remain in the P6 safety audit."
+  ],
+  "next": "Continue the P6 safety audit on other unbounded setup copies and assembly/work paths."
+}

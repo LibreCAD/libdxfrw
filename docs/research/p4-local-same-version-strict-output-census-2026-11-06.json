@@ -1,0 +1,314 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Current local DWG same-version strict-output census for P4 graph selection",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Screen distinct byte streams under /Users/dli/doc/dwg with current dwg2dxf, selecting the output release from each recognized six-byte DWG signature. Identify source inputs already reaching strict whole-source DXF output; this census does not prove native semantics or a new source profile.",
+  "method": {
+    "commandPattern": "build/dwg2dxf/dwg2dxf INPUT -y -v<TARGET_RELEASE> OUTPUT",
+    "timeoutSecondsPerInput": 25,
+    "uniqueByteStreams": 28,
+    "releaseMap": {
+      "AC1012": "R12",
+      "AC1014": "R14",
+      "AC1015": "2000",
+      "AC1018": "2004",
+      "AC1021": "2007",
+      "AC1024": "2010",
+      "AC1027": "2013",
+      "AC1032": "2018"
+    },
+    "outputDirectory": "/private/tmp",
+    "fixturePolicy": "No DWG/DXF source or output was added to the repository."
+  },
+  "summary": {
+    "strictOutputPasses": [
+      "/Users/dli/doc/dwg/children-room-decoration.dwg",
+      "/Users/dli/doc/dwg/lineweights.dwg",
+      "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "/Users/dli/doc/dwg/tablet.dwg"
+    ],
+    "strictOutputPassCount": 4,
+    "strictOutputRefusals": 20,
+    "unrecognizedVersions": 4,
+    "timeouts": 0,
+    "newlyQualifiedSourceProfiles": 0
+  },
+  "results": [
+    {
+      "path": "/Users/dli/doc/dwg/#Pool_Detail.dwg",
+      "sha256": "8cfad4e4090ce5fead86c8fd4ed17020f6d13a4dda86f67d92953f10e8bf04ca",
+      "headerVersion": "999\ndx",
+      "result": "SKIPPED_UNRECOGNIZED_VERSION",
+      "reason": "First six bytes do not match a supported DWG signature."
+    },
+    {
+      "path": "/Users/dli/doc/dwg/#blocks_and_tables_-_metric.dwg",
+      "sha256": "e22c24d315c9f5819b2e8c3763c6dbb2a8d3ee450754f0f180763fd581a1ac17",
+      "headerVersion": "999\ndx",
+      "result": "SKIPPED_UNRECOGNIZED_VERSION",
+      "reason": "First six bytes do not match a supported DWG signature."
+    },
+    {
+      "path": "/Users/dli/doc/dwg/#mechanical_example-imperial.dwg",
+      "sha256": "57ec80c861976ea8b100033f2f92fcaf230e134a3a40d3ec9f3417bb173c6fcc",
+      "headerVersion": "999\ndx",
+      "result": "SKIPPED_UNRECOGNIZED_VERSION",
+      "reason": "First six bytes do not match a supported DWG signature."
+    },
+    {
+      "path": "/Users/dli/doc/dwg/#title_block-iso.dwg",
+      "sha256": "47bb4c784621b50b4b5395c8374a9e7c8cb9ad4886fd7f901aa25019a1a53987",
+      "headerVersion": "999\ndx",
+      "result": "SKIPPED_UNRECOGNIZED_VERSION",
+      "reason": "First six bytes do not match a supported DWG signature."
+    },
+    {
+      "path": "/Users/dli/doc/dwg/Cover.dwg",
+      "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "headerVersion": "AC1027",
+      "targetRelease": "2013",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=88 opaqueSourceFramesCaptured=88 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=13 standardObjectSourceReceiptsMatched=13 standardObjectTypedPayloadsMatched=13 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+      "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+      "headerVersion": "AC1018",
+      "targetRelease": "2004",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=23 opaqueSourceFramesCaptured=23 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=12 standardObjectSourceReceiptsMatched=12 standardObjectTypedPayloadsMatched=12 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/Extruder2.dwg",
+      "sha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+      "headerVersion": "AC1018",
+      "targetRelease": "2004",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=83 opaqueSourceFramesCaptured=83 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=41 standardObjectSourceReceiptsMatched=41 standardObjectTypedPayloadsMatched=41 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/Pool_Detail.dwg",
+      "sha256": "9c40870a93a299f9d0ddbc1b35da363e1cf2dbed112d7413423643182eb97142",
+      "headerVersion": "AC1021",
+      "targetRelease": "2007",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=112 opaqueSourceFramesCaptured=112 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=56 standardObjectSourceReceiptsMatched=56 standardObjectTypedPayloadsMatched=56 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+      "headerVersion": "AC1021",
+      "targetRelease": "2007",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "DXF export preflight failed: FIELD/FIELDLIST carriers have no qualified DXF serializer",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "headerVersion": "AC1024",
+      "targetRelease": "2010",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "DXF export finalization failed: strict-complete conversion requires output qualification for every opaque DWG callback (qualified=484/490)",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/blocks_and_tables_-_imperial.dwg",
+      "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+      "headerVersion": "AC1021",
+      "targetRelease": "2007",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "DXF export preflight failed: FIELD/FIELDLIST carriers have no qualified DXF serializer",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+      "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+      "headerVersion": "AC1021",
+      "targetRelease": "2007",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "DXF export preflight failed: FIELD/FIELDLIST carriers have no qualified DXF serializer",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+      "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+      "headerVersion": "AC1021",
+      "targetRelease": "2007",
+      "exitCode": 0,
+      "result": "STRICT_OUTPUT_PASS",
+      "firstDiagnostic": "NOD entry 'Siberia' -> 0x38f4b typed-dictionary=1 typed-default=0 owner=12",
+      "outputCreated": true
+    },
+    {
+      "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "headerVersion": "AC1024",
+      "targetRelease": "2010",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=224 opaqueSourceFramesCaptured=224 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=1 standardObjectFramesCaptured=46 standardObjectSourceReceiptsMatched=46 standardObjectTypedPayloadsMatched=46 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/colorwh.dwg",
+      "sha256": "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+      "headerVersion": "AC1021",
+      "targetRelease": "2007",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "DXF export finalization failed: strict-complete conversion requires output qualification for every opaque DWG callback (qualified=43/52)",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/dwgreader21_230.dwg",
+      "sha256": "21b49e383cc43171fd13e2bbcd1c235bc1a57804be97f63a0d581fb944e743ff",
+      "headerVersion": "AC1021",
+      "targetRelease": "2007",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=0 opaqueSourceFramesCaptured=0 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=0 standardObjectSourceReceiptsMatched=0 standardObjectTypedPayloadsMatched=0 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/lineweights.dwg",
+      "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+      "headerVersion": "AC1021",
+      "targetRelease": "2007",
+      "exitCode": 0,
+      "result": "STRICT_OUTPUT_PASS",
+      "firstDiagnostic": "Success: converted /Users/dli/doc/dwg/lineweights.dwg to /private/tmp/dwg-census-recorded-17.dxf",
+      "outputCreated": true
+    },
+    {
+      "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "headerVersion": "AC1024",
+      "targetRelease": "2010",
+      "exitCode": 0,
+      "result": "STRICT_OUTPUT_PASS",
+      "firstDiagnostic": "Success: converted /Users/dli/doc/dwg/mechanical_example-imperial.dwg to /private/tmp/dwg-census-recorded-18.dxf",
+      "outputCreated": true
+    },
+    {
+      "path": "/Users/dli/doc/dwg/plot_screening_and_fill_patterns.dwg",
+      "sha256": "3eb8c946863ca733a289813589ecee8ea383aa63b4c5fa2a22fe31feacf02f71",
+      "headerVersion": "AC1021",
+      "targetRelease": "2007",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "DXF export finalization failed: strict-complete conversion requires output qualification for every opaque DWG callback (qualified=50/69)",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/simple.dwg",
+      "sha256": "6702705ed765af035761a77170ea1486d01f513690b3fd8dc8295957ddc89e58",
+      "headerVersion": "AC1015",
+      "targetRelease": "2000",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=0 opaqueSourceFramesCaptured=0 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=0 standardObjectSourceReceiptsMatched=0 standardObjectTypedPayloadsMatched=0 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/tablet.dwg",
+      "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+      "headerVersion": "AC1021",
+      "targetRelease": "2007",
+      "exitCode": 0,
+      "result": "STRICT_OUTPUT_PASS",
+      "firstDiagnostic": "NOD entry 'ASE_INDEX_DICTIONARY' -> 0x2bce typed-dictionary=1 typed-default=0 owner=12",
+      "outputCreated": true
+    },
+    {
+      "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+      "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+      "headerVersion": "AC1024",
+      "targetRelease": "2010",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=109 opaqueSourceFramesCaptured=109 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=1 standardObjectFramesCaptured=28 standardObjectSourceReceiptsMatched=28 standardObjectTypedPayloadsMatched=28 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/title_block-iso.dwg",
+      "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+      "headerVersion": "AC1024",
+      "targetRelease": "2010",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=109 opaqueSourceFramesCaptured=109 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=1 standardObjectFramesCaptured=28 standardObjectSourceReceiptsMatched=28 standardObjectTypedPayloadsMatched=28 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/truetype.dwg",
+      "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+      "headerVersion": "AC1021",
+      "targetRelease": "2007",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "DXF export stopped during: output preparation",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+      "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+      "headerVersion": "AC1024",
+      "targetRelease": "2010",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=300 opaqueSourceFramesCaptured=300 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=15 standardObjectFramesCaptured=178 standardObjectSourceReceiptsMatched=178 standardObjectTypedPayloadsMatched=178 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/visualization_-_condominium_with_skylight.dwg",
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "headerVersion": "AC1024",
+      "targetRelease": "2010",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=950 opaqueSourceFramesCaptured=950 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=533 standardObjectFramesCaptured=175 standardObjectSourceReceiptsMatched=175 standardObjectTypedPayloadsMatched=175 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/visualization_-_conference_room.dwg",
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "headerVersion": "AC1024",
+      "targetRelease": "2010",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=549 opaqueSourceFramesCaptured=549 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=241 standardObjectFramesCaptured=166 standardObjectSourceReceiptsMatched=166 standardObjectTypedPayloadsMatched=166 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    },
+    {
+      "path": "/Users/dli/doc/dwg/visualization_-_sun_and_sky_demo.dwg",
+      "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+      "headerVersion": "AC1024",
+      "targetRelease": "2010",
+      "exitCode": 1,
+      "result": "STRICT_OUTPUT_REFUSED",
+      "firstDiagnostic": "Opaque callback dispositions: opaqueViewCallbacks=342 opaqueSourceFramesCaptured=342 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=50 standardObjectFramesCaptured=114 standardObjectSourceReceiptsMatched=114 standardObjectTypedPayloadsMatched=114 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+      "outputCreated": false
+    }
+  ],
+  "nextAction": "Do not repeat the four existing strict-pass sources as candidate discovery. Choose a source/profile from prior bounded-partial or selected-graph evidence with a typed supported root and closed target roles; otherwise pursue a generated, locally authored control only when it resolves a specific witnessed gap.",
+  "limitations": [
+    "The local corpus and its provenance are unauthenticated.",
+    "A strict-output pass is not independent producer, consumer, or semantic evidence.",
+    "Refusal reasons are first diagnostics only; they do not enumerate every remaining gap.",
+    "The census is a candidate screen, not a support qualification."
+  ]
+}

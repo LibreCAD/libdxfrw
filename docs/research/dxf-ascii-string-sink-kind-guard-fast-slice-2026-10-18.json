@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-39 / 7BU ASCII string sink-kind guard",
+  "mode": "local implementation and fast validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Make ordinary ASCII string emission honor the active DXF value-kind profile",
+    "Keep raw ASCII spelling replay separate from typed string emission",
+    "Validate ASCII binary-chunk hexadecimal framing and size before emission"
+  ],
+  "changes": {
+    "productionFiles": [
+      "src/intern/dxfwriter.h",
+      "src/intern/dxfwriter.cpp"
+    ],
+    "testFiles": [
+      "tests/wave1_tests.cpp"
+    ],
+    "planFile": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicDRWInterfaceChanged": false,
+    "supportClaimsPromoted": 0
+  },
+  "implementation": {
+    "ordinaryAsciiStrings": "Accept only active-profile Str groups and Bin chunk groups; reject typed string writes to numeric, Boolean, and unclassified group codes before writing bytes.",
+    "asciiBinaryChunks": "Accept groups 1004 and 310-319 only as even-length hexadecimal text representing at most 127 bytes per group.",
+    "rawAsciiReplay": "An explicit writeRawString override preserves already-validated source spellings, including typed numeric/Boolean groups and unknown groups. Raw lexeme/type/provenance validation remains in the raw-group caller.",
+    "dynamicUtf8Wrappers": "Generated negative controls verify writeUtf8String, writeUtf8Chunks, and writeUtf8MTextChunks inherit the active typed string-code guard, including dynamically selected continuation codes.",
+    "binaryWriter": "Unchanged."
+  },
+  "boundedLiteralCallsiteCensus": {
+    "command": "rg -o 'writeString\\s*\\(\\s*[0-9]+' src/libdxfrw.cpp src/intern/dxfwriter.cpp | sed -E 's/.*\\(\\s*//' | sort -nu",
+    "distinctCodes": 38,
+    "classification": "Codes 1004 and 310 are Bin chunks; the other 36 literal codes classify as Str under both standalone-safe and LibreCAD-legacy profiles.",
+    "scopeLimit": "This does not cover dynamic code arguments, other files, field semantics, or version floors."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+      "compiler": "/usr/bin/g++",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "adjacentTargetBuild": {
+      "command": "cmake --build build-gcc --target lc3_compat_check libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "adjacentCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "writerTargetBuilds": {
+      "command": "cmake --build build-gcc --target libdxfrw_writer_primitives_tests libdxfrw_writer_version_matrix_tests -j4",
+      "result": "PASS"
+    },
+    "writerCTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_writer_primitives|libdxfrw_writer_version_matrix|libdxfrw_mleader_writer_version)$' --output-on-failure",
+      "result": "PASS (3/3)"
+    },
+    "diffCheck": "PASS"
+  },
+  "evidenceImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "parentWork": "PAR-39 / 7BU remains open for complete call-site and semantic/profile audit.",
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "fullSuiteRuns": 0,
+    "sanitizerOrFuzzRuns": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout contains extensive pre-existing tracked modifications and untracked artifacts. This slice overlaps already modified writer/test files, so broad staging or an unreviewable partial commit was avoided."
+  },
+  "nextUnblockedStep": "Complete the dynamic string-sink audit for DIMSTYLE, appData, UTF-8 chunk helpers, and validated raw replay under standalone and explicit legacy profiles; add focused controls only for uncovered dispatch branches."
+}

@@ -1,0 +1,88 @@
+{
+  "scope": "Explicit AC1021 default ACAD_MATERIAL graph; three source-witnessed nonprocedural defaults only. Existing AC1024 opt-in preserved; no other revisions admitted. No broad DWG interoperability claim.",
+  "authority": "ODA v5.4.1 specifies AC1021 common object streams and LAYER/HEADER handles but does not publish a MATERIAL body schema. The body is bounded to the exact independently produced source graph; it is not generalized from this observation.",
+  "source": {
+    "author": "ODA File Converter, from locally authored DXF",
+    "dxf_sha256": "90aca54f081843dd94abb26bb3765530ab5165a4dc4f366039a7f8075f9b5a68",
+    "dwg_sha256": "d1c06f7818e18d22e6bba41421468903f9b67cd633f900c7c3c17ec4c6b95534",
+    "dwg_scratch": "/private/tmp/p6-ac1021-current/oda/source.dwg",
+    "producer_trace": "/private/tmp/p6-ac1021-current/control-v9.log",
+    "objects_page_sha256": "96b5c2a28396ffe108338506b6c1a7ab24dfa67217d38881765e29f8d888b5d9",
+    "material_handles": [
+      "0x1f",
+      "0x20",
+      "0x21"
+    ],
+    "dictionary_handle": "0xe",
+    "current_material": "0x20"
+  },
+  "source_bit_comparison": {
+    "offsets": [
+      3664,
+      3770,
+      3876
+    ],
+    "declared_data_bit_boundaries": [
+      782,
+      782,
+      766
+    ],
+    "complete_object_bits": [
+      816,
+      816,
+      800
+    ],
+    "contents": "Class and common prefix, data, strings, trailer, role-4 owner and reactor, and zero end bits all match bit for bit. The extraction uses the in-tree RS decoder and decompressor and the object comparison uses the writer constructor; it is not an independent implementation."
+  },
+  "generated": {
+    "dwg_scratch": "/private/tmp/ac1021-material-final/in/graph.dwg",
+    "sha256": "2c890c1b82a0b95a0eb1e9c99e45a944987ae7df5c737fd410c270807ccfb2ca",
+    "global_sha256": "a4d4a7380991381678775e847ae93d9d510b3c443efb383429cbbe92c63a2035",
+    "generated_page_sha256": "8fee68ff17045ab7ccd337a2b573bd858ee2de33a8eaca823075ff0c013ceab4",
+    "generated_offsets": [
+      1149,
+      1258,
+      1367
+    ],
+    "declared_data_bit_boundaries": [
+      790,
+      790,
+      774
+    ],
+    "complete_object_bits": [
+      840,
+      840,
+      824
+    ],
+    "explanation": "Generated self handle is one byte wider; dictionary owner/reactor are each one byte wider. Complete raw frame comparison includes the two zero pad bits; this comparison uses the in-tree constructor."
+  },
+  "independent_peer": {
+    "tool": "tools/audit_ac1021_material_peer.py",
+    "tool_sha256": "f914d530f0e6c1913317c55a2734ef39442a628416fb2362febedeaf5d86b8c0",
+    "test": "tests/ac1021_material_peer_audit_tests.py",
+    "test_sha256": "e90d174e15da1fe8993eb3427d80bfffe826a9ab244fba92f8daf52962fb714f",
+    "dwgread_sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "outcome": "LibreDWG 0.14 verifies 63 decoded non-identity fields per material, class manifest, owner/reactor, NOD, HEADER and LAYER links, and data/string boundaries. Peer trace infers but does not inspect the two pad-bit values. Thirteen synthetic fault controls and wrong source hash reject.",
+    "test_cmake": "libdxfrw_ac1021_material_peer_audit"
+  },
+  "oda_audit": {
+    "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/ac1021-material-final/in /private/tmp/ac1021-material-final/out ACAD2007 DXF 0 1 '*.dwg'",
+    "exit": 0,
+    "stdout_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "graph_error_sha256": "c764d99fe023b0435f910758f7f74cab4ad5f4e9d9268af9497858286a6d912b",
+    "global_error_sha256": "250d5fedf7294ed1569be5bb043b0dfd63b6e7723d49ffaf7f5c74b6975cafd6",
+    "result": "Both files produced only .err, no DXF. Each records 16 earlier object warnings and fatal AcDbViewportTableRecord (0x16), requiring recovery. There is no LAYER warning; this run cannot establish MATERIAL object acceptance or whole-file interoperability."
+  },
+  "native_readback": "AC1021 emits three named materials with correct owner/reactor but deliberately retains their 550-bit bodies opaque; native semantic decoding is AC1024-only and remains unchanged.",
+  "regressions": "libdxfrw_dwg_default_material_optin parameterized AC1021/AC1024: graph, caller layer and current-material controls, aliases/collisions, ignored failures, sentinel preservation and same-facade retry; AC1015/1018/1027/1032 opt-in refused. libdxfrw_dwg_ac1024_default_material passes. No fixtures committed.",
+  "qualification": "The explicit opt-in assumes caller attestation that opaque payloads contain no hidden graph claims; caller/source layers retain their existing references and no-opt-in semantics remain unchanged.",
+  "probe_tools": {
+    "extractor": "tools/extract_ac1021_material_page.cpp",
+    "extractor_sha256": "1c6f145e0c239f02e5c55ad2d40e45806b99eb66aaed5a0cc6f4d3a66d3bf31c",
+    "comparator": "tools/probe_ac1021_default_material_source.cpp",
+    "comparator_sha256": "3fdeb544972551e23f02b0fb14be25be3713e3984ad23d5144b50b33c846281a",
+    "reproduction": "Compile each tool with c++ -std=c++17 -Isrc <tool> build-gcc/libdxfrw.a -o <executable>. Verify source and generated DWG SHA-256 above, run extractor with source or generated and the corresponding DWG and page path, verify the declared page SHA-256, then run comparator with the same source or generated mode and page path. Both modes are source-specific and require exact specified files. One-bit change at source page offset 3672 is rejected; no stored fixture is required."
+  },
+  "validation": "Before the separate VPORT edits: cmake --build build-gcc --target libdxfrw_dwg_default_material_optin_tests libdxfrw_dwg_ac1024_default_material_tests; ctest --test-dir build-gcc -R \"libdxfrw_dwg_(default_material_optin|ac1024_default_material)$\" --output-on-failure: 2/2 passed. Python-only peer-audit CTest passed 13 negative controls. Separate later combined VPORT/material coherent build also passed.",
+  "isolated_validation": "Clean archive of b6c87132 plus only this staged material candidate, built with AddressSanitizer, passed libdxfrw_dwg_default_material_optin and libdxfrw_ac1021_material_peer_audit 2/2. The uncommitted VPORT correction was excluded."
+}

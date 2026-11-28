@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader peer evidence freshness, bounded-record policy, and EED scale gate",
+  "mode": "Primary-source peer issue/PR and documentation review plus focused local source/test crosswalk",
+  "scope": [
+    "Refresh the exact state of ACadRust AC1032 auxiliary-record issue #134",
+    "Refresh the merge and review state of LibreDWG EED memory PR #1426",
+    "Cross-check ACadSharp EED signed-length report #1282 against ODA and local boundary evidence",
+    "Revalidate current GDAL Binary-DXF/DWG route separation and FreeCAD ACIS consumer boundary",
+    "Update existing PAR-14/PAR-26, 7K, PAR-07/S8 and peer-admission readiness without changing cadence"
+  ],
+  "sources": [
+    {
+      "name": "ACadRust issue #134",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/134"
+      ],
+      "observed": "The issue remains open and reports that ACadRust v0.6.4 rejects 70 of 351 private AC1032 drawings that v0.6.3 opened, mostly on AcDbMLeaderObjectContextData with several associative records. The maintainer added commit 0e46236 and asked for a reporter-corpus retest; no public retest or issue closure is recorded. The report is scoped to that private corpus and peer versions, not a reproduced libdxfrw defect."
+    },
+    {
+      "name": "LibreDWG PR #1426",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/pull/1426"
+      ],
+      "observed": "The PR is open with one proposed commit, 008a00a, and a pending copyright-assignment label. Its author reports that shrinking each decoded EED item to consumed bytes lowers peak memory in several dense examples, including a generated LINE with 20,000 XDATA integers. The reported numbers are not a merged/released result or a local benchmark."
+    },
+    {
+      "name": "ACadSharp issue #1282",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1282"
+      ],
+      "observed": "The report says ACadSharp v3.8.0/master narrows per-APPID EED byte length to signed short, causing its reported 32,768-byte case to wrap and lose an object. This is not evidence of a format-wide 32,767-byte cap."
+    },
+    {
+      "name": "GDAL current DXF and DWG driver contracts",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://gdal.org/en/stable/drivers/vector/dwg.html"
+      ],
+      "observed": "The documentation distinguishes Binary-DXF reading (documented from GDAL 3.12) from DWG reading through an ODA Teigha dependency. The driver/model projection and its build options must be treated as a separate route from full document-graph or 3D semantic support."
+    },
+    {
+      "name": "FreeCAD current DXF consumer documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observed": "The documentation states that embedded ACIS/SAT solids in DXF are not currently read by the stock importer. This confirms a consumer boundary only; it is not a result from a particular local FreeCAD build or optional add-on."
+    },
+    {
+      "name": "Local EED source and generated boundary coverage",
+      "urls": [
+        "src/intern/dwgreader.cpp",
+        "src/intern/dwgsafety.h",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "Local readDwgEed allocates one declared APPID span and parses its typed item stream through a bounded sub-buffer, with per-chunk and total item limits. Existing 7K generated vectors exercise 32,767, 32,768, 65,535 and 65,536-byte totals, whole-item splitting/refusal and a full-DWG following-LINE sentinel. These prove local bounded-wire behavior, not independent/native acceptance or peak memory at extreme item density."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refreshes the PAR-07/S8 peer evidence ledger to distinguish proposed/current source from released behavior and to require issue/PR disposition plus reporter retest before calling a peer fix verified. Keeps ACadRust #134 corpus-unavailable and non-promoting, retains existing local EED byte-boundary tests without adding a 32,767-byte cap, and leaves only one optional scratch-generated dense-EED diagnostic at the existing composed scale checkpoint when EED changes or profiling warrants it. GDAL and FreeCAD remain route-specific external consumer/projection evidence, not pooled support votes."
+  },
+  "method": {
+    "kind": "Read-only web review of primary project-owned issue/PR/documentation pages plus local source/test crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "planSha256": "c466d619b91b6841eabfb72c434cd6ff9294e3635eaee6ee78389535ee0c45cf",
+    "documentationValidation": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md passed",
+    "limitations": "Peer issue reports, PR metrics, and mutable documentation are not normative format sources or local runtime observations. No peer branch/release was built; the private ACadRust corpus was unavailable. The optional EED memory observation was not run. This update changes evidence-state/readiness only and does not qualify support."
+  }
+}

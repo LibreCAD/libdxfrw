@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "a4a11037",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "input": "Locally authored generated AC1009 DXF with one named block, LINE, INSERT and layer.",
+  "checks": [
+    "Turn off the layer after import, verify the existing block entity keeps its identity and points to the new layer, save in AC1018 ASCII and binary and reopen both.",
+    "The reopened block has one LINE with the expected coordinates and layer object; the layer is off. Undo and redo restore the original and off layer identities.",
+    "ezdxf 1.4.5 independently reads both generated outputs: one LINE on VISIBLE_LAYER, signed index -3 and zero audit errors and repairs.",
+    "All 73 focused DXF round-trip tests and plan full, worktree, base-ref and 31 checker tests pass on macOS ARM64."
+  ],
+  "sha256": {
+    "source": "93af63d5fa982533410378723f25dc218cf0e4df9891d065c7ce8e6102362cab",
+    "ascii": "95b224b44dcbb8b7f186d1098c2688537c9350620174a0718b6f7372878f85d4",
+    "binary": "33db14acb95145c68c2995b7a405384447b4394760b18417c3e4949a827738ed"
+  },
+  "limits": [
+    "Generated control only; other producers and native GUI/platform qualification remain open.",
+    "No generated DXF files are committed."
+  ],
+  "supportClaimEffect": "none"
+}

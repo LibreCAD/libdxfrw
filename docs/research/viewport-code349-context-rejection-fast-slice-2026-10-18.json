@@ -1,0 +1,55 @@
+{
+  "title": "VIEWPORT code-349 context rejection fast slice",
+  "date": "2026-10-18",
+  "classification": "partial-implementation-fast-slice",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "subplan": "PAR-40 / 7G.2",
+  "scope": [
+    "prevent VIEWPORT group code 349 from aliasing the code-333 shade target",
+    "retain generated ASCII/Binary code-333 remap coverage",
+    "record focused implementation and validation outcome"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "DRW_Viewport::parseCode rejects code 349. A generated parser control establishes code 333 first, attempts code 349, and verifies shadePlotHandle is unchanged after rejection.",
+    "persistent_fixture_files_added": 0,
+    "new_ctest_registrations": 0,
+    "new_ledger_items": 0,
+    "support_claim_promotions": 0
+  },
+  "validation": {
+    "strict_target_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "passed"
+    },
+    "focused_selector": {
+      "command": "build/libdxfrw_dxf_fixture_tests --viewport-typed-handle-remap",
+      "result": "passed"
+    },
+    "compatibility_target": {
+      "command": "cmake --build build --target lc3_compat_check -j2",
+      "result": "passed; already up to date"
+    },
+    "owning_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "failed with SegFault after 3.33 seconds in the broad runner path; same previously observed failure pattern, cause unattributed"
+    },
+    "full_suite_run": false
+  },
+  "remaining_work": [
+    "Implement DXF HEADER $INTERFEREOBJVS/$INTERFEREVPVS/$DRAGVS retention, target-root validation, and handle remapping after release/default contracts are verified.",
+    "Read the repository-mandated ODA specification and trace version-matched samples before changing DWG header parse/encode layout.",
+    "The owning all-fixtures CTest segfault remains independently unattributed."
+  ],
+  "plan_effect": {
+    "refines": ["PAR-40", "7G.2"],
+    "findings": 130,
+    "top_level_subplans": 73,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "worktree_state": "uncommitted"
+}

@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 ACAD_TABLE/TABLESTYLE owner order fast slice",
+  "mode": "Generated ASCII/Binary implementation and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Assert physical OBJECTS order for the existing ACAD_TABLE to ACAD_TABLESTYLE graph using output handles resolved by strict readback.",
+    "Require actual NOD first and the NOD-owned style DICTIONARY before its TABLESTYLE child in both ASCII and Binary DXF.",
+    "Give the existing generated selector one focused CTest owner without adding a new target or persistent fixture."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "filesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par20-tablestyle-owner-order-fast-slice-2026-10-20.json"
+    ],
+    "generatedControls": [
+      "The existing tableWriterRoundTrip generates the rooted ACAD_TABLESTYLE graph and imports the emitted ASCII/Binary DXF strictly.",
+      "The test reads physical OBJECTS order before deleting the temporary output and checks the actual NOD handle at position zero.",
+      "The NOD-owned ACAD_TABLESTYLE dictionary must precede the remapped TABLESTYLE handle.",
+      "Existing key, target, owner, typed/raw TABLESTYLE, table-reference, and text-style assertions remain in force."
+    ],
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 1,
+    "newTestTargets": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "directSelector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-table-callback (exit 0)",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_table_callback_owner_order$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check on scoped changed files; JSON parses with jq; trailing-whitespace scan clean",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0
+  },
+  "assessment": {
+    "closes": "Physical NOD-first and owner-dictionary-before-TABLESTYLE output order for the existing generated ACAD_TABLE/TABLESTYLE graph in ASCII and Binary DXF.",
+    "doesNotClose": [
+      "A generic OBJECTS ordering scheduler or every root/owner family.",
+      "Every ACAD_TABLE/TABLESTYLE variant or external producer behavior.",
+      "Native application acceptance, 3D semantics, or broad named-resource support."
+    ],
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "commitCreated": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

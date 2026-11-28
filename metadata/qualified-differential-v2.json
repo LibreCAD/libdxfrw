@@ -1,5 +1,7 @@
 {
-  "schema": 2,
+  "schema": 3,
+  "adapterResultSchema": 3,
+  "normalizationSchema": 2,
   "kind": "libdxfrw-qualified-differential-runners",
   "fixturePolicy": "lockedRepositoryBlob-or-localFromScratch; no-drawing-payloads-in-reports",
   "resultKind": "libdxfrw-semantic-adapter-result",

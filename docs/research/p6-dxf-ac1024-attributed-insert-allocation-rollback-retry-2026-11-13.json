@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-ac1024-attributed-insert-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_AC1024_STANDALONE_ATTRIB_SEQEND_ASCII_BINARY_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Close one P6-G version-specific whole-write transaction gap for legacy standalone ATTRIB records and their SEQEND under AC1024 DXF output.",
+  "source": {
+    "kind": "deterministic locally-authored records generated during the test",
+    "profile": "One INSERT with two non-MTEXT ATTRIB children, distinct handles, tags, text and geometry; output in AC1024 ASCII and Binary DXF.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-ac1024-attributed-insert-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "Added a focused AC1024 whole-dxfRW::write allocation-failure sweep for an attributed INSERT. Both output codecs cover standalone ATTRIB/SEQEND serialization and typed re-import.",
+    "method": "Calibrate reached allocations in a successful write, then inject std::bad_alloc at each allocation. Verify failed export, sentinel destination preservation, unchanged caller INSERT/ATTRIB state, no staged output, same-codec retry to byte-identical output, and fresh typed readback of both attributes."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dxf_legacy_attributed_insert_allocation_transaction$' --output-on-failure: PASS 1/1 in 2.14 seconds",
+    "ascii": "121/121 allocation failures pass rollback/retry/typed-readback.",
+    "binary": "119/119 allocation failures pass rollback/retry/typed-readback.",
+    "diffCheck": "PASS: git diff --check on the implementation, plan and receipt paths"
+  },
+  "limitations": [
+    "Generated AC1024 transport and transaction evidence only; producer interoperability and native consumer behavior are not qualified.",
+    "Only one INSERT with two standalone ATTRIB children is covered; other version/field variants remain in P6-G inventory.",
+    "No support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "AC1024 standalone ATTRIB/SEQEND ASCII and Binary allocation rollback, same-codec retry and typed readback.",
+    "remainingP6G": "Continue with distinct public-writer overloads, remaining version-specific compound-record variants, variable-size OBJECTS builders, and uncovered caller-state combinations.",
+    "phaseStatusesChanged": false
+  }
+}

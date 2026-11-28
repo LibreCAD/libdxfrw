@@ -1,0 +1,163 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2838,0 +2839,6 @@
++    int columns = 1;
++    int rows = 1;
++    double columnSpacing = 0;
++    double rowSpacing = 0;
++    bool invalidArray = false;
++    bool seenArray[4] = {};
+@@ -2839,0 +2846,19 @@
++        const int code = static_cast<int>(m_record_type);
++        const int arrayField = code == 70 ? 0 : code == 71 ? 1 : code == 44 ? 2 : code == 45 ? 3 : -1;
++        if (arrayField >= 0) {
++            if (seenArray[arrayField]) invalidArray = true;
++            seenArray[arrayField] = true;
++            if (arrayField < 2) {
++                int value = 0;
++                if (!parseCompleteNumber(m_record_data, value)) invalidArray = true;
++                else if (arrayField == 0) columns = value;
++                else rows = value;
++            }
++            else {
++                double value = 0;
++                if (!parseCompleteNumber(m_record_data, value) || !std::isfinite(value)) invalidArray = true;
++                else if (arrayField == 2) columnSpacing = mm(value);
++                else rowSpacing = mm(value);
++            }
++            continue;
++        }
+@@ -2870,0 +2896,30 @@
++    constexpr int maxArrayInstances = 1024;
++    if (invalidArray || columns < 1 || rows < 1 || rows > maxArrayInstances
++        || columns > maxArrayInstances / rows || !std::isfinite(columnSpacing)
++        || !std::isfinite(rowSpacing) || (columns > 1 && columnSpacing == 0.0)
++        || (rows > 1 && rowSpacing == 0.0)) {
++        UnsupportedFeature("INSERT invalid array parameters");
++        return true;
++    }
++    const double rotation = Base::toRadians(rotationDegrees);
++    if (!std::isfinite(rotation) || !std::isfinite(scale.x) || !std::isfinite(scale.y)
++        || !std::isfinite(scale.z)) {
++        UnsupportedFeature("INSERT invalid array parameters");
++        return true;
++    }
++    // Array spacing rotates with the INSERT in OCS, but is not scaled.
++    const auto arrayPoint = [&](int row, int column) {
++        Base::Vector3d offset(column * columnSpacing, row * rowSpacing, 0);
++        offset.RotateZ(rotation);
++        return center + offset;
++    };
++    // Reject the complete array before creating anything if any point overflows.
++    for (int row = 0; row < rows; ++row) {
++        for (int column = 0; column < columns; ++column) {
++            const Base::Vector3d point = arrayPoint(row, column);
++            if (!std::isfinite(point.x) || !std::isfinite(point.y) || !std::isfinite(point.z)) {
++                UnsupportedFeature("INSERT invalid array parameters");
++                return true;
++            }
++        }
++    }
+@@ -2872,2 +2927,6 @@
+-    OnReadInsert(center, scale, blockName, Base::toRadians(rotationDegrees));
+-    return (true);
++    for (int row = 0; row < rows; ++row) {
++        for (int column = 0; column < columns; ++column) {
++            OnReadInsert(arrayPoint(row, column), scale, blockName, rotation);
++        }
++    }
++    return true;
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1621,0 +1622,89 @@
++    def test_block_insert_arrays_geometry_and_text(self):
++        """Expand rotated/scaled arrays in their OCS, including nested text."""
++        import sys
++        import types
++        draft = types.ModuleType("Draft")
++        calls = []
++        def make_text(text, placement, *args):
++            calls.append((round(placement.Base.x, 6), round(placement.Base.y, 6), round(placement.Base.z, 6)))
++            return self.document.addObject("App::FeaturePython", "ArrayText")
++        draft.make_text = make_text
++        old_draft = sys.modules.get("Draft")
++        sys.modules["Draft"] = draft
++        try:
++            options = FreeCAD.ParamGet(self.option_source)
++            options.SetBool("dxftext", True)
++            base = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                    (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                    (0, "BLOCK"), (8, "0"), (2, "B"), (70, 0), (10, 1), (20, 2), (30, 0),
++                    (0, "LINE"), (8, "0"), (10, 1), (20, 2), (30, 0), (11, 2), (21, 2), (31, 0),
++                    (0, "TEXT"), (8, "0"), (10, 1), (20, 2), (30, 0), (40, 1), (1, "ARRAY"),
++                    (0, "ENDBLK"), (8, "0")]
++            array = [(0, "INSERT"), (8, "0"), (2, "B"), (10, 10), (20, 20), (30, 30),
++                     (41, 2), (42, 3), (43, 1), (50, 90), (70, 3), (71, 2), (44, 5), (45, 7),
++                     (210, 0), (220, 1), (230, 0)]
++            expected = sorted((((x, 30, z), (x, 30, z + 2))
++                               for x in (-10, -3) for z in (20, 25, 30)))
++            for mode in (2, 3):
++                options.SetInt("DxfImportMode", mode)
++                for nested in (False, True):
++                    with self.subTest(mode=mode, nested=nested):
++                        if nested:
++                            tags = base + [(0, "BLOCK"), (8, "0"), (2, "OUTER"), (70, 0),
++                                           (10, 0), (20, 0), (30, 0)] + array + [
++                                           (0, "ENDBLK"), (8, "0"), (0, "ENDSEC"),
++                                           (0, "SECTION"), (2, "ENTITIES"), (0, "INSERT"),
++                                           (8, "0"), (2, "OUTER"), (10, 0), (20, 0), (30, 0)]
++                        else:
++                            tags = base + [(0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")] + array
++                        tags += [(0, "ENDSEC"), (0, "EOF")]
++                        path = os.path.join(self.temp_dir, "block-insert-array.dxf")
++                        with open(path, "w", encoding="ascii", newline="\n") as stream:
++                            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                        calls.clear()
++                        previous = set(self.document.Objects)
++                        Import.readDXF(path, self.document.Name, True, self.option_source)
++                        self.document.recompute()
++                        name = "Link_OUTER" if nested else "Link_B"
++                        links = [obj for obj in self.document.Objects if obj not in previous
++                                 and obj.Name.startswith(name)]
++                        edges = [edge for link in links for edge in link.Shape.Edges]
++                        observed = sorted(tuple(sorted((round(v.Point.x, 6), round(v.Point.y, 6), round(v.Point.z, 6))
++                                                      for v in edge.Vertexes)) for edge in edges)
++                        self.assertEqual(observed, expected)
++                        self.assertEqual(sorted(calls), [pair[0] for pair in expected])
++        finally:
++            if old_draft is None:
++                del sys.modules["Draft"]
++            else:
++                sys.modules["Draft"] = old_draft
++
++    def test_block_insert_array_invalid_then_valid(self):
++        """Refuse malformed and oversized arrays without losing later inserts."""
++        options = FreeCAD.ParamGet(self.option_source)
++        base = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                (0, "BLOCK"), (8, "0"), (2, "B"), (70, 0), (10, 0), (20, 0), (30, 0),
++                (0, "LINE"), (8, "0"), (10, 0), (20, 0), (30, 0), (11, 1), (21, 0), (31, 0),
++                (0, "ENDBLK"), (8, "0"), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")]
++        arrays = [[(70, 0)], [(70, "1bad")], [(70, 2), (70, 2), (44, 1)],
++                  [(70, 2), (44, 0)], [(70, 1025), (44, 1)], [(71, 2), (45, "1e309")],
++                  [(70, 3), (44, "1e308")], []]
++        for array in arrays:
++            base += [(0, "INSERT"), (8, "0"), (2, "B"), (10, 0), (20, 0), (30, 0)] + array
++        base += [(0, "ENDSEC"), (0, "EOF")]
++        path = os.path.join(self.temp_dir, "invalid-block-insert-arrays.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in base))
++        for mode in (2, 3):
++            with self.subTest(mode=mode):
++                options.SetInt("DxfImportMode", mode)
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                self.document.recompute()
++                links = [obj for obj in self.document.Objects if obj not in previous
++                         and obj.Name.startswith("Link_B")]
++                self.assertEqual(len(stats["unsupportedFeatures"]["INSERT invalid array parameters"]), 7)
++                self.assertEqual(len(links), 1)
++                self.assertAlmostEqual(links[0].Shape.Edges[0].Length, 1)
++

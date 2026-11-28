@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5an",
+  "date": "2026-10-23",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": "DIRTY_UNCOMMITTED_UNSTAGED",
+  "status": "GROUP_REFERENCE_NAMESPACE_LOCALLY_IMPLEMENTED_STANDARD_OBJECT_FIELD_EDGE_PROOF_PENDING",
+  "predecessor": "docs/research/rpp5am-standard-object-emission-and-source-replay-fast-slice-2026-10-23.json",
+  "implemented": [
+    "GROUP output handles planned after writeHeader and before dependent record emission; planning maps never populate actual source-object emission evidence.",
+    "Typed and translated raw-group references share final object/GROUP namespace; raw sections opting out of source remapping retain structural-only policy.",
+    "Explicit GROUP destinations honored; planned source/entity/table collisions and fixed/shared output destinations refuse. Failed attempts clear plans and actual bindings.",
+    "GROUPs, named dictionaries and caller remaps freeze for a GROUP-bearing attempt after header setup, preventing late callback invalidation of planned destinations.",
+    "Record-owner inventory skips nested 102 application/reactor references and closes common-owner discovery at subclass 100; checkpoint/rollback restores application depth.",
+    "Converter VERTEX tests assert unchanged source identities and compare parsed output to final written-source bindings; direct codec mutation/rollback behavior remains covered.",
+    "Empty-GROUP writes avoid graph-index work; remap-destination uniqueness index retains only GROUP targets, not the full remap graph."
+  ],
+  "validation": {
+    "ctest": {
+      "result": "PASS",
+      "passed": 19,
+      "failed": 0,
+      "seconds": 10.27,
+      "fastLabeled": 17,
+      "scope": "Affected cohort, not full project suite",
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dxf_standard_object_identities",
+        "libdxfrw_dwg_codepage_snapshot",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dxf_spline_helix_source_identities",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg_hatch_reference_graph",
+        "libdxfrw_classic_vertex_xdata",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_table_callback_owner_order",
+        "libdxfrw_tablestyle_nested_raw_net",
+        "libdxfrw_cellstylemap_dxf_writer",
+        "dwg2dxf_acds_history_dwg_frame_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_acds_raw_dxf_source_baseline",
+        "libdxfrw_dwg_read_outcome_policy",
+        "libdxfrw_persistent_manager_prefix_dispatch"
+      ]
+    },
+    "owningDxfFixtureCheckpoint": {
+      "result": "PASS",
+      "testsPassed": 3,
+      "seconds": 15.65,
+      "tests": [
+        "libdxfrw_dxf_standard_object_identities",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "scope": "Prior in-turn production checkpoint before final setup-freeze guard; final guard qualified by current 19-test cohort and focused ASan. Not a full-project suite."
+    },
+    "groupReferenceMatrix": {
+      "passed": 28,
+      "versions": [
+        "AC1014",
+        "AC1015",
+        "AC1018",
+        "AC1021",
+        "AC1024",
+        "AC1027",
+        "AC1032"
+      ],
+      "encodings": [
+        "ASCII",
+        "Binary"
+      ],
+      "profiles": [
+        "allocator destinations / primary-first GROUP order",
+        "explicit destinations / secondary-first GROUP order"
+      ],
+      "checks": [
+        "Complete independently parsed physical inventory equals final writer inventory.",
+        "Entity reactor targets match both actual GROUP identities.",
+        "Named dictionary forward references and direct dictionary backward references match emitted GROUPs.",
+        "XRECORD ordered data/text and 340/341 compatibility handle views preserve both targets.",
+        "Retained raw common-appdata and typed cross-GROUP reactors resolve both directions.",
+        "Both GROUP member lists refer to the actual emitted LINE."
+      ]
+    },
+    "identitySelector": {
+      "positiveExports": 92,
+      "atomicOutputRefusals": 42,
+      "faultRetries": 40,
+      "newFaultKinds": 8,
+      "plannedIdentitiesNeverCountAsEmitted": true
+    },
+    "ownerInventory": {
+      "reactorNotOwner": true,
+      "body330NotOwner": true,
+      "nestedRollbackRestoresDepth": true,
+      "asciiBinary": true
+    },
+    "allocation": {
+      "existingPayloadFailures": 68,
+      "existingAcdsBaselineFailures": 10,
+      "result": "PASS",
+      "newGroupPlanAllocationSweep": "NOT_RUN"
+    },
+    "addressSanitizer": {
+      "result": "PASS",
+      "commands": [
+        "libdxfrw_wave1_tests --dxf-standard-object-identities",
+        "libdxfrw_wave1_tests",
+        "libdxfrw_dxf_fixture_tests --classic-vertex-xdata",
+        "libdxfrw_dwg_local_roundtrip --dxf-spline-helix-source-identities",
+        "libdxfrw_dwg_local_roundtrip --modeler-block-codec",
+        "libdxfrw_dwg_local_roundtrip --dxf-acds-multiple-data-storage"
+      ],
+      "scope": "Instrumented selected targets, not full sanitizer suite; no UBSan or allocation-sweep qualification."
+    },
+    "strictSyntax": {
+      "result": "PASS",
+      "translationUnits": [
+        "src/libdxfrw.cpp",
+        "src/intern/dxfwriter.cpp",
+        "dwg2dxf/dx_iface.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp",
+        "tests/gbk_codepage_tests.cpp",
+        "tests/modeler_block_census_tests.cpp"
+      ],
+      "flags": "-std=c++17 -Wall -Wextra -pedantic -Werror -fsyntax-only",
+      "additionalProbe": "tests/dxf_fixture_tests.cpp remains outside this strict pass: one pre-existing unused readBinarySplineCountWidths helper warning. Configured target builds and owning aggregate passes. Three other pre-existing warnings fixed mechanically; no warnings disabled. Wave1 existing keyword-macro limitation remains as recorded by predecessor."
+    },
+    "libreCad3SourceTarget": "PASS",
+    "diffCheck": "PASS"
+  },
+  "compatibility": [
+    "No new pure virtual callback.",
+    "dxfRW private plan fields require consumer rebuild; source compatibility does not establish binary ABI.",
+    "Header-time GROUP/named-dictionary setup remains supported; later callback mutations in GROUP-bearing writes now refuse atomically.",
+    "No DWG byte-layout parser changed in this slice."
+  ],
+  "remainingLocal": [
+    "Preserve complete generated NOD/ACAD_GROUP source common fields, cloning flags and per-key edge roles/order; withhold unsupported target rewrites.",
+    "Implement actual standard-source frame-to-output field/value/edge proof and modeled-edit admission before counting raw companions retained.",
+    "Add separately rooted native-DWG XRECORD positive with exact output text/value readback; retain orphan refusal.",
+    "Run bounded strict composed version/encoding/refusal/retry checkpoint.",
+    "Resume legacy TABLE entity/extension integration and AC1024+ inline authoring; classify container integrity separately.",
+    "Qualify new GROUP planning allocation-failure positions at its owning checkpoint."
+  ],
+  "external": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "linuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemantics": "NOT_RUN"
+  },
+  "supportClaimsPromoted": false,
+  "drawingFixturesAdded": false,
+  "nativeCadApplicationsRun": false,
+  "newIndependentPeerQualification": false,
+  "implementationBindings": {
+    "CMakeLists.txt": "e8bd67585c2c59ddf46d5ac52e4dadb1f71401f3d249bf3aaa803935ab89931b",
+    "tests/CMakeLists.txt": "1d0d9899350567590bd85dc2e3cb892e554c9cab62d039c78e74cc944afd4cf8",
+    "src/libdxfrw.cpp": "4052c253dc561204a8fe42e3fcb5afd8fe9ed9a25f6ad6f335d381348cbfb7ed",
+    "src/libdxfrw.h": "428cb02e20de59241d2c6516aa250c9d8fb93b63456d8ba7bcf16ac73597f2e4",
+    "src/handle_allocator.h": "cafce0d9ea507de5e597003de4a2976d24e08cb93c3a01913acc3a8d7a919f97",
+    "dwg2dxf/dx_data.h": "83fddac85b3d2ecb9d502d7f2fddb743539a5992111a10ccbae96183ee1ae563",
+    "dwg2dxf/dx_iface.cpp": "014ac5464b97395de9d5719fbcff758d2565fc1d98ded89a0d3d6b3a4e0f61ea",
+    "tests/wave1_tests.cpp": "fb3aebade6c98fe1f4962b4535e1b92ee0f4a22fc6454c917dd9bc30c7e02e97",
+    "tests/dwg_local_roundtrip_tests.cpp": "3835ce852b19575c6d279acef284e498e21b7127046e915d3b21434b6988e1f3",
+    "tests/dwg2dxf_adapter_tests.cpp": "2cbcba62089c44255851c264dc8972ca632f4cebb7dc80a9e1ea1bd2d46fdf9a",
+    "tests/gbk_codepage_tests.cpp": "13c253db64224d7c31cf542f9867e32dba3c65cb99690628341ed690cbd367a4",
+    "tests/modeler_block_census_tests.cpp": "9a06844826f7c91bbd5a97203739b1060d71fe9e14f48037285ab377f6e08171",
+    "tests/dxf_entity_identity_test_helpers.h": "ae8fe93e030dc94f5b91148bf594b472f74e9f2de43193f05efec3e90dc9b55f",
+    "build/libdxfrw_wave1_tests": "7d7e88e01a2443b8a67c34269f8ce630afa1d2a395190d65596e47ff3d5b72c1",
+    "build/libdxfrw_dwg_local_roundtrip": "fef9ed920d114c4cac371c79309e47ce034b2fdd9198f67fa001793f56220ea8",
+    "build/tests/libdxfrw_dwg2dxf_adapter_tests": "d0600bd82f4f487037f7ba95ff8794b8a208dc91fa91480186e3170c864528bd",
+    "build/libdxfrw_gbk_codepage_tests": "f23b50ac078f3014d7217d67d9c47fd4c542a8574a847c2351032eefe91f847d",
+    "build/libdxfrw_dwg_reader_matrix_tests": "e0cdbba722c2d4342dd02095f8abd41b3766a99669b4128b32c111dd7f868ee5",
+    "build/dwg2dxf/dwg2dxf": "6085202cf2064442777b3743fbc8207fee45fa245ae77f9beb89459dc436f30f",
+    "build-asan-custom/libdxfrw_wave1_tests": "660a6a351e45367a420aff8f4a3bc5a8a267b770f892be30dfc9986fff863b41",
+    "build-asan-custom/libdxfrw_dwg_local_roundtrip": "d44811673c1b97684de5ae7d337d26baecebf6eb22062acc5feebd633ad999e3",
+    "src/intern/dxfwriter.cpp": "c99ca1f3e786978ccf702f094c00fba75ca9b51769408e664c741f297c21f94c",
+    "src/intern/dxfwriter.h": "8a257d794de844ee4a85ea15c52695feb8d6c8d1dfaf61b0ab8c10246a68b4f8",
+    "tests/dxf_fixture_tests.cpp": "bcc6dc372ca190e7d830fa15a8ca497ca486d45f168c0199538e178be45afd0a",
+    "build/libdxfrw_dxf_fixture_tests": "6071d768caa8cf77ca7ac6d6b158d0c41dab6dce29312b01b2922c9a110b27a2",
+    "build-asan-custom/libdxfrw_dxf_fixture_tests": "2d4cd60fa5760800053f4905523c0ec16d072d87a20f5f5c1d31887d7960107c"
+  }
+}

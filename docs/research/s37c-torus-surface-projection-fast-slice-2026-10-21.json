@@ -1,0 +1,66 @@
+{
+  "title": "S3.7c torus surface projection across ring, horn, and spindle profiles",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Closest point on the untrimmed torus locus",
+    "domain": "Finite decoded torus face with majorRadius > 0, minorRadius > 0, and finite nonzero axis; supports ring, horn, and spindle profiles",
+    "projection_policy": "Project to the full minor-radius circle in the axial/radial cross-section, then lift by the query's radial direction around the torus axis; negative projected radial coordinates are represented by reversing that direction",
+    "ambiguity_policy": "Refuse points with multiple closest locus points, including most axis points and the major circle; the horn pinch at the axis is accepted when it is the unique closest locus point",
+    "frame_policy": "The full analytic torus locus is independent of its U reference direction; no parameter value or trim boundary is produced",
+    "numeric_policy": "Normalize coordinates and radii, retain direction separately from magnitude, and refuse nonrepresentable final coordinates atomically",
+    "reference_scope": "Official OCCT torus parameterization corroborates the standard major/minor-radius circular-tube locus only; it does not establish ACIS wire semantics, trims, orientation, or validity",
+    "non_claims": [
+      "signed inside/outside classification for horn or spindle torus profiles",
+      "torus UV parameterization or trim evaluation",
+      "body transform or source-unit application",
+      "B-rep validity",
+      "native consumer or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_outer_projection": "PASS",
+    "parser_fed_inner_projection": "PASS",
+    "oblique_query_with_nonunit_axis": "PASS",
+    "axis_and_major_circle_ambiguity_atomic_refusal": "PASS",
+    "horn_pinch_unique_axis_projection": "PASS",
+    "spindle_outer_and_negative_radial_projection": "PASS",
+    "spindle_axis_ambiguity": "PASS",
+    "nonfinite_query_or_axis_wrong_or_missing_surface_invalid_radii_and_zero_axis_refusal": "PASS",
+    "overflowing_point_center_difference_with_representable_projection": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.20 seconds)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_exported_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  },
+  "source": {
+    "official_geometry_reference": "https://occt3d.com/dev/doc/refman/html/annotated.html#Geom_ToroidalSurface",
+    "reference_reviewed": "Official OCCT reference manual documents the torus circular-tube parametrization in normalized local X/Y/Z directions; this was used only as a standard mathematical cross-check."
+  }
+}

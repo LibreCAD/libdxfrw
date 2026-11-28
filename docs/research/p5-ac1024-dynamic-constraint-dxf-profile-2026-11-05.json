@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "title": "AC1024 dynamic-constraint DIMENSION DXF profile",
+  "date": "2026-11-05",
+  "scope": "One physical AC1024 mechanical drawing and the generated ASCII/Binary writer control; this receipt does not qualify native constraint evaluation or broader producer/version support.",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "profile": "AC1024 / AutoCAD 2010 mechanical sample"
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "behavior": [
+      "DIMENSION entities on the legacy *LayerNameForDynamicConstraint layer with an empty geometry-block name and no block handle omit group codes 2 and 70.",
+      "Entity references to the legacy constraint layer are emitted on *ADSK_CONSTRAINTS.",
+      "The source-named layer row is retained for raw name references; a matching canonical layer row is added when the source has no canonical row.",
+      "The DWG table-output inspector admits exactly that additional canonical alias row for this bounded profile."
+    ]
+  },
+  "generated_control": {
+    "ctest": "libdxfrw_dynamic_constraint_dimension_dxf_profile",
+    "result": "passed",
+    "encodings": ["ASCII", "Binary"],
+    "checks": [
+      "legacy and canonical layer rows coexist",
+      "constraint DIMENSION omits group 2 and group 70",
+      "constraint expression text is retained",
+      "ordinary DIMENSION retains its geometry-block name and group 70"
+    ]
+  },
+  "physical_output": {
+    "path": "/private/tmp/libdxfrw-dynamic-constraint-fixed-final.dxf",
+    "sha256": "2d1cdfd55773cadf1a8bec57eccd1947d250a31d827b40dca3c5ed3ca68764a0",
+    "targetVersion": "AC1024",
+    "encoding": "ASCII",
+    "ezdxfVersion": "1.4.5",
+    "readback": {
+      "modelspaceDimensions": 17,
+      "recognizedDimensionalConstraints": 17,
+      "recognizedConstraintLayer": "*ADSK_CONSTRAINTS",
+      "geometryBlockNamePresent": false,
+      "dimensionTypeGroupPresent": false,
+      "auditErrors": 0,
+      "auditFixes": 0
+    }
+  },
+  "limitations": [
+    "ezdxf documents that dimensional constraints are not part of the published DXF reference and that ezdxf does not evaluate them; recognition and zero audit fixes establish profile/readback compatibility only.",
+    "No AutoCAD, LibreCAD, LibreCAD_3, or FreeCAD native constraint evaluation was tested.",
+    "No claim is made for other DWG producer versions, nonempty picture-block cases, or constraint graph completeness."
+  ],
+  "fixturePolicy": "No DXF or DWG test fixture was added to the repository; the physical output is temporary."
+}

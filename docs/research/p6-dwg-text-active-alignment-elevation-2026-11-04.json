@@ -1,0 +1,118 @@
+{
+  "title": "DWG TEXT active alignment single-elevation loss guard",
+  "base_commit": "03532664",
+  "patch": {
+    "path": "/private/tmp/text-alignment-elevation/text-elevation.patch",
+    "sha256": "d22dd16e55af2ad463ab2cc37815b85cce16556cf726c57c3ee0203df2f9e787"
+  },
+  "source_sha256": {
+    "src/drw_entities.cpp": "da1608ee13d8f9c03405bc18bae31e5a8d9291628418a2d78b47c34a8bffd446",
+    "src/libdwgr.cpp": "7560ef72160e8834a422198ff64f7bff81b51b5f52c69db76d88bf7128407be3",
+    "tests/CMakeLists.txt": "bc93ac4fb484738f02a6eddc1ace973ae3fbf79e1926b367b402362d84a4ea6d",
+    "tests/dwg_text_alignment_elevation_tests.cpp": "d2350aaa3000be6031fcded188aa55a5f9569b86da54224071b77cfae325a3f4",
+    "tools/author_text_alignment_elevation.py": "aec576f4c2cd4b3bbf2ffa747334223761614b8f72340abb7759eaa71d7858e1",
+    "tools/audit_text_alignment_elevation.py": "5ee7bb96c9f0fd656ccca802f2945ab520856bf53ee6274a532800d915a41bbe",
+    "tools/probe_text_alignment_elevation.cpp": "76f9fbae84ba22c8742add7d17ce309159d20bb87610c215aabe35bef00359b5"
+  },
+  "artifacts": {
+    "same_input4": {
+      "path": "/private/tmp/text-alignment-elevation/input4/same.dxf",
+      "sha256": "93460a5900a4a1c40afe20f332e66801e39f6f27c16e8c0246be9c309f4a764a"
+    },
+    "same_dwg4": {
+      "path": "/private/tmp/text-alignment-elevation/dwg4/same.dwg",
+      "sha256": "d61a817c45a81c81833b4e03b68d8d68b7b383e41aee985c924fa3d4b5decc4b"
+    },
+    "same_out4": {
+      "path": "/private/tmp/text-alignment-elevation/out4/same.dxf",
+      "sha256": "1de8ef32cc06b18209ab43b1564c60966eb22ac1fcb60cc7922cbebf4bde68f0"
+    },
+    "mismatch_input4": {
+      "path": "/private/tmp/text-alignment-elevation/input4/mismatch.dxf",
+      "sha256": "925e114c2baf1cf62397722099a9e444224ff427912bacccfb73b6ca42344b74"
+    },
+    "mismatch_dwg4": {
+      "path": "/private/tmp/text-alignment-elevation/dwg4/mismatch.dwg",
+      "sha256": "f661d13e8a443b87d87a7bc53a6dfe8274b6110f56bff4621506cbdb82b87d10"
+    },
+    "mismatch_out4": {
+      "path": "/private/tmp/text-alignment-elevation/out4/mismatch.dxf",
+      "sha256": "7857bc1836b2cc4e3deb760927ea983d741efe0041c99ae83cc61d57d2dd614b"
+    },
+    "tilted-same_input4": {
+      "path": "/private/tmp/text-alignment-elevation/input4/tilted-same.dxf",
+      "sha256": "39f7315dfbfcec33b0a05103ea319d30b97eb4f2bbf5804785c644e17ab2d718"
+    },
+    "tilted-same_dwg4": {
+      "path": "/private/tmp/text-alignment-elevation/dwg4/tilted-same.dwg",
+      "sha256": "f1829c6b8855cf76f61051eacedfcfb29ce8732274363c5c6d733cff5432f8cb"
+    },
+    "tilted-same_out4": {
+      "path": "/private/tmp/text-alignment-elevation/out4/tilted-same.dxf",
+      "sha256": "a975c68c36e42610a49d05e91081bf297b4528038ec2b6972d929c5bd41e3d6e"
+    },
+    "tilted-mismatch_input4": {
+      "path": "/private/tmp/text-alignment-elevation/input4/tilted-mismatch.dxf",
+      "sha256": "b39907ad083053d0a66f0877eecda387e328e67ff29c6b77895ef2b730216054"
+    },
+    "tilted-mismatch_dwg4": {
+      "path": "/private/tmp/text-alignment-elevation/dwg4/tilted-mismatch.dwg",
+      "sha256": "9cf8ef25717cfc15f136f0c56391953054be6f1e39b5b1a69f93f7363d9a0801"
+    },
+    "tilted-mismatch_out4": {
+      "path": "/private/tmp/text-alignment-elevation/out4/tilted-mismatch.dxf",
+      "sha256": "e8d35310740e261eded46407adbf160813559bc89112d06be3f9255aba681039"
+    },
+    "baseline_input": {
+      "path": "/private/tmp/text-alignment-elevation/input/mismatch.dxf",
+      "sha256": "f12a7cd9817627b01651b3e389e9da2a284db2aa0eb12e02d9b9446d82c2da99"
+    },
+    "baseline_dwg": {
+      "path": "/private/tmp/text-alignment-elevation/generated/mismatch.dwg",
+      "sha256": "7effd1651a11918e5b9fe303014f6ec07266ba09090469ef6ddd4b381a43d23c"
+    },
+    "baseline_output": {
+      "path": "/private/tmp/text-alignment-elevation/generated-out/mismatch.dxf",
+      "sha256": "fd0f359cae72f306aff5581941fca98a87322075e1f7e772d04734f83c427ca6"
+    },
+    "baseline_probe": {
+      "path": "/private/tmp/text-alignment-elevation/probe",
+      "sha256": "48c2e6bdde3a138488014349c0022d2c919bec5397ec3c3bf18073a113a9edf2"
+    },
+    "ctest_log": {
+      "path": "/private/tmp/text-alignment-elevation/ctest.log",
+      "sha256": "b90730e3f9280e6683b6067f342ef1643a885896a43547d3065baddc8f800b10"
+    },
+    "libredwg": {
+      "path": "/opt/homebrew/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "oda": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    }
+  },
+  "authority": "ODA Open Design Specification for .dwg files v5.4.1 section 20.4.3 p.111-112 defines one elevation and two 2D TEXT points. Autodesk DXF TEXT groups 10 and 11 are OCS points.",
+  "producer_provenance": "ezdxf 1.4.5 authored local AC1027 DXFs using tools/author_text_alignment_elevation.py; ODA File Converter 27.1 converted to AC1027 DWG and AC1027 DXF. The physical input/output pairing is the recorded local conversion lineage, not authenticated by the auditor. No ODA .err files were observed.",
+  "findings": "For active HCenter/VMiddle text, original insertion (1,2,3) and alignment (4,5,7), ODA source stores elevation 7 and returns both Z values 7; baseline libdxfrw AC1021 stores elevation 3 and returns both 3. For matching-Z control both preserve 3. The same source result holds for normal (0,1,0), where the alignment WCS point is (-4,7,5) rather than (-4,3,5). The baseline same/mismatch AC1021 DWGs have identical SHA-256. LibreDWG 0.14 confirms each selected wire elevation and XY pair; ezdxf verifies DXF fields and selected WCS geometry.",
+  "scope": "Exact built-in TEXT facade preflight latches failure for active alignment with nonzero unequal second Z or nonfinite active elevation; inherited Point/Line facade entries share the guard. The base TEXT codec also refuses before mutating buffers. The legacy zero second Z is interpreted as unspecified, so a deliberate distinct zero is not representable or detected. Left/baseline (inactive alignment) retains existing behavior even with unequal Z. Consumer-defined subclasses using a custom codec remain unchanged; subclasses that invoke base codec can still have ignored false results under old caller policy. ATTRIB, ATTDEF, MTEXT and other built-in codecs remain out of scope.",
+  "compatibility": "No DRW_Interface or public object layout change. LibreCAD uses XY for geometry and keeps both original 3D points in its sidecar; LibreCAD_3 consumes the insertion coordinate. Matching-Z, unspecified zero, tilted normal, all active horizontal and vertical modes, inactive alignment, custom overridden 3D codec and six supported writer revisions have focused controls.",
+  "validation": "Six-version fixture-free CTest passes. Direct codec invalid-value controls preserve partial-bit cursor; full-file ignored-return controls preserve destination sentinel and caller handle, with corrected same-writer retry through writeText/writePoint/writeLine. Selected matching-Z and zero-unspecified read back through native reader. Peer audit passes all four producer source/DWG/return cases and the generated AC1021 baseline loss case under python -O. This is selected TEXT geometry, not general whole-file or native CAD support.",
+  "commands": {
+    "ctest": "ctest --test-dir /private/tmp/text-alignment-elevation/build -R ^libdxfrw_dwg_text_alignment_elevation$ --output-on-failure",
+    "author": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -B tools/author_text_alignment_elevation.py NEW_DIRECTORY",
+    "probe_compile": "c++ -std=c++17 -Isrc -Itests tools/probe_text_alignment_elevation.cpp BASELINE_BUILD/libdxfrw.a -o NEW_PROBE (build against unmodified base 03532664)",
+    "peer": "<ezdxf-python> -O tools/audit_text_alignment_elevation.py --input INPUT --input-sha SHA --dwg DWG --dwg-sha SHA --output OUTPUT --output-sha SHA --dwgread /opt/homebrew/bin/dwgread --mode same|mismatch|tilted-same|tilted-mismatch|generated-loss"
+  },
+  "status": "bounded active TEXT alignment refusal; no broad native text support claim",
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_text_alignment_elevation$' --output-on-failure: 1/1 passed.",
+  "integrated_files": {
+    "src/drw_entities.cpp": "da1608ee13d8f9c03405bc18bae31e5a8d9291628418a2d78b47c34a8bffd446",
+    "src/libdwgr.cpp": "7560ef72160e8834a422198ff64f7bff81b51b5f52c69db76d88bf7128407be3",
+    "tests/CMakeLists.txt": "bc93ac4fb484738f02a6eddc1ace973ae3fbf79e1926b367b402362d84a4ea6d",
+    "tests/dwg_text_alignment_elevation_tests.cpp": "d2350aaa3000be6031fcded188aa55a5f9569b86da54224071b77cfae325a3f4",
+    "tools/author_text_alignment_elevation.py": "aec576f4c2cd4b3bbf2ffa747334223761614b8f72340abb7759eaa71d7858e1",
+    "tools/audit_text_alignment_elevation.py": "5ee7bb96c9f0fd656ccca802f2945ab520856bf53ee6274a532800d915a41bbe",
+    "tools/probe_text_alignment_elevation.cpp": "76f9fbae84ba22c8742add7d17ce309159d20bb87610c215aabe35bef00359b5"
+  }
+}

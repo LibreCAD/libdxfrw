@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "R24 TABLESTYLE indexed color transport",
+  "date": "2026-11-08",
+  "supportClaimEffect": "none",
+  "source": {
+    "specification": "Open Design Specification for .dwg files v5.4.1, §§20.4.101.3–.4",
+    "finding": "Content and cell-style color fields use TC values. The existing DXF writer serializes indexed colors as group 62; indexed CMC profiles use the documented canonical indexed-color method."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "The AC1024 TABLESTYLE writer admits representable indexed colors 0–255, including the existing ByBlock form, and the existing ByNone background form. RGB/book-color profiles remain refused because this writer emits scalar group 62 values only."
+  },
+  "validation": {
+    "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4 && ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+    "result": "Build passed; focused CTest passed 1/1. Generated ASCII/Binary controls verify indexed background/content/border colors at exact field positions, typed/raw readback, out-of-range color refusal with destination preservation, and same-adapter retry.",
+    "fixturesAdded": 0
+  },
+  "qualificationLimits": [
+    "Only indexed scalar colors are admitted; truecolor and book-color CMC values are not represented by this writer route.",
+    "Generated codec controls do not qualify independent producer wire behavior or native rendering.",
+    "No whole-file DWG/DXF support claim is promoted."
+  ],
+  "hashes": {
+    "src/libdxfrw.cpp": "34cd76961bc22d497d1c17a7c7f461af87bdc0a0b0cf992fd1af3febea3b4e10",
+    "tests/dwg2dxf_adapter_tests.cpp": "c76bc60bb56bf9065fd0a42525c0c963f0ce3c6b38a230822bbe0bb2b09f0f01"
+  }
+}

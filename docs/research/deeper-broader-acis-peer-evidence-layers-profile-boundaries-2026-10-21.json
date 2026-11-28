@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw-acis-peer-evidence-layers-profile-boundaries-v1",
+  "date": "2026-10-21",
+  "title": "ACIS peer evidence layers and exact profile boundaries",
+  "repository": "LibreCAD/libdxfrw",
+  "status": "research_and_local_fast_slice",
+  "plans": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "scope": [
+    "Recheck whether current open-source ACIS/SAB routes close parser, geometry, kernel, DWG/DXF carrier, and consumer evidence gaps.",
+    "Separate ACIS BinaryFile 21800 from experimental ASM BinaryFile4 23200 and other unsupported save profiles.",
+    "Complete generated wire-fed refusal coverage for the five owner relations already declared by the rooted projection profile."
+  ],
+  "method": {
+    "researchKind": "Read-only primary-source web review",
+    "peerSourceRevisionsPinned": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalledOrRun": false,
+    "peerOrNativeRuntimeRun": false,
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "productionParserChanged": false,
+    "sources": [
+      "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.2",
+      "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/formats/asm.md",
+      "https://github.com/cadmpeg/cadmpeg/blob/7bcc95276548de4e4876894b9a650a84ea9c4d6d/docs/format-support.md",
+      "https://docs.rs/acis-core/latest/acis_core/",
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c"
+    ],
+    "evidenceRule": "Published source and documentation establish route declarations and limitations only. They do not establish local conformance, complete ACIS grammar, B-rep validity, independent-kernel agreement, DWG/AcDs association, or native application acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "CADMPEG release/package identity",
+      "observed": "The directly opened GitHub release page identifies v0.6.2 as latest and exposes platform assets. Its exact-tag documentation describes a profile-bounded bare SAT/SAB comparator, not a DWG/DXF/AcDs reader. The surfaced docs.rs codec package page can lag at 0.6.1; release binaries and crate artifacts must not be substituted without matching source, configuration, and artifact identity.",
+      "planUse": "Retain v0.6.2 as an optional exact-payload parser/neutral-model comparison at the existing composed checkpoint only."
+    },
+    {
+      "topic": "acis-core evidence ceiling and source-free profile",
+      "observed": "Current docs.rs identifies acis-core 0.3.11. Its API says model reference/source-span closure does not establish B-rep validity or compatibility with a particular Inventor/ASM version; the helper layer does not construct OCCT solids. It documents an experimental fixed ASM BinaryFile4 23200 metric-box author and a narrow analytic authoring route without general history/pcurves.",
+      "planUse": "Keep it as a possible bounded model/parser or scratch-input route, not an independent geometry kernel and not a substitute for the library's admitted ACIS BinaryFile 21800 profile. Use 23200 as a fail-closed negative boundary only."
+    },
+    {
+      "topic": "GDAL and FreeCAD consumer limits",
+      "observed": "GDAL documents AC1027+ raw ASM data plus a 12-value transform mode but explicitly cannot transform these modeler entities into OGR geometry. FreeCAD documents distinct selectable C++ and legacy importers and states that embedded binary ACIS/SAT solids cannot currently be read by the stock importer.",
+      "planUse": "Keep explicit geometry projection, raw carrier observation, and native importer qualification as distinct result lanes."
+    },
+    {
+      "topic": "LibreDWG AcDs context",
+      "observed": "Current NEWS still describes AcDsPrototype_1b as incomplete and R2013+ SAB extraction as heuristic/brute-force. Section parsing or signature discovery does not establish complete DataStorage disposition, exact owner-key association, or B-rep semantics.",
+      "planUse": "Require exact key/payload joins and residual-record accounting; do not use LibreDWG alone as semantic support evidence."
+    },
+    {
+      "topic": "Local generated rooted-owner controls",
+      "observed": "The generated parser-fed SAB control now exercises all five previously declared ownership links (lump.body, shell.lump, face.shell, loop.face, coedge.loop) with one wrong typed owner per stream, and adds wrong-type/out-of-table reference negatives. These check transactional refusal plus exact node/ordinal diagnostics. Version-word controls include 20800, 22300, and 23200.",
+      "planUse": "Record this as structural parser/model/projector boundary evidence only; do not infer additional ownership rules or promote ACIS semantic support."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestRegistration": false,
+    "dependenciesAdded": 0,
+    "persistentFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "localValidation": {
+    "command": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4 && ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "result": "PASS (focused graph-preservation CTest 1/1; jq receipt validation; scoped git diff check)",
+    "fullSuiteRun": false,
+    "scopedDiffCheck": "PASS"
+  },
+  "limitations": [
+    "No external peer executable or native CAD application was run.",
+    "No external DWG, DXF, or SAB drawing was downloaded or committed.",
+    "Generated 21800 graphs do not establish producer interoperability, complete ACIS semantics, B-rep validity, DWG AcDs association, or consumer acceptance.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

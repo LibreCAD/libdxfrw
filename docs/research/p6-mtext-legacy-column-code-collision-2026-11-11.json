@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mtext-legacy-column-code-collision-2026-11-11",
+  "date": "2026-11-11",
+  "problem": "A locally authored AC1027 MTEXT with AcDbEntity group 48=3.5, AcDbMText rotation group 50=30, then a type-75-first main-subclass column run with group 48=12.5 and group 50 count/heights 2,10,20 was accepted with callback linetype scale 12.5 and angle 20. Column width overwrote the common field, column heights overwrote rotation, and the column fields were otherwise not retained.",
+  "authority": {
+    "autodesk": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm",
+    "scope": "The table lists MTEXT main-subclass column fields 75,76,78,79,48,49 and 50; 50 also denotes rotation. Group 50's documented height list has a count followed by its values.",
+    "independentLead": "https://github.com/storytold/cadcraft/issues/2247",
+    "leadLimit": "This peer issue independently reports the same class of scope collision; it is neither a normative field-order authority nor evidence of native producer compatibility."
+  },
+  "implementation": {
+    "carrier": "A separate final DRW_MTextLegacyColumns runtime subtype carries a shared immutable Source with ordered numeric column groups and the observed input revision and encoding. Its source/lease is shared by copies and the standard adapter accounts for retained source bytes and preserves the dynamic type. The base DRW_MText layout, callbacks and ordinary non-column behavior remain unchanged. A consumer that deliberately copies into the base class loses the separate carrier.",
+    "grammar": "Only a standalone, explicitly AcDbMText-scoped run with group 75 first is accepted. Groups 76,78,79,48,49 must each appear once in any order after 75 and before any height group; type is 0..2, count 0..4096 and flags 0/1. An optional group-50 height count must be an integral double in 1..4096, immediately followed by exactly that many contiguous group-50 finite values. The separate group-76 count and height count are retained independently. A prospective column field before 75, duplicate/incomplete fields, interrupted or excessive height sequences, extra ambiguous 50 or a mixed Embedded Object refuses the read without a callback. Foreign explicitly marked subclass group 75 and non-column MTEXT retain previous handling. A group 50 observed before the first column type is treated as the ordinary rotation under this bounded profile; more general out-of-order grammars remain unresolved.",
+    "readBudget": "The source owner and each retained group are charged to the existing retained-byte budget before vector publication; a shared immutable owner holds the lease until its last copy is destroyed. The adapter's separate retained-entity estimate includes the source owner and vector.",
+    "output": "This is an input-only carrier. Direct DXF writing refuses it and shared entity preflight also rejects a forged public type tag through inherited POINT/LINE/TEXT entries. Shared DWG entity preflight latches required failure for this subtype, so a consumer ignoring writeMText or inherited writer false cannot publish a drawing with the entity silently omitted. Both routes preserve the destination on refusal. R2018 embedded-column fields are not used to model the legacy run."
+  },
+  "validation": {
+    "focusedCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_mtext_legacy_columns$' --output-on-failure",
+    "focusedResult": "1/1 passed, configured -Werror build",
+    "focusedCoverage": "Generated ASCII/Binary inputs verify original linetype and rotation, exact ordered captured column values, source version/encoding, XDATA, ordinary base-only callback and non-column compatibility, foreign subclass and non-column misplaced group 48, alternate allowed field ordering, ambiguous/incomplete/out-of-order/duplicate or interrupted inputs, bounded resource refusal and same-reader retry, and immutable-source sharing by copies. The stock adapter retains the subtype. DXF and AC1018 DWG writers fail atomically even when callbacks ignore false and public tags are forged through MTEXT/TEXT/LINE/POINT paths; an explicit base-only downgrade retries successfully. Separate generated AC1032 embedded-column ASCII/Binary read/write/read controls preserve both height fields and the common scale/rotation.",
+    "fixtures": "All drawings are locally authored temporary files and removed; no DWG/DXF fixtures were committed.",
+    "existingFixtureCurrent": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mtext_column_object_scope$' --output-on-failure",
+      "result": "PASS after fixture-specific direct-callback finalizer repair; prior run failed at selected export before any geometry assertion. See p6-mtext-embedded-alignment-test-finalizer-2026-11-11.json."
+    },
+    "existingFixtureBaseline": {
+      "source": "isolated e5341dd3 source snapshot at /private/tmp/p5-desc-isolated-source",
+      "configure": "cmake -S /private/tmp/p5-desc-isolated-source -B /private/tmp/mtext-baseline-build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_BUILD_TESTS=ON -DBUILD_TESTING=ON",
+      "build": "cmake --build /private/tmp/mtext-baseline-build --target libdxfrw_dxf_fixture_tests -j4",
+      "command": "ctest --test-dir /private/tmp/mtext-baseline-build -R '^libdxfrw_mtext_column_object_scope$' --output-on-failure",
+      "result": "The isolated baseline failed at selected export/caller geometry with the same test source SHA-256 b5623ec3380ee1dba5fe64096f8f09885033a9d5f77aeb7bb5cc2a8c6c4233f3. This historical comparison predates the test-harness correction; see the dedicated finalizer receipt."
+    }
+  },
+  "limits": "This carrier records typed group values and source revision/encoding, not original lexical bytes or authenticated provenance. Binary group-50 counts are tested as locally generated doubles according to the library classifier; Autodesk's text describes a count as Int16 and native binary framing is unqualified. The bounded order is not a producer-wide schema, and no native rendering, linked-column semantics, conversion, or support claim is promoted. Copying to a base DRW_MText intentionally removes the loss guard. Other source grammars, record ordering, independent producer witnesses and native/platform tests remain open."
+}

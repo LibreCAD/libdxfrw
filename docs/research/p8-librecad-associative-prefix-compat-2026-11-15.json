@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-15",
+  "finding": "Current LibreCAD maps only nine associative prefix diagnostic kinds. Four kinds added in upstream libdxfrw fall through to AcDbAssocAction, misreporting diagnostic identity and counts. The existing local LibreCAD fix references those enumerators unconditionally and would not compile against the older bundled fork.",
+  "upstreamChange": "Expose LIBDXFRW_HAS_EXTENDED_ASSOCIATIVE_PREFIX_KINDS in drw_objects.h so a shared consumer can detect the four existing enumerators without changing ABI. The C++17 consumer contract checks the marker and enumerator availability.",
+  "consumerChange": {
+    "branch": "codex/upstream-libdxfrw-consumer",
+    "commit": "44ef026",
+    "base": "9a66c6a",
+    "patch": "docs/patches/librecad-p8-associative-prefix-compat-2026-11-15.patch",
+    "attribution": "Adapted from existing local LibreCAD commit 9e1bde5b3; the new guard preserves compilation against the bundled fork.",
+    "scope": "Map, name and count the four extended kinds; guard upstream-only references and test controls by the capability marker."
+  },
+  "validation": [
+    "The actual modified LibreCAD entity metadata test translation unit compiles against both the bundled and upstream library headers.",
+    "A standalone runtime probe linked to each corresponding library passes: bundled retains the original one-kind mapping and zero extended counts; upstream preserves all four distinct kinds and counts.",
+    "libdxfrw_consumer_cxx17_contract and lc3_compat_check build successfully.",
+    "The downstream patch applies cleanly to the current local consumer parent."
+  ],
+  "limits": "The downstream patch is local and not merged in LibreCAD. The standalone probes do not replace complete application or platform qualification; no support or phase-gate claim is promoted."
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-03",
+  "title": "AC1021 system and data page CRC independent retrace",
+  "status": "SUPERSEDED_BY_ODA_TABLE_AND_REMAINDER_CORRECTION",
+  "scope": "Re-run the existing test-local, bitwise ODA CRC diagnostic on one AC1021 data page and its page-map system page; compare the extracted fields with the current reader and a local open-source peer without changing parser behavior.",
+  "sample": {
+    "path": "tests/samples/AC1021/tablet.dwg",
+    "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+    "revision": "AC1021",
+    "repositoryStatus": "local untracked sample; inspected in place and not added or modified"
+  },
+  "dataPage": {
+    "section": "AcDb:Header",
+    "sectionId": "0xC",
+    "encoding": 4,
+    "pageId": "0x1C",
+    "fileOffset": "0x67680",
+    "physicalExtent": "0x400",
+    "compressedSize": "0x30B",
+    "uncompressedSize": "0x359",
+    "storedCrc": "0xFE7642845DB5FDA9",
+    "independentMirroredCrc": "0x6B1CDFBC3715D1FC",
+    "independentRawBytesCandidate": "0x008F0E2A2B3DCED0",
+    "rsDecoderAndIndependentDeinterleaveAgree": true,
+    "decompressedChecksumStored": "0x8DEB465B",
+    "decompressedChecksumCalculated": "0x8DEB465B",
+    "parseResult": "success; data-page CRC diagnostic remains a mismatch"
+  },
+  "pageMapSystemPage": {
+    "pageId": "0x21",
+    "fileOffset": "0x480",
+    "encodedExtent": "0x4FB",
+    "compressedSize": "0xC2",
+    "uncompressedSize": "0x1F0",
+    "correctionFactor": 5,
+    "seedEncoded": "0x209025B38435F55B",
+    "decodedSeed": "0x0",
+    "storedCompressedCrc": "0x10100FEA5403D32F",
+    "independentCompressedCrc": "0x4DE401459759BE97",
+    "storedUncompressedCrc": "0x270E0216019558E1",
+    "independentUncompressedCrc": "0x6CA187AA62A39BE3",
+    "rsDecoderAndIndependentDeinterleaveAgree": true,
+    "parseResult": "success; both system-page CRC diagnostics remain mismatches"
+  },
+  "normativeSource": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "source": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sections": [
+      "5.2",
+      "5.3",
+      "5.4",
+      "5.12"
+    ],
+    "finding": "The file-header fields identify the page-map CRCs, seed and correction factor; ODA specifies mirrored CRC over the compressed-or-raw system payload and over data-page compressed/encrypted payload, with UpdateSeed1 and size-dependent inputs. The source retrace used the corresponding independently implemented bitwise CRC and seed recurrence already pinned by literal vectors."
+  },
+  "peerCheck": {
+    "project": "GNU LibreDWG",
+    "version": "0.14",
+    "executable": "/opt/homebrew/bin/dwgread",
+    "result": "The command read the sample and returned SUCCESS while logging unrelated warnings. The inspected R2007 read_system_page implementation decodes/decompresses the page but does not compare these 64-bit CRC fields; it is not an independent CRC oracle for this mismatch."
+  },
+  "assessment": {
+    "crcAlgorithmLiteralVectors": "already pass in --r2007-crc-literal-vectors",
+    "pageMapMetadataAndPayloadRetraced": true,
+    "physicalCrcMismatchExplained": false,
+    "productionCodeChanged": false,
+    "testsAdded": 0,
+    "ctestSuitesRun": 0,
+    "manualDiagnosticRuns": 2,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "strictIntegrityPolicyChanged": false,
+    "nextAction": "Compare exact seed/field extraction and CRC inputs on a second provenance-qualified AC1021 source or a verified producer resave; do not change CRC handling unless an independently sourced payload matches the stored field under the normative profile."
+  },
+  "correction": {
+    "receipt": "docs/research/p6-ac1021-oda-crc-table-and-remainders-2026-11-03.json",
+    "finding": "The earlier test-local bitwise reference copied the wrong reflected polynomial and repeated the same remainder-order mistake as production. It was independent code, but not independent of those assumptions. ODA v5.4.1 table values and ordering, plus the original and ODA-resaved page checks, identify both errors. The historical mismatch values above are pre-fix observations."
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "id": "p5-ac1018-style-eed-appid-reader-binding-2026-11-11",
+  "scope": "Opt-in reader capture and same-import binding of selected AC1018 STYLE EED APPID references to parsed APPID table rows.",
+  "physical_source": {
+    "path": "/private/tmp/p5-desc-input/input.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "version": "AC1018",
+    "origin": "ODA File Converter 27.1.0 ACAD2004 conversion from the locally authored ezdxf acad_table_simple.dxf; this is producer self-consistency evidence, not independent font or consumer semantics."
+  },
+  "implementation": {
+    "callback": "DRW_DwgStyleEedSourceHandler",
+    "selection": "Per-style handle opt-in; pending STYLE EED APPID references are copied during TABLES processing only for selected rows.",
+    "publication": "References are delivered immediately before the normal typed STYLE callback, after APPID rows are parsed and the reader computes whether every referenced handle resolves to an APPID table row.",
+    "compatibility": "Separate optional interface; DRW_Interface virtual table and DRW_Textstyle object layout are unchanged. Default selection is false."
+  },
+  "observation": {
+    "importSucceeded": true,
+    "sourceFrames": 226,
+    "publishedFrames": 226,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "selectedStyleHandle": "0x11",
+    "callbackCount": 1,
+    "appIdReferences": [
+      "0x12"
+    ],
+    "allAppIdsResolve": true,
+    "resolvedAppIdRow": {
+      "handle": "0x12",
+      "name": "ACAD"
+    },
+    "typedAppIdControlSiblings": [
+      {
+        "handle": "0xcd",
+        "name": "ACAD_DSTYLE_DIMJOGGED_JOGANGLE_SYMBOL",
+        "unchangedDwgNameSource": true
+      },
+      {
+        "handle": "0xd7",
+        "name": "ACAD_MLEADERVER",
+        "unchangedDwgNameSource": true
+      }
+    ],
+    "resolvedStyleEed": {
+      "group1001": "ACAD",
+      "group1000": "Arial"
+    },
+    "styleFont": "arial.ttf"
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4 && build-gcc/libdxfrw_dwg_local_roundtrip --inspect-physical-style-eed-appid /private/tmp/p5-desc-input/input.dwg",
+    "result": "PASS. Build succeeded; focused physical-source diagnostic returned 0 and reported one selected STYLE 0x11 callback, APPID handle 0x12 resolving to the typed ACAD row, both additional APPID_CONTROL rows resolving to typed rows with unchanged DWG name sources, and resolved ACAD/Arial EED strings."
+  },
+  "remaining": [
+    "The two sibling APPID rows now have CRC-checked selected-source body spans and ODA/LibreDWG cross-checks in the companion resource-wire receipt; broader producer-profile closure and dependencies outside these rows remain open.",
+    "STYLE_CONTROL handle 0x3 now has one CRC-checked post-finalization reader ticket whose role-2 member binds to the same-import STYLE 0x11 row; see p5-ac1018-style-control-reader-source-binding-2026-11-11.json. Other LTYPE/STYLE resources remain open.",
+    "Font resolution/rendering, physical source-to-output ordering, recursive graph closure, transactional output/readback, independent consumer semantics, and Linux/Windows qualification remain open."
+  ],
+  "limitations": [
+    "The physical source has an unrelated retained HEADER offset integrity observation; this callback does not change strict output eligibility.",
+    "This is one selected source and one EED APPID edge. It does not establish producer-wide behavior, font semantics, output support, or general DWG compatibility.",
+    "No external DWG/DXF fixture was added to the repository."
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-persubentmgr-native-api-eligibility-screen-2026-11-18",
+  "date": "2026-11-18",
+  "title": "PERSUBENTMGR native API eligibility source screen",
+  "status": "WAITING_FOR_NATIVE_HOST_OR_SDK",
+  "supportClaimEffect": "none",
+  "scope": "Find a bounded, documented native operation that can create the exact AcDbPersSubentManager class and retain selected nonzero member state after reopen. Do not infer body fields or semantics.",
+  "localEnvironment": {
+    "searchRoots": [
+      "/Users/dli/doc",
+      "/Users/dli/dev",
+      "/opt/homebrew/include",
+      "/Applications",
+      "/Users/dli/Applications"
+    ],
+    "sdkSearch": {
+      "patterns": [
+        "*ObjectARX*",
+        "*AcDbPersSubentManager*",
+        "dbpersubent.h",
+        "dbpersubentmanager.h"
+      ],
+      "result": "No matching ObjectARX SDK directory or class header found in the bounded filesystem search."
+    },
+    "hostSearch": {
+      "result": "No AutoCAD application bundle was found in the prior bounded app-bundle search. The LibreCAD 2 development bundle exists, but is not a native AutoCAD/ObjectARX host."
+    }
+  },
+  "primarySources": [
+    {
+      "title": "Autodesk AutoLISP entmakex reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-AutoLISP-Reference/files/GUID-3F9A2EB2-082D-49DD-8EFD-DAD8F6E9AA6A.htm",
+      "observed": "The function can define graphical and nongraphical objects; its input must contain required definition data. The returned object has a handle/entity name but no owner, and the documentation says to assign ownership before writing. AcDbPersSubentManager appears in the AutoCAD LT unsupported-object list.",
+      "limitation": "The AutoCAD LT exclusion is not positive proof that full AutoCAD accepts this class. The page gives no class-specific creation schema, selected-member API, or persistence behavior."
+    },
+    {
+      "title": "Autodesk AutoLISP entmake reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-AutoLISP-Reference/files/GUID-D47983BA-1E5D-417D-85B8-6F3DE5F506BA.htm",
+      "observed": "The function can define graphical and nongraphical entities; AcDbPersSubentManager appears in the AutoCAD LT unsupported-object list.",
+      "limitation": "This does not define the exact class's required fields or establish its selected-path semantics in full AutoCAD."
+    }
+  ],
+  "candidateExperiment": {
+    "route": "Try Autodesk-documented entmakex in full AutoCAD using exact DXF class name ACDBPERSSUBENTMANAGER; use ObjectARX if a typed API is required.",
+    "requiredObservations": [
+      "Successful creation and exact class identity before save",
+      "Valid owner assignment",
+      "Known target object and deliberately selected nonzero subentity path",
+      "Manager handle, member references, owner/reactors, and API state",
+      "Exact class and same selected path after close/reopen"
+    ],
+    "admissionRule": "A successful generic object creation alone is insufficient. Admit P6-B source acquisition only if the exact-class manager and nonzero selected path are tied together before and after reopen."
+  },
+  "decision": "Keep P6-B raw/partial and strict-output-refused. The bounded documentation search supplies a concrete entmakex experiment but no class-specific creation contract or semantic witness. No DWG field-layout or selected-member claim is established.",
+  "next": "When a full AutoCAD/ObjectARX host is available, test entmakex first with an exact-class, selected-nonzero-path model. Do not repeat generic web searches, local corpus scans, or peer-parser searches unless source provenance or host/API availability changes. Continue independent implementation packets meanwhile."
+}

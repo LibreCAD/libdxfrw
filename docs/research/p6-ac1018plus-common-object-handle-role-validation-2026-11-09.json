@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "status": "bounded-implementation-verified",
+  "scope": {
+    "versions": "AC1018 and newer standard OBJECTS common-handle tails",
+    "paths": "The shared readObjectCommonHandles helper, its table-entry wrapper, and every direct caller",
+    "fields": [
+      "parent handle",
+      "persistent reactor handles",
+      "optional extension-dictionary handle"
+    ],
+    "rules": {
+      "parent": "ODA v5.4.1 §20.1 soft pointer; raw soft-pointer offset codes 4, 6, 8, A and C are accepted only on the offset-resolved owner field",
+      "reactors": "ODA v5.4.1 §20.1 absolute soft pointer, or canonical null",
+      "extension_dictionary": "ODA v5.4.1 §20.1 hard owner, or canonical null"
+    },
+    "legacy_behavior": "Preserves the existing AC1012/AC1014 DICTIONARY/GROUP-specific validation; no broader pre-AC1018 role policy is introduced.",
+    "excluded": [
+      "object-specific handle fields after the common prefix",
+      "body reference closure and DXF role mapping",
+      "strict whole-source DXF output qualification",
+      "native application semantics"
+    ]
+  },
+  "evidence": {
+    "authority": {
+      "document": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": ["§2.13", "§20.1"]
+    },
+    "generated_controls": {
+      "selector": "--ac1027-object-common-handle-roles",
+      "ctest": "libdxfrw_ac1027_object_common_handle_roles",
+      "result": "passed",
+      "checks": [
+        "wrong parent, reactor and xdictionary roles refuse independently",
+        "failure preserves the handle cursor and caller output values",
+        "corrected input retries successfully on the same probe",
+        "relative owner codes 6, 8, A and C resolve under the soft-pointer role",
+        "canonical null common handles are accepted",
+        "following object-specific handle sentinel remains aligned"
+      ],
+      "executable_sha256": "e2aa33284b578dac9faf60df1a2c8bffe981324914fe518a98ae99b4a63074cc"
+    },
+    "compatibility_controls": {
+      "object_vectors": {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_ac1027_object_common_handle_roles|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "2/2 passed"
+      },
+      "reader_matrix": {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_ac1027_common_entity_handle_roles$' --output-on-failure",
+        "result": "passed"
+      },
+      "version_cohort": {
+        "command": "ctest --test-dir build-gcc -L '^AC1024$' --output-on-failure",
+        "result": "25/25 passed",
+        "includes": "AC1018/AC1024 physical read cases and selected bounded generated cohorts"
+      }
+    },
+    "physical_read": {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg",
+      "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6",
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg -y -d -v2010 /tmp/sample-ac1027-common-role-check.dxf",
+      "reader_result": {
+        "operationSucceeded": true,
+        "sourceVersion": "AC1027",
+        "publishedFrames": 865,
+        "sourceFrames": 865,
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "dataStorageLinkFailures": 0,
+        "dataStorageOrphanRecords": 0
+      },
+      "cli_exit": "conversion stops at the existing strict AC1027 source-reference gate; no output-support claim is promoted"
+    }
+  },
+  "test_vector_corrections": [
+    "Generated OBJECTS common-parent references that used hard-ownership code 3 now use soft-pointer code 4; owned/body references retain their specified ownership roles.",
+    "The known AC1024 PERSUBENTMGR abbreviated source profile is asserted as partial; the AC1027/AC1032 omitted-count controls remain negative."
+  ],
+  "bindings": {
+    "source_revision_before_slice": "0a3a71872cf400f35cab3eca6897f84b3ae4147f",
+    "src/drw_objects.cpp_committed_blob_sha256": "9fc366bcffec070d04c12048d1ea70deaa54db98faea8da6d20a7e54490605ec",
+    "tests/dwg_object_vectors_tests.cpp": "05ef4f36c9ee7e28dc755695ed23bb0863abfef44cf1fade79ea4614989186ad",
+    "CMakeLists.txt": "1d70a541928fd754c3ce735f94d559f337b68d6e0648d19a2e67a12f7ee76679",
+    "object_vectors_executable": "e2aa33284b578dac9faf60df1a2c8bffe981324914fe518a98ae99b4a63074cc",
+    "dwg_reader_matrix_executable": "ff9bb9837a1fad23eb91fc9c7943ca326c89ab624c7b5b9b56a39332ee347d5e",
+    "dwg2dxf_executable": "1c8c842854b983d64b2a0e3b094a45bf36f38db07a89bc048cc134835c87bd7c"
+  },
+  "fixture_policy": "No DWG or DXF fixture was added; role regressions are generated in memory, and the physical source is an existing ACadSharp repository sample.",
+  "claim_limit": "This validates common OBJECTS handle roles across the implemented AC1018+ shared helper paths and one physical AC1027 read profile. It does not establish all body-reference closure or strict output support."
+}

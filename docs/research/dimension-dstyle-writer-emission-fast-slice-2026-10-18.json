@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-23/7J DIMENSION DSTYLE canonical writer emission",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "implemented-uncommitted",
+  "scope": [
+    "Emit modeled DIMENSION overrides in the documented ACAD/DSTYLE XDATA representation for ASCII and Binary DXF",
+    "Merge with retained ACAD/DSTYLE data while retaining unknown pairs and unchanged explicit-zero pairs",
+    "Remove numeric serialization of the legacy direct DIMENSION groups and fail closed on malformed override data or invalid ranges"
+  ],
+  "authoritativeSources": [
+    {
+      "name": "Autodesk Dimension Style Overrides (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6A4C31C0-4988-499C-B5A4-15582E433B0F.htm",
+      "establishes": "Overrides are carried under ACAD XDATA in a DSTYLE subsection bracketed by group 1002 controls, with group-1070 variable identifiers and typed associated values."
+    },
+    {
+      "name": "Autodesk ObjectARX Dimension Style Overrides",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-Dimension_Style_Overrides.html",
+      "establishes": "The variable identifiers, value types, and allowable ranges used for the locally modeled override subset."
+    },
+    {
+      "name": "Autodesk Common Dimension Group Codes (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-EDD54EAC-A339-4EBA-AEA6-EC8066505E2B.htm",
+      "establishes": "The common DIMENSION fields and the position of ACAD XDATA after the entity when overrides are present."
+    }
+  ],
+  "changes": [
+    {
+      "file": "src/libdxfrw.cpp",
+      "detail": "Added pre-output construction/validation/merge of canonical DSTYLE XDATA, with typed-field precedence on changed known values, unchanged/raw-zero and unknown-pair preservation, 12 documented field mappings, and no numeric output of direct override groups. Applied to ordinary, arc, and large-radial DIMENSION writers."
+    },
+    {
+      "file": "src/libdxfrw.h",
+      "detail": "Declared the private DSTYLE XDATA builder used by the existing dimension writer routes; no public API or object layout change."
+    },
+    {
+      "file": "tests/wave1_tests.cpp",
+      "detail": "Replaced the obsolete 80–84 rejection-only control with ASCII/Binary wire checks for all 12 mappings, absence of direct override groups, known-value replacement, unknown and explicit-zero pair retention, and pre-output malformed/range refusal."
+    },
+    {
+      "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "detail": "Updated the 7J status, documented precedence and the zero-presence limitation, reconciled the historical 7X.6 fail-closed slice with the canonical DSTYLE route, and recorded focused progress."
+    }
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dxf_fixture_tests -j2",
+      "result": "passed"
+    },
+    {
+      "command": "build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+      "result": "passed"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --dimension-dstyle-read",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_wave1|libdxfrw_dxf_fixtures)$' --output-on-failure",
+      "result": "passed; 2/2"
+    },
+    {
+      "command": "jq empty docs/research/dimension-dstyle-reader-projection-fast-slice-2026-10-18.json docs/research/dimension-dstyle-writer-emission-fast-slice-2026-10-18.json",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/libdxfrw.cpp src/libdxfrw.h tests/wave1_tests.cpp tests/dxf_fixture_tests.cpp docs/research/dimension-dstyle-reader-projection-fast-slice-2026-10-18.json docs/research/dimension-dstyle-writer-emission-fast-slice-2026-10-18.json",
+      "result": "passed"
+    }
+  ],
+  "planChanges": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "newTestRegistration": false,
+    "newFixture": false,
+    "newDependency": false,
+    "supportClaimsPromoted": 0,
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "The public model has no presence bit for a newly authored zero-valued override, so that case cannot be represented unless retained raw DSTYLE already carries the zero. Picture-block/group-2 closure, constraint-only disposition, CLI conversion, independent ezdxf comparison, and native application acceptance remain open. No external peer or native CAD/kernel was run.",
+  "workingTree": "The checkout contains extensive pre-existing modified and untracked work. This slice and the plan updates were not staged or committed; unrelated changes were left untouched."
+}

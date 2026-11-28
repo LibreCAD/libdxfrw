@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Compatible uppercase-ASCII DXF symbol sink pass-through",
+  "mode": "local implementation and focused generated verification",
+  "scope": [
+    "Avoid intermediate source capitalization and encoded-string copies for already-uppercase ASCII DXF symbol text",
+    "Preserve strict-lossless validation and quoting, UTF-16 conversion, and all nonmatching input behavior"
+  ],
+  "implementation": {
+    "files": [
+      "src/intern/dxfwriter.cpp",
+      "tests/gbk_codepage_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "For compatible profiles with non-UTF-16 conversion, writeUtf8Caps passes through ASCII without lowercase letters or backslashes as a string view directly to writeString; other input uses the existing capitalization and encoding path.",
+    "conditions": {
+      "strictLosslessProfile": "existing path retained",
+      "utf16CodePage": "existing path retained",
+      "nonAsciiOrLowercase": "existing path retained",
+      "backslashEscapeSyntax": "existing path retained",
+      "rawSinkIsSynchronous": true
+    },
+    "publicApiChanged": false,
+    "installedHeaderChanged": false,
+    "classLayoutChanged": false,
+    "fixtureAdded": false,
+    "ctestRegistrationAdded": false,
+    "supportClaimPromoted": false,
+    "findingsOrSubplansChanged": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_gbk_codepage_tests --target-text-transport",
+      "ctest --test-dir build-gcc -R '^libdxfrw_gbk_codepage$' --output-on-failure",
+      "jq empty docs/research/uppercase-symbol-ascii-sink-fast-slice-2026-10-17.json",
+      "git diff --check -- src/intern/dxfwriter.cpp tests/gbk_codepage_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/uppercase-symbol-ascii-sink-fast-slice-2026-10-17.json"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "lc3CompatibilityCheck": "PASS",
+      "targetTextSelector": "PASS: wire=40, rejection/modern=14, chunks=40, framing=4, chunk-preflight-failures=4, empty-chunks=6, short-final=4, compatible-MTEXT=2, borrowed-view=2, uppercase-caps-fast-path=5, profile/caps/raw controls passed",
+      "focusedCtest": "PASS: 1/1, 0.57 seconds",
+      "receiptJsonValidation": true,
+      "scopedDiffCheck": true,
+      "fullSuite": "NOT_RUN",
+      "peerRuntime": "NOT_RUN",
+      "nativeCad": "NOT_RUN"
+    }
+  },
+  "limitations": [
+    "Byte-equivalence controls and code-path inspection support this narrow pass-through; no allocator count, throughput, peak-memory, or RSS benchmark was run.",
+    "The control matrix covers ASCII/Binary DXF at AC1018/AC1021 with ANSI_932 plus a UTF-16 fallback; it is not exhaustive across every converter or symbol field.",
+    "The shared worktree is broadly dirty; this verified slice is uncommitted."
+  ]
+}

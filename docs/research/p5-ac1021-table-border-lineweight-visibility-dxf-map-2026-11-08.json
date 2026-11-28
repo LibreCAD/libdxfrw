@@ -1,0 +1,66 @@
+{
+  "title": "AC1021 TABLE border lineweight and visibility DXF mapping",
+  "date": "2026-11-08",
+  "scope": "Bounded codec mapping for the three title/header/data border lineweight and visibility arrays retained from AC1021 TABLE DWG data.",
+  "wire_evidence": {
+    "oda_specification": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.96.1, AcDbTable",
+      "local_source": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "findings": [
+        "Lineweight and visibility each use 18 slots in three groups of six: title, header, data.",
+        "Within each group the category order is horizontal top, horizontal inside, horizontal bottom, vertical left, vertical inside, vertical right.",
+        "DWG visibility uses 0 for visible and 1 for invisible; lineweight is stored as a 16-bit field."
+      ]
+    },
+    "autodesk_dxf_reference": {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "findings": [
+        "TABLE entity groups 274-279 describe border lineweights by cell type; groups 284-289 describe visibility by cell type.",
+        "DXF visibility uses 0 for invisible and 1 for visible.",
+        "Border color groups 65, 66, 68 and 69 are shared border categories, not a set of 18 row-specific values."
+      ],
+      "limit": "The reference does not state repeat order or prove native edge precedence."
+    },
+    "independent_implementation_cross_check": {
+      "project": "ACadSharp",
+      "repository": "https://github.com/DomCR/ACadSharp",
+      "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "file": "src/ACadSharp/IO/DXF/DxfStreamWriter/DxfObjectsSectionWriter.cs",
+      "finding": "Its TABLESTYLE writer emits six border categories in top, horizontal-inside, bottom, left, vertical-inside, right order using consecutive groups 274-279 and 284-289.",
+      "limit": "This is an independent serializer cross-check, not a physical producer sample or native semantic witness."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "src/drw_entities.h",
+      "src/libdxfrw.cpp"
+    ],
+    "behavior": [
+      "Maps slot n to group 274+(n mod 6) for lineweight and 284+(n mod 6) for visibility, preserving title/header/data selection order.",
+      "Transports lineweight as an exact 16-bit bit pattern through signed DXF I16 values.",
+      "Inverts visibility at the DWG/DXF boundary.",
+      "Separates row-level values from cell-level border groups and counts selected occurrences per category.",
+      "Marks missing or excess selected values semantically incomplete; rejects mask bits outside the 18-slot domain.",
+      "Refuses orphaned values, absent selected-presence markers, invalid visibility values, and unsupported per-row border CMC output atomically."
+    ]
+  },
+  "validation": {
+    "fixture_policy": "No external DWG/DXF fixture was added; controls were locally authored in existing test code.",
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "tests": [
+      "libdxfrw_table_row_alignment_override_parse: ASCII/Binary repeated field parsing, all six category groups, signed 16-bit lineweight preservation, DWG/DXF visibility inversion, selected values and missing-field incompleteness.",
+      "libdxfrw_table_scalar_override_output: ASCII/Binary exact group sequence, distinct cell and entity-level values sharing group codes, parseback, selected zero, invalid-visibility and orphan/mask atomic refusals, destination preservation and corrected retry.",
+      "libdxfrw_table_content_dxf_projection: adjacent TABLE projection regression."
+    ],
+    "result": "Focused build succeeded. All three CTests passed after correcting the retry control to restore its valid mapped border profile.",
+    "diff_check": "Passed."
+  },
+  "qualification_limits": [
+    "No physical AutoCAD/ODA-produced TABLE DXF witness establishes producer ordering across versions.",
+    "No native application check establishes cell-vs-row precedence or visible rendering.",
+    "Per-row border CMC remains unsupported and output-refused.",
+    "The change proves codec mapping only; it does not promote whole-drawing or native TABLE support claims."
+  ]
+}

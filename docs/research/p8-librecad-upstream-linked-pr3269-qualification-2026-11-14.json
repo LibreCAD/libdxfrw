@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad-upstream-linked-pr3269-qualification-2026-11-14",
+  "date": "2026-11-14",
+  "title": "LibreCAD master PR #3269 regressions linked to upstream libdxfrw",
+  "status": "partial_upstream_linked_regression_with_blockers",
+  "supportClaimEffect": "none",
+  "scope": "Overlay this libdxfrw checkout into a clean LibreCAD master checkout and run the merged PR #3269 named-LTYPE regression cases against the upstream library. This is a focused integration probe, not a clean full LibreCAD test build or platform/ABI qualification.",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "head": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+    "changedLTypePrMergeCommit": "4060fb6bb6319034fb391485bb1a4d07f6a3ab6e",
+    "changedLTypePrIsAncestorOfHead": true,
+    "libdxfrwHead": "9bcf4fd56fd5a2d31aab46e622cfc1b1a135d42f",
+    "libdxfrwLink": "workspace source overlay at /Users/dli/dev/libdxfrw",
+    "testSource": "librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp",
+    "adapterSource": "librecad/src/lib/filters/rs_filterdxfrw.cpp"
+  },
+  "environment": {
+    "platform": "macOS ARM64",
+    "buildPreset": "dwg-fast",
+    "consumerBuildDirectory": "build/upstream-fast",
+    "target": "pr3269_upstream_link_tests",
+    "testHarness": "single-translation-unit Catch2 target in disposable clean consumer checkout"
+  },
+  "implementation": {
+    "issue": "LibreCAD's test translation units import DRW names and define a helper named dxfBlockRecord, colliding with the upstream global namespace dxfBlockRecord.",
+    "change": "Move the private BLOCK_RECORD decoder to DRW::internal::DxfBlockRecordDecoder and update its upstream call sites.",
+    "followupControls": "Correct two stale direct-control vectors: classify an unexpected pre-XDATA group-102 application marker as Application, and use unsupported group 1006 (rather than supported XDATA handle group 1005) for the Unexpected-code case."
+  },
+  "commands": [
+    "cmake --build build/upstream-fast --target pr3269_upstream_link_tests --parallel 8",
+    "build/upstream-fast/pr3269_upstream_link_tests 'DXF writes a changed line type definition over its record'",
+    "build/upstream-fast/pr3269_upstream_link_tests 'DWG writes a changed line type definition over its record'",
+    "build/upstream-fast/pr3269_upstream_link_tests 'DXF writes a redefined built-in from the table'",
+    "build/upstream-fast/pr3269_upstream_link_tests 'DXF writes a changed complex line type without its segments'",
+    "build/upstream-fast/pr3269_upstream_link_tests 'DXF writes a twin archived spelling as it came beside a changed record'",
+    "build/upstream-fast/pr3269_upstream_link_tests '[linetype][named][table]'"
+  ],
+  "result": {
+    "upstreamLibraryAndAdapterTargetBuild": "PASS",
+    "mergedPr3269Cases": {
+      "passed": 3,
+      "failed": 2,
+      "caseResults": [
+        {
+          "case": "DXF writes a changed line type definition over its record",
+          "result": "PASS",
+          "assertions": 15
+        },
+        {
+          "case": "DWG writes a changed line type definition over its record",
+          "result": "FAIL",
+          "diagnostic": "DWG low-level write fails with error 2 at dwg-header-handseed finalization; the forwarded $DIMSTYLE header value has integer variant type although DXF group 2 requires a string."
+        },
+        {
+          "case": "DXF writes a redefined built-in from the table",
+          "result": "PASS",
+          "assertions": 5
+        },
+        {
+          "case": "DXF writes a changed complex line type without its segments",
+          "result": "FAIL",
+          "diagnostic": "DXF output fails during OBJECTS emission. The local test input includes an unrelated MLINESTYLE referencing VENDOR_MLS without a corresponding LTYPE table entry; isolate or close that dependency before attributing the failure to PR #3269."
+        },
+        {
+          "case": "DXF writes a twin archived spelling as it came beside a changed record",
+          "result": "PASS",
+          "assertions": 6
+        }
+      ]
+    },
+    "namedLTypeSelector": {
+      "passed": 7,
+      "failed": 11,
+      "total": 18,
+      "assertionsPassed": 233,
+      "assertionsFailed": 17,
+      "note": "The selector includes older LibreCAD expectations outside the five PR #3269 regressions; the aggregate failures are not all attributable to the merged PR."
+    },
+    "fullConsumerFastTarget": "NOT BUILT: unrelated LibreCAD test translation units fail against upstream headers/types (including dxf_object_tests.cpp and entity_metadata_tests.cpp); the disposable single-TU PR regression target compiles and links successfully."
+  },
+  "followupExperiments": [
+    {
+      "scope": "Disposable LibreCAD checkout only; changed the default `$DIMSTYLE` insertion from a C string to `QStringLiteral(\"Standard\")`.",
+      "finding": "The C string selected RS_Graphic::addVariable's bool overload via standard pointer-to-bool conversion, so the string variable was stored as an integer.",
+      "result": "The merged DWG changed-LTYPE save/readback case passes (9 assertions) with the adapter overload corrected. This isolates a LibreCAD consumer bug; no coercion was added to libdxfrw's strict writer."
+    },
+    {
+      "scope": "Disposable LibreCAD checkout only: changed the default `$DIMSTYLE` insertion to `QStringLiteral(\"Standard\")`; removed the unrelated MLINESTYLE OBJECTS section from the complex-LTYPE-only fixture; and changed its group-value helper to collect record fields regardless of whether they precede or follow group-2 name.",
+      "finding": "The original fixture's MLINESTYLE OBJECTS emission fails independently of the edited LTYPE; adding an LTYPE row did not cure it. With MLINESTYLE isolated, the output contains nested group 102 `{LTYPE_APP`, group 310 `CAFE`, then the LTYPE subclass/name. The corrected helper recognizes that valid ordering.",
+      "result": "All five merged PR #3269 named-LTYPE cases pass against the upstream libdxfrw overlay: 49 assertions total (15, 9, 5, 14, 6). This is a temporary integration reproduction only. No LibreCAD source/test change was copied into either repository."
+    }
+  ],
+  "fixturePolicy": {
+    "committedDwgOrDxfFixturesAdded": false,
+    "generatedTestData": "The consumer tests generate temporary files and remove them. No repository fixture files were added or changed."
+  },
+  "limitations": [
+    "The clean LibreCAD fast-test target links its bundled libdxfrw; the upstream overlay was tested with a temporary focused target.",
+    "In the unmodified disposable LibreCAD checkout only three of five PR #3269 cases pass against upstream. Five of five pass only after the temporary adapter/test changes recorded above; those downstream changes have not been committed or merged.",
+    "The DWG failure is currently traced to a wrong-typed HEADER variable; no coercion was added because it would weaken strict output validation.",
+    "The complex-LTYPE regression test needs a permanent fixture/helper correction to isolate MLINESTYLE OBJECTS emission and recognize valid pre-name application groups; the separate MLINESTYLE route remains unqualified.",
+    "LibreCAD_3 clean linked tests, ABI comparison, Linux/Windows qualification, and native application behavior remain unqualified."
+  ]
+}

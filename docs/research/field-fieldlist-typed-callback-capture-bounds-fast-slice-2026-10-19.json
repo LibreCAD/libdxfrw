@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Typed FIELD/FIELDLIST callback capture bounds",
+  "mode": "Local implementation slice with generated fast tests",
+  "scope": [
+    "Bound adapter-owned typed DRW_Field and DRW_FieldList callback copies.",
+    "Account for field values, nested values, strings, binary payloads, and reference vectors.",
+    "Preserve independent raw-carrier identity, owner-graph, and serializer gates."
+  ],
+  "implementation": {
+    "limits": {
+      "aggregateRecords": 100000,
+      "aggregateNestedItemsAndHandles": 1000000,
+      "aggregateLogicalRetainedBytes": 67108864,
+      "lifetime": "dx_data container lifetime; prior failure and counters are not reset for appended imports"
+    },
+    "behavior": [
+      "Typed FIELD/FIELDLIST estimates include table-entry metadata, field strings, CadValue variants and strings, binary data, child keys/slots, and handles.",
+      "Counters advance only after successful typed-list insertion; allocation and budget failure are sticky.",
+      "Tracked DXF receipts record typed callback/item/byte totals and reject stale generations.",
+      "DXF export refuses typed or raw FIELD/FIELDLIST capture failures before output publication.",
+      "Raw companion accounting and typed/raw identity-owner pairing remain separate."
+    ],
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCaptureAndGraphControls": {
+      "command": "ctest --test-dir build-gcc -R 'dwg2dxf_(field_carrier|render_settings|sortents|table_style)_.*capture_limits|libdxfrw_sortents_adapter|libdxfrw_named_resource_import_evidence|libdxfrw_dictionary_default_adapter_roundtrip' --output-on-failure",
+      "result": "PASS",
+      "passed": 8,
+      "failed": 0
+    },
+    "fieldAndNamedObjectControls": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_named_object_callback_storage|dwg2dxf_field_carrier_raw_capture_limits|dwg2dxf_field_carrier_typed_capture_limits|libdxfrw_named_resource_import_evidence|libdxfrw_dictionary_default_adapter_roundtrip|libdxfrw_sortents_adapter)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 6,
+      "failed": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt",
+      "result": "PASS"
+    },
+    "fullTestSuiteRun": false,
+    "externalPeerOrNativeRuns": 0
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "repositoryDrawingFixturesAdded": 0,
+    "externalFixturesDownloaded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planEffect": "Records typed FIELD/FIELDLIST adapter admission. FIELD schema semantics, graph completeness, parser-internal allocation ceilings, writer support, and native acceptance remain separate."
+  },
+  "planPath": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "64c52bbc063ec11a5daac620ea23c0528891fa028bdeee849f112428eec96f94"
+}

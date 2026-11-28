@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Open-source cross-peer failure boundaries and implementation readiness",
+  "mode": "Deeper/broader primary-source research and local plan-applicability audit",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "worktreeState": "Broadly modified and uncommitted. This research updated only the plan and research receipts; preserve unrelated worktree state.",
+    "sourcesInspected": [
+      "src/intern/dwgsafety.h: named DWG buffer, object/owned-object, EED staging ceilings",
+      "src/intern/dwgreader18.cpp: reviewed R2004 page/section size bounds before allocation",
+      "src/intern/dwgreader21.cpp: reviewed R2007 page/section map and size bounds before allocation",
+      "tests/dwg_reader_matrix_tests.cpp: existing generated section/page map boundary and malformed-input owners",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing PAR-06, PAR-07/S8, PAR-14, PAR-20/7G.3, PAR-49, PAR-59, PAR-126, PAR-132, and PAR-144 owners"
+    ],
+    "validation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "buildResult": "PASS",
+      "ctest": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$|^dwg_layout_compound_insert_owner_roundtrip$' --output-on-failure",
+      "ctestResult": "PASS: 2/2, 0.30 seconds",
+      "diffCheck": "PASS: scoped git diff --check for the edited plan, test source, and receipt paths",
+      "fullSuiteRun": false
+    }
+  },
+  "peerEvidence": [
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observation": "0.14.1 NEWS describes R2004/AC1018 DWG writing as newly implemented and says R2007/AC1021 encoding falls back to R2010/AC1024; the release history also includes decompression, container, and security fixes.",
+      "evidenceCeiling": "Maintainer-published project release notes; no peer runtime or output was tested.",
+      "disposition": "Keep direction/version matrix rows separate and observe actual output AC code rather than assuming the requested writer version was produced."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues/1321",
+        "https://github.com/DomCR/ACadSharp/issues/1074",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observation": "README separates DXF/DWG read/write by version (including no AC1021 DWG writer). Current issue reports describe table loss/output rejection, missing VisualStyle/Material root objects affecting TrueView, and a prior silent ACIS DXF omission.",
+      "evidenceCeiling": "Published compatibility matrix and user/maintainer issue reports; they are not normative rules or libdxfrw reproductions.",
+      "disposition": "Map to existing PAR-126/PAR-20 graph and native-acceptance gates; do not infer local failure or add duplicate tests without a local source gap."
+    },
+    {
+      "project": "ACadRust",
+      "references": [
+        "https://github.com/hakanaktt/acadrust/blob/main/README.md",
+        "https://github.com/hakanaktt/acadrust/issues/145",
+        "https://github.com/hakanaktt/acadrust/issues/146",
+        "https://github.com/hakanaktt/acadrust/issues/149",
+        "https://github.com/hakanaktt/acadrust/issues/123",
+        "https://github.com/hakanaktt/acadrust/issues/124"
+      ],
+      "observation": "The README advertises broad DXF/DWG read/write ranges. Open issue reports separately describe unknown-class/proxy-graphic loss on DWG-to-DXF, BricsCAD rejection of a DXF-to-DWG output despite a direct DWG-to-DWG path opening, page/section size allocations before validation, malformed object-size/count behavior, and malformed-header panic behavior.",
+      "evidenceCeiling": "Issue-reported behavior and mutable main-branch documentation; no reports were independently reproduced, and no sample was fetched.",
+      "disposition": "Require exact route and stage labeling, per-object disposition, bounded-size/error behavior, and independent target acceptance; preserve existing PAR-06/PAR-07/PAR-14/PAR-49/PAR-132 gates."
+    },
+    {
+      "project": "ezdxf",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/acad_proxy_entity.html"
+      ],
+      "observation": "Documentation states that unsupported ACIS structures are loaded as NONE_ENTITY with data loss and cannot be arbitrarily re-exported; proxy graphics expose display content but exploding destroys original proxy meaning.",
+      "evidenceCeiling": "DXF parser/documentation boundary only; not a DWG parser or general B-rep kernel.",
+      "disposition": "Keep raw carrier, display graphics, interpreted subset, semantic geometry, and native acceptance as distinct observations under PAR-07/S8 and PAR-59."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "localApplicability": "Reviewed peer reports map to existing PAR-06/PAR-07/S8/PAR-14/PAR-20/PAR-49/PAR-59/PAR-126/PAR-132/PAR-144 gates. Named reader ceilings exist, but this was not an exhaustive audit of every file-derived allocation or conversion.",
+    "nextLocalSlice": "Continue PAR-144 by binding decoded BLOCK_RECORD ownership references to actual emitted entity-frame handles, then walk AC1015 first/last chain terminators and verify following-frame alignment.",
+    "validationPolicy": "Run the owning fast test and scoped diff/receipt checks per slice; reserve full suites and one exact-pinned independent/native check for composed checkpoints. Self-unblock when external evidence is unavailable.",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false,
+    "fullSuiteRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

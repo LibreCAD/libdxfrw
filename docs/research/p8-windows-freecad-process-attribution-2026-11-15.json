@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "hostedSourceCommit": "1dcda52f",
+  "hostedRun": "https://github.com/dxli/libdxfrw/actions/runs/43724944757/job/132844739503",
+  "observation": "Windows now starts FreeCAD and reaches the converter-route assertion, but eight open/insert checks fail because two subprocesses were captured. The batch and two CLI controls pass. The old diagnostic did not record child arguments, so their identities are not established.",
+  "research": [
+    "FreeCAD 1.1.4's importDWG.py invokes platform.system() during PATH discovery and calls subprocess.Popen for the converter: https://raw.githubusercontent.com/FreeCAD/FreeCAD/1.1.4/src/Mod/Draft/importDWG.py",
+    "CPython 3.11 platform.py may invoke the Windows 'ver' command when system-version detection needs a fallback: https://raw.githubusercontent.com/python/cpython/3.11/Lib/platform.py"
+  ],
+  "change": "Prewarm platform.system() before capturing the conversion scope, while retaining the requirement for exactly one conversion child and the existing executable, hash, arguments, exit-status and handoff checks. Include child arguments in errors if multiple processes remain.",
+  "validation": "The dependency-free FreeCAD macro self-test passes 32 mocked checks.",
+  "limits": "The platform probe is a plausible explanation, not an identified cause of the hosted extra process. A real Windows rerun must identify any remaining children and pass all application checks; no support claim is promoted."
+}

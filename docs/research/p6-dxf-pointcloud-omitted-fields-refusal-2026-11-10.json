@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-10",
+  "finding": "Classic POINTCLOUD DXF output through AC1024 silently omitted nonzero definition and reactor handles, intensity scheme, and four intensity-style values. Cropped POINTCLOUDEX DXF output silently omitted nonzero unknownInt0/1.",
+  "schema_evidence": {
+    "libredwg_revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "file": "src/dwg2.spec:5291-5419",
+    "qualification": "The peer grammar places classic handle and intensity fields in its R2013+ branch and the EX unknown integers in the zero-crop DXF branch. This is an implementation reference, not independent native producer qualification."
+  },
+  "change": "Fail preflight for unrepresented nondefault values before writing. Preserve classic AC1027+ and EX zero-crop behavior.",
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_pointcloud_omitted_fields|libdxfrw_pointcloud_reference_remapping)$' --output-on-failure",
+    "result": "2/2 passed",
+    "coverage": "ASCII and binary: each classic field separately on AC1021 and AC1024 and both EX integers on AC1027 and AC1032 are refused with existing destination and source preservation, followed by corrected retry on the same facade and fresh readback. Newer classic values and zero-crop EX integers also roundtrip."
+  },
+  "limits": "Generated local DXF transport and refusal evidence only; no claim of native producer semantics or graph qualification. No drawing fixtures added."
+}

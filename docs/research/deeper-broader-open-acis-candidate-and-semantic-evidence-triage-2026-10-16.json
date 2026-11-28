@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw-open-acis-candidate-and-semantic-evidence-triage-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "planFiles": [
+    "DWG_DXF_3D_SUPPORT_PLAN.md",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "scope": "Screen additional open CAD/parser/kernel routes for independently useful SAT/SAB/AcDs semantic evidence; separate advertised format names, parser recognition, kernel features, and executable semantic qualification.",
+  "method": {
+    "sourceTypes": [
+      "SAT interoperability and refusal documentation",
+      "detailed CADKernel support matrix",
+      "OpenCADStudio kernel and codec project documentation",
+      "DXF parser feature matrices and source-profile documentation",
+      "target-writer compatibility caveats"
+    ],
+    "sourcesReviewed": [
+      "https://featureboard.ai/examples/cad-solver/web/interop/sat",
+      "https://github.com/kernalix7/CADKernel#supported-file-formats",
+      "https://github.com/HakanSeven12/opencadkernel",
+      "https://github.com/HakanSeven12/opencadcodec",
+      "https://github.com/dxfjs/parser",
+      "https://github.com/asward/DXFReader",
+      "https://github.com/ixmilia/dxf"
+    ],
+    "peerSourceCloned": false,
+    "peerBinariesInstalledBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "evidenceBoundary": "Repository/product documentation is source-reported capability, not behavior reproduced on libdxfrw output. A typed entity or feature flag is not proof of carrier retention, valid B-rep, or native target acceptance. No new peer was admitted as a support oracle."
+  },
+  "findings": [
+    {
+      "topic": "NativeCAD SAT-only candidate",
+      "source": "https://featureboard.ai/examples/cad-solver/web/interop/sat",
+      "observed": [
+        "The page reports SAT-text import/export, two public NIST SAT examples, and a project-authored sample.",
+        "The page explicitly refuses binary SAB with SAT_BINARY_UNSUPPORTED.",
+        "The public page does not identify an auditable source repository or open-source license.",
+        "The sample's same-project re-import and reported metrics are not independent semantic evidence."
+      ],
+      "planUse": "Do not count as an open-source implementation or semantic witness. Revisit only as a separately labeled SAT-text route if source/license, exact executable, input provenance, and independent expected values become available. It cannot qualify SAB, DXF ACDSDATA, or DWG AcDs."
+    },
+    {
+      "topic": "CADKernel detailed ACIS status",
+      "source": "https://github.com/kernalix7/CADKernel#supported-file-formats",
+      "observed": [
+        "The broad README headline lists ACIS among many categories, but the detailed table marks ACIS SAT/SAB read and write unsupported or planned."
+      ],
+      "planUse": "Retain DISCOVERY_ONLY / ACIS_UNSUPPORTED and skip installation/build for ACIS parity unless the detailed, versioned route changes."
+    },
+    {
+      "topic": "OpenCADStudio kernel versus parser lineage",
+      "sources": [
+        "https://github.com/HakanSeven12/opencadkernel",
+        "https://github.com/HakanSeven12/opencadcodec"
+      ],
+      "observed": [
+        "opencadkernel describes an early optional lift from SatDocument into its B-rep layer.",
+        "OpenCADStudio's codec family is ACadRust-derived, so a separate kernel implementation does not add an independent DWG/DXF or ACIS parser vote.",
+        "The feature description alone does not establish completeness for the chosen body topology or absence of fallback."
+      ],
+      "planUse": "Keep the existing one-time capability preflight and optional cross-kernel application check; if required operations are missing, record NOT_AVAILABLE and do not build an adapter or add dependencies."
+    },
+    {
+      "topic": "Low-value DXF parser candidates",
+      "sources": [
+        "https://github.com/dxfjs/parser",
+        "https://github.com/asward/DXFReader"
+      ],
+      "observed": [
+        "dxfjs advertises 3DSOLID dispatch, but its advertised entity name does not establish carrier decoding or B-rep interpretation; prior source inspection did not find retained OBJECTS output in the returned model.",
+        "DXFReader explicitly supports ASCII only, has no writer, and marks both 3DFACE and 3DSOLID unsupported."
+      ],
+      "planUse": "Do not schedule these for modern-solid or semantic execution. Reconsider only for a concrete, source-audited parser behavior not already covered by local tests."
+    },
+    {
+      "topic": "DXF writer acceptance caveat",
+      "source": "https://github.com/ixmilia/dxf",
+      "observed": [
+        "The project warns that typed 3DSOLID, REGION, and BODY writer outputs may not open in AutoCAD."
+      ],
+      "planUse": "Preserve target-reader/native-application acceptance as a separate composed gate; class presence, same-codec round-trip, or peer output cannot substitute."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "refinesExistingOwners": [
+      "PAR-07",
+      "S8 peer admission and comparator order",
+      "existing ACIS parser/kernel/native-consumer evidence lanes"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "newValidationJobs": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "fastImplementationDecision": "Do not add screened peers to per-slice validation, CMake, CI, or dependencies. Continue focused local tests; at the existing composed checkpoint prioritize only an exact pinned, source-audited ACIS parser profile plus independently authored analytic expectations.",
+    "validation": {
+      "planUpdated": true,
+      "receiptJsonParsed": true,
+      "gitDiffCheckPassed": true,
+      "localTestsRun": false,
+      "peerRuntime": "NOT RUN",
+      "nativeQualification": "NOT RUN",
+      "externalFilesDownloaded": 0,
+      "fixturesAdded": 0,
+      "supportClaimsPromoted": 0,
+      "jDispositionChanged": false
+    }
+  }
+}

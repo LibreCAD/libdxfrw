@@ -1,0 +1,34 @@
+{
+  "original": {
+    "path": "/private/tmp/light421-color/out/rgb.dxf",
+    "sha256": "fa5d37197d271ab36ce268ecfddd942083a33c9b1a3b02411714c9fee0af3fb9"
+  },
+  "selected": {
+    "path": "/private/tmp/light-preview/selected-source.dxf",
+    "sha256": "3911eb8c9c1e296c942eddebc37f1bb2bf4548fa8daf31a2978d64d718017231"
+  },
+  "ascii": {
+    "path": "/private/tmp/light-preview/selected-ascii.dxf",
+    "sha256": "1ee5ab084245118b5bd4bf3c09cf5aa85d2ce2f9e1779ef3b2f79f64c5bce1c9"
+  },
+  "binary": {
+    "path": "/private/tmp/light-preview/selected-binary.dxf",
+    "sha256": "d6d8bef429726b952b93361365a7d35069efe066c125dc5e88ec6a6b7b804d96"
+  },
+  "oda_ascii_dwg": {
+    "path": "/private/tmp/light-preview/oda-dwg/ascii.dwg",
+    "sha256": "df16b516e394f3508db589199ce20b9a70707b57d12c714a0f44f6206bf54ddc"
+  },
+  "oda_binary_dwg": {
+    "path": "/private/tmp/light-preview/oda-dwg/binary.dwg",
+    "sha256": "64ef6acd9b6fe672af056ac88a8c0a937bd556b241c2a59c7668e7bbbacd0268"
+  },
+  "oda_ascii_dxf": {
+    "path": "/private/tmp/light-preview/oda-out/ascii.dxf",
+    "sha256": "4ee3ea17781fd8abb6b73da5907da86a4926c66996488dbbd577c9d0985bf44b"
+  },
+  "oda_binary_dxf": {
+    "path": "/private/tmp/light-preview/oda-out/binary.dxf",
+    "sha256": "c8b70d231911ff3703a53b16cc5e478da4c7b69790064cf990d5faa7ac4cc639"
+  }
+}

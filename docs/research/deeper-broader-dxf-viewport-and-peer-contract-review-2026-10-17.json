@@ -1,0 +1,74 @@
+{
+  "title": "Deeper/broader DXF VIEWPORT and peer-contract refresh",
+  "date": "2026-10-17",
+  "classification": "research-and-implementation-progress",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Autodesk VIEWPORT handle field contracts",
+    "Independent DXF/DWG peer scope and qualification boundary",
+    "Fail-closed adapter behavior for unclosed VIEWPORT references"
+  ],
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "role": "primary DXF reference",
+      "finding": "332 background, 333 shade plot, and 361 sun are optional ID/handle fields; the page does not state a universal target class/root contract; shade mode 170 is documented as 0-3; visual style 348 is a separate field."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfentities/viewport.html",
+      "role": "independent DXF model/API",
+      "finding": "Separately exposes background, shade-plot, visual-style, sun, clipping, UCS, and frozen-layer properties; structural API presence does not establish graph closure or native rendering."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/discussions/535",
+      "role": "peer limitation disclosure",
+      "finding": "Viewport rendering depends on clipping, per-viewport layer state, and renderer capabilities; not equivalent to parser retention."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg",
+      "role": "independent DWG/DXF implementation scope disclosure",
+      "finding": "Useful separate decoder/converter route, but project docs disclose advanced R2010+ skipped objects and later DWG writer limitations."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp",
+      "role": "candidate DWG/DXF peer",
+      "finding": "Public docs cover reader/writer presence but not per-family semantic qualification."
+    },
+    {
+      "url": "https://github.com/ixmilia/dxf",
+      "role": "DXF peer scope disclosure",
+      "finding": "Explicitly excludes VIEWPORT from stated R10-R2014 entity support; not a VIEWPORT comparator."
+    }
+  ],
+  "local_audit": {
+    "validated_edges": [331, 340, 345, 346, 348],
+    "unclosed_edges": [332, 333, 361],
+    "reason": "The adapter has no retained/rooted DRW_Background or DRW_Sun collections, and VIEWPORT code 333 has no mode-specific target closure. Low-level handle remapping alone does not close the object graph."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "change": "Reject nonzero VIEWPORT 332, 333, and 361 in adapter preflight until class/owner/mode-specific target closure is implemented.",
+    "tests": "Generated negative controls assert rejection before output publication for each field.",
+    "external_fixture_files_added": 0
+  },
+  "plan_effect": {
+    "refines": ["PAR-40", "7G.2"],
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "support_claim_promotions": 0,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "validation": {
+    "strict_target_build": "PASS: cmake --build build --target libdxfrw_dxf_fixture_tests -j2",
+    "focused_selectors": {
+      "--layout-graph-read-contract": "PASS: 332/333/361 refusals, sentinel preservation, same-adapter correction/retry",
+      "--viewport-typed-handle-remap": "PASS"
+    },
+    "owning_ctest": "FAIL: libdxfrw_dxf_fixtures segfaults after earlier writer tests and before completion; cause not attributed",
+    "full_suite": "not run"
+  },
+  "worktree_state": "uncommitted"
+}

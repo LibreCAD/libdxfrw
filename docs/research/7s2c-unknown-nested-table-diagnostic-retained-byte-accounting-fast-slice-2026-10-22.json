@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c unknown nested TABLE diagnostic retained-byte accounting",
+  "scope": "Account the bounded unknown-TABLE name prefixes and retained skip diagnostic under the shared DXF logical retained-byte budget.",
+  "files": {
+    "src/libdxfrw.cpp": "3f381c5de142806434ce97f34c3f4ecd125fc5c45bd848c7103f75f86842b54d",
+    "tests/hardening_tests.cpp": "08fc6b100dbf9ac4b5dc3a51a071bcbc8dd90f1c517ceac8f039b4c756f71cde"
+  },
+  "change": {
+    "summary": "processTables reserves each retained unknown-table name prefix before copying, reserves the joined warning at its peak while those prefixes remain live, and transfers the charge to the operation budget only when the diagnostic is retained.",
+    "fixtureAdded": false,
+    "publicApiOrLayoutChanged": false,
+    "wireBehaviorChanged": false,
+    "supportClaimPromoted": false,
+    "externalQualificationChanged": false
+  },
+  "generatedControl": {
+    "formatVersion": "ASCII DXF (generated in memory)",
+    "input": "TABLES section with one unknown nested TABLE and a 96-byte name, followed by valid ENDTAB/ENDSEC/EOF.",
+    "checks": [
+      "diagnostic retains the bounded 64-byte name prefix",
+      "binary-searched exact whole-read retained-byte cap succeeds",
+      "the published diagnostic message remains charged after reader completion",
+      "one byte below the exact cap refuses with ResourceLimit/dxf-retained-byte-budget",
+      "same-facade retry at the exact cap succeeds and republishes the diagnostic"
+    ]
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check --parallel 4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-unknown-table-name-view",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_unknown_table_name_view$' --output-on-failure",
+      "result": "PASS (1/1; 0.23 s)"
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS (1/1; 9.03 s)"
+    },
+    {
+      "command": "git diff --check -- src/libdxfrw.cpp tests/hardening_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "evidenceCeiling": "Generated tests verify byte accounting and diagnostic publication behavior for unknown nested TABLE skips. They do not establish additional DXF format support or interoperability.",
+  "fullSuiteRun": false,
+  "sanitizersRun": false,
+  "externalPeersRun": false,
+  "nativeCadRun": false,
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "planTotals": {
+    "findings": 144,
+    "topLevelSubplans": 78
+  },
+  "selfUnblockingContinuation": "Continue the exact-source DXF owner audit across remaining compound/class registries and parser staging containers. If none remains, resume a locally evidenced PAR-03/PAR-04, HATCH, or DWG semantic item. External qualification remains separate and does not pause local implementation."
+}

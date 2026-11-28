@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-dictionary-cycle-closure-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "248f28cc",
+  "scope": "Root dictionary reattachment decision for selected locally generated ASCII DXF graphs in LibreCAD_3.",
+  "reproduction": "Recursive memoization cached a dictionary within a cycle as complete before discovering a missing descendant of another member; two invalid roots were reattached and one rather than three losses was reported.",
+  "implementation": "Build reverse 350/360 dependencies and propagate missing targets to every predecessor; shared and cyclic graphs are visited in expected O(V+E) time. Root order and existing owner/reactor handling are retained.",
+  "validation": [
+    "The generated shared-cycle regression fails before the fix and passes after it: three incomplete roots are omitted and reported, while an independent complete cycle remains named.",
+    "A 1024-dictionary shared cycle with one missing target propagates failure to both selected roots and preserves a separate complete root.",
+    "Five focused persistence tests pass, including previous root/ownerless cases and the selected IMAGE partial-resave control.",
+    "Both root traversal orders are covered by two incomplete cycles; all five affected roots are omitted while the independent complete cycle remains named. Six focused persistence tests pass on the updated head."
+  ],
+  "testLogSha256": "a5a92422cc45d7727bcbd31201f47c65b8e3d5f5ec69c1af4814c3d9e999e7a5",
+  "limits": [
+    "The focused checks cover root reattachment and loss reporting, not complete preservation of detached objects, native import, malformed or wide handles, or the separate IMAGE source graph.",
+    "The generated DXFs are temporary and not committed."
+  ]
+}

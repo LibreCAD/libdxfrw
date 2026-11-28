@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-root-name-candidate-librecad-system-codec-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "7a46089d",
+  "implementationDigestSha256": "63e6c7f77b863b7aa2495970b3193ef90517553c5bde6717d0438eb09a186183",
+  "librecadCommit": "ff9e56154bee8ae54acd7209a364eee7953dd48b",
+  "librarySha256": "e6b200c92ad291ed137d369869962ebf51e1af490c4464fc353ee5b5035cdee8",
+  "environment": "macOS ARM64, Qt offscreen, system-libdxfrw codec test binary; the updated shared library was built and installed from the candidate source.",
+  "checks": [
+    "PASS: [system-codec][material], 845 assertions in 6 test cases.",
+    "PASS: one selected material-link case, 438 assertions; DYLD_PRINT_LIBRARIES confirms the candidate install path was loaded."
+  ],
+  "limits": [
+    "Headless focused consumer coverage only; this does not qualify raw-only replay, native GUI/FreeCAD behavior, complete graph closure or other platforms."
+  ]
+}

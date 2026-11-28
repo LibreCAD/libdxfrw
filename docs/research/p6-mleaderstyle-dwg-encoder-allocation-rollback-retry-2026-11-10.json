@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-mleaderstyle-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "status": "GENERATED_DWG_ENCODER_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dimassoc_dwg_encoder_allocation_tests.cpp"
+    ],
+    "behavior": "DRW_MLeaderStyle::encodeDwg now writes into staged body, string, and handle buffers, preserving all distinct and aliased stream layouts. It publishes only after all output streams remain good and catches allocation exceptions as a clean false result."
+  },
+  "generatedProfile": {
+    "version": "AC1027",
+    "modeledFields": "description, default text, dimensions, common owner/reactor/extension-dictionary handles, and four hard-pointer style references",
+    "layouts": [
+      {"streams": "separate body/string/handle", "allocationOffsets": 37},
+      {"streams": "shared string/handle", "allocationOffsets": 32},
+      {"streams": "body string, detached handles", "allocationOffsets": 31},
+      {"streams": "separate string, body-aliased handles", "allocationOffsets": 33},
+      {"streams": "all body", "allocationOffsets": 26},
+      {"streams": "separate streams with leader/text/block CMC palette names", "allocationOffsets": 74}
+    ],
+    "totalAllocationOffsets": 233,
+    "result": "Every injected failure preserves caller streams and their cursors/handle ledgers; retrying the same object into the same streams matches clean encoded output."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests -j2",
+    "test": "libdxfrw_dwg_object_encoder_allocation_retry",
+    "result": "PASS (1/1; executable covers the existing generated allocation matrix plus five MLeaderStyle stream layouts and named CMC palette fields)",
+    "fullSuites": "not run"
+  },
+  "limitations": [
+    "Generated AC1027 encoder transaction evidence only; no physical producer or native consumer qualification.",
+    "Does not establish MLeaderStyle field semantics, source graph closure, or whole-file output support.",
+    "No drawing fixture was added and no support claim is promoted."
+  ]
+}

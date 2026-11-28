@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-03",
+  "scope": "Generated 3DSOLID history-reference identity transport.",
+  "field": {
+    "record": "3DSOLID",
+    "member": "DRW_ModelerGeometry::m_historyHandle",
+    "group_code": 350,
+    "role": "Soft-owner ID/handle to the history object"
+  },
+  "format_evidence": {
+    "source": "Autodesk 3DSOLID DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+    "supports": "Group 350 is the soft-owner ID/handle to the history object; the AcDb3dSolid subclass carries this reference."
+  },
+  "mapping_policy": "For a nonzero R2007+ 3DSOLID history handle, use the configured reference resolver when present; otherwise use remapObjectHandle. Reject a zero or NoHandle result for a nonzero source. Preserve the existing explicit group-350 zero value when the source has no history handle.",
+  "validation": {
+    "input": "Generated in-memory DRW_ModelerGeometry with eType E3DSOLID; no DWG/DXF fixture was added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "selector": "libdxfrw_wave1_tests --solid-history-reference-remapping",
+    "controls": [
+      "Exact group-350 output under resolver precedence and source-handle-remap fallback",
+      "Historyless solid retains the existing group-350 zero carrier even with a resolver configured",
+      "Unresolved resolver target refuses the record and preserves the destination",
+      "Corrected target serializes through a fresh writer after low-level dxfRW sticky failure"
+    ],
+    "result": "PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4"
+  },
+  "qualification_limits": [
+    "Generated low-level transport only; it does not prove that the history target exists, has a valid target role, or is reachable in the source object graph.",
+    "Does not establish the DWG entity-to-history association, recursive ACDS closure, ACIS/B-rep semantics, physical producer breadth, native consumer behavior, or support-claim eligibility."
+  ]
+}

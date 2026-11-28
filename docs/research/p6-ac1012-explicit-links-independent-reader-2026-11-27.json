@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-explicit-links-independent-reader-2026-11-27",
+  "supportClaimEffect": "none",
+  "sourceReceipt": "docs/research/p6-ac1012-explicit-entity-links-2026-11-27.json",
+  "peer": {
+    "name": "TNYCL/cadkit cadkit-dwg",
+    "version": "0.5.4",
+    "commit": "965567ac854c37b04d2325fe130367b3dea09d03",
+    "binarySha256": "0cb592694a50c7503391a23d302c67f2c3c754a5ccc40ea0f4abcef42cb31351"
+  },
+  "logs": {
+    "source": {
+      "sha256": "7070bd073b6398dd69f9ccf57b69cc6b55218582a23787180c9fadd91c2a9b2f",
+      "noLinks": false
+    },
+    "destination": {
+      "sha256": "d69547c00b20dad3819bfa35948cbb17388b8ad2be43a8d32845b13a236fd19e",
+      "noLinks": false
+    },
+    "prior": {
+      "sha256": "a8b9b11413c8b28089e33363c637bdc0df545543e72084b0661e5b35dc77d0f1",
+      "noLinks": true
+    }
+  },
+  "observation": "The independent peer decodes LINE 0x2C with no_links=false, null previous and next, handle-stream bit 93, no parser errors or warnings in both corrected sources. It reports no_links=true for the prior rejected source.",
+  "limits": [
+    "The peer is specification-directed and marks R13 untested. Its None representation does not prove the physical handle role; the separate bounded frame observer checks that role.",
+    "The peer does not establish native AutoCAD acceptance, merge semantics, graph completeness or support claims."
+  ]
+}

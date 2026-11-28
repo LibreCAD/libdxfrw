@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-11",
+  "scope": "Generated-only mechanical projection of the three ordered TABLE-root XRECORD data references after exact AC1018 raw/typed profile inspection. No output, source replay, graph closure, or semantic qualification authority.",
+  "implementation": {
+    "files": [
+      "src/intern/dwg_table_roundtrip_xrecord_ac1018_candidate.h",
+      "src/intern/dwg_table_roundtrip_xrecord_ac1018_candidate.cpp",
+      "tests/dwg_table_roundtrip_xrecord_ac1018_candidate_tests.cpp"
+    ],
+    "behavior": [
+      "inspect() must match the raw source record and ordered typed entries before projection.",
+      "Clone the ordered entries and replace only indexes 1, 7, and 12, preserving their original group codes 360, 361, and 360.",
+      "Reject null, source-self, owner, and duplicate mapped handles.",
+      "Commit the projected vector by swap only after all validation and allocation succeeds; failure clears source evidence and preserves the caller's prior projected vector."
+    ]
+  },
+  "focused_validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_table_roundtrip_xrecord_ac1018_candidate_tests -j4 && ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_roundtrip_xrecord_ac1018_candidate$' --output-on-failure",
+    "result": "Build passed; 1/1 focused CTest passed.",
+    "generated_controls": [
+      "Mapped targets appear only at the three expected ordered entries and retain the exact group codes.",
+      "Non-reference entry codes/types and all source bytes/typed references remain unchanged.",
+      "Null, self, owner, duplicate-target, and malformed-source cases refuse atomically and preserve the previously supplied output vector.",
+      "Every measured allocation failure refuses without changing the output vector; the clean projection succeeds after each injected failure."
+    ]
+  },
+  "limitations": [
+    "The helper accepts caller-provided raw/typed objects and is not itself source authentication; production callers must first hold the sealed reader capability.",
+    "No DWG or DXF writer is connected to this helper.",
+    "No output identity allocation, target-role validation, recursive closure, transaction rollback, CRC regeneration, or fresh readback is proven.",
+    "The observed value-string length/codepage disagreement and descendant body semantics remain unresolved; no support claim is promoted."
+  ],
+  "next": "Integrate behind the sealed multi-source capability, prove output target identities/roles and recursive closure, then add staged writer rollback/retry, output CRC, and fresh readback while keeping physical subtree output refused."
+}

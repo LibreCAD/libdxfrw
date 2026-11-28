@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dimassoc-dxf-source-identity-rollback-2026-11-12",
+  "date": "2026-11-12",
+  "status": "DIMASSOC_SOURCE_IDENTITY_AND_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Register each nonzero source DIMASSOC handle to its emitted DXF OBJECTS record transactionally, and verify failure rollback, same-codec retry, and typed readback.",
+  "binding": {
+    "repositoryHead": "2d4d4939110ae06e6db33b1abf7517110a41290d",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "29c4159d7b93e7448ab309f0b71bc1bc0904ca90f0459f9a8310754829a60a0b",
+      "tests/dimassoc_physical_transport_tests.cpp": "abf4df91d3f9b887d4e01a1fe2c82e6f5dde7a0fb30708bae4eac568c9b32d8f",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "f037d08700c6c89e11d139d38c0538314c2a0601c12e3d7548f65af8bc868118"
+    },
+    "artifactSha256": {
+      "build-gcc/libdxfrw.a": "b0da09755369f2dca5d8f6a1dafae1b1aa9b140d100d0775eb753c2fd934557b",
+      "build-gcc/libdxfrw_dimassoc_physical_transport_tests": "bd6e758b7c389f328b106828038cbf897f5667814d86ee44180fd7435354a961",
+      "build-asan-custom/libdxfrw.a": "d2a61fd0ef015ea41fea016c4da347c43213c29f11a7a4ca309425093e00a999",
+      "build-asan-custom/libdxfrw_dimassoc_physical_transport_tests": "6b99c1c6a24a277f434eafaa91b7cd03eb660516378daa8f0f654416f136a28f"
+    }
+  },
+  "change": {
+    "implementation": "writeDimensionAssociation now opens RecordStateScope before writer-side allocations, binds the nonzero source handle to the emitted handle before committing the record, and commits the state scope only after record commit.",
+    "regressionCoverage": [
+      "The exact ASCII/Binary round-trip helper checks the sourceHandleToWrittenObjectMap binding after direct record output.",
+      "Every injected allocation failure verifies destination sentinel preservation and absence of a partial DIMASSOC source identity.",
+      "Same-codec retry verifies one exact source-to-emitted identity binding and fresh typed readback."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dimassoc_physical_transport_tests libdxfrw_wave1_tests -j2",
+      "result": "PASS"
+    },
+    "normalFocusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dimassoc_dxf_allocation_rollback_retry|dwg2dxf_dimassoc_adapter_closure_retry_ascii|dwg2dxf_dimassoc_adapter_closure_retry_binary|dwg2dxf_generated_dimassoc_graph_node)$' --output-on-failure",
+      "result": "PASS 4/4 (0.93 seconds)"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dimassoc_physical_transport_tests -j2",
+      "result": "PASS"
+    },
+    "asanAllocationSweep": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_dimassoc_dxf_allocation_rollback_retry$' --output-on-failure",
+      "result": "PASS 1/1 (1.58 seconds)"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "This proves output identity bookkeeping and transaction behavior for the tested DIMASSOC writer profiles; it does not prove producer-wide source spans, all owner/reactor role variants, or native associative updates.",
+    "Physical whole-drawing output remains subject to the separate frame, graph-closure, and strict-output gates.",
+    "No DWG/DXF fixture was added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue the P6 source/object identity and transaction audit only where a concrete writer path lacks its required source binding or rollback proof; retain unresolved producer and semantic gates."
+}

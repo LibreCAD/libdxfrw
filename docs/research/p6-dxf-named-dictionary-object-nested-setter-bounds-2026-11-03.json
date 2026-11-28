@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-named-dictionary-object-nested-setter-bounds-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bound caller-owned named dictionary objects by record count, aggregate nested work, and estimated retained bytes.",
+  "source": {
+    "parentCommit": "3c1eebd5337047608530817b628cdd9536a6bda0",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "cmake": "4.4.5",
+    "files": {
+      "src/libdxfrw.cpp": "e82a7ab57458a6e5a4397ded60a1e65c6ecf5338d13fc8d7e90214f2b9488d1b",
+      "src/libdxfrw.h": "a747db9de2793dceed1194022556cb93c5f052951300311d6b0e2c2ea89febab",
+      "tests/dxf_fixture_tests.cpp": "7f3f71082ce6d6cc38f670b72f4f5b4c875d957d4ca5a3d8a1f24e5a18ca3ae0"
+    }
+  },
+  "limit": {
+    "recordsPerSetter": 100000,
+    "accountedItemsPerSetter": 1000000,
+    "logicalRetainedBytesPerSetter": 67108864,
+    "countedPayload": [
+      "outer dictionary vector slots",
+      "common table-entry names, reactors, pending references, XDATA and application-data nodes/payloads",
+      "nested dictionary entry vector slots and entry names"
+    ],
+    "perDictionaryEntryCount": 100000,
+    "formatMaximum": false
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "behavior": [
+      "Const and move setters estimate common table-entry metadata and nested dictionary entries before copying or consuming input.",
+      "The const setter stages into a temporary, catches allocation failure, and clears stale state while latching write refusal if the budget or copy fails.",
+      "Rejected move input remains caller-owned. A corrected setter clears the rejection and supports retry on the same writer.",
+      "Pending rejection blocks output before destination initialization; generated ASCII and Binary controls verify destination preservation and corrected retry.",
+      "Exact aggregate item-boundary acceptance and one-item-over rejection are tested. The one-item-under byte boundary is checked with a one-record estimator control.",
+      "The existing setter freeze condition during a write attempt is preserved."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R 'libdxfrw_(root_dict_entry_count_bound|named_dict_object_count_bound|dxf_class_count_bound|resolved_write_reference_setter_bounds|dxf_handle_remap_setter_bound|dxf_source_table_metadata_setter_bounds)'",
+      "result": "PASS 6/6; 1.19 seconds",
+      "coverage": "Named dictionary exact aggregate item ceiling, overflow rejection before copy/consume, stale-state clearing, injected const-copy allocation failure/retry, and ASCII/Binary destination preservation with corrected retry; neighboring dictionary, CLASS, reference, handle-remap and source-table setters."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom --output-on-failure -R 'libdxfrw_(root_dict_entry_count_bound|named_dict_object_count_bound|dxf_class_count_bound|resolved_write_reference_setter_bounds|dxf_handle_remap_setter_bound|dxf_source_table_metadata_setter_bounds)'",
+      "result": "PASS 6/6; 2.16 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The estimate accounts for logical container slots and retained payload, not allocator capacity or process RSS.",
+    "The internal ceilings are resource guards, not DXF format maxima or support claims.",
+    "The setters moved out of line; downstream consumers must rebuild/relink. ABI and packaging qualification remain open under P8."
+  ],
+  "next": "Continue auditing independent DXF setup/assembly work paths, rollback after earlier staged records, source lifetime, platform numeric/string policies and scoped concurrency."
+}

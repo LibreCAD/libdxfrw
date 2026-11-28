@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw-polyline-late-parent-orphan-identity-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "status": "PARTIAL_LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Continue PAR-92/7BA by indexing child-first orphan identity so a late parent cannot adopt a vertex whose observed owner differs, while preserving that orphan for its actual owner.",
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "inverseIndex": "The existing ordered handle-to-owner claim index now also supports single orphan-owner claims. The reader keeps a separate inverse index for staged orphan vertices and rejects foreign ownership in logarithmic lookup over a late parent's deduplicated declared-child index.",
+    "arrivalOrder": "If the child arrives first under owner A and a later parent B declares that child, B is rejected before pending-state insertion; the orphan remains available for A. If B is already pending when an A-owned child arrives, the pre-existing reverse-claim path terminalizes B and rejects the child, preserving the existing conflict outcome across arrival order.",
+    "lifecycle": "Inverse claims are registered with orphan staging and removed on same-owner adoption, orphan terminalization, pending-owner terminalization, and final abandonment. The shared staging ledger charges inverse-index nodes, preflights the extra claim charge with vector growth and per-owner membership, and validates index/state correspondence and exact modeled-byte totals.",
+    "budget": {
+      "aggregateLimitBytes": 268435456,
+      "charged": [
+        "inverse ordered-map child-key and owner-set node estimates",
+        "orphan vector capacities and per-owner child-handle membership nodes",
+        "the existing declared-child, pending-vector, and parent-claim charges"
+      ],
+      "notCharged": [
+        "top-level pending/orphan unordered-map buckets and nodes",
+        "allocator metadata and process RSS"
+      ],
+      "qualification": "An explicit retained-state budget estimate, not an RSS cap."
+    }
+  },
+  "focusedControls": {
+    "selector": "--polyline-staging-growth",
+    "cases": [
+      "512 declared child handles with a matching orphan owner remain admissible",
+      "a foreign late parent is rejected by the inverse owner lookup",
+      "lookup work stays below 512*16 ordered comparisons",
+      "duplicate owner insertion refuses without mutating the charge or index",
+      "claim removal returns exact modeled bytes and leaves the index empty",
+      "one-byte budget refusal leaves no partial index or output charge",
+      "existing vector/map growth, membership, and competing-parent claim controls remain green"
+    ],
+    "fixtureFilesAdded": 0,
+    "testRegistrationsAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+      "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_(dwg_reader_matrix|dwg_local_roundtrip)$'",
+      "cmake --build build-gcc --target lc3_compat_check -j2",
+      "git diff --check"
+    ],
+    "strictTargetBuild": "PASS",
+    "focusedSelector": "PASS (final run; an initial test assertion checked the retained byte count after removal and was corrected to snapshot it before removal)",
+    "owningCTest": {
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        "libdxfrw_dwg_reader_matrix",
+        "libdxfrw_dwg_local_roundtrip"
+      ]
+    },
+    "lc3CompatibilityCheck": "PASS",
+    "diffCheck": "PASS",
+    "fullSuite": "NOT RUN",
+    "sanitizer": "NOT RUN",
+    "externalPeerOrNativeRuntime": "NOT RUN"
+  },
+  "remaining": [
+    "Add real source-frame stage/adopt/terminalize/lease rollback and same-reader retry transcripts that verify claims, ownership, and byte charges after each injected failure.",
+    "Resolve whether top-level pending/orphan unordered-map buckets and nodes should be added to the explicit aggregate estimate; allocator metadata and RSS remain separately qualified.",
+    "Do not infer whole-reader speed/safety, file-level support, native consumer acceptance, or semantic DWG parity from this component slice."
+  ],
+  "planImpact": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "findingCount": 127,
+    "implementationSubplanCount": 71,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commit": "NOT CREATED: the shared worktree contains broad mixed, uncommitted changes; this slice remains recoverable without staging unrelated changes."
+  }
+}

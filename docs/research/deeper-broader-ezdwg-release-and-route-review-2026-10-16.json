@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw-deeper-broader-ezdwg-release-and-route-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh ezdwg's prior source-discovery entry against its current release, declared DWG reader coverage, writer composition, and package provenance; refine the optional peer-comparison procedure without changing implementation or support claims.",
+  "method": {
+    "kind": "Primary-source web review of PyPI release metadata and project README, API overview, changelog, and repository status",
+    "peerRuntimeRun": false,
+    "nativeCadOrKernelRun": false,
+    "repositoriesClonedOrBuilt": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourceCommitPinned": null,
+    "evidenceBoundary": "The documented release and package hashes identify candidate artifacts only. No package or repo source was downloaded, installed, built, or run; PyPI reports Trusted Publishing was not used, and this review did not map the release artifact to a Git source commit."
+  },
+  "release": {
+    "name": "ezdwg",
+    "version": "0.16.0",
+    "released": "2026-10-14",
+    "license": "MIT",
+    "pythonRequirement": ">=3.10",
+    "trustedPublishing": false,
+    "sha256": {
+      "sdist": "39f2d06a0e9e2b0a706eaf706f0b85e682373656880dce73ce631f57de777ef4",
+      "windows_x86_64": "d2db21aea843aba23284532184d645dc731fbfebf6a05f59dccdac3fe4599319",
+      "linux_glibc_x86_64": "135b42d243d9c3e78c667cb5d53413baf2ec6187cfbe027ce2fe538a3fbd5a78",
+      "linux_glibc_arm64": "f1751717a52e47437f9f54eca9032dd3f9d1455750b341f6f6ffe78b31168d46",
+      "macos_universal2": "a0e391eb3e03196df64763b440b38d9fed6bceca19b27fb937e603f32c747fbb"
+    }
+  },
+  "evidence": [
+    {
+      "topic": "Current release and distribution provenance",
+      "sources": [
+        "https://pypi.org/project/ezdwg/",
+        "https://github.com/monozukuri-ai/ezdwg"
+      ],
+      "observed": "PyPI lists MIT-licensed ezdwg 0.16.0, released 2026-10-14, for Python 3.10+ and provides Windows x86-64, Linux glibc x86-64/ARM64, and macOS universal2 wheels. The source archive and each wheel have a published SHA-256; PyPI reports Trusted Publishing was not used. GitHub reports no tagged release. The prior source discovery SHA 0536bddf552891841fff58c0eddc0c9b9aa42661 is not evidence for the 0.16.0 artifact.",
+      "doesNotEstablish": [
+        "that any artifact was downloaded, installed, or executed",
+        "a verifiable source-commit-to-wheel provenance chain",
+        "any behavior beyond the specifically documented and tested profiles"
+      ],
+      "planUse": "At a future composed run, hash the exact acquired artifact and record platform, Python/runtime, environment lock, command/options, and a separately resolved source revision if possible. Do not treat the moving main branch, tag absence, or package version string as an executable identity."
+    },
+    {
+      "topic": "Version- and entity-specific DWG reader profile",
+      "sources": [
+        "https://github.com/monozukuri-ai/ezdwg",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/api/index.md",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/changelog.md"
+      ],
+      "observed": "The project documents a Rust core and Python high-level/raw APIs across AC1012 through AC1032. R13/R14 are explicitly experimental. The changelog lists native AC1021/AC1024/AC1027 decoding for selected common entities and paired-DXF regression comparisons, as well as broader per-version entity work. The README describes modern style/layer-color resolution as best-effort on some files. These are project-declared, route-bounded tests, not proof of full document or class support.",
+      "doesNotEstablish": [
+        "all entity/object classes for every advertised DWG version",
+        "semantic parity for complete owner/layout/object graphs",
+        "modern 3DSOLID, REGION, BODY, AcDs/SAB, or ACIS semantic support",
+        "an independent producer or normative expected-value oracle from paired DXF alone"
+      ],
+      "planUse": "Admit ezdwg as an optional second reader for overlapping, explicitly named type/version profiles. Compare raw and high-level results separately and capture exact version, handle, owner/layout placement, units, diagnostics, and decoded/skipped disposition. Preserve R13/R14 experimental status."
+    },
+    {
+      "topic": "Writer and transcode route composition",
+      "sources": [
+        "https://github.com/monozukuri-ai/ezdwg#dwg-to-dxf",
+        "https://github.com/monozukuri-ai/ezdwg"
+      ],
+      "observed": "The documented DWG-to-DXF exporter delegates DXF writing to ezdxf. Native DWG output targets AC1015 and a bounded entity subset. The API offers strict refusal for unsupported/undecoded records and returns skip/diagnostic results; complete source-document metadata is outside the described native writer scope.",
+      "doesNotEstablish": [
+        "ezdwg as an independent DXF writer when the ezdxf backend is used",
+        "modern DWG writer coverage or DWG 3D-solid/AcDs preservation",
+        "complete source-document losslessness from successful command exit"
+      ],
+      "planUse": "Keep direct reader differential, ezdxf-backed DXF conversion, and native AC1015 DWG output as distinct routes. Any optional writer check uses strict mode, enumerates every diagnostic/skip, checks output version/magic, and independently reopens only the documented subset."
+    },
+    {
+      "topic": "Evidence lineage and fixture admission",
+      "sources": [
+        "https://github.com/monozukuri-ai/ezdwg",
+        "https://github.com/monozukuri-ai/cq-acis"
+      ],
+      "observed": "ezdwg has its own test corpus and parser code; cq-acis is a separate project under the same GitHub organization. Shared organization, authorship, standards references, or reused corpus sources should be recorded where known. Peer repository sample existence does not authorize copying sample bytes into this project and does not establish the sample's producer or license for our use.",
+      "doesNotEstablish": [
+        "that the two parser codebases share implementation",
+        "that their evidence is fully independent by author, source grammar, producer, or corpus lineage",
+        "permission to import peer test drawings into this repository"
+      ],
+      "planUse": "Keep ezdwg optional and composed-checkpoint-only. Prefer locally authored or already-approved in-repository DWGs with a separately authored expected manifest. Review provenance and licensing before peer corpus use; never add unapproved external fixtures."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 123,
+      "topLevelImplementationSubplans": 71
+    },
+    "nextActions": [
+      "Keep ezdwg out of per-slice tests, dependencies, and implementation blockers.",
+      "At a composed peer checkpoint, pin the exact 0.16.0 artifact by platform SHA-256 or build a separately pinned source revision; record the missing Trusted Publishing provenance.",
+      "Limit reader comparisons to overlapping, version/type-specific routes and record diagnostics, placement, units, and per-object disposition.",
+      "Treat the ezdxf-backed transcode and AC1015 native writer as separate output pipelines, not broad writer parity.",
+      "Do not use ezdwg for modern DWG solid/AcDs/ACIS semantic qualification without new direct evidence."
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "planDiffCheckPassed": true,
+    "receiptJsonParsed": true,
+    "researchChangedSourceCode": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5dn legacy MTEXT immutable identities and independent XDATA wire proof",
+  "date": "2026-10-25",
+  "parentCommit": "09a93b86c33148ea9399a4e92ba4fa21485f2885",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "STALE_LEGACY_IDENTITY_ORACLE_RESOLVED_WITH_PHYSICAL_WIRE_PROOF_22_OF_22_NORMAL_AND_ASAN_FULL_GOAL_OPEN",
+  "scope": {
+    "productionCodeChanged": false,
+    "productionTreeDiffEmpty": true,
+    "originalInterfaceVtableChanged": false,
+    "modelLayoutChanged": false,
+    "nativeParsingOrEncodingLayoutChanged": false,
+    "newExternalDrawingFixturesCommitted": false,
+    "newControls": "Original authored legacy fixture retained; scratch runtime DXFs/sentinel and in-memory corrupted output copies only",
+    "converterRequestsAttdefSourceFacet": false,
+    "provedConverterResourceFamiliesUnchanged": 9,
+    "outputEligible": false,
+    "supportClaimsPromoted": false
+  },
+  "rootCause": {
+    "test": "testLegacyMTextColumnXdataPreservation",
+    "before": "Two assertions per encoding required mutation of caller linked-entity handles after export; imported source profile already passed",
+    "productionContract": "dx_iface enables m_preserveGraphSourceIdentities for all exports and EntityIdentityScope restores borrowed entity/child handles to protect deferred source references and repeat exports",
+    "baselineCommit": "09a93b86c33148ea9399a4e92ba4fa21485f2885",
+    "baseline": {
+      "log": "/tmp/rpp5dn-column-baseline.log",
+      "logSha256": "920975e3569d094695d1269c2e2731afa0ec6b4f2398ebeb79aa1ed48561ce37",
+      "failedAssertions": [
+        "FAIL: ASCII legacy MTEXT source remaps linked handles and imports",
+        "FAIL: ASCII legacy MTEXT raw XDATA round-trips without column aggregation",
+        "FAIL: binary legacy MTEXT source remaps linked handles and imports",
+        "FAIL: binary legacy MTEXT raw XDATA round-trips without column aggregation"
+      ]
+    },
+    "after": "Assert unchanged caller handles/XDATA profile and changed emitted linked identities, successful marked-written bindings, exact physical links and a subsequent import profile",
+    "productionBehaviorWeakened": false,
+    "existingContentAssertionsDropped": false,
+    "priorRedReceipt": "docs/research/rpp5dm-dxf-mtext-rgb-cmc-projection-and-native-retry-2026-10-25.json",
+    "diagnosticCorrection": "Six format-15/error-14 prints remain in the passing broader selector from its malformed-input controls; the isolated legacy selector has none. They are not evidence of failed legacy imports."
+  },
+  "primaryReferences": {
+    "groupRoles": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+    "groupValueTypes": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+    "mtextLinkedColumns": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mtext.html",
+    "mtextDocsVersionObserved": "1.4.5",
+    "retrieved": "2026-10-25",
+    "use": "Entity/code-5, XDATA/code-1005, I16/real roles and pre-R2018 linked column representation for scoped raw output checks",
+    "limits": "Primary documentation comparison only; no newly executed independent external reader, column renderer, native CAD application or semantic/kernel qualification"
+  },
+  "owningControls": {
+    "ctests": [
+      "libdxfrw_mtext_column_object_scope",
+      "libdxfrw_legacy_mtext_xdata_identity"
+    ],
+    "newSelector": "--legacy-mtext-xdata-identity",
+    "includedInDefaultFixtureRun": true,
+    "counterScope": "Per invocation of testLegacyMTextColumnXdataPreservation; both owning selectors call it, so repeated executions are not new distinct profiles",
+    "version": "AC1015",
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "successiveExportPhasesPerEncoding": 2,
+    "positiveWireProfilesPerInvocation": 4,
+    "observerRefusalsPerInvocation": 48,
+    "refusedTransactionsPerInvocation": 4,
+    "correctedSameAdapterExportsPerInvocation": 2,
+    "sameCodecFacadeRetryClaimed": false,
+    "facadeLimit": "fileExport constructs a fresh dxfRW facade per call",
+    "sourceChecks": "Source head/LINE/linked identities and original 32-XDATA profile stay unchanged after successful exports; failed exports retain invalid variant owner and original identities, then restoration recovers original profile",
+    "bindingChecks": "Capture only finalized successful bindings of nonzero source MTEXT handles marked written, then compare every target with literal emitted code-5 IDs",
+    "wireChecks": "Original bytes through exact EOF; four MTEXT/LINE/MTEXT/MTEXT records, unique nonnull IDs, model-space owners 0x1F, exact three texts, six LINE coordinates and 32 ordered XDATA values, including unknown key 99/value 3.25 and two 1005 links to actual linked records; no embedded R2018 aggregation/context",
+    "observerImplementation": "Test-owned ASCII line/code scanner and Binary-DXF width/primitive walk; no production dxfReader, DRW parsing, writer handle resolver or observer re-export",
+    "observerLimits": "Scoped to this authored R2000 output profile; not a general independent DXF parser, source graph certificate, native DWG reader, automatic aggregation, or rendering proof",
+    "corruptionsPerWireProfile": [
+      "head identity",
+      "first linked reference",
+      "second linked reference",
+      "head text",
+      "unknown integer key",
+      "unknown real value",
+      "following LINE X",
+      "duplicate linked reference",
+      "missing linked reference",
+      "reordered linked references",
+      "duplicate head identity",
+      "truncated EOF"
+    ],
+    "transactionFailure": "Wrong STRING variant type in a legacy 1070 XDATA slot; absent destination stays absent, exact existing scratch sentinel survives, original source identities survive; same adapter succeeds after restoring the original INTEGER variant",
+    "verboseLogSha256": {
+      "/tmp/rpp5dn-final-owning-normal.log": "d0f4540bf4a7b770bc25e404a8a2f09df391635987799746206e91d3e71a88e8",
+      "/tmp/rpp5dn-final-owning-asan.log": "e3fbca6349523f4aedbea1e6969e34f163289313403b01508ff3bdfb447c6fc4"
+    }
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21; build-gcc is not Linux/GCC",
+    "normal": {
+      "passed": 22,
+      "failed": 0,
+      "total": 22,
+      "skipped": 0,
+      "elapsedSeconds": 2.75,
+      "log": "/tmp/rpp5dn-final-normal-cohort.log",
+      "logSha256": "cdf6c3e827808dac0ddfabe8ae5f03a0ce266b7dc1484a7421b1ccf75fa992dc",
+      "junit": "/tmp/rpp5dn-final-normal.xml",
+      "junitSha256": "82770b5d56bc2d17fd3d2748f29d3d3327d1684c5174e9b9c22b2185e503fe78"
+    },
+    "asan": {
+      "passed": 22,
+      "failed": 0,
+      "total": 22,
+      "skipped": 0,
+      "elapsedSeconds": 5.48,
+      "log": "/tmp/rpp5dn-final-asan-cohort.log",
+      "logSha256": "720c3c21e7f3c8872b6a8e19d8ed21984cc9184f4fd95da6fa9ef87791259c20",
+      "junit": "/tmp/rpp5dn-final-asan.xml",
+      "junitSha256": "4fef770a996843f72de7d5ba83f7113bed1041190e6aa3d644bb4d4daa513162",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "tests": [
+      "dwg2dxf_mtext_orientation_ascii_cli",
+      "dwg2dxf_mtext_orientation_binary_cli",
+      "dwg_dxf_issue_1410_cross_codec",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_attdef_source_transport",
+      "libdxfrw_block_owners",
+      "libdxfrw_block_xref_path_roundtrip",
+      "libdxfrw_classic_vertex_xdata",
+      "libdxfrw_dwg_block_record_xref_roundtrip",
+      "libdxfrw_dxf_appdata_handle_token_transfer",
+      "libdxfrw_dxf_binary_group_width_guard",
+      "libdxfrw_dxf_group_310_direct_decode",
+      "libdxfrw_dxf_mtext_borrowed_chunk_view",
+      "libdxfrw_dxf_tables_write_inspection",
+      "libdxfrw_dxf_xdata_string_owner_budget",
+      "libdxfrw_group_adapter_roundtrip",
+      "libdxfrw_legacy_mtext_xdata_identity",
+      "libdxfrw_mtext_background_cmc",
+      "libdxfrw_mtext_column_object_scope",
+      "libdxfrw_r2018_attribute_outer_annotative",
+      "libdxfrw_writer_primitives",
+      "libdxfrw_xrecord_xdata_channels"
+    ],
+    "selection": "Fast owning/affected MTEXT, XDATA, identity, binary width, block, native issue-1410 and public consumer controls; no full-suite or replacement 96-case integration run",
+    "cohortsSequential": true,
+    "testAndCompatibilityTargets": "libdxfrw_dxf_fixture_tests and lc3_compat_check build in both configurations; linked library remains unchanged with its existing strict warnings",
+    "newWarningBypass": false,
+    "buildLogSha256": {
+      "/tmp/rpp5dn-final-normal-build.log": "f738a7934186a28d7a862b8d24c7fbcc02631f915849b113a59e9f41ecd355d1",
+      "/tmp/rpp5dn-final-asan-build.log": "f256dc557824e7ba25ff38f10983167166d35302512780707f2b1d52b9ab17eb"
+    },
+    "fullSuiteRun": false,
+    "previous96CaseCohortRerun": false,
+    "newExternalIndependentReaderRun": false,
+    "nativeFreeCADRuntimeRun": false
+  },
+  "remaining": [
+    "Converter actual ATTDEF source facet and correctly typed owned entity snapshot with shared budget/owner/work accounting",
+    "Shared dxfAttdef::Decoder replay using actual source version/encoding/application routing and requested extrusion/read context",
+    "Full exposed/default/native-only/common/TEXT/ATTRIB/ATTDEF/nested-MTEXT equality, pending/provenance census and one-field mutation/failure/quota/allocation/retry controls",
+    "Selected-target source gate, actual enclosing block identity/owner, independent physical original-tag references and qualified or explicitly refused secondary AcDbXrecord profiles",
+    "Complete BLOCK/ENDBLK, ATTRIB/SEQEND, APPID/LAYER, B2b/B3/C common/target/live/output and compound rollback proofs",
+    "IMAGE/document, native bit/decimal/carrier/schema/owner, speed/ownership/allocation, original 2D LibreCAD/LibreCAD_3 and 3D/dwg2dxf/FreeCAD semantic/platform obligations"
+  ],
+  "qualification": {
+    "ledger": "CLOSED",
+    "outputEligible": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "fullGoalComplete": false
+  },
+  "sourceSha256": {
+    "CMakeLists.txt": "0388657ec7a399e0cc899bb07591bcdd584f2660e6cb4205cfcc4cd7873435a4",
+    "tests/dxf_fixture_tests.cpp": "5dffb5f4bd9cae655a8fb1b7e92586dc29c3e26cd086787c924497469249f345",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "dfcd50d628698f7becb3c23269ab260b7dd4ea88f9124d623fdadbf71ecfa870"
+  }
+}

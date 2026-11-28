@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-mleader-content-refusal-coordinate-preservation-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Fail closed for unmodeled MLEADER content types and strengthen generated content-axis, coordinate, transform, and same-library DXF round-trip controls.",
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": [
+      "dxfRW::writeMultiLeader refuses type 3 (TOLERANCE) because DRW_MLeader has no typed tolerance-content payload.",
+      "dxfRW::writeMultiLeader refuses every content-type value above 2, including TOLERANCE type 3 and unknown type 4, before EntityRecordScope publication.",
+      "No unsupported relation between entity content type and context flags 290/296 was added."
+    ]
+  },
+  "tests": {
+    "wave1File": "tests/wave1_tests.cpp",
+    "hardeningFile": "tests/hardening_tests.cpp",
+    "coverage": [
+      "AC1021 ASCII and binary no-content record emits type 0 without CONTEXT_DATA and preserves following WIRE_END.",
+      "Type 3 and unknown type 4 refuse with an empty destination in ASCII and binary.",
+      "MTEXT type 2 is asserted separately from context hasMText/HasBlock flags and context group-172 flow direction.",
+      "BLOCK type 1 is asserted separately from context hasMText/HasBlock flags.",
+      "Generated wire projection checks nontrivial root/leader/break coordinates, separate block placement/frame values, and all 16 group-47 transform values without writer-side coordinate conversion.",
+      "Generated ASCII MLEADER parser/writer round-trip checks text/block frame values, root/line coordinates, and complete matrix equality.",
+      "Hardening executable exposes --mleader-context-roundtrip for focused execution; no CTest registration was added."
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+      "cmake --build build-gcc --target libdxfrw_hardening_tests -j4",
+      "build-gcc/libdxfrw_hardening_tests --mleader-context-roundtrip",
+      "git diff --check -- src/libdxfrw.cpp tests/wave1_tests.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": {
+      "wave1StrictTarget": "passed",
+      "focusedWriterCTest": "passed 1/1",
+      "hardeningStrictTarget": "passed",
+      "focusedContextRoundTrip": "passed",
+      "diffCheck": "passed"
+    },
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0
+  },
+  "limits": {
+    "producerAuthoredCombinationMatrix": false,
+    "independentPeerReadback": false,
+    "nativeCadRun": false,
+    "adapterSerializerQualified": false,
+    "dwgAcdbMLeaderContextQualified": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains other user changes"
+  },
+    "nextReadinessSlice": "The later 2026-10-17 flow-direction/content-axis slice extends generated representation controls; producer-backed tuple validity and independent semantic comparison remain open. Preserve adapter-level fail-closed export until those controls and consumer gates pass."
+}

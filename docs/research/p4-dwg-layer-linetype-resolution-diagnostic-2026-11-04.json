@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw-evidence-v1",
+  "id": "p4-dwg-layer-linetype-resolution-diagnostic-2026-11-04",
+  "base_commit": "3bce2f36",
+  "change": "After DWG table maps are loaded, LAYER linetype-name resolution now records an integrity Error for nonzero missing/wrong-kind targets and for 64-bit handles that alias through the 32-bit map key. Tolerant lookup and fallback behavior is retained. Original hard-pointer role 5 is preserved and checked; wrong-role non-null references produce a distinct integrity Error while lookup/callback behavior remains tolerant.",
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_entity_table_ref_diagnostic$' --output-on-failure",
+    "result": "1/1 passed; fixture-free controls cover valid, missing/wrong-kind, high-bit valid-low and high-bit zero-low handles across AC1015/1018/1021/1024/1027/1032.",
+    "physical": "CRC-resealed copies of the selected AC1027 producer were checked: missing target 0x7e (c7e5d71c010ec59e86b58893fb12c93cfd78b9c3f54a6c8f5e907f12dba1bc7f), wrong-kind target 0x12 (829e2348325c31442db904443c78922d47733a1b3b864c0f321bf783a7859046), and role 4 with target 0x11 (fd28db622fbfb61899a7fce4a1552ab81be97e0d8e075080611c97986a0aff23). The tolerant reader delivered one LINE and the expected integrity diagnostic for each. No mutated DWG was added to the repository.",
+    "test_source_sha256": "4352a83a5c7caa1ab286c54d4ef17eeb60382a3ca480ac8badd016529ae75618"
+  },
+  "limits": "This validates the resolution diagnostic helper with real table maps; it does not prove original DWG handle role, owner membership, source-to-output identity, or native consumer behavior. Null-handle semantics remain unchanged.",
+  "files": {
+    "src/drw_base.h": "3b02c6273c6dc5eaf8ce55f1e9e3c0ed6af07ce12d9c985899d725c47753ca02",
+    "src/intern/dwgbuffer.cpp": "6c7e3de9aded7decbd1f582d2b8bb0be842bc085e1d4b59751680aefed320d65",
+    "src/intern/dwgreader.h": "c50359ad4ec9823128a35941d8c9a7a671ea6f60e44085efce9d518d1d7e47b5",
+    "src/intern/dwgreader.cpp": "c2c04236fb507613dcf7c1e77aa477e49d2ee1bbdb9fafe0f6efd9cd9915508e",
+    "src/libdwgr.h": "2af442f5d1d55ed728bc66f7a568cebd90483b5331dedb4aecb4ec395f4345e3",
+    "tests/dwg_entity_table_ref_diagnostic_tests.cpp": "4352a83a5c7caa1ab286c54d4ef17eeb60382a3ca480ac8badd016529ae75618",
+    "tools/probe_dwg_entity_table_references.cpp": "7f87d6c3f8fb6f655547272601812eef2d407b867831b06c2d764094d90256b9",
+    "dwg2dxf/dx_iface.cpp": "4c716ab1630e8ea49ddfd8201a535576dc9d4d7c30f5cfec8601c7c5e8fd3498",
+    "src/intern/dxfviewucs.h": "4488660c2f658d30dd544309a0c354ae0df2df580ac74376d82e709e7ca29fae",
+    "src/intern/dxflayout.h": "625f2f46b1f7749f205fc977d094ab4985c8673e2521e8618dafbd723b4dff8d",
+    "src/intern/dxfattdef.h": "fef23945c23d996df325c3ae496e9a8cd82b943a2183546e4bb5561d5c30f7ff",
+    "src/intern/dxfcompound.h": "0a8ef769bb444f5aea30ae194c147585889220c78cb2e4937c823639bb5d6878"
+  }
+}

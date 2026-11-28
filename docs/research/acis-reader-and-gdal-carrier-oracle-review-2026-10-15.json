@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw-acis-reader-and-gdal-carrier-oracle-review-v1",
+  "reviewedAt": "2026-10-15",
+  "repositoryHead": "23c2d50",
+  "scope": "Broader primary-source research into official SAT/SAB readers and an independent DXF 3D carrier comparator. Sources were reviewed read-only; no app or SDK was installed or executed, no drawing fixture was added, and no support claim or external J status changed.",
+  "readers": {
+    "cadAssistant": {
+      "product": "Open Cascade CAD Assistant",
+      "officialPage": "https://www.opencascade.com/products/cad-assistant/",
+      "releaseNotes": "https://www.opencascade.com/release_notes/cad-assistant/",
+      "documentedRelease": "1.6.0, 2021-10-05",
+      "documentedPlatforms": ["macOS Intel x86_64", "macOS ARM64", "Windows x86_64", "Linux x86_64"],
+      "documentedAcisInput": ["SAT", "SAB"],
+      "commercialFormatRoute": true,
+      "documentedProperties": ["area", "volume", "centroid"],
+      "commercialImportExportRestriction": "Commercial format imports can be inspected but not exported or converted by the app.",
+      "independence": {
+        "parserPath": "Separate ACIS import component from libdxfrw; exact reader component identity/build remains to be observed.",
+        "kernelLineage": "Open CASCADE Technology (OCCT), also used by FreeCAD; does not satisfy a two-kernel gate.",
+        "automation": "Official product page documents a GUI property query, not a batch API or machine-readable conversion interface."
+      },
+      "limits": [
+        "The official page lists version 1.6.0 from 2021, not a current release assurance.",
+        "Download availability, actual ARM64 execution, loaded ACIS component, supported inner ACIS revision, units and diagnostics were not checked.",
+        "Area/volume/centroid query does not alone prove B-rep topology validity or complete body inventory."
+      ]
+    },
+    "occtAcisSdk": {
+      "product": "OCCT ACIS Import-Export commercial component",
+      "componentPage": "https://www.occt3d.com/components/acis-exchange/",
+      "formatMatrix": "https://occt3d.com/data-exchange-formats/",
+      "documentedInputs": ["SAT", "SAB"],
+      "documentedOutputs": ["SAT", "SAB"],
+      "documentedTranslation": "ACIS geometry/topology to OCCT shapes, with optional XDE names and colors; healing and approximation configuration may affect output.",
+      "commercial": true,
+      "independence": "Independent ACIS parser route from libdxfrw, but shares OCCT kernel lineage with FreeCAD and CAD Assistant.",
+      "limits": [
+        "No license, evaluation package, binary or execution was available in this review.",
+        "No claim is made that every source ACIS revision or entity type translates exactly.",
+        "Reader and writer format revisions, healing settings, units and output semantics require separate qualification."
+      ]
+    },
+    "ansys": {
+      "product": "Ansys ACIS Geometry Interface, Release 2026 R1 (v261)",
+      "officialPage": "https://ansyshelp.ansys.com/public/views/secured/corp/v261/en/ref_cad/cadACIS.html",
+      "documentedInputs": ["SAT", "SAB"],
+      "documentedAcisVersionCeiling": "2023",
+      "documentedPlatforms": ["Windows x86_64", "Linux x86_64"],
+      "documentedBodies": ["solid", "surface", "line"],
+      "readOnly": true,
+      "independence": "Separate product/reader candidate; actual parser and geometry-kernel lineage is not stated in the inspected documentation and must not be assumed.",
+      "limits": [
+        "Not a macOS ARM64 route.",
+        "No installation, entitlement or runtime test was performed.",
+        "Hidden/suppressed body policy, units, body decomposition and import options must be bound in any receipt."
+      ]
+    }
+  },
+  "dxfComparator": {
+    "product": "GDAL DXF vector driver",
+    "officialDocumentation": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+    "binaryDxf": "Documented from GDAL 3.12.",
+    "modernAcisCarrier": {
+      "minimumFormat": "AC1027 / AutoCAD 2013",
+      "configuration": "DXF_3D_EXTENSIBLE_MODE=TRUE",
+      "fields": ["ASMData (raw binary carrier)", "ASMTransform (12 real values, column-major affine transform)"],
+      "geometry": "3DSOLID/REGION/BODY/SURFACE are skipped as OGR geometry; the driver does not translate their ASM carrier to a B-rep."
+    },
+    "other3dLimits": [
+      "3DFACE is exposed as a polygon, but the driver documents that 3DFACE/SOLID/TRACE lack elevation support and are always 2D.",
+      "Curves are tessellated; default INSERT expansion and its 10,000-feature block limit can change counts unless configured.",
+      "The driver reads DXF, not DWG."
+    ],
+    "plannedUse": "Optional structural cross-check of raw modern DXF ASM bytes and transform only; not an ACIS parser, B-rep semantic oracle, or 3DFACE 3D-geometry oracle."
+  },
+  "planImpact": {
+    "macOSArm64": "An official CAD Assistant macOS ARM64 SAT/SAB reader is documented and is a plausible match to the user's selected platform route, but it is an old listed release and has not been run. Preflight binary, component, actual SAT/SAB profile and stable per-body property query before counting it as external evidence.",
+    "independence": "CAD Assistant, its ACIS SDK and FreeCAD share OCCT geometry lineage. They can provide distinct parser paths but cannot count as two independent geometry kernels. Ansys is a separate candidate but its lineage is unverified and its platform does not match macOS ARM64.",
+    "gdal": "Use GDAL only at one composed AC1027+ DXF carrier checkpoint; pin build/options, leave blocks unexpanded, compare raw bytes/hash and a calibrated transform, and report unavailable when the exact runtime is absent.",
+    "implementationSpeed": "Keep the immediate implementation slice local: add generated in-memory DataStorage page-chain coverage, run only its existing fast CTest plus LC3 compatibility check, and defer the optional GDAL/native/kernel gates to composed milestones.",
+    "fixturePolicy": "No DWG/DXF/SAT/SAB fixture or external binary was added. Future controls remain scratch or locally authored in-memory data unless eligible pre-existing repository fixtures are used.",
+    "supportClaimsPromoted": false,
+    "externalJStatuses": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "execution": {
+    "productsInstalledOrLaunched": false,
+    "externalCommandsRun": false,
+    "localTestsRun": false,
+    "networkWrites": false,
+    "supportMatrixOrCountsChanged": false
+  },
+  "sources": [
+    "https://www.opencascade.com/products/cad-assistant/",
+    "https://www.opencascade.com/release_notes/cad-assistant/",
+    "https://www.occt3d.com/components/acis-exchange/",
+    "https://occt3d.com/data-exchange-formats/",
+    "https://ansyshelp.ansys.com/public/views/secured/corp/v261/en/ref_cad/cadACIS.html",
+    "https://gdal.org/en/stable/drivers/vector/dxf.html"
+  ]
+}

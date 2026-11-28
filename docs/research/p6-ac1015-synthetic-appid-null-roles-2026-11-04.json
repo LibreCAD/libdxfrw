@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-04",
+  "authority": "Open Design Specification for .dwg files v5.4.1 section 20.4.66 specifies APPID xdictionary hard-owner and xref hard-pointer roles.",
+  "scope": "The internally synthesized AC1015 ACAD APPID emits typed-null xdictionary and xref; caller APPIDs, public encoder behavior, and AC1018+ are unchanged.",
+  "independent_source": {
+    "producer": "ODA File Converter 27.1.0 ACAD2000 from local LINE input",
+    "sha256": "43e86b11010b68f7e46fe229a7bf3c373d4544492acda950ec0c106c14f4cec6",
+    "libredwg": "LibreDWG 0.14 decodes physical ACAD APPID xdictionary (3.0.0), xref (5.0.0)."
+  },
+  "oda_factorial": {
+    "reader": "ODA File Converter 27.1.0 ACAD2013 DXF; inspect .err and actual DXF instead of exit status.",
+    "mask_bits": "1=xdictionary hard owner, 2=xref hard pointer",
+    "cases": [
+      {
+        "mask": 0,
+        "sha256": "4f9f62a8e6c5bf54aa1dd23f1477b401cc1c7b32ec1fd5011a8d8cb554f98dcc",
+        "first_error": "Object improperly read: <AcDbRegAppTableRecord> (14)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 1,
+        "sha256": "c67287fbb5a0cef0b4d6266c2524cb41c1cc9718cee16184c99a303fb9dd90ca",
+        "first_error": "Object improperly read: <AcDbRegAppTableRecord> (14)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 2,
+        "sha256": "a08640bb3026f1217102ce6bca4f6b836038a6a5e9e34c3bbd18e748dae6e466",
+        "first_error": "Object improperly read: <AcDbRegAppTableRecord> (14)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 3,
+        "sha256": "c2c5a94b3363edf1f473461e34463b34a0b6ad4c48486c2d53fc299dcf2c3882",
+        "first_error": "Object improperly read: <AcDbDimStyleTableRecord> (15)",
+        "dxf_exists": false
+      }
+    ],
+    "result": "Masks 0\u20132 stop at AcDbRegAppTableRecord (14); mask 3 advances to AcDbDimStyleTableRecord (15), without DXF. Production probe is byte-identical by SHA-256 to mask 3; this does not establish general acceptance or the next error cause."
+  },
+  "validation": {
+    "result": "PASS libdxfrw_dwg_header_writer_sealing: six versions, exact synthetic/public APPID handles, caller APPID readback, following LINE, no-output rollback and retry. LibreDWG independently confirms the synthetic ACAD null roles.",
+    "isolation": "Clean git archive cde47be4563a24d7dcb31a6243999a5ee2655b19 with only this APPID slice, configured and built separately while the material graph work was in progress.",
+    "source_sha256": {
+      "src/drw_objects.cpp": "ecb30ce9b22666dd12c8dcb0864d5cc316d9b7d962fab0c76db76d72c08c0dca",
+      "src/intern/dwgwriter15.cpp": "ea7b59c21909d16c61f0d5196d2667ff325d999054ed277c60775c7373d72f74",
+      "tests/dwg_reader_matrix_tests.cpp": "6c030ea62778e66649710d63812c96fe8025682066ea2192ceb880fda40781ca"
+    }
+  },
+  "limits": "No broader AC1015 interoperability claim; scratch files are not committed."
+}

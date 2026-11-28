@@ -1,0 +1,48 @@
+{
+  "title": "VIEWPORT DWG handle-role validation",
+  "date": "2026-11-11",
+  "scope": "Generated in-memory VIEWPORT parser controls for modeled DWG handle roles; no producer, graph-closure, or support claim.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files, version 5.4.1",
+    "publisher": "Open Design Alliance",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sections": {
+      "2.13": "Handle type codes 3, 4, and 5 mean hard ownership, soft pointer, and hard pointer. Relative codes 6, 8, A, and C represent soft-pointer references.",
+      "20.4.38": "VIEWPORT handle-field role and version ordering."
+    }
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "method": "DRW_Viewport::parseDwg",
+    "behavior": [
+      "Validate each parsed VIEWPORT handle against its ODA-defined field role, including version-specific frozen-layer roles.",
+      "Admit relative handle codes only for soft-pointer fields and resolve them against the containing VIEWPORT handle.",
+      "Accept an absent target encoded with an absolute typed null relation code; require field-role agreement when the reference is non-null.",
+      "Reject resolved references that exceed the current public 32-bit handle representation.",
+      "Keep parsing transactional: any malformed role invalidates input and resets all partially parsed VIEWPORT state."
+    ]
+  },
+  "generated_controls": [
+    "AC1018 wrong-role frozen-layer, clip-boundary, named-UCS, and base-UCS handles each fail closed.",
+    "Each wrong-role case verifies state reset and corrected-input retry on the same parser instance.",
+    "A typed-null frozen-layer handle with absolute code 5 is accepted and leaves the target null.",
+    "A relative soft-pointer frozen-layer control verifies resolution against the containing VIEWPORT handle."
+  ],
+  "physical_observation": {
+    "source": "tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+    "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+    "finding": "Four VIEWPORT frames (handles 0x4A9, 0x4AB, 0x490, and 0x492) contain absent targets encoded with absolute code 5 in fields whose non-null role is soft pointer. Requiring code zero for nulls caused four entity parse failures.",
+    "current_reader_result": "PASS; the rebuilt reader satisfies the existing sample read harness with zero viewport-induced parse failures."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg_viewport_angle_units_tests dwg2dxf -j4",
+    "focused_ctest": "ctest --test-dir build -R '^libdxfrw_dwg_viewport_angle_units$|^dwg_read_AC1024_visualization_-_sun_and_sky_demo$' --output-on-failure",
+    "focused_ctest_result": "PASS (2/2)",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls do not establish physical producer conformance or target existence/graph closure.",
+    "VIEWPORT group-91 semantics, layer-override activation/rendering, and native consumer behavior remain unresolved.",
+    "No DWG or DXF fixture was added."
+  ]
+}

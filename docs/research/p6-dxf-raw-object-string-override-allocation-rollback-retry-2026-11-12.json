@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-12",
+  "topic": "Raw DXF object string-override allocation rollback and retry",
+  "purpose": "Exercise the raw-object string-override OBJECTS callback path in ASCII and Binary under one-shot allocation failure, filling a local P6 caller-state audit gap.",
+  "source": {
+    "kind": "locally-authored-generated-control",
+    "record": "XRECORD",
+    "sourceHandle": "0xD8A0",
+    "sourceVersion": "AC1027",
+    "overrides": [
+      { "groupIndex": 3, "groupCode": 1, "value": "replacement first value" },
+      { "groupIndex": 4, "groupCode": 3, "value": "replacement second value" }
+    ],
+    "fixtureFilesCommitted": false
+  },
+  "implementation": {
+    "productionCodeChanged": false,
+    "test": "tests/raw_object_string_override_allocation_tests.cpp",
+    "testSha256": "792549826dd8f303996d93cd3e0149dac49ffdbe02443f8eab1a08692461c0e1",
+    "cmakeTarget": "libdxfrw_raw_object_string_override_allocation_tests",
+    "ctestName": "libdxfrw_raw_object_string_override_allocation"
+  },
+  "procedure": {
+    "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "build": "cmake --build build-gcc --target libdxfrw_raw_object_string_override_allocation_tests -j4",
+    "validation": "ctest --test-dir build-gcc -R '^libdxfrw_raw_object_string_override_allocation$' --output-on-failure",
+    "allocationScope": "Fault injection is enabled only inside the raw-object string-override writer callback. Each failure is one-shot; output rollback and same-codec retry then run without injection.",
+    "calibration": "The static string-override vector is initialized before measuring callback allocations so one-time setup is excluded."
+  },
+  "result": {
+    "testExitCode": 0,
+    "ctest": "1/1 passed in 0.27 seconds",
+    "ascii": {
+      "measuredAllocationOffsets": 5,
+      "allOffsetsFailedAsExpected": true,
+      "destinationPreserved": true,
+      "callerObjectPreserved": true,
+      "sameCodecRetryMatchedCleanBytes": true,
+      "rawObjectReadbackMatchedOverrides": true
+    },
+    "binary": {
+      "measuredAllocationOffsets": 3,
+      "allOffsetsFailedAsExpected": true,
+      "destinationPreserved": true,
+      "callerObjectPreserved": true,
+      "sameCodecRetryMatchedCleanBytes": true,
+      "rawObjectReadbackMatchedOverrides": true
+    }
+  },
+  "limits": [
+    "This is generated callback transaction and raw-object transport evidence only; it does not establish physical XRECORD producer coverage, graph closure, or XRECORD semantics.",
+    "No DWG or DXF fixture file is committed. Generated output is created in the test scratch directory and removed after each encoding."
+  ],
+  "baseRevision": "e81465a2bd6cff97dd989ffd05d058f40ab67506"
+}

@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader peer object-graph survival and output-loss boundary",
+  "mode": "Primary-source web research and local plan reconciliation; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile the next open PAR-20/7G named-object graph work after the generated DWG GROUP dictionary writer slice.",
+    "Compare object lifecycle, owner-path, and writer-class maturity boundaries in independent open-source implementations.",
+    "Make the next local implementation route and fast validation controls explicit without introducing external blockers."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi#L3022-L3039",
+        "https://github.com/LibreDWG/libredwg#readme"
+      ],
+      "revision": "Mutable master documentation accessed 2026-10-20; no immutable revision or runtime bound",
+      "observed": "The current manual distinguishes stable, unstable, debugging, and unhandled classes. It says some unknown payloads persist only in same-version rewrites with a complete known unknown-bits blob; the README separately qualifies DWG writer operation/version limits.",
+      "limits": "Project documentation is not a reproduced output result or conformance oracle; no peer source was cloned, built, or executed."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/develop/pkg-design.rst#L223-L225",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/develop/pkg-design.rst#L314-L318",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/xref.py#L2453-L2504"
+      ],
+      "revision": "Mutable master documentation/source accessed 2026-10-20; no package or executable run",
+      "observed": "The object model assigns OBJECTS records parent owners, treats the root dictionary as the special owner-0 case, and regards other missing/destroyed-owner records as orphaned. XREF notes distinguish paths rooted at graphical owners from NOD-rooted object-only paths and discuss reconstructing missing dictionary ancestors.",
+      "limits": "Peer architecture/source evidence informs graph invariants but does not establish DXF normative semantics or independent native acceptance."
+    },
+    {
+      "project": "LibreCAD/libdxfrw local worktree",
+      "urls": [
+        "README.md#support-boundary",
+        "src/libdxfrw.cpp",
+        "dwg2dxf/dx_iface.cpp",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Shared local worktree inspected 2026-10-20; no code or tests changed/run in this research pass",
+      "observed": "The existing support boundary distinguishes raw carrier retention from semantics. The latest local GROUP slice closes one generated NOD-to-ACAD_GROUP-to-GROUP-to-members route; broader root and nested owner-graph closure remains open.",
+      "limits": "Local source/plan review is not external producer or consumer acceptance."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G: classify every root-key route as fixed/regenerated, typed-and-closed, opaque with proven owner/reference remapping, or explicitly unsupported/refused.",
+      "PAR-20/7G: verify NOD-rooted and entity-extension graphs separately, including owner reciprocity, remapped outgoing references, and reachability.",
+      "PAR-14: use focused local generated controls and proceed to the next local item when external peer/native evidence is unavailable."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added the peer object-class maturity and owner-path evidence boundary to the plan summary and research ledger.",
+    "Clarified that callbacks, class labels, or opaque-byte retention do not prove a named object survives in a usable closed graph.",
+    "Specified separate graph audits for NOD-rooted dictionaries and entity extension dictionaries; do not relocate records between those ownership families.",
+    "Refined the next implementation-ready local work to a minimal root-key route inventory, strict unsupported-route refusal, and focused generated positive/negative controls using existing selectors where possible.",
+    "Reaffirmed fast local validation, self-update/self-unblock behavior, no external fixture commits, and no changes to deferred external gates or support claims."
+  ],
+  "limitations": [
+    "Peer pages are mutable master snapshots accessed on 2026-10-20; no immutable source revision or executable identity was established.",
+    "No peer code or binary was built or run, no external DWG/DXF was downloaded, and no native CAD/modeling application was exercised.",
+    "This review refined existing PAR-20/7G wording only and did not identify a new local defect or validate a new implementation slice."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (git diff --check on plan and scoped implementation files; no trailing whitespace in new receipts)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

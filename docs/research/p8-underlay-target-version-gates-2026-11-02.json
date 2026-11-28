@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-underlay-target-version-gates-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "GENERATED_UNDERLAY_VERSION_GATES_AND_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Refuse generated PDF/DGN/DWF Underlay definitions and references when the requested DXF target revision predates the conservative per-kind compatibility floor.",
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "versionFloors": {
+      "DWF": "AC1021",
+      "DGN": "AC1024",
+      "PDF": "AC1024"
+    },
+    "behavior": [
+      "The same per-kind target-version predicate gates both the typed definition and reference writers.",
+      "An unsupported version fails the strict output attempt before publication, retaining any existing destination.",
+      "After refusal, the same adapter and graph can retry at the first admitted target and complete typed readback."
+    ]
+  },
+  "versionEvidence": {
+    "autodesk": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-LT-MAC/files/GUID-BF215599-C96C-4FFF-A2DB-21DEFFAC71C0.htm",
+    "documentedBoundaries": {
+      "DWF": "does not display before AutoCAD 2007",
+      "DGN": "supported in AutoCAD 2008 or later",
+      "PDF": "not supported before AutoCAD 2010, except with a Bonus Pack"
+    },
+    "conservativeMapping": "Project DRW::Version maps AC1021 to AutoCAD 2007/2008/2009. It cannot distinguish 2007 from 2008, so the writer requires AC1024 for DGN to avoid emitting it to an ambiguous AC1021 target. PDF also begins at AC1024. This is a conservative implementation boundary inferred from the product-release guidance and the repository version map; it is not a format support claim."
+  },
+  "validationProfile": {
+    "source": "Locally generated in-memory Underlay graph with one definition and one reference per case; no DWG/DXF fixture is used or committed.",
+    "cases": [
+      {
+        "kind": "DWF",
+        "refused": "AC1018",
+        "accepted": "AC1021"
+      },
+      {
+        "kind": "DGN",
+        "refused": "AC1021",
+        "accepted": "AC1024"
+      },
+      {
+        "kind": "PDF",
+        "refused": "AC1021",
+        "accepted": "AC1024"
+      }
+    ],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "Each below-floor attempt fails and preserves a pre-existing destination sentinel.",
+      "Each corrected same-adapter retry writes successfully at the first admitted target.",
+      "Typed import checks one retained definition and one reference with the expected Underlay kind."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_underlay_definition_graph$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; six ASCII/Binary kind/version cells, atomic sentinel preservation, same-adapter retry, typed readback, plus existing graph/readback/wrong-kind/missing-target controls.",
+    "fixturePolicy": "No drawing fixture was added or committed."
+  },
+  "limitations": [
+    "Generated transport evidence does not establish native PDF/DGN/DWF interpretation, physical producer coverage, or whole-document conversion.",
+    "The AC1024 DGN floor is conservative because AC1021 covers multiple product releases; it may reject a compatible 2008/2009 target encoded as AC1021.",
+    "No support claim is promoted; P8 remains open for native consumer, platform, ABI, packaging, and release qualification."
+  ]
+}

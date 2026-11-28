@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-source-disposition-frame-projection-2026-11-07",
+  "date": "2026-11-07",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Extend the debug-only CLI source-disposition projection with DWG parse-failure counts and bounded HANDLE-frame disposition counts, without combining overlapping observations or changing admission behavior.",
+  "projectionFields": [
+    "sourceDwgEntityParseFailures",
+    "sourceDwgObjectParseFailures",
+    "sourceDwgFrameCoverage",
+    "sourceDwgSourceFrames",
+    "sourceDwgFramesPending",
+    "sourceDwgFramesDeferred",
+    "sourceDwgFramesStaged",
+    "sourceDwgFramesPublished",
+    "sourceDwgFramesQuarantined",
+    "sourceDwgFramesFailed",
+    "sourceDwgFramesUnresolved",
+    "sourceDwgFramesUnrecognized"
+  ],
+  "limits": [
+    "Counters are separate observations; they are not disjoint populations and must not be summed into semantic loss or completeness claims.",
+    "The generated partial-read source exercises one entity parse failure across AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032; it does not qualify other recovery categories or physical producer behavior.",
+    "DXF input reports all added DWG-only projection fields as not-applicable.",
+    "The projection is diagnostic only. It does not repair input, waive strict refusal, or promote format support."
+  ],
+  "control": {
+    "file": "tests/dwg2dxf_cli_contract_tests.py",
+    "selectors": [
+      "--partial-read-only",
+      "--source-disposition-only"
+    ],
+    "generatedInputs": "The existing --generate-cli-partial-read-source writer authors all six DWG revisions in temporary test directories; no DWG/DXF fixtures were added.",
+    "checks": [
+      "All six versions project one entity parse failure, zero object parse failures, partial frame coverage, one failed frame and zero unresolved frames on strict refusal.",
+      "The existing six-version control continues to verify strict refusal, explicit partial behavior where admitted, destination preservation and typed DXF readback.",
+      "Generated DXF HEADER-repair control verifies DWG-only projection fields are not-applicable."
+    ]
+  },
+  "validation": {
+    "testedHead": "2b7bdbee31812c3ea7ade3b3f5a67170d15fb4e2",
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j 4",
+    "tests": [
+      "PASS: python3 tests/dwg2dxf_cli_contract_tests.py --converter $PWD/build-gcc/dwg2dxf/dwg2dxf --writer $PWD/build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only (33 strict/partial/readback controls)",
+      "PASS: python3 tests/dwg2dxf_cli_contract_tests.py --converter $PWD/build-gcc/dwg2dxf/dwg2dxf --writer $PWD/build-gcc/libdxfrw_dwg_local_roundtrip --source-disposition-only (27 controls)",
+      "PASS: git diff --check"
+    ],
+    "sha256": {
+      "dwg2dxf/main.cpp": "9800ebb89c015b0f29d2cd973e708f9216a3502658875765a68089f38234c253",
+      "tests/dwg2dxf_cli_contract_tests.py": "7e2945e363192ae54f751c7d604fc0b9935dbd37fea31e6b9a1882b58a9691d0",
+      "build-gcc/dwg2dxf/dwg2dxf": "e80503423ac3de8df6f19b3f02760a1799a253e2643da7e3a4f4933c72ff31e3",
+      "build-gcc/libdxfrw_dwg_local_roundtrip": "714dfb155bd1f04db2e0ae155c3039d3bdb8daac9e691b6066e596e31564e93c"
+    }
+  }
+}

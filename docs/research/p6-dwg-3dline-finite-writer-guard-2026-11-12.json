@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-dwg-3dline-finite-writer-guard-2026-11-12",
+  "purpose": "Keep the custom 3DLINE DWG writer from emitting non-finite values that the paired parser refuses.",
+  "authority": {
+    "formatScope": "3DLINE uses this repository's registered custom class; the ODA v5.4.1 entity tables do not define a 3DLINE body profile.",
+    "localContract": "DRW_3DLine::parseDwg reads six endpoint coordinates, three extrusion components and thickness as bounded raw doubles, and refuses every non-finite value before publishing the entity.",
+    "implementationSource": "src/drw_entities.cpp"
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The custom-class DWG writer now checks both endpoints, extrusion components and thickness for finiteness before staging its raw-double body.",
+    "scope": "Writer/parser consistency for this custom profile only; no standard DWG 3DLINE support claim is made."
+  },
+  "generatedControls": {
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "refusedProfiles": ["NaN start coordinate", "infinite end coordinate", "NaN extrusion", "infinite thickness"],
+    "failureRetry": "Each refusal preserves a seeded destination. Corrected same-writer output reads back exact fields with zero entity/object parse failures.",
+    "fixturePolicy": "Locally authored generated files only; no fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j6 PASS",
+    "focusedSelector": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_3dline_finite_admission$' --output-on-failure PASS 1/1 in 0.30 seconds"
+  },
+  "limitations": [
+    "This proves custom writer/parser consistency only; it does not establish interoperability with external producers or consumers.",
+    "The broader P6 no-loss and platform qualification gates remain open."
+  ],
+  "supportClaimEffect": "Closes a bounded local custom-class finite-field writer gap; no standard DWG support claim is promoted."
+}

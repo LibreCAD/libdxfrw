@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-03",
+  "title": "Generated VIEW LiveSection SECTIONOBJECT graph and DXF transport",
+  "scope": "Bounded VIEW group-334 adapter output for one uniquely retained SECTIONOBJECT target.",
+  "format_contract": {
+    "source": "Autodesk VIEW DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+    "finding": "Group 334 is an optional soft-pointer ID/handle to a live section object.",
+    "semantic_source": "https://help.autodesk.com/cloudhelp/2025/ENG/AutoCAD-Core/files/GUID-A55EED7C-DA1B-413A-9238-2A83C2A34085.htm",
+    "semantic_finding": "Restoring a named view with an associated section object activates live sectioning for that object."
+  },
+  "implementation": {
+    "low_level": "dxfRW::writeView now serializes group 334 only for AC1021+ when the source handle is explicitly registered as resolved; the configured resolver or handle remap supplies the emitted identity. Zero and NoHandle results refuse before record publication.",
+    "adapter": "validateLayoutGraph resolves each nonzero VIEW target to exactly one typed DRW_SectionObject with the SECTION entity tag in the retained entity census. The adapter preallocates the target identity before VIEW table output and registers it with the low-level writer.",
+    "bounded_profile": "The current graph does not close SECTIONOBJECT group-360 SECTION_SETTINGS dependencies. A referenced SectionObject with a nonzero settings handle remains atomically refused.",
+    "abi": "Adds private dxfRW writer-state storage and a public setup setter. Downstream binary consumers must rebuild; ABI compatibility is not claimed by this slice."
+  },
+  "validation": {
+    "inputs": "Generated ASCII/Binary VIEW input and locally authored in-memory SECTIONOBJECT; no DWG/DXF fixture was added.",
+    "ascii_binary": true,
+    "cases": [
+      "Exact remapped/resolved group-334 identity and SECTIONOBJECT group-5 identity are equal after output.",
+      "Fresh adapter readback resolves VIEW group 334 to the emitted SECTIONOBJECT handle.",
+      "Missing target, wrong entity kind, duplicate SECTIONOBJECT handle, unresolved SECTION_SETTINGS edge, and pre-AC1021 target version preserve the existing destination.",
+      "Low-level VIEW reference tests cover resolver precedence, remap fallback, unresolved-result refusal, and fresh-writer retry.",
+      "The prior direct-writer fail-closed control passes when no target registration is supplied."
+    ],
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dxf_fixture_tests --parallel 4",
+    "tests": [
+      "ctest --test-dir build-gcc -R 'libdxfrw_view_reference_remapping|libdxfrw_view_live_section_reference_closure' --output-on-failure: PASS (2/2)",
+      "build-gcc/libdxfrw_dxf_fixture_tests --view-live-section-fail-closed: PASS",
+      "cmake --build build-gcc --target lc3_compat_check --parallel 4: PASS"
+    ]
+  },
+  "qualification_limits": [
+    "Generated transport and target-kind closure only; physical producer field-span/source-owner evidence remains open.",
+    "SECTION_SETTINGS graph closure remains explicitly refused for this profile.",
+    "No native AutoCAD/FreeCAD live-section behavior or 3D section semantics is qualified.",
+    "No support claim is promoted."
+  ]
+}

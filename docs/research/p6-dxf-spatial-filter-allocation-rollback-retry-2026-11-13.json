@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-spatial-filter-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_SPATIAL_FILTER_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep allocation failures through whole-operation AC1027 DXF writes containing a variable-size SPATIAL_FILTER, then verify rollback, same-codec retry and typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW object",
+    "profile": "One SPATIAL_FILTER with three 2D boundary vertices, nondefault normal and origin, front/back clipping distances, and distinct twelve-value inverse/forward transforms. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "a231f0a3",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-spatial-filter-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Add a focused mode to the whole-operation allocation harness. Warm the writer, calibrate allocations with an existing destination, inject one-shot allocation failures at every measured offset, and check caller state, destination bytes, source-handle binding rollback and staging cleanup. Retry on the same codec and require byte-identical output plus typed readback of boundary geometry, flags, distances and both matrices."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS; ASan target build: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_spatial_filter_allocation_transaction$' --output-on-failure: PASS 1/1 (0.39 sec)",
+    "asanCTest": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_spatial_filter_allocation_transaction$' --output-on-failure: PASS 1/1 (3.53 sec)",
+    "directRun": "PASS; ASCII 94 and Binary 93 allocation offsets injected; caller/destination/identity rollback, stage cleanup, same-codec retry and typed readback passed.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction evidence for one AC1027 profile does not establish producer-authored field combinations or version-wide interoperability.",
+    "The test does not prove the filter is correctly attached to a block reference, nor does it qualify native clipping behavior.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue the P6-G public-writer inventory and select another exact uncovered variable-size route or version-specific variant."
+}

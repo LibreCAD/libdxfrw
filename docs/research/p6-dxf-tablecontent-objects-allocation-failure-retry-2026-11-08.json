@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-tablecontent-objects-allocation-failure-retry-2026-11-08",
+  "date": "2026-11-08",
+  "status": "GENERATED_ASCII_BINARY_TABLECONTENT_OBJECTS_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep callback allocations in an AC1027 OBJECTS writer containing one locally-authored standalone TABLECONTENT with a single scalar cell.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One TABLECONTENT record with a named one-column, one-row grid and a typed UTF-8 scalar value. No external sample or fixture file is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "06a75b9a",
+    "files": {
+      "tests/tablecontent_objects_allocation_tests.cpp": "a53f8c2c75f949a635d9705228bf7a5250de412f445b48ee12631276ebea8668",
+      "tests/CMakeLists.txt": "ac3a8c20b781bb56a5af48df1dee4f56c7793bcc52e6f8b227f6cd17bc8d8da9"
+    },
+    "method": "Warm and calibrate the OBJECTS callback in ASCII and Binary. Inject std::bad_alloc at every reached callback offset; require export refusal, byte-for-byte destination sentinel preservation, caller model preservation, same-writer retry, and typed fileImport readback of the record and scalar value."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_ENABLE_FREECAD_DESKTOP_CONTROL=OFF -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_LINE_CONTROL=OFF: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_tablecontent_objects_allocation_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_tablecontent_objects_allocation_retry$' --output-on-failure: PASS 1/1",
+    "ascii": "12/12 reached callback allocation offsets injected; destination and caller content preserved; same-writer retry and typed grid/value readback passed.",
+    "binary": "10/10 reached callback allocation offsets injected; destination and caller content preserved; same-writer retry and typed grid/value readback passed.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated writer transaction and typed-field evidence only; no producer prevalence, native rendering, or feature-semantics claim is established.",
+    "The readback retains m_parseComplete but does not report m_semanticContentComplete for this minimal standalone profile; this test does not qualify semantic completeness or strict DXF output eligibility.",
+    "This covers one standalone scalar TABLECONTENT shape and does not cover linked data, FIELD references, attributes, custom styles, multi-cell graphs, or source-DXF replay.",
+    "No support claim is promoted."
+  ],
+  "nextAction": "Continue the P6 allocation audit with another typed OBJECTS writer not yet covered by an allocation rollback/retry receipt; keep FIELD/FIELDLIST strict support gated until the synthetic owner/profile readback refusal is explained."
+}

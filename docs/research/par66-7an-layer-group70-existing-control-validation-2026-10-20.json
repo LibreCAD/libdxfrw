@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-66/7AN LAYER group-70 existing-control validation",
+  "mode": "Focused validation and plan correction; generated control already present",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile the older 7AN readiness note that said group-70 values lacked a focused generated test.",
+    "Run the existing ASCII/Binary LAYER group-70 selector without running the broad fixture CTest."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationAdded": false,
+    "behavior": "The existing testLayerDxfGroup70Flags() generates AC1027 ASCII and Binary source/output cases for group-70 values 1, 2, 4, and 7 with positive/negative group-62 values. It checks ordered input and output wire rows, callback/readback values, and a following-entity sentinel."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "selector": "PASS: build-gcc/libdxfrw_dxf_fixture_tests --layer-dxf-color-policy",
+    "focusedCtest": "NOT_RUN: only the broad libdxfrw_dxf_fixtures registration owns this executable; direct focused selector used under reduced-validation policy",
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadOrKernelRun": false
+  },
+  "supportImpact": {
+    "supportPromotion": false,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "staged": false,
+    "reason": "Shared worktree is broadly dirty and Git metadata is read-only."
+  }
+}

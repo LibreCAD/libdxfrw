@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-staged-layer-material-output-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "ecb93e7bcc5066196887e9e667a844926e1465da",
+  "implementationDigestSha256": "73472a8b26362f36232886809faae81a1ebf51cb1fef788f3c98274a4a073abf",
+  "librecadCommit": "21600b3931430f2ba757e97b06120f12628ac203",
+  "runtimeLibrarySha256": "42c5ec554fd287562d1a579a42f6ccf5b04981db657bdba6bf9448d2690e1c95",
+  "scope": "For already-admitted typed-material DXF graphs whose selected retained source records and layer identities fit bounded inspection, reuse the shared staged TABLES and OBJECTS inspectors and recheck source state immediately before publication. Unsupported or unbounded profiles retain their prior policy; raw-only material replay is still refused.",
+  "validation": [
+    "PASS: system-codec material selector, 738 assertions in 6 cases; inject changes after OBJECTS and before finalization, preserve the destination on failure, restore source and retry with the same filter.",
+    "PASS: system-codec linetype selector, 4967 assertions in 56 cases; bundled-codec selector, 1282 assertions in 52 cases.",
+    "PASS: IMAGE WCS frame selector, system codec 84 assertions and bundled codec 46 assertions.",
+    "PASS: macOS dyld diagnostic identifies the installed current-candidate libdxfrw.3.0.0.dylib used for the system tests."
+  ],
+  "limits": [
+    "The consumer test exercises ASCII output, not binary consumer output, native GUI or platform qualification.",
+    "The bounded staged inspection does not prove HEADER physical spans, the entire source graph, native material semantics, disk readback or raw-only replay eligibility.",
+    "Previously recorded library inspector tests cover their own ASCII/Binary profiles and do not establish these broader consumer claims."
+  ]
+}

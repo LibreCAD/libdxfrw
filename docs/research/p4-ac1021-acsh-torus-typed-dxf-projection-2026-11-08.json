@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1021-acsh-torus-typed-dxf-projection-2026-11-08",
+  "date": "2026-11-08",
+  "status": "GENERATED_TORUS_TRANSPORT_COMPLETE_PHYSICAL_GRAPH_MATCHED_WHOLE_SOURCE_REFUSED",
+  "supportClaimEffect": "none",
+  "scope": "Add a bounded typed DXF writer profile for a material-free ACSH_TORUS_CLASS that closes one 3DSOLID/history/one-node EvaluationGraph path. Verify ASCII/Binary output, import readback, ODA-shaped ACI CMC admission, destination-preserving refusal, and corrected retry. No semantic or producer-wide support claim.",
+  "physicalReference": {
+    "repository": "LibreDWG",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "version": "dwg2dxf 0.14",
+    "inputRepository": "dwg-writer public committed LibreDWG fixture",
+    "inputPath": "/Users/dli/dev/dwg-writer/tests/fixtures/committed/libredwg/atmos_dc22s_2007.dwg",
+    "inputSha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+    "dwgSchemaPath": "/Users/dli/dev/libredwg/src/dwg2.spec",
+    "dwgSchemaSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "observedTorus": {
+      "solidHandle": "0x452",
+      "historyHandle": "0x453",
+      "graphHandle": "0x454",
+      "torusHandle": "0x455",
+      "graphShape": "one node, zero edges; node expression points to the TORUS record",
+      "torusRadii": [19.0, 2.789983459616414],
+      "decodedColor": "Current libdxfrw parser reports CMC method 0xC3, ACI value 2, raw BS index 0, and null material handle; this matches ODA §2.11",
+      "peerDxfColor": "LibreDWG dwg2dxf emits group 62 = 2 and group 347 = 0"
+    },
+    "peerDxfOutput": {
+      "path": "/private/tmp/libdxfrw-atmos-peer/atmos.dxf",
+      "sha256": "9a8c5e2cec80102088da1f78fbb5abaa345a179aa48b2fac7a35f130f095ee95",
+      "recordHandle": "0x455",
+      "recordParent": "0x454",
+      "pairCountIncludingType": 35,
+      "limitation": "Peer decode and DXF projection are from LibreDWG itself and do not independently establish ACDS semantic meaning."
+    }
+  },
+  "authorityAndDisposition": {
+    "odaSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "section": "§2.11 CmColor",
+      "rule": "For R2004+, CMC encodes a BS color index that is always 0, followed by BL RGB value and RC color byte."
+    },
+    "physicalProfile": "The current libdxfrw source inspector pins 3DSOLID 0x452 -> HISTORY 0x453 -> one-node graph 0x454 -> TORUS 0x455, with radii 19 / 2.789983459616414, CMC method 0xC3, ACI value 2, raw BS index 0, node value 0, and null material. This exact primitive subgraph fits the bounded writer profile. The full source is not output-qualified: it also contains unrelated ACDS/proxy records and remains blocked by broader frame/reference gates.",
+    "independentSemanticEvidence": "Still required for ACIS/ACDS. Generated transport, LibreDWG's own DXF projection, and this bounded writer do not establish kernel or native CAD meaning."
+  },
+  "implementation": {
+    "writer": "The typed primitive collector accepts exactly one class family per selected profile: BOX or TORUS. TORUS requires complete EvalExpr/HistoryNode/action prefixes, one node with no edges, node value 0, two positive finite radii, a null material link, spec-conforming CMC or caller-supplied indexed color, and unique reciprocal handles. Mixed/other class families remain refused.",
+    "dxfReplay": "The same-profile raw DXF closure recognizes the 34-group TORUS record and permits group 347 = 0 only for TORUS; BOX material validation remains unchanged.",
+    "fixturesAdded": 0
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg_local_roundtrip -j4 — PASS",
+    "focusedSelector": "build/libdxfrw_dwg_local_roundtrip --acds-typed-torus — PASS; ASCII and Binary readback, ODA-shaped ACI CMC, invalid material-link refusal with destination preservation, and same-adapter retry",
+    "physicalProfileSelector": "build/libdxfrw_dwg_local_roundtrip --inspect-acsh-torus-source /Users/dli/dev/dwg-writer/tests/fixtures/committed/libredwg/atmos_dc22s_2007.dwg — PASS; current parser binds exact solid/history/graph/torus identities and reports the CMC raw BS index as 0",
+    "focusedCtest": "ctest --test-dir build -R '^(dxf_acsh_torus_typed_roundtrip|dxf_acsh_cmc_loss_guard)$' --output-on-failure — 2/2 PASS",
+    "diffCheck": "git diff --check — PASS",
+    "fullSuites": "NOT RUN"
+  }
+}

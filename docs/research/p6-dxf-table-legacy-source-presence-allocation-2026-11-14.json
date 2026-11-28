@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-dxf-table-legacy-source-presence-allocation-2026-11-14",
+  "date": "2026-11-14",
+  "status": "LEGACY_TABLE_SOURCE_PRESENCE_AND_ZERO_OVERRIDE_TRANSACTION_MATRIX_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Close the AC1018 legacy TABLE source-presence and zero-override direct-writer transaction slice. This is generated codec/readback evidence, not producer or native behavior qualification.",
+  "source": {
+    "format": "locally generated in-memory DRW_Table profiles",
+    "revision": "AC1018",
+    "fixtureFilesAdded": 0,
+    "testSourceFiles": [
+      {
+        "path": "tests/table_legacy_height_controls.h",
+        "sha256": "e20324434f8d33d54bfb1550688b6331abcafe8b9ee03adc813a68dadb6037ed"
+      },
+      {
+        "path": "tests/table_content_dxf_tests.cpp",
+        "sha256": "7b127441df01be9b6d4575b6ea21a7adc6d346cd202e3ac4586714b2a22e1b22"
+      }
+    ]
+  },
+  "coverage": {
+    "writerRoutes": [
+      "writeTableWithLegacySourcePresence",
+      "writeTableWithLegacyZeroOverrides"
+    ],
+    "encodings": ["ASCII", "Binary"],
+    "cellLayouts": ["1x1", "2x2"],
+    "allocationFailureOffsetsPerRouteEncodingAndLayout": {
+      "1x1": 11,
+      "2x2": 15
+    },
+    "transactionAssertions": [
+      "Every injected failure preserves the destination sentinel.",
+      "Every injected failure preserves source handles and table-body values.",
+      "The same writer instance retries successfully after each failure.",
+      "Retry output is byte-identical to the clean output.",
+      "Fresh typed readback checks cell topology, contents, and expected group-177 presence."
+    ],
+    "malformedInput": "Invalid zero-override mask is refused atomically in ASCII and Binary, then corrected input retries successfully and reads back."
+  },
+  "validation": {
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_legacy_presence_allocation$' --output-on-failure",
+      "result": "PASS (1/1, 0.25 seconds)"
+    },
+    "directSelector": {
+      "command": "build-gcc/tests/libdxfrw_table_content_dxf_tests --legacy-table-presence-allocation",
+      "result": "PASS; all eight route/layout/encoding matrices passed with 11 offsets for 1x1 and 15 for 2x2; invalid-mask refusal and corrected retry passed in both encodings.",
+      "executableSha256": "bff7804ef4f74f754437233179af59e448666ea3b977360e47edf1932f4df906"
+    }
+  },
+  "limits": [
+    "Generated AC1018 transaction and self-readback evidence only; it does not establish producer-authored legacy spellings or broader TABLE semantics.",
+    "No DWG or DXF fixture was committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Legacy TABLE source-presence and zero-override direct paths now have explicit, hash-bound rollback/retry/readback coverage.",
+    "remaining": "P6-G remains open for the full public-writer/overload inventory and untested routes; P5 TABLE producer semantics and native rendering also remain open."
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "schema": "libdxfrw-open-source-parity-implementation-slice-v1",
+  "reviewedAt": "2026-10-20",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Implement PAR-87/7AW bounded deterministic ordering for the residual DWG ENTITIES sweep without changing DWG wire parsing, compound semantics, support claims, or external qualification gates.",
+  "method": {
+    "kind": "Local C++ implementation with generated fast controls and owning DWG reader matrix",
+    "repositoryPreferredOdaSpecCopyAvailable": false,
+    "odaSpecificationUsed": {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "localCopy": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sectionsRead": [
+        "§23.1 R13-R15 object map, p.251",
+        "§20.1 object section, p.103",
+        "§20.4.1-2 common entity and handle data, pp.109-111",
+        "§20.4.8 SEQEND and §20.4.11-17 VERTEX/POLYLINE compound references, pp.115-122"
+      ],
+      "use": "Confirm relevant object-map identity and compound-order context before editing the DWG reader; no wire-layout change was made."
+    },
+    "externalDrawingsUsed": 0,
+    "externalDrawingsDownloaded": 0,
+    "newFixtureFiles": 0,
+    "newTestTargets": 0,
+    "newCtestRegistrations": 1,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "commitCreated": false,
+    "localTests": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "passed"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2",
+        "result": "passed",
+        "configuration": "GCC with repository -Werror settings"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --residual-entity-sweep",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_residual_entity_sweep|libdxfrw_dwg_reader_matrix|libdxfrw_dwg_insert_staging_index)$' --output-on-failure",
+        "result": "passed",
+        "passed": 3,
+        "failed": 0,
+        "tests": [
+          "libdxfrw_dwg_residual_entity_sweep",
+          "libdxfrw_dwg_reader_matrix",
+          "libdxfrw_dwg_insert_staging_index"
+        ]
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/intern/dwgreader.cpp src/intern/dwgreader.h tests/dwg_reader_matrix_tests.cpp",
+        "result": "passed"
+      }
+    ],
+    "localFilesChanged": [
+      "CMakeLists.txt",
+      "src/intern/dwgreader.cpp",
+      "src/intern/dwgreader.h",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/residual-entity-order-sort-fast-slice-2026-10-20.json"
+    ],
+    "evidenceRule": "Generated ordering and callback controls establish only the local sweep behavior and bounded scratch policy. They do not qualify external DWG validity, whole-file read performance, cross-platform behavior, native CAD interoperability, or DWG/DXF/3D support."
+  },
+  "implementation": {
+    "priorBehavior": "readDwgEntities selected the minimum source-order entry by scanning the entire remaining unordered ObjectMap on each iteration.",
+    "ordering": "Snapshot immutable (sourceOrdinal, loc, handle) keys once, sort them, then re-find each handle in ObjectMap before touching its frame. BLOCK/compound-consumed frames are skipped; captured map/source identity must match before parsing.",
+    "bounds": "Admission is capped by min(m_readObjectBudget, MaxDwgReadObjectCount) and an explicit scratch-byte ceiling that includes the previous output vector capacity plus the prepared key-vector capacity at peak. Total visits are checked against 2*r for r admitted keys. Allocation/admission failure leaves the prior output vector unchanged; unexplained residual/new entries fail deterministically.",
+    "retry": "At most one retry is permitted for the exact same source identity only after a soft false read with no frame or identity failure, available coverage, Pending disposition, and zero publications. The legacy wrapper now leaves that entry Pending only when the exact restored key proves retry eligibility; otherwise it marks the frame Failed. No unordered-map iterator survives detach or parse.",
+    "complexityLimit": "Sorting is O(r log r); unordered-map find/skip operations do not provide a deterministic worst-case O(r log r) bound for the complete sweep.",
+    "supportPromotion": false
+  },
+  "controls": [
+    {
+      "control": "512-key generated ordering work envelope",
+      "assertions": [
+        "All keys are sorted by sourceOrdinal, then location, then handle.",
+        "Comparator work remains below the fixed linear envelope asserted by the test."
+      ]
+    },
+    {
+      "control": "Equal source ordinal/location tie-break",
+      "assertions": [
+        "Handles 3, 6, 9 are ordered deterministically when ordinal and location tie."
+      ]
+    },
+    {
+      "control": "Count/byte/peak-capacity admission and allocation failure",
+      "assertions": [
+        "Over-budget count and bytes are rejected without replacing existing output.",
+        "A retained output-vector capacity that would overlap the full prepared vector beyond the scratch budget is rejected atomically.",
+        "Injected scratch allocator failure is caught and leaves existing output intact."
+      ]
+    },
+    {
+      "control": "Retry policy predicates",
+      "assertions": [
+        "The allowed one-time soft unpublished restoration state is accepted.",
+        "Second attempt, successful read, structural failure, published state, or nonzero publication count is rejected."
+      ],
+      "limitation": "These unit predicates do not replace the AC1015 runtime take-frame restoration controls below."
+    },
+    {
+      "control": "AC1015 legacy take-frame exact restoration and one retry",
+      "payload": "A locally generated, encoded VERTEX_2D frame with a test reader override that reinserts the exact objHandle identity on the first soft-failure attempt.",
+      "assertions": [
+        "readDwgEntities retries the same source identity exactly once.",
+        "The second attempt emits one DRW_DwgFramePublication receipt.",
+        "The source coverage row ends Published with publicationCount=1, and ObjectMap is empty."
+      ],
+      "limitation": "The test exercises the real legacy take-frame/sweep and ledger path, while injecting restoration at the virtual entity-read seam. It does not use an external DWG or establish legacy compound semantic compatibility."
+    },
+    {
+      "control": "AC1015 repeated-restoration negative",
+      "payload": "The same generated VERTEX_2D control reinserts its exact source identity on both soft-failure attempts.",
+      "assertions": [
+        "The sweep makes exactly two attempts and fails deterministically.",
+        "The second restoration is terminalized Failed, no receipt is published, and the unexplained leftover remains visible."
+      ]
+    },
+    {
+      "control": "Generated AC1021 runtime callback transcript",
+      "payload": "64 locally generated LINE frames with permuted handles/source ordinals and exact expected source-order callback sequence.",
+      "assertions": [
+        "The ENTITIES sweep succeeds.",
+        "Callbacks match the exact sorted sourceOrdinal/location/handle transcript.",
+        "ObjectMap is empty after the sweep."
+      ]
+    },
+    {
+      "control": "Rejected synthetic AC1015 encoder attempt",
+      "result": "Excluded as evidence because all 64 generated LINE frames failed typed-body parsing.",
+      "consequence": "Do not describe the new exact generated callback transcript as AC1015. The existing reader matrix's legacy controls passed separately."
+    }
+  ],
+  "limits": [
+    "No full suite, large-file timing/profile, native CAD, external DWG producer, cross-platform compiler, or restoreDwgSourceFrame node-handle-lease injection was run; the AC1015 test covers restoration by exact map-identity reinsertion through the legacy take-frame seam.",
+    "The focused tests do not establish a universal slowdown in DWG reading; prior generated XRECORD coverage is a separate local complexity observation.",
+    "Historical isolated commit 0ee3bff2 remains historical and is not substituted for the present worktree validation.",
+    "No support claim, PAR/J external gate, or fixture policy changed. J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

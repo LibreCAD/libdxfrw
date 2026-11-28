@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-03",
+  "scope": "Fail-closed DXF output for nonzero DWG LOFTEDSURFACE path-curve handles with no documented DXF field mapping.",
+  "research": {
+    "autodesk_dxf": "The Autodesk Lofted Surface DXF field table lists transform data, cross-section/guide/path entity data, and scalar options, but no group-5 path-reference field. Autodesk's common entity DXF format assigns group 5 to the entity handle.",
+    "libredwg_schema": "LibreDWG 0.13.4's LOFTEDSURFACE field table maps cross_sections and guide_curves to repeated DXF group 310 payloads; path_curve is a DWG H field with no DXF group mapping.",
+    "semantic_context": "Autodesk's AcDbLoftedSurface PathEntity API describes the path curve as optional. This confirms the property meaning, not an alternate DXF encoding.",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3D9D8A87-1E46-48AE-B482-BAD1C4D460CA.htm",
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-995ABB55-571A-4D0F-882E-8A74A738643E.htm",
+      "https://www.gnu.org/software/libredwg/manual/LibreDWG.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_LoftedSurface_PathEntity.html",
+      "src/drw_entities.h: DRW_LoftedSurface::pathCurveHandle",
+      "src/drw_entities.cpp: DRW_LoftedSurface::parseCode and DWG handle-stream decode"
+    ]
+  },
+  "implementation": {
+    "behavior": "A nonzero DRW_LoftedSurface::pathCurveHandle now refuses DXF output during the bounded subtype validation. The undocumented group-5 emission was removed. A zero path handle remains representable and produces the ordinary entity group-5 identity.",
+    "failure_behavior": "Generated ASCII/Binary refusal preserves the existing destination prefix; the staged entity record is not published.",
+    "qualification_boundary": "This preserves data by refusing an unrepresentable DWG association; it does not define a new DXF field or claim that path-curve surfaces are fully supported."
+  },
+  "validation": {
+    "input": "Generated in-memory controls only; no DWG/DXF fixture was added.",
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "controls": [
+      "nonzero DWG path handle is refused with destination-prefix preservation",
+      "zero path handle emits a framed surface record",
+      "emitted record contains exactly one group-5 value, the ordinary entity identity"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "build-gcc/libdxfrw_wave1_tests --lofted-surface-path-reference-dxf-refusal",
+      "ctest --test-dir build-gcc -R '^libdxfrw_lofted_surface_path_reference_dxf_refusal$' --output-on-failure",
+      "git diff --check"
+    ],
+    "result": "PASS"
+  },
+  "limits": [
+    "No physical DWG/DXF producer pair or native CAD consumer was used.",
+    "No independent semantic test establishes the source path entity's association to the emitted surface.",
+    "The DWG path-curve association remains available to DWG routes; only the undocumented DXF serialization is refused."
+  ]
+}

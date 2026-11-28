@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-layout-next-refusal-2026-11-28",
+  "date": "2026-11-28",
+  "supportClaimEffect": "none",
+  "gate": "P6-F",
+  "baseCommit": "3feab932b",
+  "scope": "Diagnostic-only mapping of subsequent guards on selected AC1012 resaves; no output qualification.",
+  "method": "A separate scratch worktree temporarily returned success from the legacy layout projection branch of validateLayoutGraph, thereby bypassing the remainder of that validator; the PR implementation was not changed. Strict mode was not bypassed. Explicit partial R2000 ASCII/binary conversion was attempted against sentinel destinations.",
+  "observations": [
+    {
+      "source": "destination-resaved.dwg",
+      "sha256": "b8e4eabf4feb1f84bc272650344c191873fd5425698b58761bc19f4fbd6e740b",
+      "encoding": "ascii",
+      "exit": 1,
+      "destinationPreserved": true,
+      "nextRefusal": "DICTIONARYWDFLT must be rooted exactly once by ACAD_PLOTSTYLENAME"
+    },
+    {
+      "source": "destination-resaved.dwg",
+      "sha256": "b8e4eabf4feb1f84bc272650344c191873fd5425698b58761bc19f4fbd6e740b",
+      "encoding": "binary",
+      "exit": 1,
+      "destinationPreserved": true,
+      "nextRefusal": "DICTIONARYWDFLT must be rooted exactly once by ACAD_PLOTSTYLENAME"
+    },
+    {
+      "source": "source-resaved.dwg",
+      "sha256": "2da9c240f21068137b6b58023724b5aa84bd786d9e996d00d4af0d20c88cf5ae",
+      "encoding": "ascii",
+      "exit": 1,
+      "destinationPreserved": true,
+      "nextRefusal": "DICTIONARYWDFLT must be rooted exactly once by ACAD_PLOTSTYLENAME"
+    },
+    {
+      "source": "source-resaved.dwg",
+      "sha256": "2da9c240f21068137b6b58023724b5aa84bd786d9e996d00d4af0d20c88cf5ae",
+      "encoding": "binary",
+      "exit": 1,
+      "destinationPreserved": true,
+      "nextRefusal": "DICTIONARYWDFLT must be rooted exactly once by ACAD_PLOTSTYLENAME"
+    }
+  ],
+  "peerSourceFinding": "LibreDWG reports DICTIONARYWDFLT handle 0x25 owned by the root, with Normal/default target 0x30, but the selected resaved root has no ACAD_PLOTSTYLENAME entry. The independent JSON reading locates this candidate; the diagnostic alone does not establish complete source semantics.",
+  "limitations": [
+    "Bypassing the layout validator is unsafe and is not an implementation or a support claim.",
+    "The next refusal does not prove that later checks or full graph closure would pass.",
+    "The non-rooted profile must not be treated as a valid producer witness or repaired implicitly without a separate evidence-backed policy."
+  ]
+}

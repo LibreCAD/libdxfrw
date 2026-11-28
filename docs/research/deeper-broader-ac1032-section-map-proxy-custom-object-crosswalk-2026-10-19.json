@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "AC1032 section-map and proxy/custom-object stage crosswalk",
+  "mode": "Primary-source open-source DWG/DXF peer research plus local source/test crosswalk and focused regression verification",
+  "repository": "LibreCAD/libdxfrw",
+  "localRevision": "de27a33",
+  "scope": [
+    "Refresh LibreDWG and ACadSharp evidence for section-map/page failures, opaque proxy data, custom-object interpretation, and route-specific limitations.",
+    "Compare current FreeCAD DWG-to-DXF consumer documentation with the planned 2D and ACIS qualification gates.",
+    "Reconcile the prior PAR-132/7CB proxy body-dispatch coverage gap with the current generated local test and update the plan without transferring peer failures to libdxfrw."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG issue #1294",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1294",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "revision": "Issue page and current repository source reviewed 2026-10-19; issue reports LibreDWG 0.13.4 and 0.13.4.8317.",
+      "observed": "The issue reporter describes one unavailable private AC1032 drawing failing in section metadata/page sizing before object decode, while twelve same-producer R2018 controls reportedly pass, including larger files. The author offers a structural log or local execution against the private file.",
+      "evidenceCeiling": "Peer-reported failure profile only. No DWG was available or downloaded, no current LibreDWG binary was run, and this is not evidence of a libdxfrw defect or a format rule."
+    },
+    {
+      "project": "ACadSharp PR #1274 and PR #1275",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1274",
+        "https://github.com/DomCR/ACadSharp/commit/c9cb845",
+        "https://github.com/DomCR/ACadSharp/pull/1275",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "revision": "Current PR, commit, release, and discussion pages reviewed 2026-10-19. #1274 merged to master on 2026-10-13; #1275 remains open. Latest listed v3.8.0 release predates the #1274 merge.",
+      "observed": "#1274 adds a DWG opaque proxy-data path bounded by a handle-section offset, with the PR stating its boundary is available for R2010+; review removes a DXF group-311 promise because the DXF reader/writer path does not support it. #1275 is a narrow, still-open TArch/Tianzheng text interpretation proposal and compares selected properties to vendor-flattened output. Its discussion reports different counts across revisions and separately notes a DXF ACAD_PROXY_ENTITY drop in ACadSharp.",
+      "evidenceCeiling": "Merged source and contributor reports establish peer implementation activity, not package inclusion, independent semantic support, native acceptance, or local behavior. No ACadSharp package/build was run."
+    },
+    {
+      "project": "FreeCAD consumer route documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "revision": "Current documentation pages reviewed 2026-10-19.",
+      "observed": "The documented DWG path uses an external converter to produce DXF, then a selectable stock DXF importer; the docs state that the stock importer cannot read ACIS/SAT solids and describe differing C++ and legacy importer subsets.",
+      "evidenceCeiling": "Documented product scope only; no FreeCAD binary, converter, or native consumer was run."
+    },
+    {
+      "project": "Local generated proxy-dispatch test and owning CTest",
+      "urls": [
+        "tests/dwg_reader_matrix_tests.cpp",
+        "src/drw_entities.cpp",
+        "src/libdxfrw.cpp",
+        "tests/CMakeLists.txt"
+      ],
+      "revision": "Shared worktree at de27a33 with extensive uncommitted changes; focused build and test run on 2026-10-19.",
+      "observed": "The existing --proxy-entity-dispatch test generates AC1024 and AC1032 proxy frames in memory. It checks non-byte-aligned entity-data bits, ordered object-ID references, independent proxy-graphics fields/bytes, raw fallback identity, following LINE continuity, and refusal without partial callbacks for malformed/truncated frames. Strict target build passed; the selector passed; the existing libdxfrw_dwg_reader_matrix CTest passed 1/1 in 1.51 seconds.",
+      "evidenceCeiling": "Generated local object-frame/dispatch coverage, not full-file class/section integration, producer interoperability, unknown custom-object interpretation, DXF/DWG cross-format parity, or ACIS semantics. No production code was changed in this research pass."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newCoverageGaps": 0,
+    "existingCoverageGapsClosed": 1,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "existingOwnersRefined": [
+      "PAR-14/PAR-26 AC1032 R2004+ section-map/page-size acceptance criteria",
+      "PAR-132/7CB DWG proxy entity-body dispatch",
+      "PAR-07/S8 separation of proxy/custom-object carriers and ACIS semantics",
+      "FreeCAD 2D consumer route versus independent ACIS qualification"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsAdded": 0,
+    "newCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "localBuildRun": true,
+    "localCommands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --proxy-entity-dispatch",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure"
+    ],
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Keep the new LibreDWG AC1032 section-map failure as a version-specific external adversarial profile under existing parser owners. Close the already-implemented generated proxy body-dispatch gap while keeping whole-file integration and cross-format/custom semantics separate. Reaffirm that FreeCAD stock DWG conversion/import only qualifies its 2D route, not ACIS geometry. No scope, queue, dependency, fixture, or support claim change."
+  },
+  "implementationReadiness": [
+    "For AC1032 section/page changes, read the relevant ODA v5.4.1 sections before production edits and require a public structural trace, a legal sample under approved handling, or a from-scratch spec-backed control; do not infer parser policy from the issue diagnostic values.",
+    "Retain the generated --proxy-entity-dispatch selector and owning CTest as a fast body-level regression. It covers AC1024/AC1032, not full class/section discovery.",
+    "If whole-file proxy integration is required by an explicit support claim, add only a generated in-memory test to the existing reader-matrix target; assert class/handle lookup, owner/reference closure, callback identity, and sentinel continuity.",
+    "At composed peer checkpoints, pin peer commit and release independently; track DWG raw proxy data, DXF proxy groups, proxy graphics, typed semantics, and native behavior as separate evidence fields.",
+    "Keep FreeCAD's converter and selected DXF importer explicit. Its stock 2D projection cannot close ACIS B-rep or general 3D support claims.",
+    "Update the plan summary and receipt after each next implementation slice; do not wait on external issue authors or require peer/native work for unrelated ready local tasks."
+  ],
+  "method": {
+    "kind": "Primary-source web research plus local read-only source/test crosswalk and scoped fast validation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "networkArtifactsDownloaded": false,
+    "localPersistentFixturesCreated": false,
+    "fullTestSuiteRun": false
+  }
+}

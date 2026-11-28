@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "548807a3",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "problem": [
+    "EntityBuilder recorded originals only from model space, so undo of a block entity update deleted it.",
+    "Document insertion removed the new entity rather than the existing one; changing the owner block could leave duplicate IDs in both blocks."
+  ],
+  "change": [
+    "Look up originals across document containers for undo.",
+    "Remove the actual existing entity, including its original owner, before inserting its replacement."
+  ],
+  "validation": [
+    "A failing-before generated 3D LINE control checks same-block updates, relocation between blocks and to model space, exact identity and 3D coordinates, undo and redo.",
+    "Ten EntityBuilder, nine canvas, 74 DXF round-trip, 17 DWG import and 17 layout tests pass; macOS ARM64 app builds.",
+    "Plan full, worktree, base-ref and 31 checker tests pass."
+  ],
+  "limits": [
+    "Only the selected in-memory line profile is established; native GUI, other entity types and platform qualification remain open."
+  ],
+  "supportClaimEffect": "none"
+}

@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "RPP-5z4",
+  "date": "2026-10-30",
+  "title": "Bounded multi-field TABLECONTENT reference grids",
+  "mode": "P5 bounded implementation and generated ASCII/Binary source/output controls",
+  "baselineCommit": "8c6925f4",
+  "scope": {
+    "sourceProfile": "Two simple childless FIELD objects with string cached values; a 2x2 TABLECONTENT grid carries six direct references, including both distinct targets and repeated references within one cell with a string scalar between them.",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "sourceRoutes": [
+      "adapter-authored source",
+      "generated DXF imported and replayed"
+    ],
+    "handleRemapping": "Source FIELD and TABLECONTENT handles are remapped; every emitted type-2 reference is checked against its corresponding emitted FIELD identity.",
+    "claimBoundary": "Bounded TABLECONTENT serializer and source-bound DXF replay transport only; no FIELD evaluation, FIELDLIST/child graph, DWG output, native TABLE rendering, or support claim."
+  },
+  "implementation": {
+    "files": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "summary": "The adapter now admits a bounded set of distinct childless string-result FIELD objects, checks aggregate typed limits and raw/typed source pairing, requires every FIELD target to be referenced, and validates multi-reference cell order. TABLECONTENT references in rectangular grids can target multiple FIELD objects and repeat within a cell; emitted target closure is checked against one prebuilt unique source-handle set. The legacy 1x1 path remains limited to one reference with its existing optional string scalar.",
+    "persistentDwgDxfFixturesAdded": 0,
+    "testDrawings": "Generated at runtime in scratch storage; no persistent DWG/DXF fixture was added.",
+    "publicLibraryApiChanged": false,
+    "supportClaimPromoted": false
+  },
+  "controls": {
+    "fieldObjects": 2,
+    "gridReferences": 6,
+    "repeatedReferenceInOneCell": true,
+    "mixedStringScalarAndReferencesInOneCell": true,
+    "rawTypedImportPairing": "Both imported FIELD records retain their identities, NOD owner, raw record profile and type-2 source references.",
+    "wireProof": "ASCII/Binary physical output contains both remapped FIELD records before TABLECONTENT and the six group-340 targets in exact cell/content order.",
+    "readback": "Fresh typed readback preserves both FIELD expressions/cached values, the rectangular grid, and all remapped reference order.",
+    "failureAndRetry": "An absent target is refused with destination sentinel preserved and caller model unchanged; restoring the target succeeds through the same adapter. Imported source identity mutation is refused, then corrected source replays successfully."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+      "ctest --test-dir build -R '^(libdxfrw_tablecontent_multicell_field_reference|libdxfrw_table_content_grid_write|libdxfrw_table_content_linked_grid_write)$' --output-on-failure",
+      "build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS with configured -Werror build.",
+      "focusedCtest": "PASS 3/3; 0.69 seconds.",
+      "sourceReplaySelector": "PASS; includes ASCII/Binary imported FIELD source pairing, remapped replay, refusal and corrected retry.",
+      "fullSuite": "NOT_RUN per fast-validation plan.",
+      "nativeConsumerOrSemanticEvaluation": "NOT_RUN."
+    }
+  },
+  "limitations": [
+    "The accepted FIELD body remains the selected simple childless AcExpr/string cached-value profile.",
+    "FIELDLIST membership, child/object dependency graphs, non-string cached values, richer per-cell scalar combinations, and standalone 1x1 multiple-reference composition remain unqualified.",
+    "No field expression evaluation, native TABLE rendering, DWG output, ABI/platform/consumer qualification, or support claim is established."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "More-than-two reference transport, multiple simple FIELD objects, and repeated FIELD references within one rectangular-grid cell.",
+    "remainingP5Scope": "FIELDLIST/child graphs, additional FIELD body/source/version profiles, standalone 1x1 multi-reference composition, other linked-cell payloads, and independent TABLE semantic/rendering evidence remain open.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "6faf163c4cf64cfd996e344e63a0a17640692eba743030b6f71e167baa3895b2",
+    "dwg2dxf/dx_iface.h": "8ecd7759641dba891a03f3b4368ece04c928aa1f48c1f640d501fa022d4e62fe",
+    "dwg2dxf/dx_iface.cpp": "9c4ff51fc75aa56af2e07bd854315b33ebbafdca5e7ed9b162cb32c985c7d299",
+    "tests/dxf_fixture_tests.cpp": "3ce5018df2c6a5e663ee487d8dad31beeb522597a28a58aa995c1c03c37bca2a"
+  },
+  "commitCreated": true
+}

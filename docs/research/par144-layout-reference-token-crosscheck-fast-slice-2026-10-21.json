@@ -1,0 +1,59 @@
+{
+  "slice": "PAR-144 versioned LAYOUT handle-tail byte cross-check",
+  "date": "2026-10-21",
+  "status": "implemented_and_fast_validated",
+  "scope": "Generated in-memory LAYOUT frames across six versions; no production DWG logic or persistent fixture changed.",
+  "files": [
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+  "generated_layout": {
+    "parent_dictionary_handle": "0xA721",
+    "layout_handle": "0xA720",
+    "associated_block_record_handle": "0xA724",
+    "last_active_viewport_handle": "0xA725",
+    "base_ucs_handle": "0xA726",
+    "named_ucs_handle": "0xA727",
+    "viewport_handles_r2004_plus": ["0xA728", "0xA729"],
+    "fixture_lifecycle": "encoded in memory and discarded after the focused test"
+  },
+  "checks": [
+    "The generated LAYOUT object frame has a bounded version-specific size prefix and valid CRC.",
+    "Every captured H token is decoded from the physical data/handle byte segment and its decoded code, reference, and end bit match the writer receipt.",
+    "The ordered layout-specific reference tokens match plot-view, conditional shade-plot, paper-space BLOCK_RECORD, last-active viewport, base/named UCS, and conditional viewport-list references.",
+    "AC1015 expects no R2004+ viewport list; AC1018+ expects two list references.",
+    "The focused whole-file roundtrip remains the check for parsed viewport count/list values; the new byte walker does not independently decode the serialized count field."
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "result": "passed"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --block-record-layout-association",
+      "result": "passed; six version controls"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$' --output-on-failure",
+      "result": "passed; 1/1 tests, 0.18 seconds"
+    },
+    {
+      "command": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par144-layout-reference-token-crosscheck-fast-slice-2026-10-21.json",
+      "result": "passed"
+    }
+  ],
+  "evidence_ceiling": "The frame receipt locates token spans; the test independently decodes serialized bytes and checks their sequence/codes but does not independently discover the handle-tail boundary or decode viewportCount from DATA. It is not an independent reader/native qualification.",
+  "support_claim_promoted": false,
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit": null,
+  "commit_note": "Not committed because the shared worktree contains broad mixed changes.",
+  "next_self_unblocking_item": "Add a bounded independent DATA-stream cursor for the versioned viewport-count field, accounting for the R2007 string stream and AC1024+ detached string footer; preserve the ODA/source field-width discrepancy explicitly."
+}

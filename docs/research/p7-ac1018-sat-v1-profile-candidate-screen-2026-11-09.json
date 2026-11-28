@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p7-ac1018-sat-v1-profile-candidate-screen-2026-11-09",
+  "date": "2026-11-09",
+  "status": "NO_PHYSICAL_EVIDENCE_FOR_AC1018_SAT_V1_EXTENSION",
+  "supportClaimEffect": "none",
+  "specification": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.41",
+    "finding": "Defines the SAT-v1 length-prefixed block carrier and the version-2 inline carrier. The general body sequence also includes common wireframe fields, which must remain within independently established version bounds."
+  },
+  "sources": [
+    {
+      "path": "/Users/dli/doc/dwg6/example_2004.dwg",
+      "sha256": "e72d5e86d5d36d64b08822fb25a46079f592fd895a6157b1b8d9b07775e06108",
+      "version": "AC1018",
+      "modelerHeadersObserved": 3,
+      "modelerVersions": [2],
+      "tracePath": "/tmp/libdxfrw-example2004-sat-profile.log",
+      "traceSha256": "24622691ee474500356fde5af7268cc4e0029190b325219e3a99c34418370b39",
+      "wholeReadDisposition": "Strict conversion refused with four object parse failures; not a whole-file qualification."
+    },
+    {
+      "path": "/Users/dli/doc/dwg6/sample_AC1018.dwg",
+      "sha256": "7d26f908516ec5fb89cc8054af33aff233b68a7b63208bbc5b7f9d4f9bff9866",
+      "version": "AC1018",
+      "modelerHeadersObserved": 3,
+      "modelerVersions": [2],
+      "tracePath": "/tmp/libdxfrw-sample-ac1018-sat-profile.log",
+      "traceSha256": "eae0248e8d0863cf8567163e555fc9c678e56737e009b6c62f57bbc72c7bd219",
+      "wholeReadDisposition": "Strict conversion refused with six object parse failures and failed IMAGEDEF source correlation; not a whole-file qualification."
+    }
+  ],
+  "method": {
+    "commandPattern": "build/dwg2dxf/dwg2dxf <source> -y -d -v2004 <temporary-output.dxf>",
+    "observation": "Temporary diagnostic logging emitted parsed modeler version and body bounds for each object that reached DRW_ModelerGeometry parsing. The diagnostic was removed, and the library/test target was rebuilt from the uninstrumented source afterward.",
+    "repositoryFixtureAdded": false,
+    "productionParserChanged": false
+  },
+  "decision": "These two physical sources do not justify expanding AC1015 SAT-v1 extraction to AC1018. Preserve the exact AC1018 SAT-v1 opaque control and require an eligible source or authoritative versioned layout before changing the parser.",
+  "limitations": [
+    "Two local AC1018 files do not establish that no producer uses SAT-v1 in AC1018.",
+    "The diagnostic reused libdxfrw parsing and is not independent format evidence.",
+    "The result does not qualify AC1018 version-2 SAB semantics, wireframe fields, geometry, output, or native interoperability."
+  ],
+  "nextAction": "Leave this profile boundary unchanged and continue with a separately evidenced local implementation item; revisit only when a qualifying AC1018 SAT-v1 source or normative version-specific rule appears."
+}

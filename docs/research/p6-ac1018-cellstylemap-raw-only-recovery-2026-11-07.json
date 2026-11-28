@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1018 CellStyleMap bounded raw-only recovery",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg3/HatchG.dwg",
+    "sha256": "9d03bcf4330ff5940a45e0fded1a4278810a626cc93cafe04b5ea0931a1ccc31",
+    "version": "AC1018",
+    "provenance": "Existing local research corpus file, read-only; not copied into the repository or added as a fixture."
+  },
+  "observedFrame": {
+    "recordName": "CELLSTYLEMAP",
+    "className": "AcDbCellStyleMap",
+    "classDwgVersion": 27,
+    "handle": "0x2F6",
+    "sourceOrdinal": 157,
+    "sourceOffset": 147491,
+    "typedFailure": "TABLESTYLE cell-style content format invalid"
+  },
+  "interpretation": {
+    "authority": "ODA v5.4.1 §20.4.102 introduces CELLSTYLEMAP in R2007 (AC1021). This AC1018 frame is a back-save/custom-class profile; the failed field values do not independently establish a historical schema variant.",
+    "policy": "Preserve the exact raw source frame only when the exact AC1018 record/class pair matches and a forked RawObjectShell validates the common header and handle data. Do not publish partial typed values or qualify output."
+  },
+  "implementation": {
+    "file": "src/intern/dwgreader.cpp",
+    "behavior": "The dispatcher forks the frame cursor before typed parsing. On typed failure, only version AC1018 with record CELLSTYLEMAP and class AcDbCellStyleMap may use the bounded raw-only fallback. The immutable raw frame is published with typed-payload validation false; skipped custom/unsupported counts are updated.",
+    "frameCoverage": "229/229 observed source frames published; zero failed frames.",
+    "strictOutput": "Still refused before output by the separate DWG IMAGEDEF/reactor source-correlation gate.",
+    "fixturePolicy": "No external DWG or DXF fixture was added."
+  },
+  "verification": {
+    "build": "cmake --build build --target dwg2dxf -j4",
+    "buildResult": "passed",
+    "sourceCommand": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg3/HatchG.dwg --allow-partial-dwg-read -y -d -v2004 /private/tmp/hatchg-cellstylemap-raw-only.dxf",
+    "tracePath": "/private/tmp/hatchg-cellstylemap-raw-only.log",
+    "traceSha256": "25e472dcece2fb3e80da932570c82a61dbea617f1dd4f51985a06f44d4c0fdc9",
+    "focusedTests": {
+      "passed": [
+        "libdxfrw_cellstylemap_dwg_encode_roundtrip",
+        "libdxfrw_cellstylemap_identity_domains",
+        "libdxfrw_cellstylemap_dxf_writer",
+        "libdxfrw_cellstylemap_source_profiles",
+        "libdxfrw_cellstylemap_source_proof"
+      ],
+      "broaderNameFilterFailures": [
+        "libdxfrw_tablestyle_identity_domains",
+        "libdxfrw_tablestyle_content_format_enum_domains",
+        "libdxfrw_tablestyle_nested_raw_net"
+      ],
+      "broaderFilterNote": "The broad ctest -R 'tablestyle|cellstylemap' run selected 19 tests; these three TABLESTYLE tests failed and are outside the CellStyleMap fallback path."
+    }
+  },
+  "limits": [
+    "No content-format schema variant is qualified.",
+    "No typed callback is emitted for the recovered physical source object.",
+    "Raw preservation does not qualify DXF replay or semantic support.",
+    "Strict output remains gated by the separate IMAGEDEF/reactor correlation failure."
+  ]
+}

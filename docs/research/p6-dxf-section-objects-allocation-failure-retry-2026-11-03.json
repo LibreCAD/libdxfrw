@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-section-objects-allocation-failure-retry-2026-11-03",
+  "date": "2026-11-03",
+  "title": "SECTIONMANAGER/SECTIONSETTINGS OBJECTS allocation rollback and retry",
+  "status": "GENERATED_ASCII_BINARY_ALLOCATION_SWEEP_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep the measured allocations in the dx_iface SECTION OBJECTS callback for a bounded VIEW-to-SECTIONOBJECT-to-SECTIONSETTINGS graph, checking whole-output rollback and same-adapter retry.",
+  "source": {
+    "kind": "locally authored test input",
+    "profile": "AC1027 generated ASCII and Binary DXF containing a VIEW group-334 reference, SECTIONMANAGER membership, nested SECTIONSETTINGS source and geometry fields, and an in-memory SECTIONOBJECT callback.",
+    "repositoryFixture": false,
+    "fixtureFilesAdded": 0
+  },
+  "method": {
+    "calibration": "For each encoding, perform one successful export with a high allocation countdown armed at entry to dx_iface::writeObjects; compute the allocation count from the remaining countdown.",
+    "injection": "For every calibrated offset, import a fresh generated graph, seed the destination with a sentinel, inject one std::bad_alloc during writeObjects, and let the exception unwind through dxfRW's whole-operation transaction.",
+    "rollback": "Require export refusal, exactly one injected allocation failure, entry into the OBJECTS callback, and byte-for-byte preservation of the sentinel destination.",
+    "retry": "Disable injection and export again with the same dx_iface instance and source dx_data; fresh-import the result and check VIEW, SECTIONOBJECT, SECTIONMANAGER membership, SECTIONSETTINGS source identity, and nested geometry fields."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4: PASS",
+    "normalTests": [
+      "ctest --test-dir build-gcc -R 'libdxfrw_(section_objects_allocation_retry|view_live_section_reference_closure|section_manager_reference_remapping|section_settings_reference_remapping|view_reference_remapping)' --output-on-failure: PASS (5/5)",
+      "build-gcc/libdxfrw_dxf_fixture_tests --view-live-section-fail-closed: PASS",
+      "cmake --build build-gcc --target lc3_compat_check --parallel 4: PASS",
+      "git diff --check: PASS"
+    ],
+    "asanBuild": "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests --parallel 4: PASS",
+    "asanTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_section_objects_allocation_retry$' --output-on-failure: PASS (1/1)"
+  },
+  "qualificationLimits": [
+    "This covers the bounded SECTIONMANAGER/SECTIONSETTINGS callback profile and its enclosing DXF publication transaction only; it does not sweep every OBJECTS builder or every whole-document failure boundary.",
+    "Inputs are generated local test vectors, not physical producer files.",
+    "No native section-generation or 3D semantics are qualified, and no support claim is promoted."
+  ]
+}

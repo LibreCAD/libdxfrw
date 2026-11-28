@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 consumed-style fourteen-to-eleven removal",
+  "date": "2026-10-29",
+  "status": "SOURCE_COUNT_FOURTEEN_SURVIVOR_UNDECUPLES_QUALIFIED",
+  "codeCommit": "d6100bcef10aef1111b4edc6d6e1f1230d61f287",
+  "scope": "Qualify all 364 choices of eleven surviving tuples when reducing a consumed fourteen-element AC1027 MLINESTYLE to eleven elements. This is a selected removal profile, not complete source-count-fourteen removal or universal MLINE support.",
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "change": "Register the source-count-fourteen, target-count-eleven runtime-generated test and reuse each imported source encoding for both output encodings while retaining exact output and readback checks over all 364 survivor undecuples. Refusal rollback, late-mutation rollback and corrected retry controls remain enabled.",
+    "productionBehavior": "No writer behavior changed; the selected 14-to-11 model transactions use existing source-bound consumer projection and atomic output admission."
+  },
+  "validation": {
+    "configureCommand": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configureResult": "PASS",
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_style_eleven_from_fourteen_removal$' --output-on-failure",
+    "ctestResult": "PASS: survivorSets=364; profiles=1456; readbacks=1460; refusals=2; late=2; retries=4; elapsed=23.24s",
+    "diffCheck": "PASS (git diff --check)",
+    "fullSuite": "NOT_RUN"
+  },
+  "fixturePolicy": "DXF source/output files are generated at runtime in a system temporary directory and removed after success. No test drawing was committed.",
+  "limits": [
+    "Only source count fourteen and target count eleven, across all 364 survivor undecuples, are newly qualified here.",
+    "Source-count-fourteen target counts 12..13, larger source counts, zero-element handling, native rendering and complete-document closure remain open.",
+    "Selected AC1027 compatible output does not establish native MLINE rendering or cross-version support."
+  ],
+  "next": "Qualify source-count-fourteen to twelve-element removal across all 91 survivor duodecuples with the same exact projection, output/readback, refusal, late-mutation rollback and retry controls."
+}

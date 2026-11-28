@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-persubentmgr-local-port-lineage-screen-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Local PERSUBENTMGR parser lineage screen",
+  "status": "NO_INDEPENDENT_SCHEMA_EVIDENCE",
+  "supportClaimEffect": "none",
+  "scope": "Check two locally available DWG reader projects for independent PERSUBENTMGR wire fields or semantic member evidence before repeating corpus acquisition.",
+  "sources": [
+    {
+      "repository": "/Users/dli/dev/dwg-writer",
+      "remote": "git@gitlab.currentcad.com:2d/dwg-parser.git",
+      "head": "70bb845b",
+      "worktree": "Dirty only in cpp/tests/standalone/cad_write_rejection_manifest_smoke.cpp; inspected parser source file is clean.",
+      "parser": "cpp/src/dwg/tables/TableParsers.cpp::parsePersistentSubentityManager",
+      "parserSourceSha256": "a837233da0f89f0e8a7fa06cd093328f95e946b26f9063235cfc2db4596d2c0d",
+      "observed": "The source explicitly identifies itself as a port of parseObjects.ts. It reads a bounded classVersion and itemCount, retains the remaining body as rawData, then reads item handles from the handle stream. The DXF reader maps the first post-subclass group 90 to classVersion and post-subclass group 330 values to itemHandles.",
+      "limitation": "This preserves unknown body bytes; it does not interpret selected-member semantics or independently bind the DWG body tail."
+    },
+    {
+      "repository": "/Users/dli/dev/dwgTs",
+      "remote": "git@gitlab.currentcad.com:2d/dwg-parser.git",
+      "head": "216e5c4b",
+      "worktree": "Dirty, including cpp/src/dwg/tables/TableParsers.cpp and cpp/src/dwg/DwgObjectsReader.cpp; inspected parser source file differs from HEAD.",
+      "parser": "cpp/src/dwg/tables/TableParsers.cpp::parsePersistentSubentityManager",
+      "parserSourceSha256": "f4e51b62674f279f1e2e96a1e4fe7bf5a3348a085619014e5e8e9df1d22873fd",
+      "observed": "The parser also explicitly identifies parseObjects.ts as its source and uses the same classVersion/itemCount/rawData/handle-stream structure as dwg-writer.",
+      "limitation": "Shared TypeScript ancestry and the dirty worktree make this neither independent evidence nor a source-bound physical wire trace."
+    }
+  ],
+  "decision": "Do not treat these local projects as independent schema or semantic support. Their agreement is explained by a shared parseObjects.ts port lineage; both preserve the disputed body as raw data.",
+  "next": "Do not repeat this source scan unless source provenance changes. P6-B still requires native API-state evidence for exact AcDbPersSubentManager creation and a selected nonzero path, followed by independent field, handle-role, and next-object-span proof."
+}

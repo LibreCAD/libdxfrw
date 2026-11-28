@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-scale-units-dxf-domain-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_SCALE_POSITIVE_FINITE_UNITS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Require positive finite paper and drawing units for typed SCALE DXF input and output.",
+  "implementationReadiness": {
+    "baselineHead": "d066cb64b8d3973fd490f1824ebf4b947151e49e",
+    "sourceObservation": "DRW_Scale::parseCode assigned group-140 paperUnits and group-141 drawingUnits without domain checks; dxfRW::writeScale emitted both fields without validating them. The DWG SCALE reader already rejects non-finite values but this change does not modify DWG parsing or encoding.",
+    "normativeEvidence": [
+      {
+        "source": "Autodesk ObjectARX 2027 AcDbAnnotationScale::setPaperUnits",
+        "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbAnnotationScale__setPaperUnits_double.html",
+        "relevantRule": "Paper units must be positive and non-zero."
+      },
+      {
+        "source": "Autodesk ObjectARX 2017 AcDbAnnotationScale::setDrawingUnits",
+        "url": "https://help.autodesk.com/cloudhelp/2017/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbAnnotationScale__setDrawingUnits_double.html",
+        "relevantRule": "Drawing units must be positive and non-zero."
+      }
+    ],
+    "change": "The DXF parser reads each unit field into a temporary, rejects non-positive or non-finite values before assignment, and preserves the existing typed value on failure. The typed DXF writer refuses invalid units before emitting a record. DWG layout/validation and public callbacks are unchanged."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_objects.cpp": "afc3c7a115c4fabbec7dffec2517e027d74dadcec6e15974963daa832e402b57",
+      "src/libdxfrw.cpp": "ed23f13686061b89316b51296fa5e53d237ecf14d610bde840883c2e2ca4236f",
+      "tests/hardening_tests.cpp": "0896f21cf488ac84cdf5bf752f4bf9e1298548b18be7248850277bc31c41f4b1",
+      "CMakeLists.txt": "0e15cd71a165b440973dd9a8679af76b7ac1c13369797b84fdd527336ce3f6a3"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+      "platform": "Darwin arm64"
+    },
+    "testExecutableSha256": "9520c2c8edb960af3b3924469553245ae15b96e969b784f739b1c583b5a1aee6"
+  },
+  "controls": {
+    "selector": "--dxf-scale-units-domain",
+    "ctest": "libdxfrw_scale_units_dxf_domain",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "The parser accepts positive finite group-140 and group-141 values in both encodings.",
+      "The parser rejects zero and negative values without changing the prior unit value in both encodings; ASCII controls also reject NaN and infinity.",
+      "Typed ASCII and Binary SCALE writers refuse zero, negative, NaN, and infinite unit values before output.",
+      "Valid writer output is parsed back in both encodings and preserves both unit values.",
+      "The existing SCALE retained-name owner-budget selector still passes."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_scale_units_dxf_domain$' --output-on-failure",
+      "result": "PASS 1/1 in 0.25 seconds"
+    },
+    "regression": {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-scale-name-owner-budget",
+      "result": "PASS"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated numeric-admission and typed DXF readback only; native annotation display/evaluation was not tested.",
+    "DWG annotation-scale object parsing/encoding, group-70 flag semantics, version boundaries, and root dictionary/consumer semantics remain outside this slice.",
+    "No support claim is promoted; broader SCALE annotation/version/API qualification remains open."
+  ],
+  "nextReadyPacket": "Continue with a source-backed P6 or P5 implementation gap; do not infer native annotation semantics from field transport."
+}

@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw-acis-mesh-projection-and-solid-consumer-route-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Broaden modeler evidence routes by separating a bounded open-source ACIS-to-mesh projection from a documented commercial DXF ACIS consumer; refine existing S2.3/S5/S8 composed gates only.",
+  "method": {
+    "kind": "Current project-authored API documentation and official vendor documentation reviewed through public project pages",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": false,
+    "localTestsRunForResearch": false,
+    "limitations": [
+      "Documentation establishes advertised or documented route behavior, not successful acceptance of libdxfrw-produced output.",
+      "SOLIDWORKS is proprietary; no license, evaluation, installation, or runtime was used or authorized.",
+      "ezdxf is both an ACIS control author and parser/projection route, so those roles are not independent evidence."
+    ]
+  },
+  "evidence": [
+    {
+      "route": "ezdxf 1.4.5 ACIS mesh projection and mesh-derived authoring",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observation": "The API says mesh_from_body emits only flat polygonal faces and loses faces without straight boundaries; vertices_from_body gives exact bounds only for straight-edged polyhedra. body_from_mesh can author version-dependent SAT/SAB, merges coincident vertices, treats a mesh as closed when every edge has two adjacent faces, and can represent separated mesh components as separate ACIS lumps.",
+      "evidenceGrade": "CURRENT_PROJECT_AUTHORED_API_DOCUMENTATION",
+      "planUse": "Use only as an optional pinned carrier/polyhedral-control route. Include curved-face and multi-component controls, report projection loss and component counts, and do not use mesh output or vertex bounds as B-rep semantic evidence."
+    },
+    {
+      "route": "SOLIDWORKS 2026 DXF 3D ACIS consumer",
+      "sources": [
+        "https://help.solidworks.com/2026/english/SolidWorks/sldworks/t_DXF_3D_Files.htm",
+        "https://help.solidworks.com/2025/English/SolidWorks/sldworks/c_import_export_file_information.htm?id=60e27e0951814efd878ab32f9b835451",
+        "https://help.solidworks.com/2026/english/solidworks/slddxf/c_DXF_DWG_Import_Wizard_Overview.htm"
+      ],
+      "observation": "Vendor documentation describes extracting embedded ACIS from DXF into a part, or an assembly for multiple bodies/assemblies, and lists DXF 3D import from AutoCAD R14 onward. It explicitly excludes wireframe import and says this is not a 2D-to-3D converter. The documentation does not establish runtime acceptance of libdxfrw output, SAT/SAB dialect coverage for the exact generated payloads, or preservation of history/AcDs relationships.",
+      "evidenceGrade": "CURRENT_OFFICIAL_VENDOR_DOCUMENTATION",
+      "planUse": "Admit only as an optional exact-version consumer check at the existing composed milestone, if already installed and licensed. Capture importer mode, prompts, warnings, body/assembly disposition, validity, independent analytic dimensions, units, and hashes; isolate wireframe-only as a documented unsupported negative control."
+    },
+    {
+      "route": "LibreCAD and open-source parser scope boundary",
+      "sources": [
+        "https://github.com/LibreCAD/LibreCAD",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md"
+      ],
+      "observation": "This research adds no evidence that a 2D consumer or an open-source DXF parser/projection route semantically consumes arbitrary ACIS B-rep. The additional SOLIDWORKS candidate is proprietary and cannot count as open-source parser or kernel evidence.",
+      "evidenceGrade": "EXISTING_ROUTE_BOUNDARIES_RETAINED",
+      "planUse": "Keep 2D API/source compatibility, carrier preservation, mesh projection, and semantic solid acceptance as independent outcomes. Do not propagate one application's result to other consumers."
+    }
+  ],
+  "planDelta": {
+    "existingGatesRefined": [
+      "S2.3 modeler carrier/geometry evidence",
+      "S5 peer and composed comparison",
+      "S8 downstream consumer qualification"
+    ],
+    "newFindingOrTopLevelSubplan": false,
+    "localImplementationOrRegressionAdded": false,
+    "perSliceExternalRuntimeAdded": false,
+    "testAndArtifactPolicy": "Fast generated local tests remain the ordinary implementation gate; external runs occur only at the existing composed checkpoint and generated artifacts stay outside the repository.",
+    "supportClaimsChanged": false,
+    "externalJItemsChanged": false,
+    "externalJItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

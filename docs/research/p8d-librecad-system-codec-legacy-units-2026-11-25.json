@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-codec-legacy-units-2026-11-25",
+  "status": "LOCAL_SYSTEM_AND_BUNDLED_FAST_PASS_HOSTED_AND_NATIVE_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "633d7ac09790e400b0fe1273b060da08bf36aaf1",
+    "previousHead": "c468eaaa242767edd9acd69e27ef70d0ed05001a",
+    "master": "b91fbdcf1adeee764938a183018978416d0a8c90"
+  },
+  "failure": "With the installed codec, an existing generated DIMSTYLE test failed to export R12. The source fixture omitted INSUNITS, but LibreCAD had added its default unitless value. The codec reported failure during HEADER emission; targeted preflight observation identified INSUNITS as not representable on the old target.",
+  "change": "For DXF targets before R2000, the adapter omits only integer group-70 INSUNITS zero. Nonzero or differently encoded values still reach the codec and remain subject to its refusal. DWG and modern DXF paths are unchanged. An opt-in CMake target runs existing public-interface filter tests with the installed codec without enabling the bundled-internals test suite.",
+  "authority": "Autodesk's HEADER reference describes INSUNITS group 70 value 0 as unitless: https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+  "validation": {
+    "host": "macOS ARM64, AppleClang 21, Release",
+    "implementationDigest": "ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b",
+    "systemLibrarySha256": "dc1ce5ab6dae2855cf2ffb39789c6047df128b5753a79ecd58f8a42a5ed41981",
+    "systemTestSha256": "572223e39ecd541bc87c25fbc06e0bfb546288993e0f2c7f870295870763dd22",
+    "systemTests": "PASS: 213 assertions in 16 cases, including R12/R14 nonzero-unit refusal preserving an existing destination, corrected same-filter retry with unitless readback, and R2000 nonzero-unit readback.",
+    "bundledTestSha256": "bb3786ca10b85aa2db952c702e44f7698a1cef770aa6b879df82be77e47b32f8",
+    "bundledDxfFast": "PASS: 41480 assertions, 841 passing and 3 skipped cases.",
+    "configurationGuard": "The system-codec test option rejects configuration without LIBRECAD_USE_SYSTEM_LIBDXFRW.",
+    "priorHosted": "At c468eaaa, bounded Linux and Windows x64/ARM64 DWG/DXF lanes, both headless jobs and all five platform package builds passed. Those results precede this fix and are not tests of 633d7ac0."
+  },
+  "limits": [
+    "The old target has no INSUNITS field: omitting zero preserves the selected unspecified/unitless interpretation in the exercised LibreCAD readback, not the physical presence of the original field or every consumer's default-unit policy.",
+    "Native AutoCAD interpretation, GUI behavior, full system-codec suite, new-head hosted CI and general DXF parity remain open.",
+    "No DWG or DXF fixture was added to the repository."
+  ]
+}

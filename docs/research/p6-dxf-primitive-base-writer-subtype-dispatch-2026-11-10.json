@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-10",
+  "scope": "Public DXF LINE, RAY, CIRCLE, TRACE, TEXT and ATTRIB writer subtype dispatch",
+  "finding": "Several built-in derived entities were serialized as their base entity when passed through a public base pointer. Examples include ARC to CIRCLE, XLINE to RAY, and 3DFACE to LINE or TRACE, changing geometry and dropping subtype fields.",
+  "change": "Dispatch exact built-in derived types to existing typed writers, retaining their tag and version checks. Explicitly reject IMAGE through LINE because its definition/name are not available there, and reject ATTRIB through TEXT/LINE because INSERT ownership and child sequence context are unavailable. Refusals distinguish version, missing context and mismatched tag. Preserve custom subclasses that retain the entry point's base tag and preserve the existing writeAttrib dynamic dispatch of custom ATTDEF subclasses and owner override.",
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_primitive_subtype_dispatch|dwg2dxf_entity_runtime_dispatch)$' --output-on-failure",
+    "result": "2/2 passed",
+    "coverage": "Generated ASCII/Binary AC1027 checks typed callback and selected geometry/fields for 3DLINE, RAY, XLINE, ARC, ELLIPSE, TRACE, SOLID, 3DFACE, TEXT, MTEXT, RTEXT, ARCALIGNEDTEXT, ATTDEF and WIPEOUT through relevant base entry points. Tests cover ordinary and custom base-tag classes, user-derived ATTDEF through writeAttrib, missing IMAGE/ATTRIB context and mismatched tags, destination-preserving refusal and corrected same-facade retry, plus R12 RTEXT and R14 3DLINE rejection."
+  },
+  "limitations": "Generated local DXF serialization and readback only. Independent native rendering, graph/IMAGE qualification, and broader producer or platform semantics remain open. No drawing fixture added."
+}

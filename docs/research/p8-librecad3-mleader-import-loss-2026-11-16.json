@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-16",
+  "consumerRepository": "LibreCAD/LibreCAD_3",
+  "consumerBase": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "localCandidateCommit": "f20222b6daee38ec13c605f1972859f54702f7d0",
+  "pinnedLibdxfrwCommit": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "change": "Count non-null unsupported MULTILEADER callbacks as import loss.",
+  "reproduction": "Before fix, a locally generated minimal DXF containing a LINE and MULTILEADER imported successfully but did not report MULTILEADER loss.",
+  "controls": {
+    "ezdxfVersion": "1.4.4",
+    "converter": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "files": {
+      "dxf": {
+        "path": "/private/tmp/lc3-mleader-generator-final-20261116/mleader.dxf",
+        "sha256": "ccf070202b712282d862ecb4ba4f7c213817ee62b49ecb03eddeb3035c4a95f9"
+      },
+      "dwg": {
+        "path": "/private/tmp/lc3-mleader-generator-final-20261116/dwg/mleader.dwg",
+        "sha256": "77182ef53ce2569f272177f910b7b2ac68dcde1640f72661500f2f01a752cba8"
+      },
+      "lineOnlyDxf": {
+        "path": "/private/tmp/lc3-mleader-generator-final-20261116/line.dxf",
+        "sha256": "75be7c7b5a6d2d1c34feb115569916977b3bc63c50ab2961a0c7e9f78fca33a0"
+      },
+      "producerDxf": {
+        "path": "/private/tmp/lc3-mleader-generator-final-20261116/source/mleader.dxf",
+        "sha256": "979ac3c80592e16503a60e03fb2bef47ed4fd54dbad06b97e1e5d83c0f081b65"
+      }
+    }
+  },
+  "test": "On macOS ARM64, three focused tests pass for each separately installed current and pinned codec. The MULTILEADER integration test reads generated DXF and ODA-converted AC1024 DWG, verifies one MULTILEADER loss and one retained LINE, and checks a LINE-only DXF reports no MULTILEADER loss. MPOLYGON and legacy-layer regression tests also pass.",
+  "logs": [
+    "/private/tmp/lc3-mleader-current-test.log",
+    "/private/tmp/lc3-mleader-pinned-test.log"
+  ],
+  "replay": "Patch applied in order to the prior candidate replay and both changed files matched the committed consumer candidate.",
+  "limits": "Local unmerged consumer candidate. Reports lost geometry; does not implement MULTILEADER rendering or editing. GUI, other platforms and broader format qualification remain open. No drawing fixture is committed; no phase gate or external-only support claim is promoted."
+}

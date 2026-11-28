@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r14-generated-root-owner-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "0e86e64ec52922cb108759e2c83c14a004970c17",
+  "implementationDigestSha256": "402eab4f710a99d7d50ce90f0b906067ce075a791646802c7605e111b8519604",
+  "inputCount": 775,
+  "consumerCommit": "e9eb79a2b0ae7c397584d868883e7c917233ee23",
+  "finding": "The fresh generated R14 NOD omitted owner 330; the existing imported-root route emitted 330=0. ezdxf repaired the fresh generated root and selected LibreCAD output before this change.",
+  "authority": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm",
+      "scope": "Autodesk current object group codes describe group 330 as the owner object; this is not release-specific R14 authority."
+    },
+    {
+      "url": "https://github.com/DrunkOnJava/dwg-rs/blob/main/CLEANROOM.md",
+      "scope": "Documents the pinned MIT-licensed external R14 candidate corpus and evidence limits on its producer attribution."
+    }
+  ],
+  "peerSources": [
+    {
+      "path": "res/Explorer/history/2d.dwg",
+      "sha256": "c91b57626cfc283816308dc092ac1aaa2761f7587bbcdb349338b36bde3171d4",
+      "gitBlob": "7dc3e248edb70bd807056c5de9cd5afb2a30c483",
+      "convertedSha256": "f4de488651f624b85844c8f7e147aaa5b4390f6f17847e98492c9dcb0c7d3139",
+      "ezdxfAuditFixes": 104
+    },
+    {
+      "path": "res/Explorer/bookmark/Draw.dwg",
+      "sha256": "a20770a8736b818f503bffd8aa77ede3ac4896f1046252e22fd9789690357669",
+      "gitBlob": "14dee66e6c3d136f8423d2d4aca93d55a243bc0f",
+      "convertedSha256": "2aa9f51f0a8ca5d9131307996c92d7096ac98a75f0dc5c986e2508f5136b0726",
+      "ezdxfAuditFixes": 103
+    }
+  ],
+  "peerRepository": "https://github.com/kurema/BookViewerApp3/tree/b8e1dcbf26183e96d199499e491c368c935fb0b0",
+  "peerInterpretation": "LibreDWG dwg2dxf 0.14 --as r14 writes the first OBJECTS dictionary with owner 330=0 for both drawings. It warns that several classes were skipped. ezdxf upgrades the outputs to AC1015 and applies many unrelated repairs, but no root-owner repair; this is independent converter evidence only, not native AutoCAD semantics.",
+  "change": "Emit 330=0 for the fresh generated R14 root dictionary, matching the already existing imported-root path and the independent converter observation.",
+  "validation": {
+    "headerAndPhysicalOutput": "PASS: optimized focused packed-header selector verifies first and second root dictionary handle/owner on ASCII and binary output, as well as generated LINE resave, refusal and retry.",
+    "compatibility": "PASS: imported IMAGE dictionary and two-layer matrices; LibreCAD system-codec linetype selector, 4925 assertions in 53 cases.",
+    "ezdxf": "ezdxf 1.4.5 upgrades AC1014 in memory; it reopens the generated first and second LINE files in ASCII/binary, and the LibreCAD INSERT resave, with expected geometry and zero audit errors or repairs.",
+    "scratchSha256": {
+      "lineAsciiFirst": "e9204b3b3680ab5204ade945af18a90a3737208867bd636471475e0f419f36d9",
+      "lineAsciiSecond": "9c2ad316872c0005a8bb00e3472e3a0f6bbef4078826fe7a8f7c6f9eb24e5866",
+      "lineBinaryFirst": "cd2e4e37cb44d3d415c4e6bbd7fd4d26c9cd68b8a0d924bb6e7b079c405b97b5",
+      "lineBinarySecond": "f4954c13fc32639121fcbc08de0472796880d58dfd087dd09245974fab8bd327",
+      "consumerR14Second": "35219bd0c9e3f8a80e75d5fd517950d793f45b9e1052169b96605c2ad577ebd9"
+    }
+  },
+  "limits": [
+    "No direct R14 AutoCAD save/open or complete graph qualification was performed.",
+    "The two downloaded drawings and all converted outputs remain scratch-only; no fixtures were committed.",
+    "Earlier format and platform qualifications remain digest-bound and do not transfer to this candidate."
+  ]
+}

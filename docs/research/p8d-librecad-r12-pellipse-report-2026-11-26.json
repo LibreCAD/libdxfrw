@@ -1,0 +1,14 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-r12-pellipse-report-2026-11-26",
+  "supportClaimEffect": "none",
+  "libraryCommit": "4957d44bfbe75cd82bb2195932b9125d8af81351",
+  "implementationDigestSha256": "29a5f8c0f06114a7216607292666ce04b19035a18be7eb2a81df7f8ecb56b833",
+  "consumerCommit": "92f84081a651e7bb131c5a707531d395abe79a2f",
+  "test": "The system-codec LibreCAD regression imports a locally authored R12 fixture, refuses PELLIPSE=1 without replacing its destination, retries with zero, checks the visible omission report and source value, then writes PELLIPSE=1 as R14 with no omission report.",
+  "result": "PASS: system-codec [filter][linetype], 4967 assertions in 56 cases. The bundled codec does not exercise this system-codec-only test; its earlier selector passed 1282 assertions in 52 cases.",
+  "limits": [
+    "The test checks LibreCAD export behavior, not native AutoCAD semantics.",
+    "Final platform and integration qualification remain open."
+  ]
+}

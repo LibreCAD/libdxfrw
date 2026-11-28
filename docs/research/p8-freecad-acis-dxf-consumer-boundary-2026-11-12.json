@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-freecad-acis-dxf-consumer-boundary-2026-11-12",
+  "date": "2026-11-12",
+  "purpose": "Determine whether the FreeCAD Draft DWG-to-DXF handoff can qualify 3DSOLID ACIS/SAT geometry semantics.",
+  "sources": [
+    {
+      "title": "FreeCAD Draft DXF documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "finding": "FreeCAD documents that 3D DXF solids are stored as ACIS/SAT blobs and cannot currently be read. The built-in C++ importer entity list does not include 3DSOLID, REGION, or BODY. DWG is converted to DXF and then passed to that importer.",
+      "authority": "Project documentation; current upstream page observed 2026-11-12"
+    },
+    {
+      "title": "FreeCAD issue 18454",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "finding": "FreeCAD maintainers state that ACIS solids in DXF are an unreadable proprietary blob in the current importer path.",
+      "authority": "Project maintainer response; corroborating evidence"
+    },
+    {
+      "title": "Installed FreeCAD 1.1.4 Draft importer",
+      "path": "/Applications/FreeCAD.app/Contents/Resources/Mod/Draft/importDXF.py",
+      "sha256": "c0520e31a75a8e4dcb002c606d606855b1a9a565da0f13400d62761dccf9a992",
+      "finding": "The post-processing layer wraps shapes delivered by the C++ importer but does not itself decode ACIS/SAT. This local source inspection is supplementary; it does not stand in for the documented C++ importer capability boundary."
+    }
+  ],
+  "routeConclusion": "FreeCAD Draft importDWG -> dwg2dxf -> built-in importDXF is a 2D/ordinary-entity consumer route, not an ACIS 3DSOLID semantic oracle. The separate FreeCAD Part construction from SAT through the research InventorLoader parser is a native kernel check, but not a native DXF/DWG import check and shares OpenCASCADE with that parser.",
+  "planEffect": "Keep FreeCAD 2D open/insert qualification in P8. Do not spend implementation time trying to qualify ACIS/SAT 3DSOLID by the built-in FreeCAD DXF importer. Continue P7 with its independent reader/kernel and source-native gates, and qualify 3D consumers whose documented import route consumes the selected ACIS carrier.",
+  "limitations": [
+    "No FreeCAD DXF import was run for an ACIS-bearing file; the authoritative documentation and maintainer response already identify the importer boundary.",
+    "This does not qualify or disqualify FreeCAD Part's separate SAT construction route.",
+    "No DWG/DXF fixture was added, and no support claim is promoted."
+  ]
+}

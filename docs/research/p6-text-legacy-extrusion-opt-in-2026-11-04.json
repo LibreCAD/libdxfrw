@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_EXPLICIT_DXF_TEXT_OCS_RECOVERY",
+  "supportClaimEffect": "none",
+  "scope": "Explicit recovery of the insertion and alignment OCS points of exact DRW_Text after exactly one actual legacy extrusion application by a DXF reader or caller. DXF output only; no default behavior or class layout change. Derived ATTRIB, ATTDEF and MTEXT are excluded.",
+  "authority": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 \u00a720.4.3 defines TEXT insertion, alignment, extrusion, elevation and alignment flags.",
+    "dxf": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-62E5383D-8A14-47B4-BFC4-35824CAE8363.htm",
+    "finding": "DXF TEXT insertion and alignment are OCS points; the latter participates when horizontal or vertical alignment is nonzero."
+  },
+  "physical": {
+    "method": "Two R2010 TEXT entities authored from scratch using ezdxf 1.4.5 with tilted (0,1,0) and negative-Z (0,0,-1) normals, separate insertion/alignment, middle-center alignment, 25-degree rotation and nonzero thickness/width/oblique. ODA File Converter 27.1.0 saved AC1024 DWG and a DXF readback. Native DWG reader selected both TEXT records and wrote a native OCS DXF, which was then read with DXF applyExt=true and re-emitted both with and without explicit inverse recovery. These are selected records, not full-document conversion. Scratch-only inputs; no drawing fixture is committed.",
+    "input_dxf_sha256": "6d27d0fab0e7872fab93ddc25ecd75fed87fe0d8216e5c4e3a6956ce26b06650",
+    "dwg_sha256": "471c1b59c946d8446b45552e55484e6b016a05ec951b7740d58684e0a619ce1b",
+    "oda_dxf_sha256": "6396af2eceeadfc3672daac873c2b33de9aba6dbc003e4eefe63790278b0411b",
+    "selected_dxf_sha256": "1f2ec2d6e0f8c9c06b515514869623a7e459932bbc64f1bc66a34c0ba4296294",
+    "applied_without_helper_sha256": "0ed7fa500c54a66b28cf2ca4d8d04f27c345155b16752b7f21a765d0dcfac0e5",
+    "corrected_dxf_sha256": "1f2ec2d6e0f8c9c06b515514869623a7e459932bbc64f1bc66a34c0ba4296294",
+    "dwg_scratch": "/private/tmp/p6-text-probe/dwg/source.dwg",
+    "oda_dxf_scratch": "/private/tmp/p6-text-probe/oda/source.dxf",
+    "selected_dxf_scratch": "/private/tmp/p6-text-probe/raw.dxf",
+    "corrected_dxf_scratch": "/private/tmp/p6-text-probe/corrected.dxf",
+    "replay_source_scratch": "/private/tmp/p6-text-probe/replay-fixed.cpp",
+    "replay_source_sha256": "d687b96e83b0b716b8ae2ae9267ef2c7050b44faf921f00d23a2b75b87ecd998"
+  },
+  "observation": "For the tilted TEXT, ODA and selected native DXF agree OCS insertion (1,2,3) and alignment (3,4,3), WCS (-1,3,2) and (-3,3,4). DXF applyExt=true followed by the ordinary writer reinterprets transformed WCS points as OCS and moves both. The negative-Z case similarly misplaces both anchors. Explicit inverse recovery restores them; ezdxf independently confirms both OCS and WCS points, extrusion, height, rotation, oblique, width, thickness and both alignment flags match ODA for both records.",
+  "important_dwg_boundary": "The current DWG TEXT dispatch appends native OCS data without applying extrusion. Its applyExt=true and false observations were identical; this receipt does not claim a DWG-reader extrusion bug and the helper must not be used on that native state as though a transform had occurred.",
+  "implementation": "An explicit exact-DRW_Text free-function overload validates finite points, normal and key geometry, nonzero normal and finite inverse projections; it copies before publication, preserves all metadata, supports input/output aliasing and leaves output unchanged on failure. Exact runtime type and TEXT tag reject derived objects and type spoofing. Existing consumers and unopted writer paths are unchanged.",
+  "validation": {
+    "focused": "ctest --test-dir build-gcc -R ^libdxfrw_dxf_legacy_extrusion$ --output-on-failure: 1/1 passed. ASCII/Binary DXF roundtrip with four normals checks both anchors, alignments and metadata. Controls include no-extrusion no-op, nonunit normal, invalid/overflow projection and output/alias preservation, ATTRIB/ATTDEF/MTEXT derived input/output refusal, type spoofing, destination preservation and same-writer retry. Prior CIRCLE/ARC and SOLID/TRACE cases run in the same test.",
+    "independent": "ezdxf 1.4.5 compared ODA readback and corrected selected DXF for both normals, both OCS/WCS anchors, normal, height, rotation, width, oblique, thickness, horizontal and vertical alignment; all matched."
+  },
+  "limits": [
+    "The caller must know an actual transform was applied exactly once and the object has not since been edited in a way that invalidates its frame; the helper cannot infer this.",
+    "The physical source covers two normals and selected DXF records only, not full document conversion, native font rendering or all alignment profiles.",
+    "DWG emission using this helper output is not qualified. Scratch artifacts are ephemeral and no DWG/DXF fixture is committed."
+  ]
+}

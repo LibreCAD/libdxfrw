@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 MLEADERSTYLE CMC RGB retention",
+  "mode": "generated AC1024 wire vectors plus six-version local DWG round-trip",
+  "scope": [
+    "Retain the three R2004+ MLEADERSTYLE CMC RGB values specified by ODA §20.4.87",
+    "Independently inspect encoded CMC method and payload for each color field",
+    "Refuse invalid or pre-R2004 unrepresentable RGB before writing"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.87 MLEADERSTYLE",
+      "pages": [217, 218],
+      "finding": "Leader-line color group 91, text color group 93, and block color group 94 are each CMC fields. R2004+ CMC C2 carries a 24-bit RGB value; earlier encoding is index-only."
+    },
+    "localSource": {
+      "files": [
+        "src/drw_objects.h",
+        "src/drw_objects.cpp",
+        "src/intern/dwgbufferw.cpp"
+      ],
+      "finding": "The parser previously requested only normalized scalar colors and the writer always selected index-only CMC output. The model now appends a separate RGB companion per style color, retains C2 payloads, and emits C2 when RGB is present.",
+      "compatibility": "New public fields follow all existing MLEADERSTYLE members, preserving prior member offsets while increasing class size. Consumers must rebuild; no vtable or callback changed. DXF color projection remains unchanged."
+    },
+    "generatedControls": {
+      "files": [
+        "tests/dwg_object_vectors_tests.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp"
+      ],
+      "finding": "An independent AC1024 bit walker checks three C2 CMC values, payloads, reserved indexes, flags, and field order, including RGB black 0. Negative cases cover each field's oversized RGB, inconsistent scalar/RGB state, and pre-R2004 RGB refusal. The local generated round-trip exercises parser retention for AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032.",
+      "limit": "The generated data is local implementation evidence, not producer-authored or independent application semantics. No DXF truecolor group mapping or optional CMC name/book preservation is claimed."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append leaderColorRgb, textColorRgb, and blockColorRgb with -1 absent sentinels.",
+      "Capture C2 RGB in bounded DWG parsing for all three documented MLEADERSTYLE color fields.",
+      "Write populated colors as C2, validate 24-bit and normalized-scalar invariants, and refuse RGB for pre-R2004 targets."
+    ],
+    "generatedTestChanged": true,
+    "generatedTestSummary": [
+      "Add libdxfrw_mleaderstyle_cmc_rgb focused CTest with independent method/payload wire inspection.",
+      "Exercise all three colors through the local six-version writer/reader matrix.",
+      "Keep older-version indexed paths and malformed RGB refusal covered."
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_local_roundtrip lc3_compat_check -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleaderstyle_cmc_rgb|libdxfrw_mleader_line_cmc_rgb|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (3/3)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+        "result": "FAIL: one separate read-outcome-control assertion at stage 1; generated malformed-HATCH sentinel expected one entity parse failure but observed zero. No MLEADERSTYLE assertion failed in the six-version matrix."
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_objects.h src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mleaderstyle-cmc-rgb-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ]
+  },
+  "unresolved": [
+    "MLeader entity and context CMC properties require separate exact-contract audit.",
+    "DXF truecolor representation and optional CMC name/book roundtrip remain unresolved.",
+    "The separate read-outcome stage-1 malformed-HATCH sentinel mismatch remains open.",
+    "No external producer, native CAD application, independent semantic comparison, or support claim was added.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

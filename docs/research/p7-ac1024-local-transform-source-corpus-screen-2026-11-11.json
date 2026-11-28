@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-local-transform-source-corpus-screen-2026-11-11",
+  "purpose": "Determine whether the four already-screened local AC1024 visualization drawings contain an inline SAB body-transform witness suitable for advancing transform semantics.",
+  "tooling": {
+    "dwgReader": "/opt/homebrew/bin/dwgread 0.14",
+    "inventory": "dwgread -O JSON; enumerate OBJECTS rows where entity is 3DSOLID; rebuild each inline SAB from the separately reported ACIS BinaryFile signature plus hex payload; parse and project using a temporary C++ program linked against build-gcc/libdxfrw.a.",
+    "projection": "For each payload call drw_parseSab, drw_buildAcisModel, and drw_extractAcisBodyWireframes. The scanner marks a row anomalous unless parse succeeds, SAB version is 21500, rooted projection succeeds, and transform state is Absent.",
+    "condominiumRepair": "LibreDWG 0.14 emits a bare lowercase nan in one AcDbShSweep numeric field, making its JSON invalid. In memory only, replace bare nan tokens with JSON NaN before parsing; the source DWG and original JSON bytes are unchanged."
+  },
+  "sources": [
+    {
+      "dwg": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+      "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+      "jsonSha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832",
+      "solidCount": 5,
+      "sabBytes": 29268,
+      "sortedHandleByteCountPayloadSha256Index": "0b5e8ee9bb818b6389c67656292d4f9c011fed3c92390f216b263a2cbdf23a71"
+    },
+    {
+      "dwg": "/Users/dli/doc/dwg/visualization_-_conference_room.dwg",
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "jsonSha256": "d375c9bf81f5b3bb48ff9b2740015e351e8318bf6f5089c0fd39ace0c2bb06ce",
+      "solidCount": 33,
+      "sabBytes": 700746,
+      "sortedHandleByteCountPayloadSha256Index": "a8668ad9600022b6e2eb4bc1b6e7dd2e9d7cf9b748932255b472078d6dd13b6c"
+    },
+    {
+      "dwg": "/Users/dli/doc/dwg/visualization_-_condominium_with_skylight.dwg",
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "jsonSha256": "3d36cef250e586c0b2ab0da51f4146157ec5fac99bf4df974d924a556891cf39",
+      "solidCount": 76,
+      "sabBytes": 1694840,
+      "sortedHandleByteCountPayloadSha256Index": "177649427d59647132a7fea1888939fa20f578cb287058744c9a2de9b5dcc278"
+    },
+    {
+      "dwg": "/Users/dli/doc/dwg/visualization_-_sun_and_sky_demo.dwg",
+      "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+      "jsonSha256": "927532c12a638243569383294047109c142d242240dc05279e15e1f5b87454c9",
+      "solidCount": 15,
+      "sabBytes": 188240,
+      "sortedHandleByteCountPayloadSha256Index": "7ce26df0f470d44cddf2841b4bd939a37b0a278ed318875784788167bee6e2a2"
+    }
+  ],
+  "result": {
+    "distinct3dSolidHandles": 129,
+    "totalSabBytes": 2613094,
+    "sabSignature": "ACIS BinaryFile",
+    "sabVersion": 21500,
+    "completeSabParseCount": 129,
+    "rootedProjectionSuccessCount": 129,
+    "bodyTransformPresentCount": 0,
+    "projectionAnomalyCount": 0,
+    "combinedSortedSourceHandleByteCountPayloadSha256Index": "b8a14b8096381680b1429eebba9131101a31995a5f8114cfce0997885bba519e"
+  },
+  "scopeLimits": [
+    "The four local drawings are a bounded corpus subset and their AutoCAD producer metadata is not independently authenticated; no version-wide absence inference is valid.",
+    "Parser and rooted-projection success establish neither SAB schema nor transform semantics, placement, units, B-rep validity, native acceptance, output qualification, or support claims.",
+    "The temporary JSON files, repaired JSON view, extracted SAB payloads and scanner are not committed; no external DWG/DXF fixture was added."
+  ],
+  "claimEffect": "The four known local visualization drawings are exhausted as AC1024/21500 non-null body-transform sources. The transform lane still requires a new hash-pinned non-null transform witness or an independently qualified generated-placement oracle."
+}

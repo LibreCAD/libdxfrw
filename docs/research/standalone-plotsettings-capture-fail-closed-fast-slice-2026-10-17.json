@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Standalone PLOTSETTINGS capture and fail-closed export fast slice",
+  "mode": "local implementation and focused generated validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Retain standalone DXF OBJECTS PLOTSETTINGS callback in the concrete dwg2dxf adapter",
+    "Distinguish standalone PLOTSETTINGS objects from the plot-settings prefix embedded in LAYOUT",
+    "Refuse export before publication until standalone owner/root/shade-reference graph is qualified",
+    "Generated adapter test for capture, destination preservation, and retry"
+  ],
+  "changes": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "dx_iface now owns standalone PLOTSETTINGS callback copies and fails closed on DXF export while those objects are present. It does not serialize them or alter the embedded LAYOUT PlotSettings prefix.",
+    "adapterDataLayoutChanged": true,
+    "publicDRWInterfaceChanged": false,
+    "standaloneWriterAdded": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-plotsettings-callback-and-fail-closed",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-datalink-callback-and-fail-closed",
+      "cmake --build build-gcc --target lc3_compat_check -j2",
+      "cmake --build build-gcc --target dwg2dxf -j2",
+      "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp",
+      "jq empty docs/research/standalone-plotsettings-capture-fail-closed-fast-slice-2026-10-17.json"
+    ],
+    "testsRun": true,
+    "fullSuiteRun": false,
+    "focusedSelectorPassed": true,
+    "neighboringDatalinkSelectorPassed": true,
+    "strictAdapterTargetBuilt": true,
+    "lc3CompatibilityCheckPassed": true,
+    "dwg2dxfTargetBuilt": true,
+    "newCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "externalFixturesDownloaded": 0,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "productionCodeChanged": true,
+    "productionSemanticsChanged": true,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planImpact": {
+    "findingAdded": false,
+    "topLevelSubplanAdded": false,
+    "existingOwner": "PAR-20 / 7G.3e standalone PLOTSETTINGS object graph",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  },
+  "next": "Research/trace the producer-backed standalone PLOTSETTINGS root and owner relationships and mode-gated shadePlotHandle targets. Preserve the current preflight refusal until every required edge is typed, validated, and remapped."
+}

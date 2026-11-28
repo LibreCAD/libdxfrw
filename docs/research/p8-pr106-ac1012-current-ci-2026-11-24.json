@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-ac1012-current-ci-2026-11-24",
+  "date": "2026-11-24",
+  "status": "FAST_AND_FOCUSED_ALL_PLATFORMS_PASS",
+  "supportClaimEffect": "none",
+  "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+  "head": "ff68fb4e950471effec086d2ef86f5616f89586d",
+  "codeRevision": "e3fd7465824957381a4ede5d72cddd32554f0195",
+  "implementationDigest": {
+    "sha256": "b6f59d17e0fd19013d545f46bc87150d8944326f327493276a13caa5f4baae68",
+    "selectedInputs": 774,
+    "receipt": "docs/research/p8-pr106-ac1012-digest-refresh-2026-11-24.json"
+  },
+  "workflows": [
+    {
+      "name": "libdxfrw fast parity regressions",
+      "runId": 45426043862,
+      "runNumber": 343,
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": {
+        "fast-regressions": {"id": 138558213013, "conclusion": "success"},
+        "source-release": {"id": 138558216561, "conclusion": "skipped"}
+      }
+    },
+    {
+      "name": "libdxfrw native qualification",
+      "runId": 45426043982,
+      "runNumber": 501,
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": {
+        "qualification workflow contract": {
+          "id": 138558212704,
+          "conclusion": "success"
+        },
+        "focused / linux-gcc": {
+          "id": 138558440091,
+          "conclusion": "success",
+          "artifact": {
+            "id": 14938850260,
+            "name": "native-qualification-45426043982-1-focused-linux-gcc",
+            "sha256": "9785363d33952eaec7168290d13f5217b17d96acb6b25a13e2299156c57964ec"
+          }
+        },
+        "focused / windows-msvc": {
+          "id": 138558440278,
+          "conclusion": "success",
+          "artifact": {
+            "id": 14936903007,
+            "name": "native-qualification-45426043982-1-focused-windows-msvc",
+            "sha256": "a3095bac72c86fdd7509a23afd48785df37d7c3e067dd59bed0c367bcf821e2c"
+          }
+        },
+        "focused / macos-clang": {
+          "id": 138558440552,
+          "conclusion": "success",
+          "artifact": {
+            "id": 14937845045,
+            "name": "native-qualification-45426043982-1-focused-macos-clang",
+            "sha256": "bd8bf98676fb4e8e9408849854a991ddc1dee0c536e1d875d788e5dca11ec3b6"
+          }
+        },
+        "final broad": {"id": 138558443967, "conclusion": "skipped"},
+        "extended deterministic fuzz / linux-gcc": {
+          "id": 138558443087,
+          "conclusion": "skipped"
+        }
+      }
+    }
+  ],
+  "localFocusedValidation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j2",
+    "buildResult": "passed",
+    "ctest": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+    "ctestResult": "passed 1/1; labels AC1012, AC1014, AC1015",
+    "testBinarySha256": "5bfd86f4094fc290fff7865574baff8be04833dabab0b8d495859558a2abd975"
+  },
+  "historicalRerunAttempt": {
+    "jobId": 138536062303,
+    "tool": "connected GitHub integration",
+    "result": "HTTP 403 Resource not accessible by integration",
+    "interpretation": "This earlier single-job rerun was unavailable through the connector; the subsequent PR-head run above completed focused macOS Clang successfully."
+  },
+  "disposition": {
+    "gate": "P8-F",
+    "status": "PASS_CURRENT_774_INPUT_DIGEST",
+    "reason": "The PR head passed focused macOS Clang, Linux GCC, and Windows MSVC; the qualification contract and fast regressions also passed.",
+    "nextAction": "Keep P8-F closed for this digest. Reopen only if selected implementation inputs change; broad and fuzz lanes remain deferred to the frozen-candidate integration gate.",
+    "claimEffect": "No format, consumer, or platform support claim is promoted."
+  }
+}

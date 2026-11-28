@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-refresh-r2004-decompression-capacity-crosswalk-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Re-screen newly surfaced open-source DWG/DXF routes against the existing peer matrix and statically crosswalk LibreDWG CVE-2026-63474 to libdxfrw's R2004+ data-page allocation lifetime and focused-test coverage.",
+  "method": {
+    "kind": "Primary-source project/release review plus read-only local source and test-seam inspection",
+    "peerSourceRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/hakanaktt/acadrust",
+      "https://github.com/HakanSeven12/OpenCADStudio",
+      "https://github.com/iyulab/uncad",
+      "https://github.com/unitedrhino/go-cad",
+      "https://github.com/monozukuri-ai/ezdwg",
+      "https://github.com/DrunkOnJava/dwg-rs",
+      "https://github.com/seaflower205/Sea-DXF-Core"
+    ],
+    "localInspection": [
+      "src/intern/dwgreader18.cpp: parseDataPage capacity checks, per-section allocation, page output windows, and post-success publication",
+      "src/intern/dwgutil.cpp: dwgCompressor::decompress18 cursor initialization and bounded output path",
+      "tests/dwg_reader_matrix_tests.cpp: generated R2004 system-page helper and test-reader parseDataPage override"
+    ],
+    "evidenceBoundary": "LibreDWG release notes describe a peer implementation failure, not a libdxfrw vulnerability. Local source review finds a structurally different fixed-allocation lifetime but does not prove every malformed input or failure path safe. Mutable peer source/release pages were not pinned to executable artifacts; candidate screening is not exhaustive."
+  },
+  "evidence": [
+    {
+      "topic": "No newly surfaced candidate qualifies for a new peer gate",
+      "observed": [
+        "ACadRust and OpenCADStudio remain one parser lineage.",
+        "uncad documents LibreDWG FFI for DWG and the separately screened undxf route for DXF.",
+        "go-cad advertises LibreDWG-derived comparison expectations and retains ACIS/SAB as blobs.",
+        "ezdwg remains a bounded read-focused candidate with source/artifact provenance not reconciled.",
+        "dwg-rs remains pre-alpha with per-version decoded, skipped, and errored denominators.",
+        "Sea-DXF Core says its visible pre-1.0 source is proprietary and is excluded from the open-source comparator set."
+      ],
+      "planUse": "Retain existing optional route roles and the candidate-discovery stop rule. Add no dependency, routine peer runtime, new gate, or support claim."
+    },
+    {
+      "topic": "LibreDWG CVE-2026-63474 mechanism",
+      "source": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "observed": "LibreDWG 0.14.1 NEWS reports that read_2004_compressed_section could reset the decompressed logical size to a smaller per-section value while the live cursor and section-data size tracked a larger stream, allowing buffer shrinkage followed by an out-of-bounds write. The release labels this a heap-buffer-overflow write fix and says it completed an earlier mitigation.",
+      "doesNotEstablish": [
+        "a matching libdxfrw vulnerability",
+        "an ODA format rule or an implementation to copy",
+        "safety of other page, checksum, allocation, or retry paths"
+      ],
+      "planUse": "Keep the mechanism within PAR-14/7BE capacity and lifetime invariants. If a reusable decompression buffer is introduced, test active cursor, logical length, and actual capacity across shrink/grow transitions."
+    },
+    {
+      "topic": "Local R2004+ data-page path uses a different allocation lifetime",
+      "localFiles": [
+        "src/intern/dwgreader18.cpp",
+        "src/intern/dwgutil.cpp"
+      ],
+      "observed": [
+        "parseDataPage checks page cap/count products and total bounded section capacity before allocating.",
+        "A fresh fixed unique_ptr byte array is allocated per section; each page writes through a start-offset pointer with a bounded page output size.",
+        "The completed allocation is published to caller state only after every page succeeds.",
+        "decompress18 resets its cursor per invocation and bounds writes by the passed output size."
+      ],
+      "inference": "The exact peer shrink-live-buffer sequence is structurally absent from the inspected path; static inspection is not a general malformed-input safety proof.",
+      "planUse": "No new finding or production change. Preserve the fixed-capacity invariant unless a separately reviewed buffer-reuse design is adopted."
+    },
+    {
+      "topic": "Missing focused generated production-path coverage",
+      "localFiles": [
+        "tests/dwg_reader_matrix_tests.cpp"
+      ],
+      "observed": "The reviewed test target has a generated R2004 system-page decoder helper, and its test reader overrides parseDataPage to provide prepared section bytes. No dedicated generated control was found that drives differently sized R2004+ data sections through the production parseDataPage implementation and checks complete publication/retry.",
+      "planUse": "Conditionally add one selector to the existing reader-matrix target when the data-page production path is next modified. Generate a multi-page section followed by a smaller section; assert exact logical lengths and sentinels. Corrupt a later page and assert no partial publication and same-reader retry. Avoid a new CTest registration or committed fixture. If full parser synthesis is not cheap, test the narrow capacity helper and explicitly retain the integration-coverage limitation."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "ownersRefined": [
+      "PAR-14",
+      "7BE"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "peerGateAdded": false,
+    "testRegistrationAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "nextActions": [
+    "Continue the current local implementation queue; peer discovery and the deferred test do not block unrelated slices.",
+    "If the R2004+ data-page decoder or allocation lifetime is next changed, add the smallest generated selector under the existing reader-matrix target to exercise differently sized data sections and failure/retry publication.",
+    "Do not infer a local vulnerability from CVE-2026-63474 or add a peer dependency, fixture, full-suite run, sanitizer run, or native application gate for this research update.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonSyntaxChecked": true,
+    "planDiffCheckPassed": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

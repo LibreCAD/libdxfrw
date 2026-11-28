@@ -1,0 +1,91 @@
+{
+  "date": "2026-11-12",
+  "topic": "AC1024 CLASSES incomplete end-sentinel compatibility",
+  "source": {
+    "path": "/Users/dli/doc/dwg6/framing_AC1024.dwg",
+    "sha256": "ede641fae16ad5b0c60d5149b66b8dea314e39f7a0fb5d459c5d26d7958e0c39",
+    "version": "AC1024",
+    "producer_provenance": "not independently established"
+  },
+  "finding": {
+    "decoded_classes_page_bytes": 287,
+    "bytes_after_stored_classes_crc": 14,
+    "required_end_sentinel_bytes": 16,
+    "before": "readDwgClassesTail rejected the bounded section before its documented warn-only sentinel policy; dwgR reported BAD_READ_CLASSES (legacyError 8).",
+    "after": "The helper reports an incomplete sentinel as a warning, leaves the cursor bounded, and the reader publishes the decoded class records. The same input now proceeds past CLASSES and reports BAD_READ_TABLES (legacyError 9).",
+    "classes_crc": "The parser reports a CRC mismatch as a warning (stored 0x5e72, calculated 0x2d07); this change does not explain or waive that discrepancy."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.cpp",
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader18.cpp",
+      "src/intern/dwgreader21.cpp",
+      "tests/dwg_class_source_tests.cpp"
+    ],
+    "behavior": "The shared R2004/R2007+ CLASSES-tail helper distinguishes a complete matching sentinel from a missing, incomplete, or nonmatching tail. Callers only read the sentinel when the complete sentinel was found; missing tails stay warning-only without poisoning the buffer cursor.",
+    "fixture_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_class_source_tests -j4 passed; library and test adapter compiled with project warning flags.",
+    "focused_tail_control": "CTest libdxfrw_dwg_class_source_tail passed (1/1, 0.01 seconds) for 0/1/2/8-byte trailer forms, full sentinel forms, truncated sentinel lengths 0..15, and malformed bounded tails.",
+    "source_import": "A temporary import probe using the rebuilt test adapter read this exact external sample through CLASSES and returned BAD_READ_TABLES (legacyError 9), confirming the prior BAD_READ_CLASSES failure is removed. The one-off probe entry point was not retained in the repository.",
+    "broader_ctest": "libdxfrw_dwg_class_source failed later in its existing native AC1015 comparison at line 457 (both adapters report a failed AC1015 import); the focused tail control passed.",
+    "dwg2dxf_link": "The dwg2dxf relink was blocked by Apple SDK CoreFoundation nullability-extension diagnostics promoted to errors in dwg2dxf/dx_batch_output_names.cpp; no warning suppression was added."
+  },
+  "later_ltype_control_failure": {
+    "libdxfrw": {
+      "first_failure": "BAD_READ_TABLES",
+      "object_type": 56,
+      "handle": "0x05",
+      "frame_body_bytes": 17,
+      "frame_body_bits": 136,
+      "declared_handle_stream_bits": 0,
+      "decoded_count": 1,
+      "result": "The AC1024 bounded separated-tail profile does not match; the control remains refused."
+    },
+    "oda_specification": "Open Design Specification for .dwg files v5.4.1 §20.4.57 documents a BL entry count followed by a null soft-pointer owner, hard-owner xdictionary, counted soft-owner linetypes, and hard-owner BYLAYER/BYBLOCK references.",
+    "independent_peer": {
+      "implementation": "LibreDWG 0.14",
+      "command": "dwgread -v2 -O minJSON -o <output> <source>",
+      "exit_status": 0,
+      "output_sha256": "1ee217033e128e908c7f208a4b76c92a06cad061cb085ac94b446bf3dcfff658",
+      "object_path": "OBJECTS[3]",
+      "reported": {
+        "object": "LTYPE_CONTROL",
+        "type": 56,
+        "handle": [0, 1, 5],
+        "size": 17,
+        "bitsize": 136,
+        "is_xdic_missing": 1,
+        "ownerhandle": [0, 0],
+        "byblock": [0, 0],
+        "bylayer": [0, 0]
+      },
+      "limit": "The peer reads the file, but these minJSON fields do not establish the control's counted handle roles or an alternate wire layout."
+    },
+    "independent_peer_verbose_recheck_2026_11_13": {
+      "implementation": "LibreDWG 0.14",
+      "version_command": "dwgread --version",
+      "command": "dwgread -v5 -O JSON <source> (stdout and stderr redirected under /tmp)",
+      "exit_status": 0,
+      "json_output_sha256": "56565ce7bcb46a0be2615d95c04f33c7512db3918e7bfbf7a5991832a6272f77",
+      "stderr_sha256": "d8b7d95a80d3de7c2f8a42290d13bedeaa00307cbd54298cc4dc23ee2eba7806",
+      "ltypeControlEvidence": {
+        "frame": "OBJECTS[3], type 56, handle 0x05, size 17 bytes, declared handle stream 0 bits",
+        "diagnostic": "Invalid entries size 1. Need min. 8 bits for HANDLE, have 0 at @17.0 for LTYPE_CONTROL.",
+        "reportedHandles": "ownerhandle, BYBLOCK and BYLAYER are null in JSON output after the handle-read errors"
+      },
+      "additionalControlErrors": "The same verbose log reports zero-byte handle-stream errors for VPORT_CONTROL, APPID_CONTROL and DIMSTYLE_CONTROL.",
+      "interpretation": "Exit status zero is not a successful typed read for these controls: verbose output proves the peer exhausts the declared stream and emits null fallback values. This is not independent confirmation of an alternate LTYPE_CONTROL layout.",
+      "artifacts": "Both peer outputs remain in /tmp; no drawing fixture or tool output was added to the repository."
+    },
+    "decision": "Keep the strict LTYPE_CONTROL refusal. The source has unknown producer provenance and an unexplained CLASSES CRC mismatch; the peer result is insufficient evidence for parser relaxation or a support claim."
+  },
+  "limits": [
+    "This is one hash-specific AC1024 reproduction, not proof of the reported six-of-ten AutoCAD 2010 RTM behavior.",
+    "The sample still fails later at TABLES; it is not a full DWG read success.",
+    "The CLASSES CRC mismatch remains unexplained and visible as a warning.",
+    "No format support or output claim is promoted."
+  ]
+}

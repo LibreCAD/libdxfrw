@@ -1,0 +1,18 @@
+{
+  "id": "p6-legacy-ocs-scaled-dot-overflow-2026-11-11",
+  "scope": "Explicit nonmutating recovery of legacy-applied OCS coordinates for CIRCLE, ARC, TRACE, SOLID, TEXT and INSERT.",
+  "finding": "The inverse transform used ordinary left-to-right three-term dot products. With finite coordinates near DBL_MAX, an intermediate sum could overflow even when cancellation by the third term leaves a finite final coordinate; recovery then refused a representable transform.",
+  "change": "The explicit recovery path now scales coordinates by their maximum absolute component, computes each basis dot product using compensated summation with fused product residuals, and rescales only the final result. The historical applyExtrusion path is unchanged. Non-finite final coordinates still fail closed, and candidate objects are published only after every transformed coordinate succeeds.",
+  "generated_control": {
+    "normal": [1, 1, 1],
+    "wcsCoordinate": ["-0.9 * DBL_MAX", "-0.9 * DBL_MAX", "0.32 * DBL_MAX"],
+    "expectedNativeCoordinateOverDBL_MAX": [0, "2.44 / sqrt(6)", "-1.48 / sqrt(3)"],
+    "purpose": "The axis-Z dot product's first two terms overflow in the former implementation; the complete result is finite after the final cancelling term. The control now covers CIRCLE, ARC, TRACE, SOLID, TEXT and INSERT recovery routes."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_legacy_extrusion_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_legacy_extrusion$' --output-on-failure",
+    "result": "Build passed; focused CTest passed 1/1; git diff --check passed."
+  },
+  "limits": "This closes one avoidable intermediate-overflow refusal for the shared explicit recovery helper. It does not provide exact arithmetic, prove every finite transform representable, recover information already lost during the legacy forward transform, or qualify native CAD rendering or producer profiles."
+}

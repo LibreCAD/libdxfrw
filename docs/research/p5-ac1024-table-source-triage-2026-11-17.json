@@ -1,0 +1,239 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1024 TABLE source-pair triage",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "scope": "Screen the public ACadSharp AC1024 sample and its paired DXFs as an implementation candidate for P5-D; do not change parser behavior or promote support.",
+  "source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "repositoryRevision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "dwgPath": "samples/sample_AC1024.dwg",
+    "dwgSha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+    "dwgSizeBytes": 1122389,
+    "version": "AC1024",
+    "pairedDxf": {
+      "ascii": {
+        "path": "samples/sample_AC1024_ascii.dxf",
+        "sha256": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372"
+      },
+      "binary": {
+        "path": "samples/sample_AC1024_binary.dxf",
+        "sha256": "6a99aed5d669235a12f592d5cce426c6fba29b5462bae8d76f98187a2fdda22f"
+      }
+    },
+    "producerEvidence": {
+      "script": "samples/sample_base/save_samples.lsp",
+      "scriptSha256": "7cf09372fc29f8103a12a36ed57f54d2e96658e964a4b7d84ea2e4bfed07f9eb",
+      "scriptCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+      "observedRoute": "The repository LISP script issues SAVEAS 2010 for sample_AC1024.dwg and separate SAVEAS 2010 ASCII and Binary DXF commands. The embedded AppInfo identifies the DWG as a Trusted DWG last saved by AutoCAD build V.162.0.0(x64).",
+      "limit": "The final AutoCAD 2025 writer profile is identified by in-file AppInfo and the repository save script, but this metadata is not signed and the authoring/API state of the base drawing is not established. Paired DXFs provide expected saved semantics, not proof of the original TABLE API calls.",
+      "embeddedAppInfo": {
+        "reader": "GNU LibreDWG 0.14 JSON from the hash-bound DWG",
+        "trustText": "Autodesk DWG. This file is a Trusted DWG last saved by an Autodesk application or Autodesk licensed application.",
+        "product": "AutoCAD",
+        "build": "V.162.0.0(x64)",
+        "registryVersion": "25.0",
+        "gitCommitId": "fc6c3263b711efc32e02bf3ab5b7e250a860bd13",
+        "attestationLimit": "These are embedded source metadata fields, not a signed producer attestation."
+      }
+    },
+    "acquisition": {
+      "temporaryPath": "/private/tmp/ACadSharp_sample_AC1024.dwg",
+      "method": "Raw file from the public repository; compared against existing hash-bound local receipts and paired DXFs.",
+      "repositoryPolicy": "The third-party DWG/DXF pair remains outside this repository. No fixture was added."
+    }
+  },
+  "observedProfile": {
+    "pairedAsciiRecords": {
+      "tableEntity": {
+        "record": "ACAD_TABLE",
+        "handle": "0x528",
+        "tableStyleHandle": "0x87",
+        "anonymousBlock": "*T9",
+        "rows": 7,
+        "columns": 3,
+        "selectedCellText": [
+          "Table sample",
+          "Text"
+        ]
+      },
+      "standaloneTableContentDxfRecords": [
+        "0x747",
+        "0x131E"
+      ],
+      "cellStyleMap": {
+        "handle": "0x130F",
+        "extensionDictionaryEntry": "ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP",
+        "owningDictionary": "0x104"
+      }
+    },
+    "formatBoundary": "ODA v5.4.1 §20.4.96.2 states AC1024 DWG embeds TABLECONTENT in the ACAD_TABLE entity; the two standalone TABLECONTENT handles above are records in the paired DXF and are not asserted to be source DWG frame identities.",
+    "dwgClasses": {
+      "maximumClassNumber": 549,
+      "tableContentClassPresent": true,
+      "cellStyleMapClassPresent": true,
+      "readDwgClassesCompleted": true,
+      "reportedClassCrcMismatch": false,
+      "reportedFailure": false
+    },
+    "tableRead": {
+      "entityHandle": "0x528",
+      "decodedColumns": 3,
+      "decodedRows": 7,
+      "firstCellDisplay": "Table sample",
+      "firstFailure": {
+        "dataBit": 39158,
+        "handleStreamBit": 105173,
+        "expectedHandleCode": 4,
+        "observedHandleCode": 5,
+        "observedReference": "0x00",
+        "meaning": "The current TABLECONTENT parser rejects the first ATTDEF handle role. ODA v5.4.1 §20.4.97 specifies a soft pointer for this field; the observed code is not accepted as a producer exception because preceding field/string/handle spans have not been reconciled."
+      }
+    }
+  },
+  "currentRead": {
+    "codeRevision": "6a4347e1",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/ACadSharp_sample_AC1024.dwg -y -d -v2010 /private/tmp/ACadSharp_sample_AC1024.dxf",
+    "exitCode": 1,
+    "logPath": "/private/tmp/ACadSharp_sample_AC1024.log",
+    "logSha256": "73e9ebc05695621337adb2d815880ea430770d22471857a66883003501111d93",
+    "result": {
+      "sourceFrames": 923,
+      "publishedFrames": 923,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "classesEndMarker": true,
+      "strictOutput": "Refused before output because standalone DWG OBJECTCONTEXTDATA has no qualified replay path; no DXF was produced."
+    }
+  },
+  "conclusion": "The local bounded raw-retention reader sub-slice is implemented and focused controls pass. Two TABLE candidates reach the selected body-string interpretation, but this conflicts with ODA v5.4.1 and exposes no typed table semantics. The paired sample still cannot be converted as a whole file because OBJECTCONTEXTDATA has no qualified replay path. The P5-D package gate remains open for producer-bound field/role evidence, graph closure, strict ASCII/Binary output, fresh independent readback, rollback/retry at the public writer boundary, and native appearance.",
+  "next": [
+    "Keep the specified ODA detached-TV AC1024 path primary; keep the compatibility fallback AC1024-only, bounded, raw-retaining, semantic-incomplete, and strict-output-refused.",
+    "Do not repeat the completed parser controls or this candidate scan. Acquire only the missing producer-bound TABLE field/handle-role source with known API state and expected values; paired DXFs and embedded AppInfo are not sufficient.",
+    "If producer evidence becomes available, close physical field spans and reference roles before adding typed semantics; then prove complete graph closure, strict ASCII/Binary output, fresh independent readback, public-boundary refusal atomicity/retry, and native appearance.",
+    "Keep the external ACadSharp DWG/DXF pair outside the repository. No fixture was added."
+  ],
+  "rawOnlyCompatibilityRun": {
+    "repositoryRevision": "2232df5b",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg -y -d -v2010 /private/tmp/ACadSharp_sample_AC1024-fallback.dxf",
+    "tracePath": "/private/tmp/ACadSharp_sample_AC1024-fallback.log",
+    "traceSha256": "44a1d08ed9e69ac22af0bc425f0ed8e15071b6afedd11877082e51c2b7e3f6a5",
+    "exitCode": 1,
+    "result": {
+      "acceptedRawOnlyTables": [
+        {
+          "handle": "0x528",
+          "rows": 7,
+          "columns": 3,
+          "opaqueHandleTailBits": 3
+        },
+        {
+          "handle": "0xa35",
+          "rows": 4,
+          "columns": 5,
+          "opaqueHandleTailBits": 7
+        }
+      ],
+      "publishedTableSemantics": false,
+      "strictOutput": "Refused before output because standalone DWG OBJECTCONTEXTDATA has no qualified replay path; no DXF was produced.",
+      "supportClaimEffect": "none"
+    },
+    "focusedControls": {
+      "passed": 7,
+      "failed": 0,
+      "selectors": [
+        "libdxfrw_table_break_data_flag_domain",
+        "libdxfrw_table_break_option_direction_domains",
+        "libdxfrw_table_row_range_count_domain",
+        "libdxfrw_table_content_style_id_domains",
+        "libdxfrw_table_cadvalue_string",
+        "libdxfrw_table_ac1024_observed_body_string_raw_only",
+        "libdxfrw_table_r2010_unknown_prefix_defaults"
+      ]
+    },
+    "tailPolicy": "Detached string stream: zero-only footer/alignment tail bounded to 14 bits. Handle stream: 0-7 residual bits retained as opaque raw frame data; the observed candidates leave 3 and 7 bits. Do not describe this tail as padding or assign meaning without independent source-bound evidence."
+  },
+  "publicSourceFollowUp": {
+    "date": "2026-11-17",
+    "scope": "Search for an alternative public AC1024 TABLE artifact with producer-bound ObjectARX/API state after the local raw-retention slice.",
+    "sources": [
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table.html",
+        "finding": "Autodesk documents the managed Table wrapper over AcDbTable, its 3D planar placement, style/size/geometry setup, and text or block cell contents.",
+        "limit": "API documentation supplies no hash-bound AC1024 DWG, field spans, or original API state for a public artifact."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbTable__generateLayout.html",
+        "finding": "Autodesk documents generateLayout as computing in-memory geometry from definition data/style; the table block is created when posted and closed.",
+        "limit": "This does not identify the serialized AC1024 TABLECONTENT body/string/handle layout or qualify any sample file."
+      }
+    ],
+    "queries": [
+      "AutoCAD ObjectARX AcDbTable sample DWG AC1024 source code create table",
+      "AutoCAD AcDbTable GitHub DWG sample",
+      "ACAD_TABLE ObjectARX sample artifact with known API state"
+    ],
+    "result": "No source-distinct public AC1024 DWG with producer-bound TABLE API state, expected values, and paired output was located in this pass. Documentation confirms the native API but does not close the source gate.",
+    "decision": "P5-D remains PRODUCER_WITNESS_NEEDED. Do not repeat this search without a new repository, artifact location, or producer source. SupportClaimEffect: none."
+  },
+  "odaConverterRecheck": {
+    "date": "2026-11-17",
+    "version": "ODA File Converter 27.1.0 ARM64",
+    "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter -h",
+    "exitCode": 134,
+    "result": "Aborted during PasteBoard/XPC initialization before argument handling or conversion: clipboard and find pasteboard errors [-4960], followed by invalid com.apple.hiservices-xpcservice connection.",
+    "qualification": "No independent ODA conversion/readback obtained. Do not retry until the pasteboard/XPC environment actually changes."
+  },
+  "libredwgPeerConversion": {
+    "date": "2026-11-17",
+    "producer": "GNU LibreDWG dwgread 0.14",
+    "input": {
+      "repository": "https://github.com/DomCR/ACadSharp",
+      "path": "samples/sample_AC1024.dwg",
+      "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce"
+    },
+    "command": "dwgread -v2 -O DXF -o /private/tmp/ACadSharp_sample_AC1024_libredwg.dxf /Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg",
+    "exitCode": 0,
+    "output": {
+      "path": "/private/tmp/ACadSharp_sample_AC1024_libredwg.dxf",
+      "sha256": "90d6af28b9afb957017d13156ab7272920e44db95b4bf8667e0b8c211386bc9c",
+      "sizeBytes": 3221624
+    },
+    "log": {
+      "path": "/private/tmp/ACadSharp_sample_AC1024_libredwg.log",
+      "sha256": "c8976a94c8b3a8bfc8f2f8fdabc50464d76eff20959ad8ff349976077d5ac482"
+    },
+    "observations": {
+      "r2010Warnings": [
+        "TODO TABLESTYLE r2010+ missing fields",
+        "TODO TABLE r2010+ (2 occurrences)"
+      ],
+      "acadTableMarkers": [
+        {
+          "handle": null,
+          "nextRecord": "LINE"
+        },
+        {
+          "handle": null,
+          "nextRecord": "LWPOLYLINE"
+        }
+      ],
+      "matchingCellStringsExportedAsMtext": [
+        {
+          "text": "Table sample",
+          "outputHandle": "0x572",
+          "owner": "0x570"
+        },
+        {
+          "text": "Hello this is a title",
+          "outputHandle": "0xA37",
+          "owner": "0xA36"
+        }
+      ],
+      "pairedDxfValues": "Both strings occur in the source repository paired ASCII DXF at source table handles 0x528 and 0xA35."
+    },
+    "limits": "The peer DXF has no populated ACAD_TABLE record for either table; the group-0 ACAD_TABLE markers are immediately followed by unrelated group-0 entity records. Exported MTEXT strings are not bound to the source table identities or full cell graph. The peer emits an explicit R2010 TABLE/TABLESTYLE TODO, so this is not independent TABLE semantic readback or a support qualification.",
+    "supportClaimEffect": "none",
+    "repositoryPolicy": "The third-party source and generated peer DXF remain outside this repository."
+  }
+}

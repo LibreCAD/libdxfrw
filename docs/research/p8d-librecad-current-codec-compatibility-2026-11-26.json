@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumer_commit": "187a1ee5940b822b1ae454c5dc64c8522999a149",
+  "codec_code_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "codec_implementation_digest": "922ee37ffca0420ca161ac977da8e0a60397b5e12b49b337d120f2ff396a31b3",
+  "platform": "macOS ARM64, headless Qt offscreen",
+  "shared_library_sha256": "715e638095a7994d091e3bf330a3710c993a703993df5cad709bababbb23f517",
+  "test_executable_sha256": "a9ff8b8b1437a7df5b4fa1cb173bfa56586a361f9e5fb2f3b3556dfe0648e8aa",
+  "loader": "DYLD_PRINT_LIBRARIES confirms the isolated current shared-library path",
+  "selector": "[system-codec][dxf][image],[system-codec][dxf][material]",
+  "result": "PASS: 8958 assertions in 18 test cases",
+  "limits": [
+    "These generated focused profiles do not qualify all LibreCAD functionality, native rendering or external producer cases.",
+    "Linux and Windows current-codec consumer integration and final native GUI remain open.",
+    "No support claim or package gate promotion."
+  ]
+}

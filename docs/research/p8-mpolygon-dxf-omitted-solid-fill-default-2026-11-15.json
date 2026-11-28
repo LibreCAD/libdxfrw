@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-mpolygon-dxf-omitted-solid-fill-default-2026-11-15",
+  "date": "2026-11-15",
+  "status": "bounded_reader_fix_verified",
+  "supportClaimEffect": "none",
+  "finding": "The DXF MPOLYGON reader inherited DRW_Hatch solid=1 when group 71 was absent, so a pattern record was delivered as solid.",
+  "sources": [
+    {
+      "title": "Autodesk HATCH/DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "relevance": "For MPOLYGON group 71 is the solid-fill flag; zero means no solid fill."
+    },
+    {
+      "title": "ezdxf MPOLYGON source",
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/mpolygon.py",
+      "relevance": "The independent DXF implementation defines group 71 default zero."
+    }
+  ],
+  "change": "Initialize only the DXF processMPolygon local record to solid=0 before parsing; explicit group 71 still wins. Direct construction, HATCH and DWG defaults are unchanged.",
+  "validation": [
+    "Generated selector libdxfrw_mpolygon_fill_default failed before the change and passes after it in ASCII and Binary for omitted/explicit solid/explicit pattern/omitted order, with both typed and legacy HATCH callbacks.",
+    "Directly constructed DRW_Hatch and DRW_MPolygon defaults remain 1.",
+    "The upstream-linked LibreCAD omitted-71 case passes (3 assertions). The combined DIMASSOC/MPOLYGON selector improves from 3/11 to 4/11, leaving 7 failed cases and 17 failed assertions."
+  ],
+  "limits": [
+    "The absent-field default is corroborated by ezdxf and LibreCAD bundled behavior; this is not independent native consumer qualification.",
+    "Other MPOLYGON path, trailer and writer discrepancies and DIMASSOC cases remain open.",
+    "No DWG/DXF fixture files added."
+  ]
+}

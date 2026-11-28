@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-12",
+  "topic": "Typed PROXY_ENTITY object-ID DXF writer allocation rollback and retry",
+  "purpose": "Exercise the temporary resolved-object-ID vector and record emission in dxfRW::writeProxyEntity under one-shot allocation failure, filling a local P6 caller-state audit gap.",
+  "source": {
+    "kind": "locally-authored-generated-control",
+    "record": "ACAD_PROXY_ENTITY",
+    "sourceHandle": "0xD7C0",
+    "objectIdReferences": 8,
+    "referenceRole": "DWG handle code 4 projected to DXF group 330",
+    "resolverOutputHandles": ["0xE100", "0xE101", "0xE102", "0xE103", "0xE104", "0xE105", "0xE106", "0xE107"],
+    "fixtureFilesCommitted": false
+  },
+  "implementation": {
+    "productionCodeChanged": false,
+    "test": "tests/proxy_entity_object_id_allocation_tests.cpp",
+    "testSha256": "7cb6b78440a4fa4b88670e16ded531c1947498b7ca310b49d9da9ebfd581b0a8",
+    "cmakeTarget": "libdxfrw_proxy_entity_object_id_allocation_tests",
+    "ctestName": "libdxfrw_proxy_entity_object_id_allocation"
+  },
+  "procedure": {
+    "configuration": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "compiler": "/usr/bin/g++",
+    "build": "cmake --build build-gcc --target libdxfrw_proxy_entity_object_id_allocation_tests -j4",
+    "validation": "ctest --test-dir build-gcc -R '^libdxfrw_proxy_entity_object_id_allocation$' --output-on-failure",
+    "allocationScope": "Fault injection is enabled only inside the typed proxy entity writer callback. Each failure is one-shot so output rollback and same-codec retry may allocate normally."
+  },
+  "result": {
+    "testExitCode": 0,
+    "ctest": "1/1 passed in 0.23 seconds",
+    "ascii": {
+      "measuredAllocationOffsets": 11,
+      "allOffsetsFailedAsExpected": true,
+      "destinationPreserved": true,
+      "callerHandlePayloadAndReferencesPreserved": true,
+      "sameCodecRetryMatchedCleanBytes": true,
+      "typedReadbackMatched": true
+    },
+    "binary": {
+      "measuredAllocationOffsets": 10,
+      "allOffsetsFailedAsExpected": true,
+      "destinationPreserved": true,
+      "callerHandlePayloadAndReferencesPreserved": true,
+      "sameCodecRetryMatchedCleanBytes": true,
+      "typedReadbackMatched": true
+    }
+  },
+  "limits": [
+    "This is generated writer transaction and typed transport evidence only; it does not establish physical proxy producer coverage or proxy semantics.",
+    "No DWG or DXF fixture file is committed. Generated output is created in the build scratch directory and removed after each encoding."
+  ],
+  "baseRevision": "780e94b0a03bd33d41a4542b70be4b559cdabe9a"
+}

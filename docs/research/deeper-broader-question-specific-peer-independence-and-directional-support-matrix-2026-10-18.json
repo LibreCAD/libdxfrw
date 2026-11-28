@@ -1,0 +1,162 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Question-specific peer independence and directional support matrix",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Broaden open-source DWG/DXF route inventory across codec, projection, converter, and consumer layers",
+    "Distinguish parser ancestry, specification lineage, fixture provenance, expected-value authorship, and downstream kernel/consumer lineage",
+    "Refine direction/version/entity/carrier evidence admission and optional comparator selection",
+    "Preserve implementation speed, local fixture provenance, and deferred external gates"
+  ],
+  "method": {
+    "kind": "Read-only review of primary project repositories, official documentation, published support matrices, and the current local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedThisResearchPass": false,
+    "testCodeChangedThisResearchPass": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Most project default-branch pages and issue indexes are mutable source statements, not artifact-level runtime evidence. No peer source/package was pinned or executed and no sample was independently opened. The review refines evidence selection and does not establish a new libdxfrw defect or promote support."
+  },
+  "sources": [
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgread.1",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "revision": "Mutable project manual, CLI documentation, and repository inventory reviewed 2026-10-18",
+      "observed": "The project documents broad DWG/DXF support, ongoing coverage and class maturity distinctions, structured reader diagnostics, corpus testing, and fuzz entry points. Broad coverage statements and same-library rewrite/re-read are not independent semantic proof."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "revision": "Mutable README/version matrix, reader example, and issue index reviewed 2026-10-18",
+      "observed": "Published reader/writer capabilities are direction- and version-specific; the reader exposes notifications. A successful document return or matrix mark does not establish per-record retention, graph closure, or 3D semantics."
+    },
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "revision": "Mutable README and measured corpus table reviewed 2026-10-18",
+      "observed": "The project labels itself pre-alpha, publishes decoded/skipped/errored counts over its own sample set, states its implementation is based on the ODA specification, reports one algorithm cross-check against ACadSharp documentation, and explicitly disclaims external CAD acceptance for its experimental writer."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Stable documentation and mutable source reviewed 2026-10-18",
+      "observed": "ezdxf is a DXF route; its entity source says version override does not convert unsupported features and those may be ignored. Its ACIS path provides carrier handling and a limited flat-face projection, not a general ACIS kernel."
+    },
+    {
+      "project": "IxMilia.Dxf",
+      "urls": [
+        "https://github.com/ixmilia/dxf",
+        "https://github.com/ixmilia/dxf/blob/main/CHANGELOG.md"
+      ],
+      "revision": "Mutable README and changelog reviewed 2026-10-18",
+      "observed": "The README declares R10-R2014 DXF read/write with named missing entity families and warns that some typed writer output may not open in AutoCAD."
+    },
+    {
+      "project": "GDAL and FreeCAD",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Current public driver docs, source wrapper, and documentation page reviewed 2026-10-18",
+      "observed": "GDAL is a constrained OGR projection/carrier route. Stock FreeCAD composes an external DWG-to-DXF converter with a selected DXF importer and documents that its stock DXF path does not read embedded ACIS solids."
+    },
+    {
+      "project": "UnCAD",
+      "urls": [
+        "https://github.com/iyulab/uncad"
+      ],
+      "revision": "Mutable repository README reviewed 2026-10-18",
+      "observed": "The DWG path uses vendored LibreDWG through FFI, the DXF path uses undxf, and the current output is a model/JSON/render route rather than DWG/DXF writing; its DWG results are not a second LibreDWG parser vote."
+    },
+    {
+      "project": "codelibs/libdxfrw",
+      "urls": [
+        "https://github.com/codelibs/libdxfrw",
+        "https://github.com/codelibs/libdxfrw/blob/master/SPECIFICATIONS.md"
+      ],
+      "revision": "Mutable fork README and specification reviewed 2026-10-18",
+      "observed": "The project identifies as a fork of original SourceForge libdxfrw, lists tests and points to an external fess-testdata corpus. Its sibling-fork ancestry and unbound test inputs mean it can suggest code/test discovery targets but cannot count as independent parser evidence or authorize fixture import."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "peerAdmissionRefinedWithinExistingGate": true,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds a question-specific independence tuple and a version/direction/entity/owner/carrier/disposition match key to the existing optional-peer admission gate, plus a low-cost evidence ordering. Correlated wrappers and forks are attributed to their parser lineage. No new defect, implementation slice, peer run, required validation, or support claim is introduced."
+  },
+  "implementationReadyChecks": [
+    "Choose an existing local owner and exact overlap key before selecting an optional peer; do not start from a broad feature-matrix claim.",
+    "Record parser ancestry, shared specification/algorithm basis, producer/input provenance, expected-value authorship, projection path, and kernel/native consumer separately for that question.",
+    "Prefer source/API review and locally generated controls; execute at most one exact-pinned comparator at the existing composed boundary when it can resolve a named uncertainty.",
+    "Collect per-handle source dispositions and diagnostics, and separate parse, write, independent reopen, geometric semantics, and native acceptance outcomes.",
+    "If artifact identity, route, input mode, or independent expectations cannot be bound promptly, record NOT_RUN and continue local fast implementation.",
+    "Keep one focused local selector/owning CTest per slice, local-generated-only committed fixture policy, existing broader-suite cadence, and all six external J items DEFERRED_EXTERNAL."
+  ],
+  "workingTree": {
+    "alreadyContainsUncommittedImplementationChanges": true,
+    "researchPassChangedProductionOrTests": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-question-specific-peer-independence-and-directional-support-matrix-2026-10-18.json",
+      "awk '/[ \\t]+$/ { print FNR \": trailing whitespace\"; failed=1 } END { exit failed }' docs/research/deeper-broader-question-specific-peer-independence-and-directional-support-matrix-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/sab-shared-intcurve-control-polygon-memoization-fast-slice-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

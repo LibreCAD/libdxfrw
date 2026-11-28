@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-ltype-binary-appdata-version-matrix-2026-11-14",
+  "date": "2026-11-14",
+  "title": "LTYPE binary application-data preservation across DXF revisions",
+  "status": "GENERATED_BINARY_APPDATA_ROUNDTRIP_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the existing generated LTYPE rollback/readback slice with group 310 CAFE nested inside a 102 application-data group, then edit the LTYPE definition and verify the opaque application bytes survive output and typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored DRW_LType generated during the test",
+    "profile": "One custom named complex LTYPE with description, path, embedded text, application metadata, and a binary chunk in that application group.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "productionCodeChanged": false,
+    "testSource": "tests/ltype_table_allocation_tests.cpp",
+    "testSourceSha256": "9bde5cb872e5eed4bd11bccff8ee59eb72223c1cfb83445ca5a717331c43ea30",
+    "testExecutableSha256": "d69d7dabdb38b9db7503575643659ce450baea23235ab2da46fe30a8221342f3",
+    "method": "The existing imported-record edit path writes a locally generated source, imports it, verifies code 310 and its CAFE payload in appData, edits the LTYPE definition, writes and reads every supported revision in ASCII and Binary, and checks exact appData preservation alongside typed pattern readback. Allocation rollback/retry is also exercised by the same focused executable."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_ltype_table_allocation_tests --parallel 8: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_ltype_table_allocation$' --output-on-failure: PASS 1/1 in 0.82 seconds",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "result": {
+    "revisions": 7,
+    "encodings": 2,
+    "binaryApplicationChunk": "310=CAFE retained in nested {LTYPE_EDIT_METADATA application group",
+    "allocationRollbackRetry": "PASS",
+    "typedReadback": "PASS"
+  },
+  "limitations": [
+    "Generated libdxfrw transaction and self-readback evidence only; no producer-authored or native consumer semantics are qualified.",
+    "This does not close the LibreCAD PR #3269 MLINESTYLE OBJECTS emission failure; the focused control excludes consumer adapter behavior.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The existing LTYPE transaction profile now covers nested binary application data as well as typed metadata, rollback, retry, and readback.",
+    "remainingP6G": "Continue the public-writer inventory for distinct uncovered routes, overloads, and compound variants; P6-G remains open.",
+    "phaseStatusesChanged": false
+  }
+}

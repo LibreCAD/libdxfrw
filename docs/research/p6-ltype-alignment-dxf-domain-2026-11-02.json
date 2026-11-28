@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ltype-alignment-dxf-domain-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_LTYPE_FIXED_ALIGNMENT_DOMAIN_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Enforce the fixed ASCII-A value for LTYPE DXF group 72 on parsing and typed DXF writing.",
+  "implementationReadiness": {
+    "baselineHead": "f45919736e85d250215586430cd7ed0a5e6f62c0",
+    "sourceObservation": "DRW_LType::parseCode previously assigned arbitrary group-72 integers, and DRW_LType::validateDxf allowed any signed 16-bit value. The DXF writer serialized that value without domain validation.",
+    "normativeEvidence": {
+      "source": "Autodesk AutoCAD 2020 DXF Reference, LTYPE group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+      "relevantRule": "Group code 72 is the alignment code; its value is always 65, the ASCII code for A."
+    },
+    "change": "The DXF parser reads group 72 into a temporary and rejects values other than ASCII A before assignment. DXF typed validation now requires alignment == 'A', so the existing LTYPE writer refuses malformed records before emitting bytes. DWG payload validation was not changed."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_objects.cpp": "f7fe476fc01f70602fe5f1d3cd3ee4e5723b124a4f7b3aa9a4ce6d84efd18d7f",
+      "tests/hardening_tests.cpp": "ed9ff926b9786b9f837a237c82756bfe13aa2e7e1bedb39ee98f8516903dcae6",
+      "CMakeLists.txt": "dfd9b17f8cef43bacd052c9d1a6ce2223f6360a3138a8b52f0a11cb1b406db0b"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+      "platform": "Darwin arm64"
+    },
+    "testExecutableSha256": "c17c45ca81b3d706a5c0c91295444e17e814885e76af1c2e41765b86cf579d6a"
+  },
+  "controls": {
+    "selector": "--ltype-alignment-dxf-domain",
+    "ctest": "libdxfrw_ltype_alignment_dxf_domain",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "The parser accepts group-72 value 65 and the typed value passes DXF validation in both encodings.",
+      "The parser rejects 0, 64, 66, and 32767 without changing the prior typed alignment value in either encoding.",
+      "Typed ASCII and Binary writers emit a valid LTYPE with alignment 65 and refuse alignment 64 before emitting bytes."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_ltype_alignment_dxf_domain$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "regressionCtests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_ltype_alignment_dxf_domain|libdxfrw_dxf_ltype_retained_owner_budget)$' --output-on-failure",
+      "result": "PASS 2/2 in 0.37 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated DXF domain controls only; no physical LTYPE producer or native CAD display behavior was exercised.",
+    "DWG-specific LTYPE validation and group-72 source layouts are outside this change.",
+    "No support claim is promoted; LTYPE units/group-9 profiles and broader P6 semantics remain open."
+  ],
+  "nextReadyPacket": "Continue with another independently actionable P6 residual; retain source-bounded claims and generated-only evidence limits."
+}

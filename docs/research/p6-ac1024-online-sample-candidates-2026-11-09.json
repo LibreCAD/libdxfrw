@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-09",
+  "title": "Online AC1024 sample compatibility: BLOCK_HEADER offsets and BLOCK_CONTROL holes",
+  "status": "IMPLEMENTED_FAST_CONTROL_PASS",
+  "scope": "Identify and inspect online AC1024-era sample candidates, bind their byte identity and independent reader evidence, and repair confirmed bounded compatibility gaps without adding drawing fixtures.",
+  "sources": [
+    {
+      "title": "Autodesk AutoCAD LT Sample Files",
+      "url": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/01em4r6LLJgnQQVBlk5GqD.html",
+      "evidence": "Autodesk lists sample DWGs and says the sample set applies to AutoCAD LT 2010 and later.",
+      "limitation": "The page does not identify the saved DWG format version for each individual download."
+    },
+    {
+      "title": "AutoCAD 2010 sample-file list and archive pointer",
+      "url": "https://blog.jtbworld.com/2009/06/where-are-the-sample-dwg-files-for-autocad.html",
+      "evidence": "The 2009 post identifies the listed files as AutoCAD 2010 samples and points to Autodesk's sample archive.",
+      "limitation": "Secondary historical source; it does not provide file hashes or verify that current archive bytes are unchanged."
+    }
+  ],
+  "candidateDownloads": [
+    {"name": "architectural_example-imperial.dwg", "url": "https://download.autodesk.com/us/samplefiles/acad/architectural_example-imperial.dwg"},
+    {"name": "civil_example-imperial.dwg", "url": "https://download.autodesk.com/us/samplefiles/acad/civil_example-imperial.dwg"},
+    {"name": "mechanical_example-imperial.dwg", "url": "https://download.autodesk.com/us/samplefiles/acad/mechanical_example-imperial.dwg"},
+    {"name": "blocks_and_tables_-_metric.dwg", "url": "https://download.autodesk.com/us/samplefiles/acad/blocks_and_tables_-_metric.dwg"},
+    {"name": "blocks_and_tables_-_imperial.dwg", "url": "https://download.autodesk.com/us/samplefiles/acad/blocks_and_tables_-_imperial.dwg"},
+    {"name": "title_block-ansi.dwg", "url": "https://download.autodesk.com/us/samplefiles/acad/title_block-ansi.dwg"}
+  ],
+  "downloadAudit": {
+    "scratchDirectory": "/private/tmp",
+    "retrieved": [
+      {"name": "title_block-ansi.dwg", "versionSignature": "AC1024", "sha256": "907398897552a090182f5446f18ad1ef82b91176764c8ccf08b5c5799546eeba", "newUniqueInput": true},
+      {"name": "architectural_example-imperial.dwg", "versionSignature": "AC1024", "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7", "newUniqueInput": false},
+      {"name": "civil_example-imperial.dwg", "versionSignature": "AC1024", "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc", "newUniqueInput": false},
+      {"name": "mechanical_example-imperial.dwg", "versionSignature": "AC1024", "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858", "newUniqueInput": false},
+      {"name": "blocks_and_tables_-_metric.dwg", "versionSignature": "AC1021", "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1", "newUniqueInput": false},
+      {"name": "blocks_and_tables_-_imperial.dwg", "versionSignature": "AC1021", "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07", "newUniqueInput": false}
+    ],
+    "otherEndpoints": "Several newer sample filenames listed on the LT archive returned HTTP 403; no bytes were retained for them."
+  },
+  "independentWireEvidence": {
+    "normativeSource": "Open Design Specification for .dwg files v5.4.1 §2.13: raw handle codes 0x6/0x8/0xA/0xC encode relative soft-pointer references; code 0x8 resolves to base handle minus one.",
+    "sample": {"object": "BLOCK_HEADER", "handle": "0x2", "field": "blockControl", "rawCode": "0x8", "resolvedTarget": "0x1"},
+    "peer": {"name": "LibreDWG", "version": "0.14", "result": "SUCCESS", "minJsonSha256": "a84c33e5e641357d549f8f1c961d2a5ad43ecf28c22460be2feb478ed9f300c7", "jsonObservation": "BLOCK_HEADER handle [0,1,2] has ownerhandle [8,0,0,1]; BLOCK_CONTROL handle is [0,1,1]. BLOCK_CONTROL has three null entries in its counted list and non-null model_space/paper_space phantom targets 0x2 and 0xC."}
+  },
+  "sortEntsTableOwnerAudit": {
+    "authority": "Autodesk's DXF SORTENTSTABLE definition restricts group-330 owner to *MODEL_SPACE or *PAPER_SPACE; the existing implementation plan keeps other owner scopes refused.",
+    "physicalPeerRows": [
+      {"tableHandle": "0xD46", "ownerHandle": "0xCCE", "ownerBlockName": "*U", "entryCount": 25, "scope": "anonymous non-model/paper block; refused"},
+      {"tableHandle": "0xE54", "ownerHandle": "0x127", "ownerBlockName": "Title_Block-ANSI", "entryCount": 25, "scope": "named non-model/paper block; refused"},
+      {"tableHandle": "0xF54", "ownerHandle": "0xEDC", "ownerBlockName": "*U", "entryCount": 25, "scope": "anonymous non-model/paper block; refused"}
+    ],
+    "currentReaderDisposition": "All three are parsed as typed callbacks and retained as unsupported raw source callbacks, but strict output correctly refuses these owner scopes. Do not lift the owner restriction from local readback or raw-byte agreement."
+  },
+  "implementation": {
+    "files": ["src/drw_objects.cpp", "src/intern/dwgreader.cpp", "tests/dwg_reader_matrix_tests.cpp"],
+    "behavior": "BLOCK_HEADER role validation now accepts DWG relative handle encodings 0x6, 0x8, 0xA and 0xC when the expected semantic role is soft pointer. For BLOCK_CONTROL, a null counted entry now emits one Warning and scanning continues; null model/paper-space phantom entries and non-null wrong-role members remain Error observations.",
+    "sampleRead": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-title_block-ansi.dwg -y -d -v2010 /private/tmp/libdxfrw-title_block-ansi-after-fix.dxf",
+      "traceSha256": "77904a5dda5c1e0f1fd8e22d474f1aabc6142ec034438f2d6e25fea3f9668e80",
+      "result": "PASS: current libdxfrw reports operationSucceeded=true and legacyError=0, publishes all 498/498 observed frames, and has zero entity/object parse failures. At this first checkpoint, strict DXF output was still blocked by the BLOCK_CONTROL integrity error recorded below.",
+      "preFixTraceSha256": "59aa6844c7c5452175978168b9e948ff12b5fcab96f7e88b7147f0a5df54284d",
+      "preFixDiagnostic": "BLOCK_HEADER body handle role mismatch for blockControl: raw code 8 target 1"
+    },
+    "blockControlHoles": {
+      "spec": "ODA v5.4.1 §20.4.51 separates counted BLOCK_HEADER references from the final *MODEL_SPACE and *PAPER_SPACE hard-owner references.",
+      "peerBehavior": "LibreDWG 0.14 retains null counted entries and skips null entry pointers during table lookup; its model/paper-space references remain distinct.",
+      "policy": "A null counted member is recoverable with a warning. Null model/paper-space phantom handles remain strict-fatal. The source's missing counted references do not become writer-closure or support evidence.",
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-title_block-ansi.dwg -y -d -v2010 /private/tmp/libdxfrw-title_block-ansi-after-null-fix.dxf",
+      "postFixTraceSha256": "29bcb7c2c3ee140006ae9c35c8deb661eb7bf84aaee3b2a718ee197ece5926eb",
+      "result": "PASS: counted null member is a Warning, no integrity Errors remain, and all 498/498 frames publish. Strict output now reaches opaque callback finalization, then refuses at 106/109 qualified; the three unqualified records are SORTENTSTABLE handles 0x3398, 0x3668 and 0x3924. No output DXF is published."
+    },
+    "generatedControl": "PASS: libdxfrw_block_record_body_handle_roles covers all four ODA relative soft-pointer encodings and the existing wrong-role, truncation/reset and corrected-retry cases."
+  },
+  "bindings": {
+    "src/drw_objects.cpp": "94d043a584d1570668ad2faa9a44a713fb49196e699241a84817b7dcd86183d0",
+    "src/intern/dwgreader.cpp": "4d7eaeba214b91e28e03c63a945b4a82ff2281707b7ad52dbc337f2f6831ea9f",
+    "tests/dwg_reader_matrix_tests.cpp": "07abfef6491bd5607d559258af1e1c7be4f3a0b90ec536df7d5e034d44b39447",
+    "dwg2dxf": "f580c451b80ef26b5be57836d5904bd7bd69b462e8b510aacbec4d5350dba722",
+    "readerTestExecutable": "1e1e230e73473780200c617149388526c4f6f1d110b3610337f984cf44ea60f6",
+    "postFixTrace": "77904a5dda5c1e0f1fd8e22d474f1aabc6142ec034438f2d6e25fea3f9668e80",
+    "postNullRecoveryTrace": "29bcb7c2c3ee140006ae9c35c8deb661eb7bf84aaee3b2a718ee197ece5926eb",
+    "odaSpecTextExtract": "f2b23bb7b0e7191a1a18f9f32c643c5635a90c65ee692e6913988820e032953a"
+  },
+  "qualificationGate": [
+    "Download only to a scratch location and record URL, retrieval date, byte length and SHA-256.",
+    "Verify the first six bytes are AC1024 before treating a file as an AC1024 sample.",
+    "Check hashes against the existing local corpus so aliases do not count as independent sources.",
+    "Run current fast read/strict-output probes and independent reader comparison on eligible candidates.",
+    "Do not commit downloaded DWG or derived DXF fixtures; create a local-from-scratch fixture only if a minimized regression is needed."
+  ],
+  "result": "Autodesk's title_block-ansi sample is a new unique AC1024 source. It exposed both a relative soft-pointer role false rejection and null counted BLOCK_CONTROL entries. The parser now accepts the documented relative codes; it warns on counted BLOCK_CONTROL holes but preserves strict-fatal handling for required model/paper-space members. The sample reads 498/498 observed frames with zero entity/object parse failures. Strict DXF output now reaches and refuses the independent opaque-output gate at 106/109. Other retrieved samples either match existing AC1024 hashes or are AC1021. No drawing fixture was added to the repository.",
+  "nextReadyAction": "Continue P4 with a different source-evidenced OBJECTS subgraph whose owner scope is allowed by the applicable format contract; keep all three non-model/paper SORTENTSTABLE source routes refused.",
+  "supportClaimEffect": "none",
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j4",
+    "test": "PASS 2/2: ctest --test-dir build-gcc -R '^libdxfrw_block_control_null_member_diagnostic$|^libdxfrw_block_record_body_handle_roles$' --output-on-failure",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "newFixtureCommitted": false
+}

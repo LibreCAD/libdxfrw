@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-119/7BP GeoData target-version gate correction and no-tail downgrade refusal",
+  "base_revision": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "mode": "ODA specification-backed local implementation with generated vectors and focused strict/sanitizer validation",
+  "scope": [
+    "Correct DRW_GeoData DWG CIVIL-tail selection to use the ODA target-version matrix in both reader and writer.",
+    "Replace AC1027-positive generated vectors with AC1027/AC1032 no-tail controls while retaining AC1021/AC1024 positives.",
+    "Prevent no-tail DWG output from silently discarding a retained or independently populated CIVIL-tail field.",
+    "Validate the owning object-vector and hardening targets without running the full suite or adding a drawing fixture."
+  ],
+  "implementation": {
+    "files": [
+      {
+        "path": "src/drw_objects.cpp",
+        "sha256": "ea6e9316a1ea54b02da4f646eee064c3880d4547a957e7090ad27866fb4909b6",
+        "changes": [
+          "Added one translation-unit helper selecting the CIVIL tail for AC1021 and AC1024 only.",
+          "Used the shared predicate in DRW_GeoData::parseDwg and encodeDwg.",
+          "Added preflight refusal when a no-tail target would discard a present tail or any non-default tail field; refusal occurs before body, string, or handle buffer writes."
+        ]
+      },
+      {
+        "path": "src/drw_objects.h",
+        "sha256": "472ef75d9ea46524fc16bb79eca14e5e63f9e839e601c18169deb34c8d226063",
+        "changes": ["Corrected the DRW_GeoCivilTail target-version comment."]
+      },
+      {
+        "path": "tests/dwg_object_vectors_tests.cpp",
+        "sha256": "f9101c11f0f486c1c028162d1ff8bc54e5aa6f3d5834c97ae8de6cc082da4559",
+        "changes": [
+          "Reader vectors cover AC1021/AC1024 tail-positive and AC1027/AC1032 no-tail targets, including objectVersion 2/3 no-tail cases and body/handle sentinels.",
+          "Moved false-bit and truncated-tail/retry diagnostics to the valid AC1024 tail-bearing target.",
+          "Writer vectors assert exact literal tail bytes only for AC1021/AC1024 and exact no-tail body equality for AC1027/AC1032.",
+          "Added transactional down-target rejection for a retained source tail and for populated tail fields without the presence marker; clean no-tail objects remain encodable."
+        ]
+      }
+    ],
+    "target_matrix": {
+      "AC1021": "tail present",
+      "AC1024": "tail present by the ODA AutoCAD 2010 exception",
+      "AC1027": "no tail",
+      "AC1032": "no tail"
+    },
+    "fixture_policy": "No DWG/DXF fixture or CTest registration added; all vectors are generated in the existing object-vector test owner."
+  },
+  "validation": {
+    "strict_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_hardening_tests lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|libdxfrw_hardening)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0
+    },
+    "sanitizer_build": {
+      "build_directory": "/private/tmp/libdxfrw-geodata-sanitizer.dd8EGO",
+      "compiler": "AppleClang 21.0.0 (CXX path /usr/bin/g++)",
+      "flags": "-fsanitize=address,undefined -fno-omit-frame-pointer",
+      "targets": [
+        "libdxfrw_dwg_object_vectors_tests",
+        "libdxfrw_hardening_tests"
+      ],
+      "result": "PASS"
+    },
+    "sanitizer_ctest": {
+      "command": "ctest --test-dir /private/tmp/libdxfrw-geodata-sanitizer.dd8EGO -R '^(libdxfrw_dwg_object_vectors|libdxfrw_hardening)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0
+    },
+    "diff_check": "PASS for src/drw_objects.cpp, src/drw_objects.h, tests/dwg_object_vectors_tests.cpp, and DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "full_suite": "NOT_RUN",
+    "sanitizer_lc3_compat": "NOT_AVAILABLE in the temporary sanitizer configuration; lc3_compat_check built successfully in the strict build above"
+  },
+  "specification_and_limits": {
+    "authority": "ODA Open Design Specification v5.4.1 §20.4.78 says the tail follows mesh faces for DWG R21 or lower and separately notes that AutoCAD 2010 always writes Civil data.",
+    "source": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "local_copy": "The repository-instruction path /Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf was unavailable. The official ODA-published PDF search-index excerpt was consulted directly; the source is the same ODA document/version, not a third-party transcription.",
+    "producer_or_native_runs": 0,
+    "external_drawings_downloaded": 0,
+    "support_claims_promoted": false,
+    "remaining_boundary": "This closes the local target-matrix correction only. Independent producer/native acceptance and the remaining parity-plan implementation work are still open. A no-tail downgrade with retained CIVIL data intentionally fails closed because no equivalent field mapping is established."
+  },
+  "plan_effect": {
+    "existing_subplan": "PAR-119/7BP",
+    "status": "LOCAL_MATRIX_CORRECTION_IMPLEMENTED / EXTERNAL_ACCEPTANCE_PENDING",
+    "local_findings_added": 0,
+    "top_level_subplans_added": 0,
+    "findings": 134,
+    "top_level_subplans": 76,
+    "validation_cadence_changed": false,
+    "new_fixture_or_ctest": false,
+    "production_code_changed": true,
+    "tests_changed": true,
+    "support_claims_promoted": false,
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commit_status": "UNCOMMITTED: repository metadata is read-only in this task environment; extensive existing uncommitted work was preserved."
+  }
+}

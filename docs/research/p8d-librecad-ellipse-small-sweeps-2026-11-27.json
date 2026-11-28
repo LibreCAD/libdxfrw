@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-ellipse-small-sweeps-2026-11-27",
+  "supportClaimEffect": "selected ellipse profiles only",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "pullRequest": 3289,
+    "commit": "b5d0120e25f2b52b149dfd673c62982b93e04cc9",
+    "parent": "95f27b67a56042495497993adf4c4a4512d26f6f"
+  },
+  "change": "Preserve distinct nearly full and short ellipse parameter intervals in the DXF importer and entity geometry. Use a shared length implementation with an exact-sweep path for entity length and the established tolerance contract for the public helper. Bound and nearest-point checks distinguish short arcs and small gaps without changing the shared math utility. Remove the associated sparse MATERIAL replay refusal.",
+  "authority": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-107CB04F-AD4D-4D2F-8EC9-AC90888063AB.htm",
+  "checks": [
+    "Red controls exposed near-full import becoming a whole ellipse, tiny zero-origin arcs becoming whole, full-turn length reported for a tiny entity, full-ellipse bounds and an incorrect nearest point.",
+    "The final focused control passes 56 assertions in three cases, including selected ordinary and sparse-MATERIAL import/edit/resave, exact parameter readback, tiny and near-full sweeps, reversed tiny bounds/nearest point, and entity length.",
+    "The system-codec MATERIAL selection, including refusal and retry controls, passes 3337 assertions in 20 cases; the extrusion selection passes 184 assertions in five cases.",
+    "A scratch test runner linked the current system-codec library with the existing ellipse, axis-swap, length and nearest-distance test sources. The ellipse selection passes 69851 assertions in 38 cases, including the public helper's previous near-equal-angle contract.",
+    "ezdxf 1.4.5 independently confirms distinct endpoints, selected parameters and MATERIAL references for near-full and tiny-arc outputs; both audits report no errors or fixes. The two output hashes remain unchanged after the final geometric checks.",
+    "The affected bundled-codec filter, ellipse and test translation units compile; no bundled runtime test is claimed. Generated drawings and the scratch test runner are not committed."
+  ],
+  "logSha256": {
+    "nearFullRed": "b1c69c0dea49991d6919e5e56ed41e0d96674812d283dadde2e5acd3402d7de3",
+    "tinyRed": "3956cf160a44af36803fe01fd84d907059a39d930fd4f4cf2f00818622825c51",
+    "lengthRed": "39d1891300f37a2dee64b156ecdb1060e541a8b475d53f7e66a62c7aad035d8c",
+    "boundsRed": "fc7435bb689b202e711f40ea44c1f8e74fe270a1add9e536effb4f9f7c40b548",
+    "focused": "7e00a36f476924e96fa18c85a26151bd6056ffc0d020291206c0e3fbdba9b360",
+    "material": "7cf24c38ae2b662e453b09e07448c0bf39aa334cdf0e78ea1b45e9303688694f",
+    "ellipseCompatibility": "8eeaa79732121396bac158b2fd7dc604f3bb892fd227209bcb487595eb2dbf76",
+    "extrusion": "6d0944c594d5483993c070309727d1f0297dd3b93afa590ceec78dd12bce2470",
+    "peer": "99327cb0facc490bb0205332ee28d21e63bf7dd6ec54804a2d7059307a98a7aa",
+    "bundled": "304066826b65fcf0fe9a5312cb7a98305f302d3c2d4b376196e18d35f642a6b9"
+  },
+  "limitations": [
+    "The public getEllipseLength helper intentionally retains its historical near-equal-angle tolerance; entity length uses distinct endpoints.",
+    "Ellipse trim and other tolerance-dependent editing paths, native GUI rendering, other source producers, planes, versions and platforms are not qualified by these tests.",
+    "Finite-precision angles that round to identical binary64 values cannot encode a nonzero distinction."
+  ]
+}

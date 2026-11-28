@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-extrudedsurface-fields-2026-11-12",
+  "purpose": "Add a generated EXTRUDEDSURFACE callback case to the headless DXF 3D consumer probe.",
+  "changes": [
+    "Added a locally authored AC1027 EXTRUDEDSURFACE with distinct sweep vector, extruded/sweep/path transform values, draft/scale parameters, alignment flags, Boolean options, and reference vector.",
+    "Asserted selected values delivered by addSurface under ext=false and ext=true.",
+    "Exercised both ASCII and Binary DXF via the existing probe runner."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.38 seconds"
+  },
+  "scopeLimit": "Generated same-library callback and field-transport evidence only. It does not establish EXTRUDEDSURFACE geometry evaluation, independent interoperability, DWG field semantics, or native consumer support.",
+  "fixturePolicy": "ASCII and Binary DXF outputs are generated under a temporary directory at runtime and removed; no fixture file was added.",
+  "claimEffect": "No format support claim changes. S8.3 gains selected EXTRUDEDSURFACE callback-field coverage."
+}

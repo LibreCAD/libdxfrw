@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-02",
+  "status": "HATCH_MPOLYGON_NONMUTATING_OCS_WCS_BOUNDARY_COORDINATE_MAPPING_PASS_NATIVE_SEMANTICS_OPEN",
+  "baselineHead": "33fca767",
+  "scope": "Public, non-mutating HATCH/MPOLYGON boundary point and vector coordinate mapping from OCS to WCS; does not transform parser callbacks, alter stored boundary geometry, or qualify native hatch semantics",
+  "authority": [
+    {
+      "title": "Autodesk HATCH (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "rules": [
+        "HATCH and MPOLYGON group 10 is an OCS elevation point; X and Y are zero and Z is the elevation.",
+        "Group 210/220/230 supplies the WCS extrusion direction."
+      ]
+    },
+    {
+      "title": "Autodesk Boundary Path Data (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+      "rules": [
+        "Polyline, line, circular-arc, elliptical-arc, and spline boundary points use OCS coordinates.",
+        "Spline boundary start and end tangents are OCS vectors."
+      ]
+    },
+    {
+      "title": "Autodesk Object Coordinate Systems (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm",
+      "rule": "The entity extrusion direction defines the OCS basis using the arbitrary-axis algorithm."
+    }
+  ],
+  "implementation": {
+    "files": [
+      {
+        "path": "CMakeLists.txt",
+        "sha256": "fa9c811eee446d405f69d664796b6e4404d0c5711e5584b99ee79ef36b7cbdcb"
+      },
+      {
+        "path": "src/drw_entities.cpp",
+        "sha256": "9f66e3b3a1ce66e4e7ad661fb18dc7fbb870d18a58716e581148dbf59d2066eb"
+      },
+      {
+        "path": "src/drw_entities.h",
+        "sha256": "aec7cc485e369ba1b312ba7450e3a52541a4e992f71e1801ab22292ff3f6c903"
+      },
+      {
+        "path": "tests/dxf_fixture_tests.cpp",
+        "sha256": "24f74742d7fd09e968f2c1c7a0b275b54ae638812aec8453707b6589701b4eb4"
+      },
+      {
+        "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "sha256": "6425a1dd7aa1b78b533e3fceaf81624a8cd7beae48e8f968d43f3266c1a3af17"
+      }
+    ],
+    "behavior": [
+      "DRW_Hatch::boundaryPointToWcs adds the HATCH OCS elevation and maps the complete point through the shared arbitrary-axis basis.",
+      "DRW_Hatch::boundaryVectorToWcs maps vectors without applying elevation translation.",
+      "DRW_MPolygon inherits both mappings from DRW_Hatch.",
+      "The methods do not mutate the input, extrusion normal, elevation, or stored 2D boundary model; no data members or virtual methods were added.",
+      "Existing DRW_Entity::calculateAxis now uses the same basis calculation, keeping the mapper and existing applyExtrusion conversions aligned."
+    ]
+  },
+  "control": {
+    "selector": "--hatch-ocs-wcs-coordinate",
+    "cases": [
+      "normal [1,0,0], elevation 4, point [2,3,0] maps to [4,2,3]",
+      "normal [1,0,0], vector [2,3,0] maps to [0,2,3] without translation",
+      "non-unit MPOLYGON normal [2,0,0] produces the normalized OCS basis",
+      "negative WCS Z normal [0,0,-1] maps point [2,3,0] at elevation 4 to [-2,3,-4]",
+      "input coordinates and stored HATCH elevation/normal remain unchanged"
+    ],
+    "fixtureDisposition": "No drawing fixture was created or committed."
+  },
+  "validation": {
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.0 (arm64-apple-darwin27.0.0)",
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_dwg_local_roundtrip -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --hatch-ocs-wcs-coordinate",
+      "result": "PASS",
+      "executableSha256": "485a074ea5b7e25b3b9057cdcc7e8fc25c2c995d458e888be83dd0293d174dd6"
+    },
+    "focusedCohort": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_(text|hatch|polyline|underlay|dimension)_ocs_(extrusion|wcs_coordinate)|dxf_ellipse_extrusion_policy)$' --output-on-failure",
+      "result": "PASS, 6/6 in 0.66 seconds",
+      "roundtripExecutableSha256": "a289a6d4e593ec49cef6e03c1f18f3885a3a8076de49aad72ae1f0aa3c98031d"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "This is a coordinate mapping API only. dxfRW does not automatically rewrite HATCH/MPOLYGON callback coordinates when applyExtrusion is true.",
+    "No physical producer, LibreCAD/LibreCAD_3, FreeCAD, or other native consumer was exercised.",
+    "Boundary evaluation, fill/rendering meaning, associated source objects, writer round-trip and other HATCH/MPOLYGON profiles remain unqualified.",
+    "No format-support claim is promoted."
+  ]
+}

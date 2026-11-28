@@ -1,0 +1,9 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 section 20.4.44: DICTIONARY parent soft-pointer and xdictionary hard-owner slots. Unlike R2004+, R2000 always stores the xdictionary slot.",
+  "change":"Use typed-null parent and xdictionary handle roles for the internally generated AC1015 NOD and ACAD_GROUP dictionaries. Preserve ordinary caller-supplied dictionary encoding and AC1018+ behavior. No source metadata is overwritten.",
+  "source":"LibreDWG 0.14 decodes an ODA-produced locally authored AC1015 control with root parent (4.0.0) and xdictionary (3.0.0); the previous generated root had both as (0.0.0).",
+  "oda_differential":"ODA File Converter 27.1.0, ACAD2013 DXF, audit=0: neither root owner typed alone nor xdictionary typed alone moved the failure from AcDbDictionary(C). A scratch case with both roles corrected only for synthetic NOD/GROUP (SHA-256 e97f216b35107a0b321d4e64b5b5f0a45bec7473908484e9af43937764177d8c) moved the failure to AcDbDictionaryWithDefault(30), still with no DXF. The scratch includes an opt-in default plotstyle graph and does not establish default-path interoperability.",
+  "tests":"Six-version exact null-role bytes for synthetic and caller roots, following dictionary entry alignment, and existing same-writer rollback/retry, group graph and consumer readback controls.",
+  "limits":"The opt-in synthetic DICTIONARYWDFLT null-role correction is a separate change dependent on the plotstyle graph. No fixture is committed."
+}

@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Open-source round-trip evidence, identity normalization, and route readiness",
+  "mode": "Primary-source repository and test-source review with local plan cross-check",
+  "scope": [
+    "Inspect what current peer round-trip tests compare and which source identity or provenance fields they normalize away.",
+    "Reconcile DWG-RS container/entity coverage and writer claims with the evidence actually reported.",
+    "Refresh optional IxMilia DXF comparator and conditional external-tool test boundaries.",
+    "Refine the existing composed peer-comparison protocol without adding a peer to the fast validation loop."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_downloaded": 0,
+    "peer_fixtures_copied": 0,
+    "local_tests_changed": false,
+    "full_suite_run": false,
+    "local_files_reviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "plan_updated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub main/master sources and project-authored test files are mutable and were not bound to a peer release artifact or executed. Their declarations establish test intent and route boundaries only. No local implementation mismatch was reproduced."
+  },
+  "sources": [
+    {
+      "project": "ACadRust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs#L3221-L3295",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs#L3798-L3855",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "The general entity round-trip comparator normalizes both objects before equality. Its normalization clears handles, owners, reactors, extension-dictionary links, internal entity mode, raw-record provenance, and selected entity-specific references/collections. The suite also uses a same-ACadRust-writer/reader helper, a marker-bearing synthetic SAB helper, and a separate generated planar-body round-trip. These are useful internal regression patterns but do not establish whole-graph identity, independent native acceptance, or a general valid SAB profile."
+    },
+    {
+      "project": "DWG-RS",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "observed": "The README separates container/object enumeration maturity from alpha/partial per-entity decoding, reports per-version decoded/skipped/errored observations over a small local corpus, and states that its alpha DWG writer lacks automated external CAD acceptance. The coverage ratios are corpus- and denominator-specific, not cross-project completeness scores."
+    },
+    {
+      "project": "IxMilia.Dxf and IxMilia dxf-rs",
+      "urls": [
+        "https://github.com/ixmilia/dxf",
+        "https://github.com/ixmilia/dxf-rs",
+        "https://github.com/ixmilia/dxf-rs/blob/main/src/misc_tests/integration.rs"
+      ],
+      "observed": "IxMilia.Dxf documents DXF version/entity exclusions and warns that AutoCAD may reject selected output records. The Rust dxf-rs repository documents Windows/external ODA converter interop tests; these conditional tool branches must be recorded as PASS, FAIL, SKIP, or NOT_RUN rather than inferred from a green process exit. Neither route is a DWG or ACIS semantic implementation."
+    }
+  ],
+  "plan_impact": {
+    "existing_composed_gate_refinement": "Capture source-to-output identity and owner/reference closure before applying any peer's normalized field equality; record each normalization rule explicitly.",
+    "peer_results": "Record exact version/direction, per-source-identity disposition, record-type denominator, warning/skip/error state, and conditional test outcome. Keep same-codec round-trip as internal consistency only.",
+    "acis_semantics": "Separate synthetic marker/framing, same-codec round-trip, independent parser/kernel with independently authored analytic expectations, and native application acceptance.",
+    "implementation_order_changed": false,
+    "validation_frequency_changed": false,
+    "new_local_defects": 0,
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "peer_runs": 0,
+    "native_runs": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 134,
+      "top_level_subplans": 76
+    }
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Plan and research receipt updated in a broadly dirty shared worktree. No files were staged or committed."
+}

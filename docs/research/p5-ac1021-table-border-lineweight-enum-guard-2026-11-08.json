@@ -1,0 +1,40 @@
+{
+  "title": "AC1021 TABLE border lineweight enum guard correction",
+  "date": "2026-11-08",
+  "status": "CORRECTED_DXF_ENUM_DOMAIN_WITH_FAST_CONTROLS",
+  "supportClaimEffect": "none",
+  "scope": "Tighten the row-level and cell-level TABLE border lineweight parser/writer paths to the DXF lineweight enum domain.",
+  "source": {
+    "authority": "Autodesk ObjectARX AcDb::LineWeight reference",
+    "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDb__LineWeight.html",
+    "values": [-3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, 211],
+    "excluded": "-4 is internal use only; 26 and arbitrary 16-bit values are not enum members."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/table_content_dxf_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": [
+      "Row-level lineweight parsing marks the TABLE semantically incomplete when the signed DXF value is outside the exact enum.",
+      "Cell-level lineweight parsing applies the same enum check while retaining the parsed value for diagnostics.",
+      "Row-level raw DWG values are reinterpreted from their 16-bit bit pattern only when the signed result is in the enum; selected-zero and valid sentinels remain representable.",
+      "DXF output preflight now applies the enum to row and cell borders, including the AC1018 selected-border path; invalid values fail before destination replacement."
+    ]
+  },
+  "validation": {
+    "fixturePolicy": "Runtime-authored in existing test source; no fixture files were added.",
+    "focusedTests": [
+      "libdxfrw_table_row_alignment_override_parse: ASCII/Binary accepts 0, ByBlock (-2) and 211; missing selected values and out-of-enum row and cell values leave semantic completeness false.",
+      "libdxfrw_table_scalar_override_output: ASCII/Binary exact group order and readback with cell and row values; invalid row and cell value 26, invalid visibility, and orphan values preserve the destination; corrected retry succeeds."
+    ],
+    "diffCheck": "git diff --check"
+  },
+  "limits": [
+    "This validates the enumerated field domain and codec transport only.",
+    "No physical AutoCAD/ODA-produced TABLE order, native rendering or broad producer support is qualified."
+  ],
+  "followUp": "The prior border mapping receipt demonstrated 16-bit transport but used an invalid arbitrary lineweight control value; this receipt supersedes that value-domain implication and narrows the test to valid enum members."
+}

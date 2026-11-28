@@ -1,0 +1,30 @@
+{
+  "id": "p5-ac1018-tablecontent-candidate-observer-2026-11-11",
+  "date": "2026-11-11",
+  "scope": "Opt-in, bounded partial inspection of one producer-specific AC1018 TABLECONTENT profile. Ordinary object dispatch, typed callbacks and output gates are unchanged.",
+  "authority": {
+    "oda_pdf": "Open Design Specification for .dwg files v5.4.1, SHA256 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7, sections 2.2–2.5, 2.12, 2.13, 20.1 and 20.4.97–101. The specification dates standalone TABLECONTENT to 2008; this is a producer-specific out-of-version AC1018 occurrence.",
+    "source_walk": "p5-ac1018-tablecontent-complete-body-walk-2026-11-11.json independently walks source bit fields and compares them with the same vendor's DXF projection. That projection is not an independent native semantic oracle."
+  },
+  "implementation": [
+    "The opt-in observer verifies custom class/self identity and a no-EED/no-reactor/no-extension common shell, then reuses bounded TABLECONTENT helpers with AC1018 inline body/text and a separately positioned handle cursor. It does not alter the ordinary parser's AC1018 refusal.",
+    "The candidate retains the complete raw body plus each ASCII TV's bit interval and exact bytes, including trailing NUL. Its typed TABLECONTENT projection is partial: custom maps, styles and other fields remain represented only by source bytes/ranges and do not imply semantic or write completeness.",
+    "Require a 3x3 layout before allocating row/column/cell containers, exactly 45 TV spans, 17 null H5 text-style slots, 33 null H5 border-linetype slots and one nonnull H5 TABLESTYLE, a nonnull H4 parent, exact data/handle end and fewer than eight zero padding bits. Reject unobserved handle kinds, named CMC colors, unobserved CadValue types, non-ASCII/embedded-NUL TVs, reserved BL/BD forms and contradictory validated common-link metadata.",
+    "A 64 KiB input cap, per-count cap of six, 45-TV and 51-handle limits and a 12,000-unit observer work budget bound candidate work. Candidate-only thread-local trace and alternate-probe state are restored by RAII; rejected input and allocation exceptions clear the result. No public callback or input carrier authenticates source provenance."
+  ],
+  "validation": {
+    "focused_command": "cmake --build build --target libdxfrw_dwg_tablecontent_ac1018_candidate_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_local_roundtrip -j 3; ctest --test-dir build -R '^libdxfrw_(table_content_dwg_object_roundtrip|table_content_style_id_domains|table_content_dwg_payload_encoder|table_content_cell_style_border_alignment|table_content_override_style_types|dwg_tablecontent_ac1018_candidate)$' --output-on-failure",
+    "result": "6/6 passed. The locally authored 3x3 body independently records and compares every TV and handle offset, payload, kind, role and reference, including seven trailing-NUL TVs. Boundary truncations, wrong identity/common metadata, malformed roles/padding, reserved BL/BD and CMC BL, named colors, non-ASCII/embedded NUL, excessive counts, repeated long TVs/custom data, and oversized declared binary/point variants are refused with cleared result.",
+    "fault_scope": "The generated success measured 2,779 allocations; eight selected allocation offsets were injected and each permitted a corrected retry. This is sampled coverage, not an exhaustive fault sweep. Generated and physical observations used 1,620 and 1,799 work units respectively; the candidate ceiling is 12,000.",
+    "physical_source_sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "physical_body_sha256": "5caa9921eb02acc3efc94c6d71f90c9bc400dbb7969eb95c4dadf142064630f2",
+    "physical_callback": "One actual reader callback reported candidate success, parent 0xbc, data end 13313, handle end 13745, 45 TV and 51 field-tagged handle spans. The separately executed comparator matched every TV start/end/raw byte sequence and handle field/start/end/role/size/reference to the pinned source walk; seven TVs retain a final NUL.",
+    "reproduction": [
+      "Run tools/research/p5_ac1018_tablecontent_interior_verify.py using the pinned source, peer JSON, same-vendor DXF and body directory described in p5-ac1018-tablecontent-complete-body-walk-2026-11-11.json; save its JSON to /private/tmp/p5-tablecontent-interior-reference.json.",
+      "Compile tools/research/p5_ac1018_tablecontent_candidate_probe.cpp with -std=c++17 -Wall -Wextra -Werror, include src and dwg2dxf, and link build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o and build/libdxfrw.a; run it on the pinned DWG and save stdout as /private/tmp/p5-tablecontent-candidate.json.",
+      "Run python3 tools/research/p5_ac1018_tablecontent_candidate_compare.py --source /private/tmp/p5-desc-input/input.dwg --candidate /private/tmp/p5-tablecontent-candidate.json --reference /private/tmp/p5-tablecontent-interior-reference.json. PASS reports 45 text and 51 handle spans."
+    ],
+    "provenance_limit": "The comparator verifies the source digest and source-walk result but cannot authenticate arbitrary supplied candidate JSON; it must be produced by the stated callback probe. No external DWG/DXF fixture is committed."
+  },
+  "remaining": "CRC-authenticated reader-origin binding for TABLECONTENT, exact non-null dependency roles and TABLESTYLE closure, codepage 45 in XRECORDs, DATATABLE and nine descendant graph closure, HEADER integrity, foreign/native semantics and transactional writer/readback remain open. The candidate carries no output authorization."
+}

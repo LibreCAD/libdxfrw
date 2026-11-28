@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw-proxy-graphics-emission-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Implement and verify the bounded 7AP.3 generic DXF typed proxy-graphics replay path, retaining default compatibility behavior and the existing fast validation cadence.",
+  "method": {
+    "kind": "Local source implementation plus generated in-memory ASCII/Binary DXF vectors and wire/readback assertions",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "focusedTestSelector": "build-gcc/libdxfrw_dxf_fixture_tests --proxy-graphic-loss-policy",
+    "buildTargets": [
+      "libdxfrw_dxf_fixture_tests",
+      "lc3_compat_check"
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "productionFilesChanged": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/intern/dxfreader.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_data.h"
+    ],
+    "testFilesChanged": [
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "limitations": "Only representative AC1021/group-92 and AC1024/group-160 caller-authored payloads were emitted in generated ASCII/Binary vectors. This does not qualify every DXF version/entity carrier, parsed-cache emission, DWG proxy streams, unknown/resource-dependent opcodes, independent producers, rendering, or native application behavior. DRW_Entity layout changed; downstream binaries must be rebuilt."
+  },
+  "behavior": [
+    {
+      "topic": "Replay eligibility",
+      "observed": "The generic entity writer requires explicit replay authorization, positive exact current and declared byte count under the existing cap, exact source/target DXF version, exact source/output codepage, and the target-era group count. Only parsed ASCII/Binary DXF or caller-supplied provenance is accepted; DWG-origin data is refused.",
+      "excluded": [
+        "HATCH",
+        "MESH",
+        "MPOLYGON",
+        "ACAD_PROXY_ENTITY",
+        "unsupported or indexed-resource/matrix chunks",
+        "empty cache emission"
+      ]
+    },
+    {
+      "topic": "Wire emission",
+      "observed": "Complete recognized primitive streams emit once in common entity scope with group 92 before AC1024 or group 160 at AC1024+, using the existing 127-byte group-310 chunk boundary. Caller data/count are unchanged."
+    },
+    {
+      "topic": "Generated controls",
+      "observed": "ASCII/Binary AC1021 and AC1024 vectors cover 0, 127, 128, 255, and 256 bytes, exact declared count and chunk lengths/contents, readback provenance, and a following LINE sentinel. Strict refusals cover wrong target version, wrong codepage, stale count, and indexed-resource stream."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "openWork": [
+      "parsed-cache emission through a bounded source-authenticated profile",
+      "additional version/entity-specific replay matrices where relevant",
+      "duplicate raw-plus-typed source disposition",
+      "independent producer and consumer semantic evidence at the existing composed gate"
+    ]
+  },
+  "validation": {
+    "fixtureTargetBuild": "PASS",
+    "focusedProxyGraphicsSelector": "PASS",
+    "lc3CompatibilityCompileTarget": "PASS",
+    "fullTestSuite": "NOT RUN",
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

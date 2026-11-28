@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-r12-binary-extended-code-framing-fast-slice-v1",
+  "reviewedAt": "2026-10-18",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Add the missing PAR-39/7BU R12 binary extended-group-code escape control to the existing independent DXF writer type-boundary owner.",
+  "normativeBasis": {
+    "autodeskBinaryDxfReference": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm",
+    "localContract": "The pre-R13 binary writer uses one-byte codes through 254 and the 0xFF escape followed by a 16-bit little-endian group code for extended data; R13+ continues to use its separate 16-bit code path. The test expectation is authored independently from production helpers."
+  },
+  "implementation": {
+    "productionFileChanged": false,
+    "testFile": "tests/wave1_tests.cpp",
+    "existingOwner": "PAR-39 / 7BU / testDxfBinaryWriterTypeGuard / libdxfrw_wave1_tests",
+    "changes": [
+      "Generate an R12 Binary-DXF sequence containing XDATA generic string code 1009, double code 1010, and a following code-0 EOF sentinel.",
+      "Check exact 0xFF escape bytes, little-endian code bytes, NUL-terminated string, exact 1.25 IEEE-754 bytes, and the single-byte EOF code using a test-only byte vector.",
+      "Read the generated sequence with dxfReaderBinaryR12 and assert code/value types, exact values, EOF sentinel, and full consumption."
+    ],
+    "observedOutcome": "Exact-byte and R12 reader controls pass; no writer or reader defect was reproduced.",
+    "fixturePolicy": "The wire vector is created in memory. No DXF fixture file or binary artifact was added."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests -j2",
+    "buildResult": "PASS; strict Wave 1 test target rebuilt and linked.",
+    "focusedCommand": "build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+    "focusedResult": "PASS.",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+    "testResult": "PASS; 1/1 in 0.47 seconds.",
+    "diffCheck": "PASS for tests/wave1_tests.cpp and plan file.",
+    "fullSuite": "NOT RUN per fast-slice cadence.",
+    "nativeCadOrPeer": "NOT RUN."
+  },
+  "planImpact": {
+    "finding": "Existing PAR-39 / 7BU only.",
+    "findingStatus": "R12_EXTENDED_CODE_FRAMING_CONTROL_IMPLEMENTED; broader literal/dynamic census remains open.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelImplementationSubplans": 73
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commitCreated": false,
+    "worktreeNote": "Shared worktree was already broadly dirty; only the generated test case, plan progress update, and receipt were added. Nothing was staged."
+  }
+}

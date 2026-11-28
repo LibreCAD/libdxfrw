@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-r13-table-and-gcc13-context-2026-11-22",
+  "date": "2026-11-22",
+  "sourceCommit": "600da20591215da8acf106f28102cd85fb80b2bd",
+  "supportClaimEffect": "none",
+  "legacyTable": {
+    "source": "LibreDWG test/test-data/example_r13.dwg, read in place and not committed",
+    "sourceSha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+    "provenance": "The file was added to the LibreDWG repository in commit f7be04e943199c5cf0d1cb69421f085bb90f495f; the original producer and exact release are not established.",
+    "authority": "ODA DWG specification v5.4.1 section 20.4.96.1; document SHA-256 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "peer": "LibreDWG dwgread 0.14 reports TABLE 0x4F2 with block 0x4F3, style 0x29B, 9 columns, 20 rows, all stated dimensions and no ATTRIBs.",
+    "validation": "The hash-selected optional CTest exercises opt-out, disabled and enabled grid callbacks, source placement, grid dimensions and values, the 2D INSERT projection and an explicitly unvalidated raw peer. The R13 and existing R14 tests pass in release and AddressSanitizer builds; a mismatched source hash is refused.",
+    "attributeScreen": "Six local AC1012/AC1014 samples were screened. Three contained four TABLE records in total, each with has_attribs=0; the other three contained no TABLE. A LibreDWG JSON rewrite of an edited TABLE retained the original unsupported raw TABLE bytes instead of emitting the requested attribute change. Neither screen proves native attribute semantics.",
+    "limits": "No external or derived drawing is committed. Cells and ATTRIB chains remain incomplete; no whole-file export or native display support is claimed."
+  },
+  "ciRepair": {
+    "linuxFailure": "Native qualification run 44990196556 job 137109976278 failed under GCC 13 -Werror=dangling-pointer when the scoped thread-local link context constructor was inlined into entity encoders.",
+    "fastFailure": "Fast run 44990196605 job 137109346686 failed under GCC 13 -Werror=range-loop-construct on an avoidable copy in the dictionary vector test.",
+    "windowsFailure": "Native qualification run 44990196556 job 137109976297 failed because MSVC required lambda-visible local handle constants to have a suitable capture or static storage duration.",
+    "change": "Move the unchanged scoped link stack implementation into its buffer implementation translation unit, bind the dictionary test loop item by const reference, and give the reader-matrix handle constants static storage duration. The scoped pointer is restored on destruction, including exceptions; no compiler warnings are disabled.",
+    "validation": "The source and dictionary test compile under local GCC 16 with -O3 -Wall -Wextra -pedantic -Werror. Six focused nested-scope, chain and TABLE tests pass, plus the dictionary test and the rebuilt reader-matrix --r14-render-raw selector; AddressSanitizer with leak detection disabled passes the link-scope and both external TABLE controls. The existing scope test covers nested restoration, exception unwind, conflicting staged buffers and thread isolation. Hosted GCC 13 and MSVC must confirm the fixes.",
+    "implementationDigestSha256": "06c7077c234b53705855e6ebc30b5e022ff9df2dc5de06a64ca40dcc25f2eae2",
+    "qualification": "Clean candidate checkout passes release-inventory, 1398-test CTest inventory, digest, workflow and support joins; zero claims are advertised."
+  }
+}

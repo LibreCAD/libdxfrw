@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "PR 106 current candidate implementation digest refresh",
+  "date": "2026-11-25",
+  "supportClaimEffect": "none",
+  "candidate": {
+    "baseHead": "b0bd311ff16c71b09692f2b24c33443ddb680fd7",
+    "implementationCommit": "122ebd51a",
+    "documentationHead": "33e87dccc803a4ffe612b32fcba635d959e626c5",
+    "validatedCodeHead": "e88e597c0ad93d59ea263bf51e1feb18f1316e15",
+    "inputCount": 774,
+    "implementationDigestSha256": "cc1b3bd69345e762b51f00f4d7d83e9015419fcb8a4e6532f0d62417a7132957",
+    "claimsDigestSha256": "7f72bd5c6033fb312c89d56fcc5b476063273a2b24faa863e58114a703956ab8"
+  },
+  "reason": "Commit 122ebd51a adds bounded AC1021 TABLE General-value ASCII/Binary output and its focused CTest. Exact PR head 817b3d7 then failed fast run 373 and native qualification run 531 because the frozen CTest inventory contained 1,400 tests and omitted libdxfrw_table_general_selected_output. The live configured inventory contains 1,401 tests. The manifest now records all 1,401 names; this selected metadata change refreshes the implementation digest. The prior hosted checks bind older digests and do not qualify this candidate. The frozen 1,401-test inventory and refreshed digest pass exact-head hosted validation.",
+  "localValidation": {
+    "build": "PASS: Debug build of libdxfrw_table_content_dxf_tests under -Werror",
+    "focusedTest": {
+      "name": "libdxfrw_table_general_selected_output",
+      "result": "PASS"
+    },
+    "baselineComparison": "The adjacent table_value_payload and table_export_reuse CTests fail identically on an archived clean base b0bd311 and the changed branch; these are pre-existing failures and are not attributed to this slice.",
+    "receiptJson": "PASS",
+    "diffCheck": "PASS",
+    "qualifiedFormatSupportCheck": "PASS: 15 claims, 2 candidate routes, 0 advertised",
+    "supportMatrixCheck": "PASS",
+    "workflowContractCheck": "PASS"
+  },
+  "qualification": {
+    "P8F": "CLOSED_FOR_DIGEST_CC1B3BD6; validated code head e88e597c; current documentation-only PR head 33e87dccc",
+    "P8AE": "PRIOR_PACKAGE_RECEIPTS_ARE_STALE_FOR_THIS_DIGEST; refresh at integration freeze",
+    "P8BCDG": "OPEN",
+    "hostedChecksForCurrentHead": "Validated code head e88e597c0ad93d59ea263bf51e1feb18f1316e15: fast run 374 passed (7 executables, 53 required CTests); native qualification run 532 passed the workflow/digest contract and 7 focused tests on linux-gcc, macos-clang, and windows-msvc. All three native receipts were emitted, sealed, uploaded, and enforced successfully. Current PR head 33e87dccc803a4ffe612b32fcba635d959e626c5 changes only this receipt and the plan, outside the 774 selected inputs.",
+    "supportStatus": "All claims remain EXPERIMENTAL; zero routes are advertised.",
+    "implementationDigest": "cc1b3bd69345e762b51f00f4d7d83e9015419fcb8a4e6532f0d62417a7132957"
+  },
+  "statusOverlay": "metadata/qualified-format-status-v1.json implementationDigestSha256 refreshed to cc1b3bd6; claims digest and claim statuses unchanged.",
+  "inventoryCorrection": {
+    "priorCount": 1400,
+    "currentCount": 1401,
+    "addedName": "libdxfrw_table_general_selected_output",
+    "nameDigest": "522d9d52c4397026733e4955d37918a98386408f42d13677ca8de56e6409d946",
+    "generatedAtCommit": "817b3d7d0558521cfb1412947ecb7098a484beb0",
+    "localInventoryCheck": "PASS"
+  },
+  "hostedEvidence": {
+    "head": "e88e597c0ad93d59ea263bf51e1feb18f1316e15",
+    "implementationDigestSha256": "cc1b3bd69345e762b51f00f4d7d83e9015419fcb8a4e6532f0d62417a7132957",
+    "fast": {
+      "workflowRun": 45571099032,
+      "runNumber": 374,
+      "conclusion": "success",
+      "inventoryCount": 1401,
+      "summary": "7 fast executables + 53 required CTests passed"
+    },
+    "nativeQualification": {
+      "workflowRun": 45571099001,
+      "runNumber": 532,
+      "conclusion": "success",
+      "focusedTestCountPerPlatform": 7,
+      "platforms": {
+        "linux-gcc": {
+          "jobId": 139057735732,
+          "receiptSha256": "5ec4e00b419933f21f7954b9b8970a0ad43005ddf3f19161f39211288436be98",
+          "artifactId": 15003435483,
+          "artifactSha256": "9ce065976c17a7162696006101d06fa76c2f2acb4a4ec51faea27e9b09b6c568"
+        },
+        "macos-clang": {
+          "jobId": 139057735863,
+          "receiptSha256": "c699d40a3d3c1e106da14b351da6f07b514167ef738393f866e0f7da9eba4926",
+          "artifactId": 15002237686,
+          "artifactSha256": "a8169b93c77b0b55aafcdf1c673a64abedd8962e755d77cb3f5990b07d511ea8"
+        },
+        "windows-msvc": {
+          "jobId": 139057735710,
+          "receiptSha256": "728868ed7ae03d98b3002881467db241ca1f89e5fb37aa0882cbb358f74df365",
+          "artifactId": 15003350751,
+          "artifactSha256": "606ce1591a20839e37c9fb7aff5e44768123e646fbde125dfd7d331cbb3b7e45"
+        }
+      }
+    },
+    "broadFuzzAndSourceRelease": "SKIPPED_BY_WORKFLOW_DESIGN; reserved for P8-G integration freeze"
+  }
+}

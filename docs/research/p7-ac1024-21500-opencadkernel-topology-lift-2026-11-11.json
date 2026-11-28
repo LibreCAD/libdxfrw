@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-21500-opencadkernel-topology-lift-2026-11-11",
+  "purpose": "Record a bounded independent-kernel lift of the selected ACIS 21500 source topology, including exact incidence/orientation comparisons and kernel validation failures.",
+  "source": {
+    "dwg": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "version": "AC1024",
+    "entity": "3DSOLID",
+    "handle": "0x183",
+    "sabBytes": 7048,
+    "sabSha256": "00f7dd11b8993d066a25e33a05dd97fb14f8b35eb7a4d7614c596b6b41d6d79b",
+    "satProjection": "/private/tmp/p7-aerial-solid.sat",
+    "satProjectionSha256": "b7a6cad6a6714f02ac36832d5767041c606b31258b6a9b8cebd2b1ccf8e1e971",
+    "producerProvenance": "Not independently authenticated"
+  },
+  "independentRoute": {
+    "repository": "https://github.com/HakanSeven12/OpenCADStudio",
+    "revision": "36981c6abe76e4b69d0a8ac5e210c35a0e8f681c",
+    "crate": "ocs_acis",
+    "kernel": "OpenCADKernel",
+    "kernelRevision": "802f75134a5606d34bd34dac0d3508565537b067",
+    "satParser": "ACadRust",
+    "satParserRevision": "ce8a148568e7a80a80f50797bf287a651d1259c7",
+    "probe": "/private/tmp/opencadstudio-p7/crates/ocs_acis/tests/libdxfrw_ac1024_21500_probe.rs",
+    "probeSha256": "507ca0f1e8e70466d64911f173e020316ff53e36c84a4101e03dcdf6d102d06b",
+    "probeStatus": "scratch-only; not committed in either repository"
+  },
+  "bridgeNormalization": {
+    "reason": "The pinned ACadRust typed SAT accessors assume classic row offsets. The selected ACIS 21500 projection contains additional pointer fields at type-specific positions, so the unmodified OpenCADStudio lift reads null or wrong references. A disposable copy of the parsed record table was normalized only to align those typed accessor offsets before calling ocs_acis::lift.",
+    "selectedObservedRows": {
+      "bodyLumpShell": "remove token 0",
+      "faceCoedgeEdge": "remove token 1",
+      "loop": "remove token 2",
+      "pointPlaneSurfaceStraightCurve": "remove token 0",
+      "vertex": "retain the first two null pointers and the final point pointer"
+    },
+    "coedgeSense": {
+      "observedTokens": "F parses as SatToken::False; I parses as SatToken::Ident(\"I\") in pinned ACadRust.",
+      "kernelMapping": "F → forward; I → reversed",
+      "evidence": "Mapping both tokens to forward produced 12 SameSidedEdge flaws; mapping I to reversed removes them and closes the four affected loop traversals. This is one source/profile result, not a general parser rule."
+    },
+    "scope": "One hash-pinned source projection only. These scratch edits do not change libdxfrw output or establish a version-wide SAT layout."
+  },
+  "result": {
+    "satRecords": 115,
+    "bodies": 1,
+    "lumps": 1,
+    "shells": 1,
+    "faces": 6,
+    "loops": 6,
+    "coedges": 24,
+    "edges": 12,
+    "vertices": 8,
+    "kernelLoss": {
+      "surfaces": 0,
+      "curves": 0,
+      "brokenReferences": 0
+    },
+    "sourceComparisons": {
+      "faceToLoopOrder": "all six faces match",
+      "loopToCoedgeOrder": "all six four-coedge rings match",
+      "loopOwner": "all six match",
+      "coedgeOwnerAndEdge": "all 24 match",
+      "edgeEndpointsAndSense": "all 12 match",
+      "faceAndCoedgeOrientationFields": "all 6 face and 24 coedge fields match the normalized typed source profile"
+    },
+    "kernelValidation": {
+      "passed": true,
+      "flawCount": 0,
+      "openLoops": 0,
+      "sameSidedEdges": 0,
+      "otherFlaws": 0
+    }
+  },
+  "validation": {
+    "command": "LIBDXFRW_AC1024_SAT=/private/tmp/p7-aerial-solid.sat CARGO_TARGET_DIR=/private/tmp/opencad-p7-target cargo test --manifest-path /private/tmp/opencadstudio-p7/Cargo.toml -p ocs_acis --test libdxfrw_ac1024_21500_probe -- --nocapture",
+    "result": "PASS: explicit source incidence/orientation assertions pass, kernel loss is empty, and OpenCADKernel body validation reports zero flaws after the documented scratch-only row and F/I sense normalization.",
+    "noDrawingFixtureCommitted": true
+  },
+  "libdxfrwRegression": {
+    "file": "tests/graph_preservation_tests.cpp",
+    "change": "Generated ACIS 21500 two-coedge loop controls assert all-reversed sense flags [1,1] and mixed flags [0,1], endpoint traversal and closure. The mixed SAB is passed through drw_convertSabToSatV1 and asserts one F forward token and one I reversed token on the emitted coedge rows. SAB bytes are authored in memory.",
+    "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4 && build-gcc/libdxfrw_graph_preservation_tests",
+    "result": "PASS: Graph/preservation tests",
+    "sourceFileSha256": "cd69d54297f052bf218883f7e5527633ad30f28ace5b9d512f34bc5bcdc439a5"
+  },
+  "unresolved": [
+    "Determine which additional 21500 fields are semantic versus producer-specific using authoritative or independent source evidence; do not promote the scratch normalization to a format rule.",
+    "Independently corroborate the F/I sense interpretation with version-specific normative or native producer evidence; this kernel result is bounded to one source and one kernel.",
+    "Establish the meaning of the 21500 header entity-count field and validate the source body as a B-rep.",
+    "Complete DWG entity/owner/AcDs/SAB association, placement/units, native importer acceptance, output binding and consumer/platform qualification."
+  ],
+  "claimEffect": "Adds one bounded independent-kernel result: after explicit scratch-only row and sense normalization, the selected source incidence lifts to a zero-flaw OpenCADKernel B-rep. Does not prove ACIS 21500 schema, native acceptance, output qualification or broader support claims."
+}

@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-09",
+  "scope": "Generated-only AC1018 TABLE encoder grid resource-budget refusal controls",
+  "limits_in_production": {
+    "columns": 1000,
+    "rows": 10000,
+    "total_cells": 200000
+  },
+  "controls": [
+    {
+      "case": "columns over individual limit",
+      "declared_columns": 1001,
+      "result": "refused atomically"
+    },
+    {
+      "case": "rows over individual limit",
+      "declared_rows": 10001,
+      "result": "refused atomically"
+    },
+    {
+      "case": "product over total-cell limit while each individual limit is respected",
+      "declared_columns": 1000,
+      "declared_rows": 201,
+      "declared_cells": 201000,
+      "result": "refused atomically"
+    }
+  ],
+  "verification": {
+    "focused_ctest": "libdxfrw_dwg_table_cell_overrides passed in build-gcc and build-asan-custom",
+    "destination_preservation": "checked by the existing atomic-preflight helper for each case",
+    "diff_check": "pass"
+  },
+  "limits": [
+    "Generated preflight budget evidence only; no physical TABLE source or producer compatibility is established.",
+    "No DWG/DXF fixture files were added.",
+    "Does not enable public dwgRW::writeTable or promote any TABLE support claim."
+  ]
+}

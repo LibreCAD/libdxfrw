@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-18",
+  "title": "SAB shared intcurve control-polygon memoization",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "planOwners": [
+    "PAR-07/S8",
+    "7S.3/S3.7 bounded SAB graph projection"
+  ],
+  "changedFiles": [
+    "src/drw_acis.cpp",
+    "tests/graph_preservation_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/sab-shared-intcurve-control-polygon-memoization-fast-slice-2026-10-18.json"
+  ],
+  "change": {
+    "summary": "Parse each shared intcurve-curve NUBS/NURBS control polygon once per extraction and copy it into a separate owning vector for every referencing edge.",
+    "preservedBehavior": [
+      "per-edge DRW_AcisEdge::controlPoints remain independently owned",
+      "curve type and hasCurve flags retain the prior intcurve behavior, including an empty polygon",
+      "cache is local to one extraction and keyed by source curve node index"
+    ],
+    "budgeting": "Charge one output item for each retained cache node, parser output items for cached control points, and output items plus one extraction-work unit per control point copied into every edge."
+  },
+  "generatedControl": {
+    "format": "in-memory SAB, ACIS version 21800",
+    "topology": "One intcurve-curve node with a NUBS subtype, 16 knot doubles and two control points, referenced by one edge baseline and an eight-edge fan-out.",
+    "expectedControlPoints": [
+      [7.0, 8.0, 9.0],
+      [10.0, 11.0, 12.0]
+    ],
+    "assertions": [
+      "every edge retains Intcurve type, hasCurve and both expected control points",
+      "edge control-point vectors have distinct storage",
+      "fan-out extraction work is greater than baseline work but below eight times baseline",
+      "exact extraction-work and output-item budgets admit the result",
+      "one-under extraction-work budget refuses and clears output"
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "build-gcc/libdxfrw_graph_preservation_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "targetExecutable": "passed",
+      "owningCTest": "passed, 1/1, 0.83 s",
+      "scopedDiffCheck": "passed"
+    },
+    "notRun": [
+      "full suite",
+      "peer parser or geometry kernel",
+      "native CAD application",
+      "wall-clock benchmark",
+      "external corpus"
+    ]
+  },
+  "nonPromotion": {
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "nextLocalAction": "Continue the remaining local 7S.3 retention/accounting owner after checking extraction paths for another source-evidenced repeated scan or unaccounted allocation; do not wait on optional peer or native evidence.",
+  "workingTree": {
+    "broadlyModified": true,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

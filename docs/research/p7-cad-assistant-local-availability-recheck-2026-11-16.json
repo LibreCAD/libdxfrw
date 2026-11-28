@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-cad-assistant-local-availability-recheck-2026-11-16",
+  "date": "2026-11-16",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P7-E",
+  "status": "WAITING_FOR_LOCAL_SELECTED_APP_AND_EZDXF",
+  "supportClaimEffect": "none",
+  "search": {
+    "applicationLocations": [
+      "/Applications",
+      "/Users/dli",
+      "/private/tmp",
+      "/Volumes"
+    ],
+    "result": "Targeted searches of /Applications, /Users/dli/Downloads, /Users/dli/doc, /private/tmp, and mounted volumes found no CAD Assistant.app bundle, selected official ARM64 DMG, or CAD Assistant mount; /Volumes listed only Macintosh HD and Time Machine snapshots.",
+    "previousArtifactReceipt": "docs/research/p7-cad-assistant-arm64-integrity-preflight-2026-11-01.json",
+    "previousObservation": "The official ARM64 app passed native signature/notarization verification, but the launch showed a file browser and no model import or geometry measurement."
+  },
+  "witness": {
+    "priorAuthorKnownProfile": {
+      "dimensionsAcisModelUnits": [
+        5,
+        7,
+        11
+      ],
+      "expectedVolume": 385,
+      "expectedSurfaceArea": 334
+    },
+    "priorSabSha256": "f41a0094ae98e6d31e7d55142f233c90dad14140744be628fef9fcceefe73d5b",
+    "currentScratchSabOrManifestFound": false,
+    "repoSabOrManifestFound": false,
+    "noFilesGeneratedDuringRecheck": true
+  },
+  "python": {
+    "systemPython": "ezdxf import failed with ModuleNotFoundError",
+    "existingIsolatedEnvironment": "/private/tmp/freecad-gui-python-20261116/bin/python",
+    "isolatedImport": "ezdxf import failed with ModuleNotFoundError",
+    "otherEnvironmentSearch": "The targeted pyvenv.cfg search under /Users/dli/dev and /private/tmp found only /private/tmp/freecad-gui-python-20261116; that environment lacks ezdxf. No whole-home exhaustive environment census is claimed."
+  },
+  "disposition": "Do not install/download an app or add a Python dependency. Resume only if the previously selected app artifact and an existing ezdxf environment become locally accessible; then regenerate the scratch control and make one import/measurement attempt.",
+  "limitations": [
+    "No ACIS import or geometric measurement was observed.",
+    "A future CAD Assistant result would share OCCT kernel lineage with FreeCAD and could not establish independent-kernel semantics.",
+    "No DWG/DXF fixture or app artifact was added to the repository."
+  ]
+}

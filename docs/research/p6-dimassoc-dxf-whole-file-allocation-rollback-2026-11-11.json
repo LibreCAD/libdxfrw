@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-11",
+  "id": "p6-dimassoc-dxf-whole-file-allocation-rollback-2026-11-11",
+  "title": "DIMASSOC DXF record allocation rollback at the whole-file boundary",
+  "question": "When allocation fails while emitting a DIMASSOC record, does the public whole-file DXF writer preserve the prior destination and permit same-writer retry with typed readback?",
+  "finding": {
+    "change": "Added a generated AC1024 ASCII/Binary test that injects allocation failure at each of the 21 reached allocations inside DIMASSOC emission. Each failed whole-file operation must preserve a preexisting sentinel destination; the same dxfRW instance and source adapter then retry successfully and read back one typed DIMASSOC matching the modeled fields and remapped handles.",
+    "scope": "Whole-file destination transaction and retry evidence for one generated DIMASSOC profile. It does not add production serializer behavior or qualify physical source graph closure, native associative semantics, or broader DXF profiles.",
+    "fixtures": "No DWG/DXF fixture was added. The source object is authored in memory and output is written to the system temporary directory."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dimassoc_physical_transport_tests -j4",
+    "focused": "build-gcc/libdxfrw_dimassoc_physical_transport_tests --allocation-rollback-retry",
+    "result": "PASS: ASCII 21/21 injected allocations preserved the destination and same-writer retry/readback passed; Binary 21/21 likewise."
+  },
+  "limitations": [
+    "The low-level record writer alone does not promise to retract bytes already accepted by a generic ostream; the tested transaction boundary is dxfRW::write().",
+    "This test does not promote DIMASSOC support claims or establish physical/native interoperability."
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader AC1024 common-entity material/plotstyle role conflict",
+  "mode": "primary-source review, local corpus trace, local LibreDWG comparator run, plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Retrieve and assess the full current body of LibreDWG issue #1436",
+    "Reconcile issue observations with ODA v5.4.1 common-entity data and handle ordering",
+    "Trace the hash-pinned local AC1024 Sun-and-Sky DWG using the current libdxfrw CLI",
+    "Run the installed LibreDWG 0.14 reader on the same file and on the ten local AC1024 samples",
+    "Separate a possible local role-mapping defect from the unresolved ODA/producer conflict"
+  ],
+  "method": {
+    "kind": "Read-only audit; no external sample download; plan and receipt only",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": true,
+    "peerExecutable": {
+      "name": "dwgread",
+      "version": "LibreDWG 0.14",
+      "path": "/opt/homebrew/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "sourceCommit": "unknown; version banner does not establish source revision"
+    },
+    "localExecutable": {
+      "name": "dwg2dxf",
+      "path": "build-gcc/dwg2dxf/dwg2dxf",
+      "sha256": "6ff7feded75258d84edb60bcf42f09c8ffbab2a70fb4b54f30a52cad64a5aa09"
+    },
+    "nativeCadApplicationsRun": false,
+    "localBuildRun": false,
+    "localTestsRun": false,
+    "localReadOnlyTraceRun": true,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "receiptAdded": "docs/research/deeper-broader-ac1024-common-entity-material-plotstyle-role-conflict-2026-10-19.json"
+  },
+  "sources": [
+    {
+      "project": "LibreDWG issue #1436",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1436"
+      ],
+      "revision": "Open as retrieved 2026-10-19; body says reproduced on LibreDWG 0.14 and master a3d51f13",
+      "observed": "The reporter says R2007+ explicit-material entities are exposed as plotstyle_flags=3/material_flags=0, and the reported handle resolves to MATERIAL. Their separate paired example_2018.dxf has group 347 and no 390. The report notes the absence of a sample containing both an explicit material and a named plotstyle."
+    },
+    {
+      "project": "ODA Open Design Specification v5.4.1",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Repository-pinned local PDF, §§20.4.1–20.4.2, printed pp. 109–111, SHA-256 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "observed": "§20.4.1 lists linetype, plotstyle, material, and shadow flags. §20.4.2 lists conditional linetype, material, plotstyle, then R2010 visual-style handles. This conflicts with the peer issue's observed semantic role assignment and remains authoritative pending a sourced correction."
+    },
+    {
+      "project": "Local AC1024 Sun-and-Sky DWG",
+      "urls": [],
+      "revision": "User-local sample, file SHA-256 fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881; original producer/build/save provenance not recorded in this receipt",
+      "observed": "The local CLI trace for 3DSOLID handle 0x154 reads plotFlags=3/materialFlag=0 and consumes common handle 0x560 as plotstyle. The same read later resolves object 0x560 as MATERIAL 'Flat - Gray 1'. The full read reports two other object parse failures; strict-complete CLI export refuses publication, so this is not a complete conversion result."
+    },
+    {
+      "project": "Installed LibreDWG reader and DXF writer on the local sample",
+      "urls": [],
+      "revision": "Local dwgread 0.14 binary SHA-256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff; source commit unknown",
+      "observed": "JSON for 3DSOLID 0x154 reports flags 3/0 and plotstyle target 0x560; its object inventory identifies 0x560 as type 505 MATERIAL 'Flat - Gray 1'. Its DXF output emits group 390=560 for this entity. This is peer corroboration of the behavior, not an independent semantic oracle."
+    },
+    {
+      "project": "Local AC1024 visualization-sample peer census",
+      "urls": [],
+      "revision": "Read-only LibreDWG JSON census over visualization_-_aerial, visualization_-_condominium_with_skylight, visualization_-_conference_room, and visualization_-_sun_and_sky_demo",
+      "observed": "Across these four files, 87 entities have explicit plotstyle references whose handles resolve in the same peer JSON object inventory to type-505 MATERIAL objects. None of these rows has material_flags=3. The report is limited to the locally available ten-file AC1024 corpus and its peer reader's mapping."
+    },
+    {
+      "project": "LibreDWG declarative common-entity source",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/f860b0fb76d5f8effb5a70769a3389cb1e0308c8/src/common_entity_data.spec#L497-L529",
+        "https://github.com/LibreDWG/libredwg/blob/f860b0fb76d5f8effb5a70769a3389cb1e0308c8/src/common_entity_handle_data.spec"
+      ],
+      "revision": "Pinned LibreDWG master commit f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+      "observed": "The declarative reader describes pre-R2007 plotstyle flags, then for R2007+ reads material flags followed by plotstyle flags and shadow flags. This order differs from ODA §20.4.1 and local libdxfrw. The issue's JSON field labels for its reported record do not match this pinned source's declared field ordering, so the source and runtime observation are also internally divergent."
+    },
+    {
+      "project": "ACadSharp current common-entity reader source",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/blob/d5c9dc196d08d7f0ffa8dc2dcbe6947aab980d90/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs#L1988-L2018"
+      ],
+      "revision": "Pinned ACadSharp master commit d5c9dc196d08d7f0ffa8dc2dcbe6947aab980d90 (v3.8.26); source inspected, executable not run",
+      "observed": "The reader consumes the R2007+ material flag and shadow byte before the plotstyle flag. Like pinned LibreDWG, it places material before plotstyle, but the two sources differ on whether shadow flags precede or follow plotstyle. This is source-only implementation evidence, not a real-file result or authority."
+    },
+    {
+      "project": "Current comparator source heads",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/commit/f860b0fb76d5f8effb5a70769a3389cb1e0308c8",
+        "https://github.com/DomCR/ACadSharp/commit/d5c9dc196d08d7f0ffa8dc2dcbe6947aab980d90",
+        "https://github.com/mozman/ezdxf/commit/748e211c9a0b977b9e15845a6bcad8e1b9743e26"
+      ],
+      "revision": "LibreDWG master f860b0f (2026-10-13); ACadSharp master d5c9dc1 (v3.8.26, 2026-10-19); ezdxf master 748e211 (2026-10-18)",
+      "observed": "The pinned head identities refresh the broader comparison horizon but do not resolve this issue. The installed LibreDWG binary's source revision is not bound to the pinned current head."
+    }
+  ],
+  "localCrosswalk": {
+    "implementation": [
+      "src/drw_entities.cpp DRW_Entity::parseDwg reads plotstyle flags before material flags, matching ODA §20.4.1",
+      "src/drw_entities.cpp DRW_Entity::parseDwgEntHandle reads material before plotstyle, matching ODA §20.4.2",
+      "The existing --common-entity-material-plotstyle-handles selector uses distinct references but constructs expected bytes from the ODA profile"
+    ],
+    "localSample": {
+      "recordHandle": "0x154",
+      "recordType": "3DSOLID / DWG type 38",
+      "decodedPlotstyleFlags": 3,
+      "decodedMaterialFlags": 0,
+      "firstConditionalHandle": "0x560",
+      "targetType": 505,
+      "targetName": "Flat - Gray 1"
+    },
+    "strictExport": "Refused because the full source read still has two unrelated object parse failures; no complete DXF was published."
+  },
+  "assessment": {
+    "possibleLocalRoleMismatchObserved": true,
+    "confirmedLocalDefect": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "existingOwnerRefined": [
+      "PAR-33: retain existing DXF table/resource writer findings and add a distinct OPEN_SPEC_RECONCILIATION subquestion for DWG common-entity MATERIAL/PLOTSTYLE flags and handles"
+    ],
+    "planTotals": {
+      "findings": 137,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "The local parser and LibreDWG 0.14 JSON/DXF routes assign an AC1024 handle to a typed MATERIAL object through the plotstyle role. However, pinned LibreDWG and ACadSharp source read R2007+ data flags material-before-plotstyle, unlike ODA and local code, while LibreDWG issue #1436 JSON labels the observed handle as plotstyle. This creates both a likely local misclassification lead and a peer source/runtime inconsistency, but the ODA contract remains authoritative. Because the local sample lacks producer/save provenance and a paired DXF, keep the subquestion open until raw bit offsets, an admitted pair, and normative interpretation converge. No parser change or finding-count increment is justified yet."
+  },
+  "implementationReadyChecks": [
+    "Independently decode the raw common-data bit positions and common handle bytes for AC1024 3DSOLID handle 0x154; capture page/record offsets, bit cursor, handle stream and next-record boundary.",
+    "Resolve each consumed handle against the same drawing's typed object inventory; distinguish a MATERIAL target from a PLOTSTYLE target by object class and owner/root, not object-handle order.",
+    "Obtain a provenance-pinned producer DWG with paired DXF that has distinct explicit material and named plotstyle references, or create a scratch-only sample with an independently pinned writer; no external test drawing is committed.",
+    "Only after the raw bytes, pair, and ODA wording converge, update the reader/writer mapping and the existing literal-vector selector symmetrically; otherwise retain the hold and document any producer-specific deviation.",
+    "After a code change, build only libdxfrw_dwg_object_vectors_tests, run --common-entity-material-plotstyle-handles, and run the existing libdxfrw_dwg_object_vectors CTest; leave full suites for the existing composed checkpoint."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-ac1024-common-entity-material-plotstyle-role-conflict-2026-10-19.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerExecutableRun": true,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed"
+  }
+}

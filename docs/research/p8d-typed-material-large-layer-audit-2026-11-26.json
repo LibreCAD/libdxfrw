@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "librecadPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "parent": "02530f9976e0fd0cdcaa76c1ca5644b176a0cd56",
+  "fix": "bdcf1e1348591e12ccfcf1d3dbcfca268ac0e9eb",
+  "problem": "For selected typed MATERIAL graphs, more than 64 imported layers silently disabled the staged layer/object and final mutation audit. A generated 65-layer AC1021 source with an after-objects material edit reproduced successful publication over a sentinel destination.",
+  "change": "Match the shared inspectors' 4096-record bounds and reject a selected graph if an audit cannot be built, instead of skipping it.",
+  "validation": [
+    "Focused system-codec material selector: 854 assertions in 7 cases, including late mutation, destination preservation and corrected retry for 65 imported layers.",
+    "Bundled-codec filter compile check passed.",
+    "ezdxf 1.4.5 independently read the retry output: 67 total layers, L0 group 347 resolves to MATERIAL A1 named PlainMat; zero audit errors or fixes."
+  ],
+  "readbackSha256": "e0eb57d9c0bacf6b5a4b8179053b4ae2b723d42ab7534c2f9f90bdea37bb6f6a",
+  "limits": [
+    "One locally generated ASCII AC1021 typed-MATERIAL graph, not a sparse raw-MATERIAL export.",
+    "The new 4096 bound and other paths still require their own qualification; no general format or platform claim is promoted."
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "id": "p4-sun-view-hard-owner-output-2026-11-03",
+  "scope": "Bounded DXF transport for DWG VIEW group 361 SUN hard-owner references",
+  "claim_effect": "Generated transport is covered; this does not qualify physical producer breadth, native SUN semantics, or whole-document output.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files, v5.4.1",
+    "section": "20.4.60 (VIEW) and 20.4.60.1",
+    "finding": "The R2007+ VIEW handle stream includes group 361 Sun handle as a hard owner.",
+    "local_extract": "/private/tmp/libdxfrw-oda-spec-2026-11-03.txt",
+    "printed_pages": [180, 181]
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_data.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "The adapter now treats typed VIEW records as eligible SUN hard owners, checks the VIEW handle against the SUN common owner and unique-owner rules, and the low-level VIEW writer emits group 361 only through the validated/remapped SUN resolver. Layout validation requires the same resolved SUN closure."
+  },
+  "generated_control": {
+    "selector": "--dwg-typed-sun-output",
+    "ctest": "dwg2dxf_dwg_typed_sun_output",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "covered_owner_types": ["VPORT", "VIEWPORT", "VIEW"],
+    "assertions": [
+      "typed VIEW group 361 binds to a unique SUN whose parentHandle matches the VIEW handle",
+      "group 361 survives handle remapping and fresh typed DXF readback",
+      "SUN object class count and raw SUN payload remain consistent"
+    ],
+    "fixture_added": false
+  },
+  "local_physical_observation": {
+    "path": "tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+    "repository_tracked": false,
+    "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+    "source_objects": [
+      {"sun": "0x39D", "owner": "0x391", "typed_owner": "VIEW"},
+      {"sun": "0x35E", "owner": "0x94", "typed_owner": "VPORT"},
+      {"sun": "0x4AC", "owner": "0x4AB", "typed_owner": "VIEWPORT"},
+      {"sun": "0x493", "owner": "0x492", "typed_owner": "VIEWPORT"},
+      {"sun": "0x360", "owner": "0x35F", "typed_owner": "unqualified DICTIONARY"}
+    ],
+    "unqualified_dictionary": {
+      "handle": "0x35F",
+      "parent": "0x0C",
+      "hardOwner": 0,
+      "entry": {"name": "360", "target": "0x360"},
+      "reason": "The retained dictionary entry and common owner do not establish the group-361 hard-owner route; the profile remains refused."
+    },
+    "strict_cli_result": "Exit 1; preflight reports SUN owner graph closure incomplete/orphaned; no output file is published."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "focused_test": "ctest --test-dir build-gcc -R '^dwg2dxf_dwg_typed_sun_output$' --output-on-failure",
+    "focused_test_result": "Passed: 1/1 in 0.49 seconds.",
+    "cli_recheck": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg -y -v2010 /private/tmp/sun-owner-graph-after-view.dxf",
+    "cli_recheck_result": "Expected fail-closed exit 1; /private/tmp/sun-owner-graph-after-view.dxf was not created.",
+    "full_suite_run": false
+  },
+  "remaining": [
+    "Resolve whether the dictionary-owned 0x360 SUN is a valid producer profile and establish a standards-backed ownership/output mapping before admitting it.",
+    "Physical producer coverage, native rendering behavior, and composed whole-document qualification remain open."
+  ]
+}

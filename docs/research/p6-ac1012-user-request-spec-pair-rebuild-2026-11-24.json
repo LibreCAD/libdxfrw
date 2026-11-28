@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-user-request-spec-pair-rebuild-2026-11-24",
+  "date": "2026-11-24",
+  "status": "SCRATCH_PAIR_REBUILT_AND_LOCAL_CHECKS_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "sections": ["9 HEADER VARIABLES", "20.4.44 DICTIONARY", "20.4.73 MLINESTYLE"],
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+  },
+  "generator": {
+    "path": "tools/research/generate_ac1012_dictionary_merge_samples.py",
+    "sha256": "cd62cfca9d2204362533a8607a1f06484db8f09c7156dcec4de6f895c63476ef",
+    "producer": "LibreDWG 0.14 dwgadd/dwgread/dwgwrite with the specification-directed AC1012 DIMSTYLE hard-pointer correction"
+  },
+  "scratchDirectory": "/private/tmp/ac1012-user-spec-response-20261124/ac1012-dictionary-merge-obyu6yl4",
+  "samples": {
+    "destination": {
+      "file": "destination-ac1012.dwg",
+      "sha256": "3b0f8794263f31fc22a57ec8b455a6292a518cd14eaca48f459821e182bc42ef",
+      "sameKeyStartAngleDegrees": 15,
+      "uniqueEntry": {"name": "DEST_ONLY", "startAngleDegrees": 22}
+    },
+    "source": {
+      "file": "source-ac1012.dwg",
+      "sha256": "90edbbfffe10d4b3f96b3db0bab56d7ae1680f47525d177227c5059684be27cd",
+      "sameKeyStartAngleDegrees": 37,
+      "uniqueEntry": {"name": "SOURCE_ONLY", "startAngleDegrees": 51}
+    }
+  },
+  "validation": {
+    "candidate": {
+      "path": "build-gcc/dwg2dxf/dwg2dxf",
+      "sha256": "8fb3fb64873f9cf624704d1cd238a242587a570bdc7301e217c21e8619f15fcf",
+      "strictAsciiAndBinary": "both refuse; preexisting destination bytes preserved",
+      "partialAsciiAndBinary": "all four generated projections pass bounded dictionary and MLINESTYLE audits"
+    },
+    "physicalFrameTest": {
+      "path": "build-gcc/tests/libdxfrw_dwg_ac1014_dictionaryvar_tests",
+      "sha256": "2348546b4fd0b56c6267294de42ac92009b0739c77404e04313a561f9a99dffb",
+      "result": "both AC1012 dictionary frames pass physical frame, role, truncation, reset, and corrected-retry checks"
+    },
+    "focusedCtest": "libdxfrw_dwg_ac1014_dictionaryvar passed 1/1 on the current worktree"
+  },
+  "limits": [
+    "The DWGs are locally generated, specification-directed controls, not AutoCAD-authored samples.",
+    "This regenerates the existing discriminator and does not resolve native normal-open or duplicate-merge behavior.",
+    "Strict AC1012 output remains guarded; partial output evidence is bounded and does not promote support.",
+    "All generated DWG/DXF files remain outside the repository."
+  ]
+}

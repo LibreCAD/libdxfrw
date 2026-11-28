@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-camera-view-reference-closure-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "CAMERA_VIEW_REFERENCE_CLOSURE_GENERATED_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Bind a generated CAMERA's nonzero code-340 view reference to the exact emitted VIEW table row, with fail-closed behavior for missing and wrong-kind targets.",
+  "references": [
+    {
+      "title": "Autodesk DXF Group Codes in Numerical Order Reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "use": "Defines group codes 340-349 as hard-pointer handles. The exact CAMERA-to-VIEW relation is bounded here by the current libdxfrw model/parser mapping and generated output/readback; this generic table alone does not qualify native CAMERA semantics."
+    }
+  ],
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "DXF VIEW serialization binds a non-null source table handle to its emitted handle and records the exact VIEW-row role within the record transaction; rollback removes both bindings.",
+      "CAMERA serialization requires the exact DRW_Camera runtime class and DRW::CAMERA public tag, then emits group 340 only when the source handle was completed by the VIEW writer in the current output attempt; it writes the emitted handle rather than the source handle.",
+      "Missing targets, references to non-VIEW table rows, a late missing target after another VIEW row has been serialized, derived runtime classes, and mismatched public tags are refused before publication."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed DRW_View and DRW_Camera models; output files are temporary and no drawing fixture is committed.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "A missing VIEW target is refused and an existing destination remains byte-identical.",
+      "A LAYER row with the same source handle does not satisfy the CAMERA VIEW reference.",
+      "An unrelated VIEW is serialized before the missing-reference refusal; the destination remains unchanged and the same adapter retries successfully after adding the correct target.",
+      "A derived DRW_Camera and a base CAMERA tagged as another entity type are each refused atomically; restoring the exact class/tag permits corrected same-adapter retry.",
+      "Fresh typed import verifies that CAMERA.m_viewHandle equals the emitted handle of CAMERA_TARGET_VIEW."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_camera_view_reference_closure$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1 in ASCII and Binary DXF.",
+    "compatibilityCommand": "ctest --test-dir build-gcc -R '^(dwg2dxf_camera_view_reference_closure|libdxfrw_view_ucs_original_sources|libdxfrw_view_vport_ambient_cmc)$' --output-on-failure",
+    "compatibilityResult": "PASS: 3/3 focused CAMERA/VIEW/UCS tests.",
+    "diffCheck": "PASS: git diff --check",
+    "fixturePolicy": "No drawing fixture was added or committed."
+  },
+  "limitations": [
+    "Generated transport evidence only; no independent physical CAMERA producer or native application behavior is qualified.",
+    "The route does not qualify camera projection, rendering, or broader 3D geometry semantics.",
+    "No support claim is promoted; P8 remains open."
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Public AC1032 TABLE witness source screen",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "question": "Is there a public, provenance-bound AC1032 AutoCAD/ObjectARX TABLE drawing with independently known cell/style semantics that can replace the damaged ODA-exported candidate?",
+  "method": {
+    "searches": [
+      "AC1032 ACAD_TABLE TABLECONTENT DWG sample GitHub",
+      "R2018 TABLECONTENT .dwg fixture open source",
+      "ACAD_TABLE AC1032 dwg site:github.com",
+      "AcDbTableContent sample DWG AutoCAD 2018"
+    ],
+    "downloadAttempt": {
+      "url": "https://download.autodesk.com/us/samplefiles/acad/blocks_and_tables_-_imperial.dwg",
+      "destination": "/private/tmp/blocks_and_tables_-_imperial.dwg",
+      "result": "Fetched once after an approved network retry; 227008 bytes, SHA-256 3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07. Header is AC1021 (R2007), so it fails the P5-D AC1024 requirement. Per the stop condition, TABLECONTENT/CELLSTYLEMAP profile was not inspected. Kept outside the repository; no fixture was added."
+    }
+  },
+  "candidates": [
+    {
+      "name": "Autodesk Blocks and Tables sample set",
+      "source": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/6XGQklp3ZcBFqljLPjrnQ9.html",
+      "reportedFiles": [
+        "Blocks and Tables (Imperial), 222 KB",
+        "Blocks and Tables (Metric), 253 KB"
+      ],
+      "known": "Autodesk describes these as sample files applicable to AutoCAD 2010 and later. A separate public Autodesk University handout names the imperial file in an AutoCAD 2010 workflow.",
+      "observedFile": {
+        "name": "Blocks and Tables (Imperial)",
+        "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+        "sizeBytes": 227008,
+        "magic": "AC1021",
+        "detectedRelease": "R2007"
+      },
+      "unresolved": "The TABLECONTENT/CELLSTYLEMAP profile and expected table values were intentionally not inspected after the file failed the required AC1024 version gate. The file is not an AC1032 witness.",
+      "disposition": "Exclude for P5-D: AC1021 is below its AC1024 requirement. Stop; do not fetch or scan again. Use the bundled producer session. No support promotion."
+    },
+    {
+      "name": "ACadSharp samples/sample_AC1032.dwg",
+      "source": "https://github.com/DomCR/ACadSharp/blob/master/samples/sample_AC1032.dwg",
+      "independentFinding": "The ACadSharp maintainer says its samples directory contains reader-test files (https://github.com/DomCR/ACadSharp/discussions/520). A later ACadSharp issue identifies sample_AC1032.dwg as written with DxfWriter and states that DxfWriter emits no ACAD_TABLE or TABLECONTENT (https://github.com/DomCR/ACadSharp/issues/1253).",
+      "disposition": "Exclude as an ACAD_TABLE source witness; do not repeat this candidate."
+    },
+    {
+      "name": "CadCraft columns-sample.dwg",
+      "source": "https://github.com/storytold/cadcraft/issues/1321",
+      "independentFinding": "The report identifies an AutoCAD 2024/R2018 sample but explicitly says the file has no ACAD_TABLE.",
+      "disposition": "Exclude for P6-C TABLE; do not repeat this candidate."
+    },
+    {
+      "name": "CadCraft AutoCAD luminaire schedule report",
+      "source": "https://github.com/storytold/cadcraft/issues/802",
+      "independentFinding": "The report describes a real AutoCAD TABLE and concrete rendering/value behavior, but the public issue page does not expose a sample DWG or a source download.",
+      "disposition": "Useful semantic lead only; not an acquirable source witness from the public record. No contact was made."
+    }
+  ],
+  "result": "No eligible public AC1032 TABLE witness was found. The Autodesk Blocks and Tables Imperial sample is AC1021, so it cannot satisfy P5-D's AC1024 gate; its profile was not inspected. The ACadSharp AC1032 sample and the reported CadCraft columns sample cannot satisfy P6-C.",
+  "planEffect": {
+    "completedAction": "Screened the named public TABLE candidates, fetched the Autodesk Imperial sample once, recorded its AC1021 header and excluded it for P5-D, and preserved the ACadSharp/CadCraft exclusions.",
+    "remainingAction": "Use the bundled producer session for an AC1024 TABLE source and for a clean AC1032 TABLE with known expected values. Until P6-C has a clean admissible source, retain raw-only behavior and fail closed."
+  }
+}

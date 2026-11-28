@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-134 DIMSTYLE DIMCLRD/E/T CMC correction and AC1021 alignment",
+  "mode": "ODA/spec correction, existing-sample trace, generated fast slice",
+  "supersedes": [
+    "dimstyle-dimclr-dwg-bs-fast-slice-2026-10-21.json",
+    "the DIMCLRD/E/T BS statement in dimstyle-dimtfill-cmc-fast-slice-2026-10-21.json"
+  ],
+  "scope": [
+    "Correct modern DIMSTYLE DIMCLRD/E/T parser and writer to the ODA CMC layout",
+    "Retain per-field DWG CMC method, RGB, names, book names, flags, and raw index",
+    "Avoid silent loss when exporting DIMSTYLE colors to the documented DXF profile",
+    "Use an existing repository AC1021 sample; add no persistent DWG/DXF fixture"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "20.4.68 DIMSTYLE"],
+      "reference": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "finding": "§20.4.68 marks DIMCLRD, DIMCLRE, and DIMCLRT CMC under Common; DIMLWD and DIMLWE are BS. §2.11 defines the CMC reserved BS, packed method/RGB BL, flags, and optional names. This contradicts the earlier local interpretation and governs the correction."
+    },
+    "independentImplementation": {
+      "project": "GNU LibreDWG",
+      "version": "0.14 local dwgread build; source comparison to master",
+      "references": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/dec_macros.h"
+      ],
+      "sample": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "command": "dwgread -v5 -O JSON tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "trace": "The local verbose trace decodes DIMCLRD/E/T as CMC index/packed method-RGB/flags fields and reads DIMLWD/E at the following field positions. The old libdxfrw cursor reached DIMLWD 18 bits later; the corrected cursor reaches DIMLWD at bit 988 and reads both signed lineweights plus the final flag.",
+      "limit": "This is independent parser corroboration for one checked-in sample, not native CAD acceptance or general semantic support. LibreDWG emitted its own integrity warnings on this sample; those warnings are not treated as proof of a libdxfrw defect."
+    },
+    "dxfProjection": {
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm"
+      ],
+      "finding": "The DIMSTYLE DXF reference lists groups 176–178 but no class-specific truecolor/name/book companion. Generic 420/430 entity color documentation is not applied to DIMSTYLE. RGB/name/book state is retained on import and causes a preflight refusal on DXF downgrade; scalar ACI/ByBlock/ByLayer remains projectable."
+    },
+    "localSource": {
+      "files": ["src/drw_objects.h", "src/drw_objects.cpp", "src/libdxfrw.cpp"],
+      "finding": "The modern bounded reader and DWG writer now use CMC for all three dimension colors. DRW_Dimstyle retains the three CMC companion records, and copy/move/reset preserve their values. A DIMSTYLE DXF preflight refuses details without an established group mapping.",
+      "compatibility": "No virtual interface changed. DRW_Dimstyle layout grew; downstream binaries must rebuild."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024", "AC1032"],
+      "finding": "Independent wire walking verifies named C3, RGB C2, default C1 and C0 fields, string stream order, following DIMADEC alignment, and DIMTFILLCLR adjacency. Production parsing retains CMC metadata. Copy/assignment and conservative DXF projection checks are covered.",
+      "limit": "Generated writer/parser controls establish local codec consistency only; the existing AC1021 sample and independent LibreDWG trace provide the separate sample-layout corroboration."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Replaced the incorrect modern DIMCLRD/E/T BS reads with bounded CMC reads.",
+      "Replaced the incorrect BS writes with method-aware CMC writes and R2007+ detached-string support.",
+      "Retained CMC sidecars and refused undocumented rich-color DXF downgrade rather than silently dropping RGB/name/book state.",
+      "Renamed the generated selector from dimstyle_dimclr_bs to dimstyle_dimclr_cmc and updated the prior DIMTFILLCLR wire test to read neighboring CMC fields correctly."
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false,
+    "commitCreated": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_reader_matrix_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dimstyle_dimclr_cmc|libdxfrw_dimstyle_dimtfill_cmc|libdxfrw_dwg_object_vectors|dwg_read_AC1021_architectural_-_annotation_scaling_and_multileaders)$' --output-on-failure",
+        "result": "PASS (4/4)"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_objects.h src/drw_objects.cpp src/libdxfrw.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dimstyle-dimclr-dwg-bs-fast-slice-2026-10-21.json docs/research/dimstyle-dimtfill-cmc-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "freecadLinuxRun": false,
+    "freecadWindowsRun": false,
+    "supportClaimsPromoted": false
+  },
+  "unresolved": [
+    "Audit remaining scalar-only CMC consumers against their class-specific ODA DWG layouts; do not extrapolate from DIMSTYLE.",
+    "DIMSTYLE DXF output remains intentionally limited to verified scalar ACI/ByBlock/ByLayer cases; no RGB/name/book mapping is established.",
+    "The AC1021 sample passes parser regression only. Its strict-complete DXF export remains separately gated by unresolved object dispositions.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL; FreeCAD native Linux/Windows qualification and independent ACIS/ACDS semantic evidence remain open."
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5mn consumed MLINE append from fifteen source elements",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_QUALIFIED",
+  "codeCommit": "04582b9da0c5340d539af94044284314388b9d6e",
+  "scope": "Qualifies one runtime-generated AC1027 append from a consumed fifteen-element MLINESTYLE to sixteen elements. This selected profile does not imply support for other counts or document closure.",
+  "contract": {
+    "admission": "The source MLINESTYLE contains fifteen ordered tuples. The appended tuple uses offset -8.0, ACI 17 and Continuous. Flags are 2, angles are unchanged, and two source-bound open, uncut and unfilled MLINE consumers reference the style.",
+    "geometry": "The source recipe recalculates each group-41 pair against the fifteen-element source minimum. The appended target recalculates every consumer pair against the sixteen-element target minimum. Geometry is source-consistent with positive finite scale, center/bottom justification, unit extrusion, exact positions/directions/miters, two segment parameters per element, zero second values, absent group 42 and zero area-fill counts.",
+    "identityAndOutput": "The style keeps its source identity and emits group 71 = 16, ordered group-49 offsets, exact ACI values and linetype names. Unique ByLayer and Continuous LTYPE providers are checked. Both consumers retain their group-340 target and emit group 73 = 16 plus exact group-74/group-41/group-75 arrays. Fresh import verifies the style and consumer data in model space and a named block.",
+    "failureAndRetry": "Unsupported style flags and late live-consumer mutation each refuse before publication and preserve destination/caller contracts. Corrected state retries on the same adapter in ASCII and binary output.",
+    "compatibility": "No public API or DRW_Interface virtual changes. Source and output DXF are generated at runtime and removed after success; no fixtures are committed.",
+    "limits": "Evidence is limited to source count 15 to target count 16 under the exact generated tuple and consumer profiles. Other counts, batches, removals, MLINE schemas/carriers/versions, native semantics and whole-document closure remain unqualified. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source → ASCII AC1027 output",
+      "ASCII source → binary AC1027 output",
+      "binary source → ASCII AC1027 output",
+      "binary source → binary AC1027 output"
+    ],
+    "selectedProfile": {"sourceCount": 15, "targetCount": 16},
+    "failureAndRetry": "For this count, four successful encoding combinations and eight readbacks; two unsupported-flag refusals, two late-mutation refusals and four corrected same-adapter retries."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "summary": "The shared selector passed for counts 13, 14, 15, 16, 32, 64 and 128: 28 successful source/output combinations, 56 readbacks, 14 unsupported-flag refusals, 14 late-mutation refusals and 28 corrected same-adapter retries.",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_selected_source_counts$' --output-on-failure"
+    },
+    "diffCheck": "git diff --check; PASS before code commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "runSelectedConsumedAppendSourceCounts uses consumedSourceCountRecipe(…, 15) and the shared transaction/output/readback checks. Runtime files are removed after success.",
+    "implementationCommit": "04582b9da0c5340d539af94044284314388b9d6e",
+    "tests/dxf_fixture_tests.cpp": "7ca70926fabc42137af3a8a20f6778c7566024871328122b6692c20cd1455421",
+    "tests/CMakeLists.txt": "6df81213e98a148ac7c96c849e0d27fb122427a9c2f8a488591f19fe157decc1",
+    "testExecutableSha256": "4e28305f6151ce9d032f5b59dcd651dc536867a37cd92adf90572a0d7d4fa934"
+  },
+  "next": "For the adjacent one-element consumed-style append series, source count 17→target 18 is the next unqualified count."
+}

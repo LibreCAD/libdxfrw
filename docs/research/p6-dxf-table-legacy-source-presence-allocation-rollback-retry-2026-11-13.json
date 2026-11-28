@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-table-legacy-source-presence-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_LEGACY_TABLE_SOURCE_PRESENCE_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the public AC1018 writeTableWithLegacySourcePresence route under callback-local allocation failure in ASCII and Binary.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One generated one-column, one-row ACAD_TABLE using a one-byte zero legacy source-presence mask; no external or committed fixture is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "4a2b8ae7",
+    "files": {
+      "tests/table_legacy_height_controls.h": "ba70f14cebafecb35f4d4d6ef808779b3dfef8bbc3f862c8cd3a4868866f0bcb",
+      "tests/table_content_dxf_tests.cpp": "7b127441df01be9b6d4575b6ea21a7adc6d346cd202e3ac4586714b2a22e1b22",
+      "tests/CMakeLists.txt": "e91f950eae5b309e1c1b2a171367562644cb49a248a887d3baf44d5a5833785d",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "b60a1d1b460943dcc5c419cc81f8afb732f9c39d877d31ca19c1302426527298"
+    },
+    "method": "Calibrate allocations scoped around writeTableWithLegacySourcePresence and inject one-shot bad_alloc at every measured offset. Require whole fileExport refusal, unchanged source identities and TABLE body, prior destination preservation, same-adapter retry producing byte-identical clean output, and fresh typed TABLE readback. The outer file operation is authoritative for refusal because some caught serializer failures leave the callback's emitted flag set while the writer's sticky error prevents publication."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_table_content_dxf_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_table_legacy_presence_allocation$' --output-on-failure: PASS 1/1",
+    "directRun": "PASS; ASCII 11/11 and Binary 11/11 allocation offsets reached",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated AC1018 transaction and typed-readback evidence only; source-specific legacy spelling semantics, producer prevalence and native TABLE behavior remain separate gates.",
+    "Only the one-cell zero source-presence mask is covered; nonzero masks, block-cell source presence, attributes, merged cells and other TABLE payloads are not covered here.",
+    "P6-G remains open pending the public-writer inventory and other uncovered transaction profiles.",
+    "No support claim is promoted."
+  ],
+  "nextAction": "Continue P6-G's callback-to-writer inventory; select a remaining public writer/profile with no equivalent rollback, same-writer retry, and readback evidence."
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-tablecontent-subrecord-allocation-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "IMPLEMENTED_FOCUSED_GENERATED_TABLE_CONTROLS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Make TABLE and TABLECONTENT parsing fail cleanly if retaining subrecord-range diagnostics cannot allocate their vector element or label storage.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "sourceSha256": "58977b96740106da3be131470895e344a10712b8a4af6778c3e6ae1f7041c1b6",
+    "changes": [
+      "Add appendDwgSubrecordRange(), which catches exceptions from range construction and vector insertion and reports failure to the parser.",
+      "Route TABLECONTENT cell style, content format, R2007 cell override, and geometry receipt insertions through the guarded helper.",
+      "Route TABLE entity break-data and row-range receipt insertions through the same helper, resetting/failing the record if insertion fails.",
+      "Preserve existing incomplete-range receipt behavior when stream parsing itself is incomplete."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg_object_vectors_tests --parallel 4",
+      "result": "PASS",
+      "binaries": [
+        {
+          "path": "build-gcc/libdxfrw_dwg_local_roundtrip",
+          "sha256": "684a851e12931afc29f71b5df33fab449e52cce893f620fb80db1fbce0b61e51"
+        },
+        {
+          "path": "build-gcc/libdxfrw_dwg_object_vectors_tests",
+          "sha256": "fd045cae60718d4854e87347088b906d4ba4a535dbbe9175e809a20bc45e0e47"
+        }
+      ]
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_table_content_dwg_object_roundtrip|libdxfrw_table_content_dwg_payload_encoder|libdxfrw_table_content_cell_style_border_alignment)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 3,
+      "failed": 0,
+      "elapsedSeconds": 0.9,
+      "selectors": [
+        "libdxfrw_table_content_dwg_object_roundtrip",
+        "libdxfrw_table_content_dwg_payload_encoder",
+        "libdxfrw_table_content_cell_style_border_alignment"
+      ]
+    },
+    "diffCheck": "PASS",
+    "allocationFailureInjection": "Not available in these selectors. The change verifies normal/incomplete range bookkeeping; allocation-failure execution itself remains untested."
+  },
+  "fixturePolicy": "Only locally generated vectors were used; no DWG/DXF fixture was added.",
+  "binding": {
+    "headAtValidation": "5e4fad180fe9c32b39429cd1a28639a716adc82b",
+    "sourceModifiedAfterBuild": false,
+    "committed": false,
+    "commitLimitation": "The workspace grants read-only access to .git; no commit was created."
+  },
+  "doesNotEstablish": [
+    "injected out-of-memory execution of the parser paths",
+    "AC1027 standalone TABLECONTENT source-span correctness",
+    "physical TABLE producer coverage or native rendering semantics",
+    "allocation safety in other parser and writer paths"
+  ]
+}

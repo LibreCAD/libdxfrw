@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ltype-standard-flags-dxf-domain-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_LTYPE_STANDARD_FLAGS_OUTPUT_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Preserve LTYPE group-70 values on DXF input while constraining typed output to the documented standard flag bits and dependency.",
+  "implementationReadiness": {
+    "baselineHead": "c939e73022dc2b37d256d7ebeb27b81134cbf314",
+    "sourceObservation": "DRW_TableEntry::parseCode retained LTYPE group-70 flags, while DRW_LType::validateDxf accepted any signed 16-bit value. As the typed LTYPE writer relies on validateDxf, values outside the documented standard bits and bit-32-without-bit-16 combinations could be emitted.",
+    "normativeEvidence": {
+      "source": "Autodesk AutoCAD 2020 DXF Reference, LTYPE group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+      "relevantRule": "Group 70 documents bit 16 for external-reference dependency, bit 32 for a resolved external dependency when bit 16 is also set, and bit 64 for a table entry referenced in the last edit."
+    },
+    "change": "DRW_LType::validateDxf now permits only mask 0x70 and requires bit 16 when bit 32 is set. The DXF parser remains tolerant and preserves values outside this output profile. DWG payload validation is unchanged."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_objects.cpp": "1e6cf2548e8fc45ded1e833e558a95f965aac6e77136991248bee27cea12b8b0",
+      "tests/hardening_tests.cpp": "0793d5dbae5a97cb2951d5cf9194d503f968d2d9c63ebb40ca7556415b9c2e2e",
+      "CMakeLists.txt": "a75b878645df155a9ba37287adcfd15273d1a8a9866f89e9b07121df27144b05"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+      "platform": "Darwin arm64"
+    },
+    "testExecutableSha256": "beae0a111e40afbda0af00178066dd9234236221c199af0cdf281d16a415c45e"
+  },
+  "controls": {
+    "selector": "--ltype-standard-flag-dxf-domain",
+    "ctest": "libdxfrw_ltype_standard_flag_dxf_domain",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "The parser retains documented and unsupported group-70 values in both encodings.",
+      "Validation and typed writers admit 0, 16, 16|32, 64, and 16|32|64.",
+      "Validation and typed writers refuse unknown bits, negative values, and bit 32 without bit 16; refused writes emit no bytes."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCohort": {
+      "command": "ctest --test-dir build-gcc -L ltype --output-on-failure",
+      "result": "PASS 4/4 in 0.39 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated schema and typed-output admission only; no external-reference restoration or native CAD behavior was exercised.",
+    "Parser retention remains tolerant; unsupported flag values are not normalized or semantically interpreted.",
+    "No support claim is promoted; other LTYPE units/group-9 and broader P6 semantics remain open."
+  ],
+  "nextReadyPacket": "Continue with another source-backed P5/P6 gap; do not infer xref or native linetype semantics from group-70 field transport."
+}

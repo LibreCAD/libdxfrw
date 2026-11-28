@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ltype-control-typed-membership-2026-11-04",
+  "date": "2026-11-04",
+  "base_commit": "1385469a",
+  "status": "GENERATED_TYPED_MEMBERSHIP_GATE",
+  "supportClaimEffect": "none",
+  "scope": "Bind the source LTYPE_CONTROL member slots to the current DWG import's typed LTYPE rows and refuse strict or bounded-partial output when membership is incomplete or ambiguous.",
+  "implementation": {
+    "source_slots": "For LTYPE_CONTROL publications, preserve the ordered slots including null references instead of compacting through handlesList.",
+    "membership": "Require a unique non-null control slot for each typed LTYPE, exact equality between the two sets, each row's parentHandle to equal the published control handle, unique case-insensitive names, and fixed BYBLOCK/BYLAYER/CONTINUOUS handle-name pairs. Require BYBLOCK and BYLAYER in the final two phantom slots while accepting either order; require CONTINUOUS in the counted slots.",
+    "strictness": "Strict-complete and bounded-partial DWG outcomes now require this membership proof. Programmatically constructed models without a DWG read receipt retain existing behavior. Tolerant parser callbacks are unchanged.",
+    "compatibility": "No public virtual callback or ABI contract changed. The adapter publication snapshot is bounded and tied to the active import generation."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j3",
+    "ctest": "ctest --test-dir build-gcc -R 'dwg2dxf_dwg_(ltype_table_control_membership|block_record_control_membership|layer_table_control_dictionary)' --output-on-failure",
+    "result": "Build passed with -Werror. Focused CTests passed 3/3 in 0.63 seconds. Generated controls accept both phantom orders and reject wrong owners, missing typed targets, special-handle/name mismatch, duplicate names, null slots, duplicate control publication and stale import generation.",
+    "fixtures": "No DWG/DXF fixture was added or modified."
+  },
+  "limitations": [
+    "The exact emitted DXF identity for each source LTYPE and complete final output graph closure remain open.",
+    "Only the witnessed ODA BYBLOCK/BYLAYER ordering is physically evidenced; the membership gate permits either final phantom order without making a producer claim.",
+    "This is generated adapter evidence and does not promote physical producer or native linetype support claims."
+  ],
+  "files": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "updated P4 state and residual action",
+    "dwg2dxf/dx_data.h": "declared source-bound LTYPE membership state and check",
+    "dwg2dxf/dx_iface.cpp": "captured bounded control publication and gated strict/partial outcomes",
+    "src/intern/dwgreader.cpp": "published ordered LTYPE slots including null entries",
+    "tests/CMakeLists.txt": "registered focused generated adapter control",
+    "tests/dwg2dxf_adapter_tests.cpp": "added acceptance and rejection matrix"
+  }
+}

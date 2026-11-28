@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw-deeper-broader-realdwg-web-and-wasm-peer-route-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Screen the RealDWG-Web ecosystem for distinct public DXF, DWG, and 3D-consumer routes and refine the existing parity/3D plans without promoting support claims.",
+  "method": {
+    "kind": "Read-only review of public project READMEs, package documentation, changelog, and current plan matrix",
+    "sourcesOpened": [
+      "https://github.com/mlightcad/realdwg-web/blob/main/README.md",
+      "https://github.com/mlightcad/realdwg-web/blob/main/packages/data-model/README.md",
+      "https://github.com/mlightcad/realdwg-web/blob/main/packages/libredwg-converter/README.md",
+      "https://github.com/mlightcad/realdwg-web/blob/main/packages/libredwg-converter/CHANGELOG.md",
+      "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md",
+      "https://github.com/mlightcad/libredwg-web"
+    ],
+    "mutableBranchesObserved": [
+      "mlightcad/realdwg-web main",
+      "mlightcad/cad-viewer main",
+      "mlightcad/libredwg-web master"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "evidenceRule": "Mutable project documentation and changelog entries establish documented route boundaries and candidate discovery only; an exact package/source pin plus a generated-control runtime receipt is required before admitting execution evidence."
+  },
+  "evidence": [
+    {
+      "topic": "Public DXF reader versus DWG parser lineage",
+      "sources": [
+        "https://github.com/mlightcad/realdwg-web/blob/main/README.md",
+        "https://github.com/mlightcad/realdwg-web/blob/main/packages/data-model/README.md",
+        "https://github.com/mlightcad/realdwg-web/blob/main/packages/libredwg-converter/README.md"
+      ],
+      "observed": [
+        "RealDWG-Web documents a converter manager in which the built-in MIT AcDbNativeDxfConverter is registered for DXF by default.",
+        "DWG is not registered by default; the public @mlightcad/libredwg-converter wraps LibreDWG through a Web Worker and WebAssembly assets.",
+        "The DXF parser/model-projection path is a distinct candidate route; the DWG parser shares LibreDWG lineage and is not an independent DWG vote."
+      ],
+      "doesNotEstablish": [
+        "that the current package release accepts every ASCII or binary DXF mode",
+        "feature-complete field, graph, owner, block, or payload preservation",
+        "an independent DWG implementation or native CAD acceptance"
+      ],
+      "planUse": "Keep the built-in DXF parser as an optional composed-check candidate. Treat the DWG converter only as a correlated LibreDWG-family integration/projection route. Pin exact source, package integrity, worker/WASM artifacts, runtime, options, and actual input mode before any run."
+    },
+    {
+      "topic": "Public changelog 3D milestones",
+      "sources": [
+        "https://github.com/mlightcad/realdwg-web/blob/main/packages/libredwg-converter/CHANGELOG.md"
+      ],
+      "observed": [
+        "The mutable changelog records milestones for AcDb3dSolid, SAB decoding/wireframes, ACDSDATA attachment to 3DSOLIDs, and ACIS body-transform application."
+      ],
+      "doesNotEstablish": [
+        "which exact published artifact includes each milestone",
+        "complete DWG entity-to-AcDs-to-SAB graph closure",
+        "valid closed analytic B-rep geometry, units, or conformance to source dimensions"
+      ],
+      "planUse": "At most, use as a route lead for the existing composed generated-control checkpoint. Record every source/entity/owner/carrier/database disposition and diagnostics separately; retain the existing independent semantic-evidence gate."
+    },
+    {
+      "topic": "Private proprietary parser is a separate, limited route",
+      "sources": [
+        "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md"
+      ],
+      "observed": [
+        "The project labels @mlightcad/dwg-converter a private/commercial package distinct from the public LibreDWG converter.",
+        "Its documentation describes partial 3DSOLID extraction and partial SAB decoding, with no full B-rep tessellation and possible wireframe or bounding-box fallback."
+      ],
+      "doesNotEstablish": [
+        "an open-source peer implementation",
+        "a general analytic-solid result or an independently run consumer result"
+      ],
+      "planUse": "Do not include it in open-source peer counts or ordinary plan actions. No trial, purchase, installation, or use is authorized or required by this research update."
+    }
+  ],
+  "implementationReadiness": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "perSliceExternalRuns": false,
+    "optionalPeerRunsDeferredToComposedCheckpoint": true,
+    "locallyGeneratedControlsOnly": true,
+    "dwgLineageClassification": "LIBREDWG_CORRELATED",
+    "dxfRouteClassification": "OPTIONAL_DISTINCT_NATIVE_PARSER_DATABASE_PROJECTION",
+    "fullBrepEvidencePromoted": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Keep RealDWG-Web in the optional comparator inventory and do not add it to the per-slice validation loop.",
+      "If its exact public packages and runtime are available at the composed checkpoint, test generated ASCII and binary DXF controls with source-to-database identity, owner/block, field, coordinate, unit, and diagnostic assertions.",
+      "Treat its DWG result as LibreDWG-lineage evidence; report AcDs/SAB carrier linkage separately from any geometry output.",
+      "Do not count wireframe, bounds fallback, successful import, or mutable changelog language as analytic B-rep support.",
+      "Leave J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+    ]
+  },
+  "validation": {
+    "parityMatrixUpdated": true,
+    "parityPlanUpdated": true,
+    "3dPlanUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "productionSourceChanged": false,
+    "testsRun": false,
+    "peerRuntimeRun": false,
+    "supportClaimsPromoted": 0
+  }
+}

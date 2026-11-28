@@ -1,0 +1,67 @@
+{
+  "title": "dwg2dxf Unicode argv, startup linkage, and filesystem path fast slice",
+  "date": "2026-11-07",
+  "status": "implemented; current-host validation passed; native Windows qualification remains open",
+  "scope": [
+    "Use UTF-8 filesystem paths for dwg2dxf input preflight and output existence checks.",
+    "On Windows, accept wide process arguments and strictly encode them as UTF-8 before entering the shared CLI parser.",
+    "Exercise Unicode input and output paths in the FreeCAD CLI compatibility control on every host."
+  ],
+  "changes": {
+    "source": "dwg2dxf/main.cpp",
+    "source_sha256": "e1fe93c5f38e0263bdcfdf14b352a56e821714ec26a74ec988f8164af1a33b94",
+    "cmake": "dwg2dxf/CMakeLists.txt",
+    "cmake_sha256": "f2c780d4e27342deb80dbb1e34f1ac2da4d1c99bbf71706ae8083e529c8d2071",
+    "native_qualification_workflow": ".github/workflows/freecad-platform-qualification.yml",
+    "native_qualification_workflow_sha256": "76d38a0da4959ae5dde15fde6e9a8392069eee9bddcfb1a7ef35db404ac4263f",
+    "native_handoff_test": "tests/run_freecad_installed_3d_line_test.cmake",
+    "native_handoff_test_sha256": "c887034deb66af0801a7cff469e038b6154d180ad49f013b7ca7a03869da117e",
+    "native_handoff_macro": "tests/freecad_dwg2dxf_import_check.FCMacro",
+    "native_handoff_macro_sha256": "0c4e34f62edde13912dd2ce53fc675e855c6431dc7c70abcd2660d2660a1a859",
+    "test": "tests/run_freecad_dwg2dxf_compat_test.cmake",
+    "test_sha256": "7e6b47eb8ba459e4f573063da20cd09d059a795f24028d8d17e12c39a6cbf976",
+    "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "implementation_notes": [
+      "The Windows wmain bridge rejects invalid UTF-16 instead of substituting characters.",
+      "MinGW links with -municode so its console CRT selects wmain; MSVC uses its native wmain startup selection.",
+      "The manually dispatched native FreeCAD workflow now builds the source generator and includes both build-tree and installed CLI compatibility tests, in addition to its tracked-file FreeCAD handoff control.",
+      "The tracked FreeCAD open/insert CTests set INPUT_PATH_UNICODE=ON, copy the pinned DWG under 'entrée café input with spaces', and exercise the actual FreeCAD-to-installed-converter subprocess path; this native workflow is configured but not yet executed for the current revision.",
+      "The CLI preflight now uses std::filesystem::u8path for both input and output.",
+      "The test source is generated at an ASCII path, then cmake -E copy stages the same bytes at a Unicode path; generated files remain in the build scratch directory."
+    ]
+  },
+  "validation": {
+    "host": "macOS ARM64",
+    "compiler": "/usr/bin/g++",
+    "build": {
+      "commands": [
+        "cmake --build build-gcc --target dwg2dxf -j4",
+        "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4"
+      ],
+      "result": "passed"
+    },
+    "focused_test": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_freecad_cli_compat$' --output-on-failure",
+      "result": "passed",
+      "test": "dwg2dxf_freecad_cli_compat",
+      "duration_seconds": 1.77
+    },
+    "installed_and_build_tree_tests": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_freecad_(cli_compat|installed_cli_compat)$' --output-on-failure",
+      "result": "passed: 2/2",
+      "includes": [
+        "build-tree Unicode input/output conversion",
+        "isolated installed converter with clean loader environment and Unicode input/output conversion"
+      ],
+      "duration_seconds": 3.75
+    },
+    "workflow_lint": "actionlint .github/workflows/freecad-platform-qualification.yml passed",
+    "diff_check": "passed: git diff --check; receipt parsed with python3 -m json.tool"
+  },
+  "limits": [
+    "The current host test does not compile or execute the Windows wmain branch.",
+    "Native Windows filesystem behavior, Qt-delivered argv, MSVC/DLL/shared/static/relocated packaging, and native FreeCAD open/insert remain unqualified.",
+    "This is CLI/path handling evidence only and does not promote DWG/DXF format support claims."
+  ],
+  "fixture_policy": "No DWG or DXF fixture was added to the repository; the generated source and converted output remain in build scratch space."
+}

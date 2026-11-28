@@ -1,0 +1,154 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-mline-save-reopen-move-2026-11-23",
+  "date": "2026-11-23",
+  "status": "MOVE_SAVED_REOPENED_AND_GEOMETRY_READBACK_PASS_WITH_PROJECTION_LOSS",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "repository": "LibreCAD/LibreCAD",
+    "pullRequest": 3289,
+    "head": "f5477f98a051f2e9e41ffaf9858a9e8c153821fe",
+    "application": "LibreCAD-2 [2.2.2.6-alpha]",
+    "buildReceipt": "p8d-librecad-3289-system-codec-compile-2026-11-23.json"
+  },
+  "input": {
+    "path": "/private/tmp/p8d-mline-current-app-20261123/libdxfrw-mline-ac1018-ascii.dxf",
+    "sha256": "dd7b814c5314bebddb19c9e2f9ea02afc551dd361a7b5e4f892e0b56cab360b9",
+    "sourceDwg": "/Users/dli/dev/libredwg/test/test-data/2004/Multiline.dwg",
+    "sourceDwgSha256": "4b0aa7336fbf71491653fdcf3f8fa58d325817fa1997987e4896275d5392f544",
+    "generatedBy": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-ac1018-selected-output",
+    "repositoryFixtureAdded": false
+  },
+  "baselineSaveReopen": {
+    "path": "/private/tmp/p8d-mline-current-app-20261123/p8d-mline-saveas-probe.dxf",
+    "sha256": "c65d44cd54b7a8f0f07c38cdddee2fc11528105fe9605d80a81b304b7569ccaf",
+    "saveLog": "Saved drawing; LibreCAD reported that it left out 6 objects read from another DXF version which it cannot hold.",
+    "reopenLog": "Loaded document: /private/tmp/p8d-mline-current-app-20261123/p8d-mline-saveas-probe.dxf",
+    "entityAudit": "The baseline resave contains one MLINE entity with six vertices."
+  },
+  "edit": {
+    "command": "Move / Copy",
+    "selection": "LibreCAD showed Polyline (2); Keep Originals was off, so this run exercised Move.",
+    "referencePoint": [
+      0,
+      0
+    ],
+    "targetPoint": [
+      10,
+      0
+    ],
+    "displacement": [
+      10,
+      0
+    ],
+    "uiResult": "The command returned to Enter Command and the two selected components remained visible."
+  },
+  "movedSaveReopen": {
+    "path": "/private/tmp/p8d-mline-current-app-20261123/p8d-mline-moved-plus10x.dxf",
+    "sha256": "17dd2324546d2632686381859895cc3687958d0dfca2248a9be91121cf1da0ce",
+    "saveLog": "Saved drawing: /private/tmp/p8d-mline-current-app-20261123/p8d-mline-moved-plus10x.dxf",
+    "reopenLog": "Loaded document: /private/tmp/p8d-mline-current-app-20261123/p8d-mline-moved-plus10x.dxf",
+    "entityAudit": "The reopened output contains two six-vertex LWPOLYLINE entities. Each carries LibreCAD_MLINE XDATA; the saved moved representation is a pair of component polylines rather than an MLINE entity.",
+    "geometryReadback": {
+      "method": "For each of the six corresponding vertices, average the paired output component vertices and compare with the original MLINE centerline vertex plus [10,0].",
+      "maximumEuclideanError": 7.105427357601002e-15,
+      "tolerance": 1e-12,
+      "result": "PASS",
+      "sourceCenterlineVertices": [
+        [
+          9.155377412324583,
+          14.988961178345754
+        ],
+        [
+          18.79472695829095,
+          10.005742690150306
+        ],
+        [
+          27.796454070871704,
+          15.73831731579287
+        ],
+        [
+          28.99668443477742,
+          5.2847988667627845
+        ],
+        [
+          6.7174096012746105,
+          2.512181029368797
+        ],
+        [
+          2.141531654248226,
+          17.724111158763073
+        ]
+      ],
+      "componentVertices": [
+        [
+          [
+            18.92576236279036,
+            14.54480250283958
+          ],
+          [
+            28.81720267110127,
+            9.506248103259052
+          ],
+          [
+            37.58135612781872,
+            15.28694953349735
+          ],
+          [
+            38.60363816147826,
+            5.593853274667995
+          ],
+          [
+            16.99033035404297,
+            2.931125253232015
+          ],
+          [
+            12.62033811920781,
+            17.86814021525134
+          ]
+        ],
+        [
+          [
+            19.38499246185881,
+            15.43311985385192
+          ],
+          [
+            28.77225124548064,
+            10.50523727704157
+          ],
+          [
+            38.01155201392467,
+            16.18968509808839
+          ],
+          [
+            39.38973070807658,
+            4.975744458857576
+          ],
+          [
+            16.44448884850625,
+            2.093236805505579
+          ],
+          [
+            11.66272518928864,
+            17.58008210227479
+          ]
+        ]
+      ],
+      "perVertexMidpointErrors": [
+        3.552713678800501e-15,
+        5.0242958677880805e-15,
+        7.105427357601002e-15,
+        8.881784197001252e-16,
+        0.0,
+        7.105427357601002e-15
+      ]
+    }
+  },
+  "limits": [
+    "LibreCAD's baseline save reported six unsupported objects omitted; no claim is made for those objects or a lossless whole-drawing save.",
+    "The moved output is a two-LWPOLYLINE projection carrying LibreCAD_MLINE XDATA, not a saved MLINE entity. This qualifies the selected LibreCAD edit/projection route only.",
+    "The open-after-save action is confirmed by LibreCAD's load log and the saved DXF geometry audit; a post-reopen screenshot was not captured in this run.",
+    "Copy behavior, named LTYPE persistence, arbitrary MLINE profiles, LibreCAD_3 MPOLYGON save/reopen, final-input cross-platform qualification, and broader consumer semantics remain open.",
+    "This observation does not resolve AC1012 dictionary cloning semantics and does not promote a support claim. All DWG/DXF inputs and outputs remain scratch-only."
+  ]
+}

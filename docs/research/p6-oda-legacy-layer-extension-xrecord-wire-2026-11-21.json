@@ -1,0 +1,702 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-oda-legacy-layer-extension-xrecord-wire-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_SOURCE_WIRE_CONTROL",
+  "supportClaimEffect": "none",
+  "predecessor": "docs/research/p6-oda-legacy-dictionary-layer-extension-2026-11-21.json",
+  "generator": "tools/research/verify_oda_legacy_layer_graph.py",
+  "generatorSha256": "2536eed1a7f6ad655070566785c9369eb7085c42cdc78d07da38fa35f94c37c5",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "3.2.6 SECTION-LOCATOR RECORDS",
+      "10.1 R13-R15 CLASSES",
+      "20.4.44 DICTIONARY",
+      "20.4.104 XRECORD",
+      "28 Extended Entity Data"
+    ]
+  },
+  "evidence": {
+    "oda": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "candidate": {
+      "path": "/private/tmp/libdxfrw-p6j-asan/dwg2dxf/dwg2dxf",
+      "sha256": "1e89f39dc4b1bb75d6e64f245c5e5761222f49689ab46bfd9fd695002c7c3f14"
+    },
+    "ezdxfVersion": "1.4.5",
+    "seedSha256": "4940f8d322f9860117dedf5ed392d636fc77288938a7bd205408a159a6f8e679",
+    "versions": {
+      "r13": {
+        "dwgSha256": "39ee54ec52bf31397536e3a05e272ec91acb8ffe74105747f79f1f44365dcc1c",
+        "layerHandle": 47,
+        "appidHandle": 42,
+        "proofs": {
+          "nod": {
+            "handle": 10,
+            "frameSha256": "1201cc5bd5d7375c32dec10dc98cb3471ace2aea6792e1bb80de6d720a1c5406",
+            "frameOffset": 2993,
+            "frameSize": 382,
+            "bodyEndBit": 2742,
+            "crcValid": true,
+            "nextFrame": {
+              "offset": 3379,
+              "size": 36,
+              "type": 49,
+              "crcValid": true
+            },
+            "r14Byte": null,
+            "owner": 0,
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 1,
+              "value": 202
+            },
+            "eed": [
+              {
+                "appid": 42,
+                "hex": "03000000000000002f000d002d54524541545f41535f48415244460000"
+              }
+            ],
+            "entryCount": 18,
+            "extensionFrame": {
+              "handle": 202,
+              "frameSha256": "a52b2285f0d2881e64b8942cb8bf2f567ecba912a4eb6cf7f46ddfd7f7f879d5",
+              "frameOffset": 4834,
+              "frameSize": 35,
+              "bodyEndBit": 234,
+              "crcValid": true,
+              "nextFrame": {
+                "offset": 4873,
+                "size": 35,
+                "type": 42,
+                "crcValid": true
+              },
+              "r14Byte": null,
+              "owner": 10,
+              "reactors": [],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              },
+              "eed": [],
+              "entryCount": 1
+            },
+            "extensionEntry": 203,
+            "extensionChildType": "XRECORD",
+            "extensionChildXdata": [
+              [
+                102,
+                "EXTNAMES"
+              ],
+              [
+                1,
+                "ACDBVARIABLEDICTIONARY"
+              ],
+              [
+                2,
+                "AcDbVariableDictionary"
+              ]
+            ],
+            "extensionChildClass": {
+              "number": 515,
+              "dxfname": "XRECORD",
+              "cppname": "AcDbXrecord",
+              "appname": "ObjectDBX Classes",
+              "proxyflag": 32768,
+              "num_instances": 0,
+              "is_zombie": 0,
+              "item_class_id": 499
+            },
+            "extensionChildFrame": {
+              "handle": 203,
+              "type": 515,
+              "frameSha256": "cfd50d6098459b3e1f234a2e5dffbcc100b07a9ef62f4a2fa3b821ae76f05cb6",
+              "frameOffset": 7612,
+              "frameSize": 83,
+              "crcValid": true,
+              "nextFrame": {
+                "offset": 7699,
+                "size": 35,
+                "type": 42,
+                "crcValid": true
+              },
+              "bodyEndBit": 624,
+              "bodyEndFieldBit": 36,
+              "dataStartBit": 88,
+              "ownerBit": 624,
+              "dataBytes": 67,
+              "dataHex": "660008002d4558544e414d4553010016002d414344425641524941424c4544494354494f4e415259020016002d416344625661726961626c6544696374696f6e617279",
+              "values": [
+                [
+                  102,
+                  "EXTNAMES"
+                ],
+                [
+                  1,
+                  "ACDBVARIABLEDICTIONARY"
+                ],
+                [
+                  2,
+                  "AcDbVariableDictionary"
+                ]
+              ],
+              "owner": {
+                "role": 4,
+                "length": 1,
+                "value": 202
+              },
+              "reactors": [
+                {
+                  "role": 4,
+                  "length": 1,
+                  "value": 202
+                }
+              ],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              }
+            },
+            "extensionChildMutationControls": {
+              "rejected": {
+                "value": true,
+                "ownerRole": true,
+                "bodyBoundary": true
+              },
+              "unchangedRetryPassed": true
+            }
+          },
+          "mline": {
+            "handle": 16,
+            "frameSha256": "6d592f8f2b2d451a3c8360f4b0b7b26afa9c93c958fc1d4e68ce5ba54b9beaa5",
+            "frameOffset": 5132,
+            "frameSize": 57,
+            "bodyEndBit": 404,
+            "crcValid": true,
+            "nextFrame": {
+              "offset": 5193,
+              "size": 35,
+              "type": 42,
+              "crcValid": true
+            },
+            "r14Byte": null,
+            "owner": 10,
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 1,
+              "value": 183
+            },
+            "eed": [
+              {
+                "appid": 42,
+                "hex": "03000000000000002f000d002d54524541545f41535f48415244460000"
+              }
+            ],
+            "entryCount": 1,
+            "extensionFrame": {
+              "handle": 183,
+              "frameSha256": "5370ffcca334dc2a970c07baa14f0dff9021d0e8f2da51373fc30a48bb656ad9",
+              "frameOffset": 8591,
+              "frameSize": 35,
+              "bodyEndBit": 234,
+              "crcValid": true,
+              "nextFrame": {
+                "offset": 8630,
+                "size": 63,
+                "type": 73,
+                "crcValid": true
+              },
+              "r14Byte": null,
+              "owner": 16,
+              "reactors": [],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              },
+              "eed": [],
+              "entryCount": 1
+            },
+            "extensionEntry": 184,
+            "extensionChildType": "XRECORD",
+            "extensionChildXdata": [
+              [
+                102,
+                "EXTNAMES"
+              ],
+              [
+                1,
+                "STANDARD"
+              ],
+              [
+                2,
+                "Standard"
+              ]
+            ],
+            "extensionChildClass": {
+              "number": 515,
+              "dxfname": "XRECORD",
+              "cppname": "AcDbXrecord",
+              "appname": "ObjectDBX Classes",
+              "proxyflag": 32768,
+              "num_instances": 0,
+              "is_zombie": 0,
+              "item_class_id": 499
+            },
+            "extensionChildFrame": {
+              "handle": 184,
+              "type": 515,
+              "frameSha256": "9c401d69c1a8a0c59899b38b58ac01a5e24d74a013793158ab4d451871dee2df",
+              "frameOffset": 15830,
+              "frameSize": 55,
+              "crcValid": true,
+              "nextFrame": {
+                "offset": 15889,
+                "size": 51,
+                "type": 515,
+                "crcValid": true
+              },
+              "bodyEndBit": 400,
+              "bodyEndFieldBit": 36,
+              "dataStartBit": 88,
+              "ownerBit": 400,
+              "dataBytes": 39,
+              "dataHex": "660008002d4558544e414d4553010008002d5354414e44415244020008002d5374616e64617264",
+              "values": [
+                [
+                  102,
+                  "EXTNAMES"
+                ],
+                [
+                  1,
+                  "STANDARD"
+                ],
+                [
+                  2,
+                  "Standard"
+                ]
+              ],
+              "owner": {
+                "role": 4,
+                "length": 1,
+                "value": 183
+              },
+              "reactors": [
+                {
+                  "role": 4,
+                  "length": 1,
+                  "value": 183
+                }
+              ],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              }
+            },
+            "extensionChildMutationControls": {
+              "rejected": {
+                "value": true,
+                "ownerRole": true,
+                "bodyBoundary": true
+              },
+              "unchangedRetryPassed": true
+            }
+          }
+        },
+        "classFrame": {
+          "sectionOffset": 1327,
+          "sectionSize": 988,
+          "sectionSha256": "9bc533ceba1b392f7f4382a3b1f845bd677ec7ed0a947b31ab74f29f7101b828",
+          "crcValid": true,
+          "classCount": 18,
+          "selected": {
+            "number": 515,
+            "flags": 32768,
+            "app": "ObjectDBX Classes",
+            "cpp": "AcDbXrecord",
+            "dxf": "XRECORD",
+            "zombie": 0,
+            "itemClassId": 499,
+            "physicalStartBit": 17275,
+            "physicalEndBit": 17640,
+            "physicalDxfValueStartBit": 17565
+          }
+        },
+        "classMutationControls": {
+          "changedDxfNameRejectedWithRepairedCrc": true,
+          "unchangedRetryPassed": true
+        },
+        "odaReadbackSha256": "99ba300dad3a5b3b5949517a19a82f0d52710b6aa546d270f9aa5bbe53a45f53",
+        "odaReadbackLayer": "PROBE_LAYER",
+        "candidate": {
+          "strict": {
+            "exit": 1,
+            "destinationPreserved": true,
+            "diagnostics": [
+              "DXF export preflight failed: typed DWG ModelDocViewStyle serialization requires the exact DWG source version"
+            ]
+          },
+          "partial": {
+            "exit": 1,
+            "destinationPreserved": true,
+            "diagnostics": [
+              "DXF export preflight failed: typed DWG ModelDocViewStyle serialization requires the exact DWG source version"
+            ]
+          }
+        }
+      },
+      "r14": {
+        "dwgSha256": "b1f9ad9df6b3ae51963bff8bbb0dc0d7a6d62b033145a1eb04e8188773b065aa",
+        "layerHandle": 47,
+        "appidHandle": 42,
+        "proofs": {
+          "nod": {
+            "handle": 10,
+            "frameSha256": "174142ac3e15fe97671c59f3513acad85356f92239cfcdc190d4724812ddd0e0",
+            "frameOffset": 3128,
+            "frameSize": 363,
+            "bodyEndBit": 2590,
+            "crcValid": true,
+            "nextFrame": {
+              "offset": 3495,
+              "size": 36,
+              "type": 49,
+              "crcValid": true
+            },
+            "r14Byte": 0,
+            "owner": 0,
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 1,
+              "value": 204
+            },
+            "eed": [
+              {
+                "appid": 42,
+                "hex": "03000000000000002f"
+              }
+            ],
+            "entryCount": 18,
+            "extensionFrame": {
+              "handle": 204,
+              "frameSha256": "3fdd640cc7dcc2ccdf69ae413f3c68d0c220a174c9f9fe037dc77e924fd3b4e9",
+              "frameOffset": 4990,
+              "frameSize": 36,
+              "bodyEndBit": 242,
+              "crcValid": true,
+              "nextFrame": {
+                "offset": 5030,
+                "size": 12,
+                "type": 42,
+                "crcValid": true
+              },
+              "r14Byte": 1,
+              "owner": 10,
+              "reactors": [],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              },
+              "eed": [],
+              "entryCount": 1
+            },
+            "extensionEntry": 205,
+            "extensionChildType": "XRECORD",
+            "extensionChildXdata": [
+              [
+                102,
+                "EXTNAMES"
+              ],
+              [
+                1,
+                "ACDBVARIABLEDICTIONARY"
+              ],
+              [
+                2,
+                "AcDbVariableDictionary"
+              ]
+            ],
+            "extensionChildClass": {
+              "number": 515,
+              "dxfname": "XRECORD",
+              "cppname": "AcDbXrecord",
+              "appname": "ObjectDBX Classes",
+              "proxyflag": 0,
+              "num_instances": 0,
+              "is_zombie": 0,
+              "item_class_id": 499
+            },
+            "extensionChildFrame": {
+              "handle": 205,
+              "type": 515,
+              "frameSha256": "f697666179b837344b775db58fed0040a7fc8cb5f53d4b5a178bea7a92dae5d1",
+              "frameOffset": 7684,
+              "frameSize": 83,
+              "crcValid": true,
+              "nextFrame": {
+                "offset": 7771,
+                "size": 36,
+                "type": 42,
+                "crcValid": true
+              },
+              "bodyEndBit": 624,
+              "bodyEndFieldBit": 36,
+              "dataStartBit": 88,
+              "ownerBit": 624,
+              "dataBytes": 67,
+              "dataHex": "660008002d4558544e414d4553010016002d414344425641524941424c4544494354494f4e415259020016002d416344625661726961626c6544696374696f6e617279",
+              "values": [
+                [
+                  102,
+                  "EXTNAMES"
+                ],
+                [
+                  1,
+                  "ACDBVARIABLEDICTIONARY"
+                ],
+                [
+                  2,
+                  "AcDbVariableDictionary"
+                ]
+              ],
+              "owner": {
+                "role": 4,
+                "length": 1,
+                "value": 204
+              },
+              "reactors": [
+                {
+                  "role": 4,
+                  "length": 1,
+                  "value": 204
+                }
+              ],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              }
+            },
+            "extensionChildMutationControls": {
+              "rejected": {
+                "value": true,
+                "ownerRole": true,
+                "bodyBoundary": true
+              },
+              "unchangedRetryPassed": true
+            }
+          },
+          "mline": {
+            "handle": 16,
+            "frameSha256": "58a692d4562c59358d7ce8e93439fcbb3953093bf9b8b98ceb849fc3dc0c4a8c",
+            "frameOffset": 5177,
+            "frameSize": 38,
+            "bodyEndBit": 252,
+            "crcValid": true,
+            "nextFrame": {
+              "offset": 5219,
+              "size": 12,
+              "type": 42,
+              "crcValid": true
+            },
+            "r14Byte": 0,
+            "owner": 10,
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 1,
+              "value": 185
+            },
+            "eed": [
+              {
+                "appid": 42,
+                "hex": "03000000000000002f"
+              }
+            ],
+            "entryCount": 1,
+            "extensionFrame": {
+              "handle": 185,
+              "frameSha256": "796acded099584ef1ea2af5b1f71149c7f2a8898521f138138e264c1682e0950",
+              "frameOffset": 8666,
+              "frameSize": 36,
+              "bodyEndBit": 242,
+              "crcValid": true,
+              "nextFrame": {
+                "offset": 8706,
+                "size": 63,
+                "type": 73,
+                "crcValid": true
+              },
+              "r14Byte": 1,
+              "owner": 16,
+              "reactors": [],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              },
+              "eed": [],
+              "entryCount": 1
+            },
+            "extensionEntry": 186,
+            "extensionChildType": "XRECORD",
+            "extensionChildXdata": [
+              [
+                102,
+                "EXTNAMES"
+              ],
+              [
+                1,
+                "STANDARD"
+              ],
+              [
+                2,
+                "Standard"
+              ]
+            ],
+            "extensionChildClass": {
+              "number": 515,
+              "dxfname": "XRECORD",
+              "cppname": "AcDbXrecord",
+              "appname": "ObjectDBX Classes",
+              "proxyflag": 0,
+              "num_instances": 0,
+              "is_zombie": 0,
+              "item_class_id": 499
+            },
+            "extensionChildFrame": {
+              "handle": 186,
+              "type": 515,
+              "frameSha256": "87c55ca3232ed3126598f71366b138cc85a721726e88cd044721bdb5a7cc0e3e",
+              "frameOffset": 15845,
+              "frameSize": 55,
+              "crcValid": true,
+              "nextFrame": {
+                "offset": 15904,
+                "size": 51,
+                "type": 515,
+                "crcValid": true
+              },
+              "bodyEndBit": 400,
+              "bodyEndFieldBit": 36,
+              "dataStartBit": 88,
+              "ownerBit": 400,
+              "dataBytes": 39,
+              "dataHex": "660008002d4558544e414d4553010008002d5354414e44415244020008002d5374616e64617264",
+              "values": [
+                [
+                  102,
+                  "EXTNAMES"
+                ],
+                [
+                  1,
+                  "STANDARD"
+                ],
+                [
+                  2,
+                  "Standard"
+                ]
+              ],
+              "owner": {
+                "role": 4,
+                "length": 1,
+                "value": 185
+              },
+              "reactors": [
+                {
+                  "role": 4,
+                  "length": 1,
+                  "value": 185
+                }
+              ],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              }
+            },
+            "extensionChildMutationControls": {
+              "rejected": {
+                "value": true,
+                "ownerRole": true,
+                "bodyBoundary": true
+              },
+              "unchangedRetryPassed": true
+            }
+          }
+        },
+        "classFrame": {
+          "sectionOffset": 1459,
+          "sectionSize": 978,
+          "sectionSha256": "3329a6b78227565a7f0ec343f9ed7f18b53f90cfc7bdeae3967951f65e8e2a54",
+          "crcValid": true,
+          "classCount": 18,
+          "selected": {
+            "number": 515,
+            "flags": 0,
+            "app": "ObjectDBX Classes",
+            "cpp": "AcDbXrecord",
+            "dxf": "XRECORD",
+            "zombie": 0,
+            "itemClassId": 499,
+            "physicalStartBit": 18299,
+            "physicalEndBit": 18648,
+            "physicalDxfValueStartBit": 18573
+          }
+        },
+        "classMutationControls": {
+          "changedDxfNameRejectedWithRepairedCrc": true,
+          "unchangedRetryPassed": true
+        },
+        "odaReadbackSha256": "03b912b98acec47372f45cd96888cf4b424235a2a48816468c2e84f36f32dd3c",
+        "odaReadbackLayer": "PROBE_LAYER",
+        "candidate": {
+          "strict": {
+            "exit": 1,
+            "destinationPreserved": true,
+            "diagnostics": [
+              "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+            ]
+          },
+          "partial": {
+            "exit": 1,
+            "destinationPreserved": true,
+            "diagnostics": [
+              "DXF export preflight failed: LAYOUT and BLOCK_RECORD backlinks disagree"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "findings": [
+    "The independent walker now checks each selected parent DICTIONARY, extension DICTIONARY and child XRECORD frame envelope, CRC, source handle, bounded body end and physically adjacent next frame CRC.",
+    "For each XRECORD, the walker binds numeric type and self handle, empty EED, reactor count, data length, exact raw data bytes, group codes, string lengths, codepage 45, ASCII values, parent/owner and reactor soft-pointer roles, hard-owner null extension handle, and bounded trailing alignment. The complete physical class section, its two sentinels, size, CRC and every class tuple match the independent LibreDWG class model. The selected class is XRECORD / AcDbXrecord / ObjectDBX Classes; class flags are 32768 in this R13 source and 0 in the R14 source.",
+    "On each XRECORD, repaired-CRC mutations of a string-value bit, an owner-role bit, or the declared body-boundary field are refused by this witness checker, and the original source is accepted again. A repaired-CRC class-name mutation is also rejected. These controls exercise the checker, not libdxfrw parser failure or output retry.",
+    "The producer reopen confirms the selected named-layer EED in both dictionaries. The candidate still refuses both whole-source modes before qualifying this graph and preserves the destination; the exact preflight reasons are recorded per version."
+  ],
+  "nextActions": [
+    "Establish the R14 byte and dictionary ownership semantics using version-qualified authority or native producer evidence; confirm class interpretation beyond these bounded producer profiles.",
+    "Extend the shared source observer and graph closure to the observed extension dictionary/XRECORD profile only after those checks. Add candidate parser wrong-role/truncation, retained state, staged ASCII/Binary output, nondefault layer table identity and same-adapter failure/retry checks.",
+    "Resolve the separate whole-source ModelDocViewStyle, complete-read and LAYOUT/BLOCK_RECORD gates before claiming whole-source output."
+  ],
+  "limits": [
+    "This source is generated by ODA from a locally authored seed; it does not establish native AutoCAD or duplicate/merge behavior. The independently walked class tuples are cross-checked with LibreDWG for these exact samples.",
+    "Repaired-CRC negative controls are derived scratch files, not original producer witnesses. No drawing fixtures were committed."
+  ]
+}

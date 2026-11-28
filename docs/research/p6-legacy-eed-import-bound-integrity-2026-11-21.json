@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-eed-import-bound-integrity-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_IMPORT_SOURCE_MUTATION_INTEGRITY",
+  "supportClaimEffect": "none",
+  "previousObservation": "docs/research/p6-r13-group-dictionary-eed-partial-2026-11-21.json",
+  "change": "At import, freeze whether the observed R13/R14 group dictionary passed the existing bounded EED source check. When targeting R14, require this previously verified profile to remain unchanged even before an output proof exists. Never upgrade this flag at export.",
+  "checks": [
+    "Locally generated R13 and R14 EED controls verify the import-bound flag, pre-inspection and late source-byte corruption refusal, destination preservation, corrected retry, EED and APPID mutation controls, and ASCII/Binary readback under ASan.",
+    "An R13 EED control containing a 1071 integer falls outside the bounded observer; its established explicit partial route still succeeds and preserves that value in both output encodings.",
+    "R13 strict output remains refused; R14 cross-version strict output remains refused."
+  ],
+  "limits": [
+    "The import-bound flag proves only the selected source framing and APPID profile, not complete export, native dictionary cloning semantics, unmodeled EED or general R13/R14 support.",
+    "Unqualified partial-source records remain partial and do not acquire a new integrity or completeness certificate. Generated DWG/DXF files remain in scratch space."
+  ]
+}

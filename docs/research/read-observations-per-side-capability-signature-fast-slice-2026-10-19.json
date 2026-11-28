@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Per-side DWG read-observations API capability signature gate",
+  "mode": "Generated local strict compile-only slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Declare the exact target/standalone capability difference for getReadObservations and every optional modeler property currently consumed by the semantic adapter.",
+    "Reject missing, newly-present, or type/signature-drifted capabilities instead of silently treating them as legitimately unavailable.",
+    "Compile against the immutable locked LibreCAD source archive and current standalone source; do not promote support or qualification claims."
+  ],
+  "changes": [
+    {
+      "file": "tests/semantic_differential_adapter.cpp",
+      "detail": "Added the named SemanticAdapterCapabilityProfileV1 with exact per-side declarations for getReadObservations, modeler DWG source version, DWG ACIS payload, DXF payload chunks, payload-status accessor, payload-range bit offset, and surface DXF chunks. Compile-time probes distinguish absent, non-const, throwing, and wrong-return getter signatures; standalone field types are checked exactly."
+    },
+    {
+      "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "detail": "Recorded current PAR-132 validation/status and this partial 7AG.4 capability-profile slice; effective-driver/platform closure and 7F.1b typed receipt propagation remain open."
+    }
+  ],
+  "validation": {
+    "commands": [
+      {
+        "command": "python3 tools/build_semantic_adapter.py build-target --target-git-dir /Users/dli/dev/LibreCAD/.git --build-dir /private/tmp/libdxfrw-7ag-capability.zH2GPJ --adapter-support-input tests/generated_raw_dwg_object.h --parallel 4",
+        "result": "PASS; target commit 2043e5254fbf71729e97bd54e48a184153161ff2 and locked source-manifest/archive checks passed; target adapter compiled and linked"
+      },
+      {
+        "command": "c++ -std=c++17 -Wall -Wextra -pedantic -Werror -Isrc -Isrc/intern -Itests -c tests/semantic_differential_adapter.cpp -o /private/tmp/libdxfrw-semantic-standalone-capability.o",
+        "result": "PASS"
+      }
+    ],
+    "coverage": "Target uses the immutable locked archive (not the newer neighboring checkout); standalone uses the current standalone headers. A target-only build receipt was produced with compileContractEnforced=false and an advisory profile, so it is not paired semantic or qualification evidence. The standalone translation unit compiled with strict warnings; no adapter runtime invocation occurred."
+  },
+  "targetBinding": {
+    "commit": "2043e5254fbf71729e97bd54e48a184153161ff2",
+    "archiveSha256": "7892fd2f35ff9ccf0b60eed13dfcb2bec818d40785b77661ddea86aa0a7d2139",
+    "sourceManifestSha256": "c4a9a0cf47b180e2ccdb4411bfdcd6c26d6c3085f2fb7e8c7a3b85f2d36f3fba"
+  },
+  "planImpact": {
+    "findingCount": 134,
+    "topLevelSubplanCount": 76,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "qualificationClaimChanged": false,
+    "supportClaimChanged": false
+  },
+  "repositoryState": "Shared worktree remains broadly modified; this slice is unstaged and uncommitted."
+}

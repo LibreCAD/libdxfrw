@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-05",
+  "title": "DWG LAYOUT viewport-list closure and DXF entity-space projection",
+  "scope": "Correct the strict adapter's assumption that the DWG LAYOUT viewport handle array must enumerate every emitted paper-space VIEWPORT, while retaining closure for each listed handle.",
+  "authority": {
+    "priorResearch": "docs/research/dwg-layout-viewport-cross-format-semantics-research-2026-10-18.json",
+    "contract": "DWG LAYOUT list handles and the last-active handle are source relationships. DXF has no counted LAYOUT viewport-list field: preserve the complete paper-space entity set through unique BLOCK_RECORD/LAYOUT ownership, and serialize the last-active viewport separately as group 331.",
+    "limits": "The reviewed Autodesk DXF tables do not define a DWG-list-to-DXF sequence mapping. The ObjectARX getViewportArray API describes a complete layout array; the local AC1024 source has paper-space entities despite an empty array, so this receipt qualifies only the bounded adapter preservation policy and generated output behavior. Native layout activation/rendering remains open."
+  },
+  "sourceObservation": {
+    "path": "tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+    "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+    "repositoryFixture": false,
+    "parser": "libdxfrw AC1024 reader",
+    "before": "Strict conversion read 395/395 source frames with zero entity/object parse failures, then refused because emitted paper-space VIEWPORT 0x490 was absent from its DWG LAYOUT viewport list.",
+    "after": "Strict conversion passes viewport projection and refuses later at the unqualified dynamic-block object profile. The file still does not produce a strict DXF.",
+    "independentPeer": "The retained LibreDWG 0.14 JSON/DXF observations in the prior research receipt show Layout1 with an empty viewport array and active_viewport 0x490, while its BLOCK_RECORD-owned paper-space entities include VIEWPORT 0x490 and 0x492. This is a source observation, not native application acceptance.",
+    "oda": "A local ODA File Converter 27.1.0.0 retry aborted before conversion with macOS pasteboard/XPC errors (exit 134); no output or compatibility result was obtained."
+  },
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "behavior": [
+      "Every declared DWG LAYOUT viewport handle remains subject to the existing typed paper-space target, uniqueness, owner/layout, and emitted-identity checks.",
+      "Every retained paper-space VIEWPORT with a uniquely resolved layout owner participates in per-layout DXF 68/69 projection even when it is absent from the DWG counted array.",
+      "The LAYOUT last-active handle remains a separate validated and remapped group-331 reference; the source viewport-list order is not used as a DXF stacking-order claim."
+    ],
+    "fixturesCommitted": 0,
+    "supportClaimsPromoted": 0
+  },
+  "generatedControls": {
+    "file": "tests/dxf_fixture_tests.cpp",
+    "selector": "--dwg-viewport-projection",
+    "encodings": ["ASCII", "Binary"],
+    "cases": [
+      "A paper-space layout with two retained VIEWPORT entities and an empty DWG viewport list exports and reads back.",
+      "A one-handle list with an unlisted last-active VIEWPORT preserves all six generated VIEWPORT entities and remaps group 331 to the correct owner and projected identity.",
+      "Count mismatch, missing target, wrong target kind, cross-layout target, duplicate list entry, and a declared target with no retained VIEWPORT still refuse atomically."
+    ],
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j4",
+      "result": "PASS"
+    },
+    "focused": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --dwg-viewport-projection",
+      "result": "PASS"
+    },
+    "physicalSource": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg -y -d -v2010 /private/tmp/sun-sky-after-viewport.dxf",
+      "result": "Expected strict refusal at dynamic-block objects after viewport preflight advanced; no qualified output was published."
+    },
+    "diffCheck": "PASS"
+  },
+  "qualification": {
+    "closed": "Generated ASCII/Binary adapter projection preserves complete owner-backed paper-space VIEWPORT entities independently from the DWG counted array and validates all declared list edges plus group-331 remapping.",
+    "open": [
+      "Native viewport activation, rendering, and ordering semantics.",
+      "The physical Sun-and-Sky source remains blocked by dynamic-block output qualification and other graph gates."
+    ],
+    "supportClaim": "Not promoted"
+  }
+}

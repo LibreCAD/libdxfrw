@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-underlay-dxf-clip-allocation-retry-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P6",
+  "status": "BOUNDED_UNDERLAY_DXF_CLIP_ALLOCATION_FAILURE_FAILS_CLOSED_AND_RETRIES",
+  "supportClaimEffect": "none",
+  "scope": "Make UNDERLAY DXF clip and inverse-clip count/vector allocation failures leave parser occurrence state retryable.",
+  "implementation": {
+    "source": "src/drw_entities.cpp",
+    "sourceSha256": "2cd1a685e28e95b4e9c1a0880775aa0e5c5cef48258af82149a111796d60af92",
+    "behavior": [
+      "Groups 11 and 12 calculate the next clip vertex index locally, use DRW::resize, store X, and commit the corresponding occurrence index only after success.",
+      "Group 170 reserves the bounded inverse-clip vector before committing the declared count and count-seen flag."
+    ],
+    "failureInjection": "A focused test injects one std::bad_alloc at each of the clip-vector resize, inverse-clip count reserve, and inverse-clip vertex resize boundaries. Each failure is observed once, leaves the affected logical vector empty, and a corrected retry of the same group succeeds with the expected X/Y coordinates.",
+    "testSha256": "4af2215f5313956721c0b43539f077cc77beb8a7dbe71cc11830e3069229b96c",
+    "cmakeSha256": "72533cc3c2e47213b88739e2fd6a4f3143d1be8fe067b98df3346c8a62b9caba"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_(mline_dxf_allocation_failure|mline_vector_component_order|dxf_underlay_ocs_extrusion|underlay_dxf_allocation_failure)$' --output-on-failure",
+      "result": "PASS: 4/4 focused fast tests; 0.66 seconds",
+      "passed": 4,
+      "failed": 0
+    },
+    "fixturePolicy": "The fault-injection controls parse locally generated in-memory DXF group records. No external DWG/DXF fixture was added.",
+    "diffCheck": "PASS: git diff --check",
+    "testExecutableSha256": "052c35b8f768f0182d889de23debdeb6df4701deb53fc2184fc8519a0a85fb49"
+  },
+  "limitations": [
+    "This covers the named UNDERLAY DXF parser allocation boundaries only. It does not qualify physical producer breadth, whole-document conversion, or native UNDERLAY semantics.",
+    "No DWG parser layout or behavior was changed, and no support claim is promoted."
+  ],
+  "next": "Continue P6 safety review at another reproduced parser allocation or rollback boundary while retaining fast-only validation for bounded slices.",
+  "repositoryState": {
+    "validationBaseHead": "af640e95",
+    "validationSnapshot": "WORKTREE",
+    "note": "Receipt hashes identify the exact source/test snapshot used for the focused build and CTest run; no persistent drawing fixture was added."
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "title": "VPORT shade-plot field retention fast slice",
+  "date": "2026-10-18",
+  "classification": "partial-implementation-fast-slice",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "subplan": "PAR-40 / 7G.2",
+  "scope": [
+    "retain VPORT DXF group 170 and group 333 independently from VIEWPORT fields",
+    "preserve absent versus explicit-null state",
+    "limit writes to conservative modes 0-3 with null target and AC1021+",
+    "fail closed on unqualified non-null target or modern shade mode"
+  ],
+  "research": {
+    "primary_sources": [
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-8CE7CC87-27BD-4490-89DA-C21F516415A9.htm",
+        "observation": "The VPORT DXF table defines group 170 as shade-plot setting and group 333 as optional soft-pointer shade-plot object ID/handle; it does not list mode values or a first-supported release."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettingsShadePlotType.html",
+        "observation": "PlotSettings shade enum members are 0-5; modes 4 and 5 name VisualStyle and RenderPreset. This does not independently qualify the VPORT DXF release/producer contract."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettings_SetShadePlot_PlotSettingsShadePlotType_ObjectId.html",
+        "observation": "PlotSettings SetShadePlot requires VisualStyle/RenderSettings for modes 4/5 and ignores/nulls the ID for modes 0/3. This API evidence is not a VPORT graph or producer witness."
+      }
+    ],
+    "support_claim_promotions": 0
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "DRW_Vport now retains group 170 mode and group 333 handle with separate presence flags. DXF output permits only modes 0-3 and a null target, refuses modern modes and non-null target without graph closure, and applies a conservative AC1021 output floor. DWG parse/encode was not changed.",
+    "generated_ascii_binary_controls": [
+      "modes 0-3 and explicit-null code 333 round-trip",
+      "absent shade fields remain absent after round-trip",
+      "non-null code-333 target fails atomically",
+      "modes 4 and 5 fail atomically",
+      "AC1018 target fails atomically when shade fields are present",
+      "mode 6 input is rejected"
+    ],
+    "persistent_fixture_files_added": 0,
+    "new_ctest_registrations": 0,
+    "new_ledger_items": 0
+  },
+  "validation": {
+    "strict_target_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "passed"
+    },
+    "focused_selector": {
+      "command": "build/libdxfrw_dxf_fixture_tests --vport-shadeplot-retention",
+      "result": "passed"
+    },
+    "previous_slice_regression_selector": {
+      "command": "build/libdxfrw_dxf_fixture_tests --header-visual-style-references",
+      "result": "passed"
+    },
+    "compatibility_target": {
+      "command": "cmake --build build --target lc3_compat_check -j2",
+      "result": "passed"
+    },
+    "diff_check": {
+      "command": "git diff --check -- src/drw_objects.h src/drw_objects.cpp src/libdxfrw.cpp dwg2dxf/dx_iface.cpp tests/dxf_fixture_tests.cpp",
+      "result": "passed"
+    },
+    "owning_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "not run; broad runner has a previously recorded unattributed crash"
+    },
+    "full_suite_run": false
+  },
+  "remaining_work": [
+    "qualify VPORT-specific introduction release and mode semantics with producer-authored evidence",
+    "retain and validate rooted VisualStyle/RenderSettings target objects before enabling non-null code-333 output",
+    "implement handle remapping and retry-preserving negative controls for those target routes",
+    "complete remaining VIEW-family edges and composed/native qualification"
+  ],
+  "plan_effect": {
+    "refines": ["PAR-40", "7G.2"],
+    "findings": 130,
+    "top_level_subplans": 73,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "worktree_state": "uncommitted"
+}

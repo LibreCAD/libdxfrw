@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-installed-codec-cmake-option-2026-11-15.patch",
+  "patchSha256": "3c5cccd1c118ff7eb1ef8cccc444973a6612c8203f2b71048648881da567d6df",
+  "order": "Sixteenth patch after the documented downstream chain, including standalone helper compatibility.",
+  "implementation": "Adds opt-in LIBRECAD_USE_SYSTEM_LIBDXFRW; OFF keeps bundled sources. ON requires the installed libdxfrw CONFIG package, removes bundled include/source entries and links its exported target publicly. The filter includes the installed handle header under intern/. System mode explicitly rejects BUILD_TESTS=ON because existing test targets require noninstalled codec internals.",
+  "validation": [
+    "macOS ARM64: using the option, the full default application/helper build succeeded in the existing clean-source qualification build directory after reconfiguration from an earlier temporary overlay and a full rebuild of affected objects.",
+    "The application link command names the staged static archive 719521dae87b5da63ab9bc2fb68cd2cfe70172ba30027d1f35a40428fc6e5224; the LibreCAD archive has none of the checked bundled drw_entities, drw_objects, drw_base, libdxfrw, libdwgr or dwgbuffer object members.",
+    "The installed-mode application converts the workspace-local AC1021 lineweights sample; it safely refuses the independently diagnosed AC1024 title-block sample for the R2010 output profile.",
+    "The default bundled mode configures with BUILD_TESTS=ON; its focused LTYPE selector passes 17/17 and the five PR #3269 tests pass.",
+    "System mode with BUILD_TESTS=ON refuses with the explicit test-internals diagnostic; a required package disabled at configuration also refuses. Forward/reverse patch checks pass on the ordered chain."
+  ],
+  "limits": "A fresh empty installed-mode build directory is being checked separately. Installed mode currently has no supported BUILD_TESTS=ON path, and shared-library, Linux/Windows, GUI and broad runtime qualification remain open. The patch is unmerged. No phase or format support claim is promoted."
+}

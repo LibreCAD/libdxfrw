@@ -1,0 +1,119 @@
+{
+  "slice": "Compatible DIMSTYLE group-340 text-style name resolution",
+  "date": "2026-10-28",
+  "baseline": {
+    "authored_input_sha256": "c0800a1c9b7532e6047492b3b36d174cb15c41d09f1bf49aca5a6b2451c24b21",
+    "style": {
+      "name": "Standard",
+      "handle": "29",
+      "owner": "5"
+    },
+    "dimstyle": {
+      "name": "Standard",
+      "handle": "2B",
+      "owner": "4",
+      "group_340": "absent"
+    },
+    "imported_default": "Standard",
+    "whole_adapter_exit": 6,
+    "failure": "TABLES emission",
+    "baseline_library_sha256": "0aaf674ab0c2b947e386bcfd766ef70cc320f7e7625f48a62d3116a87ac719bb"
+  },
+  "fix": "Compatible group-340 modeled non-hex names with no source identity or explicit null resolve to an already emitted STYLE; unknown names fail atomically. Hex-looking tokens retain literal handling.",
+  "bindings": {
+    "writer_source_sha256": "1ca8180bb7c0306ee3534d5f5d7c3d525ea58321f2d3e70a7e1aa9ba7feba761",
+    "test_source_sha256": "e11c5d00e1e15f3afc50ab9bc9d179dce944d8e56c814c0daded8b6ac0b91681",
+    "normal_library_sha256": "69b3ef1bea39687d6fe8ee97c6a6136e162ec558d7b718995fc9a88dd85c0013",
+    "normal_test_sha256": "af5667c8ed566d55a62774a24be703376e09fda022bab92695a3abfa6fe918c4",
+    "asan_library_sha256": "0c7ac842e475a817890b1ce19d9f81eb1243e8b1142690bda2493887bc5f8ce1",
+    "asan_test_sha256": "b999952ca0dba4aa8d2715c602ca3781fbafcb8f9a2250560c2e4b5610d89516",
+    "adapter_object_sha256": "6735547aab668c1f2ca0abcac2b2f7f2c5855f5c463fe26deb59d8e59d7522bc",
+    "whole_adapter_probe_sha256": "1239eade1288868cf06c3d22a434bf51ce161e6a1de3d621989e057e7b1d3b3c"
+  },
+  "validation": {
+    "normal_ctest": [
+      "libdxfrw_dimstyle_optional_handles",
+      "libdxfrw_dimstyle_compatible_resource_remap"
+    ],
+    "asan_ctest": [
+      "libdxfrw_dimstyle_optional_handles",
+      "libdxfrw_dimstyle_compatible_resource_remap"
+    ],
+    "asan_options": "halt_on_error=1:detect_leaks=0",
+    "all_selected_passed": true,
+    "selector_report": "DIMSTYLE resources: 24 two-pass compatible routes and strict readbacks; 32 compatible unresolved controls; 48 atomic refusals/48 corrected readbacks; 4 explicit-null routes; 8 named/default/zero/hex sources; 4 default routes; 4 explicit-name routes; 4 dynamic-name overrides; 8 zero/hex routes; 8 over-wide literal routes; 4 named refusals/4 retries; 4 earlier-version default routes",
+    "independent_ezdxf_version": "1.4.5",
+    "physical_outputs": [
+      {
+        "path": "build/rpp5hf-evidence/actual-fixed-asc.dxf",
+        "sha256": "3af6a69d24dfe5c102130e17e7d906ee3ffcea2e4b2a2e48977411f67f9580ef",
+        "controls": {
+          "STYLE": "3",
+          "DIMSTYLE": "A"
+        },
+        "style": {
+          "handle": [
+            "43"
+          ],
+          "owner": [
+            "3"
+          ]
+        },
+        "dimstyle": {
+          "handle": [
+            "48"
+          ],
+          "owner": [
+            "A"
+          ],
+          "target": [
+            "43"
+          ]
+        },
+        "ezdxf_ordinary_read_dimtxsty": "Standard"
+      },
+      {
+        "path": "build/rpp5hf-evidence/actual-fixed-bin.dxf",
+        "sha256": "98d7919b7aa1402cfddd3a6ff15ea3fc3f82d2ba9fecfb7a5b7f414d61119995",
+        "controls": {
+          "STYLE": "3",
+          "DIMSTYLE": "A"
+        },
+        "style": {
+          "handle": [
+            "43"
+          ],
+          "owner": [
+            "3"
+          ]
+        },
+        "dimstyle": {
+          "handle": [
+            "48"
+          ],
+          "owner": [
+            "A"
+          ],
+          "target": [
+            "43"
+          ]
+        },
+        "ezdxf_ordinary_read_dimtxsty": "Standard"
+      }
+    ],
+    "whole_adapter_final_exit": 0,
+    "whole_adapter_scope": "retained compatible authored input, ASCII and binary only"
+  },
+  "development_findings": [
+    "Initial test compilation rejected a copied range-loop variable under -Werror; fixed by using a reference.",
+    "The first focused execution exposed that a missing name was emitted literally; explicit preflight refusal was added.",
+    "The 9- and 17-digit all-hex name collisions are retained as literals in this compatible path; they are not proof of valid wide-handle support."
+  ],
+  "limitations": [
+    "No duplicate STYLE-name disambiguation is established.",
+    "All-hex STYLE names are ambiguous with handle literals and are not resolved by this fallback.",
+    "The strict route is not changed; original omitted-field strict document qualification remains separate.",
+    "This sample does not establish full document, native consumer, or platform support.",
+    "User-provided and locally authored research drawings remain outside Git."
+  ]
+}

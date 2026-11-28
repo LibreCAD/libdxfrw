@@ -1,0 +1,151 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer-body, wire-semantics, and fixture-provenance reconciliation",
+  "mode": "primary-source web research, local source/test audit, and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Retrieve current bodies for selected LibreDWG and ACadSharp issue reports and distinguish peer failure modes from local defects",
+    "Cross-check the LTYPE reduced input against Autodesk's documented group-code dependency",
+    "Reconcile the ACadSharp signed EED-length overflow report with ODA, GNU LibreDWG's published BS type, and local unsigned wire code/tests",
+    "Audit the local AC1024 LTYPE and zero-child FIELD test profiles for small existing-owner readiness gaps",
+    "Reinforce fixture provenance, sidecar dependency, and validation-cadence constraints"
+  ],
+  "method": {
+    "kind": "Read-only review of primary public issue/spec/documentation pages and local source/test paths; plan-only edit",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/libdxfrw.cpp",
+      "src/drw_objects.cpp",
+      "src/intern/dwgbuffer.h",
+      "src/intern/dwgbufferw.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/dwg_object_vectors_tests.cpp"
+    ],
+    "limitations": "Issue bodies are reporter-authored and were not independently reproduced. ODA §28 identifies EED length as BS but does not state a 32767-byte maximum; GNU LibreDWG's public type documentation and local implementation use unsigned 16-bit BS for EED sizes. This is not independent producer/native acceptance. No external fixture or sidecar was downloaded."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG issue reports #1450–#1452",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1450",
+        "https://github.com/LibreDWG/libredwg/issues/1451",
+        "https://github.com/LibreDWG/libredwg/issues/1452"
+      ],
+      "revision": "Issue bodies reviewed 2026-10-18; reports cite LibreDWG commits in October 2026",
+      "observed": "#1450's minimized AC1024 LTYPE includes group 9 without group 74=2 and reports a TU/TV import mismatch; #1451 reports a FIELD with zero child data sets and a primary cached value, and says LibreDWG's own writer emits the zero count; #1452 reports a packed-struct odd-offset BITCODE_RS pointer read in LibreDWG's DWG EED encoder. These are peer-specific findings, not local reproductions."
+    },
+    {
+      "project": "ACadSharp issue reports #1281–#1283",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1283"
+      ],
+      "revision": "Issue bodies reviewed 2026-10-18; #1282/#1283 cite ACadSharp v3.8.0/master",
+      "observed": "#1281 describes recursive DXF reader advancement for repeated comments, XDATA application blocks, and clipping groups; #1282 shows a signed-short cast overflowing an EED application-data length at 32768 bytes; #1283 describes recursive nested-block cloning from Insert(BlockRecord), not recursive DWG parsing. Peer thresholds and implementation mechanics are not format rules."
+    },
+    {
+      "project": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm"
+      ],
+      "revision": "Official LTYPE and FIELD tables reviewed 2026-10-18",
+      "observed": "Autodesk documents LTYPE code 9 text as one per element when code 74=2 and describes FIELD group 93 as the number of data sets. The latter table does not specify all zero-count validity conditions."
+    },
+    {
+      "project": "ODA Open Design Specification and GNU LibreDWG manual",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "https://www.gnu.org/software/libredwg/manual/LibreDWG.html"
+      ],
+      "revision": "ODA v5.4.1 §28 and current LibreDWG public type/EED documentation reviewed 2026-10-18",
+      "observed": "ODA §28 defines each application EED length as BS and excludes the length encoding and application handle from the measured data bytes, without stating a 32767 maximum. GNU LibreDWG defines BITCODE_BS as an unsigned short and documents EED block lengths as BS. This weighs against treating ACadSharp's signed cast boundary as a format limit, while not establishing external acceptance of the local 65535-byte case."
+    },
+    {
+      "project": "LibreDWG fixture provenance issues #1418 and #1421; platform issue #1419",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1418",
+        "https://github.com/LibreDWG/libredwg/issues/1419",
+        "https://github.com/LibreDWG/libredwg/issues/1421"
+      ],
+      "revision": "Issue bodies reviewed 2026-10-18",
+      "observed": "#1418 asks for the producer workflow behind an open-source test corpus; #1421 asks for exact SHX sidecar provenance/hash and internal-use permission; #1419 reports a Windows UCRT fail-fast in LibreDWG's malformed timestamp-to-strftime path. These reinforce the existing no-unprovenanced-fixtures rule and do not identify an equivalent local calendar conversion call site."
+    },
+    {
+      "project": "Local libdxfrw implementation and test owners",
+      "urls": [],
+      "revision": "Shared worktree inspected 2026-10-18; no edits outside the plan/receipt",
+      "observed": "The generated LTYPE full drawing currently declares AC1027; it already covers ASCII/Binary valid group-74 text, missing-74 refusal, and following LTYPE sentinel. The FIELD adapter test has a primary value with zero child data sets in its AC1018 legacy case and an AC1027 case with one child. Existing EED boundary vectors cover 32767, 32768, 65535, and 65536 bytes and document local-wire-only status. The implementation update lists only two small extensions to these existing fast-test owners."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "existingOwnersRefined": [
+      "Existing LTYPE hardening owner: add AC1024 valid 74=2 ASCII/Binary control alongside existing AC1027 and malformed no-74 cases",
+      "Existing FIELD adapter owner: add AC1015 zero-child primary-value ASCII/Binary case and next-object sentinel",
+      "Existing EED width owner: retain unsigned 16-bit controls and do not infer a 32767-byte format cap from a signed peer cast",
+      "Fixture policy: require provenance/rights/dependency/sidecar qualification for peer comparisons; no external fixtures added"
+    ],
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Supersedes prior title-only/retrieval-limited snapshots with issue-body details, distinguishes malformed or implementation-specific peer cases from valid format evidence, and identifies two bounded generated additions under existing fast-test owners. It does not change finding counts, implementation queue, fixture policy, validation cadence, or support claims."
+  },
+  "implementationReadyChecks": [
+    "Parameterize the existing LTYPE generated header version and run the valid AC1024 74=2 case in ASCII/Binary with exact text plus following-row identity; retain the no-74 negative.",
+    "Add the existing FIELD parser's AC1015 zero-child case with the primary ACFD_FIELD_VALUE, zero child values, required count fields, raw/typed identity, and a following object sentinel in ASCII/Binary.",
+    "Keep EED boundary cases at 32767/32768/65535/65536 as local wire/reader evidence; do not implement an ACadSharp-derived 32767 guard or claim external acceptance.",
+    "Skip local UBSan/platform work for peer-only packed-pointer and strftime paths unless a matching local source pattern or reproduction appears.",
+    "Use only generated in-memory tests and temporary local scratch. Do not add peer DWG/DXF/font sidecars without established provenance, permission, and explicit fixture-policy approval.",
+    "For each future implementation slice, update the plan/receipt and report progress after that slice; run the changed strict target and focused test only, leaving full suites and peer/native checks at the planned composed checkpoints."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-peer-body-wire-and-fixture-provenance-review-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-peer-body-wire-and-fixture-provenance-review-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed"
+  }
+}

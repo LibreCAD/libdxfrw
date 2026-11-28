@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "7J DIMENSION style-row closure fast slice",
+  "mode": "local generated ASCII/Binary DXF writer implementation and focused verification",
+  "scope": [
+    "Resolve nonempty DIMENSION group-3 style names against actually emitted DIMSTYLE table rows in strict modern full conversion",
+    "Cover ordinary DIMENSION, ARC_DIMENSION, and LARGE_RADIAL_DIMENSION routes",
+    "Keep style-name index changes transactional and avoid persistent fixtures or new CTest registration"
+  ],
+  "changes": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "newCtestRegistrations": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/dimension-style-row-closure-fast-slice-2026-10-18.json"
+    ]
+  },
+  "implementation": {
+    "strictModernConversionOnly": true,
+    "styleIndex": "case-normalized DIMSTYLE names recorded only after their TABLES rows are emitted",
+    "transactional": "style-name insertions use the record mutation journal and attempt cleanup",
+    "resolvedReference": "nonempty DIMENSION group-3 style name to emitted DIMSTYLE table row",
+    "atomicNegativeControls": [
+      "ordinary DIMENSION names an absent DIMSTYLE",
+      "ARC_DIMENSION names an absent DIMSTYLE",
+      "LARGE_RADIAL_DIMENSION names an absent DIMSTYLE"
+    ],
+    "positiveControl": "STANDARD resolves to the emitted Standard DIMSTYLE while the picture and nested INSERT body graph reads back",
+    "notEstablished": [
+      "empty or missing group-3 style policy",
+      "DIMSTYLE group 340 text-style reference closure",
+      "DIMSTYLE group 341-344 arrow-block reference/body closure",
+      "other DIMSTYLE resource references",
+      "dimension picture rendering, constraint classification, or native semantics"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimension_picture_block_full_conversion$' --output-on-failure",
+      "result": "passed (1/1)"
+    },
+    "researchReceiptJson": "jq empty passed",
+    "implementationReceiptJson": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan and implementation slice files",
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "gitCommitted": false,
+    "commitReason": "The shared worktree contains broad pre-existing uncommitted changes in the same source, test, and plan files; this dependency-bearing slice cannot be isolated safely without risking unrelated changes or omitting prior DIMENSION body-closure work."
+  },
+  "planStatus": {
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

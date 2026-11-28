@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper RenderPreset object-graph boundary for standalone PLOTSETTINGS",
+  "mode": "official API/DXF reference and independent open-source source review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "question": "Can PLOTSETTINGS shade mode RenderPreset (5) be emitted by following a uniquely typed and remapped code-333 RenderSettings reference?",
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettingsShadePlotType.html",
+      "finding": "Shade mode 5 is RenderPreset and distinct from VisualStyle mode 4."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PlotSettings_SetShadePlot_PlotSettingsShadePlotType_ObjectId.html",
+      "finding": "RenderPreset mode requires a valid RenderSettings object ID; this API contract does not identify the saved standalone PLOTSETTINGS dictionary route."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_RenderSettings.html",
+      "finding": "The RenderSettings class documentation describes ACAD_RENDER_SETTINGS for custom settings and ACAD_RENDER_ACTIVE_SETTINGS for the active object."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-NET/files/GUID-A1309D38-A432-487C-B890-6666B891C701.htm",
+      "finding": "Pre-2016 custom MentalRay presets use ACAD_RENDER_SETTINGS; ACAD_RENDER_PLOT_SETTINGS stores a copy for assignment to a Viewport or PlotSettings. Newer RapidRT presets use ACAD_RENDER_RAPIDRT_SETTINGS."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-69B42C9D-062D-4FEC-952E-CA0DDF7B4831.htm",
+      "finding": "MENTALRAYRENDERSETTINGS has a DXF object record with handle and owner-dictionary links; Autodesk marks the feature unavailable in 2016+ products but retains the data for compatibility."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-427599C5-9562-4384-82E6-8B7B87492C57.htm",
+      "finding": "RAPIDRTRENDERSETTINGS has a DXF record with handle and owner-dictionary links and versioned subclass fields."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2026/ESP/OARX-DevGuide-Managed/files/GUID-32466B8D-60A0-4964-90D8-01C4B6A48FB8.htm",
+      "finding": "The current RapidRT Viewport example resolves ACAD_RENDER_RAPIDRT_SETTINGS and assigns the RapidRTRenderSettings object ID to Viewport.SetShadePlot; this is not a standalone PLOTSETTINGS wire example."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "finding": "LibreDWG maps RAPIDRTRENDERSETTINGS, MENTALRAYRENDERSETTINGS, and RENDERSETTINGS as separate DXF object families."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "finding": "LibreDWG labels these renderer settings objects unstable; availability in its implementation does not qualify semantic preservation."
+    }
+  ],
+  "conclusion": {
+    "candidateFamiliesIdentified": true,
+    "versionSpecificDictionaryRoutesIdentified": true,
+    "standalonePlotSettingsCode333WireTargetResolved": false,
+    "implementationDisposition": "Keep shade mode 5 rejected. A Viewport ObjectARX sample and a general RenderSettings ObjectId contract do not prove the standalone PLOTSETTINGS code-333 target/root relationship. Require version-specific primary DXF wire evidence or native save/readback before adding a route.",
+    "supportClaimsPromoted": 0
+  },
+  "implementationReadiness": [
+    "Create a version-keyed route matrix for code 333 object family, root dictionary, owner and entry key, source callback/raw carrier, wire schema, and writer/readback.",
+    "Resolve the modern RapidRT question of global ACAD_RENDER_RAPIDRT_SETTINGS versus ACAD_RENDER_PLOT_SETTINGS copy for standalone PLOTSETTINGS, separately from Viewport usage.",
+    "Resolve the legacy MENTALRAY path separately; do not combine it with RapidRT based only on the common RenderSettings base class.",
+    "After evidence closes a route, add a focused ASCII/Binary generated graph with wrong-family, wrong-root, wrong-owner, unresolved, duplicate and collision controls; retain fail-closed behavior for all other versions."
+  ],
+  "limitations": {
+    "nativeCadApplicationRun": false,
+    "releaseSpecificSavedDxfExamined": false,
+    "peerRepositoryBuiltOrRun": false,
+    "semanticRenderOrPlotBehaviorQualified": false,
+    "fixtureAdded": false,
+    "ctestRegistrationAdded": false,
+    "supportClaimsPromoted": 0
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "planTotals": {
+    "findings": 128,
+    "topLevelSubplans": 71
+  }
+}

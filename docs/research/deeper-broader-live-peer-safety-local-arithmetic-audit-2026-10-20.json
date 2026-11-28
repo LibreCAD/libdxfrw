@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Live peer safety reports and local arithmetic/date-path crosswalk",
+  "mode": "GitHub read-only status/body refresh and local source/test-owner audit; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh the full bodies and current disposition of selected LibreDWG malformed-input, arithmetic, and object-semantic reports.",
+    "Crosswalk each reported failure mechanism to local parser, writer, and generated test owners without transferring peer-specific implementation defects.",
+    "Refine existing PAR-14 count/width arithmetic review into a bounded, implementation-ready source audit and gap-only test policy."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1450",
+        "https://github.com/LibreDWG/libredwg/issues/1451",
+        "https://github.com/LibreDWG/libredwg/issues/1452",
+        "https://github.com/LibreDWG/libredwg/issues/1419",
+        "https://github.com/LibreDWG/libredwg/issues/1436",
+        "https://github.com/LibreDWG/libredwg/pull/1453",
+        "https://github.com/LibreDWG/libredwg/pull/1454",
+        "https://github.com/LibreDWG/libredwg/pull/1431",
+        "https://github.com/LibreDWG/libredwg/pull/1432",
+        "https://github.com/LibreDWG/libredwg/pull/1434"
+      ],
+      "revision": "Read-only GitHub issue/PR API snapshot reviewed 2026-10-20; reports and proposals remain version/route-specific",
+      "observed": "Issues #1450-#1452, #1419, and #1436 were open; PRs #1453, #1454, #1431, #1432, and #1434 were open and unmerged at review time. Open state is not released behavior."
+    },
+    {
+      "project": "Autodesk DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm"
+      ],
+      "revision": "Official DXF entity reference pages reviewed 2026-10-20",
+      "observed": "LTYPE group 9 text is associated with the text-element flag; FIELD group 93 is a child data-set count and does not establish a positive minimum."
+    },
+    {
+      "project": "Open Design Alliance DWG specification",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Open Design Specification v5.4.1, §28",
+      "observed": "Remains the controlling reference for DWG EED wire layout; the peer alignment report concerns C pointer alignment rather than alternate EED bytes."
+    }
+  ],
+  "localEvidence": [
+    "src/intern/dwgsafety.h checked multiply and range helpers",
+    "src/intern/dwgreader.cpp readDwgEed bounds, chunk/item limits, and resolved-reference staging",
+    "src/drw_entities.cpp and src/intern/dwgbuffer.cpp value-based EED encoding/decoding",
+    "src/drw_entities.cpp surfaceDwgSkipBytes pre-multiplication limits",
+    "src/drw_header.cpp Julian-day date pair parsing and representability-checked writer conversion",
+    "tests/dwg_object_vectors_tests.cpp LTYPE text-area generated vectors",
+    "tests/dwg2dxf_adapter_tests.cpp AC1015 ASCII/Binary zero-child FIELD and following-DICTIONARYVAR controls",
+    "tests/dwg_reader_matrix_tests.cpp header-time zero/invalid-value controls",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md existing PAR-14, PAR-26, PAR-33, PAR-45, PAR-65, and PAR-20/7F.1 owners"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplanRefined": "PAR-14 bounded count/width arithmetic audit",
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fullTestSuitesRun": 0,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "No local runtime reproductions were performed; conclusions are source/test-owner crosswalks.",
+    "The count/width arithmetic source scan is targeted, not exhaustive; the plan specifies the remaining bounded audit and gap-only test criteria.",
+    "No Windows host was used to reproduce the peer UCRT fail-fast; local source inspection found no matching calendar-formatting call path.",
+    "Open LibreDWG issues and pull requests are not release or independent semantic evidence."
+  ]
+}

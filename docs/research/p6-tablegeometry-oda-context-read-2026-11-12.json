@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-tablegeometry-oda-context-read-2026-11-12",
+  "date": "2026-11-12",
+  "status": "SPEC_CONTEXTS_DISAMBIGUATED_PHYSICAL_NONZERO_STILL_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": {
+      "20.4.98": "Inline TABLECONTENT cell-content-geometry ends with BL 'Unknown flags'.",
+      "20.4.103": "Standalone TABLEGEOMETRY rows contain content geometry whose final group-95 field is BD 'Unknown (0)'."
+    }
+  },
+  "finding": "These entries describe separate storage contexts. The standalone TABLEGEOMETRY BD statement does not contradict the inline TABLECONTENT BL statement.",
+  "currentImplementationCheck": {
+    "standaloneParser": "DRW_TableGeometry::parseDwg reads the final field using readBitDoubleWithinBody and retains m_dwgUnknownValue.",
+    "generatedControl": "libdxfrw_tablegeometry_dwg_bd_tail constructs a nonzero BD field and checks exact value retention plus following cell-handle alignment.",
+    "result": "Focused generated test passes; this is parser/codec consistency only."
+  },
+  "remainingEvidence": [
+    "No traceable physical producer source with a nonzero standalone TABLEGEOMETRY BD value has been found in the current corpus.",
+    "Native TABLE cache interpretation/rendering, non-null cell target graph closure, and broad producer qualification remain open."
+  ],
+  "decision": "Keep the current parser and null-reference DXF output profile. This receipt corrects the cross-context description only; it does not satisfy the independent source-span gate and does not authorize a DWG writer or support-claim promotion.",
+  "supersedes": "The wording in p6-tablegeometry-group95-profile-census-2026-11-02.json that treats the two ODA sections as one contradictory shared field; its census and generated-control observations remain historical evidence."
+}

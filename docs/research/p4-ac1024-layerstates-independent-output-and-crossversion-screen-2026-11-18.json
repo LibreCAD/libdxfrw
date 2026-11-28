@@ -1,0 +1,181 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-independent-output-and-crossversion-screen-2026-11-18",
+  "date": "2026-11-18",
+  "head": "8c1c3d7aec1599b952f25d0fd77dd8c73684065c",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "fixtureCommitted": false
+  },
+  "build": {
+    "command": "cmake --build build-gcc --target dwg2dxf -j2",
+    "executable": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "73673040f75b806d17a1c35b506797d0e801e8c04de933de6847b42872277234"
+  },
+  "strictProbe": {
+    "commandTemplate": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/mechanical_example-imperial-alt.dwg -y -d -<target> [-b] <output>",
+    "targets": [
+      "v2004",
+      "v2007",
+      "v2010",
+      "v2013",
+      "v2018"
+    ],
+    "scratchDirectory": "/private/tmp/libdxfrw-layerstates-crossversion-20261118",
+    "sentinel": "PRESERVE-CROSSVERSION-SENTINEL\\n",
+    "cases": [
+      {
+        "target": "v2004",
+        "encoding": "ascii",
+        "exit_code": 1,
+        "destination": "existing sentinel preserved",
+        "diagnostic": "AC1024 associative output requires an AC1024 target and rooted NOD"
+      },
+      {
+        "target": "v2004",
+        "encoding": "binary",
+        "exit_code": 1,
+        "destination": "existing sentinel preserved",
+        "diagnostic": "AC1024 associative output requires an AC1024 target and rooted NOD"
+      },
+      {
+        "target": "v2007",
+        "encoding": "ascii",
+        "exit_code": 1,
+        "destination": "existing sentinel preserved",
+        "diagnostic": "AC1024 associative output requires an AC1024 target and rooted NOD"
+      },
+      {
+        "target": "v2007",
+        "encoding": "binary",
+        "exit_code": 1,
+        "destination": "existing sentinel preserved",
+        "diagnostic": "AC1024 associative output requires an AC1024 target and rooted NOD"
+      },
+      {
+        "target": "v2010",
+        "encoding": "ascii",
+        "exit_code": 0,
+        "destination": "replaced",
+        "diagnostic": null
+      },
+      {
+        "target": "v2010",
+        "encoding": "binary",
+        "exit_code": 0,
+        "destination": "replaced",
+        "diagnostic": null
+      },
+      {
+        "target": "v2013",
+        "encoding": "ascii",
+        "exit_code": 1,
+        "destination": "existing sentinel preserved",
+        "diagnostic": "AC1024 associative output requires an AC1024 target and rooted NOD"
+      },
+      {
+        "target": "v2013",
+        "encoding": "binary",
+        "exit_code": 1,
+        "destination": "existing sentinel preserved",
+        "diagnostic": "AC1024 associative output requires an AC1024 target and rooted NOD"
+      },
+      {
+        "target": "v2018",
+        "encoding": "ascii",
+        "exit_code": 1,
+        "destination": "existing sentinel preserved",
+        "diagnostic": "AC1024 associative output requires an AC1024 target and rooted NOD"
+      },
+      {
+        "target": "v2018",
+        "encoding": "binary",
+        "exit_code": 1,
+        "destination": "existing sentinel preserved",
+        "diagnostic": "AC1024 associative output requires an AC1024 target and rooted NOD"
+      }
+    ]
+  },
+  "independentReadback": {
+    "tool": "ezdxf 1.4.5 on Python 3.15.2",
+    "modulePath": "/private/tmp/p8-ezdxf-oracle/ezdxf/__init__.py",
+    "moduleSha256": "6fb6ce1e3b4066825af46ae40bb1ba2aa64e05860e8bb95e7f1dcd6e1fd39ff0",
+    "command": "PYTHONPATH=/private/tmp/p8-ezdxf-oracle python3 /private/tmp/libdxfrw-layerstates-crossversion-20261118/inspect_graph.py",
+    "result": "PASS for both v2010 outputs; input and output selected graph identities, ownership, reactor, entry role and emptiness match the independent source trace recorded in p4-ac1024-layerstates-complete-wire-boundary-2026-11-18.json.",
+    "observations": {
+      "ascii": {
+        "sha256": "461424e9cb29419c55c660c851a1a3fbefdb0ac2a1f0b4c231273e9a2fde3d81",
+        "dxf_version": "AC1024",
+        "layer_control": "2",
+        "control_extension": "2A2",
+        "root": {
+          "handle": "2A2",
+          "owner": "2",
+          "hard_owned": 1,
+          "cloning": 1
+        },
+        "root_entry_tags": [
+          [
+            3,
+            "ACAD_LAYERSTATES"
+          ],
+          [
+            360,
+            "2A3"
+          ]
+        ],
+        "root_reactors": [],
+        "child": {
+          "handle": "2A3",
+          "owner": "2A2",
+          "hard_owned": 0,
+          "cloning": 1
+        },
+        "child_entries": [],
+        "child_reactors": [
+          "2A2"
+        ]
+      },
+      "binary": {
+        "sha256": "1951e7152c6eb59ab7c972330aff0ca9c03ce36ea1dbf2f530798d9691f1cff7",
+        "dxf_version": "AC1024",
+        "layer_control": "2",
+        "control_extension": "2A2",
+        "root": {
+          "handle": "2A2",
+          "owner": "2",
+          "hard_owned": 1,
+          "cloning": 1
+        },
+        "root_entry_tags": [
+          [
+            3,
+            "ACAD_LAYERSTATES"
+          ],
+          [
+            360,
+            "2A3"
+          ]
+        ],
+        "root_reactors": [],
+        "child": {
+          "handle": "2A3",
+          "owner": "2A2",
+          "hard_owned": 0,
+          "cloning": 1
+        },
+        "child_entries": [],
+        "child_reactors": [
+          "2A2"
+        ]
+      }
+    }
+  },
+  "limitations": [
+    "Other output targets fail at an earlier associative-object preflight; these cases neither prove nor disprove cross-version LayerStates fallback correctness.",
+    "Independent readback validates only the selected graph and does not establish native LayerStates semantics or completeness of the remainder of the file.",
+    "Scratch inspection script and output files are local, uncommitted artifacts; no external drawing fixture is added."
+  ]
+}

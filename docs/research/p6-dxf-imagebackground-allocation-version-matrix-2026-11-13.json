@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-imagebackground-allocation-version-matrix-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_IMAGEBACKGROUND_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated IMAGEBACKGROUND OBJECTS allocation transaction evidence across AC1021, AC1024, AC1027, and AC1032 writer versions.",
+  "source": {
+    "kind": "deterministic locally-authored record generated during each test run",
+    "profile": "One generated image background object with kind/version, path, fit/aspect/tiling flags, offset, and scale fields.",
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/background_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-imagebackground-allocation-version-matrix-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each version and encoding, calibrate a complete write, inject std::bad_alloc at every measured callback allocation, require unchanged destination sentinel and caller record, retry on the same codec, compare retry bytes with clean output, and freshly read the typed background record."
+  },
+  "allocationOffsets": {
+    "AC1021": {"ASCII": 9, "Binary": 9},
+    "AC1024": {"ASCII": 9, "Binary": 9},
+    "AC1027": {"ASCII": 9, "Binary": 9},
+    "AC1032": {"ASCII": 9, "Binary": 9},
+    "totals": {"ASCII": 36, "Binary": 36, "all": 72}
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_background_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_background_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 1.35 seconds",
+    "directControl": "build/tests/libdxfrw_background_objects_allocation_tests build/background-scratch: PASS; AC1021, AC1024, AC1027, and AC1032 each cover ASCII 9 and Binary 9 offsets",
+    "testSourceSha256": "773de68b99e8442276ee23f5dec6e9496398b4318a2706650b707af640180f5f",
+    "testExecutableSha256": "366eef3067311d14ce25b74526d007bb3220e88303dd52cd594c81902315d258",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated DXF allocation rollback, retry, and typed readback evidence only; this does not establish producer-profile breadth or native consumer semantics.",
+    "One generated IMAGEBACKGROUND field profile is tested per version; independent producer schemas and native image presentation remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The generated IMAGEBACKGROUND transaction proof now passes across AC1021, AC1024, AC1027, and AC1032 in ASCII and Binary.",
+    "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "221 completed slices and 35 remaining packages: 221/(221+35)=86.3%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-dbcolor-allocation-version-matrix-2026-11-13.json"
+}

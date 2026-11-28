@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-scale-objects-allocation-failure-retry-2026-11-08",
+  "date": "2026-11-08",
+  "status": "GENERATED_ASCII_BINARY_SCALE_OBJECTS_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep allocations in a rooted generated AC1027 DXF OBJECTS callback containing one named DICTIONARY and one typed SCALE record.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "The generated NOD contains ACAD_SCALELIST -> DICTIONARY E000 -> SCALE E001 (name 1:1, units 1/1).",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "363a8703",
+    "files": {
+      "tests/scale_objects_allocation_tests.cpp": "549a6cd97f39f25fc8e4caca2a56e2c622273c40d4a35413c79796bc857b701b",
+      "tests/CMakeLists.txt": "93b919240b7e9a8e976f064ba767ac151bc30162ebaca0c7ad92e441d1738f54"
+    },
+    "method": "Warm the writer, calibrate callback allocations per encoding, inject one std::bad_alloc at each offset, require failed publication and byte-for-byte destination sentinel preservation, compare caller dictionary/SCALE state, then retry the same dxfRW instance and typed-import the rooted graph."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_ENABLE_FREECAD_DESKTOP_CONTROL=OFF -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_LINE_CONTROL=OFF: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_scale_objects_allocation_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_scale_objects_allocation_retry$' --output-on-failure: PASS 1/1",
+    "ascii": "12/12 reached callback allocation offsets injected; destination and caller graph preserved; same-writer retry and typed readback passed.",
+    "binary": "12/12 reached callback allocation offsets injected; destination and caller graph preserved; same-writer retry and typed readback passed.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated writer/transaction evidence only; no physical producer prevalence or native semantics are established.",
+    "The control covers the typed SCALE writer and rooted dictionary callback, not DXF-origin raw SCALE replay, all adapter source profiles, or other OBJECTS builders.",
+    "No support claim is promoted."
+  ],
+  "nextAction": "Continue the receipt-driven P6 OBJECTS audit with the next independent builder that lacks an allocation rollback/retry receipt."
+}

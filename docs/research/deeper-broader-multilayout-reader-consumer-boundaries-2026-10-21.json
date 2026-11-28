@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-21",
+  "type": "research-only",
+  "scope": "Refine PAR-144 composed qualification using independent DWG/DXF readers and FreeCAD consumer-path evidence",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "existingPlanOwner": "7G.3 / PAR-144 multi-layout DWG ownership graph",
+  "sources": [
+    {
+      "project": "LibreDWG current manual and source",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.spec"
+      ],
+      "observation": "The manual demonstrates BLOCK_CONTROL traversal and per-BLOCK_HEADER get_first_owned_entity/get_next_owned_entity enumeration. The paper-space convenience reference is a root shortcut, not proof of all named paper layouts. The current manual separately notes DWG writer limitations for R2007 and CRC/audit failures for R2010-R2018.",
+      "disposition": "Use only as a pinned, reader-side structural witness for versions it actually decodes and exposes; enumerate layout-associated records and per-owner handles. Do not treat its writer/self-roundtrip as a normative cross-version oracle."
+    },
+    {
+      "project": "ezdxf documentation",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/layouts/layout_manager.html",
+        "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/layout_management.html"
+      ],
+      "observation": "The DXF API exposes layout names in tab order, active paperspace, and entity-owner layout lookup; technical documentation distinguishes Modelspace, Paperspace, and reusable BlockLayout and describes active-paper ENTITIES vs inactive-paper BLOCKS serialization.",
+      "disposition": "Use as an independent DXF semantic parser for direct DXF output or separately attributed converter output, never as a DWG parser."
+    },
+    {
+      "project": "FreeCAD",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD/issues/22214",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observation": "Open confirmed issue #22214 reports only one paper layout imported from a three-layout DXF in FreeCAD's C++ importer, with the report also describing the legacy/Python route. Current DWG converter branches wait for subprocess completion but treat output-file existence as conversion success without validating status or DXF structure/content.",
+      "disposition": "Separate converter completion, DXF graph preservation, and FreeCAD presentation. Validate exit status, DXF EOF/sections, layout names and marker census before import; do not use current FreeCAD multi-layout import as sole writer oracle. Do not fetch or commit the issue archive."
+    },
+    {
+      "project": "ACadSharp current source and merged change",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Objects/Layout.cs",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/Tables/BlockRecord.cs",
+        "https://github.com/DomCR/ACadSharp/pull/446"
+      ],
+      "observation": "Current source models Layout.AssociatedBlock, stores paper viewport in that block, models LastActiveViewport, and exposes BlockRecord.Layout. Attribute-definition synchronization PR #446 merged January 28, 2025, so earlier reports should be treated as historical unless the exact tested release predates the fix.",
+      "disposition": "Candidate independent reader only after pinning a suitable release/commit and valid plot defaults; inspect exact owner and attribute dispositions rather than relying on issue status or broad capability claims."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingFindingRefined": "PAR-144",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "implementationReadinessUpdated": true,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "The GitHub master links are mutable and identify research leads rather than release-pinned qualification artifacts. FreeCAD issue #22214 is a consumer limitation, not evidence about libdxfrw's DWG bytes. No peer executable, native CAD application, test suite, or external drawing was run or downloaded."
+}

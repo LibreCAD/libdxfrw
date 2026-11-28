@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-10",
+  "scope": "DXF POINT/HATCH base-entry subtype dispatch and specialized TEXT descendants",
+  "finding": "POINT was the public base of LINE, CIRCLE, INSERT, TABLE, POLYLINE, HATCH and VIEWPORT and silently emitted their base point. HATCH likewise emitted MPOLYGON as HATCH. Custom subclasses of RTEXT or ARCALIGNEDTEXT retain the TEXT tag and fell through writeText as plain TEXT.",
+  "change": "Route known built-in POINT descendants to their existing typed writers; preserve POINT-tagged custom point subclasses. Reject BLOCK/VERTEX and unrecognized compound descendants instead of losing their context. Route exact MPOLYGON through writeHatch to the MPOLYGON writer, and reject unrecognized MPOLYGON subclasses and mismatched tags. Reject custom RTEXT/ARCALIGNEDTEXT descendants through writeText rather than silently dropping their specialized payload.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_primitive_subtype_dispatch_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_primitive_subtype_dispatch$' --output-on-failure",
+    "result": "1/1 passed",
+    "coverage": "ASCII and binary AC1027 generated output verifies POINT and custom POINT, LINE, ARC, RTEXT, VIEWPORT, POLYLINE, INSERT, HATCH and MPOLYGON through POINT, plus MPOLYGON through HATCH. It tests refusal and same-facade retry for BLOCK, VERTEX, incomplete TABLE, mismatched viewport/MPOLYGON tags, and user-derived RTEXT, ARCALIGNEDTEXT and MPOLYGON. Existing matrix still covers the other base writers, typed callback/readback and destination sentinels. A default incomplete TABLE was refused by its typed writer; no complete TABLE projection is claimed by this control."
+  },
+  "compatibility": "Existing ordinary POINT and custom POINT-tagged subclasses remain accepted. The observed LibreCAD adapter explicitly forwards HELIX to addSpline and LibreCAD_3 has an addSpline implementation, supporting the earlier default callback direction; no native consumer run is claimed here.",
+  "limits": "Generated local transport evidence only. Native rendering, complete TABLE graph/output, arbitrary user-defined subtype payloads, and cross-platform qualification remain open. The existing writeInsert TABLE fallback behavior is outside this slice. No drawing fixtures were added."
+}

@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1021-oda-crc-table-and-remainders-2026-11-03",
+  "date": "2026-11-03",
+  "status": "ODA_CRC_ALGORITHM_CORRECTED_BOUNDED_WITNESSES_MATCH",
+  "supportClaimEffect": "none",
+  "authority": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "5.2",
+      "5.3",
+      "5.4",
+      "5.11",
+      "5.12",
+      "5.12.2"
+    ],
+    "tableComparison": "All 256 published mirrored-table entries match generation with reflected polynomial 0x95ac9329ac4bc9b5; the previous reflected ECMA polynomial matched only entry zero.",
+    "remainderOrder": "For remainder lengths 5, 6, and 7, the leading four-byte block is processed in 2,3,0,1 order before the remaining bytes."
+  },
+  "implementation": "Use the ODA mirrored polynomial for CRC64 and the specified four-byte sub-block order in both normal and mirrored remainder processing. Existing warning/error policy remains unchanged. Register the fast literal and data-page profile controls as CTest selectors.",
+  "witnesses": [
+    {
+      "kind": "original local AC1021 tablet",
+      "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+      "pageMapCompressed": "0x10100fea5403d32f matches",
+      "pageMapUncompressed": "0x270e0216019558e1 matches",
+      "headerDataPage": "0xfe7642845db5fda9 matches",
+      "fullRead": "operationSucceeded=true, reader21Ac1021CrcMismatch=0; strict DXF export still refused by an extension-object graph",
+      "logSha256": "8d1e7845d1a61f3e2b100fd5ceab100112f6fe31b35f5396a5e4029597931caf"
+    },
+    {
+      "kind": "ODA 27.1 audit-disabled same-version resave of tablet",
+      "sha256": "5c3bf5bb8b2565387259430f4c49d83c96553f85334c068a300799efe5f57931",
+      "pageMapCompressed": "0xa9696d817026682b matches, including 7-byte remainder",
+      "pageMapUncompressed": "0xab55c5d38a83c6ee matches",
+      "headerDataPage": "0xcd770265825534db matches",
+      "fullRead": "CRC observations report zero mismatches but HEADER envelope refuses 739 unclaimed suffix bytes; remaining pages are not qualified by this stopped read",
+      "logSha256": "a49623d6602213230d465236458d4ade4b45b164a4c844ee65c044fef823092b"
+    }
+  ],
+  "writerProbe": {
+    "source": "scratch locally authored single LINE DWG using current AC1021 writer",
+    "sha256": "76c26f3c1d36d2f96c88313a190fd7c34b9e9861c0549d825a770e6670970403",
+    "peer": "LibreDWG 0.14 minJSON reported SUCCESS and one LINE with expected endpoints; the ODA 27.1 ACAD2007 DXF conversion produced no DXF and wrote an Invalid input .err despite process exit zero.",
+    "peerJsonSha256": "81e3c56bcac887769153db19a7cace09bc64f1e1c0a6ce83d8e7c1bb379716c3",
+    "odaErrorSha256": "c708a87152b5f6031cc4063fe17379f5b99bc083d2e69b2d8821d712f173bf2f",
+    "interpretation": "The generated writer is not ODA-qualified; the rejection cause is not established and cannot be attributed to or exonerate the CRC fix."
+  },
+  "validation": {
+    "literalAndProfiles": "ODA table-basis literal controls, lengths 0\u20139 with normal/mirrored remainder ordering, and generated R2007 data-page profiles pass.",
+    "other": "R2007 section-map page-extent and writer-version matrix focused CTests pass.",
+    "broadRoundtrip": "General local-roundtrip CTest initially reproduced four committed-baseline SURFACE/VIEWPORT test failures. After the separate stale-control correction, the focused selector and the owning CTest passed 1/1.",
+    "registeredFastSelectors": [
+      "libdxfrw_dwg_r2007_crc_spec_vectors",
+      "libdxfrw_dwg_r2007_data_page_crc_profiles"
+    ]
+  },
+  "limits": [
+    "Two related producer streams establish the compared page CRC fields only, not all AC1021 files or complete interoperability.",
+    "ODA readback rejected the generated AC1021 source; native producer/consumer qualification remains open.",
+    "No DWG/DXF fixture added or support claim promoted."
+  ]
+}

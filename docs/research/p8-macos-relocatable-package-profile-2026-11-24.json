@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-macos-relocatable-package-profile-2026-11-24",
+  "date": "2026-11-24",
+  "status": "MACOS_ARM64_SHARED_STATIC_PASS_LINUX_WINDOWS_OPEN",
+  "supportClaimEffect": "none",
+  "testedImplementation": {
+    "commit": "e7ce7bbe826f39ed04757bda726733aae2e28bef",
+    "implementationDigest": "6007acda069c3fd0ef13d96d80651f4ef335a2dd59797726b5ae8f48dda779af",
+    "selectedCodeDiffThroughWorktreeHead": "none",
+    "workspaceDocumentationHead": "3f7e1a05cc9d7d596266cd2c2a3892aa425d8201"
+  },
+  "platform": {
+    "os": "macOS",
+    "darwinRelease": "27.2.0",
+    "architecture": "arm64",
+    "compiler": "AppleClang 21.0.0 (clang-2100.3.34.2)",
+    "cmake": "4.5.1",
+    "configuration": "Release",
+    "testsEnabled": false,
+    "documentationEnabled": false
+  },
+  "probe": {
+    "path": "tools/probe_installed_package.py",
+    "sha256": "7a7a6bb0c67e625c14ba71425c50b5eb7f3108f7d2a182759f89be368476ce1d",
+    "abiVersion2Rejected": true,
+    "abiVersion3Accepted": true,
+    "relocatedFilesMatchOriginalInstall": true,
+    "relocatedConsumerBuilds": true
+  },
+  "packages": {
+    "shared": {
+      "prefix": "/private/tmp/libdxfrw-p8a-macos-20261124/shared-prefix",
+      "manifestSha256": "01b08beb8568d725e739b49c609412524e2dfa7bc331a7b4c34c87c6e15f2586",
+      "probeReceiptSha256": "6c0871e02cd874b82005bed84e8b34d52df995950d0d5d10c1392e967cf5d9c0",
+      "installedFileCount": 30,
+      "selectedTarget": {
+        "path": "lib/libdxfrw.3.0.0.dylib",
+        "sha256": "0db72148cacdf2134bfef99fb5b5d0b3efa336220082373e09ccf2b6e6415633"
+      },
+      "loadedRuntimeMatchesSelectedTarget": true,
+      "relocatedInstalledCli": {
+        "path": "bin/dwg2dxf",
+        "sha256": "00a5a28d9a9a6af3d8c4bb2da9e94d50a42bbebd73a72365d011a6ec4912ff3a",
+        "loaderOverrideVariablesCleared": true,
+        "usagePathObserved": true,
+        "expectedExitCode": 1,
+        "actualExitCode": 1
+      }
+    },
+    "static": {
+      "prefix": "/private/tmp/libdxfrw-p8a-macos-20261124/static-prefix",
+      "manifestSha256": "997583b0d8fa5f859268aba4fd96861dce53a810ff4b5e8495e673ce837daf3a",
+      "probeReceiptSha256": "9282603b89cbc5ead75b79cf7f3b0b24df9c29a8492d285799788f6db06b18b4",
+      "installedFileCount": 28,
+      "selectedTarget": {
+        "path": "lib/libdxfrw.a",
+        "sha256": "baab46c70d47fe8d17008b9058dea773e05b970bf48ad81c67776f379e781a1e"
+      }
+    }
+  },
+  "limits": [
+    "This verifies package installation, CMake package selection, relocation, consumer link/load, and the relocated shared dwg2dxf usage path only.",
+    "It does not qualify C++ ABI compatibility beyond the tested consumer, DWG/DXF semantics, or native CAD behavior.",
+    "Linux and Windows package profiles remain open; no cross-platform gate or support claim is closed."
+  ]
+}

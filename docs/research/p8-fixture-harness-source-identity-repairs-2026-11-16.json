@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-16",
+  "scope": "Repair stale direct-writer and callback fixture assumptions; no production validation gate or support status changed.",
+  "baseline": "The aggregate libdxfrw_dxf_fixtures executable at VPORT revision failed 825 assertions. Relinking the same current fixture object against the pre-VPORT static library produced 829 failures with no additional current failure labels; the four baseline-only failures were the corrected VPORT capacity expectations. This comparison does not qualify all assertions or prove no hidden regressions.",
+  "repairs": [
+    "Finalization control preserves caller source handle and checks the writer mapping, instead of assuming writeLine mutates the caller handle.",
+    "The direct RENDERSETTINGS body-writer harness supplies its writer and uses a no-op consumer finalizer consistent with its direct record scope; full dx_iface whole-document graph finalization is not exercised by this harness.",
+    "PLOTSETTINGS/LAYOUT Custom DPI zero-handle controls no longer mistake the high-water mark for the next minted handle or fabricate a dictionary edge: they decode the actual emitted handle and keep the anonymous leaf unlinked. Explicit-handle controls retain their root-owned dictionary edge.",
+    "INSERT/ATTRIB retry controls assert preserved caller source handles, then independently compare emitted source mappings with fresh readback handles for non-aliased records."
+  ],
+  "checks": [
+    "Focused CTests libdxfrw_dxf_consumer_finalization, libdxfrw_plot_custom_dpi_admission, libdxfrw_insert_child_handle_rollback and libdxfrw_rendering_dxf_projections passed 4/4.",
+    "The aggregate executable, rerun after the first three repairs and before the INSERT correction, still failed with 41 assertions. The INSERT focused selector subsequently passed; the aggregate has not been rerun after that fourth repair.",
+    "A new fast plot Custom DPI selector and CTest isolate the relevant writer/admission matrix.",
+    "Implementation digest uses the final staged Git index, matched against 5989 tracked index entries; claim statuses and references are unchanged."
+  ],
+  "remaining": "The latest aggregate run remains red. Investigate the remaining non-INSERT XDATA, VIEWPORT/VisualStyle, SORTENTSTABLE, proxy, raw-control and table-border failures rather than inferring they are test defects.",
+  "implementationDigestSha256": "6f902a21c12fea4dc21a3e48ffb64e7a1108493a957aef04299f91e2e19f674b"
+}

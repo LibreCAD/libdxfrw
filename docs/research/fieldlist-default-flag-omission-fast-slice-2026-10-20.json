@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "FIELDLIST default id-set flag omission",
+  "mode": "Generated local implementation and focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Characterize FIELDLIST group-290 false/true output in the existing ASCII/Binary writer candidate selector.",
+    "Use the published ACadRust 0.6.5 writer behavior only as a narrow output-policy lead.",
+    "Preserve the current strict FIELD/FIELDLIST adapter export refusal and existing test lane."
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp::dxfRW::writeFieldList",
+      "tests/wave1_tests.cpp::testAcadFieldExtensionDictionaryWireCandidate",
+      "tests/wave1_tests.cpp::--acad-field-writer-candidate",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "generatedCases": [
+      "Default m_unknown == 0 in ASCII and Binary omits group 290 while preserving count, member handles, subclass marker, and following-record sentinel.",
+      "True m_unknown emits exactly 290:1 after count 90 and before member handles in ASCII and Binary.",
+      "The normalized ASCII and Binary projections match for both default and true cases."
+    ],
+    "policy": [
+      "Canonical FIELDLIST output omits the default false id-set flag; true is represented by 290:1.",
+      "No input-presence field or ABI change was added; an explicitly present input 290:0 is not retained as separate presence state.",
+      "The result is not evidence that a native application rejected prior 290:0 output.",
+      "No FIELD/FIELDLIST adapter export was enabled and no persistent DWG/DXF fixture was added."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build --target libdxfrw_wave1_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTests": [
+      {
+        "command": "build/libdxfrw_wave1_tests --acad-field-writer-candidate",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_acad_field_writer_candidate$' --output-on-failure",
+        "result": "PASS (1/1)"
+      }
+    ],
+    "preChangeProbe": "Expected failure reproduced 290:0 for m_unknown == 0 before changing production code.",
+    "planAndCodeDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "commitCreated": false,
+    "commitStatus": "Not created; Git metadata is read-only in this workspace."
+  },
+  "assessment": {
+    "asciiBinaryWireProjectionVerified": true,
+    "defaultFalseFlagOmitted": true,
+    "trueFlagWrittenAsOne": true,
+    "nativeConsumerSemanticsVerified": false,
+    "adapterFieldExportEnabled": false,
+    "newFindingIds": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G: FIELDLIST default false group-290 emission is canonicalized away; true is emitted as 290:1 before member handles.",
+      "PAR-20/7G: preserve count/member/sentinel framing and ASCII/Binary parity in the existing focused writer test."
+    ],
+    "nextLocalAction": "Audit current FIELD generated graph coverage for ID-valued cache group-330 ordering and remapped identity; add only any missing assertion to the existing selector.",
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

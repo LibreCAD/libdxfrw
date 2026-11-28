@@ -1,0 +1,163 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DXF dictionary peer normalization and OBJECTS root ordering",
+  "mode": "Primary-source web research plus local plan cross-check; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Broaden the PAR-20/7G entry-code review to an additional independent DXF parser.",
+    "Separate dictionary flag-280 policy, per-entry group code, and semantic ownership graph.",
+    "Cross-check the NOD-first OBJECTS invariant against a recent LibreDWG issue report and existing local controls.",
+    "Refine the implementation sequence without adding a finding, subplan, fixture, or test lane."
+  ],
+  "sources": [
+    {
+      "name": "Autodesk DICTIONARY DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "observations": [
+        "Lists flag 280 separately from repeated group-3 names and group-350 entry handles.",
+        "Does not state that flag 280 alone determines the serialized code for every dictionary entry."
+      ]
+    },
+    {
+      "name": "Autodesk general DXF group-code ranges",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "observations": [
+        "Classifies groups 350-359 as soft-owner handles and groups 360-369 as hard-owner handles."
+      ]
+    },
+    {
+      "name": "Autodesk hard and soft reference guidance",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-28FADE88-9BEA-48DE-8146-43F9514679B8.htm",
+      "observations": [
+        "Describes hard references as preventing purge and soft references as not preventing purge.",
+        "Says symbol tables and dictionaries are generally soft owners, while block definitions and complex entities are hard owners."
+      ],
+      "limits": [
+        "Conceptual ownership guidance does not settle every producer-specific dictionary entry code or special route."
+      ]
+    },
+    {
+      "name": "ACadSharp DXF OBJECTS reader source snapshot",
+      "url": "https://coveralls.io/builds/81353195/source?filename=src%2FACadSharp%2FIO%2FDXF%2FDxfStreamReader%2FDxfObjectsSectionReader.cs",
+      "observations": [
+        "The inspected parser handles codes 350 and 360 in the same switch branch.",
+        "The branch assigns the handle to the most recently added dictionary key; the shown map does not retain which edge code was present."
+      ],
+      "limits": [
+        "This is a mutable project/coverage snapshot, not a pinned source revision or normative interoperability oracle.",
+        "No ACadSharp executable or rewrite was run in this pass."
+      ]
+    },
+    {
+      "name": "ezdxf DICTIONARY implementation",
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dictionary.py",
+      "observations": [
+        "Previously inspected source accepts 350 and 360 but retains one dictionary-level output code rather than a code per key."
+      ],
+      "limits": [
+        "Mutable master source is not pinned here and is not a normative oracle."
+      ]
+    },
+    {
+      "name": "LibreDWG issue #1413",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1413",
+      "observations": [
+        "The issue reports a DWG-to-DXF output where a lower-handled extension dictionary precedes the actual NOD, with downstream layout lookup losing layout names.",
+        "The issue description reports comparison against ODA output and ezdxf root-dictionary lookup, but this pass did not rerun those experiments."
+      ],
+      "limits": [
+        "An open issue report is evidence of a concrete peer concern, not an independently validated local regression or general support claim."
+      ]
+    },
+    {
+      "name": "Autodesk OBJECTS order and ownership references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm"
+      ],
+      "observations": [
+        "The OBJECTS example starts with the named object dictionary.",
+        "The ownership guide states the named-object dictionary is the first object in OBJECTS."
+      ]
+    },
+    {
+      "name": "Local public dictionary entry and shared-library ABI version",
+      "paths": [
+        "CMakeLists.txt::project(DXFRW VERSION 2.0.0)",
+        "CMakeLists.txt::SOVERSION ${PROJECT_VERSION_MAJOR}",
+        "src/drw_objects.h::DRW_Dictionary::Entry"
+      ],
+      "observations": [
+        "The public Entry type is stored in a public std::vector and currently contains the key and handle.",
+        "Adding a per-entry code field preserves existing two-field source initializers but changes Entry layout for prebuilt consumers.",
+        "The shared-library SOVERSION is tied to the project major, currently 2."
+      ],
+      "planConsequence": "Make the ABI policy explicit before adding the public field; do not silently ship the layout change under SOVERSION 2."
+    },
+    {
+      "name": "Local PAR-20/7G plan and generated test controls",
+      "paths": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeperbroader-dxf-dictionary-entry-kind-preservation-and-field-route-2026-10-20-research-only",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#deeper-broader-nod-entry-order-and-keyed-closure-2026-10-20",
+        "tests/dxf_fixture_tests.cpp::testNodRootOrdering"
+      ],
+      "observations": [
+        "The active plan already contains generated NOD identity/position controls and a per-entry 350/360 preservation sequence.",
+        "This pass adds no duplicate NOD test; it refines the distinction between wire fidelity and peer-normalized graph semantics."
+      ]
+    }
+  ],
+  "assessment": {
+    "independentParserNormalizationObserved": true,
+    "newLocalRegressionReproduced": false,
+    "newFindingIds": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G: preserve each parsed 350/360 entry code per key for libdxfrw source round trips, independently of flag 280.",
+      "PAR-20/7G: evaluate target/owner graph semantics separately from peers' normalized edge-code output.",
+      "PAR-20/7G: retain the existing NOD-first identity and ordering test; do not infer root identity from minimum handle."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+      "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+      "abiDecisionRequiredBeforePublicModelChange": true,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "ACadSharp's mutable source snapshot does not prove native AutoCAD acceptance or exact output policy.",
+    "LibreDWG issue #1413 was not independently reproduced in this pass.",
+    "Neither parser normalization proves mixed 350/360 input invalid, harmless, or semantically equivalent for all routes.",
+    "No source-controlled drawing, peer executable, native CAD application, or full test suite was used.",
+    "The exact ABI-versioning action depends on release policy and was not changed in this plan-only research pass."
+  ],
+  "validation": {
+    "localTestsRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fullSuiteRun": false,
+    "receiptJsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (plan and receipt whitespace check)",
+    "commitCreated": false
+  }
+}

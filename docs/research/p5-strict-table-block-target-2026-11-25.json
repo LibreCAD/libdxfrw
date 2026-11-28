@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-strict-table-block-target-2026-11-25",
+  "date": "2026-11-25",
+  "status": "STRICT_TABLE_BLOCK_TARGET_GUARD_PASS_BROAD_REUSE_BASELINE_FAILURES",
+  "supportClaimEffect": "none",
+  "problem": "A strict AC1021 TABLE output could contain a group-2 anonymous block name without a corresponding emitted block record and body; ODA re-export of a generated candidate reported an empty AcDbTable record name.",
+  "authority": {
+    "autodeskTableDxf": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+    "finding": "TABLE group 2 identifies the referenced block; anonymous TABLE blocks begin with *T.",
+    "sourceEvidence": "docs/research/p5-ac1021-general-oda-roundtrip-2026-11-25.json"
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/table_export_reuse_controls.h",
+      "tests/table_content_dxf_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "change": "Strict TABLE output reuses the INSERT resolver for source handle/name and planned BLOCK_RECORD, and the shared block-body closure preflight inside the entity transaction. An unresolved target fails with a TABLE-specific diagnostic. Non-strict TABLE fallback remains unchanged.",
+    "limitations": "The check does not establish TABLE value semantics, source graph completeness beyond the referenced block checks, or native CAD support."
+  },
+  "validation": {
+    "focusedCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_table_strict_block_target|libdxfrw_block_owners)$' --output-on-failure",
+    "result": "PASS 2/2. The TABLE test covers ASCII and binary strict refusal of a missing block, destination and identity preservation, and corrected same-writer retry with a block record/body. The existing block-owner test also passes.",
+    "inventory": "A clean configure without local sample fixtures registered 1401 tests. The frozen inventory was refreshed: it adds the new strict block target and two previously registered AC1021/AC1024 TABLE tests omitted by the previous 1398-name inventory. check-inventory and workflow contract pass.",
+    "preexistingFailures": [
+      "libdxfrw_table_export_reuse fails during cross-version imported-data output in dictionary-with-default records before reaching the new control.",
+      "libdxfrw_table_value_payload exits failure without additional diagnostics.",
+      "Both failures reproduce with the same test object and adapter linked to the pre-change c31185da static library; this establishes they predate this writer change, not their root cause."
+    ]
+  },
+  "limits": [
+    "No independent ODA run on the corrected generated output was performed in this slice.",
+    "No broad suite or platform requalification was run. P5-I and P8 qualification remain open.",
+    "No DWG or DXF fixture was added or staged."
+  ]
+}

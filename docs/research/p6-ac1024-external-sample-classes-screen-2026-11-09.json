@@ -1,0 +1,348 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "purpose": "Screen externally obtained AC1024 candidates for the reported AutoCAD 2010 RTM CLASSES high-bit string-size failure.",
+  "reader": {
+    "sourceCommit": "28664351",
+    "binary": "build-gcc/dwg2dxf/dwg2dxf",
+    "binarySha256": "f580c451b80ef26b5be57836d5904bd7bd69b462e8b510aacbec4d5350dba722",
+    "command": "build-gcc/dwg2dxf/dwg2dxf INPUT -y -d -v2010 OUTPUT"
+  },
+  "result": {
+    "candidateCount": 28,
+    "ac1024Count": 28,
+    "classesEndCount": 28,
+    "classesCrcMismatchCount": 0,
+    "reproducedReportedClassFailure": false,
+    "note": "The scan classifies only the CLASSES stage. Most CLI conversions stopped later at strict output/preflight; these later outcomes are not CLASSES failures."
+  },
+  "sources": [
+    {
+      "name": "LibreDWG/libredwg test-data/2010",
+      "url": "https://github.com/LibreDWG/libredwg/tree/master/test/test-data/2010",
+      "ref": "master at fetch time",
+      "provenance": "The directory is named 2010 but does not establish a per-file AutoCAD producer build. Companion Arc.txt is a property dump dated 2014-06-18; this is not proof of the DWG save version.",
+      "screened": [
+        {
+          "name": "Arc.dwg",
+          "gitBlobSha": "672ef3daae06450c976db4ff1436269e3a63fd67",
+          "sizeBytes": 63276,
+          "sha256": "92f71737e697bac4c4e547f3cbc30e6c02bd29c8d83807784410d1299ec73826",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "Constraints.dwg",
+          "gitBlobSha": "d407652b18d6c87b6d134d774147d0306aea1c22",
+          "sizeBytes": 303057,
+          "sha256": "bbac6b21d4edd199794a47af639263d0b36a62bcd2d1cce330904800b1ba8fb4",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+        },
+        {
+          "name": "ConstructionLine.dwg",
+          "gitBlobSha": "306d5be939d8ad35815ba705e9e474234e4202b4",
+          "sizeBytes": 63178,
+          "sha256": "307e4b4752b444004951a5c076feecd00c316d373facfbd89c3d0f32765e6831",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "Donut.dwg",
+          "gitBlobSha": "000422d63247bbf785672e86c8b599ddbf39073f",
+          "sizeBytes": 62060,
+          "sha256": "ae8de62d5c1a1d4b673fefc59faee1b9e09eb09d657a2724cf39cbb3de58f2dd",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "Ellipse.dwg",
+          "gitBlobSha": "c32a39e7d20fb21b3c40e83574ab6984271aa37e",
+          "sizeBytes": 63468,
+          "sha256": "fd89a9ee5e9b690dbd67100747399b4b29bf697127a616cf924daf959bed81fa",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "Helix.dwg",
+          "gitBlobSha": "4a2cb19a988bebe588513d4ed499aa26cf3c5a36",
+          "sizeBytes": 68650,
+          "sha256": "590e97ae535b8e248c26518313d74233ff2b889e019510905b42051086b1a290",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: typed-proxy-graphics-not-preserved count=1 firstHandle=447"
+        },
+        {
+          "name": "Leader.dwg",
+          "gitBlobSha": "5efbbb290d588f37ac816d995e711af64f88ca87",
+          "sizeBytes": 359144,
+          "sha256": "37361cb2a9925552379434b42e6163d3086fddd3e3af5a773d8ff7dfd795bb9e",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "Conversion failed"
+        },
+        {
+          "name": "Line.dwg",
+          "gitBlobSha": "87ff13e71d20b7736f5e1424450f3238a37517a8",
+          "sizeBytes": 62664,
+          "sha256": "315729e57328ea09fc0e3530540294144fb1217922ca28ba076936bf52a9d0ec",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "Multiline.dwg",
+          "gitBlobSha": "d3ff9916d9565af80984d1e97323c251ef426a1a",
+          "sizeBytes": 65836,
+          "sha256": "831057f2c4ddfb6151bdeddf1b2926ccdaab3a8356f815d41e2ee60bebcb197e",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "Point.dwg",
+          "gitBlobSha": "c1f16f8edab580c3dae864d6cb51f5bb83b5d5a2",
+          "sizeBytes": 61735,
+          "sha256": "66c5e2887a948fe9ecc8dab883c39d84801e5e76c21cd3654f5c883ca6e6c403",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "PolyLine3D.dwg",
+          "gitBlobSha": "4a394528f687660736798bb214794e054377b885",
+          "sizeBytes": 63399,
+          "sha256": "3332aff86777e67148830999fe8dc1f98c2a671af988f302a381295cd52cb328",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "Polygon.dwg",
+          "gitBlobSha": "4f26e1fbe64db2156a08df87083c7f6372b246ce",
+          "sizeBytes": 62923,
+          "sha256": "59a714c8ec07bec1332bc98aae66abd717c9968f19474f00d8126ab14fa0e0bf",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "Polyline.dwg",
+          "gitBlobSha": "d1e4564886fc67d10845fe7176725f3e19a03993",
+          "sizeBytes": 63239,
+          "sha256": "b02fd1d77f7e14867de400c3a633e19f88322f9edce71a60fff8d8f8f5d89cc5",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "RAY.dwg",
+          "gitBlobSha": "015fab97358172153d24648a8a716b2c3f8887f2",
+          "sizeBytes": 62508,
+          "sha256": "550406435ff1dfc585b1ef49a461e20f835625663683b61cfb19553d75332da8",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "Spline.dwg",
+          "gitBlobSha": "06d7678f04b6f51af72cd00726b9bb45cf4bd27d",
+          "sizeBytes": 61932,
+          "sha256": "c0367bedcf8d1d4e65ba96faf9961597e5ca72c4964f5583168358e5be119df8",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "Text.dwg",
+          "gitBlobSha": "1dd43d64f2af9175be35dd161386e1b1f8b2b97e",
+          "sizeBytes": 62535,
+          "sha256": "12b9fa57323b75230022fcc2ee892f345961ba3dec3577cba43bd5f37750810e",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "circle.dwg",
+          "gitBlobSha": "b0baee2045ca249a30909db60c2580ebeed79ab3",
+          "sizeBytes": 64302,
+          "sha256": "c1f4ec9a377ffbccdb024530ed82d16752deb5922639b0cc85cce14a2bc4de47",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: extension-object graph validation"
+        },
+        {
+          "name": "gh209_1.dwg",
+          "gitBlobSha": "e43f44e49e2a647bc72602f60d3ce1b524736945",
+          "sizeBytes": 65070,
+          "sha256": "4d3d81a0dd7b7a845368e3517ad745b763a9e338b0bae09e78e86c5bf2742e27",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "Conversion failed"
+        }
+      ]
+    },
+    {
+      "name": "Autodesk historical AutoCAD sample collection",
+      "index": "https://blog.jtbworld.com/2009/06/where-are-sample-dwg-files-for-autocad.html",
+      "currentSupportPage": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/6XGQklp3ZcBFqljLPjrnQ9.html",
+      "directDownloadBase": "https://download.autodesk.com/us/samplefiles/acad/",
+      "provenance": "The contemporaneous 2009 index calls these AutoCAD 2010 sample files. Autodesk\u2019s current support page says the collection applies to AutoCAD 2010 and later. Neither source identifies the exact producer executable/build for each file.",
+      "screened": [
+        {
+          "name": "architectural_example-imperial.dwg",
+          "url": "https://download.autodesk.com/us/samplefiles/acad/architectural_example-imperial.dwg",
+          "sizeBytes": 148638,
+          "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export failed: dxf-finalize-rejected: the consumer did not accept the completed DXF write"
+        },
+        {
+          "name": "civil_example-imperial.dwg",
+          "url": "https://download.autodesk.com/us/samplefiles/acad/civil_example-imperial.dwg",
+          "sizeBytes": 169592,
+          "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+        },
+        {
+          "name": "mechanical_example-imperial.dwg",
+          "url": "https://download.autodesk.com/us/samplefiles/acad/mechanical_example-imperial.dwg",
+          "sizeBytes": 142267,
+          "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 0,
+          "downstreamStatus": "conversion output completed"
+        },
+        {
+          "name": "title_block-ansi.dwg",
+          "url": "https://download.autodesk.com/us/samplefiles/acad/title_block-ansi.dwg",
+          "sizeBytes": 125896,
+          "sha256": "907398897552a090182f5446f18ad1ef82b91176764c8ccf08b5c5799546eeba",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export failed: dxf-finalize-rejected: the consumer did not accept the completed DXF write"
+        },
+        {
+          "name": "title_block-arch.dwg",
+          "url": "https://download.autodesk.com/us/samplefiles/acad/title_block-arch.dwg",
+          "sizeBytes": 126985,
+          "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export failed: dxf-finalize-rejected: the consumer did not accept the completed DXF write"
+        },
+        {
+          "name": "title_block-iso.dwg",
+          "url": "https://download.autodesk.com/us/samplefiles/acad/title_block-iso.dwg",
+          "sizeBytes": 128233,
+          "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export failed: dxf-finalize-rejected: the consumer did not accept the completed DXF write"
+        },
+        {
+          "name": "visualization_-_aerial.dwg",
+          "url": "https://download.autodesk.com/us/samplefiles/acad/visualization_-_aerial.dwg",
+          "sizeBytes": 733036,
+          "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: SUN owner graph closure: SUN parent mismatch: owner 0x242, SUN 0x24c, parent 0x246"
+        },
+        {
+          "name": "visualization_-_condominium_with_skylight.dwg",
+          "url": "https://download.autodesk.com/us/samplefiles/acad/visualization_-_condominium_with_skylight.dwg",
+          "sizeBytes": 1415699,
+          "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+        },
+        {
+          "name": "visualization_-_conference_room.dwg",
+          "url": "https://download.autodesk.com/us/samplefiles/acad/visualization_-_conference_room.dwg",
+          "sizeBytes": 973730,
+          "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "Conversion failed"
+        },
+        {
+          "name": "visualization_-_sun_and_sky_demo.dwg",
+          "url": "https://download.autodesk.com/us/samplefiles/acad/visualization_-_sun_and_sky_demo.dwg",
+          "sizeBytes": 553297,
+          "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+          "version": "AC1024",
+          "classesEnd": true,
+          "classesCrcMismatch": false,
+          "readerExitCode": 1,
+          "downstreamStatus": "DXF export preflight failed: dynamic-block objects are outside the closed output profiles"
+        }
+      ]
+    }
+  ],
+  "interpretation": "All 18 AC1024 DWGs in the LibreDWG 2010-labelled directory and all 10 AC1024 DWGs in the historical Autodesk sample collection reach dwgReader24::readDwgClasses END with no CLASSES CRC mismatch. This fails to reproduce the reported six-of-ten behavior but does not disprove it because per-file AutoCAD 2010 RTM producer provenance is absent and the exact failing input/hash is unknown. Keep the issue unresolved; do not alter the parser based on these passing candidates.",
+  "fixturePolicy": "All acquired DWGs remain in /private/tmp. No external DWG/DXF was added to the repository."
+}

@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 ACAD_LAYOUT NOD root alias refusal",
+  "mode": "Generated local implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "finding": {
+    "source": "validateLayoutOutputGraph() required one canonical ACAD_LAYOUT NOD entry and a unique NOD-owned layout dictionary, but did not apply the shared alias guard.",
+    "coverageGap": "The generated ASCII/Binary layout graph route did not exercise a duplicate canonical root or a second NOD key targeting the same ACAD_LAYOUT dictionary.",
+    "scope": "ACAD_LAYOUT NOD-root uniqueness and alias refusal only."
+  },
+  "implementation": [
+    "Applied validateNamedObjectRootForExport() before layout-specific reciprocal graph validation.",
+    "Extended the existing --layout-graph-read-contract generated source with case-folded duplicate-root and differently named same-target alias negatives in ASCII and Binary.",
+    "Both invalid graphs must preserve a seeded destination; the existing multi-layout/version output and readback controls cover valid graph emission."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests --parallel 2",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_dxf_fixture_tests --layout-graph-read-contract (ASCII/Binary)",
+    "ctest": "NOT_REGISTERED (existing selector; no new CTest added)",
+    "diffCheck": "PASS: git diff --check -- dwg2dxf/dx_iface.cpp tests/dxf_fixture_tests.cpp",
+    "fullSuite": "NOT_RUN (generated fast slice)",
+    "externalPeerOrNativeConsumer": "NOT_RUN"
+  },
+  "scopeAccounting": {
+    "persistentFixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "productionCodeChanged": true,
+    "supportClaimsPromoted": 0,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "filesChanged": [
+    "dwg2dxf/dx_iface.cpp",
+    "tests/dxf_fixture_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/par20-7g3-layout-root-alias-fast-slice-2026-10-20.json"
+  ],
+  "commitCreated": false,
+  "commitBlocker": "The shared worktree is broadly dirty and Git metadata is read-only in this session."
+}

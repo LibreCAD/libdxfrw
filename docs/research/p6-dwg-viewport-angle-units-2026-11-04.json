@@ -1,0 +1,60 @@
+{
+  "scope": "DWG VIEWPORT entity snap/twist angles only. Public/DXF groups 50/51 remain degrees; the selected DWG bit-doubles are converted to/from radians. VPORT and VIEW table paths are unchanged. Legacy version <=AC1014 does not serialize these fields and is left on its existing direct-codec path.",
+  "base_commit": "c438125775483b40d88143529659dc91e05b8204",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.38 maps the VIEWPORT twist and snap BDs to DXF groups 51 and 50; its field listing does not explicitly state angular units. ODA-authored physical sources, LibreDWG and ODA DXF returns establish radians for these selected DWGs and degrees for their DXFs.",
+  "physical": "ezdxf 1.4.5 authored AC1027 DXFs with one paper-space VIEWPORT, snap 30 and twist 45 degrees, and either planar direction (0,0,1), target (0,0,0) or tilted direction (1,2,3), target (4,5,6). ODA File Converter 27.1.0 produced AC1021 DWGs and returned AC1027 DXFs preserving both angles and view vectors. Separate ODA AC1015 planar and AC1024 tilted DWGs retain the same fields. LibreDWG 0.14 reads pi/6 and pi/4 radians in all four physical DWGs. Original native AC1021 callbacks exposed raw 0.52359877559829882 and 0.78539816339744828; corrected callbacks expose 29.999999999999996 and 45 degrees for all four with successful complete native reads. `author-source.py OUTPUT [--tilt]` reproduces the source geometry; metadata can differ. ODA lineage is a manually recorded invocation, not proved by hashes alone.",
+  "generated": "Scratch author.cpp uses existing material/plotstyle graph opt-ins and writes a tilted paper VIEWPORT using public snap 30 and twist 45 degrees. LibreDWG reads baseline DWG BDs=30/45 radians and corrected BDs=pi/6 and pi/4, with direction and target unchanged. ODA rejects both baseline and corrected generated VIEWPORT records before DXF output, with earlier warnings; this does not establish independent generated-output interoperability. Final corrected scratch author reproduced the audited DWG byte-for-byte.",
+  "admission": "Direct viewport codec rejects nonfinite and nonzero-to-zero/subnormal angle conversions before touching output buffers when version > AC1014. The common entity facade latches rejection for the exact built-in VIEWPORT type through both writeViewport and inherited writePoint, even if an adapter ignores false. It does not extend the new sticky latch to derived custom codecs.",
+  "validation": "test.cpp compiled with -Wall -Wextra -Werror passes structural AC1021 BD positions and following center coordinate; native write/read AC1015/1018/1021/1024/1027/1032 for planar and tilted directions, preserving selected statusFlags=16 and renderMode=2; direct partial-bit-buffer-preserving nonfinite and zero/subnormal guards with corrected retry; and in-memory body edits to 1e308 radians at both fields with parser reset and retry. Ignored-return failures through writeViewport and writePoint preserve destination sentinel and caller handle/owner for each invalid angle; same-writer retry succeeds. A derived custom codec retains its pre-existing ignored-failure behavior. AC1012/AC1014 stub-writer tests show tiny inactive angles bypass the new facade guard; direct tiny-versus-zero codec results and streams match, without a legacy-write success claim. The baseline library fails the structural wire test. Negative overflow frames are in-memory body edits, not CRC-resealed physical DWGs.",
+  "consumer_compatibility": "LibreCAD RS_FilterDXFRW addViewport is an empty callback and LibreCAD_3 DXFimpl currently logs it. Existing libdxfrw DXF parsing/writing preserves groups 50/51 in degrees. A DWG callback now exposes degrees instead of old raw radians: consumers compensating for that behavior must remove the workaround. No full native application test is claimed.",
+  "limits": "Only VIEWPORT entities are changed; VPORT and VIEW table records and pre-R13 reader paths are separate. ODA rejects both generated VIEWPORT DWGs, so no generated-output interoperability or whole-file CAD/rendering claim. Nonzero angles whose radians round to zero or become subnormal are conservatively refused. A derived class that inherits the guarded codec but ignores its false return retains legacy skip behavior.",
+  "tools": {
+    "viewport-angle.patch": "27191271fde03a658429e503bc9636f9247feb45f9dd4fef82a3bb22ee3bae17",
+    "test.cpp": "93bbc5f6816d94edf433b8a49c0356d1035c376aaca696cd8ab8c870157e9314",
+    "audit.py": "8c2a7e2994b83efcbbbfb6b983c76249158a920aec24ba16e6ebf33dd57172a9",
+    "author-source.py": "116eacf6e6e82fdf7c482b41878001b885cac748fa86996b7976415f0df96c8f",
+    "author.cpp": "e8387b9887ff50a8f61d1145f953e46d3a04e6f1798acb8d08edbdd01b102fe8",
+    "probe.cpp": "6c7a7fe6e7ad62596351e74e921d1ff994f8d875bd8c5240f840e05d04b7e363"
+  },
+  "artifacts": {
+    "in/planar.dxf": "1ea2c9c5f1b09e561c540f3f8fe32a42c0ecdd68521b7b2ef1e428ae59e8e911",
+    "in/tilt.dxf": "e582efb0bad10e03906a679335610e28d70cef3f607b634abfda1ac2056f8824",
+    "dwg/planar.dwg": "1bfc1c8c7508973c306d12d6374e38c75d70bd29379334965e089fe80a7a1046",
+    "dwg/tilt.dwg": "15858b9230562960c4a9c0139c2d62d1ba15f3e666c928b7e519864f17eb674b",
+    "out/planar.dxf": "a8d27714e70c82ff5bfcf1deb235af0dc4e6db9328f36163278c1392a66e460b",
+    "out/tilt.dxf": "2f650c51f16c345e07c6dba831c71eb2b84466efa12800271e629b0d5c699d64",
+    "dwg2000/planar.dwg": "5a8ae454d2835c354520a44e01d247b4ee61312b830d59c3214e3dde0653e299",
+    "dwg2010/tilt.dwg": "23fd1ac5cceca3109e030c263caf65b99bbbb418a69a61fffba4279863694da4",
+    "gen-in/old.dwg": "f505da7324c0460b5b61a07f534333f8f7e3c39332f0432d3be8abcd43b15afe",
+    "gen-in/new.dwg": "10790521446d142111b3abb192df3a4d2d000452796788e4d5c0044cb3fdec2a",
+    "gen-out/old.dxf.err": "c90bec39bb078c349ed6f18d8796ae40a971003b7c0ba57d7b437655430b7fdf",
+    "gen-out/new.dxf.err": "76a08d4e54e70cb636f64f2c8083aff899a5c32ce89d8e39dcac7ca66c8d78c5"
+  },
+  "external_tools": {
+    "dwgread": "/opt/homebrew/bin/dwgread; GNU LibreDWG 0.14; SHA-256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "oda": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter; 27.1.0; SHA-256 21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "python": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python; SHA-256 6cc907e4a022fefc843bcd93954eaf5a2cbfc77a095640bfadeeed96154190c5; ezdxf 1.4.5"
+  },
+  "commands": {
+    "build": "cmake -S /private/tmp/viewport-angle/work -B /private/tmp/viewport-angle/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release && cmake --build /private/tmp/viewport-angle/build --target dxfrw -j6",
+    "test": "c++ -std=c++17 -Wall -Wextra -Werror -I/private/tmp/viewport-angle/work/src -I/private/tmp/viewport-angle/work/tests /private/tmp/viewport-angle/test.cpp /private/tmp/viewport-angle/build/libdxfrw.a -o /private/tmp/viewport-angle/test && /private/tmp/viewport-angle/test",
+    "source_oda": "ODAFileConverter IN OUT ACAD2007 DWG 0 1 '*.dxf'; ODAFileConverter DWG_DIR DXF_DIR ACAD2013 DXF 0 1 '*.dwg'; use ACAD2000 and ACAD2010 for other source versions.",
+    "audit_planar": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_viewport_angles.py --dwg /private/tmp/viewport-angle/dwg/planar.dwg --dwg-sha256 1bfc1c8c7508973c306d12d6374e38c75d70bd29379334965e089fe80a7a1046 --snap 30 --twist 45 --dxf /private/tmp/viewport-angle/out/planar.dxf --dxf-sha256 a8d27714e70c82ff5bfcf1deb235af0dc4e6db9328f36163278c1392a66e460b",
+    "audit_tilt": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_viewport_angles.py --dwg /private/tmp/viewport-angle/dwg/tilt.dwg --dwg-sha256 15858b9230562960c4a9c0139c2d62d1ba15f3e666c928b7e519864f17eb674b --snap 30 --twist 45 --dxf /private/tmp/viewport-angle/out/tilt.dxf --dxf-sha256 2f650c51f16c345e07c6dba831c71eb2b84466efa12800271e629b0d5c699d64 --tilt",
+    "audit_ac1015": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_viewport_angles.py --dwg /private/tmp/viewport-angle/dwg2000/planar.dwg --dwg-sha256 5a8ae454d2835c354520a44e01d247b4ee61312b830d59c3214e3dde0653e299 --snap 30 --twist 45",
+    "audit_ac1024": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_viewport_angles.py --dwg /private/tmp/viewport-angle/dwg2010/tilt.dwg --dwg-sha256 23fd1ac5cceca3109e030c263caf65b99bbbb418a69a61fffba4279863694da4 --snap 30 --twist 45 --tilt",
+    "audit_corrected": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_viewport_angles.py --dwg /private/tmp/viewport-angle/gen-in/new.dwg --dwg-sha256 10790521446d142111b3abb192df3a4d2d000452796788e4d5c0044cb3fdec2a --snap 30 --twist 45 --tilt",
+    "audit_baseline": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_viewport_angles.py --dwg /private/tmp/viewport-angle/gen-in/old.dwg --dwg-sha256 f505da7324c0460b5b61a07f534333f8f7e3c39332f0432d3be8abcd43b15afe --snap 1718.87338539247 --twist 2578.310078088705 --tilt"
+  },
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_viewport_angle_units$' --output-on-failure: 1/1 passed.",
+  "integrated_files": {
+    "src/drw_entities.cpp": "f1ca68ca0b02a4911acd1fb3b6a8427097cb50b2310d0ce1c0f686f83d60d3e0",
+    "src/drw_entities.h": "e2b033fed7dafb85f5ca7a7f592be62a24a42a825e17e7d5ac8ed1076f955655",
+    "src/libdwgr.cpp": "80e844a23ae43c0d5151ead2a5835b6dd7c313ab1b686ea4cd3e447b0ae5236d",
+    "tests/dwg_viewport_angle_units_tests.cpp": "93bbc5f6816d94edf433b8a49c0356d1035c376aaca696cd8ab8c870157e9314",
+    "tools/audit_dwg_viewport_angles.py": "8c2a7e2994b83efcbbbfb6b983c76249158a920aec24ba16e6ebf33dd57172a9",
+    "tools/author_dwg_viewport_source.py": "116eacf6e6e82fdf7c482b41878001b885cac748fa86996b7976415f0df96c8f",
+    "tools/author_dwg_viewport.cpp": "e8387b9887ff50a8f61d1145f953e46d3a04e6f1798acb8d08edbdd01b102fe8",
+    "tools/probe_dwg_viewport.cpp": "6c7a7fe6e7ad62596351e74e921d1ff994f8d875bd8c5240f840e05d04b7e363"
+  }
+}

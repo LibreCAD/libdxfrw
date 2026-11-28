@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-forced-curves-current-layer-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCodeCommit": "f246974e",
+  "consumerContractCommit": "9330b04e",
+  "platform": "macOS ARM64, offscreen focused tests",
+  "finding": "A forced edit from a stale circle or arc snapshot restored the old same-named layer after its replacement, including on redo. A regression reproduced four layer mismatches before the fix.",
+  "change": "Extend the existing exact-type line rebind to Circle and Arc, whose modify methods preserve identity and geometry. Unknown subclasses and other entity types remain outside the admitted profile.",
+  "validation": [
+    "The red-before control covers both entity types after layer locking. The corrected control checks center including elevation, radius, arc angles and direction, metadata, current layer, intentional moves to a differently named layer, undo and redo.",
+    "188 focused builder, layer, canvas, DXF/DWG, Python and Lua tests passed. Plan structure, complete candidate mapping, actual PR base mapping, 31 plan-checker tests and whitespace checks passed.",
+    "The later hosted plan-sync run exposed an outdated Windows workflow contract: PR #461 had added a guarded layout graph test but the test expected six guards. The contract now requires its executable, suite, filter and immediately following failure guard; the local 314-script suite passes with one platform-specific skip. Hosted plan sync passed at 9330b04e; the later head requires its own rerun."
+  ],
+  "limits": [
+    "This covers same-named layers for the exact built-in Line, Circle and Arc types; renamed layers, other entity types and unqualified custom operations remain open.",
+    "The test is offscreen and local; it does not qualify native GUI or Linux/Windows behavior."
+  ],
+  "hostedFollowup": {
+    "consumerCommit": "b4be27ee",
+    "failure": "Hosted Linux ARM64 run 45965811535 failed the Python all-writable-variants test: R12 export correctly reported one explicit layer-lineweight loss, while the test required no loss.",
+    "change": "Require exactly one layer-lineweight omission and its warning for R12/R14, retaining zero-loss expectations for newer formats.",
+    "validation": "The local macOS ARM64 14-variant Python round trip and legacy layer-width regression pass, as do plan structure, candidate and actual-base checks plus 31 checker regressions. At b4be27ee, hosted Linux ARM64 passed (run 45967979013, job 140401176083); plan sync and the DWG sanitizer job also passed. Other hosted jobs remain pending."
+  }
+}

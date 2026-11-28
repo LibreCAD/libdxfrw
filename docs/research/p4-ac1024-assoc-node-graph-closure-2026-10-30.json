@@ -1,0 +1,145 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-graph-closure-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative constraint node topology and RigidSet membership audit",
+  "status": "OBSERVED_AC1024_NODE_GRAPH_PROFILE_AUDITED_EXTERNAL_DEPENDENCIES_AND_OUTPUT_OPEN",
+  "supportClaimEffect": "none",
+  "scope": "Audit node-ID uniqueness, in-group undirected connection closure, and witnessed RigidSet membership/back-links for captured AC1024 constraint groups. This does not qualify external dependency closure, output serialization, family-wide coverage, or consumer meaning.",
+  "semanticReferences": {
+    "constraintGroupNode": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcConstraintGroupNode.html",
+      "meaning": "Constraint-group nodes belong to an AcDbAssoc2dConstraintGroup, and connections between nodes are not directed."
+    },
+    "rigidSet": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcConstrainedRigidSet.html",
+      "methodsUrl": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcConstrainedRigidSet.html",
+      "meaning": "AcConstrainedRigidSet is a constrained-geometry node in its owning constraint group and exposes indexed constrained-geometry members."
+    },
+    "rigidSetOwnership": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcConstrainedGeometry__getOwningRigidSet_const.html",
+      "meaning": "A constrained geometry can have one owning rigid set."
+    },
+    "implicitPoint": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcConstrainedImplicitPoint.html",
+      "meaning": "An implicit point is associated with a constrained curve and does not hold an AcDbAssocGeomDependency reference."
+    },
+    "boundedLine": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcConstrainedBoundedLine.html",
+      "meaning": "AcConstrainedBoundedLine derives through AcConstrainedLine/AcConstrainedCurve from AcConstrainedGeometry."
+    }
+  },
+  "sourceProfiles": [
+    {
+      "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+      "groupHandle": "777",
+      "audit": {
+        "groupRecords": 3,
+        "nodeRecords": 233,
+        "connectionReferences": 512,
+        "connectionTargetsVerified": 512,
+        "undirectedEdgesVerified": 512,
+        "rigidSetMemberReferences": 3,
+        "rigidSetMembersVerified": 3,
+        "rigidSetOwnershipEdgesVerified": 3,
+        "limitExceeded": false,
+        "nodeGraphClosureComplete": true
+      },
+      "rigidSetMembers": [
+        {
+          "rigidSetNodeId": 768,
+          "memberNodeId": 767,
+          "class": "AcConstrainedBoundedLine",
+          "geometryNodeId": 768,
+          "geometryDependencyHandle": 3157
+        },
+        {
+          "rigidSetNodeId": 768,
+          "memberNodeId": 769,
+          "class": "AcConstrainedImplicitPoint",
+          "geometryNodeId": 768,
+          "curveNodeId": 767,
+          "geometryDependencyHandle": 0
+        },
+        {
+          "rigidSetNodeId": 768,
+          "memberNodeId": 771,
+          "class": "AcConstrainedImplicitPoint",
+          "geometryNodeId": 768,
+          "curveNodeId": 767,
+          "geometryDependencyHandle": 0
+        }
+      ]
+    },
+    {
+      "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "audit": {
+        "groupRecords": 4,
+        "nodeRecords": 267,
+        "connectionReferences": 626,
+        "connectionTargetsVerified": 626,
+        "undirectedEdgesVerified": 626,
+        "rigidSetMemberReferences": 0,
+        "rigidSetMembersVerified": 0,
+        "rigidSetOwnershipEdgesVerified": 0,
+        "limitExceeded": false,
+        "nodeGraphClosureComplete": true
+      }
+    }
+  ],
+  "unresolvedExternalDependencyObservation": {
+    "sourceProbePath": "/private/tmp/rigidset-node-members-probe.log",
+    "sourceProbeSha256": "92d819d68ed85ef04c58ec34e7bf878c47de1cf91b34b57e303754739af6801e",
+    "probeBinaryPath": "/private/tmp/rigidset_members_probe",
+    "probeBinarySha256": "281ec2275be1fd50017d625220e0726daf204d4fdeab7c3f349e21cc7877d78e",
+    "observed": "Node 767's geometry dependency handle 3157 resolves to ACDBASSOCGEOMDEPENDENCY, whose parent handle is group 1911. Its decoded dependency handle is 1741, and its read-dependency handle is 2474. The adapter probe observes handles 1741 and 2474 as an INSERT and an LWPOLYLINE respectively. The audit added here does not yet join these external references to the group action list, prove the dependency-object field roles, or resolve source entity ownership."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp"
+    ],
+    "behavior": "For AC1024 associative constraint groups, the adapter builds a bounded per-group node-ID index, rejects duplicate node IDs and connection IDs, resolves every connection within its owning group, and verifies the reciprocal edge required by the undirected graph contract. For the observed RigidSet profile it resolves all listed member IDs, checks constrained-geometry node kinds and geometryNodeId back-links, enforces one owning RigidSet per member, and verifies each implicit point's curveNodeId resolves to a curve in the same member set.",
+    "failureBehavior": "Malformed, ambiguous, missing, wrong-kind, mismatched-owner, or over-limit references leave the graph audit incomplete. The existing strict DWG-to-DXF preflight still refuses associative output regardless of this audit result.",
+    "persistentDrawingFixturesAdded": 0,
+    "supportClaimEffect": "none"
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf -j 4",
+      "result": "PASS"
+    },
+    "normalSourceRuns": {
+      "civilLog": "/private/tmp/rigidset-node-graph-closure.log",
+      "civilLogSha256": "b4b903cd1ca63ad800b6c8c8a77e88646ad8d1363b44ecded94e8e313b152528",
+      "architecturalLog": "/private/tmp/rigidset-node-graph-architectural.log",
+      "architecturalLogSha256": "574d9780b2b719eb4d8657bc44dfc8ae9b4fd5dd33dff7a48a3cc2b5999d32f4",
+      "result": "Both imports audit complete. Both strict exports remain refused by dwg-associative-graph-not-serialized, and neither output DXF is created."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf -j 4",
+      "result": "PASS"
+    },
+    "asanSourceRuns": {
+      "civilLog": "/private/tmp/rigidset-node-graph-asan-civil.log",
+      "civilLogSha256": "b4b903cd1ca63ad800b6c8c8a77e88646ad8d1363b44ecded94e8e313b152528",
+      "architecturalLog": "/private/tmp/rigidset-node-graph-asan-architectural.log",
+      "architecturalLogSha256": "574d9780b2b719eb4d8657bc44dfc8ae9b4fd5dd33dff7a48a3cc2b5999d32f4",
+      "result": "Both ASan logs are byte-identical to the corresponding normal logs; no sanitizer diagnostics; neither output DXF is created."
+    },
+    "diffCheck": "PASS",
+    "automatedTestSuites": "Not run; the decisive validation for this adapter audit was the normal and ASan import of both source witnesses with exact audit counters and strict refusal."
+  },
+  "nextAction": "Join each non-null geometry-dependency handle to exactly one ACDBASSOCGEOMDEPENDENCY in the same group and action list; verify the dependency's source-object reference and owner/route, then continue recursive closure and implement source-to-emitted graph serialization/readback.",
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_data.h": "b940c2997d93da80babbc61d4bf44d8cd6ea368ddd336cfe6233314a9082ffc7",
+    "dwg2dxf/dx_iface.cpp": "6d7dd3f309040d54ea53fd55d469cb2a3c36f0599c51b4e8326db8d5ec48ff6e",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "27ddde89208087ffd058b5f8edb91187927e3a2d3a8e8dc703598ffb3abd9f27",
+    "build/dwg2dxf/dwg2dxf": "4dacb669e284f2e942f01833a565e81e61fb7fee3de56b598ebc8772fd2ea5ab",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "8995efb068c1823c8203c26769b1045f4b11cb77cdb7f1a3df28021acb8b0eeb"
+  }
+}

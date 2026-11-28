@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "7S.3 OBJECT frame-receipt freshness",
+  "mode": "Generated local implementation slice and focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Prevent ordinary OBJECT transactions from treating a prior committed frame receipt as evidence of current output.",
+    "Preserve the explicitly idempotent duplicate MLINESTYLE no-frame success path.",
+    "Exercise freshness and no-op behavior using generated in-memory controls."
+  ],
+  "implementation": {
+    "files": [
+      "src/intern/dwgwriter.h",
+      "src/intern/dwgwriter15.h",
+      "src/intern/dwgwriter15.cpp",
+      "src/libdwgr.h",
+      "src/libdwgr.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "behavior": "writeObjectTransaction and writeFixedObjectFrameTransaction require a valid frame receipt with a new producer generation and output growth beyond the pre-write buffer boundary. The MLINESTYLE facade opts into a no-frame success only when the writer returns true and output size remains unchanged.",
+    "generatedControls": [
+      "An identical MLINESTYLE retry succeeds while bytes and object-map cardinality remain unchanged; the last committed frame generation remains the same.",
+      "Generic and fixed-frame OBJECT lambdas that append non-frame bytes are rejected despite a previously valid frame receipt; rollback preserves bytes/object-map state and clears the receipt."
+    ],
+    "selector": "tests/dwg_local_roundtrip_tests.cpp --block-owner-membership-index"
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "ctest": "PASS (1/1): libdxfrw_dwg_block_owner_membership_index",
+    "gitDiffCheck": "PASS: scoped git diff --check for production, test, plan, and receipt files",
+    "fullSuiteRun": false,
+    "externalPeerOrNativeRuntimeRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionAndTestChanges": true,
+    "newCtestRegistrations": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "The idempotent no-frame exception is intentionally limited to the MLINESTYLE facade route.",
+    "The shared worktree contains extensive unrelated dirty changes and Git metadata is read-only in this session; no commit was created."
+  ],
+  "commitCreated": false
+}

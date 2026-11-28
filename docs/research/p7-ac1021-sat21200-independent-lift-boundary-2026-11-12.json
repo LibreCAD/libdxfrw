@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p7-ac1021-sat21200-independent-lift-boundary-2026-11-12",
+  "purpose": "Screen direct parsing and independent-kernel lifting of the exact AC1021 ACIS 21500 SAT-v1 payload emitted through the selected DXF projection.",
+  "sourceBinding": {
+    "repository": "LibreDWG public committed fixture consumed by the existing source-projection selector",
+    "path": "/Users/dli/dev/dwg-writer/tests/fixtures/committed/libredwg/atmos_dc22s_2007.dwg",
+    "sha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+    "version": "AC1021",
+    "selectedSolidHandle": "0x452"
+  },
+  "carrierBinding": {
+    "route": "Current libdxfrw selected physical subgraph ASCII DXF output, then tools/research/decode_dxf_sat1.py",
+    "dxfPath": "/private/tmp/p7-ac1021-torus-recheck/torus-inline-selected-ascii-143724623187708.dxf",
+    "dxfSha256": "f2f513b6f02908524f82bb8c389b7db554f16898ffe3cba91d454f029bc1ab45",
+    "dxfSolidHandle": "0x459",
+    "satPath": "/private/tmp/p7-ac1021-torus-recheck/torus.sat",
+    "satBytes": 1057,
+    "satSha256": "c3eef02979316c5167775872608e6dff752fc0170a5e66b72ad2da4c6dc8d536",
+    "header": "21500 13 2 0",
+    "terminalLine": "End-of-ACIS-data followed by one ASCII space"
+  },
+  "toolCorrection": {
+    "file": "tools/research/decode_dxf_sat1.py",
+    "change": "Ignore trailing horizontal whitespace only when comparing the final SAT/ASM end-marker token; preserve the extracted payload bytes unchanged.",
+    "regression": "tools.research.test_decode_dxf_sat1.test_terminal_marker_with_trailing_dxf_padding_is_accepted"
+  },
+  "independentRoute": {
+    "repository": "https://github.com/HakanSeven12/OpenCADStudio",
+    "revision": "36981c6abe76e4b69d0a8ac5e210c35a0e8f681c",
+    "parser": "opencaddocument / ACadRust",
+    "parserRevision": "ce8a148568e7a80a80f50797bf287a651d1259c7",
+    "kernel": "OpenCADKernel",
+    "kernelRevision": "802f75134a5606d34bd34dac0d3508565537b067",
+    "command": "LIBDXFRW_SAT_PATH=/private/tmp/p7-ac1021-torus-recheck/torus.sat CARGO_TARGET_DIR=/private/tmp/opencad-p7-target cargo test --manifest-path /private/tmp/opencadstudio-p7/Cargo.toml -p ocs_acis --test libdxfrw_ac1024_sat700_probe -- --nocapture",
+    "result": "The ACadRust SAT parser accepts the text and reports ACIS 215.0.0, declared body count 2 and 13 records. ocs_acis::lift returns zero bodies and an empty Loss; the probe fails its nonempty-body assertion.",
+    "parsedRecordCounts": {
+      "body": 1,
+      "lump": 1,
+      "shell": 1,
+      "face": 1,
+      "loop": 0,
+      "coedge": 0,
+      "edge": 0,
+      "vertex": 0
+    }
+  },
+  "formatCompatibilityEvidence": {
+    "authority": "Open Design Alliance, Working with .sat and .sab Files in Teigha",
+    "url": "https://www.opendesign.com/blog/2017/october/working-sat-and-sab-files-teigha",
+    "findings": [
+      "ODA maps DWG R21 to SAT/SAB version 21200.",
+      "ODA says Autodesk formats from 20800 onward are modified, are not native to Spatial ACIS, and require additional conversion before entering the Spatial ACIS library.",
+      "ODA describes version 700 as the intermediate exchange profile between Teigha and Spatial ACIS."
+    ],
+    "implementationEffect": "Do not route the source payload directly to a Spatial ACIS native reader. Any future kernel comparison must record and validate an explicit version conversion, or use an independent reader that understands the Autodesk-modified 21500 profile."
+  },
+  "validation": {
+    "decoderUnitTests": "python3 -m unittest tools.research.test_decode_dxf_sat1: PASS 3/3",
+    "sourceProjection": "PASS: selected ASCII and Binary readback; strict full-source output refused at the pre-existing IMAGEDEF owner-role gate",
+    "independentProbe": "FAIL as a B-rep lift: zero bodies; the failure is the expected negative boundary observation, not a passing geometry qualification",
+    "fixturePolicy": "No drawing fixture was added; the source is an existing committed LibreDWG fixture and derived artifacts are in /private/tmp."
+  },
+  "limitations": [
+    "The SAT parser accepted a bounded record stream, but the kernel received no complete topology to validate.",
+    "The empty Loss value does not mean that all source geometry was represented; no nonempty body was produced.",
+    "No ACIS 21500 row normalization or field interpretation is authorized by this observation."
+  ],
+  "claimEffect": "No independent B-rep, native consumer, or ACIS support claim is promoted. This closes only the exact OpenCADKernel direct-lift candidate screen and identifies the next evidence requirement."
+}

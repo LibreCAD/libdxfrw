@@ -1,0 +1,19 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 section 20.4.66 describes the APPID R2004+ missing-xdictionary flag and xref-block hard-pointer role.",
+  "scope":"Only the writer's always-synthesized reserved ACAD APPID receives missing=1 and a typed-null xref for AC1018+. Other source/caller APPIDs and the public encoder retain their previous behavior. AC1015 is unchanged; the new method is private and adds no object members or virtuals.",
+  "independent_evidence":"LibreDWG 0.14 decodes the ODA-produced AC1018 ACAD APPID with missing=1 and xref=(5,0,0). It independently reads current production synthetic ACAD records the same way for AC1018/1021/1024/1027/1032 with a following LINE. AC1015 retains its untyped null and lacks the R2004 flag.",
+  "oda_factorial":{
+    "reader":"ODA File Converter 27.1.0 ACAD2013 DXF; inspect .err and actual outputs, not exit status",
+    "prerequisite":"All controls include the independently witnessed scratch plotstyle graph and previous synthetic VPORT corrections; the plotstyle graph is not yet automatic in production.",
+    "cases":[
+      {"missing":0,"typed_xref":0,"sha256":"102b41c5356327980f9dd7fb72adf7f559022a968215d72f6bc4f1e6165f1a5b","error":"Object improperly read: <AcDbRegAppTableRecord> (14); previous error .dwg file needs recovery"},
+      {"missing":1,"typed_xref":0,"sha256":"e6f575985c722e1a7360a09fc92ff892f5ee7e61196b52ceca6259edad7790b0","error":"Object improperly read: <AcDbRegAppTableRecord> (14); previous error .dwg file needs recovery"},
+      {"missing":0,"typed_xref":1,"sha256":"52e4ef7e7e94ad6b3b134882fa1b9102d0cd27929c54f8d7be7453a370778381","error":"Object improperly read: <AcDbRegAppTableRecord> (14); previous error .dwg file needs recovery"},
+      {"missing":1,"typed_xref":1,"sha256":"7c2df1a6c8d1efa3bf0804114c06c5b62b9af37bef05b463966c72a213471684","error":"Object improperly read: <AcDbDimStyleTableRecord> (15); previous error .dwg file needs recovery"}
+    ],
+    "result":"No DXF produced. Both fixes together advance the observed error boundary; they do not diagnose the subsequent DIMSTYLE error or establish full interoperability."
+  },
+  "tests":"PASS libdxfrw_dwg_header_writer_sealing: six-version synthetic ACAD and independently caller-supplied CUSTOM_APP state, exact synthetic/private and ordinary/public handle bytes, no-output rollback and same-writer retry, and following LINE.",
+  "fixtures":"All generated DWGs are scratch files; none is committed."
+}

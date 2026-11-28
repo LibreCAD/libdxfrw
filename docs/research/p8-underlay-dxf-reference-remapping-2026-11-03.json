@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-underlay-dxf-reference-remapping-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "LOW_LEVEL_REFERENCE_TRANSLATION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Make low-level UNDERLAY serialization honor the configured resolver for its AcDbUnderlayDefinition reference.",
+  "issue": {
+    "before": "writeUnderlay always used remapObjectHandle for definitionHandle, bypassing the final-ID contract of setReferenceResolver.",
+    "impact": "A selected caller mapping could be ignored and the output reference could name the source/remapped object instead of the caller-selected definition identity.",
+    "wireField": "Group 340 identifies the AcDbUnderlayDefinition object."
+  },
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "The writer uses the resolver result as the final group-340 identity when a resolver is configured.",
+      "Without a resolver, the writer uses the established source-handle remap fallback.",
+      "Existing zero, NoHandle, and fixed-output-handle refusal remains in place before record emission.",
+      "The concrete adapter graph gate remains responsible for proving the target exists and has the correct definition kind."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed in-memory PDFUNDERLAY record; no DWG/DXF fixture files.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "cases": [
+      "source-handle remap fallback",
+      "reference-resolver final identity overrides the configured remap"
+    ],
+    "validation": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "buildResult": "PASS",
+      "focusedTestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_underlay_definition_reference_remapping$' --output-on-failure",
+      "focusedTestResult": "PASS: 1/1; both ASCII/Binary x resolver/remap cases, 0.48 seconds",
+      "diffCheck": "PASS: git diff --check"
+    }
+  },
+  "limitations": [
+    "Generated low-level reference translation only; it does not prove target existence, target kind, owner role, graph closure, physical producer coverage, or native underlay display behavior.",
+    "P4 graph admission and P8 native consumer qualification remain open; no support claim is promoted."
+  ],
+  "next": "Continue source-bound UNDERLAY definition/output binding checks and native Linux/Windows consumer qualification."
+}

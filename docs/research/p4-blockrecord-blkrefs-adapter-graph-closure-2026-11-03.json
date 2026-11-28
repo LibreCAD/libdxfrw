@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "BLOCK_RECORD BLKREFS adapter forwarding and graph checks",
+  "date": "2026-11-03",
+  "parentCommit": "3ecbed86 Resolve direct MLEADER reference IDs",
+  "scope": "Forward retained BLOCK_RECORD.insertHandles through dx_iface and refuse entries that do not bind to a unique typed INSERT with a closed output identity/owner route.",
+  "implementation": {
+    "forwarding": "dx_iface::writeBlockRecords now passes DRW_Block_Record::insertHandles to dxfRW::writeBlockRecord instead of an empty vector. The low-level writer's existing identity planner reserves/remaps each INSERT handle before BLOCK_RECORD emission.",
+    "preflight": "For nonempty lists, adapter validation rejects unsupported target versions, fixed-space target BLOCK_RECORDs, invalid/duplicate handles, missing or ambiguous target blocks, missing BLOCK/ENDBLK source identities, missing/duplicate/non-INSERT targets, target-name mismatch, and inconsistent source owner/container relationships.",
+    "postEmission": "finalizeDxfWrite rechecks each source handle's unique emitted INSERT type/section/owner and the target BLOCK_RECORD, BLOCK and ENDBLK output identities/owners.",
+    "workBound": "Aggregate BLKREFS entries are capped at DRW::kMaxDxfBlockRecordInsertHandles. Sorted BLOCK_RECORD handle/name indices and a sorted reference index are matched during one scan of entity containers, avoiding quadratic references-by-entities searches. Estimated index/reference storage is bounded by DRW::kMaxDxfTypedTableRetainedBytes; allocation failures fail closed."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_legacy_blockref_relation_tests libdxfrw_wave1_tests --parallel 4",
+      "result": "PASS"
+    },
+    "focused": {
+      "commands": [
+        "build-gcc/libdxfrw_wave1_tests --blockrecord-insert-reference-remapping",
+        "ctest --test-dir build-gcc -R '^(libdxfrw_blockrecord_insert_reference_remapping|libdxfrw_legacy_blockref_relation)$' --output-on-failure",
+        "build-gcc/tests/libdxfrw_legacy_blockref_relation_tests /Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+        "git diff --check"
+      ],
+      "result": "PASS",
+      "coverage": "Low-level generated ASCII/Binary controls prove resolver/remap identity transport and refusal. The adapter CTest adds locally authored ASCII/Binary wrong-target refusal and verifies the existing destination bytes remain unchanged. The existing independent ACadSharp source probe still matches its selected BLOCK_RECORD 331 to the INSERT source identity."
+    },
+    "limits": "The adapter control exercises preflight refusal, not a valid adapter serialization, post-emission inventory check or fresh adapter readback; whole export of the exploratory inputs is blocked by unrelated closed-profile gates."
+  },
+  "qualificationLimits": [
+    "Autodesk's published BLOCK_RECORD field table does not enumerate BLKREFS; group-331 soft-pointer classification does not establish required membership semantics or list completeness.",
+    "The existing AC1018 independent sample proves one selected source identity relation only; native authoring semantics and a producer-backed complete membership relation are not established.",
+    "Target typing/name/owner checks and output-inventory code are adapter graph safeguards, not semantic or whole-document support evidence.",
+    "No valid adapter output/readback, independent native-consumer result or support claim is qualified by this slice.",
+    "No repository DWG/DXF fixture was added; the controls are authored in memory or generated in temporary scratch space."
+  ],
+  "sourceBindings": {
+    "dxIfaceSourceSha256": "5087cbb2d9e9e54a9b2e6259af83867b14c18566c7eec9d5f60d3bd991c7b162",
+    "dxIfaceHeaderSha256": "0799b8b15f8371a0320e2236438b8c49c45ba8e4397e4229367076f77b9ef7a7",
+    "legacyBlockrefTestSha256": "179c334eb88ad5626b57c9b842596cda822f04363803f6e90de8a8389d8bdff5",
+    "references": [
+      "docs/research/p4-blockrecord-blkrefs-reference-remapping-2026-11-03.json",
+      "docs/research/rpp5jh-ac1018-blockref-whole-source-relation-2026-10-28.json",
+      "docs/research/rpp5ik-ac1018-block-record-source-profile-2026-10-28.json"
+    ]
+  }
+}

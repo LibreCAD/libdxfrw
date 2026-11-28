@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-modeler-payload-status-dxf-read-integration-fast-slice-v1",
+  "date": "2026-10-16",
+  "scope": "Assert the computed modeler-carrier status against real parser output in existing generated ASCII and binary DXF modeler-carrier round trips.",
+  "changedFiles": [
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "DWG_DXF_3D_SUPPORT_PLAN.md",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "change": {
+    "test": "runDxfModelerCarrierRoundTrip() now requires a parsed modeler entity to report PayloadStatus::CarrierBytesPresent, in addition to ordered, in-bounds group-1/3 chunk metadata and exact marker-payload readback.",
+    "coverage": [
+      "generated ASCII DXF parser/readback",
+      "generated binary DXF parser/readback",
+      "bounded ordered modeler group-1/3 payload chunks",
+      "computed carrier-status classification on the parsed entity"
+    ],
+    "doesNotProve": [
+      "SAT/SAB syntax or validity",
+      "DWG DataStorage or DXF ACDSDATA owner association",
+      "B-rep validity or geometry semantics",
+      "native CAD consumer acceptance",
+      "DWG version-family support"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+      "result": "PASS"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "seconds": 3.04
+    },
+    "fullSuite": "NOT_RUN",
+    "externalPeerOrNativeConsumer": "NOT_RUN",
+    "gitDiffCheck": "PASS"
+  },
+  "artifactPolicy": {
+    "fixtureAdded": false,
+    "runtimeGeneratedFilesRetained": false,
+    "dependencyAdded": false,
+    "CTestRegistrationAdded": false
+  },
+  "state": "LOCAL_FAST_VERIFIED_UNCOMMITTED_SHARED_WORKTREE",
+  "supportClaimsChanged": false,
+  "externalJItemsChanged": false,
+  "externalJItems": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ],
+  "nextAction": "Continue with another dependency-ready local implementation slice."
+}

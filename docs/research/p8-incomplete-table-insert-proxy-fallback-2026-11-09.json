@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "id": "p8-incomplete-table-insert-proxy-fallback-2026-11-09",
+  "date": "2026-11-09",
+  "scope": "Preserve the opaque DWG proxy-graphics cache when an incomplete TABLE is emitted through the legacy INSERT projection, including strict proxy-preservation policy and same-adapter retry.",
+  "supportClaimEffect": "none; generated same-revision opaque carrier transport only, not TABLE rendering semantics, whole-document conversion, or native consumer qualification",
+  "sourceFiles": [
+    {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "cbe400b7debdc88c7fd3df503fb06385210c8de03aaf5924ada2e9d1854de89b",
+      "change": "Permit exact DRW_Insert proxy caches only for parsed-DWG provenance, same source/output revision, zero DXF count code, and fully consumed proxy chunk framing; retain the typed DRW_Table gate separately."
+    },
+    {
+      "path": "dwg2dxf/dx_iface.h",
+      "sha256": "3b6c82f928edc40b2e3121a44c5999b1aad6732ce06cd34accca870812932d2e",
+      "change": "Keep proxy bytes on an incomplete TABLE's INSERT fallback; clear only the duplicate projection cache for a semantically complete TABLE whose typed record retains the cache."
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "6055693d7b8bfec96eb97b04f397f9b04380d1be3aeabbeb67e668a5ebcd3be",
+      "change": "Make strict adapter preflight recognize the same exact-framed, same-revision parsed-DWG INSERT carrier profile, so failed-version retry remains eligible."
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "82892e4dc878006ba0b4770e4a038f9b04380d1be3aeabbeb67e668a5ebcd3be",
+      "change": "Generated ASCII/Binary controls verify fallback bytes, wrong-version destination preservation, retry, and readback. The authored TABLE DXF controls now include the required per-cell merge descriptors; the intentional unsupported table-level border-color mask remains explicitly incomplete."
+    }
+  ],
+  "generatedControl": {
+    "proxySource": "generated in memory from generatedDwgTableProxyGraphic(); no downloaded or repository DWG/DXF fixture",
+    "profile": "AC1027 parsed-DWG proxy provenance, incomplete linked-data TABLE, output as INSERT",
+    "ascii": {
+      "fallbackRecordCount": 1,
+      "typedTableCount": 0,
+      "exactProxyBytesReadback": true,
+      "wrongRevisionRefusal": true,
+      "destinationSentinelPreserved": true,
+      "sameAdapterRetryAndReadback": true
+    },
+    "binary": {
+      "fallbackRecordCount": 1,
+      "typedTableCount": 0,
+      "exactProxyBytesReadback": true,
+      "wrongRevisionRefusal": true,
+      "destinationSentinelPreserved": true,
+      "sameAdapterRetryAndReadback": true
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_table_callback_owner_order$' --output-on-failure",
+    "result": "passed 1/1; test runs both ASCII and Binary generated routes",
+    "executableSha256": "3feb52eca0000287f0b81cdfa9f1ae738c39c32b2712452e593491c0a9859187",
+    "diffCheck": "git diff --check passed",
+    "repositoryFixtureFilesAdded": false
+  },
+  "limits": [
+    "Proxy chunk framing is validated; proxy drawing primitives, resource-index meaning, and native display are not independently qualified.",
+    "No external DWG sample, LibreCAD/LibreCAD_3 native run, FreeCAD run, or whole-source conversion is included."
+  ]
+}

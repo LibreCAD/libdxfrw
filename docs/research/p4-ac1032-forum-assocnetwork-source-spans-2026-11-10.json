@@ -1,0 +1,371 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-forum-assocnetwork-source-spans-2026-11-10",
+  "date": "2026-11-10",
+  "status": "SOURCE_BOUND_PREFIX_AND_SELECTED_NATIVE_OWNER_EVIDENCE_ONLY",
+  "supportClaimEffect": "none",
+  "source": {
+    "publication": "https://forums.autodesk.com/t5/objectarx-forum/how-to-give-constrains-with-c-net/td-p/11874110",
+    "attachment": "https://forums.autodesk.com/autodesk/attachments/autodesk/objectarx-forum-en/1817/1/constraints.dwg",
+    "sourcePath": "/private/tmp/p4-autodesk-forum-constraints.dwg",
+    "sha256": "685bf22ed533121238c62c07357bf03fa6ddb40983cff7967c481fbb244b6b4f",
+    "bytes": 33490,
+    "dwgVersion": "AC1032",
+    "provenance": "Public 2023-04-13 ObjectARX forum post by drawing contributor reports native SNOOPENTS ownership for this named attachment. LibreDWG-decoded APPINFO reports AutoCAD build U.61.0.0(x64), registry version 24.3; APPINFOHISTORY reports AutoCAD 2024. These are source-embedded claims, not signed attestation of authoring or every object."
+  },
+  "nativeOwnerObservation": {
+    "reportedBy": "forum contributor using ObjectARX ArxDbg SNOOPENTS",
+    "chain": "ASSOCGEOMDEPENDENCY 0x2A9 -> ASSOC2DCONSTRAINTGROUP 0x2A8 -> ACDBASSOCNETWORK 0x2A5 -> DICTIONARY 0x2A4 -> DICTIONARY 0x1CE -> BLOCK_HEADER *Model_Space 0x1F -> BLOCK_CONTROL 0x1",
+    "limits": "This is a published native owner-chain observation; it does not independently attest the binary fields or complete graph."
+  },
+  "productionRead": {
+    "inventoryCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocnetwork-source-inventory /private/tmp/p4-autodesk-forum-constraints.dwg",
+    "executableSha256": "7df1cc330d1af4b9101d724bb44c7d86c84bbcc449724aec399bbb9c42f822c7",
+    "traceSha256": "e60ab8817dcbdbe939b058531c31c483510181c0ba5f4c8cfd40d084a1abb686",
+    "outcome": "145/145 source frames published, zero entity/object parse failures; associative-network fieldsParsed remains false on both networks.",
+    "integrity": "LTYPE_CONTROL integrity error; HEADER envelope and BLOCK_CONTROL warnings. The HEADER reports expected 782 and observed 786 bytes. No whole-source output qualification.",
+    "prefixes": [
+      {
+        "handle": "0x2A5",
+        "actionStart": 48,
+        "actionEnd": 82,
+        "networkStart": 82,
+        "networkEnd": 107
+      },
+      {
+        "handle": "0x2A7",
+        "actionStart": 48,
+        "actionEnd": 74,
+        "networkStart": 74,
+        "networkEnd": 99
+      }
+    ]
+  },
+  "physicalWitness": {
+    "objectsSectionLength": 33803,
+    "objectsSha256": "0d76bd5ae9e762cae2b8c972874d3cc908e41639501b8100e5eea5580175a5fb",
+    "extraction": "dwg_ac1032_object_section_probe.cpp calls libdxfrw readMetaData/readFileHeader/parseDataPage. The decompression is therefore shared with the production reader, not an independent section decoder. The separate Python walker checks exact source and decoded-section hashes, bounds, BS/BL/B values and H role/width/reference fields.",
+    "objectOrigins": "Object-map offsets are 33116 for 0x2A5 and 14819 for 0x2A7; after the object size/handle-size/type framing the bit-position origins are 33119 and 14822 respectively, as reported by pinned LibreDWG verbose trace. Bit intervals in profiles are relative to those origins.",
+    "fields": [
+      {
+        "handle": "0x2A5",
+        "decoded_section_object_start": 33119,
+        "object_size": 25,
+        "fields": [
+          {
+            "field": "class_version",
+            "kind": "BS",
+            "start_bit": 48,
+            "end_bit": 58,
+            "value": 2
+          },
+          {
+            "field": "geometry_status",
+            "kind": "BL",
+            "start_bit": 58,
+            "end_bit": 60,
+            "value": 0
+          },
+          {
+            "field": "action_index",
+            "kind": "BL",
+            "start_bit": 60,
+            "end_bit": 70,
+            "value": 1
+          },
+          {
+            "field": "max_assoc_dep_index",
+            "kind": "BL",
+            "start_bit": 70,
+            "end_bit": 72,
+            "value": 0
+          },
+          {
+            "field": "num_deps",
+            "kind": "BL",
+            "start_bit": 72,
+            "end_bit": 74,
+            "value": 0
+          },
+          {
+            "field": "reserved_before_owned_params",
+            "kind": "BS",
+            "start_bit": 74,
+            "end_bit": 76,
+            "value": 0
+          },
+          {
+            "field": "num_owned_params",
+            "kind": "BL",
+            "start_bit": 76,
+            "end_bit": 78,
+            "value": 0
+          },
+          {
+            "field": "reserved_before_values",
+            "kind": "BS",
+            "start_bit": 78,
+            "end_bit": 80,
+            "value": 0
+          },
+          {
+            "field": "num_values",
+            "kind": "BL",
+            "start_bit": 80,
+            "end_bit": 82,
+            "value": 0
+          },
+          {
+            "field": "network_version",
+            "kind": "BS",
+            "start_bit": 82,
+            "end_bit": 84,
+            "value": 0
+          },
+          {
+            "field": "network_action_index",
+            "kind": "BL",
+            "start_bit": 84,
+            "end_bit": 94,
+            "value": 1
+          },
+          {
+            "field": "num_actions",
+            "kind": "BL",
+            "start_bit": 94,
+            "end_bit": 104,
+            "value": 1
+          },
+          {
+            "field": "action_is_owned",
+            "kind": "B",
+            "start_bit": 104,
+            "end_bit": 105,
+            "value": 1
+          },
+          {
+            "field": "num_owned_actions",
+            "kind": "BL",
+            "start_bit": 105,
+            "end_bit": 107,
+            "value": 0
+          }
+        ],
+        "handles": [
+          {
+            "field": "owner",
+            "start_bit": 108,
+            "end_bit": 116,
+            "code": 8,
+            "size": 0,
+            "raw_ref": 0
+          },
+          {
+            "field": "reactor",
+            "start_bit": 116,
+            "end_bit": 140,
+            "code": 4,
+            "size": 2,
+            "raw_ref": 676
+          },
+          {
+            "field": "owning_network",
+            "start_bit": 140,
+            "end_bit": 164,
+            "code": 4,
+            "size": 2,
+            "raw_ref": 679
+          },
+          {
+            "field": "action_body",
+            "start_bit": 164,
+            "end_bit": 172,
+            "code": 3,
+            "size": 0,
+            "raw_ref": 0
+          },
+          {
+            "field": "action",
+            "start_bit": 172,
+            "end_bit": 196,
+            "code": 3,
+            "size": 2,
+            "raw_ref": 680
+          }
+        ]
+      },
+      {
+        "handle": "0x2A7",
+        "decoded_section_object_start": 14822,
+        "object_size": 22,
+        "fields": [
+          {
+            "field": "class_version",
+            "kind": "BS",
+            "start_bit": 48,
+            "end_bit": 58,
+            "value": 2
+          },
+          {
+            "field": "geometry_status",
+            "kind": "BL",
+            "start_bit": 58,
+            "end_bit": 60,
+            "value": 0
+          },
+          {
+            "field": "action_index",
+            "kind": "BL",
+            "start_bit": 60,
+            "end_bit": 62,
+            "value": 0
+          },
+          {
+            "field": "max_assoc_dep_index",
+            "kind": "BL",
+            "start_bit": 62,
+            "end_bit": 64,
+            "value": 0
+          },
+          {
+            "field": "num_deps",
+            "kind": "BL",
+            "start_bit": 64,
+            "end_bit": 66,
+            "value": 0
+          },
+          {
+            "field": "reserved_before_owned_params",
+            "kind": "BS",
+            "start_bit": 66,
+            "end_bit": 68,
+            "value": 0
+          },
+          {
+            "field": "num_owned_params",
+            "kind": "BL",
+            "start_bit": 68,
+            "end_bit": 70,
+            "value": 0
+          },
+          {
+            "field": "reserved_before_values",
+            "kind": "BS",
+            "start_bit": 70,
+            "end_bit": 72,
+            "value": 0
+          },
+          {
+            "field": "num_values",
+            "kind": "BL",
+            "start_bit": 72,
+            "end_bit": 74,
+            "value": 0
+          },
+          {
+            "field": "network_version",
+            "kind": "BS",
+            "start_bit": 74,
+            "end_bit": 76,
+            "value": 0
+          },
+          {
+            "field": "network_action_index",
+            "kind": "BL",
+            "start_bit": 76,
+            "end_bit": 86,
+            "value": 1
+          },
+          {
+            "field": "num_actions",
+            "kind": "BL",
+            "start_bit": 86,
+            "end_bit": 96,
+            "value": 1
+          },
+          {
+            "field": "action_is_owned",
+            "kind": "B",
+            "start_bit": 96,
+            "end_bit": 97,
+            "value": 0
+          },
+          {
+            "field": "num_owned_actions",
+            "kind": "BL",
+            "start_bit": 97,
+            "end_bit": 99,
+            "value": 0
+          }
+        ],
+        "handles": [
+          {
+            "field": "owner",
+            "start_bit": 100,
+            "end_bit": 108,
+            "code": 8,
+            "size": 0,
+            "raw_ref": 0
+          },
+          {
+            "field": "reactor",
+            "start_bit": 108,
+            "end_bit": 132,
+            "code": 4,
+            "size": 2,
+            "raw_ref": 678
+          },
+          {
+            "field": "owning_network",
+            "start_bit": 132,
+            "end_bit": 140,
+            "code": 4,
+            "size": 0,
+            "raw_ref": 0
+          },
+          {
+            "field": "action_body",
+            "start_bit": 140,
+            "end_bit": 148,
+            "code": 3,
+            "size": 0,
+            "raw_ref": 0
+          },
+          {
+            "field": "action",
+            "start_bit": 148,
+            "end_bit": 172,
+            "code": 4,
+            "size": 2,
+            "raw_ref": 677
+          }
+        ]
+      }
+    ],
+    "references": [
+      "Open Design Specification for .dwg files v5.4.1 sections 2.2, 2.3 and 2.13 for bitshort, bitlong and handle primitives",
+      "LibreDWG verbose trace for candidate class-specific field order; ODA has no ACDBASSOCNETWORK class-specific schema"
+    ]
+  },
+  "peer": {
+    "tool": "LibreDWG dwgread 0.13.3.553_6d6a_dirty",
+    "workingTreeRevision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "executableSha256": "ffb9e557674a3a10a6b242c645873e83771b9c8744cbd8b89a11cda22d7a0083",
+    "command": "dwgread -v5 -O minJSON -o /private/tmp/p4-forum-libredwg-v5.json /private/tmp/p4-autodesk-forum-constraints.dwg",
+    "logSha256": "251a5dab9102a7ad440ef0f60d3f3fcee81e9768e6df427a7ffc0b9eeb32878a",
+    "jsonSha256": "1ad1aa1677c56ff001ef676be3c810a7cd2c5b18c94e5be2fa1f426f62d14b87",
+    "networkComparison": "Both networks agree with libdxfrw on class version, owner, owning-network, action indexes, owned flags and target handles. Verbose field end positions match the independent BS/BL walker; action H codes are 3 for the owned 0x2A8 edge and 4 for the unowned 0x2A5 edge. Each network record CRC passes in the peer trace.",
+    "errors": "LibreDWG emits an invalid BL code and impossible connections count in ACDBASSOC2DCONSTRAINTGROUP, plus Object handle not found 0x2B5. The current libdxfrw map ends at 0x2B4 and HEADER HANDSEED is 0x2B5; no object with 0x2B5 is mapped. Peer warning has no attributed originating reference, so it must not be characterized as a proven dangling object-graph edge."
+  },
+  "tools": {
+    "extractor": "tools/research/dwg_ac1032_object_section_probe.cpp",
+    "extractorSha256": "dbdd4a556468c3fd012ad32b95be775bb193be21e36aa54a744d8f0c1f75349e",
+    "extractorBuild": "c++ -std=c++17 -I src tools/research/dwg_ac1032_object_section_probe.cpp build-gcc/libdxfrw.a -o /private/tmp/p4-forum-objects-extract",
+    "walker": "tools/research/ac1032_forum_assocnetwork_spans.py",
+    "walkerSha256": "55b974538008476799b9e6bebb7e5f0543f53d1691014f4a36d9d02a7454748c",
+    "walkerCommand": "python3 tools/research/ac1032_forum_assocnetwork_spans.py /private/tmp/p4-autodesk-forum-constraints.dwg /private/tmp/p4-forum-objects.bin",
+    "outputSha256": "ecc71e235044490959f98604a3989ec9cc143bafd918c613e8695d2ce0f953f8",
+    "validation": "PASS re-extracted object-section hash; wrong source hash, out-of-bounds cursor and truncated field rejected; Python compilation and git diff --check pass. No DWG/DXF fixture committed."
+  },
+  "decision": "This supplies a distinct source-bound candidate class-version-2 network, direct primitive bit spans and a published native owner-chain observation. Class-specific schema, graph dependency and whole-file integrity remain incomplete; retain fieldsParsed=false, AC1032 writer/strict-output refusal and existing support gates. Next examine the unqualified ACDBASSOC2DCONSTRAINTGROUP body and required owner/action dependencies against independent producer evidence; do not use missing 0x2B5 as a claimed dangling edge without source-reference attribution. The two zero BS values before owned-parameter and value counts are named reserved candidates; their semantics are not established."
+}

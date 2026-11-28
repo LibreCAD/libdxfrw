@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-underlay-caller-state-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_UNDERLAY_CALLER_GRAPH_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Strengthen the UNDERLAY OBJECTS allocation sweep with caller-graph preservation and clean-byte retry assertions across admitted target revisions, including the AC1021 DWF-only profile.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory dx_data graph generated during each test run",
+    "profile": "Three rooted underlay definition dictionaries and typed PDF, DGN, and DWF definitions and instances at AC1024/AC1027/AC1032; one rooted DWF definition and instance at AC1021, matching the writer's admitted-kind gate. Profiles use distinct handles, filenames, sheet names, positions, scale, extrusion vector, and clip bounds.",
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/underlay_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-underlay-caller-state-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Validate the full generated root/dictionary/definition/instance graph before and after clean calibration, every injected allocation failure, and same-adapter retry. Require destination-sentinel preservation on failure; compare retry bytes with clean bytes; fresh-import typed readback checks every underlay-to-definition edge and kind."
+  },
+  "allocationOffsets": {
+    "AC1021": {"ASCII": 23, "Binary": 21},
+    "AC1024": {"ASCII": 66, "Binary": 59},
+    "AC1027": {"ASCII": 66, "Binary": 59},
+    "AC1032": {"ASCII": 66, "Binary": 59},
+    "total": 419
+  },
+  "versionBoundaryProbe": {
+    "AC1021": "DWF-only generated profile admitted and exercised; PDF and DGN are refused by the existing writer version gate.",
+    "qualificationEffect": "Transaction evidence covers only the locally generated admitted-kind profiles; no claim about producer prevalence or native support."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_underlay_objects_allocation_tests -j2: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_underlay_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 4.11 seconds",
+    "directControl": "build/tests/libdxfrw_underlay_objects_allocation_tests /tmp/libdxfrw-underlay-ac1021-matrix: PASS; AC1021 DWF-only 23 ASCII/21 Binary offsets; AC1024/AC1027/AC1032 66 ASCII/59 Binary offsets each",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated AC1021 DWF-only and AC1024/AC1027/AC1032 three-kind writer transaction and typed readback evidence only; producer-specific behavior and native presentation remain unqualified.",
+    "Only the locally-authored admitted-kind profiles are checked; broader underlay source schemas and consumer behavior remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The generated DWF-only AC1021 graph and three-kind AC1024/AC1027/AC1032 graph remain unchanged across every injected allocation failure; destination rollback, same-adapter retry, clean-byte identity, and typed readback pass in ASCII and Binary. PDF and DGN remain version-refused at AC1021.",
+    "remainingP6G": "Continue the public-writer inventory and caller-state audit; retain source-profile, dependency, and native semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "245 completed slices and 35 remaining packages: 245/(245+35)=87.5%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-mleaderstyle-caller-state-allocation-rollback-retry-2026-11-13.json"
+}

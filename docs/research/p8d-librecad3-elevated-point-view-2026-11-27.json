@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-27",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/463",
+  "candidate_commit": "ea25d31fc3dcab39c9a5a57948c4bb38f77b421e",
+  "changes": "XY canvas selection and snapping include elevated POINTs without changing core 3D point distance. Dragging keeps the original elevation across repeated mouse moves and undo/redo. Frozen point layers are excluded.",
+  "validation": {
+    "platform": "macOS ARM64 headless",
+    "tests": "SelectionTest.* and Point3D.*: 14/14 passed, including snap enablement, competition with a flat point, frozen layer, repeated drag and undo/redo.",
+    "plan": "Full, worktree and actual-base plan checks passed; 31 plan-checker unit tests passed."
+  },
+  "integration": "An isolated merge trial with PR #461 head 1395a2f5 and PR #463 head ea25d31f resolved conflicts in the plan, CMake tests and snap manager. The resulting candidate passes 15/15 headless POINT/selection tests, including a new off-layer elevated point. Moving the hidden-layer filter before elevated-candidate insertion makes that test fail; restoring the correct order returns 15/15 passing. The branches are not merged. The saved patch applies to #463 head after the layer isHidden API from #461 is present; actual merge conflict resolution and final-head revalidation are still required.",
+  "limitations": "No native GUI, hosted cross-platform or final standalone-codec qualification; no gate promoted.",
+  "merge_recipe": "tools/research/librecad3-point-layer-merge-2026-11-27.patch"
+}

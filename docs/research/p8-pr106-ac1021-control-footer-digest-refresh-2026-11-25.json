@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-ac1021-control-footer-digest-refresh-2026-11-25",
+  "date": "2026-11-25",
+  "scope": "Refresh the PR #106 frozen implementation digest after the bounded AC1021 control-footer reader slice.",
+  "supportClaimEffect": "none",
+  "candidate": {
+    "pullRequest": "LibreCAD/libdxfrw#106",
+    "implementationHead": "5592668eb38a0fc837a21e343cc65b81f83b1b53",
+    "previousImplementationDigestSha256": "d358fa5aa32840c884ae4d6957bfd7769f02d83d50f8fead39c0b824136003fe",
+    "implementationDigestSha256": "2bd28d3cbaa03e654dcb2df624a2b2a1b257c391b228b0f2f7cc3d164dafd0be",
+    "inputCount": 775,
+    "claimsDigestSha256": "7f72bd5c6033fb312c89d56fcc5b476063273a2b24faa863e58114a703956ab8"
+  },
+  "reason": "The AC1021 control-footer reader change, focused regression code, and LibreCAD-sourced DWG fixture changed selected implementation inputs.",
+  "statusOverlay": {
+    "path": "metadata/qualified-format-status-v1.json",
+    "implementationDigestUpdated": true,
+    "claimStatusesChanged": false,
+    "allClaimsRemainExperimental": true,
+    "advertisedRoutes": 0
+  },
+  "localValidation": {
+    "digestCommand": "python3 tools/check_qualification_digest.py",
+    "digestResult": "PASS: 2bd28d3cbaa03e654dcb2df624a2b2a1b257c391b228b0f2f7cc3d164dafd0be over 775 inputs",
+    "supportCommand": "python3 tools/check_qualified_format_support.py",
+    "supportResult": "PASS: 15 claims, 2 candidate routes, 0 advertised",
+    "focusedCtests": {
+      "commands": [
+        "ctest --test-dir build -R '^libdxfrw_ac1021_historical_enc_role_profile$' --output-on-failure",
+        "ctest --test-dir build -R '^libdxfrw_dwg_ltype_ac1021_count$' --output-on-failure"
+      ],
+      "result": "PASS: 2/2 focused regressions"
+    }
+  },
+  "limits": [
+    "The source fixture advances through TABLES but still fails at BAD_READ_OBJECTS with four object parse failures.",
+    "The LTYPE BYLAYER role mismatch remains an integrity error and strict output stays blocked.",
+    "No broad support claim, native semantic claim, package claim, or platform claim is promoted."
+  ],
+  "nextStep": "Run exact-head fast and focused native qualification against this digest after refreshing the status overlay; close P8-F only if all required checks pass."
+}

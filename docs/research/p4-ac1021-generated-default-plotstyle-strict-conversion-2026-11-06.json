@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Generated AC1021 default plot-style graph strict conversion",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Close the locally authored AC1021 GROUP source's strict-output refusal at its generated DICTIONARYWDFLT and PLACEHOLDER callbacks by aligning their common reactors with the observed AC1015/AC1018/AC1021/AC1024 profile and binding the writer's exact AC1021 class-manifest row. This is a generated profile control, not independent producer qualification.",
+  "source": {
+    "recipe": "tests/dwg_ac1021_polyline_group_targets_tests.cpp writes vertex2d.dwg locally from scratch with opt-in default material and plot-style graphs; no drawing fixture is committed",
+    "pathDuringValidation": "/private/tmp/ac1021-reactor-fix-source/vertex2d.dwg",
+    "sha256": "a00474bb158487ff7c8f5c3dbc4cc26f5bf54ed5d54caa7df70f3b7eb5b98bd7",
+    "profile": "AC1021; 36 observed frames; NOD handle 0xC roots ACAD_PLOTSTYLENAME to DICTIONARYWDFLT handle 0x901; its Normal entry and hard-pointer default both target PLACEHOLDER 0x902; dictionary and placeholder owner/reactor roles are reciprocal; dictionary class row is writer class number 513 with one instance.",
+    "provenanceLimit": "Locally authored from scratch; does not qualify another producer or promote a DWG/DXF support claim."
+  },
+  "authority": {
+    "odaSpecification": "Open Design Specification for .dwg files v5.4.1, sections 20.1 and 20.4.45",
+    "relevantLayout": "The common object handle prefix stores a counted reactor list as soft pointers; DICTIONARYWDFLT appends its default-entry hard pointer.",
+    "profileEvidence": "The existing AC1021 physical selected-output receipt checks the same reciprocal dictionary/NOD and placeholder/dictionary reactor roles. Existing selected physical routes for AC1015, AC1018, AC1021 and AC1024 require those reciprocal roles; AC1027 requires none. No AC1032 producer profile is inferred."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgwriter15.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg_default_plotstyle_optin_tests.cpp",
+      "tests/CMakeLists.txt",
+      "tests/run_ac1021_group_reactor_closure_test.cmake"
+    ],
+    "behavior": "The generated plot-style dictionary and placeholder now encode one reciprocal reactor each for AC1015 through AC1024; AC1027 and AC1032 remain reactor-free. Strict source binding admits the AC1021 writer's class number 513 only when the complete unchanged class evidence contains the exact ACAD/ACDBDICTIONARYWDFLT/AcDbDictionaryWithDefault row, proxy/entity/version fields, and one published instance. Existing physical class-number-500 routes remain intact. The generated GROUP CTest now performs strict AC1021 DWG-to-DXF conversion and checks that the ACAD_PLOTSTYLENAME and Normal graph labels survive output."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 passed.",
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_ac1021_polyline_group_targets_tests libdxfrw_dwg_default_plotstyle_optin_tests -j4 passed.",
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_generated_ac1021_group_parent_reactor_closure|libdxfrw_dwg_default_plotstyle_optin)$' --output-on-failure",
+      "result": "2/2 passed in 2.18 seconds. Covers six writer versions, graph callback readback and existing refusal/retry controls; the generated AC1021 GROUP recipe also passes adapter closure/refusal/retry and strict DWG-to-DXF conversion."
+    },
+    "physicalCompatibility": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "passed for the existing physical AC1021 source profile in ASCII and Binary, including graph readback, atomic refusal and same-adapter retry."
+    },
+    "strictConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/ac1021-reactor-fix-source/vertex2d.dwg -y -d -v2007 /private/tmp/ac1021-reactor-fix-source/strict-reactor-fix-2.dxf",
+      "result": "Success; strict finalization no longer refuses the two generated dictionary-default callbacks.",
+      "outputSha256": "955d1b417e35e19777e60b8be919512e5c4daf156f3bc2dce91f4a191f137d06"
+    },
+    "toolSha256": {
+      "dwg2dxf": "22c8b6b71a37033ea523a087ad7bc4db4ed01f470a75b148f89edd55a2b371ec",
+      "groupSourceAuthor": "c91c78f3f09b8ca33f7746f25984db789508806168e147aca4fbf2c9df9b4e1b",
+      "defaultPlotstyleTest": "d4447d4e8f94f165d202dcb0e2c38cce79b091415a09ba4a0d16e969ead5427b",
+      "adapterTest": "559c7114dca15f8f34a7996d8c24130c2fdfebef32997fc76b153992d96378eb"
+    },
+    "diffCheck": "git diff --check passed.",
+    "fullSuites": "NOT RUN; targeted generated and physical controls were used."
+  },
+  "limitations": [
+    "The generated AC1021 strict conversion is one locally authored writer profile and does not establish independent producer acceptance.",
+    "The separate physical AC1021 route remains selected-graph evidence and does not qualify whole-source output.",
+    "AC1027 suffix qualification, native consumer behavior, other producer/version profiles and the remaining parity-plan gates remain open."
+  ],
+  "nextAction": "Continue P4 on the next independently source-ready opaque graph in the existing candidate queue. Keep strict refusal for unresolved candidates and do not treat this generated control or selected physical output as whole-source or producer-wide support."
+}

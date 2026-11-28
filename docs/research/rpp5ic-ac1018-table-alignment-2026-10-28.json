@@ -1,0 +1,142 @@
+{
+  "schema": "ac1018-table-cell-alignment-override-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "codeCommit": "e0af9f4badf7025a46ac484f6270fc04e18b1785",
+  "supportClaimsPromoted": false,
+  "scope": "Selected AC1018 text-cell alignment override mask 0x01 and combination 0x21 with text height; accept alignment 1\u20139, require a finite positive height when 0x20 is set, and refuse inconsistent companions or other masks. This scope is an inference from documented bit layouts and original fields, not an exact independently produced legacy profile.",
+  "source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "repositoryPath": "samples/sample_AC1018_ascii.dxf",
+    "lastFileCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "format": "AC1018 ASCII DXF; ANSI_1252",
+    "record": "ACAD_TABLE 528, zero-based cell 12",
+    "cellByteRange": [
+      195462,
+      195716
+    ],
+    "selectedGroups": [
+      {
+        "code": 177,
+        "value": 26223,
+        "byteRange": [
+          195528,
+          195539
+        ]
+      },
+      {
+        "code": 170,
+        "value": 5,
+        "byteRange": [
+          195620,
+          195631
+        ]
+      },
+      {
+        "code": 140,
+        "value": 4.0,
+        "byteRange": [
+          195664,
+          195672
+        ]
+      }
+    ],
+    "note": "Original flag mask is 0x666f and carries additional background, color and border overrides. Its groups 175 and 176 are 3 and 2; this is not a complete source-cell round trip or a producer witness of exact 0x01 or 0x21. Existing external repository sample used read-only; native producer not independently established."
+  },
+  "authorities": {
+    "autodeskDxfTable": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+    "autodeskCellAlignment": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_CellAlignment.html",
+    "autodeskTableAlignment": "https://help.autodesk.com/cloudhelp/2020/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table_Alignment_int_int.html",
+    "interpretation": "Autodesk names 170 as cell alignment, 140 as text height, 177 as the pre-2007 override flag, and lists the nine table alignment enum values. It does not individually certify the exact AC1018 mask profiles or native rendering.",
+    "libredwg": {
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "path": "src/dwg2.spec",
+      "sha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "interpretation": "The pre-2007 DXF field uses group 177; conditional independent bit tests associate 0x01 with alignment group 170 and 0x20 with text-height group 140."
+    },
+    "acadsharp": {
+      "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "path": "src/ACadSharp/Entities/TableEntity.Cell.OverrideFlags.cs",
+      "sha256": "810d91c7963a7fb3506bc00542025ecbd0178868cbab8cba0e862a5f6daa7795",
+      "interpretation": "DWG flag enum independently names 0x01 CellAlignment and 0x20 TextHeight; its DXF reader ignores group 170 and cannot establish typed legacy semantics."
+    }
+  },
+  "codeBindings": {
+    "writerSource": {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "45515eb3b6e28e9cd342443975e84f2b43a5d8f2310bd0d50df572cc988d76cc"
+    },
+    "focusedControls": {
+      "path": "tests/table_legacy_height_controls.h",
+      "sha256": "37454cc6166e9712035239351de39f13af402cb3910835593053b1ed8ac7bada"
+    },
+    "testExecutable": {
+      "path": "build/tests/libdxfrw_table_content_dxf_tests",
+      "sha256": "c6fce629fe71c45e210362dc0bc40dba4612e5e6036477e54f1650dc31583cc6"
+    }
+  },
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_table_(legacy_override_177|legacy_text_height|content_dxf_projection|content_source_proof)$' --output-on-failure",
+    "result": "4/4 passed as reported; no retained CTest log hash asserted",
+    "focusedAlignmentCounts": {
+      "authoredSourceProfiles": 36,
+      "successfulOutputEncodingAndStrictnessProfiles": 144,
+      "atomicRefusals": 128,
+      "correctedSameWriterRetries": 128
+    },
+    "dimensions": [
+      "ASCII and binary input and output",
+      "both masks and alignment values 1\u20139",
+      "strict and compatible exports",
+      "wire field order and typed readback",
+      "zero, negative and out-of-range alignment; missing/inconsistent height; extra masks, background and border",
+      "destination and selected caller identities and fields preserved on refusal, corrected retry"
+    ]
+  },
+  "independentPhysicalComparison": {
+    "reportPath": "build/table-alignment-peer/independent.json",
+    "reportSha256": "50bd59a7b803f5fa89c7ab7a7c0dfdbbcea9b5314e0b39d00770bed281c97635",
+    "observerSha256": "2e0171b001e88270fd8d50b1b2cf28e5bb0fb4a71f1db77edb0a72bbe92f58ab",
+    "tool": "ezdxf 1.4.5 ordinary read; loaded module hashes in report",
+    "producerProbeSourceSha256": "9aed095b0dbb0b716e035bb34b0fda31651cf40006b959b7a878eefc0b033970",
+    "producerProbeExecutableSha256": "b5f13c72b2b7a896cd8d0a2fa9bc20c9a8c307a3459651f5900d72f93a50ebc6",
+    "librarySha256AtLink": "0ec43338d40e7b63f6997793e4e65cf95d1d1ada0bdc4ec8b2e28c39ae1e3b7a",
+    "adapterObjectSha256AtLink": "21b41b3367dcf770ad85fadc9f7c332ab34fa8b7a61fb83c85e44c8fe74a5df7",
+    "outputSha256": {
+      "01-ascii": "0c5e9e684af9508dcffa6d5c081244f45783b3ebe40e989dce770cc4030d321c",
+      "01-binary": "ad10cb4134f42976162b2d0e43010b8b7cbcf090fb116ac161b213cd5e1697d3",
+      "21-ascii": "674df7f8f8db8c20351430c4f73d853a6640cb7458299a7c14aa992d43174c20",
+      "21-binary": "e03c72770ea9d37da00fd426bca8d0486f31f61037598f4434f226ca92b377a4"
+    },
+    "result": "Original selected cell and each authored actual output share group 170 value 5; 0x21 outputs also have group 140 value 4, ordered after text and alignment as in source. ezdxf retains raw AcadTableBlockContent and does not independently interpret alignment or mask semantics."
+  },
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^libdxfrw_table_(legacy_override_177|legacy_text_height|content_dxf_projection|content_source_proof)$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "4/4 passed; reported output; ASan does not qualify native semantics",
+    "testExecutable": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_table_content_dxf_tests",
+      "sha256": "fe5760e7f06cfdb3e930363924a662a5b73628a0b89dc40053dc4598fca149be"
+    },
+    "library": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw.a",
+      "sha256": "36f234851004983a1aaee44c2beb6c6487c60a4e172f81ee1321779aee5f26e7"
+    },
+    "adapterObject": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "dba9e0d48dee32dd01cc3b26c7d0c13e6cabedd0007996eaca71b4358397998f"
+    },
+    "adapterSource": {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "516edde16980a810861e9a2984869b16602c5283f456a2c0198005a806fe8bff",
+      "note": "Frozen during ASan build as concurrent uncommitted MLINE work; later committed as e400223a before the TABLE code commit."
+    }
+  },
+  "limitations": [
+    "Neither exact 0x01 nor exact 0x21 was observed in an independent legacy producer sample; field combinations are layout inferences.",
+    "No native rendering, independent typed TABLE alignment readback, full original TABLE or document conversion is claimed.",
+    "Additional masks and cell override fields remain conservatively refused.",
+    "No external drawing fixture is committed; sample and produced output remain in their existing repository or ignored scratch."
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "evidenceId": "p6-mesh-dwg-crease-count-reader-guard-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P6",
+  "status": "GENERATED_AC1024_MESH_DWG_CREASE_COUNT_GUARD_RUNTIME_COVERED",
+  "qualificationEligible": false,
+  "supportClaimsPromoted": false,
+  "scope": "Exercise the existing DWG MESH level-0 edge/crease count guard with a generated AC1024 entity frame, including valid readback, malformed-count refusal, typed-state clearing, and same-object retry.",
+  "implementation": {
+    "productionParserChanged": false,
+    "parserGuard": "DRW_Mesh::parseDwg rejects a bounded decoded crease count greater than the already parsed level-0 edge count before reserving or reading crease values.",
+    "generatedFrame": "The common AC1024 entity prefix is emitted through the existing encoder. The locally-authored SubDMesh body contains two vertices, no faces, one edge, and either one valid crease value or two values for the single edge. An empty R2007+ string-stream footer and the common handle stream complete the frame.",
+    "testSelector": "--mesh-dwg-crease-count-guard",
+    "coverage": [
+      "One-edge/one-crease frame parses and reads back the edge and exact 0.25 crease value.",
+      "One-edge/two-crease frame is rejected and invalidates the input buffer.",
+      "Refusal clears seeded and partially decoded entity state.",
+      "The corrected valid frame succeeds when parsed by the same entity instance after refusal."
+    ],
+    "fixturePolicy": "Frames are generated in memory. No DWG/DXF fixture or dependency was added."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests --parallel 2",
+    "buildResult": "PASS",
+    "focusedCommand": "ctest --test-dir build-gcc -R '^libdxfrw_mesh_dwg_crease_count_guard$' --output-on-failure",
+    "focusedResult": "PASS 1/1 (0.26 seconds total)",
+    "diffCheck": "PASS for the focused CMake, test, plan, and receipt changes.",
+    "inputFixturesAdded": 0
+  },
+  "binding": {
+    "baselineHead": "5e4fad180fe9c32b39429cd1a28639a716adc82b",
+    "toolchain": {
+      "platform": "Darwin 27.0.0 arm64",
+      "cmake": "4.4.4",
+      "compilerPath": "/usr/bin/g++",
+      "compilerVersion": "Apple clang 21.0.0 (clang-2100.3.34.2)"
+    },
+    "sourceSha256": {
+      "CMakeLists.txt": "52b9958a76f98392b8674c936409d2f888f9ffe376e43b9a7f21d5bb25a204dd",
+      "src/drw_entities.cpp": "d0c7041e166d4814d8a87d23c1af3ce6fc8e37ea9653da8dfddce10b05b1c8f1",
+      "tests/dwg_object_vectors_tests.cpp": "72524f37ccbc704fbd397e4619ee77fbf07721d0311a48c48957b9c6baac0cc4"
+    },
+    "executableSha256": {
+      "build-gcc/libdxfrw_dwg_object_vectors_tests": "b870c02f09d4c9067e9de8fc1142dbcb8d5b582e5bd28d33b29a39aa62167359"
+    },
+    "commitState": "Worktree changes are uncommitted."
+  },
+  "limitations": [
+    "The generated frame validates the local parser guard only; it is not physical producer evidence.",
+    "This does not qualify crease positional meaning, native crease effect, subdivision evaluation, MESH geometry, or 3D consumer support.",
+    "The broader P6 and P4-P9 exit gates remain open."
+  ],
+  "currentTurnValidation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests --parallel 4",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mesh_crease_value_domains|libdxfrw_mesh_dwg_crease_count_guard|libdxfrw_mesh_dxf_allocation_failure)$' --output-on-failure",
+    "passed": 3,
+    "failed": 0,
+    "elapsedSeconds": 0.41
+  },
+  "stagedInputHashes": {
+    "src/drw_entities.cpp": "90444975aea47189d45bc0ca752c834a49a9d4cdfa9444e16960df687bc581b2",
+    "tests/dwg_object_vectors_tests.cpp": "437da8f7bc00df9f817aae47172731cbd4864b11402a2885a98bf7dc0645b3b1",
+    "tests/hardening_tests.cpp": "82516e1a3059d1d47836c5682a7c8fde9e660f8e5864af0a4549de3e1612ae2b",
+    "tests/dwg_local_roundtrip_tests.cpp": "8e051681e201c34b11a180584fc1dc8b66f6fba152d2433ab1a367001c020a9d",
+    "CMakeLists.txt": "d1c8714988f9cd41e787983cd28586c1495f1aa07ecfe883a4e34151a539fb33",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ca6184dc175f0fa7feb8e069f75b53dc8ee78a271fb0117ef5ee259d37e49ce7"
+  },
+  "repositoryState": {
+    "baseHead": "a49c90a3",
+    "stagedScope": "bounded MESH DWG parse/output profile; DXF loss guards; generated vectors",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-32-36-platforms-2026-11-28",
+  "supportClaimEffect": "none",
+  "observations": [
+    "The 32-patch candidate at a9ae243e3 passed 29 selected headless FreeCAD tests with no skips on Linux x86_64 and Windows x64. The source archive, source commit and per-patch hashes match across platform receipts.",
+    "The later 36-patch candidate at 2d6cd279c passed 35 selected headless tests with no skips on Linux x86_64; its Windows job remained in progress at capture.",
+    "The current 42-patch candidate is separately queued for Linux and Windows; neither earlier result qualifies later importer changes."
+  ],
+  "runs": {
+    "candidate32": "https://github.com/dxli/libdxfrw/actions/runs/46156990883",
+    "candidate36": "https://github.com/dxli/libdxfrw/actions/runs/46157961230",
+    "candidate42": "https://github.com/dxli/libdxfrw/actions/runs/46159919285"
+  },
+  "receipts": [
+    {
+      "sha256": "2c2cfad00357a16d2f3a5a29dbe92399ba19f5774589b90d09dbe17da13e6e68",
+      "platform": "linux",
+      "testsRun": 29,
+      "patchCount": 32,
+      "sourceCommit": "477a7041803823a1fcae528133cb07ee5533b1b2"
+    },
+    {
+      "sha256": "42795d6551dbc45bf636b1e08bd391c3071a260666d9c85dffef9b8970723406",
+      "platform": "win32",
+      "testsRun": 29,
+      "patchCount": 32,
+      "sourceCommit": "477a7041803823a1fcae528133cb07ee5533b1b2"
+    },
+    {
+      "sha256": "29d10831314cf16b28101b1d1d28c44c803b36027de950d1f8f67373856ad146",
+      "platform": "linux",
+      "testsRun": 35,
+      "patchCount": 36,
+      "sourceCommit": "477a7041803823a1fcae528133cb07ee5533b1b2"
+    }
+  ],
+  "limits": [
+    "These are generated-input, headless importer controls only; they do not establish GUI, native Draft rendering, whole-file semantics or general DWG/DXF compatibility.",
+    "Full platform results for the later 36-patch and current 42-patch candidates were not available at capture."
+  ]
+}

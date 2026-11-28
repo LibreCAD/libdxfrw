@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p4-ac1024-public-sample-screen-2026-11-11",
+  "purpose": "Find online AC1024 DWG samples that could supply independent physical evidence for the unresolved R2010 version-2 associative constraint-group layout.",
+  "search": {
+    "queries": [
+      "AC1024 DWG sample dimension constraints ACDBASSOCCONSTRAINTGROUP download AutoCAD 2010",
+      "AC1024 DWG sample repository 3D solid AutoCAD 2010 GitHub",
+      "AutoCAD LT 2010 sample DWG parametric constraints"
+    ],
+    "result": "A public GitHub corpus supplied two newly hashed AC1024 point controls. The tested 3D-point file reads all 180 source frames with zero entity/object parse failures, but its class table has no ACDBASSOCCONSTRAINTGROUP row. It does not unblock the version-2 constraint-group profile."
+  },
+  "candidates": [
+    {
+      "url": "https://github.com/nextgis/dwg_samples",
+      "sourceClaim": "Repository README says samples were produced with trial AutoCAD 2016 M.49.0.0 and lists 2010 DWG/DXF pairs, including point3d_2010.dwg.",
+      "qualification": "The repository README identifies AutoCAD 2016 M.49.0.0 as the producer. Files were fetched from the public master branch for temporary screening only. point3d_2010.dwg is 51,834 bytes, SHA-256 9819e04c3ae5e75fb4aa0c6265e77421faa833acec0ebbb60feb34f019259b19, and begins AC1024. The current reader completes all 180 frames with zero entity/object parse failures; strict export stops on a 4-byte AcDb:Header envelope discrepancy and the unqualified VISUALSTYLE carrier. Its class trace contains ten custom classes and no ACDBASSOCCONSTRAINTGROUP. point2d_2010.dwg is 51,482 bytes, SHA-256 31415ccca677798b89815904174edbd70ff5e8f778ffee07c11e6f28ba5363c1, and begins AC1024; it also completes 180/180 frames with zero entity/object parse failures before strict export refusal. These point-only controls are not the target associative-constraint witness. Neither DWG nor DXF was added to the repository."
+    },
+    {
+      "url": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/01em4r6LLJgnQQVBlk5GqD.html",
+      "sourceClaim": "Autodesk's AutoCAD LT sample listing includes air_suspension.dwg and states that its sample collection applies to AutoCAD LT 2010 and later.",
+      "qualification": "The accessible listing does not identify a per-file DWG version, producer build, or constraint-group inventory. A QCAD forum attachment with the same filename and listed 175 KB size was screened: 179,680 bytes, header AC1021, SHA-256 e64ebde192fb29409a538c3ff5e91abad97665d201033e91774f6ddb988022b0. The attachment is not verified as byte-identical to Autodesk's file and is not an AC1024 witness. Keep it excluded."
+    },
+    {
+      "url": "https://gtu.ge/arch/Multimedia/Acad_11/21-10-parametric_drawing/Parametric_Drawing.htm",
+      "sourceClaim": "A mirrored AutoCAD 2010 training tutorial identifies PD_Deck1.dwg through PD_Deck4.dwg and PD_Areas.dwg as constrained drawings, and says their archive was parametric_drawing.zip from Autodesk's AutoCAD tutorials page.",
+      "qualification": "The tutorial is a promising semantic candidate, but the drawing archive was not recovered in this search. The tutorial mirror does not establish exact binary identity, saved DWG version, or producer provenance."
+    },
+    {
+      "url": "https://www.dropbox.com/s/n5hng961nj1dkzy/gasket1.dwg?dl=1",
+      "sourceClaim": "An AutoCAD parametric-constraints article links gasket1.dwg as a more complex constrained drawing by AutoCAD author Dieter Schlaepfer.",
+      "qualification": "The public link returned HTML instead of DWG bytes and its direct content host returned 403. No version, hash, or body evidence was obtained."
+    },
+    {
+      "url": "https://blog.jtbworld.com/2009/06/where-are-the-sample-dwg-files-for-autocad.html?m=0",
+      "sourceClaim": "The article links the historical AutoCAD 2010 sample set, including mechanical_example-imperial.dwg and four visualization files.",
+      "qualification": "Those sample sources are already represented in the local AC1024 corpus and prior receipts; this is not a new witness."
+    }
+  ],
+  "nextAction": "Recover the AutoCAD parametric_drawing.zip archive containing PD_Deck1.dwg or another source-native constraint sample, then record exact bytes/header and inventory ACDBASSOCCONSTRAINTGROUP class versions, bounded body spans, node classes, and graph targets. The NextGIS point controls and the AC1021 air_suspension attachment are screened and excluded. Do not promote the generated AC1024 version-2 parser profile without physical evidence.",
+  "fixturePolicy": "No downloaded or generated DWG/DXF fixture was added to the repository.",
+  "claimEffect": "Research inventory only. The generated AC1024 version-2 constraint-group parser profile remains unqualified by a physical producer witness; output and support claims remain unchanged."
+}

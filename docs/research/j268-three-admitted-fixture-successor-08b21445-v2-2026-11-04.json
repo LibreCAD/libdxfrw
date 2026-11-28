@@ -1,0 +1,89 @@
+{
+  "advisory": true,
+  "baselinePatch": {
+    "interpretation": "Strictly compiled scratch baseline includes two signedness changes and an indentation correction; it is not behavior-identical to the original baseline for all inputs.",
+    "path": "tools/j268_scratch_baseline.patch",
+    "sha256": "c7d9352f6e3369441a991636a6a6283ebd792d3d9efc9a2f35c4e27b20393f37"
+  },
+  "baselineSourceCommit": "92d7466ed9146badcd4fb44c82d1dd8302b3c7db",
+  "candidateSourceCommit": "08b21445c822aa6c1819b8a21bfd0d59703517e5",
+  "execution": {
+    "converterSha256": {
+      "baseline": "cd9bfe3ed74d2516c08f99f2580f0f89c56eded378ee0b4ec8b3507e5a89008a",
+      "current": "d6184d51b37d993dbc6e0afa33f60b4461f6fe70b89483f77074f450a89fd6ee"
+    },
+    "targetDxfVersion": "AC1024",
+    "timeoutSeconds": 4
+  },
+  "historicalByteMembership": "Original 28 pathname/status rows recovered; no hashes at sweep. Separate earlier/later inventories give bounded candidate correlations only; see docs/research/j268-original-execution-transcript-recovery-2026-11-04.json. Historical digest remains null and J268 DEFERRED_EXTERNAL.",
+  "historicalJ268MembershipRecovered": false,
+  "kind": "j268-three-admitted-fixture-successor-08b21445-v2",
+  "promotesSupportClaims": false,
+  "provenance": {
+    "candidateSource": "immutable git archive of candidateSourceCommit",
+    "cmake": "4.4.5",
+    "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+    "generator": "tools/j268_three_fixture_successor.py",
+    "generatorSha256": "50965c56ea8a63b38097ffc8fedc6985d46de2a6875eda45565c172e25b3c24a",
+    "host": "macOS ARM64",
+    "limitations": "Binary and source hashes are bound but system/tool dependency closure is not sealed; three selected cases and exit status do not prove semantic completeness, platform qualification or broad format parity."
+  },
+  "reproduce": "Follow build and execute commands in docs/research/j268-three-admitted-fixture-successor-v1-2026-11-04.json, replacing its candidate commit with candidateSourceCommit and keeping the exact scratch patch.",
+  "rows": [
+    {
+      "baseline": {
+        "exitStatus": 1,
+        "nonemptyOutput": false,
+        "status": "failed"
+      },
+      "current": {
+        "exitStatus": 1,
+        "nonemptyOutput": false,
+        "status": "failed"
+      },
+      "inputVersion": "AC1032",
+      "source": "tests/fixtures/dwg/large_radial.dwg",
+      "sourceSha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a"
+    },
+    {
+      "baseline": {
+        "exitStatus": 1,
+        "nonemptyOutput": false,
+        "status": "failed"
+      },
+      "current": {
+        "exitStatus": 1,
+        "nonemptyOutput": false,
+        "status": "failed"
+      },
+      "inputVersion": "AC1032",
+      "source": "tests/fixtures/dwg/mpolygon_solid.dwg",
+      "sourceSha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29"
+    },
+    {
+      "baseline": {
+        "exitStatus": 0,
+        "nonemptyOutput": true,
+        "outputSha256": "b768fcf5b2aca08ce6198973d7db394c647188303d50b90aa6f39fdba7e54216",
+        "outputSize": 38623,
+        "status": "converted"
+      },
+      "current": {
+        "exitStatus": 1,
+        "nonemptyOutput": false,
+        "status": "failed"
+      },
+      "inputVersion": "AC1032",
+      "source": "tests/fixtures/dwg/rtext_arctext.dwg",
+      "sourceSha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511"
+    }
+  ],
+  "schema": 1,
+  "scope": "Three selected already-admitted J284 fixtures; no assertion about membership in J268.",
+  "setDigestDefinition": "SHA-256 over LF-terminated sorted unique source hashes",
+  "setDigestSha256": "00032ac6c0ab764338b3c96a36f9252654ccdf5885ff470ff243516b6839b681",
+  "validation": {
+    "repeat": "Two generated runs were byte-identical.",
+    "rtextDiagnostic": "Candidate again rejects AC1032-to-AC1024 because typed DWG ModelDocViewStyle serialization requires the exact source version. The earlier receipt documents independently observed RTEXT, ARCALIGNEDTEXT and DETAILVIEWSTYLE omitted from the baseline output."
+  }
+}

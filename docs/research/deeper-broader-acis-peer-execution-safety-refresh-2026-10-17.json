@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader ACIS peer execution-safety and lineage refresh",
+  "mode": "primary-source web research and read-only local plan review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck the open-source SAT/SAB parser and consumer routes already considered for semantic qualification",
+    "Audit external-payload execution safety before any optional parser/kernel run",
+    "Refresh FreeCAD importer and DWG converter boundaries",
+    "Separate open-source OCCT core from commercial ACIS exchange components",
+    "Confirm candidate parser lineage and keep independent evidence claims bounded"
+  ],
+  "method": {
+    "kind": "Read current public primary project documentation/source and compare against existing plan owners",
+    "sources": [
+      "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py",
+      "https://github.com/jmplonka/InventorLoader/blob/master/importerSAT.py",
+      "https://github.com/jmplonka/InventorLoader/blob/master/README.md",
+      "https://github.com/jmplonka/InventorLoader/blob/master/LICENSE",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "https://github.com/FreeCAD/FreeCAD-addons/blob/master/AddonCatalog.json",
+      "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "https://github.com/Open-Cascade-SAS/OCCT",
+      "https://docs.rs/cadmpeg-codec-sat/latest/cadmpeg_codec_sat/",
+      "https://github.com/cadmpeg/cadmpeg/blob/main/docs/architecture.md",
+      "https://github.com/compscientific/cadcodec",
+      "https://github.com/HakanSeven12/opencadcodec",
+      "https://github.com/hakanaktt/acadrust"
+    ],
+    "repositoriesCloned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "productionCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "limitations": "Repository pages are mutable unless linked to immutable commits. This review confirms source-level route and risk observations only; it does not establish runtime reachability of every InventorLoader Law expression, validity of a particular SAT/SAB payload, native FreeCAD behavior, or an independent kernel result."
+  },
+  "findings": [
+    {
+      "topic": "InventorLoader ACIS Law evaluation is an execution-safety gate",
+      "observed": "Current Acis.py defines Law.evaluate() as eval(self.eq) after rewriting caret exponent syntax; the viewed call does not provide a restricted globals/locals mapping. importerSAT.py resolves ACIS bodies and constructs FreeCAD Part geometry. The source also contains separate text and binary reader entry points. This establishes a source-level risk in the candidate route, not a libdxfrw defect and not proof every input reaches evaluation.",
+      "doesNotEstablish": [
+        "that every imported SAT/SAB file can trigger Law.evaluate",
+        "that an ACIS expression in a specific valid producer file is malicious or executable",
+        "a safe parser or sandboxed runtime result",
+        "DWG AcDs section extraction or entity-to-SAB owner closure",
+        "a kernel lineage independent of FreeCAD/Open CASCADE"
+      ],
+      "planUse": "Before any optional payload run, pin the exact source revision, audit law-bearing reachability, and prove the chosen generated profile cannot reach eval or use a separately reviewed safe evaluator. Run only isolated, locally authored controls without network and with time/memory/output limits. Otherwise mark NOT_RUN_UNSAFE_ROUTE."
+    },
+    {
+      "topic": "FreeCAD's stock DXF importer and DWG wrapper are separate limited routes",
+      "observed": "Current FreeCAD documentation lists distinct C++ and legacy importer capability sets, says stock DXF import cannot read the embedded ACIS SAT blob, and describes DWG conversion through an external converter followed by DXF import.",
+      "planUse": "Keep platform, converter, importer backend, and entity-family results separate. Do not use a successful common-2D or 3DFACE import as ACIS/AcDs semantic evidence."
+    },
+    {
+      "topic": "OCCT ACIS exchange is not part of the open-source core",
+      "observed": "The official OCCT-Components preview lists ACIS SAT/SAB import-export as an extension and directs readers to purchase full components. The preview is not the exchange implementation.",
+      "planUse": "Do not classify stock OCCT or FreeCAD as an ACIS parser. A licensed component is an optional, separately authorized route, not an open-source peer or independent-kernel result."
+    },
+    {
+      "topic": "ACIS and DWG/DXF peer routes remain profile and lineage bounded",
+      "observed": "CADMPEG's documented SAT/SAB route is a bare-stream parser/transfer lane with selected profiles, not DWG or AcDs extraction. GitHub identifies compscientific/cadcodec as a fork of HakanSeven12/opencadcodec, itself a fork of ACadRust. InventorLoader's repository LICENSE contains GPL-2.0 text; the FreeCAD add-on catalog registration does not pin a source revision or release artifact, so license and source provenance remain pin-time checks.",
+      "planUse": "Reuse current S8/PAR-07 optional evidence intake. No repository name, feature table, generated blob, same-lineage readback, or shared FreeCAD/OCCT kernel promotes support."
+    }
+  ],
+  "planDelta": {
+    "filesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acis-peer-execution-safety-refresh-2026-10-17.json"
+    ],
+    "existingOwnersOnly": [
+      "S8 optional independent semantic/consumer qualification",
+      "PAR-07 peer-source admission and lineage",
+      "composed FreeCAD platform/converter/importer matrix"
+    ],
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "validationCadenceChanged": false,
+    "implementationOrderChanged": false,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue the local implementation queue without installing or running a new peer.",
+      "Use InventorLoader only after exact-source safety preflight; isolate any run from untrusted files and networking.",
+      "Bind raw payload bytes to the originating entity/AcDs owner before comparing parser or geometry outputs.",
+      "Keep FreeCAD C++/legacy importer, platform, converter, and ACIS family outcomes separate.",
+      "Do not treat OCCT commercial components as open-source peers or ACadRust forks as independent parsers."
+    ]
+  },
+  "validation": {
+    "researchJsonParse": "passed",
+    "planDiffCheck": "passed",
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "peerExecutablesRun": false,
+    "supportClaimsPromoted": 0
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "planChangesUncommitted": true,
+    "otherWorktreeChangesPreserved": true
+  }
+}

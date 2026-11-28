@@ -1,0 +1,66 @@
+{
+  "evidenceId": "p6-arcalignedtext-d2t-erange-policy-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P6",
+  "status": "BOUNDED_D2T_SUBNORMAL_AND_UNDERFLOW_POLICY",
+  "qualificationEligible": false,
+  "supportClaimsPromoted": false,
+  "scope": "Define the selected ARCALIGNEDTEXT D2T conversion behavior for binary64 subnormals and decimal values that underflow to zero, separately for typed DXF input and strict output of retained D2T strings.",
+  "policyBasis": {
+    "projectTypedInputBehavior": "The existing typed DXF numeric reader accepts the smallest nonzero binary64 subnormal and accepts 1e-9999 as finite zero; these expectations are asserted by testTypedInput in tests/numeric_locale_tests.cpp.",
+    "implementationDecision": "Preserve every finite nonzero binary64 D2T value. A retained D2T string that converts with ERANGE to zero is refused by strict output because it represents a nonzero decimal value that binary64 cannot carry. This is a bounded local loss policy, not a normative ARCALIGNEDTEXT rendering rule."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dxfnumber.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/numeric_locale_tests.cpp"
+    ],
+    "changes": [
+      "Added parseFinitePrefix: accepts finite nonzero subnormals even when strtod reports ERANGE, rejects overflow/non-finite values and rejects ERANGE results that are zero.",
+      "ARCALIGNEDTEXT approximation height parsing and strict DXF D2T output use the bounded range policy.",
+      "A generated group-42 subnormal control survives typed Binary-DXF parsing and applyArcApproximation with exact height.",
+      "A same-adapter ASCII output control refuses raw D2T 1e-9999, preserves a sentinel destination, then succeeds after correction to denorm_min; fresh ASCII readback returns the exact subnormal."
+    ],
+    "fixturePolicy": "All test inputs and outputs are generated in memory or under the temporary test directory. No DWG/DXF fixture is added.",
+    "lexicalBoundary": "Existing numeric-prefix compatibility is retained; this slice does not establish a full-token D2T lexical grammar.",
+    "sourceSha256": {
+      "src/intern/dxfnumber.h": "e26c95a2c658fae5e1cb7d5184abfa2e901a4162ab2cfdcbf4afe34f23003b80",
+      "src/drw_entities.cpp": "e2528866fd975d19c4dd81438202ca75a05a0918c334868f0616e09b7579c670",
+      "src/libdxfrw.cpp": "d339610e5a71c23c0dd4e30a739227537c5a9cbd6c31cd4e7b720bd68ae9473f",
+      "tests/numeric_locale_tests.cpp": "ad21205ebfae3e678967af53dec0d6053e402912f3a3dc65f3d5915381c31b1f"
+    }
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_numeric_locale_tests libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_numeric_locale$' --output-on-failure",
+        "passed": 1,
+        "failed": 0,
+        "runtimeSeconds": 0.55
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_numeric_process_locale$' --output-on-failure",
+        "passed": 1,
+        "failed": 0,
+        "runtimeSeconds": 0.08
+      }
+    ]
+  },
+  "sha256": {
+    "src/intern/dxfnumber.h": "fb888067d2901204ac7133864d124077ce490fae4fd71945a42804bb714aa6ed",
+    "src/drw_entities.cpp": "d0c7041e166d4814d8a87d23c1af3ce6fc8e37ea9653da8dfddce10b05b1c8f1",
+    "src/libdxfrw.cpp": "e9289022f55ae281cff957baec3b46af408d4654aaf33eaeeff3b10050dc88e1",
+    "tests/numeric_locale_tests.cpp": "705adb4bf105cfc397459cd3df7aeec19c8578cdcaad40da3cabaa598fb4af53",
+    "build-gcc/libdxfrw.a": "fdfca1566cd7d22261d52e52e15b5722cfa1a5b6b594791a16ce92b4415a414a",
+    "build-gcc/tests/libdxfrw_numeric_locale_tests": "d7b13a5284fbfa5d47833534109f45df614852366085a701790dc407ba0b248d"
+  },
+  "claimBoundary": [
+    "This is a locally selected conversion and loss policy for ARCALIGNEDTEXT D2T fields only.",
+    "Other numeric/string callers, D2T trailing-text grammar, external producers, full DWG conversion, native rendering, and platform behavior remain outside this evidence.",
+    "No DWG/DXF, FreeCAD, LibreCAD, LibreCAD_3, or general ARCALIGNEDTEXT support claim is promoted."
+  ]
+}

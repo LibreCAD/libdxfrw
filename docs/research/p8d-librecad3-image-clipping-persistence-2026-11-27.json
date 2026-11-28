@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-image-clipping-persistence-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "0e6c7037a87b0374095b8a7b4a14c8bdf0a8ec51",
+  "problem": "The LibreCAD_3 IMAGE adapter rebuilt images without source display flags or clipping boundaries when saving.",
+  "implementation": "Retain selected source fields with the image and a per-import 4 MiB logical vertex budget. Report dropped clipping when the budget or source-size check prevents replay, and report non-default clip mode on a pre-R2010 export.",
+  "validation": [
+    "The polygonal source boundary and display flags failed selected model-space and block output assertions before the fix.",
+    "All 81 focused persistence tests pass. Locally authored R2000/R2010 polygonal IMAGE inputs cover model space after a move, named and anonymous blocks, reopen/resave, and clip-mode downgrade reporting.",
+    "Two 90000-vertex syntactic boundary records exceed the shared logical budget and report one dropped IMAGE clipping boundary. This checks resource behavior rather than geometric validity."
+  ],
+  "redLogSha256": "b82fffc274254344ce5541704cd94776c6a58781da4f77716f6c43d4e5d5303e",
+  "testLogSha256": "5c88e32a1d8b99fa6cda1bc746e0347919f834226edf77884bcc677d8f00cd89",
+  "limits": [
+    "The budget counts retained logical vertex bytes, not all transient parser memory or vector allocation capacity.",
+    "Replacing an IMAGE's entire MetaInfo can discard the source sidecar without an IMAGE-specific loss report; fix and test this path before claiming general edit preservation.",
+    "Rendering and picking still ignore clipping; source IMAGEDEF/reactor graph identity and other versions, independent semantic readback, native GUI and platform qualification remain open."
+  ]
+}

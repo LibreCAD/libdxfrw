@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "SectionViewStyle group-2 linetype handle overlay insertion",
+  "mode": "generated ASCII/Binary fast implementation slice",
+  "scope": [
+    "Preserve typed plane/bend line-type edits when group-2 code-340 raw occurrences are absent",
+    "Exercise the second handle with a null first-slot placeholder",
+    "Verify reference closure, raw ordering, and typed same-version readback"
+  ],
+  "implementation": {
+    "production": [
+      "The same-version overlay inserts missing plane/bend group-2 code-340 linetype references through the highest edited occurrence.",
+      "When only the bend reference is edited, the default/null plane handle is emitted as the first ordinal placeholder.",
+      "The null placeholder is allowed only for the unchanged default plane slot; DRW::NoHandle in an edited target slot remains refused."
+    ],
+    "tests": [
+      "Generated ASCII and Binary controls remove both source references, set the plane handle to its null default, retain the bend linetype target, and export/read back the graph.",
+      "The focused control compares the complete ordered raw style stream, typed handles, and existing resource-reference closure."
+    ],
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportPromotion": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks",
+      "result": "passed; ASCII and Binary"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure",
+      "result": "passed; 1/1"
+    },
+    "compatibilityTarget": "lc3_compat_check passed",
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "persistentGeneratedFiles": 0,
+    "commitCreated": false,
+    "gitMetadataWritable": false
+  },
+  "disposition": {
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This verifies generated same-version raw overlay and local handle closure only. It does not establish native-produced group order, cross-version serialization, rendering, or native CAD compatibility."
+}

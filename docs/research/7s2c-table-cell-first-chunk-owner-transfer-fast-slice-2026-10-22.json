@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c TABLE cell first-chunk ownership transfer",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Move the first decoded ACAD_TABLE cell-text chunk into the initial accumulated text instead of copying it.",
+    "route": "DRW_Table::parseCode cell text groups 1, 2, 302, and 303",
+    "behavior": "Text concatenation, typed variant contents, staged publication, retained-byte accounting, parse outcomes, and DXF output remain unchanged.",
+    "non_claims": [
+      "no public API or model-layout change",
+      "no DWG byte-layout or DXF wire change",
+      "no persistent drawing fixture",
+      "no support claim promotion",
+      "no native CAD or independent ACIS/ACDS qualification"
+    ]
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configure_result": "PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check --parallel 4",
+    "build_result": "PASS (-Werror)",
+    "focused_selector": "build-gcc/libdxfrw_hardening_tests --dxf-table-cell-text-owner-budget",
+    "focused_selector_result": "PASS",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_table_cell_text_owner_budget$' --output-on-failure",
+    "focused_ctest_result": "PASS (1/1)",
+    "diff_check": "PASS (scoped git diff --check)",
+    "full_suite_run": false,
+    "sanitizer_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue the exact-source 7S.2c audit only where a decoded value has one final owner and can safely move; then advance to the next evidence-backed local semantic gap without waiting on external qualification."
+}

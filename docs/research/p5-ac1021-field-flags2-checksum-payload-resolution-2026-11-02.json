@@ -1,0 +1,88 @@
+{
+  "receipt": "p5-ac1021-field-flags2-checksum-payload-resolution-2026-11-02",
+  "recordedAt": "2026-11-02",
+  "phase": "P5",
+  "qualificationEligible": false,
+  "supportClaimsPromoted": false,
+  "supersedes": [
+    "docs/research/p5-ac1021-field-flags2-child-reader-conflict-2026-11-01.json"
+  ],
+  "amends": {
+    "receipt": "docs/research/p5-ac1021-field-flags4-type2-root-census-2026-11-01.json",
+    "scope": "Only its flags=2/type=2 checksum-child suppression and 127/142 raw-only census statement; its independent AcObjProp suffix and target-role evidence remains applicable."
+  },
+  "question": "Do AC1021 FIELD CadValue children with flags=2/type=2 contain a BD payload, or does the value remain suppressed and leave an unexplained body suffix?",
+  "authorities": {
+    "odaSpecification": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.99 Value",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "interpretation": "Flag bit 1 (mask 0x01) marks kGeneral and suppresses the type-specific variant. Flag bit 2 alone (mask 0x02) does not suppress it. Data type 2 is BD."
+    },
+    "libreDwgSource": {
+      "repository": "LibreDWG/libredwg",
+      "revision": "master as inspected 2026-11-02; moving branch, no runtime differential claimed",
+      "sharedFieldMacro": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/dwg_spec_shared.h",
+      "fieldUse": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/dwg.spec",
+      "interpretation": "TABLE_value_fields gates the type-specific value on (format_flags & 1); the FIELD and child CadValue schemas use that macro. This agrees with ODA's mask-0x01 rule."
+    }
+  },
+  "sourceWitness": {
+    "path": "tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "provenance": "Pre-existing untracked local input; not added, staged, or committed."
+  },
+  "finding": {
+    "profile": "AC1021 FIELD child key ACFD_FIELDTEXT_CHECKSUM, flags=2, data type 2",
+    "physicalCensus": {
+      "sourceFieldFrames": 142,
+      "parsedFieldEntries": 86,
+      "rawOnlyIncompleteShells": 56,
+      "checksumChildren": 71,
+      "checksumChildrenWithFiniteDoublePayload": 71,
+      "checksumParentsComplete": 71,
+      "acExprRootsComplete": 15,
+      "peerSelectedAcObjPropHandlesStillRawOnly": 42
+    },
+    "decision": "Decode the flags=2/type=2 BD payload under the generic FIELD rule. The former unexplained 34-bit suffix was caused by suppressing a payload that ODA and current LibreDWG specify as present. Keep unrelated and unresolved FIELD records incomplete."
+  },
+  "implementation": {
+    "rule": "DRW_CadValue::hasDwgFieldPayload now checks only (m_formatFlags & 0x01) for AC1021+ FIELD payload suppression.",
+    "files": [
+      "src/drw_objects.h",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "regressions": "Generated vectors require flags=2/type=2 to decode and re-encode a finite BD value, keep an additional unexplained 34-bit tail incomplete, and verify same-object correction retry. The physical census checks all 71 checksum children and complete parent dispositions."
+  },
+  "validation": {
+    "physicalSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --field-ac1021-physical-profile-census tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+      "exitCode": 0,
+      "summary": "total=86 rawFieldFrames=142 rawOnlyShells=56 checksumFields=71 peerAcObjPropRawOnly=42 typed=15 AcExpr=15 AcObjProp=0; reader21Ac1021CrcMismatch=17; strict output remains refused"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_(cadvalue_payload_presence|field_cadvalue_general_format_flag|field_unqualified_format_flags|field_cadvalue_unknown_type|field_cadvalue_long|field_cadvalue_double|field_cadvalue_string|field_cadvalue_date_payload|field_cadvalue_points|field_cadvalue_object_id|field_child_cadvalue_types|field_unsupported_child_cadvalue_buffers|field_unknown_child_cadvalue_versions)$' --output-on-failure",
+      "passed": 13,
+      "failed": 0,
+      "elapsedSeconds": 0.28
+    }
+  },
+  "remainingLimits": [
+    "The 42 peer-selected AcObjProp.16.2 records remain raw-only; their 258-bit body suffixes (210 bits for handle 0x1481E), child type differential, handle roles, and target semantics are unresolved.",
+    "Other physical FIELD flags, child-count/framing failures, source-to-DXF output/readback, and native FIELD evaluation remain unqualified.",
+    "This receipt resolves one FIELD payload-presence profile only; it does not establish broader DWG/DXF support or promote a support claim."
+  ],
+  "stagedInputHashes": {
+    "src/drw_objects.h": "6217be88144e73b1cdbfa3a5e3ce1b89f8152602afe27dd4b0c9836ef7b1c53d",
+    "tests/dwg_object_vectors_tests.cpp": "eecdd2a5204ebf02003a1cc94bf82eb1efdaca397e9a87ff1f1d8f0c5b6f4c2c",
+    "tests/dwg2dxf_adapter_tests.cpp": "0a66c711215c0a13a75875a31c222304b927f592c520224de2f618770c9feb42",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "277dda7ea1942636bb9534609c5e198598ab90a4203b92d67f65c9c5e37a32c5"
+  },
+  "repositoryState": {
+    "baseHead": "48c35cf7",
+    "stagedScope": "FIELD payload flag rule, generated vectors, physical checksum-child census, receipt, and P5 plan note",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

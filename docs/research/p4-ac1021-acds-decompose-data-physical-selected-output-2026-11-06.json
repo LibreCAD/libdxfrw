@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 AcDsDecomposeData selected physical output/readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the exact screened AcDsDecomposeData NOD/dictionary/XRECORD graph for selected ASCII and Binary DXF output, semantic readback, mutation refusal, destination preservation, and same-adapter retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "profile": {
+    "nod": "0xC",
+    "rootKey": "AcDsDecomposeData",
+    "rootDictionary": "0x3C3FE",
+    "schemasDictionary": "0x3C3FF",
+    "recordsDictionary": "0x3C400",
+    "schemaXrecords": ["0x3C3F9", "0x3C3FA", "0x3C3FB", "0x3C3FC", "0x3C3FD"],
+    "handleReferences": "The first ordered XRECORD contains four group-341 references to the other four schema XRECORDs; the remaining four are scalar-only.",
+    "dependencies": "Selected projection includes the required line-type/table baselines and layer extension dictionaries. The NOD contains exactly the selected generic DICTIONARY root."
+  },
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "change": "A DWG projection with exactly one nonempty NOD key targeting one unique, complete, NOD-owned DICTIONARY now enters the existing rooted extension-object graph validation and emission path. The graph walker validates descendants before the NOD edge is admitted; unrelated multi-root source graphs do not take this new route.",
+    "testFile": "tests/dwg2dxf_adapter_tests.cpp",
+    "testSelector": "--ac1021-acds-decompose-data-physical-output-readback"
+  },
+  "result": "PASS. ASCII and Binary output both read back the NOD root key, both nested dictionary levels, all five ordered schema entries and XRECORD bodies, four remapped group-341 references, and owner/reactor roles. The generated {ACAD_REACTORS} DXF application group is checked as the only synthesized appData group and its decoded reactor handle is checked exactly. A late reactor mutation causes write refusal without replacing the destination sentinel; restoring the graph lets the same adapter retry successfully.",
+  "additionalFocusedChecks": [
+    {
+      "selector": "--ac1021-acds-decompose-data-source-profile",
+      "result": "PASS; exact source frame, key order, owner/reactor roles, ordered values and four handle targets inspected."
+    },
+    {
+      "selector": "--ac1021-recompose-data-physical-output-readback",
+      "result": "PASS in ASCII and Binary after the generic root admission change."
+    },
+    {
+      "selector": "--ase-index-dictionary-ac1021-output-readback",
+      "result": "PASS in ASCII and Binary after the generic root admission change."
+    }
+  ],
+  "build": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "result": "PASS",
+    "testSourceSha256": "7e5c61102061f68d507e52a8bc88287ef9de5ab9f7008c7dff214770561df7ee",
+    "adapterSourceSha256": "5b5b4697d0e28faea714552be009f58668cdeb07d070e5aabfb70b36dcf15828",
+    "executableSha256": "ab471446f0e46ea532b66b89a85156b6c93ccef12cd4cd50e4730fae78a1ae7c"
+  },
+  "inventory": {
+    "selector": "--opaque-dwg-source-inventory",
+    "result": "PASS; the same source still reports 186 observer frames, 74 opaque carriers, and 112 standard-object frames.",
+    "logPath": "/tmp/p4-ac1021-opaque-inventory-post-acds-output-2026-11-06.log",
+    "logSha256": "26568efae6219f75419ee2f31bcea322f9245e33631a8a3eb59debf38d4f8499",
+    "qualifiedStandardFramesAfterSlice": 98,
+    "remainingStandardFrames": 14
+  },
+  "limits": [
+    "This is a bounded selected graph from one unauthenticated local source, not whole-drawing output or producer-wide qualification.",
+    "The readback establishes DXF structural/value preservation only; it does not establish native ACDS semantics or independent DWG wire-role encoding.",
+    "No fixture or derivative is committed."
+  ]
+}

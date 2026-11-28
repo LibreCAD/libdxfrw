@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-point-wcs-fields-2026-11-12",
+  "purpose": "Verify generated POINT callback delivery for WCS location and separately modeled extrusion, thickness, and X-axis angle fields.",
+  "authority": {
+    "source": "Autodesk AutoCAD DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-9C6AD32D-769D-4213-85A4-CA9CCB5C5317.htm",
+    "relevantFields": "Group 10/20/30 is the POINT location in WCS; 210/220/230 is the extrusion vector; 39 is optional thickness; 50 is optional X-axis angle."
+  },
+  "source": {
+    "kind": "runtime-generated-from-scratch-DXF",
+    "version": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "trackedFixture": false
+  },
+  "profile": {
+    "layer": "probe_point_wcs",
+    "locationWcs": [8.0, -6.0, 14.0],
+    "extrusion": [0.0, 1.0, 0.0],
+    "thickness": 0.75,
+    "xAxisAngleRadians": 0.25
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "ctestResult": "PASS, 1/1, 0.45 seconds",
+    "extrusionModes": ["ext=false", "ext=true"],
+    "diffCheck": "PASS"
+  },
+  "scopeLimit": "Generated same-library DXF transport only. Does not qualify independent interoperability, DWG POINT parsing, or native point-symbol rendering.",
+  "claimEffect": "No format or consumer support claim changes."
+}

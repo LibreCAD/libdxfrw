@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-137 synthesized SAT caret-escape symmetry fast slice",
+  "mode": "Generated local implementation progress and evidence boundary",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "425e39d9bf24ba79d3765aaef0cfdedb856e342e7ca333874578bb6eb7621c6f",
+  "scope": [
+    "Use one preflighted SAT text escape and bounded-chunk path for explicit and synthesized/no-chunk modeler payloads.",
+    "Cover generated ASCII and Binary public writer/import/re-export behavior, caret chunk boundaries, source immutability, and following-record framing.",
+    "Keep raw SURFACE behavior distinct and record the parser's terminal-LF carrier framing separately from exact payload reconstruction.",
+    "Update PAR-137 readiness without adding fixtures, dependencies, CTest registration, external claims, or routine full-suite work."
+  ],
+  "localAudit": {
+    "productionFile": "src/libdxfrw.cpp",
+    "testFiles": [
+      "tests/modeler_dxf_writer_matrix_tests.cpp",
+      "tests/hardening_tests.cpp"
+    ],
+    "behavior": "writeDxfSatTextPayloadChunks preflights the complete payload and routes both explicit-chunk and empty-chunk payloads through writeDxfSatTextValue. Caret-space atoms are not split across 255-character groups. NUL, non-ASCII, and ASCII CR/LF are rejected; Binary CR/LF remains representable.",
+    "carrierFraming": "DRW_ModelerGeometry::parseCode appends one terminal LF to m_rawBytes after the final group-1/3 value. Tests assert this carrier framing while concatenating the ordered m_dxfPayloadChunks ranges to require exact source payload bytes.",
+    "rawSurfaceNegativeControl": "ASCII and Binary raw SURFACE caret spelling remains on the existing untransformed carrier path."
+  },
+  "validation": {
+    "strictBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 4",
+    "publicRoundTripSelector": "PASS: build-gcc/libdxfrw_dwg_local_roundtrip --modeler-dxf-matrix",
+    "hardeningSelector": "PASS: build-gcc/libdxfrw_hardening_tests --dxf-modeler-text-chunk-borrow",
+    "scopedDiffCheck": "PASS: git diff --check on DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, src/libdxfrw.cpp, tests/modeler_dxf_writer_matrix_tests.cpp, and tests/hardening_tests.cpp",
+    "owningCTest": "NOT_RUN; retain the plan's lower-frequency cadence",
+    "fullSuite": "NOT_RUN",
+    "peerOrNativeRun": "NOT_RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicApiOrLayoutChanged": false
+  },
+  "planChanges": {
+    "updatedFinding": "PAR-137",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "ledger": {
+      "findings": 137,
+      "topLevelSubplans": 77
+    },
+    "researchReceiptForBroaderPeerEvidence": "docs/research/deeper-broader-ezdwg-acis-candidate-discovery-evidence-ceiling-2026-10-19.json"
+  },
+  "remainingGates": [
+    "External/native CAD acceptance is not qualified by generated local writer/import round trips.",
+    "Valid SAT, ACIS/ACDS ownership, topology, closed B-rep, and analytic geometry semantics remain outside this carrier-string slice.",
+    "Do not infer support promotion from ezdwg candidate-reference hypotheses, internal consistency checks, or same-codec conversion routes."
+  ],
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "supportClaimsPromoted": 0,
+  "commitCreated": false,
+  "worktree": "Shared worktree broadly modified; no unrelated changes staged or committed."
+}

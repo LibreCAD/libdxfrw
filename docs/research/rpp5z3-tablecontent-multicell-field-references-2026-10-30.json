@@ -1,0 +1,59 @@
+{
+  "id": "RPP-5z3",
+  "date": "2026-10-30",
+  "title": "Bounded rectangular TABLECONTENT repeated FIELD references",
+  "scope": {
+    "operation": "Write direct references to one simple FIELD from multiple cells in a rectangular TABLECONTENT grid.",
+    "profile": "Generated AC1027 2x2 grid with two type-2 references to one adapter-authored simple FIELD. One cell contains only the FIELD; another contains a string followed by the same FIELD. ASCII and binary DXF.",
+    "source_basis": "The decoder retains type-2 per-content FIELD handles in rectangular grids. The existing selected 1x1 writer and adapter profile supported only one reference; the multi-cell writer rejected all type-2 contents and the adapter profile required referenceCount==1. This receipt qualifies the selected generated output profile, not producer-authored source completeness or FIELD evaluation.",
+    "handle_remap": {
+      "field": "0x740 -> 0x1740",
+      "table_content": "0x725 -> 0x1725"
+    },
+    "limits": [
+      "One adapter-authored simple FIELD object with the existing qualified field-state profile",
+      "Two references to that same FIELD, in separate cells",
+      "One reference-only cell and one string-then-reference cell",
+      "No linked-data content, block content, attributes, FIELDLIST, child graph, or multiple FIELD objects"
+    ],
+    "claim_boundary": "Selected DXF serializer and typed readback evidence only; no FIELD expression evaluation, native table rendering, DWG output, or general FIELD graph claim."
+  },
+  "implementation": [
+    "Extend the rectangular TABLECONTENT writer to validate type-2 content values and require each target to be uniquely present in the emitted FIELD identity map.",
+    "Allow the existing adapter-authored simple FIELD profile to serve multiple bounded direct references while retaining its one-FIELD and per-cell composition restrictions.",
+    "Use the existing content writer to emit each remapped group-340 reference in cell/content order."
+  ],
+  "evidence": {
+    "generated_runtime_input": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary": true,
+    "physical_wire": [
+      "The simple FIELD record precedes its TABLECONTENT consumer and has the expected evaluator, expression, cached string value, empty dependency counts and terminators.",
+      "The 2x2 TABLECONTENT record emits exactly two type-2 content spans targeting remapped FIELD handle 1740; the second cell preserves its preceding string content."
+    ],
+    "typed_readback": "Fresh imports resolve both type-2 content handles to FIELD 1740, preserve the 2x2 grid, the string prefix and the other scalar cells.",
+    "failure_control": "Changing one grid reference to an absent FIELD is refused; the destination sentinel, table collection and remaining reference are preserved, while the caller's explicit bad handle remains unchanged.",
+    "retry_control": "Restoring the valid source handle and FIELD state permits a successful export through the same adapter; output and fresh typed readback verify both references."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_fixture_tests --parallel 4",
+    "focused_selector": "build/libdxfrw_dxf_fixture_tests --tablecontent-multicell-field",
+    "focused_ctest": "ctest --test-dir build -R '^(libdxfrw_tablecontent_multicell_field_reference|libdxfrw_table_content_grid_write|libdxfrw_table_content_linked_grid_write|libdxfrw_table_content_row_margin_write|libdxfrw_table_content_column_table_margin_write|libdxfrw_table_content_cell_style_border_alignment)$' --output-on-failure",
+    "focused_ctest_result": "6/6 passed",
+    "compatibility_selector": "build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+    "compatibility_result": "PASS",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "src/libdxfrw.cpp",
+    "dwg2dxf/dx_iface.cpp",
+    "tests/dxf_fixture_tests.cpp",
+    "tests/CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "The parent P5 rendering/TABLE phase remains open.",
+    "More than two references, multiple FIELD objects, multiple references within one cell, other scalar combinations, FIELDLIST/child graphs, evaluation semantics, native rendering and DWG output are not claimed."
+  ]
+}

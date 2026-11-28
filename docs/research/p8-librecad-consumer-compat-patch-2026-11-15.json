@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad-consumer-compat-patch-2026-11-15",
+  "date": "2026-11-15",
+  "status": "local_downstream_patch_qualified",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "base": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+    "commit": "f8ef2f44c7637a44f4c9687ff87ddda71c298e0e",
+    "branch": "codex/upstream-libdxfrw-consumer",
+    "checkout": "/private/tmp/librecad-parity-consumer-20261115",
+    "patch": "docs/patches/librecad-p8-upstream-compat-2026-11-15.patch",
+    "merged": false
+  },
+  "implementation": [
+    "Select scoped DeclaredUtf8 only when the upstream capability macro is available; preserve bundled behavior otherwise and surface legacy Unicode profile observations.",
+    "Use a QString for the DIMSTYLE default to select the intended overload.",
+    "Reject malformed or nonzero insertion units for R12/R14 before output is opened, set an error and display the reason; omit only a well-formed unitless value. Reset the error for a subsequent export.",
+    "Correct an invalid LTYPE group-72 fixture and make the test helper handle pre-name application metadata."
+  ],
+  "verification": {
+    "upstreamLinked": "Focused single-translation-unit consumer harness linked against upstream b4650b05: named LTYPE 18/18 (465 assertions), units 1/1 (18 assertions), metadata helper 1/1 (2 assertions), all pass.",
+    "bundled": "Clean LibreCAD checkout builds the full librecad_dxf_fast_tests target with its bundled fork; those same focused selectors pass 18/18 (465), 1/1 (18), and 1/1 (2). No full suite was run.",
+    "patch": "git apply --check passed against a clean detached worktree at the stated base; reverse check passed at the resulting commit.",
+    "legacyUnits": "Control verifies nonzero and malformed unit values refuse, preserve destination and original nonzero source, set an error, and allow the same filter to retry with unitless data at R12 and R14."
+  },
+  "limits": [
+    "The LibreCAD commit is local and not merged; the patch applies to the stated base only, not to an unverified current remote head.",
+    "The full clean upstream-linked LibreCAD target is not yet built; the upstream result is a focused single-translation-unit harness.",
+    "LibreCAD_3, Linux and Windows, native semantics and ABI remain open.",
+    "Strict libdxfrw source admission does not admit DeclaredUtf8; legacy UTF-8 stays an unsupported profile.",
+    "No DWG/DXF fixture files were added."
+  ]
+}

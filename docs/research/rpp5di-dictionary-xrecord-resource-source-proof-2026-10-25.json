@@ -1,0 +1,349 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5di dictionary/XRECORD resource-source proof",
+  "date": "2026-10-25",
+  "parentCommit": "3320b91aa2c8fe406c01beef0ac317a92a1ac936",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "DICTIONARY_XRECORD_SOURCE_FAMILIES_IMPLEMENTED_FULL_SOURCE_GRAPH_LIVE_OUTPUT_AND_PARITY_OPEN",
+  "scope": {
+    "addedSourceFamilies": [
+      "DICTIONARY",
+      "XRECORD"
+    ],
+    "sourceFamiliesNow": 8,
+    "versions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "authority": "Same-library production-parser exposed/default/common state agreement; not independent full application-value semantics",
+    "rootTransport": "New separate opt-in DRW_DxfRootDictionarySourceHandler; request latched before root read, delivery after typed callback and accepted boundary",
+    "legacyRootRawCallbackSuppressionPreserved": true,
+    "drwInterfaceVtableChanged": false,
+    "libraryModelLayoutChanged": false,
+    "nativeDwgLayoutChanged": false,
+    "globalCodecChanged": false,
+    "writerGuardsRelaxed": false,
+    "outputEligible": false,
+    "supportClaimsPromoted": false
+  },
+  "research": {
+    "dictionary": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+    "xrecord": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+    "objectArxRanges": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm",
+    "scope": "DXF wire-code labels and arbitrary XRECORD body context only; no native layout, effective ownership/null/target or application semantics inferred"
+  },
+  "implementation": {
+    "replay": "Reuse production parseCode plus exact common/variant/model comparisons; strict physical identity/class/entry profile",
+    "dictionary": "Compare ordered names/handles/per-entry codes, cloning/hard-owner, complete DXF/DWG entry state and absent native count-cap provenance",
+    "xrecord": "Compare ordered and compatibility values/handles, exact double bits and int64, binary/XYZ views, exact tuple state and native raw-data provenance/defaults",
+    "copyCompleteness": "Latch original dictionary callback completeness before copying; copied pending-key erasure cannot sanitize an unfinished record",
+    "selectedBindings": [
+      "TABLE wrapper dictionary and XRECORD",
+      "TABLESTYLE map-selector dictionary",
+      "Selected arbitrary-object dictionary/XRECORD resources"
+    ],
+    "rolesAdded": {
+      "19": "DictionarySoftOwner",
+      "20": "DictionaryHardOwner",
+      "21": "XRecordHandle",
+      "22": "XRecordSoftPointer",
+      "23": "XRecordHardPointer",
+      "24": "XRecordSoftOwner",
+      "25": "XRecordHardOwner"
+    },
+    "referenceScope": "Exact original common/application/XDATA/header/body scalar positions; XRECORD body 102/later 100 stay application data",
+    "sharedProofLimits": {
+      "records": 100000,
+      "groups": 4000000,
+      "logicalBytes": 67108864,
+      "workSlots": 4000000,
+      "workSlotsPerGroup": 64
+    },
+    "limitsScope": "Cumulative across eight source families; existing separately bounded typed resource snapshots; not capacity/allocator/RSS guarantees",
+    "failure": "No source proof on raw/typed mismatch or incomplete exact profile. Known-identity wrong-family callbacks followed by originals, duplicate capture, quota exhaustion and scalar-transport refusal cannot yield an aggregate Bound result",
+    "unselectedMismatchScope": "An unselected ordinary payload mismatch alone is not whole-graph qualification or necessarily an aggregate capture failure; root opt-out remains unqualified rather than a read error",
+    "retry": "Corrected fresh drawing on same facade remains usable; no claim of repairing a failed same-generation source receipt",
+    "remainingCollisionGate": "Callbacks before typed identity capture still need complete cross-family provenance coverage",
+    "autotoolsRuntimeQualified": false
+  },
+  "regressions": {
+    "pendingDictionary": {
+      "status": "REPRODUCED_THEN_FIXED",
+      "scope": "WIP source-proof implementation before original-completeness guard; not an executed parent-commit regression",
+      "observed": "typed spine mutation escaped 0/15",
+      "log": "/tmp/rpp5di-pending-regression.log",
+      "resolution": "Require original resource.namespaceComplete in addition to the copied model and replay"
+    },
+    "scalarTransport": {
+      "status": "REPRODUCED_THEN_FIXED",
+      "observed": "partial root allocation qualified during new scoped allocation controls",
+      "resolution": "Transport helpers can return false on allocation/stream refusal; mark shared proof capture failed instead of ignoring an unselected-resource mismatch",
+      "baselineLogRetained": false
+    },
+    "familyCollision": {
+      "status": "REGRESSION_CONTROL_PASSES",
+      "scope": "Already captured actual-import identities only; pre-identity callback closure remains open"
+    }
+  },
+  "generatedControls": {
+    "provenance": "All new controls authored locally from scratch; no external DWG/DXF payload committed",
+    "routes": 8,
+    "dictionaryTypedMutationKinds": 16,
+    "xrecordTypedMutationKinds": 21,
+    "typedMismatchRecoveryPairs": 296,
+    "selectedStyleMapDictionaryAndWrapperPayloadMismatches": 16,
+    "rawMismatchRecoveryPairs": 128,
+    "missingDuplicateCallbackCorrections": 192,
+    "rootSourceAllocationSchedules": 48,
+    "allocationRange": "0..5 allocations before refusal, scoped only around root source capture; a schedule can succeed if no further allocation is needed",
+    "exactAndBelowSharedProofLimitCases": 64,
+    "wireControls": 32,
+    "other": [
+      "Root source opt-out, throwing callback and corrected fresh retry",
+      "Known-identity wrong-family then original refuses aggregate proof",
+      "Ordered binary/coordinate/int64 application payload and signed-zero differences",
+      "Common versus body 102/100 marker roles",
+      "Exact original dictionary/XRECORD reference census",
+      "Selected wrapper/style dictionary and arbitrary-object source requirements"
+    ],
+    "finalNormalOwningLog": "build-gcc/Testing/Temporary/LastTest.log",
+    "finalAsanOwningLog": "build-asan-custom/Testing/Temporary/LastTest.log"
+  },
+  "independentObserver": {
+    "schemaVersion": 5,
+    "python": "/private/tmp/libdxfrw-rpp5cq-runtime.eu0KY0/venv/bin/python",
+    "ezdxfVersion": "1.4.4",
+    "scope": "Original handle/name scalar positions and DICTIONARY/XRECORD wire roles; not arbitrary application values, effective ownership/null/target semantics or graph closure",
+    "originalTagsNeverReexported": true,
+    "loadedDependencyAttestation": false,
+    "qualificationEligible": false,
+    "selftest": {
+      "positives": 9,
+      "corruptions": 24,
+      "applicationAndOriginalScopes": true,
+      "optimizedPythonRefusedByExistingGuard": true
+    },
+    "generatedSpine": {
+      "normalRoutes": 8,
+      "asanRoutes": 8,
+      "normalLog": "/tmp/rpp5di-reviewed-independent-spine.json",
+      "asanLog": "/tmp/rpp5di-reviewed-asan-independent-spine.json",
+      "richXrecordBodyHandleSlots": 10,
+      "richXrecordTotalHandleSlots": 15,
+      "richXrecordReferenceEvents": 17
+    },
+    "priorRoutesRerun": {
+      "symbol": 8,
+      "auxiliary": 8,
+      "symbolLog": "/tmp/rpp5di-independent-symbol.json",
+      "auxiliaryLog": "/tmp/rpp5di-independent-auxiliary.json",
+      "scope": "Normal C++ probe, final schema-5 observer"
+    },
+    "optionalRegistration": {
+      "registered": [
+        "libdxfrw_independent_symbol_source",
+        "libdxfrw_independent_auxiliary_source",
+        "libdxfrw_independent_spine_source"
+      ],
+      "gate": "Existing tests plus dwg2dxf plus explicit existing ezdxf 1.4.4 Python; no auto-install",
+      "cliOffOracleRequest": "Correctly rejected by pre-existing top-level gate; /tmp/rpp5di-optional-configure.log",
+      "enabledConfigureLog": "/tmp/rpp5di-optional-enabled-configure.log",
+      "registrationLog": "/tmp/rpp5di-optional-registration.json",
+      "buildDirectory": "/private/tmp/libdxfrw-rpp5di-enabled.Da16yq",
+      "executionScope": "Registration-only temporary configure; checks executed directly with existing normal/ASan probe binaries, no new optional build"
+    }
+  },
+  "externalObservations": {
+    "inputRoot": "/private/tmp/libdxfrw-rpp5cs-history-sources.O5TTcC",
+    "drawingsUnchanged": true,
+    "files": [
+      {
+        "file": "example-AC1027.dxf",
+        "sha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3",
+        "binding": "Bound",
+        "proofRecords": 89,
+        "proofGroups": 2215,
+        "proofLogicalBytes": 855256,
+        "proofWorkSlots": 141760,
+        "independentResources": 89,
+        "independentEvents": 424,
+        "dictionaries": 41,
+        "xrecords": 42,
+        "selectedDictionaryProofUses": 2,
+        "selectedXrecordProofUses": 1,
+        "inspectLog": "/tmp/rpp5di-external-ac1027.log",
+        "independentLog": "/tmp/rpp5di-independent-external-ac1027.json"
+      },
+      {
+        "file": "example-AC1032.dxf",
+        "sha256": "e64b0cfb6e1587f9d2bb4387d59064efa5bc667cda9ecbc00313459b304bb997",
+        "binding": "Bound",
+        "proofRecords": 76,
+        "proofGroups": 2018,
+        "proofLogicalBytes": 809948,
+        "proofWorkSlots": 129152,
+        "independentResources": 76,
+        "independentEvents": 368,
+        "dictionaries": 36,
+        "xrecords": 34,
+        "selectedDictionaryProofUses": 2,
+        "selectedXrecordProofUses": 1,
+        "inspectLog": "/tmp/rpp5di-external-ac1032.log",
+        "independentLog": "/tmp/rpp5di-independent-external-ac1032.json"
+      }
+    ],
+    "scope": "Selected source/binding and original scalar observations only. No whole graph, native format, application semantics or independent semantic kernel qualification",
+    "cli": {
+      "refusals": 3,
+      "inputs": "Both unchanged external examples plus locally generated rich AC1032 spine control",
+      "publishedDestinations": 0,
+      "existingDestinationsExercised": false,
+      "logs": [
+        "/tmp/rpp5di-generated-cli.log",
+        "/tmp/rpp5di-external27-cli.log",
+        "/tmp/rpp5di-external32-cli.log"
+      ],
+      "scope": "Fresh-destination real CLI refusal. Existing destination preservation/corrected same-exporter readbacks are separately rerun in the affected cohort"
+    }
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21.0.0; build-gcc is not Linux/GCC evidence",
+    "normal": {
+      "passed": 59,
+      "total": 59,
+      "elapsedSeconds": 56.47,
+      "log": "/tmp/rpp5di-reviewed-normal-cohort.log"
+    },
+    "asan": {
+      "passed": 59,
+      "total": 59,
+      "elapsedSeconds": 118.3,
+      "log": "/tmp/rpp5di-reviewed-asan-cohort.log",
+      "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0"
+    },
+    "tests": [
+      "dwg2dxf_basic_table_typed_capture_limits",
+      "dwg2dxf_datalink_typed_capture_limits",
+      "dwg2dxf_field_carrier_raw_capture_limits",
+      "dwg2dxf_field_carrier_typed_capture_limits",
+      "dwg2dxf_field_dxf_multichunk_value",
+      "dwg2dxf_sort_table_style_raw_capture_limits",
+      "dwg2dxf_table_base_style_id_dxf_refusal",
+      "dwg2dxf_table_content_style_reference_census",
+      "dwg2dxf_table_style_typed_capture_limits",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_acad_field_writer_candidate",
+      "libdxfrw_auxiliary_source_proof",
+      "libdxfrw_cellstylemap_dwg_encode_roundtrip",
+      "libdxfrw_cellstylemap_dxf_writer",
+      "libdxfrw_cellstylemap_identity_domains",
+      "libdxfrw_cellstylemap_source_profiles",
+      "libdxfrw_cellstylemap_source_proof",
+      "libdxfrw_complex_symbol_bindings",
+      "libdxfrw_datalink_text_owner_budget",
+      "libdxfrw_dxf_ltype_retained_owner_budget",
+      "libdxfrw_dxf_shape_style_name_owner_budget",
+      "libdxfrw_dxf_source_table_identities",
+      "libdxfrw_dxf_table_cell_text_owner_budget",
+      "libdxfrw_dxf_tables_write_inspection",
+      "libdxfrw_extension_graph_limits",
+      "libdxfrw_field_cadvalue_date_payload",
+      "libdxfrw_field_cadvalue_double",
+      "libdxfrw_field_cadvalue_general_format_flag",
+      "libdxfrw_field_cadvalue_long",
+      "libdxfrw_field_cadvalue_object_id",
+      "libdxfrw_field_cadvalue_points",
+      "libdxfrw_field_cadvalue_string",
+      "libdxfrw_field_cadvalue_unknown_type",
+      "libdxfrw_field_child_cadvalue_types",
+      "libdxfrw_field_child_object_id_invalid_handle_role",
+      "libdxfrw_field_graph_export_refusal",
+      "libdxfrw_field_oversized_child_value_count",
+      "libdxfrw_field_unknown_child_cadvalue_versions",
+      "libdxfrw_field_unqualified_format_flags",
+      "libdxfrw_field_unsupported_child_cadvalue_buffers",
+      "libdxfrw_linetype_extension_graph",
+      "libdxfrw_ltype_mirror_authority",
+      "libdxfrw_symbol_source_proof",
+      "libdxfrw_table_callback_owner_order",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_table_content_dwg_object_roundtrip",
+      "libdxfrw_table_content_dwg_payload_encoder",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_content_reference_observer_selftest",
+      "libdxfrw_table_content_source_proof",
+      "libdxfrw_table_content_style_id_domains",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_table_geometry_observer_selftest",
+      "libdxfrw_table_resource_reference_observer_selftest",
+      "libdxfrw_tablestyle_nested_raw_net",
+      "libdxfrw_tablestyle_source_proof",
+      "libdxfrw_field_retained_owner_budget",
+      "libdxfrw_spine_source_proof"
+    ],
+    "scope": "Final production and C++ tests including pending-dictionary completeness regression; no subsequent production or C++ test changes",
+    "preReviewNormal": {
+      "passed": 59,
+      "total": 59,
+      "elapsedSeconds": 56.87,
+      "log": "/tmp/rpp5di-normal-cohort.log",
+      "limitation": "Before the newly added pending-dictionary regression and guard; superseded by reviewed cohorts"
+    },
+    "lc3CompileGates": {
+      "normal": "PASS",
+      "asan": "PASS",
+      "scope": "Source compile only, not native application runtime"
+    },
+    "strictWarningsRetained": true,
+    "fullProjectSuiteRepeated": false,
+    "leakCheckRun": false,
+    "buildLogs": [
+      "/tmp/rpp5di-reviewed-normal-build.log",
+      "/tmp/rpp5di-reviewed-asan-build.log"
+    ]
+  },
+  "sourceSha256": {
+    "src/drw_interface.h": "45299ce37640e8bb5f5f2f13192b2b2e92257580ba5757050a688fc20c5f0fe6",
+    "src/libdxfrw.cpp": "1effffd65ac85e297854e56bd3f953ca6b268be238a3a4f366ec595b1fc19a88",
+    "dwg2dxf/dx_data.h": "1cc4a0ed77958155516f0ee9d5b892fb68f90f1fa7a1fadf8307b3b4c8929051",
+    "dwg2dxf/dx_iface.h": "9d3e2350166bba6f463989a8ba3a25f27294860887add10b6a127af66dbaaeee",
+    "dwg2dxf/dx_iface.cpp": "4920d082fcd1c79aef09f7d7cd772cf10bc8ca069f0be687791172dae7bfb3ea",
+    "tests/table_content_dxf_tests.cpp": "243917a9044077eb7308b5c277052569e44cbb1cb30039faf93aca7faf678f77",
+    "tests/table_resource_reference_observer.py": "58827fbf45c41473de605520b282219efc27b58c62a21ad742e26ff48a9b93a2",
+    "tests/CMakeLists.txt": "94acef5b9612d59c5fa9f271efc338034e884be09ff144c98ece3e39d4e45f44",
+    "README.md": "2a8114f303cbd59be093a7b73116036c173aab3329337d6f89e0d66fb6778aef",
+    "docs/3D_CONSUMER_CONTRACT.md": "d304607fde6fdeeaaa78b254f7c06eb4d43a3c8e62adbbee9605fd8245419dbb",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "4b527ea17d7d698fb16fb36aa9e87a10924b85b41a36c9e63f79e08510e687c7"
+  },
+  "remaining": [
+    "ATTDEF/block exact source and accepted-boundary evidence",
+    "Explicit opt-in APPID/LAYER/table-owner source proof",
+    "Full FIELD/DATALINK/dictionary/XRECORD/common target, ownership, null, cycle and pre-identity collision closure, including reached DICTIONARYWDFLT/DICTIONARYVAR/GROUP or other unproved families",
+    "Complete TABLE parent/wrapper/cache and editable/frozen equality with fully proved atomic output",
+    "Independent nonzero LTYPE angle and FIELD/CadValue/DATALINK application semantics plus original native/document/IMAGE/surface/2D/3D consumer parity"
+  ],
+  "qualification": {
+    "supportLedger": "CLOSED",
+    "outputEligible": false,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "remoteWritesPerformed": false,
+    "externalFixturesCommitted": false,
+    "fullImplementationGoalComplete": false
+  }
+}

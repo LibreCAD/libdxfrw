@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-acis-sab-parser-fed-vector-transform-v1",
+  "observedAt": "2026-10-21",
+  "title": "Parser-fed alternate ACIS transform grammar disposition",
+  "evidenceKind": "generated local SAB parser/model/projector fast test",
+  "source": "tests/graph_preservation_tests.cpp",
+  "profile": {
+    "signature": "ACIS BinaryFile",
+    "version": 21800,
+    "carrier": "generated SAB bytes"
+  },
+  "wireSemanticTokens": [
+    "LocationVec(1,0,0)",
+    "LocationVec(0,1,0)",
+    "LocationVec(0,0,1)",
+    "LocationVec(11,12,13)",
+    "Double(0.5)",
+    "LiteralStr(rotation-hint)"
+  ],
+  "observed": {
+    "wireParse": "PASS",
+    "rootedProjection": "PASS_STRUCTURAL",
+    "rawRecordTokensIncludingCommonHeader": 9,
+    "literalRawTokenIndex": 8,
+    "classification": "UnsupportedVariant",
+    "rawHintPreserved": true,
+    "numericCandidatePublished": false,
+    "transformApplied": false
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "buildResult": "PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "focusedCTestResult": "PASS (1/1)",
+    "fullTestSuiteRun": false,
+    "gitDiffCheck": "PASS (scoped paths)"
+  },
+  "planImpact": {
+    "productionCodeChanged": false,
+    "persistentFixtureAdded": false,
+    "dependencyAdded": false,
+    "testRegistrationAdded": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": [
+    "This is a generated parser-fed raw transform grammar check only.",
+    "No matrix convention, unit conversion, placement, B-rep validity, or consumer acceptance is established.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

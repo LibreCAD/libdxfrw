@@ -1,0 +1,70 @@
+{
+  "title": "AC1027 DBCOLOR self-consistency and independent-evidence output gate",
+  "date": "2026-11-03",
+  "scope": "Check locally generated DBCOLOR/NOD capture while keeping DWG-to-DXF DBCOLOR output refused until an independent producer source profile, ACAD_COLOR entry semantics, and fresh DXF readback are established.",
+  "localControl": {
+    "profile": "Runtime-generated AC1027 DWG authored with this repository's dwgRW and read with this repository's DWG reader; the scratch DWG is removed by the test and is not a committed fixture.",
+    "checks": [
+      "One DBCOLOR callback is retained in the active import generation with a complete typed capture.",
+      "The imported named-object dictionary contains ACAD_COLOR and points it to the locally authored color dictionary handle.",
+      "Extension-graph preflight refuses the source with the explicit independent-evidence reason, and a repeated attempt returns the same refusal.",
+      "Strict file export refuses and preserves a pre-existing destination byte-for-byte."
+    ],
+    "limits": [
+      "Writer and reader are the same implementation; this is only internal self-consistency evidence.",
+      "The test does not establish a real producer's DBCOLOR body span, class profile, dictionary key serialization, or external semantic equivalence.",
+      "No output DXF is produced, so fresh DXF readback and native color-book behavior remain untested."
+    ]
+  },
+  "research": {
+    "odaSpecification": {
+      "source": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf, local copy",
+      "findings": [
+        "Section 2.11 defines CMC fields and entity ENC color references, including the optional AcDbColor handle.",
+        "Section 20.4.2 lists the R2004+ color-book color hard-pointer in common entity handle data.",
+        "The searchable specification text identifies DBCOLOR as a class-list-dependent object but does not provide a complete DBCOLOR body prescription or ACAD_COLOR dictionary-key serialization."
+      ]
+    },
+    "libreDwg": {
+      "source": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.spec",
+      "finding": "The independent object schema models DBCOLOR with a common parent and a CMC color field (DXF 62); this corroborates the field family but is not a physical producer sample or interoperability proof."
+    },
+    "autodesk": {
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbDatabase__getColorDictionary_AcDbDictionary___AcDb__OpenMode.html",
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcCmColor__getDictionaryKey_AcString__const.html"
+      ],
+      "findings": [
+        "The database color dictionary contains AcDbColor objects representing color-book colors used by entities.",
+        "The getDictionaryKey API documents storage of named colors as AcDbColor objects, but the reviewed documentation does not define the exact serialized entry-key composition."
+      ]
+    },
+    "aresSdk": {
+      "source": "https://docs.dev.graebert.com/kudo/class_ref/classOdDbColor.html",
+      "finding": "The SDK reference states that the root drawing dictionary associates ACAD_COLOR with the color dictionary. This supports the root role, not the exact serialized member key or native color-book round trip."
+    }
+  },
+  "externalQualification": {
+    "status": "DEFERRED_EXTERNAL",
+    "requiredEvidence": [
+      "A named color-book DWG produced by an independent CAD/ODA-compatible producer, with its version, hash, class mapping, and complete DBCOLOR source frame recorded.",
+      "Independent source analysis of body field spans and common owner/reactor/extension roles.",
+      "Exact NOD ACAD_COLOR dictionary owner and entry-name-to-DBCOLOR relation from the producer sample.",
+      "Typed DXF output and fresh readback comparison for DBCOLOR fields, dictionary entries, and entity color references.",
+      "Native color-book display/lookup behavior in an independent consumer."
+    ],
+    "supportClaimPromoted": false
+  },
+  "environment": {
+    "odaFileConverter": "ODA File Converter 27.1.0 ARM64 CLI aborts with PasteBoard/XPC errors while the Mac session is locked; after the user said they were unlocking the session, Computer Use still reported it locked. No independent conversion was obtained."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R 'dbcolor' --output-on-failure",
+      "git diff --check"
+    ],
+    "status": "The focused adapter build, all four DBCOLOR-labeled CTests, JSON parse, and whitespace check passed."
+  },
+  "nextAction": "Keep DBCOLOR output blocked. When an independently produced named-color DWG is available and the ODA/FreeCAD environment is accessible, derive the source profile and exact ACAD_COLOR entry relation, then implement field/reference output and fresh-readback proof as a separate slice."
+}

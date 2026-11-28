@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Independent ACIS reader artifact refresh and exact-profile execution plan",
+  "mode": "Current primary-source package, provenance, and immutable source review; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh the independent ACIS reader candidate from cq-acis 0.3.3 to the latest published artifact reviewed on 2026-10-19.",
+    "Pin reproducible platform artifacts and define exact-profile boundaries for the existing PAR-07/S8 composed semantic checkpoint.",
+    "Separate bare ACIS parsing, DWG/DXF carrier extraction and owner association, geometry-kernel results, and native consumer qualification."
+  ],
+  "sources": [
+    {
+      "project": "cq-acis / PyPI",
+      "urls": [
+        "https://pypi.org/project/cq-acis/0.3.12/",
+        "https://github.com/monozukuri-ai/cq-acis/tree/e05a8f470d2f6799277f7b7df467d2fc35625889"
+      ],
+      "revision": "cq-acis 0.3.12; PyPI published 2026-10-16; verified Trusted Publishing provenance identifies source commit e05a8f470d2f6799277f7b7df467d2fc35625889.",
+      "observed": "The package parses SAT/SAB and converts only supported B-rep profiles through CadQuery/OpenCascade. It requires Python >=3.11 and CadQuery 2.8+. Published platform wheels include macOS ARM64, macOS x86-64, Linux x86-64, Linux ARM64, and Windows x86-64.",
+      "platformArtifactSha256": {
+        "macos-arm64": "94204f623d752e7dacf494bf631551277a985acbeb612ee3a24464ea0f0daab5",
+        "macos-x86_64": "a6eb2e12ca841f4471d594963bec6b44298a5eb954c7b50141f2330f5ec50b48",
+        "linux-x86_64": "ce9f56dbe39b47ab2bc42fbe07d3874c5a618a2dc891393ef098dc390719862d",
+        "linux-aarch64": "8dc0dad55a4297f30421e589ae5509f9d8e1680acc7d117941c349594796f7a1",
+        "windows-x86_64": "8a5b31d6bc891b2fce3a1be46b99845689e949e0c472e027878fcf994df35e12",
+        "source-tarball": "eba52992abcf6afce57b0f3526c3afeeed29cc60fbbb61c275958703d597de3a"
+      },
+      "limitation": "Artifact provenance establishes source/artifact identity, not behavior. The full transitive CadQuery/OCCT environment still needs a lock and runtime capture before execution. No package was installed or run."
+    },
+    {
+      "project": "cq-acis immutable SAB/ASM and geometry documentation",
+      "urls": [
+        "https://raw.githubusercontent.com/monozukuri-ai/cq-acis/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/sab-support.md",
+        "https://raw.githubusercontent.com/monozukuri-ai/cq-acis/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/geometry-support.md"
+      ],
+      "revision": "Files inspected at the same immutable source commit attested by the 0.3.12 PyPI publication.",
+      "observed": "Documented SAB/ASM save profiles are ACIS BinaryFile/4-byte words 21800; ASM BinaryFile4 22000, 22300, 22600, 22700, 22900, and 23200; and BinaryFile8 framing for those ASM versions, with synthetic framing coverage only. Parsing and conversion are separate; unsupported referenced geometry fails conversion. Unknown binary records are retained raw. Reserved-marker history is opaque and is not validated/replayed; the parsed stored table does not establish current Inventor history or Model State.",
+      "limitation": "A supported version is not whole-layout support. A parse, entity count, primary-body success, opaque raw record, or preview does not prove complete-body semantics or current model state. Synthetic BinaryFile8 coverage cannot qualify native-produced files."
+    },
+    {
+      "project": "FreeCAD and Open CASCADE",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Third_Party_Libraries.md",
+        "https://github.com/Open-Cascade-SAS/OCCT"
+      ],
+      "revision": "Current project documentation reviewed 2026-10-19; no application or kernel was run.",
+      "observed": "FreeCAD documents that its stock DXF importer cannot read embedded ACIS solids and that DWG import routes through converter-to-DXF and then a selected importer. FreeCAD uses the OCCT kernel family. cq-acis has a distinct ACIS parser implementation but uses CadQuery/OCCT for shape construction.",
+      "limitation": "cq-acis parsing and FreeCAD native import are distinct observations but not independent kernel-family evidence. Stock FreeCAD's unsupported ACIS behavior is a consumer boundary, not a libdxfrw parse failure."
+    },
+    {
+      "project": "DWG container and AcDs routes",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0"
+      ],
+      "revision": "Current source/release pages reviewed 2026-10-19; no decoder was run.",
+      "observed": "cq-acis accepts bare SAT/SAB bytes and does not parse DWG containers, AcDs sections, or entity-to-section owner/key associations. Independent DWG and DXF decoders remain separate prerequisites for extracting and joining carriers.",
+      "limitation": "No source-handle, owner/key, extraction, or conversion result was obtained in this research pass."
+    }
+  ],
+  "assessment": {
+    "confirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "testsOrCtestRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Supersedes the older cq-acis 0.3.3 candidate pin with a verifiable 0.3.12 source/artifact identity and platform wheel hashes. Refines the existing PAR-07/S8 composed gate with exact profile, dependency-lock, carrier-extraction, handle/owner association, all-body conversion, and shared-kernel-lineage requirements. Does not constitute semantic or native qualification."
+  },
+  "implementationReadiness": [
+    "Use cq-acis 0.3.12 only at the existing composed PAR-07/S8 semantic checkpoint; verify selected wheel SHA-256 and provenance, then lock Python 3.11+, CadQuery, OCCT, and all transitive dependencies.",
+    "Keep cq-acis and its geometry dependencies external to libdxfrw, standard build, routine CI, and per-slice validation.",
+    "Admit only the exact SAT/SAB/ASM save profile and documented geometry types; enumerate all body references and reject unsupported/raw referenced geometry for a semantic pass.",
+    "For DWG-origin cases, use an independent pinned DWG decoder for section payload and source-entity owner/key association; for DXF cases, use a separate strict DXF decoder. Feed bare payload to cq-acis only after carrier identity and association are recorded.",
+    "Compare against a locally generated, independently authored analytic manifest for every expected body, including source units/tolerance, topology, validity, shell closure/orientation, bounds, volume, and placement.",
+    "Treat opaque history, synthetic-only BinaryFile8 coverage, the peer's separately licensed test corpus, primary-body success, and mesh/STEP preview as non-qualifying for full model/history/native support.",
+    "Record parser independence separately from OCCT kernel lineage; do not count cq-acis and FreeCAD as independent kernel votes.",
+    "Keep native FreeCAD Linux/Windows converter/importer checks and selected macOS ARM64 CAD Assistant observation as separate composed consumer routes. A route failure or unavailable input leaves the claim unqualified and does not block local implementation.",
+    "Do not commit downloaded third-party sample drawings; use existing admitted repository files or temporary controls authored locally from scratch."
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review plus plan crosswalk",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The selected reader and platform artifacts are now reproducibly identified, but the dependency environment, runtime behavior, input-profile coverage, source association, semantic output, and native consumer acceptance remain untested. Package documentation and release provenance do not promote any support claim."
+  }
+}

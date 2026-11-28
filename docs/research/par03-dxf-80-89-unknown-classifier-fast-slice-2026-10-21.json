@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-03 standalone DXF group-code 80-89 type boundary",
+  "mode": "Focused local classifier and regression fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The shared worktree was already broadly dirty. This slice adds a focused common-metadata test setup correction, plan progress, and this receipt; no files were staged or committed.",
+    "changedFiles": [
+      "CMakeLists.txt",
+      "src/intern/dxfcode.h",
+      "tests/wave1_tests.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par03-dxf-80-89-unknown-classifier-fast-slice-2026-10-21.json"
+    ]
+  },
+  "implementation": {
+    "change": "Classify standalone DXF group codes 80-89 as Unknown, preserving ASCII values while refusing to guess binary width; retain the historical string interpretation only in the explicit LibreCadMasterLegacy profile. Keep code 1009 in the string range and start the typed double range at 1010.",
+    "assertions": [
+      "Classifier boundaries 79/80/89/90 match the documented assignment boundary.",
+      "Standalone ASCII preserves 80-89 values without assigning a type.",
+      "Standalone binary reading and typed writing fail closed for 80-89.",
+      "The explicit legacy profile still round-trips 80-89 as strings.",
+      "Common-object metadata test uses a valid generated SPATIAL_FILTER with two boundary points and complete 12-value matrices, preserving the PAR-139 writer's incomplete-input refusal."
+    ],
+    "claimBoundary": "This resolves only the classifier's 80-89 standalone/legacy boundary and the code-1009 string boundary. It does not complete the PAR-03 code/context audit or establish broad DXF interoperability or format support."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_hardening_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_(dxf_code_type_boundaries|hardening|wave1)$' --output-on-failure",
+        "result": "PASS (3/3)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --common-appdata-base-scope",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/intern/dxfcode.h tests/wave1_tests.cpp tests/hardening_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "fixtureAdded": false,
+    "dependencyAdded": false,
+    "productionCodeChanged": true,
+    "commitCreated": false
+  },
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "nextAction": "Continue the source- and context-backed PAR-03 audit for unresolved DXF code spans; do not assign binary widths from neighboring ranges or wait on external qualification."
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1032-mlinestyle-linetype-handle-roles-2026-11-09",
+  "date": "2026-11-09",
+  "status": "GENERATED_AC1032_PARSER_ROLE_SPAN_AND_RETRY_CONTROLS_PASS",
+  "scope": "Validate AC1032 MLINESTYLE per-element linetype handle roles and exact parser spans with generated-from-scratch controls.",
+  "supportClaimEffect": "none",
+  "authority": {
+    "name": "ODA Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/Open Design Specification for .dwg files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "§20.4.73 specifies inline BS linetype indices before R2018 and H hard-pointer linetype handles from R2018 onward.",
+      "§2.13 defines handle code 5 as a hard pointer and code 0 as a null reference."
+    ]
+  },
+  "source": {
+    "kind": "generated-from-scratch parser input",
+    "version": "AC1032",
+    "physicalProducerWitness": false,
+    "fixtureCommitted": false,
+    "description": "Two MLINESTYLE elements with distinct hard-pointer targets, a separately walked handle stream and sentinel; negative vectors use soft-pointer roles, canonical null and a truncated final handle."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/dwg_object_vectors_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "change": "For AC1032+, DRW_MLineStyle::parseDwg now accepts only hard-pointer element linetype handles or canonical null, records each consumed handle's exact ordered start bit, width, raw role, version and element name, and publishes spans only on complete parse success. The normal reset path clears spans. Pre-R2018 inline linetype indices produce no handle spans. The generated R2018+ frame includes the versioned AcDs flag and no-xdictionary common-handle state."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests --parallel 4 && ctest --test-dir build-gcc -R '^(libdxfrw_ac1032_mlinestyle_handle_roles|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "result": "PASS: initial implementation build succeeded and 2/2 object-vector CTests passed; the focused selector was rerun after adding the encoder null-reference round trip and passed 1/1.",
+    "controls": [
+      "Independent handle-stream walk confirms each role, target, exact span, parsed value and following sentinel.",
+      "Each element rejects a soft-pointer role transactionally; corrected same-object retry succeeds.",
+      "Canonical null is accepted and retained in the span metadata.",
+      "The AC1032 encoder emits canonical code-0 null for a zero linetype target; an independent handle-stream walk checks the next hard-pointer target and sentinel, then parser readback preserves both targets.",
+      "Truncated final handle resets decoded fields and spans; corrected same-object retry succeeds.",
+      "Pre-R2018 MLINESTYLE control confirms inline linetype indices have no handle spans."
+    ],
+    "diffCheck": "PASS",
+    "fullTestSuites": "NOT RUN",
+    "fixturesAdded": false
+  },
+  "remainingGates": [
+    "One LibreDWG corpus DWG now corroborates the element values and hard-pointer targets, but no producer-qualified AutoCAD/ODA AC1032 source independently confirms the spans and targets; see p6-ac1032-mlinestyle-libredwg-source-profile-2026-11-09.json.",
+    "Resolve source target identity and graph dependencies before any strict-output admission.",
+    "No whole-object writer, native application, LibreCAD, or LibreCAD_3 support claim follows from this generated parser control."
+  ]
+}

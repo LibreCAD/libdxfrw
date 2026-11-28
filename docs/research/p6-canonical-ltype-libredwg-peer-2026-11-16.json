@@ -1,0 +1,146 @@
+{
+  "date": "2026-11-16",
+  "scope": "Independent LibreDWG 0.14 conversion/readback of generated AC1015 CONTINUOUS LTYPE descriptions in ASCII and Binary DXF.",
+  "generator": "tools/research/canonical_ltype_peer_generator.cpp",
+  "generatorSha256": "7420c61f4f65edf9d9799ad3f583738d9611263b183076f68744a58c5c3d77f0",
+  "generatorBuild": "clang++ -std=c++17 -Wall -Wextra -Werror -I tests -I src tools/research/canonical_ltype_peer_generator.cpp build/libdxfrw.a -o <scratch-generator>",
+  "peer": {
+    "dxf2dwgVersion": "0.14",
+    "dxf2dwgSha256": "d8d27fed5519b67b977170093f3e3d2cd2aeae086ba2db75b5ded2faf2ec31e8",
+    "dwgreadVersion": "0.14",
+    "dwgreadSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "conversion": "dxf2dwg --as r2000 followed by dwgread -O minJSON"
+  },
+  "rows": [
+    {
+      "mode": "ascii",
+      "inputDescription": "Source description",
+      "inputFlags": 0,
+      "dxfSha256": "26578fb2209e4b42c18c8df91fe8b99bf5911313f8861166fb8891da5af8ed8f",
+      "dwgSha256": "8b1b40b6ebc6e079813d78770ae8819d138ffafa3a70f0871d69e8e82a59f076",
+      "peerJsonSha256": "b438611ea23d05b18751c64836301396cfb7c96cff9cf399c31d6199efa73ff2",
+      "peerDescription": "Source description",
+      "peerIsXrefRef": 1,
+      "peerPatternLength": 0.0,
+      "peerDashCount": 0,
+      "converterWarnings": [
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1"
+      ]
+    },
+    {
+      "mode": "ascii",
+      "inputDescription": "Source description",
+      "inputFlags": 64,
+      "dxfSha256": "f135a7f32218c0888dc2dd5c0f71990ee161878d8c7d7ab023a7a28452ab504c",
+      "dwgSha256": "8b1b40b6ebc6e079813d78770ae8819d138ffafa3a70f0871d69e8e82a59f076",
+      "peerJsonSha256": "b438611ea23d05b18751c64836301396cfb7c96cff9cf399c31d6199efa73ff2",
+      "peerDescription": "Source description",
+      "peerIsXrefRef": 1,
+      "peerPatternLength": 0.0,
+      "peerDashCount": 0,
+      "converterWarnings": [
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1"
+      ]
+    },
+    {
+      "mode": "ascii",
+      "inputDescription": "",
+      "inputFlags": 0,
+      "dxfSha256": "791580054c2449de575d10c6d68b264be697226b31ce12214f14bc7acbd24f4e",
+      "dwgSha256": "6f90b14480d6358edd78f599cfa0c9bbbf55d9bd86af26415576d1dae12a1c1d",
+      "peerJsonSha256": "ac95750e0ec11fcc3594c5503663fd9de500ea883c5e12ccf5724af974cca102",
+      "peerDescription": "",
+      "peerIsXrefRef": 1,
+      "peerPatternLength": 0.0,
+      "peerDashCount": 0,
+      "converterWarnings": [
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1"
+      ]
+    },
+    {
+      "mode": "ascii",
+      "inputDescription": "",
+      "inputFlags": 64,
+      "dxfSha256": "0c272bdd6ebe0c7408d9fc224df8ebb48ed75c28124cc01cc03f36f4acb8ea11",
+      "dwgSha256": "6f90b14480d6358edd78f599cfa0c9bbbf55d9bd86af26415576d1dae12a1c1d",
+      "peerJsonSha256": "ac95750e0ec11fcc3594c5503663fd9de500ea883c5e12ccf5724af974cca102",
+      "peerDescription": "",
+      "peerIsXrefRef": 1,
+      "peerPatternLength": 0.0,
+      "peerDashCount": 0,
+      "converterWarnings": [
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1"
+      ]
+    },
+    {
+      "mode": "binary",
+      "inputDescription": "Source description",
+      "inputFlags": 0,
+      "dxfSha256": "9d95677d205d660698baea82cfd8e8479accafd2f437dd2b9fea63659447daea",
+      "dwgSha256": "8b1b40b6ebc6e079813d78770ae8819d138ffafa3a70f0871d69e8e82a59f076",
+      "peerJsonSha256": "b438611ea23d05b18751c64836301396cfb7c96cff9cf399c31d6199efa73ff2",
+      "peerDescription": "Source description",
+      "peerIsXrefRef": 1,
+      "peerPatternLength": 0.0,
+      "peerDashCount": 0,
+      "converterWarnings": [
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1"
+      ]
+    },
+    {
+      "mode": "binary",
+      "inputDescription": "Source description",
+      "inputFlags": 64,
+      "dxfSha256": "9a284390ab30a95eccc06014e39cd366c0e65579a84f5cf419fa4e79b1f36b7f",
+      "dwgSha256": "8b1b40b6ebc6e079813d78770ae8819d138ffafa3a70f0871d69e8e82a59f076",
+      "peerJsonSha256": "b438611ea23d05b18751c64836301396cfb7c96cff9cf399c31d6199efa73ff2",
+      "peerDescription": "Source description",
+      "peerIsXrefRef": 1,
+      "peerPatternLength": 0.0,
+      "peerDashCount": 0,
+      "converterWarnings": [
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1"
+      ]
+    },
+    {
+      "mode": "binary",
+      "inputDescription": "",
+      "inputFlags": 0,
+      "dxfSha256": "c8a0eb986a17d13d2000bb767c415b6bfbd9bd529f169cbe3924d00d0ff85c30",
+      "dwgSha256": "6f90b14480d6358edd78f599cfa0c9bbbf55d9bd86af26415576d1dae12a1c1d",
+      "peerJsonSha256": "ac95750e0ec11fcc3594c5503663fd9de500ea883c5e12ccf5724af974cca102",
+      "peerDescription": "",
+      "peerIsXrefRef": 1,
+      "peerPatternLength": 0.0,
+      "peerDashCount": 0,
+      "converterWarnings": [
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1"
+      ]
+    },
+    {
+      "mode": "binary",
+      "inputDescription": "",
+      "inputFlags": 64,
+      "dxfSha256": "e96fbdcd4402322d7d42e9c21ff9806e1a44afe58bb79f0166a1ae6825c762b5",
+      "dwgSha256": "6f90b14480d6358edd78f599cfa0c9bbbf55d9bd86af26415576d1dae12a1c1d",
+      "peerJsonSha256": "ac95750e0ec11fcc3594c5503663fd9de500ea883c5e12ccf5724af974cca102",
+      "peerDescription": "",
+      "peerIsXrefRef": 1,
+      "peerPatternLength": 0.0,
+      "peerDashCount": 0,
+      "converterWarnings": [
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1"
+      ]
+    }
+  ],
+  "observed": "All eight generated inputs produced one peer CONTINUOUS row with matching empty or nonempty description and zero dash count. The peer reported is_xref_ref=1 for both input flags 0 and 64, so this experiment does not distinguish or prove those flag semantics.",
+  "controls": [
+    "The generator refuses an existing destination or dangling symlink without modifying it.",
+    "All generated DXF, DWG and peer JSON files remain temporary; no fixture is committed."
+  ],
+  "limitations": [
+    "LibreDWG is independent of libdxfrw but its converter and reader share the same peer implementation.",
+    "The converter warned about the unrelated HEADER.DIMLDRBLK value in each run, so the observation is restricted to the named LTYPE field.",
+    "These generated inputs do not establish independent producer evidence, native application behavior, broad DWG/DXF support or any P9 claim."
+  ]
+}

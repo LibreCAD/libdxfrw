@@ -1,0 +1,122 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer failure modes and FreeCAD qualification boundary",
+  "mode": "current primary-source, release-note, and local-plan research",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Audit the current FreeCAD DWG converter handoff and separate it from direct DXF importer qualification",
+    "Refresh DWG/DXF peer maturity and recently published malformed-input failure modes",
+    "Refine ACadSharp and ezdxf evidence use for AcDs structure and SAT/SAB semantics",
+    "Keep the research actionable without adding per-slice peer or full-suite cost"
+  ],
+  "method": {
+    "kind": "Read current upstream source/docs/releases and reconcile with existing local plan ownership",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "src/intern/dwgreader18.cpp",
+      "src/intern/dwgreader21.cpp",
+      "src/intern/dwgreader.cpp",
+      "src/drw_entities.cpp",
+      "src/intern/dwgsafety.h",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/hardening_tests.cpp"
+    ],
+    "limitations": "Upstream source/release notes are not conformance results. FreeCAD behavior was source-inspected, not run. No exploit, peer issue attachment, proprietary file, external sample, or native CAD result was reproduced. Local guard inspection is not a regression-test or sanitizer pass."
+  },
+  "sources": [
+    {
+      "project": "FreeCAD importDWG wrapper",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "Mutable main source/docs reviewed 2026-10-18",
+      "observed": "DWG import runs an external converter, waits with Popen.communicate(), checks whether the expected temporary DXF path exists, and then passes the path to importDXF.open(). The inspected path does not check the converter return code or independently inspect the produced DXF. DWG export similarly invokes conversion and returns the requested path without checking converter success. Documentation describes the ODA route as converter-to-DXF followed by the normal DXF importer."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "NEWS v0.14.1 dated 2026-07-25; issue #1411 reviewed 2026-10-18",
+      "observed": "The release records fixes for R2004 decompression accounting, page-map/R2007 range bounds, integer overflow in 3DSOLID SAT block-size validation, non-finite MLINESTYLE writer loops, stale object pointers after reallocating additions, and dropped final SAT blocks. The same current NEWS page contains an earlier statement that Prototype1b/AcDs is incomplete and modern SAB extraction has used brute-force recovery. Issue #1411 reports a specific build losing AcDs/SAB. These are release- and route-specific observations, not libdxfrw defects or an independent semantic oracle."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51"
+      ],
+      "revision": "Release page reviewed 2026-10-18; latest listed tag v3.8.0 at signed commit 3a1c66b",
+      "observed": "The v3.6.51 release notes list ACIS payload reading for 3DSOLID/REGION/BODY and full Prototype1b parsing; v3.8.0 follows that release. This supports an optional released read-side structural-comparator route once pinned, but does not qualify every owner/key association, writing, or B-rep semantics."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/acis/api.py"
+      ],
+      "revision": "Stable docs identify ezdxf 1.4.5; source page reviewed 2026-10-18",
+      "observed": "The documentation explicitly limits ACIS load/re-export, says curved-face tessellation requires an ACIS kernel, and maps SAT to DXF R2000-R2010 and SAB to R2013+. Treat it as a named profile author/parser, not an arbitrary ACIS editor, DWG AcDs reader, or general semantic oracle."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines the existing FreeCAD native-consumer gate so direct DXF import tests libdxfrw output without converter confounding, and any DWG wrapper experiment explicitly validates converter exit and intermediate output before importer results. Maps fresh LibreDWG failure classes to existing hardening owners and refreshes optional ACadSharp/ezdxf role boundaries."
+  },
+  "implementationReadyChecks": [
+    "For a libdxfrw DXF writer check, open its DXF directly in the selected FreeCAD DXF backend; do not pass it through a DWG converter.",
+    "For DWG conversion, record converter executable/version/argv/return code/stdout/stderr and validate newly created output hash, size, version signature, framing, and owner/entity census before FreeCAD import.",
+    "Keep failures stage-specific: converter process, intermediate DXF structure/semantic projection, and FreeCAD importer/consumer result are separate outcomes.",
+    "Map LibreDWG's published failure classes to current bounded-read, payload, finite-value, stable-identity, and progress owners; open a local finding only after a local trace or generated reproducer demonstrates a gap.",
+    "Use ACadSharp v3.8.0 only as an optional read-side structural differential at a composed checkpoint, with exact package/source/dependency pins and per-handle AcDs disposition.",
+    "Use ezdxf only for an exact generated SAT/SAB profile; separate flat-polyhedron expectations from curved B-rep semantics and retain unsupported-node/loss accounting.",
+    "If platform/backend/peer availability blocks a composed route, record NOT_AVAILABLE or NOT_RUN and continue the next locally ready implementation slice.",
+    "Do not add peer files as fixtures, external dependencies, new CTest registrations, or recurring per-slice validation."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout contains extensive unrelated tracked and untracked work. Only the research plan and receipt were changed; unrelated changes were preserved."
+  }
+}

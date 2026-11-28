@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-mentalray-source-staging-and-render-class-2026-11-18",
+  "date": "2026-11-18",
+  "status": "MENTALRAY_SOURCE_AND_SCRATCH_STAGING_VERIFIED_RENDERGLOBAL_CLASS_CORRECTED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "577e18806a3e910a6c16c7ca20a33887f8e1acfa7c806df83e85c5693fe81285",
+  "peerInputs": {
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "libreDwgTraceSha256": "9bead9945a7e9b78c541e73d9ab4c0fe461c8e3ba4105e95bcd3103fe7f9603c",
+    "odaAsciiDxfSha256": "911acff2824c5d75043a074381aea9d2274601ca62391b14786a224444f6c0eb"
+  },
+  "mentalRaySource": {
+    "class": "Source class 519 matches the unique LibreDWG record, C++ class and SCENEOE application. Proxy flags are 1024. The source contains two instances.",
+    "active": "413 bytes. Scalar body ends at bit 931. Four TU strings and footer end at bit 3244. Owner and reactor use role 4 length 1 to C. Extension uses role 3 length 2 to 1CD. Terminal bits are 1111.",
+    "preset": "292 bytes. Scalar body ends at bit 875. Four TU strings and footer end at bit 2300. Owner uses role 8 length 0 to 255 and reactor uses role 4 length 2 to 255. Terminal bits are 1111.",
+    "companions": "Exact NOD links C\u21921CC and C\u2192255. Dictionary 1CD binds XRECORD 1CE with payload 70=2, 71=4 and 72=0. Dictionary 255 binds preset 256. The ODA DXF uses 350 for both root links and the preset member, and 360 for the extension-dictionary member.",
+    "controls": "The independent bound cursor rejects all 5640 single-bit mutations of the two MentalRay frames plus truncation and extension. The companion suite rejects all 6264 single-bit mutations across the NOD and the three child frames. Unchanged frame retries pass.",
+    "bodyEvidence": {
+      "root": "/private/tmp/p4-mentalray-wire-review",
+      "sha256": {
+        "verify.py": "9804eb26f7ec78a7ae297a38c8448f3af715f06190644aafb08a63389aeb63eb",
+        "verify.log": "bc1fb98552432226461f81f871f6dfe9f90c3382aa271d3fef6df5c5b1e3cbb4",
+        "spans.json": "a4926289be3a16c50ab48a8b27590e1227db0fe290c5da7d659bd32e2446442f",
+        "receipt.json": "acc7c480fae45c4be6d81428d7686cfc367174255374894d0bd32b898bee78ad",
+        "writer-comparison.json": "ca031305f94eae6b4a280d3f695f1d325e5b9deec77c80f550edf05309d9e482"
+      }
+    },
+    "companionEvidence": {
+      "root": "/private/tmp/p4-aerial-mental-companion-proof",
+      "sha256": {
+        "capture.cpp": "fd95e205dfa4e5cc91226f5e41d1799ad82d8d9ff181672d24f49323c17b5822",
+        "frames.txt": "4478c22e4e8bebeb18f5d25417c4c0a9c3180f28bb8c041359e1afacf3e359dd",
+        "verify.py": "d7e5fd2e429c2995a6d16484410b05a430be090c49a07b484c6e0b3be4990f7b",
+        "verify.log": "f4f8c5c1b96b77443bb5738ba6da737f8bc48bdadc864f897111bb1ab19aa03c"
+      }
+    },
+    "mutations": {
+      "root": "/private/tmp/libdxfrw-all-render-selected.nJbrNm",
+      "sha256": {
+        "mutate.py": "8778e2c10ba4a9aceb24ee087039579e622b25eb941818a4dac014dceb4fd480",
+        "mutate.log": "a897f0afd25a3ef6ad6d9cc2c2b610c13bcb2d93e068e16e95c95dc5e997908a"
+      }
+    }
+  },
+  "jointSelectedStaging": {
+    "result": "Scratch projection stages all three source render records, their dependent dictionaries and XRECORDs at eight distinct remapped handles in ASCII and binary. The production Global, generated-root and standard-object inspectors pass. Independent ezdxf 1.4.5 confirms the two MentalRay bodies' 55 ordered fields, root and owner links, reactors and member roles. Four contrast doubles per record differ from ODA decimal rounding by at most six representable double steps.",
+    "limit": "This scratch projection calls the low-level writer for the MentalRay records. It has no MentalRay source-bound writer admission or finalization, which remains pending. The grouped experiment predates the RENDERGLOBAL CLASSES correction.",
+    "evidence": {
+      "root": "/private/tmp/libdxfrw-all-render-selected.nJbrNm",
+      "sha256": {
+        "writer.cpp": "52ee0dda920a2e49cacbbb81c81e9660406344df7c006c2d38838830128ec705",
+        "run.log": "008df1a07ea20b31e364e0acf5c18bbb0b03963fb4401c753ce0bb3a16b980e5",
+        "peer.py": "61737c39364034b237e4829bb71b6c85e449134f472b484fb446b87b3fbf9ad1",
+        "peer.log": "77a11b5a0e2d1c84f4fd96dd95c7355d7b5371638c6bf3f8306c24d76ef49735",
+        "three-ascii.dxf": "25f7a83d4543c77a592019a8bd94a6e91eb2b0c3e49965f19fcc76bb062d9c15",
+        "three-binary.dxf": "993619259d257815564db4f13ebf1528049169f0096577d86493f4ea02dbbfd8"
+      }
+    }
+  },
+  "renderGlobalClass": {
+    "finding": "The generic registry wrote group 90 proxy flags 1153 for RENDERGLOBAL and MENTALRAYRENDERSETTINGS. The pinned source and ODA DXF use 1024 for both.",
+    "fix": "The witnessed RENDERGLOBAL export derives the entire DXF class identity and flags from its already-joined DWG class row, then sets the count from the selected output. Other registry entries retain their existing defaults.",
+    "result": "Independent ezdxf readback of exact selected ASCII and binary outputs verifies flags 1024 and one emitted instance, and also rechecks the ordered object fields and remapped graph. The ODA export reports three instances. The selected writer derives its own count.",
+    "evidence": {
+      "root": "/private/tmp/libdxfrw-renderglobal-class-check.daozzp",
+      "sha256": {
+        "selected.cpp": "a7c5f8136a08a06ea840567b7aaecc985559c914220c678a360fcc44e928e3aa",
+        "run.log": "11a6cdb133da47c9ff83b1dc457d8e18da0a21d175a83e5f21f5c056f212f3fb",
+        "peer.log": "d85e2cf9cf06a5c3790d9c3ff0f616e1278d8aa378c7fd2b8e79860ccc0b4e34",
+        "classes.py": "1ba89db35ab86af53f19814b1a091bcd8abbb3c3e67b89d7f30574ea869b7021",
+        "classes.log": "22564f9df95cdf991128148d2dcd87e2e8407863de4c605fc785c53ac8349a6a",
+        "selected-ascii.dxf": "c4d8dbd3d760fec83e2e54f81352ef0ba90d277be7b2bc6eaa2517b4373d73f5",
+        "selected-binary.dxf": "9bd0438ad4eb351b6374b9148633dc59dc36f403acb7f2dc0ff588af0b3ccfac",
+        "official.log": "11a6cdb133da47c9ff83b1dc457d8e18da0a21d175a83e5f21f5c056f212f3fb"
+      }
+    },
+    "physicalTest": "The updated physical selector reads back the actual CLASSES row and passes the nine refusal-and-retry cases per encoding. Three focused neighboring CTests also pass."
+  },
+  "remaining": "Bind both MentalRay bodies, the three companions and the matching class publication to the original import. Reuse the extended writer and preserve its source class flags. Add staged field, mapped role and destination-preserving retry controls for the joined three-render graph. Native and whole-source export qualification remain open."
+}

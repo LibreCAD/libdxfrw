@@ -1,0 +1,16 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-shared-staged-dictionary-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "bf527a6dd272601967c759fa28a9e3d295d077bc20b82be1085045b09d8a8510",
+  "change": "Share a staged R2000+ DICTIONARY inspector for exact emitted owner, flags, ordered names, target handles and ownership codes; reject duplicate normalized names and oversized names.",
+  "checks": [
+    "PASS: generated R2000\u2013R2018 ASCII/Binary standalone and LibreCAD-profile root and image dictionaries, with wrong flags, names, targets, roles, entry counts, aliases and staged bytes refused; destination preservation and same-writer retry.",
+    "PASS: the focused matrix under macOS AddressSanitizer.",
+    "PASS: source-release inventory and qualification digest."
+  ],
+  "limits": [
+    "This verifies one selected emitted dictionary, not target types, source provenance, complete graph closure, publication or native CAD semantics.",
+    "The consumer has not yet enabled this check for multi-image output."
+  ]
+}

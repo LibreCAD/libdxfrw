@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-polyline-owner-map-rehash-peak-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Bound pending-parent and child-first orphan unordered-map bucket growth before reserve/insert under the shared POLYLINE staging budget, including a conservative replacement bucket-array peak estimate.",
+  "method": {
+    "kind": "Focused generated in-memory safety control and strict owning-target validation",
+    "productionFilesChanged": [
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader.cpp"
+    ],
+    "testFilesChanged": [
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiChanged": false,
+    "fullSuiteRun": false,
+    "sanitizersRun": false,
+    "externalToolsRun": false,
+    "supportClaimsPromoted": 0
+  },
+  "implementation": {
+    "ledger": "Before owner-map reserve/insert, check both the retained bucket-count delta upper bound and a conservative full replacement bucket-pointer-array estimate against the remaining 256 MiB staging budget. Existing retained bytes and the incoming owner-node estimate remain charged during this preflight.",
+    "postcondition": "After reserve, measure the actual bucket-count delta and reject/rollback if it exceeds the declared bound or accounting policy.",
+    "limitations": [
+      "The model estimates pointer-array bytes and does not bound baseline bucket arrays.",
+      "Allocator metadata, allocator retention, and implementation-specific transient allocations are outside the ledger; this is not an RSS guarantee.",
+      "The selector uses generated maps and synthetic frame state; source-location/callback and full actual-reader pipeline coverage remain open."
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_(dwg_reader_matrix|dwg_local_roundtrip)$'",
+        "result": "PASS",
+        "passed": 2,
+        "failed": 0
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/intern/dwgreader.h src/intern/dwgreader.cpp tests/dwg_reader_matrix_tests.cpp",
+        "result": "PASS"
+      }
+    ],
+    "tests": [
+      "zero retained/peak allowance refusal",
+      "one-byte-under transient replacement-array allowance refusal without map growth",
+      "successful admission when retained and transient bounds fit",
+      "actual retained bucket charge remains within the modeled delta",
+      "estimated replacement array covers the resulting bucket pointer count"
+    ]
+  },
+  "workspace": {
+    "commitCreated": false,
+    "reason": "The shared worktree contains broad unrelated dirty changes; this focused slice remains uncommitted to avoid capturing unrelated user work."
+  }
+}

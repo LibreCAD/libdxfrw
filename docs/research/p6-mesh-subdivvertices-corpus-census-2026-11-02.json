@@ -1,0 +1,261 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mesh-subdivvertices-corpus-census-2026-11-02",
+  "date": "2026-11-02",
+  "status": "CENSUS_COMPLETE; NO_NONZERO_CANDIDATE_VECTOR_PROFILE_FOUND",
+  "supportClaimEffect": "none",
+  "scope": "Expand local DWG and ASCII DXF searches for AcDbSubDMesh and determine whether any available source exercises a nonzero candidate subdivision-vector count or DXF group-91 level value.",
+  "tools": {
+    "name": "LibreDWG dwgread",
+    "version": "0.14",
+    "minJsonCommand": "dwgread -O minJSON <input.dwg>",
+    "traceCommand": "dwgread -v5 -O minJSON <input.dwg>",
+    "fullCensusScript": "/private/tmp/libdxfrw_mesh_full_census.py",
+    "fullCensusScriptSha256": "914b784e9ae0f61b31d17236e03cba71c9e454e9dd46427b988ebbcc34722443",
+    "traceCensusScript": "/private/tmp/libdxfrw_mesh_v5_census.py",
+    "traceCensusScriptSha256": "53018cb902890a74610d64ead3fd21f2c4f5caf81d19b8bc19ccd39ae70f33f8",
+    "fullCensusOutput": {
+      "path": "/private/tmp/libdxfrw-mesh-full-census.json",
+      "sha256": "8f7d51373a3974b8de81973091e1ea762a6c98ff3dd0c962a9b3abb4fe87fb65"
+    },
+    "traceCensusOutput": {
+      "path": "/private/tmp/libdxfrw-mesh-v5-census.json",
+      "sha256": "580d4da1724009d4c6224609dc1b317dc2b81d70f93a51b1f8528906a809aad8"
+    },
+    "asciiDxfCensusScript": "/private/tmp/libdxfrw_mesh_ascii_dxf_census.py",
+    "asciiDxfCensusScriptSha256": "83479bbfc4aa1cddca531efbdb2d0f8d776b1637a30233f2f9dc8a11eae8fb06",
+    "asciiDxfCensusOutput": {
+      "path": "/private/tmp/libdxfrw-mesh-ascii-dxf-census.json",
+      "sha256": "181ff69167685b01965809e0db52b0643805a69dce01da18da269865b9d7e3e8"
+    }
+  },
+  "corpus": {
+    "roots": [
+      "/Users/dli/doc/dwg",
+      "/Users/dli/doc/dwg2",
+      "/Users/dli/doc/dwg3",
+      "/Users/dli/doc/dwg4",
+      "/Users/dli/doc/dwg5",
+      "/Users/dli/doc/dwg6",
+      "/Users/dli/dev/libredwg/test/test-data"
+    ],
+    "dwgFiles": 941,
+    "minJsonSuccessfulReads": 799,
+    "nonSuccessfulReads": 142,
+    "meshRecords": 36,
+    "meshSourcePaths": 18,
+    "uniqueMeshSourceHashes": 8,
+    "uniqueMeshRecords": 16,
+    "versions": [
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "failedOrTimedOutReads": "Excluded from positive or negative field-layout conclusions."
+  },
+  "traceFindings": {
+    "candidateField": "LibreDWG trace field num_subdiv_vertex [BL 91]",
+    "sourceHashes": [
+      {
+        "version": "AC1014",
+        "sha256": "d1ec4519be14ac49ecab5ec024ad951271e00261a1851f623a784a97ba6ede73",
+        "meshRecords": 2,
+        "values": [
+          0,
+          0
+        ]
+      },
+      {
+        "version": "AC1015",
+        "sha256": "8ffbdc713f5838cbbb1596a8422e2b607e5c9e79921e852cbb5abee4af76ea4e",
+        "meshRecords": 2,
+        "values": [
+          0,
+          0
+        ]
+      },
+      {
+        "version": "AC1018",
+        "sha256": "7ba7ea2e6e89a01094d4ffe104dd1cfc03513d1991bd223aeac1a3186a6c38d3",
+        "meshRecords": 2,
+        "values": [
+          0,
+          0
+        ]
+      },
+      {
+        "version": "AC1021",
+        "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+        "meshRecords": 2,
+        "values": [
+          0,
+          0
+        ]
+      },
+      {
+        "version": "AC1024",
+        "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+        "meshRecords": 2,
+        "values": [
+          0,
+          0
+        ]
+      },
+      {
+        "version": "AC1027",
+        "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6",
+        "meshRecords": 2,
+        "values": [
+          0,
+          0
+        ]
+      },
+      {
+        "version": "AC1032",
+        "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+        "meshRecords": 2,
+        "values": [
+          0,
+          0
+        ]
+      },
+      {
+        "version": "AC1032",
+        "sha256": "2fd52de87040d2b74922579e5e49b7f72943a436b8a11dc1d7f00244aed7da21",
+        "meshRecords": 2,
+        "values": [
+          0,
+          0
+        ]
+      }
+    ],
+    "allObservedCandidateCountsZero": true,
+    "nonzeroCandidateProfiles": 0
+  },
+  "asciiDxfCensus": {
+    "roots": [
+      "/Users/dli/doc",
+      "/Users/dli/dev/libredwg/test",
+      "/Users/dli/dev/LibreCAD"
+    ],
+    "asciiDxfFilesListedByRg": 4939,
+    "filesContainingAcDbSubDMeshText": 18,
+    "pathsWithParsedMeshEntities": 16,
+    "meshRecordsAcrossPaths": 30,
+    "uniqueSourceHashes": 8,
+    "sourceDistinctMeshRecords": 15,
+    "uniqueSources": [
+      {
+        "sha256": "39ebdd9a48fef7a6240a04e3b5ca6d45ba5bb30b560fb9dadf26774e1af83731",
+        "version": "AC1021",
+        "records": 2,
+        "firstGroup91Values": [
+          0,
+          0
+        ]
+      },
+      {
+        "sha256": "4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6",
+        "version": "AC1027",
+        "records": 2,
+        "firstGroup91Values": [
+          0,
+          0
+        ]
+      },
+      {
+        "sha256": "4f7d7f0d3957d4d32c6c43e4c600eea8e90fc0fcb1b36b11256095a9789a923f",
+        "version": "AC1015",
+        "records": 2,
+        "firstGroup91Values": [
+          0,
+          0
+        ]
+      },
+      {
+        "sha256": "5efdd671e3b6d8c45bd0688b1d6479d523f2290f0b390f1584348bf46e34c965",
+        "version": "unknown",
+        "records": 1,
+        "firstGroup91Values": [
+          0
+        ]
+      },
+      {
+        "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+        "version": "AC1018",
+        "records": 2,
+        "firstGroup91Values": [
+          0,
+          0
+        ]
+      },
+      {
+        "sha256": "aa4204cc64cde5867b4ac922a9356e02c091bcf8e0fec636252f06ed4ebe5c60",
+        "version": "AC1018",
+        "records": 2,
+        "firstGroup91Values": [
+          0,
+          0
+        ]
+      },
+      {
+        "sha256": "c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2",
+        "version": "AC1032",
+        "records": 2,
+        "firstGroup91Values": [
+          0,
+          0
+        ]
+      },
+      {
+        "sha256": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372",
+        "version": "AC1024",
+        "records": 2,
+        "firstGroup91Values": [
+          0,
+          0
+        ]
+      }
+    ],
+    "allFirstGroup91ValuesZero": true,
+    "nonzeroProfiles": 0,
+    "limitation": "These local DXFs are not independent native-producer evidence; repeated dwg5/dwg6 files are byte-identical copies."
+  },
+  "interpretation": {
+    "whatThisEstablishes": "No nonzero group-91 subdivision-vector candidate was available in the 16 unique DWG MESH records successfully traced from eight unique byte streams; no nonzero group-91 level appeared in the 15 source-distinct local ASCII DXF MESH records. The current nonempty-subdivVertices output guard remains justified for known inputs.",
+    "whatThisDoesNotEstablish": "The corpus does not adjudicate whether a nonzero DWG candidate vector is valid, what it represents, or how it maps to the Autodesk DXF subdivision-level field. The 142 non-successful minJSON reads were excluded from absence claims; local ASCII DXFs are not treated as independent producer evidence.",
+    "next": "Find an eligible physical nonzero sample or authoritative schema evidence before implementing subdivVertices import/export; preserve refusal until then."
+  },
+  "fixtureFilesAdded": 0,
+  "outputFilesCommitted": 0,
+  "supportClaimsPromoted": 0,
+  "planBinding": {
+    "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "68ad149535f53c07204d672c26de318222323fa53b591dbd56529a68f9817e41"
+  },
+  "currentTurnValidation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests --parallel 4",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mesh_crease_value_domains|libdxfrw_mesh_dwg_crease_count_guard|libdxfrw_mesh_dxf_allocation_failure)$' --output-on-failure",
+    "passed": 3,
+    "failed": 0,
+    "elapsedSeconds": 0.41
+  },
+  "stagedInputHashes": {
+    "src/drw_entities.cpp": "90444975aea47189d45bc0ca752c834a49a9d4cdfa9444e16960df687bc581b2",
+    "tests/dwg_object_vectors_tests.cpp": "437da8f7bc00df9f817aae47172731cbd4864b11402a2885a98bf7dc0645b3b1",
+    "tests/hardening_tests.cpp": "82516e1a3059d1d47836c5682a7c8fde9e660f8e5864af0a4549de3e1612ae2b",
+    "tests/dwg_local_roundtrip_tests.cpp": "8e051681e201c34b11a180584fc1dc8b66f6fba152d2433ab1a367001c020a9d",
+    "CMakeLists.txt": "d1c8714988f9cd41e787983cd28586c1495f1aa07ecfe883a4e34151a539fb33",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ca6184dc175f0fa7feb8e069f75b53dc8ee78a271fb0117ef5ee259d37e49ce7"
+  },
+  "repositoryState": {
+    "baseHead": "a49c90a3",
+    "stagedScope": "bounded MESH DWG parse/output profile; DXF loss guards; generated vectors",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

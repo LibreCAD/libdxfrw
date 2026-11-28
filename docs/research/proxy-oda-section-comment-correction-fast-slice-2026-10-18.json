@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Proxy and VisualStyle ODA section comment correction",
+  "mode": "documentation-only source cleanup derived from ODA v5.4.1 section review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Remove the invalid §20.4.95 citation from DXF common proxy-graphics group 92.",
+    "Remove the invalid §20.4.95 citation from VisualStyle callback/dispatch comments.",
+    "Keep valid §20.4.90 DWG PROXY and §20.4.95 SPATIAL_INDEX references distinct."
+  ],
+  "changes": [
+    {
+      "path": "src/drw_entities.cpp",
+      "change": "Clarified that group 92 is a DXF common-entity proxy-graphics byte count; DWG PROXY layout is separately §20.4.90."
+    },
+    {
+      "path": "src/drw_interface.h",
+      "change": "Removed §20.4.95 from the VisualStyle callback comment and documented that ODA v5.4.1 lacks a complete class body layout."
+    },
+    {
+      "path": "src/intern/dwgreader.cpp",
+      "change": "Removed the incorrect §20.4.95 VisualStyle body citation and documented the ODA v5.4.1 layout limit."
+    }
+  ],
+  "verification": {
+    "gitDiffCheck": "passed",
+    "build": "not run; comment-only changes",
+    "tests": "not run; comment-only changes"
+  },
+  "supportImpact": "None. No wire behavior, fixture, API, finding count, or support claim changed.",
+  "workingTree": "Broad pre-existing user modifications remain. This slice was left unstaged and uncommitted to avoid capturing unrelated changes."
+}

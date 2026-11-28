@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "AC1032_BOUNDED_EXPLICIT_PREVIEW_TRANSPORT",
+  "supportClaimEffect": "none",
+  "scope": "Extend the existing explicit same-version DWG WIPEOUT preview replay to AC1032 for the identical bounded 152-byte resource-free profile; retain caller freshness responsibility and all writer-path/reentrancy gates. No automatic adapter, whole-document or native display claim.",
+  "prior": "docs/research/p5-wipeout-dwg-preview-explicit-replay-2026-11-04.json records the exact four-chunk profile, ODA v5.4.1 section 29 authority and AC1024/AC1027 evidence.",
+  "physical_source": {
+    "provenance": "A locally authored WIPEOUT DXF was converted to AC1032 DWG and back to DXF using ODA File Converter 27.1.0. No drawing fixture was added.",
+    "input_dxf_sha256": "92a2bdf3d8cd3de0cc3852804d1cf20b8a5daebcc9bca1da37a749b958ea431b",
+    "dwg_sha256": "54cfec7952dda22823b98f3c5bdeb08b822d1db49fa7e64f00e2ddb6064bc469",
+    "oda_dxf_sha256": "286dd8d77b9a4826ffd2cd3b11ca705029fff68250a0472285a3954895e98f24",
+    "path": "/private/tmp/wipeout-ac1032/dwg/source.dwg",
+    "independent": "GNU LibreDWG 0.14 reports a 152-byte WIPEOUT DWG preview; ezdxf 1.4.5 independently reads the ODA-produced DXF preview and gives SHA-256 6e138b15c188170b2bf96c9c2cdae6cd401a2e275383dd425e2198ec98dc471e, byte-identical to the prior bounded source profile."
+  },
+  "implementation": "The existing ParsedDwg, explicit-authorization, exact dynamic WIPEOUT and single-use same-writer/same-entity scope allows AC1032 only for same-version output with the unchanged exact four-chunk validator. The strict dwg2dxf proxy-preservation gate is unchanged. Authorization remains a caller freshness contract; callers must revoke and re-authorize after any cache or geometry edit.",
+  "validation": {
+    "generated": "ctest --test-dir build-gcc -R '^libdxfrw_wipeout_dwg_proxy_replay$' --output-on-failure passed (1/1). The existing generated suite now includes AC1032 alongside AC1024/AC1027, in ASCII and Binary; it covers bounded malformed chunks, wrong versions, unauthorized and strict-adapter cases, wrong writer/dynamic type, nested same/different writer, exception unwind, sentinel preservation and corrected retry.",
+    "physical": "build-gcc/tests/libdxfrw_wipeout_dwg_proxy_replay_tests /private/tmp/wipeout-ac1032/dwg/source.dwg /private/tmp/wipeout-ac1032/selected-preview passed. Source SHA-256 was checked before and after; selected-record output is not a whole drawing conversion.",
+    "independent_readback": "ezdxf 1.4.5 independently opens both selected output files, each with one WIPEOUT and 152-byte proxy cache SHA-256 6e138b15c188170b2bf96c9c2cdae6cd401a2e275383dd425e2198ec98dc471e.",
+    "output_ascii_sha256": "305f08467e6c4e98bd176f920d59d5448955c19c82ee85fbe5eae6c64217f0c7",
+    "output_binary_sha256": "0598b6e7126788a3788647e373ee55a2b95cf902aa1ce1f5caa63c24aa971a95"
+  },
+  "limits": [
+    "One ODA producer and one four-point preview do not qualify general proxy chunk grammar or native rendering.",
+    "No automatic detection of cache or geometry mutations is added.",
+    "Strict complete output, HEADER and source graph closure remain separately qualified."
+  ]
+}

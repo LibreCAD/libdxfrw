@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-ac1027-oda-section24-record-model-crosswalk-2026-11-17",
+  "date": "2026-11-17",
+  "status": "AC1027_ACDS_BOUNDED_STRUCTURAL_PROFILE_CLOSED",
+  "supportClaimEffect": "none",
+  "scope": "Close the bounded R2013 AcDb:AcDsPrototype_1b wire-structure gate by mapping the versioned ODA layout to the current section parser and handle-linked SAB record model. Do not claim SAB geometry, whole-file DXF output, or native 3D support.",
+  "authority": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": {
+      "7": "Printed page 70 states R2013 introduced the AcDb:AcDsPrototype_1b data section.",
+      "24.1": "Printed page 252 defines the 56-byte file header and segment-index selectors.",
+      "24.2.1-24.2.2.2": "Printed pages 253-254 define the 48-byte segment header, 0x40 segment alignment, segment-index entries, and data-index rows.",
+      "24.2.2.3-24.2.2.3.1": "Printed pages 254-256 define 20-byte data-record headers, record boundaries, inline bytes, blob-reference records, and page references.",
+      "24.2.2.5-24.2.2.6.1.1": "Printed pages 256-258 define schema-index table order, schema-data segments, name tables, typed property spans, and values.",
+      "24.2.2.3": "For each ACIS entity the data record contains its handle and SAB bytes; the section specifies the ACIS BinaryFile prefix and version-dependent terminal marker."
+    },
+    "versionBinding": "The ODA version table maps AC1027 to R2013; §7 introduces this section in the R2013 organization chapter. The field map is therefore directly versioned for AC1027."
+  },
+  "recordModelCrosswalk": [
+    {
+      "specification": "§24.1; 56-byte header",
+      "implementation": "src/drw_datastorage.cpp: DRW_parseDataStorage",
+      "fields": "The fixed header fields are read at their specified byte offsets; segment-index offset/count and schema/data/search/previous-save selectors are range checked."
+    },
+    {
+      "specification": "§24.2.1 and §24.2.2.1; 48-byte segment header and 12-byte directory entries",
+      "implementation": "src/drw_datastorage.cpp: readSegmentIndex",
+      "fields": "Segment identity, extent, revision, alignment offsets, and segment kind are retained. Directory reads are bounded by the live segment extent and section length."
+    },
+    {
+      "specification": "§24.2.2.2-24.2.2.3.1; 12-byte data-index entries and 20-byte data-record headers",
+      "implementation": "src/drw_datastorage.cpp: readDataIndex/readDataRecords",
+      "fields": "Schema index, segment index, local offset, record handle, bounded record payload, and blob-page references are retained with per-record boundaries."
+    },
+    {
+      "specification": "§24.2.2.5-24.2.2.6.1.1; schema-index tables and typed schema spans",
+      "implementation": "src/drw_datastorage.cpp: readSchemaIndex/readSchemaData; bounded AC1027 reversed-table-role compatibility detector",
+      "fields": "Schema indexes, local offsets, name indexes, property flags/types/counts, and value bytes are kept in a typed section profile. The observed AC1027 alternate table-role profile is accepted only after per-segment reference, order, and alignment checks."
+    },
+    {
+      "specification": "§24.2.2.3; data-record handle association to ACIS entities",
+      "implementation": "src/intern/dwgreader.cpp: dwgReader::linkDataStorage/finalizeDataStorageLinks",
+      "fields": "A modeler entity is linked only to one matching handle/key record; duplicate claims, conflicting identities, missing candidates, and budget failures do not publish partial links. Raw SAB bytes remain separate from geometric interpretation."
+    }
+  ],
+  "physicalProfiles": [
+    {
+      "source": "/Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg",
+      "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6",
+      "provenanceLimit": "Tracked ACadSharp sample; the repository location does not establish the drawing's original authoring product.",
+      "currentReaderObservation": "AC1027, 36,736-byte AcDs section, 6 schemas, 8 data records, and three modeler entities with matching AcDs record handles. Its two schdat-segment reversed-role profile is independently retained as bounded compatibility behavior; no output or geometry claim follows."
+    },
+    {
+      "source": "/Users/dli/doc/dwg3/example_2013.dwg",
+      "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+      "provenanceLimit": "Public dwg-verifier source; its original authoring application and production history are unknown.",
+      "receipt": "docs/research/p7-ac1027-physical-modeler-acds-sab-oda-byte-join-2026-11-03.json",
+      "observation": "The 20,352-byte AcDs section has a source-bound schema/data-index map. Three same-handle modeler payloads match ODA-produced DXF group-310 bytes exactly; this corroborates record association and transport only."
+    }
+  ],
+  "sourceProbe": {
+    "source": "tests/ac1027_acds_source_probe.cpp",
+    "sha256": "312aef1455b9b0cd846fe9abdf0e9ade0480c490096ed34c785fed9388d89baa",
+    "executable": "build-gcc/libdxfrw_ac1027_acds_source_probe",
+    "executableSha256": "059b83b34be6e2d44f28cacf0426cc2352c71db8e26257a47bad8432bdd1f61b",
+    "method": "Read each existing AC1027 source, parse its AcDs section through the current reader, and compare its data-record handles with modeler entity links. This is reader corroboration, not an independent decoder."
+  },
+  "generatedControl": {
+    "source": "tests/graph_preservation_tests.cpp:testDataStorageBlobPages",
+    "fixtureFilesAdded": 0,
+    "coverage": "The in-memory AC1027 multi-schdat profile is accepted with both schemas and unknown-property headers. An out-of-segment schema-root mutation is refused with replay disabled and compatibility unselected; reparsing the corrected same profile then succeeds. Malformed AC1032 references remain refused."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4",
+    "buildResult": "PASS",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_datastorage_schema_profiles$' --output-on-failure",
+    "focusedTestResult": "PASS (1/1, 0.27 seconds)",
+    "testBinarySha256": "14804999133644fc377869b4f971bffac973aee55cbb236d926a1af772a0a355",
+    "parserSourceSha256": "616ac74e6ecd5f829e6ca370bdddf124970cd5ac5489ed9e4ac857f3495267bc",
+    "readerSourceSha256": "e89623e1271f7bf5a3faa2e72dd4c5c1453cacba08dcd0abbb974e4b436fae97",
+    "noFullSuite": true
+  },
+  "decision": "Close P7-B only for the bounded AC1027 AcDs file/index/schema structure, record framing, and source-handle-to-raw-SAB association model. Keep SAB meaning, source breadth, strict selected-profile DXF output, native modeler semantics, and consumer support in their separate gates.",
+  "limitations": [
+    "The source examples do not establish original authoring product provenance or broad AutoCAD producer coverage.",
+    "ODA's schema authority and the physical source receipts establish structure and payload association, not ACIS geometry correctness or topology.",
+    "P7-C remains open for version-qualified R2013+ modeler DXF shell fields and selected-profile output/readback; P7-D and P7-F remain open for ACIS semantics. Whole-file AC1027 CLI refusal remains unchanged.",
+    "No DWG/DXF fixture was copied or added to the repository; the new test source generates its section bytes in memory."
+  ]
+}

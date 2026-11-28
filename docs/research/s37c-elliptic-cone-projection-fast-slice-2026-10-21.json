@@ -1,0 +1,67 @@
+{
+  "title": "S3.7c local elliptic ACIS cone projection and distance",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Closest point and unsigned Euclidean distance to the untrimmed elliptic-cone surface under the explicit local decoded-field parameterization",
+    "domain": "Finite cone face with a positive finite ratio other than one, positive cosine angle, normalized angle pair within caller frame tolerance, nonzero axis and projected major axis, finite query, and numerically resolvable normalized generator direction; zero sine angle dispatches to the elliptic-cylinder limit",
+    "algorithm": "For nonzero sine angle, represent each surface generator as a line through the local cone apex; maximize the squared query-direction dot product over direction norm. A half-angle substitution gives a quartic stationarity polynomial; recursive derivative-root isolation and bisection find roots on two bounded charts, and endpoints are included as candidates. At zero sine angle, reuse the ellipse closest-point solver in the axis-normal plane.",
+    "ambiguity_policy": "Projection refuses tied distinct closest points, including symmetric axial cases. Distance-only queries accept non-unique minima. The exact apex has one geometric closest point.",
+    "unsupported_profiles": [
+      "ratios or angles whose normalized direction component squares underflow"
+    ],
+    "tolerance_policy": "Projection uses the caller frame tolerance; distance checks an explicit finite nonnegative linear tolerance with equality accepted",
+    "numeric_policy": "Scale world/query/reference geometry before solving; isolate polynomial roots in [-1,1] charts; reject non-finite or unresolvable candidates; construct output coordinates using exponent-scaled products and compensated sums",
+    "non_claims": [
+      "normative ACIS ratio, nappe, orientation, or parameter semantics",
+      "edge trims, pcurves, or finite face-domain clipping",
+      "body transforms or source-unit application",
+      "B-rep validity, manifoldness, or shell closure",
+      "native consumer or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_generated_sab_21800_nonunit_ratio": "PASS",
+    "exact_locus_and_normal_offset_projection": "PASS",
+    "unique_apex_projection": "PASS",
+    "distance_tolerance_inside_and_outside": "PASS",
+    "ratios_below_and_above_one_against_dense_angular_scan": "PASS",
+    "oblique_nonunit_axis_frame": "PASS",
+    "symmetric_axial_nonunique_projection_refusal_and_distance": "PASS",
+    "elliptic_cylinder_projection_and_medial_axis_ambiguity": "PASS",
+    "underflowed_direction_refusal_is_atomic": "PASS",
+    "invalid_ratio_and_numeric_direction_refusal": "PASS",
+    "accepted_outputs_checked_against_elliptic_cone_equation": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.32 seconds)",
+    "symbol_check": "PASS (nm -gC build-gcc/libdxfrw.a exports the cone evaluator, projection, and distance symbols)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_exported_api": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

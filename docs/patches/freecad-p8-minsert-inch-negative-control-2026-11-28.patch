@@ -1,0 +1,40 @@
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1765,0 +1766,36 @@
++    def test_insert_array_negative_spacing_inches(self):
++        """Array offsets use drawing units and may run in negative directions."""
++        options = FreeCAD.ParamGet(self.option_source)
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 1), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                (0, "BLOCK"), (8, "0"), (2, "B"), (70, 0), (10, 0), (20, 0), (30, 0),
++                (0, "LINE"), (8, "0"), (10, 0), (20, 0), (30, 0), (11, 1), (21, 0), (31, 0),
++                (0, "ENDBLK"), (8, "0"), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                (0, "INSERT"), (8, "0"), (2, "B"), (10, 1), (20, 2), (30, 0),
++                (41, 2), (42, 1), (50, 30), (70, 2), (71, 2), (44, -2), (45, -3),
++                (0, "ENDSEC"), (0, "EOF")]
++        path = os.path.join(self.temp_dir, "array-negative-spacing-inches.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        expected = sorted(tuple(sorted(pair)) for pair in (
++            ((25.4, 50.8, 0), (69.3940905, 76.2, 0)),
++            ((-18.5940905, 25.4, 0), (25.4, 50.8, 0)),
++            ((63.5, -15.1911358, 0), (107.4940905, 10.2088642, 0)),
++            ((19.5059095, -40.5911358, 0), (63.5, -15.1911358, 0))))
++        for mode in (2, 3):
++            with self.subTest(mode=mode):
++                options.SetInt("DxfImportMode", mode)
++                previous = set(self.document.Objects)
++                Import.readDXF(path, self.document.Name, True, self.option_source)
++                self.document.recompute()
++                links = [obj for obj in self.document.Objects if obj not in previous
++                         and obj.Name.startswith("Link_B")]
++                observed = sorted(tuple(sorted((v.Point.x, v.Point.y, v.Point.z)
++                                              for v in edge.Vertexes))
++                                  for link in links for edge in link.Shape.Edges)
++                self.assertEqual(len(observed), len(expected))
++                for actual_pair, expected_pair in zip(observed, expected):
++                    for actual_point, expected_point in zip(actual_pair, expected_pair):
++                        for actual, wanted in zip(actual_point, expected_point):
++                            self.assertAlmostEqual(actual, wanted, delta=0.00001)
++

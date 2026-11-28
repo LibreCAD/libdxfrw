@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-image-reactor-dictionary-entry-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "993aaf9653ce348d20aeb47312a4bb927f54d935",
+  "authority": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+  "problem": "A raw dictionary entry still named an IMAGEDEF_REACTOR that the adapter intentionally omitted while regenerating an image graph.",
+  "implementation": "For ordinary recognized DICTIONARY frames only, remove group 3/350 pairs whose targets are omitted raw raster objects, preserve the parallel raw-value sequence and all other entries, and report each omitted entry. Unknown application groups or other layouts are left untouched.",
+  "validation": [
+    "The focused stale-entry check failed before the change. Six IMAGE and persistence tests pass, including R2000/R2010 model, named and anonymous block cases, an unrelated retained entry, clipping replay and a custom application-group control left untouched.",
+    "Independent ezdxf 1.4.5 reads one selected R2010 output and sees the unrelated KEEP entry without the stale OBSERVE reactor entry. Its audit reports zero errors and three repairs: the separate typed IMAGEDEF dictionary link, a retained XRECORD with an invalid owner and an orphan paper-space block."
+  ],
+  "testLogSha256": "79355ef5fc1314b1aa5142aa5d4531a400fd236c2642baf4c30f271bb6183558",
+  "peerResultSha256": "3ceddf1480de63633ef31a50fefb4b4732469b634669eedabfa895f53f2abe61",
+  "peerOutputSha256": "07d0e0ad0463f934cc0b9405f3072fc3fee909a923a2620e6c24729eb44fe389",
+  "limits": [
+    "Only canonical group 3/350 pairs whose omitted target is a captured raw raster object are repaired. Typed source IMAGEDEF identity is not matched by handle alone; custom dictionaries are unchanged and can still contain stale links.",
+    "This intentionally reports lost entries and does not establish complete image graph, dictionary-owner, layout, clipped rendering or general support. No generated drawing is committed."
+  ]
+}

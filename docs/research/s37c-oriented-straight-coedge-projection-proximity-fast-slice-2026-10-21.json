@@ -1,0 +1,64 @@
+{
+  "title": "S3.7c oriented straight-coedge projection and proximity",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Projection and explicit-tolerance proximity on an untrimmed finite straight edge, reported in coedge traversal order",
+    "public_api": [
+      "drw_projectPointToAcisStraightCoedge",
+      "drw_pointWithinToleranceOfAcisStraightCoedge"
+    ],
+    "sense_policy": "0 follows raw edge order; 1 reverses order; all other values are refused.",
+    "fraction_policy": "Return normalized [0,1] traversal fraction derived from validated topological endpoint parameters; refuse a zero-length parameter interval whose normalized fraction is undefined.",
+    "tolerance_policy": "Endpoint consistency and query distance tolerances are explicit finite nonnegative caller inputs; no ACIS/modeler default is inferred.",
+    "numeric_policy": "Use scaled interpolation when opposite-sign finite endpoint parameters have an overflowing difference.",
+    "non_claims": [
+      "curved-edge evaluation",
+      "pcurve or trim evaluation",
+      "face-surface evaluation",
+      "body transform or source-unit application",
+      "B-rep validity",
+      "native consumer or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "forward_and_reversed_projection_fraction": "PASS",
+    "reverse_endpoint_clamping": "PASS",
+    "forward_and_reversed_exact_distance_boundary": "PASS",
+    "just_outside_distance_atomic_refusal": "PASS",
+    "unknown_sense_atomic_refusal": "PASS",
+    "degenerate_range_refusal": "PASS",
+    "opposite_dbmax_parameter_range_midpoint": "PASS",
+    "parser_fed_sab21800_coedge_sense_evaluation_projection_and_proximity": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.22 seconds)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_symbols": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

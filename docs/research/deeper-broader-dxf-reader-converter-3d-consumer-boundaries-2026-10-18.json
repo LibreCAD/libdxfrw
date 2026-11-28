@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader DXF reader, converter, and 3D consumer boundaries",
+  "mode": "Primary-source review of DXF reader/writer scope, DWG-to-DXF converter handoff, and downstream consumer limitations",
+  "scope": [
+    "Review distinct direct-DXF parsing, same-document rewrite, cross-document copy, DWG conversion, native app import, and 3D semantic evidence lanes",
+    "Refine existing LibreCAD, LibreCAD_3, FreeCAD, ezdxf, and ACIS/AcDs qualification boundaries",
+    "Record implementation-ready, route-scoped follow-up without adding per-slice external validation"
+  ],
+  "method": {
+    "kind": "Read current primary repository sources and documentation; no peer execution",
+    "sourcesReviewed": 8,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localDwgFilesAddedOrModified": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0
+  },
+  "sources": [
+    {
+      "project": "FreeCAD Draft DWG wrapper",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "revision": "Mutable main source reviewed 2026-10-18",
+      "observed": "The wrapper converts DWG to a temporary DXF and then invokes the selected importDXF open/insert path. The converter and importer are separate stages; the source route alone does not qualify any installed build or converter result."
+    },
+    {
+      "project": "FreeCAD documentation: DWG import and additional components",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md"
+      ],
+      "revision": "Mutable documentation sources reviewed 2026-10-18",
+      "observed": "Documentation describes DWG as an external-converter-to-DXF path followed by FreeCAD's standard DXF importer, lists LibreDWG/ODA/QCAD converter choices, and names CADExchanger as a 3D-DWG workflow. These are project documentation claims, not a local runtime qualification or universal current consumer guarantee."
+    },
+    {
+      "project": "FreeCAD issue #18454",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "revision": "Closed issue and maintainer response reviewed 2026-10-18",
+      "observed": "The maintainer distinguishes explicit DXF entities from ACIS blobs and says stock FreeCAD cannot read those blobs. This supports marking stock FreeCAD ACIS consumption not applicable; it does not cover separately installed plugins or later implementations."
+    },
+    {
+      "project": "LibreCAD_3 DWG product policy",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "revision": "Mutable master page reviewed 2026-10-18; referenced ledger revision not independently resolved",
+      "observed": "The page documents opt-in DWG import, disabled by default, and a read-only product policy. It reports a downstream library claim ledger, which is a consumer policy/status boundary rather than an independent DWG reader result."
+    },
+    {
+      "project": "ezdxf feature summary and DXF entity model",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/index.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/dxfentities/index.rst"
+      ],
+      "revision": "Mutable master documentation reviewed 2026-10-18",
+      "observed": "The project documents ASCII and Binary DXF reading/writing across specified versions through R2018, third-party DXF content retention, and a broad typed entity model. This makes it a source-distinct optional DXF comparator for exact exposed fields, not a DWG reader or ACIS semantic oracle."
+    },
+    {
+      "project": "ezdxf XREF/cross-document operation",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+      "revision": "Mutable master documentation reviewed 2026-10-18",
+      "observed": "The XREF/cross-document transfer contract is narrower than document parsing: it supports copyable/transformable entities and resources, identifies ACAD_TABLE, unknown storage and several document features as unsupported for the operation, and notes unsupported entities may be ignored without errors. Do not generalize this operation-specific limitation to the base parser or same-document rewrite."
+    },
+    {
+      "project": "FreeCAD issue #31716",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/31716",
+      "revision": "Open user report opened 2026-08-03; reviewed 2026-10-18",
+      "observed": "A user reports that a purported 3D DXF appears as lines rather than usable 3D geometry. The report was not reproduced and is not treated as a parser defect or normative format evidence; it only motivates checking resulting model object types and topology rather than open/render status."
+    },
+    {
+      "project": "Open Design Alliance DWG specification v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "revision": "Existing authoritative project reference; relevant 3D carrier requirements are already tracked in the plan",
+      "observed": "Retained as the byte-layout authority for DWG; this research delta did not change or reinterpret the spec."
+    }
+  ],
+  "assessment": {
+    "newConfirmedFormatClaims": 0,
+    "newLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationCadenceChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planUpdates": [
+      "Separate direct DXF parse, same-document rewrite/read-back, cross-document/XREF, DWG converter handoff, native app import, explicit 3D geometry, and ACIS/AcDs semantics.",
+      "Use ezdxf only as an optional, pinned direct-DXF comparator at an existing composed checkpoint; XREF copy is a distinct and lossy operation.",
+      "Keep FreeCAD converter and importer diagnostics/results separate; stock FreeCAD ACIS consumption is not applicable unless a separately named consumer route is selected.",
+      "Require typed object/topology/analytic evidence for any 3D consumer; file-open or viewport-render status alone is insufficient."
+    ],
+    "limitations": "All reviewed repository pages are mutable. Documentation and issue reports are project claims or reports, not independent runtime results. No external tool was executed, no consumer route was qualified, and no support claim or external J item was changed."
+  }
+}

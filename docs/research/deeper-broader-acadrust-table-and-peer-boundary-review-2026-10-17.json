@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw-deeper-broader-acadrust-table-and-peer-boundary-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden the DWG/DXF peer comparison with current ACadRust/OpenCADStudio evidence and refine existing TABLE preservation and parser-safety readiness gates.",
+  "method": {
+    "kind": "Primary-source review of peer README, dependency manifest, open issue reproducers/status, ODA v5.4.1 sections, and the existing local parity-plan/test owners",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRunForResearch": false,
+    "localBuildsRunForResearch": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/hakanaktt/acadrust",
+      "https://github.com/hakanaktt/acadrust/issues/130",
+      "https://github.com/hakanaktt/acadrust/commit/bc91fbe8f9f9494988220f5462513ab6cc0b260a",
+      "https://github.com/HakanSeven12/opencadcodec/commit/3ff1cf17a1a032ba00f564f61c4fafc4cb176e78",
+      "https://github.com/hakanaktt/acadrust/issues/123",
+      "https://github.com/hakanaktt/acadrust/commit/53007f33d8a275854ae788ce6430fb8fba9ed42a",
+      "https://github.com/hakanaktt/acadrust/issues/134",
+      "https://github.com/hakanaktt/acadrust/commit/0e4623614469db8e1eb168953884649f1a961868",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+      "https://github.com/HakanSeven12/opencadcodec/commit/cf3a040",
+      "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing 7G.3d TABLE merge/suppression, AC1021/AC1024 version separation, and parser-safety gates",
+      "src/drw_entities.cpp and src/drw_objects.cpp: TABLE/TABLESTYLE semantic fields and bounded parsing routes",
+      "tests/dwg_object_vectors_tests.cpp: direct parser-vector owner for AC1021 standalone and AC1024 inline TABLECONTENT"
+    ],
+    "evidenceRule": "Peer issue reproducers are implementation-specific reports; self-generated DWG roundtrips do not independently establish producer bytes, semantic correctness, or native rendering. Treat linked fixes as pending until an exact released/source revision is tested. The ODA specification controls field order and documented types; generated vectors verify only their authored profile."
+  },
+  "evidence": [
+    {
+      "topic": "ACadRust #130 identifies a concrete 2010+ table merge and suppression mapping risk",
+      "observed": "The issue gives a detailed AC1024+ reproduction in which DWG merged ranges are retained separately from per-cell merge width/height fields consumed by the DXF writer, and TABLESTYLE DWG suppression bits are not synchronized with the DXF title_suppressed/header_suppressed fields. The issue remains open but references corrective commits bc91fbe and opencadcodec commit 3ff1cf1 and asks for verification. The repro uses the peer's writer, so it establishes a useful self-consistency/loss pattern, not an independent DWG producer or normative format fact.",
+      "doesNotEstablish": [
+        "that current ACadRust main or a released version still has the reported issue",
+        "that the referenced commits are released or verified against independent producer output",
+        "native renderer acceptance or libdxfrw behavior"
+      ],
+      "planUse": "Keep this within existing 7G.3d. Assert merge ranges, per-cell spans and covered-cell flags separately; assert title and header suppression independently across read, adapter, ASCII/binary DXF output and ordinary readback, with AC1024+ and older-version controls."
+    },
+    {
+      "topic": "OpenCADStudio is a downstream acadrust consumer rather than an additional parser witness",
+      "observed": "OpenCADStudio's main Cargo manifest aliases an acadrust package from its opencadcodec Git dependency at revision cf3a040 and uses a separate opencadkernel dependency. Its app README advertises DWG/DXF editing and 3D behavior, but the codec and its app are one parser-consumer route for comparator counting.",
+      "doesNotEstablish": [
+        "a second independent DWG parser result beyond the pinned codec",
+        "semantic correctness from advertised format or 3D feature matrices",
+        "ACIS/ACDS or native application acceptance for libdxfrw output"
+      ],
+      "planUse": "If OpenCADStudio is later selected as a composed consumer, record codec and kernel revisions separately and count it as consumer evidence only; do not count its codec output twice as independent parser agreement."
+    },
+    {
+      "topic": "ACadRust #123 is a targeted malformed-record resource-safety lead",
+      "observed": "The open issue contains a source-free reproducer that mutates an AC1024 DWG generated by ACadRust 0.6.3. It reports a count inflated to 100000 with zero-filled reads and a stream-derived allocation attempt of about 12 TiB. The maintainer references commit 53007f3 and requests recheck; current-head status is not pinned by this review.",
+      "doesNotEstablish": [
+        "a current upstream vulnerability after the linked fix",
+        "a libdxfrw defect or a reusable external fixture",
+        "that all oversized counts should be treated as recoverable object errors regardless of frame integrity"
+      ],
+      "planUse": "Retain the existing fast parser-safety invariants: counts must fit remaining record data before reserve/loop; truncated reads must not synthesize values; allocations derived from file lengths must be bounded. Test generated in-memory data and temporary mutations only."
+    },
+    {
+      "topic": "ACadRust #134 distinguishes bounded auxiliary-object failure from file framing failure",
+      "observed": "The open report against 0.6.4 says 70 of 351 AC1032 corpus files fail at MLeader object-context or related records after record bounds were tightened; it says AutoCAD and ODA File Converter accept those files and links a follow-up fix. The private corpus was not provided and the report remains a peer claim.",
+      "doesNotEstablish": [
+        "the claimed corpus rate on a reproducible public sample set",
+        "whether current acadrust still fails",
+        "that weakening bounds or suppressing all object failures is correct"
+      ],
+      "planUse": "At the existing recovery gate, soften only a record-local semantic failure when trustworthy outer framing and handle accounting remain intact; propagate truncation or alignment loss. Do not equate recovery with semantic completeness."
+    },
+    {
+      "topic": "ODA text and R24 TABLECONTENT boundaries constrain, but do not fully settle, the generated AC1024 string profile",
+      "observed": "ODA v5.4.1 §§20.4.96.2–20.4.97 place content inline for R24 TABLE and label content strings TV. Its general stream definitions state TV is T through R2004 and TU from R2007+, with TU length measured in characters and two bytes per character. The TABLE chapter does not itself describe every local string-stream boundary detail.",
+      "doesNotEstablish": [
+        "that the current test builder's byte-counted UTF-16 string profile matches a real producer",
+        "all AC1024+ table value, merge, style, handle, or version semantics"
+      ],
+      "planUse": "Keep the generated vector as a parser-profile test only; require an existing eligible drawing or independent producer trace for exact text length/storage semantics before production changes or support promotion."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 125,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

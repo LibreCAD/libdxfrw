@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw-field-dxf-versioned-wire-profile-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Implement and fast-validate version-specific FIELD DXF wire behavior supported by the available AutoCAD observations, preserving fail-closed converter export.",
+  "implementation": {
+    "filesChanged": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "changes": [
+      "AC1018-and-earlier FIELD values use legacy group 4 root format and do not emit the R2007+ ACVALUE_END delimiter.",
+      "Legacy main CadValue scalar payloads can now pass writer preflight when representable by the old value grammar.",
+      "Modern FIELD output omits group 4; a compatible root format is copied into the modern nested CadValue format group 300.",
+      "Conflicting root and nested format strings are rejected transactionally.",
+      "Pre-R2007 writes reject nested CadValue format/value strings that the target grammar cannot represent.",
+      "Generated tests cover exact ASCII and binary tags for legacy and modern profiles, modern nested 300/302 and duplicate root cache, legacy delimiter omission, format promotion, and failure rollback.",
+      "Parser controls verify modern nested format/value and legacy group-4 plus typed double/root cached text through ASCII and binary routes, with following-record sentinels."
+    ],
+    "adapterFieldExportEnabled": false,
+    "tableFieldExportEnabled": false,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "unqualified": [
+      "group-9 overflow semantics",
+      "strings exceeding 255 bytes and any overflow chunking policy",
+      "producer-saved file with exact AutoCAD build and DXF save/reopen provenance",
+      "independent parser/native acceptance",
+      "complete emitted FIELD/FIELDLIST graph closure and TABLE group-344 export"
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+        "result": "passed"
+      },
+      {
+        "command": "build/libdxfrw_wave1_tests",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build -R '^(libdxfrw_wave1|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+        "result": "passed; 2/2"
+      },
+      {
+        "command": "cmake --build build --target lc3_compat_check -j4",
+        "result": "passed; no work required"
+      },
+      {
+        "command": "git diff --check -- src/libdxfrw.cpp tests/wave1_tests.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "sanitizerOrFuzzerRun": false,
+    "independentPeerOrNativeRun": false
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "currentPlanTotals": "123 findings / 71 top-level subplans",
+    "worktreeCommitted": false,
+    "reasonNotCommitted": "The shared checkout contains broad pre-existing user changes and unrelated untracked files; this implementation slice remains unstaged and uncommitted."
+  }
+}

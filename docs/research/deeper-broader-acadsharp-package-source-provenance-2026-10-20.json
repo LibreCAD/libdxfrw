@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "ACadSharp package/source provenance and 3.8.0 failure envelope",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Reconcile ACadSharp NuGet package freshness with GitHub source release/tag state",
+    "Refresh a concrete issue reproduction against its exact reported package and source commit",
+    "Check current ACIS writer and ACDS/ACIS prerequisite PR deployment status",
+    "Improve optional peer admission without changing local implementation order or validation cadence"
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp NuGet package",
+      "reference": "https://www.nuget.org/packages/ACadSharp/3.8.0",
+      "status": "current_published_package_metadata",
+      "observation": "NuGet lists ACadSharp 3.8.0 as the current package, last updated 2026-09-21, with earlier packages 3.7.16, 3.7.1 and 3.6.51 also present. The package page does not, in the inspected content, bind 3.8.0 to an immutable source commit."
+    },
+    {
+      "project": "ACadSharp GitHub releases",
+      "reference": "https://github.com/DomCR/ACadSharp/releases",
+      "status": "source_release_page_snapshot",
+      "observation": "The reviewed GitHub Releases page still marks v3.7.1/tag d7dc111 as latest, while NuGet publishes a 3.8.0 package. The package and source release therefore require separate identity fields unless an immutable mapping is proven."
+    },
+    {
+      "project": "ACadSharp issue #1261",
+      "reference": "https://github.com/DomCR/ACadSharp/issues/1261",
+      "status": "open_package_and_source_specific_peer_report",
+      "observation": "The report states that an R2009 GeoData class-version-1 tail omission and related unit field issues were reproduced with NuGet 3.8.0 and master commit 4cd7759 using two private drawings. This is corroborating peer failure evidence with unavailable artifacts, not a format authority or local reproduction."
+    },
+    {
+      "project": "ACadSharp issue #1195 and PR #1240",
+      "reference": "https://github.com/DomCR/ACadSharp/pull/1240",
+      "status": "open_unmerged_acis_writer_proposal",
+      "observation": "The ACIS entity writer proposal remains open and not deployed. It depends on PR #1174 and cannot qualify a released DXF ACIS writer."
+    },
+    {
+      "project": "ACadSharp PR #1174",
+      "reference": "https://github.com/DomCR/ACadSharp/pull/1174",
+      "status": "open_unmerged_acds_acis_refactor",
+      "observation": "The ACDS/ACIS schema refactor remains open. A branch-specific discussion comment reports an embedded-record test failing because its reader path was not implemented at that time; this is not a claim about an arbitrary later package."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Added an exact package-versus-source provenance requirement for optional ACadSharp comparisons and refreshed the known GeoData/ACIS peer evidence boundaries. No local defect, implementation item, or support claim was added.",
+    "nextImplementation": "Continue the existing local-ready implementation queue; no peer dependency or external qualification prerequisite is added.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acadsharp-package-source-provenance-2026-10-20.json"
+    ],
+    "limitations": "Package and issue pages are time-sensitive. NuGet metadata and GitHub Releases expose different version identities, and the exact 3.8.0 source mapping was not established. The GeoData reproductions use private drawings unavailable for independent inspection. No peer package was downloaded or executed."
+  },
+  "validation": {
+    "planEdit": "Added a source-backed peer artifact provenance crosswalk and one-time optional comparison manifest requirements; no local implementation order or per-slice validation changed.",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan; new receipt trailing-whitespace check passed",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

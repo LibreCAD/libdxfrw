@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw-deeper-broader-opencadstudio-release-lineage-and-acis-evidence-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Re-audit OpenCADStudio as an optional ACIS application/kernel route; distinguish exact release identity, ACadRust-derived parser lineage, kernel lift/fallback, AcDs byte preservation, and native-consumer semantics.",
+  "method": {
+    "kind": "Public primary project release, source documentation, manifest, and issue review",
+    "sourcesOpened": [
+      "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.41/Cargo.lock",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/tessellation.md",
+      "https://github.com/HakanSeven12/opencadcodec",
+      "https://raw.githubusercontent.com/HakanSeven12/opencadcodec/main/Cargo.toml",
+      "https://github.com/HakanSeven12/opencadkernel",
+      "https://github.com/HakanSeven12/OpenCADStudio/issues/1078"
+    ],
+    "release": {
+      "tag": "v2026.41",
+      "shortCommit": "cff240e",
+      "publishedAt": "2026-10-11"
+    },
+    "taggedLockfileExists": true,
+    "taggedCodecKernelRevisionsResolved": false,
+    "mutableTessellationGuideVerifiedAgainstTag": false,
+    "appOrKernelBuiltOrRun": false,
+    "externalPayloadOpened": false,
+    "peerIssueControlDownloaded": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceRule": "Treat project release notes, mutable documentation, issue comments, and self-round-trip reports as candidate or scoped implementation evidence only. Keep parser lineage, carrier/owner closure, kernel B-rep validity, app rendering, and operation-level consumer acceptance separate."
+  },
+  "findings": [
+    {
+      "route": "OpenCADStudio v2026.41 / opencadcodec / ACadRust",
+      "observed": [
+        "The v2026.41 release resolves to short commit cff240e and contains a Cargo.lock.",
+        "The opencadcodec repository is identified as forked from hakanaktt/acadrust and advertises a native DWG/DXF codec.",
+        "OpenCADStudio is therefore one correlated parser lineage with ACadRust and consumers of that codec, not an independent DWG/DXF parser vote."
+      ],
+      "doesNotEstablish": [
+        "the exact codec revision and feature closure at the selected release tag",
+        "per-entity DWG/DXF read/write correctness",
+        "independent parser confirmation"
+      ],
+      "classification": "OPTIONAL_CORRELATED_PARSER_AND_APPLICATION_ROUTE"
+    },
+    {
+      "route": "OpenCADStudio ACIS kernel lift and rendering",
+      "observed": [
+        "The separate opencadkernel repository describes an acis feature that lifts codec SatDocument values to B-rep and calls the kernel early.",
+        "The current mutable tessellation guide documents kernel lift plus per-surface fallback for ACIS entities and an incomplete marker when faces do not all lift.",
+        "The exact v2026.41 kernel revision and equivalence of mutable docs to that release were not verified."
+      ],
+      "doesNotEstablish": [
+        "complete B-rep lift of imported DXF/DWG ACIS entities",
+        "absence of fallback, incomplete faces, or repair",
+        "shape validity, closure, correct analytic metrics, or successful native operations"
+      ],
+      "classification": "CONDITIONAL_KERNEL_CANDIDATE_NOT_QUALIFIED"
+    },
+    {
+      "route": "OpenCADStudio issue #1078 same-version AcDs retention report",
+      "observed": [
+        "A maintainer reports a same-version save preserving a 613-segment AcDs section byte-identically while correcting DWG Layout serialization on a supplied source pair."
+      ],
+      "doesNotEstablish": [
+        "independent reproduction in this review",
+        "correct source entity-to-AcDs association for arbitrary documents",
+        "cross-version conversion or parsed ACIS semantics",
+        "independent downstream consumer acceptance"
+      ],
+      "classification": "CARRIER_PRESERVATION_TEST_LEAD_ONLY"
+    }
+  ],
+  "implementationReadiness": {
+    "localImplementationOrderChanged": false,
+    "optionalComposedCheckpointOnly": true,
+    "nativeFreeCADLinuxWindowsGateReplaced": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "nextActions": [
+      "Continue local fast implementation without waiting for OpenCADStudio access or a peer run.",
+      "At the already-planned composed checkpoint, pin an exact app tag/artifact and hash; resolve the tag lockfile's codec/kernel commits, features, platform, and callable non-interactive route before opening any payload.",
+      "Use only a locally generated asymmetric ACIS control and independent expected geometry; keep it ephemeral and do not add external drawing fixtures.",
+      "Record source handle, owner/block path, inline or AcDs carrier association, bytes, and each output disposition before scoring the geometry route.",
+      "Require complete no-fallback B-rep lift, all-face/topology disposition, validity/closure and analytic metrics; if only rendering or MASSPROP is observable, report the narrower result without a semantic-solid pass.",
+      "Retain exact Linux/Windows native FreeCAD qualification as a separate gate; OpenCADStudio does not replace it or any J-specific external evidence."
+    ]
+  },
+  "validation": {
+    "parityPlanUpdated": true,
+    "threeDSupportPlanUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "productionSourceChanged": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

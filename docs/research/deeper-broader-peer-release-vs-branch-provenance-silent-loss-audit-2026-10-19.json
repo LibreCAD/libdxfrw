@@ -1,0 +1,82 @@
+{
+  "title": "Peer release-vs-branch provenance and recent silent-loss report audit",
+  "captured_at": "2026-10-19",
+  "scope": "Freshness and evidence-quality review of current open-source DWG/DXF peer releases, branches, and recent issue reports, reconciled with existing local owners and fast tests.",
+  "sources": [
+    {
+      "name": "LibreDWG NEWS 0.14.1",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "observation": "NEWS identifies 0.14.1 as a beta dated 2026-07-25; release/source behavior must be pinned separately from mutable master and documentation."
+    },
+    {
+      "name": "LibreDWG 0.14.1 milestone",
+      "url": "https://github.com/LibreDWG/libredwg/milestone/23",
+      "observation": "Milestone page last updated 2026-10-03 showed 10 open issues and 68% completion."
+    },
+    {
+      "name": "LibreDWG manual version page",
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/index.html",
+      "observation": "Manual landing page identifies version 0.13.4, so it is not automatically version-synchronized with 0.14.1 NEWS."
+    },
+    {
+      "name": "ACadSharp releases and compatibility matrix",
+      "url": "https://github.com/DomCR/ACadSharp/releases",
+      "secondary_url": "https://github.com/DomCR/ACadSharp#compatible-dwgdxf-versions",
+      "observation": "Latest listed tag is v3.7.1 (2026-08-18); operation/version matrix is a project declaration, not evidence for every feature on every artifact."
+    },
+    {
+      "name": "ACadSharp issue #1184",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1184",
+      "observation": "Report names v3.6.35 and v3.6.51 and describes stored ShadePlotDPI=0 leading to layout loss on its DWG route."
+    },
+    {
+      "name": "ACadSharp issue #1234",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1234",
+      "observation": "Report names v3.6.51, v3.7.1, and a specific master SHA for SummaryInfo length loss; same-codec readback reportedly fails to reveal the missing property."
+    },
+    {
+      "name": "ACadSharp issue #1195",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "observation": "DXF omission report for 3DSOLID/REGION explicitly names ACadSharp 3.4.9; it does not establish current release behavior or the result of an unmerged writer proposal."
+    },
+    {
+      "name": "ezdxf 1.4.5 documentation",
+      "url": "https://ezdxf.readthedocs.io/en/stable/",
+      "observation": "Declares ASCII/Binary DXF read/write for R12 and R2000-R2018, plus legacy read-only upgrade routes; no DWG codec claim."
+    },
+    {
+      "name": "IxMilia.Dxf 0.8.4 changelog and compatibility declaration",
+      "url": "https://github.com/ixmilia/dxf/blob/main/CHANGELOG.md",
+      "secondary_url": "https://github.com/ixmilia/dxf",
+      "observation": "0.8.4 changelog records a front-clipping-plane fix; README declares DXF scope through R2014 with explicit entity exceptions and writer-acceptance caveats."
+    }
+  ],
+  "local_cross_checks": [
+    {
+      "path": "tests/dxf_fixture_tests.cpp",
+      "symbol": "testPlotCustomDpiAdmission",
+      "line": 12704,
+      "result": "Existing generated ASCII/Binary controls include DPI=0 with non-Custom resolution for both LAYOUT and PLOTSETTINGS, tolerant readback, metadata retention, and a following geometry sentinel. No duplicate test was recommended."
+    },
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "SummaryInfo authoring remains unqualified; generic DWG encoded-string boundary tests are not SummaryInfo semantics. ACIS modeler routes remain staged by entity, carrier, owner/AcDs association, independent reopen, and semantic acceptance."
+    }
+  ],
+  "plan_delta": [
+    "Separate peer source revision, released package/executable identity, and documentation/spec revision in composed comparison receipts.",
+    "Check issue-reported version/profile against the exact peer artifact; mark mismatches historical signals rather than current runtime results.",
+    "Retain source-object identity and loss disposition across each read/write/reopen/semantic stage.",
+    "Keep fast local tests and implementation order unchanged; no peer runtime or external fixture per slice."
+  ],
+  "non_promotion": {
+    "new_local_findings": 0,
+    "new_top_level_subplans": 0,
+    "code_or_tests_changed": false,
+    "peer_or_native_runtime_executed": false,
+    "external_drawings_downloaded": false,
+    "findings_top_level_subplans": "139/77",
+    "deferred_external_items": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "support_claims_promoted": false
+  }
+}

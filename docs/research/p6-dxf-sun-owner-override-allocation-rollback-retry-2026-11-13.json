@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-sun-owner-override-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_VERSIONED_RAW_SUN_OWNER_OVERRIDE_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep allocations reached by the raw OBJECTS writer overload that accepts an explicit owner override for a retained SUN carrier.",
+  "source": {
+    "kind": "deterministic locally-authored ASCII DXF generated per target revision during the test",
+    "profile": "One VPORT table row (*ACTIVE, source handle 0x721) references one SUN object (source handle 0x706); the typed and retained raw SUN records agree on owner 0x721. The test source is generated at runtime and removed; no fixture file is committed.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/sun_owner_override_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-sun-owner-override-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "Added a focused allocation-failure test that imports a generated VPORT/SUN source, then emits the retained SUN through writeRawDxfObject(rawSun, ownerOverride). The normal output planner emits/remaps the VPORT owner before the direct raw-object callback.",
+    "method": "Warm/calibrate the complete staged DXF export; inject std::bad_alloc at each allocation reached inside the raw SUN callback; require failed publication, byte-identical destination sentinel, unchanged caller raw object, same-adapter retry to calibration-identical bytes, and fresh typed import proving the remapped VPORT, SUN and raw-carrier owner edges agree."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_ENABLE_FREECAD_DESKTOP_CONTROL=OFF -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_LINE_CONTROL=OFF: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_sun_owner_override_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_sun_owner_override_allocation$' --output-on-failure: PASS 1/1 in 0.23 seconds",
+    "ascii": "5/5 reached callback allocation failures preserve destination and caller state; same-adapter retry and typed owner readback pass.",
+    "diffCheck": "PASS: git diff --check -- tests/sun_owner_override_allocation_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/p6-dxf-sun-owner-override-allocation-rollback-retry-2026-11-13.json"
+  },
+  "verificationRefresh": {
+    "date": "2026-11-16",
+    "repositoryHead": "cc1592be",
+    "testSourceCommit": "d188dfd4",
+    "scope": "Revalidated the current versioned writer test after observing that its implementation exercises Binary output although the original receipt recorded only ASCII.",
+    "build": "cmake --build build-gcc --target libdxfrw_sun_owner_override_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_sun_owner_override_allocation$' --output-on-failure: PASS 1/1 in 0.37 seconds",
+    "directRun": "PASS; AC1021, AC1024, AC1027 and AC1032 each passed in ASCII and Binary. Every reached failure preserved the destination and caller SUN; same-adapter byte-identical retry and typed VPORT/SUN owner readback passed.",
+    "allocationOffsetsByVersion": {
+      "AC1021": {"ASCII": 6, "Binary": 4},
+      "AC1024": {"ASCII": 6, "Binary": 4},
+      "AC1027": {"ASCII": 6, "Binary": 4},
+      "AC1032": {"ASCII": 6, "Binary": 4}
+    },
+    "scratchOutputsRemoved": true,
+    "fixturesAdded": 0,
+    "supportClaimEffect": "none"
+  },
+  "limitations": [
+    "Generated transport and transaction evidence only; no physical producer prevalence or native SUN behavior is established.",
+    "The profile covers one generated rooted VPORT/SUN graph; other owner types, source producer profiles and native presentation remain unqualified.",
+    "No support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "The raw SUN explicit-owner-override overload on one generated rooted VPORT/SUN graph across AC1021/AC1024/AC1027/AC1032 and ASCII/Binary, including reached-allocation rollback, same-adapter byte-identical retry and typed owner readback.",
+    "remainingP6G": "P6-G remains conditional, not a required package gate. Do not continue a generic writer inventory; reopen only for an exact public signature/version/field route identified as missing rollback, retry, or readback evidence.",
+    "phaseStatusesChanged": false
+  }
+}

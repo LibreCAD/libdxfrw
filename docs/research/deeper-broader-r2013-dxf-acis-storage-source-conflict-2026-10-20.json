@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader R2013 DXF ACIS storage source-conflict and carrier evidence",
+  "mode": "primary-source web research and read-only local plan/test-owner reconciliation",
+  "scope": [
+    "Compare Autodesk's versioned R2013 DXF reference and current 3DSOLID field table with the version-specific SAT/SAB carrier descriptions in ezdxf 1.4.5 documentation",
+    "Resolve whether generic group-1/3 fields establish the R2013+ ACIS carrier location",
+    "Refine the existing PAR-07/S2/S8 evidence matrix without adding per-slice validation or an external dependency"
+  ],
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "planFilesUpdated": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The Autodesk 2013 reference was searched for ACDSDATA and ACDSRECORD and neither term was present; this documents an omission in that manual, not proof that the carrier is absent from R2013 files. The ezdxf 1.4.5 documentation is self-contradictory. The tagged source archive was not fetched/inspected, and no candidate file was opened by AutoCAD, BricsCAD, ODA, or another independent runtime."
+  },
+  "sources": [
+    {
+      "project": "Autodesk AutoCAD 2013 DXF Reference",
+      "urls": [
+        "https://images.autodesk.com/adsk/files/autocad_2013_pdf_dxf_reference_enu.pdf",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "revision": "Official AutoCAD 2013 reference PDF and Autodesk current 3DSOLID page reviewed 2026-10-20",
+      "observed": "The 2013 ENTITIES table lists AcDbModelerGeometry, group 70, proprietary groups 1/3, AcDb3dSolid, and history group 350. Searches of the reference returned no ACDSDATA or ACDSRECORD entries. Autodesk's current 3DSOLID page repeats the generic group-1/3 schema without a version-specific carrier-location rule.",
+      "limits": "The absence of a term from these references is not evidence that modern DXF data has no ACDSDATA/SAB route. The group table is insufficient to settle version-dependent carrier location."
+    },
+    {
+      "project": "ezdxf 1.4.5 documentation and release metadata",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/body.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html",
+        "https://github.com/mozman/ezdxf/releases/tag/v1.4.5",
+        "https://pypi.org/project/ezdxf/1.4.5/"
+      ],
+      "revision": "Stable documentation identifies ezdxf 1.4.5; release tag points to 84ae319; PyPI source archive uploaded 2026-10-16 with SHA-256 a6c3bbc1a65ce764d97c5beafe6ae693d8ed14c6cdae366b50e1974a79d4a00a",
+      "observed": "The detailed ACIS guide describes SAT for DXF R2000-R2010 and SAB for R2013/R2018, documents export_sab() and body_from_mesh(), and claims exported flat polyhedra load in Autodesk products and BricsCAD. It limits geometry to simple/known structures, says unsupported structures can be lost, and has no ACIS kernel. Its FAQ contradicts the detailed API by saying it writes SAT only and provides no ACIS creation/editing.",
+      "limits": "This pass did not inspect the tagged sdist, bind the stable documentation build to the exact artifact, run the authoring API, or reproduce the native-acceptance statement. Keep the documentation conflict unresolved at source/runtime level."
+    },
+    {
+      "project": "Local libdxfrw plan/test-owner reconciliation",
+      "references": [
+        "DWG_DXF_3D_SUPPORT_PLAN.md",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "S2.3.9.4.16 generated faceted polyhedron route",
+        "PAR-07/S8 ACDSDATA transport and owner/key checks"
+      ],
+      "status": "read-only source and plan inspection 2026-10-20",
+      "observed": "Existing work already has an ezdxf-generated AC1027 faceted SAB candidate plus generated local ACDSDATA replay, key-remap, multi-record, and continuity controls. No duplicate runtime generation, external fixture, CTest, or per-slice peer run is required for this research update.",
+      "limits": "Marker-carrier tests and same-generator structural readback do not independently validate arbitrary ACIS topology, DWG DataStorage association, or native CAD acceptance."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies that Autodesk's generic group-1/3 table is not a complete R2013+ carrier-location contract. Preserves the unresolved ezdxf detailed-guide/FAQ conflict, narrows ezdxf's optional role to faceted control authoring, and requires separate version, carrier, owner/key, payload, geometry, and consumer evidence. Existing fast-first implementation cadence and all support/J gates remain unchanged."
+  }
+}

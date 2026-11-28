@@ -1,0 +1,66 @@
+{
+  "receipt_type": "implementation_slice",
+  "date": "2026-10-19",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "owner": "PAR-19 / PAR-28 / embedded MTEXT 7E",
+  "peer_shape": "LibreDWG issue #1410; peer report used as a test-shape lead, not a reproduced libdxfrw defect",
+  "scope": "Generated local DXF import -> DWG write -> DWG readback for one AC1024 and one AC1032 profile",
+  "implementation": [
+    "Added --issue-1410-cross-codec to the existing libdxfrw_dwg_local_roundtrip executable and registered one fast CTest.",
+    "Generated temporary ASCII DXFs at runtime; no DWG/DXF fixtures were added.",
+    "AC1024 checks an explicit-zero HATCH line-edge Y, hash-bearing ATTRIB/ATTDEF tags and prompt, attributed INSERT/SEQEND structure, and following LINE continuity.",
+    "AC1032 checks multiline embedded MTEXT on ATTRIB and ATTDEF, including group-46 defined height and scoped background flags, scale, ACI/truecolor/name/transparency values.",
+    "DXF parsing now derives R2018 embedded host attribute type from the host subclass: 2 for ATTRIB and 4 for ATTDEF.",
+    "DWG embedded-MTEXT CMC parsing and encoding now retain true color and optional color/book names through bounded read and separate string-stream write paths.",
+    "True-color CMC readback reports ACI index 256 while retaining RGB/name/transparency; the test records this codec projection rather than asserting redundant DXF group equality."
+  ],
+  "specification_review": {
+    "source": "Open Design Alliance, Open Design Specification for .dwg files v5.4.1, §20.4.46 MTEXT",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "reviewed_before_dwg_parse_or_encode_change": true,
+    "relevant_fields": "Background flags, conditional scale, background CMC, transparency, and R2018 additions"
+  },
+  "validation": {
+    "target_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+      "result": "PASS",
+      "warnings_as_errors": true
+    },
+    "focused_selector": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --issue-1410-cross-codec",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg_dxf_issue_1410_cross_codec$' --output-on-failure",
+      "result": "PASS",
+      "tests_passed": 1,
+      "elapsed_seconds": 0.31
+    },
+    "existing_dxf_fixture_ctest": "NOT RUN",
+    "full_suite": "NOT RUN"
+  },
+  "artifact_policy": {
+    "temporary_inputs_and_outputs_removed": true,
+    "new_fixture_files_committed": false,
+    "new_dependencies": false
+  },
+  "evidence_boundary": {
+    "claim": "Local codec round-trip evidence for the generated AC1024 and AC1032 entity profiles only",
+    "does_not_qualify": [
+      "LibreDWG peer behavior or independent semantic agreement",
+      "native AutoCAD, FreeCAD, LibreCAD, or LibreCAD_3 acceptance",
+      "whole-file application-level support parity",
+      "ACIS/ACDS semantics or support claims"
+    ],
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "commit": "UNCOMMITTED; workspace Git metadata is read-only",
+  "next_action": "Continue to the next local-ready plan slice without waiting for external qualification."
+}

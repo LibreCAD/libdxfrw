@@ -89,17 +89,12 @@ bool DRW_Class::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf
     DRW_DBG(", entity flag: "); DRW_DBGH(parsed.entityFlag);
 
     if (version > DRW::AC1015) {//2004+
-        // R2004+ per-class trailer: num_instances, dwg_version, maint_version,
-        // unknown_1, unknown_2 — ALL BitLong. dwg_version/maint_version were
-        // previously read as BitShort (matching libreDWG's active code); BS and
-        // BL share encodings for values < 256, so it only desyncs once a class
-        // carries a >= 256 dwg/maint value (e.g. ACadSharp's MLEADERSTYLE
-        // maint=329) — then BS under-reads 16 bits and the whole CLASSES section
-        // cascades into garbage (BAD_READ_CLASSES). BL is the correct width: it
-        // matches libdxfrw's OWN writer (dwgwriter.h putBitLong) and ACadSharp's
-        // DwgClassesReader (ReadBitLong), and is identical to BS for all real
-        // AutoCAD files (whose values are < 256). Recovers the ACadSharp
-        // AC1018-AC1032 corpus (10+ files) with zero regressions.
+        // Retain the observed BL producer-compatibility path. ODA5.8 documents
+        // BL version/maintenance fields for R2007, while ODA10.2 says BS in its
+        // general R2004+ description. Small values can encode alike; values
+        // >=256 distinguish widths. Writer agreement alone cannot establish a
+        // universal schema. Independent section/profile evidence is required
+        // before changing this compatibility choice or promoting support.
         parsed.instanceCount = dataProbe.getBitLong();
         DRW_DBG("\nInstance Count: "); DRW_DBG(parsed.instanceCount);
         if (parsed.instanceCount < 0) {
@@ -178,6 +173,13 @@ void DRW_Class::toDwgType(){
         dwgType = 1162;
     else if (recName == "GEOPOSITIONMARKER" || recName == "POSITIONMARKER")
         dwgType = 1164;
+    else if (recName == "ACDBPLACEHOLDER"
+             && className == "AcDbPlaceHolder")
+        // ODA §20.4.1 assigns non-fixed object frames through their class
+        // entry. This built-in class is the same logical object as fixed
+        // DWG type 80 (ACDBPLACEHOLDER); its source class ordinal remains
+        // file-local and is never hardcoded here.
+        dwgType = 80;
     else
         dwgType = 0;
     // NOTE: ARC_DIMENSION must NOT be added here. It has no fixed DWG type < 500.

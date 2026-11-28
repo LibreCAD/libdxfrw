@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1024-persubentmgr-raw-only-shell-recovery-2026-11-09",
+  "date": "2026-11-09",
+  "status": "AC1024_BOUNDED_RAW_ONLY_RECOVERY",
+  "supportClaimEffect": "none",
+  "scope": "Retain an AC1024 AcDbPersSubentManager source frame raw-only when its disputed class body fails typed parsing but the independent ODA common-object shell and handle stream validate.",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg",
+    "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+    "provenance": "Tracked ACadSharp sample, read-only; not copied into this repository.",
+    "version": "AC1024",
+    "frame": {
+      "handle": "0xD63",
+      "decimalHandle": 3427,
+      "location": 158132,
+      "objectType": 549,
+      "ordinal": 729,
+      "recordName": "ACDBPERSSUBENTMANAGER",
+      "className": "AcDbPersSubentManager"
+    }
+  },
+  "authority": {
+    "oda": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "section": "20.1",
+      "finding": "Defines common non-entity object framing and handle stream; class-specific body varies by object type. It does not define this PERSUBENTMGR body."
+    },
+    "policy": "Preserve only the exact source frame after independent bounded common-shell and handle validation. Do not infer body fields, typed semantics, graph closure, or DXF output eligibility."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "profile": "Exact AC1024/AC1027/AC1032 reader version, record ACDBPERSSUBENTMANAGER, class AcDbPersSubentManager, typed body parse failure, and successful independent RawObjectShell parse.",
+    "behavior": "Publish the exact frame as an unvalidated raw carrier with common links only. Failed shell validation remains an object parse failure. Existing successfully parsed AC1024 partial-prefix records keep their typed partial projection."
+  },
+  "generatedControl": {
+    "selector": "libdxfrw_persistent_manager_prefix_dispatch",
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "coverage": "The AC1024 body-failure profile is generated in memory for both class aliases, has a CRC-valid bounded frame and a following typed sentinel, and asserts exact raw payload, validated publication, no typed source callback, and successful sentinel dispatch. Existing malformed AC1021 variants still fail. No fixture file was added."
+  },
+  "verification": {
+    "normal": {
+      "build": "PASS: cmake --build build --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+      "test": "PASS: ctest --test-dir build -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure (1/1, 0.53 s)"
+    },
+    "asan": {
+      "build": "PASS: cmake --build build-asan-custom --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+      "test": "PASS: ctest --test-dir build-asan-custom -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure (1/1, 0.90 s)"
+    },
+    "physicalRead": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg -y -d -v2010 /tmp/sample_AC1024-persubent-raw-only.dxf",
+      "binarySha256": "9ff83acf54c34e96d55104106287e992d995e87a82685c8ca08f829a92449d99",
+      "logSha256": "1e4418a3c39d23ed5183f003ab3b6dce44a32c3b15b6cc9528d54acc9e60c673",
+      "result": "The source handle 0xD63 publishes via [persistent-manager-raw-only]. CLI reports complete frame coverage: 923/923 published, 0 entity parse failures, 0 object parse failures. Exit status 1 is the expected later strict-output refusal at standalone DWG OBJECTCONTEXTDATA; no DXF output/support claim is made."
+    },
+    "diffCheck": "PASS: git diff --check",
+    "fullSuites": "NOT RUN"
+  },
+  "limits": [
+    "This is raw-frame recovery only; PERSUBENTMGR field meanings and semantics remain unresolved.",
+    "No selected or whole-file DXF output is authorized by this fallback.",
+    "Other AC1024 manager bodies with invalid common shells remain failures.",
+    "No new DWG/DXF fixture was added."
+  ],
+  "next": "Continue the P4/P6 queue with another independently source-backed local slice; keep PERSUBENTMGR graph and output qualification open."
+}

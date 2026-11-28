@@ -1,0 +1,66 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "phase": "P5",
+  "title": "Generated TABLESTYLE and CELLSTYLEMAP handle-role checks",
+  "evidence_class": "generated_codec_control",
+  "source_evidence": {
+    "authority": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "20.4.101.3",
+      "20.4.101.4"
+    ],
+    "claim": "Content Format text-style and border linetype references use hard-pointer handle roles.",
+    "independent_producer_witness": false
+  },
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "behavior": "Transactional handle reads preserve existing cursor and output state on failure; TABLESTYLE/CELLSTYLEMAP text-style and border-linetype fields require the DwgHardPointer role for typed references and also accept canonical null references.",
+    "covered_paths": [
+      "AC1018 inline CELLSTYLEMAP handle parsing",
+      "AC1021 CELLSTYLEMAP detached handle stream parsing",
+      "AC1018 legacy TABLESTYLE inline row-style text-style handle parsing",
+      "AC1021 legacy TABLESTYLE row-style text-style handle stream parsing",
+      "AC1024 TABLESTYLE detached handle stream parsing",
+      "AC1027 TABLESTYLE detached handle stream parsing",
+      "AC1032 TABLESTYLE detached handle stream parsing"
+    ]
+  },
+  "generated_controls": {
+    "fields": [
+      "content-format text-style handle",
+      "cell-style border linetype handle",
+      "legacy TABLESTYLE row-style text-style handle"
+    ],
+    "wrong_roles": [
+      "DwgSoftPointer",
+      "DwgHardOwnership",
+      "DwgSoftOwnership"
+    ],
+    "ac1021_wrong_role_cases": 6,
+    "assertions": [
+      "valid hard-pointer profile parses",
+      "each wrong-role mutation rejects atomically and clears prior typed state",
+      "corrected input succeeds on the same parser object"
+    ],
+    "locally_authored_drawing_fixture_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "build_result": "passed",
+    "tests": [
+      "ctest --test-dir build-gcc -R '^libdxfrw_tablestyle_handle_roles$' --output-on-failure",
+      "ctest --test-dir build-gcc -R '^libdxfrw_cellstylemap_dwg_encode_roundtrip$' --output-on-failure",
+      "ctest --test-dir build-gcc -R '^libdxfrw_tablestyle_legacy_row_handle_role$' --output-on-failure"
+    ],
+    "test_result": "passed",
+    "tests_passed": 3,
+    "tests_failed": 0,
+    "git_diff_check": "passed"
+  },
+  "limitations": [
+    "Generated controls validate the implemented role checks only; they do not establish producer prevalence or independent wire interpretation.",
+    "The receipt does not establish dependency closure, DXF output support, native rendering, or TABLE semantic support.",
+    "Other TABLESTYLE/CELLSTYLEMAP payload, flags, producer profiles, and consumer behavior remain open."
+  ]
+}

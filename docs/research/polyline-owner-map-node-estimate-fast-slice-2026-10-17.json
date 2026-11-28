@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-polyline-owner-map-node-estimate-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Charge pending/orphan POLYLINE owner-map value and conservative node storage into the existing bounded staging ledger; leave unordered-map bucket arrays and implementation-specific allocator retention explicitly outside the model.",
+  "method": {
+    "kind": "Focused implementation slice with generated in-memory rollback and retry coverage",
+    "productionFilesChanged": [
+      "src/intern/dwgreader.cpp"
+    ],
+    "testFilesChanged": [],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicApiChanged": false,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "sanitizerRun": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false
+  },
+  "implementation": {
+    "ownerCharge": "sizeof(pair<const uint32_t, state>) + 3 * sizeof(void*)",
+    "pendingParent": "Preflight the conservative owner value/node charge before declared-child index construction; retain it in PendingPolylineState::retainedBytes and let existing rollback/commit/terminalization paths release it.",
+    "childFirstOrphan": "Preflight and charge the owner entry before vertex staging; preserve its charge when vector capacity changes and release it on adoption or terminalization.",
+    "wholeLedgerValidation": "Reconstruct both map owner charges independently and compare them against retainedBytes and the aggregate 256 MiB model.",
+    "uncovered": [
+      "unordered_map bucket-array bytes",
+      "allocator metadata and allocator-retained freed memory",
+      "actual DWG source-location/callback/full-pipeline coverage",
+      "whole-reader RSS bound"
+    ]
+  },
+  "validation": {
+    "strictTargetBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+    "owningCtests": "PASS: libdxfrw_dwg_reader_matrix and libdxfrw_dwg_local_roundtrip (2/2)",
+    "compatibilityTarget": "PASS: cmake --build build-gcc --target lc3_compat_check -j2",
+    "receiptJsonParsed": true,
+    "scopedDiffCheck": true
+  },
+  "planImpact": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "existingOwnerOnly": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

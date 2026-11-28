@@ -1,0 +1,141 @@
+{
+  "id": "RPP-5xr",
+  "title": "AC1027 MINSERT LTYPE XDATA target transport",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "f4a97df005daad670be321264d71b2684dcd7555",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository drawing fixture was added.",
+    "source_encoding": [
+      "ASCII DXF",
+      "binary DXF"
+    ],
+    "output_encoding": [
+      "ASCII DXF",
+      "binary DXF"
+    ],
+    "cross_product": "One MINSERT target in model-space ENTITIES and one MINSERT target in named AuthorityBlock BLOCKS, each across all four source/output encoding pairs.",
+    "linetype": "Source-bound simple LTYPE using the existing MLINE_LTYPE_XDATA APPID provider.",
+    "xdata": {
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "One ordered group-1005 soft-pointer to the MINSERT root.",
+      "references": [
+        {
+          "code": 1005,
+          "source_handle": "0xA902",
+          "target": "model-space MINSERT in ENTITIES"
+        },
+        {
+          "code": 1005,
+          "source_handle": "0xA900",
+          "target": "MINSERT in named AuthorityBlock BLOCKS"
+        }
+      ]
+    },
+    "targets": [
+      {
+        "type": "INSERT",
+        "subclass": "AcDbMInsertBlock",
+        "source_handle": "0xA902",
+        "section": "ENTITIES",
+        "owner_handle": "0x201",
+        "block_name": "AuthorityBlock",
+        "insert_point": [
+          3.5,
+          -2.25,
+          7.75
+        ],
+        "scale": [
+          2.0,
+          0.5,
+          1.5
+        ],
+        "rotation_degrees": 30.0,
+        "columns": 2,
+        "rows": 3,
+        "column_spacing": 6.0,
+        "row_spacing": 8.0,
+        "referenced_block_record": "0x203"
+      },
+      {
+        "type": "INSERT",
+        "subclass": "AcDbMInsertBlock",
+        "source_handle": "0xA900",
+        "section": "BLOCKS",
+        "block": "AuthorityBlock",
+        "owner_handle": "0x203",
+        "block_name": "NestedTargetBlock",
+        "insert_point": [
+          3.5,
+          -2.25,
+          7.75
+        ],
+        "scale": [
+          2.0,
+          0.5,
+          1.5
+        ],
+        "rotation_degrees": 30.0,
+        "columns": 2,
+        "rows": 3,
+        "column_spacing": 6.0,
+        "row_spacing": 8.0,
+        "referenced_block_record": "0x204"
+      }
+    ]
+  },
+  "proof": {
+    "source": "The physical AC1027 source records identify the INSERT roots, AcDbMInsertBlock subclass, exact grid fields, owners and named block names. Source capture binds each target handle to one exact live DRW_Insert and its unique referenced BLOCK_RECORD. Attribute and SEQEND compounds remain outside this profile.",
+    "output": "All four ASCII/binary input/output combinations in each section check physical INSERT subclass, 2x3 grid, non-default 44/45 spacing, insertion point, scale, rotation, owner, block name, emitted BLOCK_RECORD dependency and remapped code-1005 reference. Fresh typed readback checks DRW_Insert grid counts/spacings, MINSERT classification and referenced block definition.",
+    "failure_retry": "Missing-target removal refuses export without replacing the existing destination and succeeds on same-adapter retry for each section/encoding combination. Separate late block-name mutation controls refuse and preserve the destination, then succeed after restoring the source name, for model-space and named-block targets.",
+    "counts": {
+      "selected_positive_profiles": 8,
+      "selected_successful_readbacks_including_retries": 18,
+      "selected_refusals_with_destination_preservation": 10,
+      "selected_same_adapter_retries": 10,
+      "whole_focused_test_profiles": 428,
+      "whole_focused_test_readbacks": 984,
+      "whole_focused_test_refusals": 556,
+      "whole_focused_test_retries": 556
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j 4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 25.36 seconds); selector asserts the whole-test counts above"
+    },
+    "asan_build": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j 4",
+      "result": "PASS"
+    },
+    "asan_ctest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 58.18 seconds)"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_bindings": {
+      "implementation_commit": "f4a97df005daad670be321264d71b2684dcd7555",
+      "source_sha256": {
+        "dwg2dxf/dx_iface.cpp": "e24c28d0c571911350d2797b56eb42499939a87c517c3fa354a721fcbc5455f1",
+        "tests/dxf_fixture_tests.cpp": "9cb519b0c768abff901b779de1553ce702e0d29cf876b1df5ec218604a500060"
+      },
+      "normal_executable_sha256": "77652d2f5e1b02971d830e49ba188d61d8b98d9382ede51b19e336707e89b39e",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+      "asan_executable_sha256": "3d5e01796999a73cb78c52b319b9270c9c0a58d9e61ac30c240cbbf37eb39627",
+      "asan_cmake_cache_sha256": "f1aeb154e90745f39981fadcbb2e24f1c25d9296abc19beb4ea699b49fc6bb68"
+    }
+  },
+  "limits": [
+    "This receipt qualifies the selected AC1027 2x3 MINSERT grid profile with column spacing 6 and row spacing 8, in model-space ENTITIES and named AuthorityBlock BLOCKS, across authored ASCII/binary inputs and outputs. Other grid values and versions are not individually qualified.",
+    "The source matcher now admits positive-count INSERT grids without attached ATTRIB or SEQEND children; the selected exact fields here do not qualify attribute-bearing compounds, arbitrary grid output, or native array placement semantics.",
+    "This is selected source identity, block dependency, field transport, output/readback and transaction evidence. It does not establish independent CAD semantics, rendering, recursive document closure or any general DWG/DXF support claim."
+  ],
+  "next": "Select an actually unmapped original record or dependency role from the current source census. The selected dual-280 ATTDEF profile intentionally has rawTypedMatched=false while its source roles and typed model are checked separately; that flag alone is not evidence of a parser defect. Reproduce a specific missing field/role before coding, and defer additional P2 matrix expansion until a code gap is identified."
+}

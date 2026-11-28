@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Physical AC1018 WIPEOUTVARIABLES writer bridge",
+  "date": "2026-11-05",
+  "status": "BOUNDED_PHYSICAL_AC1018_WRITER_BRIDGE_PASSED",
+  "supportClaimEffect": "none",
+  "scope": "A hash-bound ODA-produced AC1018 direct-NOD WIPEOUTVARIABLES witness is checked with the existing inline-object body/handle proof. Its typed record seeds a locally authored AC1018 wrapper DWG, which is re-imported and written to ASCII and Binary DXF with atomic refusal, retry, and typed rooted readback. The physical source is not converted as a whole, and its source class's common-link evidence remains unknown; the selected wrapper reconstructs only the witnessed direct owner/reactor profile.",
+  "physicalWitness": {
+    "path": "/private/tmp/wipeout-ac1018/dwg/source.dwg",
+    "provenance": "Scratch DXF authored from scratch with ezdxf and converted by ODA File Converter 27.1.0 to ACAD2004 DWG. LibreDWG 0.14 independently reports class 513, the ACAD_WIPEOUT_VARS entry, owner/reactor handles and frame 0.",
+    "sha256BeforeAndAfter": "ec41e065f406cd19d133940892754d5c76e85c1c8f6bd3f283632a75fddebb54",
+    "revision": "AC1018",
+    "objectHandle": "0x30",
+    "classNumber": 513,
+    "ownerPath": "NOD 0x0A -> ACAD_WIPEOUT_VARS -> WIPEOUTVARIABLES",
+    "fields": {
+      "displayFrame": 0
+    },
+    "wireSpans": {
+      "objectBodyBytes": 15,
+      "preHandleBoundaryBit": 81,
+      "ownerHandleBits": "[81,97)",
+      "reactorHandleBits": "[97,113)",
+      "trailingZeroBits": "[113,120)"
+    },
+    "commonEvidence": "The physical source frame's generic common-link evidence remains Unknown. The witness-specific callback probe confirms the typed owner, reactor, XDictionary-missing flag and raw handle roles for this exact source only.",
+    "sourceLimitations": "The source has 16+ other NOD entries and a 739-byte unclaimed HEADER suffix; whole-source output is refused."
+  },
+  "wrapper": {
+    "kind": "locally authored AC1018 DWG generated in the focused selector",
+    "fieldSource": "The selected typed record seeds the wrapper. Its owner and reactor are emitted against the wrapper's NOD using the witnessed soft-pointer roles; no generic source common-link evidence is promoted.",
+    "outputs": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "checks": [
+      "physical inline-object/class/body/handle-span proof",
+      "wrapper DWG re-import",
+      "root/object/reactor readback",
+      "capture/class/raw mutation refusal",
+      "wrong owner/reactor and invalid display-mode refusal",
+      "destination preservation",
+      "same-adapter retry",
+      "typed rooted readback"
+    ],
+    "fixturePolicy": "The wrapper DWG and output DXFs are temporary locally authored controls and are removed. The hash-bound physical source remains read-only; no drawing fixture was committed."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_wipeoutvariables_' --output-on-failure",
+      "result": "11/11 focused generated WIPEOUTVARIABLES tests passed"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-physical-ac1018-direct-nod /private/tmp/wipeout-ac1018/dwg/source.dwg",
+      "result": "passed; physical source proof, wrapper re-import, ASCII/Binary output, refusal/retry and typed readback"
+    },
+    {
+      "command": "shasum -a 256 /private/tmp/wipeout-ac1018/dwg/source.dwg before and after",
+      "result": "same SHA-256 before/after: ec41e065f406cd19d133940892754d5c76e85c1c8f6bd3f283632a75fddebb54"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "nonClaims": [
+    "No whole-source physical conversion qualification follows.",
+    "No generic AC1018 common-link semantics are promoted from this single hash-bound source.",
+    "No native AutoCAD, LibreCAD, LibreCAD_3, FreeCAD, or independent wipeout display/plot acceptance was run.",
+    "No broad producer, version, or mode support claim follows."
+  ],
+  "remaining": [
+    "Physical whole-source output with complete HEADER, object, and graph closure.",
+    "Native preview/display/plot semantics and additional physical producers/modes.",
+    "Remaining P4 graph/source closure."
+  ]
+}

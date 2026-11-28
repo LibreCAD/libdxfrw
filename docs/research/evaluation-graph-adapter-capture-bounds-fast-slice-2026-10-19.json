@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "EvaluationGraph adapter capture bounds fast slice",
+  "mode": "Local adapter implementation with generated focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bound adapter-owned typed EvaluationGraph callback copies.",
+    "Keep the per-graph parser item ceiling distinct from aggregate adapter-copy admission.",
+    "Verify node/edge retention, aggregate-budget refusal, and fail-closed export."
+  ],
+  "changes": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistrationChanged": true,
+    "persistentDwgDxfFixtureAdded": false,
+    "dependencyChanged": false,
+    "implementation": "dx_iface estimates fixed object size, retained table-entry/XDATA content, and node/edge vector slots before copying. Capture admits at most 100,000 graphs and DRW::kMaxDxfBinaryPayloadBytes logical retained bytes. Refusal or allocation failure sets a sticky dx_data flag; fileExport checks it before writing and refuses output.",
+    "budgetDistinction": "DRW_EvaluationGraph::kMaxEntries bounds node/edge counts within one graph; the new limits bound callback-owned graph count and aggregate logical copy size across dx_data.",
+    "generatedTest": "The focused selector retains a generated graph with node and edge entries, seeds the aggregate counter at its cap, verifies the next graph is rejected without append, and verifies export refusal publishes no DXF. No drawing fixture is used."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target dwg2dxf -j2",
+      "result": "passed"
+    },
+    "focusedSelectors": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_(acsh_history_capture_limits|evaluation_graph_capture_limits|named_object_callback_storage)$' --output-on-failure",
+      "result": "passed 3/3"
+    },
+    "fullTestSuite": "not run",
+    "scopedDiffCheck": "passed"
+  },
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "fb657d5ad135dfe4e17f744b61c367d35fbae0259f5efac89321c3aba8349e46",
+    "findings": 139,
+    "topLevelSubplans": 77
+  },
+  "nonClaims": [
+    "This bounds adapter-side logical copies, not allocator capacity or process RSS.",
+    "No EvaluationGraph semantic or DXF/DWG support claim is established.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "No external drawings or repository fixtures were added.",
+    "The shared worktree is extensively dirty; no staging or commit occurred."
+  ]
+}

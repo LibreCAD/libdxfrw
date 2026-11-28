@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "7AR.1 malformed CIF syntax and scalar safety",
+  "mode": "Local implementation and generated fast regression controls",
+  "question": "Does CIF decoding require exact four-digit parsing and preserve malformed/unrepresentable tokens without partial or invalid Unicode output?",
+  "implementation": {
+    "filesChanged": [
+      "src/intern/drw_textcodec.cpp",
+      "tests/gbk_codepage_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "validCif": "Exactly four ASCII hex digits are accumulated into a BMP value; following suffix characters and adjacent escape tokens remain separate.",
+    "malformedCif": "Malformed or truncated token spelling is preserved; observations include MalformedEscape and UnrepresentedEscape.",
+    "nulEscape": "U+0000 spelling is preserved and marked UnrepresentedEscape to avoid embedded-NUL truncation in C-string consumers.",
+    "surrogateEscape": "Surrogate spelling is preserved and marked InvalidUnicodeOutput plus UnrepresentedEscape; no invalid UTF-8 is emitted.",
+    "surrogatePairConvention": "Adjacent high/low surrogate escapes remain literal and unrepresented; no producer-authored convention was established, so no pair-combination behavior is claimed.",
+    "strictSourceAdmission": "RequireValidSource refuses malformed, NUL, and surrogate observations while tolerant import retains the text."
+  },
+  "generatedControls": {
+    "malformed": [
+      "invalid hex",
+      "partial hex",
+      "whitespace",
+      "truncated token",
+      "U+0000",
+      "lone high surrogate",
+      "lone low surrogate",
+      "adjacent high/low surrogate escapes"
+    ],
+    "valid": [
+      "lowercase hex",
+      "adjacent valid escapes",
+      "four-digit escape followed by hexadecimal suffix",
+      "ordinary backslash path text"
+    ],
+    "routes": [
+      "single-byte table",
+      "generic DBCS",
+      "Shift-JIS override",
+      "modern UTF-8",
+      "ASCII DXF facade",
+      "Binary DXF facade"
+    ],
+    "fixtureFilesAdded": 0,
+    "newCTestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "passed": [
+      "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests -j2",
+      "build-gcc/libdxfrw_gbk_codepage_tests --text-read-observations",
+      "build-gcc/libdxfrw_gbk_codepage_tests --source-text-admission",
+      "build-gcc/libdxfrw_gbk_codepage_tests --target-text-transport",
+      "cmake --build build-gcc --target dwg2dxf lc3_compat_check -j2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_gbk_codepage$' --output-on-failure (1/1)",
+      "scoped git diff --check"
+    ],
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "windowsOrLinuxRun": false
+  },
+  "planImpact": {
+    "findingOrSubplanAdded": false,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "findings": 128,
+    "topLevelSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": {
+    "nativeProducerCifSurrogatePairSemantics": "UNRESOLVED",
+    "nativeRendering": "NOT_TESTED",
+    "binaryAbiClaim": false,
+    "commitCreated": false,
+    "reasonUncommitted": "The shared worktree contains extensive pre-existing changes; staging or committing only this source/test slice risks omitting prerequisites or including unrelated user work."
+  }
+}

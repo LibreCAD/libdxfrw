@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-undefined-cp1252-issue-mask-2026-11-02",
+  "date": "2026-11-02",
+  "status": "UNDEFINED_CP1252_ISSUE_MASK_FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Pin the exact CLI projection and atomic refusal for an undefined ANSI_1252 source byte in a locally authored ASCII DXF.",
+  "generatedInput": {
+    "recipe": "tests/dwg2dxf_cli_contract_tests.py check_source_disposition_projection",
+    "sourceRevision": "AC1015",
+    "declaredCodePage": "ANSI_1252",
+    "textValueHex": "4c8152",
+    "storage": "Authored from scratch under the focused test's temporary directory; no fixture was added to the repository."
+  },
+  "expectedDisposition": {
+    "inputCodePagePolicy": "exact-named",
+    "sourceDxfTextIssueMask": "0x0000000000000140",
+    "issueInterpretation": [
+      "UndefinedByteSequence (0x40)",
+      "DiscardedSource (0x100)"
+    ],
+    "strictOutput": "Exit 1; pre-existing destination sentinel and input bytes remain unchanged; no output is published."
+  },
+  "validation": {
+    "focusedControl": {
+      "command": "python3 tests/dwg2dxf_cli_contract_tests.py --converter /Users/dli/dev/libdxfrw/build-gcc/dwg2dxf/dwg2dxf --writer /Users/dli/dev/libdxfrw/build-gcc/libdxfrw_dwg_local_roundtrip --source-disposition-only",
+      "result": "PASS (16 repair/skip/mask controls)"
+    },
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "tests/dwg2dxf_cli_contract_tests.py": "313841d390b26a0cd3a4dc1af058de1e7093c51cd5af90a115a67367d502108a",
+      "build-gcc/dwg2dxf/dwg2dxf": "ff45cc45f1a9f4ae767f85f568146e480757d289657d5a6f324e14a2ead45db7",
+      "build-gcc/libdxfrw_dwg_local_roundtrip": "6fd8d0e1947fdd013bfe5477687466abd64c55e92b3d33fef2bff4f764bf01d4"
+    }
+  },
+  "qualificationBoundary": [
+    "This pins one exact generated legacy-byte issue-mask case and the CLI's refusal boundary.",
+    "Other decoder issue classes, physical-source completeness, consumer semantics, and format support remain open.",
+    "No support claim was promoted."
+  ]
+}

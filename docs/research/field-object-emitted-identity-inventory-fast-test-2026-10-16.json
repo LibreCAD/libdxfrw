@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-field-object-emitted-identity-inventory-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Correct the generated emitted-object identity test to assert only source/output relations actually tracked by the object ledger, and verify FIELD/FIELDLIST owner and remapped reference identities through completed ASCII and binary DXF output.",
+  "implementation": {
+    "filesChanged": ["tests/wave1_tests.cpp"],
+    "productionBehaviorChanged": false,
+    "adapterFieldExportEnabled": false,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "notes": [
+      "The fixture interface writes one raw XRECORD, FIELDLIST, parent FIELD, and child FIELD through the full dxfRW write lifecycle in generated ASCII and binary output.",
+      "Finalization verifies each FIELD/FIELDLIST source-to-emitted object binding, type, section, owner, wrong-handle/type/section/owner rejection, and rejection of an entity source handle as an object identity.",
+      "Model-space and named-block LINE identities are verified against the emitted-record inventory and owner handles; the test no longer assumes ordinary typed LINE writes populate the source-entity map.",
+      "The exact published bytes are read back and record identity/owner inventories are compared. Binary group projection strips the AutoCAD Binary DXF signature before using the low-level group-code test helper.",
+      "A deliberate later OBJECTS failure verifies destination preservation and rollback of the source-to-written-object bindings."
+    ],
+    "unqualified": [
+      "FIELD/FIELDLIST producer wire contract",
+      "dx_iface fileExport serialization/support",
+      "all source-entity routes participate in one source-to-output identity map",
+      "independent parser or native CAD acceptance",
+      "semantic FIELD graph completeness outside the generated controlled graph"
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build --target libdxfrw_wave1_tests -j4",
+        "result": "passed"
+      },
+      {
+        "command": "build/libdxfrw_wave1_tests",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_wave1$' --output-on-failure",
+        "result": "passed; 1/1"
+      },
+      {
+        "command": "cmake --build build --target lc3_compat_check -j4",
+        "result": "passed"
+      },
+      {
+        "command": "git diff --check -- tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "sanitizerOrFuzzerRun": false,
+    "independentPeerOrNativeRun": false
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "worktreeCommitted": false,
+    "reasonNotCommitted": "The checkout contains broad pre-existing user changes and unrelated untracked files; this slice is recorded without staging or committing those shared changes."
+  }
+}

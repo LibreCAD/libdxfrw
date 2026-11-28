@@ -1,0 +1,134 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader direction-specific support claims and downstream adoption policy",
+  "mode": "primary-source web research plus local claim-ledger inspection",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Cross-check current standalone libdxfrw support boundaries and package adoption gates",
+    "Review LibreCAD 3's DWG read-only product policy and required DWG write gates",
+    "Verify how the local digest-bound qualified-format ledger separates directions and statuses",
+    "Refine only existing release, downstream-consumer, and PAR-07/S8 evidence gates"
+  ],
+  "method": {
+    "kind": "Read current project documentation and inspect local machine-readable claim metadata",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub master pages are mutable documentation snapshots, not runtime or release qualifications. LibreCAD 3 is a downstream consumer and policy source, not an independent DWG codec. The local ledger observation is bound to the checked-out implementation digest and must be regenerated when its inputs change. No application build or proprietary native acceptance was run."
+  },
+  "sources": [
+    {
+      "project": "Standalone libdxfrw README",
+      "urls": [
+        "https://github.com/LibreCAD/libdxfrw/blob/master/README.md"
+      ],
+      "revision": "Mutable master page reviewed 2026-10-18",
+      "observed": "The current README identifies a C++17/2.0.0 ABI boundary and distinguishes baseline ASCII/Binary DXF from experimental raw-carrier, DWG read/write, and 3D-consumer scopes. The scope table is a project declaration, not a per-record conformance result."
+    },
+    {
+      "project": "Local qualified-format claim ledger",
+      "urls": [
+        "metadata/qualified-format-claims-v1.json",
+        "metadata/qualified-format-status-v1.json"
+      ],
+      "revision": "Local files at baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9; JSON parsed with jq",
+      "observed": "The status ledger is FROZEN and contains 15 claims: 11 EXPERIMENTAL and 4 PENDING_NATIVE. All 15 claim tuples have direction=read and contractKind=value-read; no writer-direction claim exists."
+    },
+    {
+      "project": "LibreCAD 3 DWG support policy",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Mutable master page reviewed 2026-10-18",
+      "observed": "The document describes DWG import as opt-in and read-only. It requires promoted write-direction claims, independent reopening, and an explicit project decision before DWG saving is offered. It reports a current read-only claim snapshot; the app provides no independent DWG codec."
+    },
+    {
+      "project": "Standalone package synchronization guidance",
+      "urls": [
+        "https://github.com/LibreCAD/libdxfrw/blob/master/LIBRECAD_SYNC.md"
+      ],
+      "revision": "Mutable master page reviewed 2026-10-18",
+      "observed": "The documented downstream adoption route installs to a fresh prefix, tests CMake and pkg-config consumers, compiles the LibreCAD filter in system-package mode without bundled-fork include paths, and keeps fast focus tests separate from writer-matrix, fuzz, sanitizer, and external corpus checkpoints."
+    },
+    {
+      "project": "Autodesk DXF 3DSOLID reference and ezdxf rendering documentation",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "revision": "Autodesk published 2020 reference and mutable ezdxf master documentation reviewed 2026-10-18",
+      "observed": "The DXF 3DSOLID contract exposes proprietary modeler data through group 1/3 strings. ezdxf documents that its renderer does not render ACIS and projects 3D entities into the XY plane. Record recognition, carrier retention, and 2D rendering therefore do not establish B-rep semantics."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "independentCodecVotesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines the existing release and consumer gates to key support evidence by format, AC version, direction, operation, feature family, and exact route. Confirms that local reader claims cannot qualify DWG writing, carrier bytes cannot qualify B-rep semantics, and downstream LibreCAD 3 read compatibility is not an independent parser or writer result. Keeps the staged system-package integration gate at the composed checkpoint and leaves per-slice fast validation unchanged.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "localQualifiedFormatLedger": {
+      "freezeState": "FROZEN",
+      "claims": 15,
+      "directions": {
+        "read": 15,
+        "write": 0
+      },
+      "statuses": {
+        "EXPERIMENTAL": 11,
+        "PENDING_NATIVE": 4
+      }
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Regenerate and validate the digest-bound support ledger before any support-language or claim-status change.",
+    "Keep format/version/direction/operation/feature/route evidence separate; do not infer writer qualification from read claims.",
+    "At the existing composed package gate, test a fresh staged prefix and verify the downstream consumer resolves the standalone headers and library rather than its bundled fork.",
+    "Treat LibreCAD 3 as an opt-in read consumer only; do not create a DWG-writer expectation for a route the application does not expose.",
+    "For DWG writing, require exact target-version output, independent strict readback, owner/reference closure, explicit per-record disposition, and any required human native receipt.",
+    "Report exact carrier retention, ACIS parsing, valid shape semantics, and native application acceptance as separate outcomes.",
+    "Keep full matrices, fuzz/sanitizer, peer, and native checks at existing composed checkpoints; do not block locally ready slices on unavailable external routes.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL until their specific evidence conditions are independently met."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  }
+}

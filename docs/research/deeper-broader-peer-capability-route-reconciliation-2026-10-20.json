@@ -1,0 +1,103 @@
+{
+  "date": "2026-10-20",
+  "type": "research-only",
+  "scope": "Reconcile current open-source DWG/DXF and ACIS peer capability claims by exact route and evidence layer; refine the existing optional composed validation checkpoint.",
+  "sources": [
+    {
+      "name": "LibreDWG current manual",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "observations": [
+        "The manual describes broad read/mostly-write coverage as ongoing.",
+        "It states that R2007 DWG writing is not implemented.",
+        "It lists enabled entity/object classes that remain unstable or undertested."
+      ],
+      "limit": "Project documentation is a capability disclosure, not an independent runtime qualification for every revision or object family."
+    },
+    {
+      "name": "LibreDWG repository README and NEWS",
+      "url": "https://github.com/LibreDWG/libredwg",
+      "observations": [
+        "The README warns that R2010-R2018 writing still leads to CRC errors.",
+        "NEWS distinguishes historical AcDsPrototype_1b limitations from later decoder work."
+      ],
+      "limit": "Do not merge historical notes with current release behavior or transfer peer reports to libdxfrw."
+    },
+    {
+      "name": "ezdxf 1.4.5 documentation",
+      "url": "https://ezdxf.readthedocs.io/en/stable/",
+      "observations": [
+        "The documented support contract includes ASCII and Binary DXF read/write for named target versions.",
+        "The normal loader and the repair/recovery path are separate; recovery repairs ASCII DXF and audits the result."
+      ],
+      "limit": "No ezdxf package was installed or run during this research pass. Recovery/audit cannot qualify strict read or preservation."
+    },
+    {
+      "name": "ezdxf ACIS API and FAQ",
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "related_urls": [
+        "https://ezdxf.readthedocs.io/en/stable/faq.html",
+        "https://ezdxf.readthedocs.io/en/stable/tasks/add_dxf_entities.html#acis-entities"
+      ],
+      "observations": [
+        "The API exposes SAT/SAB load/export operations, but the FAQ says only SAT can be written; the documentation conflict remains unresolved by an exact-version execution.",
+        "Unsupported ACIS structures may be represented as NONE_ENTITY and lose data.",
+        "Mesh extraction covers flat polygonal faces and does not provide an ACIS kernel; payload authoring requires an external library."
+      ],
+      "limit": "Do not treat an API signature, parser result, or flat mesh as arbitrary ACIS roundtrip or B-rep validity evidence."
+    },
+    {
+      "name": "ezdxf drawing renderer documentation",
+      "url": "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html",
+      "observations": [
+        "ACIS rendering is unsupported.",
+        "3D entities are projected into the XY plane because the renderer has no 3D rendering engine."
+      ],
+      "limit": "Renderer output is not 3D geometry or topology evidence."
+    },
+    {
+      "name": "ACadSharp v3.7.1 and open schema-value report",
+      "url": "https://github.com/DomCR/ACadSharp/releases/tag/v3.7.1",
+      "related_urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1215",
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "observations": [
+        "The released structured Prototype_1b reader is a candidate DWG structure comparator.",
+        "An open PR reports a multi-valued schema property parsing defect; ODA specification section 24 remains the byte-layout authority."
+      ],
+      "limit": "No ACadSharp runtime was run; its high-level schema lookup is not accepted as the primary row/index/owner ledger."
+    },
+    {
+      "name": "CADMPEG, acis-core, cq-acis, and FreeCAD routes",
+      "url": "https://github.com/cadmpeg/cadmpeg",
+      "related_urls": [
+        "https://github.com/cadmpeg/acis-core",
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observations": [
+        "Payload parser/profile support, selected shape construction, and native DXF import are distinct stages.",
+        "Shared format-discovery or geometry-kernel lineage means tool agreement is not automatically independent evidence.",
+        "Stock FreeCAD DXF import is not a general ACIS semantic route."
+      ],
+      "limit": "No external runtime, native application, or downloaded drawing was used."
+    }
+  ],
+  "plan_changes": [
+    "Clarify route selection for the optional composed checkpoint: normal DXF parser, recovery/audit, carrier extraction, ACIS parser, geometry construction, renderer, and native application are separate evidence cells.",
+    "Require exact artifact/runtime/build/input/profile binding and explicit unsupported/ignored-record disposition for any peer result.",
+    "Keep local generated fast tests as the per-slice loop; external peer and native gates remain optional, non-blocking, and outside routine per-slice validation.",
+    "Do not infer B-rep, preservation, modern DWG writer, or native application support from parser breadth, recovered output, rendering, or same-codec readback."
+  ],
+  "not_done": [
+    "No source or implementation code changed.",
+    "No peer dependency/runtime was installed or executed.",
+    "No external DWG, DXF, SAT, or SAB fixture was downloaded or committed.",
+    "No new finding, top-level subplan, test, or support claim was added."
+  ],
+  "inventory": {
+    "findings": 141,
+    "top_level_subplans": 78,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

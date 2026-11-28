@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-checked-hatch-self-fixed14-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "c8dd52b631196e1c8710a2346025570cbda69f01",
+  "codecImplementationDigestSha256": "ad5b209a8d7087b49f00070533616bfd91628ea6a80be07f7156bbe4d0ef0640",
+  "scope": "The selected isolated AC1024 ASCII model-space HATCH has source handle 0x14, which collides with a generated structural output handle.",
+  "checks": [
+    "Reuse the existing early entity allocation and source-to-output binding for either selected HATCH entity; staged section isolation and reciprocal link checks remain in force.",
+    "A late geometry change and an ambiguous duplicate source identity each preserve an existing destination. A corrected retry succeeds with the same filter.",
+    "Shared-codec focused tests pass 1080 assertions in seven cases; bundled-codec tests pass 236 assertions in five cases.",
+    "ezdxf checks the saved locally authored drawing and its ODA File Converter 27.1.0 conversion: HATCH 0x30, boundary 0xB0, model-space owner 0x1F, reciprocal references, expected vertices, and zero audit errors or fixes."
+  ],
+  "sha256": {
+    "sharedTestLog": "78ef19abdcad4588ec37ad32e4b8892e5b3f8fb8aa97bbf2d87f23e9c09d4453",
+    "bundledTestLog": "82e6fd93df6bfd57eccfd35fd91cad4fdef942c48491c237a028e0af222d9739",
+    "dxf": "0963a163ea2dacd5742ddd07ff1cf7a73f3dbc191c9c43cc119f41bca5aaa101",
+    "odaDxf": "021cec7e86edf05b793e612d705ddc276060f7f6f34ea451ae4810c4f871ddc1"
+  },
+  "limits": [
+    "Other fixed identities, non-isolated graphs, native GUI editing, and general producer or platform interoperability remain unqualified.",
+    "No drawing fixture is committed."
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "title": "FIELD/FIELDLIST writer allocation rollback and retry",
+  "date": "2026-11-13",
+  "scope": "Generated whole-operation ASCII/Binary FIELD and FIELDLIST transaction controls across AC1018, AC1021, AC1024, AC1027 and AC1032; compare the caller's complete modeled test profile after failures and verify typed payload after same-codec retry.",
+  "writerVersionMatrix": ["AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+  "generatedProfiles": {
+    "FIELD": {
+      "handle": "0xA501",
+      "parentHandle": "0xC",
+      "evaluatorId": "AcObjProp",
+      "fieldCode": "%<\\AcVar CustomField>%",
+      "value": {
+        "dataType": 2,
+        "groupCode": 140,
+        "type": "DOUBLE",
+        "number": 23.5,
+        "valueString": "23.5",
+        "valueStringLength": 4
+      },
+      "childHandles": [],
+      "objectHandles": [],
+      "childValues": []
+    },
+    "FIELDLIST": {
+      "handle": "0xA502",
+      "parentHandle": "0xC",
+      "fieldHandles": ["0xA501"]
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_field_objects_allocation_tests --parallel 2",
+    "buildResult": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_field_objects_allocation$' --output-on-failure",
+    "ctestResult": "PASS, 1/1 (0.35 sec)",
+    "allocationSweep": {
+      "AC1018": {"fieldAscii": 11, "fieldListAscii": 5, "fieldBinary": 10, "fieldListBinary": 4, "total": 30},
+      "AC1021": {"fieldAscii": 12, "fieldListAscii": 4, "fieldBinary": 11, "fieldListBinary": 4, "total": 31},
+      "AC1024": {"fieldAscii": 12, "fieldListAscii": 4, "fieldBinary": 11, "fieldListBinary": 4, "total": 31},
+      "AC1027": {"fieldAscii": 12, "fieldListAscii": 4, "fieldBinary": 11, "fieldListBinary": 4, "total": 31},
+      "AC1032": {"fieldAscii": 12, "fieldListAscii": 4, "fieldBinary": 11, "fieldListBinary": 4, "total": 31},
+      "summary": "154/154 failures injected; caller state and destination preserved; same-codec retry and typed readback passed."
+    },
+    "readback": "FIELD handle/owner/common metadata, extData/appData counts, evaluator and expression, CadValue format/data type/size/unit, variant code/type/double value, formatted value string/length, child/object handle vectors, and child-value count match the generated profile. FIELDLIST handle/owner/common metadata, extData/appData counts, unknown field and single FIELD member handle match.",
+    "gitDiffCheck": "PASS",
+    "jsonParse": "PASS"
+  },
+  "limitations": [
+    "Generated writer transaction and typed readback only; this does not establish source-producer interoperability or support claims.",
+    "The FIELDLIST member and object owner are checked, but visibility and recursive reachability from a named dictionary root are not qualified here.",
+    "FIELD expression evaluation, native consumer display, and unsupported FIELD token preservation remain open."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added; the existing test generates output in scratch storage."
+}

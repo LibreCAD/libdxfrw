@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assoc-node-framing-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative constraint-group seed/count framing",
+  "status": "BOUNDED_PREFIX_IMPLEMENTED_NONEMPTY_TAIL_RAW",
+  "supportClaimEffect": "none",
+  "baseCommit": "a584ea5e",
+  "scope": "Read the same-input AC1024 constraint-group next-node-ID seed and inline node count with bounded handling; complete only empty version-0 and version-2 zero-seed profiles, and retain all nonempty or alternate layouts as raw/unvalidated.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "groupHandle": "42B",
+    "sourceGroupVersion": 0,
+    "peerReaderCommit": "5b58ed25bf300867d041f6801aee2e4bc0f89733",
+    "peerNextNodeId": 523,
+    "peerSerializedNodeCount": 399
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/associative_constraint_group_test_helpers.h",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "behavior": [
+      "Retain the next-node-ID seed separately from node count and copy/reset both state fields with DRW_AssociativeObject.",
+      "Decode nonnegative seed then bounded count for the AC1024 version-0 inline profile.",
+      "For version 2, stop after a nonzero seed so a possible registry root is not misread as an inline count.",
+      "Keep nonempty node lists partial and raw until class names, connections and class-specific bodies are decoded.",
+      "Keep strict associative DXF export refusal active."
+    ],
+    "generatedCases": [
+      "Version-2 empty group with zero seed.",
+      "Version-0 empty group with seed 523 and count zero.",
+      "Version-0 nonempty group remains partial after seed/count framing.",
+      "Over-bound action and node counts preserve raw data and following-object recovery.",
+      "Negative seed stops before consuming a node count.",
+      "Version-2 nonzero seed stops before consuming a possible registry root."
+    ],
+    "persistentDrawingFixturesAdded": 0
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS"
+    },
+    "normalFocusedTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS; C++ flags include -fsanitize=address"
+    },
+    "asanFocusedTest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_constraint_group_generated$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "asanEnvironmentNote": "Explicit ASAN_OPTIONS=detect_leaks=1 aborts because this platform reports leak detection unsupported; the same focused test passed with default ASan options.",
+    "realSourceCommand": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/libdxfrw-ac1024-node-prefix-slice.dxf",
+    "realSourceResult": "Expected strict refusal: debug reports seed=523 and nodeCount=399, the associative output preflight returns dwg-associative-graph-not-serialized, and no DXF file is created.",
+    "realSourceLogSha256": "de1a2104104880a9744edf8b8cd94e2e84a687353ffcbe0aeef9831863e96cd9",
+    "diffCheck": "PASS"
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "a52c10c9bc2b2bd27c37960c9e50997a26bcc7e0434eb9585cbb694fe43ad000",
+    "src/drw_objects.h": "ef0b466643b16fc06b0b3c44758469873a84eaf729cd5fc88f630b2a3ca0f76a",
+    "tests/associative_constraint_group_test_helpers.h": "b36de266677ef60417b1ddf077d3f8793a63a62905f86a3c5c7efbcf59faca97",
+    "tests/dwg_reader_matrix_tests.cpp": "fe5aa910f3293ce2b5003096f3e4b9d2a0f14636555e395abd24694517de8079",
+    "build/dwg2dxf/dwg2dxf": "f80341025ae31458f6b96a4e2413b926faa14a3262e01c63a325b83a0d35fb19",
+    "build/libdxfrw_dwg_reader_matrix_tests": "93613aff55c0a7b9ba3fb6a10bb77b2a34fd097c979ef33a8b559ff06c8fa6af",
+    "build-asan-custom/dwg2dxf/dwg2dxf": "8d8804874c4572b5b26a23ad86c349f6db962598f6ce90c47f414c8266916461",
+    "build-asan-custom/libdxfrw_dwg_reader_matrix_tests": "5eaf86131167ac2e8b893b373cf1eda77d5fb0fc36e4a2078880a31bb27eea65"
+  },
+  "nextAction": "Decode the detached node class-name stream, node IDs/connections and the first source-observed class-specific bodies with per-field bounds; keep unsupported remainder raw and strict export refusal active."
+}

@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-10",
+  "scope": "Source-release inventory refresh at c43dfaa2",
+  "finding": "The tracked-file release inventories omitted 17 tracked files: 11 test sources and six research tools, including the new point-cloud, HELIX and FreeCAD probes. A release configured with tests enabled could lack required sources.",
+  "change": "Regenerated the Automake and plain-text source-release inventories with tools/generate_build_inventory.py --write. The generated lists contain 999 files; the active plan and execution receipts remain excluded by generator policy.",
+  "verification": {
+    "inventory": "Generator --check passed; --self-test passed 18 refusal controls.",
+    "archive": "A scratch archive built from the 999-file list passed --check --archive with exact byte comparisons. The extracted tree passed the no-Git inventory check and CMake configuration with LIBDXFRW_BUILD_TESTS=ON.",
+    "build": "The extracted source tree built libdxfrw_dxf_spline_helix_dispatch_tests, libdxfrw_dwg_pointcloudex_cropped_fields_tests and libdxfrw_dxf_pointcloud_omitted_fields_tests using AppleClang 21.0.0.21000334; their CTests passed 3/3."
+  },
+  "followup": "After commit 1d0a1d40 added tests/dxf_primitive_subtype_dispatch_tests.cpp, regenerated both inventories again; --check passed with 1000 files. The preceding archive and extracted-tree checks apply to the 999-file c43dfaa2 snapshot, not this later list.",
+  "limits": "This is a locally assembled archive and focused CMake check, not an Autotools distcheck or native platform qualification. New tracked files require regeneration before release. No drawing fixture added."
+}

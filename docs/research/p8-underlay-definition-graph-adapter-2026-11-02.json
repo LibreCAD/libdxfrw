@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-underlay-definition-graph-adapter-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "GENERATED_UNDERLAY_GRAPH_TRANSPORT_AND_FAILURE_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Retain and serialize DXFRW Underlay entity callbacks with their typed PDF/DGN/DWF definition callbacks and canonical named-object dictionary ownership edges.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp"
+    ],
+    "behavior": [
+      "The converter adapter retains Underlay entities with their import generation and captures definitions keyed by generation plus handle.",
+      "The generic bounded object graph recognizes typed Underlay definition targets and validates their owner before the Underlay-specific closure validates entity kind, canonical root dictionary, complete membership, unique definition identity, and ownership.",
+      "Strict DXF output remaps and emits selected definitions and entities only after their rooted dictionary graph closes; the serializer binds definition handles and maps entity group 340 references through the same handle plan."
+    ]
+  },
+  "validationProfile": {
+    "source": "Generated locally in memory by the focused adapter control; no external DWG/DXF fixture is used or committed.",
+    "kinds": ["PDF", "DGN", "DWF"],
+    "outputVersions": ["AC1024", "AC1032"],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "readback": "Fresh typed import checks each canonical root name, child dictionary owner and key, definition handle/kind/filename/sheet, entity reference, placement, scale, rotation, contrast, fade, and clip boundaries.",
+    "failureRetry": "For each of a missing definition and a mismatched entity/definition kind, the focused control verifies strict export refusal and preservation of a pre-existing destination sentinel, restores the graph, and verifies successful export retry using the same adapter."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_underlay_definition_graph$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; four version/encoding cells, three Underlay kinds, readback, two atomic refusal cases, and a corrected same-adapter retry after each refusal.",
+    "fixturePolicy": "The test authors records in memory and uses temporary output files. No test drawing fixture was added.",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "limitations": [
+    "This is generated transport evidence only. It does not establish physical producer breadth, native PDF/DGN/DWF interpretation, whole-document conversion, or 3D semantic support.",
+    "P8 remains OPEN for LibreCAD/LibreCAD_3, intended 3D consumers, native Linux/Windows FreeCAD, ABI, packaging, performance, and release gates. No support claim is promoted."
+  ],
+  "next": "Continue the next independently ready local callback/reference-closure slice; retain native/platform qualification as a separate P8 gate."
+}

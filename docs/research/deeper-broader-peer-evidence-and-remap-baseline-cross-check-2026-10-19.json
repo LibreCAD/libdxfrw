@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader peer evidence and generic remap baseline cross-check",
+  "mode": "Primary-source repository and local test crosswalk; research only",
+  "scope": [
+    "Revalidate current open-source peer evidence for DXF ACIS carrier loss and DWG AcDs limitations",
+    "Crosswalk existing associative replay plan against generic raw handle-remapping tests",
+    "Avoid duplicate tests or raising format-support claims from project declarations"
+  ],
+  "sources": [
+    {
+      "name": "LibreDWG 0.14.1 NEWS",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "observed": "The 0.14.1 notes report a DXF export fix for an off-by-one that dropped the final SAT block in 3DSOLID/REGION output. The same notes say the R2013+ AcDsPrototype_1b datastore is not fully implemented and newer SAB extraction used brute-force scanning. These are distinct inline-DXF and modern-DWG AcDs routes; neither qualifies libdxfrw or closes the AcDs path."
+    },
+    {
+      "name": "ACadSharp issue #1195",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "observed": "The issue remains open in the inspected issue index and reports silent DWG-to-DXF omission of 3DSOLID/REGION for ACadSharp 3.4.9, including solids inside blocks. The customer drawings are not attached; this is a version-scoped report, not a locally reproduced peer result or a libdxfrw defect."
+    },
+    {
+      "name": "Existing generic raw handle-remapping test",
+      "path": "tests/wave1_tests.cpp",
+      "symbol": "testDxfRawEntityApplicationGroupReferenceMatrix",
+      "observed": "Generated ASCII and Binary writer checks explicitly map generic translated-handle code families 320, 330, 350, 390, 399, 480, and 481. The test demonstrates the raw writer's primitive mapping behavior, not ACDBASSOC edge grammar, map construction, graph closure, or replay admission."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "duplicateTestsAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Clarifies that generic raw-writer handle remapping is an existing tested primitive and should be reused rather than duplicated. It does not establish associative object semantics or safe replay. Existing route-specific PAR-07 evidence already owns the LibreDWG/ACadSharp findings; no new finding or validation gate is warranted."
+  },
+  "method": {
+    "webReview": "Primary project NEWS and issue pages; no peer artifact execution",
+    "localReview": "Read-only inspection of existing source/test function and plan crosswalk",
+    "localTestsRun": false,
+    "fullSuiteRun": false,
+    "externalFilesDownloaded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "nativeApplicationsOrKernelsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256": {
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "86ac527520f10e718b0c6d479986aa9ca08c1e407a482841b1c0a3873a9e22a5",
+      "tests/wave1_tests.cpp": "7030115477ecab501884d0079b6467b3719305c089a5e312c6b3d9d1973adfa2"
+    },
+    "planSha256": "86ac527520f10e718b0c6d479986aa9ca08c1e407a482841b1c0a3873a9e22a5",
+    "validation": [
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md passed",
+      "jq empty docs/research/deeper-broader-peer-evidence-and-remap-baseline-cross-check-2026-10-19.json passed",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-peer-evidence-and-remap-baseline-cross-check-2026-10-19.json passed"
+    ],
+    "limitations": "Peer results were not reproduced. ACadSharp issue evidence is reporter-attributed and customer inputs are unavailable. Generic handle remapping coverage does not identify any associative object's actual pointer or owner roles."
+  }
+}

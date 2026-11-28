@@ -1,0 +1,80 @@
+{
+  "schema": "ac1018-blockrecord-xdata-objectid-source-binding-v1",
+  "date": "2026-10-29",
+  "codeCommit": "b500b5d8ca23d0ac464edc4a35fe8031526ef551",
+  "scope": "Private, opt-in AC1018 source-role binding for one witnessed BLOCK_RECORD EED group-1005 reference. This binds the original APPID provider and exact same-table BLOCK_RECORD target; it does not interpret EED payload meaning, close target dependencies, qualify output or promote a support claim.",
+  "externalSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "blobSha": "9b3128164a6d242159fc04e1afb5fef539ea30d7",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "inspection": "Pinned GitHub blob inspected in memory; no external sample was copied into the worktree or committed.",
+    "selectedOwner": {
+      "record": "BLOCK_RECORD A91 (*U18)",
+      "lineSpan": "[4773,4805)",
+      "tableHandle": "1",
+      "orderedEedFields": [
+        { "line": 4799, "code": 1001, "value": "AcDbBlockRepBTag" },
+        { "line": 4801, "code": 1070, "value": "1" },
+        { "line": 4803, "code": 1005, "value": "A7E" }
+      ]
+    },
+    "target": {
+      "record": "BLOCK_RECORD A7E (*U17)",
+      "lineSpan": "[4661,4773)",
+      "tableHandle": "1",
+      "nameField": { "line": 4677, "code": 2, "value": "*U17" },
+      "orderedAppIdNames": [
+        "AcDbBlockRepETag",
+        "AcDbDynamicBlockTrueName",
+        "AcDbDynamicBlockGUID",
+        "ACAD"
+      ],
+      "censusNote": "The target row includes large group-310 preview data and four EED APPID names; this receipt binds its identity as the target and does not capture those four providers."
+    },
+    "provider": {
+      "record": "APPID A9E",
+      "lineSpan": "[3713,3727)",
+      "tableHandle": "9",
+      "name": "AcDbBlockRepBTag",
+      "nameField": { "line": 3723, "code": 2, "value": "AcDbBlockRepBTag" }
+    },
+    "separateRepeatedTarget": {
+      "record": "BLOCK_RECORD A96 (*U19)",
+      "lineSpan": "[4805,4837)",
+      "targetHandle": "A7E",
+      "disposition": "Observed separately; not automatically selected or included in this join."
+    }
+  },
+  "implementation": {
+    "profile": "The bounded BLOCK_RECORD audit recognizes a nonzero group-1005 XDATA object-id span while retaining ordered groups and the selected APPID name.",
+    "providerBinding": "The existing APPID source binder requires one unique provider row with the right APPID table owner, original identity row, whole-source physical row, raw/model replay and unique live model.",
+    "targetBinding": "For the selected AcDbBlockRepBTag profile, capture requires the owner name *U18, one group-1005 field, and a unique BLOCK_RECORD identity in the same table. It matches the complete target raw row to whole-source fields, target group-2 name to raw and typed model, structural raw/model pointers and context, and one live typed BLOCK_RECORD. Automatic retention is limited to the exact *U17 target profile.",
+    "boundsAndPromotion": "The target raw/model size and group scan are charged to the existing work/retained-byte budgets. Missing, duplicate, wrong-owner, wrong-name, wrong-type, wrong-table or mismatched target identities leave the join absent without changing import success. No output eligibility or owner-target closure is set.",
+    "runtimeFixture": "tests/legacy_attdef_scope_controls.h writes ASCII and binary DXF fixtures from scratch at runtime. It exercises provider absence/duplication/owner/name faults, missing and wrong-type targets, a different valid BLOCK_RECORD target, duplicate group-1005 reference, ambiguous target identity, and corrected same-adapter retry. No drawing fixture was added to Git."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_attdef_source_tests -j4",
+    "normalBuildResult": "PASS",
+    "normalSelector": "ctest --test-dir build-gcc -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "normalSelectorResult": "PASS 1/1 (0.81 s)",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_attdef_source_tests -j4",
+    "asanBuildResult": "PASS",
+    "asanSelector": "ctest --test-dir build-asan-custom -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "asanSelectorResult": "PASS 1/1 (1.58 s)",
+    "diffCheck": "PASS git diff --check before code commit"
+  },
+  "bindings": {
+    "dwg2dxf/dx_data.h": "312d756ecb237f4617b8b4f561fe27c06272f74ce64354d5f5faecee085c6292",
+    "dwg2dxf/dx_iface.cpp": "88897d1f85be1d2e64bdb8ba7b4f733f613d34c09cbf76d12a143ab545b8cf94",
+    "dwg2dxf/dx_legacy_block_record_source_profile.h": "4f5ca2878d14b451ac96a995656b12ea1b17140fd64064786ce00ca8427c02ec",
+    "tests/attdef_source_tests.cpp": "bb5a139aa5141fbee895e01b8436da08349e56fb6f559237053d755bb1cdfe73",
+    "tests/legacy_attdef_scope_controls.h": "a24becc2ad2097b8aacb3d2c2865a5169faa05d408c6bb4d7978a20a7db8e5c6"
+  },
+  "limits": [
+    "The A91-to-A7E edge is a selected source-role join only; its EED meaning and the target's four APPID dependencies remain unqualified.",
+    "A96 is a separate repeated-target observation and is not included.",
+    "No recursive dependency closure, emitted output, native consumer, complete-document conversion or format-support claim is established."
+  ]
+}

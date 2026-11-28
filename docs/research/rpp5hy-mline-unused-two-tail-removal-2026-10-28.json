@@ -1,0 +1,3663 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2.4 selected unused MLINESTYLE 4-to-2 tail removal",
+  "date": "2026-10-28",
+  "codeCommit": "d0c31b45ef222d1ec3173c2cfca851c203059cd1",
+  "scope": "Same-version modern original DXF core style, four pairwise distinct contiguous 49/62/6 tuples, unchanged first two typed survivors and exact unchanged original raw tuple values and ASCII spellings; rooted dictionary and all original/survivor LTYPE provider proofs; complete original/live/output MLINE consumer census.",
+  "contract": {
+    "operation": "Remove the final two tuples and change group 71 from 4 to 2; retain the first two tuples in order.",
+    "identity": "Pairwise tuple distinction qualifies the selected content; it does not establish mutation history.",
+    "atomicity": "Existing destination and caller state are preserved on refusal; same-facade corrected retry succeeds.",
+    "unqualified": "Other multi-removals, non-prefix survivors, duplicate tuples, retained-element edits, 1-to-0, consumed geometry, unqualified original profiles, extra core suffixes and missing evidence remain refused.",
+    "formatCoverage": "Selected AC1027 source and target; ASCII and binary input/output."
+  },
+  "sourceBindings": {
+    "adapterCppSha256": "92ecfafc2f7ec6eaffe4f774a8b65c6244be05ac617f369f62d50c6c65b8257b",
+    "adapterHeaderSha256": "9e8f5399b2342066d4a1a8348638f185253cc9e7b578449b68ffa57ed7aca8ca",
+    "testSourceSha256": "4ba8305a72607866a8ad5d89a76788d77f1403eb4d6a8342b952783695c459ad",
+    "normalAdapterObjectSha256": "6caf2681912fdfb606d4f1e5d943486458511d8d75ea121f1c33e509b24c0315",
+    "normalLibrarySha256": "ef08649d21441164a732d5b02dc8e61ecfc24ae9d36ee6d6088bacb159728c22",
+    "normalTestExecutableSha256": "813bc4a220d659407da18cfae2471dc2aeb3e3901754633860358e29815b7f10",
+    "asanAdapterObjectSha256": "6e6741a9b7fc52ca739015f4b130e71e3fcbdd9e8fcb90b577c7558d1c270c2a",
+    "asanLibrarySha256": "84a47444ee2687b172e024d3e118b16c0e71e446d0351fa00460ff27ab5d2ff7",
+    "asanTestExecutableSha256": "ee5a3b29b527d7f6a7454f1bd4527ead97d42738ea0a28f2c47acf970ef738ba"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_mline_style_body_transactions",
+        "libdxfrw_mline_style_authority"
+      ],
+      "result": "PASS",
+      "count": "2/2"
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_mline_style_body_transactions",
+        "libdxfrw_mline_style_authority"
+      ],
+      "result": "PASS",
+      "count": "2/2",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "counts": {
+      "profiles": 4,
+      "refusals": 24,
+      "readbacks": 42,
+      "lateMutation": 8,
+      "ambiguous": 2,
+      "injected": 4,
+      "retries": 38
+    },
+    "note": "Both test results were directly observed; LastTest.log may be overwritten by concurrent CTest runs."
+  },
+  "independentPeer": {
+    "reportSha256": "638c87b8b28785d9249eeb1d22b5432f2b3754c698e9eee745f68ee15142ae82",
+    "reportScriptSha256": "e086c1dfa7d77b174918b17361ed49c487e169c0a5d56ab9e32e5f8912a86e10",
+    "report": {
+      "schema": "selected-unused-mlinestyle-two-tail-removal-v1",
+      "inputs": [
+        {
+          "format": "asc",
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5ht-evidence/multi-asc.dxf",
+          "sha256": "e94e825e5a05c9465ad19c43279161c49c2f5c040d6f70e0281af73d39f9d140",
+          "observations": {
+            "physicalBeforeDocumentSetup": {
+              "styles": {
+                "Standard": {
+                  "fields": {
+                    "name": "Standard",
+                    "flags": 0,
+                    "description": "",
+                    "fillColor": 256,
+                    "startAngle": 90.0,
+                    "endAngle": 90.0,
+                    "elements": [
+                      [
+                        0.5,
+                        256,
+                        "BYLAYER"
+                      ],
+                      [
+                        -0.5,
+                        256,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "22",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "Standard",
+                  "wireBodyName": "Standard",
+                  "wireElementLinetypes": [
+                    "BYLAYER",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                },
+                "PeerMline": {
+                  "fields": {
+                    "name": "RedundantBody",
+                    "flags": 3,
+                    "description": "Dictionary authority boundary",
+                    "fillColor": 4,
+                    "startAngle": 37.5,
+                    "endAngle": 142.5,
+                    "elements": [
+                      [
+                        1.25,
+                        3,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -0.75,
+                        5,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "2F",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "PeerMline",
+                  "wireBodyName": "RedundantBody",
+                  "wireElementLinetypes": [
+                    "CONTINUOUS",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                },
+                "PeerRetarget": {
+                  "fields": {
+                    "name": "PeerRetarget",
+                    "flags": 3,
+                    "description": "Original compatible retarget destination",
+                    "fillColor": 6,
+                    "startAngle": 37.5,
+                    "endAngle": 142.5,
+                    "elements": [
+                      [
+                        1.25,
+                        6,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -0.75,
+                        2,
+                        "BYLAYER"
+                      ],
+                      [
+                        1.75,
+                        4,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -1.25,
+                        3,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "31",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "PeerRetarget",
+                  "wireBodyName": "PeerRetarget",
+                  "wireElementLinetypes": [
+                    "CONTINUOUS",
+                    "BYLAYER",
+                    "CONTINUOUS",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 4,
+                  "linetypeReferences": [
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    },
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                }
+              },
+              "styleCount": 3,
+              "rootHandle": "C",
+              "dictionaryHandle": "3B",
+              "linetypeDefinitions": {
+                "ByBlock": {
+                  "handle": "14",
+                  "owner": "5",
+                  "wireName": "ByBlock"
+                },
+                "ByLayer": {
+                  "handle": "15",
+                  "owner": "5",
+                  "wireName": "ByLayer",
+                  "fields": {
+                    "name": "ByLayer",
+                    "flags": 0,
+                    "description": "",
+                    "pattern": [
+                      [
+                        72,
+                        65
+                      ],
+                      [
+                        73,
+                        0
+                      ],
+                      [
+                        40,
+                        0.0
+                      ]
+                    ]
+                  }
+                },
+                "Continuous": {
+                  "handle": "16",
+                  "owner": "5",
+                  "wireName": "Continuous",
+                  "fields": {
+                    "name": "Continuous",
+                    "flags": 0,
+                    "description": "Solid line",
+                    "pattern": [
+                      [
+                        72,
+                        65
+                      ],
+                      [
+                        73,
+                        0
+                      ],
+                      [
+                        40,
+                        0.0
+                      ]
+                    ]
+                  }
+                }
+              },
+              "linetypeControl": {
+                "handle": "5",
+                "recordCount": 3
+              },
+              "linetypeTargetsChecked": true,
+              "mlineConsumers": {
+                "consumers": {
+                  "BLOCKS:PeerMlineBlock": {
+                    "fields": {
+                      "styleName": "Block_表_Ω",
+                      "scale": 2.5,
+                      "justification": 2,
+                      "flags": 1,
+                      "count": 3,
+                      "elementCount": 2,
+                      "start": [
+                        10.0,
+                        20.0,
+                        30.0
+                      ],
+                      "extrusion": [
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      "layer": "0",
+                      "vertices": [
+                        {
+                          "location": [
+                            10.0,
+                            20.0,
+                            30.0
+                          ],
+                          "direction": [
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          "miter": [
+                            0.0,
+                            0.7933533402912352,
+                            0.6087614290087207
+                          ],
+                          "lineParameters": [
+                            [
+                              8.213398158522908,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            10.0,
+                            24.0,
+                            30.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.0,
+                            -0.7071067811865475,
+                            0.7071067811865475
+                          ],
+                          "lineParameters": [
+                            [
+                              7.0710678118654755,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            10.0,
+                            24.0,
+                            35.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.0,
+                            -0.6087614290087209,
+                            -0.7933533402912349
+                          ],
+                          "lineParameters": [
+                            [
+                              8.213398158522905,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    },
+                    "handle": "4A",
+                    "owner": "41",
+                    "styleHandle": "2F",
+                    "blockRecord": "41"
+                  },
+                  "ENTITIES:*Model_Space": {
+                    "fields": {
+                      "styleName": "Model_café_Ω",
+                      "scale": 1.25,
+                      "justification": 1,
+                      "flags": 1,
+                      "count": 3,
+                      "elementCount": 2,
+                      "start": [
+                        1.0,
+                        2.0,
+                        3.0
+                      ],
+                      "extrusion": [
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      "layer": "0",
+                      "vertices": [
+                        {
+                          "location": [
+                            1.0,
+                            2.0,
+                            3.0
+                          ],
+                          "direction": [
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          "miter": [
+                            0.7933533402912352,
+                            0.0,
+                            -0.6087614290087207
+                          ],
+                          "lineParameters": [
+                            [
+                              2.5666869245384087,
+                              0.0
+                            ],
+                            [
+                              -1.5400121547230454,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            5.0,
+                            2.0,
+                            3.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.7071067811865475,
+                            0.0,
+                            -0.7071067811865475
+                          ],
+                          "lineParameters": [
+                            [
+                              2.2097086912079607,
+                              0.0
+                            ],
+                            [
+                              -1.3258252147247764,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            5.0,
+                            2.0,
+                            8.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.6087614290087208,
+                            0.0,
+                            -0.793353340291235
+                          ],
+                          "lineParameters": [
+                            [
+                              2.566686924538408,
+                              0.0
+                            ],
+                            [
+                              -1.5400121547230445,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    },
+                    "handle": "4C",
+                    "owner": "1F",
+                    "styleHandle": "2F",
+                    "blockRecord": "1F"
+                  }
+                },
+                "blockRecords": {
+                  "*Model_Space": "1F",
+                  "*Paper_Space": "1E",
+                  "PeerMlineBlock": "41"
+                },
+                "blockRecordControl": "1",
+                "blockFrames": {
+                  "*Model_Space": {
+                    "beginHandle": "20",
+                    "endHandle": "21",
+                    "beginOwner": "1F",
+                    "endOwner": "1F"
+                  },
+                  "*Paper_Space": {
+                    "beginHandle": "1C",
+                    "endHandle": "1D",
+                    "beginOwner": "1E",
+                    "endOwner": "1E"
+                  },
+                  "PeerMlineBlock": {
+                    "beginHandle": "42",
+                    "endHandle": "43",
+                    "beginOwner": "41",
+                    "endOwner": "41"
+                  }
+                },
+                "consumerCount": 2,
+                "beforeDocumentSetup": true,
+                "geometryRegenerated": false,
+                "nativeMlineConsumerQualified": false
+              },
+              "layerMaterialBindings": [
+                {
+                  "name": "0",
+                  "materialHandlePresent": true,
+                  "materialHandle": "0",
+                  "selectedEffectiveBinding": "null"
+                },
+                {
+                  "name": "Defpoints",
+                  "materialHandlePresent": true,
+                  "materialHandle": "0",
+                  "selectedEffectiveBinding": "null"
+                }
+              ],
+              "materialObjects": [],
+              "lineCount": 1,
+              "beforeDocumentSetup": true,
+              "beforeExplicitAuditOrRecovery": true
+            },
+            "ordinaryReadAfterDocumentSetup": true,
+            "ordinaryReadEncoding": "cp1252",
+            "ordinaryReadVersion": "AC1027",
+            "explicitAuditOrRecoveryRun": false,
+            "documentSetupAddedMaterials": [
+              {
+                "handle": "4D",
+                "name": "ByBlock"
+              },
+              {
+                "handle": "4E",
+                "name": "ByLayer"
+              },
+              {
+                "handle": "4F",
+                "name": "Global"
+              }
+            ],
+            "documentSetupAddedMaterialCount": 3,
+            "typedStylesMatched": 3,
+            "nativeMlineConsumerQualified": false
+          }
+        },
+        {
+          "format": "bin",
+          "path": "/Users/dli/dev/libdxfrw/build/rpp5ht-evidence/multi-bin.dxf",
+          "sha256": "3a032f89332b296fc103093844c838e6d798c2d49381e81374f805b5fbca0dc3",
+          "observations": {
+            "physicalBeforeDocumentSetup": {
+              "styles": {
+                "Standard": {
+                  "fields": {
+                    "name": "Standard",
+                    "flags": 0,
+                    "description": "",
+                    "fillColor": 256,
+                    "startAngle": 90.0,
+                    "endAngle": 90.0,
+                    "elements": [
+                      [
+                        0.5,
+                        256,
+                        "BYLAYER"
+                      ],
+                      [
+                        -0.5,
+                        256,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "22",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "Standard",
+                  "wireBodyName": "Standard",
+                  "wireElementLinetypes": [
+                    "BYLAYER",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                },
+                "PeerMline": {
+                  "fields": {
+                    "name": "RedundantBody",
+                    "flags": 3,
+                    "description": "Dictionary authority boundary",
+                    "fillColor": 4,
+                    "startAngle": 37.5,
+                    "endAngle": 142.5,
+                    "elements": [
+                      [
+                        1.25,
+                        3,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -0.75,
+                        5,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "2F",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "PeerMline",
+                  "wireBodyName": "RedundantBody",
+                  "wireElementLinetypes": [
+                    "CONTINUOUS",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                },
+                "PeerRetarget": {
+                  "fields": {
+                    "name": "PeerRetarget",
+                    "flags": 3,
+                    "description": "Original compatible retarget destination",
+                    "fillColor": 6,
+                    "startAngle": 37.5,
+                    "endAngle": 142.5,
+                    "elements": [
+                      [
+                        1.25,
+                        6,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -0.75,
+                        2,
+                        "BYLAYER"
+                      ],
+                      [
+                        1.75,
+                        4,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -1.25,
+                        3,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "31",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "PeerRetarget",
+                  "wireBodyName": "PeerRetarget",
+                  "wireElementLinetypes": [
+                    "CONTINUOUS",
+                    "BYLAYER",
+                    "CONTINUOUS",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 4,
+                  "linetypeReferences": [
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    },
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                }
+              },
+              "styleCount": 3,
+              "rootHandle": "C",
+              "dictionaryHandle": "3B",
+              "linetypeDefinitions": {
+                "ByBlock": {
+                  "handle": "14",
+                  "owner": "5",
+                  "wireName": "ByBlock"
+                },
+                "ByLayer": {
+                  "handle": "15",
+                  "owner": "5",
+                  "wireName": "ByLayer",
+                  "fields": {
+                    "name": "ByLayer",
+                    "flags": 0,
+                    "description": "",
+                    "pattern": [
+                      [
+                        72,
+                        65
+                      ],
+                      [
+                        73,
+                        0
+                      ],
+                      [
+                        40,
+                        0.0
+                      ]
+                    ]
+                  }
+                },
+                "Continuous": {
+                  "handle": "16",
+                  "owner": "5",
+                  "wireName": "Continuous",
+                  "fields": {
+                    "name": "Continuous",
+                    "flags": 0,
+                    "description": "Solid line",
+                    "pattern": [
+                      [
+                        72,
+                        65
+                      ],
+                      [
+                        73,
+                        0
+                      ],
+                      [
+                        40,
+                        0.0
+                      ]
+                    ]
+                  }
+                }
+              },
+              "linetypeControl": {
+                "handle": "5",
+                "recordCount": 3
+              },
+              "linetypeTargetsChecked": true,
+              "mlineConsumers": {
+                "consumers": {
+                  "BLOCKS:PeerMlineBlock": {
+                    "fields": {
+                      "styleName": "Block_表_Ω",
+                      "scale": 2.5,
+                      "justification": 2,
+                      "flags": 1,
+                      "count": 3,
+                      "elementCount": 2,
+                      "start": [
+                        10.0,
+                        20.0,
+                        30.0
+                      ],
+                      "extrusion": [
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      "layer": "0",
+                      "vertices": [
+                        {
+                          "location": [
+                            10.0,
+                            20.0,
+                            30.0
+                          ],
+                          "direction": [
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          "miter": [
+                            0.0,
+                            0.7933533402912352,
+                            0.6087614290087207
+                          ],
+                          "lineParameters": [
+                            [
+                              8.213398158522908,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            10.0,
+                            24.0,
+                            30.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.0,
+                            -0.7071067811865475,
+                            0.7071067811865475
+                          ],
+                          "lineParameters": [
+                            [
+                              7.0710678118654755,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            10.0,
+                            24.0,
+                            35.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.0,
+                            -0.6087614290087209,
+                            -0.7933533402912349
+                          ],
+                          "lineParameters": [
+                            [
+                              8.213398158522905,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    },
+                    "handle": "4A",
+                    "owner": "41",
+                    "styleHandle": "2F",
+                    "blockRecord": "41"
+                  },
+                  "ENTITIES:*Model_Space": {
+                    "fields": {
+                      "styleName": "Model_café_Ω",
+                      "scale": 1.25,
+                      "justification": 1,
+                      "flags": 1,
+                      "count": 3,
+                      "elementCount": 2,
+                      "start": [
+                        1.0,
+                        2.0,
+                        3.0
+                      ],
+                      "extrusion": [
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      "layer": "0",
+                      "vertices": [
+                        {
+                          "location": [
+                            1.0,
+                            2.0,
+                            3.0
+                          ],
+                          "direction": [
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          "miter": [
+                            0.7933533402912352,
+                            0.0,
+                            -0.6087614290087207
+                          ],
+                          "lineParameters": [
+                            [
+                              2.5666869245384087,
+                              0.0
+                            ],
+                            [
+                              -1.5400121547230454,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            5.0,
+                            2.0,
+                            3.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.7071067811865475,
+                            0.0,
+                            -0.7071067811865475
+                          ],
+                          "lineParameters": [
+                            [
+                              2.2097086912079607,
+                              0.0
+                            ],
+                            [
+                              -1.3258252147247764,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            5.0,
+                            2.0,
+                            8.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.6087614290087208,
+                            0.0,
+                            -0.793353340291235
+                          ],
+                          "lineParameters": [
+                            [
+                              2.566686924538408,
+                              0.0
+                            ],
+                            [
+                              -1.5400121547230445,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    },
+                    "handle": "4C",
+                    "owner": "1F",
+                    "styleHandle": "2F",
+                    "blockRecord": "1F"
+                  }
+                },
+                "blockRecords": {
+                  "*Model_Space": "1F",
+                  "*Paper_Space": "1E",
+                  "PeerMlineBlock": "41"
+                },
+                "blockRecordControl": "1",
+                "blockFrames": {
+                  "*Model_Space": {
+                    "beginHandle": "20",
+                    "endHandle": "21",
+                    "beginOwner": "1F",
+                    "endOwner": "1F"
+                  },
+                  "*Paper_Space": {
+                    "beginHandle": "1C",
+                    "endHandle": "1D",
+                    "beginOwner": "1E",
+                    "endOwner": "1E"
+                  },
+                  "PeerMlineBlock": {
+                    "beginHandle": "42",
+                    "endHandle": "43",
+                    "beginOwner": "41",
+                    "endOwner": "41"
+                  }
+                },
+                "consumerCount": 2,
+                "beforeDocumentSetup": true,
+                "geometryRegenerated": false,
+                "nativeMlineConsumerQualified": false
+              },
+              "layerMaterialBindings": [
+                {
+                  "name": "0",
+                  "materialHandlePresent": true,
+                  "materialHandle": "0",
+                  "selectedEffectiveBinding": "null"
+                },
+                {
+                  "name": "Defpoints",
+                  "materialHandlePresent": true,
+                  "materialHandle": "0",
+                  "selectedEffectiveBinding": "null"
+                }
+              ],
+              "materialObjects": [],
+              "lineCount": 1,
+              "beforeDocumentSetup": true,
+              "beforeExplicitAuditOrRecovery": true
+            },
+            "ordinaryReadAfterDocumentSetup": true,
+            "ordinaryReadEncoding": "cp1252",
+            "ordinaryReadVersion": "AC1027",
+            "explicitAuditOrRecoveryRun": false,
+            "documentSetupAddedMaterials": [
+              {
+                "handle": "4D",
+                "name": "ByBlock"
+              },
+              {
+                "handle": "4E",
+                "name": "ByLayer"
+              },
+              {
+                "handle": "4F",
+                "name": "Global"
+              }
+            ],
+            "documentSetupAddedMaterialCount": 3,
+            "typedStylesMatched": 3,
+            "nativeMlineConsumerQualified": false
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "sourceFormat": "asc",
+          "format": "asc",
+          "sha256": "696991279c48e990f15216f804b9e1883b1c3eca1ce2b2afdb0f8b08fec09028",
+          "observations": {
+            "physicalBeforeDocumentSetup": {
+              "styles": {
+                "Standard": {
+                  "fields": {
+                    "name": "Standard",
+                    "flags": 0,
+                    "description": "",
+                    "fillColor": 256,
+                    "startAngle": 90.0,
+                    "endAngle": 90.0,
+                    "elements": [
+                      [
+                        0.5,
+                        256,
+                        "BYLAYER"
+                      ],
+                      [
+                        -0.5,
+                        256,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "22",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "Standard",
+                  "wireBodyName": "Standard",
+                  "wireElementLinetypes": [
+                    "BYLAYER",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                },
+                "PeerMline": {
+                  "fields": {
+                    "name": "RedundantBody",
+                    "flags": 3,
+                    "description": "Dictionary authority boundary",
+                    "fillColor": 4,
+                    "startAngle": 37.5,
+                    "endAngle": 142.5,
+                    "elements": [
+                      [
+                        1.25,
+                        3,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -0.75,
+                        5,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "2F",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "PeerMline",
+                  "wireBodyName": "RedundantBody",
+                  "wireElementLinetypes": [
+                    "CONTINUOUS",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                },
+                "PeerRetarget": {
+                  "fields": {
+                    "name": "PeerRetarget",
+                    "flags": 3,
+                    "description": "Original compatible retarget destination",
+                    "fillColor": 6,
+                    "startAngle": 37.5,
+                    "endAngle": 142.5,
+                    "elements": [
+                      [
+                        1.25,
+                        6,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -0.75,
+                        2,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "31",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "PeerRetarget",
+                  "wireBodyName": "PeerRetarget",
+                  "wireElementLinetypes": [
+                    "CONTINUOUS",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                }
+              },
+              "styleCount": 3,
+              "rootHandle": "C",
+              "dictionaryHandle": "3B",
+              "linetypeDefinitions": {
+                "ByBlock": {
+                  "handle": "14",
+                  "owner": "5",
+                  "wireName": "ByBlock"
+                },
+                "ByLayer": {
+                  "handle": "15",
+                  "owner": "5",
+                  "wireName": "ByLayer",
+                  "fields": {
+                    "name": "ByLayer",
+                    "flags": 0,
+                    "description": "",
+                    "pattern": [
+                      [
+                        72,
+                        65
+                      ],
+                      [
+                        73,
+                        0
+                      ],
+                      [
+                        40,
+                        0.0
+                      ]
+                    ]
+                  }
+                },
+                "Continuous": {
+                  "handle": "16",
+                  "owner": "5",
+                  "wireName": "Continuous",
+                  "fields": {
+                    "name": "Continuous",
+                    "flags": 0,
+                    "description": "Solid line",
+                    "pattern": [
+                      [
+                        72,
+                        65
+                      ],
+                      [
+                        73,
+                        0
+                      ],
+                      [
+                        40,
+                        0.0
+                      ]
+                    ]
+                  }
+                }
+              },
+              "linetypeControl": {
+                "handle": "5",
+                "recordCount": 3
+              },
+              "linetypeTargetsChecked": true,
+              "mlineConsumers": {
+                "consumers": {
+                  "BLOCKS:PeerMlineBlock": {
+                    "fields": {
+                      "styleName": "Block_表_Ω",
+                      "scale": 2.5,
+                      "justification": 2,
+                      "flags": 1,
+                      "count": 3,
+                      "elementCount": 2,
+                      "start": [
+                        10.0,
+                        20.0,
+                        30.0
+                      ],
+                      "extrusion": [
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      "layer": "0",
+                      "vertices": [
+                        {
+                          "location": [
+                            10.0,
+                            20.0,
+                            30.0
+                          ],
+                          "direction": [
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          "miter": [
+                            0.0,
+                            0.7933533402912352,
+                            0.6087614290087207
+                          ],
+                          "lineParameters": [
+                            [
+                              8.213398158522908,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            10.0,
+                            24.0,
+                            30.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.0,
+                            -0.7071067811865475,
+                            0.7071067811865475
+                          ],
+                          "lineParameters": [
+                            [
+                              7.0710678118654755,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            10.0,
+                            24.0,
+                            35.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.0,
+                            -0.6087614290087209,
+                            -0.7933533402912349
+                          ],
+                          "lineParameters": [
+                            [
+                              8.213398158522905,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    },
+                    "handle": "4A",
+                    "owner": "41",
+                    "styleHandle": "2F",
+                    "blockRecord": "41"
+                  },
+                  "ENTITIES:*Model_Space": {
+                    "fields": {
+                      "styleName": "Model_café_Ω",
+                      "scale": 1.25,
+                      "justification": 1,
+                      "flags": 1,
+                      "count": 3,
+                      "elementCount": 2,
+                      "start": [
+                        1.0,
+                        2.0,
+                        3.0
+                      ],
+                      "extrusion": [
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      "layer": "0",
+                      "vertices": [
+                        {
+                          "location": [
+                            1.0,
+                            2.0,
+                            3.0
+                          ],
+                          "direction": [
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          "miter": [
+                            0.7933533402912352,
+                            0.0,
+                            -0.6087614290087207
+                          ],
+                          "lineParameters": [
+                            [
+                              2.5666869245384087,
+                              0.0
+                            ],
+                            [
+                              -1.5400121547230454,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            5.0,
+                            2.0,
+                            3.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.7071067811865475,
+                            0.0,
+                            -0.7071067811865475
+                          ],
+                          "lineParameters": [
+                            [
+                              2.2097086912079607,
+                              0.0
+                            ],
+                            [
+                              -1.3258252147247764,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            5.0,
+                            2.0,
+                            8.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.6087614290087208,
+                            0.0,
+                            -0.793353340291235
+                          ],
+                          "lineParameters": [
+                            [
+                              2.566686924538408,
+                              0.0
+                            ],
+                            [
+                              -1.5400121547230445,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    },
+                    "handle": "4C",
+                    "owner": "1F",
+                    "styleHandle": "2F",
+                    "blockRecord": "1F"
+                  }
+                },
+                "blockRecords": {
+                  "*Model_Space": "1F",
+                  "*Paper_Space": "1E",
+                  "PeerMlineBlock": "41"
+                },
+                "blockRecordControl": "1",
+                "blockFrames": {
+                  "*Model_Space": {
+                    "beginHandle": "20",
+                    "endHandle": "21",
+                    "beginOwner": "1F",
+                    "endOwner": "1F"
+                  },
+                  "*Paper_Space": {
+                    "beginHandle": "1C",
+                    "endHandle": "1D",
+                    "beginOwner": "1E",
+                    "endOwner": "1E"
+                  },
+                  "PeerMlineBlock": {
+                    "beginHandle": "42",
+                    "endHandle": "43",
+                    "beginOwner": "41",
+                    "endOwner": "41"
+                  }
+                },
+                "consumerCount": 2,
+                "beforeDocumentSetup": true,
+                "geometryRegenerated": false,
+                "nativeMlineConsumerQualified": false
+              },
+              "layerMaterialBindings": [
+                {
+                  "name": "0",
+                  "materialHandlePresent": true,
+                  "materialHandle": "0",
+                  "selectedEffectiveBinding": "null"
+                },
+                {
+                  "name": "Defpoints",
+                  "materialHandlePresent": true,
+                  "materialHandle": "0",
+                  "selectedEffectiveBinding": "null"
+                }
+              ],
+              "materialObjects": [],
+              "lineCount": 1,
+              "beforeDocumentSetup": true,
+              "beforeExplicitAuditOrRecovery": true
+            },
+            "ordinaryReadAfterDocumentSetup": true,
+            "ordinaryReadEncoding": "cp1252",
+            "ordinaryReadVersion": "AC1027",
+            "explicitAuditOrRecoveryRun": false,
+            "documentSetupAddedMaterials": [
+              {
+                "handle": "4D",
+                "name": "ByBlock"
+              },
+              {
+                "handle": "4E",
+                "name": "ByLayer"
+              },
+              {
+                "handle": "4F",
+                "name": "Global"
+              }
+            ],
+            "documentSetupAddedMaterialCount": 3,
+            "typedStylesMatched": 3,
+            "nativeMlineConsumerQualified": false
+          }
+        },
+        {
+          "sourceFormat": "asc",
+          "format": "bin",
+          "sha256": "66719d5b99107206be69a7c53233e2db329a2bb495c1734ce67a235945412b1f",
+          "observations": {
+            "physicalBeforeDocumentSetup": {
+              "styles": {
+                "Standard": {
+                  "fields": {
+                    "name": "Standard",
+                    "flags": 0,
+                    "description": "",
+                    "fillColor": 256,
+                    "startAngle": 90.0,
+                    "endAngle": 90.0,
+                    "elements": [
+                      [
+                        0.5,
+                        256,
+                        "BYLAYER"
+                      ],
+                      [
+                        -0.5,
+                        256,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "22",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "Standard",
+                  "wireBodyName": "Standard",
+                  "wireElementLinetypes": [
+                    "BYLAYER",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                },
+                "PeerMline": {
+                  "fields": {
+                    "name": "RedundantBody",
+                    "flags": 3,
+                    "description": "Dictionary authority boundary",
+                    "fillColor": 4,
+                    "startAngle": 37.5,
+                    "endAngle": 142.5,
+                    "elements": [
+                      [
+                        1.25,
+                        3,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -0.75,
+                        5,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "2F",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "PeerMline",
+                  "wireBodyName": "RedundantBody",
+                  "wireElementLinetypes": [
+                    "CONTINUOUS",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                },
+                "PeerRetarget": {
+                  "fields": {
+                    "name": "PeerRetarget",
+                    "flags": 3,
+                    "description": "Original compatible retarget destination",
+                    "fillColor": 6,
+                    "startAngle": 37.5,
+                    "endAngle": 142.5,
+                    "elements": [
+                      [
+                        1.25,
+                        6,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -0.75,
+                        2,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "31",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "PeerRetarget",
+                  "wireBodyName": "PeerRetarget",
+                  "wireElementLinetypes": [
+                    "CONTINUOUS",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                }
+              },
+              "styleCount": 3,
+              "rootHandle": "C",
+              "dictionaryHandle": "3B",
+              "linetypeDefinitions": {
+                "ByBlock": {
+                  "handle": "14",
+                  "owner": "5",
+                  "wireName": "ByBlock"
+                },
+                "ByLayer": {
+                  "handle": "15",
+                  "owner": "5",
+                  "wireName": "ByLayer",
+                  "fields": {
+                    "name": "ByLayer",
+                    "flags": 0,
+                    "description": "",
+                    "pattern": [
+                      [
+                        72,
+                        65
+                      ],
+                      [
+                        73,
+                        0
+                      ],
+                      [
+                        40,
+                        0.0
+                      ]
+                    ]
+                  }
+                },
+                "Continuous": {
+                  "handle": "16",
+                  "owner": "5",
+                  "wireName": "Continuous",
+                  "fields": {
+                    "name": "Continuous",
+                    "flags": 0,
+                    "description": "Solid line",
+                    "pattern": [
+                      [
+                        72,
+                        65
+                      ],
+                      [
+                        73,
+                        0
+                      ],
+                      [
+                        40,
+                        0.0
+                      ]
+                    ]
+                  }
+                }
+              },
+              "linetypeControl": {
+                "handle": "5",
+                "recordCount": 3
+              },
+              "linetypeTargetsChecked": true,
+              "mlineConsumers": {
+                "consumers": {
+                  "BLOCKS:PeerMlineBlock": {
+                    "fields": {
+                      "styleName": "Block_表_Ω",
+                      "scale": 2.5,
+                      "justification": 2,
+                      "flags": 1,
+                      "count": 3,
+                      "elementCount": 2,
+                      "start": [
+                        10.0,
+                        20.0,
+                        30.0
+                      ],
+                      "extrusion": [
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      "layer": "0",
+                      "vertices": [
+                        {
+                          "location": [
+                            10.0,
+                            20.0,
+                            30.0
+                          ],
+                          "direction": [
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          "miter": [
+                            0.0,
+                            0.7933533402912352,
+                            0.6087614290087207
+                          ],
+                          "lineParameters": [
+                            [
+                              8.213398158522908,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            10.0,
+                            24.0,
+                            30.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.0,
+                            -0.7071067811865475,
+                            0.7071067811865475
+                          ],
+                          "lineParameters": [
+                            [
+                              7.0710678118654755,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            10.0,
+                            24.0,
+                            35.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.0,
+                            -0.6087614290087209,
+                            -0.7933533402912349
+                          ],
+                          "lineParameters": [
+                            [
+                              8.213398158522905,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    },
+                    "handle": "4A",
+                    "owner": "41",
+                    "styleHandle": "2F",
+                    "blockRecord": "41"
+                  },
+                  "ENTITIES:*Model_Space": {
+                    "fields": {
+                      "styleName": "Model_café_Ω",
+                      "scale": 1.25,
+                      "justification": 1,
+                      "flags": 1,
+                      "count": 3,
+                      "elementCount": 2,
+                      "start": [
+                        1.0,
+                        2.0,
+                        3.0
+                      ],
+                      "extrusion": [
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      "layer": "0",
+                      "vertices": [
+                        {
+                          "location": [
+                            1.0,
+                            2.0,
+                            3.0
+                          ],
+                          "direction": [
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          "miter": [
+                            0.7933533402912352,
+                            0.0,
+                            -0.6087614290087207
+                          ],
+                          "lineParameters": [
+                            [
+                              2.5666869245384087,
+                              0.0
+                            ],
+                            [
+                              -1.5400121547230454,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            5.0,
+                            2.0,
+                            3.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.7071067811865475,
+                            0.0,
+                            -0.7071067811865475
+                          ],
+                          "lineParameters": [
+                            [
+                              2.2097086912079607,
+                              0.0
+                            ],
+                            [
+                              -1.3258252147247764,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            5.0,
+                            2.0,
+                            8.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.6087614290087208,
+                            0.0,
+                            -0.793353340291235
+                          ],
+                          "lineParameters": [
+                            [
+                              2.566686924538408,
+                              0.0
+                            ],
+                            [
+                              -1.5400121547230445,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    },
+                    "handle": "4C",
+                    "owner": "1F",
+                    "styleHandle": "2F",
+                    "blockRecord": "1F"
+                  }
+                },
+                "blockRecords": {
+                  "*Model_Space": "1F",
+                  "*Paper_Space": "1E",
+                  "PeerMlineBlock": "41"
+                },
+                "blockRecordControl": "1",
+                "blockFrames": {
+                  "*Model_Space": {
+                    "beginHandle": "20",
+                    "endHandle": "21",
+                    "beginOwner": "1F",
+                    "endOwner": "1F"
+                  },
+                  "*Paper_Space": {
+                    "beginHandle": "1C",
+                    "endHandle": "1D",
+                    "beginOwner": "1E",
+                    "endOwner": "1E"
+                  },
+                  "PeerMlineBlock": {
+                    "beginHandle": "42",
+                    "endHandle": "43",
+                    "beginOwner": "41",
+                    "endOwner": "41"
+                  }
+                },
+                "consumerCount": 2,
+                "beforeDocumentSetup": true,
+                "geometryRegenerated": false,
+                "nativeMlineConsumerQualified": false
+              },
+              "layerMaterialBindings": [
+                {
+                  "name": "0",
+                  "materialHandlePresent": true,
+                  "materialHandle": "0",
+                  "selectedEffectiveBinding": "null"
+                },
+                {
+                  "name": "Defpoints",
+                  "materialHandlePresent": true,
+                  "materialHandle": "0",
+                  "selectedEffectiveBinding": "null"
+                }
+              ],
+              "materialObjects": [],
+              "lineCount": 1,
+              "beforeDocumentSetup": true,
+              "beforeExplicitAuditOrRecovery": true
+            },
+            "ordinaryReadAfterDocumentSetup": true,
+            "ordinaryReadEncoding": "cp1252",
+            "ordinaryReadVersion": "AC1027",
+            "explicitAuditOrRecoveryRun": false,
+            "documentSetupAddedMaterials": [
+              {
+                "handle": "4D",
+                "name": "ByBlock"
+              },
+              {
+                "handle": "4E",
+                "name": "ByLayer"
+              },
+              {
+                "handle": "4F",
+                "name": "Global"
+              }
+            ],
+            "documentSetupAddedMaterialCount": 3,
+            "typedStylesMatched": 3,
+            "nativeMlineConsumerQualified": false
+          }
+        },
+        {
+          "sourceFormat": "bin",
+          "format": "asc",
+          "sha256": "c682c423b29ba17d8b258713f6a3a6b3aee75be52f1442a8113d401c76a69309",
+          "observations": {
+            "physicalBeforeDocumentSetup": {
+              "styles": {
+                "Standard": {
+                  "fields": {
+                    "name": "Standard",
+                    "flags": 0,
+                    "description": "",
+                    "fillColor": 256,
+                    "startAngle": 90.0,
+                    "endAngle": 90.0,
+                    "elements": [
+                      [
+                        0.5,
+                        256,
+                        "BYLAYER"
+                      ],
+                      [
+                        -0.5,
+                        256,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "22",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "Standard",
+                  "wireBodyName": "Standard",
+                  "wireElementLinetypes": [
+                    "BYLAYER",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                },
+                "PeerMline": {
+                  "fields": {
+                    "name": "RedundantBody",
+                    "flags": 3,
+                    "description": "Dictionary authority boundary",
+                    "fillColor": 4,
+                    "startAngle": 37.5,
+                    "endAngle": 142.5,
+                    "elements": [
+                      [
+                        1.25,
+                        3,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -0.75,
+                        5,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "2F",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "PeerMline",
+                  "wireBodyName": "RedundantBody",
+                  "wireElementLinetypes": [
+                    "CONTINUOUS",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                },
+                "PeerRetarget": {
+                  "fields": {
+                    "name": "PeerRetarget",
+                    "flags": 3,
+                    "description": "Original compatible retarget destination",
+                    "fillColor": 6,
+                    "startAngle": 37.5,
+                    "endAngle": 142.5,
+                    "elements": [
+                      [
+                        1.25,
+                        6,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -0.75,
+                        2,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "31",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "PeerRetarget",
+                  "wireBodyName": "PeerRetarget",
+                  "wireElementLinetypes": [
+                    "CONTINUOUS",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                }
+              },
+              "styleCount": 3,
+              "rootHandle": "C",
+              "dictionaryHandle": "3B",
+              "linetypeDefinitions": {
+                "ByBlock": {
+                  "handle": "14",
+                  "owner": "5",
+                  "wireName": "ByBlock"
+                },
+                "ByLayer": {
+                  "handle": "15",
+                  "owner": "5",
+                  "wireName": "ByLayer",
+                  "fields": {
+                    "name": "ByLayer",
+                    "flags": 0,
+                    "description": "",
+                    "pattern": [
+                      [
+                        72,
+                        65
+                      ],
+                      [
+                        73,
+                        0
+                      ],
+                      [
+                        40,
+                        0.0
+                      ]
+                    ]
+                  }
+                },
+                "Continuous": {
+                  "handle": "16",
+                  "owner": "5",
+                  "wireName": "Continuous",
+                  "fields": {
+                    "name": "Continuous",
+                    "flags": 0,
+                    "description": "Solid line",
+                    "pattern": [
+                      [
+                        72,
+                        65
+                      ],
+                      [
+                        73,
+                        0
+                      ],
+                      [
+                        40,
+                        0.0
+                      ]
+                    ]
+                  }
+                }
+              },
+              "linetypeControl": {
+                "handle": "5",
+                "recordCount": 3
+              },
+              "linetypeTargetsChecked": true,
+              "mlineConsumers": {
+                "consumers": {
+                  "BLOCKS:PeerMlineBlock": {
+                    "fields": {
+                      "styleName": "Block_表_Ω",
+                      "scale": 2.5,
+                      "justification": 2,
+                      "flags": 1,
+                      "count": 3,
+                      "elementCount": 2,
+                      "start": [
+                        10.0,
+                        20.0,
+                        30.0
+                      ],
+                      "extrusion": [
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      "layer": "0",
+                      "vertices": [
+                        {
+                          "location": [
+                            10.0,
+                            20.0,
+                            30.0
+                          ],
+                          "direction": [
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          "miter": [
+                            0.0,
+                            0.7933533402912352,
+                            0.6087614290087207
+                          ],
+                          "lineParameters": [
+                            [
+                              8.213398158522908,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            10.0,
+                            24.0,
+                            30.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.0,
+                            -0.7071067811865475,
+                            0.7071067811865475
+                          ],
+                          "lineParameters": [
+                            [
+                              7.0710678118654755,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            10.0,
+                            24.0,
+                            35.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.0,
+                            -0.6087614290087209,
+                            -0.7933533402912349
+                          ],
+                          "lineParameters": [
+                            [
+                              8.213398158522905,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    },
+                    "handle": "4A",
+                    "owner": "41",
+                    "styleHandle": "2F",
+                    "blockRecord": "41"
+                  },
+                  "ENTITIES:*Model_Space": {
+                    "fields": {
+                      "styleName": "Model_café_Ω",
+                      "scale": 1.25,
+                      "justification": 1,
+                      "flags": 1,
+                      "count": 3,
+                      "elementCount": 2,
+                      "start": [
+                        1.0,
+                        2.0,
+                        3.0
+                      ],
+                      "extrusion": [
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      "layer": "0",
+                      "vertices": [
+                        {
+                          "location": [
+                            1.0,
+                            2.0,
+                            3.0
+                          ],
+                          "direction": [
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          "miter": [
+                            0.7933533402912352,
+                            0.0,
+                            -0.6087614290087207
+                          ],
+                          "lineParameters": [
+                            [
+                              2.5666869245384087,
+                              0.0
+                            ],
+                            [
+                              -1.5400121547230454,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            5.0,
+                            2.0,
+                            3.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.7071067811865475,
+                            0.0,
+                            -0.7071067811865475
+                          ],
+                          "lineParameters": [
+                            [
+                              2.2097086912079607,
+                              0.0
+                            ],
+                            [
+                              -1.3258252147247764,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            5.0,
+                            2.0,
+                            8.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.6087614290087208,
+                            0.0,
+                            -0.793353340291235
+                          ],
+                          "lineParameters": [
+                            [
+                              2.566686924538408,
+                              0.0
+                            ],
+                            [
+                              -1.5400121547230445,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    },
+                    "handle": "4C",
+                    "owner": "1F",
+                    "styleHandle": "2F",
+                    "blockRecord": "1F"
+                  }
+                },
+                "blockRecords": {
+                  "*Model_Space": "1F",
+                  "*Paper_Space": "1E",
+                  "PeerMlineBlock": "41"
+                },
+                "blockRecordControl": "1",
+                "blockFrames": {
+                  "*Model_Space": {
+                    "beginHandle": "20",
+                    "endHandle": "21",
+                    "beginOwner": "1F",
+                    "endOwner": "1F"
+                  },
+                  "*Paper_Space": {
+                    "beginHandle": "1C",
+                    "endHandle": "1D",
+                    "beginOwner": "1E",
+                    "endOwner": "1E"
+                  },
+                  "PeerMlineBlock": {
+                    "beginHandle": "42",
+                    "endHandle": "43",
+                    "beginOwner": "41",
+                    "endOwner": "41"
+                  }
+                },
+                "consumerCount": 2,
+                "beforeDocumentSetup": true,
+                "geometryRegenerated": false,
+                "nativeMlineConsumerQualified": false
+              },
+              "layerMaterialBindings": [
+                {
+                  "name": "0",
+                  "materialHandlePresent": true,
+                  "materialHandle": "0",
+                  "selectedEffectiveBinding": "null"
+                },
+                {
+                  "name": "Defpoints",
+                  "materialHandlePresent": true,
+                  "materialHandle": "0",
+                  "selectedEffectiveBinding": "null"
+                }
+              ],
+              "materialObjects": [],
+              "lineCount": 1,
+              "beforeDocumentSetup": true,
+              "beforeExplicitAuditOrRecovery": true
+            },
+            "ordinaryReadAfterDocumentSetup": true,
+            "ordinaryReadEncoding": "cp1252",
+            "ordinaryReadVersion": "AC1027",
+            "explicitAuditOrRecoveryRun": false,
+            "documentSetupAddedMaterials": [
+              {
+                "handle": "4D",
+                "name": "ByBlock"
+              },
+              {
+                "handle": "4E",
+                "name": "ByLayer"
+              },
+              {
+                "handle": "4F",
+                "name": "Global"
+              }
+            ],
+            "documentSetupAddedMaterialCount": 3,
+            "typedStylesMatched": 3,
+            "nativeMlineConsumerQualified": false
+          }
+        },
+        {
+          "sourceFormat": "bin",
+          "format": "bin",
+          "sha256": "66719d5b99107206be69a7c53233e2db329a2bb495c1734ce67a235945412b1f",
+          "observations": {
+            "physicalBeforeDocumentSetup": {
+              "styles": {
+                "Standard": {
+                  "fields": {
+                    "name": "Standard",
+                    "flags": 0,
+                    "description": "",
+                    "fillColor": 256,
+                    "startAngle": 90.0,
+                    "endAngle": 90.0,
+                    "elements": [
+                      [
+                        0.5,
+                        256,
+                        "BYLAYER"
+                      ],
+                      [
+                        -0.5,
+                        256,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "22",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "Standard",
+                  "wireBodyName": "Standard",
+                  "wireElementLinetypes": [
+                    "BYLAYER",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                },
+                "PeerMline": {
+                  "fields": {
+                    "name": "RedundantBody",
+                    "flags": 3,
+                    "description": "Dictionary authority boundary",
+                    "fillColor": 4,
+                    "startAngle": 37.5,
+                    "endAngle": 142.5,
+                    "elements": [
+                      [
+                        1.25,
+                        3,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -0.75,
+                        5,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "2F",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "PeerMline",
+                  "wireBodyName": "RedundantBody",
+                  "wireElementLinetypes": [
+                    "CONTINUOUS",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                },
+                "PeerRetarget": {
+                  "fields": {
+                    "name": "PeerRetarget",
+                    "flags": 3,
+                    "description": "Original compatible retarget destination",
+                    "fillColor": 6,
+                    "startAngle": 37.5,
+                    "endAngle": 142.5,
+                    "elements": [
+                      [
+                        1.25,
+                        6,
+                        "CONTINUOUS"
+                      ],
+                      [
+                        -0.75,
+                        2,
+                        "BYLAYER"
+                      ]
+                    ]
+                  },
+                  "handle": "31",
+                  "owner": "3B",
+                  "pointerRole": 350,
+                  "wireDictionaryKey": "PeerRetarget",
+                  "wireBodyName": "PeerRetarget",
+                  "wireElementLinetypes": [
+                    "CONTINUOUS",
+                    "BYLAYER"
+                  ],
+                  "fieldPresence": {
+                    "2": true,
+                    "70": true,
+                    "3": true,
+                    "62": true,
+                    "51": true,
+                    "52": true
+                  },
+                  "elementCount": 2,
+                  "linetypeReferences": [
+                    {
+                      "name": "CONTINUOUS",
+                      "targetName": "Continuous",
+                      "disposition": "defined",
+                      "handle": "16",
+                      "owner": "5",
+                      "wireName": "Continuous",
+                      "fields": {
+                        "name": "Continuous",
+                        "flags": 0,
+                        "description": "Solid line",
+                        "pattern": [
+                          [
+                            72,
+                            65
+                          ],
+                          [
+                            73,
+                            0
+                          ],
+                          [
+                            40,
+                            0.0
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "name": "BYLAYER",
+                      "disposition": "inherited"
+                    }
+                  ]
+                }
+              },
+              "styleCount": 3,
+              "rootHandle": "C",
+              "dictionaryHandle": "3B",
+              "linetypeDefinitions": {
+                "ByBlock": {
+                  "handle": "14",
+                  "owner": "5",
+                  "wireName": "ByBlock"
+                },
+                "ByLayer": {
+                  "handle": "15",
+                  "owner": "5",
+                  "wireName": "ByLayer",
+                  "fields": {
+                    "name": "ByLayer",
+                    "flags": 0,
+                    "description": "",
+                    "pattern": [
+                      [
+                        72,
+                        65
+                      ],
+                      [
+                        73,
+                        0
+                      ],
+                      [
+                        40,
+                        0.0
+                      ]
+                    ]
+                  }
+                },
+                "Continuous": {
+                  "handle": "16",
+                  "owner": "5",
+                  "wireName": "Continuous",
+                  "fields": {
+                    "name": "Continuous",
+                    "flags": 0,
+                    "description": "Solid line",
+                    "pattern": [
+                      [
+                        72,
+                        65
+                      ],
+                      [
+                        73,
+                        0
+                      ],
+                      [
+                        40,
+                        0.0
+                      ]
+                    ]
+                  }
+                }
+              },
+              "linetypeControl": {
+                "handle": "5",
+                "recordCount": 3
+              },
+              "linetypeTargetsChecked": true,
+              "mlineConsumers": {
+                "consumers": {
+                  "BLOCKS:PeerMlineBlock": {
+                    "fields": {
+                      "styleName": "Block_表_Ω",
+                      "scale": 2.5,
+                      "justification": 2,
+                      "flags": 1,
+                      "count": 3,
+                      "elementCount": 2,
+                      "start": [
+                        10.0,
+                        20.0,
+                        30.0
+                      ],
+                      "extrusion": [
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      "layer": "0",
+                      "vertices": [
+                        {
+                          "location": [
+                            10.0,
+                            20.0,
+                            30.0
+                          ],
+                          "direction": [
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          "miter": [
+                            0.0,
+                            0.7933533402912352,
+                            0.6087614290087207
+                          ],
+                          "lineParameters": [
+                            [
+                              8.213398158522908,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            10.0,
+                            24.0,
+                            30.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.0,
+                            -0.7071067811865475,
+                            0.7071067811865475
+                          ],
+                          "lineParameters": [
+                            [
+                              7.0710678118654755,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            10.0,
+                            24.0,
+                            35.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.0,
+                            -0.6087614290087209,
+                            -0.7933533402912349
+                          ],
+                          "lineParameters": [
+                            [
+                              8.213398158522905,
+                              0.0
+                            ],
+                            [
+                              0.0,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    },
+                    "handle": "4A",
+                    "owner": "41",
+                    "styleHandle": "2F",
+                    "blockRecord": "41"
+                  },
+                  "ENTITIES:*Model_Space": {
+                    "fields": {
+                      "styleName": "Model_café_Ω",
+                      "scale": 1.25,
+                      "justification": 1,
+                      "flags": 1,
+                      "count": 3,
+                      "elementCount": 2,
+                      "start": [
+                        1.0,
+                        2.0,
+                        3.0
+                      ],
+                      "extrusion": [
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      "layer": "0",
+                      "vertices": [
+                        {
+                          "location": [
+                            1.0,
+                            2.0,
+                            3.0
+                          ],
+                          "direction": [
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          "miter": [
+                            0.7933533402912352,
+                            0.0,
+                            -0.6087614290087207
+                          ],
+                          "lineParameters": [
+                            [
+                              2.5666869245384087,
+                              0.0
+                            ],
+                            [
+                              -1.5400121547230454,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            5.0,
+                            2.0,
+                            3.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.7071067811865475,
+                            0.0,
+                            -0.7071067811865475
+                          ],
+                          "lineParameters": [
+                            [
+                              2.2097086912079607,
+                              0.0
+                            ],
+                            [
+                              -1.3258252147247764,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        },
+                        {
+                          "location": [
+                            5.0,
+                            2.0,
+                            8.0
+                          ],
+                          "direction": [
+                            0.0,
+                            0.0,
+                            1.0
+                          ],
+                          "miter": [
+                            0.6087614290087208,
+                            0.0,
+                            -0.793353340291235
+                          ],
+                          "lineParameters": [
+                            [
+                              2.566686924538408,
+                              0.0
+                            ],
+                            [
+                              -1.5400121547230445,
+                              0.0
+                            ]
+                          ],
+                          "fillParameters": [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    },
+                    "handle": "4C",
+                    "owner": "1F",
+                    "styleHandle": "2F",
+                    "blockRecord": "1F"
+                  }
+                },
+                "blockRecords": {
+                  "*Model_Space": "1F",
+                  "*Paper_Space": "1E",
+                  "PeerMlineBlock": "41"
+                },
+                "blockRecordControl": "1",
+                "blockFrames": {
+                  "*Model_Space": {
+                    "beginHandle": "20",
+                    "endHandle": "21",
+                    "beginOwner": "1F",
+                    "endOwner": "1F"
+                  },
+                  "*Paper_Space": {
+                    "beginHandle": "1C",
+                    "endHandle": "1D",
+                    "beginOwner": "1E",
+                    "endOwner": "1E"
+                  },
+                  "PeerMlineBlock": {
+                    "beginHandle": "42",
+                    "endHandle": "43",
+                    "beginOwner": "41",
+                    "endOwner": "41"
+                  }
+                },
+                "consumerCount": 2,
+                "beforeDocumentSetup": true,
+                "geometryRegenerated": false,
+                "nativeMlineConsumerQualified": false
+              },
+              "layerMaterialBindings": [
+                {
+                  "name": "0",
+                  "materialHandlePresent": true,
+                  "materialHandle": "0",
+                  "selectedEffectiveBinding": "null"
+                },
+                {
+                  "name": "Defpoints",
+                  "materialHandlePresent": true,
+                  "materialHandle": "0",
+                  "selectedEffectiveBinding": "null"
+                }
+              ],
+              "materialObjects": [],
+              "lineCount": 1,
+              "beforeDocumentSetup": true,
+              "beforeExplicitAuditOrRecovery": true
+            },
+            "ordinaryReadAfterDocumentSetup": true,
+            "ordinaryReadEncoding": "cp1252",
+            "ordinaryReadVersion": "AC1027",
+            "explicitAuditOrRecoveryRun": false,
+            "documentSetupAddedMaterials": [
+              {
+                "handle": "4D",
+                "name": "ByBlock"
+              },
+              {
+                "handle": "4E",
+                "name": "ByLayer"
+              },
+              {
+                "handle": "4F",
+                "name": "Global"
+              }
+            ],
+            "documentSetupAddedMaterialCount": 3,
+            "typedStylesMatched": 3,
+            "nativeMlineConsumerQualified": false
+          }
+        }
+      ],
+      "probeSourceSha256": "b42e26049853499919e076947ee94edd51b2da06375765fc2d71d9912fe071ed",
+      "probeExecutableSha256": "e0b32a27b9ef75a8ffb6a7fe0be3e55151cd6cc106acb3d6d20f2ffb80ca1a3f",
+      "adapterSourceSha256": "92ecfafc2f7ec6eaffe4f774a8b65c6244be05ac617f369f62d50c6c65b8257b",
+      "adapterObjectSha256": "6caf2681912fdfb606d4f1e5d943486458511d8d75ea121f1c33e509b24c0315",
+      "librarySha256": "ef08649d21441164a732d5b02dc8e61ecfc24ae9d36ee6d6088bacb159728c22",
+      "projectionToolSha256": "8d6a62d98bf094f9acf496017c4a5960821d1b300b6f68a69d6fcf08d235ea81",
+      "priorReceiptSha256": "23977db8be7c4a484f8fe84b9c6394971d325d1fe47fb091e1c54280c9cb0e14",
+      "ezdxfVersion": "1.4.5",
+      "evidenceScope": "Selected previously-generated AC1027 inputs, physical source/output and ordinary independent readback; not native rendering or whole-document qualification."
+    }
+  },
+  "limitations": [
+    "The four-element source is a generated output from the previously qualified multi-append lane, not an independent authoring application.",
+    "The independent ezdxf inspection and ordinary readback establish the selected physical and modeled profile; native rendering, native consumer behavior, whole-document fidelity and untested versions are not qualified.",
+    "No drawing fixture is committed by this receipt."
+  ]
+}

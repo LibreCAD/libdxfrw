@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P3 selected unmarked MATERIAL file-backed diffuse filename edit",
+  "date": "2026-10-28",
+  "codeCommit": "9684d2ae13b9dfcc71bd5cbd4c18ff5cdd3346f7",
+  "scope": "Unchanged captured modern-DXF MATERIAL source with complete diffuse and inferred normal tuples, diffuse source 1 and both filenames present; typed diffuse filename edit alone or composed with selected normal and diffuse scalar and matrix fields.",
+  "contract": {
+    "operation": "Bind exactly two outer group-3 fields around the inferred second group-42 boundary, preserve the normal filename unless separately edited, require unchanged file-backed diffuse source and use target-format strict UTF-8 encoding for changed filenames. Re-decode and match the represented output model.",
+    "atomicity": "Invalid UTF-8, NUL, excessive text, changed source/presence, conflicting raw fields, original source 0 and late mutations refuse without replacing the destination or caller state; corrected retry uses the same adapter.",
+    "unqualified": "Source 0 filename edits and changing source group 72, procedural coupling, native file resolution/rendering, other producer profiles and whole-document fidelity."
+  },
+  "sourceBindings": {
+    "materialBodyHeaderSha256": "725d77a89d17c84ee316c38499cb163d6606af25ac126fc31c1a7a9aec221734",
+    "testSourceSha256": "dc152e4bde7ee0b4e408412936d3a74b7f437159b6d26622052a011783ed5e82",
+    "normalAdapterObjectSha256": "f501fdbad67a378c65a3e730c0e2ea16a788ffe2d789bf74e96e30f8c0e9f68a",
+    "normalLibrarySha256": "cc5e4c13cabbb65170f6498ed9acf355084ddfdc056e3a017163c694aa32afd2",
+    "normalTestExecutableSha256": "05e9808e1b549db1484b6817f582c90a9be21b9575caedf5095c70e06d722e0b",
+    "asanAdapterObjectSha256": "8cedee5f2a39f568aea3d8f3741fcea4af0263cac4792e4e608cd011776c1541",
+    "asanLibrarySha256": "b707a24f4efc5f606c03b3d77a475be8f517374996fb4809007b6cea244bd1a8",
+    "asanTestExecutableSha256": "bfcb8665453a38987e22b7447cc13efb120a6d0a845e6a6f6dd286e09b984b1e"
+  },
+  "validation": {
+    "normal": {
+      "selector": "libdxfrw_material_normal_roles",
+      "result": "PASS"
+    },
+    "asan": {
+      "selector": "libdxfrw_material_normal_roles",
+      "result": "PASS",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "Plain, UTF-8, caret, literal Unicode-escape and empty filenames under Compatible and RequireLossless target policies, each across four ASCII/binary input/output routes; simultaneous diffuse/normal filenames, scalars and matrices; invalid UTF-8, NUL, excessive size, source/presence and conflicting raw fields, source-0 refusal, late callbacks, sentinel rollback and corrected retries.",
+    "chronology": "Normal and ASan ran frozen code committed above; independent physical projection was refreshed against rebuilt shared normal adapter and library."
+  },
+  "independentPeer": {
+    "version": "ezdxf 1.4.5",
+    "reportPath": "build/p3-diffuse-filename/independent.json",
+    "reportSha256": "750566ebeee3843d38e93f75e7c00d5fbe547f67c073b10cd52695bd3988fb0d",
+    "reportScriptSha256": "1b7ec6e3fc0e9cb29908d8e690b3d2495a2ca008383e92b04266bfc6a5d63c35",
+    "probeSourceSha256": "196142d6d9c32d7f2888d2fbc444d7b356152125a610150492a865c12ae8c77d",
+    "sharedLinkedProbeSha256": "c042222afcaebc0a7af6cfede66d1af28bea06a3e754c51d095a4003469846a0",
+    "originalSourceSha256": "79496b68ce2d5a2446c3896b4653e0da1505dc35ebbc88a1e2d376688e3b85aa",
+    "derivedInputSha256": "57b8e058d6dc1435276a54580d3d694784fc77bda8b66c60a78e17c63755d4f4",
+    "derivation": "Separately authored AC1027 source with diffuse source 1, distinct normal/diffuse sentinels and producer specular code corrected to 76. The derived input removes unrelated EZDXF_META root and DICTIONARY/DICTIONARYVAR objects; selected MATERIAL tags match the original before document setup.",
+    "sourceMaterialHandle": "2F",
+    "sourceMaterialOwner": "E",
+    "results": [
+      {
+        "value": "diffuse-Ω.png",
+        "format": "asc",
+        "encoded": "diffuse-Ω.png",
+        "sha256": "2075a923055f56aebd4e7ec3178cc4b47cbaea1a3da4cdbf7e3f32db2ea1300d"
+      },
+      {
+        "value": "diffuse-Ω.png",
+        "format": "bin",
+        "encoded": "diffuse-Ω.png",
+        "sha256": "6900f8a2faf581be8cc36f434a1ec95d869f5f5598f5a0cadd0d850718f56280"
+      },
+      {
+        "value": "escaped^A-diffuse.png",
+        "format": "asc",
+        "encoded": "escaped^ A-diffuse.png",
+        "sha256": "eae833667348a50bde5a5a20304c13cd5bb6840a4d661e5bfc50dd8bfe89df47"
+      },
+      {
+        "value": "escaped^A-diffuse.png",
+        "format": "bin",
+        "encoded": "escaped^A-diffuse.png",
+        "sha256": "8ec84b15abf6944d3cb5aea0df7b4bc1bf86fdee48de00c5a1e59a6152cc4a1f"
+      },
+      {
+        "value": "literal-\\U+1234.png",
+        "format": "asc",
+        "encoded": "literal-\\U+005CU+1234.png",
+        "sha256": "87676aa01718fb3df5a6b6cd47ad6f516e9e42ed8e29e49fb4e0ad6ccc648653"
+      },
+      {
+        "value": "literal-\\U+1234.png",
+        "format": "bin",
+        "encoded": "literal-\\U+005CU+1234.png",
+        "sha256": "9d26009d4138739a6d061d73a92b3743b0508bf7d70dc9181f94cb2c7f8e9032"
+      }
+    ],
+    "observations": "Independent pre-setup physical-tag projection compared all 94 selected tags across UTF-8, caret and literal-escape edits in ASCII/binary. Only the first group 3 changed; target-specific text was decoded separately once."
+  },
+  "references": [
+    {
+      "title": "Autodesk MATERIAL DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm"
+    }
+  ],
+  "limitations": [
+    "The two filename roles and source=1 conditions apply only to the selected complete inferred tuple and matching captured owner; source 0 and other profiles remain unqualified.",
+    "Independent selected projection uses a derived source with unrelated objects removed and an explicit one-pass text decode; it does not prove automatic peer decoding or whole-document fidelity.",
+    "No native CAD file lookup or rendering, DWG parity, arbitrary source version or broad support claim follows; no drawing fixture is committed."
+  ]
+}

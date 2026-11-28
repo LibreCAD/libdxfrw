@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Peer artifact freshness and DXF route conflict refresh",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh ezdwg's published package identity versus its mutable source, lockfile, and changelog",
+    "Trace acad-ts codec lineage and distinguish format matrices from completeness and independent evidence",
+    "Reconcile UnCAD's Binary-DXF route claim against the separate undxf project documentation",
+    "Confirm the official ODA DWG specification revision and retain the established authority boundary"
+  ],
+  "sources": [
+    {
+      "project": "ezdwg",
+      "references": [
+        "https://pypi.org/project/ezdwg/",
+        "https://github.com/monozukuri-ai/ezdwg",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/Cargo.toml",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/Cargo.lock",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/CHANGELOG.md",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/guide/convert.md",
+        "https://github.com/monozukuri-ai/ezdwg/releases"
+      ],
+      "artifactPin": {
+        "pypiSdist": "ezdwg-0.17.0.tar.gz",
+        "sha256": "e802447b528b0341e4715fa8bdb2722183ba3456d49a4feab66d0690c5d96be0",
+        "provenance": "PyPI reports no provenance attestation; this hash does not bind the sdist to a Git commit"
+      },
+      "observation": "PyPI lists 0.17.0 on 2026-10-21, with an sdist and Windows x64, Linux x64/ARM64, and macOS universal2 wheels, but no provenance attestations. GitHub currently lists no releases. Mutable Cargo.toml says 0.17.0 while the visible lockfile resolves workspace crates ezdwg-core/ezdwg-python at 0.12.12. The current changelog labels paper-space and VIEWPORT writing Unreleased. Project docs describe read-focused AC1012–AC1032 coverage, bounded AC1015 DWG writing, and ezdxf-backed DXF export; no ACIS/B-rep semantic route is described.",
+      "planDisposition": "Replace the prior latest-0.16.3 status with 0.17.0 freshness, but require exact artifact SHA, package/source linkage, operation/version/entity subset, and independent reopen before optional comparison. A pinned sdist without verifiable source correspondence is diagnostic only. Do not promote full-document, writer, or 3D support."
+    },
+    {
+      "project": "acad-ts",
+      "references": [
+        "https://github.com/node-projects/acad-ts"
+      ],
+      "observation": "The project says it is ported from ACadSharp and documents upstream source commits; its version matrix is explicitly not a completeness claim.",
+      "planDisposition": "Group it under ACadSharp codec lineage; use only for an exact port/runtime regression question, not as a separate independent DWG parser vote."
+    },
+    {
+      "project": "UnCAD / undxf",
+      "references": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/iyulab/uncad/blob/main/docs/CAVEATS.md",
+        "https://github.com/iyulab/undxf"
+      ],
+      "observation": "UnCAD documents DWG through LibreDWG FFI, read-only output to JSON/SVG/PNG, and 3DSOLID/REGION wireframe projection rather than B-rep validation. UnCAD docs state ASCII/Binary DXF, while undxf's own README describes ASCII DXF text only.",
+      "planDisposition": "Deduplicate DWG under LibreDWG and retain wireframe as projection only. Leave Binary-DXF eligibility unqualified until exact undxf source and tests are reconciled; ASCII-only inspection remains a possible narrowly scoped route."
+    },
+    {
+      "project": "Open Design Alliance and LibreDWG specification documents",
+      "references": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/ODA-5.4.2-libredwg-diff.pdf"
+      ],
+      "observation": "The public ODA specification identifies as v5.4.1. LibreDWG's 5.4.2 diff is peer-maintained against that base, not an ODA-published specification revision.",
+      "planDisposition": "Retain ODA v5.4.1 as normative DWG byte-layout authority; use the LibreDWG delta as a secondary discrepancy checklist only."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8 peer admission distinguishes published package checksum from source-commit provenance and runtime/source correspondence",
+      "PAR-07/S8 keeps ezdwg AC1015 bounded writer and ezdxf-backed DXF export separate from full-document/native/3D claims",
+      "PAR-07/S8 deduplicates acad-ts under ACadSharp lineage",
+      "PAR-07/S8 leaves UnCAD Binary-DXF route unqualified until its undxf source/tests resolve documentation conflict",
+      "ODA v5.4.1 remains normative; LibreDWG 5.4.2 delta remains non-normative"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "Repository README, changelog, package metadata, and peer source are mutable. PyPI files lack provenance attestations, and GitHub's Releases page currently lists none. No peer distribution, binary, sample drawing, CAD application, or geometry kernel was executed. The UnCAD/undxf documentation conflict is unresolved; no Binary-DXF support conclusion is inferred."
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw-acis-sab-parser-fed-empty-root-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "slice": "S3.7c parser-fed empty-root disposition",
+  "change": {
+    "files": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "Extended the generated ACIS BinaryFile 21800 empty-body control through complete serialize→parse→build→project. The result retains one body root, reports no supported lump, succeeds structurally, and emits no wireframe geometry.",
+    "persistentDwgDxfSabFixtureAdded": false,
+    "productionParserChanged": false,
+    "dependencyOrTestRegistrationChanged": false,
+    "supportClaimPromoted": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS 1/1 (1.15s)"
+    },
+    {
+      "command": "git diff --check -- tests/graph_preservation_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "evidenceCeiling": "Generated ACIS BinaryFile 21800 empty-root structural disposition only. No B-rep validity, semantic ACIS support, DWG AcDs association, or native-consumer result is established.",
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ],
+  "next": "Advance to the next dependency-ready local PAR-07/PAR-14 item unless a distinct parser-fed S3.7c invariant is found; avoid duplicating completed root/topology controls."
+}

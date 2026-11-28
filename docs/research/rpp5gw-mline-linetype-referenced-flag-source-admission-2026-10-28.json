@@ -1,0 +1,1072 @@
+{
+  "schema": "mline-linetype-referenced-flag-source-admission-v1",
+  "slice": "RPP-5gw / P2.3c4",
+  "date": "2026-10-28",
+  "parentCommit": "ac7816249a3aff633c40f99996be303598ddd4d9",
+  "state": "IMPLEMENTED_SELECTED_ORIGINAL_CUSTOM_LTYPE70_64; NORMAL_ASAN_AND_INDEPENDENT_PROJECTIONS_PASS",
+  "scope": "Custom original simple LTYPE0/64 source flags, exact literal output64, original/typed/raw references and selected actual ENTITIES/BLOCKS geometry. Canonical nonzero/xref/unknown flag profiles remain unqualified.",
+  "fileSha256": {
+    "dwg2dxf/dx_iface.cpp": "2853319fa7cf670050b6c321b3dbd15420c9a382c060217b26fd872bc6302588",
+    "tests/dxf_fixture_tests.cpp": "48c8f690f55b65c4284f68fc9578b8bfc270a558bb6f474d027944e9a988ba04",
+    "tools/qualify_material_source_order.py": "8e65905bcfca5e78472c239609e23bb38f9b288a22bc7c5ce6a893e2c7dee197"
+  },
+  "baseline": {
+    "candidate": "P2.3c4 custom LTYPE70=64 original provider admission",
+    "binding": {
+      "/Users/dli/dev/libdxfrw/build/libdxfrw_dxf_fixture_tests": "d3540950fb54e2805a14a4571e98d9234caaec629f9dd7eba7739a166a0c20de",
+      "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf": "11407693f1fe2180827f05c81160f741c22ca8ba9c63a94c354900ea060b5fe2",
+      "/Users/dli/dev/libdxfrw/tools/qualify_material_source_order.py": "4d2fd1b58aa5641ac2c4e66419a7f2c8983c5f1341ba68b02f4073069cdd2018"
+    },
+    "source": {
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5gv-evidence/next-original-custom-flag64.dxf",
+      "sha256": "eeea4f94289d27f59d32eae8aea443c2dfd414b2976e1f7c623080d8e2179b6a",
+      "expectedLinetypes": {
+        "ByLayer": {
+          "name": "ByLayer",
+          "flags": 0,
+          "description": "",
+          "pattern": [
+            [
+              72,
+              65
+            ],
+            [
+              73,
+              0
+            ],
+            [
+              40,
+              0.0
+            ]
+          ]
+        },
+        "PeerDash": {
+          "name": "PeerDash",
+          "flags": 64,
+          "description": "Authored simple dash and gap",
+          "pattern": [
+            [
+              72,
+              65
+            ],
+            [
+              73,
+              2
+            ],
+            [
+              40,
+              1.5
+            ],
+            [
+              49,
+              1.0
+            ],
+            [
+              74,
+              0
+            ],
+            [
+              49,
+              -0.5
+            ],
+            [
+              74,
+              0
+            ]
+          ]
+        }
+      },
+      "physicalAndOrdinaryTypedMatched": true
+    },
+    "unchanged": {
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5gv-evidence/next-unchanged-custom-flag64.dxf",
+      "sha256": "9fd38a94ff3699663aa9d62a6c4d43c3a472cfab9549039a4916fc72e3dcb86b",
+      "command": [
+        "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+        "/Users/dli/dev/libdxfrw/build/rpp5gv-evidence/next-original-custom-flag64.dxf",
+        "-y",
+        "-v2013",
+        "/Users/dli/dev/libdxfrw/build/rpp5gv-evidence/next-unchanged-custom-flag64.dxf"
+      ],
+      "exitCode": 0,
+      "physicalAndOrdinaryTypedMatched": true
+    },
+    "edit": {
+      "command": [
+        "/Users/dli/dev/libdxfrw/build/libdxfrw_dxf_fixture_tests",
+        "--mline-style-ltype-probe",
+        "/Users/dli/dev/libdxfrw/build/rpp5gv-evidence/next-original-custom-flag64.dxf",
+        "/Users/dli/dev/libdxfrw/build/rpp5gv-evidence/next-edited-custom-flag64.dxf",
+        "asc",
+        "typed"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "DXF export preflight failed: MLINESTYLE current source/body transaction\n"
+    },
+    "missingLayer": "simpleMlineLinetype rejects every nonzero value.flags; current custom parser/source roles/writer preserve64. Restrict initial admission to custom0/64 and keep canonical nonzero flags unqualified because fixed writer rows emit0.",
+    "authoring": "Original local-from-scratch typed source; flags64 authored before firstsave; no input-file postmutation.",
+    "reusedFrom": "/Users/dli/dev/libdxfrw/build/rpp5gv-evidence/next-custom-flag64-readiness.json",
+    "priorReportSha256": "e64aa6e2f6a18d685aa2b7b5c4ca82ff89516d1f365ec2d3e867165b5c9b002c",
+    "parentCommit": "ac7816249a3aff633c40f99996be303598ddd4d9",
+    "reuseContract": "Original input, unchanged output, selected production/test/tool source and probe/converter/tool executable hashes match retained refusal evidence. No baseline rebuild/rerun needed.",
+    "reportSha256": "866bb1b447ac22ebe9476eee4fd84718eb3b09aa42f9fc6138769b5b94a8d3a3"
+  },
+  "executionBrief": {
+    "slice": "RPP-5gw / P2.3c4",
+    "parentCommit": "ac7816249a3aff633c40f99996be303598ddd4d9",
+    "operation": "Admit original custom LTYPE70=64 with exact literal flag/provider/output proof",
+    "entryPoints": [
+      "simpleMlineLinetype",
+      "prepareDxfMLineLinetypes",
+      "inspectDxfMLineLinetypes"
+    ],
+    "focusedSelector": "libdxfrw_mline_style_body_transactions",
+    "readyCohort": [
+      "libdxfrw_mline_style_body_transactions",
+      "libdxfrw_mline_style_authority"
+    ],
+    "exit": "Original custom0/64 flags bind; typed/raw edits pass exactsource/live/actual64/pattern/identity/geometry checks. Xref/unknown and canonicalnonzeroflags stayunqualified; copied/late/outputcorruption fails with caller/destination preservation and correctedretry. Oneomitted74composition check.",
+    "escalation": "Shared parser/query/observer changes only on an actual failure; normal+ASan2selectors+independentpeer once finalsourcefrozen; no fullsuite/native/package run",
+    "primaryReference": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm"
+  },
+  "primaryReference": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+  "implementation": [
+    "Selected source admission accepts flags exactly0/64. Canonical ByBlock/ByLayer/Continuous rows retain flags0-only admission because fixed writer rows emit0; no accidental normalization proof activation.",
+    "Original/live/actual flag, pattern, name/self/owner/control identity and final-record joins remain exact. Source role/body audits, caller snapshots and reference-edit gating are reused unchanged.",
+    "No parser/header/API/callback/model/vtable/DWG byte-layout/angular-unit/capture change; no new allocation/work loop. Existing source/default/output/advisory/legacy/2D controls remain current."
+  ],
+  "controls": {
+    "profiles": 4,
+    "readbacks": 76,
+    "typedRawAgreeingEdits": 14,
+    "copiedFlagRefusals": 6,
+    "lateFlagRefusals": 24,
+    "unqualifiedCustomSourceFlags": 6,
+    "canonical64TypedRawRefusals": 8,
+    "correctedRetries": 44,
+    "actual70CorruptionsAndCorrectedReplay": 6,
+    "omitted74Composition": 2,
+    "details": "Source/outputASCII/binary, exact literal+typed64 and provider-bound proofs; copied/late/actual70 values0/32/128, unchanged16/32/128 custom transport plus editrefusal, unchangedcanonical64advisory transport plus required-targetrefusal, caller/destination/retry preservation. Strict flags0 helper defaults retained."
+  },
+  "qualification": {
+    "builds": [
+      {
+        "configuration": "normal",
+        "build": "build",
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "dwg2dxf"
+        ],
+        "exitCode": 0,
+        "seconds": 12.466580957989208,
+        "cmakeCacheSha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+        "buildNinjaSha256": "6c93a605ab8c757c8ee2f6b30a8fe043839338a29e3018f0d7f5bcfe94ec62c3"
+      },
+      {
+        "configuration": "asan",
+        "build": "build/rpp5fa-evidence.4xKADX/asan-build",
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "dwg2dxf"
+        ],
+        "exitCode": 0,
+        "seconds": 99.53620299999602,
+        "cmakeCacheSha256": "8bc37f0495b8307a133bbf938c4eb8bfb5a39acf2929438001abf401bfd6cd31",
+        "buildNinjaSha256": "3eb8b95588305bf5f3156e9995c7d2f9339b5d807fa2e78bbfff2d2cfb717418"
+      }
+    ],
+    "selected": [
+      "libdxfrw_mline_style_body_transactions",
+      "libdxfrw_mline_style_authority"
+    ],
+    "fullSuiteRun": false,
+    "sanitizerOptions": "halt_on_error=1:detect_leaks=0",
+    "sourceManifestSha256": "68302dabb98c10ab16a86daba99dd27880471cd57c9453baacb6f8530d573944",
+    "results": [
+      {
+        "configuration": "normal",
+        "ctestExitCode": 0,
+        "ctestSeconds": 16.420742541988147,
+        "passed": 2,
+        "logSha256": "ab09f466f0849b610b798a6a31f3173fdb4ec9ac95ee951d84b2a845c6bbbf02",
+        "registrationsSha256": "6758119d4e0483aaa36e74feaf4d672c07f7eaec14e5ae058c39d2dc91b64d40",
+        "counters": [
+          "MLINESTYLE authority profiles=4; readbacks=174; refusals=32; retries=132; callbacks=64; allocations=12; corruptions=36; fixedProfiles=8; pendingRefusals=8; legacyRefusals=4; legacyConsumerProfiles=2; legacyConsumerRefusals=4; consumerPlannerFaults=12; consumerPlannerUnreached=0; sourceQuotaRefusals=2; modelOwnerRefusals=2; aritySourceRefusals=8; arityTypedRefusals=8; arityRetries=16",
+          "MLINE LTYPE referenced flag profiles=4; readbacks=76; edits=14; copied=6; late=24; unqualified=6; canonical=8; retries=44; corruptions=6; composition=2",
+          "MLINE LTYPE omitted flag profiles=12; readbacks=78; edits=24; copied=8; late=16; retries=42; importRefusals=6; exportRefusals=12; importKinds=2,0,0,0,0,2,0,2,0,; exportKinds=0,2,2,2,2,0,2,0,2,",
+          "MLINE LTYPE edit profiles=4; readbacks=124; conflicts=8; invalid=18; unqualified=10; legacy=2; late=24; copied=8; retries=76; corruptions=6; scopes=2; insertions=2; faults=6; unreached=0",
+          "MLINE LTYPE provider profiles=4; readbacks=93; copyRefusals=16; preflightRefusals=16; lateRefusals=40; retries=82; corruptions=38; compatibility=4; sourceIndexRefusals=2; plannerFaults=4; plannerUnreached=4; normalizedAdvisory=1",
+          "MLINESTYLE transaction profiles=8; readbacks=565; refusals=142; retries=328; callbacks=88; presence=4; prepFaults=12; lengthRefusals=2; lengthBoundaries=2; unsupported=26; scopeControls=4; encodingRefusals=6; corruptions=48; geometryGuards=2; scalarReadbacks=72; scalarConflicts=34; scalarPresence=10; invalidScalars=20; signedZeros=4; textProfiles=16; textReadbacks=48; textInsertions=16; textCallbacks=32; textShadows=4; textSpellings=2; textAppScopes=4; textLateNames=2; aciProfiles=4; aciReadbacks=127; aciConflicts=8; aciInvalid=32; aciCallbacks=32; aciInsertions=4; aciScopes=2; aciTransports=4; aciCorruptions=4; aciBoundary=1"
+        ],
+        "executableSha256": {
+          "/Users/dli/dev/libdxfrw/build/libdxfrw_dxf_fixture_tests": "e726bf189c16752a0d55eff98506f51ee7a655a857f8eba588cb232fcfa4f93a",
+          "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf": "6e0d7361ca508a6c3d40a5e61ea8b71ac0c855f903e09aa4eff55a3dfdfa76e0"
+        },
+        "toolSha256": "8e65905bcfca5e78472c239609e23bb38f9b288a22bc7c5ce6a893e2c7dee197",
+        "peer": {
+          "exitCode": 0,
+          "seconds": 6.694315625005402,
+          "logSha256": "4a1ec2a8e345decafcc38305bf997888ef6e61956b40db1cd41aa782431733b1",
+          "command": [
+            "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python",
+            "-B",
+            "/Users/dli/dev/libdxfrw/tools/qualify_material_source_order.py",
+            "--mline-style-only",
+            "--probe",
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_dxf_fixture_tests",
+            "--converter",
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "--output-dir",
+            "/Users/dli/dev/libdxfrw/build/rpp5gw-evidence/normal-peer-mline-style"
+          ],
+          "mlineStyleInputsMatched": 8,
+          "mlineStyleRoundTripsMatched": 16,
+          "mlineStyleEditsMatched": 16,
+          "mlineStyleBoundaryInputsMatched": 4,
+          "mlineStyleBoundaryRoundTripsMatched": 8,
+          "mlineStyleBoundaryEditsMatched": 8,
+          "mlineStyleScalarEditsMatched": 8,
+          "mlineStyleTextInputsMatched": 2,
+          "mlineStyleTextRoundTripsMatched": 4,
+          "mlineStyleTextCodepageTranscodesMatched": 2,
+          "mlineStyleKeyInputsMatched": 2,
+          "mlineStyleKeyRoundTripsMatched": 4,
+          "mlineStyleKeyEditsMatched": 4,
+          "mlineStyleElementAciEditsMatched": 4,
+          "mlineStyleSimpleLtypeInputsMatched": 1,
+          "mlineStyleSimpleLtypeRoundTripsMatched": 2,
+          "mlineStyleElementLtypeInputsMatched": 1,
+          "mlineStyleElementLtypeEditsMatched": 6,
+          "mlineStyleOmittedLtypeFlagInputsMatched": 3,
+          "mlineStyleOmittedLtypeFlagEditsMatched": 12,
+          "mlineStyleReferencedLtypeFlagInputsMatched": 2,
+          "mlineStyleReferencedLtypeFlagEditsMatched": 8,
+          "reportSha256": "f075286436ef3a3da02e3fbbdd32af975c754e5712f7e289b02bf6025edd0c2b"
+        },
+        "peerArtifactsRecheckedAfterRun": 125
+      },
+      {
+        "configuration": "asan",
+        "ctestExitCode": 0,
+        "ctestSeconds": 9.444653500017012,
+        "passed": 2,
+        "logSha256": "99668d7236c2024ac7762921cd34d07b82bf19b8c7658185e6b19565dd014177",
+        "registrationsSha256": "4c0f60b054e44472fa92f4cd900c26554d9f91d5bc875bfc460b72f43bd13759",
+        "counters": [
+          "MLINESTYLE authority profiles=4; readbacks=174; refusals=32; retries=132; callbacks=64; allocations=12; corruptions=36; fixedProfiles=8; pendingRefusals=8; legacyRefusals=4; legacyConsumerProfiles=2; legacyConsumerRefusals=4; consumerPlannerFaults=12; consumerPlannerUnreached=0; sourceQuotaRefusals=2; modelOwnerRefusals=2; aritySourceRefusals=8; arityTypedRefusals=8; arityRetries=16",
+          "MLINE LTYPE referenced flag profiles=4; readbacks=76; edits=14; copied=6; late=24; unqualified=6; canonical=8; retries=44; corruptions=6; composition=2",
+          "MLINE LTYPE omitted flag profiles=12; readbacks=78; edits=24; copied=8; late=16; retries=42; importRefusals=6; exportRefusals=12; importKinds=2,0,0,0,0,2,0,2,0,; exportKinds=0,2,2,2,2,0,2,0,2,",
+          "MLINE LTYPE edit profiles=4; readbacks=124; conflicts=8; invalid=18; unqualified=10; legacy=2; late=24; copied=8; retries=76; corruptions=6; scopes=2; insertions=2; faults=6; unreached=0",
+          "MLINE LTYPE provider profiles=4; readbacks=93; copyRefusals=16; preflightRefusals=16; lateRefusals=40; retries=82; corruptions=38; compatibility=4; sourceIndexRefusals=2; plannerFaults=4; plannerUnreached=4; normalizedAdvisory=1",
+          "MLINESTYLE transaction profiles=8; readbacks=565; refusals=142; retries=328; callbacks=88; presence=4; prepFaults=12; lengthRefusals=2; lengthBoundaries=2; unsupported=26; scopeControls=4; encodingRefusals=6; corruptions=48; geometryGuards=2; scalarReadbacks=72; scalarConflicts=34; scalarPresence=10; invalidScalars=20; signedZeros=4; textProfiles=16; textReadbacks=48; textInsertions=16; textCallbacks=32; textShadows=4; textSpellings=2; textAppScopes=4; textLateNames=2; aciProfiles=4; aciReadbacks=127; aciConflicts=8; aciInvalid=32; aciCallbacks=32; aciInsertions=4; aciScopes=2; aciTransports=4; aciCorruptions=4; aciBoundary=1"
+        ],
+        "executableSha256": {
+          "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw_dxf_fixture_tests": "8cd57c1ab71b0269f59e100af0ba0c758656354e2ae57b669a9a9e8c15599c77",
+          "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/dwg2dxf/dwg2dxf": "ae3a0c7cb45534837e752818b7e13c0e79f0b526edcbd04b00ee3c5cc0b4497d"
+        },
+        "toolSha256": "8e65905bcfca5e78472c239609e23bb38f9b288a22bc7c5ce6a893e2c7dee197",
+        "peer": {
+          "exitCode": 0,
+          "seconds": 4.485971958027221,
+          "logSha256": "4a1ec2a8e345decafcc38305bf997888ef6e61956b40db1cd41aa782431733b1",
+          "command": [
+            "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python",
+            "-B",
+            "/Users/dli/dev/libdxfrw/tools/qualify_material_source_order.py",
+            "--mline-style-only",
+            "--probe",
+            "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw_dxf_fixture_tests",
+            "--converter",
+            "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/dwg2dxf/dwg2dxf",
+            "--output-dir",
+            "/Users/dli/dev/libdxfrw/build/rpp5gw-evidence/asan-peer-mline-style"
+          ],
+          "mlineStyleInputsMatched": 8,
+          "mlineStyleRoundTripsMatched": 16,
+          "mlineStyleEditsMatched": 16,
+          "mlineStyleBoundaryInputsMatched": 4,
+          "mlineStyleBoundaryRoundTripsMatched": 8,
+          "mlineStyleBoundaryEditsMatched": 8,
+          "mlineStyleScalarEditsMatched": 8,
+          "mlineStyleTextInputsMatched": 2,
+          "mlineStyleTextRoundTripsMatched": 4,
+          "mlineStyleTextCodepageTranscodesMatched": 2,
+          "mlineStyleKeyInputsMatched": 2,
+          "mlineStyleKeyRoundTripsMatched": 4,
+          "mlineStyleKeyEditsMatched": 4,
+          "mlineStyleElementAciEditsMatched": 4,
+          "mlineStyleSimpleLtypeInputsMatched": 1,
+          "mlineStyleSimpleLtypeRoundTripsMatched": 2,
+          "mlineStyleElementLtypeInputsMatched": 1,
+          "mlineStyleElementLtypeEditsMatched": 6,
+          "mlineStyleOmittedLtypeFlagInputsMatched": 3,
+          "mlineStyleOmittedLtypeFlagEditsMatched": 12,
+          "mlineStyleReferencedLtypeFlagInputsMatched": 2,
+          "mlineStyleReferencedLtypeFlagEditsMatched": 8,
+          "reportSha256": "3610f33ea8885038caf10b69b98b92e7cb62d1ff61bb4350ffa993a2d1d2968c"
+        },
+        "peerArtifactsRecheckedAfterRun": 125
+      }
+    ],
+    "bothFinalBuildsBeforeQualificationRuntime": false,
+    "normalQualifiedBeforeIndependentAsanBuild": true,
+    "sourceInputsUnchanged": 593,
+    "normalPeerArtifactsRecheckedBeforeAsan": 125,
+    "registrationScopesMatch": true,
+    "configurationDifferences": [],
+    "registrationComparison": "The two selected C++ test registrations match after build-path relocation.",
+    "countersMatch": true,
+    "normalResultsReusedAfterIndependentAsanBuild": true,
+    "reportSha256": "e130a61f5bc0f12fc0758fcd007337781e0ddd66a24494d87048e1290e9c9b9b",
+    "qualifierSha256": "d7eaf8956a5470ca722191152f0e9a990a277de51e347d23dcb12f83179540c9",
+    "fullNativePackageReleaseRun": false
+  },
+  "independentPeer": {
+    "perConfiguration": {
+      "normal": {
+        "reportSha256": "f075286436ef3a3da02e3fbbdd32af975c754e5712f7e289b02bf6025edd0c2b",
+        "python": "3.15.0 (main, Oct  9 2026, 11:16:41) [Clang 21.0.0 (clang-2100.3.34.2)]",
+        "producer": "ezdxf",
+        "version": "1.4.5",
+        "packages": {
+          "ezdxf": "1.4.5",
+          "numpy": "2.5.4",
+          "fonttools": "4.68.0",
+          "pyparsing": "3.3.3",
+          "typing_extensions": "4.16.0"
+        },
+        "probeSha256": "e726bf189c16752a0d55eff98506f51ee7a655a857f8eba588cb232fcfa4f93a",
+        "converterSha256": "6e0d7361ca508a6c3d40a5e61ea8b71ac0c855f903e09aa4eff55a3dfdfa76e0",
+        "qualificationScriptSha256": "8e65905bcfca5e78472c239609e23bb38f9b288a22bc7c5ce6a893e2c7dee197",
+        "inputs": [
+          {
+            "version": "AC1027",
+            "page": "utf-8",
+            "format": "asc",
+            "path": "mline-style-element-ltype-flags-64-AC1027-asc.dxf",
+            "sha256": "b35d9c608338a953ea53d3124ee6f36c7d5bfa9bcef8bba535b2f8cc4355cf81",
+            "matched": true,
+            "expectedLinetypes": {
+              "ByLayer": {
+                "name": "ByLayer",
+                "flags": 0,
+                "description": "",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    0
+                  ],
+                  [
+                    40,
+                    0.0
+                  ]
+                ]
+              },
+              "PeerDash": {
+                "name": "PeerDash",
+                "flags": 64,
+                "description": "Authored simple dash and gap",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    2
+                  ],
+                  [
+                    40,
+                    1.5
+                  ],
+                  [
+                    49,
+                    1.0
+                  ],
+                  [
+                    74,
+                    0
+                  ],
+                  [
+                    49,
+                    -0.5
+                  ],
+                  [
+                    74,
+                    0
+                  ]
+                ]
+              }
+            },
+            "authoring": "Typed original ByLayer style and PeerDash provider authored before MLINE geometry generation; all expected fields and geometry frozen before first save; no source postmutation; custom provider flags authored as 64 before geometry and first save",
+            "originalCustomProviderFlags": 64,
+            "expectedEmittedCustomProviderFlags": 64
+          },
+          {
+            "version": "AC1027",
+            "page": "utf-8",
+            "format": "asc",
+            "path": "mline-style-element-ltype-flags-64-omit74-3-AC1027-asc.dxf",
+            "sha256": "d562568687e5aa605274d08c92b9154ae69048485ef6f5f214c66b50c2acb19b",
+            "matched": true,
+            "expectedLinetypes": {
+              "ByLayer": {
+                "name": "ByLayer",
+                "flags": 0,
+                "description": "",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    0
+                  ],
+                  [
+                    40,
+                    0.0
+                  ]
+                ]
+              },
+              "PeerDash": {
+                "name": "PeerDash",
+                "flags": 64,
+                "description": "Authored simple dash and gap",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    2
+                  ],
+                  [
+                    40,
+                    1.5
+                  ],
+                  [
+                    49,
+                    1.0
+                  ],
+                  [
+                    49,
+                    -0.5
+                  ]
+                ]
+              }
+            },
+            "authoring": "Typed original ByLayer style and PeerDash provider authored before MLINE geometry generation; all expected fields and geometry frozen before first save; no source postmutation; custom provider flags authored as 64 before geometry and first save; selected zero74 tags omitted in the typed producer pattern_tags before geometry and first save",
+            "originalCustomProviderFlags": 64,
+            "expectedEmittedCustomProviderFlags": 64,
+            "omittedSourceFlagMask": 3,
+            "expectedEmittedLinetypes": {
+              "ByLayer": {
+                "name": "ByLayer",
+                "flags": 0,
+                "description": "",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    0
+                  ],
+                  [
+                    40,
+                    0.0
+                  ]
+                ]
+              },
+              "PeerDash": {
+                "name": "PeerDash",
+                "flags": 64,
+                "description": "Authored simple dash and gap",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    2
+                  ],
+                  [
+                    40,
+                    1.5
+                  ],
+                  [
+                    49,
+                    1.0
+                  ],
+                  [
+                    74,
+                    0
+                  ],
+                  [
+                    49,
+                    -0.5
+                  ],
+                  [
+                    74,
+                    0
+                  ]
+                ]
+              }
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "input": "asc",
+            "output": "asc",
+            "sourceSha256": "b35d9c608338a953ea53d3124ee6f36c7d5bfa9bcef8bba535b2f8cc4355cf81",
+            "path": "element-ltype-typed-mline-style-element-ltype-flags-64-AC1027-asc-asc.dxf",
+            "matched": true,
+            "sha256": "dc87b3e2e34bced0bd260cef1c1e65125bb88261fa9707a6e2805fe98e5dc054",
+            "editMode": "typed",
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "bin",
+            "sourceSha256": "b35d9c608338a953ea53d3124ee6f36c7d5bfa9bcef8bba535b2f8cc4355cf81",
+            "path": "element-ltype-typed-mline-style-element-ltype-flags-64-AC1027-asc-bin.dxf",
+            "matched": true,
+            "sha256": "0f79f282bae88287cb01cfded5b10ee0006b0c75116876fadac7aa47b960196e",
+            "editMode": "typed",
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "asc",
+            "sourceSha256": "b35d9c608338a953ea53d3124ee6f36c7d5bfa9bcef8bba535b2f8cc4355cf81",
+            "path": "element-ltype-raw-mline-style-element-ltype-flags-64-AC1027-asc-asc.dxf",
+            "matched": true,
+            "sha256": "dc87b3e2e34bced0bd260cef1c1e65125bb88261fa9707a6e2805fe98e5dc054",
+            "editMode": "raw",
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "bin",
+            "sourceSha256": "b35d9c608338a953ea53d3124ee6f36c7d5bfa9bcef8bba535b2f8cc4355cf81",
+            "path": "element-ltype-raw-mline-style-element-ltype-flags-64-AC1027-asc-bin.dxf",
+            "matched": true,
+            "sha256": "0f79f282bae88287cb01cfded5b10ee0006b0c75116876fadac7aa47b960196e",
+            "editMode": "raw",
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "asc",
+            "sourceSha256": "d562568687e5aa605274d08c92b9154ae69048485ef6f5f214c66b50c2acb19b",
+            "path": "element-ltype-typed-mline-style-element-ltype-flags-64-omit74-3-AC1027-asc-asc.dxf",
+            "matched": true,
+            "sha256": "37d19d6d9798a3a8f879f549bcad647df33f6b27cf9c1d6a05d9aa9101d13041",
+            "editMode": "typed",
+            "omittedSourceFlagMask": 3,
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "bin",
+            "sourceSha256": "d562568687e5aa605274d08c92b9154ae69048485ef6f5f214c66b50c2acb19b",
+            "path": "element-ltype-typed-mline-style-element-ltype-flags-64-omit74-3-AC1027-asc-bin.dxf",
+            "matched": true,
+            "sha256": "b7ea6b530eb9febae9503580ba02d494e25fb4b07b6afab1d9bdb9379d400432",
+            "editMode": "typed",
+            "omittedSourceFlagMask": 3,
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "asc",
+            "sourceSha256": "d562568687e5aa605274d08c92b9154ae69048485ef6f5f214c66b50c2acb19b",
+            "path": "element-ltype-raw-mline-style-element-ltype-flags-64-omit74-3-AC1027-asc-asc.dxf",
+            "matched": true,
+            "sha256": "37d19d6d9798a3a8f879f549bcad647df33f6b27cf9c1d6a05d9aa9101d13041",
+            "editMode": "raw",
+            "omittedSourceFlagMask": 3,
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "bin",
+            "sourceSha256": "d562568687e5aa605274d08c92b9154ae69048485ef6f5f214c66b50c2acb19b",
+            "path": "element-ltype-raw-mline-style-element-ltype-flags-64-omit74-3-AC1027-asc-bin.dxf",
+            "matched": true,
+            "sha256": "b7ea6b530eb9febae9503580ba02d494e25fb4b07b6afab1d9bdb9379d400432",
+            "editMode": "raw",
+            "omittedSourceFlagMask": 3,
+            "expectedCustomProviderFlags": 64
+          }
+        ]
+      },
+      "asan": {
+        "reportSha256": "3610f33ea8885038caf10b69b98b92e7cb62d1ff61bb4350ffa993a2d1d2968c",
+        "python": "3.15.0 (main, Oct  9 2026, 11:16:41) [Clang 21.0.0 (clang-2100.3.34.2)]",
+        "producer": "ezdxf",
+        "version": "1.4.5",
+        "packages": {
+          "ezdxf": "1.4.5",
+          "numpy": "2.5.4",
+          "fonttools": "4.68.0",
+          "pyparsing": "3.3.3",
+          "typing_extensions": "4.16.0"
+        },
+        "probeSha256": "8cd57c1ab71b0269f59e100af0ba0c758656354e2ae57b669a9a9e8c15599c77",
+        "converterSha256": "ae3a0c7cb45534837e752818b7e13c0e79f0b526edcbd04b00ee3c5cc0b4497d",
+        "qualificationScriptSha256": "8e65905bcfca5e78472c239609e23bb38f9b288a22bc7c5ce6a893e2c7dee197",
+        "inputs": [
+          {
+            "version": "AC1027",
+            "page": "utf-8",
+            "format": "asc",
+            "path": "mline-style-element-ltype-flags-64-AC1027-asc.dxf",
+            "sha256": "e10fefb355786046141b13b8f755e913d76bccf37c3d7c969bf56d320ba409d5",
+            "matched": true,
+            "expectedLinetypes": {
+              "ByLayer": {
+                "name": "ByLayer",
+                "flags": 0,
+                "description": "",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    0
+                  ],
+                  [
+                    40,
+                    0.0
+                  ]
+                ]
+              },
+              "PeerDash": {
+                "name": "PeerDash",
+                "flags": 64,
+                "description": "Authored simple dash and gap",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    2
+                  ],
+                  [
+                    40,
+                    1.5
+                  ],
+                  [
+                    49,
+                    1.0
+                  ],
+                  [
+                    74,
+                    0
+                  ],
+                  [
+                    49,
+                    -0.5
+                  ],
+                  [
+                    74,
+                    0
+                  ]
+                ]
+              }
+            },
+            "authoring": "Typed original ByLayer style and PeerDash provider authored before MLINE geometry generation; all expected fields and geometry frozen before first save; no source postmutation; custom provider flags authored as 64 before geometry and first save",
+            "originalCustomProviderFlags": 64,
+            "expectedEmittedCustomProviderFlags": 64
+          },
+          {
+            "version": "AC1027",
+            "page": "utf-8",
+            "format": "asc",
+            "path": "mline-style-element-ltype-flags-64-omit74-3-AC1027-asc.dxf",
+            "sha256": "0e2c7debb48e970e25c28a2db16b73908d2eb6a255ee3a7e60d02770d1a0a6ed",
+            "matched": true,
+            "expectedLinetypes": {
+              "ByLayer": {
+                "name": "ByLayer",
+                "flags": 0,
+                "description": "",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    0
+                  ],
+                  [
+                    40,
+                    0.0
+                  ]
+                ]
+              },
+              "PeerDash": {
+                "name": "PeerDash",
+                "flags": 64,
+                "description": "Authored simple dash and gap",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    2
+                  ],
+                  [
+                    40,
+                    1.5
+                  ],
+                  [
+                    49,
+                    1.0
+                  ],
+                  [
+                    49,
+                    -0.5
+                  ]
+                ]
+              }
+            },
+            "authoring": "Typed original ByLayer style and PeerDash provider authored before MLINE geometry generation; all expected fields and geometry frozen before first save; no source postmutation; custom provider flags authored as 64 before geometry and first save; selected zero74 tags omitted in the typed producer pattern_tags before geometry and first save",
+            "originalCustomProviderFlags": 64,
+            "expectedEmittedCustomProviderFlags": 64,
+            "omittedSourceFlagMask": 3,
+            "expectedEmittedLinetypes": {
+              "ByLayer": {
+                "name": "ByLayer",
+                "flags": 0,
+                "description": "",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    0
+                  ],
+                  [
+                    40,
+                    0.0
+                  ]
+                ]
+              },
+              "PeerDash": {
+                "name": "PeerDash",
+                "flags": 64,
+                "description": "Authored simple dash and gap",
+                "pattern": [
+                  [
+                    72,
+                    65
+                  ],
+                  [
+                    73,
+                    2
+                  ],
+                  [
+                    40,
+                    1.5
+                  ],
+                  [
+                    49,
+                    1.0
+                  ],
+                  [
+                    74,
+                    0
+                  ],
+                  [
+                    49,
+                    -0.5
+                  ],
+                  [
+                    74,
+                    0
+                  ]
+                ]
+              }
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "input": "asc",
+            "output": "asc",
+            "sourceSha256": "e10fefb355786046141b13b8f755e913d76bccf37c3d7c969bf56d320ba409d5",
+            "path": "element-ltype-typed-mline-style-element-ltype-flags-64-AC1027-asc-asc.dxf",
+            "matched": true,
+            "sha256": "d034adced2a985a434b08b1326061a74413752a16f03b2c90d08ea30b08fe723",
+            "editMode": "typed",
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "bin",
+            "sourceSha256": "e10fefb355786046141b13b8f755e913d76bccf37c3d7c969bf56d320ba409d5",
+            "path": "element-ltype-typed-mline-style-element-ltype-flags-64-AC1027-asc-bin.dxf",
+            "matched": true,
+            "sha256": "a84f52f65d974c0026fc8b479922f3e37958cada57877152249e824c5fc95a72",
+            "editMode": "typed",
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "asc",
+            "sourceSha256": "e10fefb355786046141b13b8f755e913d76bccf37c3d7c969bf56d320ba409d5",
+            "path": "element-ltype-raw-mline-style-element-ltype-flags-64-AC1027-asc-asc.dxf",
+            "matched": true,
+            "sha256": "d034adced2a985a434b08b1326061a74413752a16f03b2c90d08ea30b08fe723",
+            "editMode": "raw",
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "bin",
+            "sourceSha256": "e10fefb355786046141b13b8f755e913d76bccf37c3d7c969bf56d320ba409d5",
+            "path": "element-ltype-raw-mline-style-element-ltype-flags-64-AC1027-asc-bin.dxf",
+            "matched": true,
+            "sha256": "a84f52f65d974c0026fc8b479922f3e37958cada57877152249e824c5fc95a72",
+            "editMode": "raw",
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "asc",
+            "sourceSha256": "0e2c7debb48e970e25c28a2db16b73908d2eb6a255ee3a7e60d02770d1a0a6ed",
+            "path": "element-ltype-typed-mline-style-element-ltype-flags-64-omit74-3-AC1027-asc-asc.dxf",
+            "matched": true,
+            "sha256": "edb8b09dcb2b0d4d880959c77a0ce6793e1be1916ef5f2d703c909335d7e1b1c",
+            "editMode": "typed",
+            "omittedSourceFlagMask": 3,
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "bin",
+            "sourceSha256": "0e2c7debb48e970e25c28a2db16b73908d2eb6a255ee3a7e60d02770d1a0a6ed",
+            "path": "element-ltype-typed-mline-style-element-ltype-flags-64-omit74-3-AC1027-asc-bin.dxf",
+            "matched": true,
+            "sha256": "d0a7701b63e519e12e3ff7aed84377add5c3f96741fdc1c4380457e9d8cb2af5",
+            "editMode": "typed",
+            "omittedSourceFlagMask": 3,
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "asc",
+            "sourceSha256": "0e2c7debb48e970e25c28a2db16b73908d2eb6a255ee3a7e60d02770d1a0a6ed",
+            "path": "element-ltype-raw-mline-style-element-ltype-flags-64-omit74-3-AC1027-asc-asc.dxf",
+            "matched": true,
+            "sha256": "edb8b09dcb2b0d4d880959c77a0ce6793e1be1916ef5f2d703c909335d7e1b1c",
+            "editMode": "raw",
+            "omittedSourceFlagMask": 3,
+            "expectedCustomProviderFlags": 64
+          },
+          {
+            "input": "asc",
+            "output": "bin",
+            "sourceSha256": "0e2c7debb48e970e25c28a2db16b73908d2eb6a255ee3a7e60d02770d1a0a6ed",
+            "path": "element-ltype-raw-mline-style-element-ltype-flags-64-omit74-3-AC1027-asc-bin.dxf",
+            "matched": true,
+            "sha256": "d0a7701b63e519e12e3ff7aed84377add5c3f96741fdc1c4380457e9d8cb2af5",
+            "editMode": "raw",
+            "omittedSourceFlagMask": 3,
+            "expectedCustomProviderFlags": 64
+          }
+        ]
+      }
+    },
+    "newCountsPerConfiguration": {
+      "originalInputs": 2,
+      "typedRawEditOutputs": 8
+    },
+    "sameInputFormatTypedRawOutputBytesMatch": true,
+    "projection": "Exact source/emitted flags64, complete pattern/control/self/owner, style/dictionary/redundant names/340 and full ENTITIES/BLOCKS geometry. One source explicit74, one source both74omitted; emitted74 stays explicit. Provider flags authored before geometry and firstsave; no source postmutation, repair or geometry regeneration.",
+    "disclosure": "Pinned ezdxf1.4.5 tag/typed field agreement is selected evidence, not native rendering/inheritance/full-document support; default-MATERIAL omissions/null layer bindings and setup-created-material disclosures remain in full reports. Prior peer recipes/counts unchanged.",
+    "nativeSemanticsQualified": false
+  },
+  "nextReadyPacket": {
+    "operation": "P2.4a MLINE340 retarget with original/planned geometry compatibility",
+    "readinessReportSha256": "9c9492335ea765c81d9b508b6af6cc4c7da03f1fb95bc00f49e180064299a56e",
+    "source": {
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5gw-evidence/next-original-compatible-retarget.dxf",
+      "sha256": "21521be67a17c2809bebd69ab3c27ff352520d310162f5bc1cae49c0460590c6",
+      "styleKeys": [
+        "Standard",
+        "PeerMline",
+        "PeerRetarget"
+      ],
+      "expectedStyles": {
+        "Standard": {
+          "name": "Standard",
+          "flags": 0,
+          "description": "",
+          "fillColor": 256,
+          "startAngle": 90,
+          "endAngle": 90,
+          "elements": [
+            [
+              0.5,
+              256,
+              "BYLAYER"
+            ],
+            [
+              -0.5,
+              256,
+              "BYLAYER"
+            ]
+          ]
+        },
+        "PeerMline": {
+          "name": "RedundantBody",
+          "flags": 3,
+          "description": "Dictionary authority boundary",
+          "fillColor": 4,
+          "startAngle": 37.5,
+          "endAngle": 142.5,
+          "elements": [
+            [
+              1.25,
+              3,
+              "CONTINUOUS"
+            ],
+            [
+              -0.75,
+              5,
+              "BYLAYER"
+            ]
+          ]
+        },
+        "PeerRetarget": {
+          "name": "PeerRetarget",
+          "flags": 3,
+          "description": "Original compatible retarget destination",
+          "fillColor": 6,
+          "startAngle": 37.5,
+          "endAngle": 142.5,
+          "elements": [
+            [
+              1.25,
+              6,
+              "CONTINUOUS"
+            ],
+            [
+              -0.75,
+              2,
+              "BYLAYER"
+            ]
+          ]
+        }
+      },
+      "physicalAndOrdinaryTypedMatched": true
+    },
+    "sourceConsumerFieldsCanonicalSha256": "a47d93e7a73f52ecaecee9983aecfa98a0b0c26b0d14d2dd0344cf775a4ce2b8",
+    "unchanged": {
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5gw-evidence/next-unchanged-compatible-retarget.dxf",
+      "sha256": "8cb208e833e98b2d88b28a1fbd02bf81a436d1a8fa2093ecf7c0ebf2581c9226",
+      "command": [
+        "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+        "/Users/dli/dev/libdxfrw/build/rpp5gw-evidence/next-original-compatible-retarget.dxf",
+        "-y",
+        "-v2013",
+        "/Users/dli/dev/libdxfrw/build/rpp5gw-evidence/next-unchanged-compatible-retarget.dxf"
+      ],
+      "exitCode": 0,
+      "physicalAndOrdinaryTypedMatched": true
+    },
+    "edit": {
+      "command": [
+        "/Users/dli/dev/libdxfrw/build/rpp5gw-evidence/retarget-baseline",
+        "/Users/dli/dev/libdxfrw/build/rpp5gw-evidence/next-original-compatible-retarget.dxf",
+        "/Users/dli/dev/libdxfrw/build/rpp5gw-evidence/next-retargeted.dxf"
+      ],
+      "exitCode": 1,
+      "stdout": "sourceStyles=3; geometryCompatible=1; original340=47; selected340=54; originalAndTargetAuthorityQualified=1; originalConsumersQualified=2; exportAccepted=0; requestedHandleAndRedundantNameRetained=1\n",
+      "stderr": "DXF export preflight failed: MLINE original redundant-name/reference binding\n",
+      "destinationSentinelPreserved": true
+    },
+    "originalAndTargetAuthorityQualified": true,
+    "originalConsumersQualified": 2,
+    "probeBuild": {
+      "command": [
+        "/usr/bin/clang++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I/Users/dli/dev/libdxfrw",
+        "-I/Users/dli/dev/libdxfrw/src",
+        "-I/Users/dli/dev/libdxfrw/build",
+        "/Users/dli/dev/libdxfrw/build/rpp5gw-evidence/retarget-baseline.cpp",
+        "/Users/dli/dev/libdxfrw/build/CMakeFiles/libdxfrw_root_test_adapter.dir/dwg2dxf/dx_iface.cpp.o",
+        "/Users/dli/dev/libdxfrw/build/libdxfrw.a",
+        "-o",
+        "/Users/dli/dev/libdxfrw/build/rpp5gw-evidence/retarget-baseline"
+      ],
+      "exitCode": 0,
+      "seconds": 2.723009749985067,
+      "sourceSha256": "03eaf892aac884b357ac7e435a0132bd35aa75634c8ad68367f4cdcb145adad6",
+      "adapterObjectSha256": "b6afeeac2f779c5083888f1684c19d4b917eb431ac6cb2c5ef72b53bb56d5d25",
+      "librarySha256": "c3db108e5ed257a6a954654ae8ceea4b480e6c5e7c533d9a0ef16026ef80a3ae",
+      "stdout": "",
+      "stderr": "",
+      "probeSha256": "beeed8f97edbfbe989d850b54a8f4439b5a34b00b5699b8b2d9898da9fb3e8f0"
+    },
+    "probeSource": "#include \"dwg2dxf/dx_iface.h\"\n#include \"dwg2dxf/dx_data.h\"\n#include <cmath>\n#include <iostream>\n\nclass DxIfaceMaterialReferenceTestAccess {\npublic:\n    static bool qualified(const dx_iface& adapter,std::uint32_t original,std::uint32_t target) {\n        if(!adapter.m_dxfMLineStylesInspected || !adapter.m_dxfMLineLinetypesInspected\n            || adapter.m_dxfMLineConsumerInspected!=3u || adapter.m_dxfMLineConsumers.size()!=2u)return false;\n        for(const auto handle:{original,target}) {\n            const auto row=adapter.m_dxfMLineStyles.find(handle);\n            if(row==adapter.m_dxfMLineStyles.end() || !row->second.baseline || !row->second.linetypesBound\n                || !row->second.dictionaryOrigin || !row->second.dictionaryOrigin->bodyMatched\n                || !row->second.dictionaryOrigin->stateComplete || !row->second.dictionaryOrigin->originBound)return false;\n        }\n        for(const auto& row:adapter.m_dxfMLineConsumers)\n            if(!row.second.original || row.second.original->styleHandle!=original)return false;\n        return true;\n    }\n};\n\nbool sameGeometry(const DRW_MLineStyle& a,const DRW_MLineStyle& b) {\n    if(a.flags!=b.flags || a.startAngle!=b.startAngle || a.endAngle!=b.endAngle\n        || std::signbit(a.startAngle)!=std::signbit(b.startAngle)\n        || std::signbit(a.endAngle)!=std::signbit(b.endAngle)\n        || a.elements.size()!=b.elements.size())return false;\n    for(std::size_t i=0;i<a.elements.size();++i)\n        if(a.elements[i].offset!=b.elements[i].offset\n            || std::signbit(a.elements[i].offset)!=std::signbit(b.elements[i].offset))return false;\n    return true;\n}\nint main(int argc,char** argv) {\n    if(argc!=3)return 2;\n    dx_iface adapter;dx_data data;\n    if(!adapter.fileImport(argv[1],&data,false))return 2;\n    const DRW_MLineStyle* target=nullptr;\n    for(const auto& dictionary:data.dictionaries)for(const auto& entry:dictionary.m_entries)\n        if(entry.m_name==\"PeerRetarget\")for(const auto& style:data.mLineStyles)\n            if(style.handle==entry.m_handle && style.parentHandle==dictionary.handle) {\n                if(target)return 2;target=&style;\n            }\n    if(!target || !data.mBlock)return 2;\n    DRW_MLine* selected=nullptr;\n    for(auto* entity:data.mBlock->ent)if(entity && entity->eType==DRW::MLINE) {\n        if(selected)return 2;selected=dynamic_cast<DRW_MLine*>(entity);\n    }\n    if(!selected || selected->styleHandle==target->handle)return 2;\n    const DRW_MLineStyle* original=nullptr;\n    for(const auto& style:data.mLineStyles)if(style.handle==selected->styleHandle) {\n        if(original)return 2;original=&style;\n    }\n    if(!original || !sameGeometry(*original,*target))return 2;\n    const auto before=selected->styleHandle;const auto name=selected->styleName;\n    const std::string unchanged=std::string(argv[2])+\".unchanged.dxf\";\n    if(!adapter.fileExport(unchanged,data.sourceVersion,false,&data,false,true,\n            dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless)\n        || !DxIfaceMaterialReferenceTestAccess::qualified(adapter,before,target->handle))return 2;\n    selected->styleHandle=target->handle;\n    const bool accepted=adapter.fileExport(argv[2],data.sourceVersion,false,&data,false,true,\n        dx_dxfSourceTextPolicy::RequireValidSource,DRW::DxfTextWritePolicy::RequireLossless);\n    std::cout<<\"sourceStyles=\"<<data.mLineStyles.size()<<\"; geometryCompatible=1; original340=\"<<before\n        <<\"; selected340=\"<<target->handle<<\"; originalAndTargetAuthorityQualified=1; originalConsumersQualified=2; exportAccepted=\"<<accepted\n        <<\"; requestedHandleAndRedundantNameRetained=\"<<(selected->styleHandle==target->handle && selected->styleName==name)<<'\\n';\n    return accepted?0:1;\n}\n",
+    "authoring": "Original local-from-scratch source. Both styles and full old consumer geometry frozen before firstsave/import; target changes ACI/fill/description only, preserving exact count/ordered offsets/allflags/capangles and linetype references. No source-file postmutation or output repair/regeneration.",
+    "compatibilityBoundary": "Require an explicit qualified core MLINESTYLE body profile for original old and planned target; unknown body/extension/application/XDATA profiles remain unqualified for retarget. Standard dictionary-owner reactors are covered by original authority. Equal modeled fields alone do not qualify unknown geometry meaning.",
+    "implementation": "Preserve original consumer/name/common/geometry authority; compare target planned geometry against original source-style baseline, caching/precharging each old style once. Require qualified core grammar and old/target original dictionary/body/provider proof. Keep original physical340 decode strict; relax only admitted requested340. Reuse existing live snapshots, actual340/owner/geometry inspectors and final target identity.",
+    "remaining": "Differing offsets/count/flags/angles, parameter recalculation, unknown extensions, native semantics and full document closure remain open."
+  },
+  "remaining": [
+    "Canonical flag64 normalization, other LTYPE ordering/header/metadata/application/XDATA/complex/legacy/native profiles.",
+    "MLINE340 retargeting, count/offset/geometry recalculation, tuple grammar, CMC/collation/native behavior and MLEADERSTYLE transactions.",
+    "Full original/document recursive closure, MATERIAL/rendering/TABLE profiles, independent ACIS/ACDS semantic/kernel, Linux/Windows FreeCAD, Linux GCC release, ABI/platform/RSS/performance and six external dispositions."
+  ],
+  "limitations": [
+    "AC1021-AC1032 gate is not per-version qualification; authored provider witnesses are AC1027.",
+    "ASan halt_on_error=1:detect_leaks=0; no leak-sanitizer/fullsuite/native/package/ABI/RSS/performance claim.",
+    "Retarget probe establishes a qualified source and current refusal, not implemented retarget support or native rendering."
+  ],
+  "gates": {
+    "resourceFamilies": 9,
+    "ATTDEF.rawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "fullObjectiveComplete": false,
+    "wholeDocumentExportQualified": false,
+    "nativeLinetypeSemanticsQualified": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "fixturePolicy": "Only original local-from-scratch recipes and existing eligible repository material. No drawing payload committed; source/output/probe scratch hashes and recipes retained."
+}

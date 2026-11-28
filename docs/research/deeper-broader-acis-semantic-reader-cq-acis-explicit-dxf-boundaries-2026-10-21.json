@@ -1,0 +1,144 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Pinned ACIS semantic-reader candidate and explicit DXF carrier boundaries",
+  "mode": "Deeper/broader primary-source research and implementation-readiness refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "worktreeState": "Broadly modified and uncommitted before this pass; preserve unrelated work and do not stage or commit.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acis-semantic-reader-cq-acis-explicit-dxf-boundaries-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "cq-acis release metadata and pinned source",
+      "references": [
+        "https://pypi.org/project/cq-acis/0.3.12/",
+        "https://github.com/monozukuri-ai/cq-acis/tree/e05a8f470d2f6799277f7b7df467d2fc35625889",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/pyproject.toml"
+      ],
+      "observation": "PyPI 0.3.12 was released 2026-10-16 with a trusted-publishing attestation to source commit e05a8f470d2f6799277f7b7df467d2fc35625889. The package is MIT, requires Python >=3.11 and CadQuery >=2.8, and publishes wheels for macOS ARM64, Windows x86-64, Linux x86-64, and Linux ARM64. The macOS ARM64 wheel SHA-256 is 94204f623d752e7dacf494bf631551277a985acbeb612ee3a24464ea0f0daab5. The project calls itself experimental and says its API/profile subset can change.",
+      "evidenceCeiling": "Published release identity and platform availability only; no package was installed or executed.",
+      "planDisposition": "Pin as an optional candidate for an isolated composed checkpoint; do not add it as a runtime or normal-test dependency."
+    },
+    {
+      "project": "cq-acis SAT/SAB parser and geometry-conversion contracts",
+      "references": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/sab-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/geometry-support.md"
+      ],
+      "observation": "The project parses SAT/SAB into an ACIS model and converts a bounded subset to CadQuery/OpenCascade shapes. It documents analytic lines, circles, ellipses, planes, cylinders, cones, spheres, and tori, experimental explicit NURBS, selected tolerant boundaries, and restrictions on placements/trims/procedural geometry. It distinguishes the ACIS BinaryFile family from Autodesk ShapeManager ASM BinaryFile profiles and explicitly warns that version acceptance does not imply arbitrary-geometry support.",
+      "evidenceCeiling": "Source-level declared scope only; no execution against libdxfrw output or independently authored input occurred.",
+      "planDisposition": "Any result must be labeled by exact container, save version, record schema, geometry subset, and transform profile. Raw-byte retention and full semantic conversion remain separate."
+    },
+    {
+      "project": "cq-acis source lineage, tests, and prior local witness",
+      "references": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/THIRD_PARTY_NOTICES.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/tests/test_cadquery.py",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/tests/test_corpus.py",
+        "docs/research/deeper-broader-acis-peer-local-0_3_12-observation-2026-10-21.json"
+      ],
+      "observation": "The SAB reader is described as written for cq-acis, with grammar/layout knowledge informed by cadmpeg (pinned Apache-2.0 Rust reference and CC-BY-4.0 format notes) and ezdxf (MIT); its public SAB fixtures also come from ezdxf. The separate parser converts through CadQuery/OpenCascade, the same kernel family as FreeCAD, not an independent geometry kernel. Tests assert analytic cube/prism metrics for ezdxf-authored inputs. Broader NIST corpus tests require valid, positive-volume shapes across 23 SAT artifacts / 147 bodies but do not establish independent expected geometry for each body. A prior local receipt records the already-run 5,489-byte scratch SAB 21800 witness as one valid solid/closed shell with expected bounds, about 385 volume, and area 334; it marks geometryObservationEligible=true but qualificationEligible=false because the witness was ezdxf-authored, the kernel is shared with FreeCAD, and no DWG/AcDs join was exercised.",
+      "evidenceCeiling": "Pinned source/test review in this pass plus a previously recorded single generated witness; this pass did not rerun it. Shared format-knowledge and fixture lineage prevent treating it as an independent layout vote or broad compatibility proof.",
+      "planDisposition": "Reuse the prior witness without rerunning. For any next semantic check, use locally generated input and expectations specified independently; do not count cq-acis as an independent-kernel vote or general producer-compatibility proof."
+    },
+    {
+      "project": "Open CASCADE ACIS translator availability",
+      "references": [
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md"
+      ],
+      "observation": "OCCT's standard open-source distribution provides the geometry/topology kernel; its ACIS SAT/SAB translator is listed among commercial components. cq-acis therefore supplies a distinct handwritten SAT/SAB parsing route to CadQuery/OCCT rather than wrapping a default open-source OCCT ACIS reader.",
+      "evidenceCeiling": "Official component catalog/announcement reviewed; no OCCT package was installed or inspected in a local build.",
+      "planDisposition": "Keep file parsing, geometry-kernel conversion, and native CAD consumer results separate. Do not attribute cq-acis output to an OCCT built-in ACIS translator."
+    },
+    {
+      "project": "NIST Engineering Design Model corpus as optional cross-format lead",
+      "references": [
+        "https://github.com/usnistgov/engineering-design-models",
+        "https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=821990",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/corpus/sources.lock.json",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/corpus/README.md"
+      ],
+      "observation": "NIST describes a historical multi-format engineering-model repository. The cq-acis corpus pins NIST SAT inputs; some model folders have same-named VRML/display files. Same-name pairing does not prove identical revisions/geometries, tessellated display data is not an exact B-rep oracle, and NIST's license notice warns that third-party content may be present.",
+      "evidenceCeiling": "Repository metadata and publication only; no NIST drawing or display output was fetched, staged, or tested.",
+      "planDisposition": "Optional coarse bounds/shape comparison only after model pairing and licensing are checked. Do not import these samples into the libdxfrw repository; persistent fixtures must follow the existing from-scratch rule."
+    },
+    {
+      "project": "Autodesk DXF explicit/modeler carrier contracts",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm"
+      ],
+      "observation": "The 3DSOLID entity carries proprietary modeler data in groups 1/3 and an optional soft-owner history handle 350. 3DFACE stores WCS corner coordinates and invisible-edge flags. Polyface is a POLYLINE variant with vertex and face records, a four-vertex per-face limit, vertex-before-face writer ordering, and a reader tolerance requirement for unusual ordering.",
+      "evidenceCeiling": "Autodesk DXF schema documentation; no native AutoCAD acceptance or roundtrip was executed.",
+      "planDisposition": "Keep exact ACIS/modeler preservation and explicit mesh/facet conversion separate. Any faceted fallback must be declared lossy, counted, and source-linked."
+    },
+    {
+      "project": "FreeCAD DXF consumer boundary",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observation": "The documented legacy DXF importer lists 3DFACE while the built-in importer list does not; neither documented backend currently reads embedded ACIS/SAT solids.",
+      "evidenceCeiling": "Consumer documentation only; no application/backend was run.",
+      "planDisposition": "Pin FreeCAD backend and per-entity result. Classify ACIS as unsupported by that consumer rather than a positive or negative parser verdict."
+    }
+  ],
+  "assessment": {
+    "existingOwners": [
+      "PAR-07/S8 staged semantic-evidence gate",
+      "PAR-59 modeler-loss attribution",
+      "PAR-144 composed peer and compatibility checkpoint"
+    ],
+    "newFinding": null,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerPackagesInstalledOrRunThisPass": false,
+    "externalSamplesFetchedOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRunThisPass": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "defaultAction": "Continue local dependency-ready implementation. Keep peer execution at the optional composed qualification checkpoint.",
+    "sequence": [
+      "Use an isolated, exact-version cq-acis 0.3.12 runtime only after local fast checks; record platform wheel digest and runtime.",
+      "Reuse the already recorded simple scratch-box witness without rerunning it. If another geometry control is needed, author a non-rectangular asymmetric solid locally from scratch and specify its expected geometry independently; do not use shipped peer cube/prism as the sole pass case.",
+      "For DWG AcDs, use a separately pinned structural reader such as released ACadSharp v3.6.51 to establish section entry, schema/index decoding, raw SAB extraction, and owner/key/entity association before semantic conversion.",
+      "Pass exact recovered SAB bytes to cq-acis only for its documented profile; compare full body closure and independent analytic shape metrics, treating partial conversion as refusal.",
+      "Keep SAT/SAB parsing, AcDs structure, raw payload retention, attachment, DXF carrier, explicit facets, and native consumer acceptance as distinct matrix observations.",
+      "Do not copy external corpus files into this repository. A persistent test fixture must be locally created from scratch under the existing fixture policy.",
+      "If package/runtime/profile or exact AcDs input is missing, record NOT_EXERCISED and continue local implementation without waiting."
+    ]
+  },
+  "limitations": [
+    "This pass was source, release-metadata, test-source, consumer-documentation, and repository-metadata research only; no package, peer executable, external sample, native app, or local test ran. The prior 0.3.12 local witness is recorded in deeper-broader-acis-peer-local-0_3_12-observation-2026-10-21.json and is not reasserted as newly run here.",
+    "cq-acis is experimental and its release/API/support matrix may change; pin exact package and digest for any future run.",
+    "Its disclosed SAB format-knowledge lineage includes cadmpeg and ezdxf; its geometry kernel path is useful only with independent expectations, not as a second independent file-layout vote.",
+    "cq-acis does not parse DWG AcDs sections or prove association of payloads to DWG entities.",
+    "ODA Open Design Specification v5.4.1 remains authoritative for DWG byte-layout questions.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

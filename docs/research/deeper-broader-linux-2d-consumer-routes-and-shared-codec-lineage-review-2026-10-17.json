@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader Linux 2D consumer routes and shared-codec lineage review",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "New downstream 2D CAD consumer route: IngeCAD",
+    "New downstream app route and shared parser ancestry: Zephyr / SwiftDXFrw",
+    "DWG converter lineage and patched LibreDWG provenance",
+    "Optional composed consumer evidence and implementation readiness"
+  ],
+  "method": {
+    "kind": "Read-only review of current public project README and source/build disclosures",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "The reviewed GitHub README pages are mutable and do not bind a released binary to an exact source/dependency set. No IngeCAD, Zephyr, ezdxf, or LibreDWG runtime was installed or exercised. App feature descriptions are candidate route disclosures only, not observed semantic support or native acceptance."
+  },
+  "sources": [
+    {
+      "project": "IngeCAD",
+      "url": "https://github.com/ingelibre/ingecad",
+      "revision": "mutable main reviewed 2026-10-17; README reports v0.6.7",
+      "observed": "The README says the app is Linux-first and 2D, uses ezdxf as its DXF document model, and invokes external converters for DWG. It says the app bundles patched LibreDWG as its DWG engine, makes ODA File Converter optional, and directs source builders to its LibreDWG patch/build scripts. It also claims unrecognized DXF data is preserved when saving. No exact released artifact, ezdxf version, converter hash, or patch commit was bound in this review."
+    },
+    {
+      "project": "Zephyr",
+      "url": "https://github.com/joseph-montanez/zephyr",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The README describes a 2D app whose SwiftDXFrw module is a port of libdxfrw and whose DWG I/O uses LibreDWG. This is a possible application/render/edit observation, but not an independent DXF codec lineage or DWG parser. No exact release/build or runtime was inspected."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg",
+      "revision": "mutable README reviewed 2026-10-17",
+      "observed": "The README states that R2010-R2018 writing can lead to CRC errors. This is a project-level scope warning, not a test result for any particular patched downstream binary."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "revision": "mutable manual reviewed 2026-10-17",
+      "observed": "The manual distinguishes writer programs and supported version directions, says R2007 output is not available in some writer paths, and warns generated DWG may fail AutoCAD import or require recovery. Pin the operation and version instead of interpreting broad version recognition as acceptance."
+    }
+  ],
+  "assessment": {
+    "ingecadRule": "IngeCAD may be an optional Linux 2D consumer and ezdxf-backed direct-DXF observation. Its DWG import/export chain is converter-mediated and its packaged LibreDWG is patched; bind the app, ezdxf, converter binary and patch revision before attributing an outcome. Do not count it as a native DWG parser or 3D B-rep witness.",
+    "zephyrRule": "Count Zephyr only as optional downstream app/render/edit smoke. SwiftDXFrw is disclosed as a libdxfrw port and the DWG route uses LibreDWG, so these are correlated lineages rather than independent codec votes.",
+    "writerRule": "A successful app open or same-engine round-trip does not qualify DWG writing. Check output version/magic, independent structural readback, per-handle/type/owner disposition and diagnostics; native acceptance remains a separate result.",
+    "fixtureAndCadenceRule": "Use locally generated, scratch-only source-authored controls. Add no external drawing fixture, peer dependency, CTest/CI entry, or application run to the ordinary fast implementation loop."
+  },
+  "planImpact": {
+    "existingOwnersOnly": [
+      "PAR-07 peer lineage and evidence-role intake",
+      "composed 2D consumer qualification"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-linux-2d-consumer-routes-and-shared-codec-lineage-review-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-linux-2d-consumer-routes-and-shared-codec-lineage-review-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

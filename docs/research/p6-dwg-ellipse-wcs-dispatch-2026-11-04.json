@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-ellipse-wcs-dispatch-2026-11-04",
+  "date": "2026-11-04",
+  "status": "DWG_ELLIPSE_CALLBACK_WCS_DISPATCH_FIX",
+  "supportClaimEffect": "none",
+  "authority": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 section 20.4.39 specifies ELLIPSE center and semi-major axis as WCS, with no version-specific exception in that record layout.",
+    "autodesk": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-107CB04F-AD4D-4D2F-8EC9-AC90888063AB.htm specifies the ELLIPSE center and major axis in WCS.",
+    "libredwg": "LibreDWG source src/dwg.spec SHA-256 c3c6dec791321721b0ff75854d3ac2e8832986b62fce832cc053e2ac85f2e9fd decodes center, major axis, extrusion, ratio and parameters directly to matching DXF fields without a version gate."
+  },
+  "problem": "The DWG entity dispatcher applied its OCS-to-WCS extrusion helper to ELLIPSE when caller requested applyExt=true, rotating already-WCS center and major-axis coordinates and potentially changing angular parameters. The existing DXF dispatcher correctly bypasses that helper.",
+  "implementation": "Dispatch the decoded ELLIPSE unchanged in both modes; do not change DRW_Ellipse::applyExtrusion, other entity callbacks, public data layout, or virtual interfaces.",
+  "generated_validation": "A source-generated complete DWG control uses tilted normal (0.36,0.48,-0.8), WCS center (1,2,3), major-axis vector (4,-3,0), ratio 0.5, parameters 0.3 and 4.1, and a following LINE sentinel. The AC1015 applyExt=true test fails before this fix. After the fix both read modes pass exact typed fields and following sentinel for generated AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032 files; no fixture is committed.",
+  "physical_validation": {
+    "source": "Existing repository tests/fixtures/dxf/ac1015_ellipse_freecad_control.dxf, SHA-256 078a9982f049ee4c669f878b6cc8cc6dfcd292b72d8f394fe7c2c258b9fa7cc7, converted locally by ODA File Converter 27.1.0 to AC1015 DWG; no error file was produced.",
+    "dwg_sha256": "b511420cddd1d2bca1d2940a37f7f936acb467a8488a784d183fb23da5ebb1ca",
+    "reader": "LibreDWG 0.14 minJSON and libdxfrw both read handle 0x32 with center (-10,5,2), axis (2,0,-1.5), normal (0.6,0,0.8), ratio 0.5 and parameter bounds 0.25 and 1.75. The local opt-in --dwg-ellipse-wcs-oda-source check verifies both libdxfrw read modes.",
+    "limitations": "The physical witness uses one ODA producer at AC1015 and the selected ellipse is not a native-rendering qualification. ODA AC1024 conversion of the same source independently decodes in LibreDWG but libdxfrw returns HEADER error 6 before entity callbacks; this slice does not resolve or qualify that path."
+  },
+  "focused_tests": ["dwg_ellipse_wcs_extrusion", "dxf_ellipse_extrusion_policy", "libdxfrw_dxf_dimension_ocs_extrusion"],
+  "remaining": "CIRCLE/ARC applyExt-to-writer WCS/OCS state tracking is separate; authored entities can assign extPoint directly, so do not infer applied state from haveExtrusion alone. Broader producer and native geometry qualification remain open."
+}

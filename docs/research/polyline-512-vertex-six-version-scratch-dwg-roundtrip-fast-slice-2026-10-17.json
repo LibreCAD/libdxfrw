@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw-polyline-512-vertex-six-version-scratch-dwg-roundtrip-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Exercise real POLYLINE/VERTEX/SEQEND frame decoding, child publication, and source-map coverage joins for a 512-vertex locally generated entity across all existing scratch-roundtrip versions.",
+  "implementation": {
+    "testCodeChanged": true,
+    "productionCodeChanged": false,
+    "fixtureFilesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiChanged": false,
+    "changedFile": "tests/dwg_local_roundtrip_tests.cpp",
+    "testTarget": "libdxfrw_dwg_local_roundtrip",
+    "writerVersions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "generatedCases": [
+      "Two-vertex POLYLINE in a named block.",
+      "Two-vertex POLYLINE in modelspace.",
+      "512-vertex POLYLINE in modelspace; its 512 source coordinates are generated deterministically from scratch."
+    ],
+    "assertions": [
+      "Writer records exact parent, vertex, and SEQEND handles for all three chains.",
+      "The production reader returns all three exact chains through addPolyline in every version.",
+      "The 512-vertex callback has the expected first and last coordinates and a nonzero SEQEND handle.",
+      "Each expected chain member has exactly one source-located entity publication and exactly one Published coverage row matching its source offset, map ordinal, and offset space."
+    ],
+    "orderingNote": "The high-cardinality POLYLINE is emitted last so its automatically allocated vertex handles do not consume the existing test's later fixed entity identities."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "PASS"
+    },
+    "focusedStagingSelector": {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+      "result": "PASS"
+    },
+    "consumerCompatibilityBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg_reader_matrix_tests lc3_compat_check -j2",
+      "result": "PASS"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_(dwg_reader_matrix|dwg_local_roundtrip)$'",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0
+    },
+    "fullTestSuiteRun": false,
+    "sanitizerRun": false,
+    "nativeCadApplicationRun": false,
+    "externalPeerRun": false
+  },
+  "limits": [
+    "Same-library writer→reader integration is not independent-producer interoperability.",
+    "Only the locally generated 2-vertex and 512-vertex 2D POLYLINE shapes are covered; this does not qualify all compound entities or all child counts.",
+    "No general format support, native CAD behavior, allocator/RSS limit, or performance claim follows."
+  ],
+  "planImpact": {
+    "owner": "7BA compound child work bounds",
+    "findingsAdded": 0,
+    "topLevelSubplansAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "next": "Continue the 7BA allocator/accounting audit and broaden locally generated end-to-end shapes only where they close a specific plan row; keep independent-producer and native qualifications distinct."
+  },
+  "worktree": {
+    "committed": false,
+    "reason": "The checkout contains extensive unrelated and mixed changes; no safe isolated commit was available."
+  }
+}

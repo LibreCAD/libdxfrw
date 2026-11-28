@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "AC1024 associative dimension dependency body reader profile",
+  "mode": "P4 source-bound DWG reader slice",
+  "baselineCommit": "d3eb1101",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Dispatch the empirically observed AC1024 ASSOCDIMDEPENDENCYBODY class through the associative object reader when its CLASSES record name omits the ACDB prefix.",
+    "Decode the dependency-body version, dimension-base version, name, and class version within the framed object and string-stream bounds.",
+    "Capture the common object handle and owner, record the exact body span, and preserve strict refusal while the associative graph has no DXF output route."
+  ],
+  "evidence": {
+    "source": {
+      "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "workspaceStatus": "Local investigation input; untracked and not committed.",
+      "trace": {
+        "path": "/tmp/libdxfrw-p4-ac1024-mechanical-updated.log",
+        "sha256": "1aac7d073ae3619a6135121f5e60f59a5bf788b652ea6b7b1bb91970f52c217f",
+        "observation": "All 17 empirical type-522 objects dispatched through DRW_AssociativeObject and produced complete four-field traces with common owner handles. Each decoded body occupied bits 39..69 in the extracted object frame."
+      },
+      "profileComparison": {
+        "peerPath": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+        "peerSha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+        "matchedObjectCount": 17,
+        "fieldsCompared": [
+          "object handle",
+          "common owner handle",
+          "dependency-body version",
+          "dimension-base version",
+          "name",
+          "class version"
+        ],
+        "allHandlesAndFieldsMatched": true
+      }
+    },
+    "formatReferences": {
+      "odaSpecification": {
+        "path": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+        "authority": "ODA Open Design Specification v5.4.1",
+        "search": "Extracted text was checked for ASSOCDIMDEPENDENCYBODY, AssocDimDependencyBody, and dimensionDependencyBody; no matching class layout was present. No DWG layout was inferred from a secondary source in conflict with ODA."
+      },
+      "independentParser": {
+        "repository": "/Users/dli/dev/dwgTs",
+        "commit": "216e5c4ba744d753ebe3e6891712034bafd96de7",
+        "source": "src/dwg/objects/parseObjects.ts, readAssociativityBody case 1229",
+        "schema": "BitShort dependency-body version; BitShort dimension-base version; object text name; BitShort class version."
+      },
+      "independentReaderWriter": {
+        "repository": "/Users/dli/dev/libredwg",
+        "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+        "version": "LibreDWG 0.14",
+        "source": "include/dwg.h Dwg_Object_ASSOCDIMDEPENDENCYBODY and src/dynapi.c field schema",
+        "peerDwgRead": "/opt/homebrew/bin/dwgread -O JSON",
+        "peerDwgReadExecutableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+        "peerDxfOutput": "/opt/homebrew/bin/dwg2dxf --as r2010",
+        "peerDxfExecutableSha256": "e4cca8e3f5af9a878eb0085ed14e992f64d35f03065743847701274a46781c99",
+        "peerDxfPath": "/tmp/libdxfrw-p4-libredwg-mechanical.dxf",
+        "peerDxfSha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+        "projection": "DXF output orders the body fields under AcDbAssocDependencyBody, AcDbImpAssocDimDependencyBodyBase, and AcDbAssocDimDependencyBody subclasses; common owner group 330 points to the owning dependency. This is transport evidence only."
+      }
+    },
+    "graphObservation": {
+      "relationship": "Each of the 17 body handles is named by an ACDBASSOCDEPENDENCY dep_body reference; that dependency is owned by ACDBASSOC2DCONSTRAINTGROUP handle 1067, which is owned by ACDBASSOCNETWORK handle 1060.",
+      "currentOutputBehavior": "dx_iface::addAssociativeObject declines to retain DWG-origin associative shells. The strict CLI continues to refuse complete conversion after parsing the bodies."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Added typed fields and bounded parsing for the four observed body values. Class dispatch recognizes the source's ASSOCDIMDEPENDENCYBODY record name via its normalized CLASSES metadata. The parser records a complete dependency-body prefix and common owner; unrelated and incomplete associative graphs remain unsupported.",
+    "behaviorChanges": [
+      "AC1024 class type 522 body values are available through the existing DRW_AssociativeObject callback instead of falling through the generic custom-object skip path.",
+      "The decoder checks both modern object-body and separate string-stream bounds and refuses a truncated name atomically.",
+      "Copy and assignment preserve the parsed body fields; a malformed read clears state and permits a corrected retry."
+    ],
+    "publicApiChanged": true,
+    "classLayoutChanged": true,
+    "persistentFixturesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j 4",
+      "ctest --test-dir build -R '^libdxfrw_associative_dimension_dependency_body$' --output-on-failure",
+      "cmake --build build-asan-custom --target libdxfrw_dwg_object_vectors_tests -j 4",
+      "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_dimension_dependency_body$' --output-on-failure",
+      "build/dwg2dxf/dwg2dxf tests/samples/AC1024/mechanical_example-imperial.dwg -y -d -v2010 /tmp/libdxfrw-p4-ac1024-mechanical-updated.dxf",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS with the configured -Werror build.",
+      "focusedCTest": "PASS 1/1 in 0.21 seconds; generated AC1024 control verifies field decode, common owner, exact body sentinel, copy/assignment, malformed-name refusal, state clearing, and retry.",
+      "focusedAsan": "PASS 1/1 in 0.36 seconds after rebuilding the owning selector and library in the configured ASan tree.",
+      "sourceComparison": "PASS: all 17 source object handles, common owners, dependency-body versions, dimension-base versions, names, and class versions match LibreDWG 0.14 JSON from the same input hash.",
+      "strictCli": "EXPECTED_REFUSAL: strict-complete conversion still fails because required associative graph data has no complete DWG-to-DXF retention/output path.",
+      "fullSuite": "NOT_RUN per the fast-validation plan."
+    }
+  },
+  "limitations": [
+    "No ACDBASSOCDIMDEPENDENCYBODY DXF writer or complete associative dependency/network/constraint-group output graph is implemented in this slice.",
+    "The local sample is not committed and is not an eligible persistent regression fixture.",
+    "The source profile does not qualify other DWG versions or other associative subclasses.",
+    "No native CAD semantic, LibreCAD, LibreCAD_3, FreeCAD, platform, ABI, whole-document or support-claim gate is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "AC1024 dimension dependency body dispatch and four-field bounded parsing, verified against all 17 instances in the source trace.",
+    "remainingP4Scope": "Close body-to-dependency-to-constraint-group-to-network references and implement complete output/retention or preserve strict refusal.",
+    "nextImplementationPacket": "Use the 17 explicit dep_body/owner joins to qualify and retain the minimal complete associative graph, including the ACDBASSOC2DCONSTRAINTGROUP's network ownership and dependencies; do not emit the body alone.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "695c0a463343fc5f873a91ab0d63c7c03884f6a827110b8335d413b6f36914c9",
+    "src/drw_objects.h": "5950fca8ae709c0e8348ad49b0d05374e5fab6664a4b47f80d0114a7f75a5598",
+    "src/intern/dwgreader.cpp": "5cfa39a95dca96ba7a2ed8185d8212d18075b587cae785df758e8140a3aa2844",
+    "tests/dwg_object_vectors_tests.cpp": "34cd06670c518f75f259513fc6b98faf0f739a50ce17bc64acb0a17dc516e4bb",
+    "CMakeLists.txt": "278a77a07371d7219ef56fdb0ad6139fbd1bada035a5813c0f8e66c5deb800e7",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "0e236fe33c51e8a253a345e6427830ea7ec37827ff8f3ce999fbfee8c9333717"
+  },
+  "commitCreated": true,
+  "worktree": "Only the listed reader, generated-test, plan, and receipt files should be staged; unrelated untracked workspace contents are excluded."
+}

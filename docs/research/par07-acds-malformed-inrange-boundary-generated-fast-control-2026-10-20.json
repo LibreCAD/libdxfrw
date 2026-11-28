@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-07/S8 malformed in-range DataStorage record-boundary control",
+  "subplan": "PAR-07/S8 existing DataStorage association and bounds owner",
+  "status": "implemented_test_only_fast_slice_uncommitted",
+  "change": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "files": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Extended the existing generated AC1027 DataStorage profile with an in-range, header-shaped DataIndex target whose record-local offset lands inside a neighboring valid payload. The parser reports structural invalidity and disables replay, withholds the overlapping valid/fake record pair, and preserves exact bytes for two independently bounded records. No heuristic boundary recovery was added."
+  },
+  "evidence": {
+    "formatAuthority": "ODA Open Design Specification v5.4.1 sections 24.2.2.2 and 24.2.2.3",
+    "generatedControlOnly": true,
+    "externalDrawingUsed": false,
+    "repositoryFixtureAdded": false,
+    "peerOrNativeRuntimeUsed": false,
+    "supportPromotion": false,
+    "recordsAsserted": [
+      "fake record handle is not published",
+      "overlapping valid record is not published",
+      "section is structurally invalid and not replayable",
+      "two independently bounded neighboring records retain exact payload bytes"
+    ]
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedExecutable": {
+      "command": "build-gcc/libdxfrw_graph_preservation_tests",
+      "result": "PASS"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS (1/1, 0.71 seconds)"
+    },
+    "scopedDiffCheck": {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/drw_datastorage.cpp tests/graph_preservation_tests.cpp docs/research/deeper-broader-acds-dxf-sat-sab-route-2026-10-20.json",
+      "result": "PASS"
+    },
+    "fullSuiteRun": false
+  },
+  "scope": {
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextSlice": "Continue to remaining Blob01/page-chain bounds in the same graph-preservation test owner."
+  },
+  "git": {
+    "staged": false,
+    "committed": false,
+    "reason": "Shared worktree contains extensive user changes; no commit was requested."
+  }
+}

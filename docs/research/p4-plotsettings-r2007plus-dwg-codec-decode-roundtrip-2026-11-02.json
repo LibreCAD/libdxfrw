@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "p4-plotsettings-r2007plus-dwg-codec-decode-roundtrip-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_CODEC_ROUNDTRIP_AND_FAILURE_RETRY_ONLY",
+  "scope": "Exercise the standalone DRW_PlotSettings DWG decoder and encoder together for R2010, R2013, and R2018 object frames. This is a parser/codec regression control, not physical producer or native consumer qualification.",
+  "formatEvidence": {
+    "odaSpecification": {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "path": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "section": "20.4.84 LAYOUT",
+      "scope": "Defines the AcDbPlotSettings prefix field order embedded in LAYOUT, including the R2007+ stream split and R2004+ shade fields. The standalone PLOTSETTINGS object uses this prefix profile."
+    },
+    "localProducerWitness": {
+      "path": "LibreCAD/librecad/src/lib/filters/tests/testdata/ordinary_enc_AC1015.dwg",
+      "sha256": "80690dc45b2e32b4d378df4be860c51c6b3c952400aa762eb73a654e93a728dd",
+      "scope": "Existing LibreCAD-tracked AC1015 source; used as the historical code/consumer context for the standalone object route, not as an input to this generated vector."
+    }
+  },
+  "generatedControl": {
+    "test": "libdxfrw_plotsettings_dwg_decode_roundtrip",
+    "selector": "--plotsettings-dwg-decode-roundtrip",
+    "versions": ["AC1024", "AC1027", "AC1032"],
+    "framePolicy": "Construct each complete object in memory from DRW_PlotSettings::encodeDwg field streams and a direct-parser common-object frame. The synthetic object type is a parser-test placeholder and does not claim a producer class-number mapping.",
+    "fieldsChecked": [
+      "page setup, printer/config, layout flags, four margins, paper dimensions/name",
+      "plot origin, units, rotation, type, window bounds, custom scale, stylesheet, paper image origin",
+      "R2004+ shade mode, resolution and custom DPI",
+      "common owner, reactor and extension-dictionary handles",
+      "R2004+ plot-view hard pointer and R2007+ shade soft pointer"
+    ],
+    "failureRetry": "Truncating the final handle-stream byte must fail, invalidate the attempted input and reset prior typed parser state. The same parser instance then reads the corrected frame and verifies all fields and handle roles."
+  },
+  "implementation": {
+    "productionCodeChanged": false,
+    "change": "Expose the existing protected PlotSettings parser only through a test probe, add generated R2007+ decode/readback and failure/retry coverage, and register one fast CTest. No format behavior, ABI or fixture files changed.",
+    "files": ["tests/dwg_object_vectors_tests.cpp", "CMakeLists.txt"]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --plotsettings-dwg-decode-roundtrip",
+      "result": "PASS"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_plotsettings_dwg_decode_roundtrip$' --output-on-failure",
+      "result": "PASS: 1/1 in 0.01 seconds"
+    },
+    "diffCheck": "git diff --check passed"
+  },
+  "claimBoundary": [
+    "The generated frame is authored from the same codec's encoder, so the vector checks parser/writer consistency and bounded failure recovery rather than independent stream bytes.",
+    "ODA §20.4.84 describes the embedded AcDbPlotSettings field sequence; this receipt does not independently prove all standalone producer variations or handle relationships.",
+    "No physical source fixture, strict whole-document graph closure, native plotting behavior, LibreCAD_3, Linux/Windows, or support claim is qualified by this test."
+  ],
+  "remaining": [
+    "Continue source-bounded standalone PLOTSETTINGS field, owner/key and output binding where a physical witness identifies a gap.",
+    "Keep native consumer/platform and whole-document closure gates under P4/P8; this isolated codec vector does not close them."
+  ]
+}

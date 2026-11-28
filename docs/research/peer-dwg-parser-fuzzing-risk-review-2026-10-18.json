@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader parser robustness and fuzz-evidence review",
+  "mode": "primary-source web research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Review current LibreDWG robustness history as an open-source DWG/DXF implementation comparator",
+    "Assess the evidence ceiling of peer fuzz and sanitizer findings",
+    "Refine the scheduled robustness gate without increasing per-slice validation cost"
+  ],
+  "method": {
+    "kind": "Primary project NEWS, manual, and fuzz-repository review",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedByResearch": false,
+    "testCodeChangedByResearch": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "LibreDWG mutable master is not a pinned release artifact. Peer fuzz/security fixes are not evidence of a matching libdxfrw defect, equivalent coverage, or semantic format support. No external peer was built or run."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG NEWS",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "revision": "Mutable master page reviewed 2026-10-18",
+      "observed": "The project's recent history describes fuzz-/sanitizer-found bounds, signedness, OOM, out-of-bounds, use-after-free, double-free, and null-dereference issues across DWG/DXF decode, encode, conversion, and JSON paths. This demonstrates active robustness risk in a peer project, not a local defect."
+    },
+    {
+      "project": "LibreDWG fuzz setup",
+      "url": "https://github.com/LibreDWG/libredwg-fuzz",
+      "revision": "Repository page reviewed 2026-10-18",
+      "observed": "The project documents an AFL++ fuzzing setup; LibreDWG's own manual also documents AFL++/LLVM fuzz frontends and OSS-Fuzz workflows. This informs a scheduled test gate only; it does not establish equivalent local harness coverage."
+    },
+    {
+      "project": "LibreDWG manual",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "revision": "Mutable master page reviewed 2026-10-18",
+      "observed": "The manual describes peer-specific critical-error policy, unknown-type handling, and fuzz frontends. Those contracts are not normative for libdxfrw and cannot establish semantic preservation."
+    },
+    {
+      "project": "LibreDWG README",
+      "url": "https://github.com/LibreDWG/libredwg",
+      "revision": "Repository page reviewed 2026-10-18",
+      "observed": "The README qualifies DWG writer support by version and known integrity limitations, reinforcing that peer read/write capability claims must be pinned and independently validated."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds an implementation-ready, bounded malformed-input robustness checkpoint at the existing scheduled cadence. The fast per-slice target/focused-selector/owning-CTest loop remains unchanged. A no-crash or same-codec round-trip result cannot promote feature, carrier, or solid-semantic support."
+  },
+  "implementationReadyChecks": [
+    "Keep routine slices on the touched target, focused selector, and owning CTest; do not run a full fuzz campaign after every item.",
+    "At the scheduled robustness gate, exercise bounded malformed/truncated header, section, page, record, and size-boundary cases under available sanitizers/fuzzers.",
+    "Include converter failure cleanup and resource limits; cap input size, runtime, and memory; retain minimized local reproducers only when locally confirmed.",
+    "Add a peer-inspired case to the fast suite only after a local regression is reproduced; generate local cases from scratch and do not commit external DWG/DXF fixtures.",
+    "Score robustness separately from parser acceptance, unknown data preservation, entity support, carrier association, and ACIS/B-rep semantics.",
+    "Treat current LibreDWG master reports as unpinned peer signals; pin exact release/commit/options/output before any comparator run."
+  ],
+  "workingTree": {
+    "planFilesUpdated": true,
+    "receiptAdded": true,
+    "productionOrTestFilesEditedByResearch": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

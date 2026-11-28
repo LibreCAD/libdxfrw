@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "MPOLYGON fill-color name retained-byte owner fast slice",
+  "mode": "local implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge retained DXF group-430 MPOLYGON fillColorName through the existing entity lease",
+    "Preserve field-byte ownership across copy, move, assignment, reset, and parser refusal",
+    "Use only the owning fast hardening target and selector"
+  ],
+  "method": {
+    "kind": "Implement one confirmed retained-string accounting gap and add generated in-memory direct-parser controls",
+    "externalDrawingsDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "filesChanged": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/mpolygon-fill-color-name-retained-byte-owner-fast-slice-2026-10-18.json"
+    ],
+    "limitations": "Direct parser-method tests cover retained-byte admission and lifetime but not the full MPOLYGON read callback, renderer, DWG codec, graph semantics, or binary ABI compatibility."
+  },
+  "implementation": {
+    "productionChange": "DRW_MPolygon::parseCode now routes group 430 through replaceDxfRetainedStringField on the shared entity lease using a private per-field byte counter. Copy construction/assignment copy the counter with the string; default move operations transfer the base lease and field state; resetDwgState clears the counter and value.",
+    "testSelector": "--dxf-hatch-text-owner-budget",
+    "testCoverage": [
+      "Measure exact transient replacement peak and exact-cap success",
+      "One-byte-under refusal preserves the old field value and retained charge",
+      "Reader teardown leaves the logical field charged",
+      "Copy construction and assignment preserve the field lease",
+      "Move construction and assignment transfer the field lease",
+      "Final reset releases the retained bytes"
+    ],
+    "abiNote": "Private state changes public DRW_MPolygon object layout; downstream consumers must rebuild and binary ABI compatibility is not claimed."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "cmake --build build-gcc --target lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-hatch-text-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mpolygon-fill-color-name-retained-byte-owner-fast-slice-2026-10-18.json"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "lc3CompatibilityTargetBuild": "PASS",
+      "focusedSelector": "PASS",
+      "owningCTest": "PASS (1/1)",
+      "diffCheck": "PASS",
+      "initialTestAttempt": "The initial assertion expected transient replacement admission to equal only final live-string bytes. It failed, correctly exposing reserve-before-release peak behavior. The test was corrected to measure and assert the transient peak; production behavior was unchanged by this test correction."
+    }
+  },
+  "assessment": {
+    "newConfirmedLocalGapClosed": 1,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newSupportClaims": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "workingTree": {
+      "commitCreated": false,
+      "stagingAttempted": false,
+      "reason": "The shared checkout has extensive pre-existing changes. This slice remains uncommitted and unstaged; unrelated files were preserved."
+    }
+  }
+}

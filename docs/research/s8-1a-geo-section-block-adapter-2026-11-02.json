@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "id": "s8-1a-geo-section-block-adapter-2026-11-02",
+  "date": "2026-11-02",
+  "status": "COMMITTED_IMPLEMENTATION",
+  "implementationCommit": "1b5c496c12adc6c49703b0660e5f1a2e4bc672e0",
+  "scope": {
+    "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P8 / BLOCK callback coverage",
+    "operation": "Retain and serialize typed GeoPositionMarker and SectionObject entities emitted through BLOCK callbacks, and decode the generated embedded-MTEXT GeoPositionMarker profile.",
+    "behavior": [
+      "The concrete dx_iface retains typed GeoPositionMarker and SectionObject callback values and dispatches them to their DXF serializers.",
+      "Retained-byte accounting includes GeoPositionMarker notes and embedded MTEXT storage, plus SectionObject strings and bounded vertex arrays.",
+      "GeoPositionMarker parsing recognizes the serializer-generated Embedded Object/MTEXT scope, validates required marker and embedded-text fields, and retains the source record.",
+      "Generated ASCII and Binary controls verify named-BLOCK output, marker/section field sentinels, raw and applyExtrusion callback reads, and fail-closed capture for SectionObject vertex counts over the model limit."
+    ]
+  },
+  "supportClaimEffect": "none",
+  "binding": {
+    "implementationFilesSha256": {
+      "dwg2dxf/dx_iface.h": "4aea543c4862b226182786585f31cdf2bd43517261126eebd10201379494dab6",
+      "dwg2dxf/dx_iface.cpp": "adab82716ba2e951f70fe1d6d63aa6c4b5fe6b40bfc7c1192abc8b1fbba71e51",
+      "src/libdxfrw.cpp": "01134b6fd476df74299ae5f027b59ac5bf5a2d05d715ec54d57954c0c7693de2",
+      "tests/dwg_local_roundtrip_tests.cpp": "4dcd41ffc50d406b40d5a51efa5998d9f49bf3dc0349b1682fdb32e3bc2e8c3a"
+    },
+    "branchHead": "1b5c496c12adc6c49703b0660e5f1a2e4bc672e0"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j4",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS (1/1; 6.68 seconds)"
+    },
+    "compatibilityBuild": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+      "result": "PASS"
+    },
+    "diffCheck": "PASS",
+    "fullSuiteRun": false,
+    "asanRun": false,
+    "persistentFixtureAdded": false
+  },
+  "limitations": [
+    "The generated control is bounded to the AC1027 profile and does not establish physical producer coverage or native consumer semantics.",
+    "The tests do not prove complete BLOCK callback inventory, whole-document conversion, or source-to-output graph closure.",
+    "No captured-model whole-document import-to-export round-trip is claimed."
+  ]
+}

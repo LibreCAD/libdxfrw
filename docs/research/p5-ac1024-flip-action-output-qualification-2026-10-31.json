@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-flip-action-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 BLOCKFLIPACTION bounded DXF output profile",
+  "status": "AC1024_FLIP_ACTION_TYPED_OUTPUT_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "version": "AC1024",
+    "fixturePolicy": "Used the existing local input only. No DWG or DXF fixture was added to Git; per-record output files were temporary and removed by the selector."
+  },
+  "independentStructuralComparison": {
+    "implementation": "GNU LibreDWG dwgread/dwg2dxf 0.14",
+    "dxfOutput": {
+      "path": "/private/tmp/arch-libredwg-reference.dxf",
+      "sha256": "16587f4864d2dd0b704bd1992e482a0e80be0c7517ff4455584c97d5142312e5"
+    },
+    "jsonOutput": {
+      "path": "/private/tmp/arch-libredwg-reference.json",
+      "sha256": "da7a939d6542a9e7ef638d331c1dd7cdc90970858493124edbff7bac9f31d39f"
+    },
+    "observedRecords": [
+      {
+        "handle": "1133",
+        "element": "FlipHinge",
+        "actionCount": 11,
+        "dependencyCount": 27,
+        "displayLocation": [35.0, -15.0, 0.0],
+        "connectionCodes": [26, 26, 26, 26],
+        "connectionNames": ["Flip", "UpdatedFlip", "UpdatedBase", "UpdatedEnd"]
+      },
+      {
+        "handle": "1134",
+        "element": "FlipSwing",
+        "actionCount": 11,
+        "dependencyCount": 27,
+        "displayLocation": [35.0, -20.0, 0.0],
+        "connectionCodes": [31, 31, 31, 31],
+        "connectionNames": ["Flip", "UpdatedFlip", "UpdatedBase", "UpdatedEnd"]
+      },
+      {
+        "handle": "115B",
+        "element": "Flip Window",
+        "actionCount": 0,
+        "dependencyCount": 2,
+        "displayLocation": [0.0, 8.5, 0.0],
+        "connectionCodes": [120, 120, 120, 120],
+        "connectionNames": ["Flip", "UpdatedFlip", "UpdatedBase", "UpdatedEnd"]
+      }
+    ],
+    "fieldOrder": "After the shared EvalExpr and BlockElement prefixes, AcDbBlockAction emits group 70 actionCount, that many group 91 action indexes, group 71 dependencyCount, that many group 330 dependency handles, then display location groups 1010-1030. AcDbBlockFlipAction follows with connection codes 92-95 and names 301-304.",
+    "limits": "LibreDWG output is independent structural comparison only; it does not establish native application semantics or qualify the complete graph."
+  },
+  "implementation": {
+    "dxfRead": "AC1024-only exact group sequence with bounded action/dependency counts, checked handle lexemes and finite display location. Unexpected or malformed body tails remain raw-only.",
+    "dxfWrite": "AC1024-only typed profile. Validates parallel counts, connection-list cardinality, references, retained string/group budgets, source versions, and finite coordinates before transactional publication; source references are remapped on output.",
+    "adapter": "Adds source-object group projection and dynamic-class registration/counting. Whole-document admission stays strict until the remaining record profiles and graph dependencies close.",
+    "notQualified": "No native dynamic-block semantics, complete graph conversion, or format-wide support claim is qualified by this record profile."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS with warning-as-error enabled."
+    },
+    "fastRegression": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_flip_action_writer$' --output-on-failure",
+      "result": "PASS, 1/1; authored DWG/DXF source forms, exact ASCII/Binary groups, action/dependency values, typed readback, unknown-tail raw-only fallback, rollback, and corrected same-writer retry."
+    },
+    "physicalWitness": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-flip-action-dxf-writer tests/samples/AC1024/architectural_example-imperial.dwg",
+      "result": "PASS; all three physical actions emitted individually in ASCII and Binary and freshly imported with exact typed fields. Independently observed action/dependency counts match 11/27, 11/27, and 0/2."
+    },
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN; focused warning-as-error build, fast regression, and physical source witness were sufficient for this bounded record profile."
+  },
+  "externalItemsPromoted": 0
+}

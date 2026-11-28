@@ -1,0 +1,112 @@
+{
+  "schema": "libdxfrw-freecad-and-mesh-consumer-route-refresh-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Reconcile FreeCAD's current DXF importer/exporter routes and screen a newly surfaced open-source mesh consumer; refine existing consumer and peer-lineage gates without promoting support.",
+  "method": {
+    "kind": "Primary project documentation, current source, API documentation, and project architecture notes",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "fixturesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "FreeCAD source and documentation and ArrayCAD public master pages are mutable. FreeCAD preference documentation says it was updated for version 1.0; no exact application binary/build was qualified. acad-ts README identifies an ACadSharp source ancestry commit, but no current ArrayCAD dependency lock or build was executed here.",
+    "evidenceRule": "Explicit 3D mesh entities, ACIS carrier bytes, reconstructed B-rep geometry, application scene projections, and native application acceptance are distinct evidence classes. A source example or advertised support row is not runtime qualification."
+  },
+  "evidence": [
+    {
+      "topic": "FreeCAD DXF importer backend and explicit mesh export",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observed": "FreeCAD preferences expose a newer C++ DXF importer and a legacy Python importer, and state that the C++ route is faster but has fewer features. The same preference documentation has an export option that emits objects containing faces as 3D polyface meshes. The broad format manual attributes DXF 3D limitations to proprietary modeler data. Current C++ source builds OCCT shapes from importer callbacks and includes a generic-shape path with 3DFACE as an example, while the archived importer matrix assigns 3DFACE to the legacy backend. These describe distinct entity families and/or backend generations; no current installed build was tested.",
+      "doesNotEstablish": [
+        "3DFACE or polyface behavior for any particular FreeCAD binary or platform",
+        "ACIS/SAT/SAB interpretation or exact solid/B-rep preservation",
+        "that a successful open/import retains every input record or metadata field",
+        "equivalence between the C++ and legacy Python importers"
+      ],
+      "planUse": "Bind every FreeCAD result to exact build, platform, backend, operation, preferences, emitted ACAD version, diagnostics, source-record census and resulting shape census. Treat polyface export as mesh projection only. Resolve the 3DFACE backend discrepancy with an existing generated source-authored control on the pinned binary."
+    },
+    {
+      "topic": "Normative 3DFACE expected values",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm"
+      ],
+      "observed": "Autodesk documents 3DFACE corners as WCS 3D points, group 70 as four optional invisible-edge flags, and a triangular face's fourth corner as equal to its third.",
+      "doesNotEstablish": [
+        "that a particular consumer preserves edge-visibility metadata",
+        "ACIS solid semantics"
+      ],
+      "planUse": "Use asymmetric valid planar triangle/quad controls with nonzero Z and nonzero invisible-edge bits. Compare coordinates, face counts, bounds and orientation separately from edge-display flags; assert a flag only when the consumer output model exposes it."
+    },
+    {
+      "topic": "ArrayCAD as a specialized downstream consumer and parser-lineage screen",
+      "sources": [
+        "https://github.com/stoatworks-labs/arraycad",
+        "https://github.com/stoatworks-labs/arraycad/blob/master/AGENTS.md",
+        "https://github.com/node-projects/acad-ts",
+        "https://github.com/node-projects/acad-ts/blob/master/package.json"
+      ],
+      "observed": "ArrayCAD is MIT-licensed and maps DXF/DWG inputs into a reduced scene for venue-surface workflows. Its project architecture identifies DXF through dxf-parser and DWG through acad-ts. acad-ts identifies itself as a TypeScript port of ACadSharp and cites a source ancestry commit. ArrayCAD documents tessellation/welding/coplanar-region/outline-reduction stages, limited R2018 3DSOLID extraction, and a POLYMESH limitation because its DXF parser route discards M/N counts. These are source/documentation claims, not a tested release receipt.",
+      "doesNotEstablish": [
+        "independent DXF or DWG parser evidence relative to dxf-parser or ACadSharp lineage",
+        "full CAD document or graph round-trip",
+        "ACIS/B-rep semantic correctness or complete modern 3DSOLID handling",
+        "a current immutable source build or binary route"
+      ],
+      "planUse": "Record as DISCOVERY_ONLY / possible narrow explicit-mesh consumer. Any future comparison must pin the exact app commit and dependency lock, record parser lineage and transformation options, and use a locally authored expected-value control. Do not add it to required CI, routine fast tests, or an independent parser quorum."
+    },
+    {
+      "topic": "DXF2CAD as a mesh-to-neutral-format projection route",
+      "sources": [
+        "https://github.com/Hbradroc/DXF2CAD"
+      ],
+      "observed": "The MIT-licensed project advertises 3DFACE, MESH, PFACE/POLYMESH and recursive INSERT extraction, but excludes ACIS 3DSOLID/BODY/REGION and ignores 2D geometry. Its documented implementation parses through ezdxf, stitches vertices using configurable tolerances, and exports mesh-derived STL/STEP/IGES. Its STEP part profile is planar ADVANCED_FACE surfaces in a single OPEN_SHELL, not a closed B-rep solid. The README has no immutable artifact or release pin here, and no code/runtime was executed.",
+      "doesNotEstablish": [
+        "an independent DXF parser result relative to ezdxf",
+        "closed solid or exact B-rep reconstruction",
+        "ACIS interpretation or complete document/owner graph handling",
+        "behavior of a pinned build on locally generated controls"
+      ],
+      "planUse": "Keep as DISCOVERY_ONLY / optional ezdxf-lineage mesh projection candidate. A future check must pin source/dependencies, state tolerances, compare only explicit mesh geometry, and keep output topology as open shell unless a pinned independent consumer proves otherwise. Do not add it to CI or treat it as independent codec evidence."
+    }
+  ],
+  "implementationReadiness": {
+    "freecadReceiptFields": [
+      "exact FreeCAD release/commit and binary hash",
+      "OS/architecture and native package identity",
+      "DXF backend and effective import/export preferences",
+      "open versus insert operation",
+      "input/output ACAD version and hashes",
+      "source records by type and owner/block path",
+      "resulting shape/face/vertex/edge counts, coordinates, bounds and orientation",
+      "warnings, skipped/unsupported disposition, and separate mesh-versus-ACIS result"
+    ],
+    "fastVsComposed": "Keep implementation slices on the touched strict target, one focused generated test, applicable API/consumer compile check, and diff check. Run exact FreeCAD backend/platform qualification only at the existing composed checkpoint; no peer dependency or test registration is added.",
+    "freecadProfile": {
+      "positiveScope": ["3DFACE triangle and quad", "supported POLYFACE/MESH mode when the exact backend accepts it"],
+      "negativeBoundary": "Keep ACIS 3DSOLID/REGION/BODY in a separate control. An expected unsupported result is not a failed explicit-mesh result, but must never be counted as ACIS semantic support.",
+      "exportProfile": "If the 'export objects with faces as 3D polyfaces' option is selected, qualify only emitted mesh census/coordinates/winding and importability; do not infer exact B-rep, ACIS, or arbitrary DXF/DWG writer support.",
+      "platformPolicy": "Native Linux and Windows are separate qualification cells. If both FreeCAD import backends are advertised, qualify both or narrow the claim to the tested backend."
+    },
+    "arraycadDisposition": "DISCOVERY_ONLY; optional narrow projected-mesh consumer after immutable app and dependency pins. No runtime execution in this review.",
+    "dxf2cadDisposition": "DISCOVERY_ONLY; optional ezdxf-lineage mesh-to-neutral projection only, not a closed-solid or ACIS oracle. No runtime execution in this review."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "updatedOwners": ["FreeCAD/S8.9.5 consumer qualification", "7AG peer admission/lineage policy"],
+    "newFindings": 0,
+    "newSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "dependenciesAdded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

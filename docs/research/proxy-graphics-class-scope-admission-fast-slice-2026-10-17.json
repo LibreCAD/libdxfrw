@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw-proxy-graphics-class-scope-admission-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Implement PAR-128/7AP.5: prevent generic proxy-cache replay from aliasing class-specific DXF groups, and preserve common-vs-subclass parse meaning for the demonstrated MLEADER/OLE cases.",
+  "method": {
+    "kind": "Source-generated ASCII/Binary group sequences and public adapter refusal controls",
+    "externalDrawingsDownloaded": 0,
+    "fixtureFilesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "productionFilesChanged": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "src/drw_entities.cpp",
+      "src/drw_entities.h"
+    ],
+    "testFilesChanged": [
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Generated parser controls exercise ordered group-code sequences through the entity parseCode routes, not an independently authored application file. Generic proxy replay is positively qualified only for LINE; external producer/native proxy semantics remain unqualified. OLE private parse-state changes C++ class layout, requiring downstream rebuilds; no virtual interface changed."
+  },
+  "implementation": [
+    {
+      "topic": "Positive entity-type admission",
+      "observed": "canReplayTypedProxyGraphics and dx_iface strict-loss preflight both admit only DRW::LINE. Unproven typed entity classes fail strict proxy-preservation policy before output publication.",
+      "preserves": [
+        "existing AC1021/group-92 and AC1024/group-160 LINE replay matrix",
+        "explicit authorization, exact count/version/codepage, and complete-stream checks in the core writer",
+        "no new DRW_Interface virtual or callback contract"
+      ]
+    },
+    {
+      "topic": "MLEADER group-92 subclass scope",
+      "observed": "Before AcDbMLeader, group 92 routes to DRW_Entity proxy count parsing; after AcDbMLeader, group 92 remains styleTextColor. Generated ASCII/Binary sequences cover AC1021/group92 and AC1024/group160 proxy count with a separate MLEADER group92 color.",
+      "assertions": [
+        "exact common proxy byte count and group-310 bytes captured",
+        "styleTextColor remains the class-local value 7",
+        "caller-authorized MLEADER proxy cache is refused before creating/replacing output"
+      ]
+    },
+    {
+      "topic": "OLEFRAME/OLE2FRAME group-310 scope",
+      "observed": "OLE readers track the AcDbOleFrame/AcDbOle2Frame marker and the class payload-length boundary. Pre-class proxy group-310 data routes through the common entity parser; class payload group-310 data remains in m_payloadBytes.",
+      "assertions": [
+        "AC1021/group92 and AC1024/group160 common cache profiles in ASCII and Binary",
+        "exact OLE payload bytes remain distinct from proxy bytes",
+        "caller-authorized OLEFRAME/OLE2FRAME generic caches are refused before creating/replacing output",
+        "class fields and caller bytes remain unchanged on refusal"
+      ]
+    }
+  ],
+  "planImpact": {
+    "existingFinding": "PAR-128",
+    "existingSubplan": "7AP.5",
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "currentFindings": 128,
+    "topLevelImplementationSubplans": 71,
+    "perSliceValidationExpanded": false,
+    "implementationOrderNote": "7AP.5 closes local class-scope safety before any expansion beyond the LINE replay allowlist; unrelated plan lanes are unchanged.",
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "buildTarget": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2: PASS",
+    "focusedSelector": "build-gcc/libdxfrw_dxf_fixture_tests --proxy-graphic-loss-policy: PASS",
+    "sourceCompatibility": "cmake --build build-gcc --target lc3_compat_check -j2: PASS",
+    "gitDiffCheck": "PASS",
+    "fullTestSuite": "NOT RUN",
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

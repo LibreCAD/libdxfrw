@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5kb selected consumed MLINESTYLE offset projection",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "0db4fbb2f72b726089c756c907296a9aca770f22",
+  "scope": "Implements a fail-closed consumed-style offset edit for the selected AC1027 ordinary MLINE source profile. It recomputes only the first group-41 parameter at each vertex for open, uncut, unfilled MLINE consumers when offsets are the only style geometry fields changed. Source/live dependency guards and staged-output authentication are required. This is selected transport/geometry evidence, not native semantic qualification or whole-document support.",
+  "contract": {
+    "admission": "The changed MLINESTYLE must retain its identity, element count, flags and all non-offset fields. Its captured baseline and selected root/child dictionary origin must join. Every original ordinary MLINE consumer is source-bound and live; each must remain on the edited style or pass the existing exact compatible-retarget proof to move off it. Deleted/moved unqualified consumers, changed arity, unsupported carriers or source grammar, raw-section replay, and failed carrier/output guards refuse.",
+    "geometry": "The admitted MLINE must be open, have at least two vertices, positive finite scale, justification 1 or 2, and a unit extrusion. Vertex directions and miter vectors must agree with the source WCS geometry and original style start/end angles. Each group-41 segment tuple must have exactly two values; the second value must be zero and every group-42 fill parameter list must be empty. For each element the first group-41 value is recalculated from its edited style offset, scale, justification shift and signed miter intersection denominator. No caller-owned MLINE model is mutated.",
+    "output": "The projected copy is used only in the synchronous MLINE writer callback after rechecking the borrowed live model against its preflight snapshot. Finalization repeats the selected source/live guards. Selected BLOCKS/ENTITIES section bodies are byte-authenticated by the RPP-5ka staging proof; physical output fields are checked and the written DXF is reopened for readback.",
+    "retargetCompatibility": "A source-bound consumer compatibly retargeted away from the edited style is not projected against the edited style. Existing original/target geometry and consumer retarget checks remain authoritative for that route.",
+    "failureAndRetry": "Malformed derived consumer geometry and late consumer mutation refuse before publishing, preserve the destination sentinel, and preserve caller state except for the intentional test-hook mutation. Restoring the source state permits a successful retry on the same adapter. Successful writes preserve the caller model.",
+    "compatibility": "No public API or DRW_Interface virtual changes. Existing direct writer and LibreCAD callback behavior is unchanged. Generated ASCII/binary DXF is authored locally by the regression; temporary drawing files are removed after success. No DWG/DXF fixture was committed.",
+    "limits": "The tested source/output profile is AC1027 with ASCII and binary source/output combinations. The regression covers two style elements, model-space and named-block MLINEs, center/bottom justifications, and two distinct extrusion planes. It does not qualify count-71 edits, geometry-changing MLINE 340 retargets, cuts, closed polylines, fill, other flags, other source versions, other carrier schemas, native CAD rendering, whole-document semantic closure, or independent 3D meaning. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII AC1027 output",
+      "ASCII source -> binary AC1027 output",
+      "binary source -> ASCII AC1027 output",
+      "binary source -> binary AC1027 output"
+    ],
+    "consumers": "Two three-vertex MLINE consumers: one in model space with justification 1 and extrusion +Z, and one in a named block with justification 2 and extrusion -Y. Scales are 1.25 and 2.5. The two-element MLINESTYLE uses flags 2 and offsets 1.25 and -0.75; the first offset is changed to 1.5.",
+    "outputProof": "Check actual MLINE records and group-41 values in both BLOCKS and ENTITIES, then import the output again and verify the selected geometry and style fields. Expected parameters are independently calculated from the authored WCS vertices and miter intersection equation.",
+    "failureAndRetry": "Four successful matrix profiles and six output/readbacks; two preflight refusals preserve sentinels; two late-mutation refusals preserve sentinels and are followed by same-adapter successful retries.",
+    "retargetAwayCompatibility": "The existing MLINE style-body transaction regression exercises a compatible retarget away from a style whose offset is edited; it passes under the separate retarget proof."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build -j4 --target libdxfrw_dxf_fixture_tests"
+    },
+    "selectedRegression": {
+      "result": "PASS",
+      "summary": "4 source/output profiles, 6 readbacks, 2 preflight refusals, 2 late-mutation refusals, 2 same-adapter retries",
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_consumed_offset_projection$' --output-on-failure"
+    },
+    "guardCohort": {
+      "result": "PASS",
+      "count": "9/9",
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_(consumed_offset_projection|style_authority|deleted_consumer_geometry_guard|raw_section_geometry_guard|layer_carrier_geometry_guard|dictionary_carrier_geometry_guard|ltype_provider_geometry_guard|style_body_geometry_guard|entity_carrier_geometry_guard)$' --output-on-failure"
+    },
+    "transactionCompatibility": {
+      "result": "PASS",
+      "test": "libdxfrw_mline_style_body_transactions",
+      "note": "Passed after the retarget-away condition was kept on the existing compatible-retarget proof."
+    },
+    "diffCheck": "PASS"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "ea72d51da8b500c5f4c9bc0e11772c2087d871b30b6717660de528a105c5c338",
+    "dwg2dxf/dx_iface.h": "a56f6561812436dc4b100a9899f6a57b22b50d2a1667cd0e0665ccc7bee47ee9",
+    "tests/CMakeLists.txt": "4b1f6962615eb2052a194ec2a64de98f54109b07e6197850a9a35bd72226af42",
+    "tests/dxf_fixture_tests.cpp": "455d537fddc9e86ae164b1ec714443f69457f27637a56075c89d37b09cfdd665"
+  },
+  "binaryBindings": {
+    "libdxfrwDxfFixtureTests": "b64db99188cd80b5703e18e77d0bc2b27def2b2011cf97aef60bd446d155bfc4"
+  },
+  "next": "Select one current still-refused P2 witness, prioritizing a geometry-changing MLINE 340 retarget or a count-71 edit with an exact generated source. Bind its source identity, original/live consumers, target providers, output fields and failure/retry boundary before implementing it. Keep all broader profiles and semantic/platform claims open."
+}

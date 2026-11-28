@@ -1,0 +1,34 @@
+{
+  "kind": "librecad-hatch-model-space-source-check",
+  "date": "2026-11-28",
+  "consumerCommit": "729ac3493cec9083d794c736c20c0c531956a5af",
+  "codecCommit": "7a76eb16c4dd201264b8c4bde6e8dc984193618a",
+  "scope": "For one captured ASCII HATCH/LWPOLYLINE pair in a source no larger than 16 KiB, retain a narrow AC1024 HEADER and model-space table/block identity check bound to the same source bytes. No association replay is enabled.",
+  "checks": {
+    "systemCodec": {
+      "cases": 6,
+      "assertions": 364,
+      "result": "pass",
+      "logSha256": "72bea72372f27a0150901137aad7bc5de56e2ac5063f8d2c8b3ff5b9cf9687ac"
+    },
+    "bundledCodec": {
+      "cases": 4,
+      "assertions": 225,
+      "result": "pass; optional source observer absent",
+      "logSha256": "b6d49baa87cbf3c4090ff212c3e6e50b8193bd1a712f60e3a48955563c6034af"
+    }
+  },
+  "controls": [
+    "A locally authored full AC1024 model-space drawing passes the source check.",
+    "Wrong model record, version, block owner, duplicate version, nonempty model block, modified source, conflicting source roles and corrected same-filter retry are rejected or handled as applicable.",
+    "An ODA-converted peer imports with the raw-only compact MATERIAL fix; its 121 KiB source exceeds the capture bound and therefore does not receive model-space evidence.",
+    "Existing mixed IMAGE/MATERIAL and bundled-codec HATCH controls pass."
+  ],
+  "limits": [
+    "Exact selected field order and defaults only; independent native producer semantics are not established.",
+    "The check does not prove complete source graph closure, source geometry correspondence, final output or editing.",
+    "Source evidence alone does not enable replay or promote support claims."
+  ],
+  "fixtures": "Locally authored drawings; no DXF or DWG committed",
+  "supportClaimsPromoted": false
+}

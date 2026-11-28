@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader independent DXF projection, proprietary DWG route, and test-oracle trust",
+  "mode": "primary-source research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen for a new independent DXF renderer or DWG/ACIS implementation route",
+    "Assess whether newly found peer test practices can cheaply strengthen existing semantic comparisons",
+    "Check whether the peer ASCII precision report implies a new local gap"
+  ],
+  "method": {
+    "kind": "Read-only review of primary project documentation, repository metadata, and the current local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-peer-claim-and-scratch-producer-route-audit-2026-10-18.json"
+    ],
+    "limitations": "GitHub documentation and the package manifest are mutable project sources. No peer build, independent output comparison, corpus audit, renderer execution, DWG parse, kernel conversion, or native CAD acceptance was performed."
+  },
+  "sources": [
+    {
+      "project": "vagran/dxf-viewer",
+      "urls": [
+        "https://github.com/vagran/dxf-viewer",
+        "https://github.com/vagran/dxf-viewer/blob/master/package.json",
+        "https://github.com/vagran/dxf-viewer/blob/master/test/README.md"
+      ],
+      "revision": "Mutable master README, package manifest, and test guide reviewed 2026-10-18",
+      "observed": "The project describes an MPL-2.0 JavaScript 2D DXF viewer and test methods including canonical scene dumps, small generated DXF vectors, metamorphic checks, validator-negative checks, and an optional private corpus hash index. Its documentation lists incomplete DXF behavior, and states SVG debug output uses the same scene/reader path. These claims were not independently exercised."
+    },
+    {
+      "project": "mlightcad/cad-viewer proprietary DWG parser",
+      "urls": [
+        "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md"
+      ],
+      "revision": "Mutable main parser-scope note reviewed 2026-10-18",
+      "observed": "The project documents a separately licensed, closed-source DWG parser. Its own scope note describes partial SAB decoding and best-effort wireframe or bounding-box fallback rather than full B-rep tessellation. It is not admitted as open-source implementation evidence or independent ACIS semantic evidence."
+    },
+    {
+      "project": "ACadSharp ASCII precision report",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1179",
+        "https://github.com/DomCR/ACadSharp/pull/1186"
+      ],
+      "revision": "Public issue and linked pull request reviewed 2026-10-18",
+      "observed": "The peer report concerns precision loss from ASCII floating-point formatting. The local plan already records the corresponding max_digits10 fix and exact binary64 controls as implemented under PAR-43/7Y.2a, so this is corroboration rather than a new local finding."
+    }
+  ],
+  "assessment": {
+    "newLocalDefectsConfirmed": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "findingsAndSubplansRemain": "130/73",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planDelta": [
+    "Treat dxf-viewer only as a trigger-only optional 2D projection/render diagnostic; do not use it as a complete parser, writer-acceptance, DWG, or 3D oracle.",
+    "Exclude the proprietary mlightcad parser from open-source peer evidence and do not install it for this plan.",
+    "When an existing comparison validator is next touched, include one adjacent negative control proving that it detects a deliberately corrupted expected result.",
+    "Keep private corpus sweeps optional and composed-checkpoint-only; add no peer dependency, fixture, test registration, or per-slice full-suite/native validation."
+  ],
+  "workingTree": "The repository worktree is broadly modified. This research added only the plan section/summary and this receipt; no staging or commit was attempted, and unrelated working-tree changes were preserved."
+}

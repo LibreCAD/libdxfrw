@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE control/order enum transactions",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "e102578a0b95056fa2a9af9c089dd1a8b29af05d",
+  "scope": "Four separate one-field transactions are exercised on runtime-authored AC1027 DXF MLEADERSTYLE records: group-171 drawMLeaderOrder 0→1, group-172 drawLeaderOrder 0→1, group-173 leaderType 1→2, and group-177 blockConnectionType 0→1. Each source contains all four existing INTEGER fields; each transaction edits only its selected field and leaves the others at their source values.",
+  "fieldEvidence": {
+    "groupCodes": [171, 172, 173, 177],
+    "fields": ["drawMLeaderOrder", "drawLeaderOrder", "leaderType", "blockConnectionType"],
+    "fieldRoleSource": "Autodesk AutoCAD DXF Reference, MLEADERSTYLE group-code table",
+    "fieldRoleUrl": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "valueDomainSource": "Autodesk AutoCAD 2008 ActiveX API history enumerations: AcDrawMLeaderOrderType=0..1, AcDrawLeaderOrderType=0..1, AcMLeaderType={0,1,2}, AcBlockConnectionType=0..1",
+    "valueDomainUrl": "https://help.autodesk.com/cloudhelp/2023/JPN/AutoCAD-ActiveX/files/GUID-95D92244-7CC8-46A7-88AB-C5755EF779FE.htm",
+    "classification": "Autodesk DXF field-role and enum-domain corroboration plus authored per-field adapter transactions; not independent producer or native annotation acceptance"
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. Each selected record must be reachable through the validated ACAD_MLEADERSTYLE dictionary, have one source-matched raw body and immutable source baseline, and contain exactly one existing INTEGER for its selected group code. Value ranges are group 171 0..1, group 172 0..1, group 173 0..2, and group 177 0..1. Exactly one typed payload field may change per record; identity, common fields, handles, application data, extension data and other encoded style fields must match the source.",
+    "projection": "For each independent transaction, replace only its selected existing raw INTEGER in a copy of the captured body. Preserve field ordering and opaque groups. Missing/repeated fields, raw conflicts, simultaneous edits, values outside each enum domain, unknown subclass grammar and non-AC1027 routes remain outside these transactions.",
+    "outputAndReadback": "The table-driven regression executes each of the four fields separately for ASCII and binary sources, using same-format and opposite-format output. It checks one exact literal emitted group/value and fresh typed readback for each selected field.",
+    "failureAndRetry": "For each field, a conflicting raw value and the first out-of-range value refuse while preserving a sentinel destination. The raw body is restored, then the same adapter retries successfully with the valid requested value. The four independently edited values are 171: 0→1, 172: 0→1, 173: 1→2, and 177: 0→1.",
+    "compatibility": "Untouched MLEADERSTYLE records keep existing raw replay. Transactions are not admitted for other source or target versions, multiple changes on one record, or fields outside the selected four. DWG-origin writing is unchanged. Inputs and outputs are generated at test runtime and removed; no drawing fixtures are committed."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp emits groups 171=0, 172=0, 173=1, and 177=0 in the STANDARD source, alongside attachment/text enum fields. Sources are authored locally at runtime in ASCII and binary DXF.",
+    "implementationCommit": "e102578a0b95056fa2a9af9c089dd1a8b29af05d",
+    "dwg2dxf/dx_iface.cpp": "66ccfe8ea2e0e9097c4861ce3025015c19fe8ddeb85976094864f2b3f883f275",
+    "tests/dwg2dxf_adapter_tests.cpp": "a1ffd2af41cfa2d9cb5eeb8e3cbc1d7235ffc19f79f68bb48a49dad2fe05eed8",
+    "adapterTestExecutableSha256": "a5dbacde20c18e83141b03b9344b1143cc1dda7dde88540e4475bcc168e3f41e"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "Configured build-gcc; CMake 4.4.4, Unix Makefiles, Apple Clang 21.0.0 via /usr/bin/g++, -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_fail_closed)$' --output-on-failure",
+      "summary": "2/2 passed. The control/order enum cases prove source-field presence, exact output/readback, raw-conflict rollback, out-of-range refusal, same-adapter retry and ASCII/binary cross-format conversion for all four fields."
+    },
+    "diffCheck": "git diff --check; PASS before implementation commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Evidence qualifies the four authored AC1027 scalar transactions only. It does not establish native leader rendering, independent producer variation, other versions, MLEADER entity override semantics, consumer acceptance or complete document closure.",
+    "Group-170 contentType remains outside this transaction pending profile-specific domain evidence. Other MLEADERSTYLE fields and the global support ledger remain open/closed respectively; no format support claim is promoted."
+  ],
+  "next": "Continue with a distinct source-backed P2 field/profile or move to another ready plan packet; preserve AC1027-only admission and per-record single-field edits."
+}

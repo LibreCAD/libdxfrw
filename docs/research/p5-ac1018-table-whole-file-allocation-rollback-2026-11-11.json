@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1018-table-whole-file-allocation-rollback-2026-11-11",
+  "date": "2026-11-11",
+  "status": "COMPLETED_GENERATED_TRANSACTION_PROBES",
+  "supportClaimEffect": "none",
+  "scope": "Exercise allocation failures across a complete AC1018 DWG write containing a TABLE, its cached *T block, and the TABLESTYLE/NOD graph; preserve destination and writer-owned caller state, retry the same facade, and read back the graph.",
+  "source": {
+    "parentCommit": "63c9ca15791d14de35b18c3268c4fd18a7607ad1",
+    "files": {
+      "tests/table_extension_facade_allocation_tests.cpp": "0ba5d6bdeda40aa47b423abdac693efd136e12d53f613771ce5d0c41ad685629",
+      "tests/dwg_local_roundtrip_tests.cpp": "cfbab3c73d42330790520358f3acfa1396bfd98f3667dfe42f65759a64241f06",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "d32c719086efbe06d54e5145f1c5958d3b75ed40811c4343c5a8dd25630a5a73"
+    }
+  },
+  "implementation": {
+    "files": [
+      "tests/table_extension_facade_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "The preexisting `writeTable()` scoped sweep remains exhaustive across 115 measured allocation points and verifies destination rollback, retry, and graph readback.",
+      "A new whole-operation calibration counts 1,690 allocations for the generated AC1018 TABLE plus *T1 cached-geometry and TABLESTYLE/NOD graph.",
+      "Six sparse full-operation offsets (0, 1, first quartile, midpoint, third quartile, and final allocation) inject one-shot bad_alloc failures. Each failure preserves the seeded destination and the writer-owned TABLE identity/class/block fields.",
+      "The same dwgRW facade and adapter retry after each injected failure. Output bytes match the clean calibration exactly, and fresh readback verifies one 3x3 TABLE, all 15 *T1 child entities, and the named-object/table-style graph.",
+      "A fixed-size nested allocation-scope stack lets the whole-operation probe coexist with the existing table-record and duplicate-object scopes without disabling outer tracking."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_table_extension_facade_allocation_tests -j4",
+      "result": "PASS"
+    },
+    "directFocused": {
+      "command": "build-gcc/libdxfrw_table_extension_facade_allocation_tests",
+      "result": "PASS; whole-operation 6/6 sampled offsets out of 1,690 calibrated allocations; existing TABLE facade sweep 115/115; caught exception controls passed"
+    },
+    "normalCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_extension_facade_allocation_retry$|^libdxfrw_table_ac1018_whole_file_roundtrip$' --output-on-failure",
+      "result": "PASS 2/2; 2.40 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The whole-operation checks use six sparse offsets, not an exhaustive sweep of all 1,690 allocations; the inner writeTable facade sweep remains exhaustive.",
+    "This is generated AC1018 local transaction and readback evidence. It does not establish physical-source output, independent TABLE cell semantics, native AutoCAD rendering, or broader TABLE support."
+  ],
+  "next": "Continue with implementation-ready P5/P6 residuals; retain native rendering, independent cell semantics, and physical producer qualification as open gates."
+}

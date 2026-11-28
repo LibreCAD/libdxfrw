@@ -1,0 +1,58 @@
+{
+  "id": "RPP-5ya",
+  "date": "2026-10-30",
+  "scope": "One adapter-authored AC1027 TABLECONTENT value-content alignment override in ASCII and binary DXF.",
+  "specification": {
+    "source": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "section": "20.4.101.3 Content format",
+    "basis": "Group 90 property override flag 0x10 selects alignment; group 94 value 2 is top-center alignment. This receipt establishes field transport only, not native rendering."
+  },
+  "admission": {
+    "contentType": 1,
+    "propertyOverrideFlags": 16,
+    "propertyFlags": 0,
+    "valueDataType": 0,
+    "valueUnitType": 0,
+    "valueFormatString": "",
+    "rotation": 0,
+    "blockScale": 1,
+    "cellAlignment": 2,
+    "contentColor": 0,
+    "textStyleHandle": 0,
+    "textHeight": 0,
+    "otherFormatFields": "default only"
+  },
+  "output": {
+    "assertedFields": [
+      [170, 1],
+      [300, "CONTENTFORMAT"],
+      [90, 16],
+      [91, 0],
+      [92, 0],
+      [93, 0],
+      [40, 0],
+      [140, 1],
+      [94, 2],
+      [62, 0],
+      [340, "0"],
+      [144, 0],
+      [309, "CONTENTFORMAT_END"]
+    ],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "readback": "The typed metadata retains one non-null format at the original content ordinal with propertyOverrideFlags=0x10, propertyFlags=0, alignment=2, and null text-style handle."
+  },
+  "negative_control": {
+    "mutation": "Change the alignment field from 2 to 3 while keeping the selected admission mask.",
+    "expected": "Writer refuses before replacing the sentinel destination; restoring alignment 2 allows the same writer instance to export and read back successfully."
+  },
+  "validation": {
+    "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4 && ./build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+    "result": "PASS",
+    "generatedFixtureFilesCommitted": false
+  },
+  "limitations": [
+    "No native AutoCAD/ODA rendering or layout result is asserted.",
+    "Other alignments, property masks, format fields, attributes, and referenced styles remain refused or unqualified.",
+    "This is not full TABLECONTENT or whole-document conversion evidence."
+  ]
+}

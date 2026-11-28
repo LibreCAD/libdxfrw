@@ -1,0 +1,135 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader current peer issue evidence and failure-mode convergence",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "ACadRust v0.6.4 release claims versus current version-specific reader issue reports",
+    "Peer-reported owner-repair and malformed-input failure modes",
+    "Crosswalk of external reports to existing libdxfrw owner, record-boundary, and parser-hardening controls",
+    "Current ACadSharp ACIS writer release/PR boundary"
+  ],
+  "method": {
+    "kind": "Read-only review of project release pages, issue bodies, pull request, local plan, and local generated test owner",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "privateIssueAttachmentsObtained": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Issue content is reporter-supplied and was not independently reproduced. Client DWG corpora cited in ACadRust issues are private and were not obtained. ACadRust main and pull request pages are mutable; their behavior is not release behavior. The local owner-test source was inspected but not executed during this research pass."
+  },
+  "sources": [
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4",
+      "revision": "v0.6.4 at 8d5c46d, reviewed 2026-10-17",
+      "observed": "Release notes list record-bounds work and supplied-corpus strict-read results, plus generation-specific ACIS silhouette/inline-surface work. This does not establish universal corpus coverage or independent semantic correctness."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/134",
+      "revision": "open issue body reviewed 2026-10-17",
+      "observed": "Reporter says 70 of 351 private AC1032 files opened by v0.6.3 fail under v0.6.4, mostly in AcDbMLeaderObjectContextData, and attributes this to record-bound changes exposing decoder over-read/layout disagreement. The report says AutoCAD and ODA read the files; no corpus was accessed."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/135",
+      "revision": "open issue body reviewed 2026-10-17",
+      "observed": "Reporter says AC1024 AcDbAssocGeomDependency records fail in v0.6.4; v0.6.3 returns malformed-looking values; and a mutable main route opens after converting the records to Unknown, which the DXF writer omits. The issue labels its root-cause account as a hypothesis and does not publish the client samples."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/133",
+      "revision": "open issue body reviewed 2026-10-17",
+      "observed": "Reporter describes orphaned entities from erased anonymous dimension blocks being moved into model space and becoming phantom geometry. It reports a private 351-file corpus comparison against ODA-converted DXF read by the same DXF reader; the report was not reproduced here."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/123",
+      "revision": "open issue body reviewed 2026-10-17",
+      "observed": "Reporter describes v0.6.3 malformed-input count/zero-padding behavior and an attacker-sized allocation on a bit-mutated writer-generated file. This is a peer-reported hardening lead, not a local defect or DWG grammar rule."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/124",
+      "revision": "open issue body reviewed 2026-10-17",
+      "observed": "Reporter describes an out-of-range slice on a malformed header-size field in a bit-mutated writer-generated v0.6.3 DWG. This report was not independently reproduced."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "revision": "signed v3.8.0 release at 3a1c66b, reviewed 2026-10-17",
+      "observed": "Release notes list an assembly visibility change and do not list ACIS DXF entity writing."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1240",
+      "revision": "open PR page reviewed 2026-10-17",
+      "observed": "The ACIS dependent-entity writer PR remains open and undeployed; its page describes Region, CadBody, and Solid3D writing work and a dependency on schema/storage changes."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1195",
+      "revision": "open issue page reviewed 2026-10-17",
+      "observed": "The issue reports silent omission of ACIS-bearing 3DSOLID/REGION entities on an earlier writer route; it does not establish v3.8.0 behavior."
+    },
+    {
+      "project": "libdxfrw local generated test owner",
+      "url": "tests/block_owner_tests.cpp",
+      "revision": "current worktree source inspected 2026-10-17",
+      "observed": "The generated *D999 orphan-child test checks that an explicit dead owner is not re-homed into model space and that a later valid ENTITIES suffix is still consumed. The test was not executed in this research pass."
+    }
+  ],
+  "assessment": {
+    "peerEvidenceRule": "Keep each report attached to its named project revision, format version, operation, and reporter evidence. A private corpus or issue statement is a lead, not a local reproduction or normative format rule.",
+    "lossDispositionRule": "Successful read, strict read, recovery read, unknown-object retention, writer emission, and independent semantic acceptance are separate states. Unknown or skipped data is not preserved merely because a document object is returned.",
+    "ownerRule": "Do not repair an unresolved explicit owner by synthesizing model-space membership. Preserve the source owner/disposition and continue only when record and graph boundaries are established.",
+    "hostileInputRule": "Check frame remainder, checked arithmetic, allocation/work budgets, and cursor progress independently. Do not import peer numeric limits or use zero-fill to hide truncation.",
+    "implementationSpeedRule": "Reuse existing local generated test owners; add only the smallest path-specific vector when a local decoder is changed. Use exact-pinned peers only at an existing composed checkpoint for a named unresolved question."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-current-peer-issue-evidence-and-failure-mode-convergence-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-current-peer-issue-evidence-and-failure-mode-convergence-2026-10-17.json",
+      "awk '/[ \\t]+$/ { print FNR \": trailing whitespace\"; failed=1 } END { exit failed }' docs/research/deeper-broader-current-peer-issue-evidence-and-failure-mode-convergence-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

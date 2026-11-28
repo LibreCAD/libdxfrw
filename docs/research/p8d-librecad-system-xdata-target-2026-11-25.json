@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-xdata-target-2026-11-25",
+  "status": "LOCAL_XDATA_TARGET_CONTROL_PASS_OTHER_GATES_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "a4794a3ece1d1087e3502c09b85a89ca54af3d42",
+    "previousHead": "c67cab9758c0af7c59893ea2d239ea42b462768e"
+  },
+  "dependencyImplementationDigest": "2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21",
+  "finding": "A test expected an XDATA group-1005 target to acquire a new numeric handle, but preserving the source handle is also valid. Its remaining checks prove the value names exactly one emitted LINE and that the referring LINE is a different record.",
+  "validation": {
+    "host": "macOS ARM64 AppleClang Release",
+    "systemFocused": "PASS: 1827 assertions in 23 tagged cases.",
+    "bundledFocused": "PASS: 1500 assertions in 17 tagged cases."
+  },
+  "limits": [
+    "This is a generated single-reference control, not proof for arbitrary XDATA graphs or native CAD applications.",
+    "HATCH reverse associations, hosted current-head CI and platform qualification remain open.",
+    "No drawing fixture files were committed."
+  ]
+}

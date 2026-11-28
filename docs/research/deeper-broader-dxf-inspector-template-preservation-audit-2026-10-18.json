@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader DXF inspector and template-preservation route audit",
+  "mode": "Primary-source web research and plan refinement; no peer execution",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "baselineQualification": "The shared worktree was broadly dirty at review start. Plan and local status observations refer to the shared worktree, not a clean checkout at baselineCommit.",
+  "scope": [
+    "Screen newly surfaced DXF-only routes for implementation evidence relevant to source inspection, 2D consumers, and template-scoped byte preservation.",
+    "Separate parser projection, renderer behavior, raw preservation, semantic rewrite, and whole-document support claims.",
+    "Add only optional, implementation-ready comparator guidance where it refines the existing plan without promoting support claims."
+  ],
+  "method": {
+    "kind": "Current primary-source repository and README review, cross-checked against the local parity plan",
+    "worktreeDirtyAtStart": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalledOrRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForThisResearchUpdate": false,
+    "localBuildRunForThisResearchUpdate": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0
+  },
+  "sources": [
+    {
+      "project": "wieslawsoltes/DxfParser",
+      "urls": [
+        "https://github.com/wieslawsoltes/DxfParser",
+        "https://github.com/wieslawsoltes/DxfParser/blob/main/README.md"
+      ],
+      "revision": "Mutable main/repository pages reviewed 2026-10-18; no immutable commit selected",
+      "observed": "The README describes text and supported-binary DXF inspection, source-tree and handle navigation, diagnostics, structural comparison, rendering, editing, and DXF export. It explicitly disclaims DWG I/O, an ACIS kernel, arbitrary DXF object-graph import, and full AutoCAD fidelity. This pass did not inspect parser call sites, source/package boundaries, or code lineage with the author's other CAD projects."
+    },
+    {
+      "project": "cancemi/dxf4j",
+      "urls": [
+        "https://github.com/cancemi/dxf4j",
+        "https://github.com/cancemi/dxf4j/blob/main/README.md"
+      ],
+      "revision": "Mutable main/repository pages reviewed 2026-10-18; repository page showed three commits and no listed release",
+      "observed": "The README claims AC1032 DXF read/write for template workflows, byte-for-byte preservation of selected untouched CLASSES/TABLES/BLOCKS sections, TEXT/MTEXT replacement, IMAGE/IMAGEDEF insertion, and generic unknown entity/object wrappers. The source, actual preserved byte ranges, regression inputs, and outputs were not audited or executed."
+    },
+    {
+      "project": "gdsestimating/dxf-parser",
+      "urls": [
+        "https://github.com/gdsestimating/dxf-parser",
+        "https://github.com/gdsestimating/dxf-parser/blob/master/README.md"
+      ],
+      "revision": "Mutable master/repository pages reviewed 2026-10-18; no immutable commit selected",
+      "observed": "The README describes a JavaScript DXF-to-object parser covering header, common 2D entities, tables, blocks/inserts, VPORT, text/some MTEXT, and some XData; it explicitly lists 3DSOLID and less-common entities/objects as unsupported. This documents a projection boundary, not whole-document retention."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutions": 0,
+    "nativeCadRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds two optional DXF comparator roles: browser/source-tree inspection of exposed text and supported-binary content, and template-scoped raw-section preservation. It tightens the evidence boundary between projection, visualization, selective byte preservation, semantic rewrite, and whole-document completeness. It does not create a required peer, local finding, implementation task, fixture, dependency, test cadence, or support claim."
+  },
+  "implementationReadyChecks": [
+    "Select an exact unresolved local behavior before choosing either comparator; pin immutable source, runtime/toolchain, input hash, DXF version/encoding, and operation.",
+    "For inspector routes, compare exact exposed group-code values and handles separately from diagnostics, typed projection, rendering, and omitted/unexposed records.",
+    "For template-preservation routes, partition source into untouched and edited regions; byte-compare only the regions the implementation explicitly promises to preserve, then independently validate regenerated content and references.",
+    "Use an already-admitted DXF or a locally generated scratch control; add no externally sourced DWG/DXF fixture and do not add the peer as a routine dependency.",
+    "Keep fast local selector, strict owning target, and owning CTest as the per-slice lane; peer and native checks remain at existing composed checkpoints."
+  ],
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "scope": "Updated the plan and added this research receipt only; unrelated dirty worktree changes were preserved."
+  }
+}

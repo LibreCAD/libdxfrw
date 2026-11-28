@@ -1,0 +1,162 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 children-room strict-output gap history and current disposition",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Identify the exact callback identities preventing one existing AC1021 source from completing strict whole-source DXF output, and map the gaps to existing bounded physical-source evidence.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local input; author and producer are unauthenticated. No source drawing or derivative is committed."
+  },
+  "validation": {
+    "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/children-room-decoration.dwg -y -d -v2007 /private/tmp/libdxfrw-children-room-strict-debug.dxf",
+    "result": "FAIL CLOSED, exit 1. Finalization reports 179/186 opaque callbacks qualified, writes no destination DXF, and debug output enumerates all seven missing handles below.",
+    "debugLog": {
+      "path": "/private/tmp/libdxfrw-children-room-strict-debug2.log",
+      "sha256": "ee7eb4da1432c9b02821b2f81eef140d00b39b86a224bf6760f1854ab7b7b187"
+    },
+    "proofProfileState": {
+      "tableStyleSourceSnapshots": 0,
+      "tableStyleInspectorPassed": false,
+      "mleaderStyleSourceSnapshots": 1,
+      "mleaderStyleInspectorPassed": false,
+      "cellStyleMapRootsDiscovered": 1,
+      "sectionViewStyleRootsDiscovered": 2,
+      "detailViewStyleRootsDiscovered": 2,
+      "modelDocViewStyleSourceImportValid": true,
+      "interpretation": "The source graph is retained and its existing selected-output receipts pass, but these proof hooks do not yet certify the complete combined staged output for these identities. Absence from the output qualification set is not evidence that the DXF records were absent from staged bytes."
+    }
+  },
+  "limits": [
+    "An unqualified callback count identifies missing output proof, not necessarily missing serialized bytes.",
+    "The selected graph receipts do not prove a combined strict whole-source output.",
+    "No native consumer, producer-wide, cross-version, or support claim is established."
+  ],
+  "currentRecheck": {
+    "date": "2026-11-06",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/children-room-decoration.dwg -y -v2007 /private/tmp/libdxfrw-children-room-viewstyle-strict.dxf",
+    "result": "PASS strict full-source ASCII conversion; all 186 opaque callback identities were qualified and output was created.",
+    "outputSha256": "cbb453feddbc65c78ee807d55489427f1a023cf3a15f3ee0b578089aba68c88c",
+    "proofProfileState": {
+      "tableStyleSourceSnapshots": 1,
+      "tableStyleInspectorPassed": true,
+      "cellStyleMapRootsDiscovered": 1,
+      "cellStyleMapStrictQualified": true,
+      "mleaderStyleSourceSnapshots": 1,
+      "mleaderStyleInspectorPassed": true,
+      "detailViewStyleSourceSnapshots": 2,
+      "sectionViewStyleSourceSnapshots": 2,
+      "modelDocViewStyleDictionaries": 6,
+      "modelDocViewStyleXrecords": 4,
+      "modelDocViewStyleInspectorPassed": true,
+      "qualifiedOpaqueCallbacks": "186/186"
+    },
+    "subsequentReexportProbe": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-children-room-viewstyle-strict.dxf -y -v2007 /private/tmp/libdxfrw-children-room-viewstyle-roundtrip.dxf",
+      "result": "PASS: the full strict same-version DXF re-export completed, including OBJECTS staged inspection and finalization; a second fresh import/export of that output also completed. No native consumer or broader source claim follows.",
+      "disposition": "The prior IMAGEDEF, DBCOLOR, RASTERVARIABLES, four-layer default plot-style, and unnamed finalizer blockers are cleared for this exact local AC1021 DXF source profile. DXF-origin DBCOLOR raw carriers are now retained under bounded source/baseline accounting and replayed after typed graph validation. Broader source profiles remain open.",
+      "latestRecheck": {
+        "date": "2026-11-06",
+        "sourceSha256": "cbb453feddbc65c78ee807d55489427f1a023cf3a15f3ee0b578089aba68c88c",
+        "strictReexport": {
+          "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-children-room-viewstyle-strict-final.dxf -y -d -v2007 /private/tmp/libdxfrw-children-room-viewstyle-final-current.dxf",
+          "exit": 0,
+          "outputSha256": "301769181dc8c8ee316254f8a13612b0c196be5b97abcf36028606d9796d669f"
+        },
+        "freshSameVersionReadback": {
+          "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-children-room-viewstyle-final-current.dxf -y -d -v2007 /private/tmp/libdxfrw-children-room-viewstyle-readback-current.dxf",
+          "exit": 0,
+          "outputSha256": "490b6407a89adcd7d0ff3897e33e3c88900645793679608ddb8c8afcfb80d9c7"
+        },
+        "dbcolorRecord": {
+          "records": 1,
+          "groupCount": 62,
+          "payloadSha256AcrossSourceOutputReadback": "f8ae0de8917de80e9dc4f188ec8c631052f814eaeb6e06aebec01f4c5cfe613d",
+          "note": "Handle fields may be remapped; the full non-handle group order and values match, and the readback owner resolves through ACAD_COLOR."
+        },
+        "focusedTests": {
+          "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_default_plotstyle_layer_graph|dwg2dxf_dbcolor_external_evidence_gate|dwg2dxf_dbcolor_eed_source_capture)$' --output-on-failure",
+          "result": "PASS, 3/3 tests; 0.67 seconds total.",
+          "coverage": "Generated locally authored AC1021 default-only plot-style plus DBCOLOR source graph; ASCII/Binary raw payload and typed readback, owner binding, destination-preserving raw mutation refusal, same-adapter retry. Existing DWG DBCOLOR gates also pass."
+        },
+        "fixturePolicy": "Generated DXF controls and full-file outputs remained in temporary storage. No test DWG/DXF fixture was added to the repository.",
+        "supportClaimEffect": "none"
+      },
+      "nextSlice": "Fast scan of the existing local DWG corpus for the next distinct, bounded mixed OBJECTS graph with independently checkable owner/reference roles; select the smallest complete source profile, then implement a locally authored regression control without committing source fixtures."
+    },
+    "selectedGraphEvidence": "The physical selected source selector passes ASCII/Binary output and fresh typed readback with rollback/retry; this is not full-file readback or native consumer evidence.",
+    "supportClaimEffect": "none"
+  },
+  "historicalUnqualifiedCallbacks": [
+    {
+      "handle": "0x7F",
+      "type": 504,
+      "record": "TABLESTYLE",
+      "class": "AcDbTableStyle",
+      "existingEvidence": "docs/research/p4-ac1021-children-room-tablestyle-cellstylemap-selected-output-2026-11-06.json",
+      "nextProof": "Carry the exact TABLESTYLE source/field profile through strict staged-object inspection together with NOD, owner DICTIONARY, extension DICTIONARY and CELLSTYLEMAP 0x3C3F7; only then register these callback identities."
+    },
+    {
+      "handle": "0x12E",
+      "type": 508,
+      "record": "MLEADERSTYLE",
+      "class": "AcDbMLeaderStyle",
+      "existingEvidence": "docs/research/p4-ac1021-mleaderstyle-eed-selected-output-2026-11-06.json",
+      "nextProof": "After the TABLESTYLE slice, connect the source-bound MLEADERSTYLE field/EED and APPID proof to strict staged output inspection and full-file readback."
+    },
+    {
+      "handle": "0x21A",
+      "type": 515,
+      "record": "ACDBSECTIONVIEWSTYLE",
+      "class": "AcDbSectionViewStyle",
+      "existingEvidence": "docs/research/p4-ac1021-modeldoc-view-style-physical-source-profile-2026-11-06.json",
+      "nextProof": "Bind the typed callback and extension dictionary/XRECORD graph to strict staged bytes and the NOD dictionary key."
+    },
+    {
+      "handle": "0x18081",
+      "type": 515,
+      "record": "ACDBSECTIONVIEWSTYLE",
+      "class": "AcDbSectionViewStyle",
+      "existingEvidence": "docs/research/p4-ac1021-modeldoc-view-style-physical-source-profile-2026-11-06.json",
+      "nextProof": "Bind the typed callback and extension dictionary/XRECORD graph to strict staged bytes and the NOD dictionary key."
+    },
+    {
+      "handle": "0x21C",
+      "type": 516,
+      "record": "ACDBDETAILVIEWSTYLE",
+      "class": "AcDbDetailViewStyle",
+      "existingEvidence": "docs/research/p4-ac1021-modeldoc-view-style-physical-source-profile-2026-11-06.json",
+      "nextProof": "Bind the typed callback and extension dictionary/XRECORD graph to strict staged bytes and the NOD dictionary key."
+    },
+    {
+      "handle": "0x18082",
+      "type": 516,
+      "record": "ACDBDETAILVIEWSTYLE",
+      "class": "AcDbDetailViewStyle",
+      "existingEvidence": "docs/research/p4-ac1021-modeldoc-view-style-physical-source-profile-2026-11-06.json",
+      "nextProof": "Bind the typed callback and extension dictionary/XRECORD graph to strict staged bytes and the NOD dictionary key."
+    },
+    {
+      "handle": "0x3C3F7",
+      "type": 509,
+      "record": "CELLSTYLEMAP",
+      "class": "AcDbCellStyleMap",
+      "existingEvidence": "docs/research/p4-ac1021-children-room-tablestyle-cellstylemap-selected-output-2026-11-06.json",
+      "nextProof": "Prove the typed source map, style/dictionary owner relation, exact staged CELLSTYLEMAP identity, text-style and border-linetype targets, and readback in the same strict output profile as TABLESTYLE 0x7F."
+    }
+  ],
+  "historicalNextSlice": {
+    "name": "AC1021 children-room SECTIONVIEWSTYLE/DETAILVIEWSTYLE staged output",
+    "reason": "TABLESTYLE/CELLSTYLEMAP and MLEADERSTYLE now pass strict staged inspection. The remaining four callbacks form two typed source-witnessed view-style pairs with existing physical profile and import evidence; qualify their body fields and owner graph in one staged transaction.",
+    "acceptance": [
+      "Confirm current source hash, version, frame/class identity, exact root keys and unique owner relations for both pairs.",
+      "Snapshot each typed view style, nested dictionaries and XRECORD extension data under the current import generation.",
+      "Inspect all four staged record bodies, group identities, mapped handles, dictionary/XRECORD roles and exact modeled fields before qualifying any pair.",
+      "Run the existing physical selected source output/readback and add strict-target regression coverage in the same encoding/version profile.",
+      "Run strict whole-source conversion once; preserve refusal and enumerate exact new gaps if any remain.",
+      "Do not commit external DWG/DXF fixtures or promote support claims from this unauthenticated local source."
+    ]
+  }
+}

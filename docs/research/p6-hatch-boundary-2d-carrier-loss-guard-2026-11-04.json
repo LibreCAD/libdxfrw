@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_DXF_OUTPUT_LOSS_GUARD_WITH_EXPLICIT_RATIONAL_AMBIGUITY",
+  "supportClaimEffect": "none",
+  "authority": {
+    "autodesk_boundary_path": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+    "finding": "HATCH boundary line endpoints, arc center, ellipse center/major axis and spline control/fit/tangent coordinates are 2D OCS; polyline paths encode 2D vertices, bulges and closed flag. Spline group 42 is optional and defaults to unit weight.",
+    "parent_hatch": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+    "parent_finding": "The HATCH/MPOLYGON elevation and extrusion belong to the parent, not individual path edges."
+  },
+  "observed_before_fix": "A locally generated valid edge with center.z=7 or major-axis.z=7 wrote successfully and fresh typed readback returned z=0 in ASCII and Binary HATCH and MPOLYGON (eight probes). The existing emitter only writes XY components.",
+  "change": "Refuse nonzero unrepresented line endpoint, arc center and ellipse center/major-axis Z, including Z introduced by ellipse normalization; spline fit/tangent Z and unrepresented control Z; and polyline boundary constant/per-vertex widths, vertex identifiers and non-closed flag bits. Signed zero is accepted. HATCH/MPOLYGON output stays atomic and retryable; no public class or callback layout changes.",
+  "rational_control_policy": {
+    "dwg_reader": "DRW_Hatch::parseDwgBoundaryData reads 2D control and separate rational BD weight, stores the weight in both canonical weightlist and historical control.z.",
+    "dwg_writer": "The DWG encoder uses canonical weightlist when present, otherwise a flag-marked rational control.z as legacy weight.",
+    "dxf_reader": "DXF group 42 may be absent for rational edges; its documented default is unit weight. This parser leaves the absent weight list empty and control.z=0.",
+    "new_dxf_guard": "A control Z of zero, an exact mirror of a supplied canonical weight, or an implicit unit-weight mirror with rational flag and no canonical list is accepted. A non-unit, nonzero legacy-only Z with absent canonical weights, or a nonzero Z differing from the canonical weight, is refused rather than silently projected. Canonical weightlist values, including near-unit values, are emitted unchanged.",
+    "unresolved_zero": "A rational edge with no canonical weightlist and control.z=0 is ambiguous: DXF-origin default is weight 1, while the DWG encoder historical fallback treats that Z as weight 0. This slice retains the existing DXF implicit-unit behavior; it does not establish lossless treatment for a legacy DWG zero-weight-only caller.",
+    "next": "Add provenance-preserving, ABI-compatible source/evidence state distinguishing absent DXF weights from legacy control-Z carriers; define explicit zero and non-unit fallback rules, then test DXF and DWG source/readback, both formats, copy/reset and existing LibreCAD 2D consumers. Do not infer source solely from flags or numeric value."
+  },
+  "polyline_limits": "Per-vertex width, end width and identifier, constant width and non-closed flags have no serialized path counterpart and now refuse. Nested polyline elevation, thickness and extrusion lack a qualified mapping to the parent plane; their interpretation may be redundant or conflicting and remains open pending source-qualified producer and consumer proof. This slice does not claim lossless handling of those fields.",
+  "validation": {
+    "test": "libdxfrw_dxf_hatch_boundary_payload",
+    "scope": "ASCII and Binary HATCH and MPOLYGON, generated line/arc/ellipse/spline/polyline edges, each invalid field failure with sentinel destination and corrected same-writer retry; signed zero and a tilted parent normal/nonzero parent elevation read back; canonical near-unit rational weight mirror, non-unit legacy-only refusal, implicit-unit and ambiguous zero controls.",
+    "adjacent": "dwg_hatch_rational_spline_weight_handoff, dwg_hatch_reference_graph, libdxfrw_hatch_mpolygon_inactive_gradient_guard and libdxfrw_dxf_ellipse_extreme_axis passed in the same focused run."
+  },
+  "limits": [
+    "The zero-weight source ambiguity is not resolved.",
+    "Nested polyline elevation/thickness/extrusion disposition remains open.",
+    "No external fixture, no general HATCH/MPOLYGON support claim."
+  ]
+}

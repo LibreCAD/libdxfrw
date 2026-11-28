@@ -1,0 +1,150 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-ac1024-aerial-sun-oda-linux-screen-2026-11-18",
+  "date": "2026-11-18",
+  "status": "INDEPENDENT_SERIALIZATION_SCREEN_ONLY",
+  "scope": "Cross-check the selected physical aerial SUN owner outlier with the official Linux ODA File Converter; no fixtures were committed.",
+  "source": {
+    "original": "/Users/dli/doc/dwg/visualization_-_aerial.dwg",
+    "scratchCopy": "/private/tmp/libdxfrw-p5-aerial-oda-20261118/in/aerial.dwg",
+    "format": "AC1024 DWG",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "producer": "Not independently established in this screen"
+  },
+  "converter": {
+    "name": "ODA File Converter",
+    "package": "odafileconverter 27.10.0.0 amd64",
+    "officialUrl": "https://www.opendesign.com/guestfiles/oda_file_converter",
+    "packagePath": "/private/tmp/libdxfrw-p6h-oda-linux.ZztZf5/oda.deb",
+    "packageSha256": "c432002cc688f89ddf6a68ad68e877cd16da1d99ab8729386009c552cf73beb5",
+    "binarySha256": "bda7c79a901be17d4e0a76ea6e9dfddb24b83601e98cf41d66c158a9c428ca24",
+    "runtimeImage": "sha256:c8bf2d80c87c3685d5974aadf7968e5451cb41e543d2a7ab7f25f99007afc29f",
+    "runtime": "Docker Desktop Linux amd64 emulation; network disabled, uid/gid 65534, all capabilities dropped, no-new-privileges, source and package mounted read-only, scratch output writable, Xvfb and software OpenGL",
+    "scriptPath": "/private/tmp/libdxfrw-p5-aerial-oda-20261118/convert.sh",
+    "scriptSha256": "70068944bf277bed454e934c9cf4bed914739822af7ce657b6ed81132b4bc4fc",
+    "command": "docker run --rm --platform linux/amd64 --network none --cap-drop ALL --security-opt no-new-privileges --user 65534:65534 --mount type=bind,src=/private/tmp/libdxfrw-p6h-oda-linux.ZztZf5/oda.deb,dst=/pkg/oda.deb,readonly --mount type=bind,src=/private/tmp/libdxfrw-p5-aerial-oda-20261118/in,dst=/source,readonly --mount type=bind,src=/private/tmp/libdxfrw-p5-aerial-oda-20261118/out,dst=/out --mount type=bind,src=/private/tmp/libdxfrw-p5-aerial-oda-20261118/convert.sh,dst=/convert.sh,readonly sha256:c8bf2d80c87c3685d5974aadf7968e5451cb41e543d2a7ab7f25f99007afc29f /bin/sh /convert.sh",
+    "converterArguments": [
+      "/source",
+      "/out",
+      "ACAD2010",
+      "DXF",
+      "0",
+      "0",
+      "*.dwg"
+    ],
+    "profile": "R2010 DXF, nonrecursive, audit disabled",
+    "output": "/private/tmp/libdxfrw-p5-aerial-oda-20261118/out/aerial.dxf",
+    "outputSha256": "911acff2824c5d75043a074381aea9d2274601ca62391b14786a224444f6c0eb",
+    "outputBytes": 1474714,
+    "errors": "No .err file observed in the initially empty scratch output directory. Converter execution transcript was not saved; package, binary, source, output hashes and command were observed.",
+    "scriptContents": [
+      "#!/bin/sh",
+      "set -eu",
+      "sha256sum /pkg/oda.deb /source/aerial.dwg",
+      "dpkg-deb -x /pkg/oda.deb /tmp/oda",
+      "package=/tmp/oda/usr/bin/ODAFileConverter_27.10.0.0",
+      "cd \"$package\"",
+      "sha256sum ODAFileConverter",
+      "export HOME=/tmp XDG_RUNTIME_DIR=/tmp/oda-runtime QT_QPA_PLATFORM=xcb",
+      "mkdir -m 0700 \"$XDG_RUNTIME_DIR\"",
+      "export LD_LIBRARY_PATH=\"$package/lib\" QT_PLUGIN_PATH=\"$package/plugins\" LIBGL_ALWAYS_SOFTWARE=1",
+      "ln -s /usr/lib/x86_64-linux-gnu/libxcb-util.so.1 /tmp/libxcb-util.so.0",
+      "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:/tmp\"",
+      "timeout 90s xvfb-run -a \"$package/ODAFileConverter\" /source /out ACAD2010 DXF 0 0 '*.dwg'",
+      "ls -la /out",
+      "if test -f /out/aerial.dxf; then sha256sum /out/aerial.dxf; fi"
+    ],
+    "rerunNote": "Recreate the script contents and scratch input with the pinned hash, and use a new empty scratch output directory. The named package and runtime image must be available locally; no download or network access is needed in the container."
+  },
+  "dxfObservations": [
+    {
+      "record": "VPORT",
+      "handle": "94",
+      "name": "*Active",
+      "sun361": "187"
+    },
+    {
+      "record": "SUN",
+      "handle": "187",
+      "owner330": "94"
+    },
+    {
+      "record": "VIEW",
+      "handle": "242",
+      "name": "RenderView",
+      "extensionDictionary360": "245",
+      "sun361": "24C"
+    },
+    {
+      "record": "DICTIONARY",
+      "handle": "245",
+      "owner330": "242",
+      "entry": "ADSK_XREC_VTRVIEWINFO",
+      "entry360": "246"
+    },
+    {
+      "record": "XRECORD",
+      "handle": "246",
+      "owner330": "245",
+      "payload330": "22",
+      "payload330TargetType": "LAYOUT"
+    },
+    {
+      "record": "SUN",
+      "handle": "24C",
+      "owner330": "246",
+      "extensionDictionary360": "24D"
+    },
+    {
+      "record": "DICTIONARY",
+      "handle": "24D",
+      "owner330": "24C"
+    },
+    {
+      "record": "SKYLIGHT_BACKGROUND",
+      "handle": "261",
+      "owner330": "AE",
+      "sun340": "24C"
+    }
+  ],
+  "comparison": {
+    "priorLibreDWGReceipt": "docs/research/p5-ac1024-sun-xrecord-owner-outlier-2026-11-01.json",
+    "priorLibreDWGReceiptSha256": "45ed417aaecf940736000ace9b3e3d3a5b096fcf76347fe1a2476dd767ce58d6",
+    "agreement": "Both converter exports report SUN 24C owner 246 (XRECORD), SUN 187 owner 94 (VPORT), XRECORD 246 owner 245 and background 261 reference to 24C. ODA adds a VIEW 242 group-361 reference to 24C and view extension-dictionary chain in this screen. The prior LibreDWG output bytes were not available for a new full field-by-field comparison."
+  },
+  "contractAndDisposition": {
+    "sunApi": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbSun.html",
+    "documentedRule": "AcDbSun is a hard-owned child of an AcDbViewportTableRecord or AcDbViewport object. This API text does not establish an XRECORD owner.",
+    "viewWireReference": "docs/research/p4-sun-view-hard-owner-output-2026-11-03.json",
+    "viewWireReferenceSummary": "ODA DWG specification section 20.4.60 identifies VIEW group 361 as a SUN hard-owner reference; prior bounded output requires SUN owner equal VIEW. Here VIEW 242 references 24C but SUN common owner is 246.",
+    "decision": "Keep strict owner-graph refusal. Do not rewrite 24C owner to VIEW 242, treat XRECORD 246 as an admitted SUN owner, or promote support claims from these screens."
+  },
+  "limits": [
+    "ODA DXF export is a converter observation, not a byte-level proof of the original DWG handle stream; audit was disabled and no native open/render/reopen was performed.",
+    "Neither producer provenance nor whether ODA normalized any data was established. The group-330 owner, XRECORD payload group-330 reference, group-361 VIEW link and group-340 background reference have distinct roles and must not be conflated.",
+    "Existing generated VIEW/SUN route requires matching common owner and therefore does not establish a safe output profile for this outlier. Whole-document output and other dependencies were not qualified."
+  ],
+  "nextTrigger": "A scratch-created, version-identified native AutoCAD/ObjectARX producer witness should record SUN ownerId, VIEW sunId, XRECORD ownerId and object classes, then save DWG and matching DXF and reopen both to inspect ownership, references and rendering; alternatively obtain an independently source-bound object-frame trace plus equivalent native evidence. Only then design any narrowly scoped mapping and rollback/readback tests.",
+  "supportClaimEffect": "none",
+  "otherAerialDependencies": {
+    "layerStates": "This same aerial source has three LAYER_CONTROL extension roots and ACAD_VIEWS_RenderView XRECORD group-370 data, as recorded in docs/research/p4-ac1024-layerstates-alternative-witness-screen-2026-11-18.json. The current plan keeps source graph, emitted ledger/dependency closure and independent native semantics open. Removing the SUN refusal alone cannot qualify full-source LayerStates output.",
+    "scope": "No new scan or test of the current complete aerial output was performed, and this receipt does not identify every remaining issue."
+  },
+  "nativeObserverPreparation": {
+    "date": "2026-11-19",
+    "purpose": "Prepare a hash-gated native observation of the exact source DWG and its existing ODA DXF without modifying them.",
+    "files": {
+      "tools/research/P4D_AERIAL_SUN_OBSERVER.md": "a3c37abcb29d2799cc2152582319d78d8af147e21113a09d9424f615c65f5bec",
+      "tools/research/p4d_aerial_sun_observer.cs": "d9f0d98453e7c43a8c5a16c28eb1d704a43fbfe693c09ee0aff2ff65f82ea0b4",
+      "tools/research/p4d_aerial_sun_observer.csproj": "da91b7542bba429cb70ccf5ff87668b045f85190d5b22eda31b8eb724fff6659"
+    },
+    "apiReferences": [
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_AbstractViewTableRecord_SunId.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Xrecord.html"
+    ],
+    "validation": "PASS: both exact input files exist and match their recorded SHA-256. Syntax-only .NET 10 build against hand-written API stubs passed with zero warnings; stubs do not verify AutoCAD SDK compatibility.",
+    "limits": "Not built against Autodesk assemblies and not executed in AutoCAD. AutoCAD may repair, normalize or renumber objects on open. Unchanged file hashes and DBMOD=0 are required; native graph, rendering and close/reopen qualification remain pending. No sample drawing committed.",
+    "next": "After host intake, review and build only on the matching AutoCAD 2024 Windows profile, run on both exact files, then compare native ownership, references, XRECORD typed data and warnings with source evidence before any output mapping."
+  }
+}

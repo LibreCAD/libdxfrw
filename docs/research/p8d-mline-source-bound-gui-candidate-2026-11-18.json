@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-mline-source-bound-gui-candidate-2026-11-18",
+  "date": "2026-11-18",
+  "status": "CANDIDATE_VERIFIED_GUI_NOT_RUN",
+  "supportClaimEffect": "none",
+  "source": {
+    "repository": "LibreDWG",
+    "repositoryHead": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "path": "/Users/dli/dev/libredwg/test/test-data/2004/Multiline.dwg",
+    "gitBlob": "81dc671a57dab755de5584fc607f445f21dfc244",
+    "sha256": "4b0aa7336fbf71491653fdcf3f8fa58d325817fa1997987e4896275d5392f544",
+    "version": "AC1018",
+    "currentCheck": "Git blob and SHA-256 match the existing repository file; that path has no tracked modifications.",
+    "semanticReceipt": "docs/research/p6-ac1018-mline-bylayer-output-peer-roundtrip-2026-11-16.json",
+    "priorEvidence": "The prior source-bound semantic verifier reported 76/76 checks against the paired AutoCAD VLA dump and LibreDWG; selected ASCII/Binary output and typed readback passed, with rollback/retry. This is one bounded profile."
+  },
+  "guiCandidate": {
+    "asciiPath": "/private/tmp/p8d-mline-fe603f3e-20261118/libdxfrw-mline-ac1018-ascii.dxf",
+    "asciiSha256": "dd7b814c5314bebddb19c9e2f9ea02afc551dd361a7b5e4f892e0b56cab360b9",
+    "binaryPath": "/private/tmp/p8d-mline-fe603f3e-20261118/libdxfrw-mline-ac1018-binary.dxf",
+    "binarySha256": "6aa63d331b627c32f38aaf6ecac6e8e862dbc4d7370b033df798e001512af750",
+    "currentCheck": "With worktree HEAD fe603f3ee8d5d191693667ff4bdc25b41635a6b3, the existing libdxfrw_dwg2dxf_adapter_tests executable SHA-256 b8cbc65472cac2978b8a24add3e867c4f8bc6079a619e2582c9f46dba55cd510 ran --mline-ac1018-selected-output with the pinned source and this fresh scratch directory. The tracked worktree was observed clean immediately after that test; it was not observed throughout the earlier incremental build, which followed temporary diagnostics. Binary provenance is therefore uncertain. ASCII/Binary selected output and fresh typed readback, destination rollback and same-writer retry passed. Both resulting SHA-256 values equal the prior receipt's output hashes; directories are traversable and files readable by the local user. This does not establish GUI sandbox access.",
+    "currentRunLogSha256": "8430a42a727da44e0fc131beb0c2ca599b9e73db2521cd731b041fb886a2a4da",
+    "asciiStructure": "AC1018 DXF; one MLINE with six vertices, two lines and top justification in ENTITIES; one STANDARD MLINESTYLE with offsets +0.5 and -0.5 in the later OBJECTS section.",
+    "provenanceLimit": "The preceding independent semantic receipt was produced on libdxfrw head 5bc16025ec99f7c3bdd3119262cbe1f823dd4366; these newly generated outputs are byte-identical and have fresh local typed readback, but their adapter binary's source provenance is unverified and no application GUI qualification exists. Rebuild the adapter from an isolated clean current candidate, bind its executable hash and rerun the selected-output test before consumer qualification. Preserve prior outputs and perform edits/saves on fresh scratch copies."
+  },
+  "applicationBoundary": {
+    "bundle": "/Users/dli/dev/LibreCAD/LibreCAD.app",
+    "executableSha256": "62dad9c55f4bbcd5fdb11e46ca789914bc36f174044d54e8a710207b6cce73cc",
+    "workspaceHead": "078aac8922874eddd7fa46590b5f306e3aee6423",
+    "workspaceState": "The local LibreCAD worktree has tracked modifications including its DXFRW filter. The app executable timestamp is 2026-07-15 and the filter source timestamp is 2026-11-01; build provenance tying this app to that source has not been established.",
+    "display": "No GUI preflight was repeated; the last documented active-display capture failed. File permissions and a bundle path do not establish a usable GUI session or actual file access.",
+    "sourceLevelHypothesis": "The local modified filter's addMLine looks up a style cache populated by addMLineStyle and falls back to centered offsets when the style is unavailable. The candidate's MLINE precedes MLINESTYLE on disk. For top justification the known +0.5/-0.5 offsets imply effective offsets 0/-1, versus fallback -0.5/+0.5. Verify callback order, geometry, display, and save/reopen in the exact tested app before treating this as a defect; the observed app binary is not bound to this source."
+  },
+  "scratchLibreDwgScreen": {
+    "source": "The exact locally created scratch MLINE DXF from docs/research/p6-h-scratch-mline-source-attempt-2026-11-17.json; SHA-256 6fede7d730a2de2189b9749591e090f8e3cc22830d6efaa9f8d6e80da343ebb1.",
+    "tool": "LibreDWG 0.14 dxf2dwg SHA-256 d8d27fed5519b67b977170093f3e3d2cd2aeae086ba2db75b5ded2faf2ec31e8; dwgread SHA-256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff.",
+    "command": "dxf2dwg --as r2004 -y -o <scratch-output.dwg> <scratch-input.dxf>; dwgread -O minJSON -o <scratch-output.json> <scratch-output.dwg>.",
+    "output": "Conversion returned 0; output magic AC1018 and SHA-256 cc3b71c87d55ce99c141a660f1fb2efa5a2664a1d8afd0ba0a6f9f2459abc154. LibreDWG's own minJSON shows one MLINE, positions (0,0,0) and (20,0,0), two lines and style offsets +0.5/-0.5, as in the scratch DXF; this is not an independent producer/reader comparison.",
+    "libdxfrwRead": "The unmodified generated file is refused at file-header integrity (BAD_READ_FILE_HEADER/5): physical bytes 0xEC..0xFF are b9729d492c807ec599d5e980b2eac9cc53bf67d6, rather than the ODA v5.4.1 section 4.1 header magic. A separate scratch diagnostic copy replacing only those 20 bytes with f8466a0496730ed9162f6768d4f74a4ad0576876, SHA-256 6fdb9cad66aa768465322909e4fe3d3781028f13f71c3b3b25a8890b0195f6ce, then reaches BAD_READ_TABLES/9 because STYLE control is absent. The source and original output were not modified.",
+    "limit": "The repaired derivative is diagnostic only, not a producer witness or qualification. Neither generated drawing is committed. Do not relax header or table checks from this result."
+  },
+  "nextGuiProcedure": [
+    "After an active display and successful screen capture are available, bind the tested LibreCAD build, libdxfrw linkage, version, and executable hash.",
+    "On current-candidate regenerated ASCII output, open a scratch copy; inspect both parallel elements and compare positions and style with the source-bound six-vertex/two-element control, including top justification and the source's nontrivial miters.",
+    "Edit and save to a separate scratch file, reopen it, and compare the geometry and style/identity with an independent reader. Retain the source, output and application hashes and record any callback/order discrepancy.",
+    "Repeat binary input only if that is an intended qualified consumer profile; keep each result separate."
+  ],
+  "gateEffect": "The prior source-bound selected MLINE output is an alternative P8-D GUI input and reduces dependency on an ODA launch for that bounded consumer experiment. It does not close P6-H, which still requires the specified scratch-source/converter witness, or P8-D, which requires actual GUI execution and native readback.",
+  "fixturePolicy": "All source and generated drawings remain outside libdxfrw; none is added or committed."
+}

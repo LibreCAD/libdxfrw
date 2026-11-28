@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-image-incomplete-dxf-boundary-copy-guard-2026-11-03",
+  "date": "2026-11-03",
+  "title": "Preserve incomplete imported IMAGE boundary state through callbacks and copies",
+  "supportClaimEffect": "none",
+  "reference": {
+    "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3A2FF847-BE14-4AC5-9BD4-BD3DCAEF2281.htm",
+    "finding": "IMAGE group 91 counts boundary vertices; rectangle uses two corners, polygon at least three vertices, and the reference lists default rectangle corners."
+  },
+  "problem": "The tolerant DXF reader could publish an IMAGE with a declared vertex count different from the parsed vertices. IMAGE copy/assignment reset parser state, allowing the writer to silently serialize a different boundary.",
+  "implementation": "At the IMAGE DXF callback boundary, mark an unambiguous declared-count mismatch, incomplete vertex, or explicit boundary-type/cardinality contradiction using an existing negative count sentinel. Input callbacks remain tolerant. IMAGE copy and assignment retain this incomplete marker; output refuses it until the caller explicitly accepts a repaired boundary, after which normal validation still applies. There are no new object members or virtuals.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "selector": "build-gcc/libdxfrw_dxf_fixture_tests --image-adjustment-admission",
+    "result": "PASS",
+    "scope": "Generated ASCII/Binary DXF controls independently exercise a declared-count mismatch, explicit rectangle/cardinality contradiction, and unfinished vertex. Tolerant import delivers callbacks, the marker survives multiple copies, output preserves the destination on refusal, and an explicitly corrected same-writer retry gives typed readback. Separate source controls retain omitted default cases and a missing group-71 case with two supplied vertices."
+  },
+  "limitations": [
+    "Clients compiled with an older inline IMAGE copy implementation may still discard the marker; protection requires recompilation against the new header.",
+    "Missing group 71 without another unambiguous contradiction remains tolerated; its producer semantics are not established.",
+    "Explicit correction is caller-owned and does not prove original geometry, native clipping behavior, or whole-document graph closure.",
+    "No DWG/DXF fixture was added."
+  ]
+}

@@ -1,0 +1,117 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7b158a14a..a3bd35cc9 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -161,8 +161,8 @@ set (SHARED_INCLUDES
+      ${Boost_INCLUDE_DIRS}
+      libraries/jwwlib/src
+      libraries/lciconengine
+-     libraries/libdxfrw/src
+-     libraries/libdxfrw/src/intern
++     /private/tmp/libdxfrw-p8f-05e7-shared-install/include/libdxfrw
++     /private/tmp/libdxfrw-p8f-05e7-shared-install/include/libdxfrw/intern
+      libraries/muparser/include
+      libraries/shapelib/src
+      librecad/res/arrows
+@@ -416,7 +416,6 @@ set (SHARED_SOURCES
+      libraries/shapelib/src/shapefil.h
+      libraries/shapelib/src/shapefil_private.h
+      libraries/shapelib/src/shpopen.cpp
+-    ${LIBDXFRW_ALL_FILES}
+      librecad/src/actions/dock_widgets/block/rs_actionblocksadd.cpp
+      librecad/src/actions/dock_widgets/block/rs_actionblocksadd.h
+      librecad/src/actions/dock_widgets/block/rs_actionblocksattributes.cpp
+@@ -2315,6 +2314,8 @@ target_link_libraries (librecad_lib PRIVATE
+                        LibreCAD::OpenType
+                        Qt6::Core Qt6::Widgets Qt6::Gui Qt6::PrintSupport Qt6::Svg Qt6::Network
+ )
++find_package(libdxfrw 3.0 CONFIG REQUIRED PATHS /private/tmp/libdxfrw-p8f-05e7-shared-install/lib/cmake/libdxfrw NO_DEFAULT_PATH)
++target_link_libraries(librecad_lib PUBLIC libdxfrw::libdxfrw)
+ set_property (TARGET librecad_lib PROPERTY AUTOUIC_OPTIONS --connections string)
+
+ # Filter work otherwise pulls the complete application library into a compile
+@@ -2331,7 +2332,7 @@ set_target_properties(librecad_filter_compile_check PROPERTIES
+ target_include_directories(librecad_filter_compile_check PRIVATE
+     ${SHARED_INCLUDES}
+ )
+-target_link_libraries(librecad_filter_compile_check PRIVATE
++target_link_libraries(librecad_filter_compile_check PRIVATE libdxfrw::libdxfrw
+     Qt6::Core Qt6::Widgets Qt6::Gui Qt6::PrintSupport Qt6::Svg Qt6::Network
+ )
+ target_compile_features(librecad_filter_compile_check PRIVATE cxx_std_17)
+diff --git a/librecad/src/lib/filters/rs_filterjww.cpp b/librecad/src/lib/filters/rs_filterjww.cpp
+index ec07aae34..70f77c353 100644
+--- a/librecad/src/lib/filters/rs_filterjww.cpp
++++ b/librecad/src/lib/filters/rs_filterjww.cpp
+@@ -32,7 +32,10 @@
+ #include "dl_attributes.h"
+ #include "dl_codes.h"
+ #include "dl_writer_ascii.h"
++#include "drw_base.h"
++#ifndef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
+ #include "intern/drw_textcodec.h"
++#endif
+ #include "lc_containertraverser.h"
+ #include "rs_arc.h"
+ #include "rs_block.h"
+@@ -90,10 +93,17 @@ QChar toJisSymbol(QChar c) {
+  * 0x5C (95 5C is U+8868): that byte is not a backslash.
+  */
+ QString fromJwwString(const std::string& text) {
++#ifdef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
++    DRW_LegacyCodePageDecoder shiftJis(932);
++    const auto decode = [&shiftJis](const std::string_view run) {
++        return QString::fromStdString(shiftJis.toUtf8(run).value());
++    };
++#else
+     DRW_Conv932Table shiftJis;
+     const auto decode = [&shiftJis](const std::string_view run) {
+         return QString::fromStdString(shiftJis.toUtf8(run));
+     };
++#endif
+     QString res;
+     std::size_t runStart = 0;
+     for (std::size_t i = 0; i < text.size(); ++i) {
+diff --git a/librecad/src/lib/filters/rs_filtershp.cpp b/librecad/src/lib/filters/rs_filtershp.cpp
+index 464e00fe4..1912c18c5 100644
+--- a/librecad/src/lib/filters/rs_filtershp.cpp
++++ b/librecad/src/lib/filters/rs_filtershp.cpp
+@@ -41,7 +41,10 @@
+
+ #include "shapefil.h"
+
++#include "drw_base.h"
++#ifndef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
+ #include "intern/drw_textcodec.h"
++#endif
+ #include "lc_colornumbers.h"
+ #include "lc_linetypenames.h"
+ #include "rs_color.h"
+@@ -231,17 +234,27 @@ int windowsCodePage(const QString& codepage) {
+ // character, and a single-byte one byte by byte: a dropped byte stays as
+ // ISO-8859-1 has it.
+ std::optional<QString> decodeCodePage(const QByteArray& bytes, int codePage) {
++#ifdef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
++    DRW_LegacyCodePageDecoder codec(codePage);
++    if (!codec.supported()) return std::nullopt;
++#else
+     const std::string name = "ANSI_" + std::to_string(codePage);
+     DRW_TextCodec codec;
+     codec.setCodePage(name, false);
+     if (codec.getCodePage() != name) return std::nullopt; // no table for it
++#endif
+     const bool twoByte = codePage >= 932 && codePage <= 950;
+     std::string utf8;
+     for (qsizetype start = 0, end = 0; start < bytes.size(); start = end) {
+         end = twoByte ? bytes.indexOf('\\', start) + 1 : start + 1;
+         if (end == 0) end = bytes.size();
++#ifdef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
++        const std::string part = codec.toUtf8(
++            {bytes.constData() + start, static_cast<std::size_t>(end - start)}).value();
++#else
+         const std::string part = codec.toUtf8(
+             {bytes.constData() + start, static_cast<std::size_t>(end - start)});
++#endif
+         utf8 += part.empty() ? QString(QLatin1Char(bytes[start])).toStdString()
+                              : part;
+     }

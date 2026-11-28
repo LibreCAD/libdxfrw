@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-associative-network-dxf-writer-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative network DXF record writer slice",
+  "status": "LOCAL_AC1024_ASSOCIATIVE_NETWORK_RECORD_WRITER_VERIFIED_GRAPH_ROUTING_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "905b1385",
+  "scope": "Add a source-bound DXF record writer for the independently witnessed AC1024 ACDBASSOCNETWORK profile. This is a record primitive only: do not route it through the complete DWG-to-DXF graph or relax the existing strict graph refusal.",
+  "sourceProfile": {
+    "record": "ACDBASSOCNETWORK",
+    "version": "AC1024",
+    "sourcePath": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "sourceSha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "handleDecimal": 2493,
+    "handleHex": "9BD",
+    "ownerHandleHex": "9BC",
+    "reactorHandlesHex": ["9BC"],
+    "actionPrefix": {
+      "classVersion": 1,
+      "geometryStatus": 0,
+      "owningNetworkHandleHex": "6E9",
+      "actionBodyHandle": 0,
+      "actionIndex": 4,
+      "maxDependencyIndex": 0,
+      "dependencyCount": 0
+    },
+    "networkPrefix": {
+      "networkVersion": 0,
+      "networkActionIndex": 3,
+      "actions": [
+        {"handleHex": "9AE", "isOwned": true},
+        {"handleHex": "9AD", "isOwned": true},
+        {"handleHex": "9BA", "isOwned": true}
+      ],
+      "ownedActionCount": 0
+    }
+  },
+  "independentWitness": {
+    "repository": "../libredwg",
+    "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "tool": "/opt/homebrew/bin/dwg2dxf",
+    "version": "0.14",
+    "projectionPath": "/private/tmp/civil-assoc-dependency.json",
+    "projectionSha256": "ef33f2eb73fbf0f9f74d0a4b99d63b347fb01554e788be71d02989688774c5de",
+    "outputPath": "/private/tmp/libredwg-assoc-civil-0.14.dxf",
+    "outputSha256": "b19a6c760c6539e5e0b768125c4bfbf710a8e323f158b53b314d2556d3d30855",
+    "observed": "The handle-2493 AC1024 source object and peer DXF agree on the owner, reactor, AcDbAssocAction fields, distinct base/network indexes, three owned action references, and empty additional-owned-action list. The peer DXF encodes those action references as group 360."
+  },
+  "implementationBrief": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "writerProfile": "AC1024 ACDBASSOCNETWORK; require complete AcDbAssocAction and AcDbAssocNetwork prefix statuses; require the witnessed class/network versions, null action body and empty dependency, parameter and additional-owned-action portions; retain owner, reactors and extdata; remap self, owner, owning-network, reactor and action handles; select group 360 for owned actions and 330 for soft actions.",
+    "profileLimits": "This exact source-backed record profile rejects generic APPDATA, extension-dictionary handles, nonzero action-body handles, nonzero network version, dependency/value-parameter bodies and additional owned-action lists until their field/reference roles are independently qualified. It does not claim graph closure or adapter routing.",
+    "transaction": "Use RecordStateScope and DxfWriterRecordScope. Late failure must leave no record bytes or identity binding; a corrected retry on the same object must succeed.",
+    "focusedSelector": "--associative-network-writer",
+    "focusedCtest": "libdxfrw_associative_network_writer",
+    "build": "cmake --build build --target libdxfrw_wave1_tests -j 4",
+    "validation": "Generated in-memory ASCII and Binary numeric-wire projections for the independent source record with remapped self/owner/reactor/network/action handles; exercise owned and soft action handle codes, incomplete and unsupported profiles, unresolved-reference rollback, late EED failure and corrected retry. Keep the strict whole-graph export refusal active.",
+    "fixturePolicy": "No external DWG or DXF fixture files; generate test records in memory."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Added writeAssociativeNetwork as a direct AC1024-only record primitive. It requires both completed parsed-prefix statuses, binds and remaps the source identity transactionally, emits reactor/owner/base-action/network fields in source order, maps action ownership to group 330/360, and retains XDATA. It is not routed through dx_iface or whole-document output.",
+    "generatedCoverage": "In-memory source-matched handle-2493 projection in ASCII and Binary with remapped self/owner/reactor/network/action identities; all-owned source action list plus a mixed ownership check; extended data; unsupported versions and incomplete profiles; unresolved reactor, owning-network and action references each roll back identity and bytes; late malformed EED rollback and corrected same-object retry.",
+    "strictExport": "No adapter route was enabled; complete-document associative export remains refused."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target libdxfrw_wave1_tests -j 4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "normalFocusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_associative_network_writer|libdxfrw_associative_dependency_writer|libdxfrw_dxf_objects_write_inspection)$' --output-on-failure",
+      "result": "PASS 3/3; 0.52 seconds total."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_wave1_tests -j 4",
+      "result": "PASS."
+    },
+    "asanFocusedCtest": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_network_writer$' --output-on-failure",
+      "result": "PASS 1/1; 0.72 seconds."
+    },
+    "physicalSourceStrictGate": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/civil_example-imperial.dwg -y -d -v2010 /private/tmp/libdxfrw-p4-assoc-network-writer-check.dxf",
+      "exitCode": 1,
+      "outputPublished": false,
+      "logPath": "/private/tmp/libdxfrw-p4-assoc-network-writer-check.log",
+      "logSha256": "070c1fe05ec8c6c7855ceca40d2734b5f59755378a78ae22f2db227caaedce7a",
+      "result": "Expected dwg-associative-graph-not-serialized refusal remains active; no DXF was published."
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT_RUN"
+  },
+  "remainingP4Scope": "Integrate the dependency and network record writers into an admitted associative graph planner; establish source/planned/emitted identity, emit audited constraint nodes, close required descendants, verify staged output independently and by readback, and retain whole-graph refusal until closure is proven.",
+  "nextAction": "Route the existing AC1024 dependency and new network record writers through the source-bound graph planner. Keep full-document refusal active until required descendants are closed and staged output is independently inspected and read back.",
+  "sourceHashesSha256": {
+    "CMakeLists.txt": "50352652433732e4942cbbe574041c4d5aebc690159c83da2e0acdbd78f702d5",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "580563245fe3a8d6e132a0fbc63d94f4dddd188297250cf8bffcface6d149fc4",
+    "src/libdxfrw.cpp": "4fa40151e04a6a241472001babaafc17144a8e12a48ba9187e37fc7e8dcb966c",
+    "src/libdxfrw.h": "8a55b1bf83f4ef5da684fef650137fad6ed9d5cae7373b615a5361f49a42e3d7",
+    "tests/wave1_tests.cpp": "d0f45223cb45494c47bf5a4d134fd248257e338163f1173351878d182a8309d1",
+    "build/libdxfrw_wave1_tests": "c099b85c7b7fe66b83b938a369e43f70cc308a5dee333b9ec5a8548597bf6b46",
+    "build-asan-custom/libdxfrw_wave1_tests": "29c203ab02b490cbb79e5eeee59fdf535d2086d9d46e1331e9ee07e3654e2e84",
+    "build/dwg2dxf/dwg2dxf": "8ef90eb29050e59e18183f686903eb278a5b0c5109dbe3eaf37279497202ef0d"
+  },
+  "supportClaimEffectReason": "An exact local record serializer and independent field projection do not establish complete associative graph conversion, consumer semantics or support qualification."
+}

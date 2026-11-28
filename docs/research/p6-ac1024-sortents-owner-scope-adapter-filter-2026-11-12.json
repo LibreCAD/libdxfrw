@@ -1,0 +1,48 @@
+{
+  "title": "AC1024 SORTENTSTABLE owner-domain adapter filter",
+  "date": "2026-11-12",
+  "scope": "One hash-bound AC1024 architectural DWG source and the adapter's ASCII/Binary partial-output path; no producer-wide or format-support claim.",
+  "authority": {
+    "source": "Autodesk AutoCAD DXF Reference — SORTENTSTABLE",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm",
+    "rule": "Group code 330 owner is currently only *MODEL_SPACE or *PAPER_SPACE."
+  },
+  "input": {
+    "path": "tests/samples/AC1024/title_block-arch.dwg (local, uncommitted sample)",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "source_profile": "AC1024; 501/501 observed frames published; zero entity/object parse failures; four captured SORTENTSTABLE records.",
+    "prior_receipt": "docs/research/p4-ac1024-sortents-owner-scope-qualification-2026-11-01.json"
+  },
+  "records": [
+    { "table": "0x00F3", "owner": "*Model_Space", "result": "projected and qualified" },
+    { "table": "0x106A", "owner": "*U3", "result": "retained in source data; not projected" },
+    { "table": "0x111C", "owner": "Title_Block-ARCH", "result": "retained in source data; not projected" },
+    { "table": "0x121D", "owner": "*U6", "result": "retained in source data; not projected" }
+  ],
+  "implementation": {
+    "adapter": "Before SORTENTSTABLE owner dictionary closure and emission planning, accept output projection only for model-space or paper-space BLOCK_RECORD owners; named-block source records remain captured but all ACAD_SORTENTS dictionary entries are removed. Other extension-dictionary entries are preserved through a sanitized copy; an empty projected dictionary and its owner link are omitted.",
+    "writer": "dxfRW::writeSortEntsTable rejects remapped group-330 owners outside the two documented space BLOCK_RECORD handles.",
+    "snapshot": "DWG source/output proof now validates the emitted eligible subset rather than requiring every captured table to have an output row."
+  },
+  "validation": {
+    "physical_selector": "build/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-owner-scope-qualification tests/samples/AC1024/title_block-arch.dwg: PASS for ASCII and Binary",
+    "physical_assertions": "Both encodings publish partial output; only the 0x00F3 Model Space table is marked output-qualified; the three named-block tables remain unqualified. Fresh readback confirms only the eligible SORTENTSTABLE exists and every retained BLOCK_RECORD extension-dictionary handle resolves without an orphaned named-block ACAD_SORTENTS entry.",
+    "generated_transaction_selector": "ctest --test-dir build -R '^libdxfrw_sortents_objects_allocation$' --output-on-failure: 1/1 PASS",
+    "generated_controls": "ASCII/Binary invalid-owner destination preservation and same-writer retry, plus Model/Paper Space owner and target readback, pass.",
+    "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_sortents_objects_allocation_tests -j4: PASS"
+  },
+  "limitations": [
+    "The physical test is a single source-bound partial-output result and does not establish whole-file output or producer-wide owner behavior.",
+    "Named-block SORTENTSTABLE records and their extension graphs are omitted from DXF output; they remain unsupported.",
+    "The input DWG is local and uncommitted. No new DWG/DXF fixture was created or committed.",
+    "No support claim is promoted."
+  ],
+  "artifact_sha256": {
+    "src/libdxfrw.cpp": "9e04ff7b10f4cd798fec8275bd020f2533d02bac790e9c59c9b9a6ab872241fe",
+    "dwg2dxf/dx_iface.cpp": "5d1caa48667349dea9e7bf094aaf1069d5c61d2f7c09ede2d98d3ea1059faa55",
+    "dwg2dxf/dx_iface.h": "1e6860a671329a8f6c56780acd6f0a832b111df9f1371692acf0e358051e54fa",
+    "tests/sortents_objects_allocation_tests.cpp": "8c0e3abee3cf355b7f466e664f08915a035f710431a6e24ad93375042d11907b",
+    "tests/dwg2dxf_adapter_tests.cpp": "8188a418fa1f1985d617c32dba40bad26917103d36e57427e42566a79ef9ba2c",
+    "tests/CMakeLists.txt": "f76f52c2cd2100890e78f7a88f91b0e6b53f2c07d753b6a191dbb2ffd8db878a"
+  }
+}

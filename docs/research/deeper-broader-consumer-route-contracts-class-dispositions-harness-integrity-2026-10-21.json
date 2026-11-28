@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Consumer-route contracts, open-source class dispositions, and harness integrity",
+  "mode": "Deeper/broader primary-source research and plan refinement",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "worktreeState": "Broadly modified and uncommitted; no files staged. Preserve unrelated user changes.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par144-block-record-layout-link-byte-backed-fast-slice-2026-10-21.json",
+      "docs/research/deeper-broader-consumer-route-contracts-class-dispositions-harness-integrity-2026-10-21.json"
+    ],
+    "change": "Refined existing consumer, semantic, peer-admission, and security-test gates from upstream documentation. Corrected the PAR-144 progress summary and receipt to match the current generated six-version test: real emitted child frames, serialized owner/self references, BLOCK_RECORD endpoint/list closure, AC1015 nolinks=1, frame CRC/adjacency, and following sentinel. No source or fixture was changed by this research pass.",
+    "validation": {
+      "researchTestsRun": false,
+      "planDiffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "receiptJsonValidation": "PASS: jq -e . on this receipt and the updated PAR-144 implementation receipt",
+      "existingPar144FocusedResult": "Latest current-worktree verification after adding two-layout viewport-frame closure: strict target build PASS; dwg_block_record_layout_association and dwg_layout_compound_insert_owner_roundtrip PASS 2/2 in 0.32 sec. The research pass itself did not rerun tests. No full suite run."
+    }
+  },
+  "sources": [
+    {
+      "project": "FreeCAD documentation",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py"
+      ],
+      "observation": "The documented built-in C++ and optional legacy Python DXF importers have different entity lists; 3DFACE appears in the legacy list but not the documented C++ list. The documentation says embedded ACIS/SAT solids cannot currently be read. DWG import is converter-to-DXF followed by the selected DXF importer, and converter identity may be LibreDWG, ODA, or QCAD.",
+      "evidenceCeiling": "Upstream documentation/source establishes route design and documented scope, not current local FreeCAD runtime behavior or libdxfrw correctness.",
+      "disposition": "For native qualification pin converter, importer backend/build, output DXF version and diagnostics. Do not use FreeCAD importer as an ACIS semantic oracle."
+    },
+    {
+      "project": "LibreCAD 3",
+      "references": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "observation": "The project documents DWG reading behind WITH_DWG_IMPORT, off by default, through libdxfrw dwgRW; it says DWG writing is not implemented/exposed and is not planned until independent evidence and project decisions reopen the option.",
+      "evidenceCeiling": "Consumer project policy/documentation on mutable master, not an implementation test or 3D semantic claim for this local checkout.",
+      "disposition": "Keep the LibreCAD 3 consumer target read/import-directional; do not make DWG writing part of its compatibility requirement or infer 3D display/edit semantics from dwgRW."
+    },
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "observation": "The manual distinguishes stable, unstable, debugging, and unhandled classes. Some unsupported class payloads are emitted as UNKNOWN records or downgraded to PLACEHOLDER/DUMMY/POINT, and some raw unknown bits survive only same-version rewrites. Project build flags can omit or enable unstable/unknown-object behavior.",
+      "evidenceCeiling": "Maintainer-authored mutable manual and build documentation; not independent normative format evidence and not a local reproduction.",
+      "disposition": "Pin source/binary/configuration and record raw carrier, typed parsing, graphics, and output disposition separately. Restrict peer field comparisons to an explicitly admitted class/configuration subset."
+    },
+    {
+      "project": "LibreDWG fuzz setup",
+      "references": [
+        "https://github.com/LibreDWG/libredwg-fuzz",
+        "https://github.com/LibreDWG/libredwg/issues/1270"
+      ],
+      "observation": "The fuzz setup separates target modes and crash/hang/leak regression replay. Issue #1270 reports a test-harness double-free for a specific 0.13.4.8229 build and says it inflated sanitizer/fuzzer crash counts; it is a version-specific historical harness report.",
+      "evidenceCeiling": "Project fuzz workflow plus one historical issue report; neither establishes a current LibreDWG defect or any libdxfrw defect.",
+      "disposition": "Keep fuzzing optional/timeboxed at a composed security checkpoint. Pin the harness/mode, sanity-check it under sanitizers, distinguish harness from library crashes, and replay existing crash regressions. No new fuzzer dependency is proposed."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "localApplicability": "Refines PAR-07/S8, PAR-14, PAR-49, PAR-59, PAR-06/PAR-132, and PAR-144. Consumer backend selection, ACIS semantics, peer class coverage, and fuzzer harness health remain separate evidence dimensions.",
+    "mutableSourcesMustBePinnedBeforeQualification": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRunInResearchPass": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false,
+    "fuzzCampaignRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

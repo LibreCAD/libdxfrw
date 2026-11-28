@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "upstreamLibdxfrwCommit": "4279a90377f3c4c158229980f4e6c9c94342e55f",
+  "upstreamArchiveSha256": "719521dae87b5da63ab9bc2fb68cd2cfe70172ba30027d1f35a40428fc6e5224",
+  "patch": "docs/patches/librecad-p8-installed-codec-helper-compat-2026-11-15.patch",
+  "patchSha256": "6580479a0bcc86d7503d2c4ed178796aaee78270beb5c32c92f433c0263ac88b",
+  "problem": "A clean installed-upstream CMake overlay built the LibreCAD application but default all failed: the standalone JSON helper directly included an uninstalled private debug header, and the DWG corpus helper called object/proxy counters on the narrower dwgR facade.",
+  "change": "The JSON helper configures verbose tracing via the existing public reader setDebug API, retaining nonverbose behavior and the existing two-argument dump function via a default argument. The DWG helper uses dwgRW, whose read implementation is also used by the dwgR facade and which exposes the counters.",
+  "validation": [
+    "The clean installed-upstream overlay default all build passed after these changes, including the application and both helpers. This CMake overlay is a temporary qualification setup, not yet an integrated consumer build option.",
+    "Both helper targets also compiled and linked against the older bundled codec.",
+    "For each codec the JSON helper read a tracked AC1021 DWG and a locally generated DXF with and without -v: all JSON parsed and each same-codec pair was byte-identical; debug output was emitted on stderr only for -v.",
+    "For each codec dwg_tarch_test read a scratch copy of the workspace-local AC1021 lineweights DWG and passed (one file; zero object parse failures and proxy primitives). Nonzero counter forwarding is not demonstrated by that fixture.",
+    "Patch forward and reverse checks passed after the preceding 14 patches; no generated fixture is committed."
+  ],
+  "limits": "This covers the native macOS application/helper build and two narrow helper inputs, not GUI, Windows/Linux, all diagnostic counters or semantic DWG/DXF parity. Consumer patches are unmerged. The clean application still refuses the AC1024 title-block conversion on documented representation gates; see the separate pending investigation. No support claim or phase gate is promoted."
+}

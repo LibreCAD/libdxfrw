@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-04",
+  "status": "ADVISORY_CONVERTER_OBSERVATION_NOT_SEMANTIC_QUALIFICATION",
+  "supportClaimEffect": "none",
+  "scope": "Observe the exact three source-associated AC1027 AcDs SAB payloads through a separately implemented cq-acis parser and CadQuery/OCCT converter. Association and byte identity with an ODA conversion were established earlier in p7-ac1027-physical-modeler-acds-sab-oda-byte-join-2026-11-03.json; this run did not independently repeat that ODA join.",
+  "input": {
+    "source": "realDragonium/dwg-verifier fixtures/libredwg/example_2013.dwg, original author/production history unknown",
+    "source_sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "extraction": "Existing libdxfrw AC1027 source probe extracted the three RECORD payloads. Current probe executable SHA-256 d0c56a4c041e7dcc1fa28deb5c0574de4f591fc66c018cbc75adff11592f18a7; each extracted payload's SHA and length match the earlier source/ODA byte-join receipt. No source DWG, DXF or SAB added to the repository.",
+    "payloads": {"176": "596d37aaf81ebe9662bd22ba199bce876403dec8da71dd3287b0255adb354782", "37D": "fabe3e9804c44472907987ea96409b30b7db35575a34688430b0157d1b6c5566", "2E1": "5ca4756434d068b932ac6e0100e5ff07eae36c7eed29a43367eeff8113cca0ec"}
+  },
+  "runtime": {
+    "python": "Homebrew CPython 3.12.16 arm64; temporary virtual environment",
+    "cq_acis": "0.3.12 official PyPI macOS ARM64 wheel SHA-256 94204f623d752e7dacf494bf631551277a985acbeb612ee3a24464ea0f0daab5; installed native module SHA-256 28456eb65642c94169b35c7ab437658f91d8208db62b6cd030c63e24035a22b2",
+    "cadquery": "2.8.0; cq_acis/cadquery.py SHA-256 3b5f4429dcb152aaca999a1d4627542eb0406a868dc03a8a5cdd8abdf262f323",
+    "kernel": "cadquery-ocp 7.9.3.1.1; OCP Python module SHA-256 827fa23f8169d10d13b91d8808dd5d3306b6f3e5af1d5b7d6ddc61ce7617299a. This is OCCT-family and is not an independent kernel vote relative to FreeCAD or CAD Assistant.",
+    "provenance_limit": "Only the cq-acis ARM64 release artifact was checked against official PyPI artifact metadata in this run; the exact full dependency artifact chain was not independently attested. Installed dependency versions are recorded in the scratch environment."
+  },
+  "observation": {
+    "all": "The parser reports ACIS BinaryFile SAB 21800/4-byte, ASM 223.0.1.1930 OSX, one body, null body-transform reference and units_mm=1.0 for each. These are parser observations; source-level transforms, unit application and placement are not independently verified.",
+    "176_REGION": "1 raw record: asmheader; conversion failed with CadQueryConversionError: shell $3: sewing produced no shell. No shape, bounds, topology, area or volume is claimed.",
+    "37D_REGION": "6 raw records: asmheader plus five persubent-acadSolidHistory-attrib records with parser references to one face and four edges. Conversion failed with CadQueryConversionError: shell $3: sewing produced no shell. No shape or geometry claim follows.",
+    "2E1_3DSOLID": {
+      "raw_records": "asmheader plus eight persubent-acadSolidHistory-attrib records, each parser-referencing a face. Their full semantics and possible impact on geometry or placement remain unverified.",
+      "converter_report": "One Solid, valid=true, 1 solid, 1 shell, 8 faces, 18 edges, 12 vertices; bounds [2229.632278886831, 13562.283472337987, 0.0, 4237.09785008781, 14169.087206813578, 4.000000000000003], area 36067.01752598919, volume 4243.178532518388, in converter-reported model units. This may follow sewing and has no independent measurement or placement oracle."
+    }
+  },
+  "cad_assistant": "The previously verified official ARM64 application was launched with extracted 2E1.sab. Its title and Recent browser showed the filename, but no imported shape or measurements were observed. An unrelated macOS Code update authentication dialog remained above part of the GUI; no credentials were entered or unrelated dialog dismissed. No CAD Assistant import or semantic conclusion is claimed.",
+  "reproduction": {
+    "probe": "tools/probe_ac1027_source_sab_cqacis.py, SHA-256 cf56884c2d712b4f21149b05c7a39647be895f157cf6589d2bb879b82e234ef0",
+    "command": "<pinned-cq-acis-python> -B tools/probe_ac1027_source_sab_cqacis.py --sab-dir <scratch-dir>",
+    "contract": "Requires all three exact payload hashes before parsing; emits separate per-handle diagnostics, raw record references and conversion outcomes. Uses bounded nonblocking regular-file admission; output always sets qualification_eligible=false. A changed payload was refused before parsing.",
+    "report_sha256": "c26826c25261b4bbbdbb1e9b56a9563ec13ecd1bb3be51dccb44c6a8dda6d818"
+  },
+  "limits": "No independent producer-native measurements, separate geometry kernel, before-repair validity, external placement, complete active-reference/history interpretation, successful REGION conversion, rendering or native FreeCAD qualification. The earlier source also has three object parse failures and an orphan DataStorage record. Do not promote any P7 support claim from these observations."
+}

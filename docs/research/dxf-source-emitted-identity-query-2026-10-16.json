@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw-dxf-source-emitted-identity-query-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "LOCAL_IMPLEMENTATION_COMPLETE_PER_SOURCE_QUERY_ONLY",
+  "scope": "Provide a finalization-time query joining one successfully written source entity to its exact emitted handle and bounded output record type/section identity; use it for the existing HATCH target publication gate.",
+  "implementation": {
+    "query": "dxfRW::dxfWriteSourceEntityHasIdentity",
+    "queryAvailableOnlyDuringFinalizeDxfWrite": true,
+    "requiresSourceMarkedWritten": true,
+    "rejectsAmbiguousSource": true,
+    "requiresExactSourceToEmittedBinding": true,
+    "requiresExactlyOneLedgerRecord": true,
+    "requiresExpectedRecordTypeAndSection": true,
+    "hatchFinalizationUsesSharedQuery": true,
+    "fieldAndTableGroup344RemainFailClosed": true,
+    "newVirtualCallback": false,
+    "consumerRebuildRequired": true
+  },
+  "generatedControls": {
+    "asciiAndBinaryCompletedWrite": true,
+    "validSourceLineMappingAcceptedDuringFinalization": true,
+    "missingSourceRejected": true,
+    "mismatchedEmittedHandleRejected": true,
+    "wrongRecordTypeRejected": true,
+    "wrongSectionRejected": true,
+    "postPublicationQueryRejected": true,
+    "asciiHatchBoundaryCli": true,
+    "binaryHatchBoundaryCli": true,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf lc3_compat_check -j4",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_wave1|dwg2dxf_named_object_callback_storage|dwg2dxf_hatch_tangents_ascii_cli|dwg2dxf_hatch_tangents_binary_cli)$' --output-on-failure",
+      "passed": 4,
+      "failed": 0
+    },
+    "finalTestOnlyRebuild": "cmake --build build --target libdxfrw_wave1_tests -j4 passed after adding the post-publication negative",
+    "focusedCtestRepeat": "all four tests passed after the final test extension",
+    "diffCheck": "passed",
+    "fullTestSuite": "not run; focused fast cadence retained",
+    "externalPeerOrNativeRun": "not run"
+  },
+  "changedFileHashes": [
+    {
+      "path": "src/libdxfrw.h",
+      "sha256": "87456fdccdc81fd80aac5d285134c9bcf15d9455d20979c9aa55027ba4e2eaa2"
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "f2f4f138183a7753622e79ceb6aa38a36f96e7587ce3e3938c1189a3acfef7e5"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "7a30f589e799c3f6b36a96853a46340451bc2c09e61eb5af821a61fa42c358e2"
+    },
+    {
+      "path": "tests/wave1_tests.cpp",
+      "sha256": "333c87a2cf449d169897981fa392d89435c60a7c3f171407bb7f2f0658170e51"
+    }
+  ],
+  "evidenceBoundary": {
+    "establishes": [
+      "one nonzero, unambiguous source entity has the requested exact mapping to one emitted code-5 record of the expected type and section during finalization",
+      "the HATCH target publisher consumes the same predicate",
+      "the predicate does not expose retained identity after publication"
+    ],
+    "doesNotEstablish": [
+      "all expected source entities participated in the inventory",
+      "reverse uniqueness of every emitted handle across all source bindings",
+      "complete owner/source-to-output graph closure",
+      "FIELD/FIELDLIST wire semantics or allowed edge target types",
+      "complete typed/raw/generated route coverage",
+      "post-write ASCII/binary readback inventory parity",
+      "independent or native semantic support"
+    ]
+  },
+  "nextReadyAction": "Compare a captured bounded writer inventory against an independent parse-back inventory of the exact staged ASCII and binary output; then consider owner/source-set completeness without enabling FIELD or TABLE export.",
+  "planImpact": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "committed": false,
+    "commitReason": "Touched source/test files contain unrelated pre-existing workspace changes."
+  }
+}

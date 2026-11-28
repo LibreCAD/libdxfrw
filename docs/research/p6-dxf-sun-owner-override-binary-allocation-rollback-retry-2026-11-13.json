@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-sun-owner-override-binary-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_AC1027_RAW_SUN_OWNER_OVERRIDE_ASCII_BINARY_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend explicit-owner raw SUN transaction coverage from ASCII output to Binary DXF output.",
+  "source": {
+    "kind": "deterministic locally-authored AC1027 ASCII DXF generated during the test",
+    "profile": "One generated VPORT table row references one typed SUN and retained raw SUN carrier with matching owner handle. The same imported source is serialized in ASCII and Binary; no fixture file is committed.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/sun_owner_override_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-sun-owner-override-binary-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "The existing dedicated owner-override allocation test now sweeps both ASCII and Binary output using separate destinations and per-codec calibration bytes.",
+    "method": "For each codec, inject std::bad_alloc at every reached allocation inside the explicit-owner raw SUN callback; verify export failure, previous destination bytes, caller raw record preservation, same-adapter retry to byte-identical codec output, and fresh typed owner readback."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_sun_owner_override_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_sun_owner_override_allocation$' --output-on-failure: PASS 1/1 in 0.30 seconds",
+    "ascii": "5/5 callback allocation failures pass rollback/retry/typed-owner-readback.",
+    "binary": "4/4 callback allocation failures pass rollback/retry/typed-owner-readback.",
+    "diffCheck": "PASS: git diff --check -- tests/sun_owner_override_allocation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/p6-dxf-sun-owner-override-binary-allocation-rollback-retry-2026-11-13.json"
+  },
+  "limitations": [
+    "Generated transaction/transport evidence only; physical producer prevalence and native SUN behavior remain unqualified.",
+    "The test uses one VPORT/SUN owner profile and does not qualify other SUN relationships or raw-carrier payload variants.",
+    "No support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "Binary allocation rollback/retry/readback for the raw SUN explicit-owner-override overload, alongside the existing ASCII sweep.",
+    "remainingP6G": "Continue auditing distinct public writer overloads, record variants, and variable-size profiles without reopening already-covered routes absent a new failure.",
+    "phaseStatusesChanged": false
+  },
+  "previousReceipt": "docs/research/p6-dxf-sun-owner-override-allocation-rollback-retry-2026-11-13.json"
+}

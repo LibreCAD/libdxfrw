@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-image-clipping-ezdxf-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "123bf6a4690ce2f1b7113bc3e517e6e54b1a5a67",
+  "reader": "ezdxf 1.4.5",
+  "scope": "One locally authored R2010 model-space IMAGE after move and replacement style edit; selected fields before audit and whole-output audit.",
+  "outputSha256": "5b1c27a9728f8ab3f1c28d0bb1af20e5f86c7ca217f866005c8b18b218441257",
+  "resultSha256": "ba936d615aedaefda54137d54f989d3cf4f317fa1efe3e10f34b33ea49b6699d",
+  "checks": [
+    "Before audit the independent reader observes the translated (11,2,3) insert, expected axes and size, flags 3, clipping 1, clip mode 1, polygon type 2 and all three expected pixel vertices; referenced IMAGEDEF and IMAGEDEF_REACTOR types exist.",
+    "The independent audit reports zero errors and three fixes: removal of invalid scratch and OBSERVE dictionary entries and an orphan paper-space block record. These repairs mean the whole output graph is not qualified."
+  ],
+  "limits": [
+    "No generated DXF fixture is committed; the output is scratch-only.",
+    "One peer and selected fields do not establish clipping rendering, correct reactor ownership, source-object identity, all graph links, or general support."
+  ]
+}

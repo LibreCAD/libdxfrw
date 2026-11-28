@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 metric FIELD repeated UpdatedDistance body-tail screen",
+  "date": "2026-11-17",
+  "phase": "P5-B source-bound carrier screen S34",
+  "supportClaimEffect": "none",
+  "scope": "Classify the exact 258-bit residual on the hash-bound AutoCAD 2007 metric FIELD records, determine whether it is sufficiently specified for a parser change, and select the next independent raw-only carrier candidate without repeating source acquisition or selected-record cursor work.",
+  "source": {
+    "path": "/private/tmp/autodesk_blocks_and_tables_metric.dwg",
+    "sizeBytes": 258848,
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "version": "AC1021",
+    "producer": "AutoCAD 2007, AppInfo version 17.0.48.0",
+    "repositoryFixture": false,
+    "sourceReceipt": "docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json"
+  },
+  "primaryAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["20.1", "20.4.76", "20.4.99"],
+    "finding": "Section 20.4.76 describes the FIELD value and repeated child-value sequence, but does not describe an additional UpdatedDistance text item or the two residual bits after the decoded children. Section 20.4.99 does not assign those bits a CadValue meaning."
+  },
+  "independentDecoder": {
+    "name": "GNU LibreDWG dwgread minJSON",
+    "version": "0.14",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "minJsonPath": "/private/tmp/autodesk_blocks_and_tables_metric.minjson",
+    "minJsonSha256": "8947d321b784a3eab81a7fe1336c19fde04f37588ce476d7546e7eef3fd42a3f"
+  },
+  "tailProbe": {
+    "baselineCommit": "014f7329",
+    "method": "Temporary local diagnostic read the remaining bounded object-data bits after the current FIELD parser had decoded the known value and child-value sequence. Diagnostic source change was removed before the baseline rebuild.",
+    "instrumentedTrace": "/private/tmp/metric-tail-s34.trace",
+    "instrumentedTraceSha256": "6c5182d75ebd2c5bf452c049622689ce9e6068844805ba79ab2bbcf9e86579fc",
+    "records": 42,
+    "lengthBits": 258,
+    "distinctPayloads": 1,
+    "recordFamilies": {
+      "AcObjProp.16.2": 23,
+      "AcObjProp": 19
+    },
+    "sample": {
+      "handle": "0x3a5be",
+      "objectFrameBits": 3366,
+      "residualBodyBitSpan": [309, 567],
+      "followingField": "0x3a5bf"
+    },
+    "payloadBitsSha256": "5d379b9ca75dc2ff2781b0100eff0ade91347d54585901f6228da88a2b8ee248",
+    "payloadPattern": {
+      "utf16leText": "UpdatedDistance",
+      "utf16CodeUnits": 15,
+      "nullTerminatorBits": "0000000000000000",
+      "unexplainedTrailingBits": "10"
+    },
+    "independentMinJsonCorrelation": "LibreDWG 0.14 minJSON identifies all 42 FIELD expressions with the UpdatedDistance property suffix. It does not expose a separate semantic tail member or physical span for these residual bits.",
+    "correlationErrors": 0
+  },
+  "baselineRecheck": {
+    "binary": "build-gcc/dwg2dxf/dwg2dxf",
+    "binarySha256": "9aa5f6bda39be8ec293e8207d97440546ee6311e1275eb6cd9d3306c4fef9279",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/autodesk_blocks_and_tables_metric.dwg -y -d -v2007 /private/tmp/p5-field-s34-recheck.dxf",
+    "exitStatus": 1,
+    "trace": "/private/tmp/p5-field-s34-recheck.trace",
+    "traceSha256": "bb53dcbb59512e6f93425c8a13844821da737c96dcd12eb1864f16a58310ce43",
+    "diagnostics": {
+      "258BitTailRecords": 42,
+      "strictFieldSerializerRefusals": 1,
+      "temporaryTailInstrumentationPresent": false,
+      "outputCreated": false
+    },
+    "result": "Baseline behavior is restored: all 42 records remain incomplete raw FIELD shells and strict conversion refuses before creating output."
+  },
+  "nextCandidate": {
+    "handle": "0x3aaf0",
+    "objectFrameBits": 3678,
+    "independentVerboseTrace": {
+      "path": "/private/tmp/autodesk_blocks_and_tables_metric-v5.trace",
+      "sha256": "63ddd4d10107303e84a826b5efb0fd63bd815ff7d1cee49880352736358fc0ea",
+      "decoder": "GNU LibreDWG dwgread 0.14",
+      "command": "dwgread -v5 -O minJSON /private/tmp/autodesk_blocks_and_tables_metric.dwg -o /dev/null",
+      "objectNumber": "3219/C93",
+      "objectMapAddress": 510624,
+      "frameSizeBytes": 461,
+      "preHandleBodyBits": 3678,
+      "stringStreamMarker": "+3677 @459.5",
+      "handleStream": "@459.6-@461.0",
+      "candidateChildCount": "3 at @23.7",
+      "firstBadChild": "child[2] has empty key at @29.5; format_flags=17302012 at @33.7; data_type=0 at @34.1",
+      "nextDecodedObject": {"objectNumber": "3220/C94", "handle": "0x3aaf1"},
+      "coordinateLimit": "These are LibreDWG-decoded object-local bit cursors and object-map coordinates, not physical compressed-file byte offsets or normative wire proof."
+    },
+    "localDiagnostic": "unsupported FIELD CadValue format flags 17302012; child value payload unsupported",
+    "localTrace": "/private/tmp/metric-tail-s34.trace",
+    "independentMinJson": "The source-bound LibreDWG minJSON record has a third child value with format_flags=17302012, type=0, and a nonzero unit field.",
+    "boundaryStatus": "S35 subsequently paired the libdxfrw and LibreDWG cursors through this child's format flags and bound the address-sorted object-map successor. Both readers agree at bit 271; the unknown flags remain semantically unsupported. See docs/research/p5-ac1021-field-cursor-agreement-and-output-boundary-2026-11-17.json."
+  },
+  "decision": {
+    "result": "TAIL_PATTERN_CLASSIFIED_BUT_SEMANTICS_UNRESOLVED",
+    "parserChange": "none",
+    "tailDisposition": "Keep all 42 records raw-only. Do not interpret UpdatedDistance as a serialized property name or treat the final 10 bits as padding, alignment, or a flag without an authoritative layout or independent physical decode.",
+    "profileScope": "The metric AutoCAD 2007 source remains the sole P5-B target. The 42 tails account for one raw-only carrier class; the remaining target candidates are the 14 child-format-flag failures, one invalid child count, and nine AcSm child-count failures recorded in S31."
+  },
+  "limits": [
+    "Repeated identical bits and correlation with the FIELD expression are source-local observations, not proof of a DWG field schema.",
+    "The independent minJSON view does not independently decode the residual tail or bind its physical span.",
+    "This slice does not qualify FIELD serialization, graph publication, strict DXF output, readback, or native evaluation.",
+    "No DWG/DXF fixture or derivative was added. No parser change was retained."
+  ],
+  "implementationReadiness": {
+    "closed": [
+      "Classify all 42 identical 258-bit residuals and verify their source-local FIELD-expression correlation.",
+      "Restore the baseline parser, rebuild dwg2dxf, and verify that strict conversion still fails closed without creating a DXF."
+    ],
+    "remaining": [
+      "Preserve all 162 FIELDLIST identities; strict output remains refused until every member has a lossless, graph-closed DXF disposition."
+    ],
+    "nextAction": "The planned FIELD 0x3aaf0 cursor follow-up and representative invalid-count checks were completed in S35. Do not repeat those scans or the 258-bit tail scan; keep P5-B waiting for authoritative carrier semantics or an independently validated lossless DXF representation."
+  }
+}

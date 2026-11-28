@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AutoCAD IMAGEDEF parent and dictionary role matrix, AC1021 through AC1032",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Compare the tracked AutoCAD SAVEAS DWG/DXF sample pairs for IMAGEDEF 0x8c4, its parent dictionary 0x8c2, and the dictionary's image entry; exercise versioned wire recognition while retaining strict output refusal.",
+  "provenance": {
+    "producerEvidence": "ACadSharp samples/sample_base/save_samples.lsp explicitly invokes AutoCAD SAVEAS for R2018, R2013, R2010 and R2007 DWGs and matching ASCII DXFs. ACadSharp history records the updated sample files in commit c30a97ce4697e649e562fbeb52057aa9f73f7744. The sample DWGs are AutoCAD-produced inputs, not ACadSharp writer outputs.",
+    "saveScriptSha256": "7cf09372fc29f8103a12a36ed57f54d2e96658e964a4b7d84ea2e4bfed07f9eb",
+    "sourceFiles": [
+      {"version":"AC1021","dwg":"samples/sample_AC1021.dwg","dwgSha256":"70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a","asciiDxfSha256":"39ebdd9a48fef7a6240a04e3b5ca6d45ba5bb30b560fb9dadf26774e1af83731"},
+      {"version":"AC1024","dwg":"samples/sample_AC1024.dwg","dwgSha256":"53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce","asciiDxfSha256":"c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372"},
+      {"version":"AC1027","dwg":"samples/sample_AC1027.dwg","dwgSha256":"4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6","asciiDxfSha256":"4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6"},
+      {"version":"AC1032","dwg":"samples/sample_AC1032.dwg","dwgSha256":"0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528","asciiDxfSha256":"c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2"}
+    ]
+  },
+  "observedGraph": {
+    "versions": ["AC1021","AC1024","AC1027","AC1032"],
+    "dictionary": "Handle 0x8c2 is a DICTIONARY owned by NOD 0xC. Its image entry targets IMAGEDEF 0x8c4 using DWG code 2 (soft ownership).",
+    "imageDefinition": "Handle 0x8c4 has parent target 0x8c2 encoded in each DWG as code 0xC, one-byte offset 2. LibreDWG 0.14 decodes the same resolved target and exposes the code/length/offset tuple [12,1,2,2242]. Its reactors resolve to 0x8c2 and IMAGEDEF_REACTOR 0x8c5.",
+    "matchingAutoCadDxf": "Each sibling ASCII DXF has DICTIONARY 0x8c2 entry `image` -> 0x8c4 using group 350 (soft owner), and IMAGEDEF 0x8c4 group 330 to 0x8c2. The reactor links are also group 330. These are matching graph relationships across four AutoCAD SAVEAS releases.",
+    "authorityConflict": "ODA v5.4.1 §2.13 says offset handle code 0xC is always a soft pointer; §20.4.81 calls IMAGEDEF parenthandle a hard owner. The physical AutoCAD cohort confirms the soft-pointer encoding and the paired DXF soft-owner graph, but does not prove object-deletion semantics or authorize relabeling the field as hard ownership."
+  },
+  "implementation": {
+    "files": ["dwg2dxf/dx_raster_dwg_wire.h","tests/raster_dwg_wire_tests.cpp"],
+    "change": "Recognize code-0xC IMAGEDEF parent observations as UnqualifiedOwnerRole for AC1021/AC1024/AC1027/AC1032, while retaining the existing AC1024 code-0x4 diagnostic profile. This lets the source correlator retain the parent target and field spans; strict DXF output still rejects the role.",
+    "sha256": {
+      "dwg2dxf/dx_raster_dwg_wire.h": "6c284e0bcc77dea4a17a1f17bdada57197ef4ef3413e6dcf1aa899d51c9a0ad4",
+      "tests/raster_dwg_wire_tests.cpp": "aab66ecbf1a35b21b117803d30273361d989563d8f12fcb3d35635ddeab8a95c"
+    },
+    "noSupportPromotion": "The change does not reinterpret code 0xC as hard ownership, change output admission, or establish native application acceptance."
+  },
+  "validation": {
+    "generatedWireControl": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_raster_dwg_independent_wire$' --output-on-failure",
+      "result": "PASS (1/1, 0.19 seconds)",
+      "executableSha256": "5eae71892d43afd693fec88cc058e4c09d3829bc3623975a03bfd55582de6688",
+      "coverage": "The generated code-0xC control now runs for AC1021, AC1024, AC1027 and AC1032, verifies target 0x11223342 and both following reactor spans, and retains malformed fixed-type and offset-underflow refusals."
+    },
+    "physicalAc1021": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1021.dwg -y -d -v2007 /private/tmp/AC1021-imagedef-role-probe.dxf",
+      "executableSha256": "85c8f1a13147b14de5e7df5b15c108a38078cb3be60c3cdee7e4d3b945443a65",
+      "result": "PASS for source read/capture with zero entity/object parse failures; strict output refuses specifically at `DWG IMAGEDEF owner role is unqualified for output`, and no output file is created."
+    },
+    "otherPhysicalVersions": {
+      "result": "LibreDWG 0.14 minJSON and the paired AutoCAD ASCII DXF show the same graph tuple in AC1024, AC1027 and AC1032. libdxfrw strict conversion remains blocked earlier by other source-wide gates on those files; no successful output or full-conversion claim is made."
+    }
+  },
+  "limits": [
+    "The source cohort is one AutoCAD drawing saved to four releases, not four independent drawings or producers.",
+    "The ODA field-role wording remains unresolved; selected output and native open/save/rewrite behavior have not been qualified.",
+    "Other strict-output gates remain on AC1024/AC1027/AC1032, and the AC1032 sample has five unrelated parse failures.",
+    "No sample or derivative was copied into this repository."
+  ],
+  "next": "Keep strict output closed. Resolve the schema/code contradiction with an eligible owner-semantics source or independent native application behavior evidence; then implement only a bounded rooted graph route with ASCII/Binary readback and atomic retry."
+}

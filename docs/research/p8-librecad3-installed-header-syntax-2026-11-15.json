@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-15",
+  "scope": "Syntax-only checks of the four actual LibreCAD_3 persistence/libdxfrw translation units against installed libdxfrw public headers.",
+  "consumerRevision": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "consumerCheckout": "Clean shallow clone; the nano-signal-slot submodule was not initialized there. Its one needed header was read from the existing checkout at its exact pinned submodule revision d4d199e5d3fdde59490ac891333af35990889558, and its working-tree blob matched that revision (08270cc62d4fbc2424133fb57004f315011acdff).",
+  "librarySource": "Installed public headers from library-bearing source as of c32a4dac; compiled library sources were unchanged through 8f896cb0.",
+  "environment": "macOS 27.2.1 ARM64, Apple clang 21.0.0, C++17; installed libdxfrw include directory, clean consumer source includes, matching nano-signal-slot header, and Homebrew Boost/Eigen includes. Used the same Clang diagnostic downgrade for the pinned nano-signal-slot template spelling that the consumer's CMake configuration applies.",
+  "results": [
+    "persistence/libdxfrw/apipins.cpp passed, including the actual adapter's enum and abstract-interface static assertions.",
+    "persistence/libdxfrw/dxfimpl.cpp passed.",
+    "persistence/libdxfrw/mtextcodec.cpp passed.",
+    "persistence/libdxfrw/preservedrecords.cpp passed.",
+    "An include trace for apipins.cpp resolves drw_base.h, drw_entities.h, drw_objects.h, drw_interface.h and libdxfrw.h from the installed public include directory."
+  ],
+  "limits": "Syntax checks do not link or execute the consumer, cover other LibreCAD_3 translation units or platforms, or establish DWG/DXF interoperability. P8-D remains open; no support claim or phase gate is promoted."
+}

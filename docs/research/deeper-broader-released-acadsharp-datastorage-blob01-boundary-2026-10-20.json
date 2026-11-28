@@ -1,0 +1,127 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Released ACadSharp DataStorage source and Blob01 evidence boundary",
+  "mode": "deeper/broader primary-source research and local plan crosswalk",
+  "scope": [
+    "Verify whether merged ACadSharp Prototype_1b/DataStorage reader work is included in the released v3.7.1 source",
+    "Trace the released high-level DataStorage-to-Blob01 payload resolver and bound its evidentiary use",
+    "Cross-check local Blob01 parser and generated fast-test coverage before proposing additional work",
+    "Reconcile current OpenCADStudio and FreeCAD route boundaries without treating them as independent ACIS evidence"
+  ],
+  "method": {
+    "webResearchPerformed": true,
+    "githubCommitComparisonPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "localCodeInspection": [
+      "src/drw_datastorage.cpp: DataStorage page-reference parsing validates declared/actual lengths, page order/count/start offsets, bounds, and exact assembled total before payload retention",
+      "tests/dwg_reader_matrix_tests.cpp::testModelerAcDsBlobPageChain: existing in-memory controls cover descriptor order differing from physical order, exact reconstruction, missing pages, duplicate ordinals, incorrect starts, and mismatched reference length",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: prior ACadSharp v3.7.1 ancestry/source uncertainty was corrected; the optional comparator boundary and no-duplicate-test decision were added"
+    ],
+    "limitations": "ACadSharp source and PR corpus observations were inspected but the peer was not built or run. Its 423-file/3,715-handle matching-hash report remains peer-authored and unreproduced. The OpenCADStudio issue's customer drawing is not public. No inference is made about an untested local physical-overlap rule for DataStorage segment extents."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Open Design Specification v5.4.1, §24.2.2.1–.4, public official PDF reviewed 2026-10-20",
+      "observed": "The specification describes the DataStorage segment-index map, DataIndex references, handle-keyed records, blob descriptors, and Blob01 page headers/lengths. It does not define ACIS topology or consumer semantics.",
+      "limits": "The public specification remains the format authority. Its §24 segment-index description does not expressly establish a general non-overlapping physical-extent rule for every stale/aliased segment entry."
+    },
+    {
+      "project": "ACadSharp PR #1154 and v3.7.1 release",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.7.1",
+        "https://github.com/DomCR/ACadSharp/compare/5d5f0f1fa1351a033e192becab73811be1eb3760...d7dc111"
+      ],
+      "revision": "PR merge commit 5d5f0f1fa1351a033e192becab73811be1eb3760; signed v3.7.1 tag d7dc111; GitHub compare status ahead, 70 commits ahead, 0 behind",
+      "observed": "The release tag descends from the merged full Prototype_1b reader. The PR author describes remaining unknown values and says mutation requires rebuilding related schema/search/index records. The PR discussion reports a corrected 423-file comparison with 3,715 referenced handles matching payload hashes.",
+      "limits": "The corpus counts and hashes are peer-reported, not independently reproduced; the release was not built or run. This source does not establish writer interoperability, B-rep validity, or native CAD acceptance."
+    },
+    {
+      "project": "ACadSharp v3.7.1 source: DwgPrototype1bReader.cs",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/blob/v3.7.1/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgPrototype1bReader.cs"
+      ],
+      "revision": "v3.7.1 tag d7dc111; fetched source blob SHA cada0879a0cd76deb95aaebc5dae3ad356b24f65",
+      "observed": "The exact release source contains the structured segment/index/data reader and its segment walk.",
+      "limits": "Static source inspection only; no runtime result or peer artifact was produced."
+    },
+    {
+      "project": "ACadSharp v3.7.1 source: DataStorage.cs",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/blob/v3.7.1/src/ACadSharp/Prototype1b/DataStorage.cs"
+      ],
+      "revision": "v3.7.1 tag d7dc111; fetched source blob SHA 66653e550d82f05226e48ec6a3848c58acca2f25",
+      "observed": "GetSchemaData joins schema-search entries to data entries by handle. ResolveDataEntry selects Blob01 segments using descriptor segment indexes, sorts them by page index, and concatenates page bytes; the descriptor tuple's per-page size is not consumed by that accessor.",
+      "limits": "This accessor behavior does not prove that all lower-level parser validations are absent, and it is not an observed incorrect output. It does mean the accessor's returned byte array alone cannot serve as evidence that descriptor page-size metadata was checked end to end."
+    },
+    {
+      "project": "OpenCADStudio issue #1896 and ACadRust lineage",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1896",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "revision": "Issue opened 2026-10-19 against OpenCADStudio 2026.42 / Windows x86_64",
+      "observed": "The issue reports an AC1027 3DSOLID record parse failure. The customer DWG is not public; OpenCADStudio and ACadRust are related codec lineage, not independent parser votes.",
+      "limits": "The issue is an unverified, peer-specific failure shape and does not demonstrate a libdxfrw defect or valid-record expectation."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "revision": "Public documentation source reviewed 2026-10-20",
+      "observed": "The documented stock DXF route says ACIS/SAT solids cannot be read; stock DWG import converts to DXF and delegates to the selected DXF importer.",
+      "limits": "This is route documentation, not Linux/Windows runtime qualification or an ACIS/AcDs semantic test."
+    }
+  ],
+  "decision": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimPromoted": false,
+    "externalGatesChanged": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "inventory": "141 findings / 78 top-level subplans",
+    "planDelta": "Verified that merged ACadSharp PR #1154 is included in signed v3.7.1 source and corrected the peer's status to an optional released structured DWG comparator. Narrowed its high-level Blob01 evidence: ResolveDataEntry orders referenced pages by ordinal and concatenates bytes but does not consume descriptor page sizes, so raw descriptor/page metadata must be independently captured for structural comparison. Local generated parser/test coverage already validates these cases; no duplicate test or code change is warranted. Physical segment extent overlap remains a conditional audit question until the normative/producer rule is established. No new support claim or external blocker."
+  },
+  "implementationReadyChecks": [
+    "If one specific local DataStorage question remains after generated controls, pin ACadSharp v3.7.1 source/package, runtime, operation, and input hash and use it once as an optional structural/association comparator.",
+    "For Blob01 comparisons, capture DataIndex row, record handle, descriptor page count and per-reference sizes, referenced segment indexes, each page's ordinal/start/count/actual length, complete byte hash, owner join, and strict parse outcome; do not use the high-level returned byte array alone as proof of metadata validity.",
+    "Reuse the existing generated Blob01 fast selector if that parser code changes; do not add a duplicate CTest or persistent external DWG/DXF fixture.",
+    "Do not reject physically overlapping segment extents without authoritative or producer evidence that disjointness is a required invariant; preserve legitimate stale-secondary-index compatibility.",
+    "Keep OpenCADStudio's issue as a same-lineage failure lead and keep stock FreeCAD import separate from ACIS/AcDs semantics.",
+    "If the optional peer or native route is not available, record NOT_QUALIFIED once and self-unblock to the next source-backed local item without waiting on external qualification."
+  ],
+  "validation": {
+    "testsRun": "None; this was a research and plan-only pass and no code/test files changed.",
+    "planDiffCheck": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-released-acadsharp-datastorage-blob01-boundary-2026-10-20.json — passed.",
+    "receiptJsonValidation": "jq empty on this receipt — passed.",
+    "commitCreated": false,
+    "commitBlocker": "No commit attempted; shared worktree contains extensive user-owned changes and Git metadata is read-only in this environment."
+  }
+}

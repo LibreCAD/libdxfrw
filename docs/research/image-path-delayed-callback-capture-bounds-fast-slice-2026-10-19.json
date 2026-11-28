@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Delayed IMAGEDEF path callback capture bounds",
+  "mode": "Generated local implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Account the filename copied from a delayed IMAGEDEF callback into every matching retained IMAGE entity",
+    "Preflight shared-reference copies against the aggregate typed-entity byte budget",
+    "Verify exact positive accounting, duplicate-definition behavior, and one-byte-short refusal"
+  ],
+  "implementation": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistrationChanged": false,
+    "budget": "TypedEntityCaptureMaxRetainedBytes (64 MiB logical bytes)",
+    "identityKey": [
+      "import generation",
+      "source IMAGEDEF handle"
+    ],
+    "sharedDefinitionCopiesChargedIndividually": true,
+    "fullImageDefinitionMapCopyBudgeted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^(dwg2dxf_typed_entity_capture_limits|dwg2dxf_image_path_cli)$' --output-on-failure",
+      "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "strictTargetsBuilt": true,
+    "focusedTestsPassed": "2/2",
+    "fullSuiteRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "limitations": [
+    "The accounting is a logical retained-byte estimate, not allocator-capacity or RSS accounting.",
+    "This bounds delayed IMAGE path assignment only; the full IMAGEDEF map copy and its dynamic fields remain an open census item.",
+    "No serializer, graph-closure, external image-availability, or broader support claim is implied.",
+    "The slice is uncommitted because it depends on the user's existing large uncommitted implementation in the same source and test files."
+  ],
+  "planImpact": {
+    "existingOwnerRefined": "7S.2c adapter-owned persistent callback retention census",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "generatedControlsOnly": true,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/image-path-delayed-callback-capture-bounds-fast-slice-2026-10-19.json"
+    ],
+    "stagedOrCommitted": false
+  },
+  "planSha256": "d198431ef4f92290c5a7b1e3e05ee1ffb714a2b38d0edc160698977e771a9c78"
+}

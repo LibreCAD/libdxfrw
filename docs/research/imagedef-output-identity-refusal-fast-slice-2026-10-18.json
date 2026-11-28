@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "IMAGEDEF output identity refusal generated fast slice",
+  "mode": "local generated regression implementation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reject imported IMAGE records with no retained full IMAGEDEF source identity",
+    "Reject conflicting duplicate IMAGEDEF callbacks at the adapter export boundary",
+    "Prove failed identity preflight preserves an existing destination",
+    "Reuse the existing image-path CLI test and registration"
+  ],
+  "implementation": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "testOwner": "dwg2dxf_image_path_cli",
+    "negativeCases": [
+      "Nonzero image import generation with missing retained IMAGEDEF",
+      "Conflicting duplicate IMAGEDEF callback identity for the same generation and source handle"
+    ],
+    "assertions": [
+      "fileExport returns false for each invalid imported identity graph",
+      "Existing destination sentinel bytes remain unchanged for each refusal",
+      "Positive generated image graph still passes export, two CLI conversions, and fresh read-back"
+    ],
+    "productionCodeChanged": false,
+    "fixtureFilesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_image_path_cli$' --output-on-failure",
+      "git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "buildPassed": true,
+    "focusedCTestPassed": true,
+    "focusedCTestResult": "1/1 passed in 0.39 seconds; generated export, two CLI passes, and read-back verified",
+    "diffCheckPassed": true,
+    "fullSuiteRun": false,
+    "repairNote": "An initial strict compile caught a vexing parse in iterator-based sentinel reading; changed to braced iterator construction and reran the target build and focused CTest successfully."
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remaining7P5b": [
+      "Independent byte-level group-12/group-21 scanner and versioned producer witness before changing output mapping",
+      "Optional transformed U/V bounds consumer control"
+    ]
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared checkout contains extensive pre-existing tracked and untracked work, including the test file and plan. Only the focused test and corresponding plan/receipt content were edited; unrelated changes were preserved."
+  }
+}

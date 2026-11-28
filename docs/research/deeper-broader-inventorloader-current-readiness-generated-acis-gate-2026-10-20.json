@@ -1,0 +1,151 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "InventorLoader current readiness and generated ACIS semantic gate",
+  "mode": "Primary-source repository, documentation, and issue-state review; plan refinement only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh the already-screened InventorLoader SAT/SAB parser candidate against current primary sources and open issue reports.",
+    "Separate stock FreeCAD DXF import, optional InventorLoader import, direct ACIS parsing, STEP conversion, DWG AcDs association, carrier preservation, and geometric semantics.",
+    "Make the existing PAR-07/S8 optional semantic checkpoint implementation-ready using generated controls, while retaining the untrusted-input and external-qualification gates."
+  ],
+  "sources": [
+    {
+      "project": "FreeCAD stock DXF import contract",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Mutable documentation branch reviewed 2026-10-20.",
+      "observed": "The guide distinguishes the built-in C++ and legacy Python DXF importers and states that stock FreeCAD cannot read ACIS/SAT blobs used for DXF 3D solids. Its DWG route converts to DXF before invoking a selected importer.",
+      "evidenceCeiling": "Route documentation, not runtime qualification. Stock FreeCAD ACIS behavior is not a semantic result for libdxfrw's carrier path; ACIS should be CONSUMER_NOT_APPLICABLE for this stock route unless a future importer changes the contract."
+    },
+    {
+      "project": "InventorLoader repository, parser source, license, and FreeCAD Addon Catalog",
+      "urls": [
+        "https://github.com/jmplonka/InventorLoader",
+        "https://github.com/jmplonka/InventorLoader/blob/master/README.md",
+        "https://raw.githubusercontent.com/jmplonka/InventorLoader/master/package.xml",
+        "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py",
+        "https://github.com/jmplonka/InventorLoader/blob/master/LICENSE",
+        "https://github.com/FreeCAD/FreeCAD-addons/blob/master/AddonCatalog.json",
+        "https://freecad.github.io/Addon-Reports/",
+        "https://github.com/jmplonka/InventorLoader/releases"
+      ],
+      "revision": "Mutable master/catalog pages reviewed 2026-10-20; no repository commit SHA was pinned for execution.",
+      "observed": "The README advertises SAT/SAB and DXF 3D-solid import and says Released 1.5, while package.xml identifies 1.5.1. Acis.py implements a distinct parser and uses FreeCAD Part. The repository LICENSE identifies GPL-2.0, while prior FreeCAD Addon Report metadata identified LGPL-3.0-or-later, so license provenance is unresolved. The current Addon Catalog points to mutable master, while the GitHub Releases page contains no release artifacts.",
+      "evidenceCeiling": "Candidate discovery only. The route shares FreeCAD/OCCT geometry infrastructure, does not parse the DWG container or AcDs key associations, and is not a pinned release artifact or independent kernel result. Resolve license/provenance before source reuse or bundling."
+    },
+    {
+      "project": "InventorLoader issue #102: reported SAB import TypeError",
+      "urls": [
+        "https://github.com/jmplonka/InventorLoader/issues/102"
+      ],
+      "revision": "Issue page reviewed 2026-10-20; still open in the reviewed page state.",
+      "observed": "The report says an attached CONTENT_3D model fails conversion with a TypeError involving an integer where a string was expected.",
+      "evidenceCeiling": "A profile-specific unresolved peer report, not proof that all SAB inputs fail or a local libdxfrw defect. The attachment was not downloaded."
+    },
+    {
+      "project": "InventorLoader issue #103: reported SAT shell construction failure",
+      "urls": [
+        "https://github.com/jmplonka/InventorLoader/issues/103"
+      ],
+      "revision": "Issue page reviewed 2026-10-20; still open in the reviewed page state.",
+      "observed": "The report says a simple attached model fails because no face is recognized and a shell cannot be created.",
+      "evidenceCeiling": "A profile-specific unresolved peer report. The attachment was not downloaded, and the issue does not establish failure of every current source revision."
+    },
+    {
+      "project": "InventorLoader issue #110: SAT reader workaround and STEP route",
+      "urls": [
+        "https://github.com/jmplonka/InventorLoader/issues/110"
+      ],
+      "revision": "Issue page reviewed 2026-10-20; still open in the reviewed page state.",
+      "observed": "The user reports that Dice.sat initially did not import; the provided macro calls setReader() after AcisReader.readText(), then resolves nodes and exports through STEP before loading into FreeCAD Part. The report says direct native import had messy face normals.",
+      "evidenceCeiling": "User workaround, not a maintainer release or an unmodified-route pass. Parser, native geometry reconstruction, and STEP conversion must be scored as separate profiles."
+    },
+    {
+      "project": "LibreDWG issue #1411 and ezdxf ACIS API",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Mutable issue/documentation pages reviewed 2026-10-20.",
+      "observed": "LibreDWG #1411 includes a from-scratch unit-cube REGION/SAB recipe and reports a 5,489-byte SAB payload, alongside a LibreDWG conversion that loses the modern AcDs/SAB carrier. ezdxf documents a partial ACIS entity model with some classes explicitly not implemented.",
+      "evidenceCeiling": "A practical generated-control lead and peer failure shape, not a DWG/DXF format authority or general geometry oracle. Do not use LibreDWG dxf2dwg as the positive producer for modern AcDs preservation."
+    },
+    {
+      "project": "Existing pinned from-scratch AC1032/SAB producer recipe",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-07/S8 valid-SAB carrier chain",
+        "https://pypi.org/project/ezdxf/1.4.5/"
+      ],
+      "revision": "Existing plan recipe identifies ezdxf 1.4.5 and the CPython 3.12 macOS ARM64 wheel SHA-256 e78a6b6aaac31f915026694f669cb3172636380caad9ec41007636f034013106; no artifact was acquired or run in this pass.",
+      "observed": "The already-planned candidate creates two AC1032/SAB 3DSOLID bodies from independently authored asymmetric rectangular prisms and an analytic metric manifest. This is more implementation-ready and less redundant than adding a new unit-cube route; it remains conditional on an isolated probe of the exact artifact and runtime profile.",
+      "evidenceCeiling": "A plan-level scratch producer candidate only. It has not executed here, does not establish AC1024/SAT support, and is not a version-format authority or semantic result."
+    },
+    {
+      "project": "Existing plan evidence boundary",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Shared worktree plan reviewed 2026-10-20.",
+      "observed": "Prior plan research already identified InventorLoader's FreeCAD/OCCT lineage, an unrestricted Python eval path requiring safety review, shell/face fallback, and unsupported ACIS feature classes.",
+      "evidenceCeiling": "This refresh does not clear those limitations. It adds current issue/release freshness and a narrow generated semantic-control recipe only."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: retain InventorLoader as SCREENED_NOT_ADMITTED until a source commit/hash, current license/dependency closure, safety audit, and unmodified exact-profile run are available.",
+      "PAR-07/S8: do not count optional InventorLoader as stock FreeCAD import, DWG/AcDs parser, independent kernel, or general ACIS support; separate direct parser and STEP-conversion routes.",
+      "PAR-07/S8: reuse the already-scoped generated AC1032/SAB two-asymmetric-prism recipe and authored analytic manifest; do not add a duplicate cube profile or infer AC1024/SAT support.",
+      "Validation policy: make the optional peer route a one-time composed checkpoint, keep generated controls temporary, and self-unblock to local bounded implementation work when the external route is unavailable."
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrGeometryKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "findingCountReconciled": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Do not use current FreeCAD stock DXF import as an ACIS semantic oracle. Keep InventorLoader optional and not admitted until its mutable source is pinned and its safety and route-specific failures are resolved. If a future composed checkpoint admits it, reuse the existing AC1032/SAB two-asymmetric-prism scratch recipe and analytic manifest, and separate the direct parser, STEP route, carrier bytes, DWG AcDs association, kernel output, and stock/application import outcomes. No new support claim or J transition is justified."
+  },
+  "method": {
+    "kind": "Read-only primary-source web research and plan/receipt update",
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-inventorloader-current-readiness-generated-acis-gate-2026-10-20.json"
+    ],
+    "limitations": "GitHub issue reports, project README, package metadata, Addon Catalog, and documentation are mutable. No InventorLoader commit was pinned or executed. The reported issues are profile-specific and do not prove all current inputs fail. The existing ezdxf scratch producer recipe is only a candidate and was not executed here; it does not establish AC1024/SAT support or authoritative ACIS/DWG format behavior. Earlier source review's eval/fallback/unsupported-class limitations remain open."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq schema, scope, and deferred-state checks)",
+    "planDiffCheck": "PASS (git diff --check on the updated plan)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

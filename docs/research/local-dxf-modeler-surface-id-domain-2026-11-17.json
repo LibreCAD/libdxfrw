@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "local-dxf-modeler-surface-id-domain-2026-11-17",
+  "date": "2026-11-17",
+  "status": "IMPLEMENTED_LOCAL_DXF_PARSER_CORRECTION",
+  "scope": "Keep the signed 32-bit group-90 identifier domain distinct from the bounded binary-payload-size domain for DXF EXTRUDEDSURFACE and SWEPTSURFACE records.",
+  "supportClaimEffect": "none",
+  "finding": {
+    "before": "The EXTRUDEDSURFACE class-ID and SWEPTSURFACE sweep/path-ID parser branches rejected values above DRW::kMaxDxfBinaryPayloadBytes (64 MiB), even though the same group-90 slots identify objects/records and the corresponding writer accepts nonnegative signed-32-bit values. REVOLVEDSURFACE already applied the size cap only to its declared payload-size slot.",
+    "authority": [
+      {
+        "title": "Autodesk Extruded Surface (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-9218F5A6-3AE4-4EA4-854E-E15E1946AE88.htm",
+        "relevantFields": "Group 90 is Class ID, then group 90 is binary-data size, followed by group 310 binary data."
+      },
+      {
+        "title": "Autodesk Revolved Surface (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-844D8EC8-318D-4721-AFF2-82923DB10678.htm",
+        "relevantFields": "Group 90 is revolve-entity ID, then group 90 is binary-data size, followed by group 310 binary data."
+      },
+      {
+        "title": "Autodesk Swept Surface (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-55DCEC23-9286-4A32-AAFA-E1F945B10A19.htm",
+        "relevantFields": "Group 90 identifies the sweep entity and path entity as well as the two binary-data sizes; group 310 carries the payloads."
+      },
+      {
+        "title": "Autodesk Group Code Value Types Reference (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+        "relevantFields": "Group codes 90-99 carry 32-bit integer values."
+      }
+    ],
+    "codeCrossCheck": "The public DXF writer rejects identifiers only above INT32_MAX and independently bounds each binary payload by DRW::kMaxDxfBinaryPayloadBytes."
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "change": "EXTRUDEDSURFACE classId and SWEPTSURFACE sweepEntityId/pathEntityId now accept nonnegative group-90 signed-32-bit values. Their declared payload-size slots retain the 64 MiB cap; REVOLVEDSURFACE remains unchanged."
+  },
+  "generatedControls": {
+    "test": "tests/hardening_tests.cpp:testDxfGroup310DirectDecode",
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "ASCII and Binary EXTRUDEDSURFACE accept classId = 64 MiB + 1.",
+      "ASCII and Binary REVOLVEDSURFACE provide a neighboring full-ID-domain control.",
+      "ASCII and Binary SWEPTSURFACE accept sweep and path IDs above 64 MiB.",
+      "ASCII and Binary EXTRUDEDSURFACE reject a declared payload size above 64 MiB.",
+      "ASCII and Binary SWEPTSURFACE reject oversized sweep-data and path-data lengths while applying the same 64 MiB cap."
+    ],
+    "provenance": "DXF group streams are generated in memory by the existing test helper; no external drawing or repository fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests -j4",
+    "buildResult": "PASS",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_group_310_direct_decode$' --output-on-failure",
+    "focusedTestResult": "PASS (1/1, 0.19 seconds)",
+    "testBinarySha256": "04cc9d99c048f6b33f06e7fe21f1f7a2a82e1a414c9c75ceddb295485efeca68",
+    "parserSourceSha256": "d00180e69379c6fc1a441ffd2d7cf3a621a52bddc6f88cd3caf30c161db73a22",
+    "testSourceSha256": "acc0aa4dfbfdce0b55d3950a14f6fe9ffa8a171805c37441c947ea51ada02a78",
+    "fullSuiteRun": false
+  },
+  "limitations": [
+    "This is a DXF parser correctness fix and does not qualify any DWG source profile, ACIS geometry, or native 3D consumer behavior.",
+    "No package gate or support claim is promoted."
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_EXPLICIT_UNATTRIBUTED_INSERT_DXF_OCS_RECOVERY",
+  "supportClaimEffect": "none",
+  "scope": "Explicit recovery of the insertion OCS point of an exact, un-attributed DRW_Insert after exactly one actual legacy extrusion application. DXF output only; no change to default reader/writer behavior or public class layout.",
+  "authority": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 \u00a720.4.9 defines INSERT insertion point, scale, rotation, extrusion and versioned child references.",
+    "dxf": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+    "finding": "DXF INSERT group 10 is in OCS; attached attributes have separate frames and ownership."
+  },
+  "physical": {
+    "method": "Two un-attributed R2010 block INSERTs locally authored from scratch with ezdxf 1.4.5, normals (0,1,0) and (0,0,-1), scale (2,3,4) and rotation 30 degrees. ODA File Converter 27.1.0 saved an AC1024 DWG and converted it back to DXF. Native DWG read selected both INSERTs and wrote a native OCS DXF; the DXF reader then applied legacy extrusion and a selected-record writer re-emitted with and without explicit inverse recovery. The independently compared INSERT transforms include the unit block basis points. Scratch-only inputs; no drawing fixture committed.",
+    "input_dxf_sha256": "0a4e465a0fee716e3af5223d94483949bbb896fb0a6c98d6e250a5ca3397e632",
+    "dwg_sha256": "4968ef464a3d0c748e1bf675b8d820c930c41de86989e454e8e83f72ac8ef9ac",
+    "oda_dxf_sha256": "98068d791ebcd6296ad1c9591536d2a0b4374c45d984de02d1b8e905e0683e4a",
+    "selected_dxf_sha256": "d22976e28ee7402621b9502eb96ed0251c3c9b0db349e54f5ddf7cff12c6c852",
+    "applied_without_helper_sha256": "9de7285d63b801b9042ff535b01beb790c819b412ac5be57047a3f9bb507dead",
+    "corrected_dxf_sha256": "d22976e28ee7402621b9502eb96ed0251c3c9b0db349e54f5ddf7cff12c6c852",
+    "dwg_scratch": "/private/tmp/p6-insert-simple/dwg/source.dwg",
+    "oda_dxf_scratch": "/private/tmp/p6-insert-simple/oda/source.dxf",
+    "selected_dxf_scratch": "/private/tmp/p6-insert-simple/raw.dxf",
+    "corrected_dxf_scratch": "/private/tmp/p6-insert-simple/corrected.dxf",
+    "replay_source_scratch": "/private/tmp/p6-insert-simple/replay-fixed.cpp",
+    "replay_source_sha256": "5ef5ec795cd5def22161d013229a1272327c973e01fb02efcff6b78b69a76427"
+  },
+  "observation": "For tilted INSERT, ODA and native selected DXF agree OCS (3,4,2) and WCS (-3,2,4). DXF applyExt=true followed by ordinary output treats the WCS point as OCS, moving it to WCS (3,4,2). The negative-Z case also moves. After explicit inverse recovery, ezdxf 1.4.5 confirms both OCS/WCS points, extrusion, nonuniform scales, rotation, row/column count and spacing and four transformed block-basis points match ODA for each selected INSERT.",
+  "important_dwg_boundary": "Current DWG INSERT delivery does not apply extrusion. Its applyExt=true and false selected DXF hashes are identical; do not invoke recovery on this native state as though it had been transformed.",
+  "implementation": "An explicit exact-DRW_Insert free-function overload rejects nonempty attribute lists, retained SEQEND, nonempty attribute handles and any nonzero SEQEND handle token fields before copying. It checks finite insertion, normal, scale, angle and grid spacing, nonzero normal and finite inverse projection; it copies before publication, preserves modeled parent metadata, supports aliasing and leaves output unchanged on failure. Exact runtime type and INSERT tag reject subclasses and spoofed tags.",
+  "validation": {
+    "focused": "ctest --test-dir build-gcc -R ^libdxfrw_dxf_legacy_extrusion$ --output-on-failure: 1/1 passed. ASCII/Binary DXF, four normals including near-axis threshold, array counts/spacings, nonuniform scale/rotation, block-record token retention in direct helper use, no-op and nonunit normal, invalid/overflow and alias atomicity, subclass/tag refusal, child/SEQEND/each handle-token field refusal, sentinel preservation and same-writer retry. Earlier extrusion cases run in the same selector.",
+    "independent": "ezdxf 1.4.5 compared each of the two corrected selected INSERTs against the ODA readback: insertion in OCS/WCS, normal, scale, rotation, grid fields and the transformed origin and basis endpoints all match."
+  },
+  "limits": [
+    "Caller must know an actual transform was applied exactly once; the helper cannot infer the object frame or detect later edits.",
+    "Attributed or SEQEND-bearing INSERTs and stored child-handle identities are explicitly refused; child coordinate and ownership semantics require separate work.",
+    "Evidence covers two normals and selected DXF records only, not a complete block graph, native rendering, arbitrary sources, or DWG emission of recovered INSERTs. Scratch artifacts are ephemeral."
+  ]
+}

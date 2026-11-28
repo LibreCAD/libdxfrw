@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-partial-dwg-read-all-writer-versions-2026-11-02",
+  "date": "2026-11-02",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Extend the local partial-DWG-read CLI controls across every supported DWG writer revision.",
+  "control": {
+    "sourceGenerator": "tests/dwg_local_roundtrip_tests.cpp --generate-cli-partial-read-source <path> <AC1015|AC1018|AC1021|AC1024|AC1027|AC1032>",
+    "sourceProfile": "Each source is authored at runtime from scratch and contains one non-finite LINE rejected by the entity parser, followed by one valid LINE.",
+    "file": "tests/dwg2dxf_cli_contract_tests.py",
+    "function": "check_partial_dwg_read_cli",
+    "selector": "--partial-read-only; included in --fast-only",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "cases": [
+      {
+        "policy": "strict default",
+        "expect": "Each source read reports one entity parse failure; strict export refuses and preserves a pre-existing destination sentinel."
+      },
+      {
+        "policy": "--allow-partial-dwg-read",
+        "expect": "Each source warns that partial mode is explicit and owner/reference checks remain strict, then publishes same-revision ASCII DXF containing exactly the retained LINE."
+      },
+      {
+        "policy": "DXF readback",
+        "expect": "Each published DXF reopens with exactly one LINE and neither the source nor first output changes."
+      }
+    ],
+    "controls": 18,
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j2",
+    "test": "PASS: python3 -B tests/dwg2dxf_cli_contract_tests.py --converter $PWD/build-gcc/dwg2dxf/dwg2dxf --writer $PWD/build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only (18 controls); PASS: same command with --fast-only (103 option, 47 batch, 2 read-observation, 18 partial-read and 4 source-disposition controls)",
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "tests/dwg2dxf_cli_contract_tests.py": "0ab4db5906531283abd587727bb465c793493cbae546bb72e54eea1f7e3a86a9",
+      "tests/dwg_local_roundtrip_tests.cpp": "a8f7e05f9d419d5ada7936475f120f76f4cbe579ea18641e0542da150fb6c81c",
+      "build-gcc/dwg2dxf/dwg2dxf": "32a09aebcad165c22f60288a927ea1b0e40775c52829d08233eba8affd7c832f",
+      "build-gcc/libdxfrw_dwg_local_roundtrip": "0af58ebc4816c4d22cc7832f414c5d74ff6c21fd176e80127badaf75d7463d03"
+    }
+  },
+  "limits": [
+    "Generated controls cover one entity-parse failure shape per writer revision; other failure patterns remain open.",
+    "These controls do not qualify external source profiles, DWG owner/reference failures as partial-output eligible, or overall format support.",
+    "AC1012/AC1014 DWG-source output/readback and broader repair/skip/mask projections remain separate CLI contracts."
+  ]
+}

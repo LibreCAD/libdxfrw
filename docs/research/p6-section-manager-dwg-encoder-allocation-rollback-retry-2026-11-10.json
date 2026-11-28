@@ -1,0 +1,34 @@
+{
+  "title": "SECTION_MANAGER DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated local SECTION_MANAGER direct-codec transaction control across AC1021 stream-alias layouts",
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "method": "DRW_Section::encodeDwg (Manager kind)",
+    "behavior": "Stage body, effective string and handle destinations, retained raw tail, and ordered section handles; publish only after all writes succeed. Allocation exceptions return false without changing caller buffers."
+  },
+  "control": {
+    "file": "tests/dimassoc_dwg_encoder_allocation_tests.cpp",
+    "profile": "Generated live SECTION_MANAGER with three section-object handles, common owner, reactors, and extension dictionary.",
+    "tested_route": "Protected direct encodeDwg exposed through a test-only derived probe",
+    "cases": [
+      {"version": "AC1021", "mode": "separate arguments", "reached_allocation_offsets": 11},
+      {"version": "AC1021", "mode": "separate streams", "reached_allocation_offsets": 11},
+      {"version": "AC1021", "mode": "shared string/handle stream", "reached_allocation_offsets": 10},
+      {"version": "AC1021", "mode": "all body", "reached_allocation_offsets": 8},
+      {"version": "AC1021", "mode": "body string with detached handles", "reached_allocation_offsets": 10},
+      {"version": "AC1021", "mode": "separate string with body handles", "reached_allocation_offsets": 9}
+    ],
+    "failure_assertions": "Every reached one-shot allocation failure leaves caller body, strings, handles, cursors, health, and handle-occurrence ledgers unchanged. The same object and buffers then retry to clean output.",
+    "fixtures_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j2",
+    "focused_tests": "ctest --test-dir build-gcc --output-on-failure -R '^(libdxfrw_dwg_object_encoder_allocation_retry|libdxfrw_dwg_object_vectors)$'",
+    "result": "The six generated Manager layouts pass rollback/retry across 59 allocation offsets. Both focused CTests passed."
+  },
+  "limits": [
+    "SECTION_SETTINGS body and nested geometry output are not covered by this transaction control.",
+    "Generated local transaction evidence only; native section behavior, whole-document graph closure, and independent interoperability remain gated."
+  ]
+}

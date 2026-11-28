@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw-deeper-broader-parser-safety-advisory-crosswalk-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Crosswalk newly reviewed LibreDWG parser-safety advisories to local AC1.40, R13-R2000 class, and text-codec boundaries; update the implementation plan without claiming a local vulnerability.",
+  "method": {
+    "kind": "Primary security-advisory pages plus read-only local source, test, and plan inspection",
+    "sourcesOpened": [
+      "https://github.com/LibreDWG/libredwg/security/advisories/GHSA-7625-26gc-xqvp",
+      "https://github.com/LibreDWG/libredwg/issues/1131",
+      "https://github.com/LibreDWG/libredwg/security/advisories/GHSA-gp83-hcvh-g255",
+      "https://github.com/LibreDWG/libredwg/security/advisories/GHSA-5p98-8245-6hxq"
+    ],
+    "externalPocDownloadedOrRun": false,
+    "peerBuiltOrRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "The advisory vulnerability details and published reproducer descriptions are treated as upstream reports. Local applicability is assessed by static comparison only; no local vulnerability was reproduced or declared."
+  },
+  "evidence": [
+    {
+      "topic": "Direct AC1.40 boundary lead",
+      "source": "https://github.com/LibreDWG/libredwg/security/advisories/GHSA-7625-26gc-xqvp",
+      "peerReport": "CVE-2026-62250 reports a 496-byte pre-R13 AC1.40 input that leads LibreDWG decode_preR13_entities() to repeated allocations after the clamped end and separate loop size diverge; the advisory lists affected versions <=0.14 and no patched version.",
+      "localStaticCrossCheck": {
+        "files": [
+          "src/intern/dwgreaderR1_40.cpp",
+          "tests/dwg_reader_matrix_tests.cpp"
+        ],
+        "observed": [
+          "dwgReaderR1_40::readFileHeader rejects m_dwgSize below 0x202 or above physical file size instead of clamping the end.",
+          "The entity stream starts at 0x202, so the advisory's reported 496-byte specimen is shorter than the local entity-stream start.",
+          "Successful entity reads advance cursor to the consumed buffer position and each record begins with a 4-byte type/layer header.",
+          "Existing generated AC1.40 tests cover REPEAT refusal but not malformed dwg_size boundaries."
+        ],
+        "inference": "The reported 496-byte case should be rejected before entity iteration by the current local header guard; this was not executed."
+      },
+      "planAction": "Add source-authored in-memory boundary and truncation controls to the existing reader-matrix test; assert exact stage, no callbacks on invalid header, bounded failure, positive exact lower boundary, and same-reader recovery. Never copy or commit the advisory PoC."
+    },
+    {
+      "topic": "R13-R2000 class-count advisory is structurally distinct",
+      "source": "https://github.com/LibreDWG/libredwg/security/advisories/GHSA-gp83-hcvh-g255",
+      "peerReport": "CVE-2026-62254 reports a num_classes-driven realloc-per-entry denial of service in LibreDWG decode_R13_R2000; affected versions are listed as before 0.14.",
+      "localStaticCrossCheck": {
+        "file": "src/intern/dwgreader15.cpp",
+        "observed": [
+          "The local reader validates the CLASSES section's physical range and declared byte size.",
+          "It parses staged class records until the byte cursor reaches the bounded class-data span rather than reallocating from a separate num_classes field.",
+          "It validates custom class IDs and duplicate IDs before publication."
+        ]
+      },
+      "planAction": "Retain section-bound and per-record bit-cursor progress assertions when the local class parser is next changed; do not add a speculative peer-derived class-count cap or duplicate finding."
+    },
+    {
+      "topic": "LibreDWG const-input conversion advisory has no matched local defect",
+      "source": "https://github.com/LibreDWG/libredwg/security/advisories/GHSA-5p98-8245-6hxq",
+      "peerReport": "The advisory identifies a const-input write/crash in LibreDWG's bit_TV_to_utf8() iconv error path.",
+      "localDisposition": "This is a different implementation path from libdxfrw DRW_TextCodec; no matching local defect was established. Existing text-codec malformed-input work remains the owner."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "ownersRefined": [
+      "PAR-14",
+      "7BE",
+      "PAR-123 / 7BS",
+      "existing DWG CLASSES parser owner"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsRun": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

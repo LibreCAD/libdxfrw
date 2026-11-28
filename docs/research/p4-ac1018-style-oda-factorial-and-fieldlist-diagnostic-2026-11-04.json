@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "PRODUCER_CONTRADICTION_RECORDED_LAYOUT_UNCHANGED",
+  "supportClaimEffect": "none",
+  "prior": "p4-ac1018-empty-style-dwg-bit-order-differential-2026-11-03.json",
+  "witness": {
+    "origin": "From-scratch ezdxf 1.4.5 AC1018 DXF; locally converted using ODA File Converter 27.1.0 to AC1018 DWG and back to AC1018 DXF. No drawing payload is committed.",
+    "source_dxf_sha256": "1e47cea65a9d6e49a844691b3b2533b811b127fb7b50e8042910aeea357fefa1",
+    "dwg_sha256": "5a4e7197299297bb4dbd3503e689c9ed64006563d2151409a5506f7616e28b3e",
+    "returned_dxf_sha256": "3f2f905071d3f7e63b71b31a378899a2d2718f4aacb0635460c57d6d447bb230",
+    "input": "Styles CTRL00/CTRL01/CTRL04/CTRL05 have group 70 values 0/1/4/5 and ltypeshp.shx; one LINE.",
+    "output": "ODA produced separate handles 0x2F, 0x30, 0x31 for values 0, 1, 4. The returned DXF STYLE at 0x30 has empty name (ezdxf style-table iteration omits this row) and raw group 70=1; 0x31 retains CTRL04 and group 70=4. LINE survived. CTRL05 was omitted, so no producer evidence is claimed for the combined 5 case. No .err file was produced."
+  },
+  "bit_probe": {
+    "method": "A disposable instrumented copy of libdxfrw source 6034e221471df04f8b2d1f6f5835f8d87d717647 logged positions immediately after common xref flags, before reading the two STYLE bits; the probe uses the existing parser and is not an independent binary decoder. Bit offsets are relative to the decoded object buffer.",
+    "observed": {
+      "0x2F_CTRL00": {
+        "bit_position": 125,
+        "first": 0,
+        "second": 0
+      },
+      "0x30_CTRL01": {
+        "bit_position": 125,
+        "first": 1,
+        "second": 0
+      },
+      "0x31_CTRL04": {
+        "bit_position": 125,
+        "first": 0,
+        "second": 1
+      }
+    },
+    "end_bit_position": 127,
+    "following_sentinel": "LibreDWG 0.14 independently reports text size=0, width=1, oblique=0, generation=0, last height=2.5, font=ltypeshp.shx and empty big font on all three; ODA DXF reports matching fields.",
+    "independent_semantics": "LibreDWG decodes 0x30 shape=true vertical=false and 0x31 shape=false vertical=true. The current native parser interprets these values oppositely (flags 68 and 65, including reference bit 64)."
+  },
+  "decision": "ODA DWG v5.4.1 section 20.4.56 lists vertical before shape. AGENTS.md designates this PDF authoritative over conflicting byte-layout references. This physical producer counterexample does not override that instruction; parser and encoder remain unchanged and the ET file remains safely refused. Request an authoritative ODA clarification or user-approved rule change and qualify the version boundary, source references and write/readback before implementation.",
+  "diagnostic_fix": {
+    "finding": "An empty graph printed FIELDLIST-not-closed despite no FIELD/FIELDLIST carriers; this warning obscured the unrelated STYLE output refusal in ET-Drawing-with-Border.dwg (SHA-256 85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b).",
+    "change": "Restrict the late warning to actual FIELD/FIELDLIST carriers. Earlier capture-failure and incomplete-graph preflight refusal and output behavior remain unchanged.",
+    "validation": "Before fix the new absent-graph test failed on the warning. After fix, ctest --test-dir build-gcc -R \"^libdxfrw_field(list_membership_output|_graph_export_refusal)$\" --output-on-failure passed both selectors, including incomplete-carrier rejection, destination preservation and corrected same-adapter retry."
+  },
+  "limits": [
+    "No full ET conversion success or DWG/DXF support claim follows.",
+    "The external ET drawing and locally generated DXF/DWG files are not committed.",
+    "This experiment is one ODA producer/version and one independent decoder, not evidence for all revisions or the combined flag state."
+  ]
+}

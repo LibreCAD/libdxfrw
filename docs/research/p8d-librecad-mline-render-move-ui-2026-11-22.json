@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-mline-render-move-ui-2026-11-22",
+  "date": "2026-11-22",
+  "status": "GUI_RENDER_AND_MOVE_OBSERVED_SAVE_REOPEN_NOT_PASSED",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "repository": "LibreCAD/LibreCAD",
+    "pullRequest": 3289,
+    "head": "f5477f98a051f2e9e41ffaf9858a9e8c153821fe",
+    "application": "/private/tmp/librecad-p8-refresh-current-build/LibreCAD.app/Contents/MacOS/LibreCAD",
+    "applicationSha256": "2f3a89654b7ce0e3658e0aed1525c76e95942f1b3578a07695df2cdfac0dfd9b",
+    "libdxfrw": {
+      "commit": "7e6c646869b4804407ecd09996f70b460b622d8d",
+      "runtimeLibrary": "/private/tmp/libdxfrw-p8d-current-20261123-install/lib/libdxfrw.3.0.0.dylib",
+      "runtimeLibrarySha256": "09041857fd7770d21986c01a3969f6cacd988fac2c2c094fd38dd89a2eb05653"
+    }
+  },
+  "input": {
+    "path": "/private/tmp/p8d-mline-current-app-20261123/libdxfrw-mline-ac1018-ascii.dxf",
+    "sha256AfterAttempt": "dd7b814c5314bebddb19c9e2f9ea02afc551dd361a7b5e4f892e0b56cab360b9",
+    "sourceDwg": "/Users/dli/dev/libredwg/test/test-data/2004/Multiline.dwg",
+    "sourceDwgSha256": "4b0aa7336fbf71491653fdcf3f8fa58d325817fa1997987e4896275d5392f544",
+    "generatedBy": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-ac1018-selected-output"
+  },
+  "observations": {
+    "open": "LibreCAD loaded the generated ASCII DXF.",
+    "render": "The selected MLINE rendered as two parallel polyline strokes with the expected joined path.",
+    "edit": {
+      "command": "Move / Copy",
+      "referencePoint": [0, 0],
+      "targetPoint": [10, 0],
+      "displacement": [10, 0],
+      "selectedComponentsAfterMove": 2,
+      "componentType": "Polyline"
+    },
+    "persistence": "Save As did not produce the requested scratch output. The dialog reset to the original filename and the command history reported that the original input path could not be saved. The post-attempt input hash is recorded above; no moved output exists to reopen or read back."
+  },
+  "limits": [
+    "The Move result was observed only in the live UI; save, close/reopen, and geometry persistence are unqualified.",
+    "Move does not qualify Copy, named LTYPE behavior, arbitrary MLINE profiles, or LibreCAD_3 MPOLYGON.",
+    "This GUI observation does not resolve AC1012 dictionary cloning semantics or promote a support claim."
+  ]
+}

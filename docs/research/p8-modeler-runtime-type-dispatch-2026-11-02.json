@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-modeler-runtime-type-dispatch-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "MODELER_RUNTIME_TYPE_DISPATCH_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Prevent the concrete DXF adapter from reinterpreting an entity as DRW_ModelerGeometry solely because its mutable public eType says 3DSOLID, REGION, or BODY.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": [
+      "The 3DSOLID/REGION/BODY callback path uses dynamic_cast<DRW_ModelerGeometry*> before invoking the modeler writer.",
+      "A mismatched runtime object follows the existing fail-closed callback path and cannot publish a partial DXF.",
+      "After correcting the eType on the same retained LINE object, the same adapter retries and writes a readable line."
+    ]
+  },
+  "validationProfile": {
+    "source": "A locally constructed DRW_Line is captured through the concrete adapter; only its public eType is mutated to each modeler tag. No DWG/DXF fixture is used or committed.",
+    "tags": ["3DSOLID", "REGION", "BODY"],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "Every mismatched runtime/tag pair is refused.",
+      "Every refusal preserves a pre-existing destination sentinel.",
+      "Every corrected same-adapter retry imports successfully and preserves the LINE endpoints."
+    ],
+    "identityNote": "Generated DXF output assigns a new handle for this no-source LINE profile; the control verifies geometry and runtime type rather than requiring its authored handle to be preserved."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_typed_entity_capture_limits$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; six tag/encoding refusal and retry cells plus typed LINE readback, in 0.50 seconds.",
+    "diffCheck": "PASS: git diff --check",
+    "fixturePolicy": "No drawing fixture was added or committed."
+  },
+  "limitations": [
+    "This guards one adapter dispatch family only; it does not establish exhaustive BLOCK callback coverage.",
+    "It does not validate ACIS/SAB syntax, solid/region/body geometric meaning, native kernel behavior, or consumer support.",
+    "No DWG/DXF support claim is promoted; P8 remains open."
+  ]
+}

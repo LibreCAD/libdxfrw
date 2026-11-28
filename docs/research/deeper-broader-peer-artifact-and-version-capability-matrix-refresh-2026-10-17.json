@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader peer artifact and version-capability matrix refresh",
+  "mode": "primary-source artifact and peer-documentation research only",
+  "scope": [
+    "Reconcile ACadSharp source release and NuGet artifact route/version claims",
+    "Refresh ACadRust documentation version and distinguish ACIS from optional foreign-format import",
+    "Reconfirm dwg-rs route maturity and implementation-lineage caveats",
+    "Refine existing composed comparator checkpoint without slowing local implementation slices"
+  ],
+  "method": {
+    "kind": "Read-only review of tagged release pages, package metadata, docs.rs, current project documentation, and local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Version-operation tables and feature lists are project/package declarations, not reproduced parser/writer behavior, native CAD acceptance, complete graph preservation, or semantic 3D evidence. The NuGet binary and peer source were not downloaded, hashed, or run."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "revision": "signed v3.8.0 release tag at commit 3a1c66b; reviewed 2026-10-17",
+      "observed": "Release dated 2026-09-21; listed change is InternalsVisibleTo for ACadSharp.Formats. This identifies source release provenance, not format behavior."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://www.nuget.org/packages/ACadSharp/3.8.0",
+      "revision": "NuGet package metadata for 3.8.0 reviewed 2026-10-17",
+      "observed": "Package metadata declares DXF read-only at AC1009; DXF read/write AC1012 through AC1032; DWG read/write at AC1014, AC1015, AC1018, AC1024, AC1027 and AC1032; DWG read-only at AC1021; no DWG route listed at AC1009/AC1012. No runtime was executed and no package checksum was captured."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://docs.rs/acadrust/0.6.4/acadrust/",
+      "revision": "docs.rs crate documentation 0.6.4 reviewed 2026-10-17",
+      "observed": "The docs.rs crate version now matches the current GitHub release version, superseding the previously recorded 0.5.5 docs.rs lag. It advertises broad DXF/DWG versions, 48 top-level entity variants, ACIS/SAT/SAB parsing/writing, and an optional import feature for STL, COLLADA, OBJ, glTF/GLB, and FBX. These are documentation claims, not independent semantic results."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4",
+      "revision": "tagged v0.6.4 release reviewed 2026-10-17",
+      "observed": "Used only to reconcile exact release identity with current docs.rs version. CADCraft/OpenCADStudio and wrappers remain correlated through the ACadRust codec lineage."
+    },
+    {
+      "project": "dwg-rs",
+      "url": "https://github.com/DrunkOnJava/dwg-rs",
+      "revision": "mutable README and capability documentation reviewed 2026-10-17",
+      "observed": "The project describes pre-alpha DWG reading, partial entity/graph decoding, alpha DXF writing without a DXF parser, alpha DWG assembly without automated external-CAD acceptance, and approximate glTF surface output. It states that an LZ77 interpretation was cross-checked against ACadSharp algorithm comments."
+    },
+    {
+      "project": "libdxfrw local plan",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "revision": "shared worktree plan reviewed 2026-10-17",
+      "observed": "Existing peer matrix and scheduled composed comparator checkpoints were refined; no local issue or implementation finding was added."
+    }
+  ],
+  "assessment": {
+    "comparatorRule": "Bind an exact artifact/package hash, source revision, runtime/toolchain, file version, and operation. Treat advertised-but-unexecuted capabilities as NOT_ESTABLISHED; unsupported advertised operations as NOT_ADVERTISED, not local failures.",
+    "peerLineage": "ACadRust, CADCraft, OpenCADStudio and bindings remain one codec lineage. dwg-rs remains a distinct but pre-alpha DWG structural route; its disclosed ACadSharp-comment cross-check reduces independence for that specific algorithm question.",
+    "localCrosswalk": "Reuse the existing composed peer checkpoint and version/operation matrix. Keep local fast implementation selectors, fixture policy, 2D consumer compatibility, 3D semantic evidence, and deferred external qualification unchanged.",
+    "implementationReadiness": "At the composed checkpoint, only compare operation/version cells advertised by the selected peer. ACadSharp AC1021 DWG is reader-only; AC1009/AC1012 have no advertised DWG route; AC1009 DXF is reader-only. ACadRust 0.6.4 docs no longer lag the release, but documentation and internal round trips still cannot establish independent semantics."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-peer-artifact-and-version-capability-matrix-refresh-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-peer-artifact-and-version-capability-matrix-refresh-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

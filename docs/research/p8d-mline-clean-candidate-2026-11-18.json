@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-mline-clean-candidate-2026-11-18",
+  "date": "2026-11-18",
+  "status": "CLEAN_SOURCE_BOUND_MLINE_ARTIFACTS_READY_FOR_GUI",
+  "supportClaimEffect": "none",
+  "inputs": {
+    "libdxfrwCommit": "71fd9592e9fd305b578194da70bcb5616af4f66c",
+    "implementationDigestSha256": "4d054a406e80075b9f17d312ed45d2e15a8caeb6fbaf21b784c81aae0a4c09b5",
+    "sourcePreparation": "Extracted git archive of the exact commit to a newly created scratch directory, then configured a fresh build there. No files from the working tree or existing build were used.",
+    "mlineSource": "/Users/dli/dev/libredwg/test/test-data/2004/Multiline.dwg",
+    "mlineSourceCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "mlineSourceGitBlob": "81dc671a57dab755de5584fc607f445f21dfc244",
+    "mlineSourceSha256": "4b0aa7336fbf71491653fdcf3f8fa58d325817fa1997987e4896275d5392f544",
+    "layerstatesSourceSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1"
+  },
+  "build": {
+    "scratchRoot": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu",
+    "platform": "macOS 27.2.1 (26B131), arm64",
+    "toolchain": "CMake 4.4.5, Ninja, AppleClang 21.0.0.21000334",
+    "configure": "cmake -G Ninja -S <scratch root> -B <scratch root>/build -DLIBDXFRW_BUILD_TESTS=ON -DLIBDXFRW_BUILD_DOC=OFF",
+    "configureLogSha256": "ac6ae2e478d9f3df45d7851e02259947dd2ca7ca66af980af70d1cd1902abe02",
+    "command": "cmake --build <scratch root>/build --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildLogSha256": "04a813ed6758b0f2984eca44856aab0253e3bfdbbe4ee20b4e5ac91f113b98a0",
+    "adapterSha256": "7f0910786de341be27ec3b8729c468a1538359fae60dbf335c232fd4965b93dd"
+  },
+  "validation": [
+    {
+      "selector": "--mline-ac1018-selected-output <mlineSource> <scratch root>/selected-mline",
+      "result": "PASS: selected ASCII and Binary DXF output, fresh typed readback, atomic refusal and corrected same-writer retry.",
+      "logSha256": "576ac9d3ca76bd47286df98da8d7bd8d09ca7509e1b2e29d205d9347ded0cc8a"
+    },
+    {
+      "selector": "--layerstates-ac1024-real-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+      "result": "PASS: selected LayerStates writer ledger controls for both encodings, using the pinned local source outside the build checkout.",
+      "logSha256": "bd16cfd0f1a4d7da2199304debd4b88f3f88e65573f9bed7192be6f29fffc0ff"
+    }
+  ],
+  "mlineOutputs": {
+    "directoryRelativeToScratchRoot": "selected-mline",
+    "libdxfrw-mline-ac1018-ascii.dxf": "dd7b814c5314bebddb19c9e2f9ea02afc551dd361a7b5e4f892e0b56cab360b9",
+    "libdxfrw-mline-ac1018-binary.dxf": "6aa63d331b627c32f38aaf6ecac6e8e862dbc4d7370b033df798e001512af750",
+    "priorEvidence": "Both hashes match p8d-mline-source-bound-gui-candidate-2026-11-18.json. This removes the earlier incremental adapter build provenance gap."
+  },
+  "remaining": "Once an active Aqua display is available to the test process, bind the actual tested LibreCAD build and library linkage. Check MLINE geometry and style on open, legacy 2D edits, save and fresh reopen against the bound input from this receipt. No native GUI operation was executed. All drawing inputs and outputs remain outside this commit."
+}

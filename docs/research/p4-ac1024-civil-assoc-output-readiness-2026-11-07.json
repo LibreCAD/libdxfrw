@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-civil-assoc-output-readiness-2026-11-07",
+  "date": "2026-11-07",
+  "title": "AC1024 civil associative source profile and output readiness",
+  "supportClaimEffect": "none",
+  "scope": "Recheck the existing civil AC1024 associative source-link profile against the current physical dimension-dependency output selector and inspect the typed graph that prevents applying the mechanical-only route.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "version": "AC1024",
+    "provenanceLimit": "Existing local research source; not a committed fixture or an independently authenticated producer witness."
+  },
+  "readProfile": {
+    "operationSucceeded": true,
+    "publishedFrames": 335,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "integrityBlocker": "LTYPE_CONTROL handle 0x5 declares six counted members with one null target; strict whole-source conversion remains refused.",
+    "associativeObjects": {
+      "constraintGroups": 3,
+      "groupHandleActionNodeCounts": [
+        {"handle": 2478, "actions": 9, "nodes": 43},
+        {"handle": 1911, "actions": 45, "nodes": 147},
+        {"handle": 1776, "actions": 9, "nodes": 43}
+      ],
+      "assocDependencyRecords": 17,
+      "assocGeomDependencyRecords": 29,
+      "dimensionDependencyBodyRecords": 13,
+      "geomDependencyWireIncomplete": 11,
+      "geomDependencyWithPresentName": 1
+    }
+  },
+  "existingSelector": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocdependency-physical-output-readback /Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "result": "REFUSED before serialization; exit 1",
+    "diagnostic": "physical dependency/body source profile or linked roles are incomplete",
+    "reason": "The selector proves only the AC1024 mechanical 17-dimension-body profile. The civil graph has 13 dimension-body records, additional geometry-dependency chains, and incomplete geometry-dependency wire spans; the refusal must remain."
+  },
+  "profileDump": {
+    "method": "Temporary C++ diagnostic linked the current dwg2dxf dx_iface object and libdxfrw archive; it listed associative record class, handle, owner, body/reference fields and typed body/group counts.",
+    "sourceSha256": "2f3f835c38aa0f708a472b15d340b6dc276ae2554a7a210e54c4162f5eb48cf9",
+    "executableSha256": "f5febe5dd0c232a81bc3c24031258a781bdf628df6983d24c4d62d893c06275b",
+    "logSha256": "d606a399fcbc5d30f1fc00a0740b7d60bc0edf1a7d515fe3c5f39b818c96a68b",
+    "scratchLog": "/private/tmp/p4-ac1024-civil-assoc-profile-2026-11-07.log"
+  },
+  "sourceAuthority": {
+    "ODA": {
+      "specification": "Open Design Specification for .dwg files v5.4.1",
+      "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "observation": "The extracted text has no class-specific serialized-body section for AcDbAssocGeomDependency or AcDbAssocEdgePersSubentId; do not infer missing wire fields from parser-produced names or peer conventions."
+    },
+    "LibreDWG": {
+      "version": "0.14",
+      "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "observation": "Its tracked dwg2.spec models AcDbAssocGeomDependency's common subclass fields and the edge persistent-subentity class/version/index/compound fields, but this is peer schema evidence, not ODA wire authority; the peer has not supplied an independent span proof for these exact source frames."
+    }
+  },
+  "nextAction": "Keep civil output refused. Before a separate source-bound output route, independently bound the 11 incomplete geometry-dependency bodies and the named edge subentity payload, reconcile class-specific fields and all group action edges, then prove full selected-scope closure and fresh ASCII/Binary readback. Do not relax the existing mechanical profile guard or strict whole-source LTYPE_CONTROL refusal.",
+  "validation": {
+    "fullSuites": "NOT_RUN",
+    "fixturePolicy": "No DWG/DXF fixture files were created or committed."
+  }
+}

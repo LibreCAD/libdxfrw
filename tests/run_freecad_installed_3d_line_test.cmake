@@ -9,6 +9,18 @@ foreach(_path IN ITEMS FREECADCMD DWG2DXF BUILD_DWG2DXF IMPORT_CHECK_MACRO)
         message(FATAL_ERROR "${_path} does not exist: ${${_path}}")
     endif()
 endforeach()
+if(DEFINED IMPORT_CHECK_MODE AND IMPORT_CHECK_MODE STREQUAL "legacy_polyface")
+    if(NOT DEFINED FREECAD_LEGACY_DXF_ADDON_DIR
+            OR NOT IS_DIRECTORY "${FREECAD_LEGACY_DXF_ADDON_DIR}")
+        message(FATAL_ERROR "FREECAD_LEGACY_DXF_ADDON_DIR is required")
+    endif()
+    foreach(_module IN ITEMS
+            dxfReader.py dxfLibrary.py dxfColorMap.py dxfImportObjects.py)
+        if(NOT EXISTS "${FREECAD_LEGACY_DXF_ADDON_DIR}/${_module}")
+            message(FATAL_ERROR "Missing legacy DXF module: ${_module}")
+        endif()
+    endforeach()
+endif()
 if(DEFINED SAMPLE)
     foreach(_required IN ITEMS EXPECTED_INPUT_SHA256 EXPECTED_MAGIC_HEX)
         if(NOT DEFINED ${_required})
@@ -17,6 +29,22 @@ if(DEFINED SAMPLE)
     endforeach()
     if(NOT EXISTS "${SAMPLE}")
         message(FATAL_ERROR "SAMPLE does not exist: ${SAMPLE}")
+    endif()
+elseif(DEFINED DWG_SOURCE_GENERATOR)
+    if(NOT DEFINED EXPECTED_MAGIC_HEX)
+        message(FATAL_ERROR "EXPECTED_MAGIC_HEX is required with DWG_SOURCE_GENERATOR")
+    endif()
+    if(NOT DEFINED DWG_SOURCE_VERSION)
+        set(DWG_SOURCE_VERSION AC1021)
+    endif()
+    if(NOT DWG_SOURCE_VERSION STREQUAL "AC1021"
+            AND NOT DWG_SOURCE_VERSION STREQUAL "AC1024"
+            AND NOT DWG_SOURCE_VERSION STREQUAL "AC1032")
+        message(FATAL_ERROR
+            "DWG_SOURCE_VERSION must be AC1021, AC1024, or AC1032 for generated controls")
+    endif()
+    if(NOT EXISTS "${DWG_SOURCE_GENERATOR}")
+        message(FATAL_ERROR "DWG_SOURCE_GENERATOR does not exist: ${DWG_SOURCE_GENERATOR}")
     endif()
 else()
     foreach(_required IN ITEMS DWGADD RECIPE)
@@ -37,8 +65,23 @@ if(DEFINED INPUT_PATH_UNICODE AND NOT INPUT_PATH_UNICODE STREQUAL "ON"
         AND NOT INPUT_PATH_UNICODE STREQUAL "OFF")
     message(FATAL_ERROR "INPUT_PATH_UNICODE must be ON or OFF")
 endif()
+if(DEFINED FREECAD_PERSISTENCE_CONTROL AND FREECAD_PERSISTENCE_CONTROL)
+    if(NOT DEFINED EXPECTED_PRIMITIVE_COUNTS OR NOT DEFINED EXPECTED_PRIMITIVE_SHAPES)
+        message(FATAL_ERROR "FreeCAD save/reopen requires a mixed primitive profile")
+    endif()
+    if((DEFINED IMPORT_CHECK_MODE AND IMPORT_CHECK_MODE STREQUAL "legacy_polyface")
+            OR (DEFINED EXPECT_3DFACE AND EXPECT_3DFACE STREQUAL "unsupported"))
+        message(FATAL_ERROR "FreeCAD save/reopen requires the supported C++ importer profile")
+    endif()
+    set(_persistence_enabled 1)
+else()
+    set(_persistence_enabled 0)
+endif()
 if(NOT DEFINED DWG_CONVERSION_MODE)
     set(DWG_CONVERSION_MODE 1)
+endif()
+if(DEFINED EXPECTED_LINE_BOUNDS AND NOT DEFINED EXPECTED_LINE_ENDPOINTS)
+    message(FATAL_ERROR "Explicit LINE bounds require authored EXPECTED_LINE_ENDPOINTS")
 endif()
 if(NOT DWG_CONVERSION_MODE STREQUAL "0"
         AND NOT DWG_CONVERSION_MODE STREQUAL "1")
@@ -103,6 +146,8 @@ else()
 endif()
 if(DEFINED SAMPLE)
     set(_input "${_input_dir}/AC1027 tracked 3D LINE.dwg")
+elseif(DEFINED DWG_SOURCE_GENERATOR)
+    set(_input "${_input_dir}/${DWG_SOURCE_VERSION} generated 3D LINE.dwg")
 else()
     set(_input "${_input_dir}/AC1015 generated 3D LINE.dwg")
 endif()
@@ -139,6 +184,45 @@ if(DEFINED SAMPLE)
             "Could not copy the tracked AC1027 LINE control (${_copy_result}).\n"
             "Evidence retained at ${_temp_parent}\n${_copy_stdout}\n${_copy_stderr}")
     endif()
+elseif(DEFINED DWG_SOURCE_GENERATOR)
+    if(DEFINED IMPORT_CHECK_MODE AND IMPORT_CHECK_MODE STREQUAL "legacy_polyface")
+        set(_generated_source "${_test_root}/generated ${DWG_SOURCE_VERSION} primitives.dwg")
+        set(_generator_option "--generate-freecad-primitives-source")
+    elseif(DEFINED EXPECTED_PRIMITIVE_COUNTS
+        AND DEFINED EXPECTED_PRIMITIVE_SHAPES)
+        set(_generated_source "${_test_root}/generated ${DWG_SOURCE_VERSION} primitives.dwg")
+        set(_generator_option "--generate-freecad-primitives-source")
+    else()
+        set(_generated_source "${_test_root}/generated ${DWG_SOURCE_VERSION} 3D LINE.dwg")
+        set(_generator_option "--generate-cli-batch-source")
+    endif()
+    execute_process(
+        COMMAND "${DWG_SOURCE_GENERATOR}" "${_generator_option}"
+            "${_generated_source}" "${DWG_SOURCE_VERSION}"
+        RESULT_VARIABLE _generate_result
+        OUTPUT_VARIABLE _generate_stdout
+        ERROR_VARIABLE _generate_stderr
+        TIMEOUT 30
+    )
+    if(NOT "${_generate_result}" STREQUAL "0"
+            OR NOT EXISTS "${_generated_source}")
+        message(FATAL_ERROR
+            "Could not generate the local ${DWG_SOURCE_VERSION} control (${_generate_result}).\n"
+            "Evidence retained at ${_temp_parent}\n"
+            "${_generate_stdout}\n${_generate_stderr}")
+    endif()
+    execute_process(
+        COMMAND "${CMAKE_COMMAND}" -E copy "${_generated_source}" "${_input}"
+        RESULT_VARIABLE _copy_result
+        OUTPUT_VARIABLE _copy_stdout
+        ERROR_VARIABLE _copy_stderr
+        TIMEOUT 60
+    )
+    if(NOT "${_copy_result}" STREQUAL "0" OR NOT EXISTS "${_input}")
+        message(FATAL_ERROR
+            "Could not stage the generated ${DWG_SOURCE_VERSION} LINE control (${_copy_result}).\n"
+            "Evidence retained at ${_temp_parent}\n${_copy_stdout}\n${_copy_stderr}")
+    endif()
 else()
     execute_process(
         COMMAND "${DWGADD}" --as r2000 -o "${_input}" "${RECIPE}"
@@ -164,6 +248,25 @@ if(NOT "${_magic_hex}" STREQUAL "${_expected_magic_hex}")
     message(FATAL_ERROR
         "The FreeCAD DWG control has unexpected version magic (${_magic_hex} != ${_expected_magic_hex}); "
         "evidence retained at ${_temp_parent}")
+endif()
+
+# A positive application check must start from a source accepted by the exact
+# installed converter FreeCAD will launch. Keep the strict-preflight DXF in
+# the isolated root as evidence until the application check completes.
+set(_strict_preflight_output "${_test_root}/strict preflight.dxf")
+execute_process(
+    COMMAND "${DWG2DXF}" "${_input}" -o "${_strict_preflight_output}"
+    RESULT_VARIABLE _preflight_result
+    OUTPUT_VARIABLE _preflight_stdout
+    ERROR_VARIABLE _preflight_stderr
+    TIMEOUT 60
+)
+if(NOT "${_preflight_result}" STREQUAL "0"
+        OR NOT EXISTS "${_strict_preflight_output}")
+    message(FATAL_ERROR
+        "Installed dwg2dxf strict preflight failed (${_preflight_result}); "
+        "FreeCAD was not launched.\nEvidence retained at ${_temp_parent}\n"
+        "${_preflight_stdout}\n${_preflight_stderr}")
 endif()
 
 file(WRITE "${_user_cfg}"
@@ -195,25 +298,74 @@ set(_environment
     "LIBDXFRW_FREECAD_TEMP_ROOT=${_test_root}"
     "LIBDXFRW_FREECAD_EXPECT_DWG2DXF=${_installed_converter}"
     "LIBDXFRW_FREECAD_EXPECT_DWG2DXF_SHA256=${_converter_sha256}"
+    "LIBDXFRW_FREECAD_SAVE_REOPEN=${_persistence_enabled}"
     "LIBDXFRW_FREECAD_EXPECT_LINE_BOUNDS=[[1,2,3,4,6,9]]"
-    "PATH=${_test_path_arg}"
+    "LIBDXFRW_FREECAD_EXPECT_LINE_ENDPOINTS=[[[1,2,3],[4,6,9]]]"
     "FREECAD_USER_HOME=${_user_home}"
     "FREECAD_USER_DATA=${_user_data}"
     "FREECAD_USER_TEMP=${_user_temp}"
     "TMPDIR=${_temp_parent}"
     "TEMP=${_temp_parent}"
     "TMP=${_temp_parent}")
+if(DEFINED IMPORT_CHECK_MODE AND IMPORT_CHECK_MODE STREQUAL "legacy_polyface")
+    list(APPEND _environment
+        "LIBDXFRW_FREECAD_DXF=${_strict_preflight_output}"
+        "LIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR=${FREECAD_LEGACY_DXF_ADDON_DIR}")
+endif()
 if(DEFINED EXPECTED_LINE_BOUNDS)
     list(REMOVE_ITEM _environment
         "LIBDXFRW_FREECAD_EXPECT_LINE_BOUNDS=[[1,2,3,4,6,9]]")
     list(APPEND _environment
         "LIBDXFRW_FREECAD_EXPECT_LINE_BOUNDS=${EXPECTED_LINE_BOUNDS}")
 endif()
+if(DEFINED EXPECTED_LINE_ENDPOINTS)
+    list(REMOVE_ITEM _environment
+        "LIBDXFRW_FREECAD_EXPECT_LINE_ENDPOINTS=[[[1,2,3],[4,6,9]]]")
+    list(APPEND _environment
+        "LIBDXFRW_FREECAD_EXPECT_LINE_ENDPOINTS=${EXPECTED_LINE_ENDPOINTS}")
+endif()
+if(DEFINED EXPECTED_PRIMITIVE_COUNTS
+        AND DEFINED EXPECTED_PRIMITIVE_SHAPES)
+    list(REMOVE_ITEM _environment
+        "LIBDXFRW_FREECAD_EXPECT_LINE_BOUNDS=[[1,2,3,4,6,9]]"
+        "LIBDXFRW_FREECAD_EXPECT_LINE_ENDPOINTS=[[[1,2,3],[4,6,9]]]" )
+    list(APPEND _environment
+        "LIBDXFRW_FREECAD_EXPECT_PRIMITIVE_COUNTS=${EXPECTED_PRIMITIVE_COUNTS}"
+        "LIBDXFRW_FREECAD_EXPECT_PRIMITIVE_SHAPES=${EXPECTED_PRIMITIVE_SHAPES}")
+    if(DEFINED EXPECTED_SPLINE_SAMPLES)
+        list(APPEND _environment
+            "LIBDXFRW_FREECAD_EXPECT_SPLINE_SAMPLES=${EXPECTED_SPLINE_SAMPLES}")
+    endif()
+    if(DEFINED EXPECTED_POLYLINE_POINTS)
+        list(APPEND _environment
+            "LIBDXFRW_FREECAD_EXPECT_POLYLINE_POINTS=${EXPECTED_POLYLINE_POINTS}")
+    endif()
+    if(DEFINED EXPECTED_CLOSED_2D_POLYLINE_POINTS)
+        list(APPEND _environment
+            "LIBDXFRW_FREECAD_EXPECT_CLOSED_2D_POLYLINE_POINTS=${EXPECTED_CLOSED_2D_POLYLINE_POINTS}")
+    endif()
+endif()
+if(DEFINED EXPECT_3DFACE)
+    list(APPEND _environment
+        "LIBDXFRW_FREECAD_EXPECT_3DFACE=${EXPECT_3DFACE}")
+endif()
+if(DEFINED EXPECT_SOLID)
+    list(APPEND _environment
+        "LIBDXFRW_FREECAD_EXPECT_SOLID=${EXPECT_SOLID}")
+endif()
+if(DEFINED EXPECTED_FREECAD_POLYFACE)
+    list(APPEND _environment
+        "LIBDXFRW_FREECAD_EXPECT_POLYFACE=${EXPECTED_FREECAD_POLYFACE}")
+endif()
 if(DEFINED EXPECTED_FREECAD_REVISION)
     list(APPEND _environment
         "LIBDXFRW_FREECAD_EXPECT_REVISION=${EXPECTED_FREECAD_REVISION}")
 endif()
 
+# list(REMOVE_ITEM) reconstructs the list and strips the escaped semicolons
+# in a Windows PATH. Append it only after all list removals, immediately
+# before expanding the argument vector for cmake -E env.
+list(APPEND _environment "PATH=${_test_path_arg}")
 execute_process(
     COMMAND "${CMAKE_COMMAND}" -E env ${_environment}
         "${FREECADCMD}" --user-cfg "${_user_cfg}" "${IMPORT_CHECK_MACRO}"
@@ -229,6 +381,49 @@ if(NOT "${_freecad_result}" STREQUAL "0")
         "stdout:\n${_freecad_stdout}\nstderr:\n${_freecad_stderr}")
 endif()
 
+if(DEFINED IMPORT_CHECK_MODE AND IMPORT_CHECK_MODE STREQUAL "legacy_polyface")
+    foreach(_expected IN ITEMS
+            "LIBDXFRW_FREECAD_LEGACY_POLYFACE_PASS="
+            "\"operation\": \"${OPERATION}\""
+            "\"importer\": \"legacy-python\""
+            "\"facets\": 2"
+            "\"surfaceCases\": 2"
+            "\"converterSha256\": \"${_converter_sha256}\""
+            "\"bounds\": [121.0, 122.0, 1.0, 124.0, 126.0, 8.0]")
+        string(FIND "${_freecad_stdout}" "${_expected}" _found)
+        if(_found EQUAL -1)
+            message(FATAL_ERROR
+                "FreeCAD legacy ${OPERATION} output lacks '${_expected}'.\n"
+                "Evidence retained at ${_temp_parent}\n"
+                "stdout:\n${_freecad_stdout}\nstderr:\n${_freecad_stderr}")
+        endif()
+    endforeach()
+    message(STATUS
+        "FreeCAD legacy POLYFACE ${OPERATION} check passed.\n"
+        "Converter: ${_installed_converter} (SHA-256 ${_converter_sha256})\n"
+        "FreeCAD output:\n${_freecad_stdout}\n${_freecad_stderr}")
+    file(REMOVE_RECURSE "${_temp_parent}")
+    return()
+endif()
+
+if(DEFINED EXPECTED_PRIMITIVE_COUNTS
+        AND DEFINED EXPECTED_PRIMITIVE_SHAPES)
+    set(_geometry_assertion_key "\"expected_entity_counts\"")
+else()
+    set(_geometry_assertion_key "\"expected_line_bounds\"")
+endif()
+set(_polyface_assertion_key "")
+if(DEFINED EXPECTED_FREECAD_POLYFACE)
+    set(_polyface_assertion_key "\"expected_polyface_triangles\"")
+endif()
+set(_solid_assertion_key "")
+if(DEFINED EXPECT_SOLID AND EXPECT_SOLID STREQUAL "unsupported")
+    set(_solid_assertion_key "\"freecad_solid_outcome\": \"unsupported_by_pinned_freecad_importer\"")
+endif()
+set(_persistence_assertion_key "")
+if(DEFINED FREECAD_PERSISTENCE_CONTROL AND FREECAD_PERSISTENCE_CONTROL)
+    set(_persistence_assertion_key "\"native_save_reopen\"")
+endif()
 foreach(_expected IN ITEMS
         "FREECAD_DWG_IMPORT_ASSERTIONS_PASS="
         "${_installed_converter}"
@@ -236,7 +431,13 @@ foreach(_expected IN ITEMS
         "\"operation\": \"${OPERATION}\""
         "\"discovery\": \"path\""
         "\"dwg_conversion\": ${DWG_CONVERSION_MODE}"
-        "\"expected_line_bounds\"")
+        "${_polyface_assertion_key}"
+        "${_solid_assertion_key}"
+        "${_persistence_assertion_key}"
+        "${_geometry_assertion_key}")
+    if(NOT _expected)
+        continue()
+    endif()
     string(FIND "${_freecad_stdout}" "${_expected}" _found)
     if(_found EQUAL -1)
         message(FATAL_ERROR

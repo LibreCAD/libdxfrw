@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "R24 TABLESTYLE border override flags",
+  "date": "2026-11-08",
+  "supportClaimEffect": "none",
+  "source": {
+    "specification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.4",
+    "finding": "Border group 90 defines six property overrides: border type 0x1, lineweight 0x2, linetype 0x4, color 0x8, invisibility 0x10, and double-line spacing 0x20."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "The AC1024 TABLESTYLE writer admits the documented border override mask 0x3f for each border while preserving the existing supported border-value checks. Unknown bits remain rejected."
+  },
+  "validation": {
+    "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4 && ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+    "result": "Build passed; focused CTest passed 1/1. Generated ASCII/Binary controls set each documented override bit on one border, check group-90 position and typed readback, reject bit 0x40 with destination preservation, and verify same-adapter retry.",
+    "fixturesAdded": 0
+  },
+  "qualificationLimits": [
+    "Generated codec controls do not qualify independent producer wire behavior.",
+    "Native border rendering and interpretation remain unqualified.",
+    "No whole-file DWG/DXF support claim is promoted."
+  ],
+  "hashes": {
+    "src/libdxfrw.cpp": "2ba9c1d69e5523db2f1b2c13b8b0ec68fd211886b316d91bfe6f917b42a7524f",
+    "tests/dwg2dxf_adapter_tests.cpp": "afef595dd80f954134370bfb8d4bba59ebe8a03844d7cb53bcad34846209e191"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-141 local-roundtrip GROUP adapter capture correction",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reproduce the active local-roundtrip CTest failure reported after PAR-141.",
+    "Correct the concrete adapter test harness so its retained dx_data assertion observes the GROUP callback.",
+    "Run only the focused selector, owning target, and owning CTest."
+  ],
+  "sourceChange": {
+    "file": "tests/dwg_local_roundtrip_tests.cpp",
+    "change": "LocalDwgInterface::addGroup now delegates to dx_iface::addGroup before maintaining its independent callback assertion.",
+    "reason": "The prior integration test inspected capturedData().groups but the override never forwarded the GROUP into the base adapter, leaving capturedData empty for all six DWG versions despite the reader callback firing.",
+    "productionBehaviorChanged": false
+  },
+  "validation": {
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --mpolygon-metadata",
+      "result": "PASS"
+    },
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS (1/1; 3.39 sec)"
+    },
+    "scopedDiffCheck": "PASS (git diff --check on implementation, plan, and receipt)",
+    "fullSuiteRun": false,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false,
+    "geometryKernelRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestInventoryChanged": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty; Git metadata is read-only in this session, so changes remain uncommitted and unstaged."
+  }
+}

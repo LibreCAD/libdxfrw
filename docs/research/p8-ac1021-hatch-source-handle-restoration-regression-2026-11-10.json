@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 HATCH output proof after entity writers restore caller handles",
+  "date": "2026-11-10",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1021/tablet.dwg",
+    "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local user corpus; producer and repository provenance are unauthenticated. The source was not added or modified."
+  },
+  "finding": {
+    "regression": "The DWG-to-DXF adapter's HATCH graph callback required the borrowed entity object's handle to remain equal to its planned emitted handle after the writer returned. Entity writer transaction scopes now restore caller-owned handles, so valid HATCH boundary entities were emitted and recorded but the stale object-state assertion marked the graph invalid and refused the completed DXF.",
+    "correction": "Validate the planned emitted handle against dxfRW::remapEntityHandle(sourceHandle), and require exactly one published source-entity handle in the writer ledger. Finalization separately checks the emitted record identity, owner and section.",
+    "behavior": "Strict conversion of the hash-bound AC1021 tablet source now completes and its resulting DXF imports and re-exports at the same version."
+  },
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "scope": "HATCH boundary graph publication proof only; source-handle restoration and strict graph checks remain intact."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_local_roundtrip -j4",
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_hatch_mpolygon_runtime_dispatch|dwg2dxf_hatch_tangents_ascii_cli|dwg2dxf_hatch_tangents_binary_cli|dwg_hatch_circle_boundary_output)$' --output-on-failure",
+      "result": "PASS 4/4"
+    },
+    "physicalConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1021/tablet.dwg -y -v2007 /tmp/libdxfrw-freecad-tablet-final.dxf",
+      "result": "PASS; strict conversion published the DXF",
+      "converterSha256": "936c8bf368b1e6ab727f67b3a32de1961b20efc7712f0589a633b3cec8c94737",
+      "outputSha256": "7365cade8ae8155c70748681a408dc9154d89b6891239460749418c362cf9"
+    },
+    "freshReadback": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /tmp/libdxfrw-freecad-tablet-final.dxf -y -v2007 /tmp/libdxfrw-freecad-tablet-roundtrip.dxf",
+      "result": "PASS; fresh DXF import and same-version re-export succeeded",
+      "outputSha256": "48e11ad818451b14a0dde2f75c060e4d938a5abf757435020ccf81341c624956"
+    },
+    "fixturePolicy": "No DWG or DXF fixture was added. Conversion outputs remain under /tmp; the generated HATCH/CIRCLE control creates its source in test scratch."
+  },
+  "limitations": [
+    "The physical source is unauthenticated local corpus data and establishes only this source profile.",
+    "Fresh libdxfrw readback is transport evidence, not native FreeCAD or LibreCAD acceptance.",
+    "No DWG/DXF support claim is promoted; broader P4/P8 graph, semantic and platform gates remain open."
+  ]
+}

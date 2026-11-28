@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Selected physical AC1021 MATERIAL graph output and readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the three MATERIAL records rooted at ACAD_MATERIAL in one existing AC1021 source for same-version ASCII and Binary DXF output, exact typed/common-link readback, extension-dictionary and XRECORD closure, atomic mutation refusal, and same-adapter retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. No DWG/DXF fixture or derivative is committed."
+  },
+  "sourceGraph": {
+    "root": "The NOD contains one ACAD_MATERIAL edge to dictionary 0x6A.",
+    "materials": "Dictionary 0x6A contains exactly three unique keys: ByBlock to MATERIAL 0xED, ByLayer to 0xEC, and Global to 0xEE. Each typed MATERIAL has owner and sole reactor 0x6A, a complete decoded fixed nonprocedural body, and a unique raw AC1021 source frame.",
+    "extensionDictionaries": "The three MATERIAL records own extension dictionaries 0x1F9, 0x1F7, and 0x173. Those dictionaries contain seven XRECORD targets in total: 0x1FA, 0x1F8, 0x175, 0x174, 0x1FB, 0x176, and 0x177.",
+    "projection": "The adapter test selects only ACAD_MATERIAL, its owner dictionary, all three MATERIAL records, their extension dictionaries, and the seven XRECORDs. Other source objects and unrelated named-resource receipts are excluded from this output projection."
+  },
+  "implementation": {
+    "files": {
+      "dwg2dxf/dx_iface.cpp": "The unchanged-source MATERIAL gate now admits the bounded AC1021 raw-source profile alongside AC1024/AC1027, and nonempty imported DWG MATERIAL collections request NOD-rooted extension-graph emission.",
+      "tests/dwg2dxf_adapter_tests.cpp": "The physical MATERIAL output selector now supports an AC1021 selected projection. It checks all three material bodies/common links and owner keys, all extension-dictionary edges, all seven emitted XRECORD identities, mapped owners, payloads, and atomic mutation/owner-key refusal with destination preservation and same-adapter retry. The existing AC1024 full-source selector remains covered."
+    }
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "ac1021SelectedGraph": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --material-ac1021-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS for ASCII and Binary output and fresh readback; 3 MATERIAL identities, dictionary keys, typed bodies, owner/reactor roles, 3 extension dictionaries, and 7 exact XRECORD payloads are checked. Late MATERIAL mutation and invalid owner-key alias/missing-key states refuse without replacing the destination sentinel; restoring the source allows retry with the same adapter."
+    },
+    "ac1024Regression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --material-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary output and fresh readback, including atomic refusal and same-adapter retry."
+    },
+    "focusedCtests": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_(default_material_optin|ac1024_default_material)$' --output-on-failure",
+      "result": "PASS, 2/2."
+    },
+    "diffCheck": "git diff --check passed."
+  },
+  "limits": [
+    "This is one selected graph from one local AC1021 source and does not qualify whole-source output, another producer, or other AC1021 graph shapes.",
+    "Where the source DWG does not retain a DXF dictionary edge-code annotation, the control verifies ordered keys, mapped targets, ownership, and reactors but does not claim independent proof that the writer's emitted 350/360 edge code matches producer intent.",
+    "Native material rendering/semantics, consumer acceptance, other material procedures/tails, and support claims remain unqualified.",
+    "The AC1021 whole-source export remains blocked by independent document-wide gates, including DBCOLOR and other unqualified source frames."
+  ],
+  "nextAction": "Continue with another independently bounded AC1021 source graph or standard-object family from the current frame inventory; retain strict whole-source refusal until all document dependencies close."
+}

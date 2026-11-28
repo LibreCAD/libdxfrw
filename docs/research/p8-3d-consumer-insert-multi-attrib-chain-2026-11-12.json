@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-insert-multi-attrib-chain-2026-11-12",
+  "purpose": "Verify order and selected fields for a two-ATTRIB INSERT chain plus SEQEND through generated DXF callback readback.",
+  "changes": [
+    "Extended the nested parent INSERT with a second ATTRIB whose tag, text, insertion point, height, rotation, width scale, flags, field length, and style differ from the first.",
+    "Checked attributeCount=2 and preserved attribute list order, all selected fields for both attributes, and SEQEND presence.",
+    "Ran assertions for AC1027 ASCII/Binary readback with ext=false and ext=true."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.43 seconds"
+  },
+  "scopeLimit": "Same-library generated chain transport only. This does not establish independent interoperability, DWG handle ownership, or native text placement.",
+  "fixturePolicy": "DXF files are generated under a temporary directory and removed; no drawing fixture was added.",
+  "claimEffect": "No support claim changes."
+}

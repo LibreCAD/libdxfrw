@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "id": "p5-ac1021-metric-table-bitshort-fallback-2026-11-09",
+  "date": "2026-11-09",
+  "scope": "Resolve the two AC1021 metric TABLE type-48 cursor candidates and recheck the existing imperial AC1021 source with a bounded alignment-width compatibility candidate.",
+  "supportClaimEffect": "none; alternative alignment interpretation remains semantically incomplete and strict output remains refused",
+  "authorities": {
+    "normative": "ODA Open Design Specification for .dwg files v5.4.1 \u00a7\u00a720.4.96.1 and 20.4.99. ODA specifies cell alignment as raw RS and lists CadValue types; type 48 is undocumented.",
+    "peer": {
+      "name": "ACadSharp",
+      "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "source": "DwgObjectReader.Entities.cs::readTableCellData",
+      "observation": "Uses ReadBitShort for the alignment override and decodes the two table cells as MiddleRight. Because that differs from ODA RS, peer success is not independent normative proof."
+    },
+    "otherPeer": "LibreDWG 0.14 retains these ACAD_TABLE bodies as unknown bits and provides no direct field spans."
+  },
+  "physicalSources": [
+    {
+      "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+      "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+      "tables": [
+        "0x2856e",
+        "0x2a974"
+      ],
+      "firstRawRSCandidates": [
+        {
+          "row": 8,
+          "column": 0,
+          "alignmentRawRS": 42049,
+          "oldCadValueType": 48,
+          "oldPayloadBodyBit": 278726
+        },
+        {
+          "row": 9,
+          "column": 0,
+          "alignmentRawRS": 42049,
+          "oldCadValueType": 48,
+          "oldPayloadBodyBit": 312907
+        }
+      ],
+      "cadValueCountWithFallback": 171,
+      "publishedFrames": 4408,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0
+    },
+    {
+      "path": "tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+      "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+      "sourceDisposition": "pre-existing local sample, untracked input not added or changed by this slice",
+      "cadValueCountWithFallback": 171,
+      "publishedFrames": 3586,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0
+    }
+  ],
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "sha256": "94e1ef033a86d2a31730bac6f37cf7363227630c70291ccc0d6e0f0ab8b7f21d",
+    "profile": "AC1021 text cell, override mask exactly 0x01. Prefer raw RS if 1..9. If raw RS is outside that domain, accept a BitShort only if it is 1..9; mark semantic completeness false. Other masks and invalid alternatives remain refused/incomplete.",
+    "test": "tests/dwg_object_vectors_tests.cpp",
+    "noFixture": "Generated controls are authored in memory. Existing samples remain local; no DWG/DXF fixture was added or modified."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j4",
+    "ctest": "ctest --test-dir build-gcc -R ^libdxfrw_dwg_table_cell_overrides$ --output-on-failure; passed 1/1",
+    "cadValueReadCount": "171 per physical source under the compatibility candidate; no type-48 error remains in these traces",
+    "strictOutput": "Both CLI runs stop at FIELD/FIELDLIST serializer preflight before output preparation; no DXF is created.",
+    "diffCheck": "git diff --check passed",
+    "testExecutableSha256": "7d4597f8e369815983a892e8c64540ea6acb4995b6914c0592b0c9d6ac03fbea",
+    "librarySha256": "b4d9a14f3c6b6b597df302dfc6bea2967aabf4d0f7698a75356aee0dc371288d",
+    "dwg2dxfSha256": "ef3a54f0615d42daa8927d05131657838330f6dbeb22ce2bda65cc91cee9592b"
+  },
+  "remaining": [
+    "Resolve the producer-specific alignment encoding with authoritative schema or native semantic evidence.",
+    "Keep both physical TABLE snapshots partial and strict output refused until the alternative layout is independently qualified.",
+    "Do not infer TABLEGEOMETRY source spans or graph closure from these ACAD_TABLE entities."
+  ]
+}

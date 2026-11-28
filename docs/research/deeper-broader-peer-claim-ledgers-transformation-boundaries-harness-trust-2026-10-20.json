@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Peer claim ledgers, transformation boundaries, and harness trust",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Check consumer qualification ledgers rather than infer claims from application support statements",
+    "Separate declared peer revision support from per-family conformance evidence",
+    "Distinguish strict parsing/direct writing from recovery and cross-document transfer",
+    "Add a scheduled fuzz-harness integrity check without increasing per-slice validation"
+  ],
+  "sources": [
+    {
+      "project": "LibreCAD 3",
+      "reference": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "status": "current_project_policy_and_claim_ledger_description",
+      "observation": "The policy describes DWG reading behind WITH_DWG_IMPORT, off by default, and a qualification ledger with 15 read claims at its stated pinned revision: 11 EXPERIMENTAL, 4 PENDING_NATIVE, none PROMOTED, and no write-direction claims. It deliberately does not enable DWG writing. This is downstream policy evidence, not an independent parser result or a qualification of this workspace's build."
+    },
+    {
+      "project": "ACadSharp",
+      "reference": "https://github.com/DomCR/ACadSharp",
+      "status": "current_project_version_matrix",
+      "observation": "The repository declares different DWG/DXF read and write capabilities by revision and exposes distinct reader/writer routes in its API. The public matrix does not provide per-entity denominators or external acceptance receipts, so it is a candidate-comparator selector, not a conformance result."
+    },
+    {
+      "project": "ezdxf",
+      "reference": "https://github.com/mozman/ezdxf/blob/master/docs/source/tutorials/getting_data.rst",
+      "status": "current_strict_and_recovery_loading_guidance",
+      "observation": "The documentation separates ordinary strict readfile use from recover.readfile for flawed DXF files. A recovered input is not equivalent to strict parser acceptance."
+    },
+    {
+      "project": "ezdxf",
+      "reference": "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst",
+      "status": "current_cross_document_transfer_scope",
+      "observation": "The XREF transfer module supports a constrained copyable/transformable entity set and documents ignored unsupported entities, preserved-unknown DXFTagStorage/proxy content, ACAD_TABLE, and several OBJECTS features. Therefore transfer/import-and-write is a transformation operation, not a direct whole-document parse/write preservation oracle."
+    },
+    {
+      "project": "ezdxf",
+      "reference": "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+      "status": "current_raw_acis_inspection_scope",
+      "observation": "The browse-acis utility displays and exports raw SAT/SAB content; it does not claim B-rep geometry validation."
+    },
+    {
+      "project": "LibreDWG fuzz setup",
+      "reference": "https://github.com/LibreDWG/libredwg-fuzz",
+      "status": "current_project_harness_documentation",
+      "observation": "The setup separates crash, hang, and leak outcomes and documents replay of saved failures. This is a useful process pattern but does not qualify libdxfrw or establish harness correctness by itself."
+    },
+    {
+      "project": "LibreDWG issue tracker",
+      "reference": "https://github.com/LibreDWG/libredwg/issues/1270",
+      "status": "closed_historical_peer_harness_report",
+      "observation": "The issue reports a double-free in the peer fuzz harness's -rw and -indxf paths, with the reporter attributing about 20% of one campaign's crashes to the harness. The issue page described the then-current master as affected. This motivates validating harness fault isolation at a scheduled hardening checkpoint; it is not a claim about current peer code or local libdxfrw."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Added comparator-admission and evidence-route rules: LC3 consumer checks are not independent parser or DWG-writer evidence; peer revision matrices are candidate selectors rather than conformance; recovery and cross-document transfer are separate operations; and fuzz-harness integrity must be checked before interpreting campaign totals. No queue blocker or per-slice validation requirement was added.",
+    "nextImplementation": "Continue the already-local-ready implementation queue; do not wait for peer or native qualification. Use the route manifest and harness smoke only at their existing composed checkpoints.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-claim-ledgers-transformation-boundaries-harness-trust-2026-10-20.json"
+    ],
+    "limitations": "Repository pages are mutable and project-specific. LibreCAD 3's claim counts apply to the revision described by that page; ACadSharp's version matrix is self-declared; LibreDWG issue #1270 is a historical harness report. No local peer reproduction, runtime comparison, format-spec inference, or support qualification was performed."
+  },
+  "validation": {
+    "planEdit": "Appended a route/evidence matrix and fast-first checkpoint refinement, and added a top-level summary entry.",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for the plan; new receipt has no trailing-whitespace diagnostics",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

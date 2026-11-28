@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-138 SectionViewStyle repeated group-1 handle insertion fast slice",
+  "mode": "Generated ASCII/Binary implementation and focused regression validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Exercise same-version raw-carrier insertion of omitted SectionViewStyle group-1 handles.",
+    "Verify null placeholders for omitted identifier-style and arrow-start handles when arrow-end alone is edited.",
+    "Check emitted-handle remapping, exact ordered raw-style streams, reference closure, and following-record continuity."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/sectionviewstyle-group1-handle-insertion-fast-slice-2026-10-19.json"
+    ],
+    "behavior": "No production behavior changed. The generated callback-storage test removes all three SectionViewStyle group-1 references, imports their zero defaults, edits only arrow-end to reference the existing VIEW_STYLE_ARROW block record, then verifies that output retains null identifier/style and arrow-start slots before the remapped arrow-end reference.",
+    "testCases": [
+      "Run the missing-handle case in ASCII and Binary DXF.",
+      "Assert typed readback, remapped arrow-end target, exact raw DetailViewStyle and SectionViewStyle collections, closed resource references, and intact following POINT sentinel."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS",
+        "passed": 1,
+        "failed": 0,
+        "elapsedSeconds": 0.54
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0
+  },
+  "limitations": [
+    "The slice verifies same-version DXF carrier insertion and reference closure only; it does not qualify DWG-origin serialization, cross-version projection, or native style rendering.",
+    "The worktree is broadly dirty and remains uncommitted; no staging or cleanup of unrelated user changes was performed."
+  ]
+}

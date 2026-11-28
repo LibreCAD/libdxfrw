@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-nondxf-proxy-entity-output-gate-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "NON_DXF_PROXY_ENTITY_OUTPUT_REFUSAL_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Prevent the adapter from reporting complete output after a non-DXF ACAD_PROXY_ENTITY callback that currently has no qualified DXF replay route, while preserving DXF-origin exact raw-carrier retention.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "dx_iface now overrides addProxyEntity. For DWG or otherwise non-DXF input, it stores a sticky output-refusal marker instead of silently ignoring the callback.",
+      "fileExport rejects the marker during preflight with an explicit incomplete-output diagnostic, before replacing or publishing the destination.",
+      "DXF-origin typed proxy callbacks do not set the marker; their paired raw entity callback remains captured in the existing source-order replay stream."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed DRW_ProxyEntity callback models and a locally constructed raw DXF carrier; temporary destination sentinels only. No DWG/DXF fixture files were added.",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "assertions": [
+      "A DWG-origin proxy callback sets the sticky unsupported-output marker.",
+      "ASCII and Binary export both refuse before replacing an existing destination.",
+      "A DXF-origin proxy callback leaves the refusal marker clear and the paired raw carrier is retained in the modelspace raw-record sequence."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R 'dwg2dxf_proxy_entity_output_gate|libdxfrw_dxf_proxy_graphic_loss_policy|libdxfrw_raw_proxy_application_scope' --output-on-failure",
+    "focusedTestResult": "PASS: 3/3 in 1.34 seconds.",
+    "diffCheck": "PASS: git diff --check",
+    "fixturePolicy": "No investigation or test drawing fixture was added or committed."
+  },
+  "limitations": [
+    "This closes a silent omission path only; no DWG proxy bytes are serialized into DXF by this slice.",
+    "Exact proxy class/version mapping, object-ID roles, output graph closure, physical source-to-output proof, and native proxy meaning remain open.",
+    "DXF raw replay remains source-bound and is not generalized to DWG-origin proxy records.",
+    "No support claim is promoted; P4, P6 and P8 remain open."
+  ]
+}

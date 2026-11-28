@@ -1,0 +1,43 @@
+{
+  "id": "p5-ac1018-table-entity-xdictionary-source-wire-2026-11-11",
+  "scope": "One physical-source AC1018 TABLE common header and initial handle tail; no TABLE semantic, graph-closure, output or compatibility qualification.",
+  "source": {
+    "drawing": "/private/tmp/p5-desc-input/input.dwg",
+    "drawing_sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "origin": "ODA 27.1.0 ACAD2004 audited conversion of the locally available ezdxf acad_table_simple.dxf; see p5-ac1018-table-descendant-graph-wire-2026-11-11.json for full provenance. This conversion is not independent semantic evidence.",
+    "body_sha256": "d79e300c1fde2031114023ab665149688e4d8236bb5ff2f591f387c7baca93a2",
+    "body_bytes": 2287,
+    "peer": "LibreDWG dwgread 0.14 minJSON /private/tmp/p5-ac1018-oda-audited-output/peer.json, SHA256 23d17c79abb050743822552f1fb9e0db644ad43a2e9fca76db6c40a99bf4db5b, agrees on the selected source identity, flags and handle values. Its TABLE entity payload fields are not independently qualified wholesale."
+  },
+  "authority": "Open Design Specification for .dwg files v5.4.1 SHA256 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7, sections 20.4.1 and 20.4.2: R2004 missing-xdictionary flag, entity-mode, reactor count and common owner/reactor/xdictionary order; xdictionary is a hard-owner handle. The verifier uses only this exact source shape and does not generalize its field positions to other entities.",
+  "wire": {
+    "type": "BS 513, bits [0,18)",
+    "data_end": "RL 18156, bits [18,50), start of the handle tail",
+    "identity_and_eed": "H0 self 0x9c bits [50,66); zero EED BS bits [66,68)",
+    "proxy": "flag=1 [68,69), RL byte length 2104 [69,101), proxy bytes [101,16933). The exact skip is bounded to the data-end and includes opaque cached graphics whose semantics are not examined.",
+    "handle_selectors": "entmode=2 bits [16933,16935): no owner handle; zero reactor count [16935,16937): no reactor handles; missing-xdictionary=0 [16937,16938): xdictionary H is present and is first in the tail.",
+    "later_common_fields": "ENC=256 [16938,16940), linetype scale BD selector=1 [16940,16942), linetype flags=0 [16942,16944), plotstyle flags=0 [16944,16946), invisible BS=0 [16946,16948), lineweight RC=29 [16948,16956).",
+    "tail": "H3 xdictionary 0xbb [18156,18172), H5 layer 0x10 [18172,18188), H5 block record 0x9d [18188,18204), H5 TABLESTYLE 0x6b [18204,18220). The verifier stops there and does not claim tail or TABLE payload completeness."
+  },
+  "capture": {
+    "pinned_checkout": "git archive e5341dd31d686c529ba2f8172de56868bc3551b9 | tar -x -C /private/tmp/p5-table-entity-src (create the directory first).",
+    "instrument": "python3 tools/research/p5_ac1018_table_entity_scratch_instrument.py --reader /private/tmp/p5-table-entity-src/src/intern/dwgreader.cpp (only for an isolated checkout; checks exact original file hash and fails on any other file). Instrument copies the selected body immediately after DwgObjectFrame::readAt succeeds; readAt bounds-checks and checks frame CRC16. The instrument has a fixed scratch output path and does not alter the working tree.",
+    "build": "cmake -S /private/tmp/p5-table-entity-src -B /private/tmp/p5-table-entity-build -DCMAKE_POLICY_VERSION_MINIMUM=3.5; cmake --build /private/tmp/p5-table-entity-build --target dwg2dxf -j 6",
+    "probe_build": "clang++ -std=c++17 -Wall -Wextra -Werror -I/private/tmp/p5-table-entity-src/dwg2dxf -I/private/tmp/p5-table-entity-src/src tools/research/p5_ac1018_table_entity_publication_probe.cpp /private/tmp/p5-table-entity-build/dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o /private/tmp/p5-table-entity-build/libdxfrw.a -framework CoreFoundation -o /private/tmp/p5-table-entity-probe",
+    "probe": "/private/tmp/p5-table-entity-probe /private/tmp/p5-desc-input/input.dwg > /private/tmp/p5-table-entity-probe.log 2>&1",
+    "probe_sha256": "4203e933e45024b93c8580f3fcb42bcd0a46775c2c0d150939ee344519cf978b",
+    "probe_log_sha256": "c2147a19d2a3774f795d7de8d8ddf35eb12bbadaa7363e3c25312ccfc9ba22c0",
+    "publication": "one TABLE callback and one frame publication: handle 0x9c, AC1018, decoded-buffer offset 4484, source ordinal 118, encoded/resolved class 513, ACAD_TABLE/AcDbTable, entity, typed carrier. Published xdictionary is 0xbb but common-link evidence is Unknown, because commonLinkTailValidated is intentionally only set for versions greater than AC1018. The callback value alone is not authoritative source proof.",
+    "caveat": "CRC verification occurs in the instrumented reader, not in the standalone Python bit-walk; a matching external body digest cannot by itself prove its source or its frame CRC. The research probe is not a non-forgeable ticket and cannot authenticate arbitrary user callbacks."
+  },
+  "verification": {
+    "command": "python3 tools/research/p5_ac1018_table_entity_source_verify.py --source /private/tmp/p5-desc-input/input.dwg --body /private/tmp/p5-table-entity-body.bin --peer-json /private/tmp/p5-ac1018-oda-audited-output/peer.json --self-test",
+    "result": "PASS; report SHA256 302770b7ac335a4edf71cf135f4e54758c616b6b148ff3c33536ba300432ff1d. Self-test calls the field walker directly and rejects both truncated body and a mutated H3 role; these failures do not rely only on the body SHA check. An independently recreated archived checkout instrumented by the research script matched the compiled scratch source byte-for-byte."
+  },
+  "implementation_readiness": {
+    "transaction": "DwgBlockScopeTransaction journals source-scoped events and retires each detached lease only on successful completion events. A later replay failure can leave already delivered callback prefixes, so a callback or individual Published ledger entry alone is insufficient to establish entire block commit. readDwgBlocks reports false for replay failure, and dwgRW::processDwg calls OBJECTS only when BLOCKS returned true. Thus a carefully selected post-BLOCKS OBJECTS-phase reread avoids changing block journal/event/lease behavior; additionally require the exact source tuple and Published-once ledger entry, successful whole import, finalized complete coverage, no reader integrity transition violation, and zero object/entity parse failures before private ticket delivery. Entity sweep has a contained-failure path, so its success alone is not sufficient.",
+    "next_slice": "Opt-in exact selected TABLE handle in the private candidate sink. In the AC1018 OBJECTS phase, use source ledger handle/offset/ordinal/DecodedBuffer tuple, re-read from the same decoded OBJECTS buffer with DwgObjectFrame::readAt, verify its CRC and hard limits, require reader-owned class-map identity ACAD_TABLE/AcDbTable, resolve encoded type from bytes, independently walk bounded common selector and H3 xdictionary fields, and cross-check the selected 0xbb dictionary candidate's owner and exact source tuple. Stage a reader-created non-copyable capability and deliver only after whole-import completion, then assemble privately only if every selected ticket is present and unique. Follow existing candidate budgets, clear all pending state on any failed selection, duplicate, allocation failure or read retry, and preserve ordinary callbacks and Unknown generic AC1018 evidence. No candidate or public callback alone grants output authority.",
+    "tests": "Generated valid controls and physical source opt-in; mutate class tuple, self handle, EED, proxy length/bounds, entmode, reactor count, xdictionary flag, role/value, CRC, byte span and source tuple; truncate at each relevant boundary; check forged or duplicate callback/ticket, candidate subset, memory-budget failure, exception, aborted later block event, contained sweep failure, import failure and retry. Check ordinary 2D TABLE callbacks and block rollback remain identical with opt-in disabled and no candidate leaks on failure.",
+    "remaining": "This proves only a narrowly selected source edge. Independent style/resource, full extension-subtree, proxy/block geometry, association, graph output, destination remapping and external consumer qualification remain open. Do not promote support claims."
+  }
+}

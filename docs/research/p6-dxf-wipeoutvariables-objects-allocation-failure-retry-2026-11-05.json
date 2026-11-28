@@ -1,0 +1,59 @@
+{
+  "id": "p6-dxf-wipeoutvariables-objects-allocation-failure-retry-2026-11-05",
+  "date": "2026-11-05",
+  "scope": "Generated AC1027 WIPEOUTVARIABLES OBJECTS callback allocation failure, destination rollback, same-adapter retry and typed readback.",
+  "source": {
+    "kind": "DWG generated from scratch by the test and removed on exit",
+    "revision": "be48535b85867ad05dbaba0ddb901526c1474b75",
+    "profile": "Direct NOD ACAD_WIPEOUT_VARS root entry to one WIPEOUTVARIABLES object, with the observed named-object dictionary reactor relationship; class version 0 and display frame 1.",
+    "repositoryFixtureAdded": false
+  },
+  "implementation": {
+    "test": "tests/wipeoutvariables_objects_allocation_tests.cpp",
+    "testSha256": "1455263023e320fdcbe9ab5b38fd563c95bc5d00362e70719029a5d9aff66386",
+    "cmakeSha256": "db7e0b29d828b0aab5a67ae2be331e12da3ab85bf50a2b7777494abe36ad75c1",
+    "normalBinarySha256": "19285aaaca2feda6d9b0032224e3b327812f9bdb630fbdcfdddc4279f5253ae3",
+    "asanBinarySha256": "bc4d21606f6144601dfc572975e9b2d7566816f55232be6a50839b9b9dda0e46"
+  },
+  "environment": {
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "normalBuild": "build-gcc",
+    "asanBuild": "build-asan-custom",
+    "commands": [
+      "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "cmake --build build-gcc --target libdxfrw_wipeoutvariables_objects_allocation_tests -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_wipeoutvariables_objects_allocation_retry$' -V",
+      "cmake -S . -B build-asan-custom -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "cmake --build build-asan-custom --target libdxfrw_wipeoutvariables_objects_allocation_tests -j4",
+      "ctest --test-dir build-asan-custom -R '^libdxfrw_wipeoutvariables_objects_allocation_retry$' -V"
+    ]
+  },
+  "result": {
+    "status": "PASS",
+    "selector": "libdxfrw_wipeoutvariables_objects_allocation_retry",
+    "normal": {
+      "asciiAllocationOffsets": 11,
+      "binaryAllocationOffsets": 10,
+      "destinationSentinelPreservedAtEveryOffset": true,
+      "sameAdapterRetryAtEveryOffset": true,
+      "typedReadbackAtEveryRetry": true,
+      "durationSeconds": 0.41,
+      "callerTypedRecordPreservedAtEveryOffset": true
+    },
+    "asan": {
+      "asciiAllocationOffsets": 11,
+      "binaryAllocationOffsets": 10,
+      "destinationSentinelPreservedAtEveryOffset": true,
+      "sameAdapterRetryAtEveryOffset": true,
+      "typedReadbackAtEveryRetry": true,
+      "durationSeconds": 1.71,
+      "callerTypedRecordPreservedAtEveryOffset": true
+    },
+    "suite": "focused normal and ASan selectors only; no full suite"
+  },
+  "limits": [
+    "Generated transport and transaction evidence only; it does not qualify physical producer breadth or native wipeout rendering.",
+    "Covers this direct-NOD WIPEOUTVARIABLES graph and callback allocations, not other OBJECTS builders or shared-instance concurrency."
+  ],
+  "next": "Continue P6 safety/caller-state work with another distinct, locally ready OBJECTS builder or staged family."
+}

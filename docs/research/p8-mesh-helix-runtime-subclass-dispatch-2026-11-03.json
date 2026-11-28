@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-mesh-helix-runtime-subclass-dispatch-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "MESH_HELIX_RUNTIME_SUBCLASS_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Prevent dx_iface::writeEntity from serializing a derived MESH or HELIX runtime object through a built-in base writer while silently dropping subclass state.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "guards": {
+      "MESH": "exactEntityForDxfWrite<DRW_Mesh>(entity, DRW::MESH)",
+      "HELIX": "exactEntityForDxfWrite<DRW_Helix>(entity, DRW::HELIX)"
+    },
+    "failureBehavior": "A derived runtime class with the matching public tag is refused through the existing atomic output path before the base writer is called.",
+    "retryBehavior": "Replacing the derived object with the exact built-in class permits same-adapter retry."
+  },
+  "validationProfile": {
+    "source": "Locally constructed DRW_Mesh and DRW_Helix subclasses with extra unmodeled string state; exact retry models are authored in memory. No drawing fixture is used.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "Both derived runtime classes are refused despite carrying their matching MESH or HELIX public tag.",
+      "Each refusal preserves a pre-existing destination sentinel.",
+      "Exact DRW_Mesh retry reads back the three vertices and triangular face indices.",
+      "Exact DRW_Helix retry reads back its runtime type, two fit points, and selected axis/turn fields."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_entity_runtime_dispatch$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; existing tag-mismatch controls plus four MESH/HELIX subclass refusal/retry/readback cases across ASCII and Binary DXF, 0.63 seconds.",
+    "fixturePolicy": "No DWG/DXF fixture was added or committed."
+  },
+  "limitations": [
+    "The guard covers the concrete dx_iface adapter dispatch; direct public dxfRW::writeMesh and writeHelix calls are outside this slice.",
+    "No physical DWG producer profile, topology/kernel meaning, native consumer behavior, ABI behavior, or whole-document output is qualified.",
+    "P8 remains open and no support claim is promoted."
+  ]
+}

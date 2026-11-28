@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1027-oda-unlocked-cli-retry-2026-11-05",
+  "date": "2026-11-05",
+  "status": "ODA_CLI_RETRY_ABORTED_BEFORE_CONVERSION",
+  "supportClaimEffect": "none",
+  "question": "Does unlocking the macOS session allow the installed ODA File Converter 27.1 CLI to repeat the AC1027 suffix resave?",
+  "converter": {
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "bundleVersion": "27.1.0.0",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+  },
+  "command": [
+    "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "/private/tmp/libdxfrw-oda-unlock-retry-20261105/input",
+    "/private/tmp/libdxfrw-oda-unlock-retry-20261105/output",
+    "ACAD2013",
+    "DWG",
+    "0",
+    "0"
+  ],
+  "exitCode": -6,
+  "stderr": [
+    "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]",
+    "PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]",
+    "Connection Invalid error for service com.apple.hiservices-xpcservice",
+    "Error received in message reply handler: Connection invalid"
+  ],
+  "outputs": [],
+  "inputs": [
+    {
+      "path": "/Users/dli/doc/dwg/Cover.dwg",
+      "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42"
+    },
+    {
+      "path": "/private/tmp/libredwg-tablecontent-probe-src/test/test-data/2013/Line.dwg",
+      "sha256": "351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1"
+    }
+  ],
+  "interpretation": "The user unlocked the macOS session, but this direct CLI retry still aborts before conversion with the same pasteboard/XPC service errors and creates no output. This is a tool invocation/environment failure, not evidence about HEADER suffix bytes.",
+  "nextAction": "Do not repeat direct CLI invocation until the host pasteboard/XPC service or a supported GUI invocation path changes. Continue independent implementation and keep HEADER suffix bytes unclaimed.",
+  "limits": [
+    "No output was available for suffix comparison.",
+    "No parser, format, or support claim changed."
+  ],
+  "followupAttempt": {
+    "timestampLocal": "2026-11-05 12:32:59 EST",
+    "command": [
+      "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "/private/tmp/libdxfrw-oda-unlock-recheck-20261105/input",
+      "/private/tmp/libdxfrw-oda-unlock-recheck-20261105/output",
+      "ACAD2013",
+      "DWG",
+      "0",
+      "0"
+    ],
+    "inputDirectory": "/private/tmp/libdxfrw-oda-unlock-recheck-20261105/input",
+    "inputs": [
+      {
+        "path": "Line.dwg",
+        "sha256": "351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1"
+      },
+      {
+        "path": "Cover.dwg",
+        "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42"
+      }
+    ],
+    "exitCode": -6,
+    "stderr": [
+      "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]",
+      "PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]",
+      "Connection Invalid error for service com.apple.hiservices-xpcservice",
+      "Error received in message reply handler: Connection invalid"
+    ],
+    "outputs": [],
+    "interpretation": "A second fresh-directory invocation after the user indicated they were unlocking the session reproduced the same pre-conversion pasteboard/XPC abort. The user did not explicitly confirm the unlock had completed. No converter output or suffix evidence resulted."
+  }
+}

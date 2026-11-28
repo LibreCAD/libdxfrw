@@ -459,12 +459,7 @@ def normalized_command(command: list[str], root: Path, build_dir: Path) -> list[
     return normalized
 
 
-def validate_inventory(
-    inventory: dict[str, Any],
-    contract: dict[str, Any],
-    root: Path,
-    build_dir: Path,
-) -> tuple[list[str], list[dict[str, Any]]]:
+def validate_inventory_names(inventory: dict[str, Any], contract: dict[str, Any]) -> list[str]:
     tests = {test["name"]: test for test in inventory["tests"]}
     names = sorted_test_names(tests)
     broad = contract["broadInventory"]
@@ -485,6 +480,18 @@ def validate_inventory(
             "focused label membership differs (missing=%s, extra=%s)" % (
                 sorted(set(focused_rows) - labelled),
                 sorted(labelled - set(focused_rows))))
+    return names
+
+
+def validate_inventory(
+    inventory: dict[str, Any],
+    contract: dict[str, Any],
+    root: Path,
+    build_dir: Path,
+) -> tuple[list[str], list[dict[str, Any]]]:
+    names = validate_inventory_names(inventory, contract)
+    tests = {test["name"]: test for test in inventory["tests"]}
+    focused_rows = {row["id"]: row for row in contract["focusedTests"]}
 
     attestations: list[dict[str, Any]] = []
     for test_id in sorted_test_names(focused_rows):
@@ -1206,6 +1213,14 @@ def self_test() -> None:
     contract = fixture_contract()
     validate_contract(contract, require_final=True)
     inventory = fixture_inventory(contract)
+    assert validate_inventory_names(inventory, contract) == contract["broadInventory"]["names"]
+    stale_inventory = json.loads(json.dumps(inventory))
+    stale_inventory["tests"].append({"name": "unexpected-test"})
+    try:
+        validate_inventory_names(stale_inventory, contract)
+        raise AssertionError("stale test inventory accepted")
+    except QualificationError:
+        pass
     names, attestations = validate_inventory(
         inventory, contract, Path("/tmp/source"), Path("/tmp/build"))
     assert len(names) == len(EXPECTED_FOCUSED)
@@ -1298,6 +1313,12 @@ def build_parser() -> argparse.ArgumentParser:
                        default=Path("metadata/qualification-required-tests-v1.json"))
     check.add_argument("--allow-unfinalized", action="store_true")
 
+    check_inventory = subparsers.add_parser("check-inventory")
+    check_inventory.add_argument("--build-dir", type=Path, required=True)
+    check_inventory.add_argument("--manifest", type=Path,
+                                 default=Path("metadata/qualification-required-tests-v1.json"))
+    check_inventory.add_argument("--ctest", default="ctest")
+
     freeze = subparsers.add_parser("freeze-inventory")
     freeze.add_argument("--root", type=Path, default=Path("."))
     freeze.add_argument("--build-dir", type=Path, required=True)
@@ -1349,6 +1370,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "freeze-inventory":
             return freeze_inventory(args)
+        if args.command == "check-inventory":
+            contract = validate_contract(read_json(args.manifest), require_final=True)
+            inventory = ctest_inventory(args.ctest, args.build_dir.resolve())
+            names = validate_inventory_names(inventory, contract)
+            print("qualification test inventory: PASS (%d tests)" % len(names))
+            return 0
         if args.command == "run":
             return run_qualification(args)
         if args.command == "enforce":

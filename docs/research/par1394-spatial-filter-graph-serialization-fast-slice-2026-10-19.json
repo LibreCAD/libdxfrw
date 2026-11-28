@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-139.4 same-version SPATIAL_FILTER graph serialization",
+  "mode": "Generated local ASCII/Binary implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Emit complete typed SPATIAL_FILTER records transactionally with a remapped/reserved self handle and a validated 32-bit owner",
+    "Require a same-source-version DXF target and stage the validated INSERT-to-filter dictionaries, filter-owned dictionaries, XRECORDs, and filters for OBJECTS output",
+    "Fail closed on unrecognized raw SPATIAL_FILTER group codes and unsupported sibling entries in the INSERT clipping dictionaries",
+    "Exercise same-adapter corrected retry, destination preservation, handle remapping, opaque XRECORD retention, and ASCII/Binary reimport"
+  ],
+  "localEvidence": [
+    "Generated ASCII and Binary controls use two INSERT instances of one block with separate ACAD_FILTER/SPATIAL owner chains and distinct paths/matrices",
+    "Generated fields cover front-only and back-only clipping distances; a filter-owned ACAD_XREC_ROUNDTRIP DICTIONARY/XRECORD is emitted and reimported",
+    "The source handle 0x10 collides with a fixed output handle and is remapped; dictionary/filter/XRECORD owner links survive readback",
+    "Target-version mismatch, dangling filter target, and cross-owned filter are refused before replacing the sentinel destination; the corrected graph then succeeds on the same adapter",
+    "The codec-level SPATIAL_FILTER writer uses a record transaction and checks each output call"
+  ],
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Implements same-version typed field and owner-graph output for the admitted SPATIAL_FILTER route. Unrecognized raw tags and sibling dictionary objects are refused; clipping visibility, inverted semantics, DWG-origin export qualification, and consumer support remain unproven."
+  },
+  "validation": {
+    "strictBuildTargets": [
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_hardening_tests"
+    ],
+    "strictBuildPassed": true,
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_hardening_tests --spatial-filter-dxf-validation",
+      "passed": true
+    },
+    "ctest": {
+      "name": "dwg2dxf_named_object_callback_storage",
+      "passed": true,
+      "passedCount": 1,
+      "failedCount": 0,
+      "elapsedSeconds": 0.55
+    },
+    "scopedDiffCheckPassed": true,
+    "fullSuiteRun": false
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "planUpdated": true,
+    "temporaryGeneratedAsciiBinaryInputs": true,
+    "temporaryOutputsDeleted": true,
+    "sourceFixturesCommitted": false,
+    "workCommitted": false,
+    "limitations": [
+      "Only same-source-version replay is admitted",
+      "Unrecognized raw SPATIAL_FILTER tags are refused rather than raw-replayed",
+      "Sibling objects on the INSERT ACAD_FILTER or SPATIAL dictionary routes are refused until complete closure/output support exists",
+      "The test verifies fields, owner graph, and reimport, not visible clipping or inversion semantics",
+      "No DWG-origin end-to-end SPATIAL_FILTER export or native consumer was qualified"
+    ]
+  }
+}

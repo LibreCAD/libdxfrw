@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "title": "AC1018 Extruder2 OLE2FRAME candidate screen",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Determine whether the AC1018 Extruder2 OLE2FRAME graph is eligible for a bounded physical DXF output route.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Extruder2.dwg",
+    "version": "AC1018",
+    "sha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+    "provenance": "Existing local source; author and producer are unauthenticated and the source is not committed."
+  },
+  "independentPeer": {
+    "tool": "GNU LibreDWG dwgread",
+    "version": "0.14",
+    "projection": "/private/tmp/Extruder2-libredwg.json",
+    "projectionSha256": "3a44136652e84a0a2e840eaede0a00acc3d68fb7eb422b50318db224b79fb388",
+    "ole2frames": [
+      {"handle": "0x2FB", "blockHeader": "0x1F", "blockName": "*Model_Space", "entmode": 2},
+      {"handle": "0x4A49", "blockHeader": "0x1F", "blockName": "*Model_Space", "entmode": 2},
+      {"handle": "0x656A", "blockHeader": "0x1F", "blockName": "*Model_Space", "entmode": 2},
+      {"handle": "0x4B4F", "blockHeader": "0x4B1F", "blockName": "A$C33475CF6", "entmode": 0, "directOwner": "0x4B1F"}
+    ],
+    "namedBlockPayloadBytes": 108160
+  },
+  "libdxfrwRead": {
+    "revision": "1c7cdec210875c7fe255253d534fa63fff3df3d9",
+    "operationSucceeded": true,
+    "legacyError": 0,
+    "opaqueViewCallbacks": 83,
+    "opaqueSourceFramesCaptured": 83,
+    "typedOle2frames": [
+      {"handle": "0x2FB", "callbackContainer": "*U0", "typedOwner": "0x0", "rawFrameBytes": 1150746, "payloadBytes": 1150592, "opaqueType": 74},
+      {"handle": "0x4A49", "callbackContainer": "*U0", "typedOwner": "0x0", "rawFrameBytes": 108315, "payloadBytes": 108160, "opaqueType": 74},
+      {"handle": "0x656A", "callbackContainer": "*U0", "typedOwner": "0x0", "rawFrameBytes": 527643, "payloadBytes": 527488, "opaqueType": 74},
+      {"handle": "0x4B4F", "callbackContainer": "A$C33475CF6", "typedOwner": "0x4B1F", "blockRecordMatches": 1, "rawFrameBytes": 108317, "payloadBytes": 108160, "opaqueType": 74}
+    ],
+    "observations": {
+      "sourceFrames": 14713,
+      "entityParseFailures": 474,
+      "objectParseFailures": 0,
+      "integritySourceRecorded": 476,
+      "integrityRowsRetained": 16,
+      "integrityExtractionOmitted": 460,
+      "reportedUpstreamDroppedLowerBound": 0
+    }
+  },
+  "outputAdmission": {
+    "strict": "Refused: strict-complete conversion requires successful, complete DWG read disposition.",
+    "boundedPartial": "Refused: partial DWG output requires a successful read and finalized, bounded frame dispositions; the integrity ledger is incomplete (460 extracted rows omitted).",
+    "eligible": false,
+    "decision": "Do not weaken read-completeness or integrity-ledger gates to qualify the OLE2FRAME graph."
+  },
+  "fixturePolicy": "No DWG/DXF source or derivative was added to the repository."
+}

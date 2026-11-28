@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "TABLEGEOMETRY DWG BD content value preservation",
+  "date": "2026-11-05",
+  "status": "ODA_BD_LAYOUT_IMPLEMENTED_AND_LOSSY_DXF_OUTPUT_REFUSED",
+  "scope": "ODA v5.4.1 §20.4.103 defines each content's final unknown field as BD (double), while DXF group 95 is integer-valued. The parser now reads the DWG field as BD and retains its exact value. DXF output refuses a source BD that differs from the integer value represented by group 95; the existing bounded profile still requires group 95 to be zero.",
+  "normativeSource": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.103 TABLEGEOMETRY",
+    "localPath": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf",
+    "fieldOrder": "For each content: six geometry BD values followed by Unknown (0) BD, then the next content/column/row; cell soft-pointer handles follow the body in the handle stream."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp"
+    ],
+    "behavior": "DRW_TableGeometryContent retains the exact source DWG double in m_dwgUnknownValue and marks it with m_hasDwgUnknownValue. The DWG parser reads a finite BD instead of BL, derives the legacy integer model only when the value is exactly integral and in int32 range, and preserves the exact double regardless. The DXF writer rejects a retained source value that cannot be represented exactly by the integer group-95 model, preserving atomic output refusal."
+  },
+  "regressionControl": {
+    "files": [
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/table_geometry_dxf_tests.cpp"
+    ],
+    "tests": [
+      "libdxfrw_tablegeometry_dwg_bd_tail",
+      "libdxfrw_table_geometry_dxf_projection"
+    ],
+    "coverage": "A locally authored AC1021 bit vector places nonzero BD 12.5 after the six geometry doubles, checks exact retention and the following cell soft-pointer role/value, and retries after wrong-role refusal. The DXF profile test injects the retained 12.5 source value, verifies output destination preservation, resets it to representable zero, and verifies same-exporter output/readback retry.",
+    "fixturePolicy": "Generated in-memory DWG/DXF vectors only; no fixture file was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_table_geometry_dxf_tests -j4",
+    "buildResult": "passed",
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_tablegeometry_dwg_bd_tail|libdxfrw_table_geometry_dxf_projection)$' --output-on-failure",
+        "result": "passed, 2/2"
+      }
+    ],
+    "diffCheck": "git diff --check passed"
+  },
+  "sourceBinding": {
+    "baseRevision": "2a56d610",
+    "files": {
+      "src/drw_objects.h": "b1ec70436dab306b14aeed718e8ddfdd1b968688918674f4ffe93a948c808531",
+      "src/drw_objects.cpp": "9c58ea38943dd7fc710a686a110495f9837259bc4b10731a9fc74a79c2ad3c91",
+      "src/libdxfrw.cpp": "77c3bde6202875d987299a765ff4f0d188d316ea588bf2a6c29e1f7d7d136687",
+      "tests/dwg_object_vectors_tests.cpp": "80e98d266ff6bc081311fc7f7a2a15634b84b0265c1754ab2f522ccc8faff0ac",
+      "tests/table_geometry_dxf_tests.cpp": "5057271f89f71ba35cd48e49df8c48ab0ebc552b6bdb84206efdc1f9c2ba675d",
+      "CMakeLists.txt": "f5b952142e6b8b6e88de185c3749675deb31e634afef53727204dabbc297b968",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "b954f6de78dca0b32e31de1a4c88981eae1622b93510a913d3a21e9e24a5d67c"
+    }
+  },
+  "nonClaims": [
+    "The 12.5 input is an authored parser control, not an independent producer sample.",
+    "The physical AC1027 witness contains zero in this field; physical nonzero source values and native TABLE rendering remain unqualified.",
+    "This does not close TABLEGEOMETRY target graph closure, non-null soft-pointer semantics, other cell flags/content combinations or TABLE rendering semantics."
+  ]
+}

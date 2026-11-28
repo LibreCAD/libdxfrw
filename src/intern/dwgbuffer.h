@@ -85,7 +85,7 @@ private:
 
 class dwgCharStream: public dwgBasicStream{
 public:
-    dwgCharStream(std::uint8_t *buf, std::uint64_t s)
+    dwgCharStream(const std::uint8_t *buf, std::uint64_t s)
         :stream{buf}
         ,sz{s}
     {}
@@ -105,7 +105,7 @@ public:
             ? stream + p : nullptr;
     }
 private:
-    std::uint8_t *stream{nullptr};
+    const std::uint8_t *stream{nullptr};
     std::uint64_t sz{0};
     std::uint64_t pos{0};
     bool isOk{true};
@@ -114,13 +114,19 @@ private:
 class dwgBuffer {
 public:
     dwgBuffer(std::ifstream *stream, DRW_TextCodec *decoder = nullptr);
-    dwgBuffer(std::uint8_t *buf, std::uint64_t size, DRW_TextCodec *decoder= nullptr);
+    dwgBuffer(const std::uint8_t *buf, std::uint64_t size, DRW_TextCodec *decoder= nullptr);
     dwgBuffer( const dwgBuffer& org );
     dwgBuffer& operator=( const dwgBuffer& org );
     //! Copy the cursor and stream without sharing the invalid-state flag.
     //! Use for bounded speculative reads that must not poison the publishing
     //! cursor when a probe reaches a truncated field.
     [[nodiscard]] dwgBuffer forkIndependent() const;
+    //! Clone the same-origin cursor with an exclusive byte ceiling. Nested
+    //! ceilings intersect; cached partial-byte state and decoder are retained.
+    //! Owns a cloned stream, not a pointer to the parent dwgBuffer. Structural
+    //! invalid-state sharing follows ordinary copying; stream failures remain
+    //! observable through the bounded cursor's isGood().
+    [[nodiscard]] dwgBuffer forkBounded(std::uint64_t endByte) const;
     virtual ~dwgBuffer() = default;
     std::uint64_t size() const {return filestr->size();}
     bool setPosition(std::uint64_t pos);
@@ -198,12 +204,20 @@ public:
     /// @param outBookName out: book name (when method byte bit 2 set)
     /// @param hasRgbColor out: true when the CMC uses the type-0xC2 true-color
     ///                     form, including RGB(0,0,0)
+    /// @param outMethod out: packed CMC method/type byte, retained even when
+    ///                   the decoder does not recognize it
+    /// @param outFlags out: raw name/book flag byte, including unknown bits
+    /// @param outIndex out: raw CMC BS index (always zero in R2004+; legacy
+    ///                   files use the BS value directly as the color index)
     std::uint32_t getCmColor(DRW::Version v,
                        std::int32_t* rgb24 = nullptr,
                        dwgBuffer* strBuf = nullptr,
                        UTF8STRING* outName = nullptr,
                        UTF8STRING* outBookName = nullptr,
-                       bool* hasRgbColor = nullptr); //CMC
+                       bool* hasRgbColor = nullptr,
+                       std::uint8_t* outMethod = nullptr,
+                       std::uint8_t* outFlags = nullptr,
+                       std::uint16_t* outIndex = nullptr); //CMC
     std::uint32_t getEnColor(DRW::Version v); //ENC
     //TC
 

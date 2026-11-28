@@ -1,0 +1,276 @@
+{
+  "date": "2026-11-16",
+  "scope": "Strict parsing and conservative fallback for malformed or duplicate FreeCAD DXF layer colors.",
+  "sourceBase": "FreeCAD d956ec561639cfa83f755504b1b3358ea799428e plus eighteen ordered unmerged importer patches.",
+  "candidateCommit": "705349d",
+  "patch": "docs/patches/freecad-p8-layer-color-syntax-guard-2026-11-16.patch",
+  "reference": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+  "runtimeSha256": {
+    "/private/tmp/freecad-main-d956-source/src/Mod/Import/App/dxf/dxf.cpp": "80c1527c2d50c85a5bed2d8699157a6edd2fe4938765d1831602933ff9e8de20",
+    "/private/tmp/freecad-main-d956-build/Mod/Import/Import.so": "a7d1a8cc029c7704f2aa455e2eecb8f7a9590a16c8bbc4e5642700e6527ca414",
+    "/private/tmp/freecad-main-gui-config-20261116/Mod/Import/ImportGui.so": "37018ce9f51efe6a2a939a19961ef7d5969b3d642a5063461e37c6bf07c5b4e7",
+    "/private/tmp/freecad-main-gui-config-20261116/Mod/Import/Import.so": "72e0c0e8b3c84a70cedc9c89ee0c31cc541bc5e087bd4ae0f1828b98d6dd76d5"
+  },
+  "behavior": {
+    "before": "The generic numeric parser accepted trailing junk, converted unparsable or overflowing text to zero, and allowed duplicate layer colors without an unsupported-feature report; negative malformed inputs could lose off state.",
+    "after": "Layer group 62 is parsed completely with integer bounds and duplicate detection. Invalid or duplicate values produce a diagnostic and use signed ACI 7; any negative-sign field chooses the off fallback. Valid signed values with trailing whitespace remain accepted. Existing out-of-range guards and frozen/off diagnostics remain active."
+  },
+  "validation": {
+    "headless": "Five focused tests pass, including eight malformed/duplicate/overflow/whitespace profiles, range boundaries, frozen and off diagnostics, and ordinary 2D line import. Earlier prior-candidate 2D/3D compatibility checks passed seven tests.",
+    "gui": "Sixty-five native macOS ARM64 GUI controls pass, including malformed, duplicate and integer-overflow signs for grouped and ungrouped lines and meshes; fallback colors and visibility diagnostics are checked.",
+    "patchReplay": "The unidiff-zero patch applies to the clean first-eighteen candidate and reproduces byte-identical source and test files.",
+    "fixtures": "Controls are generated in temporary directories; no drawings are committed.",
+    "logs": [
+      "/private/tmp/freecad-polyface-layer-20261116/layer-color-syntax-before.log",
+      "/private/tmp/freecad-polyface-layer-20261116/layer-color-syntax-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/gui-layer-color-syntax-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/consumer-2d-3d-final.log"
+    ]
+  },
+  "guiObservation": [
+    {
+      "case": "layer_syntaxnegative_1",
+      "detail": {
+        "aci": -7,
+        "colorsAfterShow": [
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {
+        "Invalid or duplicate layer color": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_syntaxpositive_1",
+      "detail": {
+        "aci": 7,
+        "colorsAfterShow": [
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ]
+        ],
+        "initialVisible": true
+      },
+      "unsupported": {
+        "Invalid or duplicate layer color": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_syntaxdupenegative_1",
+      "detail": {
+        "aci": -7,
+        "colorsAfterShow": [
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {
+        "Invalid or duplicate layer color": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_syntaxdupepositive_1",
+      "detail": {
+        "aci": 7,
+        "colorsAfterShow": [
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ]
+        ],
+        "initialVisible": true
+      },
+      "unsupported": {
+        "Invalid or duplicate layer color": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_syntaxnegoverflow_1",
+      "detail": {
+        "aci": -7,
+        "colorsAfterShow": [
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {
+        "Invalid or duplicate layer color": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_syntaxposoverflow_1",
+      "detail": {
+        "aci": 7,
+        "colorsAfterShow": [
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ]
+        ],
+        "initialVisible": true
+      },
+      "unsupported": {
+        "Invalid or duplicate layer color": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_syntaxnegative_1_nogroups",
+      "detail": {
+        "aci": -7,
+        "flags": 0,
+        "initialVisible": true,
+        "offVisibilityReported": true
+      },
+      "unsupported": {
+        "Invalid or duplicate layer color": [
+          [
+            0,
+            ""
+          ]
+        ],
+        "Off-layer visibility without layer grouping": [
+          [
+            64,
+            "A"
+          ],
+          [
+            132,
+            ""
+          ]
+        ]
+      }
+    }
+  ],
+  "limits": [
+    "The nineteen downstream FreeCAD patches are unmerged.",
+    "Signed ACI 7 is an explicitly reported fallback; a leading negative sign conservatively chooses off for malformed or conflicting inputs, not a claim that the source has valid semantics.",
+    "Frozen, viewport, ungrouped and block visibility, platform qualification, phase gates and external-only support claims remain open."
+  ],
+  "probeEvolution": "The reusable GUI probe may require later downstream patches; observations here describe the candidate identified in this receipt. See the current plan for patch order.",
+  "supersededBoundary": "The later sign-whitespace patch handles vertical tab and form feed before malformed negative values."
+}

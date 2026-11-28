@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw-ac1_40-repeat-fail-closed-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Implement a semantics-independent fail-closed outcome for AC1.40 REPEAT records and fast-validate it without promoting REPEAT support.",
+  "implementation": {
+    "filesChanged": [
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreaderR1_40.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "changes": [
+      "Added a bounded reader diagnostic helper for record-level conversion failures.",
+      "AC1.40 reading now returns BAD_READ_ENTITIES at T_REPEAT and records unsupported-legacy-repeat with the source offset, rather than silently continuing with incomplete geometry.",
+      "The dwg2dxf adapter prints the specific incomplete-conversion reason when this failure is reported.",
+      "Generated in-memory reader tests verify no callbacks occur for the repeat seed after the marker, the diagnostic details, a non-repeat control, and successful reuse of the same reader after failure.",
+      "A locally generated scratch drawing verifies the adapter returns failure and emits the readable diagnostic; the scratch file is removed by the test."
+    ],
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "sourceHashesSha256": {
+      "src/intern/dwgreader.h": "95ebd0543ebb51216b5cd4d1dffb984007b8aa52b2860d84ca79c49f16b7fc5c",
+      "src/intern/dwgreaderR1_40.cpp": "d4e212bddcdb00068ec92a31d60129f7c0521ae7fb5e7d3d7c4558777ef26efb",
+      "dwg2dxf/dx_iface.cpp": "fd05eb9666cabb16340464cbc2bbfa453ddad4ba94e4cd2f68d692d09f3f84c9",
+      "tests/dwg_reader_matrix_tests.cpp": "b3e7d4fdabadbee1ce0a39d9464c046f543d1e5458ff972ef262b6ce6a7ed271"
+    }
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build --target libdxfrw_dwg_reader_matrix_tests dwg2dxf --parallel 2",
+        "result": "passed"
+      },
+      {
+        "command": "./build/libdxfrw_dwg_reader_matrix_tests",
+        "result": "passed; DWG reader matrix tests: PASS"
+      },
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+        "result": "passed; 1/1"
+      },
+      {
+        "command": "cmake --build build --target lc3_compat_check --parallel 2",
+        "result": "passed; no work to do"
+      },
+      {
+        "command": "git diff --check -- src/intern/dwgreader.h src/intern/dwgreaderR1_40.cpp dwg2dxf/dx_iface.cpp tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "sanitizerOrFuzzerRun": false,
+    "externalDrawingDownloadedOrCommitted": 0,
+    "nativeCadRun": false
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "currentPlanTotals": "123 findings / 71 top-level subplans",
+    "semanticWorkRemaining": [
+      "Determine historical repeat scope, seed inclusion, axis/origin, row/column ordering, nesting, count limits, and malformed terminator behavior from a reliable producer/consumer witness.",
+      "Only after semantic evidence, select and validate a lossless representation and expansion strategy under existing resource limits.",
+      "Resolve LOAD/SHAPE resource identity separately."
+    ],
+    "worktreeCommitted": false,
+    "reasonNotCommitted": "The shared worktree contains broad in-progress changes and unrelated untracked user files; this receipt and implementation slice remain unstaged and uncommitted."
+  }
+}

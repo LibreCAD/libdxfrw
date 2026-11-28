@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "dbfb737605982731be1ca40ded49ec8640d5ef57",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "problem": "After a refused cross-revision write, a successful same-writer retry still reported unmodelled-record losses. Per-write fallback counters could also suppress repeated warnings.",
+  "reproduction": "The new LayoutGraph.CheckedAsciiGraphsConvertToSameRevisionBinary assertion failed before the fix because writer.loss().empty() was false after the corrected retry.",
+  "change": "Reset the loss summary, MTEXT and MPOLYGON fallback counters, dimension block map, and error text at the start of each write.",
+  "validation": {
+    "layout_graph": "15 tests pass including both same-writer cross-revision refusal and clean retry directions",
+    "dwg_persistence": "17 tests pass including two successful fallback writes with a warning each",
+    "plan": "full/worktree/base checks and 31 checker tests pass"
+  },
+  "persistence_library_sha256": "6724889a417d78192dcafaf53c05f8e973365400fb0eb68a37b71f796d60ea8e",
+  "limits": [
+    "No new format support claim or native/platform qualification."
+  ]
+}

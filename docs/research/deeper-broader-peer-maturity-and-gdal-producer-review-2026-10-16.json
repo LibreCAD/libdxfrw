@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-maturity-and-gdal-producer-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the peer-source audit from advertised version/features to route maturity, class stability, partial-versus-full reads, opaque ACIS behavior, and a bounded independent DXF producer route. Update implementation readiness without inferring a local defect or promoting support claims.",
+  "method": {
+    "kind": "Current primary project documentation, API examples, manual pages, and issue reports",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "Public stable/master documentation is mutable. The reviewed ezdxf stable docs identify 1.4.4; GDAL capabilities are version-gated in the driver docs, including binary-DXF input from 3.12 and 3D extensibility from 3.10. Any executable comparison must capture the exact runtime version, build, and options.",
+    "evidenceRule": "Version matrices, aggregate coverage, partial reads, raw retention, projected geometry, writer output, and semantic shape validity are distinct evidence classes. A capability documented for one class/version/direction does not qualify another."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG aggregate coverage versus class-level maturity and route limits",
+      "sources": [
+        "https://www.gnu.org/software/libredwg/manual/LibreDWG.html",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observed": "The manual advertises approximate aggregate coverage and broad version reading, but also identifies unsupported writer/version paths and class-level stable, unstable, debugging, and unhandled states. It explains that unstable content may become UNKNOWN or placeholder forms, and same-version preservation depends on retaining the complete unknown bit blob.",
+      "doesNotEstablish": [
+        "per-entity semantic completeness from the aggregate coverage percentage",
+        "cross-version preservation of unstable/unknown classes",
+        "that raw or placeholder output is equivalent to a typed entity",
+        "that a peer limitation is a libdxfrw defect"
+      ],
+      "planUse": "For any peer differential, record the exact class disposition and direction/version route. Score typed decode, opaque preservation, conversion, and write-back separately; do not use aggregate percentages as parity criteria."
+    },
+    {
+      "topic": "ACadSharp complete versus partial read routes and notification evidence",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/blob/master/README.md",
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp.Examples/ReaderExamples.cs",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observed": "The public version table is a route-level compatibility matrix. Its examples distinguish full `Read()` from `ReadEntities()` and `ReadTables()` partial reads and show notifications being attached. Issue #1195 reports that an older released DWG-to-DXF route read 3DSOLID/REGION into typed objects but silently omitted them during DXF writing, emptying solid-only blocks; it is a peer report, not a current release retest.",
+      "doesNotEstablish": [
+        "per-family fidelity from the version table",
+        "full-document completeness from a partial section read",
+        "that the historical writer omission persists in current releases",
+        "that successful typed decoding guarantees writer support"
+      ],
+      "planUse": "At an optional peer run, use the full-document API for completeness claims, capture all notifications, and separately census each source type/owner through the writer. Treat section-only reads as narrow diagnostics, not full conversion passes."
+    },
+    {
+      "topic": "ezdxf ACIS carrier versus interpretation boundary",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html"
+      ],
+      "observed": "The stable documentation identifies ezdxf 1.4.4 and supports DXF creation/read/modify/write across listed versions. Its entity factories accept ACIS text lines for BODY, REGION, and 3DSOLID and explicitly state that ezdxf cannot interpret those data. Its ACIS tooling is a raw inspection/export route, not a general solid kernel.",
+      "doesNotEstablish": [
+        "valid ACIS/SAB grammar or geometry from a DXF wrapper record",
+        "B-rep topology, volume, or native CAD acceptance",
+        "that same-document tag retention implies safe copy/xref or cross-version conversion"
+      ],
+      "planUse": "Use a pinned ezdxf release for DXF structure and carrier syntax checks only. Keep ACIS payload association/hash, payload parse, B-rep semantics, and native consumer acceptance as separate gates."
+    },
+    {
+      "topic": "GDAL as a bounded independent DXF producer, not only a reader/projection path",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://gdal.org/en/stable/download.html"
+      ],
+      "observed": "The DXF driver supports dataset creation and documents fixed AutoCAD 2004-compatible output. It maps a bounded OGR geometry/style subset into POINT, MTEXT, LWPOLYLINE/POLYLINE, and HATCH output. Separately, binary-DXF input starts with GDAL 3.12, and AC1027+ extensible read mode exposes raw ASMData and an affine transform without constructing solid geometry.",
+      "doesNotEstablish": [
+        "general CAD-document, table, owner-graph, or opaque-object preservation",
+        "modern AC1027+ SAB/ACDSDATA production",
+        "DWG support or ACIS/B-rep semantics",
+        "that OGR-transformed output is byte-equivalent to a CAD-authored DXF"
+      ],
+      "planUse": "Optionally generate one scratch AC1018 control from locally authored OGR geometries at a composed checkpoint, then inspect group codes independently and parse it with libdxfrw/ezdxf. Keep the case limited to normalized common geometry and explicitly record GDAL version, creation options, geometry mapping, units/header template, and output hash. Do not add GDAL as a build/test dependency or use this lane for each implementation slice."
+    }
+  ],
+  "implementationReadiness": {
+    "comparatorReceiptFields": [
+      "exact peer release/commit and executable/package hash",
+      "input and output file version plus conversion direction",
+      "full versus partial read API",
+      "class/type and source-handle/owner disposition",
+      "notifications, warnings, and unsupported/lost records",
+      "writer output identity and output hash",
+      "projection/repair/post-processing options",
+      "independent syntax/readback and consumer/semantic result kept separate"
+    ],
+    "optionalGdalProducerProfile": {
+      "targetVersion": "AC1018 / AutoCAD 2004",
+      "source": "Locally authored scratch OGR geometries; do not add downloaded fixtures",
+      "eligibleFamilies": ["POINT", "LINESTRING-to-polyline", "constant/varying-elevation linework", "polygon-to-HATCH or polyline under explicit option"],
+      "excludedClaims": ["full DXF writer parity", "modern AC1027+ ASM/SAB production", "DWG", "ACIS semantics", "graph-preservation completeness"],
+      "cadence": "One composed diagnostic/control run only if GDAL is already available; no per-slice requirement or new dependency"
+    },
+    "validationCadence": "Per code slice remains touched strict build, focused fast test, compatibility compile/check, and diff check. Peer-generated input and independent reader/consumer checks remain optional composed gates; full suites, fuzzing, sanitizers, and native platform qualification stay at scheduled family/phase gates."
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  }
+}

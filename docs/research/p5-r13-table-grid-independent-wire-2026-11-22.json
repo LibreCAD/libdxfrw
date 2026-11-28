@@ -1,0 +1,886 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-r13-table-grid-independent-wire-2026-11-22",
+  "date": "2026-11-22",
+  "sourceCommit": "679f67c11e5daad14a5c980759801a94288861b2",
+  "supportClaimEffect": "none",
+  "source": "LibreDWG test/test-data/example_r13.dwg and example_r14.dwg, read in place; exact producer/build unknown",
+  "authority": "ODA DWG v5.4.1 sections 20.2 and 20.4.96.1, SHA-256 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+  "tool": "tools/research/verify_legacy_table_grid_wire.py",
+  "toolSha256": "ccb8e115cf1fcd8d68725e2b4080bb46572c96452192b736c01c339b8afb29f8",
+  "command": "python3 -B tools/research/verify_legacy_table_grid_wire.py --self-test <hash-selected-example_r13-or-r14.dwg>",
+  "proofOutputSha256": "45938b1257de7829fab520fbaebdbfaf3289abd8d0d309b4c7fab76244080e2f",
+  "proof": {
+    "version": "r13",
+    "frameOffset": 142856,
+    "bodyBytes": 4475,
+    "bodySha256": "76b5c963c7232cd1db88ab26bb41ef71604098206484d2a96982260f08a9ea10",
+    "followingFrameOffset": 147335,
+    "followingFrameHandle": "0x640",
+    "spans": [
+      {
+        "name": "type",
+        "startBit": 0,
+        "endBit": 18,
+        "value": 528
+      },
+      {
+        "name": "self",
+        "startBit": 18,
+        "endBit": 42,
+        "value": [
+          0,
+          2,
+          1266
+        ]
+      },
+      {
+        "name": "eedSize",
+        "startBit": 42,
+        "endBit": 44,
+        "value": 0
+      },
+      {
+        "name": "proxyPresent",
+        "startBit": 44,
+        "endBit": 45,
+        "value": 1
+      },
+      {
+        "name": "proxyBytes",
+        "startBit": 45,
+        "endBit": 77,
+        "value": 2964
+      },
+      {
+        "name": "dataEndBit",
+        "startBit": 23789,
+        "endBit": 23821,
+        "value": 34236
+      },
+      {
+        "name": "entityMode",
+        "startBit": 23821,
+        "endBit": 23823,
+        "value": 2
+      },
+      {
+        "name": "reactorCount",
+        "startBit": 23823,
+        "endBit": 23825,
+        "value": 0
+      },
+      {
+        "name": "byLayer",
+        "startBit": 23825,
+        "endBit": 23826,
+        "value": 1
+      },
+      {
+        "name": "noLinks",
+        "startBit": 23826,
+        "endBit": 23827,
+        "value": 0
+      },
+      {
+        "name": "color",
+        "startBit": 23827,
+        "endBit": 23829,
+        "value": 256
+      },
+      {
+        "name": "linetypeScale",
+        "startBit": 23829,
+        "endBit": 23831,
+        "value": 1.0
+      },
+      {
+        "name": "invisible",
+        "startBit": 23831,
+        "endBit": 23833,
+        "value": 0
+      },
+      {
+        "name": "x",
+        "startBit": 23833,
+        "endBit": 23899,
+        "value": 3298.7947769117454
+      },
+      {
+        "name": "y",
+        "startBit": 23899,
+        "endBit": 23965,
+        "value": 839.6133480853896
+      },
+      {
+        "name": "z",
+        "startBit": 23965,
+        "endBit": 23967,
+        "value": 0.0
+      },
+      {
+        "name": "xscale",
+        "startBit": 23967,
+        "endBit": 23969,
+        "value": 1.0
+      },
+      {
+        "name": "yscale",
+        "startBit": 23969,
+        "endBit": 23971,
+        "value": 1.0
+      },
+      {
+        "name": "zscale",
+        "startBit": 23971,
+        "endBit": 23973,
+        "value": 1.0
+      },
+      {
+        "name": "rotation",
+        "startBit": 23973,
+        "endBit": 23975,
+        "value": 0.0
+      },
+      {
+        "name": "normalX",
+        "startBit": 23975,
+        "endBit": 23977,
+        "value": 0.0
+      },
+      {
+        "name": "normalY",
+        "startBit": 23977,
+        "endBit": 23979,
+        "value": 0.0
+      },
+      {
+        "name": "normalZ",
+        "startBit": 23979,
+        "endBit": 23981,
+        "value": 1.0
+      },
+      {
+        "name": "hasAttribs",
+        "startBit": 23981,
+        "endBit": 23982,
+        "value": 0
+      },
+      {
+        "name": "tableFlag",
+        "startBit": 23982,
+        "endBit": 23992,
+        "value": 22
+      },
+      {
+        "name": "horizontalX",
+        "startBit": 23992,
+        "endBit": 23994,
+        "value": 1.0
+      },
+      {
+        "name": "horizontalY",
+        "startBit": 23994,
+        "endBit": 23996,
+        "value": 0.0
+      },
+      {
+        "name": "horizontalZ",
+        "startBit": 23996,
+        "endBit": 23998,
+        "value": 0.0
+      },
+      {
+        "name": "columnCount",
+        "startBit": 23998,
+        "endBit": 24008,
+        "value": 9
+      },
+      {
+        "name": "rowCount",
+        "startBit": 24008,
+        "endBit": 24018,
+        "value": 20
+      },
+      {
+        "name": "columnWidth0",
+        "startBit": 24018,
+        "endBit": 24084,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth1",
+        "startBit": 24084,
+        "endBit": 24150,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth2",
+        "startBit": 24150,
+        "endBit": 24216,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth3",
+        "startBit": 24216,
+        "endBit": 24282,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth4",
+        "startBit": 24282,
+        "endBit": 24348,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth5",
+        "startBit": 24348,
+        "endBit": 24414,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth6",
+        "startBit": 24414,
+        "endBit": 24480,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth7",
+        "startBit": 24480,
+        "endBit": 24546,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth8",
+        "startBit": 24546,
+        "endBit": 24612,
+        "value": 63.5
+      },
+      {
+        "name": "rowHeight0",
+        "startBit": 24612,
+        "endBit": 24678,
+        "value": 11.0
+      },
+      {
+        "name": "rowHeight1",
+        "startBit": 24678,
+        "endBit": 24744,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight2",
+        "startBit": 24744,
+        "endBit": 24810,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight3",
+        "startBit": 24810,
+        "endBit": 24876,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight4",
+        "startBit": 24876,
+        "endBit": 24942,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight5",
+        "startBit": 24942,
+        "endBit": 25008,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight6",
+        "startBit": 25008,
+        "endBit": 25074,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight7",
+        "startBit": 25074,
+        "endBit": 25140,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight8",
+        "startBit": 25140,
+        "endBit": 25206,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight9",
+        "startBit": 25206,
+        "endBit": 25272,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight10",
+        "startBit": 25272,
+        "endBit": 25338,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight11",
+        "startBit": 25338,
+        "endBit": 25404,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight12",
+        "startBit": 25404,
+        "endBit": 25470,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight13",
+        "startBit": 25470,
+        "endBit": 25536,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight14",
+        "startBit": 25536,
+        "endBit": 25602,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight15",
+        "startBit": 25602,
+        "endBit": 25668,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight16",
+        "startBit": 25668,
+        "endBit": 25734,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight17",
+        "startBit": 25734,
+        "endBit": 25800,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight18",
+        "startBit": 25800,
+        "endBit": 25866,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight19",
+        "startBit": 25866,
+        "endBit": 25932,
+        "value": 9.0
+      },
+      {
+        "name": "extensionDictionary",
+        "startBit": 34236,
+        "endBit": 34260,
+        "value": [
+          3,
+          2,
+          4188
+        ]
+      },
+      {
+        "name": "layer",
+        "startBit": 34260,
+        "endBit": 34276,
+        "value": [
+          5,
+          1,
+          138
+        ]
+      },
+      {
+        "name": "previous",
+        "startBit": 34276,
+        "endBit": 34284,
+        "value": [
+          8,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "next",
+        "startBit": 34284,
+        "endBit": 34308,
+        "value": [
+          10,
+          2,
+          334
+        ]
+      },
+      {
+        "name": "block",
+        "startBit": 34308,
+        "endBit": 34332,
+        "value": [
+          5,
+          2,
+          1267
+        ]
+      },
+      {
+        "name": "tableStyle",
+        "startBit": 34332,
+        "endBit": 34356,
+        "value": [
+          5,
+          2,
+          667
+        ]
+      }
+    ],
+    "sourceSha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+    "controlsPassed": true,
+    "limits": "Selected prefix and handles only; cells, native behavior and output remain unqualified."
+  },
+  "validation": [
+    "Independent bit walker checks each source hash, both frame CRCs, common entity prefix, 3D placement, grid counts and all dimensions, hard-pointer block and TABLESTYLE roles, and following frame identity.",
+    "CRC-preserving wrong block role, wrong style role and wrong column count, a truncated following frame and a different source hash are refused. The original input passes again after the negative checks.",
+    "The prior hash-selected R13 CTest checks library callback behavior against the same source."
+  ],
+  "limits": [
+    "The exact producer release and provenance are unknown; the selected TABLE values match across the two versions, but common origin and independent producer families are not established.",
+    "The TABLE has no ATTRIBs. Cell data, intervening unknown payload, remaining handles, strict output and native consumer semantics are not qualified.",
+    "No drawing or derivative is committed."
+  ],
+  "r14ProofOutputSha256": "c405b6298a4dc6e7899bc0480b49213f9fbf42e485bc87f803aa17d3c1cfd5fb",
+  "r14Proof": {
+    "version": "r14",
+    "frameOffset": 63008,
+    "bodyBytes": 5051,
+    "bodySha256": "410942e2b68e3a46d60ce5159577716e372de3500defb37add12a271d7a70df3",
+    "followingFrameOffset": 68063,
+    "followingFrameHandle": "0x640",
+    "spans": [
+      {
+        "name": "type",
+        "startBit": 0,
+        "endBit": 18,
+        "value": 528
+      },
+      {
+        "name": "self",
+        "startBit": 18,
+        "endBit": 42,
+        "value": [
+          0,
+          2,
+          1266
+        ]
+      },
+      {
+        "name": "eedSize",
+        "startBit": 42,
+        "endBit": 44,
+        "value": 0
+      },
+      {
+        "name": "proxyPresent",
+        "startBit": 44,
+        "endBit": 45,
+        "value": 1
+      },
+      {
+        "name": "proxyBytes",
+        "startBit": 45,
+        "endBit": 77,
+        "value": 3496
+      },
+      {
+        "name": "dataEndBit",
+        "startBit": 28045,
+        "endBit": 28077,
+        "value": 38842
+      },
+      {
+        "name": "entityMode",
+        "startBit": 28077,
+        "endBit": 28079,
+        "value": 2
+      },
+      {
+        "name": "reactorCount",
+        "startBit": 28079,
+        "endBit": 28081,
+        "value": 0
+      },
+      {
+        "name": "byLayer",
+        "startBit": 28081,
+        "endBit": 28082,
+        "value": 1
+      },
+      {
+        "name": "noLinks",
+        "startBit": 28082,
+        "endBit": 28083,
+        "value": 0
+      },
+      {
+        "name": "color",
+        "startBit": 28083,
+        "endBit": 28085,
+        "value": 256
+      },
+      {
+        "name": "linetypeScale",
+        "startBit": 28085,
+        "endBit": 28087,
+        "value": 1.0
+      },
+      {
+        "name": "invisible",
+        "startBit": 28087,
+        "endBit": 28089,
+        "value": 0
+      },
+      {
+        "name": "x",
+        "startBit": 28089,
+        "endBit": 28155,
+        "value": 3298.7947769117454
+      },
+      {
+        "name": "y",
+        "startBit": 28155,
+        "endBit": 28221,
+        "value": 839.6133480853896
+      },
+      {
+        "name": "z",
+        "startBit": 28221,
+        "endBit": 28223,
+        "value": 0.0
+      },
+      {
+        "name": "xscale",
+        "startBit": 28223,
+        "endBit": 28225,
+        "value": 1.0
+      },
+      {
+        "name": "yscale",
+        "startBit": 28225,
+        "endBit": 28227,
+        "value": 1.0
+      },
+      {
+        "name": "zscale",
+        "startBit": 28227,
+        "endBit": 28229,
+        "value": 1.0
+      },
+      {
+        "name": "rotation",
+        "startBit": 28229,
+        "endBit": 28231,
+        "value": 0.0
+      },
+      {
+        "name": "normalX",
+        "startBit": 28231,
+        "endBit": 28233,
+        "value": 0.0
+      },
+      {
+        "name": "normalY",
+        "startBit": 28233,
+        "endBit": 28235,
+        "value": 0.0
+      },
+      {
+        "name": "normalZ",
+        "startBit": 28235,
+        "endBit": 28237,
+        "value": 1.0
+      },
+      {
+        "name": "hasAttribs",
+        "startBit": 28237,
+        "endBit": 28238,
+        "value": 0
+      },
+      {
+        "name": "tableFlag",
+        "startBit": 28238,
+        "endBit": 28248,
+        "value": 22
+      },
+      {
+        "name": "horizontalX",
+        "startBit": 28248,
+        "endBit": 28250,
+        "value": 1.0
+      },
+      {
+        "name": "horizontalY",
+        "startBit": 28250,
+        "endBit": 28252,
+        "value": 0.0
+      },
+      {
+        "name": "horizontalZ",
+        "startBit": 28252,
+        "endBit": 28254,
+        "value": 0.0
+      },
+      {
+        "name": "columnCount",
+        "startBit": 28254,
+        "endBit": 28264,
+        "value": 9
+      },
+      {
+        "name": "rowCount",
+        "startBit": 28264,
+        "endBit": 28274,
+        "value": 20
+      },
+      {
+        "name": "columnWidth0",
+        "startBit": 28274,
+        "endBit": 28340,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth1",
+        "startBit": 28340,
+        "endBit": 28406,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth2",
+        "startBit": 28406,
+        "endBit": 28472,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth3",
+        "startBit": 28472,
+        "endBit": 28538,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth4",
+        "startBit": 28538,
+        "endBit": 28604,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth5",
+        "startBit": 28604,
+        "endBit": 28670,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth6",
+        "startBit": 28670,
+        "endBit": 28736,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth7",
+        "startBit": 28736,
+        "endBit": 28802,
+        "value": 63.5
+      },
+      {
+        "name": "columnWidth8",
+        "startBit": 28802,
+        "endBit": 28868,
+        "value": 63.5
+      },
+      {
+        "name": "rowHeight0",
+        "startBit": 28868,
+        "endBit": 28934,
+        "value": 11.0
+      },
+      {
+        "name": "rowHeight1",
+        "startBit": 28934,
+        "endBit": 29000,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight2",
+        "startBit": 29000,
+        "endBit": 29066,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight3",
+        "startBit": 29066,
+        "endBit": 29132,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight4",
+        "startBit": 29132,
+        "endBit": 29198,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight5",
+        "startBit": 29198,
+        "endBit": 29264,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight6",
+        "startBit": 29264,
+        "endBit": 29330,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight7",
+        "startBit": 29330,
+        "endBit": 29396,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight8",
+        "startBit": 29396,
+        "endBit": 29462,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight9",
+        "startBit": 29462,
+        "endBit": 29528,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight10",
+        "startBit": 29528,
+        "endBit": 29594,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight11",
+        "startBit": 29594,
+        "endBit": 29660,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight12",
+        "startBit": 29660,
+        "endBit": 29726,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight13",
+        "startBit": 29726,
+        "endBit": 29792,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight14",
+        "startBit": 29792,
+        "endBit": 29858,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight15",
+        "startBit": 29858,
+        "endBit": 29924,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight16",
+        "startBit": 29924,
+        "endBit": 29990,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight17",
+        "startBit": 29990,
+        "endBit": 30056,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight18",
+        "startBit": 30056,
+        "endBit": 30122,
+        "value": 9.0
+      },
+      {
+        "name": "rowHeight19",
+        "startBit": 30122,
+        "endBit": 30188,
+        "value": 9.0
+      },
+      {
+        "name": "extensionDictionary",
+        "startBit": 38842,
+        "endBit": 38866,
+        "value": [
+          3,
+          2,
+          3242
+        ]
+      },
+      {
+        "name": "layer",
+        "startBit": 38866,
+        "endBit": 38882,
+        "value": [
+          5,
+          1,
+          138
+        ]
+      },
+      {
+        "name": "previous",
+        "startBit": 38882,
+        "endBit": 38890,
+        "value": [
+          8,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "next",
+        "startBit": 38890,
+        "endBit": 38914,
+        "value": [
+          10,
+          2,
+          334
+        ]
+      },
+      {
+        "name": "block",
+        "startBit": 38914,
+        "endBit": 38938,
+        "value": [
+          5,
+          2,
+          1267
+        ]
+      },
+      {
+        "name": "tableStyle",
+        "startBit": 38938,
+        "endBit": 38962,
+        "value": [
+          5,
+          2,
+          667
+        ]
+      }
+    ],
+    "sourceSha256": "aec626c5680584c763418497495950089854ff9682af36076851fd793d9e2c0b",
+    "controlsPassed": true,
+    "limits": "Selected prefix and handles only; cells, native behavior and output remain unqualified."
+  }
+}

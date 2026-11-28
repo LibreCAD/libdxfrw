@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader PAR-139 field integrity, inversion metadata, and peer XCLIP evidence",
+  "mode": "Primary-source documentation and source review plus local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile local SPATIAL_FILTER DXF and DWG layouts with the ODA v5.4.1 specification and Autodesk's DXF/API documentation.",
+    "Audit peer implementation/release evidence for front clipping, inversion, matrix parsing, and WCS path conversion.",
+    "Refine existing PAR-139 field admission, owner graph, generated regression matrix, and optional comparator limits without adding another feature finding."
+  ],
+  "sources": [
+    {
+      "name": "ODA Open Design Specification v5.4.1, §20.4.94 SPATIAL_FILTER",
+      "urls": [],
+      "localReference": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "observed": "The DWG object body is point count and repeated 2D points; extrusion and clip-boundary origin; display/front/back flags; conditional front/back distances; two 12-value 4x3 matrices; then common parent/reactor/extension-dictionary handles. The section does not define a separate inversion boolean in this object layout."
+    },
+    {
+      "name": "Autodesk SPATIAL_FILTER DXF reference, SpatialFilterDefinition.Enabled, and XCLIP command documentation",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-34F179D8-2030-47E4-8D49-F87B6538A05A.htm",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Filters_SpatialFilterDefinition_Enabled.html",
+        "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-Core/files/GUID-104EDB9F-F025-4F67-B5C9-B3F174CFE2F3.htm",
+        "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-NET/files/GUID-72029044-0840-4187-9A58-F2A4518E3A23.htm"
+      ],
+      "observed": "The DXF schema defines the repeated 40-value distance/matrix contexts and conditional clipping planes. The managed Enabled property describes making the clip volume effective versus all of 3D space, while the XCLIPFRAME system variable controls boundary frame display/plotting. Autodesk also documents multiple instances of the same external reference with distinct clip boundaries."
+    },
+    {
+      "name": "ezdxf SpatialFilter and XClip source/documentation",
+      "urls": [
+        "https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/spatial_filter.py",
+        "https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/xclip.py",
+        "https://ezdxf.readthedocs.io/en/stable/tools/xclip.html"
+      ],
+      "observed": "Current source obtains matrices from the final 24 group-40 values and writes the optional front distance only when the front-clip flag is enabled. Experimental inverted paths use ACAD_XREC_ROUNDTRIP XRECORD sections; source/docs say the path structure is not fully understood and warn that AutoCAD will not load DXF files authored with this inverted-path form. This creates an additional filter-owned extension dictionary/XRECORD preservation edge, not a proven portable inversion representation."
+    },
+    {
+      "name": "IxMilia.Dxf release history and ezdxf XCLIP issue",
+      "urls": [
+        "https://github.com/ixmilia/dxf/blob/main/CHANGELOG.md",
+        "https://github.com/mozman/ezdxf/issues/1305"
+      ],
+      "observed": "IxMilia.Dxf 0.8.4 lists a front-clipping-plane handling fix. Open ezdxf issue #1305 reports a WCS clipping path different from the CAD application's displayed coordinates for an attached sample. Neither report reproduces a libdxfrw defect; together they justify explicit front-plane and transformed-coordinate controls and prohibit using ezdxf as the sole geometry oracle."
+    },
+    {
+      "name": "Local libdxfrw source and test audit",
+      "urls": [],
+      "localReferences": [
+        "src/drw_objects.cpp:19198-19253 (DXF parser accepts partial group-40 state; front distance assignment is deferred until matrix count reaches 24)",
+        "src/libdxfrw.cpp:23201-23232 (typed writer zero-fills absent matrix vector values)",
+        "src/intern/dwgreader.cpp:12965 (DWG callback dispatch)",
+        "dwg2dxf/dx_iface.cpp and dwg2dxf/dx_data.h (no SPATIAL_FILTER callback storage/raw route)",
+        "tests/hardening_tests.cpp:1631-1649 (current 25-value parser-state copy/reset test, not schema validation)",
+        "tests/dwg2dxf_adapter_tests.cpp and tests/CMakeLists.txt:282-285 (existing callback-storage selector/CTest)"
+      ],
+      "observed": "The typed parser accepts fewer than 24 group-40 values without matrix completion; a single front distance does not reach the existing assignment. The writer substitutes zero for missing matrix elements. Existing tests only establish parser-state reset/copy with an arbitrary 25-value stream, while the adapter independently drops the typed and raw callback."
+    }
+  ],
+  "assessment": {
+    "confirmedLocalCorrectnessDefectsWithinExistingPAR139": 1,
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderRefined": true,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloadedOrCommitted": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "PAR-139 now starts with flag-aware strict typed-field validation before adapter replay: exactly 24 group-40 matrix values with front clipping off, exactly 25 with it on (distance followed by 24 matrix values), finite values, 0/1 flags, and point-count consistency. The full owner closure includes an optional filter-owned extension dictionary/XRECORD for opaque inversion metadata. Generated tests cover front/back conditions, clip-volume enablement separately from XCLIPFRAME, and two INSERTs sharing one block but owning different filters. ezdxf is secondary-only for declared 2D paths; native and semantic qualification remain composed-gate work."
+  },
+  "method": {
+    "kind": "Read-only primary-source documentation/source review, local source/test inspection, and plan editing",
+    "localOdaPdfSectionRead": "20.4.94 SPATIAL_FILTER",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-par139-field-integrity-inversion-peer-evidence-2026-10-19.json"
+    ],
+    "limitations": "The ezdxf issue is an unresolved reporter claim and its attachment was not fetched or inspected. The IxMilia changelog is a historical release disclosure, not a current executable result. Mutable peer source/docs are comparator design evidence, not normative authority. Autodesk DXF schema and the local ODA §20.4.94 PDF remain the primary format references. No support, rendering, inversion, or native-CAD claim is promoted."
+  }
+}

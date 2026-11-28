@@ -1,0 +1,43 @@
+"""Load real FreeCAD dependencies before running the DWG handoff check.
+
+Use only for a headless source build whose Python paths are not installed.
+FREECAD_PYSIDE_DIR, FREECAD_3RDPARTY_DIR and FREECAD_DRAFT_MODULE_DIR point
+to the matching real dependencies; LIBDXFRW_FREECAD_HANDOFF_MACRO identifies
+the existing assertion macro. This does not emulate a GUI or importer.
+"""
+
+import ctypes
+import os
+import sys
+from pathlib import Path
+
+
+for key in ("FREECAD_PYSIDE_DIR", "FREECAD_3RDPARTY_DIR", "FREECAD_DRAFT_MODULE_DIR"):
+    directory = Path(os.environ[key]).resolve(strict=True)
+    if not directory.is_dir():
+        raise RuntimeError(f"{key} is not a directory: {directory}")
+    sys.path.insert(0, str(directory))
+
+from PySide import QtCore, QtGui, QtWidgets  # noqa: F401
+import FreeCAD  # noqa: F401
+import Import
+import Part  # noqa: F401
+
+images = {}
+if sys.platform == "darwin":
+    dyld = ctypes.CDLL(None)
+    dyld._dyld_image_count.restype = ctypes.c_uint32
+    dyld._dyld_get_image_name.argtypes = [ctypes.c_uint32]
+    dyld._dyld_get_image_name.restype = ctypes.c_char_p
+    for index in range(dyld._dyld_image_count()):
+        name = dyld._dyld_get_image_name(index).decode()
+        if ".framework/" in name and "/Qt" in name:
+            key = name.split(".framework/")[0].split("/")[-1] + ".framework"
+            images.setdefault(key, []).append(os.path.realpath(name))
+    if "QtCore.framework" not in images or any(len(set(paths)) != 1 for paths in images.values()):
+        raise RuntimeError("Missing or duplicate Qt frameworks: " + repr(images))
+
+print("FREECAD_HANDOFF_BOOTSTRAP:", QtCore.qVersion(), Import.__file__, images, flush=True)
+macro = Path(os.environ["LIBDXFRW_FREECAD_HANDOFF_MACRO"]).resolve(strict=True)
+__file__ = str(macro)
+exec(compile(macro.read_bytes(), str(macro), "exec"), globals())

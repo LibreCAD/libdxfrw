@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Current-release solid-route and evidence-boundary refresh",
+  "mode": "Primary-source release, repository, issue, pull-request, and official consumer documentation review",
+  "scope": [
+    "Refresh current shipping status for open-source ACIS/DWG/DXF peer routes.",
+    "Separate released behavior from open branch proposals and app-level 3D workflows.",
+    "Convert cross-project evidence into a fast, implementation-ready local and composed-checkpoint protocol."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_downloaded": 0,
+    "peer_fixtures_copied": 0,
+    "local_tests_changed": false,
+    "full_suite_run": false,
+    "limitations": "Repository documentation, release pages, and public issue/PR reports establish declared scope and reported failures only. No current peer binary was executed; issue results remain pinned to their reported artifact or branch and do not establish libdxfrw behavior."
+  },
+  "sources": [
+    {
+      "name": "ACadSharp release, ACIS writer issue, and dependency pull requests",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "observed": "The latest release page is v3.8.0. Issue #1195 remains open and reports omission against 3.4.9. PR #1240 remains open, reports no deployment, and depends on open PR #1174. A public #1174 branch test report says the AcDs payload-attachment test fails with NotImplementedException and post-2013 DXF payload loss on that branch.",
+      "evidence_ceiling": "Version/branch-bounded peer report only; no inference about v3.8.0 or libdxfrw without a pinned runtime reproduction."
+    },
+    {
+      "name": "OpenCADStudio release, mutable manifest, codec ancestry, and kernel scope",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://raw.githubusercontent.com/HakanSeven12/OpenCADStudio/main/Cargo.toml",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "observed": "v2026.42 documents SAT/ACIS model import and broader 3D workflows. The observed mutable-main app manifest pins opencadcodec and opencadkernel revisions. GitHub identifies opencadcodec as a fork of ACadRust; OpenCADKernel describes itself as early and says most operations remain unwritten.",
+      "evidence_ceiling": "Optional application/kernel observation within the ACadRust codec lineage. Mutable-main dependency pins are not attributed to the release tag absent tag-specific manifest inspection. App workflows and tessellation do not establish embedded DWG AcDs closure or complete B-rep semantics."
+    },
+    {
+      "name": "GDAL current DXF/DWG driver documentation",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://gdal.org/en/stable/drivers/vector/index.html"
+      ],
+      "observed": "The stable docs place Binary DXF reader support at GDAL 3.12. The DXF 3D-extensible option exposes AC1027+ ASM bytes and a transform, but modeler entities are skipped by default and OGR geometry is not built from ASM.",
+      "evidence_ceiling": "Exact-version/options DXF carrier/projection observation only; not a DWG reader, AcDs owner join, writer oracle, or solid semantic kernel."
+    },
+    {
+      "name": "Official FreeCAD DWG import workflow",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "observed": "The stock FreeCAD path converts DWG to intermediate DXF and then uses the selected DXF importer; the documented stock importer does not consume embedded ACIS/SAT solids.",
+      "evidence_ceiling": "Consumer workflow boundary, not a format rule or local qualification result. Converter, intermediate DXF, importer, and resulting geometry must be measured independently."
+    }
+  ],
+  "plan_impact": {
+    "acadsharp_release_status": "Keep ACadSharp #1195 pinned to its reported 3.4.9 artifact. Do not credit open #1240/#1174 branches as released fixes; inspect and pin v3.8.0 before any optional writer comparison.",
+    "opencadstudio": "Optional application/kernel consumer under ACadRust lineage; distinguish SAT import from embedded DWG/DXF solids and record app/codec/kernel revisions separately.",
+    "gdal": "Optional Binary-DXF and AC1027+ ASM carrier/projection route only, pinned to version/options; no B-rep/AcDs promotion.",
+    "freecad": "Retain the Linux/Windows stock importer checkpoint for 2D/explicit geometry; mark stock ACIS solid consumption not applicable and separate converter, intermediate DXF, and importer outcomes.",
+    "local_implementation": "At the next ACIS output slice, use a scratch-generated profile and assert source identity, block/INSERT closure, emitted entity type, exact payload or explicit refusal, diagnostics, and transactional publication.",
+    "implementation_change": "No new local finding, top-level subplan, mandatory peer, dependency, fixture, test, validation-cadence change, or support claim."
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Plan and research receipt only, in a broadly dirty shared worktree. No changes were staged or committed."
+}

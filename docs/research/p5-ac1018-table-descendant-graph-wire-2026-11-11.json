@@ -1,0 +1,513 @@
+{
+  "id": "p5-ac1018-table-descendant-graph-wire-2026-11-11",
+  "date": "2026-11-11",
+  "scope": "One ODA-created AC1018 TABLE graph. Source bit spans, ODA same-vendor same-version DXF projection, and independent LibreDWG XRECORD data; no output or general compatibility qualification.",
+  "source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "origin": "Audited ODA File Converter 27.1.0 ACAD2004 DWG conversion from local ezdxf acad_table_simple.dxf sha256 2fc8d0e9517b36dd13db95740b37bc2f534005f16abc222faab036c3407d9e8d. This is the specific recreated source, not the older missing aa88 source.",
+    "read": "226/226 source frames published, zero entity and object parse failures, with one unrelated HEADER offset integrity observation; source TABLECONTENT/TABLEGEOMETRY/DATATABLE remain raw-only."
+  },
+  "authority": {
+    "oda_pdf": "Open Design Specification for .dwg files v5.4.1, local sha256 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7, sections 20.1, 20.4.97, 20.4.103, 20.4.104 and 2.13. ODA dates TABLECONTENT and TABLEGEOMETRY to AutoCAD 2008; their AC1018 occurrence is an out-of-version producer profile. DATATABLE has no class-specific schema in this PDF.",
+    "libredwg": "dwgread 0.14 minJSON, sha256 23d17c79abb050743822552f1fb9e0db644ad43a2e9fca76db6c40a99bf4db5b. Source XRECORD identities, owner links and nine child payloads agree. Its TABLECONTENT fields and DATATABLE data are not reliable semantic oracles for this source."
+  },
+  "oda_converter": {
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "executable_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "reproduction": "Copy the pinned DWG to /private/tmp/p5-desc-input/input.dwg, create empty output directory /private/tmp/p5-desc-dxf-2004, then run /Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/p5-desc-input /private/tmp/p5-desc-dxf-2004 ACAD2004 DXF 0 1 '*.dwg'. Audit was enabled.",
+    "dxf_sha256": "2c182a1f735af71a52cae7c5406e29ffecfc1b63d06eadf5114a7540f67879f3",
+    "limitation": "This conversion is from the same vendor that created the source and proves only pinned producer self-consistency. A separate ACAD2007 conversion omitted the PRE2007 branch and DATATABLE, so its success does not prove graph preservation."
+  },
+  "source_to_2004_dxf_handles": {
+    "TABLE": "0x9c -> 0x9c",
+    "TABLE_extension_dictionary": "0xbb -> 0x113",
+    "XRECORD_roundtrip_parent": "0xbc -> 0x114",
+    "TABLECONTENT": "0xb9 -> 0x111",
+    "TABLEGEOMETRY": "0xba -> 0x112",
+    "DATATABLE": "0xbd -> 0x115",
+    "nine_child_XRECORDS": "0xbe..0xc6 in order -> 0x116..0x11e in order",
+    "TABLESTYLE": "0x6b -> 0x6b"
+  },
+  "datatable_wire": {
+    "body_sha256": "1fc357e038d9e51ab8be68efe4a54f0333dfc3d5e3a4e0c03f22d55607e95ea3",
+    "common_shell_end_bit": 71,
+    "fields": [
+      {
+        "name": "flags",
+        "type": "BS",
+        "bits": "71..81",
+        "value": 2
+      },
+      {
+        "name": "columns",
+        "type": "BL",
+        "bits": "81..91",
+        "value": 4
+      },
+      {
+        "name": "rows",
+        "type": "BL",
+        "bits": "91..101",
+        "value": 9
+      },
+      {
+        "name": "name",
+        "type": "TV",
+        "bits": "101..103",
+        "value": ""
+      },
+      {
+        "name": "column0 type/name",
+        "bits": "103..115",
+        "value": "2 / empty"
+      },
+      {
+        "name": "column0 nine BD values",
+        "bits": "115..581",
+        "values": [
+          1579.0,
+          0.0,
+          0.0,
+          49.0,
+          50.0,
+          51.0,
+          52.0,
+          53.0,
+          54.0
+        ]
+      },
+      {
+        "name": "column1 type/name",
+        "bits": "581..593",
+        "value": "1 / empty"
+      },
+      {
+        "name": "column1 nine BL values",
+        "bits": "593..835",
+        "values": [
+          262144,
+          0,
+          0,
+          262144,
+          262144,
+          262144,
+          262144,
+          262144,
+          262144
+        ]
+      },
+      {
+        "name": "column2 type/name",
+        "bits": "835..847",
+        "value": "1 / empty"
+      },
+      {
+        "name": "column2 nine BL values",
+        "bits": "847..865",
+        "values": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "column3 type/name",
+        "bits": "865..877",
+        "value": "6 / empty"
+      }
+    ],
+    "tail": "owner soft pointer H code 4 -> 0xbc bits 877..893; nine hard-owner H code 3 -> 0xbe..0xc6 at bits 893..1037; three zero padding bits. Every value and role agrees with the same-version ODA DXF groups 70/90/91/1, column groups 92/2, values 40/93, and final 360 references."
+  },
+  "geometry_wire": {
+    "body_sha256": "bee29eb5b223a434febedbbd3939631821489a8a60022d3ea0ce878d47868a3c",
+    "body": "After common shell bit 71: BL rows=3 at 71..81, BL columns=3 at 81..91, BL cells=9 at 91..101. Nine 8-bit cells each encode BL flags 0, BD width 0, BD height 0, BL contents 0; exact data end bit 173.",
+    "tail": "H soft pointer owner 0xbc at 173..189, nine H code-4 null soft pointers 189..261, three zero padding bits. All fields agree with same-version ODA DXF; LibreDWG independently reports rows=3, columns=3, owner=0xbc."
+  },
+  "nine_owned_xrecords": {
+    "handles": "0xbe..0xc6",
+    "source_owner": "all H code 4 -> 0xbd",
+    "contents": "The first contains Title, the next two empty rows, the last six contain strings 1 through 6; complete pairs and offsets are produced by the verifier. All scalar/text pairs agree with LibreDWG JSON and the ODA same-version DXF. All source string values use per-value codepage byte 45, whose interpretation remains unqualified.",
+    "details": {
+      "0xbe": {
+        "bodyEnd": 427,
+        "owner": {
+          "startBit": 427,
+          "endBit": 443,
+          "role": 4,
+          "size": 1,
+          "value": 189
+        },
+        "pairs": [
+          [
+            93,
+            4
+          ],
+          [
+            90,
+            4
+          ],
+          [
+            1,
+            "Title"
+          ],
+          [
+            94,
+            0
+          ],
+          [
+            300,
+            ""
+          ],
+          [
+            302,
+            "Title"
+          ]
+        ],
+        "stringCodepages": [
+          45,
+          45,
+          45
+        ]
+      },
+      "0xbf": {
+        "bodyEnd": 307,
+        "owner": {
+          "startBit": 307,
+          "endBit": 323,
+          "role": 4,
+          "size": 1,
+          "value": 189
+        },
+        "pairs": [
+          [
+            93,
+            7
+          ],
+          [
+            90,
+            0
+          ],
+          [
+            94,
+            0
+          ],
+          [
+            300,
+            ""
+          ],
+          [
+            302,
+            ""
+          ]
+        ],
+        "stringCodepages": [
+          45,
+          45
+        ]
+      },
+      "0xc0": {
+        "bodyEnd": 307,
+        "owner": {
+          "startBit": 307,
+          "endBit": 323,
+          "role": 4,
+          "size": 1,
+          "value": 189
+        },
+        "pairs": [
+          [
+            93,
+            7
+          ],
+          [
+            90,
+            0
+          ],
+          [
+            94,
+            0
+          ],
+          [
+            300,
+            ""
+          ],
+          [
+            302,
+            ""
+          ]
+        ],
+        "stringCodepages": [
+          45,
+          45
+        ]
+      },
+      "0xc1": {
+        "bodyEnd": 363,
+        "owner": {
+          "startBit": 363,
+          "endBit": 379,
+          "role": 4,
+          "size": 1,
+          "value": 189
+        },
+        "pairs": [
+          [
+            93,
+            4
+          ],
+          [
+            90,
+            4
+          ],
+          [
+            1,
+            "1"
+          ],
+          [
+            94,
+            0
+          ],
+          [
+            300,
+            ""
+          ],
+          [
+            302,
+            "1"
+          ]
+        ],
+        "stringCodepages": [
+          45,
+          45,
+          45
+        ]
+      },
+      "0xc2": {
+        "bodyEnd": 363,
+        "owner": {
+          "startBit": 363,
+          "endBit": 379,
+          "role": 4,
+          "size": 1,
+          "value": 189
+        },
+        "pairs": [
+          [
+            93,
+            4
+          ],
+          [
+            90,
+            4
+          ],
+          [
+            1,
+            "2"
+          ],
+          [
+            94,
+            0
+          ],
+          [
+            300,
+            ""
+          ],
+          [
+            302,
+            "2"
+          ]
+        ],
+        "stringCodepages": [
+          45,
+          45,
+          45
+        ]
+      },
+      "0xc3": {
+        "bodyEnd": 363,
+        "owner": {
+          "startBit": 363,
+          "endBit": 379,
+          "role": 4,
+          "size": 1,
+          "value": 189
+        },
+        "pairs": [
+          [
+            93,
+            4
+          ],
+          [
+            90,
+            4
+          ],
+          [
+            1,
+            "3"
+          ],
+          [
+            94,
+            0
+          ],
+          [
+            300,
+            ""
+          ],
+          [
+            302,
+            "3"
+          ]
+        ],
+        "stringCodepages": [
+          45,
+          45,
+          45
+        ]
+      },
+      "0xc4": {
+        "bodyEnd": 363,
+        "owner": {
+          "startBit": 363,
+          "endBit": 379,
+          "role": 4,
+          "size": 1,
+          "value": 189
+        },
+        "pairs": [
+          [
+            93,
+            4
+          ],
+          [
+            90,
+            4
+          ],
+          [
+            1,
+            "4"
+          ],
+          [
+            94,
+            0
+          ],
+          [
+            300,
+            ""
+          ],
+          [
+            302,
+            "4"
+          ]
+        ],
+        "stringCodepages": [
+          45,
+          45,
+          45
+        ]
+      },
+      "0xc5": {
+        "bodyEnd": 363,
+        "owner": {
+          "startBit": 363,
+          "endBit": 379,
+          "role": 4,
+          "size": 1,
+          "value": 189
+        },
+        "pairs": [
+          [
+            93,
+            4
+          ],
+          [
+            90,
+            4
+          ],
+          [
+            1,
+            "5"
+          ],
+          [
+            94,
+            0
+          ],
+          [
+            300,
+            ""
+          ],
+          [
+            302,
+            "5"
+          ]
+        ],
+        "stringCodepages": [
+          45,
+          45,
+          45
+        ]
+      },
+      "0xc6": {
+        "bodyEnd": 363,
+        "owner": {
+          "startBit": 363,
+          "endBit": 379,
+          "role": 4,
+          "size": 1,
+          "value": 189
+        },
+        "pairs": [
+          [
+            93,
+            4
+          ],
+          [
+            90,
+            4
+          ],
+          [
+            1,
+            "6"
+          ],
+          [
+            94,
+            0
+          ],
+          [
+            300,
+            ""
+          ],
+          [
+            302,
+            "6"
+          ]
+        ],
+        "stringCodepages": [
+          45,
+          45,
+          45
+        ]
+      }
+    }
+  },
+  "tablecontent_wire": {
+    "body_sha256": "5caa9921eb02acc3efc94c6d71f90c9bc400dbb7969eb95c4dadf142064630f2",
+    "matched_prefix": "Body bits 71..89 are empty name, empty description, three columns, first empty column name and zero custom data, consistent with ODA DXF and specification. Remaining data body is not established.",
+    "tail": "After body end 13313, source H code-4 parent -> 0xbc; 50 H code-5 null references; final H code-5 -> 0x6b at 13729..13745, then seven zero padding bits. Source 0x6b is a TABLESTYLE and ODA DXF TABLECONTENT includes group-340 0x6b. Individual 50 null roles/field identities and the entire body remain unqualified; TABLESTYLE dependencies are not closed."
+  },
+  "reproduction": {
+    "checkout": "git archive e5341dd31d686c529ba2f8172de56868bc3551b9 | tar -x -C /private/tmp/p5-desc-isolated-source; configure and build its dwg2dxf target with CMake and -DCMAKE_POLICY_VERSION_MINIMUM=3.5.",
+    "capture": "clang++ -std=c++17 -Wall -Wextra -Werror -I/private/tmp/p5-desc-isolated-source/dwg2dxf -I/private/tmp/p5-desc-isolated-source/src tools/research/p5_ac1018_table_descendants_capture.cpp /private/tmp/p5-desc-isolated-build/dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o /private/tmp/p5-desc-isolated-build/libdxfrw.a -framework CoreFoundation -o /private/tmp/p5-descendants-capture-isolated; run it with the pinned source and a new output directory.",
+    "capture_binary_sha256": "092cb283e679e04f5566a314ee5e0ef5193780bd4b00843fee1d808c8d78d586",
+    "capture_log_sha256": "7c45e3e92bd483689e4a9d9dc67a614e89f129aef65d203a38164833b656ac39",
+    "verifier": "python3 tools/research/p5_ac1018_table_descendants_verify.py --source /private/tmp/p5-desc-input/input.dwg --peer-json /private/tmp/p5-ac1018-oda-audited-output/peer.json --dxf /private/tmp/p5-desc-dxf-2004/input.dxf --body-dir /private/tmp/p5-desc-repro-captures-isolated",
+    "result": "PASS; output report sha256 5ba33d08364afbfdf274e44440c34d0769135e0a3ad4fe99851711a924b623cf. A one-bit DATATABLE body mutation is refused by the pinned digest check. Raw-callback capture association is a stated provenance boundary; the verifier itself does not authenticate arbitrary capture origins."
+  },
+  "remaining": "Prior immediate-child graph was incomplete: the nine DATATABLE-owned XRECORDs are mandatory recursive dependencies. TABLECONTENT body semantics, its 50 null field-role identities, TABLESTYLE and additional dependent resources, unknown codepage 45, producer breadth, native consumers and destination graph/output transaction are unresolved. Do not promote source support or allow populated TABLE subtree output from these observations."
+}

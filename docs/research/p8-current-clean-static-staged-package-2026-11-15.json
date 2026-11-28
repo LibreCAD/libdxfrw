@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "sourceCommit": "4279a90377f3c4c158229980f4e6c9c94342e55f",
+  "implementationDigestSha256": "f6389d531886f51c885c054c23a1e7b5c8fb6624739900a6aa24ec8edb746a75",
+  "digestInputs": 719,
+  "archiveSha256": "719521dae87b5da63ab9bc2fb68cd2cfe70172ba30027d1f35a40428fc6e5224",
+  "environment": "Clean local Git clone; macOS 27.2.1 ARM64; Apple clang 21.0.0; CMake 4.4.5; Release; static archive; qualification, tests, documentation and CLI disabled; development install enabled; policy minimum 3.5.",
+  "validation": [
+    "Clean configure, build and staged install succeeded.",
+    "tools/check_staged_package.py --prefix <temporary prefix> --install-manifest <build>/install_manifest.txt passed. It checks the installed license and package consumer interfaces, archive-bound pkg-config plain and override cases including missing-private-library negatives, CMake CONFIG and MODULE package requests, package boundaries, legacy mappings and CMake policy/artifact controls.",
+    "The check reports 18 opposite-caller native observations and four forced capability/implementation-branch controls; the latter are not older-runtime executions. Windows is metadata-only in these checks."
+  ],
+  "limits": "This is one macOS ARM64 static install, not a repeated-install reproducibility run, native Windows/Linux package qualification, or the separate clean LibreCAD application build now in progress. No phase gate or format claim is promoted."
+}

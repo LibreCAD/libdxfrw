@@ -1,0 +1,167 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.h b/src/Mod/Import/App/dxf/dxf.h
+--- a/src/Mod/Import/App/dxf/dxf.h
++++ b/src/Mod/Import/App/dxf/dxf.h
+@@ -672 +671,0 @@
+-        double z_extrusion_dir,
+@@ -674,0 +674 @@
++    bool PrepareCircularNormal();
+@@ -742,0 +743 @@
++    Base::Vector3d m_circularEntityNormal = Base::Vector3d(0, 0, 1);
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2146,2 +2145,0 @@
+-    Base::Vector3d extrusionDirection(0, 0, 1);
+-
+@@ -2152 +2149,0 @@
+-    Setup3DVectorAttribute(eExtrusionDirection, extrusionDirection);
+@@ -2160 +2156,0 @@
+-        extrusionDirection.z,
+@@ -3137,0 +3134,13 @@
++bool CDxfRead::PrepareCircularNormal()
++{
++    m_circularEntityNormal = Base::Vector3d(
++        OCSOrientationTransform[0][2], OCSOrientationTransform[1][2], OCSOrientationTransform[2][2]
++    );
++    if (m_circularEntityNormal.IsNull() || !std::isfinite(m_circularEntityNormal.x)
++        || !std::isfinite(m_circularEntityNormal.y) || !std::isfinite(m_circularEntityNormal.z)) {
++        UnsupportedFeature("ARC/CIRCLE invalid extrusion direction");
++        return false;
++    }
++    return true;
++}
++
+@@ -3143 +3151,0 @@
+-    double z_extrusion_dir,
+@@ -3147,2 +3155 @@
+-    Base::Vector3d temp(center);
+-    // Calculate the start and end points of the arc
++    if (!PrepareCircularNormal()) return;
+@@ -3155,12 +3162,2 @@
+-    if (z_extrusion_dir < 0) {
+-        // This is a dumbed-down handling of general OCS. This only works
+-        // for arcs drawn exactly upside down (i.e. with the extrusion vector
+-        // being (0, 0, <0).
+-        // We treat this as 180-degree mirroring through the YZ plane
+-        // TODO: I don't even think this is correct, but it is functionally what the
+-        // code did before.
+-        temp.x = -temp.x;
+-        start.x = -start.x;
+-        end.x = -end.x;
+-    }
+-    OnReadArc(start, end, temp, true, hidden);
++    OnReadArc(OCSOrientationTransform * start, OCSOrientationTransform * end,
++              OCSOrientationTransform * center, true, hidden);
+@@ -3171 +3168 @@
+-    // OnReadCircle wants a start point, so we pick an arbitrary point on the circumference
++    if (!PrepareCircularNormal()) return;
+@@ -3174,7 +3171 @@
+-
+-    OnReadCircle(
+-        start,
+-        center,
+-        false,
+-        hidden
+-    );  // false to change direction because otherwise the arc length is zero
++    OnReadCircle(OCSOrientationTransform * start, OCSOrientationTransform * center, false, hidden);
+@@ -3442,0 +3434 @@
++    m_circularEntityNormal = Base::Vector3d(0, 0, 1);
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -1050 +1050 @@
+-    gp_Dir up(0, 0, 1);
++    gp_Dir up(m_circularEntityNormal.x, m_circularEntityNormal.y, m_circularEntityNormal.z);
+@@ -1085 +1085 @@
+-    gp_Dir up(0, 0, 1);
++    gp_Dir up(m_circularEntityNormal.x, m_circularEntityNormal.y, m_circularEntityNormal.z);
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1805,0 +1806,86 @@
++    def test_circle_arc_ocs_direct_and_block(self):
++        """Circular geometry follows tilted and reversed DXF extrusion directions."""
++        import math
++        options = FreeCAD.ParamGet(self.option_source)
++        entities = [(0, "CIRCLE"), (8, "0"), (10, 1), (20, 2), (30, 3), (40, 2),
++                    (210, 0), (220, 1), (230, 0),
++                    (0, "ARC"), (8, "0"), (10, 1), (20, 2), (30, 3), (40, 2),
++                    (50, 0), (51, 90), (210, 0), (220, 1), (230, 0),
++                    (0, "ARC"), (8, "0"), (10, 1), (20, 2), (30, 3), (40, 2),
++                    (50, 0), (51, 90), (210, 0), (220, 0), (230, -1),
++                    (0, "ARC"), (8, "0"), (10, 1), (20, 2), (30, 3), (40, 2),
++                    (50, 0), (51, 270), (210, 0), (220, 1), (230, 0)]
++        header = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                  (9, "$INSUNITS"), (70, 4), (0, "ENDSEC")]
++        for mode in (2, 3):
++            options.SetInt("DxfImportMode", mode)
++            for nested in (False, True):
++                with self.subTest(mode=mode, nested=nested):
++                    if nested:
++                        tags = header + [(0, "SECTION"), (2, "BLOCKS"), (0, "BLOCK"), (8, "0"),
++                                         (2, "B"), (70, 0), (10, 0), (20, 0), (30, 0)] + entities + [
++                                         (0, "ENDBLK"), (8, "0"), (0, "ENDSEC"),
++                                         (0, "SECTION"), (2, "ENTITIES"), (0, "INSERT"),
++                                         (8, "0"), (2, "B"), (10, 0), (20, 0), (30, 0)]
++                    else:
++                        tags = header + [(0, "SECTION"), (2, "ENTITIES")] + entities
++                    tags += [(0, "ENDSEC"), (0, "EOF")]
++                    path = os.path.join(self.temp_dir, "circle-arc-ocs.dxf")
++                    with open(path, "w", encoding="ascii", newline="\n") as stream:
++                        stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                    previous = set(self.document.Objects)
++                    Import.readDXF(path, self.document.Name, True, self.option_source)
++                    self.document.recompute()
++                    added = [o for o in self.document.Objects if o not in previous]
++                    if nested:
++                        shapes = [o.Shape for o in added if o.Name.startswith("Link_B")]
++                    else:
++                        shapes = [o.Shape for o in added if hasattr(o, "Shape")]
++                    edges = [edge for shape in shapes for edge in shape.Edges]
++                    self.assertEqual(len(edges), 4)
++                    long_arcs = [edge for edge in edges if abs(edge.Length - 3 * math.pi) < 0.00001]
++                    self.assertEqual(len(long_arcs), 1)
++                    self.assertEqual(tuple(sorted((round(v.Point.x, 6), round(v.Point.y, 6),
++                                                   round(v.Point.z, 6)) for v in long_arcs[0].Vertexes)),
++                                     ((-3, 3, 2), (-1, 3, 0)))
++                    circles = [edge for edge in edges if abs(edge.Length - 4 * math.pi) < 0.00001]
++                    self.assertEqual(len(circles), 1)
++                    circle = circles[0].Curve
++                    self.assertAlmostEqual(circle.Center.x, -1, delta=0.00001)
++                    self.assertAlmostEqual(circle.Center.y, 3, delta=0.00001)
++                    self.assertAlmostEqual(circle.Center.z, 2, delta=0.00001)
++                    self.assertAlmostEqual(abs(circle.Axis.y), 1, delta=0.00001)
++                    arcs = [edge for edge in edges if abs(edge.Length - math.pi) < 0.00001]
++                    self.assertEqual(len(arcs), 2)
++                    endpoints = sorted(tuple(sorted((round(v.Point.x, 6), round(v.Point.y, 6),
++                                                      round(v.Point.z, 6)) for v in edge.Vertexes))
++                                       for edge in arcs)
++                    self.assertEqual(endpoints, sorted((((-3, 3, 2), (-1, 3, 4)),
++                                                        ((-3, 2, -3), (-1, 4, -3)))))
++
++    def test_circle_arc_invalid_normal_then_valid(self):
++        """A zero extrusion normal is reported without losing following geometry."""
++        options = FreeCAD.ParamGet(self.option_source)
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")]
++        for kind in ("CIRCLE", "ARC"):
++            tags += [(0, kind), (8, "0"), (10, 0), (20, 0), (30, 0), (40, 1)]
++            if kind == "ARC": tags += [(50, 0), (51, 90)]
++            tags += [(210, 0), (220, 0), (230, 0)]
++        tags += [(0, "LINE"), (8, "0"), (10, 0), (20, 0), (30, 0), (11, 1), (21, 0), (31, 0),
++                 (0, "ENDSEC"), (0, "EOF")]
++        path = os.path.join(self.temp_dir, "circle-arc-invalid-normal.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        for mode in (2, 3):
++            with self.subTest(mode=mode):
++                options.SetInt("DxfImportMode", mode)
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                self.document.recompute()
++                shapes = [o.Shape for o in self.document.Objects if o not in previous and hasattr(o, "Shape")]
++                edges = [edge for shape in shapes for edge in shape.Edges]
++                self.assertEqual(len(stats["unsupportedFeatures"]["ARC/CIRCLE invalid extrusion direction"]), 2)
++                self.assertEqual(len(edges), 1)
++                self.assertAlmostEqual(edges[0].Length, 1)
++

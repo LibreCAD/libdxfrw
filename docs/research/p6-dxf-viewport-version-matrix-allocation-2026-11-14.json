@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.dxf.writer-transaction-receipt.v1",
+  "slice": "P6-G VIEWPORT version-gated direct-writer matrix",
+  "date": "2026-11-14",
+  "scope": {
+    "writerRoute": "dxfRW::writeViewport",
+    "profile": "generated paper-space viewport with nondefault view, snap, grid, UCS, shade-plot, and ambient-light fields; all optional object-reference handles are zero",
+    "versions": [
+      "AC1009",
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "versionGates": "The generated per-target profile populates only fields representable in that revision. Typed readback checks majorGridLines from AC1021, shadePlotMode from AC1018, and ambient-light fields from AC1021; earlier targets retain parser defaults.",
+    "unsupportedVersion": "AC1012 refusal preserves destination and caller state; same-writer AC1014 retry matches clean bytes and typed readback.",
+    "fixturePolicy": "No committed DWG/DXF fixtures; generated output is scratch-only and removed by the runner.",
+    "lossAvoidance": "Nondefault post-R12 fields are refused for AC1009; major-grid before AC1021; shade-plot before AC1018; lighting before AC1021; clip-boundary/named-UCS/base-UCS handles at AC1014; visual-style handle at AC1018; and frozen-layer handles at AC1009."
+  },
+  "checks": {
+    "wholeOperationAllocationFailureOffsets": {
+      "AC1009_ASCII": 72,
+      "AC1009_Binary": 69,
+      "AC1014_ASCII": 91,
+      "AC1014_Binary": 90,
+      "AC1015_ASCII": 93,
+      "AC1015_Binary": 92,
+      "AC1018_ASCII": 93,
+      "AC1018_Binary": 92,
+      "AC1021_ASCII": 93,
+      "AC1021_Binary": 92,
+      "AC1024_ASCII": 100,
+      "AC1024_Binary": 99,
+      "AC1027_ASCII": 93,
+      "AC1027_Binary": 92,
+      "AC1032_ASCII": 93,
+      "AC1032_Binary": 92,
+      "total": 1446
+    },
+    "destinationRollback": true,
+    "callerStatePreservation": true,
+    "sameWriterByteIdenticalRetry": true,
+    "freshTypedReadback": true,
+    "ac1012RefusalAndAc1014Recovery": true,
+    "stagedOutputCleanup": true,
+    "lossyTargetRefusals": [
+      {
+        "fields": "R12-era omitted viewport state",
+        "from": "AC1009",
+        "retryAt": "AC1014",
+        "encodings": [
+          "ASCII",
+          "Binary"
+        ]
+      },
+      {
+        "fields": "majorGridLines",
+        "from": "AC1018",
+        "retryAt": "AC1021",
+        "encodings": [
+          "ASCII",
+          "Binary"
+        ]
+      },
+      {
+        "fields": "shadePlotMode",
+        "from": "AC1015",
+        "retryAt": "AC1018",
+        "encodings": [
+          "ASCII",
+          "Binary"
+        ]
+      },
+      {
+        "fields": "ambient-light state",
+        "from": "AC1018",
+        "retryAt": "AC1021",
+        "encodings": [
+          "ASCII",
+          "Binary"
+        ]
+      },
+      {
+        "fields": "clipBoundaryHandle/namedUcsHandle/baseUcsHandle",
+        "from": "AC1014",
+        "atomicRefusal": true
+      },
+      {
+        "fields": "visualStyleHandle",
+        "from": "AC1018",
+        "atomicRefusal": true
+      },
+      {
+        "fields": "frozenLayerHandles",
+        "from": "AC1009",
+        "atomicRefusal": true
+      }
+    ],
+    "ac1012UnsupportedVersionRefusalAndRecovery": true
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j4",
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dxf_viewport_version_allocation_transaction$' --output-on-failure",
+      "result": "passed 1/1 in 9.04 seconds"
+    },
+    "runner": "build/tests/libdxfrw_dxf_write_allocation_transaction_tests build/tests/dxf-viewport-version-allocation viewport-versions",
+    "sourceSha256": "511533f9226730a26c55ba682bddd352025bd30a4b6f21d2a4b6f2ace717d171",
+    "runnerSha256": "fa6758c42092c71ce6de633b68c43c9d20d78f4a3d46080e711372a52bdb61a7",
+    "librarySourceSha256": "e00c1905db254c2de5d9ab0fbe80b5c6566974f0fc45ac1de447e4215142d03c"
+  },
+  "limits": [
+    "Generated codec self-readback does not prove independent producer semantics or native application behavior.",
+    "Reference remapping and semantic target closure are outside this profile; the new handle-list cases establish only atomic refusal when the target revision cannot encode them."
+  ]
+}

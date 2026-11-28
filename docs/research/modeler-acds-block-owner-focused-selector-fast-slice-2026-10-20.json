@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Focused AC1027 AcDs block and INSERT owner-closure selector",
+  "mode": "generated fast implementation slice following broader source review",
+  "scope": [
+    "Expose existing AC1027 AcDs block/INSERT projection coverage as a fast focused gate",
+    "Verify ASCII and Binary owner, history, payload, nested/shared INSERT, strict replay, and refusal cases",
+    "Update the parity and 3D plans with the uncovered multi-body same-block mapping follow-up"
+  ],
+  "implementation": {
+    "selector": "libdxfrw_dwg_local_roundtrip --modeler-acds-block-projection",
+    "ctest": "dwg2dxf_modeler_acds_block_projection",
+    "cases": [
+      "Generated AC1027 ASCII and Binary DXF projection and strict re-export/readback",
+      "Single 3DSOLID marker body in an inner block, nested from a mixed outer block",
+      "Two differently transformed modelspace INSERTs sharing the outer block",
+      "BLOCK_RECORD and block owner closure, history proxy owner closure",
+      "Exact ASM_Data owner key and payload association",
+      "Orphan association and mismatched-owner transactional refusal"
+    ],
+    "nextLocalGap": "Exercise two distinct modeler bodies in one block with independently permuted entity/record order and exact per-handle payload matching; add swapped, missing, duplicate, and foreign-owner negative controls."
+  },
+  "planImpact": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportPromotion": false,
+    "totalFindings": 142,
+    "topLevelSubplans": 78,
+    "countNote": "Working summary retained pending separate plan-wide count reconciliation.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "targetBuild": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2: PASS",
+    "directSelector": "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-acds-block-projection: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeler_acds_block_projection$' --output-on-failure: PASS (1/1, 0.03s)",
+    "scopedDiffCheck": "git diff --check -- CMakeLists.txt tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md: PASS",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  },
+  "limitations": [
+    "Synthetic marker payload is not valid SAB and carries no ACIS semantic evidence.",
+    "Current positive case has one modeler body in the inner block; same-block multi-body key/payload discrimination is the next local item.",
+    "No external drawing, peer executable, native CAD application, kernel, or full suite was run.",
+    "The broadly modified shared checkout remains uncommitted; no unrelated files were staged or committed."
+  ],
+  "changedFiles": [
+    "CMakeLists.txt",
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md",
+    "docs/research/modeler-acds-block-owner-focused-selector-fast-slice-2026-10-20.json"
+  ]
+}

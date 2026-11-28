@@ -1,0 +1,137 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1027-cover-mlinestyle-selected-writer-readback-2026-11-16",
+  "date": "2026-11-16",
+  "status": "AC1027_MLINESTYLE_SELECTED_ASCII_BINARY_PEER_READBACK_PASS",
+  "scope": "Strict selected-graph ASCII/Binary output, failure/retry, and independent peer readback for the source-derived MLINESTYLE profile in Cover.dwg.",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "producer": "Not independently established",
+    "object": {
+      "type": 73,
+      "handle": "0x18",
+      "owner": "0x17",
+      "name": "Standard",
+      "dictionary": "ACAD_MLINESTYLE",
+      "dictionaryKey": "Standard",
+      "reactorTarget": "0x17",
+      "elementCount": 2,
+      "offsets": [0.5, -0.5],
+      "fillAndElementColors": "BYLAYER",
+      "elementLinetypeIndex": 32767
+    },
+    "sourceEvidence": [
+      "docs/research/p6-ac1027-cover-mlinestyle-physical-field-differential-2026-11-14.json",
+      "docs/research/p6-ac1027-cover-mlinestyle-physical-field-span-proof-2026-11-16.json"
+    ]
+  },
+  "implementation": {
+    "sourceChanges": [
+      {
+        "path": "dwg2dxf/dx_iface.cpp",
+        "sha256": "461e45b6b206feb7c6c7320ae88257f1bae1eddd03ba59a964eb5bee0ff9da23",
+        "change": "Admit same-version AC1027 output only for the exact source-bound MLINESTYLE handle 0x18 / owner 0x17 / Standard / two BYLAYER elements profile. Existing profile checks retain owner, reactor, root dictionary, and source-frame identity gates."
+      },
+      {
+        "path": "tests/dwg2dxf_adapter_tests.cpp",
+        "sha256": "9118d3802604f07a26a010e47a873f2cba9e7f9de39fc99f17447ec288e21c82",
+        "change": "Generalize the physical selected MLINESTYLE graph probe to AC1027, isolate only the source ACAD_MLINESTYLE root edge, and exercise strict ASCII/Binary output with destination preservation, corrected retry on the same writer, and fresh typed readback. The source NOD siblings are outside this selected graph and are not claimed as preserved."
+      },
+      {
+        "path": "tools/research/verify_ac1027_cover_mlinestyle_peer_readback.py",
+        "sha256": "0b2bd1132f24584f55a2c434b0bcaf5dd1fd91f9c22f4fdfb61749d6062f6ef1",
+        "change": "Standard-library-only checker binds the source receipts and verifies independent ASCII/Binary peer-readback fields, dictionary membership, handle roles, and four mutation-rejection controls."
+      }
+    ],
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS",
+      "log": {
+        "path": "/private/tmp/p6-h2-ac1027-build-20261116.log",
+        "sha256": "7be07597616ef0f0f27f2d053e761b05b9d940de2bc07b371c806b5ec3c92987"
+      },
+      "testExecutable": {
+        "path": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests",
+        "sha256": "599bdac274c34998233fe1e47ef60cd5bfbadda0266a07bae3c32139779d477e"
+      }
+    },
+    "focusedHarness": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-style-ac1027-selected-output /Users/dli/doc/dwg/Cover.dwg /private/tmp/p6-h2-ac1027-cover-output-20261116-final",
+      "result": "PASS for AC1027 ASCII and Binary selected output/readback",
+      "log": {
+        "path": "/private/tmp/p6-h2-ac1027-cover-output-20261116-final/adapter-test.log",
+        "sha256": "873dead2366618540624e9c0fcd9242a14d08c0b8fd034b4d90fdf1fba110fa3"
+      },
+      "rollbackAndRetry": "For each encoding an unsupported retained fill CMC index was refused, the existing destination sentinel remained byte-for-byte intact, the source value was restored, and the same writer succeeded. Output qualification was committed only on successful output.",
+      "libdxfrwReadback": "Fresh import found one typed MLINESTYLE and the selected ACAD_MLINESTYLE root edge, owner dictionary Standard entry, owner/reactor roles, style identity, angles, flags, colors, offsets, and BYLAYER linetype values."
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_mline_style_typed_capture_limits$' --output-on-failure",
+      "result": "PASS 1/1",
+      "log": {
+        "path": "/private/tmp/p6-h2-ac1027-focused-ctest-20261116.log",
+        "sha256": "2171df1577a24c0275ddad75517f3fdedb7913ea5f542ebf8ffe45339ef04846"
+      }
+    }
+  },
+  "independentPeer": {
+    "implementation": "GNU LibreDWG",
+    "sourceCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "sourceReceipt": "docs/research/p6-ac1027-cover-mlinestyle-physical-field-span-proof-2026-11-16.json",
+    "dxf2dwg": {
+      "path": "/private/tmp/libredwg-mlinestyle-span-20261116/build-span/dxf2dwg",
+      "sha256": "b45234dbb7dea3de1afba6962417fdc9eba812816fdaa19f9b4b65bbd49f2df7",
+      "version": "0.13.3.553"
+    },
+    "dwgread": {
+      "path": "/private/tmp/libredwg-mlinestyle-span-20261116/build-span/dwgread",
+      "sha256": "30d22e2bd3d0452ec9f3d31e515f635ebf8493b1b5f8bbfb7f6c64e8ebff53fe"
+    },
+    "conversionLimit": "This LibreDWG build parses AC1027 DXF input but its DWG writer only emits through R2004. The peer therefore writes AC1018 DWG before dwgread emits minJSON; this is independent semantic parsing, not AC1027 DWG writer qualification.",
+    "outputs": {
+      "asciiDxf": {
+        "path": "/private/tmp/p6-h2-ac1027-cover-output-20261116-final/libdxfrw-mline-style-selected-531469452216000-ascii.dxf",
+        "sha256": "5622b5cd3ba9e1ddba33e5ee11fd5a55f7c87b16817718af83897d51325f6f01"
+      },
+      "binaryDxf": {
+        "path": "/private/tmp/p6-h2-ac1027-cover-output-20261116-final/libdxfrw-mline-style-selected-531469458553750-binary.dxf",
+        "sha256": "5fa70fafe2dfd1fa2dc80a2b87a57027adf335a46ddd2555f51ac64cf0841f2e"
+      },
+      "asciiPeerDwg": {
+        "path": "/private/tmp/p6-h2-ac1027-cover-output-20261116-final/peer-ascii-ac1018.dwg",
+        "sha256": "20755b4ea27a68ce917296f21dae47578789f84c850cca21e8913700fe2234d9"
+      },
+      "binaryPeerDwg": {
+        "path": "/private/tmp/p6-h2-ac1027-cover-output-20261116-final/peer-binary-ac1018.dwg",
+        "sha256": "20755b4ea27a68ce917296f21dae47578789f84c850cca21e8913700fe2234d9"
+      },
+      "asciiMinJson": {
+        "path": "/private/tmp/p6-h2-ac1027-cover-output-20261116-final/peer-ascii-readback.json",
+        "sha256": "31891b027610b15a51409a18b277c62876ad0b5f3ada9e399f5046fdded9466b"
+      },
+      "binaryMinJson": {
+        "path": "/private/tmp/p6-h2-ac1027-cover-output-20261116-final/peer-binary-readback.json",
+        "sha256": "31891b027610b15a51409a18b277c62876ad0b5f3ada9e399f5046fdded9466b"
+      }
+    },
+    "result": "Both encodings parsed successfully and produced byte-identical AC1018 DWGs and byte-identical minJSON. The checker confirmed one MLINESTYLE at handle 0x18; owner/reactor target 0x17; root ACAD_MLINESTYLE membership; Standard -> 0x18 owner entry; two ordered BYLAYER elements with offsets +0.5/-0.5; flags and description; and 90-degree start/end angles.",
+    "verifierCommand": "python3 tools/research/verify_ac1027_cover_mlinestyle_peer_readback.py --source /Users/dli/doc/dwg/Cover.dwg --differential-receipt docs/research/p6-ac1027-cover-mlinestyle-physical-field-differential-2026-11-14.json --span-receipt docs/research/p6-ac1027-cover-mlinestyle-physical-field-span-proof-2026-11-16.json --ascii-json /private/tmp/p6-h2-ac1027-cover-output-20261116-final/peer-ascii-readback.json --binary-json /private/tmp/p6-h2-ac1027-cover-output-20261116-final/peer-binary-readback.json",
+    "verifierResult": "PASS: source receipts, owner/reactor/dictionary graph, style fields, ASCII/Binary peer equivalence, and four negative controls"
+  },
+  "fixturePolicy": "No DWG/DXF fixture was added. The original Cover.dwg remains outside the repository; output files and peer conversions are under /private/tmp.",
+  "remaining": [
+    "Cover.dwg contains no MLINE entity that references this style. Producer-bound MLINE path, scale, extrusion/direction, vertex data, and native appearance remain unqualified.",
+    "The selected output projection preserves the exact ACAD_MLINESTYLE -> owner dictionary -> Standard style graph, not unrelated source NOD siblings or the full drawing.",
+    "The source producer is not established; this single profile does not establish cross-producer or cross-version support.",
+    "The independent peer writer downconverts to AC1018; this does not qualify AC1027 DWG output or native consumer behavior."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-H2 source-derived AC1027 MLINESTYLE selected graph strict ASCII/Binary output, destination rollback, same-writer retry, fresh typed readback, and independent LibreDWG semantic readback.",
+    "next": "Make one bounded search of existing receipts/local sources for the next producer-bound ready slice. Keep the missing MLINE entity and native appearance gates waiting without blocking other work.",
+    "packageCountChange": "none; P6-H remains open for producer-bound MLINE entity semantics and native appearance. P8-D1/D2 GUI gates remain open.",
+    "supportClaimEffect": "none"
+  }
+}

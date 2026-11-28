@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-entity-following-frame-six-revisions-2026-11-14",
+  "date": "2026-11-14",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Add direct reader continuation and exact terminal-frame accounting for the generated malformed-entity CLI profiles across all six supported source revisions.",
+  "profiles": [
+    "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"
+  ],
+  "generatedSource": {
+    "origin": "Each DWG is authored from scratch in the focused test's temporary directory; no fixture is committed.",
+    "malformedEntity": "A LINE with a non-finite coordinate precedes a valid LINE.",
+    "eachDirectRead": {
+      "readOperationSucceeded": true,
+      "entityParseFailures": 1,
+      "objectParseFailures": 0,
+      "failedFrames": 1,
+      "frameAccounting": "sourceFrames = publishedFrames + failedFrames",
+      "followingLineCallbacks": 1
+    }
+  },
+  "cliBoundary": {
+    "AC1015": "Strict conversion refuses; explicit partial output uses the AC1021 target to preserve generated VPORT state.",
+    "AC1018": "Strict conversion refuses; explicit partial output uses the AC1021 target to preserve generated VPORT state.",
+    "AC1021_AC1024_AC1032": "Existing ASCII/Binary partial controls publish only retained content with explicit warnings and fresh DXF readback.",
+    "AC1027": "Reader continuation is verified directly; CLI output remains refused by independent source-reference closure."
+  },
+  "validation": {
+    "command": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
+    "result": "PASS: 55 strict/partial/readback controls"
+  },
+  "limits": [
+    "This is generated malformed-input resilience evidence, not producer-authored semantic or support qualification.",
+    "AC1027 remains blocked for CLI output by separate source-reference closure.",
+    "No DWG/DXF fixtures were committed."
+  ]
+}

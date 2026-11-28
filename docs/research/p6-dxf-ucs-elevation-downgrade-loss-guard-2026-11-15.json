@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "scope": "Prevent silent loss of nonzero UCS table-record elevation on the supported R12 and R14 DXF writer targets.",
+  "evidence": {
+    "autodeskUcsTable": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-1906E8A7-3393-4BF9-BD27-F9AE4352FB8B.htm",
+    "formatObservation": "Autodesk documents UCS group 146 as elevation. The existing writer emits it for R2000 and newer but omits it for R12 and R14; R13 is not a supported whole-file writer target. This observation does not independently establish whether other producers emit group 146 in earlier versions.",
+    "reproduction": "Before the fix, a generated R12 ASCII export with elevation 4.5 succeeded and lost the value on output."
+  },
+  "change": "Refuse nonzero UCS elevation before starting a legacy record. Existing zero-elevation legacy output and modern group-146 output remain available.",
+  "validation": [
+    "The targeted UCS allocation CTest passes after the fix. Generated R12 and R14 ASCII/Binary controls verify refusal, prior destination preservation, modeled caller-field preservation, same-writer retry at R2000 with elevation 4.5, fresh typed readback, and same-writer retry to the original legacy version with zero elevation. The existing seven-version allocation sweep also passes.",
+    "Independent ezdxf tokenization finds group 146 value 4.5 in both generated R2000 encodings; its UCS entity model does not expose the field. ODA File Converter 27.1 independently converts both outputs through R2000 DWG and back to DXF, where group 146 remains 4.5. No fixture is committed.",
+    "Source inventory remains 1235 files and implementation digest 1e8116d6521b86de02aa7e20975bd155eb6c7861b21d19b1a408706a41098ad1 across 725 inputs."
+  ],
+  "limits": "This fixes a demonstrated downgrade data-loss path; it does not establish all UCS semantics, native AutoCAD behavior, or a broader support claim. P4\u2013P8 gates and the external-only P9 dispositions remain unchanged."
+}

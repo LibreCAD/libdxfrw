@@ -1,0 +1,13 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-windows-unit-spline-cleanup-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "bdeb2046",
+  "hostedJob": "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45981868351/job/140447516631",
+  "finding": "The Windows job on 755fb2b1 passed the preceding MPOLYGON cleanup failures and then reported two other tests failing with Windows sharing violation 32: LegacyTargetsReportUnrepresentableUnitMetadata and RationalSplineKeepsWeightsOnSave.",
+  "change": "Close each input stream before its file is removed or rewritten, retaining all existing format assertions and cleanup error handling.",
+  "validation": "Both affected tests pass on macOS ARM64 in the current consumer build; git diff --check passes. A new hosted Windows run is queued at consumer commit bdeb2046.",
+  "limits": "The rerun has not completed. This test cleanup does not qualify Windows or promote any format support."
+}

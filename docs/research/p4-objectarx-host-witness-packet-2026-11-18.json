@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-objectarx-host-witness-packet-2026-11-18",
+  "date": "2026-11-18",
+  "status": "PREPARED_NOT_EXECUTED_ON_HOST",
+  "supportClaimEffect": "none",
+  "scope": "Scratch-only AutoCAD witness instructions and scripts for named-view and ordinary layer-state behavior plus candidate named-block draw order.",
+  "files": {
+    "tools/research/OBJECTARX_WITNESS_README.md": "40babbf771e98f2344a90ccd22fdc5e45baebbb0ede2e0cfeb7ba317d058c935",
+    "tools/research/objectarx_witness.lsp": "4d3e9b63d5db1dd9f33e920ec45c59e612441c83b13108df3a0c739eb13d06ff",
+    "tools/research/objectarx_witness_scan.py": "872eaee80505baa4ebb10acc859c6c4292cef50c3a94b59ea6afab68acb9224b"
+  },
+  "validation": [
+    "python3 -B tools/research/objectarx_witness_scan.py --self-test: PASS, including missing HEADER, invalid ACADVER code and missing EOF controls",
+    "Clean checkout source-release inventory --write and --check: PASS (1303 released files)",
+    "Independent static review found and verified fixes for owned INSERT, name collisions and scanner structure checks."
+  ],
+  "limits": [
+    "No AutoCAD/ObjectARX host or SDK execution was available; AutoLISP compatibility, actual drawing production and native semantics remain unverified.",
+    "The scanner is a bounded raw-pair observer, not a complete DXF validator; it cannot establish DWG wire semantics.",
+    "No external drawing or generated witness is committed.",
+    "A host release, operating system, available SDK and authorized command/file-transfer route are still needed before execution."
+  ],
+  "next": "Run the documented scratch protocol on an accessible version-identified host, record exact outcomes and preserve DWG/DXF, logs and hashes outside the repository."
+}

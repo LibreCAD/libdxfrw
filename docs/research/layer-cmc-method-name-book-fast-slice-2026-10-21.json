@@ -1,0 +1,38 @@
+{
+  "slice": "PAR-134 LAYER CMC method/name/book round-trip",
+  "date": "2026-10-21",
+  "status": "implemented_in_worktree_uncommitted",
+  "scope": {
+    "dwg_versions": ["AC1024", "AC1032"],
+    "dxf_versions": ["AC1015 refusal", "AC1032 ASCII", "AC1032 Binary"],
+    "fields": ["LAYER CMC method", "RGB", "color name", "color book name"]
+  },
+  "implementation": {
+    "model": "Append raw DWG CMC method and retained DXF group-430 byte count; expose read-only method accessor and clear source metadata on reset/DXF color updates.",
+    "dwg_parser": "Capture the CMC method alongside index, RGB, and names.",
+    "dwg_writer": "Replay canonical matching C0-C3; reject unsupported/mismatched methods and pre-R2004 RGB/name downgrade; require detached R2007+ strings.",
+    "dxf_parser": "Retain group 430 through the table entry's shared string budget; group 62 resets stale color companions; 420/430 updates clear DWG method provenance.",
+    "dxf_writer": "Emit group 430 on supported LAYER DXF versions; refuse legacy output that would drop a color/book name before record publication.",
+    "compatibility": "DRW_Layer public size changes; downstream consumers must rebuild. No virtual interface changed."
+  },
+  "generated_controls": {
+    "dwg": "Generated AC1024/AC1032 full-file C2 RGB+book+entry and C3 indexed+book+entry imports, method/name assertions, copy/reset, re-encode, and reread.",
+    "dxf": "ASCII/Binary AC1032 group-430 wire checks for named RGB and named ACI plus parse-back; AC1015 named-color refusal preserves destination.",
+    "fixtures": "No persistent DWG/DXF fixture added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+    "build_result": "PASS (-Werror)",
+    "focused_layer_policy": "build-gcc/libdxfrw_dxf_fixture_tests --layer-dxf-color-policy",
+    "focused_layer_policy_result": "PASS",
+    "regression_tests": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$|^libdxfrw_.*cmc' --output-on-failure",
+    "regression_tests_result": "PASS (11/11)",
+    "diff_check": "PASS for src/drw_objects.h, src/drw_objects.cpp, src/libdxfrw.cpp, tests/dxf_fixture_tests.cpp, and the plan/receipt"
+  },
+  "evidence_limits": [
+    "Generated files establish local parser/writer behavior, not producer-authored coverage or independent application acceptance.",
+    "No full suite, external semantic reader, native CAD application, persistent fixture, or support promotion was used.",
+    "Findings/subplans remain 144/78; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "next_local_item": "Continue PAR-134 CMC caller and class-specific DXF loss audit, then continue exact-source PAR-03/PAR-04 associative-action context classification."
+}

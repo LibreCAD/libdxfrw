@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw-deeper-acad-table-cross-peer-writer-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden 7G.3d using current primary-source peer code/documentation, clarify native ACAD_TABLE reader/writer roles, and sequence the next implementation-ready checks without changing format-support claims.",
+  "method": {
+    "kind": "Official Autodesk DXF references, primary peer repository source/docs and FreeCAD documentation/source",
+    "sourcesOpened": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+      "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Entities.cs",
+      "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DXF/DxfStreamWriter/DxfSectionWriterBase.Entities.cs",
+      "https://github.com/DomCR/ACadSharp/releases",
+      "https://ezdxf.readthedocs.io/en/stable/tasks/get_entity_content.html",
+      "https://ezdxf.readthedocs.io/en/stable/addons/tablepainter.html",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp"
+    ],
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "localTestsRun": false,
+    "nativeCadApplicationsRun": false,
+    "drawingsDownloadedOrAdded": false,
+    "sourcePinning": "ACadSharp master and FreeCAD main URLs are mutable and were not pinned to a source commit in this pass. ACadSharp v3.8.0 is a separate tagged release; do not transfer master-source findings to that binary without inspection. Any composed peer run must bind exact source/release, package/binary, configuration and route.",
+    "evidenceRule": "A partial peer reader, limited cell-text extraction, format-version matrix, writer callback or successful file open does not establish complete TABLE semantics, graph preservation, rendering, or native CAD acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "Autodesk TABLE record and graph closure",
+      "source": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "observed": "The TABLE DXF reference describes ACAD_TABLE as block-reference-derived, with anonymous *T block name, insertion point, TABLESTYLE hard pointer group 342, owning BLOCK_RECORD hard pointer group 343, row/column metadata and repeated cell data.",
+      "planUse": "Require entity, backing block, owner, style, handle closure and cell payload before promoting any TABLE output slice; a TABLESTYLE-only emitter does not complete a table."
+    },
+    {
+      "topic": "ACadSharp current DWG TABLE source path",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Entities.cs",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "observed": "The mutable master DWG reader has TableEntity decoding paths for table dimensions/cells/style references and versioned data; source comments include unfinished style-override behavior and fields that are consumed without retention. The release page separately identifies v3.8.0, so mutable-master source is not automatically the released v3.8.0 implementation.",
+      "planUse": "Treat the current source as structural discovery only. Pin a release/commit and run only after local parse routes compose; compare fields the peer retains and report its omissions."
+    },
+    {
+      "topic": "ACadSharp DXF TABLE output refusal",
+      "source": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DXF/DxfStreamWriter/DxfSectionWriterBase.Entities.cs",
+      "observed": "The current writer support predicate groups TableEntity with unsupported types, emits a not-implemented notification, and returns false instead of serializing it.",
+      "planUse": "Do not treat ACadSharp as a TABLE DXF output-acceptance oracle. Preserve an explicit unsupported/loss outcome; test that libdxfrw does not report a complete conversion when a TABLE is skipped."
+    },
+    {
+      "topic": "ezdxf limited ACAD_TABLE observations",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/tasks/get_entity_content.html",
+        "https://ezdxf.readthedocs.io/en/stable/addons/tablepainter.html"
+      ],
+      "observed": "ezdxf exposes a limited read_acad_table_content helper returning strings and documents limited preservation with no native ACAD_TABLE creation/content editing. TablePainter renders a table using ordinary DXF primitives and is not an ACAD_TABLE entity writer.",
+      "planUse": "Use ezdxf only for the narrow parsed-cell-text projection when the exact content profile is supported. Keep raw tag/graph checks and native rendering separate; never count TablePainter output as ACAD_TABLE serialization."
+    },
+    {
+      "topic": "FreeCAD consumer route boundary",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp"
+      ],
+      "observed": "Current documentation says FreeCAD does not directly read/write DWG and relies on external converters. Its DWG wrapper converts to DXF, then invokes the selected DXF importer; the C++ importer records independent import options such as dxfScaling and annotation/layout behavior.",
+      "planUse": "A composed native result must bind converter and intermediate DXF separately from importer backend/options and final document/table ownership. A converter exit or document open does not qualify DWG table semantics."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnerOnly": "7G.3d / PAR-20; no new finding or top-level subplan",
+    "firstLocalCheck": "Inventory already-tracked AC1021 and AC1024 DWGs; record hash, AC code, exact TABLE/TABLESTYLE oType and handle/owner/style path. Read the ODA object chapter before changing any parseDwg/dispatch and empirically capture the actual oType from a real sample trace.",
+    "parserAssertions": [
+      "rows and columns are bounded and consistent with staged cell count",
+      "cell type and text/block reference survive",
+      "row heights, column widths, merge spans and top-left span values are retained",
+      "title/header suppression and style override states are preserved or explicitly refused",
+      "style/owner/block references resolve uniquely and cursor reaches the following object",
+      "unsupported or malformed tables do not publish a partial successful callback"
+    ],
+    "writerAssertions": [
+      "ACAD_TABLE entity and *T backing block are emitted once",
+      "group 342 TABLESTYLE and group 343 owning BLOCK_RECORD target emitted identities",
+      "cell matrix, merged ranges and supported overrides match literal expected tags",
+      "owner graph and per-source disposition match the emitted-object inventory",
+      "unsupported tables fail before atomic publication and preserve existing destination"
+    ],
+    "validationCadence": "Affected strict build plus one focused generated test per slice. Run the composed ASCII/binary and supported-version set once after graph closure; schedule one native consumer/render check only after parser, adapter, serializer and graph gates pass.",
+    "fixturePolicy": "Use existing tracked drawings or locally generated in-memory controls. Add no downloaded/customer test DWG/DXF, dependency or CTest registration in this research update."
+  },
+  "planImpact": {
+    "findingsAdded": 0,
+    "topLevelSubplansAdded": 0,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": "123 findings / 71 top-level subplans",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

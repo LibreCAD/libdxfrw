@@ -1,0 +1,682 @@
+{
+  "date": "2026-11-15",
+  "scope": "Source-bound FIELD/FIELDLIST acquisition and cached-text observation; no output-support claim",
+  "source": {
+    "url": "https://github.com/mozman/ezdxf/blob/a3c6d90de36a58748287c01c68e91c2c7619934b/examples_dxf/mtext_complex_inline_codes.dxf",
+    "repository_commit": "a3c6d90de36a58748287c01c68e91c2c7619934b",
+    "git_blob": "32f4a239e1415d0d291b30ad06b8d118d327cef3",
+    "sha256": "fb09a7af8882787553149a675c6d15b45bab8ff4a49f58200460832eab3de401",
+    "size": 166396,
+    "format": "AC1027 ASCII DXF",
+    "original_cad_producer": "unknown"
+  },
+  "source_graph": {
+    "fieldlist": "AB",
+    "fieldlist_owner": "C",
+    "members": [
+      "A9",
+      "CD",
+      "DD",
+      "DE",
+      "E4",
+      "E5",
+      "EB",
+      "EC",
+      "F7",
+      "F8",
+      "100",
+      "101",
+      "107",
+      "108",
+      "10E",
+      "10F"
+    ],
+    "roots": [
+      {
+        "annotation_scales_dictionary": "A3",
+        "child_cached_sha256": "c7db5f4fe5933aa0ca06301357e4a3903297298c30aeb3d14b45cc1126c86c8d",
+        "child_field": "CD",
+        "context_dictionary": "A2",
+        "evaluator": "AcVar",
+        "expression": "\\AcVar Filename \\f \"%fn6\"",
+        "extension_dictionary": "A1",
+        "field_dictionary": "AA",
+        "mtext": "9A",
+        "root_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+        "root_field": "A9"
+      },
+      {
+        "annotation_scales_dictionary": "E0",
+        "child_cached_sha256": "c7db5f4fe5933aa0ca06301357e4a3903297298c30aeb3d14b45cc1126c86c8d",
+        "child_field": "DE",
+        "context_dictionary": "DF",
+        "evaluator": "AcVar",
+        "expression": "\\AcVar Filename \\f \"%fn6\"",
+        "extension_dictionary": "DB",
+        "field_dictionary": "DC",
+        "mtext": "DA",
+        "root_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+        "root_field": "DD"
+      },
+      {
+        "annotation_scales_dictionary": "E7",
+        "child_cached_sha256": "c7db5f4fe5933aa0ca06301357e4a3903297298c30aeb3d14b45cc1126c86c8d",
+        "child_field": "E5",
+        "context_dictionary": "E6",
+        "evaluator": "AcVar",
+        "expression": "\\AcVar Filename \\f \"%fn6\"",
+        "extension_dictionary": "E2",
+        "field_dictionary": "E3",
+        "mtext": "E1",
+        "root_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+        "root_field": "E4"
+      },
+      {
+        "annotation_scales_dictionary": "EE",
+        "child_cached_sha256": "c7db5f4fe5933aa0ca06301357e4a3903297298c30aeb3d14b45cc1126c86c8d",
+        "child_field": "EC",
+        "context_dictionary": "ED",
+        "evaluator": "AcVar",
+        "expression": "\\AcVar Filename \\f \"%fn6\"",
+        "extension_dictionary": "E9",
+        "field_dictionary": "EA",
+        "mtext": "E8",
+        "root_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+        "root_field": "EB"
+      },
+      {
+        "annotation_scales_dictionary": "FA",
+        "child_cached_sha256": "c7db5f4fe5933aa0ca06301357e4a3903297298c30aeb3d14b45cc1126c86c8d",
+        "child_field": "F8",
+        "context_dictionary": "F9",
+        "evaluator": "AcVar",
+        "expression": "\\AcVar Filename \\f \"%fn6\"",
+        "extension_dictionary": "F5",
+        "field_dictionary": "F6",
+        "mtext": "F4",
+        "root_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+        "root_field": "F7"
+      },
+      {
+        "annotation_scales_dictionary": "103",
+        "child_cached_sha256": "c7db5f4fe5933aa0ca06301357e4a3903297298c30aeb3d14b45cc1126c86c8d",
+        "child_field": "101",
+        "context_dictionary": "102",
+        "evaluator": "AcVar",
+        "expression": "\\AcVar Filename \\f \"%fn6\"",
+        "extension_dictionary": "FE",
+        "field_dictionary": "FF",
+        "mtext": "FD",
+        "root_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+        "root_field": "100"
+      },
+      {
+        "annotation_scales_dictionary": "10A",
+        "child_cached_sha256": "c7db5f4fe5933aa0ca06301357e4a3903297298c30aeb3d14b45cc1126c86c8d",
+        "child_field": "108",
+        "context_dictionary": "109",
+        "evaluator": "AcVar",
+        "expression": "\\AcVar Filename \\f \"%fn6\"",
+        "extension_dictionary": "105",
+        "field_dictionary": "106",
+        "mtext": "104",
+        "root_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+        "root_field": "107"
+      },
+      {
+        "annotation_scales_dictionary": "111",
+        "child_cached_sha256": "c7db5f4fe5933aa0ca06301357e4a3903297298c30aeb3d14b45cc1126c86c8d",
+        "child_field": "10F",
+        "context_dictionary": "110",
+        "evaluator": "AcVar",
+        "expression": "\\AcVar Filename \\f \"%fn6\"",
+        "extension_dictionary": "10C",
+        "field_dictionary": "10D",
+        "mtext": "10B",
+        "root_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+        "root_field": "10E"
+      }
+    ],
+    "frames": [
+      {
+        "handle": "C",
+        "length": 593,
+        "offset": 32141,
+        "sha256": "ce1fc2dc1efb72d934597416c3465e622b0d44e0d604761a4d24cf86981142f4",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "9A",
+        "length": 2345,
+        "offset": 12347,
+        "sha256": "efb1b9e58e9ab718e25a38c15188e5d38a7f15d3f788a5e4ef9a42be6c4e5a48",
+        "type": "MTEXT"
+      },
+      {
+        "handle": "A1",
+        "length": 126,
+        "offset": 32909,
+        "sha256": "3d3dd1a08846455d0388b3baa503f20c8dba3472621b94fee904dad0bd1ee41e",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "A2",
+        "length": 124,
+        "offset": 38011,
+        "sha256": "57450dfda5fa89ca45bc073ee83dbf173d32c28454ca28b8cdd7fb1b778e7097",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "A3",
+        "length": 91,
+        "offset": 93673,
+        "sha256": "d079fb2101e74aed5667956acbfd74a244dda897e44f1d8df934044b2b77103e",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "A9",
+        "length": 6512,
+        "offset": 87161,
+        "sha256": "79eae9302ad7aa699d1f064826a7510c0cf22fdfee5d2f7a853a03608abdba7d",
+        "type": "FIELD"
+      },
+      {
+        "handle": "AA",
+        "length": 118,
+        "offset": 37893,
+        "sha256": "27f7b3c4f05dd36fcd44124856aed81d5283a9561a5917db06f55f6d684201eb",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "AB",
+        "length": 222,
+        "offset": 34035,
+        "sha256": "43f8a03ece6a71f3101cb16b4eed1fcf28e0cc118ee9ecb26dda6f5eb264452a",
+        "type": "FIELDLIST"
+      },
+      {
+        "handle": "CD",
+        "length": 498,
+        "offset": 140335,
+        "sha256": "4e459ada98855456b86ef00ae9b0e2520a83680272922106c76e81b231844c6c",
+        "type": "FIELD"
+      },
+      {
+        "handle": "DA",
+        "length": 2395,
+        "offset": 15004,
+        "sha256": "3c20d8900161e85819e5129f8f5d8cf75fcaa59234d974bbdf401ca239efa0fa",
+        "type": "MTEXT"
+      },
+      {
+        "handle": "DB",
+        "length": 126,
+        "offset": 33035,
+        "sha256": "62b160a1e0729cbe60241735aeccc6a1e94ff388aa53b35a50b67147f1a29881",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "DC",
+        "length": 118,
+        "offset": 38135,
+        "sha256": "6083577aa008cbd65767ea021c2f7171cc0a669f2cdab273a1dff5fd7a6ef9a7",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "DD",
+        "length": 6512,
+        "offset": 93764,
+        "sha256": "d268f7293c95f7d24ad7327fe930d565e77c81209c88a631619e7836e0cd1a5e",
+        "type": "FIELD"
+      },
+      {
+        "handle": "DE",
+        "length": 498,
+        "offset": 140833,
+        "sha256": "a8c476a666d3c8b3d04a0ce7d315b1502bf83d9d1217732ac1dd738b6d2cf37e",
+        "type": "FIELD"
+      },
+      {
+        "handle": "DF",
+        "length": 124,
+        "offset": 38253,
+        "sha256": "6eeba0367dc116b03d9d88907151c41578cd7a985c26d26f18d1880e97d1e9e0",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "E0",
+        "length": 91,
+        "offset": 100276,
+        "sha256": "3a19689468941f90dd4dd8401022b8184d9ccb666e9f4cb506a7f9c34db40af9",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "E1",
+        "length": 2370,
+        "offset": 17399,
+        "sha256": "28d81f2f1e674547f4d17d704a855666763f6f49066f5314ec461059988eac09",
+        "type": "MTEXT"
+      },
+      {
+        "handle": "E2",
+        "length": 126,
+        "offset": 33161,
+        "sha256": "7c1999ee28760c17c659f514b460f49172c80ebba3c8eeafb363b491c3d99835",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "E3",
+        "length": 118,
+        "offset": 38377,
+        "sha256": "cc2bb9a11cb2d8c2e500044405067a374e2bf14af55bed2746697dca1fea9895",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "E4",
+        "length": 6512,
+        "offset": 100367,
+        "sha256": "66f47fe254bf6ef771fd979ecf1295d4cd3a385647486962b3c2c0fc3115678d",
+        "type": "FIELD"
+      },
+      {
+        "handle": "E5",
+        "length": 498,
+        "offset": 141331,
+        "sha256": "755c6690dd3dd606e53c836c02c575461e392779e14cda05021d71ad00c430ff",
+        "type": "FIELD"
+      },
+      {
+        "handle": "E6",
+        "length": 124,
+        "offset": 38495,
+        "sha256": "9931007aa10752dfd194ac5bfb4e7333a47f387c7f54b6cb67e2e4651a3aee06",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "E7",
+        "length": 91,
+        "offset": 106879,
+        "sha256": "57be7634baf76cbf072f900c453e136ffbad5db7735d91e90a8eb6466e9ab605",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "E8",
+        "length": 2370,
+        "offset": 19769,
+        "sha256": "ad15f43882ec4920c5fb07b77ed659192f02f61f43789fbe012490c6e2377503",
+        "type": "MTEXT"
+      },
+      {
+        "handle": "E9",
+        "length": 126,
+        "offset": 33287,
+        "sha256": "d4604ea8844890ebfa4a54fdf73e479ffb92918c3fb0d043d5c048949f7943fa",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "EA",
+        "length": 118,
+        "offset": 38619,
+        "sha256": "5355295ad7dfbecedfebdc465e10848ca9ed56a0776d3293e9af4c1a90ff0672",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "EB",
+        "length": 6512,
+        "offset": 106970,
+        "sha256": "747286204cb1d228710aed4d28a2d6f80ebb14b1339c5a1fafdb1106a9ce265f",
+        "type": "FIELD"
+      },
+      {
+        "handle": "EC",
+        "length": 498,
+        "offset": 141829,
+        "sha256": "1515a5b6716596d9e0d90014d005aa5b74058dcc5a5a9f483e24f3a6c83f3d3e",
+        "type": "FIELD"
+      },
+      {
+        "handle": "ED",
+        "length": 124,
+        "offset": 38737,
+        "sha256": "7a445efd5cca9969ed524ec79dcf4da919a3b2e76a8cc6807b6ef044c99e4c2b",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "EE",
+        "length": 91,
+        "offset": 113482,
+        "sha256": "86cecd151960e797094072f7e7689da64b4667108f728da1d7d2383a7fe81525",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "F4",
+        "length": 2399,
+        "offset": 22139,
+        "sha256": "1111c5df17aba70f06f96bb9cfcab88dc414bbb6437de15fd1887c1f4206aaac",
+        "type": "MTEXT"
+      },
+      {
+        "handle": "F5",
+        "length": 126,
+        "offset": 33413,
+        "sha256": "66e187fc39ac4a10aa416ba2d201299e807cd427a4ed21960b40548bf10cf55e",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "F6",
+        "length": 118,
+        "offset": 38861,
+        "sha256": "7b3192121c51b08264a2f07ebab3a83349d4404bb7927235de2dd3bd3a337b92",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "F7",
+        "length": 6512,
+        "offset": 113573,
+        "sha256": "589a9f9c2bf877eebb6bcce31ca044236ce57a277bc13f6f11424d4cf23b14fe",
+        "type": "FIELD"
+      },
+      {
+        "handle": "F8",
+        "length": 498,
+        "offset": 142327,
+        "sha256": "1532d11c23e7cbe7f6d8d9044ff204a354347f8ffe66f3df9aec96d6ef7bc0c5",
+        "type": "FIELD"
+      },
+      {
+        "handle": "F9",
+        "length": 124,
+        "offset": 38979,
+        "sha256": "05240431eb07a16dcad446f70bd42c9d4b3b3450995c7bfe14eb2f5d0ff4aee5",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "FA",
+        "length": 91,
+        "offset": 120085,
+        "sha256": "fa7098087288c3005990135ba080ecbede24eaef4e137826234de8f1a7907d61",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "FD",
+        "length": 2425,
+        "offset": 24852,
+        "sha256": "ff2ab725f4fa553bc8c0f19f3d78ff6f03e327cc4295aee98aa5a23f00cbc948",
+        "type": "MTEXT"
+      },
+      {
+        "handle": "FE",
+        "length": 127,
+        "offset": 33539,
+        "sha256": "fd51411cf514c708450e55ada327faead233ef3920664a2325da116b993a5dbd",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "FF",
+        "length": 119,
+        "offset": 39103,
+        "sha256": "4a966392109da9a80a0c2d2be54d22a8e32e522b6676913d488cefeedece01e2",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "100",
+        "length": 6514,
+        "offset": 120176,
+        "sha256": "3fd8d13960c571c99f91fabd64d2039e00fcfee29948e81626ef495ef2700eb8",
+        "type": "FIELD"
+      },
+      {
+        "handle": "101",
+        "length": 500,
+        "offset": 142825,
+        "sha256": "9c2d853ce9258c0b173fcbfba981656022568b96fa4ae56526c101a5980949c8",
+        "type": "FIELD"
+      },
+      {
+        "handle": "102",
+        "length": 126,
+        "offset": 39222,
+        "sha256": "203757dd90ab9685087900316be1619bc52afa2bb605d71ef8bd95bbfdcf903a",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "103",
+        "length": 94,
+        "offset": 126690,
+        "sha256": "91445f150ac4249114d00c7ceeb93b682a8a80c870a86e9a5c0b786933a9ed6c",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "104",
+        "length": 2426,
+        "offset": 27277,
+        "sha256": "68ab7e94038c7208938d519c41c20929c1a3e50b411e42a256307bb7f6c8986a",
+        "type": "MTEXT"
+      },
+      {
+        "handle": "105",
+        "length": 130,
+        "offset": 33666,
+        "sha256": "4f56d62ddfec5e1a4a873145d8a2d66ea346b768f2dc7c7c116124fd5cabbe1a",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "106",
+        "length": 122,
+        "offset": 39348,
+        "sha256": "4abb8dab06d6aa625ef096de11e779f830d9280a3e1bc09cc056e177ffae13b8",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "107",
+        "length": 6516,
+        "offset": 126784,
+        "sha256": "380d7f9cbec734db9549889d0189881ea6c34c78220923b390c99f2963776730",
+        "type": "FIELD"
+      },
+      {
+        "handle": "108",
+        "length": 500,
+        "offset": 143325,
+        "sha256": "bc8515383b6d46036fcd0873687614cf939ec1993e1965b4b02a6431191e8353",
+        "type": "FIELD"
+      },
+      {
+        "handle": "109",
+        "length": 128,
+        "offset": 39470,
+        "sha256": "d67f28c371cc728139b9f86b138c5571b912961bce0cbd6fa4d5568164e80d04",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "10A",
+        "length": 94,
+        "offset": 133300,
+        "sha256": "ebb3f07e9411678550a3576b5a327197c954401f8e885ff004343bae0258dcad",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "10B",
+        "length": 2403,
+        "offset": 29703,
+        "sha256": "1ac2adc1eb2107d3d96f80474edd86aaa1c523ab9489b160341c4da664743b3c",
+        "type": "MTEXT"
+      },
+      {
+        "handle": "10C",
+        "length": 130,
+        "offset": 33796,
+        "sha256": "7b5e2aceca3a0e05037a4adbe4cfc47a2bd35ae62ea3d218d7879ecd2eadf2ed",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "10D",
+        "length": 122,
+        "offset": 39598,
+        "sha256": "acf4dc853955d28d1badc6fd427c48fdd3d6ded6f211503331b6d71343e79289",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "10E",
+        "length": 6516,
+        "offset": 133394,
+        "sha256": "1602131842a0b4e3567aa12b2af088f926097840eb29623c0c79b586de82484e",
+        "type": "FIELD"
+      },
+      {
+        "handle": "10F",
+        "length": 500,
+        "offset": 143825,
+        "sha256": "f6e93d71896e8dda181804effd2fbaa522911f0ee4f80519e9504a39f2bb3a90",
+        "type": "FIELD"
+      },
+      {
+        "handle": "110",
+        "length": 128,
+        "offset": 39720,
+        "sha256": "57c679881bb337044dd11b298609fee7145cab9ed9068bb0b9767e013b49f901",
+        "type": "DICTIONARY"
+      },
+      {
+        "handle": "111",
+        "length": 94,
+        "offset": 139910,
+        "sha256": "b06a6c41f493d2c41b167affaa61eacbf1bc4bab0b6ba1bb861d68ba8f0d58a7",
+        "type": "DICTIONARY"
+      }
+    ],
+    "field_body_tag_span_count": 584,
+    "audit_tool": "tools/research/audit_mtext_field_source.py",
+    "scope_limit": "58 relevant frames and FIELD packet only; unrelated NOD entries and whole-drawing graph are not asserted."
+  },
+  "independent_freecad": {
+    "version": "1.1.4",
+    "platform": "macOS ARM64",
+    "gui": false,
+    "importer": "FreeCAD C++ DXF importer through Draft importDXF",
+    "importer_sha256": "c0520e31a75a8e4dcb002c606d606855b1a9a565da0f13400d62761dccf9a992",
+    "binary_sha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60",
+    "text_objects": 8,
+    "all_text_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+    "tool": "tools/research/inspect_mtext_field_freecad.FCMacro",
+    "limit": "Imported cached text only; dynamic field evaluation and native GUI rendering are unproven."
+  },
+  "render_observation": {
+    "renderer": "ezdxf 1.4.5 SVG backend and CairoSVG 2.9.1",
+    "mtext_handle": "9A",
+    "svg_sha256": "990917906a9d1033e31a315df6023992ae7e42650f535ea6c6593dd18463f570",
+    "png_sha256": "282fbd0d0e1e1c075f27605b61ef5b5f595b00fa2026d26a000466462de6050e",
+    "observation": "Filename and source disclaimer that fields are static are visible.",
+    "tool": "tools/research/render_mtext_field_source.py",
+    "limit": "ezdxf is the source publisher project; this is not independent dynamic evaluation."
+  },
+  "ac1021_candidate": {
+    "generator": "ACadRust 0.6.8 from pinned source DXF",
+    "sha256": "c563c341c8e534312d620d308675be150ba4c31ed9d41f12a417509270f48de2",
+    "independent_decoder": "LibreDWG 0.14 dwgread minJSON",
+    "field_count": 16,
+    "fieldlist_count": 1,
+    "unique_list_members": 16,
+    "limit": "Generated derivative, not an authentic DWG producer witness; raw DWG field spans and native evaluation not proven.",
+    "libdxfrw_observation": {
+      "before": "BAD_READ_HEADER on 813-byte HEADER section: 767-byte payload, 8 bytes after end sentinel",
+      "after": "Header accepted with valid CRC and exact eight zero suffix bytes; operationSucceeded=true, 236 observed frames, zero unresolved; one suffix warning",
+      "conversion": "Strict DXF output refused during preflight: typed DWG ModelDocViewStyle serialization requires exact source version.",
+      "limits": "Successful source-frame publication is not FIELD semantic or output qualification.",
+      "field_census": "16 raw FIELD frames, 16 raw-only shells, one FIELDLIST with 16 slots and zero typed FIELD members; existing census returns failure because the source does not match its flags=2 profile."
+    }
+  },
+  "limits": [
+    "Source origin application is unverified.",
+    "Matching cached text does not demonstrate dynamic field evaluation or rendering.",
+    "Source and generated fixture are not committed.",
+    "This receipt does not qualify FIELD output, dynamic evaluation or whole-document graph closure."
+  ],
+  "ac1021_tv_derivative": {
+    "sha256": "3bc06ca9f22d478bc9477e8d08cadf2f6e245afa46e614f7fb1190e2fdb5c4ac",
+    "creation": "ACadRust 0.6.8 locally patched in a scratch copy so type-4 CadValue strings use versioned variable text in the writer and its self-reader; all other producer code is unchanged. This is an experimental derivative, not an independent producer-authored DWG.",
+    "specification": "ODA v5.4.1 sections 20.4.76 and 20.4.99 specify FIELD layout and TV for the type-4 value; the original ACadRust 0.6.8 writer emits an inline byte-counted UTF-16 string instead. This observation is limited to the inspected producer code and generated candidates.",
+    "reproduce_tool": "tools/research/create_ac1021_field_derivative.py",
+    "independent_graph_audit": "tools/research/audit_ac1021_field_graph.py",
+    "libdxfrw_probe": "libdxfrw_ac1021_mtext_field_census (opt-in CMake target)",
+    "libdxfrw": "16 complete typed FIELDs; one FIELDLIST with 16 unique typed members; eight field parent/child pairs, expressions and child caches verified. The original unpatched candidate is rejected by this exact typed census and is retained raw-only.",
+    "libredwg": {
+      "version": "0.14",
+      "fieldlist_members": 16,
+      "mtext_roots": [
+        {
+          "mtext": "9A",
+          "root_field": "A9",
+          "child_field": "CD",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "DA",
+          "root_field": "DD",
+          "child_field": "DE",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "E1",
+          "root_field": "E4",
+          "child_field": "E5",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "E8",
+          "root_field": "EB",
+          "child_field": "EC",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "F4",
+          "root_field": "F7",
+          "child_field": "F8",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "FD",
+          "root_field": "100",
+          "child_field": "101",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "104",
+          "root_field": "107",
+          "child_field": "108",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "10B",
+          "root_field": "10E",
+          "child_field": "10F",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        }
+      ],
+      "checked": "NOD FIELDLIST binding, 16 unique members, eight MTEXT extension/field dictionaries, owner paths and child links; child expression and cached filename; derivative MTEXT equals derivative root cache."
+    },
+    "source_delta": "All eight derivative root caches differ byte-for-byte from source; observed changes replace three ^I sequences with tabs and one ^-space escape with ^. The visible meaning/evaluation equivalence has not been independently qualified. ezdxf plain_mtext produces 1^2 from the original and 1p from the derivative, demonstrating a rendering-relevant difference for this peer. See docs/research/p8-mtext-caret-inline-syntax-2026-11-15.json.",
+    "output": "Strict conversion refuses the HEADER suffix warning; explicit partial mode still refuses FIELD/FIELDLIST with no qualified serializer. Output remains gated.",
+    "limits": [
+      "No source physical DWG field spans, unmodified DWG producer evidence, or native dynamic evaluation.",
+      "No fixture was added."
+    ]
+  },
+  "field_text_transport_follow_up": "FIELD A9 expression, primary value and cache now survive source-bound ASCII/Binary output and ezdxf tag inspection; graph closure and dynamic evaluation remain open. See p5-dxf-field-mtext-text-transport-2026-11-15.json."
+}

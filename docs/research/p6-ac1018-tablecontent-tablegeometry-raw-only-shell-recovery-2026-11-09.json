@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1018-tablecontent-tablegeometry-raw-only-shell-recovery-2026-11-09",
+  "date": "2026-11-09",
+  "status": "AC1018_OUT_OF_VERSION_TABLE_FRAME_RECOVERY",
+  "supportClaimEffect": "none",
+  "scope": "Preserve AC1018 TABLECONTENT and TABLEGEOMETRY frames raw-only when typed parsing fails and an independent bounded R2004 common shell/inline handle stream validates.",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018.dwg",
+    "sha256": "7d26f908516ec5fb89cc8054af33aff233b68a7b63208bbc5b7f9f4d9bff9866",
+    "provenance": "Tracked ACadSharp sample, read-only; not copied into this repository.",
+    "version": "AC1018",
+    "observedFrames": [
+      {"handle":"0xF7A","location":320894,"typeCode":524,"ordinal":849,"recordName":"TABLECONTENT","className":"AcDbTableContent"},
+      {"handle":"0x747","location":311929,"typeCode":524,"ordinal":455,"recordName":"TABLECONTENT","className":"AcDbTableContent"},
+      {"handle":"0xF7B","location":323086,"typeCode":525,"ordinal":850,"recordName":"TABLEGEOMETRY","className":"AcDbTableGeometry"},
+      {"handle":"0x748","location":317741,"typeCode":525,"ordinal":456,"recordName":"TABLEGEOMETRY","className":"AcDbTableGeometry"}
+    ],
+    "sameSourceAcDbTable": "Two ACAD_TABLE entities are present; their body profiles remain gated by undocumented cell override masks and are not admitted by this raw fallback."
+  },
+  "authority": {
+    "oda": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": ["20.1", "20.4.97", "20.4.103"],
+      "finding": "Section 20.1 defines the common non-entity shell and R2004 inline handle stream. Sections 20.4.97 and 20.4.103 state that TABLECONTENT and TABLEGEOMETRY were introduced in AutoCAD 2008; neither class body belongs to the AC1018/R2004 version profile."
+    },
+    "policy": "Do not interpret, type, or replay these out-of-version bodies. Preserve only exact raw frames after independent common-shell validation."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "profiles": [
+      "AC1018 TABLECONTENT / AcDbTableContent",
+      "AC1018 TABLEGEOMETRY / AcDbTableGeometry"
+    ],
+    "behavior": "After typed parse failure, reparse from an independent cursor through RawObjectShell. On success, publish the exact frame as an unvalidated raw carrier; do not call typed callbacks. On shell failure, preserve record failure. R13/R14/R2000 TABLECONTENT fallback behavior remains separate."
+  },
+  "generatedControl": {
+    "selector": "libdxfrw_persistent_manager_prefix_dispatch",
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "coverage": "From-scratch AC1018 object frames with a bounded RL pre-handle endpoint, no EED, one reactor, no xDictionary, and inline owner/reactor handles force TABLECONTENT and TABLEGEOMETRY typed rejection. Assertions require exact raw bytes, no typed callbacks, raw frame publications for both objects, and continued dispatch to the second frame. No drawing fixture was added."
+  },
+  "verification": {
+    "normal": {
+      "build": "PASS: cmake --build build --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+      "focused": "PASS: ctest --test-dir build -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure (1/1; 0.12 s)"
+    },
+    "asan": {
+      "build": "PASS: cmake --build build-asan-custom --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "focused": "PASS: ctest --test-dir build-asan-custom -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure (1/1; 0.87 s)"
+    },
+    "physicalRead": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1018.dwg -y -d -v2004 /tmp/sample_AC1018-table-raw-only.dxf",
+      "binarySha256": "c1c404ae29649987b7870205f62acd852cebb3af263e74264c41a0556befdf40",
+      "logSha256": "e40c24329f08bbb91682b6a009af57984c7a1354fdd67af392a4d380c421eb58",
+      "result": "All four identified TABLECONTENT/TABLEGEOMETRY frames take the raw-only route. The whole read publishes 1012/1014 frames with zero entity parse failures and two remaining AcDbDataTable object failures (handles 0xFEF and 0xFD3). Strict output remains refused by the independent IMAGEDEF/reactor correlation gate."
+    },
+    "baseline": {
+      "logSha256": "8ae2bf8fe8db37861c7c7ec8f49af5071b2464daef4e95184ac78cdcd2036d58",
+      "result": "Before this slice, the same source and command reported six object parse failures: two AcDbDataTable, two TABLECONTENT, and two TABLEGEOMETRY frames; 1008/1014 frames were published."
+    },
+    "diffCheck": "PASS: git diff --check",
+    "fullSuites": "NOT RUN"
+  },
+  "limits": [
+    "Raw retention is not typed TABLECONTENT/TABLEGEOMETRY support and does not authorize DXF output.",
+    "The physical AC1018 ACAD_TABLE entity bodies remain incomplete; their undocumented cell masks are a separate gate.",
+    "The two AC1018 AcDbDataTable parse failures remain unresolved.",
+    "No DWG/DXF fixture was added."
+  ],
+  "next": "Continue with another evidence-backed local version/layout gap; keep table-body, graph, and output qualification gated."
+}

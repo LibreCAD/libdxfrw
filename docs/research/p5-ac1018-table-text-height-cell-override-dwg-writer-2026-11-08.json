@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-08",
+  "slice": "AC1018 TABLE text-cell height override direct body codec",
+  "status": "implemented_generated_codec_self_consistency_only",
+  "authority": "Open Design Specification for .dwg files v5.4.1, section 20.4.96.1",
+  "scope": {
+    "version": "AC1018",
+    "cell_type": "text (1)",
+    "admitted_cell_override_mask": "0x00000020",
+    "fields": [
+      {
+        "wire_order": 1,
+        "field": "cell override flags",
+        "encoding": "BL"
+      },
+      {
+        "wire_order": 2,
+        "field": "virtual edge flags",
+        "encoding": "RC; zero in this profile"
+      },
+      {
+        "wire_order": 3,
+        "field": "text height",
+        "encoding": "BD; finite and greater than zero"
+      }
+    ],
+    "at_this_slice": "only bit 0x20 was admitted; later implementation is recorded in p5-ac1018-table-cell-border-overrides-dwg-writer-2026-11-08.json"
+  },
+  "generated_control": {
+    "authenticity": "locally generated codec vector; no DWG/DXF fixture",
+    "input": {
+      "override_mask": "0x20",
+      "text_height": 2.75
+    },
+    "checks": [
+      "encoder output parses into complete typed TABLE content",
+      "parsed cell flag and height match the generated source model",
+      "parser cursor lands exactly at the body boundary",
+      "following body sentinel remains readable",
+      "unsupported flags, nonpositive selected heights, and unflagged height residue fail atomically"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+    "result": "passed; 1/1 focused CTest",
+    "diff_check": "git diff --check passed"
+  },
+  "limitations": [
+    "No physical producer TABLE witness or native CAD readback was used.",
+    "This does not decode or encode the source-observed cell masks 0x40000 and 0x40020.",
+    "No exact physical source-span proof, source-to-output semantic equivalence, complete TABLE graph closure, or general TABLE support is established.",
+    "The public dwgRW::writeTable route remains fail-closed."
+  ]
+}

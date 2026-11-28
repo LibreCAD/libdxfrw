@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-view-default-lighting-domain-2026-11-03",
+  "date": "2026-11-03",
+  "parentCommit": "bc8066ff Record post-unlock ODA integrity recheck",
+  "status": "COMPLETED_LOCAL_DXF_FIELD_DOMAIN_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bound DRW_View default-lighting enum values for DXF output without changing DWG parsing or encoding.",
+  "authority": {
+    "sources": [
+      {
+        "claim": "ViewTableRecord inherits AbstractViewTableRecord, which provides the default-lighting property.",
+        "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_ViewTableRecord.html"
+      },
+      {
+        "claim": "DefaultLightingType contains OneDistantLight and TwoDistantLights, corresponding to values 0 and 1.",
+        "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-ManagedRefGuide/files/OREFNET-Autodesk_AutoCAD_DatabaseServices_DefaultLightingType.html"
+      },
+      {
+        "claim": "The official VIEW DXF table omits group 282; the current writer nevertheless emits this inherited property as group 282.",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm"
+      }
+    ],
+    "domain": "0..1"
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "DRW_View::validateDxf now requires m_defaultLightingType <= 1 alongside its existing renderMode <= 6 guard. DWG parseDwg/encodeDwg continue to use payload-width validation. The VIEW group-282 mapping itself remains unqualified because the current Autodesk VIEW DXF table does not list that group.",
+    "failureBehavior": "ASCII and Binary VIEW writes reject m_defaultLightingType=2 before record output and preserve an existing destination prefix. The documented upper bound 1 and renderMode upper bound 6 serialize and read back exactly."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "result": "PASS"
+    },
+    "focused": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_view_reference_remapping$' --output-on-failure",
+      "result": "PASS 1/1",
+      "coverage": "Both ASCII and Binary: renderMode=7 and defaultLightingType=2 refusal preserves an existing destination; renderMode=6/defaultLightingType=1 serialize and read back exactly. Existing VIEW reference mapping, refusal and fresh-writer retry controls pass in the same selector."
+    },
+    "compatibility": {
+      "command": "cmake --build build-gcc --target lc3_compat_check --parallel 4",
+      "result": "PASS"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "sourceFingerprints": {
+    "src/drw_objects.cpp": "538b34b7a18db88d8d2e84767a9f510daad680c9dcd9b7856635d238a0bfe1f2",
+    "tests/wave1_tests.cpp": "ceb2da9406ac371f007b75ef551e54dbbabba531b3413425c6c22b94896f0b3c",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "f72392aeb833d38c5044abe5239aa9a156da52c4c8538c3653e4fad3c5b4c808",
+    "build-gcc/libdxfrw_wave1_tests": "5c36ed66b2457fd1f5cb1e2e1d42acf98bc4f2b8d4a41d84be20b185e97adb5e"
+  },
+  "limits": [
+    "No physical VIEW producer or native rendering test was used.",
+    "The guard constrains an inherited API enum and does not establish that group 282 is portable in VIEW DXF records.",
+    "No DWG parser/encoder behavior changed and no support claim was promoted."
+  ],
+  "next": "Keep the VIEW group-282 mapping and native rendering unqualified; continue source-backed P4/P5 implementation work."
+}

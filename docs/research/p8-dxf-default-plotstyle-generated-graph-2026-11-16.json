@@ -1,0 +1,230 @@
+{
+  "date": "2026-11-16",
+  "scope": "Generate an ordinary default DXF plot-style graph when no caller plot-style root is registered",
+  "trigger": "The LibreCAD installed-codec version tests generated LAYER group 390 = F with no object F in AC1015\u2013AC1032. The 2D consumer therefore published dangling references.",
+  "authority": [
+    {
+      "title": "Autodesk LAYER DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm"
+    },
+    {
+      "title": "Autodesk ObjectARX layer setPlotStyleName object-id contract",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbLayerTableRecord__setPlotStyleName_AcDbObjectId_.html"
+    },
+    {
+      "title": "Prior independent default graph evidence",
+      "path": "docs/research/p6-default-plotstyle-graph-research-2026-11-04.json"
+    }
+  ],
+  "implementation": "For R2000+ when no ACAD_PLOTSTYLENAME root is supplied, plan distinct dictionary and placeholder output identities before HEADER/CLASSES/TABLES. Prefer conventional E/F only when unreserved; otherwise allocate fresh. Add or merge the required class registrations in an attempt-local copy, enforce class budgets, and emit root membership, Normal entry, default pointer, placeholder ownership and default-layer references. Require record-inventory duplicate checking, reject a late root change and source-reference alias onto the synthetic placeholder, and preserve source-bound roots instead of replacing unprojected plot-style entries. R12/R14 behavior is unchanged. Caller registered plot-style roots retain their existing path.",
+  "failure_fix": "A whole-write allocation injection sweep exposed a pre-existing use-after-free hazard in CLASSES emission: the failure path destroyed the writer before the record scope unwound. The scope now unwinds before destroying the writer.",
+  "verification": {
+    "focused": "PASS: dedicated generated-graph CTest covers six versions, ASCII/Binary, each E/F reservation combination, same-facade repeat, class merging/conflict, source-alias collision, late root and placeholder collision, bounded inventory and refusal/retry, plus R12/R14 controls. Related dictionary-default, dwg2dxf adapter and layer-allocation controls pass 4/4.",
+    "allocation": "PASS: whole-file allocation sweep and generated graph tests 2/2 in 36.16 seconds after failure-path repair; caller and destination rollback/retry were exercised.",
+    "independent": "ezdxf 1.4.5 read all 48 locally generated ASCII/Binary version/reservation outputs and verified root dictionary, Normal/default target, placeholder type and owner, and layer target. Outputs are scratch-only.",
+    "consumer": "LibreCAD macOS ARM64 candidate 6c0a9e0 rebuilt against a clean installed ABI-3 shared codec. DYLD_PRINT_LIBRARIES confirms the new library path; SHA-256 17465558aff27e84f1b68e9fef0c6aada421bd74d6cd0c3aa18cb4576ed73a28. Its [filter][version] selector improved from 1/5 passing with 9 failed assertions to 3/5 passing with 2 failed assertions; the six missing-F assertions and another dangling-reference assertion pass. Two unrelated export refusals remain. The R13 guard controls pass 204 assertions.",
+    "scratch_outputs": [
+      {
+        "name": "13-ascii-0.dxf",
+        "sha256": "d7f6ac46c99487ed660929cb977ceb0c395340f104bb087fc1527cd49a8d978b"
+      },
+      {
+        "name": "13-ascii-1.dxf",
+        "sha256": "1d04cb3576b6fff1d5f6a1ea91c119a0aa971fbb2dd9baa10063bcf294b0fcb1"
+      },
+      {
+        "name": "13-ascii-2.dxf",
+        "sha256": "1d04cb3576b6fff1d5f6a1ea91c119a0aa971fbb2dd9baa10063bcf294b0fcb1"
+      },
+      {
+        "name": "13-ascii-3.dxf",
+        "sha256": "1d04cb3576b6fff1d5f6a1ea91c119a0aa971fbb2dd9baa10063bcf294b0fcb1"
+      },
+      {
+        "name": "13-binary-0.dxf",
+        "sha256": "8bab32ed9f8b02e0934930f4b94f709e93250471411d169c4d79926bff5557a9"
+      },
+      {
+        "name": "13-binary-1.dxf",
+        "sha256": "45db89a6b705c80a7cafa95f49b21a4b3d63728ace45145b2d0f7a87230b742d"
+      },
+      {
+        "name": "13-binary-2.dxf",
+        "sha256": "45db89a6b705c80a7cafa95f49b21a4b3d63728ace45145b2d0f7a87230b742d"
+      },
+      {
+        "name": "13-binary-3.dxf",
+        "sha256": "45db89a6b705c80a7cafa95f49b21a4b3d63728ace45145b2d0f7a87230b742d"
+      },
+      {
+        "name": "14-ascii-0.dxf",
+        "sha256": "58ea88b324ee68d0cc23d1daf738fb403394951a790fcc7e44428c0922e61078"
+      },
+      {
+        "name": "14-ascii-1.dxf",
+        "sha256": "863d20d6620c4fa72d06776c943548d261e359a8aa26b7a471800c80f64d71a7"
+      },
+      {
+        "name": "14-ascii-2.dxf",
+        "sha256": "863d20d6620c4fa72d06776c943548d261e359a8aa26b7a471800c80f64d71a7"
+      },
+      {
+        "name": "14-ascii-3.dxf",
+        "sha256": "863d20d6620c4fa72d06776c943548d261e359a8aa26b7a471800c80f64d71a7"
+      },
+      {
+        "name": "14-binary-0.dxf",
+        "sha256": "aa861b0ab8ef0157c188e7484ace96b1bc0c3bd28870952240e0f889db560189"
+      },
+      {
+        "name": "14-binary-1.dxf",
+        "sha256": "f3ed1fad1214a1a3bd0fe9f4b49388cf0eac7be818d7211411520427c2991beb"
+      },
+      {
+        "name": "14-binary-2.dxf",
+        "sha256": "f3ed1fad1214a1a3bd0fe9f4b49388cf0eac7be818d7211411520427c2991beb"
+      },
+      {
+        "name": "14-binary-3.dxf",
+        "sha256": "f3ed1fad1214a1a3bd0fe9f4b49388cf0eac7be818d7211411520427c2991beb"
+      },
+      {
+        "name": "15-ascii-0.dxf",
+        "sha256": "6b6ae68a35d2b7ae602f9b2e529441b879a4142de0fa27905d6f0e3b45834a75"
+      },
+      {
+        "name": "15-ascii-1.dxf",
+        "sha256": "56af3d1a75686092a5a81be0c08500cab773b9feca989aac68f453299dbf1d0c"
+      },
+      {
+        "name": "15-ascii-2.dxf",
+        "sha256": "56af3d1a75686092a5a81be0c08500cab773b9feca989aac68f453299dbf1d0c"
+      },
+      {
+        "name": "15-ascii-3.dxf",
+        "sha256": "56af3d1a75686092a5a81be0c08500cab773b9feca989aac68f453299dbf1d0c"
+      },
+      {
+        "name": "15-binary-0.dxf",
+        "sha256": "15048aca86211517a1f757c60898a59bc1f3c78386cbb31c9f2c2dc37cb406c7"
+      },
+      {
+        "name": "15-binary-1.dxf",
+        "sha256": "14554f252a52c55a9d168901dde67a5ac5e7d0e1114d113baf968ef09697c4c4"
+      },
+      {
+        "name": "15-binary-2.dxf",
+        "sha256": "14554f252a52c55a9d168901dde67a5ac5e7d0e1114d113baf968ef09697c4c4"
+      },
+      {
+        "name": "15-binary-3.dxf",
+        "sha256": "14554f252a52c55a9d168901dde67a5ac5e7d0e1114d113baf968ef09697c4c4"
+      },
+      {
+        "name": "16-ascii-0.dxf",
+        "sha256": "c124a3322ca58738700040e898fc26510e7c424e2b75f4ba4d65955db9edba9e"
+      },
+      {
+        "name": "16-ascii-1.dxf",
+        "sha256": "fd9fc3499d815ea28c8ea19f2393d5da88b9c75897b7e4c78250589a041bae90"
+      },
+      {
+        "name": "16-ascii-2.dxf",
+        "sha256": "fd9fc3499d815ea28c8ea19f2393d5da88b9c75897b7e4c78250589a041bae90"
+      },
+      {
+        "name": "16-ascii-3.dxf",
+        "sha256": "fd9fc3499d815ea28c8ea19f2393d5da88b9c75897b7e4c78250589a041bae90"
+      },
+      {
+        "name": "16-binary-0.dxf",
+        "sha256": "49dc74d7eeaa15aa34c6a926eb3a8f36fd2d0541b5dead12eefd5e06a5015749"
+      },
+      {
+        "name": "16-binary-1.dxf",
+        "sha256": "62030104cab53043159c1bd41306dcd67d908e527392e16fdc4ae21681d02d13"
+      },
+      {
+        "name": "16-binary-2.dxf",
+        "sha256": "62030104cab53043159c1bd41306dcd67d908e527392e16fdc4ae21681d02d13"
+      },
+      {
+        "name": "16-binary-3.dxf",
+        "sha256": "62030104cab53043159c1bd41306dcd67d908e527392e16fdc4ae21681d02d13"
+      },
+      {
+        "name": "17-ascii-0.dxf",
+        "sha256": "23d246a21734b7f071ccbe7dc42f5b91db777ddabd7534f4e9e36c80590de5fb"
+      },
+      {
+        "name": "17-ascii-1.dxf",
+        "sha256": "900b1d8c6bd34dd29c7cfb9b9aae25489ca61b5504985a839a1cf6cc5ca211cf"
+      },
+      {
+        "name": "17-ascii-2.dxf",
+        "sha256": "900b1d8c6bd34dd29c7cfb9b9aae25489ca61b5504985a839a1cf6cc5ca211cf"
+      },
+      {
+        "name": "17-ascii-3.dxf",
+        "sha256": "900b1d8c6bd34dd29c7cfb9b9aae25489ca61b5504985a839a1cf6cc5ca211cf"
+      },
+      {
+        "name": "17-binary-0.dxf",
+        "sha256": "11b71265fd84662891f2815a97564e09e43c6fdee488d5684206acb76f2436cc"
+      },
+      {
+        "name": "17-binary-1.dxf",
+        "sha256": "28de59df058280e94b6e61456f7dd1c283f846ba3985a5a36fdb72743958d83c"
+      },
+      {
+        "name": "17-binary-2.dxf",
+        "sha256": "28de59df058280e94b6e61456f7dd1c283f846ba3985a5a36fdb72743958d83c"
+      },
+      {
+        "name": "17-binary-3.dxf",
+        "sha256": "28de59df058280e94b6e61456f7dd1c283f846ba3985a5a36fdb72743958d83c"
+      },
+      {
+        "name": "18-ascii-0.dxf",
+        "sha256": "ac8c5f78f06f74b4c78160fb7880750d78f0c2d305feca35a4a30858fa785e12"
+      },
+      {
+        "name": "18-ascii-1.dxf",
+        "sha256": "9d86cf7f2f485613720ef63443e23e58f4fef4a6d07185b947566432c8a043a3"
+      },
+      {
+        "name": "18-ascii-2.dxf",
+        "sha256": "9d86cf7f2f485613720ef63443e23e58f4fef4a6d07185b947566432c8a043a3"
+      },
+      {
+        "name": "18-ascii-3.dxf",
+        "sha256": "9d86cf7f2f485613720ef63443e23e58f4fef4a6d07185b947566432c8a043a3"
+      },
+      {
+        "name": "18-binary-0.dxf",
+        "sha256": "f39b7ec607649ab667c5231659c00d72ea5ea2a2ca897392cf52888ac4a29947"
+      },
+      {
+        "name": "18-binary-1.dxf",
+        "sha256": "0d2d700649b525887ab367d759456accd73bf7c3b2b270bdc96057836b3e1094"
+      },
+      {
+        "name": "18-binary-2.dxf",
+        "sha256": "0d2d700649b525887ab367d759456accd73bf7c3b2b270bdc96057836b3e1094"
+      },
+      {
+        "name": "18-binary-3.dxf",
+        "sha256": "0d2d700649b525887ab367d759456accd73bf7c3b2b270bdc96057836b3e1094"
+      }
+    ],
+    "logs": [
+      "/private/tmp/libdxfrw-dxf-plot-red.log",
+      "/private/tmp/libdxfrw-dxf-plot-whole-final.log",
+      "/private/tmp/libdxfrw-dxf-plot-last-test.log",
+      "/private/tmp/libdxfrw-dxf-plot-adjacent-test.log",
+      "/private/tmp/lc-plotstyle-final-version.log",
+      "/private/tmp/lc-plotstyle-final-loader.log"
+    ]
+  },
+  "limits": "This proves the generated ordinary graph only, not native plotting or broad source/profile support. A caller-supplied ACAD_PLOTSTYLENAME graph follows the existing route; default layer F fallback in that route and full membership/semantic validation remain open. Explicit nondefault layer references retain their prior source-resolver contract except collision with the generated placeholder is refused. The inventory introduces per-record memory overhead when synthesis is active. New private dxfRW fields change its layout; ABI-3 consumers must rebuild. No external fixtures or generated DWG/DXF files were committed. P4\u2013P8 phase gates and P9 external claim restrictions remain unchanged."
+}

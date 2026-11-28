@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw-p5-field-suppressed-type0-transport-v1",
+  "date": "2026-11-01",
+  "qualificationEligible": false,
+  "supportClaimsPromoted": false,
+  "scope": "Generated bounded DWG FIELD CadValue transport for type 0 under R2007+ low-format-flag suppression. The value remains semantically unknown; generated transport tests do not establish FIELD evaluation or complete-source output support.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.99 Value",
+    "rule": "R2007+ stores Flags as BL code 93 followed by Data type as BL code 90. ODA says Flags & 0x01 marks the general type and that the type-specific variant is absent when bit 1 in Flags is set. The implementation suppresses FIELD CadValue payload for low flag bits per the LibreDWG master implementation; this does not resolve physical FIELD suffixes or native meaning."
+  },
+  "corroboratingImplementation": {
+    "project": "LibreDWG master",
+    "file": "src/dwg_spec_shared.h",
+    "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg_spec_shared.h#L586-L655",
+    "rule": "LibreDWG master reads format_flags and data_type, then skips the type-specific switch for R2007+ when (format_flags & 3) is nonzero. The local AC1021 sample has flags=2/type=2 checksum children with 34-bit body suffixes under this interpretation; treat this peer rule as a differential, not normative or semantic proof.",
+    "commit": "https://github.com/LibreDWG/libredwg/commit/e61c63ce5e999ad62af94a10b2e338a21aef07a"
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_object_vectors_tests.cpp"
+    ],
+    "behavior": [
+      "Accept a bounded type-0 value when its recognized R2007+ FIELD flags suppress the payload.",
+      "Retain the type, flags, unit/format metadata, surrounding FIELD value string and following stream alignment without inventing an application value.",
+      "Permit DWG re-encoding only when the absent-payload value has no variant, raw bytes, data size or object handle.",
+      "Keep unsupported flags, unknown nonzero data types and malformed extra payload state refused.",
+      "Keep TABLE CadValue payload handling separate: the local AC1021 TABLE source profile carries flags=2/type=2 checksum values, so this FIELD-only change does not alter TABLE payload presence."
+    ],
+    "fixturePolicy": "Coverage uses generated in-memory vectors. No DWG or DXF fixture was added or committed."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+      "result": "passed"
+    },
+    "fastTests": {
+      "command": "Focused FIELD and TABLE CadValue cohort recorded in the AC1021 census receipt.",
+      "result": "Passed, 24/24 fast tests.",
+      "coverage": [
+        "Generated FIELD flags 1/2/3 payload suppression, metadata alignment, scalar absence and object-ID handle-slot absence.",
+        "TABLE flags=2 retained payload and handle behavior remain covered separately."
+      ]
+    },
+    "localPhysicalInput": {
+      "path": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+      "provenance": "Pre-existing untracked local input; not staged or committed.",
+      "observedProfile": "The existing peer census records 29 root values with flags=3 and type=0.",
+      "postChangeTrace": {
+        "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg -y -d -v2010 /tmp/libdxfrw-ac1021-field-suppressed.dxf",
+        "exitCode": 1,
+        "unsupportedFieldFlagDecodes": 20,
+        "childValueCountFailures": 16,
+        "strictOutputRefusal": "36 unpreserved proxy-graphics records; input remains incomplete due FIELD raw-only frames.",
+        "qualification": "No physical source-to-DXF output/readback claim. These separate FIELD and proxy blockers remain open.",
+        "unmodeledBodyTails": {
+          "34Bits": 29,
+          "146Bits": 1
+        }
+      }
+    },
+    "additionalPhysicalEvidence": {
+      "path": "tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+      "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+      "provenance": "Pre-existing untracked local input; not staged or committed.",
+      "libdxfrwSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --field-ac1021-physical-profile-census tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+      "result": "15 typed AcExpr records; 142 raw FIELD callbacks; 127 raw-only incomplete frames; all 42 peer-selected AcObjProp handles correlate to raw-only local frames.",
+      "traceCommand": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1021/blocks_and_tables_-_imperial.dwg -y -d -v2010 /tmp/field-flags-ac1021-current.dxf",
+      "traceResult": "71 ACFD_FIELDTEXT_CHECKSUM children have flags=2/type=2 and leave a 34-bit body suffix when the value payload is suppressed; 41 AcObjProp records leave 258 bits and handle 0x1481E leaves 210 bits; 13 child values are unsupported and one count is out of range. Strict output is refused."
+    }
+  },
+  "residuals": [
+    "Resolve whether the 34-bit suffix in 71 physical flags=2/type=2 ACFD_FIELDTEXT_CHECKSUM child records is a required extension or a producer-specific body member. Keep these FIELD frames raw-only until its span and meaning are source-backed.",
+    "Resolve the other physical AC1021 FIELD flag profiles and child-value-count/framing failures from authoritative evidence.",
+    "Establish exact physical source-to-DXF output and fresh readback on an eligible complete source profile.",
+    "Qualify native FIELD evaluation independently from cached-value transport."
+  ],
+  "planEffect": "Closes only generated type-0 suppressed transport. It does not close the physical flags=2 checksum-child suffix, the physical AcObjProp schemas, or native FIELD semantics. P5 remains OPEN and no support claim is promoted.",
+  "physicalFlags2ReaderConflict": {
+    "receipt": "docs/research/p5-ac1021-field-flags2-child-reader-conflict-2026-11-01.json",
+    "disposition": "ACadSharp and a temporary FIELD flags&0x01 candidate parse 71 flags=2/type=2 checksum children as BD doubles, matching exact field handles and values 71/71. This conflicts with ODA §20.4.99 and current LibreDWG master suppression. No code change is retained; keep the 71 containing FIELD records raw-only until producer-bound span evidence adjudicates the layout."
+  }
+}

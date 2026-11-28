@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-10",
+  "scope": "CELLSTYLEMAP and R24 TABLESTYLE shared DWG cell-style writer",
+  "finding": "The shared encoder omitted cell-style data when hasData was false, margins when the margin marker was zero, and border data when edge flags were zero, but its validation accepted nondefault values in those omitted portions. A successful encode could therefore discard caller data and references.",
+  "authority": "Open Design Specification for .dwg files v5.4.1 sections 20.4.101.4 and 20.4.102 specify the data-present, margin-override and nonzero-edge conditions. Existing CELLSTYLEMAP DXF output already refuses these omitted-data combinations.",
+  "change": "Shared DWG cell-style validation requires omitted data to have model defaults before either CELLSTYLEMAP or R24 TABLESTYLE writes. Nonzero-edge and flagged-margin payloads retain the existing writer path.",
+  "verification": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_(cellstylemap_dwg_encode_roundtrip|tablestyle_dwg_encode_allocation_rollback|tablestyle_r24_typed_writer|cellstylemap_dxf_writer)$' --output-on-failure",
+    "result": "4/4 passed",
+    "coverage": "34 generated AC1021 CELLSTYLEMAP omitted-field mutations check refusal, seeded destination preservation and corrected same-object/buffer exact-byte retry. The AC1032 R24 TABLESTYLE generated allocation profile also checks absent-style handle refusal and corrected retry. Existing controls exercise valid flagged margins, nonzero and zero-edge borders, allocation failure, alias routing, and readback."
+  },
+  "limits": "Generated writer safety and local roundtrip evidence only. Physical producer profiles, graph closure, native rendering and general support qualification remain open. No drawing fixture added."
+}

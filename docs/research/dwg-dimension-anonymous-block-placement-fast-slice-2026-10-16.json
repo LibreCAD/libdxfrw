@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-dwg-dimension-anonymous-block-placement-fast-slice-v1",
+  "slice": "PAR-71 / 7O.3 anonymous picture-block scale and rotation",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "authority": {
+    "source": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "section": "20.4.22 COMMON DIMENSION DATA",
+    "printedPages": [125, 126],
+    "observedContract": "The anonymous picture-block insertion scale is encoded as BD fields 41/42/43 and insertion rotation as BD54. These are separate from the dimension clone offset, text rotation, line-spacing factor and measurement."
+  },
+  "redControl": {
+    "format": "generated low-level common DIMENSION DWG body and generated AC1015 DWG",
+    "cases": [
+      "non-default XYZ scale (1.25, 0.75, 2.5) and rotation 0.375",
+      "identity scale/zero rotation defaults",
+      "distinct reflected-normal scale (0.5, 1.5, 2.25) and rotation -0.625",
+      "line-spacing factor, measurement, clone point, and a following LINE remain distinct and correctly ordered"
+    ],
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024"],
+    "readModes": [false, true],
+    "expectedFailureBeforeFix": "The common writer emitted unit scale and zero insertion rotation irrespective of the DRW_Dimension values; the common parser discarded both fields."
+  },
+  "change": {
+    "files": ["src/drw_entities.h", "src/drw_entities.cpp"],
+    "behavior": [
+      "Add explicitly DWG-specific anonymous-block scale/rotation state with identity defaults and public accessors.",
+      "Preserve the values through DRW_Dimension copy construction and assignment; reset them when DWG parse state resets.",
+      "Parse and encode the common DWG fields without conflating them with clone translation or DXF 41/42.",
+      "Reject non-finite scale/rotation before writing any common DIMENSION body bytes.",
+      "The new DRW_Dimension members change class layout; downstream consumers must rebuild, consistent with the planned ABI-breaking 2.0 release boundary."
+    ],
+    "test": "tests/dwg_local_roundtrip_tests.cpp",
+    "testBehavior": "An independently authored raw bit reader checks emitted common-field order for AC1018/AC1021/AC1024; a generated scratch AC1015 drawing checks non-default values, defaults, both applyExtrusion modes, and following-record continuity. Additional tests cover reset/copy/assignment and pre-write rejection of NaN. Scratch DWG output is removed by RAII."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 && ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+    "result": "PASS 1/1",
+    "durationSeconds": 3.34,
+    "compilerWarningsAsErrors": true,
+    "fullSuiteRun": false,
+    "externalFixtureAdded": false,
+    "newCTestRegistration": false,
+    "dependencyAdded": false,
+    "diffCheck": "PASS"
+  },
+  "evidenceBoundary": {
+    "proves": [
+      "The local DWG model/parser/writer preserve anonymous-block scale and rotation state.",
+      "The common writer's raw field order leaves later line-spacing, measurement, clone, and following-record values aligned in the tested versions.",
+      "Copy/reset defaults and rejection of non-finite values are covered by focused local tests."
+    ],
+    "doesNotProve": [
+      "agreement with an independent DWG producer",
+      "a DXF group-code mapping or loss/refusal policy for non-default values",
+      "anonymous block geometry association, picture rendering, or native CAD display/edit semantics",
+      "complete DIMENSION interoperability or broader DWG support"
+    ],
+    "binaryAbiCompatibilityClaimed": false,
+    "independentProducerOrNativeRun": false,
+    "supportClaimPromoted": false,
+    "externalOnlyDeferred": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "commitCreated": false,
+    "commitReason": "The shared worktree contains broad unrelated modifications across the same source, test, and plan files; staging or committing complete files would mix this slice with user work."
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-image-dictionary-keys-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "3eb9fff102b4e8c7287513e90b05745df86138a2",
+  "implementation": "Bind a physically checked simple ASCII source root and image dictionary to the existing generated dictionary writer when all entries resolve to selected definitions from the same import. Preserve source keys and soft-owner roles with remapped handles; unsupported or partial graphs use the existing loss-reported path. Reset binding on every save attempt.",
+  "validation": [
+    "The source-key assertions failed before the change. Fifteen focused IMAGE, dictionary and paper tests and 18 layout tests pass after it.",
+    "Same-writer removal and restoration of an image definition exercises fallback and recovered binding; source handle collisions and both output encodings are covered by the focused test.",
+    "Independent ezdxf 1.4.5 reads authored R2000 ASCII and binary outputs, resolves FIRST and SECOND and both IMAGE references to the intended distinct definitions, verifies dictionary ownership, and reports zero errors and zero fixes.",
+    "The adapter syntax-checks against older bundled libdxfrw headers; their runtime behavior is not qualified."
+  ],
+  "redLogSha256": "bb99e501a5df0ed0ba2984b1d900ad591970d345f5d45bb7d2ceddc7ec89da08",
+  "testLogSha256": "d97d194633954b02ddf60c72424ae3f1bc6495c116f1ea21366043e97e7ae2cc",
+  "layoutLogSha256": "60aabc1f6a1488270fa42e7a89d366695c442ab8c777dd1f658b93c28555eabe",
+  "olderHeaderLogSha256": "2e5337aa3727300050bff86e123a74795a101b0d6340efcff45f863ee7963b99",
+  "peerOutput": {
+    "ascii": {
+      "sha256": "0f652c03191886705720466637e702ebeac51b684f128a36a12daf457535fee8",
+      "keys": {
+        "FIRST": "84",
+        "SECOND": "85"
+      },
+      "image_dictionary": "86",
+      "image_references": [
+        "84",
+        "85"
+      ],
+      "errors": 0,
+      "fixes": 0
+    },
+    "binary": {
+      "sha256": "7f01cf956d5bb220cb727cb7ee196f24af976dd53b9472bcf4f759c718154bb5",
+      "keys": {
+        "FIRST": "84",
+        "SECOND": "85"
+      },
+      "image_dictionary": "86",
+      "image_references": [
+        "84",
+        "85"
+      ],
+      "errors": 0,
+      "fixes": 0
+    }
+  },
+  "limits": [
+    "Only locally authored same-revision ASCII-source, metadata-free dictionaries with a sole ACAD_IMAGE_DICT root entry and all selected definitions are admitted. Binary sources, other dictionary shapes and excluded source objects need separate qualification.",
+    "IMAGEDEF XDATA handle references, source reactor identity, wider graph closure and native application semantics remain open. No generated DXF fixtures are committed."
+  ]
+}

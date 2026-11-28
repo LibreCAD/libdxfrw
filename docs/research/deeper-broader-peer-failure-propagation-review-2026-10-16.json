@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-failure-propagation-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden cross-project research across DXF string encoding/safety, silent partial output, owner/root ordering, unknown-object retention, and binary proxy emission; update implementation readiness without creating duplicate findings or support claims.",
+  "method": {
+    "kind": "Primary project issue/commit pages, Autodesk DXF references already cited by the plan, and read-only local writer/test inspection",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": false,
+    "localBuildOrTestsRun": false,
+    "localFilesReviewed": [
+      "src/intern/dxfwriter.cpp",
+      "src/intern/dxfwriter.h",
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/block_owner_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "evidenceRule": "Mutable issue reports and linked commits identify peer-specific failure modes and test leads only. They do not prove a libdxfrw defect, peer release capability, or semantic parity. Local status/tests were inspected but not executed in this research pass."
+  },
+  "evidence": [
+    {
+      "topic": "String serialization can corrupt value boundaries or leak allocator residue",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1412",
+        "https://github.com/LibreDWG/libredwg/commit/5abbe5dc25208c87e7c2da2b6aa402d54f2193b1",
+        "https://github.com/LibreDWG/libredwg/commit/aafb376e0bd0b75b5b06a2e04a7c7dd65a741474",
+        "https://github.com/LibreDWG/libredwg/issues/1414",
+        "https://www.rfc-editor.org/rfc/rfc3629"
+      ],
+      "observed": "LibreDWG #1412 reports a cquote output buffer whose terminator was placed at capacity rather than after the last byte written, allowing strlen to include allocator residue; the issue also identifies a path that could omit a group when a transformed value became empty. Two linked commits address those reported cases, but the issue page remains open and no peer build was run here. Open #1414 reports source-version-dependent TV/TU Unicode escape treatment for one modern target and identifies lone-surrogate output as invalid UTF-8.",
+      "localCrossCheck": "The reviewed libdxfrw route uses length-aware std::string values, validates Unicode scalar text on strict paths, retains an explicit empty final chunk, and refuses unsafe ASCII physical-record newlines. That is a materially different implementation shape from the peer's malloc/strlen example; no analogous uninitialized-tail defect was established. Existing generated text tests do not, by themselves, prove all source DWG TV/TU inputs or every raw/typed output route.",
+      "doesNotEstablish": [
+        "a matching libdxfrw memory-safety defect",
+        "which escape policy is normative in every DXF string context",
+        "that the two peer commits are included in a released or executed peer artifact",
+        "that decoded-text equality proves exact output, strict UTF-8, or following-tag framing"
+      ],
+      "planUse": "Refine existing PAR-05/7AR text transport only: require exact encoded-value length/bytes plus a following tag/record sentinel for escaping and empty-value cases; pair source-version paths when a DWG integration route is available; retain strict rejection for non-scalar UTF-8. Keep peer allocator poisoning as a test-design clue only where a local C-string/capacity boundary exists; do not add a generic allocator-specific test for the reviewed std::string path."
+    },
+    {
+      "topic": "Partial or malformed output must be distinct from input decode and process success",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1355",
+        "https://github.com/LibreDWG/libredwg/issues/1351",
+        "https://github.com/LibreDWG/libredwg/issues/1357",
+        "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+        "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-FD4FAA74-1F6D-45F6-B132-BF0C4BE6CC3B.htm"
+      ],
+      "observed": "LibreDWG #1355 reports a conversion that stopped during TABLES, omitted BLOCKS/ENTITIES/OBJECTS and EOF, and returned exit status 0; its report also showed damaged decoded table/root state, so the case spans input integrity and output finalization. #1351 reports INSERT group 66=1 without ATTRIB/SEQEND; Autodesk documents the required sequence terminator. #1357 separately reports unresolved child references being mistaken for end-of-list. These are peer-specific reports, and some historical fixes are reporter-verified rather than independently reproduced here.",
+      "doesNotEstablish": [
+        "that libdxfrw has the same failure",
+        "that a missing EOF alone identifies the source of the failure",
+        "that continuing after an unresolved child is safe without an explicit loss disposition",
+        "that successful same-library readback proves semantic completeness"
+      ],
+      "planUse": "Keep input/read-integrity, graph traversal, emitted sequence grammar, mandatory-section/EOF finalization, CLI status, and atomic destination replacement as separate checks. Fast tests assert the touched boundary and a following sentinel; one composed strict parse/audit reconciles the full output before native acceptance."
+    },
+    {
+      "topic": "Owner, root ordering, and typed-versus-opaque write disposition are separate completeness layers",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1409",
+        "https://github.com/LibreDWG/libredwg/issues/1413",
+        "https://github.com/DomCR/ACadSharp/issues/1134",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-CC1D6F91-42BF-4946-8D4B-6FC6A39100C5.htm"
+      ],
+      "observed": "LibreDWG #1409 reports later BLOCK bodies skipped when traversal reuses a loop index, leaving named blocks present but empty; #1413 reports choosing a lower-handled DICTIONARY instead of the position-defined DXF NOD and losing layout names. ACadSharp #1134 is an open proposal, not a shipped feature, and explicitly identifies unknown-object reference remapping as a hazard when records/resources are removed or reassigned. Autodesk's ownership contract keeps entity owner references meaningful independently of numeric handle existence.",
+      "localCrossCheck": "The parity plan already has generated consecutive populated block-owner controls, NOD ordering controls, per-owner output inventories, and separate opaque-record reference-closure requirements. These are the correct existing homes; this research did not run those tests.",
+      "doesNotEstablish": [
+        "a local block or NOD ordering defect",
+        "that every valid block must contain entities",
+        "that raw unknown-object replay is safe merely because source and target versions match",
+        "that numeric handle existence proves the correct owner/reference role"
+      ],
+      "planUse": "Do not add duplicate PAR findings. Continue using the existing block/layout, NOD-root, and opaque-reference owners; gate each source identity as emitted with the intended owner, explicitly refused/reported, or explicitly unsupported. Unknown DWG frames remain fail-closed until their versioned frame and reference roles can be safely remapped."
+    },
+    {
+      "topic": "Binary proxy writer success is a route-specific property",
+      "sources": [
+        "https://github.com/mozman/ezdxf/issues/1412",
+        "https://github.com/mozman/ezdxf/pull/1418"
+      ],
+      "observed": "ezdxf #1412 reports that version 1.4.4 could write an ASCII proxy graphic but raised TypeError on binary DXF because that route passed hex text where raw bytes were expected. The issue was closed as completed by PR #1418 on 2026-10-02; this does not qualify other versions, every proxy profile, or libdxfrw.",
+      "doesNotEstablish": [
+        "a libdxfrw binary proxy defect",
+        "that ASCII and binary routes are interchangeable",
+        "that a peer fix is available in a specific installed/released package without pinning it",
+        "semantic interpretation of proxy payloads"
+      ],
+      "planUse": "Retain PAR-76/7AP's independent ASCII and binary chunk routes and exact payload/length/sentinel checks. Pin ezdxf with the fix only if it is used at the composed binary-proxy checkpoint; do not use its affected 1.4.4 writer as the only binary seed source."
+    }
+  ],
+  "implementationReadiness": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newFixtures": 0,
+    "newTestRegistrations": 0,
+    "newDependencies": 0,
+    "fastSliceOrder": [
+      "For a changed parser/adapter route, account for source identities and owners before comparing whole-file totals.",
+      "For a changed writer route, assert exact record syntax, output framing, required terminators/sections, and a following sentinel.",
+      "For text or binary carriers, compare physical bytes and declared lengths separately from decoded text or parsed object presence.",
+      "Require explicit emitted, rejected, or unsupported disposition; a successful process exit is never the completeness oracle.",
+      "At the composed checkpoint only, run one pinned strict independent parser/audit and then the named native-consumer matrix."
+    ],
+    "noFullSuitePerSlice": true,
+    "planTotals": {
+      "findings": 124,
+      "topLevelSubplans": 71
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

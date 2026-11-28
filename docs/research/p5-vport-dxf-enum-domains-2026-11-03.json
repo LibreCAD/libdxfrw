@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-vport-dxf-enum-domains-2026-11-03",
+  "date": "2026-11-03",
+  "parentCommit": "4741abfc Validate VIEWPORT DXF enum domains",
+  "status": "COMPLETED_LOCAL_DXF_WRITER_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Refuse VPORT typed DXF output for render and default-lighting enum values outside Autodesk's published domains.",
+  "authority": {
+    "source": "Autodesk VPORT DXF table",
+    "fields": {
+      "group281_renderMode": "0..6",
+      "group282_defaultLightingType": "0..1",
+      "group79_ucsOrthographicType": "0..6 (existing adapter validation)"
+    },
+    "url": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-8CE7CC87-27BD-4490-89DA-C21F516415A9.htm"
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "DRW_Vport::validateDxf now requires renderMode <= 6 and defaultLightingType <= 1 in addition to existing payload-width, shade-mode, UCS and color checks. DWG parsing/encoding continues to use validatePayloadFields and is unchanged.",
+    "failureBehavior": "ASCII and Binary VPORT writes reject renderMode=7 or defaultLightingType=2 before record emission and preserve an existing destination prefix."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "result": "PASS"
+    },
+    "focused": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_vport_reference_remapping$' --output-on-failure",
+      "result": "PASS 1/1",
+      "coverage": "Both ASCII and Binary: invalid enum values preserve an existing destination; valid upper bounds renderMode=6/defaultLightingType=1 serialize and are read back exactly. Existing VPORT reference mapping, refusal and fresh-writer retry controls in the same selector pass."
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "sourceFingerprints": {
+    "src/drw_objects.cpp": "a3a8f8a5e59371fb39fb3120e8afe237938ea3404a7593598ea85edcc2974301",
+    "tests/wave1_tests.cpp": "1ccd9d8e11c74d17324a1967802cabb4485f74f7a8b0457aaab095a4e600432f",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "07113fccc5205c5a04a4674f0070cf54b16a5c427d2fdf8640897b9ea25f6270",
+    "build-gcc/libdxfrw_wave1_tests": "ebb57ba85e1639e81eeea524d640f33f30889e834ea73c1f1bc03fbbdd0db5d9"
+  },
+  "limits": [
+    "No physical VPORT producer or native rendering evidence was used.",
+    "The guard establishes published enum-domain output correctness only; it does not qualify visual behavior or whole-document conversion.",
+    "No DWG parser/encoder behavior changed and no support claim was promoted."
+  ],
+  "next": "Continue the remaining source-backed rendering and whole-document graph work; keep native VPORT semantics open."
+}

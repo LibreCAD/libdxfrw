@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-15",
+  "problem": "The broad generated roundtrip attempted to write an authored MATERIAL in every modern DWG version. Current production policy refuses those records unless an exact source-bound replay profile is present, making each modern whole-file write fail and cascading into hundreds of downstream assertions.",
+  "changes": [
+    "Keep the authored MATERIAL registration, output, malformed-record check and readback on legacy AC1015/AC1018 profiles. Leave its dictionary slot null and assert absence for modern generated files instead of creating a detached or unsupported object.",
+    "Update the dedicated MATERIAL test to require atomic refusal of newly authored AC1021/AC1024/AC1027/AC1032 records at both codec and whole-file boundaries, sentinel preservation even when the caller ignores refusal, and a successful same-writer AC1018 retry/readback."
+  ],
+  "validation": [
+    "The dedicated libdxfrw_dwg_material_replay_refusal CTest passes.",
+    "Both local FreeCAD CLI compatibility CTests pass with the rebuilt generator.",
+    "The complete local roundtrip test still fails with 35 assertions; all six versioned generated DWG writes succeed and the remaining assertions expose independent downstream mismatches. The earlier hosted baseline had 363 cascading assertions."
+  ],
+  "limits": [
+    "This is a generated-fixture projection, not newly implemented modern MATERIAL writing or independent semantic qualification.",
+    "Roundtrip failures, Windows runtime qualification, and the changed-input digest refresh remain open; no support claims are promoted."
+  ]
+}

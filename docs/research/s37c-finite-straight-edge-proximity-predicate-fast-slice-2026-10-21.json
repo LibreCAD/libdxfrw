@@ -1,0 +1,57 @@
+{
+  "title": "S3.7c ACIS finite straight-edge proximity predicate",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "profile": "Decoded straight ACIS edge; parser-fed SAB 21800 rooted edge also exercised",
+    "public_api": "drw_pointWithinToleranceOfAcisStraightEdge tests Euclidean distance to the finite edge interval and returns the raw curve parameter on acceptance.",
+    "parameter_policy": "The nearest parameter is clamped to the closed interval derived from both topological endpoint projections.",
+    "endpoint_policy": "Both endpoints must be present, finite, and within the explicit endpointCurveTolerance of the decoded supporting curve.",
+    "tolerance_policy": "Endpoint-consistency and query-to-edge tolerances must be finite and nonnegative; neither is an ACIS/modeler default.",
+    "refusal_policy": "Invalid tolerance, missing/off-curve endpoints, unsupported curve, invalid query, unrepresentable projection/residual, or out-of-tolerance query returns false without changing parameter.",
+    "non_claims": [
+      "curved-edge evaluation or trim semantics",
+      "pcurve evaluation",
+      "body transform or source-unit application",
+      "B-rep validity or native/independent semantic qualification"
+    ]
+  },
+  "coverage": {
+    "generated_exactly_representable_tolerance_boundary": "PASS",
+    "just_outside_tolerance_refuses_atomically": "PASS",
+    "query_near_clamped_endpoint": "PASS",
+    "beyond_endpoint_uses_endpoint_distance_not_line_distance": "PASS",
+    "invalid_query_tolerance_refuses_atomically": "PASS",
+    "parser_fed_sab21800_bounded_edge_boundary": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.22 seconds)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

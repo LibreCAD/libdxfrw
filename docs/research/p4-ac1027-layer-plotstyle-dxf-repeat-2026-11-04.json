@@ -1,0 +1,80 @@
+{
+  "title": "AC1027 selected material and plotstyle graph strict DXF repeat conversion",
+  "status": "isolated selected-source candidate",
+  "base_commit": "03532664",
+  "problem": "The preceding strict AC1027 generated output has LAYER 0 group 390 pointing to its Normal ACDBPLACEHOLDER. A second strict DXF conversion succeeds but replaces that handle with F, which has no corresponding object. It also registers a legacy DICTIONARYWDFLT class name for the canonical raw object.",
+  "authority": "Autodesk ACDBDICTIONARYWDFLT DXF specifies AcDbDictionary cloning 281, soft-owner 350 and default hard pointer 340, without group 280: https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A6605C05-1CF4-42A4-95EC-42190B2424EE.htm. Existing source plot audit accepts absent 280 only with default soft ownership and no hard-owner entries.",
+  "source_binding": "A separate optional, allocation-free CLASS source facet observes paired CLASS rows during the successful import without adding DRW_Interface slots or requiring whole-file observation. The selected strict route requires the exact three canonical CLASS names, flags and counts 3/1/1, no unknown groups and matching live rows. It joins the same-import raw/typed LAYER resource audit and canonical plotstyle source audit, exact root/group/material dictionary raw whitelists, exact known MATERIAL group sequence and unchanged imported raw/typed MATERIAL baselines. Canonical WDFLT marker is required. Staged TABLES verifies 347/390; staged OBJECTS checks all three root entries, 350/340 plot edges and placeholder owner; HEADER and material inspector/finalizers preserve CMATERIAL/347.",
+  "scope": "Strict DXF AC1027 to DXF AC1027, exact one-layer default material/plotstyle graph produced by preceding AC1027 selected DWG output. Strict explicit non-F plot references outside this proof fail closed. In the shared read-only plot-source audit, other omitted-280 default-soft dictionaries can newly report source-ready, without gaining output authorization. Non-strict/direct callers retain the old F fallback; it is not target-closed. Typed/raw MATERIAL edits, other source shapes, versions and whole-file/native-CAD claims are outside this profile.",
+  "abi": "DRW_Interface and installed model layouts stay unchanged. The optional source facet adds no existing virtual slot; in-tree dx_iface gains a polymorphic base and its binary layout changes, so external code linked against that internal adapter must rebuild.",
+  "validation": "Fixture-free modified strict-graph selector generates its own input, executes two repeat cycles and cross-encoding readback, and tests source/live audit removal, target/role/owner/root/material/class edits, wrong output version and sentinel-preserving same-adapter retries. For ASCII and binary input it independently mutates all three CLASS counts, extra group 300, missing and duplicate rows; tests legacy object/class marker, 280-present/hard-owner role, dangling group 390, unknown LAYER/MATERIAL/root/group/material-dictionary fields; all refuse. Existing non-strict F fallback control stays unchanged. Pinned raw-tag/ezdxf graph auditor passes ASCII, Binary and Binary-to-ASCII results; same-encoding output hashes equal the preceding qualified output. Coherent scratch CMake build and all three listed CTests pass (3/3); this build is on original 03532664.",
+  "commands": {
+    "build": "cmake --build /private/tmp/layer-plot-repeat/build --target libdxfrw_dwg_ac1027_default_graph_strict_tests libdxfrw_dxf_compact_material_graph_tests libdxfrw_table_content_dxf_tests -j4",
+    "test": "ctest --test-dir /private/tmp/layer-plot-repeat/build -R \"^libdxfrw_(dwg_ac1027_default_graph_strict|dxf_compact_material_graph|plotstyle_original_sources)$\" --output-on-failure",
+    "manual_test": "/private/tmp/layer-plot-repeat/strict-test",
+    "audit": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_ac1027_default_graph_dxf.py --dxf <output> --sha256 <recorded-sha256>"
+  },
+  "source_sha256": {
+    "src/drw_interface.h": "6d47cbd5c6be1263b9902a95faefe454593d3b99db9ea6ecd94e0f494f330107",
+    "src/libdxfrw.cpp": "58f15ac0944dd3b4490b05bee9e7b82c7dbe4ae2cb66cc8b551f543dc4e82c1e",
+    "dwg2dxf/dx_data.h": "de6eb2bf42c8c76bfca50f647d7d502d0af056d1d3f23efcc2556804750d92a4",
+    "dwg2dxf/dx_iface.h": "f6f634331a7bbc385d8109ddf9634e2a46f0c704f8c8f93f5855e06c02af3aac",
+    "dwg2dxf/dx_iface.cpp": "a7b052df60a49760a15f29459a236964c2dca8345c7d95400d888e4c8c802e4a",
+    "dwg2dxf/dx_plotstyle_source.h": "a75ccad9c02b6803fe874e11cdb1576a640e164f9441233ea8c5cbd83cc358e2",
+    "tests/dwg_ac1027_default_graph_strict_tests.cpp": "7143a2d7fc96f51f9173b8e69a58bba3002af0411234bc17840d02a2c4ccae9c",
+    "tools/audit_ac1027_default_graph_dxf.py": "3baa4add9c46ea8d6d3ef8e04c179f6dc65cf89c8d967efc8e003ace4a2a6377"
+  },
+  "artifacts": {
+    "prior_strict_ascii": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/final-7e/ascii.dxf",
+      "sha256": "1d2814932f1038194eb6b0c20a0da0fcc8baccf2b2ce7e55c1eaffaa75a72d90"
+    },
+    "prior_strict_binary": {
+      "path": "/private/tmp/ac1027-material-strict-diagnostic/final-7e/binary.dxf",
+      "sha256": "c3924f3cb61babb32186d6e81bb274bab8ddfe9c92bc38a94a06732cda2e066b"
+    },
+    "baseline_bad_repeat": {
+      "path": "/private/tmp/lightlist-graph/repeat-default.dxf",
+      "sha256": "ae70da139cb79ea822d99cfd0ded623e0a7c502c6eddec85fca22898927b530d"
+    },
+    "final_ascii": {
+      "path": "/private/tmp/layer-plot-repeat/final-ascii.dxf",
+      "sha256": "1d2814932f1038194eb6b0c20a0da0fcc8baccf2b2ce7e55c1eaffaa75a72d90"
+    },
+    "final_binary": {
+      "path": "/private/tmp/layer-plot-repeat/final-binary.dxf",
+      "sha256": "c3924f3cb61babb32186d6e81bb274bab8ddfe9c92bc38a94a06732cda2e066b"
+    },
+    "final_cross": {
+      "path": "/private/tmp/layer-plot-repeat/final-cross.dxf",
+      "sha256": "90e031ddafb216931c0f0f539e620a71c924bfb2f22b68b4f35849142fb163e7"
+    },
+    "strict_test_log": {
+      "path": "/private/tmp/layer-plot-repeat/strict-test-final.log",
+      "sha256": "fc977cbf7e61114997357826a16e02e447d48889d8529ca14fba9513d310bc75"
+    },
+    "strict_test_binary": {
+      "path": "/private/tmp/layer-plot-repeat/strict-test",
+      "sha256": "7a4c8105e2dc2a325201224b0a3cbc9c4fb25ac666fd35c117c790e67d5f9cc8"
+    },
+    "peer_python": {
+      "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python",
+      "sha256": "6cc907e4a022fefc843bcd93954eaf5a2cbfc77a095640bfadeeed96154190c5"
+    },
+    "cmake_test_binary": {
+      "path": "/private/tmp/layer-plot-repeat/build/tests/libdxfrw_dwg_ac1027_default_graph_strict_tests",
+      "sha256": "d88c5e78c177b06ce465ece9b2209b2dd0aeab4f04a920ab902de14c4b9c6285"
+    },
+    "adapter_object": {
+      "path": "/private/tmp/layer-plot-repeat/build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "941c4bbd5e2c092d4836d8211c4db4157d0728a66773c69bd61c556200e7fc36"
+    },
+    "library": {
+      "path": "/private/tmp/layer-plot-repeat/build/libdxfrw.a",
+      "sha256": "97c62509e081c9f296e675d6655facc3a7af6b64b20cc26902271f097650d1d3"
+    }
+  },
+  "prior_receipt": "docs/research/p6-ac1027-default-graph-strict-dxf-2026-11-04.json",
+  "plan_delta": "Record same-revision one-layer generated AC1027 strict DXF repeat with CLASS/source graph and 347/390/CMATERIAL closure; retain physical producer whole-document, other graph profiles, cross-revision output and native behavior as open.",
+  "integration_note": "Integrated on top of 86326378; main-workspace build completed and the three listed focused CTests passed 3/3."
+}

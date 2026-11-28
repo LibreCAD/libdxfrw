@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5ea immutable compound bodies and original modeled replay",
+  "date": "2026-10-25",
+  "parentCommit": "0d751175",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "IMMUTABLE_COMPOUND_MODELED_BODIES_AND_ORIGINAL_REPLAY_VERIFIED_PHYSICAL_PROFILES_TARGET_LIVE_OUTPUT_AND_EXTERNAL_QUALIFICATION_OPEN",
+  "scope": {
+    "implementation": "Converter-private immutable known-concrete POLYLINE/INSERT/MINSERT trees, VERTEX/ATTRIB/SEQEND and nested MTEXT",
+    "production": "Shared field-admission and finalization helper; original mandatory-field, polyface ignored-face, default, alias and sequence behavior retained",
+    "equality": "Exact common/native retained fields, bitwise doubles, geometry/transforms/indices, attribute and embedded-MTEXT fields; accounting/capacity/leases/padding are not persisted semantics",
+    "original": "Replay retained original physical scalars: ASCII spellings or Binary typed values; exclude only explicitly ignored comments",
+    "grammar": "Retain actual delivered post-staging-copy state separately from reconstructed original pre-copy state; actual concrete copy projects replay grammar to delivered phase",
+    "incompleteXdata": "Original replay pending host/nested coordinates refuse proof even when staging copies reset cursors",
+    "ownership": "Pinned immutable structural audit, dispatch, physical/delivery/endpoints and actual container/generation; known exact concrete child/footer/nested types prevent slicing",
+    "codepage": "Static compatibility codepage selection from retained header declaration for proxy provenance, not full raw declaration or legacy codepage qualification",
+    "context": "Private query requires successful actual first-generation DXF import, full structural replay, complete modeled comparison and capture success",
+    "live": "Historical source snapshots stay independent of public editable drawing models; live/output closure remains required separately",
+    "profiles": "Four modern versions exercised; unknown physical scalar may match modeled fields and must not count as complete physical profile",
+    "budgets": {
+      "maxMembers": 100000,
+      "maxLogicalBytes": 67108864,
+      "maxLogicalWork": 67108864
+    },
+    "accounting": "Precharged state/model/raw/wire/map/control allowances; additional instrumented decode work; variant nodes bounded by already-precharged physical groups",
+    "costLimit": "Logical attempt allowances, not allocator capacity, RSS, every allocation, leak proof or strict CPU theorem",
+    "failure": "Own quota/allocation or unrecognized concrete class refuses evidence without setting ordinary format-read errors; model/source-state mismatches retain distinct states",
+    "installedEntityModelLayoutsChanged": false,
+    "publicInterfaceVtableChanged": false,
+    "nativeDwgParserOrEncoderChanged": false,
+    "outputWriterChanged": false,
+    "distribution": "New private shared decoder in pinned CMake source manifest and Autotools dist_noinst_HEADERS; distribution suite not repeated",
+    "externalDrawingFixturesCommitted": false,
+    "drawings": "Locally authored runtime scratch DXFs only",
+    "semanticLimit": "Modeled equality uses the shared production decoder, not an independent semantic CAD/kernel implementation"
+  },
+  "owningControlsPerConfiguration": {
+    "ctest": "libdxfrw_compound_body_replay",
+    "selector": "--compound-body",
+    "actualProfiles": 84,
+    "axes": "AC1021/AC1024/AC1027/AC1032 x ASCII LF/CRLF/Binary x classic/3D/polyMesh/polyface/101-embedded/legacy100-embedded/rich-common",
+    "independentOriginalScalarSpans": 19524,
+    "independentLimit": "Whole generated BLOCK-child physical scalar/span inventory, not independent semantic verification of all decoded body fields",
+    "sameIdFieldCorruptionAndCorrectedImportRetries": 80,
+    "derivedConcreteClassRefusalsAndCorrectedRetries": 14,
+    "immutablePublicAliasControls": 2,
+    "exactOneUnderQuotaAndCorrectedImportRetries": 6,
+    "observedAllocationFaultAndCorrectedFreshImportRetries": 474,
+    "allocationThresholds": {
+      "asciiPolyline": 78,
+      "asciiEmbeddedInsert": 148,
+      "binaryPolyline": 89,
+      "binaryEmbeddedInsert": 159
+    },
+    "allocationLimit": "Thresholds calibrated per environment rather than portable STL constants; all preceding observed sites injected, exact first success, weak teardown; recapture is a synthetic unqualified phase over actual immutable owners, not all-allocator/leak proof",
+    "staleSnapshotRefusalsAndRestorations": 2,
+    "standaloneEmptyMInsertPositiveVariants": 6,
+    "originalUnfinishedXdataRefusals": 4,
+    "modeledVersusUnknownPhysicalProfileBoundaries": 2,
+    "copiedLaterInputOptOutContexts": 8,
+    "callbackExceptionAndCorrectedFreshImportRetries": 4
+  },
+  "findings": [
+    {
+      "status": "NEW_PATH_DELIVERED_VERSUS_PRE_COPY_GRAMMAR_PHASE_RECONCILED",
+      "before": "Direct replay pre-copy versus actual staged callback-copy state comparison falsely rejected ATTRIB",
+      "after": "Store both observations separately and use real concrete copy projection; original pending XDATA still refuses proof",
+      "limit": "New private proof path, not a pristine-parent/released parser defect"
+    },
+    {
+      "status": "NEW_PATH_EXACT_WORK_ALLOWANCE_OVER_REFUSAL_REPRODUCED_AND_FIXED",
+      "before": "Exact 197030-unit work allowance rejected INSERT replay after physical-group variant visits were already charged",
+      "after": "Bound variant nodes by physical groups already included in work precharge, not a second uncounted remainder; exact and one-under controls pass",
+      "evidence": "Failed local owning run recorded allowance=197030, observed=197030, capture failure and INSERT DecodeFailed; raw red temporary log was subsequently overwritten, not retained as a separate hashed artifact",
+      "limit": "New private proof path only; no ordinary parser/format admission loosened"
+    },
+    {
+      "status": "LOCAL_RICH_FIXTURE_CHUNKING_CORRECTED",
+      "before": "One 128-byte ASCII proxy/XDATA hex chunk was refused before delivery by the existing reader",
+      "after": "Locally authored rich controls use canonical 127+1 chunks",
+      "limit": "Fixture correction, not production defect or independent image/geometry evidence"
+    }
+  ],
+  "validation": {
+    "host": "macOS ARM64 Apple Clang 21.0.0",
+    "languageWarnings": "C++17 -Wall -Wextra -pedantic -Werror",
+    "normal": {
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 18.59
+    },
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "tests": [
+      "libdxfrw_dxf_operation_admission",
+      "libdxfrw_dxf_entity_boundary_token_transfer",
+      "libdxfrw_dxf_appdata_retained_owner_budget",
+      "libdxfrw_dxf_block_record_parser_retained_budget",
+      "libdxfrw_dxf_raw_carrier_retention_budget",
+      "libdxfrw_block_owners",
+      "dwg2dxf_dynamic_block_fail_closed",
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_attdef_source_transport",
+      "libdxfrw_nested_mtext_common_owner_budget",
+      "libdxfrw_attdef_immutable_capture",
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_block_source_capture",
+      "libdxfrw_block_source_proof",
+      "libdxfrw_block_children_source",
+      "libdxfrw_raw_application_identity",
+      "libdxfrw_raw_proxy_application_scope",
+      "libdxfrw_raw_application_writer",
+      "libdxfrw_raw_shell_application_scope",
+      "libdxfrw_acsh_projection_application_scope",
+      "libdxfrw_block_child_delivery",
+      "libdxfrw_attdef_original_origin",
+      "libdxfrw_block_original_membership",
+      "libdxfrw_table_content_bindings",
+      "libdxfrw_block_record_source_proof",
+      "dwg2dxf_acsh_history_capture_limits",
+      "dwg2dxf_raw_dxf_entity_capture_limits",
+      "dwg2dxf_raw_dxf_section_capture_limits",
+      "dwg2dxf_dynamic_block_capture_limits",
+      "dwg2dxf_proxy_object_capture_limits",
+      "dwg2dxf_raw_dxf_object_list_node_accounting",
+      "dwg2dxf_freecad_cli_compat",
+      "dwg2dxf_freecad_installed_cli_compat",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_compound_body_replay",
+      "dxf_polyface_completed_pool",
+      "dwg2dxf_mtext_orientation_ascii_cli",
+      "dwg2dxf_mtext_orientation_binary_cli"
+    ],
+    "strictBuildTargets": [
+      "libdxfrw_attdef_source_tests",
+      "libdxfrw_hardening_tests",
+      "libdxfrw_block_owner_tests",
+      "libdxfrw_table_content_dxf_tests",
+      "libdxfrw_table_geometry_dxf_tests",
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "libdxfrw_3d_consumer_probe",
+      "dwg2dxf",
+      "lc3_compat_check",
+      "libdxfrw_dwg_local_roundtrip",
+      "libdxfrw_dxf_fixture_tests"
+    ],
+    "fullProjectSuiteRepeated": false,
+    "autotoolsDistributionSuiteRepeated": false,
+    "consumerLimit": "Local mirrored API/source compilation and CLI compatibility plus local 3D probe; not native LibreCAD/LibreCAD_3/FreeCAD execution or formal binary ABI certification",
+    "intermediate": [
+      {
+        "asanPassed": 38,
+        "asanSeconds": 38.43,
+        "limit": "Brief overlap with extra normal owning-count capture; final sequential ASan rerun supersedes it"
+      }
+    ],
+    "asan": {
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "seconds": 33.3
+    },
+    "sequentialFinalRuntimeCohorts": true
+  },
+  "gates": {
+    "resourceFamilies": 9,
+    "attdefRawTypedMatched": false,
+    "ledger": "CLOSED",
+    "outputEligible": false,
+    "supportClaimsPromoted": false,
+    "remoteMutation": false,
+    "fullGoalComplete": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxFreeCAD": "NOT_RUN",
+    "nativeWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN"
+  },
+  "next": [
+    "Complete role/version/occurrence physical compound scalar profiles using original immutable indices/spans and existing scoped helpers; preserve unknown/default/duplicate/ignored/opaque distinctions",
+    "Finish ENTITIES model/paper/BLOCK_RECORD and transitive common/style/APPID/LAYER/object/absent-default/opaque closure, names/handle/local-ID namespaces, remapping and proxy codepages",
+    "Finish B2b/B3/C graph/live/output/immutable/editable/compound identities, exact emitted fields/references and atomic rollback/retry/destination preservation",
+    "Retain original IMAGE/document/native bit/decimal/carrier/schema/owner, speed/memory, LibreCAD/LibreCAD_3 2D, 3D consumers, dwg2dxf/FreeCAD and independent semantic/platform requirements",
+    "Use owning fast tests and freshly built affected normal/ASan cohorts only at integration boundaries; self-update and safely unblock, commit/report each slice and continue without support promotion or external drawing fixture commits"
+  ],
+  "sourceSha256": {
+    "dwg2dxf/dx_data.h": "51df9977c37bf3c19c3ea3197b5d94a800b994d8d32b1ecb48cdc45ce10263e8",
+    "dwg2dxf/dx_iface.h": "c5c6493df103098e80a6e63ba58e35f6453d4d9d643e8a36c0673272a9a33ee4",
+    "dwg2dxf/dx_iface.cpp": "aff04761dedb50afa55451a7a400f1878e75deafbc0742a00e394a2bec82177f",
+    "libdxfrw_sources.cmake": "6b16681ae47e3930dd6cd7f4e07dc6a787be906d6f29c1d89c1c15bfba954061",
+    "src/Makefile.am": "b88c15affe857ae6bb490f3d9c3d2bfffbad086604a78eb16c2e4203f4e7570d",
+    "src/drw_entities.h": "b841efb0261d6289fe92d254eb0b89bc7de18325d6894f90b13b22a43ffdb34b",
+    "src/intern/dxfattdef.h": "5e9a16a7d55e84c4f477084cc321dc00ce0746ef0d402187038e1177ee0e69b5",
+    "src/intern/dxfcompound.h": "3a27cbdbd2ed730e03f7fea031a6ae4ae2bda73d76ce1b3c74441c77123bfe82",
+    "src/libdxfrw.cpp": "d3f41bd06fd737023fc18d1b1030674ee145675abbd7b6d3d3306c85a1985e7e",
+    "tests/CMakeLists.txt": "e78d019bb35c02e0c7d6ef13b4a1194e0d64e6b3367bf24a08ff64d71ea445d5",
+    "tests/attdef_source_tests.cpp": "74e095a6ddfb0955c5a066391567f2c850fda50db40567d6fa27063bcfeab3b9",
+    "tests/compound_body_controls.h": "d548b31d2ecd8c3b11250b0fdd19241ea393f29474dc34050418b8fb9328fea8"
+  },
+  "logSha256": {
+    "/tmp/rpp5ea-qualified-normal-build.log": "f3e1b7430b3369b83f728156626007c066bace35068eb9ba27e1c8944eb9a04b",
+    "/tmp/rpp5ea-qualified-asan-build.log": "4f874a5b3502b9cdf279c9c3adce026c416794ab93c955221b6a4889926bbcfb",
+    "/tmp/rpp5ea-qualified-normal-ctest.log": "99482daa1eec0ef369574de95fa1f74ba7d93648b2a8ac9019772e47d54b50e6",
+    "/tmp/rpp5ea-qualified-owning-counts.log": "1eaae1af24820d1c3f48ef7f1c0715362a62754e1181251ef09288acc277599d",
+    "/tmp/rpp5ea-final-asan-ctest.log": "bc3db92cddcf5d9403d0fbd68f31eac3484c5a3ebf1e6f4f8100bc7cace674f3",
+    "/tmp/rpp5ea-qualified-asan-ctest.log": "447589db8401e542c3a9f910114971b018ff3df3be3479980087a7049f870b33"
+  }
+}

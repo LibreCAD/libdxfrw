@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "scope": "Recheck whether the physical AC1024 condominium VIEW-to-SUN graph qualifies AC1024 DWG to AC1027 DXF output.",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+    "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+    "version": "AC1024"
+  },
+  "retainedProducerOutput": {
+    "toolAttribution": "ODA File Converter 27.1.0.0, ACAD2013 output retained from the existing local investigation",
+    "freshlyGeneratedThisTurn": false,
+    "path": "/private/tmp/libdxfrw-oda-ac1024-condo-proxy-2026-11-05/output/condo.dxf",
+    "sha256": "9c387c51c78baacea0ba33e8ed5e2b13b00bef47c6a66e79174edc6697e05a2d",
+    "version": "AC1027"
+  },
+  "observedViewSunChains": [
+    {
+      "viewHandle": "0x582",
+      "viewName": "X-Ray Floorplan",
+      "viewSunGroup361": "0x584",
+      "viewXDictionary": "0x585",
+      "sunGroup330Owner": "0x586",
+      "ownerType": "XRECORD",
+      "ownerParentDictionary": "0x585",
+      "ownerDictionaryKey": "ADSK_XREC_VTRVIEWINFO"
+    },
+    {
+      "viewHandle": "0x78e",
+      "viewName": "SinkView",
+      "viewSunGroup361": "0x794",
+      "viewXDictionary": "0x78f",
+      "sunGroup330Owner": "0x790",
+      "ownerType": "XRECORD",
+      "ownerParentDictionary": "0x78f",
+      "ownerDictionaryKey": "ADSK_XREC_VTRVIEWINFO"
+    },
+    {
+      "viewHandle": "0xe19",
+      "viewName": "Render View_330pm",
+      "viewSunGroup361": "0xe23",
+      "viewXDictionary": "0xe1c",
+      "sunGroup330Owner": "0xe1d",
+      "ownerType": "XRECORD",
+      "ownerParentDictionary": "0xe1c",
+      "ownerDictionaryKey": "ADSK_XREC_VTRVIEWINFO"
+    }
+  ],
+  "otherObservedSunChains": [
+    { "ownerType": "VPORT", "ownerHandle": "0x94", "sunHandle": "0x17c" },
+    { "ownerType": "VIEWPORT", "ownerHandle": "0x632", "sunHandle": "0x633" },
+    { "ownerType": "VIEWPORT", "ownerHandle": "0x646", "sunHandle": "0x647" }
+  ],
+  "independentContract": {
+    "odaSpecification": "v5.4.1 §20.4.60: VIEW group 361 is a hard-owner reference to SUN.",
+    "autodeskObjectARX": "AcDbSun documentation says a SUN is hard-owned by AcDbViewportTableRecord or AcDbViewport.",
+    "urls": [
+      "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbSun.html",
+      "https://help.autodesk.com/cloudhelp/2015/CHS/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm"
+    ]
+  },
+  "localReproduction": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg -y -d -v2013 /private/tmp/condo-sun-upgrade-diagnostic.dxf",
+    "result": "Strict preflight refuses the first VIEW-linked SUN because owner 0xe19 differs from SUN 0xe23 parent 0xe1d.",
+    "outputPublished": false
+  },
+  "converterRetry": {
+    "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter --help",
+    "exitCode": 134,
+    "stderr": "PasteBoard/XPC connection errors persisted in this tool session after the desktop unlock message; no fresh ODA conversion was produced."
+  },
+  "implementationAndValidation": {
+    "behavior": "Retain same-version AC1021+ SUN admission and reciprocal owner checks. Add the mismatched VIEW/SUN owner handle pair to the diagnostic. Do not enable the AC1024-to-AC1027 route from the contradictory producer output.",
+    "focusedCommand": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4 && ctest --test-dir build-gcc -R '^dwg2dxf_dwg_typed_sun_output$' --output-on-failure",
+    "focusedResult": "Passed, 1/1. The generated ASCII/Binary control confirms mismatch refusal preserves the existing destination, then exports and fresh-reads after the same adapter's source owner is restored."
+  },
+  "supportClaimEffect": "None. The retained ODA output is a contradictory owner observation, not independent evidence authorizing output or changing SUN semantics."
+}

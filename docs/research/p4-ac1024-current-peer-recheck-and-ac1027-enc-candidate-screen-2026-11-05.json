@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-current-peer-recheck-and-ac1027-enc-candidate-screen-2026-11-05",
+  "date": "2026-11-05",
+  "title": "Current AC1024 conversion recheck and AC1027 ENC candidate screen",
+  "status": "PREFIX_STRICT_OUTPUT_REFUSED_NO_QUALIFIED_ENC_REPLACEMENT",
+  "supportClaimEffect": "none",
+  "ac1024CurrentRecheck": {
+    "source": {
+      "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "version": "AC1024",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "fixturePolicy": "Existing local sample; no fixture was added or modified."
+    },
+    "libdxfrw": {
+      "binary": "build-gcc/dwg2dxf/dwg2dxf",
+      "sha256": "bd2e8309b717eeeb0a5428025bd38447e243e8a6ee6d18b30e88222141b3c417",
+      "strictCommand": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/mechanical_example-imperial.dwg -y -v2010 /private/tmp/libdxfrw-mechanical-peer.dxf",
+      "strictResult": "Exit 1 during output preparation: extension-object graph validation refused at VISUALSTYLE carrier coverage; no DXF was created.",
+      "partialCommand": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/libdxfrw-mechanical-partial.dxf",
+      "partialResult": "Exit 1 at the same output gate. Read itself succeeded: 366/366 observed frames published, zero entity/object parse failures, 228 opaque callbacks, zero opaque source frames retained for correlation, and zero opaque frames output-qualified. No DXF was created.",
+      "partialLogSha256": "c9fb9407899f9f2dbeb1b67741452b48c15c6f01557ec052565df9be65075b3c"
+    },
+    "independentPeer": {
+      "tool": "/opt/homebrew/bin/dwgread",
+      "version": "LibreDWG 0.14",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "command": "dwgread -v2 -O DXF -o /private/tmp/libredwg-mechanical-peer.dxf tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "exitCode": 0,
+      "outputSha256": "918a9fe724f7ffcede3cf2cad2dc9546247444ef617e3b86dd7bd36b051a2f00",
+      "diagnostics": "LibreDWG reported SUCCESS 0x0 and a TODO warning for TABLESTYLE R2010+ fields.",
+      "comparisonLimit": "No paired DXF semantic comparison was possible because the current libdxfrw conversion produced no output. Peer conversion is transport evidence only."
+    },
+    "priorReceiptDisposition": "p4-ac1024-mechanical-alt-strict-output-2026-11-05.json records converter SHA-256 9b757361e17985fac4c3f4d0755b1163c9f6c3bf2c5a23d130fe0872e4c92c0d. It is a historical result for a different executable build and is not a current-binary strict-output pass. The alternate pathname is byte-identical to this source."
+  },
+  "ac1027EncCandidateScreen": {
+    "target": "Find a producer-qualified AC1027 ENC drawing whose color, reactor, and extension-dictionary references resolve to real targets, to replace the tracked authored dangling-reference witness.",
+    "repositoryInventory": "All DWGs tracked by the local LibreCAD repository were enumerated. Its tracked AC1027 ordinary_enc and ANSI932 files are documented in testdata/PROVENANCE.md as locally generated test artifacts. Other tracked drawings are AC1032. No tracked producer-qualified AC1027 replacement was found.",
+    "rejectedCandidates": [
+      {
+        "path": "/Users/dli/dev/LibreCAD/librecad/src/lib/filters/tests/testdata/ordinary_enc_17.dwg",
+        "version": "AC1027",
+        "sha256": "a90aa586dc0efdc6600d1274e948da0ad1dd33621f0869f592d453b102818a89",
+        "repositoryState": "Untracked in the local LibreCAD repository; provenance not established.",
+        "result": "LibreDWG JSON exposes unresolved references among the 0x35-0x38 range; current libdxfrw reads 23 of 26 observed frames, reports one entity parse failure and two unresolved frames, and produces no DXF. Not admitted as a replacement."
+      },
+      {
+        "path": "/Users/dli/dev/LibreCAD/librecad/src/lib/filters/tests/testdata/datastorage_modeler_r2013.dwg",
+        "version": "AC1027",
+        "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+        "repositoryState": "Untracked in the local LibreCAD repository.",
+        "result": "LibreDWG reads 481 objects. Current libdxfrw publishes 478/481 frames with zero entity failures and three object parse failures, then refuses output because AC1027 DWG source references are not fully qualified. This is not an ENC target-closure witness and is not admitted."
+      }
+    ],
+    "fixturePolicy": "No candidate DWG/DXF was copied, modified, or added to Git."
+  },
+  "odaRetryAfterUnlock": {
+    "binary": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "version": "27.1.0.0",
+    "normalLaunch": "The -h launch aborted with exit 134 and pasteboard/XPC initialization errors.",
+    "boundedUnrestrictedLaunch": "A 20-second subprocess timeout expired with no stdout or stderr. No conversion or qualification completed."
+  },
+  "nextAction": "Keep strict output refused. Trace the current physical AC1024 opaque/VisualStyle admission against the source-bound partial-output receipts; independently seek a tracked producer-qualified AC1027 ENC source with real target records. Do not repeat ODA startup or use the untracked candidates unless relevant state or provenance changes.",
+  "limitations": [
+    "LibreDWG conversion success does not establish semantic equivalence or native CAD behavior.",
+    "The current libdxfrw strict result is a refusal, not a format defect or support claim.",
+    "The historical strict-output receipt does not bind the current converter executable."
+  ],
+  "noFixtureCommitted": true,
+  "supersededBy": "docs/research/p4-ac1024-visualstyle-c278-profile-restoration-2026-11-05.json",
+  "statusNote": "The strict-output refusal and missing paired-output comparison are a pre-fix snapshot, resolved by the linked C278 profile restoration. The AC1027 ENC candidate screen still stands: no eligible tracked replacement was found."
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-02",
+  "status": "GENERATED_DXF_UNDERLAY_OCS_TRANSFORM_PASS_NATIVE_SEMANTICS_OPEN",
+  "baselineHead": "31445d3839e25f57106442892512ebde2075acdc",
+  "scope": "DXF PDFUNDERLAY/DGNUNDERLAY/DWFUNDERLAY callback placement conversion when dxfRW::read explicitly requests applyExtrusion; no physical-source or support claim",
+  "authority": [
+    {
+      "title": "Autodesk UNDERLAY (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3EC8FBCC-A85A-4B0B-93CD-C6C785959077.htm",
+      "rules": [
+        "Underlay group codes are shared by PDFUNDERLAY, DGNUNDERLAY and DWFUNDERLAY entities.",
+        "Groups 10/20/30 store the insertion point in OCS/ECS; groups 210/220/230 store the normal in WCS.",
+        "Group 50 rotation is relative to the OCS/ECS X axis and around its Z axis.",
+        "Groups 11/21 are 2D clipping points in OCS/ECS and remain local to the underlay."
+      ]
+    },
+    {
+      "title": "Autodesk Object Coordinate Systems (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm",
+      "rule": "The OCS basis is computed from the extrusion normal using the arbitrary-axis algorithm."
+    }
+  ],
+  "implementation": {
+    "files": [
+      {
+        "path": "CMakeLists.txt",
+        "sha256": "68a248f05e6fe2bdcc0a572c6490ba4784c9cbc46d95a49212e556fb474897fa"
+      },
+      {
+        "path": "src/drw_entities.cpp",
+        "sha256": "f154a4acfd871c1dfd068c51f07662a2dcc778f4e4a3f6bbce21ed3ebdf1aff7"
+      },
+      {
+        "path": "src/drw_entities.h",
+        "sha256": "e46516d3fbe17dcf774c589e3e01629b7c1d44e0f3af0797a76be8e55b61ef91"
+      },
+      {
+        "path": "src/libdxfrw.cpp",
+        "sha256": "289f131406b3d8fb575a0f2ee1633c69a7fe5e2e0962499873a69f878c87c0b5"
+      },
+      {
+        "path": "tests/dxf_fixture_tests.cpp",
+        "sha256": "b55919e7e852cff7643d070e868dc8950dee51b30d2cbc4dcacc58308dcb2894"
+      }
+    ],
+    "behavior": [
+      "DRW_Underlay::parseCode marks an explicit group 210 normal so the opt-in conversion follows existing entity semantics.",
+      "DRW_Underlay::applyExtrusion converts only the insertion position through the existing arbitrary-axis basis.",
+      "processUnderlay invokes conversion only for dxfRW::read(..., applyExtrusion=true); default false retains OCS/ECS coordinates.",
+      "Rotation, WCS normal and local clipping coordinates remain unchanged."
+    ]
+  },
+  "generatedControl": {
+    "generator": "writeUnderlayOcsControl in tests/dxf_fixture_tests.cpp",
+    "generatorSha256": "b55919e7e852cff7643d070e868dc8950dee51b30d2cbc4dcacc58308dcb2894",
+    "sourceRevision": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "normal": [1.0, 0.0, 0.0],
+    "entities": [
+      {
+        "kind": "PDF",
+        "ocsPosition": [2.0, 3.0, 4.0],
+        "wcsPosition": [4.0, 2.0, 3.0]
+      },
+      {
+        "kind": "DGN",
+        "ocsPosition": [-2.0, 5.0, 6.0],
+        "wcsPosition": [6.0, -2.0, 5.0]
+      },
+      {
+        "kind": "DWF",
+        "ocsPosition": [9.0, -3.0, 7.0],
+        "wcsPosition": [7.0, 9.0, -3.0]
+      }
+    ],
+    "applyExtrusionFalse": "Each callback retains its OCS/ECS insertion coordinates.",
+    "preservationControl": "All three callbacks retain the (1,0,0) normal, 30-degree local rotation, and the two local clipping rectangle points.",
+    "fixtureDisposition": "Generated in a temporary directory by the test and deleted; no DWG/DXF fixture committed."
+  },
+  "validation": {
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.0 (arm64-apple-darwin27.0.0)",
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --underlay-ocs-extrusion",
+      "result": "PASS",
+      "executableSha256": "0c98288d9161bb95a3fcb3693b4af3812b771aacf7762e27e6c57082a78172c7"
+    },
+    "focusedCohort": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_underlay_ocs_extrusion$' --output-on-failure",
+      "result": "PASS, 1/1 in 0.51 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated parser/callback controls only; no physical producer or paired-source evidence was used.",
+    "The generated entity records do not resolve an underlay definition handle and therefore are not whole-document validity evidence.",
+    "No native LibreCAD, LibreCAD_3, FreeCAD or other consumer placement check was performed.",
+    "The control does not qualify external underlay loading, other scale/clip profiles, or 3D rendering.",
+    "This does not promote a format-support claim."
+  ]
+}

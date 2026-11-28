@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-main-477a704-headless-2026-11-27",
+  "supportClaimEffect": "none",
+  "sourceCommit": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "sourceReceipt": "docs/research/p8-freecad-main-477a704-patch-replay-2026-11-27.json",
+  "libdxfrwProbeCommit": "748dad6bbffbe4fefaf1e20eae86f82dae7c4af3",
+  "scope": "Native headless macOS ARM64 FreeCAD DXF importer tests on the twenty-patch local candidate; generated inputs only.",
+  "build": {
+    "os": "macOS 27.2.1 build 26B131 arm64",
+    "freecad": "27.1.0 dev, exact pinned Git source and replay-verified uncommitted candidate",
+    "compiler": "AppleClang 21.0.0; CMake 4.5.1; Ninja; Release; BUILD_GUI=OFF",
+    "dependencies": "Homebrew Qt 6.12.0, Open CASCADE 7.9.3, Python 3.12.16 and TBB 2023.2.0; scratch-built yaml-cpp 0.8.0 (f7320141120f720aecc4c32be25586e7da9eb978) and Xerces-C 3.2.5 (53c16411466bf90c62617831fe92ed0f41e70882). GSL 543d0dd3fe966ddf20e884b44e5fdbf12cb43784 and OndselSolver 4be80eef02a3486cda0d78f3ccbb308d207a9639 match the source submodule pins.",
+    "setup": "FreeCADMainCmd, Import and Part built. The first importer build found missing TBB include paths; links to the installed TBB headers were added only inside the scratch dependency prefix and the same build target then passed. The first probe lacked copied FreeCAD material resources and failed; building the source's material resource targets allowed a clean retry.",
+    "freecadcmdSha256": "a03b6f9fec9123e47895687462c81808f99b52bf84bdaefa3e82672be5f85e2d",
+    "importSha256": "7c6e2eb201c8748940b50d6a871abe65942503d628b10ce2a8d892b9a88d7b11",
+    "partSha256": "6554dd111ae3ee25fe9f7d7dc4a1a035211098c93f648aa1b56575b1f590d70b"
+  },
+  "validation": {
+    "runner": "tools/research/run_freecad_candidate_probe.py with --require-git-base, exact source archive, build root and FreeCADCmd",
+    "probeSha256": "9da7aacde6de02c12fc56164cf99d1a5fd7b7fad2b159b02d4522fd00f2e072d",
+    "result": "15 tests executed, zero failures, errors or skips; includes generated planar and tilted 3DFACE, SOLID OCS, ordinary polylines, polyface and polygon mesh geometry, unsupported cases, invalid-then-valid recovery, and selected layer controls.",
+    "receiptSha256": "4051d05a1e3004f8d4a27a6b56067688678dd9d99d81e1687c74936e2d32cb47",
+    "stdoutSha256": "2fcb680ad8b93a4f5c3161c0c39b3c354518ebec25b478e522f560f568a49229",
+    "stderrSha256": "c3d19d618b4de5d7a0c6eae02d91172fa93913a5d0decef1b913833ef4a8190b"
+  },
+  "limits": [
+    "This is a headless generated-DXF importer test, not a native GUI, DWG-to-DXF handoff, producer-semantic, Linux, Windows, or full FreeCAD-suite qualification.",
+    "Nonplanar faces, hidden edges, smoothing, mixed styles and other unsupported profiles remain refused or unqualified. The local twenty-patch candidate remains uncommitted and requires contributor review under FreeCAD policy.",
+    "No drawings, third-party source or binaries were added to the repository."
+  ]
+}

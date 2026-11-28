@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "plan_owner": "PAR-65/7S.3",
+  "related_owner": "PAR-07/S8 modeler/DataStorage replay closure",
+  "slice": "DWG emitted-object handle membership index",
+  "status": "implemented_locally_uncommitted",
+  "problem": "Frame publication and several closure checks repeatedly scanned the full object map for duplicate or exact-one handle membership, creating quadratic behavior as emitted object counts grow.",
+  "implementation": {
+    "files_changed": [
+      "src/intern/dwgwriter15.h",
+      "src/intern/dwgwriter15.cpp",
+      "src/intern/dwgwriter21.cpp",
+      "src/intern/dwgwriter24.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/7s3-dwg-emitted-object-handle-membership-index-fast-slice-2026-10-20.json"
+    ],
+    "details": [
+      "Added one emitted-handle set and a publication helper that couples handle-index insertion with object-map append across AC1015/1018/1021/1024+ frame writers and raw replay.",
+      "Use the index for per-frame duplicate refusal, raw replay duplicate admission, modeler frame closure, named/group dictionary object closure, and class-instance frame closure.",
+      "Compound and raw replay rollback erase handles for object-map tail entries they remove; failed map append removes its tentative index entry.",
+      "The index replaces the temporary sorted emitted-handle vector from the preceding modeler-replay optimization; final HANDLES sorting and independent duplicate validation remain intact.",
+      "Final object-map preflight reuses the synchronized index instead of rebuilding a second ordered set; the cross-version test frame helper publishes through the same ledger.",
+      "Extended the existing generated index selector to verify duplicate refusal and rollback removal/retry. No persistent DWG/DXF fixture was added."
+    ],
+    "complexity": "Per-frame duplicate checks and membership checks change from O(E) scans to average O(1) unordered-set lookup, avoiding O(E^2) cumulative duplicate checking. Handle-set insertion and rollback erasure are average O(1); standard unordered-container worst-case remains linear. The existing final object-map sort/validation remains O(E log E). No benchmark is claimed.",
+    "wire_behavior": "Object-map append order, offsets, serialized bytes, handle uniqueness semantics, exact-one closure rules, and support claims are unchanged."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+      "result": "PASS (GCC -Werror)"
+    },
+    "cross_version_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2",
+      "result": "PASS (GCC -Werror)"
+    },
+    "focused_ctests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_local_roundtrip|libdxfrw_dwg_block_record_xref_roundtrip|libdxfrw_dwg_block_owner_membership_index|libdxfrw_dwg_group_dictionary_controls|libdxfrw_dwg_reader_matrix)$' --output-on-failure",
+      "passed": 5,
+      "failed": 0,
+      "result": "PASS"
+    },
+    "generated_selectors": [
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --raw-modeler-acds-replay",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-block-census",
+        "result": "PASS (positive=8, negative=14)"
+      }
+    ],
+    "scoped_diff_check": {
+      "command": "git diff --check -- src/intern/dwgwriter15.cpp src/intern/dwgwriter15.h src/intern/dwgwriter21.cpp src/intern/dwgwriter24.cpp tests/dwg_local_roundtrip_tests.cpp tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/7s3-dwg-emitted-object-handle-membership-index-fast-slice-2026-10-20.json",
+      "result": "PASS"
+    },
+    "not_run": [
+      "full test suite",
+      "sanitizers or fuzzing",
+      "performance benchmark or RSS measurement",
+      "peer executable or independent producer",
+      "native CAD application"
+    ]
+  },
+  "assessment": {
+    "new_format_findings": 0,
+    "new_top_level_subplans": 0,
+    "production_code_changed": true,
+    "tests_added": false,
+    "existing_generated_selector_extended": true,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 141,
+      "top_level_subplans": 78
+    },
+    "deferred_external": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "next_local_work": "Continue the bounded 7S.3 hot-path audit; platform qualification and independent semantic evidence remain advisory and non-blocking for local implementation.",
+  "repository_state": "Broadly dirty shared worktree; .git metadata is read-only, so the slice remains uncommitted."
+}

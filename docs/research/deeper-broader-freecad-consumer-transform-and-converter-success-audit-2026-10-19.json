@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader FreeCAD consumer-transform and converter-success audit",
+  "mode": "primary-source research only",
+  "scope": [
+    "Reconcile FreeCAD DXF block-transform report #28905 with the existing consumer gate and local INSERT scale tests",
+    "Verify FreeCAD DWG converter false-success report #31835 against the current application wrapper source",
+    "Refine the existing FreeCAD direct-DXF and DWG-to-DXF qualification steps without creating new support claims"
+  ],
+  "method": {
+    "kind": "Read-only review of project-owned issue/source/documentation pages and local plan/source/test inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "researchLocalTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Issue #28905 is closed but still marked Needs confirmation; an earlier issue review recorded the reporter later saying the supplied DXF was corrupted. Its attachment was not retrieved or independently validated in this pass. FreeCAD main is mutable and was inspected as published on 2026-10-19 without pinning a source commit. These are consumer-route observations, not libdxfrw defects or native acceptance."
+  },
+  "sources": [
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/28905",
+      "revision": "issue status/body reviewed 2026-10-19",
+      "observed": "The issue page is Closed and retains a Needs confirmation label. The report names a Windows FreeCAD 1.2.0 development build (1bc5980a7) and says the C++ DXF importer mirrored some block instances. An earlier issue review recorded the reporter later identifying the supplied DXF as corrupted. This pass did not inspect its attachment; no valid-file or libdxfrw defect is inferred."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/issues/31835",
+      "revision": "open issue body reviewed 2026-10-19",
+      "observed": "The report says FreeCAD convertToDwg() can return an output pathname after a converter fails, preventing Automatic mode from reaching later converter branches. This concerns application-level DXF-to-DWG orchestration, not libdxfrw's DWG reader."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "revision": "mutable main source inspected 2026-10-19; commit not pinned",
+      "observed": "The current convertToDwg() implementation calls communicate() and returns dwgfilename in the LibreDWG, ODA, and QCAD branches without checking output existence. The DWG-to-DXF path checks whether the intermediate DXF exists before returning."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "revision": "mutable main documentation inspected 2026-10-19",
+      "observed": "The published scope distinguishes the built-in C++ importer from the optional legacy Python importer, documents block-geometry-only handling with omissions inside blocks, and says stock FreeCAD cannot read embedded ACIS/SAT solids."
+    },
+    {
+      "project": "libdxfrw",
+      "url": "https://github.com/LibreCAD/libdxfrw",
+      "revision": "local task worktree inspected 2026-10-19",
+      "observed": "Local generated DXF tests already check negative DRW_Insert scale-field preservation. That source-level field round-trip is not a FreeCAD geometry/transform consumer test. The implementation plan already requires an explicitly selected FreeCAD converter for inbound qualification."
+    }
+  ],
+  "plan_effect": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "existingOwner": "FreeCAD native consumer qualification; direct-DXF importer semantics and separately composed DWG-to-converter-to-DXF route",
+    "changes": [
+      "Add a scratch-generated asymmetric off-origin block with mirrored signed-scale INSERTs to the existing direct-DXF FreeCAD checkpoint.",
+      "Check transformed ordered points and orientation/handedness, not only extents or lengths.",
+      "Keep the inbound DWG route pinned to the exact dwg2dxf executable and verify process status, output existence/hash, intermediate DXF, backend, and consumer result separately.",
+      "Do not use FreeCAD's DXF-to-DWG returned pathname as conversion success or as libdxfrw DWG-writer evidence."
+    ],
+    "findingCount": 134,
+    "topLevelSubplanCount": 76,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  }
+}

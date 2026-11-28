@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_PRODUCER_BACKED_INPUT_FIX",
+  "base_commit": "26253e2b",
+  "scope": "DXF LIGHTLIST group-5 references inside AcDbLightList are captured as reference handles rather than self identities; true object self-handle uniqueness remains enforced. No LIGHTLIST graph output, DWG reference-role or native lighting admission is added.",
+  "authority": "Autodesk LIGHTLIST DXF table https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-C4E7FFF8-C3ED-43DD-854D-304F87FFCF06.htm describes group 5 LIGHT references and group 1 names.",
+  "source": "ezdxf 1.4.5 authored an AC1027 LIGHT/LIGHTLIST scene; ODA 27.1 converted the scene to DWG and returned DXF. The ODA DXF LIGHTLIST has self 0xF000, ACAD_LIGHT dictionary/owner 0x30, and in-subclass group-5 target 0x2F with name LOCAL_LIGHT. Source DXF SHA fa5d37197d271ab36ce268ecfddd942083a33c9b1a3b02411714c9fee0af3fb9.",
+  "baseline": "The unmodified parser registers the body group 5 as a self handle and refuses the valid selected reference; the fixture-free ASCII regression fails on the first valid record. The source LIGHT group 421 is separately unqualified before the preceding LIGHT color slice.",
+  "implementation": "In processLightList only, track AcDbLightList subclass; its group-5 references are validated as nonzero 32-bit handles and captured without self-handle registration. Refuse orphan names, repeated pending references, and a pending reference crossing a subclass marker or object boundary. For reference-bearing records require a nonzero matching raw/typed self identity, exactly two group-90 values, and the declared count to equal complete reference/name pairs. Common self-handle checks and legitimate empty lists remain unchanged. No public API or class layout change.",
+  "tests": "Fixture-free ASCII/Binary input verifies target shared with a LIGHT, raw self/target, typed name, owner and ACAD_LIGHT pointer. It rejects duplicate self identities, invalid or zero references, repeated or dangling references, subclass-crossing pair, orphan name, count mismatch, extra count and missing self; a valid empty list and same-reader corrected retry pass. Base parser fails the valid selected-reference case.",
+  "physical_diagnostic": "Remove exactly the LIGHT group 421 from ODA output solely to bypass the independent unqualified RGB parser. Source /private/tmp/light421-color/out/rgb.dxf SHA fa5d37197d271ab36ce268ecfddd942083a33c9b1a3b02411714c9fee0af3fb9; derived /private/tmp/light421-color/oda-rgb-no421.dxf SHA 3efbda60448078270e99f643ee45a8441dacbe49a9fed06e6eca98aee88649d1. Hash-bound audit proves the only changed tag and the unmodified LIGHTLIST tags. The candidate native probe captures the expected single typed/raw record but the full file read remains false at unrelated MATERIAL; this is selected callback evidence, not successful whole-source import/export.",
+  "commands": [
+    "cmake --build /private/tmp/light421-color/build --target libdxfrw_dxf_lightlist_reference_tests -j4",
+    "ctest --test-dir /private/tmp/light421-color/build -R '^libdxfrw_dxf_lightlist_reference$' --output-on-failure",
+    "Compile tools/probe_lightlist_dxf_reference.cpp against candidate libdxfrw with -std=c++17 -I<source> -I<source>/src.",
+    "PYTHONPATH=<source>/tools python3 -O <source>/tools/audit_lightlist_dxf_reference.py --source /private/tmp/light421-color/out/rgb.dxf --derived /private/tmp/light421-color/oda-rgb-no421.dxf --probe /private/tmp/light421-color/listprobe"
+  ],
+  "patch_sha256": "abd141f4a1f4ca860520c6d62642f2eb5c55061ab2db68df5faf44e00d8a476c",
+  "tools_sha256": {
+    "tests/dxf_lightlist_reference_tests.cpp": "b7c20e30ffa68cb5372f98fab61624eb7f1c4edf108fb3ffd36c84b10013fa19",
+    "tools/probe_lightlist_dxf_reference.cpp": "e0b4087318fb68a4df74f50ee7cf58ccbe04300652773581de5db5572c3b1085",
+    "tools/audit_lightlist_dxf_reference.py": "7ff907f5915afd1c3f4f66c0509121ce55c4b3f7e45f6d836ab526e95daa89ea"
+  },
+  "limits": [
+    "No full physical source import or graph output qualification; adapter keeps retained LIGHTLIST output refused.",
+    "No DWG LIGHTLIST role-0 semantics or target closure inferred.",
+    "No drawing fixture or shared-tree edit."
+  ],
+  "integrated_validation": "The integrated LIGHTLIST reference, existing reference remapping and callback capture, and LIGHT RGB controls passed 4/4."
+}

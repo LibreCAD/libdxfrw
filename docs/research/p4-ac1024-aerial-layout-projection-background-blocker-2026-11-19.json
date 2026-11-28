@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-19",
+  "profile": "AC1024 aerial Model/Layout1/Layout2 selected LAYOUT projection",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "version": "AC1024",
+    "provenance": "local corpus only; producer identity is not established"
+  },
+  "projection": {
+    "layouts": [
+      {"handle": "0x22", "name": "Model"},
+      {"handle": "0x59", "name": "Layout1"},
+      {"handle": "0x5e", "name": "Layout2"}
+    ],
+    "block_records": 3,
+    "named_object_root": {"name": "ACAD_LAYOUT", "handle": "0x1a"},
+    "layout_thumbnail_dictionary": "0x301",
+    "layout_thumbnail_xrecord": "0x302",
+    "layout_thumbnail_ordered_values": 1073,
+    "model_last_active_vport": "0x94",
+    "retained_vport_sun": {"handle": "0x187", "parent": "0x94"},
+    "omitted_unrelated_view": {"handle": "0x242", "sun": "0x24c", "sun_parent": "0x246"}
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "focused_selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-ac1024-aerial-source-binding tests/samples/AC1024/visualization_-_aerial.dwg",
+      "exit_code": 0,
+      "result": "passed"
+    },
+    "changed_xrecord_attempt": "ASCII and Binary output attempts were refused with the seeded destination preserved; source value was restored before the subsequent attempt",
+    "restored_projection_attempt": {
+      "encodings": ["ASCII", "Binary"],
+      "result": "atomically refused",
+      "diagnostic": "Background consumer-reference closure: Background consumer reference is unrooted or unavailable for the target revision",
+      "unresolved_edge": {
+        "owner": "VPORT 0x94",
+        "background": "0x355",
+        "named_object_root": "ACAD_BACKGROUND 0xae"
+      },
+      "destination_preserved": true
+    },
+    "whole_source_attempt": {
+      "encodings": ["ASCII", "Binary"],
+      "result": "atomically refused",
+      "diagnostic": "SUN parent mismatch: owner 0x242, SUN 0x24c, parent 0x246",
+      "destination_preserved": true
+    },
+    "readback": "not run because the selected projection correctly refuses before writing",
+    "fixtures_added": false
+  },
+  "decision": {
+    "layout_output_gate": "OPEN",
+    "background_support_claim": "none",
+    "next_unblock": "Find a source-backed exact three-layout profile whose required VPORT has a null background reference, or separately qualify the DWG-origin ACAD_BACKGROUND graph and its writer. Keep ACAD_BACKGROUND fail-closed until then.",
+    "limitation": "This receipt establishes local source binding and a concrete refusal dependency only; it does not establish interoperability, producer semantics, or support."
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_EXPLICIT_DXF_OCS_RECOVERY",
+  "supportClaimEffect": "none",
+  "scope": "Explicit recovery of all four SOLID/TRACE OCS corners after exactly one legacy applyExtrusion call. DXF output only. No default writer, reader, consumer ABI or class layout change; 3DFACE remains excluded.",
+  "authority": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 \u00a7\u00a720.4.35\u201336: common elevation, four 2RD corners and extrusion for SOLID/TRACE.",
+    "trace_dxf": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-EA6FBCA8-1AD6-4FB2-B149-770313E93511.htm",
+    "face_dxf": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+    "finding": "TRACE corners are OCS; 3DFACE corners are WCS. Independent observed SOLID behavior agrees with OCS for this one source."
+  },
+  "physical": {
+    "source": "Locally authored from scratch with ezdxf 1.4.5 R2010: one SOLID, one TRACE, normal (0,1,0), four corners at elevation 3 and thickness 0.5. ODA File Converter 27.1.0 saved it as AC1024 DWG, then reopened and saved DXF. Scratch paths only; no drawing fixture is added.",
+    "input_dxf_sha256": "de6ea935d4e45c285617fc47cd83c896b00c64c2b0ed497689b7e1b73196d488",
+    "dwg_sha256": "84a9c3bd1542ba240f1c2c18ff66e49fe6a8b861611b77a96e7811f04700eb9e",
+    "oda_dxf_sha256": "b7855e050503947d2d59e553bf1f3974663f081c2c935febe97b111ce6c22ffe",
+    "source_dwg_scratch": "/private/tmp/p6-trace-probe/dwg/source.dwg",
+    "oda_dxf_scratch": "/private/tmp/p6-trace-probe/oda/source.dxf",
+    "corrected_selected_dxf_scratch": "/private/tmp/p6-trace-probe/corrected.dxf",
+    "corrected_selected_dxf_sha256": "635ea76d11c0eefa6ed4630c934e1b07ade9e1aa26dcafc92deb854e45aa28d9",
+    "scratch_replay_source": "/private/tmp/p6-trace-probe/replay-fixed.cpp",
+    "scratch_replay_source_sha256": "dd12821d426c86942f39a5ee399ada41b25717a5cd44747e1e87e3598ea325f7"
+  },
+  "observation": "For SOLID, ODA and native applyExt=false have OCS corner (1,2,3) and ezdxf WCS corner (-1,3,2). Native applyExt=true followed by the unmodified ordinary writer has OCS (-1,3,2), interpreted as WCS (1,2,3); TRACE has the same misplacement. The explicit helper corrects the selected-record output. ezdxf independently confirmed all four OCS corners, all four WCS corners, thickness and extrusion of both corrected entities match the ODA DXF; selected-record output is not a whole-document conversion.",
+  "implementation": "Separate exact-runtime-type TRACE and SOLID free-function overloads validate finite input, nonzero finite normal and finite inverse-projected points, then publish an independently transformed copy only on success. Explicit caller knows the source was transformed exactly once; haveExtrusion=false is a no-op. Exact runtime type and entity tag reject derived objects including 3DFACE. Input may alias output, and errors do not change output.",
+  "validation": {
+    "focused": "ctest --test-dir build-gcc -R ^libdxfrw_dxf_legacy_extrusion$ --output-on-failure: 1/1 passed. ASCII and Binary DXF tests cover both entities with tilted, negative-Z and arbitrary-axis-threshold normals; all four corners and normal/thickness, no-op, nonunit normal, alias, invalid input, derived/3DFACE refusal, sentinel preservation and same-writer retry. Existing CIRCLE/ARC and selected AC1024 DWG controls also run in this selector.",
+    "independent": "ezdxf 1.4.5 compared selected corrected DXF to ODA DXF for both entities and all four OCS/WCS corners, extrusion and thickness; all matched. One source normal only; scratch source and binaries are ephemeral."
+  },
+  "limits": [
+    "The physical producer test exercises one AC1024 source and selected DXF output, not whole-document conversion, other producers, native rendering or every normal.",
+    "The helper does not infer whether input was actually transformed or edited afterwards.",
+    "DWG writing with the helper output is not independently qualified. No raw geometry file is committed."
+  ]
+}

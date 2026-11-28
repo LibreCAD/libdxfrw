@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-scoped-implementation-evidence-v1",
+  "date": "2026-10-15",
+  "plan_slice": "S2.3.9.4.29.B2",
+  "parent_commit": "620a349",
+  "scope": "generated AC1024 legacy-SAT block graph: raw and typed codec plus actual CLI preservation, not DWG/AcDs/native B-rep qualification",
+  "source_sha256": {
+    "tests/modeler_block_census_tests.cpp": "b0837d2fb58dfd66d3a33ad2875ef81c2ffe9a252dc5be23847c26667a8d384a",
+    "tests/dwg_local_roundtrip_tests.cpp": "43f964a587b3394a015f29bb9f5f47f4e294011c5a1c94a1516cc79ae8db4c69"
+  },
+  "artifact_sha256": {
+    "build/libdxfrw_dwg_local_roundtrip": "35aeb844347ec192be28279e8e324fbade5e64c9168273c1b2864568ca6c6404",
+    "build/dwg2dxf/dwg2dxf": "ce3952ff0428653bda93c90e33a020718a56bcc94e76efde3e042f6ff0f95d31"
+  },
+  "profile": {
+    "drawing_version": "AC1024",
+    "group_70_modeler_version": 1,
+    "inner_sat_version": 700,
+    "stored_entities": 13,
+    "custom_definitions": 6,
+    "insert_links": 7,
+    "stored_modeler_bodies": 4,
+    "source_to_emitted_bindings": 25,
+    "binding_roles": "13 entity IDs plus six BLOCK and six BLOCK_RECORD IDs; actual owner330, ENDBLK owner and INSERT target closure checked separately",
+    "encodings": ["ASCII", "binary"],
+    "library_order_variants_per_encoding": 4,
+    "passes_per_variant": 2,
+    "sat_normalization": "reconstruct ordered groups1/3, undo caret escaping; typed parser's single final LF outside chunk ranges is framing only; internal whitespace/encoded bytes unchanged",
+    "self_handle_scope": "DIMSTYLE105 is self identity; DIMSTYLE5 is a legacy arrow-block name",
+    "scanner_limits": "authored-profile 128KiB file, 10000 group pairs, 64 entity rows; not format maxima"
+  },
+  "validation": {
+    "codec_command": "build/libdxfrw_dwg_local_roundtrip --modeler-block-codec",
+    "verified_handoffs": 16,
+    "physical_oracle_rejections": 12,
+    "oracle_negative_scope": "equal-count physical owner, BLOCK/ENDBLK owner, payload swap, INSERT target and BLOCK_RECORD identity mutations; bindings unchanged on rejection; not converter failure evidence",
+    "b1_mode": "PASS positive8/negative14",
+    "build": "existing local-roundtrip/dwg2dxf/lc3 targets, exit0",
+    "strict_tu": "clang++ -std=c++17 -Wall -Wextra -Werror -I src -I . -fsyntax-only tests/modeler_block_census_tests.cpp, exit0",
+    "focused_ctest": {"name": "libdxfrw_dwg_local_roundtrip", "passed": 1, "failed": 0, "seconds": 2.24},
+    "same_author_stack_calibration": "existing ezdxf1.4.4 ordinary read of all six generated input/output files retains four stored bodies under exact owners, with six/one/six/one projected faces; not independent semantic evidence",
+    "full_suite_or_native_run": false
+  },
+  "actual_cli": {
+    "directory": "/private/tmp/libdxfrw-modeler-block-cli.3U1Crv",
+    "generator": "--generate-modeler-blocks[-binary] DXF",
+    "verifier": "--verify-modeler-blocks DXF: raw identity/owner/carrier and typed readback",
+    "commands": [
+      "build/dwg2dxf/dwg2dxf DIRECTORY/ascii-input.dxf -y -o DIRECTORY/ascii-output.dxf",
+      "build/dwg2dxf/dwg2dxf DIRECTORY/ascii-output.dxf -y -o DIRECTORY/ascii-second.dxf",
+      "build/dwg2dxf/dwg2dxf DIRECTORY/binary-input.dxf -y -b -o DIRECTORY/binary-output.dxf",
+      "build/dwg2dxf/dwg2dxf DIRECTORY/binary-output.dxf -y -b -o DIRECTORY/binary-second.dxf"
+    ],
+    "all_final_conversion_and_six_verifier_exit_codes": 0,
+    "overwrite_calibration": "initial new-destination runs passed without -y; re-execution correctly refused an existing scratch output, then passed with explicit -y",
+    "ascii_input_sha256": "f7a517eb720183c309edc762911d074d49047be5ef1c1ad1635d55913f3476fd",
+    "ascii_output_and_second_sha256": "9504c0abcbae613f052ed02048d25543710704fc078567fb3f65f59391437cc9",
+    "binary_input_sha256": "3908425c85a41ed8db22b778b0cd5cc03311632d310de3ce38365a807b5485b0",
+    "binary_output_and_second_sha256": "38946a138e0960c13ee1059682d3373bd7b3a9b157102d73a860426dc43c9bca"
+  },
+  "production_changes": false,
+  "external_drawing_or_new_ctest_registration": false,
+  "next_gate": "B3 genuine converter rejection/no-output and corrected reuse; no closure from checker mutations",
+  "not_qualified": ["nested DWG AcDs/SAB", "native CAD acceptance", "ACIS B-rep semantics", "full BLOCK metadata", "general target/version/profile support", "external J items"],
+  "support_claim_promotions": 0
+}

@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader ACadRust crosswalk and BLOCK_RECORD XDATA output gap",
+  "mode": "Primary-source web review plus local source inspection; plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh ACadRust issue and release claims for malformed-DWG handling, owner retention, MLeader context boundaries, custom classes, color-book names, and table-record XDATA",
+    "Check the exact current source/release identity boundary before attributing peer behavior to a released artifact",
+    "Screen a newly surfaced DXF project for open-source reuse eligibility",
+    "Trace BLOCK_RECORD XDATA through the local parser, concrete adapter, pending writer, and record emitter",
+    "Update the plan with only locally actionable work, retaining fast validation and external-evidence boundaries"
+  ],
+  "method": {
+    "kind": "Read primary project issue/release/source pages and inspect local code/tests/plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/drw_objects.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "limitations": "Peer reports and release notes were not independently reproduced. The local BLOCK_RECORD XDATA omission is confirmed by source-path inspection, but the generated end-to-end regression has not yet been run; 7CA.1 is explicitly the first implementation action. No peer claim is treated as normative format evidence or as a local support claim."
+  },
+  "sources": [
+    {
+      "project": "ACadRust issue #132 and release/source boundary",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/132",
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4",
+        "https://github.com/hakanaktt/acadrust/blob/main/Cargo.toml"
+      ],
+      "revision": "Public issue, v0.6.4 release, and mutable main manifest reviewed 2026-10-18",
+      "observed": "Issue #132 reports raw-only custom class, group-430 color-book, and table/block-record XDATA losses on its 0.6.3 route. The v0.6.4 release notes claim fixes for named colors, table-record XDATA, and unsupported custom records, but the issue remains open without a reporter retest in the reviewed page. The current main manifest says 0.6.5 while the GitHub release page identifies v0.6.4 as latest; source and release artifacts are not interchangeable evidence.",
+      "limits": "No ACadRust build or issue artifact was run. The release note does not independently prove BLOCK_RECORD XDATA round-trip behavior."
+    },
+    {
+      "project": "ACadRust issues #123, #124, #133, and #134",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/issues/123",
+        "https://github.com/hakanaktt/acadrust/issues/124",
+        "https://github.com/hakanaktt/acadrust/issues/133",
+        "https://github.com/hakanaktt/acadrust/issues/134"
+      ],
+      "revision": "Public issue histories reviewed 2026-10-18",
+      "observed": "The reviewed reports concern malformed-input allocation/count/header boundaries, owner re-homing/phantom dimensions, and an AC1032 MLeader context boundary. Candidate commits or requests for retest are not independent confirmation of those fixes.",
+      "limits": "These are version- and corpus-bound peer signals, not DWG format rules or demonstrated libdxfrw defects. No peer corpus or executable was used."
+    },
+    {
+      "project": "Sea-DXF-Core license/reuse boundary",
+      "urls": [
+        "https://github.com/seaflower205/Sea-DXF-Core",
+        "https://github.com/seaflower205/Sea-DXF-Core/blob/main/LICENSE"
+      ],
+      "revision": "Public README and license statement reviewed 2026-10-18",
+      "observed": "The repository describes bounded ASCII/Binary DXF behavior but states that public visibility/evaluation does not grant unrestricted production, modification, or redistribution rights.",
+      "limits": "Excluded from the open-source comparator set. No clone, build, execution, source reuse, fixture reuse, or derived corpus use."
+    },
+    {
+      "project": "Local libdxfrw BLOCK_RECORD XDATA route",
+      "urls": [],
+      "revision": "Working-tree source inspected 2026-10-18",
+      "observed": "DRW_Block_Record inherits typed XDATA through DRW_TableEntry::extData. The existing test checks import. The dx_iface write bridge passes name, insertion units, and preview data; the pending BLOCK_RECORD representation and emitBlockRecord path have no XDATA storage/emission. The source path therefore lacks preservation on adapter-mediated DXF output.",
+      "limits": "Source inspection confirms the missing path but is not yet an end-to-end runtime reproduction. Verify with the generated ASCII/Binary control in 7CA.1 before production edits."
+    }
+  ],
+  "assessment": {
+    "newSourceConfirmedLocalGaps": 1,
+    "newFindings": 1,
+    "newTopLevelSubplans": 1,
+    "finding": "PAR-131: BLOCK_RECORD XDATA is retained by the DXF reader but not carried through the concrete adapter and pending writer to DXF output.",
+    "subplan": "7CA: reproduce with a generated ASCII/Binary round-trip control, then carry owned typed XDATA through precollection and emission, preflight APPID dependencies, preserve code-1005 handle remapping, and verify destination transactionality with focused tests.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "routineValidationAdded": false,
+    "testsOrCtestRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "externalEvidenceStatusesChanged": 0,
+    "planTotals": {
+      "findings": 131,
+      "topLevelSubplans": 74
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonValidation": "passed (jq empty)",
+    "planDiffCheck": "passed (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md; no output)",
+    "receiptWhitespaceCheck": "passed (no trailing whitespace)",
+    "fullSuiteRun": false
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The repository already contains extensive user modifications. This pass is limited to the existing plan and its research receipt; no files are staged or committed."
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-navisworks-dxf-reference-remapping-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "LOW_LEVEL_REFERENCE_TRANSLATION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Correct final identity emission for the optional NAVISWORKSMODEL definition reference in the public low-level DXF serializer.",
+  "issue": {
+    "before": "writeNavisworksModel emitted the source definitionHandle as a literal group-340 value even when a source-handle remap or caller reference resolver was configured.",
+    "impact": "Low-level write callers could produce a reference to a source identity that does not exist in the output drawing.",
+    "groupRole": "340 is a hard-pointer object ID."
+  },
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "A nonzero definition handle is translated through the configured reference resolver when present; the resolver result is final.",
+      "Without a resolver, the definition handle uses the established source-handle remap fallback.",
+      "A resolver result of zero continues to omit this optional reference.",
+      "The concrete dwg2dxf adapter remains fail-closed for nonzero definition references until P4 graph closure qualifies them."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed in-memory NAVISWORKSMODEL record; no DWG/DXF fixture files.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "cases": [
+      "source-handle remap fallback",
+      "reference-resolver final identity overrides the configured remap"
+    ],
+    "validation": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "buildResult": "PASS",
+      "focusedTestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_navisworks_definition_reference_remapping$' --output-on-failure",
+      "focusedTestResult": "PASS: 1/1; both ASCII/Binary x resolver/remap cases, 0.41 seconds",
+      "diffCheck": "PASS: git diff --check"
+    }
+  },
+  "limitations": [
+    "Generated low-level DXF reference translation only; it does not prove definition-target existence, object kind, graph closure, external asset availability, physical producer coverage, or native consumer behavior.",
+    "The adapter graph gate remains fail-closed for nonzero NAVISWORKSMODEL definition references.",
+    "No support claim is promoted; P8 remains open."
+  ],
+  "next": "Continue source-bound definition/output binding work and qualify physical producers and native 3D consumers independently."
+}

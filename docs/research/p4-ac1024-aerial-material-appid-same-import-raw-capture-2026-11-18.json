@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-material-appid-same-import-raw-capture-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SAME_IMPORT_APPID_FRAMES_INDEPENDENTLY_DECODED_COUNT_WIDTH_FIXED",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "fixtureDisposition": "Existing local corpus sample; not staged or committed by this slice. Raw captures were written only under /private/tmp/p4-aerial-material-census.",
+    "producerAuthentication": "Local corpus provenance only; this does not authenticate an AutoCAD/ObjectARX producer."
+  },
+  "readBinding": {
+    "importGeneration": 1,
+    "classEvidenceAttempt": 1,
+    "version": "AC1024",
+    "classEvidenceState": "Joined",
+    "binding": "The two raw bodies, typed APPID row, APPID_CONTROL and immutable frame publications were retained during one fileImport. After dwg.read returned, the closed successful class receipt bound both captures to the same generation and attempt.",
+    "publicationIdentity": "APPID 0x12 / AppId / encoded and resolved type 67 / Typed carrier; APPID_CONTROL 0x9 / APPID_CONTROL / encoded and resolved type 66 / Control carrier. The same-import typed control publication exposes APPID 0x12 exactly once; APPID's typed row is unique and named ACAD. Both retained bodies were independently decoded field-by-field by the bounded research script; the sample remains producer-unauthenticated."
+  },
+  "frames": {
+    "APPID": {
+      "handle": "0x12",
+      "name": "ACAD",
+      "offsetSpace": "PhysicalFile",
+      "sourceOffset": 20681,
+      "sourceMapOrdinal": 15,
+      "bytes": 20,
+      "sha256": "a1271c8ea497ff7fc7af55d28521e86e8b509252398415d0cb6bb637cc0ac1dc"
+    },
+    "APPID_CONTROL": {
+      "handle": "0x9",
+      "offsetSpace": "PhysicalFile",
+      "sourceOffset": 114,
+      "sourceMapOrdinal": 7,
+      "bytes": 32,
+      "sha256": "5deb919fb575f6746d1f170e89c2d20f3c8bc351467491d759661c6b64921de6",
+      "typedPublishedControlHandles": ["0x12"]
+    }
+  },
+  "independentWireDecode": {
+    "tool": "tools/research/decode_ac1024_appid_frames.py",
+    "toolSha256": "0a7d1312dbcbb30b133575656dfa0c5d62156c0067ee0c58117c36dbf6ee14a9",
+    "outputSha256": "1d568cb5e8ff2262c438b9f2035b6c863714ff19f2ea9104e790733fbc93b6d6",
+    "scratchOutput": "/private/tmp/p4-aerial-material-census/appid-final-20261118-decode.json",
+    "normativeSource": "ODA Open Design Specification for .dwg files v5.4.1, §§20.4.65–20.4.66 (APPID_CONTROL and APPID): https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "corroboratingSource": "LibreDWG src/dwg.spec APPID_CONTROL/APPID definitions: https://github.com/LibreDWG/libredwg/blob/master/src/dwg.spec#L3967-L3997 (implementation corroboration only; ODA remains normative).",
+    "decodedProfile": {
+      "APPID": "Type 67, 132 object-data bits and 28 handle-stream bits. The unique ACAD name occupies source bits 41–115 with its detached-string presence bit at 131. APPID parent is soft-pointer code 4 to APPID_CONTROL 0x9; external-reference-block is null hard-pointer code 5. Four trailing handle-stream bits remain as captured.",
+      "APPID_CONTROL": "Type 66, 42 object-data bits and 214 handle-stream bits. ODA BL count is 9 at bits 31–41, absent-string bit is 0 at 41–42, null owner is soft-pointer code 4, and the nine members are soft-ownership code 2, including APPID 0x12 exactly once. Six trailing handle-stream bits remain as captured.",
+      "countWidth": "The sample count 9 uses an encoding shared by BS and BL and cannot itself distinguish width. ODA §20.4.65 and LibreDWG's schema specify BL. The source decoder uses the normative BL profile; no width inference is claimed from this low count."
+    },
+    "independenceLimit": "The small research decoder is independent of libdxfrw's parser and reads only the retained AC1024 bit/handle primitives. The source frames are from an existing local corpus sample, not an authenticated AutoCAD/ObjectARX witness."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg_ltype_multiversion_count_tests libdxfrw_dwg2dxf_adapter_tests -j 4",
+    "selectors": [
+      "LIBDXFRW_APPID_RESEARCH_CAPTURE=/private/tmp/p4-aerial-material-census/appid-final-20261118 build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-material-appid-source-capture tests/samples/AC1024/visualization_-_aerial.dwg",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-appid-context tests/samples/AC1024/visualization_-_aerial.dwg",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --appid-control-count",
+      "build-gcc/tests/libdxfrw_dwg_ltype_multiversion_count_tests",
+      "python3 tools/research/decode_ac1024_appid_frames.py /private/tmp/p4-aerial-material-census/appid-final-20261118-appid.raw /private/tmp/p4-aerial-material-census/appid-final-20261118-appid-control.raw"
+    ],
+    "result": "PASS. Same-import source capture and LayerStates context selectors pass. The independent decoder confirms the bounded APPID/APPID_CONTROL field spans and handle roles. ODA requires BL for APPID_CONTROL; the writer now emits BL, and the reader admits historical BS only when the complete count span and version-specific boundary agree. AC1024+ accepts the observed exact source boundary ending at the absent-string flag or the writer's aligned zero trailer before detached handles; AC1021 begins detached handles at the declared data boundary. Actual writer/readback tests cover counts 255/256/257 for AC1015/18/21/24/27/32. Generated parser controls cover BL and bounded BS across AC1015/18/21/24/27/32, including detached-handle paths, truncation refusal, and corrected retry. No external producer or output profile is qualified.",
+    "scratchCaptures": {
+      "appid": "/private/tmp/p4-aerial-material-census/appid-final-20261118-appid.raw",
+      "appidSha256": "a1271c8ea497ff7fc7af55d28521e86e8b509252398415d0cb6bb637cc0ac1dc",
+      "appidControl": "/private/tmp/p4-aerial-material-census/appid-final-20261118-appid-control.raw",
+      "appidControlSha256": "5deb919fb575f6746d1f170e89c2d20f3c8bc351467491d759661c6b64921de6",
+      "selectorLogSha256": "cb21b39b5e3f2751c3a63aeb0924c09844dae854a2d06b1ed26da7c15b4fda11",
+      "layerStatesSelectorLogSha256": "c89d37ab1ba9dc11dabce449aacf9cc6cc847433963db6cad65da9a69ad890ae"
+    }
+  },
+  "limitations": [
+    "The independent decode establishes only this local AC1024 source profile. The captured count value 9 has the same bit representation under BS and BL, so its width is sourced from ODA v5.4.1 and corroborated by LibreDWG schema, not discriminated from this sample's bytes.",
+    "This does not source-bind Global MATERIAL EED or admit a MATERIAL root/output profile.",
+    "No independent native AutoCAD/ObjectARX witness, consumer qualification or support claim is established."
+  ],
+  "next": "Bind Global MATERIAL EED and stage its APPID row/values through the retained same-import evidence, reusing the existing EED spans. Keep native producer provenance and the full MATERIAL graph/output gate open."
+}

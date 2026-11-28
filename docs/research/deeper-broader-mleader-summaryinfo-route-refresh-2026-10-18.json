@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader standalone MLEADER context, peer maturity, and loss-boundary refresh",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile the detailed ACadSharp #1277 standalone MLEADER context-object report with ODA embedded-context grammar and local support boundaries",
+    "Check independent open-source class maturity before treating a class-name registry as typed support evidence",
+    "Reconcile ACadSharp SummaryInfo, CP949, recursion, EED-size, and block-copy reports with existing local plan owners"
+  ],
+  "method": {
+    "kind": "Read-only primary-source review of public project/spec pages and local source/plan owners",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "odaLocalPdfAvailable": false,
+    "odaPublicPdfReviewedThroughWeb": true,
+    "externalDrawingsDownloaded": 0,
+    "externalIssueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "ACadSharp #1277 is reporter evidence from private AC1032 drawings, with no downloadable sample or independently repeated AutoCAD audit. Its described writer changes are a fault-model lead, not a normative byte contract. LibreDWG objects.in was reviewed on mutable master without pinning/building it. ODA's repository-local PDF path from AGENTS.md was unavailable; the public ODA-hosted v5.4.1 PDF was reviewed for §§20.4.48 and 20.4.86 through the web source. No claim is made about exact standalone MLeader context-object prefix fields from that embedded-entity section."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1277",
+        "https://github.com/DomCR/ACadSharp/issues/1234",
+        "https://github.com/DomCR/ACadSharp/issues/1259",
+        "https://github.com/DomCR/ACadSharp/issues/1280",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1283"
+      ],
+      "revision": "Public issue bodies/index reviewed 2026-10-18; #1277 names AC1032 and ACadSharp 3.7.16, #1234 names 3.6.51/3.7.1/master 91ae384a, and #1259 names 3.7.16/3.8.0",
+      "observed": "Issue #1277 reports that both omission of a context-data bit and correcting a standalone leader-root count were needed for two private drawings to pass AutoCAD LT 2026 AUDIT; the issue reports the root-count change on moving master but the extra bit still present as of 2026-10-09. Issue #1234 says SummaryInfo values at/above 16,383 characters were silently dropped by the peer's writer and own reader, with larger output rejected by ODA-based readers. #1259 and #1280 cover two distinct codepage routes; #1281 repeated-parser stack growth; #1282 peer-specific EED length narrowing; and #1283 nested-block clone complexity."
+    },
+    {
+      "project": "Open Design Alliance DWG specification",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Open Design Specification for .dwg files v5.4.1; public PDF reviewed 2026-10-18",
+      "observed": "Section 20.4.48 describes MLEADER as introduced in DWG version 21 and says the entity stream embeds MLeaderAnnotContext for content and leaders; §20.4.86 describes the context's counted leader-root sequence. This establishes embedded entity context structure but does not by itself define every standalone AcDbMLeaderObjectContextData object prefix in the peer report."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in"
+      ],
+      "revision": "Mutable master class registry reviewed 2026-10-18; no commit SHA pinned and no peer build/run",
+      "observed": "The registry lists MLEADEROBJECTCONTEXTDATA with DEBUGGING maturity and MLEADERSTYLE as STABLE. A registry entry is not equivalent to stable typed decode/write support or native interoperability."
+    },
+    {
+      "project": "Local libdxfrw",
+      "urls": [],
+      "revision": "Working tree at baseline commit de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+      "observed": "Existing plan/source boundaries distinguish DXF MULTILEADER serialization, DWG MLEADER entities with embedded annotation context, and standalone DWG object contexts. The local generic CP8/ENC/TU DWG string-length test is already implemented; typed SummaryInfo authoring is not exposed. The complete generated AC1018 CP949 header/payload round-trip is already recorded as implemented, so issue #1259 needs no duplicate test."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "nestedReadinessActionsAdded": 0,
+    "existingReadinessActionsRefined": 3,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Keeps standalone AC1032 MLeader context objects explicitly unsupported/deferred, adds an exact pre-implementation evidence gate and a bounded future graph/readiness sequence, clarifies that the completed generic DWG string-length test is not SummaryInfo semantic support, and avoids duplicating the implemented CP949 end-to-end test. Peer and native validation remain composed-checkpoint-only; no immediate queue or cadence change."
+  },
+  "implementationReadyChecks": [
+    "Do not implement standalone AcDbMLeaderObjectContextData from ACadSharp #1277's proposed bit/count changes alone; first capture its type empirically from a real source trace and reconcile common metadata/owner fields with ODA and a trustworthy producer sample.",
+    "If standalone context-object support is opened later, start with one locally generated rooted extension-dictionary/annotation-scale graph, exact handle/owner/reference closure, bounded object endpoint, and following-object sentinel; add zero/multiple-root and malformed-count cases only after the grammar is established.",
+    "Keep same-library re-open as internal integrity only; reserve independent reader inventories and native AutoCAD AUDIT/recovery/deletion counts for the existing composed writer checkpoint.",
+    "Treat generic DWG string-sink length tests as complete primitive evidence only; typed SummaryInfo support requires a separately modeled route and cross-reader acceptance rather than inheriting the peer's 16,383-character threshold.",
+    "For any future comparator run, pin release/commit, build configuration, and class maturity; LibreDWG's current MLEADEROBJECTCONTEXTDATA registry state is DEBUGGING."
+  ]
+}

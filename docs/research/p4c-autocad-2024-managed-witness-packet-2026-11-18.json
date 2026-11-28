@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4c-autocad-2024-managed-witness-packet-2026-11-18",
+  "date": "2026-11-18",
+  "status": "PREPARED_FOR_VERSION_MATCHED_HOST",
+  "supportClaimEffect": "none",
+  "scope": "Opt-in AutoCAD 2024 managed command for one scratch AC1027 sweep pair with two different documented ScaleFactor states.",
+  "sources": {
+    "tools/research/P4C_SWEEP_WITNESS_README.md": "3a0ea18e8d4ea897c9c88b1a7d2532de1b54a0db6e67fa0689759261a2dab3bb",
+    "tools/research/p4c_sweep_witness.cs": "be0748c695748e2f40e9eeb1fc81639712c211c94dab31b1466f1c091790a79e",
+    "tools/research/p4c_sweep_witness.csproj": "566191a645e95d47a942bb89c5e99aa5f5fe7ec2b5ba2b3d25387c289855e930"
+  },
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_SweptSurface_CreateSweptSurface_Entity_Entity_Autodesk_AutoCAD_DatabaseServices_SweepOptions.html",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_DxfOut_string_int_DwgVersion.html",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DwgVersion.html"
+  ],
+  "localChecks": [
+    "PASS. Roslyn 10.0.403 syntax compile with -noconfig -nostdlib -langversion:7.3 -target:library against local stubs, with .NET 10 reference assemblies. Stub.cs SHA-256 24f1b0a0d2af145e03813ae6ce13a4de28cdff55242db876e1db2578f36911e2. This does not test the Windows net48 SDK or native APIs.",
+    "PASS. dotnet /private/tmp/p4c-sweep-syntax/Test.dll tests actual helper code against local Autodesk stubs. Test.cs SHA-256 cde8a33e16ac7505395eac8059b88afb8fceb2f344c552f9d7d6f25c7353893a. AC1027 header, three malformed header controls, SHA-256 abc vector, NaN and infinity rejection, and finite 1.25 control passed.",
+    "PASS. Project XML parses; dotnet msbuild with RequireAutoCADDir and RequireAutoCADAssemblies exits 1 with the respective missing SDK message when the required directory or DLLs are absent.",
+    "PASS. Clean source-release inventory verification covers 1309 released files."
+  ],
+  "next": "Identify an authorized full AutoCAD host by release/OS/SDK and run the packet only if the 2024 profile matches. Build/load, create the pair, reopen DWG and DXF independently, and reconcile exact wire roles, source spans, and native semantics. Use a separately reviewed version-specific packet for a different release.",
+  "limits": [
+    "No Autodesk SDK build, Windows AutoCAD run, DWG or DXF creation, native reopen or producer evidence is claimed for this packet.",
+    "A 2024 producer saving AC1027 remains separate from the preferred AutoCAD 2013 producer profile.",
+    "No drawings, external assets or Autodesk binary assemblies were committed."
+  ]
+}

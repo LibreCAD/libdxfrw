@@ -1,0 +1,63 @@
+{
+  "date": "2026-11-03",
+  "scope": "Generated low-level BLOCK and ENDBLK common reference identity transport.",
+  "fields": [
+    {
+      "record": "BLOCK",
+      "group_code": 347,
+      "member": "material",
+      "role": "Material reference"
+    },
+    {
+      "record": "BLOCK",
+      "group_code": 348,
+      "member": "fullVisualStyleHandle",
+      "role": "Visual-style reference"
+    },
+    {
+      "record": "ENDBLK",
+      "group_code": 347,
+      "member": "material",
+      "role": "Material reference"
+    },
+    {
+      "record": "ENDBLK",
+      "group_code": 348,
+      "member": "fullVisualStyleHandle",
+      "role": "Visual-style reference"
+    },
+    {
+      "record": "ENDBLK",
+      "group_code": 390,
+      "member": "plotStyle",
+      "role": "Plot-style reference"
+    }
+  ],
+  "format_evidence": {
+    "source": "Autodesk DXF Group Codes in Numerical Order Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+    "supports": "The reference defines handle group-code ranges and the pointer category for the emitted object-reference groups. The specific fields here are the existing modeled BLOCK/ENDBLK members and serializer mappings; this receipt does not claim broader record-profile support."
+  },
+  "mapping_policy": "For each emitted nonzero reference, use the configured reference resolver when present; otherwise use remapObjectHandle. Refuse zero or NoHandle results before writing the BLOCK or ENDBLK common-field prefix. Omitted/default references retain existing omission behavior.",
+  "validation": {
+    "input": "Generated in-memory DRW_Block values; no DWG/DXF fixture was added.",
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "selector": "libdxfrw_wave1_tests --block-reference-remapping",
+    "controls": [
+      "Exact BLOCK group-347 and group-348 values under resolver precedence and source-handle-remap fallback",
+      "Exact ENDBLK group-347, group-348, and group-390 values under both identity paths",
+      "Unresolved nonzero ENDBLK and BLOCK targets refuse before writing bytes",
+      "Corrected output succeeds with a fresh low-level writer"
+    ],
+    "result": "PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4"
+  },
+  "qualification_limits": [
+    "Generated low-level transport only; the controls do not prove that referenced records exist or have the correct kind, role, or owner.",
+    "Does not establish recursive graph closure, physical producer breadth, native consumer behavior, or support-claim eligibility.",
+    "Fresh-writer retry is used after a failed low-level dxfRW write because its error state is sticky."
+  ]
+}

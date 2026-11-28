@@ -1,0 +1,19 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 section 20.4.58: R2004+ LTYPE missing-xdictionary flag and xref-block hard-pointer role.",
+  "scope":"When BYBLOCK, BYLAYER or CONTINUOUS is internally synthesized and no caller/source record for that name is supplied, encode a missing extension dictionary and explicit typed-null xref for AC1018+. Preserve explicit caller common metadata and null role independently per record; AC1015 behavior remains unchanged.",
+  "independent_evidence":"LibreDWG 0.14 decodes all three linetypes in the ODA-produced AC1018 LINE control with missing=1 and xref=(5,0,0). It independently decodes the current generated production AC1018/1021/1024/1027/1032 outputs with the same states; AC1015 remains an untyped null with no missing flag.",
+  "oda_factorial":{
+    "reader":"ODA File Converter 27.1.0 ACAD2013 DXF; inspect actual .err and absent DXF, not the exit status",
+    "prerequisite":"Every candidate includes the independently witnessed scratch plotstyle graph and HEADER reference; that graph is not yet an automatic production writer feature.",
+    "cases":[
+      {"missing_flag":0,"typed_null_xref":0,"sha256":"9f01cb6bbdb326d99bfd48a6a13e9d83b40aa7b4b5b5dccfc2438de947559034","error":"Object improperly read: <AcDbLinetypeTableRecord> (F); previous error .dwg file needs recovery"},
+      {"missing_flag":1,"typed_null_xref":0,"sha256":"d9fafe596ee8438ba65ce57dc846a940c32ec8d900c4ef80caaec5ff28c36626","error":"Object improperly read: <AcDbLinetypeTableRecord> (F); previous error .dwg file needs recovery"},
+      {"missing_flag":0,"typed_null_xref":1,"sha256":"7f81be3e812e2f3ab198e31c81f43a413a8864bf2507aa8f2c1190d0ff8f8ce7","error":"Object improperly read: <AcDbLinetypeTableRecord> (F); previous error .dwg file needs recovery"},
+      {"missing_flag":1,"typed_null_xref":1,"sha256":"5a9a890921110a45edf42fe6a76e284579ed9221ba8529187e121b5f5ca21427","error":"Object improperly read: <AcDbViewportTableRecord> (16); previous error .dwg file needs recovery"}
+    ],
+    "limits":"No variant produced DXF. The combined correction advances the ODA error boundary under the scratch plotstyle-graph prerequisite; it is not a claim of complete file compatibility or diagnosis of the viewport error."
+  },
+  "tests":"PASS: libdxfrw_dwg_header_writer_sealing checks six writer versions, all three synthesized records, a caller-supplied BYBLOCK with untyped or typed null while the other two remain synthesized, an invalid BYBLOCK alignment failure without published output followed by same-writer retry, and a following LINE. Adjacent GROUP, HEADER reference and BLOCK_CONTROL selectors pass.",
+  "fixtures":"All DWGs are locally generated scratch files; none is committed."
+}

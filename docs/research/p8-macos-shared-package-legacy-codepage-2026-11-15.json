@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-15",
+  "sourceCommit": "e62ed8bc4594863a08f545a5b9e3735c3941b868",
+  "environment": "macOS 27.2.1 ARM64, Apple clang 21.0.0, Release, C++17; shared library configured with tests and CLI off and development files on. The library compiled with -Wall -Wextra -pedantic -Werror.",
+  "library": {"sha256": "98806a206fe43f9c02d37691508e7216857cec8910d60c6df200bc0368d86004", "installName": "@rpath/libdxfrw.2.dylib"},
+  "validation": [
+    "A separately compiled consumer uses only the installed public header and links and executes the legacy codepage decoder through the installed shared library; otool identifies the @rpath dylib dependency.",
+    "The staged package check and relocation smoke pass for a prefix containing spaces, including shared pkg-config use and the CMake CONFIG and MODULE consumer contracts."
+  ],
+  "limits": "This is a local macOS shared-package and narrow runtime smoke, not a shared-library ABI comparison, cross-build reproducibility proof, full application qualification, Windows/Linux shared build, or DWG/DXF semantic evidence. P8-E and format-support gates remain open."
+}

@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8f-a8e3261-upstream-native-replay-2026-11-18",
+  "date": "2026-11-18",
+  "status": "TESTED_DIGEST_FAST_AND_FOCUSED_NATIVE_PASSED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "bb02327526b7634c2bfc5d66e924d4ee760477da39a653c1e2021a79b808ad26",
+  "implementationInputCount": 739,
+  "verifierSha256": "cc64ecedf9633cc74cab7ad3659b546f855769610828e3d9a81230de28db1455",
+  "upstream": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44421336872",
+    "runAttempt": 1,
+    "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44421336807",
+    "fastJobId": 135214813121,
+    "fastResult": "SUCCESS. Fixture policy, source-release inventory, build and source compatibility, fast vectors and required CLI regressions passed. Source-release job skipped.",
+    "headSha": "a8e3261e5157e5237f4d6a58de216a870ea5d46f",
+    "baseSha": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "checkedOutMergeSha": "eaa5391f4d1243fcb2bdca494ecf0d1fd07937f4",
+    "mergeRef": "refs/pull/106/merge",
+    "platforms": {
+      "linux-gcc": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135214962274,
+        "artifactId": 14483015523,
+        "downloadedArchiveSha256": "2d5b6677f52637fcaa908952704fd356228488b8b2515661355be009e8fd014c",
+        "receiptContentSha256": "b9b62b5243e4232ca515d6e81f7972bdf1cd12860202159e17356a82a47bc961"
+      },
+      "windows-msvc": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135214962256,
+        "artifactId": 14482408671,
+        "downloadedArchiveSha256": "1103c0e9f3007ba454509dfa949610e25330baa694734c3c10e355f5f711df92",
+        "receiptContentSha256": "c1251aedbd32d1e59d7b21ea76e567da8bdfddac90f2de3d6bae760c4d42ed2a"
+      },
+      "macos-clang": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135214962159,
+        "artifactId": 14482885131,
+        "downloadedArchiveSha256": "8c013c543717a9f0313c5436bb8f96af8672938b3c5a48ba06027617e85d84c6",
+        "receiptContentSha256": "2d3c7f6d16e65acd2e950428a663e7339f6c28ed0bff8e53e925faa4f4b279f5"
+      }
+    }
+  },
+  "liveVerification": {
+    "command": "python3 tools/verify_native_qualification_receipts.py --status <scratch root>/status.json --root <scratch root> --pre-native --live-token-env TASK_GH_TOKEN",
+    "result": "native qualification receipts: PASS (3 focused; 0 broad; 3 attempts)",
+    "scratchRoot": "/private/tmp/libdxfrw-p8f-a8e3-live-evidence",
+    "statusSha256": "8624242381e1bb76ba3dad314c4ea33b85ca9656ad8af998180d23ac66193994",
+    "apiResponseSha256": {
+      "run.json": "a2501c2736fc126460c3989d846a4548a22cf0d931fef37e887e921188ff115e",
+      "jobs.json": "3ef9a20309b214d6f106bbca37e3aa27637a09f5f6bf4a54123f3ed7e9060ed0",
+      "artifacts.json": "019b473ec61d483500dc4fbd8bca6a5b4b3a515f859547e381a1bc9df22e7d22"
+    },
+    "evidence": "The saved API and ZIP evidence matched live GitHub. The verifier bound each platform, artifact, selected-input digest and workflow to the live PR head and merge ref with the ordered base and head parents."
+  },
+  "limits": [
+    "This replay attests to the tested merge and selected-input digest; it does not automatically qualify a later changed digest.",
+    "Broad and extended fuzz jobs were skipped for this iteration. Native consumer GUI and producer-semantic gates remain open."
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "scope": "Default DWG VPORT table snap and view-twist angles only. Public/DXF groups 50/51 remain degrees; VPORT DWG bit-double fields use radians. Separate VIEW and VIEWPORT entity code is unchanged; pre-R13 paths are not qualified.",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.64 identifies VPORT snap and view-twist BDs as DXF groups 50 and 51, but does not explicitly state the units for these two fields. ODA-authored physical sources, LibreDWG decode and ODA DXF returns establish radians for the selected DWG and degrees for its DXF. Existing libdxfrw and LibreCAD DXF parsers/writers preserve degrees.",
+  "physical": "ezdxf 1.4.5 authored an AC1027 DXF active VPORT with snap 30 and twist 45 degrees; a second uses direction (1,2,3), target (4,5,6). ODA File Converter 27.1.0 created AC1021 DWGs and returned AC1027 DXFs preserving both angles and 3D fields. Separate ODA AC1015 planar and AC1024 tilted DWGs use the same angular BDs. LibreDWG 0.14 reads pi/6 and pi/4 radians in all four physical DWGs. The original native AC1021 callback exposed those raw radians; corrected callbacks report 29.999999999999996 and 45 degrees for all four sources with successful native complete reads. `author-source.py OUTPUT [--tilt]` reproduces the source geometry; metadata may differ. Manually recorded ODA lineage is not authenticated by hashes alone.",
+  "generated": "Scratch author.cpp uses existing material/plotstyle opt-ins and writes a named ANGLECHECK VPORT using API angles 30 and 45 degrees. LibreDWG reads baseline generated BDs as 30/45 radians and corrected generated BDs as pi/6 and pi/4. ODA rejects the baseline generated named VPORT (handle 0x36) after earlier warnings and produces no DXF; the corrected output was not independently qualified by ODA. Final rebuilt scratch author reproduced the LibreDWG-audited corrected DWG byte-for-byte.",
+  "admission": "Writer admission checks selected new or active-replacement VPORT angles after case-insensitive name lookup but before changing caller handle/owner. Invalid selected records latch a failure even if the adapter ignores false; discarded non-active duplicate records preserve prior behavior. Direct codec rejects nonfinite or nonzero-to-zero/subnormal conversions before touching output buffers. Both base and derived VPORT callers use the same sliced base writer codec.",
+  "validation": "test.cpp compiled with -Wall -Wextra -Werror passes structural AC1018 BD positions and following coordinates, native write/read AC1015/1018/1021/1024/1027/1032 for default and tilted 3D view directions, direct buffer-preserving nonfinite and zero/subnormal guards with corrected retry, and raw frame 1e308-radian corruption at each field with parser reset and retry. Ignored-return output failure preserves sentinel and caller handle/owner for base/derived, new/active and snap/twist combinations; same-writer retry succeeds. A differently-cased invalid non-active duplicate is discarded and the original record is retained. Existing valid derived caller succeeds. The previous library fails the structural wire check. The negative overflow frame is an in-memory body edit, not a CRC-resealed physical DWG.",
+  "consumer_compatibility": "LibreCAD RS_FilterDXFRW retains the DRW_Vport record in advanced metadata and uses grid/view properties; its bundled DXF codec preserves groups 50/51 in degrees. LibreCAD_3 addVport currently logs without consuming fields. The DWG callback unit changes from raw radians to the existing DXF-degree convention; consumers that compensated for raw radians must remove that compensation. No full native application test is claimed.",
+  "limits": "Only VPORT table records are changed. VIEW table, VIEWPORT entity and pre-R13 reader paths require separate physical evidence. The ODA VPORT output failure prevents a generated-output interoperability claim. Nonzero angles whose radians round to zero or become subnormal are conservatively refused. No whole-file CAD behavior or rendering claim.",
+  "tools": {
+    "vport-angle.patch": "e5437bae93c9af82bf3200b86b8956a8f66f557acc963a99306cd4a286d182dd",
+    "test.cpp": "29fd0d7dd9c066bc3f0ec28c69a5f99aa000dbb8b5cd770d7e47a12a458d86c1",
+    "audit.py": "1788b7024a1128c7478dd4b2b3fdb8f4b1c42e6495532cfc9a5b33b49c6d6b78",
+    "author-source.py": "9cc186d9ad0ecae9e671aeb6ff8ef8b60b977b8aa44dbd51883e87304ad0bcea",
+    "author.cpp": "7f78b1693a1559d977ebbce3a60c8334464164b3f72da22b14253c3e99a6f1a8",
+    "probe.cpp": "64bb82e23fb711e1072ba346e0e3b998985009cbb19f46cb01409460817358da"
+  },
+  "artifacts": {
+    "in/source.dxf": "663720a6964feb9908f19edecb8e9a3e98af0827c8305d971facfe7163d7b898",
+    "dwg/source.dwg": "b1969aa7552cba051c8873dc62b2b4dcfdc1c14574f5053023d6a340768bf6c8",
+    "out/source.dxf": "53df43db2586af9edf6883643a2b2488fb8dc728f63852fa1092037c5280950b",
+    "dwg2000/source.dwg": "81336890571d9ed412ec35924e13a671af748d481f390230410511bc1b39735a",
+    "dwg2010/source.dwg": "202d4f2e813a4b8b6e04fc18c7a875d8240f64dc3eedd263bff40c5d10a5ea15",
+    "tilt/in/source.dxf": "16dacd047a034297428813d01bae2d253805805028f44ad6bb0562372a957b49",
+    "tilt/dwg/source.dwg": "58880b69d79b275b21bb27c29a23c65e79856c1fc89e8b17b53a45292534f7b7",
+    "tilt/out/source.dxf": "7921162a64e155a74bac0e51a4ab627fe8f8553cad4bd0bcf7fc400bd28a9e46",
+    "gen-in/old.dwg": "0ae4538af55eb29ac3d8c4e8e288f5e5b0c6a6e4cb66ae121c2dfb204b448d62",
+    "gen-in/new.dwg": "b4d932f7c5e881f27fd05c2db7e0daa5107efe9d91748770e6a5dba0a963b65b",
+    "gen-out/old.dxf.err": "94edcffefc8c32539515682691582cbef36d182fb4c717be38c64bf1d77664a8"
+  },
+  "external_tools": {
+    "dwgread": "/opt/homebrew/bin/dwgread; GNU LibreDWG 0.14; SHA-256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "oda": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter; 27.1.0; SHA-256 21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "python": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python; SHA-256 6cc907e4a022fefc843bcd93954eaf5a2cbfc77a095640bfadeeed96154190c5; ezdxf 1.4.5"
+  },
+  "commands": {
+    "build": "cmake -S /private/tmp/vport-angle/work -B /private/tmp/vport-angle/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release && cmake --build /private/tmp/vport-angle/build --target dxfrw -j6",
+    "test": "c++ -std=c++17 -Wall -Wextra -Werror -I/private/tmp/vport-angle/work/src -I/private/tmp/vport-angle/work/tests /private/tmp/vport-angle/test.cpp /private/tmp/vport-angle/build/libdxfrw.a -o /private/tmp/vport-angle/test && /private/tmp/vport-angle/test",
+    "source_oda": "ODAFileConverter IN OUT ACAD2007 DWG 0 1 '*.dxf'; ODAFileConverter DWG_DIR DXF_DIR ACAD2013 DXF 0 1 '*.dwg'; use ACAD2000 and ACAD2010 for other source versions.",
+    "audit_source": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_vport_angles.py --dwg /private/tmp/vport-angle/dwg/source.dwg --dwg-sha256 b1969aa7552cba051c8873dc62b2b4dcfdc1c14574f5053023d6a340768bf6c8 --snap 30 --twist 45 --dxf /private/tmp/vport-angle/out/source.dxf --dxf-sha256 53df43db2586af9edf6883643a2b2488fb8dc728f63852fa1092037c5280950b",
+    "audit_tilt": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_vport_angles.py --dwg /private/tmp/vport-angle/tilt/dwg/source.dwg --dwg-sha256 58880b69d79b275b21bb27c29a23c65e79856c1fc89e8b17b53a45292534f7b7 --snap 30 --twist 45 --dxf /private/tmp/vport-angle/tilt/out/source.dxf --dxf-sha256 7921162a64e155a74bac0e51a4ab627fe8f8553cad4bd0bcf7fc400bd28a9e46 --tilt",
+    "audit_ac1015": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_vport_angles.py --dwg /private/tmp/vport-angle/dwg2000/source.dwg --dwg-sha256 81336890571d9ed412ec35924e13a671af748d481f390230410511bc1b39735a --snap 30 --twist 45",
+    "audit_ac1024": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_vport_angles.py --dwg /private/tmp/vport-angle/dwg2010/source.dwg --dwg-sha256 202d4f2e813a4b8b6e04fc18c7a875d8240f64dc3eedd263bff40c5d10a5ea15 --snap 30 --twist 45 --tilt",
+    "audit_corrected": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_vport_angles.py --dwg /private/tmp/vport-angle/gen-in/new.dwg --dwg-sha256 b4d932f7c5e881f27fd05c2db7e0daa5107efe9d91748770e6a5dba0a963b65b --snap 30 --twist 45 --name ANGLECHECK",
+    "audit_baseline": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_dwg_vport_angles.py --dwg /private/tmp/vport-angle/gen-in/old.dwg --dwg-sha256 0ae4538af55eb29ac3d8c4e8e288f5e5b0c6a6e4cb66ae121c2dfb204b448d62 --snap 1718.87338539247 --twist 2578.310078088705 --name ANGLECHECK"
+  },
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_vport_angle_units$' --output-on-failure: 1/1 passed.",
+  "integrated_files": {
+    "src/drw_objects.cpp": "13f103006d387656efc98ddd1c1d08c12daaeb084a7a90f0f52ee466b27700d3",
+    "src/drw_objects.h": "600ce856ed8af9ee75449fa360963df107deb9dd90a9c2642268d2f805ceb4e6",
+    "src/intern/dwgwriter15.cpp": "f468ea87fa3918d4b83c823b59c423bf5309c75be8c8eb752de43ac273e569c4",
+    "tests/dwg_vport_angle_units_tests.cpp": "29fd0d7dd9c066bc3f0ec28c69a5f99aa000dbb8b5cd770d7e47a12a458d86c1",
+    "tools/audit_dwg_vport_angles.py": "1788b7024a1128c7478dd4b2b3fdb8f4b1c42e6495532cfc9a5b33b49c6d6b78",
+    "tools/author_dwg_vport_source.py": "9cc186d9ad0ecae9e671aeb6ff8ef8b60b977b8aa44dbd51883e87304ad0bcea",
+    "tools/author_dwg_vport.cpp": "7f78b1693a1559d977ebbce3a60c8334464164b3f72da22b14253c3e99a6f1a8",
+    "tools/probe_dwg_vport.cpp": "64bb82e23fb711e1072ba346e0e3b998985009cbb19f46cb01409460817358da"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "date":"2026-11-04",
+  "method":"Current production dwgWriter18 explicitly stages the opt-in plotstyle graph, writes locally authored entities and deferred objects, and finalizes. ODA File Converter 27.1.0 exports to ACAD2013 DXF with recursion=0 and audit=0. A direct DXF group-code walk inspects ENTITIES. Both variants produced actual DXF and no .err; process exit status alone was not used.",
+  "controls":[
+    {"case":"default normal", "dwg_sha256":"d967dc502ad67720d2577977124f340bcbc3964dd755942aa150f5be3f4c62f2", "dxf_sha256":"e0134f752cd9112ebd08f80308494ab4457a96d31e64b4ecf268326eaf5620a4", "fields":"one LINE layer 0 (1,2,3) to (4,5,6); one CIRCLE center (7,8,0), radius 2.5; one ARC center (10,11,0), radius 4, angles 14.32394487827058 and 71.6197243913529 degrees"},
+    {"case":"tilted normal", "dwg_sha256":"40dcde2f95455dd44b01d21c88264cd39efa1de58b9fa5eab57e33c18c019b47", "dxf_sha256":"30382a44520a3292c1683fe203caad9fc709c0f34a549d3a30b8600500022fcd", "fields":"one LINE as above; one CIRCLE center tags (7,8,2), radius 2.5, extrusion (0,1,0); one ARC center tags (10,11,3), radius 4, same angles and extrusion (0,1,0)"}
+  ],
+  "qualification":"These are narrow AC1018 generated-file field controls under explicit opt-in, not evidence of general DWG/DXF parity, default-path acceptance, or cross-consumer coordinate-frame semantics. The tilted case reports output tags without interpreting OCS/WCS transformations. No generated DWG or DXF fixture is committed."
+}

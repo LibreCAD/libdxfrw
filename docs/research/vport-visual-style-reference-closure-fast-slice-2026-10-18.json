@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "VPORT code-348 rooted VisualStyle reference closure fast slice",
+  "mode": "local generated-test implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Add ASCII/Binary coverage for the VPORT code-348 VisualStyle pointer",
+    "Verify rooted target closure and source-to-output handle remapping",
+    "Verify dangling target rejection preserves destination and permits corrected retry",
+    "Keep the VPORT VisualStyle code-348 edge distinct from shade-plot code 333"
+  ],
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "src/drw_objects.h",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "behavior": "Extended the generated VisualStyle retention graph with a VPORT table row whose code 348 points to a NOD-rooted VisualStyle. Readback asserts the edge follows the emitted VisualStyle handle for ordinary and forced-collision source identities. A dangling code-348 target is rejected before replacing an existing destination; the same adapter succeeds after correcting the target. Updated the DRW_Vport visualStyleHandle comment to reflect its DXF code-348 route. Production parser, graph validation, and serializer logic were already present and were not changed.",
+    "generatedCases": [
+      "ASCII and Binary direct read retain the VPORT VisualStyle code-348 target",
+      "ASCII and Binary adapter export/readback retain the rooted target",
+      "source VisualStyle handle 0x1C collision remaps VPORT code 348 to emitted object identity",
+      "dangling target 0x777 rejects export atomically and corrected same-adapter retry succeeds"
+    ],
+    "persistentFixtureFilesAdded": 0,
+    "newCtestRegistrations": 0,
+    "newDependencies": 0,
+    "dwgParserOrWriterChanged": false,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build/libdxfrw_dxf_fixture_tests --vport-visual-style-reference",
+      "result": "passed"
+    },
+    "regressionSelectors": [
+      {
+        "command": "build/libdxfrw_dxf_fixture_tests --header-visual-style-references",
+        "result": "passed"
+      },
+      {
+        "command": "build/libdxfrw_dxf_fixture_tests --viewport-shadeplot-style-closure",
+        "result": "passed"
+      },
+      {
+        "command": "build/libdxfrw_dxf_fixture_tests --vport-shadeplot-retention",
+        "result": "passed; expected negative-case parser diagnostics were printed"
+      },
+      {
+        "command": "build/libdxfrw_dxf_fixture_tests --layout-graph-read-contract",
+        "result": "passed"
+      }
+    ],
+    "owningCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "failed; reports table-owner/table-capacity assertion failures, then segmentation fault after 3.27 seconds",
+      "attribution": "not isolated to this slice; no cause attributed"
+    },
+    "fullSuiteRun": false,
+    "scopedDiffCheck": "passed"
+  },
+  "planEffect": {
+    "refines": ["PAR-40", "7G.2"],
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "remainingBoundaries": [
+      "VPORT shade-plot code-333 VisualStyle/RenderSettings rooted target closure remains fail-closed pending VPORT-specific version/producer evidence",
+      "Background, SUN, LiveSection, and other remaining view-family edges remain separate",
+      "DWG-specific layout and native plotting/3D semantics remain unqualified"
+    ]
+  },
+  "worktreeState": "uncommitted; shared worktree contains extensive unrelated/pre-existing changes"
+}

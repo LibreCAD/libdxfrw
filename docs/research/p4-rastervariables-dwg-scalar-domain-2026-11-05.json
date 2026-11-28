@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "RASTERVARIABLES DWG writer scalar domains",
+  "date": "2026-11-05",
+  "status": "DWG_DOMAIN_PREFLIGHT_AND_CORRECTED_RETRY_VERIFIED",
+  "scope": "The DWG writer now rejects undocumented display-frame, image-quality and insertion-unit values while the parser continues to preserve source values. The existing class-version range is unchanged because ODA's DWG body specifies a bit-long field but does not define the DXF class-version constant's domain.",
+  "normativeSource": {
+    "title": "Autodesk RASTERVARIABLES (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-DDCC21A4-822A-469B-9954-1E1EC4F6DF82.htm",
+    "domains": {
+      "displayFrame": [0, 1],
+      "imageQuality": [0, 1],
+      "insertionUnits": [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgwriter15.cpp",
+      "src/drw_objects.cpp"
+    ],
+    "behavior": "dwgWriter15::writeRasterVariables refuses classVersion outside 0..10, frame outside 0/1, quality outside 0/1, and units outside 0..8 before common-state preparation, EED processing, handle reservation, or class registration. DRW_RasterVariables::encodeDwg repeats these guards at the body boundary. The parser is unchanged and remains tolerant."
+  },
+  "regressionControl": {
+    "file": "tests/dwg_local_roundtrip_tests.cpp",
+    "coverage": "The generated local DWG roundtrip first submits frame=2, requires refusal, corrects the same RASTERVARIABLES object to frame=1, writes it, and verifies typed readback. It also checks classVersion=11, quality=2 and units=9 refusals. A dedicated selector tests all four invalid dimensions directly through dwgWriter15 with a null backing stream."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "buildResult": "passed",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_rastervariables_dwg_scalar_domain$' --output-on-failure",
+    "focusedTestResult": "passed",
+    "owningTest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+    "owningTestResult": "nonzero: 16 ACDS/modeler and DWG read-outcome assertions fail; no RASTERVARIABLES assertion is reported, including the same-writer retry and readback checks",
+    "baselineComparison": "The same 16 unrelated ACDS/modeler and read-outcome failures were reproduced against HEAD in the prior validation pass.",
+    "diffCheck": "git diff --check passed"
+  },
+  "sourceBinding": {
+    "baseRevision": "bd38830e",
+    "files": {
+      "src/drw_objects.cpp": "3a2442e6c2f567ba366c6e09743aba77f3eb451197ee94f2fa6490e37c7b2c41",
+      "src/intern/dwgwriter15.cpp": "29fb4a13670a025f0024e34e6d79bdc26d9d95e09a6cc72decff52e4c3581df9",
+      "tests/dwg_local_roundtrip_tests.cpp": "2f1a1b30fa0ccb52d341872221ff61ffbffd32ffe640836d183a55af569216a3",
+      "CMakeLists.txt": "ce2affbd339df92f4b9a585f5c4e478dd27cc44a1323b9719b8b84a564ddfa70"
+    }
+  },
+  "fixturePolicy": {
+    "newDwgOrDxfFixtureCommitted": false,
+    "generatedInputs": "The local DWG writer harness generates its input; no fixture was added."
+  },
+  "nonClaims": [
+    "No physical producer with every allowed value was tested.",
+    "No native image display or unit-scaling behavior was qualified.",
+    "This does not widen the DWG-origin adapter's source graph profiles."
+  ]
+}

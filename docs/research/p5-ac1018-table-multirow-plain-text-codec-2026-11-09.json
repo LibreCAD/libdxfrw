@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1018-table-multirow-plain-text-codec-2026-11-09",
+  "date": "2026-11-09",
+  "title": "AC1018 TABLE multi-row plain-text codec",
+  "status": "GENERATED_CODEC_PROFILE_PASS",
+  "supportClaimEffect": "none",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.96.1", "2.2-2.4", "20.1"],
+    "relevantRule": "The pre-R24 TABLE body stores the number of rows, repeats row heights for the declared count, and repeats cell data for all n by m cells."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp"
+    ],
+    "summary": "The private AC1018 direct TABLE codec now supports one column and multiple plain-text rows, bounded by the existing TABLE row limit. Preflight requires rowcount to match the model, each row to contain exactly one default-profile text cell, and each row height and cell to pass the existing refusal checks. Encoding emits all row heights, then cells in row order, and one cell value-handle slot plus any text-style override handle for each row. The TABLE parser now copies decoded column/row counts into the inherited count fields. Public dwgRW::writeTable remains refused."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+      "result": "PASS with configured -Werror flags"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+      "result": "PASS 1/1",
+      "coverage": [
+        "Generated two-row, one-column AC1018 TABLE body",
+        "Fresh typed readback of row count, row heights, cell text order and exact body boundary",
+        "Second-row hard-pointer text-style override handle follows the per-cell handle slot",
+        "Following-body sentinel alignment",
+        "Destination-preserving refusal when a row lacks exactly one supported cell",
+        "Existing single-cell override, truncation, handle-role and atomic-retry controls"
+      ]
+    },
+    "asan": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg_object_vectors_tests -j4 && ctest --test-dir build-asan-custom -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "fixturesAdded": 0
+  },
+  "limitations": [
+    "Generated encoder/parser self-consistency only; no physical AC1018 producer witness or independent-reader result is established.",
+    "Only one-column text-cell tables are admitted; multi-column, block, FIELD, attribute, merge, linked-data and unsupported override profiles remain refused.",
+    "The codec remains private experimental coverage and is not connected to public dwgRW::writeTable.",
+    "The anonymous *T block graph, compound transaction, physical source-to-output proof, native rendering and broad support claims remain open."
+  ],
+  "nextAction": "Continue the remaining direct-codec model audit and use an eligible physical AC1018 source to establish body compatibility before implementing the *T compound graph or enabling public TABLE output."
+}

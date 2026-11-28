@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dynamic-block-flip-parameter-allocation-rollback-2026-11-12",
+  "date": "2026-11-12",
+  "status": "FLIP_PARAMETER_DIRECT_ALLOCATION_SWEEP_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add direct AC1024 ASCII/Binary allocation-failure coverage for the profiled BLOCKFLIPPARAMETER writer, covering caller-state and source-identity rollback, nested two-point property arrays, flip-specific fields, and retry/readback.",
+  "binding": {
+    "repositoryHead": "40338ad5",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "27ac70a55b86da086ad484392b099de2b2777c7c9acb80b61f84b0061185cae3",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "tests/dynamic_block_objects_allocation_tests.cpp": "2a34e8f114fdc385776fb4444695cf2393b8e53af295b40fd275b5580c1e2aca",
+      "tests/CMakeLists.txt": "7a6d869bd778a362a1552bb5c8c48c6a0b8d5b7e0fac8bc7aa24a9fd5b171469",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "be967db5fc5286851b2cab04abb70ccf9788b3ccad4821dd6d04c7e430ac1b2f"
+    },
+    "artifactSha256": {
+      "build/tests/libdxfrw_dynamic_block_objects_allocation_tests": "7d54a9ec222d6c1039b9cd4d2c6ffa5e2fa49ed2455ebf39cc63fecf91fb553a",
+      "build-asan-custom/tests/libdxfrw_dynamic_block_objects_allocation_tests": "d3a23c1e7546b5cb6aeb3d18f1de529816e7b72481095e658a28518cecac830d"
+    }
+  },
+  "change": {
+    "testCoverage": "The generated flip parameter has the full common two-point prefix, four property states, mixed empty/nonempty code/name property vectors, a flip caption and descriptions, caption point, state names, tooltip, and Boolean/legacy scalar fields.",
+    "perEncoding": "ASCII and Binary each exercise 14 allocation offsets. Every injected failure preserves the caller record and removes partial source identity. Fresh-writer retry reads back exact owner, prefix points, property counts/states/code/name sequence, flip strings, caption location, and value fields.",
+    "existingAdapterControl": "The existing dwg2dxf_dynamic_block_two_point_parameter_writer profile passes alongside this direct callback sweep."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS"
+    },
+    "normalFocusedTests": {
+      "command": "ctest --test-dir build -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_two_point_parameter_writer' --output-on-failure",
+      "result": "PASS 2/2; 0.80 seconds total"
+    },
+    "asanFocusedTests": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_two_point_parameter_writer' --output-on-failure",
+      "result": "PASS 2/2; 1.71 seconds total"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Fault injection covers the low-level record writer, not the enclosing whole-file output transaction.",
+    "A fresh writer is used after failure because the failed writer may retain partial stream bytes and a sticky error.",
+    "This is generated transaction proof only; producer breadth, recursive graph closure, and native parameter semantics remain unqualified.",
+    "No DWG/DXF fixture is added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue the P6 caller-state audit with another source-backed writer gap; do not infer producer or semantic support from this generated control."
+}

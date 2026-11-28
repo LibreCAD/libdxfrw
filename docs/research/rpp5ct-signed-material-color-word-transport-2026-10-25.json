@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5ct signed MATERIAL color-word transport",
+  "date": "2026-10-25",
+  "parentCommit": "bad481d230499c78f37c4a91d35f224993754e57",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "SIGNED_MATERIAL_COLOR_IMPORT_AND_REPLAY_CLOSED_STRICT_DOCUMENT_HISTORY_NATIVE_SEMANTIC_PLATFORM_PARITY_OPEN",
+  "scope": {
+    "object": "DXF MATERIAL",
+    "groups": [
+      90,
+      91,
+      92
+    ],
+    "representation": "32-bit color words; signed-int32 and unsigned-uint32 decimal spellings are treated as the same bit-pattern domain",
+    "minimum": -2147483648,
+    "maximum": 4294967295,
+    "versionsTested": [
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "asciiRawSpellingPreserved": true,
+    "ordinaryNumericBoundsChanged": false,
+    "nativeDwgByteLayoutChanged": false,
+    "publicApiAbiCallbacksChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "research": {
+    "qualificationEligible": false,
+    "primarySources": [
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+        "observation": "MATERIAL ambient/diffuse/specular values are uint32 AcCmEntityColor words"
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+        "observation": "Groups 90..99 carry 32-bit integers"
+      },
+      {
+        "url": "https://github.com/mozman/ezdxf/blob/v1.4.4/src/ezdxf/entities/material.py",
+        "observation": "The independent MATERIAL implementation uses negative decimal default -1023410177 for diffuse_color_value"
+      }
+    ],
+    "interpretation": "Bounded compatibility for witnessed signed spellings, not an assertion that Autodesk's MATERIAL table normatively specifies negative decimal syntax",
+    "externalCodeCopied": false
+  },
+  "baseline": {
+    "status": "REPRODUCED",
+    "log": "/tmp/rpp5ct-baseline-tests.log",
+    "exitCode": 1,
+    "failedAssertions": 104,
+    "initialPositiveProjections": 60,
+    "initialReexports": 60,
+    "observed": "Signed source imports and corrected retries reject; plus-prefixed ASCII raw replay also refuses",
+    "intermediate": {
+      "log": "/tmp/rpp5ct-normal-initial.log",
+      "positiveProjections": 102,
+      "totalRequired": 108,
+      "status": "FAILED_NOT_ACCEPTED",
+      "gap": "Independent staged-section observer rejects a valid decimal plus after reader/raw writer acceptance"
+    }
+  },
+  "implementation": {
+    "reader": "Only existing MATERIAL unsigned-color mode groups 90/91/92 admit INT32_MIN..UINT32_MAX. Convert to uint32 modulo 2^32, derive signed accessor without implementation-defined narrowing; ordinary fields retain signed limits",
+    "rawLexeme": "Scoped material-color validator retains full safe source spelling and matches decimal range/sign grammar; generic numeric validation unchanged",
+    "independentObserver": "Base-10 integer observer strips one plus only when followed by a digit, retaining full-token/range checks. Base-16 handle grammar unchanged",
+    "guardsRelaxed": false,
+    "strictOwnerCompletenessOrQualificationBypassed": false
+  },
+  "controls": {
+    "newCTest": "libdxfrw_material_color_lexemes",
+    "selector": "--material-color-lexemes",
+    "authoring": "Locally authored rooted MATERIAL records using the existing scratch source builder; no drawings added",
+    "positiveSpellings": [
+      "-2147483648",
+      "-1",
+      "-1027297396",
+      "0",
+      "2147483647",
+      "2147483648",
+      "4294967295",
+      " \t+04294967295 \t",
+      "-0"
+    ],
+    "sourceCells": 54,
+    "outputProjections": 108,
+    "actualImportedOppositeEncodingReexports": 108,
+    "proof": "All three typed color values; unique raw color slot and uint32 bits; exact first ASCII raw spelling; original source bytes, first-pass bytes and source DTO preserved",
+    "invalidSpellings": [
+      "-2147483649",
+      "4294967296",
+      "9223372036854775808",
+      "-9223372036854775809",
+      "1trailing",
+      "1.0",
+      "1e0",
+      "0x1",
+      "",
+      "+-1",
+      "++1",
+      "embedded NUL with suffix"
+    ],
+    "sourceImportRefusals": 72,
+    "sameImporterCorrectedImports": 72,
+    "outputRefusals": {
+      "malformedAsciiRawLexemes": 72,
+      "outOfRangeRawValuesBothEncodings": 24,
+      "total": 96,
+      "sentinelPreserved": true
+    },
+    "sameExporterRestoredActualReadbacks": 96,
+    "readerModeControls": "Ordinary int32 range remains signed-only; restored previous mode; unrelated group93 remains signed-only even with MATERIAL mode enabled",
+    "observerControls": "Nine valid decimal spellings, malformed signs and overflow refusals, signed or plus-prefixed hexadecimal handle refusals",
+    "temporaryDirectories": "Fresh per-run owned directory; only that directory is recursively cleaned"
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang; build-gcc is not native Linux/GCC qualification",
+    "normalBuildLogs": [
+      "/tmp/rpp5ct-normal-corrected-build.log",
+      "/tmp/rpp5ct-normal-related-build.log"
+    ],
+    "asanBuildLogs": [
+      "/tmp/rpp5ct-asan-final-build.log",
+      "/tmp/rpp5ct-asan-related-build.log"
+    ],
+    "focusedNormalSingle": {
+      "status": "PASS",
+      "seconds": 2.88,
+      "log": "/tmp/rpp5ct-normal-corrected-tests.log"
+    },
+    "affectedTests": [
+      "libdxfrw_material_color_lexemes",
+      "libdxfrw_material_root_output_compatibility",
+      "libdxfrw_numeric_locale",
+      "dwg2dxf_numeric_locale_ascii_cli",
+      "dwg2dxf_numeric_locale_binary_cli",
+      "dwg2dxf_generated_root_common_closure",
+      "dwg2dxf_raster_finite_real_controls",
+      "dwg2dxf_raster_token_width_controls",
+      "dwg2dxf_raster_observer_profiles",
+      "dwg2dxf_raster_observer_profile_faults",
+      "dwg2dxf_raster_profile_token_controls",
+      "dwg2dxf_standard_output_framing_controls",
+      "libdxfrw_acds_raw_scalar_wire_controls",
+      "dwg2dxf_acds_history_reexport_faults",
+      "libdxfrw_raster_dwg_independent_wire",
+      "dwg2dxf_modern_cli_versions"
+    ],
+    "normal": {
+      "status": "PASS",
+      "passed": 16,
+      "elapsedSeconds": 7.21,
+      "log": "/tmp/rpp5ct-normal-cohort.log"
+    },
+    "asan": {
+      "status": "PASS",
+      "passed": 16,
+      "elapsedSeconds": 13.98,
+      "ASAN_OPTIONS": "halt_on_error=1:detect_leaks=0",
+      "log": "/tmp/rpp5ct-asan-cohort.log"
+    },
+    "owningCrossBuildCohortsSequential": true,
+    "librecad3CompileGate": {
+      "normal": "PASS",
+      "asan": "PASS",
+      "normalLog": "/tmp/rpp5ct-normal-related-build.log",
+      "asanLog": "/tmp/rpp5ct-asan-final-build.log"
+    },
+    "optionalCliBuild": {
+      "status": "PASS",
+      "elapsedSeconds": 2.69,
+      "log": "/tmp/rpp5ct-optional-build-tests.log"
+    },
+    "fullProjectSuite": "NOT_RUN",
+    "leakCheck": "NOT_RUN"
+  },
+  "externalReproduction": {
+    "qualificationEligible": false,
+    "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/0.14/test/test-data/example_2018.dxf",
+    "source": "/private/tmp/libdxfrw-rpp5cs-history-sources.O5TTcC/example-AC1032.dxf",
+    "sha256BeforeAndAfter": "e64b0cfb6e1587f9d2bb4387d59064efa5bc667cda9ecbc00313459b304bb997",
+    "log": "/tmp/rpp5ct-external-source-debug.log",
+    "boundedCommandTimeoutSeconds": 45,
+    "exitCode": 1,
+    "materialRecordsParsed": 4,
+    "sourceReachedEof": true,
+    "previousMaterialGroup90ReadErrorCleared": true,
+    "remainingDiagnostic": "DXF export preflight failed: unmodeled OBJECTS record has no qualified owner/remap/output route",
+    "outputPublished": false,
+    "sourceFileCommitted": false,
+    "fullDrawingConversionSucceeded": false
+  },
+  "nextActions": [
+    "Trace exact source/emitted dictionary roles behind canonical selected-history strict CLI refusal; prove positives and rollback without disabling requireResolvedOwners",
+    "Inventory actual external example unmodeled OBJECTS and establish embedded SWEEP/EXTRUSION dependency/reference proof before admission",
+    "Continue complete native carrier/schema/owner, common metadata, source generations, IMAGE geometry, named roots and consumer/platform qualification",
+    "Self-update evidence and immutable receipt, safely self-unblock dependencies, commit/report each verified slice; fast affected tests first"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernelQualification": "NOT_RUN",
+    "cqAcisVerifierQualificationRelaxed": false,
+    "fullOriginalGoalComplete": false
+  },
+  "repositorySafety": {
+    "earlierReceiptsModified": false,
+    "drawingFixturesCommitted": false,
+    "preExistingUntrackedDrawingsExcluded": 17,
+    "unrelatedFilesExcluded": true,
+    "remoteMutation": false
+  }
+}

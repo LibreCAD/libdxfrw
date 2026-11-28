@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-linux-windows-b4a5-2026-11-26",
+  "date": "2026-11-26",
+  "status": "LINUX_WINDOWS_FREECAD_GENERATED_PROFILES_PASS",
+  "supportClaimEffect": "none",
+  "candidate": {
+    "runHead": "b4a5d377d1c41c0204217fce5c5ed791636ed029",
+    "implementationDigestSha256": "a935ef97828c05bebd4a3028036022304a853c986520be7d70829ac8543e6c1f",
+    "inputCount": 781
+  },
+  "hosted": {
+    "repository": "dxli/libdxfrw",
+    "runId": 45935611986,
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/45935611986",
+    "conclusion": "success",
+    "legacyImporterCommit": "e060ef0d8fe7143c2e0ce34734b686ba073f3cc1",
+    "freecadVersion": "1.1.4, revision 4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "jobs": {
+      "linux": {
+        "jobId": 140298012608,
+        "artifactId": 15170477936,
+        "artifactSha256": "d13f83c7bba4e2dcf5395251718dc5020cb372ffd7e402b84f4cea3c30e58aee",
+        "lastTestLogSha256": "c5e41b07112b7bcb3cf1e84f96715b9285d30a7ce1eccff2e5bbb22a96a5cc5f",
+        "installedConverterSha256": "a0be98788b8fd6c040ef81080e9f15f78ce8d5e48661456b64d72a1456a2de28",
+        "testsPassed": 16,
+        "platform": "Linux x86_64, glibc 2.39"
+      },
+      "windows": {
+        "jobId": 140298012847,
+        "artifactId": 15171286380,
+        "artifactSha256": "c3cebeb209d377db89d6bc227dabcbb1c0c33190a6aa014fa0eb088e8b436f7c",
+        "lastTestLogSha256": "cc9858cb672ef3e54027a983cdd6e09fe86327eb9497426098c3343506fcca87",
+        "installedConverterSha256": "e8d7a2f1e5d46fe997858926b0300cb286d6d8aa76605a55736f7904d7f4dd8a",
+        "testsPassed": 17,
+        "platform": "Windows Server 2022 x64, build 20348"
+      }
+    }
+  },
+  "validation": "Both logs contain eight C++ and six legacy importer assertion rows binding their installed converter hash. Selected CTests cover installed and CLI handoff, generated AC1021 line open/insert, AC1021/AC1024/AC1032 generated primitive and legacy POLYFACE open/insert, plus Windows batch naming.",
+  "limits": [
+    "These runs predate the AC1027 default-MATERIAL implementation change, whose digest is ba76b71d87dcf9d42f81c820396f6f13afd99e0fe245cb8d93b94a0f41c3f317. Requalify affected profiles on the final candidate.",
+    "The C++ importer reports selected 3DFACE and SOLID unsupported and the selected POLYFACE as wireframe including a parent basepoint. The separate legacy importer checks the faceted profile.",
+    "These generated, headless controls do not qualify independent producers, native GUI, other platforms, or general DWG/DXF support."
+  ]
+}

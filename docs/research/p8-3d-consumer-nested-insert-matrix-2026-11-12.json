@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-nested-insert-matrix-2026-11-12",
+  "purpose": "Exercise nested INSERT/MINSERT callback fields and independently composed nested WCS transforms in the headless generated-DXF 3D consumer probe.",
+  "changes": [
+    "Added runtime-authored child and parent blocks with nonzero block base points and a LINE in child-block coordinates.",
+    "Added a rotated, nonuniformly scaled 2x2 MINSERT in the parent block and an outer INSERT with mirrored/nonuniform scale and oblique OCS normal.",
+    "Checked distinct callback layers and selected INSERT/MINSERT insertion, extrusion, scale, rotation, array dimension/spacing, and child LINE fields in AC1027 ASCII and Binary DXF with ext=false and legacy ext=true.",
+    "Added a separate 4x4 matrix oracle for arbitrary-axis OCS, insertion, rotation, scale, and block-base translation; composed parent and child transforms and checked the nested WCS endpoints.",
+    "Checked that the OCS insertion-point and legacy WCS insertion-point representations yield equivalent composed endpoints."
+  ],
+  "expectedNestedWcs": {
+    "start": [-29.8937792440482, 10.5, -14.5145621709052],
+    "end": [-38.6698381138937, 9.0, -18.1130149497834],
+    "tolerance": 1e-11
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.40 seconds"
+  },
+  "scopeLimit": "Generated same-library DXF callback and independent transform-model consistency evidence only. It does not qualify third-party DXF interoperability, DWG transform layouts, downstream MINSERT array expansion, or native consumer semantics.",
+  "fixturePolicy": "DXF files are generated at runtime and removed; no drawing fixture file was added.",
+  "claimEffect": "No support claim changes. The probe covers the selected nested INSERT/MINSERT callback fields and transform composition for this generated vector only."
+}

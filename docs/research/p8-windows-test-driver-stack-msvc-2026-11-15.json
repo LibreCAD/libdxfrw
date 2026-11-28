@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-15",
+  "hostedSourceCommit": "4ba9f936e54373f659ab7183ba28b10104f58b25",
+  "freecadRun": "https://github.com/dxli/libdxfrw/actions/runs/43721688906/job/132834857652",
+  "nativeRun": "https://github.com/dxli/libdxfrw/actions/runs/43721688887/job/132834896445",
+  "observations": [
+    "Windows built and passed the batch output-name test. All ten FreeCAD CLI/open/insert checks failed when the local roundtrip test generator overflowed its stack before producing a DWG; no Windows FreeCAD geometry qualification was established.",
+    "The focused MSVC build failed with C3493 for ten local constants used by noncapturing lambdas in the reader-matrix tests."
+  ],
+  "changes": [
+    "Give the large generated-control executable a 16 MiB stack reserve only when built by MSVC. This affects the test executable only, not installed library or CLI stack settings.",
+    "Give the referenced reader-matrix constants static storage, preserving their values and test assertions."
+  ],
+  "validation": [
+    "An MSVC-branch configure probe places /STACK:16777216 on the generated link command for the local roundtrip executable.",
+    "The local reader-matrix executable builds and its HEADER envelope, date/time and viewport frame focused selectors pass.",
+    "The local generated FreeCAD CLI and installed CLI compatibility tests pass."
+  ],
+  "limits": [
+    "An actual Windows/MSVC rerun is required to verify both fixes and exercise native FreeCAD. The configure probe is not a Windows compiler or runtime result.",
+    "The changed selected sources require a fresh implementation digest before emitting a native qualification receipt. No support claim is promoted."
+  ]
+}

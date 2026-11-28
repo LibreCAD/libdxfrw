@@ -1,0 +1,35 @@
+{
+  "title": "SORTENTSTABLE DXF direct-writer revision-matrix allocation rollback and retry",
+  "date": "2026-11-13",
+  "scope": "Generated direct-record transaction controls for dxfRW::writeSortEntsTable across seven DXF revisions and both encodings; the full-file graph oracle remains AC1027 only.",
+  "writer": "dxfRW::writeSortEntsTable",
+  "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+  "encodings": ["ASCII DXF", "Binary DXF"],
+  "generated_profile": "One SORTENTSTABLE with four entity handles, four ordered sort keys, a Model/Paper-space BLOCK_RECORD owner, NOD parent, and two EED values.",
+  "assertions": [
+    "Calibration and injected failures exercise all 22 measured direct-writer allocation offsets in each of the 14 revision/encoding lanes.",
+    "Every injected failure returns false, records an allocation failure, preserves the complete caller DRW_SortEntsTable state, and leaves source-handle binding unpublished.",
+    "Fresh direct typed parseCode readback verifies the authored record and terminator; same direct codec can retry after failure.",
+    "Existing complete-file ASCII/Binary rollback, byte-identical retry, typed graph readback, and invalid-owner preservation/model-space retry/paper-space controls continue to run at AC1027."
+  ],
+  "observed_allocation_counts": {
+    "direct_record": "22 per revision/encoding; 308 total injected failure offsets across 14 lanes.",
+    "full_file_AC1027": {"ASCII": 18, "Binary": 17}
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_sortents_objects_allocation_tests -j4: PASS",
+    "focused_test": "ctest --test-dir build-gcc -R '^libdxfrw_sortents_objects_allocation$' --output-on-failure: 1/1 PASS in 0.24 seconds",
+    "git_diff_check": "PASS",
+    "receipt_json_parse": "PASS"
+  },
+  "boundary_observation": "An exploratory full-file AC1014 run did not satisfy the fixture's LINE owner readback expectation (decoded owner 0). The revision matrix is therefore limited to the direct SORTENTSTABLE record writer; no legacy whole-file graph-closure claim is made.",
+  "limitations": [
+    "Generated records and same-library readback do not establish independent producer semantics, producer prevalence, or native consumer behavior.",
+    "Named-block SORTENTSTABLE records remain refused.",
+    "No DWG/DXF fixture file was added."
+  ],
+  "artifact_sha256": {
+    "tests/sortents_objects_allocation_tests.cpp": "87dc3cddb294c1317098ea5dae0de6226d4db8ac508cc8ffcd34f950d7839fca",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "9cf9450913c6a59006acc0d4e027412f5d6c8a9ef1bc3ec699aad3e031dd4def"
+  }
+}

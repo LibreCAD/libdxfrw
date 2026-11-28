@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-vport-shadeplot-reference-transport-2026-11-03",
+  "date": "2026-11-03",
+  "status": "LOW_LEVEL_DXF_REFERENCE_TRANSPORT",
+  "supportClaimEffect": "none",
+  "reference": {
+    "title": "Autodesk AutoCAD DXF Reference \u2014 VPORT",
+    "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-8CE7CC87-27BD-4490-89DA-C21F516415A9.htm",
+    "finding": "The VPORT symbol table record group 333 is an optional soft-pointer to the shade-plot object."
+  },
+  "problem": "The low-level VPORT writer refused every nonzero shade-plot target and used remap-only logic for group 333 even though VIEWPORT and PLOTSETTINGS already support resolver-first reference translation.",
+  "change": "The direct VPORT writer emits group 333 using the configured final-ID resolver, or the source handle remap when no resolver is configured. A nonzero source must resolve to a nonzero, non-sentinel output; explicit null presence and existing target-version/mode gates remain intact. The concrete adapter still refuses a nonzero shade target until target-kind, owner and graph closure are qualified.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dxf_fixture_tests -j4",
+    "selectors": [
+      "libdxfrw_wave1_tests --vport-reference-remapping",
+      "libdxfrw_dxf_fixture_tests --vport-shadeplot-retention"
+    ],
+    "result": "PASS both focused selectors, including zero-remap refusal and corrected same-codec retry",
+    "coverage": [
+      "ASCII/Binary direct group-333 resolver precedence and remap fallback",
+      "unresolved nonzero target resolving to zero leaves destination intact",
+      "same-codec corrected retry and typed readback",
+      "adapter continues refusing a nonzero target without graph closure",
+      "explicit null and absent group distinction; mode and version boundaries",
+      "zero remap refusal preserves destination and corrected mapping retries on same codec"
+    ]
+  },
+  "limits": [
+    "This is direct writer reference transport; the test does not prove target emission, target kind or ownership, physical producer breadth, native rendering, or support claim eligibility.",
+    "No DWG or DXF fixture added."
+  ]
+}

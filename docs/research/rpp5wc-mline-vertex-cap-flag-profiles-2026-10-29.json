@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 MLINE group-71 flags across two- and four-vertex offset projections",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_QUALIFIED",
+  "evidenceCommit": "bffd7ff187cd3af19326bb5d54043eabcf7d9f17",
+  "productionChange": "None. The existing bounded MLINE projection path accepted the newly authored two- and four-vertex profiles; this slice adds source/output/readback and transaction evidence only.",
+  "scope": "Qualify direct consumed-style offset reprojection for selected AC1027 MLINE vertex counts 2 and 4 under group-71 flags 1, 5, 9 and 13. The existing three-vertex selector remains a separate profile.",
+  "specEvidence": {
+    "authority": "Autodesk AutoCAD DXF Reference 2025, MLINE (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "group71": "Bit 1 indicates at least one vertex, bit 2 marks closed, bit 4 suppresses start caps, and bit 8 suppresses end caps.",
+    "group72": "Number of vertices.",
+    "group41": "Per-element segment parameters are real-valued lists whose entries describe segment intersections, starts and cuts.",
+    "interpretation": "The test isolates group-71 state and group-72 counts while changing one consumed style offset. It checks exact modeled geometry and projected group-41 values; it does not qualify native rendering or general MLINE editing."
+  },
+  "contract": {
+    "admission": "Runtime-authored AC1027 source profile with exactly two consumed MLINESTYLE elements. Group-72 vertex counts are 2 or 4; group-71 values are 1, 5, 9 or 13. The first style offset changes 1.25→1.5 while the second remains -0.75. Closed value 3 and unknown-bit value 17 refuse.",
+    "outputAndReadback": "Thirty-two positive combinations cover 2 vertex counts × 4 group-71 profiles × ASCII/binary input/output. Physical output verifies groups 71/72, every group-41 value, and both ENTITIES/BLOCKS consumers. Fresh typed readback verifies vertex count, all positions/directions/miters, style offsets, flags and projected parameters.",
+    "failureAndRetry": "Eight refusal profiles cover closed/unknown flags × 2 vertex counts × 2 output encodings with destination and caller preservation; corrected group-71=13 sources then succeed through the same adapter. Four late parameter-mutation failures preserve the destination and succeed through same-adapter retry after restoring caller state.",
+    "compatibility": "The selected three-vertex offset, cap-flag, append/removal and angle/offset retarget selectors remain passing. This receipt qualifies only authored AC1027 DXF profiles; it says nothing about DWG group-71/group-72 semantics, other counts, closed paths, filled/cut MLINEs, other versions or native display. No drawing fixture was committed."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "tests/dxf_fixture_tests.cpp creates two- and four-vertex source records at runtime from explicit coordinates, segment directions, miters and group-41 values; output checks physical records and freshly imported typed state.",
+    "evidenceCommit": "bffd7ff187cd3af19326bb5d54043eabcf7d9f17",
+    "tests/dxf_fixture_tests.cpp": "6598306549c25943b0c1d8b04b7d121777d9074857ca26c40faaedd079100a61",
+    "tests/CMakeLists.txt": "a3df1541343b2218e111d8b59259818f0e3bc43b980101d8be7ad7d8aa2da28e",
+    "fixtureTestExecutableSha256": "f345784f65e87c8af3366c99f0ae464bc3f99c42b018a0c3beab0f11330b7d42",
+    "cmakeCacheSha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_(consumed_offset_projection|consumed_offset_cap_flags|vertex_flag_profiles|retarget_offset_projection|retarget_angle_projection|consumed_style_append_cap_flags|consumed_style_removal_cap_flags)$' --output-on-failure",
+      "summary": "7/7 passed in 2.84s; includes the new 2/4-vertex matrix and affected 3-vertex, cap-flag, append/removal and retarget regressions."
+    },
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice changes runtime fixture generation and assertions only, with no production allocation/ownership path change."
+  },
+  "limitations": [
+    "Only runtime-authored AC1027 two- and four-vertex offset-edit profiles are newly covered; three vertices and other operations remain separate evidence.",
+    "Group-71 preservation does not qualify cap appearance, closed MLINE projection, or group-42 fill/cut projection.",
+    "No DWG byte layout or DWG flag semantics were changed or inferred."
+  ],
+  "next": "Research a source-backed filled/cut MLINE witness and exact group-42/75 projection rules; identify its owning selector and expected output before implementing any change to nonempty area-fill parameter arrays."
+}

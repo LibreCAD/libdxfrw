@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-14",
+  "title": "DIMSTYLE DIMTFILLCLR allocation rollback and retry",
+  "scope": [
+    "Exercise generated AC1021 DIMSTYLE output with table flags, DIMTFILL, and a nondefault peer-profile DIMTFILLCLR ACI value",
+    "Exercise both typed DIMTFILLCLR state and the exact $DIMTFILLCLR dynamic override, verifying override precedence",
+    "Inject allocation failures throughout complete ASCII and Binary document writes",
+    "Verify output destination and caller DIMSTYLE state, including the dynamic override, are preserved after each failure",
+    "Retry using the same codec and adapter, compare complete output bytes with a clean baseline, and read the typed effective value back"
+  ],
+  "profile": {
+    "dxfVersion": "AC1021",
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "fields": {
+      "tableFlagsGroup70": 64,
+      "dimtfillGroup69": 2,
+      "dimtfillclrSecondGroup70Aci": 42
+    },
+    "source": "generated in-memory DRW_Dimstyle",
+    "persistentFixtureAdded": false
+  },
+  "results": {
+    "ASCII": {
+      "typedMeasuredAllocationOffsets": 10,
+      "dynamicMeasuredAllocationOffsets": 11,
+      "rollbackPassed": true,
+      "callerStatePreserved": true,
+      "sameWriterRetryByteIdentical": true,
+      "typedReadback": {
+        "typedColor": 42,
+        "dynamicOverrideColor": 13
+      }
+    },
+    "Binary": {
+      "typedMeasuredAllocationOffsets": 9,
+      "dynamicMeasuredAllocationOffsets": 10,
+      "rollbackPassed": true,
+      "callerStatePreserved": true,
+      "sameWriterRetryByteIdentical": true,
+      "typedReadback": {
+        "typedColor": 42,
+        "dynamicOverrideColor": 13
+      }
+    },
+    "totalMeasuredAllocationFailures": 40
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dimstyle_table_allocation_tests -j4",
+    "buildResult": "PASS (-Werror)",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dimstyle_table_allocation$' --output-on-failure",
+    "testResult": "PASS (1/1; 0.62 seconds; typed and dynamic DIMTFILLCLR rollback/retry profiles)",
+    "fullSuiteRun": false
+  },
+  "claimBoundary": [
+    "Generated transaction and same-library readback evidence only; this does not independently validate producer semantics or native CAD behavior.",
+    "The second group-70 DIMTFILLCLR mapping is an unofficial peer-documented compatibility profile; Autodesk's published DIMSTYLE DXF schema lists group 70 as table-entry flags and does not document this second occurrence.",
+    "RGB and book-color CMC states remain refused, as do third and later DIMSTYLE group-70 occurrences and nondefault downgrades to pre-AC1021 targets.",
+    "No support claim or external/platform qualification gate is promoted."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1018-table-linetype-scale-domain-2026-11-09",
+  "date": "2026-11-09",
+  "status": "IMPLEMENTED_FAST_CONTROL_PASS",
+  "title": "AC1018 TABLE linetype scale domain guard",
+  "scope": "Align the direct AC1018 TABLE codec's linetype-scale preflight with the shared DXF entity validity rule.",
+  "finding": {
+    "existingRule": "isValidDxfEntityFields rejects non-finite or nonpositive DRW_Entity::ltypeScale.",
+    "gap": "DRW_Table::encodeDwg previously rejected non-finite values but allowed zero and negative finite values into the DWG bit-double field.",
+    "change": "The AC1018 TABLE direct codec now refuses ltypeScale <= 0.0 before staging or mutating output.",
+    "profile": "Generated AC1018 direct TABLE codec only; no physical producer, native rendering, or support claim is established."
+  },
+  "control": {
+    "generatedFromScratch": true,
+    "selector": "libdxfrw_dwg_table_cell_overrides",
+    "cases": [
+      "zero linetype scale refuses atomically",
+      "negative linetype scale refuses atomically",
+      "existing finite/non-finite guards continue to pass"
+    ],
+    "fixture": "No DWG/DXF fixture file was created or committed."
+  },
+  "files": [
+    "src/drw_entities.cpp",
+    "tests/dwg_object_vectors_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "bindings": {
+    "src/drw_entities.cpp": "2f551d536a8aca9c2ff01cd9ecdc1857f80658288a329ecb2dbb0573d03520f0",
+    "tests/dwg_object_vectors_tests.cpp": "2d10f7ccfd915a8f58717569c2f8d2e4d8ea9382f464e305569092c8653f1d35",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "af8f81828ce19d0da1c2c11e3a81ca2b42fc59c4d873d111796e77c86dec92f9"
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "test": "PASS 1/1: ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure (0.36 sec)",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "supportClaimEffect": "none"
+}

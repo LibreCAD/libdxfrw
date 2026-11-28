@@ -1,0 +1,115 @@
+{
+  "date": "2026-11-04",
+  "authority": "Open Design Specification for .dwg files v5.4.1 section 20.4.64 specifies AC1015 VPORT xdictionary hard-owner, xref, named UCS and base UCS hard-pointer roles.",
+  "scope": "Only internally synthesized AC1015 *ACTIVE VPORT emits typed-null xdictionary, xref, named UCS and base UCS. Caller-supplied viewport/public encoder state and AC1018+ remain unchanged; nonzero references are preserved.",
+  "independent_source": {
+    "producer": "ODA File Converter 27.1.0 ACAD2000 from local LINE input",
+    "sha256": "43e86b11010b68f7e46fe229a7bf3c373d4544492acda950ec0c106c14f4cec6",
+    "libredwg": "LibreDWG 0.14 decodes physical *Active xdictionary (3.0.0), xref/named UCS/base UCS (5.0.0)."
+  },
+  "oda_factorial": {
+    "reader": "ODA File Converter 27.1.0 ACAD2013 DXF on local generated opt-in graph LINE/CIRCLE/ARC outputs; inspect .err and actual DXF rather than exit status.",
+    "mask_bits": "1=x dictionary hard owner, 2=xref hard pointer, 4=named UCS hard pointer, 8=base UCS hard pointer",
+    "cases": [
+      {
+        "mask": 0,
+        "sha256": "3d00b9301c3098c9eaec1a5ca3a4e37d9afa0719c31de7c4a68b31ec3566e81c",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 1,
+        "sha256": "02cbd782c7a5d7e82c958a1aaa8287079af938f070bd683665e5546bdc599111",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 2,
+        "sha256": "367f4658a5753b38c0c15e8ba9a36266a74dd3e5ecafbf12905ef5a07e1b80c6",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 3,
+        "sha256": "b4ff4a3d46fbda7d8660927a110ee97cf777a58fedb2d7f21eef93965e56fc07",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 4,
+        "sha256": "f5c1f9d7ef97921dd731a3047c4810bcbaf275e69f4eefafc1f7eefc40edd330",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 5,
+        "sha256": "8d8649ad452cb26e3cd4e7312688c390905329bddc7d68076162d7f7d07bd550",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 6,
+        "sha256": "f118dea8f691dff0358e9baa4ed9b83d13233746863250aa4488dbe4d1d736d1",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 7,
+        "sha256": "8737baa87427855b578b64a2d69a485c383c81c8811c9e113b84b98b03b48b6f",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 8,
+        "sha256": "f851d91e1ee083cb212fede0c5a695bcfa45ffa9e469794b0ba06d28a1d18757",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 9,
+        "sha256": "45eef77cc0f12cc775a5c415ba476de45285889f91b91d97d5c2c07cb758d93c",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 10,
+        "sha256": "53212a13a385dc409074daa7c2780e67342a2ac71d3ab9dcf9c591793b0312ef",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 11,
+        "sha256": "a198117c71f53b57750dd2a552daa95588daf9053074e8b138948d7c01208af8",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 12,
+        "sha256": "34011e2d5a4a9289796aa3aaa1e8535a740ec71eeb5d04e8ae17a80bba53332c",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 13,
+        "sha256": "e1084fe9a707d33eab756a01521fe67a9607559f3e5fe72d94b6a65c8a8b289e",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 14,
+        "sha256": "534c69ac54bfeca7f220a74ad9e310e17ad313a7741bc79fd1663532701e3aed",
+        "first_error": "Object improperly read: <AcDbViewportTableRecord> (16)",
+        "dxf_exists": false
+      },
+      {
+        "mask": 15,
+        "sha256": "4f9f62a8e6c5bf54aa1dd23f1477b401cc1c7b32ec1fd5011a8d8cb554f98dcc",
+        "first_error": "Object improperly read: <AcDbRegAppTableRecord> (14)",
+        "dxf_exists": false
+      }
+    ],
+    "result": "Masks 0\u201314 stop at AcDbViewportTableRecord (16), mask 15 advances to AcDbRegAppTableRecord (14). No DXFs were produced; later error cause and general acceptance are not established. Production output matches mask 15 SHA exactly."
+  },
+  "validation": "PASS libdxfrw_dwg_header_writer_sealing: all six writer versions, exact AC1015 synthetic/public handle slots, caller viewport state and following LINE readback, failure with no output and same-writer retry. LibreDWG independently confirms the four roles on the production generated viewport.",
+  "limits": "No claim for arbitrary caller/source records or general AC1015 interoperability; scratch files are not committed."
+}

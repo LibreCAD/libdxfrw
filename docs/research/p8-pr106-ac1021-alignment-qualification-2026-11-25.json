@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-ac1021-alignment-qualification-2026-11-25",
+  "date": "2026-11-25",
+  "status": "FOCUSED_LOCAL_AND_HOSTED_CI_PASS_PACKAGING_AND_BROAD_GATES_OPEN",
+  "supportClaimEffect": "none",
+  "head": "e9216367f701f241d08d01e04808b7c28e60443c",
+  "implementationDigestSha256": "ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b",
+  "implementationInputCount": 775,
+  "hosted": {
+    "fast": {"run": 395, "id": 45637989693, "url": "https://github.com/LibreCAD/libdxfrw/actions/runs/45637989693", "result": "PASS: seven bounded executables and all 53 required CTests; build and release inventories pass."},
+    "qualification": {"run": 554, "id": 45637989885, "url": "https://github.com/LibreCAD/libdxfrw/actions/runs/45637989885", "result": "PASS: workflow/digest contract and focused Linux GCC, macOS Clang and Windows MSVC jobs."},
+    "skippedByPolicy": ["source release", "final broad matrix", "extended deterministic fuzz"]
+  },
+  "local": {
+    "platform": "Darwin ARM64 Release",
+    "fast": "PASS: seven executables and all 53 fixed CTests on the current code. The prior combined build was incrementally rebuilt after copying the two selected source/test changes; both files were compared against the current checkout and are the only selected source/test differences between the builds.",
+    "targeted": "The current AC1021 alignment and LibreCAD fixture CTests pass; the alignment test also passes with AddressSanitizer.",
+    "contracts": "Clean-checkout implementation digest, qualification workflow, support contract and release inventory checks pass."
+  },
+  "limits": [
+    "Focused CI is not broad DWG/DXF qualification, package relocation, native GUI acceptance, FreeCAD platform qualification or independent semantic evidence.",
+    "All 15 format claims remain EXPERIMENTAL and no route is advertised; J256, J260, J268, J284, J293 and J295 remain deferred external evidence.",
+    "Any selected implementation-input change reopens this gate; documentation-only updates must retain the exact digest and record their own PR-head status."
+  ]
+}

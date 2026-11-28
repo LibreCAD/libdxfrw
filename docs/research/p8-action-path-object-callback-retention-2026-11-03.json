@@ -1,0 +1,51 @@
+{
+  "receipt_id": "p8-action-path-object-callback-retention",
+  "date": "2026-11-03",
+  "state": "LOCAL_TYPED_CAPTURE_ONLY",
+  "source_callbacks": [
+    "DRW_Interface::addMotionPath",
+    "DRW_Interface::addCurvePath",
+    "DRW_Interface::addPointPath",
+    "DRW_Interface::addObjectPtr"
+  ],
+  "implementation": {
+    "adapter": "dwg2dxf/dx_iface",
+    "stores": [
+      "dx_data::motionPaths",
+      "dx_data::curvePaths",
+      "dx_data::pointPaths",
+      "dx_data::objectPtrs"
+    ],
+    "shared_record_limit": 100000,
+    "shared_retained_byte_limit": 67108864,
+    "retained_byte_estimate": "inline model plus DRW_TableEntry owned name, reactors, pending references, extension data and app data, plus two list links",
+    "failure_behavior": "aggregate-limit or allocation failure is sticky for the dx_data lifetime; output preflight reports the action-path capture failure and refuses publication",
+    "output_behavior": "typed copies are not dispatched by the dwg2dxf OBJECTS writer; existing raw-DXF and opaque-DWG paths remain separate and no output support is qualified"
+  },
+  "validation": {
+    "configure": "cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "production_build": "cmake --build build --target dwg2dxf -j4",
+    "focused_test": "ctest --test-dir build -R '^dwg2dxf_action_path_object_capture_limits$' --output-on-failure",
+    "focused_test_result": "passed",
+    "assertions": [
+      "all four callback models and common table-entry fields are copied",
+      "aggregate retained-byte accounting matches the selected scalar/name/reactor payloads",
+      "the final allowed record is retained and the next record causes sticky refusal",
+      "one-byte-over-budget admission retains no partial record and later callbacks remain refused",
+      "failed capture blocks output and leaves the destination unpublished"
+    ]
+  },
+  "fixtures": {
+    "committed_test_dwg_or_dxf": false,
+    "test_inputs": "locally constructed in-memory DRW models"
+  },
+  "not_qualified": [
+    "physical DWG/DXF source-span to typed-callback matching",
+    "source owner, reactor, extension-dictionary, and action-path handle roles",
+    "strict output serialization, output identity binding, and fresh ASCII/Binary readback",
+    "LibreCAD, LibreCAD_3, FreeCAD, or other native consumer semantics",
+    "complete action-path object-family or document-level support"
+  ],
+  "next_work": "Establish eligible physical source/field spans and owner/handle-role schemas, then add source-bound output dispatch and strict fresh readback for only the proven profile."
+}

@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader FreeCAD DXF/DWG strict-import and converter-route crosswalk",
+  "mode": "primary-source research only",
+  "scope": [
+    "Inspect the current FreeCAD direct-DXF importer API, importer option handling, and configured DWG-to-DXF wrapper route",
+    "Refine the existing PAR-07/S8 FreeCAD consumer qualification recipe without adding implementation findings or support claims",
+    "Keep the direct DXF importer and DWG converter-plus-importer route as distinct evidence gates"
+  ],
+  "method": {
+    "kind": "Read-only review of current project-owned FreeCAD source/documentation and local plan inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "researchLocalTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "FreeCAD main source is mutable and was reviewed as published on 2026-10-19 without pinning a commit or executing a matching build. The documentation repository is archived and is used only to identify candidate capability profiles. These source observations define qualification controls; they are not runtime results, libdxfrw defects, or support evidence. No external drawing or attachment was retrieved."
+  },
+  "sources": [
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/AppImportPy.cpp",
+      "revision": "mutable main source inspected 2026-10-19; commit not pinned",
+      "observed": "Import.readDXF initializes IgnoreErrors to true, forwards the value to ImpExpDxfRead::DoRead, and returns importer statistics. Its optional positional arguments after the filename are document name, ignore-errors Boolean, and option-source path, so a caller can request strict behavior with Import.readDXF(path, document_name, False, option_source). This source fact does not establish runtime acceptance of any particular DXF."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "revision": "mutable main source inspected 2026-10-19; commit not pinned",
+      "observed": "The importer selects an option source and records import settings including import mode, scaling, annotations, points, layout/paper-space handling, hidden blocks, layers, and colors. Its simple line-oriented PreScan counts values following literal group-code 0 lines and is not the complete parser or a source-record identity oracle. Import modes may aggregate shapes, so FreeCAD document-object count is not a DXF entity denominator."
+    },
+    {
+      "project": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "revision": "mutable main source inspected 2026-10-19; commit not pinned",
+      "observed": "The DWG wrapper selects among configured LibreDWG, ODA, or QCAD converter commands before importing the produced DXF. These routes use different command/output profiles; the LibreDWG invocation does not explicitly set a target DXF version. The wrapper waits for process completion and uses output-path existence as a success condition in the inspected paths, which does not establish strict DXF validity, complete conversion, or native CAD acceptance."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "revision": "mutable main documentation reviewed 2026-10-19; repository archived 2026-04-01",
+      "observed": "The capability page distinguishes the C++ and legacy Python DXF importers and describes different feature subsets, with DWG import mediated by a converter and no stock embedded ACIS/SAT reader. Because the documentation repository is archived and the page is not tied to the runtime build used in a qualification, it is only a candidate-profile reference."
+    }
+  ],
+  "plan_effect": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "existingOwner": "PAR-07/S8 FreeCAD native consumer qualification; separate direct-DXF import and composed DWG-converter-to-DXF-import routes",
+    "changes": [
+      "Require strict direct-DXF qualification to pass ignore_errors=false when the selected FreeCAD API supports it; label default/permissive application routes separately and retain diagnostics and importer statistics.",
+      "Pin the FreeCAD build, importer backend, option source, and relevant import settings; use an independently generated source identity manifest and predeclared geometry profile rather than PreScan or aggregate FreeCAD object counts.",
+      "For DWG qualification, record the exact configured converter/build/hash/command, process result and diagnostics, intermediate DXF hash and actual $ACADVER, then validate and import that intermediate as separate stages.",
+      "Keep FreeCAD native Linux and Windows runs at the existing composed qualification checkpoint; do not add external application runs to every implementation slice or change routine test cadence.",
+      "Preserve the existing fixture policy: repository-owned or locally generated samples only; no customer/issue drawings downloaded or committed."
+    ],
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "implementationReadyChecks": [
+    "For direct DXF, identify the exact FreeCAD build/platform and importer backend; invoke the native C++ importer through Import.readDXF(path, document_name, False, option_source), record the option source/settings, preserve diagnostics/statistics, and compare predeclared source identities and expected transformed geometry.",
+    "For DWG-to-FreeCAD, record the selected converter executable/build/hash and exact invocation; separately inspect exit status/diagnostics, intermediate DXF existence/hash/$ACADVER, strict parse disposition, and FreeCAD importer result.",
+    "Do not infer completeness from a returned document, output pathname, visible shape, importer PreScan, or aggregate object count; explicitly account for excluded/profile-inapplicable source records.",
+    "Run native FreeCAD qualification only at the existing composed platform gate, after relevant fast local checks; this research does not increase the full-suite or external-test frequency."
+  ],
+  "validation": {
+    "testsRun": false,
+    "buildsRun": false,
+    "nativeApplicationsRun": false,
+    "scopedDiffCheckPassed": true,
+    "receiptJsonPassed": true,
+    "scopedDiffCheck": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-freecad-dxf-dwg-strict-import-and-converter-route-2026-10-19.json",
+    "receiptValidation": "jq empty docs/research/deeper-broader-freecad-dxf-dwg-strict-import-and-converter-route-2026-10-19.json"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-139 SPATIAL_FILTER owner-backlink and OBJECTS identity closure",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Audit the existing generated SPATIAL_FILTER ASCII/Binary route for missing owner-graph closure checks.",
+    "Verify reopened INSERT group-360 extension-dictionary back-references, actual owner-0 NOD root-first identity, and uniqueness of emitted OBJECTS handles.",
+    "Reuse the existing adapter selector and CTest without adding a broad test run or persistent fixture."
+  ],
+  "sourceChange": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "change": "spatialFilterCallbackCaptureAndLossGate now requires both reopened INSERTs to retain their exact extension-dictionary handles, and checks that exported OBJECTS begins with the actual owner-0 NOD and has unique nonempty object handles.",
+    "reason": "The test already validated extension dictionary ownership, ACAD_FILTER/SPATIAL dictionary edges, filter/XRECORD ownership, and semantic fields, but did not verify the INSERT-to-extension-dictionary back-reference or stream-wide object handle identity.",
+    "productionBehaviorChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "PASS (1/1; 0.43 sec)"
+    },
+    "scopedDiffCheck": "PASS (git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Generated AC1024 MATERIAL test completeness fixture",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Make the generated AC1024 MATERIAL adapter test satisfy the existing bounded-partial DWG source gate, so the test covers the intended MATERIAL output, readback, rollback and retry behavior.",
+  "testInput": {
+    "origin": "Locally constructed in memory by the existing test; no DWG or DXF fixture file is created or committed.",
+    "readOutcome": "Successful generated AC1024 bounded read receipt with finalized complete zero-frame ledger.",
+    "ltypeControl": "A generated LTYPE_CONTROL publication binds four unique records: Continuous, ByBlock, ByLayer and MATERIAL_TEST. The publication carries the required version, type, source location, carrier and NotApplicable common-link evidence.",
+    "purpose": "The explicit AllowPartial export mode requires a source-matched complete LTYPE_CONTROL table. Including it isolates this test to MATERIAL serialization rather than bypassing the format gate."
+  },
+  "verification": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_material_ac1024_typed_graph_output$' --output-on-failure",
+      "result": "PASS, 1/1. The ASCII/Binary typed MATERIAL graph output/readback, mutation refusal, destination preservation and same-adapter retry checks complete."
+    },
+    "diffCheck": "git diff --check passed."
+  },
+  "limits": [
+    "This corrects generated test setup only; it does not alter the reader, writer, production admission logic, or support claims.",
+    "It does not qualify an external AC1024 producer or whole-source conversion."
+  ],
+  "nextAction": "Continue with the next source-backed P4 graph profile; retain whole-source and native-consumer gates."
+}

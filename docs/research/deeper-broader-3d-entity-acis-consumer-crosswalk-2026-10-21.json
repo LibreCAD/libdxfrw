@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw-3d-entity-acis-consumer-crosswalk-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary-source documentation and mutable source review; no runtime qualification",
+  "scope": [
+    "DXF 3D entity schema separation and ordering rules",
+    "AcDs DataStorage parser and SAB attachment behavior in open-source peer sources",
+    "ACIS producer, parser, kernel, and consumer evidence boundaries"
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF references",
+      "revision": "Published 2016-2024 documentation pages; exact product schema revisions vary by URL",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2016/CHS/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm"
+      ],
+      "observations": {
+        "3dface": "WCS corner points and four independent invisible-edge bits",
+        "mesh": "level-0 vertices, face list, edges, crease data, and subentity property overrides",
+        "spline": "separate degree, flags, knot/control/fit arrays, tolerances, optional vectors, and WCS control/fit points",
+        "3dsolid": "proprietary group-1/3 payload lines and a separate group-350 soft-owner history reference",
+        "groupOrder": "Readers should not assume group-code order and should ignore undefined codes when forward compatible"
+      },
+      "limitation": "DXF public entity tables do not specify internal DWG bit layouts or ACIS semantics."
+    },
+    {
+      "project": "LibreDWG",
+      "revision": "master source, mutable; commit not captured; issue #1411 names release 0.14.8593",
+      "references": [
+        "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/decode_r2007.c",
+        "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observations": {
+        "container": "R2007+ decoder reads the AcDs section and invokes its DataStorage parser",
+        "attachment": "DataStorage schema/segment parsing is followed by marker scanning for ACIS BinaryFile payload and a tagged terminator; discovered payloads consume queued handles collected from has_ds_data solid entities",
+        "completeness": "Count mismatch is warned; source comments note other AcDs data such as wires/silhouettes may exist",
+        "knownFailureReport": "Issue #1411 reports silent R2013+ geometry loss using named LibreDWG 0.14.8593"
+      },
+      "limitation": "No current-master run was performed; mutable source is a differential implementation clue, not format authority or semantic oracle."
+    },
+    {
+      "project": "ezdxf",
+      "revision": "stable docs and master docs, mutable; no package/runtime pinned or executed",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "observations": {
+        "producer": "Documents bounded polyhedron SAT/SAB authoring paths; arbitrary ACIS creation is external",
+        "documentedCarrierMapping": "SAT for DXF R2000-R2010 and SAB for R2013+; verify actual type and bytes for the exact generated output",
+        "readerAndRenderer": "ACIS rendering is unsupported and the drawing add-on has no 3D engine"
+      },
+      "limitation": "Useful as an optional generated test-input producer or structure inspector, not a geometry kernel or semantic oracle."
+    },
+    {
+      "project": "FreeCAD and InventorLoader",
+      "revision": "Documentation/main refs, mutable; no current source pin or runtime executed in this pass",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/jmplonka/InventorLoader"
+      ],
+      "observations": {
+        "stockFreeCAD": "Stock documented DXF importer cannot read embedded ACIS solids; importer backend must be recorded per run",
+        "inventorLoader": "Separate add-on documents SAT/SAB import from DXF via native or STEP route; documented unsupported blending surfaces, helix surfaces, and law-defined curves without spline data",
+        "kernelLineage": "Both add-on geometry routes create output through FreeCAD Part/OCCT and are not independent-kernel votes"
+      },
+      "limitation": "Source/release mutable; exact artifacts, modes, profiles, and expected geometry must be pinned before qualification."
+    },
+    {
+      "project": "acadrust",
+      "revision": "main source, mutable; no checkout or execution",
+      "references": [
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observations": {
+        "testPattern": "Round-trip tests explicitly guard payload/entity order mispairing with unequal marker-delimited byte vectors",
+        "semanticSeparation": "Fake marker payload controls coexist with separate generated planar-body cases"
+      },
+      "limitation": "Same-project read/write tests and capability statements are not independent evidence for arbitrary ACIS or output geometry."
+    }
+  ],
+  "planDelta": {
+    "existingOwnersOnly": [
+      "PAR-05/7BQ.5 strict DXF output syntax and ordering",
+      "PAR-07/S8 peer comparison and per-source disposition",
+      "S2/S3 modeler carrier and AcDs attachment",
+      "S3.7 bounded SAB parsing and projection",
+      "S8.15 named consumer qualification"
+    ],
+    "implementationReadySequence": [
+      "Crosswalk existing fast selectors against entity family, source version, carrier, direction, and operation; add only uncovered controls.",
+      "For DXF gaps, generate scratch order permutations, repeated group-1/3 chunks, unrelated group-350 references, unknown codes, and adjacent sentinels; assert per-source arrays and history edges.",
+      "For AcDs, test unequal payloads with reversed record/entity order, wrong/missing/duplicate/orphan owner keys, residual data disposition, and atomic ambiguity refusal.",
+      "Keep exact payload transport separate from independent analytic topology/area/volume/bounds comparisons and named consumer results.",
+      "At composed checkpoints pin a single external parser/consumer route and all artifact/runtime/kernel identities; mark optional unavailable routes NOT_RUN or PROFILE_UNSUPPORTED and continue local implementation."
+    ],
+    "newFindingOrSubplan": false,
+    "codeTestFixtureOrDependencyAdded": false,
+    "externalRuntimeOrPeerExecution": false,
+    "supportClaimsPromoted": false,
+    "deferredExternalItems": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "limits": [
+    "ODA Open Design Specification v5.4.1 remains authoritative for DWG byte-layout questions; Autodesk DXF tables cover public DXF entity fields only.",
+    "Mutable peer master sources were not pinned; no peer checkout or program, CAD application, or geometry kernel was executed; public source and documentation pages were reviewed only.",
+    "No customer DWG/DXF attachment or externally sourced fixture was fetched or committed.",
+    "This is plan refinement only; no native Linux/Windows FreeCAD qualification or independent new semantic evidence was acquired.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and cannot promote support claims."
+  ]
+}

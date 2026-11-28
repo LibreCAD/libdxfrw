@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader Background consumer and carrier-boundary review",
+  "mode": "primary-source contract review plus local generated implementation controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm",
+      "scope": "DXF OBJECTS dictionary key/child handle example"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Background.html",
+      "scope": "ACAD_BACKGROUND dictionary, unique names, Background subclass hierarchy, and no sharing among viewports"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+      "scope": "VIEW group 332 Background reference"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-8CE7CC87-27BD-4490-89DA-C21F516415A9.htm",
+      "scope": "VPORT group 332 Background reference"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "scope": "VIEWPORT group 332 Background and distinct groups 333/348/361 references"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-E0D55EE1-54C2-4C0E-A458-919E2E677595.htm",
+      "scope": "RAPIDRTRENDERENVIRONMENT group 340 custom-background reference"
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbIBLBackground__MEMBERTYPE_Methods_AcDbIBLBackground.html",
+      "scope": "IBL secondary-background API and allowed Solid/Gradient/Image class set"
+    },
+    {
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "scope": "Independent published DWG object field-model cross-check; not treated as normative or semantic acceptance"
+    }
+  ],
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "src/drw_entities.h",
+      "src/drw_objects.h",
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Same-source-revision AC1021-AC1032 Background records require a unique NOD ACAD_BACKGROUND dictionary with exact typed/raw pair, owner, kind, and handle identity.",
+      "VIEW, VPORT, and VIEWPORT group-332 references require rooted Background targets and use remapped handles; direct low-level codec calls are fail-closed unless the target set is registered by the adapter.",
+      "VPORT and VIEWPORT Background references are counted as viewport owners and duplicate target ownership rejects; VIEW references are resolved but are not counted as viewport owners.",
+      "IBL group-340 edges require exact typed/raw handle agreement and a distinct, unique ACAD_BACKGROUND target of class Solid, Gradient, or Image; duplicate IBL ownership and direct view/viewport references to the assumed-owned target reject.",
+      "Raw IBL group-340 edges replay through handle remapping; direct typed IBL writes require a registered target and Skylight-to-SUN writes remain fail-closed.",
+      "Common reactors/extension dictionaries and the standalone SUN owner graph remain fail-closed.",
+      "Corrected field comments that identified Background DXF group 332 as DWG-only or used a wrong group number."
+    ],
+    "generatedControls": [
+      "ASCII/Binary generated controls round-trip all six Background types with ACAD_BACKGROUND root/owner and an IBL-to-Solid group-340 edge.",
+      "ASCII/Binary generated variants round-trip IBL-to-Gradient and IBL-to-Image edges and verify the target handle after readback.",
+      "ASCII/Binary generated controls round-trip VIEW and VPORT group-332 references and a VIEWPORT group-332 reference to a distinct rooted Background.",
+      "An unrooted VIEWPORT target, VPORT+VIEWPORT shared target, duplicate VPORT ownership, missing root, cross-revision replay, IBL-to-GroundPlane/unrooted target, duplicate IBL owner, direct consumer of the assumed-owned target, typed/raw IBL edge mismatch, unpaired raw carrier, and SUN owner graph remain fail-closed; output sentinel is preserved on graph refusal.",
+      "Direct low-level DXF writer controls reject an unregistered IBL secondary-background edge and an unclosed Skylight-to-SUN edge in ASCII and Binary."
+    ],
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "dwgParseOrEncodeChanged": false,
+    "drwInterfaceVirtualContractChanged": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+    "buildPassed": true,
+    "focusedCommands": [
+      "build-gcc/libdxfrw_dxf_fixture_tests --background-sun-callback-retention",
+      "build-gcc/libdxfrw_dxf_fixture_tests --view-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --viewport-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-shadeplot-retention",
+      "build-gcc/libdxfrw_dxf_fixture_tests --header-visual-style-references",
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-visual-style-reference",
+      "git diff --check"
+    ],
+    "focusedResults": [
+      "All seven named focused DXF controls passed; VPORT shade-plot negative vectors printed expected parser diagnostics.",
+      "The positive VIEWPORT group-332 path, IBL-to-Solid/Gradient/Image group-340 variants, and all new unrooted/disallowed/direct-consumer/typed-raw negative controls pass in generated ASCII and Binary DXF.",
+      "Direct low-level IBL/SUN fail-closed controls pass in both encodings.",
+      "Whitespace check passed."
+    ],
+    "fullFixtureCTestRun": false,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "assessment": {
+    "researchConclusion": "Rooted Background graph preservation, all three group-332 consumer slots, and the documented IBL group-340 Solid/Gradient/Image secondary-edge matrix are implemented for exact same-version replay. The external references establish wire/object structure, not rendering or semantic 3D support.",
+    "remaining": "Native producer/consumer qualification of the IBL edge; common reactor/extension-dictionary closure; exact SUN and Skylight ownership; independent DXF and native consumer qualification.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "repositoryState": {
+      "worktreeBroadlyDirty": true,
+      "staged": false,
+      "committed": false
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-raw-only-tablecontent-two-object-followup-2026-11-14",
+  "date": "2026-11-14",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated AC1032 CLI raw-only TABLECONTENT disposition from one object to two same-class objects in a single source.",
+  "profile": {
+    "sourceGenerator": "tests/dwg_local_roundtrip_tests.cpp --generate-cli-raw-only-source",
+    "sourceVersion": "AC1032",
+    "tableContentInstances": 2,
+    "skippedCustomClassInstances": 2,
+    "skippedUnsupportedObjectInstances": 2,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "frameCoverage": "complete",
+    "sourceFrames": 28,
+    "publishedFrames": 28,
+    "failedFrames": 0,
+    "unresolvedFrames": 0,
+    "unrecognizedDispositions": 0
+  },
+  "controls": [
+    "Strict ASCII and Binary output both refuse before replacing destination sentinels.",
+    "Explicit partial ASCII and Binary output emits the omission warning and leaves the generated DWG unchanged.",
+    "Direct dxfRW parser readback finds one supported LINE and one VPORT in either encoding; no TABLECONTENT is emitted."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "test": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --skipped-record-only",
+    "result": "PASS: 24 version/profile controls; under one second"
+  },
+  "limits": [
+    "The synthetic body establishes raw-only routing and CLI omission policy, not TABLECONTENT semantics or export support.",
+    "The profile does not measure arbitrary producer ordering or object-graph closure.",
+    "No DWG/DXF fixtures were committed."
+  ]
+}

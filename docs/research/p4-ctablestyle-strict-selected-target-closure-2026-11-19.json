@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ctablestyle-strict-selected-target-closure-2026-11-19",
+  "date": "2026-11-19",
+  "status": "SAME_VERSION_STRICT_TARGET_CLOSURE_PASS_CROSS_VERSION_OPEN",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "dca611538c75b59c82efbf03f7c571de9277d2816dd4e4e17e2f0884f7149e9c",
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "version": "AC1021",
+    "provenance": "Existing local sample, producer and author unauthenticated; no drawing or derivative committed."
+  },
+  "finding": {
+    "before": "On the original AC1021 source, changing CTABLESTYLE to NO_SUCH_STYLE allowed RequireComplete ASCII export and emitted the unresolved value, replacing an existing destination.",
+    "after": "Complete DWG exports with selected variable and TABLESTYLE snapshots require a uniquely matching ASCII-case-insensitive current-style name, selected style identity and owner; the check runs before serialization and again during finalization. Existing inspectors independently check staged dictionary-variable and style output. Legacy tolerant exports retain their previous policy.",
+    "limits": "Name comparison folds ASCII only; non-ASCII bytes must match exactly. This change does not admit a new DWG version, a cross-version writer path, or an unqualified source."
+  },
+  "files": [
+    {
+      "path": "dwg2dxf/dx_current_tablestyle_reference.h",
+      "sha256": "ef3ba9012e5263c366eecbc265e50cd2d42d3b65262b207bb7d3a7eb27c29913"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "b3f504245570d069b23fb122e268e2a6c15a5be9f282de039980fb137f7b3d1c"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.h",
+      "sha256": "975ddcb8aaf9e7b91138b22a2b6e4c91c3df19f40c04c3e72c9d1e76afcacbff"
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "af2c0373638b1465fd364ccf1bcd937f74b85ea6f9c09e42b6174cd6d0364256"
+    },
+    {
+      "path": "tests/dwg_ac1027_material_dictionary_wire_tests.cpp",
+      "sha256": "1c224a0ced23a2e6d003124a2b98f00cacaca2b0d02910f10b7e0a4cb1442ef3"
+    }
+  ],
+  "validation": [
+    "AppleClang -Werror focused converter and adapter build: PASS.",
+    "Locally authored fast name-resolution controls: PASS; cover mixed ASCII case, missing value/target, duplicate normalized key, wrong owner, wrong identity and wrong model name. Existing focused wire CTest: 1/1 PASS.",
+    "Real AC1021 source strict ASCII/Binary integration: PASS. Unresolved and duplicate names and late edits refuse while preserving the destination; corrected same-writer retry succeeds; valid sTaNdArD edit and target graph freshly read back.",
+    "Existing strict AC1021 whole-source ASCII/Binary control: PASS, including pre-existing XRECORD failure/rollback/retry.",
+    "AddressSanitizer focused strict integration and generated source-wire test: PASS (prior to adding the additional fresh-readback graph assertions; implementation unchanged).",
+    "GCC 16.2 -Wall -Wextra -Werror syntax checks for converter and fast generated test: PASS.",
+    "Source-release inventory generation, validation and 18-control self-test: PASS."
+  ],
+  "independentReadback": {
+    "tool": "ezdxf 1.4.5",
+    "result": "PASS",
+    "reportSha256": "a71fe9019402a26adb2c7fb870739350c7025792ddf86a04ecc1e14219969f99",
+    "scriptSha256": "98a1ed66350fa22f10cb3e6d19c3f1582afa168da20a19ca44fcbc0888f8718e",
+    "files": [
+      {
+        "file": "current-style-ascii.dxf",
+        "sha256": "6699066e592824ae0424545e20afe9890fe6eac2028bb0a5971bb1c5068f6216",
+        "acadver": "AC1021",
+        "value": "sTaNdArD",
+        "dictionary": "567",
+        "style": "947",
+        "styleOwner": "567"
+      },
+      {
+        "file": "current-style-binary.dxf",
+        "sha256": "0468c07ac35075bea9f21381f161588a3a907f76aeeb13337b25305b5d16b876",
+        "acadver": "AC1021",
+        "value": "sTaNdArD",
+        "dictionary": "567",
+        "style": "947",
+        "styleOwner": "567"
+      }
+    ],
+    "limit": "Independent DXF structural readback for the selected same-version output; not native AutoCAD or cross-version semantic qualification."
+  },
+  "next": [
+    "For AC1021-to-AC1024, independently bind the source TABLESTYLE body and target-version staged fields, then resolve the separate VISUALSTYLE/LAYOUT and native consumer gates.",
+    "Replay fast and focused-native qualification for this implementation digest."
+  ],
+  "limits": [
+    "The source profile is one local, provenance-unqualified drawing.",
+    "The detailed integration selector uses a local sample and is not an automatic CI test; from-scratch name-resolution controls run in the existing fast CTest.",
+    "Strict output claims cannot be broadened from this receipt alone."
+  ]
+}

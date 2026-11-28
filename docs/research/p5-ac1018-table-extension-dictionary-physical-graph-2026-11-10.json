@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-ac1018-table-extension-dictionary-physical-graph-2026-11-10",
+  "date": "2026-11-10",
+  "source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "version": "AC1018",
+    "provenance": "New audited ODA File Converter 27.1 conversion of the pinned ezdxf acad_table_simple.dxf source documented in p5-ac1018-oda-table-physical-peer-profile-2026-11-09.json. This is a different conversion from the old aa88b0bd... scratch file, which was unavailable for comparison.",
+    "libdxfrwRead": "One semantically complete TABLE, handle 0x9c, 3x3 grid, and seven zero-cell-mask spans plus a four-bit zero-table-mask span. All 226 observed frames published; entity and object parse failures zero. Known HEADER offset integrity warning remains."
+  },
+  "peer": {
+    "tool": "GNU LibreDWG dwgread 0.14",
+    "command": "dwgread -O minJSON -o /private/tmp/p5-ac1018-oda-audited-output/peer.json /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "jsonSha256": "23d17c79abb050743822552f1fb9e0db644ad43a2e9fca76db6c40a99bf4db5b",
+    "links": [
+      {"from": "TABLE 0x9c", "field": "xdicobjhandle", "wireRole": 3, "to": "DICTIONARY 0xbb"},
+      {"from": "DICTIONARY 0xbb", "field": "ownerhandle", "wireRole": 4, "to": "TABLE 0x9c"},
+      {"from": "DICTIONARY 0xbb", "field": "hard-owned ACAD_XREC_ROUNDTRIP entry", "wireRole": 2, "to": "XRECORD 0xbc"},
+      {"from": "XRECORD 0xbc", "field": "ownerhandle and reactor", "wireRole": 4, "to": "DICTIONARY 0xbb"},
+      {"from": "XRECORD 0xbc", "field": "group 360", "to": "TABLECONTENT 0xb9"},
+      {"from": "XRECORD 0xbc", "field": "group 361", "to": "TABLEGEOMETRY 0xba"},
+      {"from": "XRECORD 0xbc", "field": "group 360", "to": "DATATABLE 0xbd"}
+    ],
+    "referencedObjectOwners": "The peer reports XRECORD 0xbc as the owner of 0xb9, 0xba and 0xbd.",
+    "limits": "The peer retains unknown bits and reports implausible values within TABLECONTENT; its projected fields do not establish TABLECONTENT, TABLEGEOMETRY or DATATABLE semantics, complete payload boundaries or round-trip support. XRECORD xdata reports the references; their exact source bit spans and raw roles need independent validation."
+  },
+  "diagnosis": "The current direct TABLE encoder refuses after explicit same-revision proxy authorization because xDictHandle is 0xbb. A scratch-only model copy with that handle set to zero encoded, isolating this guard; that altered model drops the source dependency and is not an acceptable output or a round-trip proof. No source drawing or guard was changed.",
+  "specification": "ODA Open Design Specification v5.4.1 sections 20.4.1 and 20.4.2: the AC1018 common-entity xdictionary missing bit governs the common handle stream, where a present xdictionary uses hard-owner role. The existing common writer can emit this role, but this alone is not graph closure.",
+  "implementationReadiness": [
+    "Retain an emitted fixed-DICTIONARY receipt for extension dictionaries independently of NOD registration; include exact identity, type, owner, membership and transaction checkpoint/rollback accounting.",
+    "Require final TABLE graph validation to prove a unique dictionary with the TABLE owner and matching hard-owner target. For a narrow generated empty-dictionary control, validate empty membership and common links without inferring the dictionary hardOwner field from the entity handle role.",
+    "Before admitting populated sources, validate each membership key, hard/soft ownership role, target type and owner, all XRECORD owner/reactor and embedded references, nested objects, source identity and unsupported opaque state; preserve rollback on duplicates, collisions, missing or wrong targets and late failures.",
+    "Verify exact missing-bit and hard-owner field span with following LAYER sentinel, generated whole-file readback in both directions, allocation/late-failure rollback and same-writer retry. Keep proxy and source-binding validation independent.",
+    "Retain TABLE's xDictHandle refusal until the selected graph is fully closed; the observed ODA source has a populated graph and is not qualified by an empty-dictionary generated control."
+  ]
+}

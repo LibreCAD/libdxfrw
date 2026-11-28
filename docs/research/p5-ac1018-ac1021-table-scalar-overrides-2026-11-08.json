@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "date": "2026-11-08",
+  "status": "BOUNDED_TYPED_READ_DXF_ROUNDTRIP_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / pre-R24 TABLE scalar override fields",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1, TABLE until R21",
+    "fields": {
+      "0x000001": "title-suppressed B",
+      "0x000002": "header-suppressed; implicit true, no body value",
+      "0x000004": "flow-direction BS (0 down, 1 up)",
+      "0x000008": "horizontal cell margin BD",
+      "0x000010": "vertical cell margin BD"
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": "The AC1018/AC1021 TABLE reader now retains the five ODA-defined table-level scalar override bits in existing DRW_Table fields. It reads selected explicit default values and leaves subsequent body fields aligned. DXF output emits selected fields even when the value is the default. Flags outside 0x1f and nonzero unmodeled border color/lineweight/visibility masks are refused.",
+    "generatedControl": "From-scratch AC1021 TABLE body with combined mask 0x1f, nondefault flow/margins, explicit title/header suppression and a following sentinel; the reader verifies exact values and body boundary.",
+    "outputControl": "Generated ASCII and Binary DXF round trips preserve mask 0x1f, explicit default title/flow/margins, and implicit header suppression. An independent dxfReader walk checks groups 93, 70, 40, 41, 280 and 281 on the TABLE record. An unmodeled border color mask is refused without replacing the destination; clearing it permits same-adapter retry and wire/readback verification.",
+    "physicalSource": "No producer-backed override witness is claimed. The current local metric TABLE diagnostic has two ACAD_TABLE objects whose cell parsing stops before table-level override fields on unmodeled cell-value types; see the existing AC1021 metric TABLE candidate receipts."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedReader": "PASS: build/libdxfrw_dwg_object_vectors_tests --table-r2007-cell-reader",
+    "focusedAsciiBinaryOutput": "PASS: ctest --test-dir build -R '^libdxfrw_table_scalar_override_output$' --output-on-failure, 1/1",
+    "broaderObjectVectors": "FAIL: the existing aggregate libdxfrw_dwg_object_vectors CTest reports 19 AC1032 TABLESTYLE assertions (data-flag, cell-style type and margin-flag cases); the focused AC1018/AC1021 TABLE selector passes. These failures are outside the modified TABLE entity parser/writer paths and remain an independent baseline issue.",
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "This is generated schema/codec evidence, not physical producer, whole-drawing, native rendering, or consumer qualification.",
+    "Table-level color/fill/alignment/style overrides and all border override masks remain incomplete and output-ineligible.",
+    "Unknown AC1021 cell-content types 16 and 92 can stop the local metric TABLE parse before the table-level tail; no source support claim is promoted."
+  ],
+  "supportClaimsPromoted": 0,
+  "fixtureFilesAdded": 0,
+  "next": "Continue only with exact ODA-backed table override fields that have representable storage and selected-output tests; otherwise advance to another ready P5/P6 packet. Keep all nonzero color/fill/alignment/style and border masks refused until their value models and complete serialization are implemented."
+}

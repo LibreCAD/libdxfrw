@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-03",
+  "scope": "one bounded consumer OBJECTS callback failure path",
+  "test_target": "libdxfrw_symbol_output_tests",
+  "selector": "--dxf-objects-callback-bad-alloc",
+  "test_name": "libdxfrw_dxf_objects_callback_bad_alloc",
+  "target_version": "AC1032",
+  "encodings": ["ASCII", "Binary"],
+  "failure_control": {
+    "callback": "writeObjects",
+    "sequence": [
+      "write one typed XRECORD into the staged OBJECTS section",
+      "throw std::bad_alloc"
+    ]
+  },
+  "observed": {
+    "whole_write_returns_failure": true,
+    "prior_destination_preserved": true,
+    "staged_source_object_bindings_rolled_back": true,
+    "finalization_callback_not_called": true,
+    "same_codec_retry_succeeds": true,
+    "retry_typed_xrecord_readback": true
+  },
+  "validation": {
+    "command": "cmake --build build --target libdxfrw_symbol_output_tests -j4 && ctest --test-dir build -R '^libdxfrw_dxf_objects_callback_bad_alloc$' --output-on-failure",
+    "result": "passed"
+  },
+  "limits": [
+    "Covers the consumer writeObjects callback throwing std::bad_alloc after a record has been staged.",
+    "Does not sweep allocations inside every adapter-side OBJECTS builder.",
+    "Does not qualify unrelated callback phases, formats, producers, or native semantics.",
+    "Makes no format support claim."
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "id": "RPP-5ye",
+  "date": "2026-10-30",
+  "scope": "One adapter-authored AC1027 TABLECONTENT cell containing an ordered plain string value followed by one block content with one ATTDEF attribute.",
+  "profile": {
+    "contentCount": 2,
+    "orderedTypes": [1, 4],
+    "plainValue": "scalar before block",
+    "blockContentOrdinal": 1,
+    "blockReference": "One source-bound named BLOCK_RECORD with a matching BLOCK.",
+    "attribute": {
+      "contentOrdinal": 1,
+      "index": 1,
+      "target": "One uniquely emitted ATTDEF owned by the referenced BLOCK_RECORD.",
+      "text": "mixed cell attribute"
+    }
+  },
+  "outputAndReadback": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "physicalOutput": "The test locates the two CELLCONTENT_BEGIN spans, checks type 1 precedes type 4, verifies the scalar string precedes the block content, and checks the second content's remapped group-340 BLOCK_RECORD and group-330 ATTDEF references plus group-91 count and group-92 index.",
+    "typedReadback": "Two contents retain their order, value, block identity and owner; the ATTDEF reference retains content ordinal 1, index 1, and text.",
+    "generatedFixtureFilesCommitted": false
+  },
+  "validation": {
+    "command": "git diff --check && cmake --build build --target libdxfrw_dxf_fixture_tests -j4 && ./build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+    "result": "PASS",
+    "focusedOutput": "Generated DATALINK writer and adapter routes: PASS"
+  },
+  "limitations": [
+    "Only the selected scalar-then-block ordering and one block content are qualified. Reverse order, repeated block contents, mixed FIELD contents, and more general content/attribute compositions remain refused or unqualified.",
+    "This is authored field transport and local readback, not native rendering or source-file semantic parity."
+  ]
+}

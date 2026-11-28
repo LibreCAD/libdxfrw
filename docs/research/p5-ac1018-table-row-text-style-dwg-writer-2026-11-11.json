@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "status": "completed_bounded_generated_writer_slice",
+  "date": "2026-11-11",
+  "scope": "AC1018 TABLE title/header/data row text-style hard-pointer output",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.96.1 Until R21",
+    "finding": "The three table override bits 0x20000, 0x40000 and 0x80000 select title, header and data row text-style H values, each a hard pointer. The handles are in the handle stream; the parser consumes them after cell handles."
+  },
+  "implementation": {
+    "codec": "DRW_Table::encodeDwgWithExtension admits the three style bits only when each selected slot has a nonzero, non-NoHandle target; unselected slots must remain zero. The mask now includes exactly these three bits, and the hard pointers are staged after the cell handle sequence in title/header/data order.",
+    "graph_gate": "dwgWriter15::hasClosedAc1018TableBlockGraph requires each selected target to resolve through exactly one STYLE-name mapping, be emitted as an object, and, when table records are complete, occur exactly once in the emitted table-record ledger. A supplied row-style name must resolve to that same handle.",
+    "compatibility": "No public virtuals or public object layout changes were made. The existing DWG parser and DXF group-7 mapping remain unchanged."
+  },
+  "generated_control": {
+    "selected_mask": "0x000E0000",
+    "handles": ["0xA900", "0xAA00", "0xAB00"],
+    "checks": [
+      "AC1018 body encode and parser readback preserve all three selected hard-pointer handles",
+      "following body sentinel remains at the expected body boundary",
+      "unselected handle residue refuses",
+      "selected missing and NoHandle targets refuse",
+      "whole-table graph gate refuses a selected target that is a TABLESTYLE object rather than a unique emitted STYLE record"
+    ],
+    "fixture_policy": "The DWG vector is generated in memory from test code. No DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "Focused object-vector and adapter targets built with repository warning-as-error flags.",
+    "ctest": {
+      "libdxfrw_dwg_table_cell_overrides": "passed",
+      "libdxfrw_table_scalar_override_output": "passed"
+    },
+    "diff_check": "git diff --check passed"
+  },
+  "limits": [
+    "Generated codec and in-process graph checks do not establish physical producer ordering or native table rendering/preference semantics.",
+    "Parsed TABLE source-range replay remains refused; this slice does not qualify whole-document output or promote support claims."
+  ]
+}

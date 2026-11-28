@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 physical DICTIONARYWDFLT and PLACEHOLDER selected output",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify one source-bound AC1021 Normal/PLACEHOLDER graph to AC1024 DXF, without implying whole-drawing conversion or producer-wide support.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local DWG; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceProfile": {
+    "dictionary": "Physical ACDBDICTIONARYWDFLT handle 0xE, object type 500, class AcDbDictionaryWithDefault; uniquely rooted by NOD ACAD_PLOTSTYLENAME, owner/reactor NOD, cloning 1, hardOwner 0, one Normal entry and default-entry handle 0xF.",
+    "placeholder": "Physical ACDBPLACEHOLDER handle 0xF, object type 80; owner/reactor is the dictionary at 0xE, with no extension dictionary, appData or extData.",
+    "projection": "The test retains the source NOD root entry, typed dictionary/default records, both source-bound opaque frames, source read receipt and complete LTYPE control dependency. Unrelated source records are excluded only from this selected projection."
+  },
+  "qualifiedScope": {
+    "target": "AC1024 DXF",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "outputProof": "The production OBJECTS inspector binds both emitted record identities and remapped handles to the frozen AC1021 source callbacks, then checks the unique NOD key, Normal/default target, ownership and reactor fields. Both callbacks are marked output-qualified only after staged inspection succeeds.",
+    "readback": "Fresh libdxfrw import verifies the typed DICTIONARYWDFLT and raw PLACEHOLDER pair, NOD root, default target, remapped owner/reactor links and emitted class counts.",
+    "failureAndRetry": "Replacing the PLACEHOLDER reactor with NoHandle refuses atomically and preserves the destination sentinel. Restoring the source link and retrying the same writer succeeds for both encodings, followed by fresh readback."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p4-ac1021-opaque-frame-inventory-2026-11-06.json"
+    ],
+    "behavior": "The physical source-binding path now admits AC1021 for the bounded dictionary/default profile. The test projection uses AC1024 as the DXF target and preserves source-version-aware identity checks."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "focusedSelectors": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+        "result": "PASS for AC1021 selected source identity, ASCII/Binary output, source qualification, exact roles, readback, atomic refusal and same-adapter retry"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "result": "PASS for existing AC1024 source compatibility, ASCII/Binary output, exact graph roles, readback, atomic refusal and same-adapter retry"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "NOT PASS on current code: the current partial-read gate rejects the source at LTYPE_CONTROL membership before OBJECTS output. The historical AC1018 receipt is not reaffirmed by this run."
+      }
+    ],
+    "diffCheck": "git diff --check passed",
+    "fullSuites": "NOT RUN; focused profile selectors were used."
+  },
+  "limitations": [
+    "This qualifies one unauthenticated local AC1021 source profile and selected graph only.",
+    "The source drawing's unrelated FIELD/FIELDLIST and XRECORD dependencies still block whole-document output.",
+    "No native CAD consumer, producer-wide interoperability, or 3D semantic claim is established.",
+    "The AC1018 physical selector did not pass in the current-code recheck and remains open."
+  ],
+  "nextAction": "Continue with the remaining unqualified AC1021 carriers and standard-object graphs; separately repair/requalify the current AC1018 dictionary-default output path before relying on its historical receipt."
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "R24 TABLESTYLE content-layout value transport",
+  "date": "2026-11-08",
+  "supportClaimEffect": "none",
+  "source": {
+    "specification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.4",
+    "finding": "TABLEFORMAT group 93 is a BL content-layout value. Documented values are Flow=1, Stacked horizontal=2, and Stacked vertical=4."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "The AC1024 TABLESTYLE DXF writer admits per-style content-layout values 1, 2, and 4 while retaining all other profile gates. It rejects value 8 before replacing the destination."
+  },
+  "validation": {
+    "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4 && ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+    "result": "Build passed; focused CTest passed 1/1. Generated ASCII and Binary controls verify group 93 at its TABLEFORMAT field position, typed readback for each style, invalid-value refusal with destination preservation, and corrected same-adapter retry.",
+    "fixturesAdded": 0
+  },
+  "qualificationLimits": [
+    "Generated codec controls do not qualify independent producer wire behavior.",
+    "Native TABLESTYLE layout and rendering remain unqualified.",
+    "No whole-file DWG/DXF support claim is promoted."
+  ],
+  "hashes": {
+    "src/libdxfrw.cpp": "df6e044622886d2a8346a26825c3f7665a8bedfb8ec87cc540cd1c55f4c74070",
+    "tests/dwg2dxf_adapter_tests.cpp": "520fe3e7ce3f236a2c0b23a3f63563d3328b9ed9fa7db456f7983eacbff4c690"
+  }
+}

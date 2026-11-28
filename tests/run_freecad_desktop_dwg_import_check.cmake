@@ -7,8 +7,10 @@ if(NOT DEFINED BUILD_DWG2DXF_EXECUTABLE
         OR NOT EXISTS "${BUILD_DWG2DXF_EXECUTABLE}")
     message(FATAL_ERROR "BUILD_DWG2DXF_EXECUTABLE is required for install isolation")
 endif()
-if(NOT DEFINED SAMPLE OR NOT EXISTS "${SAMPLE}")
-    message(FATAL_ERROR "SAMPLE must name an existing tracked DWG")
+if(NOT DEFINED DWG_SOURCE_GENERATOR
+        OR NOT EXISTS "${DWG_SOURCE_GENERATOR}")
+    message(FATAL_ERROR
+        "DWG_SOURCE_GENERATOR must name the local DWG source generator")
 endif()
 if(NOT DEFINED DESKTOP_CHECK_MACRO OR NOT EXISTS "${DESKTOP_CHECK_MACRO}"
         OR NOT DEFINED IMPORT_CHECK_MACRO OR NOT EXISTS "${IMPORT_CHECK_MACRO}")
@@ -58,10 +60,47 @@ else()
 endif()
 set(_test_root "${_system_temp}/libdxfrw-freecad-desktop-${_run_id}")
 file(MAKE_DIRECTORY "${_test_root}")
+set(_generated_source "${_test_root}/source drawing AC1021.dwg")
+execute_process(
+    COMMAND "${DWG_SOURCE_GENERATOR}" --generate-cli-batch-source
+        "${_generated_source}" AC1021
+    RESULT_VARIABLE _generate_status
+    OUTPUT_VARIABLE _generate_stdout
+    ERROR_VARIABLE _generate_stderr
+    TIMEOUT 30
+)
+if(NOT "${_generate_status}" STREQUAL "0"
+        OR NOT EXISTS "${_generated_source}")
+    message(FATAL_ERROR
+        "Could not generate the local AC1021 FreeCAD source (${_generate_status}).\n"
+        "stdout:\n${_generate_stdout}\nstderr:\n${_generate_stderr}\n"
+        "Isolated evidence retained at ${_test_root}")
+endif()
 set(_input_dir "${_test_root}/input with spaces")
 set(_source_copy "${_input_dir}/ordinary encoding.dwg")
 file(MAKE_DIRECTORY "${_input_dir}")
-configure_file("${SAMPLE}" "${_source_copy}" COPYONLY)
+configure_file("${_generated_source}" "${_source_copy}" COPYONLY)
+
+# FreeCAD's importer launches the installed converter. Check that exact
+# artifact against this source before opening the desktop application so an
+# invalid source profile fails quickly with the converter's reason.
+set(_preflight_output "${_test_root}/strict preflight.dxf")
+execute_process(
+    COMMAND "${FREECAD_DWG2DXF_EXECUTABLE}" "${_source_copy}" -o
+        "${_preflight_output}"
+    RESULT_VARIABLE _preflight_status
+    OUTPUT_VARIABLE _preflight_stdout
+    ERROR_VARIABLE _preflight_stderr
+    TIMEOUT 60
+)
+if(NOT "${_preflight_status}" STREQUAL "0"
+        OR NOT EXISTS "${_preflight_output}")
+    message(FATAL_ERROR
+        "Installed dwg2dxf strict preflight failed (${_preflight_status}); "
+        "FreeCAD was not launched.\nstdout:\n${_preflight_stdout}\n"
+        "stderr:\n${_preflight_stderr}\n"
+        "Isolated evidence retained at ${_test_root}")
+endif()
 
 set(_runtime_evidence "")
 foreach(_operation IN ITEMS open insert)
@@ -92,6 +131,8 @@ foreach(_operation IN ITEMS open insert)
         "LIBDXFRW_FREECAD_TEMP_ROOT=${_test_root}"
         "LIBDXFRW_FREECAD_RESULT_FILE=${_result_file}"
         "LIBDXFRW_FREECAD_CHECK_MACRO=${IMPORT_CHECK_MACRO}"
+        "LIBDXFRW_FREECAD_EXPECT_LINE_BOUNDS=[[1,2,3,4,5,6]]"
+        "LIBDXFRW_FREECAD_EXPECT_LINE_ENDPOINTS=[[[1,2,3],[4,5,6]]]"
         "FREECAD_USER_HOME=${_user_home}"
         "FREECAD_USER_DATA=${_user_data}"
         "FREECAD_USER_TEMP=${_user_temp}"

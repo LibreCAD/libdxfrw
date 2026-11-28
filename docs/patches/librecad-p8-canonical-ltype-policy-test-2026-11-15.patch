@@ -1,0 +1,61 @@
+diff --git a/librecad/src/lib/filters/tests/dxf_object_tests.cpp b/librecad/src/lib/filters/tests/dxf_object_tests.cpp
+index f039759..6a74d9f 100644
+--- a/librecad/src/lib/filters/tests/dxf_object_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_object_tests.cpp
+@@ -53,6 +53,14 @@
+ 
+ namespace {
+ 
++template <typename T, typename = void>
++struct HasCanonicalLTypeMetadata : std::false_type {};
++
++template <typename T>
++struct HasCanonicalLTypeMetadata<T, std::void_t<decltype(
++    std::declval<T&>().setCanonicalLineTypeMetadata(
++        std::declval<const std::vector<DRW_LType>&>()))>> : std::true_type {};
++
+ std::string slurp(const std::filesystem::path &path);
+ std::vector<std::pair<std::string, std::string>> readGroups(
+     const std::filesystem::path &path);
+@@ -10312,10 +10320,11 @@ TEST_CASE("DXF raw strings with line breaks become caret codes in ASCII",
+   std::filesystem::remove(path);
+ }
+ 
+-TEST_CASE("DXF built-in linetypes leave out application data",
++TEST_CASE("DXF built-in linetype metadata follows codec policy",
+           "[dxf][ltype][writer]") {
+-  // BYLAYER, BYBLOCK and CONTINUOUS are written by the codec itself; the
+-  // payload a source file attaches to them (R14 DWG) cannot follow.
++  // Mandatory records are emitted before this callback. A codec with the
++  // metadata hook refuses unseeded payload; the older bundled codec reports
++  // that it left the payload out.
+   class LTypeEmitter : public StubInterface {
+   public:
+     dxfRW *m_rw = nullptr;
+@@ -10331,12 +10340,23 @@ TEST_CASE("DXF built-in linetypes leave out application data",
+   const auto path = std::filesystem::temp_directory_path() /
+                     "lc_dxf_builtin_ltype_payload.dxf";
+   std::filesystem::remove(path);
++  {
++    std::ofstream previous(path, std::ios::binary);
++    previous << "previous output\n";
++  }
+   LTypeEmitter emitter;
+   dxfRW writer(path.string().c_str());
+   emitter.m_rw = &writer;
+-  CHECK(writer.write(&emitter, DRW::AC1021, false));
+-  CHECK(emitter.m_result);
+-  CHECK(writer.leftOut().count("application data of a built-in linetype") == 1);
++  const bool written = writer.write(&emitter, DRW::AC1021, false);
++  if (HasCanonicalLTypeMetadata<dxfRW>::value) {
++    CHECK_FALSE(written);
++    CHECK_FALSE(emitter.m_result);
++    CHECK(slurp(path) == "previous output\n");
++  } else {
++    CHECK(written);
++    CHECK(emitter.m_result);
++    CHECK(writer.leftOut().count("application data of a built-in linetype") == 1);
++  }
+   std::filesystem::remove(path);
+ }
+ 

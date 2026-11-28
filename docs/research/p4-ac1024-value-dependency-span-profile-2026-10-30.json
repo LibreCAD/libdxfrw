@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-value-dependency-span-profile-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 associative value-dependency physical span profile",
+  "status": "PHYSICAL_SPANS_DECODED_AND_BOUNDED_77_RECORDS",
+  "supportClaimEffect": "none",
+  "scope": {
+    "version": "AC1024",
+    "record": "ACDBASSOCVALUEDEPENDENCY",
+    "purpose": "Decode and bound the source-backed body, string, and handle suffix spans for the three audited local witnesses; do not qualify recursive graph output or other producer/version profiles."
+  },
+  "evidence": {
+    "physicalSources": [
+      {
+        "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+        "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+        "records": 21,
+        "valueCodes": {"40": 2, "90": 19},
+        "traceSha256": "bce3819b11c4f3925109c0cb06e1e42ba5919e56f10a11726d0a94ddb7ee15c3"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+        "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+        "records": 26,
+        "valueCodes": {"40": 0, "90": 26},
+        "traceSha256": "fbaa5575d34313e37a081cfe1e08016ebe87d9f0f178ae8acf4f2ab4804b313d"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "records": 30,
+        "valueCodes": {"40": 15, "90": 15},
+        "traceSha256": "02297e161483f9d2ff537c1aa67b92dc3ae5cb9e8898dbaf52072feaef45b31c"
+      }
+    ],
+    "independentDecode": {
+      "source": "Candidate raw bit-span decoder cross-checked against LibreDWG 0.14 peer JSON and graph joins recorded in p4-ac1024-value-dependency-handle-code-profile-2026-10-30.json and p4-ac1024-assoc-value-dependency-closure-2026-10-30.json.",
+      "records": 77,
+      "result": "All decoded value kinds and values match the peer target-variable projection; the remaining body and string tails are bounded and the handle stream ends in byte-alignment padding."
+    },
+    "wireProfile": {
+      "body": "BS class version 0, TV value name, BS value discriminator 40 or 90, then BD real or BL signed 32-bit integer.",
+      "string": "The value name is encoded as TV; these witnesses use the empty name and the bounded string stream is consumed exactly.",
+      "handles": "The four common references use the witnessed 4/4/4/3 tuple. The residual handle bits are exactly the count needed to reach the next byte boundary; their values are not required to be zero.",
+      "authority": "ODA Open Design Specification for .dwg files v5.4.1, sections 2.2–2.4 for bit-code framing and 20.1 for common nonentity-object framing and B* handle-stream byte alignment."
+    },
+    "implementationTrace": {
+      "method": "Temporary debug trace of the production dwg2dxf AC1024 parser, removed after evidence collection.",
+      "wireComplete": "77/77 records report class version 0, a supported 40/90 value code, parsed typed fields, and complete bounded body/text/handle spans.",
+      "readFailures": "All three imports report entityParseFailures=0 and objectParseFailures=0."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/wave1_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "The AC1024 value-dependency typed suffix parser retains class version, value name, and either a finite real or signed 32-bit cached value. It accepts only exact byte-alignment padding in the handle stream, checks the observed handle-code tuple, and keeps unknown or malformed suffixes wire-incomplete. The DXF writer emits the typed subclass and refuses incomplete or invalid typed state.",
+    "failureBehavior": "Generated vectors reject mismatched handle codes. The writer's value-dependency late-EED failure rolls back bytes and source identity, and the corrected same-object retry succeeds.",
+    "supportClaimEffect": "none"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j 4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_associative_dependency_fields|libdxfrw_associative_dependency_writer|dwg2dxf_associative_dwg_root_network_value_dependency_export)$' --output-on-failure",
+      "result": "PASS 3/3; includes generated integer/real parsing, ASCII/binary integer/real DXF emission, graph readback, failure rollback, and retry."
+    },
+    "physicalImports": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf <source.dwg> -y -d -v2010 <temporary-output.dxf>",
+      "result": "All three sources have zero entity/object parser failures and each of their 77 total value-dependency records is wire-complete. Strict complete conversion still exits 1 and creates no output because the whole read disposition remains incomplete; the separate ACDBASSOCVARIABLE suffix is a known unresolved P4 blocker.",
+      "fullSuites": "NOT_RUN"
+    },
+    "fixtures": "No investigation DWG/DXF fixture was added."
+  },
+  "limitations": [
+    "The decoder is qualified only for the three listed AC1024 local source profiles.",
+    "Owner/descendant graph closure, composed output, exact emitted-field readback for physical sources, and strict conversion remain open.",
+    "The mechanical ACDBASSOCVARIABLE suffix still makes complete strict import fail.",
+    "No external or native consumer evidence is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Decode and bound the AC1024 value-dependency physical body/text/handle suffix spans for the 77 records in the three named witnesses.",
+    "remainingP4Scope": "Resolve remaining owner/dependency edges and descendants, the mechanical ACDBASSOCVARIABLE suffix, output/readback, and strict complete-export admission.",
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "a503a7a150d9059d9486c93784ab76438be650f6034ba0391acae7fe3b24028e",
+    "src/drw_objects.h": "7b8f0bc6d42b0b28131fca6914f8869bb9f0b5cb76f704a4c4a4e1e514bb9754",
+    "src/libdxfrw.cpp": "4b30a9aee09ef0bb0eeb239d02086f931879ba3c25a71e204906a7b418162824",
+    "dwg2dxf/dx_iface.cpp": "c3b9eef46920c26aa1a31f570b9463039d95548085fc49dc2b1091c8e113991d",
+    "tests/dwg_object_vectors_tests.cpp": "46877b4f7e0c247ee2bfc81efcda2589e355e9e243861a9b92c7787672725544",
+    "tests/wave1_tests.cpp": "ac0f9bc675aa24c6c78e439f6d14b7d38bd2408ef61f189a5d1f83c0bc55f82f",
+    "tests/dwg2dxf_adapter_tests.cpp": "daf37a7dcb9527865e74df1295b1beedafb5c18ba228cae144b99167423bab30",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "299556c628c81f51b8d480f7baedced69720fb4e8d7d84fdd4a9a6e090c7b93c"
+  }
+}

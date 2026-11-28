@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ODA-profile MLEADER root flag and coordinate field order",
+  "mode": "Local generated DWG entity vectors with an independent bit-level root cursor walk",
+  "scope": [
+    "Implement ODA Open Design Specification v5.4.1 section 20.4.86 ordering for embedded MLeaderAnnotContext root fields.",
+    "Preserve the two root flags while reading and writing connection-point and direction 3BD coordinates unconditionally.",
+    "Keep standalone AcDbMLeaderObjectContextData parsing and graph semantics separate."
+  ],
+  "method": {
+    "peer_repository_cloned": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "persistent_fixture_added": false,
+    "new_ctest_registration": false,
+    "full_suite_run": false,
+    "production_files_changed": ["src/drw_entities.cpp"],
+    "test_files_changed": ["tests/dwg_object_vectors_tests.cpp"]
+  },
+  "coverage": {
+    "versions": ["AC1024", "AC1032"],
+    "flag_pairs_290_291": [[0, 0], [0, 1], [1, 0], [1, 1]],
+    "checks": [
+      "literal bit walker reads distinct connection point and direction 3BD values unconditionally",
+      "literal bit walker reaches expected break count, break values, leader index, landing distance, and leader-line point count",
+      "exact truncation after flags and after connection point rebuilds a valid detached-string footer and fails at the required 3BD boundary",
+      "production parser retains flags and root/leader-line fields",
+      "non-null per-line and entity-level handle suffixes decode before a hard-pointer sentinel"
+    ],
+    "truncation_footer": "rebuilt so objectSize and bodyEndBit end exactly at each tested truncation boundary"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j 4",
+    "build_result": "PASS",
+    "focused_selector": "./build-gcc/libdxfrw_dwg_object_vectors_tests --mleader-root-flag-field-order",
+    "focused_selector_result": "PASS",
+    "owning_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+    "owning_ctest_result": "PASS (1/1)",
+    "scoped_diff_check": "PASS"
+  },
+  "plan_impact": {
+    "plan_section": "PAR-20 embedded MLeader root framing; standalone 7F.1 remains separate",
+    "local_oda_profile_slice": "implemented and generated local controls pass",
+    "standalone_context_graph_and_payload": "still fail-closed / incomplete",
+    "producer_conflict_qualification": "pending",
+    "support_claims_promoted": 0,
+    "finding_count": 139,
+    "top_level_subplan_count": 77,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "repository_state": "Source, test, plan, and receipt updated in a broadly dirty shared worktree. Nothing staged or committed."
+}

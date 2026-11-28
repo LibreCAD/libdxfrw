@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ARCALIGNEDTEXT retained-string adapter capture bounds",
+  "mode": "Generated local implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Account all dynamic DRW_ArcAlignedText subtype strings in the typed entity callback estimate",
+    "Verify retained copy, byte accounting, and aggregate-budget refusal with generated in-memory controls",
+    "Keep OLE/underlay callback support and output behavior separate from adapter-retention claims"
+  ],
+  "implementation": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistrationChanged": false,
+    "retainedFields": [
+      "m_textSize",
+      "m_xScale",
+      "m_charSpacing",
+      "m_offsetFromArc",
+      "m_rightOffset",
+      "m_leftOffset",
+      "m_fontName",
+      "m_bigFontName"
+    ],
+    "rtextSeparateEstimateNeeded": false,
+    "oleAndUnderlayRetentionChanged": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_typed_entity_capture_limits$' --output-on-failure",
+      "git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "strictTargetsBuilt": true,
+    "focusedTestsPassed": "1/1",
+    "fullSuiteRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "limitations": [
+    "The byte budget is a logical retained-payload estimate, not allocator-capacity or RSS accounting.",
+    "No serializer or semantic support is implied by typed callback retention.",
+    "The adapter does not currently override OLEFRAME, OLE2FRAME, or UNDERLAY callbacks; no retention behavior for those entities was changed or claimed.",
+    "The slice is uncommitted because it depends on the user's existing large uncommitted implementation in the same source and test files."
+  ],
+  "planImpact": {
+    "existingOwnerRefined": "7S.2c adapter-owned persistent callback retention census",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "generatedControlsOnly": true,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/arc-aligned-text-callback-capture-bounds-fast-slice-2026-10-19.json"
+    ],
+    "stagedOrCommitted": false
+  },
+  "planSha256": "d198431ef4f92290c5a7b1e3e05ee1ffb714a2b38d0edc160698977e771a9c78"
+}

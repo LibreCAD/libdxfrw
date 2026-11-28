@@ -1,0 +1,40 @@
+{
+  "id": "par134-ac1021-ac1024-table-cadvalue-kunknown-semantics",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "26543b5ef74960f3648b8f60c00a03690f19471ef8d0aea562e73b1f42926e16",
+  "scope": {
+    "class": "DRW_Table / DRW_TableContentObject",
+    "version": "AC1021 and AC1024",
+    "field": "TABLE CadValue type-0 kUnknown semantic completeness",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "change": "Both AC1021 and AC1024 TABLE cell parsing routes now preserve the type-0 BL framing but mark semantic content incomplete, avoiding a known-integer claim for kUnknown.",
+  "generatedControls": {
+    "ac1021": "Standalone TABLECONTENT retains the row/cell and integer-shaped raw variant while semantic completeness is false.",
+    "ac1024": "Embedded TABLE accepts the frame, atomically withholds incomplete rows, and leaves the public body cursor at the optional TABLECONTENT start."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_table_(cell_.*|cadvalue_.*)$' --output-on-failure: PASS (10/10)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

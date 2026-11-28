@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1024 BLOCK_CONTROL null-member diagnostic classification",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Classify the current AC1024 BLOCK_CONTROL integrity row and verify the diagnostic distinguishes a null target from a wrong handle role, without changing completeness admission.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "provenanceLimit": "Existing local drawing; producer provenance is not authenticated. No fixture is committed."
+  },
+  "observation": {
+    "reader": "libdxfrw current source",
+    "frames": "501/501 published; zero entity/object parse failures; finalized-complete frame ledger",
+    "blockControl": {
+      "handle": "0x1",
+      "ordinaryEntryCount": 7,
+      "ordinaryEntries": ["0x127", null, null, "0xFF1", null, null, "0x11A4"],
+      "modelSpace": "0x2",
+      "paperSpace": "0xC",
+      "nullOrdinaryEntryCount": 3
+    },
+    "previousDiagnostic": "TableControlHandleRole expected=2 observed=2 with no target handle. The soft-owner role matches; the target is null.",
+    "currentDiagnostic": {
+      "kind": "TableControlNullMember",
+      "severity": "Error",
+      "phase": "SectionParser",
+      "logicalSectionId": 11,
+      "section": "BLOCK_CONTROL",
+      "offsetSpace": "DecodedBuffer",
+      "decodedOffset": 4,
+      "logicalHandle": "0x1",
+      "expectedRole": 2,
+      "observedRole": 2
+    }
+  },
+  "independentEvidence": {
+    "specification": "Open Design Specification for .dwg files v5.4.1, §20.4.51 BLOCK CONTROL",
+    "specificationFinding": "The seven ordinary entries are block-header handles with soft-owner role, followed by separate model-space and paper-space hard-owner handles. Null ordinary targets are not documented.",
+    "libredwg": {
+      "version": "dwgread 0.14",
+      "result": "The same source lists the same seven ordered ordinary entries, including three null references, and resolves model-space 0x2 and paper-space 0xC.",
+      "classification": "Tolerant-peer structural observation, not proof that null ordinary entries are valid or safe to omit."
+    }
+  },
+  "change": "BLOCK_CONTROL zero-target slots now emit TableControlNullMember and identify the control object; non-null role mismatches continue to emit TableControlHandleRole. The diagnostic remains error-severity.",
+  "validation": {
+    "generatedControl": "PASS: focused CTest libdxfrw_block_control_null_member_diagnostic distinguishes null target from wrong role.",
+    "physicalSource": "PASS: current CLI reports kind 41/TableControlNullMember and still refuses strict export at the complete-read gate.",
+    "fullSuites": "NOT RUN"
+  },
+  "limits": [
+    "This corrects diagnostic classification only; it does not qualify the physical source for output.",
+    "Strict and bounded-partial export remain refused while ordinary BLOCK_CONTROL members are null.",
+    "Do not synthesize missing targets or infer that LibreDWG acceptance makes the null entries valid.",
+    "No DWG/DXF fixture was added to the repository."
+  ],
+  "nextAction": "Continue the P4 candidate census with a different source already admitted by strict or bounded-partial export; retain title_block-arch.dwg as a refused source profile unless eligible producer/native evidence resolves its null entries."
+}

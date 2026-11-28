@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw-peer-research-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reassess the previously surfaced cad2d-ir 2D DXF route against current package and repository sources; resolve its artifact/source version boundary; screen adjacent IFCCAD and viewer projects for independent DWG/DXF evidence; refine only the existing comparator matrix and composed checkpoint.",
+  "method": {
+    "kind": "Primary-source repository, package-index, README, and test-inventory review plus local plan cross-check",
+    "peerRepositoryCloned": false,
+    "peerPackageDownloadedOrInstalled": false,
+    "peerExecutablesOrTestsRun": false,
+    "drawingsDownloaded": 0,
+    "drawingsUploaded": 0,
+    "localTestsRun": false,
+    "productionCodeChanged": false,
+    "localTestsChanged": false,
+    "planFileUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sources": [
+      "https://github.com/monozukuri-ai/cad2d-ir",
+      "https://github.com/monozukuri-ai/cad2d-ir/blob/main/pyproject.toml",
+      "https://github.com/monozukuri-ai/cad2d-ir/tree/main/tests",
+      "https://pypi.org/project/cad2d-ir/",
+      "https://github.com/OpenAEC-Foundation/ifccad-prototype",
+      "https://github.com/OpenAEC-Foundation/ifccad",
+      "https://github.com/kjarada/OpenCAD"
+    ],
+    "evidenceBoundary": "Repository and package documentation establish candidate scope only. The 0.12.5 package artifacts were not downloaded or inspected, the mutable GitHub main tree advertises 0.12.1, and no execution, parser result, DXF output, or consumer acceptance was independently reproduced."
+  },
+  "evidence": [
+    {
+      "topic": "cad2d-ir is a narrow optional 2D DXF reader/writer candidate",
+      "sources": [
+        "https://github.com/monozukuri-ai/cad2d-ir",
+        "https://github.com/monozukuri-ai/cad2d-ir/tree/main/tests",
+        "https://pypi.org/project/cad2d-ir/"
+      ],
+      "observed": [
+        "The README describes an MIT-licensed Alpha typed 2D IR, a built-in DXF parser, and DXF R12/AC1009 and R2010/AC1024 export.",
+        "The published test inventory includes DXF import, export contract, encoding, OCS projection, deterministic golden, entity-ID uniqueness, and roundtrip test modules.",
+        "The README describes deterministic entity-to-handle correspondence and explicit diagnostics for skips, approximations, explosions, and normalizations.",
+        "PyPI lists version 0.12.5 and exposes wheel SHA-256 ce7c259b26dda8149665b337e283167d4abcceccb2428d3f6aff09c3d3706c30 and sdist SHA-256 37d3ec0ca7e6eeb662eb7184cbff392a608469f5be9f802488830ff1bc6e1761. The page reports that the release was not uploaded using Trusted Publishing."
+      ],
+      "doesNotEstablish": [
+        "That the inspected mutable GitHub source matches either exact published artifact.",
+        "Runtime behavior, conformance, or completeness for any entity/object/version profile.",
+        "Lossless DXF preservation, DWG parser independence, 3D support, ACIS/AcDs semantics, or native CAD acceptance."
+      ],
+      "planUse": "Optional common-2D and R12 downgrade-diagnostic candidate at the existing composed DXF checkpoint, only after inspecting the exact artifact contents, source correspondence, dependencies, and operation boundary. It is not part of per-slice validation."
+    },
+    {
+      "topic": "Published package and mutable repository version do not currently identify the same release",
+      "sources": [
+        "https://github.com/monozukuri-ai/cad2d-ir/blob/main/pyproject.toml",
+        "https://pypi.org/project/cad2d-ir/"
+      ],
+      "observed": [
+        "The inspected current GitHub main pyproject.toml says version 0.12.1.",
+        "The current PyPI page lists version 0.12.5 and says the release upload was not Trusted Publishing.",
+        "This pass did not inspect a matching tag, provenance statement, sdist contents, or package-to-commit attestation."
+      ],
+      "doesNotEstablish": [
+        "That the published artifact is defective or malicious.",
+        "That the repository source and artifact necessarily differ in implementation."
+      ],
+      "planUse": "Keep the candidate NOT_READY until the pinned 0.12.5 artifacts are inspected and their source correspondence is resolved. Do not assume mutable main is the released implementation."
+    },
+    {
+      "topic": "R12 export is explicitly a lossy projection and DWG uses the ezdwg lineage",
+      "source": "https://github.com/monozukuri-ai/cad2d-ir",
+      "observed": [
+        "README states that optional DWG input delegates to ezdwg.",
+        "README describes R12 conversion of LWPOLYLINE to POLYLINE/VERTEX, MTEXT to TEXT, ELLIPSE/SPLINE to sampled polylines, and HATCH to boundary polylines.",
+        "README says generic dimensions default to exploded visual primitives and that export diagnostics report losses/approximations."
+      ],
+      "doesNotEstablish": [
+        "Native entity preservation after IR projection or downgrade.",
+        "An independent DWG parser lineage, full document graph retention, or 3D/ACIS semantics."
+      ],
+      "planUse": "Use only for a source-authored common-2D manifest and explicitly lossy R12 profile. Count DWG input under ezdwg lineage; preserve each diagnostic and do not score projected output as native-file preservation."
+    },
+    {
+      "topic": "Adjacent IFCCAD and OpenCAD routes do not add independent DWG/DXF evidence",
+      "sources": [
+        "https://github.com/OpenAEC-Foundation/ifccad-prototype",
+        "https://github.com/OpenAEC-Foundation/ifccad",
+        "https://github.com/kjarada/OpenCAD"
+      ],
+      "observed": [
+        "IFCCAD prototype README describes a model-first 2D subset and a Python DXF adapter using ezdxf; its conformance collection targets a distinct IFCCAD package format.",
+        "The primary IFCCAD repository states that its Rust format crate deliberately does not provide DWG/DXF I/O.",
+        "OpenCAD documents a limited DXF viewer projection through the npm dxf parser and says its DWG path remains experimental, with guidance to export DXF from CAD software."
+      ],
+      "doesNotEstablish": [
+        "An independent native DWG parser or broad DXF reader/writer.",
+        "Semantic preservation or application acceptance from package conformance vectors or a viewer projection."
+      ],
+      "planUse": "Discovery-only. Do not count alternate-format conformance corpora, wrappers, or narrow rendered projections as independent DWG/DXF semantic votes."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "newPeerGateAdded": false,
+    "optionalPeerCandidateRefined": "cad2d-ir 0.12.5; exact artifact inspection required before optional composed use",
+    "testRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

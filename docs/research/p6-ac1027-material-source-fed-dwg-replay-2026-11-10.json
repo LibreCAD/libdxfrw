@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1027-material-source-fed-dwg-replay-2026-11-10",
+  "date": "2026-11-10",
+  "status": "SELECTED_PHYSICAL_SOURCE_MATERIAL_GRAPH_AND_CLASS_METADATA_REPLAY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Take the three exact-profile AC1027 MATERIAL records parsed from the existing Cover.dwg source and emit them together through one selected-object DWG graph, then verify the complete graph with a fresh libdxfrw reader.",
+  "evidence": {
+    "source": {
+      "path": "/Users/dli/doc/dwg/Cover.dwg",
+      "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "version": "AC1027",
+      "records": ["ByBlock", "ByLayer", "Global"],
+      "producer": "Not independently certified by this receipt"
+    },
+    "output": {
+      "mode": "One generated AC1027 DWG file in the system temporary directory; its ACAD_MATERIAL dictionary contains all three selected physical-source MATERIAL records and is owned by NOD.",
+      "readback": "Fresh libdxfrw reader checks all three dictionary key/name bindings, remapped record handles, owner/reactor roles, complete semantic fields, each exact retained 516-bit body, and detached strings.",
+      "independentPeerReadback": "LibreDWG 0.14 dwgread minJSON independently reads the generated DWG. A committed verifier checks MATERIAL CLASSES metadata (proxyflag 0x481, 3 instances, item_class_id 499, DWG version 23, maintenance version 14), the NOD-to-dictionary-to-material graph, all three key/name/handle bindings, common owner/reactor roles, exact default map/color/scalar fields, and empty image-backed map filenames. Mutation controls reject changed proxy flag, class version, owner, channel flags, and record name.",
+      "allocationFailure": "The same selected graph is emitted with allocation failure injected at each of 219 measured allocation offsets inside the MATERIAL/dictionary OBJECTS callback. Every failure leaves the seeded destination unchanged. The same writer and adapter then retry, and fresh typed readback checks the NOD/dictionary/three-material graph and source-derived body profiles.",
+      "fixturePolicy": "No drawing fixture committed; temporary outputs are removed by test cleanup."
+    }
+  },
+  "implementation": {
+    "file": "tests/dwg_default_material_optin_tests.cpp",
+    "change": "Added a physical-source selector that reads the three MATERIAL callbacks and feeds all parsed records together into one selected DWG replay/readback graph. Replay graph construction and readback use each selected material's own dictionary key and distinct remapped handle. The shared physical audit identifies dictionary entries by key instead of depending on entry order. The typed MATERIAL class row now matches the AC1027 source profile's 0x481 proxy flags, DWG version 23 and maintenance version 14; the independent test found and now guards the previously missing clone-allowed bit and version metadata.",
+    "selector": "build-gcc/tests/libdxfrw_dwg_default_material_optin_tests --physical-ac1027-material-dwg-replay /Users/dli/doc/dwg/Cover.dwg"
+  },
+  "independentPeer": {
+    "name": "LibreDWG",
+    "version": "dwgread 0.14",
+    "binaryPath": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -O minJSON -o /tmp/libdxfrw-ac1027-material-source-graph.min.json /tmp/libdxfrw-ac1027-material-source-graph.dwg",
+    "checker": "tools/research/verify_ac1027_material_graph_minjson.py",
+    "checkerSha256": "3644f355da7c1d143c6b3658987cc7be60786185c6382d4135c65b61f57a8e66",
+    "outputDwgSha256": "f88476be003f585660c9f4c30e745471a02d5668c66e31dae4686c187c190e2b",
+    "minJsonSha256": "266569f84ee20a210dc3a3adb39e79bc42a449d7606e93df050235e121a522fb",
+    "result": "PASS; NOD 0xC → ACAD_MATERIAL dictionary 0xB100 → three MATERIAL records 0xB101–0xB103; class metadata matches AC1027 source"
+  },
+  "classMetadataEvidence": {
+    "authority": {
+      "document": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "section": "§5.8 AcDb:Classes Section",
+      "relevantRule": "Proxy flag bit 128 means cloning allowed; the CLASSES row includes instance count, DWG version and maintenance release version."
+    },
+    "sourceObservations": [
+      {
+        "path": "/Users/dli/doc/dwg/Cover.dwg",
+        "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+        "peerMinJsonSha256": "12a88999c8a23a63aa82062bc867432afd62df558c74fd0cd446520acaa0e0e9",
+        "profile": "AC1027 MATERIAL proxyflag=1153 (0x481), instance count=3, item_class_id=499, dwg_version=23, maint_version=14"
+      },
+      {
+        "path": "/private/tmp/libredwg-point-2010.json",
+        "sha256": "61515ebe3b22cdf3eccfce52ded76842945d82f564f577374deef5b2d4e60aae",
+        "profile": "AC1024 MATERIAL proxyflag=0x481, dwg_version=23, maint_version=14"
+      },
+      {
+        "path": "/private/tmp/nextgis-arc-2010.json",
+        "sha256": "67913dea11806b7d992dfd06ab8a5b846ad5407b2a2093d1f740f841d6a1431d",
+        "profile": "AC1024 MATERIAL proxyflag=0x481, dwg_version=23, maint_version=14"
+      },
+      {
+        "path": "/Users/dli/doc/dwg/tablet.dwg",
+        "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+        "peerMinJsonSha256": "1aa767cd3d0290dee8bcc4d2428ed4e101fa70ee79ab4cedbd14c39096911e07",
+        "profile": "AC1021 MATERIAL proxyflag=0x400, dwg_version=23, maint_version=14"
+      }
+    ],
+    "scopeNote": "An AC1021 tablet source reports proxyflag 0x400 but the same 23/14 version fields. Proxy capability flags vary by source/profile; this receipt qualifies the selected AC1027 profile and does not assert a universal producer value."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_default_material_optin_tests -j4",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_default_material_optin$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "physicalSourceSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg_default_material_optin_tests --physical-ac1027-material-dwg-replay /Users/dli/doc/dwg/Cover.dwg",
+      "result": "PASS for ByBlock, ByLayer and Global; rollback/retry sweep passed at 219 allocation offsets"
+    },
+    "independentPeerVerifier": {
+      "command": "python3 tools/research/verify_ac1027_material_graph_minjson.py /tmp/libdxfrw-ac1027-material-source-graph.min.json",
+      "result": "PASS; owner, channel-flag, and name mutations rejected 3/3"
+    },
+    "diffCheck": "PASS",
+    "sha256": {
+      "src/intern/dwgwriter.h": "9c8be8d58ed45f133d89415848a3575ce870dcd1b4585acdfa3fa44be365229a",
+      "tests/dwg_default_material_optin_tests.cpp": "5e2a65fe2678d7423f7da7092c6cb75c838be611ada2c16309b9f32431af76ab",
+      "build-gcc/tests/libdxfrw_dwg_default_material_optin_tests": "a6f889ff71dcd8566b470b7b4e1bdbf8fb264fea922e71827329c166f2fa7e69",
+      "tools/research/verify_ac1027_material_graph_minjson.py": "3644f355da7c1d143c6b3658987cc7be60786185c6382d4135c65b61f57a8e66",
+      "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "/Users/dli/doc/dwg/Cover.dwg": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42"
+    }
+  },
+  "limitations": [
+    "This is source-fed selected-record serialization into one generated graph, not a writeback of the original Cover.dwg or whole-source conversion.",
+    "Readback uses the same libdxfrw implementation; no independent producer/native reader acceptance is established.",
+    "LibreDWG is an independent reader implementation but is a peer library, not an AutoCAD/ODA producer or native semantic consumer.",
+    "Other AC1027 MATERIAL profiles, AC1021/AC1024 retained modern bodies, general MATERIAL semantics, and broad graph closure remain unqualified and refused.",
+    "No support claim is promoted."
+  ]
+}

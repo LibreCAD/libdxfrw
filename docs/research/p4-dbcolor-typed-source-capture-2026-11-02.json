@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-dbcolor-typed-source-capture-2026-11-02",
+  "date": "2026-11-02",
+  "title": "Generated in-memory DBCOLOR typed source capture",
+  "status": "GENERATED_DWG_TYPED_CAPTURE_PASSED_SOURCE_GRAPH_OPEN",
+  "supportClaimEffect": "none",
+  "baselineHead": "96f3e162",
+  "scope": "Retain the complete typed DRW_DbColor callback by import generation and source handle under a bounded byte and record budget, atomically with the appearance map used to reconcile earlier entities.",
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Each accepted DBCOLOR callback stores its complete typed source record, including common ownership/reactor/extension metadata and the retained color-book fields, keyed by import generation and handle.",
+      "The typed record is estimated before copying and bounded by the DBCOLOR record and retained-byte limits.",
+      "Typed source and appearance insertion are rolled back together if either insertion fails; duplicate identities fail closed without overwriting accepted values.",
+      "The adapter test verifies preserved typed fields, generation separation, appearance precedence, and duplicate refusal."
+    ]
+  },
+  "control": {
+    "selector": "--dbcolor-late-callback-binding",
+    "ctest": "dwg2dxf_dbcolor_late_callback_binding",
+    "profile": "Locally authored in-memory AC1027 callback profile; no external drawing input.",
+    "fixtureDisposition": "No DWG/DXF fixture was created or added."
+  },
+  "sourceBinding": {
+    "files": {
+      "dwg2dxf/dx_data.h": "6c472715220bea2b6b53f0cc739fe7cc4625a008c8cf5485acfceb9705ea4a24",
+      "dwg2dxf/dx_iface.cpp": "f073a61428e3db1adc474d8eab1b9bfb28f7a8bd76d5804c4bceb1e176ea7bef",
+      "tests/dwg2dxf_adapter_tests.cpp": "806d15870d4dc0572cf14a7eff4c51ea6db72f624cbcfd6630bca09d4fc85abd",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "a257825699240e978216df8d937cc6c89ff50c06cfbbd0ae684e2369f5345f69"
+    },
+    "executable": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests",
+    "executableSha256": "cd6a9bfa1db6ac8f35ff8f7911d8605290b13f83f4039cfabda1f1d5679a41af"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "buildResult": "passed",
+    "focusedTests": "ctest --test-dir build-gcc -R '^(dwg2dxf_dbcolor_late_callback_binding|libdxfrw_dbcolor_unsupported_method_refusal|libdxfrw_dbcolor_book_name_owner_budget)$' --output-on-failure",
+    "focusedTestsResult": "3/3 passed",
+    "diffCheck": "git diff --check passed; receipt parsed as valid JSON"
+  },
+  "limitations": [
+    "The callback control is generated and in-memory; it does not provide physical DWG producer evidence.",
+    "Typed retention does not establish the DBCOLOR source frame field span, ACAD_COLOR owner/entry closure, DXF output equivalence, or fresh readback.",
+    "Native color-book semantics remain unqualified.",
+    "No support claim is promoted."
+  ],
+  "nextReadyPacket": "Prove the source DBCOLOR frame against an independent physical source profile, then admit only the exact ACAD_COLOR dictionary and typed DBCOLOR output graph whose owner, entry, field, and fresh-readback evidence closes."
+}

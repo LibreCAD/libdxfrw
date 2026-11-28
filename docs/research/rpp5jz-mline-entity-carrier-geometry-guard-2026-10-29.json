@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5jz selected MLINE entity-carrier and census-budget geometry guard",
+  "date": "2026-10-29",
+  "codeCommit": "91d0dacd9e1f352a98124508c767a7096ff8ba8a",
+  "scope": "Extends the selected AC1027 AC1021+ MLINESTYLE geometry/count consumer census from ordinary MLINE membership to bounded common handle carriers on exact LINE/MLINE entities and block headers. The guard checks application data, XDATA handle 1005, extension-dictionary handles, reactors, and block application data, charges inspected container/model payload, and refuses unsupported entity schemas, proxy LINE data, and raw block entities. It does not enable geometry edits to styles consumed by ordinary MLINEs or promote support claims.",
+  "contract": {
+    "selection": "Runs through the existing modern selected source/live MLINESTYLE transaction. The test edits the originally MLINE-unused AC1027 style D2; the source contains exact MLINE classes, and the test adds one exact DRW_Line in model space. Source and output encoding are varied independently.",
+    "carriers": "Preflight tests refuse a live LINE application-data group with hard-pointer group 340, LINE XDATA group 1005, LINE xDictHandle, LINE reactor handle, and model-space block application-data group 340 when each targets the edited style. The implementation also scans present end-block common metadata; no independent end-block negative-control fixture is claimed.",
+    "bounds": "The census charges each visited block/entity/list slot, bounded appData/extData/reactor scans, and retained typed block/LINE/MLINE payload before comparison. A direct selected-preparation control overfills the entity census with 1,000,001 slots, observes refusal, removes the slots, and retries on the same adapter before exercising a successful full export/readback.",
+    "finalization": "A test consumer injects a LINE appData group 340 reference after writer callbacks and calls the base finalizer. Finalization rechecks the live census and refuses the late mutation; the test consumer removes its injected group after the base call.",
+    "failureAndRetry": "Across ASCII and binary source/output combinations, all 20 preflight carrier refusals and all four finalization refusals preserve the destination sentinel and caller-owned style/line state. The same adapter retries successfully after each preflight refusal and after finalization refusal. Final readback confirms the edited unused style offset and the added LINE geometry without leaked appData.",
+    "compatibility": "No public API or LibreCAD callback changes. Existing MLINE, source/live, deletion, raw-section and named-resource transaction behavior remains under the focused regression cohort. The code keeps the selected modern route fail-closed for unknown entity types and proxy/raw entity content.",
+    "limits": "Only the selected AC1027/AC1021+ source profile and the listed carriers have negative-control evidence. Exact LINE and MLINE dynamic types are admitted; other entity types, proxy LINE data and raw block entities refuse. Additional block/end-block carrier combinations, other source versions, patterned/broader providers, complete staged-output bytes (including generated CLASSES and final HANDSEED), consumed geometry and native semantics remain open. The edited style is unused by ordinary MLINEs; consumed-style geometry remains refused. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII DXF output",
+      "ASCII source -> binary DXF output",
+      "binary DXF source -> ASCII output",
+      "binary DXF source -> binary DXF output"
+    ],
+    "preflightCarrierCasesPerMatrix": 5,
+    "preflightRefusals": 20,
+    "finalizationMutationRefusals": 4,
+    "destinationSentinelsPreserved": 24,
+    "sameAdapterSuccessfulRetries": 24,
+    "readbacks": 4,
+    "censusBudgetControl": "1,000,001 entity slots refused after extension-graph preparation; clean same-adapter preparation, full export and readback passed.",
+    "sourceConstruction": "The AC1027 DXF is authored in the test; binary input is encoded locally. Entity and block carrier mutations are in-memory. Temporary source/output files are removed. No DWG/DXF fixture was added to Git."
+  },
+  "validation": {
+    "normalBuild": {
+      "result": "PASS",
+      "command": "cmake --build build -j4"
+    },
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build --target libdxfrw_mline_source_dependency_tests -j4"
+    },
+    "directEntityCarrier": {
+      "result": "PASS",
+      "command": "build/tests/libdxfrw_mline_source_dependency_tests --mline-entity-carrier-geometry-guard",
+      "summary": "profiles=4, preflight-refusals=20, late-refusals=4, retries=24, readbacks=4"
+    },
+    "directBudget": {
+      "result": "PASS",
+      "command": "build/tests/libdxfrw_mline_source_dependency_tests --mline-consumer-census-budget-guard",
+      "summary": "over-budget-entities=1000001, refused=1, same-adapter-retry=1, readback=1"
+    },
+    "normalCohort": {
+      "result": "PASS",
+      "count": "22/22",
+      "seconds": 32.17,
+      "command": "ctest --test-dir build -R mline --output-on-failure"
+    },
+    "asanBuild": {
+      "result": "PASS",
+      "command": "cmake --build /tmp/libdxfrw-build-asan-codex --target libdxfrw_mline_source_dependency_tests -j4",
+      "sanitizer": "Fresh AppleClang AddressSanitizer build with -fsanitize=address -fno-omit-frame-pointer."
+    },
+    "asanCohort": {
+      "result": "PASS",
+      "count": "8/8",
+      "seconds": 2.50,
+      "command": "ctest --test-dir /tmp/libdxfrw-build-asan-codex -R 'libdxfrw_mline_(layer_carrier_geometry_guard|dictionary_carrier_geometry_guard|ltype_provider_geometry_guard|style_body_geometry_guard|entity_carrier_geometry_guard|consumer_census_budget_guard|deleted_consumer_geometry_guard|raw_section_geometry_guard)' --output-on-failure"
+    },
+    "diffCheck": "PASS (git diff --check before code commit; plan and receipt JSON validated separately)"
+  },
+  "sourceBindings": {
+    "dwg2dxf/dx_iface.cpp": "faa40d6e14b63e1575a67c0af050fcca3c754a65b1694bea7c4be02772237a1d",
+    "tests/CMakeLists.txt": "800f5f7d2f9d799940dbf5319ee9572933770e4fcc6c611a1b9a0389064d0c41",
+    "tests/dxf_mline_source_dependency_tests.cpp": "b95146c3e7d621efb6bdf252b6d89fca260dd472d3b117ed2012e4673c979556"
+  },
+  "binaryBindings": {
+    "normalMlineSourceDependencyTests": "263529e81cdff705000c684a75a3349d2347a846da3725a8014506e6aabf9032",
+    "normalDwg2dxf": "b6d83b9498c380148c27f4f35d86ee1374455edc7b0316ebb6033c58ca2deccb",
+    "asanMlineSourceDependencyTests": "7953ebc3becb85b61be59701b859dad8f5da21077bbbcb5dbf66c5779df331d2"
+  },
+  "next": "Authenticate actual staged section contents before consumed geometry: trace the writer staging/finalization hooks, capture exact emitted bytes for the selected source profile, include generated CLASSES and the post-HEADER HANDSEED backpatch, and add mutation/rollback/retry controls. Keep broader entity/block schemas and consumed-style geometry refused until separately qualified."
+}

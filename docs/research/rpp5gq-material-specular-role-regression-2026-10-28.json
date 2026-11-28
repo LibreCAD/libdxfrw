@@ -1,0 +1,103 @@
+{
+  "schema": "material-specular-role-regression-v1",
+  "slice": "RPP-5gq",
+  "date": "2026-10-28",
+  "parentCommit": "f709340cf1777caf47786d290240ce4b6473c165",
+  "state": "FOCUSED_CANONICAL_MALFORMED_ROLE_REGRESSION_IMPLEMENTED; NORMAL_SELECTOR_PASS; PRODUCTION_UNCHANGED",
+  "fileSha256": {
+    "tests/dxf_fixture_tests.cpp": "630dd65df1e53a6df80899a7aa9d6a1ae8d073200ba0ff88a6dd32a77553342b"
+  },
+  "productionChanged": false,
+  "scope": "Authored AC1018/AC1021 ASCII/binary canonical diffuse73=3/specular76=0 pair and otherwise-identical incorrect intended-specular73=0 negative. AC1021 adapter output checked in both encodings; AC1018 facade replay remains intentionally refused.",
+  "primaryReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+      "basis": "Diffuse/normal projection73 is distinct from specular color method76; surrounding factors, colors and matrix roles remain separate."
+    }
+  ],
+  "recipe": {
+    "owner": "materialSourceOrderControls::specularRecipe",
+    "base": "Original local-from-scratch materialBodyControls::fullRecipe",
+    "singleNegativeDifference": "Exactly one76=0 becomes73=0 in the first MATERIAL; all values, diffuse73=3, normal73=4 and surrounding fields remain identical.",
+    "physicalProof": "Literal73/76/74/75, gloss44/factors45,46/color92, selected filenames and all16diffuse/specular/normal matrix values.",
+    "typedProof": "Presence and distinct methods/projection, neighboring scalar/color/file/matrix fields on import and four ordinary initial output readbacks.",
+    "fixtureByteBinding": "Source recipe SHA and version/format cells are bound; passing generated test artifacts are cleaned up, so no unmeasured per-cell byte digest is asserted.",
+    "retainedDevelopmentCanonicalAscii": {
+      "path": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-material-source-order-153665601294125/input.dxf",
+      "sha256": "cf35ecadfa8e9d126fe9d8b0a96ff3d0da5b0f06b29fc2b18e5516df31534ef2"
+    }
+  },
+  "qualification": {
+    "build": {
+      "parentCommit": "f709340cf1777caf47786d290240ce4b6473c165",
+      "sourceManifestSha256": "8805c58f15689ee9ab15f6bb043f28d6ce1b5de51cdaada2bada4ea289c3cabf",
+      "target": "libdxfrw_dxf_fixture_tests",
+      "configuration": "normal",
+      "productionChanges": false,
+      "cmakeCacheSha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+      "buildNinjaSha256": "6c93a605ab8c757c8ee2f6b30a8fe043839338a29e3018f0d7f5bcfe94ec62c3",
+      "buildExitCode": 0,
+      "buildSeconds": 8.963700541993603,
+      "buildLogSha256": "889a8b1808d2ee4629b5b06243c501c621cec0d2042f1c20c99fd91dae724fe7",
+      "probeSha256": "0e1ef8ef254c380ac71d846d998028e3ab25b846004510fa705f31cea2c0ad3e"
+    },
+    "exitCode": 0,
+    "seconds": 2.2272015000053216,
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build",
+      "-R",
+      "^libdxfrw_material_source_order$",
+      "--output-on-failure"
+    ],
+    "counters": [
+      "MATERIAL source-order profiles=64; readbacks=130; refusals=12; retries=20; callbacks=8; reorderedBase=2; specularSources=4; specularReadbacks=4; specularImportRefusals=4; specularImportRetries=4; specularOutputRefusals=4; specularOutputRetries=4; specularLegacyRefusals=4"
+    ],
+    "probeSha256": "0e1ef8ef254c380ac71d846d998028e3ab25b846004510fa705f31cea2c0ad3e",
+    "ctestLogSha256": "e19a842bd8877807efc658bc3bc8ea86bb2468025ed73d964fa97bf1b1b4d691",
+    "sourceInputsUnchanged": 593,
+    "fullSuiteRun": false,
+    "asanRun": false
+  },
+  "counts": {
+    "canonicalSources": 4,
+    "initialOutputReadbacks": 4,
+    "malformedImportRefusals": 4,
+    "correctedImportRetries": 4,
+    "malformedRawOutputRefusals": 4,
+    "correctedOutputRetries": 4,
+    "legacyFacadeAdmissionRefusals": 4
+  },
+  "routeBoundary": {
+    "entryPoint": "configureDxfMaterialDictionary",
+    "admittedAdapterReplayVersions": "exact AC1021-AC1032 source/target",
+    "earlierFailure": {
+      "logSha256": "d2c4679e70dd12ef47fc852b40072b686fd3ab7520fe1f8306a19aecfc5681ca",
+      "exitCode": 8,
+      "reason": "First fixture version incorrectly expected AC1018 adapter export; current explicit route gate rejects it before output. Test scope corrected without changing admission.",
+      "productionIssue": false
+    },
+    "remaining": "Earlier MATERIAL adapter original source/owner/output qualification is separate work; source grammar does not establish that complete replay route."
+  },
+  "failureAndRetry": "Malformed physical import publishes no MATERIAL model/raw carrier; raw negative changes only group76to73 with unchanged value/spellings. Every rejected export preserves sentinel destination. Restoring the original raw carrier succeeds through the same adapter and proves actual physical fields. Corrected retry files are not separately ordinary-reopened; they are not counted as readbacks.",
+  "limitations": [
+    "Regression-only packet; no parser, writer, ABI, callback, allocation or DWG layout change.",
+    "Normal owning selector only; no ASan, full suite, new peer/native/platform or package qualification run for this fixture-only change.",
+    "Default MATERIAL documents, ambiguous Normal Map grammar, original/full document closure and native rendering remain open."
+  ],
+  "gates": {
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "fullObjectiveComplete": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "fixturePolicy": "Only embedded original-from-scratch recipes and metadata/hashes committed; no drawing payloads."
+}

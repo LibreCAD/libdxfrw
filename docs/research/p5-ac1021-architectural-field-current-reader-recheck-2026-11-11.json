@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "date": "2026-11-11",
+  "phase": "P5",
+  "topic": "Current-reader recheck of AC1021 architectural FIELD candidate",
+  "source": {
+    "path": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "version": "AC1021",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "repository_fixture": false
+  },
+  "reader": {
+    "path": "build/dwg2dxf/dwg2dxf",
+    "sha256": "2b2dd59aec98bf616b8109768a8ea58d49610616eea3726f9e6eaebf9d1b2aeb",
+    "rebuilt": true,
+    "command": "build/dwg2dxf/dwg2dxf <source> -y -d -v2007 <scratch-output.dxf>",
+    "exit_status": 1
+  },
+  "observations": {
+    "field_parse_attempts": 66,
+    "unsupported_cad_value_format_flags": {
+      "0x04": 4,
+      "0x4C": 16
+    },
+    "unmodeled_object_data_tails": [
+      {
+        "count": 1,
+        "bits": 146
+      }
+    ],
+    "strict_refusal": "FIELD/FIELDLIST carriers have no qualified DXF serializer",
+    "output_published": false
+  },
+  "decision": "Do not widen FIELD CadValue flag handling or assign a role to the 146-bit tail from this recheck. The source has no qualified complete FIELD/FIELDLIST graph and does not make the strict serializer eligible. Mark this already-screened candidate exhausted; resume FIELD work only with a distinct hash-pinned source plus authoritative field/tail semantics and a closed consumer-visible graph.",
+  "scope_limit": "Current-code reproduction of a known blocker only. This is not independent wire proof, FIELD semantics, DXF output qualification, or a support claim.",
+  "artifacts": "The input, log and absent output stayed under /private/tmp; no DWG/DXF fixture was added."
+}

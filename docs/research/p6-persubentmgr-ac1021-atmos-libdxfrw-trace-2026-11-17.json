@@ -1,0 +1,138 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-persubentmgr-ac1021-atmos-libdxfrw-trace-2026-11-17",
+  "date": "2026-11-17",
+  "title": "Current libdxfrw AC1021 PERSUBENTMGR source trace",
+  "status": "SOURCE_READ_OK_UNCLAIMED_BODY_TAIL_CLASSIFICATION_GAP_FOUND",
+  "supportClaimEffect": "none",
+  "scope": "Trace the S41 AC1021 candidate through the current libdxfrw reader to distinguish a parser/layout failure from unrelated whole-file strict-DXF output refusal.",
+  "source": {
+    "receipt": "docs/research/p6-persubentmgr-ac1021-atmos-candidate-screen-2026-11-17.json",
+    "path": "/Users/dli/dev/libredwg/test/test-data/2007/ATMOS-DC22S.dwg",
+    "bytes": 398400,
+    "version": "AC1021",
+    "sha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f"
+  },
+  "reader": {
+    "sourceTreeRevision": "412598a1294da9b5117c11518a20870303593c89",
+    "binaryPath": "build-gcc/dwg2dxf/dwg2dxf",
+    "binarySha256": "b90b53e16f06dae5d995900acfce848943b0190ea4270f050282f6870aec1876",
+    "command": "dwg2dxf /Users/dli/dev/libredwg/test/test-data/2007/ATMOS-DC22S.dwg -y -d -v2007 /private/tmp/ATMOS-DC22S-libdxfrw.dxf",
+    "exitCode": 1,
+    "logPath": "/private/tmp/ATMOS-DC22S-libdxfrw.log",
+    "logSha256": "7ac7ba6324c80a09a08951f3cffda8377f2526b49c4bd4fd6092751a7b51fb3e",
+    "outputFileCreated": false,
+    "readOutcome": {
+      "sourceVersion": "AC1021",
+      "legacyError": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "sourceFrames": 424,
+      "publishedFrames": 424,
+      "failedFrames": 0
+    },
+    "unrelatedStrictOutputBlocker": "Output preflight stopped on DWG IMAGEDEF handle 0x7b: owner back-reference output behavior is not qualified. The log does not attribute this refusal to PERSUBENTMGR."
+  },
+  "managerTrace": {
+    "observedTypeCode": 525,
+    "handle": "0x352",
+    "objectSizeBits": 205100,
+    "reactorCount": 1,
+    "bodyBitLimit": 205099,
+    "decodedBitLongs": [
+      {
+        "start": 87,
+        "end": 97,
+        "value": 2
+      },
+      {
+        "start": 97,
+        "end": 99,
+        "value": 0
+      },
+      {
+        "start": 99,
+        "end": 109,
+        "value": 2
+      },
+      {
+        "start": 109,
+        "end": 143,
+        "value": 392
+      },
+      {
+        "start": 143,
+        "end": 177,
+        "value": 298
+      },
+      {
+        "start": 177,
+        "end": 187,
+        "value": 6
+      },
+      {
+        "start": 187,
+        "end": 189,
+        "value": 0
+      },
+      {
+        "start": 189,
+        "end": 199,
+        "value": 7
+      },
+      {
+        "start": 199,
+        "end": 209,
+        "value": 2
+      },
+      {
+        "start": 209,
+        "end": 211,
+        "value": 0
+      },
+      {
+        "start": 211,
+        "end": 221,
+        "value": 1
+      },
+      {
+        "start": 221,
+        "end": 231,
+        "value": 1
+      },
+      {
+        "start": 231,
+        "end": 241,
+        "value": 1
+      },
+      {
+        "start": 241,
+        "end": 243,
+        "value": 0
+      }
+    ],
+    "interpretationBoundary": "The current reader decodes the class_version/unknown/count prefix, a six-value steps vector [0,7,2,0,1,1], and a following zero count at bit 243. It does not interpret the remaining body tail. Source review found that before S43 the status path used bodyFits(), which checks only that the cursor is within the body bound, and could therefore call this prefix Complete despite 204856 unconsumed bits. S43 changes completion to require cursor == bodyBitLimit so the raw carrier remains unvalidated.",
+    "peerComparison": "LibreDWG 0.14 minJSON independently reports the first five values [2,0,2,392,298]. This agreement confirms observed prefix values only; it does not bind member meanings or the large tail.",
+    "limitation": "The sample has no known producer build, native API operation, target entity, or selected persistent path. The pre-fix trace and source review expose an incorrect completeness classification, not PERSUBENTMGR semantics or output qualification. The strict whole-file refusal occurred earlier at IMAGEDEF handle 0x7b."
+  },
+  "externalResearch": [
+    {
+      "source": "ACadRust 0.6.8 class-object reader",
+      "url": "https://docs.rs/acadrust/latest/src/acadrust/io/dwg/dwg_stream_readers/object_reader/class_object.rs.html#986",
+      "observation": "Its PERSUBENTMGR route reads the same five scalar fields followed by a count/vector and another count/vector.",
+      "limitation": "This is another implementation of the flat-vector hypothesis, without producer API state or independent member semantics."
+    },
+    {
+      "source": "LibreDWG issue #1398",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1398",
+      "observation": "The issue remains open. Its Nov 16 nested-record proposal is presented as an idea, while the issue still lacks a drawing with a discriminating BL sequence.",
+      "limitation": "The proposal remains a hypothesis and does not authorize a parser change."
+    }
+  ],
+  "artifacts": {
+    "scratchOutput": "/private/tmp/ATMOS-DC22S-libdxfrw.dxf",
+    "scratchLog": "/private/tmp/ATMOS-DC22S-libdxfrw.log",
+    "repositoryFixtureAdded": false
+  },
+  "next": "Keep the S43 cursor-at-end fix. Do not repeat the corpus scan or pre-fix CLI trace for this unchanged source. Continue only with a native operation/API-state check that ties an exact AcDbPersSubentManager to a selected nonzero path; if unavailable, leave P6-B raw-only and strict-output-refused. Track the independent IMAGEDEF gate separately."
+}

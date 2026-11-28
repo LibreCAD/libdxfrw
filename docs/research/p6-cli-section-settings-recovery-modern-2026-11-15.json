@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-15",
+  "finding": "Generated AC1024 and AC1032 SECTION_SETTINGS malformed-body profiles now build and exercise the existing recovery harness.",
+  "change": "Add those two revisions to the existing AC1021 and AC1027 CLI recovery profiles.",
+  "validation": [
+    "The focused SECTION_SETTINGS CTest passes 18 controls across four revisions.",
+    "AC1021, AC1024 and AC1032 test continuation, strict refusal and ASCII/Binary partial output/readback; AC1027 tests continuation and its existing source-reference refusal.",
+    "The complete partial-read disposition CTest passes in 31.02 seconds.",
+    "Generated samples are scratch-only and are not committed."
+  ],
+  "limits": "These are generated recovery controls, not producer-backed SECTION_SETTINGS semantics. No format support claims or phase gates are promoted."
+}

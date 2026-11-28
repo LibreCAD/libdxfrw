@@ -1,0 +1,92 @@
+{
+  "date": "2026-11-26",
+  "libdxfrw_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "implementation_digest": "922ee37ffca0420ca161ac977da8e0a60397b5e12b49b337d120f2ff396a31b3",
+  "scope": "Optional separate selector facet discards unselected BLOCK_RECORD raw bodies after parsing each complete row; all typed callbacks remain ordered after successful ENDTAB. Existing source handlers without the selector retain every row.",
+  "validation": [
+    "macOS ARM64 warnings-as-errors targeted structural source and existing block-record source proof: both passed",
+    "Generated ASCII and binary table controls selected one of two source callbacks and delivered both typed callbacks in order",
+    "Generated 80-row ASCII table: minimum admitted logical retained budget 39363 bytes selective versus 73663 bytes all-source",
+    "Malformed table published no callbacks and corrected retry succeeded",
+    "Consumer macOS ARM64 against this codec: 5/5 layout graph tests and 67/67 DXF round-trip/export tests passed; local plan sync passed",
+    "AddressSanitizer on macOS ARM64 passed both targeted source/rollback controls with detect_leaks=0; LeakSanitizer is unavailable on this platform"
+  ],
+  "limits": [
+    "The active row must still fit the budget before it can be selected or discarded",
+    "This does not make large-file memory or any layout support claim universal",
+    "Hosted platform and native final-head qualification remain open"
+  ],
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_implementation_commit": "76421c44",
+  "consumer_plan_head": "a46b1034",
+  "consumer_peer_matrix": {
+    "consumer_code_commit": "76421c44",
+    "consumer_plan_head": "a46b1034",
+    "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+    "persistence_library_sha256": "48f3570cc80c749dcfbc3c9faf1ddf783aa98b7fa6d5026027e5986199032ac4",
+    "probe_sha256": "ca4938de6b3ee584ddd7435958b11db5a78d889d9b44dc523aee43d2f9d5c1f3",
+    "locally_authored_source_sha256": "f1399bfe05ef200685dd741c4956e21beaf2c7262345b5ec8ced155d9dd505ce",
+    "reader": "ezdxf 1.4.5",
+    "result": "Each output has three named physical layouts, one MPOLYGON with expected vertices and offset, and zero audit errors or fixes. libdxfrw reopened each without layout loss.",
+    "outputs": [
+      {
+        "version": "AC1015",
+        "stage": "first",
+        "sha256": "0c3f991a359d7d3d58049f39e977bfc73765454c03e58dbf8462ae8af6836cef"
+      },
+      {
+        "version": "AC1015",
+        "stage": "second",
+        "sha256": "20f45baca1d9b1286f6f561248ef89773ac6aeee5b5524d9f4411de7057f7acd"
+      },
+      {
+        "version": "AC1018",
+        "stage": "first",
+        "sha256": "34ef69a2b128dd084458e7efb92b03a12190efb848c677c9963a64271fe7dae3"
+      },
+      {
+        "version": "AC1018",
+        "stage": "second",
+        "sha256": "69f11c65e9fa39cd12b64daffd8a2bce2e9b437ced95b444386787c5b9e2d854"
+      },
+      {
+        "version": "AC1021",
+        "stage": "first",
+        "sha256": "af13a9873158a77e152c887ea1dfb330edb48b2f5fda264e67ef3838887c718e"
+      },
+      {
+        "version": "AC1021",
+        "stage": "second",
+        "sha256": "10081913b887e7e2049e2a5e902bb03e04599cb3b2f19ea33a02f10976351d85"
+      },
+      {
+        "version": "AC1024",
+        "stage": "first",
+        "sha256": "178723b353cd0aeb8db150dd7098a178709ff7e02e0c9fdb0408e8033e747f15"
+      },
+      {
+        "version": "AC1024",
+        "stage": "second",
+        "sha256": "098267a1a7c0074caad86476609835821197a098f3139ee01823e9f4d71b51a2"
+      },
+      {
+        "version": "AC1027",
+        "stage": "first",
+        "sha256": "6dd5231e1c17e87e247d694463ba2c64d009b943e6a6892872ed1f89cde8a726"
+      },
+      {
+        "version": "AC1027",
+        "stage": "second",
+        "sha256": "daef2dcb6391437becc058158ef5423708bf395b22f1ead0fd1ec8bb93a8fb17"
+      }
+    ]
+  },
+  "native_consumer_check": {
+    "type": "isolated macOS ARM64 title-instrumented LibreCAD_3 executable with rebuilt persistence library",
+    "app_executable_sha256": "d112ba1aeffd9c7f4d1529fe8564adceb6a6b785245b0144c2d233b5e5767134",
+    "input_sha256": "34ef69a2b128dd084458e7efb92b03a12190efb848c677c9963a64271fe7dae3",
+    "output_sha256": "69f11c65e9fa39cd12b64daffd8a2bce2e9b437ced95b444386787c5b9e2d854",
+    "observation": "The prior GUI output was reopened with the MPOLYGON warning and ezdxf found its layout graph intact; it must not be attributed to the current codec or consumer head. The canvas was black; rendering and editing remain unqualified.",
+    "status": "INVALIDATED_FOR_CANDIDATE: the app process remained running after the attempted restart, so the persistence library loaded by that process was not established."
+  }
+}

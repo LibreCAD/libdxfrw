@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-imagedef-simple-appdata-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "4f01ca0ad62c7514c9601db278f9331dbaa7aa17",
+  "implementation": "Keep bounded simple IMAGEDEF application groups containing printable ASCII group-1 text and no handle references, and pass them through the existing source definition plan. Captures share a four-MiB logical budget, at most 64 groups and 128 retained items per definition. Unsupported groups are omitted and reported independently while eligible groups may still survive. Report retained metadata lost when a changed path prevents source-plan binding.",
+  "validation": [
+    "New first-save and reopen assertions failed before their fixes. Thirteen focused IMAGE, dictionary and paper-space tests and eighteen layout tests pass afterward.",
+    "Tests exercise handle-bearing, nested and oversized groups, a mixed supported/unsupported pair, the 128/129-item boundary, shared definitions, changed-path loss and corrected retry on the same writer.",
+    "Independent ezdxf 1.4.5 reads a generated R2000 binary output and its ASCII reopen with two IMAGEs linked to one IMAGEDEF carrying the complete LC_DEF group and custom value. Both outputs audit with zero errors and zero fixes.",
+    "The adapter syntax-checks with older bundled codec headers; their runtime behavior is not qualified."
+  ],
+  "redLogSha256": "d01a84f9bfe96ea4b660ce11633ef8eba1da945b68d81f827ad96c9a745cfe26",
+  "reopenRedLogSha256": "971bcd6d621eecb9dfb49de25a80025e6d24397505fa57d84544d6dc9cf8c966",
+  "testLogSha256": "2a864906dc1171f3f06f6ab36828320f0039d101ee388921a4453d5ea4bb137e",
+  "layoutLogSha256": "9db6bb24a4414f3fb2fc262f52ef6ea8cd6cb557df3d402131d672d580811fd8",
+  "olderHeaderLogSha256": "5548c6c12b5e8266d965ad1c1ad4460d388c942551bcb8a532643eef350dc376",
+  "binarySha256": "2ce0cf5cf85f6e54f4b7ff86f49564e3d123cd2357532e9f755995841a61dff0",
+  "asciiSha256": "b835a5e77765377e9e81b2a4ac984989ebd258069e3317916796f39ae371f069",
+  "limits": [
+    "The storage budget accounts logical payload and estimated list nodes, not all allocator or process memory; exhaustion of the aggregate four-MiB budget has not been directly exercised.",
+    "XDATA, handle-bearing or nested groups, source reactor and extension-dictionary semantics, original IMAGE dictionary identity, external producers and native rendering remain unqualified. Generated outputs are scratch-only."
+  ]
+}

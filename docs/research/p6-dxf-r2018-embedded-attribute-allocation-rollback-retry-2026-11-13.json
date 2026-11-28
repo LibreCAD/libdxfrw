@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-r2018-embedded-attribute-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_R2018_EMBEDDED_ATTRIBUTE_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the public AC1032 whole-file DXF writer with an INSERT-owned multiline ATTRIB and embedded MTEXT across every measured allocation failure, same-codec retry, and fresh typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory graph",
+    "profile": "One INSERT with one ATTRIB (m_attributeType 2) carrying an embedded two-paragraph MTEXT payload, emitted as AC1032 ASCII and Binary. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "c9e6254e",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-r2018-embedded-attribute-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Add a focused generated dx_iface that writes an INSERT and embedded multiline ATTRIB through dxfRW::write at AC1032. Calibrate each encoding, inject one-shot allocation failures at every observed offset, assert the preexisting destination and caller graph remain unchanged, retry the same codec and require byte-identical output plus typed callback readback."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_r2018_embedded_attribute_allocation_transaction$' --output-on-failure: PASS 1/1 (0.49 sec); the existing whole-operation transaction selector also passes 1/1 (9.36 sec).",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_r2018_embedded_attribute_allocation_transaction$' --output-on-failure: PASS 1/1 (4.14 sec). The initial combined old-plus-new ASan invocation exceeded its 60-second timeout; the profile was split into its own selector. The existing whole-operation selector was rechecked separately in normal mode; its ASan run is not included in this receipt.",
+    "directRun": "PASS; existing AC1027 whole-write profile: ASCII 1184 and Binary 1160 allocation offsets; new AC1032 embedded ATTRIB/MTEXT profile: ASCII 109 and Binary 108 offsets. Each failure preserved caller/destination state; same-codec retry matched calibrated output and fresh typed readback passed.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "The generated profile does not qualify producer-authored AC1032 attribute variants, outer annotative metadata, or native attribute display.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue the P6-G public-writer inventory; retain separate gates for producer profile, semantic support, and native consumer behavior."
+}

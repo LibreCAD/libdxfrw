@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-4f MATERIAL specular map generated fast slice",
+  "mode": "Local implementation and generated ASCII/Binary validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "1f70566cfc3368e030c1b929d1d9658fd35bb6b80c859ab40bf31cd187b6700a",
+  "authoritativeReference": {
+    "title": "Autodesk MATERIAL DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+    "accessed": "2026-10-22",
+    "fields": [
+      {
+        "group": 46,
+        "description": "Specular map blend factor",
+        "default": 1.0,
+        "validation": "finite real"
+      },
+      {
+        "group": 77,
+        "description": "Specular map source",
+        "default": 1,
+        "validValues": [0, 1]
+      },
+      {
+        "group": 4,
+        "description": "Specular map file name",
+        "default": ""
+      },
+      {
+        "group": 78,
+        "description": "Specular map projection",
+        "default": 1,
+        "validValues": [1, 2, 3, 4]
+      },
+      {
+        "group": 79,
+        "description": "Specular map tiling",
+        "default": 1,
+        "validValues": [1, 2, 3]
+      },
+      {
+        "group": 170,
+        "description": "Specular map auto-transform bitset",
+        "default": 1,
+        "validMask": 7
+      },
+      {
+        "group": 47,
+        "description": "Specular map mapper transform",
+        "format": "16 real values, row-major",
+        "default": "identity"
+      }
+    ]
+  },
+  "implementation": {
+    "typedModel": [
+      "DRW_Material retains specular map scalar/string controls and a 16-element row-major transform with documented defaults and individual presence flags.",
+      "Specular filename has its own retained-text lease field; transform parsing has independent cardinality state from diffuse group 43.",
+      "Copy/reset behavior preserves the map and restores defaults with presence false."
+    ],
+    "parser": [
+      "Type groups 46/77/4/78/79/170/47 only before the post-map 464/465 boundary.",
+      "Validate finite blend and matrix reals, source/projection/tiling domains, and the documented auto-transform flag mask.",
+      "Require exactly 16 contiguous matrix reals; reject incomplete matrices at the next group and reject excess values immediately.",
+      "Preserve later Normal Map groups and other untyped MATERIAL properties in the ordered raw net."
+    ],
+    "writer": [
+      "Emit groups 46/77/4/78/79/170 followed by all 16 group-47 row-major values when present.",
+      "Reject invalid authored domains and non-finite map data before output replacement."
+    ],
+    "boundedTextRegression": [
+      "The focused MATERIAL retained-owner CTest checks exact-cap specular filename replacement in ASCII and Binary DXF.",
+      "At one byte under the cap, the previous filename remains intact; copy/reset accounting releases the shared lease correctly."
+    ],
+    "touchedFiles": [
+      "CMakeLists.txt",
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "generatedControls": [
+    "ASCII and Binary MATERIAL records carry distinct specular-map values and a non-identity 16-value matrix, followed by a LINE sentinel.",
+    "Assert typed field values, explicit defaults/presence, copy/reset behavior, exact raw group order, same-encoding replay, and ASCII/Binary cross-encoding replay.",
+    "Reject invalid source, projection, tiling, auto-transform mask, non-finite ASCII blend, and 15-/17-value mapper matrices before callback publication.",
+    "Typed writer round-trips all fields and asserts schema order; invalid scalar domains and non-finite matrix data preserve existing output and succeed after correction.",
+    "No persistent test drawing is added; malformed ASCII numeric values are applied only to locally generated temporary files."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: libdxfrw_dxf_material_text_owner_budget, libdxfrw_dxf_fixtures, and libdxfrw_dxf_binary_group_width_guard (3/3)",
+    "diffCheck": "PASS: git diff --check on changed source, test, CMake, and plan files",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "dwgMaterialBodyChanged": false,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-4g: reflection map fields and 16-value mapper matrix",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

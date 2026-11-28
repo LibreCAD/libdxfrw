@@ -1,0 +1,12 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-windows-link-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "98303884",
+  "finding": "Hosted Windows job 140401176608 failed linking preserved-record DLL data references and the layout graph executable selected the Boost test monitor entry point.",
+  "change": "Use an inline C++17 static constexpr key and define the GoogleTest main in the layout executable; remove its gtest_main link.",
+  "validation": "macOS ARM64 builds both test executables; 17 layout graph and 94 selected import, round-trip and Python persistence tests pass. Plan structural, worktree inventory, actual-base, checker regression and whitespace checks pass.",
+  "limits": "Hosted Windows rerun is pending; no Windows link or runtime success is claimed. Other platform, native GUI and support gates remain open."
+}

@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 AcDbVariableDictionary NOD alias refusal",
+  "mode": "Generated local implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "finding": {
+    "source": "Strict extension-graph preflight required one canonical AcDbVariableDictionary NOD root targeting a NOD-owned DICTIONARY but did not reject a differently named NOD edge to that same handle.",
+    "coverageGap": "The generated DICTIONARYVAR root-route matrix covered duplicate canonical roots, wrong target kind, and missing targets, but not same-target aliasing.",
+    "scope": "AcDbVariableDictionary NOD same-target alias refusal only; no DICTIONARYVAR semantics or external application claim is established."
+  },
+  "implementation": [
+    "After resolving and validating the canonical AcDbVariableDictionary root, scan the NOD entries and reject any noncanonical key targeting the same dictionary handle.",
+    "Add a generated alias option to the existing DICTIONARYVAR ASCII/Binary root test route.",
+    "Require strict export refusal with a specific diagnostic and seeded destination preservation, then remove the alias and retry through the same adapter with strict readback of one canonical root, its NOD-owned dictionary, and both DICTIONARYVAR children.",
+    "Reuse the existing adapter executable and CTest registration; add no persistent fixture or new CTest."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "focusedSelector": "PASS through the existing CTest invocation for --named-resource-import-evidence (ASCII/Binary generated controls)",
+    "ctest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fullSuite": "NOT_RUN (generated fast slice)",
+    "externalPeerOrNativeConsumer": "NOT_RUN"
+  },
+  "scopeAccounting": {
+    "persistentFixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "productionCodeChanged": true,
+    "supportClaimsPromoted": 0,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "filesChanged": [
+    "dwg2dxf/dx_iface.cpp",
+    "tests/dwg2dxf_adapter_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/par20-7g3-acdbvariable-nod-root-alias-fast-slice-2026-10-20.json"
+  ],
+  "commitCreated": false,
+  "commitBlocker": "The shared worktree is broadly dirty and Git metadata is read-only in this session."
+}

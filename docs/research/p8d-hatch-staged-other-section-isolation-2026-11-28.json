@@ -1,0 +1,35 @@
+{
+  "kind": "libdxfrw-staged-foreign-handle-isolation",
+  "date": "2026-11-28",
+  "implementationDigestSha256": "also rejects unexpected selected-handle references in its narrow BLOCKS/ENTITIES profile.\n   The [HEADER/TABLES/OBJECTS isolation check](docs/research/p8d-hatch-staged-other-section-isolation-2026-11-28.json)\n   covers selected fields in those staged sections. Bind emitted identities\n   early, compose all section observers and revalidate live state at finalization.\n   The [per-loop source identities]",
+  "scope": "A bounded staged HEADER, TABLES or OBJECTS inspector refuses selected emitted handles when used as explicit references or record identities within an observed standard field/subclass profile. HEADER uses the shared canonical name inventory, rejects custom properties and malformed selected reference shapes, and treats HANDSEED as a seed rather than an object reference.",
+  "focusedTests": {
+    "test": "libdxfrw_dxf_staged_hatch_graph",
+    "profiles": 16,
+    "dimensions": [
+      "AC1015 and AC1024",
+      "ASCII and binary",
+      "StandaloneSafe and LibreCadMasterLegacy",
+      "rotated and reversed boundary ordering"
+    ],
+    "rejectionsAndRetries": "30 per AC1015 profile and 31 per AC1024 profile; true color is not emitted by AC1015",
+    "result": "pass; selected-handle injection into each section refused, sentinel preserved, corrected same-writer retry passes; unrelated references pass"
+  },
+  "sanitizers": {
+    "address": "pass",
+    "undefinedBehavior": "pass",
+    "leakDetection": "disabled"
+  },
+  "independentReadback": {
+    "tool": "ezdxf 1.4.5",
+    "generatedDrawings": 16,
+    "result": "selected reciprocal links and two LINE records present, zero audit errors or fixes",
+    "receiptSha256": "6761f24cd8bee4ce4db60da31a49538d28e442aa00bddbd95e5c5c37667740c6"
+  },
+  "limits": [
+    "Narrow allowed record, subclass and field sets are not complete DXF semantic validation; unsupported sections, objects, fields, application payloads and custom properties refuse.",
+    "The caller must supply final emitted target handles to every active section inspector and separately validate source provenance, output links, ownership and live-state stability.",
+    "Native application edits and association replay remain unqualified. No support claims promoted and no drawing files committed."
+  ],
+  "supportClaimsPromoted": false
+}

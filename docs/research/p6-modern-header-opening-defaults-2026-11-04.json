@@ -1,0 +1,51 @@
+{
+  "status": "BOUNDED_SOURCE_BACKED_HEADER_DEFAULTS",
+  "base_commit": "7037d4dcd4095989777d33cc348e49c6c563c00b",
+  "authority": "ODA DWG v5.4.1 \u00a79 lists four opening unknown BD defaults 412148564080.0, 1.0, 1.0, 1.0 after R2013+ REQUIREDVERSIONS.",
+  "scope": "Set those defaults only for AC1027 and AC1032; AC1015 through AC1024 retain prior bytes. The four undocumented fields are discarded on read and not exposed as caller-set values; no arbitrary source value preservation is claimed.",
+  "physical_evidence": "A locally authored ezdxf 1.4.5 LINE was converted with ODA 27.1.0 to AC1027 and AC1032 DWGs and back to AC1027 DXFs. LibreDWG 0.14 reports those exact four source HEADER values and LINE endpoints. ODA positive returns pass ezdxf audit.",
+  "candidate_evidence": "Candidate-generated AC1027 and AC1032 LINE DWGs independently decode to those same HEADER values, following REQUIREDVERSIONS, HANDSEED above all emitted objects and exact LINE geometry. Their bytes equal the previously ODA-converted defaults diagnostic DWGs; ODA still rejects them with Out of range and CRC does not match respectively. No ODA interoperability fix is claimed. A separate broader material/typed-null diagnostic with these defaults also remains rejected.",
+  "tools_sha256": {
+    "tests/dwg_modern_header_default_tests.cpp": "9c1fc322632a29785ce9dae1afaea60726b16e65d040898de78610c9cbffd7ef",
+    "tests/modern_header_default_peer_tests.py": "0d35693ca489ef8e2f6fbee11ee85db658d14fdce7888fe8b940ff236957d328",
+    "tools/audit_modern_header_default.py": "0fb49efe636e7c8a0ce2d17285efb1f06765111e5a8b04baa545c41c2c985f8b",
+    "tools/probe_ac1027_1032_writer_rejection.cpp": "fead505550a6b915625818e3c11a9ad54fb052a681a3e478ae0c44b01b3adb4c"
+  },
+  "patch_sha256": "2af0c20bf330b16d7462c2ce761a205a837f6d0a5f7293c3bd5e0ffea3bccc50",
+  "registration_sha256": "9d47bb7d76ee445f5199c45fc0904723b4742ba618b45a13a352641b6a1aac08",
+  "artifact_sha256": {
+    "/private/tmp/modern-writer-investigation/source-dwg/AC1027/line.dwg": "1bab740b1f96b88534b4f8238828b9044cffd58b2975ec4b6b00db0c4560cd09",
+    "/private/tmp/modern-writer-investigation/source-out/AC1027/line.dxf": "5291ba4d9024d303f128e033592202dd52e3f79f6f8ef29b678204e5bcd0f7df",
+    "/private/tmp/modern-writer-investigation/generated/AC1027-line.dwg": "74a8bd33819da6d999d8ccc85a6a5f8a367f40c3a87d0178bfddf03524672672",
+    "/private/tmp/modern-header-defaults/out/AC1027-line.dwg": "98be7d15f04628169a5a31dc45a960b2b21b8c59ca040c92d6ac5639e02e0a61",
+    "/private/tmp/modern-writer-investigation/defaults-in/AC1027-defaults.dwg": "98be7d15f04628169a5a31dc45a960b2b21b8c59ca040c92d6ac5639e02e0a61",
+    "/private/tmp/modern-writer-investigation/defaults-out/AC1027-defaults.dxf.err": "e5d754f56ea15d7930fdc004dc6dd50e3abf2a7f71e2786862b9a30bdcc46f3b",
+    "/private/tmp/modern-writer-investigation/defaults-in/AC1027-defaults-material.dwg": "a6590419af685bee41af7d613d5f5a63a039c9120ab87183ebadb53ad8fae60b",
+    "/private/tmp/modern-writer-investigation/defaults-out/AC1027-defaults-material.dxf.err": "4e35e1a6b3b98f78a49d4f50915eeb40a6e8fe077c40391dca769e0f49dd4f15",
+    "/private/tmp/modern-writer-investigation/source-dwg/AC1032/line.dwg": "ff2ac82b1ba9cf7d52970299fc766b85ddf48c3f6359d9ae62b550a6c1d7c26d",
+    "/private/tmp/modern-writer-investigation/source-out/AC1032/line.dxf": "4a33264639ae316a23d771fa031a26a87068df6fb73bbe528c9ac10413299acf",
+    "/private/tmp/modern-writer-investigation/generated/AC1032-line.dwg": "3e272dae161120f0b2ea6085bbbd27ca8904c45ec16005cd9b8a74fb4dbf82c5",
+    "/private/tmp/modern-header-defaults/out/AC1032-line.dwg": "5b2246985fc3a1895f8a2f87ee9192878a480930250268c1ddf53da97dc43446",
+    "/private/tmp/modern-writer-investigation/defaults-in/AC1032-defaults.dwg": "5b2246985fc3a1895f8a2f87ee9192878a480930250268c1ddf53da97dc43446",
+    "/private/tmp/modern-writer-investigation/defaults-out/AC1032-defaults.dxf.err": "b030554a3fee32a03af2a01e48c8008da89592f98408429655fcc847e20eb84f",
+    "/private/tmp/modern-writer-investigation/defaults-in/AC1032-defaults-material.dwg": "1ca3b15166f2556eb7a81a92f17d9f51abbd127234b37840de10c77be4a42b8c",
+    "/private/tmp/modern-writer-investigation/defaults-out/AC1032-defaults-material.dxf.err": "9fb7edb1ccc24707196963dfade7aa9c2c3bb0ae1bb7d42c1c2d56b72d1daa6b",
+    "/private/tmp/modern-writer-investigation/source-in/line.dxf": "b24d6904c55102a71eb52d058f805b14b5148deff3b6ca02ad372f1c6f5d6363",
+    "/private/tmp/modern-writer-investigation/defaults.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "verification": [
+    "ctest --test-dir /private/tmp/modern-header-defaults/build -R '^libdxfrw_(dwg_modern_header_defaults|modern_header_default_peer)$' --output-on-failure: 2/2 pass.",
+    "AddressSanitizer focused HEADER test 1/1 passed.",
+    "The same C++ test linked to the baseline 5d6d3b30 library (whose drw_header.cpp matches 7037d4dc) rejects the old AC1027 zero defaults.",
+    "Hash-bound tools/audit_modern_header_default.py verifies both producer sources and both candidate DWGs; six synthetic peer corruptions reject under Python -O.",
+    "The C++ test verifies the exact prefix on all six versions, following 24/0 fields, caller-supplied DIMASO/DIMSHO bits, invalid time buffer/bit cursor preservation and corrected same-object retry."
+  ],
+  "limits": [
+    "No whole-file, native application, ODA acceptance or root-cause claim.",
+    "Unknown field values other than defaults are not retained by the current parser.",
+    "No DWG/DXF fixtures were added; physical samples remain scratch-only."
+  ],
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "integrated_validation": "The integrated HEADER default, peer-audit and existing modern writer diagnostic tests passed 3/3."
+}

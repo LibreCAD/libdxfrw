@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw-acad-table-observed-type92-followup-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Extend the generated AC1021 TABLE unknown-cell fail-closed test to the second cell type observed in the existing local sample, inspect authoritative ODA wording, and determine whether the installed independent LibreDWG reader exposes cell semantics.",
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "testTarget": "libdxfrw_dwg_object_vectors_tests",
+    "existingCtest": "libdxfrw_dwg_object_vectors",
+    "newCtestRegistration": false,
+    "newFixture": false,
+    "generatedVector": "AC1021 TABLE cell type 92; parser instance is reused after supported text and block cells",
+    "assertions": [
+      "The type-92 record is represented without guessed cell contents.",
+      "Semantic content returns to incomplete after prior successful parser reuse.",
+      "The subrecord is marked incomplete and the cursor stops at the bounded common cell prefix."
+    ]
+  },
+  "evidence": {
+    "oda": {
+      "specification": "Open Design Specification v5.4.1",
+      "section": "20.4.96.1",
+      "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "observed": "The documented R2007 cell types are 1=text and 2=block; the specification says the AutoCAD 2008 cell-data change is TODO. It does not define type 16 or 92.",
+      "consequence": "Keep unknown types fail-closed; no parser field order or semantic meaning is inferred."
+    },
+    "sample": {
+      "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+      "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+      "version": "AC1021",
+      "repositoryFixture": false,
+      "libdxfrwTrace": {
+        "observedUnknownCellTypes": [16, 92],
+        "disposition": "Both hit the unknown-type guard and retain the incomplete TABLE / anonymous-block fallback.",
+        "conversionExit": 1,
+        "finalFailure": "FIELD/FIELDLIST carriers have no qualified DXF serializer; no successful conversion or TABLE support claim results."
+      }
+    },
+    "independentReader": {
+      "name": "GNU LibreDWG dwgread",
+      "version": "0.14",
+      "format": "JSON",
+      "exit": 0,
+      "observed": "JSON identifies two entities as TABLE/type 506 and includes preview bytes, but exposes no rows, cells, or cell-type semantics.",
+      "evidenceClass": "structural only; not an independent cell-grammar witness"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+      "git diff --check -- src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "buildPassed": true,
+    "focusedCtestPassed": true,
+    "focusedCtestCount": "1/1",
+    "diffCheckPassed": true,
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "temporaryLogsAndOutputRemoved": true
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "findingsAdded": 0,
+    "topLevelSubplansAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextLocalDirection": "Keep AC1021 cell types 16/92 fail-closed pending authoritative grammar; proceed with the separate AC1024+ TABLECONTENT route or another ready implementation slice."
+  },
+  "repositoryState": {
+    "commitCreated": false,
+    "reason": "The shared checkout contains extensive unrelated uncommitted user changes; this narrow test and plan update was left uncommitted rather than staging or committing a mixed worktree."
+  }
+}

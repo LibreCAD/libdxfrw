@@ -1,0 +1,148 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-proxy-class-map-census-2026-11-28",
+  "date": "2026-11-28",
+  "gate": "P6-F",
+  "supportClaimEffect": "none",
+  "scope": "Two locally altered AC1012 scratch witnesses; single-page physical object-map census and GEODATA class binding.",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.6",
+      "3.2.6",
+      "10.1",
+      "20.4.1",
+      "23.1"
+    ]
+  },
+  "method": "Independently decode bounded section locators, one object-map page, unsigned handle deltas and signed location deltas; validate page and terminator CRCs, each frame size/CRC, self handle and type, and nonoverlap. Compare the full mapped handle/type set to LibreDWG JSON. Reuse the version-aware physical CLASS section walker to bind all class rows and the selected GEODATA row against the peer decode.",
+  "observations": {
+    "destination": {
+      "sourceSha256": "7d2a2c7a201a96bf2c5c9623c2d2bd7536976d8e684d8a62074f0d124db208e5",
+      "objectMapOffset": 5064,
+      "objectMapSize": 121,
+      "objectMapSha256": "a71cc90566d7d8b4e3f40a0fb48e2f0f18c0f7c364464583e3759b77a77eb674",
+      "physicalFrameCount": 44,
+      "selectedClassMapFrameCount": 0,
+      "classSection": {
+        "classCount": 38,
+        "crcValid": true,
+        "sectionOffset": 497,
+        "sectionSha256": "8082286b32cf64d20af243e9dba8c5ed3d74f4b66ed06476e2331d9bc560b1a9",
+        "sectionSize": 2134,
+        "selected": {
+          "app": "ObjectDBX Classes",
+          "cpp": "AcDbGeoData",
+          "dxf": "GEODATA",
+          "flags": 1025,
+          "itemClassId": 499,
+          "number": 531,
+          "physicalDxfValueStartBit": 18293,
+          "physicalEndBit": 18368,
+          "physicalStartBit": 18003,
+          "zombie": 1
+        }
+      },
+      "peerDecodedCount": 44
+    },
+    "source": {
+      "sourceSha256": "93cb1e6c0d62c53ef485b9c74eda41151e28db60c1514cecd0607bbcf30b77aa",
+      "objectMapOffset": 5068,
+      "objectMapSize": 121,
+      "objectMapSha256": "be27c13750bf69969e422e947b084503b38de24dbd7f1ab1851ed34857619b32",
+      "physicalFrameCount": 44,
+      "selectedClassMapFrameCount": 0,
+      "classSection": {
+        "classCount": 38,
+        "crcValid": true,
+        "sectionOffset": 497,
+        "sectionSha256": "8082286b32cf64d20af243e9dba8c5ed3d74f4b66ed06476e2331d9bc560b1a9",
+        "sectionSize": 2134,
+        "selected": {
+          "app": "ObjectDBX Classes",
+          "cpp": "AcDbGeoData",
+          "dxf": "GEODATA",
+          "flags": 1025,
+          "itemClassId": 499,
+          "number": 531,
+          "physicalDxfValueStartBit": 18293,
+          "physicalEndBit": 18368,
+          "physicalStartBit": 18003,
+          "zombie": 1
+        }
+      },
+      "peerDecodedCount": 44
+    }
+  },
+  "result": "Both samples have 44 mapped CRC-checked frames and zero mapped frame types equal to the physical GEODATA class number 531; the full handle/type sets match LibreDWG. The CLASS field count itself remains absent in R13.",
+  "tests": [
+    "Synthetic maps reject broken map, frame and terminator CRC, duplicate handles and locations, changed self handle with repaired CRC, and truncation; corrected retries match. A valid physical type change is counted.",
+    "Physical CLASS name corruption with a repaired class CRC is rejected, and an unchanged retry succeeds.",
+    "The existing legacy dictionary wire controls pass.",
+    "Modular-value controls cover multibyte positive, signed negative, truncated and oversized encodings and negative zero."
+  ],
+  "limits": [
+    "The census covers these single-page, short-frame synthetic samples and addressable map entries only.",
+    "The new observer does not prove native AutoCAD validity or semantic support and does not establish how the output writer handles an unused proxy CLASS.",
+    "The unsafe diagnostic layout bypass is not part of the PR. The existing GEODATA and layout gates remain.",
+    "No DWG or DXF fixture is committed."
+  ],
+  "tools": {
+    "auditor": "tools/research/audit_ac1012_class_census.py",
+    "sha256": "af878c0e5d199115fed19048a5416aa742b87772f40d10868a5f36d13246892b",
+    "testsSha256": "6f4913babb99daecb2df28138de35eac318def2ad94cf41d20bb66d9f457ee23",
+    "libredwg": "0.14"
+  },
+  "additionalDestinationClasses": {
+    "RASTERVARIABLES": {
+      "classSection": {
+        "classCount": 38,
+        "crcValid": true,
+        "sectionOffset": 497,
+        "sectionSha256": "8082286b32cf64d20af243e9dba8c5ed3d74f4b66ed06476e2331d9bc560b1a9",
+        "sectionSize": 2134,
+        "selected": {
+          "app": "ISM",
+          "cpp": "AcDbRasterVariables",
+          "dxf": "RASTERVARIABLES",
+          "flags": 0,
+          "itemClassId": 499,
+          "number": 527,
+          "physicalDxfValueStartBit": 16785,
+          "physicalEndBit": 16924,
+          "physicalStartBit": 16559,
+          "zombie": 1
+        }
+      },
+      "selectedClassMapFrameCount": 0,
+      "mappedFrames": 44,
+      "auditSha256": "5009de094276cf3f18146d86b231ac1b8a446559aa5f355f2b650a4826eeb3d4"
+    },
+    "WIPEOUTVARIABLES": {
+      "classSection": {
+        "classCount": 38,
+        "crcValid": true,
+        "sectionOffset": 497,
+        "sectionSha256": "8082286b32cf64d20af243e9dba8c5ed3d74f4b66ed06476e2331d9bc560b1a9",
+        "sectionSize": 2134,
+        "selected": {
+          "app": "WipeOut|ACAD Express Tool|www.autodesk.com",
+          "cpp": "AcDbWipeoutVariables",
+          "dxf": "WIPEOUTVARIABLES",
+          "flags": 0,
+          "itemClassId": 499,
+          "number": 523,
+          "physicalDxfValueStartBit": 14317,
+          "physicalEndBit": 14464,
+          "physicalStartBit": 13771,
+          "zombie": 1
+        }
+      },
+      "selectedClassMapFrameCount": 0,
+      "mappedFrames": 44,
+      "auditSha256": "7089171e1c7714673cb7674d461257ce15ae623a84a1b0f49d552eb2ff9dba8f"
+    }
+  },
+  "nextDiagnostic": "With both the legacy layout validator and the zero-callback GEODATA guard bypassed in a separate scratch build, R2000 ASCII and binary partial attempts reach a RASTERVARIABLE proxy CLASS guard and preserve sentinel destinations. These bypasses are not production changes and do not qualify output."
+}

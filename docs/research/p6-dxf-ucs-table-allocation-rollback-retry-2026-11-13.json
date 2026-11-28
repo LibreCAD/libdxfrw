@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-ucs-table-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_UCS_TABLE_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Qualify generated UCS table-record allocation rollback, caller-state preservation, retry and readback across all seven DXF revision lanes.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW_UCS generated during each test run",
+    "profile": "One UCS with origin and axes, two XDATA entries, and for AC1015+ two repeated orthographic option type/point tuples with the legacy first-point projection.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/ucs_table_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-ucs-table-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each version and encoding, calibrate the public writeUCS callback allocation count; inject failure at every measured offset and verify destination-sentinel rollback and full source-field preservation; retry with the same codec and verify byte-identical output plus typed UCS readback."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 18, "Binary": 17},
+    "AC1015": {"ASCII": 17, "Binary": 18},
+    "AC1018": {"ASCII": 17, "Binary": 18},
+    "AC1021": {"ASCII": 16, "Binary": 17},
+    "AC1024": {"ASCII": 16, "Binary": 17},
+    "AC1027": {"ASCII": 16, "Binary": 17},
+    "AC1032": {"ASCII": 16, "Binary": 17},
+    "totals": {"ASCII": 116, "Binary": 121, "all": 237}
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_ucs_table_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_ucs_table_allocation$' --output-on-failure: PASS 1/1 in 1.65 seconds",
+    "directControl": "build/tests/libdxfrw_ucs_table_allocation_tests: PASS; 237 injected allocation offsets across AC1014/15/18/21/24/27/32 ASCII/Binary",
+    "testSourceSha256": "ca91254429ba30b8d383b893a2f48d56327ca32d918fb30620c79f23b1f4cbdb",
+    "testExecutableSha256": "7a08d8cfb7e664eb946815eb3cf65f13ddd84738b59ce2deacfde7c67afa0b21",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated writer transaction evidence only; producer interoperability and native UCS behavior are not qualified.",
+    "Only one initialized profile is covered; source-owner/handle graph variants and remaining UCS values remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The generated UCS profile survives every measured allocation failure across all seven legacy and modern revisions and both encodings, with destination and caller rollback, same-codec retry, and typed readback.",
+    "remainingP6G": "Continue the exact public-writer inventory and caller-state audit; retain producer, dependency, and native semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "218 completed slices and 35 remaining packages: 218/(218+35)=86.2%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-mleaderstyle-version-matrix-allocation-rollback-retry-2026-11-13.json"
+}

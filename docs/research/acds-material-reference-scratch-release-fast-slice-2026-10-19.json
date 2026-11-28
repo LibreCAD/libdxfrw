@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ACDS material-reference scratch release fast slice",
+  "mode": "Implementation slice; focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Trace the ACIS history material-reference list to its final consumer.",
+    "Release the source-reference scratch vector after dictionary graph configuration.",
+    "Preserve the configured writer-owned output graph and source records."
+  ],
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "change": "Swap referencedMaterials with an empty vector immediately after configureAcdsMaterialDictionary succeeds.",
+    "lifetimeEvidence": "The history collectors populate referencedMaterials; configureAcdsMaterialDictionary reads it to validate and prepare ACAD_MATERIAL dictionary/root entries and material handles. A source search found no later consumer in fileExport().",
+    "unchanged": [
+      "ACDS history collection and validation",
+      "Configured material dictionaries, root entries, and material handles",
+      "Source DXF/DWG data and retry behavior",
+      "Serialized output graph"
+    ],
+    "performanceClaim": "No measured throughput/RSS gain is claimed; the vector's retained storage is released after its proven last use."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "ctest": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_modeler_dxf_writer_matrix|libdxfrw_dxf_fixtures|libdxfrw_block_owners|dwg2dxf_modeler_dxf_move_dispatch)$' --output-on-failure",
+      "passed": 4,
+      "failed": 0,
+      "totalTimeSeconds": 4.87
+    },
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "jsonValidation": "jq empty passed"
+  },
+  "assessment": {
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

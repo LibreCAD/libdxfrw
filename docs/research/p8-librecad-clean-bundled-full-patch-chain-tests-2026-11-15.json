@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patches": "All 14 documented downstream LibreCAD patches applied in order to a clean disposable checkout. The fourteenth passed a reverse application check.",
+  "environment": "macOS 27.2.1 ARM64; Apple clang 21.0.0; CMake 4.4.5; Release; bundled libdxfrw; Qt offscreen; BUILD_TESTS=ON.",
+  "applicationSha256": "c69bbb3a01f008725e4d673be5cb5eaefe4f25d7a8d0caf12d622fc8660c897c",
+  "tests": [
+    "Full LibreCAD application and focused test executable build succeeded after the fourteenth patch.",
+    "[ltype]~[dwg] selector: 17/17 cases, 3968 assertions. The newer-codec R12/R14 refusal-specific case returns early for the bundled codec, which permits that export; the policy test separately verifies that permitted behavior and subsequent retry.",
+    "All five original LibreCAD PR #3269 cases passed, including DWG: 49 assertions.",
+    "The rebuilt application converted the workspace-local AC1021 lineweights and AC1024 title-block inputs headlessly, each exit zero with nonempty DXF and EOF. Their output hashes match the earlier 13-patch bundled smoke receipt."
+  ],
+  "limits": "The application source contains unmerged downstream patches. This is a focused macOS bundled-codec run, not complete GUI, all-version/Binary or other-platform qualification, or clean installed-upstream linkage. The generated DXFs are scratch-only and not committed. No semantic support claim or phase gate is promoted.",
+  "previousSmoke": "docs/research/p8-librecad-clean-bundled-app-smoke-2026-11-15.json"
+}

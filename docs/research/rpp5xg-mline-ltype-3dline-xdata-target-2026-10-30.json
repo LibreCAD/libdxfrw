@@ -1,0 +1,87 @@
+{
+  "id": "RPP-5xg",
+  "title": "AC1027 MLINE LTYPE XDATA 3DLINE target transport",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "92e9cbb4a2025a053eb38f706c5c579584823dea",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository fixture file was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One selected 3DLINE profile across all four source/output encoding pairs in model-space ENTITIES and named AuthorityBlock BLOCKS.",
+    "linetype": "Source-bound EditDash with two simple dash segments [1.0, -0.5], declared length 1.5, flags 0 and alignment 65.",
+    "xdata": {
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "reference": "One ordered group-1005 soft pointer to source handle 0xA900."
+    },
+    "targets": [
+      {
+        "type": "3DLINE",
+        "source_handle": "0xA900",
+        "section": "ENTITIES",
+        "block_name": "*Model_Space",
+        "block_record_handle": "0x201",
+        "owner_handle": "0x201",
+        "start": [1.5, -2.0, 3.25],
+        "end": [4.5, 5.5, -6.5],
+        "thickness": 0.75,
+        "extrusion": [0.0, 1.0, 0.0]
+      },
+      {
+        "type": "3DLINE",
+        "source_handle": "0xA900",
+        "section": "BLOCKS",
+        "block_name": "AuthorityBlock",
+        "block_record_handle": "0x203",
+        "owner_handle": "0x203",
+        "start": [1.5, -2.0, 3.25],
+        "end": [4.5, 5.5, -6.5],
+        "thickness": 0.75,
+        "extrusion": [0.0, 1.0, 0.0]
+      }
+    ]
+  },
+  "proof": {
+    "source": "The collector binds the physical 3DLINE record, add3DLine callback, exact DRW_3DLine dynamic type, source handle, owner and model-space or named-block source role. The generated sentinel distinguishes all endpoint coordinates, nonzero thickness and a nondefault extrusion vector.",
+    "output": "Across both sections and all four encoding pairs, physical output contains one 3DLINE target with the expected fields and owner; the LTYPE group-1005 value equals its remapped output handle. Fresh adapter readback verifies the exact DRW_3DLine type and all selected fields, plus the typed LTYPE XDATA reference.",
+    "failure_retry": "For each section/encoding pair, removing the target refuses export and preserves the prior destination; restoring it permits same-adapter retry. One late target-handle mutation in each section also refuses without replacing the destination and succeeds after restoration, with physical and typed output checks.",
+    "counts": {
+      "selected_positive_profiles": 8,
+      "selected_successful_readbacks_including_retries": 18,
+      "selected_refusals_with_destination_preservation": 10,
+      "selected_same_adapter_retries": 10,
+      "whole_focused_test_profiles": 352,
+      "whole_focused_test_readbacks": 801,
+      "whole_focused_test_refusals": 449,
+      "whole_focused_test_retries": 449
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 19.79 seconds); selector asserts the whole-test counts above"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds bounded typed target routing without ownership-transfer changes. Revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "implementation_commit": "92e9cbb4a2025a053eb38f706c5c579584823dea",
+      "dx_iface_cpp_sha256": "f49864232370e2e7bcf133919248ab6afd535fd8c8bb3db9f70f0fd77be383c0",
+      "test_source_sha256": "a71bdfa09b7ce627074dda6a41dbf69c2347721064d9895ac418d09add863ccc",
+      "normal_executable_sha256": "8db56e8e032ce6f35ab4b2ab2ef4f10233e26b686885fd1f2f6631dc2f7f736c",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4"
+    }
+  },
+  "limits": [
+    "This qualifies one AC1027 3DLINE target in model-space ENTITIES and one in named AuthorityBlock BLOCKS for the selected LTYPE code-1005 composition. Other versions, target types/sections, XDATA profiles and MLINE semantics remain separate.",
+    "This is source identity, selected field transport, output/readback and transaction evidence only. It does not establish CAD-kernel meaning, native rendering, full document closure, or any general DWG/DXF support claim."
+  ],
+  "next": "Choose a distinct current P2 witness from the remaining target roles/sections, XDATA compositions, provider schemas or MLINE consumer operations; keep semantic and document-closure gates separate."
+}

@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-03",
+  "scope": "Generated SECTIONOBJECT-to-SECTION_SETTINGS reference-identity transport.",
+  "field": {
+    "member": "DRW_SectionObject::m_sectionSettingsHandle",
+    "dxf_group_code": 360,
+    "parser_contract": "DRW_SectionObject::parseCode retains group 360; its DWG codec reads and emits a hard-pointer handle for AcDbSectionSettings."
+  },
+  "mapping_policy": "For a nonzero source handle, use the configured reference resolver when present; otherwise use remapObjectHandle. Refuse a zero or NoHandle result before writing the SECTIONOBJECT record. A zero source handle remains omitted.",
+  "validation": {
+    "input": "Generated in-memory POINT and SECTIONOBJECT records; no DWG/DXF fixture was added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "selectors": ["libdxfrw_wave1_tests --entity-reference-remapping"],
+    "result": "PASS for resolver precedence and remap fallback on the SECTIONOBJECT group-360 field and the common entity fields; unresolved zero/NoHandle targets preserve the destination in both encodings, with corrected fresh-writer retry.",
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4"
+  },
+  "qualification_limits": [
+    "Generated output transport only; no physical producer field-span or independent target-role evidence is established.",
+    "Does not establish target existence, ownership, recursive graph closure, native-consumer behavior, or support-claim eligibility."
+  ]
+}

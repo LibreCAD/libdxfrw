@@ -1,0 +1,50 @@
+{
+  "id": "p6-dxf-field-path-partial-viewing-index-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "scope": "Generated FIELD, FIELDLIST, MOTIONPATH, CURVEPATH, POINTPATH, OBJECTPTR, and three-entry PARTIALVIEWINGINDEX graph allocation rollback, caller-state preservation, same-codec retry, and typed readback across supported DXF revisions.",
+  "profile": {
+    "source": "Runtime-generated typed C++ graph in tests/partial_viewing_index_objects_allocation_tests.cpp",
+    "targetRevisions": ["AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "repositoryFixtureAdded": false,
+    "admissionGates": [
+      "dxfRW::writeField and writeFieldList admit AC1018 and later",
+      "writeMotionPath, writeCurvePath, writePointPath, writeObjectPtr, and writePartialViewingIndex have no narrower target-version refusal for this bounded profile"
+    ]
+  },
+  "implementation": {
+    "test": "tests/partial_viewing_index_objects_allocation_tests.cpp",
+    "testSha256": "3aae093ebdc84fb0f38a7083fcbea28cdaaaead55c3002706773bd4b33130335",
+    "normalBinarySha256": "c54b96f974b448669acc84707529272406f776fe4685a87d2776f62b6a30c849"
+  },
+  "environment": {
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "build": "build-gcc",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_partial_viewing_index_objects_allocation_tests -j4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_partial_viewing_index_objects_allocation_retry$' -V"
+    ]
+  },
+  "result": {
+    "status": "PASS",
+    "selector": "libdxfrw_partial_viewing_index_objects_allocation_retry",
+    "durationSeconds": 1.40,
+    "revisions": {
+      "AC1018": {"asciiAllocationOffsets": 52, "binaryAllocationOffsets": 51, "rollbackRetryReadback": true, "detectedSourceVersionChecked": true},
+      "AC1021": {"asciiAllocationOffsets": 52, "binaryAllocationOffsets": 51, "rollbackRetryReadback": true, "detectedSourceVersionChecked": true},
+      "AC1024": {"asciiAllocationOffsets": 52, "binaryAllocationOffsets": 51, "rollbackRetryReadback": true, "detectedSourceVersionChecked": true},
+      "AC1027": {"asciiAllocationOffsets": 52, "binaryAllocationOffsets": 51, "rollbackRetryReadback": true, "detectedSourceVersionChecked": true},
+      "AC1032": {"asciiAllocationOffsets": 52, "binaryAllocationOffsets": 51, "rollbackRetryReadback": true, "detectedSourceVersionChecked": true}
+    },
+    "totalAllocationOffsets": 515,
+    "callerStatePreservedAtEveryOffset": true,
+    "retryBytesMatchCalibration": true,
+    "suite": "focused normal CTest selector only; no full suite or ASan rerun"
+  },
+  "limits": [
+    "Generated transaction evidence only; FIELD evaluation and native consumer behavior remain unqualified.",
+    "This bounded graph does not establish broad source-authored support for all FIELD/path record variants.",
+    "Does not close P6-G's full public-writer inventory."
+  ],
+  "next": "Continue the P6-G writer-route inventory and select the next admitted transaction gap from current writer/version gates."
+}

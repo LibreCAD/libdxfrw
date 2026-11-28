@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 physical VIEWPORT selected-output qualification",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify only the two source-bound AC1021 VIEWPORT entities and their bounded layout, style/layer, extension-dictionary and XRECORD graph for selected same-version DXF output.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. No DWG/DXF fixture or derivative is committed."
+  },
+  "specification": {
+    "authority": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.38 VIEWPORT ENTITY",
+    "use": "Versioned VIEWPORT-specific frozen-layer, clipping, UCS, background, visual-style, shadeplot and sun handle fields; source trace and typed model bound the selected profile."
+  },
+  "sourceGraph": {
+    "viewports": ["0x266", "0x26A"],
+    "objectType": 34,
+    "entityContainer": "Both are in main *U0 container; typed space is PaperSpace and parentHandle is zero.",
+    "layout": "Unique dwgmodels.com LAYOUT 0xD7 lists each viewport exactly once; its paper-space BLOCK_RECORD 0xD6 is *Paper_Space and points back to the LAYOUT. The source entity container is not inferred from this layout ownership.",
+    "dependencies": [
+      "Viewport 0x266 -> extension DICTIONARY 0x267 -> key ASDK_XREC_ANNOTATION_SCALE_INFO -> XRECORD 0x268",
+      "Viewport 0x26A -> extension DICTIONARY 0x26B -> key ASDK_XREC_ANNOTATION_SCALE_INFO -> XRECORD 0x26C",
+      "Both layer names and visual-style handles resolve uniquely in the source."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selectorCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS, exit 0 for AC1021 and the existing AC1024 compatibility witness. ASCII and Binary selected output each freshly reimport; exact typed viewport fields, layout list, derived groups 68/69, output ownership, layer/style references, dictionary/XRECORD key and owner edges, ordered typed XRECORD values, invalid-field refusal with destination preservation, and same-adapter retry are checked. For AC1021, DICTIONARY frames 0x267/0x26B and XRECORD frames 0x268/0x26C are source-eligible and receive finalized standard-object output proof. The XRECORD group-340 targets are matched through the independently inspected, unchanged SCALE source/output snapshot, and readback resolves each remapped target to the matching SCALE record.",
+    "aggregateObservation": "174/186 opaque source callback identities were marked output-qualified after the selected export. This is aggregate transport accounting and does not establish semantic support or whole-document conversion.",
+    "selectorLogPath": "/tmp/p4-viewport-proof-selector.log",
+    "selectorLogSha256": "483efafa111238346971e735446ba752f204db97fb3e6d85a9c3885940fd5f57",
+    "ac1024CompatibilityCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "ac1024CompatibilityResult": "PASS for ASCII and Binary selected output/readback; 228/228 source callbacks qualify, atomic refusal preserves the destination, and same-adapter retry succeeds.",
+    "ac1024CompatibilitySourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "ac1024CompatibilityLogPath": "/tmp/p4-ac1024-viewport-compatibility-2026-11-06.log",
+    "ac1024CompatibilityLogSha256": "51388f68b6e8430bf8dfe2a4eefec3e4cf080775c9bdd3c78d56582e02428a37",
+    "testSourceSha256": "45352d836f9b79cc539705f1712b5ff9d3b8f5cc5b5a9cff82de88f4d6d2dbc9",
+    "implementationSourceSha256": "14f44ea57466e5f24b3cc482381e24058fe1ac4d83ca9fbde6cea6acdb12ad24",
+    "executableSha256": "e00576071a165eb459ab840a5f9977dcce77d7c504767ba8cdba96832989443e"
+  },
+  "implementation": {
+    "summary": "Admitted the exact AC1021 source census and source-bound XRECORD graph in the physical VIEWPORT selected-output route; constrained the source layout/entity-container and dependency profile; reused finalized SCALE identity/owner evidence to map XRECORD group-340 targets; checked four standard-frame output proofs and remapped SCALE targets on readback.",
+    "files": ["dwg2dxf/dx_iface.cpp", "tests/dwg2dxf_adapter_tests.cpp"]
+  },
+  "limits": [
+    "Selected graph from one unauthenticated local source only.",
+    "No source drawing or generated derivative is committed.",
+    "No whole-source output, native consumer, producer-wide, independent semantic or general VIEWPORT support claim is established.",
+    "Original physical RASTERVARIABLES 0x2D2 and SORTENTSTABLE 0x2DF remain unqualified."
+  ]
+}

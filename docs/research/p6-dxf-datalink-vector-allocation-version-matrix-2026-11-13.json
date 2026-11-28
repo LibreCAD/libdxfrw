@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-datalink-vector-allocation-version-matrix-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DATALINK_VECTOR_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend the generated sixteen-target DATALINK OBJECTS allocation transaction proof across AC1021, AC1024, AC1027, and AC1032 writer versions.",
+  "source": {
+    "kind": "deterministic locally-authored records generated during each test run",
+    "profile": "One rooted DATALINK dictionary, one main DATALINK with sixteen ordered custom-data entries, and sixteen distinct typed target DATALINK records.",
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/datalink_objects_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-datalink-vector-allocation-version-matrix-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each version and encoding, calibrate a complete write, inject std::bad_alloc at every measured callback allocation, require unchanged destination sentinel and caller graph, retry on the same codec, compare bytes with clean output, and freshly read all typed links, owner roles, dictionary membership, and ordered target/text references."
+  },
+  "allocationOffsets": {
+    "AC1021": {"ASCII": 136, "Binary": 119},
+    "AC1024": {"ASCII": 136, "Binary": 119},
+    "AC1027": {"ASCII": 136, "Binary": 119},
+    "AC1032": {"ASCII": 136, "Binary": 119},
+    "totals": {"ASCII": 544, "Binary": 476, "all": 1020}
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_datalink_objects_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_datalink_objects_allocation_retry$' --output-on-failure: PASS 1/1 in 10.32 seconds",
+    "directControl": "build/tests/libdxfrw_datalink_objects_allocation_tests build/datalink-scratch: PASS; AC1021, AC1024, AC1027, and AC1032 each cover ASCII 136 and Binary 119 offsets",
+    "testSourceSha256": "82b7e830992b576b2dff5c4ada045f01ff6eeb7549b79bee3449671f7cbd0651",
+    "testExecutableSha256": "3bff9f6cf7167db7e92881f1beb97b349c99faeba9ffb60ec07cd2df77c7c89b",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated DXF allocation rollback, retry, and typed readback evidence only; this does not establish producer-profile breadth or native consumer semantics.",
+    "One generated DATALINK graph and one field profile are tested per version; arbitrary graph topologies and independent producers remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The sixteen-target DATALINK transaction proof now passes across AC1021, AC1024, AC1027, and AC1032 in ASCII and Binary.",
+    "remainingP6G": "Continue inventorying uncovered direct routes, compound variants, and variable-size OBJECTS builders; retain source-profile and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "223 completed slices and 35 remaining packages: 223/(223+35)=86.4%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-datalink-vector-allocation-rollback-retry-2026-11-13.json"
+}

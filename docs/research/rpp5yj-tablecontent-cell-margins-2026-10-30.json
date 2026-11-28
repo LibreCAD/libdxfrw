@@ -1,0 +1,46 @@
+{
+  "id": "RPP-5yj",
+  "date": "2026-10-30",
+  "scope": "One AC1027 TABLECONTENT cell with a cell-scope TABLEFORMAT margin override and no other non-default style properties.",
+  "basis": {
+    "decoderGrammar": "src/intern/dxftablecontent.h style(): type 1 TABLEFORMAT with has-data flag, common style fields, content-format subrecord, margin flag, six ordered group-40 values, and border count.",
+    "peerWriterGrammar": "src/libdxfrw.cpp writeCellStyleMap() emits the same TABLEFORMAT/CELLMARGIN sequence for typed cell styles.",
+    "externalReference": "Autodesk AutoCAD DXF TABLESTYLE reference identifies group 40/41 as horizontal/vertical cell-margin values. The six-value nested TABLECONTENT layout follows this repository's decoder grammar; this receipt does not claim native rendering semantics.",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm"
+  },
+  "profile": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "generatedAtRuntime": true,
+    "tableContentHandle": "0x721",
+    "scope": "the single row's single cell, style type 1",
+    "hasData": true,
+    "styleOverrides": 0,
+    "marginOverrideFlags": 1,
+    "orderedMargins": {
+      "vertical": 0.125,
+      "horizontal": 0.25,
+      "bottom": 0.375,
+      "right": 0.5,
+      "horizontalSpacing": 0.625,
+      "verticalSpacing": 0.75
+    },
+    "otherStyleFields": "Default common fields, content format, and empty borders"
+  },
+  "implementation": {
+    "writer": "The AC1027 TABLECONTENT writer accepts only this cell-style margin profile in addition to the previously supported default scope. It emits the exact TABLEFORMAT common prefix, CONTENTFORMAT, margin flag, MARGIN/CELLMARGIN_BEGIN, six ordered group-40 values, empty border count, and closing marker. Other non-default cell-style properties remain refused.",
+    "validation": "ASCII and binary output are checked for the exact physical group sequence and fresh typed readback of all six values.",
+    "negativeControl": "A negative horizontal margin refuses without replacing the destination sentinel. Restoring the selected positive margin profile permits export on the same writer.",
+    "generatedFixtureFilesCommitted": false
+  },
+  "validation": {
+    "command": "git diff --check && cmake --build build --target libdxfrw_dxf_fixture_tests -j4 && ./build/libdxfrw_dxf_fixture_tests --datalink-roundtrip",
+    "result": "PASS",
+    "focusedOutput": "Generated DATALINK writer and adapter routes: PASS"
+  },
+  "limitations": [
+    "Only the AC1027 one-cell cell-style margin profile is qualified; column, row, table, and CELLSTYLEMAP margins remain outside this writer profile.",
+    "No border, style-resource dependency, arbitrary style property, or native CAD rendering claim is made.",
+    "The runtime-generated recipe is implementation evidence, not a producer-authored source witness."
+  ]
+}

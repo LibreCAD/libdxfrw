@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-table-cadvalue-oda-flags-and-ac1021-checksum-scope-2026-11-02",
+  "date": "2026-11-02",
+  "state": "implemented",
+  "scope": "Resolve ODA's one-based flag numbering and restore the generic R2007+ TABLE payload-presence rule; AC1021 checksum values need no key-specific exception.",
+  "authority": {
+    "specification": "ODA Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.99 CadValue object",
+    "page": 241,
+    "localPdf": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "rule": "For R2007 and later, ODA uses one-based bit names: bit 1 (mask 0x01) marks kGeneral and suppresses its type-specific variant; setting only mask 0x02 does not suppress the variant."
+  },
+  "sourceEvidence": {
+    "priorReceipt": "docs/research/rpp5ag-cadvalue-framing-and-native-table-retention-fast-slice-2026-10-22.json",
+    "ac1021Sample": {
+      "repository": "https://github.com/DomCR/ACadSharp",
+      "commit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "path": "samples/sample_AC1021.dwg",
+      "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+      "artifactPolicy": "Inspected in place; not copied into or committed to this repository."
+    },
+    "checksumCustomData": {
+      "key": "ACAD_ROUNDTRIP_2008_CELL_CHECKSUM",
+      "formatFlags": 2,
+      "dataType": 2,
+      "observedValues": [21385, 7783],
+      "evidenceCeiling": "Confirms a physical flags=2/type=2 payload. Its custom key records source lineage; ODA's mask-0x01 rule already permits this payload generically."
+    },
+    "nativeStringCarrier": {
+      "formatFlags": [4, 6],
+      "dataType": 4,
+      "evidenceCeiling": "Retained only as the previously source-bounded AC1021 string profile. It is not generalized to other TABLE profiles or versions."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp"
+    ],
+    "behavior": [
+      "DRW_CadValue::hasDwgPayload suppresses only mask 0x01, following ODA's one-based bit numbering.",
+      "The AC1021 flags=4/6 type=4 native-string profile retains its distinct source-backed body decoding.",
+      "AC1021 flags=2/type=2 custom values use the generic present-payload rule; the exact key preserves lineage without changing parser semantics.",
+      "Generated AC1021 and AC1024 vectors exercise flags 0 through 3 and preserve following-unit/string/table boundaries."
+    ],
+    "publicApiChanged": false
+  },
+  "validation": {
+    "builds": [
+      "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+      "cmake --build build-gcc --target libdxfrw_table_content_dxf_tests -j2",
+      "cmake --build build-gcc --target dwg2dxf -j2"
+    ],
+    "fastTests": [
+      "build-gcc/libdxfrw_dwg_object_vectors_tests --cadvalue-payload-presence",
+      "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-general-value-format-flag",
+      "build-gcc/libdxfrw_dwg_object_vectors_tests",
+      "build-gcc/tests/libdxfrw_table_content_dxf_tests --table-value-payload",
+      "build-gcc/tests/libdxfrw_table_content_dxf_tests --table-value-profiles"
+    ],
+    "results": "The core, DWG object-vector, TABLE DXF and dwg2dxf targets rebuilt. Both CadValue selectors, the complete DWG object-vector executable and both TABLE DXF selectors passed. The refreshed AC1027 conversion still fails closed at TABLECONTENT 0xC94; no full test suite was run.",
+    "fixturePolicy": "No DWG/DXF fixture files were added; controls are generated from scratch at runtime."
+  },
+  "remaining": {
+    "ac1027TableContent": "With the corrected mask-0x01 rule, TABLECONTENT 0xC94 now parses the flags=2/type=2 custom value, linked-data state and one attribute count, then remains incomplete at the first ATTDEF handle. The prior bounded handle-role probe observed code 0x05/reference 0x11 instead of soft-pointer code 0x04. Reconcile preceding body/string/handle spans; retain incomplete disposition and strict output refusal.",
+    "semantics": "Native TABLE rendering, cell value meaning, and whole-document conversion remain unqualified.",
+    "supportClaimsPromoted": 0
+  }
+}

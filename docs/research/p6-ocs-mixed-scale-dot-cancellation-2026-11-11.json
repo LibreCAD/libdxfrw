@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p6-ocs-mixed-scale-dot-cancellation-2026-11-11",
+  "status": "GENERATED_SMALL_COMPONENT_PRESERVED_AFTER_CANCELLATION",
+  "scope": "Finite HATCH/MPOLYGON OCS-to-WCS dot products where common-scale normalization underflows a nonzero coordinate before larger terms cancel.",
+  "finding": {
+    "operation": "scaledCompensatedDot",
+    "priorBehavior": "Dividing every coordinate by the largest magnitude could underflow a nonzero small component to zero. If the other terms then cancelled, the returned finite WCS result silently omitted that component.",
+    "change": "Detect a nonzero coordinate lost during scale normalization. Recompute the bounded OCS basis products in the original exponent range, combine an opposite-sign product pair first, then use compensated accumulation and fused product residuals.",
+    "scopeBoundary": "This fallback is reached only when common-scale normalization loses a nonzero coordinate. It does not establish exact arithmetic for every finite vector or change HATCH/MPOLYGON source data."
+  },
+  "generatedControl": {
+    "normal": [1.0, 1.0, 0.0],
+    "ocsVector": [1e308, 1e-100, 1e308],
+    "expectedWcs": [0.0, 1.4142135623730951e308, 1e-100],
+    "proof": "The X and Z products cancel exactly in WCS X; they sum to a finite WCS Y. Common normalization by 1e308 erases the nonzero 1e-100 local Y coordinate, which maps directly to WCS Z."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "focusedCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_hatch_ocs_wcs_coordinate$' --output-on-failure",
+    "focusedResult": "PASS 1/1",
+    "diffCheck": "PASS",
+    "drawingFixturesAdded": 0
+  },
+  "unresolved": [
+    "Correct rounding for every finite OCS input is not established.",
+    "Native CAD rendering, external producer behavior and broader 3D consumer qualification remain open."
+  ],
+  "claimEffect": "Closes only the generated underflow-after-cancellation case for the HATCH/MPOLYGON OCS coordinate helper. No DWG/DXF support claim is promoted."
+}

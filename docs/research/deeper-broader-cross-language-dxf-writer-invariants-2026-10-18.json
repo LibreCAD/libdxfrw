@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader cross-language DXF writer invariants and bounded test readiness",
+  "mode": "primary-source web research and plan-only refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen a newly surfaced cross-language DXF writer for reusable writer-test invariants",
+    "Compare declared whole-output writer checks with current local hardening-test coverage",
+    "Refine only the existing PAR-12/S13 writer-hardening checkpoint while preserving fast per-slice validation"
+  ],
+  "method": {
+    "kind": "Read-only review of current public project documentation and local test sources",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The Go writer statements are mutable-branch maintainer documentation and were not independently executed. This review establishes a test-design lead only, not a libdxfrw defect, interoperability result, or format rule."
+  },
+  "sources": [
+    {
+      "project": "gallowaysoftware/dxf",
+      "url": "https://github.com/gallowaysoftware/dxf",
+      "revision": "Mutable default branch README reviewed 2026-10-18; no GitHub release listed",
+      "observed": "The README describes a narrow R2010/AC1024 Go writer with LINE, CIRCLE, ARC, LWPOLYLINE and TEXT, no reader, and no block/paper-space or advanced-entity support. It documents group-pair parsing, unique handles, owner closure, mandatory tables, ordered sections, exact golden bytes, and a fuzz invariant that rejects invalid models or emits complete pairs ending in EOF."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgrewrite.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "revision": "Mutable master source and manual reviewed 2026-10-18",
+      "observed": "The project documents route-specific fuzz entry points; dwgrewrite contains a decode→encode→decode harness. This is useful crash/robustness methodology, not an independent semantic oracle."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/usage_for_beginners.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst"
+      ],
+      "revision": "Mutable master documentation reviewed 2026-10-18",
+      "observed": "The documentation distinguishes ordinary strict reads for structurally sound drawings from recovery for flawed input, and exposes raw browsing separately from loaded-model inspection. This supports separate structural, semantic, recovery, and native-acceptance outcomes."
+    },
+    {
+      "project": "Local libdxfrw test sources",
+      "urls": [],
+      "revision": "Working-tree source at baseline commit de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+      "observed": "tests/hardening_tests.cpp has deterministic DXF and DWG reader fuzz-smoke entry points. Repository search found no writer-output fuzz/property target. Existing writer tests provide numerous focused byte/tag, graph, failure-atomicity, and retry controls; absence of a broad output property target is not itself a serialization defect."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "nestedReadinessActionsAdded": 1,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds one bounded, optional generated writer-output property check under existing PAR-12/S13. It checks complete framing through terminal EOF, handle/owner closure, and unchanged-destination refusal/retry. It runs only at the existing scheduled writer-hardening checkpoint or when generic writer framing/transaction logic changes; it does not add per-slice full suites, peer/native execution, fixtures, dependencies, or support claims."
+  },
+  "implementationReadyChecks": [
+    "Generate small valid typed graphs and nearby invalid cases in memory; cap test cases, entity counts, and output bytes.",
+    "For ASCII and Binary DXF success cases, use a minimal framing scan independent of writer internals to check complete code/value pairs, balanced sections, one terminal group-0 EOF, unique handles, and role-correct owner/reference closure.",
+    "For refusal cases, seed the destination with sentinel bytes; verify no replacement or append, then repair and retry through the same writer/output path.",
+    "Keep exact field semantics in the existing golden/vector tests; do not promote framing success, self-readback, or the peer's self-described coverage percentage to semantic support.",
+    "Reuse an existing hardening/writer target and do not add a CTest registration. Run the focused selector only when generic framing/validation/transaction/handle allocation changes or at a scheduled hardening checkpoint.",
+    "Do not add coverage-guided writer mutation unless the deterministic property check demonstrates a named state-space gap; any later campaign must be opt-in, scratch-only, bounded, and locally seeded.",
+    "Retain the fixture policy: no peer/customer files and no fuzz-generated DXF fixtures are committed."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-cross-language-dxf-writer-invariants-2026-10-18.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-cross-language-dxf-writer-invariants-2026-10-18.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed"
+  }
+}

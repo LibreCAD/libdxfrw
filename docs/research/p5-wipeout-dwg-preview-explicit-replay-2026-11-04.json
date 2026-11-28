@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_EXPLICIT_DWG_PREVIEW_TRANSPORT",
+  "supportClaimEffect": "none",
+  "scope": "Explicitly caller-authorized, same-version DXF replay of a bounded AC1024/AC1027 DWG WIPEOUT preview; no automatic adapter admission, general proxy cache support, whole-document qualification or rendering claim.",
+  "authority": {
+    "spec": "ODA Open Design Specification for .dwg files v5.4.1 section 29",
+    "pdf_sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "finding": "The chapter defines little-endian size/type chunks: SUBENT_COLOR 14, SUBENT_TRUECOLOR 22, SUBENT_FILLON 20 and POLYGON 7; the polygon carries a point count and 3D raw doubles. This implementation limits admission to the exact witnessed four-chunk, four-point, resource-free shape and fixed witnessed attribute values; it does not assert that all such streams share meaning."
+  },
+  "physical_sources": {
+    "provenance": "Two locally authored-from-scratch WIPEOUT DXFs were converted by ODA File Converter 27.1.0 to AC1024 and AC1027 DWG, then converted by ODA to same-version DXF. No DWG or DXF fixture is committed.",
+    "ac1024": {
+      "input_dxf_sha256": "61530d185249c0d2db9a752f3af29990da4c7777283228e18e2c3d50a95f34bb",
+      "dwg_sha256": "44723e1142892455b042cbf8a96d65154d75623ed03b94ce313dab071da689ac",
+      "oda_dxf_sha256": "b52720be850c161a0dd2a8137b6ddb555b314279804885b5e17ce10b352baca0",
+      "path": "/private/tmp/wipeout-ac1024/dwg/source.dwg"
+    },
+    "ac1027": {
+      "input_dxf_sha256": "51d1b6bbb06cc32ba16b831bb7990599bb123959d51f9126e50a9a225ff30bfc",
+      "dwg_sha256": "39a63109851de9ef044a87bf4f88042468267340e52dfb4038047d4c5972e5f7",
+      "oda_dxf_sha256": "1064f377e6780aaa1659ad6404b2eb662bbf9a9b148ecbaa122d19519c8394cf",
+      "path": "/private/tmp/p4-wipeout-candidate/ac1027/source.dwg"
+    },
+    "observation": "GNU LibreDWG 0.14 reports each DWG WIPEOUT preview as 152 bytes; independently, ezdxf 1.4.5 reads the ODA-exported DXF preview as the same bytes, SHA-256 6e138b15c188170b2bf96c9c2cdae6cd401a2e275383dd425e2198ec98dc471e. Both sources exhibit the same 152-byte stream; they do not establish behavior for other producers or preview shapes."
+  },
+  "implementation": "Existing explicit authorizeParsedDwgProxyGraphicsReplay() now admits only a parsed-DWG WIPEOUT for the same AC1024 or AC1027 target when its 152-byte cache has the exact observed fixed chunk headers and attribute values, four finite polygon points, no extra chunks and matching byte count. It does not change the strict dwg2dxf adapter preflight; the default unacknowledged compatible path behaves as before. No public API, virtual table or class layout is changed. The permitted record must be a dynamic DRW_Wipeout in the matching active writeWipeout call on the same writer and entity; a thread-local RAII context supplies a single-use preflight permit and restores the previous context on return or exception.",
+  "authorization": "The established explicit caller acknowledgement is a freshness contract, not an immutable snapshot or automatic mutation detection. The caller must revoke and re-authorize after any cache or associated geometry edit; the writer checks structural profile only. An authorized same-shape changed polygon may still be stale if a caller violates that contract.",
+  "validation": {
+    "generated": "ctest --test-dir build-gcc -R ^libdxfrw_wipeout_dwg_proxy_replay$ --output-on-failure: 1/1 passed. Synthetic controls cover AC1024 and AC1027, ASCII/Binary, unauthorized compatible behavior, continued strict-adapter refusal, bad byte-count/header, chunk-count, resource/unknown opcode, invalid fill, nonfinite polygon coordinate and wrong target revision; each failure preserves a sentinel and a corrected same-adapter retry writes and rereads exact cache bytes. Direct LINE/IMAGE writer misuse, forged/mutated eType, nested different-writer and same-writer/same-entity resolver attempts, and exception-unwind same-writer retry are also checked. The same-writer misuse aborts the outer destination atomically.",
+    "physical": "build-gcc/tests/libdxfrw_wipeout_dwg_proxy_replay_tests <source.dwg> <new-scratch-output-directory> passes for each recorded source; SHA-256 of the source must match before and after. The executable isolates the one selected WIPEOUT and tests ASCII/Binary explicit replay; it does not export the full input.",
+    "independent_readback": "ezdxf 1.4.5 independently opened each of the four selected ASCII/Binary outputs and reported one WIPEOUT with the same 152-byte proxy cache and SHA-256 6e138b15c188170b2bf96c9c2cdae6cd401a2e275383dd425e2198ec98dc471e. Output file hashes are listed below.",
+    "output_sha256": {
+      "ac1024_ascii": "45a40c5e9f091b679cd732ddfacc2dfe198df0aff2e5fc6e5e564b9081aaf7e3",
+      "ac1024_binary": "c21cc6920ecaaeaef385e2af4c5f89e91eaa29c18240668464d2f24c4ac2142d",
+      "ac1027_ascii": "48aa3027713f39995d59ad2a8458f55485b81a1f096ef34c1668616e905f198c",
+      "ac1027_binary": "0249b5a6936862cfeded3bc1eead7018ffa1150e3046a98b741138b0d55d4b91"
+    }
+  },
+  "limits": [
+    "The strict adapter gate stays closed; selected-record compatible output is not conversion of either source document.",
+    "The payload comparator rejects indexed layers, linetypes, unknown chunks, other cache shapes and target revisions; it does not infer automatic cache freshness.",
+    "Independent native image display, polygon fill semantics, absent HEADER data and full graph closure remain open."
+  ]
+}

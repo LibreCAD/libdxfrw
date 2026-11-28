@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-144 AC1015 VIEWPORT reader boundary correction",
+  "sliceKind": "generated same-library fast regression and bounded parser correction",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeWasAlreadyBroadlyModified": true,
+    "editedPaths": [
+      "src/drw_entities.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par144-ac1015-viewport-reader-boundary-correction-fast-slice-2026-10-21.json"
+    ],
+    "commitCreated": false,
+    "commitDisposition": "No commit: the repository and touched paths contain broad pre-existing uncommitted changes. No whole-file staging or unrelated staging was performed."
+  },
+  "sourceBasis": {
+    "authoritativeSpecification": "Open Design Alliance DWG Specification v5.4.1, §20.4.38 VIEWPORT",
+    "localCopy": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+    "observation": "The AC1015 VIEWPORT body has no R2000+ frozen-layer list; its type-specific reference sequence is clip boundary, viewport header, named UCS, and base UCS. The generated writer frame contained four null references, and the reader warning occurred before the type-specific handle loop.",
+    "scopeLimit": "ODA layout informs field sequencing; the boundary diagnosis is established by local cursor/control-flow tracing and a generated same-library regression, not by an independent DWG decoder."
+  },
+  "finding": {
+    "id": "PAR-144",
+    "rootCause": "For AC1015 the string buffer aliases the entity buffer. After DRW_Entity::parseDwgEntHandle consumed common handles, DRW_Viewport::parseDwg compared that shared cursor against stringEndBit initialized to the data-body end. The comparison rejected the record before its four type-specific handles were decoded.",
+    "change": "Keep the existing data-body checks before common-handle parsing. Apply the post-handle string-end comparison only when sBuf is a detached stream (sBuf != buf). Extend the generated AC1015 case to require all four emitted type-34 VIEWPORT entities to survive reader callbacks; rename its option to includeLegacyViewportFrames.",
+    "behavior": "The targeted generated AC1015 writer/reader roundtrip now passes with the expected viewport entity ownership."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg_block_record_layout_association$' --output-on-failure",
+    "focusedTestResult": "PASS",
+    "focusedTestElapsedSeconds": 0.43,
+    "versionMatrix": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+      "buildResult": "PASS",
+      "ctestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "ctestResult": "PASS",
+      "elapsedSeconds": 1.75,
+      "scope": "Existing generated reader matrix only; not a native CAD run or an independent DWG parser."
+    },
+    "localSampleControl": {
+      "path": "/Users/dli/doc/dwg/simple.dwg",
+      "version": "AC1015",
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/simple.dwg -y -v2000 /dev/null",
+      "result": "NOT_QUALIFYING: reader fails at BAD_READ_TABLES (error 9) before entity/VIEWPORT parsing"
+    },
+    "diffCheck": "PASS for src/drw_entities.cpp, tests/dwg_local_roundtrip_tests.cpp, and DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fullSuiteRun": false
+  },
+  "fixturePolicy": {
+    "input": "A unique AC1015 DWG is generated from scratch by the existing test and removed after use.",
+    "persistentFixtureAdded": false,
+    "externalSampleDownloaded": false
+  },
+  "limits": [
+    "The writer and reader are from the same codebase; this is not independent semantic evidence.",
+    "No independent raw object-map/handle-stream walker, peer parser, or native CAD application was run; the available AC1015 sample failed before entity parsing and cannot qualify this behavior.",
+    "No external-format support claim or deferred external status is promoted."
+  ],
+  "planState": {
+    "findings": 144,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "nextAction": "Add a generated, test-only structural check for the AC1015 and AC1024 emitted object-map/frame and owner-handle spans, compared against existing frame and block-ledger receipts; then continue the next dependency-ready local PAR-144 graph-closure gap without waiting on native or external qualification."
+}

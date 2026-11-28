@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mpolygon-aci-dxf-domain-2026-11-02",
+  "date": "2026-11-02",
+  "status": "IMPLEMENTED_FAST_TESTS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Bound the MPOLYGON DXF group-63 ACI color at parser, typed-model validation and writer admission boundaries.",
+  "sourceWitness": {
+    "parser": "DRW_MPolygon::parseCode currently stores any int32 group-63 value without validation.",
+    "typedValidation": "DRW_MPolygon::validateDxf checks color CMC shape only when DWG CMC metadata is present; a plain DXF ACI value has no domain check.",
+    "writerAdmission": "dxfRW::preflightEntity permits group-63 values through UINT16_MAX; writeMPolygon emits the value through writeInt16.",
+    "autodeskDxfDefinition": "The Autodesk DXF reference defines group 63 for MPOLYGON as the pattern fill color in ACI.",
+    "autodeskColorDomain": "Autodesk AcCmColor::setColorIndex accepts 0 through 256; 0 means BYBLOCK and 256 means BYLAYER, while 1 through 255 are indexed ACI colors."
+  },
+  "authoritativeReferences": [
+    "https://forums.autodesk.com/autodesk/attachments/autodesk/visual-lisp-autolisp-customization-forum-en/89892/3/acad_dxf_2009.pdf",
+    "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcCmColor.html"
+  ],
+  "implementationBrief": {
+    "domain": "Accept group-63 ACI color values from 0 through 256, including the documented BYBLOCK and BYLAYER special indices; reject negative values and values above 256 before mutating the model or publishing output.",
+    "writerRule": "Apply the same 0..256 bound in typed validation and entity preflight so writeInt16 cannot receive out-of-domain values.",
+    "tests": "Generated parser vectors cover -1, 0, 1, 255, 256, and 257 with state preservation and corrected same-group retry. ASCII/Binary writer tests cover invalid refusal, destination preservation, valid 256 readback, and same-adapter retry.",
+    "doNotInfer": "This scalar domain check does not qualify MPOLYGON fill rendering, physical producer breadth, or whole-file/native semantic support."
+  },
+  "owningSelector": "libdxfrw_dxf_fixture_tests --mpolygon-aci-domain",
+  "inputHashesBeforeEdit": {
+    "src/drw_entities.cpp": "3e32f110a19c9ae0002288df6e48a6262a4901577e2a36c6cb3956848f10f9c6",
+    "src/libdxfrw.cpp": "372596cc65f4c65bac710df1a6ebff1efa56f17063b54dc8ff78436fe0ba7850",
+    "tests/dxf_fixture_tests.cpp": "c0c4e217a0108406dc46e898ade69d638db0af53b58d68828ab1afec877fbc4d",
+    "CMakeLists.txt": "334da9a6f9ebafd0f96590a044eb2907d580445d3c2cac4e3fcf3154311950f6"
+  },
+  "validationPlan": [
+    "Build only libdxfrw_dxf_fixture_tests.",
+    "Run the owning MPOLYGON ACI selector and affected MPOLYGON/HATCH cohort.",
+    "Run git diff --check and verify no sample fixtures were added."
+  ],
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+    "buildResult": "passed",
+    "owningSelector": "build-gcc/libdxfrw_dxf_fixture_tests --mpolygon-aci-domain",
+    "owningSelectorResult": "passed",
+    "focusedCTestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_mpolygon_aci_domain$' --output-on-failure",
+    "focusedCTestResult": {
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.09
+    },
+    "diffCheck": "git diff --cached --check passed",
+    "verifiedBehavior": [
+      "Parser rejects -1 and 257 without changing the existing ACI field, then accepts corrected value 256.",
+      "Parser accepts the documented domain endpoints and representatives 0, 1, 255, and 256.",
+      "ASCII and Binary typed writers reject -1 and 257 while preserving pre-existing destination bytes, then the same adapter writes 256 and typed readback returns 256.",
+      "Focused MPOLYGON/HATCH cohort passes, including existing CMC and boundary metadata coverage."
+    ]
+  },
+  "inputHashesAfterEdit": {
+    "src/drw_entities.cpp": "77c70b498cd863bda063187a8e0bf4f6b0ebe060d5c9ea98f81d59fe3413f0b3",
+    "src/libdxfrw.cpp": "162410771075da491d899520ce583a7dba98c9e7a6e207bdac54be001a476037",
+    "tests/dxf_fixture_tests.cpp": "9c18d1f56cc1ba762231f7c7481ed80310d49f559efb4eee838b9224cce676db",
+    "CMakeLists.txt": "7ad7a7ce1193b17d6abb99bfb96cad0a0671ee9bc8fe1890687296d8d2b676f0",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ec88bd000230a51c2880c62293396cb5538843b86ea93e43406c5958b7c42724"
+  },
+  "fixtures": {
+    "repositoryDwgDxfAdded": 0,
+    "testInput": "Locally generated in-memory DXF groups and temporary writer outputs removed after the selector."
+  },
+  "repositoryState": {
+    "baseHead": "2a2c1fe2",
+    "inputSnapshot": "staged blobs composed from HEAD plus MPOLYGON ACI-only changes; owning fast test ran against corresponding worktree source",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

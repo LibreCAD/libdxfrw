@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1021-dictionaryvar-source-wire-observer-2026-11-19",
+  "date": "2026-11-19",
+  "status": "SOURCE_ONLY_OBSERVER_PASS_CLASS_PUBLICATION_AND_OUTPUT_OPEN",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "12f7259ce24cb77d2d5130b8b3521b1128305c6f9bb06ec4f9320665380842ca",
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "version": "AC1021",
+    "provenance": "Local source; producer and author are unauthenticated. No drawing or derivative was committed.",
+    "priorReceipt": "docs/research/p4-ac1021-ctablestyle-ac1024-crossversion-blocker-2026-11-18.json"
+  },
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.1 common non-entity object format",
+      "20.4.74 DICTIONARYVAR"
+    ],
+    "limit": "The spec and the peer corroborate framing and references; neither independently establishes target TABLESTYLE semantics."
+  },
+  "observation": {
+    "owner": "NOD C -> AcDbVariableDictionary 5AB -> CTABLESTYLE 5AC; owner DICTIONARY size 46, type 42, 1 reactor, cloning 1, soft-owner entry.",
+    "variable": "Type 504, 36 bytes, body end bit 250, handle 5AC, schema 0, value STANDARD; relative-minus-one parent role 8 length 0 resolves to 5AB; reactor role 4 length 2 resolves to 5AB; six one padding bits.",
+    "spans": "type [0,18), end [18,50), self [50,74), empty EED [74,76), reactor count [76,86), xdict flag [86,87), schema [87,95), length [95,105), UTF-16 [105,233), string-size [233,249), marker [249,250), owner [250,258), reactor [258,282), padding [282,288).",
+    "class": "The same scratch import reports a single DICTIONARYVAR class row 504 and unchanged class evidence; this observation does not bind the unique per-frame class publication or establish an output gate.",
+    "libredwgJsonSha256": "3705d4fc9eb239ad6d027ce2ac6b7a08a49b58af269b5896a7ce1d9e5506b6a5",
+    "scratchIndependentDecoderSha256": "0d2c0563496f42baca5175c3489d8c9b4eaf003b3cc1ce7dd837221adc1ee569",
+    "scratchPhysicalProbeSha256": "45491a980c920cf655f0e31c6ca07e06d0c643d9b000f50f1b2e31a6d10883fe",
+    "physicalProbeLogSha256": "3b5944e1822a3d1228ff81b80ba874a1fb9d25364c53effec9027494c7e7ea64"
+  },
+  "implementation": {
+    "path": "dwg2dxf/dx_ac1021_dictionaryvar_wire.h",
+    "sha256": "af61801ec8ecd5b45f5e027c3f9890a91658bee924bb13234ddc7b4e356a84cb",
+    "scope": "Exact owner and variable wire observers for the locally observed values, roles, positions, footer and terminal bits. They are source-only; no writer admission or consumer API changed.",
+    "tests": "Generated frames from scratch, no embedded drawing bytes. All 368 owner and 288 variable single-bit mutations reject, with valid-input retry after each; truncation, extension, class/version/parent and typed-identity changes also reject.",
+    "testSource": "tests/dwg_ac1027_material_dictionary_wire_tests.cpp",
+    "testSha256": "dcf2b526a23a5eb80dd6c589a3afbecca9b58dbce94ee4a2df790c802a9e6304",
+    "testBinarySha256": "e249109e48ee18d05c507e2c9c34b06964db982c4b7596351ee9dfc204cf2fb7",
+    "validation": "Focused CTest 1/1 PASS under AppleClang -Werror; GCC 16.2 -Werror syntax PASS. A pre-existing misleading-indentation warning in the touched test was corrected without disabling warnings. Source-release generator check and 18-control self-test PASS (1352 files). The existing generated wire CTest is added to the bounded fast lane."
+  },
+  "next": [
+    "Bind the unique DICTIONARYVAR per-frame class publication to the same class-read attempt, raw source frame and typed graph.",
+    "Join CTABLESTYLE to the unique ACAD_TABLESTYLE key, source style and actual target-version staged writer proof; resolve the distinct VISUALSTYLE and LAYOUT gates.",
+    "Keep target AC1024 output and support claims closed until source, graph, output/readback, native and consumer requirements are met.",
+    "Run P8-F fast and focused-native qualification for the changed implementation digest after stabilization."
+  ],
+  "limits": [
+    "The source observer is not connected to production output admission and does not itself verify same-read per-frame class publication, following-object framing, target output, native semantics, or full source graph closure.",
+    "The sample is local, unauthenticated and untracked. No DWG/DXF fixture was added or committed.",
+    "P4-D remains open; selected implementation inputs changed, so P8-F is reopened."
+  ]
+}

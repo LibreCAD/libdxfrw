@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-field-eed-signed-range-control-2026-11-25",
+  "supportClaimEffect": "none",
+  "consumerCommit": "efdbd24df4554ab10c1d794627ae02394ac6026f",
+  "libraryImplementationDigestSha256": "335261b9750f6cda518170ed91531b3282600f44e0233552cba599c19f81af5e",
+  "problem": "A FIELD/FIELDLIST XDATA regression supplied DXF group-1070 values 32768 and 65535 and expected them to be silently wrapped into signed DWG EED values. The system codec rejects values outside the signed 16-bit range.",
+  "change": "Keep the original DXF preservation check, assert the invalid DWG export refuses without replacing the destination, explicitly correct the values to -32768 and -1, then retry on the same filter and verify typed reopen. The bundled path retains its original control.",
+  "validation": [
+    "The system [filter][xdata] selector passes 60 assertions in 4 cases. The bundled selector passes 7544 assertions in 9 cases.",
+    "Independent GNU LibreDWG 0.14 reports success reading the selected generated AC1027 DWG SHA-256 98f75a44397baf4d5760e5af63f67eb0f6cdca4c3aae1fe9f8c1a0be50ca6b9a. Its FIELD and FIELDLIST EED entries carry physical values 32768 and 65535, respectively, and reference APPID handles 261 and 262; FIELDLIST references FIELD handle 224. The consumer typed reader interprets those signed values as -32768 and -1."
+  ],
+  "limits": [
+    "This generated control demonstrates selected transport, not general FIELD semantics or native producer qualification.",
+    "The test performs an explicit in-memory correction; production does not silently reinterpret invalid values. No DWG/DXF fixture was committed."
+  ]
+}

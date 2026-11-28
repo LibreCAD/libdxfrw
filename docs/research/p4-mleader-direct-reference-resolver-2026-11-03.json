@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-mleader-direct-reference-resolver-2026-11-03",
+  "date": "2026-11-03",
+  "status": "LOW_LEVEL_REFERENCE_ID_TRANSLATION_VERIFIED; GRAPH_CLOSURE_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "scope": "Make a direct low-level DRW_MLeader DXF write use the configured final-ID resolver for every modeled nested reference, while preserving whole-file planned identity behavior and the existing explicit-remap path.",
+  "baselineCommit": "59e62c5702c0df5ff28a357d9ab71d9f686f6a56",
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "record": "MULTILEADER",
+    "behavior": [
+      "A direct low-level write uses the configured final-ID resolver; its result is not remapped again.",
+      "A whole-file write continues to use the existing planned/remapped identity route.",
+      "A per-record cache invokes the selected translation once for each distinct nonzero source handle, including repeated references shared across nested fields.",
+      "Zero/NoHandle translation of a nonzero source refuses the record before publishing bytes; zero source fields remain optional no-edge fields.",
+      "Failure to allocate the per-record cache marks the write failed and refuses publication."
+    ],
+    "modeledReferenceFamilies": [
+      "entity style",
+      "entity linetype",
+      "entity arrowhead",
+      "entity text style",
+      "entity block",
+      "context text style",
+      "context block table record",
+      "leader-line linetype",
+      "leader-line arrowhead",
+      "legacy arrowhead entries",
+      "legacy block-label ATTDEF entries"
+    ],
+    "compatibility": "No public data layout or virtual interface changed. Whole-file source-to-minted planning remains in control when a write attempt is active."
+  },
+  "validation": {
+    "generatedControlsOnly": true,
+    "fixtureFilesAdded": 0,
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "controls": [
+      "resolver output takes precedence over explicit remap for text-content references",
+      "resolver output takes precedence over explicit remap for block-content and legacy reference families",
+      "all distinct source references are resolved once even when a source handle appears in multiple nested fields",
+      "ASCII and Binary outputs have identical numeric reference projections",
+      "a zero resolver result refuses the record without changing an existing destination prefix",
+      "existing source-remap controls still cover both content branches and nested legacy references"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "ctest --test-dir build-gcc -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+      "build-gcc/libdxfrw_wave1_tests --mleader-writer-validation",
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_mleader_adapter_writer$' --output-on-failure",
+      "git diff --check"
+    ],
+    "result": "PASS; focused writer CTest 1/1, focused wave1 selector PASS, whole-file adapter CTest 1/1, diff check PASS"
+  },
+  "limits": [
+    "This establishes output identity translation for the listed in-memory fields only; it does not establish reference target existence, target type, owner validity, uniqueness, or recursive graph closure.",
+    "It provides no independent producer/consumer interoperability evidence, physical format profile breadth, DWG encoder behavior, or native annotation rendering semantics.",
+    "No support claims are promoted by this receipt."
+  ],
+  "sourceFingerprints": {
+    "src/libdxfrw.cpp": "356faeb09e59ef6a3a60292bd0958329fe0bd7e74286c6275a4381dbd83d2abe",
+    "tests/wave1_tests.cpp": "ec086a53fc04209ca528e7ea52cc7cd2d39c16bf15292387b4202261f14def05",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "66648c96e6c5dc0dd2b6b8304339e40d1aa3967f06f48685734805fb76fd5ad4"
+  },
+  "next": "Continue the source-contract-backed reference-ID audit on the next bounded record field family; retain the target-kind, owner, recursive closure, and independent interoperability gates."
+}

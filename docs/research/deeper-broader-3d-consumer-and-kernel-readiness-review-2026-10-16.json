@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw-deeper-broader-3d-consumer-and-kernel-readiness-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Reconcile current open-source 2D and 3D consumer routes and kernel readiness with the remaining FreeCAD platform-acceptance and independent ACIS/ACDS semantic gates.",
+  "method": {
+    "kind": "Primary repository documentation/source review and local plan cross-check",
+    "peerBinariesInstalledOrRun": false,
+    "nativeApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "mutableSources": "FreeCAD and OpenCADStudio links point to current main branches; no immutable source revision was selected for qualification in this research pass.",
+    "evidenceBoundary": "Source/documentation states candidate route availability and known fallback/lineage constraints; it does not establish runtime behavior on any libdxfrw output."
+  },
+  "evidence": [
+    {
+      "route": "FreeCAD stock DWG/DXF import",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md"
+      ],
+      "observed": "FreeCAD's DWG path is an external-converter to DXF followed by a selected DXF importer. Stock documentation describes the format route as 2D and says the proprietary ACIS solid blob cannot be read. Converter settings, intermediate DXF, importer backend, and app preferences are separate boundaries.",
+      "doesNotEstablish": [
+        "behavior of an arbitrary installed FreeCAD release/build",
+        "that a successful DWG open was performed by a particular converter",
+        "ACIS body semantics or ACDS association",
+        "that the converter output was lossless"
+      ],
+      "planUse": "Keep the scheduled native Linux/Windows check as a pinned 2D consumer profile. Capture converter executable/version/options/exit result, intermediate DXF signature/version/hash, importer backend/preferences, and final entity/owner placement. Do not use stock FreeCAD to qualify ACIS semantics."
+    },
+    {
+      "route": "OpenCADStudio 3D import and rendering",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md"
+      ],
+      "observed": "The application documents native DWG/DXF read/write and 3D display. Its tessellation route says ACIS Solid3D/Region/Body records are lifted into a kernel B-rep and triangulated per face; when the kernel cannot express a face, a direct per-surface LOD sampler is used and the result is marked incomplete.",
+      "doesNotEstablish": [
+        "that a libdxfrw-produced file was imported successfully",
+        "that a rendered mesh used only complete B-rep-derived geometry",
+        "the application's exact parser, kernel, or platform version for a run",
+        "independent analytic shape correctness"
+      ],
+      "planUse": "Admit as an optional, composed downstream consumer cell. Pin application/parser/kernel revisions and import configuration; capture source entity/owner counts, fallback/incomplete diagnostics, and final disposition. A rendered shell or successful process exit is not a semantic pass."
+    },
+    {
+      "route": "OpenCADStudio opencadkernel readiness",
+      "sources": [
+        "https://github.com/HakanSeven12/opencadkernel",
+        "https://github.com/HakanSeven12/opencadkernel/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/opencadcodec"
+      ],
+      "observed": "The kernel README calls the project early and says most operations are not written. Cargo.toml exposes an optional acis feature that depends on opencadcodec at git revision f385f75; the feature is intended to lift SatDocument into B-rep. This suggests a distinct non-OCCT kernel lineage, but current exact operation coverage and complete-body behavior were not run or proven.",
+      "doesNotEstablish": [
+        "that the selected ACIS profile is fully supported",
+        "that all requested face types can be lifted and validated",
+        "that the kernel can report independent analytic metrics",
+        "that OpenCADStudio's rendered fallback is a complete B-rep result"
+      ],
+      "planUse": "Use a one-time capability preflight before authoring an integration harness. If required APIs/types are absent or fallback is incomplete, record NOT_AVAILABLE and proceed with local work; do not treat the application or kernel as a current independent semantic oracle."
+    },
+    {
+      "route": "Peer ACIS writer/reader status",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "At review time ACadSharp PR #1240 is open and undeployed, with a dependency on separate ACDS/ACIS schema handling; LibreDWG issue #1411 remains an issue report of AcDs/SAB loss. These are leads about distinct writer/reader failure boundaries, not deployed peer behavior or local libdxfrw defects.",
+      "doesNotEstablish": [
+        "current released peer support",
+        "a regression in libdxfrw",
+        "B-rep validity from record counts or conversion success",
+        "that an open proposal is available as a stable comparator"
+      ],
+      "planUse": "Keep these outside the fast loop and revisit only at a composed peer gate with an exact release/commit, body-to-owner identity, and emitted carrier disposition."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 124,
+      "topLevelSubplans": 71
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "routeOrder": [
+      "Continue dependency-free generated local tests and touched-target strict builds per implementation slice.",
+      "At the composed native checkpoint, qualify FreeCAD Linux and Windows only for a pinned converter-to-DXF-to-importer profile and explicit geometry the selected importer actually supports.",
+      "Optionally check exact libdxfrw-emitted DXF in OpenCADStudio once, recording whether ACIS geometry used complete kernel lifting or incomplete fallback.",
+      "Before investing in an open-source second-kernel adapter, verify one exact profile and all required geometry operations; if unavailable, continue with the previously authorized external semantic-reader route.",
+      "Keep DWG AcDs extraction/owner binding, SAB parser completeness, shape validity, and native consumer acceptance as separately reported results."
+    ],
+    "fixturePolicy": "No new or downloaded drawing fixture. Any optional generated DXF/SAB sample remains source-generated in disposable storage; existing generated vectors remain the fast local oracle.",
+    "validation": {
+      "planUpdated": true,
+      "receiptJsonParsed": true,
+      "researchChangedCode": false,
+      "testsRun": false,
+      "peerRuntime": "NOT RUN",
+      "nativeQualification": "NOT RUN",
+      "externalFilesDownloaded": 0,
+      "fixturesAdded": 0,
+      "dependenciesAdded": 0
+    }
+  }
+}

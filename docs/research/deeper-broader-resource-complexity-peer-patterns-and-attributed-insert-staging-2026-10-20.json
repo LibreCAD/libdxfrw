@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Resource-complexity peer patterns and attributed-INSERT staging",
+  "mode": "deep/broad research, local source audit, and implementation follow-up",
+  "scope": [
+    "Refresh cross-project DWG/DXF resource-complexity evidence",
+    "Audit the local attributed-INSERT staging and commit-order path",
+    "Implement and validate the bounded attributed-INSERT staging slice",
+    "Update the readiness plan and implementation receipt"
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "reference": "https://github.com/LibreDWG/libredwg/issues/1395",
+      "status": "open_issue",
+      "observation": "Reports quadratic block-handle growth in large dwg_add sessions."
+    },
+    {
+      "project": "LibreDWG",
+      "reference": "https://github.com/LibreDWG/libredwg/pull/1402",
+      "status": "open_unmerged_pull_request",
+      "observation": "Proposes fixes for exact-size handle vector growth, middle insertion into an ordered reference index, and repeated reference-resolution sweeps caused by a dirty flag. Peer-reported measurements and corpus checks are not independently reproduced here."
+    },
+    {
+      "project": "LibreDWG",
+      "reference": "https://github.com/LibreDWG/libredwg/issues/1261",
+      "status": "closed_by_merged_pr_1268",
+      "observation": "A malformed R13+ Classes count caused repeated reallocations; the merged peer fix bounds count by available section size."
+    },
+    {
+      "project": "LibreDWG",
+      "reference": "https://github.com/LibreDWG/libredwg/pull/1268",
+      "status": "merged",
+      "observation": "Adds section-size-derived class-count guard before class-array growth."
+    },
+    {
+      "project": "ezdxf",
+      "reference": "https://ezdxf.readthedocs.io/en/stable/addons/iterdxf.html",
+      "status": "published_documentation",
+      "observation": "Provides one-entity-at-a-time ASCII DXF modelspace iteration for very large files, with no structural checks and limited foreign-entity resource transfer."
+    },
+    {
+      "project": "ezdxf",
+      "reference": "https://github.com/mozman/ezdxf/issues/1275",
+      "status": "open_peer_issue",
+      "observation": "Reports high CPU and OOM while rendering a dense HATCH; this is consumer/render work, not evidence of parser complexity."
+    }
+  ],
+  "localAudit": {
+    "finding": "PAR-141",
+    "existingSubplan": "7S.2c",
+    "filesRead": [
+      "src/intern/dwgreader.cpp",
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader15.cpp",
+      "src/intern/dwgreader18.cpp",
+      "src/drw_classes.cpp",
+      "src/intern/dwgsafety.h"
+    ],
+    "evidence": [
+      "stagePendingAttribute scans staged pending/orphan attribute vectors for duplicates and calls reserve(size()+1) for each appended child.",
+      "stagePendingInsert scans a growing temporary handle vector while validating child-first orphan adoption.",
+      "prepareInsertCommit searches the staged attribute vector for each declared handle and preserves declaration order.",
+      "Modern-profile expected-handle validation scans INSERT attribHandles once per child.",
+      "dwgReaderDetail already provides checked geometric vector-capacity planning/reservation helpers for POLYLINE staging."
+    ],
+    "complexity": "Nested duplicate/expected-reference scans and commit-time lookup are O(N^2) in attribute count. Exact-capacity vector reallocation amplification is implementation-dependent.",
+    "safetyCrosscheck": "The local R13-R2000 Classes loop is byte-section-bounded and parses fixed bit fields plus variable-text prefixes. The R2004+ path bounds the declared class count, reserves containers before iteration, and validates cursor spans. No equivalent local Classes DoS was established."
+  },
+  "planImpact": {
+    "newFinding": true,
+    "newFindingId": "PAR-141",
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "LOCAL_IMPLEMENTED_UNCOMMITTED",
+    "implementationSummary": "Added a deterministic map from staged ATTRIB handle to owner/ordinal, sorted unique modern declared-reference projections, aggregate MaxDwgReadObjectCount admission for both index populations, and geometric growth for pending/orphan vectors and owner maps. Removed repeated linear duplicate/expected-handle scans, commit-time find_if, quadratic completion checks, and the cross-attribute vector duplicate audit. Preserved declared callback order, child-first adoption, rollback, callback transactionality, and R13-R2000 first/last endpoint behavior.",
+    "nextImplementation": "PAR-140 / 7N.4 HATCH and MPOLYGON associative boundary-reference retention, as the next local-ready codec slice; continue despite workspace Git metadata being read-only.",
+    "largeFileStrategyBoundary": "Do not replace complete-document parsing/export with ezdxf's modelspace-only iterator. Any future streaming API is a separate restricted contract with its own structure/resource/identity tests.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testsChangedOrRun": true,
+    "changedFiles": [
+      "src/intern/dwgreader.cpp",
+      "src/intern/dwgreader.h",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "fixturesAdded": 0,
+    "limitations": "The 257-ATTRIB generated parent-first/child-first stress control exercises the production staging state machine directly; no separate 257-ATTRIB serialized whole-file fixture was added. The existing full in-memory DWG local-roundtrip target ran and failed three MPOLYGON/HATCH assertions outside the changed code paths; no INSERT/ATTRIB assertion was reported. No timing threshold or complete test suite was run. The worktree was already broadly dirty and remains user-owned."
+  },
+  "validation": {
+    "targetBuild": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2 passed",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_insert_staging_index$' --output-on-failure passed 1/1",
+    "adjacentFastRegression": "build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth passed",
+    "localRoundtripBuild": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 passed",
+    "localRoundtripCtest": "Failed three MPOLYGON boundary-metadata/HATCH graph-admission assertions in code paths not changed by this slice; no INSERT/ATTRIB assertion was reported.",
+    "planAndReceiptReview": "jq empty and scoped git diff --check passed",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; broad pre-existing user worktree changes were left unstaged and uncommitted."
+  }
+}

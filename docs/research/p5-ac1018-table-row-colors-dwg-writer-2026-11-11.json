@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "status": "completed_bounded_generated_writer_slice",
+  "date": "2026-11-11",
+  "scope": "AC1018 TABLE title/header/data row text-color DWG output",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.96.1 Until R21",
+    "finding": "After the table override mask and preceding scalar values, CMC values for title, header and data row text colors are serialized in that order when bits 0x20, 0x40 and 0x80 are selected; row alignments follow the three CMC fields."
+  },
+  "implementation": {
+    "codec": "DRW_Table::encodeDwgWithExtension now admits selected row CMC index methods C0/ByLayer (index 256), C1/ByBlock (index 0), and C3/ACI 1..255 only. CMC flags must be zero; truecolor, color/book names, invalid indices, unsupported flags and values in unselected slots refuse preflight. Selected CMCs are written to the body before row alignments.",
+    "readback_model": "readTableCmColor now stores the normalized CMC payload result as DRW_DwgCmColor::index for AC1018+; the leading BS remains the reserved wire field. The explicit RGB value and method remain independently retained.",
+    "compatibility": "No public virtuals, public struct layout, fixture files or whole-file support claims were changed."
+  },
+  "generated_control": {
+    "selected_mask": "0x0001C0E0",
+    "colors": [
+      { "slot": "title", "method": "0xC0", "index": 256 },
+      { "slot": "header", "method": "0xC1", "index": 0 },
+      { "slot": "data", "method": "0xC3", "index": 63 }
+    ],
+    "alignments": [1, 5, 9],
+    "checks": [
+      "All three CMCs appear in exact ODA order before the three alignments in the generated body",
+      "Typed readback preserves methods, normalized indices and alignment values",
+      "The body cursor reaches the recorded boundary and the following sentinel remains readable",
+      "Selected truecolor and unknown CMC flags refuse without changing caller output buffers",
+      "An unselected nondefault color refuses without changing caller output buffers"
+    ],
+    "fixture_policy": "Generated in memory from test code; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4 passed with repository warning-as-error settings",
+    "ctest": {
+      "libdxfrw_dwg_table_cell_overrides": "passed",
+      "libdxfrw_table_scalar_override_output": "passed"
+    },
+    "diff_check": "git diff --check passed"
+  },
+  "limits": [
+    "The generated CMC vector verifies encoder/parser consistency, not independent physical producer field ordering.",
+    "Native table rendering and style precedence remain unqualified.",
+    "Parsed TABLE source-range replay, whole-document output and broad TABLE support remain gated."
+  ]
+}

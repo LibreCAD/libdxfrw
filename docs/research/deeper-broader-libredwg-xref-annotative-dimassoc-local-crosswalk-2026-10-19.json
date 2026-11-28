@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "LibreDWG XREF, annotative-context, DIMASSOC, and block-body crosswalk",
+  "mode": "Current primary-source peer review plus local source/spec/test crosswalk; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Read the full current reports for LibreDWG PRs #1431, #1432, and #1434 and distinguish their input/output operations and evidence ceilings.",
+    "Trace XREF BLOCK_HEADER read/write state, standalone OBJECTCONTEXTDATA adapter publication, and DIMASSOC test coverage in the local worktree.",
+    "Compare the recent block-body and INSERT/ATTRIB issue reports with existing generated tests and refresh peer-status handling.",
+    "Refine existing PAR-65, PAR-20, and PAR-45 implementation owners without promoting format-support claims or changing validation cadence."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG PR #1431",
+      "url": "https://github.com/LibreDWG/libredwg/pull/1431",
+      "revision": "Open, unmerged PR reviewed 2026-10-19; body reports LibreDWG 0.14.8601 and master behavior.",
+      "observed": "The contributor reports DXF R13+ BLOCK XREF bits/path are lost during DXF-to-DWG import and proposes mapping them onto BLOCK_HEADER state. A generated ezdxf example and ODA File Converter check are described, but were not independently run in this research pass.",
+      "evidenceCeiling": "Unmerged peer report and proposed patch; not normative DWG mapping or a libdxfrw reproduction."
+    },
+    {
+      "project": "LibreDWG PR #1432",
+      "url": "https://github.com/LibreDWG/libredwg/pull/1432",
+      "revision": "Open, unmerged PR reviewed 2026-10-19.",
+      "observed": "The body describes annotative-context DXF-import subbody/association handling and claims a private drawing comparison. No peer runtime, attached drawing, or expected-value manifest was executed/inspected here.",
+      "evidenceCeiling": "Peer DXF-import implementation proposal; separate from the locally confirmed DWG-to-DXF adapter omission of standalone OBJECTCONTEXTDATA."
+    },
+    {
+      "project": "LibreDWG PR #1434",
+      "url": "https://github.com/LibreDWG/libredwg/pull/1434",
+      "revision": "Open, unmerged PR reviewed 2026-10-19.",
+      "observed": "The author reports DIMASSOC sequence cardinality/order/last-point and dimension-object reference handling, with 217/217 comparisons across 18 private drawings. Inputs and the comparison manifest were unavailable in this pass.",
+      "evidenceCeiling": "Peer-reported test result and unmerged proposal; does not set libdxfrw's legal wire grammar or count."
+    },
+    {
+      "project": "LibreDWG issue #1409",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1409",
+      "revision": "Open issue and follow-up comments reviewed 2026-10-19.",
+      "observed": "The report describes later BLOCK_HEADERs skipped by the peer writer after attribute-rich INSERT block bodies, in ASCII and Binary DXF paths. The examples are external/private drawings.",
+      "evidenceCeiling": "Peer failure shape; local generated ownership controls cover related structure but are not the same source DWG publication route."
+    },
+    {
+      "project": "LibreDWG issue #1351",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1351",
+      "revision": "Open issue page with a later reporter comment reviewed 2026-10-19.",
+      "observed": "Although the issue remains open, a later comment says the generated INSERT/ATTRIB/SEQEND case was verified fixed on master.",
+      "evidenceCeiling": "Issue state is stale relative to the comment's named master result; current behavior still requires an exact commit/runtime binding."
+    },
+    {
+      "project": "Autodesk DXF BLOCK reference and ODA DWG specification",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm",
+        "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf"
+      ],
+      "revision": "Autodesk BLOCK DXF table opened 2026-10-19; local ODA Open Design Specification v5.4.1 §20.4.52 read. Local filename has a '(1)' suffix unlike the unsuffixed AGENTS.md path.",
+      "observed": "Autodesk documents BLOCK group 70 XREF-related flags and group 1 path. ODA §20.4.52 documents versioned BLOCK_HEADER flags/index/path and handle-stream fields.",
+      "evidenceCeiling": "Normative guidance for field layout; implementation still requires version-specific local vectors and, for semantic qualification, independent producer/reader evidence."
+    }
+  ],
+  "localEvidence": [
+    "DRW_Block_Record stores flags, xrefPath, and xrefBlockHandle, but parseDwg reads xrefindex+1 into a temporary and does not retain it.",
+    "dwgRW::defineBlock accepts only name, base point, and insertion units. The shared dwgWriter15::emitBlockRecord writes XREF/resolved/overlay flags as zero, an empty path, and a null external-reference pointer; output writer wrappers inherit the serializer.",
+    "readDwgObject publishes standalone OBJECTCONTEXTDATA as a DRW_ObjectContextData shell and an unsupported raw frame. The compatibility callback is a no-op; dx_iface has no context-data collection and its unsupported-object capture retains only selected EvalGraph/ACSH-history records.",
+    "Existing generated block-owner controls cover consecutive named/anonymous/paper blocks, compound INSERT children, record/body cardinality and ASCII/Binary output; this is not a real DWG-to-DXF cross-route reproduction.",
+    "Existing DIMASSOC local work owns semantic 70/71 correction and bounded osnap-detail handling; the precise multi-reference/order vector must be checked against the current focused inventory before adding one generated case."
+  ],
+  "assessment": {
+    "newConfirmedLocalGapRoutes": 2,
+    "existingOwnersRefined": ["PAR-65", "PAR-20", "PAR-45"],
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "newNestedSubplans": ["PAR-65/7AM.4"],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds an implementation-ready DWG XREF writer slice under PAR-65/7AM, folds standalone OBJECTCONTEXTDATA adapter loss into PAR-20/7F.1, and sharpens the existing PAR-45/7AA multi-reference test gate. Peer PRs remain non-normative and no new top-level finding or support claim is created."
+  },
+  "method": {
+    "kind": "Read-only public GitHub/Autodesk review plus local source, existing-test, and ODA-spec crosswalk",
+    "planUpdated": ["DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "limitations": "The LibreDWG PR results are author-reported and unmerged. The local source review confirms two conversion loss routes but does not exercise a real producer drawing. ODA §20.4.52 is the DWG layout authority; new serializer behavior still needs version-specific generated checks and later independent/native qualification at existing composed gates."
+  }
+}

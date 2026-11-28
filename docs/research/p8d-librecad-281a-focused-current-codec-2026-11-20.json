@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-librecad-281a-focused-current-codec-2026-11-20",
+  "date": "2026-11-20",
+  "status": "EXACT_BASE_FOCUSED_CHECKS_PASS_GUI_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "upstreamMaster": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
+    "candidateHead": "eed6bd2c7e0dd6b2694a3eba3c71c21752a2a113",
+    "patch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
+    "patchSha256": "803ed0576bd08cbbdbaf95c5a0985f803b3c0e1b9b57a1ff2277720f4837cc1f",
+    "scratchCheckout": "/private/tmp/libdxfrw-lc-281a-focused",
+    "scratchDifference": "Only CMakeLists.txt differs from candidate: scratch-only wiring removes bundled codec sources, links the source-built static codec, and adds the focused test target. All consumer source and test files match the candidate exactly.",
+    "draftPullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "dependencyPullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "pullRequestStatusAtPublication": "Open draft; CI running; GUI and platform qualification remain open."
+  },
+  "codec": {
+    "sourceRepository": "/Users/dli/dev/libdxfrw",
+    "implementationDigestSha256": "1810ea2d6b7d7cb21aaa7b2c287308c3f0b767fdea5a4e1ffac6112e4d1c8a93",
+    "sourceBuiltArchive": "/private/tmp/libdxfrw-plotsettings-test-build/libdxfrw.a",
+    "sourceBuiltArchiveSha256": "706bcb1076b8522b4639ff8f624c4f53108b02f44c604ad51548cb4b3c9bb6da",
+    "installedArchive": "/private/tmp/libdxfrw-plotsettings-final-system-install/lib/libdxfrw.a",
+    "installedArchiveSha256": "0ca71e9b6264dc058bd676f897c7e9ddb21fdf70670ad7d5d31cd2ff5877c1a7",
+    "archiveComparison": "PASS: all 48 uniquely named archive members have the same order and byte-identical contents. The container archive hashes differ."
+  },
+  "validation": {
+    "focusedBuild": {
+      "log": "/private/tmp/libdxfrw-lc-281a-focused-build.log",
+      "sha256": "d00e2a0e91889e60a133d19e579f152df6fe7081e050d5d2141cbf75e7926916",
+      "binary": "/private/tmp/libdxfrw-lc-281a-focused-build/librecad_current_dimstyle_focus",
+      "binarySha256": "10b6e419c98ca14f4a87ed013bbb1a8166dc66cb73fd7a8db1313d40850d2303",
+      "result": "PASS on exact LibreCAD master base with scratch current-codec test wiring."
+    },
+    "focusedTests": {
+      "log": "/private/tmp/libdxfrw-lc-281a-focused-tests.log",
+      "sha256": "71100909ea2de2cea34449e3f296139916450976187d23ef36b3350df6e1bbbf",
+      "selector": "[dimstyle-default],[dimstyle-xdata-roundtrip],[jww-dimstyle],[jww],[shp],[assoc]",
+      "result": "PASS: 1,266 assertions in 50 cases."
+    },
+    "bundledFilterCompile": {
+      "log": "/private/tmp/libdxfrw-lc-281a-bundled-filter-build.log",
+      "sha256": "457986c2511d59ffb9fb22595c5de108d06943a301b1bf73be53d9f318c98d2f",
+      "result": "PASS: current candidate filter compile with bundled codec and production bundled option."
+    },
+    "installedApplication": "docs/research/p8d-current-eed-installed-macos-app-smoke-2026-11-20.json"
+  },
+  "limits": [
+    "The focused system-codec target uses scratch CMake wiring; the production system-codec option deliberately refuses the bundled-internal full test suite.",
+    "macOS headless evidence and focused tests do not replace native GUI checks, Linux/Windows consumer builds, LibreCAD_3 validation, or independent producer semantics.",
+    "The candidate depends on unmerged libdxfrw functionality; broader support is not claimed.",
+    "No DWG/DXF fixture was committed."
+  ]
+}

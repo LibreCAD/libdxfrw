@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-07/S8 SOLID non-default OCS transform fast slice",
+  "mode": "Generated in-memory regression test; fast local validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Close the audited gap between existing SOLID raw-slot tests and the separate TRACE non-default OCS transform test.",
+    "Characterize SOLID ext=false raw OCS data and ext=true world-coordinate conversion without changing production behavior."
+  ],
+  "change": {
+    "files": [
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Added a generated asymmetric four-corner SOLID selector. It asserts ext=false preserves all raw OCS tuples, thickness, and extrusion, and ext=true transforms all four tuples exactly once for normal (0,1,0). Registered the selector as the focused libdxfrw_solid_nondefault_ocs CTest. No production code or persistent fixture changed.",
+    "expectedRawCorners": [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]],
+    "expectedWcsCorners": [[-1, 3, 2], [-4, 6, 5], [-7, 9, 8], [-10, 12, 11]],
+    "thickness": 2.5,
+    "extrusion": [0, 1, 0]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_wave1_tests -j2",
+    "selector": "PASS: build/libdxfrw_wave1_tests --solid-nondefault-ocs",
+    "ctest": "PASS: ctest --test-dir build -R '^libdxfrw_solid_nondefault_ocs$' --output-on-failure (1/1)",
+    "scopedDiffCheck": "PASS: git diff --check on tracked plan/CMake/test changes; no trailing-whitespace matches in the new receipt"
+  },
+  "limits": [
+    "This test characterizes the current parser transformation path; it does not define a new public corner-normalization API.",
+    "No writer, external producer, LibreCAD/LibreCAD_3 runtime, FreeCAD, native CAD application, or geometry kernel was tested.",
+    "No full test suite or persistent/external DWG/DXF fixture was used.",
+    "No semantic support claim was promoted; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ],
+  "planTotals": {
+    "findings": 141,
+    "topLevelSubplans": 78
+  },
+  "commitCreated": false,
+  "commitBlocker": "Git metadata is read-only in this workspace; the shared worktree has unrelated changes."
+}

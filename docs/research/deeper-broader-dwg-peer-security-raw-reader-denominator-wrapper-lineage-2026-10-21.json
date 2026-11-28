@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "DWG peer security, raw-reader denominator, and wrapper lineage",
+  "mode": "Deeper/broader primary-source research and local source audit",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh LibreDWG 0.14.1 malformed-input/security failure classes",
+    "Reconcile dwg-rs published coverage denominators and evidence ceiling",
+    "Classify a newly surfaced LibreDWG/WebAssembly converter wrapper by parser lineage",
+    "Cross-check peer failure patterns against current local DWG page, class, decompression, and legacy cursor code",
+    "Refine existing PAR-07/S8 and PAR-14/PAR-26 plan owners without duplicating tests or findings"
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/security/advisories",
+        "https://github.com/LibreDWG/libredwg/milestones?state=closed"
+      ],
+      "observation": "The 0.14.1 NEWS records R2004 decompression allocation/logical-size drift, an unchecked 32-bit section-count times maximum-decompressed-size product, an unvalidated page-map offset, an incomplete earlier pre-R13 no-progress/boundary mitigation, stale object pointers across reallocating additions, HATCH path-state corrections, final SAT-block DXF truncation, and additional fuzz-found errors. These are peer-specific defects and risk patterns, not proof of analogous libdxfrw defects or normative file-format rules."
+    },
+    {
+      "project": "dwg-rs",
+      "references": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/examples/coverage_report.rs"
+      ],
+      "observation": "The pre-alpha README reports a dated 19-file table with per-version decoded/skipped/errored counts and an 88.0% aggregate, while another capability-matrix row reports a 95.6% real-file aggregate. The visible README does not bind both summaries to one immutable sample manifest. Its raw object walker is described as covering eight DWG releases while typed decode, graph traversal, writer behavior, and native acceptance remain incomplete."
+    },
+    {
+      "project": "dwg2dxf-converter",
+      "references": [
+        "https://github.com/JosephESSEY/dwg2dxf-converter",
+        "https://github.com/LibreDWG/libredwg/releases/tag/0.13.4"
+      ],
+      "observation": "The wrapper advertises cross-platform conversion and R12–2018+ coverage, while identifying its embedded WebAssembly engine as LibreDWG 0.13.4. It is a LibreDWG-lineage wrapper, not an independent parser; the package was not installed or executed."
+    }
+  ],
+  "localAudit": {
+    "filesReviewed": [
+      "src/intern/dwgreader18.cpp",
+      "src/intern/dwgreader15.cpp",
+      "src/intern/dwgreaderR1_40.cpp",
+      "src/intern/dwgsafety.h",
+      "src/intern/dwgutil.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      ".github/workflows/build.yml"
+    ],
+    "observations": [
+      "R2004 data-page geometry and section-buffer capacity use checked arithmetic and configured ceilings before a single decoded-buffer allocation; pages write into fixed capacity.",
+      "The R2004+ CLASSES path rejects class-number underflow and bounds class and string stream cursors; the R13/R15 path bounds its input section and parsed byte spans.",
+      "The AC1.40 reader walks to the declared drawing end and advances the cursor to the exact consumed record position.",
+      "Focused existing tests cover section-capacity arithmetic, R2004 page/logical-tail behavior, and low-level decompressor null/short/oversized/length cases. Existing deterministic fast and scheduled extended fuzz lanes remain distinct."
+    ],
+    "assessment": "No matching local defect was confirmed. This static review is not exhaustive proof over every malformed-input path and did not run tests."
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: bind peer percentages to one immutable sample manifest, per-version/family denominator, operation, and explicit decoded/skipped/error/untested dispositions; mark conflicting aggregates NOT_COMPARABLE",
+      "PAR-07/S8: count a WASM/package wrapper as the wrapped DWG engine lineage; separately record any consumer-stage observation",
+      "PAR-14/PAR-26: keep decompression capacity, logical size, checked products/ranges, progress, and object identity as separate invariants; add local tests only for source-audited uncovered paths"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds no implementation item. Tightens peer denominator and parser-lineage rules and records that the inspected local paths already contain relevant guards/tests, without treating static inspection as exhaustive security qualification."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "localSourceAuditPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-dwg-peer-security-raw-reader-denominator-wrapper-lineage-2026-10-21.json"
+    ],
+    "limitations": "Primary-source README/release/advisory pages may be mutable. No peer artifact was pinned or executed; no external drawing or corpus was downloaded. Local review was static and limited to the listed source/test paths. No finding, support claim, or external J status was promoted."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on plan and receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

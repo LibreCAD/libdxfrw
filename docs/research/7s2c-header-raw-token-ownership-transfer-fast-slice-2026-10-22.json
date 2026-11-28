@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c HEADER raw-token ownership transfer",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Transfer retained raw HEADER binary and handle string tokens from the current DXF reader record instead of making an intermediate owned copy.",
+    "routes": [
+      "DRW_Header::parseCodeImpl unknown scalar DxfValueKind::Bin and isDxfHandleCode branch",
+      "DRW_Header::parseCodeImpl $CEPSNID group 390",
+      "DRW_Header::parseCodeImpl $INTERFEREOBJVS group 345",
+      "DRW_Header::parseCodeImpl $INTERFEREVPVS group 346",
+      "DRW_Header::parseCodeImpl $DRAGVS group 349"
+    ],
+    "semantic_equivalence": "takeString() uses the same raw token bytes as getString() for the binary and handle-code paths here; code 390 is a DXF hard-pointer handle and now avoids general text decoding. The unknown-header semantic text path remains unchanged.",
+    "non_claims": [
+      "no public API or model-layout change",
+      "no DXF wire behavior change",
+      "no DWG byte-layout change",
+      "no support claim promotion",
+      "no external producer or native CAD qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 2",
+    "build_result": "PASS (-Werror)",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^(libdxfrw_header_(unknown_variable_roundtrip|cepsnid)|libdxfrw_visual_style_import_evidence)$' --output-on-failure",
+    "focused_ctest_result": "PASS (3/3)",
+    "selectors": [
+      "build-gcc/libdxfrw_dxf_fixture_tests --header-unknown-variable-roundtrip: PASS",
+      "build-gcc/libdxfrw_dxf_fixture_tests --header-cepsnid: PASS",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --visual-style-import-evidence build-gcc: PASS (exit 0; expected negative-case diagnostics)"
+    ],
+    "coverage": "Reused generated ASCII/Binary regressions cover unknown HEADER binary chunks and handle carriers, CEPSNID null/non-null/malformed handles and following-record alignment, plus the documented VisualStyle HEADER handle routes and graph remapping.",
+    "diff_check": "PASS (src/drw_header.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, receipt)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue the 7S.2c source-backed copy/materialization audit; preserve semantic decoding and retained-byte accounting, use generated ASCII/Binary controls for each accepted path, and advance without waiting on external qualification."
+}

@@ -221,6 +221,24 @@ def _selected(path: str, selection: dict[str, Any]) -> bool:
     return path in selection["includeExact"] or any(path.startswith(prefix) for prefix in selection["includePrefixes"])
 
 
+def _selected_untracked_paths(raw_paths: bytes, selection: dict[str, Any]) -> list[str]:
+    paths = []
+    for raw in raw_paths.split(b"\0"):
+        if not raw:
+            continue
+        try:
+            path = raw.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise DigestError("untracked path is not UTF-8") from exc
+        # Git may return ignored directories outside the implementation scope
+        # with a trailing slash. Only selected paths participate in this
+        # digest; validate those before treating them as possible inputs.
+        if _selected(path, selection):
+            _validate_path(path)
+            paths.append(path)
+    return paths
+
+
 def digest_records(entries: list[tuple[str, str, str]]) -> tuple[str, bytes]:
     paths = [path for path, _mode, _blob in entries]
     if len(paths) != len(set(paths)):
@@ -249,17 +267,7 @@ def compute_digest(
         raise DigestError("exact implementation inputs are not tracked: %s" % sorted(missing))
 
     untracked_raw = _run_git(["ls-files", "--others", "-z"], root)
-    untracked = []
-    for raw in untracked_raw.split(b"\0"):
-        if not raw:
-            continue
-        try:
-            path = raw.decode("utf-8")
-        except UnicodeDecodeError as exc:
-            raise DigestError("untracked path is not UTF-8") from exc
-        _validate_path(path)
-        if _selected(path, selection):
-            untracked.append(path)
+    untracked = _selected_untracked_paths(untracked_raw, selection)
     permitted_untracked = set(selection["includeExact"]) if allow_selected_untracked else set()
     unexpected_untracked = set(untracked) - permitted_untracked
     if unexpected_untracked:
@@ -348,6 +356,13 @@ def self_test() -> None:
         raise AssertionError("POSIX accepted executable-mode drift")
     if _tracked_mode_matches("120000", non_executable, platform_name="nt"):
         raise AssertionError("Windows accepted a non-regular index mode")
+    if _selected_untracked_paths(
+            b"build/ignored/nested-directory/\0", document["selection"]):
+        raise AssertionError("out-of-scope untracked directory entered the digest")
+    if (_selected_untracked_paths(
+            b"src/untracked-source.cpp\0", document["selection"])
+            != ["src/untracked-source.cpp"]):
+        raise AssertionError("in-scope untracked source escaped selection")
     _expect_error(lambda: digest_records(first + [first[0]]), "duplicate path")
     _expect_error(lambda: digest_records([("../escape", "100644", "1" * 40)]), "unsafe path")
     _expect_error(lambda: digest_records([("src/link", "120000", "1" * 40)]), "symlink mode")

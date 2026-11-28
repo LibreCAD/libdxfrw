@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Generated AC1021 GROUP 2D/3D polyline strict DXF readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Extend the locally authored AC1021 GROUP parent/reactor control to convert both its 2D and 3D polyline variants through strict dwg2dxf, then read the DXF back through the concrete adapter and verify geometry plus group membership.",
+  "source": {
+    "recipe": "tests/dwg_ac1021_polyline_group_targets_tests.cpp writes vertex2d.dwg and vertex3d.dwg locally from scratch, with each GROUP containing the first polyline vertex",
+    "version": "AC1021",
+    "observedFrames": 36,
+    "vertex2d": {
+      "pathDuringValidation": "/private/tmp/ac1021-group-3d-receipt/vertex2d.dwg",
+      "sha256": "a00474bb158487ff7c8f5c3dbc4cc26f5bf54ed5d54caa7df70f3b7eb5b98bd7"
+    },
+    "vertex3d": {
+      "pathDuringValidation": "/private/tmp/ac1021-group-3d-receipt/vertex3d.dwg",
+      "sha256": "6b2c4996b4d6e493bcc2cbd1ebae63678394a516274dbf094151f177c68bea79"
+    },
+    "provenanceLimit": "Locally authored writer controls only; does not establish independent producer or native consumer qualification. No drawing fixture was committed."
+  },
+  "implementation": {
+    "files": [
+      "tests/ac1021_group_polyline_dxf_readback_tests.cpp",
+      "tests/CMakeLists.txt",
+      "tests/run_ac1021_group_reactor_closure_test.cmake",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "The existing generated GROUP test now strictly converts both local source variants, requires the 3D DXF subclass on the 3D output, and imports both DXFs through dx_iface. Fresh readback checks the exact two vertices, 2D/3D flags, Z coordinates (including 1.0 on the second 3D vertex), 3D vertex flags and unique GROUP_VERTEX membership pointing at the first vertex. The existing source DWG GROUP reactor rejection and same-planner retry remain in the same CTest."
+  },
+  "validation": {
+    "build": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 passed; dwg2dxf, adapter, source author and typed DXF readback test targets built.",
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_generated_ac1021_group_parent_reactor_closure$' --output-on-failure",
+      "result": "1/1 passed in 1.35 seconds; generates both fixtures in CTest scratch and removes them afterward."
+    },
+    "manualBinding": {
+      "strict2dCommand": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/ac1021-group-3d-receipt/vertex2d.dwg -y -d -v2007 /private/tmp/ac1021-group-3d-receipt/strict-output-2d.dxf",
+      "strict3dCommand": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/ac1021-group-3d-receipt/vertex3d.dwg -y -d -v2007 /private/tmp/ac1021-group-3d-receipt/strict-output-3d.dxf",
+      "typedReadbackCommand": "build-gcc/tests/libdxfrw_ac1021_group_polyline_dxf_readback_tests /private/tmp/ac1021-group-3d-receipt/strict-output-2d.dxf /private/tmp/ac1021-group-3d-receipt/strict-output-3d.dxf",
+      "result": "Both strict conversions succeeded and the fresh typed readback passed.",
+      "outputSha256": {
+        "2d": "955d1b417e35e19777e60b8be919512e5c4daf156f3bc2dce91f4a191f137d06",
+        "3d": "2598682244363427dd628cabf4cf07a64bf44cc550aa0404718b18a6ca9cd3a3"
+      }
+    },
+    "toolSha256": {
+      "dwg2dxf": "22c8b6b71a37033ea523a087ad7bc4db4ed01f470a75b148f89edd55a2b371ec",
+      "groupSourceAuthor": "c91c78f3f09b8ca33f7746f25984db789508806168e147aca4fbf2c9df9b4e1b",
+      "typedDxfReadback": "58e026f849a889e156ebdebdc393d298216061ff7f98cd265efcb69239a3fc6c"
+    },
+    "diffCheck": "git diff --check passed.",
+    "fullSuites": "NOT RUN; the generated GROUP selector was the affected owning test."
+  },
+  "limitations": [
+    "This proves roundtrip transport for two locally authored AC1021 polyline variants and their one-member GROUP reference only.",
+    "It does not qualify independent DWG producers, arbitrary populated GROUPs, all 3D entity types, LibreCAD_3, FreeCAD or native group/geometry semantics.",
+    "P4 source and graph closure, platform qualification, P7 independent 3D meaning and P8 consumer gates remain open."
+  ],
+  "nextAction": "Continue P4 with an eligible source-bound graph from the existing candidate inventory; preserve refusals for candidates with unresolved parser, ownership or provenance gates."
+}

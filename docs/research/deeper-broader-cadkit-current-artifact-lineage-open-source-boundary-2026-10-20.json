@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "CADKit current artifact, lineage, and open-source peer boundary",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Reconcile current published CADKit DWG and DXF subcrate versions",
+    "Refresh CADKit native-decoder versus neutral-model evidence boundaries",
+    "Recheck ACadSharp algorithm and corpus lineage",
+    "Screen wrappers and source-visible candidates for independent implementation and open-source status",
+    "Refine optional peer admission without adding recurring validation work"
+  ],
+  "sources": [
+    {
+      "project": "TNYCL/cadkit published crates and repository README",
+      "references": [
+        "https://docs.rs/cadkit-dwg/0.3.0/cadkit_dwg/",
+        "https://docs.rs/crate/cadkit-dxf/0.3.3",
+        "https://github.com/TNYCL/cadkit"
+      ],
+      "status": "published_api_and_project_readme_reviewed_2026-10-20",
+      "observation": "The currently surfaced package versions are cadkit-dwg 0.3.0 and cadkit-dxf 0.3.3. The project declares DWG read without DWG write, DXF ASCII/Binary read and ASCII write, and explicitly marks AC1012/R13 untested in its README despite the crate API listing that version magic."
+    },
+    {
+      "project": "TNYCL/cadkit DWG format notes and provenance ledger",
+      "references": [
+        "https://github.com/TNYCL/cadkit/blob/main/docs/dwg/FORMAT_NOTES.md",
+        "https://github.com/TNYCL/cadkit/blob/main/docs/PROVENANCE.md"
+      ],
+      "status": "mutable_primary_project_documentation_reviewed_2026-10-20",
+      "observation": "The project reports exact consumption for completed object decoders, whole-document comparisons against its own DXF reader for selected AC versions, and structural decoding of Apache Tika samples. Its notes list modeler records as partial/opaque. Its provenance ledger identifies ACadSharp samples and attributes the R2007 LZ77 decompressor and R2007 container flow to ACadSharp. These claims were not independently reproduced."
+    },
+    {
+      "project": "TNYCL/cadkit native versus neutral APIs",
+      "references": [
+        "https://docs.rs/cadkit-dwg/0.3.0/cadkit_dwg/native/fn.read_native.html",
+        "https://docs.rs/cadkit-dwg/0.3.0/cadkit_dwg/fn.read.html"
+      ],
+      "status": "published_api_docs_reviewed_2026-10-20",
+      "observation": "The native route retains raw object bytes with decoded native data; the facade maps to cadkit_core::Document and documents recoverable warnings/unknown cases. This supports staging a future comparison by decode, projection, and output rather than treating the facade model as lossless input."
+    },
+    {
+      "project": "monozukuri-ai/acadrust.js and cbassuarez/obj2cad",
+      "references": [
+        "https://github.com/monozukuri-ai/acadrust.js/blob/main/README.md",
+        "https://github.com/cbassuarez/obj2cad"
+      ],
+      "status": "mutable_primary_project_readmes_reviewed_2026-10-20",
+      "observation": "acadrust.js consumes ACadRust as an unmodified Cargo dependency and is not a separate codec lineage. obj2cad documents its own SAT/SAB and DXF authoring routes but identifies its DWG writer as patched ACadRust and says DWG remains beta pending AutoCAD acceptance."
+    },
+    {
+      "project": "Sea-DXF-Core / SeaCad candidate exclusion",
+      "reference": "https://github.com/seaflower205/Sea-DXF-Core",
+      "status": "project_license_and_scope_reviewed_2026-10-20",
+      "observation": "The project describes its source as proprietary rather than open source, states its initial implementation scope is DXF-only, and says DWG and a native B-rep kernel are not implemented. It is excluded from the open-source peer set and source reuse."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Corrected the stale CADKit DWG crate version (0.3.0; DXF crate 0.3.3), documented the ACadSharp-shared R2007 path and corpus lineage, and required native decode/projection/output stages to remain separate. Classified ACadRust bindings and obj2cad DWG output under their underlying codec lineage and excluded a proprietary source-visible DXF project. No local defect or implementation item was added.",
+    "nextImplementation": "Continue the existing local-ready implementation queue and fast validation. Use CADKit only at an existing composed checkpoint for a named structural question, with exact package/source provenance and locally authored or already admitted inputs.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-cadkit-current-artifact-lineage-open-source-boundary-2026-10-20.json"
+    ],
+    "limitations": "The comparison is based on current published API metadata and mutable project documentation without downloading or executing peer packages. It does not independently verify CADKit decoder correctness, native CAD acceptance, 3D semantics, or source provenance embedded in an artifact."
+  },
+  "validation": {
+    "planEdit": "Added a dated artifact/lineage delta, corrected the CADKit DWG crate version, and refined the existing optional comparator procedure. No implementation queue, validation cadence, fixture policy, finding count, or support claim changed.",
+    "jsonValidation": "PASS: jq empty",
+    "scopedDiffCheck": "PASS: git diff --check for both plans; new receipt trailing-whitespace scan clean",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit was requested; repository Git metadata is read-only in this workspace."
+  }
+}

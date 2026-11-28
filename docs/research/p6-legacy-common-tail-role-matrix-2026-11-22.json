@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-common-tail-role-matrix-2026-11-22",
+  "date": "2026-11-22",
+  "status": "GENERATED_VERSIONED_COMMON_TAIL_ROLE_MATRIX_PASS",
+  "supportClaimEffect": "none",
+  "sourceAuthority": {
+    "title": "ODA Open Design Specification v5.4.1",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["20.1", "20.4.44", "20.4.73"],
+    "contract": "The object frame is version-aware; common-tail owner and reactor handles are soft pointers, and extension-dictionary handles are hard owners."
+  },
+  "scope": "Generated regression matrix for the shared R13/R14/R2000 object-frame and common-tail observer used by the bounded dictionary and MLINESTYLE source checks. No production parser layout or support profile changed.",
+  "files": {
+    "tests/dwg_ac1014_dictionaryvar_tests.cpp": "d48beac9dd88bd234ff1122321f9c494dd3e671c45a283579509c7fcce4a5ef3",
+    "tests/CMakeLists.txt": "2b19aaab2aec0ef729b8207d6343a3786adfe2a6372e682f870f087780866414"
+  },
+  "controls": {
+    "versions": ["AC1012", "AC1014", "AC1015"],
+    "frame": "Retains version-dependent object-size location, valid body boundary, wrong-version and out-of-frame size refusal, every byte truncation, and successful valid-frame recheck after refusal.",
+    "handleRoles": "At each owner, reactor, and typed-null extension-dictionary position, tries all 16 role nibbles; accepts only role 4, 4, and 3 respectively. Also mutates each non-null target and requires refusal followed by valid-frame acceptance. On both hash-bound paired AC1012 dictionary frames, independently walks common-tail links and every item handle, mutates each role to an invalid role, verifies observer/parser refusal and reset, then retries the original frame successfully. The source common tail retains valid ODA soft-pointer offset encodings while mutations are rejected.",
+    "specGeneratedAc1012Dictionary": "The self-contained CTest assembles an in-memory AC1012 DICTIONARY object frame in ODA §20.4.44 order: object size, reactor count, two TV/item pairs, relative soft-pointer parent, soft-pointer reactor, typed-null hard-owner extension dictionary, and soft-owner item handles. The typed parser and shared observer accept it; invalid common/item roles and every byte truncation refuse, reset, and accept a corrected retry. This is a generated object-frame control, not a complete DWG file or producer/native evidence.",
+    "testLabels": "The focused CTest labels now identify AC1012, AC1014, and AC1015 coverage."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j4 && ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+    "result": "PASS; strict target build succeeded and focused CTest passed 1/1 (0.04 s). The self-contained spec-shaped AC1012 frame and the optional source-frame selector both pass. The optional selector also passed on both generated AC1012 pair frames.",
+    "addressSanitizer": {
+      "buildType": "Debug",
+      "flags": "-fsanitize=address -fno-omit-frame-pointer",
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j4 && ctest --test-dir build-asan-custom --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+      "result": "PASS; focused test passed 1/1 under AddressSanitizer (0.44 s total)."
+    },
+    "sourceFrames": {
+      "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py; locally generated scratch controls, never added to the repository",
+      "sourceDwgSha256": "0def9f1a66a88481e8c3f625aa8810893ebef9f0b70ded083e1897ad4a31281f",
+      "destinationDwgSha256": "558d7f975c0894a419517168722057b72e16dd8d27fcc1adf8c465707550a56f",
+      "bothExtractedDictionaryFrameSha256": "f742211bff5f5da8008ca8dbf2c1fd61a128fabe657b4f1ddc2d86e51c8fb75a",
+      "sourceDictionaryHandle": 23,
+      "rootHandle": 12,
+      "selectedEntry": "SAME_KEY -> handle 46"
+    }
+  },
+  "qualificationOverlay": {
+    "implementationDigestSha256": "0fa92b4ae6c17a9a445d90f3b8bf70b763f1cbc20fe2c3049388e612a642b242",
+    "inputCount": 774,
+    "checks": [
+      "tools/check_qualification_digest.py",
+      "tools/check_qualification_workflow.py --workflow .github/workflows/build.yml --manifest metadata/qualification-required-tests-v1.json",
+      "tools/check_qualified_format_support.py"
+    ],
+    "result": "PASS in an isolated clean checkout; no support claim or candidate route was promoted."
+  },
+  "limits": [
+    "Generated object-frame bytes exercise the shared parser/observer contract; they are not a complete DWG file or producer-authored/native sample.",
+    "No independent/native evidence for AC1012 dictionary clone, duplicate, or WBLOCK semantics was added.",
+    "Strict AC1012 output and broader format support remain gated; no DWG/DXF fixture was added."
+  ]
+}

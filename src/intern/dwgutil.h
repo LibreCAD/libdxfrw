@@ -23,6 +23,20 @@ namespace DRW {
     std::string toHexStr(int n);
 }
 
+namespace dwgEed {
+// `raw` is the eight physical bytes interpreted little-endian by the parser.
+// This is a caller-selected interpretation, never producer auto-detection.
+inline std::uint64_t layerHandle(std::uint64_t raw, DRW::DwgEedLayerByteOrder order) noexcept {
+    if (order == DRW::DwgEedLayerByteOrder::LegacyLittleEndian) return raw;
+    std::uint64_t result = 0u;
+    for (unsigned i = 0u; i < 8u; ++i) {
+        result = (result << 8u) | (raw & 0xffu);
+        raw >>= 8u;
+    }
+    return result;
+}
+}
+
 namespace dwgSpec {
     /// R18+ CLASSES sections carry eight ODA-defined unknown bytes between
     /// the class CRC and the closing sentinel. ODA specifies zero values.
@@ -108,14 +122,14 @@ public:
     std::uint32_t decompressedBytes() const { return decompPos; }
 
 private:
-    std::uint32_t litLength18();
+    std::uint64_t litLength18();
     std::uint32_t litLength21(std::uint8_t opCode);
     bool copyCompBytes21(std::uint32_t length);
     void readInstructions21(std::uint8_t &opCode, std::uint32_t &sourceOffset, std::uint32_t &length);
 
-    std::uint32_t longCompressionOffset();
+    std::uint64_t longCompressionOffset();
     std::uint32_t long20CompressionOffset();
-    std::uint32_t twoByteOffset(std::uint32_t *ll);
+    std::uint32_t twoByteOffset(std::uint64_t *ll);
 
     std::uint8_t compressedByte(void);
     std::uint8_t compressedByte(const std::uint32_t index);
@@ -344,18 +358,32 @@ namespace dwgCP {
 }
 
 namespace dwgColor {
+    // Autodesk AcCmEntityColor::ColorMethod byte sequence. C4 (ByPen),
+    // C6 (LayerOff), C7 (LayerFrozen), and C8 (None) are documented as
+    // internal-only methods for third-party applications; naming them here
+    // does not imply that libdxfrw projects them semantically.
     enum Encoding {
         BYLAYER = 0xC0,
         BYBLOCK = 0xC1,
         RGB = 0xC2,
+        ACI = 0xC3,
+        // Historical local spelling retained for existing call sites.
         ACIS = 0xC3,
-        WINDOW_BG = 0xC8,
+        BYPEN = 0xC4,
+        FOREGROUND = 0xC5,
+        LAYER_OFF = 0xC6,
+        LAYER_FROZEN = 0xC7,
+        NONE = 0xC8,
     };
 }
 
 namespace dwgObjType {
     enum Object {
         UNKNOWN_9 = 9,
+        // AC1018 encodes the legacy AcDbVXTable control as fixed OBJECTS
+        // type 70. Newer files may instead use the file-local VXCONTROL
+        // class ordinal (AcDbVxControl).
+        VX_CONTROL = 70,
         DICTIONARY = 42,
         UNKNOWN_36 = 54,
         UNKNOWN_37 = 55,
@@ -383,6 +411,7 @@ namespace dwgObjType {
     inline bool isFixedObject(std::int16_t type) {
         switch (type) {
         case UNKNOWN_9:
+        case VX_CONTROL:
         case DICTIONARY:
         case UNKNOWN_36:
         case UNKNOWN_37:

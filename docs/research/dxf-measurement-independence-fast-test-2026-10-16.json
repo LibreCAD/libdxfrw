@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-dxf-measurement-independence-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Preserve DXF $MEASUREMENT source presence/value independently from $INSUNITS and verify ASCII/binary wire output, public parseback, unchanged following geometry, and same-profile replay.",
+  "localFinding": {
+    "status": "REPRODUCED_AND_FIXED_IN_WORKTREE",
+    "evidence": "The original writer derived $MEASUREMENT from $INSUNITS and synthesized $MEASUREMENT=1 when both source variables were absent. Generated controls exposed that behavior; after the change, absence stays absent and explicit values survive independently.",
+    "disposition": "Fixed within the existing 7BJ.4 presence-policy owner; no new finding or subplan added."
+  },
+  "implementation": {
+    "files": {
+      "src/drw_header.cpp": "6cdafc8158b019ee3dfa26cbbeb3193d4e98c423bd9bbfed408329a6bf3e6673",
+      "tests/dxf_fixture_tests.cpp": "3158e590a801e23dfd937a07d698aa2cb426bb9220d02fd37732b92712af70be"
+    },
+    "policy": "Emit $MEASUREMENT only when an integer source value is present, retaining explicit 0 or 1 regardless of $INSUNITS. Do not synthesize a value from units or rescale coordinates. This is a local DXF serialization policy, not consumer default qualification.",
+    "generatedControls": [
+      "AC1014 omitted-only legacy control",
+      "AC1015 both variables absent",
+      "AC1015 $INSUNITS absent with explicit $MEASUREMENT=0/1",
+      "AC1015 absent $MEASUREMENT with explicit $INSUNITS=0/1/4",
+      "AC1015 explicit $MEASUREMENT=0 and 1 crossed with each $INSUNITS=0/1/4",
+      "AC1032 raw $INSUNITS=20/21/22/23/24 with absent and explicit $MEASUREMENT=0/1; codes 22-24 are diagnostic serializer controls, not producer-availability claims",
+      "ASCII and binary DXF output",
+      "raw header variable count, public parseback, and same-profile presence replay",
+      "following LINE preserving all six XYZ coordinates",
+      "following INSERT preserving position and nonuniform XYZ scale"
+    ],
+    "controlCountPerEncoding": 28,
+    "testMode": "--insunits-presence-wire-policy"
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_fixture_tests --parallel 2",
+    "focusedMode": "./build/libdxfrw_dxf_fixture_tests --insunits-presence-wire-policy",
+    "focusedResult": "PASS",
+    "touchedExecutable": "./build/libdxfrw_dxf_fixture_tests",
+    "touchedExecutableResult": "PASS (DXF target fixtures: PASS)",
+    "compatibilityTarget": "cmake --build build --target lc3_compat_check --parallel 2 (PASS; no work required)",
+    "diffCheck": "PASS for src/drw_header.cpp, tests/dxf_fixture_tests.cpp, and DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fullProjectSuite": "NOT RUN"
+  },
+  "limits": [
+    "No native AutoCAD, FreeCAD, LibreCAD, or LibreCAD_3 behavior/default test ran.",
+    "No DWG Template $MEASUREMENT read/merge behavior was tested; that gap remains tracked separately as PAR-107.",
+    "This does not establish that all consumers assign the same effective default to omitted $MEASUREMENT.",
+    "AC1032 values 22-24 are raw serializer-preservation controls only; source-product availability is not qualified.",
+    "No fixture, dependency, or CTest registration was added."
+  ],
+  "planBoundary": {
+    "findingCount": 123,
+    "topLevelImplementationSubplans": 71,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

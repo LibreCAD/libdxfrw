@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1021-layerstates-empty-root-output-readback-2026-11-05",
+  "date": "2026-11-05",
+  "status": "EXACT_EMPTY_ROOT_PROJECTION_ASCII_BINARY_READBACK_PASSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "version": "AC1021",
+    "fixtureDisposition": "Pre-existing local research input; not tracked or committed"
+  },
+  "operation": {
+    "selector": "--layerstates-empty-ac1021-output-readback",
+    "outputVersion": "AC1024",
+    "scope": "A test-only selected projection of the source LAYER_CONTROL extension graph. It retains the source-bound extension dictionary and its three empty child dictionaries, required LAYER/LTYPE tables, and source BLOCK_RECORD/BLOCK containers; unrelated entities and object families are excluded. Viewport memberships and invalid frozen-layer slots, VisualStyle references, DIMSTYLE records, FIELD carriers, TABLESTYLE/CELLSTYLEMAP, named resources, and DIMASSOC are outside this projection.",
+    "writePolicy": "Compatible text/proxy policies with AllowPartial; this is not whole-drawing export"
+  },
+  "checks": {
+    "ascii": {
+      "mutationRefused": true,
+      "destinationSentinelPreserved": true,
+      "sameAdapterRetry": true,
+      "freshReadback": true,
+      "layerControlAndExtensionIdentityPreserved": true,
+      "threeRootNamesAndHardOwnerRolesPreserved": true,
+      "allThreeChildDictionariesRemainEmpty": true,
+      "xrecordCount": 0
+    },
+    "binary": {
+      "mutationRefused": true,
+      "destinationSentinelPreserved": true,
+      "sameAdapterRetry": true,
+      "freshReadback": true,
+      "layerControlAndExtensionIdentityPreserved": true,
+      "threeRootNamesAndHardOwnerRolesPreserved": true,
+      "allThreeChildDictionariesRemainEmpty": true,
+      "xrecordCount": 0
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j 2",
+    "focusedSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1021-output-readback tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "result": "Passed for ASCII and Binary output, mutation rollback, same-adapter retry, and fresh typed readback.",
+    "fullSuiteRun": false
+  },
+  "limits": [
+    "The selected projection omits source entities and unrelated object families; it does not establish full-document preservation or strict whole-source eligibility.",
+    "The source contains 36 MLEADER proxy caches that remain unpreserved by whole-source output; strict export continues to refuse atomically.",
+    "The result establishes transport and graph identity for this one empty-root AC1021 source profile only; nonempty LayerStates, other producers, native editing, and consumer semantics remain open.",
+    "The local source fixture is not committed."
+  ]
+}

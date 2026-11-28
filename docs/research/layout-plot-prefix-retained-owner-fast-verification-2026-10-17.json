@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "LAYOUT embedded plot-prefix retained-owner focused verification",
+  "mode": "local generated fast-test implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Verify DRW_Layout DXF retained-string accounting for the five embedded AcDbPlotSettings text fields and subclass-scoped AcDbLayout name",
+    "Extend the focused selector with generated full-document ASCII/Binary callback suppression and same-facade retry controls",
+    "Reconcile the 7S.2c.d.17.9 implementation status without widening its evidence boundary"
+  ],
+  "implementation": {
+    "filesInspected": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp"
+    ],
+    "filesUpdated": [
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/layout-plot-prefix-retained-owner-fast-verification-2026-10-17.json"
+    ],
+    "productionCodePresentInWorktree": true,
+    "productionCodeChangedThisTurn": false,
+    "testCodeChangedThisTurn": true,
+    "behavior": "DRW_Layout::parseCode charges the five AcDbPlotSettings-prefix strings (groups 1, 2, 4, 6, and 7) and subclass-scoped AcDbLayout name on the shared retained-string lease. Replacement admission occurs before public-field assignment; per-field counters participate in copy/assignment/reset lifetime.",
+    "generatedInMemoryControls": [
+      "ASCII and Binary LAYOUT record streams",
+      "all five embedded AcDbPlotSettings strings plus AcDbLayout name",
+      "minimum aggregate retained-byte cap succeeds",
+      "one-byte-under cap refuses the final name replacement while preserving the previous value and live prefix charges",
+      "copy construction and assignment preserve the shared lease after source reset",
+      "final owner reset releases the aggregate charge",
+      "generated full OBJECTS drawing refuses before the LAYOUT callback at cap minus one",
+      "same-facade exact-cap retry publishes the target LAYOUT and following sentinel"
+    ],
+    "selector": "--dxf-layout-plotsettings-text-owner-budget",
+    "publicLayoutChanged": true,
+    "publicLayoutNote": "Private counters change DRW_Layout object layout; downstream consumers must rebuild. No binary ABI compatibility claim is made.",
+    "wireLengthRuleAdded": false
+  },
+  "planImpact": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, sub-slice 7S.2c.d.17.9",
+    "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / FULL_READ_OWNER_SCOPED",
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newCtestRegistrations": 0,
+    "externalFixtureFilesAdded": 0,
+    "externalPeerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextUnblockedSlice": "Continue with a demonstrated public-mutation or writer-copy retained-byte owner; keep remaining raw/typed-carrier accounting separate."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-layout-plotsettings-text-owner-budget",
+      "jq empty docs/research/layout-plot-prefix-retained-owner-fast-verification-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": [
+      "strict libdxfrw_hardening_tests target built",
+      "strict lc3_compat_check target built",
+      "focused LAYOUT retained-owner selector passed for direct and full generated ASCII/Binary streams",
+      "under-budget full reads published zero LAYOUT callbacks; same-facade retry published the target and sentinel"
+    ],
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixtureFilesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "commitCreated": false,
+    "commitNote": "The shared worktree contains broad unrelated modifications; no files were staged or committed."
+  }
+}

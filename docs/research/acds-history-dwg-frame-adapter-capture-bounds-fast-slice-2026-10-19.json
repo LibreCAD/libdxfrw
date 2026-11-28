@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "AcDs-history DWG frame adapter capture bounds",
+  "mode": "Generated local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bound dx_iface retention of opaque DWG frame companions used for EvaluationGraph/AcSh-history correlation.",
+    "Preserve opaque callback/retained-frame accounting and refuse export if a selected frame cannot be retained.",
+    "Add generated tests without an external or persistent drawing fixture."
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Retains only the prior evaluation-graph and AcSh history record/class names in acdsHistoryDwgFrames; entity and unrelated unsupported callbacks are not copied there.",
+      "Estimates fixed frame storage, reactor-handle slots, record/class/application strings, and raw body bytes before copy.",
+      "Enforces 100000 retained records and DRW::kMaxDxfBinaryPayloadBytes total logical bytes; allocation, record-limit, and byte-limit failures are sticky.",
+      "Counts retained opaque frames only after successful vector insertion and makes strict DWG completeness/export preflight fail closed on capture failure.",
+      "Opaque frames remain correlation/diagnostic data and are not treated as DXF serializer input."
+    ],
+    "compatibility": "No public API or model layout changed in this slice; the previously declared dx_iface override is now defined. No ACIS, AcDs layout, or native-consumer support claim is made."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_(acds_history_dwg_frame_capture_limits|acsh_history_capture_limits|evaluation_graph_capture_limits|dynamic_block_capture_limits|proxy_object_capture_limits)$' --output-on-failure",
+      "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt"
+    ],
+    "build": "PASS (dxfrw, dwg2dxf, adapter test target)",
+    "focusedCtest": "PASS (5/5)",
+    "diffCheck": "PASS",
+    "testCoverage": [
+      "normal generated AcSh history raw-frame retention and exact logical-byte accounting",
+      "opaque callback and successfully retained frame counters",
+      "entity and unrelated unsupported-record exclusion from the frame copy",
+      "over-budget sticky rejection with no frame copy or retained-frame count",
+      "export refusal without output after rejected frame capture"
+    ]
+  },
+  "assessment": {
+    "newConfirmedFormatDefect": 0,
+    "findingsChanged": false,
+    "topLevelSubplansChanged": false,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "externalDrawingsOrIssueAttachmentsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuitesRun": 0,
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "planPath": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "planSha256": "b548bbc15fe75499e6a0ad6f5edb84dda761c6bc2ff322271891a3e53c53dca7",
+    "nextSlice": "Continue the 7S.2c retained-output/callback-copy census with dx_iface::addRawDxfEntity; ordered raw-record event copies are currently guarded for missing block ownership but lack aggregate record/byte admission."
+  },
+  "workingTree": {
+    "containsPreExistingUncommittedChanges": true,
+    "onlyScopedFilesWereEditedByThisSlice": true,
+    "unrelatedChangesStagedOrCommitted": false
+  }
+}

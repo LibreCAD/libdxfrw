@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "IMAGEDEF auxiliary status-key capture bound",
+  "mode": "Local implementation slice with generated fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bound the adapter-owned invalid IMAGEDEF generation and conflicting-key status sets together.",
+    "Deduplicate repeated status callbacks without consuming additional status-key budget.",
+    "Make status-key exhaustion sticky for IMAGEDEF and typed-entity capture and refuse DXF publication."
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limits": {
+      "combinedUniqueInvalidGenerationAndConflictKeys": 100000
+    },
+    "behavior": "The logical count includes actual set sizes and the adapter-maintained lifetime counter. Exhaustion makes IMAGEDEF and typed-entity capture fail closed; this does not prevent caller mutation of public containers after callbacks."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+    "test": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_image_path_cli|dwg2dxf_datastorage_capture_limits|dwg2dxf_modeler_dxf_move_dispatch)$' --output-on-failure",
+      "result": "passed 3/3"
+    },
+    "scopedDiffCheck": true,
+    "fullSuiteRun": false,
+    "fixturesAdded": 0,
+    "planSha256": "6349c0ab7009a1fbf36401dc519be598a5f057b0aa5ca9b2d9775c62c93c82df"
+  },
+  "planImpact": {
+    "existingOwner": "7S.2c adapter-owned callback and auxiliary-store census",
+    "newConfirmedFormatDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "This bounds only the adapter-owned IMAGEDEF status-index sets and propagates exhaustion to existing fail-closed capture preflight. It does not establish full callback-state immutability, external format behavior, serializer completeness, independent ACIS semantics, or native consumer qualification. Work remains uncommitted over the user's existing large working-tree changes."
+}

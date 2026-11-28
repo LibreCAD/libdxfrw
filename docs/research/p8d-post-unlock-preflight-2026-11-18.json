@@ -1,0 +1,145 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-post-unlock-preflight-2026-11-18",
+  "date": "2026-11-18",
+  "title": "P8-D desktop preflight after repeated reported unlock",
+  "status": "WAITING_FOR_ACCESSIBLE_DISPLAY_CAPTURE",
+  "supportClaimEffect": "none",
+  "trigger": "The user reported unlocking the macOS session after the previous P8-D preflight failed.",
+  "probes": {
+    "screenCapture": {
+      "command": "screencapture -x /private/tmp/p8d-unlocked-preflight.png",
+      "result": "Failed: could not create image from display.",
+      "artifactCreated": false
+    },
+    "retryAfterReportedUnlock": {
+      "trigger": "The user reported that the macOS session was being unlocked.",
+      "command": "screencapture -x /private/tmp/p8-unlock-retry.png",
+      "result": "Failed: could not create image from display.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false
+    },
+    "retryAfterFurtherReportedUnlock": {
+      "trigger": "The user again reported unlocking the macOS session.",
+      "command": "screencapture -x /tmp/libdxfrw-unlock-check.png",
+      "result": "Failed: could not create image from display.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false
+    },
+    "coreGraphicsDisplayState": {
+      "command": "swift -module-cache-path /private/tmp/swift-module-cache -e 'import CoreGraphics; var count: UInt32 = 0; let result = CGGetActiveDisplayList(0, nil, &count); print(\"first=\\(result) activeCount=\\(count)\")'",
+      "result": "CGGetActiveDisplayList returned CGError(rawValue: 0) with activeCount=0.",
+      "interpretation": "The current process sees no active Quartz display. This does not establish whether the user's physical login session is locked or whether TCC screen-capture permission is granted."
+    },
+    "coreGraphicsDisplayStateAfterFurtherUnlock": {
+      "command": "swift -module-cache-path /private/tmp/swift-module-cache -e 'import CoreGraphics; var count: UInt32 = 0; let result = CGGetActiveDisplayList(0, nil, &count); print(\"result=\\(result) activeCount=\\(count)\")'",
+      "result": "CGGetActiveDisplayList returned CGError(rawValue: 0) with activeCount=0.",
+      "interpretation": "The process still sees no active Quartz display after the further reported unlock. This does not diagnose the user's physical login state or screen-capture permissions."
+    },
+    "retryAfterLatestReportedUnlock": {
+      "trigger": "The user again reported unlocking the macOS session.",
+      "screenCaptureCommand": "screencapture -x /tmp/libdxfrw-unlock-check.png",
+      "screenCaptureResult": "Failed: could not create image from display; sysmond service not found.",
+      "coreGraphicsCommand": "swift -module-cache-path /private/tmp/swift-module-cache -e 'import CoreGraphics; var count: UInt32 = 0; let result = CGGetActiveDisplayList(0, nil, &count); print(\"result=\\(result) activeCount=\\(count)\")'",
+      "coreGraphicsResult": "CGGetActiveDisplayList returned CGError(rawValue: 0) with activeCount=0.",
+      "artifactCreated": false,
+      "interpretation": "This process still has no active Quartz display and cannot capture the desktop. The result does not establish whether the physical login session is locked.",
+      "guiActionsAttempted": false
+    },
+    "retryAfterUserSaidWillUnlock": {
+      "trigger": "The user said they would unlock the session after the previous failed preflight; this records the user's report and does not independently establish session state.",
+      "screenCaptureCommand": "screencapture -x /private/tmp/libdxfrw-unlock-preflight-2026-11-18.png",
+      "screenCaptureResult": "Failed: could not create image from display.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false,
+      "interpretation": "The current process still cannot capture a desktop image. This does not establish the physical login state or capture permissions."
+    },
+    "retryAfterLatestUnlockReply": {
+      "trigger": "The user again reported they would unlock the session after the previous failed preflight; this records the report and does not independently establish session state.",
+      "screenCaptureCommand": "screencapture -x /private/tmp/libdxfrw-unlock-preflight-2026-11-18-retry.png",
+      "screenCaptureResult": "Failed: could not create image from display.",
+      "coreGraphicsCommand": "swift -module-cache-path /private/tmp/swift-module-cache -e 'import CoreGraphics; var count: UInt32 = 0; let result = CGGetActiveDisplayList(0, nil, &count); print(\"result=\\(result) activeCount=\\(count)\")'",
+      "coreGraphicsResult": "CGGetActiveDisplayList returned CGError(rawValue: 0) with activeCount=0.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false,
+      "interpretation": "This process still sees no active Quartz display and cannot capture a desktop image. The result does not establish the physical login state or capture permissions."
+    },
+    "launchServices": [
+      {
+        "command": "open -Ra LibreCAD",
+        "result": "Unable to find application named 'LibreCAD'."
+      },
+      {
+        "command": "open -Ra 'LibreCAD 3'",
+        "result": "Unable to find application named 'LibreCAD 3'."
+      }
+    ],
+    "bundleSearch": {
+      "roots": [
+        "/Applications",
+        "$HOME/Applications",
+        "/Users/dli/dev"
+      ],
+      "libreCAD2Bundle": "/Users/dli/dev/LibreCAD/LibreCAD.app",
+      "libreCAD3BundlesFound": [],
+      "interpretation": "A LibreCAD 2 bundle is present in the development tree but is not registered by Launch Services. Display access is still unavailable, so no GUI launch or interaction was attempted."
+    },
+    "retryAfterLatestUserUnlockReply": {
+      "trigger": "The user again said they would unlock the session after the previous failed preflight; this records the report and does not independently establish session state.",
+      "screenCaptureCommand": "screencapture -x /private/tmp/codex-unlock-check.png",
+      "screenCaptureResult": "Failed: could not create image from display.",
+      "coreGraphicsCommand": "swift -module-cache-path /private/tmp/swift-module-cache -e 'import CoreGraphics; var count: UInt32 = 0; let result = CGGetActiveDisplayList(0, nil, &count); print(\"result=\\(result) activeCount=\\(count)\")'",
+      "coreGraphicsResult": "CGGetActiveDisplayList returned CGError(rawValue: 0) with activeCount=0.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false,
+      "interpretation": "This process still sees no active Quartz display and cannot capture a desktop image. This does not establish physical login state or capture permissions."
+    },
+    "retryAfterCurrentUnlockReply": {
+      "trigger": "The user again reported that they would unlock the macOS session after the previous failed P8-D preflight.",
+      "screenCaptureCommand": "screencapture -x /private/tmp/libdxfrw-p8d-current-session.png",
+      "screenCaptureResult": "Failed: could not create image from display.",
+      "coreGraphicsCommand": "swift -module-cache-path /private/tmp/swift-module-cache -e 'import CoreGraphics; var count: UInt32 = 0; let result = CGGetActiveDisplayList(0, nil, &count); print(\"result=\\(result) activeCount=\\(count)\")'",
+      "coreGraphicsResult": "CGGetActiveDisplayList returned CGError(rawValue: 0) with activeCount=0.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false,
+      "interpretation": "After the latest reported unlock, this process still sees no active Quartz display and cannot capture a desktop image. This does not establish physical login state or capture permissions."
+    },
+    "retryAfterCurrentUserMessage": {
+      "trigger": "The user said they would unlock the macOS session after the prior failed preflight; this records the report and does not independently establish session state.",
+      "screenCaptureCommand": "screencapture -x /private/tmp/libdxfrw-p8d-unlock-check.png",
+      "screenCaptureResult": "Failed: could not create image from display.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false,
+      "interpretation": "The current process still cannot capture a desktop image. This does not establish the physical login state or capture permissions."
+    },
+    "retryAfterLatestUnlockMessage": {
+      "trigger": "The user reported that they would unlock the macOS session after the previous failed preflight.",
+      "screenCaptureCommand": "screencapture -x /private/tmp/libdxfrw-p8d-unlocked-retry-2026-11-18.png",
+      "screenCaptureResult": "Failed: could not create image from display.",
+      "coreGraphicsCommand": "swift -module-cache-path /private/tmp/swift-module-cache -e 'import CoreGraphics; var count: UInt32 = 0; let result = CGGetActiveDisplayList(0, nil, &count); print(\"result=\\(result) activeCount=\\(count)\")'",
+      "coreGraphicsResult": "CGGetActiveDisplayList returned CGError(rawValue: 0) with activeCount=0.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false,
+      "interpretation": "After this unlock report, the process still sees no active Quartz display and cannot capture a desktop image. Retry only after active-display detection and capture both work."
+    },
+    "retryAfterLatestUnlockReport": {
+      "trigger": "The user again reported that they would unlock the macOS session after the previous failed preflight.",
+      "screenCaptureCommand": "screencapture -x /private/tmp/p8d-current-unlock-preflight.png",
+      "screenCaptureExitCode": 1,
+      "screenCaptureResult": "Failed: could not create image from display.",
+      "coreGraphicsCommand": "swift -module-cache-path /private/tmp/swift-module-cache -e 'import CoreGraphics; var count: UInt32 = 0; let result = CGGetActiveDisplayList(0, nil, &count); print(\"result=\\(result) activeCount=\\(count)\")'",
+      "coreGraphicsExitCode": 0,
+      "coreGraphicsResult": "CGGetActiveDisplayList returned CGError(rawValue: 0) with activeCount=0.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false,
+      "interpretation": "After this latest unlock report, the current process still sees no active Quartz display and cannot capture a desktop image. This does not establish the physical login state or capture permissions."
+    }
+  },
+  "guiActionsAttempted": false,
+  "disposition": {
+    "gate": "P8-D",
+    "status": "WAITING_FOR_FUNCTIONAL_AQUA_GUI",
+    "nextTrigger": "The current process reports at least one active Quartz display and screencapture successfully creates an image; an unlock report without those changed conditions is not a retry trigger.",
+    "nextAction": "Once display capture works, launch the explicit LibreCAD 2 bundle path, complete the Move/Copy action-boundary and named-LTYPE checks, then run the LibreCAD_3 MPOLYGON round trip if that application becomes available."
+  }
+}

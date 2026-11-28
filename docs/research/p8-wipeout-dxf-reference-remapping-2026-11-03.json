@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-wipeout-dxf-reference-remapping-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "LOW_LEVEL_REFERENCE_TRANSLATION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Correct low-level WIPEOUT output mapping for its IMAGEDEF and IMAGEDEF_REACTOR references.",
+  "issue": {
+    "before": "writeWipeout emitted ref and m_imageDefReactorHandle literally, bypassing configured caller reference resolution and source-handle remapping.",
+    "wireFields": {
+      "340": "hard reference to IMAGEDEF",
+      "360": "hard reference to IMAGEDEF_REACTOR"
+    }
+  },
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Both references use the configured resolver when present; the resolver result is final and is not remapped again.",
+      "Without a resolver, both references use the source-handle remap fallback.",
+      "Zero source references remain zero, preserving the prior output behavior.",
+      "This does not change the separate IMAGE compound writer or establish referenced-object graph closure."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed in-memory WIPEOUT with a triangular clip boundary; no DWG/DXF fixture files.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "cases": [
+      "source-handle remap fallback for both references",
+      "reference-resolver final IDs override configured remaps"
+    ],
+    "validation": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "buildResult": "PASS",
+      "focusedTestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_wipeout_reference_remapping$' --output-on-failure",
+      "focusedTestResult": "PASS: 1/1; both ASCII/Binary x resolver/remap cases, 0.47 seconds",
+      "diffCheck": "PASS: git diff --check"
+    }
+  },
+  "limitations": [
+    "Generated low-level handle translation only; target existence, object kinds, owner roles, graph closure, raster availability, physical producer coverage, and native rendering remain unqualified.",
+    "No support claim is promoted; broader DWG/DXF and consumer parity remain open."
+  ],
+  "next": "Continue the reference-writer audit only where a source-backed gap exists; preserve graph and consumer gates for all raster object references."
+}

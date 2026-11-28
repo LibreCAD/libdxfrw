@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-turkish-locale-cp1254-end-to-end-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Close the existing 7AE locale readiness gap with a generated legacy DXF import/export/re-import control under a Turkish C locale; audit file-extension case handling without duplicating its existing test.",
+  "method": {
+    "localeActivated": "tr_TR.UTF-8",
+    "localeRestored": true,
+    "generatedSourceDxf": true,
+    "temporaryFilesRemoved": true,
+    "repositoryFixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "fullSuiteRun": false
+  },
+  "control": {
+    "format": "ASCII DXF AC1018",
+    "headerCodePageInput": "ansi_1254",
+    "sourceTextWireByteHex": "d0",
+    "expectedUnicodeScalar": "U+011E",
+    "operation": "import -> export AC1018 -> inspect wire bytes/header -> re-import",
+    "expectedOutputTextWireByteHex": "d0",
+    "expectedOutputCodePageHeader": "ANSI_1254",
+    "result": "PASS"
+  },
+  "pathSuffixAudit": {
+    "implementation": "ASCII-only folding of a-z in dx_iface::fileImport",
+    "existingGeneratedControl": "fileExtensionAsciiCaseAndNonAsciiSafety",
+    "covers": [
+      "uppercase .DXF dispatch",
+      "non-ASCII suffix refusal before DXF/DWG reader invocation"
+    ],
+    "result": "SOURCE_AUDIT_AND_EXISTING_CONTROL"
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests --turkish-codepage",
+      "result": "PASS"
+    },
+    "existingCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_gbk_codepage$' --output-on-failure",
+      "passed": 1,
+      "failed": 0,
+      "result": "PASS"
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "A host without one of the recognized Turkish locale names reports SKIP for this optional focused control.",
+    "The filename test does not qualify unrelated Unicode path or symbol-name normalization.",
+    "No DWG support, independent peer result, native CAD result, or external-J item is promoted."
+  ],
+  "externalJItems": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

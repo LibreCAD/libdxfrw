@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader cq-acis 0.3.12 artifact and SAB profile admission review",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "cq-acis 0.3.12 release artifact provenance and platform availability",
+    "SAB/ASM container, word-width, and save-version admission boundaries",
+    "Parser versus B-rep conversion evidence and OCCT lineage",
+    "Implementation readiness for an optional composed-stage comparator"
+  ],
+  "method": {
+    "kind": "Read-only primary-source web review of PyPI metadata and project documentation",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "PyPI reports release attestations and checksums; this review did not independently verify Sigstore signatures. Exact source documentation at the attested 0.3.12 commit was not retrieved (a direct immutable source-page fetch returned a cache miss); browsed README/SAB/geometry pages are mutable main. No runtime behavior, payload coverage, or semantic support is inferred from documentation alone."
+  },
+  "sources": [
+    {
+      "project": "cq-acis 0.3.12",
+      "url": "https://pypi.org/project/cq-acis/0.3.12/",
+      "revision": "release metadata reviewed 2026-10-17",
+      "observed": "PyPI lists six release artifacts. Its page reports a publish attestation for cq_acis-0.3.12-cp310-abi3-macosx_10_12_x86_64.whl, SHA-256 a6eb2e12ca841f4471d594963bec6b44298a5eb954c7b50141f2330f5ec50b48, GitHub Actions repository monozukuri-ai/cq-acis, source commit e05a8f470d2f6799277f7b7df467d2fc35625889, and release.yml workflow."
+    },
+    {
+      "project": "cq-acis SAB/ASM support documentation",
+      "url": "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The documentation distinguishes four-byte ACIS BinaryFile save version 21800 (limited native fixture coverage), ASM BinaryFile4 versions 22000, 22300, 22600, 22700, 22900, and 23200, and ASM BinaryFile8 with synthetic framing only and no validated native eight-byte fixture. Version acceptance does not imply all record layouts are supported; unknown records may remain raw and unsupported referenced geometry may fail conversion."
+    },
+    {
+      "project": "cq-acis geometry support documentation",
+      "url": "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The documentation separates parsing from conversion, defines a limited analytic and experimental NURBS/tolerant-topology subset, and says unsupported referenced geometry is an error rather than a partial success. It also documents constraints on transforms, trims, and shell closure."
+    },
+    {
+      "project": "cq-acis README",
+      "url": "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The project describes itself as experimental, converts supported ACIS geometry to CadQuery/OpenCascade, requires Python 3.11+ and CadQuery 2.8+, and says prebuilt wheels avoid a Rust build while retaining CadQuery platform requirements."
+    }
+  ],
+  "assessment": {
+    "artifactRule": "Pin the exact platform artifact SHA and attestation; the verified status shown for one wheel does not automatically apply to other release files. Audit the attested source commit before relying on implementation behavior.",
+    "profileRule": "Record container signature/family, word width, numeric save version, and modeler stamp separately. A modeler stamp containing ASM does not reclassify an ACIS BinaryFile container. A profile mismatch is NOT_ADMITTED, not grounds for heuristic fallback.",
+    "semanticRule": "Require complete body and active-reference accounting, diagnostics/raw-record review, valid and closed B-reps, units/transforms, and independent analytic measurements. Parsing, one valid body, rendering, STEP projection, or same-stack round-trip is insufficient.",
+    "lineageRule": "cq-acis shape conversion is CadQuery/OpenCascade-based and therefore not an independent geometry-kernel vote from FreeCAD's OCCT route. cq-acis does not decode DWG AcDs ownership or qualify native FreeCAD acceptance.",
+    "sourceDriftRule": "Mutable main documentation was not tied to the attested release source in this review. Resolve against the exact commit before any runtime comparison; if unavailable, record NOT_RUN or PROVENANCE_INCOMPLETE."
+  },
+  "planImpact": {
+    "existingGatesOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-cq-acis-0312-artifact-and-sab-profile-admission-review-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-cq-acis-0312-artifact-and-sab-profile-admission-review-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

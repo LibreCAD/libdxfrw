@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1018-generated-defaultplot-source-binding-2026-11-19",
+  "date": "2026-11-19",
+  "status": "GENERATED_SOURCE_ONLY",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "e07cce22b097ac97319cd0f98ff9983b4dd45fb5f65d8b63066c2f11d7a36794",
+  "scope": "Isolated same-import observation of the exact locally generated AC1018 default-plot root C, dictionary E, placeholder F, single LAYER 10, and two CLASS rows in ASCII and binary. No output is enabled by this source capture.",
+  "sourceEvidence": [
+    "Both CLASS rows contain group 91 with value 1; the AC1015 source instead omits group 91. Both use the AC1015 codec.",
+    "Same-import source and live values bind the root, dictionary and placeholder field shapes and the LAYER plot reference. Dedicated root and layer flags do not promote generic identity, structural or resource-origin reports.",
+    "Explicit whole-source and legacy-identity opt-ins, and subclass defaults, retain their existing behavior."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j 2",
+    "focusedCtests": "PASS: five class, structural-source, plotstyle-source, default-plot, and XRECORD failure/retry selectors (2.69 seconds).",
+    "compiler": "PASS: GCC 16 syntax-only with -Wall -Wextra -pedantic -Werror after fixing the CI range-loop warning and an existing GCC 16 dangling-reference diagnostic.",
+    "sourceControls": "PASS: ASCII and binary, mutations of live CLASS count/root/default/layer/raw fields, changed physical CLASS count, restoration, opt-in/subclass isolation, and same-importer retry.",
+    "fullOwnedXrecordSelector": "REFUSED at AC1018 source to AC1015 output, the existing unsupported writer cell.",
+    "identitySourceSelector": "FAIL, reproduced with the preceding adapter: TABLE header handle 0 remains Unobserved where the older control expects Null. Wide handle admission also differs from that expectation. This separate pre-existing inconsistency remains under investigation."
+  },
+  "limits": [
+    "Generated files are scratch-only and are not independent producer evidence.",
+    "AC1018 to AC1015 output remains unimplemented; no native CAD semantic or general format support claim is made.",
+    "P8-F must be replayed for this changed digest."
+  ]
+}

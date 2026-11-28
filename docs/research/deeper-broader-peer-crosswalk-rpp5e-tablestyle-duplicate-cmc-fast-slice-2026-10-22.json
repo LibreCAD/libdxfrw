@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-5e TABLESTYLE duplicate-CMC refusal and row lifecycle fast slice",
+  "mode": "Generated ASCII/Binary malformed-record and lifecycle validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "710c98508726669c532aadbc06d7ef8393f082b5116f8f66a52dc13bc41d5688",
+  "authoritativeReference": {
+    "title": "TABLESTYLE (DXF), Autodesk AutoCAD 2024 DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+    "accessed": "2026-10-22",
+    "repeatedColorMetadata": [
+      {"group": 430, "description": "Color name"},
+      {"group": 431, "description": "Color book name"}
+    ]
+  },
+  "implementation": {
+    "changes": [
+      "DRW_TableStyleCmcColor now tracks DXF group-430/group-431 presence separately from retained byte counts, so empty strings are still recognized as present.",
+      "Repeated CMC name or book fields mark the nested typed projection invalid; the raw TABLESTYLE carrier is still retained and the typed callback is withheld.",
+      "Generated ASCII/Binary controls include separate duplicate-name and duplicate-book records, an incomplete-row record, and a valid later TABLESTYLE sentinel; they verify raw ordering and typed callback recovery.",
+      "Added copy/reset checks for parsed text-style names, CMC strings, border state, and row-vector lifetime.",
+      "Audited output routing: DXF-origin TABLESTYLE writes through the raw carrier; DWG-origin TABLESTYLE uses the separate bounded typed writer. Typed edits are not merged into raw DXF groups by this route."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp5e-tablestyle-duplicate-cmc-fast-slice-2026-10-22.json",
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: ctest --test-dir build-gcc -R 'tablestyle|classes_wire|dimstyle_subclass_wire' --output-on-failure (14/14)",
+    "diffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/drw_objects.h src/drw_objects.cpp tests/dwg2dxf_adapter_tests.cpp",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "publicCppLayoutChanged": true,
+    "sourceCompatibilityCheck": "lc3_compat_check passed; binary ABI compatibility is not claimed and downstream consumers must rebuild",
+    "dwgVersionUpconvertClaimPromoted": false,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "Add exact/over retained-text budget controls for nested TABLESTYLE row strings.",
+      "Add a contract test for raw-carrier output when the typed projection diverges, or refuse ambiguous lossy writes if the API is expected to honor typed edits.",
+      "Continue evidence-backed MATERIAL procedural-table semantics; keep conflicting self-illumination groups 90/149 raw until resolved."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-primary-aci-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "abc1d0ff",
+  "scope": "The existing bounded ordinary ASCII AC1021 sparse-MATERIAL profile for planar model-space LINE, CIRCLE and non-reversed ARC now accepts ACI indices 1 through 6 in addition to ByLayer. Source integer parsing and value agreement, unique group, source-to-entity color delivery and supported live color are checked. Other existing source, graph and output guards apply unchanged.",
+  "validation": {
+    "focused": "The updated case passes 200 assertions, including all six indices, save/reopen/resave, a live color edit, duplicate/negative/index-7/true-color source refusal, live black and non-palette refusal, destination preservation and corrected retry. The MATERIAL/IMAGE selector passed 10101 assertions in 20 cases on the same production code before the final test-only extension.",
+    "bundled": "The changed filter translation unit compiles with bundled codec headers; bundled runtime and hosted platform checks remain pending.",
+    "peer": "ezdxf 1.4.5 independently read generated resaves, confirming LINE/CIRCLE/ARC ACI 1/2/3 and then the edited circle ACI 4, with the same MATERIAL target on all three entities. Both audits reported zero errors and fixes.",
+    "peerInputSha256": ["57e3529d94963b2316422140c506d883fcc4d1b6ddf260a8d396e79d62dbc5b5", "fe2ed0387a5d5f750c99fc60395480938e454ab765f8481727535d359a378130"]
+  },
+  "limits": "ACI 7, other indices, source true color, named colors, other entity types, binary and cross-version sources, other producers and native/platform qualification remain outside this profile. No drawing fixture was committed."
+}

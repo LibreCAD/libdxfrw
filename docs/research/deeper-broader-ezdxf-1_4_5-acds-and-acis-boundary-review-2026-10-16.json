@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw-deeper-broader-ezdxf-145-acds-and-acis-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Reconcile ezdxf 1.4.5 ACIS/SAB/ACDSDATA documentation and inspect whether current public routes provide carrier, parser, kernel, and native-consumer evidence suitable for existing gates.",
+  "method": {
+    "kind": "Public primary-source documentation, release metadata, and source inspection",
+    "peerPackageInstalledOrRun": false,
+    "peerRepositoriesClonedOrBuilt": false,
+    "nativeCadOrKernelRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localTestsRun": false,
+    "evidenceBoundary": "Release metadata and public API/source establish documented candidate behavior only; no exact wheel execution, target-input result, native acceptance, or B-rep semantic result was produced."
+  },
+  "evidence": [
+    {
+      "topic": "ezdxf 1.4.5 SAB/DXF writer API versus legacy FAQ",
+      "sources": [
+        "https://pypi.org/project/ezdxf/1.4.5/",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "observed": "PyPI lists ezdxf 1.4.5 released 2026-10-16. The current versioned ACIS API documents export_sat, export_sab, and export_dxf; SAT 700 is described for DXF R2000-R2010 and SAB 21800 for R2013/R2018. The FAQ says SAT-only and says there is no open-source create/edit library, but the page itself labels its content the old FAQ, with new FAQs no longer added there after late 2023. Treat that FAQ language as stale relative to the current detailed API, not as a present-day capability prohibition.",
+      "doesNotEstablish": [
+        "runtime behavior of the exact 1.4.5 artifact",
+        "successful complete ACDSDATA output for arbitrary entity sets or source payloads",
+        "lossless import/export of arbitrary ACIS records",
+        "B-rep validity, curved geometry, units, transforms, history, or native application acceptance"
+      ],
+      "planUse": "Remove the documentation mismatch as a blocker. Keep one optional exact-artifact runtime check at the composed checkpoint; do not add ezdxf as a mandatory dependency or a per-slice gate."
+    },
+    {
+      "topic": "entity-handle association and ACDSDATA write route",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/acis.py"
+      ],
+      "observed": "The API describes export_dxf assignment to ACIS-based entities. Current entity source documents R2013+ binary data as stored in ACDSDATA and accesses the payload using the entity handle. This makes ezdxf a documented candidate for an ephemeral writer/reader carrier control. The source URL is the mutable master branch and is used as source-path discovery, not an immutable release proof.",
+      "doesNotEstablish": [
+        "the exact 1.4.5 wheel's produced section/key layout without execution",
+        "compatibility of that generated layout with every DXF/DWG producer",
+        "DWG AcDs prototype, DataStorage, ownership, or history semantics",
+        "raw equality or successful target-reader consumption"
+      ],
+      "planUse": "If run, independently check entity survival, ACDSDATA record existence, handle-to-payload association, raw payload hash/length, parser diagnostics, and re-export loss. Do not collapse these into one pass/fail or infer B-rep support from carrier bytes."
+    },
+    {
+      "topic": "open-source ACIS semantic route and kernel lineage",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/monozukuri-ai/cq-acis/tree/e05a8f470d2f6799277f7b7df467d2fc35625889",
+        "https://www.opencascade.com/products/cad-assistant/"
+      ],
+      "observed": "ezdxf's current documentation limits its decoded ACIS subset, says it has no ACIS kernel, and describes mesh_from_body as flat-polygonal-face-only. cq-acis 0.3.12 advertises a bounded SAT/SAB/ASM parser and conversion to CadQuery/OpenCascade shapes. Open CASCADE describes ACIS SAT/SAB import as a commercial component; CAD Assistant's page says commercial import components restrict model export/conversion. Thus cq-acis is a useful separate parser but not an independent-kernel vote relative to FreeCAD/OCCT, and the viewer route alone may not expose a machine-checkable semantic receipt.",
+      "doesNotEstablish": [
+        "execution or behavior of cq-acis 0.3.12 on the target data",
+        "independent format assumptions or a second geometry-kernel lineage",
+        "permitted access to internal CAD Assistant shapes or metrics",
+        "validity of any arbitrary ACIS shape"
+      ],
+      "planUse": "Keep carrier/parser observation, kernel validity, analytic invariants, and native consumer acceptance as distinct gates. No open-source independent-kernel route is admitted by this research."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "planChanges": [
+      "Corrected the existing peer row: ezdxf 1.4.5 current API/source documents SAB export and ACDSDATA assignment; the FAQ wording is stale and no longer treated as an unresolved current API contradiction.",
+      "Retained a single optional exact-version runtime probe at the composed checkpoint, with explicit entity-handle, ACDSDATA, payload-digest, diagnostics, and loss checks.",
+      "Kept ezdxf's limited ACIS subset and lack of a kernel distinct from general semantic support; kept cq-acis/OCCT lineage and commercial CAD Assistant constraints explicit.",
+      "Mirrored the corrected current evidence summary in DWG_DXF_3D_SUPPORT_PLAN.md."
+    ],
+    "validation": {
+      "receiptJsonParsed": true,
+      "gitDiffCheckPassed": true,
+      "planFilesUpdated": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "DWG_DXF_3D_SUPPORT_PLAN.md"
+      ],
+      "peerRuntime": "NOT_RUN",
+      "nativeQualification": "NOT_RUN",
+      "testsRun": false
+    }
+  }
+}

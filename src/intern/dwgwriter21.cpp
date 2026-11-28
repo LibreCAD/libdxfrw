@@ -18,6 +18,7 @@
 ******************************************************************************/
 
 #include "dwgwriter21.h"
+#include "dwgtemplate.h"
 
 #include <algorithm>
 #include <array>
@@ -30,6 +31,8 @@
 #include <vector>
 
 #include "drw_reserve.h"
+#include "dwg_fixed_handles.h"
+#include "dwgbuffer.h"
 #include "dwgsafety.h"
 #include "dwgutil.h"
 #include "dwgwriterlayoutvalidation.h"
@@ -43,7 +46,8 @@ constexpr std::size_t kR2007FileHeaderPageSize =
 constexpr std::size_t kR2007FileHeaderCheckDataOffset = 0x3D8;
 constexpr std::size_t kR2007FileHeaderCheckDataSize = 0x28;
 constexpr std::uint32_t kR2007PageAlignment = 0x20;
-constexpr std::uint32_t kR2007DataPageCapacity = 0x7400;
+// R2007 section-map capacities differ from R2004's 0x7400 default.
+constexpr std::uint32_t kR2007DataPageCapacity = 0xf800;
 // The empty section is present in the section map but has no data pages.
 // R2007 files use the file-header page-size sentinel for this descriptor.
 constexpr std::uint32_t kR2007EmptySectionMaxSize = 0xf800;
@@ -106,12 +110,18 @@ std::size_t sectionOrderRank(
 }
 
 std::uint32_t dataPageCapacityFor(const char* name) {
-    // R2007 uses the normal 0x7400 page size for structural sections.  The
-    // optional metadata sections have smaller documented limits.
+    // ODA 5.2 gives section-specific R2007 decompressed page capacities.
     if (std::strcmp(name, "AcDb:AppInfoHistory") == 0)
         return kR2007AppInfoHistoryPageCapacity;
     if (std::strcmp(name, "AcDb:AppInfo") == 0)
         return kR2007AppInfoPageCapacity;
+    if (std::strcmp(name, "AcDb:RevHistory") == 0)
+        return 0x1000;
+    if (std::strcmp(name, "AcDb:Template") == 0)
+        return 0x400;
+    if (std::strcmp(name, "AcDb:AuxHeader") == 0
+        || std::strcmp(name, "AcDb:Header") == 0)
+        return 0x800;
     return kR2007DataPageCapacity;
 }
 
@@ -657,14 +667,19 @@ void appendUtf16Name(std::vector<std::uint8_t>& bytes,
         bytes.push_back(c);
         bytes.push_back(0);
     }
+    // ODA 5.2: nonempty section names carry a UTF-16 NUL terminator.
+    bytes.push_back(0);
+    bytes.push_back(0);
 }
 
 std::vector<std::uint8_t> buildSectionMap(const std::vector<Section>& sections) {
     std::vector<std::uint8_t> bytes;
     try {
         for (const Section& section : sections) {
+            std::uint64_t nameUnits = 0;
             std::uint64_t nameByteLength = 0;
-            if (!dwgSafety::multiply(section.name.size(), 2,
+            if (!dwgSafety::add(section.name.size(), 1, nameUnits)
+                || !dwgSafety::multiply(nameUnits, 2,
                                      nameByteLength))
                 return {};
             putRLL(bytes, section.size);
@@ -759,6 +774,8 @@ std::vector<std::uint8_t> buildFileHeader(std::uint64_t fileSize,
                                           const R2007SystemPage& sectionMap,
                                           std::uint64_t sectionCount,
                                           const R2007HeaderProtection& protection) {
+    if (fileSize < kR2007DataStart + kR2007FileHeaderPageSize)
+        return {};
     std::vector<std::uint8_t> header(kR2007FileHeaderDataSize, 0);
     patchRLL(header, 0, kR2007FileHeaderDataSize);
     patchRLL(header, 8, fileSize);
@@ -769,7 +786,10 @@ std::vector<std::uint8_t> buildFileHeader(std::uint64_t fileSize,
     patchRLL(header, 48, pageMap2Id);
     patchRLL(header, 56, 0); // page map 1 is at the data-section start
     patchRLL(header, 64, pageMapId);
-    patchRLL(header, 72, 0); // no second header
+    // Header2offset is relative to the page-map base at 0x480 (ODA 5.2).
+    // The second 0x400-byte file-header page is written at the end of file.
+    patchRLL(header, 72,
+             fileSize - kR2007FileHeaderPageSize - kR2007DataStart);
     patchRLL(header, 80, pageMap.compressedSize);
     patchRLL(header, 88, pageMap.uncompressedSize);
     patchRLL(header, 96, pageCount);
@@ -821,15 +841,30 @@ std::vector<std::uint8_t> buildEncodedFileHeader(
         sequence.data(), sequence.size()));
     patchRLL(decoded, 8, protection.sequenceFirst);
     patchRLL(decoded, 16, dwgUtil::crc64Normal(
-        dwgUtil::updateSeed1(kR2007CrcSeed, data.size()),
+        dwgUtil::updateSeed2(kR2007CrcSeed, data.size()),
         data.data(), data.size()));
-    const std::uint32_t dataSize = static_cast<std::uint32_t>(
-        -static_cast<std::int32_t>(data.size()));
-    for (unsigned int i = 0; i < 4; ++i)
+    // The eight-byte size is negative for a raw, uncompressed header.
+    // ODA 5.2.1.5 and the producer CRC profile use the full signed field.
+    const auto dataSize = static_cast<std::uint64_t>(
+        -static_cast<std::int64_t>(data.size()));
+    for (unsigned int i = 0; i < 8; ++i)
         decoded[24 + i] = static_cast<std::uint8_t>(dataSize >> (i * 8));
     std::copy(data.cbegin(), data.cend(), decoded.begin() + 32);
-    protection.random.fillPadding(decoded.data() + 32 + data.size(),
-                                  decoded.size() - 32 - data.size());
+    // ODA 5.2.1.5 repeats the entire eight-byte-aligned block as often as
+    // it fits in the 3 x 239-byte Reed-Solomon input, then pads the tail.
+    const std::size_t contentEnd = 32u + data.size();
+    const std::size_t blockSize = (contentEnd + 7u) & ~std::size_t{7u};
+    if (blockSize > decoded.size())
+        return {};
+    protection.random.fillPadding(decoded.data() + contentEnd,
+                                  blockSize - contentEnd);
+    std::size_t filled = blockSize;
+    while (blockSize <= decoded.size() - filled) {
+        std::copy_n(decoded.begin(), blockSize, decoded.begin() + filled);
+        filled += blockSize;
+    }
+    protection.random.fillPadding(decoded.data() + filled,
+                                  decoded.size() - filled);
     std::vector<std::uint8_t> encoded(kR2007EncodedHeaderSize, 0);
     if (!dwgRSCodec::encode239I(decoded.data(), encoded.data(), 3))
         return {};
@@ -865,13 +900,14 @@ std::vector<std::uint8_t> buildFileHeaderPage(
 } // namespace
 
 void dwgWriter21::finishObject() {
+    if (rejectDefaultDwgMaterialFrameConflicts()) {
+        m_writeError = true;
+        return;
+    }
     // AC1021 keeps the R2007 data, string, and handle streams inside one
     // object frame. The object-size RL marks the end of the data/string
     // stream; handles follow it and there is no AC1024 UMC prefix.
-    if (std::any_of(m_objectMap.cbegin(), m_objectMap.cend(),
-                    [this](const auto& entry) {
-                        return entry.first == m_currentHandle;
-                    })) {
+    if (hasEmittedDwgObjectHandle(m_currentHandle)) {
         m_writeError = true;
         return;
     }
@@ -880,7 +916,78 @@ void dwgWriter21::finishObject() {
         m_writeError = true;
         return;
     }
-    m_objectBody.alignToByte();
+    // These seven generic table controls carry an absent-string bit followed
+    // immediately by their handle tail. ODA-produced AC1021 frames declare
+    // that exact (potentially unaligned) boundary. BLOCK and LTYPE retain
+    // their existing independently qualified framing.
+    std::int16_t expectedControlType = 0;
+    switch (m_currentHandle) {
+    case DRW::DwgLayerControlHandle: expectedControlType = DRW::DwgLayerControlObjectType; break;
+    case DRW::DwgStyleControlHandle: expectedControlType = DRW::DwgStyleControlObjectType; break;
+    case DRW::DwgViewControlHandle: expectedControlType = DRW::DwgViewControlObjectType; break;
+    case DRW::DwgUcsControlHandle: expectedControlType = DRW::DwgUcsControlObjectType; break;
+    case DRW::DwgVportControlHandle: expectedControlType = DRW::DwgVPortControlObjectType; break;
+    case DRW::DwgAppIdControlHandle: expectedControlType = DRW::DwgAppIdControlObjectType; break;
+    case DRW::DwgDimstyleControlHandle: expectedControlType = DRW::DwgDimStyleControlObjectType; break;
+    default: break;
+    }
+    const bool exactControlBoundary = expectedControlType != 0;
+    if (m_objectBody.data().empty()) {
+        m_writeError = true;
+        return;
+    }
+    dwgBuffer typeReader(m_objectBody.data().data(), m_objectBody.size());
+    const auto objectType = typeReader.getObjType(m_version);
+    if (!typeReader.isGood()) {
+        m_writeError = true;
+        return;
+    }
+    // A LAYER's string stream is bit-counted; its footer and handle tail
+    // immediately follow those bits, without rounding the string buffer.
+    // Keep the existing TU contents (including the writer's terminator).
+    const bool exactLayerBoundary = objectType == DRW::DwgLayerObjectType;
+    // The three internally synthesized AC1021 MATERIAL records have the
+    // same exact-bit string trailer and handle boundary in the source graph.
+    // Limit this path to the active graph's planned material identities.
+    const bool materialHandle = m_writingDefaultMaterialGraph
+        && std::find(m_defaultMaterialHandles.begin() + 1, m_defaultMaterialHandles.end(),
+                     m_currentHandle) != m_defaultMaterialHandles.end();
+    if (materialHandle && objectType != typedDwgClassNum("AcDbMaterial", "MATERIAL", 0)) {
+        m_writeError = true;
+        return;
+    }
+    const bool vertexGroup = m_writingAc1021PolylineVertexGroup;
+    if (vertexGroup && objectType != DRW_Group::kDwgFixedType) {
+        m_writeError = true;
+        return;
+    }
+    const bool exactStringBoundary = exactLayerBoundary || materialHandle || vertexGroup;
+    const bool mergedHandleBoundary = exactControlBoundary || exactStringBoundary;
+    if (exactControlBoundary) {
+        if (m_objectHandles.data().empty()
+            || !m_objectStrings.data().empty()
+            || objectType != expectedControlType) {
+            m_writeError = true;
+            return;
+        }
+    }
+    if (exactStringBoundary && (m_objectStrings.data().empty()
+                               || m_objectHandles.data().empty())) {
+        m_writeError = true;
+        return;
+    }
+    // R2007 strings follow the scalar data at its bit boundary. Padding
+    // before the strings makes a contiguous TV array (e.g. DICTIONARY)
+    // decode the padding as its length. Put alignment in the trailer instead.
+    // These records carry no string stream: the final pre-handle bit must
+    // still explicitly say so, including when their body was byte-aligned.
+    if (m_objectStrings.data().empty()
+        && (objectType == dwgType::POINT || objectType == dwgType::CIRCLE
+            || objectType == dwgType::POLYLINE_3D || objectType == dwgType::LWPOLYLINE
+            || objectType == dwgType::SOLID || objectType == dwgType::TRACE))
+        m_objectBody.putBit(0u);
+    if (m_objectStrings.data().empty() && !exactControlBoundary)
+        m_objectBody.alignToByte();
     if (m_objectStrings.data().size() > std::numeric_limits<std::uint32_t>::max()
         || m_objectBody.size() > std::numeric_limits<std::uint32_t>::max()
         || m_objectHandles.size() > std::numeric_limits<std::uint32_t>::max()
@@ -891,19 +998,44 @@ void dwgWriter21::finishObject() {
         return;
     }
     const std::uint64_t mergedStringBaseBit = m_objectBody.bitCount();
-    if (!appendR2007StringStream(m_objectBody, m_objectStrings, false)) {
+    if (exactStringBoundary) {
+        const auto stringBits = m_objectStrings.bitCount();
+        if (stringBits == 0u || stringBits > 0x7fffffffu) {
+            m_writeError = true;
+            return;
+        }
+        for (std::uint64_t i = 0; i < stringBits; ++i)
+            m_objectBody.putBit(static_cast<std::uint8_t>(
+                (m_objectStrings.data()[i / 8u] >> (7u - i % 8u)) & 1u));
+        if (stringBits <= 0x7fffu) {
+            m_objectBody.putRawShort16(static_cast<std::uint16_t>(stringBits));
+        } else {
+            m_objectBody.putRawShort16(static_cast<std::uint16_t>(stringBits >> 15));
+            m_objectBody.putRawShort16(static_cast<std::uint16_t>(
+                0x8000u | (stringBits & 0x7fffu)));
+        }
+        m_objectBody.putBit(1u);
+    } else if (!appendR2007StringStream(m_objectBody, m_objectStrings, false)) {
         m_writeError = true;
         m_objectStrings.reset();
         m_objectHandles.reset();
         return;
     }
 
+    const std::uint64_t handleBaseBit = m_objectBody.bitCount();
+    if (mergedHandleBoundary) {
+        if (handleBaseBit > std::numeric_limits<std::uint32_t>::max()) {
+            m_writeError = true;
+            return;
+        }
+        m_objectBody.putBytes(m_objectHandles.data().data(), m_objectHandles.data().size());
+    }
     m_objectBody.alignToByte();
     m_objectHandles.alignToByte();
     const std::uint32_t dataBytes =
         static_cast<std::uint32_t>(m_objectBody.size());
     const std::uint32_t handleBytes =
-        static_cast<std::uint32_t>(m_objectHandles.size());
+        static_cast<std::uint32_t>(mergedHandleBoundary ? 0u : m_objectHandles.size());
     const std::uint64_t totalBytes64 =
         static_cast<std::uint64_t>(dataBytes) + handleBytes;
     if (dataBytes > std::numeric_limits<std::uint32_t>::max() / 8u
@@ -914,7 +1046,8 @@ void dwgWriter21::finishObject() {
         return;
     }
 
-    std::uint32_t bitCount = dataBytes * 8u;
+    std::uint32_t bitCount = mergedHandleBoundary
+        ? static_cast<std::uint32_t>(handleBaseBit) : dataBytes * 8u;
     if (!m_objectBody.data().empty()) {
         const std::uint8_t bsCode = (m_objectBody.data()[0] >> 6) & 0x03;
         const std::size_t rlBitOffset =
@@ -938,8 +1071,8 @@ void dwgWriter21::finishObject() {
     const std::uint16_t crc = m_buf.crc16(
         0xC0C1, frameStart, bodyStart + static_cast<std::size_t>(totalBytes64));
     m_buf.putRawShort16(crc);
-    if (!captureLastDwgObjectHandleOccurrences(mergedStringBaseBit, 0, true,
-                                               false)) {
+    if (!captureLastDwgObjectHandleOccurrences(mergedStringBaseBit, handleBaseBit, true,
+                                               mergedHandleBoundary)) {
         m_buf.truncate(frameStart);
         m_writeError = true;
         m_currentHandle = 0;
@@ -947,7 +1080,17 @@ void dwgWriter21::finishObject() {
         m_objectHandles.reset();
         return;
     }
-    m_objectMap.emplace_back(m_currentHandle, frameStart);
+    if (!publishDwgObjectMapEntry(m_currentHandle, frameStart)) {
+        m_buf.truncate(frameStart);
+        m_writeError = true;
+        m_currentHandle = 0;
+        m_objectStrings.reset();
+        m_objectHandles.reset();
+        m_lastDwgObjectFrame = {};
+        m_lastDwgObjectFrameValid = false;
+        m_currentDwgObjectFrameProvenance = {};
+        return;
+    }
     markDwgClassInstanceEmitted(m_currentHandle);
     m_currentHandle = 0;
     m_objectStrings.reset();
@@ -1043,7 +1186,11 @@ bool dwgWriter21::finalize() {
                 return false;
             const std::size_t chunk = static_cast<std::size_t>(std::min<std::uint64_t>(
                 section.maxSize, static_cast<std::uint64_t>(size) - start));
-            const auto compressed = compressDataPage(data + start, chunk);
+            // AcDb:AppInfo is the uncompressed encoding-1 metadata profile
+            // specified in ODA 5.2. Other sections retain normal compression.
+            const auto compressed = sectionName == "AcDb:AppInfo"
+                ? std::vector<std::uint8_t>{}
+                : compressDataPage(data + start, chunk);
             const bool isCompressed = !compressed.empty();
             const std::uint8_t* pageData = isCompressed
                 ? compressed.data() : data + start;
@@ -1077,7 +1224,10 @@ bool dwgWriter21::finalize() {
     const auto objFreeSpace = emptyObjFreeSpace();
     const auto auxHeader = emptyAuxHeader();
     const std::array<std::uint8_t, 1> appInfoHistory{0};
-    const std::array<std::uint8_t, 6> templateData{1, 0, 0, 0, 0, 0};
+    std::uint16_t measurement = 0;
+    if (!dwgTemplate::headerMeasurement(m_header, measurement))
+        return false;
+    const auto templateData = dwgTemplate::emptyDescription(measurement);
     if (!appendSection("AcDb:Header", raw.data() + headerOffset->second,
                        headerSize->second, 4, 0, 0)
         || !appendSection("AcDb:Classes", raw.data() + classesOffset->second,
@@ -1103,7 +1253,7 @@ bool dwgWriter21::finalize() {
     }
 
     if (!appendSection("AcDb:AppInfo", appInfo.data(),
-                          static_cast<std::uint32_t>(appInfo.size()), 4, 0, 0)
+                          static_cast<std::uint32_t>(appInfo.size()), 1, 0, 0)
         || !appendSection("AcDb:AppInfoHistory", appInfoHistory.data(),
                           static_cast<std::uint32_t>(appInfoHistory.size()), 4, 0, 0)
         || !appendSection("AcDb:AuxHeader", auxHeader.data(),
@@ -1202,6 +1352,33 @@ bool dwgWriter21::finalize() {
     metadata[0x0C] = 3;
     metadata[0x11] = 0x21;
     metadata[0x12] = 0xFF;
+    // ODA 5.2: little-endian offset of the R2007 file header page.
+    metadata[0x28] = static_cast<std::uint8_t>(kR2007FileHeaderOffset);
+    // ODA 5.2: the application-info locator is the physical stream address
+    // of the first AppInfo page, not its logical offset or page number.
+    const auto appInfoSection = std::find_if(
+        sections.cbegin(), sections.cend(), [](const Section& section) {
+            return section.name == "AcDb:AppInfo";
+        });
+    if (appInfoSection == sections.cend() || appInfoSection->pages.empty()
+        || appInfoSection->pages.front().startOffset != 0u)
+        return false;
+    const auto appInfoPageId = appInfoSection->pages.front().pageId;
+    std::uint64_t physicalAddress = kR2007DataStart;
+    bool foundAppInfoPage = false;
+    for (const Page& page : pages) {
+        if (page.id == appInfoPageId) {
+            foundAppInfoPage = true;
+            break;
+        }
+        if (!dwgSafety::add(physicalAddress, page.bytes.size(), physicalAddress))
+            return false;
+    }
+    if (!foundAppInfoPage
+        || physicalAddress > std::numeric_limits<std::uint32_t>::max())
+        return false;
+    for (unsigned i = 0; i < 4u; ++i)
+        metadata[0x2cu + i] = static_cast<std::uint8_t>(physicalAddress >> (8u * i));
     const std::uint16_t codePage = fileCodePageId();
     metadata[0x13] = static_cast<std::uint8_t>(codePage);
     metadata[0x14] = static_cast<std::uint8_t>(codePage >> 8);

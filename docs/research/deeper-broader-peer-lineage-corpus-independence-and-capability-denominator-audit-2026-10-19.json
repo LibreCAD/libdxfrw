@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader peer lineage, corpus independence, and capability-denominator audit",
+  "mode": "primary-source documentation and repository-metadata review",
+  "scope": [
+    "Re-audit cq-acis implementation references, corpus provenance, conversion limits, and kernel lineage",
+    "Compare declared DWG/DXF version matrices against operation, family, and sample-count evidence",
+    "Separate parser ancestry, test-corpus ancestry, geometry-kernel lineage, and application-consumer roles",
+    "Refine the optional composed-checkpoint protocol without adding routine peer dependencies"
+  ],
+  "sources": [
+    {
+      "name": "cq-acis README, source notices, corpus guidance, and support profiles",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/THIRD_PARTY_NOTICES.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/corpus/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+      ],
+      "observed": "The project describes itself as experimental and separates parsing/record retention from conversion to CadQuery/OpenCascade shapes. Its third-party notice says SAB grammar/layout work was informed by CADMPEG format notes and source, and that ezdxf tag grammar and public cube fixtures were used. Its corpus documentation names NIST and ezdxf inputs. The documented SAT/SAB/ASM profiles and convertible geometry are limited; unsupported referenced geometry errors rather than silently succeeding. This is a distinct implementation from libdxfrw and ACadRust but reference-informed, has ezdxf corpus overlap, and shares the OCCT kernel family with FreeCAD. No peer code or test artifact was run."
+    },
+    {
+      "name": "dwg-rs pre-alpha coverage report",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "observed": "The project labels itself pre-alpha and calls out per-entity decoder gaps. Its published version table reports decoded, skipped, and errored counts with one to three corpus files per DWG revision. This is a useful outcome-reporting format but a small-corpus observation, not universal version coverage or semantic qualification."
+    },
+    {
+      "name": "ACadSharp, ACadRust, OpenCADStudio, and OpenCADKernel project disclosures",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.42",
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "observed": "ACadSharp publishes direction-specific version gaps including no AC1021 DWG writer. OpenCADStudio v2026.42 is an application consumer in the ACadRust-derived codec lineage; app-level self-read does not create an independent parser vote. Its 3D declarations include tessellation and a separately described early kernel, so they are not evidence of general B-rep semantics."
+    },
+    {
+      "name": "LibreDWG, ezdxf, and IxMilia.Dxf public scope disclosures",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/Overview.html",
+        "https://ezdxf.readthedocs.io/en/stable/",
+        "https://github.com/ixmilia/dxf"
+      ],
+      "observed": "The projects expose complementary route boundaries: LibreDWG documents broad DWG reads with writer/DXF caveats; ezdxf documents ASCII/Binary DXF read/write ranges but no DWG container reader; IxMilia.Dxf lists version/entity limits and warns that typed writer output may not be accepted by AutoCAD. These are project declarations, not runtime acceptance."
+    },
+    {
+      "name": "Open CASCADE ACIS exchange boundary",
+      "urls": [
+        "https://www.opencascade.com/products/cad-assistant/",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components"
+      ],
+      "observed": "Published product documentation distinguishes the open-source OCCT base from commercial ACIS SAT/SAB exchange components. An OCCT geometry kernel does not imply that the selected application build includes an ACIS reader."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds a three-layer independence model (implementation ancestry, corpus/producer provenance, and kernel/application lineage) plus explicit per-version/per-family denominators. cq-acis remains a bounded, reference-informed payload-to-shape candidate; its corpus overlap and shared OCCT kernel are disclosed. No route in this pass validates DWG/DXF outer carriers or AcDs owner/key joins."
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "GitHub main/master documentation and package metadata are mutable. No immutable peer source or package was independently audited or executed during this pass. Conclusions are route-selection and evidence-admission guidance, not support qualification."
+  }
+}

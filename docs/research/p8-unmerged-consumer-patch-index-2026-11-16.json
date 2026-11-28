@@ -1,0 +1,368 @@
+{
+  "schema": 1,
+  "date": "2026-11-16",
+  "scope": "Ordered, unmerged consumer integration inputs; not a support claim",
+  "librecad": {
+    "tested_base": "d40f178b9708b54ad34b15f721d22abb2315aa2b",
+    "tested_local_candidate": "66ab31a2eb9d018224d3e6fea3999d673b78b3b2",
+    "apply": "git apply --unidiff-zero each patch in order; revalidate on current target",
+    "patches": [
+      {
+        "path": "docs/patches/librecad-p8-upstream-compat-2026-11-15.patch",
+        "sha256": "d99f1a9af41f9eabf7f4403e2d385fbf1e91ca0663d43408c38daa1e290241be"
+      },
+      {
+        "path": "docs/patches/librecad-p8-test-api-compat-2026-11-15.patch",
+        "sha256": "1bdd4849239fe9787c10e6b9d62572b41a573537cb91ca336e5f1260f266a095"
+      },
+      {
+        "path": "docs/patches/librecad-p8-mpolygon-annotation-test-2026-11-15.patch",
+        "sha256": "ed2a0369669c985f8a22a0a00f58ed108f34b2d1b3e8d9efa9572af0796d1dd6"
+      },
+      {
+        "path": "docs/patches/librecad-p8-mpolygon-hatch-test-type-2026-11-15.patch",
+        "sha256": "f516878bb5d94f1091893b54b2eb01581122637f115bcdf529ba391813fa859c"
+      },
+      {
+        "path": "docs/patches/librecad-p8-dimassoc-field-mapping-2026-11-15.patch",
+        "sha256": "c0b6a10cdf0fa5934c7a68e34e37a8284dc1d0cde3b3e340d8d4d78e1291f00f"
+      },
+      {
+        "path": "docs/patches/librecad-p8-mpolygon-policy-2026-11-15.patch",
+        "sha256": "fb386999c54c25fb3f65488fa2ead288595a366c15030a28204cbd3ab7cd4912"
+      },
+      {
+        "path": "docs/patches/librecad-p8-mtext-column-extents-2026-11-15.patch",
+        "sha256": "5dc98c6c383c51ca50bd5afadba0ab06e9da2296bbafd520ded81e573d525af7"
+      },
+      {
+        "path": "docs/patches/librecad-p8-associative-prefix-compat-2026-11-15.patch",
+        "sha256": "8194eafc3799e7ea54381e7512167281272858add17760eda6a659106b6a7415"
+      },
+      {
+        "path": "docs/patches/librecad-p8-canonical-ltype-metadata-2026-11-15.patch",
+        "sha256": "c8799616ac42f54069d7dfb0e7b2c6ff15eb2265aa7ca7378c6e376338e93d4d"
+      },
+      {
+        "path": "docs/patches/librecad-p8-installed-legacy-codepage-2026-11-15.patch",
+        "sha256": "3194f32159efc5d289e501b555d4c1ddffa333e41bc7825f290bd603e7b6d907"
+      },
+      {
+        "path": "docs/patches/librecad-p8-complex-ltype-style-remap-2026-11-15.patch",
+        "sha256": "37cd32af8a5432d3c4274b494b77669c184dbbea0aa4ed641410d00e1d858cb0"
+      },
+      {
+        "path": "docs/patches/librecad-p8-canonical-ltype-policy-test-2026-11-15.patch",
+        "sha256": "396be07c08f3d4e390b0edb577f7d62864f43eae53c95214974b061762d8223b"
+      },
+      {
+        "path": "docs/patches/librecad-p8-ltype-semantic-golden-2026-11-15.patch",
+        "sha256": "0707c3335bfbfb0514f71c7b367d39ed212fa99cc068261011c25627596d4c5d"
+      },
+      {
+        "path": "docs/patches/librecad-p8-legacy-dxf-lineweight-diagnostic-2026-11-15.patch",
+        "sha256": "a38d2868745ef2ddbf87fd8db6f2489d3fc42d5d9bc0fc8b3ce11c62d2d2fe94"
+      },
+      {
+        "path": "docs/patches/librecad-p8-installed-codec-helper-compat-2026-11-15.patch",
+        "sha256": "6580479a0bcc86d7503d2c4ed178796aaee78270beb5c32c92f433c0263ac88b"
+      },
+      {
+        "path": "docs/patches/librecad-p8-installed-codec-cmake-option-2026-11-15.patch",
+        "sha256": "3c5cccd1c118ff7eb1ef8cccc444973a6612c8203f2b71048648881da567d6df"
+      },
+      {
+        "path": "docs/patches/librecad-p8-block-record-link-observation-2026-11-15.patch",
+        "sha256": "5ebc06432e86b9ff6e1f2584cadc9cca039c67464b45b482b52159c2ef32823d"
+      },
+      {
+        "path": "docs/patches/librecad-p8-installed-codec-public-tests-2026-11-15.patch",
+        "sha256": "c42fb74d3e85018268ebff4bda0bfcda1453acf831802ae6804e3611987ff77c"
+      },
+      {
+        "path": "docs/patches/librecad-p8-dictionary-source-observation-2026-11-15.patch",
+        "sha256": "adb2c337b7db22cea94ebbf52c93b8984179b4dde64c6c98b8cac02df570a50b"
+      },
+      {
+        "path": "docs/patches/librecad-p8-dictionary-source-correlation-2026-11-15.patch",
+        "sha256": "5cf77c2fb88e49251c44c369d5aaa3b6cacceaa8a3f6ac7d19bbee5ecb9cc54e"
+      },
+      {
+        "path": "docs/patches/librecad-p8-empty-sortents-source-correlation-2026-11-15.patch",
+        "sha256": "4b6d7d8c8055bbe202a4db37961ceaa0f04678d14d5c348c472778db47020cf6"
+      },
+      {
+        "path": "docs/patches/librecad-p8-source-capture-session-2026-11-15.patch",
+        "sha256": "189e567afadff0789d5d80679123b9b440a9c09dc44b84f57856de81b1ed222c"
+      },
+      {
+        "path": "docs/patches/librecad-p8-sortents-owner-chain-2026-11-15.patch",
+        "sha256": "9caf7f97ebb73d16031017c08bde71e9d8cfdaa6c1bf03841b8ebbbabe49dcde"
+      },
+      {
+        "path": "docs/patches/librecad-p8-layer-control-source-binding-2026-11-15.patch",
+        "sha256": "4db105f447e83e72181a311d82bbbc79729055ef3478790171631c624a973660"
+      },
+      {
+        "path": "docs/patches/librecad-p8-selected-control-diagnostic-graph-2026-11-15.patch",
+        "sha256": "449a4e6918358b240c85c52801cef94d3d807297cb884671d132bb69ee77694e"
+      },
+      {
+        "path": "docs/patches/librecad-p8-zero-reactor-sortents-source-2026-11-15.patch",
+        "sha256": "197eabb891b79bd9de556782c2c2b8543e462d763285065b0e27c2f0c58aa6af"
+      },
+      {
+        "path": "docs/patches/librecad-p8-experimental-named-sortents-optin-2026-11-15.patch",
+        "sha256": "f6827cd9e86a9f4af69a20f6995ede9b881eb126a7dff474d58c69b65a630957"
+      },
+      {
+        "path": "docs/patches/librecad-p8-empty-xrecord-source-correlation-2026-11-15.patch",
+        "sha256": "d30d130ea7fb4bef990c8c7190dab93b47fec4f737bf9b241e6716141d2f2fa5"
+      },
+      {
+        "path": "docs/patches/librecad-p8-empty-xrecord-dxf-output-2026-11-15.patch",
+        "sha256": "972961a023d10503f2bbaa6eaaf6226b620577936595a6044f938988815ca9fa"
+      },
+      {
+        "path": "docs/patches/librecad-p8-named-block-units-2026-11-15.patch",
+        "sha256": "a813c105b908cbc1646f0436305ab2a60da508f98cf30084f59024e7541f8536"
+      },
+      {
+        "path": "docs/patches/librecad-p8-dwg-block-preview-import-test-2026-11-15.patch",
+        "sha256": "2b4431126b053408ad504feb48f2374f33a169ea1b7c20ca491a1619eda1219a"
+      },
+      {
+        "path": "docs/patches/librecad-p8-named-block-preview-output-2026-11-15.patch",
+        "sha256": "f9c2e2cb7b10182465c88423ac7e7db0fccbc03d2774bd71662798fa1334a5cc"
+      },
+      {
+        "path": "docs/patches/librecad-p8-named-block-single-line-output-2026-11-15.patch",
+        "sha256": "bbcd54891e1225f341829f54a699c5b426a80c854843c9f893568c77f18b3575"
+      },
+      {
+        "path": "docs/patches/librecad-p8-named-block-multi-line-output-2026-11-15.patch",
+        "sha256": "c70b63a70757d6039fd764569c65f785c46d855ad5956a802816ebdcbe3635ec"
+      },
+      {
+        "path": "docs/patches/librecad-p8-named-block-line-boundary-test-2026-11-15.patch",
+        "sha256": "381f12639cd25200db88632fc45e050a7f440f15af1b66760f0a33f92b94c62a"
+      },
+      {
+        "path": "docs/patches/librecad-p8-named-block-line-circle-output-2026-11-15.patch",
+        "sha256": "551d18fd6499035dd4cf8a616fbfed2aeeed86f69a6522e85e82a942ce1ee6e9"
+      },
+      {
+        "path": "docs/patches/librecad-p8-named-block-line-arc-output-2026-11-15.patch",
+        "sha256": "5eac9b5c202eb251b3544506171d55624474ca84e109661a9c0295953de1e5d4"
+      },
+      {
+        "path": "docs/patches/librecad-p8-named-block-arc-wrap-test-2026-11-15.patch",
+        "sha256": "74bb0f7b437d582e953e09236f0304d377193dee418da1c4d2cfa440d81b1277"
+      },
+      {
+        "path": "docs/patches/librecad-p8-mleaderstyle-version-diagnostic-2026-11-15.patch",
+        "sha256": "6ba40879d8aeed43bf5408bbb4259345da4b9476afff7bf123d2052b73239472"
+      },
+      {
+        "path": "docs/patches/librecad-p8-binary-ltype-import-2026-11-16.patch",
+        "sha256": "177e520d64f4a2b0054671e4f0318c1f426063952c43d00376adce13ce7f85fc"
+      },
+      {
+        "path": "docs/patches/librecad-p8-dxf-write-diagnostic-r13-2026-11-16.patch",
+        "sha256": "77fcdf6644e228f0d0a0625e30a7d787a8bd20d719da71f9ec59d21203e399a1"
+      },
+      {
+        "path": "docs/patches/librecad-p8-mlinestyle-cmc-retention-2026-11-16.patch",
+        "sha256": "255d168b13c23f8d871c3be36fc2a6d4f1e4d222c7b5880c737c98444570cf5a"
+      },
+      {
+        "path": "docs/patches/librecad-p8-abi3-complete-source-2026-11-16.patch",
+        "sha256": "b725a9843a57e2cafdc69e35e3f0c81baa5447dab5c979cdba12d78ac71d3802"
+      },
+      {
+        "path": "docs/patches/librecad-p8-r13-raw-conversion-guard-2026-11-16.patch",
+        "sha256": "2cfaa3421348bcd493f8e026fce168dd5f9f1250e3f75d481f427b5bfbf26a81"
+      },
+      {
+        "path": "docs/patches/librecad-p8-dxf-identity-version-gates-2026-11-16.patch",
+        "sha256": "c3f12f6382568ba2ad27e43c9c350f93fc0ecaa3ef1e1180c58a6cc2cc5557a0"
+      }
+    ]
+  },
+  "librecad3": {
+    "tested_base": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+    "tested_local_candidate": "1ab08f5819f31053d5540b0c3e1259b865b8265d",
+    "apply": "Apply first three patches; apply only the two listed PR #456 paths from the pinned diff; then apply the remaining patches in order with --unidiff-zero as needed. Revalidate against current target.",
+    "pr_456": {
+      "url": "https://github.com/LibreCAD/LibreCAD_3/pull/456",
+      "base": "5cf435f4a5a57d8dba1599c720917b902e74b25b",
+      "head": "7e81275b71038d4a42fa580842e661ddcee7adbf",
+      "paths": [
+        "persistence/libdxfrw/dxfimpl.cpp",
+        "unittest/persistence/dxfroundtriptest.cpp"
+      ],
+      "observed_state": "OPEN; mergeable=CONFLICTING as of 2026-11-16"
+    },
+    "patches_before_pr": 3,
+    "patches": [
+      {
+        "path": "docs/patches/librecad3-p8-mpolygon-projection-warning-2026-11-15.patch",
+        "sha256": "e8a2a6e53ec77581076d6a44e7972a6bcae4646780e471a0e42adda247028902"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-mpolygon-offset-preservation-2026-11-15.patch",
+        "sha256": "116e969e48a91562eed457df05e71558d99b86a37cbff15cae746577215c667f"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-mpolygon-rotation-preservation-2026-11-15.patch",
+        "sha256": "3340ca0cc80f3f38d25d8264a3cb555ee3e469c0351a35a2e5181dcc17041da9"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch",
+        "sha256": "9f7fcf3c22f66e43371b0646e95862b10a8dfeac6234fc6f5077a1a6deca3497"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-mline-import-loss-2026-11-16.patch",
+        "sha256": "d3c64c116c1209c9feec8580e088e024ecfc3c484f60c94269f569613f6678e1"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-wipeout-import-loss-2026-11-16.patch",
+        "sha256": "da1bee2722b1aa7487f4c13d37b18d93a75ce2e137630d667cac86e7d516daf0"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-mleader-import-loss-2026-11-16.patch",
+        "sha256": "73b07405d2969a18ef98e82fd539dc5c392bfbae465a1c19ccdfb522b0757480"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-modeler-import-loss-2026-11-16.patch",
+        "sha256": "ad5217804148187a61c485aae485bf58b2fbdef0fa41ecdb8e6460668dc61a89"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-underlay-import-loss-2026-11-16.patch",
+        "sha256": "408ff367c78f3679f53a85fe399789d1f7410e6a073de8a295fa4007141efe33"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-shape-import-loss-2026-11-16.patch",
+        "sha256": "52ad285a93657164def1eb4f5620c3b92473df7c372ef16d874c9a0c421a48b5"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-abi3-system-codec-2026-11-16.patch",
+        "sha256": "3b754e784d5495c8fbcb43a4b09d08b4ee66570f49e7914c8e22f7abebd48eda"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-unrepresentable-layer-width-2026-11-16.patch",
+        "sha256": "db540122d4be72d180aa647a1abbcaafe0ebc2db97ce6a1f4c47c1fff9d0619c"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-entity-lineweight-loss-2026-11-16.patch",
+        "sha256": "eb5b9cf6fa8c194dc57e631f7fb346da0f719b582056a4a200025b1cb52fc5d3"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-default-layer-lineweight-2026-11-16.patch",
+        "sha256": "e77a3c5a11d2e1e517196598e74ca1bf19803e74fbc8120416643171eb77b4b8"
+      }
+    ]
+  },
+  "freecad_default": {
+    "tested_base": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+    "observed_main": "84e73f0188fb32bb1fffb8d4d1edb4135543ba18",
+    "observed_main_ahead_by": 3,
+    "apply_helper": "tools/research/apply_freecad_import_candidate.py",
+    "replay_helper": "tools/research/replay_freecad_import_patches.py",
+    "patches": [
+      {
+        "path": "docs/patches/freecad-p8-default-solid-ocs-2026-11-15.patch",
+        "sha256": "1baee1cb2f749d026438e8b71ef605324feb19fc5aaede0ca364fc5f9ff8aa41"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-planar-3dface-2026-11-15.patch",
+        "sha256": "3b24105425e1aa0b12e48f8b5345a90658cce734c33503cc8655b13d7720b62e"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-classic-polyline-flags-2026-11-15.patch",
+        "sha256": "f75cb36627c11b0d7fd0e767ace0295794f849b506ca2bbedfad7dac8af91171"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-bounded-polyface-2026-11-15.patch",
+        "sha256": "00d4b7d2726ca966b958a99b8a8daf0cbecc6a0c3168fa142f814ff92d62be94"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-open-polygon-mesh-2026-11-15.patch",
+        "sha256": "3599ace1f32303f4e217e8b94161fa8c5074cef9f3bd84b5facb84fc89a2577b"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-closed-polygon-mesh-2026-11-15.patch",
+        "sha256": "7f9ebc63c8c24e16dddaa777b2a8109246554dbbef560523a04d6622f262acf9"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-shared-mesh-layer-2026-11-16.patch",
+        "sha256": "896182ca2a2c765b19a279dfd3f7273e1198e4ce705b0e8b0ceb2ecd81ee97aa"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-block-mesh-layer-refusal-2026-11-16.patch",
+        "sha256": "e92d49db45e97e0461527b8befcdfa840ff9d0ef4691a74749561f3103b7f1a0"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-mesh-parent-aci-color-2026-11-16.patch",
+        "sha256": "c4c18a8b8838274080efc2504c0235b0f92c1a88caf0461cb89a0b01d0f58c99"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-mesh-color-consistency-2026-11-16.patch",
+        "sha256": "1c0311d8f372ee847f36dbd8ef1fec9aa2d0c5937b6a84784e3757d7e08dbe7b"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-polyface-uniform-face-aci-2026-11-16.patch",
+        "sha256": "fd41a7e3522534678c49ec0b3abaf46f283d3d0ef0ab15a3e5656667801613f0"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-mixed-face-no-color-2026-11-16.patch",
+        "sha256": "a23c01a7c689d5f57b85728e43bc2a6a2be7d7a2d1bf0b8ebcd6dc57d54c4a5f"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-mixed-vertex-no-color-2026-11-16.patch",
+        "sha256": "49352dcb3229e63c3868f9c891205bbdff1de1a40b968158ff8188505648540f"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-byblock-no-color-2026-11-16.patch",
+        "sha256": "795d338ad345b8f8b9abb136cb35368c53f8a59906af1fe9fcb4145ffac9fef4"
+      },
+      {
+        "path": "docs/patches/freecad-p8-default-off-layer-color-2026-11-16.patch",
+        "sha256": "0c5dba58c4dc71131af167bd762f15494d3fbef16ff2be925d0cebee7acf03a1"
+      },
+      {
+        "path": "docs/patches/freecad-p8-off-layer-no-group-diagnostic-2026-11-16.patch",
+        "sha256": "c3d21819b49bdb93564153e4e359ff35efb219655bdd3829bfb97d4abb5f8872"
+      },
+      {
+        "path": "docs/patches/freecad-p8-frozen-layer-initial-visibility-2026-11-16.patch",
+        "sha256": "6740957c9d37a00ab5dcad0e1e411b71698c27424719fb39b041052dec59e06e"
+      },
+      {
+        "path": "docs/patches/freecad-p8-layer-color-range-guard-2026-11-16.patch",
+        "sha256": "be4b70f3057688f30f83f6f19e15c844743d9ba147277c95196cb868d319b9e5"
+      },
+      {
+        "path": "docs/patches/freecad-p8-layer-color-syntax-guard-2026-11-16.patch",
+        "sha256": "cd1d2169ea1c73188dee10450916134aede068f0614a52f9aaadd33030fb3ac1"
+      },
+      {
+        "path": "docs/patches/freecad-p8-layer-color-sign-whitespace-2026-11-16.patch",
+        "sha256": "e5e498de12cb2fb6b313d571ce9a5c122f152c98155ad9066d5e970f4456e4e8"
+      }
+    ]
+  },
+  "freecad_legacy": {
+    "patches": [
+      {
+        "path": "docs/patches/freecad-p8-legacy-dxf-surface-mesh-unit-scaling-2026-11-15.patch",
+        "sha256": "6dab5a4093a1c0a122819de8a08e5cfcf81124ad16dc801dbf899eb8e4e1a7d8"
+      },
+      {
+        "path": "docs/patches/freecad-p8-legacy-dxf-block-3dface-2026-11-15.patch",
+        "sha256": "b9ac1da15914ab12e254eec983ed69328eb38db5d85e663d8d443f66cee71251"
+      }
+    ]
+  },
+  "provenance": "Historical receipt details and predecessor plan are retained in Git; all external drawings remain scratch-only."
+}

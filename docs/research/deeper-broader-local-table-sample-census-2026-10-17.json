@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-local-ac1021-table-sample-census-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Determine whether an already-available local AC1021 blocks-and-tables drawing provides producer evidence for PAR-126 linked-cell graph routing.",
+  "sample": {
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+    "repositoryFixture": false,
+    "fileIdentification": "AutoCAD Drawing, 2007/2008/2009 format (AC1021)",
+    "usedAs": "Read-only local research input; no copy was added to the repository."
+  },
+  "execution": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg -y -d -v2010 /tmp/libdxfrw-par126.lQHLKM/blocks-and-tables.dxf",
+    "outputDirectory": "/tmp/libdxfrw-par126.lQHLKM",
+    "exitCode": 1,
+    "dxfPublished": false,
+    "exportBlocker": "FIELD/FIELDLIST carriers have no qualified DXF serializer",
+    "logPath": "/tmp/libdxfrw-par126.lQHLKM/reader.log"
+  },
+  "readerObservations": {
+    "operationSucceeded": true,
+    "semanticCoverage": "partial-observed",
+    "entityParseFailures": 0,
+    "objectParseFailures": 10,
+    "classesCrcMismatch": 0,
+    "reader21Ac1021CrcMismatch": 18,
+    "legacyTableUnknownCellTypesObserved": [
+      16,
+      92
+    ],
+    "unknownCellDisposition": "The bounded R2007 TABLE cell prefix is retained and the existing anonymous-block/INSERT fallback is kept.",
+    "dataLinkFieldEvidence": "No DATALINK field-level evidence was observed in the reader log. This does not establish that the source drawing contains no linked data."
+  },
+  "interpretation": {
+    "establishes": [
+      "An existing local AC1021 drawing exercises a real blocks-and-tables workload.",
+      "The current reader sees unknown TABLE cell types 16 and 92 and preserves their bounded fallback route.",
+      "End-to-end conversion is blocked after reading by the unqualified FIELD/FIELDLIST serializer route."
+    ],
+    "doesNotEstablish": [
+      "producer-authored linked-cell DATALINK encoding",
+      "cell-content ATTDEF tuple semantics",
+      "DATALINK object type dispatch, owner/root edges, or reference closure",
+      "complete TABLE/TABLECONTENT support, DXF output parity, or consumer acceptance"
+    ],
+    "planConsequence": "Do not use this sample as a semantic witness or infer absence of linked data. Keep PAR-126/7G.3d.3c blocked on producer-backed graph evidence while continuing independent local implementation work."
+  },
+  "method": {
+    "sourceCodeChangedForThisResearch": false,
+    "repositoryFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testTargetsAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeApplicationsOrKernelsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

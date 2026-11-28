@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-libredwg-peer-conflict-2026-11-08",
+  "date": "2026-11-08",
+  "status": "PEER-CROSS-CHECK-IS-NOT-A-SEMANTIC-ORACLE",
+  "supportClaimEffect": "none",
+  "input": {
+    "path": "/private/tmp/example_2013.dwg",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "version": "AC1027",
+    "object": "ACSH_SWEEP_CLASS",
+    "handle": "0x2e2"
+  },
+  "libreDwg": {
+    "repository": "/Users/dli/dev/libredwg",
+    "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "version": "0.14",
+    "objectsInStatus": "ACSH_SWEEP_CLASS is DEBUGGING",
+    "dwg2SpecSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "dwg2SpecRange": "src/dwg2.spec:4210-4255",
+    "dwg2SpecOrderSummary": "major/minor and direction; profile/path type-size-payloads; scalars; two transforms; align/miter; flags; final point",
+    "conflictsWithAcadrustCandidate": "ACadRust candidate reads scalars/options/flags/vector and transforms before the profile/path payloads.",
+    "jsonReader": {
+      "command": "dwgread -O JSON -o /tmp/libredwg-example-2013.json /private/tmp/example_2013.dwg",
+      "exit": 0,
+      "objectNumUnknownBits": 2568,
+      "diagnostic": "Despite process success, the object field values are unusable (for example bl92=0 rather than the paired group-92 candidate 77, align_option=8 and miter_option=74 rather than paired 2/2, and pt2 is approximately -2.88e197,0,0)."
+    },
+    "dxfExport": {
+      "command": "dwgread -O DXF -o /tmp/libredwg-example-2013-export.dxf /private/tmp/example_2013.dwg",
+      "exit": 0,
+      "diagnostic": "The ACSH_SWEEP_CLASS DXF fields also contain malformed candidate values (empty profile/path, draft angle 1, huge twist/align values, align/miter 8/74, and huge point coordinates). Not a semantic oracle."
+    }
+  },
+  "pairProvenance": {
+    "dxfPath": "/Users/dli/dev/libredwg/test/test-data/example_2013.dxf",
+    "dxfSha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3",
+    "matchingHandle": "2E2",
+    "introducingCommit": "ebbefbf870006db9d4bc116276ab5466170bc74d",
+    "commitDate": "2018-06-18",
+    "commitMessage": "add better example DWG and DXF for test coverage",
+    "commitBody": "Convert the better example_*.* coverage test file to all versions.",
+    "lineageConclusion": "DWG and DXF files were introduced together in a conversion/test-corpus change. The commit does not identify AutoCAD, ODA, or another independent authoring/export tool, so this pair is not authenticated producer evidence."
+  },
+  "interpretation": {
+    "candidateCursorFit": "A cursor reaching the object bound is insufficient to choose field order because the candidate fields have fixed-width encodings; a different order can still consume a plausible span.",
+    "pairDifferential": "The paired DXF offers useful value correlations, but neither source lineage nor the DWG parser semantics are independently established. The raw captured 3BD mismatch and group-310 trailing bytes remain unresolved.",
+    "decision": "Keep the existing bounded raw body and candidate fields marked Partial. Do not reorder or semantically publish the parser fields from LibreDWG's DEBUGGING spec, ACadRust's unverified reference claim, or this pair alone."
+  },
+  "toolAvailability": {
+    "odaFileConverter": "ODAFileConverter 27.1.0 -help exited 134 with pasteboard/XPC errors before handling arguments.",
+    "desktopState": "Computer-use state reported native apps unavailable because the Mac is locked; no conversion or GUI qualification was performed."
+  },
+  "nextAction": "Add a bounded competing-order diagnostic against the preserved raw body, then obtain a native/independent producer witness (or unblock ODA execution) before changing field semantics or enabling output. Continue unrelated implementation work while this evidence gate remains open."
+}

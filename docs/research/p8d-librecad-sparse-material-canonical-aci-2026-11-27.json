@@ -1,0 +1,16 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-canonical-aci-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "3d382666",
+  "scope": "Extend the existing bounded ordinary ASCII AC1021 sparse-MATERIAL LINE/CIRCLE/ARC profile to an indexed color when LibreCAD's RGB-to-index conversion exactly reproduces the physical source index. Index 7, noncanonical palette aliases, true color and named color remain guarded. Live edits must also map exactly to an admitted index.",
+  "validation": {
+    "focused": "The affected case passes 324 assertions, including 19 individual colors, all 248 canonical indices in one locally generated drawing, save/reopen/resave, explicit refusal of index 7 and all six alias indices, destination preservation and corrected retry. The combined MATERIAL, IMAGE and handle selectors pass 10937 assertions in 48 cases on macOS ARM64.",
+    "bundled": "The changed filter translation unit compiles with bundled codec headers. The bundled and current codec palette arrays have identical 256 entries. Bundled runtime and hosted checks remain pending.",
+    "peer": "ezdxf 1.4.5 independently read the 248-circle resave and confirmed each expected ACI, x coordinate and reference to PlainMat; audit returned zero errors and fixes.",
+    "peerInputSha256": "5f4224cd10229634ad628f96d81cf7465152eaa22d18687e02aac9cfa2c844f0"
+  },
+  "limits": "The 248-index observation applies to the two tested identical palettes, not arbitrary future codec builds. The check compares the actual delivered color and emitted index, and rejects aliases even when they share RGB. Other entity types, binary and cross-version sources, producers, native rendering and platform qualification remain open. No drawing fixture was committed."
+}

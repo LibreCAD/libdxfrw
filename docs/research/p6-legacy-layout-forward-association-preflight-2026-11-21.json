@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-layout-forward-association-preflight-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-F",
+  "status": "LEGACY_FORWARD_GRAPH_CHECK_OUTPUT_STILL_REFUSED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.4.52",
+      "20.4.84"
+    ],
+    "boundary": "The BLOCK_HEADER layout handle is present in R2000+; R13/R14 LAYOUT has a forward associated-block pointer."
+  },
+  "change": "A shared staged association resolver checks unique legacy forward references and rejects source backlinks in R13/R14 DWG; all DXF and R2000+ DWG inputs retain reciprocal checks. The legacy output path remains refused until source, graph and target projection qualify. Failure does not change the staged association result.",
+  "validation": {
+    "focused": "libdxfrw_layout_associations CTest covers source-mode selection, valid associations, duplicate/null/missing targets, unexpected legacy backlinks, reciprocal mismatches and corrected retry.",
+    "generatedInputs": "Producer controls in p6-legacy-layout-forward-reference-acadrust-resave-2026-11-21.json.",
+    "candidate": "32 conversions: both versions, null/bound SHAPE, default/R2000 target, strict/partial, ASCII/binary. Every attempt failed preserving the destination. Bound and partial attempts reached the explicit unqualified-projection refusal; strict null refused the incomplete read.",
+    "peer": "GNU LibreDWG 0.14 exports the R13 bound control to R2000 ASCII with BLOCK_RECORD 340 equal to 0 for both layouts, even though each LAYOUT 330 points to its block record. ezdxf 1.4.5 reports reciprocal links after load because layouts/layout.py unconditionally sets block_record.dxf.layout to the LAYOUT handle. A loaded graph therefore does not prove the on-disk 340 values.",
+    "sanitizers": "The focused association executable passes when built with AddressSanitizer and UndefinedBehaviorSanitizer.",
+    "regressions": "Existing libdxfrw_layout_graph_read_contract and libdxfrw_layout_objects_allocation_retry CTests pass. The generated AC1012 partial-output transaction CTest also passes.",
+    "inventory": "Build inventory check passes with the new header, test, and previously missing generator included in the source-release manifest."
+  },
+  "hashes": {
+    "dwg2dxf/dx_layout_associations.h": "0014c3ad68e639d6ea8db7e8e0f377ba05254507df8ca03eb8457c1bc5fd9bac",
+    "dwg2dxf/dx_iface.cpp": "61c5730bcdd2004e52e0cb98ff7815cbfbcd2aab272957f4d861b2f99d337b99",
+    "tests/layout_associations_tests.cpp": "9cb1e31d5426594a155eeb494a24a03243651b1aa465fc7c0da0eef2ea2be257"
+  },
+  "limitations": [
+    "No R13/R14 layout-bearing source profile is approved for output by this slice.",
+    "The producer controls are not native AutoCAD witnesses and their null SHAPE reference is not independently established as valid.",
+    "The R2000 output representation, complete source/frame/role and dictionary semantics, independent physical output/readback, and corrected same-adapter export retry remain open."
+  ]
+}

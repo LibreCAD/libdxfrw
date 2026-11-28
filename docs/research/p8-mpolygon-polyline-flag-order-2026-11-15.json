@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-mpolygon-polyline-flag-order-2026-11-15",
+  "date": "2026-11-15",
+  "status": "bounded_writer_order_and_peer_readback",
+  "supportClaimEffect": "none",
+  "finding": "The MPOLYGON polyline writer emitted group 72 before 73, following HATCH order. The ezdxf MPOLYGON writer and the current LibreCAD bundled writer instead emit 73 before 72.",
+  "source": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/boundary_paths.py",
+  "change": "Order MPOLYGON polyline closed flag 73 before bulge-presence flag 72; retain HATCH order and all path data.",
+  "verification": [
+    "Generated ASCII and Binary whole-file output has groups 73 then 72; typed readback retains a closed three-vertex polyline with a 0.5 bulge.",
+    "Independent ezdxf 1.4.5 read of each generated output retained one MPOLYGON, a closed path and all three vertices including the 0.5 bulge.",
+    "The MPOLYGON fill/default selector and the adjacent HATCH boundary-payload and pattern-angle selectors pass 3/3."
+  ],
+  "limits": [
+    "ezdxf readback demonstrates this generated output is readable; it does not show that the earlier ordering is rejected by ezdxf or establish native AutoCAD/ODA behavior.",
+    "MPOLYGON source-boundary group 97/330 and group 75 expectations differ among sources; do not drop nondefault information without a qualified representation or refusal policy.",
+    "The LibreCAD full target rebuild and six comparison failures remain under investigation.",
+    "No DWG or DXF fixture files were added."
+  ]
+}

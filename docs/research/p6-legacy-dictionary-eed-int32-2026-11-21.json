@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-dictionary-eed-int32-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_LEGACY_EED_1071_INT32",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "28 Extended Entity Data",
+    "observation": "EED item 71 maps to DXF group 1071 and carries a four-byte integer."
+  },
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py",
+  "construction": "LibreDWG 0.14 generates local R13/R14 controls with values 123456, 0x80000000 and 0x7fffffff, including remapped root, APPID and group handles and one 3D LINE member. LibreDWG JSON readback verifies the four-byte item values; drawings remain outside the repository.",
+  "checks": [
+    "The shared source observer compares each physical 1071 value as its exact unsigned 32-bit bit pattern against the signed typed model.",
+    "ASan controls cover signed minimum, maximum and positive values, per-bit frame mutations, truncated bodies, model mutation, destination preservation and corrected retry.",
+    "Group, NOD and MLINESTYLE owner dictionaries pass R14 strict and R13 explicit-partial output in ASCII and Binary encodings. An out-of-profile 1040 real continues through the established unqualified partial route.",
+    "Independent ezdxf 1.4.5 readback recovers all three signed values and a separate GROUP-to-3D-LINE edge for each dictionary location and source version."
+  ],
+  "sourceSha256": {
+    "r13Group": "80ad4d2e024fc64a3129f434d591b89b29dec3aa9873e17ac2d458fd4aff91e8",
+    "r13Nod": "7f187dd86b6c28de22fbce84cce322fc641761357a9c6eba5333e58862e58699",
+    "r13Mline": "f20294dc5a03ecbffa337c292249da8c05b74d4ca8cf11ac13fef4864000ae9c",
+    "r14Group": "2e022ba4df21f352ee6e9c57b79beb95a54065eff010d23bca2b1a6bd6178fbd",
+    "r14Nod": "43794c66aec9806d0fb34c3e39dbb8cdab8b596630d537867fe7bd8950af7f56",
+    "r14Mline": "388deb61f5f60c6c6f691653545bbee745d0bd74ab269fbad0eb12467a8ab237"
+  },
+  "limits": [
+    "R13 output remains explicit partial; the MLINESTYLE object and native clone semantics remain unqualified.",
+    "Only 1071 and the previously admitted EED items are covered by this source profile. Other EED codes, broader source graphs and general format support remain open."
+  ]
+}

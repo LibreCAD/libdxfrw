@@ -1,0 +1,122 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "CADCraft ACDSDATA retention and new ACIS/DXF peer screen",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh CADCraft's merged ACDSDATA opaque-retention evidence and determine its codec lineage",
+    "Screen cq-acis/acis-core, ProGPU, dxf-json, dxf-kit, and pid-cad/OpenCADStudio as possible bounded comparators",
+    "Refine existing PAR-07/S2/S7/S8 evidence readiness without introducing peer-runtime prerequisites",
+    "Preserve the evidence ceiling between byte retention, structural ACIS parsing, B-rep semantics, and native acceptance"
+  ],
+  "sources": [
+    {
+      "project": "CADCraft PR #781, releases, and DWG crate manifest",
+      "reference": "https://github.com/storytold/cadcraft/pull/781",
+      "relatedReferences": [
+        "https://github.com/storytold/cadcraft/releases",
+        "https://github.com/storytold/cadcraft/blob/main/crates/dwg/Cargo.toml"
+      ],
+      "status": "merged-pr-and-current-manifest-reviewed-2026-10-21",
+      "observation": "The merged PR author reports ACDSDATA retention and deleted-owner filtering, with 627 real-file ACIS payloads byte-identical after a DWG-to-CADCraft-to-DWG run. The current DWG crate manifest identifies unmodified ACadRust 0.6.4 as the DWG bridge. This is materially useful same-lineage opaque-preservation evidence, not independent DWG decoding, ACIS semantics, B-rep validation, or native application acceptance; the report was not reproduced in this pass."
+    },
+    {
+      "project": "cq-acis and acis-core",
+      "reference": "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+      "relatedReferences": [
+        "https://pypi.org/project/cq-acis/",
+        "https://docs.rs/acis-core/latest/acis_core/"
+      ],
+      "status": "current-project-docs-and-api-reviewed-2026-10-21",
+      "observation": "The project documents an experimental, bounded SAT/SAB parser and supported-subset conversion through CadQuery/OpenCascade. acis-core supplies a typed model and selected SAB/ASM parsing with raw-record and reference-closure facilities, while its API distinguishes graph closure from B-rep validity and does not itself construct OCCT solids. It belongs to the same cq-acis project lineage and is not an independent second vote. No package was installed or run."
+    },
+    {
+      "project": "ProGPU DXF and ACIS documentation",
+      "reference": "https://github.com/wieslawsoltes/ProGPU",
+      "relatedReferences": [
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md",
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/docs/PROGPU_CAD_ARCHITECTURE.md"
+      ],
+      "status": "project-docs-reviewed-2026-10-21-source-audit-pending",
+      "observation": "The architecture identifies ACadSharp as the file-format model and describes a ProGPU presentation path; DXF documentation claims SAT/SAB reading and projection. These documents do not bind an immutable reader profile, complete record vocabulary, independent shape-validation corpus, or native DWG/AcDs route. Retain only as a source-audit candidate; implementation and dependency lineage were not audited or executed."
+    },
+    {
+      "project": "dxf-json and dxf-kit",
+      "reference": "https://github.com/dotoritos-kim/dxf-json",
+      "relatedReferences": [
+        "https://github.com/arbaev/dxf-kit"
+      ],
+      "status": "public-repository-documentation-screened-2026-10-21",
+      "observation": "dxf-json advertises an unstable text/ASCII DXF typed subset; its public entry points do not establish Binary-DXF, DWG, ACDSDATA ownership, or ACIS semantics. dxf-kit documents a smaller parser/renderer subset, including explicit 3DFACE and a REGION-from-HATCH path, not general ACIS semantics. Neither is required for the plan and neither was installed or run."
+    },
+    {
+      "project": "pid-cad, OpenCADStudio, and opencadkernel",
+      "reference": "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md",
+      "relatedReferences": [
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "status": "public-docs-screened-2026-10-21",
+      "observation": "The documented tessellation route uses ACadRust entity types, lifts selected ACIS into a B-rep kernel, and falls back to per-surface sampling where the kernel cannot express a face. The related kernel describes itself as early with most operations unwritten. Treat the route as a correlated codec lineage and distinguish complete kernel lift, fallback tessellation, and incomplete results; rendered output alone is not B-rep validity. No source checkout or execution occurred."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S2: record exact codec lineage and distinguish same-stack opaque byte retention from independent parsing",
+      "PAR-07/S7/S8: separate body-rooted structural closure, full B-rep construction, independent geometric invariants, and native acceptance",
+      "PAR-07/S8: make unchanged-source retention, unrelated edits, and deleted-owner filtering separate optional preservation controls",
+      "Existing local AcDs/modeler generated tests remain the fast owners; no duplicate test or peer dependency is justified"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Use CADCraft PR #781 as a reported same-lineage opaque-retention stress case only. Keep optional parser/kernel candidates bounded by immutable source, exact profile, dependency lineage, and output semantics. Use existing fast local owners first; missing external artifacts self-unblock and do not block implementation. No new finding, support promotion, dependency, or validation cadence is introduced."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "repositoryClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-cadcraft-acds-retention-and-peer-screen-2026-10-21.json"
+    ],
+    "limitations": "CADCraft's 627-payload result is author-reported by the merged PR and was not independently reproduced. Current dependency metadata supports the ACadRust 0.6.4 lineage classification, but no release artifact, source lock, binary hash, or run was bound. cq-acis profiles were not tested; ProGPU implementation and dependencies were not audited; dxf-json, dxf-kit, and the pid-cad route were not run. No independent semantic truth or native application result was obtained."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on both plan files and no-index whitespace check on this new receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

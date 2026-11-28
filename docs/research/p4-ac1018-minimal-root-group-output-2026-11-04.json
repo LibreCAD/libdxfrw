@@ -1,0 +1,28 @@
+{
+  "status": "BOUNDED_GENERATED_PROFILE",
+  "scope": "Exact locally generated AC1018 source whose HEADER names a root DICTIONARY containing only ACAD_GROUP and whose referenced child is an empty DICTIONARY. Strict DWG to DXF conversion qualifies only after source frame and exact output graph proof; no general AC1018 or ODA-produced whole-file output claim.",
+  "specification": "ODA v5.4.1 \u00a7\u00a720.1 and 20.4.44: object data size denotes pre-handle bit boundary, parent soft pointer, optional reactor and xdictionary, dictionary names and soft-owner item handles, padding then CRC.",
+  "independent_physical_evidence": {
+    "producer": "ezdxf 1.4.5 scratch authored DXF resaved by ODA File Converter 27.1.0 to AC1018; independent LibreDWG 0.14 trace",
+    "oda_source_sha256": "fcf335a510b832a05b2e4ffbf4922976c26032d3ed501f37c018b1025a461200",
+    "root": "0xA; object-stream offset 167, body bytes 313, data-end bit 2235, owner role 4/null, ACAD_GROUP item role 2\u21920xC, 16 total items, 5 zero pad bits, verified CRC 828B",
+    "child": "0xC; object-stream offset 1994, body bytes 13, data-end bit 83, owner role 4\u21920xA, no items, 5 zero pad bits, verified CRC A842",
+    "limit": "Offsets refer to decompressed object stream. This independent producer graph contains 16 root items; its whole-source output and unrelated records are not qualified."
+  },
+  "generated_source": {
+    "sha256": "ca5e0c135b8a72129aa0beebb25b60b47e3989a26ba0e1ba497db7011405da46",
+    "author": "build-gcc/libdxfrw_dwg_local_roundtrip --generate-cli-batch-source /private/tmp/ac1018-generated-cli-analysis.dwg AC1018",
+    "root": "0xC; object-stream offset 1483, body bytes 27, data-end bit 189; owner role 4/null, sole ACAD_GROUP item role 2\u21920xD, 3 zero pad bits, verified CRC C966",
+    "child": "0xD; object-stream offset 1514, body bytes 13, data-end bit 83; owner role 4\u21920xC, no items, 5 zero pad bits, verified CRC 384C",
+    "text_field": "Independent trace yields a 98-bit counted TV span (10-bit length plus 11 bytes). The in-tree writer and direct bounded observer separately verify that the 11th byte is NUL."
+  },
+  "implementation": "Allocation-free in-tree bit observer, separate from typed dictionary parser, verifies this exact no-EED, no-reactor, xdictionary-missing pair, scalar values, names, absolute handle roles, exact pre-handle boundary and zero padding. It binds both immutable source frames and memberships to the HEADER root and typed baselines, and does not upgrade generic AC1018 common-link publication. Existing output decoder and graph-closure proof still gate output qualification. Other owners, entries, roles, metadata and source revisions remain outside this exception.",
+  "tests": [
+    "ctest --test-dir build-gcc -R '^libdxfrw_ac1018_minimal_dictionary_source$' --output-on-failure (1/1)",
+    "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --batch-only (48 controls)",
+    "python3 tools/audit_ac1018_dictionary_wire.py generated /opt/homebrew/bin/dwgread /private/tmp/ac1018-generated-cli-analysis.dwg",
+    "python3 tools/audit_ac1018_dictionary_wire.py oda /opt/homebrew/bin/dwgread /private/tmp/ac1018-root-dict/dwg/source.dwg"
+  ],
+  "transaction_controls": "Generated source exports/readbacks in ASCII/Binary; six root/child role, boundary and padding bit mutations are injected into retained raw bodies after capture for each encoding and must preserve the destination and permit same-adapter retry. Missing/nonempty child, changed owner and missing root item are similarly refused and retried. These are post-capture mutations, not CRC-resealed source-file imports. Exact captured bodies are also wrapped in reconstructed object frames; an unsealed body-byte corruption is rejected by DwgObjectFrame and its repaired same-object retry succeeds. This is not a corrupt compressed whole-file import.",
+  "scope_limit": "No fixtures added. Source authoring timestamps and output may change hashes; proof tool binds the exact observed files and LibreDWG executable. Independent consumer, ODA whole-file conversion and arbitrary dictionary profiles remain open."
+}

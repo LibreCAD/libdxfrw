@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-dictionary-body-boundary-2026-11-25",
+  "date": "2026-11-25",
+  "status": "LOCAL_BOUNDARY_REFUSAL_RETRY_AND_SOURCE_FRAME_PASS",
+  "supportClaimEffect": "none",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.4.44 and 20.4.74 place an object-data bit-size boundary before the bodies and handle tails of R13/R14 DICTIONARY and DICTIONARYVAR records.",
+  "source": "Adapted the guard from locally available diverged tracked-branch commit 9a2f6af1bc7d84d7b3c85ee1ae32ea6a30f3188f; expanded the generated DICTIONARYVAR control to cover R14. The branch was not merged or overwritten.",
+  "finding": "The legacy object-data completion check treated a zero body boundary as a fallback, allowing a DICTIONARY or DICTIONARYVAR body to be published without proving separation from its following handle stream.",
+  "change": "Require a nonzero, exactly consumed inline body boundary for R13/R14 DICTIONARY and DICTIONARYVAR bodies; keep other versions' completion behavior unchanged.",
+  "validation": [
+    "The new R13 zero-boundary DICTIONARY control failed before the fix. Afterward, the generated R13 dictionary and R13/R14 DICTIONARYVAR zero-boundary refusal/reset/corrected-retry controls pass, as do the owning dictionary CTest and DWG object-vector executable in normal and AddressSanitizer builds.",
+    "Both earlier specification-directed AC1012 physical dictionary frames pass the source-frame parser/refusal/retry selector. The current converter reads all 199 reported frames in each root-case-aligned ODA-generated AC1012 source with zero parser failures, then preserves an existing destination on the native-merge qualification refusal; one custom class and one unsupported object are skipped per source."
+  ],
+  "limits": [
+    "The source controls and raw frame census do not establish native AutoCAD merge behavior or complete semantic support.",
+    "Selected code and test inputs changed, so earlier qualification digests and hosted results do not qualify this candidate."
+  ]
+}

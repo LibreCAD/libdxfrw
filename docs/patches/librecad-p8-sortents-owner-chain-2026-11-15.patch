@@ -1,0 +1,129 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index e16754d..6b3072d 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3628,6 +3628,10 @@ public:
+     return m_sortEntsSourceCaptureFailed;
+   }
+   bool matchesAc1024EmptySortEntsSourceObservation(std::uint32_t handle) const noexcept;
++#ifdef LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY
++  bool matchesSelectedAc1024SortEntsOwnerChain(std::uint32_t blockHandle,
++      std::uint32_t dictionaryHandle, std::uint32_t sortHandle) const noexcept;
++#endif
+ #endif
+ 
+   void clear() {
+diff --git a/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp b/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
+index 49838b2..211a303 100644
+--- a/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
++++ b/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
+@@ -163,3 +163,70 @@ bool LC_DwgAdvancedMetadata::matchesAc1024EmptySortEntsSourceObservation(
+   }
+ }
+ #endif
++
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++bool LC_DwgAdvancedMetadata::matchesSelectedAc1024SortEntsOwnerChain(
++    std::uint32_t blockHandle, std::uint32_t dictionaryHandle,
++    std::uint32_t sortHandle) const noexcept {
++  // A selected source-chain observation only. Unknown inbound edges, block
++  // content and every output decision remain outside this check.
++  if (!m_selectedSourceCaptureSealed || m_blockRecordLinkCaptureFailed
++      || blockHandle == 0u || blockHandle == DRW::NoHandle
++      || dictionaryHandle == 0u || dictionaryHandle == DRW::NoHandle
++      || sortHandle == 0u || sortHandle == DRW::NoHandle
++      || blockHandle == dictionaryHandle || blockHandle == sortHandle
++      || dictionaryHandle == sortHandle
++      || !matchesAc1024DictionarySourceObservation(dictionaryHandle)
++      || !matchesAc1024EmptySortEntsSourceObservation(sortHandle))
++    return false;
++  const auto found = m_blockRecordLinks.find(blockHandle);
++  if (found == m_blockRecordLinks.end())
++    return false;
++  const auto &block = found->second;
++  const DRW_DwgFramePublication *publication = nullptr;
++  const DRW_DwgFrameCoverageEntry *coverage = nullptr;
++  const DictionaryRecord *dictionary = nullptr;
++  const SortEntsTableRecord *sort = nullptr;
++  for (const auto &item : m_dwgFramePublications)
++    if (item.m_handle == blockHandle) { if (publication) return false; publication = &item; }
++  for (const auto &item : m_dwgFrameCoverageReport.m_entries)
++    if (item.m_handle == blockHandle) { if (coverage) return false; coverage = &item; }
++  for (const auto &item : m_dictionaries)
++    if (item.handle == dictionaryHandle) { if (dictionary) return false; dictionary = &item; }
++  for (const auto &item : m_sortEntsTables)
++    if (item.handle == sortHandle) { if (sort) return false; sort = &item; }
++  if (!publication || !coverage || !dictionary || !sort
++      || block.handle != blockHandle || block.extensionDictionaryHandle != dictionaryHandle
++      || block.extensionDictionaryFlag != 0u
++      || publication->m_version != DRW::AC1024 || !publication->m_hasSourceLocation
++      || (publication->m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
++          && publication->m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
++      || publication->m_encodedType != 49 || publication->m_resolvedType != 49
++      || publication->m_isEntity || publication->m_isCustomClass
++      || publication->m_carrier != DRW_DwgFramePublication::Carrier::Typed
++      || !publication->m_commonHandleDataValidated
++      || !drwDwgCommonLinkEvidenceValidated(publication->m_commonLinkEvidence)
++      || publication->m_parentHandle != block.parentHandle
++      || publication->m_xDictHandle != block.extensionDictionaryHandle
++      || publication->m_xDictFlag != block.extensionDictionaryFlag
++      || publication->m_reactorHandles != block.reactorHandles
++      || publication->m_numReactors != block.reactorCount
++      || coverage->m_sourceOffset != publication->m_sourceOffset
++      || coverage->m_sourceMapOrdinal != publication->m_sourceMapOrdinal
++      || coverage->m_sourceOffsetSpace != publication->m_sourceOffsetSpace
++      || coverage->m_disposition != DRW_DwgFrameDisposition::Published
++      || coverage->m_publicationCount != 1u
++      || dictionary->parentHandle != blockHandle
++      || sort->parentHandle != dictionaryHandle
++      || sort->blockOwnerHandle != blockHandle)
++    return false;
++  std::size_t matchingEntries = 0u;
++  for (const auto &entry : dictionary->entries) {
++    if (entry.name == "ACAD_SORTENTS") {
++      if (entry.handle != sortHandle) return false;
++      ++matchingEntries;
++    }
++  }
++  return matchingEntries == 1u;
++}
++#endif
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index c33b735..9d32426 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9619,7 +9619,7 @@ TEST_CASE("AC1024 dictionary source observations match live adapter receipts",
+ }
+ #endif
+ 
+-#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
+ TEST_CASE("Empty AC1024 sort tables match live adapter source observations",
+           "[dwg][roundtrip][sortentssource][source]") {
+   const char *fixture = std::getenv("LIBRECAD_AC1024_SORTENTS_FIXTURE");
+@@ -9641,9 +9641,25 @@ TEST_CASE("Empty AC1024 sort tables match live adapter source observations",
+     REQUIRE(metadata.emptySortEntsSourceObservations().count(handle) == 1u);
+     CHECK(metadata.matchesAc1024EmptySortEntsSourceObservation(handle));
+   }
++  const std::uint32_t blocks[] = {0x2u, 0x20A8u, 0x127u, 0x225Bu};
++  const std::uint32_t dictionaries[] = {0xF2u, 0x2120u, 0x21CDu, 0x22D3u};
++  const std::uint32_t tables[] = {0xF3u, 0x2121u, 0x21D3u, 0x22D4u};
++  for (std::size_t i = 0; i < 4u; ++i)
++    for (std::size_t j = 0; j < 4u; ++j)
++      for (std::size_t k = 0; k < 4u; ++k)
++        CHECK(metadata.matchesSelectedAc1024SortEntsOwnerChain(
++                  blocks[i], dictionaries[j], tables[k]) == (i == j && j == k));
++  const auto &titleDictionary = metadata.dictionarySourceObservations().at(0x21CDu);
++  const auto named = [&titleDictionary](const char *name) {
++    return std::count_if(titleDictionary.m_entries.begin(), titleDictionary.m_entries.end(),
++        [name](const auto &entry) { return entry.m_name == name; });
++  };
++  CHECK(named("ACAD_ENHANCEDBLOCK") == 1);
++  CHECK(named("AcDbDynamicBlockRoundTripPurgePreventer") == 1);
+   constexpr std::uint32_t target = 0x2121u;
+   metadata.setSourceDwgVersion(DRW::AC1027);
+   CHECK_FALSE(metadata.selectedDwgSourceCaptureSessionSealed());
++  CHECK_FALSE(metadata.matchesSelectedAc1024SortEntsOwnerChain(0x20A8u, 0x2120u, target));
+   CHECK_FALSE(metadata.matchesAc1024EmptySortEntsSourceObservation(target));
+   metadata.setSourceDwgVersion(DRW::AC1024);
+   CHECK_FALSE(metadata.selectedDwgSourceCaptureSessionSealed());

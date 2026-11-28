@@ -1,0 +1,78 @@
+{
+  "title": "AC1021 section-map page extent control",
+  "date": "2026-10-22",
+  "status": "completed_fast_test_slice_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "1297a9334264f8cab1e4d7fa71895d7607e63fed90b2b96874441e817ea05800",
+  "filesChanged": [
+    "CMakeLists.txt",
+    "tests/dwg_reader_matrix_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "fixturePolicy": {
+    "persistentDwgOrDxfFixtureAdded": false,
+    "witness": "Complete AC1021 DWG generated in memory with dwgWriter21"
+  },
+  "mutation": {
+    "field": "Section-map page Page Uncompressed Size",
+    "condition": "page start offset plus uncompressed size exceeds the owning section Data size",
+    "envelopeChecksumsResealed": [
+      "section-map system-page compressed CRC",
+      "section-map system-page uncompressed CRC",
+      "file-header CRC",
+      "file-header Reed-Solomon encoding"
+    ]
+  },
+  "verifiedBehavior": {
+    "validGeneratedWitnessAccepted": true,
+    "mutatedWitnessRejected": true,
+    "diagnostic": {
+      "phase": "SectionMap",
+      "kind": "PageRange",
+      "severity": "Error",
+      "offendingPageIdChecked": true
+    },
+    "unexpectedChecksumDiagnostics": false,
+    "sectionDescriptorsPublishedOnFailure": false,
+    "publicCallbacksPublishedOnFailure": false,
+    "sameReaderSucceedsAfterRestoration": true,
+    "samePublicFacadeSucceedsAfterRestoration": true,
+    "restoredLineEndpoint": [
+      7,
+      11,
+      13
+    ]
+  },
+  "productionParserChanged": false,
+  "supportClaimsChanged": false,
+  "externalEvidenceStatus": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "freecadLinuxWindowsQualification": "separate outstanding gate",
+    "independentAcisAcDsSemanticQualification": "separate outstanding gate"
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "result": "passed"
+    },
+    {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j2",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_r2007_section_map_page_extent$' --output-on-failure",
+      "result": "passed (1/1)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "passed"
+    }
+  ],
+  "nextLocalSlice": "Generated patterned associative multi-path HATCH ASCII/Binary round-trip",
+  "commit": "not created; pre-existing worktree changes were preserved and no files were staged"
+}

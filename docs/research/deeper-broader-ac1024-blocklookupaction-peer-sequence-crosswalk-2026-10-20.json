@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader AC1024 BLOCKLOOKUPACTION peer-sequence crosswalk and semantic boundary",
+  "mode": "Authoritative local specification search, current open-source reader/writer source crosswalk, public behavior-document review, and plan readiness update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Revisit PAR-133 candidate DWG field shape and distinguish normative byte-layout evidence from peer implementation evidence.",
+    "Check whether the dynamic-block lookup-action candidate can be confused with 3D geometry support claims.",
+    "Refine the next implementation slice without changing parsing, executing external programs, or adding fixtures."
+  ],
+  "sources": [
+    {
+      "name": "ODA Open Design Specification for .dwg files v5.4.1 local reference copy",
+      "path": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+      "method": "pdftotext -layout; case-insensitive search for BLOCKLOOKUPACTION, BlockLookupAction, dynamic blocks, lookup actions, and lookup tables",
+      "observed": "The text extraction search returned no class-specific dynamic-block lookup-action layout.",
+      "limits": "Search absence is not proof that no relevant generic object/custom-class rule or cross-reference exists. ODA remains authoritative."
+    },
+    {
+      "name": "ACadSharp current DWG object reader",
+      "url": "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Objects.cs",
+      "observed": "readBlockLookupAction reads the common action, row and column BitLongs, rows-times-columns variable text, one column record per column, then a bit. Each column candidate has three BitLongs, a bit, variable text, a bit, and variable text.",
+      "limits": "Mutable peer implementation; not normative evidence or an independently captured producer layout."
+    },
+    {
+      "name": "ACadSharp current DXF object writer",
+      "url": "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DXF/DxfStreamWriter/DxfObjectsSectionWriter.cs",
+      "observed": "writeBlockLookupAction emits row and column counts, row-major group-302 values, then per-column 94/95/96/282/305/281/304 fields and group 280.",
+      "limits": "Same implementation family as the DWG reader; useful internal model/read-write consistency only, not an independent DWG wire-order witness."
+    },
+    {
+      "name": "LibreDWG 0.13.4 OBJECTS manual",
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "observed": "The field inventory separates numrows, numcols, lut records, exprs as variable text, and B280.",
+      "limits": "Does not specify exact serialized ordering, per-version bit/string stream boundaries, or full round-trip behavior."
+    },
+    {
+      "name": "LibreDWG current object stability registry and NEWS",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": "BLOCKLOOKUPACTION is marked UNSTABLE; NEWS states unstable objects are not preserved through DXF conversion.",
+      "limits": "Mutable project status, not a DWG specification or semantic validation of this local record."
+    },
+    {
+      "name": "Autodesk Block Editor help",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENG/AutoCAD-Core/files/GUID-B69D58AD-7920-4198-AB2A-0E24B944F6CD.htm",
+      "observed": "Describes the user-level lookup action/table relationship to dynamic block parameters.",
+      "limits": "Behavioral documentation; no serialized field order or local drawing expectation."
+    },
+    {
+      "name": "Local libdxfrw PAR-133 trace and source",
+      "paths": [
+        "src/drw_objects.cpp",
+        "src/drw_objects.h",
+        "docs/research/par133-blocklookupaction-bounded-failure-diagnostics-2026-10-20.json"
+      ],
+      "observed": "The local AC1024 sample identifies class 528/handle 0x22F and the parser stops at a count preflight before consuming any expression/connection value. The previous receipt records a partial run, object/data/handle boundary diagnostics, and no production field-order change.",
+      "limits": "The sample provenance is not independently verified; the whole conversion is partial and has an unrelated Classes CRC mismatch; preflight rejection does not prove the peer layout."
+    }
+  ],
+  "assessment": {
+    "candidateLocalIssue": "A likely mismatch exists between the local per-cell expression-plus-three-connections parser shape and the ACadSharp rows-times-columns text array plus per-column model; exact DWG layout remains unproven.",
+    "semanticCategory": "Dynamic/parametric block action metadata, separate from explicit 3D entities, ACIS/SAB payload decoding, and B-rep semantics.",
+    "newFindings": 0,
+    "newSubplans": 0,
+    "newSupportClaims": 0,
+    "implementationStatus": "PEER_LAYOUT_CROSSWALKED; ODA_LAYOUT_UNRESOLVED; NO_PARSER_CHANGE; NONPUBLISHING_CURSOR_PROBE_NEXT",
+    "decision": "Preserve fail-closed production behavior. Run a cursor-only candidate probe over independent data/string buffers and the declared handle boundary. Require complete bounded decoding plus authoritative or second-producer confirmation before changing parse order."
+  },
+  "planChanges": [
+    "Record the current ACadSharp DWG reader and DXF writer sequence while explicitly treating their within-project agreement as non-independent evidence.",
+    "Record LibreDWG's independent field inventory and unstable/non-preserving status without promoting it to a round-trip oracle.",
+    "Separate dynamic-block action parsing/evaluation claims from the plan's 3D geometry and ACIS/ACDS support claims.",
+    "Refine PAR-133's next step to a non-publishing probe over data, string, and handle stream bounds, followed only after field-order proof by generated non-square, truncation, resource-cap, and sentinel controls.",
+    "Flag inconsistent historical 141/142 finding totals without selecting a canonical count or silently rewriting past receipts."
+  ],
+  "limitations": [
+    "No DWG field-order change was made because the local ODA specification search and public peer sources do not independently prove the local record's exact serialized order.",
+    "No external reader, CAD application, or converter was executed.",
+    "No external DWG/DXF sample was downloaded, committed, or used as a fixture.",
+    "No count reconciliation or support promotion was performed; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

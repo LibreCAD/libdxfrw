@@ -1,0 +1,260 @@
+{
+  "status": "bounded synthetic AC1027 active VPORT null roles; normal ODA output remains unqualified",
+  "base_commit": "bbb2d681",
+  "authority": "ODA DWG v5.4.1 \u00a7\u00a720.1 and 20.4.64: VPORT background soft pointer (4), visual style hard pointer (5), SUN hard owner (3), following named/base UCS hard pointers; \u00a7\u00a74.1 and 7 distinguish maintenance release byte 0x0b from application maintenance byte 0x12. The latter is the in-tree reader18 HEADER/CLASSES high-size gate.",
+  "change": "For AC1027 only, extend the existing internal synthesized *ACTIVE writer path to emit typed null background, visualstyle and SUN references in roles 4/5/3. Public and caller-supplied VPORT encoding, nonzero targets, other versions, framing, and fixed-header bytes keep their established paths.",
+  "physical_sources": [
+    {
+      "path": "/private/tmp/modern-writer-investigation/source-dwg/AC1027/line.dwg",
+      "sha256": "1bab740b1f96b88534b4f8238828b9044cffd58b2975ec4b6b00db0c4560cd09",
+      "origin": "ezdxf-authored LINE DXF converted by ODA File Converter 27.1; conversion is a recorded manual join."
+    },
+    {
+      "path": "/private/tmp/wipeout-frame1/ac1027/source.dwg",
+      "sha256": "3d17c285fdfec50337acf55039d55f7eae0130bbe0bd39c1f3de50a7c6230b00",
+      "origin": "A separately authored WIPEOUTVARIABLES source converted by ODA; conversion is a recorded manual join."
+    }
+  ],
+  "physical_wire": "LibreDWG 0.14 reports one *ACTIVE VPORT owned by its control, xref null role 5, background null role 4, visualstyle null role 5, SUN null role 3, named/base UCS null roles 5/5, and correct record CRC in both physical sources. In the separately hash-bound in-tree decompressed Objects page, source VPORT body starts at byte 1005; at bit 1298 the present-string marker is 1, then from bit 1299 the handle bytes are 41 08 50 40 50 30 50 50 followed by five zero pad bits. The page-to-DWG relation is a manually observed extraction join, not independently proven by the auditor.",
+  "factorial": "On the 504b01c4 scratch baseline with explicit existing material/plotstyle opt-ins, 16 controlled inputs independently vary background role (bit 1), visualstyle role (bit 2), SUN role (bit 4), and exact-string/unaligned handle boundary (bit 8). Every factorial file separately changes fixed byte 0x0b from writer value 0 to diagnostic value 6 while keeping byte 0x12=6. Only masks 7 and 15 produced DXF with no .err; the other 14 produced a VPORT fatal and no DXF. Therefore this sample does not require the alternate exact-string framing; the candidate retains existing framing. The .err and DXF outcomes are local converter observations, not proof of general support.",
+  "factorial_artifacts": [
+    {
+      "mask": 0,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode00.dwg",
+      "input_sha256": "9781b5296ec7bc52fcf215fede8bc394965fa535c6f27e47e757d94825d69421",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode00.dxf.err",
+      "artifact_sha256": "001b0264d71c91420a1868638e741159bc228f57285eaef6bd3a5f013cbef4f4"
+    },
+    {
+      "mask": 1,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode01.dwg",
+      "input_sha256": "62e510f424a8b53138008528fea87181ccca4f8331973c78c6388f3fb2f97210",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode01.dxf.err",
+      "artifact_sha256": "7ec4ffe3b224f67ebd7eafaa452680108e7a089b856fd44622b82485e4cbd2c2"
+    },
+    {
+      "mask": 2,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode02.dwg",
+      "input_sha256": "d027f8fd6f0cb8d3e5dc645c843883415328ab54636a76a820e6d92021cbd5ef",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode02.dxf.err",
+      "artifact_sha256": "e36661427914e4b1e8f57e6cc284cb08c930f38a30b58e1bb4d1adb9c3f08c3c"
+    },
+    {
+      "mask": 3,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode03.dwg",
+      "input_sha256": "8ccaa86ec31ea4e1531246984a5560a4ff34c9216d6784633d1c2b6a0d9bf66e",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode03.dxf.err",
+      "artifact_sha256": "2c5ddc882f949e1fefe75ad893f1eeb7b1949ce66f1d03c59fa11139a40fa6dd"
+    },
+    {
+      "mask": 4,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode04.dwg",
+      "input_sha256": "1bcb2b6797e60035e86d0978b2d16fedfc00a3447be84251ef70d20268a90e88",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode04.dxf.err",
+      "artifact_sha256": "a864da5c1c7f33a70adc2aa1865c807a6c17828220f0445103fdb2763010c84f"
+    },
+    {
+      "mask": 5,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode05.dwg",
+      "input_sha256": "0484355f153ed8cabbb4b35521b91514774d9dd7ab64f5eceba5b8ce51531a52",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode05.dxf.err",
+      "artifact_sha256": "30c2615156ce93c0240286cff955449a7330c114b1aadaf438cb47a40ef6692a"
+    },
+    {
+      "mask": 6,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode06.dwg",
+      "input_sha256": "952732ecb76b6128f78cd73db83f16e9b176d310023b0539e557e1bb81416dc2",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode06.dxf.err",
+      "artifact_sha256": "ea80504bc034e201dbc1db8f8883f7fbd428b888b045257548b66b5791c001e1"
+    },
+    {
+      "mask": 7,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode07.dwg",
+      "input_sha256": "15ca5a8be1c3d26b502ab12ea3f619d19b443cf844422fdd0b3b2b8064d6ad2e",
+      "outcome": "DXF without .err",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode07.dxf",
+      "artifact_sha256": "cf88c75df1853e804f0dbc6473095591ea86e8b69ddbdcef7387751ae00b3d46"
+    },
+    {
+      "mask": 8,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode08.dwg",
+      "input_sha256": "aea9dc1271cd7db9df7e7561b23147e3db1097fec56a3ea0f89448573247bb1e",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode08.dxf.err",
+      "artifact_sha256": "b28c2eb8dd63c7e7c7bfc2ed1f77ffec53642ad7e9bf5948b120911ae5a8ed3c"
+    },
+    {
+      "mask": 9,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode09.dwg",
+      "input_sha256": "6ec3e082ea8d4d09e22a5987f4cb3f1d45f8e3e99f3a3362e1ca217295eae3f7",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode09.dxf.err",
+      "artifact_sha256": "a96dc952818e0aab78280faa2bb93f79710658f975e484af3e2ca9dae51cde7b"
+    },
+    {
+      "mask": 10,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode10.dwg",
+      "input_sha256": "c92fa73e1f522717579cdf8968d225f7813d3a255f3cdc185c2d6ce9e6b3f6c8",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode10.dxf.err",
+      "artifact_sha256": "35df6bcfdfabb90f784f5493404b1a2f2277cad1b66b33cd84c7af16be025b40"
+    },
+    {
+      "mask": 11,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode11.dwg",
+      "input_sha256": "29d2331834a50cc3b5680cbd16e3d85d6093b14dfa11b36e695ce3d8da0e2719",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode11.dxf.err",
+      "artifact_sha256": "c2cda90cae1f35b89a1da37a0b695eed7f134c09adac6026e64b2978839ba6fd"
+    },
+    {
+      "mask": 12,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode12.dwg",
+      "input_sha256": "74773c57752504dd96a1362b39c9101a0300931ddbb80d6cba3b15cab1098725",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode12.dxf.err",
+      "artifact_sha256": "5e8aafb482660c5e074ca396c9ce57d3b7f7569a4bb77937fa9441b92dd2fc75"
+    },
+    {
+      "mask": 13,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode13.dwg",
+      "input_sha256": "860d35badab6b6d432474a78e360acc6e2daa6bae7e3f0cc6f71ee5cf0cba82b",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode13.dxf.err",
+      "artifact_sha256": "739e8e3a6ee9528c3df7782182464b86c25cbaa01cc27a397d4cf72e3582e9f7"
+    },
+    {
+      "mask": 14,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode14.dwg",
+      "input_sha256": "7a674018741d73ef036362f5e346f45dd5d32465e9a0def7cd5250d6e69c3af2",
+      "outcome": "VPORT fatal, no DXF",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode14.dxf.err",
+      "artifact_sha256": "f9949f4b9dbbbbac565afef27541e31fe1a95795078f0338f25bb9b7d1648034"
+    },
+    {
+      "mask": 15,
+      "input": "/private/tmp/ac1027-vport-factor/in/mode15.dwg",
+      "input_sha256": "6bce28c6e76e0874a65432b3a46870aef2eaefb0d2713eded6aed17f0201be10",
+      "outcome": "DXF without .err",
+      "artifact": "/private/tmp/ac1027-vport-factor/out/mode15.dxf",
+      "artifact_sha256": "4a23ed52479235901ccb5ee05683f462c17b2f503c30c8968c00e8ca2f9ae91d"
+    }
+  ],
+  "metadata_control": "The actual candidate file has byte 0x0b=0 and 0x12=6. It is byte-identical to the diagnostic mode07 input except byte 0x0b=6, and the peer script verifies that exact one-byte join and both hashes. ODA fails on the actual candidate with Out of range and no DXF, while the unchanged physical source converts. Observed physical ODA source metadata is 0x0b=105 and 0x12=55; the local PDF does not establish that blindly copying a byte is safe. No metadata fix is proposed.",
+  "peer_output": "With the diagnostic byte edit and both opt-ins, LibreDWG and ezdxf verify exact LINE endpoints (1,2,3)\u2192(4,5,6), model/layer relationship, matching selected VPORT geometry and control ownership, ByBlock/ByLayer/Global identities, NOD/material dictionary, layer\u2192Global and HEADER\u2192ByLayer. ezdxf reports no audit errors or fixes in the ODA-returned DXF. The auditor does not claim whole-document equivalence, native rendering, or every VPORT field. In particular ODA output adds Defpoints, supplies a nonzero visualstyle target and changes ambient ACI fallback; the original writer output remains unaccepted by ODA.",
+  "artifacts": {
+    "candidate": {
+      "path": "/private/tmp/ac1027-vport-final/final.dwg",
+      "sha256": "438e317cf6c80e66cd2889000d566ad5b7fc2935797a9151ad00fc1028f3d679"
+    },
+    "diagnostic": {
+      "path": "/private/tmp/ac1027-vport-factor/in/mode07.dwg",
+      "sha256": "15ca5a8be1c3d26b502ab12ea3f619d19b443cf844422fdd0b3b2b8064d6ad2e"
+    },
+    "oda_dxf": {
+      "path": "/private/tmp/ac1027-vport-factor/out/mode07.dxf",
+      "sha256": "cf88c75df1853e804f0dbc6473095591ea86e8b69ddbdcef7387751ae00b3d46"
+    },
+    "candidate_oda_error": {
+      "path": "/private/tmp/ac1027-vport-factor/meta-out/no-patch.dxf.err",
+      "sha256": "61c3808e7d50b04129411f57f3d4eb015986597d85d1f460f437b575e6505c7f"
+    },
+    "source_page": {
+      "path": "/private/tmp/modern-8bb/source-objects.raw",
+      "sha256": "43bb83bda0a955c8e7950ba885d20636565446b0fa5c12b9001f8451be138555"
+    },
+    "oda_converter": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "libredwg_0_14": {
+      "path": "/opt/homebrew/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    }
+  },
+  "files_sha256": {
+    "src/drw_objects.cpp": "2ff7d67d01af797474c6593b1469b1290355a547152f637f34d192fb1d90c79e",
+    "tests/dwg_reader_matrix_tests.cpp": "f947581073163cdd450951c1c8e1fc0097077569bdc9853987f8e0d96cd09e11",
+    "tests/CMakeLists.txt": "4b739c1e755c36ab319794f748891df4f6a024fe61c0857419c69b3746cb286d",
+    "tools/audit_ac1027_active_vport_peer.py": "0c75fda256951d4ff5ac9eb99b9efeac438a268e4652d771221cf9abcc6586b8",
+    "tests/ac1027_active_vport_peer_tests.py": "e7dc94a610449040d950560090e06632a4e5898ab42b71ee5c66d8d228003879",
+    "tools/probe_ac1027_1032_writer_rejection.cpp": "fead505550a6b915625818e3c11a9ad54fb052a681a3e478ae0c44b01b3adb4c"
+  },
+  "validation": {
+    "normal": "ctest --test-dir /private/tmp/ac1027-vport-final/build -R '^libdxfrw_(dwg_header_writer_sealing|ac1027_active_vport_peer)$' --output-on-failure",
+    "normal_result": "2/2 passed",
+    "asan": "ctest --test-dir /private/tmp/ac1027-vport-final/asan -R '^libdxfrw_dwg_header_writer_sealing$' --output-on-failure",
+    "details": "The matrix checks byte-exact private synthetic roles on six revisions, public caller/null compatibility, nonzero roles and UCS sentinels, complete writer/readback and invalid-record rollback/same-writer retry. Fixture-free auditor controls reject wrong roles, nonzero refs, owner/control graph, metadata and raw bit/padding variations. The matrix source also contains the separately committed AC1027 synthetic LAYER expectation correction.",
+    "asan_result": "1/1 passed"
+  },
+  "peer_command": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_ac1027_active_vport_peer.py --source1 /private/tmp/modern-writer-investigation/source-dwg/AC1027/line.dwg --source1-sha256 1bab740b1f96b88534b4f8238828b9044cffd58b2975ec4b6b00db0c4560cd09 --source2 /private/tmp/wipeout-frame1/ac1027/source.dwg --source2-sha256 3d17c285fdfec50337acf55039d55f7eae0130bbe0bd39c1f3de50a7c6230b00 --native /private/tmp/ac1027-vport-final/final.dwg --native-sha256 438e317cf6c80e66cd2889000d566ad5b7fc2935797a9151ad00fc1028f3d679 --generated /private/tmp/ac1027-vport-factor/in/mode07.dwg --generated-sha256 15ca5a8be1c3d26b502ab12ea3f619d19b443cf844422fdd0b3b2b8064d6ad2e --dxf /private/tmp/ac1027-vport-factor/out/mode07.dxf --dxf-sha256 cf88c75df1853e804f0dbc6473095591ea86e8b69ddbdcef7387751ae00b3d46 --dwgread /opt/homebrew/bin/dwgread --dwgread-sha256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff --source-page /private/tmp/modern-8bb/source-objects.raw --source-page-sha256 43bb83bda0a955c8e7950ba885d20636565446b0fa5c12b9001f8451be138555 --source-offset 1005",
+  "peer_command_cwd": "/private/tmp/ac1027-vport-final/work",
+  "limitations": [
+    "ODA conversion lineage and decompression page lineage are separate observed manual joins; neither is established by hash alone.",
+    "No caller-provided VPORT or AC1032 typed-null widening; no color-policy, angle, file-header metadata, or string-frame change.",
+    "The physical witnesses are distinct drawings from the same ODA producer, not independent authoring kernels.",
+    "Do not claim general modern writer readiness from a diagnostic byte edit or from selected geometry/graph checks."
+  ],
+  "patch": {
+    "path": "/private/tmp/ac1027-vport-final/vport.patch",
+    "sha256": "317e8256fba30315d814b8b3c89917f0738a18e0574bfb746baf648ec0280a2d"
+  },
+  "factor_source_copies": [
+    {
+      "path": "/private/tmp/ac1027-vport-factor/work/src/drw_objects_vport_factor0.cpp",
+      "sha256": "b95219c6febf0cddcacdc506dd14ca20668738a77c9f8f3a206c9a667558ac22"
+    },
+    {
+      "path": "/private/tmp/ac1027-vport-factor/work/src/drw_objects_vport_factor1.cpp",
+      "sha256": "8adf68599df3505ce4db6a667c8e2acc4bc71e18ca38857c6fca0995a6879c1e"
+    },
+    {
+      "path": "/private/tmp/ac1027-vport-factor/work/src/drw_objects_vport_factor2.cpp",
+      "sha256": "bd50ca19b6266bf4ee709254ebf48ff6a02d0c45daa53aa6e163ad6c46cd9119"
+    },
+    {
+      "path": "/private/tmp/ac1027-vport-factor/work/src/drw_objects_vport_factor3.cpp",
+      "sha256": "9275c67a16dd67d04d30d71a1688197498c4c5f6806ad8f59863309695059640"
+    },
+    {
+      "path": "/private/tmp/ac1027-vport-factor/work/src/drw_objects_vport_factor4.cpp",
+      "sha256": "8bb48357665830944b838f6949d6702eb42344a2f1d3720d3f379b33adbe6c6d"
+    },
+    {
+      "path": "/private/tmp/ac1027-vport-factor/work/src/drw_objects_vport_factor5.cpp",
+      "sha256": "b59c980e717a87600857c608a568812e5ae88e2440e1fec8c9eef8c9352b06d1"
+    },
+    {
+      "path": "/private/tmp/ac1027-vport-factor/work/src/drw_objects_vport_factor6.cpp",
+      "sha256": "200c274d3fbed0ea91f2e2f16bcae7631c61591f5c123cc73bc5962818bfae30"
+    },
+    {
+      "path": "/private/tmp/ac1027-vport-factor/work/src/drw_objects_vport_factor7.cpp",
+      "sha256": "f98481c17422400d61bf5e37c84b62ef01ebc65f81fabc3e7000e0362a3b637c"
+    },
+    {
+      "path": "/private/tmp/ac1027-vport-factor/work/src/intern/dwgwriter24_vport_factor.cpp",
+      "sha256": "9f118a9781ed704e3f77013e422ce04bffa8eca744af53f9144eee43cd63085c"
+    }
+  ],
+  "reproduction": [
+    "Configure and build the scratch candidate with -DLIBDXFRW_BUILD_TESTS=ON and compile tools/probe_ac1027_1032_writer_rejection.cpp with -std=c++17 -Isrc -Isrc/intern -Itests and link the resulting libdxfrw.a. Run PROBE line AC1027 NEW_DWG --material; the fresh result matches the recorded candidate hash.",
+    "Run the recorded peer_command from peer_command_cwd under the ezdxf 1.4.5 peer environment. This checks four DWGs, raw source page, ODA DXF and reader executable against the supplied SHA-256 values, including the exact one-byte candidate/diagnostic difference.",
+    "The ODA calls used ACAD2013 DXF with audit enabled (arguments 0 1). Outputs and .err results are hash-bound in factorial_artifacts; the 16 source copies are scratch-only diagnostics, not production code."
+  ],
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_(dwg_header_writer_sealing|ac1027_active_vport_peer)$' --output-on-failure: 2/2 passed.",
+  "integrated_files": {
+    "src/drw_objects.cpp": "2ff7d67d01af797474c6593b1469b1290355a547152f637f34d192fb1d90c79e",
+    "tests/dwg_reader_matrix_tests.cpp": "f947581073163cdd450951c1c8e1fc0097077569bdc9853987f8e0d96cd09e11",
+    "tests/CMakeLists.txt": "67643c24deb34f22beda827c04b2ff681b2e82a31b1dfb34c6dcd75eb17d95ea",
+    "tests/ac1027_active_vport_peer_tests.py": "e7dc94a610449040d950560090e06632a4e5898ab42b71ee5c66d8d228003879",
+    "tools/audit_ac1027_active_vport_peer.py": "0c75fda256951d4ff5ac9eb99b9efeac438a268e4652d771221cf9abcc6586b8"
+  }
+}

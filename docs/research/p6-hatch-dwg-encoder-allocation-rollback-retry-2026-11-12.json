@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-hatch-dwg-encoder-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "BOUNDED_HATCH_DWG_ENCODER_TRANSACTIONAL_ROLLBACK_RETRY",
+  "supportClaimEffect": "none",
+  "scope": "Make DRW_Hatch DWG encoding transactional across caller body, string, and handle buffers, and verify allocation-failure rollback plus same-object retry.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "method": "DRW_Hatch::encodeDwg",
+    "changes": [
+      "Run HATCH encoding through encodeEntityDwgTransaction so mutations to output buffers and oType are committed only after successful encoding.",
+      "Route body, string, and handle writes through the transaction-provided staged buffers while preserving existing alias behavior and fallback of strings to the body buffer."
+    ],
+    "test": "tests/dwg_hatch_encoder_allocation_tests.cpp",
+    "failureBehavior": "Injected allocation failure leaves caller buffer bytes and bit positions, plus oType, unchanged; retrying the same entity against the same buffers reproduces the clean successful encoding."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_hatch_encoder_allocation_tests -j4",
+    "buildResult": "PASS",
+    "testBinary": "build-gcc/tests/libdxfrw_dwg_hatch_encoder_allocation_tests",
+    "focusedTestResult": "PASS: 548 allocation offsets across 6 DWG versions and 30 version/stream-layout profiles",
+    "regressionSelector": "ctest --test-dir build-gcc -R '^(dwg_hatch_encoder_allocation_rollback_retry|libdxfrw_dwg_hatch_edge_subtype)$' --output-on-failure",
+    "regressionResult": "PASS (2/2)",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "coverage": [
+    "DWG writer versions AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032.",
+    "Five stream alias layouts per version: distinct streams, shared string/handle stream, body/string alias, body/handle alias, and all streams aliased.",
+    "Allocation failure at each exercised allocation point verifies byte/bit-position and oType rollback followed by successful same-object, same-buffer retry and exact comparison to clean output.",
+    "Generated associative patterned HATCH includes seed points and a line boundary with a boundary handle."
+  ],
+  "inputHashes": {
+    "src/drw_entities.cpp": "77d2ec8ee38d209e326030e4f7cf68cafc49a770e30ab7f29fae438bd7e909c5",
+    "tests/dwg_hatch_encoder_allocation_tests.cpp": "810e813b395dd2efd0dd1859c187dc1882f035499f7e343e3640f9cf9f2cedc5",
+    "tests/CMakeLists.txt": "f9051cb48881833774cfd9abe973456638ae5b5367d623c4b5a0fb032f57ce3b"
+  },
+  "fixtureFilesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "Generated allocation and retry controls establish transaction behavior only; they do not qualify physical DWG producer profiles, HATCH semantic fidelity, or native consumer acceptance.",
+    "No DWG or DXF drawing fixture was added."
+  ]
+}

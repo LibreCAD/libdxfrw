@@ -1,0 +1,35 @@
+{
+  "schema": 3,
+  "kind": "libdxfrw-ac1024-rtext-successor-experiment",
+  "status": "DIAGNOSTIC_NOT_QUALIFIED",
+  "predecessor": "metadata/ac1024-candidate-fields-v2.json",
+  "intent": "Separately named local-from-scratch RTEXT-only successor; compare original sparse handle and compact handle without claiming the predecessor fixture identity.",
+  "fixturePolicy": "Runtime temporary DWG and JSON only; do not commit generated drawing payloads.",
+  "promotesSupport": false,
+  "selectedFields": {"insertion": [90.0, 91.0, 0.0], "rotationDegrees": 15.0, "rotationToleranceDegrees": 1e-12, "text": "LOCAL_RTEXT"},
+  "localAuthor": {
+    "source": "tools/ac1024_rtext_successor_v3.cpp",
+    "sourceSha256": "863742ba605a720a23e1b7b78d58c6e5d14964a585ac4a9c6d56fd0a0203279c",
+    "adapterSource": "tests/lc3_compat_check.cpp",
+    "adapterSourceSha256": "743762fb6f3068dc011c25b680b10aa16e68810e25b3beebe2b5eb0687386bad",
+    "observedExecutableSha256": "203b01a50b8d255ceef89f73fb0a62a1282eeb2c1b0670515b361999123d55bc",
+    "observedStaticLibrarySha256": "14fc38a2d277d913bb99ae9a91f24651c2760f56cc89aede2af5424d1fedf453",
+    "compiler": "Apple clang 21.0.0, arm64-apple-darwin27.0.0",
+    "buildCommand": "clang++ -std=c++17 -Isrc -Itests tools/ac1024_rtext_successor_v3.cpp build-gcc/libdxfrw.a -o WRITER -pthread",
+    "sourceBindingLimit": "Executable and source files are identified; library was built in an actively shared dirty worktree, so no exact committed implementation digest is claimed. Rebuild after source freeze before qualification."
+  },
+  "oracle": {
+    "name": "LibreDWG dwgread 0.14",
+    "sourceTagObject": "428d380aea8fdbff479bf7fa3f64d88e8c4a4259",
+    "sourceCommit": "d9468ae948b8f07a08efa756c19f8916052358c0",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "librarySha256": "0dd60856c25aa0dad6ff80f6c753957d0f27cc39a29f8466637db68dbd0a8847",
+    "command": "env -i LANG=C LC_ALL=C PATH=/usr/bin:/bin SOURCE_DATE_EPOCH=0 TZ=UTC dwgread -v4 -O JSON INPUT.dwg",
+    "output": "full JSON; stdout and verbose stderr captured separately"
+  },
+  "controls": [
+    {"name": "original", "entityHandle": 60672, "dwgSha256": "514991af7dc9b37e38b46107360c694dcf65ca9406dd96d44cf4c01655748e39", "oracleJsonSha256": "0122df781f1b108ad0234b43138e91faa26a1d525dae3f96bd1faf3bcbef19a1", "warningCount": 4, "errorCount": 0},
+    {"name": "compact", "entityHandle": 48, "dwgSha256": "9eb16ebecbb1d6afcc6399fcf6c389b2093fe6d49e4be777d08d5a744ee21ba1", "oracleJsonSha256": "2e6876eb28e053dec93803dca778dfa5074bbc20719c72b2d81e2b1626620244", "warningCount": 3, "errorCount": 0}
+  ],
+  "disposition": "Both local native self-read and independent reader report the selected values, but the peer warns on RTEXT class stability and HANDLE/seed handling. Claims remain PENDING_NATIVE and J295 remains DEFERRED_EXTERNAL pending source-frozen independent semantic replay, classified diagnostics, and authenticated current-digest native focused and final-broad matrices."
+}

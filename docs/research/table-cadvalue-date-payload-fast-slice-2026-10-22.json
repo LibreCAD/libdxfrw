@@ -1,0 +1,42 @@
+{
+  "id": "par134-ac1021-ac1024-table-cadvalue-kdate-payload",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "3c0b521f22308cadc85752e53384dd044310bccb94e3ae3afcc78e573e92cadc",
+  "scope": {
+    "class": "DRW_Table / DRW_TableContentObject",
+    "version": "AC1021 and AC1024",
+    "field": "TABLE CadValue type-8 kDate byte payload",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "change": "Extended generated in-memory TABLE frame builders and tests for type-8 date payloads. Production parsing was already bounded and retained the date payload as binary; this slice adds route-specific regression coverage only.",
+  "generatedControls": {
+    "payload": "Eight bytes 10 11 12 13 14 15 16 17 after a BL count of 8, plus display string 2026-10-22.",
+    "ac1021": "Standalone TABLECONTENT asserts data type, size, exact bytes, binary variant, display text, and complete semantic state.",
+    "ac1024": "Embedded TABLE asserts the same semantic/data fields and the exact following-tail bit boundary."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_table_cadvalue_date_payload$' --output-on-failure: PASS (1/1)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "productionParserChanged": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

@@ -1,0 +1,274 @@
+{
+  "date": "2026-11-16",
+  "scope": "Bounded FreeCAD main POLYFACE geometry when color preservation is explicitly disabled.",
+  "sourceBase": "FreeCAD d956ec561639cfa83f755504b1b3358ea799428e plus the first eleven ordered unmerged importer patches.",
+  "candidateCommit": "c805db7",
+  "patch": "docs/patches/freecad-p8-default-mixed-face-no-color-2026-11-16.patch",
+  "runtimeSha256": {
+    "/private/tmp/freecad-main-d956-source/src/Mod/Import/App/dxf/dxf.cpp": "f3aab22e27dff70feb68cf0a8681f3767ec50f3f675edbaeb8f7672dfc661da0",
+    "/private/tmp/freecad-main-d956-build/Mod/Import/Import.so": "cf29a485f78cda2c286ca309db4fb1115936660bc875cdfabbe230023c8b899a",
+    "/private/tmp/freecad-main-gui-config-20261116/Mod/Import/ImportGui.so": "37018ce9f51efe6a2a939a19961ef7d5969b3d642a5063461e37c6bf07c5b4e7",
+    "/private/tmp/freecad-main-gui-config-20261116/Mod/Import/Import.so": "bb777d76895e3654895ab742148d3c573b3edbf5639c52460711425b5369e19a"
+  },
+  "behavior": {
+    "before": "A valid mixed-face ACI mesh was refused with either color setting; the following valid mesh was imported.",
+    "after": "When source colors are explicitly disabled, mixed explicit 1\u2013255, omitted and BYLAYER face colors no longer prevent valid geometry. When colors are enabled the same differing or ambiguous values remain refused. BYBLOCK, malformed, duplicate and out-of-range color tags and invalid face indices remain refused regardless of that setting. A following valid mesh and LINE continue importing."
+  },
+  "validation": {
+    "focused": "Eleven related headless FreeCAD tests pass; the expanded case test separately passes 16 preserve-on/off controls including invalid face index and same-file recovery.",
+    "gui": "Twelve native macOS ARM64 GUI controls pass, including mixed-face geometry with colors disabled, preservation-on refusal, real Draft grouping, layer visibility, nested unit scaling, and subsequent LINE.",
+    "patchReplay": "The unidiff-zero patch applies to the clean first-eleven candidate and produces byte-identical tested source and test files.",
+    "fixtures": "Generated locally in temporary directories; no DWG/DXF fixtures are included.",
+    "logs": [
+      "/private/tmp/freecad-polyface-layer-20261116/mixed-color-preserve-before.log",
+      "/private/tmp/freecad-polyface-layer-20261116/mixed-color-preserve-after.log",
+      "/private/tmp/freecad-polyface-layer-20261116/mixed-color-tests.log",
+      "/private/tmp/freecad-polyface-layer-20261116/mixed-color-index-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/gui-mixed-color-final.log"
+    ]
+  },
+  "guiObservation": [
+    {
+      "case": "polyface",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "Polyface"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "polygon",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "PolygonMesh"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "mixed",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYFACE unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "nested",
+      "detail": {
+        "groups": {
+          "0": [
+            "Link_INNER",
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYFACE nondefault layer in block": [
+          [
+            78,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "nested_polygon",
+      "detail": {
+        "groups": {
+          "0": [
+            "Link_INNER",
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYGON MESH nondefault layer in block": [
+          [
+            78,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "nested_nolayers",
+      "detail": {
+        "area": 6.0,
+        "bounds": [
+          1.0,
+          2.0,
+          5.0,
+          5.0
+        ],
+        "followingLineLength": 2.0,
+        "link": "Link_INNER",
+        "scale": 1.0
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "nested_polygon_nolayers",
+      "detail": {
+        "area": 12.0,
+        "bounds": [
+          1.0,
+          2.0,
+          5.0,
+          5.0
+        ],
+        "followingLineLength": 2.0,
+        "link": "Link_INNER",
+        "scale": 1.0
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "nested_inches_nolayers",
+      "detail": {
+        "area": 3870.96,
+        "bounds": [
+          25.4,
+          50.8,
+          127.0,
+          126.99999999999999
+        ],
+        "followingLineLength": 50.799999999999955,
+        "link": "Link_INNER",
+        "scale": 25.4
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "nested_polygon_inches_nolayers",
+      "detail": {
+        "area": 7741.919999999997,
+        "bounds": [
+          25.4,
+          50.8,
+          127.0,
+          126.99999999999999
+        ],
+        "followingLineLength": 50.799999999999955,
+        "link": "Link_INNER",
+        "scale": 25.4
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "color",
+      "detail": {
+        "followingLineColor": [
+          0.0,
+          1.0,
+          0.0,
+          1.0
+        ],
+        "meshColors": [
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "color_mixed",
+      "detail": {
+        "followingLineColor": [
+          0.0,
+          1.0,
+          0.0,
+          1.0
+        ],
+        "meshColors": [
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "unsupported": {
+        "POLYFACE unsupported or invalid profile": [
+          [
+            20,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "color_mixed_nocolor",
+      "detail": {
+        "followingLineColor": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "meshColors": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "unsupported": {}
+    }
+  ],
+  "limits": [
+    "The downstream FreeCAD candidate is not merged; it must be integrated upstream.",
+    "Mixed or ambiguous face colors still require refusal when color preservation is enabled. BYBLOCK and other unsupported attributes, mixed layers, nonplanar faces and hidden edges remain outside this profile.",
+    "Native GUI property checks are not pixel rendering, independent producer semantics, or Linux/Windows qualification. No P4\u2013P9 phase gate or external support claim is promoted."
+  ],
+  "probeEvolution": "The reusable GUI probe may require later downstream patches; observations here describe the candidate identified in this receipt. See the current plan for patch order.",
+  "supersededBoundary": "The later BYBLOCK colors-disabled patch accepts group 62 value 0 only when source colors are disabled; this receipt records the earlier refusal."
+}

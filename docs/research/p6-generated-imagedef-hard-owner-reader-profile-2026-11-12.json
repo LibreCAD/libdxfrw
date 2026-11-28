@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Generated IMAGEDEF hard-owner readback profile",
+  "date": "2026-11-12",
+  "supportClaimEffect": "none",
+  "scope": "Accept the ODA v5.4.1 §20.4.81 IMAGEDEF parent hard-owner encoding emitted by libdxfrw's DWG writer, in both the shared OBJECTS prologue preflight and typed IMAGEDEF parser. Keep generic OBJECTS parent-role validation unchanged and do not promote the physical AutoCAD code-0xC source profile or strict image output.",
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/intern/dwgreader.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": "An explicit IMAGEDEF-only policy flag reaches the common handle-tail parser. It admits parent role DwgHardOwnership (raw code 3) alongside the existing offset soft-pointer decoding; other object types retain the prior soft-pointer rule. The central pre-dispatch common-prologue check passes the policy only for resolved IMAGEDEF type, and DRW_ImageDef::parseDwg passes it at its typed tail check.",
+    "testInputPolicy": "Tests generate temporary DWGs locally from scratch and remove them after each run. No DWG/DXF fixture is added to the repository."
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "generatedWriterRoleBytes": {
+      "selector": "dwg2dxf_image_common_handle_role_controls",
+      "result": "PASS, 1/1. Generated literal handle streams cover eight DWG revisions, non-null and canonical-null references, IMAGEDEF hard-owner parent code 3, and reactor soft-pointer code 4."
+    },
+    "generatedNativeReadback": {
+      "selector": "dwg2dxf_imagedef_common_hard_owner_import",
+      "result": "PASS, 1/1. Locally generated AC1021, AC1024, AC1027, and AC1032 DWGs import with typed IMAGE, IMAGEDEF and IMAGEDEF_REACTOR identities; the IMAGEDEF dictionary owner, reactor target and reactor owner relationships match."
+    },
+    "existingWriterTransaction": {
+      "selector": "libdxfrw_image_definition_plan_failure_retry",
+      "result": "PASS, 1/1. Existing IMAGEDEF plan failure, rollback, retry and readback controls remain green."
+    },
+    "broaderSelectors": {
+      "selectors": [
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "dwg2dxf_rooted_image_dictionary_closure"
+      ],
+      "result": "Both still fail after reaching later whole-source/output checks for a generated AC1027 profile. The source diagnostic reports an AcDb:Header integrity mismatch (expected 496, observed 500), followed by strict source-reference/output refusal. These failures do not occur in the dedicated generated IMAGEDEF import selector and are not relaxed by this change."
+    },
+    "preservedScratchSource": {
+      "path": "/private/tmp/image-source-identity-failure.dwg",
+      "sha256": "662be8b4d202b3dfe412f83e54dea63334c77f24bb21dac00e853d6cc29a0753",
+      "provenance": "A temporary copy of a locally authored generated test input; not committed.",
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/image-source-identity-failure.dwg -y -v2010 /private/tmp/check-image-role.dxf",
+      "result": "PASS; conversion completed with the corrected reader. This source has no preserved source-pair or producer qualification."
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "The physical AutoCAD AC1021/AC1024/AC1027/AC1032 cohort's offset soft-pointer parent code 0xC remains an unqualified source profile; the independent receipt docs/research/p6-imagedef-cross-version-soft-role-evidence-2026-11-07.json remains authoritative for that observation.",
+    "Strict DXF output, source graph closure, deletion/ownership semantics, native consumers, and producer breadth are unchanged and remain gated.",
+    "The AC1027 HEADER integrity mismatch and broader source-output refusal remain unresolved."
+  ],
+  "nextAction": "Continue with an independently supported local parser/no-loss gap. Resolve the AC1027 HEADER envelope mismatch as its own source-backed item; revisit nonempty physical IMAGEDEF output only when eligible owner-semantics evidence resolves the code-3 versus code-0xC profile conflict."
+}

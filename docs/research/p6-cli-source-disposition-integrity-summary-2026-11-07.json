@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-source-disposition-integrity-summary-2026-11-07",
+  "date": "2026-11-07",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Expose bounded DWG integrity-ledger severity and omission counts in the debug-only preflight disposition projection, and bind the summary to an existing strict-refusal source.",
+  "fields": [
+    "sourceDwgIntegrityRetainedRows",
+    "sourceDwgIntegrityErrorsAmongRetained",
+    "sourceDwgIntegrityWarningsAmongRetained",
+    "sourceDwgIntegrityExtractionOmitted",
+    "sourceDwgIntegrityUpstreamDroppedLowerBound",
+    "sourceDwgIntegrityAggregateSaturated"
+  ],
+  "source": {
+    "path": "tests/fixtures/dwg/ordinary_enc_AC1021.dwg",
+    "sha256": "25685bec2d9d537a2f04dfd081f2a0933078cc19c59ebc3473dc011dfad970c8",
+    "expectedProjection": {
+      "sourceDwgIntegrityRetainedRows": 16,
+      "sourceDwgIntegrityErrorsAmongRetained": 7,
+      "sourceDwgIntegrityWarningsAmongRetained": 9,
+      "sourceDwgIntegrityExtractionOmitted": 0,
+      "sourceDwgIntegrityUpstreamDroppedLowerBound": 0,
+      "sourceDwgIntegrityAggregateSaturated": false
+    },
+    "result": "Strict conversion refused with destination sentinel preserved and source bytes unchanged."
+  },
+  "limits": [
+    "Severity counts apply only to retained diagnostic rows. Omitted and upstream-dropped counters remain separate; none of these counters is a unique semantic-loss total.",
+    "This is diagnostic telemetry only. It does not change strict admission, source data, or support claims.",
+    "The source is an existing repository fixture; no DWG/DXF fixture was added or modified."
+  ],
+  "validation": {
+    "testedHead": "44d19e607718a43b3f09a7dea1e2d5418a46e377",
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf -j 4",
+    "test": "PASS: python3 tests/dwg2dxf_cli_contract_tests.py --converter $PWD/build-gcc/dwg2dxf/dwg2dxf --writer $PWD/build-gcc/libdxfrw_dwg_local_roundtrip --source-disposition-only (28 repair/skip/mask/integrity controls)",
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "dwg2dxf/main.cpp": "04786496abd5384adf408ba4486d6a2c976edf1bcf36168489433888af9a4b6f",
+      "tests/dwg2dxf_cli_contract_tests.py": "1029fc6b5c947454a11ec833cc4fae7a171e4281da290090c3f593696f5f45e4",
+      "build-gcc/dwg2dxf/dwg2dxf": "dac426df931357be1bb3b8df0e5d69edaaefad1451bc562d716676ceef8c26c0"
+    }
+  }
+}

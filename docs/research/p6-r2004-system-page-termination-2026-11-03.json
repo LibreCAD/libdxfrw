@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-03",
+  "scope": "AC1018/AC1024/AC1027/AC1032 literal-only system page streams",
+  "authority": "Open Design Specification for .dwg files v5.4.1 section 4.7: 0x11 marks the end of the R2004 compressed stream",
+  "change": "Append 0x11 to the page map and section map compressed payloads, include it in both declared compressed sizes and checksums, and include it in the page map's self-referential page size.",
+  "automated_validation": {
+    "selector": "libdxfrw_dwg_r2004_system_terminators",
+    "result": "PASS",
+    "checks": "Generated physical page maps and section maps for four versions: declared bounds, exact terminal opcode, independently calculated checksum, complete decode, pre-existing no-terminator stream tolerance, clipped physical-page rejection and self-page size.",
+    "adjacent_selectors_passed": ["libdxfrw_dwg_r2007_class_string_footer", "libdxfrw_dwg_header_current_references", "libdxfrw_dwg_header_writer_sealing"]
+  },
+  "external_differential": {
+    "producer": "locally generated single LINE AC1018; no sample is committed",
+    "reader": "ODA File Converter 27.1.0, ACAD2013 DXF output; examine .err and actual output because process status is zero even for failed conversions",
+    "baseline_sha256": "1354fe6ef508149f18a9d99d05d95247cd2644c4af1d7fc15ad77b17dce16cf5",
+    "baseline_result": "Invalid input",
+    "terminator_only_sha256": "3a2b1440b0d6e64ecd0666efa92c4efe24c9501b41f7f8d6d72cdb88331c9cad",
+    "terminator_only_result": "Object improperly read: <AcDbDictionary> (C); previous error: .dwg file needs recovery; no DXF produced",
+    "second_header_only_sha256": "79474d2333fbdf7ce300889408b6363e58e910205e3ef0a717db5bfdda10af72",
+    "second_header_only_result": "Invalid input",
+    "both_sha256": "3dc980f2896c97217ea0fa11f68cb7a51261d0a7ea93eaf42d167e8ed38be332",
+    "both_result": "Object improperly read: <AcDbDictionary> (C); previous error: .dwg file needs recovery; no DXF produced",
+    "independent_trace": "LibreDWG 0.14 baseline reports bit_read_RC buffer overflow at physical EOF while reading the page map; the terminator-only file no longer reports this overflow. Both traces still show the LINE.",
+    "qualification_limit": "This isolates one malformed system-stream defect and moves ODA past its earlier rejection. It does not establish successful independent reading or general DWG support; dictionary/graph diagnosis remains open."
+  },
+  "separate_followup": "A raw decompressor experiment using a literal-only page with its last literal omitted reported success; it is a separate reader-safety issue and was not used as a requirement for this writer fix."
+}

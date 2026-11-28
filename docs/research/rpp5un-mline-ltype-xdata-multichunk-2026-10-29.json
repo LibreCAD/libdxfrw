@@ -1,0 +1,69 @@
+{
+  "id": "RPP-5un",
+  "title": "MLINE-referenced simple LTYPE with ordered boundary-sized binary XDATA chunks",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "7fba6c0a",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated LTYPE and APPID records; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "xdata": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1004, "byte_pattern": "AA", "repetitions": 127, "byte_count": 127 },
+      { "code": 1004, "hex_bytes": "5A", "byte_count": 1 }
+    ]
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "document": "About Extended Data (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+    "relevant_rule": "XDATA group 1004 carries binary data in chunks of at most 127 bytes; ASCII DXF represents those bytes as hexadecimal digits. This receipt tests a full-sized chunk followed by a one-byte chunk."
+  },
+  "proof": {
+    "source": "Physical runtime-generated source fields and fresh import verify the exact APPID followed by the ordered 127-byte and one-byte chunks. Import-time origin, raw/typed equality, the AppIdName role and APPID name lookup bind the provider.",
+    "output": "For all four ASCII/binary source/output combinations, the staged output proof checks exact 1001/1004 order and hex bytes; fresh typed readback verifies both chunk boundaries and values.",
+    "failure_retry": "Removing the source APPID provider refuses export and preserves the destination sentinel; restoring it succeeds on the same adapter.",
+    "slice_counts": {
+      "positive_profiles": 4,
+      "successful_readbacks": 8,
+      "refusals_with_destination_preservation": 4,
+      "same_adapter_retries": 4
+    },
+    "cumulative_test_counts": {
+      "positive_profiles": 32,
+      "successful_readbacks": 71,
+      "refusals_with_destination_preservation": 39,
+      "same_adapter_retries": 39
+    }
+  },
+  "validation": {
+    "fixture_test_build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "fixture_test_build_result": "PASS",
+    "production_build": "cmake --build build-gcc --target dwg2dxf -j2",
+    "production_build_result": "PASS",
+    "focused_command": "ctest --test-dir build-gcc -R '^(libdxfrw_mline_ltype_appid_xdata|libdxfrw_xrecord_xdata_channels|libdxfrw_dxf_xdata_string_owner_budget|libdxfrw_mline_ltype_provider_profiles|libdxfrw_mline_ltype_mixed_segments)$' --output-on-failure",
+    "focused_result": "PASS (5/5)",
+    "post-adjustment_selector": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+    "post-adjustment_selector_result": "PASS (1/1)",
+    "runtime_counts_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "runtime_counts_result": "profiles=32; readbacks=71; refusals=39; retries=39",
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineLtypeAppIdXdataControls",
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "The selected LTYPE XDATA admission rejects any individual code-1004 chunk larger than 127 bytes. The receipt does not qualify all chunk counts, empty chunks, alternative chunk values/orderings, or every aggregate payload boundary.",
+    "Other XDATA types, values, payload compositions, APPID counts/metadata, dependency roles, LTYPE schemas and versions remain unqualified.",
+    "This receipt establishes transport only. It does not establish application-specific XDATA meaning, MLINE rendering, recursive document closure, or broader LTYPE provider support."
+  ]
+}

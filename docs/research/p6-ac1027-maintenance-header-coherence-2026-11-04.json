@@ -1,0 +1,222 @@
+{
+  "status": "bounded AC1027 new-file maintenance coherence; no general writer promotion",
+  "base_commit": "010bdc45",
+  "authority": "ODA v5.4.1 \u00a7\u00a74.1, 7, 9 and 27. Fixed byte 0x0b is maintenance release; byte 0x12 is application maintenance. \u00a77 identifies application maintenance 6 and 8 as known R2013 values. AuxHeader \u00a727 has DWG version and three maintenance fields; these may include save history. Section/page rules and CRCs are in \u00a7\u00a74.1 and 9.",
+  "change": "For newly generated AC1027 only, write maintenance release 8 at fixed byte 0x0b and initialize all three AuxHeader maintenance fields to 8. The file remains at application maintenance 6 (byte 0x12), 0x0c=0 and application version 0x11=0; no other format version changes. For newly generated one-save files, repeating 8 follows the same-source ODA one-save AuxHeader pattern. Historical files may have different values and are not rewritten by this change.",
+  "source_evidence": {
+    "source": "/private/tmp/libredwg-tablecontent-probe-src/test/test-data/2013/Line.dwg",
+    "source_sha256": "351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1",
+    "companion": "/private/tmp/libredwg-tablecontent-probe-src/test/test-data/2013/Line.txt",
+    "companion_sha256": "d9db47617614cb72de29b3a72f5d354ee0404628b600992e2abceccc76db0076",
+    "provenance": "A pre-existing LibreDWG test-data AC1027 file; companion text labels its LINE as from AutoCAD in 2014. The original authoring lineage is not independently established by this audit.",
+    "metadata": "0x0b/0x0c/0x11/0x12 = 08/03/1f/08",
+    "aux": "LibreDWG 0.14 decodes current AUX DWG version 31 and maintenance 8; two historical version/maintenance pairs are 22/46, demonstrating these history fields are not universally identical to current values.",
+    "appinfo": "The source AppInfo identifies AutoCAD; candidate AppInfo remains LibreCAD. No AutoCAD application identity is copied.",
+    "oda_output": "/private/tmp/ac1027-header-profile/full-out/source.dxf",
+    "oda_output_sha256": "b0aef1beb27a453ad1ca5fc79f3037d100203c0b1b3baaf7ab3d37297b06f173",
+    "scope": "Source-to-ODA conversion is a separately observed manual join. Source header/aux metadata and one LINE are independently decoded; source and returned DXF selected LINE coordinates match and ezdxf reports no errors or fixes."
+  },
+  "additional_source": "An independently authored ODA-produced AC1027 LINE DWG (SHA-256 1bab740b1f96b88534b4f8238828b9044cffd58b2975ec4b6b00db0c4560cd09) has fixed release 0x69, application maintenance 0x37, and its one-save AuxHeader version/maintenance pairs 31/0x69 repeated three times. Thus 0x0b and 0x12 are distinct fields and need not match.",
+  "profile_limit": "No physical source with the complete candidate tuple 08/00/00/06 has been established. The spec explicitly allows 0x0c=0 but does not enumerate whether application-version 0x11=0 is a valid writer identity; this byte remains the established libdxfrw value and its AppInfo says LibreCAD. The source proves release 8, not this complete hybrid tuple. A controlled full-source-tuple variant 08/03/1f/08 with the same candidate AuxHeader also converted; its selected graph and LINE match the candidate and the two DXFs differed only in ODA-generated update timestamps. This does not establish universal validity of the hybrid or imply all applications accept it.",
+  "input_profile_matrix": "For the same prior generated opt-in LINE file with no AuxHeader edits, fixed release 0 and 3 fail ODA; 4, 6, 8, 0x69 and 0x7d each produce a DXF with no .err under that selected drawing. Full observed tuples and fixed 08/00/00/08 also convert. These are diagnostics, not proof that arbitrary release values are equivalent or valid. The actual candidate is generated with AuxHeader copies =8; it is not byte-patched.",
+  "production_samples": [
+    {
+      "mode": "arc",
+      "dwg": "/private/tmp/ac1027-header-profile/production-in/arc.dwg",
+      "dwg_sha256": "b52cf536b7e4e44b80b8ba9f3cb83c98fddd64114efa7d605c94132bbde99908",
+      "dxf": "/private/tmp/ac1027-header-profile/production-out/arc.dxf",
+      "dxf_sha256": "c0e226715542e92cdeb74f0f67609e098a93c51fb94fcd35c5f7330a4ba64095",
+      "oda_err_present": false
+    },
+    {
+      "mode": "arc_negative",
+      "dwg": "/private/tmp/ac1027-header-profile/production-in/arc_negative.dwg",
+      "dwg_sha256": "7b570df1ba9f28ea0945f27ad4739245ef2fbb69bdcb86f805321a795ccf1065",
+      "dxf": "/private/tmp/ac1027-header-profile/production-out/arc_negative.dxf",
+      "dxf_sha256": "d8ca328f030f6af4ef3c335236360bcaf99a32fb9bc8af724b6cdf096ddf4c67",
+      "oda_err_present": false
+    },
+    {
+      "mode": "arc_tilt",
+      "dwg": "/private/tmp/ac1027-header-profile/production-in/arc_tilt.dwg",
+      "dwg_sha256": "2a2b19af8f0bd521de258ea339485e18fdd3b3de7b325762bb6977089d37acf9",
+      "dxf": "/private/tmp/ac1027-header-profile/production-out/arc_tilt.dxf",
+      "dxf_sha256": "769f64b41ec10919ac12ca712f1b0e4098a257a66b721924b244a2e6c99cc92e",
+      "oda_err_present": false
+    },
+    {
+      "mode": "circle",
+      "dwg": "/private/tmp/ac1027-header-profile/production-in/circle.dwg",
+      "dwg_sha256": "53069490b4ee49fdbc4c4e9de577d884df0efce028583a1415d973e2e1e1110b",
+      "dxf": "/private/tmp/ac1027-header-profile/production-out/circle.dxf",
+      "dxf_sha256": "e142506cf64d92cc61d244c4884877153b9870c3da405e194dd60f395d130758",
+      "oda_err_present": false
+    },
+    {
+      "mode": "circle_negative",
+      "dwg": "/private/tmp/ac1027-header-profile/production-in/circle_negative.dwg",
+      "dwg_sha256": "4acba2cef99ed84393e1ec072083b3135122792369b3731587810d4d2f0e52a7",
+      "dxf": "/private/tmp/ac1027-header-profile/production-out/circle_negative.dxf",
+      "dxf_sha256": "8a83cbc25cc781c1ab137bf7e1905c23942365c19abc58f181662c245cb4b1d6",
+      "oda_err_present": false
+    },
+    {
+      "mode": "circle_tilt",
+      "dwg": "/private/tmp/ac1027-header-profile/production-in/circle_tilt.dwg",
+      "dwg_sha256": "9458bc7ae965e04d25c0aa08f3db9bc3ad267eaef8ca7022cb051b11b7b4573b",
+      "dxf": "/private/tmp/ac1027-header-profile/production-out/circle_tilt.dxf",
+      "dxf_sha256": "67c40c2280194ae3bb65986623a414d476e82fb888320a6938c37c54b72ee236",
+      "oda_err_present": false
+    },
+    {
+      "mode": "line",
+      "dwg": "/private/tmp/ac1027-header-profile/production-in/line.dwg",
+      "dwg_sha256": "bc0b76f71565532763c635172b765cf41e4ba20cf86a7f412ba8329d3d4486cc",
+      "dxf": "/private/tmp/ac1027-header-profile/production-out/line.dxf",
+      "dxf_sha256": "3f16cfd966bcfcec1758941ab1b24158b9eee0c4af66fe97ab80a44f1868b394",
+      "oda_err_present": false
+    },
+    {
+      "mode": "mixed",
+      "dwg": "/private/tmp/ac1027-header-profile/production-in/mixed.dwg",
+      "dwg_sha256": "6948944edf5e5fb7397cf77081cbf2b4cd223884e4f57138d3ef1b8e62639187",
+      "dxf": "/private/tmp/ac1027-header-profile/production-out/mixed.dxf",
+      "dxf_sha256": "2a17bebcedaeceb9a1abcea7d3d296dfadfecdcf914d4e24fbf5a9d6851d625b",
+      "oda_err_present": false
+    },
+    {
+      "mode": "point",
+      "dwg": "/private/tmp/ac1027-header-profile/production-in/point.dwg",
+      "dwg_sha256": "741f8309da0c893d832e7b07141b3eb8a001be019ac8ae2c6667e57517955e51",
+      "dxf": "/private/tmp/ac1027-header-profile/production-out/point.dxf",
+      "dxf_sha256": "390739d7dfffbafd8fa15dbc3c509f002bb6cfa94579b3d44b83ec956ff07642",
+      "oda_err_present": false
+    }
+  ],
+  "production_sample_scope": "All nine DWGs are freshly generated with explicit default material and plotstyle opt-ins. ODA returned DXF without .err for each; hash-bound LibreDWG and ezdxf checks verify LINE/POINT/CIRCLE/ARC selected OCS/WCS geometry and material/plotstyle/layer graph, including tilted and negative normals. This is not complete drawing equivalence or a general writer support claim. ODA conversion lineage is an observed manual join.",
+  "crc_scope": "For each of nine selected writer outputs, tools/audit_ac1027_maintenance_header.py checks encrypted primary header CRC32 and exact repeated encrypted copy, HEADER and CLASSES CRC16/sentinels, 8 discovered data-page header/data checksums and 2 system-page checksums. Header page count is 10. The page scanner and count are bounded to this writer sample and are not a general proof of arbitrary page-map membership; LibreDWG and native readers additionally decode the files. AppInfo contains LibreCAD.",
+  "native_compatibility": "Current and older pre-candidate libdxfrw readers were separately compiled with tools/probe_ac1027_maintenance_native.cpp. Baseline and coherent candidate report identical selected LINE/VPORT/layer/material callbacks, coordinates, HANDSEED, 32 observed frames, zero entity/object/class/file-header CRC failures, and one HEADER compatibility warning (kind 24); neither had dropped integrity diagnostics. The earlier reader library was built from scratch 156b3946 and no ABI change is made. This is selected readback, not full semantic equivalence.",
+  "other_versions": {
+    "AC1018": {
+      "old": {
+        "path": "/private/tmp/ac1027-header-profile/version-comparison/AC1018-old.dwg",
+        "sha256": "5964b4dc9a1f25b951c2f197566fe41d265a8bd0c00520b7bdf3e2cd0f668b0e"
+      },
+      "new": {
+        "path": "/private/tmp/ac1027-header-profile/version-comparison/AC1018-new.dwg",
+        "sha256": "5964b4dc9a1f25b951c2f197566fe41d265a8bd0c00520b7bdf3e2cd0f668b0e"
+      }
+    },
+    "AC1024": {
+      "old": {
+        "path": "/private/tmp/ac1027-header-profile/version-comparison/AC1024-old.dwg",
+        "sha256": "53f46e21906c9e18f4f7a499a40a2135d3015325c33f996d2fbcc4e6a046f468"
+      },
+      "new": {
+        "path": "/private/tmp/ac1027-header-profile/version-comparison/AC1024-new.dwg",
+        "sha256": "53f46e21906c9e18f4f7a499a40a2135d3015325c33f996d2fbcc4e6a046f468"
+      }
+    },
+    "AC1027": {
+      "old": {
+        "path": "/private/tmp/ac1027-header-profile/version-comparison/AC1027-old.dwg",
+        "sha256": "b18041b00c0aadf4a32671468d1129665edcecff914ffd040baee8da895a43a2"
+      },
+      "new": {
+        "path": "/private/tmp/ac1027-header-profile/version-comparison/AC1027-new.dwg",
+        "sha256": "97ea1502b5826b07995082cb807fd0a298e65cc3a6c949d023bdcc5580b422ca"
+      }
+    },
+    "AC1032": {
+      "old": {
+        "path": "/private/tmp/ac1027-header-profile/version-comparison/AC1032-old.dwg",
+        "sha256": "94c7f0479c2e17c2266b7aad5b77bc86923f9b2ed20241b536c5ee010b624723"
+      },
+      "new": {
+        "path": "/private/tmp/ac1027-header-profile/version-comparison/AC1032-new.dwg",
+        "sha256": "94c7f0479c2e17c2266b7aad5b77bc86923f9b2ed20241b536c5ee010b624723"
+      }
+    }
+  },
+  "other_version_result": "AC1018, AC1024 and AC1032 LINE files are byte-identical between the original and candidate writer18 object; AC1027 differs as intended.",
+  "strict_and_no_optin_limits": "The strict CLI refuses both old and new material-opt-in samples at the same unqualified DWG MATERIAL graph gate and preserves destination. Both old and new no-material samples also fail strict output at the same opaque-callback gate (qualified=2/4), preserving destination. The candidate without material opt-in remains ODA-failed at LAYER; the header fix is not sufficient without the other required graph profiles.",
+  "artifacts": {
+    "oda_converter": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "libredwg_0_14": {
+      "path": "/opt/homebrew/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "old_native_probe": {
+      "path": "/private/tmp/ac1027-header-profile/older-native-probe-final",
+      "sha256": "fdc945872661fb98ad4d9713111e945a71172c6c4898a4651de8fcbe9e6e999c"
+    },
+    "current_native_probe": {
+      "path": "/private/tmp/ac1027-header-profile/native-probe-final",
+      "sha256": "4442c8091d336ea44d17b7b0e8872e602a8b2fe9d06ae6074d6ca3466ccda8e5"
+    },
+    "actual_candidate": {
+      "path": "/private/tmp/ac1027-header-profile/full-in/candidate.dwg",
+      "sha256": "bc0b76f71565532763c635172b765cf41e4ba20cf86a7f412ba8329d3d4486cc"
+    },
+    "full_tuple_control": {
+      "path": "/private/tmp/ac1027-header-profile/full-in/full-native-tuple.dwg",
+      "sha256": "077bac15e052850fb07d9c81e3607f205671de777ad80650cc5568288cb810d7"
+    },
+    "full_tuple_output": {
+      "path": "/private/tmp/ac1027-header-profile/full-out/full-native-tuple.dxf",
+      "sha256": "693b9aff5fe769109378962d79f7d5d4a114e17498ae0831dadd8eaa05813386"
+    },
+    "no_material_error": {
+      "path": "/private/tmp/ac1027-header-profile/no-material-out/no-material.dxf.err",
+      "sha256": "246ef28e96d4c8985db5119589bfffca5ee84b7fd1a6bee90bea44842d826ad9"
+    }
+  },
+  "files_sha256": {
+    "src/intern/dwgwriter18.cpp": "c91d56511ea810ce227e47201f2c07762f4e7849eea02fd6195a3b7e5b128592",
+    "tests/CMakeLists.txt": "60ef1c380ae4b297bd24c41b9e69994266d6c61d8da6b7cd2fe0b75acfb14ef6",
+    "tests/dwg_ac1027_maintenance_header_tests.cpp": "3d9f30c3688d403c3c33288029c7fad78641e28d8e7a00f41a921fd69455c22d",
+    "tests/ac1027_maintenance_header_audit_tests.py": "338abf007488adaecff5984e0b1de8ccd14e4fee9460e75d14bfb83ee133375c",
+    "tests/ac1027_header_geometry_peer_tests.py": "cb8d3eff979022bf13a6e80736d0f1c4165bfaf3a3dda3b0972f9f944fd5450c",
+    "tools/audit_ac1027_maintenance_header.py": "36786d7e5cdc04ea1338b96f004e536b1de6c68a76001bd4c036f8de639a0edd",
+    "tools/audit_ac1027_maintenance_source.py": "4bc5e578ff0fa7836c70c6fffb5ce98c6c6f1cc97f21bdd611992073ecabbe32",
+    "tools/audit_ac1027_header_geometry_peer.py": "618a4e587176feff7a5e16f7b1b11727ba145ddd0cb9397c82e637fa01ff8411",
+    "tools/probe_ac1027_header_geometry.cpp": "961ae39b4ddbcbba9395ef52d46b9034590c65c60838e39d7a59b121479dd554",
+    "tools/probe_ac1027_maintenance_native.cpp": "47c71f6cd99fd72399c5a67e924acbb40aeb836a8e3738d7bf1df0522648cba7"
+  },
+  "patch": {
+    "path": "/private/tmp/ac1027-header-profile/header.patch",
+    "sha256": "04af1aef23f39ba57b397fc9cb99500f951ca45a7e8bfc34c6e777620d00a87c"
+  },
+  "validation": {
+    "focused": "ctest --test-dir /private/tmp/ac1027-header-profile/build -R '^libdxfrw_(dwg_ac1027_maintenance_header|ac1027_maintenance_header_audit|ac1027_header_geometry_peer|dwg_modern_repeated_header|dwg_modern_header_section_size)$' --output-on-failure",
+    "focused_result": "5/5 pass",
+    "asan": "ctest --test-dir /private/tmp/ac1027-header-profile/asan -R '^libdxfrw_dwg_ac1027_maintenance_header$' --output-on-failure",
+    "asan_result": "1/1 pass",
+    "test_scope": "Four-version output and AuxHeader checks, failure destination preservation and retry, native readback, repeated-header/section CRC controls, fixture-free checksum and source-profile negatives under Python -O."
+  },
+  "commands": {
+    "source_audit": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_ac1027_maintenance_source.py --source /private/tmp/libredwg-tablecontent-probe-src/test/test-data/2013/Line.dwg --source-sha256 351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1 --dxf /private/tmp/ac1027-header-profile/full-out/source.dxf --dxf-sha256 b0aef1beb27a453ad1ca5fc79f3037d100203c0b1b3baaf7ab3d37297b06f173 --dwgread /opt/homebrew/bin/dwgread --dwgread-sha256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "geometry_line_audit": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_ac1027_header_geometry_peer.py --mode line --dwgread /opt/homebrew/bin/dwgread --dwgread-sha256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff --dwg /private/tmp/ac1027-header-profile/production-in/line.dwg --dwg-sha256 bc0b76f71565532763c635172b765cf41e4ba20cf86a7f412ba8329d3d4486cc --dxf /private/tmp/ac1027-header-profile/production-out/line.dxf --dxf-sha256 3f16cfd966bcfcec1758941ab1b24158b9eee0c4af66fe97ab80a44f1868b394",
+    "integrity_line_audit": "python3 -O tools/audit_ac1027_maintenance_header.py --dwg /private/tmp/ac1027-header-profile/production-in/line.dwg --dwg-sha256 bc0b76f71565532763c635172b765cf41e4ba20cf86a7f412ba8329d3d4486cc --baseline /private/tmp/ac1027-header-profile/in/00-writer.dwg --baseline-sha256 438e317cf6c80e66cd2889000d566ad5b7fc2935797a9151ad00fc1028f3d679",
+    "oda": "ODAFileConverter /private/tmp/ac1027-header-profile/production-in /private/tmp/ac1027-header-profile/production-out ACAD2013 DXF 0 1 \"*.dwg\"",
+    "native_build": "Compile tools/probe_ac1027_maintenance_native.cpp with -std=c++17 -Isrc -Itests against the candidate libdxfrw.a; repeat against 156b3946 headers/library. Read the old baseline and production line and compare stdout.",
+    "factorial_note": "The matched metadata profiles are scratch-only byte edits of one hash-bound old writer output; AUX changes are absent in those diagnostic variants. Full-tuple controls differ only in bytes 0x0c,0x11,0x12 from the coherent production candidate."
+  },
+  "exact_writer_diff": "The hash-bound old and new opt-in LINE outputs have equal length and differ in exactly 11 bytes: fixed byte 0x0b, the three AuxHeader maintenance bytes, and seven encrypted data-page header/checksum bytes. The auditor verifies both old/new page checksums, asserts those are the only permitted byte ranges, and binds both DWG hashes. The selected no-opt-in pair also has the same 11 changed offsets.",
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_(dwg_ac1027_maintenance_header|ac1027_maintenance_header_audit|ac1027_header_geometry_peer|dwg_modern_repeated_header|dwg_modern_header_section_size)$' --output-on-failure: 5/5 passed.",
+  "integrated_files": {
+    "src/intern/dwgwriter18.cpp": "c91d56511ea810ce227e47201f2c07762f4e7849eea02fd6195a3b7e5b128592",
+    "tests/CMakeLists.txt": "f1bc49ddeaef78bdefcc87b4151e40c7ca4f18764d53821d45f963799ad3b301",
+    "tests/dwg_ac1027_maintenance_header_tests.cpp": "3d9f30c3688d403c3c33288029c7fad78641e28d8e7a00f41a921fd69455c22d",
+    "tests/ac1027_maintenance_header_audit_tests.py": "338abf007488adaecff5984e0b1de8ccd14e4fee9460e75d14bfb83ee133375c",
+    "tests/ac1027_header_geometry_peer_tests.py": "cb8d3eff979022bf13a6e80736d0f1c4165bfaf3a3dda3b0972f9f944fd5450c",
+    "tools/audit_ac1027_maintenance_header.py": "36786d7e5cdc04ea1338b96f004e536b1de6c68a76001bd4c036f8de639a0edd",
+    "tools/audit_ac1027_maintenance_source.py": "4bc5e578ff0fa7836c70c6fffb5ce98c6c6f1cc97f21bdd611992073ecabbe32",
+    "tools/audit_ac1027_header_geometry_peer.py": "618a4e587176feff7a5e16f7b1b11727ba145ddd0cb9397c82e637fa01ff8411",
+    "tools/probe_ac1027_header_geometry.cpp": "961ae39b4ddbcbba9395ef52d46b9034590c65c60838e39d7a59b121479dd554",
+    "tools/probe_ac1027_maintenance_native.cpp": "47c71f6cd99fd72399c5a67e924acbb40aeb836a8e3738d7bf1df0522648cba7"
+  }
+}

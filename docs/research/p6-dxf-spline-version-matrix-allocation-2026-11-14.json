@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-spline-version-matrix-allocation-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_SPLINE_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add fast whole-operation allocation rollback, same-writer retry and typed readback for standalone SPLINE direct writes across all admitted revisions.",
+  "source": {
+    "kind": "locally generated in-memory DRW_Spline entity",
+    "profile": "One planar rational degree-2 SPLINE with three control points, six knots, a non-unit middle weight, nondefault knot/control/fit tolerances, extrusion normal and start/end tangents.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-spline-version-matrix-allocation-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "efe327fc90ab536275aff1b86df338d5e592182b8309126d1450f1b7bae1ac7c",
+    "testExecutableSha256": "420a29ed663096730e8044c1d9fa82f5854822cd1344b68a78f1e8cac41d8f55",
+    "method": "For each revision and encoding, calibrate the successful full-document write, inject std::bad_alloc at every measured allocation, require sentinel destination bytes and unchanged modeled caller fields/derived handle maps, retry on the same codec and compare exact output bytes, then freshly import and check the source revision and modeled SPLINE geometry/metadata."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 86, "Binary": 85},
+    "AC1015": {"ASCII": 88, "Binary": 87},
+    "AC1018": {"ASCII": 88, "Binary": 87},
+    "AC1021": {"ASCII": 88, "Binary": 87},
+    "AC1024": {"ASCII": 95, "Binary": 94},
+    "AC1027": {"ASCII": 88, "Binary": 87},
+    "AC1032": {"ASCII": 88, "Binary": 87},
+    "totals": {"ASCII": 621, "Binary": 614, "all": 1235}
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_dxf_spline_version_allocation_transaction$' --output-on-failure: PASS 1/1 in 8.89 seconds",
+    "directRun": "build/tests/libdxfrw_dxf_write_allocation_transaction_tests /tmp/libdxfrw-spline-version-allocation-final spline: PASS; all 1,235 measured offsets passed rollback, same-writer byte-identical retry and typed readback.",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction and same-library self-readback evidence only; independent producer and native spline behavior remain unqualified.",
+    "One rational planar profile is covered; fit-only, nonplanar, periodic/closed and producer-specific spline profiles remain outside this receipt.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Standalone SPLINE writer whole-operation rollback, caller-state preservation, same-writer byte-identical retry and typed readback now span all seven admitted revisions in ASCII and Binary.",
+    "remainingP6G": "Continue the exact public-writer inventory and uncovered version/profile variants; producer and native spline semantics remain separate gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "301 completed slices and 34 remaining packages: 301/(301+34)=89.9%; count-based activity proxy only."
+  }
+}

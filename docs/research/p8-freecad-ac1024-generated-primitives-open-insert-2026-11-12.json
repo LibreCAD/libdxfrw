@@ -1,0 +1,85 @@
+{
+  "title": "macOS FreeCAD 1.1.4 generated AC1024 primitive open/insert qualification",
+  "date": "2026-11-12",
+  "status": "PASS for generated AC1024 geometry open/insert route only",
+  "platform": "macOS 27.2.1 arm64",
+  "freecad": {
+    "version": "1.1.4",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "binary": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd"
+  },
+  "source": {
+    "provenance": "Generated from scratch at test runtime by the libdxfrw DWG writer; no fixture file was committed.",
+    "version": "AC1024",
+    "sha256": "238e302caabc3df262f321996b6f7684de40ac49acce95ac28c85eac63c1bf94",
+    "entities": {
+      "POINT": 1,
+      "LINE": 1,
+      "CIRCLE": 1,
+      "ARC": 1,
+      "ELLIPSE": 1,
+      "LWPOLYLINE": 1,
+      "POLYLINE": 2,
+      "SPLINE": 1
+    }
+  },
+  "converter": {
+    "path": "/private/tmp/libdxfrw-freecad-ac1024-prefix/bin/dwg2dxf",
+    "sha256": "e87d9b5c0dbb2054ad43e9a2877bce1d96297925ebe6b4a4499f11f7038d9669",
+    "build_source_binary_hash_match": true,
+    "generated_dxf_sha256": "bc24ce40fa0259201aabb47e2d1b4a2cff1ce419655a057ce63294fdd1eabac0"
+  },
+  "operations": {
+    "open": {
+      "result": "PASS",
+      "importer": "FreeCAD C++ DXF importer through Draft DWG open route",
+      "created_objects": 9,
+      "entity_counts": {
+        "ARC": 1,
+        "CIRCLE": 1,
+        "ELLIPSE": 1,
+        "LINE": 1,
+        "LWPOLYLINE": 1,
+        "POINT": 1,
+        "POLYLINE": 2,
+        "SPLINE": 1
+      },
+      "unsupported_features": []
+    },
+    "insert": {
+      "result": "PASS",
+      "importer": "FreeCAD C++ DXF importer through Draft DWG insert route",
+      "created_objects": 9,
+      "entity_counts": {
+        "ARC": 1,
+        "CIRCLE": 1,
+        "ELLIPSE": 1,
+        "LINE": 1,
+        "LWPOLYLINE": 1,
+        "POINT": 1,
+        "POLYLINE": 2,
+        "SPLINE": 1
+      },
+      "unsupported_features": []
+    }
+  },
+  "test_changes": {
+    "files": [
+      "tests/CMakeLists.txt",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/run_freecad_installed_3d_line_test.cmake",
+      ".github/workflows/freecad-platform-qualification.yml"
+    ],
+    "details": "The generated primitive source and installed-converter harness now accept AC1021 or AC1024. The existing AC1021 open/insert checks still pass; the AC1024 pair is registered under the existing optional FreeCAD primitive-control switch. Linux and Windows workflow selectors now include the lowercase AC1024 test names."
+  },
+  "validation": {
+    "ctest_selector": "ctest --test-dir build -R 'freecad_generated_ac1024_primitives' --output-on-failure",
+    "ctest_result": "2/2 passed",
+    "regression_selector": "ctest --test-dir build -R 'freecad_generated_ac1021_primitives' --output-on-failure",
+    "regression_result": "2/2 passed",
+    "combined_selector": "ctest --test-dir build -R 'freecad_generated_ac102(1|4)_primitives' --output-on-failure",
+    "combined_result": "4/4 passed",
+    "sandbox": "Qt aborted before import in the sandbox because it could not detect ARM NEON; the same focused tests passed when rerun outside the sandbox."
+  },
+  "scope_limit": "Generated AC1024 geometry on macOS ARM64 only. This does not qualify physical producer files, FreeCAD 1.1.3, native DWG, ACIS solids, LibreCAD/LibreCAD_3, Linux/Windows, ABI, or general DWG/3D support claims."
+}

@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-xdata-1009-semantic-writer-boundary-fast-slice-v1",
+  "reviewedAt": "2026-10-18",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Audit the PAR-39/7BU XDATA 1009 dynamic string route against the generic DXF value-type and XDATA-specific contracts.",
+  "evidence": {
+    "autodeskGroupCodeValueTypes": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+    "autodeskExtendedData": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+    "interpretation": "The general group-code table assigns string kind to 1000-1009. The XDATA-specific role list separately enumerates the documented string/control/layer/binary/handle cases, but does not assign an XDATA role to 1009. Therefore generic string classification alone is insufficient to admit 1009 through the typed XDATA writer. This does not establish that code 1009 is invalid in every DXF context."
+  },
+  "implementation": {
+    "productionFileChanged": false,
+    "testFile": "tests/wave1_tests.cpp",
+    "existingOwner": "PAR-39 / 7BU / testDxfClassifierBoundaryMatrix / libdxfrw_wave1_tests",
+    "changes": [
+      "Retain direct ASCII/Binary code-1009 generic string typing and raw-capture coverage.",
+      "Add typed writeExtData controls containing a valid APPID, a recognized 1000 string, and a generic 1009 string.",
+      "Assert semantic XDATA preflight refuses the unclassified role in both encodings before emitting even the valid prefix."
+    ],
+    "observedOutcome": "Both ASCII and Binary typed-XDATA routes refuse code 1009 with an empty output stream; no production behavior changed.",
+    "fixturePolicy": "All values are generated in memory. No binary or textual drawing fixture was added."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests -j2",
+    "buildResult": "PASS; strict Wave 1 test target rebuilt and linked.",
+    "focusedCommand": "build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+    "focusedResult": "PASS.",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+    "testResult": "PASS; 1/1 in 0.46 seconds.",
+    "diffCheck": "PASS for tests/wave1_tests.cpp and plan file.",
+    "fullSuite": "NOT RUN per fast-slice cadence.",
+    "nativeCadOrPeer": "NOT RUN."
+  },
+  "planImpact": {
+    "finding": "Existing PAR-39 / 7BU only.",
+    "findingStatus": "SEMANTIC_XDATA_1009_BOUNDARY_TESTED; broader call-site census remains open.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelImplementationSubplans": 73
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "commitCreated": false,
+    "worktreeNote": "Shared worktree was already broadly dirty; only one test case, the corresponding plan progress entry, and this receipt were added. Nothing was staged."
+  }
+}

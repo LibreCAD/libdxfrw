@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Static inventories versus qualified DWG/DXF support",
+  "mode": "Deeper/broader primary-source cross-project research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare static source inventories with fixture-backed and externally qualified support claims",
+    "Review direction- and version-specific DWG reader/writer maturity in LibreDWG and ACadSharp",
+    "Bound ezdxf and GDAL as DXF record, projection, translation, or carrier routes rather than generic CAD or 3D oracles",
+    "Refine the existing peer-admission and support-evidence rules without changing implementation order"
+  ],
+  "method": {
+    "kind": "Primary repository documentation and source-inventory review",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub master/main and documentation pages are mutable and were inspected as published on 2026-10-18; no peer commit or executable artifact was pinned or run. Repository inventories and support ledgers are project-authored declarations, not independent format conformance evidence. ODA Open Design Specification v5.4.1 remains the authority for DWG byte layout. No claim about local parser behavior is derived from peer documentation alone."
+  },
+  "sources": [
+    {
+      "project": "LibreCAD bundled libdxfrw static coverage inventory",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/DWG_DXF_COVERAGE_INVENTORY.md"
+      ],
+      "revision": "Mutable LibreCAD master page accessed 2026-10-18; no commit pin established",
+      "observed": "The generated file identifies itself as a deterministic source inventory, not byte-level conformance. It reports 72 legacy/common fixed-ID entity probes, 38 object/table probes, 264 named/custom routes, 91 named fixed cases, 20 validated fixed entity shells, zero validated fixed object shells, and fixture-needed status for listed fixed-type entries. This is a downstream bundled fork, not an independent implementation vote."
+    },
+    {
+      "project": "LibreCAD 3 DWG support policy and claim ledger",
+      "urls": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "revision": "Mutable LibreCAD_3 master documentation accessed 2026-10-18; document describes a pinned libdxfrw revision",
+      "observed": "The project describes DWG import as optional and read-only. Its documented ledger contains 15 read claims: 11 EXPERIMENTAL and 4 PENDING_NATIVE, with zero PROMOTED; it has no DWG-write claims. This is consumer policy/status, not an independent parser route."
+    },
+    {
+      "project": "LibreDWG project manual and README",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "revision": "Mutable LibreDWG master documentation and README accessed 2026-10-18; no commit or build configuration pinned",
+      "observed": "The manual reports approximate aggregate coverage while also listing no R2007 DWG writer, pre-R13 DXF work, and unstable/undertested and unhandled classes. These project-level maturity statements are not per-version/per-feature observations and do not qualify a writer output or semantic result."
+    },
+    {
+      "project": "ACadSharp feature and DWG/DXF version matrix",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "revision": "Mutable ACadSharp master README accessed 2026-10-18; no package/build pin established",
+      "observed": "The README advertises DWG writing generally but its version table marks AC1021 DWG writing unsupported while listing read/write status separately for each version. This coarse matrix does not establish entity-family completeness or native acceptance."
+    },
+    {
+      "project": "ezdxf entity, xref, and drawing documentation",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/index.html",
+        "https://ezdxf.readthedocs.io/en/stable/xref.html",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html"
+      ],
+      "revision": "Stable documentation pages accessed 2026-10-18; no installed package or exact version pinned",
+      "observed": "The xref operation supports a selected set of copyable/transformable entities and says unsupported entities can be ignored without raising. The drawing add-on says ACIS rendering is unsupported, 3D entities are projected to XY, and VISUALSTYLE is unsupported. These operations cannot be treated as lossless document preservation or 3D-semantic validation."
+    },
+    {
+      "project": "GDAL DXF vector driver",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Stable GDAL driver documentation accessed 2026-10-18; no binary/runtime version pinned",
+      "observed": "The reader projects selected entities to OGR and may tessellate curves, merge/inline blocks, or omit styling; the writer emits AutoCAD 2004 DXF. Binary DXF read support is documented starting in GDAL 3.12. AC1027+ 3D extensible mode exposes raw ASM bytes and a 12-value transform, while the driver explicitly does not convert solids to OGR geometry and skips them by default."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines existing comparator admission and support-evidence rules only: static recognition, bounded typed parsing/writing, retention/emission and graph closure, independent acceptance, native no-repair audit, and semantic geometry/behavior remain separate evidence levels. Peer selection must match exact format, version, direction, operation, and layer. Existing local fast-slice cadence/order is unchanged. Findings/top-level subplans remain 133/76."
+  }
+}

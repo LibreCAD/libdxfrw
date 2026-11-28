@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-16",
+  "scope": "LibreCAD_3 opt-in installed ABI-3 codec and standard LTYPE compatibility",
+  "consumer_master": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "prior_candidate": "990c7202cd79396382671b056f83464cc9fd0cce",
+  "local_candidate_commits": [
+    "5124aa69619ae8fd59fadcb91c31071a1b978c76",
+    "9d78827a81b61a487b59ea99af16fdf23da53254",
+    "ae159e2358a6cee80b66dfbcd06b637e1d6a8e0e"
+  ],
+  "local_candidate_branch": "codex/libdxfrw-abi3-consumer-20261116",
+  "local_candidate_checkout": "/private/tmp/librecad3-abi3-master-replay-20261116",
+  "patch": "docs/patches/librecad3-p8-abi3-system-codec-2026-11-16.patch",
+  "patch_sha256": "3b754e784d5495c8fbcb43a4b09d08b4ee66570f49e7914c8e22f7abebd48eda",
+  "findings": [
+    "The earlier installed-codec tests used a temporary unversioned CMake edit; the current LibreCAD_3 candidate had no reproducible installed-package option.",
+    "The 3.x writer rejected canonical LTYPE callbacks because the adapter carried CONTINUOUS's 'Solid line' description into ByLayer and ByBlock. Three existing save/MPOLYGON checks failed on ABI-3 but passed with pinned 2.0.0. Clearing the carried-over description restored them without weakening the writer's metadata guard.",
+    "Two older round-trip tests treated false from File::save as proof that no file was written. The documented bool contract also returns false for a successful lossy export. Both pinned and 3.x paths reproduced the same test failures for reported R12/R14 lineweight loss. The updated tests check exportFile.ok and require exactly the expected legacy loss; a separate control checks that bool save returns false while the partial file can be reopened."
+  ],
+  "change": "Add an opt-in system codec requiring the 3.0 CMake package while leaving the pinned codec as default; preserve installed runtime staging search and honest build-version provenance. Remove the pre-existing pinned-codec -Wno-error override. Reset the unintended canonical description, clarify the bool-save field-loss documentation, and keep legacy loss visible in tests.",
+  "verification": {
+    "configure": "PASS: installed shared 3.0.0 and pinned d68fb1ed 2.0.0 modes; installed 2.0.1 rejected. Persistence-disabled and WITH_HEADERS configurations generate. Python-enabled system configuration points its staging search to the selected installed library directory. A Ninja Multi-Config control with separately located Debug and Release imported artifacts generates the corresponding distinct staging paths; actual Python app install was not run.",
+    "build": "PASS: clean macOS ARM64 Release persistence and temporary local-only focused test target with each provider. The installed persistence dylib links to @rpath/libdxfrw.3.dylib; pinned persistence uses its static bundled library. Both libdxfrw builds keep their warnings-as-errors behavior. Consumer code emits pre-existing missing-override warnings.",
+    "build_metadata": "PASS: system build reports 3.0.0; archive-based pinned build reports 2.0.0 without mistaking the parent LibreCAD_3 Git commit for the submodule commit.",
+    "tests": "PASS: 14 focused tests with each provider, no skips. They cover all advertised DXF save types, ASCII/Binary round trips, 3D segment, MPOLYGON, legacy lineweight and bool-save behavior, and MLINE/WIPEOUT/MULTILEADER/modeler/underlay/SHAPE loss reports. ODA-converted scratch samples were hash-verified against earlier receipts; none were added to Git.",
+    "replay": "PASS: the prior cumulative candidate and the follow-up patch replay onto current master 4fb4831; all ten changed files match the tested candidate. The three local commits are unmerged and unpublished.",
+    "logs": [
+      "/private/tmp/librecad3-abi3-system-configure.log",
+      "/private/tmp/librecad3-abi3-pinned-configure.log",
+      "/private/tmp/librecad3-abi3-old-reject.log",
+      "/private/tmp/librecad3-abi3-python-configure.log",
+      "/private/tmp/librecad3-abi3-system-final.log",
+      "/private/tmp/librecad3-abi3-pinned-final.log",
+      "/private/tmp/librecad3-abi3-python-configure-final.log",
+      "/private/tmp/librecad3-abi3-dual-config.log"
+    ]
+  },
+  "limits": "The focused target was added temporarily to the scratch CMake file for testing and removed before the patch. This is not a clean full application/GUI install, native Linux/Windows run, complete ABI comparison, native 3D semantic proof, or upstream integration. The model does not yet distinguish absent legacy lineweight from an explicit value, so default-width provenance remains open. No broad support claim or external gate is promoted."
+}

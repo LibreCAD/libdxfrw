@@ -12,8 +12,11 @@ from __future__ import annotations
 import argparse
 import json
 import shlex
+import shutil
 import subprocess
+import sys
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 
 def _is_bundled_libdxfrw(path: str) -> bool:
@@ -73,20 +76,6 @@ def rewrite_command(arguments: list[str], source: Path, prefix: Path) -> list[st
     return rewritten
 
 
-def add_compiler_resource_include(arguments: list[str]) -> None:
-    """Keep stale Qt Creator commands usable with the active clang install."""
-    compiler = arguments[0]
-    try:
-        resource = subprocess.check_output(
-            [compiler, "-print-resource-dir"], text=True,
-            stderr=subprocess.DEVNULL).strip()
-    except (OSError, subprocess.CalledProcessError):
-        return
-    include = str(Path(resource) / "include")
-    if Path(include).is_dir() and include not in arguments:
-        arguments.extend(("-isystem", include))
-
-
 def add_librecad_source_includes(arguments: list[str], root: Path | None) -> None:
     """Repair incomplete IDE compile databases without touching DXFRW roots."""
     if root is None:
@@ -136,6 +125,24 @@ def self_test() -> None:
         raise RuntimeError("staged include root was not added")
     if rewritten[-1] != str(source):
         raise RuntimeError("source was not placed at the end of the command")
+    compiler = shutil.which("c++")
+    if compiler:
+        # Exercise the real CLI path with standard C++ headers: injecting
+        # clang's resource directory as -isystem breaks include_next on macOS.
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            probe = root / "filter.cpp"
+            probe.write_text("#include <cstddef>\nstd::size_t value = 0;\n")
+            database = root / "compile_commands.json"
+            database.write_text(json.dumps([{
+                "directory": str(root), "file": str(probe),
+                "arguments": [compiler, "-std=c++17", "-c", str(probe)],
+            }]))
+            subprocess.run([sys.executable, str(Path(__file__).resolve()),
+                            "--prefix", str(root), "--compile-database", str(database),
+                            "--source", str(probe)], check=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                           text=True)
     print("LibreCAD system-package checker self-test: PASS")
 
 
@@ -164,7 +171,9 @@ def main() -> int:
         raise RuntimeError("rewritten command still references bundled libdxfrw")
     if args.cxx:
         rewritten[0] = args.cxx
-    add_compiler_resource_include(rewritten)
+    # Leave builtin resource headers in the compiler's own search order.
+    # Adding clang's resource directory explicitly as -isystem can move it
+    # ahead of libc++ and break its include_next of C standard headers.
     add_librecad_source_includes(rewritten, args.librecad_root)
     result = subprocess.run(rewritten, cwd=source.parent, text=True,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

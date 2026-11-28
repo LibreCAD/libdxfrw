@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "Preserve source-bound APPID referenced flag in MLINE LTYPE XDATA route",
+  "mode": "P2 local APPID metadata transport slice with generated ASCII/Binary controls",
+  "baselineCommit": "28d4694f",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "f1e0d67231e7acb1607121df7389d73333b5ce6fdf25b2a2b1bb3204946e648f",
+  "scope": [
+    "Admit APPID group-70 bit 64 in the source-bound MLINE LTYPE XDATA profile when the source also has an MLINE entity referencing that APPID.",
+    "Preserve the flag through actual staged output and fresh DXF readback for ASCII/Binary source and output combinations.",
+    "Verify mutation refusal leaves the prior destination intact and the restored source exports on retry; generate all drawings locally in temporary storage."
+  ],
+  "evidence": {
+    "sources": [
+      {
+        "title": "Autodesk APPID DXF reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6E3140E9-E560-4C77-904E-480382F0553E.htm",
+        "supports": "APPID group 70 bit 64 records that the table entry was referenced by at least one entity in the drawing. The generated source contains an MLINE entity with the same APPID XDATA name as the source-bound LTYPE provider."
+      }
+    ],
+    "sourceCreation": "Generated an AC1027 drawing from the existing local MLINE/LTYPE recipe, added one APPID row with group-70 value 64, and added the same APPID name to an ENTITIES MLINE EED record. The test transcodes to ASCII or Binary DXF in a temporary directory and removes the directory after success. No persistent drawing fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "The bounded APPID source-binding predicate now admits the default flags and the entity-referenced flag value 64. Other nonzero flag bits remain outside this helper's dependency proof. A focused CTest selector exercises source binding, staged output inspection, semantic DXF readback and retry behavior.",
+    "behaviorChanges": [
+      "A source-bound APPID used by both an MLINE entity and its LTYPE XDATA is no longer excluded solely because its group-70 referenced bit is set.",
+      "The output inspector checks the APPID row's emitted identity, owner, exact group-code sequence and typed flag value; the readback checks the LTYPE and MLINE XDATA and APPID flag.",
+      "Changing the live APPID flags after import is rejected without replacing the destination; restoring the captured value allows the same adapter to export successfully."
+    ],
+    "publicApiOrLayoutChanged": false,
+    "persistentFixturesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+      "ctest --test-dir build -R '^libdxfrw_mline_ltype_(appid_xdata|appid_flag64)$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS with the configured -Werror build.",
+      "focusedCTest": "PASS 2/2 in 25.28 seconds; existing LTYPE/APPID XDATA profiles and the new group-70 bit-64 profile passed.",
+      "newProfile": "PASS for four ASCII/Binary source-output combinations; four live-mutation refusals preserved the destination and four corrected retries passed; eight output readbacks matched.",
+      "fullSuite": "NOT_RUN per fast-validation plan.",
+      "nativeCadOrIndependentConsumer": "NOT_RUN."
+    }
+  },
+  "limitations": [
+    "This qualifies one source-bound APPID transport profile only; it does not establish other APPID common metadata, external-dependent flag combinations, arbitrary XDATA compositions or native application semantics.",
+    "The generated flag-64 bit is backed by an MLINE entity reference in the same source; output readback does not establish native CAD audit behavior.",
+    "No whole-document, platform, ABI, LibreCAD, LibreCAD_3, FreeCAD, producer, renderer or format support claim is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "The witnessed MLINE/LTYPE XDATA profile carrying the APPID entity-referenced group-70 bit 64 through source binding, staged ASCII/Binary output and readback.",
+    "remainingP2Scope": "Other witnessed MLINESTYLE, APPID/LTYPE metadata, XDATA value/chunk, code-1005 dependency and MLEADERSTYLE source semantics remain open.",
+    "nextImplementationPacket": "P4a: select one unmatched ATTDEF secondary Xrecord field or handle dependency from the retained source census and bind its physical span, role, provider and owner before changing code.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "f1e0d67231e7acb1607121df7389d73333b5ce6fdf25b2a2b1bb3204946e648f",
+    "dwg2dxf/dx_iface.cpp": "5cc04ca33b9c73423919a98149c5e3eb73a6ada30ba46316ffd4e46836fa1542",
+    "tests/dxf_fixture_tests.cpp": "67b1c388d6408ee226823593f074fee7c495ca38a6b71b1d380a516d5f6ca324",
+    "CMakeLists.txt": "916322831fee07631078e6137a7a1c01a69722c3abc8e13d23ba3d9959c21db0"
+  },
+  "commitCreated": true,
+  "worktree": "Only the listed implementation, generated-test, CMake, plan and receipt files are part of this slice; unrelated untracked files were not staged."
+}

@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw-deeper-broader-strict-writer-and-codepage-route-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reconcile recent ACadSharp strict DXF writer and legacy codepage reports against Autodesk field documentation, open-source format models, current local source/tests, and release provenance; refine implementation readiness without changing support claims.",
+  "method": {
+    "kind": "primary-source web research plus local plan, source, and fast-test inspection",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "implementationChanged": false,
+    "sources": [
+      "https://github.com/DomCR/ACadSharp/issues/1253",
+      "https://github.com/DomCR/ACadSharp/issues/1259",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5AB9300F-F0AC-4ADE-89EA-A9D1D152D8B8.htm",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+      "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "https://ezdxf.readthedocs.io/en/stable/dxfinternals/tables/dimstyle_table.html"
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "ACadSharp #1253 and DIMSTYLE table-control ambiguity",
+      "observed": [
+        "The peer issue reports an AutoCAD 2027 rejection and identifies ACadSharp 3.6.35 as its tested baseline; this is not a libdxfrw reproduction.",
+        "Autodesk documents common table group70 as maximum capacity and DIMSTYLE record-level group71 as DIMTOL and group340 as DIMTXSTY.",
+        "LibreDWG models DIMSTYLE_CONTROL DXF 71 as num_morehandles and repeated DXF 340 as morehandles, which suggests a control-handle list but does not establish exact DXF ordering, requiredness, or target inventory.",
+        "ezdxf's documented R2000+ example shows the common table header and records but does not settle the subclass-specific sequence.",
+        "Local writeTables emits AcDbDimStyleTable group71=1 and no table-level group340 list; writeDimstyle emits record-scoped group71 and group340 fields separately."
+      ],
+      "doesNotEstablish": [
+        "That table-level group71 is a DIMSTYLE record count.",
+        "That a repeated table-level group340 list is required, optional, or has a particular order.",
+        "That local output is accepted by AutoCAD, ODA, or another independent semantic reader."
+      ],
+      "planUse": "Keep the question in existing 7BQ.5. Capture generated raw ordered tags for zero, one, and multiple rows in ASCII/binary AC1018/AC1021; require an authoritative ordered source or one pinned strict producer/consumer result before writer changes."
+    },
+    {
+      "topic": "Release provenance for peer observations",
+      "observed": [
+        "The ACadSharp releases page identifies formal v3.8.0 at commit 3a1c66b and reports 150 commits to mutable master since that release.",
+        "Issue #1253 states ACadSharp 3.6.35 as its tested version; issue #1259 separately reports behavior on 3.7.16/3.8.0."
+      ],
+      "doesNotEstablish": [
+        "That either issue has been reproduced against current mutable master.",
+        "That the issue-specific observations share one source/runtime baseline."
+      ],
+      "planUse": "Keep issue-specific versions separate from formal release and branch-head provenance; any later peer run must pin source/runtime, application build, target DXF version, and raw output."
+    },
+    {
+      "topic": "CP949 header-plus-payload route",
+      "observed": [
+        "ACadSharp #1259 reports kcs5601 recognition trouble and a path that can emit UTF-8 while declaring ANSI_949.",
+        "Local codec tests contain CP949 B0 A1 to U+AC00 scalar and alias vectors.",
+        "The inspected local test route does not establish a full AC1018 file import, export, and re-import with the codepage header and literal Hangul bytes coupled."
+      ],
+      "doesNotEstablish": [
+        "A corresponding local defect.",
+        "That a full-file route is absent from every test or that peer behavior transfers to this repository."
+      ],
+      "planUse": "Search existing codec tests first. If no equivalent end-to-end case exists, add one generated scratch AC1018 ASCII route to the existing test owner, asserting alias/header selection, scalar decode, exact legacy output bytes, and re-imported scalar."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "findingsAdded": 0,
+    "topLevelSubplansAdded": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 125,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limits": [
+    "Research only; no tests, builds, peer executables, native applications, or geometry kernels were run.",
+    "No external drawing was downloaded and no fixture or dependency was added.",
+    "The exact DIMSTYLE table-subclass DXF tag grammar remains unresolved until an ordered authoritative witness or pinned strict producer/consumer result is available.",
+    "The CP949 full-file route is a conditional test recommendation, not a claim of a local failure."
+  ]
+}

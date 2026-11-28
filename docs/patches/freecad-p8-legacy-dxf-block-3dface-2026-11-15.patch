@@ -1,0 +1,47 @@
+diff --git a/src/Mod/Draft/drafttests/test_dxf.py b/src/Mod/Draft/drafttests/test_dxf.py
+index cbbe965..b29c6f5 100644
+--- a/src/Mod/Draft/drafttests/test_dxf.py
++++ b/src/Mod/Draft/drafttests/test_dxf.py
+@@ -167,6 +167,27 @@ class DraftDXF(test_base.DraftTestCaseDoc):
+                     self.assertLegacyPoints((v.Point for v in shape.Vertexes), points, scale, 1e-8)
+ 
+ 
++    def test_legacy_block_keeps_3dface(self):
++        """3DFACE geometry inside a block must reach the compound."""
++        points = [(0, 0, 0), (2, 0, 2), (2, 2, 4), (0, 2, 2)]
++        face = SimpleNamespace(points=[App.Vector(*p) for p in points])
++
++        class Entities:
++            data = [face]
++
++            def get_type(self, name):
++                return [face] if name == "3dface" else []
++
++        block = SimpleNamespace(name="surface", entities=Entities())
++        with mock.patch.object(importDXF, "resolvedScale", 25.4, create=True), \
++             mock.patch.object(importDXF, "dxfStarBlocks", True, create=True), \
++             mock.patch.object(importDXF, "blockshapes", {}, create=True):
++            shape = importDXF.drawBlock(block)
++        self.assertIsNotNone(shape)
++        self.assertEqual(len(shape.Faces), 1)
++        self.assertTrue(shape.isValid())
++        self.assertLegacyPoints((v.Point for v in shape.Vertexes), points, 25.4, 1e-8)
++
+     def test_export_dxf(self):
+         """Create some figures and export them to a DXF file."""
+         operation = "importDXF.export"
+diff --git a/src/Mod/Draft/importDXF.py b/src/Mod/Draft/importDXF.py
+index d8ab185..f05a684 100644
+--- a/src/Mod/Draft/importDXF.py
++++ b/src/Mod/Draft/importDXF.py
+@@ -1723,6 +1723,10 @@ def drawBlock(blockref, num=None, createObject=False):
+             s = drawInsert(insert)
+             if s:
+                 shapes.append(s)
++    for face3d in blockref.entities.get_type("3dface"):
++        s = drawFace(face3d)
++        if s:
++            shapes.append(s)
+     for solid in blockref.entities.get_type("solid"):
+         s = drawSolid(solid)
+         if s:

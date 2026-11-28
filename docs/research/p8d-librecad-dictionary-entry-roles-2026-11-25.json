@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-25",
+  "scope": "Preserve captured DXF dictionary per-entry group 350/360 roles in LibreCAD document metadata and typed dictionary export",
+  "librecadCommit": "362d242561226e4ca93e5d032866235998c65ff5",
+  "codecImplementationDigestSha256": "73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad",
+  "implementation": [
+    "Capture the optional source role in dictionary metadata, retaining zero for sources or bundled codecs without an explicit DXF edge.",
+    "Restore the captured role when constructing a typed dictionary for the system codec; keep the bundled codec path source-compatible."
+  ],
+  "validation": {
+    "systemCodecBuild": "PASS",
+    "systemRoleTests": "2/2 PASS, 19 assertions; includes physical input, typed output, invalid-role destination preservation and corrected same-filter retry",
+    "bundledCodecBuild": "PASS",
+    "bundledExtrusionTests": "14/14 PASS, 508 assertions",
+    "fullSuite": "not run"
+  },
+  "limits": [
+    "The separate IMAGE dictionary and reactor replay path is still open; these tests do not establish its closure.",
+    "No new DWG or DXF fixture was committed."
+  ]
+}

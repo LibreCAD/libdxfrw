@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-package-b53-qualification-2026-11-20",
+  "date": "2026-11-20",
+  "status": "SOURCE_MATCHED_PACKAGE_PROFILE_PASS",
+  "supportClaimEffect": "none",
+  "testedCommit": "b53a2ffcf2ed2f2f0ac934f0a45d837e88354b74",
+  "candidateAtReview": "13594985a2e2818712a6550e5d504ce7ba57d95b",
+  "candidateEquivalence": "Only plan and research prose changed after testedCommit; product, package, workflow and probe inputs are unchanged. Recheck before reuse.",
+  "changedPaths": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/p4-ac1024-layerstates-original-adapter-admission-boundary-2026-11-20.json"
+  ],
+  "implementationDigestSha256": "1810ea2d6b7d7cb21aaa7b2c287308c3f0b767fdea5a4e1ffac6112e4d1c8a93",
+  "run": "https://github.com/dxli/libdxfrw/actions/runs/44685212361",
+  "apiSnapshotSha256": {
+    "run.json": "e9f5f9d07a5528202918e4b5f82bfa76e401f4ea63197db30f97ec35a9b72a20",
+    "jobs.json": "510d1cee8c0927402299cfd012a43854b592a064d2462cf8cb9c812538862bfe",
+    "artifacts.json": "f6801dd8ec35a4f35825900444a3184856370e0e53bc2e37ad33748b20b9c2bd"
+  },
+  "platforms": {
+    "linux-gcc": {
+      "jobId": 136117799046,
+      "artifactId": 14606831636,
+      "archiveSha256": "42751741ef1a177d6d1b70ef575587bfd88afb9cd40ca120e8473b9583a6f068",
+      "sharedReceiptSha256": "6f67b30f65ae983496999322a8c64caa65715fca84a9343f79b3bedac13e36dc",
+      "staticReceiptSha256": "1658ee12fd4c94890b41021ff8a5bc0a7f638950a0a26e9ed1bef440e21efc34"
+    },
+    "macos-clang": {
+      "jobId": 136117798641,
+      "artifactId": 14606965454,
+      "archiveSha256": "faf25fa69386a840ec57267f04c80e73d6beb7c62a4fc4902946791523b02d62",
+      "sharedReceiptSha256": "974533a755b948ff3e4c1601cc26c919e2ff4cf3a2397cbdc68d53bb44eec52b",
+      "staticReceiptSha256": "ad799de82f8115fab97b41ec4a5be547eabba04516f904ad40f25c9f11f462a6"
+    },
+    "windows-msvc": {
+      "jobId": 136117798976,
+      "artifactId": 14606098889,
+      "archiveSha256": "968d20d7bc284bb6d615b481ae947c5a30404464c637b11aabcbb59109a2ea5e",
+      "sharedReceiptSha256": "7aa28de6d0a31afbebbfa983da29c9e7f3cb8acd92efdedfcc15e60c354e3bd8",
+      "staticReceiptSha256": "993eee7d04e421f560687f9ec6ac24f28e869621b44b652dfe725f22b60aae0c"
+    }
+  },
+  "verification": "PASS: authenticated push run, successful platform build/probe/upload steps, artifact archive SHA-256 and size against GitHub, exactly two receipts per artifact; both receipt profiles checked for ABI 2 rejection, ABI 3 acceptance, relocation and selected installed target, plus loaded shared-runtime identity and relocated CLI where applicable.",
+  "limits": [
+    "Package selection, install inventory, relocation, minimal consumer and CLI usage only; no complete C++ ABI or drawing semantics claim.",
+    "P8-A and P8-E close only for the exact source/configuration/platform profile; reopen if relevant inputs change.",
+    "No DWG/DXF fixture was committed."
+  ]
+}

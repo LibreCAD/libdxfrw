@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-lofted-surface-nonzero-reference-witness-scan-2026-11-03",
+  "date": "2026-11-03",
+  "status": "NO_NONZERO_LOCAL_WITNESS; DWG_REFERENCE_OUTPUT_REMAINS_REFUSED",
+  "supportClaimEffect": "none",
+  "scope": "Bounded scan of available local DWG corpora for LOFTEDSURFACE records with nonzero DWG cross-section or guide-curve references; no drawing fixture was added.",
+  "localSourcePair": {
+    "dwg": "../libredwg/test/test-data/2004/Surface.dwg",
+    "dwgSha256": "7ba7ea2e6e89a01094d4ffe104dd1cfc03513d1991bd223aeac1a3186a6c38d3",
+    "dxf": "../libredwg/test/test-data/2004/Surface.dxf",
+    "dxfSha256": "aa4204cc64cde5867b4ac922a9356e02c091bcf8e0fec636252f06ed4ebe5c60",
+    "repositoryCommit": "5f920de4eb73747502c0a778eae5a7cc5dfa9cbb",
+    "commitMessage": "add 2004/Surface.dwg/dxf, check dynapi unstable",
+    "decodedByLibdxfrw": {
+      "sourceVersion": "AC1018",
+      "loftedSurfaceCount": 1,
+      "surfaceHandle": "0x34D",
+      "crossSectionCount": 0,
+      "guideCurveCount": 0,
+      "pathCurveHandle": "0x0"
+    },
+    "qualificationLimit": "The companion DXF contains modeler binary data but no nonzero LOFTEDSURFACE cross-section or guide-vector witness. Co-commit and matching entity identity do not establish a tested native handle-vector encoding."
+  },
+  "corpusScan": {
+    "root1": {
+      "path": "~/doc/dwg",
+      "dwgFiles": 29,
+      "probeImportFailures": 7,
+      "loftedSurfaceFilesAmongSuccessfulImports": 0,
+      "nonzeroReferenceFiles": 0
+    },
+    "root2": {
+      "path": "../libredwg/test/test-data",
+      "dwgFiles": 141,
+      "probeImportFailures": 2,
+      "loftedSurfaceFilesAmongSuccessfulImports": 1,
+      "loftedSurfaceRecords": 1,
+      "nonzeroReferenceFiles": 0
+    },
+    "method": "Run a scratch executable linked to the current libdxfrw adapter against each DWG; inspect typed DRW_LoftedSurface crossSectionHandles, guideCurveHandles, counts, and pathCurveHandle. Import failures are excluded from negative findings."
+  },
+  "formatEvidence": {
+    "autodeskLoftedSurfaceDxf": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-3D9D8A87-1E46-48AE-B482-BAD1C4D460CA.htm",
+    "autodeskGroupCodes": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+    "observation": "Autodesk's LOFTEDSURFACE table names cross-section, guide-curve, and path-curve entity data but leaves their group-code cells unspecified. Its general code table defines 310-319 as hexadecimal binary chunks and 320-329 as arbitrary handles; 330-339 are soft pointers and 340-349 hard pointers. LibreDWG's local schema maps cross_sections and guide_curves to group 310 and its writer prints handle values as unpadded hexadecimal text. The available source corpus does not establish that this mapping is accepted or semantically interpreted by a native DXF consumer."
+  },
+  "commands": [
+    "g++ -std=c++17 -Wall -Wextra -Werror -I src -I dwg2dxf /tmp/loft_surface_probe.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /tmp/loft_surface_probe",
+    "Run /tmp/loft_surface_probe once for each DWG under ~/doc/dwg and ../libredwg/test/test-data"
+  ],
+  "scratchBindings": {
+    "libdxfrwCommit": "b5256fba52ca5e0c1998539a40b3f5aec2b7629b",
+    "libreDwgCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "probeSourceSha256": "308952ceebc9d57ca92214c0111dc97639224dc63c8c5797c1eaa605833a9d81",
+    "probeExecutableSha256": "b1dcce920dbb33e1fa0931cda22b64781caf4c107e48441456aa2a870b4e2eb9",
+    "libreDwgSchemaSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "libreDwgDxfWriterSha256": "91c12ce650f9c072b6e487418247bd8ed6075e55cfac0510d885faaf61b4f079"
+  },
+  "next": "Find or create an eligible producer witness with nonzero cross-section or guide references. Until its exact DXF values, target identities/roles, remapping, graph closure, and native readback are established, retain atomic refusal of DWG-origin reference vectors."
+}

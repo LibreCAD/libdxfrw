@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-acis-external-reader-local-bounds-audit-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary vendor documentation and local source review; no peer runtime",
+  "question": "Does a broader semantic-reader search identify a usable external ACIS route, and does the local parser reproduce the peer-reported block-size safety weakness?",
+  "sources": [
+    {
+      "project": "Ansys Workbench",
+      "artifact": "2025 R2 ACIS (*.sat, *.sab) interface documentation",
+      "references": [
+        "https://ansyshelp.ansys.com/public/views/secured/corp/v252/en/ref_cad/cadACIS.html"
+      ],
+      "observed": "The vendor documents a standalone SAT/SAB reader that does not require ACIS installation, R1-2023 input versions, and solid/surface/line body import on Windows and Linux. It does not support CAD associativity or parameters, may skip hidden/suppressed parts, and does not expose a reader save file. Units are read when present or supplied by the user. The page does not expose parser/kernel lineage or a detailed per-SAB-profile matrix.",
+      "disposition": "OPTIONAL_PROPRIETARY_SEMANTIC_READER_CANDIDATE. Use only if already installed and license-authorized; profile-probe first and record exact build/platform/settings, units, body disposition, validity, topology, and independent analytic metrics. Not a dependency, purchase, blocking gate, open-source peer, DWG reader, or AcDs owner-join oracle. Implementation independence remains provisional."
+    },
+    {
+      "project": "Open CASCADE Technology",
+      "artifact": "Current ACIS Import-Export Component documentation",
+      "references": [
+        "https://www.occt3d.com/components/acis-exchange/"
+      ],
+      "observed": "The commercial component translates SAT/SAB geometry and topology into OCCT shapes and XDE attributes, and documents configurable healing and possible approximation for complex ACIS 5.0+ geometry. Read and write version coverage are separate decisions.",
+      "disposition": "OPTIONAL COMMERCIAL ROUTE ONLY. It shares the OCCT kernel family with FreeCAD and cq-acis, so it is not an independent-kernel vote. Record exact component, profile, healing/approximation configuration, and changed tolerances if used."
+    },
+    {
+      "project": "cq-acis",
+      "artifact": "Current README compared with already pinned 0.3.12 evidence",
+      "references": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+        "https://pypi.org/project/cq-acis/0.3.12/"
+      ],
+      "observed": "The project describes experimental, profile-dependent SAT/SAB parsing and separates raw parsing from shape conversion; unsupported records may remain raw while failed requested conversions raise. Current mutable README statements do not broaden the existing pinned 0.3.12 profile or its local generated observation.",
+      "disposition": "Retain existing exact-version/profile gate. No profile, support claim, or semantic verdict is promoted from the mutable README."
+    },
+    {
+      "project": "libdxfrw local source",
+      "artifact": "src/drw_acis.cpp and src/drw_entities.cpp source audit",
+      "references": [
+        "src/drw_acis.cpp: SabByteReader::require/readInt/readFloat/readStr and parse budgets",
+        "src/drw_entities.cpp: DRW_ModelerGeometry::parseDwg AC1015 SAT block reader"
+      ],
+      "observed": "SAB reads use an index-before-subtraction extent check and separately account parser/graph resource limits. The AC1015 SAT block parser bounds each positive block against cumulative payload capacity and remaining entity-body bytes before reserve/copy. This review found no local equivalent of LibreDWG's reported unchecked 8 * block_size overflow.",
+      "disposition": "No local defect or test was added. Keep peer overflow and dropped-final-block reports as risk classes; the DXF writer final group-1/group-3 reconstruction remains a distinct existing carrier check. This source-only review did not rerun every writer terminal-chunk case or a sanitizer/fuzz campaign."
+    }
+  ],
+  "implementationReadiness": [
+    "Continue the local generated S3.7c structural sequence and fast owning target without waiting for an external reader, license, or native platform.",
+    "At the existing composed checkpoint, select at most one optional semantic route for an exact admitted payload profile; do not add a package, install, CI lane, or persistent fixture.",
+    "Author expected bounds, body/topology counts, volume, and area independently before reading the generated payload; capture profile, carrier hash, reader build, platform, unit choice, skipped/unsupported records, validity, and metric tolerances.",
+    "Keep direct bare-SAT/SAB shape evidence separate from DWG section extraction, DataStorage/index/key mapping, entity ownership, DXF carrier reconstruction, and native-consumer qualification.",
+    "Treat commercial OCCT ACIS exchange as same-kernel-family corroboration only; record healing/approximation and do not count it as an independent-kernel result.",
+    "If authorized external access or exact profile compatibility is absent, record NOT_RUN/DEFERRED_EXTERNAL and self-unblock to local work. J256, J260, J268, J284, J293, and J295 remain non-promoting DEFERRED_EXTERNAL items."
+  ],
+  "planDelta": {
+    "optionalProprietarySemanticReaderCandidateAdded": true,
+    "localEquivalentUncheckedBlockSizeDefectFound": false,
+    "newImplementationFinding": false,
+    "newTestOrFixture": false,
+    "newDependencyOrLicense": false,
+    "validationCadenceChanged": false,
+    "peerOrNativeRuntimeExecuted": false,
+    "supportClaimPromoted": false,
+    "deferredExternalItemsRemain": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "limitations": "Vendor documentation does not expose Ansys parser/kernel lineage or a complete SAB profile matrix. No external package, proprietary application, or native CAD was installed or run. Local review was limited to the named SAB reader and AC1015 SAT block reader; it did not exhaustively execute all DXF final-chunk writer paths, sanitizers, fuzzers, or platform builds. ODA v5.4.1 remains authoritative for DWG layout."
+}

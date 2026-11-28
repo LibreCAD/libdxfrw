@@ -1,0 +1,138 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader current peer failure-chain and consumer-route audit",
+  "mode": "primary-source and peer-report research only",
+  "scope": [
+    "Current ACadSharp issue horizon: SPLINE, standalone MLEADER context objects, TABLE block-cell values, GEODATA, codepages, strict DXF output, R12 POLYLINE/VERTEX and parser hardening",
+    "Current CADCraft issue/PR horizon: unitless DXF defaults, native DWG audit after version downgrade, fit-point SPLINE and TABLE cell output",
+    "Cross-route comparison with LibreDWG, ezdxf recovery and FreeCAD converter-based DWG import",
+    "Readiness crosswalk to current libdxfrw owners and previously generated local controls"
+  ],
+  "method": {
+    "kind": "Read-only web review of public repository issues, PR index, project documentation, and local plan/source/test inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "ACadSharp #1299 links a DWG/DXF archive that was not fetched; the issue text does not publish the offending SPLINE arrays or independent expected curve. ACadSharp #1278 and #1261 were available only through the public issue index/title in this pass, so their body-level claims were not audited. CADCraft #1221/#1222 were open PR-index entries, not inspected or merged/release-qualified fixes. Peer issue reports and mutable documentation are scenario leads, not normative rules or proof of a corresponding libdxfrw defect."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "revision": "open issue body reviewed 2026-10-17; reporter names NuGet v3.8.0",
+      "observed": "Reporter says a DWG-to-DXF conversion produced SPLINE data rejected by GDAL and links an archive. The issue text supplies no offending entity handle, raw arrays, independent curve expectation, or exact GDAL error details. Attachment was not downloaded."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1277",
+      "revision": "open issue body and maintainer comment reviewed 2026-10-17; report names v3.7.16 and AutoCAD LT 2026",
+      "observed": "Reporter describes no-op AC1032 DWG write followed by AutoCAD audit errors and removal of standalone AcDbMLeaderObjectContextData objects; no shareable source drawing is supplied. Maintainer says MLeader contexts require refactoring. This concerns standalone DWG object/context graph serialization, not DXF MULTILEADER entity output."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1264",
+      "revision": "open issue body reviewed 2026-10-17",
+      "observed": "Reporter compares a block-cell value read from AC1024/AC1027/AC1032 DWG with an AutoCAD-saved DXF and reports Unknown/non-empty CadValue state versus an empty string. This is peer-model evidence, not a normative definition of the local DRW representation."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues",
+      "revision": "current open-issue index reviewed 2026-10-17",
+      "observed": "The issue horizon lists #1261 GEODATA Civil-tail output, #1259 Korean codepage declaration/byte behavior, #1253 native DXF rejection, #1278 R12 POLYLINE/VERTEX subclass markers, #1279 absent VERTEX subtype, and #1280-#1283 codepage, recursion, size and deep-copy leads. #1278 and #1261 body details were not accessible in this pass; titles alone were not treated as format evidence."
+    },
+    {
+      "project": "CADCraft",
+      "url": "https://github.com/storytold/cadcraft/issues/1209",
+      "revision": "open issue body reviewed 2026-10-17; reporter names cadcraft-cli 0.6.2 linux-aarch64",
+      "observed": "Reporter says older DXFs without INSUNITS were read from an imperial default and rewritten with INSUNITS=1; a maintainer comment describes the document-template default as the cause and proposes resetting imported files to unitless. This is an ACadRust-lineage application report, not a local libdxfrw failure."
+    },
+    {
+      "project": "CADCraft",
+      "url": "https://github.com/storytold/cadcraft/issues/604",
+      "revision": "open issue body reviewed 2026-10-17",
+      "observed": "A user reports AutoCAD 2027 audit with six errors after CADCraft rewrote an AC1032 DWG as AC1018; the file visually appeared correct and had zero erased objects. The observation is user-reported and not independently reproduced here."
+    },
+    {
+      "project": "CADCraft",
+      "url": "https://github.com/storytold/cadcraft/pulls",
+      "revision": "open PR listing reviewed 2026-10-17",
+      "observed": "Open PR #1221 proposes rebuilding fit-point SPLINEs using AutoCAD-like construction; open PR #1222 proposes retaining ACAD_TABLE value-block content for DXF 2007+. These are unmerged branch leads and share the ACadRust parser lineage."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues",
+      "revision": "current public issue index reviewed 2026-10-17",
+      "observed": "The current issue horizon includes distinct reports for output string termination, NOD ordering, DWG TV/TU text transport, CMC color method/index, AcDs data, malformed DXF output and object/owner traversal. These issues suggest route-specific test shapes, not libdxfrw defects."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "revision": "mutable master NEWS reviewed 2026-10-17",
+      "observed": "Release notes describe ongoing version-specific DWG reader/writer and hardening work; project-level milestones do not qualify an exact executable, route, or entity family."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+      "revision": "stable 1.4.5 documentation reviewed 2026-10-17",
+      "observed": "Recovery loading repairs structural flaws and runs an audit, but may retain unrecoverable decode errors and data loss; regular strict loading and recovery are documented as separate routes."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "revision": "mutable documentation reviewed 2026-10-17",
+      "observed": "DWG import is described as an external converter to DXF followed by the native DXF importer; the page warns that the open-source converter lacks some entities. This is a composed consumer path, not native FreeCAD DWG decoding."
+    }
+  ],
+  "assessment": {
+    "peerLineage": "ACadRust, CADCraft and OpenCADStudio remain one codec lineage; applications or forks do not multiply independent parser votes.",
+    "evidenceRule": "Separate source read, typed model state, target version/wire output, self-readback, recovery, independent parser, native audit, object/owner disposition, and semantic geometry. Visual appearance and aggregate entity counts do not imply complete graph preservation or audit validity.",
+    "localCrosswalk": "Use existing PAR-22/7H/7I/7AB, PAR-07/S8, PAR-126/7G.3d, PAR-119/7BP, PAR-05, PAR-14/PAR-26/7BE/7S, 7BQ.5, PAR-14/7BS, 7BJ and 7F.1 owners. No corresponding local defect was established in this research pass.",
+    "implementationReadiness": "Keep the current lowest-cost ready slice. Reuse generated unit-presence, TABLE empty-value, CP949, VERTEX subtype-marker and GEODATA tail controls; keep native/peer/fuzz work at the existing composed checkpoint. No external DWG/DXF attachment is needed for these bounded generated controls."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-current-peer-failure-chain-consumer-audit-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-current-peer-failure-chain-consumer-audit-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

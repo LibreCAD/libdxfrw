@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "scope": "controlled AC1012 TABLE compound; not native semantics",
+  "supportClaimEffect": "none",
+  "source": "LibreDWG test/test-data/example_r13.dwg (read in place)",
+  "sourceSha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+  "generatedDwgSha256": "bd22251a48b72a01748628e54c8e26d8080ea5d9deb8827905e1866ef294d186",
+  "generatedTableFrameSha256": "1681f0aed1f0886b5b989e5d35210957d80f5eeaf89087ea4cd12221b9a88a77",
+  "generator": "tools/research/generate_r13_table_attrib_witness.py",
+  "generatorSha256": "d1a2debcecaf551590fcd72d20001b76d51dab9e6ac202eabae33f714332eb02",
+  "authority": "ODA Open Design Specification for .dwg files v5.4.1 sections 2.13 and 20.4.96.1",
+  "observations": [
+    "The output TABLE frame is exactly the source frame with its attribute flag changed and three handles inserted; its CRC is valid. LibreDWG 0.14 reopens the TABLE and confirms first and last ATTRIB 757, SEQEND 759, and their owner 4F2.",
+    "Wrong endpoint role, ATTRIB owner and SEQEND owner were separately mutated with valid frame CRCs. Each is rejected without any parent TABLE, INSERT, raw or grid callback; the same reader then delivers the corrected compound.",
+    "The corrected control exposes the attribute through TABLE and 2D INSERT callbacks and, when enabled, the 9 by 20 legacy grid."
+  ],
+  "limits": [
+    "No derivative is committed.",
+    "Other rewritten objects are not qualified.",
+    "No native TABLE semantics or strict output claim is established.",
+    "The entire derivative has unrelated rewritten unsupported objects; a complete successful file conversion is not claimed.",
+    "Additional ordering, native producer semantics, cells, output and independent readback remain open."
+  ]
+}

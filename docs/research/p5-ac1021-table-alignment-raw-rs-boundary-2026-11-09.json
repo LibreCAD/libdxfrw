@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "id": "p5-ac1021-table-alignment-raw-rs-boundary-2026-11-09",
+  "date": "2026-11-09",
+  "scope": "Generated parser controls for the ODA-defined AC1021 TABLE cell alignment RS field and the bounded BitShort compatibility candidate observed in existing Autodesk AC1021 TABLE sources.",
+  "supportClaimEffect": "none; generated parser-boundary evidence only",
+  "authority": {
+    "specification": "ODA Open Design Specification for .dwg files v5.4.1 \u00a720.4.96.1, pp. 230-232",
+    "field": "cell alignment, RS (raw little-endian 16-bit), selected by override mask 0x01",
+    "sequence": "cell override flag BL, virtual edge RC, selected alignment RS, separate R2007+ unknown BL, CadValue flags/type/payload, unit BL and detached format/value TV strings"
+  },
+  "implementation": {
+    "productionFile": "src/drw_entities.cpp",
+    "productionSha256": "a94c1136062dfd490d5625946c5da3ad09f2da9c19178a6123c08b3e5d75c2a2",
+    "change": "The exact AC1021 text-cell mask 0x01 profile prefers valid raw-RS alignment values. Only when raw RS is outside 1..9 does it retain a valid BitShort candidate, and it marks that interpretation semantically incomplete. Other override masks remain incomplete.",
+    "testFile": "tests/dwg_object_vectors_tests.cpp",
+    "testSha256": "94e1ef033a86d2a31730bac6f37cf7363227630c70291ccc0d6e0f0ab8b7f21d",
+    "generatedFrame": "The existing from-scratch AC1021 one-cell TABLE vector emits alignment value 5 with putRawShort16, then the separate unknown BL, CadValue flags/type/integer payload, unit and detached empty strings. No DWG/DXF fixture file is written."
+  },
+  "control": {
+    "selector": "libdxfrw_dwg_table_cell_overrides",
+    "assertions": [
+      "from-scratch raw-RS alignment value 5 parses as complete typed alignment and lands at the next CadValue/table sentinel boundary",
+      "from-scratch BitShort alignment value 6 is retained only as a semantically incomplete candidate and lands at the same bounded sentinel",
+      "the physical fallback path remains distinct from the normative raw-RS path"
+    ],
+    "result": "passed 1/1"
+  },
+  "peerReview": {
+    "peer": "ACadSharp",
+    "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "source": "src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Entities.cs, readTableCellData alignment override",
+    "observation": "The peer calls ReadBitShort for cell alignment, while ODA specifies raw RS. Its semantic decode is not independent physical-span proof for these cells.",
+    "disposition": "Do not use peer table values to justify changing the libdxfrw alignment decoder or to claim the physical type-48 cursor issue is resolved."
+  },
+  "physicalSource": {
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "observation": "The metric-source first-failure cells are row 8/column 0 at body bit 278726 (TABLE 0x2856e) and row 9/column 0 at bit 312907 (TABLE 0x2a974). A temporary raw-RS probe reads 42049 at each alignment field. The current bounded fallback instead selects a valid BitShort interpretation, parses the CadValue tails, and leaves the TABLE snapshots semantically incomplete."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "executableSha256": "7d4597f8e369815983a892e8c64540ea6acb4995b6914c0592b0c9d6ac03fbea",
+    "ctest": "ctest --test-dir build-gcc -R ^libdxfrw_dwg_table_cell_overrides$ --output-on-failure",
+    "diffCheck": "git diff --check passed",
+    "librarySha256": "b4d9a14f3c6b6b597df302dfc6bea2967aabf4d0f7698a75356aee0dc371288d",
+    "physicalReadback": {
+      "metricSourceSha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+      "metricTraceSha256": "079cba11b06c165b8b317030d3edc89ebb119898067ab020b945fa1e91fe5470",
+      "imperialSourceSha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+      "imperialTraceSha256": "a75706454c65e28b4b832cb14f2440dd33dc3f44b2ad3ebac79fca5c140e4cfc",
+      "cadValueCountPerSource": 171,
+      "result": "Both existing AC1021 sources parse all TABLE CadValues under the fallback. TABLE semantic completeness remains false by policy. The reader publishes 4408/4408 metric frames and 3586/3586 imperial frames with zero entity/object parse failures; strict DXF export stops at the unrelated FIELD/FIELDLIST serializer gate and creates no DXF."
+    }
+  },
+  "remainingAction": "Resolve the producer-specific alignment encoding with authoritative schema/native semantics. Keep the fallback partial and strict output/support claims gated."
+}

@@ -1,0 +1,10 @@
+{
+  "date": "2026-11-15",
+  "changes": [
+    "The MPOLYGON metadata roundtrip now verifies the deliberate closed-edge to closed-polyline projection, all three vertices, closed flag, seeds and pixel size in both ASCII and binary. The prior expectation of three LINE edges contradicted the existing independently studied projection.",
+    "Refresh the exact AC1024 generated CLASSES string-bit count to 536374 after the generated class inventory changed. The independent class stream parser must still consume every scalar and string bit, record count remains 829, maximum class number remains 1328, and declared/footer CRC positions and CRC values must match."
+  ],
+  "validation": "Both MPOLYGON metadata cases and all AC1024 CLASSES framing assertions pass in the complete local roundtrip run. The suite still fails seven separate assertions.",
+  "source": "docs/research/p8-mpolygon-line-arc-polyline-projection-2026-11-15.json",
+  "limits": "No reader or writer behavior is changed and no support claim is promoted."
+}

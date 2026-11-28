@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-acis-sab-parser-fed-nonfinite-plane-origin-v1",
+  "observedAt": "2026-10-21",
+  "title": "Generated SAB plane-origin finite-value refusal fast slice",
+  "evidenceKind": "local generated regression test",
+  "source": "tests/graph_preservation_tests.cpp",
+  "profile": {
+    "container": "ACIS BinaryFile",
+    "version": 21800,
+    "fixtureOrigin": "generated in memory and serialized by the test",
+    "planeSurfacePointerCount": 1
+  },
+  "cases": [
+    {
+      "value": "NaN",
+      "parseAndModel": "pass",
+      "rootedProjection": "refused",
+      "failure": "InvalidModel",
+      "failedNode": "owning body",
+      "output": "cleared transactionally"
+    },
+    {
+      "value": "+infinity",
+      "parseAndModel": "pass",
+      "rootedProjection": "refused",
+      "failure": "InvalidModel",
+      "failedNode": "owning body",
+      "output": "cleared transactionally"
+    },
+    {
+      "value": "-infinity",
+      "parseAndModel": "pass",
+      "rootedProjection": "refused",
+      "failure": "InvalidModel",
+      "failedNode": "owning body",
+      "output": "cleared transactionally"
+    }
+  ],
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_graph_preservation_tests -j4",
+    "buildResult": "PASS",
+    "test": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "testResult": "PASS (1/1)"
+  },
+  "testConstructionNote": "The first generated plane-surface replacement omitted its required owner-pointer slot and failed the focused test. Adding the required null pointer fixed the generated record schema; no production code or expected result changed.",
+  "nonClaims": [
+    "No production parser defect was found.",
+    "No ACIS geometry support or transform semantics are established.",
+    "No persistent CAD fixture, test registration, peer/native run, or full-suite run was added."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ]
+}

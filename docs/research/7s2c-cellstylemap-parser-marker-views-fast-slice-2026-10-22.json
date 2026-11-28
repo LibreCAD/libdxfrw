@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c CELLSTYLEMAP parser marker views",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Use current-record string views for CELLSTYLEMAP structural marker comparisons.",
+    "routes": [
+      "DRW_CellStyleMap::parseCode group 1 framing markers",
+      "DRW_CellStyleMap::parseCode group 300 CELLSTYLE and CONTENTFORMAT markers"
+    ],
+    "lifetime": "Views are consumed synchronously within parseCode and do not escape the current record.",
+    "behavior": "Marker precedence, structure validation, retained semantic values, byte accounting, and raw replay remain unchanged.",
+    "non_claims": [
+      "no persistent DWG/DXF fixture",
+      "no public layout or API change",
+      "no wire behavior change",
+      "no support claim promotion",
+      "no native FreeCAD or independent ACIS/ACDS qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 4",
+    "build_result": "PASS (-Werror)",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_cellstylemap_dxf_writer$' --output-on-failure",
+    "focused_ctest_result": "PASS (1/1; generated ASCII/Binary)",
+    "related_ctests": "ctest --test-dir build-gcc -R 'cellstylemap' --output-on-failure",
+    "related_ctests_result": "PASS (2/2; identity-domain DWG and DXF writer/readback)",
+    "diff_check": "PASS (src/drw_objects.cpp and DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "full_suite_run": false,
+    "sanitizer_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue the exact-source audit only where another parser-only temporary or redundant retained-value copy is demonstrated, then advance to the next locally evidenced DWG/DXF semantic gap without waiting for external qualification."
+}

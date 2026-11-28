@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-shared-staged-root-entry-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateParent": "236420fb7",
+  "implementationDigestSha256": "552b95a01e8cc592e0224e0785f511c6e8545656a6462e01e3c79eb842256b25",
+  "scope": "Inspect one selected entry in the generated staged root DICTIONARY, using the existing bounded OBJECTS framing, dictionary decoder, case-folded ambiguity check and active handle remap.",
+  "validation": [
+    "PASS: locally generated ASCII and Binary controls from R14 through R2018 check a named root entry, role mismatch refusal, destination preservation and corrected retry.",
+    "PASS: the selected ACAD_MATERIAL graph checks altered root self handle, owner, entry spelling, remapped target and handle role, together with retained material-record inspection.",
+    "PASS: the focused controls under AddressSanitizer with detect_leaks=0.",
+    "PASS: the existing converter HEADER regression, 80 profiles, 68 callback rollbacks and 248 corrected retries."
+  ],
+  "limits": [
+    "This checks one selected output entry and root frame; it does not prove every root entry, selected target type, source identity, independent readback or graph closure.",
+    "The caller must bind the borrowed view to the active OBJECTS callback and prove final publication separately.",
+    "Raw-only consumer replay remains refused; no native or platform support claim is promoted."
+  ]
+}

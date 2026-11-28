@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw-named-object-callback-storage-v1",
+  "reviewedAt": "2026-10-15",
+  "implementationCommit": "ed8d925b0109ca5ae7d6fb5855be783bd71f1d52",
+  "parentCommit": "05240cf774e1257cc5af39266da24fa53aaef5c3",
+  "scope": "f.4a.1 owned callback storage and DICTIONARYWDFLT parsed-presence copy semantics only",
+  "changes": [
+    "Added dx_data-owned collections for DICTIONARYWDFLT, ACDBPLACEHOLDER, MLINESTYLE, MLEADERSTYLE, TABLESTYLE, DETAILVIEWSTYLE, SECTIONVIEWSTYLE, SCALE, and DICTIONARYVAR.",
+    "Implemented null-safe owned copies for the corresponding dx_iface callbacks; existing DRW_Interface optional default methods remain unchanged.",
+    "Changed DRW_DictionaryWithDefault copy construction and assignment to preserve the parsed code-340 presence bit; reset still clears it.",
+    "Added a runtime-generated in-memory DXF adapter regression for the valid WDFLT callback copy and the other eight callback families."
+  ],
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+    "focusedTestResult": "PASS 1/1; 0.29 seconds",
+    "diffCheck": "PASS",
+    "fullSuite": "NOT RUN"
+  },
+  "sourceSha256": {
+    "dwg2dxf/dx_data.h": "20874bf9aeaeda0d01a6a14440d56fbbd1c33bb9ab354670fe8e8dbe8bf22f54",
+    "dwg2dxf/dx_iface.h": "9213e931328d9e41afcd6f3b29f7976369f7f5700b3a0b1475e6c48f67e45710",
+    "src/drw_objects.h": "2c19ba960300e913b852fb512483d0d0ff0b047e76d5b42f7af265ffb7ab6a8f",
+    "tests/CMakeLists.txt": "ca10c5e3629320d0c7a3c9311d20b40051d86b4c4ff4fcea262e35bff434cdde",
+    "tests/dwg2dxf_adapter_tests.cpp": "94527c208037e039cb29b6da0732b53e9961a678e1b7ee8771807a92f9070dae"
+  },
+  "remainingF4aReadiness": [
+    "Test explicit reset behavior and post-reset callback reuse.",
+    "Add missing and duplicate code-340 negative controls, including reset/copy state.",
+    "Add a following-record callback sentinel to the generated parse control."
+  ],
+  "boundaries": {
+    "writerOrGraphClosureQualified": false,
+    "dwgDxfOrNativeConsumerSupportPromoted": false,
+    "drawingFixturesCommitted": 0,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

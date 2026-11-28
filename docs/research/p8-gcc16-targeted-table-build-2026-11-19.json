@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-gcc16-targeted-table-build-2026-11-19",
+  "date": "2026-11-19",
+  "status": "TARGETED_GCC_BUILD_AND_TESTS_PASSED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "1b63ce2a27ce76a23c32c34d360001c3d0328f3b43e96c5245b7aedb535c5cf4",
+  "scope": "Clean local macOS ARM64 GCC 16.2 build and link of the libdxfrw library, adapter and table-content test executable, plus six generated focused tests.",
+  "configuration": {
+    "compiler": "Homebrew GCC 16.2.0",
+    "flags": "Release profile, -O1 -DNDEBUG -std=c++17 -Wall -Wextra -pedantic -Werror",
+    "buildRoot": "/private/tmp/libdxfrw-gcc16-clean/build",
+    "command": "cmake --build /private/tmp/libdxfrw-gcc16-clean/build --target libdxfrw_table_content_dxf_tests -j 2"
+  },
+  "validation": {
+    "build": "PASS: clean CMake configure, library and adapter compilation, executable compilation and link.",
+    "tests": "PASS: six generated TABLECONTENT projection/source, identity, structural-origin, TABLESTYLE-reference and plotstyle-source CTests in 2.37 seconds.",
+    "configureLogSha256": "5b9917966d6d95999a8e69bb80807996e6717716ed3ea9bc1dd306a680e5e6d6",
+    "buildLogSha256": "641540912161da6abd8d1a0c565fe3a1bdb32662f044e7f59907976b96c1cc34",
+    "testLogSha256": "c405fe7c00dd88a14b2a74000dc712077196b6cff61a824e7a1f33121411389b",
+    "executableSha256": "cc00e9ac21902b2164357e26b12f75997ddc18d752af98c78b188407d07c98c3"
+  },
+  "limits": [
+    "This is one targeted local compiler profile, not the full GCC build, complete test suite, native GUI or native producer qualification.",
+    "P8-F remains dependent on the hosted replay for the selected implementation digest."
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-root-dictionary-setter-count-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bound root dictionary entry setter staging before caller-owned data is copied or moved into the writer.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "Both const-vector and rvalue setRootDictEntries overloads reject vectors above DRW_Dictionary::kMaxEntries before copying or moving them.",
+      "Rejected setter input marks the pending root dictionary state invalid, so writeObjects refuses before emitting bytes rather than serializing stale entries.",
+      "The const-vector setter copies into a temporary and swaps only after successful allocation; allocation failure marks input rejected.",
+      "A later valid setter call clears the rejection state, allowing corrected same-codec retry."
+    ]
+  },
+  "validation": {
+    "build": [
+      "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4"
+    ],
+    "focused": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_root_dict_entry_count_bound$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "ASCII/Binary const-vector and rvalue count refusal before staging, caller/prior-state preservation, no output change, and corrected same-codec retry."
+      }
+    ],
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The 100,000-entry ceiling is an internal resource limit, not a DXF format maximum or support claim.",
+    "The selector proves setter admission and failure/retry state; it does not qualify root dictionary serialization semantics or native consumer behavior.",
+    "Other staging/assembly paths, allocation-failure injection, rollback after earlier staged records, source lifetime and platform policy remain open."
+  ],
+  "next": "Continue the safety and caller-state audit on the remaining independent staging, assembly and rollback paths."
+}

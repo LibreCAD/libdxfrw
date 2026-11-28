@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-16",
+  "scope": "Mandatory eighth ordered FreeCAD default-importer patch correcting the immediately preceding shared-mesh-layer slice.",
+  "localSparseCandidateCommit": "6d66d4e2bfe8802737087139270e02e7be599731",
+  "patch": "docs/patches/freecad-p8-default-block-mesh-layer-refusal-2026-11-16.patch",
+  "patchSha256": "e92d49db45e97e0461527b8befcdfa840ff9d0ef4691a74749561f3103b7f1a0",
+  "reproduction": "Headless test-double import of generated nested custom-layer mesh with layer preservation enabled placed the outer link on layer 0 while leaving MESH empty; child mesh layer was not retained. Geometry alone had matched, so it could not prove layer fidelity.",
+  "change": "When layer preservation is enabled, reject bounded POLYFACE and polygon meshes with nondefault layers in block definitions and record an unsupported-feature entry. Layer-0 block meshes and custom-layer block meshes with layer preservation disabled continue importing.",
+  "validation": {
+    "before": "The regression failed for custom layer with preservation enabled before the guard.",
+    "after": "Four focused FreeCAD tests pass on macOS ARM64. Generated tests cover both mesh types, default and custom layers, preservation enabled via headless Draft test double or disabled, following LINE, and absence of leaked faces on refusal; existing direct layer, bounded polyface and closed polygon controls pass.",
+    "replay": "Zero-context patch applies with git apply --unidiff-zero after the shared-layer patch, and its two files match the tested candidate.",
+    "logs": [
+      "/private/tmp/freecad-polyface-layer-20261116/nested-layers.log",
+      "/private/tmp/freecad-polyface-layer-20261116/block-before.log",
+      "/private/tmp/freecad-polyface-layer-20261116/block-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/nested-layers-corrected.log",
+      "/private/tmp/freecad-polyface-layer-20261116/nested-corrected.log"
+    ],
+    "generatedNested": "After the correction, independently ezdxf-generated nested inch and millimetre profiles explicitly report the custom-layer refusal when layer preservation is enabled. With layer preservation disabled, the outer link retains the analytically expected transformed vertices and areas."
+  },
+  "limits": [
+    "The correction reports an unsupported profile rather than preserving nested custom-layer geometry.",
+    "The Draft double tests layer grouping in headless mode; GUI, real Draft, other platforms and native producer semantics remain open.",
+    "No fixture is committed, and no phase gate or external-only claim is promoted."
+  ],
+  "followup": "A later headless run used the actual Draft module and one loaded Qt 6.12 framework: direct layer grouping and nested block refusal pass. See p8-freecad-main-real-draft-mesh-layers-2026-11-16.json. The original test-double evidence is unchanged; GUI remains unqualified."
+}

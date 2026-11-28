@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-16",
+  "consumerRepository": "LibreCAD/LibreCAD_3",
+  "consumerBase": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "localCandidateCommit": "d81ae3e1f0b489e3c03da83d292a4901f648b4d4",
+  "pinnedLibdxfrwCommit": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "change": "Report each unsupported MLINE callback as import loss, retaining existing no-op handling for null callbacks and other raw-object handling.",
+  "reproduction": "Before fix, minimized from-scratch DXF imported successfully with a LINE and an MLINE, but its loss report omitted MLINE.",
+  "controls": {
+    "ezdxfVersion": "1.4.4",
+    "converter": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "files": {
+      "dxf": {
+        "path": "/private/tmp/librecad3-p8-mline-generated-20261116/mline.dxf",
+        "sha256": "88ad854d47435ed3b623222531cd9c759fdde0e235e83fd37de4ef137691a629"
+      },
+      "dwg": {
+        "path": "/private/tmp/librecad3-p8-mline-generated-20261116/dwg/mline.dwg",
+        "sha256": "d45d0ef80129436e3551c6b7f34a81d1ac4284bb19de239a95dfbdffeec81268"
+      },
+      "lineOnlyDxf": {
+        "path": "/private/tmp/librecad3-p8-mline-generated-20261116/line.dxf",
+        "sha256": "6823a8457fdc163e41bf82a031c97d17ab05c503e5bf4d185306292158073ea1"
+      },
+      "producerDxf": {
+        "path": "/private/tmp/librecad3-p8-mline-generated-20261116/source/mline.dxf",
+        "sha256": "3a09b98fb92510a6e995a795079048964f86bd71c57a02af04974e1b19bd81c5"
+      }
+    }
+  },
+  "test": "On macOS ARM64, 3 focused tests pass for each of separately installed current and pinned codecs. The optional MLINE test imports locally generated LINE + MLINE DXF and ODA-converted AC1024 DWG, verifies one MLINE loss and one retained LINE in each, and checks a LINE-only DXF raises no MLINE loss. MPOLYGON and legacy layer tests also pass.",
+  "logs": [
+    "/private/tmp/lc3-mline-current-test.log",
+    "/private/tmp/lc3-mline-pinned-test.log"
+  ],
+  "replay": "Patch was applied in order to a local replay of the prior candidate and both changed files matched the committed consumer candidate.",
+  "limits": "The candidate is local and unmerged. The callback reports omitted geometry; it does not implement MLINE rendering or editing. No native GUI, Linux, Windows or broader DWG/DXF qualification is implied. No drawings are committed; no phase gate or external-only support claim is promoted."
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-dxf-material-objects-allocation-failure-retry-2026-11-08",
+  "date": "2026-11-08",
+  "status": "GENERATED_MATERIAL_OBJECTS_CALLBACK_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Inject every calibrated allocation failure inside the DXF OBJECTS callback while emitting one generated AC1024 MATERIAL graph; verify atomic destination rollback, source-object preservation and same-adapter retry/readback.",
+  "input": {
+    "kind": "in-memory DRW_Material parsed from the test-only from-scratch AC1024 frame recipe",
+    "sourceGraph": "NOD ACAD_MATERIAL -> DICTIONARY 0x72 -> MATERIAL 0x97 -> empty extension DICTIONARY 0x110",
+    "fixtureFilesAdded": 0,
+    "sourceDwgOrDxfFixture": "none"
+  },
+  "implementation": {
+    "test": "tests/material_objects_allocation_tests.cpp",
+    "registration": "tests/CMakeLists.txt:libdxfrw_material_objects_allocation_retry",
+    "callback": "MaterialExport::writeObjects wraps dx_iface::writeObjects in the scoped global-new failure injector"
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_material_objects_allocation_tests -j4 — PASS",
+    "ctest": "ctest --test-dir build -R '^libdxfrw_material_objects_allocation_retry$' --output-on-failure — 1/1 PASS, 0.85 s",
+    "ascii": "37/37 calibrated OBJECTS callback allocation offsets injected; every attempt preserved the destination sentinel and all fields asserted by the generated MATERIAL profile; same-adapter retry and typed dictionary/material readback passed.",
+    "binary": "36/36 calibrated OBJECTS callback allocation offsets injected; every attempt preserved the destination sentinel and all fields asserted by the generated MATERIAL profile; same-adapter retry and typed dictionary/material readback passed.",
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated callback transaction mechanics only; no physical producer, native MATERIAL semantics, or broader MATERIAL support is qualified.",
+    "This sweep covers the selected AC1024 MATERIAL emitter path, not every DXF OBJECTS builder or whole-file failure state."
+  ],
+  "nextAction": "Select the next distinct OBJECTS builder from the remaining safety inventory only after checking for an existing allocation-failure receipt; retain the focused one-target build and CTest cadence."
+}

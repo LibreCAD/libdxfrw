@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ezdxf SAB authoring, LibreDWG AcDs reproducer, and schema-index safety crosswalk",
+  "mode": "Primary-source research and implementation-readiness update; research-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Reconcile ezdxf 1.4.5 current ACIS API with its explicitly old FAQ.",
+    "Refresh the reproducibility and evidence boundary of LibreDWG issue #1411.",
+    "Crosswalk a reported AcDs schema-property-type index risk to the local DataStorage parser and propose one focused fast negative test.",
+    "Preserve scratch-only fixture policy, composed external gates, and non-promoting deferred statuses."
+  ],
+  "sources": [
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/faq.html"
+      ],
+      "revision": "Current stable documentation identifies itself as ezdxf 1.4.5; reviewed 2026-10-19.",
+      "observed": "The ACIS API documents body_from_mesh, export_dxf, export_sat, and export_sab; SAT v700 for DXF R2000-R2010 and SAB v21800 for R2013/R2018. Its support is limited to known structures and mesh-derived flat polyhedra; unsupported nodes may become NONE_ENTITY and arbitrary ACIS load/re-export is unsupported. The FAQ says SAT-only/no creation but labels itself the old FAQ through late 2023.",
+      "evidenceCeiling": "Optional pinned scratch producer for exact mesh-derived DXF profiles; not a general ACIS kernel, arbitrary carrier round-trip, DWG AcDs producer, or semantic oracle for its own generated output."
+    },
+    {
+      "project": "LibreDWG issue #1411",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Issue opened 2026-09-02; reported executable built from 0.14.8593 at 8a1ae764 on Linux x86-64.",
+      "observed": "The issue contains a source-from-scratch AC1032 DXF REGION recipe using ezdxf body_from_mesh/export_dxf and reports 5,489 SAB bytes before a DXF-to-DWG-to-DXF path drops ACDSDATA/SAB. A separate AutoCAD R2018 drawing with 88 REGION entities is confidential and unavailable.",
+      "evidenceCeiling": "Issue-reported repro and historical LibreDWG result, not an independently reproduced current-master result; reported payload length is not a golden hash or semantic oracle."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec"
+      ],
+      "revision": "Mutable master source pages reviewed 2026-10-19.",
+      "observed": "NEWS says AcDsPrototype_1b is not fully decoded and modern SAB extraction used brute-force search. Current acds.spec defines a schema property-type size table indexed by a parsed type value.",
+      "evidenceCeiling": "Source-level peer architecture and limitation context only; no immutable build or runtime qualification."
+    },
+    {
+      "project": "VulnCheck advisory",
+      "urls": [
+        "https://www.vulncheck.com/advisories/gnu-libredwg-through-0.14.8612-out-of-bounds-read-in-acds-private-acds-decoder"
+      ],
+      "revision": "Advisory dated 2026-10-15; reviewed 2026-10-19.",
+      "observed": "Reports an out-of-bounds read involving an unchecked AcDs schema property-type index in LibreDWG through 0.14.8612 and links the LibreDWG decoder source.",
+      "evidenceCeiling": "Third-party security lead only; not a confirmed libdxfrw defect, not a normative format source, and not proof of current mutable-master or later-artifact behavior."
+    }
+  ],
+  "localEvidence": [
+    "src/drw_datastorage.cpp validates a parsed schema property type against SCHEMA_PROPERTY_TYPE_COUNT before indexing the local type-size table.",
+    "tests/graph_preservation_tests.cpp builds generated DataStorage schema controls with ordinary property types including 10 and 15.",
+    "A source search during this review found no generated type-16 or larger invalid-type assertion in the current DataStorage regression code.",
+    "ODA Open Design Specification v5.4.1 remains the authority for DWG field layout and legal values."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "focusedFastTestRecommendations": 1,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Corrects the ezdxf FAQ/API freshness assessment, adds a scratch-only AC1032 SAB carrier recipe to the existing composed gate, and recommends focused invalid schema-type vectors under the existing DataStorage fast-test owner. All external semantic qualification remains separate and non-promoting."
+  },
+  "method": {
+    "kind": "Read-only primary-source web review plus local parser/test/plan crosswalk",
+    "codeModified": false,
+    "testsModified": false,
+    "testsRun": false,
+    "scratchDrawingsGenerated": false,
+    "peerRepositoriesClonedOrBuilt": false
+  }
+}

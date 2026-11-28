@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-schema3-observation-phase-role-guard-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Enforce the 7F.1b typed-result invariant that inputRead and outputReadback envelopes cannot exchange phase identity, including notApplicable routes.",
+  "implementation": {
+    "file": "tools/run_qualified_differential_v2.py",
+    "change": "_validate_observations now requires the inputRead-position envelope to declare inputRead and outputReadback-position envelope to declare outputReadback before applying route-specific availability rules.",
+    "gap": "Available DWG read observations had route-specific phase checks, but notApplicable envelopes on DXF and write-recipe routes could carry the opposite phase label and still validate.",
+    "tests": [
+      "A valid DXF schema-3 result with inputRead.phase mutated to outputReadback is rejected with an inputRead role error.",
+      "A valid DXF schema-3 result with outputReadback.phase mutated to inputRead is rejected with an outputReadback role error."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "python3 -B -m py_compile tools/run_qualified_differential_v2.py",
+      "python3 -B tools/run_qualified_differential_v2.py --self-test",
+      "git diff --check -- tools/run_qualified_differential_v2.py DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": {
+      "pythonCompile": "PASS",
+      "runnerSelfTest": "PASS",
+      "diffCheck": "PASS"
+    },
+    "broadSuiteRun": false,
+    "externalPeerRun": false
+  },
+  "planImpact": {
+    "documentsUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "productionParserOrWriterChanged": false,
+    "resultSchemaChanged": false,
+    "qualificationPromoted": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

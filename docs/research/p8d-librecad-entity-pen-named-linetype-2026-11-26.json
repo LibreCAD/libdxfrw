@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-26",
+  "consumer_repository": "https://github.com/LibreCAD/LibreCAD",
+  "consumer_pr": 3289,
+  "parent_commit": "750c757729f9cdfef7da0548b952ff6c17855e3b",
+  "fix_commit": "02530f9976e0fd0cdcaa76c1ca5644b176a0cd56",
+  "native_observation": "On the parent system-codec macOS application, the legacy Line Properties dialog showed Continuous for the explicit P8D_CUSTOM linetype after R12-to-2018 save and reopen. The dialog was cancelled without editing.",
+  "implementation": "Entity pen dialogs now use the shared drawing-aware linetype combo. Its source pen and row identity preserve untouched custom names and permit choosing the Continuous row or another drawing type. A missing definition has a temporary named row. Contexts without a drawing retain the built-in-only selector.",
+  "verification": [
+    "System-codec macOS application rebuilt successfully.",
+    "Offscreen system-codec GUI tests passed: 108 assertions in 7 test cases. Tests include a drawing-defined custom name, switching to Continuous and another defined name, preserving the name when changing color, a missing definition, ByLayer, and switching to a no-drawing context.",
+    "Parent PR head 750c7577 had fast, both headless, both Windows, and all five Pixi jobs passing; CodeQL was still in progress at the poll."
+  ],
+  "limitations": [
+    "The modified app has not been exercised in a native GUI: the computer-use environment declined access to the new scratch app.",
+    "These results do not qualify every property dialog or layer editor, other platforms, or general named-linetype compatibility.",
+    "The earlier native observation establishes a display issue; no native edit or saved data loss was observed."
+  ]
+}

@@ -1,0 +1,236 @@
+{
+  "date": "2026-11-02",
+  "phase": "P4",
+  "status": "BOUNDED_LOCAL_WRITER_PROFILE_PASSES_CURRENT_STRICT_DWG_TO_DXF_AND_DXF_READBACK",
+  "repositoryHead": "5e4fad180fe9c32b39429cd1a28639a716adc82b",
+  "source": {
+    "path": "/private/tmp/librecad-plotsettings-consumer-20261101/roundtrip-fixed.dwg",
+    "sha256": "84559f9804d3456ad6cad11d7cb5efd926da4a8c9078f867ffd00964899ef66a",
+    "version": "AC1015",
+    "provenance": "Generated locally from a from-scratch standalone PLOTSETTINGS/DXF consumer regression through the LibreCAD candidate adapter. This is a physical DWG frame but not an independent external producer sample. It is not committed as a fixture."
+  },
+  "independentSourceDecode": {
+    "reader": "LibreDWG 0.14",
+    "jsonPath": "/private/tmp/libdxfrw-p4-plotsettings-current-20261102.json",
+    "sourceGraph": [
+      "NOD DICTIONARY handle 0x0C contains ACAD_PLOTSETTINGS -> DICTIONARY 0x5E",
+      "DICTIONARY 0x5E is owned by NOD 0x0C and contains LIBDXFRW_PLOTSETTINGS_90 -> PLOTSETTINGS 0x5A",
+      "PLOTSETTINGS 0x5A is owned by DICTIONARY 0x5E"
+    ],
+    "typedFields": {
+      "printer_cfg_file": "LIBDXFRW_PLOTSETTINGS_90",
+      "paper_size": "",
+      "plot_flags": 0,
+      "margins": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "paper_size_xy": [
+        0.0,
+        0.0
+      ],
+      "canonical_media_name": "",
+      "plot_origin": [
+        0.0,
+        0.0
+      ],
+      "plot_paper_unit": 0,
+      "plot_rotation_mode": 0,
+      "plot_type": 0,
+      "plot_window_ll": [
+        0.0,
+        0.0
+      ],
+      "plot_window_ur": [
+        0.0,
+        0.0
+      ],
+      "plotview_name": "1x1",
+      "paper_units": 1.0,
+      "drawing_units": 1.0,
+      "stylesheet": "",
+      "std_scale_type": 0,
+      "std_scale_factor": 1.0,
+      "paper_image_origin": [
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "currentCodeValidation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf -j4",
+      "result": "PASS"
+    },
+    "dwgToDxf": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/librecad-plotsettings-consumer-20261101/roundtrip-fixed.dwg -y -v2000 /private/tmp/libdxfrw-p4-plotsettings-intermediate-recheck-20261102.dxf",
+      "exitCode": 0,
+      "outputSha256": "ff6d39651824a6d16607168fdc5c8fbd31a9b0762c8fa71381cd153e3ba5de62",
+      "disposition": "Strict default DWG-read/output path succeeded. The CLI reported that the version-specific LAYOUT source profile was skipped for an AC1015 target; this does not qualify LAYOUT output."
+    },
+    "freshDxfReadback": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-p4-plotsettings-intermediate-recheck-20261102.dxf -y -v2000 /private/tmp/libdxfrw-p4-plotsettings-readback-20261102.dxf",
+      "exitCode": 0,
+      "outputSha256": "674676649a29ace291c1e22a00efab3bb7c0686fcc8b0744a12e6cca57bf844a",
+      "plotSettingsGroupsMatchFirstOutput": true,
+      "groups": [
+        [
+          0,
+          "PLOTSETTINGS"
+        ],
+        [
+          5,
+          "5A"
+        ],
+        [
+          330,
+          "5E"
+        ],
+        [
+          100,
+          "AcDbPlotSettings"
+        ],
+        [
+          1,
+          "LIBDXFRW_PLOTSETTINGS_90"
+        ],
+        [
+          2,
+          ""
+        ],
+        [
+          4,
+          ""
+        ],
+        [
+          6,
+          "1x1"
+        ],
+        [
+          40,
+          "0"
+        ],
+        [
+          41,
+          "0"
+        ],
+        [
+          42,
+          "0"
+        ],
+        [
+          43,
+          "0"
+        ],
+        [
+          44,
+          "0"
+        ],
+        [
+          45,
+          "0"
+        ],
+        [
+          46,
+          "0"
+        ],
+        [
+          47,
+          "0"
+        ],
+        [
+          48,
+          "0"
+        ],
+        [
+          49,
+          "0"
+        ],
+        [
+          140,
+          "0"
+        ],
+        [
+          141,
+          "0"
+        ],
+        [
+          142,
+          "1"
+        ],
+        [
+          143,
+          "1"
+        ],
+        [
+          70,
+          "0"
+        ],
+        [
+          72,
+          "0"
+        ],
+        [
+          73,
+          "0"
+        ],
+        [
+          74,
+          "0"
+        ],
+        [
+          7,
+          ""
+        ],
+        [
+          75,
+          "0"
+        ],
+        [
+          147,
+          "1"
+        ],
+        [
+          148,
+          "0"
+        ],
+        [
+          149,
+          "0"
+        ]
+      ]
+    }
+  },
+  "separateInvalidSourceControl": {
+    "path": "/Users/dli/dev/LibreCAD/librecad/src/lib/filters/tests/testdata/ordinary_enc_AC1015.dwg",
+    "sha256": "80690dc45b2e32b4d378df4be860c51c6b3c952400aa762eb73a654e93a728dd",
+    "currentStrictResult": "REFUSED",
+    "libdxfrwDiagnostic": "Extension DICTIONARY target 0x38 is missing or not reciprocally owned.",
+    "LibreDWGResult": "The independent reader reports missing object-map targets 0x36, 0x37 and 0x38.",
+    "disposition": "Keep the source refused; this dangling graph is not a PLOTSETTINGS codec defect and no target is synthesized."
+  },
+  "claimBoundary": [
+    "This verifies one locally generated AC1015 PLOTSETTINGS owner/key/field profile through current strict DWG-to-DXF output and fresh DXF re-import.",
+    "LibreDWG independently decoded the physical DWG graph and fields, but the source was created through the LibreCAD/libdxfrw writer path; this is not independent external producer qualification.",
+    "No native plotting behavior, external producer breadth, platform qualification, or broader support claim is established.",
+    "All new DXF outputs and JSON traces remained under /private/tmp; no drawing fixture was added to this repository."
+  ],
+  "currentRecheck": {
+    "baseCommit": "ec49ce4619b1b1d4cfafd13cf7bdf2801350b042",
+    "inputSha256": "84559f9804d3456ad6cad11d7cb5efd926da4a8c9078f867ffd00964899ef66a",
+    "converterSha256": "ba6cb3c8f63c18818dee5f1a04383a0398c55025a9969742e95d7dd430c5602b",
+    "dwgToDxf": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/librecad-plotsettings-consumer-20261101/roundtrip-fixed.dwg -y -v2000 /private/tmp/libdxfrw-p4-plotsettings-current-commit-check.dxf",
+      "outputSha256": "ff6d39651824a6d16607168fdc5c8fbd31a9b0762c8fa71381cd153e3ba5de62"
+    },
+    "freshDxfReadback": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/libdxfrw-p4-plotsettings-current-commit-check.dxf -y -v2000 /private/tmp/libdxfrw-p4-plotsettings-current-commit-readback.dxf",
+      "outputSha256": "674676649a29ace291c1e22a00efab3bb7c0686fcc8b0744a12e6cca57bf844a",
+      "plotSettingsGroupsIdentical": true,
+      "groupPairs": 31
+    },
+    "result": "PASS; the exact 31 PLOTSETTINGS group pairs matched after a fresh DXF import/export."
+  }
+}

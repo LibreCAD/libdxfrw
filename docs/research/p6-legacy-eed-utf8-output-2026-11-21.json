@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-eed-utf8-output-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_R14_STRICT_AND_R13_PARTIAL_REPRESENTABLE_EED",
+  "supportClaimEffect": "none",
+  "sourceEvidence": "docs/research/p6-legacy-eed-codepage45-utf8-witness-2026-11-21.json",
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py",
+  "sourceConstruction": "Locally generated R13/R14 DWGs with fixed-size EED strings patched to the independently observed EED codepage-45 UTF-8 wire profile; frame CRCs are verified and repaired without moving offsets. Files remain outside the repository.",
+  "sourceSha256": {
+    "r13": "6c457e6bbfbd7c0df1ce3bc45fb1b1cc6af26d42dfdd8c285b265869d3970d22",
+    "r14": "a4a17cc10cb9316efc140589ed1220e2516edc42c5901a3fcbf902723f7ec1fe"
+  },
+  "independentEzdxfReadback": {
+    "version": "1.4.5",
+    "value": "caf\u00e9",
+    "r13PartialAsciiSha256": "7ce85af0dc44a23e6f26d1960f30a8defe7c6b275f54d81bdd552bd90bc8fa6a",
+    "r13PartialBinarySha256": "05b508ae8f5b4db599b443b643889996ee31399c7705f00aef4c51a21c0b912f",
+    "r14StrictAsciiSha256": "528cc529d0a7a15b9051b7620d3e12e715a620003f61ffda878286f6e756c9ac",
+    "r14StrictBinarySha256": "ef71eebd78f41ca3394d8095a98ab10c6fa0dc4149e557b0d7023693b0e7b901"
+  },
+  "checks": [
+    "Reuse exact source-byte and APPID checks, import-time integrity binding, staged table identity, generated group graph and typed output comparison.",
+    "The UTF-8 text caf\u00e9 is preserved in R14 strict and R13 explicit-partial ASCII and Binary outputs; the independent reader returns the same value.",
+    "For an EED character outside the output codepage, the writer emitted a DXF Unicode escape that ezdxf reported as literal text. The verified profile now refuses such staged escape output atomically, and a corrected same-adapter retry succeeds in both encodings.",
+    "ASan controls exercise EED and APPID changes, pre-inspection and late frame mutation, rollback, corrected retries and the unqualified partial-source compatibility route."
+  ],
+  "limits": [
+    "This is a bounded group dictionary, ACAD APPID and R14 target profile; it does not qualify other dictionary graphs, arbitrary producer EED, strict R13 or overall format support.",
+    "Native duplicate and cloning semantics remain unresolved. The rejection of escaped output is based on a demonstrated independent-reader difference, not a claim that every DXF consumer interprets it identically."
+  ]
+}

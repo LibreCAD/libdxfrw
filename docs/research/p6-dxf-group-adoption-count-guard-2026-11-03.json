@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-group-adoption-count-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bounded transfer and planning of typed DXF GROUP objects into the writer.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "The adapter ownership-transfer API refuses more than DRW_Dictionary::kMaxEntries (100,000) GROUPs before reserving or moving them into the writer vector.",
+      "The GROUP handle planner independently refuses a vector above the same dictionary entry limit before walking group names, member handles, and remaps.",
+      "The focused API control verifies that over-limit adoption leaves all caller list nodes intact and the writer receives no groups; a one-group control verifies successful adoption and ownership return."
+    ]
+  },
+  "validation": {
+    "build": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j 4",
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j 4"
+    ],
+    "focused": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_group_adoption_count_bound|libdxfrw_table_attribute_count_bound)$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "Over-limit GROUP source preservation and in-limit ownership return; TABLE guard regression after the header rebuild."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_group_adapter_roundtrip$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "Existing GROUP adapter graph/output/readback path."
+      }
+    ],
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The count ceiling is internal and aligned with DRW_Dictionary::kMaxEntries, not a format support claim.",
+    "Other writer staging and caller-state paths remain open; see the follow-up receipt for the vector-setter control."
+  ],
+  "next": "Continue auditing other writer/import staging bounds, allocation-failure behavior, source lifetime and scoped concurrency.",
+  "followUp": {
+    "id": "p6-dxf-group-vector-setter-count-guard-2026-11-03",
+    "finding": "The public const-vector setGroups API copied caller data before the independent planner enforced the 100,000-entry ceiling.",
+    "fix": "setGroups now checks the count first, copies accepted data into a temporary with failure capture, and records rejected input so a later plan refuses until corrected. Valid setter/adoption input clears the rejection state.",
+    "validation": {
+      "builds": [
+        "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+        "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4"
+      ],
+      "focused": [
+        "PASS: libdxfrw_group_adoption_count_bound",
+        "PASS: libdxfrw_group_adapter_roundtrip"
+      ],
+      "repositoryFixturesAdded": 0
+    },
+    "receipt": "docs/research/p6-dxf-group-vector-setter-count-guard-2026-11-03.json"
+  }
+}

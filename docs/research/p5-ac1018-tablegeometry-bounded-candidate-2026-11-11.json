@@ -1,0 +1,34 @@
+{
+  "id": "p5-ac1018-tablegeometry-bounded-candidate-2026-11-11",
+  "date": "2026-11-11",
+  "scope": "Standalone opt-in decoder of the source-observed AC1018 3x3 zero-cell TABLEGEOMETRY profile. It does not authenticate raw caller data, participate in ordinary callbacks, bind graph dependencies, or authorize output.",
+  "authority": {
+    "oda": "Open Design Specification v5.4.1 sections 20.1, 2.13 and 20.4.103; the latter says TABLEGEOMETRY was introduced in AutoCAD 2008. The observed AC1018 object is therefore an out-of-version source profile, not broad format authority.",
+    "source_and_independent_walk": "p5-ac1018-table-descendant-graph-wire-2026-11-11.json; source DWG sha256 1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a, captured raw body sha256 bee29eb5b223a434febedbbd3939631821489a8a60022d3ea0ce878d47868a3c. Independent Python primitive walk and same-vendor ODA DXF projection match; LibreDWG 0.14 independently identifies rows/columns/owner but does not qualify the full body.",
+    "wire_order": "ODA section 20.4.103 lists the H 330 pointer within the abstract cell schema before BL 94; this observed AC1018 object physically stores all cell data first and its nine soft-pointer fields in the handle tail. The independent source bit walk establishes that ordering for this profile only."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwg_tablegeometry_ac1018_candidate.h",
+      "src/intern/dwg_tablegeometry_ac1018_candidate.cpp",
+      "tests/dwg_tablegeometry_ac1018_candidate_tests.cpp"
+    ],
+    "bounds": "4096 input body bytes, fixed nine-cell array, bounded BL/BD reads and exact source-data/handle/alignment endpoints; work quota is an implementation limit, not a file-format maximum.",
+    "checks": "Require AC1018, non-entity, custom class, matching TABLEGEOMETRY and AcDbTableGeometry class names, reader-provided class definition and dynamic class number >=500 matching the encoded type, valid self handle, zero EED/reactors, missing extension dictionary, 3x3 and nine cells with zero flags, dimensions and contents. Strictly reject BL selector 3 and invalid BD, non-null or wrong-role cell pointers, wrong soft-owner role, contradictory validated common-link metadata, extra data and nonzero padding. Exact body and handle spans are reported, including each cell and pointer. Failure clears result and does not mutate input.",
+    "boundary": "The raw inspection function accepts caller-supplied metadata and bytes; it is not a reader-authenticated source certificate. CRC and selected generation/source binding must come from reader-owned admission in a later slice. The default DRW_TableGeometry::parseDwg version guard, raw-only callback path, and writer gates are unchanged."
+  },
+  "physical_control": {
+    "body": "/private/tmp/p5-desc-repro-captures-isolated/p5-desc-body-186.bin",
+    "body_sha256": "bee29eb5b223a434febedbbd3939631821489a8a60022d3ea0ce878d47868a3c",
+    "result": "PASS: body end 173, parent soft pointer 0xbc at 173..189, nine null soft pointers at 189..261 and 3 zero padding bits; nine field spans 101..173. A separate pinned full-source/peer/DXF verifier returned proof sha256 5ba33d08364afbfdf274e44440c34d0769135e0a3ad4fe99851711a924b623cf. The physical control is not committed as a fixture.",
+    "limit": "The C++ body-check path accepts a caller-supplied body and reconstructs class/handle metadata; it does not itself hash the drawing or body and does not validate the frame CRC. Source origin is separately associated by the pinned actual reader callback, frame/import evidence and Python hash verifier in the descendant-graph receipt."
+  },
+  "focused_validation": {
+    "build": "cmake --build build --target libdxfrw_dwg_tablegeometry_ac1018_candidate_tests -j 3",
+    "ctest": "ctest --test-dir build -R ^libdxfrw_dwg_tablegeometry_ac1018_candidate$ --output-on-failure -V: 1/1 PASS",
+    "physical": "build/tests/libdxfrw_dwg_tablegeometry_ac1018_candidate_tests /private/tmp/p5-desc-repro-captures-isolated/p5-desc-body-186.bin: PASS",
+    "negative_and_retry": "Every byte truncation; invalid body boundaries \u00b11 bit, invalid role on ninth cell, self/owner/cell role mismatches, non-null cell, class/name/version and metadata mismatches, nonfinite/nonzero values, reserved BL/BD selectors, extra bytes and bad padding refuse with cleared result; corrected same-result retry succeeds. Alternate dynamic class number/owner succeeds. The two measured allocation sites were individually faulted with unchanged input, cleared result and corrected retry.",
+    "asan": "Direct candidate and test translation units compiled with AddressSanitizer and detect_stack_use_after_return=1; physical and generated controls pass. The linked libdxfrw.a was not instrumented, so this is partial ASan coverage, not an entire-library ASan run."
+  },
+  "remaining": "Extend the reader-owned CRC-verified same-import bundle to include this selected geometry only when class identity, frame ordinal/offset/space and generation are bound, and cross-check its owner with the selected parent XRECORD and exact group-361 reference. Require selected content/datatable/geometry and all owned XRECORDs to remain immutable, reject duplicate identities, enforce bounded aggregate memory, test failure/reentry/spoofing and strict output refusal. Full recursive TABLESTYLE/resources, independent native semantics, and writer graph closure remain open."
+}

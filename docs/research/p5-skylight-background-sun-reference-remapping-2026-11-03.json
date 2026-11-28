@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-03",
+  "gate": "P5_SKYLIGHT_BACKGROUND_SUN_REFERENCE_ID_TRANSPORT",
+  "scope": "Generated low-level DXF serialization of the SKYLIGHTBACKGROUND group-340 SUN reference.",
+  "sourceContract": {
+    "readerMapping": "DRW_Background::parseCode maps group 340 to m_sunHandle for Skylight backgrounds and to m_secondaryBackgroundHandle for IBL backgrounds.",
+    "groupCodeType": "Autodesk DXF group codes 340-349 are hard-pointer IDs.",
+    "apiMeaning": "Autodesk AcDbSkyBackground::setSunId accepts the object ID of the SUN used by the background and documents valid-object-ID input.",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+      "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcDbSkyBackground.html"
+    ]
+  },
+  "change": "For a nonzero Skylight SUN handle, the low-level writer now requires an AC1021-or-newer target and registration in the existing resolved-SUN set. It emits the configured reference-resolver result when present, otherwise the source-handle remap. Zero or DRW::NoHandle output results and unregistered targets fail before the record is written. The adapter's source/owner graph admission is unchanged.",
+  "implementationFingerprints": {
+    "src/libdxfrw.cpp": "ace4cb7b92f4c6a1bc7f01d41a8424cce6b842fed637622004cd50a758bd1b66",
+    "tests/wave1_tests.cpp": "6982038467c4869cffe1dbcf035ad95b8d2b05b0a6fc248d3cf105a030ed63df",
+    "build-gcc/libdxfrw_wave1_tests": "b64c618b30eeba54e3c789a587c11f2fedaed7f50377b31a1f6ea7635830f489"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+    "selector": "build-gcc/libdxfrw_wave1_tests --background-reference-remapping",
+    "result": "PASS",
+    "coverage": [
+      "ASCII and Binary DXF exact group-340 readback with resolver precedence and source-handle-remap fallback",
+      "Unregistered target refusal with destination preservation",
+      "Zero/NoHandle resolver-result refusal with destination preservation",
+      "Corrected fresh-writer retry and typed readback",
+      "Pre-AC1021 target-version refusal with destination preservation",
+      "Existing IBL secondary-Background resolver/remap controls remain passing"
+    ]
+  },
+  "qualificationLimits": [
+    "Generated low-level reference-ID transport only; target registration does not prove that a corresponding SUN record was emitted.",
+    "No change to dwg2dxf adapter graph admission or physical SUN owner qualification; the documented VPORT/VIEWPORT owner route remains required.",
+    "No physical producer or native lighting/consumer semantics are established.",
+    "No DWG/DXF fixture was added."
+  ]
+}

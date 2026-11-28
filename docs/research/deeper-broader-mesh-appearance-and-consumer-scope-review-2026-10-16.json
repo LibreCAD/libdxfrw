@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw-deeper-broader-mesh-appearance-and-consumer-scope-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Cross-check explicit MESH version/writer interoperability, peer-reported appearance fields, public DXF contracts, and downstream consumer boundaries; refine plan readiness without changing implementation or support claims.",
+  "method": {
+    "kind": "Primary Autodesk documentation, released peer notes/issues, consumer documentation, and local API inventory",
+    "sourcesOpened": [
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "https://github.com/DomCR/ACadSharp/issues/1038",
+      "https://github.com/DomCR/ACadSharp/pull/1067",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.12",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.35",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.wikitext",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalledOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFilesReviewed": [
+      "src/drw_entities.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "evidenceBoundary": "Autodesk tables define documented DXF record fields, not all native appearance semantics. Peer release summaries establish shipped change descriptions, not independent conformance. Consumer documentation is backend/version bounded. Static local API inventory does not prove runtime loss or establish a support claim."
+  },
+  "evidence": [
+    {
+      "topic": "Versioned MESH writer identity is a concrete interoperability condition",
+      "observed": [
+        "Autodesk's 2021 DXF MESH table identifies AcDbSubDMesh and documents version, level-0 vertices, face-list items, edges, crease values, and property-override framing/types.",
+        "ACadSharp issue #1038 describes an AC1024 DxfWriter result whose proxy metadata named MESH/AcDbSubDMesh while AutoCAD treated the entity as ACAD_PROXY_ENTITY.",
+        "The linked #1067 fix is listed in ACadSharp v3.6.12 as updating MESH version handling, DXF assertions, and edge-crease handling. This is a resolved peer failure class, not a current-release run or proof of libdxfrw behavior.",
+        "The parity plan already records Autodesk's AC1024 SUBDIVISION and AC1027 MESH spellings and the local all-version MESH writer gap."
+      ],
+      "planUse": "Keep the fast local slice narrowly versioned: AC1024 SUBDIVISION, AC1027/AC1032 MESH, both readable into one DRW_Mesh. Generated ASCII/binary checks must inspect raw $ACADVER, record name, subclass, CLASS identity, crease fields, typed values, and a following sentinel. Reject proxy substitution in any optional peer result. Preserve older-target behavior until the existing source/provenance audit resolves its conflicting evidence."
+    },
+    {
+      "topic": "MESH visual-appearance parity is a newly identified classification gap, not yet a format defect",
+      "observed": [
+        "ACadSharp release v3.6.35 lists merged PR #1084, described as adding material write support and MESH texture-coordinate round-trip.",
+        "Autodesk's public MESH table lists a material-mapper property-override type but does not enumerate a per-vertex UV-coordinate sequence.",
+        "Local DRW_Mesh stores topology, creases, an unknown field, and DXF propertyOverrides; the public class has no texture-coordinate member.",
+        "The release-note title alone does not identify whether the extra coordinates belong to DWG-only data, a material/mapper object, a documented DXF field omitted by the summary, or an application-specific extension."
+      ],
+      "planUse": "Add a non-blocking appearance investigation before closing broad visual-fidelity claims. Pin and inspect the merged peer source/change and its exact read/write test, then classify the field route against Autodesk's public DXF contract and a source-authored control. Until that classification, label texture/material fidelity UNQUALIFIED; do not call it a proven DXF omission, add speculative fields, or mix it into MESH topology/B-rep denominators. Do not delay the ready version-name/wire-codec slice."
+    },
+    {
+      "topic": "Consumer claims must remain per importer and geometry family",
+      "observed": [
+        "FreeCAD's archived Draft_DXF matrix distinguishes the C++ importer from the legacy Python importer: the cited matrix marks 3DFACE unsupported in C++ and supported in legacy, and says the importer does not read ACIS solid blobs.",
+        "FreeCAD's import/export manual describes its DXF/DWG route as 2D-only for proprietary embedded 3D data.",
+        "ezdxf's authoring documentation says creation of ACIS data requires an external library; its renderer documentation does not provide ACIS rendering or a 3D rendering engine."
+      ],
+      "planUse": "Retain per-backend, per-platform FreeCAD receipts and separate explicit mesh/face acceptance from ACIS carrier and B-rep acceptance. A successful file open or converter handoff is not geometry acceptance; use object type/topology and independent analytic properties when the named consumer supports that family."
+    }
+  ],
+  "implementationReadiness": {
+    "refinesExistingOwners": [
+      "PAR-07",
+      "PAR-49",
+      "S5 explicit MESH DXF profile",
+      "S8 peer/native consumer qualification"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "implementationOrderChanged": false,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Implement the already-ready version-to-record-name choice and parser alias using the existing generated DXF fixture target; preserve older-target behavior pending its existing witness audit.",
+      "At the next optional peer checkpoint, pin ACadSharp release/source and require native MESH identity, version, topology, crease values, appearance fields, and diagnostics to be reported separately.",
+      "Classify ACadSharp's MESH texture/material route before deciding whether it is standard DXF, DWG-only, or extension data; add no speculative model fields before that evidence.",
+      "Keep FreeCAD results bound to importer backend/platform and distinguish explicit mesh/face shape construction from ACIS/B-rep support."
+    ]
+  },
+  "validation": {
+    "parityPlanUpdated": true,
+    "3dPlanUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "productionCodeChanged": false,
+    "testsRun": false,
+    "peerRuntimeRun": false,
+    "nativeRuntimeRun": false,
+    "supportClaimsPromoted": 0
+  }
+}

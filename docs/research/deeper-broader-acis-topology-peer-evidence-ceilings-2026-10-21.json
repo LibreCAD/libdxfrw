@@ -1,0 +1,98 @@
+{
+  "title": "Deeper/broader ACIS topology crosswalk and peer-evidence ceilings",
+  "date": "2026-10-21",
+  "status": "RESEARCH_ONLY",
+  "sources": [
+    {
+      "project": "ezdxf",
+      "artifact": "1.4.5 stable documentation and current source model",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/acis/entities.py"
+      ],
+      "evidence_role": "selected DXF/SAT/SAB syntax and structural cross-check only",
+      "limits": [
+        "unsupported ACIS entity data can be lost",
+        "arbitrary ACIS editing is explicitly out of scope",
+        "no ACIS kernel",
+        "typed model is not authority for SAB 21800 byte ordinals or B-rep validity"
+      ]
+    },
+    {
+      "project": "LibreDWG",
+      "artifact": "mutable master source and open issue #1411, reviewed 2026-10-21",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "evidence_role": "DWG AcDs implementation/source comparison and issue failure shape",
+      "limits": [
+        "generated issue reproduction uses LibreDWG writer before reader and does not exercise reader-side AcDs extraction when the writer omits the section",
+        "the issue's AutoCAD-authored sample is unavailable",
+        "source existence does not qualify reader completeness or solid semantics"
+      ]
+    },
+    {
+      "project": "ACadSharp",
+      "artifact": "open issue #1195, reported 2026-08-19",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "evidence_role": "writer-side source-entity omission failure shape",
+      "limits": [
+        "peer issue report, not independently reproduced current behavior",
+        "not evidence of a libdxfrw defect"
+      ]
+    },
+    {
+      "project": "ACadRust",
+      "artifact": "current public roundtrip tests",
+      "references": [
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "evidence_role": "optional transport/structure comparison",
+      "limits": [
+        "same-codec reader/writer roundtrip is not an independent codec vote",
+        "fabricated SAB markers test transport, not valid SAB geometry"
+      ]
+    },
+    {
+      "project": "OpenCADStudio",
+      "artifact": "current plugin architecture and project README",
+      "references": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/plugin-architecture.md",
+        "https://github.com/HakanSeven12/OpenCADStudio"
+      ],
+      "evidence_role": "potential separate application/consumer observation",
+      "limits": [
+        "the document-model/parser dependency is ACadRust, so it is not an independent DWG parser lineage",
+        "application acceptance must be recorded separately from parser and geometry semantics"
+      ]
+    }
+  ],
+  "reconciliation": {
+    "local_findings_added": 0,
+    "top_level_subplans_added": 0,
+    "existing_owners": [
+      "PAR-07/S8 carrier preservation, source-entity disposition, block ownership, AcDs association, and composed semantic/consumer gates",
+      "PAR-144 peer evidence roles and implementation lineage"
+    ],
+    "local_face_loop_census": "Structural coverage for records present in DRW_AcisModel; it does not detect omitted source records.",
+    "external_support_promotion": false,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "readiness": {
+    "local_next_step": "Continue dependency-ready parser-fed topology/incidence slices with one owning fast CTest and compatibility build per changed invariant.",
+    "external_step": "At the existing composed checkpoint only, pin exact peer artifacts and sample provenance, record lineage and per-source dispositions, and separate carrier, parser, semantic, and consumer outcomes.",
+    "full_suite_or_peer_runtime_required_now": false,
+    "new_fixture_or_dependency_added": false
+  }
+}

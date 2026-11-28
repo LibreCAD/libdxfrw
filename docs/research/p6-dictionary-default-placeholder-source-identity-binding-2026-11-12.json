@@ -1,0 +1,29 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "scope": "Bind typed DICTIONARYWDFLT and ACDBPLACEHOLDER source identities in DXF OBJECTS output.",
+  "result": "PASS",
+  "supportClaimEffect": "none",
+  "change": "Both typed writers now bind their source handles to emitted handles before committing existing record/state scopes, covering the NOD root, dictionary default, child owner, and placeholder identities transactionally.",
+  "validation": {
+    "normal_writer_graph": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dictionary_with_default_writer$' --output-on-failure",
+      "result": "PASS, 1/1; generated ASCII/Binary writer and typed graph readback across AC1014, AC1015, and AC1027"
+    },
+    "normal_allocation": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dictionary_default_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1; destination rollback, caller-state preservation, same-codec retry, and typed graph readback"
+    },
+    "address_sanitizer_allocation": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_dictionary_default_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1"
+    }
+  },
+  "limitations": [
+    "Generated typed output and transaction behavior only; no independent native consumer qualification.",
+    "No support claim is promoted."
+  ],
+  "source_sha256": {
+    "src/libdxfrw.cpp": "e9a6d2e8749325da81a6312b90c4d2c1c15babf9f9c3b712f512ed39843c9321"
+  }
+}

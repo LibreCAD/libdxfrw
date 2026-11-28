@@ -1,0 +1,63 @@
+{
+  "title": "Autodesk Community action-path DWG source-acquisition leads",
+  "date": "2026-11-12",
+  "scope": "Locate possible physical MotionPath/CurvePath source witnesses for P8 qualification; this receipt records leads only, not acquired DWG evidence.",
+  "sources": [
+    {
+      "url": "https://forums.autodesk.com/t5/civil-3d-forum/camera-rolling-in-motion-path-animation/td-p/5899422",
+      "published": "2015-11-09",
+      "listed_attachments": [
+        "CAMERA MOTION PATH.dwg",
+        "MOTION PATH EXAMPLE.dwg"
+      ],
+      "page_view_result": "The discussion text and attachment filenames are visible, but the available page view exposes no retrievable attachment URL or bytes.",
+      "producer_provenance": "Not established; user-uploaded forum attachments."
+    },
+    {
+      "url": "https://forums.autodesk.com/t5/autocad-forum/camera-rolling-in-motion-path-animation/td-p/5902826",
+      "published": "2015-11-11",
+      "listed_attachments": [
+        "CAMERA MOTION PATH.dwg",
+        "CAMERA MOTION PATH-ALW.dwg",
+        "MOTION PATH EXAMPLE.dwg"
+      ],
+      "page_view_result": "The discussion text and attachment filenames are visible, but the available page view exposes no retrievable attachment URL or bytes.",
+      "producer_provenance": "Not established; user-uploaded forum attachments."
+    }
+  ],
+  "normative_semantic_context": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcDbMotionPath.html",
+      "documented_api_properties": [
+        "camera path",
+        "target path",
+        "associated view-table record",
+        "frame rate",
+        "frame count",
+        "corner deceleration"
+      ],
+      "limitation": "API semantics do not establish DWG field order, source byte spans, handle roles, or a producer profile."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-Core/files/GUID-19E41C48-90E0-4462-9CC3-1BBBECFF5CC1.htm",
+      "documented_path_entities": [
+        "line",
+        "arc",
+        "elliptical arc",
+        "circle",
+        "polyline",
+        "3D polyline",
+        "spline"
+      ],
+      "limitation": "User workflow documentation; it does not establish the object-record wire layout."
+    }
+  ],
+  "qualification_status": "LEAD_ONLY_NON_PROMOTING",
+  "required_next_evidence": [
+    "Acquire exact attachment bytes through an accessible source route.",
+    "Record each file hash, DWG version, and defensible producer provenance.",
+    "Check integrity and independently inspect bounded source spans and handle roles.",
+    "Close the relevant object graph and verify exact output plus fresh ASCII/Binary readback before considering native consumer qualification."
+  ],
+  "support_claim_effect": "None. No parser or writer behavior changes are justified by these leads."
+}

@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-39 independent DXF binary-chunk and legacy-profile byte walk",
+  "mode": "local generated test-only implementation slice",
+  "scope": [
+    "Independently inspect binary DXF group 1004 and 310/319 chunk framing",
+    "Check assigned numeric payload widths under the explicit LibreCAD legacy classifier profile",
+    "Align the generic Background common-metadata vector with the writer's existing fail-closed graph policy"
+  ],
+  "changes": {
+    "productionSourceChanged": false,
+    "publicApiChanged": false,
+    "testSourceChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "independentBinaryWalker": {
+      "checksOrderedGroupCodes": true,
+      "scalarWidthsBytes": [1, 2, 4, 8],
+      "chunkCodes": [1004, 310, 319],
+      "checksExactChunkPayloads": true,
+      "checksFinalEofConsumption": true,
+      "usesProductionClassifier": false
+    },
+    "legacyProfileVector": {
+      "group260": "one-byte Boolean",
+      "group482": "eight-byte double",
+      "followingRecord": "group 0 EOF",
+      "expectedBytesAuthoredIndependently": true
+    },
+    "backgroundCommonMetadataControl": "uses only representable non-handle metadata; rooted graph behavior remains in dedicated tests"
+  },
+  "validation": {
+    "strictTargetBuild": "PASS: cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+    "owningCTest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure (1/1)",
+    "scopedDiffCheck": "PASS: git diff --check -- tests/wave1_tests.cpp",
+    "lc3CompatibilityTarget": "NOT_RUN: test-only change with no public API or production source change",
+    "fullSuite": "NOT_RUN"
+  },
+  "assessment": {
+    "implementationImpact": "Strengthens PAR-39/7BU's independent wire oracle for binary chunks and the legacy classifier profile; corrects a generic test vector that violated Background's existing unclosed-reference refusal contract.",
+    "remaining": [
+      "Exhaustive literal and dynamic binary numeric-writer call-site census",
+      "All-owner and version/profile qualification beyond the generated controls",
+      "Native producer/consumer acceptance remains a separate composed gate"
+    ],
+    "supportClaimsPromoted": 0,
+    "planFindings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "worktree": "Broadly modified and uncommitted; no unrelated changes staged."
+  }
+}

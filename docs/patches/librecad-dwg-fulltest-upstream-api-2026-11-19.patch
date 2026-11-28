@@ -1,0 +1,18 @@
+diff --git a/librecad/src/lib/filters/tests/dwg_write_smoke_tests.cpp b/librecad/src/lib/filters/tests/dwg_write_smoke_tests.cpp
+--- a/librecad/src/lib/filters/tests/dwg_write_smoke_tests.cpp
++++ b/librecad/src/lib/filters/tests/dwg_write_smoke_tests.cpp
+@@ -3029,4 +3029,4 @@
+   void seedEedWriteState() {
+-    dwgEedAppIdWriteRefs = {{0u, 0x123u, 0, false, true}};
+-    dwgEedLayerWriteRefs = {{1u, 0x456u, 0x0102030405060708ULL, true, false}};
++    dwgEedAppIdWriteRefs = {{0u, 0x123u, 0, false}};
++    dwgEedLayerWriteRefs = {{1u, 0x456u, 0x0102030405060708ULL, true}};
+     dwgEedCodePage = 1251;
+@@ -3040,3 +3040,2 @@
+     CHECK_FALSE(dwgEedAppIdWriteRefs.front().useRawHandleRef);
+-    CHECK(dwgEedAppIdWriteRefs.front().leftOut);
+     REQUIRE(dwgEedLayerWriteRefs.size() == 1u);
+@@ -3046,3 +3045,2 @@
+     CHECK(dwgEedLayerWriteRefs.front().useRawHandleRef);
+-    CHECK_FALSE(dwgEedLayerWriteRefs.front().leftOut);
+     CHECK(dwgEedCodePage == 1251);

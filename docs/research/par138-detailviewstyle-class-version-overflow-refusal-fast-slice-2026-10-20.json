@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-138 DetailViewStyle class-version overflow refusal fast slice",
+  "mode": "local source/test-owner audit and generated ASCII/Binary fast regression",
+  "scope": [
+    "Audit the remaining PAR-138 typed-over-raw insertion and refusal paths after ModelDoc field insertion coverage",
+    "Add focused coverage for the DetailViewStyle missing-class-header version representability refusal and destination preservation"
+  ],
+  "method": {
+    "localRepositoryInspected": true,
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "generatedControlsUsed": true,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationChanged": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullSuiteRun": false,
+    "validation": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check (scoped edited paths)",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/par138-detailviewstyle-class-version-overflow-refusal-fast-slice-2026-10-20.json",
+        "result": "PASS"
+      }
+    ],
+    "limitations": "The generated local control proves fail-closed behavior and destination preservation for the serializer's typed DetailViewStyle class-version upper bound. It does not establish native writer acceptance, semantic flag mapping, DWG producer behavior, or broad PAR-138 completeness. The worktree contains extensive unrelated user changes, so no files were staged or committed."
+  },
+  "decision": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "supportClaimPromoted": false,
+    "implementationSlice": "Added a generated ASCII/Binary regression to the existing --modeldoc-view-style-callbacks selector: set DetailViewStyle m_classVersion to UINT16_MAX after the missing-header insertion control, require export refusal, and assert the pre-existing destination sentinel remains unchanged.",
+    "nextSelfUnblockingAction": "Continue the PAR-138 insertion/refusal field audit for any uncovered branch, then take the next dependency-ready local plan item.",
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "inventory": "141 findings / 78 top-level subplans"
+  }
+}

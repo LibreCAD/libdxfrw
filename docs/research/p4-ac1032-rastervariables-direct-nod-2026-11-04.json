@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_AC1032_DIRECT_NOD_GENERATED_OUTPUT",
+  "supportClaimEffect": "none",
+  "scope": "Admit only same-revision AC1032 DWG RASTERVARIABLES in the observed 0/1/3 scalar profile, directly owned by the NOD with one NOD reactor and missing extension dictionary. This is selected generated graph transport, not a whole-document or native-image claim.",
+  "source": {
+    "author": "Scratch R2010 DXF authored from scratch with ezdxf 1.4.5 using tools/audit_ac1024_rastervariables_source.py; ODA File Converter 27.1.0 converted it to AC1032 DWG. No DWG/DXF fixture was added. The script author output can vary because of timestamps.",
+    "input_dxf_sha256": "4a09b459a0bbef4f687e06720b41c7f2391b91174d78b5aae0c79e56884a1c68",
+    "dwg_sha256": "47917bfd9708371e8fddc436a5650f7cbc9a7b9d565759b1c6c1ea8b5c13184c",
+    "independent": "GNU LibreDWG 0.14 reports source NOD 0xA with key ACAD_IMAGE_VARS -> RASTERVARIABLES 0x2F, class version 0, frame 0, quality 1, units 3, extension dictionary missing, data-storage 0, and separately typed role-4 owner and reactor to 0xA. ODA v5.4.1 section 20.4.91 specifies the generic RASTERVARIABLES fields and common object handle layout; no broader AC1032 semantics are inferred.",
+    "frame": "Independent LibreDWG reports a 13-byte object body and handle bit boundary 65. The in-tree source frame capture and separate bit walker check type 512, self 0x2F, EED absent, one reactor, xdict-missing=1, data-storage=0, BL class 0 and BS frame/quality/units 0/1/3 ending at bit 64, the no-string bit at 64, owner role4 0xA at bits [65,81), reactor role4 0xA at [81,97), and seven zero padding bits. Page extraction uses the in-tree reader, so this is not independent page or CRC verification."
+  },
+  "implementation": "Retain all prior AC1021/AC1024/AC1027 routes. Extend the graph, preflight, staged NOD entry and output selection only for the exact AC1032 0/1/3 direct-NOD owner/reactor profile. Require one retained raw source frame and a bounded raw role/field check against typed state; reject data storage, EED, extra common metadata, changed references, unclosed roots and cross-revision targets.",
+  "validation": "Five focused generated tests cover the existing nested and AC1021/AC1024/AC1027 direct routes and the new AC1032 route. The new control checks ASCII and Binary typed readback of the selected NOD key, owner/reactor and 0/1/3 fields; rejects other values, absent or changed reactor, wrong extension state, aliased target, duplicate NOD key, modified raw owner/reactor role and wrong revision; preserves sentinel destination and retries on the same adapter. Exact physical capture is additionally checked by `build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1032-direct-nod <witness.dwg>` with the recorded SHA verified before and after.",
+  "focused_command": "ctest --test-dir build-gcc -R '^dwg2dxf_rastervariables_(dwg_adapter_transport|direct_nod_adapter_transport|ac1021_direct_nod_adapter_transport|ac1024_direct_nod_adapter_transport|ac1032_direct_nod_adapter_transport)$' --output-on-failure",
+  "limits": [
+    "The physical source has unclaimed HEADER suffix bytes and an IMAGEDEF ownership-role conflict; the current diagnostic gate keeps its whole-source output unqualified.",
+    "This source contains an image and its attached graph; source-NOD-to-output mapping, original full-document output and native raster behavior were not demonstrated.",
+    "The generated output and in-tree typed DXF readback show bounded transport only. No other source revision, scalar profile or support claim is promoted."
+  ]
+}

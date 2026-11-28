@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "date": "2026-11-08",
+  "status": "GENERATED_DWG_TYPED_READ_RETENTION_DXF_OUTPUT_REFUSED",
+  "workstream": "P5 / AC1018-AC1021 TABLE row text-color and fill overrides",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1, TABLE until R21",
+    "fields": {
+      "0x000020": "title row color CMC",
+      "0x000040": "header row color CMC",
+      "0x000080": "data row color CMC",
+      "0x000100": "title row fill-none B",
+      "0x000200": "header row fill-none B",
+      "0x000400": "data row fill-none B",
+      "0x000800": "title row fill color CMC",
+      "0x001000": "header row fill color CMC",
+      "0x002000": "data row fill color CMC"
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "DRW_Table retains three row text colors, three fill-none flags and three row fill colors. CMC fields preserve method, flags, index, RGB presence/value, optional color/book names and source version via DRW_DwgCmColor. The strict DXF writer rejects selected table-level row styles and rejects retained row override data after its selection mask is cleared.",
+    "generatedControl": "A from-scratch AC1021 vector exercises all nine title/header/data text/fill fields with literal ByLayer CMCs and boolean values, plus the already implemented alignment, text-style handle and height fields. It verifies typed values, exact body boundary and following sentinel.",
+    "outputControl": "ASCII/Binary tests verify atomic refusal for selected unsupported row-style masks and orphaned row-style metadata, destination preservation and corrected same-adapter retry/readback."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedReader": "PASS: build/libdxfrw_dwg_object_vectors_tests --table-r2007-cell-reader",
+    "focusedAsciiBinaryOutput": "PASS: ctest --test-dir build -R '^libdxfrw_table_scalar_override_output$' --output-on-failure, 1/1",
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated codec consistency only; no physical producer or whole-drawing qualification.",
+    "Generated CMC case is ByLayer; other CMC color methods and native TABLE style/rendering remain unqualified.",
+    "Row style values remain output-ineligible pending a lossless DXF mapping.",
+    "The three border override masks remain unmodeled."
+  ],
+  "supportClaimsPromoted": 0,
+  "fixtureFilesAdded": 0,
+  "next": "Establish a lossless DXF row-style representation before enabling output; then model and qualify each border override mask without weakening strict refusal."
+}

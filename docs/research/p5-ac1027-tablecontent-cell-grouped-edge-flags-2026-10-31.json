@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-dxf-implementation-receipt-v1",
+  "date": "2026-10-31",
+  "status": "SCOPED_IMPLEMENTATION_COMPLETE_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / AC1027 TABLECONTENT grouped cell border edge flags",
+  "predecessor": "docs/research/p5-ac1027-tablecontent-cell-visibility-edge-masks-2026-10-31.json",
+  "basis": {
+    "authoritativeSpecification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.4.",
+    "localSpecification": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "interpretation": "The BL edgeFlags field defines six independent edge bits: top=0x01, right=0x02, bottom=0x04, left=0x08, inside vertical=0x10, and inside horizontal=0x20. Nonzero non-overlapping masks compose those defined edge bits into one border record.",
+    "selectedProperty": "Border property override bit 0x10 selects invisibility; value 1 means invisible."
+  },
+  "profile": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixture": "Runtime-authored 2x2 TABLECONTENT based on tableContentScalarGrid; no drawing fixture files were added.",
+    "styleScope": "One cell-style TABLEFORMAT with three disjoint grouped-edge GRIDFORMAT records.",
+    "borderCount": 3,
+    "edgeMasks": ["0x03", "0x0C", "0x30"],
+    "edgeCoverage": "The masks cover all six ODA-defined edge bits exactly once.",
+    "eachBorder": {
+      "propertyOverrideFlags": "0x10",
+      "borderType": 0,
+      "color": 0,
+      "lineWeight": 0,
+      "lineTypeHandle": "0",
+      "invisibility": 1,
+      "doubleLineSpacing": 0.0
+    }
+  },
+  "implementation": {
+    "files": ["src/libdxfrw.cpp", "tests/table_content_dxf_tests.cpp"],
+    "behavior": "The bounded TABLECONTENT writer accepts one through six nonzero edge masks within 0x3f when all selected borders use the qualified invisibility-only fields. Overlapping masks are refused; border property combinations outside invisibility remain refused.",
+    "physicalWire": "The independent scalar observer checks the border count, each group-95 edge mask, GRIDFORMAT markers, property flags, default companions, group-93 invisibility value, and closing marker for both encodings.",
+    "typedReadback": "Fresh ASCII and binary imports preserve the three grouped masks, their order, and selected border fields.",
+    "failureRetry": "For each grouped profile and encoding, an unsupported property mask 0x40 is refused without replacing a sentinel destination or changing the caller model; restoring 0x10 allows retry and readback.",
+    "fixturePolicy": "Runtime-authored recipe only; no external drawing fixtures were committed."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_table_content_dxf_tests -j2",
+      "result": "PASS",
+      "compiler": "/usr/bin/g++",
+      "generator": "Unix Makefiles"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_content_cell_border_visibility_edges$' --output-on-failure",
+      "result": "PASS, 1/1, 0.60 seconds"
+    },
+    "diffCheck": "git diff --check passed",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "745688bd2568d49652215bd2c37581f1f108d1be94a65ce3018e109b2e59ad59",
+      "tests/table_content_dxf_tests.cpp": "20bb9e0bf0c917f0e2336d1363d46d9ed2b8611d748b27076975f92a19a47557",
+      "focusedExecutable": "cc145a8754f71edc301464ae616922c9249bce937caa00bb2a06c9d9314f2359"
+    }
+  },
+  "limits": [
+    "Only the AC1027 TABLECONTENT serializer/readback profile is covered; this is not DWG TABLECONTENT output or other DXF version qualification.",
+    "Overlapping edge declarations and border-type/color/lineweight/linetype/double-line combinations remain refused or unqualified.",
+    "Wire and typed readback do not establish native rendering, producer completeness, whole-document closure, or public support claims."
+  ],
+  "next": "Implement the next source- or consumer-backed CONTENTFORMAT, CELLSTYLEMAP, or distinct border-property profile; retain strict refusal outside admitted fields."
+}

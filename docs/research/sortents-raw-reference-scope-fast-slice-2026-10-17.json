@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-sortents-raw-reference-scope-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_UNCOMMITTED",
+  "scope": "Fix generic handle-collision remapping of opaque group 330/331 values inside SORTENTSTABLE application data and after its recognized subclass ends.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "RawSortEntsScope tracks entry into a later unrecognized subclass after AcDbSortentsTable and identifies opaque group 330/331 values within that scope or nested group-102 application data.",
+      "Generic structural-collision remapping now skips only those opaque SORTENTSTABLE group 330/331 values.",
+      "Known body owner/entity references continue through the explicit SORTENTSTABLE mapping path; ordinary record-header references and group-5 remapping retain existing behavior.",
+      "Generated assertion checks opaque references remain literal and recognized body entity references still match the writer's remapped identities."
+    ],
+    "generatedProfiles": [
+      "AC1018 ASCII",
+      "AC1018 binary",
+      "AC1024 ASCII",
+      "AC1024 binary"
+    ],
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "build-gcc/libdxfrw_dxf_fixture_tests --sortents-key-roles",
+      "build-gcc/libdxfrw_dxf_fixture_tests --dimstyle-subclass-wire-census",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "git diff --check -- src/libdxfrw.cpp tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "focusedSortEntsMode": "passed",
+      "dimstyleCensusMode": "passed for all 12 generated profile/cardinality cases",
+      "owningCTest": "passed, 1/1",
+      "scopedDiffCheck": "passed"
+    }
+  },
+  "limits": {
+    "producerOutputObserved": false,
+    "independentStrictReaderRun": false,
+    "nativeApplicationRun": false,
+    "formatWideSortEntsConformanceClaim": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing edits"
+  }
+}

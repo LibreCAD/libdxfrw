@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw-fast-slice-receipt/v1",
+  "slice": "PAR-05 exact ISO-8859-8 decoder",
+  "date": "2026-10-22",
+  "status": "implemented-uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "bf5ffbbb582fe7b83eddbffc175f135e38ccb054bf9e5aa8de73ee822560ef79",
+  "research": [
+    {
+      "source": "https://www.unicode.org/Public/MAPPINGS/ISO8859/8859-8.TXT",
+      "role": "Primary Unicode Consortium mapping for ISO/IEC 8859-8:1999, including C1 identity mappings, Hebrew characters, direction marks, and undefined byte positions."
+    },
+    {
+      "source": "Python standard-library strict iso8859_8 codec",
+      "role": "Independent local cross-check of all 128 production table entries and undefined byte positions."
+    }
+  ],
+  "scope": {
+    "change": "Added the exact ISO-8859-8 mapping, ExactNamed resolver/factory path, and appended Iso8859_8 per-consumption source-profile identity for compact and hyphenated spellings.",
+    "definedBytes": 92,
+    "undefinedBytes": [161, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 251, 252, 255],
+    "compatibilityBehavior": "Unchanged: ISO8859-8 selects Windows-1255 under Compatible; ISO-8859-8 selects Windows-1252.",
+    "sourceAdmission": "Clean exact ISO-8859-8 remains UnsupportedProfile; undefined-byte input is ObservedIssues.",
+    "fixturesAdded": false,
+    "publicLayoutChanged": true,
+    "supportClaimChanged": false
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests lc3_compat_check --parallel 2",
+      "result": "PASS (-Werror)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_iso8859_[678]_codepage$' --output-on-failure",
+      "result": "PASS (3/3)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_gbk_codepage_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "Compare DRW_TableISO8859_8 against Python strict iso8859_8 for bytes 0x80-0xFF",
+      "result": "PASS (128 entries; 36 undefined; 0 mismatches)"
+    },
+    {
+      "command": "git diff --check -- CMakeLists.txt src/drw_base.h src/intern/drw_cptables.h src/intern/drw_textcodec.cpp tests/gbk_codepage_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "sourceSha256": {
+    "CMakeLists.txt": "3c40d64f690d8612c9c242ccd11ccb114752d33304bb237a619ce925dc7dc4d2",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "bf5ffbbb582fe7b83eddbffc175f135e38ccb054bf9e5aa8de73ee822560ef79",
+    "src/drw_base.h": "af7403dbe26b85f14bf4e98087d3e69efa221e2da3a70a4f019bc112588d315d",
+    "src/intern/drw_cptables.h": "0caa60203f34887e98f2c2fb6385f768e57808256d3d615c38b708429330dd64",
+    "src/intern/drw_textcodec.cpp": "866f6312ae5ab3aceb2d91d0a94456b03c6e3cb07bd994f99385c5649ff88355",
+    "tests/gbk_codepage_tests.cpp": "4f4d71bcb86942c05c5a2324ac09bca1a1b885430b0d2f1b2b674b8f3b3ee8f2"
+  },
+  "evidenceLimits": [
+    "The mapping and generated tests establish decoder behavior only, not CAD producer emission or native consumer acceptance of either ISO-8859-8 label.",
+    "Compatible fallbacks remain intentionally unchanged; they are not exact ISO-8859-8 decoders.",
+    "No full format suite, external peer runtime, native CAD consumer, or persistent sample was used.",
+    "The appended public source profile changes observation structure layout; downstream binaries must rebuild together with the library."
+  ],
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; the shared worktree is broadly dirty and this slice remains unstaged"
+}

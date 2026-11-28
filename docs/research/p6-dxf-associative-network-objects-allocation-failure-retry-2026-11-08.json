@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-associative-network-objects-allocation-failure-retry-2026-11-08",
+  "date": "2026-11-08",
+  "status": "GENERATED_ASCII_BINARY_ROOTED_ASSOCIATIVE_VALUE_DEPENDENCY_GRAPH_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep OBJECTS-callback allocations for a rooted AC1024 associative graph containing a named DICTIONARY, one root ACDBASSOCNETWORK, two typed variables, and one ACDBASSOCVALUEDEPENDENCY with a non-null target reference.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "NOD ACAD_ASSOCNETWORK entry -> DICTIONARY E900 -> root NETWORK E901 -> soft action edges to VARIABLE E902 and target VARIABLE E903. The value dependency E904 is owned by E902, targets E903, and appears as a reactor on E903. E902 has real value 3.5; the dependency carries cached int32 value 17.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "2bdf4245",
+    "files": {
+      "tests/associative_network_objects_allocation_tests.cpp": "fc274d09db557225dcd452d73fcfa2a1290ec26cd8f5ff07780d12519f4d5478",
+      "tests/CMakeLists.txt": "e219dc760ca2ddfedeb314c7308d8dce4d1c35aeb22c2f6332afc20b5b225175"
+    },
+    "method": "Warm the writer and calibrate callback allocation attempts per encoding. Inject std::bad_alloc at each measured offset and assert the thrown failure was reached at exactly offset+1; require failed publication, byte-for-byte destination sentinel preservation, all four caller-object states preserved, same-writer retry, and typed import proving the NOD/dictionary/network/action/owner/reactor/dependency-target relationships."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_ENABLE_FREECAD_DESKTOP_CONTROL=OFF -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_LINE_CONTROL=OFF: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_associative_network_objects_allocation_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_associative_network_objects_allocation_retry$' --output-on-failure: PASS 1/1",
+    "ascii": "45/45 measured callback allocation offsets explicitly reached and injected; destination and four-object graph preserved; same-writer retry and typed rooted graph/dependency-target readback passed.",
+    "binary": "42/42 measured callback allocation offsets explicitly reached and injected; destination and four-object graph preserved; same-writer retry and typed rooted graph/dependency-target readback passed.",
+    "fullSuites": "NOT RUN",
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_associative_network_objects_allocation_tests -j6: PASS",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_associative_network_objects_allocation_tests -j6: PASS",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_associative_network_objects_allocation_retry$' --output-on-failure: PASS 1/1",
+    "testExecutableSha256": {
+      "normal": "54315313c8d6c7f0764a0b24db4a9ddb7f0d1a60a88d8347ec4a6b30e2b0959a",
+      "asan": "833d6b6dbc8786b51f25e3c71158812c15494a9880d7a284d3b6edb8cdafee61"
+    }
+  },
+  "limitations": [
+    "Generated serialization and transaction evidence only; no physical producer prevalence or native associative semantics are established.",
+    "This generated graph covers two variable action targets and one cached int32 value dependency only; geometry dependencies, constraint groups, parameter/body records, and selected subgraph projection are outside this sweep.",
+    "Readback leaves m_associativeVariableWireComplete false for the locally authored variables. Typed-field and graph-link readback do not establish complete variable source profiles or support claims.",
+    "No support claim is promoted."
+  ],
+  "nextAction": "Add a non-null geometry-dependency source-target edge with explicit reciprocal target reactor/owner roles to a rooted network/group/LINE graph, then sweep allocation rollback and typed readback; retain the variable wire-completeness gate."
+}

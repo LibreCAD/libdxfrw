@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-15",
+  "scope": "LibreCAD consumer diagnostic for the existing R2007 MLEADERSTYLE R2010-attachment refusal, delivered as an ordered unmerged consumer patch.",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e plus the preceding P8 patch sequence in the plan",
+  "patch": "docs/patches/librecad-p8-mleaderstyle-version-diagnostic-2026-11-15.patch",
+  "sourceEvidence": "docs/research/p8-librecad-ac1024-title-export-gates-2026-11-15.json",
+  "implementation": [
+    "When a typed MLEADERSTYLE callback fails on an R2007 target without an earlier reported callback failure, and its R2010 attachment fields are nonzero, the filter names the style, explains the version limit and suggests trying R2010 or newer.",
+    "The existing codec guard and callback-failure latch remain intact; no field is cleared and the diagnostic does not assert that a newer target resolves other graph or feature failures.",
+    "A public-header system-codec CTest is registered in the consumer patch."
+  ],
+  "validation": [
+    "A locally generated typed style with top and bottom attachment 9 refuses R2007, preserves existing destination bytes and retains caller metadata, and reports the named style.",
+    "The same filter retries at R2010, succeeds and writes both attachment values. Focused installed-upstream consumer CTest librecad_system_codec_mleaderstyle passed 1/1 (0.11 s; 9 assertions).",
+    "The patch dry-runs on the preceding consumer state. The source is generated at runtime; no DWG/DXF fixture was committed.",
+    "The patched filter compiles in a bundled-codec syntax check using the existing consumer build flags; this is compile compatibility, not bundled runtime qualification."
+  ],
+  "limits": "This is an unmerged LibreCAD consumer patch and diagnostic only. It does not establish physical title-block graph closure, binary output, GUI display, native rendering or the platform matrix; it does not qualify lossless R2007 projection and promotes no support claim. Older-target omission policies need a separate complete review."
+}

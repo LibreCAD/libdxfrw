@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-librecad3-homebrew-api-snapshot-fix-2026-11-09",
+  "date": "2026-11-09",
+  "status": "IMPLEMENTED_HOSTED_VALIDATION_PENDING",
+  "supportClaimEffect": "none",
+  "consumerPullRequest": {
+    "url": "https://github.com/LibreCAD/LibreCAD_3/pull/456",
+    "base": "5cf435f4a5a57d8dba1599c720917b902e74b25b",
+    "previousHead": "321f2cad7a37c347072d25d72d26a14b1985a441",
+    "currentHead": "7e81275b71038d4a42fa580842e661ddcee7adbf",
+    "fixCommit": "7e81275b71038d4a42fa580842e661ddcee7adbf"
+  },
+  "failure": {
+    "workflowRun": 42564594305,
+    "job": 128988240010,
+    "name": "Python / Lua / app bundle (arm64)",
+    "failedStep": "Install LibreCAD",
+    "detail": "macOS Python runtime staging rejected the cached zstd bottle metadata: its runtime dependency receipt for lz4 differed from the selected installed dependency receipt across the available arm64 bottle manifests.",
+    "precedingValidation": "Build and required Python, Lua, persistence, and settings regression steps passed before installation."
+  },
+  "implementation": {
+    "repository": "LibreCAD/LibreCAD_3",
+    "branch": "codex/libdxfrw-upstream-compat",
+    "files": [
+      "scripts/macos-install/installDependencies.sh",
+      "scripts/tests/test_macos_dependency_install.py"
+    ],
+    "change": "Run an explicit quiet brew update before dependency discovery so the formula/API snapshot used to resolve the graph matches the bottle metadata downloaded for the subsequent force-bottle reinstall.",
+    "safety": "The refresh is CI-only under the existing installer guard. Bottle-only installation, exact provenance validation, and fail-closed runtime staging remain enabled."
+  },
+  "localValidation": {
+    "command": "python3 -B -m unittest scripts.tests.test_macos_dependency_install",
+    "result": "PASS (8 tests)",
+    "additionalChecks": [
+      "bash -n scripts/macos-install/installDependencies.sh: PASS",
+      "git diff --check: PASS"
+    ],
+    "fixturesAdded": false
+  },
+  "currentHeadHostedChecksAtRecordTime": {
+    "workflowRun": 42573888467,
+    "arm64ApplicationJob": "QUEUED",
+    "x86_64ApplicationJob": "QUEUED",
+    "buildWindowsJob": "IN_PROGRESS",
+    "buildWindowsPersistenceJob": "IN_PROGRESS",
+    "buildAppImageJob": "IN_PROGRESS",
+    "otherBuildsAndPlanSync": "QUEUED_OR_IN_PROGRESS"
+  },
+  "decision": "Keep P8 packaging and platform qualification open until checks complete on the current PR head. This workflow fix does not establish native CAD compatibility or DWG/DXF support."
+}

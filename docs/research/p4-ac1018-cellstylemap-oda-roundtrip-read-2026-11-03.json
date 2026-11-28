@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1018-cellstylemap-oda-roundtrip-read-2026-11-03",
+  "date": "2026-11-03",
+  "title": "AC1018 ODA-back-saved CELLSTYLEMAP bounded read",
+  "status": "PRODUCER_BOUND_READER_PROFILE",
+  "supportClaimEffect": "none",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.4.101.3",
+      "20.4.101.4",
+      "20.4.102"
+    ],
+    "interpretation": "Specification describes content and cell-style fields and introduces CELLSTYLEMAP with AutoCAD 2008. The AC1018 data below is an observed ODA back-save compatibility profile, not a claim that the class is standard in native AutoCAD 2004."
+  },
+  "reproduction": {
+    "producer": "ODA File Converter 27.1.0.0, verified native signature; ACAD2004 DWG output, audit=0",
+    "cases": [
+      {
+        "name": "authored STYLE control from ezdxf 1.4.5",
+        "path": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-style-oda-omk9muiy/dwg/styles.dwg",
+        "sha256": "acb962732fe5a1ed17b405b8316bd290471c919614724ea39bf198981ed6053e",
+        "objectHandle": "0xB9",
+        "logSha256": "65da3823418bfa7ef18db2aba129aff45b553172146ebdd6103211223e899ce0",
+        "peerJsonSha256": "efa646725390825e13816b28bac5f76252a21a3215a39fc531963d1d9584e5e7"
+      },
+      {
+        "name": "local ET Border ODA back-save",
+        "path": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-oda-style-gc8wjaat/dwg2004/ET-Drawing-with-Border.dwg",
+        "sha256": "99f261cf43273013e3cac4182abd2acf34f7a1679acab28d26ab34f34eb9e94d",
+        "objectHandle": "0x31C",
+        "logSha256": "8f3274720541af075ca4dda829a20f79718fdce495d03672d9e09a7069e7f1bc",
+        "peerJsonSha256": "6db94061c0c31dc8adf145def373a96e1550a9c7983ad04a6a4836d0ee300443"
+      }
+    ],
+    "previousFailure": "Both source files reached CELLSTYLEMAP but were rejected by a shared content-format validator that categorically rejected every AC1018 value. Both have three type-4/unit-0 content formats. After a scoped compatibility check they reached the handles but were rejected by a final bounds check comparing the cursor after consuming handles against the end of the body."
+  },
+  "implementation": "In the CELLSTYLEMAP reader only, accept the physically observed AC1018 content format data type 4 and unit 0. Retain the existing later-version validators and all other AC1018 combinations as refusals. Capture body/string bit positions before consuming the AC1018 inline handle tail, and compare these pre-tail positions with the body bounds; keep each common and style handle bounded by the full handle stream. DWG output validation and graph admission remain unchanged.",
+  "evidence": {
+    "localProbe": "/private/tmp/libdxfrw-cellstylemap-probe",
+    "localProbeSha256": "fdf6e684aae0cf7be7dda656eca38be902567ec055a93f84e021db0bd3ac53b7",
+    "localProbeSourceSha256": "623f230cd2af46c5e41eb2d833c9bf30737908881c48196ec0023cafbda0314c",
+    "comparison": "Local isolated object-frame reads and LibreDWG 0.14 minJSON agree on owner, reactor count, all three style types/IDs/classes/names, data/unit types, alignment, height, text-style target and each of six border edge/linetype references. Generated sample owners 0xB7/text-style 0x29/linetype 0x24; ET owners 0x31A/text-style 0x11/linetype null.",
+    "fullRead": "Both source files report zero entity and zero object parse failures after the change, versus one object failure before; strict DXF output remains refused because the HEADER suffix is unclaimed. Other graph and output qualification remains open.",
+    "cliSha256": "8b1725dded850ae89214acc23ca5ae3df827dea4147d81bba69ef79c6afdbc64"
+  },
+  "focusedValidation": {
+    "selector": "ctest --test-dir build-gcc -R ^libdxfrw_cellstylemap_identity_domains$ --output-on-failure",
+    "result": "PASS 1/1",
+    "generated": "Hand-authored AC1018 frame with one populated cell style, owner, reactor, text-style and linetype references; checks exact retained field and handle values, rejects unqualified type/unit profiles and a truncated handle tail, clears state and retries the same object. Also asserts the AC1018 DWG output validator remains gated."
+  },
+  "limits": [
+    "This is read-side evidence for the bounded ODA back-save profile. Nonzero other type/unit combinations, native 2004 producer semantics, DXF output, dependency graph closure and table rendering are unqualified.",
+    "The current STYLE bit-order disagreement and unclaimed HEADER suffix remain independent blockers.",
+    "No DWG or DXF fixture was committed."
+  ]
+}

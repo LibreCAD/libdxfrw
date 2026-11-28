@@ -1,0 +1,32 @@
+{
+  "id": "p6-ac1014-dictionaryvar-mlinestyle-strict-output-2026-11-20",
+  "gate": "P6-J",
+  "status": "COMPLETED_BOUNDED_PROFILE",
+  "source": {
+    "repository": "https://github.com/LibreDWG/libredwg",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "path": "test/test-data/r14/v.dwg",
+    "sha256": "e296ca50f237abb9eec1a8bdab77aa16fd59518e246df812aa4dd4f859bd12d3",
+    "producer": "unknown",
+    "sourceWireReceipt": "docs/research/p6-ac1014-libredwg-candidate-dictionaryvar-output-gap-2026-11-20.json"
+  },
+  "scope": "Exact AC1014 NOD 0x0c with ACAD_GROUP, ACAD_MLINESTYLE and ACDBVARIABLEDICTIONARY; dictionary 0x22 and DIMADEC variable 0x23; MLINESTYLE dictionary 0x1a and STANDARD style 0x1b. ASCII and Binary DXF AC1014 output only.",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.4.44, 20.4.73 and 20.4.74. The R14 DICTIONARY byte is kept at the observed zero value and is not generalized.",
+  "implementation": "Bound the common DICTIONARYVAR handle tail to the AC1014 body end, check owner/reactor/extension roles and publish typed common evidence. Observe the exact same-import NOD, owner, DICTIONARYVAR, MLINESTYLE owner and style source bits, prove staged identities and graph, and recheck source bytes and model at finalization.",
+  "validation": {
+    "generatedFast": "PASS: locally encoded AC1014 NOD, two owner dictionaries, DICTIONARYVAR and MLINESTYLE; all 1624 individual source bits mutated and refused; DICTIONARYVAR truncation, boundary and wrong-role refusal with corrected same-object retry.",
+    "externalProfile": "PASS: strict conversion and fresh libdxfrw AC1014 DXF readback in ASCII and Binary; 12 early and 5 finalization source/model mutations, plus two cross-version refusals, per encoding refused with destination preserved and corrected same-adapter retry. External DWG and derived DXFs are not committed.",
+    "asan": "PASS: both generated and external-profile CTests under AddressSanitizer; adjacent existing DWG dictionary cloning and MLINE source-dependency tests also pass.",
+    "independent": "PASS: ezdxf 1.4.5 readback matches GNU LibreDWG dwgread 0.14 source JSON for both outputs: 16 LINE endpoint pairs, TEXT value/insertion/height, empty group dictionary, variable dictionary/owner/value, MLINESTYLE dictionary/owner and two offsets/colors/BYLAYER entries. ezdxf upgrades R14 to AC1015 and synthesizes additional root objects in memory; it does not establish an exact output-root census. The actual AC1014 target is separately checked by fresh libdxfrw readback and the ASCII header.",
+    "readerJsonSha256": "5abc06ae33b96bb2e7321d5a4fdfb45d25ffeb3ceac17663c69c2123bd5fcdb8",
+    "script": "tools/research/compare_ac1014_profile_ezdxf.py",
+    "candidateBinarySha256": "1158c07f86eaa86fc2d0e7b1a552639d707a30b2e5c43672e69cb95f137ef783",
+    "asciiSha256": "bdb152350ef18510b13cecc4c95f49edf21a449fbdb9d83a473bac94840f78c9",
+    "binarySha256": "682faa6fae9ca43921422bb63e288b8641bd1c915bf8fd9174e372e6870a7cf7",
+    "gcc16": "PASS: -fsyntax-only with -Wall -Wextra -pedantic -Werror for both new test files and dx_iface.cpp.",
+    "consumerCompatibility": "PASS: existing lc3_compat_check C++ object builds against changed sources; this is a compile-only 2D adapter guard, not native LibreCAD behavior."
+  },
+  "limitations": "One externally sourced drawing with unknown producer. No broad AC1014 support, other DICTIONARYVAR or MLINESTYLE profiles, native CAD semantics, consumer behavior, native platform matrix, or release qualification is implied. CLASSES, other objects and 2D/3D features remain subject to their own gates. No support-status claim is promoted.",
+  "fixturePolicy": "The external drawing and all derived outputs remain outside the repository; committed codec controls are generated from scratch.",
+  "implementationDigestSha256": "317841d442a13f32d0405097f1124a98ba57aab3db8ac652378d2ced50fd900c"
+}

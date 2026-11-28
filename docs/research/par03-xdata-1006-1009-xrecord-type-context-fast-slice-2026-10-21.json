@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-03 XDATA 1006-1009 and XRECORD type-context audit",
+  "mode": "source-backed local implementation with generated fast tests",
+  "scope": [
+    "Reconcile current and historical Autodesk group-code references for 1006-1009",
+    "Keep unresolved standalone binary widths fail-closed while retaining an explicit historical compatibility profile",
+    "Align XRECORD-specific handle and point mappings with its ODA-described group-code payload context",
+    "Refuse typed XRECORD values whose group code has no supported payload mapping and retain bounded unknown parsed blocks for exact same-version replay"
+  ],
+  "evidence": {
+    "autodeskGroupCodeValueTypes2020": {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "finding": "The 2020 table assigns 1000-1009 as strings."
+    },
+    "autodeskGroupCodeValueTypes2024": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "finding": "The table lists 1000-1003 as strings, 1004 as a binary chunk, 1005 as a string handle, and then starts the next assigned range at 1010."
+    },
+    "autodeskGroupCodesNumerical2025": {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "finding": "The numerical reference identifies XDATA codes through 1005 and resumes at 1010; its preamble says non-fixed meanings depend on context."
+    },
+    "odaDwgSpecification": {
+      "document": "Open Design Specification for .dwg files v5.4.1, local copy /Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "section": "20.4.104 XRECORD",
+      "finding": "XRECORD data are DXF group-code/value pairs; code 1005 is described as an entity-handle reference."
+    },
+    "decision": "The source conflict is preserved. Codes 1006-1009 remain Unknown in the standalone-safe classifier; only the explicit LibreCadMasterLegacy profile retains the earlier string-width interpretation. No producer-specific type is inferred."
+  },
+  "changes": {
+    "classifier": "src/intern/dxfcode.h splits code 1005 from 1006-1009 and keeps 1006-1009 Unknown by default; the explicit legacy profile maps 1006-1009 to strings.",
+    "xrecord": "src/drw_objects.cpp limits XRECORD entity-handle values to code 1005, point groups to 210-239, and refuses unsupported typed output instead of emitting a code with zero payload bytes.",
+    "generatedTests": [
+      "tests/wave1_tests.cpp verifies standalone 1006/1009 unknown handling, ASCII spelling retention, binary write/read refusal, and legacy-profile string behavior.",
+      "tests/dwg_object_vectors_tests.cpp and tests/xrecord_test_helpers.h verify XRECORD codes 1009 and 240 remain bounded opaque data and replay only under exact same-version provenance; typed output rejects those codes and accepts 1005.",
+      "tests/dxf_fixture_tests.cpp and tests/hardening_tests.cpp update their independent binary DXF string-code maps to identify only code 1005, not 1005-1009."
+    ],
+    "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md records the documentation conflict, exact evidence ceiling, completed fast slice, and a separate next audit for associative-action dwgResbufValueKind.",
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "fullSuiteRun": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests libdxfrw_hardening_tests -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --dxf-code-type-boundaries",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_object_vectors_tests",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_(wave1|dwg_object_vectors|dxf_fixtures|hardening)$' --output-on-failure",
+        "result": "PASS (4/4, 6.48 seconds)"
+      },
+      {
+        "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/intern/dxfcode.h src/drw_objects.cpp tests/wave1_tests.cpp tests/dwg_object_vectors_tests.cpp tests/xrecord_test_helpers.h tests/dxf_fixture_tests.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par03-xdata-1006-1009-xrecord-type-context-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/par03-xdata-1006-1009-xrecord-type-context-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ]
+  },
+  "assessment": {
+    "confirmedLocalCorrections": [
+      "Standalone binary DXF handling no longer guesses a value width for codes 1006-1009.",
+      "XRECORD no longer classifies undocumented code 1009 as a handle or codes 240-269 as point tuples.",
+      "Typed XRECORD output no longer emits unsupported group-code indicators without value bytes."
+    ],
+    "unresolved": [
+      "Autodesk 2020 and 2024 value-type tables differ for the 1000-1009 range; no versioned producer witness for 1006-1009 was available in the tracked corpus.",
+      "The separate associative-action dwgResbufValueKind mapping still requires a context-specific ODA/trace audit.",
+      "No independent producer/native application qualification was performed."
+    ],
+    "supportClaimsPromoted": false,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "staged": false,
+    "committed": false
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-deeper-broader-mesh-property-override-wire-and-writer-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Determine whether primary DXF references or current open-source peer implementations resolve the MESH property-override wire grammar sufficiently to replace fail-closed DWG output.",
+  "evidence": [
+    {
+      "source": "Autodesk AutoCAD MESH DXF reference (2021)",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+      "observation": "The reference lists group 90 as count of overridden subentities, group 91 as subentity marker, group 92 as overridden-property count, and group 90 property types 0=Color, 1=Material, 2=Transparency, 3=Material mapper. It does not define each property's value grammar, marker domain, ordering variants, version changes, or DWG object encoding.",
+      "evidenceGrade": "PRIMARY_DXF_FIELD_INDEX_ONLY"
+    },
+    {
+      "source": "ezdxf MESH internals documentation 1.4.4",
+      "url": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mesh.html",
+      "observation": "The example ends with group 90 value 0; the documentation explicitly states that the property-override protocol is undocumented and that the project author had no CAD application available to create an override-bearing MESH.",
+      "evidenceGrade": "PEER_LIMITATION_AND_EMPTY_OVERRIDE_CONTROL"
+    },
+    {
+      "source": "ezdxf current mesh.py source",
+      "url": "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/mesh.py",
+      "observation": "The mutable master snapshot viewed on 2026-10-16 calls export_override_data after the cage and writes only group 90 value 0. This is an empty-override serializer, not a semantic writer or reader oracle for nonempty property overrides; the source was not executed.",
+      "evidenceGrade": "PEER_SOURCE_CONFIRMS_NO_NONEMPTY_OVERRIDE_WRITER"
+    },
+    {
+      "source": "Local libdxfrw writer and generated test",
+      "url": null,
+      "observation": "The former DWG encoder silently ignored a nonempty propertyOverrides vector while serializing the base cage. The public dwgRW::writeMesh boundary now aborts the whole output with a specific validation diagnostic; the generated two-override API-write test verifies caller handle preservation and preservation of a seeded destination. The existing base-cage DWG test remains the positive control.",
+      "evidenceGrade": "LOCALLY_REPRODUCED_AND_FAIL_CLOSED"
+    }
+  ],
+  "planConsequences": [
+    "Keep DXF property-override field preservation distinct from semantic interpretation; do not infer property value encoding from the group-code summary or ezdxf's empty group-90 control.",
+    "Keep DWG MESH output fail-closed for every nonempty override vector until an applicable primary DWG layout or traceable target-produced versioned witness defines the mapping.",
+    "At the composed native checkpoint, create locally authored target-version MESH controls for each available override type and subentity class; retain source DWG/DXF, hashes, producer/version/options, raw ordered tags, reader observations, and geometry/material/color/transparency outcomes outside the repository unless independently admitted.",
+    "Any later implementation must test property-specific value grammar, marker domain, ordering, version gates, unrelated cage preservation, and whole-file atomic refusal/retry. Do not require peer installation or CAD execution on the fast per-slice path."
+  ],
+  "negativeFindings": [
+    "Autodesk's published DXF table does not provide enough detail to implement typed nonempty overrides safely.",
+    "ezdxf's current implementation writes only an empty override count and disclaims knowledge of native override generation; it cannot independently qualify nonempty semantics.",
+    "No DWG MESH property-override layout or locally available target-produced witness was established in this research pass."
+  ],
+  "peerPinCaveat": "The ezdxf documentation is release documentation for 1.4.4. The source URL points to mutable master and is only a dated source inspection, not a pinned or executed comparator artifact; pin a release/source revision before any future peer run.",
+  "planImpact": {
+    "existingOwnersOnly": [
+      "PAR-38",
+      "7W"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 125,
+      "topLevelSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

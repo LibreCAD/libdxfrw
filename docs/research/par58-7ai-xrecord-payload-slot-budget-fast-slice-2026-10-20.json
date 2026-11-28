@@ -1,0 +1,79 @@
+{
+  "id": "par58-7ai-xrecord-payload-slot-budget-fast-slice-2026-10-20",
+  "date": "2026-10-20",
+  "status": "LOCAL_IMPLEMENTATION_AND_FAST_VALIDATION_PASS_UNCOMMITTED",
+  "scope": {
+    "finding": "PAR-58",
+    "subplan": "7AI bounded graph walk",
+    "change": "Add an aggregate XRECORD payload-slot inspection work limit separate from node, edge, staged-handle, source-record, and retained-byte budgets.",
+    "files": [
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "behavior": {
+    "limit": "ExtensionGraphLimits.maxXRecordPayloadSlots",
+    "counter": "ExtensionGraphStats.inspectedXRecordPayloadSlots",
+    "failure": "xrecord-payload-limit",
+    "charged_representations": [
+      "ordered DRW_XRecord.m_dataEntries values inspected during handle-target validation",
+      "fallback DRW_XRecord.m_values values inspected during handle-target validation",
+      "DRW_XRecord.m_handleValues entries inspected during graph traversal and again when the compatibility fallback view is validated"
+    ],
+    "separate_budgets_preserved": [
+      "graph edges",
+      "retained bytes in 7S",
+      "source-record inventory",
+      "visited nodes",
+      "staged handles"
+    ]
+  },
+  "generated_controls": {
+    "format_version": "AC1021",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "graph_fixed_while_payload_varies": true,
+    "payload_boundary": ["cap-1", "cap", "cap+1"],
+    "representations": ["m_dataEntries", "fallback m_values"],
+    "negative_behavior": [
+      "cap+1 refuses before publication",
+      "seeded destination bytes remain unchanged",
+      "failure category and bounded detail are reported",
+      "corrected payload retries through the same adapter"
+    ],
+    "fallback_handle_view": [
+      "each actual m_handleValues inspection consumes a slot",
+      "cap 1 refuses on the second scan",
+      "cap 2 succeeds and same-adapter retry resets failure state"
+    ],
+    "persistent_fixtures_added": false,
+    "ctest_registration_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 2",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --extension-graph-limits",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_extension_graph_limits$' --output-on-failure",
+    "ctest_result": "PASS (1/1)",
+    "diff_check": "git diff --check -- dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/par58-7ai-xrecord-payload-slot-budget-fast-slice-2026-10-20.json",
+    "diff_check_result": "PASS",
+    "full_suite_run": false,
+    "sanitizer_or_fuzz_run": false,
+    "peer_or_native_application_run": false
+  },
+  "claims": {
+    "local_work_bound_coverage": "A distinct configurable slot-work cap now bounds XRECORD payload scans and is covered at cap-1/cap/cap+1 for ordered and fallback views in generated ASCII/Binary tests.",
+    "support_promotion": false,
+    "finding_count": 141,
+    "top_level_subplan_count": 78,
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commit_status": "UNCOMMITTED_GIT_METADATA_READ_ONLY"
+  }
+}

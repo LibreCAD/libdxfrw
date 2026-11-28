@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "BRL-CAD current DXF converter profile and security gate",
+  "mode": "Deeper/broader primary-source review and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh BRL-CAD DXF import/output capability from current project manuals",
+    "Recheck the open POLYFACE index-safety report and proposed patch status",
+    "Map the peer route to existing local PFACE fast validation",
+    "Refine optional peer admission without changing routine validation cadence"
+  ],
+  "sources": [
+    {
+      "project": "BRL-CAD dxf-g manual",
+      "reference": "https://brlcad.org/docs/html/man1/dxf-g.html",
+      "status": "official-current-manual-reviewed-2026-10-21",
+      "observation": "The manual bounds dxf-g input to ASCII DXF as described by AutoCAD 2006 manuals and lists selected explicit entities and classic 3D POLYLINE, polygon-mesh, and polyface subtypes. It describes layer aggregation, scale, and vertex merge tolerance. The listed profile does not establish Binary DXF, MESH/AcDbSubDMesh, 3DSOLID/REGION/BODY, surfaces, DWG, ACIS/AcDs, or raw-document preservation."
+    },
+    {
+      "project": "BRL-CAD g-dxf manual",
+      "reference": "https://brlcad.org/docs/html/man1/g-dxf.html",
+      "status": "official-current-manual-reviewed-2026-10-21",
+      "observation": "The inverse converter tessellates regions into triangles and writes 3DFACE by default or POLYFACE MESH with an option. It exposes unit, chord, normal, and distance tolerances, so it is not a typed DXF entity-preserving writer route."
+    },
+    {
+      "project": "BRL-CAD issue #228 and pull request #245",
+      "reference": "https://github.com/BRL-CAD/brlcad/issues/228",
+      "relatedReferences": [
+        "https://github.com/BRL-CAD/brlcad/pull/245"
+      ],
+      "status": "issue-open-and-pr-open-unmerged-in-reviewed-snapshot-2026-10-21",
+      "observation": "Issue #228 reports a full-path heap out-of-bounds read from attacker-controlled POLYFACE face indices in dxf-g. PR #245 remains open/unmerged. Its proposed checks require review against legal negative signed indices and zero termination; neither report nor patch description is a libdxfrw defect or a verified fix."
+    },
+    {
+      "project": "Local libdxfrw POLYFACE validator and generated test owner",
+      "reference": "src/drw_entities.cpp and tests/dwg_local_roundtrip_tests.cpp",
+      "status": "source-reviewed-only-in-this-research-pass",
+      "observation": "The existing validator checks signed one-based face references against the completed coordinate pool and the existing generated ASCII/Binary test owner covers legal visibility signs, zero termination, malformed range controls, extreme negative magnitude, transactional refusal, and a following-entity sentinel. No new vector is justified by this peer report alone."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-37/7V: reuse the existing signed PFACE index and completed-pool fast owner",
+      "PAR-07/S8: classify BRL-CAD only as an optional ASCII explicit-geometry consumer",
+      "Peer admission: require a pinned safe revision and a source-audited actual import path before execution"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "The current manuals correct the optional BRL-CAD peer profile: ASCII explicit-entity geometry input only, with a triangulating/faceting inverse writer. The open peer safety issue and unmerged proposed patch prevent treating it as a safe hostile-input comparator. If no pinned safe revision is available at the composed checkpoint, record NOT_RUN/SECURITY_GATE_UNMET and self-unblock to local work. No local test duplication or new support claim is warranted."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "repositoryClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-brlcad-current-dxf-profile-security-gate-2026-10-21.json"
+    ],
+    "limitations": "Current project manuals and public issue/PR pages were reviewed; no BRL-CAD binary was built or run and no source patch was applied. The issue and proposed fix remain peer reports, not proof of behavior in a specific local artifact. No independent geometric differential, DWG/DXF support qualification, or native CAD result was obtained."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on plan files; no whitespace diagnostics in new receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "schema": "libdxfrw-mtext-chunk-wire-contract-and-cr-framing-review-v1",
+  "completedAt": "2026-10-17",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Reconcile the MTEXT 250-character continuation rule with target-encoded DXF string limits and peer writer behavior; refine existing PAR-05/PAR-28/29 and 7M implementation readiness.",
+  "method": {
+    "kind": "Primary-format documentation and current open-source writer/parser review plus local source/test audit",
+    "peerRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm",
+      "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/mtext.py",
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/tools/text.py",
+      "https://github.com/LibreDWG/libredwg/issues/1408"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-05, PAR-28/29, 7M, and existing control-character framing progress",
+      "src/intern/dxfwriter.cpp: dxfWriter::writeUtf8Chunks and encoded-text handling",
+      "src/libdxfrw.cpp: standalone writeMText and embedded writeEmbeddedMText",
+      "tests/dxf_fixture_tests.cpp: existing generated MTEXT tests and generic control-character boundary coverage"
+    ],
+    "limitations": "Autodesk's published wording does not define a universal byte-count unit for UTF-8, legacy code pages, or escape-expanded text. The reviewed ezdxf master URLs are mutable and were inspected as source only, not executed or pinned. LibreDWG #1408 is a reporter-authored external issue with no public failing drawing inspected here. Local findings are source/coverage observations; no runtime defect was reproduced."
+  },
+  "evidence": [
+    {
+      "topic": "Autodesk MTEXT chunk contract and general DXF string limit are distinct",
+      "observed": [
+        "The Autodesk MTEXT table places content below 250 characters entirely in group 1 and describes longer content as 250-character chunks in one or more group-3 records.",
+        "When group 3 is used, Autodesk says the final record is group 1 and has fewer than 250 characters.",
+        "The cited less-than / greater-than wording does not expressly assign the exactly-250-character case.",
+        "The general DXF group-code reference separately says string groups 1-4, 7, 9, and 300-309 have a 255-character maximum and less for Unicode; it does not reduce the MTEXT rule to a universal 250-byte rule."
+      ],
+      "doesNotEstablish": [
+        "A single physical byte limit applicable identically to UTF-8, legacy code pages, and escaped Unicode output.",
+        "Exact native behavior for a continuation sequence at an exact multiple of 250 characters."
+      ],
+      "planUse": "Keep character chunk accounting separate from encoded DXF string transport. Retain one group 1 at exactly 250 where target transport permits; for chunked content use a final group-1 tail shorter than 250 as the conservative documented shape, pending a matched native exact-multiple witness."
+    },
+    {
+      "topic": "ezdxf current source differs at exact multiples and exposes chunk reconstruction order",
+      "observed": [
+        "export_mtext_content calls split_mtext_string with size 250, emits every chunk except the last as group 3, and emits the final chunk as group 1; empty text becomes one empty group 1.",
+        "split_mtext_string indexes Python string characters and adjusts a boundary only when the chunk would end in caret notation.",
+        "load_mtext_content gathers group-3 values in order and appends group 1 to reconstruct content.",
+        "An exact 500-character string can therefore be emitted as one 250-character group 3 and one 250-character group 1, which differs from Autodesk's stated final-group-1-shorter-than-250 wording when continuation tags are used."
+      ],
+      "doesNotEstablish": [
+        "That Autodesk accepts or rejects every such exact-multiple profile.",
+        "Byte-safe behavior for all target encodings or complete MTEXT semantic/rendering parity.",
+        "An immutable peer source revision or an independent native witness."
+      ],
+      "planUse": "Record the exact-multiple case as a peer divergence. Do not adopt the peer output as the expected wire form without a pinned native-produced/accepted control."
+    },
+    {
+      "topic": "LibreDWG #1408 is a framing test-design lead only",
+      "observed": [
+        "The report says a literal CR inside text values can create an empty physical line where a DXF group code is expected and can drop the next text character in a LibreDWG 0.14 Windows output.",
+        "The reported source drawings were not public in the issue and no exact reproducer/fix was verified in this research pass."
+      ],
+      "doesNotEstablish": [
+        "A libdxfrw defect or universal control-character serialization rule.",
+        "That every CR should be converted to caret notation or silently removed."
+      ],
+      "planUse": "Extend existing generated PAR-05 coverage through standalone and embedded MTEXT, checking explicit newline/loss policy, physical ASCII framing, binary boundaries, following-record alignment, and destination preservation."
+    },
+    {
+      "topic": "Local route audit reveals the embedded/standalone and strict/compatible gaps",
+      "observed": [
+        "dxfWriter::writeUtf8Chunks limits target-encoded bytes and protects strict UTF-8 scalar boundaries; that maxBytes value is not the Autodesk character count.",
+        "writeMText has separate strict and compatibility chunk branches, while writeEmbeddedMText currently emits the complete content with one group-1 write.",
+        "Existing control-character regression coverage verifies generic ASCII refusal/binary framing, but the MTEXT content-specific 250-boundary and logical-newline profiles remain distinct checks."
+      ],
+      "doesNotEstablish": [
+        "A new production runtime failure from this read-only audit.",
+        "That bytes currently emitted by embedded MTEXT are independently accepted by a native writer/consumer."
+      ],
+      "planUse": "Refine 7M to use one target-version-aware encoder/chunker for standalone and embedded MTEXT; extend existing generated ASCII/Binary DXF tests and preserve outer ATTRIB/ATTDEF framing and the PAR-05 generic owner."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "ownersRefined": [
+      "PAR-05 control-character record framing",
+      "PAR-28/29 MTEXT chunking and explicit downgrade outcomes",
+      "7M shared standalone/embedded text encoding and generated ASCII/Binary boundary tests"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationExpanded": false,
+    "newPeerGateAdded": false,
+    "testRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "Separate Autodesk's 250-character chunk wording from encoded DXF transport bounds; do not label 250 bytes as the standard.",
+      "Keep the exact-250 case explicit because the cited Autodesk MTEXT wording uses strict less-than and greater-than conditions.",
+      "Cover ASCII 249/250/251 and exact multiples 499/500/501, non-ASCII byte/character divergence, DBCS or escape boundaries, caret pairs, empty text, and exact group-code reconstruction.",
+      "Keep the final group-1 chunk shorter than 250 under the documented default; resolve the ezdxf exact-multiple divergence only with a pinned native compatibility observation.",
+      "Share one target-version-aware chunking path for standalone MTEXT and group-101 embedded MTEXT, including ATTRIB and ATTDEF.",
+      "Carry explicit LF/CRLF/bare-CR/literal-escape policy through ASCII and Binary DXF with following-record and publication-failure controls.",
+      "Use only the strict fixture target, focused selector/CTest, lc3_compat_check, and scoped diff checks per implementation slice; no full-suite or peer run added."
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

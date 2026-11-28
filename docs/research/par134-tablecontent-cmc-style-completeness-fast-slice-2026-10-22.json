@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-134 TABLECONTENT skipped CMC style and content-format completeness gates",
+  "mode": "generated AC1021 TABLECONTENT object-vector fast slice",
+  "scope": [
+    "Prevent skipped TABLECONTENT cell content-format and cell-style data from being marked semantically complete",
+    "Keep structural TABLECONTENT parsing and following style-handle alignment intact",
+    "Qualify the documented populated-style discriminator before consuming its fields"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "localDocument": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": ["2.11 CmColor", "20.4.97 TABLECONTENT", "20.4.101.3 Content format", "20.4.101.4 Cell style"],
+      "finding": "ODA documents content-format content color as CMC, cell-style background color as CMC, and border colors as CMC. It defines cell-style data flag 0 as absent and 1 as present. The local typed TABLECONTENT projection structurally consumes these style fields but does not retain them."
+    },
+    "localCode": {
+      "files": ["src/drw_entities.cpp", "tests/dwg_object_vectors_tests.cpp", "dwg2dxf/dx_iface.cpp"],
+      "finding": "skipTableContentFormat and skipTableCellStyle consume CMC-bearing style data; TABLE typed output is gated by m_semanticContentComplete, so successful structural skipping must not be reported as complete semantic retention."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Mark TABLECONTENT semantically incomplete when any content-format override or populated cell style is parsed but not retained.",
+      "Propagate semantic state through cell, column, row, and table cell-style parsing while continuing the bounded structural parse.",
+      "Reject cell-style data flag values greater than the ODA-defined 0/1 values."
+    ],
+    "testFiles": ["tests/dwg_object_vectors_tests.cpp"],
+    "focusedSelectors": ["AC1021 standalone TABLECONTENT object-vector coverage"],
+    "focusedCtests": ["libdxfrw_dwg_object_vectors", "dwg_table_writer_refusal"],
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "wireAndParser": "Locally authored AC1021 TABLECONTENT frames exercise a content-format CMC and a populated cell style containing background and content CMCs. Each control asserts a structurally complete read, a semantically incomplete result, and successful parse of the trailing TABLESTYLE hard pointer. Existing style-absent control remains complete.",
+    "evidenceBoundary": "Generated vectors validate local bounded parsing and evidence classification only; they do not establish producer-authored TABLECONTENT CMC semantics or successful typed TABLE serialization for those fields."
+  },
+  "validation": {
+    "strictBuild": "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg_object_vectors_tests -j4",
+    "strictBuildResult": "PASS",
+    "focusedCommands": [
+      "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|dwg_table_writer_refusal)$' --output-on-failure",
+      "git diff --check -- src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp",
+      "jq empty docs/research/par134-tablecontent-cmc-style-completeness-fast-slice-2026-10-22.json"
+    ],
+    "focusedResults": ["PASS (2/2; 0.10 sec)", "PASS", "PASS"]
+  },
+  "evidenceLimits": [
+    "The color/style payload remains parsed and discarded; the change prevents incomplete typed semantic output and preserves the existing fallback behavior.",
+    "No independent producer, native application, full suite, external semantic route, or platform qualification was used.",
+    "No persistent fixture, dependency, API layout change, or support promotion was added.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is broadly dirty; this slice is uncommitted and unstaged."
+  ],
+  "nextLocalItem": "Resume exact-source PAR-03/PAR-04 associative-action classification, distinguishing known field grammars from unknown values and refusing only fields whose wire extent is not established."
+}

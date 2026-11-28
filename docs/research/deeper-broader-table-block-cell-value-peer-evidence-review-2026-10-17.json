@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw-deeper-broader-table-block-cell-value-peer-evidence-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_RESEARCH_ONLY",
+  "scope": "Map ACadSharp issue #1264's AutoCAD-authored TABLE block-cell value report to the official DXF field table and current libdxfrw parser/writer; refine PAR-126 controls without changing support claims.",
+  "method": {
+    "kind": "Read-only official DXF documentation, open-source issue review, and local source/test inspection",
+    "testsRun": false,
+    "implementationChanged": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sources": [
+      "https://github.com/DomCR/ACadSharp/issues/1264",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm"
+    ],
+    "localInspection": [
+      "src/drw_entities.cpp: DRW_Table::parseCode group300/301/302/304 and block-reference handling",
+      "src/drw_entities.h: DRW_TableCellContent and DRW_TableCell typed representation",
+      "src/libdxfrw.cpp: dxfRW::writeTable complete-profile admission and ATTDEF closure",
+      "tests/dwg_object_vectors_tests.cpp: generated AC1021 block-cell parser vector",
+      "tests/dwg2dxf_adapter_tests.cpp: generated ASCII/binary TABLE block-cell, multi-content, and ATTDEF controls"
+    ]
+  },
+  "evidence": [
+    {
+      "topic": "ACadSharp report and paired-carrier observation",
+      "observed": "The issue reports that AutoCAD-saved DXFs for AC1024/AC1027/AC1032 samples decode block-cell CadValue as an empty string while the paired DWG path leaves a default unknown value. It quotes a DXF cell-value group sequence including group300 with an empty payload.",
+      "doesNotEstablish": [
+        "a libdxfrw defect or reproduction",
+        "raw file hashes or complete record context",
+        "the DWG byte layout or a normative interpretation of the value sequence"
+      ]
+    },
+    {
+      "topic": "Autodesk TABLE DXF field scope",
+      "observed": "The published TABLE entity reference assigns group300 to the text for a block-cell ATTDEF and separately documents groups301/302/303 as cell-value/text constructs.",
+      "doesNotEstablish": [
+        "the issue's full group300 blank-value sequence inside CELL_VALUE framing",
+        "whether that sequence is valid for all AutoCAD versions or producer profiles"
+      ]
+    },
+    {
+      "topic": "Local fail-closed boundary",
+      "observed": "The local DXF parser routes group300 to the last cell attribute and marks the TABLE snapshot incomplete when no attribute exists; the writer requires an admitted content profile and validates block and ATTDEF references.",
+      "doesNotEstablish": [
+        "that the parser retains a complete semantic representation of the reported sequence",
+        "that linked or arbitrary multi-content TABLE writing is supported"
+      ]
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "fixtureOrDependencyAdded": false,
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

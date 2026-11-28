@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5aq",
+  "date": "2026-10-23",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": "DIRTY_UNCOMMITTED_UNSTAGED",
+  "status": "STAGED_MODELED_OUTPUT_CORRESPONDENCE_AND_ROOTED_NATIVE_CONTROL_IMPLEMENTED_FULL_SOURCE_QUALIFICATION_OPEN",
+  "predecessor": "docs/research/rpp5ap-immutable-standard-object-source-models-fast-slice-2026-10-23.json",
+  "implemented": [
+    "Optional synchronous staged OBJECTS-byte inspection before append; actual version/codepage/encoding/classifier profile, borrowed view lifetime and no second retained section copy.",
+    "Bounded physical-presence/scope scan plus reused production typed decoder; immutable source-model comparisons with actual written bindings, final identities/edges and indexed dictionary-to-GROUP name joins.",
+    "Tentative output facts retract on failure and publish only after complete successful output publication; no import opaque-retention increment or default strict admission.",
+    "Genuine NOD-rooted native XRECORD control with ordered text/int32/translated GROUP/arbitrary/binary/XYZ/int64 values, preserving existing orphan/legacy negatives.",
+    "Bounded reciprocal NOD/ACAD_GROUP/key/owner admission for GROUP targets in XRECORD; source/edge/name budgets and unique identity checks.",
+    "Legacy XRECORD encoder uses enclosing file CP8 converter and complete owned text rather than codec-free scratch UTF8 or C-string length.",
+    "Follow-up review bounds NOD names before normalizing and publishes explicit failure diagnostics for name-budget refusal."
+  ],
+  "cases": {
+    "inspectionVersionEncoding": 14,
+    "inspectionAtomicRefusalRetry": 12,
+    "wireFieldComparisons": 192,
+    "nativeSourceTargetEncoding": 24,
+    "modernNativeFourModeledMatches": 16,
+    "legacyNativeZeroModeledMatches": 8,
+    "large128GroupGraphs": 2,
+    "largeGraphModeledMatchesPerCell": 130,
+    "literalWriterCodepage": 8,
+    "groupReferenceAdmission": 15,
+    "groupSourceWorkCapControl": true
+  },
+  "specification": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "version": "5.4.1",
+    "sections": [
+      "20.1",
+      "20.4.104"
+    ],
+    "visualPage": 248,
+    "usedFor": "Common null-link correspondence and legacy XRECORD file-codepage correction in preceding implementation work",
+    "unchanged": "Legacy RS length and per-value codepage conventions; RC prose versus established RS layout remains a distinct qualification question"
+  },
+  "validation": {
+    "ctest": {
+      "result": "PASS",
+      "passed": 25,
+      "failed": 0,
+      "seconds": 9.33,
+      "fastLabeled": 22,
+      "scope": "Affected cohort plus Wave1/native-roundtrip/DXF owning aggregates, not full project suite",
+      "tests": [
+        "dwg2dxf_xrecord_typed_capture_limits",
+        "libdxfrw_generated_dictionary_source_metadata",
+        "libdxfrw_dxf_standard_object_identities",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_generated_dictionary_metadata_allocation",
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_dxf_objects_write_inspection",
+        "libdxfrw_table_callback_owner_order",
+        "libdxfrw_group_adapter_roundtrip",
+        "dwg2dxf_associative_callback_contract",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_dwg_read_outcome_policy",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_associative_strict_loss_gate",
+        "libdxfrw_extension_graph_limits",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dxf_fixtures"
+      ]
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 7,
+      "failed": 0,
+      "seconds": 1.22,
+      "options": "halt_on_error=1",
+      "flags": "-fsanitize=address -fno-omit-frame-pointer",
+      "scope": "Focused selectors, not new inspection/finalization allocation-position sweeps or native application qualification",
+      "tests": [
+        "libdxfrw_dxf_objects_write_inspection",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_standard_object_wire_comparison",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "libdxfrw_rooted_standard_dwg_output_proof"
+      ]
+    },
+    "strictSyntax": {
+      "result": "PASS",
+      "flags": "-std=c++17 -Wall -Wextra -pedantic -Werror",
+      "translationUnits": [
+        "src/libdxfrw.cpp",
+        "src/drw_objects.cpp",
+        "src/intern/dwgbufferw.cpp",
+        "dwg2dxf/dx_iface.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp",
+        "tests/gbk_codepage_tests.cpp"
+      ]
+    },
+    "build": {
+      "result": "PASS",
+      "targets": [
+        "libdxfrw_dwg2dxf_adapter_tests",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_gbk_codepage_tests",
+        "libdxfrw_wave1_tests",
+        "libdxfrw_dxf_fixture_tests",
+        "dwg2dxf",
+        "lc3_compat_check"
+      ]
+    },
+    "scopedWhitespace": "PASS"
+  },
+  "limits": {
+    "perReaderPairs": 4194304,
+    "objectsRecords": 1000000,
+    "inputAndDecodeWorkBytesPerReader": 268435456,
+    "sourceFrames": 100000,
+    "candidateVisibleFactBytes": 67108864,
+    "references": 1000000
+  },
+  "evidenceCeiling": {
+    "strictAdmission": "CLOSED",
+    "importOpaqueRetentionIncrement": 0,
+    "fullSourceSchemaDecoderQualification": "OPEN",
+    "newInspectionFinalizationAllocationSweeps": "NOT_RUN",
+    "groupPlannerAllocationSweep": "NOT_RUN",
+    "fixtureFilesAdded": 0,
+    "binaryAbiPromise": false,
+    "sourceConsumerRebuildRequired": true
+  },
+  "notRun": [
+    "Full project suite",
+    "UBSan",
+    "LeakSanitizer (unsupported explicit startup on this macOS runtime)",
+    "Native FreeCAD Linux/Windows",
+    "Independent ACIS/ACDS semantic/kernel qualification",
+    "New independent drawing/producer qualification"
+  ],
+  "externalGates": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "limitations": [
+    "Extra-strict Wave1 keyword-macro warning not included in seven-TU strict claim.",
+    "Modeled-source/output correspondence is not complete raw-source semantics or support qualification.",
+    "No commit, push or PR mutation performed."
+  ],
+  "bindings": [
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "f9adc0e7e4ca877a5baa98d945a8fc132a10d74fd1d95ef820b0c1cb5bc7cb98"
+    },
+    {
+      "path": "tests/CMakeLists.txt",
+      "sha256": "1b14b10f29a7ebc29c403d7e7bb833cdc969a5b99117f0403cbc05b1483a2919"
+    },
+    {
+      "path": "dwg2dxf/CMakeLists.txt",
+      "sha256": "63d6da4f242748a7af22517a1f749473d8af09882d6f0fcd62afa522341dbb71"
+    },
+    {
+      "path": "src/libdxfrw.h",
+      "sha256": "fccc26ebf50d2e411f4b2ab7145066c1d20483841e1054cbfda01802d07a5c3c"
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "sha256": "0f00baa3b01b9753bd2f51c8c6ed437fa966aa1324e1ee977d6dafacadd51663"
+    },
+    {
+      "path": "src/intern/dxfwriter.h",
+      "sha256": "c352a091754c89a6b362744d5cf122fb6c0982d5cc34b3aa3a7fea7c3df3b35d"
+    },
+    {
+      "path": "src/intern/dwgbufferw.h",
+      "sha256": "58384f0d39cdfeea2a57d64757dd19e782fe807c9f087e393d3ffb87e1ba6b66"
+    },
+    {
+      "path": "src/intern/dwgbufferw.cpp",
+      "sha256": "52e64e924434f93f6323deba9684023cb9edb1176f9bcc86b10bb302ddd564d2"
+    },
+    {
+      "path": "src/drw_objects.cpp",
+      "sha256": "2a5960d97bb4924f626f536bf928c20843ff655574d751ff2b290f2a4583845f"
+    },
+    {
+      "path": "dwg2dxf/dx_standard_output.h",
+      "sha256": "46d81a3a59191da00a6db3a69a22bbcdd94e0d7f0a44c2b5ad078061ee57029d"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.h",
+      "sha256": "c126edd12d8a275b3296224076f5ae83d28d6793c8084cd6c8674e8188582ac7"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "768a132a52ebfe948c02857346ae9f592dc349a6ff5ac722054efb83669b2d7d"
+    },
+    {
+      "path": "tests/wave1_tests.cpp",
+      "sha256": "7556ce7c0e6aa0e420b9f487a33a1394f4042ff24e1181e5508b8831999fcf17"
+    },
+    {
+      "path": "tests/dwg_local_roundtrip_tests.cpp",
+      "sha256": "5402a795060035f47d2360bf293b927c7b3f62df59ca2cf4503141460474ddda"
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "e6f5d6f48b9025dce9d0ecee61706d457dd47abcb7bed110e4f555de77614346"
+    },
+    {
+      "path": "tests/gbk_codepage_tests.cpp",
+      "sha256": "40a0a40ad1edfe4b5bc3dd330b9dfc7773a7de6f1df30534055a9aacf0725e6b"
+    },
+    {
+      "path": "docs/3D_CONSUMER_CONTRACT.md",
+      "sha256": "d2a90c33cac60e4eb9a0153f5d08eed325cd86155597654f2ad5cc2760cb68ed"
+    },
+    {
+      "path": "build/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "e0ab16b995f0dcb555a73b3774d90360fb39dfdbdfbebc6457505c41a5d3c2e4"
+    },
+    {
+      "path": "build/libdxfrw_dwg_local_roundtrip",
+      "sha256": "7b8208f629db400efbabc1feba2bba66cbd47d77eb1cee5735ed24d20f214eb8"
+    },
+    {
+      "path": "build/libdxfrw_wave1_tests",
+      "sha256": "e732b56340d8679c51c171166698c54952db347a022ec51971e016ef78a2ca22"
+    },
+    {
+      "path": "build/libdxfrw_gbk_codepage_tests",
+      "sha256": "8e3fe751a15673f9967de274c18c47edfc296fc290ba1832ba9f7aae02bc3803"
+    },
+    {
+      "path": "build/libdxfrw_dxf_fixture_tests",
+      "sha256": "0e9363377359d3db4b7cbc4f703d289811284735084baeab4dd997a86cec9f5e"
+    },
+    {
+      "path": "build/dwg2dxf/dwg2dxf",
+      "sha256": "72fefe833f66690888cc218f191827aa1f1c1935537d9b9e969697cdf6081241"
+    },
+    {
+      "path": "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "d62a5e03f4119d82c17f024b25d5d03558323981aae1c0944ec0de8984769d0a"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_dwg_local_roundtrip",
+      "sha256": "8bc5ae14f071e333a8e73e650f2ff72a7539f97ab93145794b98f8637f9547a2"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_wave1_tests",
+      "sha256": "bdf1b8c6bd37c935637412a9e09327d9ffc9f598b19add92f4da86748e8316e9"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_gbk_codepage_tests",
+      "sha256": "38039123d4ae6cb8f0a3a03ddfa6216eb45f9124b7798faf97cc65c9519caabc"
+    },
+    {
+      "path": "/tmp/rpp5aq-affected-ctest.log",
+      "sha256": "bbb3771dad6e3101e27fc12e6f6116006aaeee028c64d00071cd76533b5d8c65"
+    },
+    {
+      "path": "/tmp/rpp5aq-asan-ctest.log",
+      "sha256": "bc5d0fd28ad9531eeec134f010353564afacc1cd81eed26b2d4302b608c7b97e"
+    },
+    {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "DBCOLOR EED source APPID/LAYER reference capture",
+  "date": "2026-11-03",
+  "status": "BOUNDED_SOURCE_CAPTURE_AND_PHYSICAL_GRAPH_OBSERVED_OUTPUT_GATE_CLOSED",
+  "scope": "Preserve decoded DBCOLOR EED APPID and LAYER source handle roles through name resolution, without changing DRW_Interface or DRW_DbColor layout. This is source evidence only, not complete graph or output qualification.",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1, chapter 28",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "finding": "EED for each application carries a length, APPID table handle and typed data; code 3 carries a layer handle, code 70 a two-byte integer, and code 71 a four-byte integer."
+  },
+  "problem": "The typed DBCOLOR callback contained resolved 1001/1003 strings after parseAttribs cleared the source index/handle vectors. A valid-looking name, including an ACAD_<handle> fallback, could not by itself prove the source APPID/LAYER table target.",
+  "implementation": {
+    "sourceHandler": "DRW_DwgDbColorEedSourceHandler is a separate, opt-in interface; it does not add a virtual to DRW_Interface or members to DRW_DbColor. It receives borrowed decoded reference vectors after successful body parse and before name resolution. Consumer must copy within the callback.",
+    "adapter": "dx_iface copies version, APPID and LAYER index/handle vectors into a generation-and-object-handle keyed sidecar. Combined reference counts and total retained bytes are bounded. Duplicate, invalid or over-budget callbacks set a capture failure without partial insertion.",
+    "failurePolicy": "The failure flag is intentionally latched across later imports on the same dx_data because earlier partially retained generations remain present. Retry uses the same adapter with a fresh dx_data; no same-data retry is claimed.",
+    "limits": "The existing DWG parser coalesces chunks belonging to the same APPID before this callback; it is not a raw wire-chunk inventory. Handle roles do not prove target existence, names, emitted references, or native semantics."
+  },
+  "physicalWitness": {
+    "source": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "colorHandle": "0x369B0",
+    "classNumber": 551,
+    "className": "AcDbColor",
+    "namedObjectRoot": "0xC",
+    "dictionaryEntry": "ACAD_COLOR -> 0x6B",
+    "dictionaryOwner": "0xC",
+    "dictionaryReactor": "0xC",
+    "dictionaryItem": "RAL CLASSIC$RAL 7047 -> 0x369B0",
+    "colorOwner": "0x6B",
+    "colorReactor": "0x6B",
+    "sourceEedAppId": {
+      "index": 0,
+      "sourceHandle": "0x12",
+      "resolvedName": "ACAD",
+      "appidOwner": "0x9"
+    },
+    "sourceEedLayers": [],
+    "eedContents": "One APPID marker followed by 13 ordered repetitions of (1000 DBColXD, 1070 254, 1071 -1026567985, 1000 RAL CLASSIC$RAL 7047).",
+    "profileBoundary": "This verifies one local source plus ODA corroboration recorded in the preceding receipt; provenance and broader source/version/native behavior remain unqualified."
+  },
+  "selectedRecordProjection": {
+    "operation": "A scratch tool imported the original source and passed its captured typed DBCOLOR to the existing low-level AC1021 ASCII DXF record writer.",
+    "result": "The record includes the exact owner/reactor, RGB/name, ACAD group and all 13 original EED tuples (53 XDATA values). It does not emit group 62 because the source DWG CMC has no proven equivalent fallback. The complete OBJECTS graph and source EED APPID target are not validated by this isolated record writer.",
+    "sha256": "75d431f89ce4b80f43011af60754fe02a13927e5c7c524f30ff695a30234d739",
+    "boundary": "Hash covers the isolated emitted record plus WIRE_END sentinel; no file is committed."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dbcolor_(eed_source_capture|late_callback_binding|external_evidence_gate)$' --output-on-failure",
+      "result": "PASS 3/3: generated AC1027 DWG carries both actual APPID and LAYER references, checks their pre-resolution source handles/indices and resolved typed callback, capture copy/generation isolation, duplicate and budget refusal, failure latch, fresh-data retry, and the existing output refusal gate."
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dbcolor-physical-eed-source /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "PASS for source APPID and rooted owner graph, source frame class/owner/reactor match, all 13 EED tuples, and continued graph refusal."
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_(public_header_hygiene|3d_consumer_probe)$' --output-on-failure",
+      "result": "PASS 2/2; source/header compatibility and generated 3D consumer only, not native application qualification."
+    }
+  ],
+  "remaining": [
+    "Use captured roles and exact frame/class/body snapshots to bind each source APPID/LAYER to unique emitted table rows and ensure all EED groups survive staged output and fresh readback.",
+    "Resolve DWG CMC versus DXF group-62 fallback mapping without assuming that the EED integer establishes that mapping.",
+    "Only after source, owner/reactor, dependency, complete object output and native semantic gates pass, consider admitting a specifically qualified DBCOLOR graph."
+  ],
+  "fixturePolicy": "The physical input and scratch DXF remain outside the repository; generated tests create their inputs locally.",
+  "supportClaimEffect": "none"
+}

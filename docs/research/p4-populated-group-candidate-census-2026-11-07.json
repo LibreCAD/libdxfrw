@@ -1,0 +1,248 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Populated DWG GROUP candidate census and multi-member control",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": {
+    "roots": [
+      "/Users/dli/dev/ACadSharp",
+      "/Users/dli/dev/dwgTs",
+      "/Users/dli/dev/LibreCAD",
+      "/Users/dli/dev/LibreCAD-dxf",
+      "/Users/dli/dev/dwg_samples"
+    ],
+    "uniqueDwgByteStreams": 173,
+    "LibreDWGJsonDecodeFailures": 3,
+    "method": "LibreDWG 0.14 JSON decode; correlate GROUP member handle references to decoded object/entity handles by exact source handle.",
+    "fixturePolicy": "All discovered external files were read-only inputs. No external DWG/DXF fixture was copied into or committed to libdxfrw."
+  },
+  "candidates": [
+    {
+      "profile": "AC1012 populated GROUP with LINE members",
+      "path": "/Users/dli/dev/dwgTs/tests/fixtures/committed/libredwg/example_r13.dwg",
+      "sha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+      "upstreamProvenance": "The dwgTs committed-fixture provenance table identifies this byte stream as LibreDWG test/test-data/example_r13.dwg; GPL-3.0-or-later. It is external to the allowed libdxfrw/LibreCAD fixture locations and remains uncommitted.",
+      "group": {
+        "handle": "0x257",
+        "name": "",
+        "memberCount": 7,
+        "memberTypesInOrder": ["LINE", "LINE", "LINE", "LINE", "LINE", "LINE", "LINE"]
+      },
+      "libdxfrwRead": {
+        "command": "build-gcc/dwg2dxf/dwg2dxf <source> -y -d -v2000 <scratch-output>",
+        "headerUnclaimedBytes": 0,
+        "sourceFrames": 5785,
+        "publishedFrames": 5765,
+        "failedFrames": 20,
+        "entityParseFailures": 1,
+        "objectParseFailures": 19,
+        "groupCallbacks": 2,
+        "strictOutputRefusal": "typed DWG ModelDocViewStyle serialization requires the exact DWG source version"
+      },
+      "disposition": "Useful source-bound GROUP/member witness, but not a whole-source output candidate. A selected output route would need to prove isolation from the 20 failed frames and the target-version gate."
+    },
+    {
+      "profile": "AC1021 populated GROUP with IMAGE members",
+      "path": "/Users/dli/dev/dwgTs/tests/fixtures/committed/libredwg/leader_2007.dwg",
+      "sha256": "8e9750fd2f6af2134d3db0fecc940fb57312ce61d8c0c7299a184f5e2ea7529a",
+      "upstreamProvenance": "The dwgTs committed-fixture provenance table identifies this byte stream as LibreDWG test/test-data/2007/Leader.dwg; GPL-3.0-or-later. It is external to the allowed libdxfrw/LibreCAD fixture locations and remains uncommitted.",
+      "group": {
+        "handle": "0x829",
+        "name": "Superhatch",
+        "memberCount": 5,
+        "memberTypesInOrder": ["IMAGE", "IMAGE", "IMAGE", "IMAGE", "IMAGE"]
+      },
+      "libdxfrwRead": {
+        "sourceFrames": 245,
+        "publishedFrames": 245,
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "strictOutputRefusal": "standalone DWG OBJECTCONTEXTDATA has no qualified replay path"
+      },
+      "disposition": "Not an eligible next P4 route: its required IMAGEDEF/reactor graph still has the independently documented owner-role conflict."
+    },
+    {
+      "profile": "AC1021 populated GROUP with LINE members in ACadSharp sample",
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1021.dwg",
+      "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a",
+      "groups": [
+        {"handle": "0x69e", "memberCount": 6, "memberTypesInOrder": ["LINE", "LINE", "LINE", "LINE", "LINE", "LINE"]},
+        {"handle": "0x6a5", "memberCount": 6, "memberTypesInOrder": ["LINE", "LINE", "LINE", "LINE", "LINE", "LINE"]}
+      ],
+      "disposition": "Promising GROUP member shape, but the same drawing contains IMAGEDEF frames that stop the current adapter at the unresolved image owner role. ACadSharp sample producer provenance is not independently established; diagnostic-only."
+    }
+  ],
+  "generatedControl": {
+    "source": "Locally authored in-memory dx_data; no DWG/DXF fixture is retained.",
+    "test": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --group-adapter-roundtrip",
+    "result": "PASS (exit 0). The generated six-LINE GROUP now checks ordered unique 340 membership against retained entities after ASCII and Binary write/read, a second round trip, and correction/retry after refusal.",
+    "executableSha256": "c7b15c41c52a8ba8d792e6f218e5b45108728e81c9a11cb06b4a2cfac6430e37",
+    "limits": "Generated codec mechanics only; it does not qualify any physical DWG producer, selected graph closure, or whole-source output."
+  },
+  "planImpact": {
+    "nextP4Action": "The AC1012/AC1014 DICTIONARY/GROUP common-link profile now passes bounded role/count controls and the source-bound R13 recheck. ODA 27.1 GUI audit emitted the ordered GROUP members and dictionary/parent relations but dropped TREAT_AS_HARD EED and the referenced SHAPE. EED codepage zero remains the sole source gate for this candidate. Do not repeat the unchanged conversion, change the EED decoder, or attempt selected serialization. Advance to another ready work packet. Preserve the 1 entity/19 object parse failures and whole-source ModelDocViewStyle refusal.",
+    "fixtureFilesAdded": 0,
+    "externalEvidencePromoted": 0
+  },
+  "libdxfrwSourceProfileRecheck": {
+    "date": "2026-11-07",
+    "sourcePath": "/Users/dli/dev/dwgTs/tests/fixtures/committed/libredwg/example_r13.dwg",
+    "sourceSha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+    "method": "Temporary local adapter-test instrumentation imported the witness through dx_iface, compared the GROUP, NOD, dictionary and model-space entity identities, then inspected the retained standard-object evidence. Instrumentation was removed; no fixture or test dependency was added.",
+    "adapterImport": {
+      "sourceVersion": "AC1012",
+      "entityParseFailures": 1,
+      "objectParseFailures": 19,
+      "sourceFrames": 5785,
+      "publishedFrames": 5765,
+      "groupHandle": "0x257",
+      "groupParent": "0xD",
+      "groupMemberHandlesInOrder": [
+        "0x256",
+        "0x255",
+        "0x254",
+        "0x253",
+        "0x252",
+        "0x251",
+        "0x250"
+      ],
+      "memberEntityTypes": [
+        "LINE",
+        "LINE",
+        "LINE",
+        "LINE",
+        "LINE",
+        "LINE",
+        "LINE"
+      ],
+      "nodHandle": "0xC",
+      "nodEntry": {
+        "name": "ACAD_GROUP",
+        "handle": "0xD"
+      },
+      "dictionaryEntry": {
+        "name": "*A1",
+        "handle": "0x257"
+      },
+      "groupMemberListComplete": true
+    },
+    "sourceEvidence": {
+      "dictionaryFrame": {
+        "handle": "0xD",
+        "objectType": 42,
+        "typedBaseline": true,
+        "payloadMatched": true,
+        "opaquePayload": false,
+        "commonLinkEvidence": "Unknown",
+        "textDecodeIssuesMask": "0x8"
+      },
+      "groupFrame": {
+        "handle": "0x257",
+        "objectType": 72,
+        "typedBaseline": true,
+        "payloadMatched": true,
+        "opaquePayload": false,
+        "commonLinkEvidence": "Unknown",
+        "textDecodeIssuesMask": "0x0"
+      }
+    },
+    "specCrossCheck": "ODA Open Design Specification v5.4.1 §20.4.72 specifies the R13–R14 GROUP object size and reactor count followed by the common parent/reactor/extension-dictionary references and the ordered group-member references. §§20.4.1–20.4.2 define the corresponding legacy entity common fields and handle roles. This supports inspecting the bounded in-frame parse; it does not by itself validate libdxfrw’s Unknown capture marker or resolve the dictionary text issue.",
+    "disposition": "Historical pre-classifier recheck. At that point the selected projection admission gate rejected DICTIONARY and GROUP because common-link evidence was Unknown; the DICTIONARY also carried UnknownCodePage text issue mask 0x8. See legacyCommonLinkProfileRecheck for the current common-link result. The EED text gate and whole-source refusal remain.",
+    "testBinarySha256": "7163ab0f11d3ba45924654bc2dcae7d8c226b1c1bf1d5c5758d29a729c67d9d9",
+    "supersededBy": "legacyCommonLinkProfileRecheck",
+    "supportClaimEffect": "none"
+  },
+  "odaGuiConversion": {
+    "date": "2026-11-07",
+    "sourcePath": "/Users/dli/dev/dwgTs/tests/fixtures/committed/libredwg/example_r13.dwg",
+    "sourceSha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+    "method": "ODA File Converter 27.1.0 native macOS GUI Audit on a scratch copy, saved as 2010 ASCII DXF; no CLI retry and no repository fixture added.",
+    "outputPath": "/private/tmp/oda-r13-group/out/example_r13.dxf",
+    "outputSha256": "ddbc376f4c1c66c9e4dadad812d6c36a272941ea13c697572c003705720d242a",
+    "outputBytes": 1063395,
+    "observations": {
+      "auditErrorReport": false,
+      "groupHandle": "0x257",
+      "groupParentDictionary": "0xD",
+      "orderedMemberHandles": ["0x256", "0x255", "0x254", "0x253", "0x252", "0x251", "0x250"],
+      "dictionaryEntry": {"name": "*A1", "handle": "0x257"},
+      "dictionaryParentHandle": "0xC",
+      "groupParentAndMemberRelationsEmitted": true,
+      "sourceEedValueTreatAsHardEmitted": false,
+      "shapeStyleReferencedBySourceEmitted": false
+    },
+    "interpretation": "This independent conversion supports only that ODA emitted the candidate GROUP's ordered member references and dictionary/parent relations for this source. It dropped the source DICTIONARY EED value TREAT_AS_HARD and the referenced SHAPE object, so it is not lossless and does not define EED codepage-zero semantics. By itself this output does not validate libdxfrw's source spans or handle roles; those are separately qualified in legacyCommonLinkProfileRecheck. The EED gate remains.",
+    "libdxfrwSelectedOutputAttempted": false,
+    "fixtureFilesAdded": 0,
+    "supportClaimEffect": "none"
+  },
+  "eedCodepageZeroDiagnostic": {
+    "date": "2026-11-07",
+    "sourcePath": "/Users/dli/dev/dwgTs/tests/fixtures/committed/libredwg/example_r13.dwg",
+    "sourceSha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+    "method": "A temporary diagnostic in readDwgEed logged the APPID handle, byte count and raw bytes for legacy EED strings whose per-value codepage was zero. The instrumentation was removed; no source or test change remains.",
+    "tracePath": "/private/tmp/libdxfrw-r13-group-eed-values.log",
+    "zeroCodepageTraceOccurrences": 297,
+    "traceOccurrencesAreUniqueValues": false,
+    "dictionaryEed": {
+      "objectHandle": "0xD",
+      "objectType": 42,
+      "appIdHandle": "0x12",
+      "appIdName": "ACAD",
+      "itemCode": 0,
+      "declaredCodepage": 0,
+      "rawByteCount": 13,
+      "rawBytesHex": "54 52 45 41 54 5F 41 53 5F 48 41 52 44",
+      "asciiValue": "TREAT_AS_HARD",
+      "independentReader": "LibreDWG 0.14 JSON identifies APPID handle 0x12 as ACAD and decodes the same EED value as TREAT_AS_HARD; this corroborates the ASCII value, not the semantics of per-value codepage zero."
+    },
+    "authorityReview": "ODA v5.4.1 chapter 28 specifies the legacy EED string length, 2-byte codepage and character bytes, but does not define codepage 0 as inheriting the file codepage. LibreDWG's file-header codepage-0 fallback is not evidence for EED per-value semantics.",
+    "disposition": "The exact value producing the DICTIONARY UnknownCodePage issue is now bound. The common-link gate is separately resolved by legacyCommonLinkProfileRecheck. Keep the text gate closed. Do not map per-value codepage 0 to the file codepage without normative or independent producer evidence defining that rule.",
+    "supportClaimEffect": "none"
+  },
+  "legacyCommonLinkProfileRecheck": {
+    "date": "2026-11-07",
+    "sourcePath": "/Users/dli/dev/dwgTs/tests/fixtures/committed/libredwg/example_r13.dwg",
+    "sourceSha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+    "method": "Current libdxfrw build imported the source read-only via dwg2dxf -d. The classifier log was captured after the typed DICTIONARY/GROUP parse and before any strict output setup. No fixture or repository copy was added.",
+    "focusedControl": {
+      "command": "ctest --test-dir /private/tmp/libdxfrw-legacy-common-build -R '^libdxfrw_legacy_dictionary_group_links$' --output-on-failure",
+      "result": "PASS (1/1)",
+      "coverage": "Generated AC1012/AC1014 DICTIONARY and GROUP; valid links; truncation; declared reactor-count mismatch; wrong parent/reactor/extension-dictionary/member handle roles; following-handle sentinel."
+    },
+    "physicalImport": {
+      "command": "dwg2dxf <source> -y -d -v2000 <scratch-output>",
+      "logPath": "/private/tmp/legacy-group-profile.log",
+      "logSha256": "06e95c664c6d5614b734ec03a28f7707b4444f406c33d0ddecb99cc510dab16d",
+      "sourceFrames": 5785,
+      "publishedFrames": 5765,
+      "entityParseFailures": 1,
+      "objectParseFailures": 19,
+      "strictWholeSourceRefusal": "typed DWG ModelDocViewStyle serialization requires the exact DWG source version",
+      "selectedOutputAttempted": false
+    },
+    "qualifiedFrames": [
+      {
+        "handle": "0xD",
+        "objectType": 42,
+        "commonLinkEvidence": "Validated",
+        "parentHandle": "0xC",
+        "reactorCount": 1,
+        "xDictHandle": "0x0"
+      },
+      {
+        "handle": "0x257",
+        "objectType": 72,
+        "commonLinkEvidence": "Validated",
+        "parentHandle": "0xD",
+        "reactorCount": 1,
+        "xDictHandle": "0x0",
+        "orderedMembers": ["0x256", "0x255", "0x254", "0x253", "0x252", "0x251", "0x250"]
+      }
+    ],
+    "specCrossCheck": "ODA Open Design Specification v5.4.1 §§20.4.1–20.4.2, §20.4.44 and §20.4.72 define the bounded R13/R14 common links, dictionary item handles, and group members. This profile is scoped only to AC1012/AC1014 DICTIONARY/GROUP typed parsers; other legacy objects remain Unknown.",
+    "remainingGate": "DICTIONARY EED APPID ACAD value TREAT_AS_HARD carries per-value codepage 0; ODA v5.4.1 does not define zero as inheriting the file codepage. Keep the UnknownCodePage issue and selected-output refusal.",
+    "fixtureFilesAdded": 0,
+    "supportClaimEffect": "none"
+  }
+}

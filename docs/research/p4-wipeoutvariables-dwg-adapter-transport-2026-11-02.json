@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-wipeoutvariables-dwg-adapter-transport-2026-11-02",
+  "date": "2026-11-02",
+  "title": "Generated AC1027 WIPEOUTVARIABLES DWG adapter transport",
+  "status": "GENERATED_DWG_ORIGIN_WIPEOUTVARIABLES_ADAPTER_TRANSPORT_PASSED_WITH_DOMAIN_REFUSALS",
+  "supportClaimEffect": "none",
+  "scope": "Bounded generation-keyed typed WIPEOUTVARIABLES capture, source CLASS/frame and NOD-rooted dictionary binding, same-revision AC1027 output preflight, group-70 domain refusal, atomic rollback/retry, and fresh ASCII/Binary typed readback for a locally authored DWG.",
+  "fixture": {
+    "kind": "locally-authored-from-scratch",
+    "generator": "tests/dwg2dxf_adapter_tests.cpp:wipeoutVariablesDwgAdapterTransport",
+    "repositoryFixtureAdded": false,
+    "artifacts": "The selector creates one temporary AC1027 DWG and temporary ASCII/Binary DXFs under the system temporary directory; RAII cleanup removes them.",
+    "sourceProfile": {
+      "dwgVersion": "AC1027",
+      "targetDxfVersion": "AC1027",
+      "className": "AcDbWipeoutVariables",
+      "recordName": "WIPEOUTVARIABLES",
+      "handle": "0xB600",
+      "ownerDictionary": "0xA602",
+      "ownerPath": "NOD -> ACAD_IMAGE_VARS -> DICTIONARY -> WIPEOUTVARIABLES",
+      "locallyGeneratedDwgDisplayFrame": 2
+    }
+  },
+  "documentationReview": {
+    "sources": [
+      {
+        "title": "Autodesk WIPEOUTFRAME system variable",
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-Core/files/GUID-AF1A9E90-35FB-4A49-AA39-E3456B4F264D.htm",
+        "finding": "The system variable documents values 0 (frames hidden/plotted off), 1 (displayed and plotted), and 2 (displayed but not plotted)."
+      },
+      {
+        "title": "Autodesk WIPEOUTVARIABLES DXF object",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CD28B95F-483C-4080-82A6-420606F88356.htm",
+        "finding": "The DXF table documents group 70 as 0/1, lists subclass AcDbRasterVariables and group 90 class version 0. The current and LibreCAD-bundled writers instead emit subclass AcDbWipeoutVariables and omit group 90. The relationship between these definitions is unresolved."
+      }
+    ],
+    "admissionDecision": "Retain DWG mode 2 when reading, but refuse DXF group-70 values outside 0/1. No crosswalk between WIPEOUTFRAME mode 2 and WIPEOUTVARIABLES DXF group 70 is inferred."
+  },
+  "implementation": {
+    "behavior": "The adapter retains bounded typed records keyed by import generation and handle. Extension-graph inventory and traversal require a unique dictionary child rooted from NOD under ACAD_IMAGE_VARS. Output preflight binds each typed callback to one unchanged published CLASS row, one raw source frame, matching common-link evidence, and the unique owner path. It admits only same-revision AC1027 output with group-70 values 0 or 1, no reactors, extension dictionary, data-storage bytes, EED, or XDATA; it registers the CLASS, reserves the source identity, writes the typed object, and qualifies the source frame only after successful emission.",
+    "limits": [
+      "Typed capture is capped at 1024 records and DRW::kMaxDxfBinaryPayloadBytes of estimated retained data.",
+      "The generated selector starts with DWG display-frame value 2, confirms it is retained by the reader, and confirms strict DXF export refuses it atomically. Successful typed output/readback covers only values 0 and 1.",
+      "ASCII/Binary typed self-readback establishes transport through this implementation only. The Autodesk subclass/class-version discrepancy, physical producer coverage, native frame/plot behavior, other versions, and whole-document closure remain unqualified."
+    ]
+  },
+  "regressionControl": {
+    "selector": "--wipeoutvariables-dwg-adapter-transport",
+    "behavior": "The adapter selector checks bounded typed/raw capture from the generated DWG, refuses AC1024 target output and unsupported source display values 2 and 3 without changing sentinel destination bytes, then retries on the same adapter with values 1 and 0. It verifies source-frame output binding and fresh ASCII/Binary typed readback with exactly one WIPEOUTVARIABLES entry under the unique ACAD_IMAGE_VARS dictionary path. A direct-writer control checks ASCII/Binary rejection of values 2, 3, and 65535 and corrected mode-1 retry. The focused wave1 selector also checks successful direct output of values 0 and 1.",
+    "outputQualification": "The selector proves only the generated AC1027 object and its selected source frame/rooted dictionary path. It does not qualify the entire source drawing or native application semantics."
+  },
+  "sourceBinding": {
+    "baseRevision": "1676960fbbf32a2692bbea4164b61c1a91c13cac",
+    "files": {
+      "dwg2dxf/dx_data.h": "fe77b9b47207a9044541056e4d0b14fc139869fd324fb2127d830233b789a8f6",
+      "dwg2dxf/dx_iface.h": "3bb2587192fc74f178aa81f9d085c0bc97c53ca5759bd60854399ed1d4a1d317",
+      "dwg2dxf/dx_iface.cpp": "26e12c2e285860fd1d9b7991f31fe0a91b7ba5576328c73fdae8defd32e59973",
+      "src/libdxfrw.cpp": "dff4da3fc323397c1388d17b119014aa097e2499b7be572266f7709eccd97046",
+      "CMakeLists.txt": "6fe7f1310b71417bdb676ad3c45b2fe001d3d3012bc9d28954b88b5986c237f9",
+      "tests/CMakeLists.txt": "c17e292b67e114de28ccca225b9e6c13518663df103e41f708b2c4f7b2e808b6",
+      "tests/dwg2dxf_adapter_tests.cpp": "0a9887598edf8efef784885a7224aa70da6ac2d1f1222b21836875a12284e8e1",
+      "tests/wave1_tests.cpp": "183e63c41acbc029f86c4d925414fe17a307354994678d2da0c5a34cb799d3fe"
+    },
+    "executables": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "af9519f2c4c63bb5b2f2e42e0e0c3ac7ab93eb0a9ae304f23c719466b3c4c8eb",
+      "build-gcc/libdxfrw_wave1_tests": "344db0b119c5f63139bbb70466f0fc9072cdaaef67720a06c96a61f034f225b0",
+      "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "c150389b1775c31d6e41d3791166f88e12f11f9d6a5a94a489ffef18ea991587"
+    }
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "normalBuildResult": "passed",
+    "normalFocusedTests": "ctest --test-dir build-gcc -R '^(libdxfrw_wipeoutvariables_display_mode_domain|dwg2dxf_(geodata|rastervariables|wipeoutvariables)_dwg_adapter_transport|libdxfrw_extension_dictionary_owner_graphs|libdxfrw_extension_graph_limits|libdxfrw_dwg_plotsettings_nod_graph)$' --output-on-failure",
+    "normalFocusedTestsResult": "7/7 passed in 1.72 seconds",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "asanBuildResult": "passed",
+    "asanTest": "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-dwg-adapter-transport",
+    "asanTestResult": "passed with no sanitizer findings; expected refusal diagnostics were emitted for negative controls",
+    "broaderSuite": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+    "broaderSuiteResult": "failed with 68 assertions in UNDERLAYDEFINITION common-object-metadata checks and emitted-record inventory checks; the focused WIPEOUTVARIABLES selector passed and no WIPEOUTVARIABLES assertion appeared in the failure output",
+    "diffCheck": "git diff --check passed before receipt/plan edits; rerun after those documentation edits"
+  }
+}

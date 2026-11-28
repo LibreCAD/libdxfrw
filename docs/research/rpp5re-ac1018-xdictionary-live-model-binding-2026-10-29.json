@@ -1,0 +1,44 @@
+{
+  "schema": "ac1018-xdictionary-live-model-binding-v1",
+  "date": "2026-10-29",
+  "codeCommit": "9405b28ccb3a53feba650ae2deae222f3431ed05",
+  "scope": "Private selected AC1018 ATTDEF source-to-live-DICTIONARY model binding for the BLOCK_RECORD XDICTIONARY child. No recursive graph, staged output, native semantics or support claim is promoted.",
+  "route": {
+    "requirements": "The explicit legacy identity observation and selected AC1018 source join from RPP-5rd must be present. The child remains restricted to the single source-bound empty DICTIONARY profile.",
+    "algorithm": "At source-join finalization, index the bounded live data.dictionaries collection once, reject duplicate selected handles, and require exactly one callback model matching the structural/resource model and immutable raw child. Retain a bounded immutable DRW_Dictionary snapshot in the ATTDEF scope join. The private live-source query rechecks import generation, identity/source/context owners, selected BLOCK_RECORD owner edge, structural/resource pairing, physical profile and exactly one current live callback model against that snapshot.",
+    "selectedBody": "Only the exact empty five-field AC1018 body is admitted: code 5 self, 330 owner, 100 AcDbDictionary, 280 hardOwner=1 and 281 cloning=1. The model must have no entries, extension dictionary, reactors, XDATA, application data, count cap or incomplete DXF entry stream.",
+    "mutationControls": "The runtime-generated ASCII and binary controls mutate the selected live hardOwner field and add a duplicate typed dictionary handle. Both invalidate the live-source query; restoring the model or removing the duplicate restores the selected proof. Existing wrong-target, wrong-owner and wrong-kind source faults retain their corrected same-adapter retry controls."
+  },
+  "inheritedSource": {
+    "receipt": "docs/research/rpp5rd-ac1018-blockrecord-xdictionary-source-binding-2026-10-29.json",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798"
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_attdef_source_tests -j4",
+    "normalSelector": "ctest --test-dir build-gcc -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "normal": "PASS 1/1. Runtime-generated ASCII and binary paths cover live callback matching, changed-model refusal, duplicate-handle refusal, corrected state, existing source faults and retries.",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_attdef_source_tests -j4",
+    "asanSelector": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "asan": "PASS 1/1.",
+    "diffCheck": "PASS git diff --check before the code commit.",
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.3 (clang-2100.3.34.2), arm64 macOS"
+  },
+  "bindings": {
+    "dwg2dxf/dx_iface.cpp": "4aab19c08c64c53e4fde5e4e92c93f96ce9f3c0d1009c5e6137e8e38e1a8138d",
+    "dwg2dxf/dx_data.h": "9e0c88da012262d5755a00ddcb9c976ba03ad8f52aea3238eb3ee59d13c6d932",
+    "dwg2dxf/dx_iface.h": "a034531fad6f90f5024774d193dd6b7636f220287cdb6f541b0c1b4df0f6c1f5",
+    "tests/attdef_source_tests.cpp": "e6489c4b1530b6688c8360e9eb11fd182c0cb246ec473af5128f0a90e3f69faa",
+    "tests/legacy_attdef_scope_controls.h": "5dbb8a3e449b0aff7b1d3bc30671ec4fac7e16d091f07a6e856355d33f0b24f5",
+    "normalTestExecutableSha256": "310cf50bc85c9af9692c113c7b91740136ad563cd60659da244e4eed18186762",
+    "asanTestExecutableSha256": "cf60f8a86d3b9a07d39bf743c6822946cb878779b9bce139fafab4d894a14413"
+  },
+  "limits": [
+    "The selected source-to-model relationship is not recursive ownership or complete graph closure.",
+    "No actual staged output fields, handle remaps, output readback, exporter refusal/retry, native consumer meaning or format-support claim is proved.",
+    "The live model proof is diagnostic and private; no public DRW_Interface callback or generic support authority was added.",
+    "Tests generate the drawing in scratch storage at runtime; no external drawing fixture was added to the repository."
+  ]
+}

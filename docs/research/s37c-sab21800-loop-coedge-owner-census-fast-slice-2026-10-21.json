@@ -1,0 +1,63 @@
+{
+  "title": "S3.7c SAB 21800 loop-coedge owner census fast slice",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "profile": "ACIS BinaryFile SAB 21800 rooted projection",
+    "public_projection": "DRW_AcisFaceLoop retains its coedge next-link walk and a parsed-model owner census; the generic unrooted projection does not populate this rooted-only extension.",
+    "pointer_relationships": {
+      "coedge_next": "coedge ordinal 1",
+      "coedge_previous": "coedge ordinal 2",
+      "coedge_edge": "coedge ordinal 4",
+      "coedge_owner_loop": "coedge ordinal 5"
+    },
+    "match_rule": "A loop coedge chain matches only when every parsed coedge has a classifiable ordinal-5 owner, the observed chain is a reciprocal closed ring or reciprocal null-terminated open chain, and chain identities equal the source-ordered parsed-model coedge->loop owner index.",
+    "explicit_nonclaims": [
+      "source-record completeness before DRW_AcisModel construction",
+      "complete ACIS grammar support",
+      "pcurve evaluation or trim closure",
+      "manifoldness or B-rep validity",
+      "native CAD acceptance"
+    ]
+  },
+  "coverage": {
+    "parser_fed_source_order_differs_from_chain_order": "PASS",
+    "detached_coedge_naming_loop_prevents_match": "PASS",
+    "missing_null_and_wrong_type_owner_slots_mark_index_incomplete": "PASS",
+    "coverage_rejects_missing_false_or_misaligned_metadata": "PASS",
+    "parsed_sab_and_in_memory_loop_rows_match": "PASS",
+    "exact_output_budget_admitted_and_one_under_refused_transactionally": "PASS",
+    "exact_extraction_work_budget_admitted_and_one_under_refused_transactionally": "PASS",
+    "new_drawing_fixture_added": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.21 seconds)",
+    "diff_check": "PASS",
+    "json_validation": "PASS (jq empty)",
+    "address_sanitizer": "NOT_RUN"
+  },
+  "compatibility": {
+    "public_struct_layout_changed": true,
+    "consumer_rebuild_required": true,
+    "DRW_Interface_vtable_changed": false,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "findings": 144,
+    "top_level_subplans": 78,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  }
+}

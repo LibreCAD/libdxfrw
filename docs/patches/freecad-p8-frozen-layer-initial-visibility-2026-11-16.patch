@@ -1,0 +1,87 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index a14b0ef..db6bf9c 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2040 +2040 @@ void CDxfRead::ResolveEntityAttributes()
+-    if (!m_preserveLayers && m_entityAttributes.m_Layer != nullptr && m_entityAttributes.m_Layer->Hidden) {
++    if (!m_preserveLayers && m_entityAttributes.m_Layer != nullptr && m_entityAttributes.m_Layer->Off) {
+@@ -3578,2 +3578 @@ bool CDxfRead::ReadLayer()
+-        // Frozen layers are implicitly hidden which we don't do yet.
+-        // TODO: Should have an import option to omit frozen layers.
++        // Report this until viewport, block and ungrouped semantics are handled.
+@@ -3582 +3581,3 @@ bool CDxfRead::ReadLayer()
+-    Layers[layername] = MakeLayer(layername, layerColor, std::move(lineTypeName));
++    auto* layer = MakeLayer(layername, layerColor, std::move(lineTypeName));
++    layer->Hidden = layer->Hidden || (layerFlags & 0x01) != 0;
++    Layers[layername] = layer;
+diff --git a/src/Mod/Import/App/dxf/dxf.h b/src/Mod/Import/App/dxf/dxf.h
+index 6e8b4fc..6119b0d 100644
+--- a/src/Mod/Import/App/dxf/dxf.h
++++ b/src/Mod/Import/App/dxf/dxf.h
+@@ -799 +799,2 @@ protected:
+-            , Hidden(color < 0)
++            , Off(color < 0)
++            , Hidden(Off)
+@@ -809 +810,2 @@ protected:
+-        const bool Hidden;
++        const bool Off;
++        bool Hidden;
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index b9b67dc..de7cd3f 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -53,0 +54,15 @@ class TestImportDXF(TestImportBase):
++    def test_frozen_layer_without_grouping_remains_reported(self):
++        """Frozen-only is still reported, without mislabeling the layer as off."""
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (0, "ENDSEC"), (0, "SECTION"), (2, "TABLES"), (0, "TABLE"),
++                (2, "LAYER"), (70, 1), (0, "LAYER"), (2, "FROZEN"), (70, 1),
++                (62, 2), (6, "CONTINUOUS"), (0, "ENDTAB"), (0, "ENDSEC"),
++                (0, "SECTION"), (2, "ENTITIES"), (0, "LINE"), (8, "FROZEN"),
++                (10, 0), (20, 0), (30, 0), (11, 2), (21, 0), (31, 0), (0, "ENDSEC"), (0, "EOF")]
++        path = os.path.join(self.temp_dir, "frozen-layer-no-grouping.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++        self.assertIn("Frozen layers", stats["unsupportedFeatures"])
++        self.assertNotIn("Off-layer visibility without layer grouping", stats["unsupportedFeatures"])
++
+@@ -86,0 +102,38 @@ class TestImportDXF(TestImportBase):
++    @unittest.skipUnless(FreeCAD.GuiUp, "GUI view providers are required")
++    def test_frozen_layer_group_initial_visibility(self):
++        """Hide globally frozen Draft layers while keeping viewport-only flags distinct."""
++        import Draft  # noqa: F401 - enable the real Draft layer route
++        import ImportGui
++
++        options = FreeCAD.ParamGet(self.option_source)
++        options.SetBool("dxfUseDraftVisGroups", True)
++        cases = (("ON", 0, 2, True), ("FROZEN", 1, 2, False),
++                 ("NEWVIEW", 2, 2, True), ("OFF", 0, -2, False),
++                 ("FROZENOFF", 1, -2, False))
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"),
++                (2, "TABLES"), (0, "TABLE"), (2, "LAYER"), (70, len(cases))]
++        for name, flags, color, _ in cases:
++            tags.extend([(0, "LAYER"), (2, name), (70, flags), (62, color), (6, "CONTINUOUS")])
++        tags.extend([(0, "ENDTAB"), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")])
++        for index, (name, _, _, _) in enumerate(cases):
++            tags.extend([(0, "LINE"), (8, name), (10, 0), (20, index), (30, 0),
++                         (11, 2), (21, index), (31, 0)])
++        tags.extend([(0, "ENDSEC"), (0, "EOF")])
++        path = os.path.join(self.temp_dir, "frozen-layer-visibility.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        stats = ImportGui.readDXF(path, self.document.Name, True, self.option_source)
++        self.document.recompute()
++        self.assertEqual(len(stats["unsupportedFeatures"]["Frozen layers"]), 2)
++        layers = {obj.Label: obj for obj in self.document.Objects
++                  if getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer"}
++        for name, _, _, visible in cases:
++            with self.subTest(layer=name):
++                layer = layers[name]
++                self.assertEqual(len(layer.Group), 1)
++                self.assertEqual(layer.ViewObject.Visibility, visible)
++                self.assertEqual(layer.Group[0].ViewObject.Visibility, visible)
++                layer.ViewObject.Visibility = True
++                self.assertTrue(layer.Group[0].ViewObject.Visibility)
++

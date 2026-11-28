@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw-broader-peer-release-and-explicit-3d-route-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh open-source DWG/DXF peer release state, writer-loss evidence, explicit 3D entity frame/topology contracts, and comparator admission; update the implementation plan without asserting local defects or promoting support.",
+  "method": {
+    "kind": "Read-only review of primary Autodesk DXF references, current LibreDWG release and documentation, ACadSharp issue/PR/release pages, ezdxf current API documentation, and the local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerProgramsRun": false,
+    "nativeCadApplicationsOrGeometryKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "sourcePinning": "Mutable web pages were inspected as of 2026-10-16; no peer binaries or packages were downloaded or executed. The ACadSharp release tag and PR state are identified for future pinning, not treated as runtime results.",
+    "evidenceRule": "Peer feature matrices, issue reports, documentation, and self-round-trips select test routes only. They do not prove local behavior, normative format rules unless from Autodesk/ODA, independent semantic correctness, complete object-graph retention, or native consumer acceptance."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG current release/security and test-coverage boundaries",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "observed": "LibreDWG 0.14.1 is labeled beta and dated 2026-07-25. Its NEWS lists security fixes involving R2004 compressed-section sizing, R2007 page offsets, and 3DSOLID block-size bounds. The current format notes distinguish unhandled classes and list missing example_2018 test coverage for BODY, MESH, POLYLINE_MESH, VERTEX_MESH and multiple object families.",
+      "doesNotEstablish": [
+        "that a current LibreDWG binary was built or exercised",
+        "a matching defect in libdxfrw",
+        "that every listed untested type is unsupported",
+        "that LibreDWG is an independent semantic oracle for every peer route"
+      ],
+      "planUse": "Pin exact LibreDWG release/commit and executable for composed, route-specific comparisons. Use its security and coverage notes to choose local hostile-input and type-family controls; keep long fuzz/sanitizer campaigns at composed checkpoints rather than per slice."
+    },
+    {
+      "topic": "ACadSharp release refresh and nested ACIS writer omission",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "observed": "Issue #1195 reports ACadSharp 3.4.9 omitting DWG-read 3DSOLID/REGION content in DXF output, including solid-only blocks. As observed on 2026-10-16, #1195 and dependent PR #1240 remained open; #1240 showed no reviews or deployment and depended on #1174. The latest listed release was v3.8.0 at commit 3a1c66b. The issue's customer drawings were not available in the report.",
+      "doesNotEstablish": [
+        "a defect in libdxfrw",
+        "the current runtime behavior of ACadSharp v3.8.0",
+        "the outcome of experimental PR #1240",
+        "the prevalence of ACIS omission outside the named reports"
+      ],
+      "planUse": "Refresh the optional peer comparator from the stale v3.6.51 note to exact v3.8.0 or later, and identify any experimental PR build separately. Preserve the existing local per-block/per-owner ACIS census and fail-closed publication gates."
+    },
+    {
+      "topic": "ezdxf MESH minimum-version documentation conflict",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/mesh.html",
+        "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html",
+        "https://ezdxf.readthedocs.io/en/stable/tutorials/polyface.html"
+      ],
+      "observed": "The current MESH entity page lists DXF R2000 as the required version while the current layout factory documentation says add_mesh requires R2007; the POLYFACE tutorial says MESH requires R2000+. The tutorial separately states that POLYFACE faces are triangles/quads, MESH permits n-gons, and converting concave n-gons to POLYFACE/3DFACE triangles may be invalid.",
+      "doesNotEstablish": [
+        "the normative MESH introduction/minimum version",
+        "runtime behavior of a pinned ezdxf release",
+        "that MESH and POLYFACE are semantically interchangeable",
+        "correctness of triangulating arbitrary concave faces"
+      ],
+      "planUse": "Do not derive version compatibility from the inconsistent peer pages. Use Autodesk/ODA or an exact pinned native producer for release admission; keep MESH subdivision/creases and POLYFACE face topology as separate versioned routes."
+    },
+    {
+      "topic": "Autodesk explicit 3D frame, mesh, polyface and ACIS wrapper contracts",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm",
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "observed": "Autodesk's OCS/WCS table assigns explicit 3D entity points including 3DFACE, 3D polylines/vertices, and 3D mesh to WCS, while planar entities such as 2D SOLID/TRACE use OCS. MESH has level-0 vertex, face, edge, crease and override fields. POLYFACE is a POLYLINE child sequence with coordinate vertices and face-index records, at most four vertex indices per face; readers should tolerate noncanonical ordering. 3DSOLID stores modeler format group 70, proprietary payload fragments in ordered groups 1/3 across subclass boundaries, and an optional group-350 history-object handle.",
+      "doesNotEstablish": [
+        "ACIS/ASM payload grammar or validity",
+        "closed B-rep topology or exact shape semantics",
+        "DWG AcDs page/index/owner layout",
+        "native rendering or application acceptance"
+      ],
+      "planUse": "Require per-route assertions for coordinate frame, topology/sequence, carrier fragment order, object handles and owner/history closure. Keep explicit polygonal geometry, inline DXF ACIS, DWG AcDs, and semantic shape outcomes separate."
+    }
+  ],
+  "implementationReadiness": {
+    "activeNextSliceUnchanged": "Complete the existing FIELD/FIELDLIST emitted-record identity and remapped-reference closure gate while export remains fail-closed; this research does not resolve FIELD producer semantics.",
+    "existingOwnersOnly": true,
+    "per3DSliceAcceptance": [
+      "source type/handle to emitted type/handle, exact section, owner path, and explicit preserved/transformed/lost/refused disposition",
+      "separate inventories for model space, each block definition, and each paper-space layout",
+      "WCS/OCS/elevation/extrusion assertions on the relevant explicit 3D families",
+      "MESH topology/subdivision/crease controls separate from POLYFACE signed indices and 3DFACE polygon controls",
+      "ACIS payload fragments, group-350 history edge, DWG AcDs association, shape semantics, and native acceptance as separate gates"
+    ],
+    "publicationPolicy": "Normal complete-conversion profile refuses atomically on unsupported required records. A deliberately selected 2D projection may omit 3D only with an explicit loss inventory before publication.",
+    "peerCadence": "No peer installation/run during leaf slices. At a composed checkpoint, pin exact artifact and route; run only the relevant comparator and preserve warnings/results per source identity.",
+    "fixturePolicy": "No external DWG/DXF/SAT/SAB fixture downloaded or committed; use repository-owned samples or locally generated temporary controls.",
+    "validationCadence": "Keep the established fast touched-target/focused-test cadence per slice. Full suites, sanitizers, broad fuzz, peer differentials, and native applications remain composed checkpoints.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 123,
+      "topLevelSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "researchChangedSourceCode": false,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

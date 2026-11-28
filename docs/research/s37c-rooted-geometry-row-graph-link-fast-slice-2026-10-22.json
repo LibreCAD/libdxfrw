@@ -1,0 +1,47 @@
+{
+  "title": "S3.7c rooted geometry-row/graph-link consistency",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Conservatively classify rooted ACIS projection snapshots as having known gaps when typed geometry rows disagree with their retained source graph-link groups.",
+    "invariants": [
+      "vertex, edge, and face source rows resolve to the corresponding source-ordered graphLinks group with expected pointer count and sequential pointer ordinals",
+      "vertex pointNodeIndex equals the exact source pointer target at ordinal 2",
+      "edge start/end vertex, coedge, and curve node identities equal exact source pointer targets at ordinals 1 through 4",
+      "face shell, first-loop, and surface identities equal exact source pointer targets at ordinals 3, 2, and 5"
+    ],
+    "semanticLimit": "Projection/census consistency only. The retained graphLinks are not an independent source-format oracle and do not establish source completeness, B-rep validity, native ACIS semantics, or consumer acceptance."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS (-Werror; compatibility target succeeds)",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1; 1.23 s)",
+    "diff_check": "PASS (src/drw_acis.h, tests/graph_preservation_tests.cpp)",
+    "new_dwg_dxf_fixture": false,
+    "full_suite_run": false
+  },
+  "compatibility": {
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "wire_format_changed": false,
+    "2d_callback_lane_changed": false,
+    "support_claim_promoted": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "freecad_linux_windows_qualification": "OPEN",
+    "independent_acis_acds_semantic_evidence": "OPEN"
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED",
+    "reason": "The shared worktree is broadly dirty; this focused slice was not staged or committed."
+  }
+}

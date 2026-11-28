@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1021-acsm-child-count-trace-2026-11-05",
+  "date": "2026-11-05",
+  "status": "INCOMPLETE_SOURCE_PROFILE_REPRODUCED",
+  "supportClaimEffect": "none",
+  "question": "Can the AC1021 AcSm FIELD child-value count be decoded from the current source profile without guessing?",
+  "source": {
+    "path": "tests/samples/AC1021/blocks_and_tables_-_metric.dwg",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "fixtureDisposition": "Existing local fixture; no fixture added or committed"
+  },
+  "method": {
+    "localParser": "libdxfrw at commit 68b264b8, dwg2dxf debug trace; temporary diagnostic logging printed the parsed child count and cursor, then was removed without changing parser behavior",
+    "peerParser": "Installed dwgread 0.14 JSON output; output SHA-256 4232f2a397ab6658facc1493e6fc78a87b7f3953a60e9a48160e110fa6dc632e",
+    "authority": "ODA Open Design Specification for .dwg files v5.4.1, §20.4.76 (FIELD child-value count is BL), PDF page 200"
+  },
+  "observations": {
+    "localTypedFields": 96,
+    "fieldListMembers": 162,
+    "fieldListUniqueMembers": 162,
+    "acSmCountFailures": 9,
+    "acSmHandles": [
+      "0x151D0", "0x151D5", "0x151DA", "0x15BFB", "0x15C00",
+      "0x15C05", "0x15C15", "0x15C1A", "0x15C1F"
+    ],
+    "acSmProfile": {
+      "evaluator": "AcSm",
+      "cadValueDataType": 4,
+      "valueStringLength": 88,
+      "unitValues": [20, 22, 28],
+      "decodedChildCount": "0x50069006",
+      "decodedChildCountCursor": "body bit 191; bounded body end 569, 601, or 761"
+    },
+    "otherNegativeChildCountRecords": 1,
+    "peerJson": "The nine handle-matched FIELD objects have no childval array in dwgread 0.14 JSON. The peer output does not expose the raw child-count bits or establish a physical span."
+  },
+  "decision": "Retain affected source FIELDs as incomplete/raw and keep FIELD output closed. Do not reinterpret the count, unit values, or suffix from this trace. The ODA count type is a constraint, not evidence for a replacement layout.",
+  "limitations": [
+    "No independent physical span measurement was obtained.",
+    "LibreDWG JSON omission does not prove the source count or child-value semantics.",
+    "No native FIELD evaluation or source-to-DXF roundtrip was established.",
+    "This result does not promote a DWG/DXF support claim."
+  ]
+}

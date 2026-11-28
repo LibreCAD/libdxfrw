@@ -1,0 +1,127 @@
+{
+  "schema": "libdxfrw-visualstyle-slot-evidence-grades-v1",
+  "reviewedAt": "2026-10-16",
+  "candidateMap": "visualstyle-slot-map-readiness-2026-10-15.json",
+  "scope": "Evidence grades for each indexed VisualStyle source slot and candidate DXF emission field; paired writer observations are recorded separately from semantic group assignment and do not authorize DXF serialization.",
+  "gradeDefinitions": {
+    "specified": "A primary Autodesk DXF table lists the candidate value group for this conventional profile field.",
+    "empirically-captured": "The local decoder captures the field on the already-tracked AC1032 sample and generated source vectors verify the indexed primitive-to-model destination; this is not an independent semantic mapping proof.",
+    "policy-qualified": "A local same-profile DWG no-op encode is constrained by generated source vectors and exact body-bit replay; this says nothing about DXF output groups or external producer semantics.",
+    "unresolved": "The available evidence is a candidate, conflict, incomplete observation, or policy gap and cannot authorize output.",
+    "empirically-observed": "Literal behavior was compared in the exact paired-writer receipt. It establishes only what those outputs contained, not producer intent, field semantics, interoperability, or serializer eligibility.",
+    "not-applicable": "The indexed R2013b extension slots do not exist in the R2010b 28-slot profile, or a non-CMC slot has no CMC policy."
+  },
+  "sources": {
+    "primaryDxfTable": {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm",
+      "scope": "Conventional VisualStyle value groups; it does not define the R2013b 58-property extension or group-176 companions."
+    },
+    "localSourceCapture": {
+      "fixture": "tests/fixtures/dwg/rtext_arctext.dwg",
+      "receipt": "visualstyle-source-profile-7g-3f-3c-1-2026-10-15.json",
+      "scope": "One complete local AC1032 source profile is captured; it does not prove each typed field's independent semantics."
+    },
+    "localDwgReplay": {
+      "test": "tests/dwg_object_vectors_tests.cpp::testVisualStyleSourceMetadata",
+      "scope": "Generated AC1024/AC1027/AC1032 vectors check typed slot destinations and exact same-profile encoded body bits."
+    },
+    "candidateExtensionMap": {
+      "receipt": "visualstyle-slot-map-readiness-2026-10-15.json",
+      "source": "Pinned LibreDWG source crosswalk; implementation evidence only, not a normative DXF contract or runtime writer result."
+    }
+  },
+  "fieldGrades": {
+    "sourcePrimitiveAndDestination": {
+      "grade": "empirically-captured",
+      "slotIndices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57]
+    },
+    "sameProfileDwgNoOpReplay": {
+      "grade": "policy-qualified",
+      "slotIndices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57]
+    },
+    "r2010ValueGroup": {
+      "specified": [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27],
+      "unresolved": [6],
+      "notApplicable": [28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57]
+    },
+    "r2013bValueGroup": {
+      "unresolved": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57]
+    },
+    "pairedWriterPrimaryTagSequence": {
+      "grade": "empirically-observed",
+      "slotIndices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57],
+      "sourceReceipt": "3d-carrier-runtime-and-peer-writer-review-2026-10-15.json",
+      "observation": "ODA File Converter 27.1.0.0 and LibreDWG dwg2dxf 0.14 emitted the same ordered primary group-code sequence for the Flat record across the 58 candidate slots from one tracked AC1032 input. The source producer is unknown; agreement is not semantic or normative proof."
+    },
+    "pairedWriterGroup176Output": {
+      "grade": "empirically-observed",
+      "candidateGroup": 176,
+      "sourceReceipt": "3d-carrier-runtime-and-peer-writer-review-2026-10-15.json",
+      "odaSlotIndices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57],
+      "libreDwgMissingSlotIndices": [31, 33],
+      "interpretation": "Observed 58 ODA companions versus 56 LibreDWG companions; do not turn either into a group-176 serialization rule or relax the missing-slot conflict without an eligible producer/readback."
+    },
+    "pairedWriterTupleComparison": {
+      "grade": "empirically-observed",
+      "sourceReceipt": "3d-carrier-runtime-and-peer-writer-review-2026-10-15.json",
+      "matchingSlotCount": 52,
+      "differingSlotIndices": [6, 31, 33, 41, 44, 51],
+      "group177Counts": {
+        "libreDwg": 2,
+        "oda": 3
+      },
+      "group420Above24Bits": [6, 41, 44],
+      "cmcValueDifferenceSlots": [41, 51],
+      "interpretation": "Captured writer-output differences only; values, CMC method/flags, group-420 high bits, group-177 policy and serializer admission remain unresolved."
+    },
+    "perPropertyCompanionGroup": {
+      "grade": "unresolved",
+      "candidateGroup": 176,
+      "slotIndices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57]
+    },
+    "cmcOutputPolicy": {
+      "unresolved": [6, 9, 10, 15, 20, 41, 44, 51],
+      "notApplicable": [0, 1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 14, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 42, 43, 45, 46, 47, 48, 49, 50, 52, 53, 54, 55, 56, 57]
+    },
+    "dxfSerializerAdmission": {
+      "unresolved": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57]
+    }
+  },
+  "sourcePathConflicts": [
+    {
+      "slotIndex": 6,
+      "field": "faceMonoColor",
+      "candidateR2010ValueGroup": 63,
+      "autodeskTableGroup": 421,
+      "grade": "unresolved",
+      "reason": "The primary table separately identifies group 421 as Face style mono color while listing 62/63 as Color; the candidate crosswalk's 63 mapping is not admitted without a producer-authored witness."
+    },
+    {
+      "slotIndices": [31, 33],
+      "fields": ["bProp1f", "bProp21"],
+      "grade": "unresolved",
+      "reason": "LibreDWG spec/generated metadata and importer disagree on value and companion groups; actual writer output is unknown."
+    },
+    {
+      "slotIndex": 45,
+      "field": "bProp2d",
+      "grade": "unresolved",
+      "reason": "Candidate group 290 is present in the spec/metadata, but the reviewed peer importer skips the primary Boolean."
+    },
+    {
+      "field": "extLightingModel",
+      "grade": "unresolved",
+      "reason": "The importer supplies defaults when the source field is absent; that is not preservation of the producer value."
+    }
+  ],
+  "serializerAdmission": "DENY_UNTIL_ALL_OUTPUT_GROUPS_CMC_POLICIES_OWNER_CLOSURE_AND_PRODUCER_READBACK_ARE_QUALIFIED",
+  "supportClaimsPromoted": false,
+  "externalItems": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  }
+}

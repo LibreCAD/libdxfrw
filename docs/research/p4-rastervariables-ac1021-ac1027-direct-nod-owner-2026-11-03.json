@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021/AC1027 RASTERVARIABLES direct NOD owner profiles",
+  "date": "2026-11-03",
+  "status": "BOUNDED_AC1021_AC1027_SOURCE_AND_GENERATED_ADAPTER_PROFILES_PASSED",
+  "scope": "Two physical source witnesses confirm the direct NOD ACAD_IMAGE_VARS owner shape in AC1021 and AC1027. The adapter admits those same-revision direct-owner profiles, including the exact NOD soft-pointer reactor and missing-XDictionary flag observed in both files, while preserving the existing nested dictionary path. Generated ASCII/Binary controls cover field and reactor refusal, destination preservation, same-adapter retry, source-frame binding, and fresh typed readback.",
+  "physicalWitnesses": [
+    {
+      "path": "/Users/dli/doc/dwg/Cover.dwg",
+      "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "revision": "AC1027",
+      "objectHandle": "0x6E",
+      "ownerPath": "NOD 0x0C -> ACAD_IMAGE_VARS -> RASTERVARIABLES",
+      "fields": {
+        "classVersionGroup90": 0,
+        "imageFrameGroup70": 0,
+        "imageQualityGroup71": 1,
+        "unitsGroup72": 1
+      },
+      "commonMetadata": {
+        "reactorCount": 1,
+        "reactorSoftPointer": "0x0C (the owner NOD)",
+        "xDictMissingFlag": 1,
+        "xDictionaryHandle": 0,
+        "dataStorage": false,
+        "appDataGroups": 0,
+        "extDataItems": 0
+      },
+      "readerObservation": "The focused libdxfrw adapter selector imported one generation-keyed typed object and matched its NOD entry, parent, reactor, XDictionary flag, class version, and modeled fields. The complete observed frame set also retains two AC1027 HEADER suffix-integrity rows; whole-source output remains refused."
+    },
+    {
+      "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+      "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+      "revision": "AC1021",
+      "objectHandle": "0x2D2",
+      "ownerPath": "NOD 0x0C -> ACAD_IMAGE_VARS -> RASTERVARIABLES",
+      "fields": {
+        "classVersionGroup90": 0,
+        "imageFrameGroup70": 1,
+        "imageQualityGroup71": 1,
+        "unitsGroup72": 1
+      },
+      "commonMetadata": {
+        "reactorCount": 1,
+        "reactorSoftPointer": "0x0C (the owner NOD)",
+        "xDictMissingFlag": 1,
+        "xDictionaryHandle": 0,
+        "dataStorage": false,
+        "appDataGroups": 0,
+        "extDataItems": 0
+      },
+      "readerObservation": "The focused libdxfrw adapter selector imported one generation-keyed typed object and matched its owner and common metadata. The sample read remains partial: 40 unrelated object parse failures, 44 AC1021 CRC mismatches, and 40 failed source frames were observed. No whole-source output claim follows."
+    }
+  ],
+  "normativeSources": [
+    {
+      "title": "Autodesk RASTERVARIABLES (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-DDCC21A4-822A-469B-9954-1E1EC4F6DF82.htm",
+      "supports": [
+        "Group 330 names the ACAD_IMAGE_VARS entry in the named object dictionary as the RASTERVARIABLES owner.",
+        "Group 90 class version is fixed at 0.",
+        "Groups 70, 71, and 72 encode image frame, image quality, and insertion units."
+      ]
+    },
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1, §§20.1 and 20.4.91",
+      "source": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "supports": [
+        "Common object reactor references are soft pointers following the soft-pointer parent handle.",
+        "The RASTERVARIABLES body has class-version, display-frame, display-quality, and units fields followed by the parent and optional reactor handles.",
+        "For R2004+, the XDictionary missing flag controls whether an XDictionary handle is stored."
+      ]
+    }
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "profile": "Same-revision AC1021 or AC1027 only. A record must be reached once through either one complete NOD-owned dictionary or exactly one NOD ACAD_IMAGE_VARS entry directly targeting the typed record; the direct route's parent is the NOD. Common-link admission requires either no reactors or exactly one soft-pointer reactor to that same NOD, xDictHandle 0 with a 0/1 XDictionary flag, no data-storage bytes, no EED/XDATA, a unique handle, unchanged source CLASS/frame, and int16 modeled fields. Group 90 values other than 0 are refused.",
+    "graphOutput": "The NOD traversal inventory admits a direct RASTERVARIABLES target only when the root key is ACAD_IMAGE_VARS, the object is staged by the extension graph, and its typed parent is the NOD. The exact one-reactor-to-owner-NOD edge is retained as a non-owning soft-pointer reference and does not recurse into the NOD as a reactor object. Generated AC1021 and AC1027 ASCII/Binary outputs read back the NOD owner entry, object parent, modeled fields, and reactor handle. The generated AC1027 nested-dictionary regression remains passing.",
+    "physicalExportLimit": "The physical samples are used only for import/common-link corroboration. Cover.dwg retains two AC1027 HEADER suffix-integrity observations and a focused whole-source adapter attempt stops at the independent ACAD_LAYOUT entry-count gate. children-room-decoration.dwg has 40 unrelated object parse failures, 44 AC1021 CRC mismatches, and 40 failed source frames. This receipt does not claim either physical file converts, nor native image behavior."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    {
+      "command": "cmake --build build-gcc --target dwg2dxf -j4",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_rastervariables_(dwg_adapter_transport|direct_nod_adapter_transport|ac1021_direct_nod_adapter_transport)$' --output-on-failure",
+      "result": "3/3 passed; nested AC1027 plus direct AC1021 and AC1027 generated routes, including non-NOD reactor refusal and retry"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1027-direct-nod /Users/dli/doc/dwg/Cover.dwg",
+      "result": "passed for physical AC1027 owner, field, reactor, and XDictionary-flag capture; two HEADER integrity observations remain"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1021-direct-nod /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "passed for physical AC1021 owner, field, reactor, and XDictionary-flag capture; import remains partial with 40 unrelated object failures and 44 CRC mismatches"
+    }
+  ],
+  "fixturePolicy": {
+    "newExternalDwGOrDxfFixturesCommitted": false,
+    "generatedControl": "The generated direct-owner DWG and output DXFs are created in temporary storage and removed by the test.",
+    "physicalSamples": "The existing local Cover.dwg and children-room-decoration.dwg were read in place and were not modified or added to the repository."
+  },
+  "remaining": [
+    "Broader physical producer and revision coverage for RASTERVARIABLES.",
+    "Physical whole-source output for either witness and other layout-complete sources.",
+    "Independent native consumer checks for raster image display and unit behavior.",
+    "Complete P4 graph/source closure for the other listed object families."
+  ],
+  "nonClaims": [
+    "No whole-drawing conversion qualification follows from the generated direct-owner control.",
+    "No native AutoCAD, LibreCAD, LibreCAD_3, FreeCAD, or independent raster semantic acceptance was run.",
+    "Neither local physical sample establishes exact producer provenance or broad version interoperability."
+  ]
+}

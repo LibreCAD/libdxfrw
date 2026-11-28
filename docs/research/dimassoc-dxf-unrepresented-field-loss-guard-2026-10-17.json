@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "7AA.1 DIMASSOC DXF unrepresented-field loss guard",
+  "mode": "local implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Cross-check the typed DIMASSOC model against Autodesk's published DXF group list",
+    "Mark documented unrepresented osnap fields and unknown body fields unsafe for typed rewrite",
+    "Preserve tolerant parsing while refusing a lossy typed writer path before publication"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "The DIMASSOC DXF parser now sets m_hasUnrepresentableDetail for documented but unmodeled osnap subentity/marker/xref/parameter/WCS-point/intersection/last-point fields, unknown osnap classes and post-body subclasses, orphan osnap type/geometry tags, repeated AcDbDimAssoc markers, and unknown body tags. Modeled table-entry XDATA remains routed through DRW_TableEntry. The existing typed writer gate rejects guarded records before output publication; raw record capture is unchanged.",
+    "dwgByteLayoutChanged": false,
+    "publicLayoutChanged": false,
+    "abiCompatibilityClaimed": false,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "limitations": "This adds no storage for omitted fields and does not prove associated-target existence/graph closure, live associative updates, or DWG support. Raw capture and typed writer behavior remain separate routes."
+  },
+  "validation": {
+    "sources": [
+      {
+        "title": "Autodesk DIMASSOC (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C0B96256-A911-4B4D-85E6-EB4AF2C91E27.htm",
+        "finding": "Published group list includes subentity type/GS marker, XREF handle, near parameter, WCS osnap point, intersection geometry/subentity/marker/XREF, and last-point-reference flag beyond the fields represented by this typed model."
+      }
+    ],
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dimassoc-unsupported-detail",
+        "result": "passed; documented omitted fields, unknown future field/class/subclass, orphan fields, modeled XDATA, and writer no-publication behavior covered"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+        "result": "passed 1/1"
+      },
+      {
+        "command": "git diff --check -- src/drw_objects.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "passed"
+      },
+      {
+        "command": "jq empty docs/research/dimassoc-dxf-unrepresented-field-loss-guard-2026-10-17.json",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  },
+  "planImpact": {
+    "subplan": "7AA.1",
+    "status": "PARTIAL_LOCAL_DXF_IMPLEMENTATION",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

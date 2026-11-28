@@ -1,0 +1,36 @@
+{
+  "title": "VPORT DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated local VPORT direct-codec transaction control across legacy inline, detached, separate, and aliased stream layouts",
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "method": "DRW_Vport::encodeDwgForWriter",
+    "behavior": "Catch allocation failures in ambient CMC preflight and body encoding; stage distinct body, string, and handle destinations; publish only after all writes succeed. Preserve angle conversion, aspect-ratio normalization, revision-specific UCS/grid fields, resource handle roles, and typed-null behavior. Public and typed writer routes share the staged implementation."
+  },
+  "control": {
+    "file": "tests/dimassoc_dwg_encoder_allocation_tests.cpp",
+    "profile": "Locally generated VPORT with two reactors, extension dictionary, nondefault view geometry and angles, xref/UCS references, and modern background/visual-style/sun references.",
+    "tested_route": "Public encodeDwg",
+    "cases": [
+      {"version": "AC1012", "mode": "inline", "reached_allocation_offsets": 12},
+      {"version": "AC1018", "mode": "inline text with detached handles", "reached_allocation_offsets": 16},
+      {"version": "AC1021", "mode": "separate string and handle streams", "reached_allocation_offsets": 28},
+      {"version": "AC1021", "mode": "shared string and handle stream", "reached_allocation_offsets": 24},
+      {"version": "AC1021", "mode": "all body", "reached_allocation_offsets": 18},
+      {"version": "AC1021", "mode": "body-aliased string and detached handles", "reached_allocation_offsets": 23},
+      {"version": "AC1021", "mode": "separate string and body-aliased handles", "reached_allocation_offsets": 23}
+    ],
+    "failure_assertions": "Every reached one-shot allocation failure leaves caller body, strings, handles, cursors, health, and handle-occurrence ledgers unchanged. The same object and buffers then retry to clean output.",
+    "fixtures_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_vport_angle_units_tests dwg2dxf libdxfrw_dxf_fixture_tests -j2",
+    "focused_tests": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_vectors|libdxfrw_dwg_object_encoder_allocation_retry|libdxfrw_ac1012plus_vport_handle_roles|libdxfrw_view_vport_ambient_cmc|libdxfrw_dwg_vport_angle_units|libdxfrw_ac1027_active_vport_peer)$' --output-on-failure",
+    "result": "The allocation control reports all seven layouts passing rollback/retry across 144 offsets. All six focused CTests passed."
+  },
+  "limits": [
+    "Generated local transaction evidence only; it does not extend VPORT producer/version support claims.",
+    "The typed-null writer route shares the staged implementation but was not separately fault-injected in this receipt.",
+    "Native viewport rendering, whole-source completeness, and broader graph closure remain open."
+  ]
+}

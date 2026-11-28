@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-14",
+  "topic": "SUN DXF writer revision-matrix allocation rollback and retry",
+  "sourceRevision": "a706291e",
+  "sourceKind": "locally-authored generated control",
+  "files": {
+    "test": "tests/dxf_sun_color_order_tests.cpp",
+    "testSha256": "35eef94e7bda514dd53460d6596220760bb21feb0642fe716d97e492eef25291",
+    "writer": "src/libdxfrw.cpp",
+    "writerSha256": "47fa0284f66409d50a7b970101b3036b7b25b3af090242fee84ea62b768e6197"
+  },
+  "profile": {
+    "record": "SUN",
+    "fields": [
+      "class version, enabled state and admitted ACI color",
+      "intensity, shadow state/type, map size and softness",
+      "Julian day, milliseconds and daylight-saving state"
+    ],
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_sun_color_order_tests -j4",
+    "buildResult": "PASS",
+    "ctestCommand": "ctest --test-dir build-gcc -R ^libdxfrw_dxf_sun_color_order$ --output-on-failure",
+    "ctestResult": "PASS: 1/1 in 0.39 seconds",
+    "allocationFailures": 56,
+    "allocationOffsetsByProfile": {
+      "AC1021_ASCII": 8,
+      "AC1021_Binary": 6,
+      "AC1024_ASCII": 8,
+      "AC1024_Binary": 6,
+      "AC1027_ASCII": 8,
+      "AC1027_Binary": 6,
+      "AC1032_ASCII": 8,
+      "AC1032_Binary": 6
+    },
+    "rollback": "Each injected allocation failure preserves the prior destination and caller SUN fields.",
+    "retry": "Same-codec retry after each injected failure reproduces the clean reference bytes.",
+    "readback": "Fresh typed readback checks source revision and all modeled SUN fields.",
+    "temporaryDrawingsCommitted": false
+  },
+  "scope": {
+    "proves": [
+      "Generated SUN writer transaction behavior across four modern target revisions and two encodings."
+    ],
+    "doesNotProve": [
+      "Independent producer prevalence or consumer interoperability.",
+      "CMC color values outside the admitted ACI projection.",
+      "Native sun/shadow rendering semantics."
+    ]
+  },
+  "qualificationEligible": false
+}

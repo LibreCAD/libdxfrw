@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-source-disposition-projection-2026-11-02",
+  "date": "2026-11-02",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Expose bounded pre-output CLI diagnostics for explicit repair state, skipped DWG records, DXF text issue masks and the source $REQUIREDVERSIONS feature mask.",
+  "projection": {
+    "line": "CLI source disposition projection: schema=1",
+    "fields": [
+      "sourceRepairAction=none and sourceHeaderStructure=ready|repair-required|not-applicable",
+      "inputCodePagePolicy=compatible|exact-named",
+      "sourceDxfTextIssueMask as a fixed-width 32-bit hexadecimal mask or not-applicable",
+      "sourceRequiredVersionsStatus and the exact 64-bit mask, plus output admission state",
+      "sourceDwgSkippedCustomClassInstances and sourceDwgSkippedUnsupportedObjectInstances"
+    ],
+    "limits": "The diagnostic is bounded and read-only. It does not apply repairs or convert observations into a completeness/support claim."
+  },
+  "control": {
+    "file": "tests/dwg2dxf_cli_contract_tests.py",
+    "function": "check_source_disposition_projection",
+    "selector": "--source-disposition-only; included in --fast-only",
+    "runtimeInputs": [
+      "A locally generated DXF with repeated $ACADVER HEADER structure is refused without changing its destination and is reported as repair-required.",
+      "A locally generated DXF with repeated group 10 inside $INSBASE is refused without changing its destination and is reported as repair-required.",
+      "Locally generated DXFs with duplicate $LTSCALE variables and repeated $EXTMIN group 10 components are refused atomically and reported as repair-required.",
+      "A locally generated AC1021 DXF with $REQUIREDVERSIONS=1 targeting AC1024 exposes the exact mask and is refused atomically.",
+      "The same source targeting AC1032 exposes the mask as admitted, writes group 160 with value 1, and preserves it through typed DXF readback.",
+      "Locally generated duplicate-variable, repeated-group-160 and wrong-group-code $REQUIREDVERSIONS inputs report malformed/unknown, are refused at AC1032, and preserve source and destination bytes.",
+      "A locally authored AC1021 DXF text value reports the exact invalid-UTF-8/output mask 0x820 and exact-named codepage policy.",
+      "A locally authored malformed DXF Unicode escape reports the exact malformed/unrepresented escape mask and preserves source/destination bytes on refusal.",
+      "Locally authored AC1027 DWGs with one and three instances of the same unknown custom class report exact skipped-class/object totals; strict export preserves the destination."
+    ],
+    "sourceGenerator": "tests/dwg_local_roundtrip_tests.cpp --generate-cli-skip-source and --generate-cli-skip-source-multiple author one- and three-instance skipped-record DWGs from scratch at runtime.",
+    "controls": 14,
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j2",
+    "test": "PASS: python3 tests/dwg2dxf_cli_contract_tests.py --converter $PWD/build-gcc/dwg2dxf/dwg2dxf --writer $PWD/build-gcc/libdxfrw_dwg_local_roundtrip --source-disposition-only (14 controls); PASS: same command with --fast-only (103 option controls, 47 batch controls, 2 read-observation controls, 18 partial-read controls, 14 source-disposition controls)",
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "dwg2dxf/main.cpp": "90459947d539c89bd66bfae43039d9704f5370a78e471b4a459aa6f58cf15adc",
+      "tests/dwg2dxf_cli_contract_tests.py": "3016ba1ed59b9a8aca437d3fa293acd4fdb788b1f5425503d1c5c443b1b4a18f",
+      "tests/dwg_local_roundtrip_tests.cpp": "d849e68c16ceea8dfa03ac7c319903251a8b6358e196a930c73209d0df9f3296",
+      "build-gcc/dwg2dxf/dwg2dxf": "03af8a6be9cdd010438901fbe2e8fbc4afdc422e3c54c185383d5ec1ed56e1f4",
+      "build-gcc/libdxfrw_dwg_local_roundtrip": "bafe0d7a0e58b12880019f7d502839e6dfce82d09ac5d922707d7ddb2974a17e"
+    }
+  },
+  "limits": [
+    "CLI HEADER diagnosis covers duplicate $ACADVER/$LTSCALE variables and repeated groups in $INSBASE/$EXTMIN, with refusal and destination preservation. It did not repair input; broader malformed structures remain open. API duplicate/repeated-group repair/retry is covered separately by the HEADER receipt.",
+    "Skip-count aggregation covers one and three instances of a single generated AC1027 custom class/unsupported-object category. Multiple class names, other skip/recovery categories and other revisions remain unqualified.",
+    "The $REQUIREDVERSIONS controls cover three malformed source shapes plus one valid mask preserved through AC1032 typed DXF output/readback and an AC1024 refusal. The mask's feature semantics, source-producer diversity and native acceptance remain open.",
+    "The DXF text mask is decoder-issue telemetry, not a unique count of corrupt records or a semantic loss total. Exact generated masks now cover invalid UTF-8/output (0x820) and malformed/unrepresented escapes (0x600); other decoder issue classes remain unqualified by this CLI selector."
+  ]
+}

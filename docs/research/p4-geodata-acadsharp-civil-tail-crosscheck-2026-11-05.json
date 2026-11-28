@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-geodata-acadsharp-civil-tail-crosscheck-2026-11-05",
+  "date": "2026-11-05",
+  "status": "CURRENT_TARGET_VERSION_PROFILE_ALREADY_IMPLEMENTED; PHYSICAL_TARGET_UNSPECIFIED",
+  "supportClaimEffect": "none",
+  "scope": "Compare ACadSharp issue #1261's reported GEODATA R2009/Civil-tail failure with libdxfrw's ODA-bound target-version codec and focused generated controls.",
+  "externalReport": {
+    "url": "https://github.com/DomCR/ACadSharp/issues/1261",
+    "title": "DWG writer: GeoData version R2009 omits the trailing Civil-3D data block — AutoCAD fails to open (eFilerError)",
+    "observation": "The report describes two non-shareable drawings whose GEODATA object class version is R2009 (version 1), with a fixed Civil 3D block following mesh faces. The reported block ends with CoordinateProjectionRadius. It says AutoCAD 2023 rejects the resaved output while ZWCAD 2026 opens it.",
+    "limitations": [
+      "The report does not give the target DWG revision of either input or output.",
+      "The original DWGs and generated failing output are not available for independent inspection.",
+      "Peer behavior is not normative format evidence."
+    ]
+  },
+  "formatAuthority": {
+    "specification": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.78 GEODATA",
+    "finding": "The CIVIL tail is selected by target DWG release (R21 and earlier, with the stated AutoCAD 2010 exception); GEODATA object versions 1, 2, and 3 select separate main-body layouts. The ACadSharp report's class-version-1 finding does not establish a later-target tail rule."
+  },
+  "currentImplementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_object_vectors_tests.cpp"
+    ],
+    "behavior": "hasGeoDataCivilTail selects AC1021 and AC1024 target files independently of GEODATA object version. Both parser and writer preserve the complete bounded tail after mesh points/faces; no-tail targets reject unrepresented CIVIL data.",
+    "coverage": "Literal generated body controls cover AC1021 v1, AC1024 v1/v2 and no-tail AC1027 v1/v2/v3 plus AC1032 v2; checks include exact field order, following handle positioning, truncation reset/retry, and no detached-string/handle-stream shift.",
+    "fixtureAdded": false
+  },
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_geodata_civil_tail_target_matrix$' --output-on-failure",
+    "result": "PASS",
+    "testsPassed": 1,
+    "testsTotal": 1,
+    "elapsedSeconds": 0.03,
+    "fullSuiteRun": false
+  },
+  "disposition": "No production-code change is indicated by this report: the known AC1021 R2009 object profile is already covered, while the report omits the target DWG revision needed to challenge the normative release gate. Keep physical producer, native AutoCAD/ZWCAD, and composed whole-document GEODATA qualification open; do not broaden the tail to AC1027/AC1032 from class version alone.",
+  "next": "Obtain an eligible physical source with identified target revision and source/output bytes, or independent authoritative clarification for the later-target case; until then retain the current target-version gate and atomic refusal behavior."
+}

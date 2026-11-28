@@ -1,0 +1,29 @@
+{
+  "scope": "Upstream DRW_Hatch::angle and DRW_Hatch::PatternLine::angle unit contract for HATCH and MPOLYGON, plus DXF boundary conversion and LibreCAD origin/master compile compatibility.",
+  "trigger": "A clean LibreCAD origin/master adapter compile rejected the overlaid upstream header because DRW_HATCH_ANGLE_RADIANS was absent. LibreCAD's filter contract and current adapter consume the fields as radians.",
+  "decision": "Advertise DRW_HATCH_ANGLE_RADIANS=1; expose both public pattern-angle fields in radians. DXF groups 52/53 are degrees and are converted on parse/write. DWG HATCH and MPOLYGON angle fields are radians and pass through unchanged.",
+  "authority": {
+    "dwg_specification": "Open Design Specification for .dwg files v5.4.1, section 20.4.75, lists HATCH pattern angles as BD fields (the section does not explicitly name their units).",
+    "independent_wire_evidence": "docs/research/p6-dwg-hatch-pattern-angle-units-2026-11-04.json contains the hash-bound ODA/LibreDWG evidence for radians on the selected DWG wire and degrees in the returned DXF. That evidence establishes wire units; its earlier public-field choice is superseded by this consumer-alignment slice.",
+    "consumer_contract": "LibreCAD origin/master rs_filterdxfrw.cpp requires DRW_HATCH_ANGLE_RADIANS == 1 and passes the public field to its radian-valued hatch model."
+  },
+  "implementation": [
+    "src/drw_entities.h defines the public radians marker and documents both fields in radians.",
+    "src/drw_entities.cpp converts DXF groups 52/53 from degrees to radians; DWG HATCH parsing retains wire radians and DWG encoding writes radians directly. MPOLYGON DWG handling was already radian-valued.",
+    "src/libdxfrw.cpp converts public radians to DXF degrees for both HATCH and MPOLYGON writers.",
+    "Tests and DWG authoring tools now pass radian values into the public API; README documents the contract."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_hatch_pattern_angle_units_tests libdxfrw_dxf_hatch_pattern_angle_units_tests libdxfrw_dwg_local_roundtrip libdxfrw_dwg_entity_encoder_allocation_tests -j6: PASS.",
+    "fast_ctest": "ctest --test-dir build-gcc -R '^(libdxfrw_(dwg|dxf)_hatch_pattern_angle_units|dwg_hatch_reference_graph|dxf_mpolygon_metadata_boundary_roundtrip|dwg_entity_encoder_allocation_rollback_retry)$' --output-on-failure: 5/5 passed.",
+    "consumer_compile": "cmake --build /private/tmp/librecad-upstream-libdxfrw-check-build --target librecad_filter_compile_check -j6: PASS against LibreCAD origin/master with the upstream libdxfrw overlay. The LibreCAD source emitted one existing switch warning covering four associative-prefix enum values not handled by its status mapper."
+  },
+  "coverage": "The locally generated focused DXF selector inspects emitted raw groups 52/53 and confirms degree-valued values, then reads ASCII and Binary HATCH and MPOLYGON back and checks radian-valued fields. The DWG selector checks emitted radian BD values and AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 writer profiles, nonfinite refusal, truncation reset and corrected HATCH retry, plus AC1021 MPOLYGON DWG parser/readback. The HATCH reference graph, MPOLYGON metadata boundary and encoder-allocation rollback selectors also pass.",
+  "limits": [
+    "This changes the numeric meaning of the public HATCH/MPOLYGON angle fields from the briefly exposed degree-valued upstream API. Source-level callers using those fields must use radians; the marker makes the contract detectable. The DXF file representation remains degrees and generated output is unchanged in meaning.",
+    "The LibreCAD result is a clean filter translation-unit compile against origin/master and a local library overlay, not a full application build, native runtime test, ABI qualification, LibreCAD_3 application run, or Linux/Windows qualification.",
+    "The switch warning in LibreCAD's associative-prefix status mapper remains a downstream follow-up.",
+    "This does not qualify broad HATCH/MPOLYGON producer semantics, rendering, gradient meaning, or whole-file support."
+  ],
+  "fixture_policy": "The new DXF sources are generated at test runtime from scratch; no DWG/DXF fixtures were added."
+}

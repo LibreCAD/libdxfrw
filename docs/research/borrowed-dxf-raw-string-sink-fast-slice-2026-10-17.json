@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Borrowed raw DXF string sink fast slice",
+  "mode": "local implementation and focused generated verification",
+  "scope": [
+    "Remove the internal dxfWriter raw group-code string ownership copy",
+    "Keep ASCII/Binary wire framing and record identity observation unchanged",
+    "Prove synchronous consumption of a borrowed subview in both framings"
+  ],
+  "implementation": {
+    "files": [
+      "src/intern/dxfwriter.h",
+      "src/intern/dxfwriter.cpp",
+      "src/libdxfrw.cpp",
+      "tests/gbk_codepage_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "dxfWriter::writeString and its ASCII/Binary overrides now take std::string_view; internal validators and record inventory name helpers consume views, and obsolete moves into the synchronous sink were removed.",
+    "publicApiChanged": false,
+    "installedHeaderChanged": false,
+    "internalVtableSignatureChanged": true,
+    "drwInterfaceChanged": false,
+    "classLayoutChanged": false,
+    "fixtureAdded": false,
+    "ctestRegistrationAdded": false,
+    "supportClaimPromoted": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_gbk_codepage_tests libdxfrw_writer_primitives_tests libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_gbk_codepage_tests --target-text-transport",
+      "build-gcc/libdxfrw_writer_primitives_tests",
+      "ctest --test-dir build-gcc -R '^libdxfrw_writer_primitives$|^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "jq empty docs/research/borrowed-dxf-raw-string-sink-fast-slice-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/borrowed-dxf-raw-string-sink-fast-slice-2026-10-17.json src/intern/dxfwriter.h src/intern/dxfwriter.cpp src/libdxfrw.cpp tests/gbk_codepage_tests.cpp"
+    ],
+    "results": {
+      "build": "PASS",
+      "targetTextSelector": "PASS: 40 wire, 14 rejection/modern, 40 chunk, 4 framing, 2 compatible-MTEXT, 2 borrowed-view cases; existing profile/cap/raw controls passed",
+      "writerPrimitivesExecutable": "PASS",
+      "focusedCtest": "PASS: 2/2, 4.27 seconds",
+      "receiptJsonValidation": true,
+      "scopedDiffCheck": true,
+      "fullSuite": "NOT_RUN",
+      "peerRuntime": "NOT_RUN",
+      "nativeCad": "NOT_RUN"
+    }
+  },
+  "limitations": [
+    "No throughput, allocator-count or RSS benchmark was run; the change removes copies by construction at the internal call boundary only.",
+    "The string_view contract is synchronous and must not be retained by future writer implementations.",
+    "The worktree is broadly dirty; the slice is locally verified but uncommitted."
+  ]
+}

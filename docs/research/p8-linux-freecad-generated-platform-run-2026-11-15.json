@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-15",
+  "url": "https://github.com/dxli/libdxfrw/actions/runs/43718064913/job/132823796362",
+  "source_commit": "20f72f5c7c8281dc1f5e75d5f9553e770b50476c",
+  "runner": "GitHub Actions ubuntu-24.04 x86_64",
+  "consumer": "FreeCAD 1.1.4 Linux x86_64 py311 AppImage",
+  "freecad_revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+  "appimage_sha256": "f6dc6ba676e5ac96a565ebc8d657232f94c6158e85b4352141bd1a46f6b43434",
+  "passed": [
+    "Generated AC1021 LINE open and insert",
+    "Generated AC1021 mixed primitives open and insert",
+    "Generated AC1024 mixed primitives open and insert",
+    "Generated AC1032 mixed primitives open and insert"
+  ],
+  "result": "8/10 selected tests passed; the hosted job failed. Both FreeCAD-form CLI compatibility controls fail during DXF readback with LAYER plot-style preflight.",
+  "reproduction": "A local scratch-generated AC1021 CLI-batch DWG converts to DXF; its LAYER contains group 390 value 0, then DXF-to-DXF export rejects that null value in adapter preflight.",
+  "limits": [
+    "Generated profiles only; the selected controls expect 3DFACE and SOLID unsupported, and polyface behavior is bounded by the explicit harness assertions.",
+    "No mesh/surface/ACIS native qualification, native Windows qualification, whole-drawing parity, or format claim follows.",
+    "No external DWG/DXF fixture was added."
+  ],
+  "subsequent_rerun": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43719385171/job/132827848723",
+    "source_commit": "2c36308b9daa32d32d4c9ab8ac7015c6e3b63ca5",
+    "runner": "GitHub Actions ubuntu-24.04 x86_64",
+    "consumer": "same hash-pinned FreeCAD 1.1.4 AppImage and revision",
+    "result": "10/10 selected checks passed: both FreeCAD-form CLI controls, plus generated AC1021 LINE and generated AC1021/AC1024/AC1032 mixed primitives, each open and insert.",
+    "limitations": "Generated profiles only; explicit harness expectations still classify 3DFACE and SOLID as unsupported. Mesh, surface, ACIS and broad Linux qualification remain open."
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p8-dwg-partial-output-writer-skip-continued-readback-2026-11-13",
+  "purpose": "Restore the generated DWG readback control after the writer began rejecting non-finite LINE coordinates.",
+  "changes": [
+    "Updated the generated control to expect the invalid LINE write to be skipped, with one entity omission recorded, while the following valid LINE is still written.",
+    "Read back the generated output and verify the valid LINE plus clean read observations.",
+    "Removed the stale assertion that the writer preserves a non-finite coordinate for parser rejection. The test no longer claims malformed-reader recovery."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.19 seconds"
+  },
+  "scopeLimit": "This proves writer-side non-finite entity omission and continuation plus generated readback. Parser recovery from a malformed DWG entity remains open and is tracked separately.",
+  "fixturePolicy": "The DWG is generated under a unique temporary directory and removed; no fixture was added.",
+  "claimEffect": "No support claim changes."
+}

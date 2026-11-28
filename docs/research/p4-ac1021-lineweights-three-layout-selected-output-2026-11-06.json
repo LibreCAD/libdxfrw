@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 lineweights three-layout selected output and readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the exact three-layout LAYOUT source graph in the existing AC1021 lineweights.dwg for same-version ASCII and Binary DXF selected output, typed readback, destination-preserving refusal, and same-adapter retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/lineweights.dwg",
+    "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+    "version": "AC1021",
+    "provenance": "Existing local file; original author and producer are unauthenticated. No DWG or DXF fixture was added to Git."
+  },
+  "independentSourceCrosscheck": {
+    "tool": "LibreDWG 0.14",
+    "command": "/opt/homebrew/bin/dwgread -O minJSON /Users/dli/doc/dwg/lineweights.dwg",
+    "minJsonSha256": "142376c790d1a4ab5b0bf2d4b00e5da8b5cb36d419b347d21d1184bee815b86a",
+    "layoutGraph": [
+      {
+        "handle": "0x22",
+        "name": "Model",
+        "blockRecord": "0x1f",
+        "activeViewport": null,
+        "viewports": []
+      },
+      {
+        "handle": "0x102",
+        "name": "ISO A4 Size",
+        "blockRecord": "0x103",
+        "activeViewport": "0x104",
+        "viewports": [
+          "0x104",
+          "0x105"
+        ]
+      },
+      {
+        "handle": "0x108",
+        "name": "Letter Size",
+        "blockRecord": "0x109",
+        "activeViewport": "0x10a",
+        "viewports": [
+          "0x10a",
+          "0x10b"
+        ]
+      }
+    ],
+    "root": "NOD 0x0c -> ACAD_LAYOUT DICTIONARY 0x1a -> the exact three named LAYOUT records; each BLOCK_RECORD links back to its LAYOUT.",
+    "authority": "ODA Open Design Specification v5.4.1 \u00a720.4.84 governs the LAYOUT object body and its DWG common-link stream. LibreDWG JSON is a peer cross-check, not the byte-layout authority."
+  },
+  "implementation": {
+    "changes": [
+      "Admit an additional AC1021 LAYOUT source profile only when the exact three identities 0x22/Model, 0x102/ISO A4 Size, and 0x108/Letter Size are present.",
+      "Require the exact eleven-key NOD census and bounded empty ACAD_GROUP, ACAD_PLOTSETTINGS, and ACAD_COLOR child dictionaries before selecting the complete NOD profile.",
+      "Retain the existing AC1021 two-layout profile and AC1015, AC1018, and AC1024 profile rules.",
+      "Extend the existing physical output/readback selector to verify all three layouts, every retained DXF field, exact root/dictionary membership, reciprocal BLOCK_RECORD links, extension DICTIONARY/XRECORD owners and payloads, paper-layout viewport membership, last-active viewport roles, and per-document viewport cardinality."
+    ],
+    "selectedOutput": "Same-version AC1021 ASCII and Binary DXF. This receipt qualifies the LAYOUT graph only; the four VIEWPORT source callbacks remain unqualified.",
+    "limits": "One unauthenticated local producer profile. Local typed readback plus LibreDWG source JSON does not establish native CAD acceptance, producer-wide behavior, full-document output, or a format-wide support claim."
+  },
+  "failureAndRetry": {
+    "negativeControl": "Replace the ISO A4 LAYOUT paper-space BLOCK_RECORD reference with DRW::NoHandle. ASCII and Binary export refuse, preserve the existing destination sentinel, and leave prior selected callback qualifications unchanged.",
+    "retry": "Restore the source value and retry with the same adapter instance. Both output encodings pass fresh typed readback.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4; target-local -Werror remains enabled.",
+    "lineweightsSelector": {
+      "command": "build/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback /Users/dli/doc/dwg/lineweights.dwg",
+      "result": "PASS: ASCII and Binary output/readback for Model, ISO A4 Size, and Letter Size; all four paper-layout viewport members map uniquely to emitted records and both last-active targets are checked; invalid-owner refusal and same-adapter retry passed. DXF LAYOUT has no physical viewport-list field, so output list order is not claimed.",
+      "logPath": "/private/tmp/layout-lineweights-final.log",
+      "logSha256": "5cc09c3b5b1abe5f77adfab2ca7b376f5f6cdfa7f2e220e740bcfd534b2f215f"
+    },
+    "existingAc1021TwoLayoutControl": "PASS: same selector on /Users/dli/doc/dwg/children-room-decoration.dwg, ASCII and Binary.",
+    "strictWholeSource": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/lineweights.dwg -y -d -v2007 /private/tmp/lineweights-layout-final-strict.dxf",
+      "result": "EXPECTED STRICT REFUSAL at 45/49 opaque callbacks; the only remaining handles are VIEWPORT 0x104, 0x105, 0x10a, and 0x10b. All three LAYOUT callbacks are now output-qualified.",
+      "logPath": "/private/tmp/lineweights-layout-strict-after-profile.log",
+      "logSha256": "cce55ccfbf9bbc893c10d6909f279459893548a769e51c41252ac9fe52a9457b"
+    },
+    "ac1024TitleBlockRecheck": "An exact-hash AC1024 title_block-arch.dwg compatibility selector recheck stopped before the LAYOUT route because the current adapter rejected partial-read disposition admission. This source-specific gate is separate from the AC1021-only profile change and needs independent diagnosis.",
+    "fullSuites": "NOT RUN; only touched targets and focused physical selectors were used.",
+    "diffCheck": "PASS"
+  },
+  "fixturesAdded": 0,
+  "externalItemsPromoted": 0,
+  "nextAction": "The exact lineweights LAYOUT and four-VIEWPORT source/output profile is complete for this source. Continue only with a distinct source/profile gap; do not repeat this source as candidate discovery.",
+  "currentRecheck": {
+    "date": "2026-11-06",
+    "receipt": "docs/research/p4-ac1021-lineweights-viewport-physical-output-2026-11-06.json",
+    "result": "The exact four VIEWPORT callbacks listed in this LAYOUT profile now pass physical ASCII/Binary output and fresh typed readback, and the strict full-source AC1021 conversion succeeds with all 49 opaque callbacks qualified.",
+    "supportClaimEffect": "none"
+  }
+}

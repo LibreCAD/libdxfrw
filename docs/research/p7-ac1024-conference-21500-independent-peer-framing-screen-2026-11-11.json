@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p7-ac1024-conference-21500-independent-peer-framing-screen-2026-11-11",
+  "purpose": "Screen a second locally available AC1024 drawing for a complete ACIS 21500 topology witness without treating incomplete peer output as source semantics.",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+    "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+    "version": "AC1024",
+    "provenance": "Local sample; original producer/provenance not independently authenticated",
+    "committedAsFixture": false
+  },
+  "peerRoute": {
+    "implementation": "LibreDWG",
+    "version": "0.14",
+    "operation": "dwgread -O DXF",
+    "output": "/private/tmp/p7-conference-peer.dxf",
+    "outputSha256": "da8b5d1d9b6fefa555f7b76437ece2f4415fc4c801c18db2f218894c9d937451",
+    "result": "SUCCESS",
+    "entities": {
+      "3DSOLIDCount": 30,
+      "selectedHandle": "0x139",
+      "selectedDxfModelerVersion": 1,
+      "group1And3Chunks": 344,
+      "decodedTextBytes": 20485,
+      "decodedTextSha256": "6283f07218d83f935eb9bf460770f5fa3f8592bb71fa0eaf61f4531adda11c55",
+      "decodedHeader": "21500 0 2 24",
+      "decodedRecordTerminators": 330,
+      "hasAcisEndMarker": false,
+      "lastDecodedLine": "ellipse-curve $-1 $-1 $-1 218.243 -1.02936 30.8902 0 0 1 2"
+    }
+  },
+  "libdxfrwRoute": {
+    "operation": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_conference_room.dwg -y --allow-partial-dwg-read -v2010 /private/tmp/p7-conference-local.dxf",
+    "result": "FAIL_BEFORE_OBJECTS",
+    "legacyError": 9,
+    "diagnostic": "DWG file error: format 16 error 9",
+    "sourceFramesPublished": 0,
+    "selectedSolidReached": false,
+    "interpretation": "The input fails in the TABLES stage before the selected 3DSOLID can be inspected by libdxfrw. This is not an ACIS parse failure."
+  },
+  "disposition": {
+    "status": "EXCLUDED_INCOMPLETE_PEER_CARRIER",
+    "headerFieldMeaning": "Unresolved; the raw third integer is 2. Do not interpret it as a body count or index boundary from this run.",
+    "semanticUse": "No topology, coedge sense, or header-field semantic claim is supported by this carrier because its decoded text is incomplete and the source provenance is unverified.",
+    "nextAction": "Obtain a complete independently extracted 21500 payload for a distinct source, or resolve the missing tail from a source-backed extraction path; separately fix or qualify the AC1024 TABLES-stage blocker before attempting libdxfrw readback.",
+    "claimEffect": "None. This is a negative candidate screen only; it adds no support or semantic claim."
+  }
+}

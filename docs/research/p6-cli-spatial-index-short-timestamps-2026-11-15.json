@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-15",
+  "scope": "Generated SPATIAL_INDEX malformed-body CLI recovery across AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032.",
+  "basis": "ODA DWG v5.4.1 section 20.4.95 describes two BL timestamps followed by an unspecified bounded body. The previous generated timestamps 300 and 400 consumed long encodings; the single-bit search found no parser-failing modern mutation. Zero-valued BL timestamps produce a short valid body in which a selector-bit mutation can require more payload than the bounded body contains. The existing production parser and generator's common-prologue checks still choose and validate the malformed candidate.",
+  "validation": [
+    "The generated valid source is written and read before mutation; the bounded mutation preserves common-prologue parsing and causes the typed parser to reject the object. A following LINE is retained and source, published and failed frame counts reconcile.",
+    "dwg2dxf_cli_spatial_index_recovery passes 28 controls in 1.05 seconds. AC1015, AC1018, AC1021, AC1024 and AC1032 cover strict atomic refusal and explicit-partial ASCII/Binary output with fresh DXF LINE readback. AC1027 remains behind its existing source-reference gate and verifies strict and explicit-partial refusal.",
+    "The changed Python test passes py_compile and git diff --check. The earlier separate nonzero timestamp controls remain in the local DWG roundtrip suite. No DWG or DXF fixture is committed."
+  ],
+  "implementationDigestSha256": "fb4e8a5788e139dd6a1b284881c26beac5ee371c5dbffa2e68f07ea7da48590e",
+  "limits": "This is generated malformed-body recovery and disposition evidence. The CLI operations are separate processes, so they do not prove same-object writer retry. AC1027 output remains refused. Producer-authored spatial-index meaning, opaque suffixes, native spatial queries and broad support remain unqualified; no support claim is promoted."
+}

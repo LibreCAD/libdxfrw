@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw-acad-table-unknown-cell-type-fail-closed-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Prevent the AC1021+ TABLE parser from interpreting empirically observed, undocumented cell types with the known R2007 text/block layout; preserve the existing anonymous-block fallback.",
+  "sourceEvidence": {
+    "odaSpecification": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "odaSections": ["20.4.96", "20.4.96.1", "20.4.97", "20.4.99", "20.4.100", "20.4.101"],
+    "relevantFinding": "ODA §20.4.96.1 says R2008 changed cell data but leaves the details unresolved; no semantics are assigned here to the observed unknown types.",
+    "localInput": {
+      "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+      "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+      "magic": "AC1021",
+      "repositoryFixture": false
+    },
+    "empiricalCellTypes": [16, 92],
+    "empiricalTableObjectType": 506,
+    "interpretation": "These are observations from one local sample and reader revision, not universal mappings or portable type-code declarations."
+  },
+  "change": {
+    "file": "src/drw_entities.cpp",
+    "function": "parseR2007TableCell",
+    "behavior": "For versions newer than AC1018, only cell types 1 and 2 use the current text/block parser. Other types log an unsupported-type diagnostic, append an incomplete subrecord range, return incomplete semantic parsing, and leave the enclosing TABLE's anonymous *T block projection available.",
+    "temporaryDiagnosticsRemoved": true,
+    "unknownTypesDecoded": false
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target dwg2dxf --parallel 2",
+      "result": "passed"
+    },
+    "generatedParserVectors": {
+      "testTarget": "libdxfrw_dwg_object_vectors_tests",
+      "command": "ctest --test-dir build -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+      "result": "passed",
+      "cases": [
+        {
+          "cellType": 16,
+          "expected": "no guessed contents; semantic parsing incomplete; incomplete subrecord recorded; cursor stops at cell common-prefix end"
+        },
+        {
+          "cellType": 1,
+          "expected": "text cell and literal integer CadValue parse completely; data cursor ends before separate string stream"
+        },
+        {
+          "cellType": 2,
+          "expected": "block reference, scale, and CadValue parse completely"
+        }
+      ],
+      "sameObjectRetry": "After type 16 is refused, the same DRW_Table instance parses the supported type-1 and type-2 vectors, verifying state reset.",
+      "wireConstruction": "The table body, cells, value/string stream and sentinels are generated in memory from literal field writes; no DWG/DXF fixture is written. The shared common entity prefix uses the existing production encoder."
+    },
+    "localSmoke": {
+      "command": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg -o <temporary>/metric.dxf -v2010 -y -d",
+      "observed": [
+        "Unsupported R2007 TABLE cell type: 16",
+        "R2007 TABLE cell parse incomplete; anonymous block insert kept",
+        "Unsupported R2007 TABLE cell type: 92",
+        "R2007 TABLE cell parse incomplete; anonymous block insert kept",
+        "DXF export preflight failed: FIELD/FIELDLIST carriers have no qualified DXF serializer"
+      ],
+      "interpretation": "The TABLE semantic parser now stops at the unknown cell types. The unrelated whole-file FIELD/FIELDLIST export preflight still prevents a qualified DXF result, so this run does not validate TABLE serialization.",
+      "fixtureCopiedOrCommitted": false
+    },
+    "focusedCtestRun": {
+      "command": "ctest --test-dir build -R dwg_read --output-on-failure",
+      "selectedCases": 53,
+      "passed": 2,
+      "failed": 51,
+      "notes": [
+        "The name matcher selected a broad sample/output-version matrix.",
+        "A sampled AC1024 case failed at the existing LAYOUT last-active viewport owner export preflight.",
+        "AC1021 failures also reported reader-integrity mismatches; aggregate results do not establish regression attribution for this TABLE guard."
+      ],
+      "qualification": "Not a passing regression gate. Isolate representative failures against a pre-slice baseline or parser-only controls before drawing causal conclusions."
+    },
+    "automatedTestsRun": true,
+    "gitDiffCheck": "passed"
+  },
+  "planImpact": {
+    "existingOwnerOnly": "7G.3d / PAR-20",
+    "findingsAdded": 0,
+    "topLevelSubplansAdded": 0,
+    "fixturesAdded": 0,
+    "generatedVectorsAddedToExistingTest": 3,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": "123 findings / 71 top-level subplans",
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "nextStep": "Trace AC1021 cell types 16 and 92 against ODA §§20.4.96–20.4.101 and an independently implemented parser or producer witness. Keep unknown types fail-closed unless exact field order is corroborated; qualify AC1024+ embedded TABLECONTENT separately."
+}

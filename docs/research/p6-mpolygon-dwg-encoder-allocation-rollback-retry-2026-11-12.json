@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mpolygon-dwg-encoder-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "BOUNDED_MPOLYGON_DWG_ENCODER_TRANSACTIONAL_ROLLBACK_RETRY",
+  "supportClaimEffect": "none",
+  "scope": "Make DRW_MPolygon DWG encoding transactional across caller body, string, and handle buffers, and verify allocation-failure rollback plus same-object retry together with the HATCH transaction regression.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "method": "DRW_MPolygon::encodeDwg",
+    "changes": [
+      "Run MPOLYGON validation, fill-color preparation, common data, body, detached strings, entity handle and boundary handles through encodeEntityDwgTransaction.",
+      "Keep the existing MPOLYGON wire order and fill-color profile checks; stage oType mutation and all caller streams until successful completion."
+    ],
+    "test": "tests/dwg_hatch_encoder_allocation_tests.cpp",
+    "failureBehavior": "Injected allocation failure leaves caller buffer bytes and bit positions, plus oType, unchanged; retrying the same entity against the same buffers reproduces clean successful encoding."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_hatch_mpolygon_encoder_allocation_tests -j4",
+    "buildResult": "PASS",
+    "focusedTest": "ctest --test-dir build-gcc -R '^(dwg_hatch_mpolygon_encoder_allocation_rollback_retry|libdxfrw_dwg_hatch_edge_subtype)$' --output-on-failure",
+    "focusedTestResult": "PASS (2/2)",
+    "allocationSweep": "PASS: 1096 allocation offsets across HATCH and MPOLYGON, 6 DWG versions and 60 entity/version/stream-layout profiles",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "coverage": [
+    "DWG writer versions AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032.",
+    "Five stream alias layouts per version: distinct streams, shared string/handle stream, body/string alias, body/handle alias, and all streams aliased.",
+    "A patterned associative MPOLYGON with a line boundary, boundary handle, fill color, x-direction vector, and degenerate-loop count is exercised.",
+    "Every observed injected allocation failure checks full stream rollback and object type restoration, then exact clean-output equality after same-object retry."
+  ],
+  "inputHashes": {
+    "src/drw_entities.cpp": "2bb3494d59f8d6ed516d0558e638aca5cea0066ebe917457934545bf87e2e598",
+    "tests/dwg_hatch_encoder_allocation_tests.cpp": "904a94a4a3324cf6feb4066b45039fc60d8f0af1574c1e7dc54c44c9c1104ae5",
+    "tests/CMakeLists.txt": "2459fc31513369cea32d2634291e4e51d7ec0e39d3221044486b80cc2297887c"
+  },
+  "fixtureFilesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "Generated allocation and retry controls establish transaction behavior only; they do not qualify physical DWG producer profiles, HATCH/MPOLYGON semantic fidelity, or native consumer acceptance.",
+    "No DWG or DXF drawing fixture was added."
+  ]
+}

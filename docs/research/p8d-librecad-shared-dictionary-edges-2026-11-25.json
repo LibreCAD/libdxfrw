@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-25",
+  "scope": "Extract version-aware dictionary edge validation and refuse stale raw replay when typed key order or spelling changes",
+  "librecadCommit": "7a6908b2b2e46663feafaf3a47193667fbaa5400",
+  "codecImplementationDigestSha256": "73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad",
+  "implementation": "Reuse the shared version/self/owner/reactor frame validator, then compare every dictionary edge in source order by exact key spelling, source target and 350/360 role. Uniqueness and non-edge fields remain caller responsibilities.",
+  "validation": {
+    "systemCodecBuild": "PASS",
+    "focusedSystemTests": "4/4 PASS, 348 assertions; includes changed key spelling, reversed two-entry order, wrong role, destination preservation and corrected same-filter retry",
+    "fullSuite": "not run"
+  },
+  "limits": [
+    "IMAGE admission still must validate dictionary non-edge fields, definition/reactor dependencies, live identity, and external incoming references before invoking this helper.",
+    "The IMAGE reopen/resave and native qualification gates remain open."
+  ]
+}

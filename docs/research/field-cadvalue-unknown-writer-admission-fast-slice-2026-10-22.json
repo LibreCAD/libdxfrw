@@ -1,0 +1,58 @@
+{
+  "id": "par134-field-cadvalue-unknown-writer-admission",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "66c8dfe8c482f09df5f25d2ca8ab3d6bb7319f91472c4afaa161fc37bd90fa2a",
+  "scope": {
+    "class": "DRW_Field / DRW_CadValue",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024"],
+    "field": "kUnknown (type 0) DWG typed-writer admission",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "evidence": {
+    "normative": "ODA names CadValue type 0 kUnknown; the BL framing is known but the value kind has no known typed semantics.",
+    "localGap": "FIELD parsing retained type 0 only as an incomplete shell, while isWritableCadValue accepted it as an integer and returned early for empty R2007+ values before rejecting unknown semantics."
+  },
+  "change": "isWritableCadValue now rejects type 0 before the empty-value shortcut for all supported FIELD DWG versions. Parser regression vectors no longer rely on the production writer to emit type 0: the generated frame starts from a valid type-1 object and rewrites its equal-width BL as the noncanonical one-byte representation of BL(0).",
+  "generatedControls": {
+    "ac1021": [
+      "type-0 BL payload parses only into an incomplete shell",
+      "empty-flag type-0 remains semantically incomplete",
+      "constructed type 0 with and without empty-value flag is refused before output"
+    ],
+    "ac1024": [
+      "type-0 BL payload parses only into an incomplete shell",
+      "empty-flag type-0 remains semantically incomplete",
+      "constructed type 0 with and without empty-value flag is refused before output"
+    ],
+    "legacyWriterAdmission": [
+      "AC1015 constructed type 0 is refused before output",
+      "AC1018 constructed type 0 is refused before output"
+    ]
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS (-Werror)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests --field-cadvalue-unknown-type: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_field_cadvalue_unknown_type$' --output-on-failure: PASS (1/1)",
+    "ctest --test-dir build-gcc -R '^libdxfrw_(table_(cell_.*|cadvalue_.*)|field_(cadvalue_general_format_flag|cadvalue_unknown_type|oversized_child_value_count))$' --output-on-failure: PASS (14/14)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

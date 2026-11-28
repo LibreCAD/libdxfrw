@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-template-missing-section-strict-output-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "IMPLEMENTED_FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Prevent strict-complete DWG-to-DXF output from accepting an absent mandatory R2004+ AcDb:Template section while preserving tolerant reads.",
+  "sourceEvidence": {
+    "authority": "Open Design Specification for .dwg files v5.4.1, section 22",
+    "finding": "AcDb:Template is mandatory from R2004 (AC1018) onward; absence is optional for R13-R15.",
+    "implementationEffect": "Reader remains tolerant and records TemplateMissing for mandatory-version absence. Strict-complete output rejects that diagnostic. Optional R13-R15 absence remains admitted.",
+    "byteParserChanged": false
+  },
+  "implementationFiles": [
+    "dwg2dxf/dx_iface.cpp",
+    "tests/dwg2dxf_adapter_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "controls": {
+    "selector": "--opaque-dwg-source-capture-and-output-gate",
+    "ctest": "dwg2dxf_opaque_source_capture_and_strict_output_gate",
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "A synthetic otherwise-complete read outcome with a TemplateMissing warning is refused by strict-complete output admission.",
+      "The existing destination sentinel remains byte-identical after refusal.",
+      "Existing TemplateDescriptionUnsupported strict refusal and tolerant parsing controls continue to pass."
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "ctest": "PASS: ctest --test-dir build-gcc -R '^(libdxfrw_dwg_template_fields|dwg2dxf_opaque_source_capture_and_strict_output_gate)$' --output-on-failure (2/2, 0.91s)",
+    "sha256": {
+      "dwg2dxf/dx_iface.cpp": "71c90add6e0d8d8a7ad08aed3c77389e184eae70a6fd9b38d6abae1ae38bd20f",
+      "tests/dwg2dxf_adapter_tests.cpp": "480116a798c8a29a55bf6fce99bb126660dc32c7855fd6878bfd632505e50fd7",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "2a1b1a9515eb85b0f2b9ddf1b2d4cc61b4e64560b4bfbf154bc8e46d848a93e3"
+    },
+    "fixtureFilesAdded": 0,
+    "supportClaimEffect": "none",
+    "bindingNote": "Focused selectors ran after rebuilding the touched targets against the current integrated worktree. Unrelated pending worktree edits were present; only Template hunks/files are staged in this slice."
+  },
+  "remaining": "This guard does not implement DXF serialization for Template description text, resolve the modern TU16 producer conflict, broaden producer qualification, or establish native template semantics."
+}

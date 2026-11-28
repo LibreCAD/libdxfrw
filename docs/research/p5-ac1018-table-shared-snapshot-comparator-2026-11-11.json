@@ -1,0 +1,28 @@
+{
+  "id": "p5-ac1018-table-shared-snapshot-comparator-2026-11-11",
+  "scope": "internal exact modeled-state comparison for the bounded AC1018 TABLE candidate profile",
+  "status": "implemented-local-control-passed",
+  "changes": [
+    "Moved exact DWG TABLE snapshot equality into DwgTableModelAc1018Candidate::sameModel so a writer-side source binding can reuse it without depending on dx_iface.",
+    "Preserved comparison of the parsed TABLE model, proxy resource-index provenance, row overrides, border overrides, colors, and retained range raw handle codes.",
+    "Changed dx_iface::sameDwgTableModel to delegate to the shared helper.",
+    "Added independent refusal mutations for each retained range field: name, start bit, bit size, version, count, parse-complete state, and raw handle code."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_table_model_ac1018_candidate_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_model_ac1018_candidate$' --output-on-failure",
+    "result": "1/1 focused test passed, including all seven retained-range mutation controls",
+    "diff_check": "git diff --check passed"
+  },
+  "limits": [
+    "This comparison proves equality of the bounded modeled snapshot only; it does not bind a TABLE to source bytes or import identity.",
+    "It does not authorize raw replay, resolve dependencies, prove graph closure, or qualify output/native semantics.",
+    "The override members involved are fixed-size std::array values; dynamic TABLE rows and ranges are compared by the shared TABLE model comparator."
+  ],
+  "files": [
+    "src/intern/dwg_table_model_ac1018_candidate.h",
+    "dwg2dxf/dx_iface.cpp",
+    "tests/dwg_table_model_ac1018_candidate_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ]
+}

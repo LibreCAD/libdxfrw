@@ -1,0 +1,270 @@
+{
+  "title": "AC1021 SOLID/TRACE absent string marker",
+  "authority": "ODA DWG v5.4.1 \u00a720.1 locates the R2007+ string-present bit immediately before handles; \u00a7\u00a720.4.35\u201336 define SOLID/TRACE thickness, shared elevation, four OCS corners and extrusion.",
+  "problem": "The AC1021 writer aligned empty-string entity bodies without first writing the absent-string bit. Tilted SOLID/TRACE with zero thickness end their scalar fields on a byte boundary; their handles therefore start before the required marker. LibreDWG reports -1 OVERSHOOT and ODA fails at the entity.",
+  "physical_source": "ezdxf 1.4.5 authored eight AC1021 DXFs (SOLID/TRACE \u00d7 +Z/+Y normal \u00d7 zero/.5 thickness), each with a following LINE; ODA File Converter 27.1 produced AC1021 DWGs and returned AC1027 DXFs. Local ODA conversion lineage is observed rather than authenticated by individual hashes.",
+  "boundary_evidence": "For both producer tilted/zero examples LibreDWG 0.14 reports scalar extrusion ending at bit 680 and declared handle boundary 681; generated baseline reports boundary 680 and -1 OVERSHOOT. Generated corrected boundary is 688: explicit zero bit followed by padding under the writer\u2019s existing byte-aligned handle framing. Producer\u2019s exact bit boundary and generated padded boundary are distinct.",
+  "results": "All eight producer files round-trip. Baseline generated tilted/zero SOLID and TRACE fail at the entity, produce .err and no DXF; baseline other six convert. Corrected generated eight convert without .err; the six non-aligned controls are byte-identical to baseline, while only the two aligned failing files change. Sixteen source/corrected pairs and all eight baseline DWGs passed independent LibreDWG/ezdxf peer audits, including exact normal, thickness, four OCS corners, WCS polygon corners, model BLOCK_HEADER membership, layer references and following LINE. Baseline failing files have no DXF, so only their DWG graph/geometry was audited. All four batch stdout/stderr files are empty; the two baseline .err files contain earlier table warnings as well as the fatal entity diagnostic.",
+  "change": "In dwgWriter21::finishObject append the existing absent-string bit for fixed SOLID and TRACE when the string stream is empty; keep handle alignment and all other entity types/versions unchanged.",
+  "focused": "ctest --test-dir /private/tmp/face3d-probe/build -R ^libdxfrw_dwg_ac1021_solid_trace_footer$ --output-on-failure passes 1/1. Unmodified source fails the same test. It verifies exact bit boundary and zero marker for both types and four normal/thickness combinations, CRC-valid frames and scalar payloads, native parsing, truncated-body failure/retry, reconstructed historical body parser compatibility, following LINE parsing and failed-EED same-writer retry. The reconstructed historical body check does not claim a resealed full-frame CRC or whole-file historical fixture.",
+  "limits": "The physical source and generated outputs are the sampled AC1021 profiles using the existing material and plotstyle opt-ins; no arbitrary normals, native CAD rendering, whole-file interoperability or cross-version qualification is claimed. No fixture files added.",
+  "peer_audit_command": "PYTHONPATH=tools <ezdxf-python> -B tools/audit_ac1021_solid_trace_peer.py --dwgread /opt/homebrew/bin/dwgread --dwg <path> --dwg-sha256 <sha> [--dxf <path> --dxf-sha256 <sha>] --entity <SOLID|TRACE> --normal <default|tilt> --thickness <zero|thick> [--generated-graph]",
+  "reproduction": [
+    "Use tools/author_ac1021_solid_trace.py <new-directory> with ezdxf 1.4.5 to author equivalent source DXFs; metadata and hashes may vary.",
+    "Convert source DXFs to ACAD2007 DWG, then ACAD2013 DXF using ODA.",
+    "Compile tools/probe_ac1021_solid_trace.cpp against the final library with -std=c++17 and include paths <source>/src, <source>/src/intern, <source>/tests; invoke <producer> <solid|trace>-<default|tilt>-<zero|thick> <new-dwg>, then convert ACAD2013 DXF.",
+    "Run the hash-bound peer audit on each exact source, baseline and corrected pair; omit DXF only for the two baseline failures. Wrong-hash refusal is verified under Python -O."
+  ],
+  "patch": {
+    "path": "/private/tmp/solid-trace-factor/footer.patch",
+    "sha256": "e1262ed4cb4382f532d652a472f53d210367d2c1616b60e1d5108fda1686c910"
+  },
+  "tools": [
+    {
+      "path": "tools/author_ac1021_solid_trace.py",
+      "sha256": "f98ef8a1d96324dc6b08c2759b5e194847801716a4f8196ee2ac23f8695b15c4"
+    },
+    {
+      "path": "tools/probe_ac1021_solid_trace.cpp",
+      "sha256": "911343b4bd6830f0068b4a5fa319680c7017a62d36f4cf6eb832ca0d61c7af12"
+    },
+    {
+      "path": "tools/audit_ac1021_solid_trace_peer.py",
+      "sha256": "2add29815744802c30a1f3913293f1f09060c49db11b977bd69456c10fe36282"
+    },
+    {
+      "path": "tests/dwg_ac1021_solid_trace_footer_tests.cpp",
+      "sha256": "c0233ca740548b5489d3990cf05060f38a00d23fd40af2907d449411a7e1e443"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/private/tmp/solid-trace-factor/input/solid-default-zero.dxf",
+      "sha256": "c1b05b96befcf8de433b43a8ee3eda281c03d597a15c8048e8e6c3fbe388329d"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source/solid-default-zero.dwg",
+      "sha256": "b0a0d75526f65114b8fe8b2b8dfcaa62dea4cc6d60e6de62be1143b3e06b26da"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source-out/solid-default-zero.dxf",
+      "sha256": "aa7d130fe0ce365bc86f6206d8c96f95659a44fc38aea9282345c20935df48dc"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/gen/solid-default-zero.dwg",
+      "sha256": "421ef5fac094d30821ef11bf78086bc9fa800845fc0d4f33b782ebe90b2574df"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-in/solid-default-zero.dwg",
+      "sha256": "421ef5fac094d30821ef11bf78086bc9fa800845fc0d4f33b782ebe90b2574df"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-out/solid-default-zero.dxf",
+      "sha256": "49d41d5a2c0d56c770a44c158e975bafb8220ae491cdaff7c218699ff671d6c2"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/out/solid-default-zero.dxf",
+      "sha256": "c9cc664338bc212f1d907c00a3c560fed82bc12e948137aadd9611c5a0334247"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/input/solid-default-thick.dxf",
+      "sha256": "5259895f753378fa0f9dd3be2a8018c3af3b9a12fd84e3a85f7bb35daa8e089f"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source/solid-default-thick.dwg",
+      "sha256": "b8f32587fc8cccee48ccce06832f408b32a9a45f36a4689398c85603d0232554"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source-out/solid-default-thick.dxf",
+      "sha256": "08d969e6110d67646ebc248dab69970030f9944dbf183166f803b2e70d40e543"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/gen/solid-default-thick.dwg",
+      "sha256": "747da4df36e80c213a241ff5194d468eddfcfd6d406fc8e4376e20e0b5c653f5"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-in/solid-default-thick.dwg",
+      "sha256": "747da4df36e80c213a241ff5194d468eddfcfd6d406fc8e4376e20e0b5c653f5"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-out/solid-default-thick.dxf",
+      "sha256": "bfd6240bcbe89436d9feab5ac2498bfa6206155cbd5ca824b593c1f74ef44750"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/out/solid-default-thick.dxf",
+      "sha256": "737e20ee03423717f7fe4bbe0ed38734e8fa73f5a99b4770d884a60efcd353e3"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/input/solid-tilt-zero.dxf",
+      "sha256": "c431e1a71f7c27af0e194f7c9356b7813c5e6af0c6040953d5c36cf5b061c529"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source/solid-tilt-zero.dwg",
+      "sha256": "d7e91c5bfe98ddffab9ae9145aeabf7112207897eb236c97cbe9e3eddabc4055"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source-out/solid-tilt-zero.dxf",
+      "sha256": "c1cc966f2c34803a9ce218a872edfde606aef39e99b1ed5114dacabb3eb7c5ed"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/gen/solid-tilt-zero.dwg",
+      "sha256": "c5bd3112fa18259b68d732d14a0b932d532be441f8a915f32797ec0fc178a049"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-in/solid-tilt-zero.dwg",
+      "sha256": "0d223d22bc11d352eee478d2610c3b8fa5b10c10dba5832f0455c1106e8a0611"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-out/solid-tilt-zero.dxf",
+      "sha256": "1e4faf84255f36a2b2f7846d5b9effe0c937a8722028c82dea11a7f9d21dfe7f"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/out/solid-tilt-zero.dxf.err",
+      "sha256": "17aa953fe079987670637176b2cdce4843419de6b6a019a474259fc04d0f3d1f"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/input/solid-tilt-thick.dxf",
+      "sha256": "5445e0eeee3020e94c707da3492d8cef0c7a8b6f86de71181400645a4b87b92a"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source/solid-tilt-thick.dwg",
+      "sha256": "14f302d644f7ad99aac6e9192b6e5b9c63087f86a4b6bf424993f5eae8f70de2"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source-out/solid-tilt-thick.dxf",
+      "sha256": "6153008bb2cfa4a8247f59f676598d3e712c6ca8c5a248ba8c236a0d1a15dccf"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/gen/solid-tilt-thick.dwg",
+      "sha256": "7bd0e6f8cbe3a29837b6ebdf45e2ecfb8ef526cc22a5dfbb2e3f49fec4ad3696"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-in/solid-tilt-thick.dwg",
+      "sha256": "7bd0e6f8cbe3a29837b6ebdf45e2ecfb8ef526cc22a5dfbb2e3f49fec4ad3696"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-out/solid-tilt-thick.dxf",
+      "sha256": "8646d4de9ceead9cb2a3bf19273323cbbb9f31dc72d50e990d42de13e7050c10"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/out/solid-tilt-thick.dxf",
+      "sha256": "f1358af8ff5240d6755575614cd34c694e8d40d24ee6fe8da8d0123bb7538789"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/input/trace-default-zero.dxf",
+      "sha256": "4a1426ef77e21596f0b1ff5d290e7f0011aa83720f73f2302c9f9af06dbe17d0"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source/trace-default-zero.dwg",
+      "sha256": "1adb4b7444b96afa83b5894a335ca85372eec271911b78c4cd1bfdcb0c7e778b"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source-out/trace-default-zero.dxf",
+      "sha256": "452e9abd83a908eea2835de4365d9db9373f67bf4f4ad50d2a6086df6c878b0d"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/gen/trace-default-zero.dwg",
+      "sha256": "6d49990db30fac14ebf59d9c8ef4cf50c3f79cac80bf78174140553012719431"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-in/trace-default-zero.dwg",
+      "sha256": "6d49990db30fac14ebf59d9c8ef4cf50c3f79cac80bf78174140553012719431"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-out/trace-default-zero.dxf",
+      "sha256": "4e50045d5778bf18faa5bf43af61e70aef0b868d318635313eb849de9c066b78"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/out/trace-default-zero.dxf",
+      "sha256": "931f833ad265f839499c31f84df14aea1369291d24df19ec4dae98bafca25919"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/input/trace-default-thick.dxf",
+      "sha256": "c246d4c043e2f9410f878b6e369c0b4c2889a998a4c84461b2bdf1685d614a08"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source/trace-default-thick.dwg",
+      "sha256": "bc6b0a30757c84bfe58cfcf8fd6ed2dcc3c3f4da0e104e0fd0a789db4cfd6640"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source-out/trace-default-thick.dxf",
+      "sha256": "793a33e846cd330bf5874432a52f6d15aee284a9309d229a913c6e025aec3e07"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/gen/trace-default-thick.dwg",
+      "sha256": "2d1558491218671030ac858e010435e692827b3faedc945940fe69a429426863"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-in/trace-default-thick.dwg",
+      "sha256": "2d1558491218671030ac858e010435e692827b3faedc945940fe69a429426863"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-out/trace-default-thick.dxf",
+      "sha256": "15cf127ebe47671014dce075baad1b05996ae33c7d848fd4860f6887401c46ac"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/out/trace-default-thick.dxf",
+      "sha256": "8ce00037de0999e1511a4863d67b7e4e5e6ccd3238a714fca5e54d1b814f9eeb"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/input/trace-tilt-zero.dxf",
+      "sha256": "964ecad418497743c0709fa16e6886d22af9b91811ef3407bdc2affafe630621"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source/trace-tilt-zero.dwg",
+      "sha256": "bb2d7dd37174853b67e4f3db8bf9f21a9abc9e49790081b42e2cd46ff9864676"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source-out/trace-tilt-zero.dxf",
+      "sha256": "479702d66882118d43f2e80a8203868994d59f7d5c13979e318ab0a486b355dd"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/gen/trace-tilt-zero.dwg",
+      "sha256": "06ca896121b5f65386cd6b4b604d6e08002471003bdb1ad14dbb82f19edc12fb"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-in/trace-tilt-zero.dwg",
+      "sha256": "af953599f156445f20c87f9e8fde375529c0c79295e301695481e2d6b66c39ee"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-out/trace-tilt-zero.dxf",
+      "sha256": "90e40b7e3f2fce6ed44960dafd2b2aab6aa9282b5724ee9ad7b949ddd2e8e945"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/out/trace-tilt-zero.dxf.err",
+      "sha256": "f0c944cac427991a768365a7e42bc10a680e3ade29ba772e6219c83e01bb3c7c"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/input/trace-tilt-thick.dxf",
+      "sha256": "7033cbe7b83a43e2af2cbf1de4a28c17501bcf5e18f1189a8ac4bd73dfc316e3"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source/trace-tilt-thick.dwg",
+      "sha256": "51b8c15c82282e440c3c6784c66988859a2d4cdd012650a1fd9b02492d91e269"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/source-out/trace-tilt-thick.dxf",
+      "sha256": "3cf3041959ff9d8d15d1e38130fdcbf2305923171cdfe5b5853f973468e4f26e"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/gen/trace-tilt-thick.dwg",
+      "sha256": "0cbd64d2e9cd7f0edd6cf22748a51eec8baa677b9c3ad9ec742da176356a7433"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-in/trace-tilt-thick.dwg",
+      "sha256": "0cbd64d2e9cd7f0edd6cf22748a51eec8baa677b9c3ad9ec742da176356a7433"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-out/trace-tilt-thick.dxf",
+      "sha256": "a7dce8dcb158ac3d9ca09330b0bfd7cd2dc22b45d3c009ad68ee863f93b575b8"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/out/trace-tilt-thick.dxf",
+      "sha256": "92330e0b13ba25a47e703f1d050c3e5a9dbca8757c704f3e6546d58a1f906a9c"
+    }
+  ],
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_SOURCE_BACKED_SOLID_TRACE_OUTPUT",
+  "integrated_validation": "The integrated SOLID/TRACE boundary, failure/retry and following-entity test passed 1/1."
+}

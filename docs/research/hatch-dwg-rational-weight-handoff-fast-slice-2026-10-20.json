@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "HATCH DWG rational spline weight handoff fast slice",
+  "mode": "implementation progress receipt",
+  "owner": "PAR-115 / 7N.2a",
+  "implementation": {
+    "sourceFile": "src/drw_entities.cpp",
+    "testFile": "tests/dwg_local_roundtrip_tests.cpp",
+    "testRegistrationFile": "CMakeLists.txt",
+    "behavior": "For each rational HATCH spline control, read a bounded finite BD after the 2D point and store it in both DRW_Spline::weightlist and legacy DRW_Coord::z. Preserve XY. No DWG writer authority change.",
+    "testControls": [
+      "Scratch-authored ODA-order AC1018 rational zero-fit vector",
+      "Scratch-authored ODA-order AC1027 rational one-fit vector with tangents",
+      "Quarter-circle weights 1, sqrt(0.5), 1 and distinct non-unit weights 1, 0.5, 1.5",
+      "Independent literal-field decoding and exact control/weight assertions",
+      "Truncated final weight transactional refusal and parser-instance retry",
+      "Following edge, boundary path, object callback, and following LINE sentinel checks",
+      "DWG write/read and ASCII/Binary DXF group-42 export/readback",
+      "Zero elevation and no geometric control-Z leakage"
+    ],
+    "testScannerCorrection": "Standalone dxfReader now enables DIMSTYLE name/reference compatibility and wide handle lexemes to match the normal library import scope; previous false failure stopped in TABLES before ENTITIES."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf --parallel 2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-dwg-spline-weights",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_hatch_rational_spline_weight_handoff$' --output-on-failure",
+        "result": "passed, 1/1, 0.08 seconds"
+      },
+      {
+        "command": "git diff --check -- tests/dwg_local_roundtrip_tests.cpp src/drw_entities.cpp CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md",
+        "result": "passed"
+      },
+      {
+        "command": "jq empty docs/research/hatch-dwg-rational-weight-handoff-fast-slice-2026-10-20.json",
+        "result": "passed after receipt creation"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "committedFixturesAdded": 0,
+    "persistentGeneratedFilesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "status": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "findingCount": 139,
+    "topLevelSubplanCount": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false,
+    "commitCreated": false,
+    "commitLimitation": "Workspace Git metadata is read-only."
+  }
+}

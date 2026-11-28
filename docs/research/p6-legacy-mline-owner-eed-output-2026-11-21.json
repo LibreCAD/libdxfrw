@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-mline-owner-eed-output-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_LEGACY_MLINESTYLE_OWNER_EED",
+  "supportClaimEffect": "none",
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py --eed-on-mline",
+  "construction": "Locally generated R13/R14 controls attach ACAD EED to the ACAD_MLINESTYLE owner dictionary. Remapped controls use NOD 0x35, ACAD APPID 0x33 and owner dictionary 0x17, and include a separate named GROUP with a 3D LINE member. LibreDWG JSON readback checks dictionary ownership and root membership; UTF-8 uses the prior fixed-size codepage-45 patch and repaired source-object CRC. Drawings remain outside the repository.",
+  "sourceSha256": {
+    "r13RemappedUtf8": "89d74b5bd9d5421b2cfedfc08dba661887c426966f7b1df393d4e835d6645e0e",
+    "r14RemappedUtf8": "12a782ec1103288824dd8094f94f04a87fc48d659c4ed45da1243d6afa1fbc43",
+    "r13BadGraph": "c5fdff3ca2d555df420d7975778ea8962732ce6e400be30c1102e98309c0e1fb",
+    "r14BadGraph": "954d8744deb17506bef381c8539778d4cb71620f429a397d4c202b1cd7267ac1"
+  },
+  "checks": [
+    "The shared legacy source observer binds the exact ACAD_MLINESTYLE NOD edge, owner, EED frame, APPID and codepage; the MLINESTYLE output profile and standard-object inspector compare the staged owner dictionary and referenced style.",
+    "Representable UTF-8 and ASCII EED pass R14 strict and R13 explicit-partial output with original and remapped source handles. EED, APPID, raw-frame, owner, root-edge and R14 MLINESTYLE edits are checked for refusal, preserved destination and corrected retry.",
+    "An aliased source root is refused. Unrepresentable target text is refused in both R14 strict and R13 partial output; the shared physical text guard prevents a decoded escape from falsely certifying literal EED text.",
+    "Independent ezdxf 1.4.5 readback verifies ACAD EED caf\u00e9 and 42 on the MLINESTYLE owner, its Standard style owner, and a separate MYGROUP-to-3D-LINE edge in both output encodings."
+  ],
+  "independentOutputSha256": {
+    "r13PartialAscii": "ba4fffe7536c56af14c0cacfb166c915eb8e020c3c60fc7bc5e9c40bd631f81b",
+    "r13PartialBinary": "c362f31bcae3b811ad2321944ba14240c31c439d042459e4d6c94bfb8c6aa2f2",
+    "r14StrictAscii": "ef2c492b9b94451dc1dbfd24b3d0d9be736b8e99f26bad9d5b267c394327e3ba",
+    "r14StrictBinary": "6b2a2adb8745a2ff77363beb10dd20a33ea7c63dccecc469bc13178f6ec396d9"
+  },
+  "limits": [
+    "R13 output is explicit partial; the MLINESTYLE object itself remains unqualified and strict R13 remains refused.",
+    "Only the selected ACAD EED and owner graph are covered; native duplicate/clone semantics, other EED schemas and general DWG/DXF format support remain open."
+  ]
+}

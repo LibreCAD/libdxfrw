@@ -1,0 +1,34 @@
+{
+  "title": "VXTABLERECORD DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated local VXTABLERECORD direct-codec transaction control across legacy inline, detached, shared, and aliased stream layouts",
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "method": "DRW_VxTableRecord::encodeDwg",
+    "behavior": "Stage each distinct body, string, and handle destination while preserving AC1018 inline text, modern detached text/handles, version-bound raw body bits, and the common object handle prefix. Publish only after all writes succeed."
+  },
+  "control": {
+    "file": "tests/dimassoc_dwg_encoder_allocation_tests.cpp",
+    "profile": "Locally generated VXTABLERECORD with class version, flags, name, parent, reactors, extension dictionary, and an 11-bit raw payload for AC1021.",
+    "tested_route": "Public encodeDwg",
+    "cases": [
+      {"version": "AC1018", "mode": "inline strings and detached handles", "reached_allocation_offsets": 7},
+      {"version": "AC1021", "mode": "separate body/string/handle streams", "reached_allocation_offsets": 22},
+      {"version": "AC1021", "mode": "shared string and handle stream", "reached_allocation_offsets": 19},
+      {"version": "AC1021", "mode": "all streams resolve to body", "reached_allocation_offsets": 16},
+      {"version": "AC1021", "mode": "body string and detached handles", "reached_allocation_offsets": 19},
+      {"version": "AC1021", "mode": "detached string and body handles", "reached_allocation_offsets": 20}
+    ],
+    "failure_assertions": "Every reached one-shot allocation failure leaves caller body, strings, handles, cursors, health, and handle-occurrence ledgers unchanged. The same object and buffers then retry to clean output.",
+    "fixtures_added": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j2",
+    "focused_tests": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_object_encoder_allocation_retry|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "result": "Both focused CTests passed. Generated controls swept 103 allocation offsets. git diff --check passed."
+  },
+  "limits": [
+    "Generated local transaction evidence only; it does not qualify additional VXTABLERECORD producer profiles or whole-document output.",
+    "Source/reference graph closure and broad DWG/DXF output qualification remain open."
+  ]
+}

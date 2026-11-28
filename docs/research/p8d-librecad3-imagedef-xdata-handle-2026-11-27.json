@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-imagedef-xdata-handle-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "1931a5f60869b3d617868033ee14f1f6e6a12adf",
+  "implementation": "Plan definitions before XDATA groups. Retain selected code-1005 source handles only when a checked same-import image dictionary maps the target to a selected IMAGEDEF; reuse the codec output handle remapper. Omit and report the whole group when the dictionary binding or target cannot be proved.",
+  "validation": [
+    "The self-reference test failed before the change. Fifteen focused IMAGE, dictionary and paper tests and eighteen layout tests pass.",
+    "Locally authored tests cover self and cross-definition references, absent targets, structural handle D collision, missing target after removal, foreign-import identity, and same-writer restoration. The latter cases drop the dependent APPID group and report metadata loss until corrected.",
+    "Independent ezdxf 1.4.5 resolves the cross-reference in source, ASCII output and binary output: source 81 points to 83 and emitted 84 points to 85, the distinct width-8 IMAGEDEF. All three audit without errors or fixes.",
+    "The adapter syntax-checks against older bundled codec headers; runtime behavior on those headers is unqualified."
+  ],
+  "redLogSha256": "458566146f5b4b25d6626bde44a8436744cc4604a5786085ee8a474164eeb279",
+  "testLogSha256": "e2ceff969716912937c9f0e5e1bb3aafbe31a06100ab944984ee97b8ca7a08bb",
+  "layoutLogSha256": "71c4f3a1e54dc2b4b779e37de3745826ef9ac1da0ca7e13b6c33702021f6344e",
+  "olderHeaderLogSha256": "2e5337aa3727300050bff86e123a74795a101b0d6340efcff45f863ee7963b99",
+  "peerOutput": {
+    "source": {
+      "sha256": "e7bdd052e0c4dca559a3d2320653780739d3af0f23856a2cb7de4dab1750ca3f",
+      "definition": "81",
+      "xdata_target": "83",
+      "target_width": 8.0,
+      "errors": 0,
+      "fixes": 0
+    },
+    "ascii": {
+      "sha256": "0dd1947cdeea80ad3eac8a0f48c3b31d422b5d6f6667feaae2d3fba05c1a5504",
+      "definition": "84",
+      "xdata_target": "85",
+      "target_width": 8.0,
+      "errors": 0,
+      "fixes": 0
+    },
+    "binary": {
+      "sha256": "f6c523a7f7a979addc8de8d23e3aee74bf889a2325a1ea3cb73e31a82942a861",
+      "definition": "84",
+      "xdata_target": "85",
+      "target_width": 8.0,
+      "errors": 0,
+      "fixes": 0
+    }
+  },
+  "limits": [
+    "The admitted source is the checked same-revision ASCII dictionary profile; binary source reopen, other target classes, unrelated dictionary graphs and external producer/native semantics remain unqualified.",
+    "Reactor source identity, wider graph closure and unsupported XDATA groups remain open. No generated fixture files are committed."
+  ]
+}

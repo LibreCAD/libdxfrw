@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-assocvariable-suffix-profile-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 AcDbAssocVariable bounded suffix decode",
+  "status": "MECHANICAL_WITNESS_SUFFIX_DECODED_OUTPUT_GATE_OPEN",
+  "supportClaimEffect": "none",
+  "supersedes": {
+    "receipt": "docs/research/p4-ac1024-assocvariable-prefix-2026-10-30.json",
+    "scope": "The earlier receipt's statement that the mechanical physical body/handle suffix was unclassified. Its output and graph qualification limits remain current."
+  },
+  "scope": {
+    "version": "AC1024",
+    "record": "ACDBASSOCVARIABLE",
+    "purpose": "Decode the witnessed empty and one-child object suffix forms while retaining unknown marker data and leaving document-level graph output closed."
+  },
+  "sourceEvidence": {
+    "physicalSource": {
+      "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "version": "AC1024",
+      "records": 17,
+      "productionTrace": {
+        "path": "/private/tmp/mechanical-variable-status.log",
+        "sha256": "03f13137ff6d8ba11cab50915833aa6c42be6b88ba2f042568df318e7f2b717e",
+        "observation": "17/17 records have parsed fields and complete bounded body/text/handle spans. Four use the empty suffix; thirteen use the one-child suffix."
+      }
+    },
+    "independentProjection": {
+      "implementation": "LibreDWG",
+      "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "path": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+      "sha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+      "observation": "The absolute-handle join matches all 17 variables: each one-child suffix targets one ASSOCVALUEDEPENDENCY whose ownerhandle is the source variable; empty suffixes have no such owned child. This corroborates the observed role and edge, not application semantics."
+    },
+    "wireProfile": {
+      "empty": "One BS(0) body suffix and no object-specific handle.",
+      "oneChild": "BS(1), followed by BS(0), then one code-3 hard-ownership relative handle. The zero BS is retained as an uninterpreted marker.",
+      "padding": "The object body must end exactly at its bounded span; the object-handle stream accepts only its bounded byte-alignment padding.",
+      "authority": "ODA Open Design Specification for .dwg files v5.4.1 sections 2.2–2.4 and 20.1 support generic bit-code framing, hard-ownership reference roles, and handle-stream byte alignment. They do not specify the ACDBASSOCVARIABLE class-specific suffix; that profile is limited to the physical witness and independent field/owner correlation above."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "behavior": "AC1024 ASSOCVARIABLE retains the bounded owned-dependency references and the observed zero suffix marker. Only the witnessed zero-child and one-child forms are wire-complete; unsupported counts, wrong handle roles, and malformed spans remain partial records. Model copy and reset preserve/clear the added state.",
+    "supportClaimEffect": "none"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j 4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_associative_variable_generated$' --output-on-failure",
+      "result": "PASS 1/1. Generated vectors cover real/int32 values, empty/one-child suffixes, copy/assignment, wrong-role handles, and an unsupported child count. No DWG/DXF fixture was added."
+    },
+    "physicalRead": {
+      "result": "The production parser reports zero entity/object parse failures and complete wire status for all 17 ASSOCVARIABLE records. The overall strict conversion still exits 1 because another part of the source read disposition remains incomplete; this receipt does not identify or close that separate blocker and does not establish graph output/readback.",
+      "fullSuites": "NOT_RUN"
+    },
+    "temporaryInstrumentation": "Removed after collecting the production trace."
+  },
+  "limitations": [
+    "The implemented physical profile is limited to the AC1024 forms witnessed in the mechanical source; no producer-wide or cross-version guarantee is made.",
+    "The suffix marker has no assigned class-level semantic meaning.",
+    "Required graph-edge/descendant closure, physical source-to-output binding, emitted-field readback, atomic document publication/retry, and strict complete-export admission remain open.",
+    "No external or native consumer support claim is promoted."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Decode the mechanical AC1024 ASSOCVARIABLE empty and one-child suffix forms and retain their bounded handle role/marker data.",
+    "remainingP4Scope": "Close required graph edges and descendants, source-to-emitted identity/field proof, readback, and strict complete-export admission.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "591b0decaf4bc1a42a051327dbae8a1846f9e42d6eab42cc39fb0a15fe268d00",
+    "src/drw_objects.h": "617e0e17a3086300868a7185424f52c686fdc2576768bb437fe730c1bb729c9d",
+    "tests/dwg_reader_matrix_tests.cpp": "9a69867ab3c9907a74f089df889d3087db1f4c4dbfa11037e2cf93eaae262540",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "d6274446babfa426a209ddb1534d724ff787852738d0dd528266f3c72c455eb4"
+  }
+}

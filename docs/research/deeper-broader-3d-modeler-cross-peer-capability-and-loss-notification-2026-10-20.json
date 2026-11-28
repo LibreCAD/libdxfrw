@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader 3D modeler cross-peer capability and loss-notification boundary",
+  "mode": "Primary-source web research and read-only local plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Cross-check versioned DWG/DXF ACIS carrier references against current peer behavior and release evidence.",
+    "Separate modeler entity parsing, raw carrier retention, object graph association, B-rep semantics, writer disposition, and native consumer acceptance.",
+    "Refine existing PAR-07/S8 implementation order while preserving fast local validation and deferring optional external qualification to a composed checkpoint."
+  ],
+  "sources": [
+    {
+      "project": "ODA and Autodesk format references",
+      "references": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "status": "authoritative_DWG_spec_and_public_DXF_entity_reference_reviewed_2026-10-20",
+      "observation": "ODA v5.4.1 describes the post-R2013 DWG AcDsPrototype_1b DataStorage route for ACIS; Autodesk's public 3DSOLID table describes the modeler subclass/version, proprietary group-1/3 data, and history handle. The routes are distinct and these format references do not validate arbitrary ACIS geometry semantics.",
+      "limits": "No local parser change, native consumer acceptance, or B-rep semantic result follows from layout documentation alone."
+    },
+    {
+      "project": "ACadSharp",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "status": "issue_and_PR_state_reviewed_2026-10-20",
+      "observation": "Issue #1195 reports that ACadSharp 3.4.9 reads DWG 3DSOLID/REGION entities but its DXF writer silently omits them. PR #1240 remains open and undeployed; its visible implementation commit identifies DwgObjectWriter, so it does not prove the reported DXF omission is fixed.",
+      "limits": "Peer issue/PR evidence is not a local reproduction, a released positive implementation, or normative format evidence."
+    },
+    {
+      "project": "ezdxf ACIS documentation",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "status": "stable_documentation_reviewed_2026-10-20",
+      "observation": "Documentation states that only a limited ACIS entity set is supported, unsupported records become NONE_ENTITY with lost data, and unsupported NONE_ENTITY export raises ExportError.",
+      "limits": "This defines a useful fail-closed contract and limited parser behavior, not arbitrary ACIS preservation or a general geometry kernel."
+    },
+    {
+      "project": "LibreDWG issue #1411",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "status": "pinned_issue_report_reviewed_2026-10-20",
+      "observation": "The issue names LibreDWG 0.14.8593 at commit 8a1ae764 and describes a scratch-generatable AC1032 DXF REGION/SAB case where the entity survives conversion but its 5489-byte SAB/ACDSDATA payload is lost.",
+      "limits": "Reported result is version-specific and not reproduced here; it is not a current-master result or a libdxfrw defect."
+    },
+    {
+      "project": "ACadRust",
+      "references": [
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.5",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "status": "release_and_test_source_reviewed_2026-10-20",
+      "observation": "The v0.6.5 release points to commit 289a616. Its R2018 planar-body test builds a cube from explicit vertices/faces, writes and rereads with the same codec, then asserts entity survival and nonempty ACIS data.",
+      "limits": "Same-codec roundtrip and data-presence assertions are transport evidence only; no independent B-rep validity, full DataStorage association, or native CAD acceptance was run here."
+    },
+    {
+      "project": "Local plan/source reconciliation",
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "tests/modeler_dxf_writer_matrix_tests.cpp",
+        "tests/dwg_reader_matrix_tests.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp"
+      ],
+      "status": "shared_worktree_read_only_reconciliation_2026-10-20",
+      "observation": "Existing PAR-07/S8 owners already cover generated DXF modeler payload/chunk checks and DWG DataIndex/Blob01 associations. The plan refinement therefore calls for reusing those owners and adding assertions only after an exact coverage audit.",
+      "limits": "No local code or tests were changed or run during this research-only pass."
+    }
+  ],
+  "planImpact": {
+    "newLocalDefect": false,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY_PLAN_REFINEMENT",
+    "implementationSummary": "Refined existing PAR-07/S8 into distinct gates for versioned carrier bytes, record/page association, geometry semantics, explicit writer disposition, and named-consumer acceptance. Existing local generated fast-test owners remain the per-slice validation path; an exact-pinned peer/native check is reserved for the composed checkpoint.",
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "localRepositoryInspected": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-3d-modeler-cross-peer-capability-and-loss-notification-2026-10-20.json"
+    ],
+    "limitations": "Mutable public documentation and issue pages plus released-source/test review; peer behavior was not reproduced, and no route was externally qualified."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Research-only plan update; no commit requested. Shared worktree contains extensive pre-existing changes and Git metadata is read-only in this session."
+  }
+}

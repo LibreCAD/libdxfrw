@@ -1,0 +1,134 @@
+{
+  "schema": "libdxfrw-deeper-broader-acis-writer-and-consumer-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh open-source ACIS reader/writer maturity and downstream FreeCAD route boundaries; reconcile evidence into existing parity gates without promoting support claims.",
+  "method": {
+    "kind": "Primary project release, issue, pull-request, and documentation pages plus read-only plan inspection",
+    "sourcesOpened": [
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+      "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/DomCR/ACadSharp/pull/1174",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+      "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html",
+      "https://ezdxf.readthedocs.io/en/stable/launcher.html",
+      "https://ezdxf.readthedocs.io/en/stable/tasks/add_dxf_entities.html"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "converterRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/modeler_block_census_tests.cpp"
+    ],
+    "evidenceRule": "Release notes are release-scoped; open issues and pull requests are reports/proposals, not reproduced results or released capabilities. Mutable or archived documentation defines a published route boundary only and does not substitute for a pinned native runtime."
+  },
+  "evidence": [
+    {
+      "topic": "ACadSharp release-versus-branch ACIS coverage",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "observed": [
+        "ACadSharp v3.6.51 release notes report ACIS payload reading for 3DSOLID, REGION, and BODY and AcDs offset work.",
+        "The listed v3.8.0 release entry adds assembly visibility and does not announce ACIS writer support.",
+        "Issue #1195 reports silent DXF-writer omission on ACadSharp 3.4.9, including 252 3DSOLID and 3 REGION entities in two customer drawings and solid-only blocks; the files were not supplied or reproduced in this review.",
+        "As viewed on 2026-10-16, PR #1240 is open and undeployed, proposes writing ACIS-dependent entities, and depends on ACDS/ACIS schema work in PR #1174."
+      ],
+      "doesNotEstablish": [
+        "a writer result for ACadSharp v3.8.0",
+        "that the issue reproduces on the current ACadSharp release",
+        "an equivalent defect in libdxfrw",
+        "semantic correctness of opaque ACIS payload pass-through"
+      ],
+      "planUse": "Keep ACadSharp reader, writer, release, and PR evidence separate. Do not wait for #1240 or count it as released capability. At the existing composed checkpoint, compare per-source identity/type, inline-versus-AcDs carrier, owner/block path, emitted record/payload, diagnostics, and INSERT target closure. Include a solid-only block plus INSERT only if absent from the current generated harness."
+    },
+    {
+      "topic": "FreeCAD stock DXF/DWG consumer boundary",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md"
+      ],
+      "observed": [
+        "The archived FreeCAD documentation page states that stock FreeCAD can only import/export 2D DXF data because the 3D data uses a proprietary format, and that DWG has the same limitation because the route converts through a DWG converter.",
+        "The same page includes a broad generic statement about no-loss DWG/DXF conversion that conflicts with its specific 3D limitation; the repository is archived, so neither sentence is a pinned runtime result."
+      ],
+      "doesNotEstablish": [
+        "the behavior of a particular current FreeCAD build, converter, importer preference, or platform",
+        "that a valid ACIS DXF is malformed because stock FreeCAD does not consume it",
+        "that an external ACIS-capable FreeCAD add-on is part of the stock route"
+      ],
+      "planUse": "Keep stock FreeCAD native qualification focused on its documented 2D path. Classify stock 3DSOLID/REGION/BODY semantic checks as CONSUMER_NOT_APPLICABLE unless a distinct modeler route is pinned and executed. Do not use a conversion exit code or generic no-loss sentence as a 3D geometry pass."
+    },
+    {
+      "topic": "ezdxf structural ACIS utilities versus shape semantics",
+      "sources": [
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html",
+        "https://ezdxf.readthedocs.io/en/stable/launcher.html",
+        "https://ezdxf.readthedocs.io/en/stable/tasks/add_dxf_entities.html"
+      ],
+      "observed": [
+        "The drawing add-on documents no ACIS rendering and no 3D rendering engine.",
+        "The browse-acis utility inspects and exports SAT/SAB payload content.",
+        "The entity-creation guide says the ACIS data itself must come from an external library."
+      ],
+      "doesNotEstablish": [
+        "general B-rep decoding or validity",
+        "successful downstream CAD consumption",
+        "a version-pinned runtime result in this review"
+      ],
+      "planUse": "Use exact-version-pinned ezdxf only for the specific DXF parsing/writing or raw-payload operation exercised. Keep raw carrier, typed entity, closed valid shape, and displayed/consumed geometry as separate evidence layers."
+    }
+  ],
+  "implementationReadiness": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "perSliceExternalRuns": false,
+    "optionalPeerRunsDeferredToComposedCheckpoint": true,
+    "modelspaceAndBlockIdentityInventoryRequired": true,
+    "solidOnlyBlockControl": "Reuse current generated modeler-block harness; add locally authored control only if this exact topology is absent.",
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue local implementation without waiting on ACadSharp PR #1240.",
+      "At the composed writer checkpoint, ensure every source ACIS entity has an emitted, refused-with-diagnostic, or explicitly unsupported disposition and retain owner/block/INSERT closure.",
+      "Keep FreeCAD native 2D qualification separate from ACIS semantic-reader qualification.",
+      "Leave J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+    ]
+  },
+  "validation": {
+    "parityPlanUpdated": true,
+    "3dPlanUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "productionSourceChanged": false,
+    "testsRun": false,
+    "supportClaimsPromoted": 0
+  }
+}

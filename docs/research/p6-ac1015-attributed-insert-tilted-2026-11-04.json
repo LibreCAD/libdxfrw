@@ -1,0 +1,47 @@
+{
+  "status": "bounded explicit opt-in only; no whole-format 3D qualification",
+  "authority": "ODA v5.4.1 section 20.4.9 specifies insertion point 3BD, scale, rotation, extrusion 3BD, has-attributes bit and version-specific child references; existing writer uses three bit-doubles for extrusion.",
+  "contract": "The opted-in provider supplies INSERT basePoint in native OCS, not the WCS result of applyExtrusion. Attribute coordinates remain in their own coordinate systems and are not automatically transformed. Allowed normals (0,0,1), (0,1,0), (0,0,-1); other normals remain refused.",
+  "source": "Locally authored ezdxf 1.4.5 source via tools/audit_ac1015_insert_tilted.py from the preexisting populated-block author; ODA File Converter 27.1.0 produced AC1015 DWGs, then ACAD2013 DXFs. No fixtures committed.",
+  "source_dwg_sha256": {
+    "tilted": "f9707e37908395505c98567fb715718ecbc17cac47a02ac49edd2003a18c029a",
+    "negativez": "0f23b0c68aad58915cffdbca1b33f22fdac52b9347a4181efde9cd0e2f07b704"
+  },
+  "source_dxf_output_sha256": {
+    "tilted": "980b06e60c74a214d164acbf13decdb5558a2b18bbb5630989235b85af8e8689",
+    "negativez": "52d6431f634bab44a68cbb459ab2c35832e8cf255b99cd3415841b9968e80278"
+  },
+  "generated_dwg_sha256": {
+    "tilted": "5e21f2ae5a38301a1643e19d9cd511ae7d456a2e2721ef054aa1f4010a6ec2b1",
+    "negativez": "f1c92136efcd5af1374217f18e7f9a2daba310ec288734a477fdae03c3d24393"
+  },
+  "generated_dxf_output_sha256": {
+    "tilted": "2dd2585a2f58c9c44fa0dd791e750a888554934d141402528e01e3d5a9961093",
+    "negativez": "2624795b1bffb1073a2d97138c0a7db4e7bf837a532338692bb990834a6a4533"
+  },
+  "observations": "LibreDWG independently reports complete block/INSERT/ATTRIB/SEQEND reference roles and exact extrusion for both generated outputs; ODA converts both without .err; ezdxf verifies native OCS point (3,4,0), scale (2,3,4), rotation 30 degrees, unchanged attribute position and text, and transformed block LINE endpoints for both normals. Source witnesses contain two attributes; generated controls contain one. This does not qualify arbitrary normals, pre-applied extrusion, other versions, or all block/attribute geometry.",
+  "focused_tests": [
+    "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_legacy_insert_chain|libdxfrw_dwg_legacy_block_content_chain)$' --output-on-failure",
+    "build-gcc/tests/libdxfrw_dwg_legacy_block_content_chain_tests --keep",
+    "python tests/dwg_legacy_block_content_chain_libredwg.py /opt/homebrew/bin/dwgread <tilted-block.dwg> tilted",
+    "python tests/dwg_legacy_block_content_chain_libredwg.py /opt/homebrew/bin/dwgread <negativez-block.dwg> negativez",
+    "python tools/audit_ac1015_insert_tilted.py generated tilted <ODA-dxf>",
+    "python tools/audit_ac1015_insert_tilted.py generated negativez <ODA-dxf>"
+  ],
+  "controls": "Existing tests cover positive/default scales, no-opt-in and default extrusion, invalid unsupported/zero/NaN normals, sentinel preservation and same-facade retries. The two physical ODA source controls additionally pass tools/audit_ac1015_attributed_insert_block_contents.py verify.",
+  "reproduction": [
+    "mkdir -p /private/tmp/ac1015-insert-tilted/{in,dwg,out,generated-in,generated-out}",
+    "build/rpp5gh-evidence/peer/bin/python tools/audit_ac1015_insert_tilted.py author tilted /private/tmp/ac1015-insert-tilted/in/tilted.dxf",
+    "build/rpp5gh-evidence/peer/bin/python tools/audit_ac1015_insert_tilted.py author negativez /private/tmp/ac1015-insert-tilted/in/negativez.dxf",
+    "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/ac1015-insert-tilted/in /private/tmp/ac1015-insert-tilted/dwg ACAD2000 DWG 0 0 '*.dxf'",
+    "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/ac1015-insert-tilted/dwg /private/tmp/ac1015-insert-tilted/out ACAD2013 DXF 0 0 '*.dwg'",
+    "build/rpp5gh-evidence/peer/bin/python tools/audit_ac1015_attributed_insert_block_contents.py verify /private/tmp/ac1015-insert-tilted/dwg/tilted.dwg /private/tmp/ac1015-insert-tilted/out/tilted.dxf /opt/homebrew/bin/dwgread",
+    "build/rpp5gh-evidence/peer/bin/python tools/audit_ac1015_insert_tilted.py source tilted /private/tmp/ac1015-insert-tilted/out/tilted.dxf",
+    "Repeat source verify and source inspect for negativez.",
+    "Run build-gcc/tests/libdxfrw_dwg_legacy_block_content_chain_tests --keep; copy tilted-block.dwg and negativez-block.dwg from printed directory to generated-in.",
+    "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/ac1015-insert-tilted/generated-in /private/tmp/ac1015-insert-tilted/generated-out ACAD2013 DXF 0 0 '*.dwg'",
+    "build/rpp5gh-evidence/peer/bin/python tests/dwg_legacy_block_content_chain_libredwg.py /opt/homebrew/bin/dwgread /private/tmp/ac1015-insert-tilted/generated-in/tilted-block.dwg tilted",
+    "build/rpp5gh-evidence/peer/bin/python tools/audit_ac1015_insert_tilted.py generated tilted /private/tmp/ac1015-insert-tilted/generated-out/tilted-block.dxf",
+    "Repeat generated peer and DXF inspect for negativez. Scratch conversion generates no .err. Hashes bind this particular execution; authoring may vary by time."
+  ]
+}

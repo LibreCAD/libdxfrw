@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-layer-malformed-xdata-contract-2026-11-25",
+  "supportClaimEffect": "none",
+  "consumerCommit": "563bb58ccc4555cfdf06e31718e8f793dc095f7b",
+  "libraryImplementationDigestSha256": "6dd91b2be8f6dd49ddd13bccb0064a5c4a23c2652eb798605c29017b91e5500e",
+  "problem": "The existing malformed-layer XDATA test expected both codecs to write repeated APPID groups. The current system codec rejects those groups, causing the focused layer selector to fail.",
+  "change": "Retain the bundled-codec preservation expectation. For the system codec, assert refusal, preserve an existing destination, correct the duplicate APPID group, and retry through the same filter.",
+  "validation": [
+    "The complete [filter][layer] selector passed 55 assertions in 4 cases with the system codec and 51 assertions in 4 cases with the bundled codec.",
+    "The corrected retry checks the surviving layer markers and unrelated APPID name.",
+    "The [filter][layer] system-codec selector also passed 55 assertions in 4 cases under AddressSanitizer, with leak detection disabled."
+  ],
+  "limitations": [
+    "This is a test-contract correction, not a change to the codec policy or a claim of support for malformed XDATA.",
+    "No generated drawing was committed."
+  ]
+}

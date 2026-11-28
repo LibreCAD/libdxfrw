@@ -1,0 +1,114 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader peer release maturity and loss-evidence refresh",
+  "mode": "primary-source web research and plan refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh release-versus-development evidence for independent DWG/DXF implementations",
+    "Cross-check current peer loss, parser-safety, and writer-acceptance reports against existing local plan owners",
+    "Reconcile the maturity of ACIS/SAB DXF inspectors and raw geometry projection routes",
+    "Refine peer admission and implementation-ready evidence without creating duplicate local findings"
+  ],
+  "method": {
+    "kind": "Read current official release, source, issue, pull-request, and documentation pages; reconcile with current local plan sections",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRunForResearch": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "Issue content is reporter evidence and was not reproduced. Release matrices and mutable source pages are not runtime qualification. No local defect or format rule was inferred from peer implementations; the repository-pinned ODA v5.4.1 specification remains authoritative for DWG layout. A separate local S8.3 implementation slice and its build/test are documented in datastorage-aggregate-payload-retention-cap-fast-slice-2026-10-18.json."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp release and live issue version split",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1280",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1172",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1299"
+      ],
+      "revision": "Release page listed v3.7.1 dated 2026-08-18; issue bodies contain reports against 3.4.9, 3.6.35, 3.8.0, and 3.8.14/master; reviewed 2026-10-18",
+      "observed": "The live reports describe distinct, version-specific failure shapes: missing AC1014 VERTEX subtype marker, culture-sensitive codepage selection, recursive repeated-input stack growth, missing AC1032 INSERT-derived records, an unresolved AC1032 whole-file AutoCAD MTEXT rejection, and a SPLINE conversion report without a field-level expected curve. The project's version/operation matrix does not establish those outcomes or the exact behavior of a different release."
+    },
+    {
+      "project": "ACadSharp modeler writer branches",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "revision": "Open PR/issue pages reviewed 2026-10-18; #1150 discussion updated 2026-10-01",
+      "observed": "The ACIS writer work remains an open, refactor-sensitive branch rather than a release baseline. The #1150 discussion reports a post-schema-refactor loss where only the last ACDSDATA group-310 line was retained by the reader, and maintainer discussion says a schema-based writer direction is preferred. This reinforces separate tests for multi-chunk retention, writer output, independent reopen, and native application acceptance."
+    },
+    {
+      "project": "LibreDWG release and writer boundary",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/releases",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi"
+      ],
+      "revision": "0.14.1 NEWS dated 2026-07-25; manual and release history reviewed 2026-10-18",
+      "observed": "NEWS records current security and hardening fixes, including section decompression and page-map bounds. The manual says R2007 write support is absent and R2010-R2018 output may fail CRC and CAD audit checks. These are peer-specific claims and do not establish a matching local defect or support grade."
+    },
+    {
+      "project": "ezdxf and GDAL ACIS/DXF observation limits",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Current stable/mutable official docs reviewed 2026-10-18",
+      "observed": "ezdxf documents a raw SAT/SAB browser/export path but no ACIS rendering or general 3D engine; GDAL's extended DXF path exposes raw ASM/transform data rather than a B-rep solid. These routes can observe specific carrier data but cannot qualify DWG AcDs linkage or general solid semantics."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refreshes existing PAR-07/S8 peer-admission and stage-specific loss-detection guidance. Existing parser-safety, Turkish codepage, classic VERTEX, INSERT ownership, MTEXT, SPLINE, ACIS carrier, and native-consumer owners cover the surfaced risk shapes; no duplicate finding or test is warranted. Peer comparisons must pin released artifact versus mutable head, version, operation, direction, and diagnostics. The next local accounting boundary is linked entity/modeler copies after parser retention.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Pin each peer run to an immutable release or commit and record artifact hash, license, build options, platform, file version, operation, direction, command, and diagnostics.",
+    "Classify each object by source handle, type, physical owner/block path, and carrier as typed, raw-preserved, skipped-with-diagnostic, or fatal; compare payload byte length/hash where applicable.",
+    "Do not infer file-format rules or local failures from issue reports, undocumented crash thresholds, aggregate entity counts, or project-wide capability percentages.",
+    "Reuse the existing focused local owner and CTest when touching a matching path; do not install peers, add fixtures, or expand routine validation solely because of this research.",
+    "Run native/peer acceptance only at the existing composed checkpoint; if a route or required artifact is unavailable, mark that evidence cell NOT_RUN/NOT_QUALIFIED and continue local work.",
+    "Keep parser payload retention, linked entity copies, raw carrier preservation, semantic interpretation, and native consumer acceptance as distinct memory/evidence stages."
+  ]
+}

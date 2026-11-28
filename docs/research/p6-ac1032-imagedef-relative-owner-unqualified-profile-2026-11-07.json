@@ -1,0 +1,68 @@
+{
+  "receipt": "p6-ac1032-imagedef-relative-owner-unqualified-profile-2026-11-07",
+  "date": "2026-11-07",
+  "scope": "Observe the AC1032 IMAGEDEF owner encoded with offset soft-pointer code 0xC, retain the resolved target and exact source capture, and preserve strict output refusal while the field's semantic role conflicts with ODA's IMAGEDEF hard-owner declaration.",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+    "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+    "provenance": "Tracked ACadSharp sample, read-only; no source or derivative was added to this repository."
+  },
+  "format_authority": {
+    "name": "ODA Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": {
+      "2.13": "Code 0xC is an offset handle that subtracts the encoded offset from the reference handle; offset handle codes always represent soft pointers.",
+      "20.4.81": "AcDbRasterImageDef's parenthandle is specified as a hard owner."
+    },
+    "limit": "The specification states its version coverage ends at R2013. Section 2.13 supplies the general offset-code rule used to interpret this AC1032 observation; it does not qualify AC1032 IMAGEDEF output semantics."
+  },
+  "independent_peer": {
+    "tool": "LibreDWG dwgread 0.14",
+    "command": "dwgread -O minJSON /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+    "output_sha256": "a2dfb28588c0e0066349ef12a65f91bdbf5f4f85cb33cfbe54d543621ea4f176",
+    "image_definition": {
+      "object": "IMAGEDEF",
+      "type": 528,
+      "handle": "0x8c4",
+      "ownerhandle": [12, 1, 2, 2242],
+      "resolved_owner": "0x8c2",
+      "reactors": ["0x8c2", "0x8c5"]
+    },
+    "reactor": {
+      "object": "IMAGEDEF_REACTOR",
+      "type": 529,
+      "handle": "0x8c5",
+      "ownerhandle": [6, 0, 0, 2246]
+    }
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_raster_dwg_wire.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/raster_dwg_wire_tests.cpp"
+    ],
+    "behavior": "The independent raster wire observer decodes code 0xC using the existing bounded soft-pointer offset arithmetic only for a custom AC1032 IMAGEDEF profile. It records the resolved parent and returns UnqualifiedOwnerRole. The adapter retains the source and explicitly refuses output with the owner-role diagnostic; code 0xC is not reclassified as hard ownership and does not promote output support. Debug traces identify the failing raster capture/correlation stage and handle."
+  },
+  "validation": {
+    "generated_control": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_raster_dwg_independent_wire$' --output-on-failure",
+      "result": "PASS, 1/1, 0.16 seconds",
+      "coverage": [
+        "AC1032 code-0xC relative owner offset resolves exactly from source handle 0x11223344 to 0x11223342",
+        "the profile remains UnqualifiedOwnerRole and following reactor field spans/roles are preserved",
+        "fixed-type IMAGEDEF with code 0xC remains malformed",
+        "relative offset underflow remains malformed"
+      ]
+    },
+    "physical_reader_recheck": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg -y -d -v2018 /private/tmp/sample_AC1032-relative-owner.dxf",
+      "executable_sha256": "0136790c88fd37a34155708ca2cee8c445b8a6bed3f51672263190830422b7a6",
+      "trace_sha256": "8bc27356e64455b80bdababfd27833cd9aac357ac7caa6dcb983aa9cde941ba5",
+      "result": "Read reaches 837/842 observed frames; entityParseFailures=0, objectParseFailures=5, DataStorage link failures=0, and DataStorage orphan records=0. IMAGEDEF 0x8c4 is source-captured and correlated as owner-role-unqualified with resolved owner 0x8c2. Strict DXF output refuses before serialization with 'DWG IMAGEDEF owner role is unqualified for output'."
+    },
+    "fixture_policy": "The physical DWG is read-only and not copied into the repository. The wire control is generated in memory."
+  },
+  "remaining": "Resolve the ODA hard-owner versus observed code-0xC soft-pointer conflict with eligible normative or producer evidence before changing the strict-output gate. The source remains unqualified; no DXF output, native application behavior, or support claim is established. Five unrelated OBJECTS parse failures remain.",
+  "support_claim_effect": "none"
+}

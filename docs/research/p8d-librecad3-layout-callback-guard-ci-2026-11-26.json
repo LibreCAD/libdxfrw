@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "failed_consumer_commit": "a13b2f05071d4ad69b18c4c91461ed2f641eafbf",
+  "fixed_consumer_commit": "1c84d0f5",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "failed_jobs": [
+    "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45916108650/job/140235609884",
+    "https://github.com/LibreCAD/LibreCAD_3/actions/runs/45916108650/job/140235610016"
+  ],
+  "finding": "Linux ARM64 and x64 both failed the read-callback guard checker for four layout and block source callbacks.",
+  "change": [
+    "Run all four through the existing exception guard and invalidate the captured layout graph when a callback fails.",
+    "Guard inline raw record and class callbacks and require no callback failures when establishing complete-source capture for layout and synthetic paper-block decisions.",
+    "Extend the callback guard checker to cover inline raw callbacks."
+  ],
+  "validation": [
+    "The callback checker passes and rejects a temporary deliberately unguarded inline entity callback.",
+    "macOS ARM64 app and layout test target build; 17 layout, 72 DXF round-trip and 17 DWG import tests pass.",
+    "Plan full, worktree, base-ref and 31 checker tests pass."
+  ],
+  "limits": [
+    "Exception injection in the affected callbacks was not performed.",
+    "Hosted checks on the fixed head remain pending; no platform or semantic support claim is promoted."
+  ],
+  "supportClaimEffect": "none"
+}

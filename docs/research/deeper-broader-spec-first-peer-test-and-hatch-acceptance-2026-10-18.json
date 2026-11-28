@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Spec-first peer, test omissions, and HATCH writer acceptance",
+  "mode": "Deeper/broader primary-source review and existing-gate refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Recheck a separate ODA-spec-derived DWG parser and its declared maturity",
+    "Inspect ACadRust/OpenCADStudio codec lineage and whether missing-sample tests are skipped",
+    "Reconcile the closed OpenCADStudio HATCH/polyline recovery report with local HATCH and consumer gates",
+    "Use the closed OpenCADStudio Layout/MLeader/AcDs report as a scoped validation-design precedent"
+  ],
+  "method": {
+    "kind": "Primary repository source, documentation, and issue review",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Upstream main branches and issue pages are mutable and were reviewed as published on 2026-10-18. dwg-rs and ACadRust/OpenCADStudio statements are project-reported evidence, not independent normative format authority. OpenCADStudio issue #570 names LibreDWG but not its second strict reader and provides no hash-bound audit receipt; issue #1078 reports detailed maintainer validation but does not publish a reproducible native audit artifact. No peer runtime or external fixture was used. ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/README.md",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/CLEANROOM.md"
+      ],
+      "revision": "Mutable main repository and documentation accessed 2026-10-18; no commit pin established in this review",
+      "observed": "The project declares a pre-alpha ODA v5.4.1-spec-led DWG reader, a raw object walker, per-record boundary checks, and version-specific decoded/skipped/error counts over a changing 19-file corpus. Its entity graph is partial; it has no DXF parser; its writer is experimental and lacks automated external-CAD acceptance. R14/R2007 output is absent. The project discloses a limited LZ77 algorithm-comment cross-check against ACadSharp."
+    },
+    {
+      "project": "ACadRust and OpenCADStudio codec lineage",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/Cargo.toml",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml"
+      ],
+      "revision": "Mutable repository pages accessed 2026-10-18; standalone manifest reports 0.6.5 while OpenCADStudio main pins its fork at a separate git revision",
+      "observed": "ACadRust identifies OpenCADStudio's opencadcodec as a fork in the same codec family. ACadRust reports broad DWG/DXF version support with explicit R12 fidelity/export caveats and says tests needing drawings absent from the repository are ignored by default. Its same-codec round-trip/generated controls are not independent semantic or external acceptance evidence."
+    },
+    {
+      "project": "OpenCADStudio HATCH/polyline writer report",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/570"
+      ],
+      "revision": "Issue status and comments accessed 2026-10-18; issue closed on 2026-10-13",
+      "observed": "The issue reports a HATCH/closed-polyline DWG recovery failure with two errors fixed and two objects erased. The maintainer says a current-main R2018 output from the supplied drawing plus a line opened without errors in LibreDWG and an unnamed strict third-party reader. No second-reader identity/build, hash-bound output, full audit log, or semantic source/output identity map is given in the report."
+    },
+    {
+      "project": "OpenCADStudio Layout/MLeader/AcDs writer report",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1078"
+      ],
+      "revision": "Issue status and maintainer fix comment accessed 2026-10-18; issue closed",
+      "observed": "The maintainer reports correcting the R2013+ entity header and Layout serialization, then comparing 345 MLEADER records, 8 Layout records, and a byte-identical 613-segment AcDs section. This is a useful scoped validation precedent, but is not an independently reproducible native AUDIT artifact."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "routineValidationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines existing optional peer and composed HATCH/graph acceptance gates only. dwg-rs is eligible only as a pinned structural comparator for a specific question; ACadRust test receipts must surface ignored missing-drawing tests; OpenCADStudio issue #570 is a partially specified positive route report, not native qualification. Future compatibility evidence remains keyed by version, direction, identity/owner/reference disposition, reader identity/build, audit/deletion outcomes, and semantic result. Findings/subplans remain 133/76."
+  }
+}

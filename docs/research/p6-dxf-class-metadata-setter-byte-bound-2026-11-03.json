@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-class-metadata-setter-byte-bound-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bound caller-supplied DXF CLASS row copies by count and aggregate retained string bytes.",
+  "source": {
+    "parentCommit": "2aa9a8b5b82ff9168b9f3b13e20c296b548c84d2",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "cmake": "4.4.5",
+    "files": {
+      "src/libdxfrw.cpp": "a31a646c3adc7c5b98f2d51a0abd05f0ff247d0298605ba7584278b09855f88c",
+      "src/libdxfrw.h": "000d77ff2d18a5f1ab09fd84cfcd4360813321bd3eb3cde80eb493128d268c7d",
+      "tests/dxf_fixture_tests.cpp": "e90c4f2eae42f941ffeabb778ad559d749a533acd86b251721b66cfed3e6fa55"
+    }
+  },
+  "limit": {
+    "rows": 65536,
+    "logicalRetainedBytes": 67108864,
+    "countedPayload": [
+      "DRW_Class vector slots",
+      "recName, className and appName including one terminator byte each"
+    ],
+    "formatMaximum": false
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "behavior": [
+      "Both const and move setters estimate the full row vector before staging or consuming it.",
+      "The const setter stages into a temporary and catches allocation failure. Rejected count, byte budget or copy input clears stale CLASS rows and latches refusal until corrected.",
+      "The writer checks pending CLASS setup rejection before output initialization; CLASSES preflight repeats the estimate before writing rows.",
+      "The existing CLASSES freeze rule remains in force, and a valid corrected setter clears rejection for a same-codec retry."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_dxf_class_count_bound|libdxfrw_dxf_source_table_metadata_setter_bounds|libdxfrw_no_raw_sections' --output-on-failure",
+      "result": "PASS 3/3; 0.77 seconds",
+      "coverage": "Exact and one-byte-under estimator boundaries, row-count refusal, rejected move caller preservation and stale-row clearing, injected const-copy allocation failure/retry, ASCII/Binary destination preservation and corrected same-writer retry, and neighboring source-table/no-raw regressions."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_dxf_class_count_bound|libdxfrw_dxf_source_table_metadata_setter_bounds|libdxfrw_no_raw_sections' --output-on-failure",
+      "result": "PASS 3/3; 1.41 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The estimate covers logical row slots and string payloads; it does not account for allocator capacity or process RSS.",
+    "This is a resource ceiling, not a DXF specification maximum or a support claim.",
+    "Moving setter bodies out of the public header requires consumers to rebuild/relink; ABI and packaging qualification remain open under P8."
+  ],
+  "next": "Continue the P6 safety audit on other caller-owned copies and assembly/work paths."
+}

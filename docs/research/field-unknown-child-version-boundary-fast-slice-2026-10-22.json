@@ -1,0 +1,40 @@
+{
+  "id": "par134-field-unknown-child-version-boundary",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "b2df51be99159ee247a3ba38352772d2c6a766368edb81f4f3429f1e83d9be7e",
+  "scope": {
+    "class": "DRW_Field / DRW_CadValue",
+    "versions": ["AC1021", "AC1024"],
+    "field": "bounded unknown child CadValue type 1024 and typed rewrite refusal"
+  },
+  "evidence": {
+    "localGap": "The unknown child-kind fallback had a generated AC1021 control but no paired AC1024 detached-string route control.",
+    "change": "Added AC1024 alongside AC1021; both versions assert a readable incomplete shell, no published typed child entry, and refusal of typed rewrite before output.",
+    "evidenceCeiling": "This characterizes unknown bounded local frames only. It does not define the type's payload grammar or establish independent producer/consumer behavior."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_field_unknown_child_cadvalue_versions$' --output-on-failure: PASS (1/1)",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_field_(oversized_child_value_count|cadvalue_.*|child_cadvalue_types|unsupported_child_cadvalue_buffers|unknown_child_cadvalue_versions)|libdxfrw_dwg_object_vectors)$' --output-on-failure: PASS (13/13)",
+    "git diff --check -- CMakeLists.txt tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "productionBehaviorChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "remaining": [
+    "Add invalid type-64 handle-role coverage only if handle bytes can be mutated without guessing at offsets.",
+    "Keep FIELD format flag 0x02 semantics unqualified.",
+    "Continue source-backed PAR-03/PAR-04 associative-action context audit."
+  ],
+  "deferredExternal": [
+    "J256", "J260", "J268", "J284", "J293", "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

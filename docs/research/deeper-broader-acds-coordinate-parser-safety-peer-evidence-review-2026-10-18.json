@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader AcDs coordinate, parser-safety, and peer evidence review",
+  "mode": "primary-source and local-plan review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "sources": [
+    {
+      "name": "Open Design Specification for .dwg files v5.4.1",
+      "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": ["24.2.2.3", "24.2.2.5", "24.2.2.6", "24.3"],
+      "use": "Authoritative source for table roles and coordinate origins; local PDF checked with pdftotext."
+    },
+    {
+      "name": "ACadSharp Prototype1b reader PR #1154 discussion",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1154",
+      "use": "Peer-reported anchor/formula derivation, corrected section-vs-entity comparison, and unpublished stale-segidx profile."
+    },
+    {
+      "name": "ACadSharp blob01 follow-up PR #1156",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1156",
+      "use": "Peer reader resolver follow-up; not treated as semantic or writer evidence."
+    },
+    {
+      "name": "LibreDWG issue #695",
+      "url": "https://github.com/LibreDWG/libredwg/issues/695",
+      "use": "Historical malformed-input report, closed and labeled intentional illegal input/not repro; not current peer status or a local defect."
+    },
+    {
+      "name": "LibreDWG NEWS",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "use": "Historical project-reported Prototype1b limitations; mutable branch source, not pinned runtime evidence."
+    },
+    {
+      "name": "LibreDWG issue #1411",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "use": "Separate report of modern AcDs/SAB conversion loss; not executed or generalized to current builds."
+    }
+  ],
+  "findings": [
+    {
+      "topic": "Schema-index table order",
+      "result": "ODA §24.2.2.5 assigns unknown-property references to the first table and schema references to the second. The new generated ODA §24.3 schema-only test reproduced the local reader's reversed mapping; implementation is recorded in the companion local fast-slice receipt.",
+      "planOwner": "PAR-07 / S8.3"
+    },
+    {
+      "topic": "Final data-record span formula",
+      "result": "The printed formula's plus-anchor expression conflicts with its coordinate definitions and parenthetical. Derivation from absolute coordinates yields segment.size - anchorBytes - recordLocalOffset; existing code's segmentEndOffset - recordOffset already implements it. No parser change is indicated.",
+      "planOwner": "PAR-07 / S8.3"
+    },
+    {
+      "topic": "Stale secondary segidx",
+      "result": "ACadSharp PR discussion gives detailed but unpublished peer-reader failure coordinates. The peer author disputes validity of the stale entry. It does not establish a valid producer profile or a libdxfrw defect. Current local source consumes the header-selected index once and bounds it by a self-reference when available; it does not recursively parse every listed segidx segment.",
+      "planOwner": "Existing conditional PAR-07 / S8.3 edge; legality remains external/unresolved"
+    },
+    {
+      "topic": "Malformed-input peer reports",
+      "result": "LibreDWG issue #695 is historical, closed, and labeled intentional illegal input/not repro; the report contains mixed failure traces. It is a parser-safety reminder, not current status, proof of an AcDs-specific defect, or evidence about libdxfrw.",
+      "planOwner": "Existing bounded-input hardening gates"
+    }
+  ],
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "planTotals": {
+      "findings": 130,
+      "topLevelImplementationSubplans": 73
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "peerExecutablesRun": false,
+    "externalDrawingDownloaded": false,
+    "fixtureAdded": false
+  }
+}

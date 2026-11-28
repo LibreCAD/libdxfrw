@@ -1,0 +1,292 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-shared-parser-current-spec-samples-2026-11-25",
+  "date": "2026-11-25",
+  "status": "CURRENT_CHECKOUT_SPEC_SAMPLES_AND_PARTIAL_PEER_READBACK_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "request": "Create AC1012 DWG samples from the versioned specification after shared frame, dictionary-layout, and handle-role checks were consolidated.",
+  "implementation": {
+    "testedSourceCommit": "e4cce43c1a3755c70b7ce9e7462ff8a95c33e2bd",
+    "sharedCodeCommit": "ad5d33402a8538c0806d0d8e444e7970a65b5362",
+    "candidate": {
+      "path": "/Users/dli/dev/libdxfrw/build-gcc/dwg2dxf/dwg2dxf",
+      "sha256": "0fe8c370f5f2b510eb799eae51fee37f9403e69832344f4f913b2ee5d6e4605a"
+    },
+    "focusedTest": {
+      "path": "/Users/dli/dev/libdxfrw/build-gcc/tests/libdxfrw_dwg_ac1014_dictionaryvar_tests",
+      "sha256": "49246eaf16b08620ea5fdd401d730c587124403b6e4a735e55802d4b29c149d1",
+      "ctest": "libdxfrw_dwg_ac1014_dictionaryvar",
+      "result": "passed 1/1; AC1012/AC1014/AC1015; fast generated transaction controls"
+    },
+    "sharedChecks": [
+      "version-aware object body/string bounds resolver",
+      "DictionaryWireLayout for plain/default dictionary mode fields and legacy inline boundaries",
+      "shared common owner/reactor/extension-dictionary role predicates and dictionary item/default reference predicates"
+    ]
+  },
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.13 HANDLE REFERENCES",
+      "9 HEADER VARIABLES",
+      "20.1 Common non-entity object format",
+      "20.4.44 DICTIONARY",
+      "20.4.73 MLINESTYLE"
+    ],
+    "appliedConstraints": [
+      "AC1012 dictionary names are counted in object data; item references are soft-owner handles; plain DICTIONARY has no R2000+ cloning/hard-owner fields.",
+      "The current DIMSTYLE header reference resolves to the unique Standard DIMSTYLE as a hard pointer.",
+      "ACAD_MLINESTYLE is rooted in NOD and selected MLINESTYLE records are owned by that dictionary."
+    ]
+  },
+  "producer": "GNU LibreDWG 0.14 dwgadd/dwgread/dwgwrite with local recipes and specification-directed header rewrite; not AutoCAD-authored",
+  "generator": {
+    "path": "tools/research/generate_ac1012_dictionary_merge_samples.py",
+    "sha256": "cd62cfca9d2204362533a8607a1f06484db8f09c7156dcec4de6f895c63476ef"
+  },
+  "executables": {
+    "dwgadd": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgadd",
+      "sha256": "66c435deb0f081ab72be21bb9ba36e5d149f9352d71ddf1e83ac95b3fc07f282"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "dwgwrite": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgwrite",
+      "sha256": "8c5dfd7f733e924723155e5040dd33f3fefdf4682071867a4c1d3499adf73e74"
+    }
+  },
+  "scratchDirectory": "/private/tmp/ac1012-final-implementation-20261125/ac1012-dictionary-merge-9kqqnyyk",
+  "samples": {
+    "destination": {
+      "dwg": {
+        "file": "destination-ac1012.dwg",
+        "sha256": "9c315c760f7d9f40fba8c3f23f716be94ed52b0ccb486ab22dce097aaf482e3f",
+        "producer": "LibreDWG 0.14; locally authored specification-directed recipe"
+      },
+      "dictionaryFrame": {
+        "sha256": "0d005170285d2dbdc3887520bc5a018a708e58aff8568324818f1f918da95d07",
+        "sizeBytes": 50,
+        "crcValid": true,
+        "entries": {
+          "Standard": 24,
+          "SAME_KEY": 46,
+          "DEST_ONLY": 47
+        },
+        "ownerHandle": 12,
+        "reactorHandles": [
+          12
+        ],
+        "itemHandle": 46,
+        "cloningField": null
+      },
+      "focusedPhysicalParserControl": {
+        "executable": {
+          "path": "/Users/dli/dev/libdxfrw/build-gcc/tests/libdxfrw_dwg_ac1014_dictionaryvar_tests",
+          "sha256": "49246eaf16b08620ea5fdd401d730c587124403b6e4a735e55802d4b29c149d1"
+        },
+        "exitCode": 0,
+        "output": "physical AC1012 dictionary frame and role/refusal/retry: PASS"
+      },
+      "strictOutput": {
+        "exitCode": 1,
+        "destinationPreserved": true,
+        "refusal": "DXF export preflight failed: AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification"
+      },
+      "explicitPartialOutput": {
+        "ascii": {
+          "exitCode": 0,
+          "outputSha256": "4de9d007650667aa976adc61bd833d5972719b2f3982d9464f874815863fdb82",
+          "audit": "PASS",
+          "dictionaryKeyAnglesDegrees": {
+            "SAME_KEY": 15.000000000000034,
+            "DEST_ONLY": 21.999999999999854
+          }
+        },
+        "binary": {
+          "exitCode": 0,
+          "outputSha256": "59f239b8aaf6df8f4bbe006b0c16eaebec20b423f0b13f93f68588db4b532cbb",
+          "audit": "PASS",
+          "dictionaryKeyAnglesDegrees": {
+            "SAME_KEY": 15.000000000000034,
+            "DEST_ONLY": 21.999999999999854
+          }
+        }
+      },
+      "libreDwgPeerReadback": [
+        {
+          "encoding": "ascii",
+          "dxfSha256": "4de9d007650667aa976adc61bd833d5972719b2f3982d9464f874815863fdb82",
+          "peerDwgSha256": "dc7bbbbb540b363b00a6b7ce657ed96be1bf24ed5b59abcaabad77fc5edef84e",
+          "readbackJsonSha256": "8cbccd9077656de25fdb6a93f17433a97a32ae956e0d427a3aef311e28ac345c",
+          "dictionaryEntries": {
+            "Standard": 24,
+            "SAME_KEY": 46,
+            "DEST_ONLY": 47
+          },
+          "styles": {
+            "DEST_ONLY": {
+              "handle": 47,
+              "ownerHandle": 23,
+              "name": "DEST_ONLY",
+              "startAngleDegrees": 21.999999999999858
+            },
+            "SAME_KEY": {
+              "handle": 46,
+              "ownerHandle": 23,
+              "name": "SAME_KEY",
+              "startAngleDegrees": 15.000000000000036
+            }
+          },
+          "result": "PASS"
+        },
+        {
+          "encoding": "binary",
+          "dxfSha256": "59f239b8aaf6df8f4bbe006b0c16eaebec20b423f0b13f93f68588db4b532cbb",
+          "peerDwgSha256": "dc7bbbbb540b363b00a6b7ce657ed96be1bf24ed5b59abcaabad77fc5edef84e",
+          "readbackJsonSha256": "8cbccd9077656de25fdb6a93f17433a97a32ae956e0d427a3aef311e28ac345c",
+          "dictionaryEntries": {
+            "Standard": 24,
+            "SAME_KEY": 46,
+            "DEST_ONLY": 47
+          },
+          "styles": {
+            "DEST_ONLY": {
+              "handle": 47,
+              "ownerHandle": 23,
+              "name": "DEST_ONLY",
+              "startAngleDegrees": 21.999999999999858
+            },
+            "SAME_KEY": {
+              "handle": 46,
+              "ownerHandle": 23,
+              "name": "SAME_KEY",
+              "startAngleDegrees": 15.000000000000036
+            }
+          },
+          "result": "PASS"
+        }
+      ]
+    },
+    "source": {
+      "dwg": {
+        "file": "source-ac1012.dwg",
+        "sha256": "4f0220ec113f9a17cdfcded2bedaa2213dd908cbce242e66007b24dbc662ec25",
+        "producer": "LibreDWG 0.14; locally authored specification-directed recipe"
+      },
+      "dictionaryFrame": {
+        "sha256": "fbaf235e03a52ceacff32f57b3e0334dd4cb0a535b42e659eaa66bdd7c7a49c7",
+        "sizeBytes": 52,
+        "crcValid": true,
+        "entries": {
+          "Standard": 24,
+          "SAME_KEY": 46,
+          "SOURCE_ONLY": 47
+        },
+        "ownerHandle": 12,
+        "reactorHandles": [
+          12
+        ],
+        "itemHandle": 46,
+        "cloningField": null
+      },
+      "focusedPhysicalParserControl": {
+        "executable": {
+          "path": "/Users/dli/dev/libdxfrw/build-gcc/tests/libdxfrw_dwg_ac1014_dictionaryvar_tests",
+          "sha256": "49246eaf16b08620ea5fdd401d730c587124403b6e4a735e55802d4b29c149d1"
+        },
+        "exitCode": 0,
+        "output": "physical AC1012 dictionary frame and role/refusal/retry: PASS"
+      },
+      "strictOutput": {
+        "exitCode": 1,
+        "destinationPreserved": true,
+        "refusal": "DXF export preflight failed: AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification"
+      },
+      "explicitPartialOutput": {
+        "ascii": {
+          "exitCode": 0,
+          "outputSha256": "0dd960f1da504350862832d803964aca8a41dea88edc77c5cb473c1d32cf9f78",
+          "audit": "PASS",
+          "dictionaryKeyAnglesDegrees": {
+            "SAME_KEY": 36.999999999999886,
+            "SOURCE_ONLY": 51.00000000000011
+          }
+        },
+        "binary": {
+          "exitCode": 0,
+          "outputSha256": "e959145a30fda23b1f68e370d9d89dd66e13663a12f21d1315f87c4028e387ba",
+          "audit": "PASS",
+          "dictionaryKeyAnglesDegrees": {
+            "SAME_KEY": 36.999999999999886,
+            "SOURCE_ONLY": 51.00000000000011
+          }
+        }
+      },
+      "libreDwgPeerReadback": [
+        {
+          "encoding": "ascii",
+          "dxfSha256": "0dd960f1da504350862832d803964aca8a41dea88edc77c5cb473c1d32cf9f78",
+          "peerDwgSha256": "c4401c43e6347e6e607c283a2e1982082f5f972e98d9e79149668ae993222a54",
+          "readbackJsonSha256": "b54ad5920de000c04fba43a6178b4ef580db87f48aa298cf2b07cd80a53ca6b0",
+          "dictionaryEntries": {
+            "Standard": 24,
+            "SAME_KEY": 46,
+            "SOURCE_ONLY": 47
+          },
+          "styles": {
+            "SAME_KEY": {
+              "handle": 46,
+              "ownerHandle": 23,
+              "name": "SAME_KEY",
+              "startAngleDegrees": 36.999999999999886
+            },
+            "SOURCE_ONLY": {
+              "handle": 47,
+              "ownerHandle": 23,
+              "name": "SOURCE_ONLY",
+              "startAngleDegrees": 51.00000000000011
+            }
+          },
+          "result": "PASS"
+        },
+        {
+          "encoding": "binary",
+          "dxfSha256": "e959145a30fda23b1f68e370d9d89dd66e13663a12f21d1315f87c4028e387ba",
+          "peerDwgSha256": "c4401c43e6347e6e607c283a2e1982082f5f972e98d9e79149668ae993222a54",
+          "readbackJsonSha256": "b54ad5920de000c04fba43a6178b4ef580db87f48aa298cf2b07cd80a53ca6b0",
+          "dictionaryEntries": {
+            "Standard": 24,
+            "SAME_KEY": 46,
+            "SOURCE_ONLY": 47
+          },
+          "styles": {
+            "SAME_KEY": {
+              "handle": 46,
+              "ownerHandle": 23,
+              "name": "SAME_KEY",
+              "startAngleDegrees": 36.999999999999886
+            },
+            "SOURCE_ONLY": {
+              "handle": 47,
+              "ownerHandle": 23,
+              "name": "SOURCE_ONLY",
+              "startAngleDegrees": 51.00000000000011
+            }
+          },
+          "result": "PASS"
+        }
+      ]
+    }
+  },
+  "fixturePolicy": "Both generated DWGs, emitted DXFs, frame extracts, and peer DWGs remain under /private/tmp; no testing fixture was added to the repository.",
+  "limits": [
+    "These samples bind parser frame/field structure and bounded output transport, not native AutoCAD open or duplicate-key merge semantics.",
+    "LibreDWG readback validates selected keys, target identity, owner, and MLINESTYLE angles after re-encoding; it is not an independent native CAD witness.",
+    "Strict AC1012 output remains refused atomically for this profile; explicit-partial output does not promote a support claim."
+  ]
+}

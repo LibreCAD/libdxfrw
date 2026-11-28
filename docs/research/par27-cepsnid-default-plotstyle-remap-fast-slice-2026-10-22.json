@@ -1,0 +1,46 @@
+{
+  "id": "par27-cepsnid-default-plotstyle-remap",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Allow non-null $CEPSNID only when it targets the validated default ACDBPLACEHOLDER under the unique ACAD_PLOTSTYLENAME/DICTIONARYWDFLT graph and $CEPSNTYPE is 3.",
+    "Include the HEADER reference in named-object-root validation and remap it through the same output handle map as the placeholder graph.",
+    "Refuse mismatched, missing, malformed, ambiguous, or unsupported references before destination publication."
+  ],
+  "source": {
+    "title": "Autodesk DXF HEADER system variables",
+    "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+    "use": "$CEPSNTYPE group 380 selects named plot-style behavior (value 3); $CEPSNID group 390 is the corresponding PlotStyleName object handle. This mapping does not establish local native acceptance."
+  },
+  "implementation": {
+    "files_changed": [
+      "src/drw_header.h",
+      "src/drw_header.cpp",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par27-cepsnid-default-plotstyle-remap-fast-slice-2026-10-22.json"
+    ],
+    "tests": [
+      "Generated ASCII/Binary source HEADER references target the source default placeholder; strict output readback verifies the remapped CEPSNID equals the emitted placeholder handle.",
+      "A CEPSNID changed to a different placeholder target is refused atomically.",
+      "A live CEPSNID with CEPSNTYPE 2 is refused atomically.",
+      "Standalone HEADER controls retain non-null syntactically valid values and adapter export still refuses when the referenced graph is absent."
+    ],
+    "validation": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 2: PASS (-Werror)",
+      "ctest --test-dir build-gcc -R '^(libdxfrw_header_(cepsnid|required_versions|custom_property_roundtrip)|libdxfrw_dictionary_default_adapter_roundtrip)$' --output-on-failure: PASS (4/4)",
+      "git diff --check -- touched source/test/plan files: PASS"
+    ]
+  },
+  "limitations": [
+    "Only the existing uniquely rooted DICTIONARYWDFLT default-placeholder profile is supported; other PlotStyleName objects remain unimplemented.",
+    "No persistent DWG/DXF fixture or full-suite run was added.",
+    "No independent producer/native acceptance or support-claim promotion was performed.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL; FreeCAD Linux/Windows and independent ACIS/ACDS qualification remain open."
+  ]
+}

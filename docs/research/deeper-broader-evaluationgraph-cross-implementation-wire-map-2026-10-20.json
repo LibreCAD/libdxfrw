@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader EvaluationGraph cross-implementation wire map and semantic boundary",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Compare Autodesk's semantic/API and generic DXF type references with LibreDWG's object map and ACadRust's independently implemented DXF writer sequence.",
+    "Reconcile ACadSharp implementation reports about undocumented fields and partial inference from exported DXF.",
+    "Update PAR-20/7G.3 readiness: wire sequence is testable locally; endpoint, sentinel, and graph-semantic validation remain gated."
+  ],
+  "sources": [
+    {
+      "name": "Autodesk AcDbEvalGraph ObjectARX reference",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbEvalGraph.html",
+      "evidence": "Documents a directed acyclic dependency graph, unique node IDs, and topological evaluation order; ObjectARX edge APIs describe start/end nodes and invertible, directed, or suppressed metadata.",
+      "limit": "API/semantic contract; not a DXF group-code serialization map and does not map serialized repeated integers to endpoints or metadata."
+    },
+    {
+      "name": "Autodesk ObjectARX Graphs guide",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-B520F4A9-20D0-420D-B4A3-FBEC835D0E42.htm",
+      "evidence": "Describes unique node IDs, reference counts, directed acyclic topology, and topological sorting.",
+      "limit": "Does not define DXF repeated-group meanings or nextid terminal values."
+    },
+    {
+      "name": "Autodesk DXF Group Codes and Group Code Value Types Reference",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+      "evidence": "Groups 90-99 are 32-bit integers and 360-369 are hard-ownership object IDs; the companion value-types reference classifies 330-369 as object IDs.",
+      "limit": "Generic DXF storage/type definitions; not EvaluationGraph-specific field semantics, ownership policy, or proof that an object reference is a valid expression."
+    },
+    {
+      "name": "LibreDWG OBJECTS manual",
+      "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+      "evidence": "Maps EvaluationGraph header, node, edge, and repeated group-code fields.",
+      "limit": "Implementation/manual crosswalk; does not settle every repeated-integer semantic or sentinel."
+    },
+    {
+      "name": "LibreDWG current object-name stability table",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "evidence": "Current source classifies EVALUATION_GRAPH as UNSTABLE.",
+      "limit": "Mutable branch inspection dated 2026-10-20; no pinned source build was executed."
+    },
+    {
+      "name": "ACadRust 0.5.5 crate/source",
+      "url": "https://docs.rs/crate/acadrust/0.5.5/source/",
+      "evidence": "Published package identity/version; separate Rust implementation from libdxfrw/LibreDWG."
+    },
+    {
+      "name": "ACadRust DXF section writer",
+      "url": "https://docs.rs/acadrust/0.5.5/src/acadrust/io/dxf/writer/section_writer.rs.html",
+      "evidence": "Published 0.5.5 writer emits header 96/97; node 91/93/95/360 plus four 92 values; edge 92/93/94, two 91 values, and five 92 values.",
+      "limit": "Writer field names corroborate that implementation's model, not normative proof of semantic meaning. Docs.rs resolves to published 0.5.5 for this audit; current GitHub main Cargo.toml declares 0.6.5, whose writer source was not checked. No peer runtime or sample was exercised."
+    },
+    {
+      "name": "ACadRust current GitHub main package manifest",
+      "url": "https://github.com/hakanaktt/acadrust/blob/main/Cargo.toml",
+      "evidence": "Current mutable main manifest declares package version 0.6.5; the current writer source reviewed in this pass emits the same EvaluationGraph group ordering as published 0.5.5.",
+      "limit": "Mutable branch source, not yet independently bound to the v0.6.5 release commit; no build, executable, or sample qualification was performed."
+    },
+    {
+      "name": "ACadRust current GitHub main DXF writer source",
+      "url": "https://raw.githubusercontent.com/hakanaktt/acadrust/main/src/io/dxf/writer/section_writer.rs",
+      "evidence": "Current source writes EvaluationGraph header groups 96/97, node groups 91/93/95/360 with four 92 values, and edge groups 92/93/94 with two 91 and five 92 values.",
+      "limit": "Mutable main branch snapshot inspected 2026-10-20; no runtime or output artifact was produced, and its source was not independently fetched at the v0.6.5 commit."
+    },
+    {
+      "name": "ACadRust v0.6.5 release identity",
+      "url": "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.5",
+      "evidence": "The release page identifies v0.6.5 and points to commit 289a616da6c68518218594aa80802cbe7fa71309.",
+      "limit": "Release identity only; the exact tag's writer source was not fetched, built, or run in this pass."
+    },
+    {
+      "name": "ACadSharp issue #161",
+      "url": "https://github.com/DomCR/ACadSharp/issues/161",
+      "evidence": "Contributor reports undocumented EvaluationGraph fields and a reader inferred from DXF exports.",
+      "limit": "Project-author implementation report, not a format specification."
+    },
+    {
+      "name": "ACadSharp issue #206",
+      "url": "https://github.com/DomCR/ACadSharp/issues/206",
+      "evidence": "Contributor describes the reader as useful but incomplete and difficult to complete without documentation.",
+      "limit": "Project-author implementation report, not independent semantic qualification."
+    },
+    {
+      "name": "Autodesk community 2008 EvaluationGraph resbuf fragment",
+      "url": "https://forums.autodesk.com/t5/net-forum/solid-creation-via-code-dxf-codes-missing/m-p/2304631/highlight/true",
+      "evidence": "A user-posted fragment offers a possible future native trace lead with a one-node object and four -1 group-92 values.",
+      "limit": "No file, full graph, bound AutoCAD build, or independent decode; non-normative and non-promoting."
+    }
+  ],
+  "planDisposition": {
+    "wireSequence": "CROSS_IMPLEMENTATION_CORROBORATED_AND_LOCALLY_TESTED_ACROSS_TWO_NODE_AND_TWO_EDGE_RECORDS",
+    "endpointMeaning": "UNRESOLVED",
+    "nextidTerminalConvention": "UNRESOLVED",
+    "dagSemanticValidation": "DEFERRED_PENDING_SEMANTICALLY_KNOWN_TRACE_OR_AUTHORITATIVE_SERIALIZATION_SOURCE",
+    "supportClaimsPromoted": 0,
+    "externalRuntimeExecuted": false,
+    "externalDrawingUsed": false,
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "testSliceRecorded": true,
+    "productionBehaviorChanged": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

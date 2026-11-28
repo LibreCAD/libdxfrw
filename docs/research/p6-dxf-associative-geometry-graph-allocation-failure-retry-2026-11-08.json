@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-associative-geometry-graph-allocation-failure-retry-2026-11-08",
+  "date": "2026-11-08",
+  "status": "GENERATED_AC1024_ROOTED_GEOMETRY_DEPENDENCY_GRAPH_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep allocations inside the OBJECTS callback for a rooted AC1024 NETWORK/GROUP/GEOMDEPENDENCY/LINE graph.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory dx_data graph",
+    "profile": "NOD ACAD_ASSOCNETWORK -> association DICTIONARY -> NETWORK -> owned 2D constraint GROUP -> owned geometry dependency -> LINE target; the group's constraint action and inline implicit-point node reference the dependency, and the LINE has the reciprocal dependency reactor. The geometry dependency uses AcDbAssocEdgePersSubentId indices 201/202.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "d563fcc3",
+    "files": {
+      "tests/associative_geometry_graph_allocation_tests.cpp": "4dc26f091b855062cfdb8ae49e4144b25da7a5eead344af568cabfea674414a8",
+      "tests/CMakeLists.txt": "0e8f20409438eb87d67178cf819da61020e4602a9bf09e390bb53e45221ee5e9"
+    },
+    "method": "Warm and calibrate per encoding. Inject std::bad_alloc at each reached OBJECTS callback allocation; require failed whole-file publication, byte-identical destination sentinel preservation, source graph identity/target/subentity preservation, same-adapter retry, and fresh DXF typed readback of root, ownership, group references, dependency target/subentity fields, and reciprocal LINE reactor.",
+    "productionCodeChanged": false
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_ENABLE_FREECAD_DESKTOP_CONTROL=OFF -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_LINE_CONTROL=OFF: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_associative_geometry_graph_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_associative_geometry_graph_allocation_retry$' --output-on-failure: PASS 1/1",
+    "ascii": "52/52 callback allocation offsets injected; destination and source graph preserved; same-adapter retry and typed rooted graph readback passed.",
+    "binary": "50/50 callback allocation offsets injected; destination and source graph preserved; same-adapter retry and typed rooted graph readback passed.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated serialization and graph-closure control only; no physical producer prevalence, native constraint solving, or geometric semantics are established.",
+    "The test graph uses one LINE, one inline implicit point, and one Edge persistent-subentity profile. Other geometry targets/subentity classes and selected graph projections remain outside scope.",
+    "No support claim is promoted."
+  ],
+  "nextAction": "Add allocation rollback/retry/readback coverage for the typed AC1024 dimension-dependency-body writer inside a rooted associative graph; preserve source-prevalence and semantic gates."
+}

@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "purpose": "Acquire and check publicly available AC1024 DWG candidates against the reported AutoCAD 2010 RTM CLASSES-size failure.",
+  "source_revision": "7afde471",
+  "tool": {
+    "path": "build/dwg2dxf/dwg2dxf",
+    "operation": "build/dwg2dxf/dwg2dxf <input> -y -d -v2010 <temporary-output>"
+  },
+  "inputs": [
+    {
+      "name": "line_2010.dwg",
+      "source_url": "https://github.com/nextgis/dwg_samples/blob/master/line_2010.dwg",
+      "repository_provenance": "The repository README says the DWGs were produced with trial AutoCAD 2016 M.49.0.0.",
+      "downloaded_to": "/private/tmp/nextgis-line_2010.dwg",
+      "sha256": "60e06849a90e6724a495e3a05d867a8621f19a876ec3bcdb8af4c731cba6f214",
+      "header": "AC1024",
+      "result": {
+        "readDwgClasses_end": true,
+        "classes_crc_mismatch": false,
+        "operationSucceeded": true,
+        "legacyError": 0
+      }
+    }
+  ],
+  "other_public_sources": [
+    {
+      "url": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/6XGQklp3ZcBFqljLPjrnQ9.html",
+      "description": "Autodesk's public AutoCAD sample collection, stated to apply to AutoCAD 2010 and later.",
+      "limitation": "Autodesk does not identify the saving release for each individual file, so the collection page alone cannot establish an AutoCAD 2010 RTM witness."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/tree/master/samples",
+      "description": "Public repository lists sample_AC1024.dwg alongside matching ASCII and Binary DXFs.",
+      "limitation": "The binary fetch returned empty content in this check; no local parser result or producer provenance is claimed."
+    }
+  ],
+  "conclusion": "A downloadable online AC1024 file was acquired and verified, but it passes CLASSES and is documented as produced by AutoCAD 2016. The candidate improves external format coverage but does not reproduce the reported AutoCAD 2010 RTM failure. The CLASSES parser remains unchanged; the RTM defect and historical missing tenth input remain unresolved. No external drawing was added to the repository."
+}

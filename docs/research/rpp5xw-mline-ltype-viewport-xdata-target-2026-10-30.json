@@ -1,0 +1,78 @@
+{
+  "id": "RPP-5xw",
+  "title": "AC1027 VIEWPORT LTYPE XDATA targets in ENTITIES and named BLOCKS",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "2359ccbcbfd52386ab967784d61ae76e005c2f77",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated original ASCII and binary DXF records; no repository drawing fixture was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One VIEWPORT code-1005 target in model-space ENTITIES and one in named AuthorityBlock BLOCKS across all four source/output encoding pairs per section.",
+    "target": {
+      "type": "VIEWPORT",
+      "handle": "0xA900",
+      "entities_owner": "0x201",
+      "blocks_owner": "0x203",
+      "block": "AuthorityBlock",
+      "base_point": [4.0, 5.0, 0.0],
+      "paper_size": [205.0, 156.0],
+      "status": 1,
+      "viewport_id": 42,
+      "view_center": [128.5, 97.5],
+      "view_direction": [0.0, 0.0, 1.0],
+      "view_target": [0.0, 0.0, 0.0],
+      "view_height": 50.0
+    },
+    "xdata": {
+      "provider": "source-bound simple LTYPE EditDash and APPID MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "reference": {"code": 1005, "source_handle": "0xA900"}
+    }
+  },
+  "proof": {
+    "source": "Candidate binding requires matching the physical VIEWPORT span and owner, the actual addViewport parser event, exact DRW_Viewport dynamic type, unique live handle and (for BLOCKS) complete structural membership proof with the selected Primary role and block-record owner.",
+    "output": "All eight ASCII/binary input/output and section combinations verify remapped VIEWPORT identity, section, owner and block membership; selected physical viewport extents, status/id, center, direction, target and height; ordered LTYPE code-1005 remapping; and fresh typed VIEWPORT/LTYPE readback.",
+    "failure_retry": "Each of the eight success combinations removes the target and verifies destination preservation followed by same-adapter retry. Separate late-handle mutation controls refuse with destination preservation and succeed after restoring target identity for each section.",
+    "counts": {
+      "viewport_success_profiles": 8,
+      "viewport_readbacks_including_retry_and_mutation_retry": 18,
+      "viewport_refusals_with_destination_preservation": 10,
+      "viewport_same_adapter_retries": 10,
+      "whole_focused_test_profiles": 452,
+      "whole_focused_test_readbacks": 1038,
+      "whole_focused_test_refusals": 586,
+      "whole_focused_test_retries": 586
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target dwg2dxf libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 26.96 seconds)"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_bindings": {
+      "implementation_commit": "2359ccbcbfd52386ab967784d61ae76e005c2f77",
+      "source_sha256": {
+        "dwg2dxf/dx_iface.cpp": "f8b6a09b9bf6bab1169f4d27e5d3e2e06e912c310ad6fd0cb1090b9d09785471",
+        "tests/dxf_fixture_tests.cpp": "51465b8f04026f5ae9a99a8771952704323daff79d311b5ac155e6353cec2641"
+      },
+      "normal_executable_sha256": "9b7b8b6ed9a41fdabfb4c1d289f28f4ed2c470341f5e2af11ad44cb5a3632bc3",
+      "converter_executable_sha256": "fc1c06700c56c1334bdc1a417689060907737b9f7a2d56d5b812055bf95e8eac",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4"
+    }
+  },
+  "limits": [
+    "This qualifies one AC1027 VIEWPORT profile in each of ENTITIES and a named BLOCKS record. Other viewport fields/versions, paper-space LAYOUT association, viewport handle dependencies and mixed target sets remain unqualified.",
+    "The named-block source is a transport profile. It does not establish native viewport placement, rendering, a complete layout graph or independent CAD semantics.",
+    "P2 remains open for other code-1005 target types, mixed target sets and broader source/output profiles."
+  ],
+  "next": "Select the next P2 target only after reproducing a concrete code-1005 parser, source-binding or emitted-output gap; avoid expanding viewport scope beyond the fields and owners independently bound here."
+}

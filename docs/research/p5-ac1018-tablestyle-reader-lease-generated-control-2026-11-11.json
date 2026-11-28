@@ -1,0 +1,15 @@
+{
+  "id": "p5-ac1018-tablestyle-reader-lease-generated-control-2026-11-11",
+  "scope": "Generated AC1018 object-frame classification and actual TABLESTYLE typed/raw callback dispatch; no reader ticket, physical provenance or semantic/output qualification.",
+  "generated_source": "The existing dwg_tablestyle_ac1018_candidate_tests --emit-body constructs the body from field primitives; it copies no drawing or DXF fixture. Generated body SHA256 8fc864c19c3588fd7167908650b39d7ec369cdeb9508b1337da1873cc5c8abda happens to equal the source-observed body because every encoded value was independently specified. The test adds its own modular-short frame and CRC16 in memory.",
+  "method": "tests/dwg_tablestyle_reader_source_tests.cpp creates a reader, decoded-buffer object-map source identity, object class entry, deferred classification and Pending ledger entry, then calls the actual OBJECTS reader. A matching case publishes exactly one source frame and reaches the standalone raw/typed selected-field observer. Source callbacks are test sinks and are not non-forgeable reader tickets. Wrong entity route and corrupt frame CRC fail without a TABLESTYLE model.",
+  "class_identity_finding": "The ordinary reader dispatch recognizes the record name TABLESTYLE OR class name AcDbTableStyle. The generated mismatched-name controls verify both OR cases can reach typed/raw callbacks, but the standalone observer rejects both. Any future private reader-origin ticket must require both exact reader-owned class spellings and the object classification route; no change to ordinary dispatch behavior is proposed.",
+  "run": {
+    "emit": "build/tests/libdxfrw_dwg_tablestyle_ac1018_candidate_tests --emit-body /private/tmp/p5-style-generated.bin",
+    "compile": "clang++ -std=c++17 -Wall -Wextra -Werror -I/private/tmp/p5-desc-isolated-source/dwg2dxf -I/private/tmp/p5-desc-isolated-source/src -Isrc tests/dwg_tablestyle_reader_source_tests.cpp src/intern/dwg_tablestyle_ac1018_candidate.cpp /private/tmp/p5-desc-isolated-build/dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o /private/tmp/p5-desc-isolated-build/libdxfrw.a -framework CoreFoundation -o /private/tmp/p5-style-reader-source-test",
+    "isolated_reader": "The isolated reader is git archive e5341dd31d686c529ba2f8172de56868bc3551b9 configured and built with CMake; see p5-ac1018-tablestyle-cellstylemap-graph-wire-2026-11-11.json.",
+    "execute": "/private/tmp/p5-style-reader-source-test /private/tmp/p5-style-generated.bin",
+    "result": "PASS for matching tuple, entity-route mismatch, record-name mismatch, class-name mismatch, and bad CRC. The mismatch callbacks only test the standalone observer; they do not yet exercise a future TableStyle ticket."
+  },
+  "next": "Extend private ticket selection and transaction-bounded source bundle after concurrent TABLE model work is committed; then add end-to-end ticket and selected-field mutation/retry tests. Continue to gate STYLE/LTYPE/font and extension-graph closure and any output claim."
+}

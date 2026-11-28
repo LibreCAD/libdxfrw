@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-mechanical-dimension-node-dependency-closure-2026-11-08",
+  "date": "2026-11-08",
+  "title": "AC1024 mechanical dimension constraint node dependency closure",
+  "status": "BOUNDED_PHYSICAL_SOURCE_GRAPH_CLOSURE_PASSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "profileReceipt": "docs/research/p4-ac1024-associative-graph-route-2026-10-31.json",
+    "dimensionDependencyCount": 17,
+    "constraintNodeCount": 399
+  },
+  "implementation": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "test": "physicalAssociativeDimensionDependencyOutputReadback",
+    "testSourceSha256": "d41fc437da764476788465f96279b2d5d10870fe460922323ccb0d19fcbb953f",
+    "summary": "For every source dimension dependency, require exactly one matching constraint node in the owning constraint group. Admit only Distance and RadiusDiameter node kinds, and require both dimension and value references to use hard-pointer roles. Resolve each value edge to a distinct typed, wire-complete ACDBASSOCVALUEDEPENDENCY listed exactly once among the owning group action handles, then resolve its dependency target to a distinct typed, wire-complete ACDBASSOCVARIABLE with a parsed value. Mutate one value dependency after the OBJECTS callback and require atomic refusal plus same-adapter corrected retry."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "physicalGate": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocdependency-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary DXF",
+      "observed": "Both encodings reported 17 linked dependency/body pairs, all 399 constraint nodes, group and dimension roles, atomic refusal, same-adapter retry, and typed readback. All 17 dimension nodes resolve to distinct typed value dependencies and distinct typed associative variables. Fresh DXF readback preserves each value-dependency and variable represented field. Late mutation of a source value-dependency value after the OBJECTS callback is refused without replacing the destination sentinel; restoration and retry succeeds on the same adapter. An injected std::bad_alloc immediately after the full OBJECTS callback preserves the prior destination in both encodings; the same adapter then retries successfully and the final fresh readback passes. The DXF assertion intentionally does not compare the DWG-only associativeVariableWireComplete span marker."
+    },
+    "coverage": [
+      "Unique source constraint-node reference for each of 17 dimension dependencies",
+      "Admitted Distance or RadiusDiameter node kind",
+      "Hard-pointer dimension and value dependency roles",
+      "Unique typed and wire-complete value dependency in the owning group's action list",
+      "Distinct typed and wire-complete associative-variable target for each value dependency",
+      "ASCII and Binary readback of represented value-dependency and variable fields",
+      "Late dimension-body, constraint-node, and value-dependency mutation refusal",
+      "Sentinel preservation and corrected same-adapter retry after each late mutation",
+      "Post-OBJECTS callback std::bad_alloc refusal with destination preservation and same-adapter retry in ASCII and Binary"
+    ],
+    "fullSuites": "NOT_RUN; focused physical gate only"
+  },
+  "fixturePolicy": "No DWG or DXF fixture was added or committed; the source is an existing local LibreCAD research sample.",
+  "limitations": [
+    "This proves a bounded source-profile graph and selected output path only; it does not qualify whole-drawing conversion.",
+    "No independent native CAD semantic or platform qualification is established.",
+    "Do not promote general associative dimension, DWG, or DXF support claims from this witness."
+  ],
+  "next": "Resume P4 only when a distinct saved OBJECTS profile closes source identity, owner/dependency roles, and byte/frame disposition. The current census has no additional ready physical graph; continue locally actionable P5/P6 items without repeating scans or the ineligible AC1027 Sweep tail."
+}

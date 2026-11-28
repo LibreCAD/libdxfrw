@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw-field-emitted-object-closure-source-audit-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "IMPLEMENTATION_READINESS_GAP_CONFIRMED",
+  "scope": "Determine whether current writer state can prove that FIELD/FIELDLIST references resolve to records actually emitted by the DXF transaction.",
+  "sources": [
+    {
+      "path": "src/intern/dxfwriter.h",
+      "lines": "76-119",
+      "observation": "DxfWriterRecordScope stages and commits a byte range but does not capture DXF record type, section, source identity, or emitted code-5 handle."
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "lines": "1895-1947",
+      "observation": "EntityRecordScope combines byte commit with RecordStateScope for selected entity/table-entry writers; it is not a universal record-emission observer."
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "lines": "9835-10055",
+      "observation": "writeObjects stages writer-owned and adapter-callback object records inside a larger OBJECTS transaction, then commits the section bytes and record state together."
+    },
+    {
+      "path": "src/libdxfrw.h",
+      "lines": "460-540",
+      "observation": "The existing sourceHandleToMintedMap APIs are scoped to source entities and selected preserved raw records; their contract does not claim a complete output-object inventory."
+    },
+    {
+      "path": "src/intern/dwg_dxf_output_transaction.h",
+      "lines": "35-72",
+      "observation": "The transaction exposes its output stream but keeps its temporary path private and has no pre-publication readback or record-verification API."
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "lines": "2574-2639",
+      "observation": "OBJECTS writing and EOF complete before finalizeDxfWrite and atomic output commit; a complete staged-output validator could be added before publication, but no such hook exists today."
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "lines": "3065-3345",
+      "observation": "hasCompleteAutoCadFieldGraph builds knownObjectHandles from adapter candidate collections before checking FIELD edges, not from writer-confirmed published records."
+    }
+  ],
+  "conclusion": {
+    "candidateHandlesProveEmission": false,
+    "sourceToMintedEntityMapIsCompleteObjectInventory": false,
+    "currentWriterHasUniversalPublishedRecordLedger": false,
+    "fieldExportMayBeEnabled": false,
+    "fieldExportMustRemainFailClosed": true
+  },
+  "requiredNextGates": [
+    "Resolve FIELD producer wire semantics independently of self-round-trip.",
+    "Design a writer-wide committed-record manifest with nested rollback or a bounded staged-output validator before publication.",
+    "Cover all candidate target routes and check unique record identity, record type, source/remapped handles, and successful enclosing transaction commit.",
+    "Add generated ASCII and binary tests for rollback, duplicate identity, unresolved/wrong-type targets, remapping, and following-record framing.",
+    "Enable only an explicitly qualified subset; retain failure-closed behavior otherwise."
+  ],
+  "validation": {
+    "externalResearchOrRuntime": "not performed; this receipt records direct source review only",
+    "codeChanged": false,
+    "testsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 122,
+      "topLevelSubplans": 70
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "committed": false
+  }
+}

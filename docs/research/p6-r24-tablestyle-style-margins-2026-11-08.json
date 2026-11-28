@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-08",
+  "topic": "R24 TABLESTYLE per-style margin override transport",
+  "status": "bounded_generated_writer_readback_pass",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.101.4",
+    "fields": [
+      "BS group 171 margin override flags; bit 1 indicates overrides",
+      "BD group 40 vertical margin",
+      "BD group 40 horizontal margin",
+      "BD group 40 bottom margin",
+      "BD group 40 right margin",
+      "BD group 40 margin horizontal spacing",
+      "BD group 40 margin vertical spacing"
+    ]
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "sha256": "12b89a7f22478c2f4a0c5e22cada3260b6c5edc46d3134397e3926332154d755",
+    "profile": "Each R24 cell style independently admits margin flag 0 only with all-zero payload, or flag 1 with finite nonnegative values. The former all-custom-styles-equal and exact 0.06/0.18 restrictions are removed; other fields remain on the existing exact style profile."
+  },
+  "control": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "sha256": "b5d9aa0e52b65dc8d49c7ae4b1d8869ea91e03e7aa2f5fe4b7c53096bc98c28c",
+    "selector": "--tablestyle-r24-typed-writer",
+    "generated_from_scratch": true,
+    "positive_profile": {
+      "encoding": ["ASCII", "Binary"],
+      "styles": [
+        "Table cell style: explicit default margins",
+        "Title: explicit margins 0.17, 0.19, 0.21, 0.23, 0.27, 0.29",
+        "Header: inherited margins with zero payload",
+        "Data: explicit margins 0.31, 0.33, 0.35, 0.37, 0.39, 0.41"
+      ]
+    },
+    "checks": [
+      "Typed readback compares each of the six values and the override flag against its source style.",
+      "Raw group-40 order and group-171 flags are compared against the serialized per-style sequence.",
+      "Negative and infinite margins, an unsupported override flag, and a nonzero payload with override flag zero are refused with destination preservation.",
+      "Corrected data succeeds on the same adapter after refusal."
+    ],
+    "fixture_policy": "No DWG/DXF fixture is committed; output is temporary and removed."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "test": "ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+    "result": "passed; 1/1 selected CTest, 1.90 seconds"
+  },
+  "limits": [
+    "This establishes generated serializer/readback transport for finite nonnegative per-style margins.",
+    "It does not establish native table layout/rendering, physical DWG producer coverage, arbitrary undocumented override flags, or whole-source conversion.",
+    "AC1027 aggregate source-reference and HEADER gates are unchanged."
+  ]
+}

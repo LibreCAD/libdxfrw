@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-point-reflection-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "d33832449a24a153b605e7b55dd826e3f5e6ae34",
+  "change": "Replace POINT mirror rotation with the existing geo::Coordinate mirror helper used by LINE and CIRCLE. This supersedes the earlier POINT mirror-only elevation control.",
+  "validation": [
+    "The pre-change test showed that reflecting (1,2,3) about the X axis incorrectly returned (1,2,3); the shared 3D line-reflection helper returns (1,-2,-3).",
+    "A second control reflects (1,2,3) about the line through (2,0,3) and (2,1,3), yielding (3,2,3). Identity and layer are preserved.",
+    "57 BuilderTest and EntityBuilderTest cases pass on macOS ARM64, including the point, locked-layer, compound-stack and undo/redo controls."
+  ],
+  "logsSha256": {
+    "red": "495450ee1ff5148c3e131af425f7f0d88c63f691ae04dc45e52662162de3394f",
+    "build": "99bcf493603f9ce3904c3c6a844b5b6a21d41ad87fcfec84f47fd305b018f3e3",
+    "operations": "a449d179c2e31ee79def4ea65c1c6cf86e388cdf8e522acd18b0012a079ec565"
+  },
+  "limitations": [
+    "The result follows this project's shared reflection about a 3D line; it does not claim reflection across a 3D plane or native-rendering interoperability.",
+    "Degenerate mirror axes and other entity types follow the existing shared helper and are not newly qualified."
+  ]
+}

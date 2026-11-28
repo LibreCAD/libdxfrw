@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-acds-dataindex-ambiguity-refusal-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "ODA section review plus generated local reader-matrix control",
+  "question": "Does a structurally ambiguous AcDs DataIndex publish a partial typed/raw section or permit attachment retry contamination?",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["24.2.2.1", "24.2.2.2", "24.2.2.3"],
+    "summary": "The segment index maps segment indexes to stream ranges; the DataIndex maps object entries to a segment index/local offset/schema index; the data segment stores records keyed by those indexed local offsets and carries the object handle in each record header.",
+    "limit": "The ODA layout does not define recovery semantics for duplicate or conflicting index entries; local fail-closed behavior is a safety policy, not a new normative DWG rule."
+  },
+  "localAudit": {
+    "capture": "dwgReader18::captureRawDwgDataSections parses into local staged raw/typed vectors and returns false for parseFailed, structurally invalid, or !replayAllowed DataStorage before publishing either vector.",
+    "caller": "dwgReader18::readDwgTables returns false when captureRawDwgDataSections fails; object traversal is downstream of that stage.",
+    "linker": "linkDataStorage only sees sections successfully committed by the capture path; no production guard was added because the suspected invalid-section attachment was not reachable through the audited caller."
+  },
+  "generatedControl": {
+    "owner": "tests/dwg_reader_matrix_tests.cpp::testModelerAcDsDataIndexOrder",
+    "input": "The existing from-scratch AC1027 multi-record AcDs fixture is mutated so two DataIndex rows target the same physical record location, yielding a structural diagnostic and replayAllowed=false.",
+    "assertions": [
+      "captureDataStorageSection rejects the ambiguous section",
+      "no raw DataStorage section or typed record index is published",
+      "the same reader captures the unmodified valid section after refusal",
+      "the existing positive reordered-payload/LINE-sentinel control remains intact"
+    ],
+    "fixtures": "All bytes are generated in test code; no DWG, DXF, or SAB file is added."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg_reader_matrix_tests -j4",
+    "focused": "./build/libdxfrw_dwg_reader_matrix_tests --acds-dataindex-order",
+    "ctest": "ctest --test-dir build -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+    "diffCheck": "git diff --check -- tests/dwg_reader_matrix_tests.cpp",
+    "result": "PASS"
+  },
+  "disposition": {
+    "classification": "EXISTING_FAIL_CLOSED_CAPTURE_CONFIRMED; generated atomic-publication and same-reader-retry regression added",
+    "productionChange": false,
+    "persistentFixtureAdded": false,
+    "supportClaimPromoted": false,
+    "deferredExternalItems": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "worktree": "Uncommitted in the pre-existing broadly dirty worktree; no unrelated changes were staged."
+  }
+}

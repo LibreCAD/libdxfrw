@@ -1,0 +1,402 @@
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index fefcf30a3..deb6b7225 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -4306,6 +4306,8 @@ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
+   m_importLayerCache.clear();
+   m_importLayerRawCache.clear();
+   m_mlineStyleCache.clear();
++  m_deferDxfMLines = false;
++  m_pendingDxfMLines.clear();
+   m_underlayDefMap.clear();
+   m_xrefBlockNames.clear();
+   m_pendingDimStyleArrowRefs.clear();
+@@ -4453,7 +4455,8 @@ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
+     // callback. Protect the original before parsing, not only on full success.
+     if (m_dxfTextEncoding == RS2::DxfTextEncoding::LegacyLibreCadUtf8)
+       m_graphic->setDxfRecoverySourceFile(QFileInfo(file).absoluteFilePath());
+-    m_dxfR = new dxfRW(QFile::encodeName(file));
++    auto dxfReader = std::make_unique<dxfRW>(QFile::encodeName(file));
++    m_dxfR = dxfReader.get();
+     m_dxfR->setDxfTextEncoding(
+         m_dxfTextEncoding == RS2::DxfTextEncoding::LegacyLibreCadUtf8
+             ? DRW::DxfTextEncoding::LegacyLibreCadUtf8
+@@ -4464,17 +4467,29 @@ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
+       m_dxfR->setDebug(DRW::DebugLevel::Debug);
+     }
+     bool success{false};
+-    if (file.startsWith(":")) {
+-      // load content from resources. It SHOULD be present in resource!
+-      QFile resourceFile(file);
+-      if (resourceFile.open(QIODevice::ReadOnly)) {
+-        QByteArray contentString = resourceFile.readAll();
+-        resourceFile.close();
+-        std::string content = contentString.toStdString();
+-        success = m_dxfR->readAscii(this, true, content);
++    m_deferDxfMLines = true;
++    try {
++      if (file.startsWith(":")) {
++        // load content from resources. It SHOULD be present in resource!
++        QFile resourceFile(file);
++        if (resourceFile.open(QIODevice::ReadOnly)) {
++          QByteArray contentString = resourceFile.readAll();
++          resourceFile.close();
++          std::string content = contentString.toStdString();
++          success = m_dxfR->readAscii(this, true, content);
++        }
++      } else {
++        success = m_dxfR->read(this, true);
+       }
+-    } else {
+-      success = m_dxfR->read(this, true);
++      m_deferDxfMLines = false;
++      // A failed read can leave a drawing that its caller chooses to keep.
++      // Finish both paths before INSERTs snapshot their block contents.
++      finishPendingDxfMLines();
++    } catch (...) {
++      m_deferDxfMLines = false;
++      m_pendingDxfMLines.clear();
++      m_dxfR = nullptr;
++      throw;
+     }
+     RS_DEBUG->print("RS_FilterDXFRW::fileImport: reading file: OK");
+     if (success) {
+@@ -4495,12 +4510,11 @@ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
+       RS_DEBUG->print(RS_Debug::D_WARNING, "Cannot open DXF file '%s'.",
+                       (const char *)QFile::encodeName(file));
+       m_errorCode = m_dxfR->getError();
+-      delete m_dxfR;
++      m_dxfR = nullptr;
+       updateImportedInserts(*m_graphic);
+       return false;
+-    } else {
+-      delete m_dxfR;
+     }
++    m_dxfR = nullptr;
+ #ifdef DWGSUPPORT
+   }
+ #endif
+@@ -5224,6 +5238,14 @@ void RS_FilterDXFRW::endBlock() {
+     // remove unnamed blocks *D only if version != R12
+     if (m_version != 1009 && m_graphic != nullptr) {
+       if (bk->getName().startsWith("*D")) {
++        // The block and its placeholders are destroyed here, before OBJECTS
++        // supplies late styles. Never leave their pointers in the DXF queue.
++        m_pendingDxfMLines.erase(
++            std::remove_if(m_pendingDxfMLines.begin(), m_pendingDxfMLines.end(),
++                           [bk](const PendingDxfMLine &pending) {
++                             return pending.container == bk;
++                           }),
++            m_pendingDxfMLines.end());
+         m_graphic->removeBlock(bk);
+       }
+     }
+@@ -7550,11 +7572,79 @@ void RS_FilterDXFRW::addMLine(const DRW_MLine *data) {
+   if (!data || data->vertlist.empty() || data->numLines == 0)
+     return;
+
++  const auto style = m_mlineStyleCache.find(QString::fromUtf8(data->styleName.c_str()));
++  const bool styleHandleMismatch = style != m_mlineStyleCache.end()
++      && data->styleHandle != 0u && data->styleHandle != DRW::NoHandle
++      && style->second.handle != data->styleHandle;
++  if (m_deferDxfMLines && (style == m_mlineStyleCache.end()
++      || style->second.elements.size() != static_cast<std::size_t>(data->numLines)
++      || styleHandleMismatch)) {
++    PendingDxfMLine pending;
++    // Retain only the projection inputs, not the potentially much larger
++    // per-vertex segment/fill arrays or other callback-owned data.
++    pending.source = std::make_unique<DRW_MLine>();
++    pending.source->handle = data->handle;
++    pending.source->styleHandle = data->styleHandle;
++    pending.source->styleName = data->styleName;
++    pending.source->scale = data->scale;
++    pending.source->justification = data->justification;
++    pending.source->openClosed = data->openClosed;
++    pending.source->numLines = data->numLines;
++    pending.source->vertlist.reserve(data->vertlist.size());
++    for (const auto &vertex : data->vertlist) {
++      DRW_MLineVertex copy;
++      copy.position = vertex.position;
++      copy.miterDir = vertex.miterDir;
++      pending.source->vertlist.push_back(std::move(copy));
++    }
++    pending.container = m_currentContainer;
++    pending.placeholders.reserve(data->numLines);
++    std::vector<std::unique_ptr<RS_Polyline>> prepared;
++    prepared.reserve(data->numLines);
++    const bool closed = (data->openClosed & 0x1) != 0;
++    for (int i = 0; i < data->numLines; ++i) {
++      RS_PolylineData pd(RS_Vector{}, RS_Vector{}, closed);
++      auto polyline = std::make_unique<RS_Polyline>(m_currentContainer, pd);
++      setEntityAttributes(polyline.get(), data);
++      prepared.push_back(std::move(polyline));
++    }
++    m_pendingDxfMLines.push_back(std::move(pending));
++    auto &queued = m_pendingDxfMLines.back();
++    for (auto &polyline : prepared) {
++      RS_Polyline *placeholder = polyline.get();
++      m_currentContainer->addEntity(placeholder);
++      polyline.release();
++      queued.placeholders.push_back(placeholder);
++    }
++    return;
++  }
++  projectMLine(data);
++}
++
++void RS_FilterDXFRW::finishPendingDxfMLines() {
++  std::set<RS_EntityContainer *> affected;
++  for (const auto &pending : m_pendingDxfMLines) {
++    projectMLine(pending.source.get(), &pending.placeholders);
++    affected.insert(pending.container);
++  }
++  m_pendingDxfMLines.clear();
++  for (auto *container : affected)
++    if (container != nullptr)
++      container->calculateBorders();
++}
++
++void RS_FilterDXFRW::projectMLine(
++    const DRW_MLine *data, const std::vector<RS_Polyline *> *placeholders) {
+   const int N = data->numLines;
+   QString styleName = QString::fromUtf8(data->styleName.c_str());
+   auto styleIt = m_mlineStyleCache.find(styleName);
+   const DRW_MLineStyle *style =
+       (styleIt != m_mlineStyleCache.end()) ? &styleIt->second : nullptr;
++  // A nonzero source handle may not bind to a different same-named style,
++  // regardless of whether its style callback arrived before or after MLINE.
++  if (style != nullptr && data->styleHandle != 0u
++      && data->styleHandle != DRW::NoHandle && style->handle != data->styleHandle)
++    style = nullptr;
+
+   // Compute effective per-element offsets after justification + scale.
+   // Justification: 0=top, 1=zero/middle, 2=bottom. The reference offset
+@@ -7584,9 +7674,16 @@ void RS_FilterDXFRW::addMLine(const DRW_MLine *data) {
+   const bool closed = (data->openClosed & 0x1) != 0;
+
+   for (int i = 0; i < N; ++i) {
+-    RS_PolylineData pd(RS_Vector{}, RS_Vector{}, closed);
+-    auto polyline = std::make_unique<RS_Polyline>(m_currentContainer, pd);
+-    setEntityAttributes(polyline.get(), data);
++    std::unique_ptr<RS_Polyline> owned;
++    RS_Polyline *polyline = nullptr;
++    if (placeholders != nullptr) {
++      polyline = (*placeholders)[static_cast<std::size_t>(i)];
++    } else {
++      RS_PolylineData pd(RS_Vector{}, RS_Vector{}, closed);
++      owned = std::make_unique<RS_Polyline>(m_currentContainer, pd);
++      polyline = owned.get();
++      setEntityAttributes(polyline, data);
++    }
+
+     for (const auto &v : data->vertlist) {
+       RS_Vector miter(v.miterDir.x, v.miterDir.y);
+@@ -7634,7 +7731,8 @@ void RS_FilterDXFRW::addMLine(const DRW_MLine *data) {
+     }
+     polyline->setDrwExtData(std::move(ext));
+
+-    m_currentContainer->addEntity(polyline.release());
++    if (owned)
++      m_currentContainer->addEntity(owned.release());
+   }
+ }
+
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.h b/librecad/src/lib/filters/rs_filterdxfrw.h
+index edcb3d2f4..7029c017a 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.h
++++ b/librecad/src/lib/filters/rs_filterdxfrw.h
+@@ -3129,6 +3129,18 @@ private:
+    *  the OBJECTS section is decoded; consumed by addMLine to compute
+    *  per-element offsets when decomposing the MLINE into N polylines. */
+   std::map<QString, DRW_MLineStyle> m_mlineStyleCache;
++  // DXF OBJECTS follows BLOCKS/ENTITIES: retain unresolved MLINEs at their
++  // original entity slots until their style callbacks have been delivered.
++  struct PendingDxfMLine {
++    std::unique_ptr<DRW_MLine> source;
++    RS_EntityContainer *container = nullptr;
++    std::vector<RS_Polyline *> placeholders;
++  };
++  bool m_deferDxfMLines = false;
++  std::vector<PendingDxfMLine> m_pendingDxfMLines;
++  void projectMLine(const DRW_MLine *data,
++                    const std::vector<RS_Polyline *> *placeholders = nullptr);
++  void finishPendingDxfMLines();
+
+   /** DXF export: raw-net OBJECT handles to NOT re-emit because the codec
+    *  regenerates them (the source ACAD_GROUP dictionary, and any object
+diff --git a/librecad/src/lib/filters/tests/mline_tests.cpp b/librecad/src/lib/filters/tests/mline_tests.cpp
+index 7c8f91c7a32ac80080cb8e76e816dd6f70060cf3..4bb012c30a778dc405836e575e5c84b919f87fc0 100644
+--- a/librecad/src/lib/filters/tests/mline_tests.cpp
++++ b/librecad/src/lib/filters/tests/mline_tests.cpp
+@@ -33,15 +33,48 @@
+ #include <string>
+ #include <vector>
+ 
++#include <QByteArray>
++#include <QFile>
++#include <QTemporaryDir>
++
+ #include "drw_entities.h"
+ #include "drw_objects.h"
+ #include "libdwgr.h"
+ #include "libdxfrw.h"
++#include "lc_filtertestsupport.h"
++#include "rs_line.h"
++#include "rs_polyline.h"
+ 
+ using Catch::Approx;
+ 
+ namespace {
+ 
++bool moveObjectsSectionBeforeEntities(const QString &path) {
++  QFile file(path);
++  if (!file.open(QIODevice::ReadOnly))
++    return false;
++  QByteArray contents = file.readAll();
++  file.close();
++
++  const int objectsName = contents.indexOf("2\nOBJECTS\n");
++  const int objectsBegin = contents.lastIndexOf("0\nSECTION\n", objectsName);
++  int objectsEnd = contents.indexOf("0\nENDSEC\n", objectsName);
++  if (objectsName < 0 || objectsBegin < 0 || objectsEnd < 0)
++    return false;
++  objectsEnd += 9;
++  const QByteArray objects = contents.mid(objectsBegin, objectsEnd - objectsBegin);
++  contents.remove(objectsBegin, objectsEnd - objectsBegin);
++
++  const int entitiesName = contents.indexOf("2\nENTITIES\n");
++  const int entitiesBegin = contents.lastIndexOf("0\nSECTION\n", entitiesName);
++  if (entitiesName < 0 || entitiesBegin < 0)
++    return false;
++  contents.insert(entitiesBegin, objects);
++
++  return file.open(QIODevice::WriteOnly | QIODevice::Truncate)
++      && file.write(contents) == contents.size();
++}
++
+ // Stub satisfying every DRW_Interface pure virtual; tests override only
+ // what they need. Pattern lifted from entity_metadata_tests.cpp.
+ class StubInterface : public DRW_Interface {
+@@ -118,10 +151,45 @@
+ class MLineEmitter : public StubInterface {
+ public:
+   DRW_MLine m_line;
++  DRW_MLineStyle style;
+   dxfRW *m_rw = nullptr;
++
++  MLineEmitter() {
++    style.handle = 0xA0u;
++    style.name = "STANDARD";
++    style.elements.resize(2);
++    style.elements[0].offset = 0.5;
++    style.elements[1].offset = -0.5;
++    m_line.styleName = style.name;
++    m_line.styleHandle = style.handle;
++  }
++
+   void writeEntities() override { m_rw->writeMLine(&m_line); }
++  void writeObjects() override { m_rw->writeMLineStyle(&style); }
+ };
+ 
++class LateMLineStyleEmitter : public MLineEmitter {
++public:
++  bool includeStyle = true;
++
++  void writeEntities() override {
++    DRW_Line marker;
++    marker.basePoint = DRW_Coord(100.0, 0.0, 0.0);
++    marker.secPoint = DRW_Coord(110.0, 0.0, 0.0);
++    m_rw->writeLine(&marker);
++    MLineEmitter::writeEntities();
++    DRW_Line endMarker;
++    endMarker.basePoint = DRW_Coord(200.0, 0.0, 0.0);
++    endMarker.secPoint = DRW_Coord(210.0, 0.0, 0.0);
++    m_rw->writeLine(&endMarker);
++  }
++
++  void writeObjects() override {
++    if (includeStyle)
++      m_rw->writeMLineStyle(&style);
++  }
++};
++
+ class MLineDwgEmitter : public StubInterface {
+ public:
+   dwgRW *m_rw = nullptr;
+@@ -288,6 +356,76 @@
+   }
+ 
+   std::filesystem::remove(path);
++}
++
++TEST_CASE("DXF filter resolves a late MLINE style in source order",
++          "[mline][filter][dxf_roundtrip]") {
++  lc::test::ensureSettings();
++  lc::test::QuietLog quiet;
++  QTemporaryDir temporary;
++  REQUIRE(temporary.isValid());
++  RS_FilterDXFRW filter;
++
++  enum class Style { Matched, Missing, DifferentHandle };
++  for (const bool binary : {false, true}) {
++    for (const auto profile : {Style::Matched, Style::Missing, Style::DifferentHandle}) {
++      CAPTURE(binary, profile);
++      const auto path = temporary.filePath(
++          QStringLiteral("mline-%1-%2.dxf").arg(binary).arg(static_cast<int>(profile)));
++      const QByteArray fileName = path.toUtf8();
++      LateMLineStyleEmitter emitter;
++      emitter.includeStyle = profile != Style::Missing;
++      emitter.style.handle = 0xD0u;
++      emitter.style.name = "WALLSTYLE";
++      emitter.style.elements.resize(2);
++      emitter.style.elements[0].offset = 0.5;
++      emitter.style.elements[1].offset = -0.5;
++      emitter.m_line.styleName = emitter.style.name;
++      emitter.m_line.styleHandle = profile == Style::DifferentHandle
++          ? 0xD1u : emitter.style.handle;
++      emitter.m_line.numLines = 2;
++      emitter.m_line.numVerts = 2;
++      for (const double x : {0.0, 10.0}) {
++        DRW_MLineVertex vertex;
++        vertex.position = DRW_Coord(x, 0.0, 0.0);
++        vertex.vertexDir = DRW_Coord(1.0, 0.0, 0.0);
++        vertex.miterDir = DRW_Coord(0.0, 1.0, 0.0);
++        vertex.segParms = {{0.0, 0.0}, {-1.0, 0.0}};
++        vertex.areaFillParms.resize(2);
++        emitter.m_line.vertlist.push_back(vertex);
++      }
++      {
++        dxfRW writer(fileName.constData());
++        emitter.m_rw = &writer;
++        REQUIRE(writer.write(&emitter, DRW::AC1021, binary));
++      }
++
++      if (!binary && profile == Style::DifferentHandle)
++        REQUIRE(moveObjectsSectionBeforeEntities(path));
++
++      RS_Graphic drawing;
++      REQUIRE(filter.fileImport(drawing, path, RS2::FormatDXFRW));
++      REQUIRE(drawing.count() == 4);
++      const auto *before = dynamic_cast<const RS_Line *>(drawing.entityAt(0));
++      const auto *after = dynamic_cast<const RS_Line *>(drawing.entityAt(3));
++      REQUIRE(before != nullptr);
++      REQUIRE(after != nullptr);
++      CHECK(before->getStartpoint().x == 100.0);
++      CHECK(after->getStartpoint().x == 200.0);
++      for (const int index : {0, 1}) {
++        const auto *polyline = dynamic_cast<const RS_Polyline *>(drawing.entityAt(index + 1));
++        REQUIRE(polyline != nullptr);
++        const double expected = profile == Style::Matched ? -index : index - 0.5;
++        CHECK(polyline->getStartpoint().y == Approx(expected));
++        CHECK(polyline->getEndpoint().y == Approx(expected));
++        const auto &xdata = polyline->getDrwExtData();
++        REQUIRE(xdata.size() > 8);
++        REQUIRE(xdata[8] != nullptr);
++        REQUIRE(xdata[8]->type() == DRW_Variant::DOUBLE);
++        CHECK(xdata[8]->d_val() == Approx(expected));
++      }
++    }
++  }
+ }
+ 
+ TEST_CASE("DXF MLINE write emits expected codes", "[mline][dxf_roundtrip]") {

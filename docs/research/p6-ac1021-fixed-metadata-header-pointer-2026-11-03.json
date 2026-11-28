@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1021-fixed-metadata-header-pointer-2026-11-03",
+  "date": "2026-11-03",
+  "status": "WRITER_METADATA_POINTER_CORRECTED_ODA_REJECTION_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "problem": "The AC1021 writer left the 32-bit fixed metadata value at offset 0x28 at zero. ODA v5.4.1 \u00a75.2 specifies 0x00000080, the position of the R2007 file header page. The writer also emitted one file-header block and random padding in the 717-byte RS input instead of repeating the full aligned block as required by ODA \u00a75.2.1.5.",
+  "change": "The R2007 writer emits the required little-endian 0x80 value at 0x28. The R2004-family writer already emits this value. The R2007 writer now repeats the aligned checking-sequence/header block as often as it fits, then pads the remaining bytes before RS encoding.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "selector": "ctest --test-dir build-gcc -R ^libdxfrw_dwg_fixed_metadata_pointer$ --output-on-failure",
+    "result": "PASS 1/1 metadata pointer/repetition, plus 2/2 R2007 CRC-focused selectors",
+    "coverage": "A locally authored LINE is written for AC1018, AC1021, and AC1024; the physical version bytes and all four bytes at 0x28 are inspected. No full-file interoperability claim follows. For AC1021 the actual emitted RS page is decoded and each complete aligned header-block repetition is compared byte-for-byte."
+  },
+  "odaDifferential": {
+    "tool": "ODA File Converter 27.1.0, native verified app",
+    "target": "ACAD2013 DXF; recursion 0, audit 0",
+    "localProbeSha256": "c58cceea735fd9ff4667bce7851babb933bc2b60ccee823f5671aac77bc7ce57",
+    "inputs": [
+      {
+        "version": "AC1018",
+        "sha256": "26e18152bc09a15f9eba00450dac7bc30faac40f7e468afea1bdff9ccb46cd26",
+        "result": "invalid input .err"
+      },
+      {
+        "version": "AC1021",
+        "sha256": "76c26f3c1d36d2f96c88313a190fd7c34b9e9861c0549d825a770e6670970403",
+        "result": "invalid input .err"
+      },
+      {
+        "version": "AC1024",
+        "sha256": "60ff81d61444883808281bb8ecb9c72849ba3eef15e196c6e0fda8161c40f1ab",
+        "result": "invalid input .err"
+      }
+    ],
+    "positiveControl": {
+      "input": "ODA-generated AC1021 from a locally authored single-LINE DXF",
+      "dwgSha256": "f3bb8e438a7df7ecb2a45535f548e8b035af253272d8b70cfa6056e7ec32dae3",
+      "result": "same converter and target produced DXF containing one LINE without .err",
+      "dxfSha256": "d1187b051df9ed082310424b3a9020942300cc4535469ae954f786e692c083f1"
+    },
+    "variants": "Scratch patches for the 0x28 pointer alone, maintenance version bytes alone, and both still produced invalid-input .err. Converter process exit was zero for rejects; the .err and absence of output determine these results.",
+    "interpretation": "The fixed pointer is a source-backed defect, but changing it alone does not resolve ODA rejection. The three local revisions share the same minimal writer interface profile, not proof that every generated drawing or all writer revisions are rejected.",
+    "headerRepetition": {
+      "officialSpec": "ODA v5.4.1 \u00a75.2.1.5",
+      "physicalPositiveControl": "ODA-generated AC1021 single-LINE file f3bb8e438a7df7ecb2a45535f548e8b035af253272d8b70cfa6056e7ec32dae3; RS decoding shows a 200-byte compressed header block repeated three times exactly.",
+      "baseline": "The local original uncompressed file-header block is 304 bytes; only 2 of 304 bytes matched in its missing second copy.",
+      "scratchMutation": "After setting 0x28 to 0x80 and replacing the missing second block by an exact copy in both RS-encoded file-header pages, ODA still reports invalid input. This manual variant did not reproduce the newly generated writer padding tail and does not isolate the remaining cause."
+    },
+    "postFixRun": {
+      "probeSha256": "f14386222fc63b8ab1e95217ce1430dc0305455f32fb4a63fb8812d58c8e2baf",
+      "dwgSha256": "edcfc5c876d2e66322e908d32fb0fd3ff0a43787176a74bed4c3690f8a43679d",
+      "headerObservation": "Decoded block is 304 bytes and second copy matches all 304 bytes; metadata offset 0x28 is 0x80.",
+      "odaResult": "The same ODA 27.1 command returned zero but created only fixed.dxf.err reporting Invalid input; no DXF output. The cause of rejection remains open."
+    }
+  },
+  "limits": [
+    "The cause of ODA rejection remains unresolved. Do not infer CRC correctness or failure from this differential.",
+    "No generated DWG/DXF fixture was added."
+  ],
+  "title": "R2007 metadata pointer and file-header block repetition"
+}

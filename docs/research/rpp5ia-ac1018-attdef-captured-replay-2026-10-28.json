@@ -1,0 +1,136 @@
+{
+  "schema": "ac1018-attdef-captured-replay-v1",
+  "date": "2026-10-28",
+  "status": "FOCUSED_NORMAL_ASAN_VALIDATED_WITH_CONCURRENT_SOURCE",
+  "supportClaimsPromoted": false,
+  "baselineCommit": "6f46d1a9a8480cd983ac05d07c59481c6fcf432f",
+  "codeCommit": "d889ef50077d0ae354167013eaae612624ad7b5c",
+  "sourceBindingNote": "The test source matches codeCommit. Normal and ASan test binaries were linked with concurrent uncommitted MLINE/TABLE source; recorded object and library hashes are point-in-time observations, not a clean integrated source commit.",
+  "scope": "Optional reader ATTDEF source callback only for locally authored classic AC1018 records. No production adapter version gate or profile admission was widened.",
+  "bindings": {
+    "testSource": {
+      "path": "tests/attdef_source_tests.cpp",
+      "sha256": "116431bb23ed9359b2382c86b5cb69a4d8300cbfbd09058a8833f2470d32313f"
+    },
+    "testObjectObservedAfterRun": {
+      "path": "build/tests/CMakeFiles/libdxfrw_attdef_source_tests.dir/attdef_source_tests.cpp.o",
+      "sha256": "f208d697361fb6dbbfa31b26f962b8962a9d5d5f7d2411a642f60aa802384543"
+    },
+    "normalTestBinary": {
+      "path": "build/tests/libdxfrw_attdef_source_tests",
+      "sha256": "4e515d819b1c738a7f748dea0e3c817bff3ebc7d57fabbcfc82741e1675df972"
+    },
+    "adapterObjectObservedAfterRun": {
+      "path": "build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "21b41b3367dcf770ad85fadc9f7c332ab34fa8b7a61fb83c85e44c8fe74a5df7"
+    },
+    "libraryObservedAfterRun": {
+      "path": "build/libdxfrw.a",
+      "sha256": "0ec43338d40e7b63f6997793e4e65cf95d1d1ada0bdc4ec8b2e28c39ae1e3b7a"
+    },
+    "scratchProbeSource": {
+      "path": "build/agent-attribute-profile/ac1018-replay/probe.cpp",
+      "sha256": "ed275fb993812226179ec54ece9f8f590626a416388670d62b3c233f3ec3fe53"
+    },
+    "scratchProbeBinary": {
+      "path": "build/agent-attribute-profile/ac1018-replay/probe",
+      "sha256": "681e224207e0d7e075ce9bff728ad092b1806e8de5837f5fb70b3abaacaa4937"
+    },
+    "scratchReport": {
+      "path": "build/agent-attribute-profile/ac1018-replay/observation.json",
+      "sha256": "e5254cc15bf307c841fe6dc6fb74245e112a06f2d3d705c0d542acd41a0d6649"
+    },
+    "earlierObservationReceipt": {
+      "path": "docs/research/rpp5hv-ac1018-attdef-callback-observation-2026-10-28.json",
+      "sha256": "0f0f6a4a4d371de18ba8b66371da9d68cc261d5346523e2c2b9938ff2cf77d04"
+    }
+  },
+  "normalValidation": {
+    "ctest": "2/2 legacy-observation and source-profile passed as reported from console; LastTest log was overwritten by another cohort and is not bound here.",
+    "separateDirectRerun": {
+      "legacyObservation": {
+        "exitCode": 0,
+        "log": {
+          "path": "build/agent-attribute-profile/ac1018-replay/focused-normal.log",
+          "sha256": "47f7e7a7e409826804755ebf299c6c402202910a1de99084e0d8f4f04dd09226"
+        }
+      },
+      "sourceProfile": {
+        "exitCode": 0,
+        "log": {
+          "path": "build/agent-attribute-profile/ac1018-replay/source-profile-normal.log",
+          "sha256": "95e0ea71b28dac0f557503f1a55bd557b9252a9d2c69e7b07a577bfd9814f8da"
+        }
+      }
+    },
+    "counts": {
+      "observedOriginals": 8,
+      "physicalSpans": 144,
+      "optOuts": 8,
+      "malformedCorrectedRetries": 8,
+      "capturedRawReplays": 8,
+      "wrongCodepageControls": 8,
+      "rawMutations": 16
+    }
+  },
+  "asan": {
+    "result": "passed",
+    "options": "halt_on_error=1:detect_leaks=0",
+    "binary": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_attdef_source_tests",
+      "sha256": "d712f7b8d7556f65627e8e79d9efeb8b7b4982cd93134305401e20fb8a9ba327"
+    },
+    "adapterObjectObservedAfterRun": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "dba9e0d48dee32dd01cc3b26c7d0c13e6cabedd0007996eaca71b4358397998f"
+    },
+    "libraryObservedAfterRun": {
+      "path": "build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw.a",
+      "sha256": "36f234851004983a1aaee44c2beb6c6487c60a4e172f81ee1321779aee5f26e7"
+    },
+    "directRuns": {
+      "legacyObservation": {
+        "exitCode": 0,
+        "log": {
+          "path": "build/agent-attribute-profile/ac1018-replay/focused-asan.log",
+          "sha256": "47f7e7a7e409826804755ebf299c6c402202910a1de99084e0d8f4f04dd09226"
+        }
+      },
+      "sourceProfile": {
+        "exitCode": 0,
+        "log": {
+          "path": "build/agent-attribute-profile/ac1018-replay/source-profile-asan.log",
+          "sha256": "95e0ea71b28dac0f557503f1a55bd557b9252a9d2c69e7b07a577bfd9814f8da"
+        }
+      }
+    },
+    "note": "The focused binary passed with concurrent uncommitted MLINE/TABLE source; this is not a clean-source integrated checkpoint."
+  },
+  "observations": [
+    "The source callback captures its pre-copy decoder state and model; source and typed callbacks match using the existing full sameModel comparator and state, including UTF-8-decoded Windows-1252 text and XDATA.",
+    "Selected captured raw scalar groups are checked against independent wire fields and reconstructed for ASCII or binary, walked by rawScalarTransportEqual and replayed with the captured codepage into the production ATTDEF decoder; full model and no-pending-XDATA state match.",
+    "Wrong-codepage controls retain raw scalar transport but fail full model comparison. Mutated text and integer carriers fail raw-spelling consistency or decoded full-model equality.",
+    "The production audit still explicitly rejects AC1018 with Revision, and adapter-owned ATTDEF, block and ENTITIES/compound provenance remains disabled."
+  ],
+  "externalScratchObservation": {
+    "source": {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1018_ascii.dxf",
+      "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798"
+    },
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "repositoryPath": "samples/sample_AC1018_ascii.dxf",
+    "record": "ATTDEF handle 6F8 owner 6F2, 17 groups",
+    "result": "Scratch-only opt-in facet plus limited scalar reconstruction observed raw transport, full typed model, pair and decoder state agreement; this is not production adapter capture or output admission.",
+    "report": {
+      "path": "build/agent-attribute-profile/ac1018-replay/observation.json",
+      "sha256": "e5254cc15bf307c841fe6dc6fb74245e112a06f2d3d705c0d542acd41a0d6649"
+    }
+  },
+  "limitations": [
+    "Test-local reconstruction implements only the selected scalar types and does not call the private production tableResourceSourceBody path, implement global capture, or establish byte-preserving output.",
+    "Real sample has ASCII-only selected strings; non-ASCII CP1252, binary, wrong-page and mutation controls are locally authored and do not independently qualify native semantics.",
+    "No APPID/LAYER provider resolution, owner graph provenance, captured ATTRIB compound proof, complete-document closure, output rollback or native rendering claim.",
+    "The direct rerun hashes are point-in-time observations with concurrent work and may have been overwritten after recording. A clean integrated source-bound checkpoint remains pending.",
+    "No generated or external DXF/DWG drawing fixture was committed."
+  ]
+}

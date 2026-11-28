@@ -1,0 +1,145 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-49/7G.3 AC1015 paper-space chain and readDwgBlocks integration",
+  "mode": "Generated local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Exercise the pre-AC1018 BLOCK_RECORD first/last entity-chain walker with generated entity frames.",
+    "Compare per-record ownership identities against an AC1027 explicit-owner control.",
+    "Add bounded missing-middle and explicit-relative-link cycle controls.",
+    "Exercise readDwgBlocks dispatch with generated block/entity frames and supplied in-memory BLOCK_RECORD/layout metadata."
+  ],
+  "formatEvidence": [
+    {
+      "source": "Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sections": ["20.4.1 Common Entity Data", "20.4.2 Common Entity Handle Data"],
+      "contractUsed": "R13-R2000 nolinks=0 means previous/next handles are present; those handles are relative soft pointers.",
+      "purpose": "Construct a generated AC1015 explicit-link cycle vector using the documented wire form."
+    },
+    {
+      "source": "Autodesk DXF Reference: BLOCK (2021)",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm",
+      "sections": ["Model Space and Paper Space Block Definitions"],
+      "contractUsed": "Conventional paper-space block names include *Paper_Space, *Paper_Space0, *Paper_Space1, and subsequent numbered records.",
+      "purpose": "Confirm the standard suffix-name family that the generated readDwgBlocks integration exposed as unrecognized locally."
+    }
+  ],
+  "implementation": {
+    "filesChanged": [
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/pre-ac1018-paper-space-layout-chain-fast-slice-2026-10-19.json"
+    ],
+    "newFocusedSelector": "--legacy-layout-block-chains",
+    "existingTestOwner": "libdxfrw_dwg_reader_matrix",
+    "generatedCases": [
+      {
+        "profile": "AC1015",
+        "recordManifest": "empty default paper space; Sheet A has two contiguous paper-space lines; Sheet B has one singleton line",
+        "assertions": [
+          "layout name and layout handle are associated with the supplied BLOCK_RECORD handle",
+          "exact line handles and order are observed under each chain walk",
+          "firstEH == lastEH terminates the singleton before the following sentinel",
+          "paper-space entity mode is retained",
+          "a missing middle handle stops traversal and leaves the later frame unconsumed"
+        ]
+      },
+      {
+        "profile": "AC1015",
+        "recordManifest": "two explicit relative-link paper-space entities link to each other before a distinct declared last-handle sentinel",
+        "assertions": [
+          "nolinks=0 causes the reader to decode explicit previous/next handles",
+          "both reachable entities are published exactly once before cycle detection",
+          "the repeated first handle terminates the cycle and returns an incomplete walk",
+          "one cycle failure is recorded",
+          "the following sentinel frame remains unconsumed in ObjectMap"
+        ]
+      },
+      {
+        "profile": "AC1027",
+        "recordManifest": "same entity identities through explicit owner handles",
+        "assertions": [
+          "normalized per-record entity manifest matches AC1015",
+          "each parsed entity retains its explicit BLOCK_RECORD owner",
+          "following unowned sentinel remains outside the record walk"
+        ]
+      },
+      {
+        "profile": "AC1015 readDwgBlocks integration",
+        "recordManifest": "empty default paper layout; *PAPER_SPACE0 has two lines; *PAPER_SPACE1 has one line; BLOCK/ENDBLK delimiters and a following sentinel are generated",
+        "assertions": [
+          "readDwgBlocks dispatches the expected block, entity, and end callbacks",
+          "each generated line is associated with the expected paper-space block record and layout",
+          "numbered paper-space records are recognized without absorbing entities into a sibling layout",
+          "the following sentinel remains outside the block chain"
+        ]
+      }
+    ],
+    "testBoundary": "Direct walkBlockRecordEntities() tests plus readDwgBlocks() integration with generated BLOCK/ENDBLK/entity frames and supplied in-memory DRW_Block_Record/layout metadata. readDwgTables(), BLOCK_RECORD byte decoding, LAYOUT object decoding, and full-file section integration are not exercised.",
+    "limitations": [
+      "The readDwgBlocks integration supplies table/layout records; it does not validate full-file BLOCK_RECORD/LAYOUT decode or section integration.",
+      "No real producer drawing or producer interoperability qualification.",
+      "The local ODA PDF copy is absent; the official ODA-hosted v5.4.1 PDF was reviewed for §§20.4.1–20.4.2.",
+      "No native producer interoperability or producer-specific cycle policy is established."
+    ]
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --legacy-layout-block-chains",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "elapsedSeconds": 1.51
+    },
+    "diffCheck": {
+      "command": "git diff --check -- src/intern/dwgreader.cpp tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/pre-ac1018-paper-space-layout-chain-fast-slice-2026-10-19.json",
+      "result": "PASS"
+    },
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "newConfirmedLocalDefects": 1,
+    "confirmedLocalDefectsFixedInSlice": [
+      "isSpaceBlockRecordName() accepted exact *PAPER_SPACE but rejected standard numbered *PAPER_SPACE0, *PAPER_SPACE1, and subsequent numeric suffix records; generated readDwgBlocks integration reproduced the omission and the classifier now accepts the base name or a nonempty all-decimal suffix."
+    ],
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Extends existing PAR-49/7G.3 with generated direct-walker and readDwgBlocks dispatch coverage, including legacy chain membership, missing handles, explicit relative-link cycle termination, numbered paper-space names, exact callbacks/ownership, and an AC1027 comparison. It fixes one confirmed local name-classification gap. Full readDwgTables/BLOCK_RECORD/LAYOUT decoding and producer interoperability remain open; no new finding ID/top-level subplan or broad support claim is added."
+  },
+  "method": {
+    "buildDirectory": "build-gcc",
+    "sourceFixturePolicy": "All DWG entity frames are generated locally in memory from scratch; no persistent or downloaded DWG/DXF fixtures are added.",
+    "planUpdated": true,
+    "receiptValidation": "PASS: jq -e . docs/research/pre-ac1018-paper-space-layout-chain-fast-slice-2026-10-19.json"
+  }
+}

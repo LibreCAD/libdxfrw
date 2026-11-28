@@ -1,0 +1,13 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "scope": "Prevent silent loss of nondefault text-style font-family flags when writing R12 without recognized ACAD font XDATA.",
+  "reproduction": "A generated R12 write with nonzero fontFamily and no XDATA previously succeeded, although the legacy writer emitted no representation of the field.",
+  "change": "R12 now refuses nonzero fontFamily unless the existing recognized ACAD 1071 carrier is present. The existing writer overlays that XDATA value with the current fontFamily, and default values remain writable. Other DXF versions retain their existing behavior.",
+  "validation": [
+    "The generated TEXTSTYLE allocation CTest passes for R12 ASCII and Binary refusal, prior destination and caller-field preservation, same-writer modern retry, default R12 retry, unrelated XDATA refusal, recognized ACAD XDATA retry, and fresh typed readback. The existing seven-version allocation sweep and STYLE font-XDATA scope CTest also pass.",
+    "ezdxf independently read the generated R12 ASCII and Binary ACAD XDATA as group 1000 SampleFont followed by group 1071 value 50331682. ODA File Converter 27.1 converted both through R12 DWG and back to DXF but the returned STYLE no longer had the ACAD XDATA. This limits the result to emitted DXF carrier preservation; it is not native DWG roundtrip proof.",
+    "Source inventory remains 1235 files; the implementation digest is 302d3f7717e0c973d26e35e157a0451cb8e368e9e942cd26c44702536930fe39 over 725 inputs. No DWG/DXF fixture is committed."
+  ],
+  "limits": "The modern bare group-1071 projection and the recognized legacy carrier do not establish rendering, font selection, AutoCAD support, or native DWG interchange. Do not promote a format-support claim or close a phase gate on this result."
+}

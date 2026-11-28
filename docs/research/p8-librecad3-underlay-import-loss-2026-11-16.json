@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-16",
+  "consumerRepository": "LibreCAD/LibreCAD_3",
+  "consumerBase": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "localCandidateCommit": "44f1e4b1c9fcb7b3c3fd57570dc354b0f3319a65",
+  "pinnedLibdxfrwCommit": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "change": "Count non-null unsupported underlay callbacks by PDF, DGN or DWF type, with a generic fallback.",
+  "reproduction": "A locally generated minimal DXF containing a LINE and PDFUNDERLAY imported successfully but did not report the omitted underlay before this change.",
+  "test": "On macOS ARM64 four focused tests pass for each separately installed current and pinned codec. A runtime-generated DXF contains one LINE and one callback profile for each underlay kind; all three losses are reported once and the LINE is retained. Modeler, MPOLYGON and legacy-layer controls also pass.",
+  "logs": [
+    "/private/tmp/lc3-underlay-current-test.log",
+    "/private/tmp/lc3-underlay-pinned-test.log"
+  ],
+  "replay": "Patch applied in order to the prior candidate replay and both changed files matched the committed consumer candidate.",
+  "limits": "The control intentionally omits underlay definitions and external files. This reports omitted entities; it does not qualify rendering, external references, native applications or DWG import. Local consumer candidate is unmerged; no fixture, phase gate or external-only support claim is promoted."
+}

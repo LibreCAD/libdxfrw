@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-19",
+  "type": "generated fast regression slice",
+  "plan_owner": "Existing DXF repeated-record / bounded-count hardening; no new finding",
+  "change": "tests/hardening_tests.cpp extends --repeated-dxf-record-robustness with ASCII and Binary MLINE late-count mismatch, duplicate group-73 after per-line allocation, and valid retry controls.",
+  "expected_behavior": [
+    "Late declared MLINE line count inconsistent with parsed parameter vectors refuses before MLINE callback.",
+    "Repeated MLINE group 73 after vectors have been allocated refuses before MLINE callback.",
+    "The entity callback preceding malformed MLINE remains the only publication on refusal.",
+    "The same reader retries a valid MLINE and publishes it with the following LINE sentinel intact."
+  ],
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2 && ./build-gcc/libdxfrw_hardening_tests --repeated-dxf-record-robustness",
+    "result": "PASS",
+    "full_test_suite": false
+  },
+  "non_changes": {
+    "production_code": false,
+    "fixture_files": false,
+    "ctest_registration": false,
+    "external_peer_or_native_run": false,
+    "support_claim_promotion": false,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "working_tree": "Uncommitted; preserve unrelated existing changes."
+}

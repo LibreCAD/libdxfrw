@@ -1,0 +1,72 @@
+{
+  "title": "HEADER VisualStyle reference closure fast slice",
+  "date": "2026-10-18",
+  "classification": "partial-implementation-fast-slice",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "subplan": "PAR-40 / 7G.2",
+  "scope": [
+    "retain DXF HEADER VisualStyle hard pointers 345, 346, and 349",
+    "validate rooted target class and remap handles during DXF export",
+    "cover explicit null, target-version refusal, and fixed-handle collision with generated controls"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_header.cpp",
+      "src/drw_header.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "A non-consuming DRW_Header accessor validates name/code/value and alias uniqueness while preserving absent versus explicit zero. The HEADER writer emits supported variables. Adapter preflight requires every nonzero target to be a uniquely rooted VisualStyle; DXF output uses the planned handle map. AC1021 remains a conservative common target floor, not a claim of identical per-variable introduction releases.",
+    "dwg_header_parse_or_encode_changed": false,
+    "generated_ascii_binary_controls": [
+      "all three nonzero references round-trip to the emitted VisualStyle",
+      "source VisualStyle handle 1C collides with a fixed structural identity and is remapped",
+      "explicit-null $DRAGVS remains present and round-trips without a VisualStyle graph",
+      "dangling and dictionary-class targets reject atomically",
+      "present reference rejects AC1018 export atomically"
+    ],
+    "persistent_fixture_files_added": 0,
+    "new_ctest_registrations": 0,
+    "new_ledger_items": 0,
+    "support_claim_promotions": 0
+  },
+  "validation": {
+    "strict_target_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "passed"
+    },
+    "focused_selector": {
+      "command": "build/libdxfrw_dxf_fixture_tests --header-visual-style-references",
+      "result": "passed"
+    },
+    "compatibility_target": {
+      "command": "cmake --build build --target lc3_compat_check -j2",
+      "result": "passed"
+    },
+    "diff_check": {
+      "command": "git diff --check -- src/drw_header.cpp src/drw_header.h src/libdxfrw.cpp dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dxf_fixture_tests.cpp",
+      "result": "passed"
+    },
+    "owning_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "not run in this slice; broad runner has a previously recorded unattributed segfault"
+    },
+    "full_suite_run": false
+  },
+  "remaining_work": [
+    "establish the exact version/default/null contract for each variable before widening the conservative AC1021 writer floor",
+    "complete remaining view-family references and root/ownership closure",
+    "consult the ODA specification and version-matched traces before changing DWG HEADER parse/encode",
+    "run independent semantic and native-consumer qualification at the composed checkpoint"
+  ],
+  "plan_effect": {
+    "refines": ["PAR-40", "7G.2"],
+    "findings": 130,
+    "top_level_subplans": 73,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "worktree_state": "uncommitted"
+}

@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-27",
+  "scope": "Generated AC1027 ASCII and binary XRECORD graph with one selected 332\u2013339 soft-pointer to a selected dictionary or XRECORD.",
+  "implementationDigestSha256": "b2eabe093a91f7354419548a966eb854bd6be1396876ad68e48d2e019a99c284",
+  "converterSha256": "f6b9d791283faf75f65722bcc84e7c77a9eeac2f87aa9bbfdce8033f549e452b",
+  "primaryReference": {
+    "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm",
+    "finding": "Autodesk identifies XRECORD group codes 330\u2013339 as soft pointer IDs; the retained 330/331 refusal is an interoperability restriction, not a DXF format rule."
+  },
+  "change": "Admit exactly one selected soft-pointer group in 332\u2013339 using the existing physical-field, target and staged output checks; preserve the code and map its proven dictionary/XRECORD identity.",
+  "hashes": {
+    "332": {
+      "ascii": {
+        "source": "5fbd8e899ec0180486b18fff4c30e28b1d1f409ff777d1e6081c6cb33b16183b",
+        "output": "cbaa103023a569898be15bddd4e64a9ade954e9213dea64544ff12eaeaf9c289"
+      },
+      "binary": {
+        "source": "79fe62c44cdf74a291633d47a47a45b626835b94337aec17f992aaadcad62da3",
+        "output": "c2083d76ef87dca7038d508ae549f6ef73c529214d596ff18706b5cccb6ab01b"
+      }
+    },
+    "339": {
+      "ascii": {
+        "source": "36499c36a41dde6077eb0659920b0a8f8d41acb6f4dcffa33501dfa9a72b7c6e",
+        "output": "fd30b69f169819cff939113942ac2692f604a400cf360654f5eea4e6e03da56b"
+      },
+      "binary": {
+        "source": "d28a6cd4077255334aa107f4ba667c0f77be0bd8dc4111474cc32a6eef8179cd",
+        "output": "caa5372a8d94e8e4a47f46bce9e2e0b477c70a5e84532c05882b2f65009d2a5f"
+      }
+    }
+  },
+  "peerReadback": {
+    "ezdxf": "1.4.5: groups 332 and 339 each encoding match 28 mapped objects, 27 entries, 14 root entries, two layers, owners, reactors, record targets and material/dictionary values; source and output audit zero errors and fixes.",
+    "libredwg": "0.14 dxf2dwg r2004 and dwgread JSON preserve exact 332 and 339 codes and selected XRECORD target and owners in both encodings; MATERIAL warnings limit the evidence to the selected graph."
+  },
+  "330And331Boundary": {
+    "finding": "ezdxf preserves both body references, but LibreDWG 0.14 dxf2dwg/dwgread silently omits them from XRECORD payload in both encodings. This is observed peer-specific data loss, not a statement that the DXF is invalid.",
+    "sourceReview": "The independently available LibreDWG source at commit 6d6a33987a1a97095b069c799c3d8a793320f812 routes 331 through 330 handling and exits that switch branch when an XRECORD already has an owner; the source checkout is not the exact installed 0.14 binary.",
+    "sourceUrl": "https://github.com/LibreDWG/libredwg/blob/6d6a33987a1a97095b069c799c3d8a793320f812/src/in_dxf.c#L10292",
+    "disposition": "Refuse those source profiles and preserve destination; test same-adapter corrected retry. Revisit once the peer loss is fixed or a qualified interoperability profile is explicitly selected."
+  },
+  "checks": [
+    "Test groups 332 and 339 against selected record and dictionary targets, both encodings and handle collisions",
+    "Wrong owner, unselected or unrelated target, dangling target, duplicate pointer role and cross-version/encoding refused atomically",
+    "Wrong reference code, live and late mutations refused with destination-preserving corrected retry",
+    "Focused whole-source, compact-material and AC1024 plot-style CTests and GCC strict syntax checks pass"
+  ],
+  "limits": [
+    "Exactly one selected pointer group, 332\u2013349, per XRECORD; 330/331, multiple pointers and other roles remain refused",
+    "Endpoint 332 and 339 independently checked; intervening groups share the documented type but lack individual producer qualification",
+    "At most eight selected chains and the bounded same-version, same-encoding AC1027 plot/material graph",
+    "No native producer, native consumer or broad support claim established",
+    "No external DWG/DXF fixtures committed"
+  ]
+}

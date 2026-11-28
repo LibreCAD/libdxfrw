@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-camera-dwg-encoder-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "BOUNDED_CAMERA_DWG_ENCODER_TRANSACTIONAL_ROLLBACK_RETRY",
+  "supportClaimEffect": "none",
+  "scope": "Make DRW_Camera DWG encoding transactional across common body and handle output, including its VIEW hard-pointer tail, and prove allocation-failure rollback and same-object retry.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "method": "DRW_Camera::encodeDwg",
+    "changes": [
+      "Run common entity encoding, entity handles, the VIEW hard pointer, and oType mutation through encodeEntityDwgTransaction.",
+      "Preserve existing AC1015+ version admission and the hard-pointer role and order."
+    ],
+    "test": "tests/dwg_hatch_encoder_allocation_tests.cpp",
+    "failureBehavior": "Injected allocation failure preserves caller stream bytes and bit positions and restores oType; retrying the same object with the same buffers reproduces clean output."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_entity_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j4",
+    "allocationSweep": "PASS: 3,914 allocation offsets across HATCH, MPOLYGON, MLEADER, ARCALIGNEDTEXT, LIGHT, SECTIONOBJECT, GEOPOSITIONMARKER, and CAMERA; 185 entity/version/stream-layout profiles",
+    "focusedTests": "ctest --test-dir build-gcc -R '^(dwg_entity_encoder_allocation_rollback_retry|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "result": "PASS (2/2)",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "coverage": [
+    "Generated AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032 profiles use five body/string/handle alias layouts each.",
+    "Each profile includes a nonzero VIEW hard-pointer reference.",
+    "Each injected allocation failure checks stream rollback and oType restoration, then retries the same object into the same seeded buffers and compares exact output with clean encoding."
+  ],
+  "inputHashes": {
+    "src/drw_entities.cpp": "32147bf8c85bbec7cc9f493b2858cc6c5ed6c2cd8e31c3487b21efd1e30de50f",
+    "tests/dwg_hatch_encoder_allocation_tests.cpp": "1a514142f5775ffe93e1b80d5447dd6ad013139801998ce9c03c72c0cfcfae02"
+  },
+  "fixtureFilesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "This proves generated transaction/failure behavior only, not CAMERA wire semantics, VIEW graph closure, native camera behavior, physical-source behavior, or output qualification.",
+    "No DWG or DXF drawing fixture was added."
+  ]
+}

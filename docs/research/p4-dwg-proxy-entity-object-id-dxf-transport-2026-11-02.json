@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-dwg-proxy-entity-object-id-dxf-transport-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P4",
+  "status": "GENERATED_PROXY_OBJECT_ID_TRANSPORT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Serialize the bounded ACAD_PROXY_ENTITY object-ID list in the low-level DXF writer when every source handle resolves to a nonzero final output identity and each DWG handle role has a supported DXF group-code mapping.",
+  "implementation": {
+    "sourceFiles": [
+      "src/drw_objects.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": [
+      "The writer preflights the complete ordered object-ID list before emitting the proxy record, requires an installed resolver, bounds the list, rejects unsupported DWG handle codes and mismatched stored DXF group codes, and refuses zero, sentinel, or wider-than-32-bit source/output handles.",
+      "The DWG parser and DXF writer now share one handle-code-to-group mapping. Tolerant parsing retains the prior group-330 fallback for unknown codes, while strict output refuses them.",
+      "Resolved references are emitted in source order before group 94. Mappings exercised include DWG codes 4→DXF 330, 5→340, 2→350, 3→360, and 6/8/10/12→330; the DXF representation preserves the pointer/owner group role but canonicalizes those DWG soft-pointer encoding codes to group 330.",
+      "The explicit resolver overload is scoped to proxy object-ID edges; an independently configured global resolver remains unchanged and does not rewrite these groups. It provides an adapter integration point for a bounded source-graph mapping without changing common-reference behavior for other records.",
+      "Resolver output is treated as a final emitted handle and is not remapped again. The resolver is caller-supplied; this does not prove that its targets exist or have the required graph roles.",
+      "The dwg2dxf adapter now supplies a proxy-scoped resolver for the bounded DWG handle-code 4/5 to typed top-level entity profile; other proxy object-ID profiles remain fail-closed."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally authored DRW_ProxyEntity records and resolver mappings. No DWG/DXF fixtures were added.",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "assertions": [
+      "Typed readback preserves the ordered 330/340/350/360/330 groups and their final mapped handles.",
+      "A conflicting global resolver does not alter the explicit per-proxy mapping.",
+      "A missing resolver target, mismatched handle-role/group-code pair, unsupported DWG handle code, and wider-than-32-bit source handle each refuse atomically and preserve an existing destination.",
+      "Correcting the mapping and then the role succeeds through the same writer and adapter; caller-side source handles and the original ordered reference list remain unchanged.",
+      "The existing adapter-level no-resolver refusal and corrected no-reference retry continue to pass."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_proxy_entity_output_gate$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1 in 0.68 seconds.",
+    "asanCommand": "ASAN_OPTIONS=abort_on_error=1:detect_leaks=0 ctest --test-dir build-asan-custom -R '^dwg2dxf_proxy_entity_output_gate$' --output-on-failure",
+    "asanResult": "PASS: 1/1 in 1.06 seconds.",
+    "diffCheck": "PASS",
+    "fixturePolicy": "No DWG/DXF fixture files were added or committed."
+  },
+  "authorities": [
+    {
+      "title": "Autodesk ACAD_PROXY_ENTITY DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-89A690F9-E859-4D57-89EA-750F3FB76C6B.htm",
+      "use": "Defines the optional repeated object-ID group codes 330, 340, 350, and 360 and group 94 as the end of the object-ID list."
+    },
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1, §20.4.90",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "use": "Identifies the proxy's trailing object IDs as typed object handles; the implementation reuses libdxfrw's existing parser role mapping and does not claim the specification independently proves graph closure."
+    }
+  ],
+  "limitations": [
+    "Generated low-level serializer/readback evidence only; no physical DWG source-to-output, independent consumer, or native proxy semantics qualification.",
+    "The resolver is trusted to return a correct final output identity. The writer does not verify target existence, target type, ownership, recursive dependencies, or target emission.",
+    "The adapter graph route has generated controls but does not establish physical producer support, independent consumer acceptance, recursive dependencies, or native semantics. Only code 4/5 pointers to unique top-level typed entity targets are admitted; all other roles remain fail-closed. See the adapter graph receipt for its source inventory and final-emission gate.",
+    "Unknown-data slots, EED/common references, mixed class/ACDS graphs, and other unsupported proxy profiles remain refused. No support claim is promoted."
+  ]
+}

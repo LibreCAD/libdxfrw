@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader DXF OBJECTS owner-topology and emission order",
+  "mode": "Primary-source web research and local plan/source/test reconciliation; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Distinguish DXF NOD-first placement from owner-before-owned record ordering inside OBJECTS.",
+    "Check whether the current PAR-20/7G plan and generated controls explicitly lock down emitted owner order.",
+    "Refine the existing local implementation route without changing support claims or validation cadence."
+  ],
+  "sources": [
+    {
+      "project": "Autodesk DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-49C9C960-0944-4C1B-8DF9-E2428C28A2FB.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm"
+      ],
+      "revision": "Official Autodesk help pages accessed 2026-10-20",
+      "observed": "The OBJECTS section is specified as topologically ordered by ownership, with owners before their owned objects. The example identifies the NOD as the first OBJECTS record and describes dictionary entries as key/child-handle pairs.",
+      "limits": "This source defines a DXF section-order invariant; it does not define arbitrary application-specific object semantics or prove consumer acceptance of a particular libdxfrw output."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/sections/objects_section.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/datamodel.html",
+        "https://ezdxf.readthedocs.io/en/stable/develop/pkg-design.html"
+      ],
+      "revision": "Published 1.4.4/1.4.5 documentation surfaces accessed 2026-10-20; no package was installed or run",
+      "observed": "The documentation describes a hierarchical OBJECTS organization starting with the NOD, treats non-root objects with missing/destroyed owners as orphans removed by audit, and distinguishes graphical-owner extension-dictionary paths from NOD-rooted object paths.",
+      "limits": "Peer architecture documentation corroborates the importance of owner closure but is not normative DXF evidence or an executed interoperability result."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1413"
+      ],
+      "revision": "Open issue report accessed 2026-10-20; mutable and reporter-authored",
+      "observed": "The report describes a lower-handle owned DICTIONARY being selected as the NOD instead of the header-referenced root, with claimed layout loss on two R2018 drawings; the proposed resolution uses header identity and a constrained unowned-DICTIONARY fallback.",
+      "limits": "Reported drawings are not attached and the reported result was not independently reproduced. This is NOD-identity corroboration, not evidence for general object order or a local defect."
+    },
+    {
+      "project": "Local LibreCAD/libdxfrw worktree",
+      "urls": [
+        "src/libdxfrw.cpp",
+        "dwg2dxf/dx_iface.cpp",
+        "dwg2dxf/dx_iface.h",
+        "tests/dwg2dxf_adapter_tests.cpp::rootDictionaryVarWriterClosure",
+        "tests/CMakeLists.txt::dwg2dxf_named_object_callback_storage"
+      ],
+      "revision": "Shared worktree source/test inventory inspected 2026-10-20; no code changed and no test run",
+      "observed": "The writer emits NOD first and the adapter traverses admitted dictionaries before child object families. The generated ASCII/Binary DICTIONARYVAR test intentionally permutes child/owner input order and checks output graph closure/readback, but does not assert emitted OBJECTS record ordinals.",
+      "limits": "Source/test inspection does not prove runtime output order or consumer acceptance. No local generated drawing was executed during this research pass."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G: separately assert first-record NOD identity and owner-before-owned ordering for admitted OBJECTS-to-OBJECTS owner edges.",
+      "PAR-20/7G: distinguish ownership links from ordinary hard/soft pointers when deriving serialization order; retain key-to-target closure checks independently."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added an explicit OBJECTS owner-topology evidence row, separate from the already documented NOD-first and dictionary-entry key/target requirements.",
+    "Recorded the local output-order test gap: current root DICTIONARYVAR coverage exercises source-order permutation and owner closure, but does not inspect emitted OBJECTS record order.",
+    "Specified the next fast implementation slice: reuse the existing ASCII/Binary generated selector, assert NOD first and owner DICTIONARY before DICTIONARYVAR, and constrain order only by semantic ownership edges.",
+    "Kept pointer edges, dictionary-entry ordinal, external peer/native checks, test cadence, support claims, and the six deferred external statuses unchanged."
+  ],
+  "limitations": [
+    "The LibreDWG issue is reporter-authored and its described external DWG samples are unavailable for reproduction.",
+    "Local owner-first collection was established by source inspection only; tests were not run in this research pass.",
+    "The proposed generated control qualifies only an already-admitted object family and its output ordering, not arbitrary OBJECTS replay or all DXF consumers."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

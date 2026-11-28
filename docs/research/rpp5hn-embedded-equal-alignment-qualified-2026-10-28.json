@@ -1,0 +1,590 @@
+{
+  "schema": "p4a-embedded-equal-alignment-qualified-v1",
+  "date": "2026-10-28",
+  "supportClaimsPromoted": false,
+  "codeCommit": "01c2f0bd3c6326151394b407aff096730cef24b2",
+  "scope": "Bounded AC1032 equal Text/Attribute host alignment, nested embedded marker 101 and attribute type 4 ATTDEF / type 2 ATTRIB. Preserve each source span and separate embedded insertion; require equal finite components, identical component presence and signed-zero sign. A single group 280 at the canonical lock position is also accepted; embedded dual 280 and early single 280 remain unqualified.",
+  "producer": {
+    "name": "ACadSharp",
+    "commit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "csUtilitiesCommit": "5831470485012c00a7ea8f42d6dca50c244b948c",
+    "librarySha256": "af70f56159e627879b9acc6a6c72ae28fc2fe8b636e5e5d08eb5f75e516c4da6",
+    "authoringRecipeReceipt": {
+      "path": "docs/research/rpp5hj-acadsharp-attribute-profile-2026-10-28.json",
+      "sha256": "28aab7377e0f2355399fbeb3ad2039e94f40c90461d22ace5336526757bd044e"
+    },
+    "sourceRecipeReceipt": "docs/research/rpp5hl-attribute-embedded-equal-alignment-2026-10-28.json",
+    "authoredBeforeFirstSave": "Both host alignments were set to Center, nested spacing to AtLeast, and coordinates set by the independent authoring API before first save. The original was not repaired or edited."
+  },
+  "bindings": {
+    "profileHeader": {
+      "path": "dwg2dxf/dx_attdef_source_profile.h",
+      "sha256": "77fe67255af84ed14e1fdcb01ad9572484ca524056c763b5775af61ea6a30b2f"
+    },
+    "adapterSource": {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "a51e797a4a2976d6bab9e44369c945fe8ff2522db95830cf42b949eb246ca40e"
+    },
+    "adapterHeader": {
+      "path": "dwg2dxf/dx_iface.h",
+      "sha256": "9e8f5399b2342066d4a1a8348638f185253cc9e7b578449b68ffa57ed7aca8ca"
+    },
+    "normalAdapterObject": {
+      "path": "build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "19376a87f571a26ab054423954c5ac1907848d9c0a9a89fb29332439ab485b77"
+    },
+    "normalLibrary": {
+      "path": "build/libdxfrw.a",
+      "sha256": "2d7248ebdcb958d4a2b918d27dded4c95fed3601b00b50195c815ee8b117b198"
+    },
+    "probeSource": {
+      "path": "build/agent-attribute-profile/current-proof/probe.cpp",
+      "sha256": "bfbd92fee2f449957b9060479ded8c3d661a9891812aa83049c2b01e1b091f16"
+    },
+    "probeBinary": {
+      "path": "build/agent-attribute-profile/current-proof/probe",
+      "sha256": "bff8e686c94e9eb9c5e97635dc17e2997fa9199315dc24e2b89fefb32233fe5b"
+    },
+    "physicalAndPeerScript": {
+      "path": "build/agent-attribute-profile/current-proof/qualify.py",
+      "sha256": "beeeb420615d4a7fc822c3120e2cb3cfbb716b661bd1b67cac9d188c43fcce9a"
+    },
+    "peerPython": {
+      "path": "build/rpp5gh-evidence/peer/bin/python",
+      "sha256": "15c72833c1ffc09bc4e05d1e1866784d126721ad548d9c4d8f943641262535cb"
+    },
+    "independentReport": {
+      "path": "build/agent-attribute-profile/current-proof/aligned-qualification.json",
+      "sha256": "bb2adc70f63747f3b83b35d42d0ef4520571975c4afd51a7b2a63149170d20f9"
+    },
+    "probeWriteLog": {
+      "path": "build/agent-attribute-profile/current-proof/write.stdout",
+      "sha256": "2736ee36e938c97e0159ca4b40cda3cb13acc721441216202de84c035292bd2d"
+    },
+    "probeReadLog": {
+      "path": "build/agent-attribute-profile/current-proof/read.stdout",
+      "sha256": "580d6b412a689d6dc2944c84e5005478474bda3438e5e4b426fcad7e067c64f4"
+    },
+    "testSource": {
+      "path": "tests/attdef_equal_alignment_controls.h",
+      "sha256": "e8bdb33034667b63631762453d80b11c97bd13d773f95a57eb560ed992e09892"
+    },
+    "note": "Scratch bindings are reproducibility references; the source and generated DXF drawings are not tracked fixtures. The relevant adapter, profile header, and test files matched codeCommit when this receipt was created."
+  },
+  "original": {
+    "physical": {
+      "path": "build/rpp5hj-acadsharp/author-aligned-73-1-ac1032.dxf",
+      "sha256": "5d7afa2f5a852439e3cd446285e937e4bd95c8223f4576b4cebbab3565c3b231",
+      "bytes": 11551,
+      "binary": false,
+      "blockRecord": "48",
+      "insert": "4C",
+      "seqend": "4D",
+      "seqendOwner": "4C",
+      "selected": {
+        "ATTDEF": {
+          "handle": "4B",
+          "owner": "48",
+          "textAlignment": [
+            11.0,
+            12.0,
+            13.0
+          ],
+          "attributeAlignment": [
+            11.0,
+            12.0,
+            13.0
+          ],
+          "embeddedInsertion": [
+            21.0,
+            22.0,
+            23.0
+          ],
+          "textHorizontalAlignment": 1,
+          "embeddedSpacing": 1,
+          "attribute280": []
+        },
+        "ATTRIB": {
+          "handle": "4E",
+          "owner": "4C",
+          "textAlignment": [
+            31.0,
+            32.0,
+            33.0
+          ],
+          "attributeAlignment": [
+            31.0,
+            32.0,
+            33.0
+          ],
+          "embeddedInsertion": [
+            41.0,
+            42.0,
+            43.0
+          ],
+          "textHorizontalAlignment": 1,
+          "embeddedSpacing": 1,
+          "attribute280": []
+        }
+      }
+    },
+    "independentOrdinaryRead": [
+      {
+        "kind": "ATTDEF",
+        "handle": "4B",
+        "owner": "48",
+        "horizontal": 1,
+        "alignment": [
+          11.0,
+          12.0,
+          13.0
+        ],
+        "embeddedInsertion": [
+          21.0,
+          22.0,
+          23.0
+        ],
+        "spacing": 1
+      },
+      {
+        "kind": "ATTRIB",
+        "handle": "4E",
+        "owner": "4C",
+        "horizontal": 1,
+        "alignment": [
+          31.0,
+          32.0,
+          33.0
+        ],
+        "embeddedInsertion": [
+          41.0,
+          42.0,
+          43.0
+        ],
+        "spacing": 1
+      }
+    ],
+    "shaUnchangedAfterOrdinaryRead": true,
+    "producerProfile": "No group 280 in either selected record. Physical owner chains are ATTDEF 4B -> BLOCK_RECORD 48 and ATTRIB 4E -> INSERT 4C."
+  },
+  "compatibleOutputs": [
+    {
+      "physical": {
+        "path": "build/agent-attribute-profile/current-proof/aligned-output-asc.dxf",
+        "sha256": "47bce8c2a0180ae43394b3a5906c66cb0b7cea1a079f6206cda00c1d333a83b7",
+        "bytes": 18225,
+        "binary": false,
+        "blockRecord": "45",
+        "insert": "4C",
+        "seqend": "4E",
+        "seqendOwner": "4C",
+        "selected": {
+          "ATTDEF": {
+            "handle": "4B",
+            "owner": "45",
+            "textAlignment": [
+              11.0,
+              12.0,
+              13.0
+            ],
+            "attributeAlignment": [
+              11.0,
+              12.0,
+              13.0
+            ],
+            "embeddedInsertion": [
+              21.0,
+              22.0,
+              23.0
+            ],
+            "textHorizontalAlignment": 1,
+            "embeddedSpacing": 1,
+            "attribute280": [
+              0
+            ]
+          },
+          "ATTRIB": {
+            "handle": "4D",
+            "owner": "4C",
+            "textAlignment": [
+              31.0,
+              32.0,
+              33.0
+            ],
+            "attributeAlignment": [
+              31.0,
+              32.0,
+              33.0
+            ],
+            "embeddedInsertion": [
+              41.0,
+              42.0,
+              43.0
+            ],
+            "textHorizontalAlignment": 1,
+            "embeddedSpacing": 1,
+            "attribute280": [
+              0
+            ]
+          }
+        }
+      },
+      "independentOrdinaryRead": [
+        {
+          "kind": "ATTDEF",
+          "handle": "4B",
+          "owner": "45",
+          "horizontal": 1,
+          "alignment": [
+            11.0,
+            12.0,
+            13.0
+          ],
+          "embeddedInsertion": [
+            21.0,
+            22.0,
+            23.0
+          ],
+          "spacing": 1
+        },
+        {
+          "kind": "ATTRIB",
+          "handle": "4D",
+          "owner": "4C",
+          "horizontal": 1,
+          "alignment": [
+            31.0,
+            32.0,
+            33.0
+          ],
+          "embeddedInsertion": [
+            41.0,
+            42.0,
+            43.0
+          ],
+          "spacing": 1
+        }
+      ],
+      "shaUnchangedAfterOrdinaryRead": true
+    },
+    {
+      "physical": {
+        "path": "build/agent-attribute-profile/current-proof/aligned-output-bin.dxf",
+        "sha256": "e8aafae47f321a59f82cd7b73bfe1fb017bf5601f532bd6f65fc2f582e9ed9f7",
+        "bytes": 15165,
+        "binary": true,
+        "blockRecord": "45",
+        "insert": "4C",
+        "seqend": "4E",
+        "seqendOwner": "4C",
+        "selected": {
+          "ATTDEF": {
+            "handle": "4B",
+            "owner": "45",
+            "textAlignment": [
+              11.0,
+              12.0,
+              13.0
+            ],
+            "attributeAlignment": [
+              11.0,
+              12.0,
+              13.0
+            ],
+            "embeddedInsertion": [
+              21.0,
+              22.0,
+              23.0
+            ],
+            "textHorizontalAlignment": 1,
+            "embeddedSpacing": 1,
+            "attribute280": [
+              0
+            ]
+          },
+          "ATTRIB": {
+            "handle": "4D",
+            "owner": "4C",
+            "textAlignment": [
+              31.0,
+              32.0,
+              33.0
+            ],
+            "attributeAlignment": [
+              31.0,
+              32.0,
+              33.0
+            ],
+            "embeddedInsertion": [
+              41.0,
+              42.0,
+              43.0
+            ],
+            "textHorizontalAlignment": 1,
+            "embeddedSpacing": 1,
+            "attribute280": [
+              0
+            ]
+          }
+        }
+      },
+      "independentOrdinaryRead": [
+        {
+          "kind": "ATTDEF",
+          "handle": "4B",
+          "owner": "45",
+          "horizontal": 1,
+          "alignment": [
+            11.0,
+            12.0,
+            13.0
+          ],
+          "embeddedInsertion": [
+            21.0,
+            22.0,
+            23.0
+          ],
+          "spacing": 1
+        },
+        {
+          "kind": "ATTRIB",
+          "handle": "4D",
+          "owner": "4C",
+          "horizontal": 1,
+          "alignment": [
+            31.0,
+            32.0,
+            33.0
+          ],
+          "embeddedInsertion": [
+            41.0,
+            42.0,
+            43.0
+          ],
+          "spacing": 1
+        }
+      ],
+      "shaUnchangedAfterOrdinaryRead": true
+    }
+  ],
+  "probeWriteResults": [
+    {
+      "stage": "original-import",
+      "definitionHandle": 75,
+      "definitionOwner": 72,
+      "definitionAlign": [
+        11,
+        12,
+        13
+      ],
+      "definitionEmbeddedInsertion": [
+        21,
+        22,
+        23
+      ],
+      "definitionType": 4,
+      "definitionVersion": 1,
+      "parentHandle": 76,
+      "childHandle": 78,
+      "childOwner": 76,
+      "childAlign": [
+        31,
+        32,
+        33
+      ],
+      "childEmbeddedInsertion": [
+        41,
+        42,
+        43
+      ],
+      "childType": 2,
+      "childVersion": 1,
+      "footerHandle": 77,
+      "footerOwner": 76
+    },
+    {
+      "stage": "original-proof",
+      "definitionPair": 1,
+      "definitionReplay": 1,
+      "definitionProfileReason": 1,
+      "definitionRejectedGroup": 52,
+      "selectedCompounds": 1,
+      "compoundModeled": 1,
+      "compoundProfiles": 1,
+      "compoundSpace": 1,
+      "compoundState": 16,
+      "childProfileReason": 1,
+      "childRejectedGroup": 51
+    },
+    {
+      "stage": "source-model-after-both-exports",
+      "definitionHandle": 75,
+      "definitionOwner": 72,
+      "definitionAlign": [
+        11,
+        12,
+        13
+      ],
+      "definitionEmbeddedInsertion": [
+        21,
+        22,
+        23
+      ],
+      "definitionType": 4,
+      "definitionVersion": 1,
+      "parentHandle": 76,
+      "childHandle": 78,
+      "childOwner": 76,
+      "childAlign": [
+        31,
+        32,
+        33
+      ],
+      "childEmbeddedInsertion": [
+        41,
+        42,
+        43
+      ],
+      "childType": 2,
+      "childVersion": 1,
+      "footerHandle": 77,
+      "footerOwner": 76
+    }
+  ],
+  "probeReadbackResults": [
+    {
+      "stage": "ascii-reimport",
+      "definitionHandle": 75,
+      "definitionOwner": 69,
+      "definitionAlign": [
+        11,
+        12,
+        13
+      ],
+      "definitionEmbeddedInsertion": [
+        21,
+        22,
+        23
+      ],
+      "definitionType": 4,
+      "definitionVersion": 1,
+      "parentHandle": 76,
+      "childHandle": 77,
+      "childOwner": 76,
+      "childAlign": [
+        31,
+        32,
+        33
+      ],
+      "childEmbeddedInsertion": [
+        41,
+        42,
+        43
+      ],
+      "childType": 2,
+      "childVersion": 1,
+      "footerHandle": 78,
+      "footerOwner": 76
+    },
+    {
+      "stage": "original-proof",
+      "definitionPair": 1,
+      "definitionReplay": 1,
+      "definitionProfileReason": 1,
+      "definitionRejectedGroup": 52,
+      "selectedCompounds": 1,
+      "compoundModeled": 1,
+      "compoundProfiles": 1,
+      "compoundSpace": 1,
+      "compoundState": 16,
+      "childProfileReason": 1,
+      "childRejectedGroup": 51
+    },
+    {
+      "stage": "binary-reimport",
+      "definitionHandle": 75,
+      "definitionOwner": 69,
+      "definitionAlign": [
+        11,
+        12,
+        13
+      ],
+      "definitionEmbeddedInsertion": [
+        21,
+        22,
+        23
+      ],
+      "definitionType": 4,
+      "definitionVersion": 1,
+      "parentHandle": 76,
+      "childHandle": 77,
+      "childOwner": 76,
+      "childAlign": [
+        31,
+        32,
+        33
+      ],
+      "childEmbeddedInsertion": [
+        41,
+        42,
+        43
+      ],
+      "childType": 2,
+      "childVersion": 1,
+      "footerHandle": 78,
+      "footerOwner": 76
+    },
+    {
+      "stage": "original-proof",
+      "definitionPair": 1,
+      "definitionReplay": 1,
+      "definitionProfileReason": 1,
+      "definitionRejectedGroup": 52,
+      "selectedCompounds": 1,
+      "compoundModeled": 1,
+      "compoundProfiles": 1,
+      "compoundSpace": 1,
+      "compoundState": 16,
+      "childProfileReason": 1,
+      "childRejectedGroup": 51
+    }
+  ],
+  "validation": {
+    "selectors": [
+      "libdxfrw_attdef_embedded_equal_alignment",
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_attdef_immutable_capture"
+    ],
+    "normal": {
+      "result": "passed",
+      "lastTestLog": {
+        "path": "build/Testing/Temporary/LastTest.log",
+        "sha256": "a00fb54ad242b9c8945b2cdc5a463b73f3fc7dd7b8d84c2e769252a0f0ab3954"
+      }
+    },
+    "asan": {
+      "result": "passed",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "lastTestLog": {
+        "path": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+        "sha256": "9ae7e20e039392fae27f71208519b11d82ca814c33bd10b2341409bd997a810f"
+      }
+    },
+    "equalAlignmentCounts": {
+      "attdefOriginals": 16,
+      "attribCompounds": 8,
+      "directRefusals": 82,
+      "attdefSourceSpans": 2396,
+      "compoundSpans": 1294,
+      "compatibleWriterForms": 2
+    },
+    "countsScope": "Focused selector counts, not full-suite results. Locally authored lock=1 controls and compatible round trips are internal behavior evidence, not independently authored/native semantic qualification."
+  },
+  "limitations": [
+    "The independent ACadSharp witness has no group 280; its compatible outputs each add 280=0. Independent/native lock=1 semantics, embedded dual-280 role ordering, and general support claims are not established.",
+    "The selected source profile intentionally refuses unequal host components, missing versus present components, partial roles, differing signed-zero signs, non-finite coordinates, nonembedded duplicates, embedded-first duplicate roles, legacy marker 100, and early or dual group 280. Other forms require separate evidence.",
+    "The ezdxf ordinary reader internally invokes fast_load_dxfattribs(recover=True); no explicit recovery or audit was invoked. Physical scalar and owner checks preceded ordinary peer setup; native CAD rendering is not tested.",
+    "No source-specific failed-write/sentinel/rollback/corrected-retry contract is established by this focused selector or receipt. General adjacent transaction tests do not substitute for that contract.",
+    "The result demonstrates selected physical roles, ownership, typed geometry, source-profile matching, compound qualification and compatible output/readback only; it is not proof of every field or platform. No drawing fixture files are committed."
+  ]
+}

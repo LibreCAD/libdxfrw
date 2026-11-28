@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-dwg-layer-cmc-to-dxf-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "owner": "PAR-66 / 7AN",
+  "scope": "Extend the existing generated CMC field control through full local DWG LAYER encoding/decoding and the DXF LAYER projection, without promoting support claims.",
+  "generatedControls": {
+    "dwgSourceVersions": ["AC1024", "AC1032"],
+    "dwgPath": "dwgRW::write -> dwgRW::addLayer -> DRW_Layer::encodeDwg -> dwgRW::read -> DRW_Layer::parseDwg",
+    "cmcCases": [
+      "C2 truecolor-only RGB 00A600",
+      "C2 truecolor-only RGB 00A600 with signed layer-off state",
+      "C3 indexed ACI 104",
+      "C3 indexed ACI 255"
+    ],
+    "dxfOutputVersions": ["AC1015", "AC1018", "AC1032"],
+    "dxfEncodings": ["ASCII", "binary"],
+    "assertions": [
+      "full DWG parser retains exact C2 RGB and signed off state",
+      "full DWG parser retains C3 ACI 104 and 255 without palette remapping",
+      "C2 group 62 is deterministic nearest-palette fallback ACI 94; it is not source ACI",
+      "group 420 preserves exact RGB where the target version supports it",
+      "pre-AC1018 DXF output uses the intentionally lossy ACI fallback",
+      "literal group 62/420 tags precede ordinary DXF readback",
+      "invalid LAYER color/lineweight controls preserve the existing destination",
+      "separately authored explicit ACI plus truecolor preserves its explicit ACI"
+    ],
+    "claimBoundary": "Generated same-library write/read evidence only; no independent DWG producer, native color/display acceptance, arbitrary LAYER parity, or broad DWG/DXF support claim."
+  },
+  "validation": {
+    "strictFixtureTargetBuild": "PASS: cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j 2",
+    "focusedMode": "PASS: build-gcc/libdxfrw_dxf_fixture_tests --layer-dxf-color-policy",
+    "diffCheck": "PASS: git diff --check on the changed test and plan",
+    "fixtureCTest": "NOT RUN",
+    "fullTestSuite": "NOT RUN",
+    "externalPeerOrNativeCad": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "repositoryFixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "implementationReadiness": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "planUpdated": true,
+    "compatibilityReadWarningAndPreservePolicy": "OPEN",
+    "externalSemanticSupport": "NOT_ESTABLISHED",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

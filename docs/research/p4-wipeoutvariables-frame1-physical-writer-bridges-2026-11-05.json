@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-wipeoutvariables-frame1-physical-writer-bridges-2026-11-05",
+  "date": "2026-11-05",
+  "status": "FOUR_VERSION_BOUNDED_PHYSICAL_SOURCE_WRAPPER_BRIDGES",
+  "supportClaimEffect": "none",
+  "scope": "For one locally authored, ODA-converted frame=1 WIPEOUTVARIABLES witness in each of AC1018, AC1024, AC1027 and AC1032, verify its version-specific source frame and role spans, seed a same-revision local wrapper, and qualify selected ASCII/Binary output, refusal/retry and typed readback. This is not whole-drawing output or native rendering qualification.",
+  "producer": {
+    "authoredInputDxfSha256": "25837132680f405474425647efed839351dbf7fc92e1554bf15269a71eca3b5b",
+    "provenance": "A single R2010 DXF with one WIPEOUT and ACAD_WIPEOUT_VARS display-frame=1 was authored from scratch using ezdxf 1.4.5. ODA File Converter 27.1 separately produced AC1018, AC1024, AC1027 and AC1032 DWGs and corresponding DXF returns without .err files. This is an observed local conversion lineage, not a hash-authenticated converter join. The physical DWGs and DXFs remain in scratch storage."
+  },
+  "physicalWitnesses": [
+    {
+      "revision": "AC1018",
+      "dwgPath": "/private/tmp/wipeout-frame1/ac1018/source.dwg",
+      "dwgSha256": "9d2d16b67c070b1ab71fb41c84f2ca6afd4921fe6d7bbca25efe0652ce6a7006",
+      "independentPeer": "LibreDWG 0.14 reports custom object type 516, handle 0x30, frame=1, sole role-4 owner and reactor to NOD 0x0A, and matching object CRC.",
+      "sourceSpan": "16-byte inline object; RL scalar boundary 89 bits; canonical frame BS spans [79,89); role-4 owner [89,105), reactor [105,121), and zero pad [121,128)."
+    },
+    {
+      "revision": "AC1024",
+      "dwgPath": "/private/tmp/wipeout-frame1/ac1024/source.dwg",
+      "dwgSha256": "42b5820eebe1b85dfe687cdfaee2ffa754b2adf61d0c892ce7b9f7507546f1a7",
+      "independentPeer": "LibreDWG 0.14 reports dynamic object type 516, handle 0x30, frame=1, NOD 0x0A role-4 owner and sole role-4 reactor, and matching object CRC.",
+      "sourceSpan": "11-byte object frame with a 38-bit handle stream; frame BS spans [39,49), absent-string marker is bit 49, owner spans [50,66), reactor [66,82), and zero pad [82,88)."
+    },
+    {
+      "revision": "AC1027",
+      "dwgPath": "/private/tmp/wipeout-frame1/ac1027/source.dwg",
+      "dwgSha256": "3d17c285fdfec50337acf55039d55f7eae0130bbe0bd39c1f3de50a7c6230b00",
+      "independentPeer": "LibreDWG 0.14 reports dynamic object type 516, handle 0x30, frame=1, NOD 0x0A role-4 owner and sole role-4 reactor, missing XDictionary and zero data-storage flag, with matching object CRC.",
+      "sourceSpan": "11-byte object frame with a 37-bit handle stream; frame BS spans [40,50), absent-string marker is bit 50, owner spans [51,67), reactor [67,83), and zero pad [83,88)."
+    },
+    {
+      "revision": "AC1032",
+      "dwgPath": "/private/tmp/wipeout-frame1/ac1032/source.dwg",
+      "dwgSha256": "35cb7d3c4056efd03499b6e29988c99981d319e22a7706a721f6e533e513f95c",
+      "independentPeer": "LibreDWG 0.14 reports dynamic object type 516, handle 0x30, frame=1, NOD 0x0A role-4 owner and sole role-4 reactor, missing XDictionary and zero data-storage flag, with matching object CRC.",
+      "sourceSpan": "11-byte object frame with a 37-bit handle stream; frame BS spans [40,50), absent-string marker is bit 50, owner spans [51,67), reactor [67,83), and zero pad [83,88)."
+    }
+  ],
+  "implementation": "The physical-source verifier now accepts an explicit expected display-frame and checks the exact version-specific type/class code, scalar encoding, object/body boundary, handle roles, NOD root and zero padding. A frame=1 physical selector for each revision copies the observed typed profile into a local same-revision wrapper. Source NOD owner/reactor handle 0x0A is translated to the wrapper NOD identity; only the bounded direct-NOD graph is emitted. The frame=0 source selector remains unchanged and passing.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "physicalFrame1": [
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-physical-ac1018-frame1-direct-nod /private/tmp/wipeout-frame1/ac1018/source.dwg",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-physical-ac1024-frame1-direct-nod /private/tmp/wipeout-frame1/ac1024/source.dwg",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-physical-ac1027-frame1-direct-nod /private/tmp/wipeout-frame1/ac1027/source.dwg",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-physical-ac1032-frame1-direct-nod /private/tmp/wipeout-frame1/ac1032/source.dwg"
+    ],
+    "physicalFrame0": [
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-physical-ac1018-direct-nod /private/tmp/wipeout-ac1018/dwg/source.dwg",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-physical-ac1024-direct-nod /private/tmp/wipeout-ac1024/dwg/source.dwg",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-physical-ac1027-direct-nod /private/tmp/p4-wipeout-candidate/ac1027/source.dwg",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-physical-ac1032-direct-nod /private/tmp/wipeout-ac1032/dwg/source.dwg"
+    ],
+    "focusedGeneratedControls": "ctest --test-dir build-gcc -R '^dwg2dxf_wipeoutvariables_' --output-on-failure",
+    "results": "All eight physical frame=0/frame=1 selectors passed. The 11 focused generated wipeout-variable CTests passed. The frame=1 wrapper paths check ASCII/Binary output and typed root/owner/reactor/value readback, preserve destinations on unsupported values or mutated source/graph state, and retry successfully using the same adapter. All eight source DWG hashes matched their retained witness receipts after execution."
+  },
+  "limits": [
+    "All four frame=1 witnesses came from one locally authored DXF and one ODA converter release; this is not independent producer breadth.",
+    "The physical drawings themselves are not converted as a whole; each retains unrelated source/HEADER integrity or dependency gates.",
+    "No native wipeout display, plotting, preview, or downstream application behavior is established.",
+    "No DWG/DXF fixtures were committed; the wrapper files are temporary and the physical witnesses remain outside the repository."
+  ]
+}

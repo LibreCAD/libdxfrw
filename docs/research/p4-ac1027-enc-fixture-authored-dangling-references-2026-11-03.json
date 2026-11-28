@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1027-enc-fixture-authored-dangling-references-2026-11-03",
+  "date": "2026-11-03",
+  "title": "LibreCAD history identifies the AC1027 ENC fixture as an authored reference test",
+  "status": "PROVENANCE_IDENTIFIED; DANGLING_GRAPH_REFUSED; PRODUCER_ORDER_DIFFERENTIAL_OPEN",
+  "supportClaimEffect": "none",
+  "fixture": {
+    "path": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+    "sha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83",
+    "sourceRepository": "/Users/dli/dev/LibreCAD",
+    "sourceRevision": "9807333b5e9c2204b7ecade0e7c18bf9a9eda1ba",
+    "sourcePath": "librecad/src/lib/filters/tests/testdata/ordinary_enc_AC1027.dwg",
+    "sourceGitBlob": "2bc3fb36076bd47f7e3d7d093cc7eda063875842",
+    "match": "The source revision blob and the tracked fixture have identical SHA-256."
+  },
+  "sourceHistory": {
+    "initialFixtureCommit": "8dc335ec5daab858277aa2292861f7996738735e",
+    "subsequentFixtureCommit": "9807333b5e9c2204b7ecade0e7c18bf9a9eda1ba",
+    "sourceTestPath": "librecad/src/lib/filters/tests/dwg_write_smoke_tests.cpp",
+    "sourceTestBlobAtSubsequentCommit": "0765c83400ce14d21c6dd805fdcfb4abf0988ece",
+    "sourceTestSha256": "5e185aa48fcd52fc594f68ab62205d1e1bc1db8938e1bf73b69856652e2d789a",
+    "generationEvidence": "The historical EntityColorRoundTripIface writes three lines. Its linked line explicitly assigns AcDbColor 0x35, reactor handles 0x36 and 0x37, and extension dictionary 0x38. The ordinary ENC round-trip test writes that interface for each version and copies its temporary output to ordinary_enc_<version>.dwg using maybePreserveDwgFixture. The fixture and this test were introduced together; the subsequent commit updates the fixture while retaining these assignments and copy route.",
+    "limit": "The revision association and retained test recipe identify intended authored values; the historical generation execution itself was not replayed and the authoring history alone cannot prove every byte or whether external target records were ever intended."
+  },
+  "sourceMapEvidence": {
+    "priorReceipt": "docs/research/p4-ac1027-ordinary-classes-boundary-and-graph-blocker-2026-11-01.json",
+    "result": "The prior independent object-map observation found no objects for 0x35 through 0x38. The historical generator deliberately placed those numeric references in the test entity. They are absent from this fixture; they cannot be recovered by looking for additional target objects within the same file."
+  },
+  "currentStrictProbe": {
+    "command": [
+      "build-gcc/dwg2dxf/dwg2dxf",
+      "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+      "-y",
+      "-d",
+      "-v2013",
+      "<fresh scratch output>"
+    ],
+    "binarySha256": "ff4bd4c3001419399c9f2c5778ffd95e33f5b260de29bbd553332c5b78086fac",
+    "exit": 1,
+    "outputCreated": false,
+    "reportedFailure": "DWG entity AcDbColor reference has no unique retained DBCOLOR appearance",
+    "readDisposition": "operationSucceeded=true, 26 source frames published, zero entity and object parse failures",
+    "note": "The current preflight rejects the absent color target before reaching the previously observed extension dictionary refusal; ordering does not resolve any missing target."
+  },
+  "next": "Treat the four references as authored numeric references whose targets are absent in this fixture and retain atomic strict-output refusal. Seek a separate provenance-qualified producer-conforming graph with real color, reactor and dictionary targets to resolve the decoder-order differential and qualify output. Do not synthesize targets or claim native semantics from this fixture.",
+  "limitations": [
+    "No original DWG or DXF fixture was added or modified.",
+    "No source code was changed, no historical fixture-generation execution was replayed, and no native consumer qualification was performed.",
+    "The historical generator is not an independent producer oracle for the disputed handle ordering."
+  ]
+}

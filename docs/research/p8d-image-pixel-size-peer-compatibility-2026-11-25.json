@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-25",
+  "scope": "IMAGEDEF pixel-size DXF output and LibreCAD selected IMAGE reopen diagnostic",
+  "implementationDigestSha256": "73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad",
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-EFE5319F-A71A-4612-9431-42B6C7C3941F.htm",
+      "observation": "IMAGEDEF-specific table lists U/V pixel-size codes 11/12."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "observation": "General point-code table pairs an 11 X component with a 21 Y component."
+    },
+    {
+      "source": "LibreCAD repository test_data/pdf-image/pdf-image.dxf",
+      "sha256": "c326563345d65b042a7b370be2d4e94d117e609d66e9ed3e07de080d7451ebdc",
+      "observation": "Existing IMAGEDEF pixel size 0.01,0.01 is represented by 11/21."
+    },
+    {
+      "source": "LibreCAD repository librecad/support/library/plan/architect/Complete-Lib-V.dxf",
+      "sha256": "193507dcf1882cfa2a0d1445ab484568cdc38a2436ec1788192faaad468fb09f",
+      "observation": "Existing IMAGEDEF pixel size 1,1 is represented by 11/21; producer provenance is not established."
+    },
+    {
+      "url": "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/src/libdxfrw.cpp",
+      "observation": "The bundled LibreCAD writer emits pixel-size Y with group 21."
+    }
+  ],
+  "peerExperiments": [
+    {
+      "tool": "GNU LibreDWG 0.14",
+      "input": "LibreCAD pdf-image fixture above",
+      "operation": "dxf2dwg --as r2000, then dwg2dxf --as r2000",
+      "dwgSha256": "ed457b2fd810174986f15334075cb735758ec3d76c968607ccc9233ea1514308",
+      "dxfSha256": "d5fa7e99b11fc940234b4e9507907a39f2803036e14546aba2bb78bdcfa74d99",
+      "observation": "The peer output retains IMAGEDEF 11=0.01 and 21=0.01. Conversion also warned about an unsupported MLEADERSTYLE; this is limited to IMAGEDEF output, not a whole-file parity claim."
+    },
+    {
+      "tool": "ezdxf 1.4.5",
+      "input": "locally generated LibreCAD IMAGE WCS frame from the current rebuilt codec",
+      "dxfSha256": "e0638baef9bcff2524709077cb902fa33ad58e86a1b61597407ebb91e7013457",
+      "observation": "Read one IMAGE with insert (1,2,3), U (0.5,0,4), V (0,0.25,5), pixel size (1,1); audit reported zero errors and zero repairs. The previous same-file group-12 output was rejected by the peer tag compiler."
+    }
+  ],
+  "implementation": [
+    "Restore output of IMAGEDEF pixel-size V as group 21; preserve reading group 12 and group 21.",
+    "ASCII and binary generated wire matrix covers absent, 12-only, 21-only, both orders, XDATA and following-field sentinels."
+  ],
+  "validation": {
+    "pixelSizeWireMatrix": "PASS",
+    "focusedImagePlanAndAllocationCTest": "3/3 PASS, including failure/retry",
+    "selectedLibreCADFirstSave": "PASS with independent ezdxf observation above",
+    "selectedLibreCADReopenAndSecondSave": "FAIL during OBJECTS emission; image dictionary/definition/reactor graph remains open",
+    "fullSuite": "not run for this focused slice",
+    "nativeAutoCAD": "not run"
+  },
+  "limits": [
+    "Autodesk IMAGEDEF-specific and generic point documentation disagree; no AutoCAD native producer was executed.",
+    "An independent peer readback does not establish native semantic acceptance or graph completeness.",
+    "No new DWG or DXF fixture was committed.",
+    "15 support claims remain EXPERIMENTAL; digest-bound platform qualification must be refreshed."
+  ]
+}

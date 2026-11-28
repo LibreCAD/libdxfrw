@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-insert-minsert-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "title": "INSERT and MINSERT DWG encoder allocation rollback and retry",
+  "scope": "Generated local transaction evidence for DRW_Insert::encodeDwg; no physical producer or output-support claim.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The encoder validates attribute/SEQEND preconditions, stages body/string/handle destinations with alias-aware publication, and restores the original oType on failure. INSERT/MINSERT object type selection is retained throughout grid encoding.",
+    "versions": ["AC1021", "AC1024"],
+    "profiles": [
+      "Generated plain INSERT with a block-record reference and no attributes.",
+      "Generated MINSERT with a block-record reference, 2x3 grid and nonzero spacing."
+    ]
+  },
+  "allocationSweep": {
+    "mechanism": "One-shot global allocation failure countdown in the generated object-vector test",
+    "result": "AC1021/AC1024 INSERT and MINSERT each reached 15 allocation-failure offsets. Every failure returned false without throwing, preserved seeded body/string/handle bytes, bit counts, handle occurrences and original oType, and succeeded on same-object retry with output equal to clean encoding and the expected object type.",
+    "aliasControl": "Each profile injected failure at the first reached allocation, preserved the all-streams-aliased destination and original oType, and matched clean aliased output on same-object retry."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --insert-dwg-encode-allocation-rollback",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_insert_dwg_encode_allocation_rollback$' --output-on-failure",
+    "result": "PASS: INSERT/MINSERT selector; sixteen-test core entity writer allocation cohort passed (16/16); git diff --check passed."
+  },
+  "limitations": [
+    "Generated vectors establish local failure/retry behavior only; they do not qualify INSERT attribute-graph semantics or physical producer interoperability.",
+    "No native consumer rendering, complete-document output, or broad DWG support claim follows."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added."
+}

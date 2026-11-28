@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p7-sat-v1-optional-extraction-allocation-retry-2026-11-12",
+  "date": "2026-11-12",
+  "scope": "Generated AC1018 3DSOLID SAT-v1 parser control. Proves that an allocation failure while making the optional decoded SAT carrier does not fail the bounded DWG entity parse and that the same parser object can retry. This is not producer, geometry-semantic, writer, or support qualification.",
+  "input": {
+    "origin": "Constructed in memory from scratch by tests/modeler_sat_v1_allocation_tests.cpp; no DWG/DXF fixture file is written.",
+    "version": "AC1018",
+    "entityType": "3DSOLID (DWG object type 38)",
+    "handle": "0x120",
+    "satBlocks": 1,
+    "satBlockBytes": 173,
+    "payload": "173 bytes of printable 'Z'; SAT v1 byte transform applied when framing and reversed by the production parser"
+  },
+  "faultInjection": {
+    "target": "The sole 173-byte allocation observed during a successful parse is satPayload.reserve() for the bounded SAT block.",
+    "injectedFailure": "One-shot std::bad_alloc at that exact allocation size.",
+    "expectedBehavior": "parseDwg returns true and leaves the DWG cursor good with modeler version, handle, and object-size boundary intact; optional m_dwgAcisPayload and m_payloadRanges remain empty."
+  },
+  "retry": "The same DRW_ModelerGeometry object reparses a fresh cursor over the same immutable generated frame and reproduces the baseline de-obfuscated payload bytes and payload-range count.",
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_modeler_sat_v1_allocation_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^dwg_sat_v1_optional_extraction_allocation_retry$' --output-on-failure",
+    "result": "1/1 passed in 0.18 seconds",
+    "diffCheck": "git diff --check passed",
+    "sourceSha256": "ae36631d50241e4fc027d07f7427da8316c5f3669c804673c09c8fc18e8c4968",
+    "testExecutableSha256": "16cb47edd50215f47c84a119322adf9cf2a8f80ccec580dae00cb11ebe916395",
+    "librarySha256": "b7bee7fdc56fbf00e6a58fd3a9f711cadd0108cdbb900985f2dd96ec377585a3",
+    "buildConfiguration": "Existing build-gcc CMake tree; GCC build; project C++14 configuration; fast focused CTest only."
+  },
+  "limitations": [
+    "This invokes DRW_ModelerGeometry::parseDwg directly on a generated entity frame; it does not exercise whole-file dwgR publication or application callbacks.",
+    "The control covers the payload reserve failure only, not every parser allocation, all block sizes, other DWG versions, or platform allocators.",
+    "The allocation fallback keeps the 3DSOLID record readable but deliberately provides no SAT bytes to downstream consumers for that failed optional extraction."
+  ],
+  "fixturePolicy": "No external fixture was added; frame bytes exist only in memory."
+}

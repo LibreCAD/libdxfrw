@@ -1,0 +1,95 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Associative DXF alias and prefix callback matrix",
+  "mode": "Generated ASCII/Binary DXF fast slice",
+  "scope": [
+    "Cover exact legacy persistent-subentity aliases in associative dispatch",
+    "Cover both open associative name-prefix branches with unregistered suffixes",
+    "Assert typed/raw callback pairing and following-object delivery without semantic claims"
+  ],
+  "generatedRecords": [
+    "PERSISTENTSUBENTITYMANAGER",
+    "PERSUBENTMGR",
+    "ASSOCLOCALTEST",
+    "ACDBASSOCLOCALTEST"
+  ],
+  "encodings": [
+    "ASCII DXF",
+    "Binary DXF"
+  ],
+  "assertions": [
+    "Exactly one typed associative shell is retained for each generated record",
+    "Exactly one same-name raw associative callback is observed and retained",
+    "Source handle and owner identity are retained",
+    "Typed/raw capture pairing is complete",
+    "A following DICTIONARYVAR callback and sentinel arrive after the associative record",
+    "Ordered common and opaque raw groups are retained"
+  ],
+  "assessment": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "testRegistrationsChanged": false,
+    "persistentFixturesAdded": 0,
+    "newControls": 8,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Closes the local 7BV.1 dispatch coverage gap for explicit persistent-subentity aliases and both associative prefixes. Unknown names remain unqualified and strict export remains fail-closed. No associative class grammar or semantic support is inferred."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build build --target dwg2dxf lc3_compat_check -j2",
+      "result": "PASS",
+      "note": "Ninja reported no work to do; command exited successfully."
+    },
+    {
+      "command": "ctest --test-dir build -R '^dwg2dxf_associative_callback_contract$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.28
+    },
+    {
+      "command": "ctest --test-dir build -R '^dwg2dxf_associative_(callback_contract|strict_loss_gate)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0,
+      "elapsedSeconds": 0.04
+    },
+    {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/dwg2dxf_adapter_tests.cpp",
+      "result": "PASS"
+    }
+  ],
+  "method": {
+    "fullSuiteRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "commitCreated": false,
+    "commitLimitation": ".git is read-only in the active workspace; no staging or commit was attempted.",
+    "sourceSha256": {
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "e0239b33af000aba4dc2ee5b15ade6b5084c2b4b90a7796be4f1b872db73f3bc",
+      "tests/dwg2dxf_adapter_tests.cpp": "6999feef1f63b9fdd71233de7fb4c22acf7071f2cdff50b5976a0c779b895417"
+    },
+    "planSha256": "e0239b33af000aba4dc2ee5b15ade6b5084c2b4b90a7796be4f1b872db73f3bc",
+    "limitations": "Generated unregistered names exercise dispatch and capture framing only. They do not establish recognized production classes, pointer roles, graph semantics, replay eligibility, or native application behavior."
+  }
+}

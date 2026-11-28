@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-freecad-ac1021-closed-3d-polyline-import-gap-2026-11-12",
+  "purpose": "Determine whether FreeCAD's native C++ DXF importer preserves the closed state of a generated classic 3D POLYLINE.",
+  "source": {
+    "provenance": "Generated locally from scratch during the optional P8 integration test; no DWG/DXF fixture is committed.",
+    "version": "AC1021",
+    "sha256": "e034fd41acae5358e1129624d559c109bae1ee3be6b2b2d83eb09572ad80090e",
+    "entity": "POLYLINE",
+    "dxfGroup70": 9,
+    "headerFlags": {"closed": true, "threeDimensional": true},
+    "verticesWcs": [[81, 82, 1], [84, 82, 4], [85, 86, 5], [82, 86, 2]],
+    "authoritativeFlagReference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm"
+  },
+  "convertedDxf": {
+    "converterPath": "/private/tmp/libdxfrw-freecad-current-install/bin/dwg2dxf",
+    "converterSha256": "36ccaf73892eba809aed7316272d5e02d1ce2f4b645c4d3057109df391f506f1",
+    "sha256": "1930dd80af7de442f5b44fead6fdb491675f1da1a49e71982581c5a65030203d",
+    "polylineHeaderGroup70": 9,
+    "vertexRecords": 4,
+    "vertexFlags": [32, 32, 32, 32]
+  },
+  "consumer": {
+    "application": "FreeCAD 1.1.4",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "macOS 27.2.1 arm64",
+    "importer": "C++ DXF importer",
+    "route": "FreeCAD Draft DWG open -> installed dwg2dxf -> C++ DXF importer",
+    "observedEntityCounts": {"POLYLINE": 2},
+    "unsupportedFeatures": [],
+    "closedPolylineObservedShape": {
+      "boundsWcs": [81, 82, 1, 85, 86, 5],
+      "edges": 3,
+      "expectedClosingEdges": 4,
+      "result": "CLOSURE_NOT_PRESERVED"
+    }
+  },
+  "validation": {
+    "focusedCtest": "dwg2dxf_freecad_generated_ac1021_primitives_open and _insert both reach native import, then fail the expected four-edge closed shape assertion (observed 3 edges).",
+    "strictPreflight": "Installed converter succeeds and preserves the documented group-70 flags and all four VERTEX records.",
+    "libdxfrwGeneratedWireTest": "dwg_r2007_polyline3d_closed_flag_roundtrip PASS; the generated AC1021 writer emits first 3D POLYLINE flag byte 0 and second byte 1, and the reader restores group-70 flags 9. Truncation refusal and corrected-buffer retry also pass.",
+    "fixturePolicy": "The DWG/DXF were generated and retained only under the system temporary directory."
+  },
+  "interpretation": "The DXF writer emitted group 70 value 9 (closed bit plus 3D bit), consistent with Autodesk's documented POLYLINE flags. The selected FreeCAD route creates an open three-edge shape for this closed entity. Do not alter correctly emitted group-70 data or promote closed 3D POLYLINE consumer support on this evidence.",
+  "supportClaimEffect": "Identifies a bounded downstream consumer semantic gap; no library support claim is promoted."
+}

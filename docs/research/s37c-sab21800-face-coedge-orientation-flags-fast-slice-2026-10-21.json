@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c SAB 21800 face and coedge orientation flag projection",
+  "mode": "Generated parser-fed fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Capture face sense and double-sided state at the exact SAB 21800 face field boundary",
+    "Capture conditional face containment only for double-sided faces",
+    "Capture one coedge sense value aligned with each ordered face-loop coedge",
+    "Fail closed to unknown values when booleans are misplaced before required pointers"
+  ],
+  "implementation": {
+    "profile": "ACIS BinaryFile SAB 21800 only",
+    "fields": [
+      "face sense after six pointer slots",
+      "face double-sided state after the sense boolean",
+      "conditional containment boolean only when double-sided",
+      "coedge sense after five pointer slots, before subsequent loop/pcurve references"
+    ],
+    "unknownDisposition": "Absent face flags remain absent; absent coedge sense is -1; projection coverage reports known gaps.",
+    "resourceAccounting": "Boolean token scans charge extraction work; output sense slots and copied face-loop values charge output items.",
+    "compatibility": "No DRW_Interface virtual changed; public DRW_AcisFace and DRW_AcisFaceLoop layout changes require downstream rebuild."
+  },
+  "tests": {
+    "positive": [
+      "Generated face sense/double-sided/containment values preserve their boolean values",
+      "Generated per-loop coedge sense values preserve graph traversal order",
+      "Serialized/parser-fed SAB projection matches the in-memory graph projection"
+    ],
+    "negative": [
+      "Face flags placed before the sixth pointer remain absent",
+      "Coedge sense placed before the fifth (edge) pointer remains unknown (-1)",
+      "Both malformed-position projections retain a known-gap coverage classification"
+    ],
+    "validation": {
+      "build": "PASS (libdxfrw_graph_preservation_tests and lc3_compat_check)",
+      "ctest": "PASS (libdxfrw_graph_preservation, 1/1, 1.25 seconds)",
+      "scopedDiffCheck": "PASS (git diff --check on changed source/test/contract files)"
+    }
+  },
+  "assessment": {
+    "localDefectAddressed": "Previously unprojected orientation/face-state fields are now represented with explicit presence and fail-closed unknown values for this profile.",
+    "semanticClaimsPromoted": 0,
+    "fullBrepValidity": false,
+    "curveTrimEvaluation": false,
+    "nativeConsumerQualification": false,
+    "externalSemanticEvidence": false,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "externalDrawingsDownloaded": 0,
+    "persistentFixturesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "fullSuiteRun": false,
+    "dependenciesAdded": 0,
+    "productionFilesChanged": [
+      "src/drw_acis.cpp",
+      "src/drw_acis.h"
+    ],
+    "testFilesChanged": [
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "documentationFilesChanged": [
+      "docs/3D_CONSUMER_CONTRACT.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The field positions are applied only to the reviewed generated 21800 profile. Pinned peer typed SAT layout is corroboration, not normative ACIS specification or independent producer evidence. No B-rep, trim, kernel, or native-app behavior is qualified."
+  },
+  "plan": {
+    "findings": 144,
+    "topLevelSubplans": 78,
+    "selfUnblock": "Continue to the next dependency-ready local S3.7c invariant without waiting for external semantic or platform qualification."
+  }
+}

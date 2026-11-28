@@ -1,0 +1,153 @@
+{
+  "schema": "libdxfrw-deeper-broader-independent-kernel-and-parser-route-maturity-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Search for independently implemented open-source geometry kernels and reconcile current open-source parser routes against the existing DWG/DXF/ACIS/ACDS evidence ladder; update the plan without adding dependencies, fixtures, or support claims.",
+  "method": {
+    "kind": "Read-only review of primary project READMEs, architecture/status documents, release metadata, and published artifact provenance",
+    "peerSourceRevisionsPinned": false,
+    "peerPackagesInstalledOrRun": false,
+    "repositoriesClonedOrBuilt": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localTestsRun": false,
+    "productionImplementationChanged": false,
+    "sources": [
+      "https://github.com/cadbuildr/ironstream",
+      "https://github.com/cadbuildr/ironstream/blob/main/ARCHITECTURE.md",
+      "https://github.com/cadbuildr/ironstream/blob/main/OPENCASCADE_PARITY.md",
+      "https://github.com/cadbuildr/ironstream/releases",
+      "https://github.com/kernalix7/CADKernel#supported-file-formats",
+      "https://github.com/DrunkOnJava/dwg-rs/blob/main/README.md",
+      "https://github.com/iyulab/uncad",
+      "https://github.com/iyulab/undxf",
+      "https://github.com/xorgy/dxfscan",
+      "https://pypi.org/project/cq-acis/0.3.12/",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+    ],
+    "evidenceRule": "Project feature tables and README claims establish only declared scope. Parser lineage, kernel lineage, producer provenance, carrier/owner association, native consumer acceptance, and semantic expected values are separate evidence dimensions. Mutable branches are not execution pins."
+  },
+  "evidence": [
+    {
+      "topic": "IronStream as a non-OCCT kernel candidate",
+      "sources": [
+        "https://github.com/cadbuildr/ironstream",
+        "https://github.com/cadbuildr/ironstream/blob/main/ARCHITECTURE.md",
+        "https://github.com/cadbuildr/ironstream/blob/main/OPENCASCADE_PARITY.md",
+        "https://github.com/cadbuildr/ironstream/releases"
+      ],
+      "observed": "The repository claims a from-scratch MIT Rust implementation with no shared OCCT code and an OCCT-shaped API. Its architecture calls the current representation a tessellating B-rep using mesh-based BSP booleans; its parity map shows many topology, geometry-intersection, sewing, and I/O routes as partial or unstarted. README describes ported OCCT tests plus narrow closed-form checks. The GitHub releases page reports no releases.",
+      "doesNotEstablish": [
+        "SAT/SAB, DWG, or DXF parsing",
+        "exact ACIS/NURBS B-rep validation",
+        "semantic validity of source records decoded by libdxfrw",
+        "released artifact maturity or behavior at an immutable source revision",
+        "native CAD or AcDs acceptance"
+      ],
+      "planUse": "Discovery-only independent mesh-kernel candidate. Do not add an adapter or dependency to the implementation path. If used later at a composed checkpoint, limit claims to a pinned mesh projection with independent analytic expectations and explicitly label it TESSELLATED_PROJECTION."
+    },
+    {
+      "topic": "CADKernel's detailed ACIS status",
+      "sources": [
+        "https://github.com/kernalix7/CADKernel#supported-file-formats"
+      ],
+      "observed": "The repository's broad format ambitions do not change its detailed table, which marks ACIS SAT/SAB unsupported/planned.",
+      "doesNotEstablish": [
+        "a working ACIS parser or kernel route",
+        "DWG/DXF solid semantics"
+      ],
+      "planUse": "Retain existing candidate stop rule; do not score headline format coverage as an implemented route."
+    },
+    {
+      "topic": "Spec-derived DWG structural route",
+      "sources": [
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/README.md"
+      ],
+      "observed": "The current README identifies dwg-rs as a pre-alpha implementation with partial entity decoding and no DXF reader. Its source is separately implemented but based on the same ODA specification authority used by this repository.",
+      "doesNotEstablish": [
+        "an independent format specification",
+        "complete typed DWG semantics",
+        "DXF read support, a geometry kernel, or native CAD acceptance"
+      ],
+      "planUse": "Optional exact-version DWG record/container-boundary differential only, when a concrete local record question warrants it."
+    },
+    {
+      "topic": "uncad/undxf operation and lineage split",
+      "sources": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/iyulab/undxf"
+      ],
+      "observed": "uncad's README describes a read-only common model, with DWG supplied by LibreDWG FFI and ASCII/Binary DXF supplied by undxf; JSON/SVG/PNG are downstream projections.",
+      "doesNotEstablish": [
+        "an independent DWG parser lineage",
+        "a DWG/DXF writer",
+        "lossless graph or carrier round-trip from render output"
+      ],
+      "planUse": "Preserve the existing lineage attribution; optionally use a pinned undxf parser route at a composed DXF checkpoint only."
+    },
+    {
+      "topic": "Binary DXF discovery-only parser",
+      "sources": [
+        "https://github.com/xorgy/dxfscan"
+      ],
+      "observed": "The README declares a zero-copy typed subset for Binary DXF R13+ with Unknown entities; the repository page shows one commit and no release.",
+      "doesNotEstablish": [
+        "DWG support or writing",
+        "full object/owner/XDATA/proxy coverage",
+        "behavior of an exact published artifact"
+      ],
+      "planUse": "Keep discovery-only; pin crate checksum and matching source before any optional read-only comparison."
+    },
+    {
+      "topic": "cq-acis bounded parser and shared-kernel boundary",
+      "sources": [
+        "https://pypi.org/project/cq-acis/0.3.12/",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+      ],
+      "observed": "cq-acis provides a distinct SAT/SAB parser and experimental conversion of an explicitly bounded subset through CadQuery/OpenCASCADE. Its docs distinguish parsing from complete shape conversion and document profile and producer limits. It does not parse the outer DWG/DXF container or establish AcDs entity-owner-key-payload association; its OCCT kernel family is shared with FreeCAD.",
+      "doesNotEstablish": [
+        "all-producer or all-profile SAT/SAB semantics",
+        "outer DWG/DXF carrier integrity or owner closure",
+        "a second geometry-kernel vote relative to FreeCAD",
+        "native FreeCAD acceptance from package publication metadata"
+      ],
+      "planUse": "Keep as an optional, pinned inner-payload parser/shared-OCCT plausibility lane. Verify the selected wheel hash/attestation, exact dependencies, input profile and body/reference completeness if run."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "jDispositionChanged": false
+  }
+}

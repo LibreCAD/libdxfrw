@@ -1,0 +1,52 @@
+{
+  "title": "Reject unsupported DWG HATCH/MPOLYGON edge entity types",
+  "authority": "ODA Open Design Specification for .dwg files v5.4.1 \u00a720.4.75, printed page 195 defines four non-polyline HATCH edge types: line, circular arc, elliptic arc and spline.",
+  "problem": "The preflight accepted any DRW_Line or DRW_Spline subtype. RAY and HELIX inputs were accepted and silently encoded as LINE and SPLINE, losing the ray semantics and helix-specific turns/radius. Other built-in line-derived entities could likewise be silently projected.",
+  "sample": "The locally authored AC1021 writer probe used a RAY (base 3,4; direction 4,0), and a HELIX with degree-2 control spline, turns=4, radius=2. Both files include existing default material/plotstyle opt-ins and a following LINE. LibreDWG 0.14 decoded HATCH curve types 1 and 4 respectively; ODA File Converter produced AC1027 DXF with LineEdge and SplineEdge, no .err, zero-byte log, and no ezdxf 1.4.5 audit errors/fixes. DXFs are manually paired with the recorded converter run; the artifact hashes do not authenticate converter lineage.",
+  "change": "Validate public eType as LINE, ARC, ELLIPSE, or SPLINE and require the corresponding dynamic cast. On LINE reject known built-in ELLIPSE, 3DLINE, RAY, TRACE, TEXT and IMAGE families even when relabelled; on SPLINE reject HELIX even when relabelled. Encoder dispatch uses the selected type tag. Existing consumer subclasses of supported types remain allowed under their declared base contract; their additional custom semantics are not independently validated.",
+  "coverage": "Across AC1015/18/21/24/27/32, direct HATCH and MPOLYGON tests refuse RAY, XLINE, 3DLINE, TRACE, TEXT, IMAGE, HELIX, incompatible dynamic/tag combinations, null, and every built-in descendant relabelled to LINE or SPLINE, before body/text/handle buffers and bit cursors, handle or object type change. Same object retries corrected LINE successfully. LINE/ARC/ELLIPSE/SPLINE and ordinary custom LINE/SPLINE subclasses remain accepted; direct boundary helper dispatch obeys the tag. HATCH facade rejects all variants then retries and native readback finds a single HATCH plus following LINE. MPOLYGON controls exercise direct encoding, not a physical output or facade claim.",
+  "validation": [
+    "ctest --test-dir /private/tmp/ac1021-hatch-edges/snapshot-build -R ^libdxfrw_dwg_hatch_edge_subtype$ --output-on-failure passes 1/1; unmodified 5a9c63a3 fails the same test.",
+    "ctest --test-dir /private/tmp/ac1021-hatch-edges/snapshot-build -R libdxfrw_dwg_hatch_\\(ellipse_edge\\|edge_subtype\\) --output-on-failure passes 2/2.",
+    "Integrated subtype and ellipse-edge tests passed 2/2. The integrated subtype test also seeds partial bits and checks byte contents and bit positions after refusal."
+  ],
+  "production_patch": {
+    "path": "/private/tmp/hatch-subtypes/hatch-edge-subtypes.patch",
+    "sha256": "cb9817d2deabcc29b5f8ffc3e88709d81c60e70acff73114c42d38403ee24b78"
+  },
+  "evidence_tools": [
+    {
+      "path": "tools/probe_dwg_hatch_unsupported_edges.cpp",
+      "sha256": "85747f0b6fe79db75da7e623241776f8e08e906c16b9564bb68528ccebf9b60b"
+    },
+    {
+      "path": "tests/dwg_hatch_edge_subtype_tests.cpp",
+      "sha256": "91ad6f40f219a1d2939038f20ee0f78a7ee9491fa8e658ba2eb5f46ec4ca355a"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/private/tmp/hatch-subtypes/in/ray.dwg",
+      "sha256": "527d3171087b2c59ec92f9a9ad6a4d55e71f6c88aec952ffb60821a5b73dcc21"
+    },
+    {
+      "path": "/private/tmp/hatch-subtypes/in/helix.dwg",
+      "sha256": "c7411caa58d3d43cb1e7cdc03ae5a6c92062da548cc28c6f178a78fd77a4b3fc"
+    },
+    {
+      "path": "/private/tmp/hatch-subtypes/out/ray.dxf",
+      "sha256": "8707f798da382aa15074077dbdf631638ce79c23147fdfec7d700e08f98ac8ce"
+    },
+    {
+      "path": "/private/tmp/hatch-subtypes/out/helix.dxf",
+      "sha256": "94353b5f4bd4825310c50980b678abe64dbd179c894672c77b60b87cfaa779cf"
+    },
+    {
+      "path": "/private/tmp/hatch-subtypes/oda.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_ATOMIC_REFUSAL"
+}

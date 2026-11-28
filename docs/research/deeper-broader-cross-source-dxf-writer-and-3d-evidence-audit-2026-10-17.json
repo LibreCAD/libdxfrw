@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw-deeper-broader-cross-source-dxf-writer-and-3d-evidence-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Reconcile the PAR-130 DXF group-code boundary with official type references and independent writer architecture; refresh related binary-DXF peer reports and the evidence ceilings for DWG/DXF 3D routes; refine only existing plan owners for speed and readiness.",
+  "method": {
+    "kind": "Primary-source web review plus read-only local source/plan inspection",
+    "peerRepositoriesCloned": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/intern/dxfcode.h",
+      "src/intern/dxfwriter.cpp",
+      "src/libdxfrw.cpp"
+    ],
+    "limitations": "Peer issue details remain reporter claims and are not libdxfrw reproductions. Current mutable repository source is not a release qualification. No current native FreeCAD, LibreDWG, or ACadSharp output was produced in this review."
+  },
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+    "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+    "https://github.com/hakanaktt/acadrust/issues/136",
+    "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/lldxf/tagwriter.py",
+    "https://github.com/LibreDWG/libredwg/issues/1411",
+    "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+    "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+    "https://github.com/DomCR/ACadSharp/issues/1195",
+    "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export.md",
+    "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+    "https://www.opencascade.com/products/cad-assistant/"
+  ],
+  "findings": [
+    {
+      "topic": "DXF scalar and carrier type boundaries",
+      "observed": "Autodesk's current table confirms XDATA 1000-1009 strings, 1010-1059 doubles, 1060-1070 16-bit integers, 1071 32-bit integer, 290-299 Boolean flags, and 310-319 binary chunks. The local PAR-130 change maps the 1009/1010 edge correctly; 1004 remains the dedicated binary-chunk code.",
+      "evidenceCeiling": "The official type table is an independent map for DXF group-code typing; it does not establish every serializer call site, target profile, consumer behavior, or the libdxfrw LibreCAD-legacy override policy.",
+      "planUse": "Use a test-only type oracle transcribed from Autodesk, separate binary chunks from NUL-terminated strings, and exercise AC1009's group-code framing separately from modern two-byte code framing."
+    },
+    {
+      "topic": "ACadRust issue #136 and code-driven writer strategy",
+      "observed": "Open issue #136 reports 60 fixed-width call sites across 15 codes in ACadRust 0.6.4 and says its own reader accepts the misaligned output. The report is a useful failure-mode lead, not evidence about libdxfrw. Current ezdxf BinaryTagWriter selects scalar widths from explicit code sets and has a distinct binary-chunk path; its own documentation warns that some proxy/third-party binary output may still fail target applications.",
+      "evidenceCeiling": "Neither issue prose nor ezdxf source proves the behavior of an exact libdxfrw build or target application. Self-readback and centralized dispatch alone do not establish end-to-end format interoperability.",
+      "planUse": "Continue existing PAR-39/7X work. Prefer a shared sink-level code/type guard plus independent byte scanning, but preserve raw/opaque replay and target-application qualification as separate routes."
+    },
+    {
+      "topic": "Local binary sink and embedded-NUL exposure",
+      "observed": "Local dxfWriterBinary writeInt16/writeInt32/writeInt64/writeDouble/writeBool emit the requested width without validating the group's expected kind. The dxfWriter layer already carries standalone and LibreCAD-master legacy classifier profiles. Ordinary binary writeString rejects embedded NUL through isSafeBinaryDxfString; group 1004 and 310-319 use a separate chunk encoder.",
+      "evidenceCeiling": "This source inspection confirms a guard/readiness gap, not a new defect count; existing PAR-39 records local mismatches and the 667-call scan was bounded. No complete current census or raw-wire full matrix was rerun here.",
+      "planUse": "Do not add a duplicate NUL finding. Complete the existing callsite inventory, propagate classifier profile into the sink, reject known-type mismatches before writing bytes, and preserve opaque/raw routes explicitly."
+    },
+    {
+      "topic": "3D route and semantic evidence refresh",
+      "observed": "LibreDWG issue #1411 is scoped to a named 0.14.8593 build while mutable current source has an AcDs read path and NEWS calls AcDs handling incomplete. ACadSharp #1195 describes 3DSOLID/REGION omission in 3.4.9, not the current release. FreeCAD documentation describes stock DWG/DXF as 2D-only through a converter-to-DXF-importer route; CAD Assistant identifies SAT/SAB import as a commercial-component route.",
+      "evidenceCeiling": "These reports/docs do not qualify current releases, prove local failures, establish B-rep semantics, or supply independent native acceptance. A source entry point or matching entity count does not prove the entity-owner-payload-output chain.",
+      "planUse": "Keep exact release/build provenance, object identity/owner/payload association, output disposition, and semantic consumer results separate. No change to the existing composed Linux/Windows native and independent semantic gates."
+    }
+  ],
+  "implementationReadySequence": [
+    "Finish the existing PAR-39/7X literal and dynamic writer callsite census with owner, method, type profile, version gate, and typed-versus-raw route.",
+    "Pass the selected standalone or LibreCAD-legacy profile to dxfWriterBinary before the first value; known typed methods must validate kind before emitting code/value bytes.",
+    "Keep group 999 rejection, R12 framing, 1004/310-319 chunk encoding, and identity/provenance-gated unknown/raw replay as explicit paths.",
+    "Fix only concrete failing serializer owners identified by focused generated tests; do not weaken classifier ranges to make an incorrect call pass.",
+    "Use an independent in-memory raw walker checking ordered tags, exact widths, Boolean values, chunk lengths, full EOF consumption, a following sentinel, pre-emission mismatch failure, and destination-preserving public rejection.",
+    "For each slice run only the focused selector, strict owning target, and owning CTest; compatibility build only for public/consumer contract changes; keep broad matrices/full suites at scheduled family checkpoints."
+  ],
+  "planImpact": {
+    "existingOwnersRefined": [
+      "PAR-39 / 7X binary DXF writer-width inventory and repair",
+      "7BU group-code classifier and writer-sink validation"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "dependenciesAdded": 0,
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 130,
+    "topLevelSubplanCount": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planUpdated": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "scopedDiffCheck": true
+  }
+}

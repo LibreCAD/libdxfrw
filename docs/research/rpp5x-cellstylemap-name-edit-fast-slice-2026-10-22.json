@@ -1,0 +1,81 @@
+{
+  "slice": "RPP-5x",
+  "title": "DXF-origin CELLSTYLEMAP UTF-8 cell-style name edit merge",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": [
+    "permit only custom cell-style name changes in a DXF-origin CELLSTYLEMAP while retaining all other typed fields and raw groups exactly",
+    "locate group-300 names through the verified CELLSTYLE_BEGIN/id/class/name/CELLSTYLE_END sequence",
+    "re-encode changed group-300 values through the UTF-8 raw-object override path",
+    "bound per-name and aggregate override text and reject invalid UTF-8 or record-control text"
+  ],
+  "generated_controls": [
+    "ASCII and Binary source maps contain a data-bearing and an empty style",
+    "multiple names edit and read back, including a multibyte UTF-8 name",
+    "readback verifies typed names and raw group-300 values while preserving the noncanonical ASCII count spelling",
+    "non-name typed changes remain refused before output publication",
+    "raw group mutation and cross-version replay remain refused",
+    "names over 1 MiB, invalid UTF-8, NUL, or line breaks are refused before output publication"
+  ],
+  "consumer_audit": {
+    "result": "no production in-tree caller of dwgRW::writeTableStyleCellStyleMapGraph",
+    "conversion_route": "dwg2dxf is DWG/DXF-to-DXF; it does not provide a production DXF-to-DWG source-graph handoff",
+    "cell_style_id_closure": "DRW_TableCell::m_styleId is parsed, while TABLECONTENT column and row base-style IDs were skipped at the time of RPP-5x; ODA §20.4.97 specifies table-level style overrides and a TABLESTYLE handle, not a fourth numeric ID. RPP-5y subsequently captured and domain-checked column/row/cell IDs, but full TABLECONTENT-to-TABLESTYLE/CELLSTYLEMAP graph joins remain unavailable"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_cellstylemap_dxf_writer$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "elapsed_seconds": 0.37
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- dwg2dxf/dx_iface.cpp src/libdxfrw.h src/libdxfrw.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/rpp5x-cellstylemap-name-edit-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    },
+    "receipt_json_parse": {
+      "command": "jq empty docs/research/rpp5x-cellstylemap-name-edit-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    }
+  },
+  "fixtures": {
+    "persistent_external_fixtures_added": 0,
+    "input_origin": "generated locally in temporary directories"
+  },
+  "qualification_limits": {
+    "arbitrary_custom_cell_style_authoring": "INCOMPLETE",
+    "cell_style_id_reference_updates": "NOT_IMPLEMENTED",
+    "ac1021_graph_writer_production_handoff": "NOT_IMPLEMENTED",
+    "dwg_version_upconvert": "NOT_IMPLEMENTED",
+    "independent_dxf_reader": "NOT_RUN",
+    "full_test_suite": "NOT_RUN",
+    "sanitizers": "NOT_RUN",
+    "native_freecad_linux": "NOT_RUN",
+    "native_freecad_windows": "NOT_RUN",
+    "independent_acis_acds_semantic_evidence": "NOT_RUN",
+    "support_claim_promoted": false,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "changed_paths": [
+    "dwg2dxf/dx_iface.cpp",
+    "src/libdxfrw.h",
+    "src/libdxfrw.cpp",
+    "tests/dwg2dxf_adapter_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/rpp5x-cellstylemap-name-edit-fast-slice-2026-10-22.json"
+  ],
+  "next": "RPP-5y closed the bounded ID-capture/domain-audit step. Add graph-level ID resolution before enabling ID edits; keep production DXF-to-DWG handoff and external/native/ACIS qualification separate from generated local validation.",
+  "commit": "NONE"
+}

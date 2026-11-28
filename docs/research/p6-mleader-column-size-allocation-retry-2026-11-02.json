@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw-p6-mleader-column-size-allocation-retry-v1",
+  "recordedAt": "2026-11-02",
+  "status": "PASS_BOUNDED_DXF_PARSER_SAFETY_PROFILE",
+  "scope": "Allocation-failure rollback for repeated MLEADER text-context DXF group 144 column sizes.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The parser checks the existing item cap and reserves one additional column-size slot before consuming group 144. If reserve fails, the parse returns false with the context and column-size vector unchanged; successful insertion cannot allocate after the value is read.",
+    "publicApiChanged": false
+  },
+  "control": {
+    "file": "tests/dxf_fixture_tests.cpp",
+    "selector": "--mleader-column-size-allocation-failure",
+    "allocationInjection": "MaterialAllocationFailure offset 0 targets the guarded vector reserve.",
+    "checks": [
+      "Open CONTEXT_DATA and select text content.",
+      "Injected reserve failure is observed exactly once and leaves the vector empty while the context remains open.",
+      "Retry group 144 with 1.25, append a following 2.5 size, and close CONTEXT_DATA successfully."
+    ],
+    "fixtureAdded": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "buildResult": "PASS",
+    "focusedCTestCommand": "ctest --test-dir build-gcc -R '^libdxfrw_mleader_column_size_allocation_failure$' --output-on-failure",
+    "focusedCTestResult": "1/1 passed in 0.57 seconds",
+    "fullSuiteRun": false
+  },
+  "limits": [
+    "This covers only the group-144 MLEADER DXF vector append allocation path.",
+    "It does not qualify MLEADER physical producer breadth, native annotation semantics, DWG parsing, or complete document conversion."
+  ],
+  "next": "Continue the P6 safety review at a separate reproduced parser allocation or rollback boundary; keep native and whole-document qualification gates open."
+}

@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-polyline-ownership-preflight-scratch-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reduce and account temporary memory in the AC1018+ mapped-POLYLINE ownership preflight while preserving deterministic conflict detection and invalid-group quarantine.",
+  "method": {
+    "kind": "Focused production refactor plus generated in-memory index tests and existing six-version scratch-DWG regression",
+    "productionFilesChanged": [
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader.cpp"
+    ],
+    "testFilesChanged": [
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "planFileChanged": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicApiChanged": false,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "sanitizerRun": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false
+  },
+  "implementation": {
+    "priorTemporaryStructures": [
+      "A retained copy of each mapped POLYLINE's declared child handles",
+      "A per-parent unordered duplicate-detection set",
+      "A second child-to-first-owner map"
+    ],
+    "newStructures": [
+      "A deterministic ordered child-to-first-owner map",
+      "An ordered set of invalid parent handles",
+      "One local sorted vector copied from the currently parsed parent list"
+    ],
+    "conflictDisposition": "Every subsequent parent claiming a child is marked invalid together with the first owner; invalid parents are reparsed in a second pass and their source frames and declared children are quarantined.",
+    "preflightOrder": "The single preflight remains global across all BLOCK_RECORD entries and runs before block callbacks/source-frame consumption; the redundant per-block re-decode was removed.",
+    "budgetModel": "The existing 256 MiB POLYLINE policy charges every non-null claim reference including repeats, conservative ordered map/set node estimates, staged-state estimates, and observed current frame-body capacity, parsed-list node estimates, and temporary sorted-vector capacity while the preflight index is retained.",
+    "limitations": [
+      "Frame and parsed-list allocations occur before their capacities can be checked against the aggregate budget.",
+      "Allocator metadata, implementation-specific transient allocations, retained freed memory, and process RSS are not measured.",
+      "Malformed cross-parent quarantine is tested at the index-helper level, not with an end-to-end generated DWG source-frame collision vector.",
+      "Existing six-version scratch-DWG cases cover valid production traversal only; they are same-library writer-to-reader evidence."
+    ]
+  },
+  "validation": {
+    "strictTargets": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg_local_roundtrip lc3_compat_check -j2",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+    "owningCtests": "PASS: libdxfrw_dwg_reader_matrix and libdxfrw_dwg_local_roundtrip (2/2)",
+    "scopedDiffCheck": true,
+    "receiptJsonParsed": true
+  },
+  "planImpact": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "existingOwnerOnly": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

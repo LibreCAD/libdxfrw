@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader CADMPEG ACIS-profile semantic-reader qualification update",
+  "mode": "primary-source research only",
+  "scope": [
+    "Reconcile CADMPEG's published crate support level with its profile-specific ACIS/ASM decode claims",
+    "Separate a bare ACIS stream parser and connected neutral B-rep validation from a general geometry kernel",
+    "Distinguish ASM BinaryFile4/8 and save-format 23200 from the documented ACIS 217/218 carrier branch",
+    "Convert the candidate into a bounded, implementation-ready optional check without adding a routine dependency, fixture, or support claim"
+  ],
+  "sources": [
+    {
+      "name": "cadmpeg-codec-sat 0.6.1 API",
+      "url": "https://docs.rs/cadmpeg-codec-sat/0.6.1/cadmpeg_codec_sat/",
+      "observed": "The crate describes a bare ASM/ACIS stream codec and reports L1 support. It is not a DWG or DXF document/container reader."
+    },
+    {
+      "name": "CADMPEG format support and scoring criteria",
+      "url": "https://github.com/cadmpeg/cadmpeg/blob/main/docs/format-support.md",
+      "observed": "The overall ASM/ACIS support score is L1, but the same support document records connected B-rep validation and direct-carrier parity as profile-specific extras for ACIS majors 217 and 218. The ladder is defined against declared format coverage; the headline must not erase narrow extras or be mistaken for all-profile semantics."
+    },
+    {
+      "name": "CADMPEG ASM/ACIS format specification",
+      "url": "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md",
+      "observed": "The document distinguishes ASM BinaryFile4 and BinaryFile8 from ACIS 217/218 binary streams, describes topology ownership and centimeter-to-millimeter conversion, and states other ACIS save-format bands are outside the documented grammar."
+    },
+    {
+      "name": "CADMPEG ASM/ACIS open items",
+      "url": "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm-open-items.md",
+      "observed": "The project maintains unresolved ACIS/ASM layout questions; this limits extrapolation from a narrow passing profile to general modeler support."
+    },
+    {
+      "name": "acis-core profile-specific authoring and validation scope",
+      "url": "https://docs.rs/acis-core/0.3.11/acis_core/",
+      "observed": "The crate documents experimental source-free Asm23200MetricBox SAB authoring and explicitly distinguishes reference-closure validation from B-rep validity and a particular Inventor/ASM version. This ASM profile cannot be silently equated to ACIS 217/218."
+    },
+    {
+      "name": "FreeCAD official DXF/3D importer scope",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "observed": "The stock DXF importer documentation states that ACIS/SAT 3D solids are not currently read; DWG conversion and the selected DXF importer remain separate route stages."
+    },
+    {
+      "name": "acad-ts 3.3.0 package and reader configuration",
+      "url": "https://www.npmjs.com/package/@node-projects/acad-ts",
+      "relatedUrl": "https://github.com/node-projects/acad-ts/blob/master/docs/CadReaderDocs.md",
+      "observed": "The package describes itself as an ACadSharp port and names its base and last-compared upstream commits. The reader docs default failsafe to true and unknown entity/object retention to false. This refreshes an existing lineage classification; it adds no independent parser vote."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines the existing optional PAR-07/S8 composed checkpoint: CADMPEG is a conditional profile-specific independent ACIS decoder and neutral-topology cross-check for an exact admitted bare stream, not a generic framing-only comparator. It does not establish a geometry-kernel certificate, DXF/DWG entity association, AcDs ownership, native FreeCAD acceptance, or general ACIS/SAB support. Exact artifact/profile and source-to-carrier identity gates are required; mismatch or unavailable routes self-unblock as NOT_QUALIFIED/NOT_AVAILABLE."
+  },
+  "implementationReadyChecks": [
+    "At the existing composed S8 checkpoint only, resolve the exact cadmpeg-codec-sat archive/integrity, matching source commit, cadmpeg-asm version, lockfile, toolchain/features, and license; audit implementation overlap with other ACIS parser candidates.",
+    "Inspect the stream magic, save-format word, and revision flags. Do not equate ASM BinaryFile4/8 or ASM 23200 with the verified ACIS 217/218 branch.",
+    "Require exact admitted branch/version, expected body count, complete required body/topology disposition, and no unexplained geometry-transfer loss. Mark unverified dialects, missing required topology, or geometry_not_transferred NOT_QUALIFIED.",
+    "Before detaching bytes, prove the entity-to-carrier join and hash the exact assembled payload. Keep DXF inline SAT, DXF ACDSDATA/SAB, DWG inline modeler, and DWG AcDs routes separate.",
+    "Compare parser output to independently declared units, placement, bounds, analytic measures, topology, orientation, and explicit tolerances; CADMPEG self-reports and self-round trips are not independent expected-value oracles.",
+    "Keep any kernel result, native Linux/Windows FreeCAD acceptance, and support-claim decision separate. If an optional route is unavailable, record that stage and proceed with local fast slices.",
+    "Do not add a routine dependency, CMake/CI integration, downloaded/persistent DWG/DXF/SAT/SAB fixture, or per-slice peer/full-suite run."
+  ],
+  "limitations": "Primary documentation review only. CADMPEG source/artifact correspondence, dependency graph, exact stream-profile admission, runtime output, B-rep validity, and any native consumer were not independently executed or audited. Mutable main pages and a crate documentation page are candidate-scope evidence, not reproducible qualification. The local ODA v5.4.1 specification remains authoritative for DWG byte layout.",
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  },
+  "workingTree": {
+    "productionOrTestFilesEdited": false,
+    "stagingAttempted": false,
+    "commitCreated": false
+  }
+}

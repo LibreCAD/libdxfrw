@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw-deeper-broader-field-producer-witness-and-peer-refresh-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the FIELD/FIELDLIST wire-contract review with producer-origin observations, version-specific interpretation, and current peer regression disclosures; update implementation readiness without changing production code or support claims.",
+  "method": {
+    "kind": "Autodesk DXF references, local ODA Open Design Specification v5.4.1, public AutoCAD entget transcripts, current peer release notes, and read-only local source inspection",
+    "localOdaPdf": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "localOdaPdfVersion": "5.4.1",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsRun": false,
+    "sourcePinning": "Public product documentation and peer release notes are linked directly; peer programs were not executed. Forum transcripts identify product/version context but do not provide reproducible source drawing artifacts or exact product builds.",
+    "evidenceRule": "Treat official Autodesk DXF documentation as a published schema statement, ODA v5.4.1 as DWG object-layout evidence, AutoCAD entget transcripts as version-scoped producer observations with provenance limits, and peer release notes as regression leads only."
+  },
+  "evidence": [
+    {
+      "topic": "Autodesk published DXF FIELD table",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm",
+        "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2007.pdf",
+        "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2008.pdf"
+      ],
+      "observed": "The published Autodesk FIELD group table labels 301 as format string, 9 as format overflow, and 98 as format-string length, in 2007/2008 manuals as well as the 2021 online reference.",
+      "doesNotEstablish": [
+        "that a producer-saved FIELD object uses those meanings in every DXF release/profile",
+        "how cached text in ACFD_FIELD_VALUE relates to root 301/9/98 in actual output",
+        "whether the table omits a versioned legacy or compatibility mapping"
+      ],
+      "planUse": "Retain as an explicit documented interpretation and conflicting source; do not discard it solely because user-posted producer observations disagree."
+    },
+    {
+      "topic": "ODA FIELD object and CadValue version split",
+      "sources": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "local:/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf:20.4.76",
+        "local:/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf:20.4.99"
+      ],
+      "observed": "ODA v5.4.1 §20.4.76 assigns legacy group 4 format through R2004, root 301/9 cached value chunks, and group 98 cached-value length; §20.4.99 assigns R2007+ nested CadValue group 300 format and 302 value. FIELDLIST is a separate root-dictionary index in §20.4.77.",
+      "doesNotEstablish": [
+        "that DXF projection must exactly mirror this DWG object map for every AutoCAD DXF version",
+        "that group 9 overflow semantics are confirmed by the producer observations found in this pass"
+      ],
+      "planUse": "Separate pre-R2007 root-format and modern nested-CadValue routes; retain root cache and overflow as separately evidenced tags rather than conflating the DWG object map with the published Autodesk DXF table."
+    },
+    {
+      "topic": "AutoCAD 2010 table-field producer observation",
+      "sources": [
+        "https://www.mjtd.com/thread-81905-1-1.html"
+      ],
+      "observed": "The thread's initial post says it was tested in AutoCAD 2010. Its AutoLISP entget transcript for a TABLE-linked FIELD shows an evaluated CadValue with group 300 = %lu2 and group 302 = 598880.00, then root group 301 = 598880.00 and group 98 = 9. This is non-empty format/cache data and matches the ODA/local mapping for those observed tags.",
+      "confidence": "Strong, version-scoped corroboration; lower provenance than a retrievable drawing because the post is a text transcript with no exact product build, save-version metadata, or attached source file.",
+      "doesNotEstablish": [
+        "group 9 overflow meaning; it does not appear in the transcript",
+        "behavior of every AutoCAD 2010 producer build or later DXF target",
+        "native reopen after serialization by libdxfrw"
+      ],
+      "planUse": "Use as a literal parser/writer test vector for the observed AutoCAD 2010 TABLE-field profile, while requiring reproducible native/save/reopen evidence before enabling adapter export."
+    },
+    {
+      "topic": "Earlier AutoCAD object-property producer observation",
+      "sources": [
+        "https://groups.google.com/g/autodesk.aec.land-desktop.customization/c/U2vysDt1Jp4"
+      ],
+      "observed": "A user-posted AutoLISP entget output for an object-property FIELD shows legacy group 4 = %lu2, root group 301 = 1303.11, and group 98 = 7. It aligns with the ODA/local legacy interpretation. The source is an Autodesk-hosted discussion archive, but the exact product/build/save version is not recorded in the excerpt.",
+      "confidence": "Corroborating legacy observation, not a reproducible release-qualified artifact.",
+      "doesNotEstablish": [
+        "an exact AutoCAD product version",
+        "group 9 overflow semantics",
+        "all evaluator/data-type variants"
+      ],
+      "planUse": "Add a legacy group-4 plus root cached-text test vector; keep version admission narrow until build/version provenance is reproduced."
+    },
+    {
+      "topic": "Current peer FIELD/FIELDLIST regression leads",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/DomCR/ACadSharp/releases"
+      ],
+      "observed": "LibreDWG 0.14.1 reports FIELDLIST standard-handle and FIELD child/object-reference fixes; its 0.14 notes mention FIELD/TABLE value parsing and truncated-FIELD tolerance. ACadSharp v3.6.51 reports an OBJECTS writer fix for dangling handles, duplicate objects, and null FIELD text, after a Field/FieldList/CadValue refactor. The release page currently lists v3.8.0 as latest, so v3.6.51 is the release containing the cited regression note, not the current peer pin.",
+      "doesNotEstablish": [
+        "peer execution or parity for this checkout",
+        "normative wire semantics",
+        "complete graph or semantic support"
+      ],
+      "planUse": "Add independent fast vectors for FIELDLIST identity, child ownership, object references, type-64 CadValue edges, null/empty cache, duplicate identities, and truncation bounds. Run one pinned peer comparison at a composed checkpoint, not every slice."
+    },
+    {
+      "topic": "Local implementation mapping and export status",
+      "sources": [
+        "local:src/libdxfrw.cpp:dxfRW::processField",
+        "local:src/libdxfrw.cpp:dxfRW::writeField",
+        "local:src/libdxfrw.cpp:writeDxfFieldValue",
+        "local:dwg2dxf/dx_iface.cpp:dx_iface::fileExport"
+      ],
+      "observed": "Local parser reads group 4 into root m_formatString; groups 9/301 into root m_valueString and 98 into its length; nested group 300/302 into CadValue format/value. The writer mirrors this split but emits the legacy root-format field whenever m_formatString is set, without the version qualification now called for by the evidence. Adapter export still refuses FIELD/FIELDLIST and TABLE group-344 routes.",
+      "doesNotEstablish": [
+        "interoperable serialization",
+        "whether modern target versions should emit group 4 from root state",
+        "post-write closure or native acceptance"
+      ],
+      "planUse": "Add version-gated writer tests and decide code 4 output only from producer-qualified target-version evidence; preserve the current adapter refusal."
+    }
+  ],
+  "implementationReadiness": {
+    "nextSlice": "Add generated literal tests for the two observed profiles (legacy root code 4 and AutoCAD 2010 nested CadValue 300/302), preserving the root cached-text 301/98 interpretation; keep group 9 overflow and Autodesk's published 301-format interpretation explicitly unresolved until a reproducible producer witness is obtained.",
+    "writerGate": "Version-gate group 4; require exact per-version expected tags, independent raw-tag comparison, and native or repeatable producer save/reopen before enabling adapter/TABLE FIELD serialization.",
+    "graphGate": "FIELDLIST standard identity/membership, 360 child ownership, 331 references, type-64 CadValue references, owner/reactor/extension-dictionary edges, emitted identity, one-time remapping, and post-write closure remain separate requirements.",
+    "validationCadence": "Fast touched-target strict build plus one focused generated test and compatibility check per slice; one pinned peer comparison and native application qualification at composed checkpoints.",
+    "fixturePolicy": "No external drawing was downloaded or added. Keep public entget transcripts as linked research evidence; do not commit externally sourced DWG/DXF fixtures.",
+    "planImpact": {
+      "newFindings": 0,
+      "newTopLevelSubplans": 0,
+      "supportClaimsPromoted": 0,
+      "externalJDispositionChanged": false,
+      "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+      "currentPlanTotals": "123 findings / 71 top-level subplans",
+      "worktreeCommitted": false
+    }
+  }
+}

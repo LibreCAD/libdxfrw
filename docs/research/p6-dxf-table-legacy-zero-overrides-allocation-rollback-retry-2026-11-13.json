@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-table-legacy-zero-overrides-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_LEGACY_TABLE_ZERO_OVERRIDES_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the public AC1018 writeTableWithLegacyZeroOverrides wrapper under callback-local allocation failure and invalid-value refusal in ASCII and Binary.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One generated one-column, one-row ACAD_TABLE using a one-byte zero legacy override mask; no external or committed drawing fixture is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "b453ad77",
+    "files": [
+      "tests/table_legacy_height_controls.h",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "method": "Extend the existing allocation fault probe to choose either writeTableWithLegacyZeroOverrides or writeTableWithLegacySourcePresence. Calibrate and inject one-shot bad_alloc at every measured callback offset. Require whole-file fileExport refusal, unchanged source identities and TABLE body, prior destination preservation, same-adapter retry producing byte-identical clean output, and fresh typed TABLE readback. Also pass mask byte 2 through the wrapper and require atomic refusal, unchanged caller and destination, then corrected same-adapter retry with {0} and typed readback. The wrapper validates the zero mask and delegates to the source-presence route; whole-file refusal remains authoritative because some caught serializer failures leave the callback emitted flag set while the writer sticky error prevents publication."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_table_content_dxf_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_table_legacy_presence_allocation$' --output-on-failure: PASS 1/1",
+    "directRun": "PASS; source-presence API and zero-overrides API each passed 11/11 ASCII and 11/11 Binary allocation offsets; invalid mask byte 2 refused atomically and corrected same-adapter retry/readback passed in ASCII and Binary",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated AC1018 transaction and typed-readback evidence only; no source-specific legacy spelling semantics, producer prevalence, or native TABLE behavior is established.",
+    "Only a one-cell zero mask and invalid byte value 2 are covered through the wrapper. Other invalid/nonzero masks, block-cell source presence, attributes, merged cells, and other TABLE payloads are not covered here.",
+    "P6-G remains open pending the public-writer inventory and other uncovered transaction profiles.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's writer inventory and close remaining uncovered caller-state transaction profiles with rollback, same-writer retry, and typed readback."
+}

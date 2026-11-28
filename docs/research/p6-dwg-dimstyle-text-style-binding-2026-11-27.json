@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-dimstyle-text-style-binding-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.68 specifies DIMTXSTY as a hard-pointer handle to a STYLE record.",
+  "finding": "The DWG decoder retained the handle but left the POD and $DIMTXSTY fields at Standard, causing a false identity mismatch for nonstandard text styles.",
+  "implementation": "Resolve the parsed hard-pointer against the same import STYLE table and update both exposed names. Missing targets remain subject to existing strict output refusal.",
+  "independentObservation": {
+    "sourceSha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+    "peer": "LibreDWG 0.14",
+    "dimensionStyleHandle": 137,
+    "textStyleHandle": 76,
+    "textStyleName": "OpenSansCondensed-Light"
+  },
+  "checks": [
+    "PASS from-scratch AC1015, AC1021, AC1024 and AC1027 DWG reads resolve a nonstandard style and expose the same POD and $DIMTXSTY names.",
+    "PASS generated AC1024 ASCII and binary DXF readback retains the group-340 target, rejects a changed name or missing target with destination preservation, and succeeds after corrected retry.",
+    "PASS the locally authored ODA-derived source advances beyond DIMSTYLE in explicit partial conversion and refuses the R24 TABLESTYLE default cell style outside the witnessed profile; destination remains unchanged."
+  ],
+  "limits": [
+    "The ODA source still cannot be converted successfully; strict conversion remains refused due to the unclassified header suffix.",
+    "Generated reader/writer controls do not qualify all versions or producer profiles. No DWG or DXF fixture was committed."
+  ]
+}

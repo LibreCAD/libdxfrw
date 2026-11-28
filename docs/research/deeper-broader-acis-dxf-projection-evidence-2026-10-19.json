@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Open-source ACIS record coverage and DXF projection ceilings",
+  "mode": "Primary-source web research plus local implementation cross-check and plan update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "baselineQualification": "The shared worktree was already broadly dirty. Local source and plan observations refer to the shared worktree, not a clean checkout at baselineCommit.",
+  "scope": [
+    "Reconcile ezdxf 1.4.5 ACIS API/entity limits and GDAL DXF reader/projection limits against the current libdxfrw ACIS projection and coordinate-test owners.",
+    "Identify only implementation-ready comparator refinements and avoid duplicating existing findings or subplans.",
+    "Preserve generated-only fixture policy, reduced per-slice validation cadence, existing support boundaries, and deferred external qualification."
+  ],
+  "method": {
+    "kind": "Current primary-source web review and local source/test/plan cross-check",
+    "worktreeDirtyAtStart": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "productionCodeChanged": false,
+    "localTestsRun": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/drw_acis.h",
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Peer documentation and mutable stable/master pages establish project-documented route limits, not runtime behavior for an unpinned build. The ODA Open Design Specification v5.4.1 remains authoritative for DWG byte layouts; no ACIS format rule was inferred from peer limitations."
+  },
+  "sources": [
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/3dsolid.html"
+      ],
+      "revision": "Stable documentation identifies release 1.4.5; no package/source artifact was installed or run.",
+      "observed": "The ACIS API loads SAT/SAB and exposes carrier export; mesh_from_body is documented for flat polygonal faces only, while curved-surface tessellation requires a kernel. Pattern, Wire, and Subshell are documented as not implemented and Attribute as unsupported. Export can reject unsupported structures; typed parsing may reduce unsupported records to NONE_ENTITY. This is a bounded DXF/ACIS route, not complete ACIS graph or B-rep evidence."
+    },
+    {
+      "project": "GDAL DXF",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Current stable driver documentation reviewed 2026-10-19; no GDAL binary run.",
+      "observed": "Binary-DXF reading is documented starting with GDAL 3.12. RawCodeValues is opt-in and covers codes not handled by the reader, not a full record stream. AC1027+ 3D-extensible mode exposes raw ASM data and a 12-real transform but skips solids by default and does not create OGR solid geometry. DIMENSION, LEADER, and MULTILEADER lack the documented OCS/elevation geometry projection."
+    },
+    {
+      "project": "libdxfrw local ACIS projection",
+      "urls": [
+        "src/drw_acis.h",
+        "src/drw_acis.cpp",
+        "tests/graph_preservation_tests.cpp"
+      ],
+      "revision": "Current shared worktree; files were read locally and not modified.",
+      "observed": "DRW_AcisProjectionReport includes unsupported Pattern, Wire, Subshell, p-curve, curve, and surface counts. The generated rooted graph test asserts those counts and asserts that B-rep validity is not checked. The report has no Attribute-specific counter; this pass does not establish whether such records affect the selected geometry projection, so it adds no finding and recommends no speculative grammar."
+    }
+  ],
+  "implementationReadiness": {
+    "existingOwnersRetained": true,
+    "rules": [
+      "Keep peer ACIS parse outcome, carrier association, graph reachability, geometry projection, B-rep validity, and native application acceptance separate.",
+      "Use ezdxf mesh output only for its documented flat-face projection; do not use it to validate curved B-rep semantics.",
+      "Use GDAL 3.12+ only for the exact Binary-DXF, raw-group, raw-ASM, transform, or documented geometry cell; DIMENSION, LEADER, and MULTILEADER geometry are not applicable to its OCS projection.",
+      "No peer runtime, dependency, fixture, CTest registration, full suite, or per-slice validation-frequency change is introduced."
+    ]
+  },
+  "localCrosswalk": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "localTestsRun": false,
+    "receiptJsonSyntaxCheck": "passed with python3 -m json.tool",
+    "scopedMarkdownDiffCheck": "passed with git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fullSuiteRun": false
+  },
+  "workingTree": {
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "Only the research plan and this receipt were edited by this pass; unrelated dirty worktree changes were preserved."
+  }
+}

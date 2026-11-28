@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1018plus-layer-body-handle-role-spans-2026-11-09",
+  "date": "2026-11-09",
+  "status": "ONE_HASH_BOUND_AC1027_LAYER_BODY_PROFILE_AND_CROSS_VERSION_CODEC_CONTROLS",
+  "scope": "Validate AC1018+ LAYER body hard-pointer roles, retain exact handle-stream spans, and bind the observed AC1027 Cover LAYER 0 fields to an independent LibreDWG read.",
+  "supportClaimEffect": "none",
+  "authority": {
+    "name": "ODA Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/Open Design Specification for .dwg files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "§2.13 defines typed hard-pointer handle code 5 and canonical null code 0.",
+      "§20.4.54 orders LAYER references after the common handle stream: external-reference block hard pointer, R2000+ plotstyle hard pointer, R2007+ material, linetype hard pointer, and trailing unknown hard pointer.",
+      "§20.1 supplies the common table-entry owner/reactor/xdictionary roles; those are separately validated by the existing common-handle slice."
+    ],
+    "limits": "The ODA table leaves the material role wording implicit and does not define the trailing unknown target semantics. Material code 5 is corroborated by the independent LibreDWG profile and the selected physical source."
+  },
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "producerProvenance": "Existing local source; producer lineage is not authenticated and no drawing fixture is committed.",
+    "layer": {
+      "handle": "0x10",
+      "name": "0",
+      "fields": [
+        {"role": "xrefBlock", "rawCode": 5, "target": "0x0", "startBit": 155, "bitSize": 8},
+        {"role": "plotStyle", "rawCode": 5, "target": "0xf", "startBit": 163, "bitSize": 16},
+        {"role": "material", "rawCode": 5, "target": "0x46", "startBit": 179, "bitSize": 16},
+        {"role": "lineType", "rawCode": 5, "target": "0x16", "startBit": 195, "bitSize": 16},
+        {"role": "unknown", "rawCode": 5, "target": "0x0", "startBit": 211, "bitSize": 8}
+      ],
+      "exactStreamEndBit": 219
+    }
+  },
+  "independentPeer": {
+    "name": "LibreDWG 0.14",
+    "repository": "/Users/dli/dev/LibreDWG",
+    "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "specPath": "/Users/dli/dev/LibreDWG/src/dwg.spec",
+    "specSha256": "c3c6dec791321721b0ff75854d3ac2e8832986b62fce832cc053e2ac85f2e9fd",
+    "schemaFields": [
+      "LAYER plotstyle is encoded with handle code 5.",
+      "LAYER material is encoded with handle code 5.",
+      "LAYER ltype is encoded with handle code 5."
+    ],
+    "command": ["/opt/homebrew/bin/dwgread", "-O", "minJSON", "/Users/dli/doc/dwg/Cover.dwg"],
+    "executableVersion": "dwgread 0.14",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "minJsonSha256": "12a88999c8a23a63aa82062bc867432afd62df558c74fd0cd446520acaa0e0e9",
+    "matchingLayer": {
+      "handle": "0x10",
+      "name": "0",
+      "xref": [5, 0, 0, 0],
+      "plotstyle": [5, 1, 15, 15],
+      "material": [5, 1, 70, 70],
+      "ltype": [5, 1, 22, 22]
+    },
+    "limits": "The peer exposes and matches xref, plotstyle, material, and ltype raw role/target values. Its JSON does not expose the ODA trailing unknown field; that field remains covered by the ODA-backed parser role check and source span, not by the peer comparison."
+  },
+  "implementation": {
+    "baseCommit": "c5358604",
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "CMakeLists.txt",
+      "tools/research/audit_ac1027_source_references.py"
+    ],
+    "change": "The LAYER parser now transactionally validates AC1018+ body references as hard pointers (allowing raw code 0 only for a canonical null), and records each consumed reference's exact handle-stream start/width. The AC1027 Cover inventory requires the exact LAYER 0 five-field profile and checks its exposed targets against LibreDWG minJSON. Generated parser-fed controls cover AC1018, AC1021, AC1024, and AC1027, each version's field presence, all wrong-role refusals, canonical nulls, exact ordered spans, rollback, and same-parser corrected retry.",
+    "compatibility": "The span vector is appended to public DRW_Layer state to preserve earlier member offsets. Downstream consumers must rebuild; no DRW_Interface virtual or callback changed.",
+    "scopeLimit": "The selected source profile does not prove all LAYER producer/version variants, all layer-target graph closure, unknown-field semantics, or strict whole-drawing output."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_ac1018plus_layer_body_handle_roles|libdxfrw_ac1027_object_common_handle_roles|dwg2dxf_dwg_layer_table_control_dictionary|dwg2dxf_standard_dwg_layer_dependencies)$' --output-on-failure",
+      "passed": 4,
+      "failed": 0
+    },
+    "audit": {
+      "command": "python3 tools/research/audit_ac1027_source_references.py --executable build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --source /Users/dli/doc/dwg/Cover.dwg --peer-json /tmp/libredwg-cover-minjson-final.json --peer-schema /Users/dli/dev/LibreDWG/src/dwg2.spec --timeout 60",
+      "verifierSha256": "5141395044b88891e31adc60aa50575cf15469c52b5e3723693659a76f4e8988",
+      "auditExecutableSha256": "694e92cea034cf9847dbdeb1904d5bffcaa5849f7b3c15ab8ffa5dd42260d4a3",
+      "diagnosticOutputSha256": "76164b3b7a69da36416e22d5a2969276aafac887f70e37c25c543335a2d6d07c",
+      "auditJsonSha256": "81ab2c8380dd8aa58a9f33f96efe377e34329df00aaa34d6ed71692effb13117",
+      "sourceFrames": 88,
+      "typedBodyReferences": 129,
+      "typedLayerHandleFields": 5,
+      "sourceBoundLayerProfiles": 1,
+      "sourceUnchangedDuringAudit": true
+    },
+    "pythonSyntax": "PASS: python3 -m py_compile tools/research/audit_ac1027_source_references.py",
+    "fullTestSuites": "NOT RUN",
+    "fixturesAdded": false
+  },
+  "remainingGates": [
+    "Validate additional physical source profiles and unique target identities before admitting LAYER body references to strict whole-drawing output.",
+    "The trailing unknown LAYER handle's purpose and output disposition remain unresolved.",
+    "The AC1027 HEADER suffix and unrelated unqualified source references continue to refuse strict output.",
+    "Native ODA/FreeCAD qualification remains unavailable while the desktop reports locked; no format conclusion follows from that access state."
+  ],
+  "next": "Implement DIMSTYLE body handle role/span validation from ODA v5.4.1 §20.4.68, starting with the AC1027 Cover table record and its applicable eight-reference version profile; preserve the strict output guard and require source-bound field/target evidence before promoting any output claim."
+}

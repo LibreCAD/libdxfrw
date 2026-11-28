@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-associative-source-handle-inventory-2026-10-30",
+  "date": "2026-10-30",
+  "title": "Associative source-handle preflight inventory",
+  "status": "SOURCE_HANDLE_PREFLIGHT_VERIFIED_WRITER_RESERVATION_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "c708b55a",
+  "scope": "Include the source-format-selected associative object records in dx_iface's shared extension-graph source identity inventory. Reject unaddressable, duplicate, and cross-family-colliding associative handles before graph planning. This is preflight identity validation only; it does not reserve writer handles, serialize associative objects, or qualify document conversion.",
+  "implementationEvidence": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "result": "DWG associativeObjects and DXF associativeObjects are checked in the shared source handle namespace. Zero, DRW::NoHandle, repeated associative handles, and aliases with LTYPE or DICTIONARY handles fail with InvalidGraph. Unique identities in both source formats pass preflight.",
+    "validation": [
+      {
+        "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build -R '^dwg2dxf_associative_source_handle_inventory$' --output-on-failure",
+        "result": "PASS; 1/1 focused fast selector covering unique DWG/DXF handles, zero and sentinel rejection, duplicate handles, and LTYPE/DICTIONARY collisions"
+      }
+    ],
+    "fixturePolicy": "All records are authored in memory; no DWG/DXF fixtures were added.",
+    "sourceHashesSha256": {
+      "dwg2dxf/dx_iface.cpp": "92d72ef23126f48d4a5ff6f580fe43f5bfb581eb9db66725d74adccfe0086898",
+      "tests/dwg2dxf_adapter_tests.cpp": "fd566720394d7d2764adcdda3f9d2332f4ad4e727887dd8d475eb6b668527352",
+      "tests/CMakeLists.txt": "0e6f3655d7bb94151455a1f124f6ac2ed5aeb4a883667d14e21942cbc26d5db4",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "0e228d07ee28b3319640089ae687a5db9dab0a86a2c6c9c657f979c04b929895"
+    }
+  },
+  "remaining": "Reserve associative identities in the DXF writer before generated allocation, map source to planned to emitted handles, and route admitted writers through the recursive graph planner. Independent staged-output field inspection/readback and atomic publication/retry proof remain open under P4.",
+  "nonGoals": [
+    "Do not modify DWG parse layouts or infer additional associative fields.",
+    "Do not relax the whole-document associative refusal gate.",
+    "Do not claim output support from preflight identity validation."
+  ]
+}

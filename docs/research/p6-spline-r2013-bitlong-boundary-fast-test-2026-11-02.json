@@ -1,0 +1,49 @@
+{
+  "evidenceId": "p6-spline-r2013-bitlong-boundary-fast-test-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P6/S6.2",
+  "status": "GENERATED_PARSER_BOUNDARY_CONTROL",
+  "qualificationEligible": false,
+  "supportClaimsPromoted": false,
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.40 SPLINE",
+    "localCopy": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "rule": "R2013+ Spline flags 1 and Knot parameter are BL fields; scenario 1 keeps Rational, Closed, and Periodic as separate B fields."
+  },
+  "controls": {
+    "ac1027": "Hand-encoded scenario-2 body with nontrivial flags=13 and knot parameter=2, degree, fit tolerance, tangents and fit points. A BL sentinel follows the exclusive body-bit boundary.",
+    "ac1024": "Hand-encoded scenario-1 body without R2013+ fields, with separate Rational/Closed/Periodic bits, tolerances, knots, weighted control points, and a following BL sentinel.",
+    "encoder": "Both vectors use low-level dwgBufferW bitstream primitives and do not call DRW_Spline::encodeDwgSplineBody().",
+    "fixturePolicy": "Runtime-authored vectors only; no DWG/DXF fixture file was added."
+  },
+  "implementation": {
+    "productionParserChanged": false,
+    "change": "Added a dedicated --spline-bitlong-boundary selector and fast CTest registration for the existing independent-body vectors.",
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j 2",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg_spline_bitlong_boundary$' --output-on-failure",
+      "result": "PASS: 1/1 in 0.41 seconds"
+    },
+    "compatibility": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j 2",
+      "result": "PASS"
+    }
+  },
+  "claimBoundary": [
+    "This control verifies the local parser's version gate and body-cursor boundary against hand-encoded vectors.",
+    "It is not an authentic DWG producer witness or independent reader comparison.",
+    "AC1024, AC1027, and AC1032 SPLINE producer/version qualification remains open until each has a matching physical witness.",
+    "No spline geometry, NURBS evaluation, rendering, or format-support claim is promoted."
+  ]
+}

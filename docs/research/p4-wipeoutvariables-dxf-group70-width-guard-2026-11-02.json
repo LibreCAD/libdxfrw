@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-wipeoutvariables-dxf-group70-width-guard-2026-11-02",
+  "date": "2026-11-02",
+  "title": "WIPEOUTVARIABLES DXF group-70 signed-width guard",
+  "status": "WIPEOUTVARIABLES_DXF_GROUP70_WIDTH_GUARD_PASSED",
+  "supportClaimEffect": "none",
+  "scope": "Prevent out-of-range DXF group-70 values from narrowing into aliases in DRW_WipeoutVariables::m_displayFrame while retaining signed-16-bit wire representations in the existing public unsigned carrier.",
+  "documentationReview": {
+    "sources": [
+      {
+        "title": "Autodesk DXF group-code value types",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+        "finding": "Group-code range 60–79, including group 70, is a 16-bit integer value."
+      },
+      {
+        "title": "Autodesk WIPEOUTVARIABLES DXF object",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CD28B95F-483C-4080-82A6-420606F88356.htm",
+        "finding": "WIPEOUTVARIABLES group 70 is documented as 0 or 1. The related WIPEOUTFRAME system-variable mode 2 is retained on input but remains refused for strict DXF output pending a documented crosswalk."
+      }
+    ]
+  },
+  "implementation": {
+    "behavior": "DRW_WipeoutVariables::parseCode reads group 70 into a signed 32-bit temporary, rejects values outside INT16_MIN..INT16_MAX before changing the object, and stores the signed-16-bit bit pattern in the existing uint16_t field. Representable values outside the documented 0/1 DXF output domain remain available for diagnostics and are rejected by the strict writer guard from the preceding receipt.",
+    "limits": [
+      "This guard establishes integer-width admission only; it does not establish the semantic meaning of values outside 0/1.",
+      "No public object layout or callback signature changed.",
+      "The ASCII DXF reader itself rejects some out-of-range numeric spellings before parseCode; the typed-parser guard covers values reaching the model parser. Both paths preserve the prior field value on rejection."
+    ]
+  },
+  "regressionControl": {
+    "selector": "--wipeoutvariables-display-mode-domain",
+    "behavior": "The focused wave1 selector covers signed-16-bit endpoints -32768 and 32767, representable values -1/0/1/2, and rejection of -32769/32768/65535/65536. Rejected records must leave the previous field value unchanged. The same selector also checks direct DXF writer acceptance only for group-70 values 0/1 and atomic refusal of 2/3/65535.",
+    "fixture": "Generated ASCII group records in memory; no DWG/DXF fixture file is added."
+  },
+  "sourceBinding": {
+    "baseRevision": "52d8be5a9c7683516d48269fc7d47f5510809f9a",
+    "files": {
+      "src/drw_objects.cpp": "52196b8339e0198475a5548c85808494a07809cf4f71f0e462b08038f53dc246",
+      "tests/wave1_tests.cpp": "3e83c79756624f2580a4df065545d96f6d7733420e8b7b627563f220fd3956f2"
+    },
+    "executables": {
+      "build-gcc/libdxfrw_wave1_tests": "e117266a67ca0df7e3cc9446f6c63558180d367c3a5d99dfe804435cc78a644f"
+    }
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "normalBuildResult": "passed",
+    "focusedTest": "ctest --test-dir build-gcc -R '^(libdxfrw_wipeoutvariables_display_mode_domain|dwg2dxf_wipeoutvariables_dwg_adapter_transport)$' --output-on-failure",
+    "focusedTestResult": "After the parser boundary correction, libdxfrw_wipeoutvariables_display_mode_domain passed 1/1 in 0.41 seconds. The adapter selector had passed 1/1 before the test-only boundary adjustment; the parser implementation was unchanged between those runs.",
+    "diffCheck": "git diff --check passed before receipt/plan edits; rerun after documentation changes"
+  }
+}

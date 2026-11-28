@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-10",
+  "id": "p5-ac1018-table-plotstyle-preflight-2026-11-10",
+  "title": "AC1018 TABLE plot-style admission follow-up",
+  "question": "Does the bounded AC1018 TABLE direct encoder reject a non-default plot-style reference when the route does not close its target graph?",
+  "finding": {
+    "before": "DRW_Entity::encodeDwgCommon emits a hard-pointer handle for a positive plotStyle value. The bounded TABLE route had no TABLE-specific check for the target's identity, role, or graph closure.",
+    "change": "Follow-up commit 3a1b249d's direct-codec-only restriction was removed. The direct TABLE codec serializes a positive plot-style handle; compound graph admission now requires exact identity with the staged default plot-style placeholder and requires that graph/frame to have been emitted. The generated TABLE vector refuses a dangling handle.",
+    "scope": "The prior direct-codec refusal is superseded by the compound graph-closure gate. This does not qualify a physical source profile or native plot-style semantics.",
+    "fixtures": "No DWG/DXF fixture was added; the control uses a generated in-memory TABLE object."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused": "./build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS: AC1018 TABLE encoder allocation failures injected=19 rollback=PASS retry=PASS; AC1018/AC1021 TABLE cell override vectors: PASS"
+  },
+  "limitations": [
+    "The graph gate covers only the existing default plot-style placeholder graph, not arbitrary plot-style records.",
+    "The generated test exercises dangling-target refusal; native plot-style meaning remains unqualified.",
+    "No support claim is promoted."
+  ],
+  "superseded_by": "p5-ac1018-table-plotstyle-graph-closure-2026-11-10"
+}

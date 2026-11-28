@@ -1,0 +1,53 @@
+{
+  "id": "p4-leader-dimstyle-reference-fail-closed-2026-11-03",
+  "date": "2026-11-03",
+  "status": "PASS",
+  "source_profile": {
+    "format": "DWG",
+    "revisions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "provenance": "Valid custom-style LEADER DWGs for every current writer revision and one AC1024 missing-target DWG are authored from scratch by the focused C++ selector at runtime; generated drawings are removed with the temporary directory.",
+    "fixture_committed": false
+  },
+  "contract": {
+    "dwg": "ODA v5.4.1 §20.4.47 defines LEADER's DIMSTYLE field as a hard pointer.",
+    "dxf": "Autodesk LEADER (DXF) defines group 3 as the dimension-style name.",
+    "required_projection": "Resolve a non-null DWG DIMSTYLE pointer to the exact table name and serialize that resolved target in DWG output. Preserve STANDARD for a null model pointer. If a non-null pointer has no table target, leave the DXF group-3 name unresolved and refuse strict full conversion."
+  },
+  "implementation": {
+    "dwg_writer": "DRW_Leader::encodeDwg now serializes the modeled dimStyleH.ref, defaulting to STANDARD handle 0x15 only when the model reference is zero; it no longer hard-codes every LEADER to STANDARD.",
+    "reader": "dwgReader resolves a null LEADER DIMSTYLE reference to STANDARD and maps non-null references through the DIMSTYLE table, leaving a missing target empty.",
+    "dxf_writer": "The shared strict DIMENSION/LEADER style-name preflight rejects empty names and names without an emitted DIMSTYLE record before opening the record scope. Direct standalone writer behavior remains outside the strict full-conversion gate.",
+    "test": "The focused selector runtime-authors valid custom-style LEADER DWGs for AC1015/18/21/24/27/32 and an AC1024 missing-target DWG. It imports every valid source and checks exact custom-name resolution; the AC1024 source additionally verifies strict ASCII/Binary DXF output and typed readback, while the missing-target source verifies refusal, destination preservation, same-adapter correction retry, and typed readback."
+  },
+  "results": {
+    "custom_style_wire_roundtrip": "PASS: ANSI-25 DWG hard-pointer reference is emitted and resolves to ANSI-25 on readback for all six current DWG writer revisions.",
+    "strict_dxf_transport": "PASS: the complete AC1024 source profile writes and reads back ANSI-25 in ASCII and Binary DXF. Other writer revisions are checked through DWG source write/read; strict whole-document DXF output is not claimed for them by this selector.",
+    "missing_target": "PASS: a non-null absent DIMSTYLE target remains unresolved after adapter retention and strict output refuses it.",
+    "rollback_and_retry": "PASS: destination sentinels survive both refusals; restoring ANSI-25 allows the same adapter to write and read back group 3 in ASCII and Binary DXF.",
+    "normal": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "focused_test": "ctest --test-dir build-gcc -R '^libdxfrw_leader_dimstyle_reference_binding$' --output-on-failure",
+      "focused_result": "PASS"
+    },
+    "regression_cohort": {
+      "test": "ctest --test-dir build-gcc -R '^(libdxfrw_leader_dimstyle_reference_binding|libdxfrw_dimension_dimstyle_reference_binding|libdxfrw_tolerance_dimstyle_reference_binding|libdxfrw_leader_annotation_reference_remapping|libdxfrw_leader_point_component_order|libdxfrw_leader_dxf_allocation_failure|libdxfrw_dimension_picture_block_full_conversion)$' --output-on-failure",
+      "result": "PASS: 7/7 focused controls"
+    },
+    "asan": {
+      "build": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "focused_test": "ctest --test-dir build-asan-custom -R '^libdxfrw_leader_dimstyle_reference_binding$' --output-on-failure",
+      "result": "PASS"
+    }
+  },
+  "sources": [
+    {
+      "title": "ODA Open Design Specification for .dwg files v5.4.1 §20.4.47 LEADER",
+      "uri": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    },
+    {
+      "title": "Autodesk LEADER (DXF)",
+      "uri": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-396B2369-F89F-47D7-8223-8B7FB794F9F3.htm"
+    }
+  ],
+  "claim_boundary": "Generated LEADER DWG hard-pointer write/read across six writer revisions plus AC1024 strict DXF name projection and fail-closed behavior only. No independent physical producer breadth, annotation semantics, or native-consumer behavior is established."
+}

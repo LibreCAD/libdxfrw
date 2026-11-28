@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-14",
+  "slice": "P6-G generated WIPEOUT revision-matrix allocation rollback, retry, typed readback, and clipMode version guard",
+  "sourceRevision": "4966693b",
+  "target": "Direct DXF WIPEOUT entity writer",
+  "profiles": {
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "generatedFields": [
+      "nondefault insertion and second corner",
+      "nondefault pixel vector and image dimensions",
+      "64-vertex polygon clipping boundary",
+      "nondefault brightness, contrast, fade, and display flags"
+    ]
+  },
+  "allocationFailures": {
+    "perProfile": 12,
+    "profileCount": 14,
+    "total": 168
+  },
+  "versionBoundary": {
+    "unsupportedTarget": "AC1021",
+    "firstAdmittingTarget": "AC1024",
+    "field": "clipMode",
+    "encodings": ["ASCII", "Binary"],
+    "assertions": [
+      "nondefault clipMode is refused atomically before replacing the destination",
+      "caller entity remains unchanged",
+      "same-codec retry at AC1024 matches a clean reference byte-for-byte",
+      "fresh typed readback preserves clipMode"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wipeout_version_allocation_tests -j4",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_wipeout_version_allocation$' --output-on-failure",
+    "result": "passed 1/1 in 0.51 seconds",
+    "directRun": "passed all 14 version/encoding allocation profiles and both version-boundary retries"
+  },
+  "sha256": {
+    "tests/dxf_wipeout_version_allocation_tests.cpp": "0fb82dacb5d3dafac142a1832f3025b9c4e3753e1cddd6e9bf66c45eff324329",
+    "tests/CMakeLists.txt": "2cbcb7aaf2ca7cfe0bc19a32690369bbe0324aa17c9340595401fa1f9ca6864e",
+    "src/libdxfrw.cpp": "47fa0284f66409d50a7b970101b3036b7b25b3af090242fee84ea62b768e6197"
+  },
+  "temporaryDrawingsCommitted": false,
+  "qualificationEligible": false,
+  "limits": [
+    "Generated writer transaction and same-library readback evidence only.",
+    "No IMAGEDEF or reactor objects are generated, so reference closure is not assessed.",
+    "Does not establish producer prevalence, native masking behavior, or external consumer semantics.",
+    "Does not promote a DWG or DXF support claim."
+  ]
+}

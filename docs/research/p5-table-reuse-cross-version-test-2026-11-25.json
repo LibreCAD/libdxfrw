@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-table-reuse-cross-version-test-2026-11-25",
+  "date": "2026-11-25",
+  "status": "TABLE_REUSE_CROSS_VERSION_GUARDED_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "cause": "The reused imported source contains the generated default plot-style dictionary and placeholder. Its cross-version legacy raw replay is refused because the raw source is bound to its original version; the existing guarded path performs source-bound plot-style projection. The old TABLE test expected the former route to succeed and its authored anonymous TABLE name had no block definition.",
+  "change": "The imported test recipe now includes the named TABLE block record and body. On a cross-version export it first verifies legacy refusal preserves the destination and model, then retries with strict owner/source graph qualification enabled. Existing same-version and authored paths remain exercised.",
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_(export_reuse|strict_block_target|value_payload)$' --output-on-failure",
+    "result": "PASS 3/3. The reuse control exercises 120 profiles, 360 successful repeated or cross-version output/readbacks, post-success failures, late failures, allocation failures, identity mismatches and corrected retries."
+  },
+  "limits": [
+    "Test recipe and route correction; no new claim that legacy raw cross-version replay is supported.",
+    "General-value output and independent native TABLE rendering remain open.",
+    "No full suite or hosted platform qualification was run; selected test inputs changed."
+  ]
+}

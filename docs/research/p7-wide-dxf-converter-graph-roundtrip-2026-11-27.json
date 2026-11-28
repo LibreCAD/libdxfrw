@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-wide-dxf-converter-graph-roundtrip-2026-11-27",
+  "date": "2026-11-27",
+  "baseCommit": "c534570f7",
+  "implementationDigestSha256": "90bbd26d34fdb5e35d1b80f4bb89a2e6903a4d44b0e1cfeca4fcdbc40980190f",
+  "inputCount": 782,
+  "supportClaimEffect": "none",
+  "change": "Connect the bounded source observer, immutable byte-span normalization and memory reader to the dwg2dxf converter. The CLI explicitly opts in; existing dx_iface consumers remain opt-out. Store the original snapshot and immutable alias proof, revalidate the source mapping at strict output preflight, and reuse the staged plot/dictionary/XRECORD inspectors and final handle/owner checks. A sticky required-proof marker refuses export after a failed projected import or failed reimport. Existing whole-source and legacy identity observation opt-ins keep original-stream behavior and do not enable the projection.",
+  "validation": {
+    "focused": "PASS compact graph, whole-source capture and AC1024 DWG plot-style tests. ASCII/Binary controls exercise opt-out, source-file changes after import, source/target handle collision, wrong graph references, late mutation, non-strict/cross-version/cross-encoding refusal, preserved destination and corrected same-adapter retry, malformed import then retry, failed reimport with sticky refusal, failure during projected read, same-file rollback and retry, and existing source-observer opt-ins. GCC 16 syntax checks pass with -Werror.",
+    "directPeer": "The actual current CLI converts the original wide ezdxf-generated AC1027 sources directly in both encodings. Independent ezdxf 1.4.5 compares the original source with each output: 25 mapped objects, 24 dictionary entries, 13 root entries, two layers, dictionary ownership, selected reactors, XRECORD group-340 reference, DICTIONARYVAR values and MATERIAL body; zero audit errors/fixes. The wide numeric handles are mapped to distinct 32-bit output identities.",
+    "libredwg": "GNU LibreDWG 0.14 dxf2dwg independently reads each output and writes an R2004 scratch DWG; dwgread JSON resolves root handle 12, dictionary 47, XRECORD 48, owner links, text and group-340 reference 47. The converter reports unsupported MATERIAL and MLEADERSTYLE objects, so this establishes the selected dictionary/XRECORD graph only, not complete drawing conversion.",
+    "negative": "Six malformed-source variants plus cross-version and cross-encoding requests for each encoding (16 CLI cases) refused and preserved the preexisting destination. Whole-source observation requests on the wide inputs also refused with destination preserved. Narrow ASCII/Binary controls still convert.",
+    "asciiInputSha256": "91d7775a4eb27b3b79d550bce1abaa19df9169bd866e759d151ec67a3b968a00",
+    "asciiOutputSha256": "8c5698a0bc06530665df2e1a502a68bc3ac917775a23483c69280f65c33cae56",
+    "binaryInputSha256": "06cdded38a8b69869dd52cd621a2854f1d211fddae4610d7573a652059102d1a",
+    "binaryOutputSha256": "bf8cd9b434a7405f35455ac4a8a7bf95b82237eb8833becd5128ab1363aa53f3",
+    "libredwgAsciiJsonSha256": "40af286cf28d84de6fda6ec2dcd636b7229a4c1469b73fa748ea70b2157afe1c",
+    "libredwgBinaryJsonSha256": "0a542ba42d8834d2e67a2b7cfd71504d81d2666a5f580f6d865c6daea8aa7e43",
+    "peerScriptSha256": "fa86162f66bd1b7e537a04aa025592b72ca58b3255617da01cad7515fe7e8927",
+    "candidateSha256": "2538d31907d90a76b133380ad7c520db096968622f449cfffeb9791e47a2967e"
+  },
+  "limits": [
+    "One locally generated AC1027 source profile with one selected dictionary/XRECORD chain; original wide identities are remapped, not preserved numerically. Unknown or additional wide references and unqualified graph shapes remain refused.",
+    "Only strict same-version and same-encoding output is admitted; original-stream observation opt-ins still refuse the source until their provenance can be bound.",
+    "The public dxfRW file reader remains 32-bit for typed graph callbacks; only explicitly opted-in dx_iface callers and the CLI use the projection.",
+    "Native consumer, independent producer and other platform/version/geometry qualification remain open. No DXF/DWG files were committed."
+  ]
+}

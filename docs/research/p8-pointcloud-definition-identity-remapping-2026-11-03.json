@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pointcloud-definition-identity-remapping-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "GENERATED_IDENTITY_TRANSPORT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Low-level DXF group-5 identity emission for POINTCLOUDDEFINITION, POINTCLOUDDEFINITIONEX, POINTCLOUDDEFREACTOR, and POINTCLOUDDEFREACTOREX.",
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Each variant remaps and reserves a nonzero source identity, or allocates an identity when the source handle is zero.",
+      "The source object identity is bound only after staged output succeeds.",
+      "A fixed output identity is refused before publishing record bytes.",
+      "DxfWriterRecordScope and RecordStateScope restore staged bytes and source identity-map changes on late XDATA failure; corrected retry is verified with a fresh writer."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed in-memory AC1032 records. No DWG/DXF fixtures were added.",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "cases": [
+      "all four POINTCLOUDDEF kind/record-name variants",
+      "source group-5 remap, unique OBJECTS inventory identity, and source-object binding",
+      "typed callback readback for identity, kind, and modeled definition fields",
+      "allocated group-5 identity for a source-less definition",
+      "fixed-handle remap refusal with destination preservation",
+      "late invalid-XDATA rollback of bytes, inventory, and source identity",
+      "corrected fresh-writer retry and typed readback"
+    ],
+    "validation": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "buildResult": "PASS",
+      "focusedCommand": "ctest --test-dir build-gcc -R 'pointcloud_reference_remapping|pointcloud_definition_identity_remapping' --output-on-failure",
+      "focusedResult": "PASS: 2/2; 0.06 seconds total",
+      "diffCheck": "PASS: git diff --check"
+    }
+  },
+  "limitations": [
+    "Generated identity transport only; it does not establish physical producer prevalence or source-to-output association for a complete point-cloud graph.",
+    "Definition/reactor target ownership, external point-cloud asset availability, native display behavior, and 3D consumer qualification remain open.",
+    "No support claim is promoted."
+  ],
+  "next": "Bind PointCloud/PointCloudEx definition and reactor references to the exact emitted typed definition records and source owner graph before adapter admission."
+}

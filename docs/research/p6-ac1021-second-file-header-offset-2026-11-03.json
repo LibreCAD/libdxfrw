@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1021-second-file-header-offset-2026-11-03",
+  "date": "2026-11-03",
+  "status": "HEADER2_OFFSET_CORRECTED_ODA_REJECTION_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1, section 5.2",
+    "requirement": "Header2offset at logical R2007 file-header byte offset 0x48 is relative to page-map base address 0x480."
+  },
+  "physicalProducer": {
+    "producer": "ODA File Converter 27.1.0, locally authored one-LINE DXF converted to AC1021",
+    "dwgSha256": "f3bb8e438a7df7ecb2a45535f548e8b035af253272d8b70cfa6056e7ec32dae3",
+    "observation": "LibreDWG 0.14 reads Header2offset 26304; adding 0x480 gives 27456, the last 0x400 bytes of the 28480-byte file, which exactly match the first header page."
+  },
+  "finding": "The AC1021 writer physically wrote a copy of the file-header page at the end of the file, but published zero in Header2offset and described the file as having no second header.",
+  "change": "Publish the actual trailing page address relative to 0x480 and reject invalid file-size arithmetic; layout validation independently checks the offset against the assembled trailing page address.",
+  "validation": {
+    "selectors": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_fixed_metadata_pointer|libdxfrw_dwg_local_roundtrip)$' --output-on-failure: PASS 2/2",
+    "coverage": "The generated physical AC1021 file is Reed-Solomon decoded. Its offset field plus 0x480 must equal the beginning of the final 0x400 bytes, and that complete page must equal the leading file-header page. AC1018 and AC1024 metadata pointer controls also pass.",
+    "independentRead": "LibreDWG 0.14 reads the locally generated file, reports the corrected second-header offset, and finds one LINE. The relative offset resolves to 18304 in the 19328-byte file, with identical leading and trailing 0x400-byte header pages."
+  },
+  "independentConverter": {
+    "tool": "ODA File Converter 27.1.0",
+    "input": "Locally authored one-LINE AC1021 with prior file-header and section-profile corrections plus the current Header2offset correction",
+    "dwgSha256": "16d6596e039af38dc3013a5414b6725139dc1eaf6a2abed2dd0331988eddd4a0",
+    "operation": "ACAD2013 DXF, recursion disabled, audit disabled",
+    "result": "Exit status zero with only an .err reporting Invalid input; no DXF was produced.",
+    "interpretation": "The corrected offset is independently required and witnessed, but does not resolve the remaining ODA rejection."
+  },
+  "limits": [
+    "No claim of full-file compatibility, native semantic support, or mandatory semantics for other normally observed header fields is made.",
+    "No fixture was committed."
+  ]
+}

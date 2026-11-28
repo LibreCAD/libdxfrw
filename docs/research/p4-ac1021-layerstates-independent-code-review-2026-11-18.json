@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Independent review of the AC1021 LayerStates two-root repair",
+  "date": "2026-11-18",
+  "supportClaimEffect": "none",
+  "reviewedCommit": "1aeca7e9a8f9ee3814523c5e777ec1a134aeb193",
+  "worktreeHeadAtReview": "25c60980c74bc45ca1e39b9fa25f5ec4858e731a",
+  "reviewedFileSha256": {
+    "dwg2dxf/dx_iface.cpp": "9c4ea4d6f87990ef3aeae9bac2bba16888719c821e3004e45a16c60912514f8a",
+    "dwg2dxf/dx_iface.h": "05e7e38f8371198bf8781d3c628506e1316e9ef508af2637edc7eff86c5c8e4d",
+    "dwg2dxf/dx_layerstates_dwg_wire.h": "b744d3ddc37fbc4c66f4b2e8b416e67f19bf832787f1daaa6f96b3dd00d67e8d",
+    "tests/dwg2dxf_adapter_tests.cpp": "3bd2b829f0ae281bebefbf3c743f213b976686f0b515c4d40c7109e91ae79150"
+  },
+  "review": {
+    "scope": "Static review of version and candidate guards, original-import publication/membership and raw/model binding, output staging and finalization rechecks, destination/refusal and retry controls, and implications for existing consumer interfaces.",
+    "finding": "No new actionable correctness defect was identified in the reviewed bounded source profile. Existing focused physical, mutation, rollback and retry evidence is recorded in p4-ac1021-layerstates-two-root-wire-regression-repair-2026-11-18.json; the independent viewport follow-up is recorded in p4-ac1021-truetype-viewport-current-marker-selector-2026-11-18.json.",
+    "compatibility": "For AC1021 DWG-to-DXF export at AC1021 or AC1024, a recognized two-root LayerStates source that does not satisfy the exact retained source, graph, wire, and witnessed-value profile now fails closed instead of falling through to generic output, including AllowPartial. This may reject previously attempted generic output and is a deliberate safety boundary, not a general lossless-output claim. The new code is in dwg2dxf adapter/internal source; this review does not establish LibreCAD native application compatibility."
+  },
+  "additionalChecks": {
+    "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_consumer_write_facade|libdxfrw_dxf_consumer_finalization|libdxfrw_legacy_codepage_consumer)$' --output-on-failure",
+    "result": "PASS 3/3 generated local tests; elapsed 0.26 seconds. Original terminal output was not retained as a separate log.",
+    "executables": {
+      "build-gcc/libdxfrw_legacy_codepage_consumer_tests": "fef0bf2917ac2099fdad3d212f81f3912a184b16f2501b6a7d33766f6f22d9b5",
+      "build-gcc/libdxfrw_dxf_fixture_tests": "988d6ffe19f92925e3799bd48e76f78b335e60c2377b48efeaa3e3a0a3099e2a"
+    },
+    "limitations": "Existing statically linked binaries were used without a clean rebuild in this review; their hashes identify the executions but do not independently bind them to current source. These are generated library-facade tests, not LibreCAD/LibreCAD_3 native builds, DWG interoperability, independent semantic witnesses, or a broad suite."
+  },
+  "releaseNoteLocation": "NEWS already has a 3.0.0 development section and is an appropriate future release-note location for the narrow fail-closed behavior. This receipt does not modify NEWS or promote a release/support claim."
+}

@@ -1,0 +1,43 @@
+{
+  "receipt_id": "p5-ac1024-sortents-dynamic-owner-structural-gate-2026-10-31",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "version": "AC1024",
+    "scope": "Window - Imperial SORTENTSTABLE extension dictionary and dynamic-block owner"
+  },
+  "change": {
+    "summary": "Validate AC1024 dynamic-block extension-dictionary owner and target relationships independently from complete dynamic-block DXF output eligibility.",
+    "source_owner_entries": [
+      "ACAD_ASSOCNETWORK",
+      "ACAD_ENHANCEDBLOCK",
+      "ACAD_SORTENTS",
+      "AcDbDynamicBlockRoundTripPurgePreventer"
+    ],
+    "preserved_gates": [
+      "SORTENTSTABLE still validates its owner, membership, and nested associative-network closure.",
+      "Incomplete dynamic-block profiles remain strict-output ineligible.",
+      "No support claim or native dynamic-block semantic claim is promoted."
+    ]
+  },
+  "validation": {
+    "builds": [
+      "cmake --build build-gcc --target dwg2dxf -j4",
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4"
+    ],
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_associative_dwg_nested_network_sortents_output$|^dwg2dxf_dynamic_block_visibility_composed_graph$|^dwg2dxf_dynamic_block_parameter_dependency_body_writer$' --output-on-failure",
+      "result": "3 passed"
+    },
+    "physical_source_checkpoint": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/architectural_example-imperial.dwg -y -d -v2010 /private/tmp/architectural-existing.dxf",
+      "result": "SORTENTSTABLE graph validation no longer rejects the Window - Imperial owner dictionary; strict conversion reaches the separate dynamic-block output-profile gate and refuses the incomplete graph.",
+      "expected_refusal": "dynamic-block objects are outside the closed output profiles",
+      "preexisting_destination_sentinel_preserved": true
+    },
+    "diff_check": "passed"
+  },
+  "non_promoting": true,
+  "fixture_committed": false,
+  "support_claim_effect": "none"
+}

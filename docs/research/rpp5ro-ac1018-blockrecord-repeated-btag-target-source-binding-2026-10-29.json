@@ -1,0 +1,69 @@
+{
+  "schema": "ac1018-blockrecord-repeated-btag-target-source-binding-v1",
+  "date": "2026-10-29",
+  "codeCommit": "2ed247e5c22987d2eee24fecf80cfe80b116346d",
+  "scope": "Private, opt-in source-role binding for the separate AC1018 BLOCK_RECORD A96 BTag group-1005 edge. It records that A96 and A91 independently point to one unique same-table target; it does not interpret EED meaning, close target dependencies, qualify output or promote a support claim.",
+  "externalSource": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "commit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "path": "samples/sample_AC1018_ascii.dxf",
+    "blobSha": "9b3128164a6d242159fc04e1afb5fef539ea30d7",
+    "sha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "inspection": "Pinned GitHub blob inspected in memory; no external sample was copied into the worktree or committed.",
+    "owner": {
+      "record": "BLOCK_RECORD A96 (*U19)",
+      "lineSpan": "[4805,4837)",
+      "tableHandle": "1",
+      "nameField": { "line": 4821, "code": 2, "value": "*U19" },
+      "orderedEedFields": [
+        { "line": 4831, "code": 1001, "value": "AcDbBlockRepBTag" },
+        { "line": 4833, "code": 1070, "value": "1" },
+        { "line": 4835, "code": 1005, "value": "A7E" }
+      ]
+    },
+    "sameTargetOwner": {
+      "record": "BLOCK_RECORD A91 (*U18)",
+      "lineSpan": "[4773,4805)",
+      "referenceField": { "line": 4803, "code": 1005, "value": "A7E" }
+    },
+    "target": {
+      "record": "BLOCK_RECORD A7E (*U17)",
+      "lineSpan": "[4661,4773)",
+      "tableHandle": "1",
+      "nameField": { "line": 4677, "code": 2, "value": "*U17" }
+    },
+    "provider": {
+      "record": "APPID A9E",
+      "lineSpan": "[3713,3727)",
+      "tableHandle": "9",
+      "nameField": { "line": 3723, "code": 2, "value": "AcDbBlockRepBTag" }
+    }
+  },
+  "implementation": {
+    "selection": "A96 is selected separately from A91 by its exact *U19 block name, one AcDbBlockRepBTag APPID name and one code-1005 reference to A7E. The shared bounded source binder checks the unique APPID provider and same-table BLOCK_RECORD target against original physical fields, raw/model replay and live typed identity.",
+    "repeatedTargetProof": "The test asserts distinct owner census rows and handles, while both retained joins point to the same unique target census row and the same raw/model target objects. Ambiguous duplicate A7E identity suppresses both joins.",
+    "failureControls": "ASCII and binary runtime-authored input controls change A96's reference to the other valid *U18 BLOCK_RECORD or to the valid but wrong-name MY_BLOCK record, duplicate the code-1005 field, or change the APPID name. Each refuses only A96 where appropriate, preserves the independent A91 join, and succeeds after a corrected same-adapter retry.",
+    "fixturePolicy": "tests/legacy_attdef_scope_controls.h authors all DXF input in memory and writes temporary runtime files. No external sample fixture was copied or committed."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_attdef_source_tests -j4",
+    "normalBuildResult": "PASS",
+    "normalSelector": "ctest --test-dir build-gcc -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "normalSelectorResult": "PASS 1/1 (1.00 s)",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_attdef_source_tests -j4",
+    "asanBuildResult": "PASS",
+    "asanSelector": "ctest --test-dir build-asan-custom -R '^libdxfrw_legacy_attdef_scope_join$' --output-on-failure",
+    "asanSelectorResult": "PASS 1/1 (2.01 s)",
+    "diffCheck": "PASS git diff --check before code commit"
+  },
+  "bindings": {
+    "dwg2dxf/dx_iface.cpp": "123f3a72263403ef79801135afb4010040511014a7f0701e8d25dabaefe27fe6",
+    "tests/attdef_source_tests.cpp": "dd375634c91bf70e9646e512114ca6235ca07738c98a71bcee2e2165ea71985e",
+    "tests/legacy_attdef_scope_controls.h": "7e8ffdc442e3bafc66bd1e9c195fd493346cac005f691165e5d0d65d7ace6db6"
+  },
+  "limits": [
+    "The two owner roles and target identity are source-only evidence; no EED application meaning is assigned.",
+    "Target dependencies remain open; owner/target edges do not establish recursive closure or output eligibility.",
+    "No native consumer, complete-document conversion or format-support claim is established."
+  ]
+}

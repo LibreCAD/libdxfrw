@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-03",
+  "scope": "DXF POINTPATH and OBJECTPTR object record identity remapping and binding.",
+  "source_context": {
+    "schema": "DXF group 5 is the object's own record identity. POINTPATH's coordinate body and OBJECTPTR's empty type-specific body do not replace that common identity.",
+    "implementation_gap": "dxfRW::writePointPath and dxfRW::writeObjectPtr wrote the source identity directly, omitted explicit handle reservation and did not bind source object handles to emitted records.",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-995ABB55-571A-4D0F-882E-8A74A738643E.htm",
+      "src/libdxfrw.cpp: dxfRW::writePointPath",
+      "src/libdxfrw.cpp: dxfRW::writeObjectPtr"
+    ]
+  },
+  "implementation": {
+    "behavior": "Each supplied source identity is remapped, validated against invalid/fixed output handles, reserved, written as group 5, then source-bound after serialization. A zero/no-source identity is allocated. RecordStateScope and DxfWriterRecordScope make identity publication and record bytes transactional.",
+    "reference_policy": "The common owner remains a separately serialized owner reference; POINTPATH coordinates and OBJECTPTR body remain unchanged.",
+    "failure_behavior": "Common metadata, owner, body or EED write failures leave the staged record unpublished and scoped object identity state rolled back."
+  },
+  "validation": {
+    "input": "Generated in-memory records only; no DWG/DXF fixture was added.",
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "controls": [
+      "POINTPATH group-5 identity remaps while preserving its coordinate body",
+      "OBJECTPTR group-5 identity remaps while retaining its empty type-specific body",
+      "both outputs are read back in the scene-object identity matrix with resolver enabled and disabled",
+      "late invalid EED rolls back existing destination bytes and does not publish identity bindings",
+      "corrected fresh-writer retries read back and bind the remapped identities",
+      "existing typed common-metadata controls remain passing"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "build-gcc/libdxfrw_wave1_tests --scene-object-reference-remapping",
+      "build-gcc/libdxfrw_wave1_tests --common-appdata-base-scope",
+      "git diff --check"
+    ],
+    "result": "PASS"
+  },
+  "qualification_limits": [
+    "Generated controls do not establish physical producer coverage or native object semantics.",
+    "This transport fix does not promote POINTPATH or OBJECTPTR support claims."
+  ]
+}

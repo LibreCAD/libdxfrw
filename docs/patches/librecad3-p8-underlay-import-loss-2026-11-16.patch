@@ -1,0 +1,55 @@
+diff --git a/persistence/libdxfrw/dxfimpl.h b/persistence/libdxfrw/dxfimpl.h
+index 9e09cac..5245282 100644
+--- a/persistence/libdxfrw/dxfimpl.h
++++ b/persistence/libdxfrw/dxfimpl.h
+@@ -148,0 +149,10 @@ public:
++    void addUnderlay(const DRW_Underlay* data) override {
++        if (data == nullptr) return;
++        switch (data->kind) {
++        case DRW_Underlay::PDF: recordLoss("PDFUNDERLAY"); break;
++        case DRW_Underlay::DGN: recordLoss("DGNUNDERLAY"); break;
++        case DRW_Underlay::DWF: recordLoss("DWFUNDERLAY"); break;
++        default: recordLoss("UNDERLAY"); break;
++        }
++    }
++
+diff --git a/unittest/persistence/dwgimporttest.cpp b/unittest/persistence/dwgimporttest.cpp
+index 4cbfa6c..bb2508d 100644
+--- a/unittest/persistence/dwgimporttest.cpp
++++ b/unittest/persistence/dwgimporttest.cpp
+@@ -1081,0 +1082,35 @@ TEST(DwgImportTest, ModelerGeometryLossIsReportedForDxf) {
++
++// Underlay definitions and referenced files are intentionally absent; this
++// fixture-free control verifies typed callback loss accounting only.
++TEST(DwgImportTest, UnderlayLossIsReportedForDxf) {
++    const std::string path = (boost::filesystem::temp_directory_path() /
++        boost::filesystem::unique_path("lc3-underlay-%%%%%%%%.dxf")).string();
++    {
++        std::ofstream file(path, std::ios::binary);
++        ASSERT_TRUE(file.good());
++        file << "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1024\n0\nENDSEC\n"
++                "0\nSECTION\n2\nENTITIES\n0\nLINE\n8\n0\n"
++                "10\n0\n20\n0\n30\n0\n11\n5\n21\n0\n31\n0\n";
++        for (const char* kind : {"PDFUNDERLAY", "DGNUNDERLAY", "DWFUNDERLAY"}) {
++            file << "0\n" << kind << "\n8\n0\n100\nAcDbEntity\n"
++                    "100\nAcDbUnderlayReference\n340\n31\n10\n0\n20\n2\n30\n0\n"
++                    "41\n1\n42\n1\n43\n1\n50\n0\n280\n10\n281\n100\n282\n0\n";
++        }
++        file << "0\nENDSEC\n0\nEOF\n";
++        ASSERT_TRUE(file.good());
++    }
++    auto doc = newDwgDocument();
++    const auto result = lc::persistence::File::importFile(
++        doc, path, lc::persistence::File::Library::LIBDXFRW);
++    boost::filesystem::remove(path);
++    ASSERT_TRUE(result.ok);
++    for (const char* kind : {"PDFUNDERLAY", "DGNUNDERLAY", "DWFUNDERLAY"}) {
++        const auto dropped = result.loss.droppedByType.find(kind);
++        ASSERT_NE(dropped, result.loss.droppedByType.end()) << kind;
++        EXPECT_EQ(dropped->second, 1u);
++    }
++    std::size_t lines = 0;
++    for (const auto& entity : doc->entityContainer().asVector())
++        if (std::dynamic_pointer_cast<const lc::entity::Line>(entity)) ++lines;
++    EXPECT_EQ(lines, 1u);
++}

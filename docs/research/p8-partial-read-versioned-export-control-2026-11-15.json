@@ -1,0 +1,10 @@
+{
+  "date": "2026-11-15",
+  "finding": "The partial-read observation control attempted an AC1027 DWG to AC1018 DXF export. Its generated DIMSTYLE carries retained CMC fill-color metadata that the older DXF path refuses to discard; the test incorrectly required that export to succeed.",
+  "change": "Verify that an AC1032 export succeeds, actually declares AC1032 in the emitted HEADER, and preserves the captured AC1027 read outcome. Separately verify the AC1018 export refuses and preserves an existing destination. Retain the existing strict-completeness and optional partial graph-refusal checks.",
+  "validation": [
+    "The focused DWG read-outcome strict/partial policy control passes.",
+    "The complete local libdxfrw_dwg_local_roundtrip executable passes after the preceding HATCH, WCS, TABLESTYLE, SUNSTUDY and fixture fixes."
+  ],
+  "limits": "The older target remains unsupported for this retained color metadata; no production output validation is weakened and no format or native-platform support claim is promoted. Hosted qualification must be rerun."
+}

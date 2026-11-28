@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.dxf.writer-version-loss-guard-receipt.v1",
+  "slice": "P6-D DXF CLASS metadata refusal for AC1009",
+  "date": "2026-11-14",
+  "supportClaimEffect": "none",
+  "sourceEvidence": {
+    "repositoryVersionGate": "dxfRW::write emits the CLASSES section only when the target revision is newer than AC1009.",
+    "repositoryDefect": "Caller-supplied DRW_Class metadata passed preflight but the AC1009 writer omitted the CLASSES section and returned success, silently losing the supplied records."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_no_raw_sections_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "dxfRW::write now refuses AC1009 when its caller-supplied CLASS list is nonempty, reports dxf-class-target-version and BAD_VERSION, and leaves the destination untouched. Empty CLASS input is unchanged. The generated test retries the same codec at AC1027 and verifies fresh typed CLASS readback."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_no_raw_sections_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_no_raw_sections$' --output-on-failure",
+      "result": "PASS (1/1, 0.21 seconds)",
+      "coverage": "For ASCII and Binary, a custom CLASS record at AC1009 returns BAD_VERSION with the expected diagnostic and preserves a destination sentinel; the same codec then writes AC1027 successfully and typed readback observes one class."
+    },
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated caller-supplied CLASS metadata only; no custom OBJECTS instance, producer-authored DWG/DXF, or native application behavior is qualified.",
+    "This closes one AC1009 CLASSES omission and does not cover unrelated downgrade loss or other class profiles."
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "PAR-134 SECTION_SETTINGS geometry CMC retention and DXF schema correction",
+  "mode": "generated AC1024 DWG round-trip and focused ASCII/Binary DXF fast slice",
+  "scope": [
+    "Retain per-geometry DWG CMC method, flags, reserved index, color name, and color-book name through SECTION_SETTINGS parse/model/rewrite",
+    "Preflight every SECTION_SETTINGS geometry color before DWG output",
+    "Align typed DXF color output with Autodesk Section Geometry Settings group-63 schema and refuse unsupported projections"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "localDocument": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": ["2.11 CmColor"],
+      "finding": "The generic R2004+ CMC envelope contains a reserved BS index, packed method/value, RC optional-name flags, and optional color-name/book TV strings. The existing SECTION_SETTINGS field order was left unchanged; only decoded color metadata retention and inverse writing were changed."
+    },
+    "autodeskSectionGeometryDxf": {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-21E53626-0F28-4787-A109-86B9FFE0C149.htm",
+      "finding": "The class-specific Section Geometry Settings DXF reference assigns color data to group 63 and lists no truecolor group 420 or color-name/book groups. The typed writer therefore emits scalar color as group 63 and refuses RGB/names/books and other non-projectable DWG CMC state."
+    },
+    "localCode": {
+      "files": [
+        "src/drw_objects.h",
+        "src/drw_objects.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/wave1_tests.cpp",
+        "tests/hardening_tests.cpp",
+        "CMakeLists.txt",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "finding": "The bounded DWG reader consumed CMC fields but retained only normalized ACI/RGB. The DWG encoder wrote normalized index/RGB, dropping CMC provenance. The typed DXF parser/writer used group 62 and 420 although the class-specific Autodesk reference lists group 63 only."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append source method, flags, reserved index, color name, and book name to DRW_SectionGeometrySettings; the public struct size changes and consumers must rebuild.",
+      "Capture full CMC output in bounded DWG parsing and replay supported C0-C3 CMC, including flagged-empty strings, after validating color/method consistency, reserved index, flags, name bounds, and detached-string availability before output.",
+      "Emit SECTION_SETTINGS typed DXF color only as scalar group 63; refuse RGB, names/books, any source flags, nonzero index, unsupported methods, and inconsistent state before writing.",
+      "Read documented group 63 and retain group 62 as a compatibility alias; continue reading legacy group 420 but refuse to re-emit RGB because the class-specific schema has no mapping.",
+      "Replace a stale local MLINESTYLE broad-test expectation for now-supported C2 RGB with unsupported C5 method refusal."
+    ],
+    "focusedSelectors": [
+      "--section-settings-cmc",
+      "--section-settings-cmc-dxf-projection",
+      "--section-settings-color-code"
+    ],
+    "focusedCtests": [
+      "libdxfrw_section_settings_cmc",
+      "libdxfrw_section_settings_cmc_dxf_projection",
+      "libdxfrw_section_settings_color_code",
+      "libdxfrw_dwg_local_roundtrip"
+    ],
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "generatedControls": {
+    "dwgRoundTrip": "A generated AC1024 SECTION_SETTINGS object carries a named RGB C2 color, book-only C1 color, and flagged-empty C0 name through the production writer and parser. The test checks retained scalar/RGB/method/flags/index/names and copy/assignment.",
+    "failClosed": "Generated writer cases reject unsupported C5, nonzero reserved index, unknown flags, a book value inconsistent with flags, and out-of-range RGB while preserving an existing destination.",
+    "dxfProjection": "ASCII and Binary controls admit scalar ACI output as group 63 and verify that group 62/420 is not emitted. They reject RGB, names/books, flagged-empty metadata, nonzero reserved index, C5, and method/scalar disagreement before output.",
+    "dxfParsing": "A focused parser control reads documented group 63 and verifies the historical group-62 local alias remains accepted."
+  },
+  "validation": {
+    "strictBuild": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_hardening_tests libdxfrw_dwg_local_roundtrip dwg2dxf lc3_compat_check -j4",
+    "strictBuildResult": "PASS (-Werror)",
+    "focusedCommands": [
+      "ctest --test-dir build-gcc -R '^(libdxfrw_section_settings_color_code|libdxfrw_section_settings_cmc_dxf_projection|libdxfrw_section_settings_cmc|libdxfrw_dwg_local_roundtrip)$' --output-on-failure",
+      "git diff --check -- CMakeLists.txt src/drw_objects.h src/drw_objects.cpp src/libdxfrw.cpp tests/dwg_local_roundtrip_tests.cpp tests/wave1_tests.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/section-settings-cmc-retention-fast-slice-2026-10-22.json",
+      "jq empty docs/research/section-settings-cmc-retention-fast-slice-2026-10-22.json"
+    ],
+    "focusedResults": [
+      "PASS (4/4; 4.17 sec)",
+      "PASS",
+      "PASS"
+    ]
+  },
+  "evidenceLimits": [
+    "Generated controls establish local writer/parser consistency, not independent producer semantics.",
+    "The generic ODA CMC layout was used without changing SECTION_SETTINGS body field order; no native SECTION_SETTINGS producer was exercised.",
+    "Autodesk's class-specific DXF schema does not document Section Geometry Settings truecolor/name/book groups; the writer refuses these projections rather than inferring mappings.",
+    "No persistent fixture, native CAD application, independent semantic route, full test suite, platform qualification, or support promotion was used.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The public DRW_SectionGeometrySettings size increases; downstream consumers must rebuild. The shared worktree is dirty and this slice is uncommitted."
+  ],
+  "nextLocalItem": "Continue the PAR-134 audit of remaining DWG CMC parser/writer callers and class-specific DXF projections. Keep C4/C5/C6-C8 payloads evidence-gated, then resume exact-source PAR-03/PAR-04 associative-action classification without guessing payload widths. Native FreeCAD Linux/Windows qualification, independent ACIS/ACDS semantic evidence, and the six external J gates remain separate."
+}

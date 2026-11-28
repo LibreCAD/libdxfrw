@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-image-selected-reactor-allocation-rollback-2026-11-11",
+  "date": "2026-11-11",
+  "status": "COMPLETED_LOCAL_TRANSACTION_ROLLBACK_SWEEP",
+  "supportClaimEffect": "none",
+  "scope": "Extend the generated AC1027 ASCII/Binary whole-file IMAGE OBJECTS allocation sweep to cover selected source-reactor metadata planning, remapping, emission, rollback, retry, and typed readback.",
+  "source": {
+    "parentCommit": "0267e96e6713266a05a9c777d50555b0c88083f7",
+    "files": {
+      "tests/dxf_fixture_tests.cpp": "87c3510e93281438cd7b86e22abc586337e679f19ff312f93a4b5a9ff4ac81fe",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "4d2c73d841ed5d53cb506ed024c3086a3e0f4a9ae5303b29039ad00bb2f7102f"
+    }
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "The generated graph includes a selected IMAGEDEF_REACTOR source row with a nondefault app-data group and the corresponding source reactor link on the IMAGE entity.",
+      "The AC1027 core OBJECTS sweep calibrates and injects all 43 reached allocation offsets in each of ASCII and Binary output, including selected-reactor handle remapping and metadata lookup/emission.",
+      "Each injected failure preserves the preexisting destination and clears attempt-derived source-object identity maps before the same writer retries.",
+      "Fresh typed readback verifies the NOD and IMAGE dictionary graph, IMAGEDEF association, reactor-to-image handle and owner, class version 2, and retained selected-source-reactor metadata.",
+      "Only generated temporary DXFs are used; no external drawing fixture is added."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_generated_image_dictionary_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS 1/1; 1.21 seconds"
+    },
+    "directSweep": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --generated-image-dictionary-objects-allocation-retry",
+      "result": "PASS; ASCII 43/43 and Binary 43/43 injected allocations; typed retry/readback passed at every offset"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "This is generated local transaction and metadata-preservation evidence for the exercised AC1027 DXF profile; it does not qualify physical DWG source semantics, native image behavior, other writer revisions, or broader IMAGE support claims."
+  ],
+  "next": "Continue the P6 safety audit for other independent OBJECTS builders and remaining caller-state, source-lifetime, and platform numeric/string contracts."
+}

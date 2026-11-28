@@ -1,0 +1,65 @@
+# Optional independent cached-text import check for the pinned FIELD source.
+# Set LIBDXFRW_FIELD_SOURCE to the pinned DXF and run FreeCADCmd with an
+# isolated --user-cfg, FREECAD_USER_HOME, FREECAD_USER_DATA and FREECAD_USER_TEMP.
+# A successful run prints FIELD_CONSUMER_SUMMARY=JSON. No rendering or dynamic
+# FIELD evaluation is claimed by this headless import.
+import hashlib
+import json
+import os
+import platform
+import sys
+
+import FreeCAD as App
+
+EXPECTED = 'fb09a7af8882787553149a675c6d15b45bab8ff4a49f58200460832eab3de401'
+EXPECTED_CACHED_TEXT = '0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2'
+source = os.environ.get('LIBDXFRW_FIELD_SOURCE')
+if not source or not os.path.isfile(source):
+    raise RuntimeError('LIBDXFRW_FIELD_SOURCE must name the pinned DXF')
+with open(source, 'rb') as stream:
+    source_hash = hashlib.sha256(stream.read()).hexdigest()
+if source_hash != EXPECTED:
+    raise RuntimeError('FIELD source SHA-256 mismatch')
+
+sys.path.insert(0, os.path.join(App.getResourceDir(), 'Mod', 'Draft'))
+import importDXF
+
+preferences = App.ParamGet('User parameter:BaseApp/Preferences/Mod/Draft')
+preferences.SetBool('dxfUseLegacyImporter', False)
+preferences.SetBool('dxftext', True)
+importDXF.open(source)
+doc = App.ActiveDocument
+texts = []
+if doc:
+    for obj in doc.Objects:
+        if not hasattr(obj, 'Text'):
+            continue
+        value = obj.Text
+        text = '\n'.join(str(item) for item in value) if isinstance(value, (list, tuple)) else str(value)
+        texts.append({
+            'name': obj.Name,
+            'length': len(text),
+            'sha256': hashlib.sha256(text.encode('utf-8')).hexdigest(),
+            'contains_cached_filename': 'mtext_complex_inline_codes.dxf' in text,
+            'contains_filename_label': 'Filename:' in text,
+            'contains_static_disclaimer': 'does not evaluate fields' in text,
+        })
+if len(texts) != 8 or not all(item['contains_cached_filename']
+                               and item['contains_filename_label']
+                               and item['sha256'] == EXPECTED_CACHED_TEXT for item in texts):
+    raise RuntimeError('Expected eight imported cached filename text objects')
+with open(importDXF.__file__, 'rb') as stream:
+    importer_sha256 = hashlib.sha256(stream.read()).hexdigest()
+result = {
+    'source_sha256': source_hash,
+    'freecad_version': list(App.Version()),
+    'architecture': platform.machine(),
+    'platform': platform.platform(),
+    'importer': 'C++ DXF via Draft importDXF',
+    'importer_module_sha256': importer_sha256,
+    'text_import_enabled': True,
+    'gui_up': bool(App.GuiUp),
+    'text_count': len(texts),
+    'texts': texts,
+}
+print('FIELD_CONSUMER_SUMMARY=' + json.dumps(result, sort_keys=True))

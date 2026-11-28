@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-15",
+  "finding": "The SUNSTUDY writer emitted its four object-specific handles before the common owner/reactor/extension handles. The modern dispatcher correctly interpreted the first class-specific hard pointer as the common owner and rejected the generated frame; the specialized parser also expected the inverse order.",
+  "specification": "ODA Open Design Specification v5.4.1 section 20.1 puts common owner, reactors and extension dictionary before object-specific handles. LibreDWG src/dwg2.spec SUNSTUDY likewise starts the common object handle stream before the four fields.",
+  "change": "Write and read the common handle prefix first, leaving the existing four class-specific field values and role encoding intact. No dispatcher validation is relaxed.",
+  "validation": [
+    "The focused SUNSTUDY control independently reads the emitted handle bytes and verifies common owner/reactor/extension followed by the four fields for AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032.",
+    "SUNSTUDY's DXF hour-count control and the DWG object encoder allocation rollback/retry control pass.",
+    "The complete local roundtrip remains failing, but its assertion count falls from 31 to 25 and all SUNSTUDY readback checks pass. A fresh AC1024 probe receives the typed and raw frame with owner 0xA601 and references 0xA603, 0xA700, 0xC000 and 0xA800.",
+    "Independent LibreDWG dwgread 0.14 minJSON accepts the same generated AC1024 drawing and reports that owner, all four references, setup and description, date pair, hour vector and selected scalar values. The generated drawing remains outside the repository; SHA-256 e07a30e9de12117a8bfd30e4ad255fa002a3d56f4bd0e77f6fe5c4d560b6fcfa."
+  ],
+  "limits": [
+    "The witness is locally generated, and unrelated TABLESTYLE frames in the same drawing still fail libdxfrw parsing. This does not establish complete source, graph, output or native SUNSTUDY interoperability.",
+    "Previously emitted files using the reversed handle order are not asserted to be compatible with the corrected specification-conforming parser. No support claim is promoted."
+  ]
+}

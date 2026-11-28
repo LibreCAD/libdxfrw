@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-writer-carrier-route-refresh-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Refresh broad DWG/DXF peer research around release freshness, version- and direction-specific writer limits, 3DSOLID/REGION omission reporting, ACIS carrier versus B-rep capability, and existing local regression ownership.",
+  "method": {
+    "kind": "Primary-source review of peer releases, project documentation, issue/PR status, and local regression owners",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "localTestsInspected": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/LibreDWG/libredwg/releases",
+      "https://github.com/LibreDWG/libredwg/releases/tag/0.14.8612",
+      "https://github.com/LibreDWG/libredwg",
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/DomCR/ACadSharp/pull/1174",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/acis.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/dxfentities/index.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+    ],
+    "localInspection": [
+      "tests/dwg_local_roundtrip_tests.cpp: generated AC1027 nested solid-only block, shared/nested INSERT, ACDSDATA key and marker-payload transport controls",
+      "tests/dxf_fixture_tests.cpp: unsupported-entity omission-count and transactional destination-publication control",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PAR-07 and existing S2/S3/S8 peer, carrier, writer-loss, and consumer gates"
+    ],
+    "evidenceRule": "Peer issue reports are scoped to their stated artifact and route; open PR branches do not establish released behavior. Entity census, exit status, or carrier presence does not establish body semantics. A downstream consumer of a parser, or two tools sharing source/expected-value lineage, is not counted as independent semantic evidence."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG peer freshness does not erase its direction and version asymmetry",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/releases",
+        "https://github.com/LibreDWG/libredwg/releases/tag/0.14.8612",
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "The release page showed 0.14.8612 with commit prefix f860b0f as the newest visible pre-release, dated 2026-10-13. The current project README states DWG writing works only through R2004 and dxf2dwg targets R2000; it separately notes that release builds exclude unstable objects/features. Issue #1411 remained open and is scoped to LibreDWG 0.14.8593 / 8a1ae764.",
+      "doesNotEstablish": [
+        "that issue #1411 remains present or is fixed in 0.14.8612",
+        "modern DWG writer parity from broad DWG reader or DWG-to-DXF coverage",
+        "ACDS/SAB carrier or B-rep semantics for any untested build"
+      ],
+      "planUse": "At the scheduled optional peer gate, pin the exact artifact and build profile and separate DWG read, DXF write, DWG rewrite, version conversion, and modern AcDs/SAB behavior by direction and version."
+    },
+    {
+      "topic": "ACadSharp reports a concrete writer-loss profile but its corrective route is unmerged and ACDS refactor has a reported branch failure",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "observed": "Issue #1195 reports 3DSOLID/REGION omission by the 3.4.9 DXF writer for private customer drawings, including blocks made empty when their only contents are modeler entities. It says LibreDWG was used to cross-check entity census, which is not independent semantic evidence. The issue says no notification was observed, while a maintainer reply notes a notification path for unimplemented entities; actual behavior requires a pinned execution. Writer PR #1240 remained open and depends on ACDS schema refactor PR #1174. A reviewer on #1174 reported a failing ACDS owner-attachment test on that branch due to NotImplementedException and reported R2013+ payload loss there.",
+      "doesNotEstablish": [
+        "a defect in current released ACadSharp versions beyond the reported 3.4.9 route",
+        "the notification behavior on a current release",
+        "format semantics or libdxfrw behavior from a private drawing report",
+        "released ACIS writer capability from open PR code"
+      ],
+      "planUse": "Keep the route non-qualifying until a released immutable artifact and full dependency graph are pinned and executed. If used, compare per-entity diagnostics, block/INSERT closure, carrier/key bytes, and strict readback; do not count the LibreDWG census as a second independent witness."
+    },
+    {
+      "topic": "ezdxf supports bounded ACIS carrier and polyhedral operations but does not supply a solid kernel or 3D renderer",
+      "sources": [
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/acis.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/dxfentities/index.rst",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst"
+      ],
+      "observed": "The ACIS guide states that ezdxf has no ACIS kernel, targets extraction of flat polygonal faces, and loses curved-boundary faces in mesh_from_body(). It documents polyhedral SAT authoring for DXF R2000-R2010 and SAB authoring for R2013-R2018. The drawing add-on documentation says it does not render ACIS and projects 3D entities into XY.",
+      "doesNotEstablish": [
+        "general ACIS dialect coverage or arbitrary B-rep validity",
+        "curved surface or solid-kernel semantics",
+        "native CAD application acceptance from a parser or 2D renderer"
+      ],
+      "planUse": "Keep ezdxf as an optional exact-pinned DXF/carrier inspector and scratch polyhedral control only. Preserve separate result columns for bytes, parsed topology, mesh projection, and native/kernel acceptance."
+    },
+    {
+      "topic": "Local tests already cover generated solid-only block carrier transport and generic writer omission reporting",
+      "sources": [
+        "tests/dwg_local_roundtrip_tests.cpp",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "observed": "The existing modeler block projection control constructs a nested/shared block graph whose inner block contains only a modeler entity, tests ASCII and binary AC1027 DXF, and checks ACDSDATA key-to-owner and marker bytes. The payload is deliberately not valid SAB, so the test proves transport/association rather than solid semantics. Existing DXF omission tests check type/count diagnostics and transactional destination preservation.",
+      "doesNotEstablish": [
+        "valid modeler payload interpretation or B-rep semantics",
+        "every unsupported 3D entity and target-version writer diagnostic",
+        "external application acceptance"
+      ],
+      "planUse": "Reuse the existing test owners. Add a narrow generated negative or diagnostic case only if a changed 3D writer/version path is not covered; do not add external drawing fixtures or duplicate generic tests."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 125,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

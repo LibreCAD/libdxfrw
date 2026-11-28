@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-polyline-topology-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_POLYLINE_3D_POLYGON_MESH_POLYFACE_ASCII_BINARY_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add whole-operation allocation rollback, same-codec retry, and typed readback coverage for the three non-2D classic POLYLINE topologies across representative DXF version boundaries.",
+  "source": {
+    "kind": "deterministic locally-authored records generated during each test run",
+    "profiles": [
+      "3D POLYLINE with two WCS vertices",
+      "closed 2x2 POLYGONMESH with four WCS vertices",
+      "POLYFACE mesh with four coordinate vertices and one indexed face record"
+    ],
+    "versions": ["AC1014", "AC1021", "AC1024", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-polyline-topology-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each profile/version/encoding, calibrate a complete dxfRW::write, inject std::bad_alloc at every reached allocation, require destination sentinel and caller-owned source records to remain unchanged, then retry with the same codec and require byte-identical output plus fresh typed readback of parent topology, coordinates, and polyface indices."
+  },
+  "allocationOffsets": {
+    "AC1014": {
+      "3d-polyline": {"ASCII": 99, "Binary": 97},
+      "polygon-mesh": {"ASCII": 107, "Binary": 106},
+      "polyface-mesh": {"ASCII": 111, "Binary": 109}
+    },
+    "AC1021": {
+      "3d-polyline": {"ASCII": 101, "Binary": 100},
+      "polygon-mesh": {"ASCII": 110, "Binary": 108},
+      "polyface-mesh": {"ASCII": 113, "Binary": 112}
+    },
+    "AC1024": {
+      "3d-polyline": {"ASCII": 108, "Binary": 107},
+      "polygon-mesh": {"ASCII": 117, "Binary": 115},
+      "polyface-mesh": {"ASCII": 120, "Binary": 119}
+    },
+    "AC1032": {
+      "3d-polyline": {"ASCII": 101, "Binary": 100},
+      "polygon-mesh": {"ASCII": 110, "Binary": 108},
+      "polyface-mesh": {"ASCII": 113, "Binary": 112}
+    },
+    "total": 2603
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_polyline_topology_allocation_transaction$' --output-on-failure: PASS 1/1 in 5.56 seconds",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated DXF transport and transaction evidence only; producer interoperability and native consumer semantics are not qualified.",
+    "The polygon mesh is a 2x2 closed-N grid; broader mesh densities and spline-fit variants remain outside this slice.",
+    "The polyface control has one four-index face; additional face winding, invisible-edge, and richer XDATA profiles remain open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "3D POLYLINE, POLYGONMESH, and POLYFACE whole-operation ASCII/Binary allocation rollback, same-codec retry, and typed readback for AC1014, AC1021, AC1024, and AC1032.",
+    "remainingP6G": "Continue auditing distinct public-writer overloads, unrepresented compound-record variants, and variable-size OBJECTS profiles; retain producer and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "183 completed slices and 35 remaining packages: 183/(183+35)=83.9%; count-based, not effort-weighted."
+  }
+}

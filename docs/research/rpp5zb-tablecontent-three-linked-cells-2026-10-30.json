@@ -1,0 +1,41 @@
+{
+  "id": "RPP-5zb",
+  "date": "2026-10-30",
+  "title": "TABLECONTENT three linked cells in one grid",
+  "scope": {
+    "operation": "Qualify multiple TABLECONTENT linked-cell references to distinct emitted DATALINK records in one rectangular grid.",
+    "profile": "Generated 2x2 AC1032 TABLECONTENT with three linked cells, one scalar-only cell, two cached values in one linked cell, one cached string in another, and three distinct rooted DATALINK records; ASCII and binary output.",
+    "source_basis": "The existing writer and adapter preflight traverse the table grid generically and impose an aggregate 10,000-cell bound rather than a two-link limit. The prior focused regression covered only two linked cells, leaving the intended multi-link behavior unproven.",
+    "implementation": [
+      "Extend the generated linked-grid regression from two to three distinct linked cells without adding a production special case.",
+      "Verify each TABLECONTENT group-340 target remaps to the matching emitted DATALINK, while linked flags, row/column metadata and cached values stay attached to their cells.",
+      "Independently remove each of the three targets; require refusal, destination preservation, unchanged caller model and same-adapter corrected retry with readback."
+    ],
+    "claim_boundary": "Selected generated three-link AC1032 grid transport in ASCII and binary DXF. Code inspection confirms the existing adapter/writer path is generic over grid cells, but this profile does not test the 10,000-cell boundary, other cached-value sequences, FIELD/block/attribute/geometry payloads, DWG output or native table behavior."
+  },
+  "evidence": {
+    "generated_runtime_input": true,
+    "source_authored_locally_from_scratch": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary_output": true,
+    "physical_wire": "Wire inspection verifies three linked flags, three remapped DATALINK targets, exact per-cell row/column/unknown fields, cached content counts, and a remaining scalar-only cell.",
+    "typed_readback": "Fresh imports preserve all three link targets, row/column metadata, both cached values in the first linked cell, the cached string in the second linked cell, and scalar content in the unlinked cell.",
+    "failure_controls": "Each of the three referenced DATALINK handles is independently changed to a missing target; export refuses, preserves a destination sentinel and leaves the caller's invalid handle unchanged.",
+    "retry_control": "Restoring each target permits same-adapter output; fresh readback confirms all three links after every retry."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focused_ctest": "ctest --test-dir build -R '^libdxfrw_table_content_linked_grid_write$' --output-on-failure",
+    "focused_ctest_result": "1/1 passed",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "tests/table_content_dxf_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "Additional linked-cell FIELD, block, attribute and geometry payloads remain open.",
+    "This selected grid profile does not qualify maximum cell-count or native rendering behavior."
+  ]
+}

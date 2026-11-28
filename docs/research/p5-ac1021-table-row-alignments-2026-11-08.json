@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "date": "2026-11-08",
+  "status": "GENERATED_DWG_TYPED_READ_RETENTION_DXF_OUTPUT_REFUSED",
+  "workstream": "P5 / AC1018-AC1021 TABLE title/header/data row-alignment overrides",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1, TABLE until R21",
+    "fields": {
+      "0x004000": "title row alignment BS",
+      "0x008000": "header row alignment BS",
+      "0x010000": "data row alignment BS"
+    },
+    "domain": "ODA v5.4.1 §20.4.101.3 documents alignment values 1 through 9."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "DRW_Table retains the three selected row alignments in a typed array and resets/copies them with the model. Values outside 1..9 leave the record readable but semantically incomplete. Strict DXF output rejects these masks pending a lossless mapping from table-level style overrides to serialized cell values.",
+    "generatedControl": "From-scratch AC1021 TABLE vector selects all three alignment and all three row-height fields, verifies exact retained values, body boundary and following sentinel.",
+    "outputControl": "ASCII/Binary output verifies atomic refusal for selected unmapped row-height/alignment fields, destination preservation, corrected same-adapter retry and readback."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedReader": "PASS: build/libdxfrw_dwg_object_vectors_tests --table-r2007-cell-reader",
+    "focusedAsciiBinaryOutput": "PASS: ctest --test-dir build -R '^libdxfrw_table_scalar_override_output$' --output-on-failure, 1/1",
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated codec consistency only; no physical producer witness or whole-drawing qualification.",
+    "No row alignment DXF mapping or native TABLE rendering/style behavior is established.",
+    "Row-height values remain output-ineligible pending their own mapping proof.",
+    "Table color/fill/text-style and border override fields remain incomplete."
+  ],
+  "supportClaimsPromoted": 0,
+  "fixtureFilesAdded": 0,
+  "next": "Establish a lossless DXF representation before enabling either row-height or row-alignment output; continue with another override group only with its typed storage and selected-output proof."
+}

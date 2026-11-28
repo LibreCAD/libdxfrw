@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-installed-codec-public-tests-2026-11-15.patch",
+  "patchSha256": "c42fb74d3e85018268ebff4bda0bfcda1453acf831802ae6804e3611987ff77c",
+  "order": "Eighteenth downstream patch, after the portable system codec option and bounded BLOCK_RECORD observation.",
+  "implementation": "Adds opt-in LIBRECAD_BUILD_SYSTEM_CODEC_TESTS with a focused public-header executable and three CTests for LTYPE, BLOCK_RECORD observations and PR #3269. It requires the installed-codec option and Catch2 v3 (installed or submodule). README documents build, test and cached package-path selection. The full BUILD_TESTS suite still explicitly refuses in system mode because it requires noninstalled internals.",
+  "validation": [
+    "macOS ARM64 installed static codec: the focused target builds and all three CTests pass in 0.89 seconds: LTYPE 15 cases/3812 assertions, block-record observation 2 cases/28 assertions, and PR #3269 5 cases/49 assertions.",
+    "The installed test executable links the staged archive 719521dae87b5da63ab9bc2fb68cd2cfe70172ba30027d1f35a40428fc6e5224; its dependency file contains no source-tree dxfreader, dwgreader or drw_textcodec private headers. The archive was built from 4279a903, and its staged interface header was updated to 6074f83f; the sole intervening interface change is the compile-only callback feature macro.",
+    "Bundled mode with the new option OFF configures and its existing focused selector passes 19 cases/3980 assertions. Enabling the system-only test option without installed-codec mode fails with a clear configure diagnostic.",
+    "Patch forward/reverse checks pass after the previous 17 patches; no drawing fixture is added."
+  ],
+  "limits": "This opt-in target is not the complete LibreCAD test suite, GUI, shared-codec integration, Linux/Windows runtime or semantic parity qualification. The downstream patches are unmerged and no phase gate or support claim is promoted."
+}

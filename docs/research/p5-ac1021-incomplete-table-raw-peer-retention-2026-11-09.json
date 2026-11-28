@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "id": "p5-ac1021-incomplete-table-raw-peer-retention-2026-11-09",
+  "purpose": "Retain exact source frames alongside the usable but semantically incomplete typed AC1021 TABLE prefix.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "producer": "Autodesk sample collection; exact saving application/revision is not established"
+  },
+  "implementation": {
+    "file": "src/intern/dwgreader.cpp",
+    "behavior": "When ACAD_TABLE typed parsing succeeds but DRW_Table reports semantic content present and incomplete, publish the existing typed TABLE callback and the complete decompressed object body with frame metadata as a raw peer. Mark the raw typed payload unvalidated. Complete TABLE records keep their existing callback path.",
+    "sourceProfile": "AC1021 metric TABLE frames at handles 0x2856e and 0x2a974; candidate cell data remains unresolved."
+  },
+  "tool": {
+    "path": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "7d347dbf6c863aff8b64c1c5d2843db308a3aff6329f801a99ef1b14c7a9ca93",
+    "sourceSha256": {
+      "src/drw_entities.cpp": "10970cf3f43103c620f9fba00f1f4b31e811d92db4d3f28357e7c19eea955839",
+      "src/intern/dwgreader.cpp": "ef6f445a74fb29daa810f1f8ba211b6c964de4f9a8c45c8915be98f814ecf7a6"
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf -j4",
+    "buildResult": "PASS",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg -y -d -v2007 /private/tmp/ac1021-metric-partial-table-raw-peer.dxf",
+    "logPath": "/private/tmp/ac1021-metric-partial-table-raw-peer.log",
+    "logSha256": "0a09699a269be63d68e1eb73134014feb3b688befb370b03a6448666f08d73ef",
+    "result": {
+      "operationSucceeded": true,
+      "sourceFrames": 4408,
+      "publishedFrames": 4408,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "classesCrcMismatch": 0,
+      "rawPeerDiagnostics": [
+        {"handle": "0x2856e", "semanticTail": "unvalidated"},
+        {"handle": "0x2a974", "semanticTail": "unvalidated"}
+      ],
+      "strictExport": "Still refused before output at the independent FIELD/FIELDLIST serializer qualification gate."
+    }
+  },
+  "interpretation": {
+    "preserved": "The existing TABLE typed callback remains available to 2D consumers; each semantically incomplete record now also retains its complete decompressed source body and frame metadata as unvalidated raw data.",
+    "notEstablished": [
+      "The meaning or validity of candidate CadValue type 48",
+      "The full AC1021 TABLE cell grammar or semantic completeness",
+      "Strict TABLE output, native rendering, or producer-wide support"
+    ],
+    "fixturePolicy": "No DWG/DXF fixture was added or committed."
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "date": "2026-11-16",
+  "result": "HEADLESS_INTEGRATION_PASS_GUI_QUALIFICATION_WAITING",
+  "purpose": "Integrate the receipt-backed bounded MPOLYGON consumer patch set on the exact LibreCAD_3 base without modifying the dirty user checkout.",
+  "source": {
+    "repository": "LibreCAD/LibreCAD_3",
+    "commit": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+    "checkout": "fresh detached clone under /private/tmp/librecad3-mpolygon-integration-20261116",
+    "changedPaths": [
+      "lcUI/cadmdichild.cpp",
+      "persistence/libdxfrw/dxfimpl.cpp",
+      "persistence/libdxfrw/dxfimpl.h",
+      "unittest/persistence/dwgimporttest.cpp"
+    ],
+    "combinedPatchDiffSha256": "f992bdc23a5813256babbc309d8a09ced2e0a6e3df643fbc2ed8e0f44bafc95f",
+    "gitDiffCheck": "PASS"
+  },
+  "submodules": {
+    "lckernel/nano-signal-slot": "d4d199e5d3fdde59490ac891333af35990889558",
+    "lckernel/tinyspline": "bb3b02cdfaa039aa236a5240f2ba8bce66bea527",
+    "third_party/kaguya": "2f20d965aa30aaee0cb01d04aea93e508c43225d",
+    "third_party/libdxfrw": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "third_party/pybind11": "97bf890db679505a14dfe547a5e77bb2bd05dc90"
+  },
+  "patches": [
+    {
+      "path": "docs/patches/librecad3-p8-mpolygon-projection-warning-2026-11-15.patch",
+      "sha256": "e8a2a6e53ec77581076d6a44e7972a6bcae4646780e471a0e42adda247028902",
+      "applyCheck": "PASS"
+    },
+    {
+      "path": "docs/patches/librecad3-p8-mpolygon-offset-preservation-2026-11-15.patch",
+      "sha256": "116e969e48a91562eed457df05e71558d99b86a37cbff15cae746577215c667f",
+      "applyCheck": "PASS"
+    },
+    {
+      "path": "docs/patches/librecad3-p8-mpolygon-rotation-preservation-2026-11-15.patch",
+      "sha256": "3340ca0cc80f3f38d25d8264a3cb555ee3e469c0351a35a2e5181dcc17041da9",
+      "applyCheck": "PASS"
+    }
+  ],
+  "build": {
+    "platform": "macOS ARM64",
+    "cmake": "4.4.5",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "configuration": "Release; WITH_PERSISTENCE=ON; WITH_QT_UI=ON; WITH_UNITTESTS=ON; WITH_RENDERING_UNITTESTS=OFF; WITH_PYTHONSCRIPT=OFF; WITH_LUACMDINTERFACE=OFF; WITH_DWG_IMPORT=ON for the final test build only",
+    "lua": "5.5.1 matching headers and library; the initial mismatched 5.3-header/5.5-library setup failed to link and was corrected before the successful build",
+    "targets": {
+      "persistence": "PASS",
+      "librecad": "PASS with WITH_DWG_IMPORT=OFF; changed UI translation unit compiled, then lcui compiled successfully with WITH_DWG_IMPORT=ON",
+      "lcunittest": "PASS with WITH_DWG_IMPORT=ON"
+    },
+    "sha256": {
+      "librecadBinary": "71484688f789479cd6aa700ef80745967b3412a22a748829ef8bda6a798f37af",
+      "lcunittestBinary": "9f7783bf584dcd633a89da92fc3bef7a8f50fb67d50d422e50245fddc069c3b7",
+      "persistenceLibrary": "149a43c375ebe8376f837256b71d240c4f78bfccc80d2bd2f9fd1ce3343c2c21"
+    }
+  },
+  "selectors": {
+    "command": "lcunittest --gtest_filter=DwgImportTest.MpolygonSimpleBoundaryAndEditedFallback:DwgImportTest.MpolygonRotationPreservesBulges:DwgImportTest.EmptyMpolygonProjectionReportsExportLoss",
+    "result": "3/3 PASS",
+    "tests": [
+      "DwgImportTest.EmptyMpolygonProjectionReportsExportLoss",
+      "DwgImportTest.MpolygonSimpleBoundaryAndEditedFallback",
+      "DwgImportTest.MpolygonRotationPreservesBulges"
+    ],
+    "log": "/private/tmp/lc3-mpolygon-integrated-selectors-20261116.log",
+    "logSha256": "03aed4e17aad80d24da16b7205043d54c857d27d8c4d1d6022fdc8160998445e"
+  },
+  "fixturePolicy": "No DWG/DXF fixture was added or committed. The empty-path source fixture remains warning-only; the positive boundary tests create controls from scratch in temporary files.",
+  "independentEvidence": "Reuse the same-profile ezdxf 1.4.5 ASCII/Binary field and geometry observations in docs/research/p8-librecad3-mpolygon-rotation-preservation-2026-11-15.json; patch hashes and source base match. No independent peer was rerun.",
+  "remaining": "Native LibreCAD_3 UI save/reopen remains unqualified because the interactive macOS pasteboard/XPC session is unavailable. Keep this separate from the passing headless persistence selectors. Support remains limited to the documented simple closed polyline/default-plane profile; unsupported states and the old pinned codec use the explicit HATCH fallback/loss path."
+}

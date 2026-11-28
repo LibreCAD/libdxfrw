@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-05",
+  "scope": "Bounded AC1032 DXF parsing and explicit raw-replay preservation for sparse MATERIAL records whose group 94 channel mask is 63.",
+  "source": {
+    "path": "/Users/dli/doc/dwg5/wipeout_door.dxf",
+    "sha256": "26794284e4e52db626b889fbbaf847fabb3c6ac85603096af244d7b6d95448bb",
+    "provenance": "Pre-existing local sample outside the repository. It was inspected and converted locally; it is not added as a repository fixture.",
+    "observed": "The AC1032 DXF contains sparse MATERIAL records including a group 94 value of 63; one longer record has trailing XDATA."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_sparse_material_raw_tests.cpp"
+    ],
+    "behavior": "For source version AC1032, the exact group-94 value 63 may mark an incomplete modeled base-map profile for raw-only replay. The reader retains the complete record, including later groups and XDATA. A consumer must explicitly opt into sparse MATERIAL raw capture; the typed writer remains fail-closed.",
+    "limits": "This does not establish the semantic meaning of the channel mask, typed MATERIAL support, native rendering, producer breadth, or whole-document conversion eligibility.",
+    "sourceHashes": {
+      "src/drw_objects.cpp": "1b5e57effd799cba0a4907c6f307469b179dec1be12810ba15b22ba5eb9ddc9b",
+      "src/libdxfrw.cpp": "219be25084ee85f57a45b6f5d6798b30dfd361244ab9134617aff704bfed0edf",
+      "tests/dxf_sparse_material_raw_tests.cpp": "d345cf552e705dbb9aa9763b410ae2db44bd91e3b540ec3cf2af8d394a1b4cac"
+    }
+  },
+  "generatedControls": {
+    "provenance": "ASCII and Binary DXF controls are authored from scratch in the focused test and removed from its temporary directory; no fixture file is committed.",
+    "coverage": [
+      "Minimal ByBlock material with extension-dictionary and reactor groups",
+      "Longer Global material with description and trailing XDATA",
+      "Exact retained group-code sequence and group-94 value",
+      "Legacy consumer refusal without partial callbacks and same-adapter opt-in retry",
+      "Typed output refusal preserves the destination sentinel",
+      "Explicit raw output and fresh raw readback for both records and encodings"
+    ],
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_sparse_material_raw_tests dwg2dxf -j3",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_sparse_material_raw$' --output-on-failure",
+    "result": "PASS, 1/1 CTest; ASCII and Binary cases run inside the test executable.",
+    "testBinarySha256": "435adb2c24884733b11a855e108bd56d480292b6945b702537ae631af206d9dd"
+  },
+  "physicalSourceCheck": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg5/wipeout_door.dxf -y -d -v2018 /private/tmp/wipeout-door-roundtrip.dxf",
+    "result": "The file parses beyond MATERIAL and reaches output preflight. Conversion is refused because two typed proxy graphics are not preserved; first handle 1284. No output conversion is claimed.",
+    "logPath": "/private/tmp/wipeout-door-roundtrip.log",
+    "logSha256": "b5f46470dcf5d3dc40c8039e450a1b0fbabae4d028c6d3e56b5d5fc460afffc4",
+    "outputEligibility": false
+  },
+  "claim": "Raw-preservation implementation evidence only; no support claim is promoted."
+}

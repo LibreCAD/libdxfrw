@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1021-image-dict-physical-selected-output-2026-11-06",
+  "date": "2026-11-06",
+  "status": "PASS_BOUNDED_PHYSICAL_SOURCE_OUTPUT_READBACK",
+  "supportClaimEffect": "none",
+  "question": "Does the AC1021 children-room source's physical empty ACAD_IMAGE_DICT survive the image-generated-root output path with atomic mutation refusal and readback?",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "producerProvenance": "Existing local source; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceGraph": {
+    "imageDefinitionCallbacks": 0,
+    "imageDefinitionReactorCallbacks": 0,
+    "namedObjectDictionary": {
+      "handle": "0xC",
+      "hardOwner": 0,
+      "cloning": 1
+    },
+    "entry": {
+      "key": "ACAD_IMAGE_DICT",
+      "targetHandle": "0x2D1",
+      "occurrences": 1,
+      "outputDxfHandleRole": "soft-owner"
+    },
+    "target": {
+      "type": "DICTIONARY (standard object type 42)",
+      "handle": "0x2D1",
+      "ownerHandle": "0xC",
+      "hardOwner": 0,
+      "cloning": 1,
+      "entries": 0,
+      "reactors": ["0xC"],
+      "extensionDictionary": "0x0",
+      "appData": 0,
+      "extData": 0,
+      "dataStorage": false,
+      "commonLinkTail": false
+    },
+    "sourceFrame": {
+      "fileOffset": 1990495,
+      "fileSize": 17,
+      "retainedBodyBytes": 17,
+      "typedPayloadMatched": true,
+      "standardSourceEligible": true
+    }
+  },
+  "implementation": {
+    "files": ["tests/dwg2dxf_adapter_tests.cpp"],
+    "change": "No production writer change was needed. A focused physical-source selector exercises the existing image-generated-root route, source standard-frame output proof and the generated NOD/image root proofs."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS before focused selector execution"
+    },
+    "selector": "--image-dict-empty-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --image-dict-empty-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS for ASCII and Binary output and fresh typed readback. The output has one ACAD_IMAGE_DICT NOD edge with soft-owner role, a unique remapped DICTIONARY target, empty membership, NOD owner and NOD reactor, and zero image definitions/reactors. Both generated-root proofs and the physical standard-frame output proof finalize. A post-OBJECTS reactor mutation refuses without replacing the destination sentinel; restoring the source allows the same adapter to retry.",
+    "outputPolicy": "AllowPartial; unresolved-owner strictness disabled. This does not qualify strict whole-source output.",
+    "logPath": "/private/tmp/p4-ac1021-image-dict-physical-selected-output-2026-11-06.log",
+    "logSha256": "79676fd71da63ce3d3e4e4514bfcc2dd925635b30eec876bf48e51d8f766f8cc",
+    "testSourceSha256": "22d3f46a104690160cf012020f295dcfe2a4f7bfa2754246306945849157293f",
+    "executableSha256": "e919741cee29df35c3a869d5984a545f7a9e93d671b5fd8182518c2fa8c5a61d"
+  },
+  "limits": [
+    "One unauthenticated local source profile is covered; output key role is checked after DXF conversion and is not an independent DWG edge-code role proof.",
+    "The source NOD contains other entries, including unresolved ACAD_IMAGE_VARS; the whole NOD and strict whole-source output are not qualified.",
+    "Zero IMAGEDEF/IMAGEDEF_REACTOR records in this source do not establish populated image graph behavior or native image semantics.",
+    "No independent encoder roundtrip, native-consumer behavior, producer-wide coverage or support claim is established.",
+    "The DWG source and generated DXF outputs are not committed as fixtures."
+  ],
+  "nextAction": "Screen the empty AC1021 AEC_PROPERTY_SET_DEFS NOD dictionary at handle 0x745 for owner/reactor completeness and generated-root collisions before attempting a bounded selected-output profile."
+}

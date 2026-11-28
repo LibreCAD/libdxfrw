@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "status": "bounded-implementation-verified",
+  "scope": {
+    "versions": "AC1018 and newer entity common handle tails",
+    "fields": [
+      "optional owner handle",
+      "persistent reactor handles",
+      "optional extension-dictionary handle"
+    ],
+    "rules": {
+      "owner": "ODA v5.4.1 §20.4.2 soft pointer; offset encodings are checked by their original raw role code",
+      "reactors": "ODA v5.4.1 §20.4.2 absolute soft pointer, or canonical null",
+      "extension_dictionary": "ODA v5.4.1 §20.4.2 hard owner, or canonical null"
+    },
+    "excluded": [
+      "OBJECTS common-handle routes",
+      "entity body references and their roles",
+      "pre-AC1018 entity role policy",
+      "strict whole-source DXF output qualification",
+      "native application semantics"
+    ]
+  },
+  "evidence": {
+    "authority": {
+      "document": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": ["§2.13", "§20.4.2"]
+    },
+    "generated_controls": {
+      "selector": "--ac1027-common-entity-handle-roles",
+      "ctest": "libdxfrw_ac1027_common_entity_handle_roles",
+      "result": "passed",
+      "checks": [
+        "wrong owner role refuses without publishing prior entity fields",
+        "wrong reactor role refuses without publishing prior entity fields",
+        "wrong extension-dictionary role refuses without publishing prior entity fields",
+        "same parser accepts corrected input after each role refusal",
+        "canonical nulls and role-preserving null encodings are accepted",
+        "existing handle ordering, sentinel alignment, and truncation rollback remain covered"
+      ],
+      "executable_sha256": "0c6195f69e860397e8960e51e2103fc5e69a5d315babfc73fb7f47819872cfa5"
+    },
+    "physical_read": {
+      "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg",
+      "sha256": "4c63508dd794d5cdfb56c60aded47928999b02619ea8c2ef435a4b74e60d24d6",
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1027.dwg -y -d -v2010 /tmp/sample-ac1027-common-role-check.dxf",
+      "reader_result": {
+        "operationSucceeded": true,
+        "sourceVersion": "AC1027",
+        "publishedFrames": 865,
+        "sourceFrames": 865,
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "dataStorageLinkFailures": 0,
+        "dataStorageOrphanRecords": 0
+      },
+      "cli_exit": "conversion stopped at the existing strict AC1027 source-reference gate; no support claim is promoted"
+    },
+    "version_cohort": {
+      "command": "ctest --test-dir build-gcc -L '^AC1024$' --output-on-failure",
+      "result": "25/25 passed",
+      "includes": "AC1018 and AC1024 physical reader cases plus selected bounded generated cohorts"
+    }
+  },
+  "bindings": {
+    "source_revision_before_slice": "aaac323456f1c52f912ff4eb5aef20b0e33ea992",
+    "src/drw_entities.cpp": "10970cf3f43103c620f9fba00f1f4b31e811d92db4d3f28357e7c19eea955839",
+    "tests/dwg_reader_matrix_tests.cpp": "3cf3b02728997e27476b56da5a4ebd8604d133935b846c4a1d2abe293e14660a",
+    "tests/CMakeLists.txt": "bbba92093d9230ba9a5a7ede412ae1ba04e844c0daa3ea1ec77c44414723bfe1",
+    "dwg2dxf_executable": "7f3b721398b06462fd586bee6ea45bb76e08ef9b7d46706a31a1026d17959d82"
+  },
+  "fixture_policy": "No DWG or DXF fixture was added; the regression vector is generated in memory, and the physical source is an existing ACadSharp repository sample.",
+  "claim_limit": "This verifies the bounded AC1018+ entity common-handle role decoder and one physical AC1027 read profile. It does not establish complete entity/object reference closure or strict output support."
+}

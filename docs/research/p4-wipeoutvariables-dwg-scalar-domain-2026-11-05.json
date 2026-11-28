@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "WIPEOUTVARIABLES DWG writer display-frame domain",
+  "date": "2026-11-05",
+  "status": "DWG_WRITER_DOMAIN_GUARD_IMPLEMENTED",
+  "scope": "The DWG writer refuses WIPEOUTVARIABLES display-frame values outside 0 or 1 before object identity reservation. Parsing remains tolerant so unsupported source values remain observable.",
+  "normativeSource": {
+    "title": "Autodesk WIPEOUTVARIABLES DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-CD28B95F-483C-4080-82A6-420606F88356.htm",
+    "group70": "Display-image-frame flag: 0 = No frame; 1 = Display frame",
+    "wireMapping": "LibreDWG dwg.spec maps the DWG display_frame member to BS, DXF 70."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgwriter15.cpp",
+      "src/drw_objects.cpp"
+    ],
+    "behavior": "dwgWriter15::writeWipeoutVariables refuses displayFrame > 1 before preparing common state, registering the class, or reserving/allocating the handle. DRW_WipeoutVariables::encodeDwg enforces the same domain at the body encoder boundary."
+  },
+  "regressionControl": {
+    "file": "tests/dwg_local_roundtrip_tests.cpp",
+    "coverage": "The generated DWG write/read path retains the valid displayFrame=1 value. Its malformed-object control separately submits displayFrame=2 with otherwise valid common state and requires refusal; an existing malformed common-state refusal remains covered.",
+    "focusedSelector": "--wipeoutvariables-dwg-scalar-domain tests invalid values 2 and 65535 through dwgWriter15 with a null backing stream, and checks that refusal leaves the input carrier identity/value unchanged.",
+    "fixturePolicy": "The test harness generates its DWG; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "buildResult": "passed",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_wipeoutvariables_dwg_scalar_domain$' --output-on-failure",
+    "focusedTestResult": "passed",
+    "owningTest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+    "owningTestResult": "nonzero due 16 existing ACDS/modeler and DWG read-outcome assertions; no WIPEOUTVARIABLES assertion failed",
+    "knownBaseline": "The same 16 unrelated failures were observed in the preceding baseline comparison for this exact owning test.",
+    "diffCheck": "git diff --check passed"
+  },
+  "nonClaims": [
+    "No physical producer sample with unsupported display-frame values was qualified.",
+    "No native wipeout frame rendering behavior was qualified.",
+    "This does not widen any source-origin adapter profile or whole-document graph admission."
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-mechanical-strict-ltype-source-handles-2026-11-04",
+  "date": "2026-11-04",
+  "base_commit": "bbba49b2",
+  "status": "AC1024_MECHANICAL_STRICT_WHOLE_SOURCE_OUTPUT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Stop treating writer-canonical LTYPE handles as a source-format invariant, then qualify strict AC1024 DWG-to-DXF output and fresh DXF readback for the existing mechanical sample.",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.57 LINETYPE CONTROL",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "rule": "Numentries excludes BYBLOCK and BYLAYER; control handles list the linetypes with the two special entries last; the ordinary entries are soft-owner references and the BYBLOCK/BYLAYER entries are hard-owner references. The section does not assign numeric handles to the named LTYPE rows.",
+    "remaining_conflict": "The ODA text says BYLAYER then BYBLOCK; the physical ODA-produced profiles in p6-dwg-ltype-control-order-roles-2026-11-04.json show BYBLOCK then BYLAYER. The validator continues to accept either final-slot order and makes no producer-order claim."
+  },
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "fixturePolicy": "Existing local sample; no DWG or DXF fixture was added to Git."
+  },
+  "implementation": {
+    "defect": "The source LTYPE membership gate compared BYBLOCK, BYLAYER and CONTINUOUS row handles with constants used by this library's DWG writer. The physical sample uses 0x14, 0x15 and 0x16 for those names, so strict-complete export was refused before the output inspectors could validate the source graph.",
+    "correction": "Match each ordered LTYPE_CONTROL handle to exactly one typed row owned by the control; require unique names; require the named BYBLOCK and BYLAYER rows to occupy the final two phantom slots in either order; require named CONTINUOUS in a counted slot. Numeric source handles remain source-specific.",
+    "physical_profile": {
+      "controlHandle": "0x5",
+      "orderedHandles": ["0x16", "0x1B1", "0x14", "0x15"],
+      "rows": [
+        {"handle": "0x16", "name": "Continuous"},
+        {"handle": "0x1B1", "name": "CENTER"},
+        {"handle": "0x14", "name": "ByBlock"},
+        {"handle": "0x15", "name": "ByLayer"}
+      ]
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dwg_ltype_table_control_membership$' --output-on-failure",
+      "result": "PASS, 1/1 in 0.58 seconds.",
+      "coverage": [
+        "Canonical generated handles remain accepted.",
+        "Noncanonical source handles 0x14/0x15/0x16 and 0x1B1 are accepted when typed names, owner and final phantom slots agree.",
+        "Either final BYBLOCK/BYLAYER slot order is accepted.",
+        "A special phantom placed among counted slots, missing BYBLOCK, wrong owner, missing target, duplicate name, null slot, duplicate publication and stale generation are refused."
+      ]
+    },
+    "strictConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/mechanical-strict-ltype-fix-20261104-confirmed.dxf",
+      "result": "PASS; exit 0; strict-complete AC1024 ASCII output published.",
+      "sourceObservations": {
+        "operationSucceeded": true,
+        "legacyError": 0,
+        "publishedFrames": 366,
+        "opaqueCallbacks": 228,
+        "opaqueSourceFramesCaptured": 228,
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "integrityRows": 0
+      },
+      "output": {
+        "path": "/private/tmp/mechanical-strict-ltype-fix-20261104-confirmed.dxf",
+        "bytes": 449945,
+        "sha256": "f75dbf3683385f7a7deee8874e267e15ef3b2c54d0057c083bf5c78e3903671a"
+      }
+    },
+    "freshReadback": {
+      "command": "/private/tmp/dxf-readback-summary /private/tmp/mechanical-strict-ltype-fix-20261104-confirmed.dxf",
+      "result": "PASS; ASCII DXF re-imported as AC1024 with no read error.",
+      "entities": 90,
+      "associativeTypedObjects": 138,
+      "associativeRawObjects": 138,
+      "acdbAssocGeomDependency": 54,
+      "otherAssociativeTypedObjects": {
+        "ACDBASSOC2DCONSTRAINTGROUP": 1,
+        "ACDBASSOCDEPENDENCY": 17,
+        "ACDBASSOCNETWORK": 2,
+        "ACDBASSOCVALUEDEPENDENCY": 30,
+        "ACDBASSOCVARIABLE": 17,
+        "ASSOCDIMDEPENDENCYBODY": 17
+      }
+    },
+    "adapterAttemptEvidence": {
+      "strictExport": "PASS on the first RequireComplete attempt after import.",
+      "opaqueOutputQualifications": "228/228 identities published only after successful output transaction.",
+      "geometryDependencyBindings": "54 physical source records inspected against staged output fields, owner/target handle remaps and record identity; fresh DXF readback delivered all 54 typed records.",
+      "scope": "This is one source-bound AC1024 whole-document transport profile. Same-reader readback is not native application or independent semantic evidence."
+    },
+    "artifacts": "Scratch probes and output are under /private/tmp and are not repository fixtures."
+  },
+  "limitations": [
+    "No native ODA/LibreCAD/FreeCAD acceptance was measured in this receipt.",
+    "No support claim is promoted; other AC1024 producers and unsupported record profiles remain open.",
+    "The source ordering disagreement and native linetype semantics remain unresolved."
+  ],
+  "planImpact": {
+    "completed": "Correct noncanonical source LTYPE handle membership for the exact AC1024 mechanical sample and strict whole-source output/readback for that sample.",
+    "stillOpen": "Other physical producers, full-source profiles with different graph shapes, producer ordering beyond observed witnesses, native linetype semantics, and all other P4 graph/semantic gates."
+  }
+}

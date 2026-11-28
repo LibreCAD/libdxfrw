@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-r14-renderglobal-revolve-raw-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-F",
+  "status": "RAW_FRAME_PUBLICATION_WITH_REVOLVE_FAILURE_RETAINED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "scope": "Section 20.1 object frame and common prologue; it does not establish these out-of-version class body semantics."
+  },
+  "source": {
+    "previousReceipt": "docs/research/p6-ac1014-render-frames-wire-2026-11-21.json",
+    "dwgSha256": "ab655649e8a1059d0557fb167eeb8d9a5d802afc8313d60d4bcabdce790bac4c",
+    "version": "AC1014",
+    "producer": "unknown",
+    "renderGlobal": {
+      "handle": 1123,
+      "type": 539,
+      "offset": 1243059,
+      "bodySha256": "f31a565b4c24006a7abbcbba67dbd07887dddf3789e664a39cb09f809af1becc"
+    },
+    "revolve": {
+      "handle": 867,
+      "type": 530,
+      "offset": 1675047,
+      "bodyBytes": 219,
+      "bodySha256": "c891efa10d8460e6bebc5a680a0bb998dd7a5a58598af0cfe2d9677c386d0246",
+      "crc": "independently checked from source frame using repository research CRC implementation",
+      "commonPrologue": {
+        "eedSize": 0,
+        "dataEndBit": 1714,
+        "reactorCount": 0
+      }
+    }
+  },
+  "change": "After failed typed parsing, exact AC1014 RENDERGLOBAL/AcDbRenderGlobal frames use the existing unmodeled render carrier. Exact AC1014 ACSH_REVOLVE_CLASS/AcDbShRevolve frames publish their raw carrier while retaining the object-parse failure and skipped counters. Neither change authorizes typed callbacks, graph closure or DXF output.",
+  "sourceFiles": {
+    "src/intern/dwgreader.cpp": "c5822a17da971256a9f1671278b6b6b640b8d9b149492f25f9300e9894464149",
+    "src/intern/dwgreader.h": "b4e0c3b4351961f6e4f855cacd25a0fa18ed383361c80d2fbd5b71e2b834792a",
+    "tests/dwg_reader_matrix_tests.cpp": "236f2c56b8ef32cffebccb137fc3ae3e7ec7284d6dd1a1f5167fe6f207751a07",
+    "tests/dwg_object_vectors_tests.cpp": "0203dbb8dd5e63d50ce3536919de705741a778117f069584119a3866a767aed9"
+  },
+  "validation": {
+    "generated": "Both added profiles and previous render profiles: raw bytes and raw publication; no typed callback; following frame delivery; corrupted CRC and object-map mismatch refusal; mismatched revolve class does not publish. The revolve control reaches typed-body failure with a locally constructed prefix.",
+    "normal": "Generated raw selector, version/class profile selector, and persistent-manager prefix-dispatch CTest passed.",
+    "asan": "Fully instrumented library and generated raw selector passed.",
+    "sourceScreen": "All 502 frames of the selected source publish raw or typed carriers; one revolve typed-parse failure and five skipped objects remain. Strict and partial output refuse in ASCII and Binary, preserving the existing destination in all four cases.",
+    "candidateSha256": "dbb318fa714451d27b7fa44c102352dd7d16c27dbb651f94a9374024a6a1e68d",
+    "asanTestSha256": "fbef118d5dab7c5d2e6e3e483f9f91394e9a98a15f22ea9c5dc4c9d83d51f279",
+    "legacyRegression": "Rebuilt AC1012 partial-output and ownership controls plus AC1014 dictionary observer CTest: 3/3 pass."
+  },
+  "limits": [
+    "An already-issued raw callback from a failed typed history parser is not by itself a successful frame publication; this change publishes only the exact observed R14 class and preserves its failure count.",
+    "No producer-native render or revolve semantics, full graph closure, lossless output or organic entity-failure qualification is established.",
+    "Downloaded DWG and output files remain outside the repository."
+  ]
+}

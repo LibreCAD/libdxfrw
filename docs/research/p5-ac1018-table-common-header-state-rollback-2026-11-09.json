@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1018-table-common-header-state-rollback-2026-11-09",
+  "date": "2026-11-09",
+  "status": "IMPLEMENTED_FAST_CONTROL_PASS",
+  "title": "AC1018 TABLE common-header state rollback",
+  "scope": "Preserve caller-visible common-header flag caches when the generated AC1018 TABLE direct codec fails after common-header emission starts.",
+  "finding": {
+    "before": "At generated allocation-failure offset 7, DRW_Table::encodeDwg preserved staged body and handle buffers but encodeDwgCommon had changed plotFlags from the caller's value 2 to its derived value 0.",
+    "after": "The TABLE encoder snapshots all seven common-header flag caches that encodeDwgCommon may derive and restores them unless body and handle buffers are both committed.",
+    "profile": "Generated AC1018 direct TABLE codec only; public dwgRW::writeTable remains refused."
+  },
+  "control": {
+    "input": "In-memory 2x2 AC1018 TABLE grid with one text-style override; lineType is BYBLOCK with ltFlags seeded to 0 and plotFlags seeded to 2 before each injected failure.",
+    "allocationSweep": {
+      "measuredOffsets": 25,
+      "injectedFailures": 25,
+      "assertions": [
+        "Each failure returns false.",
+        "Seeded body and handle buffers and bit counts remain unchanged.",
+        "The caller's ltFlags value remains 0 and plotFlags remains 2 after each failed call.",
+        "The same TABLE object and buffers retry successfully and match clean calibration bytes.",
+        "Successful retry retains derived ltFlags=1 and plotFlags=0."
+      ]
+    },
+    "fixture": "No DWG/DXF fixture file was created or committed."
+  },
+  "files": [
+    "src/drw_entities.cpp",
+    "tests/table_dwg_codec_allocation_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "bindings": {
+    "src/drw_entities.cpp": "206bc7115dca99d507c87cc4ea9c5e1340aa9dc6b583676b43b09afdd14d000a",
+    "tests/table_dwg_codec_allocation_tests.cpp": "0a57b14bb68bb9eeab97e8783d0903edc38df2b3a5027517d3bbf853f593d5e2",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "49be3e49a6647b70c585503c0da914015a7ac477b48de67fd5fe7f788f5d9a8b"
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_table_dwg_codec_allocation_tests -j4",
+    "test": "PASS 1/1: ctest --test-dir build-gcc -R '^libdxfrw_table_dwg_codec_allocation_retry$' --output-on-failure (0.19 sec)",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "limitations": [
+    "Generated direct-codec failure/retry evidence only; it does not qualify a physical AC1018 TABLE source or native behavior.",
+    "The compound *T graph, outer writer transaction, independent readback, and public TABLE output gate remain open."
+  ],
+  "supportClaimEffect": "none"
+}

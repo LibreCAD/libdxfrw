@@ -1,0 +1,66 @@
+{
+  "schema": "acds-source-delivery-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "codeCommit": "e81c56d01e1d77c745b1b302510195536b0defca",
+  "supportClaimsPromoted": false,
+  "scope": "Authenticate delivery of completed original ACDSDATA sections to the adapter using an opt-in bounded codec-owned source ledger, independently of the overridable raw-section callback. Protect raw carrier transport only; no ACDS schema or ACIS/kernel interpretation.",
+  "priorEvidence": [
+    "docs/research/rpp5cq-historyless-solid-native-transport-2026-10-25.json",
+    "docs/research/rpp5cr-selected-raw-acsh-history-reexport-2026-10-25.json"
+  ],
+  "preFixWitness": {
+    "source": "Existing locally authored generated opaque 3DSOLID/ACDS fixture in ignored build scratch",
+    "sourcePath": "build/tests/dwg2dxf-raw-section-706884f02fca/opaque-acdsdata-input.dxf",
+    "sourceSha256": "7854dbdacf98c8a09ed6b6553b225173b7da7e0586391f985acfbdfd33624673",
+    "mutatedCopy": "Overriding addRawDxfSection to forward a copy with first 310=41434454 instead of 41434453 produced import=1, unchanged=1, export=1; the 3DSOLID and altered section were output.",
+    "droppedCallback": "Overriding the callback to do nothing produced import=1, sections=0, unchanged=1, export=1; output retained the 3DSOLID and omitted ACDSDATA.",
+    "forwardProbeSourceSha256": "4bbc9cf947ee579e1b4fe9cec8108e1faa9ae746d8a1fe527f6f3b3f87b9dc83",
+    "forwardProbeExecutableSha256": "36190a5a0e9dba6128e47d5e10938d61a6b46b24358381e4d32387404dc0bfa9",
+    "dropProbeSourceSha256": "756f980c1349995aa827208443c1a8253b57e8328838ebc2567926ff6c4fc80e",
+    "dropProbeExecutableSha256": "ba066394f30a5d5cb2a202c78e13b7a83411f533986e9bc86f311df3968ea494",
+    "forwardOutputSha256": "5e9b47dea0b6c03e3b13e6bf10a1aad0252cb97e698d58bd91a86aebfb853be4",
+    "dropOutputSha256": "b237104b89ff40a6f71a8d34e920bf463121592201bd81d0deaade67d6d05eaf",
+    "forwardLogSha256": "cc4556fb4dafd64b8749c4aff4cdeee308cab879aab2bdeee5242003f77c78c3",
+    "dropLogSha256": "908f77b26d534cefbcb99543ebf2bcc19aacd1d78ce76a0576e717a0d65017eb",
+    "limitations": "This is a synthetic opaque source: altered or missing bytes do not establish native ACIS semantics or a genuine kernel failure."
+  },
+  "implementation": "Before invoking the raw-section callback, opted-in codec captures a bounded exact source section and exposes its borrowed active address only during callback. The adapter checks source publication address and reconciles the completed codec ledger against the captured ordered per-generation baselines at read completion. Missing, copied, changed, duplicate or exceptional delivery and budget failure set sticky ACDS capture failure; authored/no-import and ordinary no-ACDS 2D paths remain supported. Existing output transaction and later source immutability checks remain in force.",
+  "budget": "Ledger limits records, groups, retained bytes and work; source sizing traversal is precharged before visiting payload. Work includes copy and comparison; an unavailable ledger cannot qualify delivery.",
+  "bindings": {
+    "src/libdxfrw.cpp": "bf75db225d3691c42b32a4e4a0fa59f55b65d6c15317652524db387311d30e1f",
+    "src/libdxfrw.h": "011a65e149165deaa10bbabc1bba40160d59984d72dde1cb90b9df2985324c1b",
+    "dwg2dxf/dx_iface.cpp": "72c4434fb9ff557cad8c5f2b783409dcaf04e9425166e4c6acb59fe735afcdd5",
+    "tests/acds_delivery_tests.cpp": "2924b88e1cf21fe736bd33e50fc4a98c76e97171f30ea09188accbf3950ff460",
+    "tests/CMakeLists.txt": "21ccd347a540df0f600e28e674d4348f8bcd24e9d5250a772b8fe5eb29e294fa"
+  },
+  "postFixReproduction": {
+    "forwardExecutableSha256": "a058f41ca70d86dab159086d5aa72784ef699825b944179641edd9631f085336",
+    "dropExecutableSha256": "00ad8626fdb5e2fa02b9965699bead69aca87288afd2d1eab3d54fc6a9686d67",
+    "result": "Both attempted changed and omitted deliveries import but mark source unchanged=false and refuse export. The focused suite separately checks destination sentinel and fresh same-adapter retries.",
+    "sharedLogSha256": "39b15dd15aecd50a2684643b33177ba812c008f550d9d09be09c595b10cdbf15"
+  },
+  "controls": "8 normal outputs and 48 failures/retries across ASCII/binary source and output plus strict/compatible modes; copied identical, modified bytes, dropped, duplicate, wrong version and renamed section. Includes exact/one-below quotas, large section/tiny work, quota failure after accepted prefix, multi-section late drop/duplicate/exception, sticky same-data reimport, fresh retry, opt-out/read reset, plain 2D and authored/no-import behavior. Completed records only.",
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^(libdxfrw_acds_source_delivery|dwg2dxf_acds_raw_dxf_source_baseline|libdxfrw_raw_modeler_acds_replay|dwg2dxf_acds_typed_historyless_companion|dwg2dxf_acds_history_reexport_faults)$' --output-on-failure",
+    "result": "5/5 passed as reported; no retained log hash asserted",
+    "testExecutableSha256": "8c18bb8311852c92b00f59ed37ea56094301cb358561a107c01a01341d989edf",
+    "librarySha256": "c6003b971d9ba96b89d2d97ad2eb911a57022b067aac0c10508760b3d62239e9",
+    "adapterObjectSha256": "1b8f6e52fc7a81c2ccf567240b23566f3ae27fe71578afa99109048f5105e08c"
+  },
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^(libdxfrw_acds_source_delivery|dwg2dxf_acds_raw_dxf_source_baseline|libdxfrw_raw_modeler_acds_replay|dwg2dxf_acds_typed_historyless_companion|dwg2dxf_acds_history_reexport_faults)$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "5/5 passed as reported; no retained log hash asserted",
+    "testExecutableSha256": "0c0fd1490730bc48dfc4cba05e9693668b217fdd13beba9970471fc9272dd213",
+    "librarySha256": "813d295f6ae9d15580305ed9cf388e2906979f1c45cdd861cfcd8a4c435bf3c7",
+    "adapterObjectSha256": "bf90558641d6b9cbc1c19b8e1780805d7d559e897becf5a2788504ff9cbe81df"
+  },
+  "chronology": "The recorded source files were frozen throughout the normal and ASan builds; subsequent uncommitted MLINE work is outside those test bindings.",
+  "limitations": [
+    "Only completed sections that the codec parsed are observed; detection of uncompleted/unreached source sections is not established.",
+    "This is physical source/delivery authentication, not original DWG-to-AcDs owner/schema join, native payload validity, geometry, complete document conversion or an independent kernel qualification.",
+    "New opt-in public methods and dxfRW private layout change require consumer rebuild and formal ABI/API qualification. DRW_Interface gained no pure virtuals.",
+    "Existing authored witness and generated outputs remain in ignored build scratch; no new external fixture was committed."
+  ]
+}

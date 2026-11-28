@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-4l MATERIAL tail fields and procedural boundary generated fast slice",
+  "mode": "Local implementation and generated ASCII/Binary validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "ffd8be157ab94f9d1ddc5980f3db96605b242cf2b3cfd55db8732b4428db777a",
+  "authoritativeReference": {
+    "title": "Autodesk MATERIAL DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36D-5C739878B272.htm",
+    "accessed": "2026-10-22",
+    "fields": [
+      {"group": 293, "description": "Materials Anonymous", "type": "boolean", "validValues": [0, 1]},
+      {"group": 272, "description": "Global Illumination Mode", "type": "16-bit integer"},
+      {"group": 273, "description": "Final Gather Mode before Normal Map boundary; reused as Refraction Source before boundary", "type": "context-specific integer"},
+      {"group": 300, "description": "GenProcName and start of generic procedural table", "type": "string"},
+      {"group": 292, "description": "Generic procedural table end marker", "type": "boolean", "validValues": [0, 1]},
+      {"group": 270, "description": "Map U Tile after generic procedural table", "type": "16-bit integer"},
+      {"group": 148, "description": "Translucence", "type": "finite real"},
+      {"group": 468, "description": "Reflectivity", "type": "finite real"},
+      {"group": 93, "description": "Illumination Model", "type": "32-bit integer"},
+      {"group": 94, "description": "Channel Flags", "type": "32-bit integer"}
+    ]
+  },
+  "crossReference": {
+    "title": "LibreDWG MATERIAL object schema",
+    "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+    "use": "Cross-check for neighboring DWG object fields only; it does not resolve the DXF group-90 versus group-149 self-illumination discrepancy."
+  },
+  "implementation": {
+    "typedModel": [
+      "DRW_Material now exposes presence/default state for Materials Anonymous, global illumination/final gather modes, procedural-table end marker, and uniquely mapped late fields.",
+      "Copy/reset behavior includes the added typed values, presence flags, and parser context markers."
+    ],
+    "parser": [
+      "Groups 293 and 292 enforce the DXF Boolean domain; 272/273 are routed according to the MATERIAL context.",
+      "Group 300 establishes generic-procedural context and group 292 closes it; the mixed procedural payload remains in the ordered raw-net.",
+      "After the end marker, groups 270/148/468/93/94 populate uniquely mapped fields with finite-real checks for 148/468.",
+      "Late groups 90 and 149 remain untyped because authoritative DXF evidence conflicts."
+    ],
+    "writer": [
+      "Typed writer emits the authored unique tail fields in schema order and refuses invalid finite/domain state or late fields without a procedural-table end marker.",
+      "A complete typed generic-procedural table writer is not implemented."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp4l-material-tail-fast-slice-2026-10-22.json",
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ]
+  },
+  "generatedControls": [
+    "ASCII and Binary generated MATERIAL streams verify procedural group order and that reused post-boundary fields do not overwrite Normal Map state.",
+    "Malformed Boolean groups 293/292 and non-finite late reals 148/468 are rejected.",
+    "Typed writer tests verify unique tail order and invalid-state refusal; generated parsing checks following LINE alignment.",
+    "Copy/reset checks cover defaults and presence flags. No persistent DWG/DXF fixture is added."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: libdxfrw_hardening, libdxfrw_dxf_material_text_owner_budget, libdxfrw_dxf_fixtures, and libdxfrw_dxf_binary_group_width_guard (4/4)",
+    "diffCheck": "PASS: git diff --check",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "dwgMaterialBodyChanged": false,
+    "genericProceduralWriterImplemented": false,
+    "lateSelfIlluminationTyped": false,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-5 TABLESTYLE: generated row true-color/CMC text and fill colors, cell-type identity, border overrides, text-style handles, count mismatch refusal, and following-object alignment",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

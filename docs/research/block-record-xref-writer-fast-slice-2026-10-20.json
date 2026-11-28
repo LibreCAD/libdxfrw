@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "plan_owner": "PAR-65/7AM.4",
+  "related_owner": "PAR-65",
+  "slice": "Versioned DWG BLOCK_RECORD XREF metadata submission and writer route",
+  "status": "implemented_locally_uncommitted",
+  "problem": "The DWG writer's block-definition route accepted only name/base point/units, so BLOCK_RECORD XREF flags, legacy index, path and metadata were silently emitted as ordinary-block defaults. A follow-up source/spec audit also found that the first implementation incorrectly conflated the DWG loaded bit with DXF BLOCK group-70 bit 32 (resolved); these are separate states.",
+  "spec_evidence": {
+    "dwg_source": "Open Design Specification for .dwg files v5.4.1, §20.4.52, pp. 164-165 (local authoritative reference)",
+    "dxf_source": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm (group 70: bit 32 denotes a resolved external reference/dependent reference and is ignored on input)",
+    "dxf_unload_source": "Autodesk ObjectARX AcDbBlockTableRecord::setIsUnloaded says the unloaded state is the first bit of DXF group 71 and is set when isUnloaded() is true: https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbBlockTableRecord__setIsUnloaded_bool.html",
+    "independent_reader_cross_check": "ACadSharp keeps BlockTypeFlags (including DXF group-70 XRefResolved bit 32) separate from Block.IsUnloaded, reads the DWG raw bit into IsUnloaded, and writes unloaded state as DXF group 71: https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs and https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp/IO/DXF/DxfStreamWriter/DxfBlocksSectionWriter.cs",
+    "wire_contract": "For R2000+, ODA says DWG loaded bit zero means loaded and one means unloaded. Map it to a separate BLOCK group-71 unload property, never to BLOCK group-70 bit 32 (resolved). The common XREF hard-pointer slot is specified as NULL."
+  },
+  "implementation": {
+    "owners": [
+      "dwgWriter::defineBlock(const DRW_Block_Record&)",
+      "dwgRW::defineBlock(const DRW_Block_Record&)",
+      "dwgWriter15::emitBlockRecord",
+      "DRW_Block_Record::parseDwg",
+      "DRW_Block::parseCode/writeBlock group-71 handling",
+      "DWG BLOCK callback propagation to DRW_Block"
+    ],
+    "changes": [
+      "Add a non-pure, fail-closed metadata overload; preserve the existing name/base-point/units API and DRW_Interface vtable.",
+      "Encode legacy xrefindex+1, XREF/dependency/overlay flags and common path/description/preview fields, plus R2007+ units/explodability/scaling.",
+      "Map R2000+ raw loaded bit zero/one to a separate xrefUnloaded property and DXF BLOCK group 71; leave group-70 bit 32 as resolved status. Generated vectors exercise both independent values.",
+      "Emit the ODA-specified null common hard-pointer value; reject a non-null retained model value before output publication.",
+      "Refuse unsupported common fields, unrepresentable versions/values, and local entity/INSERT content inside XREF blocks."
+    ],
+    "publicApiChange": "Additive dwgRW overload and non-pure internal writer method. Public DRW_Block and DRW_Block_Record gain a separate xrefUnloaded bool; DRW_Block_Record already gained a public xrefIndex field in the preceding parser slice, changing layout. Downstream binaries must be rebuilt. No DRW_Interface virtual changed.",
+    "adapterIdentityComposition": "Not implemented; DXF BLOCK↔BLOCK_RECORD source-identity matching remains required before converter integration.",
+    "independentBitWalker": "Implemented in the focused test: independently walks emitted BLOCK_RECORD body bits (type/common preamble, legacy index, resolved/dependent flags, overlay and separate unloaded state) before production parser read-back across all six supported writer versions. It does not independently decode full frame/container layout or modern string streams."
+  },
+  "regression": {
+    "generatedVersions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "assertions": [
+      "Legacy xrefindex+1 including a value above INT16_MAX.",
+      "XREF, overlay, dependent/resolved flags and loaded/unloaded state as independent properties with both raw loaded-bit polarities.",
+      "DXF BLOCK group 71 unloaded state survives generated ASCII and Binary parse/write; group-70 bit 32 is not used as its substitute.",
+      "A test-local bit cursor inspects the raw body emitted by the concrete version writer before invoking the production reader.",
+      "Empty and relative paths, description, preview, base point and R2007+ insertion metadata.",
+      "No local content or INSERTs are admitted into an XREF block; a following ordinary block remains intact.",
+      "Non-null hard-pointer model values and overlay-only (without XREF) flags are refused before publication and leave no output file."
+    ]
+  },
+  "validation": {
+    "strict_targets": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg_reader_matrix_tests libdxfrw_dxf_fixture_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_block_record_xref_index|libdxfrw_dwg_block_record_xref_roundtrip|libdxfrw_block_xref_path_roundtrip|libdxfrw_block_owners)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 4,
+      "failed": 0
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- CMakeLists.txt src/drw_entities.h src/drw_entities.cpp src/drw_objects.h src/drw_objects.cpp src/intern/dwgreader.cpp src/intern/dwgwriter.h src/intern/dwgwriter15.h src/intern/dwgwriter15.cpp src/libdxfrw.cpp src/libdwgr.h src/libdwgr.cpp dwg2dxf/dx_iface.h tests/dxf_fixture_tests.cpp tests/dwg_reader_matrix_tests.cpp tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "full_suite": "NOT_RUN"
+  },
+  "fixture_policy": "All input bitstreams and DWG outputs are generated locally for the focused tests and removed from a temporary directory. No downloaded/customer DWG/DXF fixture is added.",
+  "evidence_ceiling": "Generated writer output is checked by a test-local bit walker for core numeric fields and then by the production decoder. Full object-frame/container and modern string-stream conformance, peer/native CAD acceptance, external-file resolution, XREF dependency graph/overlay composition, and DXF-origin BLOCK↔BLOCK_RECORD identity composition remain unqualified; this slice promotes no format-support claim.",
+  "next_unresolved": "Establish source BLOCK/BLOCK_RECORD identity and unsupported-field preflight in the converter before routing imported XREF metadata through this API. Keep full frame/string-stream conformance and peer/native acceptance at their composed gates.",
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Broadly dirty shared worktree; only the local XREF metadata writer/parser slice, generated tests, plan progress and this receipt were changed for this slice. Nothing was staged or committed."
+}

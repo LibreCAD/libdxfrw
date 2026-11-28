@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 VisualStyle root-cardinality controls",
+  "mode": "Generated local ASCII/Binary fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Close the generated negative-test gap for duplicate and aliased ACAD_VISUALSTYLE NOD roots.",
+    "Preserve atomic refusal and corrected retry behavior for the existing visual-style graph route."
+  ],
+  "implementation": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationAdded": false,
+    "behavior": "Generated ASCII and Binary controls exercise duplicate canonical ACAD_VISUALSTYLE NOD edges and differently named aliases to the same dictionary. Each invalid attempt must fail before publication, preserve a seeded destination, and allow corrected retry. Existing production graph validation already rejects these cases."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "selector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --extension-graph-limits",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_extension_graph_limits$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadOrKernelRun": false
+  },
+  "supportImpact": {
+    "supportPromotion": false,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "staged": false,
+    "reason": "Shared worktree is broadly dirty and Git metadata is read-only."
+  }
+}

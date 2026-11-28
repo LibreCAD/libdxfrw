@@ -1,0 +1,70 @@
+{
+  "evidenceId": "p5-ac1021-field-checksum-generated-dxf-transport-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P5",
+  "status": "BOUNDED_GENERATED_DXF_TRANSPORT_ONLY",
+  "qualificationEligible": false,
+  "supportClaimsPromoted": false,
+  "scope": "Strict DXF serialization and fresh readback of the exact AC1021 FIELD child CadValue profile ACFD_FIELDTEXT_CHECKSUM, flags=2, data type 2, after the physical parser profile established that the BD payload is present.",
+  "sourceEvidence": {
+    "receipt": "docs/research/p5-ac1021-field-flags2-checksum-payload-resolution-2026-11-02.json",
+    "physicalProfile": "71 AC1021 checksum children decode as finite BD values; this establishes parser framing only.",
+    "fixturePolicy": "The test authors typed values in memory and writes temporary DXF outputs. It adds no DWG/DXF fixture file."
+  },
+  "generatedControl": {
+    "test": "libdxfrw_fieldlist_membership_output",
+    "selector": "--fieldlist-membership-output",
+    "targetVersion": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "profile": {
+      "parentField": "FIELD_LIST_CHILD",
+      "childKey": "ACFD_FIELDTEXT_CHECKSUM",
+      "formatFlags": 2,
+      "dataType": 2,
+      "dxfPayload": "finite group-140 double 2.75"
+    },
+    "guards": [
+      "Changing the child key to UNQUALIFIED_CHECKSUM_PROFILE causes atomic refusal and preserves the existing destination.",
+      "Restoring the exact child key permits a retry on the same adapter.",
+      "A bad object reference and a non-finite point independently refuse output, preserve the destination, and permit correction/retry.",
+      "Fresh typed readback checks the child key, flags, type, finite double, FIELDLIST membership, TABLECONTENT references, and remapped object handles."
+    ],
+    "coreWriterControl": "The AC1021 ASCII/Binary wave1 vector checks that the exact checksum child key is emitted with group-93 flags=2 and its group-140 BD value."
+  },
+  "implementation": {
+    "changes": [
+      "The strict FIELD output profile admits flags=2/type=2 only for the exact checksum child key and AC1021-or-newer targets.",
+      "Pre-write fileExport checks use the requested target version; dxfW has not yet received its version at those stages.",
+      "The low-level writer refuses nonzero CadValue format flags for AC1018 and earlier because those targets cannot encode group 93."
+    ],
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/wave1_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j 2",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_wave1|^libdxfrw_fieldlist_membership_output$' --output-on-failure",
+      "passed": 2,
+      "failed": 0
+    }
+  },
+  "claimBoundary": [
+    "This is generated serializer/readback evidence, not proof that a physical DWG checksum FIELD can be converted end to end.",
+    "The physical AC1021 census still contains 56 raw-only FIELD shells; unresolved AcObjProp suffixes, child handle roles, other flag profiles, and broader source graphs remain refused.",
+    "No native FIELD evaluation or consumer behavior is qualified.",
+    "Do not promote general FIELD, DWG, LibreCAD, LibreCAD_3, or FreeCAD support claims from this receipt."
+  ],
+  "remaining": [
+    "Establish a physical source-to-output/readback witness whose complete FIELD graph satisfies the strict profile.",
+    "Resolve the AcObjProp.16.2 body suffixes, child type disagreement, and handle target roles.",
+    "Qualify native FIELD evaluation independently."
+  ]
+}

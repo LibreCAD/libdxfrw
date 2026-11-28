@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-dwg-endblk-capture-ownerless-fixedspace-insert-2026-11-03",
+  "date": "2026-11-03",
+  "title": "Capture DWG ENDBLK callbacks and close ownerless fixed-space INSERT identities",
+  "status": "GENERATED_ASCII_BINARY_GRAPH_READBACK_PASS_PHYSICAL_OUTPUT_ADVANCED",
+  "supportClaimEffect": "none",
+  "scope": "Carry exact parsed DWG block-footer identity into adapter state and verify source BLKREFS references against emitted INSERT, BLOCK, and ENDBLK records without accepting unknown owners.",
+  "implementation": {
+    "reader": {
+      "change": "DwgEntityOutput::appendEndBlock now stages the parsed DRW_Block. Replay delivers addBlockEnd(data) and then endBlock(), attempting both callbacks even if one throws. The direct fallback also delivers addBlockEnd(data) before endBlock().",
+      "compatibility": "No DRW_Interface pure virtuals were added; addBlockEnd remains the existing callback."
+    },
+    "adapter": {
+      "change": "An ownerless INSERT is admitted only when its ModelSpace/PaperSpace context matches the fixed-space block under validation. Unknown owner handles remain refused. Record inventory is enabled before write for source BLOCK_RECORD BLKREFS entries and is no longer overwritten by the later aggregate inventory setup.",
+      "transaction": "The existing preflight refusal and destination transaction are retained."
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_reader_matrix_tests -j4",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_ownerless_fixed_space_insert_output|libdxfrw_dwg_space_block_delimiter_owner)$' --output-on-failure",
+      "result": "PASS (2/2)",
+      "coverage": [
+        "Generated AC1015/AC1027 block-chain cases receive exact ENDBLK handles and owner handles through the staged reader path.",
+        "ASCII and Binary adapter cases refuse an unknown INSERT owner and preserve an existing destination sentinel.",
+        "The same adapter retries after correcting the INSERT owner to ownerless ModelSpace.",
+        "Fresh typed readback verifies one BLOCK_RECORD BLKREFS handle equals the emitted INSERT handle, the INSERT block name, ModelSpace and fixed BLOCK_RECORD owner."
+      ]
+    },
+    "physicalSource": {
+      "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+      "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+      "committedAsFixture": false,
+      "command": "build-gcc/dwg2dxf/dwg2dxf '/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg' -y -d -v2010 /private/tmp/et-border-final.dxf",
+      "exitStatus": 1,
+      "log": "/private/tmp/et-border-final.log",
+      "logSha256": "259d5129baa02da185821df26bb90de25b15f5157490b7c45afc7a589f58b7b1",
+      "result": "Read succeeds with entityParseFailures=0 and objectParseFailures=0. Output passes BLOCK_RECORD planning and stops during TABLES emission at the empty-name STYLE 0xDF boundary. The source SORTENTSTABLE graph is printed as complete but its output is not reached. The nearby FIELDLIST message is a generic warning, not the failure cause."
+    },
+    "fixturePolicy": "No DWG/DXF fixture was added; generated controls create and remove temporary output files."
+  },
+  "limits": [
+    "The receipt proves generated fixed-space INSERT and footer identity transport only; it does not qualify whole-file ET Border output.",
+    "The named-block SORTENTSTABLE remains refused under the established DXF owner-scope rule.",
+    "The AC1018 empty-name STYLE bit-order/source-disposition disagreement remains open; no omission, rename or parser-bit change is inferred.",
+    "No native CAD acceptance or support claim is promoted."
+  ],
+  "nextAction": "Resolve the AC1018 empty-name STYLE source-layout disagreement, then continue the separately gated named-block SORTENTSTABLE and remaining P4 graph/output profiles."
+}

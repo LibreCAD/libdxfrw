@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-15",
+  "sourceCommit": "4279a90377f3c4c158229980f4e6c9c94342e55f",
+  "implementationDigestSha256": "f6389d531886f51c885c054c23a1e7b5c8fb6624739900a6aa24ec8edb746a75",
+  "digestInputs": 719,
+  "sharedArtifact": "libdxfrw.2.0.1.dylib",
+  "sharedSha256": "be04801f9404fac7731ee02a160b8c345b776dfbd0bf70b83027ee7870356f86",
+  "environment": "Clean local Git clone; macOS 27.2.1 ARM64; Apple clang 21.0.0; CMake 4.4.5; Release; BUILD_SHARED_LIBS=ON, qualification/tests/docs/CLI disabled, development install enabled; policy minimum 3.5.",
+  "validation": [
+    "Clean configure, shared build and staged install succeeded.",
+    "The staged-package checker passed the install manifest, licenses, pkg-config shared consumer and static metadata controls, CMake CONFIG/MODULE requests and negative cases, package boundaries and policy/artifact checks.",
+    "The relocation smoke copied the prefix to a path containing spaces, identified the same shared-library SHA-256 and repeated the package-consumer checks successfully.",
+    "Opposite-caller native observations and forced branch checks have the exact limitations printed by the checker; Windows is metadata-only."
+  ],
+  "limits": "One macOS ARM64 shared build and relocated installed consumer; not a repeated-build reproducibility proof, Linux/Windows native package test, full LibreCAD consumer run, ABI comparison or format support claim. The clean LibreCAD installed-static application build is a separate running check."
+}

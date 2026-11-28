@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-freecad-default-target-version-matrix-2026-11-02",
+  "date": "2026-11-02",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Verify the FreeCAD-compatible -o route chooses its documented default DXF target from imported DXF source revisions and from locally authored DWG source profiles, honors ASCII/Binary output selection, and exposes the pre-output target projection in debug mode.",
+  "profiles": [
+    {
+      "source": "AC1009",
+      "target": "AC1009"
+    },
+    {
+      "source": "AC1012",
+      "target": "AC1014"
+    },
+    {
+      "source": "AC1014",
+      "target": "AC1014"
+    },
+    {
+      "source": "AC1015",
+      "target": "AC1015"
+    },
+    {
+      "source": "AC1018",
+      "target": "AC1018"
+    },
+    {
+      "source": "AC1021",
+      "target": "AC1021"
+    },
+    {
+      "source": "AC1024",
+      "target": "AC1024"
+    },
+    {
+      "source": "AC1027",
+      "target": "AC1027"
+    },
+    {
+      "source": "AC1032",
+      "target": "AC1032"
+    }
+  ],
+  "control": {
+    "file": "tests/dwg2dxf_cli_contract_tests.py",
+    "function": "check_default_output_versions and check_default_dwg_output_versions",
+    "selector": "--options-only (DXF source matrix); --batch-only / --fast-only (DWG source matrix)",
+    "existingCtest": "dwg2dxf_cli_contract",
+    "runtimeAuthoredInput": "The minimal SOURCE DXF is written in a temporary directory with only $ACADVER varied. AC1015/1018/1021/1024/1027/1032 DWG sources are written by the local test writer at runtime; no DWG/DXF fixture is committed.",
+    "route": "dwg2dxf <source.dxf> -o <output.dxf> [-b]",
+    "assertions": [
+      "All nine source revision headers select the expected FreeCAD -o DXF default, including the AC1012 compatibility mapping to AC1014.",
+      "Each DXF source default is emitted as ASCII and Binary DXF with the exact $ACADVER value.",
+      "Binary DXF is checked with R12 one-byte group-code framing for AC1009 and two-byte framing for later revisions.",
+      "Locally authored AC1015, AC1021, AC1024, AC1027 and AC1032 DWGs succeed through FreeCAD -o at the source revision in ASCII and Binary; binary outputs read back at the same revision.",
+      "AC1018 output is refused in ASCII/Binary at default AC1018 and explicit AC1024 because the completed read contains two opaque callbacks and strict output qualification is 0/2; a pre-existing destination sentinel and the source bytes remain unchanged.",
+      "Debug mode reports a bounded pre-output projection of source format/revision, target revision, implicit-versus-explicit target selection, output encoding and input-appropriate read-completeness mode. Generated AC1012 DXF input verifies the AC1014 default and not-applicable DWG completeness field; generated AC1006 DXF input verifies fail-closed reporting when no default exists; generated AC1021 DWG success and AC1018 default/explicit refusal controls verify the projection before output preflight."
+    ],
+    "controls": 38,
+    "fixtureFilesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j2",
+    "test": "PASS: ctest --test-dir build-gcc -R '^dwg2dxf_cli_contract$' --output-on-failure (1/1, 9.97 s); python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --options-only (103 controls)",
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "tests/dwg2dxf_cli_contract_tests.py": "06fd14a80dcea44b21190e217ec7366e75238b6adbe47a301155589f87599b97",
+      "dwg2dxf/main.cpp": "81b8fc0141700c0885b4081bcd3e46f56acd443e2eea9f0fa598c8f1a8402185",
+      "build-gcc/dwg2dxf/dwg2dxf": "bf6449a4edaf53480769f83b8432c749c2b3d4f144b3250c3bc02853f019374f",
+      "build-gcc/libdxfrw_dwg_local_roundtrip": "052ef40d6fcb146fdbf2b9f2cea429c957049b229198a972312b66c6e07e7fb9",
+      "tests/dwg_local_roundtrip_tests.cpp": "24bdd2cfa79fa1b9f31040615209f92612d1f640ef7f99cf7f0722f82899573a"
+    }
+  },
+  "limits": [
+    "This receipt covers all supported source-DXF header defaults plus the six DWG writer versions. The AC1018 generated profile remains unqualified and refused; other routes and native CAD acceptance remain separate.",
+    "An external AC1014 R14 sample from monozukuri-ai/ezdwg (test_dwg/line_R14.dwg; Git blob ac9747bad17bf4cd99df0a6dd80d3650b57d26c5; SHA-256 4ae12afb4052f1be913003b84021054c0e07b08e6aef5e430bf523c6f85c0903) was read as AC1014 and the debug projection selected AC1014 by source-default. Strict output was refused because the reader observed two object parse failures and an incomplete frame disposition; no output was published. The sample remained in temporary storage and is not a committed fixture. This observes default selection only, not AC1014 output/readback or support.",
+    "AC1012 DWG-source default output/readback remains uncovered. The AC1014 external diagnostic probe does not qualify output, whole-file semantics or native acceptance.",
+    "This is CLI contract evidence, not a DWG/DXF semantic support claim."
+  ],
+  "dwgProfiles": [
+    {
+      "source": "AC1015",
+      "origin": "libdxfrw_dwg_local_roundtrip --generate-cli-batch-source (locally authored at runtime)",
+      "expectedTarget": "AC1015",
+      "result": "PASS: ASCII/Binary default output; Binary readback as ASCII"
+    },
+    {
+      "source": "AC1021",
+      "origin": "libdxfrw_dwg_local_roundtrip --generate-cli-batch-source (locally authored at runtime)",
+      "expectedTarget": "AC1021",
+      "result": "PASS: ASCII/Binary default output; Binary readback as ASCII"
+    },
+    {
+      "source": "AC1024",
+      "origin": "libdxfrw_dwg_local_roundtrip --generate-cli-batch-source (locally authored at runtime)",
+      "expectedTarget": "AC1024",
+      "result": "PASS: ASCII/Binary default output; Binary readback as ASCII"
+    },
+    {
+      "source": "AC1027",
+      "origin": "libdxfrw_dwg_local_roundtrip --generate-cli-batch-source (locally authored at runtime)",
+      "expectedTarget": "AC1027",
+      "result": "PASS: ASCII/Binary default output; Binary readback as ASCII"
+    },
+    {
+      "source": "AC1032",
+      "origin": "libdxfrw_dwg_local_roundtrip --generate-cli-batch-source (locally authored at runtime)",
+      "expectedTarget": "AC1032",
+      "result": "PASS: ASCII/Binary default output; Binary readback as ASCII"
+    },
+    {
+      "source": "AC1018",
+      "origin": "libdxfrw_dwg_local_roundtrip --generate-cli-batch-source (locally authored at runtime)",
+      "expectedTarget": "AC1018",
+      "result": "FAIL_CLOSED: default AC1018 and explicit AC1024 output refuse 2 opaque callback frames (qualified=0/2); sentinel and source preserved"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-libredwg-ac1024-strict-dxf-peer-screen-2026-11-17",
+  "date": "2026-11-17",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P8 independent output/consumer evidence",
+  "supportClaimEffect": "none",
+  "qualificationEligible": false,
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "revision": "AC1024",
+    "generatedDxf": {
+      "path": "/private/tmp/ac1024-s27-strict.dxf",
+      "sizeBytes": 449736,
+      "sha256": "4a54959d4fa51d82dedd286754c1d5a9728944172e632bbedbccb5882e6a47f1",
+      "producer": "libdxfrw dwg2dxf, committed S27 build; strict completeness reported by the CLI",
+      "fixtureDisposition": "Scratch output only; no repository DWG/DXF fixture was created, changed, staged, or committed."
+    }
+  },
+  "peer": {
+    "project": "LibreDWG",
+    "version": "0.14",
+    "executable": "/opt/homebrew/bin/dxf2dwg",
+    "executableSha256": "d8d27fed5519b67b977170093f3e3d2cd2aeae086ba2db75b5ded2faf2ec31e8",
+    "command": "dxf2dwg --as r2004 -y -o /private/tmp/ac1024-s27-libredwg-peer.dwg /private/tmp/ac1024-s27-strict.dxf",
+    "result": "REJECTED by the LibreDWG 0.14 DXF reader. It reports unsupported HEADER.DIMLDRBLK and MATERIAL group codes, then `Duplicate handle 734 for object 228 already points to object 74`, `Illegal subclass AcDbAssocValueDependency`, and `Invalid DXF code 90 for ASSOCVALUEDEPENDENCY`; it ends with `Failed to decode DXF file` / `READ ERROR 0x800`. No peer DWG output was created."
+  },
+  "diagnosis": {
+    "primaryIdentityScan": "A bounded scan of the 402 DXF records found 368 primary object handles and zero duplicate primary handle definitions (first group 5/105 per record). This scan does not validate every DXF field or reference.",
+    "sortents": "The file has one SORTENTSTABLE (object handle 0x354) with 88 group-331 entity targets, including 0x734. The repeated group-5 values after AcDbSortentsTable are sort handles, not additional object identities. Autodesk's DXF reference defines group 331 as a soft pointer to an entity and group 5 as a sort handle in this table: https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm. The LibreDWG duplicate-handle message therefore does not, by itself, prove duplicate primary object definitions or a malformed writer output; its handling of this map remains unadjudicated.",
+    "assocValueDependency": "The output CLASSES section declares ACDBASSOCVALUEDEPENDENCY and the OBJECTS section contains 30 records with AcDbAssocValueDependency subclass data. Autodesk documents AssocValueDependency as a concrete AssocDependency for scalar values: https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_AssocValueDependency.html. That API documentation does not provide the DXF group-90 wire map, so it cannot settle whether LibreDWG's code-90 rejection is a peer limitation or an output defect.",
+    "decision": "This peer attempt neither validates nor disproves the generated DXF. Do not change SORTENTSTABLE or associative-dependency output from this result alone. The exact output remains without independent semantic acceptance; use a reader that supports these classes or native consumer evidence when an eligible environment becomes available."
+  },
+  "limits": [
+    "LibreDWG 0.14 is only a screened peer version; this is not a general LibreDWG compatibility qualification.",
+    "No parser or writer behavior was changed, and no package gate or support claim is promoted.",
+    "The scratch output and peer attempt do not qualify other AC1024 sources, DWG versions, application semantics, or 3D behavior."
+  ],
+  "next": "Preserve this failure as a precise independent-reader limitation. Resume only when a peer parser with relevant class support or a working native consumer can distinguish parser limitations from output defects; keep P8 consumer and independent semantic qualification open."
+}

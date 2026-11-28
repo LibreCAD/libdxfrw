@@ -1,0 +1,34 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "scope": "Bind TABLECONTENT source identity for both full multi-cell and scalar DXF OBJECTS writer paths.",
+  "result": "PASS",
+  "supportClaimEffect": "none",
+  "change": "Both writeTableContent paths now transactionally promote a matching pre-reserved minted identity when present, bind the source handle to the emitted TABLECONTENT record, and only then commit the record. Failure before commit rolls back the identity changes with the existing record state scope.",
+  "validation": {
+    "normal_projection": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_content_dxf_projection$' --output-on-failure",
+      "result": "PASS, 1/1; generated TABLECONTENT projection and typed readback"
+    },
+    "normal_allocation_rollback_retry": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_tablecontent_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1; allocation rollback, corrected retry, and typed readback"
+    },
+    "address_sanitizer_projection": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_table_content_dxf_projection$' --output-on-failure",
+      "result": "PASS, 1/1"
+    },
+    "address_sanitizer_allocation_rollback_retry": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_tablecontent_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1"
+    }
+  },
+  "limitations": [
+    "This closes the bounded source-identity registration audit for the selected TABLECONTENT writer paths only; it does not qualify TABLECONTENT source semantics, graph closure, native rendering, or producer-wide output.",
+    "No support claim is promoted."
+  ],
+  "source_sha256": {
+    "src/libdxfrw.cpp": "a5d2b3e5a5b3a34c2a9d2fe274d2c3c429b6256753a7a6419bdd60683fe23e51",
+    "src/libdxfrw.h": "34b2a5db3c9c4c21c4423a7629361353d8d68c994b988c5c1894816d97b7ff24"
+  }
+}

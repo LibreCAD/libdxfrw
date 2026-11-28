@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-03",
+  "scope": "Generated low-level DXF reference-identity transport for SUNSTUDY, MOTIONPATH, and ACDBCURVEPATH.",
+  "reference_fields": [
+    {
+      "record": "SUNSTUDY",
+      "fields": [
+        { "member": "m_pageSetupWizardHandle", "group_code": 340 },
+        { "member": "m_viewHandle", "group_code": 341 },
+        { "member": "m_visualStyleHandle", "group_code": 342 },
+        { "member": "m_textStyleHandle", "group_code": 343 }
+      ]
+    },
+    {
+      "record": "MOTIONPATH",
+      "fields": [
+        { "member": "m_cameraPathHandle", "group_code": 340, "order": 1 },
+        { "member": "m_targetPathHandle", "group_code": 340, "order": 2 },
+        { "member": "m_viewTableHandle", "group_code": 340, "order": 3 }
+      ]
+    },
+    {
+      "record": "ACDBCURVEPATH",
+      "fields": [
+        { "member": "m_entityHandle", "group_code": 340 }
+      ]
+    }
+  ],
+  "mapping_policy": "Zero remains zero. For nonzero references, use the configured reference resolver when present; otherwise use remapObjectHandle. Refuse zero or NoHandle results before publishing the affected record; emit scene-object records transactionally so owner or write failures preserve the destination.",
+  "validation": {
+    "input": "Generated in-memory objects; no DWG/DXF fixture was added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "selectors": ["libdxfrw_wave1_tests --scene-object-reference-remapping"],
+    "result": "PASS for resolver precedence and remap fallback across all listed reference fields; each of the eight nonzero links refuses an unresolved resolver result without output in ASCII/Binary and succeeds after corrected fresh-writer retry.",
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4"
+  },
+  "qualification_limits": [
+    "Generated output transport only; no independent physical producer field-span or target-role evidence is established.",
+    "Does not establish target existence, owner validity, recursive graph closure, native consumer behavior, or support-claim eligibility."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-light-dwg-encoder-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "BOUNDED_LIGHT_DWG_ENCODER_TRANSACTIONAL_ROLLBACK_RETRY",
+  "supportClaimEffect": "none",
+  "scope": "Make DRW_Light DWG encoding transactional across body, detached strings, and handle streams, and test allocation-failure rollback with same-object retry.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "method": "DRW_Light::encodeDwg",
+    "changes": [
+      "Keep existing version, CMC, scalar-domain, and finite-value validation before the transaction begins.",
+      "Route the common header, light and optional photometric fields, CMC strings, entity handle, and oType mutation through encodeEntityDwgTransaction."
+    ],
+    "test": "tests/dwg_hatch_encoder_allocation_tests.cpp",
+    "failureBehavior": "Injected allocation failure preserves caller stream bytes and bit positions and restores oType; same-object retry against the same buffers reproduces clean output exactly."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_entity_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j4",
+    "allocationSweep": "PASS: 2,894 allocation offsets across HATCH, MPOLYGON, MLEADER, ARCALIGNEDTEXT, and LIGHT; 6 HATCH-family/ARCALIGNEDTEXT versions, 3 MLEADER versions and 4 LIGHT versions; 125 entity/version/stream-layout profiles",
+    "focusedTests": "ctest --test-dir build-gcc -R '^(dwg_entity_encoder_allocation_rollback_retry|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "result": "PASS (2/2)",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "coverage": [
+    "Generated LIGHT control encodes common name, position and target, plus a selected AC1021+ color method and metadata presence through detached string/body/handle alias configurations.",
+    "LIGHT writer revisions AC1021, AC1024, AC1027, and AC1032 are exercised in all five stream alias layouts.",
+    "Each injected failure verifies all buffer bytes and bit positions, object-type rollback and exact successful retry."
+  ],
+  "inputHashes": {
+    "src/drw_entities.cpp": "e4c7661a6b746c7652e4b88a776df065e253745daa5f886830c3fe3f36ca3328",
+    "tests/dwg_hatch_encoder_allocation_tests.cpp": "2e34ca91a67d7c34e791fe6ed4643251b956e8558d66fbb6db019cc860e32db9"
+  },
+  "fixtureFilesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "The generated LIGHT transaction check does not qualify native lighting semantics, photometric data, producer breadth, or consumer rendering.",
+    "No DWG or DXF drawing fixture was added."
+  ]
+}

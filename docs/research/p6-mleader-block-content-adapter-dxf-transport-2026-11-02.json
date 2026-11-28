@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-02",
+  "status": "GENERATED_AC1027_MLEADER_BLOCK_CONTENT_ADAPTER_TRANSPORT_PASS_NATIVE_SEMANTICS_OPEN",
+  "baselineHead": "aae0b48d",
+  "scope": "Exercise the MLEADER block-content branch through strict dx_iface output, including its typed BLOCK_RECORD dependency and block body",
+  "authority": [
+    {
+      "title": "Autodesk MLeader Context Data Group Codes (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-EC56D0DE-026D-46AB-87B1-9692393B0C22.htm",
+      "rules": [
+        "The context schema distinguishes MTEXT presence (group 290) from block-content presence (group 296).",
+        "Block content carries normal, position, scale, rotation, color, referenced BLOCK_RECORD, and transformation fields."
+      ]
+    },
+    {
+      "title": "Autodesk MLeader Leader Line Group Codes (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-B2E6436A-F17D-4F59-9DE8-DBDB61AD36C6.htm",
+      "rule": "The content branch is nested alongside the independent leader-root and leader-line geometry."
+    }
+  ],
+  "implementation": {
+    "files": [
+      {
+        "path": "tests/dwg2dxf_adapter_tests.cpp",
+        "sha256": "b568c22b2365f96d9d5d0a56e459ef0c4dcc558e59122ab8528774b402a356ed"
+      },
+      {
+        "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "sha256": "633dc188775becebaf8d23c315b91173eada60cfd864b1e8ec662cc59cd25a1c"
+      }
+    ],
+    "behavior": [
+      "The runtime-generated AC1027 ASCII and Binary input has hasTextContents=false, hasContentsBlock=true, one leader root and one leader line.",
+      "Its block context references an alternate BLOCK_RECORD with a generated BLOCK body containing one LINE; no fixture is committed.",
+      "Strict adapter output and fresh readback preserve the block normal, position, scale, rotation, all 16 transform values, and the remapped content BLOCK_RECORD reference.",
+      "Readback confirms the referenced content BLOCK_RECORD body still contains its LINE, and output does not mutate the caller's source handle, owner, style handle, or block transform model.",
+      "The text-content profile's independent unsupported-CMC atomic refusal and corrected same-adapter retry remain covered by the same focused selector."
+    ]
+  },
+  "control": {
+    "selector": "--mleader-adapter-writer",
+    "generator": "Extended generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp; ASCII/Binary inputs and outputs are generated in a temporary directory and deleted.",
+    "fixtureDisposition": "No drawing fixture was added or committed.",
+    "profileLimit": "Generated AC1027 block-content transport only; no producer-authored legality is inferred for other content-flag/type combinations."
+  },
+  "validation": {
+    "toolchain": "CMake 4.4.4, Apple clang 21.0.0 (arm64-apple-darwin27.0.0)",
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_mleader_adapter_writer$' --output-on-failure",
+      "result": "PASS, 1/1 in 0.56 seconds",
+      "adapterExecutableSha256": "31cff4719ff7e3a9c73d2cb13dc5603d1f6a412cb86fce359474e5d103aa01de"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated source and typed readback verify transport, not producer tuple legality, independent semantic interpretation, or native annotation rendering/evaluation.",
+    "No physical DWG producer, LibreCAD/LibreCAD_3, FreeCAD, or native CAD consumer was exercised.",
+    "Other MLEADER content and version profiles remain open or refused; no format-support claim is promoted."
+  ],
+  "nextReadyPacket": "Review the remaining P6 text/annotation routes for one exact source-backed local read/write gap; do not generalize MLEADER support beyond the generated text and block transport profiles."
+}

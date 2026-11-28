@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-nested-network-sortents-output-2026-10-30",
+  "date": "2026-10-30",
+  "title": "AC1024 nested associative network under SORTENTSTABLE output",
+  "status": "QUALIFIED_LOCAL_GENERATED_AC1024_NESTED_NETWORK_SORTENTS_PROFILE",
+  "supportClaimEffect": "none",
+  "baselineCommit": "ee87f87c",
+  "implementationCommit": "148ccb0f01fd626344632b5ecc1810d1afd6b17b",
+  "scope": {
+    "version": "AC1024",
+    "source": "Locally authored in-memory dx_data graph in tests/dwg2dxf_adapter_tests.cpp; no DWG/DXF fixture file.",
+    "graph": "NOD -> root associative dictionary -> root ACDBASSOCNETWORK -> non-owned action reference to nested ACDBASSOCNETWORK under the model-space SORTENTSTABLE extension dictionary; the child declares the root as its owning network.",
+    "sortents": "Model-space LINE membership, SORTENTSTABLE entry, and reciprocal owner/reactor links through ACAD_SORTENTS.",
+    "encodings": ["ASCII DXF", "binary DXF"]
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/CMakeLists.txt",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Admitted the bounded source-backed nested-network profile through SORTENTSTABLE's separately validated dictionary route. Validate the nested dictionary, child network ownership, root network action target, reciprocal NOD root, and output table identity before graph traversal; preserve the existing SORTENTSTABLE-only route when no associative records are present.",
+    "transaction": "A missing root action target is rejected while preserving a preexisting destination. Correcting the target and retrying on the same adapter succeeds.",
+    "fixturePolicy": "Graph authored in test code. Output files use temporary paths and are removed by the selector; no DWG/DXF fixture files were added."
+  },
+  "proof": {
+    "selector": "dwg2dxf_associative_dwg_nested_network_sortents_output",
+    "readback": "Fresh import verifies the NOD/root dictionary path, SORTENTSTABLE and its extension dictionary, nested dictionary owner/reactor, root and child network parent/owner fields, non-owned root action target, model-space owner, and LINE membership.",
+    "failureRetry": "The selector replaces the root action target with a missing handle, checks complete-export refusal and destination sentinel preservation, restores the target, and verifies successful same-adapter retry and readback for ASCII and binary DXF."
+  },
+  "physicalWitness": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "diagnostic": "With --allow-partial-dwg-read, the conversion now validates and prints the SORTENTSTABLE owner dictionary and nested associative subdictionary, then stops in extension graph preflight at VISUALSTYLE carrier coverage. The trace contains 19 VISUALSTYLE parse callbacks. It reports typed=129, typedAndOpaque=228, opaqueFramesRetainedForCorrelation=0; strict complete-export admission remains closed.",
+    "log": "/private/tmp/libdxfrw-p4-mechanical-partial.log"
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS"
+    },
+    "normalFocusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_sortents_adapter|dwg2dxf_associative_dwg_nested_network_sortents_output|dwg2dxf_associative_dwg_root_network_value_dependency_export|dwg2dxf_associative_geometry_dependency_graph_export)$' --output-on-failure",
+      "result": "PASS 4/4; 0.60 seconds"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocusedCtest": {
+      "command": "ctest --test-dir build-asan-custom -R '^(libdxfrw_sortents_adapter|dwg2dxf_associative_dwg_nested_network_sortents_output|dwg2dxf_associative_dwg_root_network_value_dependency_export|dwg2dxf_associative_geometry_dependency_graph_export)$' --output-on-failure",
+      "result": "PASS 4/4; 1.23 seconds"
+    },
+    "physicalPartialDiagnostic": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y --allow-partial-dwg-read -d -v2010 /private/tmp/libdxfrw-p4-mechanical-partial.dxf",
+      "result": "EXPECTED REFUSAL at VISUALSTYLE carrier coverage after nested SORTENTSTABLE network closure; no completeness claim"
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "sourceBindings": {
+    "implementationCommit": "148ccb0f01fd626344632b5ecc1810d1afd6b17b",
+    "sourceSha256": {
+      "dwg2dxf/dx_iface.cpp": "7a8fb76bcd4c1b050c067369599f1f8cbbbe38fb92dc57947c6d95b2ed5275a5",
+      "tests/CMakeLists.txt": "1c61d02a375fc0d9c9e4ba703131458e6f3ee7671b20cd0da4e9678a2dcf568a",
+      "tests/dwg2dxf_adapter_tests.cpp": "14b1d3d4cbd2410bd3ad21e3255bd1e07ca7af545e0f8b46c2280a1d2f03889c"
+    },
+    "normalArtifactsSha256": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "aabd677b852a2813a59b234162138a50011971e55948e6e3e856b5aa7cddc22b"
+    },
+    "asanArtifactsSha256": {
+      "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "5d2313faf40e870072ed1d4c32a11d4a2f3492776a6f59c3906735bddb70467b"
+    }
+  },
+  "limits": [
+    "This is a locally generated output and readback proof for one nested-network/SORTENTSTABLE profile, not a physical-source semantic proof.",
+    "The physical mechanical DWG still stops at VISUALSTYLE carrier coverage; the 228 opaque callbacks do not have retained frames for correlation.",
+    "Strict complete-export admission, broader associative profile closure, independent consumer acceptance, 3D support, and general DWG/DXF parity remain unqualified."
+  ],
+  "remainingP4Scope": "Map all physical callback identities to required fields and roles, provide closure for each required graph profile, and pass strict complete-export admission without weakening refusal.",
+  "nextAction": "Resolve the physical AC1024 VISUALSTYLE carrier coverage gate by tracing the 19 source callbacks against typed output fields and style-reference closure; admit only a fully source-bound serializer route and generated exact-readback proof."
+}

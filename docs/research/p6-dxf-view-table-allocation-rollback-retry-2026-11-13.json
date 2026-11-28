@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-view-table-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_VIEW_TABLE_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Qualify generated VIEW table-record allocation rollback, caller-state preservation, retry and typed readback across the R14-through-R2018 DXF lanes.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW_View generated during each test run",
+    "profile": "One VIEW with nondefault camera geometry, UCS coordinates and orthographic type, two XDATA entries, and post-AC1018 default-lighting, brightness, contrast and ambient-index fields.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/view_table_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-view-table-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "For each version and encoding, calibrate allocations reached by the public writeView callback, inject failure at every measured offset, verify prior-destination and full caller-state preservation, then retry with the same codec and compare exact bytes plus typed VIEW readback."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 25, "Binary": 26},
+    "AC1015": {"ASCII": 25, "Binary": 26},
+    "AC1018": {"ASCII": 25, "Binary": 26},
+    "AC1021": {"ASCII": 24, "Binary": 25},
+    "AC1024": {"ASCII": 24, "Binary": 25},
+    "AC1027": {"ASCII": 24, "Binary": 25},
+    "AC1032": {"ASCII": 24, "Binary": 25},
+    "totals": {"ASCII": 147, "Binary": 153, "all": 300}
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_view_table_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_view_table_allocation$' --output-on-failure: PASS 1/1 in 2.27 seconds",
+    "directControl": "build/tests/libdxfrw_view_table_allocation_tests: PASS; 300 injected allocation offsets across AC1014/15/18/21/24/27/32 ASCII/Binary",
+    "testSourceSha256": "4f69775d64fda21283140ab1244aee73ebf265e7860c55093ed5aa8e8f7a1894",
+    "testExecutableSha256": "6d8fe80d2ec77a7de0e9bd6c10f239ee2ef2bd3dfdfc7853466dbf73186a3130",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated writer transaction evidence only; producer interoperability and native VIEW behavior are not qualified.",
+    "No optional background, live-section, visual-style, sun or UCS handle graph is exercised; reference closure remains open.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The selected VIEW profile survives every measured allocation failure across seven DXF revisions and both encodings, with destination/caller rollback, same-codec retry, and typed readback.",
+    "remainingP6G": "Continue the exact public-writer inventory and caller-state audit; retain producer, reference-graph, and native semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "217 completed slices and 35 remaining packages: 217/(217+35)=86.1%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-ucs-table-allocation-rollback-retry-2026-11-13.json"
+}

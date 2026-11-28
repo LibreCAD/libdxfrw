@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-navisworks-model-entity-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_NAVISWORKS_MODEL_ENTITY_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the public writeNavisworksModel entity route and its handle reference to a generated NAVISWORKSMODELDEF in whole-operation AC1027 ASCII/Binary allocation rollback/retry sweeps.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One NAVISWORKSMODEL entity references a generated NAVISWORKSMODELDEF and carries nondefault flags, all 16 transform components and unit factor; no external or committed drawing fixture is used.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "80ea0ddc",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "method": "Add a generated DRW_NavisworksModel to the whole-operation ENTITIES writer and call writeNavisworksModel directly. Its definitionHandle targets the generated NAVISWORKSMODELDEF record in OBJECTS. Compare caller identity, flags, reference, every transform element and unit factor after each injected allocation failure and retry. Require prior destination preservation, same-writer retry and typed callback readback of fields and target handle."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure: PASS 1/1",
+    "directRun": "PASS; ASCII 992/992 and Binary 972/972 allocation offsets injected; destination/caller rollback, same-writer retry and typed readback passed",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated DXF rollback/retry and typed-codec evidence only; no independent producer or consumer semantics are established.",
+    "The model's handle resolves to its generated definition, but NAVISWORKS dictionary membership and broader ownership graph closure are not qualified.",
+    "No NWD asset is loaded; external asset resolution and native consumer behavior remain unqualified.",
+    "This is one generated entity/definition profile; other version and producer variants remain outside this control.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue P6-G's writer inventory with remaining uncovered direct routes."
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-user-generated-pair-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "a66f2177f421b9bb68460644c7290a4381c9ae3d",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.44: R13 dictionary item names and soft-owner references; cloning and hard-owner flags are R2000+ fields.",
+  "producer": "GNU LibreDWG 0.14 from locally authored recipes, with specification-directed DIMSTYLE header link; not AutoCAD-authored.",
+  "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py --unique-entry-control --candidate CURRENT_DWG2DXF --dictionary-source-test CURRENT_DICTIONARY_TEST",
+  "scratchDirectory": "/private/tmp/ac1012-user-qualified-20261127/ac1012-dictionary-merge-g7n6zyr6",
+  "scratchReceiptSha256": "5709ddc376ddc95bb9a241b751014fc3862a7097c196621e413cc964fad816fa",
+  "samples": {
+    "destination": {
+      "file": "destination-ac1012.dwg",
+      "sha256": "d0e230dd4f3982e9f7286755244638d858febbc4d0c93e4b9cb2b5380f61660b",
+      "stylesDegrees": {
+        "SAME_KEY": 15,
+        "DEST_ONLY": 22
+      }
+    },
+    "source": {
+      "file": "source-ac1012.dwg",
+      "sha256": "9a3d0e41eb5d8a3f8c41721a5b28d9ff090bf7fa3084e6ca627ae112978e3e4e",
+      "stylesDegrees": {
+        "SAME_KEY": 37,
+        "SOURCE_ONLY": 51
+      }
+    }
+  },
+  "checks": [
+    "PASS both source physical frames including CRC, version-aware dictionary layout and handle roles; malformed-role refusal and corrected retry.",
+    "PASS both strict ASCII and binary output refusals preserve preexisting destinations; explicit-partial ASCII and binary outputs pass bounded independent dictionary/style graph audit.",
+    "PASS targeted libdxfrw_dwg_ac1014_dictionaryvar CTest (1/1).",
+    "A broader dictionaryvar CTest selection had six Not Run because their executables were not built; only the targeted test is claimed.",
+    "Previously ODA-generated root-case pair hashes and independent frame audit rechecked successfully; see docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json."
+  ],
+  "limitations": [
+    "An earlier pair from this LibreDWG producer profile was rejected by ODA; these fresh files have not been tested in AutoCAD or ODA. Generation does not prove native cloning behavior or full graph validity.",
+    "The separately ODA-produced pair is a stronger starting point for native qualification, but native acceptance and merge semantics remain open.",
+    "Partial export is not lossless or general conversion qualification; no fixture is committed."
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 physical MLINESTYLE selected output and readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify one source-bound AC1021 MLINESTYLE graph through selected AC1024 DXF output and fresh readback. Do not claim whole-source conversion, producer-wide support, or native consumer semantics.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenance": "Existing local DWG; author/producer unauthenticated. No fixture or derivative committed."
+  },
+  "sourceGraph": {
+    "style": {
+      "handle": "0x18",
+      "record": "MLINESTYLE",
+      "class": "AcDbMlineStyle",
+      "name": "STANDARD",
+      "ownerDictionary": "0x17",
+      "extensionDictionary": null,
+      "ownerEntry": "Standard -> 0x18",
+      "ownerReactor": "0x0C",
+      "styleReactor": "0x17",
+      "nodKey": "ACAD_MLINESTYLE -> 0x17"
+    },
+    "fields": {
+      "description": "",
+      "flags": 0,
+      "fillColor": 256,
+      "fillColorMethod": "0xC0 / ByLayer",
+      "startAngleRadians": 1.5707963267948966,
+      "endAngleRadians": 1.5707963267948966,
+      "elements": [
+        {
+          "offset": 0.5,
+          "color": 256,
+          "linetypeIndex": 32767,
+          "linetypeHandle": "0x0"
+        },
+        {
+          "offset": -0.5,
+          "color": 256,
+          "linetypeIndex": 32767,
+          "linetypeHandle": "0x0"
+        }
+      ]
+    },
+    "sourceFrame": {
+      "objectType": 73,
+      "owner": "0x17",
+      "extensionDictionaryHandle": "0x0",
+      "reactorCount": 1,
+      "commonLinkEvidence": 1
+    }
+  },
+  "implementation": {
+    "change": "Added AC1021 to the version allowlist in DWG MLINESTYLE exact-profile preparation and unchanged-source validation. All existing STANDARD profile and field guards remain in force.",
+    "selectedProjection": "Source-derived MLINESTYLE, its NOD root edge and owning DICTIONARY, source-frame baselines, and full LTYPE control/table needed by the bounded partial-read gate. Other source objects are excluded from the projection only."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4; -Werror configuration.",
+    "physicalSelector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-style-ac1021-selected-output /Users/dli/doc/dwg/children-room-decoration.dwg.",
+    "encodings": "PASS ASCII and Binary AC1024 output; fresh DXF readback checks style and both inline elements, NOD key/target, owner dictionary entry/parent/reactor, and reciprocal MLINESTYLE owner/reactor; source frame is output-qualified.",
+    "failureRetry": "PASS nonzero retained CMC index refused with the existing destination sentinel unchanged; correction then exported successfully on the same adapter.",
+    "generatedFastCtests": "PASS: libdxfrw_mline_style_dxf_defaults, libdxfrw_mline_style_validation, libdxfrw_mlinestyle_cmc_retention (3/3).",
+    "diffCheck": "PASS: git diff --check.",
+    "fullSuites": "NOT RUN.",
+    "wholeSourceAttempt": "NOT QUALIFIED: full-source partial export stops at the unrelated exact-version ModelDocViewStyle preflight gate before MLINESTYLE preparation.",
+    "testSourceSha256": "2bd54c12aa542b41d90921b6c59c677c5147faa17caf44872fb6c01bb1510edf",
+    "productionSourceSha256": "9fe7e3c9429eda56d52de808fd0a01e6c0c74ba03a4e9f21a877b76dd0a32d25",
+    "executableSha256": "4040799bf00d9d6a7f2b10b392122310670095d12c230293c06c950429c04b6c"
+  },
+  "limits": [
+    "One unauthenticated AC1021 source and one exact STANDARD profile only.",
+    "Selected graph output does not establish whole-source graph closure or producer-wide support.",
+    "Fresh local readback is transport evidence, not independent native acceptance.",
+    "No support claim or external-only item is promoted."
+  ],
+  "nextAction": "Classify the remaining fixed-type-34 frames 0x266 and 0x26A; then qualify the original RASTERVARIABLES 0x2D2 and SORTENTSTABLE 0x2DF source frames without adding test fixtures."
+}

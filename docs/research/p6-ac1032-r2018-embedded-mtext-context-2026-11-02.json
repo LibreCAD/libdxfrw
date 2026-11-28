@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1032-r2018-embedded-mtext-context-2026-11-02",
+  "date": "2026-11-02",
+  "title": "AC1032 embedded MTEXT context alignment and current source read",
+  "status": "R2018_EMBEDDED_CONTEXT_PARSER_PROFILE_VERIFIED; STRICT_SOURCE_EXPORT_BLOCKED_BY_HEADER_SUFFIX",
+  "supportClaimEffect": "none",
+  "scope": "The R2018 embedded-MTEXT branch inside ATTRIB and ATTDEF follows the ODA v5.4.1 field order for the selected not-annotative context, application handle, redundant placement fields, optional column payload, and parent annotative tail. Generated encode/decode controls and one tracked-source read were refreshed against the current checkout. This does not qualify output, native text behavior, all R2018 producer profiles, or whole-file conversion.",
+  "authority": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.4", "20.4.46"],
+    "localPath": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+  },
+  "binding": {
+    "repositoryCommit": "411e8857fba4d649cfaafb2e9449aab144a26c4a",
+    "sourceSha256": {
+      "src/drw_entities.cpp": "5c96e99bd56896e281dfc8222e4db0853fcc131a516640833887cf6bc850ea9b",
+      "src/drw_entities.h": "520a8d5a4ec04021b01013e56e893b5712c62c102e7b7ce5402d36727bafa921",
+      "tests/dwg_object_vectors_tests.cpp": "7534d34f1bc32515199c6b3e71113f2887877355f9b32dad37373c35a9d4598f",
+      "CMakeLists.txt": "2745ea1ff1466a9a0b5e7224211af9c5b3b0e6623b5a6bcca9e7f15e961d9c5f"
+    },
+    "executables": {
+      "build-gcc/libdxfrw_dwg_object_vectors_tests": "6116e9524fca5e9db9c1327ce3dd0d5c98747159e14774206588b1379551b4f1",
+      "build-gcc/dwg2dxf/dwg2dxf": "18f418a85085473cceacef98fb0efd16d25b3e91ae27b619b646b26787b50f73"
+    }
+  },
+  "generatedControl": {
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_r2018_attribute_outer_annotative$' --output-on-failure",
+    "result": "PASS 1/1 in 0.26 seconds",
+    "coverage": [
+      "ATTRIB and ATTDEF with empty and populated nested context",
+      "application/style handle order and parent annotative payload order",
+      "redundant placement values and both fixed/dynamic column fields",
+      "following-handle cursor alignment",
+      "hostile outer payload length rejection and full parser state reset"
+    ],
+    "fixtureFilesAdded": 0
+  },
+  "physicalRead": {
+    "input": "LibreCAD/librecad/src/lib/filters/tests/testdata/lc_multiline_attrib_ac1032.dwg",
+    "inputRepository": "LibreCAD",
+    "inputTracked": true,
+    "inputSha256": "f06218b4975c1ed2a9de0484a57744a4e5b5377ffe4520d6fb9098b8bd0dac11",
+    "command": "build-gcc/dwg2dxf/dwg2dxf ../LibreCAD/librecad/src/lib/filters/tests/testdata/lc_multiline_attrib_ac1032.dwg -y -d -v2018 /private/tmp/libdxfrw-current-ac1032-mtext.dxf",
+    "exitCode": 1,
+    "readerObservation": "The trace reaches the fixture's ATTRIB and ATTDEF records with entityParseFailures=0 and objectParseFailures=0. Strict-complete output is refused before publication because the independently unresolved HEADER suffix is 739 bytes after the verified end sentinel; no DXF was published.",
+    "tracePath": "/private/tmp/libdxfrw-current-ac1032-mtext.log",
+    "traceSha256": "8897450d0e6d11858c9e9a77ae6cc2c4205b2e5b98c8284f320571822c80b37c"
+  },
+  "limitations": [
+    "The physical read does not prove source-to-DXF field preservation or native text display.",
+    "The 739-byte AC1032 HEADER suffix remains unclaimed and strict-complete output remains refused.",
+    "No local or external support claim is promoted."
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-oda-unlocked-retry-2026-11-23",
+  "date": "2026-11-23",
+  "status": "ODA_RETRY_ABORTED_BEFORE_CONVERSION",
+  "supportClaimEffect": "none",
+  "input": {
+    "origin": "Existing locally generated, specification-directed AC1012 pair; no new DWG or DXF fixture was created.",
+    "sourceDirectory": "/private/tmp/ac1012-spec-directed-user-run-20261123/ac1012-dictionary-merge-lq7ne5gy",
+    "files": [
+      {
+        "name": "destination-ac1012.dwg",
+        "sha256": "bb3a5426da2bd889a040883add9a1cb23e483d96f7693105bc53d7d532fbe687"
+      },
+      {
+        "name": "source-ac1012.dwg",
+        "sha256": "205cd0932efda533690dc5fe2ab96c82a9522d1a0b10e63c77de08e730eb50ff"
+      }
+    ]
+  },
+  "attempt": {
+    "tool": "ODA File Converter 27.1.0 macOS ARM64",
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "command": "ODAFileConverter <input-dir> <output-dir> ACAD13 DWG 0 0 '*.dwg'",
+    "outputDirectory": "/private/tmp/ac1012-oda-unlocked-retry-20261123/out",
+    "exitCode": -6,
+    "result": "ABORTED_BEFORE_CONVERSION",
+    "diagnostics": [
+      "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]",
+      "PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]",
+      "Connection Invalid error for service com.apple.hiservices-xpcservice"
+    ],
+    "outputFiles": []
+  },
+  "guiAttempt": {
+    "result": "NO_WINDOW_AVAILABLE",
+    "detail": "Computer Use could not bind to an ODAFileConverter window (cgWindowNotFound); the installed app process is reported running, but no UI window was available for conversion."
+  },
+  "limits": [
+    "The retry followed the reported macOS unlock, but the same pasteboard/XPC failure remains; it does not establish ODA acceptance or rejection of either DWG.",
+    "Generated files remain scratch-only. AutoCAD normal-open and native duplicate-key clone/merge semantics remain unqualified."
+  ],
+  "next": "Resume the ODA peer attempt only after its pasteboard/XPC service is demonstrably available or a matching Linux/Windows converter route is available; continue implementation outside that wait."
+}

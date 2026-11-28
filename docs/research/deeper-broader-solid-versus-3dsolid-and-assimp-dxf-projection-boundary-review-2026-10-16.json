@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw-deeper-broader-solid-versus-3dsolid-and-assimp-dxf-projection-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Distinguish the legacy DXF SOLID entity from ACIS-bearing 3DSOLID and refresh the existing Assimp DXF peer lane by family, format direction, and projection loss; refine plan readiness without implementation changes.",
+  "method": {
+    "kind": "Primary Autodesk DXF/ObjectARX documentation plus static read-only review of Assimp source and issue history",
+    "sourcesOpened": [
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-E0C5F04E-D0C5-48F5-AC09-32733E8848F2.htm",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Solid.html",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-7FB91514-56FF-4487-850E-CF1047999E77.htm",
+      "https://github.com/assimp/assimp/blob/master/code/AssetLib/DXF/DXFLoader.cpp",
+      "https://github.com/assimp/assimp/blob/master/doc/Fileformats.md",
+      "https://github.com/assimp/assimp/issues/2645"
+    ],
+    "assimpSourcePin": "Mutable master URL reviewed statically; immutable commit SHA was not acquired in this pass. The prior pinned-source and Assimp 6.0.5 runtime evidence in the plan remain separate.",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalledOrRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-mesh-appearance-and-consumer-scope-review-2026-10-16.json"
+    ],
+    "evidenceBoundary": "Autodesk sources define entity naming and public DXF fields. Assimp branch review is source-level observation only, with no immutable pin or runtime result. The issue report is not a reproduced defect or proof of ACIS 3DSOLID behavior. No support claim is promoted."
+  },
+  "evidence": [
+    {
+      "topic": "SOLID and 3DSOLID are distinct DXF entity families",
+      "observed": [
+        "Autodesk describes SOLID as a 2D entity and documents four corner points plus optional thickness and extrusion direction.",
+        "Autodesk documents 3DSOLID, REGION, and BODY as AcDbModelerGeometry records with proprietary group-1 data and optional group-3 continuation; the 3DSOLID table also identifies a history soft-owner handle.",
+        "The names must not be normalized to one ambiguous 'solid' category or treated as interchangeable ACIS evidence."
+      ],
+      "planUse": "Keep legacy 2D SOLID compatibility distinct from modeler-carrier transport, ownership/history, B-rep validity, and native 3D acceptance. Use literal DXF entity identity in feature inventories and denominators."
+    },
+    {
+      "topic": "Assimp is a narrow ASCII explicit-geometry projection, not an ACIS or general DXF oracle",
+      "observed": [
+        "The inspected current DXFLoader.cpp explicitly refuses binary DXF.",
+        "Its block/entity dispatch handles POLYLINE, root INSERT, 3DFACE, LINE/3DLINE, and POINT; no SOLID, 3DSOLID, MESH, REGION, or BODY dispatch route was observed.",
+        "The PFACE vertex path has a four-index array and ignores additional face references after warning; negative signed references are converted to absolute values, losing visibility-edge signs.",
+        "The importer projects records into layer-oriented aiMesh output rather than preserving the CAD entity/owner graph or an ACIS B-rep. Existing plan evidence separately records axis conversion, ignored INSERT rotation, and nested-INSERT block-loss behavior."
+      ],
+      "planUse": "Admit only family-filtered, ASCII-only explicit-geometry observations with a per-source-entity disposition ledger. Exclude binary, nested/rotated INSERT, PFACE visibility-sign, and greater-than-four-reference PFACE cells from positive comparator coverage."
+    },
+    {
+      "topic": "Assimp issue #2645 wording is not ACIS 3DSOLID evidence",
+      "observed": [
+        "Issue #2645 reports a DXF file described as using SOLID and an importer message that no 3D data was found.",
+        "The issue history shows it was closed as not planned and later reopened to join discussion; the attached drawing was not downloaded or executed in this review.",
+        "Given Autodesk's entity distinction, the report does not establish a 3DSOLID, REGION, BODY, ACIS payload, or native solid-reader failure."
+      ],
+      "planUse": "Do not use the issue as a libdxfrw defect, as a 3DSOLID peer failure, or as a reason to expand the Assimp runtime matrix. Keep it as a nomenclature and comparator-eligibility warning."
+    }
+  ],
+  "implementationReadiness": {
+    "refinesExistingOwners": [
+      "S5 explicit-geometry inventory",
+      "S8 peer/native consumer qualification",
+      "Assimp DXF comparison matrix"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "implementationOrderChanged": false,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue the existing ready local implementation queue; no new Assimp run or installation is needed.",
+      "For any future comparison, pin an immutable Assimp source/package first, classify literal DXF names, and count every source entity as typed, projected, omitted, or rejected.",
+      "Keep SOLID/TRACE 2D compatibility separate from 3DSOLID/REGION/BODY modeler carrier and semantic gates."
+    ]
+  },
+  "validation": {
+    "parityPlanUpdated": true,
+    "3dPlanUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "productionCodeChanged": false,
+    "testsRun": false,
+    "peerRuntimeRun": false,
+    "nativeRuntimeRun": false,
+    "supportClaimsPromoted": 0
+  }
+}

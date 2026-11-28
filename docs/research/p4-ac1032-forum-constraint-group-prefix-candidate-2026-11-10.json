@@ -1,0 +1,182 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-forum-constraint-group-prefix-candidate-2026-11-10",
+  "date": "2026-11-10",
+  "status": "PARTIAL_BOUNDED_PREFIX_NO_OUTPUT_ADMISSION",
+  "supportClaimEffect": "none",
+  "source": {
+    "parentReceipt": "docs/research/p4-ac1032-forum-assocnetwork-source-spans-2026-11-10.json",
+    "sourcePath": "/private/tmp/p4-autodesk-forum-constraints.dwg",
+    "sourceSha256": "685bf22ed533121238c62c07357bf03fa6ddb40983cff7967c481fbb244b6b4f",
+    "decodedObjectsSha256": "0d76bd5ae9e762cae2b8c972874d3cc908e41639501b8100e5eea5580175a5fb",
+    "object": "ACDBASSOC2DCONSTRAINTGROUP 0x2A8",
+    "objectMapOffset": 33146,
+    "bodyOrigin": 33150,
+    "bodySizeBytes": 596,
+    "peerRecordCrc": "9A9F",
+    "sourceIntegrity": "LTYPE_CONTROL error and HEADER/BLOCK_CONTROL warnings; whole-source output remains refused."
+  },
+  "schemaEvidence": {
+    "oda": "ODA Open Design Specification v5.4.1 sections 2.2, 2.3, 2.5 and 2.13 specify BS/BL/BD/H primitives. Its text contains no class-specific ACDBASSOC2DCONSTRAINTGROUP schema.",
+    "candidateOrder": "LibreDWG 6d6a33987a1a97095b069c799c3d8a793320f812 supplies candidate field order and fails decoding the subsequent node table. The source-bound Python walker checks its fixed-prefix primitive values and bounds independently over libdxfrw-decompressed bytes.",
+    "independenceLimit": "The OBJECTS section was extracted using libdxfrw parseDataPage; the fixed-order candidate comes from LibreDWG. This is not an independent compressed-section oracle or normative class grammar."
+  },
+  "fields": {
+    "source_sha256": "685bf22ed533121238c62c07357bf03fa6ddb40983cff7967c481fbb244b6b4f",
+    "objects_sha256": "0d76bd5ae9e762cae2b8c972874d3cc908e41639501b8100e5eea5580175a5fb",
+    "handle": "0x2A8",
+    "decoded_section_object_start": 33150,
+    "object_size": 596,
+    "fields": [
+      {
+        "field": "group_version",
+        "kind": "BL",
+        "start_bit": 82,
+        "end_bit": 92,
+        "value": 2
+      },
+      {
+        "field": "group_flag",
+        "kind": "B",
+        "start_bit": 92,
+        "end_bit": 93,
+        "value": 0
+      },
+      {
+        "field": "origin_x",
+        "kind": "BD",
+        "start_bit": 93,
+        "end_bit": 95,
+        "value": 0.0
+      },
+      {
+        "field": "origin_y",
+        "kind": "BD",
+        "start_bit": 95,
+        "end_bit": 97,
+        "value": 0.0
+      },
+      {
+        "field": "origin_z",
+        "kind": "BD",
+        "start_bit": 97,
+        "end_bit": 99,
+        "value": 0.0
+      },
+      {
+        "field": "axis_x_x",
+        "kind": "BD",
+        "start_bit": 99,
+        "end_bit": 101,
+        "value": 1.0
+      },
+      {
+        "field": "axis_x_y",
+        "kind": "BD",
+        "start_bit": 101,
+        "end_bit": 103,
+        "value": 0.0
+      },
+      {
+        "field": "axis_x_z",
+        "kind": "BD",
+        "start_bit": 103,
+        "end_bit": 105,
+        "value": 0.0
+      },
+      {
+        "field": "axis_y_x",
+        "kind": "BD",
+        "start_bit": 105,
+        "end_bit": 107,
+        "value": 0.0
+      },
+      {
+        "field": "axis_y_y",
+        "kind": "BD",
+        "start_bit": 107,
+        "end_bit": 109,
+        "value": 1.0
+      },
+      {
+        "field": "axis_y_z",
+        "kind": "BD",
+        "start_bit": 109,
+        "end_bit": 111,
+        "value": 0.0
+      },
+      {
+        "field": "num_actions",
+        "kind": "BL",
+        "start_bit": 111,
+        "end_bit": 121,
+        "value": 2
+      }
+    ],
+    "handles": [
+      {
+        "field": "owner",
+        "start_bit": 4575,
+        "end_bit": 4591,
+        "code": 12,
+        "size": 1,
+        "raw_ref": 3
+      },
+      {
+        "field": "owning_network",
+        "start_bit": 4591,
+        "end_bit": 4615,
+        "code": 4,
+        "size": 2,
+        "raw_ref": 677
+      },
+      {
+        "field": "action_body",
+        "start_bit": 4615,
+        "end_bit": 4623,
+        "code": 3,
+        "size": 0,
+        "raw_ref": 0
+      },
+      {
+        "field": "group_reference",
+        "start_bit": 4623,
+        "end_bit": 4631,
+        "code": 3,
+        "size": 0,
+        "raw_ref": 0
+      },
+      {
+        "field": "action_0",
+        "start_bit": 4631,
+        "end_bit": 4655,
+        "code": 3,
+        "size": 2,
+        "raw_ref": 682
+      },
+      {
+        "field": "action_1",
+        "start_bit": 4655,
+        "end_bit": 4679,
+        "code": 3,
+        "size": 2,
+        "raw_ref": 681
+      }
+    ]
+  },
+  "change": "For AC1032 class-version-2 groups with version 2, null group reference and exactly two distinct nonnull hard-owner action references, read the fixed candidate prefix on independent body/handle buffer forks. Publish workplane, flag and action values as partial candidate data; do not advance the real group cursors or decode the disputed next field. Leave bodyParsed/nodesParsed/nextNodeIdRead false and preserve the raw carrier. Malformed or unsupported candidate profiles do not publish partial field values.",
+  "outputGuard": "dwg2dxf/dx_standard_output.h Probe<DRW_AssociativeObject>::complete requires groupBodyParsed && actionsParsed && nodesParsed. src/libdxfrw.cpp writeAssociativeConstraintGroup also requires AC1024 and all three flags plus nextNodeIdRead. Setting actionsParsed alone cannot qualify this AC1032 object.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+    "focusedCtests": "libdxfrw_constraint_group_ac1032_candidate_generated, libdxfrw_assocnetwork_ac1032_candidate_generated, libdxfrw_assocnetwork_ac1032_multi_action_generated, libdxfrw_associative_constraint_group_generated: 4/4 pass",
+    "generatedCoverage": "Two-action candidate and wrong-role, truncated-body, and truncated-handle profiles; incomplete flags and exact raw carrier on each, corrected same-reader retry after each malformed input. The post-actions value remains unparsed.",
+    "physicalCommand": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/p4-autodesk-forum-constraints.dwg -y -d -v2018 /private/tmp/p4-forum-constraint-candidate.dxf",
+    "physicalTraceSha256": "a8ddc80cd68fa568552068040b3143dd337a19c609c7196eaa7999c53ead674e",
+    "physicalResult": "Candidate version 2/flag 0/actions 2 [0x2AA,0x2A9], parent/owningNetwork 0x2A5. Source publishes 145/145 frames with zero entity/object failures. CLI conversion refuses due to existing integrity/output gates.",
+    "walker": "tools/research/ac1032_forum_constraint_group_spans.py",
+    "walkerSha256": "e7dfdd9f27e408cf99b3e1818d482fd6790b9bb52e12a72166d9adb5a0297583",
+    "walkerOutputSha256": "32b539e90e1c523589bb56b54b89b402191ca7f34e367ebdf9f48b181039946d",
+    "other": "Python compile and git diff --check pass; no DWG/DXF fixtures committed."
+  },
+  "remaining": "The source node table and post-actions value are opaque; native node semantics, class-specific normative schema, exact recursive graph/output closure, source-wide integrity and target/native evidence remain open. This candidate does not promote support claims."
+}

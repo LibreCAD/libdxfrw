@@ -1,0 +1,127 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_SOURCE_AND_SCRATCH_DIFFERENTIAL",
+  "scope": "AC1018 and AC1024 model-space 2D/3D POLYLINE membership comparison; AC1027/1032 source/baseline observations remain unresolved. No production behavior change or general DWG support claim.",
+  "authority": "ODA Open Design Specification v5.4.1 \u00a7\u00a720.4.16\u201317 and 20.4.52: R2004+ POLYLINE owns its vertices and SEQEND; BLOCK_HEADER owns its block entities. Physical producer spans below supply the nesting example.",
+  "baseline_revision": "ac762fce (committed source before independent GROUP work); no GROUP edits are part of these scratch binaries",
+  "provenance": {
+    "source_dwg": "Previously locally authored ezdxf 1.4.5 2D/3D POLYLINE DXFs converted by ODA File Converter 27.1.0 to each indicated DWG revision; identical source hashes are also recorded in p6-polyline-owner-roles-2026-11-04.json. No fixture committed.",
+    "source_dxf_sha256": {
+      "2d": "e0a6d47a1041a0fd43357d475c0fe050b4f02e179536c3f3cc083c6c4e349818",
+      "3d": "4a3b40829724d094407287f66a4e538b486f07e8d5cae82ced1c8e43c8feb180"
+    },
+    "source_point_contract": "2D (0,0,0),(5,0,0),(5,3,0); 3D (0,0,0),(5,0,1),(5,3,2), vertex flags 32.",
+    "baseline": "tools/probe_polyline_cross_version.cpp uses explicit default plotstyle provider on all revisions, default material provider only for AC1024. This is the supported opt-in combination used here, not an assertion of universal prerequisites.",
+    "scratch": "Two source-bound experimental writer variants change only the block-membership recording predicate: for AC1018 in writer15 and AC1024 in writer24. Both exclude model-space VERTEX and SEQEND from the model BLOCK_HEADER list. This diagnostic predicate is broader than a production-safe scoped permit and is not a proposed implementation.",
+    "compiler": "Apple clang 21.0.0 arm64, c++17 -Wall -Wextra -pedantic -Werror",
+    "baseline_executable_sha256": "33c8ba0de4dbb7bc865ecf17961dfe4f4b13c5facb693dd8adf9342792f8db88",
+    "scratch_executable_sha256": "c5e04068e7606e3bc898772f8142d88f7140492a0d0db7452f50dee06d73ade6",
+    "scratch_archive_sha256": "8b4c45d4bc7ea89af76c00851de3648e20c5ebbea3c184d30c6be64c53667160",
+    "scratch_writer15_sha256": "0b7c25ccefc7bdcb554a8652bc6b06e1c4604416ce3b634a53b0409568bdb20f",
+    "scratch_writer24_sha256": "3e30547d85c27aa1c6d343f0e1d7ed9ddd40dbf4b18af4ff55a921a18f39cc10"
+  },
+  "outcomes": {
+    "AC1018-polyline2d": {
+      "source_dwg": "71d451c62937020db647b7edad4a24f1d0ee36442c5808201232849c7ebe47a3",
+      "source_dxf": "a715dba9daf1a3df37093f5e95a1c4d752df1bbdecc7740efbfe408d5e97f21f",
+      "baseline_dwg": "83e97f55d6dc6febd2eeeacfaff37ba97e4b2eb3a6bab17a5d0c872d5c98307c",
+      "baseline_output": "47726cc6544dff32f0b3b281df6d642c230b3ea7c32870d633f0904405efa2a0",
+      "baseline_outcome": "DXF with two zero vertices",
+      "filtered_dwg": "0b43d83a037adf8b0a49a3e306fdee936f8b902277b11d6cc228b430e615084a",
+      "filtered_dxf": "76fa7945bc4e3d253f29accadc77975b0bcbf8b0cbe3d9aa3855cedafa9b2f44",
+      "filtered_outcome": "DXF with all three exact vertices"
+    },
+    "AC1018-polyline3d": {
+      "source_dwg": "6c938773ab6718a4ae748f0745e2eda7132d3f4ab7fb122bb2c8835919a59952",
+      "source_dxf": "7cf6d52294d93dd5349f1c165db7b6d0cf6e5a15dc998835e8e410936ba5b9dc",
+      "baseline_dwg": "1e50ab44ec30d5655a5661cc91d5ad752537a3e39a7b559bec7b9c03afb2b18e",
+      "baseline_output": "eda18e17a6ef5372cc0a51169db37630cc1bfc3173b2db7061165548ee6ff195",
+      "baseline_outcome": "DXF with two zero vertices",
+      "filtered_dwg": "21ae220da796117a087fe92f9c07218188d0b9f06cf8e10b7a21c5a148f6ffff",
+      "filtered_dxf": "557662097f2017c3dfe295b2085a7d75e7f1b927d390a59c39db425632a48784",
+      "filtered_outcome": "DXF with all three exact vertices"
+    },
+    "AC1024-polyline2d": {
+      "source_dwg": "0e48ecd373fb83f148f13b25e03693295895d82b23edac4048b0ce839ed1ae24",
+      "source_dxf": "eb798e0801517d24eddf1def2eefc2dd743ef54bd26150bb54439b26c846b4be",
+      "baseline_dwg": "f859c006acdaf907af248b2879c0ffc9170057e863f1d25a19db0aa1a0e1bd84",
+      "baseline_output": "6e7110c5d5ffddd120dea2e5877b0d526018429e5926fe5bab20d63db0a41d8f",
+      "baseline_outcome": "DXF with two zero vertices",
+      "filtered_dwg": "8fd1f32398998fb06f29eef88ea6420d704a5e4223f137f7873b740acc5318bc",
+      "filtered_dxf": "8e2649005c0432eba44c6b4b85ee9d08db86a1ef87f67bcafd98cf2b9d0c532b",
+      "filtered_outcome": "DXF with all three exact vertices"
+    },
+    "AC1024-polyline3d": {
+      "source_dwg": "15d9c3715514a093ce44da343bd4e6adf11c0c9de32bf93a50451984f3ea29ec",
+      "source_dxf": "1f408551d3d53ce67f60ff8b6238150a3ef82384a814390fa1c7864c01af0ff8",
+      "baseline_dwg": "aad7abf95df2affa6c57803e6d31f6170901c0d662c6d3a04c09a254855cd927",
+      "baseline_output": "3449d55b540f5ce6903c223953fdad9344c59e3c844c7825f8de0eb95cb4f801",
+      "baseline_outcome": "DXF with two zero vertices",
+      "filtered_dwg": "5d0f317295bd0bc3b03344faf67cfe7d26557fed11e5821f8c747432a7a50075",
+      "filtered_dxf": "79079aea882a2b9abe728a01b95f1b1cce5bf3e3341517d520d372ec181902f7",
+      "filtered_outcome": "DXF with all three exact vertices"
+    },
+    "AC1027-polyline2d": {
+      "source_dwg": "5f29f3f0c8e6402dd23e07a42bda6b8eb0ee3ab3e7499ea7e742fc186baae1f9",
+      "source_dxf": "833b97d409e47ca277bc78a130936269fc1f29108c756955b14d820204d3ac80",
+      "baseline_dwg": "8f789d831750161a8d87c8ea523b79a24df1a391f30fb691aefd19356feb3355",
+      "baseline_output": "15f044f9d2fb20e118a744cf1b73a291e7fb07dc1c9f3fced14306f40e09994f",
+      "baseline_outcome": "Out of range .err"
+    },
+    "AC1027-polyline3d": {
+      "source_dwg": "703eecaa714d544f4ab1c0c8f4b6d9d40fa15a3b557ffcb11c276e3c00401083",
+      "source_dxf": "dadb568eb345f5cc2585a629d1b9e1dff3b55c21791203f8efde450dd019e569",
+      "baseline_dwg": "e5781f0e0f20fdbd0ca3d7a4b95a0aaeda76243419280adcf35f36ed42ff50f9",
+      "baseline_output": "3fb98c15f9d54caaf92bc077931364b04af97b8dedda144c30584b7fce9759bb",
+      "baseline_outcome": "Out of range .err"
+    },
+    "AC1032-polyline2d": {
+      "source_dwg": "97a9dc938be90221bf4b9974ec39af7a517d85dc1b91dbeeec0a96f49e86a99f",
+      "source_dxf": "6f3051138d934ae26822c1a4db9997fde04d2d55a8a993a537a6be6a6f517088",
+      "baseline_dwg": "9a261beac13478ab377ee7c1d26d0cc3a20ca6711133c83d666503ca3afbd019",
+      "baseline_output": "6c3b6f956bd7605f59993141e9fe6431b77c5d67db1bf9294f3a4da38e352df8",
+      "baseline_outcome": "CRC does not match .err"
+    },
+    "AC1032-polyline3d": {
+      "source_dwg": "36b3c3e837b0ef10e12c6b1c2292e12afae6b94bba46f082cfd8a83cb64db924",
+      "source_dxf": "f14f1b98bc0cbf02f8c6e55588aa9a4ee1c4c563fa53db59ebb2d4c32c043521",
+      "baseline_dwg": "92f37ee6c4afcfe0c66b78aaccf2fc574e02ef08cfbfda49340ad12a7c42a293",
+      "baseline_output": "65cec9329ed32a058c5020fbee1a9b58b4c7fb12e6881c7d055d0d53954b175e",
+      "baseline_outcome": "CRC does not match .err"
+    }
+  },
+  "observation": "For all four corrected cases, independent LibreDWG decoding verifies the source and filtered BLOCK_HEADER contain only the parent; the baseline additionally lists all three vertices and SEQEND. Parent references are role 3 and child/SEQEND owners role 4 in all. Baseline and filtered decoded POLYLINE/VERTEX/SEQEND objects match exactly except JSON object index. ezdxf 1.4.5 sees two zero vertices in baseline DXF and all three expected vertices in filtered DXF, with AC1027 revision and zero audit errors/fixes for both. Each patch changes only its version-specific indexing code, but this decoded comparison does not assert full DWG byte identity. Source controls retain all vertices.",
+  "oda": {
+    "command": "ODAFileConverter <input-dir> <output-dir> ACAD2013 DXF 0 1 '*.dwg'",
+    "version": "27.1.0",
+    "executable_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "process": "All three batches returned status 0 and captured stdout/stderr were empty. All producer controls and all AC1018/1024 baseline/filtered samples had DXFs and no .err; process status alone does not establish correct geometry. AC1027/1032 generated files had only the specified .err and no DXF. ODA lineage is the separately observed local run, not inferable from hashes."
+  },
+  "peer": {
+    "tool": "tools/audit_polyline_cross_version_membership.py",
+    "sha256": "d16c7af92df3b66c3209d93595fff930cd8bb8f2dee25544b8a9961f37e5be60",
+    "test": "tests/polyline_cross_version_membership_audit_tests.py",
+    "test_sha256": "1b469533abced369bfee96632bf472d8893665ae9a7ad3a9656205a56518552e",
+    "result": "4/4 source+baseline+filtered triples pass hash-bound LibreDWG 0.14 graph and ezdxf 1.4.5 DXF checks. Two fixture-free negative groups pass under Python and Python -O.",
+    "command": "python -B tools/audit_polyline_cross_version_membership.py --version AC1018|AC1024 --mode 2d|3d --dwgread <dwgread> --source-dwg <file> --source-dwg-sha256 <sha> --source-dxf <file> --source-dxf-sha256 <sha> --baseline-dwg <file> --baseline-dwg-sha256 <sha> --baseline-dxf <file> --baseline-dxf-sha256 <sha> --filtered-dwg <file> --filtered-dwg-sha256 <sha> --filtered-dxf <file> --filtered-dxf-sha256 <sha>"
+  },
+  "reproduction": {
+    "producer": "tools/probe_polyline_cross_version.cpp",
+    "producer_sha256": "87bccce704f76fe1da7d316be500fed8db2ccee17bd5db63ee69f7a0c7af9340",
+    "scratch_builder": "tools/prepare_polyline_cross_membership_scratch.py",
+    "scratch_builder_sha256": "23b73aaefd0330796d732fe195ac2bc81e84babe10b7b148d25728775a8b7253",
+    "instructions": "Use an ac762fce archive and coherent library. Compile producer with c++ -std=c++17 -Isrc -Itests <probe> libdxfrw.a. Run <producer> polyline2d|polyline3d AC1018|AC1024|AC1027|AC1032 NEW_DWG. Run scratch_builder <clean-ac762fce-snapshot> <empty-scratch-dir>; it verifies the two original source hashes and creates the exact recorded filtered source files. Compile those two files as dwgwriter15.cpp.o and dwgwriter24.cpp.o, replace matching members in a scratch copy of the coherent archive, link the same producer against that scratch archive, and generate AC1018/1024 pairs. Convert the recorded source, baseline and filtered DWGs with the ODA command above and run the peer audit. Scratch outputs are byte-identical to the earlier diagnostic source variants; checks never overwrite input drawings.",
+    "clean_snapshot_verification": {
+      "result": "Built libdxfrw from an isolated git archive of ac762fce, compiled the recorded producer, and regenerated all four AC1018/1024 baseline DWGs byte-identically. Rebuilt both source-bound scratch writer variants against the same snapshot, replaced only those objects in a copy of the isolated archive, recompiled the producer and regenerated all four filtered DWGs byte-identically. The experiment is independent of later uncommitted shared-tree changes.",
+      "snapshot_library_sha256": "d4a61a35d2ecb82d0035da9d580f740ea46852d59ec7fb8aba6dfb59a3cf9c28",
+      "snapshot_filtered_library_sha256": "afa956909e7b6ff561673325da4d45380ab3880354ea26911e4dd7e2ab6bb854"
+    }
+  },
+  "limits": [
+    "AC1018/1024 findings are limited to the sampled model-space 2D/3D records and provider configuration. No paper/named-block, mesh/polyface or arbitrary-entity claim.",
+    "AC1027/1032 producer controls were good, but generated outputs failed earlier; no isolated child-membership causal claim is made for them.",
+    "Native editing, rendering, full-document fidelity, and other consumers remain unqualified.",
+    "Scratch DWG/DXF/ODA output lives under /private/tmp/polyline-cross-version and is not committed."
+  ]
+}

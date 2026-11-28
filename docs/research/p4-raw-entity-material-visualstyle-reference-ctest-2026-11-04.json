@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-raw-entity-material-visualstyle-reference-ctest-2026-11-04",
+  "date": "2026-11-04",
+  "status": "GENERATED_REFERENCE_CONTROL_REGISTERED_AND_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Make the existing generated DXF entity common-reference control independently runnable through CTest. Its raw carrier checks cover group-347 MATERIAL and the optional group-348 VisualStyle target alongside typed consumer references.",
+  "control": {
+    "source": "tests/dxf_fixture_tests.cpp testMaterialConsumerBindings",
+    "profiles": 64,
+    "sourceVersions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "inputEncodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "outputEncodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "rawReferences": [
+      {
+        "groupCode": 347,
+        "target": "MATERIAL"
+      },
+      {
+        "groupCode": 348,
+        "target": "VISUALSTYLE",
+        "selectedInCoupledProfiles": true
+      }
+    ],
+    "checks": [
+      "Exact emitted target identities and owners for material and coupled visual-style references",
+      "Typed and raw entity reference carriers with emitted-output readback",
+      "Staged-section replay and atomic mutation refusal/retry for group-347 material and selected typed references",
+      "Provider/body mutation, target-role, allocation-failure and consumer callback controls"
+    ],
+    "fixturePolicy": "All source records and output drawings are generated in temporary directories and removed; no fixture was added."
+  },
+  "testRegistration": {
+    "name": "dxf_raw_entity_material_visualstyle_bindings",
+    "command": "libdxfrw_dxf_fixture_tests --material-consumer-bindings",
+    "labels": [
+      "fast",
+      "dxf",
+      "adapter",
+      "raw-entity",
+      "material",
+      "visual-style",
+      "reference",
+      "transaction",
+      "generated"
+    ],
+    "timeoutSeconds": 30
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j3",
+    "buildExitCode": 0,
+    "ctest": "ctest --test-dir build-gcc -R '^dxf_raw_entity_material_visualstyle_bindings$' --output-on-failure",
+    "ctestExitCode": 0,
+    "ctestResult": "1/1 passed in 1.80 seconds"
+  },
+  "limits": [
+    "Generated adapter output/readback is not native CAD interoperability or rendering evidence.",
+    "This selected material/visual-style route does not qualify all DWG material graphs or physical source-document completeness.",
+    "No platform support or general DXF object-graph completeness claim is inferred."
+  ]
+}

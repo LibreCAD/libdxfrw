@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader consumer-ledger and cross-peer security reconciliation",
+  "mode": "read-only primary-source research and focused local source inspection",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile LibreCAD 3's published DWG claim policy with the existing consumer-compatibility and support boundaries",
+    "Cross-map current LibreDWG security disclosures to local DWG parser/writer guard points and existing hardening owners",
+    "Check whether GDAL's public DXF known-issues page is current enough or complete enough to act as a comparator contract",
+    "Refine the implementation plan without expanding the local fast-slice queue or changing support claims"
+  ],
+  "method": {
+    "kind": "Read-only review of public primary-source project documentation/release notes and focused local source inspection",
+    "externalRevisionPinsCaptured": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "GitHub master pages are mutable. The LibreCAD 3 claim/status JSON files were not fetched directly in this pass; counts, blockers, and freeze state are taken from its published DWG policy page. Static local inspection is not an execution of peer security reproducers or a complete audit of all object-table growth paths."
+  },
+  "sources": [
+    {
+      "project": "LibreCAD 3",
+      "url": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+      "revision": "mutable master page reviewed 2026-10-17; exact commit not captured",
+      "observed": "The project documents opt-in DWG reading through WITH_DWG_IMPORT and no DWG writing. Its linked claim ledger is described as frozen with 15 read-direction claims: 11 EXPERIMENTAL, four PENDING_NATIVE, none PROMOTED. Experimental claims retain reviewed-target-debt and unresolved-integrity-diagnostic blockers. The page sets separate prerequisites for any future DWG-write policy. This is consumer policy, not independent parser evidence."
+    },
+    {
+      "project": "LibreCAD libdxfrw",
+      "url": "https://github.com/LibreCAD/libdxfrw/blob/master/README.md",
+      "revision": "mutable master page reviewed 2026-10-17; exact commit not captured",
+      "observed": "The README reports a narrow FreeCAD 1.1.3/macOS arm64 DWG-converter-to-C++-DXF-importer profile and explicitly leaves native Linux and Windows profiles unqualified. The report is not a new independent run; the local detailed qualification record remains scoped to its exact tools, inputs, importer mode, and assertions."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "revision": "0.14.1 release notes dated 2026-07-25; page reviewed 2026-10-17",
+      "observed": "The notes list concrete R2004 decompression/page-map sizing and bounds fixes, R2007 page-range checks, a 3DSOLID SAT block-size overflow, non-finite MLINESTYLE angle loop, stale object pointers across reallocating object operations, pre-R13 OOM/no-progress handling, and HATCH/binary-DXF corrections. These disclose peer failure modes but do not establish matching local defects or peer semantic completeness."
+    },
+    {
+      "project": "OSGeo GDAL",
+      "url": "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md",
+      "revision": "mutable master page reviewed 2026-10-17; document identifies itself as a 2018 snapshot",
+      "observed": "The page lists unsupported DXF entities and projection/round-trip limitations, including missing 3D/OCS in selected projected entities and dropped block attributes on write. Its age and OGR projection model prevent treating it as a current complete DXF parser/writer contract."
+    }
+  ],
+  "localSourceCrossCheck": {
+    "pathsInspected": [
+      "src/intern/dwgutil.cpp: dwgCompressor::decompress18 input-window and back-reference guards",
+      "src/intern/dwgreader18.cpp: dwgReader18::parseDataPage checked page geometry, ranges, and bounded allocation",
+      "src/drw_entities.cpp: DRW_ModelerGeometry::parseDwg positive/capped SAT block framing",
+      "src/drw_objects.cpp: DRW_MLineStyle DWG writer finite-angle admission"
+    ],
+    "assessment": "The focused source view found corresponding guard points for the reviewed decompression/page, SAT-length, and finite-angle failure classes. It did not establish that every upstream reproducer is covered, inspect every reallocating object-table path, or execute any malformed input. No local defect was confirmed."
+  },
+  "implementationDisposition": {
+    "newConfirmedLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "queueChanged": false,
+    "nextSlice": "The 7G.3d placement-prefix sub-slice is complete; continue with the next dependency-ready item already present in the implementation plan. Do not add per-slice peer/runtime/full-suite work.",
+    "consumerBoundary": "Keep LibreCAD source-compatibility checks distinct from LibreCAD 3's read-only, frozen DWG claim ledger. Keep 2D default projection independent from opt-in typed 3D delivery.",
+    "securityBoundary": "Use peer disclosures as focused test-shape leads. When touching a corresponding local owner, use a generated boundary/malformed case and a following-record/object sentinel; broader fuzz/sanitizer checks remain at the scheduled checkpoint.",
+    "gdalBoundary": "Use only a pinned GDAL version/profile for named projection comparisons; do not turn the 2018 known-issues list into a current local finding or full semantic oracle.",
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "localTestsRun": false,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "receiptJsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)"
+  }
+}

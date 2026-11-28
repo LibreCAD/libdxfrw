@@ -1,0 +1,113 @@
+{
+  "schema": "libdxfrw-deeper-broader-freecad-occt-licensed-3d-route-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Reconcile current public FreeCAD, OCCT, and CAD Exchanger evidence into the DWG/DXF 3D support plan, distinguishing open-source codec/kernel capability, stock FreeCAD integration, and separately licensed modeler routes.",
+  "method": {
+    "kind": "Primary project documentation/source and public maintainer issue review, plus local plan/source crosswalk",
+    "sourcesOpened": [
+      "https://github.com/Open-Cascade-SAS/OCCT",
+      "https://github.com/Open-Cascade-SAS/OCCT-Components",
+      "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/FreeCAD/FreeCAD/issues/18454",
+      "https://cadexchanger.com/formats/",
+      "https://github.com/yorikvanhavre/CADExchanger"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Project pages and source are implementation/feature statements; FreeCAD documentation is archived and cannot establish a current release contract. Mutable main-branch source is discovery evidence only. Vendor format matrices and FreeCAD issue discussion do not prove acceptance of a specific DWG/DXF/SAT/SAB payload. Existing hash-pinned local FreeCAD 1.1.3 runs remain limited to their exact recorded tuples."
+  },
+  "evidence": [
+    {
+      "topic": "OpenCascade open-core versus ACIS/DXF exchange",
+      "sources": [
+        "https://github.com/Open-Cascade-SAS/OCCT",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md"
+      ],
+      "observed": [
+        "The OCCT project identifies the open-source core as LGPL-2.1 with a special exception.",
+        "The separate OCCT-Components project classifies ACIS SAT/SAB import-export and DXF import-export as commercial extensions and directs users to a purchase path for full components."
+      ],
+      "doesNotEstablish": [
+        "A free/open-source OCCT build with the ACIS or DXF commercial components enabled",
+        "Acceptance or semantic correctness for any particular ACIS version, DWG AcDs record, or libdxfrw output"
+      ],
+      "planUse": "Do not assume stock OCCT or FreeCAD's OCCT dependency provides an ACIS reader. Keep licensed ACIS import as a separately authorized external route; it is not an open-source peer implementation, default dependency, or per-slice requirement."
+    },
+    {
+      "topic": "FreeCAD importer split and documentation freshness",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "observed": [
+        "The FreeCAD documentation repository is archived (read-only since 2026-04-01); its Draft DXF page describes separate C++ and optional legacy Python importers, lists 3D faces only under the legacy importer, and says 3D ACIS/SAT solids cannot currently be read.",
+        "The current FreeCAD source has a C++ DXF importer and a separate DWG adapter that converts to DXF before calling the DXF open/insert route; importer settings and post-processing are part of the consumer profile.",
+        "In issue #18454, a FreeCAD maintainer states the standard DXF importer cannot read the proprietary ACIS blob and closes the report as not planned."
+      ],
+      "doesNotEstablish": [
+        "A current version-wide guarantee for either importer from archived documentation or mutable main source",
+        "That every explicit 3D DXF entity is unsupported or supported",
+        "ACIS semantics, B-rep validity, or ACDSDATA owner/history behavior"
+      ],
+      "planUse": "Keep every FreeCAD result keyed by pinned release/revision, OS/architecture, importer implementation/effective mode, operation, version, and entity. Native Linux/Windows S8.9.5 proves converter installation/handoff only unless final-document geometry independently passes. If FreeCAD entity support is claimed, run the selected importer and inspect final-document shape/topology rather than parser counts or published tables alone."
+    },
+    {
+      "topic": "Commercial FreeCAD ACIS-capable route",
+      "sources": [
+        "https://cadexchanger.com/formats/",
+        "https://github.com/yorikvanhavre/CADExchanger"
+      ],
+      "observed": [
+        "CAD Exchanger's current format matrix advertises B-rep read for DWG and DXF and read/write for standalone SAT/SAB.",
+        "The FreeCAD add-on states it invokes the vendor's ExchangerConv process to convert supported input to Open CASCADE BREP, then loads that BREP into FreeCAD; the vendor application is commercial and separately licensed."
+      ],
+      "doesNotEstablish": [
+        "Open-source implementation status",
+        "Exact ASM 230/ACIS-218 payload compatibility, DWG AcDs linkage, history lifecycle, or source-handle/owner preservation",
+        "A current run, geometry metrics, or any native Linux/Windows FreeCAD result for this repository's payloads"
+      ],
+      "planUse": "Retain CAD Exchanger only as an optional licensed external reader/consumer candidate. If authorized and later selected, use the same exact hashed DWG, DXF, and extracted SAB inputs; record product/license/runtime, route, importer operation, repairs/omissions, and independently expected geometry metrics. Never substitute this result for open-source support or for the stock FreeCAD importer profile."
+    }
+  ],
+  "implementationReadiness": {
+    "localImplementationOrderChanged": false,
+    "existingFindingsOrSubplansChanged": false,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 123,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue local format work independently of optional FreeCAD, OCCT commercial components, and vendor licenses.",
+      "Keep S8.9.5 native Linux/Windows qualification scoped to installed converter discovery, exact argv/status, valid output, and selected importer handoff; do not infer ACIS or 3DFACE geometry support from that gate.",
+      "Keep modeler semantics behind a source-native known-size witness, exact carrier/owner linkage, an independent reader, and separately measured B-rep metrics; treat CAD Exchanger only as a licensed optional route.",
+      "Before a FreeCAD entity claim, run a pinned runtime against the actual final output with the selected importer mode and assert final document objects/topology; archived docs and mutable main source are not runtime evidence.",
+      "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+    ]
+  }
+}

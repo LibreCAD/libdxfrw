@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "CONTROLLED_ODA_RESAVE_INTRODUCES_UNCLAIMED_739_BYTE_SUFFIX",
+  "supportClaimEffect": "none",
+  "question": "Does the observed ODA suffix appear when resaving a different AC1027 file whose source HEADER has no suffix?",
+  "source": {
+    "local_path": "/private/tmp/libredwg-tablecontent-probe-src/test/test-data/2013/Line.dwg",
+    "sha256": "351a239cdae05894fe11863aabecfde171bd4d1758a3dd1c9868d8fe534fe6c1",
+    "provenance": "Existing local copy of the LibreDWG test-data tree; this scratch copy has no .git directory, so repository revision and original producer are not independently attested. GNU LibreDWG 0.14 decodes the source AppInfo product string as AutoCAD G.55.0.0(x64), registry version 19.0; this is self-reported file metadata, not independent proof of authorship."
+  },
+  "converter": {
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "version": "27.1.0",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "command": "ODAFileConverter line-in line-out ACAD2013 DWG 0 0; process exit 0; no .err file observed. The original sample was copied to a scratch-only input directory.",
+    "resave_sha256": "dae062259d7ee68605ebe51febafb7bc3fd6989de8fe4ee2669a91bb445459cc"
+  },
+  "header_envelope": {
+    "method": "The existing libdxfrw dwgReader27 extraction driver (binary SHA-256 ad53fc82b570004821c8bee6bf55fbee6a73078e3148db31532e57c2f4be118b; source SHA-256 50dcbe5a4c34d5a3e7ccd026a98a6c370c670f057e6c08706c1cc2ba320a6e75) extracts the declared logical HEADER section. The companion independent Python checker verifies begin/end sentinels, the size-to-trailer relation, CRC16, and suffix relation; section page decompression is not independently decoded in this particular experiment.",
+    "checker": "tools/audit_ac1027_header_suffix_compare.py",
+    "checker_sha256": "8efea719fbf75f5670aa36b12d8f7ace4fd669ea26c76522f906dafa42adefa4",
+    "source": {
+      "logical_size": 810,
+      "section_sha256": "67feeea118e7f370cd3a706d469ea460d09139107dabf5318d110828df0612a1",
+      "declared_size": 768,
+      "payload_end": 792,
+      "stored_and_computed_crc": "0x32db",
+      "trailer_end": 810,
+      "suffix_bytes": 0
+    },
+    "oda_resave": {
+      "logical_size": 1525,
+      "section_sha256": "6b508218713aeef962124bb55a1328e42693104b2608d89c144f15f313e9a27c",
+      "declared_size": 744,
+      "payload_end": 768,
+      "stored_and_computed_crc": "0x73a6",
+      "trailer_end": 786,
+      "suffix_bytes": 739,
+      "suffix_sha256": "4566fa0dcd615cbadb32caec999997c2b61dd68a3dd99d54db4c6d6fafd57ccb"
+    },
+    "suffix_relation": "At all 739 byte positions, its lowest bit is the inverse of the ODA Cover resave suffix 76331dab9c1e0c7c42474490b5f8c6c1d5cacbd6c3e3d4e24d6dea8d9cb4b5f0. This is exact for these observed outputs only.",
+    "negative_controls": "The checker rejected separately altered envelope data, ending sentinel, declared size, each incorrect expected section digest, and a nonempty source suffix. The exact digest bindings and empty-source assertion are enabled by the checker command below. Converter invocation and source-to-resave lineage remain separately observed manual joins; the checker does not establish that lineage or authenticate bytes after the sentinel.",
+    "checker_command": "python3 tools/audit_ac1027_header_suffix_compare.py /private/tmp/header-external-corpus/Line-c15ae.bin /private/tmp/header-external-corpus/line-resave-header.bin /private/tmp/libdxfrw-cover-unlock-1104/header.bin --require-empty-source-suffix --expected-source-sha256 67feeea118e7f370cd3a706d469ea460d09139107dabf5318d110828df0612a1 --expected-resave-sha256 6b508218713aeef962124bb55a1328e42693104b2608d89c144f15f313e9a27c --expected-reference-sha256 1190e9eb85c96d8fd9eded2a64120449c98917fffe4226f44e6f5676f36ac9a2"
+  },
+  "different_source_corpus": {
+    "method": "The same local LibreDWG test-data tree yielded 20 AC1027 drawings, including the Line sample. All twenty extracted HEADER sections ended at their sole documented end sentinel, with CRC16 and one of the two inspected size-to-trailer positions matching. This is a read-only local-corpus observation; per-file writer provenance and repository revision were not independently verified, and no claim is made that the 20 are independent products."
+  },
+  "dxf_comparison": {
+    "method": "ODA 27.1 converted both original and resaved DWGs in one scratch batch to ACAD2013 DXF, recursion=0 audit=0; exit 0 and no .err observed. ezdxf 1.4.5 independently read the model-space LINE from both DXFs.",
+    "original_dxf_sha256": "999d0367f2790f9d0dd944ce183087cc430294c357bf975674ef3a66d09ca21f",
+    "resave_dxf_sha256": "8a160abb614960e18b0262f538806f4c7df70df5e0bec8250dde6f02742845b1",
+    "common_line": {
+      "handle": "1CA",
+      "layer": "0",
+      "start": [
+        21.60776672302099,
+        2.811923503435004,
+        0.0
+      ],
+      "end": [
+        11.03073729285443,
+        16.63754473799148,
+        0.0
+      ]
+    },
+    "limitations": "The DXFs differ in $TDUPDATE/$TDUUPDATE, $HANDSEED and some dictionary/XRECORD handle identities. Only this one LINE entity is compared; these DXFs are not byte-identical and no global graph or semantic equivalence is asserted."
+  },
+  "generator_probe": "For the prior Cover and authored-LTYPE suffixes, exhaustive 8-bit affine recurrences were tested as a common XOR mask over the first 64 corresponding bytes. No seed, multiplier and increment matched that bounded model. This does not rule out wider state, a different generator, position-dependent masking or encoded structured data.",
+  "conclusion": "A suffix-free source acquires exactly the 739-byte low-bit-related suffix during this ODA resave, substantially narrowing origin to the observed save process. No source-backed semantic interpretation, independent kernel/native verification or authoritative admission rule was established. Continue to report HEADER suffix as unclaimed and refuse strict-complete output. No support claim changes and no DWG/DXF fixtures were committed."
+}

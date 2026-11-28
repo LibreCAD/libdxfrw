@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "id": "p7-ac1021-ezdxf-sat-parser-boundary-2026-11-09",
+  "purpose": "Screen the exact selected AC1021 torus SAT payload with a locally available independently maintained ACIS text parser.",
+  "input": {
+    "path": "/private/tmp/acsh-semantic-probe/torus-precision.sat",
+    "sha256": "4917d971df23651987e01f18cf8635d19dab7ec2c306c910734ba0093641da08",
+    "byteLength": 1057,
+    "headerVersion": 21500
+  },
+  "parser": {
+    "project": "ezdxf",
+    "revision": "dd7f6cc34983fdbf0b2b910f2497e0720d06dd16",
+    "repository": "/Users/dli/dev/ezdxf",
+    "workingTree": "clean",
+    "files": {
+      "src/ezdxf/acis/sat.py": "3aa0ae6a3aa12c1598ac840a0a897222289dd2d9edd4089e270572f446842052",
+      "src/ezdxf/acis/hdr.py": "8d143828dd1ec2b65659811df5cd8f0aeddf201406bdf90d34e64c005519328b",
+      "src/ezdxf/acis/abstract.py": "9a6b7cd85bdf9eb5afb064a1cdd9490fddefa349418dee787d9bbcf26ae66f39"
+    },
+    "kernel": "None; ezdxf documents that it has no ACIS kernel."
+  },
+  "observations": {
+    "normalLoad": "SatLoader.load rejects the 21500 input before entity construction: its version >= 700 record path expects a numeric entity ID, but this Autodesk-modified record has $-1 in that position.",
+    "lowLevelSyntaxProbe": {
+      "method": "Run ezdxf parse_header, parse_records and build_entities using the pre-700 record shape only to inspect raw tokens; no pointer graph or entity semantics are asserted.",
+      "recordCount": 13,
+      "entityNames": ["asmheader", "body", "eye_refinement", "face", "fmesh-eye-attrib", "lump", "ref_vt-eye-attrib", "shell", "torus-surface", "vertex_template"],
+      "torusSurfaceRawData": ["$-1", "$-1", "1383.6151200595348", "418.50000000000074", "1158.7551894926819", "-0.50142378241347973", "-1.6431677767887314e-16", "-0.86520182063502349", "19", "2.7899834596164137", "-0.86520182063502349", "-3.8945365021134883e-17", "0.50142378241347973", "forward_v", "I", "I", "I", "I"],
+      "pointerResolution": "Fails with IndexError: eye_refinement contains $3000, which is outside the 13-record list under ezdxf's pointer interpretation."
+    }
+  },
+  "disposition": {
+    "result": "Not an independent semantic/kernel witness. The high-level loader does not admit this modified SAT version; the forced legacy low-level probe preserves tokens only and cannot establish pointer roles, topology, placement or geometry meaning.",
+    "planEffect": "Record ezdxf as screened for this exact payload; do not retry it as an independent B-rep route. Keep independent-kernel and source-native qualification open.",
+    "fixturePolicy": "No input fixture or external repository file was added to libdxfrw."
+  }
+}

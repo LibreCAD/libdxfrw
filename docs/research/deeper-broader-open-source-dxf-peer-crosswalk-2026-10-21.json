@@ -1,0 +1,169 @@
+{
+  "schema": "libdxfrw-open-source-dxf-peer-crosswalk-v2",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary DXF schema review, current open-source documentation/changelog/source review, and local implementation/test-owner audit",
+  "sources": [
+    {
+      "project": "Autodesk AutoCAD DXF Reference",
+      "revision": "Published 2018-2025 pages reviewed 2026-10-21",
+      "references": [
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-EC56D0DE-026D-46AB-87B1-9692393B0C22.htm",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-B2E6436A-F17D-4F59-9DE8-DBDB61AD36C6.htm",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-BB62483A-89C3-47C4-80E5-EA3F08979863.htm",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbNurbSurface.html"
+      ],
+      "observations": {
+        "ordering": "Common entity tables explicitly warn not to depend on their display order and recommend code-keyed dispatch. This does not authorize global tag sorting: nested framing, declared counts, same-code occurrence order, and entity-specific scopes still govern meaning.",
+        "mline": "The three vector families are repeated per vertex; 74/41 and 75/42 are count-framed nested lists; group-2 style names are redundant with the 340 style object reference.",
+        "spline": "Knot values and control/fit points have separate repeated arrays; group-41 weights are present only when the weights are non-unit as specified.",
+        "nurbsurface": "The published SURFACE DXF page supplies common modeler-data and isoline fields but no repeated CV grid. The ObjectARX API's in-memory control-point array is not a DXF wire sequence."
+      },
+      "limitation": "DXF schema pages do not establish DWG byte layouts, CAD rendering, or ACIS semantics."
+    },
+    {
+      "project": "LibreDWG",
+      "revision": "NEWS on mutable master and published 0.13.4 manual observed 2026-10-21; no checkout or execution",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://www.gnu.org/software/libredwg/manual/html_node/ENTITIES.html"
+      ],
+      "observations": {
+        "peerReportedRiskPatterns": [
+          "HATCH association-handle index reset across boundary paths and per-path derived-state aggregation",
+          "Rational HATCH spline knot/weight association",
+          "Final SAT block dropped during 3DSOLID/REGION DXF export"
+        ],
+        "planUse": "Keep these as source-backed audit prompts under the existing HATCH and modeler test owners; do not infer a libdxfrw defect from a peer fix or status statement."
+      },
+      "limitation": "A changelog/manual is not a pinned peer runtime, complete field-level proof, native-consumer result, or independent geometry oracle."
+    },
+    {
+      "project": "ezdxf",
+      "revision": "Stable documentation and mutable master source observed 2026-10-21; no runtime executed",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mleader.html",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/xref.rst"
+      ],
+      "observations": {
+        "mleader": "Its documented model separates context, leader nodes, lines, vertices, and break records; this supports one-scope-at-a-time probes.",
+        "exportLimit": "Source documentation says ezdxf is not a CAD application and unsupported version-specific features can be ignored during export; peer comparisons need an explicit retained/dropped field ledger.",
+        "acis": "Documentation limits ACIS handling and does not provide an arbitrary ACIS geometry kernel."
+      },
+      "limitation": "Documentation/source review is not an executed differential or native CAD test; do not count shared parser/kernel lineages as independent votes."
+    },
+    {
+      "project": "FreeCAD",
+      "revision": "Official Draft DXF documentation on mutable main observed 2026-10-21",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observations": {
+        "consumerProfile": "Documents separate C++ and optional legacy importers, enumerates explicit entity subsets, says embedded binary ACIS/SAT solids cannot currently be read, and describes DWG import as converter-to-DXF followed by the FreeCAD DXF importer.",
+        "planUse": "Use stock FreeCAD for a pinned native 2D/explicit-entity converter/import check; keep ACIS/3DSOLID semantics in a separate reader/kernel/consumer gate."
+      },
+      "limitation": "Documentation is not a run on current native Linux/Windows builds and is not evidence of DWG converter correctness or 3D solid support."
+    }
+  ],
+  "localAudit": {
+    "confirmedAndFixed": [
+      {
+        "entity": "MLINE repeated vectors and nested parameters",
+        "path": "src/drw_entities.cpp: DRW_MLine::parseCode",
+        "failureShape": "A rooted MLINESTYLE ASCII profile with Y/Z-before-X position components was rejected by the old parser.",
+        "correction": "Independent bounded ordinals for all nine vector component codes; separate bounded segment/fill cursors; early parameter blocks attach when the declared group-73 element count arrives.",
+        "receipt": "docs/research/dxf-mline-vector-component-order-fast-slice-2026-10-21.json"
+      },
+      {
+        "entity": "MLEADER repeated leader-line vertex components",
+        "path": "src/drw_entities.cpp: DRW_MLeader::parseDxfContextCode",
+        "failureShape": "Generated ASCII and Binary context controls grouped repeated Y/Z vertex arrays before X inside one LEADER_LINE scope; the old parser discarded those components because it opened points only on group 10.",
+        "correction": "Per-component bounded occurrence ordinals scoped to the current LEADER_LINE; group-305 closure checks X slot count and rejects Y/Z overflow.",
+        "receipt": "docs/research/dxf-mleader-vertex-component-order-fast-slice-2026-10-21.json"
+      }
+    ],
+    "peerReportedRiskAudit": [
+      {
+        "risk": "HATCH path-local reference indexing and derived flag aggregation",
+        "owner": "tests/hatch_reference_tests.cpp / dwg_hatch_reference_graph",
+        "auditResult": "Existing focused owner checks multiple boundary paths, path-local handle associations, flags, and exact rational spline knot/weight payloads."
+      },
+      {
+        "risk": "Final SAT block preservation on DXF export",
+        "owner": "tests/modeler_dxf_writer_matrix_tests.cpp / dwg2dxf_modeler_dxf_writer_matrix",
+        "auditResult": "Existing owner checks exact group-1/group-3 chunks and payload readback including the terminal block."
+      }
+    ],
+    "additionalSchemaCrossCheck": {
+      "entity": "SPLINE rational weights",
+      "schemaObservation": "Autodesk documents optional group-41 weights, omitted for unit-weight cases.",
+      "localOwner": "Existing generated knot-domain tests cover omitted and explicit unit weights, non-unit/zero/negative weights, exact field readback, and independent quadratic curve evaluation; do not add duplicate coverage."
+    },
+    "negativeSchemaAudit": {
+      "entity": "NURBSURFACE repeated grid/control-point component-order candidate",
+      "path": "src/drw_entities.cpp: DRW_NurbsSurface::parseCode; src/libdxfrw.cpp: NURBSURFACE writer branch",
+      "result": "NOT_APPLICABLE_SCHEMA_DOES_NOT_DEFINE_REPEATED_GRID",
+      "evidence": "Autodesk's published SURFACE page defines common modeler data and isoline fields but no repeated grid; LibreDWG's independent 0.13.4 field map identifies only fixed scalar fields and four fixed vectors for NURBSURFACE. ObjectARX's in-memory CV array is not DXF serialization schema.",
+      "receipt": "docs/research/deeper-broader-nurbsurface-dxf-schema-negative-audit-2026-10-21.json",
+      "remainingLocalComponentOrderCandidates": []
+    }
+  },
+  "planDelta": {
+    "existingOwnersOnly": [
+      "PAR-05/7BQ.5 DXF syntax and entity group order",
+      "Existing HATCH, MLINE/MLEADER, NURBS-surface, and 3DSOLID/modeler owners"
+    ],
+    "implementationReadySequence": [
+      "MLINE is implemented and covered by generated rooted ASCII/Binary controls; do not duplicate it.",
+      "MLEADER leader-line vertex component order is implemented in one fixed scope with exact tuple, closure, excess-component, and post-context sentinel checks; do not duplicate it.",
+      "NURBSURFACE repeated-grid candidate closed as not applicable after the schema audit; do not add a grid probe or production change.",
+      "Proceed to the composed checkpoint: reconcile source/typed/raw/dropped-field dispositions and run one pinned peer comparison; keep consumer and ACIS/kernel gates separate.",
+      "Refresh plan/receipt after each slice, run only its fast owner CTest and compatibility build, then self-unblock to the next local candidate.",
+      "At a composed checkpoint, pin one peer and report source/typed/raw/unsupported field disposition separately; keep FreeCAD 2D acceptance and ACIS/kernel qualification distinct."
+    ],
+    "noPersistentFixture": true,
+    "noPeerRuntimeOrNativeRun": true,
+    "supportClaimsPromoted": false,
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "existingAuditValidation": [
+    {
+      "command": "cmake --build build --target libdxfrw_dwg_local_roundtrip -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^(dwg2dxf_modeler_dxf_writer_matrix|dwg_hatch_reference_graph|dwg_hatch_rational_spline_weight_handoff|dwg_hatch_dwg_boundary_references)$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 4,
+      "testsFailed": 0
+    },
+    {
+      "command": "cmake --build build --target libdxfrw_hardening_tests lc3_compat_check -j4 && build/libdxfrw_hardening_tests --mleader-context-roundtrip && ctest --test-dir build -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0,
+      "detail": "Focused selector covers ASCII/Binary exact two-point tuples and excess-Y refusal; owning hardening CTest passes 1/1."
+    }
+  ],
+  "limits": [
+    "The current LibreDWG NEWS entries are peer-reported risk prompts, not reproduced libdxfrw defects.",
+    "The NURBSURFACE negative schema audit closes only the repeated-grid parser-order candidate; it does not qualify NURBS or ACIS semantics.",
+    "No peer executable, FreeCAD build, native CAD, or geometry kernel ran.",
+    "No external/customer drawing or persistent fixture was added.",
+    "FreeCAD documentation supports a bounded 2D/explicit-entity gate only; it cannot promote ACIS/3DSOLID semantics.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "ODA Open Design Specification v5.4.1 remains authoritative for DWG byte-layout questions."
+  ]
+}

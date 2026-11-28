@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw-ac1027-acdsdata-qualification-hex-view-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "slice": "7S.2c.d.17.47",
+  "scope": "Avoid copying each validated AC1027 ACDSDATA group-310 hex string into a temporary string before byte decoding.",
+  "implementation": {
+    "filesChanged": [
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "hasQualifiedAc1027AcdsRecord reads the existing group string through std::string_view while retaining per-digit validation, odd-length rejection, payload limit checks, owner/signature validation, exact payload comparison, and fail-closed behavior.",
+    "publicApiChanged": false,
+    "publicLayoutChanged": false,
+    "callbackContractChanged": false,
+    "dependenciesAdded": 0,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-acds-qualification-hex-view",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/libdxfrw.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/ac1027-acdsdata-qualification-hex-view-fast-slice-2026-10-17.json",
+        "result": "PASS"
+      }
+    ],
+    "generatedControls": {
+      "version": "AC1027",
+      "writers": [
+        "ASCII DXF",
+        "Binary DXF"
+      ],
+      "cases": [
+        "exact schema, ACDS owner, declared length, group-310 SAB bytes, and entity data-storage payload qualify",
+        "malformed group-310 hex is rejected before modeler record publication"
+      ],
+      "assertions": [
+        "valid matched record is accepted",
+        "invalid hex is rejected with write error before output",
+        "modeler payload remains unchanged"
+      ],
+      "persistentFixtureAdded": false,
+      "externalInputsDownloaded": 0
+    },
+    "fullSuiteRun": false,
+    "allocatorCountMeasured": false,
+    "peakRssMeasured": false,
+    "throughputMeasured": false,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktree": {
+    "preexistingDirtyChangesPreserved": true,
+    "committed": false,
+    "reason": "The shared checkout contains broad unrelated modifications and Git metadata is read-only."
+  }
+}

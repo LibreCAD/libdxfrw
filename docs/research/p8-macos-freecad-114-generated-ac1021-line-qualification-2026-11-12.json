@@ -1,0 +1,56 @@
+{
+  "title": "macOS FreeCAD 1.1.4 generated AC1021 3D LINE open/insert qualification",
+  "date": "2026-11-12",
+  "status": "PASS for generated one-LINE open/insert consumer route only",
+  "platform": "macOS 27.2.1 arm64",
+  "freecad": {
+    "version": "1.1.4",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "binary": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd"
+  },
+  "source": {
+    "provenance": "Generated from scratch for this control by tests/libdxfrw_dwg_local_roundtrip --generate-cli-batch-source",
+    "version": "AC1021",
+    "sha256": "562e063eea7c71e2869d080bc4341d2d9bd0019c5f6954653e30b702816a68e5",
+    "entities": "One 3D LINE with endpoints (1,2,3) and (4,5,6)"
+  },
+  "converter": {
+    "path": "/private/tmp/libdxfrw-freecad-current-install/bin/dwg2dxf",
+    "sha256": "36ccaf73892eba809aed7316272d5e02d1ce2f4b645c4d3057109df391f506f1",
+    "sourceBinary": "/Users/dli/dev/libdxfrw/build-gcc/dwg2dxf/dwg2dxf",
+    "buildAndSourceBinaryHashMatch": true,
+    "generatedDxfSha256": "9a6607008db688794a90427ee3f9c4cb14972a896ccc7296b0b62d4617e3abcc"
+  },
+  "operations": {
+    "open": {
+      "result": "PASS",
+      "converterReturnCode": 0,
+      "freecadImporter": "C++ Import backend via Draft DWG open route",
+      "createdObjects": 1,
+      "entityCounts": {"LINE": 1},
+      "actualEndpoints": [[ [1.0, 2.0, 3.0], [4.0, 5.0, 6.0] ]],
+      "actualBounds": [[1.0, 2.0, 3.0, 4.000000000000001, 5.000000000000001, 6.000000000000001]],
+      "unsupportedFeatures": []
+    },
+    "insert": {
+      "result": "PASS",
+      "converterReturnCode": 0,
+      "freecadImporter": "C++ Import backend via Draft DWG insert route",
+      "createdObjects": 1,
+      "entityCounts": {"LINE": 1},
+      "actualEndpoints": [[ [1.0, 2.0, 3.0], [4.0, 5.0, 6.0] ]],
+      "actualBounds": [[1.0, 2.0, 3.0, 4.000000000000001, 5.000000000000001, 6.000000000000001]],
+      "unsupportedFeatures": []
+    }
+  },
+  "execution": {
+    "harness": "tests/run_freecad_installed_3d_line_test.cmake",
+    "macro": "tests/freecad_dwg2dxf_import_check.FCMacro",
+    "preflight": "Installed converter strict conversion succeeded before FreeCAD launch; installed/build-tree executable SHA-256 matched.",
+    "preferences": "Isolated temporary FreeCAD preferences; Unicode and space-containing input/output paths; PATH-based converter discovery; expected converter path and SHA asserted.",
+    "sandbox": "The first sandboxed CTest attempt aborted before import because the Qt build could not detect ARM NEON. Unsandboxed direct harness runs passed.",
+    "pinnedWorkflowDisposition": "The repository workflow pins FreeCAD 1.1.3 revision 145529fe741292ff0b3977a01195bf0247425794. The installed local 1.1.4 revision is different, and the pinned CTest correctly refuses it. The passing direct runs override only the expected revision to the detected local 1.1.4 commit; they are not the pinned 1.1.3 CI qualification."
+  },
+  "scopeLimit": "One locally generated 3D LINE profile on macOS only. No physical producer, other entity families, 3D solid/ACIS semantics, LibreCAD/LibreCAD_3 integration, Linux/Windows native route, ABI, or support claim is qualified.",
+  "fixtures": "The generated DWG and DXF remained in temporary storage; no drawing fixture was added to Git."
+}

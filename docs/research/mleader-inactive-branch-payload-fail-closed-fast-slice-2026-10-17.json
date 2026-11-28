@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw-mleader-inactive-branch-payload-fail-closed-fast-slice-v1",
+  "date": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reject DXF MLEADER text/block payload fields when their context presence flags are false, preventing typed parse-to-write loss.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "textBranchGuard": "Reject text-context payload group codes unless context group 290 has set hasTextContents true.",
+    "blockBranchGuard": "Reject block-context handle and payload group codes unless context group 296 has set hasContentsBlock true.",
+    "rejectionTiming": "Before reading or assigning the offending payload value; before the MLEADER callback.",
+    "contextGroup172Unaffected": true,
+    "leaderRootGroup290Unaffected": true,
+    "dualFlagRoundTripPreserved": true,
+    "entityContentType3OrUnknownWriterRefusalPreserved": true,
+    "dwgBlockContentWriterChanged": false
+  },
+  "tests": {
+    "files": ["tests/hardening_tests.cpp", "tests/wave1_tests.cpp"],
+    "existingOwnersReused": [
+      "testMLeaderDxfContextRoundTrip / --mleader-context-roundtrip",
+      "testMLeaderWriterMinimumVersion / libdxfrw_mleader_writer_version"
+    ],
+    "generatedControls": [
+      "ASCII context with group 290 false followed by MTEXT group 304",
+      "Binary context with group 290 false followed by MTEXT group 304",
+      "ASCII context with group 296 false followed by BLOCK handle group 341",
+      "Binary context with group 296 false followed by BLOCK handle group 341",
+      "ASCII and binary writer profile with a context and 290=0/296=0",
+      "Existing ASCII and binary MTEXT 290=1/296=0 profile",
+      "Existing ASCII and binary BLOCK 290=0/296=1 profile",
+      "Existing dual-enabled 290=1/296=1 structural round-trip"
+    ],
+    "assertions": [
+      "parser rejects each branch payload before typed label/handle assignment",
+      "existing type=BLOCK with both flags true still passes local round-trip",
+      "existing complete context geometry/handles/matrix round-trip remains intact"
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --mleader-context-roundtrip",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_wave1_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_mleader_writer_version$' --output-on-failure",
+        "result": "PASS",
+        "testsPassed": 1,
+        "testsFailed": 0,
+        "elapsedSeconds": 0.27
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.cpp tests/hardening_tests.cpp tests/wave1_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "nativeCadRun": false,
+    "peerExecutableRun": false
+  },
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "owners": ["PAR-20", "MLEADER implementation-ready sequence"],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalDispositionsChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "remainingMleaderQuestions": [
+      "producer-backed content-type × flag × payload matrix",
+      "semantic status of dual-enabled context flags",
+      "DWG block-context output and handle closure",
+      "independent reader and native consumer acceptance"
+    ]
+  }
+}

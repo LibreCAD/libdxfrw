@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-field-reference-output-id-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_WRITER_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Fail-closed DXF serialization for FIELD and FIELDLIST graph edges whose source identity or remapped output identity is null or DRW::NoHandle.",
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": [
+      "FIELD child handles (group 360) and object handles (group 331) reject zero and DRW::NoHandle source IDs.",
+      "FIELDLIST member handles (group 330) reject zero and DRW::NoHandle source IDs and remapped output IDs.",
+      "Active type-64 CadValue object IDs require a positive typed handle and reject zero/NoHandle after source-handle remapping.",
+      "FIELD preflight checks all modeled reference IDs before publishing the record, including nested child CadValues.",
+      "Suppressed type-specific CadValue payloads retain their existing omission behavior."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "focused": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_field_reference_output_id_guard$' --output-on-failure",
+        "result": "PASS",
+        "coverage": "ASCII/Binary normal FIELD/FIELDLIST handle remapping and refusal for zero/NoHandle remap results and NoHandle sources across FIELD hard-child, soft-object, root CadValue, child CadValue, and FIELDLIST member roles. Refusals preserve an empty destination."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_field_dxf_versioned_wire_profiles|libdxfrw_field_cadvalue_object_id|libdxfrw_field_child_object_id_invalid_handle_role)$' --output-on-failure",
+        "result": "PASS"
+      }
+    ],
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "This proves generated writer identity validation only; it does not qualify physical producer breadth, target existence/kind, recursive FIELD graph closure, or native FIELD semantics.",
+    "Unresolved AcObjProp.16.2 body spans and the peer-disputed child type/target-role profiles remain refused and open."
+  ],
+  "next": "Continue the source-backed reference-ID audit at the next locally implementable typed 3D owner/dependency pointer; keep the unresolved physical FIELD schemas fail-closed."
+}

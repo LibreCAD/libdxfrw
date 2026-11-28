@@ -1,0 +1,33 @@
+{
+  "kind": "librecad-staged-entity-inspector-composition",
+  "date": "2026-11-28",
+  "consumerCommit": "8b84db2e8cf64254fa15fd449bc9a7b2cfcada36",
+  "codecCommit": "e7e40c6ec",
+  "scope": "Stage IMAGE entity inspection for composition with MATERIAL and future HATCH inspectors, while preserving older codec fallback and transactional validation.",
+  "checks": {
+    "mixedImageMaterial": {
+      "format": "AC1024",
+      "images": 2,
+      "assertions": 89,
+      "cases": 1,
+      "mode": "LIBRECAD_FAST_MIXED_IMAGE_MATERIAL=1",
+      "logSha256": "c3168e8016cfaebb49705c64786ae3b300d863518b7b1028d4718ad1ce614dfa"
+    },
+    "systemFocused": {
+      "assertions": 441,
+      "cases": 6,
+      "logSha256": "022d713f4bdbc81a986e0764f1aef2cb3c966d75eed16c049faa83b04f554a68"
+    },
+    "bundledFocused": {
+      "assertions": 262,
+      "cases": 11,
+      "logSha256": "59eed6e2ccb2c4025cfbf8ed56ec692859e637708eb4bb5a801c1abb85bf8d6f"
+    }
+  },
+  "limits": [
+    "The focused mixed graph uses a selected generated source; larger graphs and other platforms retain their own qualification gates.",
+    "This does not enable associative HATCH output or establish native editing.",
+    "The bundled test excludes the system-only environment-controlled matrix selection."
+  ],
+  "supportClaimsPromoted": false
+}

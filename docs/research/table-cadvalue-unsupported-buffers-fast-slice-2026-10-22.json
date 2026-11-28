@@ -1,0 +1,41 @@
+{
+  "id": "par134-ac1021-ac1024-table-cadvalue-unsupported-buffers",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "175d727490f0ba01eddd4b7623f6c85e07c8e3a85d7589e656177a1354f4057f",
+  "scope": {
+    "class": "DRW_Table / DRW_TableContentObject",
+    "version": "AC1021 and AC1024",
+    "field": "TABLE CadValue types 128 kBuffer and 256 kResBuf",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "change": "Added generated in-memory regression controls for the existing fail-closed policy on types 128 and 256, whose TABLE payload layouts are undocumented. No production parser change.",
+  "generatedControls": {
+    "ac1021": "Both unsupported kinds fail parsing without guessing an undocumented payload layout.",
+    "ac1024": "Both unsupported kinds are atomically withheld at the optional TABLECONTENT boundary while the TABLE frame remains accepted."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS",
+    "ctest --test-dir build-gcc -R '^libdxfrw_table_(cell_.*|cadvalue_.*)$' --output-on-failure: PASS (11/11)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "productionParserChanged": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-27",
+  "scope": "Generated AC1027 wide-handle DXF dictionary/XRECORD graphs, same-version ASCII to binary and binary to ASCII, restricted to text without control, non-ASCII, caret or backslash bytes.",
+  "implementationDigestSha256": "63651edc1dad5da5c8ffa9913800c56487c7f2d00c6e642aaa2b04c961d371fb",
+  "converterSha256": "eb47dc90f2c8efac9bb7e60782d01ee295d1497099c9bff8e41c37ea8e808c41",
+  "change": "The immutable original stream scan records whether all source text and raw spellings are safe for cross-encoding transport. Source snapshot rebuilding verifies this decision. Existing alias, immutable graph, staged identity/owner and MATERIAL preflights continue to apply; other text refuses atomically. A shared helper enforces the same text rule for opaque MATERIAL bodies.",
+  "hashes": {
+    "two": {
+      "a2b": {
+        "source": "abb5b36272ef1fb7f88c116ab9812476409b087359e6608bfa69e019f7f80b86",
+        "output": "86d41ff5a7d3fb893f74b0b75b08f623aba6a81d1a3c9ac172b891a3b60a11cd"
+      },
+      "b2a": {
+        "source": "32df0d0b2a3c7422c10633a3a50b818d52759b0b45a688ae22cc879318e6e17e",
+        "output": "42b2b2e8117c2790ae2f0c60e10a5cb2cdb338b604425f0b070856231125f2dd"
+      }
+    },
+    "mixed": {
+      "a2b": {
+        "source": "5ead003efb649fe099f1eecc0981d869b851c50c965dc4d60c26f89ea05bbee8",
+        "output": "559936f6659b59ff6b33503a2c286514a2614c0e76e735b8562adaf9a4d35099",
+        "odaReadback": "36621007ace0af7c75e0aec8600f8502b95c67732da57b0e90dae452bfe27f55"
+      },
+      "b2a": {
+        "source": "48bac24eb022ed4b756055c58caa222d64827b32eb8c1294ca699b6618bee826",
+        "output": "867a024278ed78b9be4e12c30bef8e452d04ebe525c902f41c2ef40ef198bdb5",
+        "odaReadback": "468832df25236ba64468b60f92215e45e35fbf5626a41dc9f323f911bb431dc3"
+      }
+    }
+  },
+  "independentReadback": {
+    "ezdxf": "1.4.5 compares the complete selected graph, ordered XRECORD values and targets, MATERIAL body scalar values including group-91 color bits, owner/reactor edges and layer/plot-style references. Two-chain case maps 27 objects and 26 entries; mixed-pointer case maps 28 objects and 27 entries. All source/output audits have zero errors and fixes.",
+    "ODA": "ODA File Converter 27.1.0.0 converts both mixed-pointer outputs to ACAD2013 DWG and back to DXF; independent readback confirms both owners and ordered 330, 331, 349 and 341 target roles."
+  },
+  "validation": [
+    "Focused whole-source, compact MATERIAL graph and AC1024 plot-style CTests pass; the compact graph test was rerun after the final retry control.",
+    "Generated cross-encoding controls cover shared dictionaries, collisions, root/selected targets, 330\u2013349 roles, 16 pointers, payload mutation during output, refusal, destination preservation and corrected retry.",
+    "Escape-sensitive text in either XRECORD payload or MATERIAL is refused in both directions; same-encoding retry succeeds.",
+    "GCC strict test syntax check and source inventory check pass."
+  ],
+  "limits": [
+    "These are generated source and selected-field transport checks, not native AutoCAD support or general DWG/DXF interoperability.",
+    "Selected graph remains bounded to eight chains and 16 pointers per XRECORD; cross-version, unsafe text, other graph shapes and targets need separate evidence.",
+    "LibreDWG 0.14 drops 330/331 body payloads, so compatibility with that peer is not claimed.",
+    "No DWG/DXF drawing fixture was added or committed."
+  ]
+}

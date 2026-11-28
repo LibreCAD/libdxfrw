@@ -1,0 +1,110 @@
+{
+  "title": "Opt-in CCW wrap for ordinary ELLIPSE to R12 POLYLINE",
+  "authority": [
+    "Autodesk DXF ELLIPSE groups 41/42 and WCS center/axis: https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-107CB04F-AD4D-4D2F-8EC9-AC90888063AB.htm",
+    "Autodesk ObjectARX documents CCW angles and end-parameter wrapping: https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbEllipse.html"
+  ],
+  "issue": "The existing signed-sweep tessellator and R12 fallback interpret start 5.5/end 0.5 as a long clockwise sweep. Ordinary DXF ELLIPSE uses CCW traversal across zero, but existing libdxfrw APIs also support intentionally negative/clockwise authored sweeps.",
+  "change": "A standalone marker facet DRW_DxfR12CcwEllipseOptIn explicitly opts a caller adapter into CCW wrap for exact DRW_Ellipse instances, isccw==1, R12 output and canonical parameter endpoints in [0,2pi]. End is advanced by 2pi before ratio normalization only when less than start and outside the existing zero- and full-turn tolerances. No DRW_Interface virtual slot or existing object layout changes; no marker retains the previous result.",
+  "limits": "The marker is document-wide and inherited by adapter subclasses; the caller must know its eligible ordinary ellipses use CCW DXF semantics. It must not be applied blindly to a mixed drawing containing intentional negative/clockwise authored ellipses. Direct toPolyline, HATCH edge writer, derived entity runtime types, isccw=0, out-of-range parameters, equal/full turns and modern output retain existing behavior. Source is locally authored with ezdxf 1.4.5 and converted through ODA 27.1.0; ODA lineage is observed rather than established by hashes alone. No native CAD, general interchange or arbitrary ellipse qualification is claimed.",
+  "witness": "Two authored AC1027 source DXFs (+Z and +Y normals, center 2,3,4, major 4,0,0, ratio .5, parameters 5.5 and .5) were converted by ODA to AC1027 DWG then AC1027 DXF. ODA independently canonicalized end to 6.783185307179586 and retained the short CCW arc. Exact original physical entity groups were isolated unchanged into minimal selected source documents, which the in-tree reader imports completely. A real marker-equipped adapter reads each selected entity and emits R12. Hash-bound ezdxf 1.4.5 verifies every one of 28 R12 vertices against the ODA ellipse; legacy default emits 103 vertices and traverses the opposite side.",
+  "tests": "ctest --test-dir /private/tmp/ellipse-wrap/build -R ^libdxfrw_dxf_r12_ellipse_wrap$ --output-on-failure: 1/1. It covers native selected DXF read and R12 output in ASCII/Binary, default and tilted normals, ratio .5/2, unmodified caller, no-facet legacy behavior, equal/full/noncanonical/clockwise controls, derived subclasses, unchanged modern ELLIPSE, clockwise HATCH edge in ASCII/Binary, and invalid-sentinel/corrected same-writer retry. Compiling the same test against the prior isolated library fails as expected.",
+  "reproduction": [
+    "With ezdxf 1.4.5, run python -B tools/author_r12_ellipse_wrap_source.py <new-dir>; geometry is reproducible, metadata may vary.",
+    "Use ODA File Converter to convert <new-dir> to ACAD2013 DWG, then ACAD2013 DXF.",
+    "Compile tools/probe_r12_ellipse_wrap_consumer.cpp against the candidate library. Use python -B tools/select_r12_ellipse_wrap_source.py --source <authored-dxf> --sha256 <sha> --output <new-selected-dxf>; run <consumer> <selected-dxf> <new-r12-dxf>.",
+    "Run /private/tmp/p7-ac1027-semantic/cqenv/bin/python -B tools/audit_r12_ellipse_wrap.py --source <oda-dxf> --source-sha256 <sha> --output <r12-dxf> --output-sha256 <sha> --mode corrected; use legacy to check the old output path."
+  ],
+  "artifacts": [
+    {
+      "path": "/private/tmp/ellipse-wrap/r12-wrap.patch",
+      "sha256": "e3d59d8c559983e21360ba8b53993d10412ccb8183e8a5935da1dac67131d23a"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/work/tests/dxf_r12_ellipse_wrap_tests.cpp",
+      "sha256": "a335ae17893449ceba228ebd725b0f4b03637cda5bbb6f6b6400b5478d01e4b2"
+    },
+    {
+      "path": "tools/author_r12_ellipse_wrap_source.py",
+      "sha256": "a6ff4dcc0c23b79ea280a14eeec88d458140cd0a198f0759f034374766214a24"
+    },
+    {
+      "path": "tools/select_r12_ellipse_wrap_source.py",
+      "sha256": "5e917b325dfd9d9025c56b1f0ef98d6c3be7503c70af75af4305e2209ca5e3d4"
+    },
+    {
+      "path": "tools/probe_r12_ellipse_wrap_consumer.cpp",
+      "sha256": "1b63c71dcb5661eedcada7613aa7e32e15ce58deb09fa264acfb1b91579e6c7f"
+    },
+    {
+      "path": "tools/audit_r12_ellipse_wrap.py",
+      "sha256": "196f53de03650497c7077035f7c08109f6f8944bbf3be513adda0dcd0811acd9"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/producer.cpp",
+      "sha256": "bdb7fd9d2889c800a5de02b07bdce20789d5bd514a67982215df523c35249d7b"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/opt-producer.cpp",
+      "sha256": "93a05e51f6ca6de613d899a81b4f7f7d0576346bad814b33c53d3857cf9dafed"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/input/default.dxf",
+      "sha256": "6b923bd2fda3603b8e23fc732a8614adea5aa4e83eb37d4cff5e07a58c0ee592"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/dwg/default.dwg",
+      "sha256": "512067933f11a2be723815f6c2760f009a165f5017a43bc00c1eb01caacdd57d"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/out/default.dxf",
+      "sha256": "9a1861011196d5346e1653404caf0c018f9dc3a26c572f094f3b4fdbb1305939"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/selected/default.dxf",
+      "sha256": "e170d4545f1d3b0f17b3aa421316a94c95e08828f64815054ac2e16b23bd6418"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/pipeline/default.dxf",
+      "sha256": "c791bc602be04466f20162e82ff4955fad8ef94a13a72774686eacdc84b42b8a"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/r12-default.dxf",
+      "sha256": "f0ca024b14aa7a3718cb9f2fac040998c7fac9369970629eceb5afe1645599c7"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/r12-opt-default.dxf",
+      "sha256": "c791bc602be04466f20162e82ff4955fad8ef94a13a72774686eacdc84b42b8a"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/input/tilt.dxf",
+      "sha256": "c5fa91062a6e06c28e4558ce3913bdea1898ce77073c749115ccfd73ae0fdc03"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/dwg/tilt.dwg",
+      "sha256": "ee1100e3c895fee8dc8568ccdb0a5143408567175f93b863dcaecb25996d4859"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/out/tilt.dxf",
+      "sha256": "90ee1155b004feb10e971eafab3310b180f6832f9b0a82c0c76ccba663bc449e"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/selected/tilt.dxf",
+      "sha256": "e9cc31b9e6f9c4af3adb796b15acd573bca90097467e4df0e4b681aabc988cd1"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/pipeline/tilt.dxf",
+      "sha256": "962c09ee8acb69f522465b1a1ba59e1c64d341905c5dd7336b37a130d6089efe"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/r12-tilt.dxf",
+      "sha256": "5fb123206a0027f9962b9f949456e194f9113ddc79184687cdcd44e56a60f882"
+    },
+    {
+      "path": "/private/tmp/ellipse-wrap/r12-opt-tilt.dxf",
+      "sha256": "962c09ee8acb69f522465b1a1ba59e1c64d341905c5dd7336b37a130d6089efe"
+    }
+  ],
+  "integrated_validation": "ctest --test-dir build-gcc -R ^libdxfrw_dxf_r12_ellipse_wrap$ --output-on-failure: 1/1 passed.",
+  "full_turn_followup": "Exact and near-full negative sweeps, and near-zero negative sweeps, within the existing tessellator 1e-10 tolerances retain their historical vertex order and start point; ASCII/Binary controls compare opted and legacy output."
+}

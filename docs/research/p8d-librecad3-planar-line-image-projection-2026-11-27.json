@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-planar-line-image-projection-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "71a7a42c",
+  "problem": "Planar selection queried a 3D nearest path first, so a tilted elevated LINE or IMAGE could be missed even when its projection passed under the cursor.",
+  "implementation": "Share XY segment and infinite-line projection in geo::Vector, interpolate source Z, and route only planar LINE and IMAGE picking through those nonvirtual methods. Existing 3D path queries are unchanged.",
+  "validation": [
+    "The generated tilted LINE and IMAGE viewer controls failed before their respective fixes.",
+    "87 focused viewer, vector, image, builder and layer tests pass, including selected tilted-line and image selection/snap, planar and 3D distinction, bounded versus infinite projection, XY-degenerate vectors and ordinary 2D controls.",
+    "All 80 DxfRoundTripTest cases pass on the same consumer commit.",
+    "A zero-length 3D vector path returned NaN before the follow-up. It now returns its endpoint; 88 focused viewer, vector, image, builder and layer tests pass.",
+    "A vertical 3D segment formerly returned unbounded points as nearest on entity, and LINE entity snapping returned the unbounded path point even near an endpoint. Both reproductions failed before the fix. A shared bounded 3D projection now serves LINE and IMAGE edges; 139 focused viewer, geometry, line, intersection and scripting tests pass."
+  ],
+  "lineRedLogSha256": "1ecae5d5f23422bc1eb842501084a211a7d5ec242300e0c7f8626d5451a49d44",
+  "testLogSha256": "c78e3d9816efe2f82bc757db630f7f28771467e0ced3b0bdc22b9f814b88d1a8",
+  "limits": [
+    "A line or image edge projected to one XY point has ambiguous depth; this implementation deterministically uses the starting elevation.",
+    "Native GUI, other entity types, extreme numeric magnitudes and broader 3D interaction remain unqualified.",
+    "Nearest-on-entity now clamps exactly at an endpoint, including points less than LCTOLERANCE beyond it; the unbounded path query remains available."
+  ],
+  "roundTripLogSha256": "aba6b51c314507281f3d25e30bdc9cf6bedb716497301e66e778462a403ecc4c",
+  "zeroVectorRedLogSha256": "23db010788f1d6e23ca12cb7e31675392c16704cb21b0fa621878f662f967235",
+  "zeroVectorTestLogSha256": "dd4d7f3c2f84c3e50c79e00ac058b4eebf1daf26d72046a20b0b014f6f498a1b",
+  "spatialSegmentRedLogSha256": "6b36850baf3d002091b53a92153455f338cbde311b72f74bdeb6da933ec47b5e",
+  "lineEntitySnapRedLogSha256": "4b7e448f98159ab8d06805e708cd6352e10646022cabe9e485d4f3c092ea1159",
+  "spatialSegmentTestLogSha256": "5493cf33e1813427dd0d37c1c9ba508d2373a57c2847838cd546ee01a784add9"
+}

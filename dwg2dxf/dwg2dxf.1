@@ -1,4 +1,4 @@
-.TH DWG2DXF 1 "2026-09-23" "version 1.0"
+.TH DWG2DXF 1 "2026-10-15" "version 1.0"
 .SH NAME
 dwg2dxf \- Conversor from dwg/dxf to dxf
 .SH SYNOPSIS
@@ -8,20 +8,81 @@ dwg2dxf <input> -o <output> [-version] [-b] [-y]
 .SH DESCRIPTION
 dwg2dxf is a console converter from DWG/DXF to DXF. Either input format can
 be converted to another DXF version.
+.PP
+DXF input passes a source-text admission gate before output creation or
+replacement. Observed malformed/undefined input, discarded/replaced text,
+unrepresented escapes and ambiguous non-ASCII legacy decoding cause a nonzero
+exit. Legacy UTF8/UTF16 declarations are not admitted merely because their
+names are recognized. Later metadata or a full advisory list cannot erase
+earlier observed loss. ASCII and represented CIF/MIF with unknown page metadata,
+and valid modern UTF8 with inert legacy metadata, remain eligible. Unknown source
+revision is not invented; only decoder-independent text is eligible without it.
+.PP
+This is a necessary source-text gate, not whole-drawing, charset-mapping,
+DWG or native-consumer qualification. Existing structural/owner
+and unsupported-record checks still apply. Ordinary library reads and default
+adapter exports retain their tolerant behavior; no automatic recovery is added.
+.PP
+For both DWG and DXF input, required semantic output text also passes a separate
+lossless target-transport gate. Invalid UTF8, unsupported supplementary-character
+downgrade, unsafe record framing and high-byte opaque text without qualified
+source provenance cause a nonzero exit without publishing or replacing output.
+Modern UTF8 and qualified legacy BMP/codepage/CIF transport remain available.
+Literal escape-looking semantic backslashes are selectively quoted; MTEXT
+formatting and raw binary/handle roles are not globally rewritten. This is not
+complete charset, raw-application-data, native-rendering or DWG support
+qualification. Ordinary library writers default to Compatible; the CLI explicitly
+opts into RequireLossless without an additional command-line switch.
+.PP
+DWG reads are strict by default: semantic read incompleteness prevents output.
+The explicit --allow-partial-dwg-read option permits output only when the read
+succeeded and every source frame has a bounded terminal disposition. It does
+not enable recovery or relax owner/reference closure, source-text checks,
+lossless target transport, or transactional publication. The resulting DXF may
+omit failed or unmodeled source content and is not evidence of complete DWG
+semantics or format support. DXF input is unaffected.
 .SH OPTIONS
 input      existing file to convert
    -b         optional, sets output as binary dxf
    -B         optional, batch mode reads a text file whit a list of full path input
                files and saves with the same name in the indicated folder as output
    -y -Y      optional, Warning! if output dxf exist overwrite without ask
+   -d -D      optional, enables debug tracing
    -version   version output of dxf file (required by the positional form,
               optional with -o; otherwise the source revision is retained)
+   --dxf-codepage-policy=compatible|exact-named
+              explicit DXF input mapping policy (default: compatible)
+   --allow-partial-dwg-read
+              explicitly allow bounded terminal DWG frame losses (default: strict)
    output     output file name
 
+.PP
+The codepage-policy option uses one complete token and may be given once in
+positional, -o or batch mode. Unknown or missing values and repeated/conflicting
+tokens fail before conversion. It affects DXF inputs only; DWG decoding and
+FreeCAD's original four-argument invocation are unchanged. Exact named decoding
+does not bypass source-profile, lossless-target or owner checks, grant overwrite
+permission or enable automatic recovery. Existing Windows compatibility profiles,
+represented ASCII escapes and modern UTF8 remain eligible; correctly decoded
+raw ISO8859-4 high-byte input still refuses its unqualified producer profile
+without publication. This is not native-rendering or complete-format support
+qualification. Batch failures preserve their destination and do not stop
+independent entries.
+.PP
 The -o form is compatible with FreeCAD's external DWG converter invocation.
 It writes ASCII DXF unless -b is specified and does not prompt. If the output
 already exists, conversion fails unless -y is specified. AC1012/R13 input is
 written as AC1014/R14 because AC1012 is not a supported output revision.
+.PP
+Batch mode requires an explicit output version and an existing output
+directory. Its regular-file list accepts LF, CRLF and a final line without a
+newline. Empty lines are ignored; filename spaces and UTF-8 bytes are retained.
+The limits are 128 KiB per filename, 16 MiB of physical list bytes and 10000
+inputs. Invalid lists or identity collisions reject before conversion. Batch
+mode never prompts: replacing an existing destination requires -y or -Y.
+Independent items continue after ordinary conversion failures, but the process
+returns nonzero if any item fails. Each file is published atomically; a failed
+batch does not roll back files already converted successfully.
 .PP
 Install dwg2dxf and either place its bindir first on FreeCAD's PATH or select
 the LibreDWG-compatible converter in FreeCAD's DWG preferences and configure

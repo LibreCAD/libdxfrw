@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "date": "2026-11-08",
+  "status": "GENERATED_DWG_TYPED_READ_RETENTION_DXF_OUTPUT_REFUSED",
+  "workstream": "P5 / AC1018-AC1021 TABLE border color, lineweight and visibility overrides",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1, TABLE until R21",
+    "fields": {
+      "borderColorOverrides": "18-bit mask; selected entries are CMC colors",
+      "borderLineweightOverrides": "18-bit mask; selected entries are BS lineweights",
+      "borderVisibilityOverrides": "18-bit mask; selected entries are BS visibility values"
+    },
+    "ordering": "Title, header and data row groups; each group follows the six documented border positions."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "DRW_Table retains each of the three 18-bit masks, selected CMCs, lineweights and visibility values. Separate presence arrays preserve selected zero lineweight/visibility values. Visibility outside 0/1 keeps the record semantically incomplete. The DXF writer refuses all selected border masks and orphaned retained values after mask clearing.",
+    "generatedControl": "From-scratch AC1021 TABLE selects border color positions 0/17, lineweight positions 1/16 and visibility positions 2/15, verifies exact masks/values/presence, and checks the following sentinel.",
+    "outputControl": "ASCII/Binary tests verify refusal with selected masks, then refusal after masks are cleared while zero-valued border metadata remains; destination preservation and corrected same-adapter retry/readback pass."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedReader": "PASS: build/libdxfrw_dwg_object_vectors_tests --table-r2007-cell-reader",
+    "focusedAsciiBinaryOutput": "PASS: ctest --test-dir build -R '^libdxfrw_table_scalar_override_output$' --output-on-failure, 1/1",
+    "objectVectors": "PASS: ctest --test-dir build -R '^libdxfrw_dwg_object_vectors$' --output-on-failure, 1/1",
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated codec evidence only; no physical producer, whole-drawing or consumer qualification.",
+    "CMC test values are ByLayer; other color methods and color-book semantics are not qualified by this control.",
+    "DXF border precedence/mapping and native TABLE border rendering remain unqualified.",
+    "Row style and border values remain output-ineligible."
+  ],
+  "supportClaimsPromoted": 0,
+  "fixtureFilesAdded": 0,
+  "next": "Establish lossless DXF mappings and precedence for retained row and border overrides before permitting output; continue only against an eligible physical source or standards-backed mapping."
+}

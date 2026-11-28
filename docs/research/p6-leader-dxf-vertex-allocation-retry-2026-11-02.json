@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-leader-dxf-vertex-allocation-retry-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P6",
+  "status": "BOUNDED_LEADER_DXF_VERTEX_ALLOCATION_FAILURE_FAILS_CLOSED_AND_RETRIES",
+  "supportClaimEffect": "none",
+  "scope": "Make LEADER DXF per-coordinate vertex creation exception-safe and preserve field ordinals across allocation failure.",
+  "implementation": {
+    "sources": {
+      "src/drw_entities.cpp": "2cd1a685e28e95b4e9c1a0880775aa0e5c5cef48258af82149a111796d60af92",
+      "tests/dxf_fixture_tests.cpp": "4af2215f5313956721c0b43539f077cc77beb8a7dbe71cc11830e3069229b96c",
+      "CMakeLists.txt": "72533cc3c2e47213b88739e2fd6a4f3143d1be8fe067b98df3346c8a62b9caba"
+    },
+    "behavior": "LEADER now prepares all missing shared coordinate objects in a temporary vector through a noexcept allocator helper, reserves the destination, and only then publishes the points and advances the per-field occurrence counter. Allocation failures leave vertexlist and the ordinal unchanged, allowing the same coordinate group to be retried.",
+    "failureInjection": "The focused test injects one std::bad_alloc at each of the missing-point temporary reserve, shared-coordinate allocation, and destination reserve. Every failure is observed once; the vertex list remains empty; retrying group 10 followed by group 20 produces the expected single point."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_(mline_dxf_allocation_failure|mline_vector_component_order|leader_dxf_allocation_failure|leader_point_component_order|dxf_underlay_ocs_extrusion|underlay_dxf_allocation_failure)$' --output-on-failure",
+      "result": "PASS: 6/6 focused fast tests; 0.25 seconds",
+      "passed": 6,
+      "failed": 0,
+      "testExecutableSha256": "052c35b8f768f0182d889de23debdeb6df4701deb53fc2184fc8519a0a85fb49"
+    },
+    "fixturePolicy": "The fault-injection tests use locally generated in-memory DXF group records. No DWG/DXF fixture was added.",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "limitations": [
+    "This covers LEADER DXF coordinate-point allocation only; other LEADER field/string allocations and DWG parsing remain in the broader safety audit.",
+    "The focused controls establish parser failure/retry and coordinate transport, not physical producer breadth, whole-document conversion, or native annotation semantics.",
+    "No support claim is promoted."
+  ],
+  "next": "Continue P6 safety review at another reproduced parser allocation or rollback boundary.",
+  "repositoryState": {
+    "validationBaseHead": "e41759c6",
+    "validationSnapshot": "WORKTREE",
+    "note": "Receipt hashes identify the source and test snapshot used for the focused build and CTest run; other worktree edits remain outside this slice."
+  }
+}

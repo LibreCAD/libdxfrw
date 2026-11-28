@@ -1,0 +1,56 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "scope": "Generated FIELD and FIELDLIST typed DXF OBJECTS record allocation rollback, same-codec retry, and readback.",
+  "result": "PASS",
+  "evidence_level": "Local transaction and codec round-trip only; no physical producer, native consumer, or format-support claim.",
+  "profiles": {
+    "target_version": "AC1032",
+    "encodings": ["ASCII", "Binary"],
+    "records": {
+      "FIELD": {
+        "ASCII": {"allocation_failures": 12},
+        "Binary": {"allocation_failures": 11}
+      },
+      "FIELDLIST": {
+        "ASCII": {"allocation_failures": 4},
+        "Binary": {"allocation_failures": 4}
+      }
+    }
+  },
+  "checks": [
+    "Each measured allocation failure was injected inside the selected record callback.",
+    "Every failed whole-file attempt preserved the preexisting destination sentinel.",
+    "Caller FIELD/FIELDLIST handles and relevant payload fields remained unchanged.",
+    "The same dxfRW instance and adapter retried successfully after each injected failure.",
+    "Retry output matched clean calibration bytes exactly.",
+    "Fresh typed DXF readback recovered the FIELD evaluator/code/value and FIELDLIST membership."
+  ],
+  "validation": {
+    "normal": {
+      "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+      "build": "cmake --build build-gcc --target libdxfrw_field_objects_allocation_tests -j4",
+      "test": "ctest --test-dir build-gcc -R '^libdxfrw_field_objects_allocation$' --output-on-failure",
+      "result": "PASS, 1/1"
+    },
+    "address_sanitizer": {
+      "build": "cmake --build build-asan-custom --target libdxfrw_field_objects_allocation_tests -j4",
+      "test": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_field_objects_allocation$' --output-on-failure",
+      "result": "PASS, 1/1"
+    }
+  },
+  "fixture_policy": "No DWG or DXF fixture is committed. The test creates its DXF output in the build scratch directory and removes it.",
+  "implementation": {
+    "production": [
+      "FIELD and FIELDLIST serialization is enclosed in DxfWriterRecordScope and RecordStateScope.",
+      "The FIELD source-object binding and written-field set are included in rollback tracking."
+    ],
+    "files": {
+      "src/libdxfrw.cpp": "5bc712f3040ed0994ad8fbd480b2e29a5ced056d58ab1e127481c5e0ac696a78",
+      "src/libdxfrw.h": "567df0f79ce3f60694a90a3ad20e7a4a87bdff37d2a71af098f06b3138b69ccf",
+      "tests/field_objects_allocation_tests.cpp": "cbc6198d7f8efea0927d8544ac6a4008609984e83ff36aa852a276dc6f7678ab",
+      "tests/CMakeLists.txt": "96e56c33e8f3b90750c999870ed2f1605a32e2025c67cbdf4864fa013847b1f5"
+    }
+  },
+  "remaining": "Other OBJECTS builders and broader caller-state/failure-injection coverage remain open; this receipt does not close P5 or P6."
+}

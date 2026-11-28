@@ -1,0 +1,144 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader peer transfer-loss and source-authored SAB readiness review",
+  "mode": "primary-source research and local test-inventory review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen newly visible ACadRust transfer-loss and bounded-reader reports against libdxfrw's direction/version scope",
+    "Cross-check ACadRust legacy-codepage and orphan-owner reports against existing local PAR-05 and object-graph evidence",
+    "Map peer TABLE/TABLESTYLE, color-name, XDATA, custom-class and record-boundary reports to existing local owners",
+    "Evaluate a source-authored SAB writer route for the current AC1032 carrier handoff",
+    "Update plan readiness without installing dependencies, adding fixtures, or blocking local implementation"
+  ],
+  "method": {
+    "kind": "Read-only review of public project issues/API docs/crate release history and local source/test inventory",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "toolAvailability": {
+      "cargo": false,
+      "rustc": false,
+      "python3": true,
+      "ezdxf": false
+    },
+    "limitations": "ACadRust issues are reporter evidence with private/unavailable drawings. ACadRust API docs and crate release pages are mutable or versioned separately; no exact package was built. The current environment lacks the documented SAB-generator toolchains/packages, so no payload was generated."
+  },
+  "sources": [
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/132",
+      "revision": "issue body and activity reviewed 2026-10-17; reproducer names 0.6.3 and main ea68744",
+      "observed": "The report says DXF-to-DWG output drops raw-only custom-class entities/objects, entity group-430 color-book names, and table/block-record XDATA. It references a maintainer commit and request to retest; this is not release qualification or a libdxfrw defect."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/130",
+      "revision": "issue body reviewed 2026-10-17; reproducer names 0.6.3",
+      "observed": "The report describes AC1024+ TABLE merged ranges and TABLESTYLE title/header suppression represented in separate fields on DWG and DXF routes, with conversion loss in the cited peer revision."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/134",
+      "revision": "issue body and activity reviewed 2026-10-17; report names 0.6.4 and private corpus",
+      "observed": "The report says 70 of 351 private AC1032 files failed after stricter record bounds, mostly on AcDbMLeaderObjectContextData. A maintainer commit was offered for retest, but the issue page does not provide shareable drawings or an independent post-fix result."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/131",
+      "revision": "issue body and proposed fix activity reviewed 2026-10-17; report names 0.6.3/main ea68744",
+      "observed": "The report provides literal mismatches for several OEM pages, Mac Roman, and Johab and references proposed commit 9f3a8b5 with a retest request. It is already mapped to local PAR-05; the proposed peer fix is not an independent release result."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/133",
+      "revision": "issue body and proposed fix activity reviewed 2026-10-17; report names 0.6.3 and a private 351-file corpus",
+      "observed": "The report says orphan entities with missing owner BLOCK_RECORD handles were moved to model space, creating phantom dimension geometry. Proposed commit b62555f was offered for retest; no private DWG corpus is available for independent reproduction. Existing local owner-graph policy already covers the failure class."
+    },
+    {
+      "project": "ACadRust API documentation",
+      "url": "https://docs.rs/acadrust/latest/acadrust/entities/acis/primitives/index.html",
+      "revision": "mutable docs.rs API page reviewed 2026-10-17",
+      "observed": "The page documents a build_box helper with a complete box topology (6 faces, 12 edges, 8 vertices). It is candidate source-authored geometry construction, not a qualified SAB payload or semantic witness."
+    },
+    {
+      "project": "ACadRust API documentation",
+      "url": "https://docs.rs/acadrust/latest/acadrust/entities/acis/sab/index.html",
+      "revision": "mutable docs.rs API page reviewed 2026-10-17",
+      "observed": "The SAB module documents SabWriter converting SatDocument to SAB. A build must pin the exact crate/source version and confirm the API at that version before use."
+    },
+    {
+      "project": "ACadRust crate release history",
+      "url": "https://docs.rs/crate/acadrust",
+      "revision": "published release list reviewed 2026-10-17",
+      "observed": "The published package history lists 0.6.4 dated 2026-10-11; docs.rs pages may expose different rendered versions, so package, source tag/commit, and API documentation must be reconciled before a reproducible authoring run."
+    },
+    {
+      "project": "Local libdxfrw inventory",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md and current tests/dwg2dxf_adapter_tests.cpp, tests/dxf_fixture_tests.cpp",
+      "revision": "working tree over baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-17",
+      "observed": "Existing generated owners cover TABLE/TABLESTYLE model fields and DXF output, color-name DXF read/write, XDATA ownership/output, and bounded record/parser behavior. This inventory does not prove every DWG-origin TABLE field is projected through all stages. libdxfrw does not implement DWG writing, so peer DXF-to-DWG omissions are outside direct writer scope."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "peerIssueUse": "Transfer/safety/codepage/owner test-shape evidence only; no issue is treated as a local reproduction or normative format rule.",
+    "acisAuthoringRoute": "ACadRust build_box plus SabWriter is a candidate scratch-only source-authoring path. It is the same codec lineage already in the peer ledger, not an independent parser or semantic witness. Independently authored expected bounds/volume and exact carrier owner/key association remain mandatory.",
+    "environmentReadiness": "The route cannot run in this checkout because cargo/rustc and ezdxf are absent. Do not install tooling during fast slices; use the route only at the composed checkpoint if its pinned toolchain is available, otherwise record NOT_AVAILABLE and continue local implementation.",
+    "boundedRecovery": "Do not remove record bounds or silently drop records to imitate peer recovery. Recovery requires proven record extent, explicit incomplete disposition, and safe continuation; otherwise fail the read."
+  },
+  "planImpact": {
+    "updatedSections": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: cross-project transfer-loss evidence and SAB author readiness",
+      "DWG_DXF_3D_SUPPORT_PLAN.md: current 3D handoff and non-blocking generator availability"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "implementationReadyChecks": [
+    "Continue the next ready local implementation slice; SAB author availability is not a blocker.",
+    "At the composed checkpoint, pin an immutable ACadRust source/package and confirm build_box/SabWriter APIs before authoring any scratch SAB.",
+    "Use source-authored asymmetric dimensions and an independent analytic manifest; verify all expected bodies, entity-to-AcDs association, data index/key, payload digest, and strict readback separately.",
+    "Keep kernel/native outcomes distinct from carrier retention; do not promote external-only J items from peer issue reports or same-lineage generated data."
+  ],
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-peer-transfer-loss-and-sab-author-readiness-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/deeper-broader-peer-transfer-loss-and-sab-author-readiness-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

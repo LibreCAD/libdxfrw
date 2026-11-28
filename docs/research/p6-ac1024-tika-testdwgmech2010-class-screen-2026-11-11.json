@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "date": "2026-11-11",
+  "purpose": "Screen a newly located AC1024 test-corpus drawing against the reported AutoCAD 2010 RTM CLASSES high-size failure without treating a format header or filename as producer-build provenance.",
+  "input": {
+    "repository": "apache/tika",
+    "path": "tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-cad-module/src/test/resources/test-documents/testDWGmech2010.dwg",
+    "url": "https://github.com/apache/tika/blob/main/tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-cad-module/src/test/resources/test-documents/testDWGmech2010.dwg",
+    "bytes": 467023,
+    "sha256": "b588a667d6474708fcf45ed89c428bf87287c765f8ac5025f59ebd20c37630a4",
+    "format": "AC1024",
+    "hashCrossCheck": "Matches the testDWGmech2010.dwg entry in the public TNYCL/cadkit corpus fetch manifest and the rikster/tika-test-corpus manifest.",
+    "provenanceLimit": "The corpus filename and AC1024 header do not identify the producing AutoCAD executable/build or prove an AutoCAD 2010 RTM save."
+  },
+  "execution": {
+    "repositoryHead": "8c4913f5",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /tmp/testDWGmech2010.dwg -y -d -v2010 /tmp/testDWGmech2010-out.dxf",
+    "tracePath": "/tmp/testDWGmech2010-trace.log",
+    "traceSha256": "a1e7a8dfbfaac2dfa49c700b54990d210075f253974a4dfc9f258391eba1e692",
+    "dwgReader24ClassesEnd": true,
+    "classCountDiagnostic": 770,
+    "operationSucceeded": true,
+    "legacyError": 0,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "sourceFrames": 7241,
+    "publishedFrames": 7241,
+    "frameCoverage": "complete",
+    "strictDxfExport": "Refused during output preparation because the DWG read disposition was not strict-complete; this is not a CLASSES failure."
+  },
+  "finding": "This additional public AC1024 candidate reaches dwgReader24::readDwgClasses END and the overall DWG read succeeds. It does not reproduce the reported CLASSES failure and does not qualify AutoCAD 2010 RTM behavior.",
+  "nextAction": "Keep the issue unresolved. Require the exact failing input/hash or a producer-build-qualified AutoCAD 2010 RTM witness before changing the class-size path. Continue unrelated implementation work.",
+  "fixturePolicy": "Input remains in /tmp and is not added to the repository."
+}

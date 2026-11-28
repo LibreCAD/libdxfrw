@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-mlinestyle-canonical-linetypes-2026-11-15",
+  "date": "2026-11-15",
+  "status": "bounded_fix_verified",
+  "supportClaimEffect": "none",
+  "problem": "An explicitly named built-in BYLAYER, BYBLOCK or CONTINUOUS MLINESTYLE element was rejected because the mandatory LTYPE rows are emitted directly and absent from lineTypesMap.",
+  "implementation": "Resolve the mandatory names to their fixed DXF identities when no output map row matches, reject a conflicting explicit handle, and preserve custom-name resolution.",
+  "verification": {
+    "mlineStyleObjectsAllocation": "PASS: seven revisions AC1014 through AC1032, ASCII and Binary; explicit three canonical names and BYBLOCK fixed handle, all 336 observed allocation failures preserve destination and caller state and retry to identical bytes and typed readback. Separate same-codec cases reject a conflicting handle, a nonzero handle remapped to zero, and a missing custom name before corrected retry.",
+    "librecad": "Focused upstream-linked disposable LibreCAD master 8a82e359 with temporary DIMSTYLE overload and group-value helper corrections; original MLINESTYLE fixture retained. All five PR #3269 cases pass (49 assertions), and named MLINESTYLE case passes (5 assertions).",
+    "broaderSelector": "11 of 18 named LTYPE cases pass; 7 fail, 14 assertions failed. Further attribution remains open."
+  },
+  "limits": [
+    "Consumer fixes remain uncommitted downstream; no full clean upstream-linked test target or LibreCAD_3 qualification.",
+    "No native consumer behavior or support claim is inferred from generated controls.",
+    "No drawing fixture was added."
+  ]
+}

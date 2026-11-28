@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 MLEADER entity/context CMC name/book retention",
+  "mode": "generated AC1024/AC1032 parser-writer fast slice",
+  "scope": [
+    "Retain optional CMC color/book names for MLEADER entity-level and embedded-context colors",
+    "Use the bounded detached R2007+ string stream for parser and writer paths",
+    "Verify method, payload, flags, string order, and fail-before-output conditions"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "20.4.48 MLEADER", "20.4.86 MLeaderAnnotContext"],
+      "finding": "ODA §2.11 defines generic CMC optional color/book flags; §§20.4.48 and 20.4.86 identify the entity/context color fields as CMC. This does not define a corresponding DXF mapping for all names/books."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.h", "src/drw_entities.cpp"],
+      "finding": "The local MLEADER parser previously discarded CMC optional strings for entity/context colors; writers emitted empty name flags. The models now retain them, and parse/write paths use the bounded detached string stream.",
+      "compatibility": "Six entity-level strings and six context strings were appended after prior state, preserving previous member offsets but changing public class/context sizes. Downstream consumers must rebuild. No virtual method changed."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024", "AC1032"],
+      "finding": "Named C0–C3 methods are exercised on leader-line and active context colors; named C2 is exercised on all three entity-level colors. Independent wire walking verifies method/payload/flags and consumes color/book strings in stream order. Parser checks verify all strings and following-handle alignment. Fail-closed controls cover missing detached string output and inactive context names.",
+      "limit": "Generated vectors establish local codec consistency only; they are not producer-authored or native-consumer evidence."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Append name/book fields for MLEADER entity-level and embedded-context CMC colors.",
+      "Capture CMC name/book strings using the bounded detached string stream.",
+      "Emit C0/C1/C2/C3 and optional names/books in the same detached stream.",
+      "Reject invalid/inactive CMC state and missing/aliased string buffers before body output.",
+      "Preserve/reset fields through MLEADER copy, assignment, and parser reset."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestReused": "libdxfrw_mleader_line_cmc_rgb",
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleader_line_cmc_rgb|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (2/2)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (8/8)"
+      },
+      {
+        "command": "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mleader-entity-context-cmc-name-book-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "MLEADERSTYLE CMC optional color/book names remain open.",
+    "Class-specific DXF truecolor/name/book mappings remain unaudited and are not inferred from DWG CMC evidence.",
+    "HATCH C5 producer semantics and native/external qualification remain separate gates.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

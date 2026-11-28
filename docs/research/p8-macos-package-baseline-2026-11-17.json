@@ -1,0 +1,663 @@
+{
+  "schema": "libdxfrw-macos-package-baseline-v1",
+  "recordedAt": "2026-11-17",
+  "source": {
+    "commit": "eb30479516b6e8d27c8525c271bac97d9447645b",
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "sourceCodeChangesFromCommit": false
+  },
+  "originBaseline": {
+    "ref": "origin/master",
+    "commit": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "version": "2.0.0",
+    "cxxStandard": "C++17"
+  },
+  "publicLayoutProbe": {
+    "tool": "tools/probe_public_abi_layout.cpp",
+    "toolSha256": "7e4a84e46fe9f67abb4edcbb64b3156f827ffd910406a75a1cd517616319e5e9",
+    "compiler": "/usr/bin/c++ (AppleClang 21.0.0)",
+    "standard": "C++17 for both origin/master and current headers",
+    "commandPattern": "/usr/bin/c++ -std=c++17 -I<source>/src -I<source>/src/intern tools/probe_public_abi_layout.cpp -o <output>",
+    "comparison": [
+      {
+        "type": "DRW_Interface",
+        "2.0.0": 8,
+        "3.0.0": 8,
+        "alignment": 8
+      },
+      {
+        "type": "DRW_Entity",
+        "2.0.0": 640,
+        "3.0.0": 744,
+        "alignment": 8
+      },
+      {
+        "type": "DRW_Line",
+        "2.0.0": 728,
+        "3.0.0": 832,
+        "alignment": 8
+      },
+      {
+        "type": "DRW_Viewport",
+        "2.0.0": 1160,
+        "3.0.0": 1312,
+        "alignment": 8
+      },
+      {
+        "type": "DRW_Layer",
+        "2.0.0": 408,
+        "3.0.0": 576,
+        "alignment": 8
+      },
+      {
+        "type": "DRW_Header",
+        "2.0.0": 312,
+        "3.0.0": 616,
+        "alignment": 8
+      },
+      {
+        "type": "DRW_Material",
+        "2.0.0": 304,
+        "3.0.0": 2032,
+        "alignment": 8
+      },
+      {
+        "type": "dxfRW",
+        "2.0.0": 1384,
+        "3.0.0": 4656,
+        "alignment": 8
+      },
+      {
+        "type": "dwgR",
+        "2.0.0": 1008,
+        "3.0.0": 1472,
+        "alignment": 8
+      },
+      {
+        "type": "dwgRW",
+        "2.0.0": 1008,
+        "3.0.0": 1472,
+        "alignment": 8
+      }
+    ],
+    "interpretation": "Selected class layouts differ substantially, confirming that the 2.0.0 to 3.0.0 ABI break is real. DRW_Interface has the same object size, which does not prove vtable compatibility. This selected type list is not a complete ABI report."
+  },
+  "libreCad3SourceCompatibility": {
+    "source": "tests/lc3_compat_check.cpp",
+    "command": "/usr/bin/c++ -std=c++17 -Wall -Wextra -Werror -Isrc -Isrc/intern -c tests/lc3_compat_check.cpp -o <tmp>/lc3_compat_check.o",
+    "result": "PASS",
+    "scope": "Compile-only LibreCAD_3-style public callback/field surface; does not prove installed package use or GUI/runtime behavior."
+  },
+  "libreCadSystemPackage": {
+    "handoffReceipt": "metadata/librecad-system-package-handoff.md",
+    "targetCommit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+    "integrationCommit": "6969e0a003414f9a7084349ac54bc2b32515e16b",
+    "requestedPackageMajor": 2,
+    "candidatePackageMajor": 3,
+    "status": "SCRATCH_SYSTEM_FAST_PASS_CURRENT_TARGET_OPEN",
+    "reason": "The pinned integration requested ABI major 2. On 2026-11-17, the ABI-3 system-package mode and corrected FIELD vectors were replayed in an isolated worktree based on LibreCAD origin/master 3ad089398976feb96ee01b8dee006c141edd8d3e; the filter compile and all 180 fast assertions passed while loading the exact installed candidate. The macOS shared/static installed-file manifest and static relocation smoke are now recorded; native Linux/Windows package receipts remain open, and the LibreCAD integration commits are local only.",
+    "localRequalificationCommit": "592b474a453cdf967e37b495bdf1750b0b79ffc1",
+    "localRequalificationBase": "6969e0a003414f9a7084349ac54bc2b32515e16b",
+    "localRequalificationScope": "Isolated clean LibreCAD integration clone in /private/tmp/librecad-system-package-p8e; does not modify the user's LibreCAD checkout or establish compatibility with a refreshed upstream target.",
+    "configure": {
+      "command": "cmake -S . -B <build> -DLIBRECAD_USE_SYSTEM_LIBDXFRW=ON -Dlibdxfrw_DIR=<installed-3.0-package>/lib/cmake/libdxfrw -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON",
+      "result": "PASS",
+      "package": "installed ABI-3 shared package; library SHA-256 3b4600d28fe33bb2c8a80ef7274cbad1b22115735e40e4fc79fb205382b6a396"
+    },
+    "builds": [
+      {
+        "target": "librecad_filter_compile_check",
+        "result": "PASS",
+        "scope": "Compile-only filter target; one non-fatal enum-switch warning in LibreCAD's advanced metadata header."
+      },
+      {
+        "target": "libdxfrw_system_fast_tests",
+        "result": "PASS",
+        "scope": "Consumer test executable compiled and linked against the installed package; test cases were not implied by this build result."
+      }
+    ],
+    "focusedTestRun": {
+      "command": "QT_QPA_PLATFORM=offscreen <build>/libdxfrw_system_fast_tests [field] --reporter console",
+      "result": "FAIL",
+      "testCases": {
+        "total": 8,
+        "passed": 4,
+        "failed": 4
+      },
+      "assertions": {
+        "total": 44,
+        "passed": 38,
+        "failed": 6
+      },
+      "failedBehaviors": [
+        "The FIELD/FIELDLIST read fragment has no HEADER/$ACADVER, so it cannot identify the version required to interpret its R2007+ payload-suppression flags.",
+        "The alleged successful full-file writer vector contains a null FIELDLIST member and references child/handle objects that it never emits, so it is not graph-closed.",
+        "Three outer-write refusal assertions use an interface whose finalizeDxfWrite() retains the default success result instead of propagating the low-level refusal."
+      ],
+      "interpretation": "This initial run used unversioned/incomplete generated vectors. One parser defect was isolated and fixed in the candidate below. The test vectors also omitted graph dependencies and did not propagate failures through finalizeDxfWrite(). They do not establish independent FIELD producer semantics or close P5-A/P5-B."
+    },
+    "runtimeLinkageInspection": {
+      "command": "otool -L <build>/libdxfrw_system_fast_tests; otool -l <build>/libdxfrw_system_fast_tests",
+      "result": "PASS",
+      "evidence": "The executable links libdxfrw.3.dylib and records the installed package lib directory as LC_RPATH; runtime loaded-path identity was not separately captured for this initial failing run."
+    },
+    "fieldVersionFixCandidate": {
+      "baseCommit": "599cf88e63222f93d6863836afa255d9b4aa59ef",
+      "workingTreeChanges": [
+        "src/libdxfrw.cpp: processField constructs dxfField::Decoder with reader->getVersion(), because the façade version member is assigned only after processDxf() completes.",
+        "tests/dxf_field_mtext_tests.cpp: add a locally generated versioned AC1021 child-value suppression control for ASCII and Binary."
+      ],
+      "sharedBuild": {
+        "configuration": "Release",
+        "buildSharedLibs": true,
+        "buildDwg2Dxf": false,
+        "buildTests": true,
+        "buildCommand": "cmake --build <build> --target dxfrw libdxfrw_dxf_field_mtext_tests --parallel 4",
+        "installPrefix": "/private/tmp/libdxfrw-field-prefix",
+        "library": "/private/tmp/libdxfrw-field-prefix/lib/libdxfrw.3.0.0.dylib",
+        "librarySha256": "243d07a3c814a3c91650b59427dd62ba7073e58ea47a4b0f80c1bf5ddabf9525"
+      },
+      "focusedTest": {
+        "command": "ctest --test-dir <build> -R '^libdxfrw_dxf_field_mtext$' --output-on-failure",
+        "result": "PASS",
+        "elapsedSeconds": 0.32,
+        "scope": "Locally generated AC1021 ASCII/Binary FIELD child payload-suppression control plus existing _text FIELD fast controls."
+      }
+    },
+    "correctedScratchLibreCadFastRun": {
+      "baseCommit": "6969e0a003414f9a7084349ac54bc2b32515e16b",
+      "tree": "/private/tmp/librecad-system-package-p8e",
+      "correctionsNotCommitted": true,
+      "corrections": [
+        "Add HEADER/$ACADVER AC1021 to the version-dependent FIELD input vector.",
+        "Make the output vector graph-closed, remove its null FIELDLIST member, and correct CadValue flags and handle value.",
+        "Override finalizeDxfWrite() in the consumer test emitter to propagate low-level writer refusal."
+      ],
+      "buildTargets": [
+        {
+          "target": "librecad_filter_compile_check",
+          "result": "PASS"
+        },
+        {
+          "target": "libdxfrw_system_fast_tests",
+          "result": "PASS"
+        }
+      ],
+      "testCommand": "QT_QPA_PLATFORM=offscreen <build>/libdxfrw_system_fast_tests --reporter compact",
+      "testResult": {
+        "result": "PASS",
+        "testCases": 12,
+        "assertions": 176
+      },
+      "loadedLibrary": "/private/tmp/libdxfrw-field-prefix/lib/libdxfrw.3.0.0.dylib",
+      "loadedLibrarySha256": "243d07a3c814a3c91650b59427dd62ba7073e58ea47a4b0f80c1bf5ddabf9525",
+      "runtimeIdentityCommand": "DYLD_PRINT_LIBRARIES=1 QT_QPA_PLATFORM=offscreen <build>/libdxfrw_system_fast_tests --reporter compact",
+      "limitations": [
+        "This was the historical pass on the older 6969e0a base; it was later replayed on the refreshed 3ad0893 target as recorded in currentTargetLibreCadReplay.",
+        "This does not prove native LibreCAD GUI behavior or independent FIELD producer semantics."
+      ]
+    },
+    "currentTargetLibreCadReplay": {
+      "targetCommit": "3ad089398976feb96ee01b8dee006c141edd8d3e",
+      "targetDate": "2026-11-16",
+      "worktree": "/private/tmp/librecad-system-p8e-current",
+      "branch": "codex/libdxfrw-current-target-system-package",
+      "integrationCommits": [
+        "98768e4e4 Add opt-in system libdxfrw package mode",
+        "34f1fcd81 Require libdxfrw 3 for system package mode",
+        "2e51f1421 Fix FIELD system package vectors on current master"
+      ],
+      "libdxfrwCandidateCommit": "902bbed3",
+      "configure": {
+        "command": "cmake -S <current-LibreCAD-worktree> -B <build> -DLIBRECAD_USE_SYSTEM_LIBDXFRW=ON -Dlibdxfrw_DIR=/private/tmp/libdxfrw-field-prefix/lib/cmake/libdxfrw -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON",
+        "result": "PASS"
+      },
+      "builtTargets": [
+        {
+          "target": "librecad_filter_compile_check",
+          "result": "PASS"
+        },
+        {
+          "target": "libdxfrw_system_fast_tests",
+          "result": "PASS"
+        }
+      ],
+      "fastRun": {
+        "command": "DYLD_PRINT_LIBRARIES=1 QT_QPA_PLATFORM=offscreen <build>/libdxfrw_system_fast_tests --reporter compact",
+        "result": "PASS",
+        "testCases": 12,
+        "assertions": 180,
+        "runtimeLog": "/private/tmp/librecad-system-current-fast-runtime.log"
+      },
+      "loadedLibrary": "/private/tmp/libdxfrw-field-prefix/lib/libdxfrw.3.0.0.dylib",
+      "loadedLibrarySha256": "12f064ecfe3628d0466530e7cc5de631e8861d971afc67000b5a1f7314461e5f",
+      "fieldVectorCorrections": [
+        "Add HEADER/$ACADVER AC1021 to the version-dependent FIELD read vector.",
+        "Emit child and referenced FIELD objects, use resolver-consistent destination identities, remove the null FIELDLIST member, and align CadValue handle state.",
+        "Propagate FIELD/FIELDLIST writer failures through finalizeDxfWrite while preserving the expected pre-R18 counted omission."
+      ],
+      "limitations": [
+        "The system-package CMake mode and corrected consumer tests are isolated local LibreCAD commits; they are not merged into LibreCAD upstream.",
+        "This proves the filter compile and selected fast system-package route on macOS, not LibreCAD GUI/runtime behavior, Linux/Windows packaging, or independent FIELD producer semantics."
+      ]
+    }
+  },
+  "ciChange": {
+    "file": ".github/workflows/shared-abi-qualification.yml",
+    "sha256": "92497cc2610b67991b09086a8200e84bbfd31d7d6211b265af37daed9a53fedd",
+    "change": "Add native macos-15 / AppleClang shared-package job using the existing probe."
+  },
+  "host": {
+    "os": "macOS 27.2.1",
+    "kernel": "Darwin 27.2.0",
+    "architecture": "arm64",
+    "cmake": "4.4.5",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)"
+  },
+  "sharedPackage": {
+    "configuration": "Release",
+    "buildSharedLibs": true,
+    "buildDwg2Dxf": false,
+    "buildTests": false,
+    "target": "dxfrw",
+    "installPrefix": "/private/tmp/libdxfrw-shared-abi.4jNvll/prefix",
+    "loadedLibrary": "/private/tmp/libdxfrw-shared-abi.4jNvll/prefix/lib/libdxfrw.3.0.0.dylib",
+    "librarySha256": "3b4600d28fe33bb2c8a80ef7274cbad1b22115735e40e4fc79fb205382b6a396",
+    "probe": {
+      "version2Rejected": true,
+      "version3Accepted": true,
+      "oldRuntimeAbsent": true,
+      "loadedExactInstalledLibrary": true
+    }
+  },
+  "staticPackage": {
+    "configuration": "Release",
+    "buildSharedLibs": false,
+    "buildDwg2Dxf": false,
+    "buildTests": false,
+    "target": "dxfrw",
+    "installPrefix": "/private/tmp/libdxfrw-shared-abi.4jNvll/static-prefix",
+    "archive": "/private/tmp/libdxfrw-shared-abi.4jNvll/static-prefix/lib/libdxfrw.a",
+    "archiveSha256": "d4281f1b1d6cd2bcf365f3e36acc9c136c710249f0ba05342db301d074ad6d6a",
+    "relocatedArchiveSha256": "d4281f1b1d6cd2bcf365f3e36acc9c136c710249f0ba05342db301d074ad6d6a",
+    "command": "python3 -B tools/check_staged_package.py --prefix <tmp>/static-prefix --relocation-smoke",
+    "result": "PASS",
+    "checks": [
+      "Fresh staged static archive selected and hash-bound for CMake and pkg-config consumers.",
+      "Plain and override static pkg-config modes and missing-private-library negative controls pass.",
+      "CMake CONFIG and MODULE package requests pass their version, identity, boundary, and policy controls.",
+      "The moved prefix containing spaces builds relocated consumers with the same archive hash."
+    ]
+  },
+  "scope": {
+    "proves": [
+      "The macOS shared library builds and installs with the versioned ABI-3 filename.",
+      "A fresh shared consumer rejects package version 2.0 and accepts 3.0, then loads the exact installed runtime.",
+      "The macOS staged static package is consumable through CMake and pkg-config and relocates with a stable archive.",
+      "The LibreCAD_3-style compile-only compatibility surface still compiles against the current public headers.",
+      "The candidate FIELD reader uses the version parsed from the current DXF HEADER during OBJECTS parsing, with an ASCII/Binary AC1021 generated control passing.",
+      "The historical 176-assertion scratch LibreCAD replay on the older target was superseded by a 180-assertion replay on LibreCAD origin/master 3ad0893; both used local integration changes, and only the latter matches the current target snapshot.",
+      "On LibreCAD origin/master 3ad0893, the isolated ABI-3 system-package integration builds the filter and passes all 180 fast assertions while loading the exact installed candidate; its CMake/test commits remain local.",
+      "FIELD child/object references, handle-valued CadValue records, and FIELDLIST members follow setReferenceResolver() into a graph-closed generated output and fresh readback; pre-R18 FIELD/FIELDLIST omission is reported through leftOut().",
+      "A full macOS candidate shared/static installed-file manifest is recorded; the static package relocation smoke passes and the shared dylib identity/hash matches the current-target LibreCAD run."
+    ],
+    "doesNotProve": [
+      "Full symbol-by-symbol or class-layout ABI equivalence to another 3.x release.",
+      "Adoption or merge of the local LibreCAD system-package integration commits, LibreCAD GUI/runtime behavior, Linux/Windows package behavior, or current-target compatibility beyond the filter compile and selected fast tests.",
+      "LibreCAD or LibreCAD_3 GUI/runtime behavior.",
+      "DWG/DXF semantic support or FreeCAD behavior.",
+      "Linux/Windows shared-package runtime qualification or release completion of P8-E/P8-F."
+    ],
+    "fixturesAdded": false,
+    "supportClaimsPromoted": false
+  },
+  "candidatePackageManifest": {
+    "recordedOn": "2026-11-17",
+    "sourceRevision": "fdc00239",
+    "implementationRevision": "902bbed3",
+    "buildTree": "Library build targets used the tracked C++ sources from implementation revision 902bbed3; the later fdc00239 revision adds plan/receipt documentation.",
+    "platform": {
+      "os": "macOS 27.2.1",
+      "architecture": "arm64",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+      "configuration": "Release",
+      "languageStandard": "C++17"
+    },
+    "shared": {
+      "prefix": "/private/tmp/libdxfrw-field-prefix",
+      "buildSharedLibs": true,
+      "buildDwg2Dxf": false,
+      "installCommand": "cmake --install /private/tmp/libdxfrw-shared-abi.4jNvll/build --prefix /private/tmp/libdxfrw-field-prefix",
+      "library": {
+        "path": "lib/libdxfrw.3.0.0.dylib",
+        "sha256": "12f064ecfe3628d0466530e7cc5de631e8861d971afc67000b5a1f7314461e5f",
+        "sizeBytes": 8194464,
+        "installId": "@rpath/libdxfrw.3.dylib",
+        "dependencies": [
+          "@rpath/libdxfrw.3.dylib",
+          "/usr/lib/libc++.1.dylib",
+          "/usr/lib/libSystem.B.dylib"
+        ]
+      },
+      "loadedByCurrentTargetLibreCadFastRun": {
+        "path": "/private/tmp/libdxfrw-field-prefix/lib/libdxfrw.3.0.0.dylib",
+        "sha256": "12f064ecfe3628d0466530e7cc5de631e8861d971afc67000b5a1f7314461e5f"
+      },
+      "installedFiles": [
+        {
+          "path": "include/libdxfrw/drw_acis.h",
+          "sizeBytes": 108982,
+          "sha256": "b39c78a1cdaeb31278c7ec2ba3f1e383cb7b09814fe1d1d00918df018d42c4c1"
+        },
+        {
+          "path": "include/libdxfrw/drw_base.h",
+          "sizeBytes": 45643,
+          "sha256": "83a7bbbe525073c6d546fb136ab4e0d7426e078b57066272d42256bcc9608fe4"
+        },
+        {
+          "path": "include/libdxfrw/drw_classes.h",
+          "sizeBytes": 2351,
+          "sha256": "a49a41256c70fbbbafcc553ffe7f7abb9d98cf5da6f329b58fac873c79eba932"
+        },
+        {
+          "path": "include/libdxfrw/drw_datastorage.h",
+          "sizeBytes": 13559,
+          "sha256": "ca073c3c15650a1de624dd2de4376ab6c572a43f898bbbdf2db13d2f7f319d2f"
+        },
+        {
+          "path": "include/libdxfrw/drw_dxf_capabilities.h",
+          "sizeBytes": 239,
+          "sha256": "f98ac3029375f1e5abcb28e721c95a330e07f19079b237a848da14fc84c8931c"
+        },
+        {
+          "path": "include/libdxfrw/drw_dxf_extrusion.h",
+          "sizeBytes": 3939,
+          "sha256": "f5c4a56cac0b2e422e8b9e2ddb82c926135374283c1f906e72462b6f977588d8"
+        },
+        {
+          "path": "include/libdxfrw/drw_entities.h",
+          "sizeBytes": 265736,
+          "sha256": "ffee424f84a65dd769575839fa963c4178d32ed5fe224d142ac924ec2e71b013"
+        },
+        {
+          "path": "include/libdxfrw/drw_header.h",
+          "sizeBytes": 33867,
+          "sha256": "80f2907c24172b973b94f83c4717c84c36354f6387072ada76e04b2cd7d9594f"
+        },
+        {
+          "path": "include/libdxfrw/drw_interface.h",
+          "sizeBytes": 84123,
+          "sha256": "237bf0a3669df26103401023bc6dcd100263f4ab3b4e8af6e2907f0a698d6d9f"
+        },
+        {
+          "path": "include/libdxfrw/drw_objects.h",
+          "sizeBytes": 372289,
+          "sha256": "499ed1eb786f99c8a2b9cbbe4530823fe9ca1826016512a583273fb604aa7209"
+        },
+        {
+          "path": "include/libdxfrw/intern/dwg_fixed_handles.h",
+          "sizeBytes": 2745,
+          "sha256": "40fc75b207b13af26324dd174bf607b63d12601880c828025de86525eb8859fb"
+        },
+        {
+          "path": "include/libdxfrw/intern/dwgbufferw.h",
+          "sizeBytes": 16157,
+          "sha256": "250b5c53d6d0e50eb230868bd37d241b679dbf7404e07395c8d29ae3e277d337"
+        },
+        {
+          "path": "include/libdxfrw/intern/dwgsafety.h",
+          "sizeBytes": 10933,
+          "sha256": "a7efc6a1b6acd678e6a295e4278f908a3d7db47b32177456cce2039f5816aec1"
+        },
+        {
+          "path": "include/libdxfrw/intern/dwgutil.h",
+          "sizeBytes": 16128,
+          "sha256": "db5e67ba6991edceeae89b2f33b9cc348ef5cedbd46182f1bf229f15e6c14358"
+        },
+        {
+          "path": "include/libdxfrw/libdwgr.h",
+          "sizeBytes": 54425,
+          "sha256": "d07ba8fdeaa01468016d84f0bd51bd0d316f36f21c37bfb8f9b4718776a445d4"
+        },
+        {
+          "path": "include/libdxfrw/libdxfrw.h",
+          "sizeBytes": 123472,
+          "sha256": "cb5c003084e5ed678676bfdfaadf8be2c549aea11488465dba9bae8bc91e8b98"
+        },
+        {
+          "path": "lib/cmake/libdxfrw/FindLibdxfrw.cmake",
+          "sizeBytes": 14305,
+          "sha256": "165409f7b16b0466cebfdc58cddb962e2394ae6eb833d3b5e9cf9411083fe7bf"
+        },
+        {
+          "path": "lib/cmake/libdxfrw/libdxfrwConanThreads.cmake",
+          "sizeBytes": 766,
+          "sha256": "71e2d22b5f3b509cc6ddeb2e2545e7459ea7d38c3233f03ae7ec65538bd126ff"
+        },
+        {
+          "path": "lib/cmake/libdxfrw/libdxfrwConfig.cmake",
+          "sizeBytes": 2449,
+          "sha256": "ae2311fc55cd5263878dd0f29cbb718d886f17a33c8d05a5e0fc10ac10a36d6a"
+        },
+        {
+          "path": "lib/cmake/libdxfrw/libdxfrwConfigVersion.cmake",
+          "sizeBytes": 2762,
+          "sha256": "d62c6198eeacb66fc8ab01a0bb244a4d3fc9dfcc25500229b29a55abbb86f098"
+        },
+        {
+          "path": "lib/cmake/libdxfrw/libdxfrwTargets-release.cmake",
+          "sizeBytes": 883,
+          "sha256": "78511a22a1fefa2caa12d9b5e4880e49ff3c67ae181868cd9e5f3907eacd780c"
+        },
+        {
+          "path": "lib/cmake/libdxfrw/libdxfrwTargets.cmake",
+          "sizeBytes": 4234,
+          "sha256": "0fc82361bd9f1f4fa5b1a8f9f49edd65115f364da014674cd73ee5d8f43685f7"
+        },
+        {
+          "path": "lib/libdxfrw.3.0.0.dylib",
+          "sizeBytes": 8194464,
+          "sha256": "12f064ecfe3628d0466530e7cc5de631e8861d971afc67000b5a1f7314461e5f"
+        },
+        {
+          "path": "lib/libdxfrw.3.dylib",
+          "symlinkTarget": "libdxfrw.3.0.0.dylib",
+          "sizeBytes": 8194464,
+          "sha256": "12f064ecfe3628d0466530e7cc5de631e8861d971afc67000b5a1f7314461e5f"
+        },
+        {
+          "path": "lib/libdxfrw.dylib",
+          "symlinkTarget": "libdxfrw.3.dylib",
+          "sizeBytes": 8194464,
+          "sha256": "12f064ecfe3628d0466530e7cc5de631e8861d971afc67000b5a1f7314461e5f"
+        },
+        {
+          "path": "lib/pkgconfig/libdxfrw.pc",
+          "sizeBytes": 309,
+          "sha256": "4609ac19d5b0311c9250810d9c7526440373823cb3b69b8602fb5e9d41012a76"
+        },
+        {
+          "path": "share/licenses/libdxfrw/COPYING",
+          "sizeBytes": 18092,
+          "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+        },
+        {
+          "path": "share/licenses/libdxfrw/Unicode-3.0.txt",
+          "sizeBytes": 1995,
+          "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+        }
+      ]
+    },
+    "static": {
+      "prefix": "/private/tmp/libdxfrw-p8e-static-902bbed3",
+      "buildSharedLibs": false,
+      "buildDwg2Dxf": false,
+      "buildTarget": "dxfrw",
+      "buildCommand": "cmake --build /private/tmp/libdxfrw-shared-abi.4jNvll/static-build --target dxfrw --parallel 4",
+      "installCommand": "cmake --install /private/tmp/libdxfrw-shared-abi.4jNvll/static-build --prefix /private/tmp/libdxfrw-p8e-static-902bbed3",
+      "archive": {
+        "path": "lib/libdxfrw.a",
+        "sha256": "bbd859cc7d3db9cc7d81314cec53b9674fb7869f44ad15a57b376f2c7c8d1dc4",
+        "sizeBytes": 13180672
+      },
+      "cmakeInstallManifest": {
+        "path": "/private/tmp/libdxfrw-shared-abi.4jNvll/static-build/install_manifest.txt",
+        "sha256": "8b45e0fae42d3b25966c44b81d8b0ff6783c605f43887d6250bb60c9024774a1"
+      },
+      "relocationSmoke": {
+        "command": "python3 -B tools/check_staged_package.py --prefix /private/tmp/libdxfrw-p8e-static-902bbed3 --relocation-smoke --install-manifest /private/tmp/libdxfrw-shared-abi.4jNvll/static-build/install_manifest.txt",
+        "result": "PASS",
+        "relocatedArchiveSha256": "bbd859cc7d3db9cc7d81314cec53b9674fb7869f44ad15a57b376f2c7c8d1dc4",
+        "checks": [
+          "Staged install manifest and installed licenses match.",
+          "pkg-config plain/override static paths select the exact archive; missing-private-library controls pass.",
+          "CMake CONFIG and MODULE discovery, version, identity, and boundary controls pass.",
+          "Moved prefix with spaces builds relocated consumers with the same archive hash."
+        ]
+      },
+      "installedFiles": [
+        {
+          "path": "include/libdxfrw/drw_acis.h",
+          "sizeBytes": 108982,
+          "sha256": "b39c78a1cdaeb31278c7ec2ba3f1e383cb7b09814fe1d1d00918df018d42c4c1"
+        },
+        {
+          "path": "include/libdxfrw/drw_base.h",
+          "sizeBytes": 45643,
+          "sha256": "83a7bbbe525073c6d546fb136ab4e0d7426e078b57066272d42256bcc9608fe4"
+        },
+        {
+          "path": "include/libdxfrw/drw_classes.h",
+          "sizeBytes": 2351,
+          "sha256": "a49a41256c70fbbbafcc553ffe7f7abb9d98cf5da6f329b58fac873c79eba932"
+        },
+        {
+          "path": "include/libdxfrw/drw_datastorage.h",
+          "sizeBytes": 13559,
+          "sha256": "ca073c3c15650a1de624dd2de4376ab6c572a43f898bbbdf2db13d2f7f319d2f"
+        },
+        {
+          "path": "include/libdxfrw/drw_dxf_capabilities.h",
+          "sizeBytes": 239,
+          "sha256": "f98ac3029375f1e5abcb28e721c95a330e07f19079b237a848da14fc84c8931c"
+        },
+        {
+          "path": "include/libdxfrw/drw_dxf_extrusion.h",
+          "sizeBytes": 3939,
+          "sha256": "f5c4a56cac0b2e422e8b9e2ddb82c926135374283c1f906e72462b6f977588d8"
+        },
+        {
+          "path": "include/libdxfrw/drw_entities.h",
+          "sizeBytes": 265736,
+          "sha256": "ffee424f84a65dd769575839fa963c4178d32ed5fe224d142ac924ec2e71b013"
+        },
+        {
+          "path": "include/libdxfrw/drw_header.h",
+          "sizeBytes": 33867,
+          "sha256": "80f2907c24172b973b94f83c4717c84c36354f6387072ada76e04b2cd7d9594f"
+        },
+        {
+          "path": "include/libdxfrw/drw_interface.h",
+          "sizeBytes": 84123,
+          "sha256": "237bf0a3669df26103401023bc6dcd100263f4ab3b4e8af6e2907f0a698d6d9f"
+        },
+        {
+          "path": "include/libdxfrw/drw_objects.h",
+          "sizeBytes": 372289,
+          "sha256": "499ed1eb786f99c8a2b9cbbe4530823fe9ca1826016512a583273fb604aa7209"
+        },
+        {
+          "path": "include/libdxfrw/intern/dwg_fixed_handles.h",
+          "sizeBytes": 2745,
+          "sha256": "40fc75b207b13af26324dd174bf607b63d12601880c828025de86525eb8859fb"
+        },
+        {
+          "path": "include/libdxfrw/intern/dwgbufferw.h",
+          "sizeBytes": 16157,
+          "sha256": "250b5c53d6d0e50eb230868bd37d241b679dbf7404e07395c8d29ae3e277d337"
+        },
+        {
+          "path": "include/libdxfrw/intern/dwgsafety.h",
+          "sizeBytes": 10933,
+          "sha256": "a7efc6a1b6acd678e6a295e4278f908a3d7db47b32177456cce2039f5816aec1"
+        },
+        {
+          "path": "include/libdxfrw/intern/dwgutil.h",
+          "sizeBytes": 16128,
+          "sha256": "db5e67ba6991edceeae89b2f33b9cc348ef5cedbd46182f1bf229f15e6c14358"
+        },
+        {
+          "path": "include/libdxfrw/libdwgr.h",
+          "sizeBytes": 54425,
+          "sha256": "d07ba8fdeaa01468016d84f0bd51bd0d316f36f21c37bfb8f9b4718776a445d4"
+        },
+        {
+          "path": "include/libdxfrw/libdxfrw.h",
+          "sizeBytes": 123472,
+          "sha256": "cb5c003084e5ed678676bfdfaadf8be2c549aea11488465dba9bae8bc91e8b98"
+        },
+        {
+          "path": "lib/cmake/libdxfrw/FindLibdxfrw.cmake",
+          "sizeBytes": 14305,
+          "sha256": "165409f7b16b0466cebfdc58cddb962e2394ae6eb833d3b5e9cf9411083fe7bf"
+        },
+        {
+          "path": "lib/cmake/libdxfrw/libdxfrwConanThreads.cmake",
+          "sizeBytes": 766,
+          "sha256": "71e2d22b5f3b509cc6ddeb2e2545e7459ea7d38c3233f03ae7ec65538bd126ff"
+        },
+        {
+          "path": "lib/cmake/libdxfrw/libdxfrwConfig.cmake",
+          "sizeBytes": 2449,
+          "sha256": "ae2311fc55cd5263878dd0f29cbb718d886f17a33c8d05a5e0fc10ac10a36d6a"
+        },
+        {
+          "path": "lib/cmake/libdxfrw/libdxfrwConfigVersion.cmake",
+          "sizeBytes": 2762,
+          "sha256": "d62c6198eeacb66fc8ab01a0bb244a4d3fc9dfcc25500229b29a55abbb86f098"
+        },
+        {
+          "path": "lib/cmake/libdxfrw/libdxfrwTargets-release.cmake",
+          "sizeBytes": 861,
+          "sha256": "667e223b36c4ed61ae4fd532f3f9d4514761d556cb57c4e0821ac6ceb1a9ed00"
+        },
+        {
+          "path": "lib/cmake/libdxfrw/libdxfrwTargets.cmake",
+          "sizeBytes": 4234,
+          "sha256": "dc9acf5ffcb8892675c1d9566e478de0d1bfbf9e97e488de29c6216512f07070"
+        },
+        {
+          "path": "lib/libdxfrw.a",
+          "sizeBytes": 13180672,
+          "sha256": "bbd859cc7d3db9cc7d81314cec53b9674fb7869f44ad15a57b376f2c7c8d1dc4"
+        },
+        {
+          "path": "lib/pkgconfig/libdxfrw.pc",
+          "sizeBytes": 309,
+          "sha256": "4609ac19d5b0311c9250810d9c7526440373823cb3b69b8602fb5e9d41012a76"
+        },
+        {
+          "path": "share/licenses/libdxfrw/COPYING",
+          "sizeBytes": 18092,
+          "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+        },
+        {
+          "path": "share/licenses/libdxfrw/Unicode-3.0.txt",
+          "sizeBytes": 1995,
+          "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+        }
+      ]
+    },
+    "scope": {
+      "proves": [
+        "Complete macOS Release shared and static installed-file inventories are hash-bound to the candidate package contents.",
+        "The shared dylib install ID, dependencies, exact runtime path, and current-target LibreCAD fast-run hash agree.",
+        "The static archive passes the staged-package relocation smoke and retains the same SHA-256 after moving to a path containing spaces."
+      ],
+      "doesNotProve": [
+        "Linux or Windows package identity, ABI/runtime compatibility, or relocation.",
+        "Full symbol-by-symbol ABI compatibility, LibreCAD GUI behavior, or independent DWG/DXF producer semantics."
+      ]
+    }
+  }
+}

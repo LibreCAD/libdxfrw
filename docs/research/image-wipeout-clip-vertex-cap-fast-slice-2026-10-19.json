@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "IMAGE/WIPEOUT clip-vertex cap fast slice",
+  "mode": "Local implementation and focused generated validation",
+  "scope": [
+    "Enforce the existing per-entity DXF clipping-vertex limit before vector growth",
+    "Keep shape validation consistent with the shared reader/writer cap",
+    "Add generated ASCII/Binary IMAGE and WIPEOUT controls for omitted group-91 counts"
+  ],
+  "implementation": {
+    "source": "DRW_Image::parseCode now rejects group-14 growth at kMaxClipVertices before emplace_back; DRW_Image::hasValidClipBoundary rejects directly constructed over-limit paths.",
+    "compatibility": "The parser's omitted-group-91 tolerance remains unchanged for paths within the implementation cap.",
+    "tests": "The repeated-DXF hardening selector generates 100,001 group-14/24 vertices without group 91 for both IMAGE and WIPEOUT in ASCII and Binary DXF. Each route must fail with BAD_CODE_PARSED before its entity callback, retain the preceding LINE callback, and not publish the following LINE.",
+    "fixtures": "No persistent DWG/DXF fixture was added; generated files are scoped to the existing temporary test directory and removed during cleanup."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_hardening_tests --repeated-dxf-record-robustness",
+      "result": "PASS"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.80
+    },
+    "diffCheck": "PASS",
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false
+  },
+  "assessment": {
+    "finding": "PAR-135",
+    "findingStatus": "LOCAL_GUARD_AND_GENERATED_REGRESSION_PASS",
+    "planTotals": {
+      "findings": 135,
+      "topLevelSubplans": 77
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commitCreated": false,
+    "commitLimitation": ".git is read-only in the shared workspace; source, test, and plan edits remain uncommitted."
+  },
+  "sourceSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "e3b9ece9594ada47dfdc9d167e6c797e0b08386f5ad2902dc2a757787e75aa47",
+    "src/drw_entities.cpp": "ba684b5de81714a3ef6f244668997c277d0d7ce73a4f1c10ade2f15327f26f5e",
+    "tests/hardening_tests.cpp": "7e6b899f2d0fc5eb852e5231e3287cdd72ef202b08859643da0a56a4a0fc7e48"
+  },
+  "limitations": "This closes only the local IMAGE/WIPEOUT per-entity storage-cap bypass. It does not establish validity of omitted group 91, all clipping semantics, DWG behavior, peer parity, or consumer support."
+}

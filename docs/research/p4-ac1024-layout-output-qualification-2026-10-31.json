@@ -1,0 +1,123 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-layout-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Connect both physical AC1024 LAYOUT callbacks to strict output qualification",
+  "status": "2_LAYOUT_IDENTITIES_QUALIFIED_STRICT_GATE_STILL_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "records": [
+      {
+        "record": "LAYOUT / AcDbLayout",
+        "objectType": 82,
+        "handle": "0x22",
+        "name": "Model",
+        "parentDictionary": "0x1A",
+        "blockRecord": "0x1F",
+        "extensionDictionary": "0x351",
+        "thumbnailXrecord": "0x352",
+        "lastActiveVport": "0x94",
+        "viewportHandles": []
+      },
+      {
+        "record": "LAYOUT / AcDbLayout",
+        "objectType": 82,
+        "handle": "0x59",
+        "name": "Layout1",
+        "parentDictionary": "0x1A",
+        "blockRecord": "0x58",
+        "extensionDictionary": "0x2A7",
+        "thumbnailXrecord": "0x2A8",
+        "lastActiveViewport": "0x28B",
+        "viewportHandles": ["0x28B", "0x290"]
+      }
+    ],
+    "namedObjectDictionary": "0xC",
+    "rootKey": "ACAD_LAYOUT",
+    "layoutDictionaryEntries": [
+      ["Layout1", "0x59"],
+      ["Model", "0x22"]
+    ],
+    "sourceFrame": {
+      "isEntity": false,
+      "objectTypes": [82, 82],
+      "parents": ["0x1A", "0x1A"],
+      "commonLinkEvidence": "validated"
+    },
+    "profileEvidence": "tests/dwg2dxf_adapter_tests.cpp::physicalLayoutOutputReadback",
+    "fixturePolicy": "Existing repository DWG only; temporary DXFs and scratch tools stayed outside Git. No fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_standard_output.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Freeze the two witnessed LAYOUT models, the ACAD_LAYOUT dictionary, reciprocal BLOCK_RECORDs, extension DICTIONARYs and thumbnail XRECORD identities. Reuse the existing budgeted immutable XRECORD snapshot for full payload proof instead of making a second payload copy. Inspect the staged TABLES and OBJECTS sections in the same DXF transaction, and stage each type-82 callback identity only after those checks pass.",
+    "fieldAndRoleProof": "The source profile is restricted to the witnessed AC1024 Model and Layout1 records, their complete two-entry ACAD_LAYOUT dictionary, validated type-82 source frames, reciprocal block-record links, single-entry extension dictionaries and ADSK_XREC_LAYOUTTHUMBNAIL records. The OBJECTS inspector checks the NOD root-key role, complete layout dictionary, each complete LAYOUT PlotSettings/Layout field set, mapped owner/reactor/XDICTIONARY references, exact EED values, complete extension dictionaries and typed XRECORD payloads against the existing bounded immutable XRECORD source snapshot. The TABLES inspector uses the production BLOCK_RECORD decoder and checks each mapped layout backlink. DXF does not encode the DWG viewport count/list fields directly; each source list member is instead required to have a unique emitted VIEWPORT identity owned by the mapped paper-space BLOCK_RECORD. Last-active VPORT/VIEWPORT targets are checked by emitted record type and mapped handle.",
+    "scope": "Qualifies exactly the two type-82 LAYOUT callbacks in the existing AC1024 witness. Other LAYOUT profiles remain unqualified. No format-support claim is promoted."
+  },
+  "qualification": {
+    "before": 209,
+    "after": 211,
+    "totalOpaqueCallbacks": 228,
+    "newlyQualified": [
+      {"objectType": 82, "handle": "0x22", "record": "LAYOUT", "name": "Model"},
+      {"objectType": 82, "handle": "0x59", "record": "LAYOUT", "name": "Layout1"}
+    ],
+    "remaining": 17,
+    "remainingBreakdown": {
+      "unnamedEntityType34": 2,
+      "unnamedObjectType82": 0,
+      "standardObjectType42": 13,
+      "standardObjectType79": 2
+    },
+    "strictExport": "Still refuses before publication at 211/228. The failed attempt leaves the published identity set and qualification count empty.",
+    "legacyRetry": "Succeeds and atomically publishes exactly 211 source-bound identities."
+  },
+  "failureAndRetry": {
+    "negativeControl": "The selector temporarily replaces Layout1's paper-space BLOCK_RECORD handle with DRW::NoHandle. Preflight refuses before output publication, preserves the destination sentinel byte-for-byte and leaves both published LAYOUT qualification bits unchanged.",
+    "retry": "Restore the original handle and retry with the same adapter. ASCII and Binary outputs pass fresh typed import; the selector confirms both type-82 identities are qualified only after successful publication, with both layouts, dictionary membership, full plot/layout fields, block-record backlinks, extension/XRECORD ownership and last-active target roles.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags.",
+      "dwg2dxfSha256": "7fea0bb52bd3436d23d384a7d3a9f5166ea6f9c96fdc6107c37c7d132710dd93",
+      "adapterTestSha256": "bedc4956fc446c6819cf0dc880cc6709ae7086492974ce5ab9deb5309d6fff08"
+    },
+    "physicalReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary, including fresh import, full selected fields and graph edges, atomic refusal, unchanged qualification after failure and corrected same-adapter retry. The preflight failure is expected from the negative control."
+    },
+    "strictGate": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_opaque_source_capture_and_strict_output_gate$' --output-on-failure",
+      "result": "PASS, 1/1."
+    },
+    "census": {
+      "command": "g++ -std=c++17 -Wall -Wextra -pedantic -Werror -I dwg2dxf -I src /private/tmp/libdxfrw-p4-callback-census.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /private/tmp/libdxfrw-p4-callback-census && /private/tmp/libdxfrw-p4-callback-census tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS; strict conversion refused at 211/228 with no published identities; legacy retry published 211 and reported the 17 unresolved callbacks. Scratch source and executable stayed outside Git."
+    },
+    "fullSuites": "NOT RUN; focused physical readback, strict-gate CTest and source-bound census were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Connect physical AC1024 type-82 LAYOUT callbacks 0x22 and 0x59 to transactional TABLES/OBJECTS output proof and fresh ASCII/Binary readback."
+    ],
+    "nextPacket": "Trace the two remaining unnamed entity type-34 callbacks through source identity, emitted record ownership, complete payload and fresh readback; qualify only identities closed in the same output transaction.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "083fc6be387fb220cb78ae5441d0acb8b916b31483bf025dcec0313addaf12a5",
+    "dwg2dxf/dx_iface.h": "814168b3effa57164eb34a58d5b0cbfd92675747c43c4a89474b2e68293e1bf6",
+    "dwg2dxf/dx_standard_output.h": "30d5fcd7d089de1c2d5de0b6f87517f8ec0f36f8003062590fe4e9b91b14c5ea",
+    "tests/dwg2dxf_adapter_tests.cpp": "92e5ff500e0b81385fe6e803b0ac78683a68d08c2572ba23e4228bb96c589c63",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "120cf963422740b0396d0378c99ac51d74a9b4a6c8dd7efd578c3a262b5dbf60"
+  }
+}

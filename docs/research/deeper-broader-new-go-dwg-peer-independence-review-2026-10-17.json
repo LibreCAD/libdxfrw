@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw-open-source-route-evidence-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Screen the newly surfaced go-cad DWG/DXF implementation, assess evidence independence and ACIS scope, and reconcile current ACIS writer/loss issue status before updating the existing optional comparator matrix.",
+  "method": {
+    "kind": "Primary-source repository, versioned Go module documentation, release page, and current issue/PR status review",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/unitedrhino/go-cad",
+      "https://pkg.go.dev/github.com/unitedrhino/go-cad@v0.0.0-20261001090957-ddd91eea9618",
+      "https://pkg.go.dev/github.com/unitedrhino/go-cad@v0.0.0-20261001090957-ddd91eea9618/internal/entity",
+      "https://github.com/unitedrhino/go-cad/releases",
+      "https://github.com/unitedrhino/go-cad/blob/main/LICENSE",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/LibreDWG/libredwg/issues/1411"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: latest downstream-consumer and new-peer capability review matrix and comparator admission rules",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: implementation order, fast-test cadence, and deferred external J ledger"
+    ],
+    "limitations": "Project feature, corpus, differential, fuzz, and reliability numbers are README claims and were not independently reproduced. The examined Go module is an untagged pseudo-version; GitHub lists no formal releases. No run was performed and no file was downloaded."
+  },
+  "evidence": [
+    {
+      "topic": "go-cad route and maturity",
+      "observed": "The project describes a pure-Go/no-cgo DWG R9-R2018 and ASCII/binary DXF reader/writer, with separate container, object-record, entity, object, model, renderer, and writer packages. The inspected pkg.go.dev module snapshot is v0.0.0-20261001090957-ddd91eea9618, published 2026-10-01, and is not tagged or stable; its GitHub release page lists no releases. The README says its decoded values are checked against LibreDWG dwgread -O JSON and its DXF writing against LibreDWG dxf2dwg."
+    },
+    {
+      "topic": "comparison independence and 3D boundary",
+      "observed": "A distinct Go implementation can be a useful implementation-diverse structural/explicit-entity differential, but the project's own advertised expected-value baseline is LibreDWG-derived, so agreement is reference-correlated rather than a fully independent semantic oracle. Its documented ACIS entity path extracts/stores SAT/SAB bytes as a blob and explicitly has no ACIS geometry kernel; this cannot establish B-rep topology, solid validity, AcDs ownership/index association, or native 3D acceptance."
+    },
+    {
+      "topic": "current ACIS peer issue status",
+      "observed": "ACadSharp PR #1240 remains open and undeployed and is described as depending on #1174; LibreDWG issue #1411 remains open with the reported modern AcDs/SAB loss. These statuses do not constitute current released writer behavior or an independent local defect reproduction."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "classify go-cad as an optional structural and explicit-entity differential, not a mandatory peer, dependency, or CI gate",
+      "bind any optional future run to an immutable commit, Go toolchain, exact input bytes, and per-handle/type/owner/loss report",
+      "do not count agreement with LibreDWG-derived expectations as an independent oracle result",
+      "do not use go-cad's ACIS blob retention for B-rep, AcDs join, or 3D consumer claims",
+      "keep local generated fast tests as the implementation loop; use a peer only at the existing composed checkpoint when a concrete unresolved family warrants it"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

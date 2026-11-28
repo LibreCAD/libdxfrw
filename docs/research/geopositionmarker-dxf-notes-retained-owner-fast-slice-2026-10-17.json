@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "GEOPOSITIONMARKER DXF notes retained owner",
+  "mode": "local fast implementation slice with generated controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Charge the DXF GEOPOSITIONMARKER group-1 notes value to its entity retained-string owner",
+    "Keep replacement, reset, copy, and move accounting aligned with the retained value",
+    "Leave typed-variant parsing, DWG decoding, caller mutation, and writer/projection copies outside this slice"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "summary": "DRW_GeoPositionMarker::parseCode now admits group-1 m_notes through replaceDxfRetainedStringField using a dedicated byte counter. resetDwgState clears the counter; the explicit copy constructor and assignment carry it with the value and shared base lease, while default move operations transfer ownership. Generated ASCII controls discover the minimum accepted budget for OLD-to-NOTES, test exact-cap success and one-byte-under preservation, and exercise copy, assignment, move construction, move assignment, sibling reset, and final-owner release.",
+    "wireBehaviorChanged": false,
+    "publicApiOrLayoutChanged": true,
+    "layoutChange": "A private retained-byte counter was added to public DRW_GeoPositionMarker layout. Downstream consumers must rebuild; binary ABI compatibility is not claimed.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-geopositionmarker-notes-owner-budget",
+      "build-gcc/libdxfrw_hardening_tests --dxf-shape-style-name-owner-budget",
+      "build-gcc/libdxfrw_hardening_tests --dxf-section-object-name-owner-budget",
+      "build-gcc/libdxfrw_hardening_tests --dxf-modeler-uid-owner-budget",
+      "build-gcc/libdxfrw_hardening_tests --dxf-dimension-name-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check -- src/drw_entities.h src/drw_entities.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "results": {
+      "strictHardeningTargetAndCompatibilityCompile": "passed",
+      "focusedRetainedStringOwnerSelectors": "passed (5/5)",
+      "owningHardeningCTest": "passed (1/1; 0.29 s)",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "claim": "The selected parser-owned GEOPOSITIONMARKER group-1 string is charged to the shared logical retained-byte budget and follows copied or moved model values. The one-byte-under control stops before parsing the replacement and preserves the prior notes and charge. No process-RSS/capacity, complete DXF-read, typed-variant, DWG, caller-mutation, writer/projection-copy, or native CAD claim follows.",
+    "coverage": "Generated ASCII direct-parser controls verify minimum-cap discovery, exact-cap success, refusal without replacing the prior value, copy construction/assignment, move construction/assignment, sibling reset, and final release. The owning hardening CTest passes.",
+    "limitations": "No persistent/external drawing, peer parser, native CAD application, full suite, allocation benchmark, or support/J promotion was used. This parser-retained lease does not bound arbitrary caller mutation of the public m_notes member."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "gitMetadataReadOnly": true,
+    "staged": false,
+    "committed": false
+  }
+}

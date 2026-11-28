@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-ac1024-21500-header-third-word-cross-version-authority-screen-2026-11-13",
+  "date": "2026-11-13",
+  "status": "ACIS_21500_THIRD_HEADER_WORD_UNRESOLVED_CROSS_VERSION_EVIDENCE_SCREENED",
+  "supportClaimEffect": "none",
+  "scope": "Deepen the evidence boundary for the third ACIS SAB header word in the selected AC1024/21500 source profile.",
+  "observedProfile": {
+    "source": "Existing local AC1024 inline SAB source profile recorded in p7-ac1024-21500-sab-sat-cuboid-crosscheck-2026-11-11.json",
+    "header": "21500 0 2 24",
+    "sourceProjection": "The selected payload has one body record at index 1, which references record index 2; a separate SAT projection preserves the raw third word as 2.",
+    "producerProvenance": "Embedded product metadata exists, but producer authenticity is not independently established."
+  },
+  "evidence": [
+    {
+      "source": "Open Design Alliance, Working with .sat and .sab Files in Teigha (2017)",
+      "url": "https://www.opendesign.com/blog/2017/october/working-sat-and-sab-files-teigha",
+      "finding": "Maps R24/2010 to SAT/SAB version 21500, states Autodesk's 20800+ formats are modified from native Spatial ACIS, and says a DWG 3D entity's embedded SAT/SAB contains a single body. It does not define the 21500 third header word."
+    },
+    {
+      "source": "Spatial, SAT Save File Format D 7.0",
+      "url": "https://citeseerx.ist.psu.edu/document?doi=ae804a5fa8cf00d8a2e4e63729e244f04102da79&repid=rep1&type=pdf",
+      "finding": "Defines the corresponding SAT text header's third integer as the count of entities in the original entity list saved to the part file and says top-level entities appear first. This is a native ACIS 7.0 SAT document, not a schema for modified Autodesk ACIS 21500 SAB."
+    },
+    {
+      "source": "CADMPEG, ASM and ACIS kernel stream format documentation",
+      "url": "https://github.com/cadmpeg/cadmpeg/blob/main/docs/formats/asm.md",
+      "finding": "Documents the ACIS 217/218 binary header word as the RecordTable index of the first referenced record, with asmheader at index 0 and top-level records in the preceding range. The documented ACIS branch is 217/218, not the selected 21500 profile."
+    },
+    {
+      "source": "ACadRust 0.6.8 parser observations in the existing 21500 receipt",
+      "url": "https://docs.rs/acadrust/latest/src/acadrust/entities/acis/parser.rs.html",
+      "finding": "The peer exposes the third SAT header integer through a num_bodies field, but this naming and one-body parse do not establish the 21500 wire semantics or resolve the value 2."
+    }
+  ],
+  "analysis": {
+    "result": "The cross-version sources describe incompatible candidate meanings. The one-body observation makes a literal 21500 body-count interpretation inadequate for this sample; the 217/218 index-boundary interpretation is plausible but cannot be transferred backward across the modified Autodesk dialect without version-specific evidence.",
+    "productionDecision": "Keep the third 21500 header word raw, preserve it in the SAT projection, and do not use it to admit or reject geometry or claim a body count.",
+    "blockingEvidence": "A 21500-specific normative/producer schema or a provenance-qualified independently interpreted 21500 source with a complete top-level record census and discriminating entity-list profiles."
+  },
+  "implementation": {
+    "productionCodeChanged": false,
+    "fixturesAdded": 0,
+    "planChanged": true
+  },
+  "validation": {
+    "method": "Read-only source review and comparison against the existing hash-bound 21500 receipt; no parser or fixture changes.",
+    "diffCheck": "PASS: git diff --check on the plan and receipt paths",
+    "tests": "Not run; research-only update."
+  },
+  "planImpact": {
+    "completedSlice": "Cross-version authority screen identifies why ACIS 7.0 SAT and ACIS 217/218 header semantics cannot resolve the modified 21500 SAB word.",
+    "remainingP7D": "Keep ACIS 21500 header semantics gated until a version-specific schema or provenance-qualified independent decoding distinguishes the candidate meanings.",
+    "phaseStatusesChanged": false
+  },
+  "previousReceipt": "docs/research/p7-ac1024-21500-sab-sat-cuboid-crosscheck-2026-11-11.json"
+}

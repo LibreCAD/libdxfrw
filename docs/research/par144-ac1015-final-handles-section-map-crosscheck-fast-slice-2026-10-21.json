@@ -1,0 +1,53 @@
+{
+  "slice": "PAR-144 AC1015 finalized HANDLES-section/map cross-check",
+  "date": "2026-10-21",
+  "status": "implemented_and_fast_validated",
+  "scope": "Generated in-memory test only; no production parser/writer code or persistent DWG/DXF fixture added.",
+  "test": {
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "selector": "--viewport-handles-section",
+    "generated_object_frames": 1200,
+    "object_type": 34,
+    "version": "AC1015"
+  },
+  "checks": [
+    "Writer normal finalization emits a multi-page HANDLES section.",
+    "Independently parsed HANDLES pages have valid CRCs and terminal-page shape.",
+    "Every decoded handle/offset pair is unique and matches the pre-finalization object-map snapshot.",
+    "Every mapped offset lands on a bounded CRC-valid generated object frame before the HANDLES section.",
+    "Per-frame emitted receipts and serialized owner-handle tokens agree with the final map and frame bytes."
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+      "result": "passed"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --viewport-handles-section",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "result": "passed; 1/1 tests, 1.51 seconds"
+    },
+    {
+      "command": "git diff --check -- tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "passed"
+    }
+  ],
+  "limitations": [
+    "Synthetic frames are appended under the VPORT control for serializer stress; semantic table-child membership is not asserted.",
+    "This does not establish complete reader acceptance or native CAD qualification.",
+    "A broad pre-existing dirty worktree makes an isolated buildable commit unsafe; this slice remains uncommitted."
+  ],
+  "support_claim_promoted": false,
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "next_self_unblocking_item": "Inspect existing generated ATTRIB/SEQEND and per-layout VIEWPORT owner coverage, then add one missing callback-to-wire relationship through normal owner routing and validate only its selector plus owning CTest."
+}

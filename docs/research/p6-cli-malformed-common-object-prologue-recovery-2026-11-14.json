@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-common-object-prologue-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Keep a malformed but size-delimited OBJECTS record local to its object-map frame, while retaining strict refusal and integrity-sensitive partial-output refusal.",
+  "basis": {
+    "odaSpecification": "Open Design Specification for .dwg files v5.4.1, §20.1 (common non-entity object format) and §23.1–23.2 (per-object map locations).",
+    "principle": "The outer object size and object-map location bound each object independently. A corrupt common prologue makes that object unpublishable but does not move the next object's location."
+  },
+  "implementation": {
+    "file": "src/intern/dwgreader.cpp",
+    "change": "When the frame is readable but the common prologue or common handle tail is invalid, record an ObjectFrameBounds integrity error and return a record failure without setting the OBJECTS section structural-failure flag. The frame ledger marks the object Failed; later object-map frames continue to be read."
+  },
+  "profiles": [
+    {"sourceVersion": "AC1021", "targetVersion": "AC1021"},
+    {"sourceVersion": "AC1024", "targetVersion": "AC1024"},
+    {"sourceVersion": "AC1032", "targetVersion": "AC1032"}
+  ],
+  "generatedMalformedFrame": {
+    "origin": "Locally authored in a temporary directory for this test; not committed as a fixture.",
+    "shape": "One custom-class OBJECTS frame retains an encoded object type and handle but truncates before common EED/reactor state; a valid LINE follows.",
+    "perProfile": {
+      "readOperationSucceeded": true,
+      "objectParseFailures": 1,
+      "failedFrames": 1,
+      "remainingFrameDispositions": "published",
+      "frameAccounting": "sourceFrames = publishedFrames + failedFrames",
+      "laterLineCallback": "exactly one"
+    }
+  },
+  "controls": [
+    "For AC1021, AC1024, and AC1032, ASCII and Binary strict conversion refuse and preserve a destination sentinel.",
+    "The same explicit-partial ASCII and Binary requests emit the incomplete-output warning but still refuse because the retained integrity ledger contains an ObjectFrameBounds error; destination and source bytes remain unchanged.",
+    "Direct DWG callback observation proves the valid LINE after the bad object remains readable and frame accounting is exact."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j4",
+    "tests": [
+      "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only",
+      "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --skipped-record-only"
+    ],
+    "results": [
+      "PASS: 48 partial-read strict/partial/readback controls, including the malformed OBJECTS matrix",
+      "PASS: 48 skipped-record and raw-only controls after the reader disposition change"
+    ]
+  },
+  "limits": [
+    "The malformed body is a synthetic negative control, not evidence for producer-authored object schemas or successful lossy export.",
+    "AC1027 is excluded because the generated profile hits an independent source-reference closure error before isolated CLI output disposition.",
+    "No DWG/DXF fixtures were committed."
+  ]
+}

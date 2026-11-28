@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 children-room same-version whole-source output gate recheck",
+  "date": "2026-11-05",
+  "status": "SAME_VERSION_PASSES_MODELDOC_VERSION_GUARD_NEXT_DBCOLOR_GATE",
+  "supportClaimEffect": "none",
+  "scope": "Recheck the whole-source output gate for the existing AC1021 children-room physical witness using a same-version AC1021 target. No source or derivative is committed.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated."
+  },
+  "operation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/children-room-decoration.dwg -y -d -v2007 /private/tmp/children-room-same-version.dxf",
+    "converterSha256": "18ba6045ad534027867ae5e73ce93c5f6a520864b1cf0e746c90a4cfe6001611",
+    "traceSha256": "ddbf8cfbffb81422ded23ecb2fff8a52c34f1e8493b97f5b72218bcaaf8e5f09",
+    "exitCode": 1,
+    "outputCreated": false,
+    "projection": "sourceFormat=DWG, sourceVersion=AC1021, targetVersion=AC1021, explicit target, ASCII, strict read-completeness mode",
+    "readObservations": "1673/1673 observed frames published; zero entity/object parse failures and zero reader CRC mismatches. Opaque callback inventory includes 186 frames, with zero source frames retained or output-qualified; semantic coverage remains unknown.",
+    "firstOutputGate": "Extension-object graph validation refuses the physical DBCOLOR profile: 'DWG DBCOLOR export remains refused pending an independent producer source profile, exact ACAD_COLOR entry semantics, and fresh DXF readback evidence.'"
+  },
+  "interpretation": {
+    "priorCrossVersionAttempt": "The prior AC1021-to-AC1024 attempt stopped at the deliberate typed DWG ModelDocViewStyle exact-version guard. That result did not identify the next same-version output gate.",
+    "sameVersionResult": "Using AC1021 output passes the ModelDocViewStyle exact-version guard and reaches the separately documented DBCOLOR evidence gate.",
+    "nextAction": "Resolve DBCOLOR's source CMC/fallback semantics and exact ACAD_COLOR dictionary/EED dependency output/readback before changing the fail-closed gate."
+  },
+  "limitations": [
+    "No DXF was produced; this does not qualify whole-source conversion.",
+    "No native CAD consumer or independent color-book semantic check was run.",
+    "The source does not independently establish producer-wide AC1021 support."
+  ]
+}

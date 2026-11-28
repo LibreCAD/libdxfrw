@@ -1,0 +1,98 @@
+{
+  "status": "bounded scratch candidate; not a general AC1027 writer qualification",
+  "base_commit": "156b3946",
+  "authority": "Open Design Specification for .dwg files v5.4.1 sections 20.1, 20.4.59 (VIEW CONTROL) and 20.4.61 (UCS CONTROL). The zero count encoding does not distinguish BL from BS; this observation does not qualify nonzero counts.",
+  "observation": "In a physical ODA-produced AC1027 LINE drawing, both empty controls have a zero absent-string marker at body bit 34 and handles beginning at bit 35. Previous generated frames inserted a separate aligned empty-string trailer and began handles at bit 64. The candidate uses the already-emitted marker and preserves the unaligned handle stream only for the validated empty reserved controls.",
+  "scope": "AC1027 reserved VIEW_CONTROL and UCS_CONTROL, exact object type/self handle, empty count, no EED/reactors/data storage/extension dictionary, and validated null owner/extension dictionary handle roles. Populated controls, other types, and other revisions retain existing framing. The exact profile refuses a custom-class ledger collision.",
+  "wire": {
+    "source": {
+      "view_body_offset_in_decompressed_page": 70,
+      "ucs_body_offset_in_decompressed_page": 81,
+      "handle_start_bit": 35,
+      "handle_bytes_hex": "40",
+      "end_padding_bits": 5
+    },
+    "generated": {
+      "view_body_offset_in_decompressed_page": 257,
+      "ucs_body_offset_in_decompressed_page": 269,
+      "handle_start_bit": 35,
+      "handle_bytes_hex": "4030",
+      "end_padding_bits": 5
+    },
+    "qualification": "Source null extension dictionary handle is omitted; generated includes explicit role-3 null. Both physical role observations are checked, rather than claimed byte-identical."
+  },
+  "implementation": "The exact frame path validates the full prologue, marker and handle roles before merging. It restores frame bytes, map and identity entries and generation on tested one-shot allocation failures. A narrowly scoped compound checkpoint also covers later control-handle registration in both emitControlObject overloads; rollback can invalidate a previous last-frame receipt and does not promise to restore it. Failures latch; the direct writer is not claimed reusable after latch. A separate whole-file failed-write/same-facade retry control is included. Persistent allocator failure during rollback is not qualified.",
+  "evidence": {
+    "source_dwg": {
+      "path": "/private/tmp/modern-writer-investigation/source-dwg/AC1027/line.dwg",
+      "sha256": "1bab740b1f96b88534b4f8238828b9044cffd58b2975ec4b6b00db0c4560cd09"
+    },
+    "source_decoded_objects_page": {
+      "path": "/private/tmp/modern-8bb/source-objects.raw",
+      "sha256": "43bb83bda0a955c8e7950ba885d20636565446b0fa5c12b9001f8451be138555"
+    },
+    "baseline_diagnostic_dwg": {
+      "path": "/private/tmp/ac1027-other-controls/in/baseline.dwg",
+      "sha256": "47854b63541fd1236d13c15c3b87485d97997c44384d8588135ab40a253b0b49"
+    },
+    "candidate_dwg": {
+      "path": "/private/tmp/ac1027-other-controls/final.dwg",
+      "sha256": "b6cb50035e1e25ac161f3e214b3bdc07f1764bc2f6bdedd7d7643a7cf1c3a9d2"
+    },
+    "candidate_diagnostic_dwg": {
+      "path": "/private/tmp/ac1027-other-controls/final-maint6.dwg",
+      "sha256": "5a23af2ba568733a283d77b09fcf28d91f1f52f6ebeb1c266c277beb78e6ea68"
+    },
+    "candidate_decoded_objects_page": {
+      "path": "/private/tmp/ac1027-other-controls/generated-objects.raw",
+      "sha256": "8e7010969c151b4d15677902ab3e163908a7674dfa1f3c01ebc2c53c9ec12659"
+    },
+    "libredwg_0_14": {
+      "path": "/opt/homebrew/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "baseline_oda_error": {
+      "path": "/private/tmp/ac1027-other-controls/out/baseline.dxf.err",
+      "sha256": "506ad929844b1473fcb3c354d799c6110f5b3d5a568f46d17b2e45c83868184f"
+    },
+    "candidate_oda_error": {
+      "path": "/private/tmp/ac1027-other-controls/out/controls.dxf.err",
+      "sha256": "f81db3a0c528b1f181d142001e7d5dd83a597421bac825500d059b3280419719"
+    }
+  },
+  "oda_result": "For this controlled diagnostic only, byte 0x0b of each generated DWG was changed from 0 to 6 to reach ODA audit; it is distinct from application maintenance byte 0x12 and is not a proposed production change. ODA audit reports 18 warnings before and 16 after; the VIEW and UCS table warnings disappear. Both files still fail at LAYER, require recovery, and produce no DXF. This does not establish whole-file acceptance or semantic equivalence.",
+  "binding_limits": "The separately hash-bound decompressed objects pages were extracted using the in-tree decompressor; the DWG-to-page lineage is a manually observed join, not independently established by the audit script. LibreDWG supplies independent decoded body boundary, roles and CRC observations; the auditor checks the supplied page bits and hashes. No fixture is added.",
+  "compatibility": "Generated AC1024 and AC1032 LINE outputs are byte-identical to pre-candidate outputs: SHA-256 53f46e21906c9e18f4f7a499a40a2135d3015325c33f996d2fbcc4e6a046f468 and 94c7f0479c2e17c2266b7aad5b77bc86923f9b2ed20241b536c5ee010b624723 respectively. A populated AC1027 control retains the old path.",
+  "tests": {
+    "command": "ctest --test-dir /private/tmp/ac1027-other-controls/build -R '^libdxfrw_(dwg_ac1027_empty_view_ucs_controls|ac1027_empty_view_ucs_peer)$' --output-on-failure",
+    "result": "2/2 pass",
+    "coverage": "Exact marker/role/CRC/frame receipt and padding, malformed profile refusals, class collision, old revisions and populated fallback; one-shot allocation sweeps for both controls and both emit overloads, empty and prepopulated state; same-facade whole-write retry; fixture-free peer-auditor negatives."
+  },
+  "files": {
+    "patch": {
+      "path": "/private/tmp/ac1027-other-controls/controls.patch",
+      "sha256": "180809ef2b02ebc100ee4c652b1cba2c86f4d71b91989e217baffc707649ed7d"
+    },
+    "src/intern/dwgwriter15.cpp": "e42586dec5ed56b320454070c4bc8f5f9152939a6c0e10c5e7cc78ecbe404b26",
+    "src/intern/dwgwriter24.cpp": "df975ee99821a8724e651a3a93d9c9d2bfb10359bf77f81b6e59d28c4931f4bf",
+    "tests/dwg_ac1027_empty_view_ucs_controls_tests.cpp": "a55f7efbdf85301bdc2a0a14b3afda9762528a523472722db7c515b349a37029",
+    "tests/ac1027_empty_view_ucs_peer_tests.py": "ec8c39d2c668900fa012f3826e03e8a4a68413473fb90378a263e6072565e484",
+    "tools/audit_ac1027_empty_view_ucs_peer.py": "a660d669d69084c4fa935c9c6cf6cfa2651709834f542fbb66d93b60ffd8a535",
+    "tests/CMakeLists.txt": "c54a4bce62b4de140bd5da66fcd8680b51a3a570d3dc78c7cce1fa87d72b0df4"
+  },
+  "next_step": "Investigate the remaining AC1027 LAYER framing/graph failure separately with producer spans and controlled ODA and independent peer checks; do not extrapolate this exact empty-control profile to other objects or AC1032.",
+  "peer_reproduction": {
+    "cwd": "/private/tmp/ac1027-other-controls/work",
+    "source": "python3 -B tools/audit_ac1027_empty_view_ucs_peer.py --dwgread /opt/homebrew/bin/dwgread --dwgread-sha256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff --mode source --dwg /private/tmp/modern-writer-investigation/source-dwg/AC1027/line.dwg --sha256 1bab740b1f96b88534b4f8238828b9044cffd58b2975ec4b6b00db0c4560cd09 --object-page /private/tmp/modern-8bb/source-objects.raw --page-sha256 43bb83bda0a955c8e7950ba885d20636565446b0fa5c12b9001f8451be138555 --view-offset 70 --ucs-offset 81",
+    "generated": "python3 -B tools/audit_ac1027_empty_view_ucs_peer.py --dwgread /opt/homebrew/bin/dwgread --dwgread-sha256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff --mode generated --dwg /private/tmp/ac1027-other-controls/final-maint6.dwg --sha256 5a23af2ba568733a283d77b09fcf28d91f1f52f6ebeb1c266c277beb78e6ea68 --object-page /private/tmp/ac1027-other-controls/generated-objects.raw --page-sha256 8e7010969c151b4d15677902ab3e163908a7674dfa1f3c01ebc2c53c9ec12659 --view-offset 257 --ucs-offset 269"
+  },
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_(dwg_ac1027_empty_view_ucs_controls|ac1027_empty_view_ucs_peer)$' --output-on-failure: 2/2 passed.",
+  "integrated_files": {
+    "src/intern/dwgwriter15.cpp": "e42586dec5ed56b320454070c4bc8f5f9152939a6c0e10c5e7cc78ecbe404b26",
+    "src/intern/dwgwriter24.cpp": "df975ee99821a8724e651a3a93d9c9d2bfb10359bf77f81b6e59d28c4931f4bf",
+    "tests/CMakeLists.txt": "e12509c59ac12b2e91976d13b640a94878ac3af4f697862e0782387e217900cb",
+    "tests/dwg_ac1027_empty_view_ucs_controls_tests.cpp": "a55f7efbdf85301bdc2a0a14b3afda9762528a523472722db7c515b349a37029",
+    "tests/ac1027_empty_view_ucs_peer_tests.py": "ec8c39d2c668900fa012f3826e03e8a4a68413473fb90378a263e6072565e484",
+    "tools/audit_ac1027_empty_view_ucs_peer.py": "a660d669d69084c4fa935c9c6cf6cfa2651709834f542fbb66d93b60ffd8a535"
+  }
+}

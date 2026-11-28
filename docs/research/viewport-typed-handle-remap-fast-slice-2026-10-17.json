@@ -1,0 +1,51 @@
+{
+  "title": "VIEWPORT typed-handle remapping fast slice",
+  "date": "2026-10-17",
+  "classification": "implementation-progress",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "DXF VIEWPORT reference serialization",
+    "ASCII and binary generated round-trip validation",
+    "focused regression and owning CTest status"
+  ],
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "method": "dxfRW::writeViewport",
+    "typed_reference_codes_remapped": [331, 332, 333, 340, 345, 346, 348, 361],
+    "test": "tests/dxf_fixture_tests.cpp::testViewportTypedHandleRemapping",
+    "test_modes": ["ASCII AC1024 DXF", "binary AC1024 DXF"],
+    "fixture_files_added": 0
+  },
+  "validation": {
+    "strict_target_build": "PASS: cmake --build build --target libdxfrw_dxf_fixture_tests -j2",
+    "focused_selectors": {
+      "--viewport-typed-handle-remap": "PASS",
+      "--dwg-viewport-projection": "PASS",
+      "--layout-graph-read-contract": "PASS"
+    },
+    "owning_ctest": {
+      "test": "libdxfrw_dxf_fixtures",
+      "result": "FAIL: default fixture runner segfaults",
+      "localization": "after testDxfWriteBlockRemapPhase and before completion of the next test group",
+      "cause_attributed": false
+    },
+    "git_diff_check": "PASS for plan, implementation, and test paths",
+    "full_suite": "not run"
+  },
+  "limitations": [
+    "remapping does not validate target existence or semantic target class",
+    "field-specific null/absence and unresolved-target policies remain open",
+    "ownership closure and native consumer acceptance are not established",
+    "the all-fixtures CTest failure is not attributed to this slice"
+  ],
+  "plan_effect": {
+    "existing_work_refined": ["PAR-40", "7G.2"],
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "findings_total": 130,
+    "top_level_subplans_total": 73,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "support_claim_promotions": 0
+  },
+  "worktree_state": "uncommitted"
+}

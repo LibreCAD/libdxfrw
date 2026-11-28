@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-imagedef-source-identity-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "2b0fdbe7c57029371d0ae7c8ded6089add9d3d64",
+  "implementation": "Bind typed source IMAGEDEF handles to a per-import identity shared by the image sidecar and the preserved source shelf. Remove and report the matching canonical source dictionary entry only for a written image from that same import; avoid handles colliding with other preserved records.",
+  "validation": [
+    "85 focused IMAGE and persistence tests pass. Selected R2000/R2010 model and block cases remove both old IMAGEDEF and raw reactor entries while retaining an unrelated entry; an unrecognized application group remains unchanged.",
+    "A separately imported image with the same numeric source handle does not authorize removal of the original document's typed IMAGEDEF entry.",
+    "Independent ezdxf 1.4.5 sees both selected stale entries absent and KEEP retained. Its audit reports zero errors and two fixes: deletion of an XRECORD with invalid owner and removal of an orphan paper-space block."
+  ],
+  "testLogSha256": "b8817b6bd29f610d7f5677d7adf0a4ca14c4844c84d16e65df05c55908af150b",
+  "peerOutputSha256": "8b38ab4b20f77916604f3a61a9f942a48e8b56ba52812efbe7ff99fc43d90bac",
+  "peerResultSha256": "d9d63e3583bcf2311d50eac812c1351b54d18c6b622733b0ca2bad6c073ef827",
+  "limits": [
+    "The operation reports dropped entries; it does not preserve source identity or prove IMAGEDEF/reactor graph equivalence. Foreign-source, deleted-image, custom-dictionary, multi-source and other profiles remain outside this repair.",
+    "The unrelated XRECORD ownership and paper-space block repairs remain open; no generated drawing is committed."
+  ]
+}

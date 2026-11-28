@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-11",
+  "id": "p6-ocs-subnormal-scaled-term-precision-2026-11-11",
+  "status": "GENERATED_SUBNORMAL_SCALING_LOSS_AVOIDED",
+  "scope": "Stable three-term OCS vector and four-term elevated point transformations when common normalization leaves a nonzero subnormal component.",
+  "finding": {
+    "priorBehavior": "A normalized coordinate can remain nonzero but subnormal, losing precision before compensated dot-product accumulation and rescaling.",
+    "change": "Both stable OCS dot paths now switch to the original exponent-range product route when a nonzero component normalizes to zero or a subnormal value. Opposite-sign products are combined first and multiplication residuals are included with compensated accumulation.",
+    "scopeBoundary": "The fallback is triggered for the demonstrated zero/subnormal normalization cases. It does not promise correctly rounded arithmetic for arbitrary finite coordinates."
+  },
+  "generatedControls": [
+    {
+      "path": "boundaryVectorToWcs",
+      "normal": [1.0, 1.0, 0.0],
+      "ocsVector": [1e308, 1e-15, 1e308],
+      "expectedWcsZ": 1e-15
+    },
+    {
+      "path": "boundaryPointToWcs stable elevation-overflow fallback",
+      "normal": [1.0, 1.0, 0.0],
+      "baseElevation": "0.6 * DBL_MAX",
+      "ocsPoint": [0.0, 1e-15, "0.6 * DBL_MAX"],
+      "expectedWcsZ": 1e-15
+    }
+  ],
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+    "buildResult": "PASS",
+    "focusedCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_hatch_ocs_wcs_coordinate$' --output-on-failure",
+    "focusedResult": "PASS 1/1",
+    "diffCheck": "PASS",
+    "drawingFixturesAdded": 0
+  },
+  "unresolved": [
+    "Correctly rounded behavior for arbitrary finite coordinate transforms is not established.",
+    "Native rendering and producer/platform qualification remain open."
+  ],
+  "claimEffect": "Closes only the generated subnormal-normalization precision cases for HATCH/MPOLYGON OCS conversion. No DWG/DXF support claim is promoted."
+}

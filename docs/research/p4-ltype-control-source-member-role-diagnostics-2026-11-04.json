@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ltype-control-source-member-role-diagnostics-2026-11-04",
+  "date": "2026-11-04",
+  "base_commit": "0e9f66d6",
+  "status": "GENERATED_SOURCE_ROLE_RETENTION_AND_STRICT_DIAGNOSTIC",
+  "supportClaimEffect": "none",
+  "scope": "Retain source H roles for ordered LTYPE_CONTROL members and report a mismatched non-null ownership role without changing tolerant parsing or callbacks.",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["2.13 Handle References", "20.4.57 Linetype Control"],
+    "finding": "Counted LTYPE_CONTROL members are soft owners (code 2); the final BYBLOCK and BYLAYER phantom members are hard owners (code 3). Physical ODA evidence resolves producer order as BYBLOCK then BYLAYER for the observed profiles; other producer ordering remains open."
+  },
+  "implementation": {
+    "retention": "DRW_ObjControl now retains each ordered member's original H code, including null slots, in an internal vector parallel to orderedHandleSlots.",
+    "diagnostic": "readDwgTables records the first non-null LTYPE_CONTROL member role mismatch as DwgIntegrityCheckKind::TableControlHandleRole, anchored to the source control frame and identifying the member handle plus expected/observed role.",
+    "compatibility": "The parser continues to accept historical all-soft libdxfrw members and tolerant callbacks are unchanged. The Error diagnostic causes existing strict and bounded-partial consumers to refuse the source.",
+    "abi": "The internal DRW_ObjControl layout changes. The public DwgIntegrityCheckKind receives appended value 40; prior values remain stable and DwgIntegrityDiagnosticSchemaVersion remains 1."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests libdxfrw_dwg_ltype_multiversion_count_tests libdxfrw_dwg_ltype_ac1021_count_tests -j3",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_(control_handle_slots|ac1015_ltype_count|ltype_multiversion_count|ltype_ac1021_count)$' --output-on-failure",
+    "result": "Build passed with -Werror; focused CTests passed 4/4 in 0.64 seconds. Generated controls verify null and non-null raw-role retention, correct-role acceptance, source-anchored Error reporting through the table traversal, tolerant malformed-role parsing, and multi-version reset/retry compatibility.",
+    "fixtures": "No fixture was added or modified. The integration control reads the existing tracked ordinary_enc_AC1015.dwg only to obtain its table-control handles."
+  },
+  "limitations": [
+    "Only the first non-null role mismatch in one control is reported; one Error is sufficient for strict refusal.",
+    "Null member references are not diagnosed by this role category; required phantom membership remains open.",
+    "This does not bind each control member to the same typed LTYPE target and emitted reference, qualify source producer breadth, or resolve the BYBLOCK/BYLAYER order for other producers.",
+    "No physical-source or native-linetype support claim is made."
+  ],
+  "files": {
+    "src/intern/dwgreader.cpp": "16c243bd836a60cfbff71c2fc0c63ce0ace487472c10a87f16df38bc7d417f7d",
+    "src/intern/dwgreader.h": "f646e2c83b79bdc4cc8fdbae1a70e64186ed60d29660c64e10afc9fb5c061051",
+    "src/libdwgr.h": "3d63bcf4bb666bd9fbc31159a14a31e7aff6e99c0ffeefcdac1a91578b12b9bd",
+    "tests/dwg_reader_matrix_tests.cpp": "96dfed8774f37e36de00fbc47a0c8f3bdb0d3150278221ae3123f1972f422c76",
+    "tests/dwg_ltype_multiversion_count_tests.cpp": "86f26db86c56325de3d249eb2c77cdd5efc95b32c607e0cdb894bb11b031ddbc",
+    "tests/dwg_ltype_ac1021_count_tests.cpp": "3a2344ee2197def4562ddb07af575d42b390b2411e1cbad4c18ef8c1752858c2"
+  }
+}

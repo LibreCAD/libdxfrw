@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-polyline-owner-map-bucket-delta-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Charge observed pending/orphan POLYLINE owner-map bucket-count growth into the existing bounded staging ledger and verify cleanup/reuse accounting with generated controls.",
+  "method": {
+    "kind": "Focused implementation slice with generated in-memory budget, rollback, cleanup, and reuse coverage",
+    "productionFilesChanged": [
+      "src/intern/dwgreader.cpp",
+      "src/intern/dwgreader.h"
+    ],
+    "testFilesChanged": [
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "publicApiChanged": false,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "sanitizerRun": false,
+    "peerExecutablesRun": false,
+    "nativeApplicationsRun": false
+  },
+  "implementation": {
+    "bucketCharge": "For each owner map, max(bucket_count - initial_bucket_count, 0) * sizeof(void*); baseline default buckets are excluded.",
+    "budgetBehavior": "Preflight a conservative possible bucket-growth bound against the remaining 256 MiB ledger, reserve, then verify actual bucket-count delta and retain/rollback conservatively if the implementation's growth exceeds the admitted charge.",
+    "ledgerValidation": "Reconstruct pending-parent and orphan-owner map bucket deltas and include them in empty and non-empty staged-state validation.",
+    "cleanupAndReuse": "Logical terminalization/abandonment does not release retained unordered-map capacity charge; same-reader reuse preserves the capacity charge while clearing logical states.",
+    "uncovered": [
+      "baseline bucket-array storage",
+      "allocator metadata, node padding beyond separate conservative node estimates, and allocator-retained memory",
+      "transient old-plus-new bucket-array peak during rehash",
+      "source-location-backed child leases, callbacks, and full DWG-reader pipeline coverage",
+      "whole-reader RSS or peak-allocation bound"
+    ]
+  },
+  "validation": {
+    "strictTargetBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+    "focusedSelector": "PASS: build-gcc/libdxfrw_dwg_reader_matrix_tests --polyline-staging-growth",
+    "owningCtests": "PASS: libdxfrw_dwg_reader_matrix and libdxfrw_dwg_local_roundtrip (2/2)",
+    "compatibilityTarget": "PASS: cmake --build build-gcc --target lc3_compat_check -j2",
+    "scopedDiffCheck": true
+  },
+  "planImpact": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "existingOwnerOnly": true,
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

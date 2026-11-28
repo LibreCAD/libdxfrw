@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5cb standard-object profile isolation",
+  "date": "2026-10-24",
+  "parentCommit": "c2cc5f33eb519b029477aefd98b61af2cc7bdf2c",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "STANDARD_OBSERVER_MATERIAL_COMPATIBILITY_FIXED_BROADER_PARITY_AND_SEMANTIC_QUALIFICATION_OPEN",
+  "baseline": {
+    "result": "GAP_REPRODUCED",
+    "testExitCode": 8,
+    "wallSeconds": 0.61,
+    "sourceRevision": "AC1021",
+    "targetRevision": "AC1021",
+    "encoding": "ASCII",
+    "source": "Actual public native authoring/import with correlated ordinary DICTIONARY/GROUP/XRECORD frames",
+    "companion": "Full MATERIAL emitted by facade callback using public typed writer; writeMaterial succeeded",
+    "observation": "Export refuses during OBJECTS verification because generic whole-section decoding tries to coerce unrelated unsigned color tokens into signed model fields",
+    "allMatrixCellsExercisedBeforeBaselineAbort": false,
+    "buildLog": "/tmp/rpp5cb-baseline-build.log",
+    "testLog": "/tmp/rpp5cb-baseline-tests.log"
+  },
+  "implementation": {
+    "framing": "Borrowed raw object framing uses active canonical DXF classifier for binary widths; unrelated numerics are not coerced into signed model values",
+    "selection": "Only common-header self identity is peeked; first outer subclass ends that header, so later XRECORD application102/100/280/330 cannot become common metadata",
+    "selectedComparison": "Original shape observer, modeled Decoder, qualified source/identity/owner/name/reference joins remain required",
+    "compatibilityProfiles": [
+      "StandaloneSafe",
+      "LibreCadMasterLegacy"
+    ],
+    "limits": {
+      "sectionBytes": 268435456,
+      "tokenBytes": 67108864,
+      "physicalFields": 4194304,
+      "objects": 1000000
+    },
+    "unknownBinaryWidthsRejected": true,
+    "sectionCopyRecordInventoryOrEscapingBorrowedViewAdded": false,
+    "selectedReaderBudgetAndSourceIssueMasksUnchanged": true,
+    "publicApiDataRecordLayoutOrDrwInterfaceVirtualsChanged": false,
+    "dwgParserGrammarDispatchOrWriterEncodingChanged": false,
+    "documentMergePolicyChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "controls": {
+    "newCTests": [
+      "dwg2dxf_standard_dwg_profile_isolation",
+      "dwg2dxf_standard_output_framing_controls"
+    ],
+    "selectors": [
+      "--standard-dwg-profile-isolation",
+      "--standard-output-framing-controls"
+    ],
+    "nativeSources": 6,
+    "nativeSourceRevisions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "nativeCommonEedBinaryByteLength": 128,
+    "actualProjectionReadbackCells": 72,
+    "actualFullMaterialCompanionReadbacks": 32,
+    "materialAmbientDiffuseSpecularColors": [
+      "FFFFFFFF",
+      "80000001",
+      "FEDCBA98"
+    ],
+    "modernSourceCellsRequireThreeStandardModeledFacts": true,
+    "legacySourceCellsRequiringFactsAbsent": 24,
+    "strictPolicySentinelRefusalsThenCompatibleRetries": 12,
+    "materialEvidenceBoundary": "Public callback-emitted unselected MATERIAL beside real native standard frames; not native MATERIAL source, complete ACAD_MATERIAL dictionary/replay qualification or semantic receipt",
+    "framingProfileCells": 12,
+    "framingVersions": [
+      "AC1014",
+      "AC1021",
+      "AC1032"
+    ],
+    "framingEncodings": [
+      "ASCII",
+      "binary"
+    ],
+    "defaultAndSelectedInspectionChecked": true,
+    "prefixTruncationRefusals": 4337,
+    "selectedFaultRestoredByteChecks": 44,
+    "selectedFaults": [
+      "Duplicate selected identity",
+      "Missing modern cloning header",
+      "Changed selected self handle",
+      "Unbalanced common application-group marker"
+    ],
+    "unknownProfileOrBinaryWidthRefusals": 15,
+    "xrecordApplicationValuesRetainScopeAndOrder": [
+      102,
+      280,
+      330,
+      100,
+      1
+    ],
+    "trailingCommonXdataChecked": true,
+    "requestedScratchFieldsAssertWriterHasNoError": true,
+    "framingControlsEvidenceBoundary": "Scratch byte/model probes, not atomic file-fault tests, fabricated private source receipts or independent semantics"
+  },
+  "validation": {
+    "build": {
+      "result": "PASS",
+      "strictWarnings": true,
+      "warningSuppression": false,
+      "affectedSeparatelyCompiledAdaptersRebuiltBeforeFinalChecks": true,
+      "normalLog": "/tmp/rpp5cb-final-build2.log",
+      "normalFinalTestRebuildLog": "/tmp/rpp5cb-normal-test-final-build2.log",
+      "asanLog": "/tmp/rpp5cb-asan-build.log",
+      "asanFinalTestRebuildLog": "/tmp/rpp5cb-asan-test-final-build2.log"
+    },
+    "focused": {
+      "result": "PASS",
+      "passed": 31,
+      "total": 31,
+      "wallSeconds": 17.98,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_public_header_hygiene",
+        "libdxfrw_generated_dictionary_source_metadata",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_generated_dictionary_metadata_allocation",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "libdxfrw_material_root_output_compatibility",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_extension_graph_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_standard_dwg_layer_dependencies",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "dwg2dxf_generated_root_common_closure",
+        "dwg2dxf_generated_dictionary_binary_chunks",
+        "dwg2dxf_generated_dictionary_chunk_faults",
+        "dwg2dxf_standard_dwg_binary_transport",
+        "dwg2dxf_image_dictionary_imported_common",
+        "dwg2dxf_generated_dictionary_scalar_transport",
+        "dwg2dxf_generated_dictionary_scalar_faults",
+        "dwg2dxf_standard_dwg_profile_isolation",
+        "dwg2dxf_standard_output_framing_controls",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_xrecord_xdata_channels"
+      ],
+      "log": "/tmp/rpp5cb-fast-final.log"
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 5,
+      "total": 5,
+      "wallSeconds": 9.78,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_hardening",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "log": "/tmp/rpp5cb-owning-final.log"
+    },
+    "readerConsumers": {
+      "result": "PASS",
+      "passed": 4,
+      "total": 4,
+      "wallSeconds": 2.21,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_dwg_reader_matrix",
+        "libdxfrw_dwg_fixtures",
+        "libdxfrw_named_resource_import_evidence",
+        "libdxfrw_3d_consumer_probe"
+      ],
+      "log": "/tmp/rpp5cb-readers-final.log"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 13,
+      "total": 13,
+      "wallSeconds": 29.58,
+      "parallelism": 3,
+      "tests": [
+        "dwg2dxf_standard_dwg_binary_transport",
+        "dwg2dxf_generated_dictionary_binary_chunks",
+        "dwg2dxf_generated_dictionary_chunk_faults",
+        "dwg2dxf_image_dictionary_imported_common",
+        "dwg2dxf_generated_root_common_closure",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_rooted_standard_dwg_layer_reference",
+        "dwg2dxf_generated_dictionary_scalar_transport",
+        "dwg2dxf_generated_dictionary_scalar_faults",
+        "dwg2dxf_standard_dwg_profile_isolation",
+        "dwg2dxf_standard_output_framing_controls"
+      ],
+      "log": "/tmp/rpp5cb-asan-final.log",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "directFramingCountsLog": "/tmp/rpp5cb-framing-final-counts.log",
+    "normalAndAsanLibreCAD3CompileGates": "PASS",
+    "owningAndReaderCohortsSequential": true,
+    "intermediateFixtureCalibrationFailuresNotCountedAsFinalPasses": true,
+    "fullSuite": "NOT_RUN",
+    "independentProducerPlatformSemanticOrBenchmarkQualificationClaim": false
+  },
+  "remaining": [
+    "Reproduce public DXF XRECORD writer/readback parity at103/104/106..109; primary string classifier and XRECORD string predicate differ and a model106 decode refused, but full public writer/readback failure is not yet established",
+    "Audit generated-root/raster observers against XRECORD application102/100/280/330 through actual native/facade exports",
+    "Independent APPID/LAYER/XRECORD source profiles, native sparse class cardinality, full IMAGE/common geometry and broader named-root/document closure",
+    "Explicit source ownership/generation/remapping contracts before multi-document composition"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0,
+    "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false,
+    "unrelatedUntrackedFilesPreserved": true,
+    "remoteMutations": false
+  }
+}

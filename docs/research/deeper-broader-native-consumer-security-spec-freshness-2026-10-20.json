@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Native-consumer security boundary and DWG specification freshness",
+  "mode": "Primary-source web research with bounded route-lineage review",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Review current Autodesk DWG/DXF security disclosures relevant to native-CAD acceptance testing.",
+    "Confirm the currently served official ODA DWG specification version.",
+    "Recheck whether newly surfaced application/tool routes add an independent DWG parser lineage.",
+    "Refine existing parser-safety and native-consumer qualification procedures without promoting peer reports into local defects or support claims."
+  ],
+  "sources": [
+    {
+      "name": "Autodesk ADSK-SA-2026-0009",
+      "url": "https://www.autodesk.com/trust/security-advisories/adsk-sa-2026-0009",
+      "revision": "Vendor advisory accessed 2026-10-20; originally published 2026-07-29 and last revised 2026-09-02.",
+      "observed": "Autodesk lists CVE-2026-16463, a malicious-DXF heap-based overflow, and CVE-2026-16465/CVE-2026-17550, malicious-DWG/DXF out-of-bounds reads. The advisory lists AutoCAD 2027 and named AutoCAD-based products as impacted, with 2027.1 as mitigated.",
+      "limits": "No public reproducer, entity/section root cause, or byte-level trigger is provided. This is not a libdxfrw vulnerability report or a DWG/DXF format specification."
+    },
+    {
+      "name": "GitHub Advisory Database CVE-2026-16465",
+      "url": "https://github.com/advisories/GHSA-6vgj-fv64-hcvj",
+      "revision": "Advisory accessed 2026-10-20; published 2026-07-29.",
+      "observed": "The database describes an out-of-bounds read in AutoCAD when parsing maliciously crafted DWG or DXF input and maps the report to CWE-125.",
+      "limits": "The advisory lists affected and patched versions as unknown and has no package or source-code linkage. The Autodesk vendor advisory is the product mitigation authority."
+    },
+    {
+      "name": "Open Design Alliance official DWG specification PDF",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "revision": "Official download accessed 2026-10-20; PDF title page identifies version 5.4.1 and copyright 1998-2026.",
+      "observed": "The currently served official file remains version 5.4.1, matching the repository AGENTS.md authority for version-specific DWG layout questions.",
+      "limits": "A live download check does not prove that the document will not change; recheck its title/version when a later parser task requires authoritative byte-layout evidence."
+    },
+    {
+      "name": "Newly surfaced project/tool route screen",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/iyulab/uncad",
+        "https://github.com/HakanSeven12/OpenCADStudio"
+      ],
+      "revision": "Public project documentation accessed 2026-10-20.",
+      "observed": "No additional independent DWG parser lineage was identified: dwg-rs self-identifies as pre-alpha with entity coverage gaps; uncad documents LibreDWG via Rust FFI for DWG; OpenCADStudio is already grouped with the ACadRust lineage.",
+      "limits": "Documentation/lineage review only; none of these projects was built or executed."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "ownersRefined": [
+      "PAR-14: keep malformed DWG/DXF controls on local parser-safety lanes and avoid unsupported mutation hypotheses from advisory titles.",
+      "PAR-07/S8: treat native-CAD open/AUDIT as version-bound compatibility evidence, not a parser-security oracle.",
+      "Peer admission: preserve parser lineage and artifact binding; wrappers do not add independent parser votes."
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsOrPoCsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "The Autodesk advisory does not disclose a reproducer or byte-level trigger, so no local mutation or parser fix is inferred.",
+    "The ODA artifact check confirms the current version label only; DWG parser changes still require reading the relevant version-specific chapter.",
+    "Peer and native applications were not installed, built, or run.",
+    "No external DWG/DXF sample or PoC was downloaded or committed."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check; no whitespace diagnostics for the untracked receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

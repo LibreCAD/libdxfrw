@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Deeper/broader open-source DWG/DXF route coverage closure and evidence ceilings",
+  "mode": "primary-source web research and read-only plan reconciliation",
+  "scope": [
+    "Screen open-source DWG/DXF codec, wrapper, and ACIS/B-rep projects not yet represented in the active peer matrix",
+    "Classify implementation lineage and exact route boundaries from project-owned sources",
+    "Reduce implementation blocking by stating a stop rule for further peer discovery and optional runs"
+  ],
+  "method": {
+    "kind": "Read current project-owned repository documentation and reconcile with existing plan entries",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "Repository pages are mutable and were not tied to immutable source commits or executed. Descriptions establish route classification only; no peer behavior, conformance, native acceptance, or semantic support is reproduced by this pass. Existing entries for most projects were cross-reconciled rather than re-audited in code."
+  },
+  "sources": [
+    {
+      "project": "iyulab/uncad",
+      "urls": [
+        "https://github.com/iyulab/uncad"
+      ],
+      "revision": "Mutable main page accessed 2026-10-20",
+      "observed": "The project documents DWG through LibreDWG FFI and DXF through the separate pure-Rust undxf crate; it is read-only and does not convert between DWG and DXF.",
+      "limits": "Application/model behavior was not executed; DWG evidence remains LibreDWG lineage and DXF evidence remains the separately tracked undxf route."
+    },
+    {
+      "project": "mlightcad/cad-viewer",
+      "urls": [
+        "https://github.com/mlightcad/cad-viewer",
+        "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md"
+      ],
+      "revision": "Mutable main pages accessed 2026-10-20",
+      "observed": "The documentation identifies LibreDWG as the optional open-source DWG route and a distinct proprietary alternative; the latter describes only partial SAB wireframe/bounds fallback, not full B-rep tessellation.",
+      "limits": "No parser or application was run. The proprietary route is not an open-source peer and its documented projection is not semantic solid evidence."
+    },
+    {
+      "project": "DrunkOnJava/dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/STATUS.md"
+      ],
+      "revision": "Mutable main pages accessed 2026-10-20; immutable commit not resolved",
+      "observed": "The repository labels itself a pre-alpha ODA-spec v5.4.1 Rust reader, distinguishes a more mature container/object walker from partial typed decoding, publishes per-version decoded/skipped/error counts over a small corpus, has no DXF parser, and lists a 3DSOLID bounding-box placeholder. No ACIS/B-rep route is documented in the reviewed README.",
+      "limits": "No peer build or execution, source code audit, corpus audit, ACIS profile test, or expected-value comparison was performed. It remains a possible exact-question structural comparator only."
+    },
+    {
+      "project": "codelibs/libdxfrw",
+      "urls": [
+        "https://github.com/codelibs/libdxfrw"
+      ],
+      "revision": "Mutable repository page accessed 2026-10-20",
+      "observed": "The public project description identifies the repository as a fork of libdxfrw.",
+      "limits": "No source diff or runtime was reviewed; same-family status is sufficient to exclude it as an independent parser vote."
+    },
+    {
+      "project": "kernalix7/CADKernel",
+      "urls": [
+        "https://github.com/kernalix7/CADKernel"
+      ],
+      "revision": "Mutable main page accessed 2026-10-20",
+      "observed": "The detailed ACIS SAT/SAB matrix leaves both read and write unchecked despite a broad multi-format README summary.",
+      "limits": "No source implementation or runtime audit was performed; no ACIS reader is admitted from the project-level feature list."
+    },
+    {
+      "project": "Open-Cascade-SAS/OCCT-Components and OCCT",
+      "urls": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157"
+      ],
+      "revision": "Mutable project pages accessed 2026-10-20",
+      "observed": "The preview repository directs users to separately obtained commercial extensions and lists ACIS SAT/SAB exchange among those components, distinct from the open-source OCCT core.",
+      "limits": "No component was acquired, licensed, installed, or executed. This classifies availability, not runtime capability."
+    },
+    {
+      "project": "monozukuri-ai/cq-acis and cadmpeg/cadmpeg",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.2"
+      ],
+      "revision": "Previously pinned/tagged evidence cross-referenced 2026-10-20",
+      "observed": "Existing plan entries already bound these candidates to limited bare-carrier profiles, shared OCCT kernel use for cq-acis, and disclosed CADMPEG/ezdxf format references.",
+      "limits": "No new artifacts were run; the existing profile, lineage, and evidence ceilings remain unchanged."
+    }
+  ],
+  "assessment": {
+    "newQualifiedImplementationLineage": false,
+    "newFinding": false,
+    "newTopLevelImplementationSubplan": false,
+    "findingsCount": 141,
+    "topLevelSubplansCount": 78,
+    "supportClaimChanged": false,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "disposition": "No newly surfaced project covers the full DWG container, modern AcDs owner/key association, ACIS B-rep semantics, independent geometry validation, and native Linux/Windows acceptance chain. Keep existing peer roles. Continue local spec-backed work without waiting for broad peer discovery. Admit at most one exact-pinned peer at the existing composed checkpoint for a named unresolved question; otherwise record NOT_RUN and return to the local queue. All six J items remain DEFERRED_EXTERNAL and non-promoting."
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-oda-ac1012-modeldoc-proxy-output-screen-2026-11-21",
+  "date": "2026-11-21",
+  "status": "PROFILE_SCREEN_PASSED_PROXY_SEMANTICS_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "source": {
+    "provenance": "locally authored ezdxf seed converted by ODA File Converter to AC1012; the source and field-span controls are identified by the adjacent legacy XRECORD receipt",
+    "sha256": "77b4217647f0b9d29c9c1c10705c0b27dfbf5d73bf1dbba6cebb1407ba89f4ff"
+  },
+  "candidate": {
+    "sha256": "d2ae9c30a3f9907dfe9ca38a2491331809c68a3898ccd3a3c3aa21de966a239e",
+    "operation": "dwg2dxf source -o output -y --allow-partial-dwg-read",
+    "result": "refused during output preparation at the typed DWG ModelDocViewStyle exact-source-version guard",
+    "reason": "AC1012 has no matching DXF output choice; dwg2dxf default selects AC1014",
+    "logSha256": "afbbfd6723c72a72579f5a3398aa4c6d27b15b201bd13cfbec45e8869dcfa13e"
+  },
+  "odaOutput": {
+    "producer": "ODA File Converter 27.1.0",
+    "operation": "reopen the same source as ACAD14 and ACAD2013 ASCII DXF",
+    "r14Sha256": "0a7a2c1f7c3f6755168d21c0f6416682f35cf0b388b20eb76794c621c7400cb4",
+    "r14Header": "AC1014 (read from physical HEADER, because ezdxf normalizes legacy DXF to AC1015 in memory)",
+    "r2013Sha256": "b36f826a7b180bec440997d8c3d267ebe5139ee5fc04520bb745da7ad6422beb",
+    "r14Graph": {
+      "ACAD_DETAILVIEWSTYLE": {
+        "dictionaryHandle": "64",
+        "children": [
+          {
+            "name": "METRIC50",
+            "handle": "65",
+            "type": "ACAD_PROXY_OBJECT",
+            "owner": "64"
+          }
+        ]
+      },
+      "ACAD_SECTIONVIEWSTYLE": {
+        "dictionaryHandle": "66",
+        "children": [
+          {
+            "name": "METRIC50",
+            "handle": "67",
+            "type": "ACAD_PROXY_OBJECT",
+            "owner": "66"
+          }
+        ]
+      }
+    },
+    "r2013Graph": {
+      "ACAD_DETAILVIEWSTYLE": {
+        "dictionaryHandle": "64",
+        "children": [
+          {
+            "name": "Metric50",
+            "handle": "65",
+            "type": "ACDBDETAILVIEWSTYLE",
+            "owner": "64"
+          }
+        ]
+      },
+      "ACAD_SECTIONVIEWSTYLE": {
+        "dictionaryHandle": "66",
+        "children": [
+          {
+            "name": "Metric50",
+            "handle": "67",
+            "type": "ACDBSECTIONVIEWSTYLE",
+            "owner": "66"
+          }
+        ]
+      }
+    },
+    "observation": "The same source dictionaries and child handles reopen with ACAD_PROXY_OBJECT children in R14 and typed detail/section style children in R2013; selected dictionary entry spelling is uppercased in R14. The physical R14 CLASSES section still names the classes. A proxy object is not evidence that class fields and behavior round-trip unchanged.",
+    "r14ProxyReopen2013": {
+      "sha256": "a885b054a87564c6a8cff05eef912ee2b6aea2cfd6f20c74c2a1a7cd7be78a2a",
+      "operation": "ODA converts the generated R14 ASCII DXF back to ACAD2013 ASCII DXF",
+      "comparison": "ezdxf 1.4.5 TagCollector exports each selected typed style as AC1027 and compares all ordered code/value tags with the direct AC2013 export of the original source",
+      "objects": {
+        "65": {
+          "type": "ACDBDETAILVIEWSTYLE",
+          "tagCount": 47,
+          "allOrderedExportedTagsEqual": true,
+          "canonicalTagSha256": "a4dd6f3e0698c8dec64d8ff67c510d176363953a1d6b6b071a13bb1f764a099d"
+        },
+        "67": {
+          "type": "ACDBSECTIONVIEWSTYLE",
+          "tagCount": 63,
+          "allOrderedExportedTagsEqual": true,
+          "canonicalTagSha256": "1ab41e9795dc55e66da6901bfc60c38abd17c7ffe388c7b25e023b04e3f10d48"
+        }
+      },
+      "limitation": "The same producer family performed both conversions; equality covers only the selected default style objects and exported tags, not dictionary name spelling, other objects, native semantics, or lossless whole-file output."
+    }
+  },
+  "nextSteps": [
+    "Before admitting this source/target profile, bind proxy class records and payload, source/target handles and dictionary entries, and establish lossless semantics after a native save/reopen or independent decoder.",
+    "Preserve exact-version refusal, output destination, and existing complete-read and graph checks until the evidence and cross-version implementation exist."
+  ],
+  "limitations": [
+    "Only one locally created ODA codepage profile and the two output revisions were examined.",
+    "The same converter created and reopened the source; ezdxf inspects its outputs but cannot establish proxy semantics. This does not establish native AutoCAD behavior or complete output."
+  ]
+}

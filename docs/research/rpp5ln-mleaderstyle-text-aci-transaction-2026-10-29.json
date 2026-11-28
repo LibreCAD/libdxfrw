@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE group-93 ACI textColor",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "8f18c83be4ea1f8a9ce6dea31ed60b445cdf3cc3",
+  "scope": "One runtime-authored AC1027 DXF source with two root-reachable MLEADERSTYLE records. STANDARD has one existing group-93 INTEGER ACI value 0 and an opaque group-302 tag; group 91 is 0, group 90 is 0 and group 92 is 25. SECONDARY is unchanged. Supports a standalone typed textColor change from 0 to 7 only when no group 420-449 CMC extension appears in the style body.",
+  "fieldEvidence": {
+    "groupCode": 93,
+    "field": "textColor",
+    "fieldRoleSource": "Autodesk AutoCAD DXF Reference, MLEADERSTYLE group-code table",
+    "fieldRoleUrl": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "wireTypeSource": "Autodesk DXF Group Codes reference, codes 90-99 are 32-bit integers; selected MLEADERSTYLE text color is an ACI INTEGER",
+    "wireTypeUrl": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+    "extensionEvidence": "Autodesk DXF references identify groups 420-427 as truecolor integers, 430-437 as color-name strings, and 440-447 as transparency integers.",
+    "extensionUrl": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+    "classification": "DXF field role, value-type and CMC-extension corroboration; not independent producer evidence or native color/rendering acceptance"
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. The selected record must be reachable through the validated ACAD_MLEADERSTYLE dictionary, have one source-matched raw body and immutable source baseline, and contain one existing group-93 INTEGER corresponding to parsed textColor. The edited value must be within the library's validated ACI range 0..256. No group 420-449 may occur in the AcDbMLeaderStyle body. textColor must be the only changed typed payload field; leaderColor, maxLeaderPoints, leaderLineWeight, table-entry identity, common fields, handles, application data, extension data and every other encoded style field must match the source.",
+    "projection": "Replace only the existing physical group-93 value in a copy of the captured raw body using the ordinary INTEGER variant. Preserve all other ordered fields and opaque groups. Missing/repeated group 93, conflicting raw changes, simultaneous edits including another color field, CMC extension groups 420-449, unknown subclass grammar and non-AC1027 routes remain outside this transaction. Truecolor, color-name and transparency forms remain refused.",
+    "outputAndReadback": "Inspect staged OBJECTS output against retained raw fields and mapped handles, then decode the emitted MLEADERSTYLE and require textColor to equal 7 while unchanged leaderColor remains 0, maxLeaderPoints remains 0 and leaderLineWeight remains 25. Fresh readback checks typed values and exactly one literal group-93 INTEGER value 7. Both source encodings are exercised; output uses same-format and cross-format ASCII/binary paths.",
+    "failureAndRetry": "Changing captured raw group 93 from 0 to 1 while typed textColor requests 7 refuses and preserves a sentinel destination. A simultaneous group-91 leaderColor edit refuses atomically. A late typed textColor mutation after preflight refuses without replacing the destination; restoring the requested value permits same-adapter retry. An authored source containing group 420 truecolor metadata after group 93 refuses the edit and preserves the destination. Exact output and fresh-readback checks pass after retry.",
+    "compatibility": "Untouched MLEADERSTYLE records keep existing raw replay. Transactions are not admitted for other source or target versions, multiple changes on one record, or extended CMC color forms. Typed DWG-origin writing remains unchanged. Test sources and outputs are authored at runtime in a temporary directory and removed; no drawing fixture is committed."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp emits group 93=0 after group 91=0 and group 92=25. Its optional text-color guard source adds group 420=0x654321 after group 93. ASCII and binary inputs are generated locally from scratch.",
+    "implementationCommit": "8f18c83be4ea1f8a9ce6dea31ed60b445cdf3cc3",
+    "dwg2dxf/dx_iface.cpp": "c621df3f7584b596ff6fd0fbde0f67402790728eb4f377b725611f606a611f81",
+    "dwg2dxf/dx_iface.h": "40d6f4f0ffb36d5f8298a8ff1be923e767ceac9bfb8c6b6535ad8dfc273d7ca1",
+    "tests/dwg2dxf_adapter_tests.cpp": "e289b64f988720c5236abc675c7621408ee69852028cb7b39bb6fa80f4e5abac",
+    "adapterTestExecutableSha256": "d58ef237cc076f05300b4dce69ac777a22e91d66c2fa1f9e082ea69e3839745a"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "CMake 4.4.4, Unix Makefiles, Apple Clang 21.0.0 via /usr/bin/g++, -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_fail_closed)$' --output-on-failure",
+      "summary": "2/2 passed. The authored group-93 profile proves exact output/readback in ASCII/binary same-format and cross-format paths, raw conflict rollback, simultaneous group-91/group-93 edit refusal, late-mutation rollback, corrected same-adapter retry, and refusal of a group-420-extended text-color profile."
+    },
+    "diffCheck": "git diff --check; PASS before implementation commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Evidence qualifies one authored AC1027 text ACI transaction only. It does not prove independent producer variation, native text color appearance, truecolor/color-book/transparency rewriting, cross-version support, DWG editing, block-content color edits, consumer acceptance or full document closure.",
+    "No support claim is promoted; the support ledger remains closed."
+  ],
+  "next": "Select a distinct current P2 source-backed geometry, schema or provider witness. Preserve the group-93 CMC-extension refusal and do not infer truecolor, color-name, transparency or native color behavior from this ACI-only transaction."
+}

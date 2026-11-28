@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-helix-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "title": "HELIX DWG encoder allocation rollback and retry",
+  "scope": "Generated local transaction evidence for DRW_Helix::encodeDwg; no physical producer or output-support claim.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The encoder validates the existing spline and helix scalar contracts, stages body/string/handle destinations with alias-aware publication, and restores the original oType on failure. It checks the spline body and helix trailer before writing handles.",
+    "versions": ["AC1021", "AC1024"],
+    "profile": "Generated degree-2 control spline with AcDbHelix versions, axis/start/vector, radius, turn count/height, handedness, constraint type and common owner/reactor/extension handles."
+  },
+  "allocationSweep": {
+    "mechanism": "One-shot global allocation failure countdown in the generated object-vector test",
+    "result": "Each version reached 16 allocation-failure offsets. Every failure returned false without throwing, preserved seeded body/string/handle bytes, bit counts, handle occurrences and original oType, and succeeded on same-object retry with output equal to clean encoding and custom class ordinal 503.",
+    "aliasControl": "For each version, failure at the first reached allocation preserved the all-streams-aliased destination and original oType; same-object retry matched the clean aliased encoding."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --helix-dwg-encode-allocation-rollback",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_helix_dwg_encode_allocation_rollback$' --output-on-failure",
+    "result": "PASS: HELIX selector; fourteen-test core entity writer allocation cohort passed (14/14); git diff --check passed."
+  },
+  "limitations": [
+    "Generated vectors establish local failure/retry behavior only; they do not qualify HELIX class registration, wire semantics or physical producer interoperability.",
+    "No native consumer rendering, complete-document output, or broad DWG support claim follows."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added."
+}

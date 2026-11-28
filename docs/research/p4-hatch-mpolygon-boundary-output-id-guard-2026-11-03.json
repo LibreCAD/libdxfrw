@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-hatch-mpolygon-boundary-output-id-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_WRITER_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Prevent HATCH and MPOLYGON loop group-330 boundary references from emitting zero or DRW::NoHandle identities.",
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": [
+      "HATCH payload validation rejects zero and DRW::NoHandle boundary source IDs.",
+      "HATCH and MPOLYGON writers reject resolver/remap results equal to zero or DRW::NoHandle; the existing entity record scope rolls back the record on failure."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "focused": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_hatch_inactive_gradient_guard$' --output-on-failure",
+      "result": "PASS",
+      "coverage": "ASCII/Binary HATCH and MPOLYGON group-330 boundaries: valid remapped output ID, null and NoHandle remap refusal with empty output, and NoHandle source refusal with empty output. Existing HATCH/MPOLYGON grammar and gradient controls ran in the same selector."
+    },
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "No target existence, record kind, owner relationship, recursive boundary graph closure, physical producer breadth, or native fill semantics is established.",
+    "The control proves local writer ID admission and rollback only."
+  ],
+  "next": "Continue the remaining source-backed reference audit; admit a boundary edge only when its target identity and role are independently bound."
+}

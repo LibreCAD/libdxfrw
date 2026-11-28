@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-xrecord-layerstate-compatibility-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_LAYERSTATE_WRITER_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the explicit writeXRecordLayerStateCompatibility() writer for a generated group-370 XRECORD across whole-file allocation failures, same-codec retry and typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory XRECORD",
+    "profile": "One XRECORD with group 370 integer value 12345, emitted to AC1027 ASCII and Binary. This synthetic profile tests writer transaction behavior only; it is not a source-qualified LayerStates document or evidence for the adapter's source-profile selection.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "1af0a7a6",
+    "files": [
+      "tests/dxf_xdata_int16_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-xrecord-layerstate-compatibility-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Extend the existing compatibility XRECORD allocation sweep with a separate group-370 profile that calls writeXRecordLayerStateCompatibility(). For every injected allocation failure, assert unchanged destination, handle, owner and value, then same-codec byte-identical retry and fresh typed group-370 readback. Continue through the first uninjected successful offset."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_xdata_int16_tests --parallel 4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_xdata_int16_exact_numeric$' --output-on-failure: PASS 1/1 (1.01 sec)",
+    "directRun": "PASS; LayerState compatibility route: ASCII 90 and Binary 87 allocation offsets; every failure preserved caller/destination state and same-codec retry matched clean bytes with typed group-370 readback",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "The generated transaction profile does not prove source-qualified LayerStates route selection, owner/dictionary closure, or independent producer interoperability; those remain covered by their separate source-bound gates.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue the P6-G public-writer audit without collapsing source-profile, transaction and semantic evidence into one claim."
+}

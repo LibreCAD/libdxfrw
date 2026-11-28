@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-leader-annotation-target-variants-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_UNCOMMITTED",
+  "scope": "Complete the concrete DXF adapter callback and entity-writer path for LEADER group-340 TOLERANCE targets.",
+  "implementation": {
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "changes": [
+      "The dx_iface addTolerance callback copies the typed TOLERANCE into the active block instead of inheriting the default no-op callback.",
+      "The adapter entity writer dispatches DRW::TOLERANCE to the existing dxfRW::writeTolerance implementation."
+    ],
+    "existingGeneratedTestCoverage": [
+      "LEADER group-340 references to MTEXT, TOLERANCE, and INSERT",
+      "ASCII and binary DXF",
+      "annotation record before and after LEADER",
+      "reference identity/readback and following-entity sentinel",
+      "missing, wrong-kind, duplicate, and representative typed-object handle collision refusal without destination publication",
+      "typed DRW_Layer collision control; not a class-by-class matrix across every object collection"
+    ],
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "build-gcc/libdxfrw_dxf_fixture_tests --leader-annotation-reference",
+      "git diff --check -- dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq -e . docs/research/leader-annotation-target-variants-fast-slice-2026-10-17.json >/dev/null",
+      "python3 tools/update_upgrade_plan.py --check"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "focusedSelector": "passed for all target types, encodings, record orders, and negative controls",
+      "scopedDiffCheck": "passed",
+      "receiptJson": "passed",
+      "upgradePlanCheck": "passed"
+    }
+  },
+  "limits": {
+    "dwgAnnotHChanged": false,
+    "currentTypedAndRawObjectHandleInventoryEnforced": true,
+    "representativeCrossFamilyCollisionControl": true,
+    "everyObjectCollectionIndependentlyCollisionTested": false,
+    "nativeConsumerRun": false,
+    "externalSemanticSupportClaimPromoted": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing edits"
+  }
+}

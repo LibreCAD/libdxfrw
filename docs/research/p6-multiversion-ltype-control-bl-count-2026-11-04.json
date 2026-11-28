@@ -1,0 +1,81 @@
+{
+  "date": "2026-11-04",
+  "status": "COUNT_CORRECTION_FOUR_VERSIONS_WITH_BOUNDED_LEGACY_FALLBACK",
+  "scope": "ODA specification v5.4.1 section 20.4.57 requires a BL LTYPE_CONTROL count. Correct AC1018, AC1024, AC1027 and AC1032 count encoding and parsing; preserve other control types and the unresolved special-reference ordering. AC1021 remains a separate pending framing and compatibility task.",
+  "physical_source": {
+    "provenance": "The same three locally authored ezdxf 1.4.5 R2010 DXFs as the AC1015 receipt, each containing CONTINUOUS, 254/255/256 other ordinary LTYPE records and a LINE, were converted by ODA File Converter 27.1.0 with ACAD2004/2007/2010/2013/2018 DWG targets, recursion=0 and audit=0; no converter .err file was produced. Files and bodies remain scratch-only.",
+    "dxf_sha256": {
+      "255": "aab957ef3252df7bffdda5ba4b583659353a85f47c12bf475d18433404118ab8",
+      "256": "4f46f927aed468a7f5b5c016a865f3321ee5bba07095f65b0fbb2413b9e226d9",
+      "257": "76f7254f85972770582345f5aab98660cc5cb1d59719df9e02305422027206fb"
+    },
+    "dwg_sha256": {
+      "ac1018": {
+        "255": "ac3d888fede17d691bde88f5a4bd289bba35bdd53c8e8e39deadf82d8fca7b50",
+        "256": "5af4fb96e563aeb337ec15243e854e94b3339ff1bc1915769a84ea9ad5637e01",
+        "257": "9269024fe12a58599237c9338359d4247fca9259c1b75bcd022ba307383519eb"
+      },
+      "ac1021": {
+        "255": "201c5f0490aa8e63c4a01316325af3f8b7f19cf86c914832ca5fa5899d76b31d",
+        "256": "19123b51f791ae64070a000b8a4c7ab16482319afb23dafbf27a416d7e6ce8f8",
+        "257": "404f524fc2b2bc55ebb61431e959a8c8ed95ac35d18da6929a653ae25087b092"
+      },
+      "ac1024": {
+        "255": "7b1d81592e77794d9327a3b26bd4e07b269e9b396c06dee87219b036fc254e7f",
+        "256": "580979440f102141cfc4af9f7d67acd919fad1a463fa6ae1a3773dbe5804e670",
+        "257": "5e7895ffb1b63a92f35510b0724bec9717e89b034d5de54802a1e3dbbfe49f6d"
+      },
+      "ac1027": {
+        "255": "240fff2ce769daffb33be57b5ce446a00799db9f4ed430883edb93aacc9052b7",
+        "256": "756424b4c2a350eeecf117c8e591f22f53db4f5dbe8007fb07500deaf62d2aa0",
+        "257": "cc9da8f31499475d8b6d68213967bd95d854c1d36e49a456ae2338207faccc9a"
+      },
+      "ac1032": {
+        "255": "d981b08824e98032390415c2f9af3139c49fc0848be9b7ce87ad2a1481f20b0d",
+        "256": "8358ac0b3b7c1650562af7b6dfc6d13200e9a168836011065780597434783a7d",
+        "257": "69a952895f8a38beee9e1745bb592f0ed926dde7bfc4af6c3a5fc5d980397033"
+      }
+    },
+    "method": "GNU LibreDWG 0.14 traces supplied object offsets, data bit boundaries and independent LTYPE handle/name mappings. A separate raw-bit decoder inspected bytes from each AcDbObjects section, located using those offsets; this library decoded the containing section, so the section-extraction layer is not independent. The observed count tags, little-endian payload, following owner and all ordinary/special handle roles were checked against the physical object bodies. The LibreDWG count interpretation uses BS and is not treated as a BL oracle.",
+    "observations": {
+      "AC1018": "Count starts at bit 63, ends at 73 for 255, or 97 for 256/257; the declared data/handle boundary equals that end.",
+      "AC1021": "Count starts at bit 63, ends at 73 for 255 or 97 for 256/257; one zero absent-string bit follows, then handles start at bit 74 or 98.",
+      "AC1024": "Count starts at bit 31, ends at 41 or 65; one zero absent-string bit follows, then handles start at bit 42 or 66.",
+      "AC1027 and AC1032": "Count starts at bit 32, ends at 42 or 66; one zero absent-string bit follows, then handles start at bit 43 or 67."
+    },
+    "observed_tail": "The next token is a role-4 null, followed by count nonzero role-2 ordinary references, then two role-3 references. Their resolved physical order ByBlock then ByLayer conflicts with the ODA text BYLAYER and BYBLOCK; the code does not change either ordering or claim this conflict resolved."
+  },
+  "implementation": {
+    "writer": "AC1018/1024/1027/1032 LTYPE_CONTROL count uses BL; existing AC1015 BL behavior and all other version/type paths are preserved.",
+    "reader": "A candidate BL must end at the declared handle boundary for AC1018 or immediately before its zero absent-string bit for genuine AC1024+ source. For our R2010+ writer, accept its alternative exact shape: immediate zero absent flag, zero byte alignment and 24 further zero absent-footer bits, ending on the declared boundary, with the complete old fixed writer graph independently validated. BS count 256 or greater is accepted only where count width, declared boundary and complete fixed writer graph uniquely identify it. Fixed identity, absent reactors/EED/data storage, explicit typed-null owner and xdictionary, first ByBlock/ByLayer/Continuous identities, unique nonzero role-2 children, and no more than seven zero handle-padding bits are required. Corruption resets the control. AC1021 remains on its original path.",
+    "framing_limit": "Older AC1021 writer frames use a different inline-handle framing; source files have detached handles. Do not reuse this AC1024+ fallback or claim AC1021 interoperability without separate exact physical disambiguation."
+  },
+  "validation": {
+    "fast_test": "libdxfrw_dwg_ltype_multiversion_count covers all four corrected versions at 255/256/257 with generated BL and historical BS forms, exact writer boundaries and handle roles, invalid role/identity/duplicate/truncation, nonzero alignment/footer and short-footer rejection, same-object retry, and twelve optional source physical bodies using independently supplied observed boundaries.",
+    "old_writer": "The pre-count-fix dwgwriter15.cpp source blob 3634f4ba6c6fbc132b625f811187fc215677b358 was separately compiled into a scratch producer with the per-version writer subclasses. It emitted the following genuine legacy frames; the updated reader accepted all twelve and returned count+2 handle slots. Hashes are of each raw control body, not whole DWGs.",
+    "old_writer_body_sha256": {
+      "ac1018": {
+        "255": "5890a58a8b3ec71bba3dce2bb45147fdb54323fef928a4180faee53bf7e0a530",
+        "256": "9442402b76a38d9ace0c6815bee799747fc7782aee6b77bdbfdb90ced5979579",
+        "257": "22f11d6a905e40665fe51e4bb13fffc86373a2c4224caa73ce770ba5fb06488c"
+      },
+      "ac1024": {
+        "255": "251657f87a40056133643cb2a4dde003fce1eebd3baa0e94e117912fa748b171",
+        "256": "191bf9daa10c299284165e4321be4425249f13a48992be3c820a0ee708905881",
+        "257": "07649774c0b39195edfe4017d27365582c773522ae3c6c9221b8bdf0fffb232e"
+      },
+      "ac1027": {
+        "255": "1e11f5ebf4fc71c41e6bbc2aca485dd396a9044464b0fe4516ca4b1f3323a4f9",
+        "256": "f6a7f5aa0f05f688265428ecac0a89e1a1ff740976c210949f1199747f66c9f5",
+        "257": "bf8445006df5c5adb440fcc2538353e6f6f27ae21fe72ba8440cd40c5e67e2fc"
+      },
+      "ac1032": {
+        "255": "1e11f5ebf4fc71c41e6bbc2aca485dd396a9044464b0fe4516ca4b1f3323a4f9",
+        "256": "f6a7f5aa0f05f688265428ecac0a89e1a1ff740976c210949f1199747f66c9f5",
+        "257": "bf8445006df5c5adb440fcc2538353e6f6f27ae21fe72ba8440cd40c5e67e2fc"
+      }
+    },
+    "physical_native": "All twelve AC1018/1024/1027/1032 source control bodies parsed with exact declared bit boundaries and returned 257/258/259 handle slots, respectively. Full source-file CLI export was not established: unrelated source header and/or typed ModelDocViewStyle output preflight prevented it. The AC1021 source bodies are bit-traced only, not claimed supported by this change."
+  },
+  "limits": "Record-level count and framing evidence only; no general LTYPE semantic, DWG producer, LibreCAD/FreeCAD, or cross-version interoperability claim. No externally sourced fixture is committed."
+}

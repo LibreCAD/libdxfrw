@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-19",
+  "title": "PAR-138 insertion of missing typed view-style text groups",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "owner": "PAR-138 / PAR-20",
+  "scope": "Serialize edited DetailViewStyle and SectionViewStyle string fields when their group-300 source tag or entire style group is absent, without mutating the retained source record.",
+  "changes": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionBehaviorChanged": true,
+    "supportedInsertions": {
+      "DetailViewStyle": [
+        { "styleGroup": 1, "field": "identifier-exclusion", "dxfCode": 300 },
+        { "styleGroup": 3, "field": "view-label-pattern", "dxfCode": 300 }
+      ],
+      "SectionViewStyle": [
+        { "styleGroup": 1, "field": "identifier-exclusion", "dxfCode": 300 },
+        { "styleGroup": 3, "field": "view-label-pattern", "dxfCode": 300 },
+        { "styleGroup": 4, "field": "hatch-pattern", "dxfCode": 300 }
+      ]
+    },
+    "insertionOrder": "Append code 300 to an existing logical style group; if no group-71 marker exists, insert marker plus code 300 before the next higher-numbered group or the end of the class subclass.",
+    "rawCarrierHandling": "All edits occur on the copied record. ASCII raw lexemes are added in parallel; Binary DXF receives empty raw-value placeholders, preserving rawValues/groups size alignment.",
+    "failClosedRemainder": [
+      "changed numeric property with no source group",
+      "changed repeated-field cardinality or hatch-angle count",
+      "invalid source group shape, record identity, owner, or resource reference"
+    ],
+    "positiveControls": [
+      "secondary DetailViewStyle source omits the entire group-3 block; changed typed label inserts group 71=3 plus code 300 in ASCII and Binary output",
+      "same-version readback reports the edited typed label pattern",
+      "expected ordered raw group streams include the inserted marker/tag and retain all prior opaque groups",
+      "previous present-field overlay controls and handle-remap checks remain passing"
+    ],
+    "negativeControlsRetained": [
+      "extra hatch angle beyond captured group cardinality refuses publication",
+      "refusal preserves a pre-existing output sentinel"
+    ],
+    "newCtestRegistration": false,
+    "repositoryFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerOrNativeRun": false,
+    "fullSuiteRun": false,
+    "commitAttempted": false,
+    "worktreeNote": "The checkout is broadly dirty and .git is read-only in this session. Unrelated pre-existing changes were preserved; this slice remains uncommitted."
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-named-object-callbacks",
+      "result": "PASS"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check -- dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    },
+    "receiptJson": {
+      "command": "jq empty docs/research/model-doc-view-style-missing-string-group-insertion-fast-slice-2026-10-19.json",
+      "result": "PASS"
+    }
+  },
+  "evidenceLimit": "This proves generated same-version ASCII/Binary DXF insertion for the listed string properties and a missing whole style group. It does not complete insertion for numeric/handle/repeated fields, prove DWG-origin or cross-version output, establish normative style flag/unnamed-boolean semantics, qualify native rendering, or promote consumer support.",
+  "planEffect": {
+    "existingOwners": ["PAR-138", "PAR-20"],
+    "newConfirmedFindings": 0,
+    "newFindingIds": [],
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimPromoted": false,
+    "findingsAfter": 138,
+    "topLevelSubplansAfter": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingPAR138Work": [
+      "complete typed insertion/serialization for remaining numeric and handle fields where the source lacks groups, with version-correct ordering",
+      "DWG-origin style-name and field decoding with producer/spec-backed mapping",
+      "cross-version translation and version-specific style gates",
+      "native style rendering qualification",
+      "normative semantics for DetailViewStyle flags and unnamed SectionViewStyle booleans"
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-open-source-writer-claim-fuzz-route-review-v1",
+  "date": "2026-10-17",
+  "scope": "Plan-only cross-check of open-source DWG/DXF writer capability claims, route-specific fuzzing documentation, and downstream comparator roles.",
+  "method": {
+    "sources": [
+      "LibreDWG project README, NEWS, generated dwgwrite.1, RPM spec, HACKING, fuzz repository, and Texinfo",
+      "Google OSS-Fuzz new-project integration guide",
+      "ezdxf project README",
+      "FreeCAD DWG import documentation"
+    ],
+    "local_crosswalk": "Compared source-backed route/evidence distinctions with the existing peer matrix and 7S.3/S3.7 validation cadence in DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md.",
+    "not_performed": [
+      "No peer checkout, build, binary, command, or runtime execution",
+      "No native CAD application or geometry kernel run",
+      "No external drawing download or fixture addition",
+      "No production code, test, dependency, or CTest registration change"
+    ]
+  },
+  "findings": [
+    {
+      "topic": "LibreDWG writer capability claims",
+      "evidence": "NEWS for beta 0.14.1 announces initial R2004+ writing; the current README retains CRC-error caveats for R2010-R2018 and the generated dwgwrite man page says R2000 only. RPM metadata repeats an R2004 encoder milestone but does not establish entity/object fidelity.",
+      "plan_effect": "Require exact executable/revision/build, operation, requested and actual file versions, hashes, diagnostics, and independent validation for every peer result. Do not promote from release notes or accepted CLI options alone."
+    },
+    {
+      "topic": "Fuzz route separation",
+      "evidence": "LibreDWG documents distinct DWG decode, ASCII DXF, DXF/DXB, JSON, and read-write fuzz routes; its standalone setup distinguishes crashes, hangs, and leaks and supports regression replay.",
+      "plan_effect": "Keep generated fast per-slice tests route-specific and move bounded sanitizer/fuzz campaigns to the composed checkpoint; preserve crash reproductions as deterministic tests. No new external fuzz infrastructure is authorized by this research update."
+    },
+    {
+      "topic": "Comparator roles",
+      "evidence": "ezdxf documents ASCII/Binary DXF read/write, not DWG; FreeCAD documents DWG conversion through an external converter followed by its DXF import route.",
+      "plan_effect": "Keep DXF parser comparison and named FreeCAD consumer qualification distinct from native DWG parsing and semantic 3D evidence."
+    }
+  ],
+  "implementation_readiness": {
+    "queue_changed": false,
+    "new_local_findings": 0,
+    "new_top_level_subplans": 0,
+    "validation_change": "No peer/full-suite/long-fuzz work per slice. Continue focused generated test plus owning CTest; schedule bounded route-specific sanitizer/fuzz campaigns at the composed checkpoint.",
+    "fixture_policy": "Use in-memory or scratch-generated controls; do not commit external DWG/DXF fixtures unless already present in LibreCAD/libdxfrw or created locally from scratch."
+  },
+  "support_claims_promoted": false,
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "sources": [
+    "https://github.com/LibreDWG/libredwg",
+    "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+    "https://github.com/LibreDWG/libredwg/blob/master/programs/dwgwrite.1",
+    "https://github.com/LibreDWG/libredwg/blob/master/libredwg.spec",
+    "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+    "https://github.com/LibreDWG/libredwg-fuzz",
+    "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+    "https://github.com/google/oss-fuzz/blob/master/docs/getting-started/new_project_guide.md",
+    "https://github.com/mozman/ezdxf",
+    "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+  ]
+}

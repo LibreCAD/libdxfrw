@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-scoped-dxf-codec-concurrency-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_SCOPED_CONCURRENT_CODEC_CONTROL",
+  "supportClaimEffect": "none",
+  "scope": "Check concurrent use of independent DXF codec instances writing and reading separate files in both encodings.",
+  "source": {
+    "parentCommit": "8994a9d2",
+    "files": {
+      "tests/debug_state_tests.cpp": "567936363be3485d3f4154d36ca4a254e17fa0c585c54e958d507e2d564a1108",
+      "CMakeLists.txt": "48b7c87bd957545b3047ccb29eae34b11922832687bccca647a3fbef8c980820",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "a17c7010a42965d92c88c88604841b2df92b7f480e51fc630afd3450f3f73c46"
+    }
+  },
+  "implementation": {
+    "files": [
+      "tests/debug_state_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Four workers each own a separate dxfRW writer, dx_iface adapter, input/output model, reader, and unique temporary path.",
+      "Workers alternate ASCII and Binary AC1027 DXF output, import their own result concurrently, and compare the complete typed LINE endpoints with worker-specific values.",
+      "The control removes all temporary outputs after the threads join. It does not share codec instances or model objects between threads."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_debug_state_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_scoped_codec_concurrency$' --output-on-failure",
+      "result": "PASS 1/1; 0.47 seconds"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_debug_state_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_scoped_codec_concurrency$' --output-on-failure",
+      "result": "PASS 1/1; 0.80 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "This is a bounded independent-instance/separate-file concurrency control, not a general thread-safety guarantee; shared codec instances, shared adapters, shared destinations and concurrent debug configuration are outside scope.",
+    "AddressSanitizer is not a race detector; no ThreadSanitizer run or Linux/Windows execution is claimed.",
+    "Concurrent local DXF read/write does not qualify DWG/DXF semantic support or native consumer behavior."
+  ],
+  "next": "Audit source lifetime and platform numeric/string policies; expand concurrency only when a specific shared-state contract requires it."
+}

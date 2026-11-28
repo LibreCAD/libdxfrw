@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-solid-ocs-fields-2026-11-12",
+  "purpose": "Close the headless 3D consumer probe's selected SOLID corner-field and legacy OCS projection gap.",
+  "source": {
+    "kind": "runtime-generated-from-scratch-DXF",
+    "entities": ["SOLID", "TRACE"],
+    "version": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "trackedFixture": false
+  },
+  "profile": {
+    "layer": "probe_solid_oblique_ocs",
+    "cornersOcs": [
+      [1.0, 1.0, 2.0],
+      [5.0, 1.0, 2.0],
+      [5.0, 4.0, 2.0],
+      [1.0, 4.0, 2.0]
+    ],
+    "extrusion": [0.0, 1.0, 0.0],
+    "solid": {
+      "cornersOcs": [[1.0, 1.0, 2.0], [5.0, 1.0, 2.0], [5.0, 4.0, 2.0], [1.0, 4.0, 2.0]],
+      "thickness": 0.25
+    },
+    "trace": {
+      "cornersOcs": [[2.0, 1.0, 3.0], [6.0, 1.0, 3.0], [6.0, 4.0, 3.0], [2.0, 4.0, 3.0]],
+      "thickness": 0.5
+    },
+    "legacyProjection": "For extrusion (0,1,0), the OCS basis maps (x,y,z) to (-x,z,y). SOLID expected corners: (-1,2,1), (-5,2,1), (-5,2,4), (-1,2,4). TRACE expected corners: (-2,3,1), (-6,3,1), (-6,3,4), (-2,3,4)."
+  },
+  "implementation": {
+    "semanticSink": "addSolid and addTrace now capture four corner vectors, thickness, and extrusion as typed fields.",
+    "probe": "ASCII and Binary output are imported with ext=false and ext=true; native OCS and projected WCS coordinates are asserted separately for both entity types."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "ctestResult": "PASS, 1/1, 0.48 seconds",
+    "diffCheck": "PASS"
+  },
+  "scopeLimit": "Generated same-library DXF transport and legacy projection only. Does not qualify DWG SOLID parsing, third-party interoperability, geometric validity, or native 3D consumer support.",
+  "claimEffect": "No format or consumer support claim changes."
+}

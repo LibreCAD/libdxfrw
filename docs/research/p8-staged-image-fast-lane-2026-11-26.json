@@ -1,0 +1,14 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-staged-image-fast-lane-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "c9eb3dc5cad86ed560fc208d9c03f37c746e4bb7f353ba55a735f9406e0c7822",
+  "change": "Build and select the focused staged IMAGE reference regression in the bounded PR fast lane.",
+  "checks": [
+    "PASS: fast-focus selector self-test.",
+    "PASS: focused staged IMAGE CTest in normal and AddressSanitizer builds; the existing IMAGE allocation regression also passes."
+  ],
+  "limits": [
+    "Hosted checks still need to complete; this is not a full-suite or native-platform qualification. All support claims remain experimental."
+  ]
+}

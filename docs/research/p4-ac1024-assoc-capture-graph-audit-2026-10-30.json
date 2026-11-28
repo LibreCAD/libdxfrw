@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "AC1024 DWG associative capture and graph-audit implementation",
+  "mode": "P4 adapter retention and fail-closed output slice",
+  "baselineCommit": "a6f0e19b",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": [
+    "Retain DWG associative callbacks in a separate bounded store and generation-scoped receipt, without mixing them into the DXF raw/typed receipt.",
+    "Audit the selected AC1024 body → dependency → constraint-group → network edges from explicit handles and ownership/action fields.",
+    "Keep strict-complete DWG-to-DXF export refused when associative objects are present because a complete writer route is not implemented."
+  ],
+  "evidence": {
+    "source": {
+      "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "workspaceStatus": "Local investigation input; untracked and not committed.",
+      "runtimeRead": {
+        "command": "build/dwg2dxf/dwg2dxf tests/samples/AC1024/mechanical_example-imperial.dwg -y -d -v2010 /tmp/libdxfrw-p4-assoc-capture-graph-audit-2026-10-30.dxf",
+        "exitCode": 1,
+        "logPath": "/tmp/libdxfrw-p4-assoc-capture-graph-audit-2026-10-30.log",
+        "logSha256": "a92aeb9c9217e4b388e89b2b40d4fa01daa66654e36ca2935f0d108de94bf3e8",
+        "observed": "138 associative callbacks retained; receiptMatches=1; captureComplete=1; graphAuditAttempted=1; 17 bodies, 17 body→dependency edges, 17 dependency→group edges, 17 group→network edges; selectedGraphEdgesComplete=1; limitExceeded=0.",
+        "result": "Expected strict-complete refusal: dwg-associative-graph-not-serialized."
+      }
+    },
+    "independentSourceProfile": {
+      "path": "/tmp/libdxfrw-p4-libredwg-mechanical.json",
+      "sha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+      "reader": "LibreDWG 0.14",
+      "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "observed": "17 ASSOCDIMDEPENDENCYBODY objects and 17 ASSOCDEPENDENCY objects; all 17 dep_body references identify the corresponding body, each body's owner is that dependency, and the dependency owners lead to constraint-group handle 1067 and network handle 1060.",
+      "scopeLimit": "Peer-decoded source relationships guide the audit but do not establish that this library's runtime audit passes or that the graph is complete for output."
+    }
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Added a DWG-only associative vector and import receipt, bounded callback accounting, an AC1024 selected-edge audit, and strict-complete preflight refusal while the associative writer is absent.",
+    "behaviorChanges": [
+      "DWG associative typed callbacks are retained separately from DXF associative records and raw-carrier receipt state.",
+      "The AC1024 audit counts explicit body→dependency, dependency→constraint-group, and reciprocal owned group→network action edges; it does not certify other associative descendants or a root dictionary path.",
+      "Strict-complete DXF export refuses whenever DWG associative objects or capture failures are present; no DXF records are emitted for these objects."
+    ],
+    "supportClaimPromoted": false,
+    "persistentFixturesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target dwg2dxf -j 4",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS with configured -Werror flags. Two initial compile errors (gate declaration order and unused renamed constant) were corrected before the passing build.",
+      "diffCheck": "PASS.",
+      "runtimeGraphAudit": "PASS for the selected 17 AC1024 body/dependency/group/network paths; each edge count equals the 17 body count and the adapter reports a complete selected-edge audit.",
+      "strictCli": "EXPECTED_REFUSAL after the graph audit because no complete associative DXF writer route exists.",
+      "focusedTests": "NOT_RUN.",
+      "fullSuite": "NOT_RUN."
+    }
+  },
+  "limitations": [
+    "The bounded receipt and edge-audit code still needs runtime confirmation against a source-matched AC1024 import.",
+    "The audit covers only selected body/dependency/group/network edges; it does not prove network-root reachability, full associative descendant closure, or all target roles.",
+    "No associative DXF serializer, identity remapping, emitted-field proof, or consumer qualification is implemented.",
+    "The local source sample is not committed; no support claim is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Bounded DWG callback retention and the selected AC1024 body/dependency/group/network edge audit passed a source-matched runtime import for all 17 body instances.",
+    "remainingP4Scope": "Extend closure to all required associative descendants and network ancestry, then implement exact complete-graph DXF output or preserve strict refusal.",
+    "nextImplementationPacket": "Use the observed source graph to classify every additional reachable associative record and required owner/reference role, then bind the complete graph's output fields and handle remapping.",
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_data.h": "45ff2a5b35c63a6924e9632609d809b9a540e79a4355984cedeff26ae2b430c5",
+    "dwg2dxf/dx_iface.cpp": "cd3eb96a0e5b8c0dcea84246d2a18c3b796001139ceb3649d93197ef455f5c21",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ab45bf2e0a7810b94afabc2767872a73fdf02525ccb1d363c957576e1e477f9d",
+    "build/dwg2dxf/dwg2dxf": "315aa70594be7f28efba4977878f325fd5d8dd8d1f2c726c33ee6b48bbafe5bc"
+  },
+  "commitCreated": true,
+  "worktree": "Only the adapter capture, plan, and receipt paths should be staged; unrelated workspace contents are excluded."
+}

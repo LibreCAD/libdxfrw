@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-native-ltype-isolated-2026-11-25",
+  "status": "ISOLATED_GUI_SAVE_REOPEN_PARTIAL_PROPERTY_LABEL_AND_MATERIAL_IMPORT_OPEN",
+  "supportClaimEffect": "none",
+  "prior": "docs/research/p8d-librecad-native-ltype-launch-2026-11-25.json",
+  "consumer": {"pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289", "head": "5969364fe4d9a51b0bc1a935140fe9a62f6adcdc"},
+  "dependencyImplementationDigest": "2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21",
+  "profile": {
+    "host": "macOS 27.2.1 arm64",
+    "isolation": "A temporary main.cpp build variant selects Qt INI settings in /private/tmp/p8d-native-ltype-20261125/settings, seeded with a scratch empty library path and FirstLoad=false. The two settings calls were removed from the shared checkout after the build; the checkout is clean. This is not an unmodified final-candidate executable.",
+    "executableSha256": "f2d30f2d11dacecad491af9ec0c60d45789697c35c6f8c9e6fb7023d4cb23c8f",
+    "runtimeLibrary": "/private/tmp/libdxfrw-singleline-install-20261125/lib/libdxfrw.3.0.0.dylib",
+    "runtimeLibrarySha256": "d7f595613e0ef5106c485708348e120c5c93c000c5d11989d2e6b7370cb5efff",
+    "runtimeLibraryEvidence": "lsof on the isolated GUI process showed that exact library path loaded",
+    "userSetting": "The production profile's Paths.Library was /Users/dli/Documents; the sampled startup had stalled while recursively scanning a library directory. The production profile was not modified."
+  },
+  "r12Control": {
+    "input": "/private/tmp/p8d-native-ltype-20261125/minimal-r12.dxf",
+    "inputSha256": "88c7d8cff6d0fae20741306429331922de9c0f6c81b921002bb162b3593fcbcc",
+    "firstOutputSha256": "110260181c6fb40acc0fb8d75a45ac42c636537d585be58bf7c3bdf9114dfd31",
+    "secondOutputSha256": "cd390a85efc685e667c0d12fd1698854c6304ea5d1c613a6fc014c0d6d42c87e",
+    "observations": [
+      "The GUI opened the locally authored R12 drawing, displayed the green dashed line on P8D_LAYER, saved it as DXF 2007, and opened that saved file. After a redraw, the dashed line was visible and selectable.",
+      "The selected line's Properties panel displayed Line Type Continuous despite the retained explicit name P8D_CUSTOM. The property provider reads RS_Pen::getLineType(), whose enum falls back for unknown custom names. No linetype property edit was performed.",
+      "After a second GUI Save As, ezdxf read both AC1021 outputs: each has one LINE from (0,0,0) to (100,0,0), layer P8D_LAYER, explicit P8D_CUSTOM reference, and LTYPE pattern length 6 with dashes 4 and -2. ezdxf audit reported zero errors on both."
+    ]
+  },
+  "ezdxfR2010Control": {
+    "inputSha256": "e32176333101a243ac5968a8e551096d1e9d872ad8f348f82b0f0bba72f10acc",
+    "origin": "locally created from scratch using ezdxf 1.4.5 new('R2010', setup=True), with a custom LTYPE and LINE; ezdxf's own audit reported zero errors",
+    "result": "LibreCAD GUI import failed. An independent scratch dxfRW probe of the same installed library reports BAD_CODE_PARSED in MATERIAL at a second group 73 with value 0 following group 44.",
+    "authority": [
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm lists group 73 as diffuse map projection and group 76 as specular color method",
+      "https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/material.py assigns group 73 to specular_color_method and emits it after the group-44 gloss value"
+    ],
+    "discriminators": [
+      "A scratch mutation replacing that later group 73 with group 76 in all three default materials advances the reader to group 94 value 63, which is refused because this AC1024 sparse base profile does not meet the current completeness guard.",
+      "A second scratch-only mutation also removes those three group-94 values; the reader succeeds. This omission changes the source and is a diagnostic control, not a lossless fix or a support claim."
+    ],
+    "correctedCodeOnlySha256": "62373c0a7750cc0e83de0518ce828feee4af52e3c5c8f3dc0ce0fc1486350fc8"
+  },
+  "limits": [
+    "The GUI binary changes settings routing, and the screenshots/AX observations do not qualify the unmodified final app, other platforms, editing, or all linetypes.",
+    "The R2010 material differs from Autodesk's documented group assignment; blindly treating either 73 occurrence as a different field would risk misinterpreting ambiguous data.",
+    "Neither scratch drawing nor any generated output was committed."
+  ]
+}

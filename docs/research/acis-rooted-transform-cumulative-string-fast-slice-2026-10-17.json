@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-acis-rooted-transform-cumulative-string-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "slice": "S3.7c rooted SAB transform-token cumulative-string-cap regression",
+  "scope": "Verify aggregate string admission when a transform literal is retained in both the raw token snapshot and the separate parsed observation, while each individual string remains within the per-string cap.",
+  "implementation": {
+    "productionCodeChanged": false,
+    "testFilesChanged": [
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "transformInterpretedOrApplied": false,
+    "supportClaimsPromoted": 0
+  },
+  "control": {
+    "input": "generated from the existing in-memory ACIS 21800 body graph",
+    "transformLiteralBytes": 17,
+    "maxStringBytes": 17,
+    "maxCumulativeStringBytes": 17,
+    "callerProjectionPrepopulated": true,
+    "expected": {
+      "success": false,
+      "failure": "ResourceLimit",
+      "projectionCleared": true
+    },
+    "observed": {
+      "success": false,
+      "failure": "ResourceLimit",
+      "projectionCleared": true
+    }
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j 2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "git diff --check -- tests/graph_preservation_tests.cpp"
+    ],
+    "result": "PASS",
+    "focusedCTest": "libdxfrw_graph_preservation: 1/1 passed (0.71 s)",
+    "fullSuiteRun": false
+  },
+  "evidenceLimits": [
+    "Does not establish the ACIS transform matrix convention or placement.",
+    "Does not apply WCS placement or source-unit scaling.",
+    "Does not validate a complete or closed B-rep.",
+    "Does not qualify a DWG/DXF producer, consumer, or general 3D support."
+  ],
+  "worktree": {
+    "broadPreexistingChangesPreserved": true,
+    "committed": false,
+    "reason": "Repository .git metadata is read-only in this environment; the worktree also contains broad pre-existing modifications, so no stage or commit was attempted."
+  }
+}

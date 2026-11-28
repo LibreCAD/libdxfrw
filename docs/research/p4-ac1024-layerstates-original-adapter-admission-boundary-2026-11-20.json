@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-original-adapter-admission-boundary-2026-11-20",
+  "date": "2026-11-20",
+  "status": "SOURCE_BOUND_OUTPUT_ADMISSION_BLOCKED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing untracked local reference source; producer provenance remains unqualified."
+  },
+  "currentSourceProof": "docs/research/p4-ac1024-layerstates-appid-wire-source-binding-2026-11-20.json",
+  "investigation": {
+    "method": "Temporarily changed the historical preflight to use the original importing dx_iface and enabled its existing debug diagnostics; added a test-only print of the extension fields, ran the source selector, then restored the tracked test file.",
+    "log": "/private/tmp/libdxfrw-layerstates-original-adapter-diag.log",
+    "logSha256": "883efa2c17b0965c87a7f7ba284a64b91e270706b7bb9ef9394710469255c5bc",
+    "observed": "The same-adapter preflight still refuses at the LAYER_CONTROL extension common-field check. The selected source extension has parent 0x2, hardOwner/cloning 1/1, three complete entries, a validated common-link tail, and no app data, EED, reactors, xdictionary, storage or unresolved references. The AC1024 three-root branch currently expects no common-link tail.",
+    "independentConcern": "The historical output test then creates a projected dx_data and a separate writer adapter. Current same-import APPID and frame proofs are bound to the original data owner and importing adapter, so that projection cannot be treated as evidence that a new adapter owns the original receipts."
+  },
+  "implementationSteps": [
+    "Use the original importing adapter and data in the source-bound preflight. Admit validated common-link tails for this three-root profile only after the complete selected source graph and APPID/control proof qualify; preserve fail-closed behavior for all other profiles.",
+    "Design a frozen output selection over the original source/data rather than transferring owner-bound receipts into a copied dx_data or new adapter. Revalidate the selected source graph and APPID/EED dependencies before staged emission and at finalization.",
+    "Prove root/dictionary/record/reference closure and exactly one emitted ACAD APPID with signed EED values through ASCII and Binary output, independent fresh readback, altered owner/member/frame refusal, destination preservation, and corrected same-adapter retry. Keep unrelated SUN and whole-source dependencies blocked until separately closed.",
+    "Run native LayerStates restoration/appearance checks on a release-identified host before any semantic support claim."
+  ],
+  "limits": [
+    "The diagnostic is a refusal observation and a proposed implementation route, not an output-admission or native support claim.",
+    "The source has an independently recorded HEADER envelope discrepancy.",
+    "The diagnostic test instrumentation and all DWG/DXF files remain outside committed changes."
+  ]
+}

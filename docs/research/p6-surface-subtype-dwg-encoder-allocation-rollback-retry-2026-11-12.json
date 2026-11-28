@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-surface-subtype-dwg-encoder-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "BOUNDED_SURFACE_SUBTYPE_DWG_ENCODER_TRANSACTIONAL_ROLLBACK_RETRY",
+  "supportClaimEffect": "none",
+  "scope": "Extend allocation rollback/retry coverage for the transactional DRW_Surface encoder to Extruded, Revolved, Swept, Lofted and NURBS subtype bodies and deferred lofted handles.",
+  "implementation": {
+    "encoder": "src/drw_entities.cpp:DRW_Surface::encodeDwg",
+    "test": "tests/dwg_hatch_encoder_allocation_tests.cpp",
+    "coverageChanges": [
+      "Generate valid profiles for all five remaining typed subtypes with subtype-specific data and exact class ordinals.",
+      "Include swept source/path payload bytes and a lofted profile with cross-section, guide-curve and path handles."
+    ],
+    "failureBehavior": "Injected allocation failure preserves caller stream bytes and bit positions and restores the writer object type; same-object retry into the same buffers reproduces clean output."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_entity_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j4",
+    "allocationSweep": "PASS: 5,174 allocation offsets across nine entity families and 305 entity/version/stream-layout profiles",
+    "focusedTests": "ctest --test-dir build-gcc -R '^(dwg_entity_encoder_allocation_rollback_retry|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "result": "PASS (2/2)",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "coverage": [
+    "Plane, Extruded, Revolved, Swept, Lofted and NURBS surfaces are exercised across AC1021, AC1024, AC1027 and AC1032 with five stream-alias layouts each.",
+    "AC1027+ NURBS fields are checked through the writer's generated allocation/retry path; pre-AC1027 writer behavior remains covered as an admitted body profile.",
+    "Lofted cross-section, guide-curve and path handle output is included in the failure sweep."
+  ],
+  "inputHashes": {
+    "src/drw_entities.cpp": "f59e2ca5615b2722cb34b8d5cd9b96a89b8f02292a12e46bae2e064e652be17b",
+    "tests/dwg_hatch_encoder_allocation_tests.cpp": "a2c6bc9ca6fb13b652d9dbe7f2cf6ba9cd2d3dafe5b929b2b5afd8ce382f2465"
+  },
+  "fixtureFilesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "Version-bound raw DWG body replay is not directly fault-injected by these subtype profiles.",
+    "This is transaction evidence only; it does not qualify surface wire semantics, ACIS geometry, graph closure, native rendering, source producers or output support.",
+    "No DWG or DXF drawing fixture was added."
+  ]
+}

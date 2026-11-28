@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ENDBLK source self and owner identity mapping",
+  "mode": "generated local fast implementation slice",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Bind retained source ENDBLK self-handles to reserved ordinary and fixed-space output identities before earlier reference-bearing records are emitted.",
+    "Require retained source ENDBLK owner handles on owner-bearing DXF versions to resolve to the containing output BLOCK_RECORD.",
+    "Reject ambiguous, duplicate, shadowed, or mismatched source footer identities transactionally.",
+    "Use the existing repository fixture plus in-memory mutations and temporary outputs only."
+  ],
+  "sourceCrosswalk": {
+    "planOwner": "PAR-65/7AM.2",
+    "codePaths": [
+      "dxfRW::getBlockEndHandleToWrite",
+      "dxfRW::bindSourceBlockEndHandle",
+      "dxfRW::validateSourceBlockEndOwner",
+      "dxfRW::writeBlockEndWithHandle",
+      "dxfRW::writeBlocks",
+      "dx_iface::writeBlockRecords"
+    ],
+    "evidenceBoundary": "Local source self/owner identity mapping, mismatch rejection, atomic destination preservation, and same-adapter retry evidence; arbitrary appData reference translation, full graph closure, and native CAD acceptance remain unqualified."
+  },
+  "verification": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-xref-path-roundtrip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_block_xref_path_roundtrip$' --output-on-failure"
+    ],
+    "targetBuild": "passed",
+    "focusedSelector": "passed",
+    "owningCTest": {
+      "name": "libdxfrw_block_xref_path_roundtrip",
+      "result": "passed",
+      "passed": 1,
+      "failed": 0,
+      "elapsedSeconds": 0.03
+    },
+    "diffCheck": "passed with git diff --check on src/libdxfrw.h, src/libdxfrw.cpp, dwg2dxf/dx_iface.h, tests/dxf_fixture_tests.cpp, and DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md; receipt parsed with jq empty"
+  },
+  "assessment": {
+    "productionFilesChanged": true,
+    "publicApiChanged": true,
+    "newFixtures": 0,
+    "newCtestRegistrations": 0,
+    "fullSuitesRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "remaining": [
+    "Special appData-reference rewriting and complete BLOCK/BLOCK_RECORD/ENDBLK graph closure.",
+    "Independent semantic/native acceptance at existing composed checkpoints."
+  ],
+  "workingTree": {
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "The shared worktree was already broadly modified. This slice updates the DXF writer, converter preplanning, the existing focused test owner, the parity plan, and this receipt; unrelated edits were preserved."
+  }
+}

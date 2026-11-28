@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-08",
+  "topic": "R24 TABLESTYLE format-string, rotation and block-scale transport",
+  "status": "bounded_generated_writer_readback_pass",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.101.3",
+    "fields": [
+      "TV group 300 value format string",
+      "BD group 40 rotation",
+      "BD group 140 block scale"
+    ]
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "sha256": "c1cb02a0ce678917f2441fbb698229ab29b7f00405b6608423ae39ed5c7a616e",
+    "profile": "R24 typed TABLESTYLE keeps the existing exact style/ownership profile. These fields may now carry safe DXF text up to 1 MiB and finite rotation/block-scale values; undocumented property override/flag combinations remain refused."
+  },
+  "control": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "sha256": "636478bfd5825d6abcbc13b86d54453040ae34ea44edd0df3d93180cbbc9ce6f",
+    "selector": "--tablestyle-r24-typed-writer",
+    "generated_from_scratch": true,
+    "positive_profile": {
+      "text": "0.00",
+      "rotation": 0.5,
+      "blockScale": 1.25,
+      "encodings": ["ASCII", "Binary"]
+    },
+    "checks": [
+      "Fresh typed readback preserves the non-default string and finite scalar values.",
+      "Raw TABLESTYLE records preserve ordered group 300/40/140 fields within each CONTENTFORMAT record.",
+      "Newline-containing and over-1-MiB strings, infinite rotation and NaN block scale are refused without replacing a destination sentinel.",
+      "After each refusal the corrected profile succeeds on the same adapter."
+    ],
+    "fixture_policy": "No DWG/DXF fixture is committed; outputs are temporary and removed."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "test": "ctest --test-dir build -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+    "result": "passed; 1/1 selected CTest, 1.65 seconds"
+  },
+  "limits": [
+    "This qualifies generated serializer/readback transport for the bounded R24 style profile.",
+    "It does not qualify native rendering/format semantics, physical DWG producers, all style flags, or whole-source conversion.",
+    "No AC1027 aggregate source-reference, HEADER or other strict admission gate was changed."
+  ]
+}

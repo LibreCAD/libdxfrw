@@ -1,0 +1,68 @@
+{
+  "title": "DXF SUN color order and strict RGB projection guard",
+  "date": "2026-11-04",
+  "status": "bounded implementation with focused validation; output remains fail-closed",
+  "base_commit": "ad06cee495bf36b09428bf0b12b4f9839d91cf3d",
+  "problem": "SUN group 421 before group 63 is accepted, but group 63 clears the typed RGB value. A typed caller can then pass the existing SUN scalar-only writer gate, resulting in a successful export without the source RGB. The raw callback retains the 421 field, so the typed and raw observations diverge.",
+  "change": "Do not clear m_color24 when parsing 63. Continue resetting DWG CMC provenance and name on 63 as before. 421 parsing and SUN scalar-only DXF writer policy are unchanged. processSun constructs a new SUN for each source record. No class layout, public API, vtable or DWG codec is changed.",
+  "authority": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-BB191D89-9302-45E4-9904-108AB418FAE1.htm",
+      "scope": "Autodesk SUN table documents 63 for color but does not list 421. Existing strict output refusal is retained."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+      "scope": "DXF group order must not be assumed."
+    }
+  ],
+  "physical_source": "ezdxf 1.4.5 authored an AC1027 paper-space VIEWPORT and SUN owned by that viewport with 63=7 and 421=1193046. ODA File Converter 27.1 converted to AC1027 DWG and returned AC1027 DXF with 63=148 and 421=1193046. ODA changed the ACI fallback. Both DXFs pass ezdxf audit with zero errors or fixes. File hashes bind the artifacts; the converter lineage is a manually observed join. This producer observation does not override the Autodesk SUN table or qualify typed 421 output.",
+  "controlled_reordering": "The author tool swaps only the selected SUN 63 and 421 in the ODA-returned DXF, and builds a minimal OBJECTS projection preserving that complete selected record. The peer auditor verifies no other group changed and that projection matches the reordered selected record. The reordered document is our controlled edit, not ODA-authored; the projection does not qualify whole-source graph closure.",
+  "baseline": "A pre-fix 922b7b5a static library probe loses the RGB on the reordered projection and fails the new focused check. The ad06cee4 scratch candidate retains both typed and raw RGB. The SUN parser/writer sources are identical across those baseline revisions. An independently compiled direct facade probe using that baseline reads the selected record with rgb=-1. It then sets the selected SUN handle and owner to zero to avoid asserting a graph join, and reports both write and writeSun success; the resulting DXF contains 63=148 and no 421. ezdxf reads this scalar output with no audit errors or fixes.",
+  "validation": "ASCII and binary inputs exercise 63/421 in both orders, explicit 421=0 and nonzero, 421 absent, raw and typed callback agreement, following-record isolation, strict writer refusal with ignored callback result, sentinel destination and caller state preservation, and corrected same-writer scalar retry. Existing libdxfrw_sun_cmc_dxf_projection test and lc3_compat_check build pass. Independent ezdxf 1.4.5 audit checks source, ODA return, reordered source and generated scalar ASCII/Binary output with zero errors/fixes; the minimal projection is record-compared rather than claimed as a full valid graph.",
+  "limits": [
+    "This fixes retained callback data and closes an order-dependent loss path; it does not enable typed SUN RGB output.",
+    "The physical source-to-output claim is limited to the producer observation and selected SUN; no full native CAD or rendering qualification.",
+    "No persistent fixture or shared workspace edit."
+  ],
+  "candidate_files_sha256": {
+    "src/drw_objects.cpp": "f2e7d2ca597ad4f57bb0ba88aaf60f4ab269b230e30286c2f7b2d493fbd4e5a3",
+    "tests/CMakeLists.txt": "8b2ec11d0da84c0faf30274893cabb3b4aed5eb3d8e4d6f04fe767e0681e6d4f",
+    "tests/dxf_sun_color_order_tests.cpp": "917e3af90084bd18215c54123571d5061114e8c0b896d4f8d9820e383abdb4db",
+    "tools/author_selected_sun_color.py": "2130e8dee2494bedd097f5c191f4e4d1d9e7d91178ebaa95e943c1f48ec7109a",
+    "tools/audit_sun_color_order.py": "b4f65e0854343285a03158561b112e66192977ac9e306891ff11014b96f19c8a",
+    "tools/probe_sun_color_loss.cpp": "4bb2fc2e9d9a53baa35eca9544bf237629da01e22fde209ab87b89bceb28dec4"
+  },
+  "patch": {
+    "path": "/private/tmp/sun-color-order/sun-color-order.patch",
+    "sha256": "51105dc67b51b2d69d7afe00acfe7740bd1fdf876e17fc01e9ba78d42fa7db8a"
+  },
+  "artifacts_sha256": {
+    "/private/tmp/sun-color-order/in/source.dxf": "9058ef1db48cc969fcdf29c90a2a74fcc9e03e2b885212669b2609ff9176194e",
+    "/private/tmp/sun-color-order/dwg/source.dwg": "b6bc557afe6a42fb022a9695e002e2dc9b536fa53b656c51557a31f3b6930b05",
+    "/private/tmp/sun-color-order/out/source.dxf": "dafb40054b15d78b7f59a26697a76ccf2a515278d54907919d8578c48bc128e7",
+    "/private/tmp/sun-color-order/reordered.dxf": "3c71625559907c2d39d633db2962cc1731adb28d17202ddcc154d0cc0d9918bd",
+    "/private/tmp/sun-color-order/project-reordered.dxf": "1ab710c1bf1c86c5a5314a336408bd2950096a532473346a848d7a1c4fde904e",
+    "/private/tmp/sun-color-order/emitted/ascii.dxf": "0e582c4523ba672246699451ce0105911cc802ac92b9ab222e680ae9da8d500a",
+    "/private/tmp/sun-color-order/emitted/binary.dxf": "992334f3302f8ab243707ee72be37bf4e99771f426ab322444b85476e7e14ce2",
+    "/private/tmp/sun-color-order/baseline-output.dxf": "df7823b71c8f756a734746fdb997e800aae783e25d5ecdda357b6a3e6aebc9dd"
+  },
+  "commands": {
+    "configure": "cmake -S . -B /private/tmp/sun-color-order/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_BUILD_TESTS=ON",
+    "build": "cmake --build /private/tmp/sun-color-order/build --target libdxfrw_dxf_sun_color_order_tests libdxfrw_wave1_tests lc3_compat_check -j4",
+    "test": "ctest --test-dir /private/tmp/sun-color-order/build -R '^(libdxfrw_dxf_sun_color_order|libdxfrw_sun_cmc_dxf_projection)$' --output-on-failure",
+    "project": "python3 tools/author_selected_sun_color.py /private/tmp/sun-color-order/out/source.dxf /private/tmp/sun-color-order/reordered.dxf /private/tmp/sun-color-order/project-reordered.dxf --sha256 dafb40054b15d78b7f59a26697a76ccf2a515278d54907919d8578c48bc128e7",
+    "emit": "SUN_COLOR_OUTPUT=/private/tmp/sun-color-order/emitted /private/tmp/sun-color-order/build/tests/libdxfrw_dxf_sun_color_order_tests",
+    "physical_selected": "/private/tmp/sun-color-order/build/tests/libdxfrw_dxf_sun_color_order_tests /private/tmp/sun-color-order/project-reordered.dxf",
+    "peer_audit": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_sun_color_order.py --input /private/tmp/sun-color-order/in/source.dxf --input-sha256 9058ef1db48cc969fcdf29c90a2a74fcc9e03e2b885212669b2609ff9176194e --source /private/tmp/sun-color-order/out/source.dxf --source-sha256 dafb40054b15d78b7f59a26697a76ccf2a515278d54907919d8578c48bc128e7 --reordered /private/tmp/sun-color-order/reordered.dxf --reordered-sha256 3c71625559907c2d39d633db2962cc1731adb28d17202ddcc154d0cc0d9918bd --projection /private/tmp/sun-color-order/project-reordered.dxf --projection-sha256 1ab710c1bf1c86c5a5314a336408bd2950096a532473346a848d7a1c4fde904e --ascii /private/tmp/sun-color-order/emitted/ascii.dxf --ascii-sha256 0e582c4523ba672246699451ce0105911cc802ac92b9ab222e680ae9da8d500a --binary /private/tmp/sun-color-order/emitted/binary.dxf --binary-sha256 992334f3302f8ab243707ee72be37bf4e99771f426ab322444b85476e7e14ce2",
+    "baseline_probe": "c++ -std=c++17 -I./src -I./tests tools/probe_sun_color_loss.cpp /private/tmp/viewport-color-order/build/libdxfrw.a -o /private/tmp/sun-color-order/probe-before && /private/tmp/sun-color-order/probe-before /private/tmp/sun-color-order/project-reordered.dxf /private/tmp/sun-color-order/baseline-output.dxf"
+  },
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_(dxf_sun_color_order|sun_cmc_retention|sun_cmc_dxf_projection)$' --output-on-failure: 3/3 passed.",
+  "integrated_files": {
+    "src/drw_objects.cpp": "f2e7d2ca597ad4f57bb0ba88aaf60f4ab269b230e30286c2f7b2d493fbd4e5a3",
+    "tests/CMakeLists.txt": "8b2ec11d0da84c0faf30274893cabb3b4aed5eb3d8e4d6f04fe767e0681e6d4f",
+    "tests/dxf_sun_color_order_tests.cpp": "917e3af90084bd18215c54123571d5061114e8c0b896d4f8d9820e383abdb4db",
+    "tools/author_selected_sun_color.py": "2130e8dee2494bedd097f5c191f4e4d1d9e7d91178ebaa95e943c1f48ec7109a",
+    "tools/audit_sun_color_order.py": "b4f65e0854343285a03158561b112e66192977ac9e306891ff11014b96f19c8a",
+    "tools/probe_sun_color_loss.cpp": "4bb2fc2e9d9a53baa35eca9544bf237629da01e22fde209ab87b89bceb28dec4"
+  }
+}

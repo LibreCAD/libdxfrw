@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-vport-offset-handle-fix-2026-11-14",
+  "date": "2026-11-14",
+  "status": "BOUNDED_AC1012_VPORT_OFFSET_SOFT_POINTER_ACCEPTED",
+  "supportClaimEffect": "none",
+  "scope": "Accept an ODA-defined relative soft-pointer encoding for the VPORT control field only when its existing parser route marks the field as offset-resolved. Preserve the raw role span and keep strict output refusal for unrelated incomplete semantics.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": {
+      "2.13": "Codes 0x6, 0x8, 0xA and 0xC encode relative offsets and always represent soft pointers; code 0xC subtracts the stored offset from the reference handle.",
+      "20.4.64": "A VPORT object's control reference is a soft pointer."
+    }
+  },
+  "source": {
+    "path": "/private/tmp/p6-e-ac1012-generated.dwg",
+    "sha256": "45916e6e3c38c62b1f14b8fdca821cfabfe37df9824051ec5312c610871688f7",
+    "size": 2483,
+    "version": "AC1012",
+    "producer": "LibreDWG dwgadd 0.14",
+    "creation": "Generated from scratch; not committed as a fixture.",
+    "observedField": {
+      "record": "VPORT handle 0x09",
+      "field": "control",
+      "rawHandleCode": "0x0C",
+      "encodedOffset": 1,
+      "resolvedTarget": "0x08",
+      "targetType": "VPORT_CONTROL"
+    }
+  },
+  "implementation": {
+    "files": ["src/drw_objects.cpp", "tests/dwg_object_vectors_tests.cpp"],
+    "behavior": "The VPORT handle-role validator now accepts raw codes 0x06, 0x08, 0x0A and 0x0C only when the field is offset-resolved and expects the soft-pointer role. It retains the raw code in the handle span. Other field roles and non-offset fields keep exact-role checks.",
+    "testCoverage": [
+      "Generated VPORT profiles retain exact spans, following sentinel and canonical roles across AC1012/AC1014/AC1015/AC1018/AC1021/AC1024/AC1027.",
+      "Generated AC1012 code-0x0C relative control resolves handle 0x09 minus one to VPORT_CONTROL handle 0x08 and retains raw code 0x0C.",
+      "An underflowing relative offset is rejected without publishing partial typed state; the complete code-0x0C input then succeeds on the same parser."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j4",
+    "buildResult": "PASS",
+    "selector": "libdxfrw_ac1012plus_vport_handle_roles",
+    "selectorResult": "PASS 1/1",
+    "physicalProbe": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/p6-e-ac1012-generated.dwg -y -d -v2000 /private/tmp/p6-e-ac1012-after-vport-fix.dxf",
+      "executableSha256": "005cb418d2a4a7c46b54eeaa5ee28ba59db4129c1dd239bac93cdfa6beade114",
+      "traceSha256": "9ff01d0426ffed69268a8b8e0aeb3ff1843247e9c5eed447a8259b3dc4787eaf",
+      "observed": "operationSucceeded=true; all 29 observed source frames published; zero entity/object parse failures. Strict DXF output still refuses because the generated file's current DIMSTYLE reference is null/unqualified."
+    }
+  },
+  "limitations": [
+    "Only the observed code-0x0C AC1012 VPORT-control case was exercised with a physical generated DWG; the other relative soft-pointer codes are covered by the normative rule and bounded parser predicate, not by separate physical producer witnesses.",
+    "The AC1012 source is a minimal locally generated drawing, not a producer-authored interoperability witness.",
+    "AC1012 strict output remains blocked by an unrelated null current DIMSTYLE reference; this fix does not promote whole-file support."
+  ]
+}

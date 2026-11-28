@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "date": "2026-11-08",
+  "status": "GENERATED_DWG_TYPED_READ_RETENTION_DXF_OUTPUT_REFUSED",
+  "workstream": "P5 / AC1018-AC1021 TABLE row-height override values",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1, TABLE until R21",
+    "fields": {
+      "0x100000": "title row height BD",
+      "0x200000": "header row height BD",
+      "0x400000": "data row height BD"
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "behavior": "DRW_Table retains the three selected row-height values in a typed array; copies and reset state preserve/clear the array correctly. The reader still marks this profile incomplete for output. The strict DXF writer rejects these masks because no lossless mapping from style-level row heights to the existing explicit DXF row-height representation has been qualified.",
+    "generatedControl": "From-scratch AC1021 TABLE vector selects all three row-height bits with values 3.5, 4.5 and 5.5; the selector checks the retained values, exact table body boundary and a following sentinel.",
+    "outputControl": "ASCII and Binary TABLE output controls verify atomic refusal for an unmapped selected row-height mask, destination preservation and corrected same-adapter retry/readback."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedReader": "PASS: build/libdxfrw_dwg_object_vectors_tests --table-r2007-cell-reader",
+    "focusedAsciiBinaryOutput": "PASS: ctest --test-dir build -R '^libdxfrw_table_scalar_override_output$' --output-on-failure, 1/1",
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Generated codec consistency only; no physical producer witness or whole-drawing qualification.",
+    "No row-height DXF mapping or native TABLE style/rendering behavior is established.",
+    "Color, fill, alignment, text-style, and border override fields remain incomplete."
+  ],
+  "supportClaimsPromoted": 0,
+  "fixtureFilesAdded": 0,
+  "next": "Find exact source/profile evidence and establish a lossless DXF row-height representation before enabling output; continue another bounded override group only with typed storage and selected-output tests."
+}

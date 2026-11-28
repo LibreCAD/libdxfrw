@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-user-request-generated-pair-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateCommit": "ca5108415",
+  "implementationDigestSha256": "73472a8b26362f36232886809faae81a1ebf51cb1fef788f3c98274a4a073abf",
+  "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py --unique-entry-control --candidate CURRENT_DWG2DXF --dictionary-source-test CURRENT_DICTIONARY_TEST",
+  "producer": "GNU LibreDWG 0.14; specification-directed locally authored recipes, not an AutoCAD producer",
+  "scratchDirectory": "/private/tmp/ac1012-user-request-20261126/ac1012-dictionary-merge-k79j27w0",
+  "scratchReceiptSha256": "ffd7f0de3eee93f3d6d3b72cd021a146e5c2272a6268d853ca2d87207a645773",
+  "candidateSha256": "cfe36e133d8ce3a3fc37fd722b84ec9a5d802c24e29784e9dfafb651d5bf7ac4",
+  "samples": {
+    "destination": {
+      "sha256": "55b4a90c64084e41898449b2f1eddad44169fe9e10ec2e4c7fcac99440a6ceff",
+      "stylesDegrees": {"SAME_KEY": 15, "DEST_ONLY": 22},
+      "partialAsciiSha256": "2324d9d6becb093c742e96995d8d5a9aa393ce33864b5a5d4e4372108f845e7b",
+      "partialBinarySha256": "011b3263d9d01817cdc130bd813881481e24008c81334d00fb371beb07d97975"
+    },
+    "source": {
+      "sha256": "c170ecc88e19cd632eac6296a924dbbd0b28a9b58a1bb85c7f8145c8e84acd0b",
+      "stylesDegrees": {"SAME_KEY": 37, "SOURCE_ONLY": 51},
+      "partialAsciiSha256": "127e7b757f775ac7c17a59bb9b86429de38670d3dc0321ee70fc2405728956a0",
+      "partialBinarySha256": "1a3140971fcd7a6a4aadacac645a786801ce8f324f01e8d58bc6d9bb163c7d5a"
+    }
+  },
+  "results": [
+    "PASS: both physical dictionary frames, version-aware shared checks, malformed-role refusal and corrected retry.",
+    "PASS: strict ASCII and binary export refuses both sources and preserves each preexisting destination.",
+    "PASS: explicitly partial ASCII and binary outputs for both sources pass the bounded independent dictionary/style graph audit."
+  ],
+  "limits": [
+    "These generated sources do not establish AutoCAD normal-open, absent-field default, or native duplicate-merge semantics.",
+    "Partial output is a bounded graph projection and does not qualify complete or lossless conversion.",
+    "All generated DWG and DXF files remain in scratch storage and are not repository fixtures."
+  ]
+}

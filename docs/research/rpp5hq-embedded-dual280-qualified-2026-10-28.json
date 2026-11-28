@@ -1,0 +1,455 @@
+{
+  "schema": "embedded-dual280-qualified-v1",
+  "date": "2026-10-28",
+  "codeCommit": "50d88d518000899a201d05ee5f464cce5ac15bef",
+  "supportClaimsPromoted": false,
+  "scope": "Selected AC1032 Embedded Object marker 101, complete matching finite host alignment, version-zero plus canonical lock-position 280, attribute type 4 ATTDEF or 2 ATTRIB, required reserved 72=0 and selected order. Classic 2D dual 280 and existing singleton profiles remain supported.",
+  "source": {
+    "path": "build/rpp5fa-evidence.4xKADX/peer/sample_AC1032_ascii.dxf",
+    "sha256": "c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "repositoryPath": "samples/sample_AC1032_ascii.dxf",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "gitBlob": "e4401ec6d62d940c11c9346a39a84887344797c9",
+    "provenance": "Independent repository sample retained unmodified. Prior research described the sample as AutoCAD-saved; this qualification does not independently certify authoring provenance.",
+    "exactPhysicalSpans": [
+      {
+        "kind": "ATTDEF",
+        "handle": "796",
+        "owner": "77F",
+        "byteRange": [
+          75957,
+          76505
+        ],
+        "group280": [
+          {
+            "groupIndex": 14,
+            "code": 280,
+            "value": 0,
+            "byteStart": 76178,
+            "byteEnd": 76189
+          },
+          {
+            "groupIndex": 19,
+            "code": 280,
+            "value": 1,
+            "byteStart": 76263,
+            "byteEnd": 76274
+          }
+        ]
+      },
+      {
+        "kind": "ATTRIB",
+        "handle": "79D",
+        "owner": "79C",
+        "byteRange": [
+          210468,
+          211002
+        ],
+        "group280": [
+          {
+            "groupIndex": 14,
+            "code": 280,
+            "value": 0,
+            "byteStart": 210677,
+            "byteEnd": 210688
+          },
+          {
+            "groupIndex": 18,
+            "code": 280,
+            "value": 1,
+            "byteStart": 210729,
+            "byteEnd": 210740
+          }
+        ]
+      }
+    ]
+  },
+  "sourceProof": {
+    "results": [
+      {
+        "stage": "original-import",
+        "definitionHandle": 1942,
+        "definitionOwner": 1919,
+        "definitionAlign": [
+          954.8074779573491,
+          6.394418742730506,
+          0
+        ],
+        "definitionEmbeddedInsertion": [
+          954.8074779573491,
+          6.394418742730506,
+          0
+        ],
+        "definitionLock": 1,
+        "definitionType": 4,
+        "definitionVersion": 1,
+        "parentHandle": 1948,
+        "childHandle": 1949,
+        "childOwner": 1948,
+        "childAlign": [
+          977.2814835151885,
+          28.7508142234822,
+          0
+        ],
+        "childEmbeddedInsertion": [
+          977.2814835151885,
+          28.7508142234822,
+          0
+        ],
+        "childLock": 1,
+        "childType": 2,
+        "childVersion": 1,
+        "footerHandle": 1950,
+        "footerOwner": 1948
+      },
+      {
+        "stage": "original-proof",
+        "definitionPair": 1,
+        "definitionReplay": 1,
+        "definitionProfileReason": 1,
+        "definitionRejectedGroup": 37,
+        "selectedCompounds": 1,
+        "compoundModeled": 1,
+        "compoundProfiles": 1,
+        "compoundSpace": 1,
+        "compoundState": 16,
+        "childProfileReason": 1,
+        "childRejectedGroup": 36,
+        "definitionDualRoles": 1,
+        "childDualRoles": 1
+      },
+      {
+        "stage": "source-model-after-both-exports",
+        "definitionHandle": 1942,
+        "definitionOwner": 1919,
+        "definitionAlign": [
+          954.8074779573491,
+          6.394418742730506,
+          0
+        ],
+        "definitionEmbeddedInsertion": [
+          954.8074779573491,
+          6.394418742730506,
+          0
+        ],
+        "definitionLock": 1,
+        "definitionType": 4,
+        "definitionVersion": 1,
+        "parentHandle": 1948,
+        "childHandle": 1949,
+        "childOwner": 1948,
+        "childAlign": [
+          977.2814835151885,
+          28.7508142234822,
+          0
+        ],
+        "childEmbeddedInsertion": [
+          977.2814835151885,
+          28.7508142234822,
+          0
+        ],
+        "childLock": 1,
+        "childType": 2,
+        "childVersion": 1,
+        "footerHandle": 1950,
+        "footerOwner": 1948
+      }
+    ],
+    "versionRole": "Host/ReservedDefault/None, 280=0",
+    "lockRole": "Host/Attribute/None, 280=1",
+    "meaning": "Definition capture, typed pairing and replay match; both source profiles complete. Selected ATTRIB compound modeled, profile and space checks match with owner and footer. rejectedGroup on Complete is the group count."
+  },
+  "selectedOutput": {
+    "method": "Compatible lower-level output from copied selected typed models; the INSERT is filtered to the selected ATTRIB. Original selected model observations were compared before and after.",
+    "observations": [
+      {
+        "path": "build/agent-attribute-profile/current-dual/final-proof/output-asc.dxf",
+        "sha256": "6740ae099a98e85daee1770c9228d91dfdc5a7cddec764924a65e86a302f92b4",
+        "physical": [
+          {
+            "kind": "ATTDEF",
+            "handle": "33",
+            "owner": "1F",
+            "lock280": [
+              1
+            ],
+            "hostTextAlignment": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ],
+            "hostAttributeAlignment": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ],
+            "embeddedInsertion": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ]
+          },
+          {
+            "kind": "ATTRIB",
+            "handle": "35",
+            "owner": "34",
+            "lock280": [
+              1
+            ],
+            "hostTextAlignment": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ],
+            "hostAttributeAlignment": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ],
+            "embeddedInsertion": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ]
+          }
+        ],
+        "ordinaryRead": [
+          {
+            "kind": "ATTDEF",
+            "handle": "33",
+            "owner": "1F",
+            "lock": 1,
+            "type": 4,
+            "horizontal": 0,
+            "vertical": 3,
+            "alignment": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ],
+            "embeddedInsertion": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ]
+          },
+          {
+            "kind": "ATTRIB",
+            "handle": "35",
+            "owner": "34",
+            "lock": 1,
+            "type": 2,
+            "horizontal": 0,
+            "vertical": 3,
+            "alignment": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ],
+            "embeddedInsertion": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ]
+          }
+        ],
+        "shaUnchangedAfterRead": true
+      },
+      {
+        "path": "build/agent-attribute-profile/current-dual/final-proof/output-bin.dxf",
+        "sha256": "c4bb5040e9722935b4de809e4c6f650359aacb246ffe8b1d3e3c44aa944395ee",
+        "physical": [
+          {
+            "kind": "ATTDEF",
+            "handle": "33",
+            "owner": "1F",
+            "lock280": [
+              1
+            ],
+            "hostTextAlignment": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ],
+            "hostAttributeAlignment": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ],
+            "embeddedInsertion": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ]
+          },
+          {
+            "kind": "ATTRIB",
+            "handle": "35",
+            "owner": "34",
+            "lock280": [
+              1
+            ],
+            "hostTextAlignment": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ],
+            "hostAttributeAlignment": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ],
+            "embeddedInsertion": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ]
+          }
+        ],
+        "ordinaryRead": [
+          {
+            "kind": "ATTDEF",
+            "handle": "33",
+            "owner": "1F",
+            "lock": 1,
+            "type": 4,
+            "horizontal": 0,
+            "vertical": 3,
+            "alignment": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ],
+            "embeddedInsertion": [
+              954.8074779573491,
+              6.394418742730506,
+              0.0
+            ]
+          },
+          {
+            "kind": "ATTRIB",
+            "handle": "35",
+            "owner": "34",
+            "lock": 1,
+            "type": 2,
+            "horizontal": 0,
+            "vertical": 3,
+            "alignment": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ],
+            "embeddedInsertion": [
+              977.2814835151885,
+              28.7508142234822,
+              0.0
+            ]
+          }
+        ],
+        "shaUnchangedAfterRead": true
+      }
+    ],
+    "normalization": "Each selected output emits only 280=1 in the lock-position slot; it does not preserve the original dual-280 byte form."
+  },
+  "bindings": {
+    "readinessReceipt": {
+      "path": "docs/research/rpp5ho-embedded-dual280-source-readiness-2026-10-28.json",
+      "sha256": "4ba25b99fefce8674aef950b6269b69feed68ef965405d0d02ac62e2a597a591"
+    },
+    "profileHeader": {
+      "path": "dwg2dxf/dx_attdef_source_profile.h",
+      "sha256": "9e9533681158ec56a868188872ffe13377503c3eadf22ed3925585f0959d6efa"
+    },
+    "adapterSource": {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "5551d94c5d892f90fdb5fc9967798a301b49c77f278b8d6aeed1e28ee40341f8"
+    },
+    "adapterHeader": {
+      "path": "dwg2dxf/dx_iface.h",
+      "sha256": "9e8f5399b2342066d4a1a8348638f185253cc9e7b578449b68ffa57ed7aca8ca"
+    },
+    "testSource": {
+      "path": "tests/attdef_embedded_dual280_controls.h",
+      "sha256": "edb22be8687129fc8acbaf363c4b4c0ede0370c33033d41ad107166126e22c32"
+    },
+    "adapterObject": {
+      "path": "build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+      "sha256": "600e207f2226804fd21c23915e12861c85d36ca3e3e88061b53dba7d32e4fe7d"
+    },
+    "normalLibrary": {
+      "path": "build/libdxfrw.a",
+      "sha256": "2d7248ebdcb958d4a2b918d27dded4c95fed3601b00b50195c815ee8b117b198"
+    },
+    "probeSource": {
+      "path": "build/agent-attribute-profile/current-dual/final-proof/probe.cpp",
+      "sha256": "08d12e4adb80fec52531ecc1eedebb188168fcc04452e5b9d19571456ff5fa3a"
+    },
+    "probeBinary": {
+      "path": "build/agent-attribute-profile/current-dual/final-proof/probe",
+      "sha256": "8c4a0511a12ec9cf331480d524b50fb83125dc90d74619d12cc0be9ad8a5b7ac"
+    },
+    "probeLog": {
+      "path": "build/agent-attribute-profile/current-dual/final-proof/write.stdout",
+      "sha256": "5c09f4003688d5b0259a309d08779eeba7a9e82f75d70f5243430dd6fb4d7154"
+    },
+    "physicalSpanReport": {
+      "path": "build/agent-attribute-profile/current-dual/final-proof/spans.json",
+      "sha256": "f1c91938f69c0e836265f42aa509e1cc00b3b08b2f68dd9c3f6c68e7432e6b65"
+    },
+    "independentPeerScript": {
+      "path": "build/agent-attribute-profile/current-dual/final-proof/peer.py",
+      "sha256": "183e662a0d58c208f0c15bedea25f7348054da92605525c4562ccb98a894fa79"
+    },
+    "independentPeerReport": {
+      "path": "build/agent-attribute-profile/current-dual/final-proof/peer-report.json",
+      "sha256": "32a8611d252d16497702e4e0b4c3fcb9c696d34e62a7ec2b0883b7a1ff099153"
+    },
+    "peerPython": {
+      "path": "build/rpp5gh-evidence/peer/bin/python",
+      "sha256": "15c72833c1ffc09bc4e05d1e1866784d126721ad548d9c4d8f943641262535cb"
+    },
+    "note": "Scratch paths bind observed artifacts; no drawings are added as tracked fixtures. Relevant source/test files matched codeCommit when this receipt was created."
+  },
+  "validation": {
+    "selectors": [
+      "libdxfrw_attdef_embedded_dual280",
+      "libdxfrw_attdef_embedded_equal_alignment",
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_attdef_immutable_capture"
+    ],
+    "normal": {
+      "result": "passed",
+      "log": {
+        "path": "build/Testing/Temporary/LastTest.log",
+        "sha256": "62f54a976f54bb0db2b7dba909757452bfbc70c00a57ff3bc6891c754911c210"
+      }
+    },
+    "asan": {
+      "result": "passed",
+      "options": "halt_on_error=1:detect_leaks=0",
+      "log": {
+        "path": "build/rpp5fa-evidence.4xKADX/asan-build/Testing/Temporary/LastTest.log",
+        "sha256": "a8787860cf095c95eadf7a2638fa1ad0bca2452a2f7a697953f8ed2079e6410e"
+      }
+    },
+    "embeddedDualCounts": {
+      "attdefOriginals": 8,
+      "attribCompounds": 4,
+      "directRefusals": 276,
+      "classicControls": 24,
+      "singletonOrAbsentControls": 24,
+      "compatibleRoundtrips": 12,
+      "attdefSourceSpans": 1216,
+      "compoundSpans": 656
+    },
+    "coverage": "These are focused selector results, not a full suite."
+  },
+  "limitations": [
+    "The repository sample distinguishes the two 280 values and ordering, but has host alignment equal to embedded insertion. Separate independent source evidence for different embedded insertion is in docs/research/rpp5hn-embedded-equal-alignment-qualified-2026-10-28.json; it does not independently qualify dual 280.",
+    "The independent ezdxf ordinary loader internally calls fast_load_dxfattribs(recover=True); no explicit audit or recovery was invoked. Native CAD semantic interpretation or rendering is not established.",
+    "This is selected-copy output, not full-document graph or export qualification. A separate whole-document attempt refused an unrelated unsupported standalone TABLECONTENT.",
+    "No source-specific failed-write/sentinel/rollback/corrected-retry contract was established. The probe compares selected source-model observations before and after, not every caller field or all caller ownership state.",
+    "Locally authored tests cover both lock values and refusals, but the retained independent sample uses lock=1. No fixture files were added or committed."
+  ]
+}

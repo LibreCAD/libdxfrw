@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-27",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "9057b4ef6d55a4e096b3c378c81eb94d2392506d",
+  "scope": "Bounded ordinary ASCII AC1021 sparse-MATERIAL graph with simple planar model-space POINT entities, alongside the previously admitted LINE/CIRCLE/ARC profile.",
+  "change": [
+    "Add POINT to shared source frame, identity, delivery and live-geometry validation; compare type, layer, color and physical XY before allowing ordinary save.",
+    "Keep only finite zero-elevation, supported-appearance POINTs; nonzero elevation, thickness, rotation, extrusion and unsupported carriers remain refused.",
+    "Update older negative tests to use elevated POINTs instead of now-supported planar points."
+  ],
+  "validation": {
+    "platform": "macOS ARM64 with Qt offscreen",
+    "codec": "The loaded libdxfrw dylib SHA-256 a18e2367e0bc5727c7e8021ef7694230446c52972e0a7ae1856700c58bb1a099 was confirmed by dyld. Its src tree matches current libdxfrw head ddf9a237e; the later codec text-safety change is in dwg2dxf, not the library.",
+    "focused": "Red-before ordinary save refused the generated POINT input. The corrected test passes 53 assertions: linked/unlinked points, edits, new point, reimport/resave, unsupported point fields, sentinel-preserving refusal and retries, dropped callbacks, changed typed coordinates and changed physical values.",
+    "regressions": "System-codec MATERIAL and IMAGE selectors pass 10,283 assertions in 21 cases. The filter handle selector passes 707 assertions in 28 cases. The changed filter translation unit compiles against bundled codec headers.",
+    "independent": "ezdxf 1.4.5 reads the selected resaved output, verifies three point locations, layers, indexed colors, and linked/unlinked MATERIAL references; audit reports zero errors and fixes.",
+    "peerOutputSha256": "8f37890a26b07d13d3a7ec567cd49915e6d0c0a97ccaafd99aafe8383acf1d55"
+  },
+  "limits": [
+    "Generated ASCII AC1021 sources and selected planar profile only; not native GUI, broad producer or cross-version qualification.",
+    "Current consumer CI and other platforms remain open. No fixture file was committed; no package gate or support claim promoted."
+  ]
+}

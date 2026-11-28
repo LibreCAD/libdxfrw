@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-lightlist-objects-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_LIGHTLIST_VERSION_MATRIX_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep allocation failures through whole-operation LIGHTLIST DXF writes at AC1021, AC1024, AC1027 and AC1032 in ASCII and Binary; verify rollback, same-codec retry, exact serialized version header, parsed source revision and typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW graph",
+    "profile": "One LIGHTLIST with two named LIGHT references, an ACAD_LIGHT dictionary pointer, one persistent reactor and an object owner. All source handles are remapped explicitly. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-lightlist-objects-version-matrix-allocation-2026-11-13.json"
+    ],
+    "method": "For each revision and encoding, warm the writer, calibrate the allocation count, inject one-shot failures at every measured offset, and verify prior destination bytes, caller fields, source-handle binding rollback and staging cleanup. Retry on the same codec and require byte-identical output, raw $ACADVER group-1 verification, getSourceVersion() agreement, and typed LIGHTLIST readback of ordered names plus remapped owner/reactor/light handles.",
+    "revisions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "allocationOffsets": {
+      "AC1021_ASCII": 96,
+      "AC1021_BINARY": 96,
+      "AC1024_ASCII": 103,
+      "AC1024_BINARY": 103,
+      "AC1027_ASCII": 96,
+      "AC1027_BINARY": 96,
+      "AC1032_ASCII": 96,
+      "AC1032_BINARY": 96,
+      "total": 782
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_lightlist_allocation_transaction$' --output-on-failure: PASS 1/1 (1.83 sec)",
+    "directRun": "PASS; all eight revision/encoding profiles reached the listed allocation offsets and passed rollback, retry and readback.",
+    "fullSuites": "NOT RUN",
+    "asan": "NOT RUN for this version-matrix extension"
+  },
+  "limitations": [
+    "Generated writer transaction evidence does not establish independent source-profile semantics or producer interoperability.",
+    "The test does not emit or verify ACAD_LIGHT named-dictionary membership and does not qualify native light behavior.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue the P6-G public-writer inventory with another exact uncovered route or overload, keeping generated transaction evidence separate from source and consumer qualification."
+}

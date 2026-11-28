@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "DetailViewStyle group-3 text-color insertion fast slice",
+  "mode": "Generated local ASCII/Binary implementation follow-up",
+  "scope": [
+    "Serialize a changed DetailViewStyle view-label text color when group 3 is absent from the captured source.",
+    "Enforce the signed 16-bit DXF color range and preserve aligned ASCII raw lexemes/Binary placeholders.",
+    "Verify typed same-version ASCII and Binary readback without adding repository fixtures or a CTest registration."
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "The copied DetailViewStyle raw carrier inserts group 62 in style group 3 when the typed view-label color differs from the class default and is absent from the source. The value is checked against the signed 16-bit range before insertion.",
+    "generatedControl": "The secondary DetailViewStyle omits its full group-3 block. The test confirms the parsed color default is 256, edits it to 17, and verifies the complete expected raw group stream and typed ASCII/Binary readback; the same control verifies insertion of the style's group-3 text-style reference."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/detailviewstyle-group3-text-color-insertion-fast-slice-2026-10-19.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "repositoryFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "commitCreated": false
+  },
+  "limitations": [
+    "Only same-version generated DXF insertion of this single-occurrence color field is covered.",
+    "Other absent fields and changed repeated-field cardinality remain fail-closed.",
+    "No DWG-origin typed output, cross-version translation, native style rendering, or consumer support qualification follows."
+  ],
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimPromoted": false,
+    "findings": 138,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

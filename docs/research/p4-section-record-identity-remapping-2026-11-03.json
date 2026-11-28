@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-03",
+  "scope": "SECTIONMANAGER and SECTIONSETTINGS DXF object-record identity remapping, reservation and source-object binding.",
+  "source_context": {
+    "schema": "Autodesk defines DXF group 5 as the record handle and group 330 as the common soft-pointer owner field. Section body references use their distinct documented roles from the manager and section-type tables.",
+    "implementation_gap": "Before this slice, dxfRW::writeSection emitted DRW_Section::handle verbatim while its owner and body references could be remapped, allowing a body pointer to name a different output identity than the corresponding record.",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-995ABB55-571A-4D0F-882E-8A74A738643E.htm",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-C1C9B840-F291-4CB2-8EBA-A94BC27DC46D.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7448F1DB-BA0B-4443-B202-C9CFB2CF333F.htm",
+      "src/libdxfrw.cpp: dxfRW::writeSection"
+    ]
+  },
+  "implementation": {
+    "behavior": "A supplied source group-5 identity is passed through remapObjectHandle, checked against zero/NoHandle/fixed IDs, reserved, written, and bound with bindDxfWriteSourceObjectHandle after successful output. A no-source record receives an allocated output identity. RecordStateScope and DxfWriterRecordScope keep identity state and bytes transactional.",
+    "reference_policy": "The configured reference resolver continues to apply to owner and body references; it does not replace the source-handle remap policy for the record's own identity.",
+    "failure_behavior": "Reservation, body-reference, owner, late-write, or source-binding failures roll back the record and scoped writer state."
+  },
+  "validation": {
+    "input": "Generated in-memory records only; no DWG/DXF fixture was added.",
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "controls": [
+      "SECTIONMANAGER source identity remaps to group 5 while owner and repeated list references retain their own mappings",
+      "SECTIONSETTINGS source identity remaps to group 5 while common owner, nested source pointers and destination pointer retain their own mappings",
+      "resolver precedence on reference edges does not override the record-identity mapping",
+      "no-source SECTION record allocates an output identity through the corrected fresh-writer retry path",
+      "existing unresolved-reference and malformed-list atomicity controls still pass"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "build-gcc/libdxfrw_wave1_tests --section-manager-reference-remapping",
+      "build-gcc/libdxfrw_wave1_tests --section-settings-reference-remapping",
+      "ctest --test-dir build-gcc -R '^libdxfrw_section_(manager|settings)_reference_remapping$' --output-on-failure",
+      "git diff --check"
+    ],
+    "result": "PASS"
+  },
+  "qualification_limits": [
+    "Generated controls do not establish that source-required Section objects are all present or have valid owners.",
+    "No physical producer, independent native consumer, or section-generation semantic result was used.",
+    "This identity fix does not promote SECTIONMANAGER or SECTIONSETTINGS support claims."
+  ]
+}

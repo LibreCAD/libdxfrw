@@ -1,0 +1,85 @@
+{
+  "date": "2026-11-16",
+  "scope": "Diagnosis of installed-libdxfrw dangling LAYER plot-style reference in generated LibreCAD DXF version test",
+  "candidate": "6c0a9e08736ff143419ae939e87f32739efc12d7",
+  "root_commit": "82b16c29",
+  "fixture": "The existing LibreCAD dxf_roundtrip_tests.cpp version test writes a locally authored ASCII DXF from its embedded literal and changes its ACADVER. The selected output files are scratch-only.",
+  "source_trace": "For an ordinary unbound LAYER with no supplied source plot style, dxfRW::writeLayer emits group 390 = F. writeObjects generates the root and group dictionaries but does not automatically emit the F placeholder for this profile. isDxfFixedOutputHandle does not reserve F.",
+  "cases": {
+    "AC1014": {
+      "sha256": "2402139c2d4c85bafd4eeb50106f8db393abae7981151fc7b0ebf6cd652490ad",
+      "edges": [],
+      "target_defined": false
+    },
+    "AC1015": {
+      "sha256": "79cecbb6d3f2549b5e3f4e6186a73f3a4478c68009369004bdc731ee47337baf",
+      "edges": [
+        {
+          "record": "LAYER",
+          "handle": "10",
+          "target": "F"
+        }
+      ],
+      "target_defined": false
+    },
+    "AC1018": {
+      "sha256": "fc7d52f786f07609b557e662b3e8c9b9ff9694ec6d53f9fa52a7ead90330647c",
+      "edges": [
+        {
+          "record": "LAYER",
+          "handle": "10",
+          "target": "F"
+        }
+      ],
+      "target_defined": false
+    },
+    "AC1021": {
+      "sha256": "d8f612e84ae1a08bf4207622509b6ff50cc32f5d9682d45ae50a5b9b51f65651",
+      "edges": [
+        {
+          "record": "LAYER",
+          "handle": "10",
+          "target": "F"
+        }
+      ],
+      "target_defined": false
+    },
+    "AC1024": {
+      "sha256": "02b26fdc977fa33f076192a31893438891546af8db2d5e3c4ee9f8d7c95f2f33",
+      "edges": [
+        {
+          "record": "LAYER",
+          "handle": "10",
+          "target": "F"
+        }
+      ],
+      "target_defined": false
+    },
+    "AC1027": {
+      "sha256": "3c001d25e5c4467077ce60ba1a478bb06b3cba6a143b8d3746e8b9771d99a110",
+      "edges": [
+        {
+          "record": "LAYER",
+          "handle": "10",
+          "target": "F"
+        }
+      ],
+      "target_defined": false
+    },
+    "AC1032": {
+      "sha256": "7cdcccdf6cfb801f0ae3eba0a711b1726d7142b18447d46c21cf3f4a370b1294",
+      "edges": [
+        {
+          "record": "LAYER",
+          "handle": "10",
+          "target": "F"
+        }
+      ],
+      "target_defined": false
+    }
+  },
+  "comparison": "The bundled codec passes the broader [filter][version] selector (8 cases, 118 assertions). The installed codec has 4 failing cases / 9 failed assertions with both the current guard and the unchanged pre-guard filter. The six failures in the generated version test all have precisely the 390 F dangling reference. Two separate export-refusal failures remain undiagnosed.",
+  "peer_check": "ezdxf 1.4.5 reads AC1015, AC1021 and AC1032 outputs, retains F in layer 0, and has no F entity. Its auditor did not diagnose that pointer; its acceptance is not graph closure or native support evidence.",
+  "next": "Design an output graph for default plot styles with a real correctly typed, uniquely owned target; plan handles before TABLES, account for source/caller-supplied ACAD_PLOTSTYLENAME dictionaries and collision at E/F, and verify independent ASCII/Binary graph readback, rollback, repeated saves and consumer compatibility. Do not replace F with null or delete the edge without independent format evidence. Separately diagnose the two remaining export failures.",
+  "limits": "Generated controls and a reader observation do not establish native plotting behavior, source graph closure, broad support or any phase/external-gate completion. The six scratch DXF outputs are not committed."
+}

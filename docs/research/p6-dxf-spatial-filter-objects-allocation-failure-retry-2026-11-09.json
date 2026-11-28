@@ -1,0 +1,28 @@
+{
+  "title": "Generated SPATIAL_FILTER OBJECTS allocation rollback and retry",
+  "date": "2026-11-09",
+  "scope": "Direct AC1027 SPATIAL_FILTER DXF OBJECTS callback under dxfRW::write; generated two-point polygon and 12-value inverse/insert transforms, ASCII and Binary.",
+  "source": {
+    "kind": "locally-authored in-memory record",
+    "handle": "0xD7B2",
+    "owner": "0xD7B1",
+    "boundaryPoints": [[1.25, -2.5, 0.0], [4.75, 6.5, 0.0]],
+    "inverseInsertTransformValues": 12,
+    "insertTransformValues": 12,
+    "fixtureCommitted": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_spatial_filter_objects_allocation_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_spatial_filter_objects_allocation_retry$' --output-on-failure",
+    "result": "PASS",
+    "asciiAllocationOffsets": 9,
+    "binaryAllocationOffsets": 9,
+    "perOffset": "one-shot std::bad_alloc; failed write preserves destination and caller state; same dxfRW codec retry reproduces clean calibration bytes and typed field readback",
+    "gitDiffCheck": "PASS"
+  },
+  "limits": [
+    "Generated serializer transaction and typed DXF readback evidence only.",
+    "Does not qualify extension-dictionary ownership closure, an external producer, native clipping behavior, DWG output, or broad support.",
+    "No DWG/DXF fixture was added; test output uses its build scratch directory."
+  ]
+}

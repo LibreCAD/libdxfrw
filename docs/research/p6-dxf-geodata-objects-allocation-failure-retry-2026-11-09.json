@@ -1,0 +1,39 @@
+{
+  "title": "Generated GEODATA OBJECTS callback allocation rollback and retry",
+  "date": "2026-11-09",
+  "scope": "Direct AC1027 GEODATA DXF OBJECTS callback under dxfRW::write; one generated v2 GEODATA record, ASCII and Binary.",
+  "source": {
+    "kind": "locally-authored in-memory record",
+    "handle": "0xD7A0",
+    "parent": "0x2F",
+    "hostBlock": "0x17",
+    "designPoint": [
+      100.0,
+      200.0,
+      0.0
+    ],
+    "referencePoint": [
+      10.0,
+      20.0,
+      0.0
+    ],
+    "coordinateSystemDefinition": "LOCAL_GRID_PROFILE",
+    "geoRssTag": "LOCAL_GEODATA_TAG",
+    "fixtureCommitted": false
+  },
+  "implementation": "Added tests/geodata_objects_allocation_tests.cpp and a focused CTest target. The callback invokes the public dxfRW::writeGeoData API and propagates a refused record through the established writeRawDxfObject(nullptr) failure signal.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_geodata_objects_allocation_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_geodata_objects_allocation_retry$' --output-on-failure",
+    "result": "PASS",
+    "asciiAllocationOffsets": 11,
+    "binaryAllocationOffsets": 11,
+    "perOffset": "one-shot std::bad_alloc; failed write preserves destination sentinel and caller GEODATA state; same dxfRW codec retries successfully and fresh DXF readback matches typed fields",
+    "gitDiffCheck": "PASS"
+  },
+  "limits": [
+    "Generated serializer transaction and readback evidence only.",
+    "Does not qualify a physical producer, GEODATA graph closure, native geospatial semantics, or broad support.",
+    "No DWG/DXF fixture was added; test output uses its build scratch directory."
+  ]
+}

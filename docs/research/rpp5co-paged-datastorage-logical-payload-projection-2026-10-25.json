@@ -1,0 +1,228 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5co retained paged DataStorage logical-payload projection",
+  "date": "2026-10-25",
+  "parentCommit": "c037e7895a4707adfa059a92a188dc0913ca3c62",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "RETAINED_PAGED_PAYLOAD_BYTE_PROJECTION_ENABLED_WITH_BOUNDED_PAGE_METADATA_REFUSAL_AND_EXACT_READBACK_FULL_NATIVE_SCHEMA_OWNER_SEMANTIC_PARITY_OPEN",
+  "research": {
+    "authoritativeDocument": "Open Design Specification for .dwg files, version 5.4.1",
+    "requestedLocalPathAvailable": false,
+    "inspectedCopy": "/private/tmp/lc2961-impl-evidence.9GtLO2/independent-fixtures/tooling/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sha256": "fa7d94932897c65887b1b6eb8b43a8c6f7a0567192f4483db98b9f4f856fce2e",
+    "sections": [
+      "24 introduction",
+      "24.2.2.3 Data file segment",
+      "24.2.2.3.1 Data blob reference record",
+      "24.2.2.4 Blob01 file segment"
+    ],
+    "finding": "Paged blob storage represents one logical byte array; descriptor/page framing is distinct from the retained logical payload",
+    "nativeParserOrWriterLayoutChanges": false
+  },
+  "baseline": {
+    "unconditionalBlobRefusal": "appendAcdsDataSection rejected every isBlobReference record before checking complete retained payload",
+    "test": "dwg2dxf_modeler_acds_blob_projection",
+    "result": "FAIL",
+    "wallSeconds": 0.49,
+    "ctestExitCode": 8,
+    "log": "/tmp/rpp5co-baseline-tests.log",
+    "initialMatrixIncludedFourIntentionallyUnsupportedCrossVersionRequests": true,
+    "unchangedCrossVersionGate": "storage.m_version must equal outputVersion; mixed initial cells are not additional production defects"
+  },
+  "implementation": {
+    "scope": "Private converter ACDSDATA projection of complete retained logical DataStorage payloads",
+    "retainedBlobAdmission": [
+      "Existing structurally valid/replay-allowed retained section and qualified schema fingerprint",
+      "Existing source/output version equality",
+      "Complete blobPayloadRetained flag",
+      "blobTotalByteLength equals retained logical payload size",
+      "Nonzero bounded page count matching page vector",
+      "Page count cannot exceed payload byte count",
+      "Nonzero page sizes within existing format cap",
+      "Subtraction-bounded page sum equals logical payload size",
+      "Existing exact linked modeler payload/key and schema/marker/owner closure checks"
+    ],
+    "recordAndSectionRetentionCapsNotRaised": true,
+    "emittedBytes": "Existing logical payload, not native blob descriptor or Blob01 page headers",
+    "wireGrammarPublicApiAbiCallbacksSupportMasksAndNativeCodecsNotChanged": true,
+    "bodyAndCrossVersionRefusalsPreserved": true
+  },
+  "controls": {
+    "sources": "Locally authored raw DataStorage page bytes parsed by DRW_parseDataStorage; selected decoded blob record paired with the pre-existing authored schema/history/modeler control profile",
+    "wholeNativeDwgSourceImportOrProducerSchemaQualification": false,
+    "semanticallyValidSabSample": false,
+    "logicalPayloadBytes": 262145,
+    "inlineBoundaryBytes": 262144,
+    "nativeBlobPages": 2,
+    "nativePageByteLengths": [
+      131072,
+      131073
+    ],
+    "sourceAndTargetProfiles": [
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "sameProfileInitialPositiveWrites": 4,
+    "crossProfileAtomicSentinelRefusalsAndExplicitCorrectedSameFacadeRetries": 4,
+    "invalidMetadataPayloadAtomicSentinelRefusalsAndRestoredSameFacadeRetries": 22,
+    "faultModes": [
+      "Incomplete blob retention",
+      "Wrong logical blob total",
+      "Page count mismatch",
+      "Missing page table",
+      "Underfull page sum",
+      "Zero-length page",
+      "Page sum exceeds payload",
+      "Page count exceeds hard cap",
+      "Page exceeds format cap",
+      "Wrong logical dataByteLength",
+      "Source record payload differs from linked modeler"
+    ],
+    "successfulProjectionReadbacksIncludingCorrectedRetries": 30,
+    "actualParsedOppositeEncodingReexportsAndReadbacks": 30,
+    "exactOutputProof": [
+      "Six expected ACDSDATA schemas",
+      "One ASM_Data record",
+      "Mapped group320 modeler association and history/proxy/material closure",
+      "Single group94 equals 262145 bytes",
+      "Exactly bounded 127-byte group310 chunks, final chunk17 bytes, 2065 chunks total",
+      "Reassembled bytes equal complete logical source payload on initial import and opposite-encoding actual-import reexport",
+      "Neighbor 3D LINE and existing class/proxy/material metadata remain correct"
+    ],
+    "newCTests": [
+      "dwg2dxf_modeler_acds_blob_projection",
+      "dwg2dxf_modeler_acds_blob_faults"
+    ],
+    "newlyRegisteredExistingNativeControls": [
+      "libdxfrw_datastorage_page_boundaries",
+      "libdxfrw_raw_modeler_acds_replay"
+    ]
+  },
+  "validation": {
+    "normal": {
+      "log": "/tmp/rpp5co-normal-locked-tests.log",
+      "tests": [
+        "dwg2dxf_modeler_acds_blob_faults",
+        "dwg2dxf_xrecord_owned_extension_faults",
+        "dwg2dxf_selected_raster_reactor_metadata",
+        "dwg2dxf_xrecord_owned_extension",
+        "dwg2dxf_modeler_acds_blob_projection",
+        "libdxfrw_wave1",
+        "libdxfrw_table_entry_datastorage_refusal",
+        "dwg2dxf_acds_multi_record_projection",
+        "dwg2dxf_modeler_dxf_writer_matrix",
+        "dwg2dxf_modeler_acds_r2013plus_projection",
+        "libdxfrw_dwg_acds_dataindex_order",
+        "dwg2dxf_acds_raw_dxf_source_baseline",
+        "libdxfrw_datastorage_page_boundaries",
+        "dwg2dxf_modeler_acds_block_projection",
+        "dwg2dxf_datastorage_capture_limits",
+        "dwg2dxf_datastorage_move_callback",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_raw_modeler_acds_replay",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "wallSeconds": 14.08,
+      "allPass": true
+    },
+    "asan": {
+      "log": "/tmp/rpp5co-asan-locked-tests.log",
+      "tests": [
+        "libdxfrw_dwg_local_roundtrip",
+        "dwg2dxf_xrecord_owned_extension",
+        "dwg2dxf_modeler_acds_blob_faults",
+        "dwg2dxf_xrecord_owned_extension_faults",
+        "dwg2dxf_selected_raster_reactor_metadata",
+        "libdxfrw_wave1",
+        "dwg2dxf_modeler_dxf_writer_matrix",
+        "dwg2dxf_modeler_acds_blob_projection",
+        "libdxfrw_dwg_acds_dataindex_order",
+        "dwg2dxf_acds_multi_record_projection",
+        "libdxfrw_table_entry_datastorage_refusal",
+        "libdxfrw_raw_modeler_acds_replay",
+        "dwg2dxf_modeler_acds_block_projection",
+        "dwg2dxf_modeler_acds_r2013plus_projection",
+        "libdxfrw_datastorage_page_boundaries",
+        "dwg2dxf_datastorage_move_callback",
+        "dwg2dxf_datastorage_capture_limits",
+        "dwg2dxf_acds_raw_dxf_source_baseline",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "wallSeconds": 25.05,
+      "allPass": true
+    }
+  },
+  "additionalValidation": {
+    "normalAndAsanLibreCAD3CompileGates": "PASS",
+    "normalAndAsanUnqualifiedBodyProfileAtomicRefusals": "PASS",
+    "bodyLogs": [
+      "/tmp/rpp5co-body-refusal.log",
+      "/tmp/rpp5co-asan-body-refusal.log"
+    ],
+    "productionStrictWarningAdapterBuilds": "PASS",
+    "normalBuildLogs": [
+      "/tmp/rpp5co-normal-final-build.log",
+      "/tmp/rpp5co-normal-affected-build.log",
+      "/tmp/rpp5co-normal-wire-build.log"
+    ],
+    "asanBuildLogs": [
+      "/tmp/rpp5co-asan-final-build.log",
+      "/tmp/rpp5co-asan-owning-build.log",
+      "/tmp/rpp5co-asan-wire-build.log"
+    ],
+    "scopedParallelism": 3,
+    "normalAndAsanCohortsRunSequentially": true,
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "fullSuite": "NOT_RUN",
+    "leakQualification": "NOT_RUN"
+  },
+  "testScheduling": {
+    "initialConcurrentCrossBuildRuns": "INVALIDATED: owning XRECORD/LTYPE helpers use identical fixed global temporary filenames in normal and ASan processes",
+    "initialLogs": [
+      "/tmp/rpp5co-normal-final-tests.log",
+      "/tmp/rpp5co-asan-final-tests.log"
+    ],
+    "observedSourceEvidence": "runXRecordRawReplayVersionContract and legacy LTYPE checks use fixed temp-directory basenames",
+    "sequentialRechecks": "PASS, then final locked cohorts PASS",
+    "newRawReplayCTestAlsoSharesHelpersWithOwningTest": true,
+    "sharedCTestResourceLock": "libdxfrw_raw_modeler_acds_tmpfiles",
+    "bothTestPropertiesInspected": true,
+    "separateCTestProcessesStillRequireSequentialCohorts": true,
+    "noAssertionsSkippedOrRelaxed": true
+  },
+  "supportBoundaries": {
+    "strictAdmission": "CLOSED",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxFreeCAD": "NOT_RUN",
+    "nativeWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsSemanticKernelQualification": "NOT_RUN",
+    "supportClaimsPromoted": false,
+    "wholePlanComplete": false
+  },
+  "remaining": [
+    "Actual complete native-DWG blob/schema/owner source-to-output correlation and independent semantic evidence; this decoded-fragment/authored-profile control is not that qualification",
+    "General native DataStorage raw-carrier/schema/owner-byte preservation and cumulative decoded-owner/retention controls",
+    "Owning families/common-extension/source-generation aliases with exact staged/final proof and refusal/restored readback",
+    "Remaining profile callbacks, independent names/body/path/EED, sparse native classes, full IMAGE/named-root/document closure",
+    "Preserve full LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD objective; safely self-unblock, update receipts/plan and commit/report slices",
+    "Isolate remaining legacy fixed temp paths before parallel cross-build owning cohorts"
+  ],
+  "exclusions": {
+    "drawingsCommitted": false,
+    "preexistingUntrackedDrawingsExcluded": 17,
+    "unrelatedUntrackedFilesExcluded": true,
+    "earlierReceiptsModified": false,
+    "remoteMutation": false
+  }
+}

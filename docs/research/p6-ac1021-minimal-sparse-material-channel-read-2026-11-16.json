@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-16",
+  "scope": "Bounded AC1021 DXF minimal MATERIAL record with terminal group-94 channel flags.",
+  "authority": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+  "source": {
+    "path": "tests/fixtures/dxf/raw_control_groups_r2007.dxf",
+    "sha256": "228f3748e568f137aebe76307b969e365339510bd4e3520abbeab0f3c8b1a682",
+    "provenance": "Existing libdxfrw test fixture, not an independent producer drawing.",
+    "independentReader": "ezdxf 1.4.5 reads both fixture MATERIAL records with channel flags 7."
+  },
+  "finding": "The prior reader rejected these records at group 94 because no full map tuple preceded it, blocking the fixture and its raw control-group callbacks.",
+  "change": "Admit only AC1021 records with one nonzero self handle, one nonzero owner, one AcDbMaterial subclass, one name and otherwise only balanced application groups before a terminal group 94. Publish the known channel value and exact raw group carrier. A nonterminal tail is rejected before material publication. Mark the partial record raw-only so both typed encoders refuse it; no new virtual or class member was added.",
+  "checks": [
+    "Existing repository fixture now imports both typed MATERIAL callbacks, two dictionaries and an XRECORD; raw nested control groups and channel flag are retained.",
+    "Locally generated AC1021 ASCII/Binary cases reject an appended field without publishing the material, then succeed when corrected on the same reader.",
+    "Typed DXF ASCII/Binary writer refusal preserves the destination and caller state; typed DWG AC1018/AC1027 encoding refuses without changing its buffer. dwg2dxf import reaches output preflight, which still refuses the unqualified MATERIAL graph.",
+    "Six focused CTests pass, including existing MATERIAL source-order/color/compact graph and APPID/VPORT allocation controls. The focused sparse control also passes in a clean AddressSanitizer build.",
+    "Two other material tests, normal-boundaries and sparse-material-raw, failed identically against a baseline library rebuilt from HEAD before this reader change; they remain open.",
+    "The aggregate DXF fixture executable remains red with 16 assertions, mostly VIEWPORT/VisualStyle plus SORTENTSTABLE, proxy and table-border cases. No source drawing fixtures were added or changed.",
+    "The implementation digest was refreshed from a clean index matching 5992 staged tracked entries; support statuses and evidence links were not promoted."
+  ],
+  "limits": [
+    "This is a narrow reader/callback profile, not general sparse-material acceptance, graph closure, typed output, interoperability, or native rendering qualification.",
+    "The newly registered fast tests require a refreshed frozen CTest inventory before hosted native qualification can run."
+  ],
+  "implementationDigestSha256": "1b7d01a99be28168ec1bb66b5b1d3f4346fdc798ba78fb4d9926f3d86c7c97cf"
+}

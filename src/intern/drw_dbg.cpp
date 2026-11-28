@@ -12,10 +12,27 @@
 
 #include <iostream>
 #include <iomanip>
+#include <locale>
+#include <sstream>
 #include "drw_dbg.h"
 
-DRW_dbg *DRW_dbg::instance{nullptr};
-bool DRW_dbg::s_enabled{false};
+std::atomic<bool> DRW_dbg::s_enabled{false};
+
+namespace {
+// All built-in printers, including a retired one with an active snapshot,
+// share this process-lifetime output lock. User callbacks never acquire it.
+void emitDebugFragment(const std::string& fragment) {
+    static std::mutex* const outputMutex = new std::mutex;
+    std::lock_guard<std::mutex> lock(*outputMutex);
+    std::cerr.write(fragment.data(), static_cast<std::streamsize>(fragment.size()));
+}
+
+std::ostringstream debugFragment() {
+    std::ostringstream stream;
+    stream.imbue(std::locale::classic());
+    return stream;
+}
+} // namespace
 
 /*********private clases*************/
 
@@ -29,152 +46,157 @@ public:
     void printB(int i) override;
     void printHL(int c, int s, int h) override;
     void printPT(double x, double y, double z) override;
-private:
-    std::ios_base::fmtflags flags{std::cerr.flags()};
 };
 
 /********* debug class *************/
 DRW_dbg *DRW_dbg::getInstance(){
-    if (!instance){
-        instance = new DRW_dbg;
-    }
+    // Preserve the historical process lifetime. A destructed function-local
+    // object would break callers logging from other static destructors.
+    static DRW_dbg* const instance = new DRW_dbg;
     return instance;
 }
 
 DRW_dbg::DRW_dbg(){
-    debugPrinter.reset(new print_debug);
-    currentPrinter = &silentDebug;
+    debugPrinter = std::make_shared<print_debug>();
 }
 
 void DRW_dbg::setCustomDebugPrinter(std::unique_ptr<DRW::DebugPrinter> printer)
 {
-    // A null raw pointer is the documented reset operation. Keep an owned
-    // default printer available so a later debug-level transition can never
-    // dereference a null currentPrinter.
-    if (printer)
-        debugPrinter = std::move(printer);
-    else
-        debugPrinter.reset(new print_debug);
-    if (level == Level::Debug){
-        currentPrinter = debugPrinter.get();
+    // Construct ownership before taking the state lock. Replaced printer
+    // destruction (including reentrant custom destructors) occurs after it.
+    std::shared_ptr<DRW::DebugPrinter> replacement = printer
+        ? std::shared_ptr<DRW::DebugPrinter>(std::move(printer))
+        : std::make_shared<print_debug>();
+    {
+        std::lock_guard<std::mutex> lock(stateMutex);
+        debugPrinter.swap(replacement);
     }
 }
 
 void DRW_dbg::setLevel(Level lvl){
+    std::lock_guard<std::mutex> lock(stateMutex);
     level = lvl;
-    s_enabled = (lvl == Level::Debug);   // keep the fast inline flag in sync
-    switch (level){
-    case Level::Debug:
-        currentPrinter = debugPrinter.get();
-        break;
-    case Level::None:
-        currentPrinter = &silentDebug;
-        break;
-    }
+    s_enabled.store(lvl == Level::Debug, std::memory_order_relaxed);
 }
 
 DRW_dbg::Level DRW_dbg::getLevel(){
+    std::lock_guard<std::mutex> lock(stateMutex);
     return level;
 }
 
 bool DRW_dbg::isDebugEnabled() const {
+    std::lock_guard<std::mutex> lock(stateMutex);
     return level == Level::Debug;
 }
 
+std::shared_ptr<DRW::DebugPrinter> DRW_dbg::printerSnapshot() const {
+    std::lock_guard<std::mutex> lock(stateMutex);
+    return level == Level::Debug ? debugPrinter : nullptr;
+}
+
 void DRW_dbg::print(const char *s){
-    currentPrinter->printS(s);
+    if (auto printer = printerSnapshot()) printer->printS(s);
 }
 
 void DRW_dbg::print(const std::string &s){
-    currentPrinter->printS(s);
+    if (auto printer = printerSnapshot()) printer->printS(s);
 }
 
 void DRW_dbg::print(signed char i){
-    currentPrinter->printI(i);
+    if (auto printer = printerSnapshot()) printer->printI(i);
 }
 
 void DRW_dbg::print(unsigned char i){
-    currentPrinter->printUI(i);
+    if (auto printer = printerSnapshot()) printer->printUI(i);
 }
 
 void DRW_dbg::print(int i){
-    currentPrinter->printI(i);
+    if (auto printer = printerSnapshot()) printer->printI(i);
 }
 
 void DRW_dbg::print(unsigned int i){
-    currentPrinter->printUI(i);
+    if (auto printer = printerSnapshot()) printer->printUI(i);
 }
 
 void DRW_dbg::print(long int i){
-    currentPrinter->printI(i);
+    if (auto printer = printerSnapshot()) printer->printI(i);
 }
 
 void DRW_dbg::print(long long int i){
-    currentPrinter->printI(i);
+    if (auto printer = printerSnapshot()) printer->printI(i);
 }
 
 void DRW_dbg::print(long unsigned int i){
-    currentPrinter->printUI(i);
+    if (auto printer = printerSnapshot()) printer->printUI(i);
 }
 
 void DRW_dbg::print(long long unsigned int i){
-    currentPrinter->printUI(i);
+    if (auto printer = printerSnapshot()) printer->printUI(i);
 }
 
 void DRW_dbg::print(double d){
-    currentPrinter->printD(d);
+    if (auto printer = printerSnapshot()) printer->printD(d);
 }
 
 void DRW_dbg::printH(long long int i){
-    currentPrinter->printH(i);
+    if (auto printer = printerSnapshot()) printer->printH(i);
 }
 
 void DRW_dbg::printB(int i){
-    currentPrinter->printB(i);
+    if (auto printer = printerSnapshot()) printer->printB(i);
 }
 void DRW_dbg::printHL(int c, int s, int h){
-    currentPrinter->printHL(c, s, h);
+    if (auto printer = printerSnapshot()) printer->printHL(c, s, h);
 }
 
 void DRW_dbg::printPT(double x, double y, double z){
-    currentPrinter->printPT(x, y, z);
+    if (auto printer = printerSnapshot()) printer->printPT(x, y, z);
 }
 
 void print_debug::printS(const std::string &s){
-    std::cerr << s;
+    emitDebugFragment(s);
 }
 
 void print_debug::printI(long long int i){
-    std::cerr << i;
+    auto stream = debugFragment();
+    stream << i;
+    emitDebugFragment(stream.str());
 }
 
 void print_debug::printUI(long long unsigned int i){
-    std::cerr << i;
+    auto stream = debugFragment();
+    stream << i;
+    emitDebugFragment(stream.str());
 }
 
 void print_debug::printD(double d){
-    std::cerr << std::fixed << d;
+    auto stream = debugFragment();
+    stream << std::fixed << d;
+    emitDebugFragment(stream.str());
 }
 
 void print_debug::printH(long long  i){
-    std::cerr << "0x" << std::setw(2) << std::setfill('0');
-    std::cerr << std::hex << i;
-    std::cerr.flags(flags);
+    auto stream = debugFragment();
+    stream << "0x" << std::setw(2) << std::setfill('0') << std::hex << i;
+    emitDebugFragment(stream.str());
 }
 
 void print_debug::printB(int i){
-    std::cerr << std::setw(8) << std::setfill('0');
-    std::cerr << std::setbase(2) << i;
-    std::cerr.flags(flags);
+    auto stream = debugFragment();
+    // Keep the historical decimal, zero-padded convention. setbase(2) did
+    // not request binary formatting from an ostream.
+    stream << std::setw(8) << std::setfill('0') << i;
+    emitDebugFragment(stream.str());
 }
 
 void print_debug::printHL(int c, int s, int h){
-    std::cerr << c << '.' << s << '.';
-    std::cerr << "0x" << std::setw(2) << std::setfill('0');
-    std::cerr << std::hex << h;
-    std::cerr.flags(flags);
+    auto stream = debugFragment();
+    stream << c << '.' << s << ".0x" << std::setw(2) << std::setfill('0') << std::hex << h;
+    emitDebugFragment(stream.str());
 }
 
 void print_debug::printPT(double x, double y, double z){
-    std::cerr << std::fixed << "x: " << x << ", y: " << y << ", z: "<< z;
+    auto stream = debugFragment();
+    stream << std::fixed << "x: " << x << ", y: " << y << ", z: " << z;
+    emitDebugFragment(stream.str());
 }

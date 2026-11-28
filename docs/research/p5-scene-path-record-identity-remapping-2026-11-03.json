@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-03",
+  "scope": "DXF MOTIONPATH and ACDBCURVEPATH object record identity remapping, allocation, binding and transactional output.",
+  "source_context": {
+    "schema": "DXF group 5 is each object record's own identity. MotionPath group-340 camera/target/view references and CurvePath group-340 entity reference are distinct graph edges.",
+    "implementation_gap": "dxfRW::writeMotionPath and dxfRW::writeCurvePath mapped their typed group-340 references but emitted each object's source handle unchanged and did not bind that identity to the emitted record.",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-995ABB55-571A-4D0F-882E-8A74A738643E.htm",
+      "src/libdxfrw.cpp: dxfRW::writeMotionPath",
+      "src/libdxfrw.cpp: dxfRW::writeCurvePath"
+    ]
+  },
+  "implementation": {
+    "behavior": "A supplied object identity is remapped, checked against invalid and fixed output handles, reserved, emitted as group 5, and bound to the emitted source-object identity after serialization. A zero/no-source identity is allocated. RecordStateScope and DxfWriterRecordScope preserve transactional state and bytes.",
+    "reference_policy": "Typed references retain resolver-first behavior and remain independent from the object's own identity remap.",
+    "failure_behavior": "The generated matrix rejects unresolved typed references before publication and verifies corrected fresh-writer retry. No native or external failure behavior is inferred."
+  },
+  "validation": {
+    "input": "Generated in-memory records only; no DWG/DXF fixture was added.",
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "controls": [
+      "MOTIONPATH group-5 identity remaps independently of its three group-340 references",
+      "ACDBCURVEPATH group-5 identity remaps independently of its group-340 entity reference",
+      "resolver and source-remap paths both preserve typed scene-object reference output",
+      "unresolved references preserve the destination and corrected fresh-writer retry passes"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "build-gcc/libdxfrw_wave1_tests --scene-object-reference-remapping",
+      "git diff --check"
+    ],
+    "result": "PASS"
+  },
+  "qualification_limits": [
+    "Generated controls do not establish complete physical MotionPath or CurvePath producer coverage or source graph closure.",
+    "No independent native consumer, camera-path behavior, or scene evaluation was validated.",
+    "This transport fix does not promote scene-path support claims."
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Open-source codec workflow and comparator-selection gates",
+  "mode": "Primary-source cross-project research and plan reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Compare current primary project documentation for LibreDWG, ACadSharp, ezdxf, and FreeCAD to select the correct comparator by unresolved pipeline stage.",
+    "Refine existing PAR-07/S8 artifact, identity, warning, recovery, consumer, and semantic evidence boundaries.",
+    "Preserve fast local implementation cadence and existing hostile-input/fuzz milestone without adding peer dependencies or tests."
+  ],
+  "sources": [
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/JSON.html",
+        "https://www.gnu.org/software/libredwg/manual/html_node/Programs.html",
+        "https://github.com/LibreDWG/libredwg-fuzz"
+      ],
+      "revision": "Current public manual and repository pages inspected 2026-10-20; no source commit or executable was pinned or run.",
+      "observed": "The manual describes JSON as a readable 1:1 mapping of LibreDWG's structures with more information than DXF; it documents route-specific DWG/DXF/JSON input, read-write, and output tools/fuzz frontends, and notes that unknown classes/objects may remain binary blobs without DXF codes.",
+      "limits": "The JSON is LibreDWG's internal structure representation, not a neutral standard, normative field definition, independent semantic oracle, or blanket writer qualification. Mutable pages and docs do not establish a particular binary's behavior."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md"
+      ],
+      "revision": "Mutable master README and documentation inspected 2026-10-20; no release, package, or executable was pinned or run.",
+      "observed": "The README declares DXF/DWG reader and writer capability by version and direction, with matrix cells that differ. The reading example exposes notifications for warnings and informational messages.",
+      "limits": "A declared matrix cell and sample API do not establish tested per-entity completeness, released-artifact behavior, native acceptance, or geometry semantics."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/usage_for_beginners.html",
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/index.html",
+        "https://ezdxf.readthedocs.io/en/stable/xref.html"
+      ],
+      "revision": "Stable documentation pages inspected 2026-10-20; no package artifact or runtime was pinned or run.",
+      "observed": "The docs distinguish ordinary DXF loading from explicit recovery for flawed files, provide an entity-class inventory including 3D/modeler and proxy families, and document a narrower XREF copy/transform subset with unsupported-entity/object limitations.",
+      "limits": "Documentation does not prove a particular installed package's behavior. Recovery/audit output is not a strict-parse pass, and entity inventory or XREF behavior does not establish whole-document preservation."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Mutable documentation main branch inspected 2026-10-20; no source commit or native application build was pinned or run.",
+      "observed": "The docs describe DWG conversion through a selected external converter and separate the downstream DXF importer/format behavior from conversion. They identify 2D and modeler-carrier boundaries at the application layer.",
+      "limits": "Documentation is a route-selection aid, not native Linux/Windows qualification or independent ACIS/SAB geometry evidence."
+    },
+    {
+      "project": "Local plan reconciliation",
+      "urls": [
+        "workspace:DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Shared worktree plan inspected and updated 2026-10-20.",
+      "observed": "PAR-07/S8 now has a named comparator-selection sequence: identify the unresolved stage; pin one matching peer artifact; compare source identity/disposition; record strict parse, recovery, downstream consumer, and semantic results separately; retain local fast checks and existing milestone-only external/fuzz gates.",
+      "limits": "No peer runtime, native CAD application, geometry kernel, or external drawing was used. This plan refinement does not resolve external qualification items."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: choose a peer by the exact unanswered stage rather than running all peers or treating project-wide version matrices as complete evidence.",
+      "PAR-07/S8: bind peer results to immutable artifact/source, format/version, encoding, direction, options, warning stream, and per-source identity/disposition.",
+      "PAR-07/S8: treat LibreDWG JSON as peer-internal structural/field evidence, ACadSharp notifications as warning evidence, ezdxf recovery as distinct from strict parse, and FreeCAD import as downstream application evidence.",
+      "PAR-14 safety and validation scheduling: route-matched fuzzing remains milestone-only and parser input, conversion, and writer/output targets remain separate.",
+      "Implementation cadence: no external tool, fixture, or full suite becomes a per-slice dependency; unavailable peers self-unblock as NOT_RUN or NOT_APPLICABLE."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-codec-workflow-comparator-gates-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a PAR-07/S8 comparator-selection procedure keyed to the unresolved processing stage and the exact claimed evidence layer.",
+    "Specified a compact immutable artifact envelope and per-source handle/type/owner/block identity/disposition ledger for any future peer comparison.",
+    "Clarified that LibreDWG's JSON is its own internal structural representation, ACadSharp's matrix is version/direction declaration, ezdxf recovery is not strict parsing, and FreeCAD import is downstream of conversion.",
+    "Preserved the fast local per-slice sequence; peer builds and route-matched fuzzing remain at existing composed/security milestones only.",
+    "Kept J256, J260, J268, J284, J293, and J295 explicitly DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "limitations": [
+    "Research used mutable public documentation and repository pages; exact release/source artifacts must be pinned at a future composed checkpoint.",
+    "No peer executable/package, native CAD application, geometry kernel, external drawing, or test corpus was run or downloaded.",
+    "ODA v5.4.1 and Autodesk DXF references remain authoritative for their respective byte-layout questions; project documentation and peer matrices are not normative specifications.",
+    "No local defect, numbered finding, implementation-order change, fixture, or support promotion was established.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "planUpdaterCheck": "PASS (python3 tools/update_upgrade_plan.py --check)",
+    "scopedDiffCheck": "PASS (git diff --check on plan and receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree contains extensive existing changes and Git metadata is read-only in this session."
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-research-screen-v1",
+  "date": "2026-11-08",
+  "status": "NO_ELIGIBLE_SOURCE_BOUND_TABLECONTENT_WITNESS",
+  "workstream": "P5 / existing TABLECONTENT source evidence screen",
+  "method": {
+    "kind": "saved-evidence review",
+    "wholeFileConversionsRun": 0,
+    "fixturesAdded": 0,
+    "productionParserChanges": 0,
+    "supportClaimsPromoted": 0,
+    "scopeLimit": "Reviewed existing TABLECONTENT-specific receipts and local sample inventory references. This is not a byte-level or exhaustive census of every locally available DWG. Uninspected files are not negative evidence."
+  },
+  "candidates": [
+    {
+      "version": "AC1021",
+      "source": "tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+      "sourceSha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+      "receipt": "p5-ac1021-blocks-and-tables-edge-census-screen-2026-11-08.json",
+      "finding": "Read published 3586/3586 frames with no entity/object parse failures and no TABLECONTENT trace records. Strict output stopped at the unrelated FIELD/FIELDLIST serializer gate."
+    },
+    {
+      "version": "AC1021",
+      "source": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+      "receipt": "deeper-broader-local-table-sample-census-2026-10-17.json",
+      "finding": "The TABLE diagnostic stops before relevant table-level fields on cell-value types 16 and 92. It does not establish a TABLECONTENT edge profile or absence of linked data."
+    },
+    {
+      "version": "AC1027",
+      "source": "/private/tmp/dwg-example-2013.dwg",
+      "sourceSha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+      "object": "TABLECONTENT 0xC94",
+      "receipts": [
+        "p5-ac1027-tablecontent-native-string-dual-parse-2026-11-03.json",
+        "p5-ac1027-tablecontent-attdef-handle-span-mismatch-2026-11-02.json"
+      ],
+      "finding": "Current ODA detached-TV interpretation does not publish a typed/raw callback for this object; candidate body/string/handle spans remain disputed and semantic completeness is false. ODA-converted DXF and peer observations do not prove the original DWG wire layout."
+    },
+    {
+      "version": "AC1032",
+      "source": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+      "sourceSha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+      "objects": ["TABLECONTENT 0xE5F", "TABLECONTENT 0x747"],
+      "receipt": "p6-ac1032-tablecontent-raw-only-shell-recovery-2026-11-07.json",
+      "finding": "Both objects are retained by raw-only shell recovery. Alternate parses reach candidate stream boundaries but remain semantically incomplete and conflict with the ODA schema; independent peer parsing does not resolve the disagreement."
+    }
+  ],
+  "disposition": "No reviewed source is ready for selected-object extraction with reliable field spans, semantic roles, and independent comparison. Keep overlapping TABLECONTENT edge masks output-refused. Do not repeat the above whole-file reads or infer absence from uninspected files.",
+  "next": "Resume this lane only when a new source-bound witness or authoritative resolution is available. Otherwise continue a distinct locally implementable P5/P6 slice and keep this gate open."
+}

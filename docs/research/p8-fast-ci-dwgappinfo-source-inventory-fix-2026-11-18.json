@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-fast-ci-dwgappinfo-source-inventory-fix-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Fix missing private header in source/build inventory",
+  "status": "FIX_PUSHED_NATIVE_PASS_FAST_VECTOR_FAILURE_RECORDED",
+  "supportClaimEffect": "none",
+  "packageGateEffect": "none; P8-F remains open",
+  "activityLedgerEffect": "one completed build-inventory correction slice; no package gate closed",
+  "gate": "P8-F (fast-regressions prerequisite)",
+  "triggeringCandidate": {
+    "commit": "be2173c0e03384e1f8c0dded1e72cded16bd64a7",
+    "pullRequest": "LibreCAD/libdxfrw#106",
+    "workflow": "libdxfrw fast parity regressions",
+    "runId": 44255481624,
+    "job": "fast-regressions",
+    "jobId": 134636051043,
+    "runner": "GitHub Actions ubuntu-24.04"
+  },
+  "failure": {
+    "step": "Build and source-release inventories",
+    "command": "python3 -B tools/generate_build_inventory.py --check && python3 -B tools/generate_build_inventory.py --self-test",
+    "result": "The self-test passed; --check failed with 'core CMake inventory differs from tracked sources/headers'.",
+    "localSetDifference": {
+      "trackedHeadersMissingFromCMake": ["src/intern/dwgappinfo.h"],
+      "otherCoreSourceOrHeaderDifferences": []
+    },
+    "cause": "src/intern/dwgreader.h includes dwgappinfo.h, but libdxfrw_sources.cmake did not classify that tracked internal header. The source-release inventories therefore omitted a build dependency."
+  },
+  "fix": {
+    "classification": "LIBDXFRW_PRIVATE_HEADERS",
+    "updatedFiles": [
+      "libdxfrw_sources.cmake",
+      "src/source-files.am",
+      "source-release-files.am",
+      "source-release-files.txt"
+    ],
+    "generationCommand": "python3 -B tools/generate_build_inventory.py --write",
+    "generatedReleaseFileCount": 1296,
+    "noTestFixturesAdded": true
+  },
+  "validation": {
+    "command": "python3 -B tools/generate_build_inventory.py --check",
+    "result": "PASS: 1296 released files; complete core/CLI sources and headers",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "pending": [
+    "The exact f0f87e7f source/build inventory check passed in fast workflow run 44259323444; its later TABLE/TABLECONTENT vector step failed with 19 assertions (see docs/research/p8-fast-tablecontent-regression-2026-11-18.json).",
+    "Native focused checks and native FreeCAD Linux/Windows jobs passed on f0f87e7f; see docs/research/p8-candidate-native-freecad-qualification-2026-11-18.json.",
+    "P8-F remains open until the fast regression is resolved; the observed upstream branch-protection summary is recorded in docs/research/p8-candidate-native-freecad-qualification-2026-11-18.json."
+  ],
+  "limits": [
+    "This corrects the source/build inventory and packaging closure only; it does not establish DWG/DXF semantic support.",
+    "No package gate is closed by the local inventory check."
+  ]
+}

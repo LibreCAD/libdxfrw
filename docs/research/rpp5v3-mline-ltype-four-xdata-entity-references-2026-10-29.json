@@ -1,0 +1,89 @@
+{
+  "id": "RPP-5v3",
+  "title": "Four ordered MLINE LTYPE XDATA entity references",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "3c442794f12cfc0176d2df0f3dc8e7a964f8e5ee",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated DXF records; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_provider": {
+      "name": "MLINE_LTYPE_XDATA",
+      "source_handle": "0x1F1",
+      "source_owner": "0x1F0",
+      "flags": 0,
+      "optional_metadata": "absent"
+    },
+    "entity_providers": [
+      { "type": "LINE", "source_handle": "0xA900", "source_section": "ENTITIES", "source_owner": "0x201", "source_owner_name": "*Model_Space", "start_x": 1.25 },
+      { "type": "LINE", "source_handle": "0xA902", "source_section": "ENTITIES", "source_owner": "0x201", "source_owner_name": "*Model_Space", "start_x": 7.5 },
+      { "type": "LINE", "source_handle": "0xA903", "source_section": "ENTITIES", "source_owner": "0x201", "source_owner_name": "*Model_Space", "start_x": 13.5 },
+      { "type": "LINE", "source_handle": "0xA904", "source_section": "ENTITIES", "source_owner": "0x201", "source_owner_name": "*Model_Space", "start_x": 19.5 }
+    ],
+    "xdata_order": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1000, "value": "<selected string payload>" },
+      { "code": 1005, "value": "A900", "role": "soft-pointer entity handle" },
+      { "code": 1005, "value": "A902", "role": "soft-pointer entity handle" },
+      { "code": 1005, "value": "A903", "role": "soft-pointer entity handle" },
+      { "code": 1005, "value": "A904", "role": "soft-pointer entity handle" }
+    ]
+  },
+  "proof": {
+    "source": "The generated physical LTYPE XDATA, typed imported values, four distinct source handles, captured entity roles, model-space owner bindings and exact entity identities agree. All LINE targets are uniquely identified by handle and start-X value.",
+    "output": "Across all four ASCII/binary source-output pairs, staged physical output preserves XDATA order and emits each soft pointer as the exact remapped handle for its corresponding model-space LINE. Fresh typed readback verifies ordered values and entity identity/owner joins.",
+    "failure_retry": "Removing the fourth target refuses output atomically and preserves a destination sentinel; restoring it by saved list position succeeds on the same adapter. Late mutation of the fourth target handle also refuses atomically; restoring the source handle succeeds on the same adapter.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 9,
+      "selected_refusals_with_destination_preservation": 5,
+      "selected_same_adapter_retries": 5,
+      "whole_focused_test_profiles": 92,
+      "whole_focused_test_readbacks": 201,
+      "whole_focused_test_refusals": 109,
+      "whole_focused_test_retries": 109
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "normal_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 9.26 seconds)"
+    },
+    "normal_selector": {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+      "result": "PASS (profiles=92; readbacks=201; refusals=109; retries=109)"
+    },
+    "asan_build": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    "asan_selector": {
+      "command": "ASAN_OPTIONS=halt_on_error=1 build-asan-custom/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+      "result": "PASS (profiles=92; readbacks=201; refusals=109; retries=109)"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "source_bindings": {
+      "test_source_sha256": "71a3a90a88181ae7ace1b1f4948da14677ff5091c6159d2fb9e77add3fcff0a1",
+      "adapter_sha256": "bb644ce735c73f2dc5ab28d6cea7e051840f0cd108660b3f01e5e0b5d3b1b9",
+      "normal_executable_sha256": "2b7f3053cf310f221ff61c28a25406e679a555357fb6846e3baf592788e97472",
+      "asan_executable_sha256": "3cf999117a1aa94c6165283bad000e7a63ba97644d09522b84b447ccafd23953",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746",
+      "asan_cmake_cache_sha256": "f1aeb154e90745f39981fadcbb2e24f1c25d9296abc19beb4ea699b49fc6bb68"
+    }
+  },
+  "limits": [
+    "This qualifies one four-reference AC1027 simple-LTYPE XDATA composition with one APPID, one string and four handles to model-space LINEs. Five-or-more references, other target types/sections, XDATA compositions, APPID metadata, schemas and versions remain unqualified.",
+    "This is transport/identity evidence only. It does not establish application-specific XDATA meaning, native MLINE rendering, recursive document closure or broader LTYPE support."
+  ],
+  "next": "Select a source-backed current MLINE geometry/schema witness. Treat five-or-more LTYPE XDATA references and other target roles as separate unqualified boundaries."
+}

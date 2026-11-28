@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-current-eed-installed-macos-app-smoke-2026-11-20",
+  "date": "2026-11-20",
+  "status": "GENERATED_MACOS_INSTALLED_APP_HEADLESS_SMOKE_PASS",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "patchBase": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
+    "candidateHead": "eed6bd2c7e0dd6b2694a3eba3c71c21752a2a113",
+    "candidatePatch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
+    "candidatePatchSha256": "803ed0576bd08cbbdbaf95c5a0985f803b3c0e1b9b57a1ff2277720f4837cc1f"
+  },
+  "library": {
+    "commit": "39320dd325fa8f1003faaca34925ab02b5293853",
+    "implementationDigestSha256": "7d8df8433c94a99ad19cf94d0d772787e200cea3b41263749ca0101e68405156",
+    "installedArchive": "/private/tmp/libdxfrw-plotsettings-final-system-install/lib/libdxfrw.a",
+    "installedArchiveSha256": "0ca71e9b6264dc058bd676f897c7e9ddb21fdf70670ad7d5d31cd2ff5877c1a7"
+  },
+  "platform": "macOS 27.2.1 build 26B131 ARM64, Apple clang 21, Qt 6.12",
+  "build": {
+    "target": "librecad",
+    "configuration": "LIBRECAD_USE_SYSTEM_LIBDXFRW=ON, BUILD_TESTS=OFF, -Werror",
+    "log": "/private/tmp/libdxfrw-librecad-eed-installed-build.log",
+    "logSha256": "88e8c179406d4fddb1a87709d199831d82e788a2d1faff564a4a26cf5f97f9e4",
+    "binary": "/private/tmp/libdxfrw-librecad-installed-option-build/LibreCAD.app/Contents/MacOS/LibreCAD",
+    "binarySha256": "64dff40733c0cf304dab28a94123b9424a708e4f5ee3ed09d2ae94aaff88162f",
+    "commands": "/private/tmp/libdxfrw-librecad-f1-installed-commands.log",
+    "commandsSha256": "1378ad8c3bfdfea710fe810bd095af974122fa8e7d17bf3fd7adf8c2af0796bc",
+    "result": "PASS: filter compilation includes -Werror and final application link names the installed archive."
+  },
+  "headlessSmoke": {
+    "input": "/private/tmp/libdxfrw-librecad-system-smoke/source.dxf",
+    "inputSha256": "593518f6affc9a968dcbba6509bfb57d6b3acae24faea0d890c08e581b3e3106",
+    "dwgSha256": "0949376f64f635d3ba132662ae31de87082a874ad3714783d4f10a45c2e4707a",
+    "dxfSha256": "0c054288969379cc2fa2e4309ed58f2d3d7b00c32f7b9ff6d9820011fd446947",
+    "dxfToDwgLogSha256": "c579115c9563ba0096fcbce104e7122f2beccd59899306e4c1f09fc1822c5ee0",
+    "dwgToDxfLogSha256": "faee1f36c7077b73b43f0f265cbbfae51a5e1e8c13cc246a885188fa89aad37a",
+    "result": "PASS: generated DXF to AC1015 DWG and back to DXF; one line preserves both endpoints (omitted Z group defaults to zero) and one DIMTALN application group is emitted.",
+    "settingsIsolation": "A scratch-only injected library redirects user QSettings to a temporary INI directory."
+  },
+  "limits": [
+    "Generated headless CLI profile only; no native GUI, AutoCAD, Linux/Windows consumer or broad semantic qualification.",
+    "Source checkout and installed app are under /private/tmp; no user consumer checkout was modified.",
+    "No DWG/DXF fixture was committed."
+  ]
+}

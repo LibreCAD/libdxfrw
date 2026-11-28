@@ -1,0 +1,30 @@
+{
+  "id": "par134-r24-tablestyle-data-flag-domain",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "scope": {
+    "class": "DRW_TableStyle",
+    "version": "AC1032",
+    "field": "R24 cell-style data flag",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.101.4"
+  },
+  "change": "Reject TABLESTYLE cell-style data flags outside the documented 0/1 domain before exposing the typed style projection.",
+  "generated_controls": [
+    {"data_flag": 0, "expected": "parse"},
+    {"data_flag": 1, "expected": "parse populated style"},
+    {"data_flag": 2, "expected": "refuse and clear state"},
+    {"data_flag": 65535, "expected": "refuse and clear state"}
+  ],
+  "validation": [
+    "cmake --build build-gcc --target dxfrw libdxfrw_dwg_object_vectors_tests -j4: PASS",
+    "ctest --test-dir build-gcc -R ^libdxfrw_tablestyle_data_flag_domain$ --output-on-failure: PASS (1/1)",
+    "ctest --test-dir build-gcc -R ^libdxfrw_dwg_object_vectors$ --output-on-failure: PASS (1/1)",
+    "cmake --build build-gcc --target lc3_compat_check -j4: PASS",
+    "git diff --check -- src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp CMakeLists.txt: PASS"
+  ],
+  "fixtures_added": false,
+  "full_suite_run": false,
+  "external_producer_or_native_application_run": false,
+  "support_claim_changed": false,
+  "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+}

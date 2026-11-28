@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-dictionaryvar-physical-output-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical DICTIONARYVAR identity, owner and typed-field output proof",
+  "status": "PHYSICAL_8_DICTIONARYVAR_IDENTITIES_FIELDS_AND_GRAPH_READ_BACK_CLOSED",
+  "supportClaimEffect": "none",
+  "implementationCommit": "47751f0f84a3e1779a30f76e98bd3e579feaff40",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "DICTIONARYVAR",
+    "count": 8,
+    "root": "NOD AcDbVariableDictionary entry",
+    "owner": "One child DICTIONARY with eight unique keys and targets",
+    "fixturePolicy": "Existing local physical DWG only; selector outputs are temporary and removed; no investigation DWG/DXF fixture was added."
+  },
+  "implementation": {
+    "change": "For the admitted AC1024 DWG profile, mark the bounded R2007+ common link tail validated; snapshot the eight typed records and rooted NOD/owner dictionaries; bind each source identity, owner and dictionary key to staged OBJECTS output; inspect exact raw and typed schema/value fields; and refuse stale source or owner graphs before publication.",
+    "admittedSourceFields": "Common identity/name/owner/reactor state, schema byte, and string value; one owner reactor per DICTIONARYVAR; no xdictionary, EED, application data, data-storage payload or pending resource references.",
+    "versionBoundary": "The common link tail is marked validated only for version > AC1018; the physical output snapshot itself is restricted to AC1024 source and target.",
+    "sourceKeys": ["CANNOSCALE", "CMLEADERSTYLE", "CTABLESTYLE", "DIMASSOC", "HIDETEXT", "LAYEREVAL", "LAYERNOTIFY", "LIGHTINGUNITS"]
+  },
+  "sourceToOutput": {
+    "identity": "All eight source handles bind uniquely to staged DICTIONARYVAR OBJECTS records and the same identities reopen in fresh typed DXF readback.",
+    "ownership": "The NOD AcDbVariableDictionary key uniquely targets the output owner dictionary; the owner points back to the NOD; each of eight unique owner keys points to the matching mapped DICTIONARYVAR handle.",
+    "fields": "Raw output inspection and fresh typed readback compare source-bound name, schema and exact string value, mapped owner, reactor sequence, and common fields. The output DICTIONARYVAR class instance count is eight.",
+    "outputArtifacts": "Both output encodings are read back by the selector and removed afterwards; no persistent output hashes are claimed."
+  },
+  "failureAndRetry": {
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "controls": [
+      "A late typed-value mutation after OBJECTS emission is refused and preserves the pre-existing destination sentinel.",
+      "An owner-key alias to another DICTIONARYVAR target is refused atomically.",
+      "Removing a required owner key is refused atomically.",
+      "Restoring the original typed value and owner graph permits same-adapter retry; the corrected output passes fresh typed readback."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "physicalSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary; eight identities, rooted owner/key graph, schema/value fields, late-mutation refusal, owner-key alias/missing-key refusal, sentinel preservation and corrected retry."
+    },
+    "objectVectorsAndOwnerGraph": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$|^libdxfrw_extension_dictionary_owner_graphs$' --output-on-failure",
+      "result": "PASS 2/2."
+    },
+    "neighboringPhysicalProfiles": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --xrecord-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "result": "PASS for ASCII and Binary, including ordered payload readback, rollback and retry."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --scale-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg /private/tmp/dictvar-current-check.dxf",
+        "result": "PASS for 17 source identities and rooted ACAD_SCALELIST readback; rollback and retry retained."
+      }
+    ],
+    "fullSuites": "NOT RUN; focused selectors only."
+  },
+  "bindings": {
+    "sourceSha256": {
+      "src/drw_objects.cpp": "752c3939efe376b3c996fb599c4af17b085f48fde70018c3ba48c84ba3f12537",
+      "dwg2dxf/dx_iface.cpp": "9cf6b52593dc634dbf5bc713b9c295f7e45809bdfe63316e3aaffb213f3b3059",
+      "dwg2dxf/dx_iface.h": "c913c4bcb0ca3ea87c62ad9633857af5451aa8476da2f13994cda832fe5df53f",
+      "tests/dwg2dxf_adapter_tests.cpp": "664b6d80b4842eec276b8adaa2f36f73b7d6193ba4e58f78d72f176f884105f9"
+    },
+    "executablesSha256": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "29e6b48431381d8707e50516265c740e201ffdd6ed01278f80743827ff651e8c",
+      "build-gcc/dwg2dxf/dwg2dxf": "7931c68bb075eef4f8c2c07c47251746ff2748749938970862794d924b0689ad"
+    }
+  },
+  "limits": [
+    "This closes one physical AC1024 DICTIONARYVAR profile in explicit-partial output only.",
+    "The global strict-complete gate remains closed by 228 opaque callback views and zero retained correlation frames; the census and strict predicate are unchanged.",
+    "No support claim, CAD-consumer semantic result, native-platform qualification, ABI/package qualification or 3D semantic qualification is promoted."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Bind all eight physical AC1024 DICTIONARYVAR identities and owner/key roles to exact typed fields, ASCII/Binary staged output and fresh readback with atomic refusal and retry.",
+    "nextCandidate": "Prove physical identity, exact admitted fields, owner/extension-dictionary/reactor links, staged ASCII/Binary output, fresh typed readback and rollback/retry for the three AC1024 MATERIAL records.",
+    "externalItemsPromoted": 0
+  }
+}

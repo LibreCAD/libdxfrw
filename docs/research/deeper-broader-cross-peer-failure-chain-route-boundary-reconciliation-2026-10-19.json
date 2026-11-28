@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Cross-peer failure-chain and route-boundary reconciliation",
+  "mode": "Primary-source issue/repository review plus local source/plan audit",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh current open-source DWG/DXF route declarations and peer issue/PR status",
+    "Separate page/container decode, object-map/owner traversal, serialization, publication, and downstream consumer failures",
+    "Reconcile peer failure shapes with current local parser, graph, output-transaction, and PAR-139 owners",
+    "Refine implementation and evidence readiness without adding duplicate findings or validation burden"
+  ],
+  "sources": [
+    {
+      "name": "LibreDWG AC1021 page decoding and object-map/output failures",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1361",
+        "https://github.com/LibreDWG/libredwg/pull/1363",
+        "https://github.com/LibreDWG/libredwg/issues/1355",
+        "https://github.com/LibreDWG/libredwg/pull/1360",
+        "https://github.com/LibreDWG/libredwg/issues/1357",
+        "https://github.com/LibreDWG/libredwg/pull/1359"
+      ],
+      "observed": "PR #1363 merged on 2026-08-07 and closed #1361 after tracing near-DBL_MAX AC1021 LWPOLYLINE values to Reed-Solomon-coded incompressible pages being treated as verbatim. PR #1360 remains open and proposes narrowly resynchronizing after a malformed modular character; its author corrected the original section-size theory. PR #1359 remains open and proposes skipping unresolved owned-entity references. Issue #1355 separately states that a writer stopping before required sections/terminal EOF must not report complete success. These are distinct failure layers and peer behaviors, not local defects."
+    },
+    {
+      "name": "LibreDWG root dictionary ordering report and Autodesk OBJECTS contract",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1413",
+        "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-1038FDE4-745D-469D-972E-1F977D674882.htm"
+      ],
+      "observed": "The still-open peer report describes a lower-handle extension dictionary being selected before the true NOD in two drawings from a private 43-file corpus. The Autodesk DXF OBJECTS rule identifies the NOD positionally as the first object; handle order is not the identity rule. The report supports the existing non-monotonic-handle/root-role control and does not require a new finding."
+    },
+    {
+      "name": "ACadSharp current issue families",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1259",
+        "https://github.com/DomCR/ACadSharp/issues/1261",
+        "https://github.com/DomCR/ACadSharp/issues/1279",
+        "https://github.com/DomCR/ACadSharp/issues/1280",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1297"
+      ],
+      "observed": "The selected reports span codepage label/payload mismatch, a versioned GeoData tail, legacy compound-record interpretation, locale-sensitive lookup, recursive-work exhaustion, and whole-file native writer rejection. They belong to separate parser, writer, locale, resource-bound, and composed-consumer questions; no single issue or aggregate version matrix can settle them."
+    },
+    {
+      "name": "DXF-only/projection comparators and downstream consumer route",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/drawing/recover.html",
+        "https://github.com/ixmilia/dxf",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/FreeCAD/FreeCAD/issues/31835"
+      ],
+      "observed": "ezdxf documents strict parsing separately from recovery/audit; IxMilia documents entity/version and AutoCAD-writer caveats; GDAL's DXF driver is an OGR projection with Binary DXF input from GDAL 3.12, while its DWG driver is separately ODA-dependent; FreeCAD #31835 concerns converter fallback/false-success orchestration rather than the libdxfrw codec."
+    }
+  ],
+  "localEvidence": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md PAR-14/PAR-49/7BE/7F.1 already separates page decoding, object-map bounds, owner graph disposition, strict output completion, and atomic publication",
+    "Local dwgReader21::parseDataPage and dwgReader18::parseDataPage perform the applicable page decoding before entity parse; no page-valid local LWPOLYLINE failure was demonstrated in this research pass",
+    "Local DXF writer preserves/regenerates NOD first and has generated non-monotonic-handle graph controls",
+    "Existing codepage, GeoData, legacy VERTEX, bounded-progress, and composed FreeCAD owners cover the selected ACadSharp/FreeCAD failure shapes",
+    "PAR-139 remains the only new local feature finding in this review horizon; PAR-139.1 remains the first codec hardening slice"
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Reinforces the existing layered failure model and exact route evidence requirements. Keep strict-complete conversion fail-closed and atomic; any future tolerant skip/recovery mode must record exact source identities and losses and remain non-promoting. Continue PAR-139.1 locally before adapter/graph/composed checks; peer and platform runs remain at their existing composed checkpoints."
+  },
+  "method": {
+    "kind": "Read-only primary-source web review and local source/plan inspection",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-cross-peer-failure-chain-route-boundary-reconciliation-2026-10-19.json"
+    ],
+    "limitations": "Peer issue reports, release notes, and mutable repository pages are source evidence, not independent reproductions or normative DWG/DXF layouts. PR #1363's merge and issue closure establish the peer's reported fix path only; open PR proposals #1360 and #1359 are not current release behavior. The existing PAR-139 code changes in the shared worktree were not built or tested by this research pass."
+  }
+}

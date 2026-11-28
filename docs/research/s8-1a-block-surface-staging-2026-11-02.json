@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "id": "s8-1a-block-surface-staging-2026-11-02",
+  "date": "2026-11-02",
+  "status": "COMMITTED_IMPLEMENTATION",
+  "repositoryHead": "5e4fad180fe9c32b39429cd1a28639a716adc82b",
+  "scope": {
+    "plan": "DWG_DXF_3D_SUPPORT_PLAN.md S8.1a / PAR-118",
+    "operation": "Verify all six concrete DRW_Surface subtypes survive named-BLOCK DXF export and callback staging/readback.",
+    "behavior": [
+      "A generated named BLOCK contains PLANESURFACE, EXTRUDEDSURFACE, REVOLVEDSURFACE, SWEPTSURFACE, LOFTEDSURFACE, and NURBSURFACE entities copied with their concrete C++ runtime types.",
+      "ASCII and Binary DXF output is read through dx_iface::fileImport with applyExtrusion=false and direct dxfRW::read with applyExtrusion=true.",
+      "Readback checks the unique named BLOCK, six ordered entity types, concrete runtime subtypes, common isoline/modeler-version values, and subtype-only field sentinels for the five derived payload types."
+    ],
+    "supportClaimEffect": "none"
+  },
+  "implementation": {
+    "files": {
+      "tests/dwg_local_roundtrip_tests.cpp": "0173a27801321db0f9a3a0a5cf19c489333ecdd84d1e325eeaf619c4cf395add",
+      "tests/block_owner_tests.cpp": "0d7fe85d1b8e97a22bb5327fefe3db3a4252bb4944199c5fe224e2e14dcf079c",
+      "src/libdxfrw.cpp": "9c4f86a5c66b1d1d8d57e08735ad50614502b0319d4287aecf3cd1bbd1ed4f61"
+    },
+    "artifacts": {
+      "build-gcc/libdxfrw.a": "3ad4d4d212839784962d073bad7565aeb073b7581b800b874b3bccba1e5a274c",
+      "build-gcc/libdxfrw_dwg_local_roundtrip": "c9d73b79c1f3e8e49a122aba67f95468b226b7ef5ab783ffa2ada01e45cdbc2e",
+      "build-gcc/tests/libdxfrw_block_owner_tests": "dd064edb115c55cfad024ed9d2a1c155979426f869efc054e9781a756a0ba520"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS (1/1; 6.56 seconds)",
+      "coverage": [
+        "Generated ASCII and Binary named-BLOCK surface export/readback.",
+        "Raw-frame fileImport and applyExtrusion direct-reader callback staging.",
+        "Concrete subtype identity and subtype-specific field sentinels for six surface families."
+      ]
+    },
+    "blockCallbackMatrix": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_block_owner_tests -j4",
+      "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_block_owners$' --output-on-failure",
+      "result": "PASS (1/1; 0.61 seconds)",
+      "coverage": [
+        "Selected typed/raw callback ordering and retained deep-copy lifetime after parser/queue teardown and same-facade reuse.",
+        "ASCII/Binary and extended/non-extended modes for generated BLOCK and non-BLOCK event sequences.",
+        "Malformed ENDBLK variants publish no staged children and corrected reads retry on the same reader.",
+        "Known and non-standard callback exceptions preserve the primary exception, balance BLOCK/ENDBLK once, and permit retry; cleanup-only exceptions propagate."
+      ]
+    },
+    "diffCheck": {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    "fullSuiteRun": false,
+    "asanRun": false,
+    "persistentFixtureAdded": false
+  },
+  "limitations": [
+    "This is generated transport evidence only. It does not establish physical producer breadth, exhaustive BLOCK callback coverage, typed/raw ordering, owned-copy lifetime, ENDBLK publication behavior, replay-exception cleanup, native surface semantics, B-rep validity, or ACIS/ACDS support.",
+    "No external DWG/DXF fixture or public callback/interface change was added."
+  ],
+  "repositoryState": {
+    "commitStatus": "COMMITTED",
+    "implementationCommit": "8d2f48a7",
+    "reason": "The verified BLOCK surface tests, scoped S8.1a plan update, and receipt were committed; unrelated worktree changes remain unstaged."
+  }
+}

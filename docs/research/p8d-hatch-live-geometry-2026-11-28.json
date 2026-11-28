@@ -1,0 +1,33 @@
+{
+  "kind": "librecad-hatch-live-geometry-evidence",
+  "date": "2026-11-28",
+  "consumerCommit": "6e0db6b645c69ecb97dcf34690509d82c3bd78a3",
+  "codecCommit": "e7e40c6ec",
+  "scope": "Reusable bounded accepted profile compares one live solid straight source contour, its cached exported loop and one closed straight polyline with default planar coordinates. Each cycle is continuous, has unique vertices and at most 4096 edges; equivalent cyclic start and reversal are accepted.",
+  "checks": {
+    "bundled": {
+      "cases": 4,
+      "assertions": 209,
+      "result": "pass",
+      "logSha256": "75d8d42fc7a8d20ee972558f4d809189ec6c142ddc7ab5c182c04537074d2f5f"
+    },
+    "systemSharedCodec": {
+      "cases": 3,
+      "assertions": 197,
+      "result": "pass; helper compiled with the system-codec consumer, while its direct geometry test is in the bundled DXF test target",
+      "logSha256": "0b444fa580ca18f118a455d91e5404317d7c144d735826f5fc8c409e58850a1d"
+    }
+  },
+  "negativeControls": [
+    "one-sided move and changed geometry",
+    "open polyline and curved segment",
+    "patterned and additional-loop hatch",
+    "source edge mutation without cache regeneration; restore and retry"
+  ],
+  "limits": [
+    "Does not establish source identity, provenance, owner, reactor closure, polygon simplicity or output correctness.",
+    "exportLoops constructs a cached-loop copy; the edge cap does not bound all prior hatch-cache allocations.",
+    "The matcher is not yet used to replay associations."
+  ],
+  "supportClaimsPromoted": false
+}

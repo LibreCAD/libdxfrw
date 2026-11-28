@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-r12-ellipse-boundary-precision-2026-11-11",
+  "date": "2026-11-11",
+  "problem": "The R12 ELLIPSE tessellator classified any distinct start/end parameters within 1e-10 as a complete closed ellipse; it also closed shorter-than-full sweeps within 1e-10 of one turn. For center (2,3,0), major axis (1e8,0,0), ratio .5, and start/end .5 and .5+5e-11, the old code emitted 128 closed vertices around the entire ellipse instead of the short arc's two end vertices. The opted-in R12 CCW wrap had the same tolerance-band behavior.",
+  "authority": {
+    "dxf": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-107CB04F-AD4D-4D2F-8EC9-AC90888063AB.htm",
+    "dxfScope": "The ELLIPSE group-41/42 parameters for a full ellipse are 0 and 2pi.",
+    "objectArx": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_Geometry_EllipticalArc3d_Set_Point3d_Vector3d_Vector3d_double_double_double_double.html",
+    "objectArxScope": "A full elliptical arc has a two-pi parameter span. Exact equal-parameter full behavior remains a libdxfrw legacy convention, not a new claim about Autodesk input semantics."
+  },
+  "change": "Keep the established exact-equal and exact representable plus/minus one-turn full ellipse cases. Distinct smaller spans are open, and spans greater than one turn refuse output unless endpoint addition corresponds exactly to a representable full turn. The optional wrapped-CCW writer maps any distinct canonical wrapped endpoint except the exact reverse full turn; legacy signed direction remains the default. Endpoint comparison also preserves one-turn inputs represented as start plus or minus 2pi when subtraction rounds.",
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_r12_ellipse_(wrap|boundary)|dwg2dxf_r12_ellipse_carriers_.*_cli)$' --output-on-failure",
+    "result": "4/4 passed with configured -Werror build",
+    "generatedControls": "Direct API and ASCII/Binary R12 output, default and opt-in direction, 2D XY and tilted 3D WCS; short positive/negative arcs, near-full open arcs, near-wrapped CCW, exact equal and +/- full turns. Check entity type, flags, vertex counts, open endpoints against ellipse equations, caller parameters and readback with extrusion both disabled and enabled. Invalid extrusion and greater-than-one-turn paths preserve destination sentinel and accept corrected same-writer retry. Existing ordinary wrap, legacy direction, HATCH edge and CLI carrier controls pass.",
+    "negativeControl": "Compiled the pre-change drw_entities.cpp and libdxfrw.cpp from commit 93121b09 into a scratch-only static archive and linked the new test; it fails the short positive arc control as expected. The changed build passes.",
+    "fixtures": "All files are locally generated under temporary paths and removed; no fixture was added."
+  },
+  "limits": "R12 approximates curves with straight segments; these checks are not native CAD rendering evidence. This slice does not redefine legacy equal-parameter semantics, validate every alternate parameter normalization or address tiny out-of-plane tolerance in the 2D/3D classifier. Broader 2D/3D consumer and platform qualification remains open."
+}

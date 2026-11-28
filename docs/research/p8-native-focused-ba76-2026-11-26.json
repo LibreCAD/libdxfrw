@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-native-focused-ba76-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "ba76b71d87dcf9d42f81c820396f6f13afd99e0fe245cb8d93b94a0f41c3f317",
+  "candidateHead": "ccb032ea9f3c3cbba2beecf1d090b3c81d3f0666",
+  "nativeFocused": {
+    "repository": "dxli/libdxfrw",
+    "runId": 45937511056,
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/45937511056",
+    "conclusion": "success",
+    "testsPerPlatform": 7,
+    "artifacts": {
+      "linux-gcc": {
+        "id": 15171622054,
+        "sha256": "979878e23e327c4d9c611fe6456b5ea5ef9dafe88036e6550d99912cff00eb3e"
+      },
+      "macos-clang": {
+        "id": 15171004990,
+        "sha256": "4418ae32405b1f49aa583325799752105086d9af929996dfc78a900fac50906f"
+      },
+      "windows-msvc": {
+        "id": 15172150473,
+        "sha256": "f155e8da5df81de7ba819422f7ab1ac4101cdf8f93921b123a2a8bfc965f97fd"
+      }
+    }
+  },
+  "sharedPackage": {
+    "runId": 45936969818,
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/45936969818",
+    "runHead": "c9d06a308f222fac4e142838963fc3b9be1b2ecf",
+    "conclusion": "success",
+    "platforms": [
+      "linux-gcc",
+      "macos-clang",
+      "windows-msvc"
+    ]
+  },
+  "limits": [
+    "The seven focused tests and shared-package workflow are bounded regression evidence, not general DWG/DXF, native GUI, or independent semantic qualification.",
+    "The head following c9d06a308 contains documentation and source-release inventory changes; the selected implementation digest is the same."
+  ],
+  "fastRegression": {
+    "runId": 45937511150,
+    "jobId": 140304008537,
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/45937511150",
+    "runHead": "ccb032ea9f3c3cbba2beecf1d090b3c81d3f0666",
+    "conclusion": "success",
+    "results": "7 fast executables plus 56 selected CTests: 55 passed, 1 skipped (libdxfrw_numeric_process_locale); source-release inventory and policy checks passed."
+  }
+}

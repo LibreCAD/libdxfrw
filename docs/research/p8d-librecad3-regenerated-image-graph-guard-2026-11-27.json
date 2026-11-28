@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-regenerated-image-graph-guard-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "dc705b90",
+  "scope": "LibreCAD_3 root reattachment when the writer regenerates selected IMAGEDEF and IMAGEDEF_REACTOR records.",
+  "reproduction": "A locally generated custom dictionary referenced a raw IMAGEDEF_REACTOR. Root planning counted it as emitted even though writeObjects skipped it, so the custom root was reattached and the loss count was too low.",
+  "implementation": "Use one shared IMAGE detection and regeneration predicate for both raw emission and root graph planning. When an image is present, skipped IMAGEDEF/IMAGEDEF_REACTOR records no longer satisfy source raw graph closure.",
+  "validation": [
+    "The generated reactor-reference control fails before the fix: LC_REACTOR is reattached and only one loss is reported.",
+    "After the fix LC_REACTOR is not reattached and both incomplete roots are reported; six focused persistence tests pass, including cyclic/shared and no-image root controls.",
+    "A named-block-only image reproduced the same false closure before the follow-up. Model-space, named-block and anonymous *U1 block controls now report both incomplete roots; the shared detector excludes regenerated dimension blocks.",
+    "A generated reactor with application-group metadata reproduced a separate missing loss report before dc705b90. Model-space, named-block and anonymous-block controls now report the skipped IMAGEDEF_REACTOR as well as the two incomplete roots; six focused persistence tests pass.",
+    "All 80 DxfRoundTripTest cases passed on consumer commit dc705b90 with the current locally linked codec."
+  ],
+  "testLogSha256": "ac7799c37b7ff78c8f8401b49f3063acd6782083ff629b9e78e3e8aecfa1ed9f",
+  "limits": [
+    "This is a guard and loss-reporting correction, not IMAGE graph preservation. Detached raw dictionaries may still need output cleanup or full source graph replay, with independent proof. Paper-space, regenerated dimension blocks and other special layouts are not qualified by these controls.",
+    "Generated DXF input remains temporary and is not committed.",
+    "Source IMAGEDEF and IMAGEDEF_REACTOR records skipped in favor of regenerated records are conservatively reported as lost: metadata and identity equivalence have not been established. The output can be partially written."
+  ],
+  "lossReportingTestLogSha256": "b7b4a7c8ccbf51a5f9b69860d44c8fde42d69f2e9339f30ad78f81f1ef9c63f0",
+  "roundTripTestLogSha256": "2bc81f7ccd507531153f8ef69c6dbaf0b641dcb2b97cf628e83130bb0ea56807"
+}

@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw-deeper-broader-ac1_40-repeat-structure-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Triangulate AC1.40 REPEAT/ENDREP/LOAD structure across local source, independent open-source schemas, and the modern DXF INSERT contract; refine PAR-123/7BS without making a semantic support claim.",
+  "method": {
+    "kind": "Public specification/source review plus local source inspection",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "localTestsRun": false,
+    "externalDrawingsDownloadedOrCommitted": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionSourceChanged": false,
+    "evidenceRule": "Schemas can corroborate fields and widths but do not establish historical drawing semantics; issue reports select useful vectors but are not expected-value oracles."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG structural schema",
+      "source": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec#L5100-L5118",
+      "observed": "The current schema declares REPEAT as a no-field pre-R2.1 entity, ENDREP with 16-bit column and row counts plus two double spacings, and LOAD with a text filename for pre-R2.0. This is implementation schema evidence, not a normative AutoCAD manual.",
+      "doesNotEstablish": [
+        "whether counts include the seed entity",
+        "repeat scope, origin, axes, or row/column traversal order",
+        "legal nesting and malformed-group behavior",
+        "whether a modern DXF block array exactly preserves the legacy operation"
+      ]
+    },
+    {
+      "topic": "Independent Kaitai AC1.40 schema",
+      "source": "https://github.com/michal-josef-spacek/CAD-Format-DWG-AC1_40/blob/main/dwg_ac1_40.ksy",
+      "observed": "A separately authored BSD-2 schema reads a fixed top-level entity count, assigns entity code 5 to repeat_begin and 6 to repeat_end, leaves repeat_begin commented out in the dispatch cases, gives repeat_end two signed-16 fields and two 64-bit floating-point spacings, and models LOAD text.",
+      "qualification": "The project is a small read-only parser/schema and does not implement or validate repeated geometry. Its mutable main branch was inspected without pinning an exact commit. Treat only as structural corroboration, not an independent semantic oracle or runtime dependency."
+    },
+    {
+      "topic": "Modern DXF INSERT carrier",
+      "source": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+      "observed": "Autodesk documents optional INSERT column/row counts in groups 70/71 and column/row spacings in groups 44/45 for a block reference.",
+      "doesNotEstablish": [
+        "that pre-R2.0b REPEAT has INSERT/MINSERT semantics",
+        "that all repeated member types lower losslessly to one anonymous block",
+        "the legacy seed, origin, axes, or order rules"
+      ]
+    },
+    {
+      "topic": "Peer report as vector-selection evidence",
+      "source": "https://github.com/LibreDWG/libredwg/issues/1354",
+      "observed": "The report provides an R1.4 REPEAT-POINT-ENDREP sequence, a 3-column by 2-row spacing example, and describes seed-only DXF output plus leaked control markers. It states that intended representation was not determined. The reported peer corpus was not downloaded or rerun.",
+      "planUse": "Use the sequence shape for an in-memory control; do not adopt the report's interpretation as normative expected behavior."
+    },
+    {
+      "topic": "Local implementation route",
+      "source": "src/intern/dwgreaderR1_40.cpp::dwgReaderR1_40::readEntity",
+      "observed": "T_REPEAT is a no-op; T_ENDREP consumes two 16-bit counts and two doubles then discards them; T_LOAD reads and discards its text. This is a source-confirmed possible silent-loss path, not a runtime-reproduced defect in this review.",
+      "planUse": "Prioritize a fail-closed incomplete/unsupported conversion outcome for repeat-bearing files through existing result and atomic-publication gates, before any semantic expansion work."
+    }
+  ],
+  "implementationReadiness": {
+    "immediateSlice": "Generate an AC1.40 stream in memory containing REPEAT, one primitive, ENDREP, and a following entity. Require a visible incomplete/unsupported result and refusal to publish output as complete; preserve a non-repeat control. Reuse the existing reader-matrix and publication test owners; add no fixture or CTest.",
+    "semanticGate": "Before implementing expansion or array lowering, obtain a reliable old-format manual or native producer/consumer witness for scope, seed inclusion, order, axes/origin, nesting, count limits, and malformed terminators.",
+    "laterOutputGate": "Use asymmetric dimensions and unequal spacings; compare raw output inventory and parsed geometry, block ownership/base point, following sentinel, and exact per-instance identity. Apply checked arithmetic and existing resource budgets before callbacks.",
+    "supportClaimsPromoted": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 123,
+      "topLevelSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw-deeper-broader-ezdxf-binary-proxy-artifact-provenance-review-v1",
+  "reviewedAt": "2026-10-17",
+  "reviewType": "research-only",
+  "objective": "Resolve current status and provenance of ezdxf's binary proxy-graphic writer fix; refine the existing PAR-76/7AP comparator procedure without changing implementation scope or support claims.",
+  "method": {
+    "kind": "Primary-source review of upstream issue, merged PR/commit, PyPI release metadata, and GitHub release page",
+    "peerPackageDownloadedOrInstalled": false,
+    "peerRepositoryClonedOrBuilt": false,
+    "peerRuntimeExecuted": false,
+    "localTestsRun": false,
+    "nativeCadRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "sources": [
+    {
+      "url": "https://github.com/mozman/ezdxf/issues/1412",
+      "role": "Original bug report",
+      "observation": "Issue #1412 was closed by PR #1418. Its minimal reproducer reports that ASCII DXF writes a proxy graphic but Binary DXF raises TypeError in ezdxf 1.4.4 because the proxy export path passes a hex string to a binary tag writer expecting bytes."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/pull/1418",
+      "role": "Merged fix and validation discussion",
+      "observation": "PR #1418 merged to master on 2026-10-02. It changes proxy export to pass raw DXF binary tags to the tag-writer protocol. The PR author reports 55 focused tests against an in-memory patch of official ezdxf 1.4.4 and syntax compilation, not a full repository suite. GitHub shows 11 merge checks passed."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/commit/c87c87e65937feede396e5861eec703bde701ec8",
+      "role": "Immutable source and test diff",
+      "observation": "The merged commit changes proxygraphic.py and lldxf/tagwriter.py and adds tests. The new matrix covers ASCII/Binary, R2010 group 92 and R2013 group 160 length-code profiles, byte lengths 0, 127, 128, 255, and 256, ordered chunk reconstruction, and JSON-tag output. This establishes peer tag-transport controls, not native CAD proxy semantics."
+    },
+    {
+      "url": "https://pypi.org/project/ezdxf/1.4.5/#files",
+      "role": "Published artifact metadata and checksum",
+      "observation": "PyPI lists ezdxf 1.4.5 uploaded 2026-10-16. The source archive ezdxf-1.4.5.tar.gz has SHA-256 a6c3bbc1a65ce764d97c5beafe6ae693d8ed14c6cdae366b50e1974a79d4a00a. PyPI reports that this upload was not Trusted Publishing. The source archive was not downloaded or inspected in this review, so its relationship to c87c87e is unverified."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/releases",
+      "role": "GitHub release-object check",
+      "observation": "The repository's GitHub Releases page currently reports that there are no releases. This means 1.4.5 is a PyPI package candidate without a corresponding GitHub Release object; it does not by itself invalidate the package."
+    },
+    {
+      "url": "https://pypi.org/project/ezdxf/1.4.5/",
+      "role": "Package capability declaration",
+      "observation": "PyPI describes ezdxf as supporting ASCII and Binary DXF read/write through R2018 and retaining third-party tags. These are maintainer metadata claims and do not replace exact artifact inspection or format/consumer conformance evidence."
+    }
+  ],
+  "planUpdates": [
+    "Clarified that issue #1412 was peer-specific binary proxy export failure and that merged commit c87c87e is an immutable optional comparator candidate.",
+    "Recorded that PyPI 1.4.5 exists and its sdist hash is known, while release-to-commit/source correspondence remains unverified; do not infer inclusion from upload timing or version identity.",
+    "Added a minimal artifact verification route: checksum first, inspect proxygraphic.py, lldxf/tagwriter.py, and tests, then classify exact/partial/mismatched correspondence.",
+    "Bound any peer comparison to the already-planned PAR-76/7AP matrix in its existing test owner at the composed checkpoint; retain separate writer, raw-tag, independent-reader, and native-consumer grades.",
+    "Kept this as DXF opaque-carrier evidence only; no proxy semantic, DWG, ACIS, or native-CAD support claim is permitted."
+  ],
+  "implementationReadiness": {
+    "existingOwnerOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "peerExecution": "NOT_RUN",
+    "nativeQualification": "NOT_RUN",
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "findings": 127,
+    "topLevelImplementationSubplans": 71
+  },
+  "limitations": [
+    "The PyPI 1.4.5 source archive was not downloaded, extracted, or compared with the merged source commit.",
+    "No ezdxf runtime was installed or executed; no local or peer tests were run.",
+    "The merged PR's test results are peer-local tag-encoding evidence, not cross-application or proxy-graphic semantic evidence.",
+    "No DWG, ACIS/ACDS, native FreeCAD, LibreCAD, or LibreCAD_3 conclusion follows from this DXF proxy-writer review."
+  ],
+  "validation": {
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "planFileUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw-p6-legacy-mtext-column-xdata-typed-view-v1",
+  "completedAt": "2026-11-02",
+  "status": "PASS_LOCAL_GENERATED_TRANSPORT",
+  "scope": "Expose a non-mutating typed view of pre-R2018 linked-MTEXT column XDATA without flattening group 75/76/78/79/48/49/50 into the main entity or merging linked MTEXT records.",
+  "sources": {
+    "autodesk": [
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm",
+      "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm"
+    ],
+    "independentImplementationDocumentation": [
+      "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mtext.html#column-support",
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/mtext.py"
+    ],
+    "localResearch": [
+      "docs/research/deeper-broader-legacy-mtext-column-xdata-readiness-2026-10-17.json",
+      "docs/research/deeper-broader-mtext-column-scope-reconciliation-2026-10-17.json",
+      "docs/research/deeper-broader-legacy-mtext-xdata-handle-review-2026-10-17.json"
+    ],
+    "authorityLimit": "Autodesk's generic MTEXT table lists the column codes but does not fully scope the legacy container. The XDATA bracket/subkey interpretation follows the documented ezdxf implementation profile; this is not treated as an Autodesk-native semantic qualification."
+  },
+  "implementation": {
+    "api": "DRW_MText::getLegacyColumnXData",
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "behavior": [
+      "Reads only the three exact ACAD XDATA brackets: ACAD_MTEXT_COLUMN_INFO, ACAD_MTEXT_COLUMNS, and ACAD_MTEXT_DEFINED_HEIGHT.",
+      "Validates bracket uniqueness, known key/value types and ranges, counted manual-height spans, and linked-handle syntax; returns NotPresent, Valid, or Malformed without changing extData. Valid is structural only and does not assert producer-wide conformance or native semantics.",
+      "Keeps group-76 metadata count, group-50 height count, group-47 declared link count, and actual 1005 handle-list length independent.",
+      "Returns linked MTEXT handles in source order and leaves each MTEXT callback/entity independent; no graph join or layout calculation is performed.",
+      "Unknown keyed column-info values stay in the original extData sequence and are not rewritten by the typed view."
+    ]
+  },
+  "generatedEvidence": {
+    "profiles": [
+      "ASCII and Binary imported/exported linked-MTEXT XDATA with an interleaved LINE and a forced handle-allocation gap",
+      "In-memory synthetic typed-view controls for static and dynamic-auto modes; generated ASCII/Binary transport for the dynamic-manual profile",
+      "Manual-height list and separate defined-height bracket",
+      "Metadata column count 9, declared linked count 3, and two explicit 1005 targets are retained as separate values",
+      "Unknown key 99 remains byte/order-visible in raw XDATA",
+      "Malformed typed unknown key is reported by the view and remains an atomic generic-writer refusal"
+    ],
+    "limits": [
+      "No physical producer sample was added or qualified.",
+      "No native CAD renderer/evaluator or independent runtime was executed.",
+      "No linked MTEXT aggregation, ordering semantics, text layout, or consumer support claim is established.",
+      "The existing generic XDATA writer remains responsible for raw preservation and 1005 remapping."
+    ]
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_mtext_column_object_scope$' --output-on-failure",
+        "result": "PASS",
+        "notes": "ASCII/Binary MTEXT scope and legacy XDATA controls passed; the fast test took about 1.4 seconds."
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "fullSuitesRun": false,
+    "fixturesCommitted": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

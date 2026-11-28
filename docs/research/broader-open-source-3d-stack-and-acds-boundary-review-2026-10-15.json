@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw-broader-open-source-3d-stack-review-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "5eaa61a",
+  "scope": "Broadened research across independent DWG/DXF/ACIS projects, downstream CAD consumers, and the ODA DataStorage record-boundary rule",
+  "method": {
+    "kind": "static review of current primary project source/docs, live issue reports, and local ODA v5.4.1 text",
+    "runtimeTestsRun": false,
+    "peerLibrariesRun": false,
+    "nativeCadRun": false,
+    "sourcePinning": "Mutable GitHub main/master and docs.rs latest pages were read on 2026-10-15; pin exact revisions/builds before any external execution.",
+    "evidenceRule": "Project README claims and issue-reported measurements are leads only. Distinguish parser, geometry kernel, display, and target-consumer evidence; no single category promotes support."
+  },
+  "findings": [
+    {
+      "id": "OPENCADSTUDIO_NON_OCCT_CANDIDATE",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/HakanSeven12/opencadkernel",
+        "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md"
+      ],
+      "evidence": "OpenCADStudio advertises native DWG/DXF R14-R2018 workflows and desktop releases for Windows, Linux, and Apple Silicon macOS. Its documented ACIS display route parses SAT/SAB, attempts to lift bodies into opencadkernel B-rep and triangulate faces, and has a per-surface fallback which marks incomplete meshes. opencadkernel describes itself as early, with most operations not yet implemented. The codec repository is a fork in the ACadRust lineage, not an independent parser family from ACadRust.",
+      "confidence": "Project source/docs and code-family relationship; no binary execution or independent file inspection in this review.",
+      "planUse": "Add as a candidate cross-platform non-OCCT consumer and distinct custom-kernel lineage. It may support target-display/mesh completeness checks after pinning; it is not yet a stand-alone exact B-rep oracle. Require exact version, supported SAT/SAB profile, file hash, body/handle inventory, no incomplete fallback, and a source-authored expected manifest."
+    },
+    {
+      "id": "OPENCADSTUDIO_ACDS_PASSTHROUGH_REPORT",
+      "sources": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1078"
+      ],
+      "evidence": "A maintainer reports that a same-version DWG writer correction retained non-entity DataStorage links with the unchanged AcDs section and produced a byte-identical 613-segment AcDs section for the supplied source pair. The same report documents earlier layout/MLeader corruption and says the fix was validated against its supplied case.",
+      "confidence": "Issue maintainer report, not independently rerun here and not normative format evidence.",
+      "planUse": "Prioritize a conservative unchanged-section passthrough path before general AcDs/SAB writer synthesis. Bind reuse to the exact source section/version, linked body handles, source payload hashes, and unchanged geometry/reference graph. Any solid edit, erase, owner change, or handle remap must invalidate passthrough or use a qualified regeneration route; a no-op byte copy cannot establish editable geometry support."
+    },
+    {
+      "id": "LIBREDWG_ACDS_SILENT_LOSS_REPORT_REFRESH",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec"
+      ],
+      "evidence": "Open issue #1411 reports that an AC1032 REGION's 5,489-byte SAB body is lost through LibreDWG DXF-to-DWG-to-DXF conversion while its entity remains; a separate confidential AutoCAD 2018 case reportedly loses 88 bodies. Current source contains an AcDs section reader, which is compatible with the distinction between section recognition and complete DataStorage/body association.",
+      "confidence": "Issue reproductions and confidential sample were not executed or independently inspected; repository source is a mutable snapshot.",
+      "planUse": "Keep per-leg source-handle, has-data/empty-state, AcDs record, body payload hash and target disposition checks. Entity-count equality or successful conversion is not a 3D pass."
+    },
+    {
+      "id": "ODA_DATA_RECORD_BOUNDARY_RULE",
+      "sources": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "local reference: Open Design Specification v5.4.1, section 24.2.2.3, printed pages 254-256",
+        "src/drw_datastorage.cpp::readDataRecords"
+      ],
+      "evidence": "ODA defines each data record's maximum readable span from the next consecutive data-stream offset, or the data-segment end for the last record. An inline record is valid only when the 4-byte size field plus dataSize fits that span. The direct-byte-array limit is 0x40000; larger values use the explicit blob-reference marker. At baseline 5eaa61a the local reader bounded direct payloads by the segment end but did not apply the next-record span or 0x40000 limit. The follow-on in-memory reproducer demonstrated both violations, and the working-tree change now enforces the bounds.",
+      "confidence": "Normative ODA statement cross-checked against local source; the baseline gap was reproduced and the focused local fix passed its targeted test. Producer-profile coverage remains open.",
+      "planUse": "Keep the checked per-segment ordered offset map and adjacent-record bounds for inline payloads and complete blob descriptors. Retain exact 0x40000 acceptance, direct 0x40001 rejection, overlap rejection, and following-record survival as regression controls. Keep inputs generated in memory; continue with multi-page aggregate-size and page-reference hardening."
+    },
+    {
+      "id": "FREECAD_STANDARD_ACIS_BOUNDARY",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "evidence": "FreeCAD's current format guide describes stock DXF/DWG conversion/import as 2D-only because 3D ACIS payloads are proprietary; issue #18454 says the ordinary DXF importer cannot read those blobs. This confirms that the standard FreeCAD Linux/Windows qualification is a 2D and truthful-loss gate, not an ACIS semantic oracle.",
+      "confidence": "Current project documentation and maintainer issue response; exact native FreeCAD builds/importer modes still require runtime qualification.",
+      "planUse": "Keep native Linux and Windows FreeCAD acceptance scoped to the configured stock importer/converter and represented 2D/explicit entities. Keep ACIS shape semantics on a separately named kernel/plugin route."
+    },
+    {
+      "id": "INVENTORLOADER_LICENSE_AND_SCOPE_CAUTION",
+      "sources": [
+        "https://github.com/jmplonka/InventorLoader",
+        "https://github.com/jmplonka/InventorLoader/blob/master/LICENSE",
+        "https://freecad.github.io/Addon-Reports/"
+      ],
+      "evidence": "InventorLoader advertises SAT/SAB and DXF-solid import and its source contains ACIS/SAB parsing through FreeCAD Part/OCCT. The GitHub repository LICENSE page contains GPL-2.0 text while the FreeCAD Addon Report labels the add-on LGPL-3.0-or-later, a metadata/source-license discrepancy. The project documents unsupported ACIS constructs and is not a DWG AcDs parser.",
+      "confidence": "Public repo/docs metadata; license conflict must be resolved against exact file notices/maintainer terms before reuse.",
+      "planUse": "Keep it optional as an external parser/OCCT comparison only. Do not copy, link, or redistribute its code until license provenance is reconciled; do not count it as a distinct geometry kernel from FreeCAD."
+    },
+    {
+      "id": "ACADRUST_AND_CQ_ACIS_ROLE_SEPARATION",
+      "sources": [
+        "https://docs.rs/acadrust/latest/acadrust/entities/acis/sab/index.html",
+        "https://docs.rs/acis-core/latest/acis_core/",
+        "https://github.com/monozukuri-ai/cq-acis"
+      ],
+      "evidence": "ACadRust documents a pure-Rust SAT/SAB/DWG/DXF implementation; acis-core explicitly says model reference closure is not B-rep validity and does not itself construct OCCT solids. cq-acis converts only supported profiles/shapes to CadQuery/OCCT and calls the project experimental.",
+      "confidence": "Current project documentation; exact release and profile must be pinned before execution.",
+      "planUse": "Use Rust-owned parser/reference-closure output as a structural differential only; use cq-acis/FreeCAD as one shared OCCT geometry lineage; never count the parser and geometry adapter as two independent kernels."
+    }
+  ],
+  "readinessChanges": [
+    "Implement ODA adjacent-record bounds and direct/blob threshold vectors before continuing higher-level AcDs writer work.",
+    "After local bounded extraction is stable, separate same-version unchanged AcDs raw passthrough from edited/new-body synthesis; stale handle or payload fingerprints must refuse reuse.",
+    "Add pinned OpenCADStudio as a possible Linux/Windows/macOS consumer checkpoint for complete visible 3D tessellation, not as a current exact-shape oracle.",
+    "Keep native FreeCAD standard import qualification focused on 2D/explicit-entity and no-silent-loss behavior; do not wait for its expected ACIS importer limitation to implement local parsing."
+  ],
+  "scopeBoundary": {
+    "findings": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "followOnImplementationCommit": "3792076",
+    "projectBuild": "Targeted libdxfrw_graph_preservation_tests and lc3_compat_check build PASS after the follow-on local parser change",
+    "tests": "libdxfrw_graph_preservation CTest PASS 1/1; full suite not run",
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "nativeQualification": "NOT RUN",
+    "peerProgramsExecuted": 0,
+    "validationReceipt": "docs/research/acds-record-boundary-fast-test-2026-10-15.json"
+  }
+}

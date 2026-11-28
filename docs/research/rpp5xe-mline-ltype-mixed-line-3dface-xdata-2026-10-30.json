@@ -1,0 +1,100 @@
+{
+  "id": "RPP-5xe",
+  "title": "AC1027 MLINE LTYPE mixed LINE and 3DFACE XDATA references",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "d69b5993dfeabdb8a61a786547f5e706d8f98875",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository DWG/DXF fixture was added.",
+    "route": "One ordered code-1005 pair in the source-bound EditDash LTYPE: LINE in model-space ENTITIES followed by 3DFACE in named AuthorityBlock BLOCKS.",
+    "xdata": {
+      "ltype_handle": "0x103",
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "target_source_handles": ["0xA900", "0xA901"]
+    },
+    "targets": [
+      {
+        "type": "LINE",
+        "section": "ENTITIES",
+        "source_owner": "0x201",
+        "geometry": {"start": [1.25, 0, 0], "end": [1.25, 1, 1]}
+      },
+      {
+        "type": "3DFACE",
+        "subclass": "AcDbFace",
+        "section": "BLOCKS",
+        "block": "AuthorityBlock",
+        "source_owner": "0x203",
+        "corners": [[100.5, 2, 0], [101.5, 2, 0], [101.5, 3, 0], [100.5, 3, 0]],
+        "invisible_edge_flags": 15
+      }
+    ],
+    "encoding_matrix": "ASCII and binary source crossed with ASCII and binary output.",
+    "runtime_fixture": "The focused test writes source drawings under a temporary directory and removes them; no test fixture file was committed."
+  },
+  "authority": {
+    "sources": [
+      {
+        "title": "3DFACE (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+        "relevant_rule": "Defines the AcDbFace subclass, four WCS corner coordinates in groups 10-13 with Y/Z components, and optional group-70 invisible-edge bits 1, 2, 4 and 8."
+      },
+      {
+        "title": "About 1005 Group Codes (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-8243079C-B44F-493A-BAF7-1D11A6E6C78C.htm",
+        "relevant_rule": "An XDATA group-1005 handle has soft-pointer behavior and is translated when its host object is merged into another drawing."
+      }
+    ]
+  },
+  "proof": {
+    "source": "The collector binds the ordered handles to exact LINE and 3DFACE dynamic types, callbacks, owners and sections. It verifies LINE endpoints, all four face corners, AcDbFace and the selected invisible-edge flags, plus fresh typed source entities.",
+    "output": "All four encoding combinations verify the ordered remapped code-1005 values against emitted LINE and 3DFACE identities, exact owners/sections, group-70 flags, all physical face coordinates, and fresh typed readback.",
+    "failure_retry": "For each encoding combination, removing either target independently refuses output while preserving the destination; restoring the target allows same-adapter retry. One late 3DFACE-handle mutation after APPID emission also requires atomic refusal and destination preservation, then succeeds after restoring the source handle and retrying.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 13,
+      "selected_refusals_with_destination_preservation": 9,
+      "selected_same_adapter_retries": 9,
+      "whole_focused_test_profiles": 340,
+      "whole_focused_test_readbacks": 770,
+      "whole_focused_test_refusals": 430,
+      "whole_focused_test_retries": 430
+    },
+    "repository_fixtures_added": false
+  },
+  "implementation": {
+    "source_binding_commit": "d69b5993dfeabdb8a61a786547f5e706d8f98875",
+    "changes": "Generalizes the runtime-generated mixed-target test helpers and adds one LINE-in-ENTITIES plus 3DFACE-in-BLOCKS profile. No production code, public API or consumer callback changed.",
+    "claim_boundary": "This qualifies only the selected AC1027 ordered two-target transport and identity profile. It does not establish arbitrary mixed-target graphs, general code-1005 support, recursive closure, native CAD meaning, other versions or format support claims."
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j 4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 19.08 seconds); aggregate assertions include selected profiles and refusal/retry controls."
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "adapter_source_sha256": "9e937916e3ad0ce41bececf96774d3fe83a3770b90b6f7551720f6d6111667cd",
+      "test_source_sha256": "e792cbd7211d4bc8a2134bf5538c4b9d5e148c89db871b695063cdf8412439f7",
+      "normal_executable_sha256": "5415a3eba9c9bd3890256e18d5be78ed3a5ff721677d3b92345f189ffdeadae0",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+      "focused_ctest_log_sha256": "500406c8ed98e00917370a89ddf00b7ecd1d54916815f402e847db993fbf2ac6",
+      "focused_build_log_sha256": "889a8b1808d2ee4629b5b06243c501c621cec0d2042f1c20c99fd91dae724fe7",
+      "plan_sha256_before_receipt_update": "8804d6b08187eea0954503267eebc15d341287d8747eb93864b86411459b2138"
+    }
+  },
+  "limits": [
+    "Only the selected two-reference AC1027 composition with model-space LINE followed by named-block 3DFACE is qualified; other mixed target sets, sections, cardinalities, versions and XDATA payloads remain open.",
+    "The checks prove selected transport fields and typed readback, not native rendering, general face semantics or recursive document closure.",
+    "Successful output does not promote any support claim."
+  ],
+  "next": "Select another current source-bound mixed-target profile or target type; keep its exact owner, section, output, readback, refusal and retry gates."
+}

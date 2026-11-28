@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-ltype-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_LTYPE_DIRECT_WRITER_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Generated direct LTYPE table-writer allocation rollback, same-codec retry, and typed readback across supported DXF revisions.",
+  "source": {
+    "kind": "deterministic locally-authored DRW_LType generated during each test run",
+    "profile": "One named custom linetype with description, fixed-A alignment, and two signed dash lengths.",
+    "versions": ["AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/ltype_table_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-ltype-version-matrix-allocation-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "41d12fcb172aabd2a4a25f890751551b8ca612a7e174fb51cb7263e9ae789353",
+    "testExecutableSha256": "27aa08f8e3511ca825e8b6f924370ccab5835464ff7ec8068eba908a8a672aac",
+    "method": "Calibrate each public writeLineType() callback inside a complete staged file write; inject std::bad_alloc at every measured callback allocation; require unchanged destination sentinel and caller table row; retry on the same codec, compare exact bytes with clean calibration, and freshly read back the typed LTYPE fields."
+  },
+  "allocationOffsets": {
+    "AC1014": {"ASCII": 22, "Binary": 21},
+    "AC1015": {"ASCII": 22, "Binary": 21},
+    "AC1018": {"ASCII": 22, "Binary": 21},
+    "AC1021": {"ASCII": 21, "Binary": 20},
+    "AC1024": {"ASCII": 21, "Binary": 20},
+    "AC1027": {"ASCII": 21, "Binary": 20},
+    "AC1032": {"ASCII": 21, "Binary": 20},
+    "totals": {"ASCII": 150, "Binary": 143, "all": 293}
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_ltype_table_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_ltype_table_allocation$' --output-on-failure: PASS 1/1 in 0.72 seconds",
+    "directControl": "build-gcc/tests/libdxfrw_ltype_table_allocation_tests: PASS; seven revisions, both encodings, all 293 measured offsets",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated libdxfrw writer transaction and typed readback evidence only; producer-authored LTYPE semantics and reference closure remain unqualified.",
+    "This does not implement LibreCAD PR #3269's adapter-side reconciliation of edited LC_LineType definitions against archived DRW_LType records.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "The direct custom LTYPE table writer now passes allocation rollback, original-record preservation, same-codec exact retry, and typed readback across AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 ASCII and Binary.",
+    "remainingP6G": "Continue the public-writer inventory for distinct uncovered routes, overloads, and compound variants; P6-G remains open.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "213 completed slices and 35 remaining packages: 213/(213+35)=85.9%; count-based activity proxy only."
+  },
+  "previousReceipt": "docs/research/p6-dxf-layer-version-matrix-allocation-2026-11-13.json"
+}

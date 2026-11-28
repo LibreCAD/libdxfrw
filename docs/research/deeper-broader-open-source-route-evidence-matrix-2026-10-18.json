@@ -1,0 +1,122 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Open-source DWG/DXF route and validation-evidence matrix",
+  "mode": "Primary-source repository/documentation review; plan refinement with local generated-test evidence",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Compare peer DWG/DXF parser version and direction declarations with their documented fidelity boundaries",
+    "Refresh proxy graphics, opaque data, ACIS projection, native-writer, and fuzz-harness evidence boundaries",
+    "Use the generated local AC1024 proxy test to refine the existing PAR-132/7CB plan without adding a new top-level finding"
+  ],
+  "method": {
+    "kind": "Read-only review of primary project documentation and local source/test evidence",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": true,
+    "localBuildRun": true,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedThisPass": true,
+    "testCodeChangedThisPass": true,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Peer sources are mutable documentation unless otherwise stated. No third-party executable was run, no external drawing was acquired, and no claim of exhaustive repository discovery or broad format conformance is made. ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance and Autodesk DXF reference",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-89A690F9-E859-4D57-89EA-750F3FB76C6B.htm"
+      ],
+      "revision": "ODA v5.4.1 PDF and Autodesk AutoCAD DXF reference, reviewed 2026-10-18",
+      "observed": "ODA §20.4.90 defines DWG PROXY layout and chapter 29 separately defines common proxy graphics. Autodesk's DXF reference maps group 90 to fixed proxy class ID 498, group 91 to application class ID, and distinguishes graphics bytes, entity-data bits, object IDs, and drawing format."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/HACKING",
+        "https://github.com/LibreDWG/libredwg-fuzz"
+      ],
+      "revision": "Mutable master documentation and public fuzz repository, reviewed 2026-10-18",
+      "observed": "The manual declares stable, unstable, debugging, and unhandled class maturity and describes limitations on same-version unknown-bit retention. HACKING documents instrumented fuzzing modes and regression workflows. These are disposition/harness patterns, not semantic-completeness evidence."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "revision": "Mutable README version matrix, reviewed 2026-10-18",
+      "observed": "The declared matrix lists DWG read/write per version, including no AC1012 DWG reader/writer and no AC1021 DWG writer, despite broader feature statements. It is not a per-entity or object-graph fidelity matrix."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/options.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/acad_proxy_entity.html",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "revision": "Stable 1.4.5 documentation, reviewed 2026-10-18",
+      "observed": "Proxy graphics can be omitted to save memory but are then lost on rewrite. ACIS SAT/SAB load/export and mesh projection cover bounded structures and do not amount to a general ACIS kernel or full semantic oracle."
+    },
+    {
+      "project": "IxMilia.Dxf and dxf-parser",
+      "urls": [
+        "https://github.com/ixmilia/dxf",
+        "https://github.com/gdsestimating/dxf-parser"
+      ],
+      "revision": "Mutable repository README documents, reviewed 2026-10-18",
+      "observed": "IxMilia.Dxf documents DXF version/entity boundaries and warns that AutoCAD may reject some writer outputs including 3DSOLID and ACAD_PROXY_ENTITY. dxf-parser declares mostly-2D coverage and no 3DSOLID support. Neither is a DWG or general 3D semantic oracle."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 3,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newIndependentDwgParserCandidates": 0,
+    "newIndependentAcisSemanticOracles": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 132,
+      "topLevelSubplans": 75
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Refines existing PAR-132/7CB with generated evidence: the DWG application class ID was not mapped, entity-data bit-size presence was not set, and partial-byte copying crossed the opaque payload boundary. Adds explicit per-route/per-direction comparator admission and keeps metadata, raw data, handles, proxy graphics, display projection, and ACIS semantics separate. No new finding, top-level subplan, dependency, peer run, fixture, or support promotion."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --proxy-entity-dispatch",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "git diff --check -- src/drw_entities.cpp src/intern/dwgreader.cpp tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "testsRun": true,
+    "focusedTestsPassed": true,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

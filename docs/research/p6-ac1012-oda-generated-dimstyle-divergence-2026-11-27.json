@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-oda-generated-dimstyle-divergence-2026-11-27",
+  "supportClaimEffect": "none",
+  "candidateCommit": "a3f360052",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1 and 20.4.68",
+  "scope": "Compare physically observed DIMSTYLE on the locally generated ODA AC1012 source/destination pair with their existing ODA DXF reopens.",
+  "checks": [
+    "The shared version-aware DIMSTYLE observer binds both ODA-generated DWG frames, including their absolute role-4 control owner, non-null extension 0x1E1, null xref and role-5 STYLE 0x30. Their selected body values match the earlier LibreDWG-generated pair; wrong roles and all byte-prefix truncations are rejected and original-frame retry passes.",
+    "In both ODA-generated DWGs, DIMSCALE=1, DIMASZ=0.18, DIMTXT=0.18, DIMEXO=0.0625 and DIMTIH=1. The existing ODA 27.10 DXF reopens give 1, 2.5, 2.5, 0.625 and 0 respectively; ezdxf 1.4.5 reports zero audit errors or fixes. Independent LibreDWG decoding reports the same selected source values.",
+    "The locally authored input DXFs for both ODA-generated drawings already contain the same 2.5, 2.5, 0.625 and 0 values as the ODA reopens. The intervening AC1012 DWG wire instead contains 0.18, 0.18, 0.0625 and 1; matching input/output DXF alone therefore does not demonstrate preservation of these fields through DWG.",
+    "Thus the observed difference is not confined to a LibreDWG-produced DWG. The ODA-profile handoff now warns about the discrepancy; the populated-pair observer remains unchanged on its original frames. No drawing fixture was committed."
+  ],
+  "scratchPacket": "/private/tmp/ac1012-native-oda-dimstyle-caution-20261127",
+  "hashes": {
+    "odaSourceDwg": "25c08bb8b303ce1729b2171efe163aeebf4ebf31e468fb41dc5236f66a635bd8",
+    "odaDestinationDwg": "23f2f3282e9a6cef217f0be4944713408fb043f9834ea4689f38c4f768a11be9",
+    "sourceComparison": "13cae26389e1caf5fa96a6977ae6647d9588940ca637241dedd1f838aca8266b",
+    "destinationComparison": "c4ac465fa9075abd5d4577b0deca22ea5539724e493cda63d697450bb08ba6db",
+    "sourceFullChainComparison": "87a6f26412aefd9db420e2e5d597bf32e5cf975f09d8ce23033700d60fff2bab",
+    "destinationFullChainComparison": "4cdd642b18d0dd1e9b4a2db7c7861234f9b97ac7322869e9041fab41abbcde17",
+    "inputSourceDxf": "7cebf528b96e2a862a892592ee4f319edac7b3fc95259c80e7261a3bac7a41c2",
+    "inputDestinationDxf": "94f0d00661cc1f5d7aaa4c868eb15fbea03a2fbdb2f84f52c3ede4e37de6589c",
+    "packetManifest": "e9ff9ad5d05b7605a0451dfe6476089f33b7e0c3cd68d11f0076b60b8fa323ae",
+    "comparisonTool": "3e9fdd3fdfb4b383903a12752a5059e790524a589b6837c668fa25a640b31496",
+    "wireObserver": "e0125db103ee6d3cc43f4dc83eff4b69c93618386a666c1f0bee576d18c537fb"
+  },
+  "limits": [
+    "This is a source-wire and output comparison, not proof of the cause of conversion differences, native AutoCAD behavior, whole-file fidelity or dictionary cloning semantics.",
+    "The non-null extension target and the remaining ODA-source graph still require separate closure."
+  ]
+}

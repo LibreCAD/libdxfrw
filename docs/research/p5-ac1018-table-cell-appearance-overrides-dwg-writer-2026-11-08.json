@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-08",
+  "slice": "AC1018 TABLE text-cell fill-state and indexed color overrides",
+  "status": "implemented_generated_codec_self_consistency_only",
+  "authority": "Open Design Specification for .dwg files v5.4.1, section 20.4.96.1",
+  "scope": {
+    "version": "AC1018",
+    "cell_type": "text (1)",
+    "bits": {
+      "0x02": "background fill-none boolean; retained as the existing DRW_TableCell m_backgroundEnabled/group-283 model value",
+      "0x04": "background color CMC; maps to indexed m_fillColorRgb and DXF group 63",
+      "0x08": "content color CMC; maps to indexed m_textColorRgb and DXF group 64"
+    },
+    "color_domain": "ByBlock index 0, ACI indices 1-255, or ByLayer index 256; no truecolor, named color, or color-book side channel",
+    "at_this_slice": "the text-style hard pointer bit 0x10 is supported by the later cell text-style receipt",
+    "unsupported": ["remaining unmodeled cell override bits", "native visual meaning of the group-283 model boolean"]
+  },
+  "generated_control": {
+    "authenticity": "locally generated codec vector; no DWG/DXF fixture",
+    "values": {
+      "mask": "0x0e",
+      "group_283_model_boolean": true,
+      "background_color_index": 256,
+      "content_color_index": 13
+    },
+    "checks": [
+      "typed readback matches the generated boolean and indexed colors",
+      "semantic-complete flag remains set for canonical indexed colors",
+      "parser cursor equals the encoded body boundary and following sentinel is preserved",
+      "unflagged fill/color residue and non-indexed color methods are rejected atomically"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+    "result": "passed; 1/1 focused CTest",
+    "diff_check": "git diff --check passed"
+  },
+  "limitations": [
+    "No producer-backed cell appearance witness or native CAD rendering/readback was used.",
+    "The group-283 model field name does not establish whether native background fill is enabled or suppressed; only the wire/DXF boolean round-trip is tested.",
+    "No source span, complete TABLE graph, or source-to-output equivalence is established; public dwgRW::writeTable remains fail-closed."
+  ]
+}

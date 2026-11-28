@@ -1,0 +1,29 @@
+{
+  "id": "p5-generated-tablestyle-legacy-group-order-2026-11-12",
+  "date": "2026-11-12",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "scope": "Generated AC1021 typed DWG-origin legacy TABLESTYLE serialization order through ASCII and Binary DXF fresh readback.",
+  "input": {
+    "recipe": "The test constructs the NOD -> ACAD_TABLESTYLE dictionary -> typed TABLESTYLE graph and TABLE_FONT dependency in memory via populateTypedDwgTableStyleGraph. It contains three legacy rows with six ordered borders each.",
+    "fixture_policy": "Generated in memory; temporary DXF outputs are removed after import. No DWG/DXF fixture was committed.",
+    "source_binding": "Test code is the authoritative generated source; no external physical drawing or producer claim is used."
+  },
+  "implementation": {
+    "test": "typedDwgTableStyleDxfRoundTrip",
+    "selector": "--tablestyle-legacy-ordered-writer",
+    "assertion": "The freshly imported raw TABLESTYLE record must contain one contiguous exact code/type/value sequence beginning at group 100 AcDbTableStyle and covering the legacy header plus all three text-style, scalar, lineweight, visibility, border-color, data-type, and unit-type row fields in writer order.",
+    "existing_checks": "Retains existing typed field, border, handle, graph, and fresh readback checks."
+  },
+  "verification": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "focused_test": "ctest --test-dir build-gcc -R '^libdxfrw_tablestyle_legacy_ordered_writer$' --output-on-failure",
+    "result": "PASS 1/1; selector exercises ASCII and Binary generated round trips.",
+    "runtime_seconds": 0.63,
+    "configuration": "Local build-gcc configuration; test target compiled with repository warning flags including -Werror."
+  },
+  "limits": [
+    "This is generated writer-order and parser-readback evidence only; it does not qualify physical-source TABLESTYLE output or dependency closure.",
+    "The opt-in physical AC1018 output selector encounters separate source-profile and whole-source gates; it is not used by this receipt.",
+    "No native TABLE rendering, producer breadth, or support claim is promoted."
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-current-parser-spec-pair-recheck-2026-11-25",
+  "date": "2026-11-25",
+  "status": "POST_LAYOUT_COMMIT_SPEC_PAIR_AND_GUARDS_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "commit": "ad5d33402a8538c0806d0d8e444e7970a65b5362",
+    "candidate": {
+      "path": "build-gcc/dwg2dxf/dwg2dxf",
+      "sha256": "b7c308bf5ca08fb4859dd1b926279d3c098845d5591bf3bd7a00b2d754794650"
+    },
+    "focusedTest": {
+      "path": "build-gcc/tests/libdxfrw_dwg_ac1014_dictionaryvar_tests",
+      "sha256": "49246eaf16b08620ea5fdd401d730c587124403b6e4a735e55802d4b29c149d1",
+      "exitCode": 0,
+      "result": "physical AC1012 dictionary frame and role/refusal/retry: PASS"
+    }
+  },
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "sections": ["9 HEADER VARIABLES", "20.4.44 DICTIONARY", "20.4.73 MLINESTYLE"],
+    "appliedConstraints": [
+      "AC1012 DICTIONARY names are counted in the object-data stream; item handles use the soft-owner role; later cloning and hard-owner fields are absent.",
+      "The current DIMSTYLE header value is a hard pointer to the unique Standard record.",
+      "Each selected MLINESTYLE is owned by ACAD_MLINESTYLE."
+    ]
+  },
+  "producer": "LibreDWG 0.14 dwgadd/dwgread/dwgwrite from local recipes and JSON; not AutoCAD-authored",
+  "generator": {
+    "path": "tools/research/generate_ac1012_dictionary_merge_samples.py",
+    "sha256": "cd62cfca9d2204362533a8607a1f06484db8f09c7156dcec4de6f895c63476ef"
+  },
+  "scratchDirectory": "/private/tmp/ac1012-layout-followup-20261125/ac1012-dictionary-merge-kfeu1xbw",
+  "samples": {
+    "destination": {
+      "file": "destination-ac1012.dwg",
+      "sha256": "cb5d40f3c016e3a163cf914cde5dc4e9c715756a56180251e124939616bf71d4",
+      "dictionaryFrame": {"sizeBytes": 50, "sha256": "0d005170285d2dbdc3887520bc5a018a708e58aff8568324818f1f918da95d07", "crcValid": true},
+      "entries": {"SAME_KEY": 46, "DEST_ONLY": 47},
+      "anglesDegrees": {"SAME_KEY": 15, "DEST_ONLY": 22}
+    },
+    "source": {
+      "file": "source-ac1012.dwg",
+      "sha256": "dfb0ce15b7eae4e27d456ad5a789a8615592cd6f1236acf4d13b508b4434e19c",
+      "dictionaryFrame": {"sizeBytes": 52, "sha256": "fbaf235e03a52ceacff32f57b3e0334dd4cb0a535b42e659eaa66bdd7c7a49c7", "crcValid": true},
+      "entries": {"SAME_KEY": 46, "SOURCE_ONLY": 47},
+      "anglesDegrees": {"SAME_KEY": 37, "SOURCE_ONLY": 51}
+    }
+  },
+  "validation": {
+    "strictOutput": "ASCII and Binary refuse with the native duplicate-merge qualification diagnostic and preserve pre-existing destinations for both samples.",
+    "explicitPartialOutput": "ASCII and Binary emitted both selected dictionaries; independent bounded DXF audits retain SAME_KEY, the distinct style values, and the non-conflicting entry for each source.",
+    "fixturePolicy": "DWG/DXF files are scratch-only. No generated fixture was added to the repository."
+  },
+  "limits": [
+    "These samples validate the versioned object frame and candidate output guards; they are not native AutoCAD open/merge evidence.",
+    "AutoCAD's absent-field default and duplicate-key clone behavior remain unresolved; strict AC1012 output remains guarded."
+  ]
+}

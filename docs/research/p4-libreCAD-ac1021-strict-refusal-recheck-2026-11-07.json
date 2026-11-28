@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-libreCAD-ac1021-strict-refusal-recheck-2026-11-07",
+  "date": "2026-11-07",
+  "status": "STRICT_REFUSAL_CONFIRMED",
+  "supportClaimEffect": "none",
+  "scope": "Recheck the tracked historical LibreCAD AC1021 ordinary_enc fixture's strict-output gate and determine whether LTYPE membership alone explains refusal.",
+  "source": {
+    "path": "tests/fixtures/dwg/ordinary_enc_AC1021.dwg",
+    "sha256": "25685bec2d9d537a2f04dfd081f2a0933078cc19c59ebc3473dc011dfad970c8",
+    "provenance": "Existing tracked LibreCAD regression fixture; no DWG/DXF fixture was added or modified."
+  },
+  "observations": {
+    "publishedFrames": 26,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "integrityRows": 16,
+    "errors": {
+      "headerCurrentReferences": 4,
+      "ltypeControlRole": 1,
+      "layerLtypeRole": 1,
+      "blockControlRole": 1
+    },
+    "checksumWarnings": 9,
+    "strictOutput": "REFUSED before creating output"
+  },
+  "probe": {
+    "purpose": "Determine whether the exact historical LTYPE member order is the only strict-completeness blocker.",
+    "result": "A temporary local branch in the LTYPE membership predicate matched BYBLOCK/BYLAYER/CONTINUOUS to the exact source-ordered handles and satisfied that predicate. Strict conversion still refused because the independent integrity Error rows remain disqualifying.",
+    "disposition": "Temporary code was reverted. No diagnostic severity or strict-read gate was weakened.",
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/fixtures/dwg/ordinary_enc_AC1021.dwg -y -d -v2010 <fresh output>",
+    "exitCode": 1,
+    "outputCreated": false
+  },
+  "decision": "Do not admit this source to strict output by whitelisting LTYPE ordering. Reopen only with format-valid, lossless treatment for all four null HEADER references and the three ownership-role mismatches; keep checksum warnings distinct from those structural errors.",
+  "validation": {
+    "testedHead": "8c3a410db55d93577a91028487345ac96c0edeae",
+    "probeBinarySha256": "764fa75c34ee00791381c86180aafbcc7fd4c4b2e9668c3a10ae6432f3e92175",
+    "probeLogSha256": "457f13ffb2dee54ed35f843cf95edb052be1be89d9f68a7a9332dddf0cd8c5fd",
+    "focusedBuild": "PASS: temporary dx_iface probe compiled with -Werror as part of the dwg2dxf target.",
+    "fullSuites": "NOT RUN"
+  }
+}

@@ -1,0 +1,77 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index d980dfb..ba771cc 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2420 +2420 @@ bool CDxfRead::ReadBoundedMesh(
+-    const std::string& parentLayer, bool hasExplicitColor, bool polygonMesh,
++    const std::string& parentLayer, int parentColor, bool polygonMesh,
+@@ -2453,0 +2454 @@ bool CDxfRead::ReadBoundedMesh(
++        int vertexColor = -1;
+@@ -2475,0 +2477,4 @@ bool CDxfRead::ReadBoundedMesh(
++                case 62:
++                    ProcessPolyfaceInteger(this, &vertexColor);
++                    if (vertexColor < 1 || vertexColor > 256) profileValid = false;
++                    break;
+@@ -2505,0 +2511,4 @@ bool CDxfRead::ReadBoundedMesh(
++        // Coordinate vertices share the parent's properties; face records can
++        // carry distinct colors. This bounded profile accepts only explicit
++        // equality, interpreting an omitted group 62 as BYLAYER.
++        if ((vertexColor == -1 ? 256 : vertexColor) != parentColor) profileValid = false;
+@@ -2625 +2634 @@ bool CDxfRead::ReadBoundedMesh(
+-    OnReadBoundedMesh(vertices, faces, polygonMesh, hasExplicitColor);
++    OnReadBoundedMesh(vertices, faces, polygonMesh, parentColor != 256);
+@@ -2729 +2738 @@ bool CDxfRead::ReadPolyLine()
+-                               colorSeen && parentColor != 256, polygonMesh, mCount, nCount,
++                               colorSeen ? parentColor : 256, polygonMesh, mCount, nCount,
+diff --git a/src/Mod/Import/App/dxf/dxf.h b/src/Mod/Import/App/dxf/dxf.h
+index d758f95..68cf865 100644
+--- a/src/Mod/Import/App/dxf/dxf.h
++++ b/src/Mod/Import/App/dxf/dxf.h
+@@ -663 +663 @@ private:
+-        const std::string& parentLayer, bool hasExplicitColor, bool polygonMesh,
++        const std::string& parentLayer, int parentColor, bool polygonMesh,
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index 108ebe9..c7868b6 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -296 +296 @@ class TestImportDXF(TestImportBase):
+-            ("face_layer", False, 0), ("parent_color", True, 1),
++            ("face_layer", False, 0), ("parent_color", False, 0),
+@@ -775 +775,3 @@ class TestImportDXF(TestImportBase):
+-                 ("duplicate", [1, 2], False)]
++                 ("duplicate", [1, 2], False), ("parent_only", [1], False),
++                 ("vertex_mismatch", [1], False), ("vertex_duplicate", [1], False),
++                 ("face_mismatch", [1], False)]
+@@ -777,0 +780,2 @@ class TestImportDXF(TestImportBase):
++                if polygon and name == "face_mismatch":
++                    continue
+@@ -786 +790 @@ class TestImportDXF(TestImportBase):
+-                for x, y in coords:
++                for index, (x, y) in enumerate(coords):
+@@ -788,0 +793,4 @@ class TestImportDXF(TestImportBase):
++                    if colors[0] in (1, 2) and name != "parent_only":
++                        tags.append((62, 2 if name == "vertex_mismatch" and index == 0 else colors[0]))
++                        if name == "vertex_duplicate" and index == 0:
++                            tags.append((62, colors[0]))
+@@ -791,0 +800,2 @@ class TestImportDXF(TestImportBase):
++                    if colors[0] in (1, 2) and name != "parent_only":
++                        tags.append((62, 2 if name == "face_mismatch" else colors[0]))
+@@ -827 +837,2 @@ class TestImportDXF(TestImportBase):
+-                        tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0), (70, 192)])
++                        tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0),
++                                     (70, 192), (62, color)])
+@@ -829 +840,2 @@ class TestImportDXF(TestImportBase):
+-                                 (70, 128), (71, 1), (72, 2), (73, 3), (0, "SEQEND"), (8, "0")])
++                                 (70, 128), (71, 1), (72, 2), (73, 3), (62, color),
++                                 (0, "SEQEND"), (8, "0")])
+@@ -860,0 +873 @@ class TestImportDXF(TestImportBase):
++                    if color != 256: tags.append((62, color))
+@@ -863,0 +877 @@ class TestImportDXF(TestImportBase):
++                    if color != 256: tags.append((62, color))
+@@ -897 +911,2 @@ class TestImportDXF(TestImportBase):
+-                tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0), (70, 192)])
++                tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0),
++                             (70, 192), (62, 1)])
+@@ -899 +914 @@ class TestImportDXF(TestImportBase):
+-                         (70, 128), (71, 1), (72, 2), (73, 3), (0, "SEQEND"), (8, "0")])
++                         (70, 128), (71, 1), (72, 2), (73, 3), (62, 1), (0, "SEQEND"), (8, "0")])

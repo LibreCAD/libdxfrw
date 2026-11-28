@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-sparse-material-line-defaults-2026-11-27",
+  "supportClaimEffect": "selected profile only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "bbd19ed7cc521b4f7fc5a2ab74bfb24ec6ed6a63",
+  "parent": "5d76a10e8a6ae846370993fac151cd7ce1a93544",
+  "authority": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-FCEF5726-53AE-4C43-B4EA-C84EB8686A66.htm",
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-9C6AD32D-769D-4213-85A4-CA9CCB5C5317.htm"
+  ],
+  "scope": "Bounded ordinary ASCII AC1021 sparse-MATERIAL model-space LINE with explicit zero thickness and/or complete default extrusion (0,0,1), using the same source validation as the prior POINT profile.",
+  "checks": [
+    "Before the change the extended shared test passed POINT controls but refused the LINE default control.",
+    "The shared POINT/LINE test passes 114 assertions for explicit default combinations, live edits, material ownership, reopen/resave, source and typed mutations, incomplete/duplicate groups, nondefault or invalid values, destination preservation and retry.",
+    "The MATERIAL selector passes 3,860 assertions in 22 cases against the current installed shared codec; the bundled-codec library also compiles.",
+    "ezdxf 1.4.5 independently verifies the edited point and line coordinates, zero thickness, default extrusion, PlainMat link and zero audit errors/fixes in both locally generated outputs."
+  ],
+  "hashes": {
+    "redLog": "a065972dff5abaad5f8d9dd680ba9f4b89bce3cec1bdaefd2fad7abc49d12d13",
+    "focusedLog": "199620a59f471320a40f7c8a0a74be2ae3af072d689d39b0e3e9a46656d81c2a",
+    "materialLog": "016dd6c804bd52f326a49f676f50ef99a33ecc0101409d61f57b2fcb9a053f4a",
+    "bundledBuildLog": "33b366fa1b796685fcad8ca85434ce908ccf3af7ef470ed601123ba9f7f2e18c",
+    "scratchLineOutput": "a35f7393e9116f83f855b179bff57defbd11520048f1cc465e9d48409d060062",
+    "scratchPointOutput": "4c6193fdb3ed85b9ac307986b9629faa5a68672891054930662814e3e6031f06"
+  },
+  "limits": [
+    "Nondefault thickness or extrusion, partial axis tuples and LINE group 50 remain guarded; other entities require their own source validation.",
+    "Generated ASCII AC1021 and headless macOS ARM64 only; no native GUI, binary, other producer or general parity claim. No drawing fixture was committed."
+  ]
+}

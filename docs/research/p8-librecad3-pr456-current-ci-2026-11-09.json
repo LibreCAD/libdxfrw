@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad3-pr456-current-ci-2026-11-09",
+  "date": "2026-11-09",
+  "status": "HOSTED_CI_PARTIAL_MACOS_PACKAGING_BLOCKED",
+  "scope": "Refresh current hosted checks for LibreCAD_3 PR #456 and isolate the remaining red jobs without treating CI status as DWG/DXF support evidence.",
+  "source": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD_3/pull/456",
+    "state": "open",
+    "mergeable": true,
+    "head": "7e81275b71038d4a42fa580842e661ddcee7adbf",
+    "base": "5cf435f4a5a57d8dba1599c720917b902e74b25b",
+    "checkedAt": "2026-11-09T07:58:34Z"
+  },
+  "hostedRuns": {
+    "build": "42573888375",
+    "macosBundles": "42573888467",
+    "staticAnalysis": "42573888513",
+    "headBound": true,
+    "checks": {
+      "BuildLinux": "success",
+      "BuildLinuxArm64": "success",
+      "BuildWindows": "success",
+      "BuildWindowsPersistence": "success",
+      "BuildAppImage": "success",
+      "ReadDwgUnderSanitizers": "success",
+      "PythonBindingPlanSync": "success",
+      "CodeQLCpp": "success",
+      "CodeQLPython": "success",
+      "PythonLuaAppBundleArm64": "failure",
+      "PythonLuaAppBundleX8664": "failure"
+    }
+  },
+  "failures": [
+    {
+      "job": "Python / Lua / app bundle (arm64)",
+      "jobId": 129017172754,
+      "conclusion": "failure",
+      "finding": "cmake --install fails while stagePythonDependencies.py validates the retained Homebrew bottle manifest for zstd 1.5.7_1. No arm64 candidate matches all installed build fields and runtime dependencies; the runtime dependency comparison reports that the selected lz4 1.11.0 receipt differs. The ARM64 build and ordinary tests had completed before install-time runtime staging refused.",
+      "integrityPolicy": "Keep exact bottle, receipt, architecture and binary-origin checks fail-closed until the manifest/installed dependency mismatch is explained or a coherent dependency closure is selected."
+    },
+    {
+      "job": "Python / Lua / app bundle (x86_64)",
+      "jobId": 129017172588,
+      "conclusion": "failure",
+      "finding": "The installer passes --force-bottle on the macOS Intel runner, but Homebrew reports that numerous requested formulas and dependencies have no x86_64 bottle. The job is using an unsupported/deprecated Homebrew platform configuration and cannot complete its declared bottle-only install.",
+      "integrityPolicy": "Do not permit source-build fallback silently or mark the Intel package qualified. Select an actually supported binary provider/runner policy or explicitly resolve whether this architecture remains a required release target."
+    }
+  ],
+  "limitations": [
+    "This is one head-bound hosted CI observation; it does not establish macOS package support or DWG/DXF interoperability.",
+    "The Homebrew mismatch is identified at the lz4 receipt comparison; exact expected versus installed dependency fields have not yet been captured in a reproducible local test.",
+    "The Intel job's Homebrew bottle failure is an environment/platform-policy problem, not a parser or writer regression.",
+    "No CI job was rerun or modified by this receipt."
+  ],
+  "next": [
+    "For arm64, reproduce the zstd bottle-manifest versus lz4 receipt comparison using hash-bound fixtures from the hosted evidence and decide whether the current dependency closure can be made coherent without loosening origin validation.",
+    "For Intel, determine from the repository's supported-platform policy whether to adopt a binary package source that still serves the required dependency set or to retire the obsolete Homebrew runner from qualification; do not silently downgrade this to an allowed CI failure."
+  ],
+  "supportClaimEffect": "none"
+}

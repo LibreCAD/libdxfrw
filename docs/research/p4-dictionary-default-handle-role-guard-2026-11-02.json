@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-p4-dictionary-default-handle-role-v1",
+  "completedAt": "2026-11-02",
+  "repositoryHead": "9b1cd32e",
+  "status": "DICTIONARYWDFLT_DEFAULT_HARD_POINTER_ROLE_ENFORCED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "specification": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.45 DICTIONARYWDFLT",
+    "field": "H, group 7: Default entry (hard pointer)",
+    "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+  },
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "method": "DRW_DictionaryWithDefault::parseDwg",
+    "behavior": "Rejects a null default target or a default handle whose wire code is not DRW::DwgHardPointer before publishing the typed target. Parse failure invalidates the buffer and clears partial dictionary state.",
+    "scope": "Wire-role validation only; target existence, target type, ownership, and emitted output remain governed by P4 graph closure."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j 4",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dictionary_default_handle_role$' --output-on-failure",
+      "result": "PASS (1/1)",
+      "durationSeconds": 0.24
+    },
+    "cases": [
+      "Generated AC1015 hard-pointer default edge parses with exact entry fields.",
+      "A following soft-pointer sentinel remains readable, proving cursor alignment.",
+      "The same frame with its default edge changed to a soft pointer is rejected and leaves no typed dictionary state."
+    ],
+    "testExecutableSha256": "5d512c4307c427cecc623c48c1386e97c11819dde2fc2da159026225dbd5887f",
+    "supplementalPhysicalInput": {
+      "path": "tests/samples/AC1021/tablet.dwg",
+      "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+      "worktreeState": "Untracked local input at the time of this check; it was read without modification and was not added by this slice.",
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1021/tablet.dwg -d -o /private/tmp/libdxfrw-p4-dictdefault-tablet-recheck-20261102.dxf",
+      "exitCode": 1,
+      "observedDefault": "DWG handle code 5 (hard pointer), reference 0x0F; the object parsed without an object-parse failure.",
+      "wholeFileResult": "Strict conversion remained refused because the source read disposition is incomplete (23 Reader21 AC1021 CRC mismatches); no DXF output qualification is claimed."
+    }
+  },
+  "sourceBindings": {
+    "src/drw_objects.cpp": "8188d509ecec54cf9c0e258b5553bfd8bbd1db603fc3d21314ab2ced7318c69a",
+    "tests/dwg_object_vectors_tests.cpp": "51d61a688e625b01daae12bda8a1b1d21257d07dbfaf8e211cc043186812adaf",
+    "CMakeLists.txt": "db428c6d1bb7c0612f250017d6d146224c09587890692003c0f1c8731faa05b3",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "86e2e32e97a7b07250fe2c56a412820b73580c885ab13987c86a6fc48e331e50"
+  },
+  "fixturePolicy": "The vector is authored in memory; no drawing fixture was added.",
+  "claimBoundary": [
+    "This proves rejection of an invalid default-reference wire role and preservation of parser rollback/alignment for the generated AC1015 profile.",
+    "It does not prove that a real source target exists, has the required object type or owner, is emitted, or is accepted by a native consumer.",
+    "No format support claim was promoted."
+  ],
+  "repositoryState": {
+    "baseHead": "9b1cd32e",
+    "stagedScope": "DICTIONARYWDFLT default-edge role guard, generated vector, CTest, receipt, and plan note",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

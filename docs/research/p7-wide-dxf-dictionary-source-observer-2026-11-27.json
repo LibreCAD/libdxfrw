@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-wide-dxf-dictionary-source-observer-2026-11-27",
+  "date": "2026-11-27",
+  "baseCommit": "51e01e67e",
+  "implementationDigestSha256": "2dedc8b5d12320a2906cd28c4d64874f52ccc54f3f0712ee0e104cbfbf344c9c",
+  "inputCount": 782,
+  "supportClaimEffect": "none",
+  "change": "Add a bounded, read-only AC1027 source observer for a selected root-dictionary, child-dictionary and XRECORD chain. It reuses the physical identity census, retains original 64-bit self/owner/reference lexemes and physical field spans, checks selected roles and unique identities, and refuses additional unqualified reference roles. Existing 32-bit semantic callbacks are unchanged.",
+  "validation": {
+    "focused": "PASS libdxfrw_dxf_compact_material_graph, including ASCII/Binary wide and narrow controls; exact leading-zero and lowercase spellings; alternate dictionary entry role; wrong owners and reference; extra handle role; duplicate self, duplicate normalized name and target; truncation; out-of-range handle; cleared result on refusal and same-output corrected retry. The existing test is now included in the hosted fast lane.",
+    "peer": "A scratch probe observed the previous ezdxf 1.4.5 generated full AC1027 graph in both encodings, identifying root A, dictionary 100000010 and XRECORD 100000011; owner and group-340 reference match and the original field spans and lexemes are retained. Independently generated wrong owner, wrong reference, unknown role, duplicate self and truncated variants all refused (12 negative cases).",
+    "asciiSha256": "91d7775a4eb27b3b79d550bce1abaa19df9169bd866e759d151ec67a3b968a00",
+    "binarySha256": "06cdded38a8b69869dd52cd621a2854f1d211fddae4610d7573a652059102d1a",
+    "sourceHeaderSha256": "4e2daac519227d802716ef3dc26999b46a615c8ec7f2a68e7c419c12cd6d331e",
+    "inventory": "PASS source-release build inventory and fast runner self-test; official qualification checks use a clean staged checkout."
+  },
+  "limits": [
+    "The observer is an independent prepass, not yet integrated into actual import or output. It does not bind the same immutable source bytes to typed callbacks, establish all graph or class semantics, translate handles, or authorize export.",
+    "The full wide file remains refused at the group-350 typed-import boundary; destination preservation and the narrow successful control remain unchanged.",
+    "Generated and mutated DXF files are scratch-only and were not committed."
+  ]
+}

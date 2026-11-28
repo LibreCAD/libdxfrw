@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-sun-owner-mismatch-independent-crosscheck-2026-11-05",
+  "date": "2026-11-05",
+  "status": "SOURCE_SUN_OWNER_MISMATCH_CONFIRMED_KEEP_FAIL_CLOSED",
+  "supportClaimEffect": "none",
+  "question": "Does the AC1024 aerial drawing's SUN owner failure reflect a local owner-resolution bug, or does independent decoding confirm that its hard-owner and common-owner edges disagree?",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "repositoryFixture": false,
+    "fixturePolicy": "Existing local investigation input; not added to or modified in the repository."
+  },
+  "localReader": {
+    "commit": "2bbb6e9aa7247d510b65f251a88d61bb8cf4f383",
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_aerial.dwg -y -d -v2010 /private/tmp/libdxfrw-aerial-sun-trace.dxf",
+    "exitCode": 1,
+    "diagnostic": "DXF export preflight failed: SUN owner graph closure: SUN parent mismatch: owner 0x242, SUN 0x24c, parent 0x246",
+    "readDisposition": "337/337 source frames published; zero entity or object parse failures. Output stopped in preparation before publication."
+  },
+  "independentPeer": {
+    "tool": "LibreDWG dwgread 0.14",
+    "executable": "/opt/homebrew/bin/dwgread",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -O minJSON -o /private/tmp/aerial-libredwg.json tests/samples/AC1024/visualization_-_aerial.dwg",
+    "exitCode": 0,
+    "outputSha256": "d4dfb5ca0247a9524e3279e2f5ca1a48e4617f1e37ab620120a96ed8633e48b4",
+    "observations": [
+      "VIEW 0x242 has Sun handle 0x24c and the DWG reader decodes its field as group 361, hard owner.",
+      "SUN 0x24c has common owner handle 0x246.",
+      "XRECORD 0x246 is an entry named ADSK_XREC_VTRVIEWINFO in VIEW 0x242's extension dictionary 0x245; it is not the VIEW object itself.",
+      "The NOD has no ACAD_SUN root in this source, so the separately qualified dictionary-owner route does not apply."
+    ]
+  },
+  "authoritativeFormatEvidence": {
+    "specification": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "section": "ODA v5.4.1 §20.4.60, VIEW handle references",
+    "rule": "The VIEW Sun handle is group 361 and is a hard-owner reference.",
+    "interpretation": "The decoded VIEW hard-owner target and SUN common owner do not identify the same object. The extension-dictionary XRECORD does not repair that mismatch under the documented VIEW ownership edge."
+  },
+  "decision": "Keep this SUN route refused. Do not infer or synthesize an owner edge from the extension-dictionary XRECORD. A different producer-backed graph with reciprocal VIEW/SUN ownership may qualify independently.",
+  "scopeLimits": [
+    "This is one physical AC1024 source and does not establish that all SUN graphs are malformed.",
+    "LibreDWG parsing corroborates object identities and handles but is not native rendering evidence.",
+    "No production code, source fixture, or support claim changed."
+  ]
+}

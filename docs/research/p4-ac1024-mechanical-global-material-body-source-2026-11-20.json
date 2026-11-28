@@ -1,0 +1,36 @@
+{
+  "scope": "Source-bound AC1024 mechanical Global MATERIAL body observation; does not independently establish producer semantics or authorize output.",
+  "source": {
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "producer": "not independently authenticated",
+    "repository_fixture_committed": false
+  },
+  "independent_decode": {
+    "tool": "LibreDWG dwgread 0.14",
+    "json_sha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+    "object": "MATERIAL", "handle": "0x98", "name": "Global", "bytes": 181,
+    "handle_stream_start_bit": 1388, "owner": "0x72", "owner_role_length": [12, 1],
+    "reactor": "0x72", "reactor_role_length": [4, 1],
+    "extension_dictionary": "0x110", "extension_role_length": [3, 2],
+    "projection": 2,
+    "diffuse_reflection_opacity_bump_xy_scale": 0.020800000056624413,
+    "specular_refraction_matrix": "identity"
+  },
+  "source_spans": {
+    "eed": [26, 214], "semantic_body": [225, 1253],
+    "string_stream": [1253, 1371], "footer": [1371, 1388],
+    "handles_and_terminal_bits": [1388, 1448],
+    "note": "The Global-body observer deliberately delegates EED validation to the separately bound EED observer."
+  },
+  "validation": {
+    "selector": "--mechanical-ac1024-global-material-eed-wire",
+    "result": "passed after rebuilding adapter tests",
+    "controls": "All 1260 non-EED frame bits individually flipped and restored against the body observer; the separate EED selector covers 188 EED bits. Model, identity, handle and transform mutations refuse; restored same-adapter retry succeeds.",
+    "compatibility": "Aerial ByLayer and ByBlock selected-writer controls passed in both ASCII and Binary."
+  },
+  "remaining": [
+    "Qualify producer-specific field meanings and staged DXF representation independently.",
+    "Prove the staged MATERIAL dictionary and four XRECORD dependencies, remaps, signed EED output, rollback and same-writer retry.",
+    "Run independent and native consumer readback for any admitted output profile."
+  ]
+}

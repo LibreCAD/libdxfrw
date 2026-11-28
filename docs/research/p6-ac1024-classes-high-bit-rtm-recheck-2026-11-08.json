@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-classes-high-bit-rtm-recheck-2026-11-08",
+  "date": "2026-11-08",
+  "title": "Current-tree AC1024 CLASSES high-bit string-size recheck",
+  "status": "PREVIOUSLY_REPORTED_CLASS_FAILURE_NOT_REPRODUCED",
+  "supportClaimEffect": "none",
+  "formatAuthority": {
+    "document": "Open Design Specification for .dwg files",
+    "version": "5.4.1",
+    "section": "5.8 AcDb:Classes Section",
+    "finding": "The CLASSES section declares a byte-sized class-data area and total class-data bit count, then class records and a Unicode string stream. The reader shares the R2007+ string-stream footer rule that reads the 15-bit low size and optional high-size word when the low word's 0x8000 flag is set."
+  },
+  "currentImplementation": {
+    "files": ["src/intern/dwgreader.cpp", "src/intern/dwgreader18.cpp"],
+    "behavior": "readDwgClassStringFooter reconstructs the high-bit string-stream size with bounds and cursor rollback. readDwgClasses applies the extended CLASSES prefix only when the application-maintenance gate requires it, and derives the CRC position from the corresponding prefix length.",
+    "relevantExistingCommit": "1393c374 Fix extended AC1024 CLASSES CRC offset"
+  },
+  "validation": {
+    "focusedGeneratedControl": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4 && build-gcc/libdxfrw_dwg_reader_matrix_tests --r2007-class-string-footer",
+      "result": "PASS"
+    },
+    "physicalSamples": [
+      {"path": "/Users/dli/doc/dwg/architectural_example-imperial.dwg", "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7", "appMaintenanceVersion": 2, "maxClassNumber": 559, "legacyError": 0, "entityObjectParseFailures": "0/0"},
+      {"path": "/Users/dli/doc/dwg/civil_example-imperial.dwg", "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc", "appMaintenanceVersion": 2, "maxClassNumber": 537, "legacyError": 0, "entityObjectParseFailures": "0/0"},
+      {"path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg", "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858", "appMaintenanceVersion": 2, "maxClassNumber": 524, "legacyError": 0, "entityObjectParseFailures": "0/0"},
+      {"path": "/Users/dli/doc/dwg/title_block-arch.dwg", "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d", "appMaintenanceVersion": 2, "maxClassNumber": 520, "legacyError": 0, "entityObjectParseFailures": "0/0"},
+      {"path": "/Users/dli/doc/dwg/title_block-iso.dwg", "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2", "appMaintenanceVersion": 2, "maxClassNumber": 520, "legacyError": 0, "entityObjectParseFailures": "0/0"},
+      {"path": "/Users/dli/doc/dwg/visualization_-_aerial.dwg", "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1", "appMaintenanceVersion": 37, "maxClassNumber": 521, "legacyError": 0, "entityObjectParseFailures": "0/0"},
+      {"path": "/Users/dli/doc/dwg/visualization_-_condominium_with_skylight.dwg", "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4", "appMaintenanceVersion": 37, "maxClassNumber": 535, "legacyError": 0, "entityObjectParseFailures": "0/3"},
+      {"path": "/Users/dli/doc/dwg/visualization_-_conference_room.dwg", "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4", "appMaintenanceVersion": 37, "maxClassNumber": 536, "legacyError": 0, "entityObjectParseFailures": "0/3"},
+      {"path": "/Users/dli/doc/dwg/visualization_-_sun_and_sky_demo.dwg", "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881", "appMaintenanceVersion": 37, "maxClassNumber": 539, "legacyError": 0, "entityObjectParseFailures": "0/0"}
+    ],
+    "physicalCommand": "For each sample, run build-gcc/dwg2dxf/dwg2dxf <input> -y -d -v2010 <temporary-output.dxf>; inspect DWG read observations and trace through dwgReader24::readDwgClasses.",
+    "physicalResult": "All 9/9 samples report operationSucceeded=true and legacyError=0 after the class stage. The five application-maintenance-version-2 files all pass. Some final CLI conversions stop later at strict opaque-output qualification; that is not a class-stage result.",
+    "fullSuites": "NOT_RUN"
+  },
+  "fixturePolicy": "All source DWGs are existing local research files outside the repository. No fixtures were added or committed.",
+  "limitations": [
+    "This recheck covers the nine currently available local AC1024 samples, not every AutoCAD 2010 producer/save variant.",
+    "It does not qualify strict output or whole-file DWG/DXF support.",
+    "No production code changed because the reported class-stage failure was not reproducible in the current tree."
+  ],
+  "next": "Treat this specific local class failure as resolved in the current tree. Reopen only if a new hash-bound AC1024 input reaches BAD_READ_CLASSES or fails the focused high-size footer control."
+}

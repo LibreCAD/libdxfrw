@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1021-aec-property-set-defs-physical-selected-output-2026-11-06",
+  "date": "2026-11-06",
+  "status": "PASS_BOUNDED_PHYSICAL_SOURCE_OUTPUT_READBACK",
+  "supportClaimEffect": "none",
+  "question": "Does the AC1021 children-room source's empty AEC_PROPERTY_SET_DEFS NOD dictionary survive ordinary source-backed dictionary output with atomic refusal and fresh readback?",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "producerProvenance": "Existing local source; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceGraph": {
+    "imageDefinitionCallbacks": 0,
+    "imageDefinitionReactorCallbacks": 0,
+    "namedObjectDictionary": {
+      "handle": "0xC",
+      "hardOwner": 0,
+      "cloning": 1
+    },
+    "entry": {
+      "key": "AEC_PROPERTY_SET_DEFS",
+      "targetHandle": "0x745",
+      "occurrences": 1,
+      "outputDxfHandleRole": "soft-owner"
+    },
+    "target": {
+      "type": "DICTIONARY (standard object type 42)",
+      "handle": "0x745",
+      "ownerHandle": "0xC",
+      "hardOwner": 0,
+      "cloning": 1,
+      "entries": 0,
+      "reactors": ["0xC"],
+      "extensionDictionary": "0x0",
+      "appData": 0,
+      "extData": 0,
+      "dataStorage": false,
+      "commonLinkTail": false
+    },
+    "sourceFrame": {
+      "fileOffset": 8518,
+      "fileSize": 17,
+      "retainedBodyBytes": 17,
+      "typedPayloadMatched": true,
+      "standardSourceEligible": true
+    }
+  },
+  "implementation": {
+    "files": ["tests/dwg2dxf_adapter_tests.cpp"],
+    "change": "No production writer change was needed. The AC1021 empty-NOD-dictionary exercise was generalized so both the IMAGE-generated-root path and ordinary source-backed DICTIONARY path share the same source eligibility, ASCII/Binary output, readback, mutation refusal and retry assertions."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "selector": "--aec-property-set-defs-empty-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --aec-property-set-defs-empty-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS for ASCII and Binary output and fresh typed readback. The output has one AEC_PROPERTY_SET_DEFS NOD edge with soft-owner role and a unique remapped DICTIONARY target, empty membership, NOD owner and NOD reactor. The generated NOD/GROUP proofs and physical standard-frame output proof finalize. A post-OBJECTS reactor mutation refuses without replacing the destination sentinel; restoring the source allows the same adapter to retry.",
+    "outputPolicy": "AllowPartial; unresolved-owner strictness disabled. This does not qualify strict whole-source output.",
+    "logPath": "/private/tmp/p4-ac1021-aec-property-set-defs-physical-selected-output-2026-11-06.log",
+    "logSha256": "fa443742456d575f736b32b74d66f60ca740dfde30b0352104805c0cf4e55824",
+    "testSourceSha256": "43deb3635ce3fbc4aa3b5aaa6bba24af2a0e6e9c44f41cd8427edbfd89122a16",
+    "executableSha256": "40243b242db28f5389fb86aaf92943d8513aea6fe6be89bc587bbdfc68e00378"
+  },
+  "limits": [
+    "One unauthenticated local source profile is covered; output key role is checked after DXF conversion and is not an independent DWG edge-code role proof.",
+    "The source NOD contains other entries whose target graphs are not closed by this selector; strict whole-source output remains unqualified.",
+    "No independent encoder roundtrip, native AEC property-set behavior, producer-wide coverage or support claim is established.",
+    "The DWG source and generated DXF outputs are not committed as fixtures."
+  ],
+  "nextAction": "Screen the AC1021 ASE_INDEX_DICTIONARY at handle 242632 together with its ASEBlockHierarchyIndexRecord XRECORD target 242633; first confirm source-frame eligibility and complete child payload/link roles before attempting the two-record selected graph."
+}

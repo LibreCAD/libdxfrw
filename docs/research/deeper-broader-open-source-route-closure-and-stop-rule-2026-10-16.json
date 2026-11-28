@@ -1,0 +1,129 @@
+{
+  "schema": "libdxfrw-deeper-broader-open-source-route-closure-and-stop-rule-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Broaden the open-source DWG/DXF 3D route screen across DXF entity parsers, DWG/DXF codecs, bare ACIS/SAB readers, kernels, and native consumers; reconcile candidate independence and define an event-triggered stop rule that returns effort to local implementation.",
+  "method": {
+    "kind": "Read-only review of current primary project documentation, package metadata, API documentation, and the existing implementation plan",
+    "sourcesOpened": [
+      "https://github.com/dxfjs/parser",
+      "https://www.npmjs.com/package/@dxfjs/parser",
+      "https://docs.rs/acis-core/latest/acis_core/",
+      "https://docs.rs/cadmpeg-codec-sat/0.6.1/cadmpeg_codec_sat/",
+      "https://github.com/hakanaktt/acadrust",
+      "https://github.com/HakanSeven12/OpenCADStudio",
+      "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md",
+      "https://github.com/yuechen-li-dev/Aetheris",
+      "https://github.com/kernalix7/CADKernel",
+      "https://www.npmjs.com/package/@tarikjabiri/dxf",
+      "https://github.com/dxfjs/writer/releases"
+    ],
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "planFilesUpdated": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "evidenceRule": "Public capability listings are candidate-discovery evidence, not runtime qualification. Separate the outer DWG/DXF parser, AcDs/owner join, bare payload parser, B-rep/kernel, and native consumer; account for shared source and kernel lineage. ODA v5.4.1 remains authoritative for DWG layout."
+  },
+  "findings": [
+    {
+      "route": "@dxfjs/parser",
+      "observed": [
+        "The repository README advertises 3DSOLID in its entity input list.",
+        "The npm package page identifies version 0.3.2 as the latest and records publication more than three years earlier.",
+        "The same README lists OBJECTS parsing as unfinished; the repository listing is not evidence of payload interpretation, writer parity, or B-rep construction."
+      ],
+      "disposition": "Stale DXF entity-recognition lead only; no runtime/install or ACIS semantic gate."
+    },
+    {
+      "route": "acis-core",
+      "observed": [
+        "The published contract says model construction validates reference closure, not B-rep validity or compatibility with a particular Inventor/ASM version.",
+        "Its SAB reader consumes a bare payload; extraction of an outer container is a separate responsibility.",
+        "The crate does not construct OCCT solids."
+      ],
+      "disposition": "Bounded parser/model-structure evidence only; not an outer-container, geometry-kernel, or native-consumer vote."
+    },
+    {
+      "route": "cadmpeg-codec-sat 0.6.1",
+      "observed": [
+        "The pinned crate documents selected bare SAT/SAB profiles and a neutral model/loss-report route.",
+        "It does not parse DWG/DXF/AcDs ownership and does not provide a geometry kernel.",
+        "The plan already records the release and its bounded admission."
+      ],
+      "disposition": "No new gate or runtime; reuse the existing optional payload-comparator checkpoint."
+    },
+    {
+      "route": "ACadRust and OpenCADStudio",
+      "observed": [
+        "OpenCADStudio identifies ACadRust as its native DWG/DXF engine, so those are not independent outer-parser lineages.",
+        "The separately documented tessellation path includes direct per-surface fallback and can mark results incomplete."
+      ],
+      "disposition": "Keep parser, kernel, display fallback, and native acceptance as separate evidence lanes."
+    },
+    {
+      "route": "Aetheris and CADKernel kernel/format claims",
+      "observed": [
+        "The newly surfaced Aetheris repository describes an experimental STEP AP242-oriented geometric kernel and STEP output; the reviewed project summary does not establish SAT/SAB, DWG, or DXF input routes.",
+        "CADKernel's detailed supported-format table marks ACIS SAT/SAB unsupported, while broad headline compatibility claims coexist with a FAQ that says commercial CAD import is planned.",
+        "These are self-reported source/documentation observations, not executed results."
+      ],
+      "disposition": "Do not admit either project as an ACIS/DWG/DXF peer based on kernel or headline claims. Reconsider only after a pinned, source-visible route demonstrates the relevant input/output artifact and locally controlled behavior. This adds no evidence to the current gates."
+    },
+    {
+      "route": "Current DXF authoring tools",
+      "observed": [
+        "The current @tarikjabiri/dxf 2.9.0 package and dxfjs/writer release establish an active DXF generator route.",
+        "The reviewed package-level evidence does not establish general 3D modeler-geometry authoring or semantic-readback capability."
+      ],
+      "disposition": "Retain locally generated controls as default; admit only for a specific missing DXF tag-authoring check after source/API review."
+    }
+  ],
+  "planDelta": {
+    "existingGatesRefined": [
+      "PAR-07 peer/evidence classification",
+      "S5 optional comparator admission",
+      "S8 native/semantic acceptance"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "peerOrNativeRuntimeAdded": false,
+    "supportClaimsPromoted": 0,
+    "externalJItemsChanged": false,
+    "researchStopRule": [
+      "Name the exact missing evidence layer before searching for another peer.",
+      "Require pinned source/release, dependency and license/use review, control provenance, and parser/kernel/consumer lineage.",
+      "Require a concrete implementation-ready control and pass/fail criterion; otherwise classify NO_NEW_EVIDENCE and do not install, clone, or run the candidate.",
+      "Reopen peer discovery only after a relevant pinned source change, reproducible peer failure, or already-authorized candidate that can fill an explicit deferred gate.",
+      "External availability must not block local generated-test implementation slices."
+    ],
+    "followUpSweepConclusion": "A fresh discovery sweep surfaced Aetheris and refreshed CADKernel's public format claims. Aetheris is STEP-oriented in the reviewed material; CADKernel explicitly marks ACIS SAT/SAB unsupported. No newly qualified DWG/DXF-to-ACIS semantic route was found, so no peer gate or implementation action changes.",
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planResearchOnly": true,
+    "productionBehaviorChanged": false,
+    "testsRun": false,
+    "receiptsJsonParsed": true,
+    "gitDiffCheck": true
+  }
+}

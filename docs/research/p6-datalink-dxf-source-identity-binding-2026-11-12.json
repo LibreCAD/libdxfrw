@@ -1,0 +1,29 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "scope": "Bind typed DATALINK source identities in the rooted DXF OBJECTS writer.",
+  "result": "PASS",
+  "supportClaimEffect": "none",
+  "change": "writeDataLink now binds the source DATALINK handle to its emitted handle before committing its existing record/state scopes, preserving identity for ACAD_DATALINK dictionary members and downstream references.",
+  "validation": {
+    "normal_allocation": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_datalink_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1; all measured allocation offsets, destination rollback, same-codec retry, and typed root/dictionary/target readback"
+    },
+    "normal_reference_budget": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_datalink_text_owner_budget$' --output-on-failure",
+      "result": "PASS, 1/1"
+    },
+    "address_sanitizer_allocation": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_datalink_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1"
+    }
+  },
+  "limitations": [
+    "Generated DATALINK graph and transaction evidence only; no physical producer or native consumer qualification.",
+    "No support claim is promoted."
+  ],
+  "source_sha256": {
+    "src/libdxfrw.cpp": "e6933bc47a570cc2762be904fb165db0d3c662ff824b849bbc888a7e6a1382f0"
+  }
+}

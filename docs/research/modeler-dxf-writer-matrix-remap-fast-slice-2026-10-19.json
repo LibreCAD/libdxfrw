@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Modeler DXF writer matrix cross-profile source-handle and history remap controls",
+  "mode": "Generated local implementation and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Assert first-export modeler handles are remapped from generated source handles for all matrix profiles and both DXF encodings.",
+    "Verify serialized 3DSOLID history group 350 references the remapped target.",
+    "Verify local import readback restores emitted modeler handles and the correct history edge.",
+    "Register a focused CTest so the cross-profile matrix can run without the full DWG local round-trip suite."
+  ],
+  "method": {
+    "generatedControls": true,
+    "persistentDrawingFixturesAdded": 0,
+    "externalDrawingFilesUsed": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalStrictReaderAvailable": false,
+    "externalReaderProbe": [
+      "ogrinfo unavailable",
+      "gdalinfo unavailable",
+      "ODAFileConverter unavailable",
+      "ezdxf import unavailable"
+    ],
+    "limitations": "Generated writer output was read back by libdxfrw's own parser. This proves local wire/remap/readback consistency, not strict independent parser acceptance, ACIS semantics, or native-consumer behavior."
+  },
+  "localCrosswalk": {
+    "sourceHandle": "Each generated modeler starts at handle 0xFC00 + its modeler index; first-export output must use a different nonzero handle.",
+    "historyReference": "The AC1021+ history case's group 350 must equal the first modeler's emitted handle; import must restore that exact target, while non-history modelers retain a zero history handle.",
+    "matrix": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027"
+    ],
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "externalEvidence": "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  },
+  "changes": {
+    "files": [
+      "CMakeLists.txt",
+      "tests/modeler_dxf_writer_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/modeler-dxf-writer-matrix-remap-fast-slice-2026-10-19.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "testRegistrationAdded": "dwg2dxf_modeler_dxf_writer_matrix",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_modeler_dxf_writer_matrix|dwg2dxf_modeler_geometry_move_callback|dwg2dxf_modeler_dxf_move_dispatch)$' --output-on-failure",
+      "passed": 3,
+      "failed": 0,
+      "elapsedSeconds": 0.28
+    },
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true,
+    "planSha256": "e6bd61e55e69489f2293e3856994685263740b7497a8125ae662cca77f1999ab"
+  }
+}

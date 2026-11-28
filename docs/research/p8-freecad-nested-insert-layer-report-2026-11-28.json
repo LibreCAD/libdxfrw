@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-nested-insert-layer-report-2026-11-28",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "28 ordered local patches; no FreeCAD commit or submission",
+  "change": "Report a nested INSERT on a named layer while preserving its geometry when layer grouping is requested; its effective per-instance layer is not represented by the outer block composition.",
+  "checks": [
+    "The pre-change focused check failed in both parametric and flattened modes for a nested INSERT on DETAIL containing only a layer-0 LINE. The corrected importer reports the loss in those modes; layer-0 controls and disabled-layer-grouping controls do not report it.",
+    "The final focused test also covers DETAIL on and off, preserves four-unit line length, and uses only locally generated in-memory DXF files.",
+    "The 28-patch chain replays exactly against the hash-checked FreeCAD source archive. The macOS ARM64 headless candidate passes all 22 selected tests with no skips, errors or failures.",
+    "Source-release inventory check and self-test pass.",
+    "The exact 28-patch candidate passes 22 selected headless tests on Ubuntu 24.04 x86_64 with no skips or failures; its source replay and patch hash match the local candidate.",
+    "The exact 28-patch candidate passes 22 selected headless tests on Windows 2022 x64 with no skips or failures; source replay and patch hash match the local candidate."
+  ],
+  "evidenceSha256": {
+    "patch": "f6fb7d3a8421e5f132da010b5b66bfa60ef472fe0f1bb6f619d7b7d70e19f15b",
+    "focusedRed": "fe5307218d252a5e04ae7ff714d6144d0c8835e393402a79ace07012233b7ed6",
+    "focusedGreen": "ec2cadb5181ecf8e9051fc3a4e7d6836775aa703bdcecb98be8e33472a45acdc",
+    "verifiedReceipt": "c177a0845b412ef5c042b864dd8997f8241e3442db77bc453ba60c74a57af291",
+    "importModule": "9949fa09c6f001f9609cf0e3befe73d000387ab71b558e3becd1d18f3c802e3a"
+  },
+  "verifiedReceipt": "/private/tmp/freecad-nested-layer-final-20261128/freecad-candidate-probe-yj0kwect/receipt.json",
+  "limits": [
+    "This is a loss disclosure, not a fix for nested layer grouping, layer-zero inheritance, effective per-instance visibility or GUI rendering.",
+    "The 28-patch candidate passes selected headless controls on macOS, Linux and Windows. GUI and general interoperability remain unqualified.",
+    "The downstream candidate is a local draft; FreeCAD contribution and contributor attestations remain for a human contributor."
+  ],
+  "linuxQualification": {
+    "run": "https://github.com/dxli/libdxfrw/actions/runs/46121249705",
+    "head": "ba7116eca56c390d8b4672b574c7222c029be0de",
+    "artifact": "freecad-candidate-ubuntu-24.04-46121249705-1",
+    "receiptSha256": "6eabc48908a635d7d16ceb96579410af1d8691e18473ed2414bce4ba6c0c68db",
+    "testsRun": 22,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "windowsQualification": {
+    "run": "https://github.com/dxli/libdxfrw/actions/runs/46121249705",
+    "head": "ba7116eca56c390d8b4672b574c7222c029be0de",
+    "artifact": "freecad-candidate-windows-2022-46121249705-1",
+    "receiptSha256": "62c3af09ace7fd55b9cb5443bc14d7ca13bcea4370e6b98b8f28749510b181e4",
+    "testsRun": 22,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

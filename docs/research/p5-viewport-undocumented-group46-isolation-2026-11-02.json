@@ -1,0 +1,51 @@
+{
+  "evidenceId": "p5-viewport-undocumented-group46-isolation-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P5",
+  "status": "LOCAL_GENERATED_ASCII_FIELD_ISOLATION",
+  "qualificationEligible": false,
+  "supportClaimsPromoted": false,
+  "issue": "DRW_Viewport::parseCode previously treated group 46 as circleZoom. Autodesk documents the VIEWPORT circle-zoom field at group 72 and does not list group 46 in the VIEWPORT schema.",
+  "authorities": [
+    {
+      "title": "Autodesk VIEWPORT DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "observation": "The documented circle-zoom field is group 72; group 46 is absent from the VIEWPORT entity table."
+    },
+    {
+      "title": "Autodesk 2007 DXF reference archive",
+      "url": "https://damassets.autodesk.net/content/dam/autodesk/www/developer-network/platform-technologies/autocad-dxf-archive/acad_dxf_2007.pdf",
+      "observation": "The archived VIEWPORT table also places circle zoom at group 72."
+    }
+  ],
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "change": "Group 46 now follows the base entity's tolerant unknown-code path and cannot overwrite DRW_Viewport::circleZoom. Group 72 remains the documented circle-zoom parser field.",
+    "testFile": "tests/dwg_local_roundtrip_tests.cpp",
+    "test": "dxf_viewport_undocumented_group46_isolation",
+    "selector": "--viewport-group46-isolation",
+    "control": "A runtime-generated minimal ASCII DXF VIEWPORT sets group 72 to 725 followed by undocumented group 46 set to 2500. Typed import retains circleZoom == 725.",
+    "fixturePolicy": "The input is generated under the system temporary directory and removed by RAII. No drawing fixture is added."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+    "buildResult": "PASS",
+    "focusedCommand": "ctest --test-dir build-gcc -R '^dxf_viewport_undocumented_group46_isolation$' --output-on-failure",
+    "passed": 1,
+    "failed": 0,
+    "runtimeSeconds": 0.44
+  },
+  "sha256": {
+    "src/drw_entities.cpp": "2a63b9e55367daf256ea49011cbb1c3f6c56237311e035a4fd2b7993dca0250a",
+    "tests/dwg_local_roundtrip_tests.cpp": "cbf44c892a515aa25562f09954b5c5c5a161dd372a9f5a4512cc48d75e04ec91",
+    "tests/CMakeLists.txt": "98edece68366f96a7b56106c8eabffab763de4dc684fd8f4c77cf7f911c05538",
+    "build-gcc/libdxfrw.a": "0b0f6ea72b90dec4e759b24f07b256f2587d04efd6a03ad170d39a6b4433a2fe",
+    "build-gcc/libdxfrw_dwg_local_roundtrip": "d187e9e8e55dcf86c7ac9d43a19be45169c2606ebc6960e53b9f7237667955a5"
+  },
+  "claimBoundary": [
+    "This is one generated ASCII parser field-isolation guard, not full VIEWPORT support.",
+    "Unknown group 46 is ignored; it is not retained for round-trip replay.",
+    "No Binary DXF, physical producer, native rendering, application, platform, or VIEWPORT handle-reference behavior is qualified.",
+    "This evidence does not promote any DWG/DXF support claim."
+  ]
+}

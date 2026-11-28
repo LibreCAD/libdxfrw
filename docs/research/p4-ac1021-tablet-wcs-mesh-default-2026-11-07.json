@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 tablet strict conversion after WCS mesh extrusion default fix",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/tablet.dwg",
+    "sha256": "7f203649dc8434ef7cf7a46f7f6def2a0192a1163ba34ebcf88ebfe69635ccd4",
+    "version": "AC1021",
+    "provenanceLimit": "Local user corpus; producer and repository provenance are unauthenticated. The source is not committed."
+  },
+  "finding": {
+    "previousStop": "Strict export refused one model-space WCS POLYLINE mesh because DRW_Polyline::parseDwg assigned the zero-initialized temporary extrusion (0,0,0), although DWG POLYLINE 3D/MESH/PFACE bodies omit extrusion.",
+    "normativeLayout": "ODA Open Design Specification v5.4.1 §§20.4.17, 20.4.33, 20.4.34: 3D POLYLINE, PFACE, and MESH bodies contain no extrusion field. The DXF/public default is (0,0,1).",
+    "affectedCallbacks": [
+      {"handle": "0x154E", "flags": 16, "previousExtrusion": [0, 0, 0]},
+      {"handle": "0x22D8", "flags": 16, "previousExtrusion": [0, 0, 0]}
+    ],
+    "implementation": "Initialize the parsed extrusion to (0,0,1); the 2D POLYLINE branch still overwrites it from its encoded extrusion field."
+  },
+  "focusedValidation": {
+    "generatedControl": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+      "runCommand": "build-gcc/libdxfrw_dwg_local_roundtrip --local-dwg-roundtrip-only",
+      "result": "PASS; generated locally authored WCS MESH POLYLINE round-trips through DWG writer/reader for AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032. Callback checks no encoded extrusion, default (0,0,1), mesh subtype, and vertex positions.",
+      "binarySha256": "63b7c2a97d597e36643b1060571e8dc63674225a4b3a67993266f558c805372e",
+      "fixturePolicy": "Generated files are temporary and were removed; no DWG/DXF fixture was added."
+    },
+    "physicalSource": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/tablet.dwg -y -d -v2007 /private/tmp/tablet-after-wcs-mesh-fix.dxf",
+      "result": "PASS; strict AC1021 output created. All 6,371 observed source frames were published, with no pending, deferred, failed, unresolved, or unrecognized frame dispositions. The DICTIONARYVAR source gate passed; the earlier WCS extrusion refusal is gone.",
+      "binarySha256": "b40b3791f1515c7b45fdbb5e9fbb2c0ee9980df10fd2a9cbedff91183db00290",
+      "outputSha256": "0462b1e1fceaf9db6444009a9bc96e7941b32ffcfa38982de75de52752c9455d"
+    },
+    "freshDxfReadback": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/tablet-after-wcs-mesh-fix.dxf -y -v2007 /private/tmp/tablet-after-wcs-mesh-readback.dxf",
+      "result": "PASS; fresh ASCII DXF import and same-version re-export succeeded.",
+      "outputSha256": "b6260dd41d203c2d6557feb4e8e45318a3d45007f8319f34ff15b7ae6c17cece"
+    }
+  },
+  "scopeLimit": "This resolves one source-bound parser default and allows one local AC1021 source through strict output. Corpus provenance is unauthenticated; no native CAD acceptance, producer-wide compatibility, or broader DWG/DXF support claim follows."
+}

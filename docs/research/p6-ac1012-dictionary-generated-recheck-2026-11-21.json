@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-dictionary-generated-recheck-2026-11-21",
+  "date": "2026-11-21",
+  "status": "GENERATED_LAYOUT_CONTROLS_PASS_NATIVE_CLONING_OPEN",
+  "supportClaimEffect": "none",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.44: R13/R14 plain DICTIONARY omit the cloning field; R2000+ has BS cloning flag.",
+  "command": "python3 -B tools/research/generate_ac1012_dictionary_witness.py --self-test --output-dir <scratch> --dwgadd <LibreDWG 0.14 dwgadd> --dwgread <LibreDWG 0.14 dwgread>",
+  "scratchDirectory": "/private/tmp/libdxfrw-ac1012-witness-runs/ac1012-dictionary-osn3bcve",
+  "fullScratchReceiptSha256": "65771354f4987cfcbfe3818eb8c703feb7e5f86692b2427767cd4d58ddb3e73b",
+  "generatorSha256": "755cddf04244ae94aae9e8a755ac75e9c994bf0e45004cd03dd09658953e4bb5",
+  "executables": {
+    "dwgadd": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgadd",
+      "sha256": "66c435deb0f081ab72be21bb9ba36e5d149f9352d71ddf1e83ac95b3fc07f282"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    }
+  },
+  "result": {
+    "r13-cloning-0": {
+      "sourceSha256": "c183ceb8826a2e70d552aa35b0bed33fdc249ae6bb6c91cda7c184d4897fa808",
+      "frameSha256": "4036547657589ec54edcaf98dfedcf6866c4e234991f2cef8cd10e0112abb269",
+      "cloning": null
+    },
+    "r13-cloning-1": {
+      "sourceSha256": "c183ceb8826a2e70d552aa35b0bed33fdc249ae6bb6c91cda7c184d4897fa808",
+      "frameSha256": "4036547657589ec54edcaf98dfedcf6866c4e234991f2cef8cd10e0112abb269",
+      "cloning": null
+    },
+    "r14-cloning-0": {
+      "sourceSha256": "eebc63ca99429e115db18455cf2997507f65fb688f7c2a37bcee9fd0fba9db17",
+      "frameSha256": "70773bda8a49614351e40a8fe8f4d602d769fc14b3fe0f71efd8920f868a1ce6",
+      "cloning": null
+    },
+    "r14-cloning-1": {
+      "sourceSha256": "eebc63ca99429e115db18455cf2997507f65fb688f7c2a37bcee9fd0fba9db17",
+      "frameSha256": "70773bda8a49614351e40a8fe8f4d602d769fc14b3fe0f71efd8920f868a1ce6",
+      "cloning": null
+    },
+    "r2000-cloning-0": {
+      "sourceSha256": "a7eba7f58bb7185d1b7533d98db741ad595adc4835b10f828d01501a4fe42c96",
+      "frameSha256": "df76c860b560a8d37918751b358327322b588fd1ba1cd193c0cdfb6c829bdb60",
+      "cloning": 0
+    },
+    "r2000-cloning-1": {
+      "sourceSha256": "32b0565ec570d7847739aa03c98da318590e764e1f69ce7be4719f858dd38b5a",
+      "frameSha256": "f68da5cf985b761e5effa7336fbcc4e480cdfe3b01cd157353013a0ac70312ef",
+      "cloning": 1
+    }
+  },
+  "independentReopen": "Fresh ODA conversion could not run: macOS pasteboard/XPC service failed. Earlier ODA-generated controls remain in p6-ac1012-generated-oda-dictionary-witness-2026-11-21.json.",
+  "limits": [
+    "Generated R13/R14 pairs with requested cloning values 0 and 1 have identical selected dictionary frames; R2000 controls differ and decode their respective values.",
+    "These generated sources test source framing only; they do not execute native deep clone, duplicate handling, or WBLOCK and cannot establish those semantics.",
+    "No generated DWG/DXF file is committed."
+  ]
+}

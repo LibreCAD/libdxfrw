@@ -1,0 +1,132 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader open-source implementation-family and comparator selection review",
+  "mode": "Primary project documentation/source review; research-only plan consolidation",
+  "scope": [
+    "Re-audit open-source DWG/DXF codec, projection, kernel, and consumer routes by operation, version, and implementation lineage.",
+    "Identify useful source-distinct comparison routes and their limits for the existing PAR-07/S8 owners.",
+    "Reduce optional peer work by selecting at most one route for an exact unresolved question at a composed checkpoint."
+  ],
+  "method": {
+    "kind": "Read-only review of current primary project documentation, source, and issue pages",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "Mutable project documentation and issue reports are route-scoping evidence only. No external route was executed; no peer claim, local defect, native acceptance, or semantic support was independently qualified by this pass."
+  },
+  "sources": [
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://www.gnu.org/software/libredwg/manual/html_node/Programs.html",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "DWG read/write and conversion routes have direction/version-specific boundaries. R2007 writing is unavailable in published documentation; AcDsPrototype/SAB extraction remains an explicit caveat in project materials, and issue #1411 is a build-specific carrier-loss report.",
+      "evidenceCeiling": "Project declaration and a report for a specific peer version, not local reproduction, universal peer behavior, or 3D semantic qualification."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md"
+      ],
+      "observed": "The public matrix separates DXF/DWG reader and writer by version and does not list an AC1021 DWG writer.",
+      "evidenceCeiling": "A mutable project capability matrix; entity/object semantics and final document membership still require pinned operation-specific evidence."
+    },
+    {
+      "project": "ACadRust and OpenCADStudio",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://docs.rs/crate/acadrust/latest",
+        "https://github.com/hakanaktt/acadrust/issues/133",
+        "https://github.com/hakanaktt/acadrust/issues/134",
+        "https://github.com/HakanSeven12/OpenCADStudio/releases",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "observed": "Mutable ACadRust source declares 0.6.5 while the published docs/crate remain 0.5.5. Open issues #133/#134 provide owner-orphan and bounded auxiliary-record adversarial prompts; maintainer candidate commits have no public private-corpus retest. OpenCADStudio is an application using an ACadRust-derived codec fork and a separately described early kernel.",
+      "evidenceCeiling": "Source/package mismatch, peer reports, and self-described application/kernel capabilities are not verified fixes, independent parser votes, or complete B-rep evidence."
+    },
+    {
+      "project": "ezdwg",
+      "urls": [
+        "https://github.com/monozukuri-ai/ezdwg",
+        "https://github.com/monozukuri-ai/ezdwg/blob/main/docs/guide/reading-files.md",
+        "https://pypi.org/project/ezdwg/"
+      ],
+      "observed": "A separately implemented direct DWG reader documents a bounded modern 2D entity cohort, a native AC1015 writer subset, and ezdxf-backed DXF output.",
+      "evidenceCeiling": "An optional read-side comparator for overlapping entity/version routes only; it is not a modern DWG writer or ACIS/AcDs semantic oracle."
+    },
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "observed": "The pre-alpha reader publishes decoded/skipped/errored counts with small per-version sample denominators and explicitly documents missing entity coverage, no DXF parser, and no R14/R2007 writer.",
+      "evidenceCeiling": "Useful only for an exact container or disposition question; aggregate success percentages and experimental writer output do not establish interoperability."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://github.com/mozman/ezdxf",
+        "https://ezdxf.readthedocs.io/en/stable/introduction.html",
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py"
+      ],
+      "observed": "The project documents ASCII/Binary DXF read/write through R2018 and third-party content retention; its unknown tag-storage object is not generally copyable or transformable.",
+      "evidenceCeiling": "Strict DXF syntax and supported in-place preservation only; not transformed graph preservation, DWG parsing, or ACIS semantics."
+    },
+    {
+      "project": "GDAL",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md"
+      ],
+      "observed": "The DXF driver projects into OGR geometry/features, tessellates some curves, can transform block/entity structure, supports Binary DXF from GDAL 3.12, and can expose AC1027+ raw ASM plus transform without constructing solid geometry.",
+      "evidenceCeiling": "Exact-version projection or raw-carrier observation only; not full structural round trip, DWG AcDs association, or B-rep validation."
+    },
+    {
+      "project": "FreeCAD and LibreCAD_3",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "observed": "FreeCAD DWG import is a converter-to-DXF then selected-importer route with importer-specific coverage; LibreCAD_3 is a downstream libdxfrw consumer with a read-only, opt-in DWG policy.",
+      "evidenceCeiling": "Consumer-route qualification only; neither is an independent codec implementation or stock ACIS semantic reader."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingOwner": "PAR-07/S8 and peer-lineage admission",
+    "planEffect": "Consolidate a route-selection matrix and cap optional comparisons at one source/artifact-pinned route per unresolved question at an existing composed checkpoint.",
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "supportClaimPromoted": false,
+    "findings": 137,
+    "topLevelSubplans": 77,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

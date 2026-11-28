@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-table-cell-empty-value-ambiguity-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_TEST_PASS_UNCOMMITTED",
+  "scope": "Add source-generated ASCII/binary regression coverage for the reported ACAD_TABLE block-cell CELL_VALUE sequence with an unassociated empty group300.",
+  "implementation": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "focusedMode": "--retain-table-callback",
+    "input": "Generated from scratch by replacing one block-cell tuple in the existing source-authored TABLE control; no external file is used.",
+    "profiles": ["ASCII DXF", "binary DXF"],
+    "wireShape": [
+      "301 CELL_VALUE",
+      "93 1",
+      "90 4",
+      "94 0",
+      "empty group300",
+      "empty group302",
+      "304 ACVALUE_END"
+    ],
+    "checked": [
+      "The cell remains a block cell and its BLOCK_RECORD handle is unchanged.",
+      "The type-4 handle-bearing block content is retained.",
+      "No ATTDEF tuple is synthesized for the unassociated group300.",
+      "The empty text remains separate from the block content and the semantic table stays incomplete.",
+      "A later table cell and the following LINE handle/subtype remain aligned."
+    ],
+    "productionBehaviorChanged": false,
+    "testRegistrationsAdded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --retain-table-callback",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure",
+      "git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "focusedMode": "passed",
+      "owningCTest": "passed: 1/1",
+      "scopedDiffCheck": "passed"
+    }
+  },
+  "limits": {
+    "peerDwgSemanticsResolved": false,
+    "producerAuthoredDXFWitnessAvailable": false,
+    "nativeAutoCADOrODAQualification": false,
+    "tableWriterAdmissionChanged": false,
+    "supportClaimsPromoted": 0,
+    "findingsAndSubplans": "126/71",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing changes"
+  }
+}

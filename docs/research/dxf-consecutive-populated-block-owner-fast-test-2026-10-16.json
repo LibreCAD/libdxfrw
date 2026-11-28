@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-dxf-consecutive-populated-block-owner-fast-test-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "status": "GENERATED_TWO_BLOCK_OWNER_CENSUS_PASSES",
+  "scope": "Exercise the existing dx_iface AC1027 export route with two consecutive populated named BLOCK bodies in ASCII and binary and verify each child remains with its source block owner.",
+  "generatedControl": {
+    "namedBlocks": [
+      {
+        "name": "First",
+        "childEntities": [110.0, 111.0]
+      },
+      {
+        "name": "Second",
+        "childEntities": [210.0, 211.0]
+      }
+    ],
+    "modelspaceSentinel": 910.0,
+    "checks": [
+      "one BLOCK_RECORD per named block",
+      "one BLOCK body owned by its matching BLOCK_RECORD",
+      "one ENDBLK with the matching owner for each target body",
+      "exact child LINE census per owner in BLOCKS",
+      "modelspace sentinel remains under modelspace BLOCK_RECORD in ENTITIES",
+      "ASCII and binary output signatures and EOF"
+    ],
+    "encodings": [
+      "ASCII DXF",
+      "binary DXF"
+    ],
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build --target libdxfrw_block_owner_tests -j4",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_block_owners$' --output-on-failure",
+      "passed": 1,
+      "failed": 0
+    },
+    "diffCheck": "passed",
+    "fullTestSuite": "not run; focused fast cadence retained",
+    "externalPeerOrNativeRun": "not run"
+  },
+  "changedFileHashes": [
+    {
+      "path": "tests/block_owner_tests.cpp",
+      "sha256": "280458c6eed0991fd9cb6eea79bac06a54d9012bfea7ba508adb143dc9f246b9"
+    }
+  ],
+  "evidenceBoundary": {
+    "establishes": [
+      "the generated two-block dx_iface export retains both populated named block bodies in ASCII and binary",
+      "each target BLOCK and ENDBLK owner matches its BLOCK_RECORD",
+      "each distinct generated child LINE stays in BLOCKS under the expected owner",
+      "the separate modelspace LINE remains in ENTITIES under the modelspace owner"
+    ],
+    "doesNotEstablish": [
+      "a reproduction or fix of the peer-reported LibreDWG issue",
+      "every raw, typed, generated, layout, or alternate block writer route",
+      "independent third-party reader agreement",
+      "all source-set or semantic graph closure"
+    ]
+  },
+  "planImpact": {
+    "findings": 122,
+    "topLevelSubplans": 70,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "committed": false,
+    "commitReason": "The test file contains unrelated pre-existing workspace edits."
+  }
+}

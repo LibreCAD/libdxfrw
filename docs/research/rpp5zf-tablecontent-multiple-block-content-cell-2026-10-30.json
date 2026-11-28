@@ -1,0 +1,64 @@
+{
+  "id": "rpp5zf-tablecontent-multiple-block-content-cell-2026-10-30",
+  "date": "2026-10-30",
+  "status": "COMPLETE_LOCAL_SLICE",
+  "objective": "Write the source-witnessed AC1027 TABLECONTENT cell containing two repeated block CONTENT records followed by a string scalar, retaining exact target order and transactional failure behavior.",
+  "source": {
+    "producer_profile": "Peer-produced AC1027 ASCII DXF",
+    "local_evidence_path": "build/rpp5fa-evidence.4xKADX/peer/sample_AC1027_ascii.dxf",
+    "sha256": "4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6",
+    "tablecontent_handle": "12F2",
+    "cell_index": 9,
+    "physical_lines": [
+      58243,
+      58415
+    ],
+    "physical_profile": {
+      "group_95_content_count": 3,
+      "ordered_contents": [
+        {
+          "type": 4,
+          "group_340_block_record": "A0B",
+          "group_91_attribute_count": 0
+        },
+        {
+          "type": 4,
+          "group_340_block_record": "A0B",
+          "group_91_attribute_count": 0
+        },
+        {
+          "type": 1,
+          "value": "Cell with 2 blocks"
+        }
+      ]
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "admission": "Supports only the witnessed no-attribute three-content sequence [block, same block, string] in the rectangular TABLECONTENT writer. Each block target must resolve uniquely to an emitted BLOCK_RECORD and uniquely named/owned block. Other unqualified multiplicities remain refused.",
+    "serialization": "Writes each remapped block target in source order, followed by the scalar value; existing one-block and attributed-block profiles retain their prior rules. Adapter binding indexes requested block identities once with bounded content, attribute and target counts.",
+    "fixture_policy": "Controls are generated locally at runtime; no DWG/DXF fixture file was added or committed."
+  },
+  "proof": {
+    "ascii_binary_wire": "For both ASCII and Binary DXF, physical output inspection confirms the target cell group 95 count is 3, ordered CONTENT types [4,4,1], the first two group-340 values equal the same emitted BLOCK_RECORD handle, and both block group-91 attribute counts are zero. The neighboring scalar cell is also checked.",
+    "typed_readback": "Fresh readback confirms a 1x2 table; the first cell contains both block references to the emitted BLOCK_RECORD followed by the expected string and no attributes; the second cell retains its scalar.",
+    "failure_retry": "For both output encodings, changing only the second repeated block target to a missing handle refuses export and preserves the existing sentinel file. Restoring the valid handle lets the same writer instance export successfully.",
+    "compatibility": "The same focused block test retains and verifies the already-supported attributed mixed-content block grid and multiple block cells; the FIELD multi-cell reference selector passes alongside it."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_fixture_tests dwg2dxf --parallel 4",
+    "focused_ctest": "ctest --test-dir build -R 'libdxfrw_tablecontent_multicell_(block|field)_reference' --output-on-failure",
+    "result": "2/2 passed; block selector covers ASCII and Binary; elapsed focused cohort about 0.55 seconds.",
+    "full_suite": "Not run; this is a narrow TABLECONTENT serializer/adapter slice."
+  },
+  "scope_limits": [
+    "Does not qualify arbitrary block-content order, distinct repeated block targets, attributes on repeated-block cells, linked-data combinations, or block geometry payloads.",
+    "Does not establish native TABLE rendering or broader DWG/DXF support claims."
+  ],
+  "plan_action": "Remove the repeated [block, block, string] TABLECONTENT composition from P5. Keep independent block geometry-payload witness and semantics work open.",
+  "committed_external_fixture": false
+}

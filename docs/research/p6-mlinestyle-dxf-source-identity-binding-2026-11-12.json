@@ -1,0 +1,30 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "scope": "Bind emitted typed MLINESTYLE source identity in the transactional DXF object writer.",
+  "result": "PASS",
+  "supportClaimEffect": "none",
+  "change": "writeMLineStyle now calls bindDxfWriteSourceObjectHandle before committing its existing RecordStateScope and DxfWriterRecordScope. Failure rolls back the source-object identity with the writer record.",
+  "validation": {
+    "normal_allocation": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_style_objects_allocation$' --output-on-failure",
+      "result": "PASS, 1/1; generated allocation failure sweep, same-codec retry, typed readback"
+    },
+    "physical_selected_output": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-style-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for AC1024 ASCII and Binary selected MLINESTYLE output/readback; refusal preserved the destination and corrected same-adapter retry passed"
+    },
+    "address_sanitizer_allocation": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_mline_style_objects_allocation$' --output-on-failure",
+      "result": "PASS, 1/1; generated allocation failure sweep, same-codec retry, typed readback"
+    }
+  },
+  "limitations": [
+    "Selected MLINESTYLE output only; does not qualify the containing drawing or other OBJECTS graphs.",
+    "No native consumer semantics, platform qualification, or release support claim is established.",
+    "The external source DWG was read for qualification and was not added to the repository."
+  ],
+  "source_sha256": {
+    "src/libdxfrw.cpp": "a731c32301cf49a8458aa521d15b142577e88d14fb2a5b4bcbcf7a75fb81717f"
+  }
+}

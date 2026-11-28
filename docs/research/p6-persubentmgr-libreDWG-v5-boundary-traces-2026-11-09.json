@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw-source-peer-span-trace-v1",
+  "date": "2026-11-09",
+  "scope": "Hash-bound AC1015/AC1021/AC1024 PERSUBENTMGR D63 peer traces and class-body/handle boundary observations",
+  "supportClaimEffect": "none",
+  "authority": {
+    "oda": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "section": "§20.1 common object framing; no PERSUBENTMGR-specific field schema"
+    },
+    "peerSchema": {
+      "implementation": "LibreDWG",
+      "version": "0.14",
+      "sourceCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "dwg2SpecPath": "/Users/dli/dev/LibreDWG/src/dwg2.spec",
+      "dwg2SpecSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "note": "The PERSUBENTMGR class is marked unstable; dwg2.spec describes the layout as varying and its tail decode overruns or yields invalid cursor positions for these records. This trace is boundary evidence, not accepted semantic schema."
+    }
+  },
+  "tool": {
+    "path": "/opt/homebrew/bin/dwgread",
+    "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "version": "0.14",
+    "command": "dwgread -v5 -O minJSON <source.dwg>",
+    "logEncoding": "captured stdout followed by stderr"
+  },
+  "records": [
+    {
+      "version": "AC1015",
+      "dwg": {
+        "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1015.dwg",
+        "sha256": "8ffbdc713f5838cbbb1596a8422e2b607e5c9e79921e852cbb5abee4af76ea4e"
+      },
+      "pairedDxf": {
+        "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1015_ascii.dxf",
+        "sha256": "4f7d7f0d3957d4d32c6c43e4c600eea8e90fc0fcb1b36b11256095a9789a923f",
+        "handle": "D63",
+        "group90Values": [2, 0, 2, 4, 0, 2, 3, 4]
+      },
+      "trace": {
+        "path": "/private/tmp/ac1015-persubentmgr-v5.log",
+        "sha256": "81ae9c626303a90e2e15c55738b03962a238d251c0dcd89c7a12105f47f1ffe7",
+        "objectHandle": "0xD63",
+        "objectSizeBytes": 24,
+        "dataBitsToHandleStream": 150,
+        "handleStreamByteBit": "18.6",
+        "commonSizeBits": 68,
+        "observedCandidatePrefix": [2, 0, 2, 4, 0, 2, 3, 4],
+        "peerCandidateTrailingCount": 4,
+        "failure": "Peer then attempts subentity reads beyond the 24-byte object; decoded tail values are invalid and excluded."
+      }
+    },
+    {
+      "version": "AC1021",
+      "dwg": {
+        "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1021.dwg",
+        "sha256": "70b5efec9a3c230a9892e810154a760fe72311b1e730fb582f22950135da770a"
+      },
+      "pairedDxf": {
+        "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1021_ascii.dxf",
+        "sha256": "39ebdd9a48fef7a6240a04e3b5ca6d45ba5bb30b560fb9dadf26774e1af83731",
+        "handle": "D63",
+        "group90Values": [2, 0, 2, 4, 0, 2, 3, 4]
+      },
+      "trace": {
+        "path": "/private/tmp/ac1021-persubentmgr-v5.log",
+        "sha256": "965c516647200c545fa93090ccb5355fb20af02c6c1df660a687cad82449c22c",
+        "objectHandle": "0xD63",
+        "objectSizeBytes": 23,
+        "dataBitsToHandleStream": 152,
+        "handleStreamByteBit": "19.0",
+        "commonSizeBits": 69,
+        "observedCandidatePrefix": [2, 0, 2, 4, 0, 2, 3, 4],
+        "peerCandidateTrailingCount": null,
+        "failure": "The bounded peer decode stops after the eight candidate prefix values at the modern string/footer and handle boundary."
+      }
+    },
+    {
+      "version": "AC1024",
+      "dwg": {
+        "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg",
+        "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce"
+      },
+      "pairedDxf": {
+        "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1024_ascii.dxf",
+        "sha256": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372",
+        "handle": "D63",
+        "group90Values": [2, 0, 2, 4, 0, 2, 3, 4]
+      },
+      "trace": {
+        "path": "/private/tmp/ac1024-persubentmgr-v5.log",
+        "sha256": "17f2e02ed767b9bf0e624d91c131550cb58798c95853c2eace5289d9c22e3aa9",
+        "objectHandle": "0xD63",
+        "objectSizeBytes": 18,
+        "dataBitsToHandleStream": 112,
+        "handleStreamByteBit": "14.0",
+        "commonSizeBits": 37,
+        "observedCandidatePrefix": [2, 0, 2, 4, 0, 2, 3, 4],
+        "peerCandidateTrailingCount": 8525954,
+        "failure": "Candidate trailing count exceeds the remaining object bounds; the peer rejects the implied subentity vector as invalid."
+      }
+    }
+  ],
+  "conclusion": {
+    "whatThisSupports": [
+      "The three hash-bound records share the eight-value candidate prefix also present in their paired DXF group-90 sequences.",
+      "Their object-data and handle-stream limits differ by version and bound the PERSUBENTMGR records.",
+      "The peer's proposed trailing count/subentity interpretation is not supported: it overruns AC1015, stops at the boundary for AC1021, and is out-of-bounds for AC1024."
+    ],
+    "whatThisDoesNotSupport": [
+      "No exact per-field physical bit span is accepted from the unstable peer output; its step-vector cursor labels overflow and are not reliable.",
+      "No class-specific PERSUBENTMGR grammar, field semantics, producer-wide behavior, DXF output eligibility, or support claim is established."
+    ],
+    "next": "Find an independently maintained implementation or a native producer/consumer observation that distinguishes the class-specific body schema; keep unresolved records raw-carried or Partial and make no production interpretation change until then."
+  },
+  "noFixtureAdded": true
+}

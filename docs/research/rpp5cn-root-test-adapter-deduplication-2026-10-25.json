@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5cn audited root test adapter deduplication",
+  "date": "2026-10-25",
+  "parentCommit": "ff8ac13e324552e541d79e4a91ae558aad0f5e40",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "AUDITED_IDENTICAL_ROOT_TEST_ADAPTER_CONTEXTS_SHARED_10_TO_6_LOCAL_COMPILE_ACTIONS_RUNTIME_AND_FALLBACK_CONTROLS_PASS_FULL_PARITY_OPEN",
+  "baseline": {
+    "normalAdapterCompilationUnitsPerConfiguration": 10,
+    "asanAdapterCompilationUnitsPerConfiguration": 10,
+    "source": "Actual pre-change compile_commands.json inventories; ASan commands captured before reconfiguration",
+    "baselineIncludesExistingFiveMemberTestsSubdirectoryPool": true
+  },
+  "implementation": {
+    "uninstalledPools": [
+      {
+        "target": "libdxfrw_root_test_adapter",
+        "members": [
+          "libdxfrw_dwg_local_roundtrip",
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_dwg_fixture_tests"
+        ],
+        "orderedIncludes": [
+          "src",
+          "repository root"
+        ],
+        "compileFeatures": [
+          "cxx_std_17"
+        ],
+        "targetLocalWarnings": "unchanged: none"
+      },
+      {
+        "target": "libdxfrw_reader_test_adapter",
+        "members": [
+          "libdxfrw_symbol_output_tests",
+          "libdxfrw_dwg_reader_matrix_tests",
+          "libdxfrw_wave1_tests (non-MSVC only)"
+        ],
+        "orderedIncludes": [
+          "src",
+          "src/intern",
+          "dwg2dxf"
+        ],
+        "compileFeatures": [
+          "cxx_std_17"
+        ],
+        "targetLocalWarnings": "unchanged: none"
+      }
+    ],
+    "driverOnlyFixtureDefinitions": [
+      "tests/dxf_fixture_tests.cpp: LIBDXFRW_DXF_FIXTURE_DIR",
+      "tests/dwg_fixture_tests.cpp: LIBDXFRW_DWG_FIXTURE_DIR",
+      "tests/dwg_reader_matrix_tests.cpp: LIBDXFRW_READER_FIXTURE_DIR"
+    ],
+    "fixtureMacrosUnusedByAdapterAndItsProductionIncludes": true,
+    "keptSeparate": [
+      "CLI including Apple framework paths and strict warnings",
+      "Existing tests/ strict-warning pool",
+      "GBK include/fixture context",
+      "Debug-state warning/fixture/Threads context",
+      "MSVC Wave1 test-seam context",
+      "Separate build trees and sanitizer/configuration outputs"
+    ],
+    "existingOptOutAndGlobalPicExportFallbacksPreserved": true,
+    "contextGuard": "Extracted existing target-property/link-list comparison; also require matching source and binary creation directories; check members after all target customizations",
+    "contextGuardIsNotGenericTargetSensitiveTransitiveGeneratorExpressionEquivalenceProof": true,
+    "newHelpersDistributedAndGitignoreExceptionsAdded": true,
+    "installedLibraryExportsPublicApiWireFormatsAndConsumersNotChanged": true
+  },
+  "graphAudit": {
+    "before": 10,
+    "after": 6,
+    "unchanged": [
+      {
+        "target": "libdxfrw_gbk_codepage_tests",
+        "equal": true
+      },
+      {
+        "target": "libdxfrw_debug_state_tests",
+        "equal": true
+      },
+      {
+        "target": "CMakeFiles/dwg2dxf.dir",
+        "equal": true
+      },
+      {
+        "target": "libdxfrw_test_adapter",
+        "equal": true
+      }
+    ],
+    "groups": [
+      {
+        "group": "root",
+        "members": [
+          {
+            "target": "libdxfrw_dwg_local_roundtrip",
+            "onlyRemovedDriverMacroOrOutputPath": true
+          },
+          {
+            "target": "libdxfrw_dxf_fixture_tests",
+            "onlyRemovedDriverMacroOrOutputPath": true
+          },
+          {
+            "target": "libdxfrw_dwg_fixture_tests",
+            "onlyRemovedDriverMacroOrOutputPath": true
+          }
+        ]
+      },
+      {
+        "group": "reader",
+        "members": [
+          {
+            "target": "libdxfrw_wave1_tests",
+            "onlyRemovedDriverMacroOrOutputPath": true
+          },
+          {
+            "target": "libdxfrw_symbol_output_tests",
+            "onlyRemovedDriverMacroOrOutputPath": true
+          },
+          {
+            "target": "libdxfrw_dwg_reader_matrix_tests",
+            "onlyRemovedDriverMacroOrOutputPath": true
+          }
+        ]
+      }
+    ],
+    "asanAllRetainSanitizer": true
+  },
+  "buildMeasurements": {
+    "environment": {
+      "os": "macOS ARM64",
+      "compiler": "Apple clang 21.0.0",
+      "normalCompilerExecutable": "/usr/bin/g++ (Apple Clang, not native GCC)",
+      "asanCompilerExecutable": "/usr/bin/c++",
+      "cmake": "4.4.4",
+      "ninja": "1.13.2"
+    },
+    "adapterCompilationActionsRemovedPerFullConfigurationGraph": 4,
+    "adapterActionCountReductionPercent": 40,
+    "allAdapterConsumersIncrementalSourceChangeGraph": "Six adapter actions instead of ten; structural dependency/compile-command count, not an executed full rebuild benchmark",
+    "changedAffectedBuilds": {
+      "normalWallSeconds": 34.52,
+      "asanWallSeconds": 83.15,
+      "parallelism": 3,
+      "normalLog": "/tmp/rpp5cn-normal-build.log",
+      "asanLog": "/tmp/rpp5cn-asan-build.log"
+    },
+    "noOpAffectedNormalBuild": {
+      "wallSeconds": 2.11,
+      "log": "/tmp/rpp5cn-normal-noop-build.log"
+    },
+    "timingsUnpairedWarmBuildObservationsNotSpeedupBenchmark": true,
+    "cleanFullBuildBenchmark": "NOT_RUN",
+    "wallTimeSpeedupClaimed": false
+  },
+  "controls": {
+    "rootPoolMakefiles": {
+      "positiveConfigurations": 6,
+      "negativeContextCases": 18,
+      "tinyExecutableRuns": 36,
+      "positiveNames": [
+        "shared",
+        "exports-off",
+        "disabled",
+        "pic",
+        "exports",
+        "msvc-seam-routing"
+      ],
+      "driftKindsPerPool": [
+        "definition",
+        "include",
+        "option",
+        "dependency",
+        "runtime",
+        "ipo",
+        "warnings",
+        "pic",
+        "directory"
+      ],
+      "fixtureMacroLeakCompileErrorsAndSeamDependentRuntimeValuesChecked": true
+    },
+    "rootPoolNinjaMultiConfig": {
+      "samePositiveAndNegativeControls": true,
+      "tinyExecutableRuns": 36,
+      "executedConfiguration": "Debug",
+      "compileGraphConfigurations": [
+        "Debug",
+        "Release",
+        "RelWithDebInfo"
+      ],
+      "log": "/tmp/rpp5cn-multiconfig-final.log",
+      "result": "PASS"
+    },
+    "originalTestsPoolConfigureControls": {
+      "positiveConfigurations": 5,
+      "negativeContextCases": 6,
+      "result": "PASS"
+    },
+    "realCliOptionalStaticSharedOnOffRegistrationMatrix": "PASS",
+    "rootHarnessPreservesExplicitToolchainGeneratorInstancePlatformCompilerTargetSysrootAndConfiguration": true,
+    "nativeMsvcExecution": "NOT_RUN; seam routing simulated on host compiler, not Windows qualification"
+  },
+  "validation": {
+    "normal": {
+      "log": "/tmp/rpp5cn-normal-tests.log",
+      "tests": [
+        "dwg2dxf_rooted_image_dictionary_closure",
+        "dwg2dxf_xrecord_owned_extension",
+        "dwg2dxf_xrecord_owned_extension_faults",
+        "dwg2dxf_raster_dwg_source_profile_eed",
+        "dwg2dxf_selected_raster_reactor_metadata",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_wave1",
+        "libdxfrw_dxf_fixtures",
+        "libdxfrw_dwg_fixtures",
+        "libdxfrw_dxf_tables_write_inspection",
+        "libdxfrw_class_section_independent_wire",
+        "libdxfrw_dxf_source_table_identities",
+        "libdxfrw_3d_consumer_probe",
+        "libdxfrw_symbol_unicode_keys",
+        "libdxfrw_symbol_name_wire_inspection",
+        "libdxfrw_dwg_image_compound_transaction",
+        "libdxfrw_dwg_reader_matrix",
+        "libdxfrw_class_dwg_independent_wire",
+        "libdxfrw_raster_dwg_independent_wire",
+        "libdxfrw_debug_state",
+        "dwg2dxf_version_policy",
+        "libdxfrw_gbk_codepage",
+        "dwg2dxf_cli_contract"
+      ],
+      "wallSeconds": 28.83,
+      "allPass": true
+    },
+    "asan": {
+      "log": "/tmp/rpp5cn-asan-tests.log",
+      "tests": [
+        "dwg2dxf_rooted_image_dictionary_closure",
+        "dwg2dxf_xrecord_owned_extension_faults",
+        "dwg2dxf_selected_raster_reactor_metadata",
+        "libdxfrw_3d_consumer_probe",
+        "libdxfrw_dxf_tables_write_inspection",
+        "libdxfrw_class_section_independent_wire",
+        "libdxfrw_dxf_source_table_identities",
+        "libdxfrw_symbol_unicode_keys",
+        "dwg2dxf_xrecord_owned_extension",
+        "libdxfrw_dwg_image_compound_transaction",
+        "dwg2dxf_version_policy",
+        "libdxfrw_raster_dwg_independent_wire",
+        "libdxfrw_symbol_name_wire_inspection",
+        "libdxfrw_class_dwg_independent_wire",
+        "dwg2dxf_raster_dwg_source_profile_eed",
+        "libdxfrw_wave1",
+        "libdxfrw_gbk_codepage",
+        "libdxfrw_debug_state",
+        "libdxfrw_dwg_reader_matrix",
+        "libdxfrw_dwg_fixtures",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "wallSeconds": 39.07,
+      "allPass": true
+    },
+    "buildContext": {
+      "log": "/tmp/rpp5cn-build-context-final.log",
+      "tests": [
+        "libdxfrw_adapter_build_context",
+        "libdxfrw_implementation_speed",
+        "libdxfrw_cli_optional_build",
+        "libdxfrw_root_adapter_build_context"
+      ],
+      "wallSeconds": 4.6,
+      "allPass": true
+    },
+    "asanContext": {
+      "log": "/tmp/rpp5cn-asan-context-final.log",
+      "tests": [
+        "libdxfrw_root_adapter_build_context"
+      ],
+      "wallSeconds": 5.49,
+      "allPass": true
+    }
+  },
+  "additionalValidation": {
+    "normalAndAsanLibreCAD3CompileGates": "PASS",
+    "wireProbesIncludingExplicitCxx14ClassTargets": "PASS (own scoped CTests and build targets)",
+    "normalProbeBuildLog": "/tmp/rpp5cn-normal-probes-build.log",
+    "asanProbeBuildLog": "/tmp/rpp5cn-asan-probes-build.log",
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "scopedRuntimeParallelism": 3,
+    "fullTestSuite": "NOT_RUN",
+    "leakQualification": "NOT_RUN",
+    "nativeLinuxWindowsQualification": "NOT_RUN"
+  },
+  "supportBoundaries": {
+    "strictAdmission": "CLOSED",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxFreeCAD": "NOT_RUN",
+    "nativeWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsSemanticKernelQualification": "NOT_RUN",
+    "supportClaimsPromoted": false,
+    "wholePlanComplete": false
+  },
+  "remainingImplementationReady": [
+    "Remaining owning-family/common-extension/source-generation alias contracts with actual imports and final field/reference proof, atomic refusal and restored readback",
+    "DataStorage raw-carrier/schema/owner byte preservation and cumulative decoded-owner/retention controls using authoritative DWG specification and bounded actual-source evidence",
+    "Remaining profile callbacks/incompatible next attempts; independent APPID/LAYER/XRECORD names/body/path/EED; sparse native classes; full IMAGE geometry and named-root/document closure",
+    "Native point19/component-coded20/30 require specification plus actual-source proof before grammar/layout changes",
+    "Preserve full LibreCAD/LibreCAD_3 2D and 3D/dwg2dxf/FreeCAD objective; self-update receipts/plan, safely self-unblock, commit/report verified slices"
+  ],
+  "exclusions": {
+    "drawingsCommitted": false,
+    "preexistingUntrackedDrawingsExcluded": 17,
+    "unrelatedUntrackedFilesExcluded": true,
+    "earlierReceiptsModified": false,
+    "remoteMutation": false
+  }
+}

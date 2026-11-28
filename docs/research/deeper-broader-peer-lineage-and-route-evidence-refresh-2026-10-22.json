@@ -1,0 +1,140 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "Broader peer lineage and route evidence refresh",
+  "mode": "Primary-source web research and plan-only update",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "9abc43b157925be27a6f0232db541b708491e18c8313275617da01fbd6ff741c",
+  "scope": [
+    "Expand the open-source DWG/DXF comparator inventory beyond the existing LibreDWG, ACadSharp, ezdxf, and GDAL/OGR review.",
+    "Classify code lineage and actual downstream routes so derived codecs and wrappers are not counted as independent evidence.",
+    "Refine implementation-ready evidence admission and fast-validation guidance without changing implementation order or support claims."
+  ],
+  "sources": [
+    {
+      "project": "dwg-rs",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs",
+        "https://github.com/DrunkOnJava/dwg-rs/blob/main/CLEANROOM.md"
+      ],
+      "revision": "Mutable README/main inspected 2026-10-22; exact revision not pinned and no code executed",
+      "observed": "Project describes an ODA DWG Specification v5.4.1-based implementation; its README labels it pre-alpha, distinguishes a mature container/object-walk layer from partial entity decoding, says the DXF parser is not implemented, and labels DWG writing alpha without automated external CAD acceptance. It reports consulting ACadSharp algorithm comments for one LZ77 ambiguity but no executable LibreDWG code.",
+      "limits": "Candidate only for pinned container, section, and raw object-boundary comparisons. Not an entity semantic oracle, complete reader, writer-acceptance source, or native CAD result. Its clean-room description is self-reported and not a formal two-team process."
+    },
+    {
+      "project": "acadrust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/THIRD_PARTY_NOTICES.md",
+        "https://docs.rs/crate/acadrust/latest"
+      ],
+      "revision": "GitHub main Cargo.toml showed 0.6.6 and docs.rs indexed 0.6.5 during 2026-10-22 review; mutable source, no build or run",
+      "observed": "The project advertises broad DXF/DWG R12–R2018+ I/O and ACIS/SAT/SAB capabilities, qualifies that entity support varies and AC1009 DWG fidelity is incomplete, and discloses that DWG reader/writer code is ported and adapted from ACadSharp. Published roundtrip tests normalize handles and remove a raw_record provenance cache before semantic equality checks.",
+      "limits": "Not an independent DWG implementation relative to ACadSharp. Self-round-trip demonstrates internal consistency only. Pin published crate or repository commit before any run; do not infer arbitrary ACIS semantics or external CAD acceptance from the advertised feature list."
+    },
+    {
+      "project": "Open CAD Studio and CADCraft",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio",
+        "https://github.com/HakanSeven12/OpenCADStudio/discussions/1117",
+        "https://github.com/storytold/cadcraft/blob/main/crates/dwg/src/lib.rs",
+        "https://github.com/storytold/cadcraft/issues/1076"
+      ],
+      "revision": "Mutable main/discussion/issue inspected 2026-10-22; no application or binary executed",
+      "observed": "Open CAD Studio uses acadrust and its discussion identifies a DWG constraint graph roundtrip through the same engine as self-consistency, not AutoCAD/BricsCAD acceptance. CADCraft uses acadrust to produce DXF bytes before parsing them into a separate model; one issue reports 276 MB intermediate text and over 4.5 GB peak memory for one 47.8 MB AC1032 input.",
+      "limits": "These are downstream workflows, not independent codec witnesses. The reported performance case is one issue reproduction, not a general benchmark."
+    },
+    {
+      "project": "uncad and undxf",
+      "urls": [
+        "https://github.com/iyulab/uncad",
+        "https://docs.rs/undxf/latest/undxf/"
+      ],
+      "revision": "Mutable repository/docs inspected 2026-10-22; no code executed",
+      "observed": "uncad declares DWG read through LibreDWG FFI, a separate Rust undxf parser for ASCII DXF, and no DWG/DXF writer. undxf documents preservation of unknown entities in its own model.",
+      "limits": "uncad is not independent DWG evidence. undxf is only a candidate ASCII-DXF parse observer for documented input and model fields; it cannot qualify Binary DXF, writing, or ACIS semantics."
+    },
+    {
+      "project": "ixmilia/dxf-rs",
+      "urls": [
+        "https://github.com/ixmilia/dxf-rs"
+      ],
+      "revision": "Mutable main README inspected 2026-10-22; no package or source executed",
+      "observed": "A DXF/DXB reader and writer with optional integration/interop tests that require Windows and an installed ODA File Converter.",
+      "limits": "Not a DWG implementation. For any future result, record whether ODA File Converter was part of the test path and limit claims to supported DXF routes."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/addons/odafc.html"
+      ],
+      "revision": "Stable documentation identified ezdxf 1.4.5; accessed 2026-10-22",
+      "observed": "DXF-native read/write route with documented third-party content retention. ACIS support is limited and explicitly cannot load/re-export arbitrary ACIS data. Optional DWG conversion calls an installed ODA File Converter.",
+      "limits": "Use only for exact DXF fields or a documented ACIS subset. Separate pure ezdxf from ODA converter observations; neither route establishes arbitrary ACIS kernel semantics."
+    },
+    {
+      "project": "GDAL/OGR DXF",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "revision": "Mutable stable documentation accessed 2026-10-22; binary DXF feature documented since GDAL 3.12",
+      "observed": "The driver projects DXF to OGR geometries, may tessellate curves or inline blocks, and offers optional raw code values. Its AC1027+ 3D extensible option returns raw ASM data and transform but no solid geometry.",
+      "limits": "Projection/raw-carrier observation only; not full graph preservation, DWG parsing, or solid semantics."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newComparatorRoutesAdded": [
+      "dwg-rs container/raw-object observer candidate",
+      "acadrust related-lineage DWG/DXF comparator candidate",
+      "uncad/undxf split DWG-versus-DXF routes",
+      "ixmilia/dxf-rs DXF/DXB comparator candidate",
+      "Open CAD Studio and CADCraft downstream routes"
+    ],
+    "newImplementationSubplans": 0,
+    "executionOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalGates": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL",
+      "freecadLinuxWindows": "NOT_RUN",
+      "independentAcisAcdsSemantics": "NOT_RUN"
+    }
+  },
+  "planChanges": [
+    "Added explicit lineage classes and exact-route evidence fields to the existing PAR-07/S8 route-ledger guidance.",
+    "Added dwg-rs as a narrow DWG container/raw-object candidate, not an entity or writer oracle.",
+    "Classified acadrust as ACadSharp-derived for DWG, with a package/repository version pin requirement and self-roundtrip normalization caveat.",
+    "Classified Open CAD Studio and CADCraft as downstream routes; documented the single CADCraft memory report as a bounded performance signal only.",
+    "Added uncad/undxf and ixmilia/dxf-rs as route-limited DXF candidates, retaining their DWG/writer/ODA dependency limits.",
+    "Kept implementation order, fixture policy, fast per-slice validation, J-item status, and support claims unchanged."
+  ],
+  "limitations": [
+    "Project documentation and default branches are mutable; any future peer run must pin an immutable revision or release artifact and checksum.",
+    "No peer repository was cloned, built, or executed; no external/customer drawing was downloaded.",
+    "No independent positive ACIS/ACDS sample plus kernel-backed semantic result was established.",
+    "The ODA v5.4.1 specification remains authoritative for DWG byte-layout questions under repository instructions."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "tests": "NOT_RUN: research-only plan update",
+    "fullSuite": "NOT_RUN",
+    "commitCreated": false
+  }
+}

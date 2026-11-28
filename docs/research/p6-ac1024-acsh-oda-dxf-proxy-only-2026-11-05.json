@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-acsh-oda-dxf-proxy-only-2026-11-05",
+  "date": "2026-11-05",
+  "status": "ODA_DXF_OUTPUT_RETURNS_ACSH_REVOLVE_AS_PROXY",
+  "supportClaimEffect": "none",
+  "question": "Does an ODA 27.1 ACAD2013 DXF conversion expose typed field values for the three AC1024 ACSH_REVOLVE_CLASS frames that fail in the current reader?",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+    "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+    "provenance": "Existing local sample; not committed as part of this work."
+  },
+  "converter": {
+    "executable": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "version": "27.1.0.0",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "codesign": "Verified outside the sandbox with codesign --verify --deep --strict.",
+    "command": "ODAFileConverter <scratch-input-dir> <scratch-output-dir> ACAD2013 DXF 0 0",
+    "exitCode": 0,
+    "errFilesObserved": 0
+  },
+  "output": {
+    "path": "/private/tmp/libdxfrw-oda-ac1024-conference-dxf-34841/output/conference.dxf",
+    "sha256": "377a4acf6767be8a5a02cdd2c8af2afb09b0547b3df3b5fc779f2fd96282bd78",
+    "format": "ASCII DXF, ACAD2013",
+    "inspection": "Parsed code/value pairs without changing the output; matched OBJECTS records by group-5 handles and source-known handles."
+  },
+  "failedSourceFrames": [
+    {"handle": "6AA", "class": "ACSH_REVOLVE_CLASS", "type": 526, "sourceFrameLocation": 1457309, "sourceFrameOrdinal": 208, "dxfRecord": "ACAD_PROXY_OBJECT", "dxfOwner": "6A9"},
+    {"handle": "6D3", "class": "ACSH_REVOLVE_CLASS", "type": 526, "sourceFrameLocation": 1498769, "sourceFrameOrdinal": 245, "dxfRecord": "ACAD_PROXY_OBJECT", "dxfOwner": "6D2"},
+    {"handle": "6FC", "class": "ACSH_REVOLVE_CLASS", "type": 526, "sourceFrameLocation": 1540229, "sourceFrameOrdinal": 282, "dxfRecord": "ACAD_PROXY_OBJECT", "dxfOwner": "6FB"}
+  ],
+  "proxyRecordObservations": {
+    "allThreeShare": {
+      "group90": "499",
+      "group91": "526",
+      "group95": "2424861",
+      "group310ChunkCount": 3,
+      "group310PayloadBytes": 292
+    },
+    "typedRevolveGroupsObserved": [],
+    "note": "The DXF records expose proxy carriers and binary chunks; they do not expose the axis point, direction, angle, or a DWG body/following-handle boundary. Group-code values are recorded as observed and are not assigned undocumented meaning here."
+  },
+  "interpretation": "This ODA conversion does not resolve the AC1024 Revolve body layout. The three failing DWG frames are emitted as proxy objects, so the output provides no independent typed field values or following-handle proof for a parser change.",
+  "limits": [
+    "This is one converter version and one source file; proxy output is not semantic acceptance of the Revolve records.",
+    "The field and owner values are an ODA-produced DXF view, not an authoritative DWG byte layout.",
+    "ODA read a scratch copy under /private/tmp; the original existing sample was read only, and neither DWG nor DXF was added to the commit.",
+    "Keep the parser refusal/raw-retention behavior and strict-complete output gate until eligible field-span evidence exists."
+  ]
+}

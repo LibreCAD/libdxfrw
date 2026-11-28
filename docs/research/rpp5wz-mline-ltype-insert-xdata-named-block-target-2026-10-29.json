@@ -1,0 +1,122 @@
+{
+  "id": "RPP-5wz",
+  "title": "AC1027 MLINE LTYPE XDATA reference to an INSERT in a named block",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "b68b257e5961885a79ce3a252d8d63dfb5f62b17",
+  "implementation_commits": [
+    "337fdf7fe7e43c4dd9576d369dd87fa8dfb291dd",
+    "b68b257e5961885a79ce3a252d8d63dfb5f62b17"
+  ],
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository DWG/DXF fixture was added.",
+    "route": "One source-bound code-1005 XDATA soft pointer in the EditDash LTYPE to a simple INSERT inside the named AuthorityBlock definition.",
+    "xdata": {
+      "ltype_handle": "0x103",
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "provider-owned-xdata",
+      "target_source_handle": "0xA900",
+      "source_target_owner": "0x203"
+    },
+    "insert_profile": {
+      "type": "INSERT",
+      "name": "NestedTargetBlock",
+      "base_point": [3.5, -2.25, 7.75],
+      "scale": [2.0, 0.5, 1.5],
+      "rotation_degrees": 30.0,
+      "column_count": 1,
+      "row_count": 1,
+      "column_spacing": 0.0,
+      "row_spacing": 0.0,
+      "attributes": [],
+      "seqend": false
+    },
+    "containing_definition": {
+      "name": "AuthorityBlock",
+      "source_block_record_handle": "0x203",
+      "source_owner_handle": "0x1"
+    },
+    "referenced_definition": {
+      "name": "NestedTargetBlock",
+      "source_block_record_handle": "0x204",
+      "source_owner_handle": "0x1",
+      "source_block_begin_handle": "0x320",
+      "source_block_end_handle": "0x321",
+      "required_records": ["BLOCK_RECORD", "BLOCK", "ENDBLK"]
+    },
+    "encoding_matrix": "ASCII and binary source crossed with ASCII and binary output.",
+    "runtime_fixture": "The focused test authors the nested source BLOCK_RECORD and empty target definition in a temporary directory and removes them; no test drawing was committed."
+  },
+  "authority": {
+    "sources": [
+      {
+        "title": "INSERT (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-28FA4CFB-9D5E-4880-9F11-36C97578252F.htm",
+        "relevant_rule": "Defines INSERT block name, insertion point, scale, rotation, array counts and spacing."
+      },
+      {
+        "title": "Persistent Inter-Object Reference Handles (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-582ECC55-155A-48CC-A8B1-7D75FDF4ECC9.htm",
+        "relevant_rule": "XDATA group 1005 is a soft-pointer handle and is translated when referenced objects are copied or inserted."
+      },
+      {
+        "title": "Nested BLOCK name and canonical MINSERT profile research",
+        "path": "docs/research/rpp5ed-nested-block-names-and-canonical-minsert-profile-2026-10-26.json",
+        "relevant_rule": "Block references use the BLOCK_RECORD name namespace; selected INSERT admission excludes array and unsupported derived profiles."
+      },
+      {
+        "title": "Model-space INSERT XDATA target profile",
+        "path": "docs/research/rpp5wy-mline-ltype-insert-xdata-target-2026-10-29.json",
+        "relevant_rule": "The paired RPP-5wy profile covers the same simple INSERT field tuple in model-space ENTITIES."
+      }
+    ]
+  },
+  "proof": {
+    "source": "The collector matches the physical group-2 INSERT name to the typed target and uniquely live INSERT, verifies the source owner 0x203, and resolves NestedTargetBlock through its captured BLOCK_RECORD plus matched BLOCK/ENDBLK body and membership. The target definition is distinct from the containing AuthorityBlock, so the selected graph is not self-referential.",
+    "output": "For all four encoding pairs, the runtime test verifies the remapped group-1005 value, INSERT record fields and owner, NestedTargetBlock BLOCK_RECORD identity, BLOCK/ENDBLK owner relationship, and fresh typed INSERT readback. The finalizer checks the source-bound BLOCK_RECORD output and source-to-output BLOCK/ENDBLK identities.",
+    "failure_retry": "For each input/output encoding pair, removing the required INSERT target refuses export without replacing the destination; restoring the target succeeds on the same adapter. A separate ASCII case mutates the INSERT block name after provider emission, verifies refusal and destination preservation, restores the name, and retries successfully.",
+    "counts": {
+      "selected_positive_profiles": 4,
+      "selected_successful_readbacks_including_retries": 9,
+      "selected_refusals_with_destination_preservation": 5,
+      "selected_same_adapter_retries": 5,
+      "whole_focused_test_profiles": 300,
+      "whole_focused_test_readbacks": 672,
+      "whole_focused_test_refusals": 372,
+      "whole_focused_test_retries": 372
+    },
+    "repository_fixtures_added": false
+  },
+  "implementation": {
+    "source_binding_commit": "337fdf7fe7e43c4dd9576d369dd87fa8dfb291dd",
+    "test_extension": "Runtime-authors a second named BLOCK_RECORD and body, places the target INSERT in AuthorityBlock, and extends the physical/typed output proof to bind the separate NestedTargetBlock dependency.",
+    "consumer_compatibility": "No public API, installed model layout, or consumer callback changed.",
+    "claim_boundary": "This is one selected AC1027 transport/source-identity/output/readback profile. It does not qualify general nested block graphs, recursive closure, MINSERT arrays, attribute sequences, other versions, native application meaning or support claims."
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 18.03 seconds); the test asserts the aggregate profile, readback, refusal and retry counts above."
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice changes runtime-authored test coverage only. Revisit at the planned sanitizer checkpoint.",
+    "source_bindings": {
+      "test_source_sha256": "0070e6078f607c60064f758aa43ea3f7ab368e1408d05fab3c3c84ea09656b58",
+      "normal_executable_sha256": "08a27a4087e98edfc3fb9e63ad82aa5af062cc6124ee81ce482f8d43407b4c89",
+      "normal_cmake_cache_sha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746",
+      "focused_ctest_log_sha256": "9f7174ce8c61996eec4cec02112c83d8ed46d49b56760360c214033cddac9081",
+      "plan_sha256": "1de9e45972acb8b880b886313b1ef7932e9364bc466b62e1025a0598c1a87b91"
+    }
+  },
+  "limits": [
+    "Only the recorded AC1027 simple INSERT tuple in one named block targeting one distinct nested block is qualified. Other INSERT source sections, target definition shapes, nested graph depths, MINSERT, attributes, array counts and versions remain open.",
+    "This evidence does not establish nested dependency closure, geometric placement, native CAD acceptance or support-claim eligibility."
+  ],
+  "next": "Select one distinct code-1005 target type or mixed-target profile from a current source witness; retain exact output, readback, refusal, rollback and retry gates."
+}

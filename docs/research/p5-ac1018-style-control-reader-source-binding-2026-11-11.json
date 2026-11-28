@@ -1,0 +1,58 @@
+{
+  "id": "p5-ac1018-style-control-reader-source-binding-2026-11-11",
+  "scope": "Opt-in reader-created, CRC-checked AC1018 STYLE_CONTROL source ticket and same-import membership binding to the selected typed STYLE row.",
+  "physical_source": {
+    "path": "/private/tmp/p5-desc-input/input.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "version": "AC1018",
+    "origin": "ODA File Converter 27.1.0 ACAD2004 conversion from locally authored ezdxf acad_table_simple.dxf. Producer self-consistency evidence only."
+  },
+  "implementation": {
+    "candidate_kind": "DwgVerifiedTableCandidateKind::StyleControl",
+    "selection": "The opt-in verified-table-candidate sink selects handle 0x3; earlier unselected candidates are skipped so later selected candidates are still delivered.",
+    "publication": "The CRC-checked control frame is staged during TABLES parsing and its candidate ticket is delivered after complete reader finalization.",
+    "identity_join": "The callback parses the ticket's bounded frame with DRW_ObjControl::parseDwg and checks the resulting member handle and role against the selected typed STYLE row and its same-import EED APPID observation."
+  },
+  "source_wire": {
+    "control_handle": "0x3",
+    "dwg_type": 52,
+    "body_bytes": 13,
+    "decoded_buffer_offset": 46,
+    "source_frame_ordinal": 2,
+    "member_count": 1,
+    "member_handle": "0x11",
+    "member_role": 2,
+    "physical_spans": "See the companion resource-wire receipt: count BL1 [63,73), null H4 [73,81), STYLE H2 0x11 [81,97), followed by seven zero padding bits."
+  },
+  "observation": {
+    "importSucceeded": true,
+    "sourceFrames": 226,
+    "publishedFrames": 226,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "selectedControlTickets": 1,
+    "ticketValid": true,
+    "controlHandle": "0x3",
+    "ticketOffset": 46,
+    "ticketOrdinal": 2,
+    "typedControlHandle": "0x3",
+    "orderedTypedMembers": [
+      {
+        "handle": "0x11",
+        "role": 2,
+        "typedRow": "STYLE Standard",
+        "styleEedAppId": "0x12",
+        "appIdName": "ACAD"
+      }
+    ]
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4 && build-gcc/libdxfrw_dwg_local_roundtrip --inspect-physical-style-eed-appid /private/tmp/p5-desc-input/input.dwg",
+    "result": "PASS. The target built and the physical-source diagnostic returned 0. It reported one valid STYLE_CONTROL ticket, the role-2 member STYLE 0x11, one STYLE EED APPID reference to typed APPID 0x12, both APPID_CONTROL sibling rows and resolved EED strings."
+  },
+  "limitations": [
+    "The diagnostic source retains an unrelated HEADER offset integrity observation; strict output remains ineligible.",
+    "This is one selected source/profile and a reader membership join. It does not establish output ordering, recursive TABLESTYLE closure, writer rollback/readback, font rendering, independent consumer semantics, or producer-wide support.",
+    "No DWG/DXF fixture was added to the repository."
+  ]
+}

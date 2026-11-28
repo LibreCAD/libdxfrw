@@ -1,0 +1,198 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p7-ac1021-inventorloader-sat-parser-crosscheck-2026-11-08",
+  "date": "2026-11-08",
+  "status": "INDEPENDENT_SAT_PARSER_EXACT_FIELD_ROUNDTRIP_PASS_NATIVE_GEOMETRY_OPEN",
+  "supportClaimEffect": "none",
+  "scope": "Cross-check the exact AC1021 inline-SAB to AC1024 SAT v1 output with a separately implemented SAT text parser, resolve torus range token meaning, preserve exact binary64 field values, and identify the remaining native-geometry gate.",
+  "source": {
+    "repository": "dwg-writer public committed LibreDWG fixture",
+    "inputPath": "/Users/dli/dev/dwg-writer/tests/fixtures/committed/libredwg/atmos_dc22s_2007.dwg",
+    "inputSha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+    "version": "AC1021",
+    "selectedHandles": {
+      "solid": "0x452",
+      "history": "0x453",
+      "evaluationGraph": "0x454",
+      "torus": "0x455"
+    },
+    "inlineSabBytes": 1059,
+    "target": "AC1024 SAT v1"
+  },
+  "independentParser": {
+    "repository": "https://github.com/jmplonka/InventorLoader",
+    "revision": "e94bdf5e29052a0dc7ce6fdf755e956ae507caec",
+    "commitDate": "2024-12-17T15:15:05Z",
+    "parserFile": "Acis.py",
+    "parserFileSha256": "ec84f9528355f0df2e28bd94eecf7d9e4be89c5b9f7a77eef9b9cccbc21366bb",
+    "parserEntry": "AcisReader.readText, then SurfaceTorus.set on the parsed torus-surface record",
+    "harness": "/private/tmp/acsh-semantic-probe/parse_inventorloader_sat.py",
+    "harnessSha256": "b4689f2e19532e5ca1376bc71e55baa3b816cd0ae97af2c43aab8b977c11ef15",
+    "isolation": "The scratch harness stubs FreeCAD, Part and importer utility imports needed for module initialization. The parser and SurfaceTorus field decoder run from the pinned external Acis.py source. No Part shape construction or kernel operation is invoked.",
+    "limitations": [
+      "This is parser and field decoding evidence only, not a native FreeCAD import or B-rep validity check.",
+      "InventorLoader constructs geometry through FreeCAD Part/OpenCASCADE and therefore does not provide an independent kernel oracle.",
+      "The repository documents unsupported blending surfaces, helix surfaces for lines, and some law-defined curves/surfaces."
+    ]
+  },
+  "initialDefect": {
+    "outputBytes": 909,
+    "outputSha256": "5d82bceb0e931e4ac2c11a86fa5706e9621567990bdcaf200d607ed0a46ba7b0",
+    "initialTorusText": "torus-surface ... forward_v F F F F F #",
+    "observed": "InventorLoader read all 14 records and one body, but SurfaceTorus.set failed while decoding a range with ValueError: could not convert string to float: F.",
+    "cause": "The SAB-to-SAT converter emitted every false torus-surface boolean as F, including four range-kind bits. InventorLoader's independent RANGE table maps a finite F range to a following numeric bound; false range-kind bits map to I."
+  },
+  "implementation": {
+    "precisionFix": "SAT numeric formatting now uses std::numeric_limits<double>::max_digits10 with the classic locale; the prior six-significant-digit formatting rounded source binary64 values.",
+    "generatedControls": "Fast token controls assert round-trip numeric lexemes for nontrivial coordinates/radii, along with forward/reverse sense, full-range I markers, and finite U-start output. A nonfinite resTol header scalar is confirmed by the SAB parser, then refused by SAT conversion with the caller output sentinel unchanged. A separate torus LocationVec NaN mutation is confirmed by SAB parsing, then refused by SAT conversion with the caller output sentinel unchanged. An extra torus-surface Boolean is parser-valid but rejected by the bounded SAT serializer, preserving the existing output sentinel.",
+    "physicalOutput": {
+      "bytes": 1057,
+      "sha256": "4917d971df23651987e01f18cf8635d19dab7ec2c306c910734ba0093641da08",
+      "path": "/private/tmp/acsh-semantic-probe/torus-precision.sat"
+    },
+    "sourceSabDecodedFields": {
+      "center": [
+        1383.6151200595348,
+        418.50000000000074,
+        1158.755189492682
+      ],
+      "axis": [
+        -0.5014237824134797,
+        -1.6431677767887314e-16,
+        -0.8652018206350235
+      ],
+      "majorRadius": 19.0,
+      "minorRadius": 2.7899834596164137,
+      "uOrigin": [
+        -0.8652018206350235,
+        -3.8945365021134883e-17,
+        0.5014237824134797
+      ]
+    },
+    "parserParsedFields": {
+      "center": [
+        1383.6151200595348,
+        418.50000000000074,
+        1158.755189492682
+      ],
+      "axis": [
+        -0.5014237824134797,
+        -1.6431677767887314e-16,
+        -0.8652018206350235
+      ],
+      "majorRadius": 19.0,
+      "minorRadius": 2.7899834596164137,
+      "uOrigin": [
+        -0.8652018206350235,
+        -3.8945365021134883e-17,
+        0.5014237824134797
+      ],
+      "sense": "forward_v",
+      "uRange": "I I",
+      "vRange": "I I"
+    },
+    "exactNumericEquality": "PASS: all center/axis/radius/U-origin numeric values decoded from source SAB equal the corresponding values parsed from emitted SAT text using Python binary64 equality.",
+    "limits": "Parser/field decoding only; harness stubs FreeCAD and Part imports and invokes no shape construction or kernel operations.",
+    "allocationFailureBehavior": "SAT text assembly is staged locally; drw_convertSabToSatV1 catches std::bad_alloc and other exceptions and returns false before swapping the caller output. The all-offset generated control verifies destination preservation and same-buffer retry."
+  },
+  "correctedParserResult": {
+    "command": "python3 /private/tmp/acsh-semantic-probe/audit_inventorloader_sat.py /private/tmp/acsh-semantic-probe/torus-precision.sat",
+    "readText": true,
+    "parsedRecords": 14,
+    "bodyRecords": 1,
+    "typedTorus": {
+      "recordIndex": 11,
+      "center": [
+        1383.6151200595348,
+        418.50000000000074,
+        1158.755189492682
+      ],
+      "axis": [
+        -0.5014237824134797,
+        -1.6431677767887314e-16,
+        -0.8652018206350235
+      ],
+      "majorRadius": 19.0,
+      "minorRadius": 2.7899834596164137,
+      "uOrigin": [
+        -0.8652018206350235,
+        -3.8945365021134883e-17,
+        0.5014237824134797
+      ],
+      "sense": "forward_v",
+      "uRange": "I I",
+      "vRange": "I I"
+    },
+    "geometryConstructed": false
+  },
+  "writerValidation": {
+    "build": "cmake --build build --target libdxfrw_dwg_local_roundtrip -j4 — PASS",
+    "focusedCtest": "cmake --build build --target libdxfrw_dwg_local_roundtrip -j4 — PASS; ctest --test-dir build -R '^(acis_sab21200_sat_v1_token_controls|dxf_acsh_torus_typed_roundtrip|dxf_acsh_cmc_loss_guard)$' --output-on-failure — 3/3 PASS.",
+    "physicalSourceProbe": "python3 tools/research/run_acsh_torus_source_probe.py <hash-pinned DWG> /private/tmp/acsh-sab-mapping-probe --probe build/libdxfrw_dwg_local_roundtrip — PASS; selected AC1024 ASCII/Binary carrier and graph-role readback, rollback/retry, and strict full-source refusal at the separate IMAGEDEF owner-role gate.",
+    "diffCheck": "git diff --check — PASS",
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN",
+    "exactBinary64FieldComparison": "PASS for center, axis, major/minor radius, and U origin: independently parsed SAT text exactly equals the binary64 values decoded from source SAB.",
+    "nonFiniteHeaderRollback": "PASS: NaN resTol parses as a source field, SAT conversion refuses it, and the preexisting SAT output sentinel remains byte-for-byte unchanged.",
+    "nonFiniteVectorRollback": "PASS: NaN in the parsed torus LocationVec is refused by SAT conversion and the preexisting output sentinel remains byte-for-byte unchanged.",
+    "unknownTorusBooleanRollback": "PASS: the extra SAB Boolean parses, SAT v1 conversion refuses the unqualified torus-surface field, and the prior output sentinel is unchanged.",
+    "satAllocationSweep": {
+      "testName": "acis_sat_allocation_rollback_retry",
+      "observedAllocationPoints": 11,
+      "result": "PASS: each injected allocation failure returns false without replacing the output sentinel; retrying the same vector after each failure succeeds with byte-identical SAT output. The first nonfailing offset produces the same output as the baseline.",
+      "source": "locally authored in-memory version-21200 SAB; no fixture file",
+      "build": "cmake --build build --target libdxfrw_acis_sat_allocation_tests libdxfrw_dwg_local_roundtrip -j4 — PASS",
+      "ctest": "ctest --test-dir build -R \"^(acis_sat_allocation_rollback_retry|acis_sab21200_sat_v1_token_controls|dxf_acsh_torus_typed_roundtrip|dxf_acsh_cmc_loss_guard)$\" --output-on-failure — 4/4 PASS",
+      "fullSuites": "NOT RUN"
+    },
+    "rawSabDecodeAllocationSweep": {
+      "testName": "acis_sat_allocation_rollback_retry",
+      "profile": "locally authored in-memory ACIS BinaryFile v21800 point-to-vertex graph",
+      "observedAllocationPoints": 26,
+      "result": "PASS: the baseline produces one valid vertex at (1,2,3) and a point-sized bounding box. At every injected allocation failure the decoder returns false, clears the projected B-rep, reports allocationFailure and retains the source byte count; complete reflects how far parsing progressed and can be true when projection allocation fails after framing. The WithHeader overload also leaves its caller header at the documented reset value for each failure, and retries using the same input/output objects reproduce matching vertex coordinates, bounds, graph counts, and every SAB header field. Heap-backed header strings make allocation during final header publication part of the exercised path; publication is now a statically verified nonthrowing move.",
+      "source": "generated in test memory; no DWG/DXF/SAB fixture file",
+      "build": "cmake --build build --target libdxfrw_acis_sat_allocation_tests -j4 — PASS",
+      "ctest": "ctest --test-dir build -R \"^(acis_sat_allocation_rollback_retry|acis_sab21200_sat_v1_token_controls|dxf_acsh_torus_typed_roundtrip|dxf_acsh_cmc_loss_guard)$\" --output-on-failure — 4/4 PASS",
+      "fullSuites": "NOT RUN"
+    },
+    "rawSabParseAllocationSweep": {
+      "testName": "acis_sat_allocation_rollback_retry",
+      "profile": "locally authored in-memory ACIS BinaryFile v21800 point-to-vertex graph with heap-backed header strings",
+      "observedAllocationPoints": 14,
+      "result": "PASS: every injected parser allocation failure returns false, clears the caller DRW_SabData, reports allocationFailure=true and complete=false with the input byte count retained; retry on the same input and output objects reproduces the header, point coordinates, vertex reference, and terminal record.",
+      "source": "generated in test memory; no DWG/DXF/SAB fixture file",
+      "build": "cmake --build build --target libdxfrw_acis_sat_allocation_tests -j4 — PASS",
+      "ctest": "ctest --test-dir build -R \"^(acis_sat_allocation_rollback_retry|acis_sab21200_sat_v1_token_controls|dxf_acsh_torus_typed_roundtrip|dxf_acsh_cmc_loss_guard)$\" --output-on-failure — 4/4 PASS",
+      "fullSuites": "NOT RUN"
+    },
+    "rawAcisGraphBuildAllocationSweep": {
+      "testName": "acis_sat_allocation_rollback_retry",
+      "profile": "locally authored in-memory ACIS BinaryFile v21800 point-to-vertex graph parsed before the graph-builder allocation sweep",
+      "observedAllocationPoints": 9,
+      "result": "PASS: every injected graph-builder allocation failure returns false, clears the caller DRW_AcisModel, reports allocationFailure=true and complete=false; retry on the same parsed input and output objects reproduces the three node types, resolved vertex-to-point reference, and full header.",
+      "source": "generated in test memory; no DWG/DXF/SAB fixture file",
+      "build": "cmake --build build --target libdxfrw_acis_sat_allocation_tests -j4 — PASS",
+      "ctest": "ctest --test-dir build -R \"^(acis_sat_allocation_rollback_retry|acis_sab21200_sat_v1_token_controls|dxf_acsh_torus_typed_roundtrip|dxf_acsh_cmc_loss_guard)$\" --output-on-failure — 4/4 PASS",
+      "fullSuites": "NOT RUN"
+    }
+  },
+  "nativeRuntime": {
+    "freecad": "/Applications/FreeCAD.app/Contents/MacOS/FreeCAD",
+    "cli": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+    "cliResult": "ABORTED_BEFORE_MACRO_EXECUTION",
+    "stderr": "Incompatible processor. This Qt build requires the following features: neon",
+    "computerUse": "The user said they were unlocking the Mac, but subsequent desktop inventory still reports the Mac locked; no GUI FreeCAD import or geometry metrics were collected.",
+    "supportClaimEffect": "none",
+    "odaRetry": "Retried /Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter --help; aborted with exit 134 after PasteBoard -4960 and invalid com.apple.hiservices-xpcservice errors, before input processing."
+  },
+  "remaining": [
+    "Run the exact emitted SAT payload with pinned InventorLoader in a usable native FreeCAD runtime; collect shape validity, topology, placement, bounds, area, volume and centroid.",
+    "Obtain a genuinely independent-kernel and source-native check for the exact solid/history graph.",
+    "Keep AC1024/1027/1032 profiles, whole-source IMAGEDEF/opaque-frame gates, and broader consumer/platform qualification separate."
+  ],
+  "correctedOutput": {
+    "bytes": 1057,
+    "sha256": "4917d971df23651987e01f18cf8635d19dab7ec2c306c910734ba0093641da08",
+    "torusText": "precision-preserving SAT v1; full-range I I I I; exact source binary64 values retained"
+  }
+}

@@ -1,0 +1,206 @@
+{
+  "status": "bounded AC1024 converter adapter implementation; selected graph only",
+  "base_commit": "782cd60c",
+  "problem": "DIMENSION public callbacks retain DWG text rotation and horizontal direction as radians, while the DXF writer writes those same fields directly as group 53/51 degrees. Thus selected DWG to DXF output can change nonzero angles.",
+  "authority": "ODA v5.4.1 section 20.4.22 identifies common DIMENSION text rotation and horizontal direction. Seven standard subtype physical producer witnesses and independent LibreDWG decoding establish the specific radians-to-degrees relationship used here.",
+  "change": "During a DWG import, dx_iface retains the seven ordinary DIMENSION subtypes in converter-owned exact internal carriers. A private shared import receipt records accepted source version and generation. Each wrapper retains its own generation and original receipt identity; output refuses mismatched identity, version seal or generation, and converts 51/53 on a temporary exact subtype copy only for accepted AC1024 sources. Other source revisions, DXF-origin records, ARC_DIMENSION and LARGE_RADIAL behavior remain unchanged.",
+  "compatibility_and_limits": [
+    "DRW_Interface callbacks and documented/observed consumer values are unchanged. LibreCAD uses the DWG callback angles as radians; LibreCAD_3 forwards its text-angle callback. This change does not alter either consumer.",
+    "DWG-origin records retained by the internal dx_iface now have an internal derived dynamic type and dx_iface private layout changes; external code relying on its concrete typeid or binary layout may be affected. This is not a public DRW_Interface ABI change.",
+    "Wrapper copies retain their source receipt and radians contract; callers editing their retained getDir/getHDir values must supply radians. Slicing into a plain public DIMENSION loses provenance and cannot be automatically detected.",
+    "A later aggregate import generation does not itself invalidate the older wrapper; graph eligibility may independently reject an actual mixed import. Source read failures and receipt/generation tampering fail closed.",
+    "The physical probe reads ODA AC1024 DWG callbacks without extrusion application, copies their actual private receipts into a selected authored graph with required picture blocks, a named-block dimension and GROUP, and reimports ODA DXF to check prior receipt lifetime. Output is not a complete conversion of the original DWG. Original producer files have unrelated strict HEADER remainder observations.",
+    "ezdxf 1.4.5 does not read documented AcDbAlignedDimension group 52 directly. The 51/53 peer audit explicitly excludes group 52 and does not claim full geometry/semantic equivalence. A separately proposed ALIGNED group-52 transport fix and its ODA return evidence are independent.",
+    "ODA conversion lineage is a manually observed process join; hashes do not authenticate it."
+  ],
+  "physical": "Locally authored AC1027 DXFs were converted by ODA to AC1024 DWG and back to AC1027 DXF. LINEAR, ALIGNED, angular two-line/three-point, radial, diametric and ordinate rows all return 53=45 and 51=15 degrees; pinned LibreDWG reads pi/4 and pi/12 radians. Separate LINEAR controls cover default and tilted extrusion. Eight selected output audits compare these fields, subtype, group 50 and represented points, picture blocks, named block, GROUP remap and ezdxf audit, while excluding group 52.",
+  "validation": "Fixture-free ASCII/Binary test exercises all seven subtypes, authored DXF angle preservation, tilted extrusion, an already-applied extrusion conversion, XDATA, subtype group 50/52 storage, named/picture blocks, source handle and GROUP remap, large/nonfinite values, accepted/version/generation and receipt-pointer tampering, sentinel preservation, retry, aggregate generation change and neighboring-version prior behavior. The same final selector passed with the original library writer without the separate group-52 patch. The physical probe and all eight selected audits were run against that standalone build. The lc3_compat_check consumer compatibility target also builds successfully.",
+  "commands": {
+    "test": "ctest --test-dir /private/tmp/dim-common-angle/build -R '^libdxfrw_dwg2dxf_dimension_angle$' --output-on-failure",
+    "probe": "/private/tmp/dim-common-angle/probe <source.dwg> <selected.dxf> <ascii|binary> <1|7> <ODA-returned-source.dxf>",
+    "audit_example": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -B tools/audit_dimension_common_angles.py --dwg /private/tmp/dim-common-angle/all-dwg/all.dwg --dwg-sha256 bf63d779c7f31a0ae9860d5cacce90b7cf3ba78827b9d3814d92627ad287ec9e --source /private/tmp/dim-common-angle/all-out/all.dxf --source-sha256 cbdbb44eef73ac8a601ffc8936be7d53e77f82f62e4218d53caa50846675cb62 --selected /private/tmp/dim-common-angle/selected.dxf --selected-sha256 96b6a87350b383b515b731c13dcc3a8eac66dcb6017b1c33c48ea2ba8e0e39bf --count 7 --dwgread /opt/homebrew/bin/dwgread --dwgread-sha256 536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "author": "<ezdxf-python> work/tools/author_dimension_common_angles.py <all|oblique|planar|tilt> <out.dxf> (semantic recreation; metadata may differ)",
+    "oda": "ODAFileConverter <authored-dir> <dwg-dir> ACAD2010 DWG 0 1 \"*.dxf\"; ODAFileConverter <dwg-dir> <return-dir> ACAD2013 DXF 0 1 \"*.dwg\""
+  },
+  "artifacts": [
+    {
+      "path": "/private/tmp/dim-common-angle/dimension-angle.patch",
+      "sha256": "20c09d324b19ef2524eb4702a0cf1b32bf636304e13007248374dd2eee8e3d96"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/work/dwg2dxf/dx_data.h",
+      "sha256": "6ccc3ebd72a1fdd9287cf20e792f0bef9cb6dd4ea0dc8406645871bbd1e2e404"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/work/dwg2dxf/dx_iface.h",
+      "sha256": "5a7b6b459a517262606ef78e186744f63267e2a71458bb8d731a9c14ebf4f7d2"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/work/dwg2dxf/dx_iface.cpp",
+      "sha256": "3d6c27569e7d4efdbf10c30ec40a294f187bada4418995dbb59016e620da84bb"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/work/tests/CMakeLists.txt",
+      "sha256": "c533f73b115a5ae00dfc4275d49ac6f6f531933d37f0beb32263b97cec8bb8f3"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/work/tests/dwg2dxf_dimension_angle_tests.cpp",
+      "sha256": "6dd77277a5fd1a4b2fded81ef34eab809ba2a6847a058d4f84d143f3e10a618d"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/work/tools/author_dimension_common_angles.py",
+      "sha256": "9dfcc6dd149974322b86f03b2171ea24cbb14f835c71c31ed1636a314411b2df"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/work/tools/probe_dim_source_output.cpp",
+      "sha256": "a8494789cb56f48fd8419d7b116d27750ac9aa77e8345101be51b1b00c6eccae"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/work/tools/audit_dimension_common_angles.py",
+      "sha256": "b8f37738c27e8926a8108e0636526a2d484dd2a7506d9635ec1217610b5097b2"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/probe",
+      "sha256": "4c546f785d4aa94ae01f712a87f0e0e65c0a4eddc21f2eb1b4e346115043f3c1"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/standalone-ctest.log",
+      "sha256": "df1da1d1f5763b788959b5c3e8df4103df5b46a128e0c782417d91d32732f961"
+    },
+    {
+      "path": "/opt/homebrew/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/in/planar.dxf",
+      "sha256": "cb187e5b039a2db6f0eca05e7f890c99b5b48bd8bd7f22ffa72d4f1ad78fa8ca"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/dwg/planar.dwg",
+      "sha256": "d1defa13dd3412300d4ff6cbf2ffb6d845d97d22d1880eb29a457030157a1e22"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/out/planar.dxf",
+      "sha256": "1c1e39354bd9b7df7a1a313819c0b32af36e950c08a00ff9f67a9a596e4369c5"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/selected-planar-ascii.dxf",
+      "sha256": "9150ceab5d669bcd5200429defb54d87d906cbf2ba9877815485cba72ef8598f"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/probe-planar-ascii.log",
+      "sha256": "8737b6d4cfe56668db45c0599da00b532dd9bb502a0d262c7dd3f513c5e04fc1"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/selected-planar-binary.dxf",
+      "sha256": "1252566c15128dcda27363a76df19540df48d2cb104aee1c1a246c9ad3bc9b12"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/probe-planar-binary.log",
+      "sha256": "8737b6d4cfe56668db45c0599da00b532dd9bb502a0d262c7dd3f513c5e04fc1"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/in/tilt.dxf",
+      "sha256": "570dd5843f01bd5af1ad672f742b367d0b4b1301a6793a7ccb5a5f634c8ffec5"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/dwg/tilt.dwg",
+      "sha256": "54668596a589b98bf329f1277af9b771c8c1db39efdc16deb67da1dc1aec2d5b"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/out/tilt.dxf",
+      "sha256": "5f0456a15b897829678a725f42e9d808843554ed30a97cbbac6076af76422ae7"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/selected-tilt-ascii.dxf",
+      "sha256": "defcd3e8b7b86acab5691055dad34c670db69585eef16c0d3bc5d03272b77be2"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/probe-tilt-ascii.log",
+      "sha256": "8737b6d4cfe56668db45c0599da00b532dd9bb502a0d262c7dd3f513c5e04fc1"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/selected-tilt-binary.dxf",
+      "sha256": "22b93bae7d9dbe1dd95de985498dd9e362e0da76b7d1e29428ea978c5fe66a12"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/probe-tilt-binary.log",
+      "sha256": "8737b6d4cfe56668db45c0599da00b532dd9bb502a0d262c7dd3f513c5e04fc1"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/all-in/all.dxf",
+      "sha256": "761c3c5cc3042bb3443069d3cd4c5bdd540dc7a73226bcaa788f364847f4260f"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/all-dwg/all.dwg",
+      "sha256": "bf63d779c7f31a0ae9860d5cacce90b7cf3ba78827b9d3814d92627ad287ec9e"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/all-out/all.dxf",
+      "sha256": "cbdbb44eef73ac8a601ffc8936be7d53e77f82f62e4218d53caa50846675cb62"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/selected.dxf",
+      "sha256": "96b6a87350b383b515b731c13dcc3a8eac66dcb6017b1c33c48ea2ba8e0e39bf"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/probe-all-ascii.log",
+      "sha256": "3dbae1368baea9dccfdca2453a27382fc6ffe87a31aa6160f6f2289ab6752ada"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/selected-binary.dxf",
+      "sha256": "7260b7b1a9ec0d3c95680447c6bbca92ee657d47a1135090272695a5fa210615"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/probe-all-binary.log",
+      "sha256": "3dbae1368baea9dccfdca2453a27382fc6ffe87a31aa6160f6f2289ab6752ada"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/oblique-in/all.dxf",
+      "sha256": "df7437eefb37f3d2b265f2f6ee51b3b65e576f6ecc84ff6457b432cd7d24bb98"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/oblique-dwg/all.dwg",
+      "sha256": "04acc2243f4f5402155d09e322442f24c7c0e008c7ca3fba1d77a50874c582dc"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/oblique-out/all.dxf",
+      "sha256": "5c61d565b56b265f86c45c98478cecead858d2835b20f9ea5a142be10c5e8c3e"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/selected-oblique-ascii.dxf",
+      "sha256": "e46ac10703eed0eb331113f772db80fbb3ec054073dbc465f39018ed9d52c43c"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/probe-oblique-ascii.log",
+      "sha256": "ce937145cccb43a6ae810aa39693ce22df62451d5cce3c4b0ac7472702da21fd"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/selected-oblique-binary.dxf",
+      "sha256": "c9377b913c3dda0cdefd520fcc41055bdc9145de6af4aef4cfca6d75e4d5d6a9"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/probe-oblique-binary.log",
+      "sha256": "ce937145cccb43a6ae810aa39693ce22df62451d5cce3c4b0ac7472702da21fd"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/lc3-build.log",
+      "sha256": "b2d5d2616476991a75e04f5dbd0daf78583dcbb8f024a6889364b1476e662e03"
+    }
+  ],
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_dwg2dxf_dimension_angle$' --output-on-failure: 1/1 passed; selected seven-subtype peer audit passed, excluding group 52.",
+  "integrated_files": {
+    "dwg2dxf/dx_data.h": "6ccc3ebd72a1fdd9287cf20e792f0bef9cb6dd4ea0dc8406645871bbd1e2e404",
+    "dwg2dxf/dx_iface.h": "5a7b6b459a517262606ef78e186744f63267e2a71458bb8d731a9c14ebf4f7d2",
+    "dwg2dxf/dx_iface.cpp": "4f1f6c71d088aed986941ad9e97b02e6def11f303a7ad19f7ca9276e9915944f",
+    "tests/CMakeLists.txt": "bcf23af8c8a4c7353c14b0f6976239bdf52908f975a71a3e7f8aa19cd27586d8",
+    "tests/dwg2dxf_dimension_angle_tests.cpp": "6dd77277a5fd1a4b2fded81ef34eab809ba2a6847a058d4f84d143f3e10a618d",
+    "tools/author_dimension_common_angles.py": "9dfcc6dd149974322b86f03b2171ea24cbb14f835c71c31ed1636a314411b2df",
+    "tools/probe_dim_source_output.cpp": "a8494789cb56f48fd8419d7b116d27750ac9aa77e8345101be51b1b00c6eccae",
+    "tools/audit_dimension_common_angles.py": "b8f37738c27e8926a8108e0636526a2d484dd2a7506d9635ec1217610b5097b2"
+  }
+}

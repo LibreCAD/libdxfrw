@@ -1,0 +1,137 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader cross-project parser, writer, and consumer-route readiness review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "mode": "primary-source web research and local plan/source/test cross-check",
+  "scope": [
+    "Reconcile current open-source parser-safety, writer-integrity, and consumer-backend evidence",
+    "Check existing repeated-record readiness against local source and generated tests",
+    "Refine implementation-ready validation without increasing per-slice test or peer-runtime cost",
+    "Keep platform and independent semantic qualification separate from local implementation"
+  ],
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRunDuringResearch": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "localFilesCrossChecked": [
+      "src/intern/dxfreader.cpp:dxfReader::readRec",
+      "src/drw_entities.cpp:DRW_Entity::parseDxfGroups",
+      "src/drw_entities.cpp:DRW_Image::parseCode",
+      "tests/hardening_tests.cpp:testRepeatedDxfRecordRobustness",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md:repeated-record research and implementation progress"
+    ],
+    "validationStatus": "This pass reran the focused repeated-record selector and owning libdxfrw_hardening CTest; both passed. No full suite was run.",
+    "limitations": "Peer issue reports and mutable documentation are discovery/route evidence, not normative DXF/DWG rules or proof of matching libdxfrw defects. ACadSharp #1282/#1283 were visible only as issue-index titles in this pass. No peer package or application behavior was independently reproduced."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp issue #1281",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1281",
+      "observed": "The report details recursive advancement for repeated comments, XDATA application blocks, and IMAGE/WIPEOUT clip-boundary records, with process termination as the reported failure. Its exact version and stress counts are peer-specific, not format maxima."
+    },
+    {
+      "project": "ACadSharp current issue index",
+      "url": "https://github.com/DomCR/ACadSharp/issues",
+      "observed": "Titles #1282 and #1283 describe per-application EED size loss and nested-block copy complexity. Their issue bodies were not retrieved; they remain title-only leads."
+    },
+    {
+      "project": "LibreDWG issue #1412",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1412",
+      "observed": "The reporter describes a DXF string quoting path whose output was not terminated at the last written byte before strlen(), allowing allocator residue to enter text; a latent empty-after-quoting path could omit a group. The issue links peer commits, but this pass did not build or verify a released artifact."
+    },
+    {
+      "project": "LibreDWG issue #1419",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1419",
+      "observed": "The report describes malformed R2004+ DWG timestamp fields causing MSVC/UCRT fail-fast through strftime() when tm_mday is zero. The issue is specific to the reported LibreDWG revision/platform and does not establish a local libdxfrw call-chain match."
+    },
+    {
+      "project": "FreeCAD Draft DXF documentation",
+      "url": "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+      "observed": "The documented C++ and legacy Python DXF importer matrices differ: 3DFACE and LEADER are listed only for the legacy importer, and the C++ block route omits text, dimensions, and attributes inside blocks. The doc says both routes support DXF starting at R12 and stock FreeCAD does not read ACIS solids."
+    },
+    {
+      "project": "FreeCAD DWG/DXF import guidance",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "observed": "The project describes a native DXF importer plus external-converter DWG path. This supports backend/converter pinning but is not a run of a specific application build."
+    },
+    {
+      "project": "ezdxf ordinary read and audit/recovery documentation",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/tutorials/getting_data.rst",
+      "observed": "The docs direct structurally flawed input to the separate recovery module; launcher docs expose audit-and-save. A recovered result is not the same strict parse result."
+    },
+    {
+      "project": "QCAD dxflib overview",
+      "url": "https://www.qcad.org/doc/dxflib/2.5/reference/overview.html",
+      "observed": "The library documents callback delivery for supported entities and states that it does not retain entities or other drawing information."
+    },
+    {
+      "project": "GDAL DXF driver",
+      "url": "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "observed": "The driver documents geometry projection separately from the AC1027+ opt-in raw ASM byte and affine-transform route; default solid entities are skipped when they cannot become OGR geometry."
+    },
+    {
+      "project": "LibreDWG coverage and fuzzing documentation",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "observed": "The manual distinguishes stable, unstable, debugging, and unhandled classes and documents route/version-specific writer limitations; separate HACKING/NEWS pages record fuzz routes and peer security fixes."
+    }
+  ],
+  "localCrossCheck": {
+    "repeatedRecordSlice": "The current hardening source contains 20,000 post-SECTION ASCII comments, 20,000 ordered group-1001/group-1000 XDATA pairs in ASCII/Binary, and restarted WIPEOUT group-91 stress inputs in ASCII/Binary, with following-LINE, callback, and same-reader retry assertions.",
+    "readerShape": "Local comment skipping and entity XDATA parsing use iterative loops; IMAGE/WIPEOUT clip input has count bounds and iterative vertex state. No matching recursive-per-item local defect was found in inspected paths.",
+    "testStatus": "Focused selector and owning hardening CTest were previously reported passing; not rerun as part of research.",
+    "outputAndPlatform": "The peer's C allocator and UCRT failure modes are not directly transferable to the local C++ writer/reader. Keep exact output framing checks and Windows process-failure qualification conditional on a touched matching path."
+  },
+  "assessment": {
+    "separateResultLanes": [
+      "strict syntax parse",
+      "recovery/repair parse",
+      "typed callback projection",
+      "opaque/raw carrier retention",
+      "writer framing and exact output",
+      "independent strict readback",
+      "native application acceptance",
+      "semantic geometry or solid validity"
+    ],
+    "peerEvidenceRule": "A peer issue identifies a failure shape only for its cited revision, artifact, route, and platform. It does not define format maxima or create a libdxfrw defect without local source mapping and reproduction.",
+    "freecadRule": "Pin importer backend, build/platform, preferences and converter; keep common 2D compatibility distinct from backend-specific entity coverage and ACIS semantics.",
+    "speedRule": "Use the focused strict target/selector and owning CTest for a touched leaf; keep peer tools, native applications, full suites, and fuzz/sanitizer runs at the scheduled composed checkpoint."
+  },
+  "planImpact": {
+    "staleRepeatedRecordActionUpdatedToCompleted": true,
+    "existingGatesRefinedOnly": true,
+    "newConfirmedLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyIncreased": false,
+    "newTestsOrRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuntimeExecutions": 0,
+    "supportClaimsPromoted": 0,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "verification": {
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "localTestsRunDuringResearch": true,
+    "localTestResults": [
+      "build-gcc/libdxfrw_hardening_tests --repeated-dxf-record-robustness: PASS",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure: PASS (1/1)"
+    ]
+  }
+}

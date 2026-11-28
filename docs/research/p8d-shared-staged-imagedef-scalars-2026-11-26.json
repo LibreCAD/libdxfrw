@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-shared-staged-imagedef-scalars-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "200190d9606f826a7e388dd43f27edd3ff8a199ec142e0170eda0cc0c79dd476",
+  "change": "Optionally compare staged IMAGEDEF class version, path, dimensions, pixel size, load and resolution fields with a borrowed typed expectation. Exact text checking is intentionally bounded to printable ASCII paths without backslash or caret.",
+  "checks": [
+    "PASS: 28 generated R14\u2013R2018 ASCII/Binary standalone and LibreCAD-profile combinations with 25 per-profile refusal controls, destination preservation, same-writer retry and readback.",
+    "PASS: the focused matrix under macOS AddressSanitizer.",
+    "PASS: offline Linux ARM64 GCC 13 warning-as-error syntax checks of the library and regression test.",
+    "PASS: source-release inventory and qualification digest."
+  ],
+  "limits": [
+    "The optional scalar check does not qualify other text profiles, source provenance, IMAGE entity fields, dictionary closure, native CAD behavior or multi-image export.",
+    "The consumer has not yet enabled this optional check."
+  ]
+}

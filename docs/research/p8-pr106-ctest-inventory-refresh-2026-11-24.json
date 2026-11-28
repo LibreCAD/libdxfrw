@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-ctest-inventory-refresh-2026-11-24",
+  "date": "2026-11-24",
+  "status": "INVENTORY_REFRESHED_STATUS_REFROZEN_EXACT_HEAD_FAST_AND_FOCUSED_PASS",
+  "supportClaimEffect": "none",
+  "trigger": {
+    "pullRequest": "LibreCAD/libdxfrw#106",
+    "sourceHead": "fc21cda0e408ca114d47f1ab24fad110d5840ba9",
+    "fastWorkflowRun": 45525344271,
+    "fastJob": 138907166621,
+    "qualificationWorkflowRun": 45526431752,
+    "qualificationContractJob": 138910842059
+  },
+  "failure": {
+    "step": "Check frozen CTest inventory before building",
+    "result": "The exact-head fast workflow stopped before compilation or CTest execution because the live CTest inventory differed from the frozen broad inventory.",
+    "frozen": {
+      "count": 1398,
+      "nameDigestSha256": "3aae4b7a34f86ca0a8154406242aebca91ae8ab2448bb3dcdefba63e7bd6eaf6"
+    },
+    "live": {
+      "count": 1400,
+      "nameDigestSha256": "469e507c44174b2fcbb92f0f33b79cdf50b39b13b9e2f0b292636337288b812f"
+    },
+    "addedTests": [
+      "libdxfrw_ac1021_table_content_reference_roles",
+      "libdxfrw_ac1024_table_content_spec_vectors"
+    ],
+    "removedTests": [],
+    "qualificationContract": "The workflow contract passed, then qualification digest enforcement stopped because the overlay was still draft. Hosted CI requires frozen digest metadata even while every claim remains EXPERIMENTAL."
+  },
+  "reproduction": {
+    "host": "macOS ARM64",
+    "compiler": "AppleClang 21.0.0.21000334",
+    "profile": "Ninja; Release; BUILD_SHARED_LIBS=OFF; docs=OFF; dwg2dxf=ON; tests=ON; qualification=OFF; long_fuzz=OFF; independent DXF oracle=OFF",
+    "commands": [
+      "cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release '-DCMAKE_CXX_FLAGS_RELEASE=-O1 -DNDEBUG' -DBUILD_SHARED_LIBS=OFF -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_DWG2DXF=ON -DLIBDXFRW_BUILD_TESTS=ON -DLIBDXFRW_BUILD_QUALIFICATION=OFF -DLIBDXFRW_BUILD_LONG_FUZZ=OFF -DLIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE=OFF",
+      "python3 -B tools/run_native_qualification.py freeze-inventory --root . --build-dir build --manifest metadata/qualification-required-tests-v1.json --output /private/tmp/qualification-current-pr106-fc21.json"
+    ]
+  },
+  "repair": {
+    "file": "metadata/qualification-required-tests-v1.json",
+    "method": "Regenerate the frozen CTest inventory from the exact hosted CMake profile, preserving the focused test contract and including both already-registered TABLECONTENT controls.",
+    "count": 1400,
+    "nameDigestSha256": "469e507c44174b2fcbb92f0f33b79cdf50b39b13b9e2f0b292636337288b812f",
+    "implementationDigestSha256": "aee20c918e5c7aa19b4572e371e6361eea446a59d6da1d130cb0b00f78faffed",
+    "selectedInputs": 774,
+    "statusOverlay": "FROZEN with the current implementation and claims digests; all claim rows remain EXPERIMENTAL, with no advertised routes."
+  },
+  "validation": [
+    "Local hosted-profile CMake configure passed.",
+    "check-inventory passed: 1400 tests.",
+    "check_qualification_digest.py passed with the frozen status overlay for 774 inputs.",
+    "qualified-format-support validation and self-test passed: 15 claims, 2 candidate routes, 0 advertised routes.",
+    "git diff --check passed.",
+    "Exact PR head 6c62ed84 passed fast run 366 and native qualification run 524, including Linux GCC, macOS Clang and Windows MSVC focused jobs."
+  ],
+  "limits": [
+    "The fast failure on fc21cda0 occurred before compilation because the frozen inventory was stale; the refreshed 1400-name manifest resolved it.",
+    "The qualification workflow failure on 4c971e2c occurred only because the overlay was draft; the frozen no-promotion overlay resolved it.",
+    "Exact-head fast and focused checks pass for digest aee20c91; broad, deterministic fuzz, and source-release jobs remain skipped by workflow design.",
+    "These metadata and CI repairs close P8-F for this digest only; they promote no support claim and do not close package, GUI, FreeCAD, or semantic gates.",
+    "The AC1012 native AutoCAD dictionary merge witness is still unavailable; generated spec-directed samples do not substitute for it."
+  ],
+  "exactHeadChecks": {
+    "head": "6c62ed84b0077af4f7aeebd76dde8754b3713222",
+    "implementationDigestSha256": "aee20c918e5c7aa19b4572e371e6361eea446a59d6da1d130cb0b00f78faffed",
+    "fastWorkflow": {
+      "runId": 45526878518,
+      "runNumber": 366,
+      "conclusion": "success",
+      "jobs": {
+        "fast-regressions": {
+          "id": 138912431111,
+          "conclusion": "success"
+        },
+        "source-release": {
+          "id": 138912432311,
+          "conclusion": "skipped"
+        }
+      }
+    },
+    "nativeQualificationWorkflow": {
+      "runId": 45526878517,
+      "runNumber": 524,
+      "conclusion": "success",
+      "jobs": {
+        "qualification workflow contract": {
+          "id": 138912320948,
+          "conclusion": "success"
+        },
+        "focused / windows-msvc": {
+          "id": 138912439428,
+          "conclusion": "success"
+        },
+        "focused / linux-gcc": {
+          "id": 138912439487,
+          "conclusion": "success"
+        },
+        "focused / macos-clang": {
+          "id": 138912439506,
+          "conclusion": "success"
+        },
+        "final broad": {
+          "id": 138912441197,
+          "conclusion": "skipped"
+        },
+        "extended deterministic fuzz / linux-gcc": {
+          "id": 138912441351,
+          "conclusion": "skipped"
+        }
+      }
+    }
+  }
+}

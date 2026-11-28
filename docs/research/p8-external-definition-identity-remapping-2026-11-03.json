@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-external-definition-identity-remapping-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "GENERATED_IDENTITY_TRANSPORT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Low-level DXF group-5 identity emission for NAVISWORKSMODELDEF and POINTCLOUDCOLORMAP.",
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Each writer remaps and reserves a nonzero source identity, or allocates an identity when the source handle is zero.",
+      "The source object identity is bound only after staged record output succeeds.",
+      "A fixed output identity is refused before publishing record bytes.",
+      "Late invalid-XDATA failure restores staged bytes, emitted-record inventory, and source-object identity-map changes; corrected retry is verified with a fresh writer."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally constructed in-memory AC1032 records. No DWG/DXF fixtures were added.",
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "cases": [
+      "Both record types remap group-5 identity and bind source-object identity to the emitted handle.",
+      "Typed callback readback checks modeled NAVISWORKSMODELDEF fields and POINTCLOUDCOLORMAP defaults and ramp payloads.",
+      "Both record types allocate and read back an identity when the source handle is zero.",
+      "Fixed-handle remap refusal preserves the destination.",
+      "Late invalid-XDATA rollback checks destination bytes, emitted-record inventory, and source-object identity map.",
+      "Corrected retry and typed readback use a fresh writer."
+    ],
+    "validation": {
+      "buildCommand": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "buildResult": "PASS",
+      "focusedCommand": "ctest --test-dir build-gcc -R 'external_definition_identity_remapping|pointcloud_definition_identity_remapping|pointcloud_reference_remapping|navisworks_definition_reference_remapping|dxf_writer_emitted_handle_inventory' --output-on-failure",
+      "focusedResult": "PASS: 5/5; 0.57 seconds total",
+      "diffCheck": "PASS: git diff --check"
+    }
+  },
+  "limitations": [
+    "Generated identity transport only; it does not establish physical producer prevalence or source-to-output association for a complete external-definition graph.",
+    "Definition/owner target closure, external asset loading, native consumer behavior, and 3D consumer qualification remain open.",
+    "The late-failure test verifies byte, inventory, and source-object identity-map rollback, not handle-allocator reservation rollback; retry is verified on a fresh writer.",
+    "No support claim is promoted."
+  ],
+  "next": "Qualify physical source records and close exact definition/owner target roles and dependencies before enabling adapter admission or native-consumer claims."
+}

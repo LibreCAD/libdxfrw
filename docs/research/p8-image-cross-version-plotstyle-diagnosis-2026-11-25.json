@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-25",
+  "test": "dwg2dxf_image_dictionary_imported_common",
+  "source": "locally generated AC1015 DXF observed during the existing test",
+  "source_sha256": "a196d0aac535f84bf2edea40014d6fecf92391e6ae98880c83f6e120f81fef53",
+  "target": "AC1018",
+  "result": "strict preflight refuses the LAYER plot-style profile",
+  "class_rows": [
+    "DICTIONARYWDFLT / AcDbDictionaryWithDefault",
+    "ACDBPLACEHOLDER / AcDbPlaceHolder"
+  ],
+  "report": {
+    "originalSourcesMatched": true,
+    "legacyClassRowsMatched": false,
+    "legacyLiveClassesMatched": false,
+    "legacyBodiesMatched": true,
+    "legacyLiveBodiesMatched": true,
+    "legacyLayerMatched": false,
+    "legacyLiveLayerMatched": false
+  },
+  "peer": "A direct physical group-code scan identified two LAYER records. ezdxf 1.4.5 independently read the classes and exposes a third Defpoints layer after load, which is absent from the physical records; the adapter report was observed separately.",
+  "limitations": [
+    "The observed generated source is one test profile and is not an external producer witness.",
+    "No destination/output claim follows from identifying these gates.",
+    "No fixture is committed."
+  ],
+  "post_alias_source_fix": {
+    "legacyClassRowsMatched": true,
+    "legacyLiveClassesMatched": true,
+    "legacyLayerMatched": false,
+    "legacyLiveLayerMatched": false,
+    "scope": "source observation only; target output and multi-layer gate remain open"
+  },
+  "physical_layers": [
+    {
+      "name": "CLOSURE_LAYER",
+      "handle": "D25A",
+      "flags": 64,
+      "plot_style_handle": "0"
+    },
+    {
+      "name": "0",
+      "handle": "10",
+      "flags": 64,
+      "plot_style_handle": "0"
+    }
+  ],
+  "ezdxf_loaded_layers": [
+    "CLOSURE_LAYER",
+    "0",
+    "Defpoints"
+  ]
+}

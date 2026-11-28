@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-dxf-sun-objects-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "GENERATED_DXF_OBJECTS_CALLBACK_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": ["tests/dxf_sun_color_order_tests.cpp"],
+    "behavior": "The generated SUN writer control now injects allocation failure at every measured allocation reached by dxfRW::writeSun for ASCII and Binary OBJECTS output. It checks destination rollback and caller-record preservation, retries the same codec, and verifies byte-identical clean output and typed readback."
+  },
+  "generatedProfile": {
+    "version": "AC1027",
+    "record": "One locally authored SUN object with nondefault class version, owner, on/color/intensity, shadow/date/time/daylight-saving and shadow-map fields.",
+    "allocationOffsets": {
+      "ASCII": 8,
+      "Binary": 6
+    },
+    "totalAllocationOffsets": 14,
+    "failureChecks": [
+      "write returns failure and OBJECTS callback reports failure",
+      "pre-existing destination bytes remain unchanged",
+      "caller SUN handle, owner, intensity and Julian day remain unchanged",
+      "same-codec retry reproduces the no-fault output bytes",
+      "fresh typed readback matches all authored SUN fields"
+    ]
+  },
+  "validation": {
+    "normalBuild": "cmake --build build --target libdxfrw_dxf_sun_color_order_tests -j4",
+    "normalTest": "ctest --test-dir build -R '^libdxfrw_dxf_sun_color_order$' --output-on-failure",
+    "normalResult": "PASS (1/1; 0.45 seconds)",
+    "measuredRun": "build/tests/libdxfrw_dxf_sun_color_order_tests",
+    "measuredRunResult": "PASS; ASCII 8/8 and Binary 6/6 allocation offsets",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dxf_sun_color_order_tests -j4",
+    "asanTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_sun_color_order$' --output-on-failure",
+    "asanResult": "PASS (1/1; 0.74 seconds)"
+  },
+  "limitations": [
+    "Generated AC1027 transaction evidence only; physical producer profiles, independent interoperability and native lighting semantics remain open.",
+    "This verifies one direct SUN callback, not whole-document graph closure or general shared-instance thread safety.",
+    "No drawing fixture was added; no support claim is promoted."
+  ]
+}

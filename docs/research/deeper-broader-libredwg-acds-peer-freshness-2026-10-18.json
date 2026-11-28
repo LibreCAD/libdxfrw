@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "LibreDWG AcDs peer freshness and reproducer protocol",
+  "mode": "deeper/broader primary-source research and plan-only update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile LibreDWG issue #1411's reported build with later versioned artifacts.",
+    "Separate the versioned inline-SAT export fix from R2013+ AcDs/SAB behavior.",
+    "Add a bounded optional exact-artifact comparison protocol without adding peer work to implementation slices."
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "observed": "Issue remains open and reports a generated AC1032 DXF REGION/SAB control and a separate confidential R2018 DWG observation against LibreDWG 0.14.8593 at 8a1ae76.",
+      "evidenceClass": "version-specific peer report; not independently reproduced"
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/releases",
+      "observed": "The current release index lists 0.14.8612 at f860b0f, released October 13, 2026, as a Windows nightly prerelease, later than the issue's 0.14.8593 build.",
+      "evidenceClass": "versioned artifact metadata; behavior not tested"
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "observed": "The 0.14.1 NEWS entry reports a 3DSOLID/REGION DXF-export fix for dropping the final SAT block; it does not identify an AcDs section or AcDs/SAB join fix.",
+      "evidenceClass": "project release notes; exact affected inline-SAT route only"
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+      "observed": "Current source has an R2007+ AcDs reader path; prior source review found schema scanning/selected ACIS BinaryFile span extraction but no corresponding encoder block in the inspected schema/build surface.",
+      "evidenceClass": "mutable source inspection; structural evidence only"
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+      "observed": "Current source parses AcDs indexes/schemas and selected spans, with explicitly unhandled segment cases. This does not establish complete payload association or solid semantics.",
+      "evidenceClass": "mutable source inspection; not runtime qualification"
+    }
+  ],
+  "assessment": {
+    "localDefectsConfirmed": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "testsRun": false,
+    "peerExecutablesRun": 0,
+    "nativeApplicationsOrKernelsRun": 0,
+    "externalDrawingsOrIssueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Classify #1411 as reported at 0.14.8593; classify 0.14.8612 as not retested rather than pass or fail; keep the 0.14.1 inline-SAT final-block fix separate from AcDs/SAB. At the already-planned composed checkpoint, optionally run the published generated control against exact pinned artifacts and compare source entities, section/key/owner linkage, output carrier bytes, independent geometry interpretation, and native acceptance as separate outcomes."
+  },
+  "implementationReadyChecks": [
+    "Pin the exact source or package, commit/tag, platform, build options, and executable hash for each peer run.",
+    "Generate the AC1032 REGION/cube SAB input at runtime in scratch from a blank document; do not download the issue attachment or commit generated DXF/DWG files.",
+    "Record input/output hashes, exit statuses, diagnostics, and per-entity identity/owner dispositions; aggregate counts alone do not demonstrate graph closure.",
+    "Score inline SAT chunk output separately from the modern AcDs section, schema/key association, SAB parsing, B-rep validity, and native application acceptance.",
+    "Mark unavailable or untested peer/version cells NOT_RUN or NOT_RETESTED, never pass/fail by inference, and continue local implementation work.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL; this source review provides no external/platform qualification or independent semantic evidence."
+  ],
+  "verification": {
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "receiptJsonParsed": "passed with jq empty",
+    "markdownDiffCheck": "passed with git diff --check on both plan files",
+    "tests": "not applicable; documentation-only change"
+  },
+  "workingTree": {
+    "codeOrTestFilesEditedInThisPass": false,
+    "externalArtifactsDownloaded": false,
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "The shared worktree was already broadly dirty. This pass edited only the two plan files and this research receipt; no unrelated changes were staged or reverted."
+  }
+}

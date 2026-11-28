@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-26",
+  "scope": "Check every target of the bounded sparse-MATERIAL dictionary, without authorizing replay",
+  "libdxfrw_candidate": "4e41aaa5ce0fbc04e26b495bd1ae920963dd3493",
+  "libdxfrw_implementation_digest": "1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be",
+  "librecad_commit": "547efc991c69b4f0107b02ea5a430e4407ce84a2",
+  "evidence": [
+    "The selected dictionary must have nonempty unique names and handles, with every entry resolved to one same-version raw-only material whose source, name, owner and reactor references match.",
+    "A locally authored ASCII DXF with an intact selected material but a dangling sibling is refused; the source frame is retained and no destination is replaced.",
+    "System-codec MATERIAL tests: 632 assertions in 6 cases. System linetype: 4967 assertions in 56 cases before the final system-only version condition. Bundled linetype: 1282 assertions in 52 cases after final rebuild.",
+    "No generated drawings were committed."
+  ],
+  "remaining": "Layer and current-material references, handle remapping, staged output, independent readback, and successful output retry remain open. The check does not promote a support claim."
+}

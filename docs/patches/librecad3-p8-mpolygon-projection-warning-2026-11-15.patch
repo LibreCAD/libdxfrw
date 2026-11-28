@@ -1,0 +1,138 @@
+diff --git a/lcUI/cadmdichild.cpp b/lcUI/cadmdichild.cpp
+index 387ece0..9c88d65 100644
+--- a/lcUI/cadmdichild.cpp
++++ b/lcUI/cadmdichild.cpp
+@@ -161,10 +161,17 @@ bool CadMdiChild::openFile() {
+                 dropped += QString::number(static_cast<qulonglong>(kind.second)) + " "
+                            + QString::fromStdString(kind.first);
+             }
+-            QMessageBox::information(nullptr, tr("Open"),
+-                                     tr("%1 contains records LibreCAD has no equivalent for, "
+-                                        "which were not imported: %2.")
+-                                     .arg(QString::fromStdString(_filename)).arg(dropped));
++            QString detail;
++            if (!dropped.isEmpty()) {
++                detail = tr("Records not imported: %1.").arg(dropped);
++            }
++            for (const auto& note : result.loss.notes) {
++                if (!detail.isEmpty()) detail += QLatin1Char('\n');
++                detail += QString::fromStdString(note);
++            }
++            QMessageBox::warning(nullptr, tr("Open"),
++                                 tr("%1 was opened with information loss:\n%2")
++                                 .arg(QString::fromStdString(_filename)).arg(detail));
+         }
+     }
+     else {
+@@ -225,10 +232,17 @@ void CadMdiChild::reportSaveResult(const lc::persistence::ExportResult& result,
+                  + QString::fromStdString(dropped.first);
+     }
+ 
++    QString detail;
++    if (!kinds.isEmpty()) {
++        detail = tr("Records not written: %1.").arg(kinds);
++    }
++    for (const auto& note : result.loss.notes) {
++        if (!detail.isEmpty()) detail += QLatin1Char('\n');
++        detail += QString::fromStdString(note);
++    }
+     QMessageBox::warning(nullptr, tr("Save"),
+-                         tr("%1 was written without %2: the chosen DXF revision cannot "
+-                            "carry them. Save as DXF 2000 or newer to keep them.")
+-                         .arg(QString::fromStdString(path)).arg(kinds));
++                         tr("%1 was saved with information loss:\n%2")
++                         .arg(QString::fromStdString(path)).arg(detail));
+ }
+ 
+ void CadMdiChild::reportSaveFailure(bool saved, const std::string& path) {
+diff --git a/persistence/libdxfrw/dxfimpl.cpp b/persistence/libdxfrw/dxfimpl.cpp
+index bb5be54..ecf9a72 100644
+--- a/persistence/libdxfrw/dxfimpl.cpp
++++ b/persistence/libdxfrw/dxfimpl.cpp
+@@ -1030,6 +1030,13 @@ void DXFimpl::addHatch(const DRW_Hatch* data) {
+         }
+         lcHatch->setRegion(reg);
+         deliver(lcHatch);
++        // The default libdxfrw callback forwards MPOLYGON to addHatch. The
++        // kernel currently has no way to retain its subtype or extra fields.
++        if (data->eType == DRW::MPOLYGON && _mpolygonsAsHatch++ == 0) {
++            _loss.notes.push_back(
++                "MPOLYGON entities were imported as HATCH. Polygon-specific "
++                "fill, offset and subtype information is not retained when saved.");
++        }
+     });
+ }
+ 
+diff --git a/persistence/libdxfrw/dxfimpl.h b/persistence/libdxfrw/dxfimpl.h
+index 0ef8c52..154fda7 100644
+--- a/persistence/libdxfrw/dxfimpl.h
++++ b/persistence/libdxfrw/dxfimpl.h
+@@ -519,6 +519,7 @@ public:
+     std::size_t _entitiesDelivered{0};
+     std::size_t _attributesWithoutTags{0};
+     std::size_t _mtextsAsText{0};
++    std::size_t _mpolygonsAsHatch{0};
+ 
+     void recordLoss(const char* recordKind) {
+         _loss.droppedByType[recordKind]++;
+diff --git a/unittest/persistence/dwgimporttest.cpp b/unittest/persistence/dwgimporttest.cpp
+index 62c68a2..4b51003 100644
+--- a/unittest/persistence/dwgimporttest.cpp
++++ b/unittest/persistence/dwgimporttest.cpp
+@@ -127,6 +127,13 @@ TEST(DwgImportTest, FixturesPopulateADocument) {
+         EXPECT_TRUE(result.failures.empty()) << name;
+         EXPECT_GT(result.entitiesDelivered, 0u) << name << " delivered nothing";
+         EXPECT_EQ(result.variantId, "dwg.libdxfrw") << name;
++        if (std::string(name) == "ordinary_enc_AC1018.dwg") {
++            EXPECT_TRUE(std::none_of(result.loss.notes.begin(), result.loss.notes.end(),
++                                     [](const std::string& note) {
++                                         return note.find("MPOLYGON entities were imported as HATCH")
++                                                != std::string::npos;
++                                     }));
++        }
+ 
+         // DWG is read, never written: a document from one must be sent to Save
+         // As rather than back over the file it came from.
+@@ -301,19 +308,21 @@ TEST(DwgImportTest, TextAndDimensionFieldsSurvive) {
+     EXPECT_DOUBLE_EQ(dimension->definitionPoint2().y(), 0.0);
+ }
+ 
+-// A known gap, pinned so that closing it is noticed.
+-//
+-// An MPOLYGON arrives as a Hatch with no boundary loops at all: the reader has
+-// no MPOLYGON boundary path, so nothing reaches the entity. That is why the
+-// hatch does not survive a DXF export -- there is nothing to write, not
+-// something the writer mishandles -- and why the export counts it as a loss
+-// rather than dropping it in silence.
++// Both libdxfrw and LibreDWG decode zero boundary paths from this particular
++// fixture. The empty HATCH is dropped on export and must be reported. This
++// fixture alone cannot establish whether a nonempty boundary was lost.
+ //
+ // NOLINTNEXTLINE(readability-identifier-naming)
+-TEST(DwgImportTest, MpolygonArrivesWithoutItsBoundary) {
++TEST(DwgImportTest, EmptyMpolygonProjectionReportsExportLoss) {
+     auto doc = newDwgDocument();
+-    ASSERT_TRUE(lc::persistence::File::importFile(
+-        doc, dwgFixture("mpolygon_solid.dwg"), lc::persistence::File::LIBDXFRW).ok);
++    const auto imported = lc::persistence::File::importFile(
++        doc, dwgFixture("mpolygon_solid.dwg"), lc::persistence::File::LIBDXFRW);
++    ASSERT_TRUE(imported.ok);
++    EXPECT_EQ(std::count_if(imported.loss.notes.begin(), imported.loss.notes.end(),
++                            [](const std::string& note) {
++                                return note.find("MPOLYGON entities were imported as HATCH")
++                                       != std::string::npos;
++                            }), 1);
+ 
+     lc::entity::Hatch_CSPtr hatch;
+     for (const auto& entity : doc->entityContainer().asVector()) {
+@@ -324,8 +333,8 @@ TEST(DwgImportTest, MpolygonArrivesWithoutItsBoundary) {
+     ASSERT_NE(hatch, nullptr);
+     EXPECT_TRUE(hatch->isSolid());
+     EXPECT_EQ(hatch->getRegion().loopList().size(), 0u)
+-        << "If the boundary now arrives, this gap has closed: assert the loops "
+-           "and update DwgAndItsDxfExportAgree, which allows for its loss.";
++        << "If the source now decodes a boundary, assert its contents and "
++           "update DwgAndItsDxfExportAgree, which allows for this loss.";
+ 
+     // The export says so rather than dropping it quietly.
+     const std::string exported = tmpPath("mpolygon");

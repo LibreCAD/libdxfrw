@@ -1,0 +1,316 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 75fcb14..853175b 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3568,7 +3568,65 @@ public:
+   }
+ #endif
+ 
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++  // A typed source observation only; it never authorizes output.
++  void observeEmptySortEntsSource(const DRW_SortEntsTable &table) noexcept {
++    constexpr std::size_t maxRecords = 100000u;
++    constexpr std::size_t maxBytes = 32u * 1024u * 1024u;
++    if (m_sortEntsSourceCaptureFailed)
++      return;
++    if (table.tType != DRW::SORTENTSTABLE || !table.hasCompleteDwgEntries()
++        || !table.m_sortHandles.empty() || !table.m_entityHandles.empty()
++        || !table.appData.empty() || !table.extData.empty()
++        || !table.pendingAppIdResolutions.empty() || !table.pendingLayerRefResolutions.empty()
++        || table.reactorCount() != 1 || table.reactorHandles.size() != 1u
++        || table.parentHandle == 0u || table.parentHandle == DRW::NoHandle
++        || table.reactorHandles[0] != table.parentHandle
++        || table.extensionDictionaryFlag() != 1u || table.xDictHandle != 0u
++        || table.hasDataStorageBinaryData()
++        || table.m_blockOwnerHandle == 0u || table.m_blockOwnerHandle == DRW::NoHandle)
++      return;
++    const auto reject = [this]() noexcept {
++      m_sortEntsSources.clear();
++      m_sortEntsSourceBytes = 0u;
++      m_sortEntsSourceCaptureFailed = true;
++    };
++    if (table.handle == 0u || table.handle == DRW::NoHandle
++        || m_sortEntsSources.size() >= maxRecords
++        || table.name.size() > maxBytes - sizeof(DRW_SortEntsTable) - sizeof(std::uint32_t)) {
++      reject();
++      return;
++    }
++    const std::size_t estimate = sizeof(DRW_SortEntsTable)
++        + sizeof(std::uint32_t) + table.name.size();
++    if (m_sortEntsSourceBytes > maxBytes - estimate) {
++      reject();
++      return;
++    }
++    try {
++      if (!m_sortEntsSources.emplace(table.handle, table).second) {
++        reject();
++        return;
++      }
++      m_sortEntsSourceBytes += estimate;
++    } catch (...) {
++      reject();
++    }
++  }
++  const std::map<std::uint32_t, DRW_SortEntsTable> &
++  emptySortEntsSourceObservations() const noexcept { return m_sortEntsSources; }
++  bool sortEntsSourceCaptureFailed() const noexcept {
++    return m_sortEntsSourceCaptureFailed;
++  }
++  bool matchesAc1024EmptySortEntsSourceObservation(std::uint32_t handle) const noexcept;
++#endif
++
+   void clear() {
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++    m_sortEntsSources.clear();
++    m_sortEntsSourceBytes = 0u;
++    m_sortEntsSourceCaptureFailed = false;
++#endif
+ #ifdef LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY
+     m_dictionarySources.clear();
+     m_dictionarySourceBytes = 0u;
+@@ -6005,6 +6063,9 @@ public:
+     record.xDictFlag = sortEntsTable.extensionDictionaryFlag();
+     record.hasDsData = sortEntsTable.hasDataStorageBinaryData();
+     m_sortEntsTables.push_back(std::move(record));
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++    observeEmptySortEntsSource(sortEntsTable);
++#endif
+   }
+ 
+   void addFieldList(const DRW_FieldList &fieldList) {
+@@ -13619,6 +13680,11 @@ private:
+   // PR 8d.2b — four larger no-storage OBJECTS families.
+   std::vector<DictionaryWithDefaultRecord> m_dictionariesWithDefault;
+   std::vector<SortEntsTableRecord> m_sortEntsTables;
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++  std::map<std::uint32_t, DRW_SortEntsTable> m_sortEntsSources;
++  std::size_t m_sortEntsSourceBytes = 0u;
++  bool m_sortEntsSourceCaptureFailed = false;
++#endif
+   std::vector<FieldListRecord> m_fieldLists;
+   std::vector<DataTableRecord> m_dataTables;
+   std::vector<DynamicBlockRecord> m_dynamicBlockObjects;
+diff --git a/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp b/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
+index b210b84..49838b2 100644
+--- a/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
++++ b/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
+@@ -5,6 +5,45 @@
+ ****************************************************************************/
+ #include "lc_dwgadvancedmetadata.h"
+ 
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || \
++    defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++namespace {
++DRW_UnsupportedObject sourceObject(const LC_DwgAdvancedMetadata::RawObjectRecord &raw) {
++    DRW_UnsupportedObject source;
++    source.m_version = raw.version;
++    source.m_objectType = raw.objectType;
++    source.m_handle = raw.handle;
++    source.m_parentHandle = raw.parentHandle;
++    source.setCommonLinkEvidence(raw.commonLinkEvidence);
++    source.m_reactorHandles = raw.reactorHandles;
++    source.m_xDictHandle = raw.xDictHandle;
++    source.m_numReactors = raw.numReactors;
++    source.m_xDictFlag = raw.xDictFlag;
++    source.m_blockOwnerHandle = raw.blockOwnerHandle;
++    source.m_bodyBitSize = raw.bodyBitSize;
++    source.m_objectOffset = raw.objectOffset;
++    source.m_objectSize = raw.objectSize;
++    source.m_isEntity = raw.isEntity;
++    source.m_isCustomClass = raw.isCustomClass;
++    source.m_hasDataStorage = raw.hasDataStorage;
++    source.m_hasClassDefinition = raw.hasClassDefinition;
++    source.m_classProxyFlag = raw.classProxyFlag;
++    source.m_classAppName = raw.classAppName;
++    source.m_classWasProxy = raw.classWasProxy;
++    source.m_classEntityFlagRaw = raw.classEntityFlagRaw;
++    source.m_classDwgVersion = raw.classDwgVersion;
++    source.m_classMaintenanceVersion = raw.classMaintenanceVersion;
++    source.m_classUnknown1 = raw.classUnknown1;
++    source.m_classUnknown2 = raw.classUnknown2;
++    source.m_recordName = raw.recordName;
++    source.m_className = raw.className;
++    source.m_rawBytes = raw.rawBytes;
++    source.m_typedPayloadValidated = raw.typedPayloadValidated;
++    return source;
++}
++}
++#endif
++
+ #ifdef LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY
+ bool LC_DwgAdvancedMetadata::matchesAc1024DictionarySourceObservation(
+     std::uint32_t handle) const noexcept {
+@@ -60,39 +99,67 @@ bool LC_DwgAdvancedMetadata::matchesAc1024DictionarySourceObservation(
+         || current->entries[i].handle != snapshot.m_entries[i].m_handle)
+       return false;
+   try {
+-    DRW_UnsupportedObject source;
+-    source.m_version = raw->version;
+-    source.m_objectType = raw->objectType;
+-    source.m_handle = raw->handle;
+-    source.m_parentHandle = raw->parentHandle;
+-    source.setCommonLinkEvidence(raw->commonLinkEvidence);
+-    source.m_reactorHandles = raw->reactorHandles;
+-    source.m_xDictHandle = raw->xDictHandle;
+-    source.m_numReactors = raw->numReactors;
+-    source.m_xDictFlag = raw->xDictFlag;
+-    source.m_blockOwnerHandle = raw->blockOwnerHandle;
+-    source.m_bodyBitSize = raw->bodyBitSize;
+-    source.m_objectOffset = raw->objectOffset;
+-    source.m_objectSize = raw->objectSize;
+-    source.m_isEntity = raw->isEntity;
+-    source.m_isCustomClass = raw->isCustomClass;
+-    source.m_hasDataStorage = raw->hasDataStorage;
+-    source.m_hasClassDefinition = raw->hasClassDefinition;
+-    source.m_classProxyFlag = raw->classProxyFlag;
+-    source.m_classAppName = raw->classAppName;
+-    source.m_classWasProxy = raw->classWasProxy;
+-    source.m_classEntityFlagRaw = raw->classEntityFlagRaw;
+-    source.m_classDwgVersion = raw->classDwgVersion;
+-    source.m_classMaintenanceVersion = raw->classMaintenanceVersion;
+-    source.m_classUnknown1 = raw->classUnknown1;
+-    source.m_classUnknown2 = raw->classUnknown2;
+-    source.m_recordName = raw->recordName;
+-    source.m_className = raw->className;
+-    source.m_rawBytes = raw->rawBytes;
+-    source.m_typedPayloadValidated = raw->typedPayloadValidated;
++    const auto source = sourceObject(*raw);
+     return snapshot.matchesAc1024DwgFrame(source, *publication, *membership);
+   } catch (...) {
+     return false;
+   }
+ }
+ #endif
++
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++bool LC_DwgAdvancedMetadata::matchesAc1024EmptySortEntsSourceObservation(
++    std::uint32_t handle) const noexcept {
++  // Correlation only: this does not bind an import generation or authorize output.
++  if (m_sourceDwgVersion != DRW::AC1024 || !m_dwgFramePublicationCoverageComplete
++      || !m_dwgFramePublicationConflicts.empty() || m_sortEntsSourceCaptureFailed)
++    return false;
++  const auto snapshotIt = m_sortEntsSources.find(handle);
++  if (snapshotIt == m_sortEntsSources.end())
++    return false;
++  const auto &snapshot = snapshotIt->second;
++  const SortEntsTableRecord *current = nullptr;
++  const RawObjectRecord *raw = nullptr;
++  const DRW_DwgFramePublication *publication = nullptr;
++  const DRW_DwgSortEntsMembership *membership = nullptr;
++  const DRW_DwgFrameCoverageEntry *coverage = nullptr;
++  for (const auto &item : m_sortEntsTables)
++    if (item.handle == handle) { if (current) return false; current = &item; }
++  for (const auto &item : m_rawObjects)
++    if (item.handle == handle) { if (raw) return false; raw = &item; }
++  for (const auto &item : m_dwgFramePublications)
++    if (item.m_handle == handle) { if (publication) return false; publication = &item; }
++  for (const auto &item : m_dwgSortEntsMemberships)
++    if (item.m_tableHandle == handle) { if (membership) return false; membership = &item; }
++  for (const auto &item : m_dwgFrameCoverageReport.m_entries)
++    if (item.m_handle == handle) { if (coverage) return false; coverage = &item; }
++  if (!current || !raw || !publication || !membership || !coverage
++      || coverage->m_sourceOffset != publication->m_sourceOffset
++      || coverage->m_sourceMapOrdinal != publication->m_sourceMapOrdinal
++      || coverage->m_sourceOffsetSpace != publication->m_sourceOffsetSpace
++      || coverage->m_disposition != DRW_DwgFrameDisposition::Published
++      || coverage->m_publicationCount != 1u
++      || raw->rawBytes.empty() || raw->rawBytes.size() > 4u * 1024u * 1024u
++      || current->replayState != ReplayState::ReplayAllowed
++      || raw->replayState != ReplayState::ReplayAllowed
++      || !raw->commonHandleDataValidated
++      || current->handle != snapshot.handle
++      || current->parentHandle != snapshot.parentHandle
++      || !current->appData.empty() || !current->extData.empty()
++      || current->sortHandles != snapshot.m_sortHandles
++      || current->blockOwnerHandle != snapshot.m_blockOwnerHandle
++      || current->entityHandles != snapshot.m_entityHandles
++      || current->reactorHandles != snapshot.reactorHandles
++      || current->xDictHandle != snapshot.xDictHandle
++      || current->numReactors != snapshot.reactorCount()
++      || current->xDictFlag != snapshot.extensionDictionaryFlag()
++      || current->hasDsData != snapshot.hasDataStorageBinaryData())
++    return false;
++  try {
++    const auto source = sourceObject(*raw);
++    return snapshot.matchesAc1024EmptyDwgFrame(source, *publication, *membership);
++  } catch (...) {
++    return false;
++  }
++}
++#endif
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 659f1e1..d1c385e 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9611,6 +9611,58 @@ TEST_CASE("AC1024 dictionary source observations match live adapter receipts",
+ }
+ #endif
+ 
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++TEST_CASE("Empty AC1024 sort tables match live adapter source observations",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_AC1024_SORTENTS_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_AC1024_SORTENTS_FIXTURE to a locally available AC1024 title_block-iso.dwg");
++  REQUIRE(std::filesystem::exists(fixture));
++  ensureSettings();
++  RS_Graphic graphic;
++  RS_FilterDXFRW reader;
++  const auto import = [&] { return reader.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG); };
++  REQUIRE(import());
++  auto &metadata = graphic.dwgAdvancedMetadata();
++  REQUIRE(metadata.sourceDwgVersion() == DRW::AC1024);
++  REQUIRE(metadata.dwgFramePublicationCoverageComplete());
++  REQUIRE_FALSE(metadata.sortEntsSourceCaptureFailed());
++  for (auto handle : {0xF3u, 0x2121u, 0x21D3u, 0x22D4u}) {
++    INFO(handle);
++    REQUIRE(metadata.emptySortEntsSourceObservations().count(handle) == 1u);
++    CHECK(metadata.matchesAc1024EmptySortEntsSourceObservation(handle));
++  }
++  constexpr std::uint32_t target = 0x2121u;
++  metadata.setSourceDwgVersion(DRW::AC1027);
++  CHECK_FALSE(metadata.matchesAc1024EmptySortEntsSourceObservation(target));
++  metadata.setSourceDwgVersion(DRW::AC1024);
++  CHECK(metadata.matchesAc1024EmptySortEntsSourceObservation(target));
++  const auto goodReport = metadata.dwgFrameCoverageReport();
++  auto badReport = goodReport;
++  for (auto &entry : badReport.m_entries)
++    if (entry.m_handle == target) ++entry.m_sourceOffset;
++  metadata.addDwgFrameCoverageReport(badReport);
++  CHECK_FALSE(metadata.matchesAc1024EmptySortEntsSourceObservation(target));
++  metadata.addDwgFrameCoverageReport(goodReport);
++  CHECK(metadata.matchesAc1024EmptySortEntsSourceObservation(target));
++  const auto &memberships = metadata.dwgSortEntsMemberships();
++  const auto found = std::find_if(memberships.begin(), memberships.end(),
++      [](const auto &entry) { return entry.m_tableHandle == target; });
++  REQUIRE(found != memberships.end());
++  const auto duplicate = *found;
++  metadata.addDwgSortEntsMembership(duplicate);
++  CHECK_FALSE(metadata.matchesAc1024EmptySortEntsSourceObservation(target));
++  const auto duplicateTable = metadata.emptySortEntsSourceObservations().at(target);
++  metadata.observeEmptySortEntsSource(duplicateTable);
++  CHECK(metadata.sortEntsSourceCaptureFailed());
++  CHECK(metadata.emptySortEntsSourceObservations().empty());
++  metadata.clear();
++  CHECK_FALSE(metadata.sortEntsSourceCaptureFailed());
++  REQUIRE(import());
++  CHECK(graphic.dwgAdvancedMetadata().matchesAc1024EmptySortEntsSourceObservation(target));
++}
++#endif
++
+ template <typename T, typename = void>
+ struct HasBlockRecordReadCallback : std::false_type {};
+ template <typename T>
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d551622..845c8ac 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -4077,7 +4077,7 @@ if (LIBRECAD_BUILD_SYSTEM_CODEC_TESTS)
+     add_test(NAME librecad_system_codec_ltype
+              COMMAND librecad_system_codec_tests "[ltype]~[dwg]")
+     add_test(NAME librecad_system_codec_block_record
+-             COMMAND librecad_system_codec_tests "[blockrecord][source],[dictionarysource][source]")
++             COMMAND librecad_system_codec_tests "[blockrecord][source],[dictionarysource][source],[sortentssource][source]")
+     add_test(NAME librecad_system_codec_pr3269
+              COMMAND librecad_system_codec_tests
+              "DXF writes a changed line type definition over its record,DWG writes a changed line type definition over its record,DXF writes a redefined built-in from the table,DXF writes a changed complex line type without its segments,DXF writes a twin archived spelling as it came beside a changed record")

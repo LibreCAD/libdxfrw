@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-repeated-dxf-record-robustness-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Exercise generated high-count DXF comment, XDATA, and WIPEOUT record paths with bounded completion, exact following-record alignment, and malformed-record atomicity checks.",
+  "implementation": {
+    "file": "tests/hardening_tests.cpp",
+    "behavior": [
+      "Adds testRepeatedDxfRecordRobustness and the --repeated-dxf-record-robustness selector to the existing hardening executable.",
+      "Generates 20000 post-SECTION group-999 comments between LINE controls in ASCII DXF only; the binary writer rejects group 999.",
+      "Generates 20000 ordered XDATA group-1001/group-1000 pairs followed by a LINE and checks item order/count and sentinel alignment in ASCII and binary DXF.",
+      "Generates a valid three-vertex WIPEOUT and a malformed restarted group-91 count; refusal occurs before the WIPEOUT callback and the same reader then successfully retries a valid file.",
+      "Writes scratch files into a unique temporary directory and removes them with scoped cleanup; adds no committed drawing fixture."
+    ]
+  },
+  "commands": [
+    "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+    "build-gcc/libdxfrw_hardening_tests --repeated-dxf-record-robustness",
+    "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "git diff --check -- tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "results": {
+    "strictTarget": "passed",
+    "focusedSelector": "passed",
+    "owningCTest": "passed 1/1",
+    "diffCheck": "passed"
+  },
+  "limits": {
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "formatMaximumEstablished": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "productionParserChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains other user changes"
+  },
+  "nextReadinessSlice": "Continue the existing PAR-14/PAR-26/7BA/7S queue; do not rerun the full suite for this leaf."
+}

@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-tablegeometry-cell-soft-pointer-dwg-role-2026-11-03",
+  "date": "2026-11-03",
+  "status": "BOUNDED_READER_ROLE_AND_RELATIVE_HANDLE_FIX",
+  "supportClaimEffect": "none",
+  "problem": "The TABLEGEOMETRY DWG parser accepted arbitrary handle roles for cell references and read offsets as absolute raw values. This could misidentify a referenced object or reinterpret a hard pointer as a soft pointer.",
+  "authority": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.13 Handle References",
+      "20.4.103 TABLEGEOMETRY"
+    ],
+    "findings": "A TABLEGEOMETRY cell has a group-330 soft pointer. Section 2.13 identifies codes 6, 8, A, and C as relative soft-pointer forms; 6 and 8 have zero payload length."
+  },
+  "implementation": "The parser accepts absolute code 4 and relative codes 6/8/A/C, resolves offsets against the enclosing object handle, rejects an inappropriate role, invalid unit-offset length, arithmetic underflow, or result beyond the 32-bit object identity model, and clears state on failure. Existing output admission is unchanged.",
+  "generatedControls": {
+    "selector": "libdxfrw_tablegeometry_nonzero_bl_tail",
+    "result": "passed 1/1",
+    "coverage": [
+      "absolute nonzero and null soft pointers",
+      "relative +1, -1, +offset and -offset",
+      "hard-pointer rejection and same-object retry",
+      "invalid unit-offset length and arithmetic underflow/32-bit overflow rejection"
+    ],
+    "limits": "The nonzero BL tail is a generated existing vector; it does not resolve the independent ODA BD versus BL disagreement."
+  },
+  "physicalWitness": {
+    "input": "/private/tmp/dwg-example-2013.dwg",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "provenance": "See p5-ac1027-tablegeometry-null-cell-cache-transport-2026-11-01.json. Not added as fixture.",
+    "peer": "LibreDWG 0.14 verbose trace shows 180 cell references as code 4, length 0, reference 0.",
+    "peerLogSha256": "ecdfedd6a1f3c12436aa32e3db9cfcaf8ab05412aa5fbae886f3bd833bc84c92",
+    "currentCapture": "Current linked capture reads TABLEGEOMETRY 0xC95, owner 0xC97, 20 rows, 9 columns and 180 zero cell references.",
+    "captureSha256": "356c843da8249b12463114a2ab0bcb1b142cd2de73eadad396e97860b7a00d20",
+    "captureLogSha256": "f16c449921caa6e86e566f27476cd723b7be5a21a9486dab3566e11e7440fcf4"
+  },
+  "limits": [
+    "Relative and nonzero references have generated controls only; physical nonzero target role and existence, recursive graph closure, standalone nonzero body spans, whole-file output, and native table rendering remain unqualified.",
+    "No DWG or DXF fixture added."
+  ]
+}

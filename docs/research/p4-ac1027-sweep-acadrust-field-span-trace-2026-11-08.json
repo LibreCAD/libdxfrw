@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-acadrust-field-span-trace-2026-11-08",
+  "date": "2026-11-08",
+  "status": "CANDIDATE_FIELDS_RECONCILE_WITH_ONE_UNCLASSIFIED_BIT",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/private/tmp/example_2013.dwg",
+    "version": "AC1027",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "class": "ACSH_SWEEP_CLASS"
+  },
+  "method": "Ran a debug-only candidate cursor trace from the already bounded action-body start using libdxfrw's existing bounded BL, BS, B, BD and 3BD readers. The trace used an independent buffer cursor. Embedded entity payloads were skipped only by their declared bit lengths; their contents were not semantically decoded. No testing DWG/DXF fixture was added.",
+  "implementationSources": [
+    {
+      "url": "https://github.com/hakanaktt/acadrust/blob/eababc03c625eaf9cfc5169953d7ee88f2015338/src/io/dwg/dwg_stream_readers/object_reader/dynamic_block.rs",
+      "observation": "read_history_sweep uses the candidate field order and reads ordinary embedded entities as type BL, then bit-length BL and that many body bits unless the type has a separately handled special profile."
+    },
+    {
+      "url": "https://github.com/hakanaktt/acadrust/blob/eababc03c625eaf9cfc5169953d7ee88f2015338/src/io/dwg/dwg_stream_readers/object_reader/common.rs",
+      "observation": "The special polyline modeler-body profile codes are OBJ_POLYLINE_2D=15 and OBJ_POLYLINE_3D=16. The witnessed embedded type code 77 is not a special profile and uses the ordinary type-plus-bit-length form."
+    }
+  ],
+  "candidateLayout": {
+    "bodyStartBit": 228,
+    "bodyEndBitExclusive": 2571,
+    "major": {"startBit": 228, "endBit": 238, "value": 33},
+    "minor": {"startBit": 238, "endBit": 248, "value": 29},
+    "direction": {"startBit": 248, "endBit": 254, "value": [0, 0, 0]},
+    "scalars": [
+      {"name": "draft", "startBit": 254, "endBit": 256, "value": 0},
+      {"name": "startDraftDistance", "startBit": 256, "endBit": 258, "value": 0},
+      {"name": "endDraftDistance", "startBit": 258, "endBit": 260, "value": 0},
+      {"name": "twist", "startBit": 260, "endBit": 262, "value": 0},
+      {"name": "scale", "startBit": 262, "endBit": 264, "value": 1},
+      {"name": "align", "startBit": 264, "endBit": 266, "value": 0}
+    ],
+    "optionsAndFlags": [
+      {"name": "hasAlignStart", "startBit": 266, "endBit": 267, "value": true},
+      {"name": "alignOption", "startBit": 267, "endBit": 277, "value": 2},
+      {"name": "miterOption", "startBit": 277, "endBit": 287, "value": 2},
+      {"name": "alignStart", "startBit": 287, "endBit": 288, "value": true},
+      {"name": "bank", "startBit": 288, "endBit": 289, "value": false},
+      {"name": "flag294", "startBit": 289, "endBit": 290, "value": true},
+      {"name": "flag295", "startBit": 290, "endBit": 291, "value": true},
+      {"name": "dwgVector", "startBit": 291, "endBit": 297, "value": [1, 1, 1]},
+      {"name": "flag296", "startBit": 297, "endBit": 298, "value": true}
+    ],
+    "transforms": [
+      {"name": "sweepTransform", "startBit": 298, "endBit": 778, "valueCount": 16, "allFinite": true},
+      {"name": "pathTransform", "startBit": 778, "endBit": 1258, "valueCount": 16, "allFinite": true}
+    ],
+    "profileEntity": {
+      "type": 77,
+      "typeSpan": [1258, 1268],
+      "declaredBitLength": 744,
+      "lengthSpan": [1268, 1302],
+      "payloadSpan": [1302, 2046]
+    },
+    "pathEntity": {
+      "type": 77,
+      "typeSpan": [2046, 2056],
+      "declaredBitLength": 480,
+      "lengthSpan": [2056, 2090],
+      "payloadSpan": [2090, 2570]
+    },
+    "unclassifiedSuffix": {"startBit": 2570, "endBit": 2571, "value": 0}
+  },
+  "comparison": {
+    "peerParser": "ACadRust read_history_sweep at eababc03c625eaf9cfc5169953d7ee88f2015338 follows this field order. Its pinned object_reader/common.rs defines the special modeler wire-body profile type codes as 15 (2D polyline) and 16 (3D polyline); sample code 77 is not one of those profiles and takes the ordinary BL bit-length route.",
+    "currentLibdxfrwParser": "The production arm still follows the older direction/ignored-long/two-byte-counted-blobs/six-doubles sequence. Its bounded exact-span status remains Partial after 174 bits.",
+    "otherLocalAc1027Samples": "Only /Users/dli/doc/dwg/Cover.dwg is present as an additional local AC1027 DWG; it contains no ACSH_SWEEP_CLASS record."
+  },
+  "decision": "The candidate order reconciles every peer-described field, both transforms and both embedded-entity extents against the physical object. One final zero bit remains unclassified. This validates a strong implementation lead, not the bit's meaning, semantic entity contents, a normative layout, writer behavior or support. Do not consume the final bit as padding and do not promote status/support claims.",
+  "nextAction": "Determine whether the final bit is a defined trailing field or required object framing using stronger source evidence. Then implement the bounded typed capture for the reconciled sequence, preserve embedded bodies and the trailing bit without projection, add generated truncation/count/rollback/retry controls, and keep strict output refused until the complete graph/writer/readback gates close."
+}

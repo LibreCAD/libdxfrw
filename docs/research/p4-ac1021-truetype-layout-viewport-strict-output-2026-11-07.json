@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 truetype LAYOUT and VIEWPORT strict output",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the exact three-LAYOUT/four-VIEWPORT source graph through source-bound strict whole-source DXF output and selected ASCII/Binary typed readback, including failure rollback and same-adapter retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing with unauthenticated author/producer provenance. The drawing and derivatives are not committed."
+  },
+  "independentEvidence": {
+    "libredwg": {
+      "tool": "GNU LibreDWG dwgread 0.14 minJSON",
+      "minJsonPath": "/private/tmp/truetype-libredwg-minjson.json",
+      "minJsonSha256": "444b833bce4cb0aa1d8617c2086e53757bfbbf0018a0f4260747328f28c27966",
+      "finding": "Reports LAYOUT handles 0x22 (Model), 0x18E (ANSI A Plot), and 0x194 (ISO A4 Plot); the paper layouts reference VIEWPORT pairs 0x190/0x191 and 0x196/0x197, with corresponding BLOCK_RECORD handles 0x18F and 0x195. The four VIEWPORTs reference LAYER handles 0x10 or 0x18C and visual-style handle 0x8F8. This is independent structure/identity evidence, not native plotting or rendering evidence."
+    },
+    "specification": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["20.4.38 VIEWPORT", "20.4.84 LAYOUT", "20.1 common object/entity data"],
+      "finding": "The implementation path uses the existing versioned parser and common-reference roles. No parser layout changed in this slice."
+    }
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "Adds an exact AC1021 truetype source profile to the rooted ACAD_LAYOUT/NOD snapshot and VIEWPORT output qualification. The profile binds three LAYOUT callbacks and four VIEWPORT callbacks, their layout membership, reciprocal paper-space BLOCK_RECORDs, expected layer/style targets, and the four emitted VIEWPORT identities. Other AC1021 layouts/viewport graphs remain gated by their existing source profiles.",
+    "sourceHashes": {
+      "dwg2dxf/dx_iface.cpp": "6af671de18605477656b1afa01d94184f95356b88e25b21f0e0a47c96fb4f893",
+      "tests/dwg2dxf_adapter_tests.cpp": "8481bfc913cb70292b28b78c283716855144153b6f8c902e89154014623e4c6b"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with -Werror",
+      "artifacts": {
+        "build-gcc/dwg2dxf/dwg2dxf": "6738b0e0a1062150faaa9cd638cfeb77fd39bbfc92ffa707d156ec88aea11118",
+        "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "6fe8847a49e792e1d8030b9b0122358f9799082de38a942b12b2546104e8fdd9"
+      }
+    },
+    "focusedPhysicalSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/truetype.dwg",
+      "result": "PASS for ASCII and Binary. Four VIEWPORTs pass exact source identity, typed-field readback, owner/container and LAYOUT membership, layer/style resolution, derived group 68/69 checks, destination-preserving invalid-payload refusal and same-adapter retry. The route reports 53/53 source callbacks qualified."
+    },
+    "compatibilityRegression": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/lineweights.dwg",
+        "result": "PASS for ASCII and Binary; 49/49 callbacks qualified."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/colorwh.dwg",
+        "result": "PASS for ASCII and Binary; 52/52 callbacks qualified."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1021-view-xrecord-output-readback /Users/dli/doc/dwg/truetype.dwg",
+        "result": "PASS for ASCII and Binary; exact XRECORD references, typed readback, rollback and retry retained."
+      }
+    ],
+    "strictWholeSource": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/truetype.dwg -y -d -v2007 /private/tmp/truetype-next.dxf",
+      "result": "PASS; exit 0 and the full AC1021 source converts to AC1021 DXF without strict opaque-callback refusal.",
+      "outputSha256": "caf13534725feecf9ebc5b77ec68ca10270a2797c1aa24590f66f1fe5bc144f8"
+    },
+    "diffCheck": "PASS; git diff --check and JSON parsing succeeded",
+    "fullSuites": "NOT RUN"
+  },
+  "limits": [
+    "One unauthenticated AC1021 source and its exact layout/viewport graph only.",
+    "LibreDWG comparison establishes independent decoded identities/relationships, not native plotting, clipping, or visual-style semantics.",
+    "No producer-wide, native consumer, LibreCAD/LibreCAD_3/FreeCAD, platform, or general DWG/DXF support claim is established.",
+    "No test drawing or derivative is committed."
+  ],
+  "nextAction": "Select the next source-ready P4 graph from the existing candidate receipts; do not repeat the completed 28-stream census or this source's conversion."
+}

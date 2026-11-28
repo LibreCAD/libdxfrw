@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c remaining parser-only DXF marker views",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Replace temporary owned strings with current-record views for parser-only DXF marker comparisons.",
+    "routes": [
+      "ENDBLK footer group-100 markers",
+      "XRECORD class marker",
+      "EvaluationGraph class marker",
+      "SortEntsTable class marker",
+      "PERSUBENTMGR class marker",
+      "VisualStyle class marker",
+      "MESH class marker",
+      "PointCloud class marker",
+      "PointCloudEx class marker"
+    ],
+    "lifetime": "Every string_view is consumed synchronously before the reader advances; no borrowed view is retained.",
+    "behavior": "Marker acceptance, state changes, footer publication, record alignment, and output are unchanged.",
+    "odaCheck": "ODA v5.4.1 §2.5 says BD prefix 11 is unused. The full-RD prefix 11 in §2.9 applies to DD (BitDouble With Default), not BD; the current DWG fail-closed behavior was not relaxed.",
+    "non_claims": [
+      "no DWG byte-layout change",
+      "no support claim promotion",
+      "no resolution of AC1024 AcDbShLoft/AcDbShRevolve parse failures",
+      "no resolution of CLASSES CRC mismatch",
+      "no native FreeCAD or independent ACIS/ACDS qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j4",
+    "build_result": "PASS (-Werror; compatibility target succeeds)",
+    "selector": "build-gcc/libdxfrw_hardening_tests --dxf-borrowed-subclass-markers",
+    "selector_result": "PASS",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_borrowed_subclass_markers$' --output-on-failure",
+    "focused_ctest_result": "PASS (1/1; 0.02 s)",
+    "fixture_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+    "fixture_ctest_result": "PASS (1/1; 4.08 s)",
+    "diff_check": "PASS (src/libdxfrw.cpp, src/drw_entities.cpp, src/drw_objects.cpp, tests/hardening_tests.cpp)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad user changes; this slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue the exact-source audit of retained DXF compound/class parser values and writer copies; confirm real transient allocation before changing. Then take the next locally evidence-backed DWG/DXF semantic gap without waiting for external qualification. Keep associative-action widths fail-closed and the AC1024 object failures distinct from the CLASSES CRC signal."
+}

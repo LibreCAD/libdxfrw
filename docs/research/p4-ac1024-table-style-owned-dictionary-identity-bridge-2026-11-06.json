@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "title": "AC1024 TABLESTYLE-owned DICTIONARY identity bridge",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Restore the current AC1024 one-root empty LayerStates strict-complete compatibility control by proving the TABLESTYLE owner identity needed by its empty extension dictionary.",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "provenanceLimit": "Existing repository sample; no fixture or derivative was added."
+  },
+  "observedDependency": {
+    "dictionaryHandle": "0x104",
+    "dictionaryObjectType": 42,
+    "dictionaryOwnerSourceHandle": "0x87",
+    "dictionaryEntries": 0,
+    "ownerProfile": "The TABLESTYLE at 0x87 is admitted by the existing source/output TABLESTYLE proof. Its writer mints output handle 0x700 without a generic source-object binding; the dependent DICTIONARY carries the remapped owner handle 0x700.",
+    "priorFailure": "Strict-complete finalization rejected the same-writer retry at 227/228 opaque callbacks because generic reference mapping could not prove the TABLESTYLE owner link."
+  },
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "summary": "For a referenced TABLESTYLE owner only, accept the source-to-output mapping when the exact style is in the captured TABLESTYLE source set, the specialized TABLESTYLE output inspection has passed, its complete source snapshot is unchanged, all published alias maps agree, and the staged output has exactly one TABLESTYLE/OBJECTS identity at the mapped handle. Other sources continue to require existing generic map evidence.",
+    "sourceSha256": "32c5440b16379deef25e70394b667048ad807ae31526f5ebe49ab8b32779a3cb"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS",
+      "adapterTestExecutableSha256": "c069c41a81dfd4399b7b381bbc819ccd0047d3d302d63391b952b89f2e8bb0d7"
+    },
+    "focusedControls": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1024-output-readback tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+        "result": "PASS for ASCII and Binary. The test checks source-frame admission, exact empty child graph, mutation refusal with destination preservation, same-writer retry, complete opaque callback qualification, and fresh typed readback."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1021-source-admission /Users/dli/doc/dwg/children-room-decoration.dwg",
+        "result": "PASS; whole-source strict refusal remains atomic."
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1021-output-readback /Users/dli/doc/dwg/children-room-decoration.dwg",
+        "result": "PASS for ASCII and Binary selected output/readback, late mutation refusal, destination preservation and same-adapter retry."
+      }
+    ],
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "This is a source-to-emitted-owner identity bridge for the exact admitted TABLESTYLE profile, not native TABLESTYLE semantic qualification.",
+    "The AC1024 control uses one existing sample and does not establish producer-wide ownership support, whole-source support claims or independent consumer semantics."
+  ]
+}

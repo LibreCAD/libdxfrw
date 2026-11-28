@@ -1,0 +1,88 @@
+{
+  "date": "2026-11-09",
+  "scope": "Generated AC1027 and AC1032 PERSUBENTMGR complete-prefix, common-shell truncation, and corrected-input recovery controls",
+  "evidence_class": "from-scratch generated regression; no external DWG/DXF fixture",
+  "selector": "libdxfrw_dwg_reader_matrix_tests --persistent-manager-prefix-dispatch",
+  "profiles": [
+    {
+      "version": "AC1027",
+      "synthetic_class_ordinal": 601,
+      "class_record_name": "ACDBPERSSUBENTMANAGER",
+      "class_name": "AcDbPersSubentManager",
+      "source_handle": "0xD63",
+      "following_control_handle": "0xD64"
+    },
+    {
+      "version": "AC1032",
+      "synthetic_class_ordinal": 601,
+      "class_record_name": "ACDBPERSSUBENTMANAGER",
+      "class_name": "AcDbPersSubentManager",
+      "source_handle": "0xD63",
+      "following_control_handle": "0xD64"
+    }
+  ],
+  "control": {
+    "valid_source": "For each generated version profile, a disputed PERSUBENTMGR class body is paired with a separately framed common shell and a following valid object.",
+    "mutation": "Decrease only the generated object frame's declared handle-stream bit count by one, then rebuild the outer frame and CRC.",
+    "malformed_result_per_version": {
+      "read_operation_succeeded": false,
+      "object_parse_failures": 1,
+      "source_raw_publication": false,
+      "source_frame_publication": false,
+      "following_object_raw_publication": true,
+      "following_object_frame_publication": true
+    },
+    "corrected_retry_per_version": {
+      "input": "Original untruncated generated source and following-object frames",
+      "read_operation_succeeded": true,
+      "object_parse_failures": 0,
+      "source_callback": "raw-only; typed callback absent",
+      "source_payload_matches_generated_object": true,
+      "following_object_published": true
+    }
+  },
+  "execution": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+    "test": "build-gcc/libdxfrw_dwg_reader_matrix_tests --persistent-manager-prefix-dispatch",
+    "result": "PASS"
+  },
+  "limitations": [
+    "Generated framing and class ordinal do not establish an external producer's class ordinal or full body schema.",
+    "The complete field vectors and the truncated-shell controls cover only the two selected generated version vectors.",
+    "No physical PERSUBENTMGR semantic profile, graph closure, DXF output, native compatibility, or support claim is established."
+  ],
+  "complete_candidate_vectors": {
+    "versions": [
+      "AC1027",
+      "AC1032"
+    ],
+    "synthetic_class_ordinal": 601,
+    "fields": {
+      "class_version": 2,
+      "unknown_scalars": [
+        0,
+        2
+      ],
+      "associated_step_count": 2,
+      "associated_subentity_count": 2,
+      "steps": [
+        11,
+        22
+      ],
+      "subentity_ids": [
+        33,
+        44
+      ]
+    },
+    "result_per_version": {
+      "typed_callback": true,
+      "typed_fields_match_generated_values": true,
+      "class_body_prefix_status": "Complete",
+      "following_object_published": true,
+      "raw_bytes_match_generated_object": true,
+      "raw_carrier_typed_payload_validated": false,
+      "support_claim_or_output_admission": false
+    },
+    "interpretation": "The generated vectors exercise the existing candidate field sequence through its bounded body end. The raw carrier remains unvalidated; this does not establish a physical producer profile, DWG-to-DXF mapping, graph closure, or semantic support."
+  }
+}

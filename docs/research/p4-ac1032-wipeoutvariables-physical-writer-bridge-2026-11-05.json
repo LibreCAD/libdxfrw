@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Physical AC1032 WIPEOUTVARIABLES writer bridge",
+  "date": "2026-11-05",
+  "status": "BOUNDED_PHYSICAL_AC1032_WRITER_BRIDGE_PASSED",
+  "supportClaimEffect": "none",
+  "scope": "The hash-bound AC1032 direct-NOD WIPEOUTVARIABLES source is checked against its version-specific frame bytes, class, owner/reactor roles, and zero data-storage bit. Its captured record seeds a locally authored AC1032 wrapper DWG; the wrapper is re-imported and passed through selected ASCII/Binary DXF output, refusal, retry, and typed rooted readback. The physical drawing itself is not converted as a whole and native wipeout behavior is not qualified.",
+  "physicalWitness": {
+    "path": "/private/tmp/wipeout-ac1032/dwg/source.dwg",
+    "sha256BeforeAndAfter": "54cfec7952dda22823b98f3c5bdeb08b822d1db49fa7e64f00e2ddb6064bc469",
+    "revision": "AC1032",
+    "objectHandle": "0x30",
+    "classNumber": 514,
+    "frameBytesHex": "44804c24068821482140",
+    "ownerPath": "NOD 0x0A -> ACAD_WIPEOUT_VARS -> WIPEOUTVARIABLES",
+    "fields": {
+      "displayFrame": 0
+    },
+    "wireSpans": {
+      "frameBytes": 10,
+      "bodyBits": 37,
+      "dataStorageBit": "[39,40) = 0",
+      "frameFieldBits": "[40,42)",
+      "ownerHandleBits": "[43,59)",
+      "reactorHandleBits": "[59,75)",
+      "trailingZeroBits": "[75,80)"
+    },
+    "commonMetadata": {
+      "reactorCount": 1,
+      "reactorRole": 4,
+      "reactorTarget": "0x0A (owner NOD)",
+      "xDictMissingFlag": 1,
+      "dataStorage": false,
+      "appDataGroups": 0,
+      "extDataItems": 0
+    },
+    "independentEvidence": "The retained 2026-11-04 source receipt records LibreDWG 0.14 object/NOD role observation and ODA paired DXF correspondence; this implementation receipt reuses that hash-bound evidence."
+  },
+  "wrapper": {
+    "kind": "locally authored AC1032 DWG generated in the focused selector",
+    "fieldSource": "The physical display-frame/common-link profile seeds the wrapper; owner and reactor target the wrapper's NOD while retaining their roles.",
+    "outputs": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "checks": [
+      "physical frame-byte and class proof",
+      "wrapper DWG re-import",
+      "typed owner/reactor/root readback",
+      "invalid display-mode, owner/reactor and cross-revision refusal",
+      "destination preservation",
+      "same-adapter retry",
+      "typed graph readback"
+    ],
+    "fixturePolicy": "The wrapper DWG and output DXFs are temporary locally authored controls and are removed. The physical source is read-only; no drawing fixture was committed."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_wipeoutvariables_' --output-on-failure",
+      "result": "11/11 focused generated WIPEOUTVARIABLES controls passed"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --wipeoutvariables-physical-ac1032-direct-nod /private/tmp/wipeout-ac1032/dwg/source.dwg",
+      "result": "passed; physical witness proof, wrapper re-import, selected ASCII/Binary output, refusal/retry and typed readback"
+    },
+    {
+      "command": "shasum -a 256 /private/tmp/wipeout-ac1032/dwg/source.dwg before and after",
+      "result": "same SHA-256 before/after: 54cfec7952dda22823b98f3c5bdeb08b822d1db49fa7e64f00e2ddb6064bc469"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "nonClaims": [
+    "No whole-source physical conversion qualification follows.",
+    "No native AutoCAD, LibreCAD, LibreCAD_3, FreeCAD, or independent wipeout rendering/plotting acceptance was run.",
+    "No broad AC1032 support claim follows from one witness or from pass-through reader lineage."
+  ],
+  "remaining": [
+    "Physical whole-source output on a complete document profile.",
+    "Physical AC1018 WIPEOUTVARIABLES output qualification.",
+    "Additional producers/modes and native preview/display/plot semantics.",
+    "Remaining P4 graph/source closure."
+  ]
+}

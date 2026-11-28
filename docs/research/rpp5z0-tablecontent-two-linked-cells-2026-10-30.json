@@ -1,0 +1,57 @@
+{
+  "id": "RPP-5z0",
+  "date": "2026-10-30",
+  "title": "Two linked cells with distinct TABLECONTENT DATALINK targets",
+  "scope": {
+    "operation": "Write two linked-data cells in one rectangular TABLECONTENT grid with distinct DATALINK targets.",
+    "profile": "Generated 2x2 AC1032 table: upper-left linked cell with cached string/integer contents, lower-right empty linked cell, two distinct DATALINK records, and two scalar peer cells; ASCII and binary DXF.",
+    "handle_remap": {
+      "table_content": "0x5A0 to 0x15A0",
+      "data_links": [
+        "0x710 to 0x1710",
+        "0x711 to 0x1711"
+      ]
+    },
+    "limits": [
+      "Exactly two linked cells and two unique DATALINK targets",
+      "Only the upper-left linked cell has cached content, with the selected string-then-integer sequence",
+      "No linked-cell block references, attributes, geometry, formatting, or real external workbook access"
+    ],
+    "claim_boundary": "Selected DXF serializer, graph preflight and typed readback evidence only; no native DATALINK/workbook behavior or DWG encoding claim."
+  },
+  "implementation": [
+    "Reuse adapter preflight's unique-target checks for two linked cells and two emitted DATALINK records.",
+    "Emit each linked cell's independent remapped target and group 93/94/96 metadata; preserve the content count/list on the first cell and the empty list on the second.",
+    "Do not access either inert connection string during export or validation."
+  ],
+  "evidence": {
+    "generated_runtime_input": true,
+    "committed_fixture_files": false,
+    "ascii_and_binary": true,
+    "physical_wire": [
+      "Two DATALINK records are emitted at 0x1710 and 0x1711.",
+      "Linked flags by grid order are [1,0,0,1]; linked targets are [0x1710,0x1711] at the two linked cells.",
+      "The first cell emits 93=2, 94=3, 96=-5, 95=2 and the exact cached string/integer values; the second emits 93=4, 94=5, 96=7 and 95=0.",
+      "The two unlinked peer cells retain their scalar values and content count 1."
+    ],
+    "typed_readback": "One TABLECONTENT at 0x15A0 reads two DATALINKs at 0x1710/0x1711; the upper-left and lower-right cells retain their respective target handles and exact metadata. The upper-left retains string then integer 42, and the other two cells retain their scalar strings.",
+    "failure_control": "Each linked-cell target is independently changed to absent handle 0x799. Both exports are refused; the destination sentinel, failed source mutation, other linked-cell handle and table collection remain unchanged.",
+    "retry_control": "Restoring each valid source handle lets the same adapter export again; both DATALINK records, cell references and cached values read back intact after each retry."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests --parallel 4",
+    "focused_selector": "build/tests/libdxfrw_table_content_dxf_tests --table-linked-grid-write",
+    "focused_ctest": "ctest --test-dir build -R '^libdxfrw_table_content_(grid_write|linked_grid_write)$' --output-on-failure",
+    "focused_ctest_result": "2/2 passed",
+    "diff_check": "git diff --check",
+    "full_suite": "NOT_RUN"
+  },
+  "files": [
+    "tests/table_content_dxf_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "remaining": [
+    "The parent P5 rendering/TABLE phase remains open.",
+    "This receipt does not qualify more than two linked cells, other content sequences or linked-cell payload types, broader DATALINK semantics, native TABLE/workbook behavior, or DWG output."
+  ]
+}

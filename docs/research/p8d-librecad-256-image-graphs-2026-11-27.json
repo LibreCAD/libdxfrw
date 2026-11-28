@@ -1,0 +1,176 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-256-image-graphs-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "3c710ff17fecce53822a1a8aa6d72f8ab88c127c",
+  "parentCommit": "b5bbf0b7d77b9d207599cc44648d4a7fee6987bc",
+  "change": "Increase selected IMAGE and IMAGEDEF retained-source and audited-graph bounds to 256 records each, and IMAGEDEF source groups to 512. Preserve the shared 4 MiB logical retained-source budget, 64 KiB per-record payload cap, and 256 KiB source-file capture gate.",
+  "validation": [
+    "Pre-change capacity test failed at the 129th image source. Updated source-budget test passed 523 assertions, including 256 retained pairs, 257th refusal, aggregate exhaustion, 512/513 IMAGEDEF groups, and clear/retry.",
+    "Six-version generated selected-graph test passed 1794 assertions, including 129 images/4 definitions, 256/1 and 256/256; 257 refusal with untouched destination and corrected 256-image retry; and invalid reactor and late mutation refusal followed by corrected same-filter retry.",
+    "Qt offscreen real-raster refresh test passed 84 assertions over 2, 64, 128 and 256 shared-definition images, including conflicting-path refusal, destination preservation, editing and retry.",
+    "ezdxf 1.4.5 independently audited 18 locally generated source/output pairs across six versions, comparing geometry, paths, IMAGEDEF dictionary ownership, reactor ownership and reciprocal links; all audits were clean. The 256-image shared definition source has 269 groups, including 256 reactor references and one owner reference.",
+    "Bundled-codec filter compile check passed.",
+    "Graph test wall time 22.23 seconds and maximum RSS 59,506,688 bytes; GUI refresh test wall time 1.90 seconds and maximum RSS 51,314,688 bytes, measured locally during concurrent activity. These are observations, not memory limits or benchmarks."
+  ],
+  "logsSha256": {
+    "red": "829270097f802551e4e666f53c33164a8dabbf9f8aa9c633245f6030b3b6363c",
+    "budget": "8d17f20eb4e57b01c065a66d1f35560dcfc1c93f6f71d4b9403f60298f97fd0f",
+    "graphs": "c3eab679afa8dd0944c158b5e592d76de5073f6513be1c1af158d3206bcb65f7",
+    "gui": "47a37d7575350150deda45200b0bd171be455d64f6aeb4961d6d10e59f8cf114",
+    "peer": "9a12c05e4919f85ab9e5d88a5e8bbf3d4c9e094f809e02dd4259b5fae955a3ae"
+  },
+  "peer": [
+    {
+      "images": 129,
+      "definitions": 4,
+      "version": "default",
+      "sourceSha256": "40d55e8ccacb6338e9f006cc0af992d54e95de00e4f97aaaa116a08d91b7666c",
+      "outputSha256": "9487ac4b5b4b4193dbe8b9d90994a61d2f960d04ce61e0a4fa8257556f8f6402",
+      "audit": "clean"
+    },
+    {
+      "images": 129,
+      "definitions": 4,
+      "version": ".v2",
+      "sourceSha256": "785c9765f727efcbc55eba315f8c1c4b7197babfb17abe07403096205d7266a1",
+      "outputSha256": "adbee6872f21ebb9110b7d0b16e2faaa1ae057bc1f15e0bd27f344b95f86ae68",
+      "audit": "clean"
+    },
+    {
+      "images": 129,
+      "definitions": 4,
+      "version": ".v4",
+      "sourceSha256": "c47968998ef7d9d3c2eead3e66bd0763ce0a5febd8166b30d41eef106b582138",
+      "outputSha256": "1658fe9d04f165bf456720e79fa672338710bd76b25558155f5adfadeb47e5b5",
+      "audit": "clean"
+    },
+    {
+      "images": 129,
+      "definitions": 4,
+      "version": ".v5",
+      "sourceSha256": "f5ca5163600e5f072b8a84d5bda5b2e46e2f39d01af3f156bfa4e6a8365fa2d8",
+      "outputSha256": "985b7beba18b991d4908239c7c3a1f2c5da97e37e4ce182cc7a169045830fa11",
+      "audit": "clean"
+    },
+    {
+      "images": 129,
+      "definitions": 4,
+      "version": ".v19",
+      "sourceSha256": "babe00a26cbebefa5a2bc704bdb7dbf8c31c7935c9d500f913db83a8dd31b248",
+      "outputSha256": "91a3e122af6fc03156f46b76cd370fd3bc8148c6b2046829d2b9d8da5f134961",
+      "audit": "clean"
+    },
+    {
+      "images": 129,
+      "definitions": 4,
+      "version": ".v20",
+      "sourceSha256": "3d1e2fb5a4619a239c21ff286c8692ce8abb3396013ea3cea09d8ef0151b5fec",
+      "outputSha256": "086eb1109fe5fd3c6ceb494ded5ccbfa9f7d6b943b2e797b0d14be032bf4b100",
+      "audit": "clean"
+    },
+    {
+      "images": 256,
+      "definitions": 1,
+      "version": "default",
+      "sourceSha256": "2e3871424e84a617a345997fce916dee9be84687f37aed5acf0219601dba047a",
+      "outputSha256": "fafd1f24fdabb0708d31465d8f62e1901cc5ce5b2f773f12a24a862579af6ff2",
+      "audit": "clean"
+    },
+    {
+      "images": 256,
+      "definitions": 1,
+      "version": ".v2",
+      "sourceSha256": "ddb41e933fce02c1e9f3f4253a0e36f50a42d1f94e3e352e3b13db43109d8fa1",
+      "outputSha256": "bca4c72d9066c2dd611511c8551748032c0543a52929ca1b6c6c38b0e40c4c3d",
+      "audit": "clean"
+    },
+    {
+      "images": 256,
+      "definitions": 1,
+      "version": ".v4",
+      "sourceSha256": "4115c28b0eb7d261ae492b6401245d146aaf3d82c7b6f210a45e215574d673a1",
+      "outputSha256": "607b634871fc0876be26eb99caf173865b7add3d9a44d359f3c542c589d7eb27",
+      "audit": "clean"
+    },
+    {
+      "images": 256,
+      "definitions": 1,
+      "version": ".v5",
+      "sourceSha256": "d982ac70a28c8f0e758f587680e54b5a0efd189792ca0b418c296fcc6d9bbd87",
+      "outputSha256": "cd7197faa4dd6a8086bed58ceaa09654e54d4a1117f3cd2cee44f9d4c7f97985",
+      "audit": "clean"
+    },
+    {
+      "images": 256,
+      "definitions": 1,
+      "version": ".v19",
+      "sourceSha256": "c478e93aea1a5c904b34a531d736772de6da3bb14a8c6775b32522538ae94a91",
+      "outputSha256": "ca3c1b83032aa5536af208a8db0c418ea94385778583293dde3d7971e65c3c17",
+      "audit": "clean"
+    },
+    {
+      "images": 256,
+      "definitions": 1,
+      "version": ".v20",
+      "sourceSha256": "bca7cd7633dfa24dba53459c14acd14eaaa18babce35f86206d9c80754b90c40",
+      "outputSha256": "dc915b919eae6853d3b486f3001ba1b40ca5f2081827d85010c2e43d79551b30",
+      "audit": "clean"
+    },
+    {
+      "images": 256,
+      "definitions": 256,
+      "version": "default",
+      "sourceSha256": "b7d630f01d8c79367618d16229031345f13f7ea654d32a6fcf0987d3c417bac1",
+      "outputSha256": "397473c658addca8ee3e362d8ad1a3b3b6dc594ba20fcdd8f61252299f9f9f23",
+      "audit": "clean"
+    },
+    {
+      "images": 256,
+      "definitions": 256,
+      "version": ".v2",
+      "sourceSha256": "1c46a2985995773fa178f9cc6dbcf8b219ed2d60e21ff926ca9e5f4de7b067b0",
+      "outputSha256": "d614762d0a40bc907a8270e6e925896529f090a8fbd6939b1b4fe4a0d5da73dc",
+      "audit": "clean"
+    },
+    {
+      "images": 256,
+      "definitions": 256,
+      "version": ".v4",
+      "sourceSha256": "2e667f60222360e301e576401cb92cd19719cd254af450abf97da9e327123fe0",
+      "outputSha256": "28a2e244489e037d6ae07e91db03406579bc34bcb13b5fc5f664ab2650877e9b",
+      "audit": "clean"
+    },
+    {
+      "images": 256,
+      "definitions": 256,
+      "version": ".v5",
+      "sourceSha256": "9fa0c0ab79819741a654d205014e250ad5707e6841b93758bbfb7672a35dd888",
+      "outputSha256": "10a710c0cf5a7cf55b851d8a3c9067f7a0b9a87774549cd2f5cacf04137f7c16",
+      "audit": "clean"
+    },
+    {
+      "images": 256,
+      "definitions": 256,
+      "version": ".v19",
+      "sourceSha256": "38f416bd294c18f7da4ba1b7961fe3d2ec4e86a48a3b3be338194587ec189c2b",
+      "outputSha256": "00d0463e4770b416b03cd22f4d31c6bda86f0638b4c4777adc17d1b799c115bd",
+      "audit": "clean"
+    },
+    {
+      "images": 256,
+      "definitions": 256,
+      "version": ".v20",
+      "sourceSha256": "6ba1811f9e1afc8c700ea121041207e434febb67b1a42f009fc1741814217eeb",
+      "outputSha256": "190b6a693e6c88575eb28a1f3fb1b8e44a2c301427bfafcb036265827afe3397",
+      "audit": "clean"
+    }
+  ],
+  "limitations": [
+    "These generated same-version model-space profiles do not qualify arbitrary producer files, larger mixed model/block graphs, modern MATERIAL beyond the earlier 64-image profile, cross-version output, unsupported fields or other platforms.",
+    "The 4 MiB budget accounts for estimated retained raster-source storage only; it is not a bound on raw-object storage, allocator capacity, total process memory or RSS.",
+    "The 256 KiB source-file gate and all other graph/source checks still apply, so not every 256-image drawing is accepted. No drawing fixtures are committed."
+  ]
+}

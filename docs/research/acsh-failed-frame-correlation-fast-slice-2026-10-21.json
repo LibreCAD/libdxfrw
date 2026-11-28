@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "ACSH failed-parse frame correlation across existing AC1024 samples",
+  "mode": "Focused regression-test extension using existing repository DWG samples",
+  "scope": [
+    "Verify every untyped ACSH failure in the selected condominium sample has a retained bounded raw frame",
+    "Keep typed parse failures visible and semantic coverage partial",
+    "Avoid adding or redistributing DWG/DXF test fixtures"
+  ],
+  "method": {
+    "productionCodeChanged": false,
+    "testCodeChanged": true,
+    "ctestRegistrationsAdded": 1,
+    "localDwgFilesAddedOrModified": 0,
+    "peerPackagesOrExecutablesRun": false,
+    "fullSuiteRun": false
+  },
+  "observed": {
+    "sample": "tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+    "operationSucceeded": true,
+    "entityParseFailures": 0,
+    "objectParseFailures": 3,
+    "untypedAcShFramesRetainedForCorrelation": 3,
+    "frameClassMetadataAndBodyBoundsValidated": true,
+    "acdsHistoryDwgFrameCaptureFailed": false,
+    "semanticCoverage": "partial-observed; raw retention is not typed decode or output support"
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configureResult": "PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j4",
+    "buildResult": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^dwg_acsh_(revolve_opaque_frame_capture|failed_frame_retention)$' --output-on-failure",
+    "ctestResult": "PASS (2/2)"
+  },
+  "externalGate": {
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "evidencePromotesSupport": false
+  },
+  "repositoryState": {
+    "commitStatus": "UNCOMMITTED",
+    "reason": "Shared worktree contains broad pre-existing user changes; no broad staging or commit was attempted."
+  }
+}

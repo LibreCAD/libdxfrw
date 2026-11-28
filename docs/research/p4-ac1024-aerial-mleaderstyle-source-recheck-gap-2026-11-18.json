@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-mleaderstyle-source-recheck-gap-2026-11-18",
+  "date": "2026-11-18",
+  "status": "AERIAL_STYLE_SOURCE_PREPARATION_PASSED_RAW_RECHECK_GAP_REPRODUCED",
+  "supportClaimEffect": "none",
+  "sourceSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+  "remainingAerialRoots": {
+    "scope": "The union of separately verified selected writer transactions covers ten original NOD roots. The entire ten-root graph has not been emitted together.",
+    "remaining": {
+      "ACAD_BACKGROUND": "AE",
+      "ACAD_LAYOUT": "1A",
+      "ACAD_MATERIAL": "72",
+      "ACAD_MLEADERSTYLE": "147",
+      "ACAD_TABLESTYLE": "86",
+      "ACAD_VISUALSTYLE": "99"
+    }
+  },
+  "nextLocalRoot": {
+    "root": "The pinned 16-entry NOD's ACAD_MLEADERSTYLE item targets dictionary 147. Independent LibreDWG and ODA output agree on this dictionary's two entries and the two style identities.",
+    "providers": "Standard 148 and Annotative 157 both have owner and reactor target dictionary 147 and have no extension dictionary or EED. Their non-null pointers target LTYPE 14 and STYLE 11. Arrowhead and content block pointers are null.",
+    "class": "The pinned peer row associates class 513 with MLEADERSTYLE / AcDbMLeaderStyle / ACDB_MLEADERSTYLE_CLASS, proxy flags 4095 and two instances. The existing registry agrees on its DXF metadata. Capture and join the actual DWG publication rather than assuming class 513 on other files.",
+    "frames": [
+      {
+        "handle": "147",
+        "bytes": 60,
+        "sha256": "e456fa7f6b9f8e6c2f044606ef91865f9e6da5d28a3f500b4932a2aa3982e699"
+      },
+      {
+        "handle": "148",
+        "bytes": 122,
+        "sha256": "37a60019342ad0db9368ba51ec7c4818f889ac8aa60ccdcf1bac6ff97f4ad121"
+      },
+      {
+        "handle": "157",
+        "bytes": 123,
+        "sha256": "25f3921f1d4a64d8f172b0066e1d47c26469965ec0a7ebba43b14c4c788aeb80"
+      }
+    ]
+  },
+  "reproduction": {
+    "currentBase": "a8e3261e5157e5237f4d6a58de216a870ea5d46f",
+    "result": "Original adapter imports the aerial DWG and prepares the two real MLEADERSTYLE models as a selected AC1024 transaction. Changing a retained frame tail byte for either selected source still passes the existing unchanged-source predicate. Each restored source also passes. The probe checks preparation and the source predicate only.",
+    "scratchRoot": "/private/tmp/p4-aerial-mleader-triage",
+    "sha256": {
+      "capture.cpp": "d763e14eb572f58d5b023da903ef18dbabd8d25ac873bfb11c974bc16497a0f7",
+      "aerial.frames": "384c55a650a2ab55bd3fdb43ca690401eee522475c4d2f78f3e046c0bd8494e2",
+      "aerial.log": "066cdf21fdecec66a0cc75a0d209abb7de13991b2508d80138dfa8216e686f4b",
+      "census.cpp": "80689fb833facafc41fabdf1babf1c22b5e40f568cf5de37765c70c475e78a67",
+      "census.out": "633652e99d16f008c9c2d2c44bfb3ab7a78d0198c1b6ced98234235553be6384",
+      "source-recheck.cpp": "5d77669cc326b52a5ee7ef863d5c1aafc05ccd097bfe4aeb82b894e832bcfb71",
+      "source-recheck.log": "f4ee6c3ffc1290dd52578b855dc56c11d42395331c6b65b9a782592bf4012cbd"
+    }
+  },
+  "next": "Verify the three frame layouts, class row and both target types in the original import. Reuse the existing typed writer and staged proof. Check dictionary membership and all roles after remapping and refuse changed retained source bytes in early and late stages while preserving the destination. Verify corrected same-codec retries and independent ASCII and binary readback.",
+  "limits": [
+    "Existing mechanical MLEADERSTYLE evidence covers a different source and encoded class number.",
+    "Native SUN owner and named-block draw-order gates remain open for whole-source qualification."
+  ]
+}

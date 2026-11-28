@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-mleaderstyle-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Connect AC1024 MLEADERSTYLE evidence to strict output identity qualification",
+  "status": "2_MLEADERSTYLE_IDENTITIES_QUALIFIED_STRICT_GATE_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "MLEADERSTYLE / AcDbMLeaderStyle",
+    "recordCount": 2,
+    "fixturePolicy": "Existing local sample only; no DWG/DXF fixture was added to Git."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h"
+    ],
+    "summary": "Connected the existing physical MLEADERSTYLE writer/readback evidence to per-attempt opaque source identity qualification. Qualification is AC1024-only and requires the witnessed payload profile, unique NOD ACAD_MLEADERSTYLE root, exact owner dictionary keys/roles, exact typed body/string fields, mapped reactor handles, and correctly-role-typed LTYPE, BLOCK_RECORD and STYLE targets. Any other source profile remains unqualified.",
+    "atomicity": "Qualification is staged during the OBJECTS write transaction and is committed only after successful output finalization. A failed strict attempt publishes no staged identities; a corrected legacy retry publishes only identities proven by that attempt."
+  },
+  "outputProof": {
+    "identities": 2,
+    "ownerRoute": "The unique named-object-dictionary ACAD_MLEADERSTYLE key resolves to a single owner dictionary. Each source style has one unique owner key and no alias in any other dictionary. The emitted NOD and owner dictionary are decoded and compared, including the root key, key names, target handles, parent, hard-owner state, cloning state and dictionary handle roles.",
+    "styleFields": "Each emitted MLEADERSTYLE identity and owner is recorded by the active writer. Fresh decoded output is compared to the source for AC1024 body and string streams, type, name, flags, parent, extension dictionary, reactor handles and groups 340/341/342/343 references.",
+    "referenceRoles": "Non-null group 340, 341, 342 and 343 targets must map to emitted LTYPE, BLOCK_RECORD, STYLE and BLOCK_RECORD table records respectively. Reactor references must map to the MLEADERSTYLE owner dictionary.",
+    "independentReadback": "The existing physical selector freshly imports ASCII and Binary files, confirms both source identities, dictionary keys, typed fields, reference roles and CLASS count, and checks mutation refusal, destination sentinel preservation and corrected same-adapter retry."
+  },
+  "remainingCensus": {
+    "opaqueCallbacks": 228,
+    "qualifiedOutputIdentities": 201,
+    "unqualifiedIdentities": 27,
+    "breakdown": {
+      "namedGeneric": {
+        "MATERIAL": 3,
+        "TABLESTYLE": 1,
+        "ACDBDICTIONARYWDFLT": 1,
+        "SORTENTSTABLE": 1
+      },
+      "unnamedEntityType34": 2,
+      "unnamedObjectTypes73_80_82": 4,
+      "standardObjectType42": 13,
+      "standardObjectType79": 2
+    },
+    "strictExport": "Refused before publication at 201/228. The failed attempt left published qualification count and identity set at zero.",
+    "legacyRetry": "Passed and atomically published 201 source-bound output identities."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "physicalReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mleaderstyle-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary output, including refusal, destination preservation and corrected same-adapter retry."
+    },
+    "strictGate": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_opaque_source_capture_and_strict_output_gate$' --output-on-failure",
+      "result": "PASS, 1/1."
+    },
+    "census": {
+      "command": "g++ -std=c++17 -Wall -Wextra -pedantic -Werror -I dwg2dxf -I src /tmp/libdxfrw-p4-callback-census.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /tmp/libdxfrw-p4-callback-census && /tmp/libdxfrw-p4-callback-census tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS; census reported 201/228 qualified, strict refusal without publication, and legacy retry with atomic publication. Scratch code and outputs remain outside Git."
+    },
+    "fullSuites": "NOT RUN; only the physical MLEADERSTYLE selector, strict-gate CTest and source-bound scratch census were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Connect the two physical AC1024 MLEADERSTYLE source identities to strict transactional output qualification."
+    ],
+    "nextPacket": "Qualify the 3 MATERIAL identities, preserving exact fields, owner/reference roles, output identity, fresh readback, failure behavior and retry behavior.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "22519b3e29818c9af28a7c720a904a5f99e9c193911fabc86f36649fc06af945",
+    "dwg2dxf/dx_iface.h": "ea28140d70aeafda6afff05b1ee1b7c120c9715b22c6552d3b8a1cf626d17e0d",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "583969e5b54371a56e16e5385a083cb030b89d93cde651b86f749d299826b840"
+  }
+}

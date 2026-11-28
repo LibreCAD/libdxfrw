@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dynamic-block-basepoint-parameter-allocation-rollback-2026-11-12",
+  "date": "2026-11-12",
+  "status": "BASEPOINT_PARAMETER_DIRECT_ALLOCATION_SWEEP_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add direct AC1024 ASCII/Binary allocation-failure coverage for the profiled dynamic-block BasePointParameter writer, including source identity rollback and fresh-writer retry/readback.",
+  "binding": {
+    "repositoryHead": "a7c8ac8021652051b7ba3f8dcc31a3487157d5d3",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "27ac70a55b86da086ad484392b099de2b2777c7c9acb80b61f84b0061185cae3",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "tests/dynamic_block_objects_allocation_tests.cpp": "c791461e01cb6cf61183d6ecaec585ad7e1d703bbaef2a527c7698c5adf8a20c",
+      "tests/CMakeLists.txt": "7a6d869bd778a362a1552bb5c8c48c6a0b8d5b7e0fac8bc7aa24a9fd5b171469",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "400030cf29155a32d67ecbe3be31ad480d33b64a9c4cccc9fa91a7314448d72f"
+    },
+    "artifactSha256": {
+      "build/libdxfrw.a": "87bac49173b4d27017ee41870fa642fbfc37a6cf332eea503fc41a027eabf7b1",
+      "build/tests/libdxfrw_dynamic_block_objects_allocation_tests": "20406962bd4cee3d65f7b2af45ca8300d3e5d661517548f49ed2808cd6e4ae30",
+      "build-asan-custom/libdxfrw.a": "a143a4e14823ee2ebe06bc6bde6251faff4e128ea8443985b547df02122dc4e2",
+      "build-asan-custom/tests/libdxfrw_dynamic_block_objects_allocation_tests": "955635f6f80ad9eee9e09731d0952ba23211ee255b34c093fe8d86e9be5cde09"
+    }
+  },
+  "change": {
+    "testCoverage": "Extended the generated dynamic-block allocation target with the bounded BasePointParameter profile used by the existing adapter writer control. The injected sweep covers every allocation made by direct writeDynamicBlockObject calls.",
+    "perEncoding": "ASCII exercises 14 allocation offsets and Binary exercises 12. Each failure preserves caller fields and leaves no sourceHandleToWrittenObjectMap entry. The same source then succeeds through a fresh writer. Clean wire readback checks record and owner handles, node id, base-point subclass, parameter scalar, and defining/point/base-point coordinates.",
+    "existingAdapterControl": "The existing dwg2dxf_dynamic_block_basepoint_parameter_writer control checks exact emitted group order, typed readback, invalid-coordinate destination preservation, corrected same-writer retry, and unknown-tail raw-only handling."
+  },
+  "validation": {
+    "build": {
+      "normal": "PASS: cmake --build build --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "asan": "PASS: cmake --build build-asan-custom --target libdxfrw_dynamic_block_objects_allocation_tests"
+    },
+    "normalFocusedTests": {
+      "command": "ctest --test-dir build -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_visibility_parameter$|dwg2dxf_dynamic_block_basepoint_parameter_writer$' --output-on-failure",
+      "result": "PASS 3/3; 0.62 seconds total"
+    },
+    "asanFocusedTests": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_visibility_parameter$|dwg2dxf_dynamic_block_basepoint_parameter_writer$' --output-on-failure",
+      "result": "PASS 3/3; 1.70 seconds total"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Fault injection is at the low-level record writer; it does not establish whole-file destination rollback under allocation failure.",
+    "A fresh writer is used after each failure because the failed writer may contain partial bytes and has a sticky write error.",
+    "This covers only the bounded BasePointParameter candidate. Other dynamic-block schemas, graph closure, producer breadth, and native semantics remain separate gates.",
+    "The test authors an in-memory record; no fixture is added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue the P6 transaction and no-loss audit for another concrete uncovered writer/profile; preserve the format, graph, and native-consumer gates."
+}

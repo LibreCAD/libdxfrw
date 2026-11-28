@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-spline-field-differential-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Physical AC1024 fit-only SPLINE fields compared with LibreDWG",
+  "status": "TWO_FIT_ONLY_FIELD_PROFILES_MATCH; CURVE_SEMANTICS_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "repositoryHead": "a54bc7c69fc93af78d7d7fbbb4fb31e5e2f4dd90",
+  "formatAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "section": "20.4.40 SPLINE",
+    "printedPage": 141,
+    "relevantRule": "The common scenario is a BL. R2013+ adds BL Spline flags 1 and BL Knot parameter fields before the common degree. Fit-point scenario records then contain fit tolerance, beginning/end tangent vectors, a BL fit-point count, and fit points."
+  },
+  "input": {
+    "path": "/Users/dli/doc/dwg/visualization_-_conference_room.dwg",
+    "version": "AC1024 / R2010",
+    "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+    "fixtureDisposition": "Existing local user corpus; not copied into or committed with the repository."
+  },
+  "libdxfrw": {
+    "repositoryRevision": "a54bc7c69fc93af78d7d7fbbb4fb31e5e2f4dd90",
+    "executable": "build-gcc/dwg2dxf/dwg2dxf",
+    "executableSha256": "83111f6a1a28f397d70a462b6b261331415782e6ccd7d15ef2666e8ca9770e98",
+    "sourceSha256": {
+      "src/drw_entities.cpp": "036f54c62077581c34a80e5d6eabe197a6162e1adfeaa5ab7716fa4cd7243375"
+    },
+    "command": "build-gcc/dwg2dxf/dwg2dxf <input.dwg> -y -d -v2010 <scratch-output.dxf>",
+    "tracePath": "/private/tmp/ac1024-conf-spline-dxfrw.log",
+    "traceSha256": "f06b8a1358987fb3c234b9160433662b156e4b1e3a4bc91e6e8cb5b5ce564b60",
+    "fullReadObservation": "operationSucceeded=true, sourceVersion=AC1024, legacyError=0",
+    "strictOutputDisposition": "Preflight refused publication because the complete DWG read disposition is not qualified. No DXF output was published; this is not a successful whole-file conversion."
+  },
+  "independentReader": {
+    "tool": "LibreDWG dwgread 0.14",
+    "command": "dwgread -v0 -O JSON -o <scratch.json> <input.dwg>",
+    "exitCode": 0,
+    "stderrResult": "SUCCESS",
+    "jsonPath": "/private/tmp/ac1024-conf-spline.json",
+    "jsonSha256": "d375c9bf81f5b3bb48ff9b2740015e351e8318bf6f5089c0fd39ace0c2bb06ce",
+    "stderrPath": "/private/tmp/ac1024-conf-spline.log",
+    "stderrSha256": "3e64f7c6692575249a3bfb8a48f08c4b619bcbebec9699c379056f02f593efcf"
+  },
+  "comparison": {
+    "method": "Matched SPLINE records by decoded DWG handle. Compared scenario, degree, fit-point count, and ordered fit-point coordinates. The libdxfrw trace prints coordinates to six decimal places; tolerance is 5.1e-7 model units.",
+    "splineCountBothReaders": 2,
+    "allComparedFieldsMatch": true,
+    "records": [
+      {
+        "handle": "0x6CB",
+        "scenario": 2,
+        "degree": 3,
+        "fitPointCount": 7,
+        "maxAbsoluteCoordinateDelta": 4.955629719916033e-7,
+        "fieldsMatch": true
+      },
+      {
+        "handle": "0x6F4",
+        "scenario": 2,
+        "degree": 3,
+        "fitPointCount": 7,
+        "maxAbsoluteCoordinateDelta": 4.6547458509849093e-7,
+        "fieldsMatch": true
+      }
+    ]
+  },
+  "newerVersionSourceInventory": {
+    "repositories": ["LibreCAD/libdxfrw", "LibreCAD/LibreCAD"],
+    "distinctTrackedAc1027AndAc1032Dwgs": 6,
+    "scanner": "LibreDWG 0.14 JSON output searched for SPLINE entity tokens",
+    "files": [
+      {
+        "version": "AC1027",
+        "file": "ordinary_enc_AC1027.dwg",
+        "sha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83",
+        "splineEntities": 0
+      },
+      {
+        "version": "AC1027",
+        "file": "ordinary_enc_ac1027_ansi932.dwg",
+        "sha256": "449a386ccc677dcb93848f583d812afcfd0194631973406394e782233c463aba",
+        "splineEntities": 0
+      },
+      {
+        "version": "AC1032",
+        "file": "large_radial.dwg",
+        "sha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+        "splineEntities": 0
+      },
+      {
+        "version": "AC1032",
+        "file": "mpolygon_solid.dwg",
+        "sha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+        "splineEntities": 0
+      },
+      {
+        "version": "AC1032",
+        "file": "rtext_arctext.dwg",
+        "sha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+        "splineEntities": 0
+      },
+      {
+        "version": "AC1032",
+        "file": "lc_multiline_attrib_ac1032.dwg",
+        "sha256": "f06218b4975c1ed2a9de0484a57744a4e5b5377ffe4520d6fb9098b8bd0dac11",
+        "splineEntities": 0
+      }
+    ],
+    "limitation": "This is an inventory of tracked repository drawings only. It does not establish that no external or local-untracked newer-version spline source exists."
+  },
+  "limits": [
+    "This is a two-record physical field differential, not curve evaluation, B-rep validation, or native CAD acceptance.",
+    "The R2013+ splFlag1/Knot parameter body has no SPLINE witness among the six tracked AC1027/AC1032 drawings inspected; its physical DWG profile remains open.",
+    "The DXF output was refused at whole-document strict-completeness preflight. No output or support claim is qualified by this run.",
+    "No fixtures, production code, tests, or external dependencies were added."
+  ]
+}

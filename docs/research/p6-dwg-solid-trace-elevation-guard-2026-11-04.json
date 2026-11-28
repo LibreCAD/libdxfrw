@@ -1,0 +1,92 @@
+{
+  "title": "DWG SOLID and TRACE shared elevation guards",
+  "authority": "ODA v5.4.1 \u00a7\u00a720.4.35\u201336 specify shared elevation and four 2RD corners; existing DRW_Solid corner accessors document 2D corners and basePoint.z as elevation.",
+  "problem": "For accepted modern DWG output, caller-supplied nonzero corner Z values different from basePoint.z are discarded. On AC1021, /private/tmp/solid-elevation/producer.cpp supplies [0,2,3,4]; write and entity return success while LibreDWG shows only shared elevation 0 and four XY corners.",
+  "change": "Both codecs reject nonfinite Z and nonzero secondary Z unequal to the finite shared elevation before writing bits. Zero is treated as an unspecified legacy 2D-corner value; equal nonzero elevation and signed zero are accepted. The exact built-in SOLID and TRACE facade paths latch this geometry refusal so ignored callbacks cannot publish a partial file. A dynamically derived class with its own codec remains outside the sticky check.",
+  "limits": "A default zero and an explicitly intended nonplanar zero are indistinguishable, so a distinct zero corner is not preserved or diagnosed. Coordinates are native OCS; this does not transform WCS inputs. Derived classes that inherit the base codec get its false return but retain the pre-existing generic skip policy if callers ignore it. Different custom codecs are unaffected. No arbitrary-normal, all-revision interoperability, native rendering or whole-file interoperability claim.",
+  "evidence": "Four exact equal-elevation AC1021 generated SOLID/TRACE controls for +Z/+Y normals are byte-identical to the previously peer-verified /private/tmp/solid-trace-factor/fixed-in files; see docs/research/p6-ac1021-solid-trace-absent-string-2026-11-04.json for source producer provenance and independently checked geometry. Two additional generated triangle controls use base elevation 3, default secondary Z=0, repeated third corner and +Y normal; ODA converted AC1021 DWG to AC1027 DXF, with local converter lineage manually observed. Hash-bound LibreDWG 0.14 plus ezdxf 1.4.5 checks verify the exact OCS and WCS corner values and clean DXF audit for each.",
+  "tests": "Scratch ctest --test-dir /private/tmp/solid-elevation/build -R 'solid_trace_(elevation|footer)' --output-on-failure: 2/2. Direct-codec rejection and partial-bit preservation across AC1015\u2013AC1032; direct AC1021 frames, unequal/nonfinite component failure and corrected retry, equal and default elevations, signed zero, triangle, +Z/+Y normal, CRC and following LINE; facade ignored-result sentinel/retry for exact built-ins through their named and inherited writeLine entry points; nonplanar 3DFACE and consumer custom codec preserve separate Z coordinates. The public whole-file tests cover AC1021; other revisions are direct-codec controls.",
+  "commands": "Run /private/tmp/p7-ac1027-semantic/cqenv/bin/python -B tools/audit_solid_trace_triangle_elevation.py --dwgread /opt/homebrew/bin/dwgread --entity SOLID|TRACE --dwg <path> --dwg-sha256 <sha> --dxf <path> --dxf-sha256 <sha>; source and target hashes are listed below.",
+  "artifacts": [
+    {
+      "path": "/private/tmp/solid-elevation/elevation-incremental.patch",
+      "sha256": "ed4c5fc226f1383286a5c5f040e26a54acd04fe3424cad3e4616514e1f0e874a"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/work/tests/dwg_solid_trace_elevation_tests.cpp",
+      "sha256": "37708a734de2ccb77826fb339330afebf83774123343f6517e6294f8f73a6a89"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/producer.cpp",
+      "sha256": "55228c0300265764a1966107d5cb4c3d010a9d53aa7da8fd8d0c93c2b810f032"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/generated.dwg",
+      "sha256": "45cdc9b613a36ad959c74ce6b30f948742c7e0078b43ca3c366e8cf057560fea"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/generated.log",
+      "sha256": "20151430c2bb853d459a4455083feed590f01000af468f9a971d001efd994d3b"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/triangle-producer.cpp",
+      "sha256": "0e38b819a9ed8e0d77368e338dc13dae44f1c803385aba3b0c9e9c654c77f488"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/audit_triangle.py",
+      "sha256": "5ed44da8afff85736b906979d7dd3ae24c66b91d7fdd629ee1ef0b1113de350a"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/triangle-in/solid-tilt-zero.dwg",
+      "sha256": "63eac9a106f608075a6d7ea80a39dddf12d157aabb93f98991a371aa6383be92"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/triangle-out/solid-tilt-zero.dxf",
+      "sha256": "a10ac3ba2e99fd624a68c4eba9845d6a5601b598fd603dd47dc9e7a524aeb3a5"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/triangle-in/trace-tilt-zero.dwg",
+      "sha256": "417b6e12055e7146b9dc810f2b0c1b884f0518b24bffcf0091f811c022f32079"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/triangle-out/trace-tilt-zero.dxf",
+      "sha256": "5a3dea49f57cf449e537f140a6b8b7c73868e861bb33ef4d9550bcd4fbb04c5e"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/gen/solid-default-zero.dwg",
+      "sha256": "421ef5fac094d30821ef11bf78086bc9fa800845fc0d4f33b782ebe90b2574df"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-in/solid-default-zero.dwg",
+      "sha256": "421ef5fac094d30821ef11bf78086bc9fa800845fc0d4f33b782ebe90b2574df"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/gen/solid-tilt-zero.dwg",
+      "sha256": "0d223d22bc11d352eee478d2610c3b8fa5b10c10dba5832f0455c1106e8a0611"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-in/solid-tilt-zero.dwg",
+      "sha256": "0d223d22bc11d352eee478d2610c3b8fa5b10c10dba5832f0455c1106e8a0611"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/gen/trace-default-zero.dwg",
+      "sha256": "6d49990db30fac14ebf59d9c8ef4cf50c3f79cac80bf78174140553012719431"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-in/trace-default-zero.dwg",
+      "sha256": "6d49990db30fac14ebf59d9c8ef4cf50c3f79cac80bf78174140553012719431"
+    },
+    {
+      "path": "/private/tmp/solid-elevation/gen/trace-tilt-zero.dwg",
+      "sha256": "af953599f156445f20c87f9e8fde375529c0c79295e301695481e2d6b66c39ee"
+    },
+    {
+      "path": "/private/tmp/solid-trace-factor/fixed-in/trace-tilt-zero.dwg",
+      "sha256": "af953599f156445f20c87f9e8fde375529c0c79295e301695481e2d6b66c39ee"
+    }
+  ],
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_DWG_SOLID_TRACE_ELEVATION_GUARD",
+  "integrated_validation": "The focused elevation and existing AC1021 footer tests passed 2/2 in the shared build, which also contained separate uncommitted HEADER work. The independently reviewed isolated SOLID/TRACE candidate passed the same 2/2 with the pre-HEADER writer; its writer24 source SHA matches HEAD. The existing nondefault OCS DXF reader check also passed."
+}

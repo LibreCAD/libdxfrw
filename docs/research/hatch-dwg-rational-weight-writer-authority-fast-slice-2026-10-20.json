@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DWG HATCH/MPOLYGON rational spline writer weight authority",
+  "mode": "implementation and focused local validation",
+  "scope": [
+    "Define source-compatible authority between canonical spline weightlist and legacy control-point Z",
+    "Verify emitted DWG boundary weight bits independently of the library reader",
+    "Exercise generated AC1018 and AC1027 HATCH/MPOLYGON write/read plus HATCH DXF handoff without persistent fixtures"
+  ],
+  "implementation": {
+    "canonicalWeightList": "A nonempty complete finite weightlist is authoritative and implies rational encoding, including all-unit and near-unit values.",
+    "legacyControlZ": "When weightlist is empty and the rational flag is set, control-point Z remains the compatibility weight carrier.",
+    "unmarkedControlZ": "When the list is empty and rational flag is clear, control-point Z does not infer rationality and is not emitted as a weight.",
+    "conflictingMirrors": "Canonical weights win; source spline weightlist and control-point coordinates are unchanged by encoding.",
+    "invalidInput": "Partial canonical arrays and non-finite effective weights are rejected before output buffer mutation.",
+    "filesChanged": [
+      "src/drw_entities.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testTargetsAdded": 0
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-dwg-spline-weights",
+      "result": "PASS"
+    },
+    "existingDxfReferenceSelector": {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-references",
+      "result": "PASS",
+      "coverage": "ASCII/Binary path flags 7/0/2, per-path references {0x31}, {0x32,0x33}, an empty path, and following-entity continuity. This is DXF-only coverage; DWG references remain PAR-140 / 7N.4."
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg_hatch_rational_spline_weight_handoff$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsTotal": 1,
+      "elapsedSeconds": 0.64
+    },
+    "coverage": [
+      "Shared AC1018 zero-fit and AC1027 one-fit DWG boundary writer output checked by a test-local independent bit reader",
+      "Canonical-only, legacy-Z-only, matching mirrors, conflicting mirrors, and unmarked nonzero control-Z sources",
+      "Quarter-circle, near-unit, non-unit, and all-unit rational weights",
+      "Generated DWG full-file readback through the correct HATCH or MPOLYGON callback plus following-LINE continuity; HATCH ASCII/Binary DXF export/readback",
+      "HATCH DXF wire census requires a present group-21 value of zero; path-flag coverage includes a second path with a distinct external-path flag",
+      "Partial-vector and non-finite-weight rejection with zero output bits"
+    ],
+    "fullTestSuiteRun": false,
+    "externalPeerOrNativeRun": false,
+    "externalDrawingsDownloaded": 0,
+    "persistentGeneratedFiles": 0,
+    "gitDiffCheck": "PASS"
+  },
+  "disposition": {
+    "findingCount": 140,
+    "topLevelSubplanCount": 78,
+    "newFinding": false,
+    "supportPromotion": false,
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextLocalReadyItems": [
+      "Implement the newly source-confirmed DWG associative boundary-reference loss under PAR-140 / 7N.4; reuse the existing DXF path-reference selector.",
+      "Continue remaining local-ready work; do not wait on external/native qualification."
+    ],
+    "commit": "Not created; workspace Git metadata is read-only."
+  }
+}

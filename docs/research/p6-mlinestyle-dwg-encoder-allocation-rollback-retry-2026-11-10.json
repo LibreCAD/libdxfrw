@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-mlinestyle-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "status": "GENERATED_DWG_ENCODER_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dimassoc_dwg_encoder_allocation_tests.cpp"
+    ],
+    "behavior": "DRW_MLineStyle::encodeDwg stages body, string, and handle destinations, preserving intentional aliases. Rollback covers text, CMC palette-name strings, element payloads, common handles, and AC1032 per-element linetype handles."
+  },
+  "generatedProfiles": [
+    {"version": "AC1027", "streams": "separate", "allocationOffsets": 31},
+    {"version": "AC1027", "streams": "shared string/handle", "allocationOffsets": 28},
+    {"version": "AC1027", "streams": "body string, detached handles", "allocationOffsets": 26},
+    {"version": "AC1027", "streams": "separate string, body-aliased handles", "allocationOffsets": 28},
+    {"version": "AC1027", "streams": "all body", "allocationOffsets": 23},
+    {"version": "AC1027", "streams": "separate streams with fill-color palette names", "allocationOffsets": 44},
+    {"version": "AC1032", "streams": "separate", "allocationOffsets": 33},
+    {"version": "AC1032", "streams": "shared string/handle", "allocationOffsets": 30},
+    {"version": "AC1032", "streams": "body string, detached handles", "allocationOffsets": 28},
+    {"version": "AC1032", "streams": "separate string, body-aliased handles", "allocationOffsets": 30},
+    {"version": "AC1032", "streams": "all body", "allocationOffsets": 24}
+  ],
+  "totalAllocationOffsets": 325,
+  "result": "Every injected failure preserves caller bytes, cursors, and handle-occurrence state; same-object retry into the same streams matches clean output.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_encoder_allocation_tests -j2",
+    "test": "libdxfrw_dwg_object_encoder_allocation_retry",
+    "result": "PASS (1/1; target includes eleven generated MLINESTYLE profiles)",
+    "fullSuites": "not run"
+  },
+  "limitations": [
+    "Generated transaction evidence only; it does not qualify physical MLINESTYLE wire layouts or producer prevalence.",
+    "Does not establish MLINESTYLE graph closure, native rendering, or whole-file support.",
+    "No drawing fixture was added and no support claim is promoted."
+  ]
+}

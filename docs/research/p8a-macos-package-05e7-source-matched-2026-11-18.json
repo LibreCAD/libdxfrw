@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8a-macos-package-05e7-source-matched-2026-11-18",
+  "date": "2026-11-18",
+  "status": "LOCAL_MACOS_SHARED_STATIC_PACKAGE_PROFILE_PASS",
+  "supportClaimEffect": "none",
+  "gateEffect": "Local macOS evidence only; no P8-A cross-platform closure is asserted by this receipt.",
+  "source": {
+    "commit": "69679cac1c6539746e3a454ea5deebb3816e8d21",
+    "preparation": [
+      "git clone --no-hardlinks --no-checkout /Users/dli/dev/libdxfrw /private/tmp/libdxfrw-p8a-05e7-clean",
+      "git checkout --detach 69679cac1c6539746e3a454ea5deebb3816e8d21",
+      "python3 tools/check_qualification_digest.py --skip-status --json",
+      "git status --short"
+    ],
+    "workingDirectory": "/private/tmp/libdxfrw-p8a-05e7-clean",
+    "cleanCheckout": true,
+    "implementationDigestAlgorithm": "sha256-git-blob-records-v1",
+    "implementationDigestSha256": "05e7cb3341469cc6fcf56c9928a5bb79d164de293334d5fc37c8817ef924fa02",
+    "implementationDigestInputCount": 734,
+    "digestCheckerSha256": "ad9a41f5c59877740c07b69ce4d360bd0d29a5454da008de89d8bdf585ddb980",
+    "packageProbeSha256": "7a7a6bb0c67e625c14ba71425c50b5eb7f3108f7d2a182759f89be368476ce1d"
+  },
+  "environment": {
+    "os": "macOS 27.2.1",
+    "osBuild": "26B131",
+    "architecture": "arm64",
+    "compiler": "AppleClang 21.0.0.21000334",
+    "cmake": "4.4.5"
+  },
+  "profiles": {
+    "shared": {
+      "configure": "cmake -S . -B /private/tmp/libdxfrw-p8a-05e7-shared-build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_DWG2DXF=ON -DLIBDXFRW_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/private/tmp/libdxfrw-p8a-05e7-shared-prefix",
+      "build": "cmake --build /private/tmp/libdxfrw-p8a-05e7-shared-build --config Release --parallel 2 --target dxfrw dwg2dxf",
+      "install": "cmake --install /private/tmp/libdxfrw-p8a-05e7-shared-build --config Release",
+      "probe": "python3 -B tools/probe_installed_package.py --kind shared --prefix /private/tmp/libdxfrw-p8a-05e7-shared-prefix --install-manifest /private/tmp/libdxfrw-p8a-05e7-shared-build/install_manifest.txt --cli bin/dwg2dxf --output /private/tmp/libdxfrw-p8a-05e7-shared-evidence/receipt.json",
+      "result": "PASS",
+      "installedFiles": 30,
+      "abiVersion2Rejected": true,
+      "abiVersion3Accepted": true,
+      "relocatedFilesMatch": true,
+      "installManifestSha256": "e198c3a957f6786e2889d3280bb156d38d93a48cc73ce8c06ea88c1c6249df7f",
+      "selectedTarget": {
+        "path": "lib/libdxfrw.3.0.0.dylib",
+        "sha256": "7a0b42cdae111c7c63f121ab206427bd69a19bfb8953da7c9d32af36e89c3960"
+      },
+      "loadedRuntime": {
+        "path": "lib/libdxfrw.3.0.0.dylib",
+        "sha256": "7a0b42cdae111c7c63f121ab206427bd69a19bfb8953da7c9d32af36e89c3960"
+      },
+      "installedCli": {
+        "path": "bin/dwg2dxf",
+        "sha256": "ff34478a4db77cb84b22e7dd637304836bbd347bd4e668a80a4eb061672a65a3",
+        "relocatedExecution": true,
+        "usageOutputObserved": true,
+        "expectedUsageExitCode": 1,
+        "actualExitCode": 1,
+        "knownLoaderOverrideVariablesCleared": true,
+        "runtimeIdentity": "The relocated shared consumer above reports the exact loaded dxfrw module path and hash."
+      },
+      "probeReceipt": "/private/tmp/libdxfrw-p8a-05e7-shared-evidence/receipt.json",
+      "probeReceiptSha256": "cfca42249ac03f0fe9a41e5656f11838ce124474304985e89171cb52308319e1"
+    },
+    "static": {
+      "configure": "cmake -S . -B /private/tmp/libdxfrw-p8a-05e7-static-build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_DWG2DXF=OFF -DLIBDXFRW_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/private/tmp/libdxfrw-p8a-05e7-static-prefix",
+      "build": "cmake --build /private/tmp/libdxfrw-p8a-05e7-static-build --config Release --parallel 2 --target dxfrw",
+      "install": "cmake --install /private/tmp/libdxfrw-p8a-05e7-static-build --config Release",
+      "probe": "python3 -B tools/probe_installed_package.py --kind static --prefix /private/tmp/libdxfrw-p8a-05e7-static-prefix --install-manifest /private/tmp/libdxfrw-p8a-05e7-static-build/install_manifest.txt --output /private/tmp/libdxfrw-p8a-05e7-static-evidence/receipt.json",
+      "result": "PASS",
+      "installedFiles": 26,
+      "abiVersion2Rejected": true,
+      "abiVersion3Accepted": true,
+      "relocatedFilesMatch": true,
+      "installManifestSha256": "ee658f2e9c14188906b1e295d842783d5131d4af332fc00cd478f590cb26365d",
+      "selectedTarget": {
+        "path": "lib/libdxfrw.a",
+        "sha256": "cf029adccadedec4ccb35c5adde84a74fc43ac2b2c16d7ba51c26a0b17383922"
+      },
+      "loadedRuntime": null,
+      "installedCli": null,
+      "probeReceipt": "/private/tmp/libdxfrw-p8a-05e7-static-evidence/receipt.json",
+      "probeReceiptSha256": "c804da1f0b3cc6b711635621d6e0bbd29ce65c4e7e770560d42419505b88a8b8"
+    }
+  },
+  "limits": [
+    "Qualification covers package installation, inventory, relocation and minimal consumers; the shared profile also launches installed dwg2dxf for its usage path.",
+    "The loaded dylib identity is from the relocated consumer; the CLI probe proves its usage launch, not an independently observed loaded-module path.",
+    "This local result does not establish Linux or Windows qualification, complete C++ ABI compatibility, native FreeCAD operation, or DWG/DXF drawing semantics.",
+    "Both detailed probe receipts and build artifacts reside under /private/tmp and may be ephemeral; their identities are recorded above.",
+    "No GUI, ODA converter, external drawing fixture, source edit or plan edit was used."
+  ]
+}

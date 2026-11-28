@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "93f863cee0e35d63c6fc004d72a7fcf0fb090895",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "finding": "The direct preflight did not inspect queued entity-operation stacks. A group that added a layer before a stacked move of a locked line left the layer and cleared redo history; the red control failed four assertions.",
+  "change": [
+    "Preflight exact built-in Push, Begin, Loop, Move, Copy, Rotate, Scale, SelectByLayer and Remove stacks when their supplied inputs include a current locked entity. Clone operation state and preserve shared-operation aliases.",
+    "Use shadow entities that retain source identity/layer and symbolic edit/copy state. Preflight does not invoke source-entity transforms or consume entity IDs. Copies of known concrete built-in types are modeled as new identities; custom copy semantics are conservatively refused on locked inputs.",
+    "Unknown stack operations with locked supplied inputs are refused without invoking them; an explicit override remains available. Retain same-group retry, committed undo journals and existing direct preflight."
+  ],
+  "validation": [
+    "A red-before stacked-move control now preserves the layer state and redo history, then passes same-group explicit override and undo/redo. Focused controls cover remove, rotate, scale, copy, filtered unlocked edits, stateful aliased Begin/Loop, custom operations, custom entity callbacks and no consumed IDs.",
+    "A macOS ARM64 fast compatibility run passed 182 kernel, builder, layer, selection, canvas, DXF/DWG and Lua/Python tests.",
+    "Full binding-plan, actual PR-base, worktree coverage (excluding pre-existing sample.log) and 31 checker tests pass."
+  ],
+  "limits": [
+    "Preflight uses the initial document lock state. Nested groups, lock-changing operations inside a group, custom operations that fetch entities outside their supplied inputs, and arbitrary custom copy semantics remain unqualified.",
+    "Complex repeated successful stacks, native GUI and other platforms remain open. No support claim or generated fixture was added."
+  ],
+  "supportClaimEffect": "none"
+}

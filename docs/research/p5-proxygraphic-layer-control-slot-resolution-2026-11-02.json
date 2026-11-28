@@ -1,0 +1,139 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-proxygraphic-layer-control-slot-resolution-2026-11-02",
+  "date": "2026-11-02",
+  "status": "PHYSICAL_LAYER_SLOT_RESOLUTION_PASS; WHOLE_CACHE_OUTPUT_REFUSED",
+  "supportClaimEffect": "none",
+  "scope": "Preserve null LAYER_CONTROL reference slots so source proxy ATTRIBUTE_LAYER indices resolve to their source layer names.",
+  "formatEvidence": {
+    "oda": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "path": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "section": "\u00a720.4.53 LAYER CONTROL",
+      "rule": "\u00a720.4.53 says Numentries counts layer 0 and the handle stream contains a null control handle, the XDictionary owner, then layer object handles. Preserve declared slots independently from the compact ownership-reference list.",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    }
+  },
+  "physicalSource": {
+    "path": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "bytes": 188992,
+    "version": "AC1021",
+    "repositoryFixture": false
+  },
+  "independentLayerTableEvidence": {
+    "reader": "LibreDWG 0.14 dwgread JSON",
+    "exitCode": 0,
+    "jsonPath": "/private/tmp/architectural-proxy-layers-libredwg.json",
+    "jsonSha256": "3509844888403e516b923174b5b9d8cb046a9b61d32b119069a8a0b7bebffc1c",
+    "layerControlEntries": 54,
+    "nullEntrySlots": [
+      44,
+      45,
+      46,
+      47,
+      48
+    ],
+    "indexNames": {
+      "51": {
+        "handle": "0xCE9E",
+        "name": "Mleader @ 48"
+      },
+      "52": {
+        "handle": "0xCEA1",
+        "name": "Mleader @ 24"
+      },
+      "53": {
+        "handle": "0xCEA4",
+        "name": "Mleader @ 4"
+      }
+    }
+  },
+  "physicalProxyCensus": {
+    "probeSource": "/private/tmp/inspect_proxy_index_diagnostics.cpp",
+    "probeSourceSha256": "95beecaf1600411ae07bcb141eb2bdd0ee5b8a358a71293c698a419f810dd8bd",
+    "probeExecutableSha256": "d15e6c857ac0e3c9f109f61cd6d22294c593f1d64efa44b80e173762464e62c6",
+    "records": 36,
+    "layerIndexCounts": {
+      "51": 24,
+      "52": 8,
+      "53": 4
+    },
+    "linetypeIndexCounts": {
+      "32767": 36
+    },
+    "postChangeSourceLayerSlots": 54,
+    "postChangeSlotNames": {
+      "51": "Mleader @ 48",
+      "52": "Mleader @ 24",
+      "53": "Mleader @ 4"
+    },
+    "decodeResult": {
+      "completeStreams": 36,
+      "unresolvedResourceReferences": 0,
+      "emittedPrimitiveCountRange": [
+        4,
+        10
+      ]
+    },
+    "verifiedThisTurn": true
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.h",
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "behavior": "DRW_ObjControl retains declared wire-order handle slots, including zero references, while handlesList remains a compact set of valid ownership references. The DWG reader builds m_layerNameOrder from LAYER_CONTROL's slot vector and resolves non-null handles through the parsed layer table. Linetype indexing is unchanged because this source has only the BYLAYER sentinel and does not adjudicate linetype null-slot indexing.",
+    "strictOutput": "Superseded 2026-11-05: after source resource-order capture and the AC1021 MLEADER cache remapping route, strict preflight passes the 36 proxy caches and stops at the unrelated FIELD/FIELDLIST serializer gate. The records are MLEADER, not MLINE; see p5-ac1021-mleader-proxy-resource-index-remap-2026-11-05.json.",
+    "sourceSha256": {
+      "src/intern/dwgreader.cpp": "f8b4c8987ecfba207c36f37720cb4ec473de74ee850e1da6c114d4a355bb711d",
+      "src/intern/dwgreader.h": "4e244632362102cf08b84e78bd49117708ebca51d21eb597030b6325199893af",
+      "tests/dwg_reader_matrix_tests.cpp": "9f5f74eeb8e26cd64e41c2ada953d3109ba0025517c4030314059529758b5f75",
+      "CMakeLists.txt": "01306fd7d08c964b00a1721606ec1e9a7f8aec6eb30e50065445ae9667a2dbe2"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j4",
+      "result": "PASS on the current integrated worktree"
+    },
+    "focusedGeneratedControl": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_control_handle_slots$' --output-on-failure",
+      "result": "PASS 1/1; 0.03 seconds"
+    },
+    "headerVersionEnvelopeControl": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_header_version_envelopes$' --output-on-failure",
+      "result": "PASS 1/1; 0.03 seconds",
+      "testCorrection": "Changed the stale negative case from AC1024/AC1027, which have separate positive excluded-size controls, to AC1018/AC1021, where the profile is not admitted."
+    },
+    "readerMatrix": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "result": "PASS 1/1; 2.35 seconds"
+    },
+    "physicalStrictOutput": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg -y -v2007 /private/tmp/architectural-proxy-slots-after-current-build.dxf",
+      "executableSha256": "c40096c76b9e16207f3362e5e0fcd34e9b6d950491f041e5ac9305aa9d21af77",
+      "exitCode": 1,
+      "result": "Historical result; subsequent code passes the proxy-cache gate."
+    },
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "tests/dwg_reader_matrix_tests.cpp": "9f5f74eeb8e26cd64e41c2ada953d3109ba0025517c4030314059529758b5f75",
+      "src/intern/dwgreader.cpp": "f8b4c8987ecfba207c36f37720cb4ec473de74ee850e1da6c114d4a355bb711d",
+      "src/intern/dwgreader.h": "4e244632362102cf08b84e78bd49117708ebca51d21eb597030b6325199893af",
+      "CMakeLists.txt": "01306fd7d08c964b00a1721606ec1e9a7f8aec6eb30e50065445ae9667a2dbe2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests": "7c5b7ce8a0c9046dee91a791cdabe71b3673e4c35e0bdd81e2fb3d1fab1c6f82",
+      "build-gcc/dwg2dxf/dwg2dxf": "c40096c76b9e16207f3362e5e0fcd34e9b6d950491f041e5ac9305aa9d21af77",
+      "build-gcc/libdxfrw.a": "564da35c11a1718483bf9a72f187b3d302b34572d35733349bbffbde788ef27a"
+    },
+    "workspaceNote": "Focused CTests were rebuilt and rerun on the integrated worktree. Source hashes identify the isolated layer-slot patch included in this commit. The separate physical proxy probe is bound by its executable SHA and was rerun this turn; it decoded all 36 physical proxy streams with zero unresolved resource references and source layer slots 51\u201353 mapped to the three expected Mleader layers."
+  },
+  "claimBoundary": [
+    "This resolves the witnessed AC1021 proxy layer names at source-control indices 51\u201353.",
+    "It does not qualify complete MLEADER cache output/readback, whole-document conversion, or native rendering semantics.",
+    "No testing DWG/DXF fixture was added."
+  ]
+}

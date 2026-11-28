@@ -1,0 +1,41 @@
+{
+  "id": "par134-ac1021-ac1024-table-cadvalue-kstring-stream",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "072223c8a4a3704271bb03baec1cdd5336d9331547211fc7fbe72e0f0bbd7f70",
+  "scope": {
+    "class": "DRW_Table / DRW_TableContentObject",
+    "version": "AC1021 and AC1024",
+    "field": "TABLE CadValue type-4 kString TV stream",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "change": "readTableCadValue now reads type-4 values as bounded TV strings through readTableText: legacy versions use the body stream and R2007+ uses the detached string stream. Type 512 remains the separate length-prefixed binary path. Removed the obsolete byte-to-text helper.",
+  "generatedControls": {
+    "ac1021": "Standalone TABLECONTENT frame places the typed string before the format/value strings in the detached CP8 string stream and checks the exact typed/display text.",
+    "ac1024": "Embedded TABLE frame places the typed TV in the detached UTF-16 string stream, checks the exact typed/display text, and preserves the following-tail bit boundary.",
+    "preFix": "Both generated version routes failed their typed/display-text assertions before the parser change."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS after removing the newly-unused helper flagged by -Werror",
+    "ctest --test-dir build-gcc -R '^libdxfrw_table_cadvalue_string$' --output-on-failure: PASS (1/1)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

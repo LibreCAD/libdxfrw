@@ -1,0 +1,17 @@
+{
+  "date":"2026-11-04",
+  "authority":"Open Design Specification for .dwg files v5.4.1 section 20.4.64 describes the R2004+ VPORT xdictionary-missing flag, xref-block hard pointer and R2000+ named/base UCS hard pointers.",
+  "scope":"Only a synthesized *ACTIVE VPORT in AC1018+ gets missing-xdictionary=1 and typed-null hard pointers for xref and named/base UCS. The existing public encoder signature, public VPORT layout and caller-supplied records retain their previous behavior; the new encoder method is private. AC1015 is unchanged.",
+  "source_evidence":"LibreDWG 0.14 decodes the ODA-produced AC1018 LINE source with missing=1 and xref, named UCS and base UCS all (5,0,0). It independently decodes current generated AC1018/1021/1024/1027/1032 synthetic VPORTs with the same roles and a following LINE; AC1015 retains untyped nulls and lacks the R2004 flag.",
+  "oda_factorial":{
+    "reader":"ODA File Converter 27.1.0 ACAD2013 DXF; check .err and actual output rather than process status",
+    "prerequisite":"All eight locally generated AC1018 controls include the independently witnessed scratch plotstyle graph and preceding linetype corrections; the graph is not yet automatic in production.",
+    "varied_bits":"1=missing-xdictionary flag, 2=typed-null xref, 4=typed-null named and base UCS",
+    "partial_result":"Masks 0 through 6 each produce no DXF and report Object improperly read: <AcDbViewportTableRecord> (16), previous error .dwg file needs recovery.",
+    "all_three_sha256":"102b41c5356327980f9dd7fb72adf7f559022a968215d72f6bc4f1e6165f1a5b",
+    "all_three_result":"No DXF; Object improperly read: <AcDbRegAppTableRecord> (14), previous error .dwg file needs recovery.",
+    "interpretation":"The error boundary moves only with all three tested corrections. This does not establish the subsequent APPID error's cause or full ODA compatibility."
+  },
+  "tests":"libdxfrw_dwg_header_writer_sealing PASS: six-version synthesized/caller VPORT state, invalid-height no-output rollback and same-writer retry, following LINE readback, and exact typed-null handle-byte ordering for each AC1018+ version.",
+  "fixtures":"All drawings are locally generated scratch files; none is committed."
+}

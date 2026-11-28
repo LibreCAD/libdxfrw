@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mesh-dwg-unrepresented-tail-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "NONZERO_DWG_TAIL_REFUSED_FOR_DXF; PHYSICAL_SCHEMA_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "scope": "Prevent strict DXF serialization from silently dropping the current DWG-only MESH trailing field while recording the unresolved DWG layout discrepancy.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "guard": "DRW_Mesh::validateDxfOutput rejects any nonzero unknown value. The DXF MESH writer emits no group for this DWG-only field.",
+    "failureBehavior": "The direct writeMesh validation failure leaves the destination empty. dxfRW keeps direct-record write errors sticky, so the corrected retry uses a fresh dxfRW/writer instance. The previous retry-through-the-failed-instance assertion was removed after it exposed this existing contract."
+  },
+  "research": {
+    "autodeskDxf": {
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+      "supports": "The documented AcDbSubDMesh DXF groups include the base mesh, creases, and sub-entity overrides; there is no group for libdxfrw's DWG-only unknown tail."
+    },
+    "odaSpecification": {
+      "file": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "result": "Searchable text has no AcDbSubDMesh body layout."
+    },
+    "libreDwgPeerSchema": {
+      "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "file": "src/dwg2.spec",
+      "sha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "interpretation": "The undocumented MESH schema declares two trailing one-bit values before common entity handle data. This conflicts with libdxfrw's current trailing BL read. LibreDWG itself labels the fields undocumented/unstable, so this peer schema is a discrepancy lead, not sufficient authority to change the parser."
+    },
+    "localDwgCensus": {
+      "roots": [
+        "/Users/dli/doc/dwg",
+        "/Users/dli/dev/libredwg/test"
+      ],
+      "files": 170,
+      "successfulLibreDWG014MinJsonReads": 162,
+      "modernMeshEntities": 0,
+      "failedOrInvalidJsonReads": 8,
+      "temporaryInventory": "/private/tmp/libdxfrw-mesh-dwg-census.json",
+      "temporaryInventorySha256": "3ad55141004dcb9a5a0cccf70589ca6caf4ccc1a61726d62a601c99b1cf968d0"
+    },
+    "availablePeerDxf": {
+      "file": "/Users/dli/dev/libredwg/test/test-data/2004/Surface.dxf",
+      "sha256": "aa4204cc64cde5867b4ac922a9356e02c091bcf8e0fec636252f06ed4ebe5c60",
+      "containsModernMesh": true,
+      "peerConversion": "LibreDWG 0.14 dxf2dwg --as r2004 failed on unrelated EXTRUDEDSURFACE and ASSOCEXTRUDEDSURFACEACTIONBODY records; no DWG output was produced."
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+    "buildResult": "PASS",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_mesh_crease_value_domains$' --output-on-failure",
+    "focusedTestResult": "PASS (1/1, 0.28 s)",
+    "coverage": [
+      "ASCII and Binary typed DXF writers atomically refuse a nonzero unrepresented DWG tail before emitting any bytes.",
+      "A corrected zero-tail model writes successfully with a fresh writer in both encodings.",
+      "Existing MESH crease value, crease-count, invalid-value, and six-version DWG writer controls still pass.",
+      "No DWG/DXF fixtures were added."
+    ]
+  },
+  "inputHashesBeforeEdit": {
+    "src/drw_entities.cpp": "8cb8d2a50795e353b40cb8baf29ee627967ee895c86b69da3068dac5277a60be",
+    "tests/hardening_tests.cpp": "dec32be509dab95bf301ce392c2e8e7e70e5f70c95548fd44c2b581f1b4d02b3",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "5ee7ab05af8d45e955680cefee1ca79f23548b5aea299cb5c289bcff5951187e"
+  },
+  "inputHashesAfterEdit": {
+    "src/drw_entities.cpp": "b3329788cf2b661f410e351eb9b031407bdb0789d3b8306cb58aa3cd31a9673e",
+    "tests/hardening_tests.cpp": "81f935cb16e5d818db62bf38be32c049c4f3208137b2b7a3fab257532d3ab6c6",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "dfde432bb85fc6ae8e6333fddf3fbff85e483632b5084af838f0ddfc8c2b3888"
+  },
+  "inputFixturesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "No physical modern MESH DWG source was available in the scanned corpus.",
+    "The current DWG trailing BL interpretation remains unverified and must not be changed from the peer-only discrepancy without a real source trace or normative layout.",
+    "The DXF loss guard does not qualify MESH topology, subdivision, creases, overrides, native display, or 3D meaning."
+  ],
+  "currentTurnValidation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests --parallel 4",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mesh_crease_value_domains|libdxfrw_mesh_dwg_crease_count_guard|libdxfrw_mesh_dxf_allocation_failure)$' --output-on-failure",
+    "passed": 3,
+    "failed": 0,
+    "elapsedSeconds": 0.41
+  },
+  "stagedInputHashes": {
+    "src/drw_entities.cpp": "90444975aea47189d45bc0ca752c834a49a9d4cdfa9444e16960df687bc581b2",
+    "tests/dwg_object_vectors_tests.cpp": "437da8f7bc00df9f817aae47172731cbd4864b11402a2885a98bf7dc0645b3b1",
+    "tests/hardening_tests.cpp": "82516e1a3059d1d47836c5682a7c8fde9e660f8e5864af0a4549de3e1612ae2b",
+    "tests/dwg_local_roundtrip_tests.cpp": "8e051681e201c34b11a180584fc1dc8b66f6fba152d2433ab1a367001c020a9d",
+    "CMakeLists.txt": "d1c8714988f9cd41e787983cd28586c1495f1aa07ecfe883a4e34151a539fb33",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ca6184dc175f0fa7feb8e069f75b53dc8ee78a271fb0117ef5ee259d37e49ce7"
+  },
+  "repositoryState": {
+    "baseHead": "a49c90a3",
+    "stagedScope": "bounded MESH DWG parse/output profile; DXF loss guards; generated vectors",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

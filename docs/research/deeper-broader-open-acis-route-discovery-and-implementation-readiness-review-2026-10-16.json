@@ -1,0 +1,146 @@
+{
+  "schema": "libdxfrw-deeper-broader-open-acis-route-discovery-and-implementation-readiness-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden the open-source ACIS reader/kernel candidate screen and determine whether a newly available route closes the existing DWG/AcDs-to-semantic-solid evidence chain or changes implementation readiness.",
+  "method": {
+    "kind": "Public primary project documentation, API documentation, package metadata, and prior immutable source receipts",
+    "sourcesOpened": [
+      "https://github.com/bezierC0/SatModelViewer",
+      "https://github.com/kernalix7/CADKernel#supported-file-formats",
+      "https://github.com/monozukuri-ai/cq-acis",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1",
+      "https://github.com/HakanSeven12/opencadcodec",
+      "https://github.com/HakanSeven12/opencadkernel",
+      "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md",
+      "https://github.com/LibreDWG/libredwg"
+    ],
+    "repositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadOrKernelRun": false,
+    "externalFilesDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Public capability descriptions and package/API metadata establish candidate roles only. No peer runtime, actual input/output, target-consumer acceptance, or complete shape-semantic result was generated. The bounded candidate screen does not prove that no other open-source route exists."
+  },
+  "findings": [
+    {
+      "route": "cq-acis",
+      "sources": [
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": "The project documents experimental profile-bounded SAT/SAB/ASM parsing and conversion of selected geometry to CadQuery/OpenCASCADE shapes. Unsupported entities can remain raw, and supported geometry depends on save version and producer. The kernel stage is OCCT-based, so it is not an independent kernel result relative to FreeCAD/OCCT. ezdxf separately documents flat-polygon-only ACIS mesh projection and the need for a kernel for curved faces.",
+      "doesNotEstablish": [
+        "behavior of an exact package/source artifact on this repository's bytes",
+        "support for all ACIS dialects, entities, producers, or trims",
+        "independent-kernel confirmation relative to FreeCAD/OCCT",
+        "outer DWG/AcDs extraction, owner association, or native application acceptance"
+      ],
+      "planUse": "Retain as an optional composed-stage parser-to-shape candidate only for an exact admitted profile, with artifact/dependency pins, full loss reporting, source-body association, and independently authored analytic expectations."
+    },
+    {
+      "route": "cadmpeg-codec-sat",
+      "sources": [
+        "https://docs.rs/crate/cadmpeg-codec-sat/0.6.1"
+      ],
+      "observed": "This is a distinct Rust parser for bare ACIS/SAT/SAB payloads with a neutral connected-model transfer path. It is not a DWG/DXF container or AcDs reader and does not supply a general geometric kernel. The reviewed 0.6.1 profile admits only verified ACIS bands; other bands can be decoded by substituted grammar but are explicitly unverified/loss-bearing.",
+      "doesNotEstablish": [
+        "DWG section/page/index parsing or entity-to-body association",
+        "DXF ACDSDATA or DWG AcDs correctness",
+        "closed B-rep validity or native CAD acceptance",
+        "semantic qualification when dialect admission is unverified"
+      ],
+      "planUse": "Use only as optional payload-parser evidence after local extraction binds the exact bytes to a source handle/body. Unverified dialect, blocking loss, or shape-relevant unknown records prevent a semantic pass even if a model is returned."
+    },
+    {
+      "route": "OpenCADStudio and its codec/kernel",
+      "sources": [
+        "https://github.com/HakanSeven12/opencadcodec",
+        "https://github.com/HakanSeven12/opencadkernel",
+        "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md"
+      ],
+      "observed": "The codec is ACadRust-derived; the separate kernel is described as early, and the application documents per-surface fallback tessellation with incomplete-state reporting. This may provide a distinct consumer/kernel observation, but not an independent DWG/DXF parser vote or a complete-solid result when fallback occurs.",
+      "doesNotEstablish": [
+        "exact release/source behavior on a locally generated control",
+        "full topology and operation completeness",
+        "independence of the outer file parser from ACadRust",
+        "semantic success when fallback or incomplete flags are present"
+      ],
+      "planUse": "Keep the existing optional one-time consumer/cross-kernel checkpoint; require exact pins, per-body accounting, and no fallback/incomplete state."
+    },
+    {
+      "route": "SatModelViewer",
+      "sources": [
+        "https://github.com/bezierC0/SatModelViewer"
+      ],
+      "observed": "The repository describes an MFC viewer that loads/saves SAT through the Spatial ACIS SDK and requires a valid SDK license, Windows/Visual Studio with MFC, and configured SDK libraries. Source availability does not make the parser/kernel implementation open source or provide a cross-platform route.",
+      "doesNotEstablish": [
+        "an open-source ACIS parser or kernel",
+        "a runnable unlicensed route",
+        "DWG/DXF/AcDs support or portable Linux/macOS qualification"
+      ],
+      "planUse": "Exclude from open-source implementation evidence. A licensed SDK run, if separately authorized and available, must be labeled commercial-tool evidence."
+    },
+    {
+      "route": "CADKernel",
+      "sources": [
+        "https://github.com/kernalix7/CADKernel#supported-file-formats"
+      ],
+      "observed": "The overview mentions ACIS among many format categories, but the detailed SAT/SAB rows mark read and write unsupported/planned.",
+      "doesNotEstablish": [
+        "a current ACIS parser, writer, or kernel route",
+        "that future revisions cannot add such a route"
+      ],
+      "planUse": "Keep DISCOVERY_ONLY / ACIS_UNSUPPORTED; repeat a cheap source-table check only if reconsidered later."
+    }
+  ],
+  "planDelta": {
+    "filesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "existingOwnersOnly": [
+      "PAR-07 ACIS semantic/preservation evidence",
+      "S2/S3 carrier, AcDs, and body-association work",
+      "S5 explicit 3D consumer behavior",
+      "S8 optional peer/native qualification"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestsOrRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "implementationReadiness": [
+      "Apply a cheap candidate admission stop-rule before cloning, installing, or building a peer.",
+      "Continue locally actionable S2/S3/S5/S8 implementation without waiting for external/native evidence.",
+      "At one composed checkpoint, bind exact payload bytes to source handle/body and separate parser admission, loss, topology, analytic metrics, and native acceptance.",
+      "Keep per-slice validation focused on generated controls and affected strict targets; reserve full suites and multi-peer/native checks for existing composed gates.",
+      "Keep generated external controls ephemeral and do not add downloaded or newly authored DWG/DXF fixture files."
+    ],
+    "supportClaimsChanged": false,
+    "externalJDispositionChanged": false
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "peerRuntime": "NOT_RUN",
+    "localTests": "NOT_RUN",
+    "nativeQualification": "NOT_RUN"
+  }
+}

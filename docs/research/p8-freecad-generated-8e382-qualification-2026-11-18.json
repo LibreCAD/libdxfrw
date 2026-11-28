@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-freecad-generated-8e382-qualification-2026-11-18",
+  "date": "2026-11-18",
+  "status": "LINUX_WINDOWS_GENERATED_PROFILE_PASS",
+  "testedCommit": "8e382cae60794722b5b588446dd3e3a42d16c62d",
+  "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44324674220",
+  "freecadVersion": "1.1.4",
+  "freecadRevision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+  "legacyImporter": "v1.42, e060ef0d8fe7143c2e0ce34734b686ba073f3cc1",
+  "generatedAc1032PolyfaceSha256": "7df817c97a68064cf2df6823ca5b4a1b0b6c47b427d66de8d8fb5bc77fcd69f8",
+  "platforms": [
+    {"platform": "linux-x64", "result": "PASS 16/16", "jobId": 134872664359, "artifactId": 14436308801, "artifactSha256": "cd615a534c85f41e814641d354237239d13362f48b8faf73801a8eb55b57e795", "installedConverterSha256": "78aee39bdab094ae5066538d6fd09ed8b0af97f29f7d8c36a6b77328cb5efeb7"},
+    {"platform": "windows-x64", "result": "PASS 17/17", "jobId": 134872663629, "artifactId": 14437088425, "artifactSha256": "08b55684276e95dc72b972e0eb89f5ad10309e431662a46db9f6cd3f57646072", "installedConverterSha256": "24f48828374c78564ad8682eae55897da34aba2b1673a47cbecdea240a43c5db"}
+  ],
+  "inputEquivalence": "The full tracked diff after 8e consists of plan/receipt/status changes, tests/viewport_source_controls.h (included only by tests/table_content_dxf_tests.cpp) and tests/dwg2dxf_adapter_tests.cpp. Neither test enters the FreeCAD workflow's converter or libdxfrw_dwg_local_roundtrip generator targets. Production, generator, workflow, build and install inputs are unchanged. Recheck the complete diff and dependency graph before future reuse.",
+  "gateEffect": "P8-B/C closed for the exact generated profile and unchanged inputs; no drawing-support claim is promoted.",
+  "limits": ["These checks use locally generated inputs and do not establish independent producer wire semantics or general 3D interoperability."]
+}

@@ -1,0 +1,12 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-staged-layer-plotstyle-references-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "5346c5dd100f7b3a85f8b2bab4798b7f3502d8cf4ff1a06b6929c18d0ac8bb27",
+  "scope": "Reusable staged TABLES check for the same expected physical group-390 target on every LAYER; callers establish source provenance and target closure separately.",
+  "checks": [
+    "PASS: focused sparse-material CTest with ASCII and binary altered-field rejection, incorrect-target atomic refusal and corrected retry.",
+    "PASS: the same focused CTest under AddressSanitizer, with leak detection disabled."
+  ],
+  "limits": ["A staged scalar check alone does not qualify a source graph, target object, published output, native semantics or a support claim."]
+}

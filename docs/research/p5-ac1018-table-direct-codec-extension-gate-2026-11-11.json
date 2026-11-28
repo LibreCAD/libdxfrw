@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1018-table-direct-codec-extension-gate-2026-11-11",
+  "date": "2026-11-11",
+  "title": "AC1018 physical TABLE direct-codec refusal boundary",
+  "status": "DIRECT_OVERLOAD_LIMIT_CONFIRMED_WHOLE_WRITER_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "version": "AC1018",
+    "provenance": "Audited ODA 27.1 conversion of a previously documented AC1027 DXF source; source is outside the repository."
+  },
+  "observations": {
+    "wholeImport": "226/226 source frames published; zero entity/object parse failures; one TABLE at handle 0x9c.",
+    "extensionHandle": "The typed TABLE has xDictHandle 0xBB.",
+    "directEncode": "The ordinary DRW_Table::encodeDwg overload refuses the source TABLE, including after proxy-graphics replay authorization. This overload passes allowExtensionDictionary=false and intentionally rejects a nonzero xDictHandle.",
+    "comparison": "A scratch copy with proxy replay authorized and xDictHandle cleared encodes successfully to 18,212 body bits and 128 handle bits.",
+    "interpretation": "The comparison isolates the direct-overload extension-handle gate. Clearing the handle loses a required graph edge and is not valid source output. The private extension-aware overload used by the DWG writer was not called directly; no extension dictionary descendants were staged, and no whole-file output/readback was qualified."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4 && build-gcc/libdxfrw_dwg_local_roundtrip --inspect-physical-table-codec /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "result": "Build passed. The selector now exits 0 only when the one-table AC1018 source has a nonzero extension handle, direct encoding refuses even after proxy authorization, and the no-extension comparison encodes. A repeat run exited 0."
+  },
+  "remaining": [
+    "Exercise the normal extension-aware whole-writer route for this exact source only after source identity and descendant graph binding are complete.",
+    "Prove destination rollback, corrected retry and fresh whole-file readback without dropping xDictHandle 0xBB.",
+    "Keep native rendering, independent cell semantics, producer breadth and support claims unqualified."
+  ],
+  "files": [
+    "tests/dwg_local_roundtrip_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "title": "Classic POINTCLOUD DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory classic POINTCLOUD transaction controls; no producer or support claim.",
+  "implementation": {
+    "writer": "DRW_PointCloud::encodeDwg",
+    "behavior": [
+      "Stage body, version-routed strings and handle destinations using the alias-aware entity transaction helper.",
+      "Preserve the source-file and extents branches, clip and intensity fields, and definition/reactor handle roles."
+    ]
+  },
+  "generated_profiles": [
+    {
+      "version": "AC1021",
+      "extents_failures": 29,
+      "source_list_failures": 32
+    },
+    {
+      "version": "AC1024",
+      "extents_failures": 29,
+      "source_list_failures": 32
+    },
+    {
+      "version": "AC1027",
+      "extents_failures": 30,
+      "source_list_failures": 32
+    },
+    {
+      "version": "AC1032",
+      "extents_failures": 30,
+      "source_list_failures": 32
+    }
+  ],
+  "assertions": [
+    "Every measured allocation failure returns false without throwing and preserves seeded streams, counts, handle occurrences and previous type.",
+    "Same-object retry matches clean encoding; an all-stream alias failure and retry preserve state.",
+    "AC1027 and AC1032 extents controls include polygon clipping and definition/reactor handles."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --pointcloud-dwg-encode-allocation-rollback",
+    "selector_result": "8/8 profiles passed",
+    "ctest_result": "3/3 focused point-cloud and underlay controls passed"
+  },
+  "limitations": [
+    "Generated controls establish transaction behavior only; physical producer, graph and native rendering qualification remain open.",
+    "Skipped non-default fields in version/source-file branches need separate representability refusal controls.",
+    "No DWG or DXF fixture was added."
+  ]
+}

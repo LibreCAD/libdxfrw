@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "id": "s8-1a-direct-surface-runtime-type-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "IMPLEMENTED_BOUNDED_RUNTIME_SUBTYPE_GUARD",
+  "repositoryHead": "5e4fad180fe9c32b39429cd1a28639a716adc82b",
+  "scope": {
+    "plan": "DWG_DXF_3D_SUPPORT_PLAN.md S8.1a",
+    "operation": "Validate DRW_Surface runtime subtypes at adapter capture, serializer, and DXF output dispatch boundaries.",
+    "behavior": [
+      "dx_iface::addSurface accepts the six concrete surface types only when each eType matches; null, unknown, base-only-with-derived-tag, and mismatched concrete subtype callbacks fail typed capture without retaining an entity.",
+      "dxfRW::writeSurface checks the runtime subtype before reading subtype-specific fields. A base DRW_Surface remains valid for PLANESURFACE to preserve the historical plane representation.",
+      "The concrete DXF adapter marks an eType/runtime-type mismatch as a write error instead of silently omitting the entity and publishing a partial drawing."
+    ],
+    "supportClaimEffect": "none"
+  },
+  "implementation": {
+    "files": {
+      "dwg2dxf/dx_iface.h": "8f698ce6e391140933060f1e5a03cba7d7c7bdd1fdc3b4aaef477203da29cfb7",
+      "dwg2dxf/dx_iface.cpp": "eb59c168c503502160ee0114ae17bd1f2c6bc146f247a88fe260e04966fda451",
+      "src/libdxfrw.cpp": "9c4f86a5c66b1d1d8d57e08735ad50614502b0319d4287aecf3cd1bbd1ed4f61",
+      "tests/dwg2dxf_adapter_tests.cpp": "19aa6ba20610a6e52f0324edec7b618f640a58987fb8285c8d9017a2cc371b3c",
+      "tests/dwg_local_roundtrip_tests.cpp": "c66308f44f1918b40819c769924461265534a144d3c7cea261bc8f002af1f3f2",
+      "src/drw_entities.cpp": "2cd1a685e28e95b4e9c1a0880775aa0e5c5cef48258af82149a111796d60af92",
+      "src/drw_entities.h": "3df3e0c91aceb03b14252aaa919dcbbb1df204124222a5677c84086df7a1059f"
+    },
+    "artifacts": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "52faedd6b187699569692fbe38e29a597c89df996fc3d53e3b82263cd5cf2102",
+      "build-gcc/libdxfrw_dwg_local_roundtrip": "837c1b6b97a7c07e6fdc89fd2ed6b54b06e481fc985dcf55868087ac7a3f39a3"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_local_roundtrip lc3_compat_check --parallel 4",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_local_roundtrip|libdxfrw_dxf_dimension_ocs_extrusion|dwg2dxf_dimension_frames_ascii_cli|dwg2dxf_dimension_frames_binary_cli|dwg2dxf_arc_dimension_flags_ascii_cli|dwg2dxf_arc_dimension_flags_binary_cli|dwg2dxf_modeler_dxf_writer_matrix|dwg2dxf_typed_entity_capture_limits|libdxfrw_writer_version_matrix)$' --output-on-failure",
+      "result": "PASS (9/9; 15.33 seconds)",
+      "coverage": [
+        "Local DWG round-trip aggregate, including DIMASSOC/object-carrier readback and surface subtype/retry assertions.",
+        "Generated ASCII and Binary DIMENSION mixed-frame read/write/readback in raw and applyExtrusion modes.",
+        "Generated ARC_DIMENSION flags, public OCS extrusion policy, modeler writer matrix, adapter capture limits, and writer version matrix.",
+        "Generated AC1015 DWG applied-extrusion DIMENSION write/readback with native-frame restoration.",
+        "Generated AC1015 DWG applied-extrusion DIMENSION write/readback with native-frame restoration."
+      ]
+    },
+    "compatibilityBuild": {
+      "command": "cmake --build build-gcc --target lc3_compat_check -j4",
+      "result": "PASS (included in build command)"
+    },
+    "diffCheck": {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    "fullSuiteRun": false,
+    "asanRun": false,
+    "persistentFixtureAdded": false,
+    "localDwgRoundTrip": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS (1/1; 12.58 seconds; selected DIMASSOC/object-carrier readback, surface subtype/retry, and generated DIMENSION frame controls passed)"
+    },
+    "workspaceNote": "The build used the integrated worktree with other in-progress changes; source hashes above identify only the files in this slice."
+  },
+  "limitations": [
+    "This slice validates runtime type/callback integrity only. It does not prove exhaustive BLOCK event coverage or native surface, B-rep, ACIS/ACDS, or 3D application semantics.",
+    "It does not qualify LibreCAD, LibreCAD_3, FreeCAD, Linux/Windows, binary ABI, or release packaging.",
+    "No public callback, struct layout, or virtual interface changed."
+  ],
+  "repositoryState": {
+    "commitStatus": "UNCOMMITTED",
+    "reason": "The shared worktree contains broader unrelated plan and implementation changes; no files were staged or committed."
+  },
+  "files": {
+    "dwg2dxf/dx_iface.h": "2bebcaf261019a6245c35586125c9603c468a70968d03b342bfe2b361f8b5a60",
+    "dwg2dxf/dx_iface.cpp": "5215c4529c00a7d76681eeaec9d2d7ef3f5c7a4c4ad1bcfad59332f677459843",
+    "src/libdxfrw.cpp": "52a9e99061ddadf1eb316952d96c91af2327d5acfb8f8aaf6061b80147e794af",
+    "src/drw_entities.cpp": "58bcbbcc7a1f68117da8e5ca765948e097404597365235cfa11b8c47dd58aa60",
+    "tests/dwg2dxf_adapter_tests.cpp": "85cbcb8248c1969234a1ca5a7f9a02f513d20e5ad5f20a6f74216dae59698341",
+    "tests/dwg_local_roundtrip_tests.cpp": "859c46d43ef479b89599d46c89c2727ba0a95881dd41041c1ea32aaca94b935a"
+  },
+  "artifacts": {
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "6f12b9682af9840ebf9eca39bc52e773cd708d18c5ed293ee98806437d8d1bb2",
+    "build-gcc/libdxfrw_dwg_local_roundtrip": "987896aa5f1323e86129fb5ebb594047e70816ed405e22c30fbbebbac8d4b167"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-16",
+  "consumerBase": "b007bff6e798425aa14ae507f7e884db68916e88",
+  "localParentCommit": "1894f6b8cfbab32417b75db2153b10f9f7f81cb9",
+  "localCandidateCommit": "7192ad738f8716325fb2f1cfd1e57981962a5963",
+  "candidateStatus": "Local branch codex/libdxfrw-consumer-integration-20261116; unmerged.",
+  "patch": "docs/patches/librecad-p8-binary-ltype-import-2026-11-16.patch",
+  "patchSha256": "075c5fb89ee5758b11c071cd92d53e36b9009fdae4ad6e46d519b9553d27d4f6",
+  "implementation": "A generated from-scratch AC1021 drawing contains an explicit LTYPE and referencing LINE. The test verifies the actual binary signature when requested, imports via RS_FilterDXFRW, edits pattern/description, exports through LibreCAD, checks the emitted LTYPE and LINE reference, and reimports. The same test includes an ASCII source control. Both destination exports are ASCII, as selected by the application.",
+  "validation": [
+    "The focused generated ASCII/Binary source test passed 32 assertions with both installed-current and bundled codecs.",
+    "The existing [ltype]~[dwg] fast selection now includes the new test: installed-current 16 cases/3844 assertions and bundled 27 cases/4065 assertions pass.",
+    "The test-only patch applies with --unidiff-zero after all 39 earlier patches, and the resulting test file is byte-identical to the committed candidate.",
+    "Source-release inventory generation/check pass for 1245 files and its 18-control self-test passes. No DWG/DXF fixture was committed."
+  ],
+  "logs": [
+    "/private/tmp/librecad-p8-binary-import-system-final.log",
+    "/private/tmp/librecad-p8-binary-import-bundled-final.log",
+    "/private/tmp/librecad-p8-binary-fast-system.log",
+    "/private/tmp/librecad-p8-binary-fast-bundled.log"
+  ],
+  "limits": "Same-library generated AC1021 inputs and one simple explicit LTYPE/LINE do not establish independent producer semantics, complex LTYPE or other version coverage, binary output, GUI or non-macOS behavior. The consumer candidate remains unmerged. No phase gate or support claim is promoted.",
+  "followUp": "The test patch was subsequently expanded to eight source revisions; its historical hash and candidate commit describe the earlier single-version run. See p8-librecad-binary-ltype-versions-2026-11-16.json for the updated patch hash and candidate."
+}

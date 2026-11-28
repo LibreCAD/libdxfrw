@@ -1,0 +1,153 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.h b/src/Mod/Import/App/dxf/ImpExpDxf.h
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.h
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.h
+@@ -243 +243 @@
+-            const double Rotation;
++            const Base::Rotation Rotation;
+@@ -250 +250 @@
+-                double Rotation,
++                const Base::Rotation& Rotation,
+@@ -339 +339 @@
+-            double rotation
++            const Base::Rotation& rotation
+@@ -364 +364 @@
+-            double rotation
++            const Base::Rotation& rotation
+@@ -400 +400 @@
+-            Base::Placement pl(point, Base::Rotation(Base::Vector3d(0, 0, 1), rotation));
++            Base::Placement pl(point, rotation);
+@@ -411 +411,3 @@
+-                insertMatrix.rotZ(rotation);
++                Base::Matrix4D rotationMatrix;
++                rotation.getValue(rotationMatrix);
++                insertMatrix = rotationMatrix * insertMatrix;
+@@ -468 +470,3 @@
+-                                    nestedMatrix.rotZ(nestedInsert.Rotation);
++                                    Base::Matrix4D nestedRotation;
++                                    nestedInsert.Rotation.getValue(nestedRotation);
++                                    nestedMatrix = nestedRotation * nestedMatrix;
+@@ -605 +609 @@
+-            double rotation
++            const Base::Rotation& rotation
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -631 +631,3 @@
+-                    transform.rotZ(nestedInsert.Rotation);
++                    Base::Matrix4D rotation;
++                    nestedInsert.Rotation.getValue(rotation);
++                    transform = rotation * transform;
+@@ -732 +734 @@
+-                    Base::Rotation(Base::Vector3d(0, 0, 1), nestedInsert.Rotation)
++                    nestedInsert.Rotation
+@@ -1535 +1537,8 @@
+-    Collector->AddInsert(point, scale, name, rotation);
++    Base::Matrix4D insertRotation;
++    insertRotation.rotZ(rotation);
++    Collector->AddInsert(
++        OCSOrientationTransform * point,
++        scale,
++        name,
++        Base::Rotation(OCSOrientationTransform * insertRotation)
++    );
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1319,0 +1320,97 @@
++    def test_nested_insert_ocs_annotation(self):
++        """Nested text positions follow both INSERTs' OCS frames."""
++        import sys
++        import types
++        draft = types.ModuleType("Draft")
++        calls = []
++        def make_text(text, placement, *args):
++            calls.append((text, placement.Base))
++            return self.document.addObject("App::FeaturePython", "BaseTextWitness")
++        draft.make_text = make_text
++        old_draft = sys.modules.get("Draft")
++        sys.modules["Draft"] = draft
++        try:
++            options = FreeCAD.ParamGet(self.option_source)
++            options.SetBool("dxftext", True)
++            tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                    (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                    (0, "BLOCK"), (8, "0"), (2, "INNER"), (70, 0), (10, 1), (20, 2), (30, 3),
++                    (0, "LINE"), (8, "0"), (10, 1), (20, 2), (30, 0), (11, 2), (21, 2), (31, 0),
++                    (0, "TEXT"), (8, "0"), (10, 4), (20, 6), (30, 8), (40, 1), (1, "BASE"),
++                    (0, "ENDBLK"), (8, "0"),
++                    (0, "BLOCK"), (8, "0"), (2, "OUTER"), (70, 0), (10, 5), (20, 6), (30, 7),
++                    (0, "INSERT"), (8, "0"), (2, "INNER"), (10, 10), (20, 20), (30, 30),
++                    (41, 2), (42, 3), (43, 4), (50, 90), (210, 0), (220, 1), (230, 0), (0, "ENDBLK"), (8, "0"),
++                    (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                    (0, "INSERT"), (8, "0"), (2, "OUTER"), (10, 100), (20, 200), (30, 300),
++                    (41, 2), (42, 1), (43, 1), (50, 90), (210, 0), (220, 1), (230, 0),
++                    (0, "ENDSEC"), (0, "EOF")]
++            path = os.path.join(self.temp_dir, "nested-base-text.dxf")
++            with open(path, "w", encoding="ascii", newline="\n") as stream:
++                stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++            for mode in (2, 3):
++                with self.subTest(mode=mode):
++                    options.SetInt("DxfImportMode", mode)
++                    calls.clear()
++                    Import.readDXF(path, self.document.Name, True, self.option_source)
++                    self.assertEqual(len(calls), 1)
++                    self.assertEqual(calls[0][0], "BASE")
++                    self.assertAlmostEqual(calls[0][1].x, -56)
++                    self.assertAlmostEqual(calls[0][1].y, 319)
++                    self.assertAlmostEqual(calls[0][1].z, 194)
++        finally:
++            if old_draft is None:
++                del sys.modules["Draft"]
++            else:
++                sys.modules["Draft"] = old_draft
++
++    def _assert_nested_insert_ocs(self, mode):
++        """Compare non-default INSERT normals with independently calculated WCS endpoints."""
++        options = FreeCAD.ParamGet(self.option_source)
++        options.SetInt("DxfImportMode", mode)
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "BLOCKS"),
++                (0, "BLOCK"), (8, "0"), (2, "INNER"), (70, 0), (10, 1), (20, 2), (30, 3),
++                (0, "LINE"), (8, "0"), (10, 1), (20, 2), (30, 3), (11, 2), (21, 3), (31, 4),
++                (0, "ENDBLK"), (8, "0"), (0, "BLOCK"), (8, "0"), (2, "OUTER"), (70, 0),
++                (10, 5), (20, 6), (30, 7)]
++        cases = (((0, 1, 0), (10, 20, 30), 90, (2, 3, 4)),
++                 ((0, 0, -1), (40, 0, 0), 0, (1, 1, 1)),
++                 ((1, 1, 1), (0, 10, 20), 45, (2, 1, 1)))
++        for normal, point, rotation, scale in cases:
++            tags.extend([(0, "INSERT"), (8, "0"), (2, "INNER"),
++                         (10, point[0]), (20, point[1]), (30, point[2]),
++                         (41, scale[0]), (42, scale[1]), (43, scale[2]), (50, rotation),
++                         (210, normal[0]), (220, normal[1]), (230, normal[2])])
++        tags.extend([(0, "ENDBLK"), (8, "0"), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                     (0, "INSERT"), (8, "0"), (2, "OUTER"), (10, 100), (20, 200), (30, 300),
++                     (41, 2), (42, 1), (43, 1), (50, 90), (210, 0), (220, 1), (230, 0),
++                     (0, "ENDSEC"), (0, "EOF")])
++        path = os.path.join(self.temp_dir, "nested-insert-ocs.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        previous = set(self.document.Objects)
++        Import.readDXF(path, self.document.Name, True, self.option_source)
++        self.document.recompute()
++        outer = [obj for obj in self.document.Objects if obj not in previous
++                 and obj.Name.startswith("Link_OUTER")]
++        self.assertEqual(len(outer), 1)
++        edges = outer[0].Shape.Edges
++        self.assertEqual(len(edges), 3)
++        endpoints = sorted(tuple(sorted((round(v.Point.x, 5), round(v.Point.y, 5), round(v.Point.z, 5))
++                                        for v in edge.Vertexes)) for edge in edges)
++        expected = sorted(tuple(sorted(pair)) for pair in (
++            ((-76, 313, 170), (-72, 315, 176)),
++            ((-106, 293, 110), (-105, 292, 108)),
++            ((-98.53548, 312.71197, 204.92905), (-98.32415, 315.02137, 203.35169))))
++        for actual_pair, expected_pair in zip(endpoints, expected):
++            for actual_point, expected_point in zip(actual_pair, expected_pair):
++                for actual, wanted in zip(actual_point, expected_point):
++                    self.assertAlmostEqual(actual, wanted, delta=0.00002)
++
++    def test_flattened_nested_insert_ocs(self):
++        self._assert_nested_insert_ocs(3)
++
++    def test_parametric_nested_insert_ocs(self):
++        self._assert_nested_insert_ocs(2)
++

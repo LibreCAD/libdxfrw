@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-dimassoc-version-matrix-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_DIMASSOC_VERSION_MATRIX_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend caller-state DIMASSOC allocation rollback, corrected retry, and typed readback across admitted generated DXF target revisions.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW_DimensionAssociation generated during each test run",
+    "profile": "One DIMASSOC with three distinct osnap reference variants, multiple main object handles, an intersection object, xref strings, reactors, parent, and dimension identity.",
+    "versions": ["AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dimassoc_physical_transport_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-dimassoc-version-matrix-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "productionCodeChanged": false,
+    "method": "Run the existing whole-file allocation failure sweep at each target revision. Pass the mutable association directly to the public writer; compare complete modeled caller state after calibration, every injected failure, and same-writer retry; preserve the destination sentinel; compare retry bytes against clean output; and require fresh typed readback."
+  },
+  "allocationOffsets": {
+    "AC1024": {"ASCII": 20, "Binary": 20},
+    "AC1027": {"ASCII": 20, "Binary": 20},
+    "AC1032": {"ASCII": 20, "Binary": 20},
+    "total": 120
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dimassoc_physical_transport_tests -j2: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dimassoc_dxf_allocation_rollback_retry$' --output-on-failure: PASS 1/1 in 0.49 seconds",
+    "directControl": "build-gcc/libdxfrw_dimassoc_physical_transport_tests --allocation-rollback-retry: PASS; 120 injected offsets across three target revisions and two encodings",
+    "diffCheck": "git diff --check and python3 -m json.tool: PASS"
+  },
+  "limitations": [
+    "Generated DXF target-revision transaction evidence only; this does not establish producer-authored source profiles, whole associative graph closure, or native associative behavior.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "DIMASSOC caller-state, destination rollback, corrected same-writer retry, byte equality, and typed readback now pass at AC1024, AC1027, and AC1032 in ASCII and Binary.",
+    "remainingP6G": "Continue the remaining public-writer inventory and caller-state audit; preserve source-profile, graph-closure, and semantic gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "240 completed slices and 35 remaining packages: 240/(240+35)=87.3%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-dxf-dimassoc-caller-state-allocation-rollback-retry-2026-11-13.json"
+}

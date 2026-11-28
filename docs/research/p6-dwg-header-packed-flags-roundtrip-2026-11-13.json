@@ -1,0 +1,53 @@
+{
+  "title": "DWG R2000+ packed HEADER flags mapping and no-loss control",
+  "date": "2026-11-13",
+  "status": "implementation_slice_complete",
+  "scope": "The R2000+ 32-bit HEADER flags word maps its eight documented fields to typed DRW_Header variables, survives DWG rewrite, and prevents DXF projection when undefined or reserved source bits would be lost.",
+  "authorities": [
+    {
+      "name": "Open Design Specification for .dwg files v5.4.1",
+      "section": "9, HEADER variables",
+      "pdf_pages": [81, 82],
+      "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "fields": {
+        "CELWEIGHT": "Flags & 0x001F",
+        "ENDCAPS": "Flags & 0x0060",
+        "JOINSTYLE": "Flags & 0x0180",
+        "LWDISPLAY": "!(Flags & 0x0200)",
+        "XEDIT": "!(Flags & 0x0400)",
+        "EXTNAMES": "Flags & 0x0800",
+        "PSTYLEMODE": "Flags & 0x2000",
+        "OLESTARTUP": "Flags & 0x4000"
+      }
+    },
+    {
+      "name": "LibreDWG independent implementation",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c",
+      "detail": "Its lweights table maps five-bit values 0..23 to DXF lineweights, 29..31 to BYLAYER/BYBLOCK/BYLWDEFAULT (-1/-2/-3), and marks 24..28 reserved."
+    },
+    {
+      "name": "LibreDWG header flag projection",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/gen-dynapi.pl",
+      "detail": "Its header setter identifies the same masks and inverse LWDISPLAY/XEDIT fields. The local implementation shifts the two two-bit groups into DXF values 0..3."
+    }
+  ],
+  "implementation": {
+    "parser": "src/drw_header.cpp decodes the packed word into CELWEIGHT, ENDCAPS, JOINSTYLE, LWDISPLAY, XEDIT, EXTNAMES, PSTYLEMODE, and OLESTARTUP with their DXF group codes.",
+    "dwg_writer": "The writer maps modeled values back into the documented bit positions and preserves all raw bits outside mask 0x6FFF. A bit-preserving copy passes the full 32-bit pattern to the BL encoder.",
+    "dxf_writer": "DXF export rejects undefined high bits and reserved CELWEIGHT codes 24..28. The three additional Boolean fields are range-checked before output.",
+    "state": "The retained word participates in DRW_Header copy, move, swap, parse reset, and destruction/reset paths."
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j 4",
+    "focused": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_header_packed_flags$' --output-on-failure",
+    "result": "Passed. The generated packed-flags control checks exact field mapping, inverse booleans, all six writer versions AC1015/AC1018/AC1021/AC1024/AC1027/AC1032, undefined high-bit DWG readback, reserved-lineweight refusal/preservation, invalid-value refusal, corrected retry, and ASCII/Binary DXF refusal-before-output followed by same-writer retry after raw-flag repair.",
+    "fixture_policy": "No external DWG/DXF fixture was added. All vector and writer/readback inputs are generated locally from scratch."
+  },
+  "limitations": [
+    "No authentic producer DWG was used as a packed-flags witness.",
+    "The source parser maps reserved CELWEIGHT indexes 24..28 to the tolerant zero value while retaining their raw code; DXF projection refuses this ambiguous state.",
+    "Undefined bits are retained for DWG rewrite but are not assigned semantics.",
+    "The broader P6 version, geometry, object graph, native consumer, and platform exit requirements remain open."
+  ]
+}

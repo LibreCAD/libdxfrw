@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Spatial-filter handle staging transfer and release",
+  "mode": "Local implementation fast slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Continue the 7S.2c fileExport lifetime census at the admitted spatial-filter graph boundary.",
+    "Transfer validated filter handles to the callback-owned member and release the two staging closure vectors after merge.",
+    "Preserve generated ASCII/Binary round-trip and fail-closed graph behavior."
+  ],
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "changes": [
+      "Move spatialFilterHandles into m_spatialFilterHandlesToWrite, whose member storage is already cleared at fileExport entry and retained for the writeObjects callback.",
+      "Release spatialFilterDictionaryHandles and spatialFilterXRecordHandles after their validated values are merged into the adapter-owned extension handle lists.",
+      "Preserve deduplication, insertion order, graph validation, callback ownership, and writer output."
+    ],
+    "lastUseAudit": "rg confirmed each local vector has no reads beyond graph collection, the extension-list merge, and the member transfer.",
+    "behaviorChange": false,
+    "publicApiOrAbiChange": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "test": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --spatial-filter-graph-roundtrip",
+      "result": "PASS",
+      "note": "Generated ASCII/Binary graph round trips and expected fail-closed controls completed; expected refusal diagnostics were printed."
+    },
+    "scopedDiffCheck": "PASS"
+  },
+  "assessment": {
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "findings": 139,
+    "topLevelSubplans": 77,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "implementationStatus": "UNCOMMITTED_SHARED_WORKTREE"
+  },
+  "method": {
+    "kind": "Source-level lifetime audit plus existing focused adapter case",
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The focused test validates spatial-filter graph behavior, not peak memory. This slice advances but does not close the wider 7S.2c lifetime/projection census."
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-dbcolor-late-callback-binding-2026-11-02",
+  "date": "2026-11-02",
+  "title": "Generated in-memory DBCOLOR late-callback entity appearance binding",
+  "status": "GENERATED_DWG_CALLBACK_ORDER_BINDING_PASSED_SOURCE_GRAPH_OPEN",
+  "supportClaimEffect": "none",
+  "baselineHead": "b9b566d1",
+  "scope": "Reconcile DWG entity AcDbColor references with later OBJECTS DBCOLOR callbacks inside the concrete adapter, preserving per-import handle identity, inline entity overrides, bounded retention, and fail-closed unresolved/conflicting references.",
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "src/drw_interface.h",
+      "src/intern/dwgreader.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Retained DWG entities with AcDbColor handles are indexed by import generation and referenced object handle.",
+      "The later DBCOLOR callback retains its bounded RGB and BOOK$ENTRY appearance and applies it to matching retained entities only when inline RGB/name values are absent.",
+      "Reused source handles in separate imports remain isolated by generation.",
+      "Missing targets, invalid identities/values, duplicate definitions, and allocation/retention failures fail adapter capture; output preflight rejects incomplete DBCOLOR appearance bindings.",
+      "Appearance patches are staged before entity mutation so a staging failure leaves all matching entities unchanged."
+    ],
+    "sourceOrder": "The generated callback test invokes entity callbacks before the OBJECTS DBCOLOR callback, matching the DWG read-section order used by dx_iface."
+  },
+  "control": {
+    "selector": "--dbcolor-late-callback-binding",
+    "ctest": "dwg2dxf_dbcolor_late_callback_binding",
+    "profile": "Locally authored in-memory AC1027 callback profile with two entities sharing one referenced DBCOLOR, explicit inline color/name precedence, a second import reusing handles, and a duplicate definition control.",
+    "assertions": [
+      "Missing target remains incomplete until its generation-matched DBCOLOR callback arrives.",
+      "RGB and BOOK$ENTRY name are applied after the late callback.",
+      "Existing inline RGB/name values are preserved.",
+      "A second import's reused handle binds only to its own DBCOLOR value.",
+      "A duplicate same-generation definition is refused without replacing the first value."
+    ],
+    "fixtureDisposition": "No DWG/DXF fixture was created or added; the selector constructs callback values in memory."
+  },
+  "sourceBinding": {
+    "baseRevision": "b9b566d1",
+    "files": {
+      "src/drw_interface.h": "32d5898bde4a314339a58723e4a930f3e95d6aa7af9d98256b4cb3339e53a885",
+      "src/intern/dwgreader.h": "a113030a542cddcf004ab830f35814a88ba99fefc0d5f06ea53b2e7d03bd21a7",
+      "dwg2dxf/dx_data.h": "e0b4b8acfc9d64dc94b24a9be611831749a669107e465c229f88216b4cd98b2f",
+      "dwg2dxf/dx_iface.h": "213fcd30c0d1dbf4b0347cff491aed3a2c629b352386d355151cc41ec35ce8b7",
+      "dwg2dxf/dx_iface.cpp": "66d8a687eea109f44d6eb10a2e7d1d4530e1d6e562d5197ea3fe5e326e1a2323",
+      "tests/dwg2dxf_adapter_tests.cpp": "f00caa4bbbb62d0736dc7a76125d85550861495d612b00155cde1c428f03fc19",
+      "tests/CMakeLists.txt": "2f2b5ee0fa2f72bc0442a93cb271970db55e9f785b9179c4e02c7103abb670e7",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "eeb4a6025bf76ab44805773bdf4619376101c77e3f793b7fb38e4da0bda29a43"
+    },
+    "executables": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "a61d2962972f70bcb395d53d52a7cbb9f3d2f9fdf38ecf3c7f2c3437945febc3",
+      "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "7d1f0aa58bf33f43b07533e111fe896bdc1a4f7f944c8da58d61375132fdb9ef"
+    }
+  },
+  "validation": {
+    "toolchain": "CMake 4.4.5, Apple clang 21.0.0 (arm64-apple-darwin27.0.0)",
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "normalBuildResult": "passed",
+    "focusedTest": "ctest --test-dir build-gcc -R '^dwg2dxf_dbcolor_late_callback_binding$' --output-on-failure",
+    "focusedTestResult": "1/1 passed",
+    "existingDbColorControls": "ctest --test-dir build-gcc -R '^(libdxfrw_dbcolor_unsupported_method_refusal|libdxfrw_dbcolor_book_name_owner_budget)$' --output-on-failure",
+    "existingDbColorControlsResult": "2/2 passed",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "asanBuildResult": "passed",
+    "asanSelector": "ASAN_OPTIONS=halt_on_error=1 build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests --dbcolor-late-callback-binding",
+    "asanSelectorResult": "passed with no AddressSanitizer finding; detect_leaks was omitted because this platform runtime reports it unsupported",
+    "diffCheck": "git diff --check passed"
+  },
+  "limitations": [
+    "This is generated in-memory adapter callback evidence, not a physical DWG producer observation.",
+    "The DBCOLOR source frame and ACAD_COLOR dictionary ownership/entry graph are not emitted by this change; strict source-to-output conversion must continue to refuse the unsupported object path.",
+    "Fresh DXF readback and native color-book display are not qualified.",
+    "No support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue P4 source/output graph closure for the DBCOLOR source frame and ACAD_COLOR dictionary route, or select the next independently reproduced strict-output source dependency; retain physical/native color-book qualification as separate gates."
+}

@@ -1,0 +1,207 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bm",
+  "date": "2026-10-24",
+  "parentCommit": "2fe5e23ea0fbdf8da57f89d16c8115edede6e2cd",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "OPT_IN_SOURCE_LEASE_READY_INDEPENDENT_FRAMING_AND_FROZEN_JOINS_PENDING",
+  "objective": "Retain bounded native CLASSES source bytes without imposing a byte copy on existing 2D consumers or promoting support claims.",
+  "implemented": {
+    "optionalInterface": "DRW_DwgClassSourceHandler",
+    "requestDefault": false,
+    "requestQueriesPerRead": 1,
+    "existingDRWInterfaceVtableChanged": false,
+    "existingClassCoverageReportLayoutChanged": false,
+    "newPublicTypesAdded": true,
+    "consumerRebuildValidationRequired": true,
+    "universalBinaryCompatibilityClaim": false,
+    "converterExplicitlyOptsIn": true,
+    "bytes": "shared_ptr<const vector<uint8_t>>, copied from the actual physical or decoded section, not reconstructed class metadata",
+    "lineages": {
+      "reader15": "Physical section capture through an independent cursor/error state",
+      "reader18": "Decoded envelope capture before cleanup; includes the bounded zero-filled capacity used by the existing parser",
+      "reader21": "Decoded temporary section capture before destruction",
+      "reader24_27_32": "Inherited reader18 capture hook, not separate native qualification"
+    },
+    "profile": [
+      "DWG version",
+      "Application maintenance byte",
+      "Raw codepage id, presence and recognition",
+      "Section descriptor id",
+      "Physical versus decoded address space",
+      "Base byte offset",
+      "Declared section size",
+      "Copied byte count on success; attempted extent on failure",
+      "Class-read and parser-coverage completion observations, not independent certificates"
+    ],
+    "payloadByteCap": 67108864,
+    "adapterAggregateRetainedByteEstimateCap": 67108864,
+    "adapterReportCountCap": 1024,
+    "budgetBoundary": "Payload request is checked before allocation; adapter aggregate estimates also charge vector capacity, owner and map-node overhead. These are not a whole-process peak-memory guarantee.",
+    "states": [
+      "NotRequested",
+      "NotCaptured",
+      "Captured",
+      "TooLarge",
+      "InvalidRange",
+      "CaptureFailed",
+      "RequestFailed",
+      "DeliveryFailed"
+    ],
+    "callbackBoundary": "Request/capture/delivery exceptions do not change the ordinary parse result. A throwing consumer must invalidate its own partial retention; an already copied shared owner cannot be revoked by the reader.",
+    "converterRetention": "Private current-generation read-only reports; duplicate/context/allocation/budget failure is explicit. Failure consumes no retained-byte charge. Later generations may retry within remaining aggregate limits; public class-row edits cannot replace the retained source lease.",
+    "recordGrammarSectionDecoderOrTypeDispatchChanged": false,
+    "strictAdmissionChanged": false
+  },
+  "specificationReview": {
+    "source": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "version": "ODA Open Design Specification v5.4.1",
+    "section": "10: Data section AcDb:Classes",
+    "completeTextAndRenderedPagesInspected": [86, 87, 88],
+    "boundary": "Capture preserves physical/decoded address-space distinctions and declared versus decoded-capacity sizes. It does not independently verify sentinels, CRCs, lengths, string footers or BS/BL record-profile selection.",
+    "pdfModified": false
+  },
+  "controls": {
+    "test": "tests/dwg_class_source_tests.cpp",
+    "target": "libdxfrw_dwg_class_source_tests",
+    "ctest": "libdxfrw_dwg_class_source",
+    "assertions": 383,
+    "faultSeam": "Scoped translation-unit allocation countdown, request exceptions and delivery exceptions; no assertions or setup allocations inside injected allocation failure windows",
+    "coverage": [
+      "Null/default-false handlers allocate no source bytes",
+      "RequestFailed and NotCaptured do not become empty valid sections",
+      "Exact cap, over-cap, zero cap, null and invalid backing ranges",
+      "Separate declared size and copied decoded capacity",
+      "Source mutation after capture does not alter the frozen copied bytes",
+      "Once-only delivery, allocation failures and fresh-attempt recovery",
+      "Memory/file-backed physical cursor, cached bit state and next-read continuity",
+      "Physical fork allocation failures do not poison the publishing buffer",
+      "Converter duplicate callback, later-generation retry and no stale fallback",
+      "Exact/one-under aggregate budget, report-count limit and map allocation failure",
+      "Malformed report status, ownership, count, address space and overflow refusals",
+      "Read-only report/shared-const byte API compile assertions",
+      "Native capture/no-copy parser-result and class-row comparisons",
+      "Native reader lifetime and repeated-import independent source-owner retention"
+    ],
+    "trackedNativeFixtures": [
+      "tests/fixtures/dwg/ordinary_enc_AC1015.dwg",
+      "tests/fixtures/dwg/ordinary_enc_AC1018.dwg",
+      "tests/fixtures/dwg/ordinary_enc_AC1021.dwg",
+      "tests/fixtures/dwg/ordinary_enc_AC1027.dwg"
+    ],
+    "nativeCaptureComparisons": 4,
+    "independentNativeSectionOrSemanticQualifications": 0,
+    "AC1024AndAC1032NativeCaptureQualification": "NOT_RUN",
+    "scratchControl": "Runtime-generated 32-byte cursor.bin, not a drawing fixture",
+    "adapterBuildSharing": "Fifth explicitly audited tests/ target reuses the identical adapter-object compile context; configure-time context comparator and build-context regression pass"
+  },
+  "validation": {
+    "build": {
+      "result": "PASS",
+      "normalTree": "build-gcc",
+      "actualCompiler": "/usr/bin/g++ (AppleClang)",
+      "flags": "-std=c++17 -Wall -Wextra -pedantic -Werror",
+      "warningSuppression": false,
+      "logs": [
+        "/tmp/rpp5bm-build.log",
+        "/tmp/rpp5bm-final-source-build.log",
+        "/tmp/rpp5bm-checkpoint-build.log"
+      ]
+    },
+    "sourceControls": {
+      "result": "PASS",
+      "assertions": 383,
+      "log": "/tmp/rpp5bm-source-tests.log"
+    },
+    "focused": {
+      "result": "PASS",
+      "passed": 6,
+      "total": 6,
+      "wallSeconds": 37.10,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_dwg_class_source",
+        "libdxfrw_class_dwg_independent_wire",
+        "libdxfrw_raster_dwg_independent_wire",
+        "libdxfrw_adapter_build_context",
+        "libdxfrw_cli_optional_build",
+        "libdxfrw_public_header_hygiene"
+      ],
+      "log": "/tmp/rpp5bm-fast-tests.log"
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 5,
+      "total": 5,
+      "wallSeconds": 15.82,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_hardening",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "log": "/tmp/rpp5bm-owning-tests.log"
+    },
+    "readerAdapterConsumers": {
+      "result": "PASS",
+      "passed": 4,
+      "total": 4,
+      "wallSeconds": 2.52,
+      "parallelism": 3,
+      "tests": [
+        "libdxfrw_dwg_reader_matrix",
+        "libdxfrw_dwg_fixtures",
+        "libdxfrw_named_resource_import_evidence",
+        "libdxfrw_3d_consumer_probe"
+      ],
+      "log": "/tmp/rpp5bm-compat-tests.log"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 1,
+      "total": 1,
+      "assertions": 383,
+      "wallSeconds": 1.44,
+      "options": "halt_on_error=1:detect_leaks=0",
+      "buildFlags": "-fsanitize=address -fno-omit-frame-pointer, Debug",
+      "buildLog": "/tmp/rpp5bm-asan-build.log",
+      "log": "/tmp/rpp5bm-asan-tests.log"
+    },
+    "libreCAD3CompileGate": "PASS: lc3_compat_check rebuilt with unchanged established DRW_Interface callback contract",
+    "cohortPolicy": "Affected owning and reader/consumer cohorts ran sequentially, at most three tests per cohort. ASan targets only source capture; no overlapping heavy owning cohorts.",
+    "fullSuite": "NOT_RUN: focused validation plus affected owning checkpoints only",
+    "performanceClaim": false
+  },
+  "remainingInDependencyOrder": [
+    "Independent whole-section sentinels/lengths/record count/footer/padding/CRC/consumption, including empty sections and explicit BS/BL candidate ambiguity",
+    "Frozen import/profile/class metadata, ordinal and all-field/name joins to independent source spans and IMAGEDEF/reactor class identities",
+    "Malformed/truncated/profile-mutated source, producer >=256 fields, complete failure/retry and native lineage gates before clearing class/text admission issues",
+    "Producer LAYER/codepage, full IMAGE/common state, NOD/image-dictionary/document closure, broader APPID/LAYER/XRECORD, container/SUN, TABLE/extension, MATERIAL and consumer integration"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "ClassEnvelopeCleared": false,
+    "TextSemanticsNotIndependentCleared": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newOrDownloadedDrawingFixtures": 0,
+    "drawingFixturesToCommit": 0,
+    "preexistingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false,
+    "unrelatedUntrackedFilesPreserved": true,
+    "remoteMutations": false,
+    "commitScope": "Explicit implementation, new focused test, build registration, plan and this receipt only"
+  }
+}

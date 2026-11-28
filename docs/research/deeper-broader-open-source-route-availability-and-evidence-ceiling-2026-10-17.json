@@ -1,0 +1,139 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader open-source route availability and evidence ceiling",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Open-source versus commercial ACIS/DXF translator availability",
+    "ezdxf carrier authoring versus ACIS rendering and semantic evidence",
+    "FreeCAD converter/importer and explicit-3D backend differences",
+    "BRL-CAD explicit-mesh consumer safety and qualification readiness",
+    "Implementation-speed stop rule for additional peer discovery"
+  ],
+  "method": {
+    "kind": "Current public primary-source documentation and issue-status review",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Most GitHub source/documentation links are mutable branches; the review establishes documented route boundaries and current issue/PR status, not behavior of a pinned executable. The FreeCAD backend matrix is documentation and must be verified against each exact installed build. BRL-CAD issue #228 and PR #245 were checked by public status/description, not by building or reviewing the proposed patch diff."
+  },
+  "sources": [
+    {
+      "project": "Open CASCADE",
+      "url": "https://github.com/Open-Cascade-SAS/OCCT/wiki/",
+      "revision": "mutable wiki reviewed 2026-10-17",
+      "observed": "The project describes built-in exchange formats separately from advanced data-exchange components, listing ACIS SAT and DXF among proprietary/advanced formats rather than the free core set."
+    },
+    {
+      "project": "Open CASCADE",
+      "url": "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The components repository identifies itself as a public preview/documentation hub; full ACIS SAT/SAB and DXF exchange components are accessed through the commercial component store."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+      "revision": "mutable master reviewed 2026-10-17",
+      "observed": "The entity-authoring guide says creation of required ACIS data must be done by an external library. ezdxf can carry such data but this does not establish an independent modeler or semantic oracle."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/addons/drawing.rst",
+      "revision": "mutable master reviewed 2026-10-17",
+      "observed": "The drawing add-on documents no ACIS rendering and no 3D renderer; 3D entities are projected into the XY plane."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/discussions/1295",
+      "revision": "maintainer discussion, posted 2025-05-13",
+      "observed": "The maintainer characterizes ACIS support as basic and recommends a kernel/application route for better 3D support, while noting the lack of free/open-source ACIS import/export solutions known to them. This is a maintainer assessment, not exhaustive proof about all repositories."
+    },
+    {
+      "project": "FreeCAD Documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The format guide describes DXF as 2D for proprietary 3D data and says solid/NURBS objects are converted to mesh on export; the DWG path depends on an external converter and shares DXF limitations."
+    },
+    {
+      "project": "FreeCAD Documentation",
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The guide distinguishes the native C++ DXF importer/exporter from the optional legacy Python importer/exporter and states that DWG conversion uses external tools."
+    },
+    {
+      "project": "FreeCAD Documentation Project",
+      "url": "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+      "revision": "mutable main reviewed 2026-10-17",
+      "observed": "The published importer table reports 3DFACE unsupported in the built-in C++ importer and supported in the legacy Python importer. It is a documented backend distinction, not runtime qualification of an exact current build."
+    },
+    {
+      "project": "BRL-CAD",
+      "url": "https://brlcad.org/docs/cad/books/BRL-CAD_Tutorial_Series-VolumeIV.html",
+      "revision": "published conversion guide reviewed 2026-10-17",
+      "observed": "The dxf-g converter maps DXF into BRL-CAD's geometry format; it is a geometry-conversion route and not a document-preserving DXF round-trip."
+    },
+    {
+      "project": "BRL-CAD",
+      "url": "https://github.com/BRL-CAD/brlcad/issues/228",
+      "revision": "issue status checked 2026-10-17",
+      "observed": "The open report describes an ASan-confirmed out-of-bounds POLYFACE face-index read in dxf-g. It is a peer-reported failure, not a libdxfrw defect or independently reproduced local result."
+    },
+    {
+      "project": "BRL-CAD",
+      "url": "https://github.com/BRL-CAD/brlcad/pull/245",
+      "revision": "PR status checked 2026-10-17",
+      "observed": "The proposed dxf-g fix remained open/unmerged in the public view. Before use, an immutable merged revision would need source review for signed one-based indices, invisible-edge markers, zero termination, and validation against the actual vertex pool."
+    }
+  ],
+  "assessment": {
+    "evidence_chain": "No newly reviewed open-source route closes independent DWG AcDs entity-to-owner/key-to-payload association, exact-profile SAB interpretation, B-rep semantics, and native consumer acceptance as one evidence chain.",
+    "freecad_rule": "Qualify explicit 3DFACE/mesh and proprietary ACIS as separate cases; record converter and intermediate DXF separately from the exact importer backend and consumer result.",
+    "ezdxf_rule": "Use as a carrier/authoring/raw-data route only; analytic expected values must be independently authored and rendering or self-round-trip cannot promote solid semantics.",
+    "brlcad_rule": "No hostile-input comparison until issue #228 is resolved by a pinned, reviewed fix; any later positive projection remains optional and does not establish wire, graph, DWG, ACIS, or writer support.",
+    "research_stop_rule": "Reopen broad peer discovery only when a named source/artifact can fill a currently missing stage: independent DWG/AcDs owner-key join, exact-profile bare-SAB parser, independent semantic solid witness, or pinned native Linux/Windows consumer route."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 128,
+      "topLevelSubplans": 71
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-open-source-route-availability-and-evidence-ceiling-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/deeper-broader-open-source-route-availability-and-evidence-ceiling-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

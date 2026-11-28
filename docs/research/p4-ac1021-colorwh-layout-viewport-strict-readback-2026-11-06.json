@@ -1,0 +1,111 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 colorwh layout and viewport strict output/readback",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Bind the exact AC1021 colorwh LAYOUT graph and six paper-space VIEWPORT callback identities through selected ASCII/Binary output, rollback/retry, strict whole-source ASCII conversion, and fresh same-version DXF readback.",
+  "authority": {
+    "dwgSpecification": "Open Design Specification for .dwg files v5.4.1, §§20.4.38 VIEWPORT ENTITY and 20.4.84 LAYOUT",
+    "rulesApplied": [
+      "VIEWPORT common entity fields include the optional 340 clip-boundary soft pointer; version-specific common handle roles are decoded separately.",
+      "LAYOUT has an ordered viewport count/list, paper-space BLOCK_RECORD association, and last-active viewport reference.",
+      "Nonrectangular-clip flag and the presence of a 340 boundary handle must agree; the local adapter gate also requires the target entity role and bounded reference closure."
+    ],
+    "authorityLimit": "The specification supports byte/reference roles, not native display or clipping semantics."
+  },
+  "source": {
+    "path": "/Users/dli/doc/dwg/colorwh.dwg",
+    "sha256": "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing. Its AutoCAD/Autodesk metadata and LibreDWG peer output do not independently authenticate the source author or producer. No drawing fixture or derivative is committed."
+  },
+  "independentPeerObservation": {
+    "tool": "LibreDWG dwgread 0.14",
+    "command": "dwgread -O minJSON /Users/dli/doc/dwg/colorwh.dwg",
+    "outputPath": "/private/tmp/colorwh-libredwg-minjson.json",
+    "outputSha256": "63ff8c5837e7ff368cc857fa3294bc4f5992821eca58203e0b02acba04bfa9e2",
+    "observation": "Reports the same Model, AutoCAD Color Index and True Color LAYOUT identities and six listed type-34 VIEWPORT handles. Its null owner values for 0x1D7E and 0x1D81 were not treated as proof of source owner role; local layout membership, container and reciprocal BLOCK_RECORD checks govern that role.",
+    "limit": "Peer parsing corroborates identities only; it is not an independent encoder or native semantic test."
+  },
+  "sourceProfile": {
+    "layouts": [
+      {"handle": "0x22", "name": "Model"},
+      {"handle": "0x6E6", "name": "AutoCAD Color Index", "paperSpaceBlockRecord": "0x6A6", "viewportHandles": ["0x6A7", "0x6A8", "0x6AA", "0x6AB"]},
+      {"handle": "0x1DBD", "name": "True Color", "paperSpaceBlockRecord": "0x1D7D", "viewportHandles": ["0x1D7E", "0x1D81"]}
+    ],
+    "projectedViewportIdentities": [
+      {"handle": "0x6A7", "status": 1, "id": 1, "layout": "0x6E6", "layer": "0x10"},
+      {"handle": "0x6A8", "status": 2, "id": 2, "layout": "0x6E6", "layer": "0x4D6"},
+      {"handle": "0x6AA", "status": 3, "id": 3, "layout": "0x6E6", "layer": "0x4D6", "clipBoundaryCircle": "0x6A9"},
+      {"handle": "0x6AB", "status": 4, "id": 4, "layout": "0x6E6", "layer": "0x4D6"},
+      {"handle": "0x1D7E", "status": 1, "id": 1, "layout": "0x1DBD", "layer": "0x10"},
+      {"handle": "0x1D81", "status": 2, "id": 2, "layout": "0x1DBD", "layer": "0x4D6", "clipBoundaryCircle": "0x1D80"}
+    ],
+    "sharedVisualStyle": "0xBEF7",
+    "group68And69": "Status and ID are DXF output projections derived from ordered LAYOUT membership; ODA §20.4.38 does not store DXF groups 68/69 in the DWG VIEWPORT body.",
+    "optionalReferences": "All six selected VIEWPORTs have no extension dictionary or reactors. The two nonrectangular-clip flags correspond exactly to their 340 CIRCLE targets; each circle is unique, paper-space, and co-owned in the source entity container.",
+    "opaqueCallbackCensus": "52 total; the exact six VIEWPORT identities were the remaining unqualified callbacks after the LAYOUT slice."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256": {
+      "dwg2dxf/dx_iface.cpp": "806660ecc5a693503e49b1b21debf5369918236e72df028af2d96c89892a5fa3",
+      "tests/dwg2dxf_adapter_tests.cpp": "94e3f4541e1ac8cb6c8e217ede0a6fed94085fe200bec9000cfeead4164a74e2"
+    },
+    "adapterTestExecutableSha256": "b000fcfe00921197db79f757146b9df7d7779d22542c98f0746e73966c14f815",
+    "dwg2dxfExecutableSha256": "f92c743bd2bc0fd9fbfb15a6935a66c4054e72c81d7069cebcfacb8d36a3f4e3",
+    "binaryDwg2dxfExecutableSha256": "ce1e0113e1f1c09a0ddf22593423e22c516b1196929aba0e20bad5bac6319dd4",
+    "summary": "Adds an exact AC1021 colorwh LAYOUT graph profile and exact six-VIEWPORT source/output profile. Adds output/readback checks for source LAYOUT membership, reciprocal paper-space BLOCK_RECORDs, layer and visual-style targets, viewport status/ID derivation, clip-flag/handle agreement, remapped CIRCLE targets and geometry, plus atomic refusal and same-adapter retry. The layer-reference preflight now permits the source-bound planned LAYER remap while BLOCKS are emitted; finalizeDwgLineTypeControlOutput still verifies the actual staged LAYER record and mapped handle after the table output is available.",
+    "scope": "Exact source profile only. Type 34, other layouts, other clip-boundary graphs, producer-wide support and native clipping semantics remain unqualified."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS with warning-as-error flags."
+    },
+    "focusedAsciiBinary": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/colorwh.dwg",
+      "result": "PASS, exit 0. ASCII and Binary each freshly reimport six exact VIEWPORTs and qualify all 52/52 source callbacks; each performs invalid-field destination-preservation and corrected same-adapter retry."
+    },
+    "layerForwardReferenceCompatibility": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/lineweights.dwg",
+      "result": "PASS, exit 0. Existing four-VIEWPORT AC1021 ASCII/Binary profile still qualifies 49/49 callbacks with atomic refusal, same-adapter retry and fresh typed readback."
+    },
+    "strictWholeSourceAscii": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/colorwh.dwg -y -d -v2007 /private/tmp/colorwh-current-strict-ac1021.dxf",
+      "exit": 0,
+      "outputSha256": "2fc4031c0000836fc2ffd4db7b1971fe09f1dcce62a12ea9019ec7357afbbd73"
+    },
+    "freshSameVersionReadback": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/colorwh-current-strict-ac1021.dxf -y -d -v2007 /private/tmp/colorwh-current-readback-ac1021.dxf",
+      "exit": 0,
+      "outputSha256": "03a955a9791fa51e6192f79743c54a513057a6a26b45a59b16c4f9a10ac13c41",
+      "comparison": "Section/class record census equals the first strict output: 36,505 records in each; no class-count delta. This is structural census equality, not a complete field-semantic comparator."
+    },
+    "strictWholeSourceBinary": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/colorwh.dwg -y -b -d -v2007 /private/tmp/colorwh-strict-ac1021-binary.dxf",
+      "exit": 0,
+      "sourceFrameCoverage": "36,516 observed frames; 36,516 published; zero failed, deferred, quarantined or unresolved dispositions.",
+      "outputBytes": 7113617,
+      "outputSha256": "e596372eb3f5286435254eef5108ee62734af577b7d43e23d9079dc0222e9a92"
+    },
+    "freshSameVersionBinaryReadback": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/colorwh-strict-ac1021-binary.dxf -y -b -d -v2007 /private/tmp/colorwh-strict-ac1021-binary-roundtrip.dxf",
+      "exit": 0,
+      "outputBytes": 7113598,
+      "outputSha256": "9bd87619781a0a68d4019504925c4a3b4214acc440de01e3516490f6c7caaf48",
+      "comparison": "Fresh same-version Binary import and re-export succeeds. No field-by-field binary semantic comparator was run."
+    },
+    "fixturePolicy": "Source DWG, generated DXFs and peer JSON remain outside Git."
+  },
+  "limits": [
+    "One existing unauthenticated AC1021 source profile only.",
+    "LibreDWG is a peer parser, not independent semantic evidence or native application acceptance.",
+    "ASCII whole-source strict conversion and fresh same-version DXF re-export pass; this does not establish a full field-by-field whole-file semantic roundtrip.",
+    "No platform qualification, FreeCAD/LibreCAD_3 acceptance, producer breadth or support claim is established."
+  ]
+}

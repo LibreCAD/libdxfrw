@@ -1,0 +1,99 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-visualstyle-physical-output-binding-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical VISUALSTYLE source-to-output and file-readback proof",
+  "status": "PHYSICAL_19_STYLE_IDENTITIES_FIELDS_AND_OUTPUT_READBACK_CLOSED",
+  "supportClaimEffect": "none",
+  "implementationCommit": "0a8ebf7e",
+  "scope": {
+    "source": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "sourceVersion": "AC1024",
+    "outputProfile": "AC1024 DWG VISUALSTYLE typed profile emitted as AC1024/2010 ASCII DXF",
+    "profileAdmission": "Complete captured 28-property companion profile and five CMC roles; same-version source/target; one ACAD_VISUALSTYLE dictionary parent/reactor; no EED, extension dictionary or data-storage payload; supported C2/C3/C8 color methods."
+  },
+  "sourceToOutput": {
+    "sourceRecords": 19,
+    "stagedReadbackRecords": 19,
+    "sourceHandles": [
+      "9A",
+      "9B",
+      "9C",
+      "9D",
+      "9E",
+      "9F",
+      "A0",
+      "A1",
+      "A2",
+      "A3",
+      "A4",
+      "A5",
+      "A6",
+      "A7",
+      "A8",
+      "A9",
+      "337",
+      "338",
+      "339"
+    ],
+    "outputHandleMapping": "Identity for all 19 records; duplicate/ambiguous mapping refused.",
+    "ownerDictionary": {
+      "handle": "99",
+      "parentNod": "C",
+      "reactor": "99"
+    },
+    "fields": "Bound emitted VISUALSTYLE names, descriptions, type, all ordered selected output groups, all 28 group-176 companions per record, packed CMC fields 421-425, dictionary membership, owner and reactor roles; freshly decoded staged records matched source identity, owner/reactor, description and type.",
+    "packedCmcGroupsPerStyle": {
+      "oneGroup": 17,
+      "twoGroups": 2
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags.",
+      "dwg2dxfSha256": "e2991ae3ff10c37fb836bf56458da185512869501b1f32890f9ebe99675cc461",
+      "adapterTestSha256": "af5df8bc6908019a1835534c23a3d40f353366eb18afa335d8f303ef302051d7"
+    },
+    "focusedNormal": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_visual_style_ac1024_typed_writer$' --output-on-failure",
+      "result": "PASS 1/1 in 0.50 seconds. Includes refusal, destination preservation and corrected retry controls.",
+      "adapterTestSha256": "af5df8bc6908019a1835534c23a3d40f353366eb18afa335d8f303ef302051d7"
+    },
+    "focusedAsan": {
+      "buildCommand": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "testCommand": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_visual_style_ac1024_typed_writer$' --output-on-failure",
+      "result": "PASS 1/1 in 0.88 seconds.",
+      "adapterTestSha256": "508ef41569856dca2dbf2d0a37a3c665555b57fd89d6659ffc7d55e738d2e3a8"
+    },
+    "physicalOutput": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/visualstyle-physical-proof.dxf",
+      "result": "PASS; inspector reported source-records=19 and staged-readback-records=19, with exact identity, owner/reactor, group and field checks.",
+      "outputPath": "/private/tmp/visualstyle-physical-proof.dxf",
+      "outputSha256": "801e3c91c64dab1af1e02c5da83e3adfcd77b8dc591f79b0afc2f5742352757f",
+      "debugLogPath": "/private/tmp/visualstyle-physical-proof.log",
+      "debugLogSha256": "cb2054bdeacbf4cfcda8438cdb40a36d5be18d8924316a0e0598fa126b0caea5"
+    },
+    "freshPhysicalFileReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --visual-style-physical-output-readback /private/tmp/visualstyle-physical-proof.dxf",
+      "result": "PASS: 19 identities; owner/reactor and dictionary membership; 28 companions per style; CMC payloads.",
+      "executableSha256": "af5df8bc6908019a1835534c23a3d40f353366eb18afa335d8f303ef302051d7"
+    },
+    "fullSuites": "NOT_RUN; focused normal and ASan selectors were sufficient for this profile slice."
+  },
+  "fixturePolicy": "Reused the existing local AC1024 DWG witness. Generated DXF output and logs remain in /private/tmp; no DWG/DXF fixture was added to the repository.",
+  "limitations": [
+    "Physical conversion used explicit partial-DWG-read mode and is not complete-document or native-consumer qualification.",
+    "The strict-complete gate remains closed: the census still reports 228 opaque callbacks and zero retained correlation frames.",
+    "This profile result does not promote support claims or close P4."
+  ],
+  "worktreeState": "Implementation and test source were in the worktree when this receipt was written and were later committed as 0a8ebf7e; the receipt binds hashes from proof time.",
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "4ef00b0bd5e5c2fe0c1e5dffbe2e3ee2ee2c57163a29698b8f4b895092740454",
+    "dwg2dxf/dx_iface.h": "e9244edd06309cca0abb219859e80b4c655473c4eb6cd797286def1c5a77f872",
+    "dwg2dxf/dx_standard_output.h": "bc0bae8771fc32a2f19a7db123ac7ffa999d0183809ca42bfe57b9785a2aaf55",
+    "tests/dwg2dxf_adapter_tests.cpp": "243412b784a05eed480147ef47b416018ea37904caa71ae76274215908da0059",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "d6cfaebb41b35b6a8164c29ee3668949520dde4d9c9a6c838339a761f42890b9"
+  }
+}

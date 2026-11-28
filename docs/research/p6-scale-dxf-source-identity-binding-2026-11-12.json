@@ -1,0 +1,29 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "scope": "Bind source identity for typed SCALE objects emitted under ACAD_SCALELIST.",
+  "result": "PASS",
+  "supportClaimEffect": "none",
+  "change": "writeScale now binds the source SCALE handle to its emitted handle before committing the existing record/state scopes. The binding participates in the transaction rollback journal.",
+  "validation": {
+    "normal_allocation": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_scale_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1; generated allocation sweep, destination rollback, same-codec retry, and typed root/dictionary/SCALE readback"
+    },
+    "normal_rooted_named_resource_graph": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "result": "PASS, 1/1; generated ACAD_SCALELIST closure and ASCII/Binary output/readback passed"
+    },
+    "address_sanitizer_allocation": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_scale_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1"
+    }
+  },
+  "limitations": [
+    "Generated and selected SCALE graph transport only; no broader drawing conversion or native consumer claim.",
+    "No support claim is promoted."
+  ],
+  "source_sha256": {
+    "src/libdxfrw.cpp": "490546aa7e20b5617bfe510ab19a10e957ee3bf1d0239198ed4f2209cf4bc8dd"
+  }
+}

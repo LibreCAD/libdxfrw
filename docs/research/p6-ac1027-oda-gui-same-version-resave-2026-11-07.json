@@ -1,0 +1,117 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1027 Cover same-version ODA GUI resave and HEADER suffix extraction",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "copiedPath": "/private/tmp/oda-cover-gui/in/Cover.dwg",
+    "copiedSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "provenanceLimit": "Existing local sample with unauthenticated original producer; the original and copy were not modified and neither was added to the repository."
+  },
+  "converter": {
+    "application": "ODA File Converter 27.1.0",
+    "route": "GUI",
+    "settings": {
+      "outputVersion": "ACAD2013 / AC1027 DWG",
+      "recurse": false,
+      "audit": false,
+      "filter": "*.DWG ; *.DXF"
+    },
+    "inputDirectory": "/private/tmp/oda-cover-gui/in",
+    "outputDirectory": "/private/tmp/oda-cover-gui/out",
+    "output": {
+      "path": "/private/tmp/oda-cover-gui/out/Cover.dwg",
+      "sha256": "674b81dd9fe56c2f97a9b845d0818a42b4ad1878ec816fd56fa26d7f0b12247c",
+      "bytes": 19274,
+      "version": "AC1027"
+    },
+    "result": "GUI folder progress reported Done and produced one same-version output. This is the first successful retry through a materially changed GUI invocation route after repeated direct CLI Pasteboard/XPC aborts."
+  },
+  "repeatGuiRun": {
+    "inputSha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "settings": "Same ODA File Converter 27.1 GUI route, ACAD2013/AC1027 DWG, recursion disabled, audit disabled, fresh output directory.",
+    "output": {
+      "path": "/private/tmp/oda-cover-gui-repeat/out/Cover.dwg",
+      "sha256": "540fe029c5653e276e161991ab2b83249f348cbd874d01e675220089c822a717",
+      "bytes": 19274,
+      "version": "AC1027"
+    },
+    "header": {
+      "pageHeaderFileOffset": 16832,
+      "compressedDataOffset": 16864,
+      "compressedBytes": 1546,
+      "logicalSectionBytes": 1583,
+      "sectionSha256": "3b0c312ed63e65dcebb9ea0fa2234c407abc43e3007d0912b35815a4aca93194",
+      "declaredSize": 802,
+      "payloadEnd": 826,
+      "storedCrc16": 48993,
+      "trailerEnd": 844,
+      "unclaimedSuffixBytes": 739,
+      "suffixSha256": "f8325471d6b2920146e35d1b7a1c33a234402c3d2abb9cad05f7bafd31991125"
+    },
+    "suffixComparison": {
+      "firstGuiSuffixSha256": "438943893bbd6715f17a0f5a5e32d5b4519658a341e503805120c635270b70c0",
+      "lengthBytes": 739,
+      "identicalBytePositions": 0,
+      "xorBitCounts": {"bit0": 0, "bit1": 0, "bit2": 0, "bit3": 739, "bit4": 390, "bit5": 343, "bit6": 314, "bit7": 390},
+      "interpretation": "The low three bits match at every position while the upper bits differ. This is a two-output byte pattern only; it does not identify field boundaries, encoding, semantic meaning, or safe omission."
+    },
+    "reader": {
+      "log": "/private/tmp/oda-cover-gui-repeat/roundtrip.log",
+      "logSha256": "9fd532a8b4dafda514f8bd62d3648830c87d9fcb92047ca42a314aaa36382199",
+      "result": "119/119 observed frames published with zero entity/object parse failures and zero CRC/DataStorage failures; strict DXF output refused at the independent AC1027 source-reference gate."
+    }
+  },
+  "headerExtraction": {
+    "method": "Use tools/probe_modern_header_source.cpp and the current dwgCompressor to decompress the physical AcDb:Header data page; trim only to the logical section length reported by the current dwgReader27 envelope parser; validate the envelope with tools/audit_ac1027_header_suffix_compare.py.",
+    "extractorSourceSha256": "de7c7af173f12902944c0fbae6c4355d7947857f0da4719edf0c5a85854d7d6d",
+    "extractorExecutableSha256": "3c38054a6d974a66dcf8e949fb62f40810bd3df5856c7aa274809746e2998c2d",
+    "original": {
+      "pageHeaderFileOffset": 16512,
+      "compressedDataOffset": 16544,
+      "compressedBytes": 1538,
+      "logicalSectionBytes": 1575,
+      "sectionSha256": "9963f027fac0daada9cbab9f3b2af56c73540534fd6a2e47ba8c0568e0571ab1",
+      "declaredSize": 802,
+      "payloadEnd": 826,
+      "trailerEnd": 844,
+      "unclaimedSuffixBytes": 731,
+      "suffixSha256": "7472357c307226b9a9dd0405bae1a533cef13ce4c9f3c6c59c9f4e365d3ab5b3"
+    },
+    "resave": {
+      "pageHeaderFileOffset": 16832,
+      "compressedDataOffset": 16864,
+      "compressedBytes": 1546,
+      "logicalSectionBytes": 1583,
+      "sectionSha256": "5bdc6fc9e34305847f0333b60088df2ac1f311a08a7fc9205da0d01cb05cc0fc",
+      "declaredSize": 802,
+      "payloadEnd": 826,
+      "storedCrc16": 23769,
+      "trailerEnd": 844,
+      "unclaimedSuffixBytes": 739,
+      "suffixSha256": "438943893bbd6715f17a0f5a5e32d5b4519658a341e503805120c635270b70c0"
+    },
+    "checks": "Both extracted logical sections have the expected AC1027 HEADER sentinels, declared-size boundary, and valid CRC16. The resave suffix is 739 bytes and differs by SHA-256 from all prior same-source suffix hashes retained in earlier receipts."
+  },
+  "currentReader": {
+    "executableSha256": "b40b3791f1515c7b45fdbb5e9fbb2c0ee9980df10fd2a9cbedff91183db00290",
+    "sourceLog": "/private/tmp/oda-cover-gui/roundtrip.log",
+    "sourceLogSha256": "f4d3312b48c9ce82b647bb15eb2ea31e16b24cef2674c024919a3835157e83fd",
+    "result": "119/119 observed frames published; zero entity/object parse failures, class/page CRC mismatches, or DataStorage link/orphan failures. The reader reports HEADER declared size 802, validated payload end 826, trailer end 844, and 739 unclaimed bytes through logical offset 1583.",
+    "strictOutput": "Refused before output preparation because AC1027 DWG source references are not fully qualified. No DXF was published."
+  },
+  "decision": {
+    "finding": "Two same-version GUI resaves independently reproduce the 739-byte unclaimed HEADER suffix and have different output/suffix hashes. Their suffixes have no identical byte positions, but the low three bits match at all positions. This pattern does not establish suffix meaning, byte roles, padding, or semantic preservation.",
+    "remaining": "Keep the suffix unclaimed and strict output refused. The separate AC1027 source-reference guard also remains; this resave does not resolve or bypass it.",
+    "fixturesAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "scratchArtifacts": {
+    "directory": "/private/tmp/oda-cover-gui",
+    "retainedInRepository": false,
+    "originalTraceSha256": "01f8b79ac5b41b7c29309cd7a9cdcdc5e481cfdae063f6edccc8a5f1747c7728"
+  }
+}

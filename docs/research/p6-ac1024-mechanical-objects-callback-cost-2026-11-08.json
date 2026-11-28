@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-mechanical-objects-callback-cost-2026-11-08",
+  "date": "2026-11-08",
+  "title": "AC1024 mechanical source OBJECTS callback allocation and time measurement",
+  "status": "MEASURED_BOUNDED_CALLBACK_COST",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024"
+  },
+  "measurement": {
+    "scope": "dx_iface::writeObjects() callback only",
+    "method": "Temporary scoped global operator-new counter and steady_clock timer enabled only around the base writeObjects callback, in the existing physical associative dimension output/readback test. Instrumentation was removed immediately after measurement.",
+    "ascii": {
+      "allocationsPerCallback": 6419,
+      "elapsedMicrosecondsObserved": [19055, 19329, 19456, 19204],
+      "attemptKinds": ["successful output", "late source/body mutation refusal"]
+    },
+    "binary": {
+      "allocationsPerCallback": 6321,
+      "elapsedMicrosecondsObserved": [19300, 19321, 19327, 19445],
+      "attemptKinds": ["successful output", "late source/body mutation refusal"]
+    },
+    "interpretation": "Callback runtime is small per attempt, but exhaustive allocation-offset injection would still invoke thousands of full callbacks and is not a fast validation slice."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "physicalGate": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocdependency-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS in ASCII and Binary with all 17 linked dimension dependency/body pairs, 399 constraint nodes, readback, refusal, and retry"
+    },
+    "fullSuites": "NOT_RUN"
+  },
+  "fixturePolicy": "No DWG/DXF fixture was added. No measurement hook is retained in source.",
+  "next": "Continue the P4 census with a saved OBJECTS profile whose source identity, owner/dependency roles, and byte/frame disposition are closed. Keep exhaustive allocation sweeps on bounded standalone writers; use only targeted failure points for the physical graph callback."
+}

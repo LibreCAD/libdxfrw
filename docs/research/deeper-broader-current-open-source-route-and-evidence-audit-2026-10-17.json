@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw-open-source-route-evidence-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "scope": "Refresh open-source DWG/DXF/3D route capability and release boundaries, then refine the existing optional comparator checkpoint without expanding per-slice work or promoting support claims.",
+  "method": {
+    "kind": "Primary-source release/documentation review and local plan reconciliation",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://github.com/OSGeo/gdal/releases",
+      "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm",
+      "https://github.com/DomCR/ACadSharp/releases",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/LibreDWG/libredwg/releases",
+      "https://github.com/LibreDWG/libredwg/releases/tag/0.14.8612",
+      "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4",
+      "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+      "https://pypi.org/project/cq-acis/0.3.12/"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing GDAL, ACadSharp, LibreDWG, ACadRust/OpenCADStudio, and cq-acis route rows and composed gates",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: latest implementation and research status; findings/subplans and deferred external J items"
+    ],
+    "limitations": "Capability statements and release pages are not runtime conformance results. Mutable documentation and pre-releases are not substituted for exact released artifacts. No external peer output, sample, geometry kernel, or native CAD result was produced in this review."
+  },
+  "evidence": [
+    {
+      "topic": "GDAL Binary DXF, raw ASM, and direct-transcode route separation",
+      "observed": "GDAL documents Binary DXF reading starting with 3.12 and a distinct no-extra-parameter binary-to-ASCII direct conversion. Its OGR reader supports opt-in raw group values; modern 3DSOLID/REGION/BODY/SURFACE entities are skipped by default and AC1027+ 3D-extensible mode exposes raw ASM bytes plus a 12-value transform rather than an OGR solid. Autodesk's binary-DXF reference defines typed little-endian values, including IEEE doubles, so ASCII spelling is not a byte-equivalent oracle.",
+      "doesNotEstablish": [
+        "GDAL direct binary-to-ASCII conversion is a semantic OGR reader pass",
+        "the direct conversion path exercises 3D-extensible mode, block ownership, or ASM transformation",
+        "OGR feature projection is complete document/object-graph preservation",
+        "raw ASM extraction is ACIS parsing, B-rep validity, or downstream CAD acceptance"
+      ],
+      "planUse": "At the existing composed checkpoint only, keep Binary-DXF parsing, raw-ASM/transform extraction, and direct transcode as separate outcomes. Use the direct path only for generated wire-value inspection; use the pinned reader/API and explicit options for source handle/type, raw group, carrier, owner, and transform checks. Compare decoded values to an independent authored manifest."
+    },
+    {
+      "topic": "Release and implementation-lineage refresh",
+      "observed": "ACadSharp's latest formal release remains signed v3.8.0 at 3a1c66b and does not announce ACIS DXF writing; PR #1240 remains separate open work. LibreDWG's newest visible release entry is prerelease 0.14.8612, not a new stable release. ACadRust v0.6.4 and OpenCADStudio v2026.41 remain one codec lineage plus an application route. cq-acis 0.3.12 is attested to source commit e05a8f470d2f6799277f7b7df467d2fc35625889, but parses inner SAT/SAB rather than outer DWG/DXF/AcDs and constructs shapes through the OCCT-family kernel.",
+      "doesNotEstablish": [
+        "current runtime behavior for any unexecuted peer release or nightly",
+        "ACadSharp ACIS writer behavior from an open pull request",
+        "independent evidence from wrappers or applications using the same codec lineage",
+        "an independent kernel result from cq-acis/OCCT-based conversion",
+        "outer entity-to-AcDs-to-payload closure from a bare SAT/SAB parse"
+      ],
+      "planUse": "Keep peer outcomes keyed by exact release/commit, platform, operation, version, and route. Count parser, writer, payload decoder, kernel, wrapper, and application separately; do not add a new peer dependency or per-slice run."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "keep GDAL feature parsing, raw-ASM projection, and direct binary-to-ASCII conversion as separate evidence lanes",
+      "run an exact GDAL binary/raw-ASM control only at the composed checkpoint and only when the required capability/options are available",
+      "classify peer implementation and kernel lineage explicitly; no new independent end-to-end 3D route was found",
+      "keep local focused generated tests as the per-slice implementation loop"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

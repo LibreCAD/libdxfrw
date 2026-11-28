@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-two-image-shared-definition-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "1cd3b590027504a3308f60946d2b3e94c15985c5",
+  "implementationDigestSha256": "acab980dfbceb5cc649c61c4465e9fae747fc44f689607e249747255d2b6557e",
+  "librecadCommit": "ee0789f1ab6afab2ca137cf9ad15e7e5fbcc2ac2",
+  "scope": "Two canonical AC1021 model-space IMAGE records sharing one IMAGEDEF with distinct IMAGEDEF_REACTOR records, rectangular clips and a bounded plot-style graph.",
+  "results": [
+    "PASS: 236 image test assertions in four system-codec cases, including generated 3D Z sidecars, strict source/staged graph and scalar checks, rejected modified reactors/plot styles/paths, late geometry/sidecar/pen mutations, destination preservation and corrected retry.",
+    "PASS: 845 assertions in six system-codec MATERIAL cases; bundled-codec filter source compiles.",
+    "PASS: independent ezdxf 1.4.5 resolves two IMAGE records, one shared IMAGEDEF, both reciprocal reactor links, model-space ownership and nonzero WCS Z components; its audit reports zero errors and zero fixes.",
+    "PASS: libdxfrw implementation digest and 15-claim overlay check; zero advertised claims.",
+    "PASS: selected system-codec 2D linetype regressions: 4,967 assertions in 56 cases.",
+    "PASS: 242 image assertions include a simultaneous typed-and-raw late brightness mutation; export preserves the destination, and the corrected same-filter retry succeeds."
+  ],
+  "artifacts": {
+    "libdxfrwSharedSha256": "b1d680efb47f5068e4660d8003c725ca9190a26c77ca9db5b009cedaaee9416e",
+    "librecadTestExecutableSha256": "f9822c972a78d83bf729fdce9ffb07e6d39a1e287f42e21995112d0aaa57613e",
+    "scratchOutputSha256": "f4e95fe20c3cfaf17bddf7852c6c340bf19fbfe6dc76a653550e9a24b4a094ed",
+    "followupTestExecutableSha256": "5b6facc218a31f3d31ed44a79df986f2f5e6f335f031d87aa1dcd0e402830e1f"
+  },
+  "limits": [
+    "Locally generated ASCII DXF only; does not establish native producer or rendering semantics.",
+    "Other source versions, multiple definitions, additional fields, layers, blocks, clipping shapes and platforms remain unqualified.",
+    "The bundled-codec check is compilation only. Windows qualification remains pending. No drawing fixture was committed."
+  ],
+  "followupLibrecadCommit": "4b0b2eb2f90bd32cb7ad2b2e9a4746612735aed5"
+}

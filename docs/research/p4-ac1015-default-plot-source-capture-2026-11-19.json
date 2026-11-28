@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "scope": "Generated AC1015 DXF default-plot source observation only",
+  "implementationDigestSha256": "18f73e3c06ed7f75620b02e7c9737af887e9ec18fce9f4191e2eb403d89390ef",
+  "provenance": "The regression generates its inputs from scratch in a temporary directory; no DWG or DXF fixture was added to the repository.",
+  "behavior": [
+    "The original AC1015 DXF identity and root DICTIONARY can be captured internally using the original source codec context for the default-plot observer.",
+    "The generated ASCII and binary profiles each bind two original plot records and the root edge, with one named target and default target 0xF.",
+    "General AC1015 identity and structural reports remain NotCaptured. Other legacy structural rows do not gain origin binding from the internal snapshot.",
+    "Replacing the original root key removes the default target. Source observation does not make the graph output eligible.",
+    "The source-only path refuses AC1015 to AC1018 export, preserves the existing destination, and succeeds again on a same-importer source retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedCtests": {
+      "result": "PASS",
+      "count": 5,
+      "selectors": [
+        "dwg2dxf_xrecord_owned_defaultplot_source_probe",
+        "dwg2dxf_native_xrecord_binary_transport",
+        "dwg2dxf_native_xrecord_binary_faults",
+        "dwg2dxf_standard_dwg_profile_isolation",
+        "dwg2dxf_default_plotstyle_layer_graph"
+      ]
+    },
+    "fastFocusSelfTest": "PASS",
+    "buildInventory": "PASS",
+    "qualifiedFormatSupport": "PASS (15 claims, 2 candidate routes, 0 advertised)",
+    "remainingOwnedExtensionSelector": "REFUSED as expected at AC1015 to AC1018 ASCII dictionary-with-default OBJECTS emission"
+  },
+  "limits": [
+    "Generated observations do not establish an independent producer layout or native semantic support.",
+    "The complete eight-group dictionary, two-group placeholder and R2000 CLASS pair still need exact source/live binding, output and finalization checks.",
+    "No cross-version output admission or support claim is made. P8-F is reopened for the changed implementation digest pending hosted fast and authenticated native replay."
+  ]
+}

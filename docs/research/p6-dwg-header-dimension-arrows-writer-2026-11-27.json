@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dwg-header-dimension-arrows-writer-2026-11-27",
+  "supportClaimEffect": "none",
+  "authority": [
+    "Open Design Specification for .dwg files v5.4.1 section 9: R2000+ DIMLDRBLK, DIMBLK, DIMBLK1 and DIMBLK2 are hard pointers."
+  ],
+  "implementation": [
+    "Reuse the HEADER reference planner, fixed-width patch and CRC sealing to bind each supplied arrow name to one emitted BLOCK_RECORD after the deferred BLOCK_CONTROL transaction. Empty or absent names retain null semantics; unsupplied fields retain compact null encoding. Reject missing, wrong-kind, ambiguous, malformed or uncommitted targets before patching, and allow corrected retry."
+  ],
+  "generatedScratchOnly": [
+    {
+      "path": "/private/tmp/p6-dimtxsty-writer/arrows.dwg",
+      "sha256": "3a24d298a7749b9002cc21820ade8715a1c38f30b5a74d358ebe8baed0e2138b",
+      "libredwg014": "DIMLDRBLK, DIMBLK, DIMBLK1, DIMBLK2 resolve to P6_LEADER, P6_ARROW, _P6_ARROW1 and P6_ARROW2 respectively."
+    },
+    {
+      "path": "/private/tmp/p6-dimtxsty-writer/arrows-collision.dwg",
+      "sha256": "2bc6ebb5d338d2490652b942c8cad950c45f71798083aab747e5f7e48e0d8b45",
+      "libredwg014": "DIMBLK1 resolves to _P6_ARROW1 despite the distinct P6_ARROW1 block also being present."
+    }
+  ],
+  "validation": [
+    "Generated AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 header, CRC sealing and internal readback tests exercise all four names and absent/null cases.",
+    "Missing target for each field refuses before header mutation; corrected same-writer retry and public destination preservation pass.",
+    "LibreDWG 0.14 independently decodes two locally generated AC1021 controls. No DWG fixtures committed."
+  ],
+  "limits": [
+    "Independent native arrow rendering and cross-version producer semantics are unqualified. The current generated AC1021 baseline does not pass ODA object reader validation; this receipt does not establish ODA reopen.",
+    "Strict AC1024 output still refuses the unclassified producer header suffix; other HEADER and graph dependencies remain open."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-versionless-sparse-material-capture-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "1bc188a918b00d79823b711a90b3a62981f3a65029b16ca82a20c2041db20f93",
+  "scope": "Opted-in raw capture of a versionless MATERIAL with a bounded common prefix and final group 94; no version-dependent meaning is assigned to that group.",
+  "checks": [
+    "PASS: focused sparse-material tests in ASCII and binary. Disabled or missing policy refuses before callbacks; enabled capture retains unknown version, raw code and value without setting typed channel flags.",
+    "PASS: typed output refuses and preserves the destination; a malformed extra field refuses before callbacks, and corrected retry succeeds.",
+    "PASS: the same focused test under AddressSanitizer with leak detection disabled."
+  ],
+  "limits": ["Capture is not semantic qualification or authorization to replay a versionless record; callers must honor the raw-only marker and establish provenance before output.", "The LibreCAD consumer integration and final-head platform checks are separate gates."]
+}

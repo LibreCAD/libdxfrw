@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "date": "2026-11-09",
+  "id": "p7-oda-ac1021-torus-semantic-crosscheck-2026-11-09",
+  "purpose": "Recover the SAT payload from ODA-produced DXF for the selected AC1021 3DSOLID and compare its torus fields and native geometry with the source-derived profile.",
+  "source": {
+    "repository": "dwg-writer",
+    "path": "tests/fixtures/committed/libredwg/atmos_dc22s_2007.dwg",
+    "sha256": "0e3eccc70ea6b82120c77449bb1d1d27ee280a1ed1c0f2e88e31b1db503ca66f",
+    "version": "AC1021",
+    "selectedEntity": "3DSOLID 0x452",
+    "selectedHistory": "0x453",
+    "sourceSabToSatReceipt": "p7-ac1021-inventorloader-sat-parser-crosscheck-2026-11-08.json",
+    "sourceDerivedSatSha256": "4917d971df23651987e01f18cf8635d19dab7ec2c306c910734ba0093641da08"
+  },
+  "odaOutput": {
+    "converter": "ODA File Converter 27.1.0.0",
+    "entities": [
+      {
+        "target": "ACAD2010 DXF",
+        "sha256": "308d858078e18bf3d15408e84890e20b614db0b5a7b2af839c1dbaa760eb62ff",
+        "bytes": 1350178
+      },
+      {
+        "target": "ACAD2007 DXF",
+        "sha256": "b2784b2749540530e71fb3ed8e0ec8093d67cafbd12bdbf19a93a4d3459c06c2",
+        "bytes": 1393572
+      }
+    ],
+    "selectedEntity": {
+      "handle": "0x452",
+      "type": "3DSOLID",
+      "group350History": "0x453",
+      "modelerFormatGroup70": 1,
+      "payloadChunks": {"group1": 17, "group3": 1}
+    }
+  },
+  "payloadRecovery": {
+    "steps": [
+      "Read the selected DXF 3DSOLID and retain group 1 and group 3 strings in order; append group 3 to its continued group-1 line.",
+      "Reverse the DXF caret escape by removing the inserted space in each encrypted '^ ' pair.",
+      "Apply the inverse SAT1 byte transform to each byte above ASCII space: plain = 0x9F - encrypted; preserve bytes at or below ASCII space.",
+      "Join SAT text lines with newline terminators."
+    ],
+    "implementationReference": "LibreDWG 0.14 src/out_dxf.c dxf_3dsolid writes encrypted SAT1, inserts a space after caret bytes, and carries group-3 continuations; src/dwg_api.c dwg_encrypt_SAT1 implements the symmetric 0x9F byte transform.",
+    "acad2010Sat": {
+      "path": "/private/tmp/p7-oda-452-acad2010.sat",
+      "bytes": 1071,
+      "sha256": "361c3aa8c919ff46cacea791d0464878ba8821ef193c79296b9e5ab87730dcfe",
+      "header": "21200 13 2 26",
+      "entityRecordCount": 13,
+      "sawEndOfAcisData": true
+    },
+    "acad2007Sat": {
+      "path": "/private/tmp/p7-oda-452-acad2007.sat",
+      "bytes": 1071,
+      "sha256": "967b29b5248a0e09b802eecf7e99c264bd27717f405c52b837143b1dd395e1d2",
+      "entityRecordCount": 13
+    },
+    "comparison": "The ACAD2007 and ACAD2010 recovered payloads are identical after the first three SAT header lines; the output timestamp differs."
+  },
+  "independentParser": {
+    "project": "ACadRust",
+    "version": "0.6.8",
+    "revision": "7717afb7bdcc0a1b6b2fd0ba5ef6e18dda847f0c",
+    "input": "/private/tmp/p7-oda-452-acad2010.sat",
+    "result": "PASS",
+    "satVersion": "212.0",
+    "records": 13,
+    "validationErrors": 0,
+    "recordSummary": {"bodies": 1, "faces": 1, "lumps": 1, "edges": 0, "vertices": 0, "subshells": 0},
+    "torus": {
+      "center": [1383.6151200595348, 418.50000000000074, 1158.755189492682],
+      "axis": [-0.5014237824134797, -1.6431677767887314e-16, -0.8652018206350235],
+      "majorRadius": 19.0,
+      "minorRadius": 2.7899834596164137,
+      "uDirection": [-0.8652018206350235, -3.8945365021134883e-17, 0.5014237824134797],
+      "sense": "Forward"
+    },
+    "exactFieldMatchToSourceDerivedSat": true,
+    "logSha256": "7df909cc24042fe80126ca855f8a711c345dd4ba7112ffe8fef5d9614091e3de",
+    "limitation": "ACadRust parses and validates fields/topology references but has no B-rep kernel; its summary reports no edges, vertices, or subshells for this loopless torus profile."
+  },
+  "nativeGeometry": {
+    "runtime": "FreeCAD 1.1.4 Part/OpenCASCADE, macOS ARM64",
+    "parser": "Pinned InventorLoader Acis.py revision e94bdf5e29052a0dc7ce6fdf755e956ae507caec; scratch-only compatibility adjustment strips the counted-string '@' before parsing the count; no entity or geometry logic changed.",
+    "inputSatSha256": "361c3aa8c919ff46cacea791d0464878ba8821ef193c79296b9e5ab87730dcfe",
+    "result": {
+      "readText": true,
+      "records": 14,
+      "typedEntities": 13,
+      "bodies": 1,
+      "shellValid": true,
+      "shellClosed": true,
+      "solidValid": true,
+      "solids": 1,
+      "faces": 1,
+      "edges": 2,
+      "vertices": 1,
+      "area": 2092.738510431738,
+      "volume": 2919.352914703419,
+      "centroid": [1383.6151200595348, 418.5000000000007, 1158.755189492682],
+      "bounds": [1364.386302007853, 396.7156937382162, 1146.4447430729351, 1402.8373492054907, 440.28430626178533, 1171.0722248181544]
+    },
+    "receiptPath": "/private/tmp/p7-oda-452-freecad.json",
+    "receiptSha256": "3e3882b24cfe9949b3e6238dc6dd447d0556e5f99dbd43a93151daeb1f3e0a28",
+    "nativeRunExitStatus": 0,
+    "analyticTorus": {
+      "areaRelativeError": 4.128657079598676e-15,
+      "volumeRelativeError": 4.673097403840197e-15,
+      "metricsEqualToSourceDerivedSatCheck": true
+    }
+  },
+  "disposition": {
+    "resolved": "A bounded external-producer semantic cross-check for selected AC1021 3DSOLID 0x452 torus data: ODA exports the entity/history relation; ACadRust independently parses the recovered 21200 SAT and matches the exact torus fields; native FreeCAD/OpenCASCADE reconstructs the same valid torus solid and analytic metrics as the source-derived selected route.",
+    "stillOpen": [
+      "Independent B-rep kernel comparison; InventorLoader and FreeCAD Part use OpenCASCADE.",
+      "Native AutoCAD/ODA modeler acceptance of the exact source DWG and full source graph semantics.",
+      "ACDS/history graph semantics beyond the selected entity and bounded torus profile.",
+      "Other ACIS/ACDS source revisions, carrier versions, transforms, trims, and spline profiles.",
+      "Whole-source strict output and Linux/Windows FreeCAD qualification."
+    ],
+    "supportClaimEffect": "bounded selected-profile evidence only; no broad DWG/DXF/ACIS/ACDS support claim promoted"
+  },
+  "fixturePolicy": "All generated SAT, DXF and logs remain in /private/tmp. Only the already-committed external dwg-writer source was used; no drawing fixture was added to libdxfrw."
+}

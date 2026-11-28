@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Typed DXF OBJECTS record-name retained-budget fast slice",
+  "mode": "Local parser accounting implementation with generated fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Audit OBJECTS typed projections that retain the source record name separately from their raw carrier.",
+    "Charge dynamic-block and AcSh-history record names before copying them into callback-owned typed objects.",
+    "Verify exact retained-byte admission, one-byte-under refusal, and independent raw/typed lease release with scratch-generated ASCII controls."
+  ],
+  "changes": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistrationChanged": false,
+    "persistentDwgDxfFixtureAdded": false,
+    "dependencyChanged": false,
+    "implementation": "processDynamicBlockObject and processAcShHistoryObject now default-construct their typed values, charge nextentity.size() to m_dxfRetainedStringLease before assigning m_recordName, then publish. Dynamic-block kind classification follows the admitted name assignment. Admission or allocation failures return BAD_CODE_PARSED before callbacks.",
+    "sourceAudit": "The adjacent associative-object constructor-time record-name gap was fixed in the preceding slice. The audited typed OBJECTS constructors that duplicate nextentity into m_recordName are now associative, dynamic-block, and AcSh-history paths. This receipt covers the latter two; generic typed/raw processors without a retained record-name member were not mass-rewritten.",
+    "generatedTest": "The focused selector constructs BLOCKVISIBILITYPARAMETER and ACSH_HISTORY_NODE OBJECTS records in memory. For each it finds the minimum successful budget, checks the aggregate raw carrier plus typed-name lease, releases raw callback storage and confirms the typed name remains charged, then releases the typed value and confirms zero charge. One byte below the threshold must produce ResourceLimit/dxf-retained-byte-budget before typed or raw callback publication."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "passed"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/libdxfrw_hardening_tests --dxf-typed-object-name-retained-budget",
+      "result": "passed"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "result": "passed 1/1"
+    },
+    "fullTestSuite": "not run",
+    "scopedDiffCheck": "passed"
+  },
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "4ca5ff7f2edb2bb151286827ba94c72cb6c4f296b83f192483a1c5e931b7fefb",
+    "findings": 139,
+    "topLevelSubplans": 77
+  },
+  "nonClaims": [
+    "The parser lease accounts logical retained string bytes for these destinations, not allocator capacity or RSS.",
+    "The slice does not account every duplicate callback/output copy in the parser operation lease and does not complete the 7S.2c retained-output census.",
+    "No DWG/DXF support claim is promoted.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting.",
+    "The shared worktree is extensively dirty; no staging or commit occurred."
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-assocnetwork-libredwg-dxf-projection-2026-11-10",
+  "date": "2026-11-10",
+  "status": "PEER_DXF_PROJECTION_CROSSCHECK_ONLY",
+  "supportClaimEffect": "none",
+  "scope": "Record LibreDWG's DXF projection for two hash-bound AC1032 ACDBASSOCNETWORK objects to clarify candidate group-code and action-role mapping.",
+  "source": {
+    "path": "/Users/dli/dev/libredwg/test/test-data/example_2018.dwg",
+    "sha256": "7bc7721224003062b237845842b7a976e46771c37eba6833b9ed3712e7a5a65a",
+    "headerVersion": "AC1032",
+    "producerProvenance": "Not established; sample is in the LibreDWG repository."
+  },
+  "peerSchemaSource": {
+    "repository": "LibreDWG",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "path": "src/dwg2.spec",
+    "sha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "classification": "ASSOCNETWORK is marked STABLE in src/objects.in at the same revision.",
+    "fieldOrder": "AcDbAssocAction fields; AcDbAssocNetwork network_version, network_action_index, num_actions, actions with owned-dependent DXF/reference roles, then num_owned_actions and owned_actions.",
+    "limitation": "Peer implementation evidence; it is not the ODA normative specification or independent producer provenance."
+  },
+  "conversion": {
+    "tool": "GNU LibreDWG dwgread 0.14",
+    "binary": "/opt/homebrew/bin/dwgread",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -O DXF -o /private/tmp/libdxfrw-network-oda/libredwg-2018.dxf /Users/dli/dev/libredwg/test/test-data/example_2018.dwg",
+    "exitStatus": 0,
+    "dxfHeaderVersion": "AC1032",
+    "dxfSha256": "6cf320c163bbf5d29f475bf2038fcdc517db1361a0094a0b9980318931d3e0f7",
+    "fixturePolicy": "Source DWG and generated DXF stayed in their existing repository and /private/tmp respectively; no fixture was copied into libdxfrw."
+  },
+  "observations": [
+    {
+      "handle": "0x390",
+      "physicalOwnerDictionary": "0x38F",
+      "baseActionIndex": 0,
+      "owningNetwork": 0,
+      "networkVersion": 0,
+      "networkActionIndex": 1,
+      "logicalActions": [{"dxfGroup": 330, "handle": "0x38E", "role": "soft pointer"}],
+      "ownedActions": [],
+      "group90Sequence": [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0]
+    },
+    {
+      "handle": "0x38E",
+      "physicalOwnerDictionary": "0x38D",
+      "baseActionIndex": 1,
+      "owningNetwork": "0x390",
+      "networkVersion": 0,
+      "networkActionIndex": 1,
+      "logicalActions": [{"dxfGroup": 360, "handle": "0x391", "role": "hard owner"}],
+      "ownedActions": [],
+      "group90Sequence": [2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0]
+    }
+  ],
+  "interpretation": {
+    "boundedFinding": "The DXF output makes the candidate base/network indexes and the 0x390->0x38E soft action versus 0x38E->0x391 hard-owned action distinction explicit. These values agree with the existing AC1032 physical-candidate receipt.",
+    "notEstablished": [
+      "The DXF projection and stable schema are from the same peer implementation and do not provide independent semantic confirmation.",
+      "The sample producer and native AutoCAD/ODA acceptance are unknown.",
+      "The complete owner/action/dependency graph and a qualified libdxfrw AC1032 writer route are not established."
+    ]
+  },
+  "odaAttempt": {
+    "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/libdxfrw-network-oda/in /private/tmp/libdxfrw-network-oda/out ACAD2013 DXF 0 0",
+    "result": "The process aborted during Pasteboard/XPC initialization before document processing.",
+    "evidenceUse": "Operational availability only; no format or conversion conclusion. Do not retry the unchanged CLI route until the desktop session state changes."
+  },
+  "decision": "Use this receipt only as a peer output mapping aid. Retain m_networkFieldsParsed=false and the AC1032 associative writer/output refusal until eligible producer, native acceptance, and full graph/dependency evidence are available."
+}

@@ -1,0 +1,118 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Open-source ACIS candidate admission and native-tool boundary",
+  "mode": "Primary-source project documentation and issue-status research",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Screen additional open-source CAD/kernel and viewer projects for implemented ACIS SAT/SAB parsing and semantic evidence.",
+    "Separate open-source code, proprietary parser components, format matrices, wireframe projections, and geometry-kernel validation.",
+    "Refine the existing PAR-07/S8 optional candidate gate without changing local implementation order or adding routine dependencies."
+  ],
+  "sources": [
+    {
+      "project": "CADKernel",
+      "urls": [
+        "https://github.com/kernalix7/CADKernel"
+      ],
+      "revision": "Mutable README and format matrix reviewed 2026-10-20; no commit or executable was pinned.",
+      "observed": "The project README advertises broad format coverage, while its ACIS SAT/SAB matrix entries for read and write are unchecked.",
+      "limits": "A README matrix is project-authored scope evidence, not implementation or a successful parse. The route was not built or run."
+    },
+    {
+      "project": "cad-viewer proprietary parser disclosure",
+      "urls": [
+        "https://github.com/mlightcad/cad-viewer/blob/main/PROPRIETARY-PARSER.md"
+      ],
+      "revision": "Mutable disclosure reviewed 2026-10-20; no licensed parser package or executable was accessed.",
+      "observed": "The disclosure separates the open-source viewer from a proprietary DWG parser. It describes partial 3DSOLID/SAB decoding and best-effort wireframe or bounding-box output, and identifies the default open-source DWG route as LibreDWG-based.",
+      "limits": "The proprietary path is not an open-source implementation; wireframe/bounds do not establish B-rep semantics. No parser was installed or run."
+    },
+    {
+      "project": "Open Cascade CAD Assistant and commercial components",
+      "urls": [
+        "https://www.opencascade.com/products/cad-assistant/",
+        "https://www.opencascade.com/open-cascade-platform-components-are-updated-2/"
+      ],
+      "revision": "Official product page and component announcement reviewed 2026-10-20; product page identifies CAD Assistant v1.6.0 dated 2021-10-05 and an OCCT 7.7.0 component announcement dated 2022-11-21.",
+      "observed": "The official pages identify ACIS SAT/SAB import as provided through commercial Open Cascade components and state that models imported using commercial components cannot be exported or converted.",
+      "limits": "This is not an open-source ACIS reader API or an automated per-body validation result. The product and component were not installed or run."
+    },
+    {
+      "project": "LibreDWG issue #1411 and NEWS",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Issue status and mutable NEWS reviewed 2026-10-20.",
+      "observed": "Issue #1411 is open without an assignee or linked branch/PR at review time and provides a locally generatable AC1032 REGION/SAB carrier-loss discriminator. NEWS describes AcDsPrototype_1b extraction as incomplete/heuristic.",
+      "limits": "The issue's private AutoCAD sample was not available, and its reproduction was not run. Peer issue reports and project notes are not an independent ACIS semantic result."
+    },
+    {
+      "project": "Existing candidate documentation cross-check",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://docs.rs/crate/cadmpeg-asm/0.6.1",
+        "https://github.com/monozukuri-ai/cq-acis/tree/e05a8f470d2f6799277f7b7df467d2fc35625889"
+      ],
+      "revision": "Current ezdxf stable documentation, cadmpeg-asm 0.6.1 docs, and the previously pinned cq-acis 0.3.12 source commit were reviewed 2026-10-20.",
+      "observed": "ezdxf documents limited known ACIS support and no kernel. The existing plan's cadmpeg and cq-acis candidates remain bounded, separately implemented bare-SAB routes with distinct neutral-B-rep and OCCT-backed evidence ceilings.",
+      "limits": "Documentation does not prove runtime acceptance or independence of source/test data. Exact profile checks, lineage review, and actual results remain required at the composed checkpoint."
+    }
+  ],
+  "assessment": {
+    "newEligiblePeerLineages": 0,
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: explicitly exclude unimplemented ACIS matrices, proprietary/derivative DWG routes, and wireframe/bounding-box projections from open-source semantic-witness admission.",
+      "PAR-07/S8: retain cadmpeg-asm and cq-acis as bounded optional bare-SAB candidates; require exact profile, source lineage, payload hash, and body-level results.",
+      "External validation cadence: allow already-available CAD Assistant only as supplemental manual observation; do not add commercial components or native app requirements to local slices."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-open-source-acis-candidate-admission-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a source-backed candidate screen distinguishing CADKernel's unchecked ACIS matrix, cad-viewer's proprietary/LibreDWG-derived paths and partial wireframe fallback, and CAD Assistant's commercial ACIS component from open-source parser/kernel evidence.",
+    "Recorded LibreDWG issue #1411's current open/no-linked-fix status and kept its scratch-generated case as a carrier-loss discriminator rather than semantic proof.",
+    "Made exact-profile bare-SAB checks and lineage review the only admitted automated optional semantic routes in this candidate screen; limited CAD Assistant to supplemental manual evidence if already installed and authorized.",
+    "Preserved local implementation order, fast-test cadence, no-external-fixture policy, and all six DEFERRED_EXTERNAL support gates."
+  ],
+  "limitations": [
+    "All evidence is primary-source documentation or issue status, not peer runtime validation.",
+    "Mutable project pages were not pinned to repository commits unless a pinned source artifact already existed in the plan.",
+    "No product, proprietary parser, kernel, or peer executable was installed or run.",
+    "No external DWG/DXF sample was downloaded or added to the repository.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on the plan; no trailing whitespace in receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

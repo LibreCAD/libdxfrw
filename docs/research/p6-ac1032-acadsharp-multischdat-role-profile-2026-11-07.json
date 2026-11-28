@@ -1,0 +1,70 @@
+{
+  "receipt": "p6-ac1032-acadsharp-multischdat-role-profile-2026-11-07",
+  "date": "2026-11-07",
+  "scope": "Support the observed AC1032 DataStorage schema-table-role profile whose schema roots and unknown-property headers are split across two schdat segments. This is section parsing evidence, not ACIS/SAB semantics or 3D support qualification.",
+  "source": {
+    "path": "/Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+    "sha256": "0e8faaca949c9429c92240082d9ea4d3524aca5baf7c7815ec439245c321b528",
+    "provenance": "Tracked ACadSharp sample; the copy under /Users/dli/doc/dwg5 has the same SHA-256."
+  },
+  "format_authority": {
+    "name": "ODA Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "§24.2.2.5 describes the first schidx table as unknown-property references and the second as schema-property references; the parser retains the separately observed AC1027-origin reversed-role profile only when its bounded references are self-consistent."
+  },
+  "independent_peer": {
+    "tool": "LibreDWG dwgread 0.14",
+    "binary_sha256": "536eef295f1dfdc1c30505908e3b696a70091dbce7fb50dec52ad7b4db6cb32a",
+    "minjson_command": "dwgread -O minJSON /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+    "minjson_sha256": "a2dfb28588c0e0066349ef12a65f91bdbf5f4f85cb33cfbe54d543621ea4f176",
+    "trace_command": "dwgread -v4 -O minJSON /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg",
+    "trace_sha256": "516631a9a3478cb1140ae7f0a4230b94175d9a70a5292762b8b7dbfce0d7f282",
+    "observations": {
+      "file_schema_index_segment": 630,
+      "schema_unknown_property_count": 6,
+      "schema_property_entry_count": 8,
+      "schema_root_entries": [
+        {"index": 0, "segment": 5, "local_offset": 32},
+        {"index": 1, "segment": 5, "local_offset": 96},
+        {"index": 2, "segment": 5, "local_offset": 114},
+        {"index": 3, "segment": 5, "local_offset": 132},
+        {"index": 4, "segment": 5, "local_offset": 150},
+        {"index": 5, "segment": 631, "local_offset": 32}
+      ],
+      "schema_data_segments": [
+        {"index": 5, "offset": 1920, "size": 384, "system_data_alignment_offset": 14},
+        {"index": 631, "offset": 1408, "size": 256, "system_data_alignment_offset": 9}
+      ],
+      "unknown_property_headers": "Eight references target local offsets 0, 8, 16, and 24 in each schema-data segment."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_datastorage.cpp",
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "behavior": "The existing reversed-table-role detector now validates roots and unknown-property headers per referenced schdat segment, including segment kind, contiguous eight-byte header offsets, per-segment schema-root ordering, and the schema-data alignment boundary. The multi-schdat form is admitted for AC1032 only; the earlier single-schdat AC1027/AC1032 profile remains covered. Malformed roots remain structurally invalid and do not select compatibility."
+  },
+  "validation": {
+    "generated_control": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_datastorage_bounds$' --output-on-failure",
+      "result": "PASS, 1/1",
+      "coverage": [
+        "two-schdat AC1032 reversed-role profile parses both schemas and both sets of unknown-property headers",
+        "out-of-segment root is rejected without selecting compatibility",
+        "the same multi-schdat profile is not enabled for AC1027"
+      ]
+    },
+    "physical_reader_recheck": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1032.dwg -y -d -v2018 /private/tmp/sample_AC1032-after-multischdat-final.dxf",
+      "executable_sha256": "cf625f8d3126ad5bc602b78b25175aeb9fd89e1a6550e74f8b5f07518e52956a",
+      "trace_sha256": "d11e551842d9e59843379fb9a27cfb3605d9535738c20996f1ae7ecf4a6136b2",
+      "before_trace_sha256": "6c8a9ed8b047166199e928e2f643a0c7e81ad3e37fc64aa29dde17e32e85b038",
+      "before": "DataStorage rejected with 14 schema unknown-property offset diagnostics; read stopped at DWG error 9 and 0/842 source frames were published.",
+      "after": "DWG read operation succeeds, publishes 837/842 observed frames, has zero entity parse failures and five object parse failures, and reports zero DataStorage link failures or orphan records.",
+      "next_gate": "Strict DXF output still refuses before serialization because IMAGEDEF/reactor source capture or immutable-payload correlation fails. The sample also has five object parse failures. No complete conversion or 3D semantic claim follows."
+    },
+    "fixture_policy": "The ACadSharp DWG was used read-only and was not copied into this repository. The generated two-segment vector is created in memory by the existing focused CTest."
+  }
+}

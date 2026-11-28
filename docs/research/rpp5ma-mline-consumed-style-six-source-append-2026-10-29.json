@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5ma selected append from a six-element consumed MLINESTYLE",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_QUALIFIED",
+  "codeCommit": "82733d28f79a4db98163d2656c8530c5788ae439",
+  "scope": "Adds runtime-generated AC1027 evidence for appending one tuple to a consumed six-element MLINESTYLE, producing seven elements. The generalized consumed-style append writer is unchanged; this receipt qualifies this exact source-count profile only and makes no claim for other counts, native semantics or whole-document support.",
+  "references": [
+    {
+      "authority": "Autodesk DXF Reference, MLINE",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "use": "Group 73 is the MLINESTYLE element count; group 74 gives repeated per-vertex parameter counts; group 41 carries parameters, while group 75/42 carry area-fill counts and values."
+    },
+    {
+      "authority": "Autodesk DXF Reference, MLINESTYLE",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "use": "Group 49 carries MLINESTYLE element offsets. Projection remains limited to the selected flags and angle profile."
+    }
+  ],
+  "contract": {
+    "admission": "The runtime-authored original source has six MLINESTYLE elements with offsets [1.25,-0.75,-1.25,-2.0,-2.5,-3.0], ACI [1,3,4,5,6,7] and linetypes [ByLayer,Continuous,ByLayer,Continuous,ByLayer,Continuous]. It is consumed by two source-bound ordinary MLINEs. The target appends exactly one tuple (-3.5, ACI 8, ByLayer), yielding seven elements. Source and target flags are 2 with equal angles. The original style, dictionary/provider graph and consumers remain bound; both consumers are open, uncut and unfilled.",
+    "geometry": "The generated six-element AC1027 source recalculates every source MLINE group-41 pair against source minimum -3.0. The transaction appends one tuple and recomputes all seven per-vertex parameter pairs against target minimum -3.5. Consumers have three vertices, positive finite scale, center/bottom justification, unit extrusion and source-consistent positions, directions and miters. Each segment pair has zero second value, group 42 is absent and group-75 counts are zero.",
+    "identityAndOutput": "The MLINESTYLE retains its source name and emits group 71 = 7, all seven group-49 offsets, the style flag color plus seven element ACI values, and seven element linetype names. Unique ByLayer and Continuous LTYPE providers are checked under the LTYPE TABLE with handles and owners. Both MLINE consumers retain source names and group 340 to the emitted style handle; each emits group 73 = 7, twenty-one group-74 values of 2, forty-two group-41 values, twenty-one zero group-75 values and no group 42. Fresh import verifies all seven style tuples and both consumer parameter arrays, geometry vectors, scale and extrusion in model space and a named block.",
+    "failureAndRetry": "An unsupported style flag refuses before publication and preserves the destination and caller snapshot; restoring the supported flag allows same-adapter retry. A late mutation to a live consumer parameter refuses before publication; restoring the captured caller state allows same-adapter retry. Both failure classes are exercised with ASCII and binary output. Successful profiles cross ASCII/binary source and ASCII/binary output.",
+    "compatibility": "No public API or DRW_Interface virtual changes. Inputs and outputs are authored at runtime from scratch and removed after success; no DWG/DXF fixture files are committed.",
+    "limits": "This receipt covers AC1027 source count 6 to target count 7 with the exact generated tuples, flags, angles and two open, uncut, unfilled consumers. It does not qualify other source counts or append cardinalities, removals, composed edits, other MLINE schemas/carriers/versions, native CAD rendering, document closure or independent 3D semantics. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII AC1027 output",
+      "ASCII source -> binary AC1027 output",
+      "binary source -> ASCII AC1027 output",
+      "binary source -> binary AC1027 output"
+    ],
+    "tupleAndProjection": "The output offsets are [1.25,-0.75,-1.25,-2.0,-2.5,-3.0,-3.5], colors [1,3,4,5,6,7,8], linetypes [ByLayer,Continuous,ByLayer,Continuous,ByLayer,Continuous,ByLayer]. Source and output consumer parameters are checked against their respective complete offset minima.",
+    "failureAndRetry": "Four successful source/output profiles and eight readbacks; two unsupported-flag refusals and two late-consumer-mutation refusals; corrected same-adapter retries succeed in both output encodings. No external fixture is stored."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "toolchain": "CMake 4.4.4, Unix Makefiles, Apple Clang 21 via /usr/bin/g++"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "summary": "4/4 source-count append selectors passed for counts 3, 4, 5 and 6; the new six-to-seven selector verified exact output/readback, cross-encoding profiles, destination/caller rollback, and same-adapter retries.",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_(three|four|five|six)_source_append$' --output-on-failure"
+    },
+    "diffCheck": "git diff --check; PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "sixElementRecipe in tests/dxf_fixture_tests.cpp extends the authored five-element AC1027 recipe at runtime, adds one group-49/group-62/group-6 tuple and recomputes the six source group-41 pairs per vertex.",
+    "implementationCommit": "82733d28f79a4db98163d2656c8530c5788ae439",
+    "tests/dxf_fixture_tests.cpp": "f2099c4874006e1629c419fbe66d02054abda4cdea0117dbf49d79c952acdf15",
+    "tests/CMakeLists.txt": "3538013035596f824e873fbfd2b9ef132162530574f2bf10baac18f48bed83ea",
+    "testExecutableSha256": "24cf789b355f81c2f6fc2b34734c7fce9cee110335f4c14cda8d9d7e6e337cd9"
+  },
+  "next": "Qualify the next distinct ready source-backed geometry, schema or provider profile. The adjacent consumed-style append candidate is source count 7 to target count 8; keep other count combinations, geometries and semantic claims separate."
+}

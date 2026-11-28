@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-10",
+  "purpose": "Locate an independently sourced AutoCAD 2010 AC1024 drawing for investigation of the historical CLASSES failure.",
+  "status": "candidate_leads_only_no_dwg_bytes",
+  "leads": [
+    {
+      "name": "Aztec/Mayan Sun Stone",
+      "author_claim_source": "https://shaanhurley.wordpress.com/2009/11/23/the-aztec-mayan-calendar-2012/",
+      "claim": "Author states he created the drawing in AutoCAD 2010 and provides the original drawing URL in the comments.",
+      "original_dwg_url": "http://autodesk.blogs.com/Aztec%20calendar%20hatched.dwg",
+      "date": "2009-11-23",
+      "retrieval": "HTTP and HTTPS curl attempts returned HTTP 403 with 5195 response bytes; neither response was a verified drawing. Internet Archive wildcard CDX request returned an empty list; exact URL CDX request timed out.",
+      "limits": "The exact AutoCAD 2010 build, DWG bytes, version signature, hash, integrity, and reader outcome are unverified."
+    },
+    {
+      "name": "Budweiser2010",
+      "publisher": "https://www.cadforum.cz/en/budweiser.asp",
+      "historical_announcement": "https://budweiser.cadstudio.cz/2009/07/",
+      "download_listing": "https://www.cadforum.cz/en/download.asp?fileID=955",
+      "drawing_url": "https://www.cadforum.cz/dl/budweiser2010.dwg",
+      "archive_url": "https://www.cadforum.cz/dl/budweiser.zip",
+      "claim": "Publisher describes a benchmark created using plain AutoCAD; its July 2009 release is listed as DWG 2010. The current page also mentions objects from 2011, so current bytes need dated identity and build verification.",
+      "retrieval": "Publisher direct DWG and ZIP URLs returned HTTP 404 with 3624 bytes through local network route. The web tool encountered a cache miss for the DWG and unsupported binary content type for the ZIP; binary content and identity were not independently obtained.",
+      "limits": "No version signature, hash, actual producer build or reader outcome verified."
+    },
+    {
+      "name": "bike_20.dwg",
+      "listing": "https://www.cadforum.cz/catalog_en/?q=autocad+2010",
+      "claim": "Catalog describes drawing as made with AutoCAD 2010 and dates it 2009-06-04.",
+      "limits": "Catalog indicates registration required and prohibits redistribution; file, hash, exact producer build and reader result remain unverified."
+    }
+  ],
+  "conclusion": "These candidates do not reproduce or disprove the historical CLASSES failure. Retry only with retrievable original or archived bytes and preserve hash, provenance, source integrity and exact current reader diagnostics. Do not add external files as repository fixtures."
+}

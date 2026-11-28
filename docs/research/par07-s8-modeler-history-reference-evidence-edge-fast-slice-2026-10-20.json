@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-07/S8 modeler history-reference evidence edge",
+  "mode": "Generated fast adapter/validator slice; no native consumer or peer comparison",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Capture the MODELER_GEOMETRY history handle as an explicit graph relation in semantic adapter results.",
+    "Reject history-reference graph edges that are absent, duplicated, target a different handle, occur for a null history handle, or attach to a non-modeler record.",
+    "Keep history-edge capture separate from target-object resolution, history-graph closure, and B-rep semantic validity."
+  ],
+  "implementation": {
+    "adapter": "SemanticSink::addModelerGeometry emits a historyReference edge to ensureHandleNode(m_historyHandle) when the handle is nonzero.",
+    "validator": "Schema-3 validation binds the typed historyHandle field to exactly one matching historyReference edge and handle node; zero handles require no such edge.",
+    "negativeControls": [
+      "missing nonzero history edge",
+      "duplicate history edge",
+      "edge to a different handle",
+      "history edge for null handle",
+      "history edge on a non-modeler record"
+    ],
+    "resolutionBoundary": "The edge preserves an observed handle relation. Matching it against record sourceHandle values can identify whether a target record was captured, but no target class is required here and this receipt makes no graph-closure or semantic claim."
+  },
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: separate modeler carrier payload disposition from the group-350 history handle and its graph edge",
+      "7F.1b: validate the adapter's modeler history relation in the evidence graph"
+    ],
+    "productionCodeChanged": false,
+    "testHarnessCodeChanged": true,
+    "resultObjectKeysChanged": false,
+    "resultCardinalityChanged": false,
+    "graphEdgeVocabularyExtended": true,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "kind": "Local generated tests and code inspection",
+    "localFromScratchDataOnly": true,
+    "externalFixturesUsed": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/par07-s8-modeler-history-reference-evidence-edge-fast-slice-2026-10-20.json"
+    ]
+  },
+  "validation": {
+    "runQualifiedDifferentialSelfTest": "PASS",
+    "pythonSyntaxCompilation": "PASS",
+    "semanticAdapterSelfTest": "PASS (locked target and fresh standalone builds)",
+    "scopedDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  },
+  "limitations": "The synthetic handle is evidence-plumbing input, not a valid ACIS/ACDS graph or format fixture. A historyReference graph edge preserves the observed handle but does not prove that an object with that handle exists, that it has the expected class, or that the history graph is closed. Native FreeCAD/LibreCAD/kernel and independent semantic qualification remain external gates."
+}

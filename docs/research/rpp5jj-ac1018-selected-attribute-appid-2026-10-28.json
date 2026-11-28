@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P4 selected AC1018 ATTRIB APPID source provider",
+  "date": "2026-10-28",
+  "codeCommit": "a14ac5ca2bb79997535b3c83b2ef5470052d00d8",
+  "scope": "Private on-demand source-only provider lookup for the selected AC1018 INSERT/ATTRIB/SEQEND profile whose ATTRIB has original group-1001 AcDbAttr. It requires the existing same-import BLOCK_RECORD/331/INSERT source relation and returns only the unique matched original APPID handle under an explicit ASCII-fold policy.",
+  "contract": {
+    "operation": "Rebind the selected physical ATTRIB profile to its original group-1001 spelling, census every original APPID record in the single selected TABLES section, and check table ownership, self identity, subclass and unique outer group-2 name. Unknown selected-table row types, foreign-scope APPID records, invalid/non-ASCII names and ambiguous matches refuse.",
+    "resource": "Precharge the earlier source relation and APPID census under separate conservative halves of work and byte limits; failed evidence or quota returns no provider. One repeated self admission is required only for the observed captured raw+typed APPID route.",
+    "unqualified": "Native name collation, application-specific 1070 semantics, LAYER/XDICTIONARY/target graph, output and support claims."
+  },
+  "sourceBindings": {
+    "adapterSourceSha256": "acebe85b549a3669fc51ad3ccac405f8c248f3607d7ae0e372dbfe995fdd3a82",
+    "adapterHeaderSha256": "32bfa5e3e40732b9dd30078ee6b326bd28c350014b5183322f9511a50ef89448",
+    "testSourceSha256": "48ecd42140ddb3e25bb0790c5935bab05f80150ebd99f1b1d0274a6c3cf2cf13",
+    "normalAdapterObjectSha256": "5f1072d4c18937cf4d64850f86b0af3fde58b534c316d9160b02aaef016d9c67",
+    "normalLibrarySha256": "12e971994cf8c7ff7dc63fc2f190ae0ed575a7e46407a67570f4b80abefa0214",
+    "normalTestExecutableSha256": "133ea64a6e3336bf993eb3c60e5012f6d546a9aebe06a6fbbcc897dd39efd2ab",
+    "asanAdapterObjectSha256": "599f1ebe24bfede1a7fef23c2961cf67dd3e171b7fdabc90076ff021be97e264",
+    "asanLibrarySha256": "470a3cf789dabd460281880b22933e335a60e01b8eb58281ff27aeb012d29e57",
+    "asanTestExecutableSha256": "dab1ff2bbd8fb6f71db521d6d6a36a01706226e2468b26c537239cf605100a59"
+  },
+  "validation": {
+    "normal": {
+      "selectors": [
+        "libdxfrw_legacy_blockref_relation",
+        "libdxfrw_legacy_entities_compound_join",
+        "libdxfrw_whole_source_capture"
+      ],
+      "result": "PASS 3/3"
+    },
+    "asan": {
+      "selectors": [
+        "libdxfrw_legacy_blockref_relation",
+        "libdxfrw_legacy_entities_compound_join",
+        "libdxfrw_whole_source_capture"
+      ],
+      "result": "PASS 3/3",
+      "options": "halt_on_error=1:detect_leaks=0"
+    },
+    "focusedControls": "Generated ASCII/binary: missing and duplicate APPID tables, duplicate provider handles, exact/case duplicate names, invalid/non-ASCII names, wrong owner and foreign-scope APPID, altered/absent/duplicate/wrong-scope ATTRIB 1001, whole-source/context substitutions, exact/one-under budgets and same-adapter fresh-data retries. These mutations show no provider through the complete route; they do not independently prove that every mutation reaches the final census helper. Unknown selected-table row handling is exercised with a synthetic owner-consistent census; it is not an accepted physical unknown-row witness.",
+    "chronology": "Final shared normal/ASan ran the frozen committed code; independent original/duplicate probes were refreshed against rebuilt shared normal adapter/library."
+  },
+  "independentPeer": {
+    "version": "ezdxf 1.4.5",
+    "reportPath": "build/p4-appid/peer.json",
+    "reportSha256": "af29001d757435da5920971d38d2facbaabd1d581feae36a4c7c493710534b46",
+    "reportScriptSha256": "9647170a8860b6e46cf6a18e4a5f810e58d24fcc9ce6fce9024c5a73a69725ec",
+    "sharedLinkedProbeSha256": "d0a2310fe8a0c1a10394e1865e1a1c3051f1ab5459dd81c69b46a26359bd5f9f",
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "sampleCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+    "originalSourceSha256": "71117bafa8f0d9816607768c8fb21676c83f99892c537711a68c24aa7e06e798",
+    "derivedSourceSha256": "b7a45dcb593f71ca5d7fc4e754319ab318e2240fdc2dced066307ae273406df3",
+    "derivation": "Locally change only an unrelated APPID group-2 name MY_APP to acdbattr.",
+    "originalStdoutSha256": "002ec35755a0370b790a804b7d6fa21eba564cbbb07fbab75324a99d1bd5f2a2",
+    "duplicateStdoutSha256": "4e91169a5a01813207077994a21b9db9d42a060bc549d4ebb9037af93b28fc14",
+    "observations": "Independent pre-setup physical projection finds ATTRIB 705 group 1001 AcDbAttr, 41 APPID records, and one matching group-2 name at handle 1457 owner TABLE 9. The local derivative has two ASCII-folded matches. The actual shared-linked probe finds a provider only for the original while the earlier source relation and block-name census remain true in both."
+  },
+  "references": [
+    {
+      "title": "Autodesk APPID DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-6E3140E9-E560-4C77-904E-480382F0553E.htm"
+    },
+    {
+      "title": "Autodesk extended data DXF",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm"
+    }
+  ],
+  "limitations": [
+    "This selected ASCII case-fold policy is not a native name-collation certificate, and unqualified names fail closed.",
+    "The provider proof does not interpret 1070 values or resolve remaining BLOCK, LAYER, XDICTIONARY, document graph or output.",
+    "Independent source/native semantics remain unqualified; neither the sample nor the local derivative is committed."
+  ]
+}

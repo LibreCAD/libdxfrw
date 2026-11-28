@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE group-176 textAlignmentType",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "1b497d99ac6627de187fc8ef6272279ee6d96295",
+  "scope": "One runtime-authored AC1027 DXF source with a root-reachable STANDARD MLEADERSTYLE record. It contains one group-176 INTEGER textAlignmentType value 0 and groups 174/175/178 set to 0. The selected transaction changes only textAlignmentType from 0 to 2; all other encoded style values remain unchanged.",
+  "fieldEvidence": {
+    "groupCode": 176,
+    "field": "textAlignmentType",
+    "fieldRoleSource": "Autodesk AutoCAD DXF Reference, MLEADERSTYLE group-code table identifies code 176 as Text Alignment Type",
+    "fieldRoleUrl": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "valueDomainSource": "Autodesk AutoCAD 2008 ActiveX API history lists AcTextAlignmentType values: left=0, center=1, right=2",
+    "valueDomainUrl": "https://help.autodesk.com/cloudhelp/2023/JPN/AutoCAD-ActiveX/files/GUID-95D92244-7CC8-46A7-88AB-C5755EF779FE.htm",
+    "classification": "Authoritative Autodesk DXF field-role and enum-domain corroboration plus authored adapter transaction evidence; not independent producer or native annotation acceptance"
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. The selected record must be reachable through the validated ACAD_MLEADERSTYLE dictionary, have one source-matched raw body and immutable source baseline, and contain exactly one existing group-176 INTEGER corresponding to parsed textAlignmentType. The target value must be in the documented enum range 0..2. textAlignmentType must be the only changed typed payload field; identity, common fields, handles, application data, extension data and all other encoded style fields must match the source.",
+    "projection": "Replace only the existing physical group-176 value in a copy of the captured raw body. Preserve all other ordered fields and opaque groups. Missing/repeated group 176, conflicting raw changes, simultaneous edits, values outside 0..2, unknown subclass grammar and non-AC1027 routes remain outside this transaction.",
+    "outputAndReadback": "Inspect staged OBJECTS output against retained raw fields and mapped handles, then decode the emitted MLEADERSTYLE and require textAlignmentType to equal 2 while textAngleType remains 0. Fresh readback checks the typed value and exactly one literal group-176 INTEGER value 2. Both source encodings are exercised, with same-format output and ASCII/binary cross-format output.",
+    "failureAndRetry": "Changing captured raw group 176 from 0 to 1 while typed textAlignmentType requests 2 refuses and preserves a sentinel destination. Value 3 also refuses atomically. Restoring the original raw body and requesting valid value 2 permits same-adapter retry. Exact output and fresh-readback checks pass after retry.",
+    "compatibility": "Untouched MLEADERSTYLE records keep existing raw replay. Transactions are not admitted for other source or target versions or multiple changes on one record. DWG-origin writing is unchanged. Test sources and outputs are authored at runtime in a temporary directory and removed; no drawing fixture is committed."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp emits groups 174=0, 175=0, 176=0 and 178=0 in the STANDARD source; ASCII and binary source files are generated locally from scratch at test runtime.",
+    "implementationCommit": "1b497d99ac6627de187fc8ef6272279ee6d96295",
+    "dwg2dxf/dx_iface.cpp": "b06f2f87ee403b3127e1ae8ed2482e40648fa403813f557a66e058e89cc0e221",
+    "tests/dwg2dxf_adapter_tests.cpp": "811bbdde4c4a1a31f0bbf66e8eee7aa847e08ecdd32a8c6ae55cb50f10d37d2e",
+    "adapterTestExecutableSha256": "0f28e736de6eca2c4cc18c420c7f9cd3d3ca3a024c23dc4cc1862f3605c07329"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "Configured build-gcc; CMake 4.4.4, Unix Makefiles, Apple Clang 21.0.0 via /usr/bin/g++, -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_fail_closed)$' --output-on-failure",
+      "summary": "2/2 passed. The authored group-176 profile proves exact output/readback for ASCII and binary sources, same-format and cross-format output, raw-conflict rollback, invalid enum refusal, and corrected same-adapter retry."
+    },
+    "diffCheck": "git diff --check; PASS before implementation commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "Evidence qualifies one authored AC1027 text-alignment transaction only. It does not prove independent producer variation, native annotation placement/rendering, cross-version support, DWG editing, consumer acceptance or complete document closure.",
+    "The support ledger remains closed; no format support claim is promoted."
+  ],
+  "next": "Select a distinct current P2 source-backed geometry, schema or provider witness. Preserve the bounded enum range and AC1027-only admission."
+}

@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Broader open-source peer representation versus 3D semantics and geometry wire gates",
+  "mode": "Primary-source web research and read-only local plan/test-surface audit",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Compare open-source DWG/DXF peer representation, ACIS interpretation, mesh extraction, and downstream rendering boundaries.",
+    "Reconcile those limits with Autodesk entity distinctions and current FreeCAD importer source.",
+    "Refine existing PAR-07/S8 and 3D geometry-family implementation ordering without adding redundant findings, dependencies, or test lanes."
+  ],
+  "sources": [
+    {
+      "project": "LibreDWG public API and object classification",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/refman/dwg__api_8h_source.html",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c"
+      ],
+      "revision": "Public API documentation and mutable master source accessed 2026-10-20",
+      "observed": "The API exposes typed 3DFACE/3DSOLID structures and current helper code classifies 3DSOLID plus selected REGION/BODY/modeler-related object types. This is useful DWG representation/dispatch evidence.",
+      "limits": "No peer source was cloned, built, or run. Typed representation or object classification does not establish full version coverage, B-rep validity, DXF graph closure, or consumer-visible geometry."
+    },
+    {
+      "project": "ezdxf ACIS, drawing, and planar SOLID references",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html",
+        "https://ezdxf.readthedocs.io/en/stable/tasks/add_dxf_entities.html",
+        "https://ezdxf.readthedocs.io/en/stable/dxfentities/solid.html",
+        "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html"
+      ],
+      "revision": "Stable documentation accessed 2026-10-20; pages identify ezdxf 1.4.5",
+      "observed": "ezdxf can store SAT/SAB, parse portions of the ACIS graph, and extract polygonal meshes; documentation marks Wire, Subshell, PCurve and other constructs unimplemented, documents flat-face mesh extraction that loses curved geometry, and states its drawing frontend does not render ACIS or provide 3D rendering. Its planar SOLID docs specify OCS vertices, corrected semantic vertex order, and repeated triangle vertex behavior.",
+      "limits": "Documentation/source only; no executable or generated peer output was run. This establishes a peer capability boundary, not a libdxfrw defect or native CAD acceptance criterion."
+    },
+    {
+      "project": "Autodesk DXF entity references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E0C5F04E-D0C5-48F5-AC09-32733E8848F2.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm"
+      ],
+      "revision": "Public Autodesk DXF references accessed 2026-10-20",
+      "observed": "The format documentation treats explicit 3DFACE, planar SOLID, and ACIS-backed 3DSOLID as distinct record and geometry families.",
+      "limits": "Wire definitions alone do not establish a peer's parser behavior, output preservation, analytic topology, rendering, or import acceptance."
+    },
+    {
+      "project": "FreeCAD mutable current importer source and archived documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "revision": "Mutable application main source accessed 2026-10-20; documentation repository marked archived 2026-04-01",
+      "observed": "The current C++ importer source contains a generic shape path with a 3DFACE example comment; a search of this file found no direct 3DSOLID handler token. The documentation is an archived route profile, not a maintained release contract.",
+      "limits": "No commit was pinned and no application was run. A source search of one implementation file is not proof that no other importer/backend supports an entity."
+    },
+    {
+      "project": "Local implementation and test-surface audit",
+      "references": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "tests/dxf_fixture_tests.cpp",
+        "tests/wave1_tests.cpp",
+        "tests/modeler_dxf_writer_matrix_tests.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp"
+      ],
+      "revision": "Existing shared worktree inspected 2026-10-20; no files besides the plan and this receipt changed in this research pass",
+      "observed": "The plan already has separate 3D-face, modeler carrier, handle/owner, writer transaction, and consumer rows. Existing tests include generated 3DFACE and ACIS carrier controls; the new recommendation requires auditing focused selectors before adding further OCS/SOLID cases.",
+      "limits": "No tests were run for this research-only plan change; the broad shared worktree remains dirty and Git metadata is read-only in this session."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: separate raw carrier preservation, owner/handle closure, semantic geometry, writer loss policy, and downstream acceptance",
+      "3D geometry-family matrix: keep 3DFACE, planar SOLID/TRACE, HATCH, mesh/polyface, and ACIS modeler entities independent",
+      "SOLID correctness: audit literal OCS vertex slots separately from normalized vertex order and WCS transforms",
+      "Consumer qualification: per-handle dispositions and geometry signatures rather than aggregate entity/object counts"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a source-backed distinction between DWG typed object/API representation, DXF ACIS carrier support, partial ACIS graph/mesh processing, full kernel semantics, and application rendering/import.",
+    "Added the ezdxf planar SOLID OCS and wire-order edge as a test-design check; required an existing-test audit before any new test is introduced.",
+    "Refined the implementation order into typed expectations, fast codec controls, graph/transformation controls, semantic evidence, explicit writer loss behavior, and optional exact-profile consumer qualification.",
+    "Reaffirmed that local implementation self-unblocks without waiting on external peers/platforms, full suites are reserved for composed checkpoints, and no per-slice peer dependency or fixture is needed."
+  ],
+  "limitations": [
+    "LibreDWG and FreeCAD links point to mutable source branches rather than immutable revisions.",
+    "ezdxf evidence is official project documentation, not a run of its executable against a shared generated corpus.",
+    "No native FreeCAD/AutoCAD/ODA or independent geometry-kernel result was produced.",
+    "This pass refines readiness/evidence boundaries; it does not decide unresolved external/platform J items or promote a semantic support claim."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e)",
+    "scopedDiffCheck": "PASS (git diff --check on plan; git diff --no-index --check on new receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Plan/research update only; broad shared worktree has pre-existing changes and Git metadata is read-only in this session."
+  }
+}

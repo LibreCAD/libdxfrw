@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw-deeper-broader-acis-corpus-and-parser-boundary-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Review current cq-acis release and corpus provenance, bound its parser/conversion evidence, and refine optional ACIS/AcDs semantic-check readiness without promoting format or consumer support.",
+  "method": {
+    "kind": "Read-only review of primary project documentation, package release metadata, corpus manifest, upstream data repository, and consumer documentation",
+    "sourcesOpened": [
+      "https://pypi.org/project/cq-acis/0.3.12/",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/corpus/README.md",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/corpus/manifest.jsonl",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+      "https://github.com/usnistgov/engineering-design-models",
+      "https://www.nist.gov/open/copyright-fair-use-and-licensing-statements-srd-data-software-and-technical-series-publications",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+    ],
+    "repositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalSamplesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "planFilesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "evidenceRule": "Treat cq-acis as an optional exact-version bare-payload parser/converter. Separate source provenance, SAT/SAB decoding, complete body coverage, OCCT-family shape construction, independent analytic truth, AcDs ownership, native FreeCAD acceptance, and platform evidence. ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "findings": [
+    {
+      "route": "cq-acis 0.3.12 release",
+      "observed": [
+        "PyPI identifies 0.3.12 as released on 2026-10-16 and lists macOS ARM64/x86-64, Linux x86-64/ARM64, and Windows x86-64 wheels.",
+        "The project describes its parser and shape-conversion scopes separately and labels the project experimental.",
+        "The current mutable main documentation is not assumed to match the attested 0.3.12 source unless exact source identity is checked."
+      ],
+      "disposition": "Optional pinned candidate only; no runtime or support inference."
+    },
+    {
+      "route": "cq-acis public SAT/SAB corpus",
+      "observed": [
+        "The corpus manifest records upstream repository/commit, Git blob SHA-1, artifact SHA-256/size, ACIS save-version/header fields, structural inventory, and a notice reference.",
+        "Listed examples include NIST SAT variants and ezdxf-authored SAT 400/700 and ASM-SAB 21800/22300 controls.",
+        "Generated structural counts are not independently authored geometry expectations and do not witness DWG or AcDs association."
+      ],
+      "disposition": "Potential optional direct-payload parser/profile sample after exact hash and notice review; do not copy into repository fixtures or use as standalone semantic truth."
+    },
+    {
+      "route": "NIST Engineering Design Models licensing/provenance",
+      "observed": [
+        "The upstream repository describes the collection as public-domain industry CAD models and provides the data as-is.",
+        "NIST general guidance warns third-party materials may have separate rights; a corpus-level NIST-PD label does not remove the need to check the exact model path and notice."
+      ],
+      "disposition": "Prefer local analytic controls; any optional fetched sample stays in scratch and is not redistributed absent file-level review."
+    },
+    {
+      "route": "cq-acis geometry conversion and FreeCAD",
+      "observed": [
+        "The current geometry documentation describes bounded analytic and experimental profiles, unsupported referenced geometry, and explicit conversion failure rather than silent partial solids.",
+        "The conversion backend is CadQuery/OpenCascade, sharing the OCCT kernel family with FreeCAD; cq-acis does not parse DWG AcDs owner/page linkage.",
+        "FreeCAD documentation describes DWG conversion through an external converter into its DXF importer, with the selected DXF backend restrictions still applying."
+      ],
+      "disposition": "Keep parser, OCCT shape, analytic truth, AcDs join, and exact native FreeCAD Linux/Windows checks as separate non-transitive evidence."
+    }
+  ],
+  "planDelta": {
+    "existingGatesRefined": [
+      "S2/S3 ACIS payload and AcDs association",
+      "S5 optional peer/comparator admission",
+      "S8 semantic and native consumer qualification"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "peerOrNativeRuntimeAdded": false,
+    "supportClaimsPromoted": 0,
+    "externalJItemsChanged": false,
+    "externalJDisposition": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planResearchOnly": true,
+    "productionBehaviorChanged": false,
+    "testsRun": false,
+    "externalSamplesDownloaded": false,
+    "receiptJsonParsed": true,
+    "gitDiffCheck": true
+  }
+}

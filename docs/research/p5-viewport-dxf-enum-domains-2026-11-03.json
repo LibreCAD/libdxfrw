@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-viewport-dxf-enum-domains-2026-11-03",
+  "date": "2026-11-03",
+  "parentCommit": "b825c56c Document DXF inspector closure lifetime",
+  "status": "COMPLETED_LOCAL_DXF_WRITER_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Refuse VIEWPORT typed DXF output for enum values outside the published Autodesk domains without tightening DWG parsing or encoding.",
+  "authority": {
+    "source": "Autodesk VIEWPORT DXF reference and DXF group-code reference",
+    "fields": {
+      "group281_renderMode": "0..6",
+      "group282_defaultLightingType": "0..1",
+      "group79_ucsOrthographicType": "0..6"
+    },
+    "links": [
+      "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm"
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "DRW_Viewport::validateDxf now layers the documented group 281, 282, and 79 enum domains over the existing payload-width checks. dxfRW::writeViewport uses this DXF-only validation. DWG parseDwg and encodeDwg continue to use validatePayloadFields, preserving wire-width decoding/encoding behavior.",
+    "failureBehavior": "ASCII and Binary typed DXF writes reject values 7, 2, and 7 respectively before emitting the VIEWPORT record; a preexisting destination prefix remains unchanged."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "result": "PASS"
+    },
+    "focused": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_viewport_reference_remapping$' --output-on-failure",
+      "result": "PASS 1/1",
+      "coverage": "Both ASCII and Binary: each out-of-domain enum is refused without changing a preexisting destination; the documented maxima 6/1/6 serialize and the DXF reader observes exact groups 79/281/282 values. Existing VIEWPORT reference remapping and failure controls in the same selector pass."
+    },
+    "compatibility": {
+      "command": "cmake --build build-gcc --target lc3_compat_check --parallel 4",
+      "result": "PASS"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "sourceFingerprints": {
+    "src/drw_entities.cpp": "14e3ea85486f7f83fba37362ad221cd1385489489428f913c267e8b353ae3d08",
+    "src/libdxfrw.cpp": "257bf2f194b8894f13b62f33992d612a1aadb31b1d050915ee6e23781dc9d580",
+    "tests/wave1_tests.cpp": "ac68e6bdbca41afa015a3ea5324c46bcca543c2543e2e3322f2699b2ec4cad38",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "5da068c3d6f8981f399d860aed959b34da42ee681dd33911c01fa26b82a07a4e",
+    "build-gcc/libdxfrw_wave1_tests": "56c09db84322e769ff7d9053321847bda8279b92e314c33bd963308a690abb3e"
+  },
+  "limits": [
+    "No physical VIEWPORT producer sample or native rendering run was used.",
+    "The guard establishes schema-domain output correctness only; it does not qualify viewport rendering, layer override reference fields, graph closure, or whole-document DWG-to-DXF conversion.",
+    "No DWG parser or encoder behavior changed, and no support claim was promoted."
+  ],
+  "next": "Continue with a source-backed local output or parser gap. Keep VIEWPORT native rendering and physical producer qualification open."
+}

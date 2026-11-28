@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-11",
+  "scope": "Opt-in provenance for an all-or-none set of selected fixed XRECORD frames from one completed DWG import; not replay or output authorization.",
+  "implementation": [
+    "Selection accepts at most 64 unique nonzero handles. The existing single-handle method is a one-element wrapper and zero disables selection. Rejected selection changes leave the previous selection intact.",
+    "The reader retains only CRC-checked selected frames, with a 1 MiB per-body limit and a 2 MiB aggregate body limit checked before frame allocation; duplicate handle, ordinal or same-space offset invalidates the retained set. Ticket callbacks are provisional and carry no aggregate authority.",
+    "The adapter requires all selected tickets, source/publication matches, immutable typed baselines, one import token and generation, a successful whole read, complete frame coverage and zero entity/object parse failures. Its aggregate snapshot has a 2 MiB logical retained-byte ceiling. It publishes one immutable bundle only after every member validates.",
+    "Both individual-member and exact-set queries validate every member, so mutation of one member invalidates the entire bundle. Neither observation changes DRW_Interface callbacks, DRW_XRecord layout, ordinary writer behavior, ordered-entry authority or graph/output gates."
+  ],
+  "validation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_dwg_xrecord_verified_source$' --output-on-failure",
+    "result": "1/1 passed in approximately 2.4 seconds",
+    "generated_controls": [
+      "Ten selected XRECORDs seal together; unordered exact-set query succeeds, while missing, duplicate, zero and more-than-64 selected handles are refused. Query duplicates and same-size wrong sets are refused.",
+      "Mutation of one selected raw body or typed model invalidates every individual and exact-set query; restoring the member succeeds. An absent selected source yields no partial bundle, and the same adapter retries successfully.",
+      "A checked physical offset locates a selected AC1015 object CRC. Flipping the stored CRC yields no bundle; restoring it permits same-adapter retry.",
+      "Injected allocation failures during a later selected candidate and during a later provisional ticket snapshot both leave no partial bundle and permit same-adapter retry.",
+      "Three locally authored AC1015 XRECORDs, each carrying 800 KiB of binary input, exceed the aggregate candidate quota and produce no bundle; selecting the first two permits same-adapter retry. Existing single-source corruption, allocation, size-limit, reentry and mutation controls continue to pass."
+    ],
+    "limitations": "The focused multi-member tests inject representative candidate/ticket allocation points, not every allocation offset for every member or target platform. Exact decoded source roles and output bytes are not qualified by this observation."
+  },
+  "physical_observation": {
+    "source": "ODA 27.1 audited AC1018 recreation from ezdxf acad_table_simple.dxf",
+    "drawing_sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "selected_handles": ["0xbc", "0xbe", "0xbf", "0xc0", "0xc1", "0xc2", "0xc3", "0xc4", "0xc5", "0xc6"],
+    "result": "One actual import: read=true; exact-set bundle query=true; zero entity/object parse failures.",
+    "limitations": "A HEADER offset integrity observation remains. TABLECONTENT 0xb9, TABLEGEOMETRY 0xba and DATATABLE 0xbd remain raw-only. The DATATABLE type-6 column's nine XRECORD descendants have not acquired semantic/output qualification."
+  },
+  "remaining": "Establish each selected frame's exact embedded-reference roles and relevant per-string codepage semantics, recursively bind the three intermediate object bodies and nine descendants, and validate class identity, owner/target roles and any APPID/LAYER/EED dependencies. Only then design identity-preserving writer staging with final source revalidation, transaction rollback, CRC/framing and independent output readback. The existing TABLE writer still refuses parsed ranges and populated extension dictionaries."
+}

@@ -1,0 +1,168 @@
+--- a/persistence/libdxfrw/dxfimpl.cpp
++++ b/persistence/libdxfrw/dxfimpl.cpp
+@@ -1168,7 +1168,7 @@
+             && data->extPoint.y == 0.0 && data->extPoint.z == 1.0
+             && std::isfinite(data->basePoint.z);
+         const double hatchPolylinePlaneZ = liftBoundaryPlane ? data->basePoint.z : 0.0;
+-        const auto linePointInPlane = [&pointInOffsetPlane, liftBoundaryPlane, hatchPolylinePlaneZ](const DRW_Coord& point) {
++        const auto boundaryPointInPlane = [&pointInOffsetPlane, liftBoundaryPlane, hatchPolylinePlaneZ](const DRW_Coord& point) {
+             const auto mapped = pointInOffsetPlane(point);
+             return liftBoundaryPlane ? lc::geo::Coordinate(mapped.x(), mapped.y(), hatchPolylinePlaneZ) : mapped;
+         };
+@@ -1232,8 +1232,8 @@
+                     auto data = std::dynamic_pointer_cast<DRW_Line>(k);
+                     LOG_TRACE << "line";
+                     lc::builder::LineBuilder builder;
+-                    builder.setStart(linePointInPlane(data->basePoint));
+-                    builder.setEnd(linePointInPlane(data->secPoint));
++                    builder.setStart(boundaryPointInPlane(data->basePoint));
++                    builder.setEnd(boundaryPointInPlane(data->secPoint));
+                     builder.setLayer(layer);
+                     loopData.push_back(builder.build());
+                 } else if(k->eType == DRW::ETYPE::ARC) { //done
+@@ -1246,7 +1246,7 @@
+                     }
+                     lc::builder::ArcBuilder builder;
+                     LOG_TRACE << data->staangle <<','<< data->endangle;
+-                    builder.setCenter(pointInOffsetPlane(data->basePoint));
++                    builder.setCenter(boundaryPointInPlane(data->basePoint));
+                     builder.setRadius(data->radious);
+                     builder.setStartAngle(data->staangle);
+                     builder.setEndAngle(data->endangle);
+@@ -1257,12 +1257,12 @@
+                 } else if(k->eType == DRW::ETYPE::ELLIPSE) { //done
+                     auto data = std::dynamic_pointer_cast<DRW_Ellipse>(k);
+                     auto secPoint = coord(data->secPoint);
+-                    auto lcEllipse = std::make_shared<lc::entity::Ellipse>(pointInOffsetPlane(data->basePoint),
++                    auto lcEllipse = std::make_shared<lc::entity::Ellipse>(boundaryPointInPlane(data->basePoint),
+                                      secPoint,
+                                      secPoint.magnitude() * data->ratio,
+                                      data->staparam,
+                                      data->endparam,
+-                                     data->isccw,
++                                     !data->isccw,
+                                      layer
+                                                                           );
+                     loopData.push_back(lcEllipse);
+@@ -3168,8 +3168,8 @@
+             "Some MPOLYGON entities were written as HATCH; boundary geometry "
+             "or polygon-specific information may not be retained.");
+     }
+-    // Polyline and line-edge paths on one default-normal plane share the
+-    // HATCH elevation. Do not infer a plane from unsupported or mixed loops.
++    // Polyline, line, arc and planar ellipse paths can share one default-
++    // normal HATCH elevation. Do not infer it from unsupported or mixed loops.
+     bool planar = !region.loopList().empty();
+     bool haveElevation = false;
+     bool mixedOrNonfiniteElevation = false;
+@@ -3200,6 +3200,11 @@
+                     if (!addElevation(vertex.location().z())) { planar = false; break; }
+             } else if (const auto line = std::dynamic_pointer_cast<const lc::entity::Line>(entity)) {
+                 if (!addElevation(line->start().z()) || !addElevation(line->end().z()))
++                    planar = false;
++            } else if (const auto arc = std::dynamic_pointer_cast<const lc::entity::Arc>(entity)) {
++                if (!addElevation(arc->center().z())) planar = false;
++            } else if (const auto ellipse = std::dynamic_pointer_cast<const lc::entity::Ellipse>(entity)) {
++                if (ellipse->majorP().z() != 0.0 || !addElevation(ellipse->center().z()))
+                     planar = false;
+             } else {
+                 planar = false;
+--- a/unittest/persistence/dwgimporttest.cpp
++++ b/unittest/persistence/dwgimporttest.cpp
+@@ -1551,3 +1551,96 @@
+     }
+     boost::filesystem::remove(input);
+ }
++
++TEST(DwgImportTest, ElevatedCurvedEdgeHatchRoundTrip) {
++    for (const bool ccw : {true, false}) {
++    SCOPED_TRACE(ccw ? "ccw" : "cw");
++    const auto input = tmpPath("elevated-curved-hatch");
++    {
++        std::ofstream f(input);
++        ASSERT_TRUE(f.good());
++        f << "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1018\n0\nENDSEC\n"
++             "0\nSECTION\n2\nENTITIES\n0\nHATCH\n5\n55\n100\nAcDbEntity\n8\n0\n"
++             "100\nAcDbHatch\n10\n0\n20\n0\n30\n3\n210\n0\n220\n0\n230\n1\n"
++             "2\nSOLID\n70\n1\n71\n0\n91\n1\n92\n0\n93\n2\n"
++             "72\n2\n10\n1\n20\n2\n40\n2\n50\n0\n51\n180\n73\n1\n"
++             "72\n3\n10\n1\n20\n2\n11\n2\n21\n0\n40\n0.5\n50\n35\n51\n210\n73\n" << (ccw ? 1 : 0) << "\n"
++             "97\n0\n75\n0\n76\n1\n78\n0\n98\n0\n0\nENDSEC\n0\nEOF\n";
++        ASSERT_TRUE(f.good());
++    }
++    const auto check = [ccw](const std::shared_ptr<lc::storage::DocumentImpl>& doc) {
++        lc::entity::Hatch_CSPtr hatch;
++        for (const auto& entity : doc->entityContainer().asVector())
++            if (auto value = std::dynamic_pointer_cast<const lc::entity::Hatch>(entity)) hatch = value;
++        ASSERT_NE(hatch, nullptr);
++        const auto& loops = hatch->getRegion().loopList();
++        ASSERT_EQ(loops.size(), 1u);
++        ASSERT_EQ(loops.front().entities().size(), 2u);
++        const auto arc = std::dynamic_pointer_cast<const lc::entity::Arc>(loops[0].entities()[0]);
++        const auto ellipse = std::dynamic_pointer_cast<const lc::entity::Ellipse>(loops[0].entities()[1]);
++        ASSERT_NE(arc, nullptr);
++        ASSERT_NE(ellipse, nullptr);
++        EXPECT_DOUBLE_EQ(arc->center().x(), 1.0);
++        EXPECT_DOUBLE_EQ(arc->center().y(), 2.0);
++        EXPECT_DOUBLE_EQ(arc->center().z(), 3.0);
++        EXPECT_DOUBLE_EQ(arc->radius(), 2.0);
++        EXPECT_DOUBLE_EQ(ellipse->center().x(), 1.0);
++        EXPECT_DOUBLE_EQ(ellipse->center().y(), 2.0);
++        EXPECT_DOUBLE_EQ(ellipse->center().z(), 3.0);
++        EXPECT_DOUBLE_EQ(ellipse->majorP().x(), 2.0);
++        EXPECT_DOUBLE_EQ(ellipse->majorP().y(), 0.0);
++        EXPECT_DOUBLE_EQ(ellipse->majorP().z(), 0.0);
++        EXPECT_EQ(ellipse->isReversed(), !ccw);
++    };
++    auto doc = newDwgDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(doc, input, lc::persistence::File::LIBDXFRW).ok);
++    check(doc);
++    const char* capture = std::getenv("LC3_CURVE_CAPTURE");
++    if (capture) {
++        std::ifstream from(input, std::ios::binary);
++        std::ofstream to(std::string(capture) + (ccw ? "/input-ccw.dxf" : "/input-cw.dxf"), std::ios::binary);
++        ASSERT_TRUE(from.good() && to.good());
++        to << from.rdbuf();
++        ASSERT_TRUE(to.good());
++    }
++    for (const auto type : {lc::persistence::File::LIBDXFRW_DXF_R2000,
++                            lc::persistence::File::LIBDXFRW_DXB_R2000}) {
++        const auto output = capture ? std::string(capture) + (ccw ? "/ccw-" : "/cw-") + (type == lc::persistence::File::LIBDXFRW_DXF_R2000 ? "ascii.dxf" : "binary.dxf") : tmpPath("elevated-curved-hatch-output");
++        ASSERT_TRUE(lc::persistence::File::exportFile(doc, output, type).ok);
++        auto reopened = newDwgDocument();
++        ASSERT_TRUE(lc::persistence::File::importFile(reopened, output, lc::persistence::File::LIBDXFRW).ok);
++        check(reopened);
++        if (!capture) boost::filesystem::remove(output);
++    }
++    lc::entity::Hatch_CSPtr original;
++    for (const auto& entity : doc->entityContainer().asVector())
++        if (auto value = std::dynamic_pointer_cast<const lc::entity::Hatch>(entity)) original = value;
++    ASSERT_NE(original, nullptr);
++    const auto& edges = original->getRegion().loopList().front().entities();
++    ASSERT_EQ(edges.size(), 2u);
++    const auto ellipse = std::dynamic_pointer_cast<const lc::entity::Ellipse>(edges[1]);
++    ASSERT_NE(ellipse, nullptr);
++    lc::geo::Region mixedRegion;
++    mixedRegion.addLoop(lc::geo::Loop({edges[0], ellipse->move(lc::geo::Coordinate(0, 0, 1))}));
++    auto mixed = std::make_shared<lc::entity::Hatch>(original->layer(), original->metaInfo(), original->block());
++    mixed->setRegion(mixedRegion);
++    mixed->setPatternName(original->getPatternName());
++    mixed->setSolid(original->isSolid());
++    doc->removeEntity(original);
++    doc->insertEntity(mixed);
++    const auto mixedOutput = capture ? std::string(capture) + (ccw ? "/ccw-mixed.dxf" : "/cw-mixed.dxf") : tmpPath("mixed-curved-hatch");
++    const auto mixedResult = lc::persistence::File::exportFile(doc, mixedOutput, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    ASSERT_TRUE(mixedResult.ok);
++    EXPECT_TRUE(std::any_of(mixedResult.loss.notes.begin(), mixedResult.loss.notes.end(),
++        [](const std::string& note) { return note.find("HATCH boundary elevation varies") != std::string::npos; }));
++    doc->removeEntity(mixed);
++    doc->insertEntity(original);
++    const auto retry = capture ? std::string(capture) + (ccw ? "/ccw-retry.dxf" : "/cw-retry.dxf") : tmpPath("retry-curved-hatch");
++    ASSERT_TRUE(lc::persistence::File::exportFile(doc, retry, lc::persistence::File::LIBDXFRW_DXF_R2000).ok);
++    auto reopened = newDwgDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(reopened, retry, lc::persistence::File::LIBDXFRW).ok);
++    check(reopened);
++    if (!capture) { boost::filesystem::remove(mixedOutput); boost::filesystem::remove(retry); }
++    boost::filesystem::remove(input);
++    }
++}

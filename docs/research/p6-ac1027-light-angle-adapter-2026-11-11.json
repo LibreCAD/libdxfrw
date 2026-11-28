@@ -1,0 +1,25 @@
+{
+  "scope": "Generated AC1027 DWG LIGHT hotspot and falloff conversion in dwg2dxf after a caller-explicit replacement of unqualified DWG CMC metadata. Not a whole-file, native-rendering, or LIGHT-support qualification.",
+  "sources": [
+    "Autodesk SpotLightTraits::SetHotspotAndFalloff documents radians: https://help.autodesk.com/cloudhelp/2022/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_GraphicsInterface_SpotLightTraits_SetHotspotAndFalloff_double_double.html",
+    "LibreDWG src/dwg2.spec LIGHT fields hotspot_angle and falloff_angle are BD groups 50 and 51; src/out_dxf.c VALUE_BD converts groups 50-54 from radians to degrees."
+  ],
+  "oda_scope": "The supplied ODA v5.4.1 text search did not locate a LIGHT class-specific schema; no ODA class layout proof is claimed.",
+  "reproduction": {
+    "source": "Locally generated AC1027, class LIGHT, hotspot 0.25 and falloff 0.75 in the DWG bit-double fields. Not a committed fixture.",
+    "source_sha256": "0cbe060cfa74ca2ad588c2d06e05f710c8c0ab9b80cea2eee70746a2c52e7ea4",
+    "peer_command": "/opt/homebrew/bin/dwg2dxf -y -o /private/tmp/next-light-angle/peer.dxf /private/tmp/next-light-angle/rejected.dwg",
+    "peer": "LibreDWG 0.14 emitted group 50 = 14.32394487827058 and group 51 = 42.97183463481174; its conversion warned of an invalid handle offset and an unresolved handle. The observation is limited to these fields and does not qualify the source file.",
+    "before": "The public DWG callback returned 0.25 and 0.75, and a directly passed representable LIGHT writer emitted those as DXF degrees.",
+    "after": "The converter retains a sealed source-read token on each DWG LIGHT, projects angles on an output copy only, and continues to pass DXF-origin degrees unchanged. Unsupported source versions and invalid or failed provenance refuse output."
+  },
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg2dxf_light_angle$' --output-on-failure",
+    "result": "1/1 passed for generated DWG and ASCII/Binary DXF, raw-radian callback, refusal of untouched DWG CMC, explicit ACI edit and retry, mixed origins, later DXF import and document generation changes, repeated export, source edits, exact-address replacement, invalid numeric values and provenance, destination preservation, and retry. The focused LIGHT, LIGHT RGB, LIGHT proxy replay and DIMENSION-angle adapter group passed 4/4."
+  },
+  "open": [
+    "All untouched AC1027 DWG LIGHT records in this control retain DWG CMC metadata and fail the current DXF representability gate; no metadata is discarded by this change.",
+    "Other DWG version profiles require independent angle evidence; this converter path refuses them.",
+    "Native rendering, physical producer evidence, graph closure and end-to-end supported LIGHT export remain unqualified."
+  ]
+}

@@ -1,0 +1,490 @@
+{
+  "schema": "mline-style-dictionary-authority-evidence-v1",
+  "slice": "RPP-5gp",
+  "date": "2026-10-28",
+  "parentCommit": "5fef2bd91657b1ffb922ceaac800419a6fe2811c",
+  "state": "IMPLEMENTED_SELECTED_MODERN_DXF_DICTIONARY_AUTHORITY_AND_KEY_ONLY_EDITS; AFFECTED_NORMAL_ASAN_AND_INDEPENDENT_PROJECTIONS_PASS",
+  "scope": "Same-version modern original DXF MLINESTYLE dictionary keys and selected original MLINE consumers. Distinct redundant body/entity group2 values remain unchanged; key-only edits preserve handle340 and geometry. Legacy rename, nested edits, native meaning and complete document closure remain open.",
+  "fileSha256": {
+    "CMakeLists.txt": "ad5400b71fd7c64e0fddcb7b84b10f86391b5d4a2ed28471d26194edcdb7a482",
+    "dwg2dxf/dx_data.h": "64cd87c8c773ba217b592cf4df2d8d8d275e67f642952769faaea964a6415d6e",
+    "dwg2dxf/dx_iface.cpp": "040b3f8e2732d2ecd95a584bf98ed8a017f52e3874b37a824bb9f87e50c99639",
+    "dwg2dxf/dx_iface.h": "ff3473e7ecaca74fc114aa5212cf0552912fd1887cf9ed8f75dc7a3a8e28db34",
+    "dwg2dxf/dx_standard_output.h": "c151df105b5e28ccfc964219028910837dcccdcbb389cc6a182157f167dc4d9b",
+    "src/drw_entities.h": "723eaf28e77eb68e2cd47c3ecfe9b6b4cba835e11120d6c75aabfc1693d311be",
+    "tests/dxf_fixture_tests.cpp": "49723bd657e58e8ac0b8c1623aa6f61cebc900c66058f60a1e455b2564e24bc4",
+    "tools/qualify_material_source_order.py": "ae6e52b530b4e993d5b55f94e538e7df16a723dcc6a8d55bd342f120e75a30b6"
+  },
+  "baseline": {
+    "parentCommit": "5fef2bd91657b1ffb922ceaac800419a6fe2811c",
+    "exitCode": 1,
+    "failingControl": "MLINESTYLE current source/body transaction; authority fixture then line29396",
+    "logSha256": "ab5eb0cee8676a36b99ef4ac32debfa08964c3c2bc2fe2ee77bbb959e8ec772f",
+    "buildLogSha256": "703441c76d3d28ca85765e7fdd8dc9ff8f0fd3e353eb123f6621d7c1389dad31",
+    "probeSha256": null,
+    "binaryDigestLimitation": "Baseline executable was overwritten before its digest was saved. No baseline binary identity is claimed; retained source/input/log binding is recorded.",
+    "artifacts": [
+      {
+        "path": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-mline-style-authority-147863645263083/input.dxf",
+        "sha256": "434f9621be8f3b5321e8f6cbd6f1a7f604c8930960b8ebed29f23412486ad5ff"
+      }
+    ]
+  },
+  "primaryReferences": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "basis": "Dictionary key3 and MLINE style handle340 are authoritative; redundant group2 names retain their source values."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "basis": "MLINE scalar/vector and per-vertex parameter roles, style handle340, redundant name2 and vertex flags/counts. Selected positive fixtures explicitly author the HAS_VERTICES flag before expected projection freeze."
+    }
+  ],
+  "implementation": [
+    "Bind modern original StructuralAudit dictionaries and canonical ACAD_MLINESTYLE NOD edge once per owner. Admit only selected member key edits with exact owner/target/pointer roles and unchanged unrelated dictionary state; refuse aliases, duplicate folded keys and malformed text. Native Unicode collation is not claimed.",
+    "Reuse requested DxfNamedResourceState dictionaries; retain immutable original owner/root evidence separately. Effective dictionary names drive lookup while original MLINESTYLE body2 and qualified original MLINE entity2 remain unchanged.",
+    "Capture immutable BLOCKS MLINE models and independent model-owner anchors under existing advisory source-capture quotas. Reuse existing ENTITIES original certificates; ordinary imports still succeed if optional capture fails.",
+    "Plan selected original consumers using actual producer dispatch, parser spans, source context/codec, nonzero32bit identities, original2/340/owner and source geometry. Preflight geometry edits are frozen completely; unqualified consumer creation/retargeting remains outside this slice.",
+    "Inspect actual emitted ENTITIES/BLOCKS once each, including fixed model/paper blocks routed to ENTITIES. Prove exact group2, remapped entity/self/style340, planned BLOCK_RECORD owner and full ordered geometry. Final joins require actual emitted BLOCK_RECORD and MLINESTYLE targets.",
+    "Freeze live consumer identity/container/current model, original certificate pointer/ownership and dictionary provenance. Late mutation, provenance substitution, malformed output, sparse reached allocation failures and advisory capture-quota failure refuse atomically with corrected retries.",
+    "Expose additive nonvirtual inline DRW_MLine::validateDxfRecord and invoke it on the owning output decoder before copying, so pending74/75 payload counts cannot disappear through model-copy parser-state reset. No data layout, vtable, callback, DWG parser, byte layout or angular-unit change.",
+    "Preserve established DWG/legacy/manual style-name behavior and existing refusal outside qualified modern original authority. Reuse conservative logical byte/work budgets; no whole-process memory or performance proof."
+  ],
+  "qualification": {
+    "selected": [
+      "libdxfrw_mline_style_authority",
+      "libdxfrw_mline_style_body_transactions",
+      "libdxfrw_structural_source_origins",
+      "libdxfrw_dictionary_source_origins",
+      "libdxfrw_dictionary_effective_ownership",
+      "libdxfrw_block_producer_origins",
+      "libdxfrw_entities_immutable_origins",
+      "libdxfrw_mline_vector_component_order",
+      "libdxfrw_dxf_mline_style_name_owner_budget",
+      "libdxfrw_mline_style_validation",
+      "dwg2dxf_generated_root_common_closure",
+      "libdxfrw_3d_consumer_probe",
+      "dwg2dxf_freecad_cli_compat",
+      "libdxfrw_public_header_hygiene"
+    ],
+    "fullSuiteRun": false,
+    "sanitizerOptions": "halt_on_error=1:detect_leaks=0",
+    "sourceManifestSha256": "0958be6f3439d9e1d750198760a08c232d202533d353c38cb28929df14a557eb",
+    "results": [
+      {
+        "configuration": "normal",
+        "ctestExitCode": 0,
+        "ctestSeconds": 10.44393075001426,
+        "passed": 14,
+        "logSha256": "e0309ad0bb899b17a09cd9809925591cffb0e54794d349d7b64c08672d2b8e50",
+        "counters": [
+          "MLINESTYLE transaction profiles=8; readbacks=432; refusals=110; retries=256; callbacks=88; presence=4; prepFaults=12; lengthRefusals=2; lengthBoundaries=2; unsupported=30; scopeControls=4; encodingRefusals=6; corruptions=48; geometryGuards=2; scalarReadbacks=72; scalarConflicts=34; scalarPresence=10; invalidScalars=20; signedZeros=4; textProfiles=16; textReadbacks=48; textInsertions=16; textCallbacks=32; textShadows=4; textSpellings=2; textAppScopes=4; textLateNames=2",
+          "MLINESTYLE authority profiles=4; readbacks=158; refusals=32; retries=132; callbacks=64; allocations=12; corruptions=36; fixedProfiles=8; pendingRefusals=8; legacyRefusals=4; legacyConsumerProfiles=2; legacyConsumerRefusals=4; consumerPlannerFaults=12; consumerPlannerUnreached=0; sourceQuotaRefusals=2; modelOwnerRefusals=2"
+        ],
+        "peer": {
+          "exitCode": 0,
+          "seconds": 4.2736440830049105,
+          "logSha256": "5ff143e412e1af12f042af6801eee2187837af781701551ef5ef0306c84b02c2",
+          "command": [
+            "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python",
+            "-B",
+            "/Users/dli/dev/libdxfrw/tools/qualify_material_source_order.py",
+            "--mline-style-only",
+            "--probe",
+            "/Users/dli/dev/libdxfrw/build/libdxfrw_dxf_fixture_tests",
+            "--converter",
+            "/Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+            "--output-dir",
+            "/Users/dli/dev/libdxfrw/build/rpp5gp-evidence/normal-peer-mline-style"
+          ],
+          "mlineStyleInputsMatched": 8,
+          "mlineStyleRoundTripsMatched": 16,
+          "mlineStyleEditsMatched": 16,
+          "mlineStyleBoundaryInputsMatched": 4,
+          "mlineStyleBoundaryRoundTripsMatched": 8,
+          "mlineStyleBoundaryEditsMatched": 8,
+          "mlineStyleScalarEditsMatched": 8,
+          "mlineStyleTextInputsMatched": 2,
+          "mlineStyleTextRoundTripsMatched": 4,
+          "mlineStyleTextCodepageTranscodesMatched": 2,
+          "mlineStyleKeyInputsMatched": 2,
+          "mlineStyleKeyRoundTripsMatched": 4,
+          "mlineStyleKeyEditsMatched": 4,
+          "reportSha256": "824357ef5e2f1b74199b7aec98b4078d9ef6f778a464670ca14eed0dd8c21818"
+        }
+      },
+      {
+        "configuration": "asan",
+        "ctestExitCode": 0,
+        "ctestSeconds": 10.313154790987028,
+        "passed": 14,
+        "logSha256": "e9f917d6a02c40d1552f128fff8bf40aaf836348461d1d025f0ac26ca2310bff",
+        "counters": [
+          "MLINESTYLE transaction profiles=8; readbacks=432; refusals=110; retries=256; callbacks=88; presence=4; prepFaults=12; lengthRefusals=2; lengthBoundaries=2; unsupported=30; scopeControls=4; encodingRefusals=6; corruptions=48; geometryGuards=2; scalarReadbacks=72; scalarConflicts=34; scalarPresence=10; invalidScalars=20; signedZeros=4; textProfiles=16; textReadbacks=48; textInsertions=16; textCallbacks=32; textShadows=4; textSpellings=2; textAppScopes=4; textLateNames=2",
+          "MLINESTYLE authority profiles=4; readbacks=158; refusals=32; retries=132; callbacks=64; allocations=12; corruptions=36; fixedProfiles=8; pendingRefusals=8; legacyRefusals=4; legacyConsumerProfiles=2; legacyConsumerRefusals=4; consumerPlannerFaults=12; consumerPlannerUnreached=0; sourceQuotaRefusals=2; modelOwnerRefusals=2"
+        ],
+        "peer": {
+          "exitCode": 0,
+          "seconds": 2.646408208005596,
+          "logSha256": "5ff143e412e1af12f042af6801eee2187837af781701551ef5ef0306c84b02c2",
+          "command": [
+            "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python",
+            "-B",
+            "/Users/dli/dev/libdxfrw/tools/qualify_material_source_order.py",
+            "--mline-style-only",
+            "--probe",
+            "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw_dxf_fixture_tests",
+            "--converter",
+            "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/dwg2dxf/dwg2dxf",
+            "--output-dir",
+            "/Users/dli/dev/libdxfrw/build/rpp5gp-evidence/asan-peer-mline-style"
+          ],
+          "mlineStyleInputsMatched": 8,
+          "mlineStyleRoundTripsMatched": 16,
+          "mlineStyleEditsMatched": 16,
+          "mlineStyleBoundaryInputsMatched": 4,
+          "mlineStyleBoundaryRoundTripsMatched": 8,
+          "mlineStyleBoundaryEditsMatched": 8,
+          "mlineStyleScalarEditsMatched": 8,
+          "mlineStyleTextInputsMatched": 2,
+          "mlineStyleTextRoundTripsMatched": 4,
+          "mlineStyleTextCodepageTranscodesMatched": 2,
+          "mlineStyleKeyInputsMatched": 2,
+          "mlineStyleKeyRoundTripsMatched": 4,
+          "mlineStyleKeyEditsMatched": 4,
+          "reportSha256": "d02c8057b08dd0eed7a5260a716e1268c07a07e6fb6a1523dda7213cddcc8a10"
+        }
+      }
+    ],
+    "bothFinalBuildsBeforeQualificationRuntime": true,
+    "registrationScopesMatch": true,
+    "configurationDifferences": [
+      "normal configured Python3.12 vs ASan configured Python3 in FreeCAD CLI harness; normal CMAKE_CONFIG empty vs ASan Debug; header hygiene cached system version/processor/config empty vs ASan 27.0.0/arm64/Debug; original commands retained"
+    ],
+    "sourceInputsUnchanged": 593,
+    "countersMatch": true,
+    "builds": [
+      {
+        "configuration": "normal",
+        "build": "build",
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_table_content_dxf_tests",
+          "libdxfrw_attdef_source_tests",
+          "libdxfrw_wave1_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check"
+        ],
+        "exitCode": 0,
+        "seconds": 8.815903250011615,
+        "cmakeCacheSha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+        "buildNinjaSha256": "6c93a605ab8c757c8ee2f6b30a8fe043839338a29e3018f0d7f5bcfe94ec62c3"
+      },
+      {
+        "configuration": "asan",
+        "build": "build/rpp5fa-evidence.4xKADX/asan-build",
+        "targets": [
+          "libdxfrw_dxf_fixture_tests",
+          "libdxfrw_table_content_dxf_tests",
+          "libdxfrw_attdef_source_tests",
+          "libdxfrw_wave1_tests",
+          "libdxfrw_hardening_tests",
+          "libdxfrw_dwg2dxf_adapter_tests",
+          "libdxfrw_3d_consumer_probe",
+          "dwg2dxf",
+          "lc3_compat_check"
+        ],
+        "exitCode": 0,
+        "seconds": 200.28890687500825,
+        "cmakeCacheSha256": "8bc37f0495b8307a133bbf938c4eb8bfb5a39acf2929438001abf401bfd6cd31",
+        "buildNinjaSha256": "3eb8b95588305bf5f3156e9995c7d2f9339b5d807fa2e78bbfff2d2cfb717418"
+      }
+    ],
+    "registrationsSha256": "ea2290765388c226e5dbb2b4a6fa313bd1e2d0d6003ab1ff1fce40c028e3375b",
+    "reportSha256": "97a1c9f2275c638c0db68011c61ecd371ac18a22b100b4e64f9e0e0b28624531",
+    "compatibility": "Existing3D consumer probe and FreeCAD CLI harness pass; lc3_compat_check builds in both configurations. Native applications, native platforms and formal ABI qualification remain separate.",
+    "sourceArchiveOrNativeReleaseRun": false
+  },
+  "independentPeer": {
+    "runtime": "build/rpp5gh-evidence/peer/bin/python",
+    "version": "ezdxf1.4.5",
+    "bindings": {
+      "normal": {
+        "reportSha256": "824357ef5e2f1b74199b7aec98b4078d9ef6f778a464670ca14eed0dd8c21818",
+        "probeSha256": "317fd5b33fa198e07be3e8fe623f066a8465d72ef199bba681649e4b7d348afa",
+        "converterSha256": "c70870e2bcf021e23ed325a56d573db9d2d08487472115d8f5705013e24ae48c",
+        "qualificationScriptSha256": "ae6e52b530b4e993d5b55f94e538e7df16a723dcc6a8d55bd342f120e75a30b6",
+        "python": "3.15.0 (main, Oct  9 2026, 11:16:41) [Clang 21.0.0 (clang-2100.3.34.2)]",
+        "producer": "ezdxf",
+        "version": "1.4.5",
+        "packages": {
+          "ezdxf": "1.4.5",
+          "numpy": "2.5.4",
+          "fonttools": "4.68.0",
+          "pyparsing": "3.3.3",
+          "typing_extensions": "4.16.0"
+        }
+      },
+      "asan": {
+        "reportSha256": "d02c8057b08dd0eed7a5260a716e1268c07a07e6fb6a1523dda7213cddcc8a10",
+        "probeSha256": "afa19c73bcfa980918e05f2e9dc45784d0b978c60d2aa9ba826dc8551b8c8875",
+        "converterSha256": "b7f4ef4583606e783ea1ae9f44a1777246f7ebaff02decb1b329d8c7c4cadf73",
+        "qualificationScriptSha256": "ae6e52b530b4e993d5b55f94e538e7df16a723dcc6a8d55bd342f120e75a30b6",
+        "python": "3.15.0 (main, Oct  9 2026, 11:16:41) [Clang 21.0.0 (clang-2100.3.34.2)]",
+        "producer": "ezdxf",
+        "version": "1.4.5",
+        "packages": {
+          "ezdxf": "1.4.5",
+          "numpy": "2.5.4",
+          "fonttools": "4.68.0",
+          "pyparsing": "3.3.3",
+          "typing_extensions": "4.16.0"
+        }
+      }
+    },
+    "newCountsPerConfiguration": {
+      "source": 2,
+      "unchangedCli": 4,
+      "keyOnlyEdits": 4
+    },
+    "inputs": [
+      {
+        "version": "AC1027",
+        "page": "utf-8",
+        "format": "asc",
+        "path": "mline-style-key-authority-AC1027-asc.dxf",
+        "sha256": "2bbd5eafc7f58bb7e94383275bae7672edf08ab84a0740c54a8ba6de898eafb2",
+        "matched": true,
+        "dictionaryKey": "PeerMline",
+        "redundantBodyName": "RedundantBody",
+        "redundantConsumerNames": [
+          "Model_caf\u00e9_\u03a9",
+          "Block_\u8868_\u03a9"
+        ],
+        "authoring": "Typed MLINE geometry and applicable HAS_VERTICES flag authored first in two WCS planes; distinct redundant group-2 values with nonASCII consumer names assigned before first save; no post-generation file mutation",
+        "selectedNullLayerBindings": [
+          {
+            "name": "0",
+            "originalMaterialHandle": "21",
+            "selectedMaterialHandle": "0"
+          },
+          {
+            "name": "Defpoints",
+            "originalMaterialHandle": "21",
+            "selectedMaterialHandle": "0"
+          }
+        ],
+        "omittedDefaultMaterialHandles": [
+          {
+            "name": "ByBlock",
+            "handle": "1F"
+          },
+          {
+            "name": "ByLayer",
+            "handle": "20"
+          },
+          {
+            "name": "Global",
+            "handle": "21"
+          }
+        ]
+      },
+      {
+        "version": "AC1027",
+        "page": "utf-8",
+        "format": "bin",
+        "path": "mline-style-key-authority-AC1027-bin.dxf",
+        "sha256": "ff8a8e90b80e2bf8af8ebfaf27e61aedf51cba150ad2d2798e96f14ad0736b0c",
+        "matched": true,
+        "dictionaryKey": "PeerMline",
+        "redundantBodyName": "RedundantBody",
+        "redundantConsumerNames": [
+          "Model_caf\u00e9_\u03a9",
+          "Block_\u8868_\u03a9"
+        ],
+        "authoring": "Typed MLINE geometry and applicable HAS_VERTICES flag authored first in two WCS planes; distinct redundant group-2 values with nonASCII consumer names assigned before first save; no post-generation file mutation",
+        "selectedNullLayerBindings": [
+          {
+            "name": "0",
+            "originalMaterialHandle": "21",
+            "selectedMaterialHandle": "0"
+          },
+          {
+            "name": "Defpoints",
+            "originalMaterialHandle": "21",
+            "selectedMaterialHandle": "0"
+          }
+        ],
+        "omittedDefaultMaterialHandles": [
+          {
+            "name": "ByBlock",
+            "handle": "1F"
+          },
+          {
+            "name": "ByLayer",
+            "handle": "20"
+          },
+          {
+            "name": "Global",
+            "handle": "21"
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "mlineStyleKeyRoundTrips": [
+        {
+          "version": "AC1027",
+          "page": "utf-8",
+          "input": "asc",
+          "output": "asc",
+          "sourceSha256": "2bbd5eafc7f58bb7e94383275bae7672edf08ab84a0740c54a8ba6de898eafb2",
+          "path": "out-mline-style-key-authority-AC1027-asc-asc.dxf",
+          "sha256": "c2cbe5e192cb3d2a009a3f08300bc230f6d72107de0a1e09c6dd604cdd80aa06",
+          "matched": true,
+          "exitCode": 0,
+          "redundantNamesAndGeometryPreserved": true
+        },
+        {
+          "version": "AC1027",
+          "page": "utf-8",
+          "input": "asc",
+          "output": "bin",
+          "sourceSha256": "2bbd5eafc7f58bb7e94383275bae7672edf08ab84a0740c54a8ba6de898eafb2",
+          "path": "out-mline-style-key-authority-AC1027-asc-bin.dxf",
+          "sha256": "4b87f2f150019831a5c489713ec9709f714e49c6a53a7f12357d98a47a548b35",
+          "matched": true,
+          "exitCode": 0,
+          "redundantNamesAndGeometryPreserved": true
+        },
+        {
+          "version": "AC1027",
+          "page": "utf-8",
+          "input": "bin",
+          "output": "asc",
+          "sourceSha256": "ff8a8e90b80e2bf8af8ebfaf27e61aedf51cba150ad2d2798e96f14ad0736b0c",
+          "path": "out-mline-style-key-authority-AC1027-bin-asc.dxf",
+          "sha256": "8323d6430274447bac001941202ff7838c7340692b23b2ad982745f7ee952f61",
+          "matched": true,
+          "exitCode": 0,
+          "redundantNamesAndGeometryPreserved": true
+        },
+        {
+          "version": "AC1027",
+          "page": "utf-8",
+          "input": "bin",
+          "output": "bin",
+          "sourceSha256": "ff8a8e90b80e2bf8af8ebfaf27e61aedf51cba150ad2d2798e96f14ad0736b0c",
+          "path": "out-mline-style-key-authority-AC1027-bin-bin.dxf",
+          "sha256": "971cb7c5c65c18fa708f60d4b2a3863515930467c6fa59d2940c1d0f44d02d3a",
+          "matched": true,
+          "exitCode": 0,
+          "redundantNamesAndGeometryPreserved": true
+        }
+      ],
+      "mlineStyleKeyEdits": [
+        {
+          "version": "AC1027",
+          "page": "utf-8",
+          "input": "asc",
+          "output": "asc",
+          "sourceSha256": "2bbd5eafc7f58bb7e94383275bae7672edf08ab84a0740c54a8ba6de898eafb2",
+          "path": "key-edit-mline-style-key-authority-AC1027-asc-asc.dxf",
+          "sha256": "a7b188afef0eb83e65d4edde9a6ca5ad740c24803d2bc0a23daf5d17bbed49f6",
+          "matched": true,
+          "exitCode": 0,
+          "redundantNamesAndGeometryPreserved": true
+        },
+        {
+          "version": "AC1027",
+          "page": "utf-8",
+          "input": "asc",
+          "output": "bin",
+          "sourceSha256": "2bbd5eafc7f58bb7e94383275bae7672edf08ab84a0740c54a8ba6de898eafb2",
+          "path": "key-edit-mline-style-key-authority-AC1027-asc-bin.dxf",
+          "sha256": "499c9444c8983772b44089fa40dc1513bf16f59ead4adac119618f4be3f9c800",
+          "matched": true,
+          "exitCode": 0,
+          "redundantNamesAndGeometryPreserved": true
+        },
+        {
+          "version": "AC1027",
+          "page": "utf-8",
+          "input": "bin",
+          "output": "asc",
+          "sourceSha256": "ff8a8e90b80e2bf8af8ebfaf27e61aedf51cba150ad2d2798e96f14ad0736b0c",
+          "path": "key-edit-mline-style-key-authority-AC1027-bin-asc.dxf",
+          "sha256": "9df469776f6e561ac3f5ee7337620ebda2ac6dff46f49ca0fbc0430e9dae155c",
+          "matched": true,
+          "exitCode": 0,
+          "redundantNamesAndGeometryPreserved": true
+        },
+        {
+          "version": "AC1027",
+          "page": "utf-8",
+          "input": "bin",
+          "output": "bin",
+          "sourceSha256": "ff8a8e90b80e2bf8af8ebfaf27e61aedf51cba150ad2d2798e96f14ad0736b0c",
+          "path": "key-edit-mline-style-key-authority-AC1027-bin-bin.dxf",
+          "sha256": "638353e1e4eaf2745eab3f675b9f0058a33734ea6c229d719c0d534b09290689",
+          "matched": true,
+          "exitCode": 0,
+          "redundantNamesAndGeometryPreserved": true
+        }
+      ]
+    },
+    "projection": "Independent physical source/output tags before document setup: effective dictionary/member/self/owner roles, redundant style/entity names, actual340 joins, BLOCK_RECORD/table-control and block-frame identities, full MLINE scalars/vectors/ordered segment/fill arrays. Ordinary typed read checked separately without geometry regeneration or explicit audit/recovery.",
+    "disclosure": "Typed authored MLINEs have three vertices in two WCS planes and differing scales/justifications. Applicable HAS_VERTICES flags are authored before freeze; distinct nonASCII redundant names assigned before first save. Selected null layer-material bindings and omission of default materials are disclosed; ordinary peer setup creates defaults. These selected documents do not qualify default MATERIAL documents, native collation/rendering or full document conversion.",
+    "nativeMlineConsumerQualified": false,
+    "wholeDocumentExportQualified": false
+  },
+  "developmentEvidence": {
+    "frozenNormalAuthoritySmokeSha256": "bd92af19df2da0e55de2c3c340b492446e83ec4c9201a17be625ca905ab9b66e",
+    "frozenNormalAuthoritySmokeExitCode": 0,
+    "failedTestAccessBuildLogs": [
+      {
+        "path": "normal-build-before-test-access-fix.log",
+        "sha256": "27d2b30523a270bb7480fc5e9a51bf49aacbb6235eba321c38d92a3753c6006a"
+      },
+      {
+        "path": "normal-build-before-late-include-fix.log",
+        "sha256": "33d68b29216967cbe210c80b6a15aad8b6716c727bfbc26215585b2eb8a2a92f"
+      }
+    ],
+    "classification": "Two fixture-only private-access/include-order compile failures were corrected before the final frozen normal/ASan builds. Development peers/tests are not substituted for final qualification."
+  },
+  "remainingP2": [
+    "Earlier-DXF original dictionary/key/consumer qualification and codec-context capture before extending rename/stale redundant-name authority.",
+    "Reproduce suspected MLINE numLines versus target-style element-count mismatch before any fix; current selected valid profiles do not prove cross-record arity validity.",
+    "In-place element CMC/color and LTYPE reference edits with unchanged count/offset/consumer340; then separately qualified count/offset/retarget geometry operations.",
+    "Omitted/repeated element grammar, native collation/MLINE meaning and source-version/full-document evidence; MLEADERSTYLE transactions."
+  ],
+  "limitations": [
+    "Source/output version remains fixed. Original source admission and evidence remain profile-specific; broad2D/3D/whole-document support claims are unchanged.",
+    "Source consumer proof covers source2/340/owner, actual origin and geometry; it does not qualify every original common entity metadata field or a new generic source facet.",
+    "Group2 semantic edits and unqualified new/retargeted consumer operations remain refused. Unknown extensions remain opaque. Earlier DXF rename is not newly qualified.",
+    "Sparse allocation controls and logical quota accounting do not measure allocator capacity, RSS, exhaustive offset coverage or performance.",
+    "ASan uses halt_on_error=1:detect_leaks=0; no leak-sanitizer claim. Native Linux/Windows FreeCAD, independent ACIS/ACDS semantic/kernel, native Linux GCC source release, formal ABI/application and controlled RSS/performance remain NOT_RUN or pending."
+  ],
+  "gates": {
+    "resourceFamilies": 9,
+    "ATTDEF.rawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "fullObjectiveComplete": false,
+    "wholeDocumentExportQualified": false,
+    "nativeMlineConsumerQualified": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "fixturePolicy": "Embedded original local-from-scratch recipes and existing eligible repository fixtures only; no generated/downloaded DWG/DXF payload committed."
+}

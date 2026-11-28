@@ -1,0 +1,118 @@
+{
+  "date": "2026-11-07",
+  "purpose": "Record an audit-enabled ODA GUI read attempt for a locally generated minimal AC1021 DWG writer output.",
+  "libdxfrw_head": "a392e82f",
+  "input": {
+    "path": "/private/tmp/oda-ac1021-writer-check/minimal-ac1021.dwg",
+    "sha256": "34478cc888e59dbbae8143055f91bb1e56383ff9a260bfabf856aeb8752d1858",
+    "size_bytes": 19328,
+    "version": "AC1021"
+  },
+  "generator": {
+    "source_path": "/private/tmp/min-ac1021-writer.cpp",
+    "source_sha256": "274fcc750e5bed60aafb2b8729134bcb4f7df72d67a9a4a6484c4405af48d273",
+    "binary_sha256": "139fbe260ccc41b7cac8a8af07229f08e68c638211c10eddd164e85eb9eb29a1",
+    "profile": "Minimal dx_iface writer with empty HEADER variables and no-op class/block callbacks; emits one LINE.",
+    "variant_source_path": "/private/tmp/min-ac1021-writer-variants.cpp",
+    "variant_source_sha256": "4a7f52e4d7ab5b672402cd2b9c03a6388eb7bb08c9d4f9222cf2afdcc0a09491",
+    "variant_binary_sha256": "38543dcfda48878ab8bffbff016f88f49e013610f3ba2804adb9b511a1ea144d",
+    "linked_library_sha256": "b3d95da3b7ebc2ef0f56722a89a0f8e2e8957bda21a649b2bd06c1f04502f0b1",
+    "adapter_object_sha256": "8a11702101e05afed4298cecbc75729363e90e622ce41155f6b7821c78c9ccef"
+  },
+  "independent_reader": {
+    "name": "ODA File Converter 27.1.0",
+    "route": "Native GUI, audit enabled, 2010 ASCII DXF; one folder pass over the four scratch DWGs",
+    "result": "Only the combined plotstyle+material variant produced DXF without an error report. Base and either single-graph variant failed at layer 0 handle 0x12. The combined-output DXF reports AC1024 and includes ACAD_PLOTSTYLENAME and Global material content.",
+    "limits": "The comparison isolates the joint graph condition for this locally authored writer profile. It does not prove that either graph alone is malformed in all contexts or establish broad producer/version/native application compatibility."
+  },
+  "independent_cross_check": {
+    "name": "LibreDWG 0.14 dwgread JSON",
+    "result": "Reads the generated file and emits JSON.",
+    "json_sha256": "db78dde087a257583feab69f593646a446dbc37997f86faf63bb6746c8da990e"
+  },
+  "bounded_observation": {
+    "generated_layer_0": {
+      "handle": "0x12",
+      "plotstyle": "null",
+      "material": "null",
+      "linetype": "0x11"
+    },
+    "existing_ac1021_tablet_layer_0": {
+      "handle": "0x10",
+      "plotstyle": "0x0F",
+      "material": "0x2C65",
+      "linetype": "0x16"
+    },
+    "limits": "The first ODA warnings in the base and single-graph cases do not identify the terminal root cause by themselves. The four-way controlled result shows only the combined graph variant passes this audit. No production code changed based on these observations."
+  },
+  "next_discriminating_action": "The four-way matrix and production caller source review are complete. Do not repeat them. The remaining exact consumer task is P8 migration work: port the LibreCAD adapter to enable both opt-ins only for compatible export profiles and prove its opaque-reference predicate, then validate a current clean consumer build; this workspace cannot edit the sibling checkout. Continue independent in-scope upstream work from the P4 next physical OBJECTS subgraph while preserving the P8 item.",
+  "fixture_policy": "Scratch DWG, DXF and JSON outputs remain outside the repository; no test fixture was added.",
+  "support_claim_effect": "None. One locally authored AC1021 output profile passes ODA 27.1 only with both default graph opt-ins; the writer release/version support surface remains unqualified.",
+  "follow_up_date": "2026-11-07",
+  "controlled_variant_matrix": [
+    {
+      "profile": "base",
+      "input_sha256": "34478cc888e59dbbae8143055f91bb1e56383ff9a260bfabf856aeb8752d1858",
+      "libredwg_json_sha256": "db78dde087a257583feab69f593646a446dbc37997f86faf63bb6746c8da990e",
+      "layer0_plotstyle": "null",
+      "layer0_material": "null",
+      "oda_result": "rejected at AcDbLayerTableRecord handle 0x12; DXF absent",
+      "oda_error_sha256": "550a178a9e03e7c42ea5d1062dfc71011a2c268c15972f9d6804752792f37604"
+    },
+    {
+      "profile": "plotstyle graph only",
+      "input_sha256": "4076d1cb177988153c400f67eecdf97898f5d023617ffef2cfe04a2c48df0cf2",
+      "libredwg_json_sha256": "38919252b75a4eebec39ba9e823d33c207dcec57866ac6943c7694ba0f881a06",
+      "layer0_plotstyle": "0x31",
+      "layer0_material": "null",
+      "oda_result": "rejected at AcDbLayerTableRecord handle 0x12; DXF absent",
+      "oda_error_sha256": "604f91594155645b302fc732b6dcc40f222a8f56590a527c518faa431c6d2345"
+    },
+    {
+      "profile": "material graph only",
+      "input_sha256": "c56fca9ac374cccb189b83b43defb952e777e1e1f61b76d70686e8853e716597",
+      "libredwg_json_sha256": "ecc7131a791667b344b50f59fff7236372a6dc7e7b0a5e0daf2766c3c8f37713",
+      "layer0_plotstyle": "null",
+      "layer0_material": "0x33",
+      "oda_result": "rejected at AcDbLayerTableRecord handle 0x12; DXF absent",
+      "oda_error_sha256": "3c237cf3df6500b5b3dd0cb8c37f8cd56b189202b80fda1aa6a90747f8959334"
+    },
+    {
+      "profile": "plotstyle and material graphs",
+      "input_sha256": "0fcd65945ad2f0050b020c399f9aa43a7bc4284f089c93c1832dc58341fbb260",
+      "libredwg_json_sha256": "ecf5bf9e6b62957b49fefc5725b4a5092e6bd69de8f25977fef9bf291f60aa20",
+      "layer0_plotstyle": "0x31",
+      "layer0_material": "0x35",
+      "oda_result": "accepted; audit-enabled conversion produced 2010 ASCII DXF with no .err report",
+      "oda_dxf_sha256": "b21c573a58e53d0b52062209378a7c97c4e48b5e9bbe7df742f90c38302b4f10"
+    }
+  ],
+  "oda_spec_review": {
+    "authority": "Open Design Specification for .dwg files v5.4.1, \u00a720.4.54 LAYER",
+    "relevant_layout": "For R2000+, the layer record carries a plotstyle hard pointer (default placeholder handle 0x0F); R2007+ adds a material handle. The generated combined opt-in references are 0x31 and 0x35 respectively.",
+    "conclusion": "The paired ODA result is consistent with both versioned layer references being represented in the generated profile; it does not isolate a normative requirement beyond this exact audit result."
+  },
+  "fast_controls": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_default_material_optin_tests libdxfrw_dwg_default_plotstyle_optin_tests -j4",
+    "ctest": "ctest --test-dir build-gcc -R 'libdxfrw_dwg_default_(material|plotstyle)_optin' --output-on-failure",
+    "result": "Both focused fast tests passed (2/2 on the prior run; the material opt-in test was rerun after the paired-reference assertion and passed 1/1 in 2.25 seconds). The AC1021/24/27 generated material graph test now reads back layer 0 and asserts its plotstyle handle equals the planned default placeholder as well as its material handle equaling the planned Global material. This exercises the paired graph condition locally.",
+    "scope": "Generated parser/writer consistency and rollback/retry controls only; not ODA acceptance or broad interoperability.",
+    "paired_reference_assertion": {
+      "test_source_sha256": "76010b60c6a79cc78d3b4c789c3849dac016faecf6bf28802f0068b870b19f34",
+      "executable_sha256": "f802c140c2fc774f0f30799d2722dd30103f8545dc29cd38aa1dc2f1630455cf",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_default_material_optin_tests -j4 && ctest --test-dir build-gcc -R '^libdxfrw_dwg_default_material_optin$' --output-on-failure",
+      "result": "PASS; one focused CTest, 2.25 seconds. Normal combined-opt-in write/readback verifies both the layer-0 plotstyle placeholder and Global material references for AC1021, AC1024 and AC1027."
+    }
+  },
+  "consumer_review": {
+    "repository": "LibreCAD sibling checkout at /Users/dli/dev/LibreCAD, HEAD 41678d976; checkout is dirty and read-only for this task, so findings are source inspection only.",
+    "writer_call": "librecad/src/lib/filters/rs_filterdxfrw.cpp calls m_dwgW->write(this, dwgVer, false) for DWG export; the target-version switch maps DWG 2007 to AC1021.",
+    "adapter_contract": "RS_FilterDXFRW derives from DRW_Interface and its private identity registry; current class declaration does not implement DRW_DwgDefaultPlotStyleProvider or DRW_DwgDefaultMaterialProvider.",
+    "source_hashes": {
+      "librecad/src/lib/filters/rs_filterdxfrw.h": "123dea0a5ac508a80936de6741ae4697a49140efc62897f0f6005693bcabcafe",
+      "librecad/src/lib/filters/rs_filterdxfrw.cpp": "2c06a8873753f798489561ee4d9fc0390314d88685292218750c4acb2d13fe51"
+    },
+    "interpretation": "This is not proof that current LibreCAD writes invalid DWG: it links its bundled fork, not this upstream checkout, and its tree is dirty. For a migration to upstream, P8 must port caller-side opt-in and establish the opaque-reference absence predicate for supported export profiles, or otherwise provide independently validated layer 0 targets. Do not silently change upstream global defaults."
+  },
+  "implementation_change": "The existing fast default-material test now records the planned default plotstyle placeholder and asserts the freshly read layer-0 plotstyle points to it in the combined-opt-in case. Existing material reference assertion remains; no production serializer behavior changed."
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-ac1018-table-value-flag-profile-2026-11-10",
+  "date": "2026-11-10",
+  "question": "Does the observed AC1018 TABLE value flag 0x16 have a documented meaning, and can libdxfrw preserve it without treating unknown bits as complete semantics?",
+  "evidence": {
+    "authority": {
+      "source": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.96.1, printed page 230",
+      "localFile": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "fields": "TABLE flag-for-value is BS/group 90; ODA identifies 0x06 as the normal has-block flags, 0x10 as table direction, and 0x20 as title-suppressed."
+    },
+    "physicalPeer": {
+      "receipt": "docs/research/p5-ac1018-oda-table-physical-peer-profile-2026-11-09.json",
+      "dwgSha256": "aa88b0bd66694008db8aaaa6548cd30192e1a500a093d72859f8d45a918951ab",
+      "tableHandle": "0x9c",
+      "valueFlag": "0x16",
+      "result": "The parser reports a complete 3x3 plain-text grid and retains all seven 10-bit cell override ranges plus the 4-bit TABLE override range. The source has an unrelated HEADER integrity warning."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "behavior": "The legacy TABLE parser marks flags outside the ODA-described 0x06/0x10/0x20 profile incomplete while retaining the bounded frame. The AC1018 direct encoder accepts zero or the documented base flags with direction/title bits and emits the selected value unchanged. The existing generated body vector exercises 0x16; unsupported 0x40 is rejected for output.",
+    "controls": [
+      "Generated AC1018 value flag 0x16 parses completely and survives direct body write/readback exactly.",
+      "Generated AC1018 unknown value flag 0x40 remains typed but semantically incomplete; the same parser then reads a corrected frame.",
+      "The same-object writer refusal for 0x40 preserves seeded body/handle buffers and accepts corrected 0x16."
+    ],
+    "physicalProbe": "build-gcc/libdxfrw_dwg_local_roundtrip --inspect-physical-table-codec /private/tmp/libdxfrw-table-ac1018-oda/out/acad_table_simple.dwg confirms source flag 0x16 and the exact eight retained ranges. Direct source-body encoding remains refused, including when the range metadata or value flag is independently removed from a copy; other source-model admission conditions remain unresolved."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_local_roundtrip -j4",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "ctests": "libdxfrw_dwg_table_cell_overrides and libdxfrw_table_ac1018_whole_file_roundtrip",
+    "result": "The build and focused selector pass. Direct-source inspection confirms the exact peer profile and continued refusal; it is diagnostic research, not a passing source-output qualification."
+  },
+  "disposition": "Closes only recognition and bounded preservation of documented legacy value-flag bits. It does not qualify direct physical-source TABLE output, native semantics/rendering, or broader TABLE producer profiles. The peer DWG remains scratch-only; no drawing fixture was added."
+}

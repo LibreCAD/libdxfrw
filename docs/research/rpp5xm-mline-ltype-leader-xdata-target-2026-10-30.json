@@ -1,0 +1,98 @@
+{
+  "id": "RPP-5xm",
+  "title": "AC1027 LEADER LTYPE XDATA target transport",
+  "date": "2026-10-30",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "f14b7b58265afa84c6b6b14748dd3a93a0e25da3",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated ASCII and binary DXF records; no repository fixture file was added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "One selected LEADER target in each of model-space ENTITIES and named AuthorityBlock BLOCKS, across all four source/output encoding pairs.",
+    "linetype": "Source-bound simple LTYPE with the existing MLINE_LTYPE_XDATA APPID provider.",
+    "xdata": {
+      "appid": "MLINE_LTYPE_XDATA",
+      "payload": "One ordered group-1005 soft-pointer to source handle 0xA900.",
+      "references": [
+        {"code": 1005, "source_handle": "0xA900", "target": "model-space LEADER or named-block LEADER, selected per profile"}
+      ]
+    },
+    "targets": [
+      {
+        "type": "LEADER",
+        "source_handle": "0xA900",
+        "section": "ENTITIES",
+        "block_name": "*Model_Space",
+        "owner_handle": "0x201",
+        "subclass": "AcDbLeader",
+        "fields": {
+          "style": "STANDARD",
+          "arrow_enabled": 1,
+          "path_type": 0,
+          "creation_flag": 3,
+          "hook_line": 1,
+          "hook_flag": 0,
+          "text_height": 2.0,
+          "text_width": 4.0,
+          "vertices": [[1.0, 2.0, 3.0], [4.0, 6.0, 0.0]],
+          "block_color": 7,
+          "color": 2,
+          "extrusion": [0.0, 0.6, 0.8],
+          "horizontal_direction": [0.0, 1.0, 0.0],
+          "annotation_handle": null
+        }
+      },
+      {
+        "type": "LEADER",
+        "source_handle": "0xA900",
+        "section": "BLOCKS",
+        "block_name": "AuthorityBlock",
+        "owner_handle": "0x203",
+        "subclass": "AcDbLeader",
+        "fields": "Same selected LEADER field values as the model-space profile."
+      }
+    ]
+  },
+  "proof": {
+    "source": "Physical source records bind the group-1005 reference to the exact LEADER record and owner in each selected section. Typed import checks exact DRW_Leader identity, vertices, flags, style, color, extrusion and non-default horizontal direction; the selected profile has no annotation handle.",
+    "output": "For each ASCII/binary source/output pair, physical output checks the target type, section, remapped handle/reference, owner and selected LEADER fields. Fresh adapter readback checks the exact DRW_Leader type, owner and selected values.",
+    "failure_retry": "Removing the target independently refuses export and preserves the existing destination, then succeeds on same-adapter retry for all eight placement/encoding profiles. Separate model-space and named-block late-handle mutation cases refuse without replacing the destination and succeed after the source identity is restored.",
+    "counts": {
+      "selected_positive_profiles": 8,
+      "selected_successful_readbacks_including_retries": 18,
+      "selected_refusals_with_destination_preservation": 10,
+      "selected_same_adapter_retries": 10,
+      "whole_focused_test_profiles": 388,
+      "whole_focused_test_readbacks": 894,
+      "whole_focused_test_refusals": 506,
+      "whole_focused_test_retries": 506
+    },
+    "repository_fixtures_added": false
+  },
+  "validation": {
+    "focused_build": {
+      "command": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+      "result": "PASS (1/1, 23.49 seconds); selector asserts the whole-test counts above"
+    },
+    "diff_check": "PASS",
+    "full_suite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds a generated target profile and classifier mapping.",
+    "source_bindings": {
+      "implementation_commit": "f14b7b58265afa84c6b6b14748dd3a93a0e25da3",
+      "implementation_source_sha256": "5faf30d8ca9b615ee9db55986f9514c9560c264367409a8495f99cba47c90a06",
+      "test_source_sha256": "af2d38812b739bfa20737a2238db46cc08b07a3e5cd04347860c715523c94514",
+      "normal_executable_sha256": "069bbfb350d21b41f39da5c6f357d847ef217ac14dfd8ccf318057da01eb9786",
+      "normal_cmake_cache_sha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4"
+    }
+  },
+  "limits": [
+    "This qualifies one selected LEADER field profile as a code-1005 target in model-space ENTITIES and named AuthorityBlock BLOCKS under AC1027, for the authored ASCII/binary source/output combinations. Annotation-handle targets, other leader flags, styles, vertices, versions, block roles and target pairings remain open.",
+    "This is selected identity, field transport, output/readback and transaction evidence. It does not establish LEADER annotation semantics, native rendering, recursive document closure, native consumer behavior, independent CAD semantics or any general DWG/DXF support claim."
+  ],
+  "next": "Select another current source-bound target, mixed set, XDATA profile or MLINE consumer operation; preserve the separate schema, recursive-closure and native-semantic gates."
+}

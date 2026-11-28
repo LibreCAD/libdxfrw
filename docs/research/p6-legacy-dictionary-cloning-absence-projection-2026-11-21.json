@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-dictionary-cloning-absence-projection-2026-11-21",
+  "date": "2026-11-21",
+  "status": "R14_GENERATED_ROOT_SOURCE_PRESENCE_PROJECTION",
+  "supportClaimEffect": "none",
+  "authority": "ODA DWG v5.4.1 section 20.4.44 specifies that plain R13/R14 DICTIONARY has no cloning field. The ODA R13-to-R14 producer pair below omits DXF group 281 in the selected root and group dictionaries.",
+  "producerComparison": {
+    "sourceDwgSha256": "9361298515f2a339d6bfd7b55621e53b095389b433fd21c39441a11a267f5fcf",
+    "odaR14DxfSha256": "70e541546c63564a903411f02b0c0130ebcd80dd57aea958cfe6490c5205cb31",
+    "rootHandle": "A",
+    "groupHandle": "C",
+    "group281": "absent in both selected dictionaries"
+  },
+  "localControl": {
+    "generator": "GNU LibreDWG dwgadd 0.14",
+    "recipe": "tests/fixtures/dwg/ac1012_partial_three_line_control.dwgadd",
+    "recipeSha256": "dda209d13d2a252ed06305a9d7a373ed2a65fea1920eaa27068c3a0ef89a3ef3",
+    "r14DwgSha256": "b13f7186b8d01fff78afc8380649774d7116574cd7b6a1e21c38e4e3541c80c1",
+    "beforeDxfSha256": "69eecdbf821e01a29928599fcb04b0d5fa0468de4c56538a77955c4c2a92d7c0",
+    "afterDxfSha256": "3e65ca57534928ed3bf21cc52e55777a32a09518d8ebc5d7248738ccafbbc983",
+    "before": "both selected dictionaries explicitly write group 281 as 0",
+    "after": "both selected dictionaries omit group 281",
+    "ezdxfReadback": "ezdxf 1.4.5 reads both fields as absent and exposes its own default value 1"
+  },
+  "checks": [
+    "The tracked R13 generated partial and R14 generated strict controls audit physical ASCII and Binary DXF root/group records and read the output back through a fresh adapter.",
+    "The source-presence marker survives copies and assignment, clears on reset or failed parse, and is compared to the immutable source baseline before source qualification.",
+    "The generated-source metadata controls exercise authored dictionaries across output versions and verify rollback and retry. The test's earlier three-entry expectation also failed on clean baseline 0f6f35863 for R2000+; it now verifies the fourth generated plot-style dictionary and its default edge."
+  ],
+  "limits": [
+    "The selected producer comparison and local generated control do not prove native duplicate/clone semantics, complete graph closure, EED output, image-dictionary projection, or general strict AC1012 support.",
+    "The R13 control uses explicit partial output; the existing strict AC1012 refusal remains in force.",
+    "The new source-presence state changes DRW_Dictionary layout, so binary consumers must rebuild; no new pure virtual callbacks are introduced.",
+    "Generated drawings remain outside the repository."
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ltype-group9-encoded-length-guard-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_LTYPE_GROUP9_255_BYTE_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Bound typed DXF output for embedded LTYPE group-9 text after the configured DXF encoding and text escaping, while retaining tolerant input and atomic record failure.",
+  "implementationReadiness": {
+    "baselineHead": "78642a6987628507a236cb6af636b8cfd43e5ed1",
+    "sourceObservation": "dxfRW::writeLineType emitted complex-dash group 9 through writeUtf8String without checking the final encoded value length. ASCII DXF escapes selected control bytes, legacy DXF converts UTF-8 through the configured code page, and R2007+ DXF emits UTF-8.",
+    "normativeEvidence": [
+      {
+        "source": "Autodesk ObjectARX 2027 DXF Group Codes",
+        "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+        "relevantRule": "The exact group-code range 1-4, 7, 9, 300-309 has a 255-character maximum, less for Unicode strings."
+      },
+      {
+        "source": "Autodesk 2024 Group Code Value Types Reference (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+        "relevantRule": "The group-code range 0-9 has a 2049-single-byte-character allowance after the introduction of extended symbol names in AutoCAD 2000; UTF-8 is used for AutoCAD 2007 and later."
+      },
+      {
+        "source": "Autodesk LTYPE (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+        "relevantRule": "Group 9 carries the text string for each embedded-text linetype element; the page gives no independent length limit."
+      }
+    ],
+    "sourceConflict": "The direct-field ObjectARX table gives group 9 a 255-character maximum; the 2024 group-range table gives 0-9 a 2049-single-byte-character allowance starting with AutoCAD 2000. Neither page adjudicates this discrepancy for native LTYPE consumers. The implementation uses a conservative 255 encoded-byte output admission bound across target versions until producer/native evidence qualifies a larger profile.",
+    "change": "Added dxfWriter::writeUtf8StringBounded, which checks the UTF-8/code-page and ASCII-control-escaped value before writing. Typed LTYPE output applies a 255-byte group-9 bound. The parser remains unchanged and tolerant of longer source values. Over-limit output fails within DxfWriterRecordScope and does not publish a partial LTYPE record."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/intern/dxfwriter.cpp": "3be6df54b83a3c81f75ce3e209283d53c9d60269cef4e0c3b4c79ca80c8020c2",
+      "src/intern/dxfwriter.h": "22a321c03f4515cdd7420878866bacde32bf47c8aeeb72488fa2079220477de1",
+      "src/libdxfrw.cpp": "900e82fa60c20d609f8383783e3d00d180b3c2db8604d102f8d2bd5626ea7ccc",
+      "tests/hardening_tests.cpp": "40b3e4b377f4dbc392d9fb6ed0711623b2bcf7ed17ca6c39d805f8cf042c594e",
+      "CMakeLists.txt": "e12587b055b568d056adda9f2b12d0e54e995b434ae66ae7c130fcd6b154f0cc",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "de38aa7ca0e58e355a2458f4c7a615b6a187076748cdc5fa604b53f06307cd1f"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 via /usr/bin/g++",
+      "platform": "Darwin arm64"
+    },
+    "testExecutableSha256": "8276e5d558bef55c0cec4ab1c6b2746eff0f8162b29ae8470995570367d99911"
+  },
+  "controls": {
+    "selector": "--ltype-group9-encoded-length",
+    "ctest": "libdxfrw_ltype_group9_encoded_length",
+    "profiles": [
+      "AC1012/AC1015 legacy code-page ASCII and Binary DXF",
+      "AC1021 UTF-8 ASCII and Binary DXF"
+    ],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "255 encoded bytes are admitted and typed readback preserves the text; 256 bytes are atomically refused across the selected DXF versions and both encodings.",
+      "Legacy ANSI_1252 and modern UTF-8 multibyte boundaries are measured after conversion; selected Unicode values round-trip through typed LTYPE parsing.",
+      "ASCII caret control escaping is included in the encoded-byte limit; Binary DXF does not use the ASCII caret escaping path.",
+      "A refused staged record leaves the output empty and restores writer error state; the same writer successfully commits a corrected record."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_ltype_group9_encoded_length$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "ltypeRegressionCohort": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_ltype_(alignment_dxf_domain|shape_number_dxf_width|standard_flag_dxf_domain|element_flag_read_tolerance|group9_encoded_length)$' --output-on-failure",
+      "result": "PASS 5/5"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "The 255-byte bound is a conservative typed-writer policy under conflicting Autodesk references; it does not prove the format-wide maximum or justify a support claim for either short or long LTYPE text.",
+    "No independent producer, AutoCAD, LibreCAD, LibreCAD_3, or FreeCAD native acceptance test was run for the group-9 size boundary.",
+    "Read-side admission, LTYPE group-9 strings longer than 255 bytes, and version-specific native acceptance remain unqualified. No DWG behavior was changed."
+  ],
+  "nextReadyPacket": "Continue P6 with the remaining LTYPE unit/inheritance profiles; keep the group-9 larger-string limit open until eligible producer/native evidence resolves the Autodesk reference conflict."
+}

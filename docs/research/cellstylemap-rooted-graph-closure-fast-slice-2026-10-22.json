@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "CELLSTYLEMAP rooted graph closure and staged DXF emission",
+  "mode": "Generated in-memory extension-graph controls and focused adapter build",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "8887732703df01d10159b589e406e15478f9144e140f786a666cc70c8875323d",
+  "authoritativeReferences": [
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sections": ["20.4.101 TABLESTYLE", "20.4.102 CELLSTYLEMAP"],
+      "pages": "244-246",
+      "finding": "CELLSTYLEMAP is associated with TABLESTYLE through its extension dictionary and the ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP entry."
+    },
+    {
+      "title": "LibreDWG DXF marker mapping and importer",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec",
+      "finding": "Used only as a cross-implementation schema reference for the emitted CELLSTYLEMAP group markers; it does not establish native reader acceptance."
+    }
+  ],
+  "implementation": {
+    "changes": [
+      "Indexed typed CELLSTYLEMAP source handles in the extension-object graph and included them in duplicate-handle checks and graph inventory limits.",
+      "Accepted a map only as a unique child of the canonical TABLESTYLE extension-dictionary key, with the dictionary parent matching the unique TABLESTYLE xDictHandle owner and map.parentHandle matching that dictionary.",
+      "Rejected maps with unsupported own xdictionary/reactor references, wrong key or owner, aliases, and maps unreachable from the rooted graph; checked non-null text-style and linetype references resolve uniquely to their expected record types.",
+      "Staged validated CELLSTYLEMAP handles for preallocation and object emission after TABLESTYLE records.",
+      "Added generated positive and negative graph controls for valid closure, wrong key, wrong owner, and unreachable map. Kept the concrete adapter fail-closed gate unchanged."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/cellstylemap-rooted-graph-closure-fast-slice-2026-10-22.json",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2 (-Werror)",
+    "focusedSelector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --cell-style-map-dxf-writer (body writer plus rooted-graph controls)",
+    "focusedCtest": "PASS: libdxfrw_cellstylemap_dxf_writer (1/1)",
+    "compatibility": "PASS: cmake --build build-gcc --target lc3_compat_check --parallel 2",
+    "diffCheck": "PASS: git diff --check scoped to dwg2dxf/dx_iface.cpp, dwg2dxf/dx_iface.h, and tests/dwg2dxf_adapter_tests.cpp",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "independentDxfReaderRun": 0,
+    "cellStyleMapRootedGraphPreflightImplemented": true,
+    "cellStyleMapFileExportReadbackImplemented": false,
+    "adapterExportGateRemainsFailClosed": true,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "Add a typed-plus-raw DXF CELLSTYLEMAP reader path and generated ASCII/Binary fileExport-to-readback graph roundtrip, then prove the exact output with an independent reader before changing support claims."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  },
+  "researchConclusion": {
+    "resolved": "The rooted graph preflight can now prove canonical TABLESTYLE extension-dictionary ownership and stage a single reachable CELLSTYLEMAP with unique text-style and linetype targets.",
+    "unresolved": "The adapter still refuses export before publication. The DXF typed/raw map reader, end-to-end fileExport/readback, independent-reader acceptance, and external qualification remain incomplete."
+  }
+}

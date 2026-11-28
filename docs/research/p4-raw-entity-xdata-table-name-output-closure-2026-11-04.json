@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-raw-entity-xdata-table-name-output-closure-2026-11-04",
+  "date": "2026-11-04",
+  "base_commit": "a2c920e2",
+  "status": "GENERATED_RAW_ENTITY_XDATA_SYMBOL_REFERENCE_OUTPUT_CLOSURE",
+  "supportClaimEffect": "none",
+  "scope": "Bind raw-preserved DXF entity XDATA group-1001 APPID names and group-1003 LAYER names to unique qualified rows in the TABLES body staged by the same output attempt.",
+  "specEvidence": {
+    "autodeskExtendedData": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+    "autodeskXdataReference": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-Core/files/GUID-F0299B36-232F-446E-9F81-98F300B36991.htm",
+    "findings": "Autodesk documents group 1001 as the registered application name that begins an XDATA group and states that registered application names correspond to APPID table entries. Its XDATA reference identifies group 1003 as a layer name."
+  },
+  "implementation": {
+    "fieldScope": "Resolve group 1001 only at top-level raw entity scope as an APPID target; while inside XDATA, resolve group 1003 as a LAYER target. Opaque groups inside 102 application data and other XDATA payload values are retained without inferred meanings. Repeated use of one APPID within the same entity is refused per Autodesk's one-group-per-application-per-entity rule.",
+    "textIdentity": "Decode the exact string bytes selected for output with source and target DRW_TextCodec profiles. Require valid text and the same conservative symbol key: ASCII letters compare case-insensitively, while non-ASCII UTF-8 must match byte-for-byte. Unknown source versions admit ASCII-only names. No raw group bytes are rewritten.",
+    "targetIdentity": "Inspect the staged TABLES body and require exactly one qualified emitted APPID or LAYER row for each referenced key. Missing, duplicate, malformed, unqualified, or codepage-shifted targets refuse the file transaction before publication.",
+    "transaction": "The output-table inspector is enabled for raw entity carriers and checks XDATA references before entity output. A corrected source carrier can retry on the same adapter after a refused attempt."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j3",
+    "ctest": "ctest --test-dir build-gcc -R '^dwg2dxf_raw_dxf_entity_table_name_references$' --output-on-failure",
+    "result": "Build passed with -Werror. The three focused tests passed (3/3, 1.19 seconds total). In ASCII and Binary, the generated AC1027 control refused four successive missing common/XDATA targets and then a duplicate APPID group, preserving a sentinel destination each time. Correcting the source names on the same adapter succeeded. Readback preserved group 1001 ACAD, group 1003 layer 0, group 1000 payload text, unresolved nested application-group strings, common group 8/6 names and the case-insensitive Continuous linetype spelling. Existing raw-carrier capture-limit and source-table identity controls also passed.",
+    "matrix": {
+      "sourceRevision": "AC1027",
+      "outputRevision": "AC1027",
+      "encodings": ["ASCII", "Binary"],
+      "missingRowOrDuplicateAppIdRefusalsPerEncoding": 5,
+      "sameAdapterRetriesPerEncoding": 1,
+      "positiveReadbacksPerEncoding": 1
+    },
+    "fixtures": "No DWG/DXF fixture was added or modified. Generated output lived in a temporary directory and was removed by the test."
+  },
+  "limitations": [
+    "Generated AC1027 adapter evidence only; no physical whole-source DWG/DXF conversion is qualified.",
+    "Name-only XDATA references prove unique emitted row closure, not source-handle identity or application-specific payload semantics.",
+    "Other XDATA values, Unicode case-insensitive matching, broader source codepages/revisions, producer ordering, native consumers and whole-document completeness remain open.",
+    "No support claim is promoted by this generated control."
+  ],
+  "files": {
+    "dwg2dxf/dx_iface.cpp": "collects raw entity XDATA group-1001/group-1003 names and checks them against qualified emitted APPID/LAYER rows under the source and target text profiles",
+    "tests/dwg2dxf_adapter_tests.cpp": "extends the generated ASCII/Binary refusal, retry and readback matrix to APPID and XDATA layer targets",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "records bounded XDATA name closure and retains producer, broader-profile and native-semantic gates"
+  }
+}

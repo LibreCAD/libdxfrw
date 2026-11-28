@@ -1,0 +1,128 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Deeper/broader peer evidence on graph salvage, bounded decode, and route-specific writer acceptance",
+  "mode": "primary-source research only",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile current ACadRust orphan-owner and bounded-record reports with local recovery and graph-closure owners",
+    "Separate DWG annotative MLeader context objects from DXF MLEADER entity serialization",
+    "Refresh strict writer-acceptance, NOD identity, text-version, and ASCII/binary carrier evidence",
+    "Refine implementation sequencing while preserving fast per-slice validation and composed external gates"
+  ],
+  "method": {
+    "kind": "Read-only review of public primary-source repositories, issues, a merged pull request, and the local plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "geometryKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "limitations": "Issue descriptions are peer reports, not local reproductions or normative specifications. Reported corpus files were not downloaded. No peer package, source revision, CAD application, or geometry kernel was pinned and executed."
+  },
+  "sources": [
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/133",
+      "revision": "issue page reviewed 2026-10-17; reports acadrust 0.6.3/main as of 2026-10-11",
+      "observed": "The reporter describes non-null unresolved owner blocks being re-homed into model space, creating phantom dimension geometry in an AC1032 corpus. The result is peer/corpus-specific and does not establish a local defect or universal orphan policy."
+    },
+    {
+      "project": "ACadRust",
+      "url": "https://github.com/hakanaktt/acadrust/issues/134",
+      "revision": "issue page reviewed 2026-10-17; reports acadrust 0.6.4/main as of 2026-10-11",
+      "observed": "The reporter describes 70 of 351 AC1032 files rejected after bounded-record changes, mostly at AcDbMLeaderObjectContextData; the maintainer referenced a commit to preserve bounded auxiliary objects after decode failures. The issue was still open at review time."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1277",
+      "revision": "issue page reviewed 2026-10-17; report names ACadSharp 3.7.16 and AutoCAD LT 2026",
+      "observed": "The report says a no-op DWG round-trip corrupts annotative MLeader context objects and AutoCAD audit removes those objects. This is a DWG object-context writer route, distinct from DXF MLEADER entity serialization."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1281",
+      "revision": "issue page reviewed 2026-10-17; report names ACadSharp 3.8.0/master",
+      "observed": "The report identifies recursive handling of long comment, XDATA application-block, and WIPEOUT clip-boundary runs as process-stack exhaustion paths and supplies generated 20,000-item controls."
+    },
+    {
+      "project": "ACadSharp",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1253",
+      "revision": "issue page reviewed 2026-10-17; report names ACadSharp 3.6.35 and AutoCAD 2027",
+      "observed": "The reporter describes AutoCAD rejection tied to CLASSES, HATCH, and DIMSTYLE serialization. A later comment reports a peer-repository AC1032 output rejected by DWG TrueView at a HATCH group-code expectation. These observations do not prove analogous libdxfrw behavior or a global DXF ordering rule."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1413",
+      "revision": "issue page reviewed 2026-10-17; report says issue remained present on master as of 2026-09-08",
+      "observed": "The report describes a DWG→DXF writer selecting a first/lowest-handle DICTIONARY instead of the NOD and documents a 43-file patched-versus-unpatched comparison. This is a peer writer report, not a libdxfrw reproduction."
+    },
+    {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1414",
+      "revision": "issue page reviewed 2026-10-17; issue open at review time",
+      "observed": "The report identifies differing TV/TU source-string paths for the same R2007+ DXF target and separately raises invalid-surrogate handling. It does not settle every DXF text context's intended representation."
+    },
+    {
+      "project": "ezdxf",
+      "url": "https://github.com/mozman/ezdxf/pull/1418",
+      "revision": "merged into master 2026-10-02 at c87c87e",
+      "observed": "The merged change routes proxy-graphic binary payload chunks as raw bytes through the tag-writer protocol; the associated issue #1412 is closed. This confirms that ASCII and binary DXF can have distinct writer-boundary failures."
+    },
+    {
+      "project": "Local plan",
+      "url": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "revision": "worktree plan over baseline de27a3391a624aba03ca71f3583c4b3a6e6396a9 reviewed 2026-10-17",
+      "observed": "The reports map to existing reader-recovery, owner-graph, MLeader, text, wire-format, and consumer-acceptance owners; no new local source-confirmed defect or top-level subplan is justified."
+    }
+  ],
+  "assessment": {
+    "recoveryContract": "A record should be classified as typed, exact-bounded opaque, skipped with an explicit incomplete diagnostic, or file-fatal. Safe record recovery requires intact framing and trustworthy handle/owner references; non-null missing owners must not be silently re-homed to model space.",
+    "mleaderBoundary": "DXF MLEADER group/index semantics and DWG AcDbMLeaderObjectContextData object framing, ownership, and target-version serialization are separate routes and acceptance gates.",
+    "writerAcceptance": "Exact target-version tag grammar, source-to-output identity/owner closure, permissive peer readback, strict native open, and native AUDIT/repair/deletion results are distinct observations.",
+    "implementationSpeed": "Reuse existing owner-specific generated selectors and route-specific strict targets for each leaf. Keep stress cohorts, peer builds, native CAD runs, full suites, and fuzz/sanitizer campaigns at already-planned composed or scheduled checkpoints.",
+    "supportEvidence": "No peer issue, same-library round-trip, retained entity count, or opaque-payload match closes native-platform qualification or independent exact-solid semantics."
+  },
+  "planImpact": {
+    "existingFindingsAndSubplansOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 129,
+      "topLevelSubplans": 72
+    }
+  },
+  "validation": {
+    "commands": [
+      "jq empty docs/research/deeper-broader-peer-graph-salvage-bounded-decode-writer-acceptance-2026-10-17.json",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-peer-graph-salvage-bounded-decode-writer-acceptance-2026-10-17.json"
+    ],
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false,
+    "receiptJsonValidation": true,
+    "scopedDiffCheck": true
+  }
+}

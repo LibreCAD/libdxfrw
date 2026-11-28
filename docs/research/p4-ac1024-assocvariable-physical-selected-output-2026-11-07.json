@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1024 mechanical associative-variable graph selected output",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Re-run the existing source-bound associative-variable graph writer and fresh readback on the local AC1024 mechanical sample.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "provenanceLimit": "Existing local source; no DWG/DXF fixture or derivative was added to Git."
+  },
+  "execution": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --assocvariable-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "result": "PASS; exit 0",
+    "observed": "ASCII and Binary selected output each passed fresh typed readback for 17 ACDBASSOCVARIABLE records, 2 ACDBASSOCNETWORK records, 13 variable-owned ACDBASSOCVALUEDEPENDENCY children, both dictionary roles, modeled values, action/reference roles, raw identity and owners. Late source mutation refused atomically, then corrected same-adapter retry passed.",
+    "testExecutableSha256": "d685ea054bdb85755cf0597fdbb99d24b382d9c7e5c10c637be7bfa4d6ec5ae2",
+    "testSourceSha256": "7c9fecb9cf8aa9d00902e4c486974a72cfd04c50c5f574f2c80a011459966430",
+    "adapterSourceSha256": "1b03c1e47abb39790b27d23be26168ee3c5f13e789734541618962f6fdb76f26"
+  },
+  "limits": [
+    "One AC1024 local source profile only; producer provenance is not independently authenticated.",
+    "Fresh typed readback uses libdxfrw and does not prove native associative evaluation or application semantics.",
+    "This is selected subgraph output, not strict whole-document conversion or complete P4 graph closure.",
+    "No LibreCAD, LibreCAD_3, FreeCAD, native platform, or 3D semantic qualification follows."
+  ],
+  "validation": {
+    "fullSuites": "NOT_RUN",
+    "fixturePolicy": "No DWG/DXF fixture files were created or committed."
+  }
+}

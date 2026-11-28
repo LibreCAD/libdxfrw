@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-handle-remap-setter-bound-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bound const and move staging of the caller-supplied source-to-output DXF handle remap.",
+  "source": {
+    "parentCommit": "a13dc8f57fc9ff062b2fe00475ccecd0d3dd7140",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "cmake": "4.4.5",
+    "files": {
+      "src/libdxfrw.cpp": "3a8dc5553e41d4eaeaaedced6c5cab6fe88ca859faebccf655b421f7214f6c35",
+      "src/libdxfrw.h": "bee4141a14e31381f84c721884fd28cede8bb531595a518ac6db59ddbb061d9f",
+      "tests/dxf_fixture_tests.cpp": "27723631cf0d23c082af473a361dba8a84d7b4dce65809f56839a1bb0b7d1996",
+      "tests/dxf_no_raw_sections_tests.cpp": "d9309a6840b95ada0653182cffe552d7b7a86f352ac06456aaada8c983d69b41",
+      "tests/CMakeLists.txt": "e9fbe3748c20414ace0dca0243a0e200af9e854690948bfe3ca186db5a1cd350"
+    }
+  },
+  "limit": {
+    "entries": 100000,
+    "acceptedBoundary": "exactly 100000 entries"
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/dxf_no_raw_sections_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "The const setter validates count before copying, stages into a temporary map and swaps only after successful allocation; copy failure clears stale mappings and marks the pending input rejected.",
+      "The rvalue setter validates before consuming input; over-limit input remains caller-owned while stale codec mappings are discarded.",
+      "A rejected remap blocks a new write before output creation. Replacing it with an in-limit map clears the rejection; an invalid remap attempted during an active write marks that attempt failed.",
+      "The existing GROUP-plan freeze and setup-phase checks retain their prior behavior."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests libdxfrw_no_raw_sections_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_dxf_handle_remap_setter_bound|libdxfrw_resolved_write_reference_setter_bounds|libdxfrw_raw_dxf_section_setter_bound|libdxfrw_no_raw_sections|dwg2dxf_raw_dxf_section_capture_limits' --output-on-failure",
+      "result": "PASS 5/5; 1.51 seconds",
+      "coverage": "Over-limit const and move refusal, exact-limit acceptance, caller preservation, stale-map clearing, corrected same-codec retry, and ASCII/Binary destination preservation after rejected remap setup."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests libdxfrw_no_raw_sections_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_dxf_handle_remap_setter_bound|libdxfrw_no_raw_sections' --output-on-failure",
+      "result": "PASS 2/2; 1.79 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The 100,000-entry ceiling is an internal resource limit, not a DXF format maximum or support claim.",
+    "The guard bounds map node count; it is not an allocator-capacity or RSS measurement.",
+    "Allocation failure during the const-map copy was not fault-injected in this slice.",
+    "A private dxfRW state field changed class layout; downstream consumers must rebuild, and ABI compatibility remains an open P8 gate.",
+    "Other unbounded setup inputs, including source BLOCK_RECORDs and canonical linetype metadata, remain in the P6 safety audit."
+  ],
+  "next": "Continue the P6 safety audit on nested source BLOCK_RECORD and canonical linetype setup inputs."
+}

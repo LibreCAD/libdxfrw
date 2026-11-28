@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-25",
+  "source_sha256": "a196d0aac535f84bf2edea40014d6fecf92391e6ae98880c83f6e120f81fef53",
+  "output_sha256": "6786bd3a64e7eceb06d24b152ce25fc0169e0cd62b1020905a83dffc5ae9017e",
+  "method": "Copy only the two LAYER models from a locally generated AC1015 source into an otherwise fresh dx_data, and use the direct DXF writer for AC1018. This is not a full strict export and does not retain the IMAGE graph.",
+  "physical_rows": [
+    {
+      "name": "CLOSURE_LAYER",
+      "source_handle": "D25A",
+      "output_handle": "31",
+      "flags": 64,
+      "color": 7,
+      "linetype": "CONTINUOUS",
+      "plot": 1,
+      "lineweight": -3,
+      "plot_style": "0"
+    },
+    {
+      "name": "0",
+      "source_handle": "10",
+      "output_handle": "10",
+      "flags": 64,
+      "color": 7,
+      "linetype": "CONTINUOUS",
+      "plot": 1,
+      "lineweight": -3,
+      "plot_style": "0"
+    }
+  ],
+  "output_classes": [
+    "ACDBDICTIONARYWDFLT / AcDbDictionaryWithDefault",
+    "ACDBPLACEHOLDER / AcDbPlaceHolder"
+  ],
+  "peer": "ezdxf 1.4.5 read the scratch AC1018 output with zero audit errors and repairs.",
+  "limitations": [
+    "No IMAGE, EED dependency, source root or full strict conversion was tested.",
+    "The peer validates readability and audited references, not native plot-style semantics.",
+    "The physical rows, mapped identities, graph dependencies, target classes, source mutations and atomic output must be inspected before enabling the strict path.",
+    "Scratch outputs were generated locally and are not committed."
+  ]
+}

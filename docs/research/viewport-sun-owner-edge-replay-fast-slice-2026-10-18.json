@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-40 / 7G.2 VIEWPORT-owned SUN owner-edge positive control",
+  "mode": "local generated-test expansion and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Add a distinct VIEWPORT-owned SUN control rather than inferring it from the VPORT writer path",
+    "Verify code-361 target and raw SUN code-330 ownership after VIEWPORT handle remapping",
+    "Verify typed/raw owner mismatch remains destination-preserving fail-closed",
+    "Keep VIEW code 361 and Skylight-to-SUN reference semantics separate"
+  ],
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "Extended the generated AC1027 owner-graph control with a VIEWPORT-owner variant and a dedicated selector. The test imports the typed VIEWPORT/SUN edge and raw SUN carrier, exports and re-imports ASCII and binary output, and asserts the reminted VIEWPORT handle is shared by its typed code-361 reference and typed/raw SUN owner identities. It mutates the typed/raw owner identity to an inconsistent source graph and verifies that the prior destination sentinel is preserved. The shared owner-aware raw-object overload also requires a resolved SUN identity and a previously emitted table/entity owner mapping; the legacy one-argument raw-object method remains available but now refuses SUN carriers without adapter graph preflight.",
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "strictTargets": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check -j4",
+      "result": "passed"
+    },
+    "focusedCommands": [
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-sun-owner-graph",
+      "build-gcc/libdxfrw_dxf_fixture_tests --viewport-sun-owner-graph",
+      "build-gcc/libdxfrw_dxf_fixture_tests --background-sun-callback-retention",
+      "build-gcc/libdxfrw_dxf_fixture_tests --vport-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --viewport-background-sun-fail-closed",
+      "build-gcc/libdxfrw_dxf_fixture_tests --view-background-sun-fail-closed"
+    ],
+    "focusedResults": [
+      "VPORT/SUN owner-graph replay and handle remapping: PASS",
+      "VIEWPORT/SUN owner-graph replay and handle remapping: PASS",
+      "Background/SUN typed and raw callback retention: PASS",
+      "VPORT Background/SUN fail-closed export: PASS",
+      "VIEWPORT Background/SUN fail-closed export: PASS",
+      "VIEW Background/SUN fail-closed export: PASS"
+    ],
+    "fullCtestOrSuiteRun": false,
+    "peerOrNativeRun": false,
+    "scopedDiffCheck": "passed"
+  },
+  "assessment": {
+    "closedScope": "The generated VIEWPORT-owned SUN graph exercises the existing owner-aware raw OBJECTS replay path independently from the VPORT case for ASCII and binary AC1027.",
+    "remaining": "Generated structural controls do not establish an AutoCAD-produced sample, native view behavior, rendering, sun/shadow semantics, DWG SUN parsing, VIEW group-361 ownership, or Skylight-to-SUN semantics.",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "repositoryState": {
+      "worktreeBroadlyDirty": true,
+      "staged": false,
+      "committed": false
+    }
+  }
+}

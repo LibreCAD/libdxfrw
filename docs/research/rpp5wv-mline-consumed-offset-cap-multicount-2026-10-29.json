@@ -1,0 +1,86 @@
+{
+  "id": "RPP-5wv",
+  "title": "AC1027 consumed-style MLINE offset edits across selected element counts with cap flags",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "implementation_commit": "185928959959c069b96e798413626a42edf92044",
+  "scope": {
+    "version": "AC1027",
+    "route": "Direct edit of one source-bound consumed MLINESTYLE; element count and all non-offset tuple fields remain unchanged.",
+    "admitted_flags": [5, 9, 13],
+    "selected_source_counts": [3, 4, 8, 32, 128, 254, 255],
+    "selected_flag_count_profiles": {
+      "3": [5, 9, 13],
+      "4": [13],
+      "8": [5, 9, 13],
+      "32": [13],
+      "128": [13],
+      "254": [13],
+      "255": [5, 9, 13]
+    },
+    "encoding_matrix": "Each selected positive profile covers ASCII and binary input crossed with ASCII and binary output.",
+    "runtime_fixture": "Runtime-authored test inputs extend the existing two-consumer recipe. No DWG/DXF fixture file was added to Git."
+  },
+  "authority": {
+    "publisher": "Autodesk",
+    "document": "AutoCAD DXF Reference 2025, MLINE",
+    "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "rules": {
+      "group71": "Bit 1 indicates vertices; bit 2 closes the MLINE; bits 4 and 8 suppress start and end caps.",
+      "group49": "MLINESTYLE per-element offsets.",
+      "group41": "Per-element segment/intersection parameters are recomputed from offsets, justification, vertex directions and miters.",
+      "limitation": "The specification supports field projection; native cap appearance is not independently qualified."
+    }
+  },
+  "implementation": {
+    "admission": "The selected AC1027 consumed-style direct offset route now accepts equal source/target element counts from 2 through 255 for group-71 values 5, 9 or 13. It retains the existing geometry, provider, flag and transaction checks. Other versions, counts beyond 255, closed profiles, unknown bits, appends, removals and retargets are controlled by their separate routes.",
+    "projection": "The selected source edits the first ordered group-49 offset from 1.25 to 1.5 while retaining all other offsets, ACI colors, linetype names, fill state, two MLINE consumers and their 3-vertex geometry. The writer emits remapped group-340 references, exact MLINESTYLE group-49/62/6 tuples, MLINE groups 71/72/73/74/75, and recomputed group-41 values.",
+    "physicalAndReadbackProof": "The runtime oracle checks the emitted style tuple order and values, remapped style handle shared by both consumers, per-vertex group-41 parameters and zero fill counts. Fresh typed readback checks every style offset/color/linetype, style identity, consumer geometry, flags, references, miters and parameter arrays.",
+    "failureAndRetry": "At counts 3 and 255, closed group-71 value 3 and unknown-bit value 17 refuse for ASCII and binary output with destination preservation. Corrected group-71 value 13 succeeds through the same writer. Late consumer-parameter mutation at counts 3 and 255 refuses with destination preservation and then succeeds after caller-state restoration and same-adapter retry.",
+    "testCounts": {
+      "positiveProfiles": 52,
+      "successfulReadbacksIncludingRetries": 64,
+      "closedOrUnknownFlagRefusals": 8,
+      "lateMutationRefusals": 4,
+      "correctedOrRestoredRetries": 12,
+      "baseTwoElementProfiles": 12
+    }
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "normalSelector": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_offset_cap_flags$' --output-on-failure",
+      "result": "PASS 1/1 (3.49 s)"
+    },
+    "normalAdjacentSelector": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_offset_projection$' --output-on-failure",
+      "result": "PASS 1/1 (0.12 s)"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "asanSelector": {
+      "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_consumed_offset_cap_flags$' --output-on-failure",
+      "result": "PASS 1/1 (7.45 s)"
+    },
+    "diffCheck": "PASS git diff --check before code commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "bindings": {
+    "dwg2dxf/dx_iface.cpp": "af11211f9d95bd6c11bb71293bbb7fdcc65590d8842c3ec443fa6b3d342887fc",
+    "tests/dxf_fixture_tests.cpp": "15bc772dc3bf34324ca141fc3e1904d364ad506cf2751f5739e211c9d5c7af63",
+    "normalExecutableSha256": "9fac3e3808c8bc9ec4ff4509a7ed3d8e7f8772c842dbd71d3bd039d7e42c2360",
+    "normalCMakeCacheSha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746",
+    "asanExecutableSha256": "465f1bc89c4ec4f3517758d483ec5e33f3424f79c7805ab2d262384071d7d430",
+    "asanCMakeCacheSha256": "f1aeb154e90745f39981fadcbb2e24f1c25d9296abc19beb4ea699b49fc6bb68"
+  },
+  "limits": [
+    "Boundary tests sample counts 3, 4, 8, 32, 128, 254 and 255; the prior RPP-5wb receipt covers count 2. Intermediate counts are admitted by the same-count implementation gate but are not individually enumerated in this receipt.",
+    "This is selected runtime-authored DXF transport and transaction evidence, not an independent native rendering result or real producer-file qualification.",
+    "Other direct offset values, other vertex/justification/source profiles, native cap appearance, full document closure and format-support claims remain unqualified."
+  ]
+}

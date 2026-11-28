@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bt",
+  "date": "2026-10-24",
+  "parentCommit": "c6f060f774ca17b7786838fce0e6b4dafd5cbfe9",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "ROOTED_CUSTOM_IMAGEDEF_CLASS_INTEGRATION_IMPLEMENTED_DOCUMENT_AND_SEMANTIC_QUALIFICATION_OPEN",
+  "scope": {
+    "changed": ["tests/dwg2dxf_adapter_tests.cpp", "tests/CMakeLists.txt", "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md", "this receipt"],
+    "productionParserWriterAPIOrEvidencePolicyChanged": false,
+    "privateQualifiedFramesManufactured": false,
+    "existingUnreferencedCustomDefinitionControlPreserved": true,
+    "newCTest": "dwg2dxf_rooted_custom_imagedef",
+    "timeoutSeconds": 30,
+    "author": "Actual-source raw custom definition plus public IMAGE-only, typed selected-reactor, class-registration and NOD/image-dictionary writer APIs",
+    "scratchEedRebinding": "Reserved graph identities move allocation cursor; rewrite only observed equal-width APPID/LAYER value spans to actual new table handles, preserving role/length/boundaries/local LE profile; refuse width changes",
+    "scratchRebindingIsProductionRawRemapper": false,
+    "specification": {"title": "ODA Open Design Specification for .dwg files v5.4.1", "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7", "relevantPagesRead": [16, 103, 104, 206, 207, 208, 269], "eedPageVisuallyInspected": 269},
+    "qualification": "ClassEnvelope, TextSemanticsNotIndependent and the existing LAYER byte-order disagreement remain unresolved; scratch output is not independent producer semantics"
+  },
+  "controls": {
+    "sourceRevisions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "classConditions": ["Unique identity", "Full record/C++ identity alias", "Record-name-only alias", "C++-name-only alias"],
+    "actualRootedSources": 24,
+    "primaryTargetVersion": "AC1032",
+    "primaryAsciiBinaryProjectionsAndReadbacks": 48,
+    "encodedClassNumbers": "Observed from actual imports, not asserted from scratch authoring ordinals",
+    "classAssertions": ["Actual read/publication attempt", "Private immutable row owner", "Publication class-stream ordinal", "Encoded versus resolved type", "AliasedIdentity stays advisory", "Selected reactor remains uniquely joined"],
+    "graphAssertions": ["Usable actual DWG HEADER-selected complete NOD", "NOD image-dictionary entry", "Image-dictionary owner and SOURCE_IMAGE entry", "Definition owner and selected-reactor list", "IMAGE340/360 definition/reactor edges", "Selected reactor IMAGE back-owner", "Generation-qualified source identities", "No duplicate selected image/definition/reactor/root"],
+    "fixtureValueAssertions": ["Filename", "Image size and U/V vectors", "Definition class version, pixel/image size, loaded flag and resolution", "Selected reactor class-version2", "EED APPID/LAYER/text/integer"],
+    "independentOutputInspector": "Existing staged ASCII/binary IMAGEDEF/reactor exact field/reference and IMAGE edge observer, followed by ordinary readback",
+    "singleSourceGraphMutations": 13,
+    "mutationKinds": ["Definition filename", "Definition owner", "Definition reactor list", "Selected reactor owner", "IMAGE definition reference", "IMAGE reactor reference", "IMAGE source generation", "Image-dictionary target", "Image-dictionary owner", "NOD image-root target", "Duplicate image dictionary", "Duplicate NOD image-root key", "Definition EED APPID"],
+    "atomicRefusalRestorationReadbackRetries": 624,
+    "rasterFaultDiagnosticRequired": "DWG IMAGEDEF/reactor source capture or immutable payload correlation failed",
+    "preexistingAcadGroupRootRefusalNotCounted": true,
+    "noRefresh": ["Private immutable class bindings", "Raster source retained-byte charge", "Name receipt retained-byte charge", "Class receipt retained-byte charge"],
+    "cacheOnlyPathProjectionsAndReadbacks": 48,
+    "cacheContract": "Source-keyed IMAGEDEF filename remains authoritative; IMAGE display-path cache cannot override it. Direct/authored image filename behavior is unchanged.",
+    "actualMissingClassRowSources": 6,
+    "missingClassRowState": "TableUnavailable for both custom frames; late public rows/repeated finishing cannot fill sealed unknown private authority",
+    "unknownClassCompatibleProjectionsAndReadbacks": 12,
+    "missingClassFreshImportRecoveryProjectionsAndReadbacks": 12,
+    "lateClassAtomicRefusalFreshImportReadbackRetries": 48,
+    "wrongDefinitionOwnerRoleCallbackCases": 6,
+    "ownerRoleAtomicRefusalFreshImportReadbackRetries": 12,
+    "ownerRoleFaultBoundary": "Public raw-callback copy changed at the independently observed owner nibble during a genuine native import; actual class table stays joined. Not a malformed producer-authored DWG or independent semantic certificate.",
+    "allSuccessfulProjectionsWithReadbackAndExistingIndependentOutputInspector": 804,
+    "allAtomicDestinationRefusals": 684,
+    "broaderDocumentMergeAndFullImageSchemaQualified": false
+  },
+  "validation": {
+    "normalBuild": {"result": "PASS", "targets": ["libdxfrw_dwg2dxf_adapter_tests", "lc3_compat_check"], "flags": "-std=c++17 -Wall -Wextra -pedantic -Werror", "log": "/tmp/rpp5bt-final-build.log"},
+    "focused": {"result": "PASS", "passed": 9, "total": 9, "wallSeconds": 14.96, "parallelism": 3, "tests": ["dwg2dxf_rooted_custom_imagedef", "dwg2dxf_raster_class_history", "dwg2dxf_raster_dwg_source_profile_eed", "dwg2dxf_selected_raster_reactor_metadata", "dwg2dxf_generated_image_dictionary_source_identity", "libdxfrw_dwg_class_source", "libdxfrw_class_source_join", "libdxfrw_class_section_independent_wire", "libdxfrw_public_header_hygiene"], "newModeWallSeconds": 10.70, "log": "/tmp/rpp5bt-fast-tests.log"},
+    "asanBuild": {"result": "PASS", "targets": ["libdxfrw_dwg2dxf_adapter_tests", "lc3_compat_check"], "log": "/tmp/rpp5bt-asan-build.log"},
+    "asan": {"result": "PASS", "passed": 3, "total": 3, "wallSeconds": 23.40, "parallelism": 3, "options": "halt_on_error=1:detect_leaks=0", "tests": ["dwg2dxf_rooted_custom_imagedef", "dwg2dxf_raster_class_history", "dwg2dxf_raster_dwg_source_profile_eed"], "newModeWallSeconds": 23.39, "log": "/tmp/rpp5bt-asan-tests.log"},
+    "owningAndReaderCohorts": "NOT_RERUN_TEST_HARNESS_ONLY; RPP-5bs remains the historical production checkpoint",
+    "fullSuite": "NOT_RUN",
+    "sanitizerFinding": false,
+    "externalPlatformSemanticOrThroughputQualificationClaim": false
+  },
+  "next": [
+    "Inspect current HEADER/NOD, standard-object and image-dictionary source/ownership receipt paths against the specification; reproduce the next missing single-document invariant with a local scratch control",
+    "Preserve duplicate ACAD_GROUP/NOD refusal until an explicit, verified ownership/remapping and document composition contract exists; do not infer a merge from per-import EED joins",
+    "Independent name/body/path/EED semantics and explicit source profiles, complete output field/reference proof and full IMAGE/common state",
+    "External producer profiles, sparse native class cardinality and remaining APPID/LAYER/XRECORD dependencies"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "J256": "DEFERRED_EXTERNAL", "J260": "DEFERRED_EXTERNAL", "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL", "J293": "DEFERRED_EXTERNAL", "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0,
+    "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false,
+    "unrelatedUntrackedFilesPreserved": true,
+    "remoteMutations": false
+  }
+}

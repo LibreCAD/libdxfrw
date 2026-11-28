@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-ac1018-table-stale-absent-mask-guard-2026-11-10",
+  "date": "2026-11-10",
+  "scope": "AC1018 TABLE direct encoder consistency of retained zero-mask ranges and modeled TABLE override flags",
+  "change": "The retained four-bit, zero-count TABLE range represents four absent masks. If any source ranges are retained, the direct encoder now also requires a zero modeled TABLE override mask. Existing range-shape, cell, proxy, and graph gates remain separate. Range-empty generated TABLEs can still emit supported overrides.",
+  "controls": [
+    "A generated TABLE is encoded and parsed; its zero-mask ranges are retained in an otherwise encodable model.",
+    "Changing the retained TABLE range count to one refuses before modifying seeded body or handle buffers; restoring the original model permits retry.",
+    "Selecting a title-row text height of zero against the retained absent-mask range refuses before modifying seeded body or handle buffers; restoring the original model permits retry.",
+    "A generated range-empty TABLE with selected zero title-row text height remains encodable."
+  ],
+  "presenceLimit": "The model has no independent hasTableOverrides property. The presence-only control mutates the retained parser range count; it does not claim to generate an independent physical presence-with-zero-mask frame.",
+  "physicalObservation": {
+    "file": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "provenance": "New audited ODA 27.1 conversion of the previously documented AC1027 DXF source, distinct from the earlier conversion and hash.",
+    "observed": "libdxfrw reads one complete 3x3 TABLE with seven zero-mask cell ranges and one four-bit zero-count TABLE range; 226 of 226 observed frames are published and entity/object parse failures are zero. The known HEADER integrity offset warning remains.",
+    "limit": "The physical direct-codec probe currently refuses even after parsed proxy authorization. Its exact refusal is under investigation; this source is not a positive read-write-read control or a native rendering witness."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+    "result": "PASS: 1/1 focused test; git diff --check PASS"
+  },
+  "remaining": "No parsed nonempty TABLE override source can be re-encoded on this evidence. Safe source binding still requires per-import identity, bounded original bytes and code page, completed-frame/CRC provenance, journal quota and rollback accounting, stable writer mutation lifetime, stale-range/value validation and graph/proxy gates."
+}

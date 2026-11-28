@@ -1,0 +1,87 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DXF-only peer lineages and projection boundaries",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Screen DXF-only parser and callback-library routes not represented in the latest peer matrix",
+    "Distinguish document preservation from callback/projection APIs",
+    "Check lineage between the JavaScript dxf-parser and its Python port",
+    "Refine optional comparator admission without adding recurring validation work"
+  ],
+  "sources": [
+    {
+      "project": "QCAD dxflib programmer guide and feature page",
+      "references": [
+        "https://www.qcad.org/doc/dxflib/2.5/reference/overview.html",
+        "https://www.qcad.org/en/dxflib"
+      ],
+      "status": "official_project_documentation_reviewed_2026-10-20",
+      "observation": "The guide says dxflib invokes consumer callbacks and does not retain entities/document information. Its feature page lists selected DXF entity/object families and documents R15 (AutoCAD 2000) as the writer version. Explicit 3DFACE/SOLID/TRACE class coverage is not ACIS/ACDS B-rep support."
+    },
+    {
+      "project": "GDS Estimating dxf-parser",
+      "reference": "https://github.com/gdsestimating/dxf-parser",
+      "status": "mutable_repository_readme_reviewed_2026-10-20",
+      "observation": "The JavaScript project parses DXF text into a JavaScript object, reports support for most 2D entities and selected document structures, and explicitly lists 3DSolids and some less-common entities/objects as unsupported. The reviewed API is a parser/projection, not a writer or raw-byte-preservation contract."
+    },
+    {
+      "project": "Python dxf-parser package",
+      "reference": "https://pypi.org/project/dxf-parser/",
+      "status": "package_metadata_and_project_description_reviewed_2026-10-20",
+      "observation": "The package describes itself as ASCII-DXF-only, alpha, and compatible with the output structure of the JavaScript dxf-parser; it explicitly attributes inspiration to that project. PyPI reports a release on 2026-09-03. These are one related schema/output lineage, not two independent parser votes."
+    },
+    {
+      "project": "BRL-CAD DXF converter guide and GCV architecture documentation",
+      "references": [
+        "https://brlcad.org/w/images/5/5f/Geometry_Conversions.pdf",
+        "https://brlcad.org/docs/cad/articles/gcv.html"
+      ],
+      "status": "official_project_documentation_reviewed_2026-10-20",
+      "observation": "BRL-CAD documents dxf-g as conversion into its own geometry database and says the historical DXF importer predates ACIS support. GCV converts through an in-memory BRL-CAD database and warns source objects may lack a direct analogous target primitive; this is a geometry projection, not a document roundtrip."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "Added a narrow DXF-only comparator screen for dxflib, JavaScript/Python dxf-parser, and the BRL-CAD conversion boundary. Clarified callback/projection versus retained-document preservation, ASCII/version limits, and shared parser lineage. No local codec defect or new implementation item was identified.",
+    "nextImplementation": "Continue the existing local-ready implementation queue. At a composed checkpoint only, select one optional DXF peer if a named question remains; keep scratch controls temporary and derive expectations from a separately authored manifest.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-dxf-only-peer-lineages-projection-boundaries-2026-10-20.json"
+    ],
+    "limitations": "Mutable project documentation and package metadata were reviewed without pinning or executing the peer implementations. The comparison establishes stated route limits only; it does not measure parser correctness, writer acceptance, source identity retention, or consumer behavior."
+  },
+  "validation": {
+    "planEdit": "Added route-specific peer scope/lineage notes and an optional composed-checkpoint recipe; queue, validation cadence, fixture policy, counts, and support claims remain unchanged.",
+    "jsonValidation": "PASS: jq empty",
+    "scopedDiffCheck": "PASS: git diff --check for the plan and receipt; receipt trailing-whitespace scan clean",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit was requested; the shared worktree is broadly dirty and Git metadata is read-only."
+  }
+}

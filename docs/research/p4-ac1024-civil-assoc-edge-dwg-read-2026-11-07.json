@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-civil-assoc-edge-dwg-read-2026-11-07",
+  "date": "2026-11-07",
+  "title": "AC1024 civil Edge persistent-subentity bounded DWG decode",
+  "supportClaimEffect": "none",
+  "scope": "Decode and source-bind the AC1024 Edge persistent-subentity tail for the existing civil source; keep the distinct incomplete dependency and all wider output/native claims gated.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "version": "AC1024",
+    "provenanceLimit": "Existing local source; not an independently authenticated producer witness and not added as a fixture."
+  },
+  "authority": {
+    "ODA": {
+      "specification": "Open Design Specification for .dwg files v5.4.1",
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "finding": "The specification defines the relevant bit types and bounded object streams but contains no class-specific AcDbAssocEdgePersSubentId serialized-body grammar. It does not independently authorize this class tail."
+    },
+    "AutodeskApi": {
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDb_Classes.html",
+      "finding": "AcDbAssocEdgePersSubentId identifies an edge through two endpoint indices or two arbitrary index identifiers. API semantics only; this is not a DWG wire-layout specification."
+    },
+    "LibreDWG": {
+      "version": "0.14",
+      "repositoryCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "schemaPath": "/Users/dli/dev/LibreDWG/src/dwg2.spec",
+      "schemaFinding": "The peer defines the Edge tail as class-version BS, index1 BL, index2 BL, then compound flag. Its ASSOCGEOMDEPENDENCY object route consumes the generic AcDbAssocPersSubentId flag and omits that derived tail, so its decoded compound value is not independent validation of the Edge tail."
+    }
+  },
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "sourceSha256": "f396803ccea78b0bf283895e8790249c77edc6b870a8ecdaeefe11557d857afa",
+    "profileGate": "AC1024 ACDBASSOCGEOMDEPENDENCY whose parsed persistent-subentity class name is AcDbAssocEdgePersSubentId",
+    "decodedTail": [
+      "nested persistent-subentity class version: BS",
+      "first endpoint/index value: BL",
+      "second endpoint/index value: BL",
+      "dependent-on-compound-object flag: B"
+    ],
+    "completionGate": "The existing object-body and detached-string end checks plus zero object-body padding and handle-stream alignment must all pass before the geometry dependency is marked wire-complete.",
+    "widerVersionBehavior": "No Edge tail interpretation was added for any other DWG version.",
+    "unresolved": "Handle 3157 carries the string AcDbAssocEdgePersSubentId in AcDbAssocDependency.name, but its AcDbAssocGeomDependency persistent-subentity class name is empty and its wire profile does not match this Edge tail. It remains incomplete and is not admitted."
+  },
+  "physicalProfile": {
+    "boundedEdgeRecords": 10,
+    "edgeClassVersion": 0,
+    "geometryDependencyClassVersion": 0,
+    "enabled": true,
+    "decodedCompoundFlag": false,
+    "graphAndGeometryCrossCheck": "Two groups each contain five ordered edge pairs forming 201-202-203-204-205-201. Each group targets a peer-decoded LWPOLYLINE whose vertex IDs are exactly [201,202,203,204,205].",
+    "sourceBoundResult": "All ten records reach the bounded object end with no unconsumed nonzero body bits; source entity vertex IDs independently corroborate the two index values. This is one AC1024 local source profile only.",
+    "peerDisagreement": "LibreDWG minJSON reports dependent_on_compound_object=1 for these ten derived Edge records by applying its generic persistent-subentity body; the bounded Edge-tail decode reads 0 after the version and both indices. Retain this discrepancy explicitly."
+  },
+  "verifier": {
+    "script": "tools/research/verify_ac1024_civil_assoc_edge_profile.py",
+    "scriptSha256": "181fa581c70039e3c11e54f6e8e1a5fe966fb47ac7c62b0474e7cfdb53ebcaf1",
+    "command": "python3 tools/research/verify_ac1024_civil_assoc_edge_profile.py /Users/dli/doc/dwg/civil_example-imperial.dwg /private/tmp/civil-edge-candidate-profile.log /private/tmp/civil-assoc-minjson.json",
+    "localProfileSha256": "27f0f5d463c1f3b945aaf135dd668c303c3d3ec1b4cce16f64205fb33da1b642",
+    "localDiagnosticExecutableSha256": "0f56151800d5c01e35d8fbf0698f8220ab7c9a441bb8db23ade0b20fc0f1621d",
+    "peer": {
+      "command": "/opt/homebrew/bin/dwgread -O minJSON -o /private/tmp/civil-assoc-minjson.json /Users/dli/doc/dwg/civil_example-imperial.dwg",
+      "version": "dwgread 0.14",
+      "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "outputSha256": "e7f80af17e2f8041f32b0e1ef1ff50af1899b034750377848d80a5310615ddbf"
+    },
+    "fullSuites": "NOT_RUN",
+    "fixturePolicy": "No DWG/DXF fixture was added."
+  },
+  "focusedValidation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j6",
+    "tests": {
+      "selector": "ctest --test-dir build-gcc -R '^(libdxfrw_associative_dependency_writer|dwg2dxf_associative_geometry_dependency_graph_export)$' --output-on-failure",
+      "result": "2/2 passed",
+      "scope": "Existing generated Edge DXF codec and associative geometry graph output controls; these do not exercise the physical DWG parser tail or source output route."
+    },
+    "otherAc1024LocalSources": "A bounded scan of nine unique local AC1024 DWGs found no additional Edge persistent-subentity class-name profile. Existing SingleEdge sources remained on the prior path; no new object-parse failure was observed on the civil source."
+  },
+  "limits": [
+    "No ODA class-specific DWG grammar was found; LibreDWG schema and source-byte closure are corroborating, not normative, evidence.",
+    "This change proves a single existing AC1024 physical source profile, not arbitrary producers, all AC1024 sources, or other versions.",
+    "The ten bodies have not yet passed selected ASCII/Binary output and fresh typed readback with rollback/retry.",
+    "The distinct handle-3157 body, civil null LTYPE_CONTROL member, strict whole-source output, native associative behavior, and support claims remain unresolved."
+  ]
+}

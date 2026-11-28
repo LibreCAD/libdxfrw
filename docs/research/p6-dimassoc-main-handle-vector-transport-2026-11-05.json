@@ -1,0 +1,141 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dimassoc-main-handle-vector-transport-2026-11-05",
+  "date": "2026-11-05",
+  "title": "DIMASSOC main-handle vector transport and bounded encoder support",
+  "status": "BOUNDED_VECTOR_TRANSPORT_PASS_SEMANTICS_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "scope": "Preserve every AcDbOsnapPointRef main object handle through DWG parsing, the typed model, bounded DWG encoding, and ASCII/Binary DXF parsing and writing. Keep the first handle mirrored in the existing scalar member for source compatibility. This receipt qualifies selected record transport only.",
+  "sourceEvidence": [
+    {
+      "title": "LibreDWG DWG object grammar",
+      "localPath": "/Users/dli/dev/libredwg/src/dwg2.spec",
+      "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "lines": "3659-3713",
+      "finding": "DIMASSOC main xrefs are represented as a counted handle vector."
+    },
+    {
+      "title": "LibreDWG DXF parser",
+      "localPath": "/Users/dli/dev/libredwg/src/in_dxf.c",
+      "lines": "5748-5758",
+      "finding": "Each repeated DXF group 331 is appended to the current DIMASSOC reference's xrefs vector."
+    },
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "finding": "The inspected specification text does not prescribe DIMASSOC body fields; no DWG field order or width was changed in this slice."
+    }
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dimassoc_physical_transport_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "The typed reference now stores all main handles and mirrors the first in m_objectHandle. DWG parsing retains every counted handle; the bounded type-0 DWG encoder writes the vector after validating count and alias consistency. DXF parsing retains repeated group 331 entries, and DXF output remaps, validates graph closure for, and emits every handle. Physical transport checks every main target. Scalar-only callers remain supported by falling back to m_objectHandle when the vector is empty.",
+    "publicLayoutChanged": true,
+    "sourceCompatibility": "Existing scalar-only source callers remain supported; binary ABI qualification is still open under P8.",
+    "wireLayoutChanged": false,
+    "generatedSamples": "Generated DWG vectors are constructed in C++; no sample DWG or DXF fixture was added.",
+    "physicalFixtureAdded": false,
+    "supportClaimsPromoted": 0
+  },
+  "evidence": {
+    "generatedDwgEncoderParserControl": {
+      "selector": "--dimassoc-dwg-detail-readback",
+      "covers": [
+        "locally authored two-handle main-object vector",
+        "DWG encoder output parsed back with both handles in order",
+        "truncated handle-stream input resets partial state and valid input retries successfully"
+      ],
+      "result": "PASS"
+    },
+    "generatedAsciiBinaryDxfControl": {
+      "selector": "--dimassoc-dwg-detail-readback",
+      "formats": ["ASCII DXF", "Binary DXF"],
+      "covers": [
+        "all main handles emitted as repeated group 331",
+        "handle remapping applied independently to each vector element",
+        "typed readback preserves order, fields, and first-handle compatibility alias"
+      ],
+      "result": "PASS"
+    },
+    "physicalAc1021RecordTransport": {
+      "command": "build-gcc/libdxfrw_dimassoc_physical_transport_tests tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "path": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+      "repositoryStatus": "Pre-existing local untracked sample; not staged or committed",
+      "result": {
+        "sourceVersion": "AC1021",
+        "entityParseFailures": 0,
+        "objectParseFailures": 0,
+        "dimassocCallbacks": 7,
+        "resolvedRepresentableRecords": 7,
+        "refusedOrUnresolvedRecords": 0,
+        "asciiTypedReadbacks": 7,
+        "binaryTypedReadbacks": 7
+      },
+      "interpretation": "Selected source record transport only. It does not establish complete document conversion, semantic correctness of association targets, native associative behavior, or producer/version parity."
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dimassoc_physical_transport_tests -j4",
+      "result": "PASS"
+    },
+    "focusedGeneratedSelector": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimassoc_dwg_detail_readback$' --output-on-failure",
+      "result": "PASS, 1/1 in 0.31 seconds"
+    },
+    "physicalAc1021Selector": {
+      "command": "build-gcc/libdxfrw_dimassoc_physical_transport_tests tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "result": "PASS; 7/7 records in ASCII and Binary DXF"
+    },
+    "scalarOnlyCompatibilitySelector": {
+      "command": "build-gcc/libdxfrw_hardening_tests --dimassoc-documented-scalar-fields",
+      "result": "PASS"
+    },
+    "diffCheck": "PASS",
+    "fullSuites": false
+  },
+  "binding": {
+    "baseRevision": "923a71c0",
+    "sourceSha256": {
+      "src/drw_objects.h": "4c1a061070ff299235e97b819451fab4a30fa71b2f2d7c900d17c3767daecf5d",
+      "src/drw_objects.cpp": "8d63801d033b468bbd411d0dadd151c09ef31d0c778a97cfe99c113bfd1c5adc",
+      "src/libdxfrw.cpp": "c080f0d376f9f40acf4f64fec0fd4cbc16f9ae86fdc588aba4286b9a2cdcfbbe",
+      "tests/dwg_object_vectors_tests.cpp": "0d208704b304042e716751a3f94b7f60267d08f6745e2090b56066c5a8c1ee09",
+      "tests/dimassoc_physical_transport_tests.cpp": "0e011c4044e2b13a8f2c1c2f1b7aacc4d742038b8f216745ffd4aa43e1d65d84"
+    },
+    "executableSha256": {
+      "libdxfrw_dwg_object_vectors_tests": "21306af3b4ed6fd90f0d8747a0fd6f1cb401b1e804c874afcf6528d84059f60b",
+      "libdxfrw_dimassoc_physical_transport_tests": "e1514794b4c009a2203df674a9d24b9237329f758d8b90497d2ba73ceecb44cd",
+      "libdxfrw_hardening_tests": "4b3d54c48f5cd3f557a45f6141e6f9a9ba25c4e05dbe510735affda16e8288b8"
+    }
+  },
+  "limitations": [
+    "The physical input is one local AC1021 producer sample; whole-document strict output remains blocked by unrelated MLINE proxy caches.",
+    "AC1018 physical coverage remains 23/23 under the previous receipt; this slice did not rerun it.",
+    "ODA v5.4.1 does not document DIMASSOC body fields; the generated control verifies codec consistency, not an independent wire-span profile.",
+    "Association target roles, native associative evaluation, broader producer/version profiles, and binary ABI compatibility remain unqualified.",
+    "The type-0 DWG encoder remains bounded; detailed osnap metadata encoding is still refused."
+  ],
+  "planImpact": {
+    "phase": "P6",
+    "status": "OPEN",
+    "completedSlice": "Preserve and transport all main DIMASSOC handles for the sampled AC1021 profile through typed parsing, selected-record graph checks, and ASCII/Binary DXF output/readback; add bounded type-0 multi-handle DWG encoding and generated parser roundtrip.",
+    "remaining": "Native associative semantics, independent target-role proof, broader producer/version coverage, strict whole-document closure, and detailed DWG osnap encoding.",
+    "nextReadyPacket": "Continue the P6 residual audit on a source-backed schema family; retain DIMASSOC semantic and whole-document gates.",
+    "externalDisposition": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

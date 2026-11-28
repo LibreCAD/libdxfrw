@@ -1,0 +1,12 @@
+{
+  "scope": "Conservative admission for explicit DRW_DxfLegacyExtrusion::toNativeOcs recovery of applied CIRCLE, ARC, TRACE, SOLID, TEXT and INSERT. Existing read modes, legacy applyExtrusion behavior, public model layout, and default writers are unchanged.",
+  "authority": "Autodesk arbitrary-axis algorithm specifies a unit normal and cross-product axes: https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-E19E5B42-0CC7-4EBA-B29F-5E1D595149EE.htm. Autodesk documents CIRCLE center in OCS: https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-8663262B-222C-414D-B133-4A8506A27C18.htm.",
+  "reproduction": "Generated CIRCLE normal (1e-170,1e-170,1), native center (0,1e308,0); one legacy applyExtrusion yields WCS (0,1e308,-1e138). Before this change toNativeOcs returned success and native x=1.0000000000000001e-32 instead of zero because a nonzero normal cross-product underflowed before multiplication by the large coordinate. The existing LWPOLYLINE WCS extractor rejects that basis. The source is locally authored, not a committed fixture.",
+  "change": "Share the existing LWPOLYLINE stable-basis calculation with each explicit recovery helper, invoked only when haveExtrusion is true. Refuse when a nonzero normalized normal or basis component is lost or subnormal, or a checked nonzero cross-product underflows. Copy-before-publication and no-extrusion behavior are retained.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_legacy_extrusion_tests libdxfrw_dxf_lwpoly_wcs_vertices_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_legacy_extrusion|libdxfrw_dxf_lwpoly_wcs_vertices|dxf_ellipse_extrusion_policy|libdxfrw_dxf_dimension_ocs_extrusion)$' --output-on-failure",
+    "result": "4/4 passed. The six helper types refuse the generated mixed-scale basis with source, destination and aliased input preserved; a no-extrusion control remains writable and corrected nonunit and uniform-subnormal normal retries succeed. ASCII/Binary writer sentinel and same-writer retry controls pass. Existing reader, ARC/CIRCLE, LWPOLYLINE and DIMENSION controls also pass."
+  },
+  "limits": "This is conservative fail-closed behavior for a known unstable basis, not exact arithmetic or a general guarantee against rounding, intermediate cancellation or overflow. Already lost legacy transformation data cannot be reconstructed. Native 3D rendering and physical-producer profiles are not qualified."
+}

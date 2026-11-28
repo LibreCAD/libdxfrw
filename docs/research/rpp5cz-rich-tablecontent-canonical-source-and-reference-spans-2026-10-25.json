@@ -1,0 +1,363 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5cz rich TABLECONTENT canonical source and reference spans",
+  "date": "2026-10-25",
+  "parentCommit": "bb109ce063426654e81c76d8e4f82881582dbd05",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "RICH_CHILD_SOURCE_FIELD_PROOF_AND_REFERENCE_SPANS_IMPLEMENTED_WHOLE_COMPOUND_BINDING_LIVE_OUTPUT_NATIVE_SEMANTIC_PLATFORM_PARITY_OPEN",
+  "previousGoalTurn": "PROGRESS: bb109ce implemented bounded table-compound source capture",
+  "scope": {
+    "versions": [
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "encodings": [
+      "ASCII",
+      "binary"
+    ],
+    "profile": "Existing complete plain-header marked rich DXF TABLECONTENT profile",
+    "decoderDefaultBehavior": "Optional internal reference sink is null by default; no public callback or profile expansion",
+    "sourceProof": "All exposed core/metadata payload fields, common fields, defaults, variants, custom data, style/color/border/format, attributes, merged ranges and embedded geometry compared exactly",
+    "scalarSpellings": "ASCII raw spellings decoded by existing scalar reader and compared to groups; binary raw placeholders must be empty",
+    "textContext": "ASCII/binary source reader selected from capture encoding; modern UTF8 and encoding-specific caret behavior preserved",
+    "floatPolicy": "Exact bits, including signed zero; no tolerance",
+    "sourceConsistencyNotIndependentSemantics": true,
+    "sourceMetadata": "Adapter deep-copies metadata and each per-content format before storing its frozen model; no mutable consumer alias can modify it",
+    "publicDtoCopyContract": "Existing shared immutable metadata unchanged",
+    "publicLayoutsOrDrwInterfaceVtableChanged": false,
+    "nativeDwgLayoutChanged": false,
+    "outputAdmissionEnabled": false,
+    "supportClaimsPromoted": false
+  },
+  "research": {
+    "skill": "pdf: read-only inspection, no PDF authored",
+    "authoritativePdf": "/private/tmp/lc2961-impl-evidence.9GtLO2/independent-fixtures/tooling/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+    "authoritativeSource": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sections": "20.4.97-103; relevant pages 239-241, 244, 246-247 rendered and visually inspected",
+    "peerSource": "Cached ACadSharp src/ACadSharp/IO/DXF/DxfStreamReader/DxfObjectsSectionReader.cs readTableCell explicitly labels 330 Unknown handle",
+    "findings": [
+      "Style IDs belong to the selected TABLESTYLE/CELLSTYLEMAP integer namespace, not the object-handle map",
+      "DataLink/Field/BlockRecord/TextStyle/LineType/TableStyle hard-pointer roles depend on source context; code 340 alone cannot establish family",
+      "Attribute definition and CAD ObjectID use soft references; suppressed ObjectID payloads do not carry a slot",
+      "Cached geometry target classes remain unknown; no guessed TABLEGEOMETRY/block-class binding",
+      "Shared border m_visible integer is context-dependent: rich cell-style wire invisibility differs from legacy row-style visibility"
+    ],
+    "sourceCodeCopied": false
+  },
+  "implementation": {
+    "referenceReceipt": {
+      "fields": [
+        "ReferenceKind",
+        "groupIndex",
+        "code",
+        "value"
+      ],
+      "kinds": [
+        "Self",
+        "Owner",
+        "TextStyle",
+        "LineType",
+        "TableStyle",
+        "Field",
+        "BlockRecord",
+        "AttributeDefinition",
+        "DataLink",
+        "ObjectId",
+        "UnknownGeometry",
+        "LocalStyleId"
+      ],
+      "nullSlotsPreserved": true,
+      "localIdsNeverObjectHandles": true,
+      "observationsTentativeUntilFullDecodeAndMatch": true,
+      "partialReceiptPublished": false
+    },
+    "retention": {
+      "existingRetainedByteCap": 67108864,
+      "worstCaseReferenceCapacityPrecharged": true,
+      "newCumulativeCanonicalProofSlots": 4000000,
+      "workReservation": "64 slots per raw group before scanning/allocating, plus actual merged-range pair-check allowance",
+      "temporaryPhases": "Scalar body and scalar reader separately bounded by adapter cap, followed by bounded decoder retention; not a whole-model RSS limit",
+      "stickyFailure": true,
+      "oldBudgetsNotRelaxed": true
+    },
+    "report": {
+      "newFailure": "RawTypedMismatch",
+      "contentRawMatchesRequired": true,
+      "unknownContentRoleCountExposed": true,
+      "notLiveEditableStateEquality": true,
+      "notTargetClassOrNamespaceBinding": true,
+      "outputEligible": false
+    },
+    "comparison": "Full exact core and nested metadata comparators, reusing existing common/variant/style/color helpers; no native-modeler authority inferred",
+    "limits": [
+      "Whole TABLE parent/wrapper/standalone-cache raw/typed proof remains open",
+      "Actual resource identities/class/namespace binding remains open",
+      "Editable/frozen comparison and late-callback guards remain open",
+      "Complete compound emitter/staged/final output proof remains open",
+      "Nonnull unknown geometry roles remain unqualified",
+      "Source raw variant/spelling consistency does not prove original native DWG bit spans"
+    ]
+  },
+  "controls": {
+    "fixtureAuthoring": "Locally generated from scratch; no external drawing payload committed",
+    "newCTest": "libdxfrw_table_content_source_proof",
+    "observerSelftest": "libdxfrw_table_content_reference_observer_selftest",
+    "exactRoleRoutes": 8,
+    "typedMutationKinds": 168,
+    "typedMutationRefusals": 1344,
+    "correctedSameFacadeFreshDrawingImports": 1344,
+    "rawSpellingOrEncodingRefusals": 40,
+    "nullObjectIdSuppressedLocalIdRoutes": 32,
+    "primitivePayloadRoutes": 40,
+    "proofWorkBoundaryControls": 16,
+    "mutableMetadataAndFormatAliases": "Deep frozen snapshot unchanged after alias edits",
+    "referenceObserverFailure": "Reject third event; no partial decoded object/metadata; text lease released",
+    "allAdmittedHandleSlotsCovered": true,
+    "retainedPriorControls": "Existing RPP-5cy 16 source routes, 448 malformed graph/recovery pairs, 32 atomic refusals/LINE readbacks, 80 boundaries, 64 order/candidate/multiple/attribute cases and public budget/2D checks still pass",
+    "independentObserverSelftest": {
+      "positives": 1,
+      "corruptions": 9,
+      "qualificationEligible": false
+    },
+    "initialCorrection": "Scalar view initially omitted its bytes, correctly yielding zero input budget. Bind actual body view; do not bypass budget checks"
+  },
+  "externalObservations": [
+    {
+      "version": "AC1027",
+      "source": "https://github.com/LibreDWG/libredwg/blob/0.14/test/test-data/example_2013.dxf",
+      "sourceSha256": "951f7910d1ea8ccc2d1eae9556c2f3f05a0197e6379fbf13d40f660df95a9ce3",
+      "content": "E41",
+      "owner": "E44",
+      "sourceState": "StructurallyComplete",
+      "contentRawMatches": 1,
+      "referenceEvents": 227,
+      "handleSlots": 18,
+      "localStyleIdSlots": 209,
+      "canonicalProofSlots": 431424,
+      "retainedLogicalBytes": 2754192,
+      "roleCounts": {
+        "Self": 1,
+        "Owner": 1,
+        "TextStyle": 15,
+        "TableStyle": 1,
+        "LocalStyleId": 209,
+        "otherKinds": 0
+      },
+      "textStyleSlots": {
+        "null": 8,
+        "handle11": 7
+      },
+      "localIdUseCounts": {
+        "0": 189,
+        "1": 1,
+        "2": 1,
+        "3": 18
+      },
+      "tableStyleHandle": "29B",
+      "nonnullUnknownContentReferences": 0,
+      "log": "/tmp/rpp5cz-external-AC1027.log",
+      "independentReport": "/tmp/rpp5cz-independent-AC1027.json"
+    },
+    {
+      "version": "AC1032",
+      "source": "https://github.com/LibreDWG/libredwg/blob/0.14/test/test-data/example_2018.dxf",
+      "sourceSha256": "e64b0cfb6e1587f9d2bb4387d59064efa5bc667cda9ecbc00313459b304bb997",
+      "content": "9B5",
+      "owner": "9B8",
+      "sourceState": "StructurallyComplete",
+      "contentRawMatches": 1,
+      "referenceEvents": 227,
+      "handleSlots": 18,
+      "localStyleIdSlots": 209,
+      "canonicalProofSlots": 431424,
+      "retainedLogicalBytes": 2750184,
+      "roleCounts": {
+        "Self": 1,
+        "Owner": 1,
+        "TextStyle": 15,
+        "TableStyle": 1,
+        "LocalStyleId": 209,
+        "otherKinds": 0
+      },
+      "textStyleSlots": {
+        "null": 8,
+        "handle11": 7
+      },
+      "localIdUseCounts": {
+        "0": 189,
+        "1": 1,
+        "2": 1,
+        "3": 18
+      },
+      "tableStyleHandle": "29B",
+      "nonnullUnknownContentReferences": 0,
+      "log": "/tmp/rpp5cz-external-AC1032.log",
+      "independentReport": "/tmp/rpp5cz-independent-AC1032.json",
+      "independentTargetReadinessFacts": {
+        "handle11Class": "STYLE",
+        "handle29BClass": "TABLESTYLE",
+        "namedExtensionKey": "ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP",
+        "mapHandle": "9B4",
+        "mapClass": "CELLSTYLEMAP",
+        "resolverImplemented": false
+      }
+    }
+  ],
+  "independentEvidence": {
+    "tool": "ezdxf 1.4.4 through optional tests/table_content_reference_observer.py",
+    "status": "SCOPED_CONTENT_REFERENCE_SPANS_MATCH",
+    "qualificationEligible": false,
+    "scope": "Exact flat source tag span/code/scalar and complete handle-slot coverage; independently compiled XYZ expanded to physical components",
+    "notProved": [
+      "Independent decoding of schema role labels",
+      "Complete target-class/namespace closure",
+      "Every rich payload field or emitted output",
+      "Table evaluation or native modeler/kernel semantics"
+    ]
+  },
+  "validation": {
+    "host": "macOS ARM64 Apple Clang; build-gcc is not Linux/GCC",
+    "normal": {
+      "passed": 46,
+      "total": 46,
+      "elapsedSeconds": 26.8,
+      "log": "/tmp/rpp5cz-final-normal-cohort.log"
+    },
+    "asan": {
+      "passed": 46,
+      "total": 46,
+      "elapsedSeconds": 60.64,
+      "log": "/tmp/rpp5cz-final-asan-cohort.log",
+      "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0"
+    },
+    "focusedOwning": {
+      "passed": 4,
+      "total": 4,
+      "elapsedSeconds": 4.19,
+      "log": "/tmp/rpp5cz-final-owning-normal.log"
+    },
+    "buildLogs": [
+      "/tmp/rpp5cz-build-gcc-final-build.log",
+      "/tmp/rpp5cz-build-asan-custom-final-build.log",
+      "/tmp/rpp5cz-final-test-build.log",
+      "/tmp/rpp5cz-final-asan-test-build.log"
+    ],
+    "lc3CompileGates": {
+      "normal": "PASS",
+      "asan": "PASS",
+      "scope": "Source compatibility only"
+    },
+    "cliOptionalRegistration": {
+      "passed": 1,
+      "total": 1,
+      "elapsedSeconds": 2.69,
+      "log": "/tmp/rpp5cz-cli-optional.log"
+    },
+    "fullPolicyCli": {
+      "exitCode": 1,
+      "tableLossGuardRetained": true,
+      "outputAbsent": true,
+      "outputPath": "/private/tmp/libdxfrw-rpp5cz-evidence.U7gvIt/cli-output.dxf",
+      "log": "/tmp/rpp5cz-external-cli.log"
+    },
+    "owningCohortsSequentialAcrossBuildTrees": true,
+    "tests": [
+      "libdxfrw_table_geometry_dxf_projection",
+      "libdxfrw_table_geometry_observer_selftest",
+      "dwg2dxf_named_object_callback_storage",
+      "libdxfrw_table_content_dwg_object_roundtrip",
+      "libdxfrw_table_content_dwg_payload_encoder",
+      "libdxfrw_table_content_style_id_domains",
+      "libdxfrw_table_callback_owner_order",
+      "libdxfrw_tablestyle_nested_raw_net",
+      "dwg2dxf_basic_table_typed_capture_limits",
+      "dwg2dxf_sort_table_style_raw_capture_limits",
+      "dwg2dxf_table_style_typed_capture_limits",
+      "dwg2dxf_table_content_style_reference_census",
+      "dwg2dxf_table_base_style_id_dxf_refusal",
+      "dwg2dxf_raw_dxf_object_list_node_accounting",
+      "dwg2dxf_raw_dxf_entity_capture_limits",
+      "dwg2dxf_raw_dxf_section_capture_limits",
+      "dwg2dxf_proxy_object_capture_limits",
+      "dwg2dxf_raw_dxf_section_passthrough",
+      "libdxfrw_3d_consumer_probe",
+      "libdxfrw_dimstyle_optional_handles",
+      "libdxfrw_dimstyle_compatible_resource_remap",
+      "dwg2dxf_acds_strict_material_closure",
+      "libdxfrw_material_raw_scalar_wire_controls",
+      "libdxfrw_dxf_source_table_identities",
+      "libdxfrw_dxf_tables_write_inspection",
+      "dwg2dxf_generated_root_common_closure",
+      "libdxfrw_material_root_output_compatibility",
+      "dwg2dxf_acds_raw_dxf_source_baseline",
+      "dwg2dxf_acds_history_reexport_faults",
+      "libdxfrw_dxf_proxy_object_id_terminator",
+      "libdxfrw_table_content_dxf_projection",
+      "libdxfrw_table_compound_source",
+      "libdxfrw_extension_graph_limits",
+      "dwg2dxf_typed_entity_capture_limits",
+      "dwg2dxf_dictionary_typed_capture_limits",
+      "dwg2dxf_xrecord_typed_capture_limits",
+      "libdxfrw_xrecord_normal_string_codes",
+      "libdxfrw_xrecord_xdata_channels",
+      "libdxfrw_xrecord_coordinate_writer_domain",
+      "dwg2dxf_xrecord_application_chunk_controls",
+      "dwg2dxf_xrecord_owned_extension",
+      "dwg2dxf_xrecord_owned_extension_faults",
+      "libdxfrw_dxf_table_cell_text_owner_budget",
+      "libdxfrw_dxf_xrecord_string_owner_budget",
+      "libdxfrw_table_content_source_proof",
+      "libdxfrw_table_content_reference_observer_selftest"
+    ],
+    "testRegex": "^(libdxfrw_table_geometry_dxf_projection|libdxfrw_table_geometry_observer_selftest|dwg2dxf_named_object_callback_storage|libdxfrw_table_content_dwg_object_roundtrip|libdxfrw_table_content_dwg_payload_encoder|libdxfrw_table_content_style_id_domains|libdxfrw_table_callback_owner_order|libdxfrw_tablestyle_nested_raw_net|dwg2dxf_basic_table_typed_capture_limits|dwg2dxf_sort_table_style_raw_capture_limits|dwg2dxf_table_style_typed_capture_limits|dwg2dxf_table_content_style_reference_census|dwg2dxf_table_base_style_id_dxf_refusal|dwg2dxf_raw_dxf_object_list_node_accounting|dwg2dxf_raw_dxf_entity_capture_limits|dwg2dxf_raw_dxf_section_capture_limits|dwg2dxf_proxy_object_capture_limits|dwg2dxf_raw_dxf_section_passthrough|libdxfrw_3d_consumer_probe|libdxfrw_dimstyle_optional_handles|libdxfrw_dimstyle_compatible_resource_remap|dwg2dxf_acds_strict_material_closure|libdxfrw_material_raw_scalar_wire_controls|libdxfrw_dxf_source_table_identities|libdxfrw_dxf_tables_write_inspection|dwg2dxf_generated_root_common_closure|libdxfrw_material_root_output_compatibility|dwg2dxf_acds_raw_dxf_source_baseline|dwg2dxf_acds_history_reexport_faults|libdxfrw_dxf_proxy_object_id_terminator|libdxfrw_table_content_dxf_projection|libdxfrw_table_compound_source|libdxfrw_extension_graph_limits|dwg2dxf_typed_entity_capture_limits|dwg2dxf_dictionary_typed_capture_limits|dwg2dxf_xrecord_typed_capture_limits|libdxfrw_xrecord_normal_string_codes|libdxfrw_xrecord_xdata_channels|libdxfrw_xrecord_coordinate_writer_domain|dwg2dxf_xrecord_application_chunk_controls|dwg2dxf_xrecord_owned_extension|dwg2dxf_xrecord_owned_extension_faults|libdxfrw_dxf_table_cell_text_owner_budget|libdxfrw_dxf_xrecord_string_owner_budget|libdxfrw_table_content_source_proof|libdxfrw_table_content_reference_observer_selftest)$",
+    "codeSha256": {
+      "src/intern/dxftablecontent.h": "4b0a65d955c4a3f33618138351929d535692a5cdf01acd74e4a450c244226031",
+      "src/intern/dxftablereferences.h": "9e0ae7dd15b7288f5e4a4b385c0fc518ab4ad39dde067c85334cc2a9061aceca",
+      "src/drw_objects.h": "c8e96bf0c0cc095bc2fba3b33a027bf2e36d017db05eb3a0b0e04477ad9a0b24",
+      "src/Makefile.am": "3e517826f67019ffd7479246a7c24ea8f7ebda32f0087cab48ec2c5c86926ee9",
+      "dwg2dxf/dx_data.h": "d74d928bea5a2d2c7d6ba8d827587809be71471b9b3b06f7914fe4891ec5388e",
+      "dwg2dxf/dx_iface.h": "a0e9d24b8383d980fef734b4737c9c138567405411db9d71379514b3b98a7d51",
+      "dwg2dxf/dx_iface.cpp": "11608d8a92411303d3c483e61c87ab3380e46af83a8cd29dadefd39949fe2ab8",
+      "dwg2dxf/dx_standard_output.h": "9948aa3cef9b3b68f5563dca8219276186bce2017427db9c79696cde68b24fbf",
+      "tests/table_content_dxf_tests.cpp": "e37d7ec36c10a5b5ca801219427c568a878f7c21a3ac739cffcb0dea15b12eae",
+      "tests/table_content_reference_observer.py": "a68dde87c189aa56c2e3a724e7fa8193611a247ef1f01de276a2a3072c97933a",
+      "tests/CMakeLists.txt": "fb3f8de6c29c5a1bc0d8fc19ab333f1f189a6b8f04bb80bfd383fcc4f35b90da"
+    },
+    "gitDiffCheck": "PASS",
+    "werrorRetained": true,
+    "fullProjectSuiteRun": false,
+    "leakCheck": false
+  },
+  "remainingWork": [
+    "Bounded frozen actual-import resource identity/family/owner registry",
+    "All role/target and selected TABLESTYLE/CELLSTYLEMAP namespace bindings",
+    "Parent/wrapper/standalone-cache/common raw/typed proof and live/source equality",
+    "Atomic full-compound emission and exact staged/final references with rollback/retries",
+    "Unknown geometry target-class evidence and independent rich/native semantics",
+    "Full original native carrier/schema/owner, SWEEP/EXTRUSION, IMAGE, document closure and 2D/3D consumer interoperability"
+  ],
+  "supportBoundary": {
+    "ledger": "CLOSED",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "supportPromotion": false
+  },
+  "integrity": {
+    "oldReceiptsModified": false,
+    "externalDrawingPayloadsCommitted": false,
+    "preExistingUserFilesOrDrawingsModified": false,
+    "generatedBuildAndScratchOutputsUpdated": true,
+    "remoteWritePerformed": false,
+    "goal": "ACTIVE_NOT_COMPLETE"
+  }
+}

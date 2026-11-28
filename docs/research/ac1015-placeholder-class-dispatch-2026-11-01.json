@@ -1,0 +1,38 @@
+{
+  "id": "ac1015-placeholder-class-dispatch-2026-11-01",
+  "scope": "reader classification only; does not qualify DWG-to-DXF graph output or promote support claims",
+  "source": {
+    "recipe": "tests/fixtures/dwg/ac1015_3d_polyline_freecad_control.dwgadd",
+    "recipe_sha256": "81df81c3b44b28236795c23f40d87f4230882bbd923aac69a0c5949d4ae6a235",
+    "generated_input": "temporary LibreDWG dwgadd 0.14 output; not committed",
+    "generated_input_sha256": "9d2222640e73f9ce9ef54a7f0c91712d2524894ef49c7c81cf3bfaba99e4b92d",
+    "generated_input_magic": "AC1015"
+  },
+  "independent_layout_reference": {
+    "document": "Open Design Specification for .dwg files, v5.4.1",
+    "section": "20.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "finding": "Non-fixed DWG object frame types are resolved through the file's class table; the class ordinal is source-file-local."
+  },
+  "empirical_source_record": {
+    "trace": "/private/tmp/libdxfrw-freecad-p8/3d-polyline-mapped-output.log",
+    "class_ordinal": 501,
+    "record_name": "ACDBPLACEHOLDER",
+    "class_name": "AcDbPlaceHolder",
+    "entity_flag": false,
+    "resolved_parser_type": 80,
+    "note": "The implementation matches the built-in record and C++ class names; it does not encode ordinal 501."
+  },
+  "implementation": {
+    "mapping": "DRW_Class::toDwgType maps the exact built-in AcDbPlaceHolder class to fixed ACDBPLACEHOLDER type 80.",
+    "regression": "Generated AC1015 class-record test covers the positive mapping and rejects a mismatched C++ class name.",
+    "focused_validation": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j4: PASS; ctest --test-dir build-gcc -R '^libdxfrw_dwg_acdb_placeholder_class_dispatch$' --output-on-failure: PASS (1/1).",
+    "runtime_observation": "The locally authored 3D POLYLINE control reads with skippedCustomClasses=0, skippedUnsupportedObjects=0, and all 38 observed source frames published."
+  },
+  "remaining_gate": {
+    "status": "OPEN",
+    "observation": "Strict AC1015 DWG-to-DXF finalization still refuses the drawing: opaqueViewCallbacks=10 and opaqueFramesOutputQualified=0.",
+    "implication": "No end-to-end FreeCAD 3D consumer result is claimed. Continue with exact per-family AC1015 source-to-output graph qualification while preserving strict refusal for unqualified records."
+  },
+  "fixture_policy": "No DWG or DXF binary was added; the recipe is a locally authored text fixture and the generated DWG remained in /private/tmp."
+}

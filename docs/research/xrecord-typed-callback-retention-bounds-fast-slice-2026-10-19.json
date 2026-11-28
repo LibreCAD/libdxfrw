@@ -1,0 +1,100 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "XRECORD typed callback retention bounds",
+  "mode": "Generated local fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "planSha256": "7e912ae23bcac9b5ccd2521d55c1b99ad9a603f78fe1d5792c7541c856f14903",
+  "scope": [
+    "Bound adapter-owned typed XRECORD callback copies across the dx_data container lifetime",
+    "Account for table-entry dynamic fields, typed and ordered value variants, handles, raw bytes, and immutable DWG source snapshot storage",
+    "Make any incomplete or over-budget XRECORD capture fail closed before DXF output publication",
+    "Add generated fast tests for exact admission, over-budget rejection, sticky failure, copy independence, and destination preservation"
+  ],
+  "implementation": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "ctestRegistered": true,
+    "limits": {
+      "records": 100000,
+      "typedEntries": 1000000,
+      "logicalRetainedBytes": "DRW::kMaxDxfBinaryPayloadBytes (64 MiB)"
+    },
+    "controls": [
+      "Typed and ordered variant strings and binary payloads are charged alongside vector elements",
+      "The additional dynamic payload retained by the immutable DWG source snapshot is conservatively charged per callback copy",
+      "Exact-fit aggregate record, item, and byte limits admit a generated XRECORD",
+      "Record, item, and byte over-budget attempts refuse copies and leave counters unchanged",
+      "Capture failure remains sticky and DXF export refuses before replacing an existing destination"
+    ],
+    "limitations": "Logical payload accounting is conservative and does not measure allocator capacity or RSS. This capture bound does not qualify XRECORD graph closure, serializer fidelity, DWG-origin output, or native consumer acceptance."
+  },
+  "localEvidence": [
+    "The adapter's previous addXRecord callback used an unbounded list push; the replacement funnels it through aggregate record/item/byte admission.",
+    "The DWG XRECORD parser may retain an immutable source snapshot containing a duplicate of its public dynamic payload; the adapter estimate charges that additional dynamic payload.",
+    "The generated regression control uses only in-memory C++ objects and a temporary destination sentinel; no persistent or downloaded drawing fixture was added."
+  ],
+  "planImpact": {
+    "existingOwnerRefined": "7S.2c typed persistent TABLES/OBJECTS callback capture census",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "remainingCensus": "LTYPE, DIMSTYLE, BLOCK_RECORD, and LAYOUT direct callback stores remain; the full 7S.2c census is not complete.",
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "filesChanged": [
+      "src/drw_objects.h",
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/xrecord-typed-callback-retention-bounds-fast-slice-2026-10-19.json"
+    ],
+    "stagedOrCommitted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target dxfrw dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "ctest --test-dir build-gcc -R '^(dwg2dxf_xrecord_typed_capture_limits|dwg2dxf_datalink_typed_capture_limits|dwg2dxf_dictionary_default_typed_capture_limits|libdxfrw_dictionary_default_adapter_roundtrip|dwg2dxf_named_object_callback_storage)$' --output-on-failure",
+      "git diff --check -- src/drw_objects.h dwg2dxf/dx_data.h dwg2dxf/dx_iface.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq empty docs/research/xrecord-typed-callback-retention-bounds-fast-slice-2026-10-19.json",
+      "shasum -a 256 DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "strictTargetsBuilt": true,
+    "focusedCTestPassed": "5/5",
+    "planDiffCheck": true,
+    "receiptJsonValidation": true,
+    "planSha256Matches": true,
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "xRecordTypedCallbackCaptureBounded": true,
+    "full7S2cCensusComplete": false,
+    "serializerOrSemanticSupportPromoted": false
+  }
+}

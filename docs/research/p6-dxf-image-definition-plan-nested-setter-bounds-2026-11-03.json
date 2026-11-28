@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-image-definition-plan-nested-setter-bounds-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bound aggregate IMAGEDEF plan staging and make the rvalue map transfer failure-atomic for caller payloads.",
+  "source": {
+    "parentCommit": "2e63c3e483c231482711f87bf1252a262f556683",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "cmake": "4.4.5",
+    "files": {
+      "src/libdxfrw.cpp": "5751845b6b6ca893c3102694957d3320ea112cffaeb811e42ff7e8c767e9776c",
+      "src/libdxfrw.h": "54af5f45476a14c6046ddaed33ef290c0779eaa02c2eb2ac6141d5f6101a36d3",
+      "tests/dxf_fixture_tests.cpp": "ee29ac718966874467cc1cd8a345f7409a39ed892861025fdbc9ebeaf2faed2a",
+      "tests/CMakeLists.txt": "34f484c2c40b37d447ba5b802698ec4c3e5c532904d2ac52bd2f069f291022af",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "91c45dc614e415a62b56b7325701263a8d3af53c5fc41212e8e17189140bf43f"
+    }
+  },
+  "limit": {
+    "recordsPerPlan": 100000,
+    "accountedItemsPerPlan": 1000000,
+    "logicalRetainedBytesPerPlan": 67108864,
+    "selectedReactorsPerDefinition": 100000,
+    "definitionReactorHandlesPerDefinition": 100000,
+    "definitionReactorMapEntriesPerDefinition": 100000,
+    "countedPayload": [
+      "internal IMAGEDEF plan map node and entry object",
+      "definition common table-entry names, reactors, pending references, XDATA and application-data nodes/payloads",
+      "definition image name and reactor-map nodes/key/value strings",
+      "selected reactor vector slots and each reactor's common table-entry payload"
+    ],
+    "formatMaximum": false
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "Both const and rvalue plan setters run the aggregate estimate before validating/copying or consuming nested caller data; the existing 100,000-record cap remains in force.",
+      "The estimate includes dynamic DRW_TableEntry state for definitions and selected reactors, definition names and string-map entries, vector slots, and internal map-node storage.",
+      "Both setters keep the previously accepted plan unchanged on estimate, validation or allocation failure.",
+      "The rvalue setter first allocates every key/default map node, then performs only statically verified nothrow moves. Failure during a later node allocation therefore leaves every caller entry unchanged.",
+      "Focused controls cover exact logical byte acceptance, one-byte-over refusal, const map-node allocation failure, failure on the second rvalue map-node allocation, preserved prior plan/input, corrected retry, and refusal of a 100,001-entry plan through both const and rvalue setters before the vector is walked or consumed."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^(libdxfrw_image_definition_reactor_count_bound|libdxfrw_image_definition_count_bound|libdxfrw_image_definition_plan_failure_retry|libdxfrw_image_definition_plan_resource_bounds)$'",
+      "result": "PASS 4/4; 0.22 seconds",
+      "coverage": "Existing definition/reactor count and full plan failure/retry/readback controls plus nested aggregate estimator boundaries, allocation-failure preservation/retry, and the 100,001-entry const/rvalue plan-setter refusal branch."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom --output-on-failure -R '^(libdxfrw_image_definition_reactor_count_bound|libdxfrw_image_definition_count_bound|libdxfrw_image_definition_plan_failure_retry|libdxfrw_image_definition_plan_resource_bounds)$'",
+      "result": "PASS 4/4; 4.82 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The byte estimate bounds logical retained payload/container slots; it does not measure allocator capacity or peak process RSS.",
+    "The internal ceilings are resource policy, not DXF format maxima or support claims.",
+    "The prior count receipt covers the 100,001-slot OBJECTS inventory refusal; this receipt now separately covers the 100,001-entry IMAGEDEF plan-setter refusal. Other writeObjects maps/vectors and broader OBJECTS rollback cases remain open; the rooted IMAGEDEF TABLES control issue is resolved by the [focused fix receipt](docs/research/p6-dxf-rooted-imagedef-layer-control-optional-extension-fix-2026-11-03.json)."
+  ],
+  "next": "Continue auditing other writeObjects maps/vectors and setup/assembly bounds, including allocation failures in independent builders and broader rollback after earlier staged records; also audit source lifetime, platform numeric/string policies and scoped concurrency."
+}

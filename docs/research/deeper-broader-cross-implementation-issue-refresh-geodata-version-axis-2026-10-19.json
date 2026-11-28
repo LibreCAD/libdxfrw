@@ -1,0 +1,112 @@
+{
+  "title": "Deeper/broader cross-implementation issue refresh and GeoData version-axis resolution",
+  "date": "2026-10-19",
+  "base_revision": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Primary-source issue/fix refresh across ACadSharp, LibreDWG, and ezdxf, reconciled with the authoritative local ODA DWG specification and current libdxfrw source/tests. Research-only plan update.",
+  "sources": [
+    {
+      "project": "ODA Open Design Specification v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "local_copy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "observation": "Section 20.4.78 distinguishes GeoData object-version body formats (1=AutoCAD 2009, 2=2010, 3=2013 with 2010 body) from the Civil-tail release gate. It says the tail follows the mesh arrays for DWG R21 or lower and separately says AutoCAD 2010 always writes it. The local helper's AC1021/AC1024 positive and AC1027/AC1032 negative matrix matches this rule."
+    },
+    {
+      "project": "LibreDWG source",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec",
+      "observation": "The mutable source places its CIVIL3D_DATA block after both main-body version branches and the mesh arrays, gated by UNTIL (R_2007); its class_version comment does not make the tail itself class-version-gated. This is corroborating implementation evidence only; ODA remains authoritative."
+    },
+    {
+      "project": "ACadSharp GeoData issue",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1261",
+      "observation": "The report describes class-version-1 GeoData Civil-tail loss in two private drawings and a different field layout, but does not disclose source or target DWG magic, sample hashes, or literal bytes. It cannot resolve whether the observed files are AC1021, the AC1024 AutoCAD-2010 exception, or a later profile."
+    },
+    {
+      "project": "ACadSharp MTEXT issue",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1297",
+      "observation": "An AC1032 DWG with TextFrame-only MTEXT is reported rejected by AutoCAD 2025, while value 17 and AC1027 reportedly open. The author reports MTEXT-object byte identity after a correction while whole-file rejection remains; proposed missing-style causes are explicitly unproven."
+    },
+    {
+      "project": "ACadSharp SPLINE issue",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1299",
+      "attachment": "https://github.com/user-attachments/files/33443730/0501_020_01.zip",
+      "observation": "The issue identifies ACadSharp NuGet 3.8.0 and links a DWG/DXF archive, but publishes no bad handle, ordered arrays, exact GDAL diagnostic/options, or independent expected curve. Web retrieval returned a cache miss; the attachment was not inspected or included in the repository."
+    },
+    {
+      "project": "Autodesk SPLINE reference and GDAL DXF route",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E1F884F8-AA90-4864-A215-3182D47A9C74.htm",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observation": "The published SPLINE field contract supports exact-array review; GDAL is a downstream projection/tessellation route, not an independent NURBS geometry oracle."
+    },
+    {
+      "project": "ACadSharp Korean codepage issue",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1259",
+      "observation": "The synthetic report distinguishes $DWGCODEPAGE declaration from actual CP949 payload bytes. Local tests already assert canonical ANSI_949, exact CP949 bytes, semantic text and a following-text sentinel."
+    },
+    {
+      "project": "LibreDWG text reports",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1408",
+        "https://github.com/LibreDWG/libredwg/issues/1412"
+      ],
+      "observation": "Peer reports describe ASCII DXF CR framing corruption and allocator-dependent uninitialized tail data in a C string quoting helper. Local PAR-136 and existing text tests have different implementation mechanisms and keep field-specific CR/LF, raw-carrier, Binary-DXF, and transactional rules."
+    },
+    {
+      "project": "ezdxf Binary-DXF proxy issue and merged fix",
+      "urls": [
+        "https://github.com/mozman/ezdxf/issues/1412",
+        "https://github.com/mozman/ezdxf/pull/1418"
+      ],
+      "observation": "The issue was closed by PR #1418, merged as c87c87e on 2026-10-02. The patch passes raw binary chunks through the writer protocol. PR discussion reports focused validation but not a full suite; a released package containing the merge was not established."
+    }
+  ],
+  "local_audit": [
+    "src/drw_objects.cpp: hasGeoDataCivilTail selects AC1021 and AC1024; parseDwg and encodeDwg share the target-version predicate.",
+    "tests/dwg_object_vectors_tests.cpp: generated vectors currently pair AC1021/object-version-1 with a tail, AC1024/object-version-2 with a tail, AC1027/object-version-2/3 without a tail, and AC1032/object-version-2 without a tail. The existing builder can author additional target/object-version combinations in memory.",
+    "tests/dwg_object_vectors_tests.cpp already checks body-end and deferred-handle sentinels, false-first-bit tail consumption, truncation refusal, and retry.",
+    "Local MTEXT frame-flag vectors cover 0/16/17 under AC1027/AC1032; they do not claim whole-file native writer acceptance.",
+    "Local CP949, Binary-DXF proxy-graphic, ASCII semantic-control-string, and generated SPLINE owners already cover the corresponding peer failure classes at their stated scope."
+  ],
+  "decisions": [
+    "Preserve PAR-119/7BP's ODA-backed target-release gate; do not switch to class-version selection from ACadSharp #1261 or LibreDWG's source notation.",
+    "Add a focused generated readiness pair only: AC1024/object-version-1 with the Civil tail, and AC1027/object-version-1 without it. Assert the body schema, tail presence, cursor/body boundary, and handle sentinel independently.",
+    "Keep ACadSharp #1297 as a whole-file native DWG-writer report with an unproven cause; do not expand local DWG-writer scope or reinterpret MTEXT flags.",
+    "Keep ACadSharp #1299 as a trigger-only SPLINE lead. If needed during a future SPLINE change, inspect a hash-pinned copy in disposable scratch and compare exact arrays plus independently evaluated curve points; never commit the archive as a fixture.",
+    "Keep peer text and codepage reports on existing PAR-05/7AR owners. Do not port implementation-specific C fixes or change CR/LF/opaque-carrier behavior from peer reports.",
+    "Record ezdxf #1412 as fixed on current master by #1418, but do not infer the fix is in a released package or use it as a libdxfrw support result.",
+    "Add no new finding or top-level subplan; no production code, test, fixture, dependency, peer/native run, validation cadence, queue order, or support claim changes.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "plan_effect": {
+    "existing_owner": "PAR-119/7BP",
+    "change": "Focused test-readiness refinement for object-version-1 combinations across the AC1024 exception and AC1027 no-tail target; fresh issue-to-owner crosswalk",
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "findings": 137,
+    "top_level_subplans": 77,
+    "support_claim_promoted": false,
+    "external_only_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "local_source_audit": true,
+    "local_oda_pdf_read": true,
+    "build_run": false,
+    "test_run": false,
+    "peer_executable_run": false,
+    "native_cad_run": false,
+    "peer_attachment_downloaded": false,
+    "fixture_added": false,
+    "dependency_changed": false,
+    "test_registration_changed": false,
+    "validation_frequency_changed": false,
+    "commit_attempted": false
+  }
+}

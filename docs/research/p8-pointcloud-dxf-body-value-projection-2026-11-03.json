@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-03",
+  "topic": "POINTCLOUDEX physical body-value to typed-model projection",
+  "scope": {
+    "source_format": "DXF",
+    "source_revision": "AC1027+",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixture_policy": "Generated locally in temporary paths; no fixture file added"
+  },
+  "implementation": {
+    "fields_compared": [
+      "class version, extents, UCS origin and directions",
+      "definition/reactor handles, name, color-scheme names and display settings",
+      "elevation/intensity ranges and behavior fields",
+      "crop count, crop types, booleans, plane, direction vectors, point counts and vertices",
+      "the two zero-crop group-93 values"
+    ],
+    "comparison": "Each admitted physical group value is checked against the associated parsed typed model in source order. Crop framing follows the parser's ordered three-component plane, six-component direction, and point-vertex sequence.",
+    "unsupported_fields": "Application data, XDATA, proxy payload, and unknown group codes remain refused by this profile.",
+    "failure_retry": "A changed definition reference and a changed class-version model value each fail source binding while preserving the existing destination. Restoring the exact source values lets the same adapter rebind. At the time of this receipt, imported graph output remained refused."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_pointcloud_definition_source_spans|dwg2dxf_point_cloud_adapter_transport' --output-on-failure",
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        "libdxfrw_pointcloud_definition_source_spans",
+        "dwg2dxf_point_cloud_adapter_transport"
+      ]
+    },
+    "full_suite": "Not run"
+  },
+  "limitations": [
+    "Generated controls prove local physical-tag/model association, not independent producer conformance or native-consumer semantics.",
+    "Imported point-cloud graph output remains fail-closed pending source-derived DefinitionEx/ReactorEx identity and complete output graph closure.",
+    "DWG source CLASS/frame/output binding, physical producer breadth, asset loading, and native 3D behavior remain open."
+  ],
+  "support_claim_effect": "None; no support claim promoted."
+}

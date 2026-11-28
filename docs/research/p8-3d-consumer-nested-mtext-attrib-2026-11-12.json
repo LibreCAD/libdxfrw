@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-nested-mtext-attrib-2026-11-12",
+  "purpose": "Check generated AC1032 nested INSERT multiline ATTRIB callback delivery and ASCII/Binary DXF readback.",
+  "changes": [
+    "Added a standalone generated INSERT with one R2018 multiline ATTRIB, distinct fallback and embedded MTEXT text, distinct host and nested insertion points, an oblique parent extrusion, and explicit SEQEND.",
+    "Extended the semantic consumer to report nested MTEXT text, height, insertion point, and rotation.",
+    "Asserted attribute count/order, tag, attribute version/type, embedded text and geometry fields, and SEQEND after ASCII and Binary readback."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.43 seconds"
+  },
+  "scopeLimit": "Same-library generated AC1032 DXF callback transport. No independent interoperability, DWG ATTRIB framing or ownership, native multiline rendering, or general support claim is established.",
+  "fixturePolicy": "The ASCII and Binary DXF files are generated under a unique temporary directory and removed; no drawing fixture was added.",
+  "claimEffect": "No support claim changes."
+}

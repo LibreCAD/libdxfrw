@@ -1,0 +1,59 @@
+{
+  "title": "EvaluationGraph semantic contract versus local wire closure",
+  "date": "2026-10-20",
+  "sources": [
+    {
+      "name": "Autodesk AcDbEvalGraph reference",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbEvalGraph.html",
+      "revision": "2027 ObjectARX reference reviewed 2026-10-20",
+      "observed": "Describes directed acyclic dependency graphs for dynamic-block expressions and topological evaluation; if E1 depends on E2, edge E2->E1 represents the dependency.",
+      "evidenceCeiling": "Object model semantics, not a DXF/DWG wire-field map or local support result."
+    },
+    {
+      "name": "Autodesk ObjectARX Graphs guide",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-B520F4A9-20D0-420D-B4A3-FBEC835D0E42.htm",
+      "revision": "2022 ObjectARX Developer's Guide reviewed 2026-10-20",
+      "observed": "States that AcDbEvalGraph has unique node IDs, hard-owns its nodes, checks cycles as edges change, and topologically sorts evaluation.",
+      "evidenceCeiling": "Semantic/API requirements; not serialized sentinel values or exact field placement."
+    },
+    {
+      "name": "Autodesk Node Dependencies and Edges guide",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-74E0EB04-41BF-4E56-85A8-2318B25C9BBE.htm",
+      "revision": "2022 ObjectARX Developer's Guide reviewed 2026-10-20",
+      "observed": "Defines each edge by a start node and end node, with invertibility and additional directed/suppressed metadata exposed through edge-info APIs.",
+      "evidenceCeiling": "API-level edge semantics; not a DXF group-code interpretation."
+    },
+    {
+      "name": "LibreDWG 0.13.4 OBJECTS manual and EVAL_Node API reference",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+        "https://www.gnu.org/software/libredwg/refman/struct__dwg__EVAL__Node.html"
+      ],
+      "revision": "Published 0.13.4 reference pages reviewed 2026-10-20",
+      "observed": "Maps node id/flags/nextid/evalexpr to DXF groups 91/93/95/360; maps edge id/nextid/e1 to 92/93/94 with additional 91/92 integer fields.",
+      "evidenceCeiling": "Peer implementation/manual field crosswalk; not normative and does not settle every repeated integer's endpoint role or nextid termination."
+    },
+    {
+      "name": "Local EvaluationGraph parser, writer, and tests",
+      "urls": [
+        "src/drw_objects.cpp",
+        "src/libdxfrw.cpp",
+        "tests/dwg2dxf_adapter_tests.cpp",
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "revision": "Shared worktree source reviewed 2026-10-20",
+      "observed": "The DXF finalizer enforces field presence/cardinality; writer admission enforces version and vector size. Internal integers are emitted unchanged. Current focused vector contains one node id=1/nextid=2 and default-zero edge endpoint fields, while tests verify carrier capture, owner/expression closure and output framing rather than graph connectivity.",
+      "evidenceCeiling": "Source/test coverage audit; does not prove the generated vector is invalid under the exact wire grammar or establish a current advertised semantic support claim."
+    }
+  ],
+  "conclusions": [
+    "Current local EvaluationGraph evidence is wire capture and object/expression handle closure, not semantic dynamic-block graph validation.",
+    "Autodesk API documentation establishes unique node IDs, directed endpoints, and acyclic evaluation semantics, but does not specify the group-code mapping or nextid sentinel.",
+    "Treat internal node/edge reference checks as an implementation-readiness follow-up; do not add a defect ID or production guard until the exact serialized field mapping is confirmed.",
+    "No persistent fixtures or support claims are added. Findings/subplans remain 141/78, with J256/J260/J268/J284/J293/J295 DEFERRED_EXTERNAL."
+  ],
+  "actions": [
+    "Resolve the EvaluationGraph DXF/DWG field map and nextid terminator through authoritative serialization evidence or an independently authored minimal trace.",
+    "Then add one scratch-generated two-node DAG and negative reference/duplicate/cycle controls to the existing ASCII/Binary selector; keep dynamic-block native behavior in the composed qualification gate."
+  ]
+}

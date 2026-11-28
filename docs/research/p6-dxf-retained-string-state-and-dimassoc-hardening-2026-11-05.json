@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "date": "2026-11-05",
+  "kind": "libdxfrw-focused-hardening-slice",
+  "baseCommit": "5cbb259cc52d0bb7415fca18b450e1eb33b89a06",
+  "scope": [
+    "transfer preformatted ARCALIGNEDTEXT D2T byte reservations into the shared retained-string lease without double charging",
+    "release the retained VIEWPORT ambient color-name charge when group 63 or 421 supersedes it",
+    "correct MESH, SUNSTUDY, DIMASSOC hardening controls to match their typed writer and field contracts"
+  ],
+  "implementation": {
+    "files": [
+      "src/intern/dxfreader.h",
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "tests/hardening_tests.cpp"
+    ],
+    "details": [
+      "DxfReadRetainedLease::absorb transfers an already admitted field reservation while retaining sibling-field charges.",
+      "The reserved replace helper keeps the old field charged through formatting, absorbs the new field charge, then releases the old field atomically.",
+      "VIEWPORT color-code replacement clears both the live color name and its retained-byte owner.",
+      "ARCALIGNEDTEXT D2T tests assert full max_digits10 values and exact/one-byte-short admission boundaries.",
+      "DIMASSOC scalar, intersection, and XREF tests align with the generated bounded AC1024 DWG encode/readback vector; no source support claim is promoted."
+    ]
+  },
+  "validation": {
+    "normal": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2 && build-gcc/libdxfrw_hardening_tests",
+        "result": "PASS — Hardening vectors: PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_wave1_tests -j2; build-gcc/libdxfrw_dwg_object_vectors_tests; build-gcc/libdxfrw_wave1_tests",
+        "result": "PASS — DWG object vectors and Wave 1 tests pass"
+      }
+    ],
+    "asan": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_hardening_tests -j2 && build-asan-custom/libdxfrw_hardening_tests",
+      "result": "PASS — Hardening vectors: PASS"
+    },
+    "fastFocus": {
+      "command": "python3 tools/run_fast_focus.py --build-dir build-gcc --ctest-regressions",
+      "result": "40/44 CTests passed; four integration tests remain open and are tracked as H0E.4 in LIBRECAD_DXFRW_UPGRADE_PLAN.md.",
+      "failures": [
+        "dwg2dxf_cli_contract",
+        "libdxfrw_dwg_local_roundtrip",
+        "dwg2dxf_freecad_cli_compat",
+        "dwg2dxf_freecad_installed_cli_compat"
+      ]
+    },
+    "fixturePolicy": "No DWG/DXF fixture was added. Untracked local sample directories were not staged or included in the receipt."
+  },
+  "supportDisposition": "No format-support claim was promoted; strict source-reference refusal remains in force."
+}

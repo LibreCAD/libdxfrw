@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-17",
+  "title": "Fit-only SPLINE closed/periodic flag preservation",
+  "mode": "generated local ASCII/Binary DXF regression",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Extend the existing fit-only SPLINE regression to cover closed and periodic group-70 flag preservation",
+    "Keep the evidence limited to source tag, parsed model, emitted tag, output reparse, fit-point transport, and following-record alignment",
+    "Use temporary controls in the existing test owner without a committed drawing fixture, CTest registration, or dependency"
+  ],
+  "implementation": {
+    "testOwner": "libdxfrw_dwg_local_roundtrip",
+    "source": "tests/dwg_local_roundtrip_tests.cpp",
+    "selector": "--spline-fit-only-dxf",
+    "formatVersion": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "flagCases": {
+      "0": "ordinary fit-only SPLINE",
+      "1": "closed fit-only SPLINE",
+      "3": "closed and periodic fit-only SPLINE"
+    },
+    "assertions": [
+      "literal input group 70 is preserved in the imported DRW_Spline::flags",
+      "writer output contains exactly one group 70 with the original flag value",
+      "writer output reparses with the same flags, degree, fit points, and no control/knot/weight arrays",
+      "following LINE identity and coordinates remain aligned after both the source SPLINE and output SPLINE"
+    ],
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "publicApiOrLayoutChanged": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip lc3_compat_check -j2",
+    "buildResult": "PASS",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_local_roundtrip --spline-fit-only-dxf",
+    "focusedSelectorResult": "PASS (three flag cases in ASCII and Binary DXF)",
+    "owningCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+    "owningCTestResult": "PASS (1/1, 3.02 seconds)",
+    "fullSuite": "NOT_RUN",
+    "peerRuntime": "NOT_RUN",
+    "nativeCad": "NOT_RUN",
+    "scopedDiffCheck": "PASS"
+  },
+  "planImpact": {
+    "existingFindingAndSubplanOnly": true,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "fitOnlyFlagWireAndModelSlice": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS",
+    "curveConstructionAndNativeSemantics": "REMAINS_UNQUALIFIED",
+    "implementationQueueChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "evidenceLimits": [
+    "The generated literals establish only group-70 tag/model/output transport for these three values.",
+    "No independent curve evaluator or normative interpolation algorithm was used; closed/periodic geometry equivalence is not established.",
+    "No DWG parser, peer executable, or native CAD application was exercised.",
+    "Temporary files are generated from scratch and removed after a passing run; no external drawing fixture was used."
+  ]
+}

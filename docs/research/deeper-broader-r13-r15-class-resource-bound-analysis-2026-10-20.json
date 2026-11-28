@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "R13-R15 CLASSES resource-bound architecture and cross-reader review",
+  "mode": "Authoritative local ODA specification review, current-source audit, and primary-source peer comparison",
+  "repository": "LibreCAD/libdxfrw",
+  "supersedes": "The earlier crosswalk wording that described dwgReader15 as having an explicit class-count ceiling; that wording was inaccurate.",
+  "scope": [
+    "Determine whether LibreDWG's R13-R2000 class-count resource advisory has a direct equivalent in libdxfrw.",
+    "Verify the R13-R15 CLASSES wire layout against the authoritative ODA specification and current reader implementation.",
+    "Refine PAR-14 readiness without adding a speculative class-count cap, redundant test, or support claim."
+  ],
+  "sources": [
+    {
+      "project": "Open Design Alliance Open Design Specification for .dwg files 5.4.1",
+      "url": "local:~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "revision": "Local authoritative PDF; sections 10.1 (R13-R15) and 10.2 (R18+), reviewed 2026-10-20.",
+      "observed": "Section 10.1 gives an RL class-data byte size followed by repeated BS/TV/B class records and says records are read until the data is exhausted; it does not define a num_classes field. Section 10.2 adds the R18+ maximum class number field. This establishes the version distinction; it does not prescribe libdxfrw's resource policy.",
+      "limits": "No DWG parse body was changed. The PDF wins over third-party descriptions for wire-format semantics."
+    },
+    {
+      "project": "LibreDWG security advisory GHSA-gp83-hcvh-g255",
+      "url": "https://github.com/advisories/GHSA-gp83-hcvh-g255",
+      "revision": "Public advisory reviewed 2026-10-20; affected versions <0.14, fixed in 0.14.",
+      "observed": "The advisory attributes its R13-R2000 DoS to a crafted num_classes value driving per-iteration realloc in LibreDWG's decode_R13_R2000 without a sanity check.",
+      "limits": "Peer-specific implementation failure; it is not evidence of a matching libdxfrw defect."
+    },
+    {
+      "project": "ACadRust 0.5.5 classes_reader.rs",
+      "url": "https://docs.rs/acadrust/0.5.5/src/acadrust/io/dwg/dwg_stream_readers/classes_reader.rs.html",
+      "revision": "Published crate source reviewed 2026-10-20.",
+      "observed": "The reader bounds class iteration by a computed section-data end bit, applies a class-number range check, and reads the explicit maximum-class-number field on AC1018+. It preserves parsed entries in order.",
+      "limits": "Independent implementation comparison only. Its signed class-number type, range policy, and parser behavior are not normative and do not qualify libdxfrw."
+    },
+    {
+      "project": "C++ working draft, unordered associative container requirements",
+      "url": "https://eel.is/c%2B%2Bdraft/unord.req",
+      "revision": "Current public working draft reviewed 2026-10-20.",
+      "observed": "The standard specifies average-case fast retrieval but permits linear worst-case operations (quadratic for some aggregate operations). This supports considering a direct-index duplicate set over the local finite 16-bit ID domain if profiling justifies it.",
+      "limits": "A standards-level complexity bound does not prove that attacker-controlled class IDs produce a slow case on any particular standard-library implementation."
+    }
+  ],
+  "localCrosswalk": {
+    "paths": [
+      "src/intern/dwgreader15.cpp: dwgReader15::readDwgClasses",
+      "src/drw_classes.cpp: DRW_Class::parseDwg",
+      "src/drw_classes.h: DRW_Class::classNum",
+      "src/intern/dwgsafety.h: MaxBufferSize",
+      "tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "observed": [
+      "The reader admits an RL-declared class-data size only after checking MaxBufferSize and the enclosing physical range, copies that exact payload, and parses until its byte boundary rather than trusting a class-count field.",
+      "DRW_Class::classNum is uint16_t and is decoded from BS. The reader rejects IDs below 500 and duplicate IDs. Thus at most 65,036 distinct newly accepted IDs are representable in the range 500..65,535; this is a representation-domain bound, not an explicit format count or policy cap.",
+      "DRW_Class::parseDwg reads mandatory BS, variable-text, and bit fields; the caller rejects a failed or invalid cursor and records per-record bit ranges, but it does not explicitly compare dataRangeEnd > dataRangeStart. No successful zero-progress path was identified in this fixed parser sequence; a monotonic-cursor assertion would be defense-in-depth rather than a fix for the peer's count/realloc root cause.",
+      "Staging uses a vector, an unordered map for duplicate detection, class strings converted to UTF-8, and coverage metadata. The raw section bound makes these allocations finite, but no tight aggregate decoded-memory budget was established in this pass."
+    ],
+    "classification": "DIFFERENT_ARCHITECTURE for the peer's num_classes/per-iteration-realloc trigger; CONDITIONAL_RESOURCE_PROFILE for any future aggregate-memory-policy change; OPTIONAL_PERF_HARDENING for a direct-index class-ID duplicate set."
+  },
+  "planChanges": [
+    "Corrected the parity plan and prior crosswalk receipt: dwgReader15 has no explicit class-count field or count ceiling; R13-R15 class iteration is bounded by the RL payload and duplicate-free uint16 class-ID domain.",
+    "Closed the specific LibreDWG class-count advisory as a different-architecture peer analog; did not add an arbitrary cap, synthetic num_classes control, or external sample.",
+    "Added an implementation-ready optional optimization: if a generated scaling probe shows worthwhile gain, replace stagedMap's duplicate-only membership role with a fixed 65,536-bit seen set while retaining the existing published-classes collision check.",
+    "Separated any aggregate decoded-memory review from the class-count advisory and made it conditional on shared MaxBufferSize changes or measured resource pressure; account for the raw copy, transient text buffers, UTF-8 strings, class objects, coverage rows, and indexes.",
+    "Retained fast generated controls only for an actual implementation change, the existing infrequent full-suite cadence, self-unblocking, and no support promotion."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-14: distinguish peer count-field attacks from local section-payload-bounded legacy parsing.",
+      "PAR-14: do not add speculative class-count limits; consider deterministic direct-index duplicate checks only if generated scaling measurements justify it.",
+      "PAR-14: profile aggregate decoded memory separately if the global section-size policy changes or resource evidence warrants it."
+    ],
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "scopedDiffCheck": "PASS",
+    "jsonValidation": "PASS (jq -e)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

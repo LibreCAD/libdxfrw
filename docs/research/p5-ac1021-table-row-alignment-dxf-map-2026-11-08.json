@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-implementation-fast-slice-v1",
+  "date": "2026-11-08",
+  "status": "GENERATED_TABLE_ROW_ALIGNMENT_DXF_MAP_BOUNDED",
+  "workstream": "P5 / AC1018-AC1021 TABLE row alignment parser and DXF mapping",
+  "authority": {
+    "dwg": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.96.1, TABLE until R21",
+      "mask": {
+        "0x004000": "title row alignment BS, DXF group 170",
+        "0x008000": "header row alignment BS, DXF group 170",
+        "0x010000": "data row alignment BS, DXF group 170"
+      },
+      "wireOrder": "title, header, data",
+      "valueDomain": "ODA §20.4.101.3 defines alignment values 1 through 9"
+    },
+    "dxf": {
+      "reference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+      "field": "Group 170 is cell alignment and may repeat once per cell type at the table entity level.",
+      "limit": "The reference does not state the order of repeated cell-type values. The title/header/data assignment follows the ODA table-level fields and remains a bounded inference pending a physical producer witness."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.h",
+      "src/drw_entities.cpp",
+      "src/libdxfrw.cpp",
+      "tests/table_content_dxf_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": "The DXF parser retains table-level group-170 values according to selected 0x4000/0x8000/0x10000 flags, without conflating cell-level group 170. Missing, excess, or out-of-domain (outside 1..9) table values leave the record readable but semantically incomplete. The writer emits selected values in title/header/data order and refuses unselected orphan values, invalid enums, and other unmodeled TABLE overrides.",
+    "generatedControl": "Locally authored AC1021 ASCII and Binary DXF inputs verify all three table-level values, a separate cell-level group-170 value, and missing/excess/invalid-value incomplete behavior.",
+    "outputControl": "Generated TABLE exports verify exact group-170 sequence [cell-level 4, title 2, header 5, data 8], both ASCII and Binary parse-back, destination preservation for unmapped metadata, and corrected same-writer retry."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_table_content_dxf_tests libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedParser": "PASS: ctest --test-dir build -R '^libdxfrw_table_row_alignment_override_parse$' --output-on-failure, 1/1",
+    "focusedOutput": "PASS: ctest --test-dir build -R '^libdxfrw_table_scalar_override_output$' --output-on-failure, 1/1",
+    "tableRegressionControls": "PASS: libdxfrw_table_content_dxf_projection, libdxfrw_table_legacy_override_177, libdxfrw_table_legacy_text_height, and libdxfrw_table_legacy_merge, 4/4",
+    "diffCheck": "PASS: git diff --check",
+    "receiptJson": "PASS: python3 -m json.tool",
+    "fixtures": "No fixture files added; controls generate inputs from scratch.",
+    "supportClaimsPromoted": 0
+  },
+  "limits": [
+    "Generated codec and round-trip evidence only; no physical DXF producer witness or native precedence/rendering qualification.",
+    "The Autodesk DXF reference does not state the order for repeated entity-level group-170 entries; this mapping uses ODA's title/header/data order as a bounded inference.",
+    "Row heights, row text-style handles, row colors/fills and all border table-level values remain output-refused.",
+    "This does not qualify producer-wide TABLE support or whole-drawing conversion."
+  ],
+  "next": "Map row fill-none and text/fill colors only for CMC methods with exact reversible DXF representation; retain refusal for unsupported methods and continue seeking a physical TABLE DXF ordering witness."
+}

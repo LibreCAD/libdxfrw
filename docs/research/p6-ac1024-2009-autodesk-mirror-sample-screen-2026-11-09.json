@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt-v1",
+  "id": "p6-ac1024-2009-autodesk-mirror-sample-screen-2026-11-09",
+  "date": "2026-11-09",
+  "scope": "Screen the original Autodesk sample URL listed in a contemporaneous 2009 AutoCAD 2010 sample index for a distinct AC1024/AutoCAD 2010 RTM witness.",
+  "supportClaimEffect": "none; this source is an AC1021 duplicate and does not exercise AC1024 CLASSES parsing",
+  "provenance": {
+    "index": "https://blog.jtbworld.com/2009/06/where-are-sample-dwg-files-for-autocad.html",
+    "indexDate": "2009-06-18",
+    "fileLink": "http://download.autodesk.com/us/samplefiles/acad/blocks_and_tables_-_metric.dwg",
+    "sourceClaim": "The index labels the linked file among AutoCAD 2010 sample files; it does not state the producer build or saved DWG format."
+  },
+  "retrieval": {
+    "scratchPath": "/private/tmp/autodesk-2009-blocks-and-tables-metric.dwg",
+    "bytes": 258848,
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "detectedFormat": "DWG AutoCAD 2007/2008/2009 (AC1021)",
+    "comparison": "SHA-256 matches the already screened local blocks_and_tables_-_metric.dwg exactly."
+  },
+  "result": "This contemporaneous archive URL is a duplicate AC1021 source, not an AC1024 witness. It cannot reproduce or qualify the AC1024 CLASSES discrepancy.",
+  "validation": {
+    "fileIdentification": "file /private/tmp/autodesk-2009-blocks-and-tables-metric.dwg",
+    "digest": "shasum -a 256 /private/tmp/autodesk-2009-blocks-and-tables-metric.dwg",
+    "repositoryFixtureAdded": false
+  },
+  "remaining": [
+    "An exact failing AC1024 hash, the missing tenth local input, or an independently verified AutoCAD 2010 RTM-produced AC1024 sample is still required before changing the parser."
+  ]
+}

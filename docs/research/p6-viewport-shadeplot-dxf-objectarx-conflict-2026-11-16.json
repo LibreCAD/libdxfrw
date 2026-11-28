@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-16",
+  "scope": "Investigate failing generated VIEWPORT visual-style shade-plot controls.",
+  "authorities": {
+    "dxf": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+    "objectArx": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__OVERLOADED_setShadePlot_AcDbViewport.html",
+    "objectArxEnum": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_ShadePlotType.html"
+  },
+  "finding": "Autodesk DXF documents group 170 values 0\u20133 and optional group 333. ObjectARX Viewport shade-plot APIs expose additional VisualStyle and RenderPreset states whose IDs must target the corresponding object classes. The documents do not by themselves prove how those API states serialize in DXF group 170.",
+  "followUpPrimarySources": {
+    "checkedAt": "2026-11-24",
+    "sources": [
+      {
+        "authority": "Autodesk ObjectARX Reference Guide, ShadePlotType",
+        "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbPlotSettings__ShadePlotType.html",
+        "finding": "Defines kVisualStyle=4 and kRenderPreset=5; these are API enum values for shade-plot mode."
+      },
+      {
+        "authority": "Autodesk ObjectARX Reference Guide, AcDbViewport::setShadePlot",
+        "url": "https://help.autodesk.com/cloudhelp/2017/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbViewport__setShadePlot_ShadePlotType_AcDbObjectId.html",
+        "finding": "For kVisualStyle/kRenderPreset, requires a valid AcDbVisualStyle/AcDbRenderSettings object ID, respectively; for kAsDisplayed/kRendered, ignores the ID and sets the target to null."
+      },
+      {
+        "authority": "Autodesk AutoCAD 2024 DXF Reference, VIEWPORT",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+        "finding": "Lists group 170 values 0-3, group 333 as optional shade-plot ID/handle, and group 348 as optional visual-style ID/handle."
+      }
+    ],
+    "result": "The API states and target classes are documented authoritatively; DXF serialization remains unproven. These sources do not establish whether modes 4/5 are emitted in group 170, how group 333 is emitted for each mode, or whether group 348 co-occurs.",
+    "gateEffect": "none; P5-H remains waiting for the exact AutoCAD-authored ASCII/Binary pair and fresh native reopen."
+  },
+  "currentImplementation": "DRW_Viewport::validateDxf accepts typed output modes through 3, while dx_iface viewport graph preflight expects 4/5 for non-null shade-plot targets. The compound DXF decoder also calls validateDxf at the VIEWPORT boundary, so generated mode-4 input fails before its callback and before the subsequent OBJECTS section. The generated mode-4 direct-writer fixture likewise fails. Do not infer graph-closure behavior from these downstream assertions.",
+  "requiredNextSteps": [
+    "Acquire an eligible AutoCAD-authored DXF ASCII/Binary or trustworthy independent producer pair with known setShadePlot VisualStyle and RenderPreset states and exact version; keep unlicensed samples out of the repository.",
+    "Compare literal 170/333 values and graph target types against the source application API or a truly independent native consumer; distinguish absent/null IDs, versions and target classes.",
+    "Reconcile tolerant import, typed writer admission and adapter target-graph closure from observed wire mapping, with unsupported cases failing atomically; cover correct/missing/wrong/ambiguous target, revision gates, rollback, same-writer retry and fresh readback.",
+    "Retain the current guard and failing test disposition until wire mapping is proven; no support claim may be promoted from ObjectARX enum values alone."
+  ],
+  "limits": [
+    "A generated mode-4 DXF and ObjectARX enum are not producer-authored wire evidence.",
+    "Other VisualStyle fixture failures may have additional causes and have not been attributed solely to this conflict."
+  ],
+  "controlSplit": "The independent VPORT/HEADER graph controls use a mode-0 VIEWPORT without shade target and pass; separate generated mode-4 input and output controls refuse. This does not qualify VIEWPORT shade-plot closure."
+}

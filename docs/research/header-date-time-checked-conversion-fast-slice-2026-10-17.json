@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw-header-date-time-checked-conversion-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "IMPLEMENTED_LOCAL_FAST_SLICE_PASS_UNCOMMITTED",
+  "scope": "Implement PAR-127 / 7BE.10 local DWG HEADER date/time representability safety with generated cross-version and publication/retry controls.",
+  "implementation": {
+    "productionFiles": [
+      "src/intern/dwg_header_time.h",
+      "src/drw_header.cpp",
+      "src/intern/dwgwriter15.cpp",
+      "src/intern/dwgwriter18.cpp"
+    ],
+    "behavior": [
+      "A shared checked splitter rejects non-finite values and day/millisecond results that cannot be represented by signed 32-bit DWG day fields; output arguments remain unchanged on failure.",
+      "Finite values are rounded to the nearest millisecond with a one-day carry at midnight; carry is refused if it would overflow the maximum signed day.",
+      "The primary HEADER encoder computes all four date/time pairs before mutating data, handle, or string streams and before changing the HANDSEED locator.",
+      "The AC1015 and R2004+ auxiliary-header encoders reuse the same checked splitter.",
+      "No calendar-validity or positivity policy, DWG reader behavior, or semantic timestamp claim was added; negative representable day values remain accepted."
+    ],
+    "testFiles": [
+      "tests/dwg_reader_matrix_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "testCoverage": [
+      "Generated tests cover zero, negative representable values, signed-day boundaries, nearest-millisecond midnight carry, NaN, positive/negative infinity, huge finite values, and just-outside day values.",
+      "All four HEADER variables are checked for non-mutating low-level refusal; exact millisecond-pair readback is checked for AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032.",
+      "A generated public AC1027 write proves invalid input preserves a pre-existing destination and a corrected retry succeeds on the same dwgRW object.",
+      "All drawings are generated in memory; no DWG/DXF fixture was added."
+    ],
+    "testRegistrationsAdded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiChanged": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j2",
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests --header-date-time-validation",
+      "build-gcc/libdxfrw_dwg_local_roundtrip --header-date-time-publication",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/drw_header.cpp src/intern/dwg_header_time.h src/intern/dwgwriter15.cpp src/intern/dwgwriter18.cpp tests/dwg_local_roundtrip_tests.cpp tests/dwg_reader_matrix_tests.cpp"
+    ],
+    "results": {
+      "strictTargetBuilds": "passed",
+      "focusedDateTimeEncodingSelector": "passed",
+      "focusedPublicWriterPublicationRetrySelector": "passed",
+      "owningReaderMatrixCTest": "passed: 1/1",
+      "scopedDiffCheck": "passed"
+    },
+    "fullSuiteRun": false
+  },
+  "qualification": {
+    "odaReference": "Local ODA v5.4.1 HEADER inventory, pp.75-76, establishes field pairs/order only; it does not establish a complete legal calendar range or positivity rule.",
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "findingsAndSubplans": "127/71",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing modifications and mixed implementation work"
+  },
+  "nextReadinessSlice": "Add generated NaN, positive-infinity, and negative-infinity regressions independently to MLINESTYLE start/end angles for ASCII and binary output; verify no low-level record bytes, then use a fresh writer for a finite record plus following sentinel."
+}

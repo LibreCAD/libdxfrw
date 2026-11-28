@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 lineweights four-VIEWPORT and strict whole-source output",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify one existing AC1021 source profile's four paper-space VIEWPORTs and the resulting strict ASCII whole-source conversion. This is not producer-wide or native-consumer qualification.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/lineweights.dwg",
+    "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local input; producer and author are not independently authenticated. No DWG or DXF fixture is committed."
+  },
+  "specification": {
+    "authority": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.38 VIEWPORT ENTITY",
+    "use": "Bounds the modeled entity-specific fields; ownership is established from source LAYOUT membership and reciprocal BLOCK_RECORD links."
+  },
+  "independentCrossCheck": {
+    "tool": "LibreDWG 0.14 minJSON",
+    "artifact": "/private/tmp/lineweights-min.json",
+    "sha256": "142376c790d1a4ab5b0bf2d4b00e5da8b5cb36d419b347d21d1184bee815b86a",
+    "sourceRelations": [
+      "LAYOUT 0x102 (ISO A4 Size) lists VIEWPORTs 0x104 and 0x105 and owns paper-space BLOCK_RECORD 0x103.",
+      "LAYOUT 0x108 (Letter Size) lists VIEWPORTs 0x10A and 0x10B and owns paper-space BLOCK_RECORD 0x109.",
+      "The two paper-space BLOCK_RECORDs point back to their respective LAYOUTs. All four records are type 34; layer handles resolve to 0x10 or 0x2D and visual-style handle 0x208."
+    ],
+    "limit": "Peer agreement is corroborating transport evidence, not semantic or producer qualification."
+  },
+  "implementation": {
+    "summary": "Added a separately guarded four-VIEWPORT AC1021 profile. For parentless deferred paper-space entities, strict source validation and output projection resolve the owner through the unique LAYOUT.viewportHandles entry, the LAYOUT paperSpaceBlockRecordHandle, and reciprocal BLOCK_RECORD.layoutHandle. Explicit parent handles remain checked. The canonical *PAPER_SPACE lookup is retained only as a legacy fallback for unlisted entities. The profile validates the source container/parent relation, layer and visual-style dependencies, optional handles, and per-layout output identity mapping.",
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceFileSha256": "0522a0d9923cbec911e33b0b6ced2786ff5205ae47a8bc640bbfe034a048755a",
+    "adapterTestSourceSha256": "5e92c76a1ad9d0fa7111c51a730c84de9dec17b6ba01ed77f3bd141ced60b15e"
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+    "buildResult": "PASS",
+    "selectorCommand": "build/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback /Users/dli/doc/dwg/lineweights.dwg",
+    "selectorResult": "PASS, exit 0. ASCII and Binary selected outputs are freshly imported. All four source VIEWPORT identities and modeled fields are checked against the exact LAYOUT member list and output owner; layer/style roles and absent optional links are checked; derived groups 68/69, atomic invalid-field refusal with destination preservation, and same-adapter correction/retry are covered. All 49/49 opaque source callbacks are qualified by this source's strict export path.",
+    "selectorLog": {
+      "path": "/private/tmp/libdxfrw-lineweights-viewport-selector.log",
+      "sha256": "8a9ad632607b4cf8a934ed2a2021164ad1a8c971cf803aade85b843367dd7b0f"
+    },
+    "strictWholeSourceCommand": "build/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/lineweights.dwg -y -v2007 /private/tmp/libdxfrw-lineweights-strict-current.dxf",
+    "strictWholeSourceResult": "PASS, exit 0; CLI reports successful conversion and creates the DXF output.",
+    "strictOutput": {
+      "path": "/private/tmp/libdxfrw-lineweights-strict-current.dxf",
+      "sha256": "e67f67841fd8ba841988fefc29412668cf7ecc07b49bb0b878831d42b2395038"
+    },
+    "compatibilityRechecks": [
+      {
+        "source": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+        "sourceSha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+        "result": "PASS for existing physical VIEWPORT selected output/readback in ASCII and Binary; 2 VIEWPORT projections, 179/186 aggregate callback qualifications. This is not whole-source qualification.",
+        "logSha256": "80d8afd0f4ea297ba8678d0e609c18adc653bbea2780d03e79f24c58b60d99e3"
+      },
+      {
+        "source": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "result": "PASS for existing physical VIEWPORT selected output/readback in ASCII and Binary; 228/228 source callbacks qualify, with atomic refusal and same-adapter retry.",
+        "logSha256": "51388f68b6e8430bf8dfe2a4eefec3e4cf080775c9bdd3c78d56582e02428a37"
+      }
+    ],
+    "nextSourceGap": {
+      "source": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+      "strictResult": "Current strict whole-source conversion fails finalization at 179/186 opaque callback qualifications and creates no output.",
+      "logSha256": "e3125bf433cd109eab38c32808a8101bc9b60e926948a3b273ce6d95b89bf4cd",
+      "nextAction": "Enumerate the seven unqualified callback identities and exact failed-proof reasons before selecting the next dependency-closed output slice."
+    }
+  },
+  "limits": [
+    "One existing, unauthenticated AC1021 producer/source profile only.",
+    "The selected VIEWPORT compatibility checks do not imply whole-source support for children-room-decoration.dwg.",
+    "No native CAD rendering, cross-version writer, LibreCAD/LibreCAD_3, FreeCAD, Linux, or Windows acceptance was performed.",
+    "No format-wide VIEWPORT, producer-wide, or 3D support claim is promoted."
+  ]
+}

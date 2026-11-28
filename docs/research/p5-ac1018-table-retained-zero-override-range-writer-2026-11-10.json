@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-ac1018-table-retained-zero-override-range-writer-2026-11-10",
+  "date": "2026-11-10",
+  "question": "Can the AC1018 TABLE body encoder safely re-emit the exact retained zero-mask override spans observed in the bounded physical peer profile?",
+  "evidence": {
+    "sourceProfile": "docs/research/p5-ac1018-oda-table-physical-peer-profile-2026-11-09.json",
+    "observedSignature": [
+      "One complete 10-bit r2007-table-cell-overrides span with count 0 for each populated plain-text cell; all cell override and virtual-edge flags are zero.",
+      "One complete 4-bit r2007-table-overrides span with count 0, representing the absent table-mask bit and three absent border-mask bits.",
+      "Ranges are ordered, non-overlapping, AC1018-only, and end before no unknown retained tail."
+    ],
+    "limits": "The physical source is one ODA-converted profile with an unrelated HEADER integrity warning. It is not native AutoCAD output or strict whole-source output evidence."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp"
+    ],
+    "behavior": "DRW_Table::encodeDwg now admits non-empty retained subrecord ranges only when they exactly match the complete, ordered, zero-mask AC1018 signature above and the model has one populated text item per cell-record span. Each range must also have rawHandleCode zero. Unknown names, versions, counts, sizes, handle codes, ordering, truncation, nonzero override values, and additional ranges remain refused. The generated whole-file TABLE profile remains independently bounded; this change does not authorize conversion of the physical source drawing.",
+    "control": "A from-scratch merged-table model receives the exact range records parsed from its generated body, re-encodes, reads back typed cell values and merge fields, and preserves the following-body sentinel. A 9-bit cell span and a nonzero raw-handle code each refuse without altering seeded body/handle buffers; correcting both fields on the same object permits retry."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "ctest": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_table_cell_overrides|libdxfrw_table_ac1018_whole_file_roundtrip)$' --output-on-failure",
+    "result": "Build succeeded; selector passed; the implementation slice initially passed both the cell-override and whole-file TABLE CTests (2/2), and the follow-up raw-handle guard passed the cell-override CTest (1/1)."
+  },
+  "disposition": "Closes only direct-codec admission for the observed zero-mask span shape. It does not decode cell semantics independently, qualify native rendering, broaden TABLE producer support, or remove whole-source refusal gates. No drawing fixture was added."
+}

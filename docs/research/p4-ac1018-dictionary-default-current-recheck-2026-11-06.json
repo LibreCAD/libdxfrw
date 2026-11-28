@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Current AC1018 dictionary-default output recheck",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Re-run the existing physical AC1018 dictionary/default selected-output selector and bind its refusal to the current read-integrity diagnostic. No parser or completeness policy was changed.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "provenanceLimit": "Existing local drawing; producer provenance is not authenticated. No fixture is committed."
+  },
+  "recheck": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "result": "FAIL CLOSED; the selected output attempts are refused by the partial-read gate, and the selector cannot complete its same-adapter retry.",
+    "readerObservation": "285/285 observed frames are published, with zero entity/object parse failures; one error-severity integrity diagnostic prevents complete-read admission.",
+    "diagnostic": {
+      "kind": 40,
+      "kindName": "TableControlHandleRole",
+      "rawPrefix": "BLOCK_CONTROL",
+      "phase": "SectionParser",
+      "logicalSectionId": 11,
+      "offsetSpace": "DecodedBuffer",
+      "decodedOffset": 4,
+      "logicalHandlePresent": false,
+      "expectedRole": 2,
+      "observedRole": 2
+    },
+    "interpretation": "The current command output identifies a BLOCK_CONTROL member-role diagnostic, not an LTYPE_CONTROL membership diagnostic. Its handle is absent while the reported role values are both 2. LibreDWG 0.14 independently accepts the same file and exposes two null entries, but ODA v5.4.1 \u00a720.4.51 describes block-header member handles and separate model/paper-space hard-owner handles without documenting null entries. Keep refusal; the peer result is tolerant-reader evidence only."
+  },
+  "limits": [
+    "No AC1018 dictionary-default output qualification is reaffirmed by this run.",
+    "The prior selected-output receipt remains historical and is not current qualification.",
+    "Do not synthesize a missing BLOCK_CONTROL target or weaken complete-read admission without source/spec evidence.",
+    "This diagnostic probe does not alter the supported AC1018 dictionary/default writer behavior for other admitted sources.",
+    "The LibreDWG 0.14 success is not independent semantic proof that the two null BLOCK_CONTROL entries are valid."
+  ],
+  "validation": {
+    "focusedSelector": "The named selector was run against the exact source hash above; it exited nonzero after preserving refusal.",
+    "fullSuites": "NOT RUN."
+  },
+  "nextAction": "Obtain producer/native evidence that identifies the two null BLOCK_CONTROL entries and their intended disposition; keep current refusal until then.",
+  "odaPeerCrosscheck": {
+    "specification": "Open Design Specification for .dwg files v5.4.1, \u00a720.4.51 BLOCK CONTROL, local copy ~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "specificationResult": "The body describes Numentries block-header handles followed by separate *MODEL_SPACE and *PAPER_SPACE hard-owner handles. It does not document null block-header entries.",
+    "independentPeer": {
+      "implementation": "LibreDWG dwgread 0.14",
+      "command": "dwgread -O JSON -o /tmp/et-border-libre.json /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+      "result": "SUCCESS on the same source bytes; BLOCK_CONTROL JSON lists two zero/null entries in its entries array, while the separate model_space and paper_space fields resolve to handles 31 and 88.",
+      "outputSha256": "bccee1259568948df2fd0e65c797932965574cc81824781864c3b34b4129d788",
+      "classification": "Tolerant-peer observation. It does not establish that null block-header members are valid under the ODA specification or safe to omit from support claims."
+    },
+    "decision": "Retain current error-severity refusal. Do not synthesize the null targets or relax strict/partial admission. Resolve whether these are erased/tombstoned members with eligible producer/native evidence before any behavior change."
+  }
+}

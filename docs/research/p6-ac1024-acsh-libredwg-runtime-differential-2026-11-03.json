@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-acsh-libredwg-runtime-differential-2026-11-03",
+  "date": "2026-11-03",
+  "status": "PEER_REPRODUCES_FAILURE_LAYOUT_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "scope": "Run an independent LibreDWG executable on the same local AC1024 condominium DWG to test whether its runtime implementation resolves the failing ACSH Loft and Revolve bodies. No fixture was added.",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+    "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+    "provenance": "Existing local sample; not committed."
+  },
+  "execution": {
+    "tool": "/opt/homebrew/bin/dwgread",
+    "version": "0.14",
+    "toolSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -v4 -O minJSON -o /private/tmp/acsh-peer-repeat.json tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+    "exitCode": 0,
+    "logSha256": "ceae785c7343fb207727c0eeabe2f56f4fc90475a8061ba2b8377b7636f7f716",
+    "jsonSha256": "1636a7699809f3a69bfcefed85566b98e1c916eeeaa521ae3f84108a71d84bf2",
+    "exitCaveat": "The whole-file zero exit and SUCCESS line coexist with record-level errors and do not establish successful parsing of these objects."
+  },
+  "observations": [
+    {
+      "handle": "0xDEE",
+      "class": "ACSH_LOFT_CLASS",
+      "peer": "major=2, minor=18, num_crosssects=272; invalid crosssects count error"
+    },
+    {
+      "handle": "0xDF9",
+      "class": "ACSH_LOFT_CLASS",
+      "peer": "major=3, minor=18, num_crosssects=272; invalid crosssects count error"
+    },
+    {
+      "handle": "0xC6C",
+      "class": "ACSH_REVOLVE_CLASS",
+      "peer": "axis point approximately (0, -0.000236475, 4.54014); 2RD direction approximately (1.51096e-234, 1.19792e288); unexpected BD code 11; 1882 bits reported missing before handle stream"
+    }
+  ],
+  "interpretation": "The peer runtime reaches the same suspect Loft count and Revolve direction/BD failure as the current libdxfrw trace. LibreDWG identifies both classes as DEBUGGING in its object registry. These implementations share schema assumptions; agreement does not establish correct body layout or field semantics. The Loft values 2 and 3 are potential investigation leads only, not proof of alternate field placement.",
+  "primarySource": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+  "priorReceipt": "docs/research/p6-ac1024-acsh-current-parser-failures-2026-11-03.json",
+  "next": "Obtain class-specific authoritative layout or a provenance-qualified independent producer/consumer field trace that binds exact body and handle spans before changing the parser or admitting output.",
+  "relatedPeerInvestigation": {
+    "repository": "Local dwgts checkout, origin gitlab.currentcad.com:2d/dwg-parser.git",
+    "revision": "216e5c4ba744d753ebe3e6891712034bafd96de7",
+    "path": "src/dwg/objects/parseObjects.ts",
+    "sha256": "ed24d4898d2eb658dfe8d110231aa79aff3f540eae3294291b576c2db6978784",
+    "observation": "A source comment reports an undocumented embedded entity region for ACSH_SWEEP and ACSH_EXTRUSION and suggests Loft and Revolve share the defect. Its Loft and Revolve readers still use the LibreDWG field sequence, so this is an investigation lead rather than an independent proof of their spans."
+  }
+}

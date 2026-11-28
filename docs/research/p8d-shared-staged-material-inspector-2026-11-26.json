@@ -1,0 +1,16 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-shared-staged-material-inspector-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateParent": "1aeaf875",
+  "implementationDigestSha256": "e9f75425e747ce4b7694034f1f50422e5134fc730aa171f9f93ea3b77f37f4ef",
+  "scope": "Share the existing staged DXF decoder and expose a synchronous, bounded inspector for selected raw MATERIAL output records.",
+  "evidence": [
+    "The converter and library use the same internal staged decoder; the converter include remains as a compatibility forwarding header.",
+    "The new library method verifies selected record names, unique remapped handles and scalar group transport only while an inspection callback is active. The caller must bind the view to the OBJECTS callback and separately validate source, graph, dependent references and finalization.",
+    "Fast controls cover ASCII and Binary output, source remapping, three selected materials, altered emitted fields, wrong source version/name, duplicate expectations, destination preservation and corrected same-writer retry. Five focused CTests passed, including existing table, object and symbol inspector controls.",
+    "AddressSanitizer passed the raw-material selector with detect_leaks=0. Source-release inventory passed with 1408 released files and its 18-control self-test passed.",
+    "The helper compares scalar output and translated handles; it does not authenticate raw source byte spelling or certify native semantic support."
+  ],
+  "remaining": "Wire the helper into the LibreCAD consumer with dictionary/root, HEADER/LAYER, output finalization and independent readback checks; its raw-only export remains refused."
+}

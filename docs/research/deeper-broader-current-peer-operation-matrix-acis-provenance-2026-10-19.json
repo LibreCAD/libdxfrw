@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "current peer-operation matrix and provenance-centered ACIS kernel screen",
+  "mode": "primary-source repository/documentation and local plan-owner review",
+  "scope": [
+    "Refresh current open-source DWG/DXF route declarations and operation-specific caveats",
+    "Screen current OpenCADKernel source for ACIS/B-rep preservation architecture and evidence maturity",
+    "Reconcile peer-only reports with existing local plan owners without importing peer defects as local findings",
+    "Refine the composed modeler-carrier evidence tuple and output disposition policy",
+    "Preserve the reduced fast-test cadence, fixture policy, and external qualification boundaries"
+  ],
+  "sources": [
+    {
+      "name": "OpenCADKernel current README",
+      "urls": [
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "observed": "The repository describes itself as early and says most operations are not yet implemented. It outlines an ACIS lift/lower feature, source-record provenance and dirty tracking, and replay of original bytes for untouched nodes. The ACIS feature depends on opencadcodec. The repository page lists no release. Treat this as a preservation-design candidate only; source claims were not executed."
+    },
+    {
+      "name": "ACadRust current README and OpenCADStudio consumer lineage",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "The current README declares ASCII/binary DXF and DWG read/write matrices and identifies OpenCADStudio and CADCraft as consumers. These declarations are source-level scope, not exact-artifact qualification or independent consumer evidence. OpenCADKernel's dependency and the existing plan's OpenCADStudio codec ancestry keep these routes correlated."
+    },
+    {
+      "name": "ACadSharp current compatibility matrix and issue reports",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp",
+        "https://github.com/DomCR/ACadSharp/issues/1297",
+        "https://github.com/DomCR/ACadSharp/issues/1282"
+      ],
+      "observed": "The project publishes direction-specific DXF/DWG read/write version columns. Issue #1297 reports whole-file AC1032 AutoCAD rejection despite a reportedly byte-identical MTEXT object and leaves the suspected missing-style cause unproved. Issue #1282 reports a 32,768-byte signed-short overflow on one ACadSharp DWG writer path. These remain peer-only failure shapes; they do not establish local defects or normative format limits."
+    },
+    {
+      "name": "IxMilia.Dxf current project scope",
+      "urls": [
+        "https://github.com/ixmilia/dxf"
+      ],
+      "observed": "The README describes DXF/DXB rather than DWG support, declares R10 through R2014 DXF scope with entity exceptions, and lists AutoCAD writer-compatibility caveats. Use only for a pinned, targeted DXF comparison."
+    },
+    {
+      "name": "GDAL stable DXF and ODA-dependent DWG driver documentation",
+      "urls": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html",
+        "https://gdal.org/en/stable/drivers/vector/oda.html"
+      ],
+      "observed": "The DXF driver documentation says Binary DXF input is supported starting with GDAL 3.12 and optional raw-code values expose unhandled tags; its OGR geometry and styling output is a projection. The distinct DWG driver depends on ODA and is read-only. Keep exact driver/backend/version attached to any optional observation."
+    },
+    {
+      "name": "dwg-rs current empirical coverage reporting",
+      "urls": [
+        "https://github.com/DrunkOnJava/dwg-rs"
+      ],
+      "observed": "The repository reports per-version decoded/skipped/errored counts over a small corpus, notes that aggregate percentage changed as the corpus grew, and describes self-validating record-boundary checks. Preserve corpus and per-version denominators when interpreting such measurements; do not compare aggregate percentages across changing corpora."
+    },
+    {
+      "name": "LibreDWG current repository",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "observed": "The repository provides a separate open-source DWG/DXF implementation route; its result is still bound to exact revision, build options, operation, and license. No source was cloned or executable run in this review."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 138,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds a current source-backed operation/route crosswalk and records OpenCADKernel as an early, correlated preservation-design candidate only. Sharpens the existing PAR-07/S8 composed evidence tuple to include source identity/owner path, raw modeler-carrier state/digest, AcDs association/closure, output identity/carrier, semantic outcome, and explicit disposition. Untouched unsupported payload remains preserved; dirty topology requires a proven exact re-emission route or atomic refusal. No new local finding, runtime, dependency, fixture, support claim, or routine validation work is added."
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "limitations": "GitHub branch pages and issue reports are mutable. All observations are source/documentation-level and were not independently executed. OpenCADKernel is explicitly early and its dependency lineage is correlated with the OpenCADStudio/ACadRust route. GDAL is an OGR projection rather than a lossless CAD model. The research refines existing evidence gates but cannot promote format, semantic 3D, native-consumer, or J-item claims."
+  }
+}

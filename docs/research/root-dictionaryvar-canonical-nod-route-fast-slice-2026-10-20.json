@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Canonical DICTIONARYVAR NOD dictionary route",
+  "mode": "primary-source-informed local generated-control correction",
+  "sources": [
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "reference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D305303C-F9CE-4714-9C92-607BFDA891B4.htm",
+      "status": "object-owner-and-payload-reference",
+      "observation": "DICTIONARYVAR uses group 330 to identify its ACDBVARIABLEDICTIONARY owner; its schema and value are separate payload fields."
+    },
+    {
+      "project": "Autodesk AutoLISP dictionary-object documentation",
+      "reference": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-AutoLISP/files/GUID-24E52678-513E-4322-8070-B23C8945DC3D.htm",
+      "status": "official-named-root-structure-example",
+      "observation": "The named-object dictionary example lists AcDbVariableDictionary as an NOD child and lists variable names beneath it. The documentation also states that dictionaries are containers and dictionary entries carry hard ownership references."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "CANONICAL_ROUTE_ENFORCED_AND_GENERATED_CONTROLS_UPDATED",
+    "implementationSummary": "Corrected the shared named-resource and focused DICTIONARYVAR generated ASCII/Binary controls from direct-NOD typed leaves to NOD[AcDbVariableDictionary] -> child DICTIONARY -> DICTIONARYVAR leaves. Readback checks follow the dictionary entry and owner path through raw replay and synthetic typed serialization. Strict writer graph preflight now rejects direct-NOD, duplicate-key, wrong-kind, missing-target, and wrong-owner routes before destination replacement. Positive controls cover mixed group-350/group-360 input, subordinate objects preceding their referenced child dictionary while retaining the required first-record NOD, regenerated-NOD group-350 output, and ordinary child dictionary hard-owner-dependent output. The plan reconciles current local status against the older 2025 readiness snapshot.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "externalDrawingsDownloaded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "generatedScratchControls": "Existing ASCII and Binary DXF test controls regenerated at runtime; no drawing fixture file added.",
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testsChangedOrRun": true,
+    "changedFiles": [
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/root-dictionaryvar-canonical-nod-route-fast-slice-2026-10-20.json"
+    ],
+    "limitations": "This proves local strict-writer graph admission and generated ASCII/Binary DXF roundtrip behavior for the documented dictionary topology plus a compatibility-only group-360 input. It is not a real DWG parser witness, independent producer result, or native-consumer result. Autodesk documents group 350; the group-360 test is compatibility evidence only."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2 passed after production graph-guard change.",
+    "focusedCTest": [
+      "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure passed (1/1), including canonical route, direct-NOD, duplicate-key, wrong-kind, missing-target, mixed-350/360, subordinate-record reordering, rewrite-code, and refusal-preserves-destination controls in ASCII and Binary.",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_named_object_callback_storage$' --output-on-failure passed (1/1)."
+    ],
+    "scopedDiffCheck": "git diff --check passed for the scoped production source, generated-control test, and plan changes.",
+    "jsonValidation": "jq empty passed.",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; changes remain unstaged and uncommitted."
+  }
+}

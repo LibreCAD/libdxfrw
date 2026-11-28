@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-25",
+  "baseline": "57811b4e",
+  "implementation_digest_sha256": "d715eb78791f8dd272307b536860758a68dce6c7f641ae5465ececd1f7356073",
+  "input_count": 775,
+  "scope": "Source-only classification of each bounded immutable/live LAYER group-390 value as zero or the already verified default placeholder.",
+  "controls": [
+    "Generated AC1015 ASCII and binary two-layer source profiles pass source inventory and allowed-reference checks.",
+    "Changing an extra layer physical 390 to the dictionary handle E retains source inventory but rejects reference classification in both encodings.",
+    "Changed, missing and duplicate live rows reject the live inventory; restored rows recover.",
+    "Strict multi-layer output remains refused with destination preservation; the same exporter successfully retries a supported single-layer input.",
+    "Three focused default plot and raster CTests pass."
+  ],
+  "remaining": [
+    "This classifies source values only; it does not claim that target output preserves or resolves the references.",
+    "Prove each emitted LAYER, plot-style target and target CLASS, including changed-output refusal and independent readback before enabling the cross-version path.",
+    "No native/platform support claim and no new fixture committed."
+  ]
+}

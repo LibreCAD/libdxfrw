@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-ac1018-table-blockrecord-proxy-writer-2026-11-10",
+  "date": "2026-11-10",
+  "question": "Can the selected AC1018 TABLE body be directly re-encoded without losing its parsed BLOCK_RECORD hard pointer or opaque proxy-graphics cache, while refusing unapproved cache bytes?",
+  "source": {
+    "profileReceipt": "docs/research/p5-ac1018-oda-table-physical-peer-profile-2026-11-09.json",
+    "scratchPath": "/private/tmp/libdxfrw-table-ac1018-oda/out/acad_table_simple.dwg",
+    "sha256": "aa88b0bd66694008db8aaaa6548cd30192e1a500a093d72859f8d45a918951ab",
+    "producerRoute": "ODA File Converter 27.1.0.0 converted the pinned ezdxf AC1027 example to AC1018 DWG; scratch-only, not a native AutoCAD AC1018 witness.",
+    "sourceWarnings": [
+      "The drawing has an unrelated HEADER integrity offset mismatch (expected 592, observed 1331); strict whole-source conversion is refused."
+    ]
+  },
+  "observedObject": {
+    "entityHandle": "0x9c",
+    "className": "AcDbTable",
+    "blockRecordHandle": "0x9d",
+    "blockRecordHandleMetadata": {
+      "code": 5,
+      "rawCode": 5,
+      "byteSize": 1,
+      "ref64": 157,
+      "role": "ODA TABLE hard-pointer to BLOCK HEADER"
+    },
+    "grid": "3x3",
+    "valueFlag": "0x16",
+    "proxyGraphicsBytes": 2104,
+    "retainedSubrecordRanges": 8
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "behavior": [
+      "The AC1018 direct TABLE body encoder accepts either normalized generated BLOCK_RECORD metadata or the canonical parsed hard-pointer shape only: matching hard-pointer roles, nonzero reference, ref64 equality, and minimal exact handle-byte width. The existing writer emits the reference as a hard pointer.",
+      "Empty proxy state is admitted only with unspecified provenance and no stale authorization/declared payload. Nonempty AC1018 TABLE proxy bytes require parsed-DWG/DWG-bit-stream provenance for AC1018, empty codepage, zero DXF count code, exact declared byte length, explicit replay authorization, no DXF resource-index remap, and matching positive numProxyGraph.",
+      "Same-version replay authorization follows the existing public DRW_Entity contract; callers must revoke and re-authorize if they edit the cache. The encoder does not detect same-length byte edits after authorization."
+    ],
+    "generatedControl": "A generated TABLE has the canonical parsed BLOCK_RECORD hard-pointer metadata and parsed AC1018 proxy provenance. Encoding without cache authorization refuses and preserves seeded body/handle buffers. Clearing an authorized nonempty cache without clearing its source provenance also refuses atomically. After explicit authorization, encoding succeeds; fresh direct body parsing verifies the exact cache bytes, BLOCK_RECORD target, cell model, and following-body sentinel. The normalized and parsed hard-pointer models produce identical body and handle streams.",
+    "physicalProbe": "The scratch physical AC1018 TABLE is imported, explicitly authorized for parsed same-version proxy replay, directly encoded (body 18,212 bits; handle stream 136 bits), then reparsed. Readback matches the 2,104 proxy bytes, 0x9d BLOCK_RECORD target, 3x3 row model, and following sentinel. The full source's other integrity warning remains unrelated and unresolved."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_local_roundtrip -j4",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "physicalProbe": "build-gcc/libdxfrw_dwg_local_roundtrip --inspect-physical-table-codec /private/tmp/libdxfrw-table-ac1018-oda/out/acad_table_simple.dwg",
+    "ctest": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_table_cell_overrides|libdxfrw_table_ac1018_whole_file_roundtrip)$' --output-on-failure",
+    "result": "Both targets built; the focused selector passed; the physical body encoding and exact readback booleans passed; the selected CTest pair passed 2/2; git diff --check passed."
+  },
+  "disposition": "Closes the selected AC1018 TABLE object-body encoding gap for canonical BLOCK_RECORD hard-pointer metadata and explicitly authorized same-version parsed proxy bytes. Does not emit or close the TABLE's compound *T graph from this direct-body probe, resolve the source HEADER warning, establish native TABLE acceptance/rendering, qualify additional producer profiles, or promote any support claim. No drawing fixture was added."
+}

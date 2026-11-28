@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Peer graph-growth and unresolved-owner boundary",
+  "mode": "Deeper/broader primary-source research with local test-owner audit",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Resolve the exact mechanism and route of current ACadSharp nested-block, repeated-record, EED-size, and spline issue reports.",
+    "Reconcile LibreDWG issue #1357's later decoder result with the separately open defensive PR #1359.",
+    "Audit the matching local block-owner implementation and generated tests for a concrete coverage gap.",
+    "Refine implementation readiness with fixture-free focused validation and no new peer dependency."
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1283",
+        "https://github.com/DomCR/ACadSharp/issues/1281",
+        "https://github.com/DomCR/ACadSharp/issues/1282",
+        "https://github.com/DomCR/ACadSharp/issues/1299",
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "revision": "Live issue pages/index inspected 2026-10-20; #1283 body retrieved through the GitHub API. Reports are open and refer to ACadSharp API/package/master versions as stated in their bodies; no peer code or artifact was run.",
+      "observed": "#1283 describes document-owned BlockRecord deep-copy recursion through nested Insert clones, quadratic construction, stack overflow, and self-insertion nontermination. #1281 reports recursive DXF reader advancement for repeated comments, XDATA app blocks, and WIPEOUT clip groups. #1282 reports one peer DWG writer narrowing an APPID EED length to signed 16-bit at 32,768 bytes. #1299 reports a downstream GDAL GeoJSON conversion failure for ACadSharp 3.8.0 DWG-to-DXF SPLINE output but does not provide structured spline arrays or an independently evaluated expected curve in the issue text.",
+      "limits": "These are issue reports for specific peer versions/APIs, not normative DWG/DXF limits or findings about libdxfrw. No attached customer drawing/archive was downloaded, and no ACadSharp/GDAL runtime was executed."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1357",
+        "https://github.com/LibreDWG/libredwg/pull/1359",
+        "https://api.github.com/repos/LibreDWG/libredwg/issues/1357/comments"
+      ],
+      "revision": "Issue and PR state checked 2026-10-20 through GitHub API; #1357's reporter comment dated 2026-08-11 says three AC1021 cases matched ODA counts at master commit 56a05f98 without #1359. #1359 is still open.",
+      "observed": "The reporter says #1357's original severe AC1021 output loss was fixed on master independently of #1359 and suggests intervening R2007 decoder fixes as the likely cause, without a bisect. The separate open #1359 proposes a defensive guard for unresolved references in first/next-owned-entity walks, warning and continuing while guarding the declared count. The proposed skip behavior remains distinct from strict-complete conversion.",
+      "limits": "The original input set is not rerun here; the reporter's causal attribution is not bisected; the PR is unmerged. Peer issue/PR state is not a local DWG result or a reason to adopt silent omission."
+    },
+    {
+      "project": "Local implementation and generated owner tests",
+      "urls": [
+        "workspace:src/drw_entities.h",
+        "workspace:src/intern/dwgreader.cpp",
+        "workspace:tests/dwg_reader_matrix_tests.cpp",
+        "workspace:CMakeLists.txt"
+      ],
+      "revision": "Shared working tree inspected 2026-10-20. No production or test source was changed in this research update.",
+      "observed": "DRW_Insert stores a block name/reference and DWG handles rather than an owning BlockRecord object graph. walkBlockRecordEntities uses the explicit R2004+ entMap traversal, while readDwgBlocks preflights ownership. testMixedMissingBlockOwnership currently generates an AC1027 three-entry owner list with the missing handle in the middle; it verifies lower-walker valid prefix/suffix delivery and strict outer quarantine of the malformed owner while a following valid block is processed. First-slot and final-slot missing cases are not directly asserted by this test.",
+      "limits": "A source/test coverage gap is not a confirmed runtime defect. No executable, CTest, full suite, fixture, or peer/native tool was run. The proposed extension stays inside the existing PAR-49 owner and uses generated in-memory frames."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingPlanOwnersRefined": [
+      "PAR-49/7G.3: expand the generated strict AC1027 missing-entMap position control from middle-only to first/middle/final, preserving exact owner diagnostics, quarantine, strict failure, and following valid block processing.",
+      "PAR-65/7AI: keep block-definition storage identity-based; any future flatten/deep-copy API requires explicit cycle and complexity controls, but ACadSharp #1283 does not justify a local refactor.",
+      "PAR-14/EED: reuse existing local repeated-record and 65,536-byte EED boundary controls; do not copy peer-specific limits or add duplicate stress tests.",
+      "PAR-22/7H/7I/7AB: keep ACadSharp #1299 as a downstream scenario lead until source/output spline fields, exact consumer diagnostics, and an independent curve expectation are available."
+    ],
+    "planFilesChanged": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-graph-growth-unresolved-owner-boundary-2026-10-20.json"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsOrGeometryKernelsRun": 0,
+    "testsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78,
+      "deferredExternalItems": [
+        "J256",
+        "J260",
+        "J268",
+        "J284",
+        "J293",
+        "J295"
+      ]
+    }
+  },
+  "implementationReadyDelta": {
+    "owner": "PAR-49/7G.3",
+    "status": "READY_NEXT_LOCAL_GAP",
+    "target": "testMixedMissingBlockOwnership() in tests/dwg_reader_matrix_tests.cpp",
+    "change": "Parameterize the missing AC1027 entMap entry across first, middle, and final positions using unique generated handles. For the low-level walker, verify resolvable children are visited in source order and the missing handle is diagnosed. For strict readBlocks(), require false/incomplete status, exact missing-handle plus BLOCK_RECORD diagnostic, no partial callbacks from the quarantined owner, and continued processing of the following valid owner.",
+    "fastValidation": "Build the existing libdxfrw_dwg_reader_matrix_tests target; add/reuse a focused --mixed-missing-block-ownership selector and a fast CTest only if needed to avoid the full matrix for this leaf; run the focused control and scoped diff check. Do not run the full suite or peer/native tools for this generated test-only slice.",
+    "fixturePolicy": "Generated in-memory frames only. No imported or persistent DWG/DXF fixtures.",
+    "selfUnblock": "After recording the focused result in the plan, continue to the next local source-backed PAR-49 item; open peer PR/platform/sample questions do not block implementation."
+  },
+  "limitations": [
+    "Peer reports and PRs do not define format limits or establish the same local behavior.",
+    "LibreDWG #1357's later fix attribution is reporter opinion and was not bisected; #1359 remains an open defensive proposal.",
+    "No customer drawings, issue attachments, or peer executables were acquired or run.",
+    "ODA DWG specification v5.4.1 remains authoritative for DWG byte-layout questions; the research update changes no parser wire rule."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq -e schema/totals invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on plan and receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "No commit requested; shared worktree contains broad uncommitted changes and .git metadata is read-only in this session."
+  }
+}

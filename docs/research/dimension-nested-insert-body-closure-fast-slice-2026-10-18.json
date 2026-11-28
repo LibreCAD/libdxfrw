@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "7J nested INSERT target-body closure fast slice",
+  "mode": "local generated ASCII/Binary DXF writer implementation and focused verification",
+  "scope": [
+    "Require nested INSERT targets encountered in BLOCKS to resolve to an emitted BLOCK body after the section closes",
+    "Require strict modern modelspace INSERT targets to resolve against the completed emitted-body index",
+    "Verify forward nested references, owner/body readback, and atomic missing-body refusals without persistent fixtures"
+  ],
+  "changes": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "newCtestRegistrations": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ]
+  },
+  "implementation": {
+    "strictModernConversionOnly": true,
+    "bodyIndexReused": true,
+    "pendingTargetsTransactional": true,
+    "forwardReferenceBehavior": "INSERT target is recorded during BLOCKS and accepted only if its BLOCK body closes before section completion",
+    "modelspaceBehavior": "INSERT after BLOCKS is refused if the named body is absent",
+    "atomicNegativeControls": [
+      "planned nested INSERT target BLOCK_RECORD has no emitted BLOCK body",
+      "planned modelspace INSERT target BLOCK_RECORD has no emitted BLOCK body"
+    ],
+    "positiveControl": "DIMENSION picture block contains a nested forward INSERT; its target body is emitted later and readback preserves target name, BLOCK_RECORD/body identity, and child owner",
+    "notEstablished": [
+      "nested transform composition",
+      "dependent layer/style/linetype/arrow resource closure",
+      "DIMENSION picture geometry or anonymous constraint classification",
+      "rendering or native application acceptance"
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dimension_picture_block_full_conversion$' --output-on-failure",
+      "result": "passed (1/1)"
+    },
+    "researchReceiptJson": "jq empty passed",
+    "implementationReceiptJson": "jq empty passed",
+    "scopedDiffCheck": "git diff --check passed for plan and implementation slice files",
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "gitCommitted": false,
+    "commitReason": "The shared worktree has broad pre-existing uncommitted changes in the same implementation, test, and plan files. This slice depends on earlier uncommitted body-index work; isolating it would risk capturing unrelated user changes or omitting required dependencies."
+  },
+  "planStatus": {
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader AcDs whole-section, record, and entity-link evidence review",
+  "mode": "primary-source web research and read-only local plan reconciliation",
+  "scope": [
+    "Reconcile the official ODA Prototype1b data-record layout against its coordinate descriptions",
+    "Update the ACadSharp Prototype1b reader release and blob01/entity-attachment status",
+    "Keep full-section parsing, data-record resolution, entity linkage, and B-rep semantics as separate evidence stages",
+    "Refine the existing PAR-07/S8.3 generated-control and composed-peer recipe without adding routine test cost"
+  ],
+  "method": {
+    "kind": "Read official ODA PDF text and ACadSharp issue/PR/release pages; compare with existing local plan and source declarations",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/drw_datastorage.cpp",
+      "src/drw_datastorage.h",
+      "tests/graph_preservation_tests.cpp",
+      "AGENTS.md"
+    ],
+    "limitations": "The configured local ODA PDF at ~/doc/dwg/OpenDesign_Specification_for_.dwg_files.pdf was absent, so the repository-mandated local copy could not be checked. The official online ODA PDF text was reviewed for the reported coordinate/formula conflict, but no DWG bytes or local producer trace were used to adjudicate it. ACadSharp corpus/hash statements are peer-authored discussion reports, not independently reproduced results. No peer artifact was installed, built, or run."
+  },
+  "sources": [
+    {
+      "project": "Open Design Alliance",
+      "urls": [
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "revision": "Open Design Specification for .dwg files v5.4.1, §24.2.2.3 and §24.2.2.3.1; online PDF page text accessed 2026-10-18",
+      "observed": "The section describes each data record start as data-start-marker position plus local offset; the local offset is described as relative to the data-start marker. It also defines the last-record maximum span by a formula involving the object-data alignment offset and segment size, then parenthetically equates it to segment end minus record start. Read with the preceding coordinate origins, the printed formula and parenthetical appear inconsistent. The online text is primary-source evidence of the discrepancy, not permission to choose a new implementation formula without the configured local copy and trace."
+    },
+    {
+      "project": "ACadSharp Prototype1b reader",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp"
+      ],
+      "revision": "PR #1154 merged 2026-07-28; v3.8.0 tagged/released 2026-09-21; exact release source inclusion must be checked before a runtime comparison",
+      "observed": "The PR merges a read-side full Prototype1b parser and states that the section can contain ACIS, thumbnails, and other binary data. The author says modifying data still needs further relationship/schema understanding. The later v3.8.0 release is a candidate structural comparator, but neither release metadata nor section parse success proves full entity attachment, writer correctness, or B-rep semantics."
+    },
+    {
+      "project": "ACadSharp Prototype1b/blob01 follow-up",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1154",
+        "https://github.com/DomCR/ACadSharp/pull/1156"
+      ],
+      "revision": "Public PR discussion viewed 2026-10-18; #1156 closed after #1154 merge",
+      "observed": "The discussion distinguishes whole-section parsing from per-entity ModelerGeometry attachment and indexed blob01 reconstruction. Contributors reported that an initial comparison conflated stale/unreferenced section entries and unattached inline stubs with parser failures, then reported 3,715 referenced handles with byte-identical payload hashes after anchor/resolver changes. The #1156 author/maintainer says the merged ResolveDataEntry path covered its blob-page case. These statements are not independently reproduced; stale-index validity and the public ODA coordinate discrepancy remain unresolved here."
+    },
+    {
+      "project": "ACadSharp modeler writers",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/issues/1152",
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1240"
+      ],
+      "revision": "Public pages reviewed 2026-10-18; #1150 still open in the reviewed page",
+      "observed": "The open #1150 proposal is a writer change distinct from the merged read-only Prototype1b work. Its contributor reports ODA review and manual native/ODA checks on a branch, but branch-level claims are not released writer qualification. #1195/#1240 concern DXF solid output and are separate from DWG AcDs section reading."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines existing PAR-07/S8.3 readiness: distinguish section inventory, schema/index resolution, blob page assembly, modeler-entity attachment, exact carrier identity, semantic body conversion, and writer/native acceptance. Add only one generated composite positive and a bounded malformed-offset/page negative at the next relevant parser change, using existing test ownership. Keep optional ACadSharp comparison at the existing composed checkpoint, and leave the ODA formula conflict unresolved until the required local specification copy and producer evidence are available.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Before any DWG byte-layout change, obtain/read the repository-mandated local ODA PDF, establish each coordinate origin, and trace the relevant local or source-authored bounded control.",
+    "Treat a section parse as distinct from resolving a DataIndex/schema entry, reconstructing its blob01 page chain, and attaching the exact record to the correct modeler entity handle.",
+    "Do not assume every Prototype1b payload is ACIS; preserve and count non-ACIS/unknown schema records separately and never turn a marker scan into identity association.",
+    "Use the existing DataStorage test owner for one compact generated composite covering inline data, a two-page blob with non-monotone order, non-monotone handles/index entries, and a non-ACIS opaque record; assert exact hashes, linkage, and a following sentinel.",
+    "Use a separate malformed offset/page control to assert bounded fail-closed behavior and no partial publication; treat stale secondary indexes as a distinct conditional case, not an assumed-valid producer pattern.",
+    "At the composed checkpoint only, pin ACadSharp v3.8.0 or later, verify the tag contains the merged reader change, capture warnings and per-handle payload hashes, and report structural agreement separately from semantic geometry.",
+    "Keep the open #1150 writer branch out of release claims; no peer dependency, fixture, full-suite run, or external execution is added to the per-slice loop."
+  ],
+  "validation": {
+    "receiptJsonValidation": "passed",
+    "planDiffCheck": "passed",
+    "fullSuiteRun": false,
+    "nativeCadRun": false
+  }
+}

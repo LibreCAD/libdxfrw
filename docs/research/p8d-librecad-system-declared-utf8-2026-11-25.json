@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-declared-utf8-2026-11-25",
+  "status": "LOCAL_DECLARATION_CONTROLS_PASS_CROSS_PLATFORM_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "75a13a1d446f3a8e40e6e899d51159201f72d6be",
+    "previousHead": "0f00751c762b702d7b2141bde998ee52adc41349"
+  },
+  "dependency": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "implementationDigest": "7827d552d5f861a0d3fd16c48d539f6bf70e332d9780132938d329e37661ff74"
+  },
+  "problem": "Legacy DXF explicitly declaring UTF-8 decoded as the historical Windows-1252 alias in the installed codec, producing different linetype names from the bundled LibreCAD codec.",
+  "change": "Set the existing DeclaredUtf8 input code-page policy on the system-codec reader. The policy applies an exact UTF-8 decoder to explicit UTF-8 declarations and leaves other declarations on the compatible mapping. It does not change export policy or infer that undeclared files are UTF-8.",
+  "validation": {
+    "host": "macOS ARM64 AppleClang 21 Release",
+    "systemFocused": "PASS: 2,098 assertions in 38 cases, including declared legacy UTF-8, explicit and default Windows-1252, modern UTF-8, text and linetype import/export/reread, Unicode name twins, and malformed-name controls.",
+    "systemTestSha256": "c66042b380884ccbe385295c44bf5a3cba372f67c2aa816dd15652ad7d5ec2ac",
+    "bundledFast": "PASS: librecad_dxf_fast_tests; the added policy is system-only.",
+    "systemBroad": "Exploratory [dxf][roundtrip][filter]: 102/131 cases pass, 29 fail and 32 assertions fail versus 98/131 and 42 before this change; no normalized failure expression increased."
+  },
+  "limits": [
+    "The matrix is generated and bounded; it does not establish all code pages, malformed mixed encodings, native producer behavior or cross-platform qualification.",
+    "Current-head hosted CI, native GUI and cross-platform system-codec qualification remain open.",
+    "No generated drawing fixtures were committed."
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "status": "BOUNDED_EXPLICIT_SELECTED_REPLAY_ONLY_NON_PROMOTING",
+  "base_commit": "8bb071a2",
+  "scope": "Only explicitly authorized parsed DXF AC1027 exact eight-byte cache 0800000000000000, exact built-in LIGHT, same target revision and codepage, with one-shot exact writer/entity permit. The caller must revoke and re-authorize after any cache or geometry edit; this is not automatic mutation detection or source-geometry binding. Low-level writer transport only; strict dx_iface output policy is unchanged.",
+  "source_lineage": "Locally authored LIGHT color witness from tools/author_light_dxf_421.py, ODA File Converter 27.1.0 DXF to ACAD2013 DWG to DXF, as recorded in p6-light-dxf-421-true-color-2026-11-04.json. A hash-bound exact LIGHT record is projected into a minimal HEADER/ENTITIES DXF. Its object graph is not retained.",
+  "physical_manifest_sha256": "32df8911d4675b956078809f748b0ab89fb353f5fa4b19f23a8b94434bd9dc5c",
+  "physical_artifacts": {
+    "original": {
+      "path": "/private/tmp/light421-color/out/rgb.dxf",
+      "sha256": "fa5d37197d271ab36ce268ecfddd942083a33c9b1a3b02411714c9fee0af3fb9"
+    },
+    "selected": {
+      "path": "/private/tmp/light-preview/selected-source.dxf",
+      "sha256": "3911eb8c9c1e296c942eddebc37f1bb2bf4548fa8daf31a2978d64d718017231"
+    },
+    "ascii": {
+      "path": "/private/tmp/light-preview/selected-ascii.dxf",
+      "sha256": "1ee5ab084245118b5bd4bf3c09cf5aa85d2ce2f9e1779ef3b2f79f64c5bce1c9"
+    },
+    "binary": {
+      "path": "/private/tmp/light-preview/selected-binary.dxf",
+      "sha256": "d6d8bef429726b952b93361365a7d35069efe066c125dc5e88ec6a6b7b804d96"
+    },
+    "oda_ascii_dwg": {
+      "path": "/private/tmp/light-preview/oda-dwg/ascii.dwg",
+      "sha256": "df16b516e394f3508db589199ce20b9a70707b57d12c714a0f44f6206bf54ddc"
+    },
+    "oda_binary_dwg": {
+      "path": "/private/tmp/light-preview/oda-dwg/binary.dwg",
+      "sha256": "64ef6acd9b6fe672af056ac88a8c0a937bd556b241c2a59c7668e7bbbacd0268"
+    },
+    "oda_ascii_dxf": {
+      "path": "/private/tmp/light-preview/oda-out/ascii.dxf",
+      "sha256": "4ee3ea17781fd8abb6b73da5907da86a4926c66996488dbbd577c9d0985bf44b"
+    },
+    "oda_binary_dxf": {
+      "path": "/private/tmp/light-preview/oda-out/binary.dxf",
+      "sha256": "c8b70d231911ff3703a53b16cc5e478da4c7b69790064cf990d5faa7ac4cc639"
+    }
+  },
+  "procedure": [
+    "python3 tools/author_selected_ac1027_light.py /private/tmp/light421-color/out/rgb.dxf /private/tmp/light-preview/selected-source.dxf --sha256 fa5d37197d271ab36ce268ecfddd942083a33c9b1a3b02411714c9fee0af3fb9",
+    "Compile tools/probe_light_dxf_preview.cpp against candidate libdxfrw.a, then invoke with selected-source.dxf and selected-ascii.dxf ascii, and selected-source.dxf and selected-binary.dxf binary.",
+    "Convert those two DXFs to ACAD2013 DWG and the resulting DWGs back to ACAD2013 DXF with ODA File Converter 27.1.0. Both conversions returned output without .err. The input/output lineage is the recorded local converter run, not independently established by hashes.",
+    "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python -O tools/audit_ac1027_light_preview.py /private/tmp/light-preview/manifest.json --sha256 32df8911d4675b956078809f748b0ab89fb353f5fa4b19f23a8b94434bd9dc5c",
+    "ctest --test-dir /private/tmp/light-preview/build -R ^libdxfrw_light_dxf_proxy_replay$ --output-on-failure"
+  ],
+  "observations": "ezdxf 1.4.5 verifies exact selected original/source LIGHT tag record, and count, preview bytes, ACI, RGB, name, point and intensity in both emitted and ODA-returned DXFs. Generated test covers ASCII/Binary, parsed Binary provenance, byte/count/revision/type/caller-origin refusal, destination preservation, same-writer retry, and same-writer resolver reentry. Resolver controls additionally reject authorization, byte mutation, revocation and removal after initial preflight, preserving the destination and permitting same-writer retry. After this hardening, regenerated ASCII and Binary physical selected outputs are byte-identical to the ODA-converted inputs. Same-writer resolver reentry with the same LIGHT, a different authorized LIGHT with fresh source handle, and a fresh LINE all fail atomically; independent nested writers remain usable, including A-to-B-to-A refusal and exception-unwind/retry. The resolver guard is active only for approved preview transport. Physical selected outputs remain byte-identical to the recorded ODA inputs.",
+  "limits": [
+    "No automatic LIGHT adapter authorization or complete-scene output. LIGHTLIST graph closure and sparse MATERIAL raw graph remain open.",
+    "Exact bytes have no independently established header semantics; ODA spec v5.4.1 section 29 describes generic proxy chunks and does not establish meaning of this 8-byte header. Source is an ODA producer observation; ODA conversion does not prove native application rendering, freshness or complete proxy-resource semantics.",
+    "Changing caller geometry with unchanged bytes remains caller responsibility; the runtime checks only captured DXF provenance, revision/codepage, explicit consent, exact type and bytes.",
+    "The selected DXF is a minimal projection; ODA return does not qualify source dictionary/ownership, complete source fidelity or automatic replay.",
+    "No public object layout, vtable, or new virtual changes; standalone low-level callers must explicitly opt in."
+  ],
+  "patch_sha256": "51dbb4e9af3e59efa7e8e30206e4d559322f0a8c0e273bd21144fe4e89364f33",
+  "candidate_hashes": {
+    "src/libdxfrw.cpp": "40d7e692b70436844f2cf1c6b024f7472eb33eef0603c4378c6e97eaf944ee3b",
+    "src/drw_entities.h": "ffea1d6147de1001518b2547d6e84121b6206f3227f19b40ec20d62d16804afc",
+    "tests/CMakeLists.txt": "3c66732f616cb6c0c371ab47cfb63215869c880e1da7a1e1923a1c9bd675e209",
+    "tests/light_dxf_proxy_replay_tests.cpp": "7f8b2b86318450e429079255d0f10fb2e9342ab7ebd3276041b5406a6f29e42e",
+    "tools/probe_light_dxf_preview.cpp": "237bd90378968c0c555a0490fd5a161b86d9ae7737fffd9c20e078a2d04eeb0e",
+    "tools/author_selected_ac1027_light.py": "530e3b6619fd8428ac47252c67d8141f172e0f96bb168621dcc68b0a973b9289",
+    "tools/audit_ac1027_light_preview.py": "cbe5b7e8603d00a04c17dd191fe0d01ce1536fd07c5fae3cefcc447be07a9492"
+  },
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "physical_manifest_path": "docs/research/p5-ac1027-light-preview-manifest-2026-11-04.json",
+  "integrated_validation": "The integrated explicit LIGHT preview, existing LIGHT adapter and DXF true-color controls passed, including resolver reentry, post-preflight mutation and retry."
+}

@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "IxMilia Rust DXF route and native-test skip visibility",
+  "mode": "Deeper/broader primary-source open-source repository and test-harness review",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Screen an additional Rust DXF implementation not individually represented in the current peer matrix",
+    "Inspect its source-declared version, format scope, and optional ODA/AutoCAD interoperability test behavior",
+    "Refine comparator admission, artifact pinning, and explicit test skip accounting without creating a new local implementation item"
+  ],
+  "method": {
+    "kind": "Read-only review of primary project documentation, Cargo metadata, and integration-test source",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub main and repository README pages are mutable; Cargo.toml reported package version 0.6.1, but no immutable source SHA or published archive hash was resolved. The source audit was limited to the public integration helper and does not establish which tests run in current CI, test results, Rust/C# algorithm lineage, or current local libdxfrw parser behavior. No external tool or peer runtime was executed. ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "sources": [
+    {
+      "project": "ixmilia/dxf-rs",
+      "urls": [
+        "https://github.com/ixmilia/dxf-rs",
+        "https://github.com/ixmilia/dxf-rs/blob/main/Cargo.toml",
+        "https://github.com/ixmilia/dxf-rs/blob/main/src/misc_tests/integration.rs"
+      ],
+      "revision": "Mutable main pages reviewed 2026-10-18; Cargo.toml reports crate dxf 0.6.1; exact commit/archive hash not resolved",
+      "observed": "Project README describes a Rust reader/writer for DXF/DXB. Cargo metadata identifies MIT licensing and author Brett V. Forsgren. No DWG or ACIS semantic route is declared in the inspected sources."
+    },
+    {
+      "project": "ixmilia/dxf-rs optional integration helpers",
+      "urls": [
+        "https://github.com/ixmilia/dxf-rs/blob/main/src/misc_tests/integration.rs#L933-L1153",
+        "https://github.com/ixmilia/dxf-rs/blob/main/src/misc_tests/integration.rs#L1157-L1386"
+      ],
+      "revision": "Mutable main integration-test source reviewed 2026-10-18; no execution performed",
+      "observed": "The ODA helper discovers ODAFileConverter.exe under a fixed Windows Program Files path, returns from the test if no executable is found, otherwise invokes conversion with audit, checks process/error-log output, and reloads the result with the same Rust reader. The AutoCAD helper similarly searches a fixed Windows path for accoreconsole and returns when absent. These are narrow optional test routes; no pass/skip evidence or tool identity was collected."
+    },
+    {
+      "project": "IxMilia.Dxf related repository family",
+      "urls": [
+        "https://github.com/ixmilia/dxf",
+        "https://github.com/ixmilia/dxf-rs"
+      ],
+      "revision": "Mutable repository pages reviewed 2026-10-18; implementation ancestry not audited",
+      "observed": "The Rust project is in the IxMilia GitHub repository family already represented by the C# IxMilia.Dxf comparator. Different language/repository identity does not establish independent implementation lineage or independent expected-value authorship."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newIndependentDwgParserCandidates": 0,
+    "newIndependentAcisSemanticOracles": 0,
+    "optionalDxfComparatorCandidatesAdded": 1,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Adds ixmilia/dxf-rs as a conditional optional DXF/DXB-only comparator with implementation-lineage independence UNKNOWN. Adds explicit RUN/SKIP/NOT_RUN evidence and artifact/tool identity requirements because the inspected optional-test helpers return when fixed-path external executables are absent. No local implementation issue or new gate is established; existing queue and fast-validation cadence remain unchanged. Findings/top-level subplans remain 133/76."
+  },
+  "nextActions": [
+    "Continue local source-backed implementation work; do not install or build dxf-rs for unrelated slices.",
+    "If a specific DXF profile remains unresolved, pin exact crate/source, Rust toolchain, host, and test filter before one optional generated-control run.",
+    "Record whether each ODA/AutoCAD helper actually launched, its version and result; absent tools or unreported early returns are NOT_RUN.",
+    "Keep ODA conversion, peer reparse, AutoCAD console acceptance, and full semantic preservation as distinct results.",
+    "Use only existing admitted fixtures or locally-from-scratch generated inputs; do not commit external peer/customer drawings.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonSyntaxChecked": true,
+    "planDiffCheckPassed": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "OpenCADStudio AC1027 ACIS report and FreeCAD platform-gate refresh",
+  "mode": "deeper/broader primary-source research and plan refinement",
+  "scope": [
+    "Refresh open-source DWG/DXF peer evidence for the AC1027 ACIS/AcDs path",
+    "Reconcile the OpenCADStudio codec lineage and evidence limits",
+    "Refine native FreeCAD Linux/Windows qualification boundaries and fast implementation readiness",
+    "Preserve deferred external evidence and support-claim restrictions"
+  ],
+  "sources": [
+    {
+      "project": "OpenCADStudio",
+      "reference": "https://github.com/HakanSeven12/OpenCADStudio/issues/1896",
+      "status": "open_peer_report_attachment_unavailable",
+      "observation": "The issue reports a Windows x86-64 v2026.42 AC1027 drawing whose 3DSOLID record at handle 0x5B87 fails with an array count of 163 while only 137 record bits remain. The reporter says the customer drawing cannot be attached; the report does not establish that the record is valid or reproduce a libdxfrw failure."
+    },
+    {
+      "project": "OpenCADStudio",
+      "reference": "https://github.com/HakanSeven12/OpenCADStudio",
+      "status": "current_project_documentation",
+      "observation": "The application documents native R14-R2018 DWG/DXF workflows, platform releases, and ACIS entity tessellation; these project claims are not independent semantic qualification."
+    },
+    {
+      "project": "OpenCADStudio / OpenCADCodec / ACadRust",
+      "reference": "https://github.com/HakanSeven12/opencadcodec",
+      "status": "shared_codec_lineage",
+      "observation": "OpenCADStudio is an ACadRust-derived route. Count app/parser observations under that implementation lineage; same-codec audit/save_verified cannot serve as an independent parser vote."
+    },
+    {
+      "project": "OpenCADStudio",
+      "reference": "https://github.com/HakanSeven12/OpenCADStudio/issues/1078",
+      "status": "closed_peer_issue_fix_reported",
+      "observation": "The maintainer reports repairing an earlier DWG writer failure by preserving the unchanged source AcDs section and associated non-entity data-store links on same-version saves; cited validation is same-project/self-reported and does not establish changed-graph, remapped, cross-version, or semantic B-rep writing."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "status": "current_published_importer_scope",
+      "observation": "The documentation says stock DXF importers cannot read ACIS SAT/SAB solids; the C++ importer and optional legacy importer have distinct listed entity subsets, with the latter adding 3DFACE."
+    },
+    {
+      "project": "FreeCAD documentation",
+      "reference": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "status": "current_published_converter_route",
+      "observation": "FreeCAD converts DWG to DXF before its DXF importer, and the DXF import restrictions therefore apply to the DWG helper route."
+    },
+    {
+      "project": "FreeCAD",
+      "reference": "https://github.com/FreeCAD/FreeCAD/issues/31835",
+      "status": "open_peer_report_export_only",
+      "observation": "The report concerns the DXF-to-DWG export path: Automatic converter fallback may return an output path without checking converter success or output existence. It does not describe the DWG-to-DXF import route."
+    },
+    {
+      "project": "FreeCAD",
+      "reference": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "status": "current_source_cross_check",
+      "observation": "Current main source confirms convertToDwg() returns the requested output path immediately after communicate() for LibreDWG, ODA, and QCAD branches, while convertToDxf() checks for the output DXF before returning it."
+    },
+    {
+      "project": "ezdxf",
+      "reference": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "status": "published_limited_acis_api",
+      "observation": "ezdxf can author or retain selected ACIS carriers, but it does not provide a general ACIS B-rep geometry oracle; generated mesh-derived SAT/SAB bytes must be checked against independent analytic expectations."
+    }
+  ],
+  "planImpact": {
+    "newFinding": false,
+    "newFindingId": null,
+    "newTopLevelSubplan": false,
+    "totalFindings": 141,
+    "topLevelSubplans": 78,
+    "implementationStatus": "RESEARCH_ONLY",
+    "implementationSummary": "No production code, test, fixture, or dependency changed. Refined the existing PAR-07/S8 platform-consumer and ACIS/AcDs evidence gates: OpenCADStudio is an ACadRust-lineage optional consumer, issue #1896 is not reproducible without its private DWG, FreeCAD's stock DXF importer cannot qualify ACIS solids, and the Linux/Windows native gate must verify direct converter results and importer-supported entity dispositions.",
+    "nextImplementation": "Diagnose the two outstanding local PAR-140 MPOLYGON boundary-metadata roundtrip assertions, run the focused/owning fast controls, then self-unblock to the next local-ready slice.",
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotion": false
+  },
+  "method": {
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testsChangedOrRun": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-opencadstudio-ac1027-acis-freecad-platform-gate-refresh-2026-10-20.json"
+    ],
+    "limitations": "All peer findings are advisory and version/route-specific. The OpenCADStudio AC1027 customer DWG is unavailable; no private or external fixture was sought or downloaded. FreeCAD platform results remain pending and its documented ACIS importer limitation prevents using the stock DWG-to-DXF route as an ACIS semantic oracle."
+  },
+  "validation": {
+    "planEdit": "Appended the research crosswalk and fast-first platform/semantic gates; refreshed the top-level PAR-140/PAR-141 status text.",
+    "jsonValidation": "jq empty passed",
+    "scopedDiffCheck": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md passed",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Workspace Git metadata is read-only; all changes remain unstaged and uncommitted."
+  }
+}

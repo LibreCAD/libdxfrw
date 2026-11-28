@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-dxf-plotsettings-objects-allocation-failure-retry-2026-11-08",
+  "date": "2026-11-08",
+  "status": "GENERATED_PLOTSETTINGS_OBJECTS_CALLBACK_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Inject every calibrated allocation failure inside the DXF OBJECTS callback while emitting one locally authored AC1027 PLOTSETTINGS source graph; verify destination rollback, caller graph preservation, and same-adapter retry/readback.",
+  "input": {
+    "kind": "in-memory dx_data imported from generated AC1027 ASCII DXF text embedded in the focused test",
+    "sourceGraph": "NOD ACAD_PLOTSETTINGS -> DICTIONARY 0x1E -> PLOTSETTINGS 0xA720",
+    "fixtureFilesAdded": 0,
+    "sourceDwgOrDxfFixture": "none; the input is an in-memory string"
+  },
+  "implementation": {
+    "test": "tests/plotsettings_objects_allocation_tests.cpp",
+    "registration": "tests/CMakeLists.txt:libdxfrw_plotsettings_objects_allocation_retry",
+    "callback": "PlotSettingsExport::writeObjects scopes global-new failure injection around dx_iface::writeObjects"
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_plotsettings_objects_allocation_tests -j4 — PASS",
+    "ctest": "ctest --test-dir build -R '^libdxfrw_plotsettings_objects_allocation_retry$' --output-on-failure — 1/1 PASS, 0.88 s",
+    "ascii": "21/21 calibrated callback allocation offsets injected; each failure preserved the destination sentinel and asserted caller graph fields; same-adapter retry and typed NOD/dictionary/PLOTSETTINGS readback passed.",
+    "binary": "20/20 calibrated callback allocation offsets injected; each failure preserved the destination sentinel and asserted caller graph fields; same-adapter retry and typed NOD/dictionary/PLOTSETTINGS readback passed.",
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated adapter transaction mechanics only; no physical producer, native plotting, or broader PLOTSETTINGS semantics are qualified.",
+    "This sweep covers one PLOTSETTINGS emitter graph, not every DXF OBJECTS builder or whole-file failure state."
+  ],
+  "nextAction": "Continue the P4 saved-inventory selection rule; if no source-ready physical graph qualifies, choose another distinct local OBJECTS builder or P6 implementation task without repeating completed sweeps."
+}

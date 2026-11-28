@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Physical AC1021 color dictionary, ODA differential and DBCOLOR true-color precedence",
+  "date": "2026-11-03",
+  "status": "PHYSICAL_GRAPH_AND_SELECTED_DXF_RECORD_PROJECTION_PROVED_OUTPUT_GATE_REMAINS_CLOSED",
+  "supportClaimEffect": "none",
+  "scope": "Identify and independently resave a real AC1021 color-book graph; preserve explicit DXF indexed fallback and true-color precedence regardless of group order; compare an isolated ODA-produced physical DXF record exactly. This does not qualify whole-drawing output or native color behavior.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenance": "Existing local drawing; author and producer are not independently authenticated. No input or derivative is committed.",
+    "currentRead": "CLI debug trace with current code: 1673 observed/published frames, zero failed, zero entity/object parser failures, zero reader21 CRC mismatches and zero integrity observations. Same-version strict export remains refused at the DBCOLOR source/output qualification gate."
+  },
+  "physicalGraph": {
+    "nod": "0xC",
+    "nodEntry": "ACAD_COLOR",
+    "dictionary": "0x6B",
+    "dictionaryOwner": "0xC",
+    "dictionaryReactors": [
+      "0xC"
+    ],
+    "colorKey": "RAL CLASSIC$RAL 7047",
+    "colorHandle": "0x369B0",
+    "colorOwner": "0x6B",
+    "colorReactors": [
+      "0x6B"
+    ],
+    "classNumber": 551,
+    "className": "AcDbColor",
+    "recordName": "DBCOLOR",
+    "rgb": "0xCFD0CF",
+    "bookName": "RAL CLASSIC",
+    "entryName": "RAL 7047",
+    "originalEed": "ACAD APPID plus 13 repetitions of DBColXD / 254 / -1026567985 / RAL CLASSIC$RAL 7047"
+  },
+  "independentProducer": {
+    "tool": "ODA File Converter 27.1.0 native macOS; verified executable",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "command": "ODAFileConverter <original-input-dir> <dwg-out-dir> ACAD2007 DWG 0 0; ODAFileConverter <dwg-out-dir> <dxf-out-dir> ACAD2013 DXF 0 0",
+    "resavedDwgSha256": "a0caaf8fae5d4c2dd36cd4350b5ce82902e16f0c682ea10df62758a46c07dfcf",
+    "resavedDxfSha256": "10cb7ac91a3d80e065daf6504ad9a49496fd8b0eb56df44658d0108398a41f19",
+    "result": "Both conversions exited 0 without .err and produced output. The ODA DXF confirms the same NOD/dictionary/record handles and owner/reactor edges, color book/name, RGB, and XDATA sequence. Group 62 is 254 and group 420 is 13619407. The newly saved DWG decodes with the same graph and fields. LibreDWG 0.14 independently confirms the DWG graph and RGB but reports only the first character of the UTF-16 color and book names, so its names are not used for the comparison.",
+    "lossBoundary": "Original source contains 13 identical DBColXD groups; ODA AC1021 resave contains 12 and subsequent ODA DXF contains 11. This differential is real and does not establish that dropping these EED groups is safe. Preserve the original required XDATA and keep the output graph closed until exact source/output binding and consumer behavior are qualified."
+  },
+  "authorities": [
+    {
+      "title": "About Object and Entity Codes (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A35B8C2A-1885-4A8E-8533-E61D8A423D62.htm",
+      "observation": "Autodesk advises readers not to assume group-code order."
+    },
+    {
+      "title": "AutoLISP entmake color note",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-AutoLISP-Reference/files/GUID-D47983BA-1E5D-417D-85B8-6F3DE5F506BA.htm",
+      "observation": "For entities, Autodesk documents true color group 420 as taking precedence when it conflicts with indexed color group 62; the ODA-produced non-entity DBCOLOR witness physically contains both."
+    }
+  ],
+  "fix": "DRW_DbColor::parseCode retains RGB method C2 when group 62 arrives after group 420, while retaining the index and explicit presence. The low-level writer emits group 62 for a present fallback, including zero, and does not invent group 62 for RGB objects with absent DXF presence or DWG-origin CMC indices. The class layout and virtual interface do not change. The high bit of the existing private retained-book byte-count field stores presence; group-430 replacement masks that bit before the shared retained-byte budget and repacks it after success. Book names of size >= 2^(size_t digits-1) are refused so count and marker cannot alias. Default token and retained-byte budgets are 1 MiB and 1 GiB respectively. New has/set/clear accessors permit explicit programmatic control; legacy direct assignments keep their previous output behavior.",
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_hardening_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dbcolor_(identity_remapping|book_name_owner_budget)$' --output-on-failure",
+      "result": "PASS 2/2. ASCII and Binary controls test both groups in both orders for explicit ACI 0 and 254, ACI-only, absent ACI, explicit programmatic marking/clearing, copy/assignment/reset, rejection and corrected fresh-writer retry, and readback. The separate retained-budget selector verifies string replacement both before and after the packed presence bit, failure rollback and exact lease release."
+    },
+    {
+      "command": "Scratch old/new header layout and legacy-copy/reset probe",
+      "result": "Both old commit 30a70757 and current header give sizeof/alignof 296/8 on this host. A separate C++ translation unit compiled with the old header copied a new explicit-zero marker and its inline reset cleared it. This is scoped to the host/toolchain, not a general ABI guarantee."
+    }
+  ],
+  "limitations": [
+    "The DBCOLOR adapter gate remains in place; physical DWG-to-DXF fallback derivation, APPID/EED dependency closure, graph output/readback and native color-book behavior remain open. DWG CMC normalizes to 256 in the witness while ODA DXF writes 254; do not infer one from the other.",
+    "The count packing imposes a 2^(size_t digits-1)-1 byte upper bound on retained book-name bytes; default per-token and retained budgets are much lower, but explicitly raised 32-bit configurations may hit this representation limit.",
+    "No claim is made that an ODA resave represents independent semantic acceptance or that unknown-provenance source spans cover other producers or revisions. The original DWG and its ODA derivatives contain different counts of repeated EED tuples.",
+    "Physical drawings and converter outputs remain outside the repository."
+  ],
+  "nextAction": "Resolve source-bound DWG fallback semantics without guessing, qualify the original EED/APPID and dictionary/reactor closure, and compare complete graph output/readback before selectively admitting DBCOLOR through the adapter.",
+  "physicalDxfProjection": {
+    "input": "ODA-produced ACAD2013 ASCII DXF from the physical AC1021 resave described above",
+    "sourceSha256": "10cb7ac91a3d80e065daf6504ad9a49496fd8b0eb56df44658d0108398a41f19",
+    "operation": "Scratch low-level libdxfrw parse of the DBCOLOR record followed by typed DXF record output; split into group-code/value pairs and compared in order.",
+    "result": "55/55 ordered group-code/value pairs exactly match the ODA record, including group 62=254, group 420=13619407, name, owner, reactor and 45 XDATA variants.",
+    "outputScratchSha256": "2768f5b6db436f1eecefbd799bb80c2314504ab43d348ab5c35fe08ec535cdaf",
+    "boundary": "Hash covers the emitted DBCOLOR record plus the WIRE_END sentinel. This is isolated ASCII record output, not a complete drawing or an independent validation of the original DWG EED groups removed by ODA."
+  }
+}

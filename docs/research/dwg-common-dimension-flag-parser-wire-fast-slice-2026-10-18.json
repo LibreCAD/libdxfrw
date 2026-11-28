@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Common DIMENSION Flags 1 parser-direction wire check",
+  "mode": "local generated test implementation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Add an independently patched raw Flags 1 parser vector to the existing DWG dimension-frame test owner",
+    "Cover AC1018, AC1021, and AC1024 framing, decoded flag mapping, and exact common-body cursor",
+    "Use focused build and owning dimension-frame CTests only"
+  ],
+  "method": {
+    "literalDimensionBaseFields": true,
+    "productionEncodeDwgDimBaseUsedForInput": false,
+    "commonEntityPrefixEncoderUsed": true,
+    "persistentFixturesAdded": 0,
+    "productionCodeChanged": false,
+    "publicApiOrLayoutChanged": false,
+    "testRegistrationAdded": false,
+    "dependenciesAdded": 0,
+    "peerOrNativeRuns": 0,
+    "fullSuiteRun": false
+  },
+  "test": {
+    "selector": "--verify-dimension-frames",
+    "versions": ["AC1018", "AC1021", "AC1024"],
+    "rawFlags1": [0, 1, 2, 3],
+    "expectedDecodedDxFTypeBits": [128, 0, 160, 32],
+    "checks": [
+      "DIMENSION subtype/common object framing reaches the parser body",
+      "known text and text-point values decode with a version-configured DRW_TextCodec",
+      "body cursor equals the independently recorded data end",
+      "R2007+ string stream, R2010 version byte, object-size and handle boundaries are included",
+      "following-frame sentinel remains outside the object data"
+    ],
+    "scopeLimit": "Checks the common DIMENSION Flags 1 mapping only; does not qualify concrete dimension subclass fields or native edit/regeneration semantics."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_dimension_frames_' --output-on-failure",
+      "git diff --check -- tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dwg-common-dimension-flag-parser-wire-fast-slice-2026-10-18.json"
+    ],
+    "result": "PASS",
+    "ctestsPassed": 2,
+    "ctestsTotal": 2
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "status": "Implemented and locally verified in the shared worktree; not committed. No files were staged."
+  }
+}

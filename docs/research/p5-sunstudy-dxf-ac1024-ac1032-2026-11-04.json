@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "scope": "Extend the existing bounded observed DXF SUNSTUDY graph to separately admitted same-revision AC1024 and AC1032 input/output, retaining AC1027 and all existing CLASS, ownership, graph, text, mutation, resource and transaction gates. No DWG SUNSTUDY or native rendering claim.",
+  "authority": {
+    "title": "Autodesk SUNSTUDY DXF group-code reference",
+    "url": "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-1C7C073F-4CFD-4939-97D9-7AB0C1E163A3.htm",
+    "use": "Defines the sampled SUNSTUDY identity, owner/reactor, date/hour and scalar field group roles; it does not certify native scene evaluation or the generated drawing's complete interoperability."
+  },
+  "sampled_external_conversion": {
+    "method": "Full local DXFs authored from scratch with ezdxf 1.4.5 and the same inserted SUNSTUDY tags and dictionary edges were converted by ODA File Converter 27.1.0 DXF to matching-version DWG and back to DXF, with audit=1. The raw tag audit verifies the sampled owner/reactor edges and SUNSTUDY field values before and after; no output .err files were produced.",
+    "oda_executable_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "ac1024": {
+      "source_dxf_sha256": "61f835f3acebb2e6077719a4175e06efffdb50fbe112081ae1aaacb75f455c22",
+      "intermediate_dwg_sha256": "eaa591a7d34692bb3c3df1d1f4c56f885ac8c5207d20c3fc65031ec88242d6ac",
+      "back_dxf_sha256": "b3dc272b1e7c6a80b737f6c10690772ba7e3bc87aef4483ef8c084f2b0f9b211"
+    },
+    "ac1032": {
+      "source_dxf_sha256": "663768c1a0fa5c7490ed3f49d3cc5a7a71621395e19a5d4a6a03ce2805426a39",
+      "intermediate_dwg_sha256": "87e436e3621fbf1091ffb56329e3ecf81154479f22fd3af593fad846c7c9f319",
+      "back_dxf_sha256": "caf70d4b778c9a0a380fcd3c0c8a2fbd8114235a1d76037764707aeb63141487"
+    },
+    "limits": "The input CLASS row has instance count/proxy 1/0; ODA writes 2/1 on return. These 16-CLASS full source files are not the one-CLASS adapter profile, and the current strict CLI fails their import with an existing destination preserved. The pair is evidence for the selected DXF tags/edges only, not input CLASS fidelity, native DWG SUNSTUDY, full-file output, or native lighting semantics. ODA converter lineage is the separately recorded local batch, not inferred by the tag inspector."
+  },
+  "selected_source_output": {
+    "method": "Minimal locally authored one-CLASS source for each revision; explicit CLI whole-source observation; same-revision strict ASCII/Binary output. ASCII is independently scanned as group-code pairs and Binary by ezdxf 1.4.5's binary tag loader. The selected SUNSTUDY fields and dictionary/reactor edges match; a modified binary dictionary key is rejected by the inspector.",
+    "ac1024": {
+      "source_sha256": "cbc4049f68e0582f38d270fbf5018e5d7b3ef9d5d3885dda5db2160f3e39b1f0",
+      "ascii_sha256": "66a0e7202a775c52ec80c368417718054f4a49661c6d97705baf978cb282d13d",
+      "binary_sha256": "d8ba7784d5ad061c0226042c16ca29f3046c79fdfac0f57b8b4f57e6accd9aee"
+    },
+    "ac1027": {
+      "source_sha256": "74c3f3af3a227fb27a47339bf8569fe8e5787cbcc3901ecf88b806221b18639d",
+      "ascii_sha256": "0086c2e26a93f1772a6224356ab6e936c337dd42a18b641d5cd5cd6380cfd2a6",
+      "binary_sha256": "384d4cf5ceeaa7ed1b223b08d4caf69ac4d0b7919975a224a9addc287d661984"
+    },
+    "ac1032": {
+      "source_sha256": "1eaa1e149a8f4de09aedb0be593929b1163f58d611976406a320dead0d9a7839",
+      "ascii_sha256": "dea671a3b9e558e77061a5ec1927333c08badec6cd303dc5011543fed531c5d8",
+      "binary_sha256": "1979342e52a8037114ca815c4f786ab469d06dc2d75c601e2e06be38b45b9b8e"
+    }
+  },
+  "validation": {
+    "adapter": "ctest --test-dir build-gcc -R '^dwg2dxf_sunstudy_dxf_graph' --output-on-failure: 3/3 passed. Each version exercises exact source/class and graph binding, ASCII/Binary output/readback, repeat import, source/target mismatch, all existing mutation and late-mutation refusals, preserved sentinel, and corrected same-facade retry.",
+    "cli": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --sunstudy-observation-only: 42 route/refusal controls passed including both new versions, both encodings, repeat conversion and cross-version refusal/retry. The existing fast dwg2dxf_cli_contract CTest also passed.",
+    "source_and_output": "tools/audit_sunstudy_dxf_graph.py SHA256 4f001fa5acf2f6056dd3a6117db0d0954f3d64f6c37a776e9408f8ad73531cba supports author and author-oda with --version AC1024/AC1027/AC1032 and inspects ASCII or ezdxf-decoded Binary tags. Generate into new scratch paths; timestamps make full producer file hashes run-specific.",
+    "addressSanitizer": "ctest --test-dir build-asan-custom -R '^dwg2dxf_sunstudy_dxf_graph(_AC1024|_AC1032)?$' --output-on-failure: 3/3 passed after rebuilding the final adapter with AddressSanitizer."
+  },
+  "limits": [
+    "Only one source SUNSTUDY, one exact canonical CLASS row, bounded source observation, no 340\u2013343 references or date range, and the previously proven dictionary/root profiles are admitted.",
+    "Target must match source revision. Other classes, graph shapes, cross-revision conversion, native producer breadth and rendering remain unqualified.",
+    "No DWG/DXF fixture was added."
+  ]
+}

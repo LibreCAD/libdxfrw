@@ -1,0 +1,124 @@
+{
+  "schema": "libdxfrw-deeper-broader-acis-semantic-route-and-brep-witness-qualification-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden external ACIS semantic-evidence routes and distinguish B-rep metrics from mesh export while preserving local carrier/semantic gates.",
+  "method": {
+    "kind": "Read-only review of exact upstream release/tag documentation, PyPI artifact metadata and provenance, crate documentation, and local runtime availability.",
+    "sourcesOpened": [
+      "https://github.com/HakanSeven12/OpenCADStudio/releases/tag/v2026.41",
+      "https://github.com/HakanSeven12/OpenCADStudio/blob/v2026.41/README.md",
+      "https://pypi.org/project/cq-acis/0.3.12/",
+      "https://docs.rs/acis-core/0.3.8/acis_core/"
+    ],
+    "localCommands": [
+      "uname -m",
+      "python3 --version",
+      "python3 -m pip show cq-acis cadquery OCP",
+      "command -v cargo OpenCADStudio FreeCAD"
+    ]
+  },
+  "evidence": [
+    {
+      "candidate": "OpenCADStudio v2026.41",
+      "observed": [
+        "Release tag resolves to cff240e and release notes advertise B-rep MASSPROP.",
+        "README at the same tag identifies STEP AP203 output as 3D mesh data.",
+        "README describes DWG/DXF read and write, but does not establish that imported ACIS reaches the B-rep mass-properties route."
+      ],
+      "doesNotEstablish": [
+        "Arbitrary imported DWG/DXF ACIS preservation.",
+        "Complete topology or validity/closure of imported solids.",
+        "STEP AP203 solid preservation; the README describes mesh output."
+      ],
+      "classification": "OPTIONAL_SAME_LINEAGE_APPLICATION_METRIC_CANDIDATE_NOT_RUN"
+    },
+    {
+      "candidate": "cq-acis 0.3.12",
+      "observed": [
+        "PyPI publishes cq_acis-0.3.12-cp310-abi3-macosx_11_0_arm64.whl for macOS 11+ ARM64.",
+        "Wheel SHA-256 is 94204f623d752e7dacf494bf631551277a985acbeb612ee3a24464ea0f0daab5.",
+        "PyPI attestation binds the artifact to monozukuri-ai/cq-acis commit e05a8f470d2f6799277f7b7df467d2fc35625889.",
+        "Documented route parses SAT/SAB and converts a supported subset to CadQuery/OpenCascade shapes."
+      ],
+      "doesNotEstablish": [
+        "Semantic correctness for any specific DWG or AcDs carrier.",
+        "Support for every ACIS entity or producer/version profile.",
+        "An independent geometry-kernel vote relative to FreeCAD/OCCT consumers.",
+        "A completed local run; package and dependencies were not installed."
+      ],
+      "classification": "PINNED_OPTIONAL_SEPARATE_PARSER_SHARED_OCCT_CANDIDATE_NOT_RUN"
+    },
+    {
+      "candidate": "acis-core 0.3.8",
+      "observed": [
+        "Documentation describes a bounded SAB/ASM parser and reference-closure validation.",
+        "Documentation explicitly says that reference closure does not establish B-rep validity or producer compatibility.",
+        "It is part of the cq-acis project lineage."
+      ],
+      "doesNotEstablish": [
+        "Closed/manifold/valid B-rep geometry.",
+        "An independent parser vote from cq-acis."
+      ],
+      "classification": "STRUCTURAL_REFERENCE_CLOSURE_ONLY_NOT_INDEPENDENT"
+    }
+  ],
+  "localPreflight": {
+    "architecture": "arm64",
+    "python": "3.15.0",
+    "cqAcisInstalled": false,
+    "cadQueryInstalled": false,
+    "OCPInstalled": false,
+    "cargoAvailable": false,
+    "openCADStudioCliAvailable": false,
+    "freeCADAvailable": false,
+    "packagesInstalled": 0,
+    "artifactsDownloaded": 0,
+    "modelsDownloaded": 0,
+    "fixturesAdded": 0
+  },
+  "implementationReadiness": {
+    "localImplementationOrderChanged": false,
+    "useOnlyAtExistingComposedCheckpoint": true,
+    "newPerSliceExternalGate": false,
+    "newFullSuiteRequirement": false,
+    "newDependency": false,
+    "newCommittedFixture": false,
+    "requireExactPayloadAndCarrierBinding": true,
+    "requireIndependentAnalyticManifest": true,
+    "requireSeparatedParserKernelImportAndMetricEvidence": true,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue implementation with local source-backed fast tests; do not wait for optional external runtimes.",
+      "At the already-composed checkpoint, create an asymmetric analytic control locally from scratch and an independent expected manifest.",
+      "Bind exact SAB bytes to DWG entity and AcDs owner/prototype references before interpreting external parser output.",
+      "If candidate runtimes become available, test identical bytes and report parser, shared-kernel, application-import, topology, and metric outcomes separately.",
+      "Treat STEP AP203 output only as mesh evidence and verify OpenCADStudio MASSPROP selects an imported solid and reports solid volume."
+    ]
+  },
+  "validation": {
+    "parityPlanUpdated": true,
+    "threeDSupportPlanUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "testsRun": false,
+    "nativeOrPeerRuns": false,
+    "downloads": 0,
+    "installations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

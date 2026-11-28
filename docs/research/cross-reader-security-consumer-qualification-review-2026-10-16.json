@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw-cross-reader-security-consumer-qualification-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Broaden DWG/DXF comparison with LibreDWG's current AC1027+ AcDs reader route and release/security record, plus the documented FreeCAD converter and DXF-importer handoff.",
+  "method": {
+    "kind": "Primary-source documentation, source, release-note, and issue review",
+    "repositoriesClonedOrBuilt": false,
+    "peerLibrariesRun": false,
+    "nativeCadApplicationsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "qualificationRule": "A declared route, source function, successful process exit, entity count, or nonempty carrier is not semantic or end-to-end support evidence. Pin and inspect every conversion boundary and compare exact object/owner outcomes."
+  },
+  "evidence": [
+    {
+      "project": "LibreDWG AcDs and ACIS route",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/acds.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "Current source contains a named R2007+ AcDs section-read path and an AcDs private parser; the manual identifies AcDsPrototype_1b as a datastore used mostly for binary ACIS blobs. Separately, open issue #1411 reports that LibreDWG 0.14.8593 loses an ezdxf-generated AC1032 SAB carrier during both conversion directions while retaining REGION entities. The source path and the release-specific failure report coexist, showing that parser entry-point presence does not prove handle-to-record association or end-to-end geometry preservation.",
+      "doesNotEstablish": [
+        "that the issue reproduces on current LibreDWG master or any other release",
+        "that libdxfrw has the same failure",
+        "correct AcDs owner/index/page semantics for every profile",
+        "valid ACIS topology or geometric equivalence"
+      ],
+      "planUse": "Keep LibreDWG as an optional, exact-revision, composed-stage reader/converter comparator. On the existing locally generated AC1032 case, capture source section inventory, entity handle and has_ds_data state, record join, payload hash, output carrier and independent shape result. Do not accept the issue body as a local reproduction or use the peer as the sole AcDs/semantic oracle."
+    },
+    {
+      "project": "LibreDWG security and malformed-input experience",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/security/advisories"
+      ],
+      "observed": "The 0.14.1 release notes record security fixes involving decompression buffer capacity versus logical size, stale object pointers, unvalidated page-map offsets, section-size multiplication overflow, and other malformed-input bounds. This supplies concrete hostile-input categories for DWG page/section handling, complementing the existing local checked-arithmetic and hostile-page plan.",
+      "doesNotEstablish": [
+        "a matching defect in libdxfrw",
+        "that an unrelated peer fix should be ported verbatim",
+        "that peer fuzzing or sanitizer results cover this codebase"
+      ],
+      "planUse": "Map the categories to existing parser bounds/resource owners rather than adding a generic security epic. Keep each implementation slice to its fast focused strict build and generated regression; reserve broader sanitizer/fuzz and full-suite work for the planned composed/scheduled gates."
+    },
+    {
+      "project": "FreeCAD converter-to-DXF consumer boundary",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md"
+      ],
+      "observed": "FreeCAD documentation describes DWG as an external-converter workflow and names LibreDWG, ODA, and QCAD converter choices; it cautions that LibreDWG may miss entities or fidelity. The DXF preferences distinguish the faster C++ importer from the legacy Python importer and say the newer C++ path has fewer features. Thus a FreeCAD result is a composed converter-plus-selected-importer outcome, not a direct libdxfrw read. The stock documented path remains a 2D handoff and cannot establish ACIS/ACDS B-rep semantics.",
+      "doesNotEstablish": [
+        "that a tested FreeCAD installation selected the intended converter or importer",
+        "that DXF output preserved every DWG object or reference",
+        "3D solid or ACIS semantics",
+        "native Linux/Windows qualification from documentation alone"
+      ],
+      "planUse": "For the existing native consumer gate, record exact FreeCAD build, selected converter and resolved executable, DXF importer mode, process status, fresh output signature/version, per-handle/field expectations, and resulting document objects. Retain the 2D compatibility gate; keep 3D geometry qualification on a separate capable consumer/kernel route."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "Do not block local parser/writer slices on LibreDWG, FreeCAD, or a geometry kernel being unavailable.",
+    "Pin the exact LibreDWG source/release before differential comparison; keep source-level route inventory separate from runtime and semantic results.",
+    "At a composed FreeCAD checkpoint, make converter selection and DXF importer mode explicit and observable; do not infer them from UI defaults or automatic fallback.",
+    "Reuse current bounded-arithmetic, truncation, hostile-page, and fail-closed tests. Do not increase per-slice suite frequency; schedule the broader fuzz/sanitizer gate at its existing checkpoint."
+  ],
+  "scopeBoundary": {
+    "findingCount": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChangedByResearch": false,
+    "testsRunForResearch": false,
+    "externalRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

@@ -1,0 +1,385 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1027 Cover body-reference audit and peer parser coverage",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "version": "AC1027",
+    "provenanceLimit": "Existing local source; producer is not independently authenticated and no DWG/DXF fixture is committed."
+  },
+  "localInventory": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --opaque-dwg-source-inventory /Users/dli/doc/dwg/Cover.dwg",
+    "binarySha256": "1e1344cf1cc588b833ca952eca0c0d44cc22a363c9ac14d7ba1539e930507305",
+    "logPath": "/private/tmp/cover-field-span-raw-inventory.log",
+    "logSha256": "306de923b736bc40e5efe6c9984b5f0db0948816ae961bc458e6bb218ff6ad0c",
+    "result": "88/88 opaque callbacks captured, with 75 retained opaque frames and 13 standard-object source frames. TABLESTYLE 0x6A parser ranges cover one Table and three repeated records, all 16 ID/class fields, four text-style handles and 24 border-linetype handles. An independent ODA-schema cursor now derives the full decompressed TABLESTYLE body/string field sequence, exact body/string terminal positions, all four identities and all 28 typed handle targets; every modeled parser span matches. LibreDWG’s 7,352-bit unknown tail remains byte-identical from bit 40 plus zero alignment. The captured frame metadata supplies the handle-stream partition; compressed physical-page offsets remain unproven."
+  },
+  "independentPeerParse": {
+    "tool": "LibreDWG 0.14 dwgread -O minJSON",
+    "jsonPath": "/private/tmp/cover-current-libredwg.json",
+    "jsonSha256": "12a88999c8a23a63aa82062bc867432afd62df558c74fd0cd446520acaa0e0e9",
+    "objectCount": 111,
+    "frameJoin": "All 75 local opaque-frame handles join a peer JSON object and all 75 peer sizes equal the local captured object span. The numeric type agrees for 74/75; MLEADERSTYLE is dispatched through the custom-class index locally while minJSON reports generic type 1, but both identify AcDbMLeaderStyle at handle 108."
+  },
+  "bodyReferences": {
+    "allPeerTargetsResolveInJson": true,
+    "edges": [
+      {
+        "source": "DICTIONARYWDFLT 14",
+        "field": "items.Normal",
+        "target": "PLACEHOLDER 15",
+        "role": "dictionary entry"
+      },
+      {
+        "source": "DICTIONARYWDFLT 14",
+        "field": "defaultid",
+        "target": "PLACEHOLDER 15",
+        "role": "default entry"
+      },
+      {
+        "source": "LAYOUT 30",
+        "field": "block_header",
+        "target": "BLOCK_HEADER 27",
+        "role": "hard pointer"
+      },
+      {
+        "source": "LAYOUT 34",
+        "field": "block_header",
+        "target": "BLOCK_HEADER 31",
+        "role": "hard pointer"
+      },
+      {
+        "source": "TABLESTYLE 106",
+        "field": "one parsed cell style text_style",
+        "target": "STYLE 17",
+        "role": "hard pointer"
+      },
+      {
+        "source": "TABLESTYLE 106",
+        "field": "one parsed cell style six border ltypes",
+        "target": "LTYPE 20",
+        "role": "hard pointers",
+        "count": 6
+      },
+      {
+        "source": "MLEADERSTYLE 108",
+        "field": "line_type",
+        "target": "LTYPE 20",
+        "role": "hard pointer"
+      },
+      {
+        "source": "MLEADERSTYLE 108",
+        "field": "text_style",
+        "target": "STYLE 17",
+        "role": "hard pointer"
+      },
+      {
+        "source": "3DSOLID 111",
+        "field": "layer",
+        "target": "LAYER 16",
+        "role": "hard pointer"
+      }
+    ],
+    "localTableStyleModel": {
+      "handle": 106,
+      "cellStyles": 3,
+      "nonNullTextStyleEdges": 3,
+      "nonNullBorderLtypeEdges": 18,
+      "totalNonNullBodyEdges": 21,
+      "targetHandles": {
+        "textStyle": 17,
+        "borderLtype": 20
+      }
+    },
+    "peerTableStyleCoverage": "minJSON exposes only one cell style's seven edges and retains 7,352 TABLESTYLE bits as unknown. ODA v5.4.1 §20.4.101.2-.4 specifies the R24 Table cell style plus three repeated title/header/data styles, with hard-pointer text-style and linetype fields. The peer's seven edges therefore corroborate field targets for one style but do not establish full body coverage; use the local three-style typed parse and specification as separate evidence and keep producer/semantic qualification open.",
+    "localModelCoverage": "Local typed diagnostics expose DICTIONARYWDFLT entries/default, LAYOUT block-header handles, all 21 TABLESTYLE style references, both MLEADERSTYLE references, LAYER 16 plotstyle/material/linetype references, DIMSTYLE 39 text-style reference, VPORT 41 visual-style/SUN references, and 3DSOLID 111 layer name 0 resolving uniquely to LAYER 16. The added LAYER, DIMSTYLE and VPORT targets match LibreDWG 0.14 minJSON; ODA v5.4.1 §§20.4.54, 20.4.64 and 20.4.68 specify those field roles. Selected typed models only; this is not a generic scanner of all frame bodies.",
+    "previouslyAuditedPeerEdges": 14,
+    "previouslyAuditedPeerEdgeScope": "DICTIONARYWDFLT, LAYOUT, TABLESTYLE, MLEADERSTYLE and 3DSOLID relationships captured in the initial typed-body audit; this is not a count of every handle-valued property in the peer JSON.",
+    "additionalTypedModelEdges": [
+      {
+        "source": "LAYER 16",
+        "field": "plotstyle",
+        "target": "PLACEHOLDER 15",
+        "role": "hard pointer",
+        "odaSection": "20.4.54"
+      },
+      {
+        "source": "LAYER 16",
+        "field": "material",
+        "target": "MATERIAL 70",
+        "role": "hard pointer",
+        "odaSection": "20.4.54"
+      },
+      {
+        "source": "LAYER 16",
+        "field": "ltype",
+        "target": "LTYPE 22",
+        "role": "hard pointer",
+        "odaSection": "20.4.54"
+      },
+      {
+        "source": "DIMSTYLE 39",
+        "field": "DIMTXSTY",
+        "target": "STYLE 17",
+        "role": "hard pointer",
+        "odaSection": "20.4.68"
+      },
+      {
+        "source": "VPORT 41",
+        "field": "visualstyle",
+        "target": "VISUALSTYLE 47",
+        "role": "hard pointer",
+        "odaSection": "20.4.64"
+      },
+      {
+        "source": "VPORT 41",
+        "field": "sun",
+        "target": "SUN 109",
+        "role": "hard owner",
+        "odaSection": "20.4.64"
+      }
+    ],
+    "localTypedModels": {
+      "dictionaryWithDefault": 1,
+      "layouts": 2,
+      "tableStyles": 1,
+      "mLeaderStyles": 1,
+      "layers": 1,
+      "dimStyles": 1,
+      "vports": 1,
+      "modelerGeometryEntities": 1
+    },
+    "localTableStyleProfile": {
+      "handle": 106,
+      "name": "Standard",
+      "prefix": {
+        "classVersion": 0,
+        "unknown1": 8,
+        "unknown2": 101,
+        "unknownHandle": 0
+      },
+      "tableCellStyle": {
+        "id": 4,
+        "class": 2,
+        "name": "Table",
+        "textStyleHandle": 0,
+        "borders": 6,
+        "nonNullLinetypeHandles": 0
+      },
+      "cellStyles": [
+        {
+          "id": 1,
+          "class": 1,
+          "name": "_TITLE",
+          "textStyleHandle": 17,
+          "textHeight": 6.0,
+          "alignment": 5,
+          "marginOverrideFlags": 1,
+          "borders": 6,
+          "borderLinetypeHandle": 20
+        },
+        {
+          "id": 2,
+          "class": 1,
+          "name": "_HEADER",
+          "textStyleHandle": 17,
+          "textHeight": 4.5,
+          "alignment": 5,
+          "marginOverrideFlags": 1,
+          "borders": 6,
+          "borderLinetypeHandle": 20
+        },
+        {
+          "id": 3,
+          "class": 2,
+          "name": "_DATA",
+          "textStyleHandle": 17,
+          "textHeight": 4.5,
+          "alignment": 2,
+          "marginOverrideFlags": 1,
+          "borders": 6,
+          "borderLinetypeHandle": 20
+        }
+      ],
+      "borderEdgeFlagsByIndex": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "nonNullBodyReferenceCount": 21,
+      "evidenceLimit": "Typed AC1027 source model plus parser-owned decompressed-stream spans and independent ACadSharp named-role read; raw physical byte-span reconstruction and ODA class-meaning reconciliation remain open.",
+      "parsedWireOrder": [
+        "_TITLE",
+        "_HEADER",
+        "_DATA"
+      ],
+      "parserOwnedFieldSpans": {
+        "coordinateSpace": "Bit offsets in the parser body, string or handle stream for TABLESTYLE 0x6A; names identify the stream. These do not denote physical file byte offsets.",
+        "tableCell": {
+          "bodyRecord": {
+            "startBit": 68,
+            "bitSize": 1258
+          },
+          "id": {
+            "startBit": 1306,
+            "bitSize": 10,
+            "value": 4
+          },
+          "class": {
+            "startBit": 1316,
+            "bitSize": 10,
+            "value": 2
+          },
+          "nameString": {
+            "startBit": 6524,
+            "bitSize": 90,
+            "value": "Table"
+          },
+          "textStyleHandle": {
+            "startBit": 6995,
+            "bitSize": 8,
+            "value": 0
+          },
+          "borderLineTypeHandleSpan": {
+            "startBit": 7003,
+            "bitSize": 48,
+            "count": 6
+          }
+        },
+        "repeatedCells": [
+          {
+            "name": "_TITLE",
+            "id": 1,
+            "class": 1,
+            "recordBody": {
+              "startBit": 1336,
+              "bitSize": 1704
+            },
+            "index": {
+              "startBit": 1336,
+              "bitSize": 10,
+              "value": 1
+            },
+            "idField": {
+              "startBit": 3020,
+              "bitSize": 10
+            },
+            "classField": {
+              "startBit": 3030,
+              "bitSize": 10
+            },
+            "nameString": {
+              "startBit": 6616,
+              "bitSize": 106
+            },
+            "textStyleHandle": {
+              "startBit": 7051,
+              "bitSize": 16,
+              "value": 17
+            },
+            "borderLineTypeHandleSpan": {
+              "startBit": 7067,
+              "bitSize": 96,
+              "count": 6,
+              "value": 20
+            }
+          },
+          {
+            "name": "_HEADER",
+            "id": 2,
+            "class": 1,
+            "recordBody": {
+              "startBit": 3040,
+              "bitSize": 1672
+            },
+            "index": {
+              "startBit": 3040,
+              "bitSize": 10,
+              "value": 2
+            },
+            "idField": {
+              "startBit": 4692,
+              "bitSize": 10
+            },
+            "classField": {
+              "startBit": 4702,
+              "bitSize": 10
+            },
+            "nameString": {
+              "startBit": 6724,
+              "bitSize": 122
+            },
+            "textStyleHandle": {
+              "startBit": 7163,
+              "bitSize": 16,
+              "value": 17
+            },
+            "borderLineTypeHandleSpan": {
+              "startBit": 7179,
+              "bitSize": 96,
+              "count": 6,
+              "value": 20
+            }
+          },
+          {
+            "name": "_DATA",
+            "id": 3,
+            "class": 2,
+            "recordBody": {
+              "startBit": 4712,
+              "bitSize": 1672
+            },
+            "index": {
+              "startBit": 4712,
+              "bitSize": 10,
+              "value": 3
+            },
+            "idField": {
+              "startBit": 6364,
+              "bitSize": 10
+            },
+            "classField": {
+              "startBit": 6374,
+              "bitSize": 10
+            },
+            "nameString": {
+              "startBit": 6848,
+              "bitSize": 90
+            },
+            "textStyleHandle": {
+              "startBit": 7275,
+              "bitSize": 16,
+              "value": 17
+            },
+            "borderLineTypeHandleSpan": {
+              "startBit": 7291,
+              "bitSize": 96,
+              "count": 6,
+              "value": 20
+            }
+          }
+        ],
+        "traceLimit": "The ranges are emitted by the same parser being assessed and are not independent byte-layout proof. The independent ACadSharp read confirms named style and class values but does not expose raw spans; ODA interpretation remains authoritative.",
+        "traceBinding": {
+          "sourceHandle": "0x6a",
+          "sourceFrameIdentity": "Joined by TABLESTYLE callback handle and the current import generation to the captured AC1027 source frame.",
+          "parserSourceSha256": "0e36d1e0de765add0ad95ea7f678fa2844fa698251aa51ff375f57f0f94d058a",
+          "traceExecutableSha256": "40c192b94831c072db7307d198d21ab665dd65de722314150bd19421d09739cf"
+        }
+      }
+    }
+  },
+  "strictDisposition": {
+    "ac1027AggregateReferenceGuard": "retained",
+    "headerSuffix": "731 bytes remain unclaimed at source offsets 844-1575",
+    "strictDxfPublished": false,
+    "outputRouteQualified": false
+  },
+  "nextAction": "Extend the independent ODA-schema cursor from the derived bit-68 Table cell start across the Table cell and three repeated styles. Derive all body/string/handle positions, IDs, classes, names and following sentinels without local parser coordinates, then compare with local spans and LibreDWG raw tail. Keep the unresolved ODA class/order discrepancy, output refusal and aggregate gates.",
+  "rawSpanCrossCheckReceipt": "docs/research/p6-ac1027-cover-tablestyle-raw-span-crosscheck-2026-11-07.json"
+}

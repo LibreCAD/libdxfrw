@@ -1,0 +1,119 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Independent ACIS reader alternatives and peer-writer state",
+  "mode": "Deeper/broader primary-source research and plan update",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Broaden the direct SAT/SAB semantic-reader search beyond open-source codec projects",
+    "Separate candidate external geometry evidence from open-source support and kernel-independence claims",
+    "Refresh FreeCAD's current ACIS-consumer boundary and ACadSharp issue/PR state",
+    "Refine existing PAR-07/S7/S8 gates without changing implementation order or validation cadence"
+  ],
+  "sources": [
+    {
+      "project": "Ansys CAD Integration ACIS reader, Release 2025 R2",
+      "reference": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v252/en/ref_cad/cadACIS.html",
+      "status": "official-product-documentation-reviewed_2026-10-21",
+      "observation": "The vendor documents a direct SAT/SAB reader configured during Ansys installation, operating in reader mode, for ACIS input versions R1-2023 on Windows and Linux. It imports solid, surface, and line bodies and transfers units when encoded. The page does not identify parser/kernel lineage or provide a stable programmatic geometry-extraction contract; it excludes non-commercial, education, alpha, beta, and PR builds from supported versions. This is an optional commercial semantic-reader candidate, not an admitted independent vote."
+    },
+    {
+      "project": "FreeCAD Draft DXF and DWG import documentation",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "status": "current-official-documentation-reviewed_2026-10-21",
+      "observation": "The current DXF guide distinguishes built-in C++ and optional legacy Python importers and states embedded binary ACIS/SAT solids cannot currently be read. The DWG route converts through an external converter before the selected DXF importer, so native converter success and ACIS semantic acceptance remain separate."
+    },
+    {
+      "project": "Open-Cascade-SAS commercial ACIS exchange component",
+      "references": [
+        "https://www.occt3d.com/components/acis-exchange/",
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157"
+      ],
+      "status": "current-vendor-component-documentation-reviewed_2026-10-21",
+      "observation": "ACIS SAT/SAB read/write is a commercial component that translates through OCCT shapes/XDE and documents configurable healing and approximation. It is not part of the standard open-source OCCT format set and shares the OCCT kernel family with FreeCAD Part and CadQuery/cq-acis."
+    },
+    {
+      "project": "Open-source ACIS route screen",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.5",
+        "https://github.com/kernalix7/CADKernel#supported-file-formats"
+      ],
+      "status": "current-documentation-and-release-claim-screen-reviewed_2026-10-21",
+      "observation": "The reviewed sources describe bounded rather than general independent semantic evidence: ezdxf supports a limited ACIS subset and flat-face projection; cq-acis is experimental and uses OCCT conversion; ACadRust advertises a separate SAT/SAB topology model but its release and self-tests do not supply independent geometry truth; CADKernel's detailed matrix marks ACIS SAT/SAB read/write unimplemented. This screen is not exhaustive and does not prove no other open-source reader exists."
+    },
+    {
+      "project": "ACadSharp ACIS writer issue and PRs",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues/1195",
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174"
+      ],
+      "status": "live-issue-and-PR-state-reviewed_2026-10-21",
+      "observation": "The issue #1195 and PRs #1150, #1240, and #1174 are open on the reviewed pages. #1150 discusses separate legacy-inline, modern DXF ACDSDATA, pre-2013 DWG-inline, and modern DWG AcDs routes and contributor-reported native/ODA opens. The thread also reports post-schema-refactor group-310 readback loss and conflicts with the evolving DWG reader; these are branch-specific reports, not a released/current-master result."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S7/S8: add Ansys only as a one-time, license-gated external SAT/SAB semantic-reader candidate whose implementation lineage and geometry extraction must be qualified first",
+      "PAR-07/S8: keep direct SAT/SAB semantics separate from DWG AcDs or DXF ACDSDATA owner/key closure and from FreeCAD acceptance",
+      "External peer ledger: keep ACadSharp open PR branches out of released capability claims and bind future inspection to exact base/head/source identity"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": false,
+    "commercialApplicationsOrComponentsRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Add one optional, license-gated Ansys SAT/SAB route for future semantic cross-check only after lineage and machine-readable geometry extraction are established. It cannot by itself qualify outer DWG/DXF carriers, owner/key joins, FreeCAD behavior, open-source support, or any deferred J item."
+  },
+  "method": {
+    "webResearchPerformed": true,
+    "primarySourcesReviewed": true,
+    "repositoryClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "commercialComponentsInstalledOrRun": false,
+    "externalDrawingsDownloaded": 0,
+    "testsRun": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/deeper-broader-independent-acis-reader-alternatives-2026-10-21.json"
+    ],
+    "limitations": "The Ansys page is vendor product documentation and does not identify parser/kernel lineage, a scriptable geometry extraction route, or the license entitlement available to this repository owner. The open-source search is not exhaustive. Current GitHub issue and pull-request text is peer-maintained, branch-specific evidence. No runtime, license, or sample was used."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (git diff --check on both plan files; no whitespace diagnostics from receipt check)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

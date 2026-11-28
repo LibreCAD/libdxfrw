@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-staged-authored-layout-graph-2026-11-26",
+  "supportClaimEffect": "none",
+  "codeCommit": "defea652f",
+  "implementationDigestSha256": "4a2d03375c7763144c325c86df8d4ed230195ff021b56fe46134d2d8685ee388",
+  "scope": "Plain locally authored DXF layout graphs with a root ACAD_LAYOUT dictionary, typed LAYOUT objects and reciprocal BLOCK_RECORD links; no external drawings committed.",
+  "results": [
+    "Focused staged-reference CTest passes AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032 in ASCII and binary, with three layouts per graph.",
+    "Expected identity, name, order, dictionary and physical-link faults are refused with the destination preserved; a corrected retry succeeds.",
+    "Independently read locally authored three-layout AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032 graphs in ASCII and binary passed ezdxf 1.4.5 audits with zero errors and fixes; dictionary ownership, layout names and tab orders, and both reciprocal links matched."
+  ],
+  "limitations": [
+    "The inspectors check the modeled plain output graph, not plot settings, source provenance, arbitrary imported records, native application behavior, or support claims.",
+    "LibreCAD_3 still needs source LAYOUT capture, preservation of paper-space content and application integration; its native save gap is not fixed by this slice.",
+    "The three-layout peer observations do not replace zero/one/two-layout consumer tests or independent verification of imported source data."
+  ]
+}

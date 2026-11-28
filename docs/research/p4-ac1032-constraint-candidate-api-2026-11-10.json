@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-constraint-candidate-api-2026-11-10",
+  "status": "OPT_IN_PARTIAL_CANDIDATE_NO_OUTPUT_ADMISSION",
+  "date": "2026-11-10",
+  "purpose": "Expose a bounded, peer-derived AC1032 registered constraint-node profile without misrepresenting the separate root or changing existing callback data layouts.",
+  "specification": {
+    "reference": "Open Design Specification for .dwg files v5.4.1, sections 2.2, 2.3, 2.5 and 2.13 and TU definition",
+    "limitation": "The local specification contains no ACDBASSOC2DCONSTRAINTGROUP body schema. Node order and field roles are ACadRust-derived candidates, not normative semantic proof."
+  },
+  "source": {
+    "forum": "https://forums.autodesk.com/t5/objectarx-forum/how-to-give-constrains-with-c-net/td-p/11874110",
+    "attachment": "https://forums.autodesk.com/autodesk/attachments/autodesk/objectarx-forum-en/1817/1/constraints.dwg",
+    "scratch": "/private/tmp/p4-autodesk-forum-constraints.dwg",
+    "sha256": "685bf22ed533121238c62c07357bf03fa6ddb40983cff7967c481fbb244b6b4f",
+    "object": "ACDBASSOC2DCONSTRAINTGROUP 0x2A8",
+    "evidence": ["p4-ac1032-forum-constraint-registry-candidate-2026-11-10.json", "p4-ac1032-forum-constraint-node-spans-2026-11-10.json"],
+    "limits": "Source section extraction uses libdxfrw's decompressor; ACadRust supplies candidate class order and LibreDWG independently reports selected geometry and links. Source LTYPE_CONTROL integrity error and HEADER/BLOCK_CONTROL warnings remain."
+  },
+  "implementation": {
+    "api": "drwDecodeConstraintGroupCandidate(const DRW_UnsupportedObject&, DRW_ConstraintGroupCandidate&)",
+    "contract": "An opt-in decoder reparses the raw AC1032 carrier into a separate candidate, preserving output on unsupported input, malformed input or allocation failure. Root ID/count/flag are distinct from registered nodes. Each candidate records class index/name, registry flag, node ID/connections/status byte, body/handle bit spans, and witnessed class fields. Existing associative object and node layouts, virtual interface, regular typed callback, raw carrier, parsed-complete flags and output gates are unchanged.",
+    "profile": "Class-version-2 group with two hard-owner actions, null group reference, root ID zero with zero connections and false flag, bounded nonempty class slots and at most 256 distinct positive registered IDs. Supported node classes are AcConstrainedBoundedLine, AcConstrainedArc, AcConstrainedImplicitPoint, AcPointCurveConstraint, AcCenterPointConstraint and AcTangentConstraint. Unknown classes or incomplete data are refused atomically.",
+    "arc": "The peer-derived underlying curve-domain parameters and the separately stored start/end trim points remain separate; they are not mapped to output ARC angles.",
+    "partial": "All candidate node m_classDataParsed flags remain false. No claim is made that class registry flags, status byte, constraint behavior or the complete graph are qualified."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_constraint_group_candidate_api_tests libdxfrw_dwg_reader_matrix_tests libdxfrw_assoc_group_registry_allocation_tests -j4",
+    "focused": "Six focused constraint/associative CTests pass, including the candidate API and existing registry allocation control.",
+    "physical": "build-gcc/tests/libdxfrw_constraint_group_candidate_api_tests --physical /private/tmp/p4-autodesk-forum-constraints.dwg passes after SHA-256 verification. It checks all 13 node IDs, class indexes, status bytes and body spans, plus selected line/arc dependencies and geometry.",
+    "generated": "Locally authored four-class controls check separate arc domain and trim points, root/registry distinction, source preservation, unknown class, bad class index, duplicate or mismatched IDs, nonzero registry flag, nonfinite geometry, excessive connections, malformed string, truncated body and handle-role failures; each refusal preserves prior output and a corrected retry succeeds.",
+    "allocation": "The candidate API test injects failures at all 383 allocations observed in calibration; every call refuses without an escaping exception, preserves a nonempty destination and succeeds when retried."
+  },
+  "remaining": "Native constraint evaluation, root/node status and registry semantics, more class/version/producer profiles, associative target closure, whole-source integrity and output qualification remain open. No external drawing fixture was added or committed."
+}

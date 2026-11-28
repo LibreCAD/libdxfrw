@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader PAR-139 XCLIP adapter loss and semantic boundary",
+  "mode": "Primary-source documentation review, current downstream issue screen, and local read/callback/storage/writer audit",
+  "repository": "LibreCAD/libdxfrw",
+  "branch": "codex/dwg-dxf-open-source-parity",
+  "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Check the recent XCLIP/SPATIAL_FILTER consumer report against primary DXF/AutoCAD API documentation.",
+    "Trace DWG and DXF SPATIAL_FILTER callbacks through the in-tree dwg2dxf adapter and identify existing low-level parser/writer support.",
+    "Compare available open-source DXF clipping APIs and explicitly separate object preservation from clipping/render semantics.",
+    "Add an implementation-ready PAR-139 leaf under existing PAR-06 without increasing the top-level subplan count or recurring validation cost."
+  ],
+  "sources": [
+    {
+      "name": "CADCraft downstream report",
+      "urls": [
+        "https://github.com/storytold/cadcraft/issues/1581"
+      ],
+      "observed": "Issue opened 2026-10-18 against CADCraft 0.8.0 / AutoCAD 2027: the reporter says an XREF drawing clipped in AutoCAD displays unclipped in CADCraft. No sample drawing is attached. The report also mentions 6031 zero-length-line audit repairs; the issue bot explicitly separates these symptoms. SPATIAL_FILTER is presented as a possible cause, not a confirmed diagnosis."
+    },
+    {
+      "name": "Autodesk SPATIAL_FILTER and DICTIONARY DXF references",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-34F179D8-2030-47E4-8D49-F87B6538A05A.htm",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+        "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-6939D69E-04CB-4F4C-87B2-67BC540FCF58.htm"
+      ],
+      "observed": "The SPATIAL_FILTER schema defines point count, repeated OCS boundary coordinates, normal/origin, display and front/back clip flags/distances, and two repeated 12-value 4x3 transforms. The object owner is a SPATIAL dictionary. DICTIONARY entries are ordered/repeated name and handle pairs; common object fields distinguish owner-dictionary and extension-dictionary references."
+    },
+    {
+      "name": "Autodesk AutoCAD .NET clipping API and developer example",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-NET/files/GUID-72029044-0840-4187-9A58-F2A4518E3A23.htm",
+        "https://blog.autodesk.io/adding-a-spatial-filter-to-a-block-reference/"
+      ],
+      "observed": "The documented association path attaches the filter through the block reference extension dictionary, a child dictionary named ACAD_FILTER, and its SPATIAL entry. This makes the owner closure part of preservation correctness, not an optional rendering detail."
+    },
+    {
+      "name": "ezdxf XClip and rendering/disassembly disclosures",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/tools/xclip.html",
+        "https://github.com/mozman/ezdxf/discussions/1041",
+        "https://ezdxf.readthedocs.io/en/stable/disassemble.html",
+        "https://github.com/mozman/ezdxf/blob/master/examples/blocks/clipping_insert.py"
+      ],
+      "observed": "The current documentation identifies ezdxf 1.4.5's 2D XClip helper, access to the underlying SPATIAL_FILTER and supported clipped-block rendering. It explicitly says the XClip helper cannot create inverted paths and INSERT disassembly does not apply XCLIP. Therefore disassembly output is not a clipping/render oracle; ezdxf is at most an optional pinned DXF-side comparator for the exact supported 2D profile."
+    }
+  ],
+  "localEvidence": [
+    "src/intern/dwgreader.cpp:12960-12965 dispatches parsed SPATIAL_FILTER through DRW_Interface::addSpatialFilter.",
+    "src/drw_interface.h:549-550 provides a non-pure default no-op addSpatialFilter callback.",
+    "src/libdxfrw.cpp:17955-17960 routes DXF SPATIAL_FILTER through processRawCapturedObject, which invokes both the typed callback and addRawDxfObject.",
+    "dwg2dxf/dx_iface.h and dwg2dxf/dx_data.h contain no SPATIAL_FILTER callback override or typed collection; dwg2dxf/dx_iface.cpp:7012 onward has no SPATIAL_FILTER raw-retention branch.",
+    "src/libdxfrw.cpp:23201 and src/libdwgr.cpp:3340 expose low-level SPATIAL_FILTER output entry points, so the confirmed gap is the concrete adapter/object-graph route rather than absence of all serializers."
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 1,
+    "newFindings": 1,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "PAR-139 records the confirmed in-tree adapter loss for SPATIAL_FILTER on DWG-origin and DXF-origin conversion. Its implementation sequence covers bounded typed/raw capture, order-independent INSERT-to-extension-dictionary owner closure, role-aware remapping, transactional refusal, and generated ASCII/Binary fast controls. Object preservation is distinct from clipping behavior; ezdxf's optional 2D comparison is route-limited, disassembly is explicitly non-clipping, and CADCraft issue #1581 remains a no-sample downstream hypothesis with separate audit symptoms. Existing fast validation cadence and external-J dispositions are unchanged."
+  },
+  "method": {
+    "kind": "Read-only primary documentation / current issue review and local source trace; plan and receipt update only",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-par139-xclip-adapter-loss-and-semantic-boundary-2026-10-19.json"
+    ],
+    "limitations": "The CADCraft issue provides no drawing and only hypothesizes a clipping cause. No external consumer result or visual semantics were independently reproduced. Autodesk's documented graph and the local missing adapter retention are sufficient to confirm a local serialization-path omission, not to identify the cause of CADCraft's observed output. The optional ezdxf comparator was source-reviewed, not run; its supported 2D profile does not qualify inverted/depth/tilted clipping or native CAD behavior."
+  }
+}

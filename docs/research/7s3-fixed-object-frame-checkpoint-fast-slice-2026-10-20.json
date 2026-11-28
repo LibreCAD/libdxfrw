@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "7S.3 fixed-frame OBJECT transaction checkpoint fast slice",
+  "mode": "Local implementation slice with generated in-memory controls",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Avoid comprehensive writer-ledger snapshots for audited fixed, single-frame OBJECT callbacks.",
+    "Preserve full rollback for custom-class-associated handles and caller mutation restoration where applicable.",
+    "Verify post-frame receipt-failure rollback with existing fast selectors only."
+  ],
+  "implementation": {
+    "filesChanged": [
+      "src/libdwgr.h",
+      "src/libdwgr.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "routes": [
+      "dwgRW::writeAcDbPlaceholder",
+      "dwgRW::writeVbaProject",
+      "dwgRW::writeImageDef",
+      "dwgRW::writeLayout",
+      "dwgRW::writeDictionary",
+      "dwgRW::writeXRecord",
+      "dwgRW::writeBlockRepresentationData"
+    ],
+    "behavior": [
+      "Introduces writeFixedObjectFrameTransaction using the bounded dwgWriter15 entity-frame checkpoint for the audited fixed one-frame routes.",
+      "Falls back to writeObjectTransaction when the explicit object handle is associated with a custom DWG class instance.",
+      "Snapshots and restores IMAGEDEF caller-owned table state on failure and remembers successful mutation for an enclosing caller transaction.",
+      "Routes DICTIONARY, XRECORD, and fixed-type BLOCKREPRESENTATIONDATA through the bounded path after auditing their encoders: reference/EED work is local to frame emission, and none adds a deferred object/GROUP/style/class ledger entry.",
+      "Retains existing GROUP, MLineStyle, custom-class-marking, compound entity, and public transaction paths on comprehensive checkpoints."
+    ],
+    "testChanges": [
+      "Extends the existing --block-owner-membership-index generated selector to assert zero full checkpoints for placeholder, VBA PROJECT, IMAGEDEF, LAYOUT, DICTIONARY, XRECORD, and BLOCKREPRESENTATIONDATA facade writes; VBA PROJECT, DICTIONARY, XRECORD, and BLOCKREPRESENTATIONDATA cases carry nonempty payloads.",
+      "Injects failed last-frame receipts after IMAGEDEF, DICTIONARY, XRECORD, and BLOCKREPRESENTATIONDATA frame emission and asserts byte count, object map, emitted-handle index, and IMAGEDEF caller handle/parentHandle return to pre-call state.",
+      "Adds a negative control where an explicit DICTIONARY handle is already associated with a custom class and is then rejected as reserved; asserts exactly one comprehensive checkpoint, proving the fixed-frame helper keeps the class-associated fallback."
+    ],
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "PASS"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_block_owner_membership_index|libdxfrw_dwg_local_roundtrip|libdxfrw_dwg_block_record_xref_roundtrip|dwg_dxf_issue_1410_cross_codec)$' --output-on-failure",
+      "result": "PASS (4/4)"
+    },
+    "diffCheck": {
+      "command": "git diff --check -- src/libdwgr.h src/libdwgr.cpp tests/dwg_local_roundtrip_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "fullCheckpointCallsAssertedForSevenRoutes": 0,
+    "customClassFallbackControlFullCheckpoints": 1,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "newTestsOrCtestRegistrations": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "fullSuiteRun": false,
+    "benchmarkRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "The no-full-checkpoint assertions are deterministic work evidence, not a wall-clock throughput measurement.",
+    "This slice covers only placeholder, VBA PROJECT, IMAGEDEF, LAYOUT, DICTIONARY, XRECORD, and BLOCKREPRESENTATIONDATA. Other OBJECT routes retain full checkpoints pending their own side-ledger and rollback audit.",
+    "The shared worktree is broadly dirty and repository Git metadata is read-only; the slice is uncommitted."
+  ],
+  "nextReadinessSlice": "Audit remaining writeObjectTransaction OBJECT routes. Keep full fallback for post-frame deferred ledgers, custom class-instance marks, and compound/public transactions until generated rollback controls cover each route."
+}

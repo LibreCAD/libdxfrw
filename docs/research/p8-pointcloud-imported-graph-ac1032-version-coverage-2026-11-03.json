@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-03",
+  "topic": "AC1032 imported DXF POINTCLOUDEX graph version-boundary coverage",
+  "scope": {
+    "source_format": "DXF",
+    "source_revision": "AC1032",
+    "target_revisions": ["AC1027", "AC1032"],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixture_policy": "Generated source and output in temporary paths from the locally authored graph; no fixture file added"
+  },
+  "control": {
+    "source": "Write the existing locally authored DefinitionEx/ReactorEx/POINTCLOUDEX graph as AC1032, import it, and verify the completed source revision.",
+    "wrong_target": "Attempt AC1027 output from the imported AC1032 source. Strict export refuses and preserves a pre-existing destination sentinel.",
+    "retry": "The same writer retries at AC1032, completes point-cloud source and field-profile binding, and emits successfully.",
+    "readback": "A fresh AC1032 import verifies both typed definition records, one POINTCLOUDEX entity, the unique NOD dictionary root, dictionary ownership, DefinitionEx reactor list, ReactorEx entity owner, and both entity references."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_pointcloud_definition_source_spans|dwg2dxf_point_cloud_adapter_transport' --output-on-failure",
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        "libdxfrw_pointcloud_definition_source_spans",
+        "dwg2dxf_point_cloud_adapter_transport"
+      ]
+    },
+    "full_suite": "Not run"
+  },
+  "limitations": [
+    "This expands generated version-boundary transport coverage; it does not establish physical producer breadth or native consumer semantics.",
+    "DWG source CLASS/frame/output binding, cross-revision conversion, external asset loading, and native 3D behavior remain open."
+  ],
+  "support_claim_effect": "None; no support claim promoted."
+}

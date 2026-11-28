@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-10",
+  "id": "p5-ac1018-table-dbcolor-whole-file-readback-2026-11-10",
+  "title": "Generated AC1018 TABLE to DBCOLOR whole-file readback",
+  "question": "Does a generated AC1018 whole-file write emit a TABLE's positive AcDbColor reference target and preserve both the reference and typed DBCOLOR payload on fresh readback?",
+  "finding": {
+    "result": "The generated TABLE and DBCOLOR are emitted in one AC1018 DWG. Fresh libdxfrw readback reports the exact TABLE AcDbColor handle and invokes the DBCOLOR callback with the expected handle, RGB value, color method, and name.",
+    "table": {
+      "handle": "0xA720",
+      "acDbColorHandle": "0xA730"
+    },
+    "dbColor": {
+      "handle": "0xA730",
+      "rgb": "0x123456",
+      "method": "RGB",
+      "name": "LOCAL_TABLE_COLOR"
+    },
+    "initialHarnessCorrection": "The first readback assertion inspected dx_iface's bounded DWG import-retention map without establishing its required completed read-outcome state. Debug output proved the DBCOLOR frame parsed and the callback ran. The test now captures the public callback directly and still checks the TABLE reference from the reader's data model."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4",
+    "focused": "ctest --test-dir build-gcc -R '^libdxfrw_table_ac1018_dbcolor_whole_file_roundtrip$' --output-on-failure",
+    "result": "PASS: 1/1 focused CTest",
+    "generatedOutput": "/tmp/table_dbcolor.dwg",
+    "generatedOutputSha256": "5a57bdd4d1f066333edbf5be5748129ad707292e069ccbe99e42111b578eaaf7"
+  },
+  "fixtures": "No DWG/DXF fixture was added to the repository. The locally generated DWG is retained only under /tmp.",
+  "limitations": [
+    "Generated graph transport/readback only; no physical producer prevalence or independent source profile is established.",
+    "No native color-book, CAD rendering, or broader TABLE semantics are qualified.",
+    "This result does not establish dx_iface import-retention acceptance under a completed production read-outcome contract.",
+    "No DWG/DXF support claim is promoted."
+  ]
+}

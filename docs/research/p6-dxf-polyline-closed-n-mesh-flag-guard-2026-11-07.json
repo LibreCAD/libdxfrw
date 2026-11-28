@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-polyline-closed-n-mesh-flag-guard-2026-11-07",
+  "date": "2026-11-07",
+  "title": "Classic POLYLINE closed-N topology flag guard",
+  "supportClaimEffect": "none",
+  "scope": "Prevent classic POLYLINE output from combining the closed-N modifier with a non-mesh parent, which emitted a 2D parent with polygon-mesh VERTEX subclasses.",
+  "authority": {
+    "source": "Autodesk AutoCAD DXF Reference, POLYLINE",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+    "finding": "Group 70 bit 16 identifies a 3D polygon mesh; bit 32 identifies closure in the N direction. The writer must not treat bit 32 as an independent vertex family."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "DRW_Polyline::validateVertexTypesDxf now refuses group-70 bit 32 unless bit 16 is also set. The guard is output-only; input remains tolerant. The existing role-closure selector now verifies destination-preserving refusal for bit 32 alone, same-adapter correction/retry, and positive output/readback for a mesh with flags 16|32.",
+    "fixturePolicy": "Test drawings are authored in memory and temporary ASCII/Binary outputs are removed; no DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_polyline_vertex_role_closure$' --output-on-failure",
+        "result": "PASS 1/1; ASCII and Binary refusal, destination preservation, same-adapter retry, typed readback, invalid closed-N rejection, and valid closed-N polygon mesh."
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_polyline_wcs_extrusion_loss_guard$' --output-on-failure",
+        "result": "PASS 1/1; neighboring classic WCS extrusion guard remains intact."
+      }
+    ],
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN; focused fast selectors only."
+  },
+  "limits": [
+    "This closes one malformed output topology combination; it does not qualify polygon-mesh geometry semantics or native consumer behavior.",
+    "No producer-wide, platform, or general 3D support claim is established."
+  ]
+}

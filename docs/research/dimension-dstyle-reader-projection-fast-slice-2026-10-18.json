@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-18",
+  "title": "PAR-23/7J DIMENSION DSTYLE reader projection",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "implemented-uncommitted",
+  "scope": [
+    "Project the locally modeled DIMENSION tolerance overrides from ACAD/DSTYLE XDATA at the DXF callback boundary",
+    "Retain ordered raw XDATA and preserve legacy direct-field values when the override subsection is malformed",
+    "Verify ASCII and Binary DXF paths, atomic fallback, unknown values, and following-record alignment"
+  ],
+  "changes": [
+    {
+      "file": "src/libdxfrw.cpp",
+      "detail": "Added complete-subsection validation and atomic projection for DSTYLE variables 47, 48, 71, 72, 146, 272, 274, 279, 283, 284, 285, and 286. Unknown pairs remain raw; malformed or duplicate known values warn and do not alter legacy-parsed fields."
+    },
+    {
+      "file": "src/drw_entities.h",
+      "detail": "Added dxfRW friendship for the callback-boundary projection and a test-only friend declaration; neither changes object layout or the public callback contract."
+    },
+    {
+      "file": "tests/dxf_fixture_tests.cpp",
+      "detail": "Added an existing-target selector with runtime-generated ASCII/Binary controls for valid, unknown, duplicate, and wrongly typed XDATA, exact raw code/value retention, typed values, atomic legacy fallback, and a following LINE sentinel. Temporary files are removed after use."
+    },
+    {
+      "file": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "detail": "Updated the 7J ledger and recorded this partial reader-only implementation, its verification, and remaining writer, graph, CLI, and independent-evidence work."
+    }
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "passed"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dxf_fixture_tests --dimension-dstyle-read",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "passed; 1/1"
+    },
+    {
+      "command": "jq empty docs/research/deeper-broader-independent-implementation-route-crosswalk-2026-10-18.json",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md src/libdxfrw.cpp src/drw_entities.h tests/dxf_fixture_tests.cpp docs/research/deeper-broader-independent-implementation-route-crosswalk-2026-10-18.json docs/research/dimension-dstyle-reader-projection-fast-slice-2026-10-18.json",
+      "result": "passed"
+    }
+  ],
+  "planChanges": {
+    "newFinding": false,
+    "newTopLevelSubplan": false,
+    "newTestRegistration": false,
+    "newFixture": false,
+    "newDependency": false,
+    "supportClaimsPromoted": 0,
+    "findings": 130,
+    "topLevelSubplans": 73,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": "Only local DXF reading of the modeled DSTYLE subset is implemented. Canonical writer emission/merge precedence, picture-block graph closure, constraint-only handling, CLI conversion, and independent override-dictionary/native validation remain open. No peer, native CAD application, or geometry kernel was run.",
+  "workingTree": "The checkout contains extensive pre-existing modified and untracked work. This slice and the research update were not staged or committed; unrelated changes were left untouched."
+}

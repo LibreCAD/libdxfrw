@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1027-exact-header-size-exclusion-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Admit the exact AC1027 HEADER envelope with an excluded zero high-size word",
+  "status": "HEADER_PROFILE_FIXED_AND_FAST_TESTED; WHOLE_SOURCE_OUTPUT_STILL_REFUSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "repository": "https://github.com/realDragonium/dwg-verifier",
+    "path": "fixtures/libredwg/example_2013.dwg",
+    "rawUrl": "https://raw.githubusercontent.com/realDragonium/dwg-verifier/main/fixtures/libredwg/example_2013.dwg",
+    "lineageStatement": "The repository README says fixtures/libredwg contains samples from LibreDWG test/test-data; this receipt does not infer the original authoring application.",
+    "version": "AC1027",
+    "applicationVersion": 33,
+    "applicationMaintenanceVersion": 29,
+    "sizeBytes": 146906,
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "gitBlobSha1": "c59dee0d9551502508d03dcd7026a4d1e9ea520f",
+    "fixturePolicy": "Downloaded to /private/tmp for read-only research; no DWG or DXF fixture was added to the repository."
+  },
+  "formatEvidence": {
+    "authority": "Open Design Specification for .dwg files v5.4.1, section 9",
+    "relevantRule": "For R2010/R2013 with application maintenance version greater than 3, the HEADER section has an additional 32-bit unknown word after the section size, followed by data, CRC and ending sentinel.",
+    "observedEnvelope": {
+      "logicalSectionBytes": 874,
+      "beginSentinelBytes": 16,
+      "sectionSize": 832,
+      "highSizeWord": 0,
+      "crcOffset": 856,
+      "storedCrc16": 54215,
+      "endingSentinelBytes": 16,
+      "unclaimedSuffixBytes": 0
+    },
+    "validation": "The excluded-high-word candidate passes the existing CRC and both sentinel checks and terminates exactly at the logical section boundary. The canonical candidate computes the trailer four bytes early and cannot describe this envelope."
+  },
+  "implementation": {
+    "change": "AC1027 application-maintenance >3 now admits the excluded-zero-high-word candidate when its envelope is exact, even when it has no unclaimed suffix. Existing high-word-zero, CRC and sentinel validation remains mandatory.",
+    "files": [
+      "src/intern/dwgheadersection.h",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "test": {
+      "selector": "--header-version-envelopes",
+      "ctest": "libdxfrw_dwg_header_version_envelopes",
+      "labels": ["fast", "dwg", "header", "generated", "AC1027"],
+      "result": "PASS; 1/1 test, 0.41 seconds",
+      "fixture": "Generated in memory by the existing AC1027 header writer; the downloaded DWG was not added as a test fixture."
+    }
+  },
+  "observedOutcome": {
+    "beforeFix": "libdxfrw stopped at BAD_READ_HEADER (error 6). A bounded probe showed the canonical candidate failed its exact-length check while the excluded-high-word candidate passed CRC and sentinels with zero unclaimed bytes; the selector discarded that exact candidate.",
+    "afterFix": "libdxfrw reports operationSucceeded=true, legacyError=0 and finishes the DWG frame census. Strict DXF export still refuses because a standalone TABLEGEOMETRY has no qualified replay path; the read reports three object parse failures and one orphaned DataStorage record.",
+    "independentParser": "LibreDWG 0.14 dwgread -O JSON exits 0 and reports SUCCESS. Its JSON contains two fit-point SPLINE records; this does not establish libdxfrw SPLINE output/readback or geometry semantics.",
+    "scopeLimit": "This fixes one exact AC1027 HEADER envelope admission defect. It does not qualify the sample for conversion, establish all AC1027 producer profiles, resolve AC1027 Cover's separate suffix, or promote any format support claim."
+  }
+}

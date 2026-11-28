@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-viewport-original-sources-mode4-refusal-2026-11-18",
+  "date": "2026-11-18",
+  "status": "FOCUSED_CONTROL_PASS",
+  "baseCommit": "8e382cae60794722b5b588446dd3e3a42d16c62d",
+  "implementationDigestSha256": "e55c3e2b1af27a38968a6579bf52d955231edc19bf6d7f8340414f53f5f01cfb",
+  "supportClaimEffect": "none",
+  "finding": "The historical failure in docs/research/p6-vport-entity-header-dwg-encoder-allocation-rollback-retry-2026-11-10.json reproduced on the current tree as fault=16 parsed=0. The generated VIEWPORT fault sets DXF shade-plot group 170 to 4, while DRW_Viewport::validateDxf currently rejects modes above 3 before the entity callback. The previous test expected a successful parse followed by an unready graph.",
+  "authorityAndLimit": "docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json records the conflict between DXF documented group 170 modes 0-3 and ObjectARX additional VisualStyle/RenderPreset states. The extra states remain unqualified until a source-bound native pair proves their serialization. This test change neither alters the guard nor promotes a support claim.",
+  "change": "tests/viewport_source_controls.h expects parse failure for fault 16 and explicitly checks that no VIEWPORT callback or completed dependency graph escaped. The existing corrected input is retried with the same ViewportProbe. No other faults or success cases are skipped.",
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_table_content_dxf_tests -j2",
+    "focused": "PASS 1/1: ctest --test-dir build-gcc -R '^libdxfrw_viewport_original_sources$' --output-on-failure",
+    "coverage": "The direct selector reports 72 profiles, 120 callback/field/owner refusals, 240 corrected imports, and 864 reference spans. Fault 16 covers three encodings and block/non-block paths."
+  },
+  "neighboringHistoricalRecheck": {
+    "receipt": "docs/research/p6-ac1024-classes-short-tail-compatibility-2026-11-12.json",
+    "earlierFinding": "Its broader class-source selector failed at a native AC1015 import comparison; the short-tail control passed.",
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_class_source_tests -j2",
+    "focused": "PASS 2/2: ctest --test-dir build-gcc -R '^(libdxfrw_dwg_class_source|libdxfrw_dwg_class_source_tail)$' --output-on-failure",
+    "limit": "The current generated controls pass; this does not establish a cause for the earlier failure or broaden AC1024 or AC1015 interoperability."
+  },
+  "limits": [
+    "Generated controls establish current refusal and retry behavior, not producer wire mapping or native shade-plot semantics.",
+    "No production source or drawing fixture was modified. P5-H remains open."
+  ]
+}

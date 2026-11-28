@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "R2007+ class-string footer atomic boundaries fast slice",
+  "mode": "Generated in-memory framing regression",
+  "repository": "LibreCAD/libdxfrw",
+  "researchBasis": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      {
+        "section": "10.2 R18+ AcDb:Classes",
+        "page": 87,
+        "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      },
+      {
+        "section": "20.1 Common non-entity object format",
+        "page": 104,
+        "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      }
+    ],
+    "formatRule": "R2007+ class string-stream size words are bit-relative to the footer end bit; the low word high bit indicates an additional high-size word.",
+    "authority": "ODA v5.4.1 is normative for DWG byte layout."
+  },
+  "implementation": {
+    "filesChanged": [
+      "tests/dwg_reader_matrix_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/dwg-class-footer-atomic-boundaries-fast-slice-2026-10-21.json"
+    ],
+    "test": "testR2007ClassStringFooter",
+    "cases": [
+      "Generated unextended 16-bit size-word form with exact start bit, size, and cursor.",
+      "Existing extended-size form at all seven nonzero footer bit offsets retained.",
+      "Overlong maximum extension preserves seeded caller outputs and a nonzero cursor on refusal.",
+      "Flagged low word with truncated high word refuses atomically.",
+      "Out-of-range footer preserves caller outputs and cursor."
+    ],
+    "directSelector": "--r2007-class-string-footer",
+    "ctest": "libdxfrw_dwg_r2007_class_string_footer",
+    "productionCodeChanged": false,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build --target libdxfrw_dwg_reader_matrix_tests -j4",
+      "result": "PASS"
+    },
+    "directSelector": {
+      "command": "build/libdxfrw_dwg_reader_matrix_tests --r2007-class-string-footer",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dwg_r2007_class_string_footer$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "diffCheck": {
+      "command": "git diff --check -- CMakeLists.txt tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md",
+      "result": "PASS"
+    },
+    "untrackedReceiptWhitespaceCheck": {
+      "command": "rg -n '[[:blank:]]+$' docs/research/dwg-class-footer-atomic-boundaries-fast-slice-2026-10-21.json",
+      "result": "PASS (no matches)"
+    },
+    "receiptJson": {
+      "command": "jq empty docs/research/dwg-class-footer-atomic-boundaries-fast-slice-2026-10-21.json",
+      "result": "PASS"
+    },
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "knownAc1024RtmClassesFailureResolved": false,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "Generated bit-offset vectors exercise the shared size-footer helper, not complete DWG CLASSES sections from an independent producer.",
+    "The known AC1024 RTM classes-stage failure was not reproduced or resolved by this slice.",
+    "No persistent drawing fixture or support claim was added.",
+    "The shared worktree is broadly dirty and repository Git metadata is read-only; this slice is uncommitted."
+  ],
+  "nextReadinessSlice": "Continue with the next local source/spec-backed PAR-07/PAR-14 implementation item; do not wait for the exact AC1024 RTM save or optional peer/native qualification."
+}

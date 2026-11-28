@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper and broader DWG/DXF 3D route and native-acceptance refresh",
+  "mode": "primary-source web research and read-only local plan reconciliation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh the current open-source DWG/DXF peer capability and lineage map",
+    "Separate strict-reader acceptance from native application audit and 3D semantic evidence",
+    "Reconcile FreeCAD's documented converter/importer route and ACIS limitations",
+    "Refine the existing composed evidence gates without adding per-slice cost"
+  ],
+  "method": {
+    "kind": "Read current upstream project documentation/issues and reconcile existing local plan gates",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChangedForResearch": false,
+    "testCodeChangedForResearch": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-validation-methodology-refresh-2026-10-18.json",
+      "docs/research/deeper-broader-cross-kernel-semantic-validation-topology-identity-2026-10-18.json"
+    ],
+    "limitations": "Mutable upstream documentation and issue reports describe project claims or single reported routes, not libdxfrw conformance. No exact peer release was executed, no native audit was run, and no external drawing or ACIS payload was obtained. The FreeCAD documentation source is archived and describes its documented baseline; actual platform qualification remains required."
+  },
+  "sources": [
+    {
+      "project": "GNU LibreDWG",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/LibreDWG.html",
+        "https://www.gnu.org/software/libredwg/manual/html_node/Programs.html",
+        "https://github.com/LibreDWG/libredwg"
+      ],
+      "revision": "LibreDWG 0.13.4 manual and mutable repository reviewed 2026-10-18",
+      "observed": "The manual documents DWG writing as limited to older releases; the dxf2dwg page describes experimental output through R2000 and binary DXF output as under construction. Renderer limitations include missing block expansion and UCS/paper-space transforms. These are peer capability boundaries, not libdxfrw qualification."
+    },
+    {
+      "project": "OpenCADStudio / ACadRust lineage",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/issues/1615",
+        "https://github.com/HakanSeven12/OpenCADStudio/releases",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "revision": "Issue and releases page reviewed 2026-10-18; issue reports current main and 2026.41-era behavior",
+      "observed": "Issue #1615 remains open. The reporter describes failures opening some 3D DWG output in AutoCAD/ProgeCAD and intermittent Boolean failures. The maintainer reports one pyramid/cylinder subtraction saved as AC2018 DWG opening in an unnamed strict third-party reader, without a named AutoCAD AUDIT result or shared reproducer. OpenCADStudio is ACadRust-lineage and is not an independent codec vote."
+    },
+    {
+      "project": "FreeCAD DXF/DWG route documentation",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md"
+      ],
+      "revision": "FreeCAD documentation repository reviewed 2026-10-18; repository archived 2026-04-01 and pages describe a documented baseline",
+      "observed": "The docs describe two distinct DXF importer/exporter implementations and a DWG route that uses an external converter followed by DXF import. They state that embedded ACIS solids are not read by the documented DXF importer. These docs inform route selection but do not qualify a newer build, OS, setting, or converter."
+    },
+    {
+      "project": "cq-acis and ACIS exchange boundary",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://docs.rs/acis-core/latest/acis_core/",
+        "https://github.com/Open-Cascade-SAS/OCCT-Components",
+        "https://occt3d.com/components/acis-exchange/"
+      ],
+      "revision": "Mutable project/API/component docs reviewed 2026-10-18",
+      "observed": "cq-acis calls itself experimental, accepts selected SAT and SAB/ShapeManager profiles, and converts a documented geometry subset to CadQuery/OCCT. acis-core documents reference-closure validation as weaker than B-rep validity and says it does not create OCCT solids. OCCT's preview repository and product page identify DXF/ACIS exchange as commercial extensions, not open-source core."
+    }
+  ],
+  "assessment": {
+    "newLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines existing PAR-07/S8 gates: retain separate evidence for parse/strict-reader success, writer/native AUDIT and repair/loss, DWG-to-DXF converter/importer composition, source graph/carrier/AcDs preservation, complete B-rep validity, and independently expected analytic shape semantics. ACIS and FreeCAD platform checks remain composed and non-blocking for local slices.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Continue the dependency-ready local implementation queue; missing external applications or peer builds do not block local work.",
+    "Bind every composed result to exact input/output hashes, source and effective file versions, options, parser lineage, kernel and application identity, diagnostics, and per-object disposition.",
+    "Treat strict-reader success, named native open, AUDIT/recovery/deletion results, complete-solid validity, and analytic metrics as separate outcomes.",
+    "For FreeCAD, capture converter path/version/arguments and selected importer backend; validate fresh DXF output before import and score ACIS loss separately from 2D import success.",
+    "If cq-acis is used, pin its exact parser profile, distinguish unsupported records from built geometry, and record OCCT lineage; do not claim DWG/AcDs closure or independent-kernel validation.",
+    "Keep per-slice validation at strict touched-target build, focused generated selector, relevant compatibility check, and owning CTest; keep peer/native/fuzz/stress gates scheduled or composed.",
+    "Use only in-memory or locally authored-from-scratch controls; do not add third-party/customer DWG/DXF fixtures or new peer dependencies."
+  ]
+}

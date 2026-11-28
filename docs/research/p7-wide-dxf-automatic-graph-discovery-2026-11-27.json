@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-wide-dxf-automatic-graph-discovery-2026-11-27",
+  "date": "2026-11-27",
+  "baseCommit": "10b55b848",
+  "implementationDigestSha256": "257ad26563bcaff98a61b94fc7e95d2d2efa3330cae91fbbd38c665e98a523f3",
+  "inputCount": 782,
+  "supportClaimEffect": "none",
+  "change": "Discover a unique bounded wide DICTIONARY/XRECORD chain from source roles, without assuming dictionary or record names. Index candidate object identities once; refuse multiple eligible chains, duplicate identity/key/target and unsupported roles. Preserve discovered names and original fields through normalization.",
+  "validation": [
+    "PASS compact graph CTest in ASCII and binary: automatic and explicitly named projections match; two eligible wide chains refuse; alias collision, wrong roles, malformed sources and retries remain covered.",
+    "PASS direct dxfRW::readBuffer callbacks on both normalized full ezdxf-generated files: two layers, three materials and unique root/dictionary/XRECORD callbacks with alias graph A/2F/30 and reference 2F.",
+    "The previously established independent source/output comparison covers the identical normalized bytes: 25 mapped objects, 24 dictionary entries, 13 root entries and zero peer audit errors or fixes.",
+    "PASS GCC 16 warning-clean syntax, source-release inventory and clean-staged qualification digest/support checks."
+  ],
+  "headerSha256": "f256842e6f73df69ab74cdb65ca5fc1f617a0b7e6b9805bb86b33f7f5e76a082",
+  "memoryProbeSha256": "68bda624c5ec39ac350019212daf6494a21304b9f10f85e93411e6ff6bfb7b6a",
+  "limits": [
+    "This remains a preparatory component; the converter does not yet connect source, alias mapping and output. The original wide file still refuses on the public file route.",
+    "No complete or general DWG/DXF support claim follows, and no drawing fixtures were added."
+  ]
+}

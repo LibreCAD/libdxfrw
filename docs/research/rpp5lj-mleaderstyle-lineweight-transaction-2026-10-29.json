@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 source-bound AC1027 MLEADERSTYLE group-92 INT32 leaderLineWeight",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "4292ab3ffeaed245ce7103d71b41009594424d7f",
+  "scope": "One runtime-authored AC1027 DXF source with two root-reachable MLEADERSTYLE records. STANDARD has one existing group-92 INT32 leaderLineWeight value 25 and an opaque group-302 tag; SECONDARY is unchanged. Supports a standalone typed leaderLineWeight change from 25 to 50.",
+  "fieldEvidence": {
+    "groupCode": 92,
+    "field": "leaderLineWeight",
+    "fieldRoleSource": "Autodesk AutoCAD DXF Reference, MLEADERSTYLE group-code table",
+    "fieldRoleUrl": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0E489B69-17A4-4439-8505-9DCE032100B4.htm",
+    "wireTypeSource": "Autodesk DXF Group Codes reference, 90-99 are 32-bit integer values",
+    "wireTypeUrl": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html",
+    "classification": "DXF field role and wire-type corroboration; not independent producer evidence or native semantic acceptance"
+  },
+  "contract": {
+    "admission": "Source and target must both be AC1027. The selected record must be reachable through the validated ACAD_MLEADERSTYLE dictionary, have one source-matched raw body and immutable source baseline, and contain one existing group-92 INTEGER corresponding to the parsed INT32 leaderLineWeight. leaderLineWeight must be the only changed typed payload field; table-entry identity, common fields, handles, application data, extension data and all other encoded style fields must match the source.",
+    "projection": "Replace only the existing physical group-92 value in a copy of the captured raw body using the ordinary signed INTEGER variant. Preserve all other ordered fields and opaque groups. Missing/repeated group 92, conflicting raw changes, simultaneous DOUBLE or other typed edits, unknown subclass grammar and non-AC1027 routes remain outside this transaction. The INTEGER representation is required by the MLEADERSTYLE raw-record validator; the generic BodyWriter's INTEGER64 special case for unsigned MATERIAL values is not reused.",
+    "outputAndReadback": "Inspect the staged OBJECTS body against every retained raw field and mapped handle, then decode the emitted MLEADERSTYLE and require group-92 leaderLineWeight to equal 50. Fresh readback checks the typed property and one literal group-92 INTEGER value 50. Both source encodings are exercised; output uses same-format and cross-format ASCII/binary paths.",
+    "failureAndRetry": "Changing captured raw group 92 from 25 to 26 while the typed value requests 50 refuses and preserves a sentinel destination. A simultaneous group-45 textHeight edit refuses atomically. A late typed lineweight mutation after preflight also refuses without replacing the destination; restoring the requested value permits same-adapter retry. Exact field and fresh readback checks pass after retry.",
+    "compatibility": "Untouched MLEADERSTYLE records keep existing raw replay. Transactions are not admitted for other source or target versions, multiple changes on one record, or other integer fields. Typed DWG-origin writing remains unchanged. Test sources and outputs are authored at runtime in a temporary directory and removed; no drawing fixture is committed."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "generateRootMLeaderStyleControl in tests/dwg2dxf_adapter_tests.cpp emits group 92=25 in the AcDbMLeaderStyle subclass with two root dictionary entries, existing typed references, and opaque group-302 tags; ASCII and binary inputs are generated locally from scratch.",
+    "implementationCommit": "4292ab3ffeaed245ce7103d71b41009594424d7f",
+    "dwg2dxf/dx_iface.cpp": "058b0857032707f39788bbcf71c33f6b50ee965184517907c7a4e63a07f4698a",
+    "dwg2dxf/dx_iface.h": "40d6f4f0ffb36d5f8298a8ff1be923e767ceac9bfb8c6b6535ad8dfc273d7ca1",
+    "tests/dwg2dxf_adapter_tests.cpp": "c6adff53b8053973bd94037e839f43832ac1242f5488131b1f3426e73e622e45",
+    "adapterTestExecutableSha256": "6f26de3119c97c3322ff70318a112759b674a2187caf9508b45537a63b2e233d"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "toolchain": "CMake 4.4.4, Ninja, Clang with -Wall -Wextra -pedantic -Werror"
+    },
+    "focusedSelectors": {
+      "result": "PASS",
+      "command": "ctest --test-dir build -R '^(libdxfrw_mleaderstyle_writer_closure|dwg2dxf_mleader_fail_closed)$' --output-on-failure",
+      "summary": "2/2 passed. The authored group-92 INT32 profile proves exact output/readback in ASCII/binary same-format and cross-format paths, raw conflict rollback, mixed DOUBLE/INT32 edit refusal, late-mutation rollback, and corrected same-adapter retry."
+    },
+    "diffCheck": "git diff --check; PASS before implementation commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "limitations": [
+    "The evidence qualifies one authored AC1027 adapter transaction only. It does not prove independent producer variation, native lineweight meaning or rendering, cross-version support, DWG editing, complete MLEADERSTYLE coverage, consumer acceptance or full document closure.",
+    "No support claim is promoted; the support ledger remains closed."
+  ],
+  "next": "Select a distinct current P2 field-type/provider or geometry/schema witness. Keep group 92 as a single-field AC1027 transaction and retain other integer, boolean, string, handle and version routes on their existing path until separately qualified."
+}

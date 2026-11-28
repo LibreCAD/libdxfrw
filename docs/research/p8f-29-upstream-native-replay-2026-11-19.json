@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8f-29-upstream-native-replay-2026-11-19",
+  "date": "2026-11-19",
+  "status": "PRIOR_DIGEST_FAST_AND_FOCUSED_NATIVE_PASSED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "c72ef7da6b01c11a437067d3a420c77af737bd7a3a674ccad3c1f745ce1d048b",
+  "upstream": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44647538392",
+    "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44647538336",
+    "headSha": "29d08d769d2e850803f1d123ce5cdb783e9ece69",
+    "checkedOutMergeSha": "be27c2d52278ba277e4ac3a38b4a4ba08a2efa29",
+    "fastJobId": 135993843026,
+    "fastResult": "PASS: seven executables and 50 selected CTests, with one optional locale skip.",
+    "fastLogSha256": "af82eeb29f89f98021766d6ff66a4fa66c7eaae4ca2828ee0a25881b8bddd1c3",
+    "platforms": {
+      "linux-gcc": {
+        "apiJobId": 135993989456,
+        "artifactId": 14589133214,
+        "downloadedArchiveSha256": "25d97e371499fd281736a6db70eaaa188aaac624bf01121fd19938e65c46e43c",
+        "receiptContentSha256": "dd2c1dbacc200275924cd0df9bcad9a8fb767a4919dac531d0e4110c6f34a5a3"
+      },
+      "macos-clang": {
+        "apiJobId": 135993989514,
+        "artifactId": 14589068466,
+        "downloadedArchiveSha256": "d98448e67edee7eba3dc78e0e90cd174556e58b91f6b39b65f5d2ae8926f45eb",
+        "receiptContentSha256": "6542d71758879dcbe747bd8890a119d44580827a81efa38103842e929f94475e"
+      },
+      "windows-msvc": {
+        "apiJobId": 135993989462,
+        "artifactId": 14590400194,
+        "downloadedArchiveSha256": "c039eca432c206100f745c53f9f70711524be4c7fa500ec63335af607b4ed910",
+        "receiptContentSha256": "ebd6f7c758c36d6f51c2684be93a3265c623f8a1e608af5c0c18168e64861924"
+      }
+    }
+  },
+  "liveVerification": {
+    "result": "PASS: three focused native artifacts verified against authenticated GitHub API and archives.",
+    "scratchRoot": "/private/tmp/p7g-planar-source/native-verification-29",
+    "apiResponseSha256": {
+      "run.json": "424c9f548432bfa4855032894202e4eb74f67b7544b36d9a216dade2a904afc1",
+      "jobs.json": "eace20dd8e8473047c7ffadc3070f1d5cdde4fb5d4c50dab7441d62a8e65d0c3",
+      "artifacts.json": "eb6b3301778f06bf33a9b26ef73eeb3aa4062f40d6bb3e04bc313b7c2fd4c5b7"
+    }
+  },
+  "limits": [
+    "These results apply only to the exact prior implementation digest. The subsequent TABLESTYLE fix and fast regression change the selected inputs, reopening P8-F.",
+    "Native GUI, broad/fuzz, independent producer and semantic evidence remain open."
+  ]
+}

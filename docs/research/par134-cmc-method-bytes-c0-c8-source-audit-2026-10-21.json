@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 CMC method bytes C0-C8 source audit",
+  "mode": "official API and local-code research; no semantic promotion",
+  "evidence": {
+    "oda": {
+      "document": "Open Design Specification for .dwg files v5.4.1, local copy /Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "section": "2.11 CmColor",
+      "finding": "ODA defines the generic R2004+ CMC record structure but does not enumerate all AcCmEntityColor method values or establish every method's packed payload semantics."
+    },
+    "autodeskColorMethod": {
+      "source": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcCmEntityColor__ColorMethod.html",
+      "finding": "The ColorMethod enum starts at kByLayer=0xC0 and continues contiguously through kNone=0xC8: ByLayer, ByBlock, ByColor, ByACI, ByPen, Foreground, LayerOff, LayerFrozen, None. The docs say ByPen, LayerOff, LayerFrozen, and None are internal-only for third-party applications."
+    },
+    "autodeskColorValue": {
+      "source": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcCmColor.html",
+      "finding": "AcCmColor::color describes the high byte as color method and the lower bytes as color components; this is API-level method evidence, not a producer sample for every CMC payload."
+    },
+    "autodeskForegroundIndex": {
+      "source": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcCmEntityColor__ACIcolorMethod.html",
+      "finding": "Autodesk identifies kACIforeground as ACI 7. This makes C5-to-ACI-7 a candidate semantic mapping but does not establish the CMC low-24-bit payload or HATCH gradient writer form."
+    },
+    "libredwgSourceCrossCheck": {
+      "source": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.c",
+      "finding": "The mutable dwg_color_method_name helper names C5 Foreground and C8 None, while its C2/C3 labels differ from the local ODA/Autodesk-backed RGB/ACI interpretation. This is a source-level divergence signal only, not a normative byte-layout authority or runtime result."
+    },
+    "localCode": {
+      "files": [
+        "src/intern/dwgbuffer.cpp",
+        "src/intern/dwgutil.h",
+        "src/drw_objects.cpp",
+        "tests/dwg_object_vectors_tests.cpp"
+      ],
+      "finding": "The general getCmColor decoder semantically handles only C0-C3 and returns 256 for other method bytes. VISUALSTYLE stores raw method/value metadata and its generated C8 control can be replayed byte-exactly, while the normalized field currently receives 256."
+    }
+  },
+  "changes": {
+    "internalEnumOnly": "dwgColor now declares ACI=0xC3 with ACIS retained as a historical alias, names C4-C7, and renames C8 WINDOW_BG to NONE.",
+    "decoderOrWriterBehaviorChanged": false,
+    "persistentDwgDxfFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "disposition": [
+    "Keep C0-C3 as the only semantically projected methods in the current HATCH gradient path.",
+    "Treat C5 Foreground to ACI 7 as a candidate only until an ODA example or eligible real DWG establishes packed payload and optional-name behavior.",
+    "Keep C4 and C6-C8 opaque/unsupported for third-party semantic projection and do not normalize them to ByLayer.",
+    "Inventory all shared getCmColor consumers before changing its fallback because it feeds many entity and object readers."
+  ],
+  "limits": [
+    "No independent DWG producer sample was available or run for C4-C8.",
+    "No LibreDWG runtime was executed; the mutable source helper is not a conformance oracle.",
+    "Autodesk API method semantics do not by themselves establish all serialized CMC payload details.",
+    "Findings/top-level subplans remain 144/78; J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "next": "Continue the CMC consumer audit with a real or ODA-authored C5 example before implementation. In parallel, inspect the shared getCmColor fallback consumers and identify a bounded preserve-or-refuse strategy without changing normalized behavior speculatively."
+}

@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134/7Q LIGHT CMC RGB retention",
+  "mode": "generated AC1024 parser/writer fast slice",
+  "scope": [
+    "Reproduce loss of the RGB payload from the bounded DRW_Light CMC parser",
+    "Retain a decoded C2 RGB value in the typed LIGHT model",
+    "Write retained RGB through the existing C2 CMC encoder",
+    "Keep the unverified class-specific LIGHT DXF color mapping unchanged"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor"],
+      "finding": "R2004+ CMC contains a reserved BS, method-packed BL, and RC optional-name flags; method C2 carries the low 24-bit RGB payload."
+    },
+    "autodeskApi": {
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbLight__setLightColor_AcCmColor_.html",
+      "finding": "AcDbLight exposes setLightColor(const AcCmColor&), supporting the use of CMC for the LIGHT color property."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.cpp", "src/drw_entities.h", "src/intern/dwgbufferw.cpp"],
+      "finding": "DRW_Light::parseDwg called the bounded CMC helper with null RGB output and DRW_Light::encodeDwg always selected the index-only overload. The parser now retains optional RGB in m_colorRgb; the writer emits C2 when this value is present and validates its range and normalized scalar before body emission.",
+      "compatibility": "m_colorRgb is appended after existing public LIGHT fields to preserve offsets of prior members. DRW_Light size changes and downstream binary consumers must rebuild; no virtual method or callback contract changed."
+    },
+    "dxfContract": {
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-1A23DB42-6A92-48E9-9EB2-A7856A479930.htm",
+      "finding": "The published LIGHT DXF table does not list a class-specific color group.",
+      "decision": "Do not infer group 63/421 behavior from other entity classes; leave the DXF writer unchanged pending an authoritative contract or producer witness."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "version": "AC1024",
+      "finding": "Generated LIGHT frames cover C0 ByLayer, C1 ByBlock, C3 ACI, and C2 RGB. An independent body cursor checks each encoded CMC method/scalar/RGB and the next field; the production parser checks typed color retention and the following hard-pointer sentinel. An out-of-range caller RGB is refused before body bytes are emitted.",
+      "limit": "Controls are locally generated and are not producer-authored samples. They do not establish the LIGHT DXF color-group mapping or optional CMC name/book roundtrip."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Capture the bounded LIGHT CMC RGB value only when the decoder reports a truecolor payload.",
+      "Append m_colorRgb to DRW_Light and reset it to the absent sentinel on parse reset/failure.",
+      "Encode retained RGB using the existing validated C2 CMC writer; refuse invalid RGB/scalar combinations before output."
+    ],
+    "generatedTestChanged": true,
+    "generatedTestSummary": [
+      "Add generated AC1024 LIGHT frames and an independent CMC wire walk for C0-C3.",
+      "Assert parser model retention, subsequent LIGHT field, handle-stream alignment, and malformed RGB refusal.",
+      "Register focused --light-cmc-rgb CTest."
+    ],
+    "focusedCtestAdded": "libdxfrw_light_cmc_rgb",
+    "persistentDwgDxfFixturesAdded": 0,
+    "publicApiOrLayoutChanged": true,
+    "existingMemberOffsetsPreserved": true,
+    "publicClassSizeChanged": true,
+    "vtableChanged": false,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict build)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_light_cmc_rgb$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (5/5, 0.04 seconds)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_light_cmc_rgb|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (2/2)"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_entities.cpp src/drw_entities.h tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "assessment": {
+    "confirmedLocalResult": "Generated AC1024 LIGHT CMC C2 RGB is retained by the typed parser and emitted by the DWG writer without shifting later fields or handles; C0/C1/C3 paths remain valid in the generated controls.",
+    "unresolved": [
+      "The class-specific LIGHT DXF color-group contract remains unverified; the current DXF writer was intentionally not changed.",
+      "Optional CMC color/book names are still not represented by DRW_Light.",
+      "The broader scalar-only CMC consumer audit, HATCH C5 producer behavior, and C4/C6-C8 third-party semantics remain open.",
+      "Associative-action value grammar and independent/native semantic qualification remain separate open gates."
+    ],
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextAction": "Continue the class-by-class CMC consumer audit. Resolve LIGHT DXF color mapping only from an authoritative class contract or producer witness; otherwise retain the current visible gate and move to the next evidenced local color-loss item."
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "unstaged": true,
+    "committed": false,
+    "persistentFixtureStaged": false
+  }
+}

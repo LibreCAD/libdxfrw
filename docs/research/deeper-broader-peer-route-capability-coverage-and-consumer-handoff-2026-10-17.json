@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw-peer-route-capability-review-v1",
+  "title": "Deeper/broader peer-route capability, coverage, and consumer handoff review",
+  "date": "2026-10-17",
+  "status": "research_only",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "method": {
+    "kind": "Primary-source documentation, release-note, and source review",
+    "localSourceInspected": [
+      "dwg2dxf/main.cpp: FreeCAD-compatible input -o output CLI mode",
+      "tests/dwg2dxf_cli_contract_tests.py: generated CLI contract coverage"
+    ],
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false
+  },
+  "sources": [
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "type": "peer_project_documentation",
+      "finding": "LibreDWG documents broad version coverage but lists enabled/undertested classes, missing test-coverage families, and no DWG R2007 writer. These are project-authored scope statements, not independent qualification."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "type": "peer_release_notes",
+      "finding": "LibreDWG 0.14.1 NEWS records recent security, DXB, and writer work; this does not prove matching libdxfrw defects or semantic support."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp",
+      "type": "peer_capability_matrix",
+      "finding": "The published compatibility matrix marks DWG writing unavailable at AC1021 while listing other releases; the matrix does not establish per-class completeness or runtime parity."
+    },
+    {
+      "url": "https://github.com/DomCR/ACadSharp/blob/master/docs/articles/samples/reading.md",
+      "type": "peer_reader_documentation",
+      "finding": "Documents ACadSharp's DWG/DXF reader API and notifications, useful for route setup but not a test result."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/usage_for_beginners.rst",
+      "type": "peer_reader_documentation",
+      "finding": "Documents ASCII and Binary DXF loading and a separate recovery path for flawed files."
+    },
+    {
+      "url": "https://github.com/mozman/ezdxf/blob/master/docs/source/launcher.rst",
+      "type": "peer_tooling_documentation",
+      "finding": "Documents audit/recovery and raw ACIS SAT/SAB browsing/export as distinct tools; raw carrier visibility is not B-rep validation."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "type": "consumer_source",
+      "finding": "The current wrapper converts DWG to DXF using a selected external converter and passes the result to importDXF.open; the selected converter may be LibreDWG, ODA, or QCAD."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+      "type": "consumer_documentation",
+      "finding": "FreeCAD documents a native C++ DXF importer that does not implement all DXF features, an optional legacy Python route, and external DWG converters."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "type": "consumer_documentation",
+      "finding": "Describes DWG-to-DXF conversion followed by FreeCAD's standard DXF import path; this is not direct DWG parsing by FreeCAD."
+    }
+  ],
+  "localObservations": [
+    "dwg2dxf/main.cpp accepts the FreeCAD-shaped command `dwg2dxf <input> -o <output>`.",
+    "tests/dwg2dxf_cli_contract_tests.py contains generated tests for FreeCAD-shaped and conventional CLI forms.",
+    "Source/test inspection was read-only in this review; no test execution is reported."
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "topLevelSubplansAdded": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingsSubplans": "127/71",
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "readinessRefinements": [
+      "Keep LibreDWG reader/writer and class coverage scoped by exact version and family; its self-reported coverage is not a universal oracle.",
+      "Do not use ACadSharp DWG writer as an AC1021 comparator; key any outcome by version, operation, family, and exact release.",
+      "Separate ezdxf strict DXF parse, recovery/audit, and raw SAT/SAB inspection from semantic B-rep and native-consumer evidence.",
+      "Separate libdxfrw CLI output, FreeCAD's configured DWG converter route, and FreeCAD's selected DXF importer result.",
+      "Keep fast per-slice tests local; run pinned peer and native routes only at the existing composed checkpoint."
+    ]
+  },
+  "limitations": [
+    "Peer capability statements and release notes are not runtime conformance results.",
+    "No FreeCAD, peer, geometry kernel, or native application was run.",
+    "No peer artifact or external drawing was downloaded or inspected.",
+    "No support claim or deferred-external disposition is changed."
+  ]
+}

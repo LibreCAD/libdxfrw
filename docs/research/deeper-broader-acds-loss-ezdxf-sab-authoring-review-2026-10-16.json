@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw-acds-loss-ezdxf-sab-authoring-review-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Refresh open-source DWG/DXF peer evidence for modern AcDs/SAB carrier loss, identify an exact-profile SAB authoring control, and close a generated block-owner/INSERT assertion gap without promoting support claims.",
+  "method": {
+    "kind": "Primary project documentation/source and issue review plus local generated test control",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerProgramsRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "localFixtureFilesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "externalRuntimeQualification": "NOT RUN",
+    "sourceIdentity": "LibreDWG issue #1411 is scoped to reporter-stated 0.14.8593 / commit prefix 8a1ae764. LibreDWG master and ezdxf stable docs are mutable and were not built or executed in this review.",
+    "evidenceBoundary": "Issue reports and mutable documentation establish candidate risks and declared routes only. They do not establish current-master runtime behavior, arbitrary SAB support, correct AcDs ownership, B-rep validity, or native consumer acceptance."
+  },
+  "sources": [
+    {
+      "url": "https://github.com/LibreDWG/libredwg/issues/1411",
+      "route": "LibreDWG modern AcDs/SAB conversion loss",
+      "observed": [
+        "The report pins its tested build to LibreDWG 0.14.8593 at commit prefix 8a1ae764.",
+        "The described R2018 DXF producer case has a 5,489-byte SAB body generated from a mesh-derived cube; after dxf2dwg and dwg2dxf, the REGION remains but the SAB payload and ACDSDATA section are absent.",
+        "The reporter separately describes a confidential R2018 drawing whose solid entities report acis_empty=1 and has_ds_data=1 while AcDs section contents and SAB payload are not surfaced. This real-file observation is not independently verifiable from the issue attachment."
+      ],
+      "limit": "This is a pinned report, not a reproduction in this workspace or proof that another release/current master behaves identically."
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "route": "LibreDWG current declared AcDs maturity",
+      "observed": [
+        "Published history says AcDsPrototype_1b is not fully handled and describes extracting newer ACIS SAB payloads by marker scanning.",
+        "Related format documentation lists ACDSRECORD and ACDSSCHEMA among types passed through without ordinary DXF field conversion."
+      ],
+      "limit": "Mutable documentation does not pin a current build or prove the complete current source path; partial AcDs support exists and must not be misstated as no AcDs reader at all."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "route": "ezdxf current SAT/SAB API and limitations",
+      "observed": [
+        "The detailed API publishes export_sab with SAB version 21800 described as sufficient for DXF R2013 and R2018.",
+        "The API describes mesh-derived ACIS body creation and mesh_from_body limited to flat polygonal faces; curved faces are omitted from that projection.",
+        "Unsupported parsed ACIS nodes become NONE_ENTITY and lose data; the docs warn arbitrary ACIS load/edit/re-export is not supported."
+      ],
+      "limit": "No runtime was executed. This is a bounded authoring/parser/polyhedron control, not a general ACIS kernel or arbitrary carrier-preservation oracle."
+    },
+    {
+      "url": "https://ezdxf.readthedocs.io/en/stable/faq.html",
+      "route": "ezdxf documentation consistency",
+      "observed": [
+        "The stable FAQ says ezdxf reads SAT and SAB but writes SAT only, which conflicts with the detailed stable API's export_sab declaration."
+      ],
+      "limit": "Resolve against one exact package at the optional composed checkpoint by probing actual API/runtime output and inspecting the produced profile; documentation alone is not an execution result."
+    }
+  ],
+  "localControl": {
+    "target": "libdxfrw_dwg_local_roundtrip",
+    "change": "Generated ASCII and binary AC1027 DXF controls now place a modeler entity in a named block, associate the raw ACDSDATA ASM_Data key with the exported modeler handle, check block-record ownership, history-proxy ownership, INSERT placement/scales/angle, and a neighboring LINE, then repeat export/import.",
+    "payload": "Locally-authored marker bytes only; intentionally not valid or semantically decoded SAB.",
+    "assertionCorrection": "DXF import exposes ACDSDATA as a raw DXF section. The test no longer incorrectly requires DWG typed dataStorage fields on the DXF-imported modeler; it verifies the raw record owner key and bytes against the parsed entity handle.",
+    "productionCodeChanged": false,
+    "validation": {
+      "strictTargetBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j 2",
+      "focusedCtest": "PASS: libdxfrw_dwg_local_roundtrip (1/1)",
+      "fullSuite": "NOT RUN",
+      "externalPeerOrNativeRuntime": "NOT RUN"
+    }
+  },
+  "planDelta": {
+    "existingOwnersOnly": [
+      "PAR-07 source and peer evidence admission",
+      "S2/S3 modeler carrier, owner, and ACDSDATA checks",
+      "S8 optional composed peer and consumer qualification"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCtestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "nextActions": [
+      "Keep the generated ASCII/binary block-owner test in the existing fast CTest loop; no full suite is needed per slice.",
+      "At the optional composed checkpoint, use one exact ezdxf artifact only if it is already available; generate a local temporary polyhedral SAB carrier and compare entity disposition, block/INSERT path, payload bytes/key/hash, and diagnostics separately.",
+      "Do not use ezdxf's planar mesh projection as curved geometry evidence, and do not count a surviving modeler record without its associated payload as a conversion pass.",
+      "If an optional peer is unavailable or unpinned, record NOT_RUN and continue local implementation."
+    ]
+  }
+}

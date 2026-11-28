@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-common-reactor-count-and-reserve-guard-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Staging and output bounds for ordinary entity and table-entry common reactor references in the DXF writer.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt"
+    ],
+    "behavior": [
+      "Entity field validation rejects reactor vectors larger than dwgSafety::MaxReactorCount (1,000,000) before entity-record publication.",
+      "Table-entry preflight applies the same maximum before object-record publication.",
+      "Entity and table-entry common reactor staging uses DRW::reserve, which catches allocation exceptions and returns through the writer's existing refusal path.",
+      "Ordinary reference-ID and resolver-zero omission behavior remains covered by the existing common-reference output-ID selector."
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+    "focused": [
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --common-reactor-count-bound",
+        "result": "PASS",
+        "coverage": "ASCII/Binary LINE and DICTIONARY each refuse 1,000,001 typed reactor references with an empty destination."
+      },
+      {
+        "command": "build-gcc/libdxfrw_wave1_tests --common-reference-output-id-guard",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_(common_reactor_count_bound|common_reference_output_id_guard)$' --output-on-failure",
+        "result": "PASS"
+      }
+    ],
+    "repositoryFixturesAdded": 0,
+    "allocationFailureInjected": false
+  },
+  "limitations": [
+    "This bounds and safely reserves only entity and table-entry common reactor staging. It does not establish allocation-failure injection coverage or corpus-wide resource safety.",
+    "IMAGEDEF and other specialized reactor/reference assembly paths remain separate audit targets."
+  ],
+  "next": "Continue the bounded allocation and rollback audit on distinct source-backed writer paths, beginning with specialized reference assembly not covered here."
+}

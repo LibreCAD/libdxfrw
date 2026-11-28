@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 physical RASTERVARIABLES original-frame selected output",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Bind and qualify the original physical AC1021 RASTERVARIABLES source frame 0x2D2 to selected same-version DXF output, retaining its direct NOD graph and typed semantics.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceGraph": {
+    "record": "RASTERVARIABLES",
+    "handle": "0x2D2",
+    "class": "AcDbRasterVariables",
+    "root": "NOD key ACAD_IMAGE_VARS resolves uniquely to handle 0x2D2.",
+    "ownerAndReactor": "Both typed owner and sole reactor resolve to the NOD at handle 0xC; extension-dictionary flag is set and xDictHandle is zero.",
+    "projection": "A test-only selected graph retains the exact typed callback and opaque source frame copied from the physical import, the unchanged source CLASS evidence, and the single NOD root key. It sets the selected opaque-callback census to one and omits unrelated source frames, layer records and their extension graphs."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selectorCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1021-direct-nod /Users/dli/doc/dwg/children-room-decoration.dwg",
+    "result": "PASS, exit 0. ASCII and Binary selected output both publish qualification for the original source identity. Fresh DXF readback checks handle, direct NOD owner/key/reactor, class version, frame, quality and units. Invalid source fields and owner metadata are refused without replacing the destination sentinel; corrected state retries successfully with the same adapter.",
+    "testSourceSha256": "3334c18021137740e03a3dac71fa35e11c3bbab5bae99814d09639289338f769",
+    "executableSha256": "4657e9124e5d5aa1bfb8b5c9175096b73c539ee7c56c7b387cf5fdcb838100d9"
+  },
+  "implementation": {
+    "summary": "The physical AC1021 selector now serializes the original source-bound RASTERVARIABLES identity in its selected projection. Other physical revisions continue using their existing wrapper routes.",
+    "files": ["tests/dwg2dxf_adapter_tests.cpp"]
+  },
+  "limits": [
+    "Selected graph from one unauthenticated local source only.",
+    "The projection intentionally omits unrelated source objects and layer extension graphs.",
+    "No whole-source conversion, native raster-image meaning, independent application interoperability, producer-wide support, or general RASTERVARIABLES support claim is established.",
+    "SORTENTSTABLE 0x2DF and 31 standard-object frames remain unqualified."
+  ]
+}

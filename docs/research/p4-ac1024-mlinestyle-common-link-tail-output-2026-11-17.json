@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-mlinestyle-common-link-tail-output-2026-11-17",
+  "date": "2026-11-17",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md bounded AC1024 MLINESTYLE source/output profile",
+  "supportClaimEffect": "none",
+  "qualificationEligible": false,
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "revision": "AC1024",
+    "fixtureDisposition": "Existing local source outside the repository. Used for the focused physical selector and strict CLI trace; no DWG/DXF fixture was added, modified, staged, or committed."
+  },
+  "authority": {
+    "title": "Open Design Specification for .dwg files",
+    "edition": "ODA v5.4.1",
+    "section": "20.4.44 DICTIONARY",
+    "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "scope": "Dictionary graph roles are checked independently from the parser's common-link span-validation marker."
+  },
+  "finding": {
+    "before": "The physical AC1024 MLINESTYLE selector wrote the selected style but did not qualify its retained source frame. Strict CLI stopped at 225/228 opaque callbacks.",
+    "cause": "prepareDwgMLineStyles treated hasDwgCommonLinkTail() == true as a profile rejection for every version. DRW_Dictionary::parseDwg sets this marker after the AC1021+ common links and counted item handles have been decoded within the frame and their roles checked. The predicate rejected successful validation.",
+    "after": "Root-owner admission now requires the marker to match the source-version expectation: false for the admitted AC1015/AC1018 legacy profiles and true for source versions after AC1018. Exact NOD/root entry, owner, reactor, typed baseline, and source-frame checks remain in place. Debug export reports the specific MLINESTYLE profile gate when a bounded source is skipped.",
+    "strictCli": "At the time of this slice, opaque output qualification advanced from 225/228 to 226/228. The debug finalizer printed remaining decimal handles 34 and 89, which are DWG handles 0x22/type 82 (Model) and 0x59/type 82 (Layout1); S27 subsequently qualified those bounded profiles and strict conversion of the exact source succeeded. This MLINESTYLE slice alone did not qualify whole-file AC1024 conversion."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md"
+    ],
+    "productionChange": "Require version-appropriate DICTIONARY common-link validation instead of rejecting the validated AC1024 tail. Keep all existing exact source-role and graph checks.",
+    "selectorChange": "The physical selector exports through the same dx_iface that imported the DWG, matching dwg2dxf and retaining session-bound source evidence. It verifies ASCII and Binary output, a bad linetype-index refusal with sentinel destination preservation, same-adapter retry, source/owner opaque output qualification, and fresh DXF readback."
+  },
+  "validation": {
+    "builds": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf -j2",
+        "result": "PASS"
+      }
+    ],
+    "physicalSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-style-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary. Fresh readback verifies the STANDARD style identity, two BYLAYER sentinel elements, and rooted owner/reactor output. An injected unresolved linetype index is refused without replacing the sentinel destination; restoration and retry on the same adapter succeed."
+    },
+    "strictCli": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/ac1024-mline-s26-strict-debug.dxf",
+      "result": "EXPECTED_FAIL_CLOSED at this historical S26 checkpoint; 226/228 opaque callbacks qualified. The debug finalizer printed decimal handles 34 and 89, which are DWG handles 0x22/type 82 (Model) and 0x59/type 82 (Layout1). S27 later qualified these exact rooted output profiles and strict conversion of the exact source succeeded."
+    }
+  },
+  "limits": [
+    "The receipt qualifies only the selected AC1024 STANDARD MLINESTYLE source graph and emitted DXF profile on this local sample.",
+    "No broad AC1024 or whole-drawing support claim is promoted.",
+    "No drawing fixture was committed."
+  ],
+  "next": "S27 later qualified the exact rooted Model/Layout1 profiles on this source and enabled strict conversion. Continue the remaining independent-reader, native-consumer, and version/profile qualification gates; do not infer broad AC1024 support from this selected MLINESTYLE slice."
+}

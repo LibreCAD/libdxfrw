@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-dwg-layer-ltype-output-binding-2026-11-04",
+  "date": "2026-11-04",
+  "base_commit": "e66005cd",
+  "status": "GENERATED_DWG_LAYER_LTYPE_STAGED_OUTPUT_GATE",
+  "supportClaimEffect": "none",
+  "scope": "Bind each serialized DWG-origin LAYER group-6 name to its non-null source LTYPE hard-pointer and the exact source-to-emitted LTYPE row in the same staged TABLES transaction.",
+  "implementation": {
+    "stage": "The TABLES inspector first validates every typed source LTYPE against its serialized row, then checks each current DWG LAYER record before allowing the staged TABLES body to commit.",
+    "reference": "Require ref64 to equal the 32-bit source handle, the retained raw handle role to be DwgHardPointer, a unique binding for that handle, an exact source name match, a valid emitted target still present in the writer registry, and the emitted table spelling to match the layer group-6 spelling (case-insensitive only for the three canonical built-ins). Null layer LTYPE handles are refused because no implicit layer mode is established.",
+    "compatibility": "No public callback, entity layout or table-record layout changed. Tolerant read behavior remains unchanged; strict/partial imported-DWG output rejects an unclosed staged layer reference before publication.",
+    "transaction": "The gate runs after TABLES serialization but before staged bytes are appended. The existing writer transaction preserves the destination on refusal; the same codec can retry after restoring the source model."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_symbol_output_tests -j3",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_source_table_identities$' --output-on-failure",
+    "result": "Build passed with -Werror. Focused fast CTest passed 1/1 in 1.25 seconds. Generated AC1024 adapter state was written to seven DXF targets (AC1014, AC1015, AC1018, AC1021, AC1024, AC1027, AC1032), ASCII and Binary. Four positive profiles per cell preserve explicit CustomDash or one of the three version-qualified implicit entity modes, and fresh typed readback verifies the entity name and CHECK_LAYER group-6 name. Sixteen negative profiles per cell cover existing LTYPE table-row failures, entity-reference failures, plus layer source-name mismatch, missing source target, null custom target, wrong handle role, 64-bit alias, and null CONTINUOUS target; each refuses atomically and the same-codec corrected retry succeeds.",
+    "fixtures": "No DWG/DXF fixture was added or modified. DXF outputs are generated in a temporary directory and removed by the test."
+  },
+  "limitations": [
+    "The control uses generated AC1024 adapter state; no physical DWG strict conversion passed the whole-read gate and exercised this inspector.",
+    "The source-layer hard-pointer role and tolerant missing-target diagnostic were already tracked separately; this receipt proves generated staged output binding only.",
+    "Raw preserved DXF entities, entity-to-LAYER references, physical producer ordering, whole-source conversion, native linetype meaning, LibreCAD, LibreCAD_3, FreeCAD and 3D-consumer behavior remain open."
+  ],
+  "files": {
+    "dwg2dxf/dx_iface.h": "keeps LAYER serialization unchanged and declares the source/output closure check",
+    "dwg2dxf/dx_iface.cpp": "checks LAYER linetype identity after serialized LTYPE rows have been inspected",
+    "tests/dxf_symbol_output_tests.cpp": "adds generated rejection, retry and typed-readback controls",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "records this slice and retains physical/raw/native residuals"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumer_commit": "f0147ff8838bf6aeab208dd190cc071f702a42e8",
+  "codec_capability_commit": "2237fe6a",
+  "codec_binary_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "codec_library_sha256": "715e638095a7994d091e3bf330a3710c993a703993df5cad709bababbb23f517",
+  "finding": "Before this fix, an explicitly opted-in AC1021 sparse-material LINE containing two common-entity group 347 values (zero then the material handle) imported and saved successfully, replacing the preexisting destination and emitting only one material reference. Four handle/dictionary variants each failed both the expected refusal and destination-preservation assertions.",
+  "change": [
+    "Advertise the existing optional physical ENTITIES and BLOCK child source-handler facets with a capability macro; no codec vtable or binary implementation changed.",
+    "During explicitly opted-in replay imports of bounded inputs, capture complete ENTITIES and BLOCK child source streams. Reject missing or incomplete scopes, a mismatch with the number of block callbacks, repeated group 347, explicit zero or malformed references, unsupported field placement, and mismatches between physical references and imported entity source handles/targets.",
+    "Retain lineage, source-owner, staged-output and late-mutation checks. Ordinary import remains available and ordinary sparse-material replay remains guarded."
+  ],
+  "validation": [
+    "A local source probe observed absent, explicit-zero and repeated common group 347 in physical records: the typed callback reports zero for the first two and the last target for the repeated case. One model-space stream and one block-child stream were reported complete.",
+    "Twelve focused system-codec MATERIAL cases pass 1808 assertions, including malformed repeated references in model space and blocks, explicit zero in ASCII and binary, destination preservation, corrected reimport using the same filter and successful retry.",
+    "Seven system-codec IMAGE cases pass 7512 assertions. The bundled-codec filter object compiles; this is not a full bundled runtime test.",
+    "ezdxf independently reads the successful AC1021 retry, finds the named materials and matching LINE and layer material references, and reports no audit errors or repairs."
+  ],
+  "retry_output_sha256": "12428d4f4df1c3bb32f02fc6d8c914210a4b8d6699ad022f2e9b0e8866aeb1a3",
+  "limits": [
+    "The admitted profiles are bounded and explicitly opted in. An omitted ENTITIES section, multiple ENTITIES sections, unavailable physical evidence and explicit zero are conservatively refused rather than normalized.",
+    "The scalar scan refuses group 347 outside the common entity subclass and does not qualify all entity types, compound bodies, alternate block ownership, producers or versions. Source-stream completion alone does not prove semantic delivery, complete identity closure or lossless conversion.",
+    "Native behavior, platform qualification, ordinary save and broader sparse material support remain open. No generated fixture was committed."
+  ],
+  "supportClaimEffect": "none"
+}

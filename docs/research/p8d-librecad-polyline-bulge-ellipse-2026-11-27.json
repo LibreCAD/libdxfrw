@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-polyline-bulge-ellipse-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "9df41c96e3a1dc411c55018574e24bcc7b90bcf3",
+  "parentCommit": "efeab05daab92a63c77e60464d5fb8be32621618",
+  "authority": "Autodesk specifies that a vertex bulge describes its following segment: https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Polyline_SetBulgeAt_int_double.html",
+  "change": [
+    "Preserve the open polyline terminal vertex bulge in R12 and modern DXF; update pending bulge on reflection, direction reversal and removal. Rebind the closing segment and endpoints on closed reversal and prevent a stale closing pointer after removal or arc-to-ellipse replacement.",
+    "Restore elliptic child insertion through the base container instead of the rejecting polyline override. New LibreCAD private sidecars add group 1041 for the X radius; reconstruct the circular parameter-space chord and correct clockwise and Y-major orientation. Legacy 1040-only circular sidecars remain readable.",
+    "Preflight rotated/nonrepresentable elliptic segments in model space and blocks before output, and guard a late invalid conversion so finalization refuses staged output."
+  ],
+  "validation": [
+    "Red-before controls reproduced incorrect terminal bulges, stale closed-segment removal, dropped elliptic children, shifted nonuniform ellipse centers, and a rotated-ellipse export SIGSEGV.",
+    "macOS ARM64 system codec: 718 assertions in 15 polyline and extrusion cases pass, including R12/modern, clockwise/counterclockwise, both axial major directions, save/reopen/resave, old sidecar, mirror/reversal/removal, closure, model/block refusal, late-mutation destination preservation and same-filter retry.",
+    "The system-codec MATERIAL selector passes 2920 assertions in 15 cases. Bundled-codec polyline, filter and test translation units compile; bundled runtime was not run.",
+    "ezdxf 1.4.5 independently reads 14 generated terminal/closed outputs and eight generated axial-sidecar outputs, checking physical bulges, counts, closed state, analytic sidecar centers and clean audits. The private sidecar geometry is interpreted by the explicit analytic check, not by ezdxf itself.",
+    "The sanitizer target was stopped because it expanded to a full application rebuild; no sanitizer pass is claimed."
+  ],
+  "hashes": {
+    "terminalRed": "ad276ab9368830cf005c493079213641ff28d73a024f3161942e440a69e8a572",
+    "editRed": "62b73f9e21f5d351d6be1e7d622bf99f334b3297fe2bc9d48cccf073dab4a5ea",
+    "closedRed": "be2ce49a4d78e9b30cbc8871b3f7508771bc0e57f76ad8ac4a4be67efd61f247",
+    "droppedEllipseRed": "51473b62c9ff8907c39dfa949a05c2451a741e95ab0626acf60e0ae8f80127b5",
+    "shiftedEllipseRed": "17e539cb0b4f8904f2585b800a22e1e7c528a49373dc30997f6c8a4b63517a13",
+    "rotatedCrashRed": "b6c2c6a3c56e707eb5e9aba01dd2269baaf23d8eb8cbbe8e8c23fef7cd19a510",
+    "focused": "8c37499c53976d3558774b90b45b6e5219eb526b943c9ac4d2bb49b3ba5fffc1",
+    "material": "41e0f9e40b1aff52e84e4d906d805138d98000a43a9c53219e6d86e2895a7190",
+    "bundledCompile": "4cb92d0efe19173fa91cbf3f2f0491a77c3215364c74c676ea4bc4df1799a112",
+    "peerValidation": "8b67f79d4bee190bd8215b63cd86261e6f0fee96e69ea31846a981b5566facf7"
+  },
+  "limits": [
+    "Curved sparse-MATERIAL replay remains guarded. Rotated elliptic polyline output is refused; arbitrary affine ellipse export and native GUI qualification remain open.",
+    "Legacy sidecars containing only 1040 are not independently established to reconstruct nonuniform ellipses accurately; the compatible circular control is narrower. The new two-radius sidecar is LibreCAD-specific, not a claim of native CAD interpretation.",
+    "Generated DXF files remain in scratch storage; no drawing fixture is committed."
+  ]
+}

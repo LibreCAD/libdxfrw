@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Peer entity-delivery accounting and same-lineage browser route",
+  "mode": "Primary-source research and local plan crosswalk; research only",
+  "scope": [
+    "Refresh ACadSharp retained-proxy and TArch report status",
+    "Separate parser notifications/counts from final entity and owner-collection publication",
+    "Classify browser/WASM routes by parser lineage and artifact scope",
+    "Refine the existing PAR-07/S8 composed identity/owner-closure evidence without adding a new subplan"
+  ],
+  "sources": [
+    {
+      "name": "ACadSharp issue #1131",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1131",
+      "observed": "The thread includes a report that 56 DWG entity-mode notices were emitted as unknown entities while zero UnknownEntity records appeared in the final document. The commenter attributes this to model/paper-space staging lists not being consumed by that DWG path. This is peer-reported and not independently reproduced here. The later TArch discussion uses a user-provided native drawing and vendor-specific analysis, so it is not a general libdxfrw support requirement."
+    },
+    {
+      "name": "ACadSharp proxy-data PR #1274",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1274",
+      "observed": "Merged as c9cb845 on 2026-10-13. The contributor reports equal entity counts and type/handle fingerprints over 21 DWGs (1,607,215 entities) and 2,358 retained proxy-data bytes. The PR discussion says no proxy regression drawing was committed because the available files were large and permission-sensitive. Treat this as route-specific author-reported traversal evidence, not an independent run or semantic support result."
+    },
+    {
+      "name": "ACadSharp TArch PR #1275",
+      "url": "https://github.com/DomCR/ACadSharp/pull/1275",
+      "observed": "Still open in the reviewed page. It proposes interpretation of a narrow native TArch text-object family and compares against the vendor's flattened T3 export. That same-producer comparison does not qualify general custom-entity semantics or libdxfrw."
+    },
+    {
+      "name": "@mlightcad/libdxfrw-web package",
+      "url": "https://www.npmjs.com/package/@mlightcad/libdxfrw-web",
+      "observed": "The package describes itself as a WebAssembly version of libdxfrw, claims ASCII/Binary DXF read/write and DWG reading through AutoCAD 2020, and links to github.com/mlight-lee/libdxfrw. It is a same-family port/artifact, not an independent codec comparator."
+    },
+    {
+      "name": "flyfish-dev/cad-viewer",
+      "url": "https://github.com/flyfish-dev/cad-viewer",
+      "observed": "The project documents DWG parsing through LibreDWG WebAssembly in a worker and DXF through a JavaScript parser/fallback. The two parser routes are attributable to those dependencies; renderer, worker, cancellation, and UI behavior are application evidence, not additional parser votes."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "peerExecutablesRun": 0,
+    "nativeCadOrKernelRuns": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Attach a per-handle source identity, parser disposition, and final owner/container membership ledger to the existing PAR-07/S8 composed evidence checkpoint. Aggregate callback/entity totals alone do not prove publication or owner closure. Keep same-lineage ports deduplicated and vendor-specific TArch interpretation outside scope. No per-slice full suite, peer runtime, fixture, or new support claim is required."
+  },
+  "method": {
+    "webReview": "Primary GitHub issue/PR pages, project README, and npm package metadata; no peer artifact execution",
+    "localReview": "Read-only plan and DWG reader/test source inspection",
+    "localTestsRun": false,
+    "fullSuiteRun": false,
+    "externalFilesDownloaded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "nativeApplicationsOrKernelsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "sourceSha256": {
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "3c408453a2e79328732143b5cdc2b00641fb2c427a7ef347db081e38f7a07a14"
+    },
+    "planSha256": "3c408453a2e79328732143b5cdc2b00641fb2c427a7ef347db081e38f7a07a14",
+    "validation": [
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md passed after plan update",
+      "jq empty docs/research/deeper-broader-peer-entity-delivery-accounting-browser-lineage-2026-10-19.json passed"
+    ],
+    "limitations": "Peer-reported findings and contributor test counts were not reproduced. The optional browser route is same-lineage or dependency-routed, not independent semantic evidence. No claim is made about TArch support or general unknown-object preservation."
+  }
+}

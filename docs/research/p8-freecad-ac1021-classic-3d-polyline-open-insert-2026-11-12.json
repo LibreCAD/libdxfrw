@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-freecad-ac1021-classic-3d-polyline-open-insert-2026-11-12",
+  "purpose": "Qualify a generated classic 3D POLYLINE through AC1021 DWG writing, installed dwg2dxf conversion and FreeCAD native C++ DXF import.",
+  "source": {
+    "provenance": "Generated from scratch in /tmp; no DWG/DXF fixture is committed.",
+    "generator": "tests/dwg_local_roundtrip_tests.cpp --generate-freecad-primitives-source",
+    "generatorExecutableSha256": "185a15ca63d87f1eaeb618f7ede01953e658258f1f595e92ba30b4e044356255",
+    "version": "AC1021",
+    "sha256": "b845bfac6d10d0a9c4500d11d5100d6d90750e5ce95cf13e37db1b4b51ac8572",
+    "polyline": {
+      "dxfEntity": "POLYLINE",
+      "flags": 8,
+      "vertexSubtype": "Vertex3D",
+      "coordinatesWcs": [[61, 62, 1], [64, 62, 4], [65, 66, 5], [70, 68, 8]],
+      "expectedTopology": {"edges": 3, "vertices": 4},
+      "expectedTotalLength": 14.649695377207546
+    }
+  },
+  "converter": {
+    "buildPath": "build-gcc/dwg2dxf/dwg2dxf",
+    "installedPath": "/private/tmp/libdxfrw-freecad-current-install/bin/dwg2dxf",
+    "sha256": "36ccaf73892eba809aed7316272d5e02d1ce2f4b645c4d3057109df391f506f1",
+    "buildAndInstalledBytesMatch": true
+  },
+  "convertedDxf": {
+    "sha256": "78407f5f8c55a38e371130982ceda65c32f6b00714d67ccefa9ae9fc55f0e027",
+    "recordCheck": "Generated output contains the POLYLINE header, four VERTEX records and SEQEND. Native FreeCAD import verifies the exact WCS vertices."
+  },
+  "consumer": {
+    "application": "FreeCAD 1.1.4",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "macOS 27.2.1 arm64",
+    "importer": "C++ DXF importer",
+    "route": "FreeCAD Draft DWG open/insert -> hash-checked installed dwg2dxf -> C++ DXF importer",
+    "operations": {"open": "PASS", "insert": "PASS"},
+    "entityCounts": {
+      "POINT": 1,
+      "LINE": 1,
+      "CIRCLE": 1,
+      "ARC": 1,
+      "ELLIPSE": 1,
+      "LWPOLYLINE": 1,
+      "POLYLINE": 1,
+      "SPLINE": 1
+    },
+    "classicPolylinePointsWcsInOrder": [[61, 62, 1], [64, 62, 4], [65, 66, 5], [70, 68, 8]],
+    "classicPolylineShape": {
+      "boundsWcs": [61, 62, 1, 70, 68, 8],
+      "edges": 3,
+      "vertices": 4,
+      "totalLength": 14.649695377207546
+    },
+    "unsupportedFeatures": {}
+  },
+  "validation": {
+    "focusedCtest": "dwg2dxf_freecad_generated_ac1021_primitives_open/insert: PASS 2/2 in 3.01 seconds",
+    "generatorExecutableSha256": "185a15ca63d87f1eaeb618f7ede01953e658258f1f595e92ba30b4e044356255",
+    "macroSha256": "72b342b606a7aa16d6a5fe279d05a0c6e40d72775fb6421886258206743e7859",
+    "fixturePolicy": "The committed source generates the DWG at runtime. Test DWG/DXF outputs stay in isolated temporary directories; no fixture was added."
+  },
+  "limitations": [
+    "This is one generated AC1021 3D POLYLINE profile, in the FreeCAD 1.1.4 macOS ARM64 route only.",
+    "Hosted FreeCAD 1.1.3 Linux/Windows execution, other POLYLINE flags and vertex profiles, physical producer breadth, native DWG support and broad application semantics remain open."
+  ],
+  "supportClaimEffect": "Adds bounded native-consumer geometry evidence for this generated AC1021 classic 3D POLYLINE profile only; no broad format-support claim is promoted."
+}

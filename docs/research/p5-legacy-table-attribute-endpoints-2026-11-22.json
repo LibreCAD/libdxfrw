@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "scope": "controlled R14 TABLE wire and fail-closed reader; not native semantics",
+  "references": [
+    "ODA Open Design Specification for .dwg files v5.4.1 sections 2.13 and 20.4.96.1",
+    "ACadSharp samples/sample_AC1014.dwg"
+  ],
+  "sourceSha256": "d1ec4519be14ac49ecab5ec024ad951271e00261a1851f623a784a97ba6ede73",
+  "generatedDwgSha256": "38c3bb1ff64c659f633157e4adda6328c1e9df1b98032a5b798b380e5c199f68",
+  "generatedTableFrameSha256": "736d50f4521dc7c0773efc0b1303be1e1b24b53c832947015a99a51f0c02f109",
+  "generatorSha256": "7b738b1ca5dec5b61e9bc0948f224a7e1b329a162064ae018ff9f2fa74199066",
+  "tool": "LibreDWG 0.14 dwgread and dwgwrite",
+  "observations": [
+    "The hash-bound R14 TABLE payload is preserved bit for bit except its attribute flag and the inserted first ATTRIB, last ATTRIB and SEQEND references.",
+    "LibreDWG reopens the derivative with TABLE 528, ATTRIB 705 and SEQEND 706 owned by TABLE 528; the TABLE frame CRC is valid.",
+    "The bounded parser resolves endpoints, preserves the following style handle and rejects malformed roles, overflows and truncation before corrected retry.",
+    "The file reader withholds the incomplete compound, delivers an unrelated TABLE and can retry the original input on the same adapter, with the grid callback enabled, disabled or absent.",
+    "Generated R13, R14 and R2000 controls cover null endpoints, relative forms and reset/retry. AddressSanitizer focused checks pass."
+  ],
+  "limits": [
+    "The source and derivative remain outside the repository.",
+    "Other unsupported source objects are not qualified by LibreDWG's rewrite.",
+    "This is not native TABLE attribute, cloning, display, or output evidence.",
+    "This evidence does not establish native producer behavior, TABLE cell semantics, complete aggregate publication, lossless output or wider support."
+  ]
+}

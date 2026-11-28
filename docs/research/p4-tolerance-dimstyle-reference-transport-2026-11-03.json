@@ -1,0 +1,49 @@
+{
+  "id": "p4-tolerance-dimstyle-reference-transport-2026-11-03",
+  "date": "2026-11-03",
+  "status": "PASS",
+  "source_profile": {
+    "format": "DWG",
+    "revision": "AC1024",
+    "provenance": "Locally authored from scratch by the focused C++ selector at runtime; all generated drawings are removed with the temporary directory.",
+    "fixture_committed": false
+  },
+  "contract": {
+    "dwg": "ODA v5.4.1 §20.4.49 defines TOLERANCE's DIMSTYLE field as a hard pointer.",
+    "dxf": "Autodesk's TOLERANCE DXF table defines group 3 as the dimension-style name.",
+    "required_projection": "Resolve the source hard pointer against the loaded DIMSTYLE table and write the exact table name; refuse an unresolved pointer instead of emitting the constructor default STANDARD."
+  },
+  "implementation": {
+    "reader": "src/intern/dwgreader.cpp resolves DRW_Tolerance::dimStyleH.ref through the existing findTableName(DRW::DIMSTYLE, ...) source map before callback delivery.",
+    "writer": "src/libdxfrw.cpp rejects an empty TOLERANCE dimStyleName before opening the entity record scope, with an unresolved-tolerance-dimstyle diagnostic.",
+    "test": "tests/dwg2dxf_adapter_tests.cpp runtime-authors valid and missing-target AC1024 DWGs, then checks ASCII/Binary DXF output, typed readback, atomic refusal, destination preservation, and same-adapter corrected retry."
+  },
+  "results": {
+    "custom_style_handle_to_name": "PASS: ANSI-25 DIMSTYLE handle resolves exactly and survives both DXF encodings.",
+    "missing_target": "PASS: absent hard-pointer target produces an empty unresolved name and strict output refusal.",
+    "rollback_and_retry": "PASS: sentinel destination survives both refusals; correcting the handle/name lets the same adapter write and read back ANSI-25.",
+    "normal": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "test": "ctest --test-dir build-gcc -R '^libdxfrw_tolerance_dimstyle_reference_binding$' --output-on-failure",
+      "result": "PASS",
+      "elapsed_seconds": 0.60
+    },
+    "asan": {
+      "build": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "test": "ctest --test-dir build-asan-custom -R '^libdxfrw_tolerance_dimstyle_reference_binding$' --output-on-failure",
+      "result": "PASS",
+      "elapsed_seconds": 1.18
+    }
+  },
+  "sources": [
+    {
+      "title": "ODA Open Design Specification for .dwg files v5.4.1 §20.4.49 TOLERANCE (46)",
+      "uri": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    },
+    {
+      "title": "Autodesk TOLERANCE (DXF)",
+      "uri": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-ADFCED35-B312-4996-B4C1-61C53757B3FD.htm"
+    }
+  ],
+  "claim_boundary": "Generated AC1024 handle-to-name transport and fail-closed behavior only. No physical producer breadth, tolerance rendering, GD&T semantics, native-consumer behavior, or general support claim is established."
+}

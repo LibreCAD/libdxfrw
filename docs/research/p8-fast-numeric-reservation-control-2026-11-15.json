@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-15",
+  "hostedRun": "https://github.com/dxli/libdxfrw/actions/runs/43728273518",
+  "finding": "Freshly linked numeric-locale control expected the obsolete 48-byte peak for an ARCALIGNEDTEXT double-to-text field. The parser now transfers its 24-byte formatting reservation into retained storage, so the old 47-byte rejection expectation is incorrect.",
+  "change": "Test atomic refusal with 23 bytes and successful same-parser retry with 24 bytes. Assert that the rejected reservation leaves both the field and budget usage empty and the successful retained charge equals the resulting string length.",
+  "validation": [
+    "Freshly rebuilt libdxfrw_numeric_locale CTest passes, including exact finite binary64 readback and retained-byte accounting.",
+    "The earlier local 44-test result used a stale numeric test binary; the hosted failure exposed the mismatch. The separate block-owner failure remains open."
+  ],
+  "limits": "No production reservation or safety check was weakened. Hosted fast qualification must be rerun and no support claim is promoted."
+}

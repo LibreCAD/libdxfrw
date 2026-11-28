@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "PAR-134 standalone MTEXT background CMC retention",
+  "mode": "generated AC1024/AC1032 writer-wire-parser fast slice",
+  "scope": [
+    "Preserve standalone MTEXT background CMC truecolor, color-name, and color-book data on DWG parse/write",
+    "Share validated method selection between standalone and embedded MTEXT DWG writers",
+    "Verify independent CMC field order, detached string placement, parser round-trip, and refusal before output when metadata cannot be represented"
+  ],
+  "evidence": {
+    "odaSpec": {
+      "version": "Open Design Specification for .dwg files v5.4.1",
+      "sections": ["2.11 CmColor", "20.4.46 MTEXT"],
+      "finding": "ODA §20.4.46 defines the R2004+ MTEXT background color as CMC, present when the background flags require the payload; §2.11 defines CMC RGB and optional name/book strings. The §20.4.46 table labels background scale as BL but gives default 1.5, an internal inconsistency with the current sample-compatible BitDouble path. This slice does not change that adjacent field; it remains a sample-trace follow-up."
+    },
+    "localSource": {
+      "files": ["src/drw_entities.cpp"],
+      "finding": "Standalone MTEXT parsing previously retained only the CMC scalar and its writer emitted only that scalar, losing parsed RGB/name/book fields already present in the public model. The standalone writer now emits validated C0/C1/C2/C3 forms and detached names/books; the parser retains RGB and combines the optional book/name in the existing field. Embedded and standalone MTEXT share the same CMC preparation/output path. The embedded text-frame bit gate now matches the parser's AC1032 version gate.",
+      "compatibility": "No public class layout or virtual interface changed."
+    },
+    "generatedControls": {
+      "file": "tests/dwg_object_vectors_tests.cpp",
+      "versions": ["AC1024", "AC1032"],
+      "finding": "Independent wire walks cover named C0 ByLayer, named C1 ByBlock, C3 ACI, and named black C2 RGB; verify text/name stream order and following transparency; production parse checks retained values and the following-handle sentinel. A second local round trip is checked. Invalid RGB and R2007+ named output without a distinct string stream are refused before the common entity prefix.",
+      "limit": "Generated vectors establish local codec consistency only; they are not producer-authored or native-consumer evidence."
+    }
+  },
+  "changes": {
+    "productionChanged": true,
+    "productionSummary": [
+      "Capture standalone MTEXT background RGB and optional CMC color/book names during bounded parsing.",
+      "Write the full supported CMC state instead of reducing standalone MTEXT background to an indexed scalar.",
+      "Use the same method selection and detached-string preflight in standalone and embedded MTEXT writers.",
+      "Keep the R2018-only background text-frame flag gate aligned between embedded writer and parser."
+    ],
+    "generatedTestChanged": true,
+    "focusedCtestAdded": "libdxfrw_mtext_background_cmc",
+    "persistentDwgDxfFixturesAdded": 0,
+    "supportClaimsPromoted": false
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_object_vectors_tests lc3_compat_check -j4",
+        "result": "PASS (-Werror strict builds)"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --mtext-background-cmc",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^(libdxfrw_mtext_background_cmc|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+        "result": "PASS (2/2)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -L cmc --output-on-failure",
+        "result": "PASS (10/10)"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_dxf_issue_1410_cross_codec$' --output-on-failure",
+        "result": "PASS (1/1)"
+      },
+      {
+        "command": "git diff --check -- CMakeLists.txt src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/mtext-background-cmc-fast-slice-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fullSuiteRun": false,
+    "externalProducerRun": false,
+    "nativeCadRun": false,
+    "independentSemanticRun": false
+  },
+  "unresolved": [
+    "ODA §20.4.46's background-scale BL label conflicts with its stated 1.5 default and current BitDouble behavior; resolve with a bounded trace from an existing eligible producer sample before changing that field.",
+    "Standalone MTEXT CMC source-method identity beyond the supported normalized C0/C1/C2/C3 model, including C5 and internal-only methods, remains a separate audit item.",
+    "HATCH C5 producer semantics, class-specific DXF mappings, and native/external qualification remain open.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL."
+  ]
+}

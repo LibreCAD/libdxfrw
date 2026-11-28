@@ -1,0 +1,129 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-civil-assoc-current-one-unresolved-2026-11-07",
+  "date": "2026-11-07",
+  "title": "Current AC1024 civil associative geometry-dependency completeness recheck",
+  "supportClaimEffect": "none",
+  "scope": "Reconcile older civil associative receipts against current libdxfrw parser state; identify the exact residual source frame without inferring its missing wire fields.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "sha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "version": "AC1024",
+    "provenanceLimit": "Existing local research source; not a committed fixture or an independently authenticated producer witness."
+  },
+  "currentLibdxfrwRead": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/civil_example-imperial.dwg -y -d -v2010 /private/tmp/civil-current.dxf",
+    "executableSha256": "5982fe171b1c92345120eaa72b6f450309dd023b7f323313e64f80a697972f7b",
+    "result": "335/335 source frames published; zero entity/object parse failures; strict output remains refused by the pre-existing null LTYPE_CONTROL member.",
+    "existingProfileClasses": {
+      "geometryDependencyRecords": 29,
+      "currentWireComplete": 28,
+      "currentWireIncomplete": 1,
+      "edgePersistentSubentityRecords": 10,
+      "singleEdgePersistentSubentityRecords": 18
+    }
+  },
+  "residual": {
+    "handle": "0xC55",
+    "record": "ACDBASSOCGEOMDEPENDENCY",
+    "ownerConstraintGroup": "0x777",
+    "dependentOnObject": "0x6CD",
+    "dependencyName": "AcDbAssocEdgePersSubentId",
+    "persistentSubentityClassName": "",
+    "dependencyPrefix": {
+      "startBit": 39,
+      "bitSize": 85,
+      "status": "Complete"
+    },
+    "geometryPrefix": {
+      "startBit": 124,
+      "bitSize": 4,
+      "status": "Complete"
+    },
+    "objectDataEndBit": 152,
+    "bodyCursorAfterRecognizedFieldsBit": 128,
+    "unaccountedBodyBits": 24,
+    "unaccountedBitsHex": "0xCE4B94",
+    "handleStream": {
+      "dependency": "0x6CD",
+      "readDependency": "0x9AA",
+      "writeDependency": "0x6CD",
+      "node": "0x6CD",
+      "body": "0"
+    },
+    "result": "Retain as wire-incomplete/raw for strict support and output admission. The 24-bit tail is not established as padding, Edge indexes, or any other field."
+  },
+  "independentReader": {
+    "name": "LibreDWG dwgread",
+    "version": "0.14",
+    "command": "/opt/homebrew/bin/dwgread -O JSON /Users/dli/doc/dwg/civil_example-imperial.dwg",
+    "jsonPath": "/private/tmp/civil-rigidset-graph-review.json",
+    "jsonSha256": "ef33f2eb73fbf0f9f74d0a4b99d63b347fb01554e788be71d02989688774c5de",
+    "handle": "0xC55",
+    "decoded": {
+      "assocdep.name": "AcDbAssocEdgePersSubentId",
+      "classname": "",
+      "class_version": 0,
+      "enabled": 1,
+      "dependent_on_compound_object": 0,
+      "ownerhandle": "0x777",
+      "dep_on": "0x6CD"
+    },
+    "limitation": "Independent JSON corroborates the conflicting name/class fields, but does not expose or explain libdxfrw's 24 residual source-body bits. It does not qualify a serializer."
+  },
+  "authorityReview": {
+    "odaSpecification": "Open Design Specification for .dwg files v5.4.1",
+    "odaPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "odaTextSearch": "No class-specific AcDbAssocGeomDependency, AcDbAssocPersSubentId, or AcDbAssocEdgePersSubentId field sequence was found in extracted ODA v5.4.1 text. ODA remains authoritative; no schema change is justified by peer inference.",
+    "libreDwgPeer": {
+      "repository": "https://github.com/LibreDWG/libredwg",
+      "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "sourcePath": "src/dwg2.spec",
+      "sha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+      "lines": "3154-3186",
+      "observation": "The tracked ACDBASSOCGEOMDEPENDENCY schema contains the common persistent-subentity classname and compound flag. The separate Edge schema has class version and two indexes, but the exact c55 source does not identify itself through its persistent-subentity classname; peer schema cannot resolve the mismatch."
+    },
+    "autodeskObjectARX": {
+      "source": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE-Methods-AcDbAssocPersSubentId.html",
+      "observation": "The base implementation writes class identification to reconstruct the derived persistent-subentity object. This supports preserving the empty class identifier as unresolved; it does not define the DWG tail."
+    }
+  },
+  "crossSourceScreen": {
+    "ac1024SourcesChecked": 9,
+    "matches": 1,
+    "match": "civil_example-imperial.dwg / 0xC55",
+    "excluded": [
+      "visualization_-_condominium_with_skylight.dwg produced malformed JSON and is not evidence of absence."
+    ],
+    "scopeLimit": "Existing local corpus only; no producer-wide inference."
+  },
+  "odaConverter": {
+    "application": "ODA File Converter 27.1.0 ARM64",
+    "route": "Native macOS GUI, audit enabled, scratch input copy; AC1024 DWG to 2010 ASCII DXF.",
+    "inputPath": "/private/tmp/civil-assoc-oda/in/civil_example-imperial.dwg",
+    "inputSha256": "45b419d0c7382eb271079b80c3237a52183f4fa09e7b495c3d7a65c6baa927dc",
+    "outputPath": "/private/tmp/civil-assoc-oda/out/civil_example-imperial.dxf",
+    "outputSha256": "874cd8eaf225e962727daa10becedaa85e5bf82c5b7b95bf8fcfa92a04c0a0dd",
+    "outputObject": {
+      "handle": "0xC55",
+      "type": "ACAD_PROXY_OBJECT",
+      "owner": "0x777",
+      "binaryChunkPresent": true,
+      "group330References": ["0x6CD", "0x9AA", "0x6CD", "0", "0"],
+      "result": "The independent converter does not emit a typed ACDBASSOCGEOMDEPENDENCY or expose the persistent-subentity class/tail fields for this record."
+    },
+    "supportClaimEffect": "none",
+    "limitation": "This successful converter route is an external conversion observation, not semantic interpretation of the 24 source bits, native constraint evaluation, or a basis for promoting DXF/DWG support."
+  },
+  "validation": {
+    "sourceAdapterProbe": "/private/tmp/civil_assoc_probe.cpp",
+    "sourceAdapterProbeSha256": "4f31818832340559bf22adb6fd8a3ea52fb66e8ffcddef0121da3dc2374f46de",
+    "probeExecutable": "/private/tmp/civil_assoc_probe",
+    "probeExecutableSha256": "f74cee6be71219aa7bb4acf6380a7f952fc42d0cdd820016bf08493aaa1775bb",
+    "probeLog": "/private/tmp/civil-assoc-probe.log",
+    "probeLogSha256": "f07b5fe623924195a9513df9d3ebb4c1019af630373230b12246499390bf4d16",
+    "normalBuildAfterTemporaryDiagnosticsRemoved": "cmake --build build-gcc --target dwg2dxf -j4 PASS",
+    "fixturePolicy": "No DWG/DXF fixtures created or committed. Input/output files are scratch copies. Temporary source instrumentation was removed and the target rebuilt from clean tracked source."
+  },
+  "nextAction": "Keep 0xC55 raw and output-ineligible. Resume only with authoritative class layout or an independent producer trace that accounts for all 24 source bits. In parallel select another source-backed local implementation packet; do not rerun the 9-file screen or infer a field layout from the class name."
+}

@@ -1,0 +1,82 @@
+{
+  "schema": "libdxfrw-dimstyle-subclass-ac1024-implementation-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "LOCAL_FAST_SLICE_PASS_EXTERNAL_ACCEPTANCE_PENDING_UNCOMMITTED",
+  "scope": "Implement the reported AC1024 DIMSTYLE table-subclass count/handle-list candidate while preserving other version output and one-pass transactional writing.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Stage DIMSTYLE row bytes once using the active ASCII or binary writer.",
+      "Collect group105 record handles only after successful row commits.",
+      "For AC1024 only, emit table-subclass group71 as the emitted row count and one group340 per handle in row order, then append the staged rows.",
+      "Preserve callback-once, implicit/explicit Standard, record rollback, whole-table rollback, destination transactionality, and same-writer retry behavior.",
+      "Keep AC1015, AC1018, AC1021, AC1027, and AC1032 table-subclass output unchanged."
+    ],
+    "focusedMode": "--dimstyle-subclass-wire-census",
+    "profiles": [
+      "AC1018 ASCII",
+      "AC1018 binary",
+      "AC1021 ASCII",
+      "AC1021 binary",
+      "AC1024 ASCII",
+      "AC1024 binary"
+    ],
+    "callerRowSets": [
+      [],
+      ["CENSUS_A"],
+      ["CENSUS_A", "CENSUS_B"],
+      ["CENSUS_A", "Standard"]
+    ],
+    "checked": [
+      "Ordered table header and subclass tag codes.",
+      "Group70 and AC1024 group71 row cardinality.",
+      "Every AC1024 table group340 equals the corresponding DIMSTYLE record group105 handle.",
+      "DIMSTYLE record group71 DIMTOL and group340 DIMTXSTY remain record-scoped.",
+      "Callback row order, implicit and explicit Standard behavior, and following BLOCK_RECORD framing.",
+      "Late invalid-row destination preservation and same-writer retry."
+    ],
+    "publicApiChanged": false,
+    "virtualsAdded": 0,
+    "classLayoutChanged": false,
+    "testRegistrationsAdded": 0,
+    "fixtureFilesAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+      "build-gcc/libdxfrw_dxf_fixture_tests --dimstyle-subclass-wire-census",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "git diff --check -- src/libdxfrw.cpp tests/dxf_fixture_tests.cpp"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "focusedMode": "passed: 24 generated profile/row-set combinations plus late-failure/retry control",
+      "owningCTest": "passed: 1/1",
+      "scopedDiffCheck": "passed"
+    }
+  },
+  "qualification": {
+    "reportedAutoCADProducerArtifactAvailable": false,
+    "independentStrictReaderRun": false,
+    "nativeAutoCADOrODAOpenSave": false,
+    "externalAcceptance": "EXTERNAL_ACCEPTANCE_PENDING",
+    "normativeContractEstablished": false,
+    "supportClaimsPromoted": 0,
+    "findingsAndSubplans": "126/71",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing changes"
+  }
+}

@@ -1,0 +1,88 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -614 +614 @@
+-                (active.size() >= 128 && !composed.count(nestedInsert.Name))) {
++                (active.size() >= MaxBlockNestingDepth && !composed.count(nestedInsert.Name))) {
+@@ -696 +696 @@
+-                (active.size() >= 128 && !composed.count(nestedInsert.Name))) {
++                (active.size() >= MaxBlockNestingDepth && !composed.count(nestedInsert.Name))) {
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.h b/src/Mod/Import/App/dxf/ImpExpDxf.h
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.h
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.h
+@@ -272,0 +273,2 @@
++    static constexpr std::size_t MaxBlockNestingDepth = 128;
++    bool m_hasBlockAnnotations = false;
+@@ -403 +405 @@
+-            {
++            if (Reader.m_hasBlockAnnotations) {
+@@ -417,0 +420,5 @@
++                        }
++                        if (expandingBlocks.size() > MaxBlockNestingDepth) {
++                            expandingBlocks.erase(blockName);
++                            Reader.UnsupportedFeature("Cyclic or excessively nested block reference");
++                            return;
+@@ -567,0 +575 @@
++            Reader.m_hasBlockAnnotations = true;
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -1023,0 +1024,2 @@
++                    # Text enabled without text in any block should not invent a loss.
++                    FreeCAD.ParamGet(self.option_source).SetBool("dxftext", kind == "deep-shared")
+@@ -1047,0 +1050,55 @@
++
++    def test_block_annotation_depth_guard_and_retry(self):
++        """Do not expand annotations beyond the block composition depth."""
++        import sys
++        import types
++        draft = types.ModuleType("Draft")
++        calls = []
++        def make_text(text, placement, *args):
++            calls.append(text)
++            obj = self.document.addObject("App::FeaturePython", "TextWitness")
++            obj.Label = text
++            return obj
++        draft.make_text = make_text
++        old_draft = sys.modules.get("Draft")
++        sys.modules["Draft"] = draft
++        try:
++            options = FreeCAD.ParamGet(self.option_source)
++            options.SetBool("dxftext", True)
++            for mode in (2, 3):
++                options.SetInt("DxfImportMode", mode)
++                for depth in (128, 129, 128):
++                    with self.subTest(mode=mode, depth=depth):
++                        names = ["A"] + [f"D{i:03}" for i in range(1, depth)]
++                        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                                (0, "SECTION"), (2, "BLOCKS")]
++                        for i, name in enumerate(names):
++                            tags.extend([(0, "BLOCK"), (8, "0"), (2, name), (70, 0),
++                                         (10, 0), (20, 0), (30, 0),
++                                         (0, "LINE"), (8, "0"), (10, 0), (20, 0), (30, 0),
++                                         (11, 1), (21, 0), (31, 0)])
++                            if i + 1 < len(names):
++                                tags.extend([(0, "INSERT"), (8, "0"), (2, names[i + 1]),
++                                             (10, 0), (20, 0), (30, 0)])
++                            else:
++                                tags.extend([(0, "TEXT"), (8, "0"), (10, 0), (20, 0), (30, 0),
++                                             (40, 1), (1, "DEPTH_WITNESS")])
++                            tags.extend([(0, "ENDBLK"), (8, "0")])
++                        tags.extend([(0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                                     (0, "INSERT"), (8, "0"), (2, "A"), (10, 0), (20, 0),
++                                     (30, 0), (0, "ENDSEC"), (0, "EOF")])
++                        path = os.path.join(self.temp_dir, "annotation-depth.dxf")
++                        with open(path, "w", encoding="ascii", newline="\n") as stream:
++                            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                        calls.clear()
++                        stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                        self.assertEqual(calls, ["DEPTH_WITNESS"] if depth == 128 else [])
++                        if depth > 128:
++                            self.assertIn("Cyclic or excessively nested block reference",
++                                          stats["unsupportedFeatures"])
++        finally:
++            if old_draft is None:
++                del sys.modules["Draft"]
++            else:
++                sys.modules["Draft"] = old_draft

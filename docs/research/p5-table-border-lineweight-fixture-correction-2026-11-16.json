@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-16",
+  "scope": "AC1018 generated four-edge TABLE cell border test.",
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0.htm",
+    "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-Core/files/GUID-E1B15CA7-C45D-4845-B1A6-2520F6F911F3.htm"
+  ],
+  "finding": "The positive all-edge control used left border lineweight 31, outside the current supported lineweight domain, so the writer correctly refused before output.",
+  "change": "Keep 31 as a negative ASCII/Binary case with destination and caller-state preservation. Correct it to the supported 35 value and retry on the same adapter, checking all four edge values and ASCII/Binary readback. No production admission rule changed.",
+  "checks": [
+    "The --ac1018-table-top-border selector passes, including invalid-value refusal and corrected four-edge ASCII/Binary outputs.",
+    "Proxy loss-policy and sparse-material focused CTests pass 2/2.",
+    "The implementation digest was refreshed from a clean index matching 5995 staged tracked entries. Support claims and evidence links are unchanged."
+  ],
+  "limitations": [
+    "Generated TABLE writer/readback checks do not qualify native table rendering, physical producer coverage, or broader TABLE graph semantics. The aggregate fixture executable remains red and was not rerun for this slice."
+  ],
+  "implementationDigestSha256": "7f3ab94c45a2f75a8bc172141eb4b6616d1a306a215abac468d1716affb0d642"
+}

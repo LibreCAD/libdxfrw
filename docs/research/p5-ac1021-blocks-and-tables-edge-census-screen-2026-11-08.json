@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw-research-screen-v1",
+  "date": "2026-11-08",
+  "status": "EXCLUDED_CANDIDATE_NO_TABLECONTENT_EDGE_EVIDENCE",
+  "workstream": "P5 / TABLECONTENT overlapping edge-declaration source screen",
+  "input": {
+    "path": "tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "repositoryStatus": "local untracked sample; not added to the repository"
+  },
+  "observation": {
+    "command": "build/dwg2dxf/dwg2dxf tests/samples/AC1021/blocks_and_tables_-_imperial.dwg -y -d -v2010 /tmp/libdxfrw-table-edge-census.dxf",
+    "sourceVersion": "AC1021",
+    "readOperationSucceeded": true,
+    "sourceFrames": 3586,
+    "publishedFrames": 3586,
+    "entityParseFailures": 0,
+    "objectParseFailures": 0,
+    "tablecontentTraceRecords": 0,
+    "outputProduced": false,
+    "outputRefusal": "FIELD/FIELDLIST carriers have no qualified DXF serializer",
+    "logPath": "/tmp/libdxfrw-table-edge-census.log",
+    "logSha256": "17c9a620359cc16e9579e06413d475bbbd3e787c51ce0c9011a7c166199c0c12"
+  },
+  "disposition": "This candidate supplies no TABLECONTENT object or physical border edge field span. The strict-output refusal occurs at an unrelated FIELD/FIELDLIST gate. It cannot establish overlap precedence, typed TABLECONTENT completeness, or any support claim.",
+  "next": "Screen the existing local sample inventory for a source-bound TABLECONTENT callback/object before another whole-file conversion. If a candidate is blocked by unrelated strict output, use a read-only selected-object/span extraction path; retain source bytes, object handle, field spans, and independent semantic comparison. If no candidate exists, keep overlapping masks refused and record the evidence gap rather than repeat broad census runs."
+}

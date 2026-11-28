@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw-dwg-dxf-evidence-v1",
+  "id": "p4-ac1024-layer-control-dictionary-output-proof-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 LAYER_CONTROL dictionary-to-TABLE-header output proof",
+  "source": {
+    "path": "/Users/dli/doc/dwg/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "trackedFixture": false,
+    "note": "Existing local drawing used as evidence; no DWG/DXF fixture was added to Git."
+  },
+  "implementation": {
+    "sources": [
+      {"path": "dwg2dxf/dx_iface.cpp", "sha256": "5779fb9cb915b482f07b6f4f498a0847d8e63786c301dcd39ab47340e4815ef1"},
+      {"path": "dwg2dxf/dx_iface.h", "sha256": "15f69f4d1ffdc2a48a564be92b5fb2c7bc887fa20fb70eeb1ffff7927323bfa2"},
+      {"path": "dwg2dxf/dx_symbol_output.h", "sha256": "663571cddbafcb18720d55b8307554a8e771e1dac67802d7f5544ee1f0047c75"},
+      {"path": "tests/dwg2dxf_adapter_tests.cpp", "sha256": "7748edbc4893e07f142cdb3f038ed27277d6e90d4414c2fd7edce2dd71a68dd1"}
+    ],
+    "changes": [
+      "Capture the staged TABLE LAYER header handle and its ACAD_XDICTIONARY group-360 target in both ASCII and Binary TABLES views.",
+      "Bind the source LAYER_CONTROL handle to the emitted TABLE LAYER header only after source generation, source dictionary, canonical output handle, unique header identity and exact extension-dictionary target agree.",
+      "Finalize the output owner role only when TABLE handle 2 is unique in TABLES, has the expected table identity and owner 0, and its group-360 target is the unique emitted OBJECTS DICTIONARY whose owner is the table header.",
+      "Add a from-scratch ASCII/Binary header-inventory control; no external drawing fixture was added."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with warning-as-error enabled",
+      "dwg2dxfSha256": "d8e9515c1ee5a9fca57c5349a40f7db1c3f01eb30cb7f7b4ea5ffa8f4a15c5a3",
+      "adapterTestSha256": "8164d523c29f8982a0b21615cba7b688cee29022f51124a4ee6f8a0357958d8c"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_dwg_layer_table_control_dictionary|dwg2dxf_opaque_source_capture_and_strict_output_gate|dwg2dxf_standard_dwg_object_source_capture|dwg2dxf_standard_dwg_object_payload_correlation)$' --output-on-failure",
+      "result": "PASS 4/4; includes generated ASCII/Binary TABLE LAYER header and extension-target parsing",
+      "logSha256": "dcfae1792bce20d26f9621ccde228ad632b7d6564c0c08df9e3c66de061f0854"
+    },
+    "ownerFailureRetry": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --extension-dictionary-owner-graphs",
+      "result": "PASS. Existing generated controls reject wrong LAYER TABLE control dictionary ownership without replacing the destination, then accept a corrected same-writer retry; late control mutation also rolls back.",
+      "binarySha256": "8164d523c29f8982a0b21615cba7b688cee29022f51124a4ee6f8a0357958d8c"
+    },
+    "asciiReadback": {
+      "outputSha256": "7d4c62e177870b6914e417655df1757ac436493c3410078da9d033019533a41a",
+      "outputBytes": 358883,
+      "readbackLogSha256": "133ec616ef3f5cfaf5f69b2e0db2717d20b1b79f9ee7677cecfe213da5373b1f",
+      "result": "PASS. Fresh source and output import compared exact DICTIONARY fields and ordered entries for handles 0x00F2, 0x0107, 0x1069, 0x1116 and 0x121C. For 0x0107, source owner 0x0010 maps to output TABLE LAYER handle 2; the LAYER table header's 360 target resolves to that dictionary."
+    },
+    "binaryReadback": {
+      "outputSha256": "4c2146f12faa2890463eb62e3ddf57ff84b0ce6481dccec8718b84614894c5e7",
+      "outputBytes": 215085,
+      "readbackLogSha256": "133ec616ef3f5cfaf5f69b2e0db2717d20b1b79f9ee7677cecfe213da5373b1f",
+      "result": "PASS with the same five DICTIONARY projections and the LAYER_CONTROL-to-table-header owner relationship."
+    },
+    "strictCompleteConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/title_block-arch.dwg -y -d -v2010 <output.dxf>",
+      "result": "Expected refusal at the whole-document gate after qualification advanced from 99/109 to 100/109. DICTIONARY 0x0107 cleared; nine unrelated identities remain.",
+      "logSha256": "8a529528a00cd2dd1c251f8edd9599b7729b5b4948aa58e652e2eeab9b82ac51",
+      "remainingUnqualifiedIdentities": [
+        {"handle": "0x000A", "type": 82},
+        {"handle": "0x000F", "type": 82},
+        {"handle": "0x0052", "type": 34},
+        {"handle": "0x1117", "sourceFrame": "missing"},
+        {"handle": "0x1118", "type": 513, "record": "BLOCKVISIBILITYPARAMETER"},
+        {"handle": "0x1119", "type": 514, "record": "BLOCKVISIBILITYGRIP"},
+        {"handle": "0x111A", "type": 515, "record": "BLOCKGRIPLOCATIONCOMPONENT"},
+        {"handle": "0x111B", "type": 515, "record": "BLOCKGRIPLOCATIONCOMPONENT"},
+        {"handle": "0x1122", "type": 519, "record": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION"}
+      ],
+      "supportClaimEffect": "none"
+    }
+  },
+  "supportClaimEffect": "none",
+  "planImpact": {
+    "completedLocalActionRemoved": "Prove DICTIONARY 0x0107's source LAYER_CONTROL owner through the emitted TABLE LAYER header and its exact extension-dictionary target in staged output and ASCII/Binary readback.",
+    "next": "Resolve the remaining nine callback identities without weakening strict document refusal; investigate the missing physical source frame for EvaluationGraph 0x1117 as the next source-backed dynamic-block boundary."
+  }
+}

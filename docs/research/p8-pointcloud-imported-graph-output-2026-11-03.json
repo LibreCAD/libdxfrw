@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-03",
+  "topic": "Same-revision imported DXF POINTCLOUDEX DefinitionEx/ReactorEx graph output",
+  "scope": {
+    "source_format": "DXF",
+    "implementation_revision_gate": "AC1027 through AC1032; target revision must equal the completed source revision",
+    "validated_source_revision": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixture_policy": "Generated locally in temporary paths; no fixture file added"
+  },
+  "implementation": {
+    "source_binding": [
+      "Binds complete physical OBJECTS records to raw carriers and retained typed callbacks.",
+      "Defers physical/source revision equality until output preflight because dxfRW finalizes sourceVersion only after the import callback sequence completes.",
+      "Normalizes a complete ACAD_REACTORS application group into the typed reactor handle list and sets its corresponding common-object reactor count."
+    ],
+    "graph_admission": [
+      "Requires the NOD ACAD_POINTCLOUD_EX_DICT edge and uniquely owned definition dictionary.",
+      "Requires complete DefinitionEx and ReactorEx identity, owner, reciprocal reactor, entity reference, uniqueness, collision, and class metadata checks.",
+      "Uses staged serializers, output identity reservation/remapping, and resolved entity/object references; DWG-origin graphs remain refused."
+    ],
+    "failure_and_retry": "Mutated POINTCLOUDEX definition-reference and class-version source/model values fail before output and preserve the existing destination. Restoring the values allows the same adapter to retry successfully.",
+    "readback": "A fresh importer verifies the NOD-to-definition-dictionary-to-DefinitionEx path, dictionary entry, DefinitionEx reactor list, ReactorEx owner, POINTCLOUDEX owner, and both entity references."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "focused_ctest": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_pointcloud_definition_source_spans|dwg2dxf_point_cloud_adapter_transport' --output-on-failure",
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        "libdxfrw_pointcloud_definition_source_spans",
+        "dwg2dxf_point_cloud_adapter_transport"
+      ]
+    },
+    "full_suite": "Not run"
+  },
+  "limitations": [
+    "Generated AC1027 transport evidence only; AC1027+ physical-producer breadth and native-consumer behavior are not established.",
+    "DWG source CLASS/frame/output binding, cross-revision conversion, asset loading, and native 3D semantics remain open.",
+    "This slice does not close P4 source/graph profiles or the complete P8 consumer/platform/release gates."
+  ],
+  "support_claim_effect": "None; no support claim promoted."
+}

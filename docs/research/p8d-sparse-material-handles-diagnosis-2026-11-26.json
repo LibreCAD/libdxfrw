@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-sparse-material-handles-diagnosis-2026-11-26",
+  "supportClaimEffect": "none",
+  "librecadCommit": "4b0b2eb2f90bd32cb7ad2b2e9a4746612735aed5",
+  "libdxfrwCommit": "1cd3b590027504a3308f60946d2b3e94c15985c5",
+  "test": "librecad_system_codec_tests [filter][handles]",
+  "result": "16 of 21 cases passed; 5 import assertions failed",
+  "observations": [
+    "Four failing scratch-generated inputs have no HEADER/$ACADVER and contain minimal MATERIAL records ending with group 94. Their version does not satisfy the current AC1021-only minimal-channel admission.",
+    "The fifth is an existing AC1021 LibreCAD fixture. The minimal record reaches the sparse raw capture gate; the ordinary RS_FilterDXFRW does not implement the opt-in policy, so the library refuses before MATERIAL callbacks.",
+    "The displayed Cannot open DXF file message follows a parser failure; the files were present and were read.",
+    "The consumer currently unconditionally refuses export of incomplete raw-only MATERIAL graphs. Opting in by default would therefore also require a deliberate user-facing import/save policy and graph-closure qualification; the test alone does not justify enabling replay."
+  ],
+  "limits": [
+    "No parser or export behavior was changed by this diagnosis.",
+    "The five failing cases remain open; no support claim is promoted."
+  ]
+}

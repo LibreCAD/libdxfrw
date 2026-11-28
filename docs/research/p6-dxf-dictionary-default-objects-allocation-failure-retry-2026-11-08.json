@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-dxf-dictionary-default-objects-allocation-failure-retry-2026-11-08",
+  "date": "2026-11-08",
+  "status": "GENERATED_DICTIONARYWDFLT_PLACEHOLDER_OBJECTS_ALLOCATION_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Inject every calibrated allocation failure inside the DXF OBJECTS callback for a generated AC1027 ACAD_PLOTSTYLENAME DICTIONARYWDFLT/PLACEHOLDER graph; verify destination rollback, caller graph preservation, and same-adapter retry/readback.",
+  "input": {
+    "kind": "generated AC1027 DXF text written and imported from a test scratch directory",
+    "sourceGraph": "NOD ACAD_PLOTSTYLENAME -> DICTIONARYWDFLT 0x10 -> default PLACEHOLDER 0x11, with HEADER $CEPSNID bound to 0x11",
+    "fixtureFilesAdded": 0,
+    "sourceDwgOrDxfFixture": "no repository fixture; temporary generated source and output are deleted after a successful test run"
+  },
+  "implementation": {
+    "test": "tests/dictionary_default_objects_allocation_tests.cpp",
+    "registration": "tests/CMakeLists.txt:libdxfrw_dictionary_default_objects_allocation_retry",
+    "callback": "DictionaryDefaultExport::writeObjects scopes global-new failure injection around dx_iface::writeObjects",
+    "sourceOrder": "Input PLACEHOLDER precedes its DICTIONARYWDFLT owner; output readback verifies the graph while source snapshots verify the caller records remain unchanged."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dictionary_default_objects_allocation_tests -j4 — PASS",
+    "ctest": "ctest --test-dir build -R '^libdxfrw_dictionary_default_objects_allocation_retry$' --output-on-failure — 1/1 PASS, 0.84 s",
+    "ascii": "25/25 calibrated callback allocation offsets injected; each failure preserved the destination sentinel, typed DICTIONARYWDFLT state, raw dictionary and placeholder source records, and HEADER plot-style binding; same-adapter retry and typed readback passed.",
+    "binary": "24/24 calibrated callback allocation offsets injected; each failure preserved the destination sentinel, typed DICTIONARYWDFLT state, raw dictionary and placeholder source records, and HEADER plot-style binding; same-adapter retry and typed readback passed.",
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated callback transaction mechanics only; no physical producer, native plot-style semantics, or broader DICTIONARYWDFLT support is qualified.",
+    "This sweep covers one dictionary-default/placeholder source graph, not every DXF OBJECTS builder or whole-file failure state."
+  ],
+  "nextAction": "Continue the saved P4 candidate rule; if no additional physical profile qualifies, select a distinct locally testable OBJECTS builder or P6 implementation task and retain focused validation."
+}

@@ -1,0 +1,46 @@
+{
+  "title": "Radial and large-radial DIMENSION DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory radial/large-radial DIMENSION writer transaction controls only; no producer or support claim.",
+  "implementation": {
+    "writers": ["DRW_DimRadial::encodeDwg", "DRW_DimLargeRadial::encodeDwg"],
+    "behavior": [
+      "Stage common entity data, dimension strings, body fields, and DIMSTYLE/block handle output through the shared private entity transaction helper.",
+      "Preserve radial subtype code 25 and large-radial custom class code 519, their field order, and caller stream aliases.",
+      "Restore the prior object type and caller buffers on any failed staged encode."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1015", "profile": "UTF-8 radial DIMENSION with DIMSTYLE and anonymous-block references", "radial_failures": 19},
+    {"version": "AC1018", "profile": "UTF-8 radial and large-radial DIMENSION with DIMSTYLE and anonymous-block references", "radial_failures": 19, "large_radial_failures": 17},
+    {"version": "AC1021", "profile": "UTF-8 radial and large-radial DIMENSION with DIMSTYLE and anonymous-block references", "radial_failures": 23, "large_radial_failures": 22},
+    {"version": "AC1024", "profile": "UTF-8 radial and large-radial DIMENSION with DIMSTYLE and anonymous-block references", "radial_failures": 22, "large_radial_failures": 22}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body, string, and handle bytes, bit counts, handle occurrences, and prior subtype code remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output and restores the expected subtype code.",
+    "All-stream alias controls preserve state and succeed on retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --radial-dim-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1015 radial": 19,
+      "AC1018 radial": 19,
+      "AC1021 radial": 23,
+      "AC1024 radial": 22,
+      "AC1018 large radial": 17,
+      "AC1021 large radial": 22,
+      "AC1024 large radial": 22
+    },
+    "entity_writer_transaction_cohort": "28/28 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish transaction behavior only.",
+    "Dimension field semantics, DIMSTYLE/block graph closure, producer coverage, native behavior, and broader support remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}

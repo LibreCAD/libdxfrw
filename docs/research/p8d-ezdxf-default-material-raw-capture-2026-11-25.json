@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-ezdxf-default-material-raw-capture-2026-11-25",
+  "status": "OPT_IN_RAW_CAPTURE_AND_ISOLATED_REPLAY_ONLY",
+  "supportClaimEffect": "none",
+  "codeCommit": "9cfb1ea10ac91389de88f559a727a7127b886acf",
+  "implementationDigestSha256": "c05fe891b8acfd5db7ea13d575002b47376d3828439220fd71c11f21cf40c47b",
+  "digestInputCount": 775,
+  "source": {
+    "sha256": "e32176333101a243ac5968a8e551096d1e9d872ad8f348f82b0f0bba72f10acc",
+    "provenance": "Locally generated from scratch by ezdxf 1.4.5 new(R2010, setup=True); see prior native linetype receipt. No source or output fixture committed.",
+    "previousReceipt": "docs/research/p8d-librecad-native-ltype-isolated-2026-11-25.json"
+  },
+  "profile": "Explicit DRW_DxfSparseMaterialRawPolicy opt-in; bounded AC1024 default MATERIAL shape with 61 ordered groups, owner/reactor agreement and names ByBlock, ByLayer or Global. The second group 73 is retained as raw, not assigned a field meaning.",
+  "reference": [
+    "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+    "https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/material.py"
+  ],
+  "verification": [
+    "Real generated drawing: opted-in reader saw one LINE and all three named default MATERIAL records with matching raw callbacks; the existing non-opted-in reader refused.",
+    "Focused release CTest: 5/5 dxf_sparse_material_raw, material_body_transactions, material_normal_boundaries, material_source_order and sparse_material_control_groups passed.",
+    "AddressSanitizer instrumented library and dxf_sparse_material_raw test: 1/1 passed with leak detection disabled.",
+    "Locally generated ASCII and binary controls verify all default names, repeated group 73 values 0 and 1, missing/extra groups, wrong final mask, wrong version or owner, non-default name, disabled policy, failure and same-reader corrected retry.",
+    "Typed DXF and DWG output refuse raw-only records; destinations are preserved on failure, same-version raw replay succeeds after a handle collision is remapped, cross-version replay refuses atomically, and corrected same-writer retry succeeds.",
+    "Independent ezdxf 1.4.4 tag reader compared all 61 ordered groups of the original ByBlock record with the isolated output; values match except the intentional source self-handle 1F to F000 remap. Output SHA-256 fb26cc84468eeb514d44f324fa4b31498e13f842e95e5d32373d73f3b41d5b22.",
+    "Clean checkout digest verification reports 775 selected inputs; status join reports 15 experimental claims and zero advertised routes."
+  ],
+  "limits": [
+    "The output control is a single isolated MATERIAL record; its owner dictionary and all references were not closed or validated as a whole drawing.",
+    "The LibreCAD adapter has not opted in: it must retain the raw-only marker and complete dictionary, ownership, handle and layer-reference graph before safe same-version output can be enabled.",
+    "No native semantic interpretation is claimed; no support status or platform qualification was promoted."
+  ]
+}

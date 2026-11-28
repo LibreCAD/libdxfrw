@@ -1,0 +1,53 @@
+{
+  "id": "par134-ac1021-ac1024-field-cadvalue-general-format-flag",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "37933cb0274eba3b0b8ced8025017eebbf1a0b60850714d0ff515800d9db28c3",
+  "scope": {
+    "class": "DRW_Field / DRW_CadValue",
+    "versions": ["AC1021", "AC1024"],
+    "field": "R2007+ kGeneral (type 512) format flag",
+    "specification": "ODA Open Design Specification v5.4.1 §20.4.99"
+  },
+  "evidence": {
+    "normative": "For R2007+, CadValue flag 0x01 selects kGeneral/type 512; the common data-type BL is omitted and the payload is a BL byte count followed by that many bytes.",
+    "localReproduction": "Before the fix, generated AC1021 and AC1024 FIELD root/child values could not retain the expected type-512 raw payload because the parser treated flag 0x01 as an empty value while consuming a data-type BL."
+  },
+  "change": "FIELD CadValue parsing now infers type 512 and omits the data-type BL when flag 0x01 is set. FIELD DWG writing mirrors the layout, rejects a kGeneral flag paired with any non-512 type, and validates a supplied data size against retained raw bytes. Empty-value handling is limited to flag 0x02, consistent with the existing TABLE route. Unflagged explicit type 512 remains supported.",
+  "generatedControls": {
+    "ac1021": [
+      "root kGeneral payload and detached format/value strings",
+      "child kGeneral payload and detached key/format/value strings",
+      "explicit type 512 when flag 0x01 is clear"
+    ],
+    "ac1024": [
+      "root kGeneral payload and detached format/value strings",
+      "child kGeneral payload and detached key/format/value strings",
+      "explicit type 512 when flag 0x01 is clear"
+    ],
+    "writerRefusal": "A FIELD value with flag 0x01 paired with type 1 is rejected."
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2: PASS (-Werror)",
+    "ctest --test-dir build-gcc -R '^libdxfrw_(table_(cell_.*|cadvalue_.*)|field_(cadvalue_general_format_flag|oversized_child_value_count))$' --output-on-failure: PASS (13/13)",
+    "build-gcc/libdxfrw_dwg_object_vectors_tests: PASS",
+    "git diff --check -- CMakeLists.txt src/drw_objects.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: PASS"
+  ],
+  "fixturesAdded": false,
+  "publicApiChanged": false,
+  "supportClaimChanged": false,
+  "fullSuiteRun": false,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295",
+    "FreeCAD Linux qualification",
+    "FreeCAD Windows qualification",
+    "independent ACIS/ACDS semantic qualification"
+  ],
+  "commit": "not created; no files were staged"
+}

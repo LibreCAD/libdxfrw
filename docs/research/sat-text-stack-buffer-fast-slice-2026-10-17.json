@@ -1,0 +1,91 @@
+{
+  "schema": "libdxfrw-sat-text-stack-buffer-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "slice": "7S.2c.d.17.46",
+  "scope": "Remove the per-chunk temporary string allocation from SAT text group emission while preserving ASCII/Binary DXF wire semantics.",
+  "implementation": {
+    "filesChanged": [
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": "writeDxfSatTextValue encodes a maximum 255-character group in a fixed stack buffer and passes a synchronous string_view to dxfWriter. Existing input validation, SAT-v1 transformation, atomic caret escaping, first-group selection, subsequent group-3 selection, and write-error propagation are preserved.",
+    "publicApiChanged": false,
+    "publicLayoutChanged": false,
+    "callbackContractChanged": false,
+    "dependenciesAdded": 0,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_hardening_tests --dxf-modeler-text-chunk-borrow",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check -- src/libdxfrw.cpp tests/hardening_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "result": "PASS"
+      },
+      {
+        "command": "jq empty docs/research/sat-text-stack-buffer-fast-slice-2026-10-17.json",
+        "result": "PASS"
+      }
+    ],
+    "generatedControls": {
+      "writers": [
+        "ASCII DXF",
+        "Binary DXF"
+      ],
+      "cases": [
+        "AC1024 ordinary modeler text across 255-character group chunks",
+        "AC1024 caret escape exactly fills a group boundary",
+        "AC1024 caret pair moves intact to the following group",
+        "AC1015 SAT-v1 transform-generated caret pairs split across 254/2-character groups"
+      ],
+      "assertions": [
+        "emitted group-code/text sequence equals the expected sequence",
+        "decoded modeler payload is unchanged",
+        "following-record sentinel is present"
+      ],
+      "outputFiles": "Existing test-owned temporary output or in-memory stream; no persistent fixture added.",
+      "externalInputsDownloaded": 0
+    },
+    "fullSuiteRun": false,
+    "allocatorCountMeasured": false,
+    "peakRssMeasured": false,
+    "throughputMeasured": false,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true
+  },
+  "planImpact": {
+    "existingOwnerOnly": true,
+    "findingCount": 129,
+    "topLevelSubplanCount": 72,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktree": {
+    "preexistingDirtyChangesPreserved": true,
+    "committed": false,
+    "reason": "The shared checkout contains broad unrelated modifications and Git metadata is read-only."
+  }
+}

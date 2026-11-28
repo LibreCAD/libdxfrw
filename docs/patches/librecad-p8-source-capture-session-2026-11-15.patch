@@ -1,0 +1,255 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 853175b..e16754d 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3451,6 +3451,9 @@ public:
+   };
+ 
+   void observeBlockRecordLinks(const DRW_Block_Record &record) noexcept {
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    noteSelectedSourceCallback();
++#endif
+     constexpr std::size_t maxRecords = 100000u;
+     constexpr std::size_t maxBytes = 32u * 1024u * 1024u;
+     if (m_blockRecordLinkCaptureFailed)
+@@ -3502,6 +3505,9 @@ public:
+   // Frozen typed observations are correlation evidence, never export authority.
+   // Only retain the bounded no-EED profile accepted by the source verifier.
+   void observeDictionarySource(const DRW_Dictionary &dictionary) noexcept {
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    noteSelectedSourceCallback();
++#endif
+     constexpr std::size_t maxRecords = 100000u;
+     constexpr std::size_t maxBytes = 32u * 1024u * 1024u;
+     if (m_dictionarySourceCaptureFailed)
+@@ -3571,6 +3577,9 @@ public:
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
+   // A typed source observation only; it never authorizes output.
+   void observeEmptySortEntsSource(const DRW_SortEntsTable &table) noexcept {
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    noteSelectedSourceCallback();
++#endif
+     constexpr std::size_t maxRecords = 100000u;
+     constexpr std::size_t maxBytes = 32u * 1024u * 1024u;
+     if (m_sortEntsSourceCaptureFailed)
+@@ -3622,6 +3631,10 @@ public:
+ #endif
+ 
+   void clear() {
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    m_selectedSourceCaptureOpen = false;
++    m_selectedSourceCaptureSealed = false;
++#endif
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
+     m_sortEntsSources.clear();
+     m_sortEntsSourceBytes = 0u;
+@@ -3756,6 +3769,9 @@ public:
+   }
+ 
+   void addUnsupportedObject(const DRW_UnsupportedObject &object) {
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    noteSelectedSourceCallback();
++#endif
+     RawObjectRecord record;
+     record.version = object.m_version;
+     record.objectType = object.m_objectType;
+@@ -3794,6 +3810,9 @@ public:
+   }
+ 
+   void addDwgFramePublication(const DRW_DwgFramePublication &publication) {
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    noteSelectedSourceCallback();
++#endif
+     const auto existing = std::find_if(
+         m_dwgFramePublications.begin(), m_dwgFramePublications.end(),
+         [&publication](const DRW_DwgFramePublication &candidate) {
+@@ -3821,6 +3840,9 @@ public:
+ 
+   void
+   addDwgDictionaryMembership(const DRW_DwgDictionaryMembership &membership) {
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    noteSelectedSourceCallback();
++#endif
+     m_dwgDictionaryMemberships.push_back(membership);
+   }
+ 
+@@ -3834,6 +3856,9 @@ public:
+   }
+ 
+   void addDwgSortEntsMembership(const DRW_DwgSortEntsMembership &membership) {
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    noteSelectedSourceCallback();
++#endif
+     m_dwgSortEntsMemberships.push_back(membership);
+   }
+ 
+@@ -3854,6 +3879,9 @@ public:
+   }
+ 
+   void addDwgFrameCoverageReport(const DRW_DwgFrameCoverageReport &report) {
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    noteSelectedSourceCallback();
++#endif
+     m_dwgFrameCoverageReport = report;
+     m_dwgFramePublicationCoverageComplete =
+         report.m_status == DRW_DwgFrameCoverageStatus::FinalizedComplete &&
+@@ -5702,6 +5730,9 @@ public:
+   }
+ 
+   void addDictionary(const DRW_Dictionary &dictionary) {
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    noteSelectedSourceCallback();
++#endif
+     DictionaryRecord record;
+     record.handle = dictionary.handle;
+     record.parentHandle = dictionary.parentHandle;
+@@ -6049,6 +6080,9 @@ public:
+   }
+ 
+   void addSortEntsTable(const DRW_SortEntsTable &sortEntsTable) {
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    noteSelectedSourceCallback();
++#endif
+     SortEntsTableRecord record;
+     record.handle = sortEntsTable.handle;
+     record.parentHandle = sortEntsTable.parentHandle;
+@@ -7329,7 +7363,19 @@ public:
+ 
+   // Source DWG version of the document this metadata was read from. Used to
+   // gate raw-replay (both emit + CLASSES registration) on source==target.
+-  void setSourceDwgVersion(DRW::Version v) { m_sourceDwgVersion = v; }
++  void setSourceDwgVersion(DRW::Version v) {
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    noteSelectedSourceCallback();
++#endif
++    m_sourceDwgVersion = v;
++  }
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++  // This seals only the selected callback session. Per-record verification,
++  // live edits, class authenticity and graph closure remain separate checks.
++  bool selectedDwgSourceCaptureSessionSealed() const noexcept {
++    return m_selectedSourceCaptureSealed;
++  }
++#endif
+   DRW::Version sourceDwgVersion() const { return m_sourceDwgVersion; }
+   // Mark records delivered by a file reader, DWG or DXF. Records added later
+   // through the generic metadata API must not inherit imported-carrier
+@@ -13558,6 +13604,34 @@ private:
+     return lhs == rhs ? lhs : DRW_DwgFramePublication::Carrier::TypedAndRaw;
+   }
+ 
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++  friend class RS_FilterDXFRW;
++  void noteSelectedSourceCallback() noexcept {
++    if (!m_selectedSourceCaptureOpen)
++      m_selectedSourceCaptureSealed = false;
++  }
++  void beginSelectedSourceCapture() noexcept {
++    m_selectedSourceCaptureOpen = true;
++    m_selectedSourceCaptureSealed = false;
++  }
++  void finishSelectedSourceCapture(bool success) noexcept {
++    bool complete = success && m_selectedSourceCaptureOpen
++        && m_sourceDwgVersion == DRW::AC1024
++        && m_dwgFramePublicationCoverageComplete
++        && m_dwgFramePublicationConflicts.empty();
++#ifdef LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY
++    complete = complete && !m_dictionarySourceCaptureFailed;
++#endif
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++    complete = complete && !m_sortEntsSourceCaptureFailed;
++#endif
++    m_selectedSourceCaptureOpen = false;
++    m_selectedSourceCaptureSealed = complete;
++  }
++  bool m_selectedSourceCaptureOpen = false;
++  bool m_selectedSourceCaptureSealed = false;
++#endif
++
+   DRW::Version m_sourceDwgVersion = DRW::UNKNOWNV;
+   std::vector<RawObjectRecord> m_rawObjects;
+   std::vector<DRW_DwgFramePublication> m_dwgFramePublications;
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index 23cfd84..9c48636 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -4337,6 +4337,9 @@ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
+     RS_DEBUG->print("RS_FilterDXFRW::fileImport: reading DWG file");
+     if (RS_DEBUG->getLevel() == RS_Debug::D_DEBUGGING)
+       dwgr.setDebug(DRW::DebugLevel::Debug);
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    m_graphic->dwgAdvancedMetadata().beginSelectedSourceCapture();
++#endif
+     const auto dwgReadStart = std::chrono::steady_clock::now();
+     bool success = dwgr.read(this, true);
+     if (std::getenv("LC_IMPORT_BENCH") != nullptr) {
+@@ -4354,6 +4357,9 @@ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
+     // Persist the source version on the document so the export filter can
+     // gate raw-replay (emit + CLASSES registration) on source==target.
+     m_graphic->dwgAdvancedMetadata().setSourceDwgVersion(m_dwgVersion);
++#if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++    m_graphic->dwgAdvancedMetadata().finishSelectedSourceCapture(success);
++#endif
+     // Save writes the drawing back in the version it was read in, if it can
+     m_graphic->setFormatType(formatForDwgVersion(m_dwgVersion));
+     RS_DEBUG->print("RS_FilterDXFRW::fileImport: reading DWG file: OK");
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index d1c385e..c33b735 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9582,12 +9582,15 @@ TEST_CASE("AC1024 dictionary source observations match live adapter receipts",
+   auto &metadata = graphic.dwgAdvancedMetadata();
+   REQUIRE(metadata.sourceDwgVersion() == DRW::AC1024);
+   REQUIRE(metadata.dwgFramePublicationCoverageComplete());
++  REQUIRE(metadata.selectedDwgSourceCaptureSessionSealed());
+   REQUIRE_FALSE(metadata.dictionarySourceCaptureFailed());
+   constexpr std::uint32_t target = 0xBu;
+   REQUIRE(metadata.matchesAc1024DictionarySourceObservation(target));
+   metadata.setSourceDwgVersion(DRW::AC1027);
++  CHECK_FALSE(metadata.selectedDwgSourceCaptureSessionSealed());
+   CHECK_FALSE(metadata.matchesAc1024DictionarySourceObservation(target));
+   metadata.setSourceDwgVersion(DRW::AC1024);
++  CHECK_FALSE(metadata.selectedDwgSourceCaptureSessionSealed());
+   CHECK(metadata.matchesAc1024DictionarySourceObservation(target));
+   const auto goodReport = metadata.dwgFrameCoverageReport();
+   auto badReport = goodReport;
+@@ -9607,7 +9610,12 @@ TEST_CASE("AC1024 dictionary source observations match live adapter receipts",
+   metadata.clear();
+   CHECK_FALSE(metadata.matchesAc1024DictionarySourceObservation(target));
+   REQUIRE(import());
++  CHECK(graphic.dwgAdvancedMetadata().selectedDwgSourceCaptureSessionSealed());
+   CHECK(graphic.dwgAdvancedMetadata().matchesAc1024DictionarySourceObservation(target));
++  CHECK_FALSE(reader.fileImport(graphic, QString::fromStdString(path + ".missing"), RS2::FormatDWG));
++  CHECK_FALSE(graphic.dwgAdvancedMetadata().selectedDwgSourceCaptureSessionSealed());
++  REQUIRE(import());
++  CHECK(graphic.dwgAdvancedMetadata().selectedDwgSourceCaptureSessionSealed());
+ }
+ #endif
+ 
+@@ -9626,6 +9634,7 @@ TEST_CASE("Empty AC1024 sort tables match live adapter source observations",
+   auto &metadata = graphic.dwgAdvancedMetadata();
+   REQUIRE(metadata.sourceDwgVersion() == DRW::AC1024);
+   REQUIRE(metadata.dwgFramePublicationCoverageComplete());
++  REQUIRE(metadata.selectedDwgSourceCaptureSessionSealed());
+   REQUIRE_FALSE(metadata.sortEntsSourceCaptureFailed());
+   for (auto handle : {0xF3u, 0x2121u, 0x21D3u, 0x22D4u}) {
+     INFO(handle);
+@@ -9634,8 +9643,10 @@ TEST_CASE("Empty AC1024 sort tables match live adapter source observations",
+   }
+   constexpr std::uint32_t target = 0x2121u;
+   metadata.setSourceDwgVersion(DRW::AC1027);
++  CHECK_FALSE(metadata.selectedDwgSourceCaptureSessionSealed());
+   CHECK_FALSE(metadata.matchesAc1024EmptySortEntsSourceObservation(target));
+   metadata.setSourceDwgVersion(DRW::AC1024);
++  CHECK_FALSE(metadata.selectedDwgSourceCaptureSessionSealed());
+   CHECK(metadata.matchesAc1024EmptySortEntsSourceObservation(target));
+   const auto goodReport = metadata.dwgFrameCoverageReport();
+   auto badReport = goodReport;
+@@ -9659,6 +9670,7 @@ TEST_CASE("Empty AC1024 sort tables match live adapter source observations",
+   metadata.clear();
+   CHECK_FALSE(metadata.sortEntsSourceCaptureFailed());
+   REQUIRE(import());
++  CHECK(graphic.dwgAdvancedMetadata().selectedDwgSourceCaptureSessionSealed());
+   CHECK(graphic.dwgAdvancedMetadata().matchesAc1024EmptySortEntsSourceObservation(target));
+ }
+ #endif

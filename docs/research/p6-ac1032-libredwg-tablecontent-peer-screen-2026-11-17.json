@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1032 inline TABLECONTENT LibreDWG peer-decoder screen",
+  "date": "2026-11-17",
+  "gate": "P6-C",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg",
+    "sha256": "1b719034b3d65a66830db64ae65662f0c9249f8f05ce906d212f7ffd4b34473c",
+    "version": "AC1032",
+    "provenance": "The external dwg-parser repository's PROVENANCE.md describes this as a locally generated ACAD_TABLE scaffold with CJK cell text exported by ODA R2018. Its license/distribution scope is proprietary to that repository. The drawing was read in place and neither it nor a derivative was copied into libdxfrw."
+  },
+  "run": {
+    "tool": "/opt/homebrew/bin/dwgread",
+    "version": "LibreDWG 0.14",
+    "command": "dwgread -v2 -O JSON /Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg",
+    "exitCode": 0,
+    "outputPath": "/private/tmp/libdxfrw-p6c-libredwg.json",
+    "outputBytes": 324624,
+    "outputSha256": "123e8d3ce252d2976104a611991f6367232ec1b9ddd2d2c2e706c3ed8aa5f5fd",
+    "diagnosticPath": "/private/tmp/libdxfrw-p6c-libredwg.log",
+    "diagnosticBytes": 37784,
+    "diagnosticSha256": "b0c028cd772c56e7b63400a2173ea84d4aa054350d5b512b4b9dce1cd4778fc3"
+  },
+  "observation": {
+    "fileVersion": "AC1032",
+    "objectCount": 182,
+    "acadTableCount": 1,
+    "acadTable": {
+      "handle": "0xCF",
+      "classNumber": 513,
+      "objectIndex": 136,
+      "frameBits": 114537,
+      "reportedSubclass": "AcDbLinkedTableData",
+      "reportedColumnCount": 256,
+      "reportedRowCount": 0,
+      "retainedUnknownBits": 86163
+    },
+    "diagnostics": [
+      "Warning: Unstable Class entity 513 ACAD_TABLE (0x401) 136/CF",
+      "Warning: TODO TABLE r2010+",
+      "Warning: TODO TABLESTYLE r2010+ missing fields"
+    ],
+    "interpretation": "The process returned success and emitted a partial JSON object, but its explicit R2010+ TABLE TODO and large unknown-bit remainder mean it did not independently decode this table's rows, cell values, field spans, or references. The emitted counts are incomplete parser state, not semantic evidence."
+  },
+  "disposition": {
+    "result": "This LibreDWG 0.14 route cannot serve as independent TABLECONTENT semantic or boundary evidence for this source. Do not interpret a zero exit status as successful table decoding.",
+    "layout": "The observation does not distinguish ODA v5.4.1's TV CadValue string from the bounded body-byte-count candidate; no production parser change is supported.",
+    "nextAction": "Do not repeat this peer decode for the unchanged source. Resume P6-C when primary/versioned authority, the missing AutoCAD 2021 API state, or a source-distinct independently decoded matching profile resolves cell values, spans, roles, and following-record alignment. Continue other admitted work meanwhile."
+  }
+}

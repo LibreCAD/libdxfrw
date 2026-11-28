@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-dxf-peer-artifact-lineage-boundary-v1",
+  "observedAt": "2026-10-21",
+  "evidenceKind": "primary project and published crate documentation review; no peer runtime",
+  "question": "Do newly surfaced DXF libraries add a distinct, admissible 3D/ACIS comparator route?",
+  "sources": [
+    {
+      "project": "IxMilia.Dxf / Rust dxf crate",
+      "artifact": "dxf 0.6.2",
+      "references": [
+        "https://docs.rs/dxf/0.6.2/dxf/entities/struct.Solid3D.html",
+        "https://docs.rs/crate/dxf/0.6.2/source/",
+        "https://github.com/ixmilia/dxf"
+      ],
+      "observed": "The published Solid3D model exposes a format version, two custom-data string vectors, and a history-object handle. The project README declares a DXF/DXB R10-R2014 scope with named entity exclusions and warns that output containing typed 3DSOLID, REGION, or BODY may not open in AutoCAD. No ACIS shape conversion is established by the inspected API.",
+      "disposition": "Optional exact-version DXF syntax/carrier observer only. No DWG, AcDs association, ACIS semantic, topology, or native-acceptance evidence."
+    },
+    {
+      "project": "dxf-tools-rs",
+      "artifact": "docs.rs crate 0.1.3",
+      "references": [
+        "https://docs.rs/crate/dxf-tools-rs/0.1.3",
+        "https://docs.rs/dxf-tools-rs/0.1.3/dxf_tools_rs/entities/enum.EntityType.html",
+        "https://github.com/hakanaktt/dxf-tools-rs",
+        "https://github.com/hakanaktt/acadrust"
+      ],
+      "observed": "The published artifact describes ASCII/Binary DXF read/write, a Solid3D type, a claimed range through AC1032, MIT licensing, and ACadSharp inspiration. The GitHub URL redirects to the current acadrust repository, whose visible project identity and license are MPL-2.0. No immutable source-to-artifact mapping, archived manifest/license comparison, code-history audit, or runtime was performed.",
+      "disposition": "DISCOVERY_ONLY/SOURCE_AND_LICENSE_UNBOUND. Do not count as a separate ACadRust implementation or comparator until the exact crate archive, checksum, archived manifest/license, and source history are bound. If unresolved, mark NOT_RUN/UNBOUND."
+    },
+    {
+      "project": "ACadRust",
+      "artifact": "current repository documentation and roundtrip tests",
+      "references": [
+        "https://github.com/hakanaktt/acadrust",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "observed": "The project documents DXF/DWG read/write and ACIS SAT/SAB capabilities. Its visible tests include same-codec roundtrips and fake SAB transport markers; those demonstrate internal integrity only, not independent geometry expectations or native application acceptance.",
+      "disposition": "Keep the existing exact-release gate. Treat dxf-tools-rs and ACadRust as one maintainer/source family pending immutable history review."
+    }
+  ],
+  "planDelta": {
+    "newLocalDefect": false,
+    "newImplementationFinding": false,
+    "newSubplan": false,
+    "newTestOrFixture": false,
+    "newDependency": false,
+    "supportClaimPromoted": false,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "peerRunPerformed": false,
+    "externalDrawingDownloaded": false,
+    "deferredExternalItemsRemain": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "rules": [
+      "Distinguish a typed 3DSOLID carrier from ACIS parsing, B-rep construction, and native acceptance.",
+      "Bind package archive, checksum, source revision, and license before using a crate whose repository URL has moved or changed identity.",
+      "Do not count two artifacts from one maintainer/source family as independent implementations without a source-lineage audit.",
+      "If external peer identity is not cheaply bound, record NOT_RUN/UNBOUND and self-unblock to local generated controls.",
+      "Keep all six J items DEFERRED_EXTERNAL and non-promoting."
+    ]
+  },
+  "limitations": "Documentation and published API review only. Links are mutable except the explicitly versioned crate page. No source archive was downloaded, no license conclusion was made for an archive not inspected, and no parser, CAD application, geometry kernel, or drawing was run."
+}

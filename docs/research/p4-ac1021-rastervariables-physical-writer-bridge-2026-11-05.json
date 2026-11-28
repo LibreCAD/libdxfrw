@@ -1,0 +1,108 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Physical AC1021 RASTERVARIABLES writer and DXF output bridge",
+  "date": "2026-11-05",
+  "status": "BOUNDED_PHYSICAL_INPUT_WRITER_BRIDGE_PASSED",
+  "scope": "A locally available AC1021 producer sample is read, its single direct-NOD RASTERVARIABLES callback and modeled common links are checked, then those captured values seed a locally authored dependency-closed AC1021 wrapper DWG. The wrapper is re-imported, exported to ASCII and Binary DXF with invalid-state atomic refusal and same-adapter retry, and read back as a typed rooted graph. This demonstrates a bounded physical-input-to-writer bridge; it does not export the physical drawing or qualify native raster behavior.",
+  "physicalWitness": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "revision": "AC1021",
+    "objectHandle": "0x2D2",
+    "ownerPath": "NOD 0x0C -> ACAD_IMAGE_VARS -> RASTERVARIABLES",
+    "fields": {
+      "classVersionGroup90": 0,
+      "imageFrameGroup70": 1,
+      "imageQualityGroup71": 1,
+      "unitsGroup72": 1
+    },
+    "commonMetadata": {
+      "reactorCount": 1,
+      "reactorSoftPointer": "0x0C (the owner NOD)",
+      "xDictMissingFlag": 1,
+      "xDictionaryHandle": 0,
+      "dataStorage": false,
+      "appDataGroups": 0,
+      "extDataItems": 0
+    },
+    "limitations": "The physical import remains partial: 40 unrelated object parse failures, 44 AC1021 CRC mismatches, and 40 failed source frames."
+  },
+  "projection": {
+    "kind": "locally authored AC1021 DWG wrapper generated inside the focused selector",
+    "fieldsCopied": [
+      "classVersion",
+      "imageFrame",
+      "imageQuality",
+      "units",
+      "appData",
+      "extData",
+      "reactorHandles",
+      "reactorCount",
+      "XDictionary flag",
+      "data-storage flag"
+    ],
+    "admission": "The selector requires empty EED/XDATA, no data-storage payload, XDictionary-missing flag 1, and the single NOD soft-pointer reactor observed in the physical sample.",
+    "outputs": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "checks": [
+      "wrapper DWG re-import field comparison",
+      "typed rooted DXF readback",
+      "invalid class-version refusal with destination preservation",
+      "invalid reactor refusal with destination preservation",
+      "out-of-range units refusal with destination preservation",
+      "same-adapter successful retry",
+      "output qualification bound to wrapper source frame"
+    ],
+    "fixturePolicy": "The wrapper DWG and output DXFs are generated in temporary storage and removed after the selector; no DWG/DXF fixture was added to the repository."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R 'dwg2dxf_rastervariables_.*adapter_transport' --output-on-failure",
+      "result": "9/9 focused generated transport tests passed across AC1018, AC1021, AC1024, AC1027 and AC1032 routes"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1021-direct-nod /Users/dli/doc/dwg/children-room-decoration.dwg",
+      "result": "passed; source census plus local wrapper DWG re-import, ASCII/Binary refusal/retry and typed readback"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/children-room-decoration.dwg -y -v2010 /private/tmp/children-room-decoration.dxf",
+      "result": "historical cross-version AC1021-to-AC1024 attempt refused at the deliberate typed DWG ModelDocViewStyle exact-version guard; a same-version follow-up now passes this guard and reaches the DBCOLOR evidence gate (see the linked recheck receipt)."
+    }
+  ],
+  "nonClaims": [
+    "The physical drawing itself is not eligible for whole-source DXF output; 186 opaque callbacks are not retained or output-qualified, despite zero entity/object parse failures.",
+    "The generated wrapper is a bounded control, not an original-source byte-preserving conversion.",
+    "No native AutoCAD, LibreCAD, LibreCAD_3, FreeCAD, or independent raster-display/unit semantic acceptance was run.",
+    "This does not establish broader producer/version support or close P4."
+  ],
+  "remaining": [
+    "Broader physical producer and revision coverage for RASTERVARIABLES.",
+    "Physical whole-source output on a source with eligible document-wide graph closure.",
+    "Independent native consumer checks for raster image display and unit behavior.",
+    "Broader WIPEOUTVARIABLES profile coverage and remaining P4 graph/source closure."
+  ],
+  "supersededWholeSourceGateObservation": "The earlier cross-version whole-source attempt did not identify the next same-version gate. See docs/research/p4-ac1021-children-room-same-version-output-gate-2026-11-05.json.",
+  "implementationFollowup": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "defect": "The output validator already accepted this bounded AC1021 direct-NOD profile, but the extension-object graph validator omitted AC1021 from its direct-NOD parent/reactor route, so physical wrapper output failed at graph validation.",
+    "fix": "Admit AC1021 in the graph validator when the single reactor and typed parent both target the NOD, consistent with the existing source/output profile checks. No source-wide completeness gate was changed.",
+    "regressionBeforeFix": "The physical selector reached wrapper output then failed with RASTERVARIABLES outside the bounded DWG owner profile during same-adapter retry."
+  },
+  "currentValidation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j3: passed with -Werror",
+    "generatedFastFamily": "ctest --test-dir build-gcc -R '^dwg2dxf_rastervariables_.*adapter_transport$' --output-on-failure: 9/9 passed",
+    "physicalSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --rastervariables-physical-ac1021-direct-nod /Users/dli/doc/dwg/children-room-decoration.dwg: passed after graph admission fix",
+    "sourceDigest": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce before and after",
+    "diffCheck": "git diff --check: passed"
+  }
+}

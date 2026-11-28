@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "S3.7c invalid later-root transactional refusal fast test",
+  "mode": "Parser-fed generated SAB negative control",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+    "worktreeState": "Broadly modified and uncommitted; no files staged.",
+    "changedFiles": [
+      "tests/graph_preservation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "docs/research/s37c-invalid-later-root-transactional-refusal-fast-test-2026-10-21.json"
+    ],
+    "change": "Added a two-body SAB 21800 case where the first body projects and the later body's unsupported parabola-curve has an out-of-range ordinal-0 pointer. Extraction must fail at that exact node/ordinal and clear the preseeded public projection output.",
+    "validation": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j4",
+        "result": "PASS"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "PASS: 1/1, 1.18 seconds"
+      },
+      {
+        "command": "git diff --check -- tests/graph_preservation_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md DWG_DXF_3D_SUPPORT_PLAN.md docs/research/s37c-invalid-later-root-transactional-refusal-fast-test-2026-10-21.json",
+        "result": "PASS"
+      },
+      {
+        "command": "jq -e . docs/research/s37c-invalid-later-root-transactional-refusal-fast-test-2026-10-21.json",
+        "result": "PASS"
+      }
+    ],
+    "fixturesAdded": 0,
+    "productionCodeChanged": false,
+    "fullSuiteRun": false,
+    "supportClaimsPromoted": 0
+  },
+  "evidenceCeiling": "This test validates public-call transactionality for a parser-fed rooted structural projection failure after a prior body succeeds. It does not establish producer-validity for the malformed pointer, ACIS curve semantics, B-rep validity, interoperability, native acceptance, or general support.",
+  "implementationReadiness": {
+    "existingOwner": "PAR-07/S3.7c rooted SAB projection failure atomicity",
+    "completedSlice": "A malformed unsupported row in a later body reports its exact node/ordinal and prevents publication of any earlier rooted body projection.",
+    "nextLocalAction": "Continue the next dependency-ready local S3.7c graph/resource invariant; external semantic and native gates remain at their composed checkpoints.",
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

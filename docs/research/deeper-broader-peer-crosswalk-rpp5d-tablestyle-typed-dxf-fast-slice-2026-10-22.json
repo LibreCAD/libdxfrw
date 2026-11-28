@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-5d TABLESTYLE typed DXF row-style projection fast slice",
+  "mode": "Generated ASCII/Binary adapter round-trip validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "692ea45c9dadb8fb54849ff46e07d59cdc71d8da79f2b11f0a1ad926ea098e82",
+  "authoritativeReference": {
+    "title": "TABLESTYLE (DXF), Autodesk AutoCAD 2024 DXF Reference",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0DBCA057-9F6C-4DEB-A66F-8A9B3C62FB1A.htm",
+    "accessed": "2026-10-22",
+    "fields": [
+      {"description": "The following group codes are repeated for every cell"},
+      {"group": 7, "description": "Text style name"},
+      {"group": 140, "description": "Text height"},
+      {"group": 170, "description": "Cell alignment"},
+      {"group": 62, "description": "Text color"},
+      {"group": 63, "description": "Cell fill color"},
+      {"group": 283, "description": "Background color enabled flag"},
+      {"group": 90, "description": "Cell data type"},
+      {"group": 91, "description": "Cell unit type"},
+      {"groups": "274-279", "description": "Lineweight for each border type"},
+      {"groups": "284-289", "description": "Visibility for each border type"},
+      {"groups": "64-69", "description": "Color for each border type"}
+    ]
+  },
+  "implementation": {
+    "changes": [
+      "Added typed DXF projection for TABLESTYLE row text-style name, height, alignment, indexed text/fill color, CMC RGB/name/book metadata, background state, paired data/unit types, and six border families.",
+      "Kept the complete ordered raw TABLESTYLE carrier so unsupported fields and original ASCII numeric spellings remain available for lossless replay.",
+      "Generated ASCII/Binary controls verify three distinct typed rows, raw group/value order, and that an incomplete row is not published as typed while a following valid TABLESTYLE sentinel is published in order.",
+      "Corrected the order assertion to compare decimal handles returned by its wire helper; the earlier hexadecimal lookup caused a false test failure."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp5d-tablestyle-typed-dxf-fast-slice-2026-10-22.json",
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: ctest --test-dir build-gcc -R 'tablestyle|classes_wire|dimstyle_subclass_wire' --output-on-failure (14/14)",
+    "diffCheck": "PASS: git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md tests/dwg2dxf_adapter_tests.cpp; scoped source check also passed",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "dwgVersionUpconvertClaimPromoted": false,
+    "supportClaimsPromoted": 0,
+    "abiNote": "New public model/parser state grows C++ object layouts; lc3_compat_check is source-level evidence only. Downstream consumers must rebuild; binary ABI compatibility is not claimed.",
+    "remainingLocalWork": [
+      "Add duplicate CMC name/book fail-closed control.",
+      "Add exact/over retained-text budget boundary controls for nested row strings.",
+      "Audit row copy/reset and raw-versus-typed output routing before closing RPP-5."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

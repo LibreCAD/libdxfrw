@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Selected AC1021 VisualStyle extension dictionary and XRecord output",
+  "date": "2026-11-06",
+  "supportClaimEffect": "none",
+  "scope": "Qualify one source-bound selected AC1021 VisualStyle graph, including its extension dictionaries, XRecords, and exact ACAD EED profile, for ASCII/Binary DXF output and readback.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/children-room-decoration.dwg",
+    "sha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing. Author and producer are not independently authenticated. No drawing fixture or derivative is committed."
+  },
+  "sourceGraph": {
+    "visualStyles": 25,
+    "visualStyleRoot": "One ACAD_VISUALSTYLE edge under NOD targets the style dictionary; that dictionary has one entry for each typed VisualStyle.",
+    "perVisualStyle": "Each style has one non-null xDictHandle; its extensionDictionaryFlag is 0; its extension DICTIONARY has owner equal to the style handle, cloning=1, hardOwner=1, no reactors or xDictionary, and exactly one complete DWG entry keyed ACAD_XREC_ROUNDTRIP.",
+    "xrecord": "Each entry uniquely targets one standard fixed object type 79 XRECORD. The XRECORD owner is its extension dictionary, cloning=1, its sole reactor points back to that dictionary, it has no extension dictionary, handle-valued data, EED, appData, or opaque raw block, and it contains 252 ordered typed values.",
+    "sourceFrameEvidence": "All 25 extension DICTIONARY and 25 XRECORD physical standard-object frames match their typed payloads; frame types are 42 and 79 respectively.",
+    "visualStyleEed": "Each style has exactly three EED groups: 1001 ACAD, 1000 AcDbSavedByObjectVersion, 1070 integer 0. The source APPID table contains the unique valid ACAD record."
+  },
+  "implementation": {
+    "profile": "AC1021 VisualStyle source admission now permits only either the prior no-XDictionary/no-EED profile or the witnessed paired ACAD EED plus exact XDictionary/one-XRECORD graph. Other XDictionary shapes, EED values, XRECORD layouts, raw payloads and handle references remain refused.",
+    "writer": "The AC1021 VisualStyle raw DXF builder now emits the validated ACAD_XDICTIONARY hard-owner group and typed EED before the AcDbVisualStyle subclass. Existing extension-graph and standard-source snapshot checks validate dependency closure and mutation.",
+    "files": {
+      "dwg2dxf/dx_data.h": "49db978d9c33a267ae563f49586cd24827962d8a3ed32380bfc7a64b24b4eb52",
+      "dwg2dxf/dx_iface.cpp": "bc31f2d91cf608d3c3f990819545a21225dd1e138626a897880357fa50d4b10a",
+      "tests/dwg2dxf_adapter_tests.cpp": "736e3a4ad75234fad3455fb5349c46cdb10ceaf18789aea75d34433446bab4df"
+    }
+  },
+  "verification": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j3",
+      "result": "PASS"
+    },
+    "generatedControls": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --visual-style-ac1021-typed-writer /private/tmp/visual-style-ac1021-typed",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --visual-style-ac1024-typed-writer /private/tmp/visual-style-ac1024-typed",
+        "result": "PASS"
+      }
+    ],
+    "physicalSelectedGraph": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --visual-style-ac1021-physical-extension-graph /Users/dli/doc/dwg/children-room-decoration.dwg /private/tmp/children-room-vs-xdict-output",
+      "result": "PASS",
+      "logPath": "/private/tmp/children-room-vs-xdict-output.log",
+      "logSha256": "a12b48e9b4f0fe2c99ce2cd8081a30a2455b9cdc8bb88ba73d3320025df72098",
+      "executableSha256": "39a758b0d85dd29052c5b6312141cdc2b7088a36449980a1fe18f6461b92e6dc",
+      "checks": [
+        "ASCII and Binary output followed by fresh local DXF import",
+        "25 typed VisualStyles, 25 extension dictionaries, 25 XRecords and the NOD edge",
+        "VisualStyle parent, xDictionary handle, selected body fields and all three EED groups",
+        "Every selected dictionary owner and ordered key/handle edge",
+        "Every XRecord owner/reactor and all 252 ordered values by group code, type and value",
+        "Mutated source XRecord refusal preserves the pre-existing destination sentinel",
+        "Restored source graph succeeds on the same writer and reads back"
+      ]
+    },
+    "diffCheck": "git diff --check passed"
+  },
+  "limits": [
+    "This is a selected graph, not conversion of the full source drawing; the full source still stops at independent DBCOLOR and other document-wide gates.",
+    "The output test does not establish native VisualStyle rendering, producer-wide prevalence, LibreCAD/FreeCAD acceptance, or general XRecord/EED semantics.",
+    "The remaining 49 opaque carriers and 62 standard-object frames in the 186-frame inventory are not output-qualified by this receipt."
+  ],
+  "nextAction": "Continue with a separate repeated physical source family such as SCALE or DICTIONARYVAR, preserving exact source, role, dependency, output and readback gates."
+}

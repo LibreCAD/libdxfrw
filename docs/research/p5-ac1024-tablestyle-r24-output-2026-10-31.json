@@ -1,0 +1,115 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-tablestyle-r24-output-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 R24 TABLESTYLE bounded DXF output",
+  "status": "LOCAL_GENERATED_ASCII_BINARY_SERIALIZER_PROFILE_WITH_PHYSICAL_PROGRESS",
+  "supportClaimEffect": "none",
+  "baselineCommit": "5d4a3d3e",
+  "implementationCommit": "ca6c7149",
+  "sourceProfile": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "class": {
+      "number": 504,
+      "name": "AcDbTableStyle",
+      "instanceCount": 1,
+      "handle": "0x87",
+      "recordName": "Standard"
+    },
+    "observedModel": {
+      "legacyRowStyles": 0,
+      "richCellStyles": [
+        {"id": 1, "class": 1, "name": "_TITLE", "mergeFlags": 32768, "alignment": 5, "textHeight": 0.25},
+        {"id": 2, "class": 1, "name": "_HEADER", "mergeFlags": 0, "alignment": 5, "textHeight": 0.18},
+        {"id": 3, "class": 2, "name": "_DATA", "mergeFlags": 0, "alignment": 2, "textHeight": 0.18}
+      ],
+      "tableCellStyle": {
+        "id": 4,
+        "class": 2,
+        "name": "Table",
+        "hasData": true,
+        "borderCount": 0,
+        "backgroundColor": 256,
+        "contentLayout": 1,
+        "contentValueDataType": 512,
+        "contentValueUnitType": 0,
+        "cellAlignment": 1,
+        "textHeight": 0.18,
+        "marginOverrideFlags": 1
+      },
+      "prefix": {
+        "classVersion": 0,
+        "unknownValue1": 8,
+        "unknownValue2": 101,
+        "unknownHandle": 0
+      }
+    }
+  },
+  "independentProjection": {
+    "tool": "LibreDWG dwg2dxf",
+    "repository": "/Users/dli/dev/libredwg",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "inputSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "output": "/private/tmp/mechanical-libredwg.dxf",
+    "outputSha256": "bff59c5146c253b4d4a4791b35efe0dce21d12ae3c1dc61464deb95cea00a0e7",
+    "scope": "Corroborates the R24 marker grammar, ID-4 Table style with no grid records, three standard cell styles, color projection, margins, text heights and border masks. This peer projection does not establish source semantics or consumer acceptance."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/CMakeLists.txt",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Retain the observed R24 prefix values in DRW_TableStyle and admit only the witnessed 0/8/101/null-handle prefix and Standard Table/title/header/data model. Emit bounded rich TABLEFORMAT, CONTENTFORMAT, CELLMARGIN, GRIDFORMAT and CELLSTYLE marker spans; map the three source text-style handles to the emitted DXF STYLE identity. The R24 Table style has no grid records; each of its three standard cell styles has six borders.",
+    "colorProjection": "Map source CMC C8/kNone to DXF group 62 value 257 and source C1/byBlock to 0, matching the same-input LibreDWG projection. No broader color semantic claim is made.",
+    "failureAndRetry": "The generated selector changes the unknown prefix from 8 to 9 and then uses unresolved text-style handle 0x999; each export refuses while preserving the existing destination. It restores prefix 8, replaces the bad reference with source handle 0x560, and succeeds through the same adapter.",
+    "fixturePolicy": "The AC1024 model is authored in memory. ASCII/Binary DXF outputs are temporary and removed. The physical source remains outside the repository; no investigation fixtures were added."
+  },
+  "proof": {
+    "selector": "--tablestyle-r24-typed-writer",
+    "ctest": "libdxfrw_tablestyle_r24_typed_writer",
+    "readback": "ASCII and Binary output reimport as one TABLE entity plus one raw TABLESTYLE record. The test checks the table-to-style handle edge, exact four CELLSTYLE identities, rich marker counts/order, margins, text heights, C8/C1 group-62 values, all 18 standard-style border masks, and three remapped group-340 text-style references. Rich R24 nested styles remain raw-only on DXF import; no typed nested readback claim is made.",
+    "focusedValidation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "buildResult": "PASS",
+      "physicalCliBuild": "cmake --build build-gcc --target dwg2dxf -j4",
+      "physicalCliBuildResult": "PASS",
+      "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+      "ctestResult": "PASS 1/1; 0.43 seconds",
+      "physicalDiagnostic": {
+        "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/mechanical-after-r24-tablestyle.dxf",
+        "result": "Expected failure after progress: the physical partial run advances beyond TABLESTYLE and stops at `DXF OBJECTS output inspection failed: MATERIAL`. Exit code 1; no output DXF was published.",
+        "log": "/private/tmp/mechanical-after-r24-tablestyle.log",
+        "logSha256": "cf2e8437a0d0ad944871bf781bf0baa425dc6f04cba47c6f8a2d0487d88cc67c"
+      },
+      "fullSuites": "NOT RUN"
+    }
+  },
+  "sourceBindings": {
+    "implementationCommit": "ca6c7149",
+    "sourceSha256": {
+      "src/drw_objects.cpp": "0f78dadddb02f5872e2fd0a366ac71ec78082779f25124964defdd3cc79e5ba5",
+      "src/drw_objects.h": "064570a027eeb479363d9f1802d0e0d8621bdded5aade7ad953202686474e03f",
+      "src/libdxfrw.cpp": "029468b5670129ef3922ae99295893250db44dfc2ef359bff563662b3776d8fd",
+      "dwg2dxf/dx_iface.cpp": "f4721a199388dfae2df2fb497bf09011948d38ad2e75be16d2413adcc5d71db5",
+      "tests/CMakeLists.txt": "5bedf508d986843374e0d9fd18f1fa550a9bcac3fa1a97dc04caf9a5d4d0afbd",
+      "tests/dwg2dxf_adapter_tests.cpp": "5fcaecf66f1516932850e97f7c31825782e5e38ff56591948c8eff0e964877d3"
+    },
+    "normalArtifactSha256": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "a7962bfb421c653bcd3d23c00f4f9e037a5c96b5fbc94d8214698363a2e588e3"
+    }
+  },
+  "limits": [
+    "This proves one bounded AC1024 R24 TABLESTYLE serializer profile and advances one physical partial conversion; it does not close the physical document graph.",
+    "The physical run is partial-read diagnostic only. Strict complete-export admission remains blocked by source closure and opaque callback views not retained for output.",
+    "The rich R24 DXF reader currently retains nested marker groups raw-only; typed nested-style semantics remain open.",
+    "No native TABLE rendering, LibreCAD/LibreCAD_3/FreeCAD acceptance, ABI compatibility, or broader DWG/DXF support is qualified."
+  ],
+  "remainingP4Scope": "Resolve the physical MATERIAL output-inspection failure, then map all required callback identities and descendants to complete output or a proven end-to-end replay path without weakening strict completeness.",
+  "nextAction": "Inspect the physical MATERIAL source model and output inspector binding for the first failing field/reference. Add a narrow source-bound regression and failure/retry proof, then rerun the same partial witness."
+}

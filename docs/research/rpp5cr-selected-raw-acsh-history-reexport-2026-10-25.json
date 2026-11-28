@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5cr selected raw ACSH history DXF reexport",
+  "date": "2026-10-25",
+  "parentCommit": "b077272a59ebad21a45a3edd55671f1ee54c2839",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "CANONICAL_RAW_BOX_HISTORY_AC1027_AC1032_DXF_REEXPORT_CLOSED_WITH_SOURCE_STAGE_FINAL_ROLE_PROOF_OTHER_FAMILIES_NATIVE_SEMANTIC_PLATFORM_PARITY_OPEN",
+  "baseline": {
+    "priorReceipt": "docs/research/rpp5cq-historyless-solid-native-transport-2026-10-25.json",
+    "priorFailure": "Actual DXF import then reexport refused EvaluationGraph owner as unresolved/unrepresentable",
+    "cause": "DXF publishes typed ACSH identity shells plus raw bodies; the CLI retained the shells but discarded their raw bodies, so no safe history-owner serialization route existed",
+    "initialRequiredPositiveLog": "/tmp/rpp5cr-positive-tests.log"
+  },
+  "scope": {
+    "source": "Actual DXF imports of locally authored typed BOX/history outputs with a historyless solid neighbor and distinct marker payloads",
+    "versions": [
+      "AC1027",
+      "AC1032"
+    ],
+    "target": "Exact matching source revision, either ASCII or binary",
+    "testedHistoryClosuresPerFile": 1,
+    "retainedRawKinds": [
+      "ACSH_HISTORY_CLASS",
+      "ACSH_BOX_CLASS",
+      "ACAD_EVALUATION_GRAPH"
+    ],
+    "nativeDwgLayoutChanges": false,
+    "publicLibraryApiAbiCallbacksChanged": false,
+    "converterOnly": true,
+    "sourceIsIndependentNativeProducerWitness": false,
+    "validSabGeometry": false
+  },
+  "implementation": {
+    "capture": "CLI-owned bounded raw ACSH/EvaluationGraph records and one successful DXF import receipt: generation/version, callback/history/group/byte counts and sticky failure",
+    "limits": {
+      "records": 100000,
+      "groups": 4000000,
+      "retainedBytes": "Existing DRW::kMaxDxfBinaryPayloadBytes",
+      "examinedEntities": 4000000
+    },
+    "closure": "Unique modeler -> history -> EvaluationGraph -> BOX -> material roles, paired typed identity shells and graph fields, unique custom classes/counts, no orphan/shared/duplicate closures",
+    "identityShellAuthority": "DXF typed ACSH callbacks do not decode the native field body; raw groups own the body. Require paired identity and supported empty shell state, not native BODY DTO interpretation",
+    "canonicalFieldCounts": {
+      "history": 9,
+      "box": 35,
+      "graph": 13
+    },
+    "roleFields": [
+      "5 self",
+      "330 owner",
+      "350 modeler history (existing serializer)",
+      "360 history-to-graph and graph-to-expression",
+      "347 BOX material"
+    ],
+    "unsupportedCommonMetadata": "Extra application/XDATA/reactor/extension fields outside this explicit profile refuse; none are silently dropped",
+    "extensionGraph": "Only validated selected ACSH owners/expressions enter the existing bounded inventory; indexed owner lookup, no arbitrary raw handle whitelist",
+    "snapshot": "Freeze admitted raw fields/raw spellings, source generation, receipt and DXF class metadata. Recheck typed/raw roles and source context during callbacks, staged inspection and finalization",
+    "adoptedSectionOwnership": "At admission raw ACDSDATA source is complete and unchanged. During codec write it is exclusively adopted; caller moved-from raw-section container must remain empty. Do not interpret legitimate adoption as source loss",
+    "rawIdentityContract": "Reserve raw self keys and retain them unchanged; generic raw writers do not publish typed source-object bindings. Prove exact staged fields and final unique name/OBJECTS/owner/target records using the actual raw contract",
+    "stageInspector": "Ordered primitive fields, mapped self/owner/reference values, subclasses, integers and bit-exact doubles. Selected record inventory must be exact; no per-file record model retained",
+    "finalInspector": "Admitted source still unchanged, stage inspection completed, raw self unchanged, exact record identity and owner, every self/owner/target emitted exactly once",
+    "nativeProxyTypedBoxAndHistorylessRoutesRetained": true,
+    "supportPredicatesOrVerifierQualificationRelaxed": false
+  },
+  "controls": {
+    "newCTests": [
+      "dwg2dxf_acds_history_reexport_faults",
+      "libdxfrw_acds_raw_scalar_wire_controls"
+    ],
+    "updatedCTest": "dwg2dxf_acds_typed_historyless_companion now requires successful actual parsed reexport instead of the old fail-closed boundary",
+    "profiles": 2,
+    "encodings": 2,
+    "preflight": {
+      "modes": 22,
+      "refusals": 88,
+      "restoredSameFacadeReadbacks": 88,
+      "modesSummary": [
+        "Unsuccessful/stale/mismatched generation or source format/version",
+        "Wrong raw or typed owner, self identity, material role or graph expression",
+        "Duplicate/unsupported raw record or extra common group",
+        "Wrong class count or missing material target",
+        "Edited typed identity shell/body authority",
+        "Failed/zeroed capture receipt",
+        "Extra graph node"
+      ]
+    },
+    "lateCallbacks": {
+      "phases": [
+        "After base writeEntities",
+        "After base writeObjects"
+      ],
+      "modesPerPhase": 13,
+      "refusals": 104,
+      "restoredSameFacadeReadbacks": 104,
+      "modesSummary": [
+        "Generation/source format",
+        "Raw owner/handle role/body fields",
+        "Typed graph owner/expression",
+        "Typed shell owner/native body state",
+        "Class count/application name",
+        "Capture history count/retained-byte receipt"
+      ]
+    },
+    "aggregateRestoredSameFacadeReadbacks": 192,
+    "restoredReadbackProof": "Compare all 57 ordered groups across the three selected records, mapped owner/self/target roles, both solids/history roles, graph DTO, class counts and two exact distinct payload-to-modeler joins",
+    "sourceAuthorControls": "Per version/encoding the reused authored typed-source helper also checks its own malformed histories, classes/material closure and direct projection, then actually imports and reexports the corrected file",
+    "scalarObserver": {
+      "authoring": "Literal primitive ASCII/binary bytes, no library serializer",
+      "profiles": 2,
+      "encodings": 2,
+      "initialPositives": 4,
+      "corruptionRestorationPairs": 48,
+      "modes": [
+        "Wrong self/owner/target",
+        "Wrong handle role",
+        "Wrong subclass/int/double",
+        "Missing/duplicate/reordered fields",
+        "Truncated fields",
+        "Over-wide actual reference"
+      ],
+      "wideControl": "PASS without additional production changes; final supplementary controls cover it"
+    },
+    "scratchSafety": {
+      "optionalSelector": "--acds-history-reexport-faults [EMPTY_DIRECTORY]",
+      "retainedDirectory": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO",
+      "occupiedActualExitCode": 1,
+      "existingDxfHashesUnchanged": 12,
+      "onlyFreshOwnedDefaultDirectoriesRecursivelyCleaned": true
+    }
+  },
+  "independentReadback": {
+    "tool": "ezdxf",
+    "version": "1.4.4",
+    "report": "/tmp/rpp5cr-independent-readback.json",
+    "reportSha256": "7307633949d6401692ce704c1f127e25e49d3fb8ef887845c5a3c6eb6c9b330b",
+    "actualFilesRead": 12,
+    "scope": "Final retained source, opposite-encoding reexport and corrected retry files in both revisions; not independent execution of every overwritten intermediate mutation attempt",
+    "facts": [
+      "Two 3DSOLIDs, no REGION; one historyless and one linked solid",
+      "Reciprocal history owner/graph owner/BOX owner, hard-owner target roles and material target",
+      "Every selected source raw group retained, with only the modeler owner remapped",
+      "Both distinct marker payloads still join to the correct solid history role"
+    ],
+    "schemaOrSemanticQualification": false,
+    "limitations": [
+      "Locally authored DTO-generated DXF source, not independent native DWG producer or general schema truth",
+      "Marker SAB payloads are intentionally not valid geometry",
+      "No kernel, drawing-unit, native platform or consumer semantic qualification"
+    ]
+  },
+  "validation": {
+    "normal": {
+      "tests": [
+        "dwg2dxf_modeler_acds_blob_faults",
+        "dwg2dxf_xrecord_owned_extension",
+        "dwg2dxf_native_paged_datastorage_faults",
+        "dwg2dxf_xrecord_owned_extension_faults",
+        "dwg2dxf_selected_raster_reactor_metadata",
+        "dwg2dxf_modeler_acds_blob_projection",
+        "dwg2dxf_native_paged_datastorage",
+        "libdxfrw_wave1",
+        "libdxfrw_table_entry_datastorage_refusal",
+        "libdxfrw_acds_exact_record_wire_controls",
+        "dwg2dxf_modeler_dxf_writer_matrix",
+        "dwg2dxf_acds_multi_record_projection",
+        "dwg2dxf_modeler_acds_r2013plus_projection",
+        "libdxfrw_dwg_acds_dataindex_order",
+        "libdxfrw_datastorage_page_boundaries",
+        "dwg2dxf_acds_raw_dxf_source_baseline",
+        "dwg2dxf_modeler_acds_block_projection",
+        "dwg2dxf_datastorage_capture_limits",
+        "dwg2dxf_datastorage_move_callback",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_raw_modeler_acds_replay",
+        "libdxfrw_dxf_fixtures",
+        "dwg2dxf_native_historyless_solid_paged",
+        "dwg2dxf_native_historyless_solid_paged_faults",
+        "dwg2dxf_native_historyless_solid_inline",
+        "dwg2dxf_native_historyless_solid_inline_faults",
+        "dwg2dxf_acds_typed_historyless_companion",
+        "dwg2dxf_acds_history_reexport_faults",
+        "libdxfrw_acds_raw_scalar_wire_controls"
+      ],
+      "log": "/tmp/rpp5cr-normal-final-tests.log",
+      "allPass": true,
+      "wallSeconds": 19.21
+    },
+    "asan": {
+      "tests": [
+        "dwg2dxf_modeler_acds_blob_faults",
+        "dwg2dxf_xrecord_owned_extension",
+        "dwg2dxf_native_paged_datastorage_faults",
+        "dwg2dxf_xrecord_owned_extension_faults",
+        "dwg2dxf_selected_raster_reactor_metadata",
+        "dwg2dxf_modeler_acds_blob_projection",
+        "dwg2dxf_native_paged_datastorage",
+        "libdxfrw_wave1",
+        "libdxfrw_table_entry_datastorage_refusal",
+        "libdxfrw_acds_exact_record_wire_controls",
+        "dwg2dxf_modeler_dxf_writer_matrix",
+        "dwg2dxf_acds_multi_record_projection",
+        "dwg2dxf_modeler_acds_r2013plus_projection",
+        "libdxfrw_dwg_acds_dataindex_order",
+        "libdxfrw_datastorage_page_boundaries",
+        "dwg2dxf_acds_raw_dxf_source_baseline",
+        "dwg2dxf_modeler_acds_block_projection",
+        "dwg2dxf_datastorage_capture_limits",
+        "dwg2dxf_datastorage_move_callback",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_raw_modeler_acds_replay",
+        "libdxfrw_dxf_fixtures",
+        "dwg2dxf_native_historyless_solid_paged",
+        "dwg2dxf_native_historyless_solid_paged_faults",
+        "dwg2dxf_native_historyless_solid_inline",
+        "dwg2dxf_native_historyless_solid_inline_faults",
+        "dwg2dxf_acds_typed_historyless_companion",
+        "dwg2dxf_acds_history_reexport_faults",
+        "libdxfrw_acds_raw_scalar_wire_controls"
+      ],
+      "log": "/tmp/rpp5cr-asan-final-tests.log",
+      "allPass": true,
+      "wallSeconds": 38.35
+    },
+    "supplement": "After the 29-test cohorts, add the over-wide literal control (44->48 pairs). Production is unchanged; recompile tests and recheck the normal scalar test plus all three new/updated ASan history/scalar tests",
+    "finalNormalScalar": {
+      "log": "/tmp/rpp5cr-wide-control-tests.log",
+      "allPass": true,
+      "wallSeconds": 0.31
+    },
+    "finalAsanHistoryScalar": {
+      "log": "/tmp/rpp5cr-asan-wide-tests.log",
+      "allPass": true,
+      "tests": 3,
+      "wallSeconds": 6.34
+    },
+    "cohortParallelism": 3,
+    "normalAndAsanOwningCohortsSequential": true,
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "normalBuildLog": "/tmp/rpp5cr-normal-final-build.log",
+    "asanBuildLog": "/tmp/rpp5cr-asan-final-build.log",
+    "bothLibreCAD3CompileGates": "PASS",
+    "cliOptionalBuild": {
+      "log": "/tmp/rpp5cr-cli-optional.log",
+      "allPass": true,
+      "wallSeconds": 2.98
+    },
+    "platform": "macOS ARM64, Apple Clang21.0.0; build-gcc is not a Linux/GCC qualification",
+    "fullSuite": "NOT_RUN",
+    "leakQualification": "NOT_RUN",
+    "nativeLinuxWindowsQualification": "NOT_RUN"
+  },
+  "readinessCorrections": [
+    "Initial compile scaffolding corrected reader-budget constructor and numeric handle getter; no API expansion or warning suppression",
+    "DXF typed ACSH callback is an identity shell, not an empty callback list",
+    "Account for temporary raw-section adoption during write instead of weakening source capture admission",
+    "Use reserved raw self/staged/final identities; private typed source binding is not fabricated"
+  ],
+  "artifacts": [
+    {
+      "sha256": "7307633949d6401692ce704c1f127e25e49d3fb8ef887845c5a3c6eb6c9b330b",
+      "path": "/tmp/rpp5cr-independent-readback.json"
+    },
+    {
+      "sha256": "aaf2a79c496a0cd2a1aa953f3ef2657e36cc984de4e2a328e4b8a38eaf7664e1",
+      "path": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/AC1027-retry-ascii.dxf"
+    },
+    {
+      "sha256": "bb1e42aac6335360056e0adcb47f71404b7ab614106251590fe410341db21382",
+      "path": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/AC1027-retry-binary.dxf"
+    },
+    {
+      "sha256": "ab7267d57f5b63daffed3fcdead8b6d2e9f9b45b7408f26c7a3012df353458b8",
+      "path": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/AC1032-retry-ascii.dxf"
+    },
+    {
+      "sha256": "0afb424ea9aa0e6ab453b2a8aec4b70672c90e5200e48ac1f1e7975f36b56118",
+      "path": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/AC1032-retry-binary.dxf"
+    },
+    {
+      "sha256": "2235bd3941b168a0a65ff23cef3525f45b11522dcc5448fc09c94031b9ebd68b",
+      "path": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/libdxfrw-ac1027-typed-acds-box-ascii-AC1032-historyless-companion.dxf"
+    },
+    {
+      "sha256": "0afb424ea9aa0e6ab453b2a8aec4b70672c90e5200e48ac1f1e7975f36b56118",
+      "path": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/libdxfrw-ac1027-typed-acds-box-ascii-AC1032-historyless-companion.dxf.replay.dxf"
+    },
+    {
+      "sha256": "1d8187f88dae1babd03a6f711a08777b2807633b468685eb9409e0ceb18bd546",
+      "path": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/libdxfrw-ac1027-typed-acds-box-ascii-historyless-companion.dxf"
+    },
+    {
+      "sha256": "bb1e42aac6335360056e0adcb47f71404b7ab614106251590fe410341db21382",
+      "path": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/libdxfrw-ac1027-typed-acds-box-ascii-historyless-companion.dxf.replay.dxf"
+    },
+    {
+      "sha256": "ebdaff0bdd6a4e3e36a329844c187417a823ba9807fa1f544e7ec96116a3eb7f",
+      "path": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/libdxfrw-ac1027-typed-acds-box-binary-AC1032-historyless-companion.dxf"
+    },
+    {
+      "sha256": "ab7267d57f5b63daffed3fcdead8b6d2e9f9b45b7408f26c7a3012df353458b8",
+      "path": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/libdxfrw-ac1027-typed-acds-box-binary-AC1032-historyless-companion.dxf.replay.dxf"
+    },
+    {
+      "sha256": "6e559ccfaf9745e9bb4e9789a1739bbcb9c1d7ef889633fcdd36652d4ddfbafa",
+      "path": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/libdxfrw-ac1027-typed-acds-box-binary-historyless-companion.dxf"
+    },
+    {
+      "sha256": "aaf2a79c496a0cd2a1aa953f3ef2657e36cc984de4e2a328e4b8a38eaf7664e1",
+      "path": "/private/tmp/libdxfrw-rpp5cr-replay.GTMiGO/libdxfrw-ac1027-typed-acds-box-binary-historyless-companion.dxf.replay.dxf"
+    }
+  ],
+  "supportBoundaries": {
+    "strictAdmission": "CLOSED",
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nativeLinuxFreeCAD": "NOT_RUN",
+    "nativeWindowsFreeCAD": "NOT_RUN",
+    "independentAcisAcdsSemanticKernelQualification": "NOT_RUN",
+    "supportClaimsPromoted": false,
+    "wholePlanComplete": false
+  },
+  "remaining": [
+    "Extend independent source/profile and field/role proof beyond canonical one-node BOX history, including native/proxy sources, other ACSH families and common metadata",
+    "Independent complete native DataStorage schema/payload/owner and producer-paired semantic/kernel evidence",
+    "General raw-carrier/schema propagation and cumulative retention/decoded-owner limits",
+    "Owning/common-extension/source-generation aliases, callbacks, names/body/path/EED, sparse classes, full IMAGE and named-root/document closure",
+    "Native Linux/Windows FreeCAD and full LibreCAD/LibreCAD_3 2D plus 3D objective",
+    "Isolate legacy fixed temp paths before concurrent cross-build owning cohorts"
+  ],
+  "exclusions": {
+    "drawingsCommitted": false,
+    "preexistingUntrackedDrawingsExcluded": 17,
+    "unrelatedUntrackedFilesExcluded": true,
+    "earlierReceiptsModified": false,
+    "remoteMutation": false
+  }
+}

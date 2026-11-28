@@ -1,0 +1,43 @@
+{
+  "title": "LEADER DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory LEADER transaction controls only; no producer or support claim.",
+  "implementation": {
+    "writer": "DRW_Leader::encodeDwg",
+    "behavior": [
+      "Use the shared private entity transaction helper to stage body and handle streams.",
+      "Preserve alias routing and the prior DWG class ID on failure.",
+      "Retain the preexisting fail-closed refusal for a non-null annotation hard-pointer reference."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1015", "profile": "two-vertex LEADER", "reached_allocation_failures": 15},
+    {"version": "AC1018", "profile": "two-vertex LEADER", "reached_allocation_failures": 15},
+    {"version": "AC1021", "profile": "two-vertex LEADER", "reached_allocation_failures": 15},
+    {"version": "AC1024", "profile": "two-vertex LEADER", "reached_allocation_failures": 15}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body and handle bytes, bit counts, handle occurrences, and prior class ID remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output.",
+    "All-stream alias controls preserve state and succeed on retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --leader-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1015 LEADER": 15,
+      "AC1018 LEADER": 15,
+      "AC1021 LEADER": 15,
+      "AC1024 LEADER": 15
+    },
+    "entity_writer_transaction_cohort": "19/19 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish transaction behavior only.",
+    "LEADER annotation graph output, physical producer coverage, native behavior, and broader support remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p8-dwg-malformed-line-reader-recovery-2026-11-13",
+  "purpose": "Restore a generated malformed-DWG entity recovery control without weakening production writer validation or tracking a DWG fixture.",
+  "method": [
+    "A test-only DRW_Line subclass delegates to the production encoder with a rare finite start-X marker, then replaces only those encoded 64 bits with a quiet NaN.",
+    "The generated drawing places a valid LINE after the malformed LINE; the reader must count one entity parse failure, deliver the following LINE, report a finalized partial frame, and deliver no unrelated HATCH."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_read_outcome_policy$|^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 2/2 tests; both targets built successfully",
+    "aggregateContext": "A broader libdxfrw_dwg_local_roundtrip CTest invocation in the preceding work reported 380 assertion failures across unrelated profiles. It is not counted as passing evidence for this slice; the read-outcome selector and consumer-probe selector pass independently."
+  },
+  "scopeLimit": "This is generated reader recovery evidence for one malformed LINE profile and one target version. It does not establish recovery for other entities, versions, or malformed layouts.",
+  "fixturePolicy": "The DWG is generated under a unique temporary directory and removed; no DWG or DXF fixture was added.",
+  "claimEffect": "No format support claim changes."
+}

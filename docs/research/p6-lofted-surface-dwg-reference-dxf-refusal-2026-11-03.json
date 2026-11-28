@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-lofted-surface-dwg-reference-dxf-refusal-2026-11-03",
+  "date": "2026-11-03",
+  "status": "DWG_LOFT_REFERENCE_PROJECTION_FAIL_CLOSED; NO_SUPPORT_CLAIM",
+  "supportClaimEffect": "none",
+  "scope": "Prevent DXF output from silently omitting LOFTEDSURFACE DWG cross-section and guide-curve references while retaining the already-modeled DXF token pass-through path.",
+  "baselineCommit": "7657f80e9b6aca5ddbd8e2b9de4f7487bfcdefc0",
+  "research": {
+    "pathCurve": "The prior path-curve receipt records that Autodesk's Lofted Surface DXF field table has no group-5 path-reference field. The ordinary entity group 5 remains reserved for the surface identity.",
+    "peerCrosswalk": {
+      "repository": "/Users/dli/dev/libredwg",
+      "revision": "0.13.3-553-g6d6a3398",
+      "source": "src/dwg2.spec",
+      "mapping": "HANDLE_VECTOR cross_sections and guide_curves to repeated DXF group 310; path_curve has DXF code 0.",
+      "writer": "src/out_dxf.c formats vector handle values as group-310 text, while libdxfrw's existing DXF model retains group-90 integers and group-310 byte chunks as opaque DRW_Variant values."
+    },
+    "localGap": "libdxfrw's DWG parser retains crossSectionHandles, guideCurveHandles, numCrossSections, and numGuideCurves. The DXF writer emits only dxfReferenceData and has no verified handle-to-group-310 byte encoding, source-to-output remapping, or dependency-closure path for these DWG fields."
+  },
+  "implementation": {
+    "file": "src/libdxfrw.cpp",
+    "behavior": "writeSurface now refuses nonzero cross-section/guide counts and nonempty corresponding DWG handle vectors before publishing the entity record. The existing nonzero pathCurveHandle refusal remains. DXF-origin dxfReferenceData group-90/group-310 tokens continue through the existing bounded writer unchanged.",
+    "compatibility": "The DWG writer is unchanged. The DXF pass-through path for captured group-90/group-310 tokens is unchanged. Only unsupported DWG-origin reference projections are refused.",
+    "failureBehavior": "ASCII and Binary output preserve the preexisting destination prefix on each refusal. A valid DXF-token profile writes to a separate writer and retains the ordinary entity group-5 identity."
+  },
+  "validation": {
+    "generatedControlsOnly": true,
+    "fixtureFilesAdded": 0,
+    "formats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "negativeProfiles": [
+      "nonzero pathCurveHandle",
+      "nonempty crossSectionHandles",
+      "nonempty guideCurveHandles",
+      "nonzero numCrossSections without DXF tokens",
+      "nonzero numGuideCurves without DXF tokens"
+    ],
+    "positiveProfile": "Captured group-90 integer and group-310 bytes are emitted; output contains only the surface's normal group-5 identity.",
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "build-gcc/libdxfrw_wave1_tests --lofted-surface-path-reference-dxf-refusal",
+      "ctest --test-dir build-gcc -R '^libdxfrw_lofted_surface_path_reference_dxf_refusal$' --output-on-failure",
+      "git diff --check"
+    ],
+    "result": "PASS; focused CTest 1/1"
+  },
+  "sourceFingerprints": {
+    "src/libdxfrw.cpp": "a2de6c57f6a1b6e24baf3955cdbacfeb555554e2198eac0ec79e284385eb6a5c",
+    "tests/wave1_tests.cpp": "e714e83a988efb97bdd7450745776b231e47f3537c54c91b7904bef952c386c3",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "146b579c62cd93e18f15eda9bd2bc19c74bb835533b0bca17066f3ee2210ff60",
+    "LibreDWG/src/dwg2.spec": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "LibreDWG/src/out_dxf.c": "91c12ce650f9c072b6e487418247bd8ed6075e55cfac0510d885faaf61b4f079"
+  },
+  "limits": [
+    "No physical LOFTEDSURFACE DWG/DXF pair was added or converted.",
+    "The peer schema mapping does not by itself establish Autodesk's semantic contract or native-consumer behavior.",
+    "No handle remapping, target uniqueness, ownership, closure, or native CAD readback is established for group-310 references.",
+    "The surface's ACIS payload and geometric meaning remain outside this control."
+  ],
+  "next": "If enabling DWG-origin group-310 projection is pursued, establish exact byte encoding and remap behavior from a traceable producer pair, validate every target role and graph edge, and require ASCII/Binary typed readback plus a native consumer check. Until then retain the atomic refusal."
+}

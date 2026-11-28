@@ -1,0 +1,57 @@
+{
+  "title": "PAR-20/7G.3f.4b.2 DETAILVIEWSTYLE and SECTIONVIEWSTYLE raw capture",
+  "date": "2026-10-19",
+  "status": "IMPLEMENTED_LOCAL_FAST_SLICE_UNCOMMITTED",
+  "baseCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": {
+    "sourceFormat": "DXF only for raw carriers",
+    "families": ["DETAILVIEWSTYLE", "SECTIONVIEWSTYLE"],
+    "behavior": "Bounded raw-tag retention alongside typed callback projections, with one-import provenance and typed/raw identity-owner-version pairing.",
+    "outputAdmission": false,
+    "writerImplemented": false,
+    "referenceGraphClosed": false,
+    "supportPromotion": false
+  },
+  "retentionLimits": {
+    "recordsPerFamily": 100000,
+    "rawGroupsAggregate": 4000000,
+    "estimatedBytes": "DRW::kMaxDxfBinaryPayloadBytes"
+  },
+  "testControls": [
+    "Generated AC1027 ASCII and Binary DXFs with rooted DETAILVIEWSTYLE and SECTIONVIEWSTYLE records",
+    "Typed model-document and representative style-field values",
+    "Raw carrier name, handle, owner, source version, and following POINT alignment",
+    "Receipt rejects a forged raw owner and a missing raw companion, then accepts after restoring the valid records"
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    {
+      "command": "git diff --check -- dwg2dxf/dx_data.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "fixturePolicy": {
+    "committedDwgDxfFixturesAdded": false,
+    "inputGeneration": "Locally generated from scratch at test runtime; temporary files are removed by the test.",
+    "newCTestRegistration": false
+  },
+  "sourceSha256": {
+    "dwg2dxf/dx_data.h": "07d8554dd64a82b2890794736b6fa69602cb6bfc6f548ba9489bbf80e525910c",
+    "dwg2dxf/dx_iface.cpp": "53f3585e319556be9be8cbf388104c9199fc7cc46a1f59860f7a4b96442a0f8b",
+    "tests/dwg2dxf_adapter_tests.cpp": "613b600acb96123ce6c8f10bf0251b41ddc67acf0eccc0a37ba1f989512d6eab",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "f0ceac12cf6b0b9db9d05753da17025c8773663c48abf087f49bde052439f3ae"
+  },
+  "remaining": [
+    "Map and close non-null identifier/arrow/text-style/linetype references before any writer route.",
+    "Implement or explicitly refuse rooted DETAILVIEWSTYLE/SECTIONVIEWSTYLE output without dropping source-reachable objects.",
+    "Do not infer native rendering or complete cross-version payload semantics from raw retention."
+  ],
+  "evidenceCeiling": "Generated local capture and identity/provenance validation only; not writer acceptance, cross-version conversion, native CAD semantics, or 3D support."
+}

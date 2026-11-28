@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Legacy bare DXF TABLE compatibility candidate",
+  "mode": "Primary-source web research plus local parser/plan cross-check",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "baselineQualification": "The shared worktree was already broadly dirty. Local source and plan observations refer to the shared worktree, not a clean checkout at baselineCommit.",
+  "scope": [
+    "Review a newly screened open-source peer report of bare top-level DXF TABLE records and distinguish compatibility from canonical DXF grammar.",
+    "Trace the reported input shape through libdxfrw's section-state parser and existing unknown nested TABLE handling.",
+    "Add a conditional, bounded recovery sub-plan without promoting a peer report to a local defect or format-support claim."
+  ],
+  "method": {
+    "kind": "Current primary-source web review and read-only local source/test/plan inspection",
+    "worktreeDirtyAtStart": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "productionCodeChanged": false,
+    "localTestsRun": false,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "ACadSharp issue #1128 is an open feature request with an asserted legacy NC/CAM/plotter input shape but no inspectable file, producer/version, or reproducible sample. Autodesk's published grammar is canonical; no nonstandard compatibility behavior is inferred to be required. No external file or attachment was downloaded."
+  },
+  "sources": [
+    {
+      "project": "Autodesk DXF documentation",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-D939EA11-0CEC-4636-91A8-756640A031D3.htm",
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A66D0ACA-3F43-4B2E-A0C2-2B490C1E5268.htm"
+      ],
+      "revision": "Published Autodesk documentation pages reviewed 2026-10-19.",
+      "observed": "The general file structure describes sections beginning with 0/SECTION and 2/<section-name>, ending with 0/ENDSEC, and identifies TABLES as the section containing symbol tables. The symbol-table example places TABLE records inside that section and closes each with ENDTAB. The reported bare top-level TABLE shape is therefore non-canonical under the reviewed documentation."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/issues/1128"
+      ],
+      "revision": "Open issue body/status reviewed 2026-10-19; no source commit or input artifact supplied in the issue body.",
+      "observed": "The reporter says some older NC/CAM/plotting exports place TABLE records directly after HEADER without a SECTION/TABLES/ENDSEC wrapper, causing ACadSharp to skip table definitions and leave dependent entities apparently empty. It is a compatibility report/feature request, not a libdxfrw reproduction or canonical grammar rule."
+    },
+    {
+      "project": "libdxfrw local parser",
+      "urls": [
+        "src/libdxfrw.cpp"
+      ],
+      "revision": "Current shared worktree read-only inspection.",
+      "observed": "The top-level DXF reader accepts SECTION and EOF framing and returns BAD_READ_SECTION for a record body outside a section. It calls processTables only after reading SECTION/TABLES. processTables handles table records within that canonical section. This is fail-closed behavior; it differs from the silent table skip described for ACadSharp."
+    },
+    {
+      "project": "libdxfrw PAR-36/7U existing work",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+        "tests/dxf_fixture_tests.cpp"
+      ],
+      "revision": "Current shared worktree and plan inspection.",
+      "observed": "PAR-36/7U covers structurally framed unknown nested tables within a valid TABLES section. It does not cover or authorize top-level recovery from a missing TABLES wrapper."
+    }
+  ],
+  "implementationReadiness": {
+    "classification": "COMPATIBILITY_CANDIDATE_DISCOVERY_ONLY",
+    "existingOwnersRetained": true,
+    "conditionalEntryGate": "Do not implement recovery until a provenance-eligible representative input or a concrete in-scope consumer need is available; synthetic tests alone can validate a chosen policy but cannot establish the legacy profile's prevalence or intended behavior.",
+    "rules": [
+      "If admitted, recover only a narrowly recognized top-level sequence of known TABLE records; do not accept arbitrary record bodies outside section framing.",
+      "Reuse existing table body parsers where feasible and require valid ENDTAB plus sound following section/EOF framing.",
+      "Stage table callbacks and publish only after the recovered table sequence is structurally complete; malformed input must not leave partial table state.",
+      "Emit a bounded non-fatal diagnostic that labels the input non-canonical and counts/name-limits recovered tables.",
+      "Keep unknown bare table names fail-closed until a separate explicit compatibility policy exists.",
+      "Serialize recovered semantics through the normal canonical SECTION/TABLES output path; do not preserve the malformed wrapper as if it were standard syntax.",
+      "Keep this distinct from PAR-36/7U, which applies only within an existing TABLES section.",
+      "If implemented, use generated ASCII and Binary DXF fast controls in the existing parser test target, run only the focused selector and owning CTest, and do not add peer files or a new full-suite cadence."
+    ]
+  },
+  "localCrosswalk": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "compatibilityCandidatesAdded": 1,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "localTestsRun": false,
+    "receiptJsonSyntaxCheck": "passed with python3 -m json.tool",
+    "scopedDiffCheck": "passed with git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-legacy-bare-dxf-table-compatibility-candidate-2026-10-19.json",
+    "fullSuiteRun": false
+  },
+  "workingTree": {
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "note": "Only the research plan and this receipt were edited by this pass; unrelated dirty worktree changes were preserved."
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-acsh-proxy-owner-reference-role-closure-2026-11-05",
+  "date": "2026-11-05",
+  "status": "AC1024_ACSH_PROXY_OWNER_AND_REFERENCE_ROLES_MATCH_TWO_ODA_PROJECTIONS",
+  "supportClaimEffect": "none",
+  "question": "Do the retained AC1024 ACSH proxy projections establish target kinds for the common owner and body references, and does the adapter refuse a present handle with the wrong kind?",
+  "sources": [
+    {
+      "path": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "provenance": "Existing local AC1024 sample; not added to this commit."
+    },
+    {
+      "path": "tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "provenance": "Existing local AC1024 sample; not added to this commit."
+    }
+  ],
+  "peer": {
+    "converter": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "version": "27.1.0.0",
+    "profile": "ACAD2013 DXF",
+    "freshRunThisSlice": false,
+    "freshRunFailure": "Exit 134: macOS pasteboard clipboard/find errors [-4960] followed by an invalid hiservices XPC connection.",
+    "outputs": [
+      {
+        "path": "/private/tmp/libdxfrw-oda-ac1024-conference-dxf-34841/output/conference.dxf",
+        "sha256": "377a4acf6767be8a5a02cdd2c8af2afb09b0547b3df3b5fc779f2fd96282bd78",
+        "proxyObjects": 243,
+        "capturedAcdsFramesCompared": 241,
+        "ownersByKind": {
+          "3DSOLID": 33,
+          "ACAD_PROXY_OBJECT": 208,
+          "DICTIONARY": 2
+        },
+        "bodyReferences": {
+          "group330": { "MATERIAL": 70 },
+          "group340": { "MATERIAL": 174, "NULL": 1 },
+          "group360": { "ACAD_PROXY_OBJECT": 208 }
+        },
+        "examples": {
+          "solidOwner": { "proxy": "E8F", "owner": "E8E", "ownerKind": "3DSOLID" },
+          "nestedProxyOwner": { "proxy": "E90", "owner": "E8F", "ownerKind": "ACAD_PROXY_OBJECT" },
+          "dictionaryOwner": { "proxy": "EDD", "owner": "C", "ownerKind": "DICTIONARY" },
+          "group330Material": { "proxy": "9EE", "target": "F08" },
+          "group340Material": { "proxy": "E91", "target": "281" },
+          "group340TypedNull": { "proxy": "E95", "target": "0" },
+          "group360NestedProxy": { "proxy": "E8F", "target": "E90" }
+        },
+        "nonNullUnresolvedTargets": 0
+      },
+      {
+        "path": "/private/tmp/libdxfrw-oda-ac1024-condo-proxy-2026-11-05/output/condo.dxf",
+        "sha256": "9c387c51c78baacea0ba33e8ed5e2b13b00bef47c6a66e79174edc6697e05a2d",
+        "proxyObjects": 535,
+        "capturedAcdsFramesCompared": 533,
+        "ownersByKind": {
+          "3DSOLID": 73,
+          "ACAD_PROXY_OBJECT": 460,
+          "DICTIONARY": 2
+        },
+        "bodyReferences": {
+          "group330": { "MATERIAL": 55, "NULL": 1 },
+          "group340": { "MATERIAL": 374, "NULL": 13 },
+          "group360": { "ACAD_PROXY_OBJECT": 460 }
+        },
+        "examples": {
+          "solidOwner": { "proxy": "841", "owner": "7D1", "ownerKind": "3DSOLID" },
+          "nestedProxyOwner": { "proxy": "842", "owner": "841", "ownerKind": "ACAD_PROXY_OBJECT" },
+          "dictionaryOwner": { "proxy": "E57", "owner": "C", "ownerKind": "DICTIONARY" },
+          "group330Material": { "proxy": "395", "target": "E8B" },
+          "group340Material": { "proxy": "843", "target": "98" },
+          "group340TypedNull": { "proxy": "DFE", "target": "0" },
+          "group330TypedNull": { "proxy": "39F", "target": "0" },
+          "group360NestedProxy": { "proxy": "841", "target": "842" }
+        },
+        "nonNullUnresolvedTargets": 0
+      }
+    ]
+  },
+  "implementation": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "boundedSourceRoute": "DWG AC1024 ACDS custom-class objects projected as ACAD_PROXY_OBJECT",
+    "ownerKindsRequired": ["3DSOLID", "ACAD_PROXY_OBJECT", "DICTIONARY"],
+    "bodyReferenceKindsRequired": {
+      "330": "unique MATERIAL target or source-typed null",
+      "340": "unique MATERIAL target or source-typed null",
+      "360": "captured ACDS proxy object"
+    },
+    "resourceBound": "Entity-kind indexing stores only handles used as captured ACDS owners; dictionary/material kind indexes are scoped to this collector."
+  },
+  "verification": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+    "physicalCompare": "--acds-opaque-proxy-oda-compare passed for both source/output pairs; ordered proxy groups and payloads still match and parse failures remain visible.",
+    "negativeControls": [
+      "Changing an existing 3DSOLID owner handle's in-memory entity kind to LINE causes atomic refusal.",
+      "Changing the typed target handle for non-null group 330 and group 340 MATERIAL references causes atomic refusal.",
+      "The pre-existing missing-owner mutation continues to refuse atomically and valid retry succeeds."
+    ],
+    "generatedReadback": "--acds-opaque-proxy-codec-readback passed for ASCII and Binary; generated control only."
+  },
+  "limits": [
+    "This is role and transport evidence for two retained ODA projections, not a fresh converter run this slice.",
+    "The role profile is not qualified for other DWG versions, producers, or unobserved ACDS graphs.",
+    "Strict whole-document export and consumer readback remain blocked by independent source/global gates; this does not establish ACSH, ACIS, or B-rep semantics.",
+    "No DWG/DXF fixture was added to the repository."
+  ]
+}

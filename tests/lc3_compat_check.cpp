@@ -32,9 +32,128 @@
 
 #include <drw_interface.h>
 #include <drw_base.h>
+#include <libdxfrw.h>
+#include <libdwgr.h>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
 namespace {
+
+using LegacyAssociativeKind = DRW_AssociativePrefixStatus::Kind;
+static_assert(static_cast<int>(LegacyAssociativeKind::AcDbAssocGeomDependency) == 3 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbAssocNetwork) == 4 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbAssocActionBody) == 5 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbEvalExpr) == 6 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbShHistoryNode) == 7 &&
+                  static_cast<int>(LegacyAssociativeKind::AcShActionBody) == 8,
+              "LibreCAD associative prefix kind values must remain stable");
+static_assert(static_cast<int>(LegacyAssociativeKind::AcDbAssocValueDependency) == 9 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbAssocDependencyBody) == 10 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbAssoc2dConstraintGroup) == 11 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbAssocVariable) == 12,
+              "new associative kinds must not overlap legacy values");
+static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::TableControlDanglingHandle) == 18 &&
+                  static_cast<unsigned>(DwgIntegrityCheckKind::EntityOwnerRecordMissing) == 19 &&
+                  static_cast<unsigned>(DwgIntegrityCheckKind::EntityBlockRecordErased) == 20 &&
+                  static_cast<unsigned>(DwgIntegrityCheckKind::TemplateMissing) == 27 &&
+                  static_cast<unsigned>(DwgIntegrityCheckKind::TemplateMalformed) == 28 &&
+                  static_cast<unsigned>(DwgIntegrityCheckKind::TemplateDescriptionUnsupported) == 29,
+              "LibreCAD recovery and upstream template diagnostic values must remain distinct");
+
+// LibreCAD's bundled codec permits these aggregate-initialization forms.
+// The upstream type keeps private reader bookkeeping but must still accept
+// the same source expressions, including direct vector emplacement.
+[[maybe_unused]] bool libreCadTableAttributeInitialization() {
+    DRW_TableCellAttribute empty{};
+    DRW_TableCellAttribute handleOnly{0x104u};
+    DRW_TableCellAttribute indexed{0x104u, 1};
+    DRW_TableCellAttribute text{0x104u, 1, "A1"};
+    DRW_TableCellAttribute associated{0x104u, 1, "A1", 2u};
+    std::vector<DRW_TableCellAttribute> attributes;
+    attributes.push_back({0x104u, 1, "A1"});
+    return empty.m_attdefHandle == 0 && handleOnly.m_index == 0 &&
+           indexed.m_index == 1 && text.m_text == "A1" &&
+           associated.m_contentIndex == 2 && attributes.front().m_text == "A1";
+}
+
+[[maybe_unused]] bool libreCadTableContentInitialization() {
+    DRW_TableCellContent empty{};
+    DRW_TableCellContent typeOnly{1};
+    DRW_TableCellContent text{1, "text"};
+    DRW_TableCellContent value{1, "text", {}};
+    DRW_TableCellContent referenced{1, "text", {}, 0x123u};
+    std::vector<DRW_TableCellContent> contents;
+    contents.push_back({1, "text", {}, 0x123u});
+    return empty.m_type == 0 && typeOnly.m_type == 1 && text.m_text == "text" &&
+           value.m_text == "text" && referenced.m_handle == 0x123u &&
+           contents.front().m_handle == 0x123u;
+}
+
+static_assert(LIBDXFRW_HAS_BLOCK_RECORD_CALLBACK == 1,
+              "BLOCK_RECORD callback feature macro is missing");
+static_assert(std::is_same<decltype(&DRW_Interface::addBlockRecord),
+                           void (DRW_Interface::*)(const DRW_Block_Record &)>::value,
+              "BLOCK_RECORD callback feature macro must match the public API");
+
+// Separate from the older LibreCAD_3 callback surface above: this is the
+// actual current LibreCAD bf58e1e878f71d6c5c051ccd3dd3d0981c19644a facade
+// call (rs_filterdxfrw.cpp:4418), including its input-only enum spellings.
+static_assert(noexcept(std::declval<dxfRW&>().setDxfTextEncoding(
+                  DRW::DxfTextEncoding::Declared)),
+              "LibreCAD text interpretation setter must remain noexcept");
+[[maybe_unused]] bool currentLibreCadRead(dxfRW& reader,
+    DRW_Interface* adapter, bool legacyRecovery, std::string& content) {
+    reader.setDxfTextEncoding(legacyRecovery
+        ? DRW::DxfTextEncoding::LegacyLibreCadUtf8
+        : DRW::DxfTextEncoding::Declared);
+    return reader.readAscii(adapter, true, content);
+}
+
+// New opt-in library API, not an assertion that current consumers select it.
+// Their existing declared/Compatible input remains available unchanged.
+static_assert(noexcept(std::declval<dxfRW&>().setDxfCodePagePolicy(
+                  DRW::DxfCodePagePolicy::ExactNamed)),
+              "explicit DXF input mapping setter must remain noexcept");
+static_assert(std::is_same<decltype(std::declval<const dxfRW&>().dxfCodePagePolicy()),
+                  DRW::DxfCodePagePolicy>::value,
+              "persistent DXF input policy query must retain its public type");
+static_assert(noexcept(std::declval<const dxfRW&>().dxfCodePagePolicy()),
+              "persistent DXF input policy query must remain noexcept");
+static_assert(std::is_same<decltype(DRW_DxfTextReadObservations{}.codePagePolicy),
+                  DRW::DxfCodePagePolicy>::value,
+              "owned read snapshot must expose the applied input policy");
+static_assert(std::is_same<decltype(std::declval<const DRW_DxfTextReadObservations&>().profileCount(
+                  DRW::DxfTextSourceProfile::Windows1252)), std::uint64_t>::value,
+              "owned source profile query must retain its fixed counter type");
+static_assert(noexcept(std::declval<const DRW_DxfTextReadObservations&>().profileCount(
+                  DRW::DxfTextSourceProfile::Windows1252)),
+              "owned source profile query must remain noexcept");
+
+// Additional unconditional calls in the same current consumer source. These
+// three signatures are source coverage only; the other two facade gaps and a
+// full external adapter build remain separate acceptance work.
+static_assert(std::is_same<decltype(&dxfRW::getSourceVersion),
+                  DRW::Version (dxfRW::*)() const>::value,
+              "LibreCAD accepted source-version getter must retain its exact signature");
+static_assert(std::is_same<decltype(&dxfRW::isReservedHandle),
+                  bool (dxfRW::*)(std::uint32_t) const>::value,
+              "LibreCAD explicit reservation query must retain its exact signature");
+static_assert(std::is_same<decltype(&dxfRW::addDxfWriteHandleRemap),
+                  void (dxfRW::*)(std::uint32_t, std::uint32_t)>::value,
+              "LibreCAD BLOCK_RECORD remap callback must retain its exact signature");
+[[maybe_unused]] DRW::Version currentLibreCadSource(const dxfRW& reader) {
+    return reader.getSourceVersion();
+}
+[[maybe_unused]] bool currentLibreCadGroupReservation(const dxfRW& writer,
+                                                     std::uint32_t handle) {
+    return !writer.isReservedHandle(handle);
+}
+[[maybe_unused]] void currentLibreCadBlockRemap(dxfRW& writer,
+                                                std::uint32_t source,
+                                                std::uint32_t emitted) {
+    writer.addDxfWriteHandleRemap(source, emitted);
+}
 
 class LC3CompatCheck : public DRW_Interface {
 public:

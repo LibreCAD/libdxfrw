@@ -1,0 +1,110 @@
+{
+  "schema": "libdxfrw-freecad-route-and-3d-loss-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Broaden open-source DWG/DXF peer research to FreeCAD's actual converter/importer route, importer-specific 3D scope, and peer writer loss; update existing parity and 3D plans without creating an external runtime dependency or promoting support.",
+  "method": {
+    "kind": "Primary application-source research, documentation cross-check, and local plan/source inspection",
+    "peerRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.wikitext",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+      "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext",
+      "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Import_Export.md",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/dxfentities/index.rst",
+      "https://github.com/mozman/ezdxf/discussions/1295",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+    ],
+    "localInspection": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md: existing PAR-07/S8 carrier, identity, owner/block, and consumer gates",
+      "DWG_DXF_3D_SUPPORT_PLAN.md: existing FreeCAD and ACIS acceptance boundary",
+      "dwg2dxf/dx_iface.cpp and src/libdxfrw.cpp: local modeler carrier admission and DXF output handling",
+      "tests/dxf_fixture_tests.cpp and docs/research/deeper-broader-spline-leader-insert-table-peer-review-2026-10-17.json: current LEADER annotation test scope"
+    ],
+    "sourceLimitations": "FreeCAD application source is mutable main; Draft entity matrix and general format table were found in a GitHub-hosted documentation mirror and conflict with broader format wording. Neither source set was pinned to the target native FreeCAD build. ACadSharp issue #1195 is a reporter account without public customer drawings; PR #1240 is open and is not a released implementation."
+  },
+  "evidence": [
+    {
+      "topic": "FreeCAD DWG import is converter plus selected DXF importer",
+      "observed": "The current Draft importDWG.py locates and invokes external DWG converters; FreeCAD documentation lists LibreDWG, ODA File Converter, and QCAD Pro. FreeCAD's DXF documentation distinguishes the C++ importer from a more feature-complete legacy Python importer requiring a separate module.",
+      "doesNotEstablish": [
+        "behavior of a particular installed OS/FreeCAD/converter/importer tuple",
+        "that converter success means DXF import or geometry import succeeded",
+        "DWG semantic support independent of the intervening DXF format/version"
+      ],
+      "planUse": "Bind native receipts to exact OS/build, converter/version/options, emitted DXF AC code, importer/backend/preferences, file hashes, diagnostics, and per-entity outcomes; keep direct DXF and converted DWG routes distinct."
+    },
+    {
+      "topic": "FreeCAD published DXF 3D-face scope is inconsistent and ACIS is a separate boundary",
+      "observed": "A current general import/export documentation page describes DXF and DWG as 2D-only. A GitHub-hosted Draft DXF documentation mirror's importer table lists 3DFACE only for the legacy importer, and its text says binary ACIS/SAT solid carriers cannot currently be read by FreeCAD.",
+      "doesNotEstablish": [
+        "current 3DFACE capability for an exact FreeCAD release/build",
+        "ACIS semantics in any separately installed modeler/plugin route",
+        "that a file opening or displaying wireframe proves entity-level fidelity"
+      ],
+      "planUse": "Record the 3DFACE scope as DOC_CONFLICT pending source inspection and a generated asymmetric native test. Keep stock ACIS consumer status not-applicable unless a named plugin is separately qualified."
+    },
+    {
+      "topic": "Peer entity recognition and writer omission do not prove 3D semantics",
+      "observed": "ezdxf documents classes for modeler DXF entities, while its maintainer describes ACIS support as basic and warns that generated bodies may not behave as true volume-bearing solids. ACadSharp #1195 reports silent 3DSOLID/REGION omission, including solid-only blocks; its source drawings are unavailable and linked PR #1240 is not released. LibreDWG documents unknown classes preserved as opaque blobs without DXF codes and its release notes include route-specific SAT chunk-loss fixes.",
+      "doesNotEstablish": [
+        "a local libdxfrw defect",
+        "independent B-rep validity or CAD operation support from raw bytes/entity classes",
+        "equivalent behavior across peer versions or all DXF targets"
+      ],
+      "planUse": "Keep per-source handle and owner/block path disposition through carrier output, diagnostics, and independent reopen. Require fail-closed publication or explicit loss disposition; do not score opaque preservation as typed geometry semantics."
+    }
+  ],
+  "planImpact": {
+    "plansUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "readinessRefinement": [
+      "qualify FreeCAD by converter/importer route rather than application name alone",
+      "keep 3DFACE documentation conflict open until exact source/build test",
+      "separate explicit mesh and ACIS-carrier checks from B-rep semantics",
+      "retain generated block-only modeler loss controls and per-handle output accounting",
+      "perform native checks only at the composed checkpoint, not per code slice"
+    ]
+  },
+  "validation": {
+    "receiptJsonParsed": true,
+    "planLinksChecked": true,
+    "gitDiffCheck": true,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-schema3-observation-enum-type-guard-fast-slice-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Reject malformed JSON value types for schema-3 observation phase and availability enums with a controlled validator error.",
+  "reproduction": {
+    "command": "python3 -B -c 'import tools.run_qualified_differential_v2 as m; row=m._base_observation_envelope(\"inputRead\", \"available\", source_version=\"AC1024\"); row[\"availability\"] = []; m._validate_observation_envelope(row, \"probe\")'",
+    "result": "Before the fix, set membership raised TypeError: cannot use 'list' as a set element (unhashable type: 'list')."
+  },
+  "change": {
+    "file": "tools/run_qualified_differential_v2.py",
+    "invariant": "phase and availability are strings from their closed schema enums before any set-membership operation.",
+    "behavior": "_validate_observation_envelope now checks both value types first and raises QualifiedDifferentialError for null, list, or object values.",
+    "selfTest": "The schema-3 self-test rejects null/list/object mutations for both phase and availability with the expected path-specific validation error."
+  },
+  "validation": {
+    "pythonCompile": {
+      "command": "python3 -B -m py_compile tools/run_qualified_differential_v2.py",
+      "result": "PASS"
+    },
+    "focusedRunnerSelfTest": {
+      "command": "python3 -B tools/run_qualified_differential_v2.py --self-test",
+      "result": "PASS"
+    },
+    "scopedDiffCheck": "PASS",
+    "fullTestSuite": "NOT_RUN",
+    "externalPeersOrNativeCad": "NOT_RUN"
+  },
+  "impact": {
+    "adapterSchemaVersionChanged": false,
+    "parserOrWriterBehaviorChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "qualificationOrSupportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findings": 127,
+    "topLevelImplementationSubplans": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "worktree": {
+    "preexistingBroadChanges": true,
+    "gitMetadataReadOnly": true,
+    "stagedOrCommitted": false
+  }
+}

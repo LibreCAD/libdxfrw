@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1027-material-default-body-replay-2026-11-10",
+  "date": "2026-11-10",
+  "status": "AC1027_DEFAULT_MATERIAL_BODY_REPLAY_AND_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Replay the retained DWG body and detached string stream for the exact AC1027 default MATERIAL profile. Do not promote general MATERIAL or physical-source DWG output support.",
+  "evidence": {
+    "profile": {
+      "version": "AC1027",
+      "names": ["ByLayer", "ByBlock", "Global"],
+      "bodyBits": 516,
+      "detachedStrings": ["name", "description", "diffuse map filename", "specular map filename", "reflection map filename", "opacity map filename", "bump map filename"],
+      "selectedMapSources": {
+        "diffuse": 1,
+        "specular": 1,
+        "reflection": 1,
+        "opacity": 1,
+        "bump": 1,
+        "refraction": 0
+      },
+      "mapFilenames": "The five image-backed map filenames are explicit empty strings; scene-backed refraction has no detached filename."
+    },
+    "physicalSource": {
+      "path": "/Users/dli/doc/dwg/Cover.dwg",
+      "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+      "version": "AC1027",
+      "producer": "Not independently certified in this receipt",
+      "result": "The existing physical audit found the exact three-record ACAD_MATERIAL graph and all three MATERIAL records pass the new exact-profile replay predicate. The test path remains a DXF physical-source projection; it does not write this physical source back to DWG."
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "src/libdwgr.cpp",
+      "tests/dwg_default_material_optin_tests.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "Added canReplayAc1027DefaultDwgBody(), which admits only parser-retained 516-bit AC1027 default bodies whose decoded fields still match the exact supported profile. DRW_Material::encodeDwg replays those body bits and the five detached empty map strings in order. dwgRW::writeMaterial admits only this exact AC1027 profile for modern DWG output; other modern profiles remain refused.",
+    "generatedControls": [
+      "Parser-produced default Global body re-encodes to identical 516 body bits.",
+      "The seven detached strings decode as Global, empty description, and five explicit empty map filenames; the bounded string stream closes with at most seven zero padding bits.",
+      "Changing diffuseColorFactor refuses before modifying seeded body/string/handle buffers; correcting the same object allows retry.",
+      "A newly authored modern MATERIAL without a parsed matching raw body is refused before modifying seeded buffers.",
+      "A generated AC1027 DWG graph containing ACAD_MATERIAL -> dictionary -> MATERIAL finalizes and fresh libdxfrw readback matches class profile, owner/reactor roles, dictionary key, typed fields, and exact raw body."
+    ],
+    "fixturePolicy": "No DWG/DXF fixture was added. The output drawing is generated in the test's temporary directory and removed after readback."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_default_material_optin_tests libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_default_material_optin$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "physicalProfileSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --material-ac1027-physical-output-readback /Users/dli/doc/dwg/Cover.dwg",
+      "result": "PASS; three physical source records satisfy exact replay-profile eligibility and existing source/output checks pass in ASCII and Binary. This is not physical-source DWG write/readback."
+    },
+    "diffCheck": "PASS",
+    "sha256": {
+      "src/drw_objects.cpp": "2e44fe2df43a79d79015f1c18acc35b6e8dd4d71c39dda046ccdec6ba3431322",
+      "src/drw_objects.h": "f0c7fb8fe5a02f01e491fc8ba69f9267e57819a63129605d97f30a639a06f8c0",
+      "src/libdwgr.cpp": "7fd306abadac6908f1e8a6b446c81276f4276b21b3ad2c8e42bd5e28da9d175c",
+      "tests/dwg_default_material_optin_tests.cpp": "abef8bb7ba4753a9ba56b52aeca70e11e9a0ad153d9fc8e0330a62c4030dab98",
+      "tests/dwg2dxf_adapter_tests.cpp": "6987f65586579aa2f8299e0fa3f416486cb3d068a8b3f1f97d946b93e56d48de",
+      "build-gcc/tests/libdxfrw_dwg_default_material_optin_tests": "1016d11bfd318e40ce8ba4e33b41f9f769a82926a4275d2fee6da4d974085276",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "e8f0abb0caed4e3b0174ada244ef0b7e160639cb94556e1a58ea09ba98986530"
+    }
+  },
+  "limitations": [
+    "This is exact-profile raw body replay, not a general typed MATERIAL encoder.",
+    "AC1021 and AC1024 retained modern bodies, non-default AC1027 bodies, and newly-authored modern MATERIAL objects remain refused.",
+    "The physical Cover.dwg records were checked for admission but were not written back to DWG in this slice.",
+    "Producer-native acceptance, independent semantic validation, general MATERIAL graph closure, and whole-source conversion remain open."
+  ]
+}

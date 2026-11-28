@@ -1,0 +1,27 @@
+{
+  "id": "p5-ac1018-datatable-candidate-observer-2026-11-11",
+  "date": "2026-11-11",
+  "scope": "Opt-in, bounded observation of one empirically identified AC1018 DATATABLE profile. No normal dispatch, typed callback, writer or support claim is changed.",
+  "source": {
+    "drawing_sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "body_sha256": "1fc357e038d9e51ab8be68efe4a54f0333dfc3d5e3a4e0c03f22d55607e95ea3",
+    "provenance": "Audited ODA 27.1.0 AC1018 conversion from locally obtained ezdxf acad_table_simple.dxf. The new candidate was additionally invoked from the actual DATATABLE raw callback in one read; callback input itself is public and forgeable and is not a provenance or output certificate.",
+    "prior_source_walk": "p5-ac1018-table-descendant-graph-wire-2026-11-11.json"
+  },
+  "authority": {
+    "oda_pdf": "Open Design Specification for .dwg files v5.4.1, SHA256 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7, sections 2.2–2.5, 2.12, 2.13 and 20.1 specify the primitive tags, object type, handle roles and common non-entity envelope. No DATATABLE class-specific schema was found in the supplied PDF.",
+    "field_profile": "The [BD, BL, BL, owned-handle] column ordering is a bounded empirical candidate from the source walk and the ODA same-vendor same-version DXF projection; LibreDWG independently confirms selected identities and owner relationships, not the DATATABLE data semantics."
+  },
+  "implementation": [
+    "Inspect only an AC1018 nonentity raw carrier with DATATABLE/AcDbDataTable class metadata, matching encoded custom class number and self-handle, a bounded complete body, and AC1018's zero handle-stream-size compatibility argument.",
+    "Require a no-EED/no-reactor/no-extension shell; empty table and column names; four columns with observed types [2,1,1,6]; 1–4096 rows; finite BD values; valid BL primitives; exact declared data-end boundary; one absolute soft-pointer owner; one unique nonzero absolute hard-owned child per row; and fewer than eight zero padding bits.",
+    "Cap input at 1 MiB and allocate bounded result vectors. Refuse unsupported profiles and clear result transactionally on every failure, including exceptions. Return candidate data only; no class-specific wire interpretation is installed in parseDwg or exposed as a typed production callback."
+  ],
+  "validation": {
+    "command": "cmake --build build --target libdxfrw_dwg_datatable_ac1018_candidate_tests -j 3; ctest --test-dir build -R '^libdxfrw_dwg_datatable_ac1018_candidate$' --output-on-failure",
+    "result": "1/1 passed; seven measured candidate allocation failures all clear output and permit retry.",
+    "generated_controls": "Locally authored body, all byte truncations, wrong metadata/self/class/version, contradictory validated parent metadata, nonempty EED/reactors/extension/names, wrong column type, reserved BL and BD, NaN, invalid owner/child roles, duplicate children, invalid counts, oversized body, trailing byte and nonzero padding. Nondefault BS values remain uninterpreted. No DWG/DXF fixture is committed.",
+    "physical_probe": "Actual raw callback from the pinned drawing: read=true, candidate=true, encoded class=517, owner=0xbc, 9 ordered children 0xbe–0xc6, body end 877 bits and handle end 1037 bits, zero object parse failures. A separate input of the hash-checked captured 130-byte body matches the prior source walk's exact column values and handles."
+  },
+  "limitations": "This one producer's profile does not qualify DATATABLE semantics or general AC1018 support. CRC-authenticated reader-origin binding for DATATABLE, source-bound role identity, all child XRECORD semantics/codepage 45, TABLESTYLE dependencies, HEADER integrity, output graph closure, native behavior and writer rollback/readback remain open. The separate p5-ac1018-tablecontent-complete-body-walk-2026-11-11.json now walks the selected TABLECONTENT body and associates its 50 null references; non-null behavior and output qualification remain open."
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-13",
+  "id": "p6-dxf-material-allocation-rollback-retry-2026-11-13",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6 safety and caller-state audit",
+  "scope": "Extend generated whole-operation DXF allocation rollback/retry coverage to typed MATERIAL object output.",
+  "profile": {
+    "targetVersion": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "modeledFields": {
+      "name": "WHOLE_OPERATION_MATERIAL",
+      "description": "material allocation retry"
+    },
+    "appearanceFields": "Not exercised or qualified."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_write_allocation_transaction$' --output-on-failure",
+    "result": "PASS, 1/1 test",
+    "allocationOffsets": {
+      "ascii": 467,
+      "binary": 460,
+      "eachOffset": "Injected failure refused the write, preserved the prior destination and source MATERIAL identity/name/description, and allowed same-codec retry to reproduce clean output and typed readback."
+    }
+  },
+  "scopeLimit": "This closes allocation transaction coverage for one AC1027 MATERIAL name/description profile only. It does not qualify material appearance, texture maps, independent interoperability, DWG parsing, or native rendering.",
+  "fixturePolicy": "The drawing is generated under a scratch directory; no DWG/DXF fixture was added.",
+  "claimEffect": "No format support claim changes."
+}

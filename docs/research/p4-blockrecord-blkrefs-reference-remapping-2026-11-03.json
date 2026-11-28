@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-03",
+  "scope": "Low-level BLOCK_RECORD BLKREFS group-331 identity planning and transport.",
+  "source_context": {
+    "existing_model": "DRW_Block_Record retains insertHandles parsed from an application-defined {BLKREFS} group.",
+    "generic_reference_role": "Autodesk classifies DXF group codes 330-339 as soft-pointer handles.",
+    "limits": "Autodesk's BLOCK_RECORD field table does not list BLKREFS. Generic group-331 role does not establish that this optional list is required or define its complete membership semantics.",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+      "https://github.com/LibreCAD/LibreCAD/blob/master/libraries/libdxfrw/src/libdxfrw.h"
+    ]
+  },
+  "implementation": {
+    "behavior": "For each non-null BLKREFS source INSERT handle, writeBlockRecord preallocates the final entity identity before BLOCK_RECORD emission. A configured reference resolver has precedence; otherwise explicit/derived remaps apply, then a fresh entity identity is allocated. The same identity is reused when the INSERT is written. Zero/NoHandle resolver results and aliased entity identities fail before record publication.",
+    "nulls": "A retained zero list entry remains zero; this does not establish whether any producer emits null list entries.",
+    "failure_state": "The BLOCK_RECORD record scope rolls back staged identity mappings and pending records on failure. Whole-write handle allocation is reset by the write-attempt lifecycle."
+  },
+  "validation": {
+    "input": "Generated in-memory records only; no DWG/DXF fixture was added.",
+    "formats": ["ASCII DXF", "Binary DXF"],
+    "controls": [
+      "resolver precedence over an explicit remap",
+      "explicit source-handle remap fallback",
+      "group-331 output equals the later INSERT group-5 identity",
+      "zero resolver result refuses before publishing record bytes"
+    ],
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests --parallel 4",
+      "build-gcc/libdxfrw_wave1_tests --blockrecord-insert-reference-remapping",
+      "build-gcc/libdxfrw_wave1_tests --block-reference-remapping",
+      "ctest --test-dir build-gcc -R '^libdxfrw_blockrecord_insert_reference_remapping$' --output-on-failure",
+      "git diff --check"
+    ],
+    "result": "PASS"
+  },
+  "qualification_limits": [
+    "No physical producer or independent consumer was used.",
+    "No source-bound BLKREFS-to-INSERT membership proof, target type/owner/block relation, or complete-list proof is established.",
+    "dwg2dxf's dx_iface::writeBlockRecords currently supplies an empty BLKREFS list.",
+    "This is identity planning and wire transport evidence only; it does not qualify whole-document preservation, native semantics, or a support claim."
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "plan_owner": "PAR-07/S8 modeler/DataStorage replay closure",
+  "related_owner": "7S.3 retained-work and repeated-membership audit",
+  "slice": "modeler replay emitted-object handle index",
+  "status": "implemented_locally_uncommitted",
+  "problem": "Each pending modeler/DataStorage replay join counted matching handles by scanning the entire emitted-object map, making validation O(P*E) for P pending payloads and E emitted objects.",
+  "implementation": {
+    "files_changed": [
+      "src/intern/dwgwriter15.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/7s3-modeler-replay-object-handle-index-fast-slice-2026-10-20.json"
+    ],
+    "details": [
+      "Build one temporary sorted vector of emitted object handles when there are pending modeler replay joins.",
+      "Use equal_range for each pending modeler handle and retain the exactly-one-match requirement, including duplicate detection.",
+      "If building the temporary view fails, fall back to the original count_if scan; no replay join or membership semantics change.",
+      "No persistent index, writer state, wire field, fixture, API, or support claim was added."
+    ],
+    "complexity": "For E emitted object frames and P pending payload joins, successful validation changes repeated handle counting from O(P*E) to O(E log E + P log E), with O(E) temporary 32-bit handles. Allocation failure preserves the original linear validation path; no timing benchmark is claimed.",
+    "semantic_behavior": "The exactly-one emitted modeler frame requirement, payload binding, owner membership checks, and ACIS replay restrictions are unchanged. This does not validate ACIS geometry semantics."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+      "result": "PASS (GCC -Werror)"
+    },
+    "focused_ctests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_local_roundtrip|libdxfrw_dwg_block_owner_membership_index)$' --output-on-failure",
+      "passed": 2,
+      "failed": 0,
+      "result": "PASS"
+    },
+    "generated_selectors": [
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --raw-modeler-acds-replay",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_local_roundtrip --modeler-block-census",
+        "result": "PASS (positive=8, negative=14)"
+      }
+    ],
+    "scoped_diff_check": {
+      "command": "git diff --check -- src/intern/dwgwriter15.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/7s3-modeler-replay-object-handle-index-fast-slice-2026-10-20.json",
+      "result": "PASS"
+    },
+    "not_run": [
+      "full test suite",
+      "sanitizers or fuzzing",
+      "performance benchmark or RSS measurement",
+      "peer executable or independent producer",
+      "native CAD application"
+    ]
+  },
+  "assessment": {
+    "new_format_findings": 0,
+    "new_top_level_subplans": 0,
+    "production_code_changed": true,
+    "tests_added": false,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 141,
+      "top_level_subplans": 78
+    },
+    "deferred_external": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "next_local_work": "Continue the local 7S.3 repeated-work audit; independent ACIS semantic evidence and native platform qualification remain advisory and non-blocking for this source-backed optimization.",
+  "repository_state": "Broadly dirty shared worktree; .git metadata is read-only, so the slice remains uncommitted."
+}

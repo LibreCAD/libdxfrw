@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-group-nested-setter-bounds-2026-11-03",
+  "date": "2026-11-03",
+  "status": "COMPLETED_LOCAL_RESOURCE_GUARD",
+  "supportClaimEffect": "none",
+  "scope": "Bound typed DXF GROUP vector staging and adopted-list transfer, including nested entity-handle work.",
+  "source": {
+    "parentCommit": "03ad1c6fde1971c1252de9c59ed7c0d5114c630d",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+    "cmake": "4.4.5",
+    "files": {
+      "src/libdxfrw.cpp": "297122adde3b3472dd530277a995c917076d7030193a916ab5f6aad3d94c4491",
+      "src/libdxfrw.h": "9ac6eab9a9d4126eb5f410ddd63c4602d988802ce088e8daeb7d20bcae22fb75",
+      "tests/dxf_fixture_tests.cpp": "d5b44a542a927d83b7ff894b8454cf47c8d5a5c62b10c571b7ad15a660a0cf9c",
+      "tests/CMakeLists.txt": "c9900076e7f7093ac20cad0b91754a4ef042b3e3ee9f67a7bf9e67a5d1609cf9",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ce1a04aa2980aaf0ea18b0a56ccde1bd1f4804f867ee12c6cc310067a1983ff5"
+    }
+  },
+  "limit": {
+    "recordsPerSetter": 100000,
+    "accountedItemsPerSetter": 1000000,
+    "logicalRetainedBytesPerSetter": 67108864,
+    "entityHandlesPerGroup": 100000,
+    "countedPayload": [
+      "outer GROUP vector slots",
+      "common table-entry name, reactors, pending references, XDATA and application-data nodes/payloads",
+      "GROUP description bytes plus terminator",
+      "nested entity-handle vector slots"
+    ],
+    "formatMaximum": false
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "Both const-vector staging and list adoption share record, aggregate-item and retained-byte estimation before copying, reserving or moving caller-owned groups.",
+      "The estimator accounts for dynamic common table-entry metadata, descriptions and member handle slots, and enforces the existing per-GROUP member ceiling.",
+      "Rejected input clears stale staged groups and planned identities, latches refusal before output initialization, and leaves rejected caller-owned vector/list data intact.",
+      "The const setter and list reserve path catch allocation failure; corrected setter/adoption retries work, and adopted values can be returned to their original list nodes.",
+      "The focused control accepts exactly 1,000,000 aggregate items and 64 MiB estimated logical payload, rejects one item or byte over, and verifies ASCII/Binary destination preservation and corrected write retry."
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocused": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^(libdxfrw_group_setter_bounds|libdxfrw_group_adapter_roundtrip|libdxfrw_root_dict_entry_count_bound|libdxfrw_named_dict_object_count_bound)$'",
+      "result": "PASS 4/4; 1.19 seconds",
+      "coverage": "Existing GROUP adapter round-trip; exact/over item and byte boundaries; per-record member limit; stale-state clearing; rejected caller preservation for vector/list paths; injected const-copy and adoption-reserve allocation failure with retry/ownership return; ASCII/Binary destination preservation and corrected retry."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocused": {
+      "command": "ctest --test-dir build-asan-custom --output-on-failure -R '^(libdxfrw_group_setter_bounds|libdxfrw_group_adapter_roundtrip|libdxfrw_root_dict_entry_count_bound|libdxfrw_named_dict_object_count_bound)$'",
+      "result": "PASS 4/4; 2.28 seconds"
+    },
+    "diffCheck": "PASS",
+    "repositoryFixturesAdded": 0
+  },
+  "limitations": [
+    "The byte estimator measures logical retained payload and container slots, not allocator capacity or process RSS.",
+    "These internal work/resource limits are not DXF format maxima or support claims.",
+    "The public setter/adoption implementation moved out of line; downstream consumers must relink. ABI and packaging qualification remain open under P8."
+  ],
+  "next": "Continue the P6 audit on other setup/assembly work bounds, rollback after earlier staged records, source lifetime, platform numeric/string policies and scoped concurrency."
+}

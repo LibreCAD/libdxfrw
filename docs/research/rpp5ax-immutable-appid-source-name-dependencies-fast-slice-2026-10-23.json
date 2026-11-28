@@ -1,0 +1,411 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5ax",
+  "date": "2026-10-23",
+  "baseHead": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "worktree": "DIRTY_UNCOMMITTED_UNSTAGED",
+  "status": "IMMUTABLE_APPID_SOURCE_NAME_AND_GENERATION_BOUND_DEPENDENCY_HANDOFF_PASS_FULL_SOURCE_SCHEMA_OPEN",
+  "predecessor": "docs/research/rpp5aw-xrecord-per-value-codepage-and-counted-text-fast-slice-2026-10-23.json",
+  "previousGoalTurn": "PROGRESS: RPP-5aw implementation and fresh validation",
+  "sourceAudit": {
+    "mechanism": "Standard-object common EED name resolution previously used editable APPID table values and synthesized fallback names, without immutable source name bytes/profile/decode history. Equal names or a bitwise issue-mask delta did not prove source fidelity.",
+    "method": "Local source audit and generated adversarial controls; no pre-fix executable failure run is claimed for the new APIs."
+  },
+  "implemented": [
+    "DRW_AppId retains private shared-const consumed source-name bits/start/count, decoded spelling, handle, version/effective codec and isolated field decode issues under a512KiB logical-owner cap.",
+    "Name observation resets/restores the aggregate around the field, preserving repeated identical prior issues and earlier common-field events; unknown/unavailable/aliased/unspecified legacy profiles remain observed even for empty/ASCII values.",
+    "Name profile eligibility requires the existing fixed APPID type67, a DWG/version-bound codec and complete declared TV/TU-width consumption; clean partial byte-length decoding does not qualify.",
+    "Copy/assignment shares immutable name source; public name/handle mutation cannot refresh it; reset and failed parse clear it. Ordinary tolerant text/wire layout is unchanged.",
+    "Converter callback snapshots are generation-keyed and closed at import completion, separate from editable rows, sharing standard64MiB/combined100000-record caps. Basic-table copying charges the extra name-source owner.",
+    "Per-frame unique APPID dependency IDs are frozen under existing byte/item bounds; source name issues/profile uncertainty transfer into raw-frame observations without qualifying synthetic/missing/authored/unbound names.",
+    "Same-generation APPID/object source handle collisions reject in both callback orders without a second source identity.",
+    "Export checks referenced current rows against immutable callback/field owners before output and at final publication, refusing changed/missing/duplicate/replaced name sources atomically while preserving corrected same-adapter retries.",
+    "Actual literal APPID records replace hand-filled names in the existing source-EED observation positives; new native controls retain original four modern modeled facts/zero legacy facts without import-retention promotion."
+  ],
+  "authoritativeSource": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.66",
+    "completeRenderedPagesReviewed": [
+      182,
+      183
+    ],
+    "scope": "Existing fixed APPID type, TV name/table/handle framing. Observations only; no byte-layout/type-dispatch change or copied peer code."
+  },
+  "controls": {
+    "nameSourceVersions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "literalNameSourceCells": 24,
+    "equalOutputRawIdentityControls": 4,
+    "emptyAsciiUnknownAliasControls": 4,
+    "priorIssueIsolationControls": 2,
+    "wrongFixedTypeControls": 2,
+    "partialCountedTuWidthControls": 2,
+    "dependencyCells": 22,
+    "dependencyEditRestorationChecks": 80,
+    "reusedGenerationChecks": 2,
+    "aggregateExactOneBelowChecks": 2,
+    "sameGenerationCrossTypeHandleCollisionChecks": 2,
+    "observedSnapshotLogicalBytes": 487,
+    "portableBudgetConstant": false,
+    "processWideHeapBound": false,
+    "nativeDwgSourceVersions": 6,
+    "nativeSourceTargetEncodingReadbacks": 24,
+    "nativeEarlyAppIdMutationRefusalRetries": 48,
+    "nativeLateAppIdMutationRefusalRetries": 2,
+    "nativeTotalAppIdMutationRefusalRetries": 50,
+    "modernModeledFactsPerCell": 4,
+    "legacyModeledFactsPerCell": 0,
+    "allocationInspectionRefusalsPerEncoding": 52,
+    "allocationFinalizationRefusalsPerEncoding": 6,
+    "allocationGroupPlanningRefusalsPerEncoding": 6,
+    "allocationTotalInjectedFailures": 128,
+    "newRepositoryDrawingFixtureFiles": 0,
+    "defaultStrictAdmission": "CLOSED"
+  },
+  "validation": {
+    "fast": {
+      "result": "PASS",
+      "passed": 30,
+      "failed": 0,
+      "seconds": 2.52,
+      "tests": [
+        "libdxfrw_xrecord_per_value_codepage",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_dwg_eed_text_provenance",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "dwg2dxf_xrecord_typed_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_extension_graph_limits",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "dwg2dxf_image_path_cli",
+        "libdxfrw_image_definition_plan_failure_retry",
+        "libdxfrw_generated_dictionary_source_metadata",
+        "libdxfrw_appid_name_source",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_basic_table_typed_capture_limits"
+      ],
+      "command": "ctest --test-dir build --output-on-failure -j3 -R '^(libdxfrw_xrecord_per_value_codepage|libdxfrw_xrecord_xdata_channels|libdxfrw_xrecord_writer_codepage|libdxfrw_text_decode_issue_accumulation|libdxfrw_dwg_eed_text_provenance|libdxfrw_standard_dwg_output_allocation|libdxfrw_standard_dwg_payload_profile_and_allocation|libdxfrw_standard_dwg_source_baseline|libdxfrw_rooted_standard_dwg_output_proof|libdxfrw_standard_dwg_group_metadata|libdxfrw_rooted_standard_dwg_xrecord_eed|libdxfrw_dxf_xrecord_string_owner_budget|dwg2dxf_xrecord_typed_capture_limits|dwg2dxf_standard_dwg_object_source_capture|dwg2dxf_standard_dwg_object_payload_correlation|dwg2dxf_standard_dwg_source_text_observations|dwg2dxf_standard_dwg_source_eed_text_observations|dwg2dxf_xrecord_group_reference_admission|libdxfrw_standard_object_wire_comparison|libdxfrw_group_adapter_roundtrip|libdxfrw_extension_graph_limits|libdxfrw_linetype_extension_graph|libdxfrw_dwg_group_dictionary_controls|dwg2dxf_generated_image_dictionary_source_identity|dwg2dxf_image_path_cli|libdxfrw_image_definition_plan_failure_retry|libdxfrw_generated_dictionary_source_metadata|libdxfrw_appid_name_source|dwg2dxf_standard_dwg_appid_dependencies|dwg2dxf_basic_table_typed_capture_limits)$'",
+      "log": "/tmp/rpp5ax-fast-tests.log"
+    },
+    "asan": {
+      "result": "PASS",
+      "passed": 27,
+      "failed": 0,
+      "seconds": 4.11,
+      "tests": [
+        "libdxfrw_xrecord_per_value_codepage",
+        "libdxfrw_xrecord_xdata_channels",
+        "libdxfrw_xrecord_writer_codepage",
+        "libdxfrw_text_decode_issue_accumulation",
+        "libdxfrw_dwg_eed_text_provenance",
+        "libdxfrw_standard_dwg_output_allocation",
+        "libdxfrw_standard_dwg_payload_profile_and_allocation",
+        "libdxfrw_standard_dwg_source_baseline",
+        "libdxfrw_rooted_standard_dwg_output_proof",
+        "libdxfrw_standard_dwg_group_metadata",
+        "libdxfrw_rooted_standard_dwg_xrecord_eed",
+        "libdxfrw_dxf_xrecord_string_owner_budget",
+        "dwg2dxf_xrecord_typed_capture_limits",
+        "dwg2dxf_standard_dwg_object_source_capture",
+        "dwg2dxf_standard_dwg_object_payload_correlation",
+        "dwg2dxf_standard_dwg_source_text_observations",
+        "dwg2dxf_standard_dwg_source_eed_text_observations",
+        "dwg2dxf_xrecord_group_reference_admission",
+        "libdxfrw_standard_object_wire_comparison",
+        "libdxfrw_group_adapter_roundtrip",
+        "libdxfrw_linetype_extension_graph",
+        "libdxfrw_dwg_group_dictionary_controls",
+        "dwg2dxf_generated_image_dictionary_source_identity",
+        "libdxfrw_image_definition_plan_failure_retry",
+        "libdxfrw_appid_name_source",
+        "dwg2dxf_standard_dwg_appid_dependencies",
+        "dwg2dxf_basic_table_typed_capture_limits"
+      ],
+      "flags": "-fsanitize=address -fno-omit-frame-pointer",
+      "options": "halt_on_error=1",
+      "command": "ASAN_OPTIONS=halt_on_error=1 ctest --test-dir build-asan-custom --output-on-failure -j3 -R '^(libdxfrw_xrecord_per_value_codepage|libdxfrw_xrecord_xdata_channels|libdxfrw_xrecord_writer_codepage|libdxfrw_text_decode_issue_accumulation|libdxfrw_dwg_eed_text_provenance|libdxfrw_standard_dwg_output_allocation|libdxfrw_standard_dwg_payload_profile_and_allocation|libdxfrw_standard_dwg_source_baseline|libdxfrw_rooted_standard_dwg_output_proof|libdxfrw_standard_dwg_group_metadata|libdxfrw_rooted_standard_dwg_xrecord_eed|libdxfrw_dxf_xrecord_string_owner_budget|dwg2dxf_xrecord_typed_capture_limits|dwg2dxf_standard_dwg_object_source_capture|dwg2dxf_standard_dwg_object_payload_correlation|dwg2dxf_standard_dwg_source_text_observations|dwg2dxf_standard_dwg_source_eed_text_observations|dwg2dxf_xrecord_group_reference_admission|libdxfrw_standard_object_wire_comparison|libdxfrw_group_adapter_roundtrip|libdxfrw_linetype_extension_graph|libdxfrw_dwg_group_dictionary_controls|dwg2dxf_generated_image_dictionary_source_identity|libdxfrw_image_definition_plan_failure_retry|libdxfrw_appid_name_source|dwg2dxf_standard_dwg_appid_dependencies|dwg2dxf_basic_table_typed_capture_limits)$'",
+      "log": "/tmp/rpp5ax-asan-tests.log",
+      "excluded": [
+        "Image CLI harness",
+        "Graph CLI harness",
+        "Wave1 dictionary metadata selector"
+      ]
+    },
+    "owning": {
+      "result": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "seconds": 15.15,
+      "tests": [
+        "libdxfrw_wave1",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dwg_object_vectors",
+        "libdxfrw_dxf_fixtures"
+      ],
+      "log": "/tmp/rpp5ax-owning-tests.log",
+      "scope": "Affected owning aggregates only, not full project suite"
+    },
+    "strictSyntax": {
+      "result": "PASS",
+      "translationUnits": 5,
+      "command": "clang++ -std=c++17 -Wall -Wextra -pedantic -Werror -I. -Isrc -Isrc/intern -Idwg2dxf -fsyntax-only src/drw_objects.cpp dwg2dxf/dx_iface.cpp tests/gbk_codepage_tests.cpp tests/dwg2dxf_adapter_tests.cpp tests/dwg_local_roundtrip_tests.cpp",
+      "log": "/tmp/rpp5ax-strict.log"
+    },
+    "build": {
+      "result": "PASS",
+      "targets": [
+        "libdxfrw_gbk_codepage_tests",
+        "libdxfrw_dwg2dxf_adapter_tests",
+        "libdxfrw_dwg_local_roundtrip",
+        "libdxfrw_dxf_fixture_tests",
+        "libdxfrw_hardening_tests",
+        "libdxfrw_wave1_tests",
+        "libdxfrw_dwg_object_vectors_tests",
+        "dwg2dxf",
+        "lc3_compat_check"
+      ],
+      "checkpointLog": "/tmp/rpp5ax-build-checkpoint.log",
+      "checkpoint": "ninja: no work to do."
+    },
+    "diffCheck": "PASS_SCOPED",
+    "stagedChanges": false
+  },
+  "compatibility": {
+    "newPublicVirtualCallbacks": 0,
+    "ordinaryDwgTextAndWireLayout": "UNCHANGED",
+    "publicClassStorageGrows": "DRW_AppId: consumer rebuild required; no binary ABI claim",
+    "freshAuthoredOrDxfRows": "No invented DWG evidence; existing default behavior retained",
+    "sourceNameQualification": "Not complete APPID table/control/output or whole-document semantic evidence"
+  },
+  "openLocal": [
+    "Layer/other dependency-name source/profile provenance and CMC/layer-reference metadata",
+    "General codepage mapping, full APPID table/control/output semantics and independent producer qualification",
+    "IMAGEDEF/common fields, regenerated reactors/extension dependencies, binary segmentation, skipped fields and speculative decode audits",
+    "Strict per-attempt companion admission after relevant complete source schemas/profiles and final physical output/publication qualification",
+    "Legacy XRECORD RC/RS count discrepancy requiring producer/ODA evidence",
+    "Three AC1024 visualization files/eight failing frames, separate CLASSES/container integrity and SUN export closure",
+    "Legacy TABLE entity/extension integration and separate AC1024+ inline authoring"
+  ],
+  "external": {
+    "deferred": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "status": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreecad": "NOT_RUN",
+    "independentAcisAcdsSemanticKernel": "NOT_RUN",
+    "promotesSupportClaims": false
+  },
+  "notRun": [
+    "Full project suite",
+    "UBSan",
+    "LeakSanitizer",
+    "Native CAD/platform qualification",
+    "Independent producer/semantic/kernel qualification"
+  ],
+  "bindings": [
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "fcc3eacf0210e33478b511200ab57014f4f366578a574aafc8b5696a562b2417"
+    },
+    {
+      "path": "tests/CMakeLists.txt",
+      "sha256": "6611c05b2310aac74776a23386b7cb0e8a6cd93d2e2b3e463425f911869a8830"
+    },
+    {
+      "path": "src/drw_objects.cpp",
+      "sha256": "483cc13b6c1bfc8b6ba59a238c7da5729043b800f487edb079ba8cc830503648"
+    },
+    {
+      "path": "src/drw_objects.h",
+      "sha256": "42712d6f3eb2aa209f66c58b0796c0e26c9da4ff8b49e301a1442f443e5fa271"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.cpp",
+      "sha256": "2de8861683cb3a0f4ae05b2f6fde8806fbc5c1c0886b8579302e5866448be72b"
+    },
+    {
+      "path": "dwg2dxf/dx_iface.h",
+      "sha256": "72742b01f57aa4af6f0f54e3f4a2db06cf39b647918412dad3f22f0278e84370"
+    },
+    {
+      "path": "dwg2dxf/dx_data.h",
+      "sha256": "1ff292d67085cd67b9f4d42408178359ea2b3dfff5e17358769f06d63b0a3ddd"
+    },
+    {
+      "path": "tests/appid_test_helpers.h",
+      "sha256": "7b8c6a0d675655a2f77c9b5a13a7fb1eaede6afce6cca6d7d80a12a0c0f0ee20"
+    },
+    {
+      "path": "tests/gbk_codepage_tests.cpp",
+      "sha256": "3baa770f9daf55a0594129a280c58214ed344d00587e256a41f20dd8b4bd6575"
+    },
+    {
+      "path": "tests/dwg2dxf_adapter_tests.cpp",
+      "sha256": "bda48a8ff277e8ebd89cab9894439477eaf9a56b7fe3f85ec8aeb3aafdd00fb0"
+    },
+    {
+      "path": "tests/dwg_local_roundtrip_tests.cpp",
+      "sha256": "cdf244bde904b1b5961e776872d10104bbdbaf6ca1025adaaa53c73f80c5d185"
+    },
+    {
+      "path": "docs/3D_CONSUMER_CONTRACT.md",
+      "sha256": "968968e62334f4ded1e36adeecf723808df00862128c43a46e7c4d081bab7b6d"
+    },
+    {
+      "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "sha256": "4ea318b5806b6cef3caede881c89f47b2c7f0e3e718ead32b39d14aba2044c6b"
+    },
+    {
+      "path": "build/libdxfrw.a",
+      "sha256": "7a8ea6602c3e27337a44dab5935339b9d8daf4e99036f29838eb8c3f1a121eb6"
+    },
+    {
+      "path": "build/libdxfrw_gbk_codepage_tests",
+      "sha256": "89e9038cf333e38e3b0e8c4752f942b71fb858d851cb77aac5660b33ee791dbf"
+    },
+    {
+      "path": "build/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "3566b8146cc6ab50ad5fe910bec9249b8d8475a0638a54dd09dc53403f76c2c5"
+    },
+    {
+      "path": "build/libdxfrw_dwg_local_roundtrip",
+      "sha256": "07ecb3b86dc606b190d1cab2bcc1511c0978bcce3bbda254fca5de2805fc9649"
+    },
+    {
+      "path": "build/libdxfrw_dxf_fixture_tests",
+      "sha256": "d4ee3a1384a3a7984038a6e5f8e1a46538682ab9395f67e893ee0252bd21acc1"
+    },
+    {
+      "path": "build/libdxfrw_wave1_tests",
+      "sha256": "c65c17c51998363dd9183d452cd08b2b06cca7d46b5730dee4d2fa4af6a4700d"
+    },
+    {
+      "path": "build/libdxfrw_dwg_object_vectors_tests",
+      "sha256": "18a75c7629690f160c38833dd93cdd8f39ffd3cb26fff0548a1559f1153b0924"
+    },
+    {
+      "path": "build/libdxfrw_hardening_tests",
+      "sha256": "be3440701cec64233b79bb8883aaf231f2169130f56e16daa3db8399c7f6ae00"
+    },
+    {
+      "path": "build/dwg2dxf/dwg2dxf",
+      "sha256": "7d2639138d200d9044c9ff1009af147b912c1eecf228a141a94273e92068be3a"
+    },
+    {
+      "path": "build/tests/CMakeFiles/lc3_compat_check.dir/lc3_compat_check.cpp.o",
+      "sha256": "f0703751fca25e71023d978e750991f5c6a55f0fce823979051837af8039df46"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_gbk_codepage_tests",
+      "sha256": "448a58857cc595e6738857e2466693fea75b5fa35debec6817cbee10f75e4f6e"
+    },
+    {
+      "path": "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests",
+      "sha256": "07c0191efb61ae4b0f622fa85df0c9bbd747372bf90fa18405f9e9ee846d80b4"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_dwg_local_roundtrip",
+      "sha256": "d2688bf451287608b0423179511b41ca9afbd69f065c82fe6f0a755acfd8a7c6"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_dxf_fixture_tests",
+      "sha256": "1026ca0551b3d6980d358ec36bcfdc455850470911dab77acbcabe4f36df2c10"
+    },
+    {
+      "path": "build-asan-custom/libdxfrw_hardening_tests",
+      "sha256": "e8cc0ff3a64108d16c95939bfce72e90295eb3893eed35673b4111e44ad4a2e3"
+    },
+    {
+      "path": "build-asan-custom/CMakeCache.txt",
+      "sha256": "d7eaeb08b0799926ec3d5945f75c422b20256669ab3a4d0031cd2b1ea47b6fa7"
+    },
+    {
+      "path": "/tmp/rpp5ax-final-build.log",
+      "sha256": "5e84db67d5550aeb2d44a772f6d6efcc6321656a069593486aa14f1e5378fcbb"
+    },
+    {
+      "path": "/tmp/rpp5ax-asan-build.log",
+      "sha256": "49db203d3e9edd5f17070914036b1753276f617abf7b9813fc56a906b9322515"
+    },
+    {
+      "path": "/tmp/rpp5ax-build-checkpoint.log",
+      "sha256": "8c35b1682f73592d30612d7b0fabdb384fcfff35cb5a076cb48b85b1368aa794"
+    },
+    {
+      "path": "/tmp/rpp5ax-fast-tests.log",
+      "sha256": "e869485484a4dd8764847c4759d039f068086670b637c0c66469e078e0b66be9"
+    },
+    {
+      "path": "/tmp/rpp5ax-asan-tests.log",
+      "sha256": "7d8acd351a58789042f4a169a67d4f52c923525ae57d6ccf2ce9df80b3f742c0"
+    },
+    {
+      "path": "/tmp/rpp5ax-owning-tests.log",
+      "sha256": "c2cfe0d5c45414384e7e95f5ec34d9c83fc0fe1ec0370cd358d5ada4a6ef6ccb"
+    },
+    {
+      "path": "/tmp/rpp5ax-strict.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/rpp5ax-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/rpp5ax-name-controls.log",
+      "sha256": "7f211b63313a978be12ae08133f3c7719bca57486d305d2d7d56db0d4661dc3b"
+    },
+    {
+      "path": "/tmp/rpp5ax-dependency-controls.log",
+      "sha256": "e48651871ecfb6c7f75c001cf403d30f5f94bcebfd67dc02d827de898d4a8b18"
+    },
+    {
+      "path": "/tmp/rpp5ax-native-controls.log",
+      "sha256": "ab48551eb645f665eab3fcd777e5f0f30db51eabe7ae76b578abd3429556e1e2"
+    },
+    {
+      "path": "/tmp/rpp5ax-allocation-controls.log",
+      "sha256": "fbd6793d00fc05bfe3ee41ad2d7b9a02ca27531b35297bee4c01eedfe45fcd90"
+    },
+    {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+    },
+    {
+      "path": "/tmp/rpp5aw-oda-appid-182.png",
+      "sha256": "e752e2281aa6cb2e2bc20efc5cba0436536dcbdd6515c60ff641630e69abb888"
+    },
+    {
+      "path": "/tmp/rpp5aw-oda-appid-183.png",
+      "sha256": "42018c9b725c79dc7d8ce2a5664d1512a70663c64834f87858ec51c66d5f4c6b"
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-background-ibl-body-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_IBLBACKGROUND_RECOVERY_AND_PARTIAL_OUTPUT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Bounded malformed IBL BACKGROUND body recovery with strict refusal and explicit-partial ASCII/Binary readback.",
+  "source": {
+    "kind": "Scratch-only DWGs authored at test runtime by the in-tree DWG writer; each valid typed seed is converted to a raw mutated frame and injected with matching custom-class registration.",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-background-ibl-body-source",
+    "object": "IBL BACKGROUND class version 0 with m_iblName RECOVERY_BACKGROUND_IBL, enabled=true, displayImage=true, finite rotation 0.625, and null secondary-background handle. No owner, reactor, or non-null type-specific target is added.",
+    "bodyMutation": "One bit is flipped after the validated common prologue inside the bounded object body. The mutation search proves the typed IBL parser fails while the common prologue remains valid.",
+    "eligibleRevisions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1027",
+      "AC1032"
+    ],
+    "excludedRevision": {
+      "AC1024": "No one-bit mutation within the bounded IBL body fails its parser; no malformed profile was admitted."
+    },
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-cli-malformed-background-ibl-body-recovery-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "controls": "Eligible readers record one object parse failure and one failed object frame, retain the following LINE callback, and balance source = published + failed. Strict ASCII/Binary conversion refuses atomically. Explicit-partial ASCII/Binary conversion succeeds and fresh DXF readback retains the LINE and VPORT at AC1015/AC1018/AC1021/AC1032. AC1027 reader recovery succeeds but both CLI modes refuse at the existing DWG source-reference qualification gate. Source DWGs remain unchanged."
+  },
+  "results": {
+    "readRecoveryFrameCounts": {
+      "AC1015": {
+        "sourceFrames": 28,
+        "publishedFrames": 27,
+        "failedFrames": 1
+      },
+      "AC1018": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      },
+      "AC1021": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      },
+      "AC1027": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      },
+      "AC1032": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      }
+    },
+    "cliDispositionControls": 23,
+    "perRevisionControls": {
+      "AC1015": 5,
+      "AC1018": 5,
+      "AC1021": 5,
+      "AC1027": 3,
+      "AC1032": 5
+    },
+    "fullFocusedDispositionCohortControls": 807,
+    "outputQualification": "Explicit-partial ASCII/Binary conversion and readback pass at AC1015/AC1018/AC1021/AC1032. AC1027 is reader-only behind the source-reference gate. AC1024 had no bounded IBL parser-failing mutation and is not included."
+  },
+  "binding": {
+    "baseCommit": "06111256 Add Image BACKGROUND recovery controls",
+    "writerTestExecutableSha256": "4d214f8a2a6ef2d983c7c1bb1e1673f5b6e2146b8960db549038c8c142f31d69",
+    "converterExecutableSha256": "d7aad05d69eb00b0860d7a87f1496beb4465e15f6a880ca2665a96d90b68213c",
+    "generatorSourceSha256": "265169a21410fb8642b4e884e03372ab88fcac6bd145f417462c76ef41e1dab4",
+    "harnessSourceSha256": "6d962c09922711c80a821bb21bf177226c9551da532612a3b1692e444192d34c"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "eligibilityScan": "Generated scratch sources for AC1015/AC1018/AC1021/AC1027/AC1032; each produced one bounded IBL parser-failing mutation. AC1024 probe exited without an eligible parser-failing mutation and was excluded.",
+    "focusedControl": "check_malformed_background_ibl_body: PASS; 23 disposition controls across AC1015/AC1018/AC1021/AC1027/AC1032",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 24.95 seconds",
+    "pythonSyntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py: PASS",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated parser-recovery and CLI disposition only; the output/readback result covers this IBL subtype and generated field profile.",
+    "The null handle does not qualify non-null target-role or target-closure semantics, appearance, native behavior, producer prevalence, or interoperability.",
+    "AC1027 output remains unqualified behind the source-reference closure gate.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-F adds generated IBL BACKGROUND body recovery across eligible revisions, with strict refusal and explicit-partial ASCII/Binary output/readback at AC1015/AC1018/AC1021/AC1032.",
+    "remainingP6F": "Continue with the remaining BACKGROUND subtype inventory, then select the next supported OBJECTS body parser with a bounded reproducible failure. Do not infer completeness from generated parser profiles.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "421 completed slices and 32 remaining packages: 421/(421+32)=92.9%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-cli-malformed-background-image-body-recovery-2026-11-14.json"
+}

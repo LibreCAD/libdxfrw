@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "date": "2026-11-12",
+  "purpose": "Correct AC1024+ LTYPE group-74 bit interpretation and text-area presence using ODA wire semantics and an externally sourced AutoCAD SAVEAS 2010 sample.",
+  "source_revision_before_change": "cbdcb3eb",
+  "authorities": [
+    {
+      "source": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.58 LTYPE (57)",
+      "pdf_page": 166,
+      "findings": [
+        "Shapeflag bit 0x02 means the complex shapecode is an index into the text area.",
+        "Shapeflag bit 0x04 means the complex shapecode is a shape number.",
+        "R2007+ adds the 512-byte text area only when bit 0x02 is set on any Shapeflag."
+      ]
+    },
+    {
+      "source": "Autodesk AutoCAD DXF 2025 LTYPE reference",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+      "findings": [
+        "DXF group 74 bit 0x02 means embedded text and bit 0x04 means embedded shape."
+      ]
+    }
+  ],
+  "sample": {
+    "repository": "DomCR/ACadSharp",
+    "repository_url": "https://github.com/DomCR/ACadSharp",
+    "path": "samples/sample_AC1024.dwg",
+    "source_script_url": "https://github.com/DomCR/ACadSharp/blob/master/samples/sample_base/save_samples.lsp",
+    "blob_sha": "3346e2b2063215eb475a6a4ab918c939472e38d0",
+    "repository_size_bytes": 1122389,
+    "downloaded_path": "/private/tmp/libdxfrw-acadsharp-sample-AC1024.dwg",
+    "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+    "header": "AC1024",
+    "source_profile": "The bundled AutoLISP script requests SAVEAS 2010 to create sample_AC1024.dwg; the exact host executable/release and execution receipt are not recorded, so this is not an AutoCAD 2010 RTM witness.",
+    "not_committed": true
+  },
+  "independent_reader": {
+    "name": "LibreDWG",
+    "version": "0.14",
+    "command": "dwgread -O JSON",
+    "sample_records": [
+      {"handle": "0x6bf", "name": "TRACKS", "shape_flag": 4, "shape_code": 130, "style_handle": "0x27f"},
+      {"handle": "0x6cc", "name": "ZIGZAG", "shape_flag": 4, "shape_code": 131, "style_handle": "0x27f"},
+      {"handle": "0x6d9", "name": "BATTING", "shape_flag": 4, "shape_code": 134, "style_handle": "0x27f"},
+      {"handle": "0x6b2", "name": "GAS_LINE", "shape_flag": 10, "text_area_required": true}
+    ]
+  },
+  "implementation": {
+    "files": ["src/drw_objects.cpp", "tests/ltype_string_area_test_helpers.h", "tests/dwg_object_vectors_tests.cpp"],
+    "changes": [
+      "DWG LTYPE shape flags now retain ODA/DXF group-74 bit meanings instead of swapping bits 0x02 and 0x04.",
+      "R2007+ string-area parsing now keys on embedded-text bit 0x02; shape-only bit 0x04 records consume no text area."
+    ]
+  },
+  "reproduction": {
+    "before": {
+      "classes_end": true,
+      "operation_succeeded": false,
+      "legacy_error": 9,
+      "ltype_parse_warnings": 3,
+      "failing_ltype_handles": ["0x6bf", "0x6cc", "0x6d9"]
+    },
+    "after": {
+      "classes_end": true,
+      "operation_succeeded": true,
+      "legacy_error": 0,
+      "entity_parse_failures": 0,
+      "object_parse_failures": 0,
+      "source_frames": 923,
+      "published_frames": 923,
+      "ltype_parse_warnings": 0,
+      "strict_dxf_output": "refused before output preparation at unsupported AcDbTableContent replay; no output was published"
+    }
+  },
+  "validation": {
+    "build": "cmake --build build --target dwg2dxf libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_local_roundtrip --parallel 4",
+    "ctest_selector": "ctest --test-dir build -R 'dwg_ltype_text_area_contract|dwg_object_vectors$' --output-on-failure",
+    "ctest_result": "2/2 passed",
+    "asan_build_and_ctest": "cmake --build build-asan-custom --target dwg2dxf libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_local_roundtrip --parallel 4; ctest --test-dir build-asan-custom -R 'dwg_ltype_text_area_contract|dwg_object_vectors$' --output-on-failure",
+    "asan_ctest_result": "2/2 passed",
+    "asan_physical_sample": "dwg2dxf parsed the sample with operationSucceeded=true, zero entity/object parse failures, and no AddressSanitizer report; process exit 1 was the expected strict refusal of standalone OBJECTCONTEXTDATA replay."
+  },
+  "scope": "This fixes and source-qualifies LTYPE shape/text flag decoding for this AC1024 producer profile. It does not qualify TABLECONTENT output, complete drawing conversion, native linetype rendering, or AutoCAD 2010 RTM CLASSES behavior."
+}

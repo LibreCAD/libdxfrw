@@ -1,0 +1,109 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Typed XRECORD DXF coordinate-base preflight with extension compatibility",
+  "mode": "local fast implementation slice with generated ASCII/Binary controls",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Keep typed XRECORD point tuples anchored at an X-coordinate group",
+    "Preserve existing local extended XRECORD handle-value behavior",
+    "Preserve raw-object replay as a distinct provenance-gated contract"
+  ],
+  "evidence": {
+    "sources": [
+      {
+        "title": "Autodesk XRECORD (DXF)",
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+        "supports": "The documented XRECORD standard profile uses normal object group codes in the 1-369 range, excluding identity codes 5 and 105; this is not used as a blanket filter for existing local extension routes."
+      },
+      {
+        "title": "Autodesk DXF Group Codes for Xrecords",
+        "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm",
+        "supports": "The XRECORD point/vector payload is assigned to group codes 10-17."
+      },
+      {
+        "title": "Autodesk DXF Group Codes in Numerical Order",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "supports": "Groups 20-27 and 30-37 carry Y/Z components for the documented point families; they are not independent X bases."
+      },
+      {
+        "title": "Local XRECORD reader and Wave 1 writer contract",
+        "url": "src/drw_objects.cpp; tests/wave1_tests.cpp:testDxfArbitraryHandlePayloads",
+        "supports": "The local parser has extended point/handle code families, and the existing typed XRECORD writer control requires 480/481 values to survive."
+      }
+    ],
+    "localSource": "src/libdxfrw.cpp:dxfRW::writeXRecord"
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "summary": "Typed XRECORD COORD variants are checked before handle reservation or record emission: their code must be an X component with valid Y/Z followers in the same point family used by DRW_XRecord::parseCode. Existing extended scalar/string/handle group routes remain unchanged; raw-captured object replay remains separate.",
+    "wireBehaviorChanged": true,
+    "wireBehaviorDetail": "A COORD variant supplied at a Y/Z component or incomplete point family now fails before output instead of being expanded as a shifted or unparseable point. No overall 1-369 code cap is imposed, preserving the existing 480/481 handle route.",
+    "publicApiOrLayoutChanged": false,
+    "supportClaimPromoted": false
+  },
+  "generatedControls": {
+    "asciiAndBinaryNegative": "Typed coordinate bases 18, 20, 30, and 38 are refused while preserving an existing destination sentinel.",
+    "asciiAndBinaryPositive": "Point base 17 writes and reads back the expected XYZ values; the paired Wave 1 suite retains the 480/481 handle extension control.",
+    "persistentFixturesAdded": 0,
+    "newCTestRegistrations": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_wave1_tests libdxfrw_dxf_fixture_tests -j4",
+      "build/libdxfrw_dxf_fixture_tests --xrecord-coordinate-writer-domain",
+      "ctest --test-dir build -R '^libdxfrw_wave1$|^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "passed with -Wall -Wextra -pedantic -Werror",
+      "focusedSelector": "passed: --xrecord-coordinate-writer-domain",
+      "owningCtests": "passed (2/2): Wave 1 and DXF fixtures; Wave 1 retained the code 480/481 XRECORD control",
+      "diffCheck": "passed"
+    },
+    "compiler": {
+      "path": "/usr/bin/clang++",
+      "reportedVersion": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+      "languageFlag": "-std=c++17"
+    },
+    "fullSuiteRun": false,
+    "externalPeerRun": false,
+    "nativeCadRun": false,
+    "sanitizerOrFuzzRun": false,
+    "dependenciesAdded": 0
+  },
+  "assessment": {
+    "localMismatchFound": "The typed XRECORD DXF writer expanded a COORD variant at any supplied group code, including Y/Z component codes that the local parser interprets as components rather than a point base.",
+    "claim": "Typed COORD values must start at a complete X component within the existing parser's point-family map. Extended group-code behavior remains as before; no support claim is promoted.",
+    "limitations": "The Autodesk XRECORD reference describes a narrower standard group-code profile than some existing local typed reader/writer routes, including the tested 480/481 handle values. An initial blanket cap was reverted after the Wave 1 owner test exposed that compatibility contract. This slice deliberately preserves those routes; it does not resolve their independent interoperability status, validate every XRECORD schema, cover DWG XRECORD encoding, qualify raw replay, native CAD acceptance, or establish cross-version behavior."
+  },
+  "planImpact": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    }
+  },
+  "repositoryState": {
+    "worktreeBroadlyDirty": true,
+    "staged": false,
+    "committed": false,
+    "unrelatedChangesPreserved": true
+  }
+}

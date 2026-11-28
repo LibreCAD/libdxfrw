@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-embedded-lwpolyline-capture-2026-11-10",
+  "date": "2026-11-10",
+  "status": "BOUNDED_FIELDS_CAPTURED_OPAQUE_SUFFIX_RETAINED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/private/tmp/example_2013.dwg",
+    "version": "AC1027",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "objectHandle": "0x2e2",
+    "class": "ACSH_SWEEP_CLASS",
+    "profileType": 77,
+    "profileBitSpan": [0, 744],
+    "pathType": 77,
+    "pathBitSpan": [0, 480]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/ac1027_acds_source_probe.cpp"
+    ],
+    "behavior": "The bounded Sweep capture now decodes the modeled LWPOLYLINE body fields for embedded type 77, while retaining the original payload bits and any unclassified suffix. The accepted flag mask includes the known 0x100 plinegen and 0x200 closed flags, as well as the 0x400 vertex-ID array flag. It does not emit or qualify Sweep output."
+  },
+  "physicalObservation": {
+    "profile": {
+      "flags": 521,
+      "constantWidth": 0,
+      "elevation": -8060.1816093232201,
+      "thickness": 0,
+      "normal": [-0.89445797356369616, -0.44715202507461205, 0],
+      "vertices": [
+        [-11133.658002887872, 0],
+        [-11133.908002887876, 0],
+        [-11133.908002887876, 4.0000000000000018],
+        [-11133.658002887872, 4.0000000000000018]
+      ],
+      "consumedBits": 740,
+      "declaredBits": 744,
+      "opaqueSuffixBits": "1100"
+    },
+    "path": {
+      "flags": 516,
+      "constantWidth": 0.25,
+      "elevation": 0,
+      "thickness": 0,
+      "normal": [0, 0, 1],
+      "vertices": [
+        [2231.0000923480111, 13562.827511939031],
+        [3443.4781322074996, 14168.962206813572],
+        [4236.2523054423218, 14168.962206813572]
+      ],
+      "consumedBits": 478,
+      "declaredBits": 480,
+      "opaqueSuffixBits": "00"
+    },
+    "interpretation": "The parser reaches and retains every declared type-77 body span. The remaining 4 profile bits and 2 path bits are captured as opaque suffixes; their meaning is unknown. This is a field-span observation of one unproven-provenance public sample, not independent producer or semantic evidence."
+  },
+  "generatedControl": {
+    "test": "libdxfrw_acsh_action_body_exact_span",
+    "result": "PASS",
+    "change": "The from-scratch AC1027 embedded-polyline vector includes plinegen 0x100 and closed 0x200 flags alongside optional scalar, bulge, vertex-id and width arrays. A malformed flag vector verifies typed refusal while the containing Sweep body and exact raw embedded payload remain available."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_ac1027_acds_source_probe -j2",
+    "focusedTest": "ctest --test-dir build-gcc --output-on-failure -R acsh_action_body_exact_span",
+    "focusedTestResult": "PASS (1/1)",
+    "physicalProbe": "PASS; reports fieldsParsed=1 and spanCaptured=1 for both typed captures while retaining 4 profile suffix bits and 2 path suffix bits",
+    "fullSuites": "not run"
+  },
+  "limitations": [
+    "The source producer is not authenticated; the profile is source-specific.",
+    "The unclassified suffix bits and extra bytes in the paired DXF payload remain unexplained.",
+    "No source-to-DXF Sweep output mapping, graph closure, native acceptance, independent semantic validation, or support promotion follows.",
+    "Special embedded modeler types 15/16 remain raw-only."
+  ],
+  "nextAction": "Keep strict Sweep output refused. Resolve the opaque suffix/profile against an eligible producer or independent schema evidence, then close exact source identity, owner/dependency roles and output/readback before considering a writer route."
+}

@@ -1,0 +1,131 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "Open-source 3D evidence and route reconciliation",
+  "mode": "Deeper/broader primary-source research and implementation-readiness update",
+  "repository": "LibreCAD/libdxfrw",
+  "localScope": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "head": "de27a33",
+    "originMaster": "d68fb1e",
+    "worktreeState": "The plan and surrounding worktree are broadly modified/uncommitted. This research reviewed the plan and public primary sources; it did not audit or modify codec implementation files.",
+    "evidence": "Current GitHub source/docs were reviewed through public pages. The remote docs/3D_SUPPORT_STATUS.md page was not bound to a Git commit during browsing and is not assumed identical to local origin/master at d68fb1e.",
+    "changedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-independent-acis-producer-current-status-reconciliation-2026-10-21.json"
+    ]
+  },
+  "sources": [
+    {
+      "project": "LibreCAD/libdxfrw published 3D status",
+      "references": [
+        "https://github.com/LibreCAD/libdxfrw/blob/master/docs/3D_SUPPORT_STATUS.md"
+      ],
+      "observation": "The status matrix reports narrowly scoped payload matches for 129 AC1024 3DSOLID records across four local samples and one AC1027 external-AcDs record, while explicitly separating carrier bytes from ACIS semantics and writer support.",
+      "planDisposition": "Treat as project-maintained evidence indexing, not an independent runtime receipt. Keep sample, handle, version, payload digest, direction, and evidence layer attached; do not promote semantic or writer claims."
+    },
+    {
+      "project": "LibreDWG manual and NEWS",
+      "references": [
+        "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observation": "The current manual distinguishes handled, unhandled, unstable, and missing-test-coverage classes; it lists ACDSRECORD/ACDSSCHEMA as unhandled and BODY/MESH among 3D families without sample coverage. NEWS records historical incomplete/brute-force AcDs extraction.",
+      "planDisposition": "Treat as explicit peer evidence limits, not as a verdict on every current build. Pin exact source/build and per-family/version/direction test denominator for any differential; verify the entity-to-AcDs key/owner-to-payload join."
+    },
+    {
+      "project": "LibreCAD_3 DWG consumer policy",
+      "references": [
+        "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md"
+      ],
+      "observation": "Current docs describe DWG import as optional, off by default, experimental and read-only, with no promoted read claims in the stated ledger snapshot and no write-direction claims.",
+      "planDisposition": "Preserve 2D consumer compatibility and the separate optional read-consumer gate; do not infer DWG writer support, failure, or 3D display semantics from application policy."
+    },
+    {
+      "project": "obj2cad",
+      "references": [
+        "https://github.com/cbassuarez/obj2cad"
+      ],
+      "observation": "The MIT pre-release README describes a SAT/SAB writer, known-body generator, Python OBJ parity reader, ezdxf and ACadRust readback, and AutoCAD acceptance still pending for DWG/curved surfaces. It explicitly identifies the DWG writer as vendored ACadRust-derived; no immutable source-to-release binding was established.",
+      "planDisposition": "Already screened as discovery-only and optional; this pass makes no admission change. Require exact source/artifact/toolchain/license/profile audit before any scratch-only run. Exclude its DWG route from independent codec counts and its own test claims from observed qualification."
+    },
+    {
+      "project": "ezdxf ACIS API",
+      "references": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observation": "The current API documentation maps SAT version 700 to DXF R2000-R2010 and SAB 21800 to R2013/R2018; mesh_from_body projects only flat polygonal faces and drops curved boundaries. Unsupported ACIS entities and invalid link structures raise errors on export.",
+      "planDisposition": "Use only as a version-pinned carrier/parser and bounded flat-polyhedron tool, not a general ACIS kernel or independent expected-value source."
+    },
+    {
+      "project": "Open CASCADE Technology commercial components",
+      "references": [
+        "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+        "https://www.occt3d.com/components/acis-exchange/",
+        "https://github.com/Open-Cascade-SAS/OCCT/discussions/1157"
+      ],
+      "observation": "Official materials identify ACIS SAT/SAB and DXF exchange as commercial components, separate from open-source OCCT core formats; ACIS conversion may heal or approximate geometry.",
+      "planDisposition": "Do not infer stock FreeCAD/OCCT ACIS import. If licensed component evidence is ever used, report it as commercial and same-OCCT-family, with exact product/build/license and conversion settings."
+    },
+    {
+      "project": "FreeCAD Draft DXF documentation",
+      "references": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md"
+      ],
+      "observation": "The guide describes different C++ and legacy Python DXF importers and says stock FreeCAD cannot read embedded ACIS/SAT solids.",
+      "planDisposition": "Keep stock explicit-entity consumer qualification separate from ACIS add-on or commercial converter routes; use UNSUPPORTED_CONSUMER when appropriate."
+    },
+    {
+      "project": "ACadSharp current issue index",
+      "references": [
+        "https://github.com/DomCR/ACadSharp/issues"
+      ],
+      "observation": "The current index includes route-specific reports for DXF modeler-entity omission, SPLINE conversion, AC1032 MTEXT acceptance, and parser/writer hardening.",
+      "planDisposition": "Reuse existing plan owners and exact-version applicability checks; peer issue titles do not create local defects or justify duplicate tests."
+    }
+  ],
+  "assessment": {
+    "newFinding": null,
+    "existingOwners": [
+      "PAR-07/S8 ACIS carrier, owner/key, semantic, and consumer evidence",
+      "existing peer admission and codec-lineage crosswalk"
+    ],
+    "newTopLevelSubplans": 0,
+    "newPeerRouteAdmissions": 0,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadiness": {
+    "defaultAction": "Continue owning local fast tests; do not add peer tools to build/CTest or repeat native/peer runs per slice.",
+    "candidateReconciliation": [
+      "No candidate admission or dependency changed in this pass; all named ACIS/parser routes were already screened in prior plan entries.",
+      "At the existing composed checkpoint, use a peer only for a concrete discrepancy left after local fast controls.",
+      "Pin source commit, artifact/build hash, dependencies, license, actual call path, and exact file/carrier profile before use.",
+      "Generate only locally authored geometry in a unique temporary directory; do not download or commit fixtures/output.",
+      "Separate carrier, parser, topology, shape, independent analytic, and native-consumer evidence; exclude same-lineage DWG routes from independent-codec votes.",
+      "Record NOT_QUALIFIED/NOT_RUN and self-unblock if the exact peer cannot answer the question."
+    ],
+    "progressPolicy": "No implementation work was performed in this research pass. Preserve the plan's existing self-update/self-unblock and per-committed-slice progress policy."
+  },
+  "limitations": "No peer package, executable, native CAD application, OCCT component, or test suite was run. No external drawing was downloaded. Current public GitHub pages are mutable and were not bound to immutable source commits in this pass. This is a source-policy reconciliation, not a runtime qualification. J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+}

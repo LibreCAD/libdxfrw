@@ -1,0 +1,52 @@
+{
+  "id": "p6-dxf-mtext-direction-vector-peer-compat-2026-11-11",
+  "scope": "Narrow DXF MTEXT orientation serialization and LibreDWG 0.14 parser compatibility. Does not establish TABLE semantic equivalence, native rendering, whole-file closure, or support claims.",
+  "authority": {
+    "autodesk_dxf_mtext": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm",
+    "relevant_rule": "Group 50 is an optional rotation convenience converted to the equivalent group-11 WCS direction vector; if both group 50 and groups 11/21/31 are supplied, the last one wins."
+  },
+  "source": {
+    "path": "/private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg",
+    "sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "profile": "AC1018 ODA-converted TABLE drawing; selected *T1 source contains 7 MTEXT and 8 LINE records. The source remains outside the repository."
+  },
+  "observed_defect": {
+    "before": "The isolated libdxfrw ASCII DXF wrote both group 50 and the WCS direction vector on the selected MTEXT records. LibreDWG 0.14 dxf2dwg rejected this output with 'ERROR: Invalid DXF code 50 for MTEXT'.",
+    "correction": "Standalone and embedded MTEXT now suppress group 50 when the group-11 direction vector is authoritative. Rotation-only MTEXT still writes group 50.",
+    "semantic_basis": "With the current field order, group 11 was already last and authoritative under Autodesk's rule. Omitting the redundant angle preserves orientation and improves compatibility with this independent parser."
+  },
+  "after": {
+    "dxf": {
+      "path": "/private/tmp/p5-t1-cache-isolated.dxf",
+      "sha256": "e8181b88dcfeceb9ca7d3650a0bd7a3a50dc1eba7bb00f6388b460e1d60ad1f8",
+      "result": "No group 50 is emitted for the selected vector-oriented MTEXT records."
+    },
+    "libredwg": {
+      "version": "0.14",
+      "dxf2dwg_command": "dxf2dwg --as r2004 -y -o /private/tmp/p5-t1-cache-libre.dwg /private/tmp/p5-t1-cache-isolated.dxf",
+      "dxf2dwg_exit": 0,
+      "dwgread_command": "dwgread -O JSON -o /private/tmp/p5-t1-cache-libre.json /private/tmp/p5-t1-cache-libre.dwg",
+      "dwgread_exit": 0,
+      "dwg_sha256": "f9fa50a580887110cc0db6ced52635f10ad198962de6bf7d204ecc5476513d2e",
+      "json_sha256": "03d87967eb39e9c3c35f5b99806b7deee33c404c0bd83d209238178abec389f4",
+      "parsed_entities": {"total": 15, "MTEXT": 7, "LINE": 8},
+      "observed_diagnostics": [
+        "Unknown HEADER.DIMLDRBLK STANDARD dxf:1",
+        "Expected a CODE 4 handle, got a 3 (repeated)"
+      ],
+      "interpretation": "The converter and reader completed successfully despite the recorded warnings. Entity count and presence of placement, direction, text/style and endpoint fields were checked; full source-to-peer field equality was not checked."
+    }
+  },
+  "regression": {
+    "source": "tests/dxf_mtext_legacy_columns_tests.cpp",
+    "target": "libdxfrw_dxf_mtext_legacy_columns_tests",
+    "selector": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_mtext_legacy_columns$' --output-on-failure",
+    "result": "PASS 1/1. ASCII and Binary tests cover standalone and embedded MTEXT; readback preserves the WCS direction and derived 30-degree angle, and ASCII output omits redundant group 50 in both bodies."
+  },
+  "limitations": [
+    "The comparison source and output are an isolated *T1 resource; the original TABLE entity and complete source dependency graph are absent.",
+    "LibreDWG conversion emitted nonfatal header and handle warnings.",
+    "No independent value-by-value geometry/text comparison, native AutoCAD/ODA rendering, or complete TABLE semantic validation was performed.",
+    "No DWG/DXF fixture was added to the repository."
+  ]
+}

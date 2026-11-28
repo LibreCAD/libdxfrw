@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-dxf-memory-snapshot-reader-2026-11-27",
+  "date": "2026-11-27",
+  "baseCommit": "ba7132593",
+  "implementationDigestSha256": "0b42a6d927c8d203ccabc3557b48ff56d901a5f2bb36482b770dd59fe119d35a",
+  "inputCount": 782,
+  "supportClaimEffect": "none",
+  "change": "Add dxfRW::readBuffer for a caller-owned immutable DXF byte snapshot. It shares readAscii operation state, source capture and budgets; detects ASCII, modern binary and R12 binary with the same sentinel rules as file read. Existing readAscii remains an explicitly ASCII wrapper. No existing virtual callback or public object layout is changed.",
+  "validation": [
+    "PASS compact material graph CTest with ASCII and modern binary material callbacks, source version, retained/input-budget refusal and corrected retry, nested read refusal, and readAscii compatibility.",
+    "PASS generated R12 binary LINE and failure/retry controls in the same test.",
+    "PASS whole-source capture CTest for ASCII and binary readBuffer, including complete-source authority, truncated input rejection and retry, and trailing-byte authority refusal; the existing ASCII/file hostile-callback and quota controls also pass.",
+    "PASS GCC 16 warning-clean syntax for core reader, compact graph and whole-source tests; fix a preexisting misleading-indentation warning exposed by adding whole-source tests to the hosted fast lane.",
+    "PASS build inventory, fast runner self-test and clean-checkout qualification digest/support checks."
+  ],
+  "limits": [
+    "The buffer API alone does not enable wide-handle import or prove original-to-output graph binding.",
+    "Native platform and shared-library qualification for this new candidate remain pending. No drawing fixtures were committed."
+  ]
+}

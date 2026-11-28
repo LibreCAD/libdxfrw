@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-hatch-mpolygon-runtime-dispatch-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P8",
+  "status": "HATCH_MPOLYGON_RUNTIME_DISPATCH_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Prevent the concrete DXF adapter from downcasting a plain HATCH as MPOLYGON or serializing an MPOLYGON through the HATCH writer, which would omit its subtype-specific fields.",
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": [
+      "HATCH dispatch requires a DRW_Hatch runtime object and refuses DRW_MPolygon subclasses instead of discarding MPOLYGON fields.",
+      "MPOLYGON dispatch requires a DRW_MPolygon runtime object before calling the derived writer.",
+      "Both wrong-tag cases preserve an existing destination; correcting the tag permits a same-adapter retry and typed readback."
+    ]
+  },
+  "validationProfile": {
+    "source": "Generated locally from empty DRW_Hatch and DRW_MPolygon records, with fill ACI, annotated boundary and offset-vector values on the MPOLYGON. No drawing fixture is used or committed.",
+    "cases": [
+      "DRW_MPolygon tagged as HATCH is refused, then admitted as MPOLYGON.",
+      "DRW_Hatch tagged as MPOLYGON is refused, then admitted as HATCH."
+    ],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "Each wrong subtype/tag pair fails without changing a pre-existing destination sentinel.",
+      "Same-adapter corrected retries import as the expected runtime type.",
+      "MPOLYGON readback retains fillColorAci, annotatedBoundary, xDirX and xDirY."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_hatch_mpolygon_runtime_dispatch$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; four subtype/encoding refusal and retry cases with HATCH and MPOLYGON typed readback, in 0.59 seconds.",
+    "diffCheck": "PASS: git diff --check",
+    "fixturePolicy": "No drawing fixture was added or committed."
+  },
+  "limitations": [
+    "The controls verify adapter dispatch and modeled DXF transport only.",
+    "They do not qualify physical DWG producer profiles, MPOLYGON fill or boundary semantics, or native rendering.",
+    "No support claim is promoted; P6/P8 remain open."
+  ]
+}

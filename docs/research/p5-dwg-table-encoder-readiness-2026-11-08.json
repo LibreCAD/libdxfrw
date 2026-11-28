@@ -1,0 +1,619 @@
+{
+  "date": "2026-11-08",
+  "topic": "DWG ACAD_TABLE encoder readiness",
+  "scope": "Source/specification audit plus generated AC1018 body-codec and identity-registration milestones; no production support claim",
+  "repository": {
+    "entity_encoder": "src/drw_entities.cpp: DRW_Table::encodeDwg has a narrowly preflighted AC1018 generated plain-text-cell codec; production adapter remains disabled",
+    "adapter_writer": "src/libdwgr.cpp: dwgRW::writeTable intentionally refuses and marks the complete DWG save failed",
+    "reader": "src/drw_entities.cpp: DRW_Table::parseDwg has separate pre-AC1024 and AC1024+ branches",
+    "related_object_writer": "src/libdwgr.cpp: writeTableContent is currently restricted to AC1021"
+  },
+  "authority": {
+    "document": "Open Design Specification for .dwg files, v5.4.1",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "section": "20.4.96, pp. 229-232",
+    "observations": [
+      "The table entity has versioned formats and relies on an anonymous *T block for geometric results.",
+      "Section 20.4.96.1 describes the legacy body through R21, while explicitly leaving the AutoCAD 2008 cell changes incomplete.",
+      "R24 uses AcDbTableContent; the specification leaves its round-trip connection to TABLECONTENT and TABLEGEOMETRY undocumented."
+    ]
+  },
+  "decision": "Keep DWG TABLE output refused until an exact version profile, complete entity/block/object graph, and transaction are implemented. Do not infer R24 layout from the partial reader or generalize one codec across versions.",
+  "physical_source_probe": {
+    "path": "tests/samples/AC1021/blocks_and_tables_-_imperial.dwg",
+    "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+    "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1021/blocks_and_tables_-_imperial.dwg -y -d -v2007 /private/tmp/libdxfrw-table-source-probe.dxf",
+    "traceSha256": "7eb4b9cd5aa353d46c27556e4a146ea71decd5b09abe4a87c60c4ea31f5d8f4b",
+    "observations": [
+      "The trace captures encoded/resolved entity type 506, class AcDbTable, for two AC1021 TABLE frames; this is empirical for this file/profile only and does not establish the AC1018 class number.",
+      "The read publishes all 3,586 frames with zero entity/object parse failures, but TABLE semantic parsing becomes incomplete at CadValue flags 18137348, type 48, payload bit 278726; a second TABLE frame also stops at type 48.",
+      "Strict same-version DXF output stops at the unrelated FIELD/FIELDLIST serializer gate before writing, so no TABLE output/readback route was exercised."
+    ],
+    "disposition": "Exclude this source as a complete TABLE writer witness. Do not use type 506 to hardcode an AC1018 class number or infer type-48 semantics. The user-provided DWG was not added to Git."
+  },
+  "ac1018_source_screen": [
+    {
+      "path": "/Users/dli/doc/dwg6/example_2004.dwg",
+      "sha256": "e72d5e86d5d36d64b08822fb25a46079f592fd895a6157b1b8d9b07775e06108",
+      "tracePath": "/private/tmp/libdxfrw-ac1018-table-screen-example_2004.dwg.log",
+      "traceSha256": "736475ea48331d12b185336e0d9a59a16eb17b5beb60a8740e79bb24eabfcaf0",
+      "observations": [
+        "The AC1018 source resolves AcDbTable to class number 528 for entity handle 0x4f2; this is a per-file empirical mapping, not a version-wide constant.",
+        "The typed TABLE body becomes semantically incomplete at undocumented R2007 cell override flags 0x40000.",
+        "The full source has 735 object frames and four object parse failures; strict output refuses the incomplete source disposition."
+      ],
+      "disposition": "Not a complete TABLE writer witness; do not infer the unknown override payload or hardcode class number 528."
+    },
+    {
+      "path": "/Users/dli/doc/dwg6/sample_AC1018.dwg",
+      "sha256": "7d26f908516ec5fb89cc8054af33aff233b68a7b63208bbc5b7f9d4b9ff9866",
+      "tracePath": "/private/tmp/libdxfrw-ac1018-table-screen-sample_AC1018.dwg.log",
+      "traceSha256": "8ae2bf8fe8db37861c7c7ec8f49af5071b2464daef4e95184ac78cdcd2036d58",
+      "observations": [
+        "Two AcDbTable entities resolve to class number 523 (handles 0x528 and 0xa35), differing from the other AC1018 source and disproving a single observed class ordinal as a sufficient registration rule.",
+        "Typed TABLE bodies become semantically incomplete at undocumented cell override flags 0x40020 and 0x40000.",
+        "The full source has 1,014 object frames and six object parse failures; strict output stops at the IMAGEDEF/reactor capture gate."
+      ],
+      "disposition": "Not a complete TABLE writer witness; do not infer the unknown override payload or hardcode class number 523."
+    }
+  ],
+  "ac1018_class_identity": {
+    "sourceObservations": [
+      {
+        "path": "/Users/dli/doc/dwg6/example_2004.dwg",
+        "classNumber": 528
+      },
+      {
+        "path": "/Users/dli/doc/dwg6/sample_AC1018.dwg",
+        "classNumber": 523
+      }
+    ],
+    "sharedFields": {
+      "applicationName": "ObjectDBX Classes",
+      "className": "AcDbTable",
+      "recordName": "ACAD_TABLE",
+      "proxyCapabilities": 1025,
+      "entityClass": true,
+      "dwgClassVersion": 25,
+      "maintenanceVersion": 20
+    },
+    "independentOpenSourceCrossCheck": {
+      "project": "LibreDWG",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in#L1210-L1213",
+      "observation": "The TABLE type maps to ACAD_TABLE and is marked UNSTABLE in the current source tree. This corroborates the record identity and instability, not the AC1018 class trailer values or output interoperability."
+    },
+    "decision": "Resolve the production ordinal from writer-local registered CLASS identity; do not hardcode 523 or 528.",
+    "disposition": "Both local source records agree on the shared metadata while their ordinals differ. These parser observations do not independently validate emitted CLASS records."
+  },
+  "unknown_override_prefix_control": {
+    "generatedFromScratch": true,
+    "version": "AC1018",
+    "overrideFlags": "0x40020",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS",
+    "assertions": [
+      "The parser records exactly the consumed override-flag and virtual-edge prefix as r2007-table-cell-overrides-unknown-flags with parseComplete=false.",
+      "The recorded bit start, bit size, count and parser cursor match the independently authored vector boundaries.",
+      "The TABLE remains semantically incomplete; the unknown payload is not skipped, decoded or admitted for output.",
+      "The same DRW_Table parser instance accepts a corrected supported AC1018 frame after the refusal and clears the prior incomplete range."
+    ],
+    "disposition": "Diagnostic and retry evidence only; unknown override payload boundaries/semantics and physical TABLE writer support remain unresolved."
+  },
+  "generated_ac1018_plain_text_encoder_control": {
+    "generatedFromScratch": true,
+    "version": "AC1018",
+    "profile": "one row, one column, one inline plain-text value-content cell",
+    "classNumber": 562,
+    "classNumberDisposition": "test-only synthetic dispatch value; not a production class ordinal or version-wide mapping",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS",
+    "assertions": [
+      "The direct entity codec admits this generated bounded profile; implementation guards restrict version, stream use, required handles, and modeled fields. A separate focused selector checks representative refusal atomicity cases.",
+      "The encoded entity body parses through DRW_Table::parseDwg with matching insertion point, column width, row height, plain-text cell value, BLOCK_RECORD handle and TABLESTYLE handle.",
+      "The parser cursor lands at the exact encoded body end and reads a following sentinel without consuming handle-stream bytes as body data."
+    ],
+    "disposition": "Generated encoder/parser consistency only. The direct codec stages body/handle buffers and publishes only on successful completion; a separate append control preserves seeded prefixes. The refusal control covers representative preflight cases and parser truncation, not every guard, and no injected mid-emission failure has exercised rollback. Production route class-instance registration, physical AC1018 source-to-output comparison, *T compound graph, adapter transaction, independent readback, and native TABLE behavior remain unqualified. Keep dwgRW::writeTable refused."
+  },
+  "generated_ac1018_preflight_refusal_control": {
+    "generatedFromScratch": true,
+    "version": "AC1018",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS",
+    "profiles": [
+      "unsupported AC1021 version",
+      "table-level override",
+      "additional column",
+      "grid counts, spacing and owner mismatch",
+      "required object handles and owned attributes",
+      "EED, proxy graphics and reactors",
+      "incomplete semantic content",
+      "extra row, merge, field dependency and retained subrecord",
+      "column/row styles and row text/fill/border options",
+      "table content metadata and style identity",
+      "block-valued or linked cells and cell attributes",
+      "cell border, style/tooltip, display, format and geometry state",
+      "non-text cell value payload and invalid cell content kind",
+      "non-finite grid/insertion/rotation values",
+      "detached cell value handle",
+      "cell override",
+      "missing entity handle",
+      "noncustom class number",
+      "detached string-stream use",
+      "null body buffer",
+      "lineweight override marker",
+      "unsupported content-override kind",
+      "retained cell geometry coordinates",
+      "retained typed value variant",
+      "nonempty column name omitted by current body mapping",
+      "nondefault cell base style ID omitted by current body mapping",
+      "cell text-style override handle omitted by current body mapping",
+      "retained SEQEND metadata omitted by current body mapping"
+    ],
+    "assertions": [
+      "Each rejected model leaves pre-seeded entity-body and handle buffers at their original bit counts.",
+      "The same DRW_Table instance succeeds after a table-override preflight refusal is corrected.",
+      "A successful direct encode appends to pre-seeded body and handle buffers without replacing their existing byte prefixes.",
+      "The parser refuses a generated frame whose declared body ends one bit before the encoded body end.",
+      "The parser refuses a generated frame with its trailing handle stream omitted.",
+      "The expanded cases preserve pre-seeded output buffers on refusal; null-body refusal leaves the handle buffer empty.",
+      "Each newly discovered unencoded model state is refused before output-buffer mutation."
+    ],
+    "disposition": "Generated preflight coverage includes model fields found by the latest encoder audit, representative parser truncation, atomic append, and corrected retry. This is not proof that every public/private retained field or injected low-level emission failure is covered. Physical source-to-output and compound graph evidence remain open."
+  },
+  "generated_ac1018_class_identity_registration_control": {
+    "generatedFromScratch": true,
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS",
+    "assertions": [
+      "AC1018 class registration assigns a writer-local class ordinal and associates the TABLE entity with it.",
+      "A second AcDbTable/ACAD_TABLE registration resolves to the same writer-local ordinal by identity.",
+      "The helper refuses an AC1027 writer.",
+      "Registering a handle-bearing TABLE class instance declares count 1, but validation rejects it until the object-frame commit marker records emission.",
+      "The real CLASS-entry serializer output is independently decoded and matches class ordinal, proxy flags, application/class/record identity, entity marker, instance count 1, DWG version 25 and maintenance version 20.",
+      "The decoded cursor lands exactly at the emitted CLASS-entry bit end."
+    ],
+    "disposition": "Generated CLASS-entry serializer, complete CLASSES-section, instance-ledger, and writer-checkpoint proof. The separate entity-frame control below now exercises actual AC1018 frame commit and outer-checkpoint rollback, but only through dwgWriter18 with an empty placeholder *T block; dwgRW caller-state/transaction integration and late graph-stage rollback remain open. No production output claim."
+  },
+  "first_candidate": {
+    "version": "AC1018",
+    "profile": "one row, one column, one plain text value-content cell; direct generated codec additionally admits only the typed AC1018 cell override subset listed below",
+    "supportedGeneratedCodecCellOverrides": {
+      "0x00001": "cell alignment raw RS, values 1-9",
+      "0x00002": "group-283 background fill-state boolean retained verbatim in the current model",
+      "0x00004": "indexed background color CMC only",
+      "0x00008": "indexed content color CMC only",
+      "0x00010": "text-style H reference with DwgHardPointer role",
+      "0x00020": "positive finite text height BD",
+      "0x00040-0x00200": "four indexed physical-edge colors",
+      "0x00400-0x02000": "four physical-edge valid nonnegative lineweight enums",
+      "0x04000-0x20000": "four physical-edge explicit visibility booleans"
+    },
+    "supportedGeneratedCodecTableOverrides": {
+      "mask": "0x0000001f",
+      "fields": "title suppression, implicit-true header suppression, flow direction 0/1, finite nonnegative horizontal and vertical margins"
+    },
+    "excluded": [
+      "attributes and attribute definitions",
+      "block-valued cells",
+      "unmodeled cell override bits, including physical-source masks 0x40000 and 0x40020",
+      "table merges, fields and data links",
+      "named/true-color cell CMC, non-indexed color side channels, cell style maps, cache, geometry, or retained raw subrecords",
+      "any unmodeled or incomplete semantic data"
+    ],
+    "implementation_and_qualification_gates": [
+      "generated direct-codec guard audit and deterministic allocation rollback: COMPLETED for the bounded plain-text profile; other excluded fields remain refused",
+      "dwgRW transaction, class instance accounting, *T geometry, TABLE/BLOCK_RECORD/TABLESTYLE/NOD closure and late graph-refusal rollback: COMPLETED for the bounded generated profile",
+      "physical AC1018 plain-text source-to-output field comparison: OPEN; available physical sources stop at unknown cell-override bits 0x40000/0x40020",
+      "independent/native AC1018 TABLE cell-body and rendering qualification: OPEN; LibreDWG verifies the graph and cached geometry but leaves the TABLE cell body opaque",
+      "same-facade corrected retry and fresh readback after generated compound graph refusal: COMPLETED; deterministic allocation injection through whole-file graph assembly remains OPEN",
+      "no unsupported cell/override field silently omitted"
+    ]
+  },
+  "validation_policy": "Focused generated controls and existing-source use only; no new downloaded DWG/DXF fixture is to be committed.",
+  "status": "OPEN_SOURCE_AND_SEMANTIC_QUALIFICATION",
+  "blockers": [
+    "No complete AC1018 source-to-writer profile is currently recorded; the two screened AC1018 sources stop at undocumented 0x40000/0x40020 cell override flags.",
+    "Observed AC1018 AcDbTable class ordinals differ by source (528 and 523); they are not version constants. The generated writer resolves class identity through its frozen manifest, and the synthetic class number 562 is test-only.",
+    "The AC1018 unknown-override control now captures only the known prefix; the physical payload span and meaning of 0x40000/0x40020 remain unresolved and must not be skipped or emitted.",
+    "Independent/native TABLE cell-body decoding and rendering acceptance remain open. LibreDWG's generated readback checks the output graph and cached geometry, not cell semantics.",
+    "Allocation injection covers direct entity encoding, not the full dwgRW compound graph assembly; add only if a concrete whole-file rollback gap is found.",
+    "The generated refusal matrix covers the main excluded-field families but is not exhaustive at every guard branch; keep unrepresented source/model fields fail-closed.",
+    "The available AC1021 table source is semantically incomplete at cell CadValue type 48 and cannot validate a complete output route.",
+    "R24+ TABLECONTENT/TABLEGEOMETRY relationship is outside the available ODA v5.4.1 layout and must remain refused."
+  ],
+  "latest_guard_matrix_extension": {
+    "generatedFromScratch": true,
+    "version": "AC1018",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS",
+    "addedRefusals": [
+      "missing entity handle",
+      "noncustom class number",
+      "detached string-stream use",
+      "null body buffer",
+      "lineweight override marker",
+      "unsupported content-override kind",
+      "retained cell geometry coordinates",
+      "retained typed value variant"
+    ],
+    "assertions": [
+      "refusal leaves pre-seeded body and handle output unchanged",
+      "null body refusal leaves handle output untouched"
+    ],
+    "disposition": "Focused guard coverage only; remaining unrepresented source/model states stay fail-closed. Direct-codec allocation rollback is separately covered by generated_ac1018_allocation_failure_rollback_retry below. No physical or native support claim."
+  },
+  "generated_ac1018_class_identity_serialization_control": {
+    "generatedFromScratch": true,
+    "version": "AC1018",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS",
+    "assertions": [
+      "class registration uses the identity-selected writer-local ordinal",
+      "declared count fails ledger validation until frame emission is marked committed",
+      "actual CLASS-entry encoder output independently decodes to matching TABLE identity, entity role, one instance and class version fields",
+      "decoded CLASS-entry cursor equals the exact encoded bit end",
+      "A writer compound checkpoint removes the staged TABLE class definition, class-instance handle association, and pending count state on rollback.",
+      "The full AC1018 CLASSES section is decoded in memory: ordinal sequence, TABLE identity/count, payload end/padding, stored versus computed CRC, zero unknown tail, and end sentinel are checked."
+    ],
+    "disposition": "Generated CLASS-entry and complete CLASSES-section encoder/decoder consistency, instance-ledger, and writer-checkpoint rollback proof. It is not an independent DWG reader or physical interoperability witness. Rollback through dwgRW after emitting an actual TABLE frame or failing the linked *T graph remains open."
+  },
+  "generated_ac1018_class_transaction_rollback_control": {
+    "generatedFromScratch": true,
+    "version": "AC1018",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS",
+    "assertions": [
+      "after identity registration and pending instance staging, the existing compound checkpoint rollback removes the TABLE definition",
+      "rollback removes the handle-to-class mapping and returns pending/emitted count ledgers to their checkpoint state"
+    ],
+    "disposition": "Writer checkpoint infrastructure proof only. No emitted TABLE frame or linked *T graph failure is driven through dwgRW; caller-model state and destination transaction are not covered by this control."
+  },
+  "generated_ac1018_full_classes_section_control": {
+    "generatedFromScratch": true,
+    "version": "AC1018",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS",
+    "assertions": [
+      "writes the complete CLASSES section through dwgWriter18::writeDwgClasses",
+      "bounded decoder checks the beginning sentinel, section payload length, header and sequential class ordinals",
+      "TABLE class ordinal, proxy flag, identity fields, entity flag, instance count and version fields match",
+      "decoder reaches exact payload end with at most seven zero pad bits",
+      "stored CLASSES CRC equals independently calculated CRC over the section payload",
+      "the eight-byte AC1018 tail is zero and the ending sentinel is exact"
+    ],
+    "disposition": "Generated serializer/decoder consistency only. The decoder is test-local and not an independent DWG implementation; it does not qualify physical TABLE output or consumer interoperability."
+  },
+  "external_writer_differential": {
+    "project": "ACadSharp",
+    "mergedWriterChange": {
+      "url": "https://github.com/DomCR/ACadSharp/pull/1040",
+      "observation": "Merged PR adds/admits TableEntity DWG serialization, while its description says no functional changes to serialization logic."
+    },
+    "reportedRegression": {
+      "url": "https://github.com/DomCR/ACadSharp/issues/1321",
+      "reportedVersion": "ACadSharp 3.8.0, AC1032 round trip, AutoCAD 2020",
+      "observations": [
+        "A no-edit DWG read/write reportedly changes two TABLE entities to one and produces a file AutoCAD rejects with ErrorStatus=53.",
+        "The report identifies BLOCK/FIELD cell-content references emitted as null as a likely cause; this is the reporter\u2019s diagnosis, not independently verified here."
+      ]
+    },
+    "implementationImpact": [
+      "Do not use the existence of another open-source TABLE writer or its self-readback as support evidence.",
+      "Keep BLOCK and FIELD cells excluded from the candidate profile until their handle roles and targets are fully modeled.",
+      "Require table-count preservation, exact content-reference role closure, and an independent reader/producer or native platform check before promoting support."
+    ],
+    "disposition": "Risk evidence and gate refinement only; not a codec specification or physical AC1018 witness."
+  },
+  "latest_model_guard_audit": {
+    "date": "2026-11-08",
+    "result": "PASS",
+    "fields": [
+      {
+        "field": "DRW_TableColumn::m_name",
+        "reason": "The candidate body does not serialize this column metadata."
+      },
+      {
+        "field": "DRW_TableCell::m_styleId",
+        "reason": "The candidate body does not serialize the cell base style ID."
+      },
+      {
+        "field": "DRW_TableCell::m_textStyleOverrideHandle",
+        "reason": "The candidate body does not serialize this handle reference."
+      },
+      {
+        "field": "DRW_Insert::seqEndEntity",
+        "reason": "Retained SEQEND metadata is outside the one-frame candidate body."
+      },
+      {
+        "field": "DRW_Insert::attlist",
+        "reason": "The direct TABLE body profile excludes owned ATTRIB entities; the prior guard checked parsed attribHandles but omitted attached in-memory ATTRIB models."
+      },
+      {
+        "field": "DRW_Point::thickness",
+        "reason": "The bounded TABLE frame profile does not encode inherited point thickness."
+      },
+      {
+        "field": "DRW_Point::xAxisAngle",
+        "reason": "The bounded TABLE frame profile does not encode inherited point X-axis angle."
+      },
+      {
+        "field": "DRW_Insert::seqendH.code",
+        "reason": "The one-frame TABLE profile has no retained SEQEND handle; wire code metadata must be absent when ref is NoHandle."
+      },
+      {
+        "field": "DRW_Insert::seqendH.size",
+        "reason": "The one-frame TABLE profile has no retained SEQEND handle; encoded handle size metadata must be absent."
+      },
+      {
+        "field": "DRW_Insert::seqendH.rawCode",
+        "reason": "The one-frame TABLE profile has no retained SEQEND handle; retained wire role metadata must be absent."
+      },
+      {
+        "field": "DRW_Insert::seqendH.ref64",
+        "reason": "The one-frame TABLE profile has no retained SEQEND handle; a wide reference cannot be ignored when the legacy ref is NoHandle."
+      },
+      {
+        "field": "DRW_Entity::numProxyGraph",
+        "reason": "The common encoder derives proxy-graphics presence and byte length from proxyGraphics; a stale nonzero count with an empty cache would be ignored."
+      },
+      {
+        "field": "DRW_Entity::numReactors",
+        "reason": "The common encoder writes the vector length; the AC1018 TABLE profile has no reactors, so a stale declared count must not be ignored."
+      },
+      {
+        "field": "DRW_Entity::material",
+        "reason": "The common entity body emits material references only after AC1018; this AC1018 TABLE profile cannot retain a non-default material."
+      },
+      {
+        "field": "DRW_Entity::shadow",
+        "reason": "The common entity body emits shadow mode only after AC1018; this AC1018 TABLE profile cannot retain a non-default shadow mode."
+      },
+      {
+        "field": "DRW_Entity::shadowHandle",
+        "reason": "Shadow handles are a later-version field and are not serialized by the AC1018 common entity writer."
+      },
+      {
+        "field": "DRW_Entity::fullVisualStyleHandle/faceVisualStyleHandle/edgeVisualStyleHandle",
+        "reason": "These R2010+ references are not serialized by the AC1018 common entity writer."
+      },
+      {
+        "field": "DRW_Entity::hasDsData",
+        "reason": "The AC1027+ DataStorage advertisement bit is not emitted in the AC1018 common entity header."
+      },
+      {
+        "field": "DRW_Entity::hasDataStorageRecord/dataStorageHandle",
+        "reason": "The AC1018 TABLE profile has no DataStorage object link."
+      },
+      {
+        "field": "DRW_Entity::dataStorageHandleKey/dataStorageData",
+        "reason": "DataStorage key and payload bytes have no AC1018 TABLE body or linked-object encoding."
+      },
+      {
+        "field": "DRW_Entity::dataStorageSegmentIndex/dataStorageSchemaIndex",
+        "reason": "DataStorage segment/schema indices have no AC1018 TABLE representation."
+      },
+      {
+        "field": "DRW_Entity::hasDataStoragePayloadMarker/dataStoragePayloadMarkerOffset/dataStoragePayloadMarkerLength/dataStoragePayloadMarkerSection",
+        "reason": "AC1027+ DataStorage payload-marker state is not representable in the AC1018 TABLE profile."
+      },
+      {
+        "field": "DRW_Entity::layerH.ref",
+        "reason": "The AC1018 TABLE frame emits the common layer handle unconditionally; a null handle is not a valid target for the generated bounded profile."
+      },
+      {
+        "field": "DRW_Entity::lineType/lTypeH.ref",
+        "reason": "A named linetype or explicit named-linetype flag without a target handle would emit a null handle; special BYLAYER/BYBLOCK/CONTINUOUS names must stay implicit, and contradictory handle or raw-flag/name states are refused."
+      },
+      {
+        "field": "DRW_Entity::plotStyle",
+        "reason": "Negative plot-style sentinels are not the default and are silently treated as absent by the AC1018 common writer."
+      },
+      {
+        "field": "DRW_Entity::ltypeScale",
+        "reason": "The AC1018 common writer emits this scalar; non-finite values are not representable as valid linetype scale."
+      },
+      {
+        "field": "DRW_Entity::lWeight",
+        "reason": "The common writer emits one byte; reject codes outside the defined DWG domain 0-27 and 29-31."
+      },
+      {
+        "field": "DRW_Entity::hasAcDbColorH/acDbColorHandle",
+        "reason": "The AC1018 writer emits an optional hard-pointer only when present; advertised-null and unadvertised-nonnull states are inconsistent."
+      },
+      {
+        "field": "DRW_Entity::color",
+        "reason": "The AC1018 common color writer masks the ACI payload; reject indices outside the defined 0-256 range."
+      },
+      {
+        "field": "DRW_Entity::color24",
+        "reason": "The AC1018 common color writer masks to 24 bits and ignores inline RGB when AcDbColor is selected; reject truncated or simultaneously represented RGB."
+      },
+      {
+        "field": "DRW_Entity::colorName",
+        "reason": "The common encoder emits color/book names only as part of the AcDbColor reference form."
+      },
+      {
+        "field": "DRW_Entity::ltFlags",
+        "reason": "The common writer silently resets values above the defined two-bit linetype-flag range; the bounded TABLE codec refuses malformed raw flags."
+      },
+      {
+        "field": "DRW_Entity::space",
+        "reason": "The common writer maps every value other than PaperSpace to modelspace; reject values outside the two defined space states."
+      },
+      {
+        "field": "DRW_Entity::appData",
+        "reason": "The common encoder admits only canonical ACAD_REACTORS/ACAD_XDICTIONARY wrappers matching the separately emitted common references; arbitrary, malformed, or mutated group-102 application data is refused before writing. The bounded TABLE profile rejects all appData because it has no application-group model."
+      },
+      {
+        "field": "DRW_Entity EED resolution vectors",
+        "reason": "encodeDwgEed rejects writer-side APPID/LAYER refs without payload, and encodeDwgCommon rejects parser-side pending refs plus stale writer-side resolution residue with empty payload before writing common fields; the bounded TABLE profile also refuses stale metadata."
+      },
+      {
+        "field": "DRW_Table private DXF parser disposition",
+        "reason": "Unsupported group 97/98/4 metadata can set m_dxfUnsupportedData before a grid exists, when m_hasSemanticContent is false; incomplete/open-value/invalid-merge parser state must independently block encoding."
+      },
+      {
+        "field": "DRW_Insert::blockRecH code/size/rawCode/ref64",
+        "reason": "The bounded AC1018 encoder rebuilds the BLOCK_RECORD target as a canonical hard pointer using only the 32-bit ref; retained source wire metadata has no qualified role/width replay mapping and is refused."
+      },
+      {
+        "field": "DRW_Entity::eType",
+        "reason": "DRW_Table's public entity tag can be mutated independently of its dynamic type; a non-TABLE tag conflicts with TABLE class registration and is refused."
+      }
+    ],
+    "implementation": "src/drw_entities.cpp: shared encodeDwgCommon validates canonical appData wrappers against modeled reactor/xdictionary references and shared encodeDwgEed/encodeDwgCommon reject stale EED-resolution state; DRW_Table::encodeDwg refuses its other listed public and retained states during bounded preflight, including arbitrary DXF appData, pre-grid parser incompleteness, retained BLOCK_RECORD wire metadata, and mutated entity type; src/intern/dwgwriter15.cpp leaves BYLAYER/BYBLOCK/CONTINUOUS implicit during name-to-handle resolution.",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "assertion": "Generated controls verify canonical common appData acceptance only when handles/roles match, atomic refusal of unsupported or mutated groups, and preseeded-buffer preservation for stale EED-resolution vectors, pre-grid DXF metadata, and retained BLOCK_RECORD wire metadata.",
+    "disposition": "Closes only the enumerated omission and malformed-state paths for the direct generated AC1018 codec. Continue auditing remaining public fields and private retained DXF state; no output support claim."
+  },
+  "generated_ac1018_entity_frame_commit_rollback_control": {
+    "generatedFromScratch": true,
+    "version": "AC1018",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS",
+    "scope": "dwgWriter18 entity-frame path with registered TABLE custom class and a placeholder *T BLOCK_RECORD",
+    "assertions": [
+      "the actual AC1018 TABLE entity frame commits with its writer-local custom class ordinal",
+      "the object-frame receipt binds the emitted TABLE handle to that class ordinal",
+      "the writer leaves BYLAYER implicit and does not synthesize a named LTYPE handle during resolution",
+      "the class instance count validates only after the frame commit point",
+      "an outer CompoundWriteCheckpoint rollback removes the TABLE frame, class definition, handle association and count ledger state"
+    ],
+    "limitations": [
+      "the placeholder *T block has no generated table geometry",
+      "the test calls dwgWriter18 directly and does not exercise dwgRW::writeTable or its caller-state transaction",
+      "no source profile, physical producer comparison or independent reader validation"
+    ],
+    "disposition": "Low-level frame/class transaction control only. Do not enable public TABLE output or claim compound graph support."
+  },
+  "generated_ac1018_facade_frame_rollback_retry_control": {
+    "generatedFromScratch": true,
+    "version": "AC1018",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS",
+    "scope": "dwgRW explicit transaction, test-accessible entity frame encoder, and identity-based class registration",
+    "assertions": [
+      "class registration captures the caller TABLE state before assigning the writer-local class ordinal and records it for caller-state rollback",
+      "the facade writes an actual AC1018 TABLE frame with a matching object-frame receipt and registered class-instance handle",
+      "the control writes one *T-owned LINE frame, injects failure after the following LINE frame is encoded, and verifies the failed frame restores its caller state while the earlier graph frame remains staged",
+      "explicit rollback restores the output buffer/object map, class definition, handle-to-class mapping, successful-write count, TABLE caller metadata, and the earlier geometry entity owner state",
+      "a second generated TABLE plus owned LINE is committed on the same facade and the class instance ledger validates"
+    ],
+    "limitations": [
+      "the generated LINEs are transaction probes only; they are not derived from TABLE cell layout or proof of rendered geometry semantics",
+      "the control manually sequences the public block-content and facade transaction APIs; public dwgRW::writeTable remains fail-closed and does not invoke this sequence",
+      "no independent proof establishes the emitted ACAD_TABLE-to-*T/BLOCK_RECORD/TABLESTYLE reference roles or complete graph closure",
+      "the control does not call public dwgRW::writeTable, which remains fail-closed",
+      "no physical source-profile, independent reader, producer, or native TABLE validation"
+    ],
+    "disposition": "Generated facade transaction and same-facade retry proof only. It prepares transaction plumbing for a future compound writer; no public output or interoperability claim."
+  },
+  "ac1018_physical_table_graph_peer_screen": {
+    "source": {
+      "path": "/Users/dli/doc/dwg6/example_2004.dwg",
+      "sha256": "e72d5e86d5d36d64b08822fb25a46079f592fd895a6157b1b8d9b07775e06108",
+      "provenance": "pre-existing local AutoCAD 2004 DWG; not added to the repository"
+    },
+    "independent_reader": {
+      "project": "LibreDWG",
+      "version": "0.14",
+      "command": "dwgread -O minJSON /Users/dli/doc/dwg6/example_2004.dwg -o /private/tmp/libdxfrw-table-example2004-minjson.json",
+      "outputSha256": "e72e8c76df3aa4bd7b04f53d88199b2a54ac3410b11fef241eb6bd603bddd129",
+      "readerLogSha256": "3e64f7c6692575249a3bfb8a48f08c4b619bcbebec9699c379056f02f593efcf"
+    },
+    "table_class": {
+      "tableHandle": "0x4F2",
+      "classOrdinal": 528,
+      "classIdentity": "ObjectDBX Classes / AcDbTable / ACAD_TABLE",
+      "proxyCapabilities": 1025,
+      "dwgClassVersion": 25,
+      "maintenanceVersion": 20,
+      "ordinalScope": "empirical for this source only; do not hardcode"
+    },
+    "graph": {
+      "tableBlockReference": {
+        "code": 5,
+        "handle": "0x4F3"
+      },
+      "blockRecord": {
+        "handle": "0x4F3",
+        "name": "*T",
+        "blockBeginHandle": "0x514",
+        "endBlockHandle": "0x515",
+        "ownedHandleCount": 39,
+        "resolvedEntityTypes": {
+          "LINE": 32,
+          "MTEXT": 7
+        },
+        "childrenWithOwnerReferenceToBlockRecord": 39
+      }
+    },
+    "body_limit": {
+      "libdxfrw": "Typed body parsing stops at unknown AC1018 cell override flags 0x40000; the retained TABLE value is semantically incomplete.",
+      "LibreDWG": "Retains 12,284 unknown TABLE bits, exposes empty col_widths and row_heights, and cannot map the cached block entities back to typed cell contents.",
+      "disposition": "Graph/reference shape evidence only. It does not provide source-matched cell semantics, a source-to-output field comparison, a one-cell candidate profile, or TABLE rendering qualification."
+    },
+    "secondary_dxf_export": {
+      "command": "dwgread -O DXF /Users/dli/doc/dwg6/example_2004.dwg -o /private/tmp/libdxfrw-table-example2004.dxf",
+      "outputSha256": "b3bdb1a8d809e4ff1a1700e67c08f8724d299bba3cdcff290beb2e517163402b",
+      "disposition": "Not used as a semantic oracle: the emitted entity is represented as INSERT with an AcDbTable subclass and a renamed *T14 block; the output does not establish the source TABLE cell-to-cache relation."
+    },
+    "alternative_writer_screens": [
+      {
+        "project": "ACadSharp",
+        "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56; local master is 274 commits behind origin/master at 35a1aada564f77f65b584411d54ffbc00e365cee",
+        "files": [
+          "/Users/dli/dev/ACadSharp/src/ACadSharp/IO/DWG/DwgStreamWriters/DwgObjectWriter.cs",
+          "/Users/dli/dev/ACadSharp/src/ACadSharp/IO/DWG/DwgStreamWriters/DwgObjectWriter.Entities.cs"
+        ],
+        "observations": [
+          "isEntitySupported rejects TableEntity when the output is before R2010.",
+          "writeTableEntity throws NotImplementedException for the pre-R2010 branch and implements only the R2010+ body."
+        ],
+        "disposition": "Not an AC1018 independent writer/source generator. Its R2010+ support does not fill the legacy profile gap."
+      },
+      {
+        "project": "LibreDWG",
+        "version": "0.14",
+        "command": "dwgwrite --as r2004 -I DXF -o /private/tmp/libdxfrw-table-example2004-dwgwrite.dwg -y /private/tmp/libdxfrw-table-example2004.dxf",
+        "outputSha256": "3fcc754ff46dcb3b5f4266d1f9ffc269b7b1f77985c1823b9388e89082d749d2",
+        "observations": [
+          "The command emits AC1018 and LibreDWG minJSON reads one ACAD_TABLE with one *T14 block and 39 block entities.",
+          "Input was LibreDWG's own secondary DXF export of the incomplete physical table; that DXF represents the object as INSERT plus AcDbTable and omits a trustworthy cell-to-cache semantic mapping.",
+          "The output class ordinal is 526, further evidence that ordinals are file-local."
+        ],
+        "disposition": "Mechanical writer/readback probe only. Because the input DXF did not preserve qualified TABLE body semantics, this is not a from-scratch candidate witness, independent semantic confirmation, or support qualification."
+      }
+    ],
+    "native_session": "A fresh desktop inventory reports the Mac locked. Do not retry ODA/FreeCAD GUI qualification until an unlocked app surface is observed.",
+    "overall_disposition": "Independent peer evidence narrows the AC1018 TABLE graph shape to a physical example but cannot unlock compound output. Keep dwgRW::writeTable refused and do not promote support claims."
+  },
+  "generated_ac1018_allocation_failure_rollback_retry": {
+    "generatedFromScratch": true,
+    "version": "AC1018",
+    "selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "runCommand": "build-gcc/libdxfrw_dwg_object_vectors_tests --table-cell-overrides",
+    "result": "PASS",
+    "injectedFailures": 17,
+    "attemptedFailureOffsets": 18,
+    "profile": "bounded one-row/one-column plain-text TABLE with alignment and text-style handle overrides; body and handle buffers start at non-byte-aligned cursors",
+    "assertions": [
+      "Every injected std::bad_alloc is caught by the direct codec and returns failure.",
+      "Each failure preserves exact seeded body/handle bytes, bit counts, bit positions, health state and handle-occurrence ledgers.",
+      "Each failure leaves the TABLE common-write flags unchanged.",
+      "After each failure, the same DRW_Table instance retries into those same seeded buffers; bytes, cursors and handle occurrences equal an independently clean encoding.",
+      "The terminal non-failing attempt also equals the clean encoding and its caller common-write flags."
+    ],
+    "validation": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+      "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+      "result": "PASS; 17 injected allocation failures followed by a successful terminal offset; focused CTest 1/1 in 0.39 seconds"
+    },
+    "limits": [
+      "This verifies the direct DRW_Table::encodeDwg transaction only.",
+      "Whole-file generated AC1018 TABLE finalization, caller rollback after a late graph-closure refusal, *T cached geometry, and fresh libdxfrw readback are now covered separately by p5-ac1018-table-whole-file-cached-geometry-2026-11-10.json.",
+      "No physical source-to-output profile, independent TABLE cell-body decode, native acceptance/rendering, or broad TABLE support claim follows."
+    ]
+  }
+}

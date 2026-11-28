@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-named-block-line-boundary-test-2026-11-15.patch",
+  "patchSha256": "381f12639cd25200db88632fc45e050a7f440f15af1b66760f0a33f92b94c62a",
+  "scope": "The thirty-fifth unmerged LibreCAD patch adds an optional actual-consumer test of the previously implemented 128-line limit and the 129-line refusal boundary.",
+  "validation": [
+    "Locally authored DXFs were converted by ODA 27.1 into AC1024 DWGs SHA-256 9c52c9a3d2ccdb42fa628cef84c4a2eab236ac30aefcb91cf9a40c335b72d71f (128) and 2a384e0ef487e7818b9712c843e01fc560c8ab9ac9bfbcdbc1b188d5c19fc282 (129). LibreDWG independently reports all 128 ordered source members and their block owner.",
+    "The actual LibreCAD importer/exporter test passed 654 assertions: 128 lines and all coordinates survive fresh readback, 129 lines refuse with the destination preserved, and the same filter successfully retries the 128-line source. All three installed-codec focused CTests pass.",
+    "The LibreCAD ASCII DXF SHA-256 b55677906850469638f802b8ef042c3f60493cb44b34f6f37e3495207dad534a contains all 128 ordered lines with the expected owner and coordinates, the dictionary/sort chain, and zero ezdxf audit errors/fixes. ODA converted it through DWG and back to DXF SHA-256 723a73685eac8d8203304d89b105cce0e76af621084e6d62ac3dd69bf4f8b758; LibreDWG confirms all 128 intermediate source members/owners, and ezdxf confirms final geometry and links with a clean audit.",
+    "The test patch applies after the prior 34; the older bundled-codec filter still compiles. Source-release inventory passes with 1232 files and 18 refusal controls; the 725-input implementation digest remains d2fbf3b7e98738e05bc8f6a097b74ee429b43f58bcc8988a7bc92e6554a539c7."
+  ],
+  "limits": "Only generated default-style, unchanged planar LINEs and the AC1024-to-ASCII-DXF path are covered; this is a default-off programmatic option. Other entities, 3D, richer metadata, native AutoCAD/FreeCAD and whole-document closure remain open. No drawing fixture is committed and no support claim is promoted."
+}

@@ -1,0 +1,43 @@
+{
+  "title": "RTEXT DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory RTEXT transaction controls only; no producer or support claim.",
+  "implementation": {
+    "writer": "DRW_RText::encodeDwg",
+    "behavior": [
+      "Stage body, detached text, and entity-handle streams through the shared private entity transaction helper.",
+      "Preserve the RTEXT class ID, STYLE hard pointer, and caller stream aliases.",
+      "Keep the existing text, angle, height, and flag serialization policy."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1015", "profile": "UTF-8 RTEXT, non-default position/rotation/height/flags, explicit STYLE handle", "reached_allocation_failures": 16},
+    {"version": "AC1018", "profile": "UTF-8 RTEXT, non-default position/rotation/height/flags, explicit STYLE handle", "reached_allocation_failures": 16},
+    {"version": "AC1021", "profile": "UTF-8 RTEXT, non-default position/rotation/height/flags, explicit STYLE handle", "reached_allocation_failures": 21},
+    {"version": "AC1024", "profile": "UTF-8 RTEXT, non-default position/rotation/height/flags, explicit STYLE handle", "reached_allocation_failures": 21}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body, string, and handle bytes, bit counts, handle occurrences, and prior class ID remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output.",
+    "All-stream alias controls preserve state and succeed on retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --rtext-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1015 RTEXT": 16,
+      "AC1018 RTEXT": 16,
+      "AC1021 RTEXT": 21,
+      "AC1024 RTEXT": 21
+    },
+    "entity_writer_transaction_cohort": "26/26 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls establish transaction behavior only.",
+    "RTEXT field semantics, producer coverage, native consumer behavior, and broader support remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}

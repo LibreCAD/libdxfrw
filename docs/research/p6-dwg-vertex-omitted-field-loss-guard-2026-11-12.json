@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p6-dwg-vertex-omitted-field-loss-guard-2026-11-12",
+  "purpose": "Prevent DWG VERTEX output from silently discarding model fields absent from the selected versioned record body.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      {
+        "section": "20.4.11 VERTEX (2D)",
+        "page": 118,
+        "wireFields": ["flags (EC)", "point (3BD)", "start width (BD)", "end width (BD, conditional)", "bulge (BD)", "R2010+ vertex ID (BL)", "tangent direction (BD)"]
+      },
+      {
+        "section": "20.4.12 VERTEX (3D)",
+        "page": 119,
+        "wireFields": ["flags (EC)", "point (3BD)"]
+      },
+      {
+        "section": "20.4.13 VERTEX (MESH)",
+        "page": 119,
+        "wireFields": ["same as VERTEX (3D), with a distinct object type"]
+      },
+      {
+        "section": "20.4.14 VERTEX (PFACE)",
+        "page": 119,
+        "wireFields": ["same as VERTEX (3D), with a distinct object type"]
+      },
+      {
+        "section": "20.4.15 VERTEX (PFACE FACE)",
+        "page": 120,
+        "wireFields": ["four vertex indices (BS 71-74)"]
+      }
+    ],
+    "localPdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "Resolve the emitted DWG vertex object type before transaction staging. Reject a nonzero 2D vertex identifier through AC1021; reject nondefault start/end widths, bulge, tangent direction or identifier for 3D/MESH/PFACE coordinate records; reject nondefault point and noncanonical flags on PFACE face records. Preserve the canonical DXF face-role flag 128 because object type 0x0E carries that role."
+  },
+  "generatedControls": {
+    "version": "AC1021",
+    "refusals": [
+      "pre-R2010 2D vertex identifier",
+      "3D vertex omitted start width",
+      "MESH vertex omitted bulge",
+      "PFACE coordinate vertex omitted identifier",
+      "PFACE face omitted point"
+    ],
+    "acceptedProfiles": [
+      "corrected 2D vertex after identifier refusal",
+      "corrected 3D vertex after width refusal",
+      "corrected MESH vertex after bulge refusal",
+      "corrected PFACE coordinate vertex after identifier refusal",
+      "PFACE face with canonical flags 128 after point refusal"
+    ],
+    "versionBoundaryReadback": {
+      "version": "AC1024",
+      "subtype": "2D VERTEX",
+      "identifier": 123,
+      "readbackMatches": true
+    },
+    "failureRetry": "Each refusal preserves the seeded writer buffer; correcting the omitted field allows the same writer to encode the vertex."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j4: PASS",
+    "selector": "ctest --test-dir build-gcc -R '^dwg_r2007_polyline3d_closed_flag_roundtrip$' --output-on-failure: PASS 1/1",
+    "fixturePolicy": "Controls are generated in memory; no DWG/DXF fixture was added."
+  },
+  "limitations": [
+    "Controls establish bounded encoder admission and rollback/retry only; they do not establish producer prevalence or complete topology semantics.",
+    "Native consumer behavior and broader format support remain unqualified."
+  ],
+  "supportClaimEffect": "Closes only the tested silent-loss paths for omitted DWG VERTEX fields; no broad support claim is promoted."
+}

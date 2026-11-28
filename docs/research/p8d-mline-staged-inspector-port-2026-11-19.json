@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-mline-staged-inspector-port-2026-11-19",
+  "date": "2026-11-19",
+  "status": "FOCUSED_OVERLAY_BUILD_AND_FAST_SELECTORS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Ports the bounded selected AC1018 MLINE ASCII staged-output inspector and its source-model guards into a reviewable LibreCAD consumer patch. Adds a synchronous read-only verification callback to libdxfrw's atomic DXF writer so the consumer can validate the closed temporary before publication.",
+  "artifacts": {
+    "consumerPatch": "docs/patches/librecad-p8d-mline-staged-inspector-2026-11-19.patch",
+    "consumerPatchSha256": "008fabcbcaed6e3e0ceab0055643657f74132b7631d849524c95641c67acbc11",
+    "isolatedLibreCADBase": "078aac892287",
+    "buildAndSelectorLog": "/private/tmp/librecad-mline-staged-v5-20261118/consumer-build-and-fast-final.log",
+    "buildAndSelectorLogSha256": "d937bf224a9e9d80c39324b839ab83159818a7d6f1515f8b734b16236f39f7cb"
+  },
+  "writerApi": {
+    "entryPoint": "dxfRW::writeVerified",
+    "transaction": "DwgDxfOutputTransaction::commitVerified",
+    "ordering": "Flush and close the private stage; call the read-only verifier; recheck staged-file, directory and destination identities; then atomically publish. Verifier refusal, exception, or identity change aborts publication.",
+    "coverage": "Fast unit controls cover verifier acceptance, refusal and exception; destination preservation; ASCII and Binary write refusal and corrected retry on the same codec; null-verifier refusal; and custom-class readback."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build /private/tmp/librecad-p8d-head-078aac892287/build-upstream --target librecad librecad_dxf_fast_tests librecad_mline_isolated_tests -j2",
+      "result": "PASS; app and both focused test targets built against the current libdxfrw source overlay."
+    },
+    "dxfFast": {
+      "selector": "librecad_dxf_fast_tests [mline],[mlinestyle],[dimassoc]",
+      "result": "PASS; 42 assertions in 5 cases."
+    },
+    "mline": {
+      "selector": "librecad_mline_isolated_tests [mline]",
+      "result": "PASS; 596 assertions in 9 cases."
+    }
+  },
+  "limitations": [
+    "The staged scanner is ASCII-only and admits only the bounded selected AC1018 MLINE profile; it does not establish general MLINE or Binary MLINE support.",
+    "The consumer patch is an artifact for review and has not been applied to the shared LibreCAD checkout or merged upstream.",
+    "Headless build and focused selectors do not replace LibreCAD GUI save/reopen/render/edit qualification or LibreCAD_3 MPOLYGON qualification.",
+    "The remote ObjectARX host is known to be available, but its AutoCAD/ObjectARX release, exact OS/build and artifact return route remain unspecified; no producer witness is included.",
+    "No DWG/DXF fixture files were added to the repository. No support claim or package gate was promoted."
+  ],
+  "next": "Resume P8-D native GUI and LibreCAD_3 checks when their environment is available; identify the remote ObjectARX host profile and request only the matching witness packet. Keep package readiness separate from implementation activity progress."
+}

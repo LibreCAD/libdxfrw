@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "Capability-matrix and evidence-denominator reconciliation",
+  "mode": "Primary-source web research and plan-only route reconciliation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Refresh primary-source capability statements for complementary open-source DWG/DXF routes.",
+    "Distinguish declared file/version/direction matrices from demonstrated per-entity, retention, and consumer outcomes.",
+    "Refine existing PAR-07/S8 and consumer evidence gates without adding dependencies or routine validation work."
+  ],
+  "sources": [
+    {
+      "project": "ACadSharp README",
+      "revision": "Mutable master README reviewed 2026-10-20; no immutable source/package revision resolved",
+      "urls": [
+        "https://raw.githubusercontent.com/DomCR/ACadSharp/master/README.md"
+      ],
+      "observed": "The README publishes separate DXF reader/writer and DWG reader/writer cells for AC1009 through AC1032. It declares DWG read/write support for multiple versions and excludes DWG writing at AC1021; it also advertises ASCII and binary DXF.",
+      "evidenceCeiling": "A mutable project capability matrix is a route-selection claim, not per-entity test coverage, measured preservation, a reproducible artifact, or downstream consumer acceptance."
+    },
+    {
+      "project": "IxMilia.Dxf README",
+      "revision": "Mutable main README reviewed 2026-10-20; no immutable package/source revision resolved",
+      "urls": [
+        "https://raw.githubusercontent.com/ixmilia/dxf/main/README.md"
+      ],
+      "observed": "The project describes DXF/DXB support, declares DXF R10 through R2014 except MESH, MLEADER, SURFACE, TABLE, and VIEWPORT, and documents AutoCAD writer caveats and requirements for several entity types.",
+      "evidenceCeiling": "This is a DXF-only route and does not provide DWG or later-than-R2014 comparison coverage; its own compatibility statements are not target-consumer test results for libdxfrw output."
+    },
+    {
+      "project": "GNU LibreDWG manual",
+      "revision": "Published manual version 0.13.4, dated 2026-03-17; reviewed 2026-10-20",
+      "urls": [
+        "https://www.gnu.org/software/libredwg/manual/html_node/DXF.html",
+        "https://www.gnu.org/software/libredwg/manual/html_node/Programs.html"
+      ],
+      "observed": "The manual documents DWG/DXF programs and explicitly qualifies DXF writer stability and AutoCAD interoperability. Coverage and caveats are operation/version-specific.",
+      "evidenceCeiling": "A successful conversion or decode count is not semantic ground truth. Any comparison must disclose exact tool version, operation, version, per-record disposition, and any shared expected-value lineage."
+    },
+    {
+      "project": "ezdxf ACIS tools documentation",
+      "revision": "Stable documentation version 1.4.5; reviewed 2026-10-20",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "observed": "The documentation states that a limited count of ACIS entities is supported, unsupported entities are loaded as NONE_ENTITY and their data is lost, and arbitrary ACIS data cannot be loaded and re-exported. It documents SAT profiles for DXF R2000-R2010 and SAB profiles for R2013 and later.",
+      "evidenceCeiling": "This can support only a specific admitted ACIS profile and explicit unsupported-record denominator; it is not a general ACIS semantic or arbitrary-body round-trip oracle."
+    },
+    {
+      "project": "Existing local PAR-07/S8 and consumer gates",
+      "revision": "Shared worktree plan reviewed 2026-10-20",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "The plan already separates strict container framing, typed/raw preservation, object graph closure, exact carrier bytes, independent geometry semantics, and named native consumer qualification.",
+      "evidenceCeiling": "This update refines existing evidence fields only. It does not demonstrate peer execution, local defects, independent ACIS semantics, or platform qualification."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: bind peer evidence to exact file form, version, direction, entity/object family, strict-or-recovery mode, retention disposition, immutable peer identity, and consumer route",
+      "Consumer qualification: keep structural peer comparisons separate from named application acceptance and 3D semantic expectations"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Treat public capability matrices as route selectors, not proof of parity. Record exact per-record disposition and strict/recovery behavior; keep 3D semantic and native consumer gates distinct. No peer build, new runtime, fixture, test, or support claim is justified by this documentation refresh."
+  },
+  "method": {
+    "kind": "Read-only primary-source documentation review; local plan and receipt update",
+    "webResearchPerformed": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "externalDrawingSamplesDownloaded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-capability-matrix-evidence-denominator-reconciliation-2026-10-20.json"
+    ],
+    "limitations": "Project capability pages are mutable and were not tied to immutable commits or packages. This pass did not execute peers or consumers. Documentation is suitable for candidate selection and evidence ceilings only, not proof of actual per-file behavior."
+  },
+  "validation": {
+    "jsonValidation": "PASS (jq schema, plan totals, and six-item deferred-state assertions)",
+    "planDiffCheck": "PASS (git diff --check on the plan; receipt syntax checked with jq)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

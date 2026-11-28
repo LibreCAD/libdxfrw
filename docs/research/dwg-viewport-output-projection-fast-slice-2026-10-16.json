@@ -1,0 +1,137 @@
+{
+  "date": "2026-10-16",
+  "title": "DWG-origin paper-space VIEWPORT output projection and peer evidence review",
+  "scope": "Research refresh plus local adapter and layout-preflight implementation for PAR-122; no DWG parser/API-field change or native CAD qualification.",
+  "sources": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+      "role": "authoritative DXF VIEWPORT field semantics",
+      "supports": "Group 68 is -1 for on/off-screen or inactive due to $MAXACTVP, 0 for off, and positive for active stacking order; group 69 is the viewport ID.",
+      "doesNotSupport": [
+        "the DWG-to-DXF derivation policy",
+        "a requirement that groups 68 and 69 be equal",
+        "native CAD acceptance of this implementation"
+      ]
+    },
+    {
+      "url": "https://github.com/LibreDWG/libredwg/pull/1406",
+      "role": "independent open-source implementation lead",
+      "observed": "Open PR page describes a multi-layout blank-sheet issue from using entmode instead of resolved owner blocks, resets counters per layout block, and proposes equal positive group 68/69 values. The page presents contributor measurements of 13,941 viewports in 1,170 files and, in a later comment, 13,892 in 1,174 files across 1,657 drawings; these counts are inconsistent and not independently reproduced. The reduced current revision excludes a separate ordinary-block negative-ID proposal.",
+      "doesNotSupport": [
+        "normative DXF semantics beyond Autodesk documentation",
+        "independent confirmation of the corpus figures or ODAFileConverter comparison",
+        "local libdxfrw failure or support qualification"
+      ]
+    },
+    {
+      "document": "Open Design Specification for .dwg files, version 5.4.1, local copy, §§20.4.1-20.4.2 and §20.4.84, printed pp. 106-111 and 210-211",
+      "role": "authoritative DWG common entity/handle and LAYOUT record layout",
+      "supports": "The LAYOUT stores the associated paperspace BLOCK_RECORD handle (330) and last-active viewport handle (331); common entity data and handle references are version-scoped. This source was used with the real local AC1021 observation; it is not a claim that the R13-R14-only entmode text applies unchanged to AC1021.",
+      "doesNotSupport": [
+        "local native application acceptance",
+        "general inference of an owner from entmode or block name alone",
+        "semantic support for every viewport in every DWG version"
+      ]
+    }
+  ],
+  "localSourceFinding": {
+    "before": "DRW_Viewport DWG reset uses zero for vpstatus/vpID; dx_iface forwarded them. The output projection already handled one ownerless current-space case, but validateLayoutGraph required every non-null LAYOUT 331 target to carry an explicit parentHandle equal to the associated BLOCK_RECORD, blocking real parser-delivered DWG current-space viewports.",
+    "change": "For DWG-origin paper-space viewports, layout preflight now accepts either an explicit exact owner or the narrowly inferred current-space case: one typed PaperSpace VIEWPORT in mBlock/ENTITIES with no parent handle, where the associated BLOCK_RECORD is the unique canonical *PAPER_SPACE and has the reciprocal backlink to that exact LAYOUT. The existing writer projection then assigns per-layout sequential positive status/ID values. DXF-origin, named-block ownerless, wrong-space/type, duplicate, unresolved, or ambiguous cases remain rejected. Retained entities are not mutated; model-space, ordinary-block, and DXF-origin viewport values stay literal.",
+    "statusAndIdEquality": "An output-only convention informed by LibreDWG PR #1406; not treated as a normative DXF requirement."
+  },
+  "generatedControls": [
+    "ASCII and binary two-layout controls with two viewports per layout and counters restarting per owner.",
+    "Explicit entity owner and the one implied current-paper-space fallback.",
+    "LAYOUT 331 targeting an ownerless current-space viewport succeeds only on the DWG-origin path; DXF-origin equivalent is rejected while preserving a sentinel destination.",
+    "Emitted LAYOUT 331 resolves through the handle remap to the projected ownerless current-space VIEWPORT.",
+    "DXF-origin literal values, model-space and ordinary-block preservation.",
+    "Following-entity owner/coordinate alignment.",
+    "Unresolved and ambiguous owners are rejected before replacing a sentinel destination; corrected unresolved-owner retry uses the same exporter.",
+    "Retained source viewport fields remain unchanged after projection."
+  ],
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target dwg2dxf -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build /tmp/libdxfrw-viewport.tjymg5 --target libdxfrw_dxf_fixture_tests -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "/tmp/libdxfrw-viewport.tjymg5/libdxfrw_dxf_fixture_tests",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir /tmp/libdxfrw-viewport.tjymg5 -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    {
+      "command": "cmake --build build-gcc --target dwg2dxf -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "cmake --build /tmp/libdxfrw-viewport.tjymg5 --target lc3_compat_check -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check -- dwg2dxf/dx_iface.cpp dwg2dxf/dx_iface.h tests/dxf_fixture_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "PASS"
+    }
+  ],
+  "localDwgIntegrationProbe": {
+    "sample": {
+      "basename": "blocks_and_tables_-_metric.dwg",
+      "dwgVersion": "AC1021",
+      "provenance": "pre-existing private local sample; not downloaded or added to the repository",
+      "checkedIntoRepository": false
+    },
+    "readerObservation": {
+      "operationSucceeded": true,
+      "coverage": "partial-observed",
+      "parsedLayouts": 2,
+      "activeLayout": "ISO A1",
+      "associatedBlockRecord": "*Paper_Space",
+      "lastActiveViewportHandle": 26649,
+      "reportedViewportCount": 3,
+      "entitiesContainer": "ENTITIES",
+      "viewportSpace": "PaperSpace",
+      "viewportParentHandle": 0,
+      "objectParseFailures": 10,
+      "crcMismatchObservations": 18
+    },
+    "diagnosticInMemoryProbe": {
+      "removedOnlyForIsolation": ["FIELD", "FIELDLIST", "TABLE", "SORTENTSTABLE"],
+      "layoutValidationAdvanced": true,
+      "nextFailure": "dynamic-block objects have no qualified DXF serializer",
+      "publishedQualifiedDxf": false
+    },
+    "normalCli": {
+      "result": "FAIL",
+      "preflightFailure": "FIELD/FIELDLIST carriers have no qualified DXF serializer",
+      "publishedQualifiedDxf": false
+    },
+    "interpretation": "The sample independently confirms parser delivery of the LAYOUT/BLOCK_RECORD/ownerless-current-viewport relation and demonstrates that the previous owner check was a false blocker. The reader is partial and the full export is stopped by separate unsupported carriers; neither run qualifies DWG conversion."
+  },
+  "limitations": [
+    "The real sample is private diagnostic input; partial reader integrity plus failed serializer preflight means there is no successful external-DWG output witness.",
+    "No external converter, native FreeCAD/LibreCAD application, or broad suite was run.",
+    "DWG viewport-count/handle-list semantics, shade-target census, CLI composition, and external/native acceptance remain open.",
+    "The working tree already contains unrelated uncommitted changes in the touched files, so this slice is not committed."
+  ],
+  "newFindings": 0,
+  "newTopLevelSubplans": 0,
+  "newFixtures": 0,
+  "newCtestRegistrations": 0,
+  "newDependencies": 0,
+  "supportClaimsPromoted": 0,
+  "deferredExternal": [
+    "J256",
+    "J260",
+    "J268",
+    "J284",
+    "J293",
+    "J295"
+  ],
+  "commit": null
+}

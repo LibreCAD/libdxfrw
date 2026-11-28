@@ -1,0 +1,65 @@
+{
+  "status": "bounded empty AC1027 BLOCK_CONTROL framing correction; remaining modern writer recovery unresolved",
+  "authority": "ODA Open Design Specification v5.4.1 \u00a720.1: R2010+ MC counts handle-stream bits including padding at the end; R2007+ absent string marker is the final bit before handles. Existing BLOCK_CONTROL codec already writes that marker.",
+  "scope": "AC1027 reserved handle 1, exact BLOCK_CONTROL common prologue: own handle 1, no EED or reactors, present null XDICTIONARY, no data storage, no user entries, exact 35-bit data including existing zero marker and 48-bit synthetic handle tokens. The four expected handle roles/targets are validated. Non-empty named-block control, AC1024 and AC1032 retain previous code. No production fixed-header 0x0b change. A staged custom-class owner for reserved handle 1 is refused before this path.",
+  "sources": {
+    "AC1027": {
+      "dwg": "/private/tmp/modern-writer-investigation/source-dwg/AC1027/line.dwg",
+      "sha256": "1bab740b1f96b88534b4f8238828b9044cffd58b2975ec4b6b00db0c4560cd09",
+      "compressed_page_offset": 1696,
+      "compressed_page_bytes": 5780,
+      "decoded_objects_page": "/private/tmp/modern-8bb/source-objects.raw",
+      "page_sha256": "43bb83bda0a955c8e7950ba885d20636565446b0fa5c12b9001f8451be138555"
+    },
+    "AC1032": {
+      "dwg": "/private/tmp/modern-writer-investigation/source-dwg/AC1032/line.dwg",
+      "sha256": "ff2ac82b1ba9cf7d52970299fc766b85ddf48c3f6359d9ae62b550a6c1d7c26d",
+      "compressed_page_offset": 1536,
+      "compressed_page_bytes": 5644,
+      "decoded_objects_page": "/private/tmp/ac1027-block-control/source-1032-objects.raw",
+      "page_sha256": "a6434b4813042b26a68bf3d8eccd3ddd29657bbc83cd27c3b562909e794fd55b"
+    }
+  },
+  "source_provenance": "Locally authored LINE DXF, ODA File Converter 27.1.0 output, source creation and conversion recorded in p6-ac1027-1032-oda-writer-rejection-2026-11-04.json. The source BLOCK_CONTROL body starts at decoded-page byte 7. For both source files: scalar end bit 34, absent bit 34 is zero, handles begin at 35, bytes 40 31 17 31 1b, terminal pad bits 00000, no xdictionary, peer CRC 6863.",
+  "generated": {
+    "dwg": "/private/tmp/ac1027-block-control/out/final2.dwg",
+    "sha256": "03eae0f83ac6a3a39c8727059f496d401a0e0d779d67242cdb2d7f6521bb449e",
+    "diagnostic_dwg": "/private/tmp/ac1027-block-control/out/final2-maint6.dwg",
+    "diagnostic_sha256": "47854b63541fd1236d13c15c3b87485d97997c44384d8588135ab40a253b0b49",
+    "decoded_objects_page": "/private/tmp/ac1027-block-control/generated-objects.raw",
+    "page_sha256": "2df41b9fec794283155babaae504592b141d14b3a1e4d179a1c6d52ef1dc7e63",
+    "body_offset": 1169,
+    "body_bits": "marker bit 34 zero; handle bytes 40 30 31 17 31 18 at bit 35; end pad bits 00000",
+    "peer_crc": "4bfc"
+  },
+  "page_provenance": "Source pages were decoded with the in-tree decompress18 tool; generated uncompressed Objects page was manually sliced at physical byte 608. The peer audit enforces each page, input DWG and LibreDWG executable SHA but does not itself establish page-to-DWG lineage. Joins are separately observed/manual, not independent decompression.",
+  "receipt": "Serialized frame receipt records an 88-bit Data segment, zero separate Handles segment, with logically Handles tokens rebased to physical Data bit spans [35,43), [43,51), [51,67), [67,83). Each role and reference is checked; immutable receipt remains a physical-segment description.",
+  "oda_audit_differential": {
+    "baseline": "/private/tmp/modern-8bb/block-pair-in/baseline.dwg",
+    "baseline_sha256": "3e07ef74061ffdba06a325ad2327f3fd0964dc69987c3abb1f8e9bee00daceab",
+    "baseline_err": "/private/tmp/modern-8bb/block-pair-out/baseline.dxf.err",
+    "baseline_err_sha256": "4463ffb8d60159859f02a74e98e60c12481b3465bfffe60e8b94a255175b8f99",
+    "candidate": "/private/tmp/modern-8bb/block-pair-in/exact.dwg",
+    "candidate_sha256": "47854b63541fd1236d13c15c3b87485d97997c44384d8588135ab40a253b0b49",
+    "candidate_err": "/private/tmp/modern-8bb/block-pair-out/exact.dxf.err",
+    "candidate_err_sha256": "2610b6109b67c4177885a64851f883951d1ba7127ba8ef5cebe20e33af5dca",
+    "result": "With the separately diagnostic byte 0x0b=6 and corrected HEADER, baseline reports 19 warnings including Object improperly read AcDbBlockTable(1); candidate reports 18 and no BlockTable(1) warning. Both still fail at LAYER 0x12 and need recovery; no DXF. stdout/stderr empty. Generated scratch candidate is byte-identical to the candidate ODA input after the separately disclosed single-byte metadata diagnostic. No warning-bearing result is treated as acceptance."
+  },
+  "tests": "Isolated a957ba4a archive and focused CTests pass 2/2. C++ checks type and every handle occurrence, exact MC/body boundary and padding, AC1024/1032 unchanged path, named-block fallback, forged self/owner/marker and custom-class-ledger collisions. Deterministic allocation faults are swept until the first successful frame, both with an empty map and with populated pre-existing map/ledger; each failure checks byte/map/set/generation/current-state rollback, failure latch and absent receipt. A separate failed-whole-write test preserves the destination and retries the same facade; it is not an injection into the whole-emitter publication. Python peer audit has malformed trace and raw-bit negatives and passes under python -O. AC1024 and AC1032 full LINE controls retain exact prior SHA-256 53f46e21906c9e18f4f7a499a40a2135d3015325c33f996d2fbcc4e6a046f468 and 94c7f0479c2e17c2266b7aad5b77bc86923f9b2ed20241b536c5ee010b624723.",
+  "next_step": "Keep the separate 0x0b issue unresolved. The other generated objects remain audit failures; inspect each own codec marker and source frame, preserving type-specific and handle-receipt boundaries. AC1032 has an independent physical empty BLOCK_CONTROL witness but requires its own generated ODA control before extension.",
+  "limits": "No whole-file or general AC1027/1032 support claim. Source xdictionary is absent whereas generated null xdictionary is present; peer check records both. No external sample fixtures committed.",
+  "scratch_base": "a957ba4a; portable patch generated against shared writer source; other changes are not in shared tree.",
+  "files": {
+    "src/intern/dwgwriter24.cpp": "a9ea117f56275ba02db5ac156a99e4d1cb293cf60174afa9e98c2e6a5aa794f1",
+    "tests/CMakeLists.txt": "df0508960d4128db9ed3c4a6e23bcec2ae2d13cf63d7c150f1002a4824fc220a",
+    "tests/dwg_ac1027_block_control_boundary_tests.cpp": "0925f2fd3401cb2154dd52e2b6b77255d202edcfc7687964e112409d6c723fb5",
+    "tests/ac1027_block_control_peer_audit_tests.py": "003d56c079eaa8f1c501937862ede89f0ea5a28691baed8121b814e42cc291f1",
+    "tools/audit_ac1027_block_control_peer.py": "5a51131cf03e840b3255ccc879eaa518425f6e55de17715d9bd2318fa51c71a7"
+  },
+  "validation_commands": [
+    "cmake --build /private/tmp/ac1027-block-control/build --target libdxfrw_dwg_ac1027_block_control_boundary_tests",
+    "ctest --test-dir /private/tmp/ac1027-block-control/build -R '^libdxfrw_(dwg_ac1027_block_control_boundary|ac1027_block_control_peer_audit)$' --output-on-failure",
+    "python3 -O -B tests/ac1027_block_control_peer_audit_tests.py"
+  ],
+  "integrated_validation": "ctest --test-dir build-gcc -R ^libdxfrw_(dwg_ac1027_block_control_boundary|ac1027_block_control_peer_audit)$ --output-on-failure: 2/2 passed."
+}

@@ -1,0 +1,142 @@
+{
+  "schema": "libdxfrw-deeper-broader-acadrust-opencadkernel-semantic-route-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Distinguish ACadRust ACIS parsing and carrier round-trip evidence from a potential OpenCADKernel geometry comparison; refine only existing optional semantic gates.",
+  "method": {
+    "kind": "Public primary repository README, manifest, source, test, and consumer-route review",
+    "sourcesOpened": [
+      "https://github.com/hakanaktt/acadrust",
+      "https://github.com/hakanaktt/acadrust/blob/main/Cargo.toml",
+      "https://github.com/hakanaktt/acadrust/blob/main/src/entities/acis/parser.rs",
+      "https://github.com/hakanaktt/acadrust/blob/main/src/entities/acis/sab.rs",
+      "https://github.com/hakanaktt/acadrust/blob/main/src/entities/acis/primitives.rs",
+      "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+      "https://github.com/HakanSeven12/opencadkernel",
+      "https://github.com/HakanSeven12/opencadkernel/blob/main/Cargo.toml",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+      "https://github.com/monozukuri-ai/cq-acis/blob/main/corpus/manifest.jsonl",
+      "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md"
+    ],
+    "repositoriesCloned": false,
+    "peerBuiltOrRun": false,
+    "peerSourceBodiesFullyAudited": false,
+    "nativeCadOrKernelRun": false,
+    "localTestsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceBoundary": "Selected ACadRust parser, builder, manifest, and round-trip test paths establish an implemented ACIS code surface and generated self-tests, but not independent-profile coverage or closed-solid semantics. OpenCADKernel documents an ACIS-to-B-rep route and a separate kernel, while also declaring early maturity and depending on the ACadRust-derived codec. OpenCADStudio documents a kernel-first route with incomplete per-surface fallback. No exact peer binary, external payload, independent geometry result, full source audit, DWG AcDs join, or native acceptance was established."
+  },
+  "findings": [
+    {
+      "topic": "ACadRust has source-level ACIS parsing/building, but reviewed DWG tests prove carrier presence rather than independent solid semantics",
+      "sources": [
+        "https://github.com/hakanaktt/acadrust/blob/main/src/entities/acis/parser.rs",
+        "https://github.com/hakanaktt/acadrust/blob/main/src/entities/acis/sab.rs",
+        "https://github.com/hakanaktt/acadrust/blob/main/src/entities/acis/primitives.rs",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs"
+      ],
+      "observed": [
+        "ACadRust 0.6.4 is published as MPL-2.0 and contains dedicated SAT/SAB parser, primitive-builder, and writer modules.",
+        "Inspected SAT parser tests exercise handcrafted v4/v7 text records and a synthetic box; planar-body builder tests verify a generated cube's topology counts and manifold validation.",
+        "The reviewed AC1032 DWG round-trip test generates a planar body and asserts the returned entity still has ACIS data; it does not compare decoded record graphs or independent geometric metrics.",
+        "The fake SAB helper is described as a minimal envelope with ASM signature, arbitrary tagged bytes, and terminator, not as a semantic solid payload."
+      ],
+      "doesNotEstablish": [
+        "independently produced SAT/SAB parser correctness across producer/version profiles",
+        "a semantic SAB round trip, closed-solid validity, or independent volume/topology match",
+        "independent DWG/DXF reader lineage for OpenCADStudio, CADCraft, or ACadRust forks",
+        "correct source-handle-to-AcDs payload association for libdxfrw output"
+      ],
+      "planUse": "Keep ACadRust in the existing codec-family comparator role. At the optional composed gate, capture codec, bare-payload parser, carrier/owner association, and geometry results separately; own-codec round-trip or non-empty carrier is not semantic proof."
+    },
+    {
+      "topic": "OpenCADKernel is a conditional non-OCCT geometry route, not a new parser or ready mandatory gate",
+      "sources": [
+        "https://github.com/HakanSeven12/opencadkernel",
+        "https://github.com/HakanSeven12/opencadkernel/blob/main/Cargo.toml",
+        "https://github.com/happyrust/pid-cad/blob/main/docs/tessellation.md"
+      ],
+      "observed": [
+        "OpenCADKernel documents lifting ACadRust SatDocument into its own B-rep, while explicitly describing the project as early and saying most operations remain unwritten.",
+        "Its optional ACIS feature depends on the ACadRust-derived opencadcodec package at a pinned Git revision.",
+        "OpenCADStudio documents kernel B-rep lift and per-face triangulation for ACIS, with an incomplete per-surface LOD fallback when a face cannot be lifted; it identifies its codec lineage separately from the kernel route."
+      ],
+      "doesNotEstablish": [
+        "a verified implementation of any specific target operation at a pinned release",
+        "independent DWG/DXF/AcDs decoding or an independent parser vote",
+        "complete shape semantics when the renderer invokes surface fallback",
+        "an executed valid-solid result or support qualification"
+      ],
+      "planUse": "Retain only as a conditional, one-time second-kernel comparison at the existing composed checkpoint. Pin kernel, codec, dependency resolution, features and toolchain; preflight the exact operation; require full no-fallback topology and independent analytic metrics. If unavailable, record NOT_AVAILABLE and continue local implementation."
+    },
+    {
+      "topic": "cq-acis adds a profile-bounded parser route but not a second kernel lineage from FreeCAD",
+      "sources": [
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/README.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/corpus/manifest.jsonl"
+      ],
+      "observed": [
+        "The README identifies the parser/converter as experimental, declares SAT save versions 105, 400, 600, and 700 plus selected SAB/ASM profiles, and says unsupported records remain raw while failed shape conversion raises an error.",
+        "The checked-in corpus manifest records ezdxf-origin cube SAT/SAB files with upstream commit, license notice, and SHA256, which improves reproducibility but does not make that producer independent of ezdxf-authored fixtures.",
+        "The geometry conversion route uses CadQuery/OpenCASCADE, sharing kernel lineage with FreeCAD."
+      ],
+      "doesNotEstablish": [
+        "support for every SAT/SAB producer/version/profile",
+        "an independently authored expected solid merely by parsing a fixture from the peer corpus",
+        "a second kernel result separate from OCCT or FreeCAD",
+        "DWG AcDs/source-handle association"
+      ],
+      "planUse": "Retain cq-acis only in its existing optional distinct-parser role. At the existing composed checkpoint, pin version/dependencies and profile, do not import its corpus into local fixtures, separate parser results from OCCT shape results, and compare against locally authored expectations."
+    }
+  ],
+  "planDelta": {
+    "filesUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-acadrust-opencadkernel-semantic-route-review-2026-10-17.json"
+    ],
+    "existingOwnersOnly": [
+      "7AG optional peer admission",
+      "S3/S5/S8 semantic and consumer evidence gates"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newCTestRegistrations": 0,
+    "newDependencies": 0,
+    "externalFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "validationCadenceChanged": false,
+    "implementationOrderChanged": false,
+    "planTotals": {
+      "findings": 127,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "nextActions": [
+      "Continue the existing local fast implementation queue; do not add peer setup or runtime to per-slice work.",
+      "At the existing composed checkpoint only, consider OpenCADKernel if the exact build and scoped operation are available or explicitly selected.",
+      "Keep codec/carrier, bare SAT/SAB parse, kernel B-rep, and renderer/fallback outcomes separate.",
+      "Require independently authored geometry expectations and complete no-fallback topology/metric results before considering a kernel comparison informative.",
+      "Keep source-handle-to-AcDs association as a separate requirement for any DWG-origin case."
+    ]
+  },
+  "validation": {
+    "planLinksAdded": true,
+    "receiptJsonParsed": true,
+    "scopedPlanDiffCheckPassed": true,
+    "researchChangedProductionSource": false,
+    "testsRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

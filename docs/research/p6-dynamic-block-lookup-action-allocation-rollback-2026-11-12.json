@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dynamic-block-lookup-action-allocation-rollback-2026-11-12",
+  "date": "2026-11-12",
+  "status": "LOOKUP_ACTION_DIRECT_ALLOCATION_SWEEP_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add direct AC1024 ASCII/Binary allocation-failure coverage for the profiled BLOCKLOOKUPACTION writer, including caller-state and source-identity rollback, remapped dependencies, and retry/readback.",
+  "binding": {
+    "repositoryHead": "a7e2f13f",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "27ac70a55b86da086ad484392b099de2b2777c7c9acb80b61f84b0061185cae3",
+      "src/libdxfrw.h": "e5d8427cce8cbdc4785bc4241928cfa941e423f65d36ac9e69ff210f3a21268a",
+      "tests/dynamic_block_objects_allocation_tests.cpp": "255bcfce61d7dd2cfb290f6e4b90beef757a8bbb626b7caff7625735b1c78e25",
+      "tests/CMakeLists.txt": "7a6d869bd778a362a1552bb5c8c48c6a0b8d5b7e0fac8bc7aa24a9fd5b171469",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "f043ec05c51f3417502f66f549165cbc62b8e42185e3821044ac89f51d4d0c8f"
+    },
+    "artifactSha256": {
+      "build/tests/libdxfrw_dynamic_block_objects_allocation_tests": "4dcb9b938b6e984a7bed261d51ba2d81f3f7fc88bc4f706fe72e7894acea0866",
+      "build-asan-custom/tests/libdxfrw_dynamic_block_objects_allocation_tests": "f9f3e1196067c573f80a2bbd7dacf03f462ddd0778ba1b269d5d640a9fbacfea"
+    }
+  },
+  "change": {
+    "testCoverage": "A generated BLOCKLOOKUPACTION has two action indexes, two remapped dependency handles, a 2x2 expression grid, two per-column metadata records, both Boolean flag vectors, and the overall lookup flag.",
+    "perEncoding": "ASCII exercises 14 allocation offsets and Binary exercises 12. Every injected failure preserves source fields and removes sourceHandleToWrittenObjectMap identity. Fresh-writer retries read back remapped dependencies, row/column counts, expressions, ordered indexes, per-column connection codes/names, flags, and subclass.",
+    "existingAdapterControl": "The existing dwg2dxf_dynamic_block_lookup_action_writer profile passes alongside the direct allocation control."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dynamic_block_objects_allocation_tests",
+      "result": "PASS"
+    },
+    "normalFocusedTests": {
+      "command": "ctest --test-dir build -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_lookup_action_writer' --output-on-failure",
+      "result": "PASS 2/2; 0.76 seconds total"
+    },
+    "asanFocusedTests": {
+      "command": "ctest --test-dir build-asan-custom -R 'libdxfrw_dynamic_block_objects_allocation|dwg2dxf_dynamic_block_lookup_action_writer' --output-on-failure",
+      "result": "PASS 2/2; 1.50 seconds total"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Fault injection covers the low-level record writer, not the enclosing whole-file output transaction.",
+    "A fresh writer is used after each fault because the failed writer may retain partial stream bytes and a sticky error.",
+    "The generated grid does not establish physical producer breadth, dependency graph closure, or native lookup evaluation.",
+    "No DWG/DXF fixture is added and no support claim is promoted."
+  ],
+  "nextReadyPacket": "Continue P6 bounded generated-writer transaction coverage for remaining source-backed dynamic-block records; keep physical and native gates unchanged."
+}

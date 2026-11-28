@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "title": "7S.3 DWG deferred BLOCK object-map validation index",
+  "date": "2026-10-20",
+  "scope": "Generated fast implementation slice removing an intermediate whole-object-map sort during deferred BLOCK validation.",
+  "changes": [
+    "Changed BLOCK child-frame membership checks to use the already-maintained emitted-object-handle index.",
+    "Preserved per-owner duplicate checks and deferred the object-map sort until HANDLES, after structural frames are appended.",
+    "Extended the existing generated ownership selector with out-of-order model-space handles and an append-order assertion across deferred BLOCK emission."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+    "focusedOwnershipCTest": "PASS: libdxfrw_dwg_block_owner_membership_index (1/1)",
+    "roundtripTests": "PASS: libdxfrw_dwg_block_record_xref_roundtrip and libdxfrw_dwg_local_roundtrip (2/2)",
+    "diffCheck": "PASS: git diff --check on touched code, test, and plan files"
+  },
+  "notPerformed": [
+    "No full CTest suite",
+    "No external drawing or persistent fixture",
+    "No external peer runtime or native CAD application",
+    "No wall-clock performance benchmark",
+    "No support claim promotion"
+  ],
+  "planInventory": {
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "worktree": {
+    "committed": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

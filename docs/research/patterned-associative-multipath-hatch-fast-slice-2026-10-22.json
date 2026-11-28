@@ -1,0 +1,72 @@
+{
+  "title": "Patterned associative multi-path HATCH round-trip",
+  "date": "2026-10-22",
+  "status": "completed_fast_test_slice_uncommitted",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "3e99f429d6dd626add1be952af23b78fb06a2688b43822574f349e112656b23a",
+  "filesChanged": [
+    "tests/hatch_reference_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+  ],
+  "fixturePolicy": {
+    "persistentDwgOrDxfFixtureAdded": false,
+    "witness": "Generated in-memory HATCH graph; transient ASCII and Binary DXFs are removed after a passing run"
+  },
+  "coverage": {
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "hatch": {
+      "identityCheckedAcrossWireAndReadback": true,
+      "associative": true,
+      "solid": false,
+      "patternLineCount": 2,
+      "patternLineOrderAndAllFieldsChecked": true
+    },
+    "paths": {
+      "count": 3,
+      "firstPathBoundaryReferences": [
+        "BOUNDARY_1"
+      ],
+      "secondPathBoundaryReferences": [
+        "BOUNDARY_2",
+        "BOUNDARY_3"
+      ],
+      "thirdPathBoundaryReferences": [],
+      "rationalSplineKnotsAndWeightsChecked": true
+    },
+    "followingLineRecordAndEndpointChecked": true
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg_hatch_reference_graph$' --output-on-failure",
+      "result": "passed (1/1)"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-references",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check -- tests/hatch_reference_tests.cpp CMakeLists.txt tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "result": "passed"
+    }
+  ],
+  "productionParserOrWriterChanged": false,
+  "supportClaimsChanged": false,
+  "externalEvidenceStatus": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "freecadLinuxWindowsQualification": "separate outstanding gate",
+    "independentAcisAcDsSemanticQualification": "separate outstanding gate"
+  },
+  "commit": "not created; pre-existing worktree changes were preserved and no files were staged"
+}

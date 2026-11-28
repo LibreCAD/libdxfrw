@@ -1,0 +1,70 @@
+{
+  "schema": "ac1018-table-source-provenance-review-v1",
+  "date": "2026-10-28",
+  "status": "NORMAL_ASAN_VALIDATED",
+  "codeCommit": "1120c8313b25e9cbb905fcf54b2dc5a787592cb8",
+  "supportClaimsPromoted": false,
+  "scope": "Authenticate source publication and the original AC1018 revision before accepting selected TABLE 177 and 179 zero-presence metadata, and reject stale source provenance during planning and dispatch.",
+  "priorEvidence": [
+    "docs/research/rpp5in-ac1018-table-zero-presence-2026-10-28.json",
+    "docs/research/rpp5iq-ac1018-table-block-count-presence-2026-10-28.json"
+  ],
+  "preFixWitness": {
+    "source": "Locally authored AC1018 source with explicit zero 177/178 on two cells",
+    "sourceSha256": "d85b0dec90f1604c975e1085cd0d239b42de22310f28106be834f3de688870ad",
+    "cases": "A callback forwarded a raw copy claiming AC1021; a caller changed public sourceVersion to AC1021; another callback suppressed the HEADER. Each imported/exported successfully while output omitted all explicit 177/178 pairs.",
+    "forgedSourceSha256": "2e802329df4488bccd910a38b50e77d9a8aefe3f72ee3106e79b2a07bb92207b",
+    "forgedExecutableSha256": "33d15f244c318c6a75dc1c6b5e304fb5ee71d94ff0c6aa1731849014b79ff5a4",
+    "versionSourceSha256": "709bb81415a7c708b8c67524ee50fe1abd74082d91cb9b72a838307ebafdbd6a",
+    "versionExecutableSha256": "b03e4b0b3877e74108906ecbc12b1fa564a2a2397582458ba4ddecf047eb0744",
+    "headerSourceSha256": "2674ef8a8bca57d3c1587794434e857b82a1e66e27df1258d86123ad48fb802c",
+    "headerExecutableSha256": "287c7e634f6160079d2ac123821f06d4cfd23f4ffe799ab0965f1b7fcf9e932f",
+    "outputSha256": "34baee9f18f2a22b2e76912f8c52e1e7cbad01ecc823ea89bf503d70d8acc14f",
+    "resultLogSha256": "448d8920f7faa8954490c00b5dad64b88947da81eafcb554f5d8b785ee2a70cb",
+    "headerLogSha256": "85275b1dd52179ee4283d92f65bbec2ac4b24f5862cd0e3bd869bed5fd9ba8a8"
+  },
+  "implementation": "AC1018 validation uses actual live reader context, requires the codec publication pointer and raw/source version agreement, and retains reader-accepted AC1018 in private capture even when delivered HEADER is missing. Planning/dispatch choose by captured source version, checking source format, public version and generation against it. Manual and no-source paths keep their previous handling.",
+  "bindings": {
+    "dwg2dxf/dx_iface.cpp": "76a85a6986a8870c0b4dadfcd04c5818e1e5cf6ef96fd3b555cb70b66de193c2",
+    "tests/table_legacy_height_controls.h": "0d396184d521c84cad4f28093a175d8317926cc7da82720d11c02cc1b4f9a08b",
+    "tests/table_legacy_merge_controls.h": "98e6cc46646e7e4f6169ca0e3dee9bfabc2e5b71b14fd9d2dbb989d485f42416"
+  },
+  "postFixProbe": {
+    "sourceSha256": "984970cbc9c125f8e83916cee684652ea6e59afc4d08f63f1876091eb1ed5f3a",
+    "executableSha256": "6f6d65e7b97163145c6577affb64ab8ac77b6bae1031e2eda631d22539153110",
+    "logSha256": "d27f731b7346344b900afc990652368b9222c51a7819edceb47b9d6468a19d65",
+    "result": "For both locally authored 177 and 179 profiles, forged raw version, suppressed header, modified public version or format, and late version mutation each refused with sentinel preserved; fresh import and same-adapter retry succeeded.",
+    "libraryAtLinkSha256": "1fccb243821ae93c09677e0bfd8170cb0145b12e92953a96c026f56115d14245",
+    "adapterAtLinkSha256": "ed19b0bf269ec8ad4eec4f9e5d6545159f6c5281c0dede54d04fa37dba42ffc9"
+  },
+  "controls": "Both selected 177 and 179 profiles exercise forged raw version, handle, owner and identical copy; public source version, format and generation changes before planning and in writeEntities; sentinel/model/identity preservation and clean retries. Source/target ASCII and binary paths and strict/compatible routes are covered.",
+  "normalValidation": {
+    "command": "ctest --test-dir build -R '^libdxfrw_(table_(legacy_merge|legacy_text_height|legacy_override_177|content_dxf_projection|original_inputs)|identity_source_namespace|structural_source_origins|spine_source_proof)$' --output-on-failure",
+    "result": "Final corrected cohort 8/8 passed as reported; no retained test-log hash asserted",
+    "tableExecutableSha256": "3fe364cc70e471f9c4f5a4dbe717edfc70774b108725b4b62172a7c8f4f3044c",
+    "librarySha256": "1fccb243821ae93c09677e0bfd8170cb0145b12e92953a96c026f56115d14245",
+    "adapterObjectSha256": "ed19b0bf269ec8ad4eec4f9e5d6545159f6c5281c0dede54d04fa37dba42ffc9",
+    "chronology": "An intermediate run failed because a test edit widened the unrelated merge-composition fault loop; that test-only loop was corrected and the final cohort above passed."
+  },
+  "asanValidation": {
+    "command": "ctest --test-dir build/rpp5fa-evidence.4xKADX/asan-build -R '^libdxfrw_(table_(legacy_merge|legacy_text_height|legacy_override_177|content_dxf_projection|original_inputs)|identity_source_namespace|structural_source_origins|spine_source_proof)$' --output-on-failure",
+    "environment": "ASAN_OPTIONS=halt_on_error=1:detect_leaks=0",
+    "result": "Final corrected cohort 8/8 passed as reported; no retained test-log hash asserted",
+    "tableExecutableSha256": "c38dbf309d5b4c2b88fa5ceb36ca1f0cf06283eb7765e7ff345445faf0a9ca07",
+    "librarySha256": "f99aba7b6ececf69eae315c5a7da31196b9d9f84d370612b69e6ab7369a0d38a",
+    "adapterObjectSha256": "e17503e87704671aee1cb620983b2b97e5be8531fdc17d87105d85186a2a4ba4"
+  },
+  "simultaneousWork": {
+    "chronology": "SORTENTSTABLE identity observer source and tests were frozen throughout both final normal and ASan cohorts, then separately committed as c0a17266.",
+    "subsequentCommit": "c0a1726673c6d165b927c01852cb66588c4b24ce",
+    "src/drw_interface.h": "11618ddbed648534a7847a1539193a35646388df1a521e3eac38a70028a9ccad",
+    "src/intern/dxfidentitysource.h": "f84ad22e816cbc428536b78c8c145ba2f9201691f340af6d410978f9d79034a5",
+    "tests/identity_source_controls.h": "066a5962be9cf029f170599796e3dac38aa920610badb3233f5f601dfeb91ff7",
+    "tests/identity_sortents_controls.h": "1c15176ebc67582f5dd92ad416a4798616e95d4b12a5cde792ce1ff1694f6fcc"
+  },
+  "limitations": [
+    "This protects a selected source-field preservation path; it does not establish absent/default equivalence, native rendering, full original TABLE/document conversion or application compatibility.",
+    "Public source-presence writer symbol and earlier DRW_Table layout change require consumer rebuild and formal ABI/API qualification.",
+    "Probe inputs and outputs are locally authored and retained only in ignored scratch; no new external fixture committed."
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-spline-dxf-allocation-failure-retry-2026-11-02",
+  "date": "2026-11-02",
+  "phase": "P6",
+  "status": "BOUNDED_SPLINE_DXF_POINT_AND_SCALAR_ALLOCATION_FAILURE_FAILS_CLOSED_AND_RETRIES",
+  "supportClaimEffect": "none",
+  "scope": "Make SPLINE DXF control/fit point construction and knot/weight list allocation failures return through parseCode without advancing parser component cursors or escaping as exceptions.",
+  "implementation": {
+    "sources": {
+      "src/drw_entities.cpp": "2cd1a685e28e95b4e9c1a0880775aa0e5c5cef48258af82149a111796d60af92",
+      "tests/dxf_fixture_tests.cpp": "4af2215f5313956721c0b43539f077cc77beb8a7dbe71cc11830e3069229b96c",
+      "CMakeLists.txt": "72533cc3c2e47213b88739e2fd6a4f3143d1be8fe067b98df3346c8a62b9caba"
+    },
+    "behavior": [
+      "A missing point-component cursor and coordinate are allocated into local owners. Destination vector capacity is guarded before the coordinate is published, and the field cursor is advanced only after the point value is stored.",
+      "Knot and weight push_back calls catch allocation exceptions and return false; vector strong-guarantee behavior keeps the scalar list unchanged for same-group retry."
+    ],
+    "failureInjection": "The focused selector injects failures at cursor creation, coordinate creation, and control-point vector reservation, then retries the same X group followed by its Y component. It also injects knot and weight vector growth failures and retries those same scalar groups. Every fault is observed once, with no partial point/list publication."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests --parallel 4",
+      "result": "PASS; target already current after the source changes"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_(spline_dxf_allocation_failure|leader_dxf_allocation_failure|leader_point_component_order|mline_dxf_allocation_failure|mline_vector_component_order|dxf_underlay_ocs_extrusion|underlay_dxf_allocation_failure)$' --output-on-failure",
+      "result": "PASS: 7/7 focused fast tests; 0.48 seconds",
+      "passed": 7,
+      "failed": 0,
+      "testExecutableSha256": "052c35b8f768f0182d889de23debdeb6df4701deb53fc2184fc8519a0a85fb49"
+    },
+    "fixturePolicy": "All parser controls use in-memory DXF records. No DWG/DXF fixture was added.",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "limitations": [
+    "This covers the specified SPLINE DXF allocation paths only; broader control/fit semantic profiles and remaining parser allocation paths stay open.",
+    "The controls establish parser failure/retry only, not physical producer breadth, whole-document output, curve equivalence, or native interpretation.",
+    "No support claim is promoted."
+  ],
+  "next": "Continue the P6 safety audit at another reproduced allocation or parser-state rollback boundary; retain the narrow spline semantics already covered by separate receipts.",
+  "repositoryState": {
+    "validationBaseHead": "c2d8724a",
+    "validationSnapshot": "WORKTREE",
+    "note": "Receipt hashes identify the source/test snapshot used for the fast build and selector. The build/test scope is limited to this parser-allocation slice; no drawing fixture was added."
+  }
+}

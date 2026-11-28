@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-09",
+  "scope": "Scratch-only public AC1032 DWG/DXF pair screening for the PERSUBENTMGR physical-layout investigation",
+  "evidence_class": "public issue attachment corpus; independent LibreDWG minJSON comparison; local libdxfrw read attempt",
+  "provenance": {
+    "source_issue": "https://github.com/LibreDWG/libredwg/issues/1021",
+    "archive_url": "https://github.com/user-attachments/files/31022106/Dev2-DXF.zip",
+    "archive_sha256": "25c8921cb4cb2f09daca7aafb4b714593a85986adf7429c3d46f0f2f46a0cc52",
+    "archive_path": "/tmp/libredwg-1021-Dev2-DXF.zip",
+    "archive_disposition": "Scratch-only; no DWG or DXF fixture copied into the repository",
+    "pair_description": "Five AC1032 DWGs with AutoCAD 2019 object-enabler DXFs and AutoCAD 2027 MEP DXFs"
+  },
+  "inputs": [
+    {"name": "Platte.dwg", "sha256": "146c9fbc33a7b9636ea462f4b6b1476a1c73fcaebc3cbb173cdf81e7ce04c82c"},
+    {"name": "Stahl.dwg", "sha256": "5db4d7022d170ef3abc8428a2140a999edbc8abb78630380753f81a1845b72d6"},
+    {"name": "Teile.dwg", "sha256": "0ef7c9c79e16a4a5e219cd9ac3fecbfe30c12dd2af5ba2d71ba99ec09cc79af3"},
+    {"name": "test-trichter.dwg", "sha256": "34b7bf3f3bae90e38a184d66967764839cf230728ddc5dc8da563f97d48162f4"},
+    {"name": "xx17.dwg", "sha256": "c1392c8efece0eeb3d228362c70b51c5f68cfab0d62709dedf1164f4e910046a"}
+  ],
+  "independent_reader": {
+    "implementation": "LibreDWG 0.14 dwgread",
+    "route": "dwgread -v4 -O minJSON -o <scratch-output> <input.dwg>",
+    "result": "All five source DWGs decode to minJSON, including Platte VPORT_CONTROL/VPORT and PERSUBENTMGR records.",
+    "platte_vport_observation": "VPORT_CONTROL lists the VPORT record handle 0x57; its separate reactor list contains 0x3d126. The VPORT record named *Active has handle 0x57. Handle 0x3d126 is a separate UNKNOWN_OBJ (type 772) in this output.",
+    "platte_persubentmgr_observation": "ACDBPERSSUBENTMANAGER class_version 2 is present; LibreDWG reports 64 unknown body bits, so this is not complete independent semantic evidence for its body layout."
+  },
+  "libdxfrw_observation": {
+    "result": "All five DWGs abort during TABLES with legacy error 9 while processing VPORTs, before OBJECTS/PERSUBENTMGR are reached.",
+    "retained_trace": "/tmp/libredwg-1398-Platte.log",
+    "platte_trace_excerpt": "The control trace reports one table entry, a common-header reactor handle 0x3d126, then logs 0x3d126 as the VPORT record and skips it after parseDwg failure.",
+    "source_route": "src/intern/dwgreader.cpp readDwgTables VPORT control loop (approximately lines 8770-8803); parseControl and DRW_ObjControl decoding are in the same translation unit.",
+    "interpretation": "The trace and independent JSON suggest the parser may be using the control reactor as a table-entry handle. This is a concrete hypothesis, not yet a confirmed field-layout defect; first establish the exact AC1032 control body and common-header roles against ODA v5.4.1 and the independent decoded record graph."
+  },
+  "next_actions": [
+    "Trace the VPORT_CONTROL common header and body separately; reconcile reactor handles, ordered table-entry handles, NULL/Xdictionary slots and any version-specific phantom handles with ODA v5.4.1 and LibreDWG's decoded object graph.",
+    "Add a from-scratch AC1032 control-frame regression where reactor and table-entry handles are distinct, plus truncation, rollback/retry and following-frame checks; keep generated frames as the committed test inputs.",
+    "If the field-role defect is confirmed, fix the smallest parser path and rerun the focused selector; then re-read the five scratch-only DWGs and verify that parsing reaches OBJECTS with accurate per-stage error accounting.",
+    "Only after read reaches OBJECTS, bind the exact Platte PERSUBENTMGR frame/body span to source bytes and compare candidate field boundaries with the paired DXFs and independent readers. Keep typed semantics/output raw-only until schema and dependency roles are independently resolved."
+  ],
+  "evidence_ceiling": "The archive provides useful public source pairs and an independent-reader screening lead. The current libdxfrw reader has not reached the relevant PERSUBENTMGR objects. No VPORT parser fix, PERSUBENTMGR field schema, graph closure, output support, native behavior or support-claim promotion is established by this receipt."
+}

@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-02",
+  "topic": "HATCH and MPOLYGON validation refusal through whole-file callbacks",
+  "repository_base_commit": "51ad515dc94f6d5c99195a80d54fcd3244778ca5",
+  "supportClaimEffect": "none",
+  "finding": "The shared payload validator called DRW_Hatch::validateDxf through a base pointer. That function is intentionally non-virtual, so MPOLYGON's derived CMC method, flags, index and color-book checks were skipped. In whole-file output, payload refusal did not latch the transaction, allowing a void callback to ignore the entity writer's false return and publish an incomplete DXF.",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "Explicitly invoke DRW_MPolygon::validateDxf for MPOLYGON payloads while retaining the non-virtual public validation API and ABI.",
+      "Latch a failed payload refusal only while a whole-file DXF write attempt is active, so the atomic file transaction aborts even when its void callback ignores the record writer's return value.",
+      "Keep direct record-level calls retryable after correcting the payload."
+    ],
+    "newFixtureFiles": false
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests --parallel 4",
+    "buildResult": "PASS",
+    "focusedCTestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mpolygon_fill_cmc|dwg_hatch_reference_graph|dxf_mpolygon_metadata_boundary_roundtrip|dwg_hatch_gradient_cmc|libdxfrw_dwg_local_roundtrip)$' --output-on-failure",
+    "focusedCTestResult": "PASS: 5/5",
+    "crossSliceCTestResult": "PASS: 11/11, including Underlay graph retry, FIELD output, UCS base closure and MTEXT controls",
+    "diffCheck": "PASS"
+  },
+  "evidenceScope": {
+    "supports": [
+      "MPOLYGON-specific CMC validation is applied by the shared HATCH/MPOLYGON payload gate.",
+      "Invalid HATCH/MPOLYGON payloads abort whole-file output atomically through void consumer callbacks.",
+      "Direct record-level callers can retry after correcting the payload."
+    ],
+    "doesNotSupport": [
+      "Native HATCH or MPOLYGON rendering semantics",
+      "Physical producer prevalence or whole-document DWG-to-DXF qualification",
+      "Broader HATCH, MPOLYGON or geometry support claims"
+    ]
+  },
+  "sha256": {
+    "testedWorktree": {
+      "src/libdxfrw.cpp": "a60a35d74ef570934017e2e3b3e2e0dfe69a73a60e34268f69b97bd8c1b4c619"
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "id": "p4-tolerance-dimstyle-reference-readiness-2026-11-03",
+  "date": "2026-11-03",
+  "status": "IMPLEMENTED_GENERATED_TRANSPORT_ONLY",
+  "topic": "DWG TOLERANCE DIMSTYLE hard-pointer to DXF group-3 name binding",
+  "failing_witness": {
+    "source": "Current code path: DRW_Tolerance::parseDwg retains dimStyleH; dwgReader::readDwgEntity dispatches the TOLERANCE callback without resolving that handle, leaving the constructor's STANDARD dimStyleName in place.",
+    "affected_fields": [
+      "DWG TOLERANCE DIMSTYLE hard pointer (ODA v5.4.1 §20.4.49)",
+      "DXF TOLERANCE group 3 dimension-style name (Autodesk DXF TOLERANCE reference)"
+    ],
+    "current_effect": "A DWG tolerance using a non-STANDARD DIMSTYLE can be exported with group 3 STANDARD, silently changing its style association."
+  },
+  "existing_providers": [
+    {
+      "path": "src/intern/dwgreader.cpp",
+      "evidence": "findTableName(DRW::DIMSTYLE, handle) and DIMSTYLE handle map already resolve DIMENSION and LEADER references before callback delivery."
+    },
+    {
+      "path": "src/drw_entities.cpp",
+      "evidence": "DRW_Tolerance::parseDwg reads the final hard pointer into dimStyleH; its DXF parser/writer use dimStyleName."
+    },
+    {
+      "path": "src/libdxfrw.cpp",
+      "evidence": "writeTolerance emits group 3 from dimStyleName and currently has no guard against an unresolved DWG style pointer."
+    },
+    {
+      "path": "docs/research/p4-ac1027-ordinary-classes-boundary-and-graph-blocker-2026-11-01.json",
+      "evidence": "Existing source/graph policy requires exact target role and fail-closed output when a required target cannot be resolved."
+    }
+  ],
+  "bounded_scope": {
+    "admit": "A parsed DWG TOLERANCE whose nonzero DIMSTYLE hard pointer resolves to exactly one loaded DIMSTYLE record; carry that record's name to the DXF group-3 writer field.",
+    "refuse": "A parsed DWG TOLERANCE whose required DIMSTYLE pointer does not resolve; do not silently substitute STANDARD.",
+    "exclude": [
+      "Tolerance rendering or GD&T semantic qualification",
+      "Dimension-style override interpretation",
+      "General dimension/leader reference changes",
+      "Native CAD consumer qualification"
+    ]
+  },
+  "implementation_steps": [
+    "Resolve the TOLERANCE DIMSTYLE handle in the existing DWG entity dispatch, preserving the current STANDARD default only for non-DWG/authored carriers that have no unresolved source pointer.",
+    "Represent an unresolved parsed DWG style without a misleading fallback and make writeTolerance reject that unqualified carrier before opening its record scope.",
+    "Add a runtime-generated AC1024 DWG with one custom DIMSTYLE and TOLERANCE; read it through dwgR/dx_iface, verify the exact handle-to-name mapping, write ASCII and Binary DXF, and verify group-3 typed readback.",
+    "Add a missing-target DWG control proving atomic refusal and destination preservation, then correct the source handle/name and retry through the same adapter."
+  ],
+  "validation": {
+    "selector": "libdxfrw_tolerance_dimstyle_reference_binding",
+    "normal": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4; ctest --test-dir build-gcc -R '^libdxfrw_tolerance_dimstyle_reference_binding$' --output-on-failure (0.60 s).",
+    "asan": "PASS: cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4; ctest --test-dir build-asan-custom -R '^libdxfrw_tolerance_dimstyle_reference_binding$' --output-on-failure (1.18 s).",
+    "fixture_policy": "Author the DWG and DXF files from scratch at test runtime under a temporary directory; commit no drawing fixture."
+  },
+  "implementation_receipt": "docs/research/p4-tolerance-dimstyle-reference-transport-2026-11-03.json",
+  "claim_boundary": "Exact source handle-to-DXF style-name transport and unresolved-target refusal only. It does not qualify tolerance rendering, override semantics, native behavior, or broad producer support.",
+  "sources": [
+    {
+      "title": "ODA Open Design Specification for .dwg files v5.4.1 §20.4.49 TOLERANCE (46)",
+      "uri": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    },
+    {
+      "title": "Autodesk TOLERANCE (DXF)",
+      "uri": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-ADFCED35-B312-4996-B4C1-61C53757B3FD.htm"
+    }
+  ]
+}

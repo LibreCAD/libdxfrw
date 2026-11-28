@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c FIELD concatenated text ownership transfer",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Move the first decoded text fragment into an empty final FIELD string owner.",
+    "routes": [
+      "dxfRW::processField group 2/3 -> DRW_Field::m_fieldCode",
+      "dxfRW::processField group 9/301 -> DRW_Field::m_valueString"
+    ],
+    "behavior": "Each source fragment still uses getUtf8String(), preserving source-codepage conversion and semantic decode observations. The first fragment is moved; later fragments append in original order.",
+    "test_control": "Generated ASCII/Binary FIELDs split both logical strings across their accepted group codes using first chunks longer than common small-string buffers. They verify typed concatenation, exact raw fragments, carrier counts/bytes, and following FIELDLIST/DICTIONARYVAR sentinels. Existing oversized structural-marker refusal controls remain enabled.",
+    "non_claims": [
+      "no public API or model-layout change",
+      "no DXF wire behavior change",
+      "no DWG byte-layout change",
+      "no persistent fixture added",
+      "no support claim promotion",
+      "no external producer or native CAD qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 4",
+    "build_result": "PASS (-Werror)",
+    "test": "ctest --test-dir build-gcc -R '^dwg2dxf_field_dxf_multichunk_value$' --output-on-failure",
+    "test_result": "PASS (1/1; generated ASCII/Binary)",
+    "compatibility_build": "lc3_compat_check",
+    "compatibility_build_result": "PASS",
+    "diff_check": "PASS (src/libdxfrw.cpp, tests/dwg2dxf_adapter_tests.cpp, plan, receipt)",
+    "full_suite_run": false,
+    "sanitizer_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "source_audit_boundary": {
+    "finding": "Discarded TABLE group-300 and unsupported string branches still call getUtf8String().",
+    "decision": "Retain these semantic decode calls because they record source code-page diagnostics; replacing them with getStringView() would change observable text-read observations. No code change was made for those branches."
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue the exact-source 7S.2c audit only where a first-owner copy or parser-only allocation can be removed while preserving text-decoding observations; otherwise advance to the next evidence-backed local DWG/DXF semantic item without waiting on external gates."
+}

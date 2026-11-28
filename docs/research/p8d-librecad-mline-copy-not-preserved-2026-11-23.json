@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-mline-copy-not-preserved-2026-11-23",
+  "date": "2026-11-23",
+  "status": "COPY_ORIGINALS_NOT_PRESERVED_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "repository": "LibreCAD/LibreCAD",
+    "pullRequest": 3289,
+    "head": "f5477f98a051f2e9e41ffaf9858a9e8c153821fe",
+    "application": "LibreCAD-2 [2.2.2.6-alpha]",
+    "buildReceipt": "p8d-librecad-3289-system-codec-compile-2026-11-23.json",
+    "moveActionSourceCommit": "078aac8922874eddd7fa46590b5f306e3aee6423"
+  },
+  "input": {
+    "path": "/private/tmp/p8d-mline-current-app-20261123/p8d-mline-saveas-probe.dxf",
+    "sha256": "c65d44cd54b7a8f0f07c38cdddee2fc11528105fe9605d80a81b304b7569ccaf",
+    "entities": "One MLINE entity with six centerline vertices; LibreCAD had already reported six unsupported objects omitted during this baseline Save As."
+  },
+  "edit": {
+    "command": "Move / Copy",
+    "selection": "LibreCAD showed Polyline (2).",
+    "keepOriginals": {
+      "uiValueBeforePointEntry": 1,
+      "label": "If checked, original entities will survive, otherwise they will be removed."
+    },
+    "referencePoint": [0, 0],
+    "targetPoint": [10, 0],
+    "commandReturnedTo": "Enter Command",
+    "copyModifier": "No Control modifier was held while choosing the target; both points were entered in the command field.",
+    "sourceBehavior": "At the recorded LibreCAD source commit, the Move action sets createCopy from the Control state of the target mouse release; the target prompt advertises Control to create a Copy."
+  },
+  "output": {
+    "path": "/private/tmp/p8d-mline-current-app-20261123/p8d-mline-copy-plus10x-confirmed.dxf",
+    "sha256": "17dd2324546d2632686381859895cc3687958d0dfca2248a9be91121cf1da0ce",
+    "bytes": 21767,
+    "savedByGui": true,
+    "reopenedAfterThisCopyAttempt": false,
+    "entityAudit": "The output contains two six-vertex LWPOLYLINE entities carrying LibreCAD_MLINE XDATA. It is byte-identical to the preceding Move output and contains no preserved original pair or additional translated pair."
+  },
+  "interpretation": "This was not a valid Copy operation because the Control target modifier was not used. The enabled Keep Originals checkbox did not prevent this typed-coordinate workflow from producing the moved pair. Do not treat the output as a Copy pass or diagnose the missing source pair from this run. Retry with a fresh, independently verified selection, a Control-modified target placement, and an output audit proving both source and copied projections.",
+  "limits": [
+    "The saved file was audited by hash and DXF entity parsing but was not reopened after this Copy attempt.",
+    "The baseline save omitted six unsupported objects; whole-drawing persistence is not qualified.",
+    "This receipt is a negative GUI observation only; it does not promote a support claim or resolve AC1012 semantics.",
+    "All generated source and output DXFs remain in scratch storage; no fixture was added to the repository."
+  ]
+}

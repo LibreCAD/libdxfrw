@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "DWG-origin CELLSTYLEMAP end-to-end graph export/readback",
+  "mode": "Generated ASCII/Binary dx_iface fileExport-to-fileImport graph test",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "5abc1354fdc79828b6f0a368b5c37e6ff6c657630423cb4180f79d8f3c3372c0",
+  "authoritativeReferences": [
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "sections": ["20.4.101 TABLESTYLE", "20.4.102 CELLSTYLEMAP"],
+      "pages": "244-246",
+      "finding": "Defines the TABLESTYLE and CELLSTYLEMAP objects and the extension-dictionary association used by the generated owner graph."
+    },
+    {
+      "title": "LibreDWG DXF marker mapping and importer",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg2.spec",
+      "finding": "Peer schema cross-check for CELLSTYLEMAP body markers only; does not establish independent runtime acceptance."
+    }
+  ],
+  "implementation": {
+    "changes": [
+      "Allowed the DWG-origin CELLSTYLEMAP route through preflight after rooted-graph closure; DXF-origin maps remain refused pending raw/typed replay equivalence.",
+      "Staged CELLSTYLEMAP handles for preallocation and emitted each map after its owning TABLESTYLE.",
+      "Added generated ASCII/Binary end-to-end adapter tests for NOD→ACAD_TABLESTYLE dictionary→TABLESTYLE→extension DICTIONARY→canonical map edge, followed by library readback.",
+      "Verified typed/raw map retention, map identity/name, canonical edge count, and TABLESTYLE/dictionary/map parent agreement."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/cellstylemap-dwg-origin-end-to-end-graph-fast-slice-2026-10-22.json",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2 (-Werror)",
+    "endToEndSelector": "PASS: --cell-style-map-dxf-writer generated ASCII/Binary fileExport→fileImport graph tests",
+    "focusedCtest": "PASS: libdxfrw_cellstylemap_dxf_writer (1/1)",
+    "dxfOriginGate": "PASS: --cell-style-map-typed-capture-fail-closed still rejects unqualified DXF-origin replay before publication",
+    "compatibility": "PASS: cmake --build build-gcc --target lc3_compat_check --parallel 2",
+    "diffCheck": "PASS: scoped diff check for affected implementation/test/plan files",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "independentDxfReaderRun": 0,
+    "dwgOriginCellStyleMapGraphExportEnabled": true,
+    "dxfOriginCellStyleMapReplayEnabled": false,
+    "independentSemanticAcceptanceEstablished": false,
+    "supportClaimsPromoted": 0,
+    "remainingLocalWork": [
+      "Implement DXF-origin exact raw/typed matching or fail-closed raw-only replay and test same-version import/export/readback."
+    ],
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Independent reader interpretation of the generated CELLSTYLEMAP graph",
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  },
+  "researchConclusion": {
+    "resolved": "The DWG-origin adapter path now emits a rooted CELLSTYLEMAP object graph and reads it back in generated ASCII and Binary DXF with matching canonical key and ownership closure.",
+    "unresolved": "DXF-origin map replay, independent-reader acceptance, native CAD qualification, and external semantic evidence remain incomplete; this slice does not establish broad support parity."
+  }
+}

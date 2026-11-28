@@ -1,0 +1,121 @@
+{
+  "status": "bounded ALIGNED change; selected graph, not whole-file qualification",
+  "base_commit": "9586a614",
+  "problem": "DXF output drops nonzero group 52 extension-line rotation from ALIGNED DIMENSION records.",
+  "authority": {
+    "dwg": "ODA v5.4.1 section 20.4.25 lists extension-line rotation for ALIGNED.",
+    "dxf_aligned": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbAlignedDimension__setOblique_double.html",
+    "dxf_linear": "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-F0004556-493C-48D5-8619-61D6ADF05C04.htm"
+  },
+  "change": "Emit an existing nonzero ALIGNED oblique field as group 52 inside AcDbAlignedDimension. LINEAR emission and other subtypes are unchanged. Refuse a nonfinite newly emitted ALIGNED value before writing, latch failure, preserve destination and permit corrected same-writer retry. R12 remains unsupported as before.",
+  "physical_source": "An authored seven-subtype DXF contains LINEAR 52=20 degrees and ALIGNED 52=25 degrees. ODA AC1024 DWG and AC1027 DXF return those values; LibreDWG independently observes the corresponding wire radian values. ODA invocation provenance is a manually observed join. The author helper recreates the geometry and field values but does not promise byte-identical metadata.",
+  "output_evidence": "The probe imports the ODA-returned DXF and selects seven dimensions, required picture blocks and source tables into an authored graph. It resets source owners and adds a named-block copy and GROUP. Independent raw-tag inspection confirms selected ASCII/Binary LINEAR and ALIGNED 52 values 20/25 in AcDbAlignedDimension; GROUP remap and named block are checked. ODA converts those selected files to AC1024 DWG and back to AC1027 DXF, retaining 20/25. This does not qualify full source-file output or other native applications.",
+  "compatibility_limit": "ezdxf 1.4.5 directly reports zero for both selected group-52 values while they reside in AcDbAlignedDimension; its independent raw-tag reader confirms both stored values and ODA roundtrip restores them. A separately matched group-placement control confirms ezdxf observes values in AcDbDimension, while ODA accepts both locations. The implementation preserves Autodesk-documented AcDbAlignedDimension placement and does not change existing LINEAR bytes; no claim of direct ezdxf semantic compatibility is made.",
+  "tests": "Fixture-free structural and typed-reader controls cover AC1015/1018/1021/1024/1027/1032 in ASCII/Binary. LINEAR and ALIGNED nonzero values appear in AcDbAlignedDimension; five other standard subtypes and zero defaults emit no group 52. R12 refusal and nonfinite ALIGNED write with ignored callback failure each preserve a destination sentinel; same-writer corrected retry succeeds.",
+  "commands": {
+    "build": "cmake -S /private/tmp/dim-oblique/work -B /private/tmp/dim-oblique/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DLIBDXFRW_BUILD_TESTS=ON && cmake --build /private/tmp/dim-oblique/build --target libdxfrw_dxf_dimension_oblique_tests libdxfrw_test_adapter -j4",
+    "test": "ctest --test-dir /private/tmp/dim-oblique/build -R '^libdxfrw_dxf_dimension_oblique$' --output-on-failure",
+    "author": "<ezdxf-python> work/tools/author_dimension_oblique.py <output.dxf>",
+    "probe": "/private/tmp/dim-oblique/probe <ODA-returned-source.dxf> <selected-output.dxf> <ascii|binary>",
+    "audit": "<ezdxf-python> -B work/tools/audit_dimension_oblique.py --dwg <source.dwg> --dwg-sha256 <sha> --source <ODA-source.dxf> --source-sha256 <sha> --selected <selected.dxf> --selected-sha256 <sha> --returned <ODA-returned.dxf> --returned-sha256 <sha> --dwgread /opt/homebrew/bin/dwgread"
+  },
+  "artifacts": [
+    {
+      "path": "/private/tmp/dim-oblique/oblique.patch",
+      "sha256": "f4f085f28445703077ba821a4fca6e42966d2b537a19be39e22258b8e8e6d576"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/work/src/libdxfrw.cpp",
+      "sha256": "bdb8ca5c7c384896f21c134ddae3afedebf473d688668a7c208e3f26bbde1297"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/work/tests/CMakeLists.txt",
+      "sha256": "28c262db1d474374fa3d011ef7d8945e93934c109ae722954eeb491ffe46a35c"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/work/tests/dxf_dimension_oblique_tests.cpp",
+      "sha256": "85776518e9b074c0d8c250164eed6685e367aecccd879ffde975964df4334464"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/work/tools/author_dimension_oblique.py",
+      "sha256": "384c6bc3b3387c7fdebbbf4f6725605d09eb0a1a410415767c2f6c4e95f662a2"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/work/tools/probe_dimension_oblique.cpp",
+      "sha256": "c39603937b98b5461956928a2eeee4f69f2de4851b6ef6916dd535b7402b28fe"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/work/tools/audit_dimension_oblique.py",
+      "sha256": "6a300af30b8cb0d1a2412bdc29d3cded0bb3204b4b69b5be1883dfaf4c020ed9"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/selected-ascii.dxf",
+      "sha256": "d6edc5cb98d37c56fbfe2e4c75cebcabdcbc916f943ae4c168eb5dc8f884e631"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/selected-binary.dxf",
+      "sha256": "b45ea767b5655fb191a3f598f15436eae14910dd69cb14b28a528a136e211da6"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/final-out/ascii.dxf",
+      "sha256": "a788bc65f82cb107485bf7638336f7ed8b848fc4c3495a6c550b0474ee0241db"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/final-out/binary.dxf",
+      "sha256": "e2802b87609a310e86b611660952729e6efb89d717e85f0cb415364d15672679"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/final-dwg/ascii.dwg",
+      "sha256": "5aea53ebed86bb8f2c93402b2f6252f48032dea8fe518b3ef2fb91c371c60920"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/final-dwg/binary.dwg",
+      "sha256": "7ea42358ae63b99016b401a55f47a52954e6fbc3c3ec3d859045300821554188"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/placement-in/common.dxf",
+      "sha256": "3df833395ce792792e8e59ab1a4f6cf89d88690a75cd58eae76419d94e9d6178"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/placement-in/aligned-record.dxf",
+      "sha256": "016bb2241ab174a8de7c7fe73bf1927deff19b72d42f07e9afed1f6e412c4c6d"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/placement-out/common.dxf",
+      "sha256": "a5176ec85260fde2988eb2b4eb9f7c03522db4ab9855302cdeb901acc0aae9e3"
+    },
+    {
+      "path": "/private/tmp/dim-oblique/placement-out/aligned-record.dxf",
+      "sha256": "1eff565b9a00edbcf682cdae7158c699e503bd2225e6550268a716a5e93f91b3"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/oblique-in/all.dxf",
+      "sha256": "df7437eefb37f3d2b265f2f6ee51b3b65e576f6ecc84ff6457b432cd7d24bb98"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/oblique-dwg/all.dwg",
+      "sha256": "04acc2243f4f5402155d09e322442f24c7c0e008c7ca3fba1d77a50874c582dc"
+    },
+    {
+      "path": "/private/tmp/dim-common-angle/oblique-out/all.dxf",
+      "sha256": "5c61d565b56b265f86c45c98478cecead858d2835b20f9ea5a142be10c5e8c3e"
+    },
+    {
+      "path": "/opt/homebrew/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    }
+  ],
+  "integrated_validation": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_dimension_oblique$' --output-on-failure: 1/1 passed; selected ASCII producer/ODA audit passed.",
+  "integrated_files": {
+    "src/libdxfrw.cpp": "bdb8ca5c7c384896f21c134ddae3afedebf473d688668a7c208e3f26bbde1297",
+    "tests/CMakeLists.txt": "28c262db1d474374fa3d011ef7d8945e93934c109ae722954eeb491ffe46a35c",
+    "tests/dxf_dimension_oblique_tests.cpp": "85776518e9b074c0d8c250164eed6685e367aecccd879ffde975964df4334464",
+    "tools/author_dimension_oblique.py": "384c6bc3b3387c7fdebbbf4f6725605d09eb0a1a410415767c2f6c4e95f662a2",
+    "tools/probe_dimension_oblique.cpp": "c39603937b98b5461956928a2eeee4f69f2de4851b6ef6916dd535b7402b28fe",
+    "tools/audit_dimension_oblique.py": "6a300af30b8cb0d1a2412bdc29d3cded0bb3204b4b69b5be1883dfaf4c020ed9"
+  }
+}

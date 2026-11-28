@@ -1,0 +1,116 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "FreeCAD ACIS sidecar and renderer-lineage boundaries",
+  "mode": "Deeper/broader primary-source review; research-only plan update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile current stock FreeCAD DXF/DWG consumer documentation with its distinct importer backends and ACIS limitations.",
+    "Screen InventorLoader as a possible open-source SAT/SAB-to-FreeCAD route and determine its exact evidence boundary and readiness risks.",
+    "Screen ProGPU's 3D renderer and SAB projection claims for DWG/DXF parser lineage and B-rep semantic evidence eligibility.",
+    "Update existing composed-gate readiness without adding local findings, dependencies, fixtures, routine peer runs, or external-only status changes."
+  ],
+  "method": {
+    "kind": "Read-only review of primary project documentation, source pages, issue reports, and existing local plan entries",
+    "sourcePagesMutableUnlessPinned": true,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "issueAttachmentsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "localTestsRun": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "The reviewed project pages and issue reports do not establish runtime behavior. InventorLoader's cited failures are reporter observations and were not reproduced. ProGPU's SAB description is project documentation, not an independently executed parser result. No exact immutable InventorLoader or ProGPU runtime artifact was selected; any future result requires commit/build pinning."
+  },
+  "sources": [
+    {
+      "project": "FreeCAD",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "observed": "The current documentation lists separate C++ and legacy DXF importer scopes: only the legacy list names 3DFACE. The DXF page says stock FreeCAD cannot read embedded ACIS/SAT solids. DWG import is converter-to-DXF followed by the selected importer; the DWG page identifies CADExchanger as its current 3D-DWG route.",
+      "evidenceClass": "primary consumer documentation; no FreeCAD runtime run",
+      "evidenceCeiling": "Defines stock consumer applicability and backend-specific object scope; does not qualify libdxfrw carrier bytes or ACIS semantics."
+    },
+    {
+      "project": "InventorLoader",
+      "urls": [
+        "https://github.com/jmplonka/InventorLoader/blob/master/README.md",
+        "https://github.com/jmplonka/InventorLoader/blob/master/importerDXF.py",
+        "https://github.com/jmplonka/InventorLoader/blob/master/Acis.py",
+        "https://github.com/jmplonka/InventorLoader/issues/103",
+        "https://github.com/jmplonka/InventorLoader/issues/100"
+      ],
+      "observed": "The README declares SAT/SAB and DXF 3D-solid import, GPL-2.0, no SAT/SAB/DXF export, and limitations for blending surfaces, some helix surfaces, and law-defined curves without spline data. importerDXF.py uses ezdxf to read ACIS-bearing DXF entity payloads, sends sat/sab bytes to the add-on's AcisReader, then routes geometry through FreeCAD Part's native or STEP strategy. Open #103 reports a simple SAT body failing face recognition. Open #100 reports FreeCAD 1.1 dev build hash 5e4fe3a and InventorLoader 1.5.1 raising KeyError: 3 for native DXF import and returning an empty document for STEP mode; the linked attachment was not retrieved.",
+      "evidenceClass": "primary project source and reporter issue bodies; no add-on, payload, or runtime execution",
+      "evidenceCeiling": "Optional independent parser route for inline DXF SAT/SAB only, using FreeCAD's kernel; not a DWG reader, AcDs resolver, stock FreeCAD route, complete-geometry claim, or independent-kernel vote."
+    },
+    {
+      "project": "ProGPU",
+      "urls": [
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/docs/PROGPU_CAD_ARCHITECTURE.md",
+        "https://github.com/wieslawsoltes/ProGPU/blob/main/DXF.md"
+      ],
+      "observed": "Project architecture assigns DWG/DXF object-model parsing to its ACadSharp dependency and presentation/rendering to ProGPU. Its SAB description reconstructs edges and endpoint coordinates for 3D projection, with a tagless sequential fallback; it does not describe complete face/surface topology or B-rep validity.",
+      "evidenceClass": "primary project architecture and implementation-description pages; no runtime execution",
+      "evidenceCeiling": "ACadSharp-lineage application/renderer; at most a narrow projected-edge visual observation, not an independent file parser or solid semantic oracle."
+    },
+    {
+      "project": "Local libdxfrw parity plan",
+      "urls": [
+        "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+      ],
+      "observed": "The existing plan already separates stock FreeCAD 2D consumer qualification, raw ACIS/AcDs carrier preservation, external ACIS semantic evidence, and LibreCAD/LibreCAD_3 compatibility. This review adds InventorLoader only as an optional source-distinct DXF-carrier candidate and excludes ProGPU from independent parser/semantic counts.",
+      "evidenceClass": "local plan crosswalk",
+      "evidenceCeiling": "Readiness refinement only; no implementation support claim changes."
+    }
+  ],
+  "planCrosswalk": [
+    {
+      "route": "Stock FreeCAD DXF/DWG import",
+      "classification": "REQUIRED_PLATFORM_CONSUMER / ENTITY-SCOPE-BOUND",
+      "planUse": "Keep exact converter, intermediate DXF, importer backend, platform, object identity, and geometry result separate. ACIS solids are consumer-not-applicable for the stock importer; legacy 3DFACE import does not imply general solid support."
+    },
+    {
+      "route": "InventorLoader DXF SAT/SAB import",
+      "classification": "OPTIONAL_INDEPENDENT-PARSER_CANDIDATE / FREECAD-KERNEL-SHARED / NOT_QUALIFIED",
+      "planUse": "At one composed gate only, pin add-on commit and FreeCAD build, run generated SAT and SAB controls, report per-entity carrier hash and per-body outcome, and compare predeclared analytic metrics. Separate native and STEP modes. Do not infer DWG AcDs section, key, owner association, or payload closure."
+    },
+    {
+      "route": "ProGPU DXF/DWG rendering",
+      "classification": "ACADSHARP-LINEAGE_RENDERER / EDGE-PROJECTION-ONLY",
+      "planUse": "Do not count as an independent parser or B-rep semantic vote. Optional visual checks require exact app and ACadSharp pins and only apply to projected edge content."
+    }
+  ],
+  "planImpact": {
+    "findingSubplanTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "externalOnlyItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "supportPromotions": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "dependenciesAdded": 0,
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "validationCadenceChanged": false,
+    "implementationOrderChanged": false,
+    "implementationSpeed": "Keep the add-on probe optional and composed; mark NOT_RUN if the pinned environment is unavailable or preflight fails, and continue local fast slices without waiting on it."
+  },
+  "repositoryState": "Plan and research receipt are uncommitted in a broadly modified shared worktree. No Git staging or commit was attempted."
+}

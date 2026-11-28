@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ACIS-history traversal index compaction",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Remove duplicate per-node visited membership storage from ACIS-history proxy traversal.",
+    "Preserve repeated-owner skipping and conflicting-owner rejection, including cycles."
+  ],
+  "sourceChange": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "function": "collectAcdsHistoryProxyGraph",
+    "before": "Store first-seen handles and expected owners in one unordered_map, then also store every visited handle in a separate unordered_set.",
+    "after": "Use the expected-owner map insertion result as the visited test; skip a repeated same-owner handle and reject a conflicting-owner handle.",
+    "effect": "Removes one hash-set node per admitted history object while preserving traversal decisions and fail-closed cycle/owner behavior."
+  },
+  "testChange": {
+    "file": "tests/dwg_local_roundtrip_tests.cpp",
+    "function": "runDxfAcdsHistoryClosureRejectsMalformedEdges",
+    "change": "Added a generated history self-cycle case that keeps typed and raw reference handles consistent and requires refusal without destination publication."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+        "result": "passed",
+        "count": "1/1",
+        "elapsedSeconds": 3.51,
+        "coverageNote": "The owning generated local DWG round-trip CTest runs the positive AC1027 proxy-history projection and malformed-edge matrix including the new self-cycle refusal."
+      }
+    ],
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, tests/dwg_local_roundtrip_tests.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Advances the 7S.2c repeated-work/storage audit with a generated cycle control; feature support, format behavior, test cadence, and external qualification remain unchanged. The implementation goal remains active."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict local DWG round-trip target build",
+      "Owning generated local DWG round-trip CTest"
+    ],
+    "limitations": "This is a bounded in-memory traversal change; it does not establish whole-process memory, performance, DWG/DXF, or 3D support qualification."
+  }
+}

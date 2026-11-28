@@ -1,0 +1,169 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "DXF DICTIONARY entry-kind preservation and FIELD route",
+  "mode": "Primary-source web research plus local source audit; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Separate DICTIONARY flag 280, entry handle codes 350/360, owner topology, and FIELD internal references.",
+    "Compare current Autodesk references with ezdxf and ACadRust source/release behavior.",
+    "Refine the existing PAR-20/7G implementation sequence around preserving per-entry source edge codes without adding fixtures or test lanes."
+  ],
+  "sources": [
+    {
+      "name": "Autodesk current DICTIONARY DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "observations": [
+        "Documents group 280 as dictionary hard-owner flag, 281 as duplicate-cloning policy, and group 350 as the entry object handle.",
+        "Does not state that flag 280 determines the code of every dictionary entry."
+      ]
+    },
+    {
+      "name": "Autodesk general DXF group-code ranges",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/OARX-DevGuide/files/GUID-A0E46BAC-ECE3-4E31-854A-3616A532C826.htm",
+      "observations": [
+        "Classifies 350-359 as soft-owner IDs and 360-369 as hard-owner IDs."
+      ]
+    },
+    {
+      "name": "Autodesk AutoCAD 2012 DXF reference",
+      "url": "https://images.autodesk.com/adsk/files/autocad_2012_pdf_dxf-reference_enu.pdf",
+      "observations": [
+        "Its DICTIONARY group-code table likewise lists flag 280 separately from entry group 350.",
+        "Separates flag 281 cloning semantics from flag 280 hard-owner semantics."
+      ]
+    },
+    {
+      "name": "Autodesk FIELD DXF reference and developer description",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm",
+        "https://blog.autodesk.io/how-to-find-all-fields-in-a-drawing/"
+      ],
+      "observations": [
+        "FIELD child handles use group 360 and expression object IDs use group 331.",
+        "NOD ACAD_FIELDLIST to FIELDLIST is distinct from an entity extension dictionary's ACAD_FIELD to FIELD route."
+      ]
+    },
+    {
+      "name": "ACadRust v0.6.5 release and writer source",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases",
+        "https://raw.githubusercontent.com/hakanaktt/acadrust/main/Cargo.toml",
+        "https://github.com/hakanaktt/acadrust/blob/main/src/io/dxf/writer/section_writer.rs",
+        "https://docs.rs/crate/acadrust/0.5.5"
+      ],
+      "revision": "GitHub release v0.6.5 dated 2026-10-18; current source package version 0.6.5; earlier v0.5.5 note accessed for history",
+      "observations": [
+        "v0.6.5/current writer combines dictionary-wide hard-owner state with per-entry/canonical hard-owner state.",
+        "Its current source comment names ACAD_FIELD, ACAD_LAYOUT, and ACAD_PLOTSTYLENAME as canonical hard-owner keys and claims cross-application agreement.",
+        "The earlier v0.5.5 release note explicitly describes ACAD_FIELD and a BricsCAD comparison; this narrower earlier note does not independently verify all three current canonical keys."
+      ],
+      "limits": [
+        "No ACadRust executable or native CAD consumer was run; source comments are not independent interoperability evidence.",
+        "The broader current-source claim conflicts with the generic Autodesk DICTIONARY table and earlier BricsCAD audit evidence, so no universal key rule is adopted."
+      ]
+    },
+    {
+      "name": "ezdxf current DICTIONARY implementation and docs",
+      "urls": [
+        "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dictionary.py",
+        "https://ezdxf.readthedocs.io/en/stable/dxfobjects/dictionary.html"
+      ],
+      "revision": "Mutable master/stable documentation snapshot accessed 2026-10-20",
+      "observations": [
+        "The parser accepts both group 350 and 360 entry handles.",
+        "The implementation stores one dictionary-level value code, updated as each entry is loaded, then exports all dictionary entries with that one code.",
+        "A mixed-code dictionary therefore cannot be validated by ezdxf rewrite fidelity; output can depend on the final encountered edge."
+      ],
+      "limits": [
+        "Mutable master source was not pinned to a full commit in this pass and is not used as a normative oracle."
+      ]
+    },
+    {
+      "name": "LibreDWG release history and current writer source",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/out_dxf.c"
+      ],
+      "observations": [
+        "NEWS contains a historical DICTIONARY hard_owner 350/360 writer fix.",
+        "The current writer contains generated/macro-based object output, but current key-by-key behavior was not executed or independently recovered in this research pass."
+      ],
+      "limits": [
+        "Historical release notes do not establish present output behavior or an expected-value rule."
+      ]
+    },
+    {
+      "name": "Local libdxfrw parser/writer/test source",
+      "paths": [
+        "src/drw_objects.cpp::DRW_Dictionary::parseCode",
+        "src/drw_objects.h::DRW_Dictionary::Entry",
+        "src/libdxfrw.cpp::dxfRW::writeDictionary",
+        "src/libdxfrw.cpp::dxfRW::writeObjects",
+        "tests/dwg2dxf_adapter_tests.cpp::populateAutoCadFieldGraph",
+        "tests/dwg2dxf_adapter_tests.cpp::validateAutoCadFieldGraph"
+      ],
+      "revision": "Shared worktree source inspected 2026-10-20",
+      "observations": [
+        "The parser accepts group 350 and 360 but Entry stores only name and handle.",
+        "Ordinary dictionary writers choose 360 when hardOwner is 1 and 350 otherwise; the generated NOD uses a separate group-350 path.",
+        "The current typed model cannot preserve mixed per-entry edge kinds across parse/write."
+      ],
+      "limits": [
+        "The source audit did not run a generated parse/write control; reproduce output loss in the owning fast test before making production code changes.",
+        "dx_iface intentionally refuses FIELD/FIELDLIST serialization; a low-level writer test must not imply adapter support."
+      ]
+    }
+  ],
+  "assessment": {
+    "sourceConfirmedRoundTripInformationLossPath": true,
+    "generatedOutputRegressionReproduced": false,
+    "newConfirmedExternalConsumerFailure": 0,
+    "newFindingIds": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-20/7G: preserve each parsed DICTIONARY entry's 350/360 edge kind independently of group 280.",
+      "PAR-20/7G: keep construction defaults, the regenerated NOD route, and the ACAD_FIELD extension-dictionary candidate as separate policies.",
+      "PAR-20/7G: use literal ASCII/Binary output scans for edge code and typed readback only for structural graph closure."
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "Autodesk's documented generic DICTIONARY table does not exclude producer-specific 360 entries.",
+    "ACadRust v0.6.5's broader canonical-key claims were not validated against raw AutoCAD, ODA, or LibreDWG output in this pass.",
+    "ezdxf's mutable source accepts 350/360 but stores one value code per dictionary; it is not a per-entry preservation oracle.",
+    "No generated local reproduction, peer runtime, native application, external sample, or full suite was used."
+  ],
+  "validation": {
+    "localTestsRun": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "fullSuiteRun": false,
+    "receiptJsonValidation": "PASS (jq empty)",
+    "scopedDiffCheck": "PASS (plan diff and receipt whitespace check)",
+    "commitCreated": false
+  }
+}

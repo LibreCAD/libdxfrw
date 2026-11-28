@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "BLOCK_RECORD XDATA write and dependency-closure fast slice",
+  "mode": "generated local implementation validation",
+  "scope": [
+    "Verify the concrete adapter transfers imported BLOCK_RECORD XDATA into the pending DXF writer record",
+    "Verify ordered typed XDATA and code-1005 source-handle remapping in ASCII and Binary AC1021 output",
+    "Verify missing-APPID refusal preserves the destination and supports corrected retry on the same writer"
+  ],
+  "method": {
+    "seedFixture": "tests/fixtures/dxf/block_record_preview_r2007.dxf",
+    "seedFixtureTracked": true,
+    "generatedProfiles": ["AC1021 ASCII DXF output", "AC1021 Binary DXF output"],
+    "generatedInputMutatedInMemory": true,
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "newCtestRegistrations": 0,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "limitations": "The source and both outputs are handled by this libdxfrw checkout. The generated controls prove local adapter/writer/refusal/readback behavior and handle closure, not independent-producer conformance or native application acceptance."
+  },
+  "implementation": {
+    "sourceFiles": [
+      "dwg2dxf/dx_iface.h",
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "selector": "--block-record-xdata-roundtrip",
+    "behavior": "The concrete adapter forwards DRW_Block_Record XDATA. The writer owns a pending copy, validates required APPIDs before output publication, emits the ordered XDATA values, and remaps code-1005 references through the source-to-output entity map.",
+    "positiveControls": [
+      "Existing BLOCK_RECORD preview fixture is augmented in memory with two APPIDs and ordered groups 1001, 1000, 1005, 1001, and 1010/1020/1030.",
+      "Code 1005 points to a LINE inside PREVIEW_BLOCK; output readback compares it with the actual emitted LINE handle.",
+      "AC1021 ASCII and Binary exports both preserve XDATA order and typed values.",
+      "A following SENTINEL_BLOCK retains its own empty XDATA and both block-body LINE sentinels survive."
+    ],
+    "negativeControls": [
+      "Removing a required APPID makes output fail before replacing a destination sentinel.",
+      "Restoring the APPID allows a successful retry on the same writer instance."
+    ]
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4",
+      "build-gcc/libdxfrw_dxf_fixture_tests --block-record-xdata-roundtrip",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dxf_fixtures$' --output-on-failure",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/block-record-xdata-write-closure-fast-slice-2026-10-19.json"
+    ],
+    "results": {
+      "build": "PASS",
+      "focusedSelector": "PASS",
+      "owningCTest": "PASS (1/1, 3.83 seconds)",
+      "scopedDiffCheck": "pending after receipt/plan edit",
+      "fullSuiteRun": false
+    }
+  },
+  "planImpact": {
+    "findingCountChanged": false,
+    "subplanCountChanged": false,
+    "implementationQueueChanged": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    }
+  }
+}

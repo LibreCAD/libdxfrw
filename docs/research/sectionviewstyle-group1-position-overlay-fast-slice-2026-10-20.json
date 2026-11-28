@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "SectionViewStyle group-1 identifier and arrow position insertion",
+  "mode": "generated local implementation slice",
+  "scope": [
+    "Insert omitted repeated group-1 code-90 fields from the typed SectionViewStyle model",
+    "Preserve ordinal semantics when the edited arrow position follows an omitted default identifier position",
+    "Verify same-version ASCII and Binary DXF raw carrier order and typed readback"
+  ],
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "The SectionViewStyle overlay now inserts missing IdentifierPosition and ArrowPosition values through the highest edited occurrence. Arrow-only edits emit the current/default identifier position as the first repeated code-90 value. Missing non-default positions without an explicit representable insertion continue to fail closed.",
+    "generatedControl": "The existing --modeldoc-view-style-callbacks control removes both SectionViewStyle group-1 code-90 values, verifies default typed positions on import, edits only ArrowPosition to 3, and asserts raw code-90 order [0, 3], typed readback [0, 3], raw style replay, resource-reference closure, and following POINT continuity for ASCII and Binary DXF.",
+    "persistentFixtureAdded": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2 — passed",
+    "focusedSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --modeldoc-view-style-callbacks — passed for ASCII and Binary",
+    "owningCtest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeldoc_view_style_callbacks$' --output-on-failure — passed, 1/1",
+    "fullSuite": false,
+    "peerOrNativeRun": false,
+    "scopedDiffCheck": "git diff --check passed for DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, dwg2dxf/dx_iface.cpp, and tests/dwg2dxf_adapter_tests.cpp",
+    "jsonValidation": "jq empty passed for both 2026-10-20 receipts"
+  },
+  "planImpact": {
+    "findingAdded": false,
+    "topLevelSubplanAdded": false,
+    "findingCount": 141,
+    "topLevelSubplanCount": 78,
+    "supportPromotion": false,
+    "jItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "next": "Continue the next local-ready PAR-138 slice; no external or full-suite qualification is required for this generated field-insertion item."
+  },
+  "limitations": [
+    "Generated in-process read/write tests do not establish independent DXF parser acceptance or behavior in a native CAD application.",
+    "The worktree is broadly dirty; unrelated changes were preserved.",
+    "Git metadata is read-only, so no staging or commit was possible."
+  ]
+}

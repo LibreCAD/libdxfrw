@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-dictionary-default-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Connect AC1024 DICTIONARYWDFLT and PLACEHOLDER callback identities to strict output qualification",
+  "status": "2_CALLBACK_IDENTITIES_QUALIFIED_STRICT_GATE_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "records": [
+      {
+        "objectType": 500,
+        "record": "ACDBDICTIONARYWDFLT",
+        "class": "AcDbDictionaryWithDefault",
+        "handle": "0xE"
+      },
+      {
+        "objectType": 80,
+        "record": "<unnamed fixed type>",
+        "class": "<none>",
+        "handle": "0xF",
+        "typedPeer": "ACDBPLACEHOLDER"
+      }
+    ],
+    "profile": "NOD ACAD_PLOTSTYLENAME -> DICTIONARYWDFLT E; Normal/default -> PLACEHOLDER F; reciprocal owner and reactor references.",
+    "fixturePolicy": "Existing repository DWG only; temporary DXF outputs and probes were kept outside Git. No fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h"
+    ],
+    "summary": "Capture a source-bound AC1024 snapshot only when the type-500 callback, its typed DICTIONARYWDFLT model, type-80 callback and typed PLACEHOLDER model form the admitted physical pair. During OBJECTS finalization, inspect the exact staged DICTIONARYWDFLT fields, NOD root target, PLACEHOLDER handle/owner/reactor byte sequence and record identities. Recheck source models and callback frames before publication, then qualify both callback identities atomically. Other source profiles remain unqualified.",
+    "fieldAndRoleProof": "The dictionary output is parsed from staged bytes and compared with the source-bound typed model after handle remapping, including its Normal entry, default pointer, cloning, common reactor and owner. The NOD staged dictionary contains exactly one ACAD_PLOTSTYLENAME entry targeting the emitted object. The staged PLACEHOLDER has exactly the emitted identity, ACAD_REACTORS scope and target, and owner target. The existing physical selector separately verifies fresh ASCII/Binary readback and source/output class and owner roles."
+  },
+  "qualification": {
+    "before": 205,
+    "after": 207,
+    "totalOpaqueCallbacks": 228,
+    "newlyQualified": [
+      {
+        "objectType": 500,
+        "handle": "0xE",
+        "record": "ACDBDICTIONARYWDFLT"
+      },
+      {
+        "objectType": 80,
+        "handle": "0xF",
+        "record": "ACDBPLACEHOLDER"
+      }
+    ],
+    "remaining": 21,
+    "strictExport": "Still refuses before publication with 21/228 unresolved. The failed attempt leaves the published identity set and qualification count empty.",
+    "legacyRetry": "Succeeds and atomically publishes exactly 207 source-bound identities."
+  },
+  "failureAndRetry": {
+    "negativeControl": "The existing focused selector sets the physical PLACEHOLDER reactor to NoHandle; graph preflight refuses and preserves an existing destination sentinel byte-for-byte.",
+    "retry": "Restore the physical reactor and retry on the same adapter; ASCII and Binary export and freshly import with the exact root/default/owner/reactor graph.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "physicalReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary, including root/default identity and roles, fresh readback, atomic refusal and corrected same-adapter retry. The two extension-graph preflight diagnostics are expected from the negative controls."
+    },
+    "strictGate": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_opaque_source_capture_and_strict_output_gate$' --output-on-failure",
+      "result": "PASS, 1/1."
+    },
+    "census": {
+      "command": "g++ -std=c++17 -Wall -Wextra -pedantic -Werror -I dwg2dxf -I src /tmp/libdxfrw-p4-callback-census.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /tmp/libdxfrw-p4-callback-census && /tmp/libdxfrw-p4-callback-census tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS; strict conversion refused with no published identities; legacy retry published 207/228 and reported the remaining 21. Scratch source and executable remain outside Git."
+    },
+    "fullSuites": "NOT RUN; focused physical readback, strict-gate CTest and source-bound census were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Connect the AC1024 type-500 ACDBDICTIONARYWDFLT callback to the source-rooted Normal/default object, staged output fields and exact emitted identity.",
+      "Connect the paired AC1024 type-80 callback to the typed PLACEHOLDER output identity, owner/reactor bytes and fresh ASCII/Binary readback."
+    ],
+    "nextPacket": "Connect the remaining AC1024 SORTENTSTABLE callback only where its source membership and complete emitted output are bound in the same transaction; keep other identities unqualified.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "e4e5a5273b77f85e023db5c29571dc6295bb472134fde649633b2d47014b724c",
+    "dwg2dxf/dx_iface.h": "0e30fd2f170b9da537e8da018ef9bc33cd3442978331d8a9d2c0fb764a699a14",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "56db60ac534e209fb39f6a0ecac6d94addc26b6155b235293fcdcd61083b8"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schema": "selected-attribute-material-roles-v1",
+  "date": "2026-10-28",
+  "codeCommit": "92e74f81",
+  "sourceAndExecutableSha256": {
+    "src/drw_entities.cpp": "b20b0d574998cd2baaee11dc5f3f18bf92afef834a4780a182f230222cc4c804",
+    "src/drw_entities.h": "2d500aba5951a341f6bea4a7c8a2d295824021a0f2473d484ef0c71eccfaae54",
+    "src/drw_objects.cpp": "23a5a81f9ced3a84bbd784dc6f8a9ebcf04be2125944ee0d9db8d82130070ad1",
+    "src/drw_objects.h": "eba49493796ef42f9e68b53fb039dbcfecc16fc26897cc019ebbf91b67a12cf5",
+    "tests/attribute_subclass_alignment_tests.cpp": "932aa6ac223c8a32fdbde535d143dca27916bda848623b6820a7397e0477bf68",
+    "tests/material_normal_role_tests.cpp": "8affbc06d096973dfbfdc4dac9776da8ff3957675d2431d62c1fbc0d0a52ad88",
+    "tests/CMakeLists.txt": "285f6b11e6f4586f0a4ef72ef419e58cd7edfcf03597adddca201c85cb1a1a09",
+    "build/libdxfrw.a": "2d7248ebdcb958d4a2b918d27dded4c95fed3601b00b50195c815ee8b117b198",
+    "build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o": "235cdb4ed26c2384ad97b5b7d47a6b8a4f17e86d4b8fde804f65572b704f2dce",
+    "build/tests/libdxfrw_material_normal_role_tests": "b2661c00b50698eeec865e164f6810249a9a09708367a87b23346b69c3c69010",
+    "build/tests/libdxfrw_attribute_subclass_alignment_tests": "c5167b8c2170cc2a6432622533114c2e242277229d3532032465983bd09bd121",
+    "build/rpp5fa-evidence.4xKADX/asan-build/libdxfrw.a": "e61493677d7e8ce2f022613ea0624eb9a21de34e51078bedc7abae3aaf3d140d",
+    "build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_material_normal_role_tests": "39dfdad0866880f567cb490909b16ca4161631e5ac08a5e4470bb2ef04866b01",
+    "build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_attribute_subclass_alignment_tests": "ed37de7e682245e35886150b730f7e0c457e67cee45415300bd501f72e737487"
+  },
+  "material": {
+    "authoredInputSha256": "73dde2657340ba362c79b9d49439f6296008aefa24a2ce433033c23465adbab8",
+    "input": "AC1027 PeerRole-omitted-boundary, source handle 2F owner E; locally authored typed intent before first save",
+    "baseline": "normal tuple overwrote diffuse and normal presence was 000000",
+    "final": "diffuse=(0.25,0,peer-diffuse-sentinel.png,2,2,2), normal=(0.75,1,peer-normal-sentinel.png,4,3,4), normal presence 111111",
+    "finalProbeSha256": "35343dee91b33e3ee3c13f104c536413874d6f05c385f2001f6509f1e46e6810",
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+      "https://docs.rs/crate/dxf/0.5.0/source/src/object.rs"
+    ],
+    "referenceScope": "Autodesk identifies separate diffuse/normal roles; independent dxf-rs source uses repeated roles. The Rust reader was inspected, not executed.",
+    "scope": "Complete, unique diffuse tuple before refraction fields followed by a complete normal tuple with 464/465 absent. Ambiguous partial/duplicate/procedural cases are refused. Explicit marker behavior retained."
+  },
+  "attribute": {
+    "authoredInputSha256": "55a7290ed91db8e61eaed79e77218319fea8acc1c2c225a14a2b1ad8c2499aa6",
+    "input": "locally authored AC1015 ATTRIB with 71=2, 72=2, 74=1 and alignment (12,13,0) in AcDbAttribute",
+    "baseline": "textgen=0, alignH=0, alignV=1",
+    "final": "textgen=2, alignH=2, alignV=1, alignment=(12,13,0)",
+    "finalProbeSha256": "1f6fa5ecf82fb1592120fe32c4bc0c3ac5914562f42d700b2d7fea0ff4252b80",
+    "reference": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7DD8B495-C3F8-48CD-A766-14F9D7D0DD9B.htm",
+    "independentEvidence": "LibreDWG 0.14 selected fields agree; minimal source produced block/layer warnings, so the result is advisory only.",
+    "scope": "Known pre-AC1032 source version, ordinary subclass text fields and selected tolerated earlier embedded input. Unknown/late source version and AC1032 classic ambiguity remain open."
+  },
+  "checks": {
+    "normalAndASan": [
+      "libdxfrw_material_normal_roles",
+      "libdxfrw_attribute_subclass_alignment"
+    ],
+    "ASAN_OPTIONS": "halt_on_error=1:detect_leaks=0",
+    "normalAdjacent": [
+      "libdxfrw_material_normal_boundaries",
+      "libdxfrw_material_source_order",
+      "libdxfrw_mtext_column_object_scope",
+      "libdxfrw_attdef_immutable_capture",
+      "libdxfrw_attdef_source_profile"
+    ],
+    "allSelectedPassed": true,
+    "attributeCells": "24 original/readback encoding and version cells plus 8 earlier embedded input cells",
+    "materialControls": "ASCII/binary source and output, actual tags/readback, partial and duplicate refusal/retry, explicit-marker compatibility"
+  },
+  "limitations": [
+    "No external or locally authored drawing fixture committed.",
+    "Parser-state additions change public class layout; independently compiled consumers require rebuild, and binary ABI qualification remains pending.",
+    "No full suite, native rendering, platform qualification, complete document closure, or support claim promotion follows from these selected checks.",
+    "MLINESTYLE append remains unimplemented pending original/live consumer census."
+  ]
+}

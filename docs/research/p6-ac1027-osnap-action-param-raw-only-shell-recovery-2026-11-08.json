@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-ac1027-osnap-action-param-raw-only-shell-recovery-2026-11-08",
+  "date": "2026-11-08",
+  "status": "AC1027_PHYSICAL_FRAME_PUBLISHED_RAW_ONLY",
+  "supportClaimEffect": "none",
+  "scope": "Retain one hash-bound AC1027 ACDBASSOCOSNAPPOINTREFACTIONPARAM frame raw-only after typed parsing fails and its independent common shell/handle stream validates.",
+  "authority": {
+    "oda": "ODA Open Design Specification for .dwg files v5.4.1 has no named class-specific entry for AcDbAssocOsnapPointRefActionParam; this does not authorize inferring a layout from another object class.",
+    "implementationPolicy": "Use only an exact AC1027 record/class identity plus successful RawObjectShell validation. Do not promote typed fields, semantic meaning, or output eligibility."
+  },
+  "externalResearch": {
+    "officialOdaSpecification": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "check": "Search the official v5.4.1 PDF for ASSOCOSNAPPOINTREFACTIONPARAM, AssocOsnap, and ASSOCACTIONPARAM; none is present.",
+    "peerStatus": {
+      "project": "LibreDWG",
+      "source": "https://github.com/LibreDWG/libredwg/blob/master/src/objects.in",
+      "finding": "The class route is labeled UNSTABLE.",
+      "weight": "Implementation-status warning only; not normative layout evidence."
+    },
+    "effect": "No typed parser change is justified. Retain the exact raw-only frame until an authoritative schema or producer-backed field-span proof is available."
+  },
+  "implementation": {
+    "file": "src/intern/dwgreader.cpp",
+    "profile": "AC1027 / ACDBASSOCOSNAPPOINTREFACTIONPARAM / AcDbAssocOsnapPointRefActionParam only; typed parse failure; independent common-shell and handle-stream parse succeeds.",
+    "behavior": "Publish the exact frame through the raw unsupported-object callback with typedPayloadValidated=false. The action parameter has no typed callback from this recovery path."
+  },
+  "generatedControl": {
+    "file": "tests/dwg_reader_matrix_tests.cpp",
+    "method": "Two generated AC1027 action-parameter class frames use an invalid negative compound count so the typed parser fails while their independently bounded common shells remain valid. The control checks exact raw bytes/class identity, no typed callback, validated owner/reactor roles, raw carrier disposition, and second-frame recovery.",
+    "fixturesAdded": 0
+  },
+  "physicalSource": {
+    "path": "/private/tmp/example_2013.dwg",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "version": "AC1027",
+    "provenance": "Existing external public example_2013.dwg already referenced by hash-bound repository receipts; read-only, not copied into the repository.",
+    "object": {
+      "record": "ACDBASSOCOSNAPPOINTREFACTIONPARAM",
+      "class": "AcDbAssocOsnapPointRefActionParam",
+      "handle": "0x393",
+      "priorDisposition": "Typed parse failed at the bounded object frame; no raw-only recovery was enabled for this exact class profile."
+    },
+    "readback": {
+      "command": "build/dwg2dxf/dwg2dxf /private/tmp/example_2013.dwg -y -d -v2013 /private/tmp/libdxfrw-example2013-rawfallback3.dxf",
+      "logPath": "/private/tmp/libdxfrw-example2013-rawfallback3.log",
+      "logSha256": "9613c3fbd9974be8eda4020a0b473f883e3bb9e086ce7a847f35dc1dffe1e6c0",
+      "rawOnlyDiagnostic": "[assoc-action-param-raw-only class=AcDbAssocOsnapPointRefActionParam handle=915]",
+      "sourceFrames": 481,
+      "publishedFrames": 481,
+      "failedFrames": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "strictExport": "Refused before output at the existing AC1027 DWG source-reference qualification gate."
+    }
+  },
+  "validation": {
+    "build": "PASS: cmake --build build --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j2",
+    "focusedTest": "PASS: ctest --test-dir build -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure (1/1)",
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limits": [
+    "The physical object has no typed body claim; its field layout, semantic meaning, and target roles remain unresolved.",
+    "Raw-only retention does not authorize replay, selected output, strict whole-file conversion, or native consumer support.",
+    "The source still has retained HEADER integrity observations and the strict AC1027 source-reference gate blocks output despite complete frame publication."
+  ],
+  "next": "Continue with a distinct locally implementable source-backed P4/P6 slice and preserve strict output refusal until every source graph/reference gate closes."
+}

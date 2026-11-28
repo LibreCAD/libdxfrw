@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw-deeper-broader-peer-contract-and-acis-operation-review-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Recheck open-source DXF peer contracts for explicit mesh and ACIS routes; refine versioned peer admission and operation-level native acceptance readiness.",
+  "method": {
+    "kind": "Static primary-specification, project-source/documentation, and public peer-report review",
+    "sourcesOpened": [
+      "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/dxfentity.py",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/dxfentities/polyline.rst",
+      "https://github.com/mozman/ezdxf/blob/master/docs/source/tasks/add_dxf_entities.rst",
+      "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+      "https://help.autodesk.com/cloudhelp/2015/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+      "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+      "https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md",
+      "https://github.com/mozman/ezdxf/discussions/1295",
+      "https://github.com/LibreDWG/libredwg/issues/1411"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "evidenceRule": "A peer result is scoped to exact entity, file version, direction, route, and operation. Documentation and issue reports identify limits or failure modes only; they are not local reproductions or support qualification."
+  },
+  "findings": [
+    {
+      "topic": "DXF peer version export is not general conversion",
+      "evidence": [
+        "ezdxf describes itself as a DXF interface rather than a CAD application or version converter and warns that unsupported features may be ignored when exporting to a selected file version.",
+        "Its API models classic POLYLINE modes and separate MESH authoring, which do not imply that it can downgrade or preserve every entity across target versions."
+      ],
+      "disposition": "Pin exact source and target versions, literal entity identity, direction, and omission policy. Treat any explicit downgrade as a named lossy projection with per-source disposition; do not use unsupported-feature omission as evidence of local loss."
+    },
+    {
+      "topic": "Explicit mesh families require distinct comparators",
+      "evidence": [
+        "Autodesk's DXF references define AcDbSubDMesh MESH topology/crease/override fields separately from classic POLYLINE mesh and signed-index PFACE child records.",
+        "GDAL's project known-issues document lists MESH as unsupported and describes its 3DFACE OGR representation as outline-oriented."
+      ],
+      "disposition": "Retain separate MESH, SUBDIVISION, POLYMESH, POLYFACE, 3DFACE, and modeler-geometry ledger rows. A derived mesh/face/render projection is not native entity or B-rep parity."
+    },
+    {
+      "topic": "ACIS acceptance is operation-specific",
+      "evidence": [
+        "ezdxf discussion #1295 describes one mesh-authored 3DSOLID accepted by MASSPROP but failing a Dynamo Boolean-intersection workflow; the maintainer characterizes ACIS support as basic.",
+        "The public discussion does not provide an independently reproducible payload, full software configuration, or confirmed failure cause."
+      ],
+      "disposition": "Treat this as an advisory failure-mode lead only. Record file opening, display, mass-property queries, editability, and Boolean operations separately, with exact producer/application versions and independently expected outcomes."
+    },
+    {
+      "topic": "Carrier, graph, shape, and consumer outcomes stay separate",
+      "evidence": [
+        "LibreDWG issue #1411 reports an R2013+ entity shell surviving while its AcDs-hosted ACIS payload is lost in a specific build.",
+        "This is a peer report, not a current-version retest or libdxfrw reproduction."
+      ],
+      "disposition": "Retain the existing source-handle-to-carrier/owner-to-output-to-consumer chain and require separate evidence for bytes, graph closure, shape construction, validity/metrics, and operation success."
+    }
+  ],
+  "planDelta": {
+    "existingWorkPackagesRefined": [
+      "PAR-07 modeler carrier and output graph",
+      "PAR-37 / 7V POLYFACE signed topology",
+      "MESH and classic mesh version profiles",
+      "S8 peer and native-consumer admission"
+    ],
+    "implementationOrderChanged": false,
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestRegistrations": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "peerOrNativeRuntimeAdded": false,
+    "supportClaimsPromoted": 0,
+    "externalJItemsChanged": false,
+    "externalJDisposition": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planResearchOnly": true,
+    "productionBehaviorChanged": false,
+    "testsRun": false,
+    "externalSamplesDownloaded": false,
+    "scopedGitDiffCheck": true,
+    "receiptJsonParsed": true
+  },
+  "planFilesUpdated": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ]
+}

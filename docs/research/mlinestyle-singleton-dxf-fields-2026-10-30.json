@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-30",
+  "title": "MLINESTYLE DXF singleton source fields reject repeats",
+  "mode": "P2 local schema correctness slice with generated ASCII/Binary controls",
+  "baselineCommit": "e61069f5",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "d74957eb1f9ccb9833c3389405f6bcab3e69c735432b776c09a1738d34544be4",
+  "scope": [
+    "Reject duplicate singleton MLINESTYLE fields for flags (70), description (3), fill color (62 before element tuples), start angle (51), end angle (52), and declared element count (71).",
+    "Preserve repeated element tuple fields, including group 62 after element offsets begin.",
+    "Exercise malformed ASCII and Binary sources and recovery through the same dx_iface; author all controls locally in temporary scratch storage."
+  ],
+  "evidence": {
+    "sources": [
+      {
+        "title": "Autodesk MLINESTYLE DXF reference",
+        "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+        "supports": "The reference identifies groups 70, 3, 62, 51, 52, and 71 as the style fields and specifies repeated element entries for groups 49, 62, and 6. The parser distinguishes the singleton fill color 62 before tuples from repeated element colors after group 49."
+      }
+    ],
+    "sourceCreation": "Generated a minimal rooted MLINESTYLE source locally, introduced one duplicate field at a time in ASCII and Binary, and removed the temporary directory after the focused test. No persistent drawing fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "DRW_MLineStyle::parseCode tracks singleton-field presence and refuses repeats. Existing element-count and fill-color guards share the same private presence mask; repeated tuple groups retain their per-element parsing behavior.",
+    "behaviorChanges": [
+      "Repeated groups 70, 3, 51, and 52 no longer overwrite earlier values.",
+      "A second pre-tuple fill-color group 62 is rejected while per-element group 62 remains valid.",
+      "A repeated declared element count group 71 is rejected.",
+      "The same adapter successfully imports a corrected valid source after malformed attempts."
+    ],
+    "publicApiOrLayoutChanged": false,
+    "persistentFixturesAdded": 0,
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dxf_fixture_tests -j4",
+      "ctest --test-dir build -R '^(libdxfrw_mlinestyle_duplicate_singleton_fields|libdxfrw_mline_style_authority)$' --output-on-failure",
+      "git diff --check"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS with the configured -Werror build.",
+      "focusedCTest": "PASS 2/2; duplicate singleton fields and MLINESTYLE authority regression passed.",
+      "broaderTransactionSelector": "FAILS at the existing MLINE LTYPE late-mutation assertion (tests/dxf_fixture_tests.cpp:42854). The same failure was reproduced after temporarily restoring the parser files to HEAD, so it is independent of this slice.",
+      "fullSuite": "NOT_RUN per fast-validation plan.",
+      "nativeCadOrIndependentConsumer": "NOT_RUN."
+    }
+  },
+  "limitations": [
+    "This validates local parser schema handling only; it does not resolve remaining MLINESTYLE edits, retargets, offsets, or transaction behavior.",
+    "The broader MLINESTYLE transaction selector remains blocked by its source-restored baseline failure in the separate LTYPE late-mutation control.",
+    "No whole-document, platform, ABI, LibreCAD, LibreCAD_3, FreeCAD, native-producer, or rendered-semantics claim is promoted."
+  ],
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Duplicate singleton validation for the represented MLINESTYLE DXF source fields covered above.",
+    "remainingP2Scope": "Other still-failing MLINESTYLE schema/edit cases, LTYPE and XDATA dependencies, and MLEADERSTYLE non-boolean domains and handle/default/version behavior remain open.",
+    "nextImplementationPacket": "Reproduce one current MLINESTYLE edit refusal or LTYPE/XDATA dependency failure that is independent of the baseline LTYPE late-mutation test, then implement its shared source/planner/output rule.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.h": "117fea55fcea21f6090d50158c1c24918b25ca57407d77111ded041e320686f9",
+    "src/drw_objects.cpp": "e711a3bfaa65a91a7f71f97c3b07fe897a611eeafcbdf71bcb3d1f52a434cb4c",
+    "tests/dwg2dxf_adapter_tests.cpp": "cbe3c4f5048454683de76dc969df8cb5209660f451a818e9395ea25bd38ef131",
+    "tests/CMakeLists.txt": "61fb1234e2fdb95f1b30b13114ce75c7b6b29f5193d0079c09daf5d1c431537f"
+  },
+  "commitCreated": true,
+  "worktree": "Only the four listed implementation/test files, this receipt, and the plan update are part of this slice; unrelated untracked files were not staged."
+}

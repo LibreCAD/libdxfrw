@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw-deeper-broader-libredwg-release-provenance-and-dxb-scope-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refresh LibreDWG peer artifact provenance and distinguish its DXB support from ASCII/Binary DXF parity; update only existing peer-admission and format-route plan gates.",
+  "method": {
+    "kind": "Read-only review of official LibreDWG release artifacts/source and Autodesk format references, reconciled against the existing parity plan",
+    "sourcesOpened": [
+      "https://github.com/LibreDWG/libredwg/releases/tag/0.14",
+      "https://github.com/LibreDWG/libredwg/commit/d9468ae",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/releases",
+      "https://github.com/LibreDWG/libredwg/releases/tag/0.14.8597",
+      "https://github.com/LibreDWG/libredwg/blob/master/dxf-roundtrip.sh",
+      "https://github.com/LibreDWG/libredwg",
+      "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm",
+      "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-Core/files/GUID-F7BCD919-2202-4264-BF1A-534E42C1DFB3.htm",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-Customization/files/GUID-0F71C933-8933-46E9-A73C-148EFB42D8B7.htm"
+    ],
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "evidenceRule": "Release pages establish artifact identity and project claims, not conformance. Actual output magic/version, strict independent reopen, diagnostics, and record/owner/payload identity are required for any peer acceptance label. Autodesk format references define the DXF/DXB distinction; ODA v5.4.1 remains authoritative for DWG byte layout."
+  },
+  "evidence": [
+    {
+      "topic": "LibreDWG release and source-version provenance",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/releases/tag/0.14",
+        "https://github.com/LibreDWG/libredwg/commit/d9468ae",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/releases/tag/0.14.8597"
+      ],
+      "observed": [
+        "The signed 0.14 release is tagged at commit d9468ae and advertises R2004 DWG encoding.",
+        "The 0.14 release page characterizes R2010/R2013/R2018 output as experimental with CRC errors on import; NEWS says R2007 encoding falls back to R2010.",
+        "The current mutable NEWS file contains a 0.14.1 beta section dated 2026-07-25, but no signed/tagged 0.14.1 GitHub release was found.",
+        "The latest visible prerelease artifact checked was 0.14.8597 at commit 34f02f5, dated 2026-09-10; mutable master may contain later source changes."
+      ],
+      "doesNotEstablish": [
+        "that the project's release claims establish DWG conformance",
+        "that 0.14.1 NEWS is a released or immutable package",
+        "that a requested output version equals the version actually emitted",
+        "that prerelease or mutable-source output is semantically correct"
+      ],
+      "planUse": "Record release class, exact commit/tag, package/executable identity, artifact hash, platform, requested target, actual six-byte DWG magic, CRC/read diagnostics, and independent reopen separately. Permit the signed 0.14 artifact only as an optional AC1018/R2004 diagnostic; do not score R2007 fallback or experimental later-version output as positive target-version parity."
+    },
+    {
+      "topic": "DXB is distinct from ASCII and Binary DXF",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm",
+        "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-Core/files/GUID-F7BCD919-2202-4264-BF1A-534E42C1DFB3.htm",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-Customization/files/GUID-0F71C933-8933-46E9-A73C-148EFB42D8B7.htm",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "observed": [
+        "Autodesk documents Binary DXF as the full DXF group/value representation beginning with the AutoCAD Binary DXF sentinel.",
+        "Autodesk documents DXB separately as a plotting/interchange route that emits 16-bit vectors and is commonly used to flatten 3D to 2D.",
+        "LibreDWG 0.14 added DXB support; that feature does not establish Binary DXF support or full drawing semantics."
+      ],
+      "doesNotEstablish": [
+        "that DXB preserves entity/object graphs, metadata, meshes, ACIS payloads, or DWG semantics",
+        "that a DXB test covers Binary DXF group-code/value handling"
+      ],
+      "planUse": "Represent ASCII DXF, Binary DXF, and DXB as separate routes. Admit Binary DXF results only from .dxf output identified by the documented sentinel and decoded group/value stream. Treat DXB, if tested, as a separate lossy vector-projection diagnostic."
+    },
+    {
+      "topic": "Peer roundtrip independence and output identity",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg",
+        "https://github.com/LibreDWG/libredwg/blob/master/dxf-roundtrip.sh"
+      ],
+      "observed": [
+        "The README advertises broad converter coverage and approximate conversion coverage figures.",
+        "The source roundtrip script invokes ODA File Converter when available, so a LibreDWG-plus-ODA flow must be described as multiple stages, not one independent LibreDWG semantic oracle."
+      ],
+      "doesNotEstablish": [
+        "per-entity preservation from aggregate coverage percentages",
+        "independence of a same-tool read-write-read cycle",
+        "semantic acceptance from converter exit status or file existence alone"
+      ],
+      "planUse": "At the existing composed optional checkpoint, separate peer parse/output, external converter, and independent strict readback. Compare exact record/object identity, owner paths, and payload dispositions; retain aggregate counts only as secondary diagnostics."
+    }
+  ],
+  "planImpact": {
+    "documentsUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "newFindings": 0,
+    "newTopLevelImplementationSubplans": 0,
+    "newTestTargets": 0,
+    "newFixtures": 0,
+    "newDependencies": 0,
+    "newSupportClaims": 0,
+    "externalItemsPromoted": [],
+    "existingPlanTotals": {
+      "findings": 125,
+      "topLevelImplementationSubplans": 71
+    },
+    "deferredExternalItems": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "gitDiffCheckPassed": true,
+    "productionSourceChanged": false,
+    "testsRun": false,
+    "peerRuntimeRun": false,
+    "supportClaimsPromoted": 0
+  }
+}

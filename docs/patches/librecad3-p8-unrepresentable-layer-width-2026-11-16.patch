@@ -1,0 +1,72 @@
+diff --git a/persistence/libdxfrw/dxfimpl.cpp b/persistence/libdxfrw/dxfimpl.cpp
+index 345e195..d74036a 100644
+--- a/persistence/libdxfrw/dxfimpl.cpp
++++ b/persistence/libdxfrw/dxfimpl.cpp
+@@ -1679,0 +1680,7 @@ void DXFimpl::writeLayer(const std::shared_ptr<const lc::meta::Layer>& layer) {
++        // The DXF lineweight domain is discrete. A custom kernel width cannot
++        // be serialized as the default without reporting that conversion.
++        const std::string note =
++            "Layer lineweights were not retained: the width is not representable in DXF.";
++        if (std::find(_loss.notes.begin(), _loss.notes.end(), note) == _loss.notes.end()) {
++            _loss.notes.push_back(note);
++        }
+diff --git a/unittest/persistence/dxfroundtriptest.cpp b/unittest/persistence/dxfroundtriptest.cpp
+index 8eb84da..01d6f35 100644
+--- a/unittest/persistence/dxfroundtriptest.cpp
++++ b/unittest/persistence/dxfroundtriptest.cpp
+@@ -3293,0 +3294,55 @@ TEST(DxfRoundTripTest, LegacyLayerLineweightsReportLossAndKeepGeometry) {
++
++// NOLINTNEXTLINE(readability-identifier-naming)
++TEST(DxfRoundTripTest, UnrepresentableLayerWidthReportsLoss) {
++    auto doc = newDocument();
++    auto layer = std::make_shared<lc::meta::Layer>(
++        "CUSTOM_WIDTH", lc::meta::MetaLineWidthByValue(0.27),
++        lc::Color(255, 255, 255, 255));
++    std::make_shared<lc::operation::AddLayer>(doc, layer)->execute();
++    auto line = std::make_shared<lc::entity::Line>(
++        lc::geo::Coordinate(0, 0, 0), lc::geo::Coordinate(4, 3, 0), layer);
++    insertThroughBuilder(doc, {line});
++    auto otherLayer = std::make_shared<lc::meta::Layer>(
++        "SECOND_CUSTOM", lc::meta::MetaLineWidthByValue(0.37),
++        lc::Color(255, 255, 255, 255));
++    std::make_shared<lc::operation::AddLayer>(doc, otherLayer)->execute();
++    const lc::persistence::File::Type types[] = {
++        lc::persistence::File::LIBDXFRW_DXF_R12,
++        lc::persistence::File::LIBDXFRW_DXF_R14,
++        lc::persistence::File::LIBDXFRW_DXB_R12,
++        lc::persistence::File::LIBDXFRW_DXB_R14,
++        lc::persistence::File::LIBDXFRW_DXF_R2000,
++        lc::persistence::File::LIBDXFRW_DXB_R2000};
++    for (const auto type : types) {
++        const auto output = uniqueTmpDxf("unrepresentable-layer-width");
++        const auto result = lc::persistence::File::exportFile(doc, output, type);
++        ASSERT_TRUE(result.ok) << static_cast<int>(type);
++        EXPECT_EQ(std::count_if(result.loss.notes.begin(), result.loss.notes.end(),
++            [](const std::string& note) { return note.find("not representable") != std::string::npos; }), 1);
++        EXPECT_FALSE(lc::persistence::File::save(doc, output, type));
++        auto reopened = newDocument();
++        ASSERT_TRUE(lc::persistence::File::importFile(
++            reopened, output, lc::persistence::File::Library::LIBDXFRW).ok);
++        EXPECT_EQ(entitiesInDocument(reopened)["Line"], 1u);
++        ASSERT_EQ(reopened->allLayers().count("CUSTOM_WIDTH"), 1u);
++        EXPECT_NE(reopened->allLayers().at("CUSTOM_WIDTH")->lineWidth().width(), 0.27);
++        boost::filesystem::remove(output);
++    }
++    auto fixedLayer = std::make_shared<lc::meta::Layer>(
++        "CUSTOM_WIDTH", lc::meta::MetaLineWidthByValue(0.25),
++        lc::Color(255, 255, 255, 255));
++    auto fixedOther = std::make_shared<lc::meta::Layer>(
++        "SECOND_CUSTOM", lc::meta::MetaLineWidthByValue(0.25),
++        lc::Color(255, 255, 255, 255));
++    std::make_shared<lc::operation::ReplaceLayer>(doc, layer, fixedLayer)->execute();
++    std::make_shared<lc::operation::ReplaceLayer>(doc, otherLayer, fixedOther)->execute();
++    const auto retryPath = uniqueTmpDxf("corrected-layer-width");
++    const auto retry = lc::persistence::File::exportFile(
++        doc, retryPath, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    ASSERT_TRUE(retry.ok);
++    EXPECT_TRUE(retry.loss.empty());
++    EXPECT_TRUE(lc::persistence::File::save(
++        doc, retryPath, lc::persistence::File::LIBDXFRW_DXF_R2000));
++    boost::filesystem::remove(retryPath);
++}
++

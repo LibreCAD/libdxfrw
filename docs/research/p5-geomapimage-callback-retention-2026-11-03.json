@@ -1,0 +1,43 @@
+{
+  "receipt_id": "p5-geomapimage-callback-retention",
+  "date": "2026-11-03",
+  "state": "LOCAL_TYPED_CAPTURE_ONLY",
+  "source_callback": "DRW_Interface::addGeoMapImage",
+  "implementation": {
+    "adapter": "dwg2dxf/dx_iface",
+    "store": "dx_data::geoMapImages",
+    "limits": {
+      "records": 100000,
+      "retained_bytes": 67108864
+    },
+    "accounted_payload": "inline model, DRW_TableEntry-owned name/reactors/pending references/extension data/app data, and two list links",
+    "failure_behavior": "record/byte limit or allocation failure sets a sticky dx_data flag; output preflight reports capture failure and refuses publication",
+    "output_behavior": "no GEOMAPIMAGE adapter serializer or source asset/owner binding was added; raw-DXF and opaque-DWG preservation remain separate"
+  },
+  "validation": {
+    "configure": "cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "production_build": "cmake --build build --target dwg2dxf -j4",
+    "focused_tests": "ctest --test-dir build -R '^(dwg2dxf_action_path_object_capture_limits|dwg2dxf_sunstudy_callback_capture_limits|dwg2dxf_lightlist_callback_capture_limits|dwg2dxf_geomapimage_callback_capture_limits)$' --output-on-failure",
+    "focused_test_result": "all four tests passed",
+    "assertions": [
+      "GEOMAPIMAGE display scalars, coordinates, common table-entry identity, and reactor metadata survive typed retention",
+      "the retained-byte estimate matches the selected in-memory model values",
+      "the final allowed record is admitted and the next callback causes sticky refusal",
+      "one-byte-over-budget admission retains no partial model",
+      "capture failure prevents output publication with a specific diagnostic"
+    ]
+  },
+  "fixtures": {
+    "committed_test_dwg_or_dxf": false,
+    "test_inputs": "locally constructed in-memory DRW models"
+  },
+  "not_qualified": [
+    "physical DWG/DXF source-span-to-callback matching",
+    "raster/map asset identity, availability, and source ownership",
+    "complete output graph binding and fresh readback",
+    "native geospatial image rendering or consumer semantics",
+    "producer breadth or format support"
+  ],
+  "next_work": "Identify an eligible physical GEOMAPIMAGE profile and bind its source object, map asset, owner, and emitted identity before adding output support or a geospatial claim."
+}

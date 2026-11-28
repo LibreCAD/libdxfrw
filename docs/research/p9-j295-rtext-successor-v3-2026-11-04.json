@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p9-j295-rtext-successor-v3-2026-11-04",
+  "status": "DIAGNOSTIC_NOT_QUALIFIED",
+  "parentItem": "J295",
+  "historicalSuccessor": "J362",
+  "independentEvidenceDisposition": "bounded diagnostic field agreement; warning and current-source qualification gates remain open",
+  "promotesSupport": false,
+  "registry": "metadata/external-evidence-resolution-v1.json",
+  "frozenPredecessor": "metadata/ac1024-candidate-fields-v2.json",
+  "newExperiment": "metadata/ac1024-candidate-fields-v3-experiment.json",
+  "checks": {
+    "nativeAssertion": "tests/dwg_local_roundtrip_tests.cpp callback checks RTEXT type, insertion (90,91,0), angle 15 degrees within 1e-12, flags and height. Current macOS ARM64 local roundtrip executable --keep-dir exited 0. This is self-read, not an independent semantic oracle.",
+    "independentReplay": "tools/check_ac1024_rtext_successor_v3.py --work-dir /private/tmp --writer /private/tmp/p9-rtext-v3-final --oracle /opt/homebrew/bin/dwgread --oracle-library /opt/homebrew/opt/libredwg/lib/libredwg.0.dylib; PASS for both local RTEXT-only drawings. Full JSON contains exactly one selected record, insertion (90,91,0), rotation 0.26179938779915 rad (3.375077994860476e-14 degree error). Both generated DWG and output JSON hashes and both selected entity identities are in the experiment manifest. The checker self-test rejects altered Z, angle and NaN.",
+    "baseline": "The historical broad AC1024 generator's current self-read passed; dwgread 0.14 -v4 full JSON produced the selected values, but verbose logs contained 84 warnings and 110 errors. The nearest preceding object categories at errors include MATERIAL, SPATIAL_INDEX, ARCALIGNEDTEXT and 3D surfaces; that trace is a triage aid, not proof of precise root cause. A zero-exit or SUCCESS line alone does not establish a clean oracle.",
+    "artifactSourceBinding": "Manifest records the author source, helper source, executed writer binary, observed linked static library, exact independent executable and library hashes. The linked library was produced in a shared dirty worktree, so no clean exact-commit source provenance or current implementation digest is asserted. Generated drawings, JSON and logs stay outside the repository."
+  },
+  "diagnosticIsolation": {
+    "originalSparseHandle": "Handle 0xED00: no ERROR lines; four warnings: one invalid-handleoff, two peer unstable RTEXT-class warnings, and missing object 0xED01.",
+    "compactHandle": "Handle 0x30 with identical selected values: no ERROR lines; three warnings: two RTEXT unstable-class warnings and missing object 0x31; invalid-handleoff warning disappears.",
+    "handseed": "Full JSON and LibreDWG -v4 show 0xED01 and 0x31 respectively are HEADER.HANDSEED, exactly one greater than the selected entity handle. The peer logs the missing-object warning while resolving that HEADER reference. This locates the warning; it does not waive the policy's diagnostic gate.",
+    "unstableClass": "The peer labels RTEXT an unstable/debugging class. LibreDWG release 0.14 source src/classes.inc lines 33-36, 45-53, 94-100 and 368-370 emits this class-level warning during decode. This is not a claim that the peer's RTEXT interpretation is qualified.",
+    "handleoff": "The peer's release 0.14 src/decode.c computes max_handles from the handle section byte size and warns when a handle delta exceeds its bound or an offset is anomalous. The logged next-object handle delta is 0xECE2 for the sparse variant, while the handle-only compact variant suppresses the warning. The exact disjunction has not been independently proven and no warning is waived.",
+    "odaAttempt": "ODA File Converter 27.1.0 aborted with pasteboard/XPC errors, exit 134, and created no output. This is an environment failure and establishes no drawing verdict."
+  },
+  "historicalNativeMatrix": {
+    "repository": "dxli/libdxfrw",
+    "run": 41368245231,
+    "event": "push",
+    "commit": "df03267650f5f51c325867752fa3219bd5c0c7b3",
+    "focusedJobs": {"linux-gcc": 125032971139, "macos-clang": 125032971092, "windows-msvc": 125032971061},
+    "archives": {"linux-gcc": {"artifact": 13107869885, "sha256": "4739474c65a9fa28000fc56b2353309c59d91d07a23d006ae70a062787005241"}, "macos-clang": {"artifact": 13108660833, "sha256": "90edbf3d8365304ed06546674f1d1a1144b9afa6d2f6b8ea82b87600c088b104"}, "windows-msvc": {"artifact": 13107733970, "sha256": "6d8c9ccc01188a5ab3ae0eb83a47f495ab22f36afb3a1b213a61937f4fc1fded"}},
+    "audit": "tools/audit_p9_rtext_native_history.py --artifact-dir DIR verifies archive and receipt hashes, internal observation bindings, source commit/digest and per-platform metadata. Each receipt has 7/7 tests passed; semantic-looking tests are contract self-tests and every receipt says suppliesIndependentSemanticEvidence=false. At df032 the native RTEXT callback checked x and y but not z or rotation. Final-broad job was skipped.",
+    "historicalImplementationDigest": "3614a582653b3493e251f5ed5d8896422e8b48e911d2b155f23d117f5914e486",
+    "comparedCommittedTree": "6705c320b16955a29413b45551d1af8a9ec72bc5",
+    "comparedImplementationDigest": "2d07c8cd792a13a7b0464c72069eb0ce3dfaf58ac79720305a7c8aaa97a73bb3",
+    "digestScope": "Committed-tree comparison only, not the concurrently dirty working tree or a later HEAD; the values differ, so archived receipts do not qualify the compared source."
+  },
+  "sourceLineage": {
+    "peerTag": "https://github.com/LibreDWG/libredwg/tree/d9468ae948b8f07a08efa756c19f8916052358c0",
+    "peerClassCode": "https://github.com/LibreDWG/libredwg/blob/d9468ae948b8f07a08efa756c19f8916052358c0/src/classes.inc",
+    "peerHandleCode": "https://github.com/LibreDWG/libredwg/blob/d9468ae948b8f07a08efa756c19f8916052358c0/src/decode.c",
+    "tagBinding": "0.14 annotated tag object 428d380aea8fdbff479bf7fa3f64d88e8c4a4259 points to commit d9468ae948b8f07a08efa756c19f8916052358c0. Executable and dylib match the pinned Homebrew 0.14 hashes in metadata/ac1024-candidate-fields-v1.json."
+  },
+  "remainingSteps": [
+    "Freeze a clean committed source tree and establish complete writer/library and independent-reader build/runtime provenance; do not mutate frozen v1/v2 records.",
+    "Resolve or independently justify the peer's diagnostic categories under the existing admissibility rules, and repeat the independent field comparison against the frozen source. The compact-handle control is a distinct successor, not the original ED00 fixture.",
+    "Refresh the qualification digest and inventory contract, ensuring all four exact RTEXT fields execute on each native platform; run hosted focused and separately dispatched final-broad jobs at the same immutable digest.",
+    "Retrieve and authenticate the exact job/run/artifact metadata, archive bytes and per-claim bindings using the existing verifier; retain release-wide and route-level gates. J295 remains DEFERRED_EXTERNAL until all conditions pass."
+  ]
+}

@@ -1,0 +1,219 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-oda-schema-boundary-2026-11-17",
+  "date": "2026-11-17",
+  "status": "NORMATIVE_WRAPPER_BOUND_CANDIDATE_FOUND_BYTES_UNAVAILABLE",
+  "supportClaimEffect": "none",
+  "authority": {
+    "title": "Open Design Specification for .dwg files",
+    "version": "5.4.1",
+    "publisher": "Open Design Alliance",
+    "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "titlePageVerified": true,
+    "sections": [
+      {
+        "section": "20.4.85 LWPLINE (varies)",
+        "printedPages": [
+          212,
+          213
+        ],
+        "normativeObservations": [
+          "The ordinary entity field sequence starts at group 70 flags and includes version/flag-gated optional fields.",
+          "For R2000+, the first vertex is 2RD and subsequent X/Y coordinates are DD values relative to the previous point.",
+          "Bulges, R2010+ vertex identifiers, and widths are separate conditional arrays."
+        ]
+      },
+      {
+        "section": "2.12 Object type: LWPOLYLINE 33",
+        "printedPages": [
+          276,
+          277
+        ],
+        "normativeObservations": [
+          "The modeler subentity begins with an RL byte count followed by a B byte block excluding common entity data.",
+          "The B block is described as starting at LWPOLYLINE flags (BS) and ending at the width array (BD).",
+          "Three RC fields follow and are each labeled unknown byte.",
+          "This wrapper description does not specify the embedded block's complete AC1027 field encoding or explain the observed non-byte suffix."
+        ]
+      }
+    ]
+  },
+  "capturedCandidate": {
+    "path": {
+      "subentityType": 77,
+      "declaredBits": 480,
+      "candidateConsumedBits": 478,
+      "unclassifiedSuffixBits": "00"
+    },
+    "version": "AC1027",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "provenance": "Public LibreDWG corpus sample; producer lineage is not authenticated.",
+    "sweepHandle": "0x2e2",
+    "profile": {
+      "subentityType": 77,
+      "declaredBits": 744,
+      "candidateConsumedBits": 740,
+      "unclassifiedSuffixBits": "1100"
+    },
+    "captureReceipt": "docs/research/p4-ac1027-sweep-embedded-lwpolyline-capture-2026-11-10.json"
+  },
+  "boundedPublicSearch": {
+    "searchedOn": "2026-11-17",
+    "scope": "One pass over Autodesk's official sample catalog plus one exact Autodesk Community Sweep attachment candidate.",
+    "sources": [
+      {
+        "title": "AutoCAD Sample Files",
+        "url": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/6XGQklp3ZcBFqljLPjrnQ9.html",
+        "observation": "The catalog says the samples apply to AutoCAD 2010 and later and lists visualization and mechanical examples, but it does not identify a Sweep entity, exact saved DWG version, or object-level contents."
+      },
+      {
+        "title": "Fillet with decreasing radius? \u2014 Autodesk Community, message 5",
+        "url": "https://forums.autodesk.com/t5/autocad-forum/fillet-with-decreasing-radius/m-p/7309763",
+        "author": "BeKirra",
+        "posted": "2017-08-15",
+        "attachmentName": "Sweep Sample (scale 0.2).dwg",
+        "authorDescription": "The author says they used SWEEP with scale 0.2 and that the drawing shows the profile and path beside the swept model.",
+        "retrieval": "Direct read-only page fetch returned HTTP 403 with a Cloudflare challenge. The attachment bytes, hash, and DWG version were not retrieved."
+      }
+    ],
+    "result": "A plausible source-specific candidate exists, but it is not an eligible witness until its exact bytes, hash, and AC1027 version are verified. Do not repeat the catalog search or attempt to bypass the site challenge; use an accessible direct attachment route or request the file."
+  },
+  "peerHypothesis": {
+    "source": "ACadRust embedded-entity reader cited by docs/research/p4-ac1027-sweep-embedded-lwpolyline-boundary-2026-11-09.json",
+    "hypothesis": "The embedded LWPOLYLINE candidate decodes every vertex as raw XY doubles.",
+    "evidenceClass": "peer implementation only",
+    "limit": "ODA's ordinary R2000+ LWPOLYLINE layout uses delta-coded coordinates after the first vertex; the modeler type-33 wrapper does not establish that ordinary layout applies to the embedded bytes. Neither source explains the captured 4-bit profile suffix."
+  },
+  "decision": {
+    "parserChange": false,
+    "outputAdmission": false,
+    "reason": "The normative specification bounds the modeler wrapper and ordinary entity layout but does not resolve the embedded source's exact AC1027 spans or suffix. Transferring ordinary-entity fields or calling the remaining bits padding would be speculative.",
+    "currentBehavior": "Preserve the embedded payload and suffix; keep strict Sweep output refused."
+  },
+  "nextAction": "Do not repeat the Autodesk Community attachment/catalog scans. The new ObjectARX screen identifies a version-matched witness-generation route but produced no drawing. When an AutoCAD 2013/ObjectARX host or equivalent authored pair is available, capture a small AC1027 DWG plus matching R2013 DXF containing a default and a distinct non-default SweptSurface; record API getter state before save and after reopen, producer/build, handles, profile/path geometry, AC1027 magic, and hashes. Compare source-bound spans and following-frame alignment against ODA v5.4.1 and independent-reader cursors. Until those artifacts arrive, P4-C remains waiting; do not change parser/output admission.",
+  "validation": {
+    "specTitleAndVersion": "PASS; title page identifies ODA Open Design Specification v5.4.1.",
+    "specSha256": "PASS; local copy hash matches 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7.",
+    "codeChanged": false,
+    "testsRun": false,
+    "fixturesAdded": false,
+    "historicalArtifactRecoveryCheck": "PASS: bounded GitHub path-history and mirror-directory checks plus exact attachment search; no AC1027 source bytes or version were recovered."
+  },
+  "limitations": [
+    "The local specification copy is not the canonical filename/path from AGENTS.md, although its title page and hash were verified; keep that provenance limit recorded.",
+    "The community attachment is user-provided and its DWG bytes/version could not be obtained through the Cloudflare-protected page; it remains a lead, not physical evidence.",
+    "The existing sample remains unverified-producer evidence and cannot qualify the embedded suffix or Sweep semantics.",
+    "This receipt closes only the bounded ODA schema comparison; P4-C remains open and no support claim is promoted.",
+    "LibreDWG SWEPTSURFACE .pi diagnostics reference 2004 and 2018 Surface.dxf files, but these generated logs do not establish source provenance or provide the 2018 source bytes; the mirrored 2004 source is not the AC1027 gate."
+  ],
+  "historicalArtifactRecoveryCheck": {
+    "date": "2026-11-17",
+    "scope": "One bounded recovery pass for the LibreDWG Surface.dxf inputs cited by its generated SWEPTSURFACE diagnostics, plus the exact Autodesk Community attachment lead.",
+    "sources": [
+      {
+        "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/a5fdc8ef80c675b3a36dbefd11a902e9e3bfff9f/examples/SWEPTSURFACE.pi",
+        "observation": "Generated parser input references at lines 8-11 identify test/test-data/2004/Surface.dxf (Version=2004); lines 214-217 identify test/test-data/2018/Surface.dxf (Version=2018). The .pi is a peer-generated diagnostic, not either source drawing."
+      },
+      {
+        "url": "https://api.github.com/repos/LibreDWG/libredwg/commits?path=test/test-data/2018/Surface.dxf&per_page=10",
+        "observation": "GitHub REST path history returned an empty list; no source artifact was recovered from this path."
+      },
+      {
+        "url": "https://api.github.com/repos/mlightcad/libredwg-web/contents/test/test-data/2018",
+        "observation": "The current mirror directory listing contains no Surface.dxf or Surface.dwg. It contains unrelated 2018 drawings, including Dynblocks."
+      },
+      {
+        "url": "https://api.github.com/repos/mlightcad/libredwg-web/contents/test/test-data/2004",
+        "observation": "The mirror lists Surface.dxf (658329 bytes, Git blob SHA cf8c6734602eff261b7599f103d03c10459218ba) and Surface.dwg. The bytes were not retrieved; the older directory/profile cannot qualify the AC1027 gate."
+      },
+      {
+        "url": "https://forums.autodesk.com/t5/autocad-forum/fillet-with-decreasing-radius/m-p/7309763",
+        "observation": "Search still indexes the exact attachment name and author description. The browser fetch returned a cache miss and exposed no direct attachment URL or bytes; the prior direct read returned a Cloudflare challenge."
+      }
+    ],
+    "result": "No eligible AC1027 Sweep source or matching DXF was recovered. No further broad/catalog/history search is justified from these leads.",
+    "supportClaimEffect": "none"
+  },
+  "attachmentRetrievalFollowUp": {
+    "date": "2026-11-17",
+    "source": {
+      "title": "Sweep results in a self intersecting body",
+      "url": "https://forums.autodesk.com/t5/autocad-forum/sweep-results-in-a-self-intersecting-body/m-p/9438279/highlight/true",
+      "producerClaim": "The original poster says they are using AutoCAD 2016 and describes sweeping a circle and polygon along a path.",
+      "attachmentName": "Sweep Error.dwg",
+      "versionStatus": "unverified; post date and AutoCAD 2016 claim do not prove the attachment is AC1027",
+      "apiStateStatus": "unknown; post text does not establish persistent SWEEP history or the relevant source object state"
+    },
+    "retrieval": {
+      "endpoint": "https://forums.autodesk.com/autodesk/attachments/autodesk/autocad-forum-en/9437189/1/Sweep%20Error.dwg",
+      "method": "Direct request to the apparent public Autodesk Community attachment path; no challenge bypass attempted.",
+      "httpStatus": 403,
+      "finalUrl": "https://forums.autodesk.com:443/t5/errors/FilterErrorHandlerPage",
+      "bytesReceived": 0,
+      "workspaceArtifactCreated": false
+    },
+    "decision": "Candidate is a provenance lead only. No bytes, hash, DWG magic, or matching DXF were obtained; it cannot qualify P4-C.",
+    "retryTrigger": "Original file supplied directly or a new accessible official artifact route appears.",
+    "supportClaimEffect": "none"
+  },
+  "versionedDxfSchemaFollowUp": {
+    "date": "2026-11-17",
+    "authority": {
+      "title": "AutoCAD 2013 DXF Reference",
+      "url": "https://images.autodesk.com/adsk/files/autocad_2013_pdf_dxf_reference_enu.pdf",
+      "printedPages": [152, 153],
+      "versionRelevance": "AutoCAD 2013 / R2013 DXF; use as expected-output schema only after source version is verified."
+    },
+    "sweptSurfaceFields": [
+      "AcDbSweptSurface subclass",
+      "sweep entity ID; bounded binary-data size and data",
+      "path entity ID; bounded proprietary-data size and data",
+      "sweep/path transforms, draft, twist, scale and alignment values",
+      "solid flag (group 290), alignment option (group 70), align-start/bank/base-point/transforms-computed flags, and twist reference vector"
+    ],
+    "conclusion": "This primary document clarifies the R2013 SweptSurface DXF projection and its type-specific group roles. It does not describe the DWG AcDbShSweepBase embedded LWPOLYLINE encoding, physical suffix, DWG handle roles, or following-frame boundary; P4-C remains open.",
+    "supportClaimEffect": "none"
+  },
+  "objectArxAuthoringRouteScreen": {
+    "date": "2026-11-17",
+    "status": "API_ROUTE_FOUND_WIRE_WITNESS_STILL_REQUIRED",
+    "sources": [
+      {
+        "title": "AcDbSweptSurface class, Autodesk ObjectARX 2018 reference",
+        "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDb_Classes.html",
+        "observation": "Autodesk documents AcDbSweptSurface and AcDbSweepOptions as ObjectARX classes; AcDb3dProfile is used by createSweptSurface()."
+      },
+      {
+        "title": "AcDbSweepOptions, Autodesk ObjectARX 2019 reference",
+        "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbSweepOptions.html",
+        "observation": "Autodesk describes sweep options as controlling resulting surface/solid shape and documents default option values."
+      },
+      {
+        "title": "AutoCAD 2013 ObjectARX SDK dbsweptsurf.h mirror",
+        "url": "https://github.com/kevinzhwl/ObjectARXCore/blob/ce09e150aa7d87675ca15c9416497c0487e3d4d4/2013/inc/dbsweptsurf.h",
+        "observation": "The versioned header exposes createSweptSurface(sweepEntity,pathEntity,options), getSweepEntity(), getPathEntity(), sweepProfile(), pathProfile(), getSweepOptions(), setSweepOptions(), getPathLength(), and DWG/DXF filer hooks. The header is a public repository mirror of Autodesk SDK material, not itself a DWG witness."
+      },
+      {
+        "title": "AutoCAD 2013 ObjectARX SDK dbSweepOptions.h mirror",
+        "url": "https://github.com/kevinzhwl/ObjectARXCore/blob/ce09e150aa7d87675ca15c9416497c0487e3d4d4/2013/inc/dbSweepOptions.h",
+        "observation": "The versioned header exposes getters/setters for draft and end distances, twist, scale, alignment, miter, align-start, base point, bank, self-intersection checking, twist reference vector, and sweep/path transforms."
+      },
+      {
+        "title": "SweptSurface.CreateSweptSurface Method, Autodesk Managed Reference 2024",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_SweptSurface_CreateSweptSurface_Entity_Entity_Autodesk_AutoCAD_DatabaseServices_SweepOptions.html",
+        "observation": "Autodesk describes creating the surface by sweeping a curve, region, or planar surface along a curve path, with optional parameters supplied through sweep options. This corroborates the API concept but is not release-specific wire evidence."
+      }
+    ],
+    "fastestWitnessPlan": [
+      "Use AutoCAD 2013/ObjectARX to author one small AC1027 DWG and its matching R2013 DXF; do not use ODA File Converter as the producer while its local bundle is unusable/unverified.",
+      "Place a default-options surface and one surface with distinct non-default option values in the same drawing; use API getters before save and after reopen to record the exact source entities, path/profile, options, and handles.",
+      "Hash and retain both scratch files; verify AC1027 magic and producer build. Correlate the DXF values with ODA v5.4.1 plus source-bound libdxfrw and independent-reader cursors to identify embedded boundaries, physical suffix, handle roles, and next-frame alignment.",
+      "Treat API state, DXF values, ODA round-trip, and peer-reader agreement as separate corroboration. None alone proves DWG byte spans or geometry semantics. Preserve unresolved suffix bytes and keep strict output refused until all P4-C exit conditions pass."
+    ],
+    "decision": "This route improves implementation readiness by naming a version-matched, controllable producer and API state capture. No host, drawing, DWG bytes, or paired DXF was available in this research pass; P4-C remains waiting. No parser change or support promotion is justified.",
+    "supportClaimEffect": "none",
+    "retryTrigger": "Access to AutoCAD 2013/ObjectARX, or receipt of an equivalent provenance-bound AC1027 DWG plus matching R2013 DXF with known API state."
+  }
+}

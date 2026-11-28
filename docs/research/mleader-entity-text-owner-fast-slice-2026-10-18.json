@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "MLEADER nested text retained-owner fast slice",
+  "mode": "local implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Exercise existing retained-byte accounting for MLEADER context text-label code 304",
+    "Exercise existing retained-byte accounting for legacy MLEADER block-label code 302",
+    "Verify replacement refusal, owner lifetime, and ASCII/Binary parity with generated records"
+  ],
+  "method": {
+    "kind": "Add a focused generated-wire hardening test that parses context and block-label strings through the existing direct DRW_MLeader parser",
+    "externalDrawingsDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "productionCodeChanged": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "fullTestSuiteRun": false,
+    "filesChanged": [
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/mleader-entity-text-owner-fast-slice-2026-10-18.json"
+    ],
+    "limitations": "This closes direct-parser retained-byte evidence for the two named MLEADER text owners only. It does not prove full-read callback publication, DWG storage, writer/projection-copy accounting, post-callback caller mutation, native CAD acceptance, or general memory/RSS bounds."
+  },
+  "implementation": {
+    "productionChange": "None. The worktree already routes context text and legacy block-label strings through retained-byte helpers; this slice adds the missing focused tests.",
+    "testSelector": "--dxf-mleader-entity-text-owner-budget",
+    "encodings": [
+      "ASCII DXF record stream",
+      "Binary DXF record stream"
+    ],
+    "generatedCases": [
+      {
+        "owner": "DRW_MLeaderAnnotContext::textLabel",
+        "groupCode": 304,
+        "records": [
+          "OLD-CONTEXT",
+          "256-byte replacement"
+        ]
+      },
+      {
+        "owner": "DRW_MLeader::BlockLabelEntry::labelText",
+        "groupCode": 302,
+        "records": [
+          "OLD-LABEL -> 128-byte replacement",
+          "OLD-LAST -> 256-byte replacement"
+        ]
+      }
+    ],
+    "testCoverage": [
+      "Discover the minimum successful retained-byte cap for each generated ASCII/Binary parse",
+      "Exact-cap admission retains only final logical string values after reader teardown",
+      "One-byte-under admission preserves the last previous value and its retained-byte charge",
+      "Copy construction and assignment keep the shared lease alive after source reset",
+      "Move construction/assignment transfer the lease, and final reset releases all charges"
+    ],
+    "publicApiOrLayoutChanged": false
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+      "build-gcc/libdxfrw_hardening_tests --dxf-mleader-entity-text-owner-budget",
+      "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+      "git diff --check -- tests/hardening_tests.cpp"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "compatibilityBuild": "PASS",
+      "focusedSelector": "PASS (ASCII/Binary × context/block-label routes)",
+      "owningCTest": "PASS (1/1, 0.31 seconds)",
+      "diffCheck": "PASS"
+    }
+  },
+  "assessment": {
+    "confirmedCoverageGapClosed": 1,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "workingTree": {
+      "commitCreated": false,
+      "stagingAttempted": false,
+      "reason": "The shared checkout has extensive pre-existing changes. This slice remains unstaged and uncommitted; unrelated work was preserved."
+    }
+  }
+}

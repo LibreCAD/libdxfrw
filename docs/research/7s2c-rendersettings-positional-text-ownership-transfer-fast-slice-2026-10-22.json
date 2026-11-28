@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c RENDERSETTINGS positional-text ownership transfer",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Move each decoded RENDERSETTINGS group-1 string into its positional vector owner and source any required named projection from that retained owner.",
+    "routes": [
+      "DRW_RenderSettings::parseCode group 1 positional string vector",
+      "DRW_RenderSettings name projection at positional index 0",
+      "DRW_RenderSettings environment filename and description projections at indexes 1 and 2 for applicable kinds"
+    ],
+    "ownership": "The decoder result moves into m_strings. A distinct named field remains a separate live owner and is copied from m_strings.back(). Rollback uses the saved original logical length to remove the vector value and undo its lease charge if projection retention fails.",
+    "non_claims": [
+      "no public API or model-layout change",
+      "no parser meaning or DXF wire behavior change",
+      "no DWG byte-layout change",
+      "no support claim promotion",
+      "no external producer or native CAD qualification"
+    ]
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+    "configure_result": "PASS",
+    "build": "cmake --build build-gcc --target dxfrw libdxfrw_hardening_tests lc3_compat_check --parallel 2",
+    "build_result": "PASS (-Werror)",
+    "selector": "build-gcc/libdxfrw_hardening_tests --dxf-render-settings-text-owner-budget",
+    "selector_result": "PASS",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_render_settings_text_owner_budget$' --output-on-failure",
+    "focused_ctest_result": "PASS (1/1)",
+    "coverage": "Existing generated ASCII/Binary controls verify positional order, named projections, exact and one-byte-under retained-byte peaks, rollback, copy/assignment/reset lifetime, and release.",
+    "diff_check": "PASS (CMakeLists.txt, src/drw_objects.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, receipt)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "Continue the source-backed 7S.2c retained-string/copy audit; preserve the current transactional replacement behavior and account each actual live owner. Keep subsequent checks generated and fast."
+}

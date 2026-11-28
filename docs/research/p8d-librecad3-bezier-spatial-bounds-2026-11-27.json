@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-bezier-spatial-bounds-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPR": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumerCommit": "a49761cc",
+  "problem": "Quadratic and cubic B\u00e9zier bounds omitted Z, and cubic Y extrema used the wrong derivative coefficient. Both new geometry controls failed before the repair.",
+  "change": "Use a shared three-axis derivative-extrema calculation for quadratic and cubic curves. First differences avoid loss of small curvature at a large offset, with a scaled fallback for overflowing differences; constant and linear derivatives are handled separately.",
+  "verification": [
+    "PASS 73 focused macOS headless B\u00e9zier, geometry, builder and canvas tests.",
+    "PASS independently calculated cubic X/Y/Z extrema, quadratic extrema, 1001 sampled cubic positions, linear/constant derivatives and one 1e15-offset control.",
+    "Hosted PR checks pending."
+  ],
+  "limits": [
+    "Not a proof for all floating-point extremes, invalid coordinates, spline/NURBS bounds, native GUI or cross-platform behavior.",
+    "No DWG/DXF codec or general 3D interoperability claim follows from these local controls."
+  ]
+}

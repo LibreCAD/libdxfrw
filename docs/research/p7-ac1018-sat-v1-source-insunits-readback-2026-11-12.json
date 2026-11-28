@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p7-ac1018-sat-v1-source-insunits-readback-2026-11-12",
+  "date": "2026-11-12",
+  "scope": "Preserve the explicit source DWG unit declaration through selected AC1018 SAT-v1 solid ASCII/Binary DXF projections and verify it after fresh readback. This closes a unit-metadata transport check for this source profile only; it does not establish source placement semantics or promote support claims.",
+  "source": {
+    "path": "/private/tmp/trattocad-sample-3d-house.dwg",
+    "sha256": "894d2c8b19000d39e2d1819ef9eacf87481dd3bb58718ec32bf4deb688a8150b",
+    "version": "AC1018",
+    "unitField": {
+      "headerVariable": "INSUNITS (stored under the unprefixed DWG header key)",
+      "groupCode": 70,
+      "type": "INTEGER",
+      "value": 4,
+      "meaning": "millimeters"
+    },
+    "producerProvenance": "The public TrattoCAD publisher describes the sample, but does not identify which exact files were saved by its own software; exact producer/toolchain remains unverified."
+  },
+  "implementation": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "selector": "--modeler-ac1018-physical-sat-v1-projection <source.dwg> <source-handle>",
+    "change": "The locally selected projection now carries the imported source header and asserts the exact integer $INSUNITS value after each fresh DXF readback. The shared test accessor accepts both prefixed DXF and unprefixed DWG header map keys.",
+    "same_test_operation": "For every selected handle, ASCII and Binary output still checks exact normalized SAT payload readback, stable nonzero output identity, layer/EED shape, declared-range mutation refusal with destination sentinel preservation, and corrected same-adapter retry."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "passed with -Werror",
+    "run": "For each handle 0x2a through 0x59, run the physical SAT-v1 projection selector against the hash-bound DWG.",
+    "result": "48/48 handles passed; each had successful ASCII and Binary fresh readback with source $INSUNITS=4 and unchanged normalized SAT payload.",
+    "testSourceSha256": "45869fd4c4978e12bab6467f3bf90fb923abf18f2ec69de959eec5d75e52d764",
+    "testExecutableSha256": "ff93afb75a1bca0a43d285d7b58d8b3dba85e3b725ed1f4cdeb5b30db60b6d65",
+    "fixturePolicy": "The DWG remains in /private/tmp; no external drawing fixture was added to Git."
+  },
+  "limitations": [
+    "This is selected-record transport and header preservation, not whole-document output; the full source remains refused at unrelated closure gates.",
+    "A valid INSUNITS value does not establish placement, orientation, or geometry interpretation. Source-referenced placement remains open; only the previously reported handle-0x2d dimension comparison has a published geometric reference.",
+    "The producer/toolchain for the exact DWG is not authenticated, and this result does not establish broader producer support or native consumer acceptance.",
+    "ODA §20.4.41 does not define the SAT body coordinate basis. Source-referenced placement remains unresolved even though the DWG $INSUNITS metadata roundtrips."
+  ],
+  "specificationBoundary": {
+    "authority": "ODA Open Design Specification for .dwg files v5.4.1, §20.4.41",
+    "finding": "The documented modeler-version-1 SAT framing specifies bounded encoded character blocks. The listed axis/translation/scale transform fields belong to optional wireframe records, not the extracted SAT body. The section does not define a coordinate basis for SAT body coordinates.",
+    "effect": "The unit header readback does not close source-referenced placement; preserve that gate."
+  }
+}

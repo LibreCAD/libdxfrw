@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-08",
+  "slice": "AC1018 TABLE text-cell alignment override codec",
+  "status": "implemented_generated_codec_self_consistency_only",
+  "authority": "Open Design Specification for .dwg files v5.4.1, section 20.4.96.1",
+  "scope": {
+    "version": "AC1018",
+    "cell_type": "text (1)",
+    "flag": "0x00000001",
+    "wire_field": "cell alignment, RS (raw little-endian 16-bit value)",
+    "domain": "1 through 9",
+    "writer": "admits the typed alignment only when the flag is present; refuses unflagged residue and out-of-domain values",
+    "reader": "stores the typed value for the recognized AC1018 text-cell override profile; retains tolerant parsing but marks out-of-domain values semantically incomplete"
+  },
+  "generated_control": {
+    "authenticity": "locally generated codec vector; no DWG/DXF fixture",
+    "value": 5,
+    "checks": [
+      "raw-short field is emitted and parsed to exact typed alignment",
+      "parser body cursor matches encoded boundary",
+      "following sentinel remains readable",
+      "unsupported adjacent flags, invalid selected alignment, and unflagged alignment residue are atomically refused by writer"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+    "result": "passed; 1/1 focused CTest",
+    "diff_check": "git diff --check passed"
+  },
+  "limitations": [
+    "No producer-backed physical alignment witness or native CAD readback was used.",
+    "This does not resolve source-observed AC1018 cell flags 0x40000/0x40020 or their field span.",
+    "No complete TABLE graph or source-to-output equivalence is established; public dwgRW::writeTable remains fail-closed."
+  ]
+}

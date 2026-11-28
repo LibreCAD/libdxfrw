@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-mesh-helix-low-level-runtime-dispatch-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "MESH_HELIX_LOW_LEVEL_RUNTIME_GUARD_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Apply the exact built-in runtime-type/public-tag contract to the public dxfRW::writeMesh and dxfRW::writeHelix entry points.",
+  "implementation": {
+    "sourceFiles": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "guards": {
+      "MESH": "typeid(*entity) == typeid(DRW_Mesh) and entity->eType == DRW::MESH",
+      "HELIX": "typeid(*entity) == typeid(DRW_Helix) and entity->eType == DRW::HELIX"
+    },
+    "failureBehavior": "The low-level writer rejects a derived runtime object before typed record emission and leaves the existing destination unchanged.",
+    "retryBehavior": "The same dxfRW writer accepts an exact built-in object on retry."
+  },
+  "validationProfile": {
+    "source": "A locally authored dx_iface test callback invokes each public low-level writer directly with derived classes carrying extra unmodeled state, then with exact built-in MESH/HELIX objects.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "assertions": [
+      "All direct MESH/HELIX subclass cases are rejected atomically across both encodings.",
+      "Each rejection preserves a pre-existing destination sentinel.",
+      "Same-writer retry with exact DRW_Mesh reads back the triangle vertices and face indices.",
+      "Same-writer retry with exact DRW_Helix reads back the runtime type, fit points, and selected helix fields."
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "PASS",
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^dwg2dxf_entity_runtime_dispatch$' --output-on-failure",
+    "focusedTestResult": "PASS: 1/1; adapter and direct-writer subclass refusal/retry/readback controls across ASCII and Binary DXF, 0.60 seconds.",
+    "fixturePolicy": "No DWG/DXF fixture was added or committed."
+  },
+  "limitations": [
+    "The tests establish generated serializer admission and transport only, not physical DWG producer breadth or native 3D meaning.",
+    "They do not qualify complete MESH subdivision semantics, HELIX curve equivalence, whole-document graph closure, ABI behavior, or 3D consumer acceptance.",
+    "P8 remains open and no support claim is promoted."
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "ACIS diagnostic published-slot budget fast slice",
+  "mode": "Local bounded implementation and focused regression validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Continue the 7S.3 retained-output-slot accounting census",
+    "Charge each diagnostic slot when it moves from category staging into the public wireframe result",
+    "Add a generated positive/negative delta assertion and preserve the existing exact/one-under budget controls"
+  ],
+  "finding": {
+    "id": "PAR-07/S8.3",
+    "subplan": "7S.3/S3.7",
+    "kind": "source-confirmed output-budget accounting gap",
+    "description": "appendDiagnostic charged the category-local diagnostic staging slot, but appendDiagnostics then retained a second slot in DRW_AcisBrep::diagnostics without charging it. The public diagnostic string moved between vectors, but both vector slots were allocated during extraction.",
+    "change": "Charge one output item immediately before appending each moved diagnostic to the public result vector.",
+    "regression": "Compare locally generated valid-point and missing-point SAB inputs. The unresolved case must account for exactly two additional output slots: one category staging slot and one published result slot. Existing exact-cap and one-under-cap controls remain active."
+  },
+  "validation": {
+    "commands": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+        "result": "passed"
+      },
+      {
+        "command": "build-gcc/libdxfrw_graph_preservation_tests",
+        "result": "passed"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+        "result": "passed 1/1 in 0.60s"
+      },
+      {
+        "command": "git diff --check -- src/drw_acis.cpp tests/graph_preservation_tests.cpp",
+        "result": "passed"
+      }
+    ],
+    "fullSuiteRun": false,
+    "sanitizerRun": false,
+    "peerOrNativeRun": false
+  },
+  "limits": {
+    "externalFixturesAdded": 0,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "publicApiChanged": false,
+    "supportClaimsPromoted": 0,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "planTotals": {
+    "findings": 132,
+    "topLevelSubplans": 75
+  },
+  "workingTree": {
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reasonUncommitted": "The shared worktree contains extensive unrelated and earlier plan implementation edits, including in the same files. This narrow slice was left unstaged rather than committing unrelated user changes."
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-mesh-dwg-face-count-domain-2026-11-02",
+  "date": "2026-11-02",
+  "status": "DWG_FACE_CARDINALITY_ALIGNED_WITH_TYPED_MODEL",
+  "supportClaimEffect": "none",
+  "scope": "Reject malformed DWG MESH face records that the existing typed geometry validator and DXF reader already refuse.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "rule": "DRW_Mesh::parseDwg requires each level-0 face record to contain at least three vertex indices before reading or publishing that face.",
+    "compatibilityBasis": "DRW_Mesh::validateGeometry already requires face.size() >= 3 and the DXF MESH parser rejects face counts below 3. This keeps DWG input aligned with the model and other reader path; it does not claim that ODA v5.4.1 documents this DWG body.",
+    "failureBehavior": "The existing fail path invalidates the frame, clears any prior or partial mesh state, and allows a later valid parse on the same object."
+  },
+  "research": {
+    "autodeskDxfReference": {
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025.htm",
+      "supports": "MESH DXF group 93 gives the face-list size and group 90 carries face-list items; this reference does not state a minimum face cardinality."
+    },
+    "autodeskSubDMeshApi": {
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbSubDMesh__setSubDMesh_AcGePoint3dArray__AcArray_Adesk_Int32___int.html",
+      "supports": "The face array is a sequence in which each face starts with its vertex count followed by vertex indices; the API requires correct arrays but does not specify the minimum here."
+    },
+    "odaSpecification": "The ODA v5.4.1 PDF has no AcDbSubDMesh layout entry. No DWG byte-layout change or standards claim is based on that absent coverage."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+    "buildResult": "PASS",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_mesh_dwg_crease_count_guard$' --output-on-failure",
+    "focusedTestResult": "PASS (1/1, 0.25 s)",
+    "coverage": [
+      "Generated AC1024 triangle face stream reads with the expected ordered vertex indices.",
+      "Generated AC1024 two-index face is refused and clears stale/partial mesh state.",
+      "The valid triangle retries successfully on the same parser object after refusal.",
+      "Existing over-edge crease count refusal and corrected same-object retry still pass.",
+      "No DWG or DXF fixture files were added."
+    ]
+  },
+  "inputHashesBeforeEdit": {
+    "src/drw_entities.cpp": "44a782d9bf606cf7032927e6dd5a00cfbc34629d51f92895b3e5396e3a8701a3",
+    "tests/dwg_object_vectors_tests.cpp": "0f11f63da1298711c428906deb203ca4e9252f2d9e38e4d4390515ccac1159ce",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "7377e35f61312423a5aa1a90b39d803d0a02b417edc7666518d80da3b581588e"
+  },
+  "inputHashesAfterEdit": {
+    "src/drw_entities.cpp": "8cb8d2a50795e353b40cb8baf29ee627967ee895c86b69da3068dac5277a60be",
+    "tests/dwg_object_vectors_tests.cpp": "a773bbb580088160859eb8f25b2a2c4e15ab49a3e5d07d4a7f0e41099c671b3d",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "5ee7ab05af8d45e955680cefee1ca79f23548b5aea299cb5c289bcff5951187e"
+  },
+  "inputFixturesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "This closes a reader/model consistency gap and malformed-input case only.",
+    "Physical producer breadth, native MESH behavior, subdivision, topology, crease effects, and 3D semantic meaning remain unqualified."
+  ],
+  "currentTurnValidation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dxf_fixture_tests --parallel 4",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_mesh_crease_value_domains|libdxfrw_mesh_dwg_crease_count_guard|libdxfrw_mesh_dxf_allocation_failure)$' --output-on-failure",
+    "passed": 3,
+    "failed": 0,
+    "elapsedSeconds": 0.41
+  },
+  "stagedInputHashes": {
+    "src/drw_entities.cpp": "90444975aea47189d45bc0ca752c834a49a9d4cdfa9444e16960df687bc581b2",
+    "tests/dwg_object_vectors_tests.cpp": "437da8f7bc00df9f817aae47172731cbd4864b11402a2885a98bf7dc0645b3b1",
+    "tests/hardening_tests.cpp": "82516e1a3059d1d47836c5682a7c8fde9e660f8e5864af0a4549de3e1612ae2b",
+    "tests/dwg_local_roundtrip_tests.cpp": "8e051681e201c34b11a180584fc1dc8b66f6fba152d2433ab1a367001c020a9d",
+    "CMakeLists.txt": "d1c8714988f9cd41e787983cd28586c1495f1aa07ecfe883a4e34151a539fb33",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "ca6184dc175f0fa7feb8e069f75b53dc8ee78a271fb0117ef5ee259d37e49ce7"
+  },
+  "repositoryState": {
+    "baseHead": "a49c90a3",
+    "stagedScope": "bounded MESH DWG parse/output profile; DXF loss guards; generated vectors",
+    "fixtureFilesAdded": 0,
+    "supportClaimsPromoted": 0
+  }
+}

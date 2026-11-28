@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw-dimassoc-adapter-closure-v1",
+  "date": "2026-11-05",
+  "scope": "Generated DWG DIMASSOC adapter retention and fail-closed target closure",
+  "source": {
+    "refusal_control": "locally-authored scratch DWG from libdxfrw_dimassoc_physical_transport_tests --generate-dimassoc; its dimension target is intentionally absent",
+    "success_control": "locally-authored in-memory adapter model with one DIMENSION entity, one LINE osnap target, and one synthetic opaque-frame identity",
+    "fixture_committed": false,
+    "physical_source": "AC1018 Extruder2.dwg transports 23/23 selected DIMASSOC rows in the low-level probe, but its 474 entity parse failures prevent whole-file adapter output"
+  },
+  "implementation": {
+    "retention": "dx_iface retains typed DWG DIMASSOC callback data under record and byte bounds, keyed by import generation and source handle",
+    "output": "same-version OBJECTS output considers only the current import generation and requires exact opaque source-frame identity, a unique typed dimension or leader entity target, emitted entity targets for main/intersection osnap handles, and each non-null common owner/reactor/extension-dictionary link to resolve to exactly one emitted DICTIONARY OBJECTS record; the common-link block runs after object emission so target identity is available. Reactor count must match unique, nonzero reactor handles. The DIMASSOC output record must then have one remapped handle and exact DIMASSOC OBJECTS identity.",
+    "qualification": "opaque source frame is marked output-qualified only after the writer confirms one DIMASSOC OBJECTS record at the remapped handle",
+    "failure": "incomplete or invalid target closure aborts OBJECTS emission; a later import resets the current-generation capture failure and ignores stale DIMASSOC rows"
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dimassoc_physical_transport_tests -j4",
+      "result": "passed"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_dimassoc_adapter_closure_retry_ascii|dwg2dxf_dimassoc_adapter_closure_retry_binary|dwg2dxf_dimassoc_adapter_closure_refusal|dwg2dxf_dimassoc_stale_generation_ignored|libdxfrw_dimassoc_dwg_detail_readback)$' --output-on-failure",
+      "result": "passed 5/5; generated ASCII/Binary adapter controls reject dangling owner/reactor/extension-dictionary handles, a wrong-kind owner, a reactor-count mismatch and a missing osnap target while preserving the destination; a corrected graph retries on the same adapter and typed readback resolves owner/reactor/extension-dictionary references to the emitted dictionary. Stale-generation, refusal and typed DWG detail controls also pass"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dimassoc_physical_transport_tests tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "result": "passed; 7/7 selected physical records have resolved representable targets and ASCII/Binary typed readback; sourceVersion=15, zero entity/object parse failures; low-level transport only, not whole-file adapter output"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dimassoc_physical_transport_tests /Users/dli/doc/dwg/Extruder2.dwg",
+      "result": "passed; 23/23 selected physical records have resolved representable targets and ASCII/Binary typed readback; sourceVersion=14, 474 unrelated entity parse failures; low-level transport only, not whole-file adapter output"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "limitations": [
+    "Successful whole-file adapter output/readback and same-adapter correction/retry are proven only for the locally authored in-memory graph, not a physical producer DIMASSOC graph.",
+    "Physical DWG source scans and LibreDWG target-role evidence establish bounded owner/reactor dictionary roles for sampled records; broader producer/version profiles remain open.",
+    "The DIMASSOC physical body is not documented in ODA v5.4.1; native associative semantics and broader producer/version support remain unqualified.",
+    "This closure checks target existence and DICTIONARY OBJECTS identity, not native owner/reactor semantics or recursive dictionary dependencies beyond the emitted record identity.",
+    "The reactor count is a DWG common-header field and is not present in DXF readback; DXF readback verifies the reactor handle vector only.",
+    "No DWG/DXF fixture was added to the repository."
+  ],
+  "support_claim": "No support claim promoted"
+}

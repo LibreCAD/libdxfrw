@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-implementation-slice-v1",
+  "title": "7S.2c DetailViewStyle and SectionViewStyle subclass-marker views",
+  "date": "2026-10-22",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "operation": "Compare structural group-100 subclass markers through the current-record string view, avoiding temporary UTF-8 string materialization.",
+    "routes": [
+      "DRW_DetailViewStyle::parseCode",
+      "DRW_SectionViewStyle::parseCode"
+    ],
+    "lifetime": "Each std::string_view is consumed synchronously inside parseCode before the next record read invalidates the reader token.",
+    "behavior": "Recognized and unknown marker routing is unchanged; no marker value is retained or passed through semantic text decoding.",
+    "non_claims": [
+      "no public API or model-layout change",
+      "no DXF wire behavior change",
+      "no DWG byte-layout change",
+      "no support claim promotion",
+      "no external producer or native CAD qualification"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check --parallel 2",
+    "build_result": "PASS (-Werror; compatibility target succeeds)",
+    "selector": "build-gcc/libdxfrw_hardening_tests --dxf-viewstyle-subclass-marker-budget",
+    "selector_result": "PASS",
+    "focused_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_viewstyle_subclass_marker_budget$' --output-on-failure",
+    "focused_ctest_result": "PASS (1/1)",
+    "coverage": "Existing generated ASCII/Binary cases parse 32-KiB unknown subclass markers for both style classes and verify subsequent parser-state routing.",
+    "diff_check": "PASS (src/drw_objects.cpp, tests/hardening_tests.cpp)",
+    "full_suite_run": false,
+    "persistent_fixture_added": false
+  },
+  "external_gates": {
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"],
+    "freecad_linux_windows": "NOT_RUN",
+    "independent_acis_acds_semantics": "NOT_RUN",
+    "evidence_promotes_support": false
+  },
+  "repository_state": {
+    "commit_status": "UNCOMMITTED_UNSTAGED",
+    "reason": "The shared worktree contains broad in-progress changes; this focused slice was left unstaged and uncommitted."
+  },
+  "self_unblocking_continuation": "The two remaining view-style group-100 parsers identified by the source audit now use borrowed marker views. Continue with the next locally reproducible DWG/DXF correctness gap; do not infer undocumented proprietary field layouts or wait on external qualification."
+}

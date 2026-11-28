@@ -1,0 +1,62 @@
+{
+  "status": "bounded HEADER envelope correction; ODA writer interoperability remains unresolved",
+  "authority": "ODA Open Design Specification for .dwg files v5.4.1 \u00a7\u00a77\u20139: R2013/2018 use R2004-family section organization, HEADER contains the optional 4-byte word and CRC after the data; CRC covers the size and data. The size-word convention below is grounded in both physical producer sections.",
+  "physical_source_provenance": "Locally authored LINE DXF converted to AC1027 and AC1032 by ODA File Converter 27.1.0; source control and producer command are recorded in p6-ac1027-1032-oda-writer-rejection-2026-11-04.json.",
+  "physical_sections": {
+    "AC1027": {
+      "source": "/private/tmp/modern-writer-investigation/source-dwg/AC1027/line.dwg",
+      "source_sha256": "1bab740b1f96b88534b4f8238828b9044cffd58b2975ec4b6b00db0c4560cd09",
+      "compressed_payload_offset": 9920,
+      "compressed_payload_bytes": 1551,
+      "decoded_page": "/private/tmp/modern-8bb/source-header.raw",
+      "decoded_page_sha256": "2b7ab394f75459a4b1323e7be0b6b3ed1332869b2e70781eebcd496e60e97ee4",
+      "size_word": 802,
+      "high_word": 0,
+      "crc_offset": 826,
+      "crc16": "7741"
+    },
+    "AC1032": {
+      "source": "/private/tmp/modern-writer-investigation/source-dwg/AC1032/line.dwg",
+      "source_sha256": "ff2ac82b1ba9cf7d52970299fc766b85ddf48c3f6359d9ae62b550a6c1d7c26d",
+      "compressed_payload_offset": 9632,
+      "compressed_payload_bytes": 1551,
+      "decoded_page": "/private/tmp/modern-8bb/source-1032-header.raw",
+      "decoded_page_sha256": "a22e0cd718d536bca343a8fa07d03fe13376ca1246bc4ff7959d14aa5525e816",
+      "size_word": 802,
+      "high_word": 0,
+      "crc_offset": 826,
+      "crc16": "7f7c"
+    }
+  },
+  "span_evidence": "In both extracted pages the first 16 bytes are the HEADER begin sentinel; size is read at offset 16, high word at 20, CRC at 24+size, and the matching end sentinel directly follows. CRC16/0xc0c1 over bytes [16,826) matches. The pages contain bytes after the end sentinel; this check neither interprets them as padding nor claims a complete logical-section length.",
+  "implementation": "For emitted AC1027/AC1032 HEADER only, count from after the optional high word; include the low size word and high word in CRC16. Adjust the final HANDSEED/current-reference reseal locator to the same boundary. Earlier versions retain their existing framing and no fixed-header 0x0b metadata is changed.",
+  "generated": "Isolated archive of 8bb071a2 with the committed repeated-header change and this candidate: generated LINE HEADER for both versions has low size 477, high 0, CRC offset 501, CRC16 c424; final DWG hashes AC1027 2b8670b2729e9705b921ba8d5fb8bb2ea9fafd9e97f58d10e35473fe503a393f, AC1032 94c7f0479c2e17c2266b7aad5b77bc86923f9b2ed20241b536c5ee010b624723. Generated full decoded page SHA-256 0147ee40ccd88b0df8b1fab6c466b9e62f09475c6aa9966c7ecc61f177e7fd96 for both. AC1018 LINE SHA 5964b4dc9a1f25b951c2f197566fe41d265a8bd0c00520b7bdf3e2cd0f668b0e and AC1024 53f46e21906c9e18f4f7a499a40a2135d3015325c33f996d2fbcc4e6a046f468 exactly match corresponding before-fix output.",
+  "controlled_oda_differential": {
+    "scope": "Scratch AC1027 container with source classes, objects, handles and auxiliary header, but generated HEADER; 0x0b is set to 6 as a separate diagnostic. Its foreign handle graph is intentionally inconsistent and cannot establish complete conversion.",
+    "before": "/private/tmp/modern-8bb/header-size-in/graph01-fix0.dwg SHA 57eb82aa2e709f04c0b336419ecdac0da8dfbd3a56aee0cd0d901845f852162e; ODA reports CRC does not match.",
+    "after": "/private/tmp/modern-8bb/header-size-in/graph01-fix1.dwg SHA 2534815e73088b2fe0244771e74b2387c8a99129230b9638805dceae0dae46fe; only low size and CRC were changed within HEADER, page checksums resealed; ODA advances to foreign-handle cast failure.",
+    "positive": "A coherent source graph in the same generated container with physical producer fixed-header values yields DXF, and LibreDWG JSON objects, classes and header match the source exactly. No general container or graph qualification follows."
+  },
+  "oda_final_result": "ODA exits 0 but emits .err/no DXF: AC1027 unchanged 0x0b is Out of range; AC1032 unchanged 0x0b needs recovery. Diagnostic copies with only 0x0b set to 6 both need recovery. The 0x0b observation is separate from the native reader high-size selection at 0x12; no conclusion about its proper value or general support is made. stdout/stderr logs are zero bytes.",
+  "reader_compatibility": "Native reader accepts the source-backed alternate envelope only after zero-high-word, exact sentinel and CRC checks. It reports HeaderSectionCompatibility warning for modern output; strictDwgReadOutcomeIsComplete does not reject that warning alone. Unknown suffix handling is unchanged and HeaderSectionUnclaimedData remains a strict-output refusal.",
+  "tests": "libdxfrw_dwg_modern_header_section_size checks both size conventions, CRC16, final HANDSEED and four current names, native LINE readback, exact compatibility/no-unclaimed/no-CRC diagnostic, destination preservation after failure and same-facade retry. Optional path argument verifies extracted source pages; input SHA-256 is checked separately. No fixtures committed.",
+  "source_reproduction": [
+    "c++ -std=c++17 -Isrc tools/probe_modern_header_source.cpp <clean-build>/libdxfrw.a -o <scratch>/probe (uses in-tree decompressor; not independent decompression)",
+    "<scratch>/probe <source-AC1027.dwg> 9920 1551 <new-output-27.raw>",
+    "<scratch>/probe <source-AC1032.dwg> 9632 1551 <new-output-32.raw>",
+    "shasum -a 256 <source-files> <new-output-27.raw> <new-output-32.raw>",
+    "<clean-build>/tests/libdxfrw_dwg_modern_header_section_size_tests <new-output-27.raw>",
+    "<clean-build>/tests/libdxfrw_dwg_modern_header_section_size_tests <new-output-32.raw>"
+  ],
+  "limits": "The reader warning is retained; no unknown suffix is newly admitted. The separate 0x0b hypothesis and remaining ODA recovery are open. No complete modern DWG interoperability, modeler, or native CAD qualification is claimed.",
+  "files": {
+    "src/intern/dwgwriter.h": "6fce4cfcb96f5b6a6fb19a9c6dbc0ed394ea7382950ac60835f247bdcb7b6ee0",
+    "src/intern/dwgwriter24.cpp": "6863eefad90eeb19d16d6bbdbc07d7519e6d82faf84e384c2444e52364fe261b",
+    "tests/dwg_modern_header_section_size_tests.cpp": "1e1f10ef9e3ebc2a4c9be9c3b775ba8c9f841c85adbd704b637ea27e659fdfce",
+    "tools/probe_modern_header_source.cpp": "de7c7af173f12902944c0fbae6c4355d7947857f0da4719edf0c5a85854d7d6d"
+  },
+  "strict_cli_control": "An isolated current-adapter strict CLI run compared old and corrected AC1027/AC1032 LINE files. All four published 28/28 frames, then refused at the same later opaque DWG callback output-qualification gate (2/4 qualified), preserving sentinel destinations. Corrected files retained one kind-24 compatibility warning and no HEADER CRC/unclaimed warning; this run does not demonstrate a successful strict export. Logs under /private/tmp/modern-8bb/strict-out/.",
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "integrated_validation": "The integrated modern HEADER size, repeated-header and defaults tests passed 3/3; existing HEADER current-reference and resealing tests passed 2/2."
+}

@@ -1,0 +1,27 @@
+{
+  "scope": "Selected same-import three-root LayerStates dependencies and staged checks; the complete profile remains output-refused.",
+  "source": {
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "producer": "not independently authenticated",
+    "repository_fixture_committed": false
+  },
+  "implementation": {
+    "selection": "The original importer freezes the nested dictionary, XRECORD and referenced SCALE handle, verifies them against its source graph, and queues the selected nested records.",
+    "tables": "A staged table inspector checks the unique remapped ACAD APPID source binding and table owner.",
+    "objects": "A selected-ledger inspector checks the companion EED dictionary, nested dictionary, nested XRECORD, and referenced SCALE body and remapped identities. It does not admit the full LayerStates output.",
+    "qualification": "The existing complete three-root staged-output refusal remains in place."
+  },
+  "validation": {
+    "real_writer_selector": "--layerstates-ac1024-real-writer",
+    "result": "PASS ASCII/Binary with 17 corruption, refusal and restored retry cases per encoding; includes APPID handle/name, nested dictionary, record, scale and EED controls.",
+    "source_selector": "--layerstates-ac1024-source-admission",
+    "source_result": "PASS including missing nested snapshot, wrong nested name/reference, same-import identity and retry controls.",
+    "address_sanitizer": "PASS the real-writer and source-admission selectors in the address-sanitized build.",
+    "mechanical_regression": "--layerstates-empty-ac1024-output-readback PASS ASCII/Binary with destination preservation and retry."
+  },
+  "remaining": [
+    "Join these staged checks to the full LayerStates root and primary XRECORD inspector and finalization.",
+    "Recheck SCALE output, APPID/control and all selected identities through publication; prove signed EED and complete graph readback before removing the refusal.",
+    "Qualify producer and native consumer semantics independently."
+  ]
+}

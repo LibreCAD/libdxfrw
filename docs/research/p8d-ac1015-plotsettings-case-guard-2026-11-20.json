@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-ac1015-plotsettings-case-guard-2026-11-20",
+  "date": "2026-11-20",
+  "status": "CURRENT_CANDIDATE_FOCUSED_AND_PEER_PASS_NATIVE_OPEN",
+  "supportClaimEffect": "none",
+  "priorReceipt": "docs/research/p8d-ac1015-plotsettings-nod-and-margin-2026-11-20.json",
+  "consumer": {
+    "candidateHead": "e991a61ff9103ce8c544f4b452571cd310984941",
+    "patchBase": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
+    "testBase": "26dd8817b37f59242a17fa1d0f8c61d6f1cfb410",
+    "baseDelta": "Only the unrelated picfile plugin differs; tests were not rebuilt on patchBase.",
+    "combinedPatch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
+    "combinedPatchSha256": "34d25e66e1cc6be1021b5ef647ec64c922c38680c33ecaa890f3bd6f19636a95",
+    "patchVerification": "Applying the combined patch to an alternate index at patchBase reproduces candidateHead exactly.",
+    "patchAtReceiptCommit": "141f4e33"
+  },
+  "change": "Admit the bounded source graph only for exactly spelled ACAD_GROUP and ACAD_PLOTSETTINGS root entries; differently cased keys refuse instead of being silently rewritten.",
+  "validation": {
+    "currentCodec": {
+      "log": "/private/tmp/libdxfrw-plotsettings-case.log",
+      "sha256": "56cc3c493565b6d1d0e22dab5913f16e0f10efed06ab0bf1242af76b1353c273",
+      "result": "PASS: 135 assertions in 2 focused cases, including changed key spelling, atomic destination preservation and corrected retry."
+    },
+    "bundledCodec": {
+      "log": "/private/tmp/libdxfrw-plotsettings-case-bundled.log",
+      "sha256": "8c653969b6a86c58c6e5b1584bb203659a974d85005d122ffcc8a84e5d5c5f83",
+      "result": "PASS: 60 assertions in 2 focused cases."
+    },
+    "peer": {
+      "reader": "GNU LibreDWG dwgread 0.14",
+      "drawings": {
+        "source": {
+          "sha256": "0949376f64f635d3ba132662ae31de87082a874ad3714783d4f10a45c2e4707a",
+          "decodedJsonSha256": "b22d75d22062d073a8be1202b4813df01f9936948d1933c02fd1288aa9f2ea55",
+          "stderrSha256": "7123d55c89fe7f0add88e18a902445e329c7d55958df646384fd7f6194838fa0"
+        },
+        "raw": {
+          "sha256": "7fb4c581726c449ff59e3b0c162adc4023d47ab1da48b0277ffe21a6250dca57",
+          "decodedJsonSha256": "3d76787a0ac62d5e4e178969b1dc3d2428df9ab66ec828b1a02a4435f67765c7",
+          "stderrSha256": "cf4ffc517774fc80d5b55672037f909af391bb21d58aae7e9ab731960020ebe9"
+        },
+        "edited": {
+          "sha256": "81c299ad72558d8c6eea12d2ad071563aa24c81bc501c9846f5defc6341cdd96",
+          "decodedJsonSha256": "60d869c8e7a2668975cba0b65c0a67d0e2583ba324b291a4007ed763acb40033",
+          "stderrSha256": "7d77d9014e7d7f6497109999b9ad402740ddf545d0709e58999cc9b4571eea6c"
+        }
+      },
+      "comparisonLog": "/private/tmp/libdxfrw-plot-nod-e991-peer-comparison.log",
+      "comparisonLogSha256": "2ad81eac3b46cc85c26f04a3c4cfd3e6abc2487887f84ee91f99bfe81fe0ba7f",
+      "result": "PASS: exact source/raw/edited NOD -> dictionary -> plot graph, source line endpoints, class tuple and plot fields; edited plot differs only in left margin 0 -> 1 mm. Missing-object diagnostics match the respective HANDSEED values; no whole-file integrity claim."
+    }
+  },
+  "limits": [
+    "Same generated AC1015/no-EED bounded graph as the prior receipt; no broader source/version/consumer support claim.",
+    "The candidate is unmerged; native GUI, external producer, and cross-platform consumer qualification remain open.",
+    "No DWG/DXF fixture was committed."
+  ],
+  "libraryImplementationDigestSha256": "7d8df8433c94a99ad19cf94d0d772787e200cea3b41263749ca0101e68405156",
+  "supersededBy": "docs/research/p8d-ac1015-plotsettings-four-margins-2026-11-20.json"
+}

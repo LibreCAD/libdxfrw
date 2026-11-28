@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-modern-compatible-mtext-newline-overlay-fast-slice-v1",
+  "date": "2026-10-17",
+  "slice": "7S.2c.d.17.34",
+  "status": "IMPLEMENTED_IN_WORKTREE / FOCUSED_PASS / MODERN_DXF_MTEXT_NEWLINE_SCOPED",
+  "objective": "Avoid a full normalized-text copy for compatible R2007+ DXF MTEXT with line breaks while preserving wire chunking, strict-lossless behavior, and legacy conversion.",
+  "implementation": {
+    "changed_files": [
+      "src/intern/dxfwriter.cpp",
+      "tests/hardening_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/modern-compatible-mtext-newline-overlay-fast-slice-2026-10-17.json"
+    ],
+    "behavior": [
+      "Lazily maps LF and CRLF into the two-byte MTEXT paragraph marker while consuming normalized bytes for chunking.",
+      "Builds only the encoded chunk backing string and chunk ranges for the selected identity-mapped modern compatible route.",
+      "Preserves chunk byte/character limits, group ordering, and the existing short-final-group behavior.",
+      "Rejects a lone CR before emitting any group; strict-lossless and pre-AC1021 paths use the prior logic."
+    ],
+    "compatibility": "The route is gated to compatible DXF output at AC1021 or later with line-break input. No installed API, public class layout, callback, or default wire behavior changed."
+  },
+  "tests": {
+    "build": "cmake --build build-gcc --target libdxfrw_hardening_tests lc3_compat_check -j2",
+    "build_result": "PASS",
+    "focused_selector": "build-gcc/libdxfrw_hardening_tests --dxf-modern-compatible-mtext-newline-overlay",
+    "focused_selector_result": "PASS",
+    "related_selector": "build-gcc/libdxfrw_hardening_tests --dxf-modern-compatible-text-writer-pass-through",
+    "related_selector_result": "PASS",
+    "owning_ctest": "ctest --test-dir build-gcc -R '^libdxfrw_hardening$' --output-on-failure",
+    "owning_ctest_result": "PASS (1/1)",
+    "diff_check": "PASS",
+    "receipt_json_validation": "PASS"
+  },
+  "controls": [
+    "Generated ASCII and Binary A-LF-B-CRLF-C input with an exact three-byte/three-character group boundary and expected group-3/group-1 output.",
+    "Generated ASCII/Binary byte-for-byte A/B comparison against the existing chunker fed independently normalized text across several byte/character ceilings, LF/CRLF combinations, and multibyte inputs.",
+    "Generated AC1032 multibyte UTF-8 case verifies scalar integrity at a chunk boundary and the short-final-group rule.",
+    "Generated lone-CR case verifies failure before output bytes."
+  ],
+  "limits": [
+    "No allocator-count, throughput, or peak-RSS measurement was run; copy avoidance is established by source structure and wire-equivalence controls.",
+    "Malformed UTF-8 remains subject to the existing compatible-mode behavior and is not qualified by this slice.",
+    "No full suite, peer runtime, native CAD application, or fuzz/sanitizer campaign was run."
+  ],
+  "artifacts": {
+    "external_dwgdxf_fixtures_added": false,
+    "dependencies_added": false,
+    "ctest_registration_added": false,
+    "support_claim_promoted": false
+  },
+  "plan_ledger": {
+    "finding_count": 129,
+    "top_level_subplan_count": 72,
+    "queue_order_changed": false
+  },
+  "next_unblocked_slice": "Inspect remaining writer/projection paths for a source-demonstrated owned copy with narrow byte-equivalence controls; otherwise continue with the next specialized raw/typed carrier. Caller mutation semantics and external J-item qualification do not block unrelated local implementation.",
+  "external_dispositions": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "commit_status": "UNCOMMITTED; broad shared worktree and .git metadata is read-only in this environment"
+}

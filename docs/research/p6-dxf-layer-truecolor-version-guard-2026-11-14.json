@@ -1,0 +1,28 @@
+{
+  "title": "Refuse LAYER truecolor loss before AC1018",
+  "date": "2026-11-14",
+  "scope": "Do not silently drop a nondefault LAYER RGB value when the target DXF revision omits group 420.",
+  "evidence": {
+    "autodeskTruecolorBehavior": {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-AutoLISP-Reference/files/GUID-D47983BA-1E5D-417D-85B8-6F3DE5F506BA.htm",
+      "finding": "Autodesk documents that AutoCAD 2004 and later use DXF group 420 for true color while group 62 carries ACI."
+    },
+    "autodeskRevisionMapping": {
+      "url": "https://help.autodesk.com/view/ACADWEB/ENU/?caas=caas%2Fsfdcarticles%2Fsfdcarticles%2Fdrawing-version-codes-for-autocad.html",
+      "finding": "AC1015 is AutoCAD 2000/2000i/2002; AC1018 is AutoCAD 2004/2005/2006."
+    },
+    "writerGate": "writeLayer emits group 420 only when version > AC1015, so AC1018 is the first supported target that emits this RGB field."
+  },
+  "implementation": "writeLayer now refuses a nonnegative color24 at versions <= AC1015 before writing the LAYER record. The existing ACI compatibility projection remains unchanged.",
+  "verification": {
+    "build": "cmake --build build --target libdxfrw_dxf_fixture_tests -j4 passed with project warning-as-error settings.",
+    "command": "ctest --test-dir build -R '^libdxfrw_layer_truecolor_version_loss_retry$' --output-on-failure",
+    "result": "PASS, 1/1, 0.57 seconds.",
+    "existingColorControl": "libdxfrw_layer_dwg_cmc_roundtrip passes after its AC1015 case was updated to expect atomic refusal for truecolor-bearing input; AC1018/AC1032 still verify supported output and readback.",
+    "profiles": "ASCII and Binary AC1015 writes refuse a generated RGB_LAYER and preserve the pre-existing destination sentinel; same-writer AC1018 retry succeeds, and fresh typed readback checks color24 = 0x123456."
+  },
+  "limits": [
+    "Generated direct-writer refusal/retry and self-readback only.",
+    "Does not qualify producer prevalence, native color display, or layer graph closure."
+  ]
+}

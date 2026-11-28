@@ -1,0 +1,67 @@
+{
+  "title": "S3.7c ACIS ellipse-curve analytic evaluation",
+  "date": "2026-10-21",
+  "status": "IMPLEMENTED_UNCOMMITTED",
+  "scope": {
+    "geometry": "Evaluate one analytic point on a decoded ellipse-curve representation",
+    "parameterization": "Radians; center + projectedMajorAxis*cos(t) + rightHandedMinorAxis*(ratio*majorRadius)*sin(t), where rightHandedMinorAxis follows normalizedNormal cross majorAxis",
+    "frame_policy": "Normalize a temporary normal, validate the relative normal component of the major axis against a finite nonnegative caller-supplied dimensionless tolerance, and remove only a tolerated discrepancy before evaluation",
+    "numeric_policy": "Scale normal and major-axis vectors before normalization; exponent-safe products and scaled coordinate sums avoid unnecessary intermediate overflow and preserve representable large-coordinate cancellation",
+    "refusal_policy": "Unsupported curve type, invalid/nonfinite input, zero normal/axis/projected axis, frame residual above caller tolerance, invalid ratio, or unrepresentable output returns false without modifying the output point",
+    "semantic_limit": "The API explicitly defines a right-handed utility parameterization; the inspected peer docs corroborate field labels and ratio meaning only, not native ACIS/SAB parameter direction or kernel semantics",
+    "non_claims": [
+      "native ACIS parameter-direction qualification",
+      "finite edge endpoint interval or trim evaluation",
+      "pcurve or surface evaluation",
+      "body transform or source-unit application",
+      "B-rep validity",
+      "native consumer or independent-kernel semantic qualification"
+    ]
+  },
+  "coverage": {
+    "parser_fed_sab21800_zero_quarter_and_half_turns": "PASS",
+    "nonunit_normal_and_ratio_scaling": "PASS",
+    "oblique_frame_independent_analytic_expectation": "PASS",
+    "within_tolerance_frame_residual_is_removed": "PASS",
+    "above_tolerance_frame_residual_refuses": "PASS",
+    "nonfinite_parameter_and_invalid_tolerances_refuse_atomically": "PASS",
+    "zero_ratio_wrong_curve_type_and_degenerate_parallel_frame_refuse_atomically": "PASS",
+    "unrepresentable_output_refuses_atomically": "PASS",
+    "opposite_maximum_finite_center_and_axis_cancel_without_intermediate_overflow": "PASS",
+    "new_drawing_fixture_added": false,
+    "public_struct_layout_changed": false,
+    "DRW_Interface_vtable_changed": false,
+    "support_claim_promoted": false,
+    "full_suite_run": false
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests lc3_compat_check -j4",
+    "build_result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_graph_preservation$' --output-on-failure",
+    "ctest_result": "PASS (1/1, 1.27 seconds; includes final negative controls)",
+    "symbol_check": "PASS (nm -gC build-gcc/libdxfrw.a exports drw_evaluateAcisEllipseCurve)",
+    "diff_check": "PASS (scoped changed paths)",
+    "json_validation": "PASS"
+  },
+  "compatibility": {
+    "DRW_Interface_vtable_changed": false,
+    "public_struct_layout_changed": false,
+    "consumer_rebuild_required_for_new_exported_symbol": true,
+    "2d_callback_lane_changed": false
+  },
+  "external_gate": {
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "evidence_promotes_support": false
+  },
+  "source": {
+    "implementation_corroboration": "https://docs.rs/acadrust/latest/src/acadrust/entities/acis/types.rs.html",
+    "reference_reviewed": "The current ACadRust typed-layout documentation labels ellipse-curve fields as center, normal, major axis, and minor-to-major ratio. This is not normative ACIS/SAB authority, and the peer release/source identity is not pinned by this page. Native parameter direction remains unqualified; the new API states its own mathematical convention."
+  }
+}

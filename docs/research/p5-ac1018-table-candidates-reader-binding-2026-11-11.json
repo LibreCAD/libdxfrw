@@ -1,0 +1,43 @@
+{
+  "id": "p5-ac1018-table-candidates-reader-binding-2026-11-11",
+  "date": "2026-11-11",
+  "scope": "Opt-in, all-or-none, same-import source observations for a selected XRECORD set and one AC1018 TABLECONTENT and DATATABLE. This is not a graph-completion, replay, output, interoperability or semantic certificate.",
+  "design": [
+    "After matching a source-frame lease, the reader selects only a resolved custom TABLECONTENT/AcDbTableContent or DATATABLE/AcDbDataTable class with matching encoded/resolved numeric type; it verifies the object frame CRC with DwgObjectFrame::readAt and retains a bounded provisional ticket. This authenticates class kind, record/class names and numeric type from reader classification, not the entire class tuple.",
+    "The reader delivers provisional tickets only after successful whole-read processing, zero entity/object parse failures, complete frame coverage and no coverage integrity violation. Per-frame candidate caps are 64 KiB for TABLECONTENT and 1 MiB for DATATABLE; retained reader frame bodies share a 2 MiB preallocation budget with selected XRECORDs. Adapter snapshot estimates share a separate 2 MiB aggregate budget.",
+    "Adapter tickets must match a unique retained raw callback body, source handle/version/type/class, source offset and exact CRC-checked bytes; callback metadata outside the reader-bound kind/names/number remains unqualified. One immutable table-candidate owner and one XRECORD owner share a fresh import token and generation, and are published only after every requested member and both bounded candidate decoders validate.",
+    "The two candidate parents must identify the same selected root XRECORD, and DATATABLE's unique owned child references must identify all other selected XRECORDs whose parsed parent is the DATATABLE. These are partial source bindings: they do not verify the root XRECORD's ordered 360/361 references or authenticate all child parent wire roles.",
+    "The selected TABLECONTENT and DATATABLE object class numbers are joined to exactly one published row in the same source-joined CLASSES report. The join compares class number, record/class/app names, proxy flags, entity kind/raw flag, instance count, DWG/maintenance versions, and both unknown trailer values.",
+    "Both combined and individual XRECORD queries revalidate all bound members. Mutation, missing or duplicate selection, stale token, CRC failure, candidate refusal, resource failure, callback failure or nested reentry leave no usable combined bundle. Original XRECORD-only selection remains supported; ordinary reader callbacks and all output gates remain unchanged."
+  ],
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg_table_candidate_binding_tests libdxfrw_dwg_xrecord_verified_source_tests -j 3",
+    "test": "ctest --test-dir build -R '^libdxfrw_dwg_(xrecord_verified_source|datatable_ac1018_candidate|tablecontent_ac1018_candidate|table_candidate_binding)$' --output-on-failure",
+    "result": "4/4 passed in approximately 4.25 seconds; test-only candidate bodies and DWG are generated locally under the build tree and removed.",
+    "generated_controls": [
+      "Good same-import binding and partial candidate results; wrong/missing/duplicate/sentinel selection and cross-import token transplant refuse; one raw-body or XRECORD mutation invalidates all members and correction retries successfully.",
+      "Forged callback class/record/type metadata, wrong DATATABLE child-handle role, same-interface and cross-interface same-data reentry, and throwing raw callback leave neither usable capability; same-adapter retry succeeds.",
+      "Mutating either selected class row's proxy flags or instance count invalidates the combined capability; restoring the report permits same-import retry.",
+      "A valid 3x3 TABLECONTENT with a larger in-budget TV plus two large valid XRECORDs passes XRECORD-only observation but exceeds the shared reader/adapter selection budget; combined observation refuses and same-adapter retry on the ordinary generated file succeeds.",
+      "A strict DXF export of the bound source still refuses and preserves an existing destination sentinel. The binding does not modify the DWG writer or qualify its output.",
+      "The test locates the selected TABLECONTENT body in the locally generated AC1018 uncompressed object page, verifies the original complete frame/CRC, flips only its stored frame CRC, and recomputes the containing page's data and encrypted-header checksums. The damaged frame is rejected; retained integrity diagnostics report ObjectFrameBounds for handle 0xb9, contain no data-page checksum/CRC failure and have no omitted/dropped/saturated rows. Restoring the original file permits same-adapter retry."
+    ],
+    "fault_scope": "Representative one-shot allocation failures at a later custom-frame capture, custom-ticket snapshot, first and second joint owner creation, and joint candidate validation all leave no usable capability and permit same-adapter retry. These are stage-specific samples, not an exhaustive allocation sweep."
+  },
+  "class_metadata_followup": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_table_candidate_binding_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_candidate_binding$' --output-on-failure",
+    "result": "PASS 1/1; selected class proxy-flag and instance-count mutations invalidate the bundle and restoration succeeds",
+    "consumer_build": "cmake --build build-gcc --target dwg2dxf -j4",
+    "consumer_build_result": "passed",
+    "physical_probe": "PASS with the hash-pinned source below; TABLECONTENT class 514 and DATATABLE class 517 each join one matching published class row",
+    "source_spec": "ODA Open Design Specification for .dwg files v5.4.1, CLASSES class data fields (class number, proxy flags, app/C++/DXF names, proxy state, item-class ID, instance count, DWG/maintenance versions, unknown trailer values)",
+    "fixture_file_committed": false
+  },
+  "physical": {
+    "drawing_sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "result": "One actual import bound TABLECONTENT 0xb9, DATATABLE 0xbd and XRECORDs 0xbc/0xbe–0xc6 under one token; both custom class numbers joined unique published CLASSES rows and the query returned nine ordered DATATABLE child links, with zero entity/object parse failures. The separate HEADER offset observation remains.",
+    "reproduction": "Compile tools/research/p5_ac1018_table_candidates_binding_probe.cpp using -std=c++17 -Wall -Wextra -Werror, -I src -I dwg2dxf, build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o and build/libdxfrw.a; verify the drawing hash above, then run the probe with /private/tmp/p5-ac1018-oda-audited-output/acad_table_simple.dwg. No DWG/DXF fixture is committed."
+  },
+  "remaining": "Qualify the root XRECORD's exact ordered 360/361 reference roles and the 0xba TABLEGEOMETRY frame, complete TABLESTYLE and recursive dependencies, resolve XRECORD codepage 45 and the HEADER integrity observation, and prove transactional output and independent/native semantics. This selected class tuple join does not authorize any populated TABLE output or qualify other class records."
+}

@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-11",
+  "scope": "Opt-in selected fixed XRECORD source evidence for one completed DWG import. No DWG replay, DXF output, graph closure, native acceptance or semantic support qualification.",
+  "oda_specification": "ODA v5.4.1 section 20.1 describes non-entity MS byte size, versioned handle stream framing, final CRC, and CRC coverage including size bytes; section 2.14.1 describes the two-byte, byte-aligned CRC. XRECORD observations and ODA/peer string-length disagreement remain in p5-ac1018-table-xrecord-source-wire-2026-11-11.json.",
+  "design": [
+    "The optional sink selects one handle; reader re-reads the selected post-lease OBJECTS frame using DwgObjectFrame::readAt, stages at most one body, and limits its encoded size to 1 MiB before the second frame allocation. Candidate staging exceptions are caught and disable this optional observation.",
+    "Only dwgRW can invoke the private reader delivery after processDwg succeeds; the reader requires zero entity/object parse failures, complete frame coverage and no coverage integrity violation. It moves the candidate out before issuing a noncopyable reader-created ticket.",
+    "The adapter snapshots one raw carrier and publication, with a 2 MiB aggregate estimate ceiling, and records its exact starting per-import token and generation. After whole read it seals only if the raw/publication identity and bytes match and the existing raw reparse matched an immutable typed baseline.",
+    "Live validation compares token, generation, source profile, complete retained raw/publication fields, baseline identity, unique typed handle and modeled XRECORD state. All three value views are checked; normal XRECORD ordered-value authority and ordinary DRW_Interface callbacks remain unchanged.",
+    "An unknown XRECORD codepage does not prevent bounded source evidence. It does not establish character semantics or authorize output."
+  ],
+  "focused_validation": {
+    "command": "ctest --test-dir build -R ^libdxfrw_dwg_xrecord_verified_source$ --output-on-failure",
+    "result": "1/1 passed",
+    "generated_ac1018": [
+      "Two independently imported identical handle/offset profiles receive distinct import tokens; swapping capability refuses.",
+      "Changed source body and source ordinal refuse; modeled cloning, ordered entries, legacy scalar view and handle view mutations refuse; duplicate model handle refuses; restoration retries successfully.",
+      "Wrong selection yields no source; default opt-out import remains readable with the same XRECORD count and object failure count.",
+      "A callback throws on a later generated XRECORD after the selected one; object failure is observed and no capability seals. Same-interface and cross-interface same-data nested import both refuse source evidence. Failed reimport invalidates the old evidence and a fresh retry succeeds."
+    ],
+    "generated_ac1015": [
+      "Independently assembled object frame accepts good CRC, rejects damaged CRC and accepts restored CRC.",
+      "Generated whole-file AC1015 uses a checked physical source offset and exact matching source body. Flipping only the selected object stored CRC yields no capability; restoring the CRC permits the same reader to retry with fresh aggregate."
+    ],
+    "limitations": "No exhaustive allocation-failure injection or oversized selected-frame integration test was run. The CRC control verifies source-frame admission; it does not establish whole-file integrity or semantic correctness. Generated controls do not qualify native producers. No writer staging, writer retry, or output CRC regeneration exists in this slice."
+  },
+  "physical_observation": {
+    "source": "ODA 27.1 audited AC1018 recreation from ezdxf acad_table_simple.dxf",
+    "drawing_sha256": "1ba45d704ed7cc846ea4d6d08c7c78062f8090842ebc9e9a4cdefcb44ea6ab2a",
+    "handle": "0xbc",
+    "result": "read=true; unchanged selected source capability=true; 226/226 source frames published; zero entity/object failures",
+    "remaining": "A HEADER offset integrity observation remains; TABLECONTENT 0xb9, TABLEGEOMETRY 0xba and DATATABLE 0xbd remain raw-only. Physical TABLE subtree output remains refused."
+  },
+  "remaining": "Add a bounded-size rejection integration control and allocation-failure sweep, then implement separately gated source-bound output with writer transaction lifetime, late revalidation, exact identity/roles, closure and retry; retain physical subtree gate until the three descendants and their graph are qualified."
+}

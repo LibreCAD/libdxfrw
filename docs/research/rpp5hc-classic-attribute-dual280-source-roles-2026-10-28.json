@@ -1,0 +1,2740 @@
+{
+  "schema": "classic-attribute-dual280-source-roles-v1",
+  "slice": "RPP-5hc / P4a selected classic ATTDEF and ATTRIB",
+  "date": "2026-10-28",
+  "parentCommit": "b730b6fdf9d4c2b950db9252bc8aadb1a59e526b",
+  "state": "IMPLEMENTED_SELECTED_CLASSIC_DUAL280; FROZEN_NORMAL_ASAN_7_OF_7_AND_6_ORIGINAL_PROBES_PASS",
+  "scope": "Selected classic ATTDEF/ATTRIB dual280 source roles on AC1024/AC1027/AC1032 within the existing admitted rest-of-record grammar. This closes one source-profile packet, not P4 or full attribute/document/native support.",
+  "fileSha256": {
+    "dwg2dxf/dx_attdef_source_profile.h": "651d438f08f18b09289b15ac47441829ea92e05bdc95ed8029aaaf5459af4931",
+    "tests/attdef_source_profile_controls.h": "71c08a2aac4bedf1b7908ba0398397aeebab1735b45e43b7b8aa0a0daf1366d6",
+    "tests/attdef_role_controls.h": "346799a2366bae2c871c2499d3ff1643ae387a3c710812db34de4985ec538b13",
+    "tests/compound_source_profile_controls.h": "665e359f9b799747e251a2ba9cb35d0732738b50ad6be5e90ad8a293b55ad460"
+  },
+  "sourceManifest": {
+    "path": "build/rpp5hc-evidence/sources-final.sha256",
+    "sha256": "abe9e0d7232c43e28b0272f205e715ff4c69b259af3d2be2b5570bdac4d6d692",
+    "sourceInputs": 593
+  },
+  "readiness": {
+    "receipt": {
+      "path": "docs/research/rpp5hb-classic-attribute-dual280-readiness-2026-10-28.json",
+      "sha256": "d3bb91a16b941bd837ad8386dd42e8341690023d9ddb98e4f612a6beb5be35be"
+    },
+    "state": "READY_SELECTED_CLASSIC_ORIGINAL_VERSIONED_ATTRIBUTE_ROLES",
+    "samples": {
+      "AC1021": {
+        "hash": "39ebdd9a48fef7a6240a04e3b5ca6d45ba5bb30b560fb9dadf26774e1af83731",
+        "attdef": [
+          75756,
+          75935
+        ],
+        "prefix": null,
+        "lock": [
+          75924,
+          75935
+        ],
+        "attdefCount": 5,
+        "attribCount": 4,
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1021_ascii.dxf"
+      },
+      "AC1024": {
+        "hash": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372",
+        "attdef": [
+          75044,
+          75234
+        ],
+        "prefix": [
+          75171,
+          75182
+        ],
+        "lock": [
+          75223,
+          75234
+        ],
+        "attrib": [
+          204675,
+          204880
+        ],
+        "attribPrefix": [
+          204835,
+          204846
+        ],
+        "attribLock": [
+          204869,
+          204880
+        ],
+        "insert": [
+          204456,
+          204675
+        ],
+        "footer": [
+          204880,
+          204933
+        ],
+        "attdefCount": 5,
+        "attribCount": 4,
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1024_ascii.dxf"
+      },
+      "AC1027": {
+        "hash": "4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6",
+        "attdef": [
+          75050,
+          75240
+        ],
+        "prefix": [
+          75177,
+          75188
+        ],
+        "lock": [
+          75229,
+          75240
+        ],
+        "attrib": [
+          204681,
+          204886
+        ],
+        "attribPrefix": [
+          204841,
+          204852
+        ],
+        "attribLock": [
+          204875,
+          204886
+        ],
+        "insert": [
+          204462,
+          204681
+        ],
+        "footer": [
+          204886,
+          204939
+        ],
+        "attdefCount": 5,
+        "attribCount": 4,
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1027_ascii.dxf"
+      },
+      "AC1032": {
+        "hash": "c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2",
+        "attdef": [
+          75013,
+          75203
+        ],
+        "prefix": [
+          75140,
+          75151
+        ],
+        "lock": [
+          75192,
+          75203
+        ],
+        "attrib": [
+          204829,
+          205034
+        ],
+        "attribPrefix": [
+          204989,
+          205000
+        ],
+        "attribLock": [
+          205023,
+          205034
+        ],
+        "insert": [
+          204610,
+          204829
+        ],
+        "footer": [
+          205034,
+          205087
+        ],
+        "attdefCount": 5,
+        "attribCount": 4,
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1032_ascii.dxf"
+      }
+    },
+    "repositoryProvenance": {
+      "repository": "https://github.com/DomCR/ACadSharp",
+      "head": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "sampleLastChange": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+      "note": "Repository provenance is not verification of the original CAD producer."
+    },
+    "priorSlice": {
+      "path": "docs/research/rpp5gz-attdef-dual-280-source-roles-2026-10-28.json",
+      "sha256": "499b2a58e4d2610b3fcb7193681b09222a0c8e3728a4720868278c28f15bcaac"
+    },
+    "references": [
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-F0EA099B-6F88-4BCC-BEC7-247BA64838A4.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-7DD8B495-C3F8-48CD-A766-14F9D7D0DD9B.htm"
+    ],
+    "limits": [
+      "Current probes establish the original byte sequence, rejected source audit and ordinary library model/INSERT/footer only. They do not prove an independent source producer, native semantics, output preservation or complete document closure.",
+      "The observed attVersion=0 is the current parser model default, not an independently decoded version field.",
+      "AC1032 embedded dual profiles, AcDbXrecord, extra alignment/columns and other secondary bodies remain unqualified.",
+      "Input drawings remain scratch-only; committed tests use eligible existing repository fixtures or authored local recipes."
+    ],
+    "note": "Readiness probe/source/object bindings remain historical. The final rebuilt artifacts and six original-source probes below have their own exact bindings."
+  },
+  "implementation": [
+    "Select only AC1024/27/32 owning dual280 with immediate integer0 prefix, later boolean and mandatory tag/flags; require prompt only for ATTDEF. Classify version0 as ReservedDefault and lock as Attribute without changing model/parser/writer semantics.",
+    "Reject prior embedded state at the second280 and explicitly reject later100/101 Embedded Object after a dual pair. Keep malformed/reversed/misplaced/third/nonzero-prefix/secondary/unknown profiles refused and preserve AC1021 and all existing single280 behavior.",
+    "Reuse original immutable pair/capture, scalar span restoration, modeled replay and actual INSERT/ATTRIB/SEQEND membership, self/owner and footer identities. One span per source scalar and precharged linear auditing remain bounded; no new public API/callback/decoder/capture framework."
+  ],
+  "qualification": {
+    "report": {
+      "path": "build/rpp5hc-evidence/qualification.json",
+      "sha256": "3cbef979c2d25ea7ebe5e36898d50591c614cdd948d7e5283bb8f3af304e5309"
+    },
+    "qualifier": {
+      "path": "build/rpp5hc-evidence/qualify.py",
+      "sha256": "df189a9f21bb1d289afa8d8444a0e3033a08ac0b5db87e8b3320571ac8914cfb"
+    },
+    "chronology": "Normal qualification freezes the manifest, builds both owning executables and runs seven selected tests. ASan checks the same binding and normal executable hashes, builds its own two executables and runs the same seven registrations; normal executable hashes are rechecked afterward. Final original probes use the frozen normal shared-test-adapter/library, not ASan. Earlier development probes do not qualify the frozen checkpoint.",
+    "sourceManifestSha256": "abe9e0d7232c43e28b0272f205e715ff4c69b259af3d2be2b5570bdac4d6d692",
+    "selected": [
+      "libdxfrw_attdef_source_profile",
+      "libdxfrw_original_attdef_roles",
+      "libdxfrw_compound_source_profile",
+      "libdxfrw_entities_primary_source",
+      "libdxfrw_block_primary_source",
+      "libdxfrw_compound_body_replay",
+      "libdxfrw_entities_compound_source"
+    ],
+    "fullSuiteRun": false,
+    "results": [
+      {
+        "configuration": "normal",
+        "build": "/Users/dli/dev/libdxfrw/build",
+        "targets": [
+          "libdxfrw_attdef_source_tests",
+          "libdxfrw_table_content_dxf_tests"
+        ],
+        "buildExitCode": 0,
+        "buildSeconds": 5.603258457995253,
+        "buildLogSha256": "5e386b1924c55115935b865c50d20cd8582023efc94d5811b842823821b6ba0b",
+        "cacheSha256": "5ba01e6957053cb83b46792b2ac8eb5e04241520b684cd535884598799b574f4",
+        "ninjaSha256": "6c93a605ab8c757c8ee2f6b30a8fe043839338a29e3018f0d7f5bcfe94ec62c3",
+        "registrations": {
+          "libdxfrw_attdef_source_profile": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/tests/libdxfrw_attdef_source_tests",
+              "--source-profile"
+            ],
+            "name": "libdxfrw_attdef_source_profile",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "attdef",
+                  "dxf",
+                  "fast",
+                  "generated",
+                  "independent",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 60.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/tests"
+              }
+            ]
+          },
+          "libdxfrw_compound_body_replay": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/tests/libdxfrw_attdef_source_tests",
+              "--compound-body"
+            ],
+            "name": "libdxfrw_compound_body_replay",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "block",
+                  "compound",
+                  "dxf",
+                  "fast",
+                  "generated",
+                  "independent",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 120.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/tests"
+              }
+            ]
+          },
+          "libdxfrw_compound_source_profile": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/tests/libdxfrw_attdef_source_tests",
+              "--compound-profile"
+            ],
+            "name": "libdxfrw_compound_source_profile",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "block",
+                  "compound",
+                  "dxf",
+                  "fast",
+                  "generated",
+                  "independent",
+                  "profile",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 60.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/tests"
+              }
+            ]
+          },
+          "libdxfrw_entities_compound_source": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/tests/libdxfrw_table_content_dxf_tests",
+              "--entities-compounds"
+            ],
+            "name": "libdxfrw_entities_compound_source",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "adapter",
+                  "compound",
+                  "dxf",
+                  "entities",
+                  "fast",
+                  "generated",
+                  "independent",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 60.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/tests"
+              }
+            ]
+          },
+          "libdxfrw_entities_primary_source": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/tests/libdxfrw_table_content_dxf_tests",
+              "--entities-primaries"
+            ],
+            "name": "libdxfrw_entities_primary_source",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "adapter",
+                  "dxf",
+                  "entities",
+                  "fast",
+                  "generated",
+                  "independent",
+                  "primary",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 60.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/tests"
+              }
+            ]
+          },
+          "libdxfrw_block_primary_source": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/tests/libdxfrw_attdef_source_tests",
+              "--block-primary"
+            ],
+            "name": "libdxfrw_block_primary_source",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "adapter",
+                  "block",
+                  "dxf",
+                  "fast",
+                  "generated",
+                  "identity",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 60.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/tests"
+              }
+            ]
+          },
+          "libdxfrw_original_attdef_roles": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/tests/libdxfrw_table_content_dxf_tests",
+              "--attdef-roles"
+            ],
+            "name": "libdxfrw_original_attdef_roles",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "adapter",
+                  "attdef",
+                  "block",
+                  "dxf",
+                  "entities",
+                  "fast",
+                  "generated",
+                  "identity",
+                  "independent",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 60.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/tests"
+              }
+            ]
+          }
+        },
+        "executables": {
+          "/Users/dli/dev/libdxfrw/build/tests/libdxfrw_attdef_source_tests": "95534019281f1e548ad7ad9f69dd51eadd61785a554d170afac3cb6dce79c261",
+          "/Users/dli/dev/libdxfrw/build/tests/libdxfrw_table_content_dxf_tests": "d45f9609c0fa3713ecdfd9f4fd600fdd0ea3cd0c67eb6230689cfb76fb574ca7"
+        },
+        "ctestExitCode": 0,
+        "ctestSeconds": 5.444435417011846,
+        "ctestLogSha256": "15b4a76d09e48a401463da9348e04f8259a24507f6d0204a433ef42972992806",
+        "counters": [
+          "BLOCK primary profiles=24 original scalar spans=1152 field faults=40 refusals=28 contexts=12 quotas=12 allocation faults=334 failure/retries=6 variants=4",
+          "ENTITIES compound profiles=84 spans=8307 contexts=17 mutations=28 refusals=24 limits=12 allocations=432 exceptions=8 variants=14 empty chain/retries=15 unqualified subtypes=4",
+          "ENTITIES primary profiles=36 scalar spans=3748 reference roles=848 field edits/retries=36 original refusals/retries=22 variants=10 allowances=12 allocation faults=432 contexts=6 exception/tail retries=6 required-coordinate/retries=12 explicit dispositions=10",
+          "Compound body positive profiles=84; original scalar spans=19524",
+          "Compound body encoding=0 field faults=40 quotas=3",
+          "Compound body encoding=0 dispatch=2 cumulative allocation faults=84",
+          "Compound body encoding=0 dispatch=3 cumulative allocation faults=237",
+          "Compound body encoding=1 field faults=80 quotas=6",
+          "Compound body encoding=1 dispatch=2 cumulative allocation faults=332",
+          "Compound body encoding=1 dispatch=3 cumulative allocation faults=496",
+          "Compound body profiles=84; original scalar spans=19524; same-ID field faults/retries=80; immutable aliases=2; quota exact/under/retries=6; isolated allocation faults/retries=496; stale owner/restorations=2; INSERT variants=6; unfinished XDATA=4; modeled-versus-profile boundaries=2; copied/later/opt-out contexts=8; extended-class refusals/retries=14; callback exceptions/retries=4",
+          "ATTRIB dual280 compounds profiles=12; role corruptions=48; malformed/retries=84/84; AC1021 single/dual=4/4; callback lock mutations=2; canonical single-lock writer forms=12; independent original scalar spans=18718; complete profile spans=5978; comments=0",
+          "Compound physical initial profiles=84; complete bodies=150; documented revision refusals=18",
+          "Compound physical profiles=84; complete bodies=150; revision refusals=18; independent original scalar spans=23592; complete profile scalar spans=12216; ignored comments=416; positive variants=20; wire faults/retries=46; stale/copied contexts=4; forged scalar types=10; corrupt physical spans=10",
+          "ATTDEF dual280 profiles=24; independent spans=18480; role corruptions=96; malformed/retries=168/168; single compatibility=32; revision refusals=48; ATTRIB direct profiles=24; embedded refusals=48",
+          "ATTDEF source-profile host tail routes=48; ATTRIB host tail routes=48; qualified profiles=28; earlier multiline compatibility profiles=36; original physical spans=3032; observer corruptions=112; refusal/retry routes=548; replay-alone false positives refused=524; maximum chunk profiles=28; maximum chunk spans=3032; oversized chunk refusals/retries=112",
+          "ATTDEF dual280 roles profiles=24; independent scalar spans=16632; positive role corruptions=144; original compound children=144; malformed/retries=120/120; canonical single-lock writer forms=12",
+          "ATTDEF roles profiles=72; qualified=36; revision refusals=36; independent scalar spans=3264; variants=30; actual field mutations=40; pair refusals=28; context guards=52; exact/under quotas=40; allocation faults=94; original proof with later live-copy failure=6; destination guards=12; failure/retries=44"
+        ]
+      },
+      {
+        "configuration": "asan",
+        "build": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build",
+        "targets": [
+          "libdxfrw_attdef_source_tests",
+          "libdxfrw_table_content_dxf_tests"
+        ],
+        "buildExitCode": 0,
+        "buildSeconds": 64.05220287499833,
+        "buildLogSha256": "4164b938a290401241ba9c8ae024e0d49654569f57262f84e7e3ee50dc60caaf",
+        "cacheSha256": "8bc37f0495b8307a133bbf938c4eb8bfb5a39acf2929438001abf401bfd6cd31",
+        "ninjaSha256": "3eb8b95588305bf5f3156e9995c7d2f9339b5d807fa2e78bbfff2d2cfb717418",
+        "registrations": {
+          "libdxfrw_attdef_source_profile": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_attdef_source_tests",
+              "--source-profile"
+            ],
+            "name": "libdxfrw_attdef_source_profile",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "attdef",
+                  "dxf",
+                  "fast",
+                  "generated",
+                  "independent",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 60.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests"
+              }
+            ]
+          },
+          "libdxfrw_compound_body_replay": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_attdef_source_tests",
+              "--compound-body"
+            ],
+            "name": "libdxfrw_compound_body_replay",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "block",
+                  "compound",
+                  "dxf",
+                  "fast",
+                  "generated",
+                  "independent",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 120.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests"
+              }
+            ]
+          },
+          "libdxfrw_compound_source_profile": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_attdef_source_tests",
+              "--compound-profile"
+            ],
+            "name": "libdxfrw_compound_source_profile",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "block",
+                  "compound",
+                  "dxf",
+                  "fast",
+                  "generated",
+                  "independent",
+                  "profile",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 60.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests"
+              }
+            ]
+          },
+          "libdxfrw_entities_compound_source": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_table_content_dxf_tests",
+              "--entities-compounds"
+            ],
+            "name": "libdxfrw_entities_compound_source",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "adapter",
+                  "compound",
+                  "dxf",
+                  "entities",
+                  "fast",
+                  "generated",
+                  "independent",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 60.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests"
+              }
+            ]
+          },
+          "libdxfrw_entities_primary_source": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_table_content_dxf_tests",
+              "--entities-primaries"
+            ],
+            "name": "libdxfrw_entities_primary_source",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "adapter",
+                  "dxf",
+                  "entities",
+                  "fast",
+                  "generated",
+                  "independent",
+                  "primary",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 60.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests"
+              }
+            ]
+          },
+          "libdxfrw_block_primary_source": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_attdef_source_tests",
+              "--block-primary"
+            ],
+            "name": "libdxfrw_block_primary_source",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "adapter",
+                  "block",
+                  "dxf",
+                  "fast",
+                  "generated",
+                  "identity",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 60.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests"
+              }
+            ]
+          },
+          "libdxfrw_original_attdef_roles": {
+            "command": [
+              "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_table_content_dxf_tests",
+              "--attdef-roles"
+            ],
+            "name": "libdxfrw_original_attdef_roles",
+            "properties": [
+              {
+                "name": "LABELS",
+                "value": [
+                  "adapter",
+                  "attdef",
+                  "block",
+                  "dxf",
+                  "entities",
+                  "fast",
+                  "generated",
+                  "identity",
+                  "independent",
+                  "source"
+                ]
+              },
+              {
+                "name": "TIMEOUT",
+                "value": 60.0
+              },
+              {
+                "name": "WORKING_DIRECTORY",
+                "value": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests"
+              }
+            ]
+          }
+        },
+        "executables": {
+          "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_attdef_source_tests": "50759fb6ef4c1f8c37a5b62065901ea96c529fc8fca8bb0dc5f43d5c2bea832b",
+          "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/asan-build/tests/libdxfrw_table_content_dxf_tests": "f0b6b5798639dd3d5a7c3c1cdbc6f58c844015be0bea102dc859b422a520abc6"
+        },
+        "ctestExitCode": 0,
+        "ctestSeconds": 3.7887526660051662,
+        "ctestLogSha256": "91677781472c0164bae135a2d282fccebe132a4925df54bf299d5e0840832779",
+        "counters": [
+          "ATTDEF dual280 profiles=24; independent spans=18480; role corruptions=96; malformed/retries=168/168; single compatibility=32; revision refusals=48; ATTRIB direct profiles=24; embedded refusals=48",
+          "ATTDEF source-profile host tail routes=48; ATTRIB host tail routes=48; qualified profiles=28; earlier multiline compatibility profiles=36; original physical spans=3032; observer corruptions=112; refusal/retry routes=548; replay-alone false positives refused=524; maximum chunk profiles=28; maximum chunk spans=3032; oversized chunk refusals/retries=112",
+          "Compound body positive profiles=84; original scalar spans=19524",
+          "Compound body encoding=0 field faults=40 quotas=3",
+          "Compound body encoding=0 dispatch=2 cumulative allocation faults=84",
+          "Compound body encoding=0 dispatch=3 cumulative allocation faults=237",
+          "Compound body encoding=1 field faults=80 quotas=6",
+          "Compound body encoding=1 dispatch=2 cumulative allocation faults=332",
+          "Compound body encoding=1 dispatch=3 cumulative allocation faults=496",
+          "Compound body profiles=84; original scalar spans=19524; same-ID field faults/retries=80; immutable aliases=2; quota exact/under/retries=6; isolated allocation faults/retries=496; stale owner/restorations=2; INSERT variants=6; unfinished XDATA=4; modeled-versus-profile boundaries=2; copied/later/opt-out contexts=8; extended-class refusals/retries=14; callback exceptions/retries=4",
+          "BLOCK primary profiles=24 original scalar spans=1152 field faults=40 refusals=28 contexts=12 quotas=12 allocation faults=334 failure/retries=6 variants=4",
+          "ATTRIB dual280 compounds profiles=12; role corruptions=48; malformed/retries=84/84; AC1021 single/dual=4/4; callback lock mutations=2; canonical single-lock writer forms=12; independent original scalar spans=18718; complete profile spans=5978; comments=0",
+          "Compound physical initial profiles=84; complete bodies=150; documented revision refusals=18",
+          "Compound physical profiles=84; complete bodies=150; revision refusals=18; independent original scalar spans=23592; complete profile scalar spans=12216; ignored comments=416; positive variants=20; wire faults/retries=46; stale/copied contexts=4; forged scalar types=10; corrupt physical spans=10",
+          "ENTITIES compound profiles=84 spans=8307 contexts=17 mutations=28 refusals=24 limits=12 allocations=432 exceptions=8 variants=14 empty chain/retries=15 unqualified subtypes=4",
+          "ENTITIES primary profiles=36 scalar spans=3748 reference roles=848 field edits/retries=36 original refusals/retries=22 variants=10 allowances=12 allocation faults=432 contexts=6 exception/tail retries=6 required-coordinate/retries=12 explicit dispositions=10",
+          "ATTDEF dual280 roles profiles=24; independent scalar spans=16632; positive role corruptions=144; original compound children=144; malformed/retries=120/120; canonical single-lock writer forms=12",
+          "ATTDEF roles profiles=72; qualified=36; revision refusals=36; independent scalar spans=3264; variants=30; actual field mutations=40; pair refusals=28; context guards=52; exact/under quotas=40; allocation faults=94; original proof with later live-copy failure=6; destination guards=12; failure/retries=44"
+        ]
+      }
+    ],
+    "asanOptions": "halt_on_error=1:detect_leaks=0",
+    "sourceInputsUnchanged": 593,
+    "normalExecutablesRecheckedAfterAsan": true
+  },
+  "originalSourceProbes": {
+    "report": {
+      "path": "build/rpp5hc-evidence/source-probes.json",
+      "sha256": "3952b084110b16f0d052085f4495e0bba0d3c82b8ca84dd2c35882d9bc2642a4"
+    },
+    "driver": {
+      "path": "build/rpp5hc-evidence/run-source-probes.py",
+      "sha256": "fecc684b2a6c46b7f15ed2a3fdcc2e7cfd937d10ffc9e7bc78df5dc87c5718f6",
+      "source": "import hashlib,json,subprocess,time\nfrom pathlib import Path\nroot=Path.cwd();out=root/'build/rpp5hc-evidence';manifest=out/'sources-final.sha256';obj=root/'build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o';lib=root/'build/libdxfrw.a';prior=json.loads((root/'docs/research/rpp5hb-classic-attribute-dual280-readiness-2026-10-28.json').read_text())\ndef sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()\nfor line in manifest.read_text().splitlines():\n h,n=line.split(None,1);assert sha(root/n)==h,n\nbuilds=[];results=[]\nfor kind in ('attdef','attrib'):\n src=out/(kind+'-source-probe.cpp');exe=out/(kind+'-source-probe');cmd=['/usr/bin/clang++','-std=c++17','-Wall','-Wextra','-Werror','-I.','-Isrc','-Ibuild',str(src),str(obj),str(lib),'-o',str(exe)]\n start=time.monotonic();b=subprocess.run(cmd,text=True,capture_output=True);assert b.returncode==0,b.stderr\n builds.append({'kind':kind,'command':cmd,'exitCode':b.returncode,'seconds':time.monotonic()-start,'sourceSha256':sha(src),'executableSha256':sha(exe)})\n for version in ('AC1024','AC1027','AC1032'):\n  sample=prior['samples'][version];path=Path(sample['path']);assert sha(path)==sample['hash'];offset=sample['attdef' if kind=='attdef' else 'attrib'][0]\n  command=[str(exe),str(path),version[2:],str(offset)];r=subprocess.run(command,text=True,capture_output=True);assert r.returncode==0,(command,r.stdout,r.stderr)\n  results.append({'kind':kind,'version':version,'sourcePath':str(path),'sourceSha256':sha(path),'recordSpan':sample['attdef' if kind=='attdef' else 'attrib'],'command':command,'exitCode':r.returncode,'stdout':r.stdout,'stderr':r.stderr})\nfor line in manifest.read_text().splitlines():\n h,n=line.split(None,1);assert sha(root/n)==h,n\nreport={'schema':'classic-attribute-dual280-final-original-probes-v1','binding':{'sourceManifestSha256':sha(manifest),'driverSha256':sha(out/'run-source-probes.py'),'adapterObjectSha256':sha(obj),'librarySha256':sha(lib)},'builds':builds,'results':results,'limitations':['Physical fields derive from exact retained source spans; the probes check production selected original capture/replay and do not imply global document closure or independent native semantics.','No drawing fixtures are committed.']}\n(out/'source-probes.json').write_text(json.dumps(report,indent=2)+'\\n');print('Final source probes passed:',len(results))\n"
+    },
+    "probeSources": {
+      "attdef": {
+        "path": "build/rpp5hc-evidence/attdef-source-probe.cpp",
+        "sha256": "4c6859964132fbfcac5ac697a2be48f81db186304997551830dd3d7a1e2c5773",
+        "source": "#include \"intern/dxfparserlimits.h\"\n#include \"dwg2dxf/dx_attdef_source_profile.h\"\n#include \"dwg2dxf/dx_iface.h\"\n#include \"dwg2dxf/dx_data.h\"\n#include <cstdint>\n#include <fstream>\n#include <iostream>\n#include <sstream>\n#include <string>\nclass DxIfaceTableSourceTestAccess {\npublic:\n    static void inspect(const dx_data& data,unsigned& rows,bool& pair,bool& replay,bool& profile,bool& sourceRoles) {\n        const auto found=data.m_tableDxfSource.resources.find(0x6f8u);\n        if(found==data.m_tableDxfSource.resources.end())return;\n        const auto& row=found->second;++rows;pair=row.attdefPairMatched;replay=row.attdefFieldsMatched&&!row.attdefFieldMismatch;\n        profile=row.attdefProfile.complete();\n        sourceRoles=profile&&row.raw&&row.raw->groups.size()==16u&&row.attdefProfile.spans.size()==16u\n            &&row.attdefProfile.spans[11].field==dx_attdef_source::Field::ReservedDefault\n            &&row.attdefProfile.spans[15].field==dx_attdef_source::Field::Attribute;\n    }\n};\nint main(int argc,char** argv) {\n    if(argc!=4)return 2;\n    std::ifstream input(argv[1],std::ios::binary);if(!input)return 2;\n    input.seekg(std::stoll(argv[3]));std::string bytes(190,'\\0');input.read(&bytes[0],190);\n    if(input.gcount()!=190)return 2;\n    std::istringstream stream(bytes);std::string codeText,value;DRW_RawDxfObject raw;\n    raw.name=\"ATTDEF\";raw.handle=0x6f8u;raw.parentHandle=0x6f2u;raw.m_version=std::string(argv[2])==\"1024\"?DRW::AC1024:std::string(argv[2])==\"1027\"?DRW::AC1027:DRW::AC1032;\n    while(std::getline(stream,codeText)&&std::getline(stream,value)) {\n        const int code=std::stoi(codeText);if(code==0)continue;\n        if(code==10||code==20||code==30||code==40)raw.groups.emplace_back(code,std::stod(value));\n        else if(code==70||code==280)raw.groups.emplace_back(code,static_cast<std::int32_t>(std::stoi(value)));\n        else raw.groups.emplace_back(code,value);\n    }\n    if(raw.groups.size()!=16u||raw.groups[11].code()!=280||raw.groups[11].i_val()!=0\n        ||raw.groups[15].code()!=280||raw.groups[15].i_val()!=1)return 2;\n    const auto audit=dx_attdef_source::audit(raw);\n    dx_iface adapter;dx_data data;if(!adapter.fileImport(argv[1],&data,false))return 2;\n    unsigned count=0;bool lock=false;int version=-1;\n    for(const auto* block:data.blocks)if(block)for(const auto* entity:block->ent)\n        if(entity&&entity->handle==0x6f8u) {\n            const auto* attdef=dynamic_cast<const DRW_Attdef*>(entity);if(!attdef)return 2;\n            ++count;lock=attdef->lockPosition;version=attdef->attVersion;\n        }\n    unsigned rows=0;bool pair=false,replay=false,profile=false,sourceRoles=false;\n    DxIfaceTableSourceTestAccess::inspect(data,rows,pair,replay,profile,sourceRoles);\n    const bool roles=audit.complete()&&audit.spans.size()==16u\n        &&audit.spans[11].field==dx_attdef_source::Field::ReservedDefault\n        &&audit.spans[15].field==dx_attdef_source::Field::Attribute;\n    std::cout<<\"groups=\"<<raw.groups.size()<<\"; rejectedGroup=\"<<audit.rejectedGroup\n        <<\"; ambiguous=\"<<(audit.reason==dx_attdef_source::Reason::AmbiguousVersion)\n        <<\"; roles=\"<<roles<<\"; capturedRows=\"<<rows<<\"; pair=\"<<pair<<\"; replay=\"<<replay\n        <<\"; capturedProfile=\"<<profile<<\"; capturedRoles=\"<<sourceRoles<<\"; callbackCount=\"<<count<<\"; lockPosition=\"<<lock<<\"; version=\"<<version<<'\\n';\n    return roles&&count==1u&&lock&&version==0&&rows==1u&&pair&&replay&&profile&&sourceRoles?0:1;\n}\n"
+      },
+      "attrib": {
+        "path": "build/rpp5hc-evidence/attrib-source-probe.cpp",
+        "sha256": "5c6cbec0f72fc3d96a2556067e0905ce2b7b8b4bb194ddb133920f0e90af809a",
+        "source": "#include \"intern/dxfparserlimits.h\"\n#include \"dwg2dxf/dx_attdef_source_profile.h\"\n#include \"dwg2dxf/dx_iface.h\"\n#include \"dwg2dxf/dx_data.h\"\n#include <cstdint>\n#include <fstream>\n#include <iostream>\n#include <sstream>\n#include <string>\nclass DxIfaceTableSourceTestAccess {\npublic:\n    static void inspect(const dx_data& data,unsigned& selected,bool& matched,bool& identities,bool& sourceRoles) {\n        for(const auto& audit:data.m_tableDxfSource.entitiesCompoundAudits)if(audit&&audit->physical)\n            for(const auto& proof:audit->proofs) {\n                if(proof.first>=audit->members.size()||audit->members[proof.first].self!=0x704u)continue;\n                ++selected;matched=proof.state==decltype(proof.state)::Matched&&proof.compound&&proof.modeledMatched&&proof.profilesMatched&&proof.spaceMatched;\n                if(proof.next!=proof.first+3u||proof.next>audit->members.size()||proof.profiles.size()!=3u||proof.next>audit->physical->records.size())continue;\n                const auto& a=audit->members[proof.first];const auto& b=audit->members[proof.first+1u];const auto& c=audit->members[proof.first+2u];\n                identities=a.self==0x704u&&a.owner==0x1fu&&b.self==0x705u&&b.owner==0x704u&&c.self==0x706u&&c.owner==0x704u;\n                const auto& physical=audit->physical->records[proof.first+1u];const auto& profile=proof.profiles[1u];\n                sourceRoles=physical.groups.size()==15u&&profile.complete()&&profile.spans.size()==15u\n                    &&profile.spans[11].code==280&&profile.spans[11].field==dx_attdef_source::Field::ReservedDefault\n                    &&profile.spans[14].code==280&&profile.spans[14].field==dx_attdef_source::Field::Attribute;\n            }\n    }\n};\nint main(int argc,char** argv) {\n    if(argc!=4)return 2;const auto version=std::string(argv[2])==\"1024\"?DRW::AC1024:std::string(argv[2])==\"1027\"?DRW::AC1027:DRW::AC1032;\n    std::ifstream input(argv[1],std::ios::binary);if(!input)return 2;input.seekg(std::stoll(argv[3]));std::string bytes(205,'\\0');input.read(&bytes[0],205);if(input.gcount()!=205)return 2;\n    std::istringstream stream(bytes);std::string codeText,value;DRW_RawDxfObject raw;raw.name=\"ATTRIB\";raw.handle=0x705u;raw.parentHandle=0x704u;raw.m_version=version;\n    while(std::getline(stream,codeText)&&std::getline(stream,value)) {\n        const int code=std::stoi(codeText);if(code==0)continue;\n        if(code==10||code==20||code==30||code==40)raw.groups.emplace_back(code,std::stod(value));\n        else if(code==70||code==280)raw.groups.emplace_back(code,static_cast<std::int32_t>(std::stoi(value)));\n        else raw.groups.emplace_back(code,value);\n    }\n    if(raw.groups.size()!=15u||raw.groups[11].code()!=280||raw.groups[11].i_val()!=0||raw.groups[14].code()!=280||raw.groups[14].i_val()!=1)return 2;\n    const auto audit=dx_attdef_source::audit(raw,false);dx_iface adapter;dx_data data;if(!adapter.fileImport(argv[1],&data,false))return 2;\n    unsigned parents=0u,children=0u;bool lock=false,footer=false;int attVersion=-1;\n    const auto inspect=[&](const dx_ifaceBlock* block) {if(block)for(const auto* entity:block->ent)if(entity&&entity->handle==0x704u) {\n        const auto* insert=dynamic_cast<const DRW_Insert*>(entity);if(!insert)continue;++parents;footer=insert->seqEndEntity&&insert->seqEndEntity->handle==0x706u;\n        for(const auto& a:insert->attlist)if(a&&a->handle==0x705u){++children;lock=a->lockPosition;attVersion=a->attVersion;}\n    }};\n    inspect(data.mBlock);for(const auto* block:data.blocks)inspect(block);\n    const bool roles=audit.complete()&&audit.spans.size()==15u&&audit.spans[11].field==dx_attdef_source::Field::ReservedDefault&&audit.spans[14].field==dx_attdef_source::Field::Attribute;\n    unsigned selected=0;bool matched=false,identities=false,sourceRoles=false;\n    DxIfaceTableSourceTestAccess::inspect(data,selected,matched,identities,sourceRoles);\n    std::cout<<\"selected=\"<<selected<<\"; matched=\"<<matched<<\"; identities=\"<<identities<<\"; sourceRoles=\"<<sourceRoles<<\"; roles=\"<<roles<<\"; groups=\"<<raw.groups.size()<<\"; rejectedGroup=\"<<audit.rejectedGroup<<\"; ambiguous=\"<<(audit.reason==dx_attdef_source::Reason::AmbiguousVersion)\n        <<\"; parents=\"<<parents<<\"; children=\"<<children<<\"; footer=\"<<footer<<\"; lock=\"<<lock<<\"; version=\"<<attVersion<<'\\n';\n    return roles&&parents==1u&&children==1u&&footer&&lock&&attVersion==0&&selected==1u&&matched&&identities&&sourceRoles?0:1;\n}\n"
+      }
+    },
+    "actualReport": {
+      "schema": "classic-attribute-dual280-final-original-probes-v1",
+      "binding": {
+        "sourceManifestSha256": "abe9e0d7232c43e28b0272f205e715ff4c69b259af3d2be2b5570bdac4d6d692",
+        "driverSha256": "fecc684b2a6c46b7f15ed2a3fdcc2e7cfd937d10ffc9e7bc78df5dc87c5718f6",
+        "adapterObjectSha256": "6735547aab668c1f2ca0abcac2b2f7f2c5855f5c463fe26deb59d8e59d7522bc",
+        "librarySha256": "c3db108e5ed257a6a954654ae8ceea4b480e6c5e7c533d9a0ef16026ef80a3ae"
+      },
+      "builds": [
+        {
+          "kind": "attdef",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-I.",
+            "-Isrc",
+            "-Ibuild",
+            "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/attdef-source-probe.cpp",
+            "/Users/dli/dev/libdxfrw/build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+            "/Users/dli/dev/libdxfrw/build/libdxfrw.a",
+            "-o",
+            "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/attdef-source-probe"
+          ],
+          "exitCode": 0,
+          "seconds": 2.632202957989648,
+          "sourceSha256": "4c6859964132fbfcac5ac697a2be48f81db186304997551830dd3d7a1e2c5773",
+          "executableSha256": "d2735a4e5a14bb523e4ed1e704c0d5aea32fda69a1bbccf42fc5484daf926585"
+        },
+        {
+          "kind": "attrib",
+          "command": [
+            "/usr/bin/clang++",
+            "-std=c++17",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-I.",
+            "-Isrc",
+            "-Ibuild",
+            "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/attrib-source-probe.cpp",
+            "/Users/dli/dev/libdxfrw/build/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+            "/Users/dli/dev/libdxfrw/build/libdxfrw.a",
+            "-o",
+            "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/attrib-source-probe"
+          ],
+          "exitCode": 0,
+          "seconds": 2.53715300001204,
+          "sourceSha256": "5c6cbec0f72fc3d96a2556067e0905ce2b7b8b4bb194ddb133920f0e90af809a",
+          "executableSha256": "b27c423cd9cacd1a6f496c507c14b97ba2aa84314687171e4e6fc7ce229dc541"
+        }
+      ],
+      "results": [
+        {
+          "kind": "attdef",
+          "version": "AC1024",
+          "sourcePath": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1024_ascii.dxf",
+          "sourceSha256": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372",
+          "recordSpan": [
+            75044,
+            75234
+          ],
+          "command": [
+            "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/attdef-source-probe",
+            "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1024_ascii.dxf",
+            "1024",
+            "75044"
+          ],
+          "exitCode": 0,
+          "stdout": "groups=16; rejectedGroup=16; ambiguous=0; roles=1; capturedRows=1; pair=1; replay=1; capturedProfile=1; capturedRoles=1; callbackCount=1; lockPosition=1; version=0\n",
+          "stderr": ""
+        },
+        {
+          "kind": "attdef",
+          "version": "AC1027",
+          "sourcePath": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1027_ascii.dxf",
+          "sourceSha256": "4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6",
+          "recordSpan": [
+            75050,
+            75240
+          ],
+          "command": [
+            "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/attdef-source-probe",
+            "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1027_ascii.dxf",
+            "1027",
+            "75050"
+          ],
+          "exitCode": 0,
+          "stdout": "groups=16; rejectedGroup=16; ambiguous=0; roles=1; capturedRows=1; pair=1; replay=1; capturedProfile=1; capturedRoles=1; callbackCount=1; lockPosition=1; version=0\n",
+          "stderr": ""
+        },
+        {
+          "kind": "attdef",
+          "version": "AC1032",
+          "sourcePath": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1032_ascii.dxf",
+          "sourceSha256": "c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2",
+          "recordSpan": [
+            75013,
+            75203
+          ],
+          "command": [
+            "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/attdef-source-probe",
+            "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1032_ascii.dxf",
+            "1032",
+            "75013"
+          ],
+          "exitCode": 0,
+          "stdout": "groups=16; rejectedGroup=16; ambiguous=0; roles=1; capturedRows=1; pair=1; replay=1; capturedProfile=1; capturedRoles=1; callbackCount=1; lockPosition=1; version=0\n",
+          "stderr": ""
+        },
+        {
+          "kind": "attrib",
+          "version": "AC1024",
+          "sourcePath": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1024_ascii.dxf",
+          "sourceSha256": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372",
+          "recordSpan": [
+            204675,
+            204880
+          ],
+          "command": [
+            "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/attrib-source-probe",
+            "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1024_ascii.dxf",
+            "1024",
+            "204675"
+          ],
+          "exitCode": 0,
+          "stdout": "selected=1; matched=1; identities=1; sourceRoles=1; roles=1; groups=15; rejectedGroup=15; ambiguous=0; parents=1; children=1; footer=1; lock=1; version=0\n",
+          "stderr": ""
+        },
+        {
+          "kind": "attrib",
+          "version": "AC1027",
+          "sourcePath": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1027_ascii.dxf",
+          "sourceSha256": "4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6",
+          "recordSpan": [
+            204681,
+            204886
+          ],
+          "command": [
+            "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/attrib-source-probe",
+            "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1027_ascii.dxf",
+            "1027",
+            "204681"
+          ],
+          "exitCode": 0,
+          "stdout": "selected=1; matched=1; identities=1; sourceRoles=1; roles=1; groups=15; rejectedGroup=15; ambiguous=0; parents=1; children=1; footer=1; lock=1; version=0\n",
+          "stderr": ""
+        },
+        {
+          "kind": "attrib",
+          "version": "AC1032",
+          "sourcePath": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1032_ascii.dxf",
+          "sourceSha256": "c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2",
+          "recordSpan": [
+            204829,
+            205034
+          ],
+          "command": [
+            "/Users/dli/dev/libdxfrw/build/rpp5hc-evidence/attrib-source-probe",
+            "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1032_ascii.dxf",
+            "1032",
+            "204829"
+          ],
+          "exitCode": 0,
+          "stdout": "selected=1; matched=1; identities=1; sourceRoles=1; roles=1; groups=15; rejectedGroup=15; ambiguous=0; parents=1; children=1; footer=1; lock=1; version=0\n",
+          "stderr": ""
+        }
+      ],
+      "limitations": [
+        "Physical fields derive from exact retained source spans; the probes check production selected original capture/replay and do not imply global document closure or independent native semantics.",
+        "No drawing fixtures are committed."
+      ]
+    },
+    "actualObservations": [
+      {
+        "kind": "attdef",
+        "version": "AC1024",
+        "actual": {
+          "groups": 16,
+          "rejectedGroup": 16,
+          "ambiguous": 0,
+          "roles": 1,
+          "capturedRows": 1,
+          "pair": 1,
+          "replay": 1,
+          "capturedProfile": 1,
+          "capturedRoles": 1,
+          "callbackCount": 1,
+          "lockPosition": 1,
+          "version": 0
+        }
+      },
+      {
+        "kind": "attdef",
+        "version": "AC1027",
+        "actual": {
+          "groups": 16,
+          "rejectedGroup": 16,
+          "ambiguous": 0,
+          "roles": 1,
+          "capturedRows": 1,
+          "pair": 1,
+          "replay": 1,
+          "capturedProfile": 1,
+          "capturedRoles": 1,
+          "callbackCount": 1,
+          "lockPosition": 1,
+          "version": 0
+        }
+      },
+      {
+        "kind": "attdef",
+        "version": "AC1032",
+        "actual": {
+          "groups": 16,
+          "rejectedGroup": 16,
+          "ambiguous": 0,
+          "roles": 1,
+          "capturedRows": 1,
+          "pair": 1,
+          "replay": 1,
+          "capturedProfile": 1,
+          "capturedRoles": 1,
+          "callbackCount": 1,
+          "lockPosition": 1,
+          "version": 0
+        }
+      },
+      {
+        "kind": "attrib",
+        "version": "AC1024",
+        "actual": {
+          "selected": 1,
+          "matched": 1,
+          "identities": 1,
+          "sourceRoles": 1,
+          "roles": 1,
+          "groups": 15,
+          "rejectedGroup": 15,
+          "ambiguous": 0,
+          "parents": 1,
+          "children": 1,
+          "footer": 1,
+          "lock": 1,
+          "version": 0
+        }
+      },
+      {
+        "kind": "attrib",
+        "version": "AC1027",
+        "actual": {
+          "selected": 1,
+          "matched": 1,
+          "identities": 1,
+          "sourceRoles": 1,
+          "roles": 1,
+          "groups": 15,
+          "rejectedGroup": 15,
+          "ambiguous": 0,
+          "parents": 1,
+          "children": 1,
+          "footer": 1,
+          "lock": 1,
+          "version": 0
+        }
+      },
+      {
+        "kind": "attrib",
+        "version": "AC1032",
+        "actual": {
+          "selected": 1,
+          "matched": 1,
+          "identities": 1,
+          "sourceRoles": 1,
+          "roles": 1,
+          "groups": 15,
+          "rejectedGroup": 15,
+          "ambiguous": 0,
+          "parents": 1,
+          "children": 1,
+          "footer": 1,
+          "lock": 1,
+          "version": 0
+        }
+      }
+    ],
+    "sourceVersions": [
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "configuration": "normal only",
+    "scope": "Three selected original ATTDEF records and three selected original ATTRIB compounds; neither all36 retained records nor a complete original document are qualified."
+  },
+  "advisoryIndependentReader": {
+    "report": {
+      "path": "build/rpp5hb-evidence/peer-original-observation/observation.json",
+      "sha256": "156dc1501db16ca338f01c26c2cd4146a1f638b8fa4456c1102890ee1dbfa4c3"
+    },
+    "driver": {
+      "path": "build/rpp5hb-evidence/peer-original-observation/observe.py",
+      "sha256": "8716f80669ff4ed67584724a7823593e54c7981789b8a63f0f8560ab80d44281",
+      "source": "\"\"\"Read retained original classic attributes without writing any drawing.\"\"\"\nimport hashlib\nimport json\nimport logging\nfrom pathlib import Path\nimport sys\n\nroot = Path.cwd()\nout = Path(__file__).resolve().parent\nsys.pycache_prefix = str(out / \"absent-bytecode-cache\")\nassert not Path(sys.pycache_prefix).exists()\nsys.dont_write_bytecode = True\nsys.path.insert(0, str(root / \"tools\"))\nimport ezdxf\nfrom qualify_material_source_order import selected_physical_records\n\n\ndef sha(path):\n    return hashlib.sha256(Path(path).read_bytes()).hexdigest()\n\n\nreceipt_path = root / \"docs/research/rpp5hb-classic-attribute-dual280-readiness-2026-10-28.json\"\nreceipt = json.loads(receipt_path.read_text())\nreport = dict(schema=\"classic-attribute-independent-original-observation-v1\",\n    qualificationEligible=False, supportClaimsPromoted=False,\n    readinessReceipt=dict(path=str(receipt_path), sha256=sha(receipt_path)),\n    producerProvenance=receipt[\"repositoryProvenance\"],\n    readMethod=\"ordinary pinned ezdxf.readfile after literal selected projection\",\n    explicitAudit=False, explicitRecover=False, outputDrawingWritten=False,\n    implicitRecoveryDisclosure=\"Attrib/AttDef loaders internally call fast_load_dxfattribs(recover=True); modeled lock is not an independent version-field decode\",\n    implicitLinkSetupDisclosure=\"LinkedEntities.link_seqend assigns the parent INSERT owner to SEQEND; physical original footer owner704 becomes ordinary modeled owner1F. Do not treat modeled footer owner as raw source agreement.\",\n    initialObserverFailure=dict(path=str(out / \"initial-observer-failure.json\"),\n        sha256=sha(out / \"initial-observer-failure.json\"),\n        failedObserverPath=str(out / \"before-footer-owner-disclosure.py\"),\n        failedObserverSha256=sha(out / \"before-footer-owner-disclosure.py\")),\n    inputSourceMutation=False, nativeSemanticClaim=False, sourceVersions=[])\nassert ezdxf.__version__ == \"1.4.5\"\nfor version in (\"AC1024\", \"AC1027\", \"AC1032\"):\n    source = receipt[\"samples\"][version]\n    path = Path(source[\"path\"])\n    assert sha(path) == source[\"hash\"]\n    data = path.read_bytes()\n    records = selected_physical_records(path, False)\n    expected = {\"6F8\": (\"BLOCKS\", \"ATTDEF\", source[\"attdef\"]),\n                \"704\": (\"ENTITIES\", \"INSERT\", source[\"insert\"]),\n                \"705\": (\"ENTITIES\", \"ATTRIB\", source[\"attrib\"]),\n                \"706\": (\"ENTITIES\", \"SEQEND\", source[\"footer\"])}\n    physical = {}\n    for handle, (scope, kind, span) in expected.items():\n        matched = [(section, record) for section, record in records\n                   if section == scope and record[0].value == kind\n                   and record.get_first_value(5, None) == handle]\n        assert len(matched) == 1\n        section, record = matched[0]\n        physical[handle] = dict(scope=section, kind=kind, span=span,\n            spanSha256=hashlib.sha256(data[span[0]:span[1]]).hexdigest(),\n            tags=[[tag.code, tag.value] for tag in record])\n    assert source[\"insert\"][1] == source[\"attrib\"][0]\n    assert source[\"attrib\"][1] == source[\"footer\"][0]\n    assert [tag[1] for tag in physical[\"6F8\"][\"tags\"] if tag[0] == 280] == [0, 1]\n    assert [tag[1] for tag in physical[\"705\"][\"tags\"] if tag[0] == 280] == [0, 1]\n    assert [tag[1] for tag in physical[\"704\"][\"tags\"] if tag[0] == 66] == [1]\n    assert [tag[1] for tag in physical[\"705\"][\"tags\"] if tag[0] == 330] == [\"704\"]\n    assert [tag[1] for tag in physical[\"706\"][\"tags\"] if tag[0] == 330] == [\"704\"]\n    messages = []\n\n    class Log(logging.Handler):\n        def emit(self, record):\n            messages.append(dict(level=record.levelname, message=record.getMessage()))\n\n    logger = logging.getLogger(\"ezdxf\")\n    handler = Log()\n    logger.addHandler(handler)\n    doc = ezdxf.readfile(path)\n    logger.removeHandler(handler)\n    definition, parent, child, footer = [doc.entitydb[h] for h in (\"6F8\", \"704\", \"705\", \"706\")]\n    assert definition.dxftype() == \"ATTDEF\" and definition.dxf.owner == \"6F2\"\n    assert definition.dxf.lock_position == 1 and not definition.has_embedded_mtext_entity\n    assert parent.dxftype() == \"INSERT\" and parent.dxf.name == \"MyBlock\"\n    assert parent.attribs == [child] and parent.seqend is footer\n    assert child.dxftype() == \"ATTRIB\" and child.dxf.owner == \"704\"\n    assert child.dxf.tag == \"ATTINFO\" and child.dxf.text == \"17\" and child.dxf.lock_position == 1\n    assert not child.has_embedded_mtext_entity\n    # Ordinary setup preserves the linked object but normalizes its owner.\n    # Original owner704 is proved only by the independent pre-setup tags above.\n    assert footer.dxftype() == \"SEQEND\" and footer.dxf.owner == parent.dxf.owner == \"1F\"\n    assert sha(path) == source[\"hash\"]\n    report[\"sourceVersions\"].append(dict(version=version, inputPath=str(path),\n        inputSha256=source[\"hash\"], physicalBeforeOrdinarySetup=physical,\n        ordinaryModel=dict(attdefHandle=\"6F8\", attdefOwner=definition.dxf.owner,\n            attdefLockStored=definition.dxf.hasattr(\"lock_position\"), attdefLock=definition.dxf.lock_position,\n            parentHandle=\"704\", parentOwner=parent.dxf.owner, blockName=parent.dxf.name,\n            exactParentAttribList=[entity.dxf.handle for entity in parent.attribs],\n            childHandle=child.dxf.handle, childOwner=child.dxf.owner,\n            childTag=child.dxf.tag, childText=child.dxf.text,\n            childLockStored=child.dxf.hasattr(\"lock_position\"), childLock=child.dxf.lock_position,\n            actualLinkedFooter=footer.dxf.handle, footerOwner=footer.dxf.owner,\n            footerOwnerMatchesOriginal=False,\n            originalObjectIdentitiesJoined=True), messages=messages, inputUnchanged=True))\nreport[\"runtime\"] = dict(ezdxfVersion=ezdxf.__version__, executable=sys.executable,\n    executableSha256=sha(sys.executable), observerSha256=sha(__file__),\n    reusedTagObserver=dict(path=str(root / \"tools/qualify_material_source_order.py\"),\n        sha256=sha(root / \"tools/qualify_material_source_order.py\")),\n    loadedEzdxfModules={name:dict(path=str(Path(module.__file__).resolve()), sha256=sha(module.__file__))\n        for name,module in sorted(sys.modules.items()) if name.startswith(\"ezdxf\")\n        and getattr(module,\"__file__\",None) and Path(module.__file__).is_file()})\npath = out / \"observation.json\"\npath.write_text(json.dumps(report, indent=2) + \"\\n\")\nprint(json.dumps(dict(report=str(path), sha256=sha(path),\n    versions=[row[\"version\"] for row in report[\"sourceVersions\"]],\n    modeledLocksMatched=6, ordinaryLinkedObjectIdentitiesMatched=3,\n    physicalOriginalsBeforeSetup=3, qualificationEligible=False),indent=2))\n"
+    },
+    "actualReport": {
+      "schema": "classic-attribute-independent-original-observation-v1",
+      "qualificationEligible": false,
+      "supportClaimsPromoted": false,
+      "readinessReceipt": {
+        "path": "/Users/dli/dev/libdxfrw/docs/research/rpp5hb-classic-attribute-dual280-readiness-2026-10-28.json",
+        "sha256": "d3bb91a16b941bd837ad8386dd42e8341690023d9ddb98e4f612a6beb5be35be"
+      },
+      "producerProvenance": {
+        "repository": "https://github.com/DomCR/ACadSharp",
+        "head": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+        "sampleLastChange": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
+        "note": "Repository provenance is not verification of the original CAD producer."
+      },
+      "readMethod": "ordinary pinned ezdxf.readfile after literal selected projection",
+      "explicitAudit": false,
+      "explicitRecover": false,
+      "outputDrawingWritten": false,
+      "implicitRecoveryDisclosure": "Attrib/AttDef loaders internally call fast_load_dxfattribs(recover=True); modeled lock is not an independent version-field decode",
+      "implicitLinkSetupDisclosure": "LinkedEntities.link_seqend assigns the parent INSERT owner to SEQEND; physical original footer owner704 becomes ordinary modeled owner1F. Do not treat modeled footer owner as raw source agreement.",
+      "initialObserverFailure": {
+        "path": "/Users/dli/dev/libdxfrw/build/rpp5hb-evidence/peer-original-observation/initial-observer-failure.json",
+        "sha256": "52dd320ca9c7ce55746c94a0b175e0ca826154cbf35bff3fe8d9c31c2a9a0e1e",
+        "failedObserverPath": "/Users/dli/dev/libdxfrw/build/rpp5hb-evidence/peer-original-observation/before-footer-owner-disclosure.py",
+        "failedObserverSha256": "a4568e53eda638e1d46b3bfdb3533334b21c92ff6a0cc62e61b719444718b546"
+      },
+      "inputSourceMutation": false,
+      "nativeSemanticClaim": false,
+      "sourceVersions": [
+        {
+          "version": "AC1024",
+          "inputPath": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1024_ascii.dxf",
+          "inputSha256": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372",
+          "physicalBeforeOrdinarySetup": {
+            "6F8": {
+              "scope": "BLOCKS",
+              "kind": "ATTDEF",
+              "span": [
+                75044,
+                75234
+              ],
+              "spanSha256": "541bcf2e21c8b5b425fe388ef0b774cc0df44c08c8d832e2df892c47be76102a",
+              "tags": [
+                [
+                  0,
+                  "ATTDEF"
+                ],
+                [
+                  5,
+                  "6F8"
+                ],
+                [
+                  330,
+                  "6F2"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  8,
+                  "0"
+                ],
+                [
+                  100,
+                  "AcDbText"
+                ],
+                [
+                  10,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  40,
+                  5.0
+                ],
+                [
+                  1,
+                  "1"
+                ],
+                [
+                  100,
+                  "AcDbAttributeDefinition"
+                ],
+                [
+                  280,
+                  0
+                ],
+                [
+                  3,
+                  "Enter number:"
+                ],
+                [
+                  2,
+                  "ATTINFO"
+                ],
+                [
+                  70,
+                  0
+                ],
+                [
+                  280,
+                  1
+                ]
+              ]
+            },
+            "704": {
+              "scope": "ENTITIES",
+              "kind": "INSERT",
+              "span": [
+                204456,
+                204675
+              ],
+              "spanSha256": "921eaa61d4657ff83daf168dffb92ebb7836a3a8e9ab20dabe1d89e5c5e5e496",
+              "tags": [
+                [
+                  0,
+                  "INSERT"
+                ],
+                [
+                  5,
+                  "704"
+                ],
+                [
+                  330,
+                  "1F"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  8,
+                  "Layer1"
+                ],
+                [
+                  100,
+                  "AcDbBlockReference"
+                ],
+                [
+                  66,
+                  1
+                ],
+                [
+                  2,
+                  "MyBlock"
+                ],
+                [
+                  10,
+                  [
+                    920.6796266627232,
+                    16.35285377389053,
+                    0.0
+                  ]
+                ],
+                [
+                  41,
+                  0.3633736948472006
+                ],
+                [
+                  42,
+                  0.3633736948472006
+                ],
+                [
+                  43,
+                  0.3633736948472006
+                ]
+              ]
+            },
+            "705": {
+              "scope": "ENTITIES",
+              "kind": "ATTRIB",
+              "span": [
+                204675,
+                204880
+              ],
+              "spanSha256": "7188a432dfa657036570d0a7f568732b9b1dad74b8cfa49ac53903cf62270097",
+              "tags": [
+                [
+                  0,
+                  "ATTRIB"
+                ],
+                [
+                  5,
+                  "705"
+                ],
+                [
+                  330,
+                  "704"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  8,
+                  "0"
+                ],
+                [
+                  100,
+                  "AcDbText"
+                ],
+                [
+                  10,
+                  [
+                    920.6796266627232,
+                    16.35285377389053,
+                    0.0
+                  ]
+                ],
+                [
+                  40,
+                  1.816868474236002
+                ],
+                [
+                  1,
+                  "17"
+                ],
+                [
+                  100,
+                  "AcDbAttribute"
+                ],
+                [
+                  280,
+                  0
+                ],
+                [
+                  2,
+                  "ATTINFO"
+                ],
+                [
+                  70,
+                  0
+                ],
+                [
+                  280,
+                  1
+                ]
+              ]
+            },
+            "706": {
+              "scope": "ENTITIES",
+              "kind": "SEQEND",
+              "span": [
+                204880,
+                204933
+              ],
+              "spanSha256": "a6dd0c95b2a3580a2885b013a4b2ac45cd1a6a4c043467ffe609837a02b21c05",
+              "tags": [
+                [
+                  0,
+                  "SEQEND"
+                ],
+                [
+                  5,
+                  "706"
+                ],
+                [
+                  330,
+                  "704"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  8,
+                  "Layer1"
+                ]
+              ]
+            }
+          },
+          "ordinaryModel": {
+            "attdefHandle": "6F8",
+            "attdefOwner": "6F2",
+            "attdefLockStored": true,
+            "attdefLock": 1,
+            "parentHandle": "704",
+            "parentOwner": "1F",
+            "blockName": "MyBlock",
+            "exactParentAttribList": [
+              "705"
+            ],
+            "childHandle": "705",
+            "childOwner": "704",
+            "childTag": "ATTINFO",
+            "childText": "17",
+            "childLockStored": true,
+            "childLock": 1,
+            "actualLinkedFooter": "706",
+            "footerOwner": "1F",
+            "footerOwnerMatchesOriginal": false,
+            "originalObjectIdentitiesJoined": true
+          },
+          "messages": [],
+          "inputUnchanged": true
+        },
+        {
+          "version": "AC1027",
+          "inputPath": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1027_ascii.dxf",
+          "inputSha256": "4f26752008643642c37f7bab410b23cfd8b6dd9ee3aaa19746b612ea956b61e6",
+          "physicalBeforeOrdinarySetup": {
+            "6F8": {
+              "scope": "BLOCKS",
+              "kind": "ATTDEF",
+              "span": [
+                75050,
+                75240
+              ],
+              "spanSha256": "541bcf2e21c8b5b425fe388ef0b774cc0df44c08c8d832e2df892c47be76102a",
+              "tags": [
+                [
+                  0,
+                  "ATTDEF"
+                ],
+                [
+                  5,
+                  "6F8"
+                ],
+                [
+                  330,
+                  "6F2"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  8,
+                  "0"
+                ],
+                [
+                  100,
+                  "AcDbText"
+                ],
+                [
+                  10,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  40,
+                  5.0
+                ],
+                [
+                  1,
+                  "1"
+                ],
+                [
+                  100,
+                  "AcDbAttributeDefinition"
+                ],
+                [
+                  280,
+                  0
+                ],
+                [
+                  3,
+                  "Enter number:"
+                ],
+                [
+                  2,
+                  "ATTINFO"
+                ],
+                [
+                  70,
+                  0
+                ],
+                [
+                  280,
+                  1
+                ]
+              ]
+            },
+            "704": {
+              "scope": "ENTITIES",
+              "kind": "INSERT",
+              "span": [
+                204462,
+                204681
+              ],
+              "spanSha256": "921eaa61d4657ff83daf168dffb92ebb7836a3a8e9ab20dabe1d89e5c5e5e496",
+              "tags": [
+                [
+                  0,
+                  "INSERT"
+                ],
+                [
+                  5,
+                  "704"
+                ],
+                [
+                  330,
+                  "1F"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  8,
+                  "Layer1"
+                ],
+                [
+                  100,
+                  "AcDbBlockReference"
+                ],
+                [
+                  66,
+                  1
+                ],
+                [
+                  2,
+                  "MyBlock"
+                ],
+                [
+                  10,
+                  [
+                    920.6796266627232,
+                    16.35285377389053,
+                    0.0
+                  ]
+                ],
+                [
+                  41,
+                  0.3633736948472006
+                ],
+                [
+                  42,
+                  0.3633736948472006
+                ],
+                [
+                  43,
+                  0.3633736948472006
+                ]
+              ]
+            },
+            "705": {
+              "scope": "ENTITIES",
+              "kind": "ATTRIB",
+              "span": [
+                204681,
+                204886
+              ],
+              "spanSha256": "7188a432dfa657036570d0a7f568732b9b1dad74b8cfa49ac53903cf62270097",
+              "tags": [
+                [
+                  0,
+                  "ATTRIB"
+                ],
+                [
+                  5,
+                  "705"
+                ],
+                [
+                  330,
+                  "704"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  8,
+                  "0"
+                ],
+                [
+                  100,
+                  "AcDbText"
+                ],
+                [
+                  10,
+                  [
+                    920.6796266627232,
+                    16.35285377389053,
+                    0.0
+                  ]
+                ],
+                [
+                  40,
+                  1.816868474236002
+                ],
+                [
+                  1,
+                  "17"
+                ],
+                [
+                  100,
+                  "AcDbAttribute"
+                ],
+                [
+                  280,
+                  0
+                ],
+                [
+                  2,
+                  "ATTINFO"
+                ],
+                [
+                  70,
+                  0
+                ],
+                [
+                  280,
+                  1
+                ]
+              ]
+            },
+            "706": {
+              "scope": "ENTITIES",
+              "kind": "SEQEND",
+              "span": [
+                204886,
+                204939
+              ],
+              "spanSha256": "a6dd0c95b2a3580a2885b013a4b2ac45cd1a6a4c043467ffe609837a02b21c05",
+              "tags": [
+                [
+                  0,
+                  "SEQEND"
+                ],
+                [
+                  5,
+                  "706"
+                ],
+                [
+                  330,
+                  "704"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  8,
+                  "Layer1"
+                ]
+              ]
+            }
+          },
+          "ordinaryModel": {
+            "attdefHandle": "6F8",
+            "attdefOwner": "6F2",
+            "attdefLockStored": true,
+            "attdefLock": 1,
+            "parentHandle": "704",
+            "parentOwner": "1F",
+            "blockName": "MyBlock",
+            "exactParentAttribList": [
+              "705"
+            ],
+            "childHandle": "705",
+            "childOwner": "704",
+            "childTag": "ATTINFO",
+            "childText": "17",
+            "childLockStored": true,
+            "childLock": 1,
+            "actualLinkedFooter": "706",
+            "footerOwner": "1F",
+            "footerOwnerMatchesOriginal": false,
+            "originalObjectIdentitiesJoined": true
+          },
+          "messages": [],
+          "inputUnchanged": true
+        },
+        {
+          "version": "AC1032",
+          "inputPath": "/Users/dli/dev/libdxfrw/build/rpp5fa-evidence.4xKADX/peer/sample_AC1032_ascii.dxf",
+          "inputSha256": "c2934f616ecd7097e773b85e5d6e0548d21ccc635abcc8e7276f7d4a585a7ae2",
+          "physicalBeforeOrdinarySetup": {
+            "6F8": {
+              "scope": "BLOCKS",
+              "kind": "ATTDEF",
+              "span": [
+                75013,
+                75203
+              ],
+              "spanSha256": "541bcf2e21c8b5b425fe388ef0b774cc0df44c08c8d832e2df892c47be76102a",
+              "tags": [
+                [
+                  0,
+                  "ATTDEF"
+                ],
+                [
+                  5,
+                  "6F8"
+                ],
+                [
+                  330,
+                  "6F2"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  8,
+                  "0"
+                ],
+                [
+                  100,
+                  "AcDbText"
+                ],
+                [
+                  10,
+                  [
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  40,
+                  5.0
+                ],
+                [
+                  1,
+                  "1"
+                ],
+                [
+                  100,
+                  "AcDbAttributeDefinition"
+                ],
+                [
+                  280,
+                  0
+                ],
+                [
+                  3,
+                  "Enter number:"
+                ],
+                [
+                  2,
+                  "ATTINFO"
+                ],
+                [
+                  70,
+                  0
+                ],
+                [
+                  280,
+                  1
+                ]
+              ]
+            },
+            "704": {
+              "scope": "ENTITIES",
+              "kind": "INSERT",
+              "span": [
+                204610,
+                204829
+              ],
+              "spanSha256": "921eaa61d4657ff83daf168dffb92ebb7836a3a8e9ab20dabe1d89e5c5e5e496",
+              "tags": [
+                [
+                  0,
+                  "INSERT"
+                ],
+                [
+                  5,
+                  "704"
+                ],
+                [
+                  330,
+                  "1F"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  8,
+                  "Layer1"
+                ],
+                [
+                  100,
+                  "AcDbBlockReference"
+                ],
+                [
+                  66,
+                  1
+                ],
+                [
+                  2,
+                  "MyBlock"
+                ],
+                [
+                  10,
+                  [
+                    920.6796266627232,
+                    16.35285377389053,
+                    0.0
+                  ]
+                ],
+                [
+                  41,
+                  0.3633736948472006
+                ],
+                [
+                  42,
+                  0.3633736948472006
+                ],
+                [
+                  43,
+                  0.3633736948472006
+                ]
+              ]
+            },
+            "705": {
+              "scope": "ENTITIES",
+              "kind": "ATTRIB",
+              "span": [
+                204829,
+                205034
+              ],
+              "spanSha256": "7188a432dfa657036570d0a7f568732b9b1dad74b8cfa49ac53903cf62270097",
+              "tags": [
+                [
+                  0,
+                  "ATTRIB"
+                ],
+                [
+                  5,
+                  "705"
+                ],
+                [
+                  330,
+                  "704"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  8,
+                  "0"
+                ],
+                [
+                  100,
+                  "AcDbText"
+                ],
+                [
+                  10,
+                  [
+                    920.6796266627232,
+                    16.35285377389053,
+                    0.0
+                  ]
+                ],
+                [
+                  40,
+                  1.816868474236002
+                ],
+                [
+                  1,
+                  "17"
+                ],
+                [
+                  100,
+                  "AcDbAttribute"
+                ],
+                [
+                  280,
+                  0
+                ],
+                [
+                  2,
+                  "ATTINFO"
+                ],
+                [
+                  70,
+                  0
+                ],
+                [
+                  280,
+                  1
+                ]
+              ]
+            },
+            "706": {
+              "scope": "ENTITIES",
+              "kind": "SEQEND",
+              "span": [
+                205034,
+                205087
+              ],
+              "spanSha256": "a6dd0c95b2a3580a2885b013a4b2ac45cd1a6a4c043467ffe609837a02b21c05",
+              "tags": [
+                [
+                  0,
+                  "SEQEND"
+                ],
+                [
+                  5,
+                  "706"
+                ],
+                [
+                  330,
+                  "704"
+                ],
+                [
+                  100,
+                  "AcDbEntity"
+                ],
+                [
+                  8,
+                  "Layer1"
+                ]
+              ]
+            }
+          },
+          "ordinaryModel": {
+            "attdefHandle": "6F8",
+            "attdefOwner": "6F2",
+            "attdefLockStored": true,
+            "attdefLock": 1,
+            "parentHandle": "704",
+            "parentOwner": "1F",
+            "blockName": "MyBlock",
+            "exactParentAttribList": [
+              "705"
+            ],
+            "childHandle": "705",
+            "childOwner": "704",
+            "childTag": "ATTINFO",
+            "childText": "17",
+            "childLockStored": true,
+            "childLock": 1,
+            "actualLinkedFooter": "706",
+            "footerOwner": "1F",
+            "footerOwnerMatchesOriginal": false,
+            "originalObjectIdentitiesJoined": true
+          },
+          "messages": [],
+          "inputUnchanged": true
+        }
+      ],
+      "runtime": {
+        "ezdxfVersion": "1.4.5",
+        "executable": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/bin/python",
+        "executableSha256": "15c72833c1ffc09bc4e05d1e1866784d126721ad548d9c4d8f943641262535cb",
+        "observerSha256": "8716f80669ff4ed67584724a7823593e54c7981789b8a63f0f8560ab80d44281",
+        "reusedTagObserver": {
+          "path": "/Users/dli/dev/libdxfrw/tools/qualify_material_source_order.py",
+          "sha256": "8d6a62d98bf094f9acf496017c4a5960821d1b300b6f68a69d6fcf08d235ea81"
+        },
+        "loadedEzdxfModules": {
+          "ezdxf": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/__init__.py",
+            "sha256": "6fb6ce1e3b4066825af46ae40bb1ba2aa64e05860e8bb95e7f1dcd6e1fd39ff0"
+          },
+          "ezdxf._options": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/_options.py",
+            "sha256": "120de38a90e7a90b838e9005379db424470c14feacdc9faa71c328d326979ae6"
+          },
+          "ezdxf.acc": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/__init__.py",
+            "sha256": "e80e7bc0ea6ad20a1949cbd98422ac5089a46a95c1851682343a2ac2e9d81636"
+          },
+          "ezdxf.acc.bezier3p": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/bezier3p.cpython-315-darwin.so",
+            "sha256": "173e683da53d7e94c2db71372a7d71b4ad56778fa1044aa7d659ac5b36fdf957"
+          },
+          "ezdxf.acc.bezier4p": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/bezier4p.cpython-315-darwin.so",
+            "sha256": "5efc7eb1e09ec0cb7c886620b4f98eb17428bfc375fb235cce713f008fd91d47"
+          },
+          "ezdxf.acc.bspline": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/bspline.cpython-315-darwin.so",
+            "sha256": "e2ca3be17a27daddba8e252343d82e4026bd44c6b5455c0c10151f996b21c869"
+          },
+          "ezdxf.acc.construct": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/construct.cpython-315-darwin.so",
+            "sha256": "782842dceb8df36f32ac5367c94b2ecfa95abb01971ab1cf35b72fd32f36755c"
+          },
+          "ezdxf.acc.mapbox_earcut": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/mapbox_earcut.cpython-315-darwin.so",
+            "sha256": "38599fde078818b665f43476300a3342ef0c7991f8dee21c1513c4d804472713"
+          },
+          "ezdxf.acc.matrix44": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/matrix44.cpython-315-darwin.so",
+            "sha256": "eb0c608b4bc79a1e201016da536496e10ca1cf4948e3e12ccc12979d09dda84d"
+          },
+          "ezdxf.acc.np_support": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/np_support.cpython-315-darwin.so",
+            "sha256": "d830e474cbb81cf6ac46eeb7f4a00f172ae99693f18881234da735f09f38b748"
+          },
+          "ezdxf.acc.vector": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/acc/vector.cpython-315-darwin.so",
+            "sha256": "7c36cc371f9b27a14867f79a1f965d2c0b071b2753c5880699662f2c6ae0aae6"
+          },
+          "ezdxf.audit": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/audit.py",
+            "sha256": "96c5cef57d3fda1c8230554ba4fae38e8feee36c18a38b3d0ba8c813572d5773"
+          },
+          "ezdxf.colors": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/colors.py",
+            "sha256": "2dc20b764a7ca766f9719f954974e46348595669a4ae8eb7dd4da512e0ed16fb"
+          },
+          "ezdxf.document": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/document.py",
+            "sha256": "1d501ebac64ef299c5555cf2f7bd85dd8b5b7a4ab85c769679e062729a05d350"
+          },
+          "ezdxf.entities": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/__init__.py",
+            "sha256": "0029d37f1f0d954d011213a3468871bd8a81a91b011e4ba9c829e4ed5c967c9f"
+          },
+          "ezdxf.entities.acad_proxy_entity": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/acad_proxy_entity.py",
+            "sha256": "9344f19f0dc9c2b372add73e49ad044b11471bbaaf694ed7d9273927db35579b"
+          },
+          "ezdxf.entities.acad_table": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/acad_table.py",
+            "sha256": "66209d150937008f0bc387c9caa5418c26af4e201750ab2ff9fbca4e4af49fff"
+          },
+          "ezdxf.entities.acis": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/acis.py",
+            "sha256": "7ba98c1e44b9da137d29250dd2cebb63c3bceed4ef59da36f2c8fcb77b87b340"
+          },
+          "ezdxf.entities.appdata": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/appdata.py",
+            "sha256": "2c91a688841501d9951c6d49d05baa69b7753557689209d405b01172816b87f2"
+          },
+          "ezdxf.entities.appid": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/appid.py",
+            "sha256": "e5ef5c80507b542bbe582d71aba5e42b85982389380ce055d00132cc26cbd414"
+          },
+          "ezdxf.entities.arc": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/arc.py",
+            "sha256": "8d3b15790825d19256e37e60a88471fa1ae7faee220e139a3be1d246f65dc025"
+          },
+          "ezdxf.entities.attrib": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/attrib.py",
+            "sha256": "5b6f6ba3776e8ec4b4418782f9207f567c76b8e3f19c1f7292347793e437b843"
+          },
+          "ezdxf.entities.block": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/block.py",
+            "sha256": "28c9eba0dc48ed386732a8d76c3315407351a951f4191989abe68268ae81d16e"
+          },
+          "ezdxf.entities.blockrecord": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/blockrecord.py",
+            "sha256": "ffd9006fdd99e7b863ac33c800894ff19060ec9577cd6d380dabe52917be0c75"
+          },
+          "ezdxf.entities.boundary_paths": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/boundary_paths.py",
+            "sha256": "5b1cd54669a0b04b3bca80e5d852b4efa5fb4e992956b1cdc3c4f270e2784618"
+          },
+          "ezdxf.entities.circle": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/circle.py",
+            "sha256": "8362513f37049ef53dff29a690de290f21ae8c9bc6b178580ac3b76619d7769d"
+          },
+          "ezdxf.entities.copy": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/copy.py",
+            "sha256": "c1e0104a9baeb0033fc096ad874b27988c053bf98027a22eaf18f776a096dafe"
+          },
+          "ezdxf.entities.dictionary": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dictionary.py",
+            "sha256": "91bef1d012a5ee294d5e221daec7d39b327fc37366600d7f7d3c2de7b0baf9c8"
+          },
+          "ezdxf.entities.dimension": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dimension.py",
+            "sha256": "2d8c77aa74b612a5c4ce303d5a35f557c0f6f9cd019966b29f7588ffe5998043"
+          },
+          "ezdxf.entities.dimstyle": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dimstyle.py",
+            "sha256": "9586dbe5759f58c571bb7d32b589c529ed03703e5146a877eacf30ca098e435f"
+          },
+          "ezdxf.entities.dimstyleoverride": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dimstyleoverride.py",
+            "sha256": "ab2f330333279b2bb0903295b17513098d9bf07c2a317fe9de93105a81c8c4b4"
+          },
+          "ezdxf.entities.dxfclass": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dxfclass.py",
+            "sha256": "aac6e2e3e06b9ec784e016e0818dbbe14d8727bd1562a1b7a9f3f33194cfeed6"
+          },
+          "ezdxf.entities.dxfentity": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dxfentity.py",
+            "sha256": "fddd3c4331be2be4a00da769e6368ce2ee3621710f0536ad2f65be2f71a568b1"
+          },
+          "ezdxf.entities.dxfgfx": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dxfgfx.py",
+            "sha256": "416ee3a85f5cbf9bc891da2489b6491c310c9dc22c5cc1457b81ffffecc121ec"
+          },
+          "ezdxf.entities.dxfgroups": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dxfgroups.py",
+            "sha256": "25917e507350c0c9d02865d683ea93532bfb430b8c45839d9aa435e6cb6c3a80"
+          },
+          "ezdxf.entities.dxfns": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dxfns.py",
+            "sha256": "9d752495a91e864dd13141a7a3c8d783850f5eeff8105e61027b607511afbae0"
+          },
+          "ezdxf.entities.dxfobj": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/dxfobj.py",
+            "sha256": "4426fcbc0f9106ffde248d43e9aebcbb4a50e9db034e27478ab4e0988f0cc59c"
+          },
+          "ezdxf.entities.ellipse": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/ellipse.py",
+            "sha256": "82e7c70cd585d89340fcccb2dcc5806f396baa4dca614eee7c9c8baf6580f61b"
+          },
+          "ezdxf.entities.factory": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/factory.py",
+            "sha256": "279abcd9a1c7dc4019de83991b3f8b1b485ca1cc1eef7a0b455f7a09b4c8b871"
+          },
+          "ezdxf.entities.geodata": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/geodata.py",
+            "sha256": "98b276796f1cb1427e9edfbd979019bc611cb5fff050a6634d7330f389e4e455"
+          },
+          "ezdxf.entities.gradient": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/gradient.py",
+            "sha256": "6a2af106a10e31ddf5549128bf51e5a31e9f2f77a3fd6a7b1d303d0884b4c3a1"
+          },
+          "ezdxf.entities.hatch": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/hatch.py",
+            "sha256": "9fffed475879d238a5f869121ab1b7ed53d44e004193394282a0e4d269b6eb1f"
+          },
+          "ezdxf.entities.helix": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/helix.py",
+            "sha256": "9434adba63c4185d2af62f4ef959a929082684123b1b1dd283dc02079c02bd1e"
+          },
+          "ezdxf.entities.idbuffer": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/idbuffer.py",
+            "sha256": "2dc173f54e0909d86e4edc2337e74a44e7edd9bf496e185d6e42bf365f257457"
+          },
+          "ezdxf.entities.image": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/image.py",
+            "sha256": "aba9c3a84492e0cc47736971bd7066c875c24934169f858a68e8d177fe45cb2f"
+          },
+          "ezdxf.entities.insert": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/insert.py",
+            "sha256": "511f29c6ec9642803c122fcb1ddb6d2c3347c0d2ba668197ce330c607862544a"
+          },
+          "ezdxf.entities.layer": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/layer.py",
+            "sha256": "3c3a1296eae99577f3484bad73e12cd41706a33e88bb3999992001d254ddd796"
+          },
+          "ezdxf.entities.layout": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/layout.py",
+            "sha256": "ad4c80e88f5e6bdc650b55a7e76fcb74056b5ad702798c311030ed4a7b5eeb81"
+          },
+          "ezdxf.entities.leader": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/leader.py",
+            "sha256": "918e20a1c3142f7393d69114ff9bd42065a33c9857fde7238bf864737ed1823c"
+          },
+          "ezdxf.entities.light": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/light.py",
+            "sha256": "e79eca0dd3c224fd261720b89afabad3cd6fe97ae02b6d6459318a34c5800372"
+          },
+          "ezdxf.entities.line": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/line.py",
+            "sha256": "f5ed5f336896c0f70396662b402aea89304a800e8fd41f9ee1125bf4ec16d264"
+          },
+          "ezdxf.entities.ltype": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/ltype.py",
+            "sha256": "93824c3611f76505a16e15e1c920418161155de09b5bae2534294be2bb89dd59"
+          },
+          "ezdxf.entities.lwpolyline": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/lwpolyline.py",
+            "sha256": "172397caccce5ada23692b84d3840886b0886274782ab27d7510af8e8b5afd7c"
+          },
+          "ezdxf.entities.material": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/material.py",
+            "sha256": "d590f51cf29e2c7efd5dc51ac530646ced8e159a47a99c5233d89a2da4ff8565"
+          },
+          "ezdxf.entities.mesh": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mesh.py",
+            "sha256": "3d2f5ee3becedbb8e91667de8c781325d29711fd83e56b64259307158dc6f544"
+          },
+          "ezdxf.entities.mleader": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mleader.py",
+            "sha256": "9303d33c49ab200f22e2f659c05f7c2f61a197c821618b8e6e2012183ab05a59"
+          },
+          "ezdxf.entities.mline": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mline.py",
+            "sha256": "eee46cda3d1d2e3fa053cf4478f0bc0ed8b3df8d856b38490b2c446f57bc6038"
+          },
+          "ezdxf.entities.mpolygon": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mpolygon.py",
+            "sha256": "e2c82ff5ac65953414d54358d689368aa3e85e6a92d8e0722c7efe6cf866fa37"
+          },
+          "ezdxf.entities.mtext": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mtext.py",
+            "sha256": "6c1532f89782e4939dfd799c85cfe666b3a509ab5468fe245eb130f2274f790e"
+          },
+          "ezdxf.entities.mtext_columns": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/mtext_columns.py",
+            "sha256": "509fa52e7bff7429dd1b262087769e33058811af54052da948ac51375d7e66aa"
+          },
+          "ezdxf.entities.objectcollection": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/objectcollection.py",
+            "sha256": "1f7eb2443ef8c511d116e94fb6ccbbb189490fb629b640539753a1f3d23ae748"
+          },
+          "ezdxf.entities.oleframe": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/oleframe.py",
+            "sha256": "a3c31b79cecba088a5ac7e42e5fe7075e69e3d444fad10f3cf57f213960ed765"
+          },
+          "ezdxf.entities.pattern": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/pattern.py",
+            "sha256": "58e380ea044dc1a7a99b50cf84c8e57177b23418e6949de9beb8b818f22bb492"
+          },
+          "ezdxf.entities.point": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/point.py",
+            "sha256": "28499b3ed1e75e185253c8c13dafc32685c87af508ab2b931d5f169396bdbddf"
+          },
+          "ezdxf.entities.polygon": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/polygon.py",
+            "sha256": "0fa19ccbabcd4a978041d553443a379730395c8076aa8873c13ed0ff2133dcaf"
+          },
+          "ezdxf.entities.polyline": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/polyline.py",
+            "sha256": "53f679785023d8a0ff0d14ea47f0f2617a0f6b0e945c3d98a07520c2a3e3d70f"
+          },
+          "ezdxf.entities.shape": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/shape.py",
+            "sha256": "edc987551cbc996ec4270e1e1221d6ba8b5828138b853ee608cfa12d6331bd05"
+          },
+          "ezdxf.entities.solid": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/solid.py",
+            "sha256": "aa5e7c49dbb09a3a29ea2a3af5b094e42426e35a6a40fc6149dcc90a43c685ae"
+          },
+          "ezdxf.entities.spatial_filter": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/spatial_filter.py",
+            "sha256": "90b09163877bd0760d0c6df8fe877099427a256d556955bd92a81f41753272d5"
+          },
+          "ezdxf.entities.spline": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/spline.py",
+            "sha256": "ded0d4ed638aeb04585589ed3755230d422734221ef45e23dc66ace4e47a8321"
+          },
+          "ezdxf.entities.subentity": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/subentity.py",
+            "sha256": "ab59db31396378c0148b114723cdfd30ce0c1464a807e0e1f3e86b7a9ded00e9"
+          },
+          "ezdxf.entities.sun": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/sun.py",
+            "sha256": "02c855b02a65c8e67f397db10220d452e99727080cc5ce80d2c1deb8174ca273"
+          },
+          "ezdxf.entities.table": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/table.py",
+            "sha256": "915b7ca998cd56a37250ac9762b19030ec60068a34cd2b72640a79d5d9dd3c48"
+          },
+          "ezdxf.entities.temporary_transform": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/temporary_transform.py",
+            "sha256": "fdff3176c3f8e683e7afabbef9d16b2c9ae1f971878caf1726278b896685a299"
+          },
+          "ezdxf.entities.text": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/text.py",
+            "sha256": "2fd0e80488240359241a6534031d7f0bb071b516cfb167f16fb8f9249cdc9ee0"
+          },
+          "ezdxf.entities.textstyle": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/textstyle.py",
+            "sha256": "af01686b00b7b6e763be955094dc2ca5cef129f6961b7107c6171166871fdb90"
+          },
+          "ezdxf.entities.tolerance": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/tolerance.py",
+            "sha256": "a19d6f2a63bedf3606ad6bf740d5931adcf3ed0c764d4868b6b09cd2c2068bac"
+          },
+          "ezdxf.entities.ucs": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/ucs.py",
+            "sha256": "cfa9ec73d565ed95ac29ef8a92d6400b81c3666d933412105a17659f98a0b4e7"
+          },
+          "ezdxf.entities.underlay": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/underlay.py",
+            "sha256": "9c715c4d4dff5c4a94baa6cfd1059f4d424cd14d3bd66e6f6573082d37c83064"
+          },
+          "ezdxf.entities.view": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/view.py",
+            "sha256": "9910ee61aead8e1845fb9d8c012f89f658454cdd8215cfb143c8d39a773224c3"
+          },
+          "ezdxf.entities.viewport": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/viewport.py",
+            "sha256": "756ec5b4d4600a63c7f64dd57583ec538cf4f0fe4832e630702239e987618851"
+          },
+          "ezdxf.entities.visualstyle": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/visualstyle.py",
+            "sha256": "445d5a19e95a19817ab531e7c373e8d6f2793ee82e43f0e6e9aead8684bf8090"
+          },
+          "ezdxf.entities.vport": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/vport.py",
+            "sha256": "5272d421b1f64027faa9313d60e2d1f5d2c53e7f3d488b9e450d0c3550006dc8"
+          },
+          "ezdxf.entities.xdata": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/xdata.py",
+            "sha256": "9bd850abf882e13d435cc2ebe131e842aaf4e24f2d900d64e1cbeb8b83016482"
+          },
+          "ezdxf.entities.xdict": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/xdict.py",
+            "sha256": "1e968781752ac12ae9f44f64acbade71c6637dc74c5fc36f6432f9b194fa822e"
+          },
+          "ezdxf.entities.xline": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entities/xline.py",
+            "sha256": "63fd028686b61a5f7dcd6132bcaa7d3c202ce0893cb93c1e856cf6ddc29485f0"
+          },
+          "ezdxf.entitydb": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/entitydb.py",
+            "sha256": "bd79c6d0f084cd67355ab27c830f007322a019cbc34c096a8bafd1dbb10b0912"
+          },
+          "ezdxf.enums": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/enums.py",
+            "sha256": "cfdf4630e0a7b1b253640b4cf58184329419267f6844d8706a789e2f2cb60a83"
+          },
+          "ezdxf.explode": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/explode.py",
+            "sha256": "bd774b26fb968209d88d7801f6e747a77635c787a6952f1a1ebf80746051aea3"
+          },
+          "ezdxf.filemanagement": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/filemanagement.py",
+            "sha256": "46d3b5657389de88c899c34e7c361ce349f0df6caccd3fdaa4661d9c3b6f9e77"
+          },
+          "ezdxf.fonts": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/__init__.py",
+            "sha256": "aca0c115a04d2d6a8adcbbd0c981403ea74b01d31cb9d3c882f0171c30d83e7a"
+          },
+          "ezdxf.fonts.font_face": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/font_face.py",
+            "sha256": "eb9ecb7a7174439812b8a355693b741feb8b7e3ae8a9fc3efe5bd78507205849"
+          },
+          "ezdxf.fonts.font_manager": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/font_manager.py",
+            "sha256": "e5ca0e4cbc200a65948efc995f69a1f26e6a4c4b9a5ce5f27e9df7b0791700ef"
+          },
+          "ezdxf.fonts.font_measurements": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/font_measurements.py",
+            "sha256": "df395fcc9381e39abcf048c4f512a83d820e6cb2ac45787fd1ec2cb1989b90eb"
+          },
+          "ezdxf.fonts.font_synonyms": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/font_synonyms.py",
+            "sha256": "33bcde66c09548906d1783dbfe05ec17fa8e07c725ebfb9221bc54050f55bf21"
+          },
+          "ezdxf.fonts.fonts": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/fonts.py",
+            "sha256": "7fe8fa289e19fb3694a51725b9c7ce0fdbadd46e9c4628d778c44164fd77a90a"
+          },
+          "ezdxf.fonts.glyphs": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/glyphs.py",
+            "sha256": "0e6315f6647604cced158df4fd7e762e50d9dbb621e0f91b536e1e7165ddcc48"
+          },
+          "ezdxf.fonts.lff": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/lff.py",
+            "sha256": "5779b5fd60aadcd2eaa23d36c1ed2945ded489ed18248696f4af4f97c09f1269"
+          },
+          "ezdxf.fonts.shapefile": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/fonts/shapefile.py",
+            "sha256": "0c09ae74851d347396556cfaed3117cf325e81351e4971ea0c514ad0b80c3fe0"
+          },
+          "ezdxf.graphicsfactory": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/graphicsfactory.py",
+            "sha256": "9e620196a2527ca302b739a172f97f9ace0e65d11cc6f63c7c709a03e6b5f8b8"
+          },
+          "ezdxf.groupby": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/groupby.py",
+            "sha256": "2cbdc9e55f858fa99f5da2f85979e907a115c7127fad35275a32f133484a02d7"
+          },
+          "ezdxf.layouts": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/layouts/__init__.py",
+            "sha256": "cb7163b9438c5d4c4e5dbfa77cdfa9dcc4c5d3dd17cba20970ab180ffbc4687a"
+          },
+          "ezdxf.layouts.base": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/layouts/base.py",
+            "sha256": "b73bac0a3dc06e151fe71782b89ca187e6f0b4415502a5de6416cbd3a2c53f83"
+          },
+          "ezdxf.layouts.blocklayout": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/layouts/blocklayout.py",
+            "sha256": "786098061f1fb8d30a4a178258725d5c29f047666958ffba8bf19bb7fe10ee1f"
+          },
+          "ezdxf.layouts.layout": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/layouts/layout.py",
+            "sha256": "fd6d045130d84b1cc26f98ec63defd1d60b008f0edd14497c981eb6d3d2c896c"
+          },
+          "ezdxf.layouts.layouts": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/layouts/layouts.py",
+            "sha256": "acaf21336a154c55934793b0ec1cfa9ca551ea7162945a0a652f5434378da829"
+          },
+          "ezdxf.lldxf": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/__init__.py",
+            "sha256": "5f298cec121527bdf5e5eaee879ae8b1b12362f6001ea73594e3b39e27e43dab"
+          },
+          "ezdxf.lldxf.attributes": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/attributes.py",
+            "sha256": "feb678af8efc4896b797ebd380893b6ee1b3f8762ee43e55ca4d20ab3f800fe2"
+          },
+          "ezdxf.lldxf.const": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/const.py",
+            "sha256": "23e8b0380ebdeb05b6627613c401ba89303816a83f047d44fcc4124dbb763e95"
+          },
+          "ezdxf.lldxf.encoding": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/encoding.py",
+            "sha256": "3604c0443fa1593e770b6205c8e6a45e9a48629fea4ecd86c4679498656ac8ae"
+          },
+          "ezdxf.lldxf.extendedtags": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/extendedtags.py",
+            "sha256": "a93b50c5512a971f0dae18e66db2e027b12e6c1c7d3a0f0e806072a6b24178a9"
+          },
+          "ezdxf.lldxf.hdrvars": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/hdrvars.py",
+            "sha256": "2b92bd6e00bda1ab0bae38c785ed460f5320d631fd805da51ea6df18270262ac"
+          },
+          "ezdxf.lldxf.loader": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/loader.py",
+            "sha256": "3eab9568db58fd8d9f09c02724a2cc8aea47f05ca61f9785d2747e88900df373"
+          },
+          "ezdxf.lldxf.packedtags": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/packedtags.py",
+            "sha256": "65a6c9f2ab1fb8cf8a5f9c498a4869b2ef9d864666c397fd8ee39a903576c889"
+          },
+          "ezdxf.lldxf.repair": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/repair.py",
+            "sha256": "903f2b02e7c8b1e4b646234a34846a6653f6c42c0cf194dcec210aae0b7d9425"
+          },
+          "ezdxf.lldxf.tagger": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/tagger.py",
+            "sha256": "03c5eafad5f5e82570ab72815bb107e5a9ef404da36e046cdcc9742eb594e97d"
+          },
+          "ezdxf.lldxf.tags": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/tags.py",
+            "sha256": "f53074f8eb651ca2ca797f6ff70f9532c98d3a2a38b6fc9f5cc25395a6fe5c2e"
+          },
+          "ezdxf.lldxf.tagwriter": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/tagwriter.py",
+            "sha256": "92f60a2adb6efbcdb7d6e69950410625b640c898e1433f47c7996d4729a6600c"
+          },
+          "ezdxf.lldxf.types": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/types.py",
+            "sha256": "6b2d73b9194190ec06deb8f68879c07bceabc31fed3271ba175a2aab9b749b44"
+          },
+          "ezdxf.lldxf.validator": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/lldxf/validator.py",
+            "sha256": "c96d39f078500ab5ca5c3cff1339341c50467ab2989011e5cdc27f9eee9e6d19"
+          },
+          "ezdxf.math": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/__init__.py",
+            "sha256": "146a7e993457b8600eb2d6266692e679bd43d3d881082b1815638588add275c1"
+          },
+          "ezdxf.math._ctypes": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/_ctypes.py",
+            "sha256": "5614a44e0e283d2bfb5b81b69436ca6bc83146bd6f81fb8639ce703f70828537"
+          },
+          "ezdxf.math._mapbox_earcut": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/_mapbox_earcut.py",
+            "sha256": "cd3cb56498cb80487018c7233c17b197d48a6ce954cb298baffba55882471689"
+          },
+          "ezdxf.math.arc": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/arc.py",
+            "sha256": "43523acdfbfd1924a200700fedd672cbfde56d71e7bb46ecd08a6916e727df79"
+          },
+          "ezdxf.math.bbox": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/bbox.py",
+            "sha256": "3e1e5f4f7e5c9f902529b65c621612395beb4a77dc6a1981fa7c2ecaa2a61474"
+          },
+          "ezdxf.math.bezier": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/bezier.py",
+            "sha256": "2d7aa88b6cc7117e1a724e275515788f06087fbeb3c61f169735d36b9efe34b8"
+          },
+          "ezdxf.math.bezier_interpolation": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/bezier_interpolation.py",
+            "sha256": "9f70cfcdca081f8d53523972c17db72a4613903042a3735bbc39e8de97766c53"
+          },
+          "ezdxf.math.box": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/box.py",
+            "sha256": "f2fa0a39fed2e070fe3f5746bb34fa8d6e97d9b5114da2dd6aa0879e6a65ff7c"
+          },
+          "ezdxf.math.bspline": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/bspline.py",
+            "sha256": "9908c6428edf30535ec8aac6c68393890349668e391906adff6946d03be914ef"
+          },
+          "ezdxf.math.bulge": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/bulge.py",
+            "sha256": "af18f1f45744539bddbc48e14430129661c35688e4496847bab7e8682c1866dd"
+          },
+          "ezdxf.math.circle": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/circle.py",
+            "sha256": "bb7602b6b13ac05cc2009ff650a8bd0d55c72a97747df489e48b35bcf234069c"
+          },
+          "ezdxf.math.construct2d": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/construct2d.py",
+            "sha256": "075357f3993b721cd7a658cc4be09a47bacde7e95dd76e5107417485fd57a66e"
+          },
+          "ezdxf.math.construct3d": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/construct3d.py",
+            "sha256": "19b08b46b806aa71b753777299eb6b0a06f403c1b4c4b38b289afc1014d43bdd"
+          },
+          "ezdxf.math.curvetools": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/curvetools.py",
+            "sha256": "47240ac4a45ddd2d5b59bc2773ec1640a704d4d09dfc46dd979cd07c3634e74e"
+          },
+          "ezdxf.math.ellipse": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/ellipse.py",
+            "sha256": "535685163b4e1e1fb4fc5833508d04c0857425d9a460240b7a5c484e794ffa08"
+          },
+          "ezdxf.math.eulerspiral": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/eulerspiral.py",
+            "sha256": "13c9b5f819a84dfc45ea916bb33c91602f8ab6b9aaf629f42c4de09c9fb7699a"
+          },
+          "ezdxf.math.linalg": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/linalg.py",
+            "sha256": "ab033271e2261232859772c43190b8a1b54f54b5496dc4fd774072537df416a2"
+          },
+          "ezdxf.math.line": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/line.py",
+            "sha256": "9e8c1c8665f83a9dff58b9632ff58666b611e471a3880bfd41e1fefbca214570"
+          },
+          "ezdxf.math.offset2d": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/offset2d.py",
+            "sha256": "63f72eb34f547f8192c83cbe9cfc9b242fdc7671b34b7aa1ff55b7072ef63b3c"
+          },
+          "ezdxf.math.parametrize": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/parametrize.py",
+            "sha256": "8214c7ed2ee46559d5a9dc3627967a7cdd545453203779d6ef54072aee5358a7"
+          },
+          "ezdxf.math.perlin": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/perlin.py",
+            "sha256": "320b6fa8c4324708352a4253aebfe4c45b27e7c7753c3f45435ee8f96a60cea5"
+          },
+          "ezdxf.math.polyline": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/polyline.py",
+            "sha256": "48142aac1c5998310bf0a0abdea824d5b5d767ef8d1d7c222b7214344737d28e"
+          },
+          "ezdxf.math.shape": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/shape.py",
+            "sha256": "70d8bc1250b9e5d72ae940e96ac4caab38062df887eeae74b62523baddad997f"
+          },
+          "ezdxf.math.transformtools": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/transformtools.py",
+            "sha256": "a6efd4ff6180ef2c3c734b156fb29984e245b539ba85cdf6fcbd1a77f2230242"
+          },
+          "ezdxf.math.triangulation": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/triangulation.py",
+            "sha256": "92c238fab2051bb96a439404e0c50f1ad325decb1a45172ff453d7dd1de83e4a"
+          },
+          "ezdxf.math.ucs": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/math/ucs.py",
+            "sha256": "a4d710808959a3a503ad379a40c4d1d54d57671087834ba12ac733357aabf4ec"
+          },
+          "ezdxf.messenger": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/messenger.py",
+            "sha256": "7482cf6f192e3fe4a8ed0fab71a56685a8cf85ba6ae3f48972c64361dce5913c"
+          },
+          "ezdxf.msgtypes": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/msgtypes.py",
+            "sha256": "233f8ef8ac1cd5bbdcd24593d14e9af6d17f6045f819d26f6ed12a82784073b2"
+          },
+          "ezdxf.npshapes": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/npshapes.py",
+            "sha256": "8da141a7275a1195c8abb956c9537080f3593473a57973acd4a7ab14111664d5"
+          },
+          "ezdxf.path": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/__init__.py",
+            "sha256": "207325a855ffabf573be549c799c1af292f2a0865fa0946180e5ea094b0e5614"
+          },
+          "ezdxf.path.commands": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/commands.py",
+            "sha256": "b21aacb1c9146a5a8d1f53555c6e2edffeaca01607e4def52cada7597ec0c6c8"
+          },
+          "ezdxf.path.converter": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/converter.py",
+            "sha256": "ce3f02f7ec059aad4a72d856c969f8bdb3f26743a36108afcd29ebd5f7b0d8f2"
+          },
+          "ezdxf.path.nesting": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/nesting.py",
+            "sha256": "1941f3e458b88db1a3df673c1ddd54be325117e75deee3f7be29dabb44a94f4b"
+          },
+          "ezdxf.path.path": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/path.py",
+            "sha256": "94a69b57f0c08737d88a406621e915226f143e78716dbd13f89500ece6d92f01"
+          },
+          "ezdxf.path.shapes": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/shapes.py",
+            "sha256": "29dc532b5ede9ec4f4b82bf81cbe263622ff702a8245177af715803dd57dabc6"
+          },
+          "ezdxf.path.tools": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/path/tools.py",
+            "sha256": "a5078589f0e605ab86dcfc6e610379114daf70447e1334e54189850486a00324"
+          },
+          "ezdxf.protocols": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/protocols.py",
+            "sha256": "5d7f840db7e9d95f130af8f82a84f9afda8afe533ac0315689e9d7027afa5b31"
+          },
+          "ezdxf.proxygraphic": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/proxygraphic.py",
+            "sha256": "381cb40f0e3ecfce3eac5d2ac89ecf69d25e98f9644251c22bcac066e08461de"
+          },
+          "ezdxf.query": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/query.py",
+            "sha256": "ab2e8779f3d0e61c421ade50cda8917c3075402cd6b206f21698080e3edff4a7"
+          },
+          "ezdxf.queryparser": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/queryparser.py",
+            "sha256": "4b9db93bb5533cf30d65e0d61672534c8327c2d77cadff771e9127a4787de8a3"
+          },
+          "ezdxf.render": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/__init__.py",
+            "sha256": "5980457d8fe9afc61237d24ef60ba11d904181c09d4a9fe0c9e5973be92b60c4"
+          },
+          "ezdxf.render.abstract_mtext_renderer": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/abstract_mtext_renderer.py",
+            "sha256": "197858c341ff161e4816c777e40cde9d766ea29df62eed0add9232af938620a6"
+          },
+          "ezdxf.render.arrows": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/arrows.py",
+            "sha256": "5b4327d95717ce9c6c2ddd352a2789a4dca203375f09485fe9ae2c855383d9f8"
+          },
+          "ezdxf.render.curves": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/curves.py",
+            "sha256": "97ea3b8fe5ae437000c77b41ae42dcca0e9ca59b74fb512dc4df632eff9e718f"
+          },
+          "ezdxf.render.dim_base": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dim_base.py",
+            "sha256": "2cfd34a0369707c1661457b0094d67426b96b41d4b4014a05cca9447d046dc40"
+          },
+          "ezdxf.render.dim_curved": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dim_curved.py",
+            "sha256": "1c180436e454650d7dd0cef75af8fe9fded22e73e0a4fb52c2ac52d22bd09645"
+          },
+          "ezdxf.render.dim_diameter": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dim_diameter.py",
+            "sha256": "c60f86946baf4342584f3eccdd1063b4a9a3c90df46d72d86c76542228b0703e"
+          },
+          "ezdxf.render.dim_linear": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dim_linear.py",
+            "sha256": "b3983a8b8fa820cf614872f28d5478bc83d60c29c4c9fab2f1318983763239ab"
+          },
+          "ezdxf.render.dim_ordinate": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dim_ordinate.py",
+            "sha256": "22dd6d320ec5c9faaa87e87b19f1cd7b7182ccc3440a176810a3ac7c499cbd0d"
+          },
+          "ezdxf.render.dim_radius": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dim_radius.py",
+            "sha256": "f9dbb70b2b13d211f2d9fc5462d5d0fee4b7b1dab2938e8ef22ece273a29a3e0"
+          },
+          "ezdxf.render.dimension": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/dimension.py",
+            "sha256": "04306af042e5cddce5ad337e041951e9ca572b4791e3e810e7a9ec4052adf200"
+          },
+          "ezdxf.render.forms": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/forms.py",
+            "sha256": "5f01f1f45feb9b95a528111036b18e9dc86c00fa8cbf0546492e3b2585ad423d"
+          },
+          "ezdxf.render.mesh": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/mesh.py",
+            "sha256": "a56b1105bdeb6cf2af16efba70b6738ebd85634c8048068bfb4d1e21867a4673"
+          },
+          "ezdxf.render.mleader": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/mleader.py",
+            "sha256": "5879cadf58ae09f3fcca2af1434818a86ee07911307ad8ba1692f75c743d3a39"
+          },
+          "ezdxf.render.polyline": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/polyline.py",
+            "sha256": "fe30ce2b3e84be51ce4dab2ec8be0afb1ed31892c9ce4aaf01d9bd09ebc29ba6"
+          },
+          "ezdxf.render.r12spline": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/r12spline.py",
+            "sha256": "3951bde376bfd01722e02f2b8cba747493f3e81dc6bd21fc820b4f012f204320"
+          },
+          "ezdxf.render.trace": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/render/trace.py",
+            "sha256": "b7ef1d7df9672c545f5aa8e822e9aa8963a7b20511205eaf584129e006ce9827"
+          },
+          "ezdxf.sections": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/__init__.py",
+            "sha256": "e8d4b6ffabe8fd1da23781fe425218222fc1a0bbc91dda398e18b1d6e09a1250"
+          },
+          "ezdxf.sections.acdsdata": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/acdsdata.py",
+            "sha256": "ec6b9ab917bbbfd0731fc140ffab71a97a5988aff7b5c3f50a178fbb17bdc241"
+          },
+          "ezdxf.sections.blocks": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/blocks.py",
+            "sha256": "af0fd6eb81cafc7e02c6beb8f0cb9568eedc1a1ccdde075bb5895fe1d3edc9a8"
+          },
+          "ezdxf.sections.classes": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/classes.py",
+            "sha256": "51f48788c5391cf60662be03072c94a83608e53c37a037d9f1764aeaacd82a81"
+          },
+          "ezdxf.sections.entities": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/entities.py",
+            "sha256": "a4be25ba3bf7ddd8340a1cc0cf59e7e0294adbd2051763a76a8c09151fd50148"
+          },
+          "ezdxf.sections.header": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/header.py",
+            "sha256": "18ac20145da1285fab1d4db2c19a07f8ec905956467dfb633def9a7fbe547bf4"
+          },
+          "ezdxf.sections.headervars": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/headervars.py",
+            "sha256": "476a4e9aa5c816e70ac35941611c06cad609881172cd31c95ba7c7da35d6e12a"
+          },
+          "ezdxf.sections.objects": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/objects.py",
+            "sha256": "8b8d7ddb5aca1c2fac0e3709a0f4de779727ffee4d6bb1520d630a1b01659b25"
+          },
+          "ezdxf.sections.table": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/table.py",
+            "sha256": "e3ebe96f2c0f417c3cd7f899b74618eaa08a0a95a7d8d58d13cb757cc6faea63"
+          },
+          "ezdxf.sections.tables": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/sections/tables.py",
+            "sha256": "a0bfd9c0efec61d66cd36661d4b8fee917b74726af103e2df5cb86cb6a131e04"
+          },
+          "ezdxf.tools": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/__init__.py",
+            "sha256": "10ea75aa17d15683bbfdc043fb592f963a207378268cda89be6fbdd14389fc75"
+          },
+          "ezdxf.tools._iso_pattern": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/_iso_pattern.py",
+            "sha256": "ff7ad10ec9c9cc4201bcb98a0f6a3b08eb780b12ea837bc7e22a9806eb9b9a9b"
+          },
+          "ezdxf.tools.binarydata": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/binarydata.py",
+            "sha256": "29a13645df67360900f24ebdce6cdaf6a76331b35913d50a736b71acc99cee50"
+          },
+          "ezdxf.tools.codepage": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/codepage.py",
+            "sha256": "c7ab6255d42b1fe2763807e39f0eb18b7da1219ac7fab49bdc4c4e8b70d5f3b1"
+          },
+          "ezdxf.tools.complex_ltype": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/complex_ltype.py",
+            "sha256": "d3bc0136918a964ef9ca1432225b5c21a41df98b1675ee4ec50a5266d0b3cf6c"
+          },
+          "ezdxf.tools.crypt": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/crypt.py",
+            "sha256": "4eb68651eaabe46c566590c568602df8e38268adeb8aceeccac5cdf98d0b01c6"
+          },
+          "ezdxf.tools.handle": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/handle.py",
+            "sha256": "dae41117264828abae8a48d83eebf8f8753a6ebc955ac3e0e80bc8b870e26ddf"
+          },
+          "ezdxf.tools.indexing": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/indexing.py",
+            "sha256": "0b5b1f2c9d6764efcdd2d5eae3cc04140b1306d9d00f9e136dcca8562441e7e9"
+          },
+          "ezdxf.tools.juliandate": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/juliandate.py",
+            "sha256": "37a84742c7356661a1b4135d7447321bb493b92ff11e22fb58766ab2d888701f"
+          },
+          "ezdxf.tools.pattern": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/pattern.py",
+            "sha256": "f0e3f40a583f649cc35fc0ee119a6bfb4f196a8743df413c4a7cbcd52d155f6c"
+          },
+          "ezdxf.tools.standards": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/standards.py",
+            "sha256": "f3b64bf6a8d623109258fe6a75eb8e1d1f86b3d7f65b6234297faa78004c5340"
+          },
+          "ezdxf.tools.text": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/text.py",
+            "sha256": "a5d342bed0f49708e3d766668e0620d4d087469bd78588ac91138bf026e509de"
+          },
+          "ezdxf.tools.text_layout": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/text_layout.py",
+            "sha256": "e3d758912c2bd58d9be94c840ce8b63b713187e8090126a8fc359070ec085045"
+          },
+          "ezdxf.tools.text_size": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/tools/text_size.py",
+            "sha256": "14c9aca084ddfec6de792fef96b225fa97f04e58e186ad96e00e9d1b047dfae7"
+          },
+          "ezdxf.units": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/units.py",
+            "sha256": "9a9e8d3fffd9e23d4280665ad7e4faadb980dd206f318890c32d78c2a27e63fc"
+          },
+          "ezdxf.version": {
+            "path": "/Users/dli/dev/libdxfrw/build/rpp5gh-evidence/peer/lib/python3.15/site-packages/ezdxf/version.py",
+            "sha256": "05341ffa5f77a6ebc7cef1d5385240c6955a8bf762532ca8cba6ad8c38388281"
+          }
+        }
+      }
+    },
+    "loadedModuleCount": 203,
+    "interpretation": "Physical selected tags/owners are recorded before ordinary setup. Ordinary ezdxf corroborates lock and linked child/footer object identity only; intrinsic fast_load_dxfattribs(recover=True) remains active. LinkedEntities.link_seqend changes the modeled SEQEND owner from physical704 to parent owner1F. Do not treat ordinary footer owner as source agreement or modeled/default version0 as an independent version-field decode. No advisory outcome promotes claims."
+  },
+  "outputBoundary": "Unchanged ATTDEF/ATTRIB writers normalize version-zero away and emit one lock280. Generated clean-model writer/readback controls establish only selected canonical single-lock behavior, not original dual-byte preservation, full external-sample conversion or complete emitted document closure.",
+  "remaining": [
+    "P4a remaining ordering/version/alignment, embedded dual280/columns/secondary AcDbXrecord and required-family source/role profiles; choose one exact still-unmatched witness and missing layer before implementation readiness.",
+    "P4b dependency targets, recursive closure, original unsupported/dropped/unused census and complete source-to-planned-to-actual output proof remain open.",
+    "P2/P3/P5-P9 geometry/resources/materials/rendering/TABLE/semantic/ACIS/platform/external work remains under the current remaining-only plan."
+  ],
+  "limitations": [
+    "Seven focused registrations in normal/ASan across two executables; six normal original-source probes and a bounded advisory ordinary reader. No full suite/native app/package/release/ABI/RSS/performance qualification.",
+    "ASan halt_on_error=1:detect_leaks=0; no leak-sanitizer claim. Logical prepaid accounting is not an allocator/RSS theorem.",
+    "Selected classic source roles do not qualify embedded dual profiles, additional valid DXF field placements, arbitrary versions or native semantic acceptance.",
+    "Repository lineage does not identify or verify the original CAD producer. Same-production-decoder replay is not an independent semantic oracle."
+  ],
+  "gates": {
+    "P4Complete": false,
+    "resourceFamilies": 9,
+    "ATTDEF.rawTypedMatched": false,
+    "supportLedger": "CLOSED",
+    "ownerTargetsResolved": false,
+    "recursiveClosureMatched": false,
+    "outputEligible": false,
+    "fullObjectiveComplete": false,
+    "wholeDocumentExportQualified": false,
+    "nativeAttributeSemanticsQualified": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "fixturePolicy": "Retained external drawings stay in scratch. Committed tests use eligible existing repository material or locally authored recipes; no drawing payload is committed."
+}

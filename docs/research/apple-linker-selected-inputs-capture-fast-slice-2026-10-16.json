@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw-apple-linker-selected-inputs-capture-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Exercise the new Apple linker-map profile on fresh exact-target and standalone Release adapter builds; keep linker input identity separate from runtime-image and compile-contract qualification.",
+  "environment": {
+    "platform": "macOS ARM64",
+    "architecture": "arm64",
+    "compiler": "AppleClang 21.0.0.21000334",
+    "configuration": "Release",
+    "targetCommit": "2043e5254fbf71729e97bd54e48a184153161ff2",
+    "standaloneSourceCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+    "buildOutputs": "fresh disposable directories under /private/tmp; no repository build tree reused"
+  },
+  "linkerInputs": {
+    "method": "apple-ld-map-v1",
+    "target": {
+      "status": "captured",
+      "mapSize": 1453706,
+      "mapDigest": "3f3e4b321e2c1e0b74476899a741a01994158f3099ba05b10bc0e1d7a52c63aa",
+      "executableDigest": "480b2b2e2b85c02f8ea684088761cafeae525176e4c7e999cc888dbe4b0dbc5d",
+      "linkedArchiveDigest": "238f98ca050fcbc663abb2163be7cc9dce0b1fbda9bfe9d4b0c50bfbc01cfdea",
+      "selectedArchiveMemberCount": 32,
+      "selectedBuildObjectCount": 1,
+      "selectedSdkStubCount": 7,
+      "unclassifiedInputCount": 0
+    },
+    "standalone": {
+      "status": "captured",
+      "mapSize": 1583843,
+      "mapDigest": "80fba41563c8129ae1dd3b118d836734c54cdaf7fa5b6ecde23e963e1384794c",
+      "executableDigest": "d9875d6c08101cd4ae3312990d43f15ff33e44e329dcb217c6726bcf48b9c227",
+      "linkedArchiveDigest": "8973ac6f3cb864040226f314c78b7dd11a157ac9ec7d265cd16ecd055c2e56c9",
+      "selectedArchiveMemberCount": 32,
+      "selectedBuildObjectCount": 1,
+      "selectedSdkStubCount": 8,
+      "unclassifiedInputCount": 0
+    },
+    "sharedSdkStubs": [
+      {"path": "usr/lib/libSystem.B.tbd", "sha256": "01089e97e7372fdda64ef480f2c99d483daf0c7fc99298a137425ee3230588ab"},
+      {"path": "usr/lib/libc++.1.tbd", "sha256": "d5813bdd04b5208c8a1e684594de78347082365be2776835f1e1e5faa89d9bcd"},
+      {"path": "usr/lib/system/libcompiler_rt.tbd", "sha256": "4c09714745e6eec7cf816a704ed3f4f7997fbc25d15df7135fe40cd48dcb51ef"},
+      {"path": "usr/lib/system/libsystem_c.tbd", "sha256": "ec8bd71d0b1e618222f0cf1b9642e4934c253698fd7179b5e138dfdb105de14a"},
+      {"path": "usr/lib/system/libsystem_kernel.tbd", "sha256": "563ea4296cf1fdec17b6b561aa77f00cd08a7294b3f9e798999f934629f38004"},
+      {"path": "usr/lib/system/libsystem_m.tbd", "sha256": "b4a35cadab428327783e82b73347796b72142fb98994d76c882023d9603dc6ac"},
+      {"path": "usr/lib/system/libunwind.tbd", "sha256": "543f98e95755d81ff0d6992fc6d042f78df26cbbe6b31645ef22fb97553887df"}
+    ],
+    "standaloneOnlySdkStub": {
+      "path": "usr/lib/system/libdyld.tbd",
+      "sha256": "6f444fba45f5227ba77c2d71db0a5f4b9399f574e336d52167be29c0bfc7717d"
+    },
+    "pairInterpretation": "All shared selected SDK stubs have identical paths and digests. The standalone link selected one additional SDK stub; the profile records this set difference. This is not by itself a local defect and does not establish runtime parity."
+  },
+  "runtimeImages": {
+    "target": {"status": "partial", "nodeCount": 677, "edgeCount": 8809, "unresolvedImageCount": 3, "unmatchedSdkStubCount": 0, "reason": "link-stub-selection-not-proven"},
+    "standalone": {"status": "partial", "nodeCount": 677, "edgeCount": 8809, "unresolvedImageCount": 3, "unmatchedSdkStubCount": 0, "reason": "link-stub-selection-not-proven"},
+    "boundary": "dyld UUID/graph observation is not byte identity for all system/shared-cache images; it remains a separate partial subprofile"
+  },
+  "validation": {
+    "builderSelfTest": "PASS",
+    "runnerSelfTest": "PASS",
+    "pythonSyntaxCheck": "PASS",
+    "gitDiffCheck": "PASS",
+    "targetReceiptSchemaAndArtifactDigests": "PASS",
+    "standaloneReceiptSchemaAndArtifactDigests": "PASS",
+    "targetAdapterSelfTestExit": 0,
+    "standaloneAdapterSelfTestExit": 0,
+    "pairEligibility": "REJECTED",
+    "pairRejection": "direct-option admission does not attest the effective compiler driver; this receipt pair is not eligible",
+    "compileContractMode": "direct-options-only",
+    "compileContractEnforced": false,
+    "qualificationEligible": false
+  },
+  "limits": [
+    "The native capture covers AppleClang and this macOS ARM64 SDK only; GNU ld, GCC and MSVC profiles remain unavailable.",
+    "The map profile binds the generated linked archive, selected member names, selected build objects, and SDK .tbd files listed by the Apple linker map; it is not a complete SDK/sysroot byte closure.",
+    "Runtime image closure remains partial and separate from selected link inputs.",
+    "The captured build pair is not eligible because the compile contract remains direct-options-only/advisory.",
+    "No DWG/DXF/SAT/SAB fixture, peer binary, dependency, parser behavior, or support claim changed."
+  ]
+}

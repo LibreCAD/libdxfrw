@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "slice": "RPP-5bn",
+  "date": "2026-10-24",
+  "parentCommit": "2eea5040b505b5c6342283fbd7e7c494ec236b71",
+  "captureState": "VERIFIED_BEFORE_LOCAL_COMMIT",
+  "status": "INDEPENDENT_SECTION_OBSERVER_AND_NATIVE_CORRELATIONS_READY_FROZEN_JOINS_PENDING",
+  "implemented": {
+    "header": "dwg2dxf/dx_dwg_class_section_wire.h",
+    "test": "tests/dwg_class_section_wire_tests.cpp",
+    "target": "libdxfrw_class_section_wire_tests",
+    "ctest": "libdxfrw_class_section_independent_wire",
+    "standard": "C++14, no extensions",
+    "allocationFree": true,
+    "maxInputBytes": 67108864,
+    "seenIdentityBytes": 8192,
+    "independentOf": ["Production DWG parser", "Production dwgBuffer", "Production writer and codec", "Parser-derived class-row boundaries", "libdxfrw linkage"],
+    "checks": [
+      "START/END sentinels and exact section/envelope accounting",
+      "Bounded declared byte and bit lengths",
+      "Explicit high-size presence and size-counting candidates; nonzero high word unsupported",
+      "Independent inline/detached record iteration and full stream consumption",
+      "Short/extended backward string footer and explicit scalar/byte/envelope padding",
+      "Unique 16-bit class identities, numeric range/highest and observed sparse cardinality",
+      "Bitwise reflected CRC16, seeded C0C1, covering length and payload; zero CRC is not waived",
+      "Explicit header/trailer profiles, unknown item flags and unmodified raw text issue observations"
+    ],
+    "singleTerminalNullComparator": "Verifies exactly one final encoded NUL and independently revalidates the complete prefix; interior/repeated NULs, malformed Unicode and unknown legacy codepages remain refused even after issue-mask tampering.",
+    "productionBehaviorChange": "Add bounded one-byte CLASSES trailer probe beside existing 8/2/0 probes; preserve independent cursor/error state and malformed warn-only fallback.",
+    "classRecordParserWidthChanged": false,
+    "publicInstalledAPIOrVtableChanged": false,
+    "strictAdmissionChanged": false
+  },
+  "research": {
+    "pdf": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "version": "ODA Open Design Specification v5.4.1",
+      "completeTextAndRenderedPagesInspected": [16, 17, 54, 55, 86, 87, 88, 104],
+      "correction": "ODA5.8 documents R2007 version/maintenance BL fields, while ODA10.2 says BS in its general R2004+ description. The earlier generalization to an exclusively BS documented schema is superseded, not silently propagated.",
+      "footerCaveat": "ODA20.1 mixes byte/bit step wording. The implemented 16-bit-short candidate is separately checked with primary peer code, literal/scratch controls and actual native footer spans; no universal normative resolution is claimed.",
+      "pdfModified": false
+    },
+    "primaryPeers": [
+      {"url": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/decode_r2007.c", "finding": "Active reader separates class strings and uses backward 16-bit footer words with high bits shifted15. Small-value version fields cannot resolve schema differences."},
+      {"url": "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/decode.c", "finding": "Class cardinality is derived from max_num-499; this is not independent evidence that all valid tables are dense."},
+      {"url": "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgClassesReader.cs", "finding": "Reads classes to stream end and uses BL version fields; footer setup is separate from resulting class metadata."},
+      {"url": "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamWriters/DwgClassesWriter.cs", "finding": "Writes classes by enumeration and computes length/CRC before END and post-sentinel bytes. Peer writer agreement does not select a universal profile."},
+      {"url": "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamWriters/DwgMergedStreamWriter.cs", "finding": "Merged writer maintains independent scalar/text bit positions and emits a string-size footer. Its algorithm is not reused by the observer or scratch author."}
+    ],
+    "localACadSharpSnapshot": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "remoteMasterEqualsLocalSnapshotAsserted": false
+  },
+  "controls": {
+    "sectionPositiveCases": 1767,
+    "sectionRefusalTruncationCases": 10456,
+    "recordPositiveCases": 163,
+    "recordRefusalTruncationCases": 20670,
+    "textControls": 28,
+    "sourceReaderNativeAssertions": 1781,
+    "revisions": [13, 14, 2000, 2004, 2007, 2010, 2013, 2018],
+    "bitAlignments": 8,
+    "literalAnchors": ["38-byte empty legacy section including independently specified CRC C03D", "CRC16 ARC check123456789=BB3D with zero seed"],
+    "authorBoundary": "Scratch bit packer and nibble CRC recurrence, not production encoders; literal anchors protect against an unchecked self-generated CRC oracle.",
+    "cases": [
+      "Empty, dense and sparse identities, duplicates, maximum65535 and maximum overflow",
+      "Every shorter small-section byte prefix and every single-bit mutation",
+      "Every shorter extended-string section prefix",
+      "Short/extended footer boundary, 65535-unit names and oversized backward span",
+      "High-word rule/counting mismatch, false header-bit profile and scalar alignment profile",
+      "Explicit 0/1/2/8-byte pre-sentinel and8-byte post-sentinel candidates",
+      "Exact versus zero-padded envelope and nonzero extra-byte refusal",
+      "CRC mismatch and zero-stored-CRC refusal",
+      "Large BS/BL profile disagreement and small-value ambiguity",
+      "Exact single-NUL convention, interior/repeated NUL, surrogate, legacy codepage and issue-mask controls",
+      "Independent observer invoked with all allocations failing during native capture tests",
+      "Production trailer probes, all shorter-than16-byte bounds and unchanged malformed fallback"
+    ]
+  },
+  "nativeEvidence": {
+    "uniqueRows": 255,
+    "meaning": "Independent byte framing and test-time correlation to parser observations, not frozen metadata authority or external semantic support qualification.",
+    "convention": "The four tracked files' names each have one final encoded NUL. Modern header bits are false; Unicode sections have five scalar alignment bits. These are explicit source profiles, not universal ODA10.2 semantics.",
+    "fixtures": [
+      {"path": "tests/fixtures/dwg/ordinary_enc_AC1015.dwg", "sha256": "80690dc45b2e32b4d378df4be860c51c6b3c952400aa762eb73a654e93a728dd", "rows": 63, "storedAndCalculatedCrc": 43999, "framingCandidates": 1, "beforeEndBytes": 0},
+      {"path": "tests/fixtures/dwg/ordinary_enc_AC1018.dwg", "sha256": "981b982b7e6414e5dd6cd6b33a88c8e385d14f298b125faba4c94e80dec15f96", "rows": 64, "storedAndCalculatedCrc": 18704, "framingCandidates": 2, "beforeEndBytes": 0},
+      {"path": "tests/fixtures/dwg/ordinary_enc_AC1021.dwg", "sha256": "25685bec2d9d537a2f04dfd081f2a0933078cc19c59ebc3473dc011dfad970c8", "rows": 64, "storedAndCalculatedCrc": 25347, "framingCandidates": 2, "beforeEndBytes": 0},
+      {"path": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg", "sha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83", "rows": 64, "storedAndCalculatedCrc": 61861, "framingCandidates": 2, "beforeEndBytes": 1, "crcByte": 5948, "sentinelByte": 5951, "sectionEndByte": 5967, "interveningByte": 0}
+    ],
+    "matched": ["All scalar fields and derived entity flag", "Stream ordinal and descriptor", "All three complete names under explicit terminated convention", "Scalar/string bit ranges and physical/decoded relative identity", "Published state and no-failure observation"],
+    "BSBLUniversalSchemaSelected": false,
+    "unknownTrailerByteMeaningInferred": false,
+    "AC1024AC1032NativeCaptureQualification": "NOT_RUN",
+    "independentLargeProducerFieldQualification": "NOT_RUN"
+  },
+  "validation": {
+    "build": {"result": "PASS", "strictFlags": "-std=c++14 -Wall -Wextra -pedantic -Werror for standalone observer tests; existing C++17 consumer context preserved", "logs": ["/tmp/rpp5bn-checkpoint-build.log", "/tmp/rpp5bn-freeze-build.log", "/tmp/rpp5bn-source-final-build.log"], "warningSuppression": false},
+    "focused": {"result": "PASS", "passed": 8, "total": 8, "wallSeconds": 11.51, "parallelism": 3, "tests": ["libdxfrw_class_section_independent_wire", "libdxfrw_class_dwg_independent_wire", "libdxfrw_raster_dwg_independent_wire", "libdxfrw_dwg_class_source", "libdxfrw_dwg_r2007_class_string_footer", "libdxfrw_adapter_build_context", "libdxfrw_cli_optional_build", "libdxfrw_public_header_hygiene"], "log": "/tmp/rpp5bn-fast-tests.log"},
+    "finalSourceAssertions": {"result": "PASS", "assertions": 1781, "wallSeconds": 0.39, "log": "/tmp/rpp5bn-native-controls.log", "reasonForRerun": "Additional derived/publication/relative-range assertions added after the focused cohort; final source executable rebuilt and rerun normally and under ASan."},
+    "owning": {"result": "PASS", "passed": 5, "total": 5, "wallSeconds": 9.90, "parallelism": 3, "tests": ["libdxfrw_wave1", "libdxfrw_dwg_local_roundtrip", "libdxfrw_dwg_object_vectors", "libdxfrw_hardening", "libdxfrw_dxf_fixtures"], "log": "/tmp/rpp5bn-owning-tests.log"},
+    "readerConsumers": {"result": "PASS", "passed": 4, "total": 4, "wallSeconds": 2.29, "parallelism": 3, "tests": ["libdxfrw_dwg_reader_matrix", "libdxfrw_dwg_fixtures", "libdxfrw_named_resource_import_evidence", "libdxfrw_3d_consumer_probe"], "log": "/tmp/rpp5bn-compat-tests.log"},
+    "asan": {"result": "PASS", "passed": 3, "total": 3, "wallSeconds": 0.65, "options": "halt_on_error=1:detect_leaks=0", "tests": ["libdxfrw_class_section_independent_wire", "libdxfrw_class_dwg_independent_wire", "libdxfrw_dwg_class_source"], "buildLog": "/tmp/rpp5bn-asan-final-build.log", "finalSourceBuildLog": "/tmp/rpp5bn-asan-source-final-build.log", "log": "/tmp/rpp5bn-asan-tests.log"},
+    "combinedAsanUbsan": {"result": "PASS", "standard": "C++14", "tests": ["Standalone complete-section controls", "Standalone record/text controls"], "logs": ["/tmp/rpp5bn-combined-sanitizer.log", "/tmp/rpp5bn-record-combined-sanitizer.log"]},
+    "standaloneLinkage": ["libc++", "libSystem"],
+    "libreCAD3CompileGate": "PASS",
+    "heavyCohortsSequential": true,
+    "fullSuite": "NOT_RUN",
+    "performanceClaim": false
+  },
+  "next": [
+    "Bounded immutable import/class metadata baselines with private authoritative context and failure/generation/mutation recovery controls",
+    "Independent candidate/span/name joins to frozen metadata and actual IMAGEDEF/reactor class source identities, without schema selection from expected output",
+    "Scratch-native reproduction of the production max-class-minus499 density assumption before changing reader cardinality loops",
+    "Native AC1024/AC1032 and independent large-value producer profile evidence; unresolved header/size/footer/trailer semantics remain explicit",
+    "Remaining IMAGE/common-state, NOD/document, EED APPID/LAYER and broader existing plan dependencies"
+  ],
+  "supportBoundary": {
+    "strictAdmission": "CLOSED",
+    "ClassEnvelopeCleared": false,
+    "TextSemanticsNotIndependentCleared": false,
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL",
+    "nativeLinuxWindowsFreeCAD": "NOT_RUN",
+    "independentACISACDSSemanticKernelQualification": "NOT_RUN"
+  },
+  "repositoryHygiene": {
+    "newDownloadedOrCommittedDrawings": 0,
+    "existingUntrackedDrawingsExcluded": 17,
+    "earlierReceiptsModified": false,
+    "unrelatedUntrackedFilesPreserved": true,
+    "remoteMutations": false
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-plotstyle-prebound-libredwg-peer-2026-11-25",
+  "status": "BOUNDED_LIBREDWG_CONVERSION_AND_GRAPH_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "peer": "GNU LibreDWG 0.14 dxf2dwg and dwgread",
+  "source": "locally generated R2000 raw-caller prebound plot-style controls",
+  "profiles": [
+    {
+      "encoding": "ascii",
+      "mapping": "identity",
+      "sourceSha256": "b6fc0303001e266242b7ab88a46a4ffe287331dd4552533b65304f98d5bc7ac5",
+      "peerDwgSha256": "e253e3c6dba42ba73774fcf5957bea99c24611e32a191af72311d7c589fc2ab1",
+      "dictionary": 160,
+      "placeholder": 161,
+      "layers": [
+        "Raw caller default",
+        "Raw caller explicit"
+      ],
+      "converterWarnings": [
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1",
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1"
+      ]
+    },
+    {
+      "encoding": "ascii",
+      "mapping": "remapped",
+      "sourceSha256": "da0ccc4d5e336235b07ddbdfb46a0698576f98edfb90a75a360b14ae68a9b7bc",
+      "peerDwgSha256": "21a5419c8a77ca50d5d5a06733b7cf39a2132219aa35c0568d5a1fb33d54edb7",
+      "dictionary": 176,
+      "placeholder": 177,
+      "layers": [
+        "Raw caller default",
+        "Raw caller explicit"
+      ],
+      "converterWarnings": [
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1",
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1"
+      ]
+    },
+    {
+      "encoding": "binary",
+      "mapping": "identity",
+      "sourceSha256": "68fdadc5f2cbfb1c362458d9ea18310d318fdbaffc187bd791ec507b32047c0d",
+      "peerDwgSha256": "e253e3c6dba42ba73774fcf5957bea99c24611e32a191af72311d7c589fc2ab1",
+      "dictionary": 160,
+      "placeholder": 161,
+      "layers": [
+        "Raw caller default",
+        "Raw caller explicit"
+      ],
+      "converterWarnings": [
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1",
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1"
+      ]
+    },
+    {
+      "encoding": "binary",
+      "mapping": "remapped",
+      "sourceSha256": "2aefab5f7ab1aa821ce1f4b27b38c51a93d5fb6a010bf842dc6978f7363c7ae3",
+      "peerDwgSha256": "21a5419c8a77ca50d5d5a06733b7cf39a2132219aa35c0568d5a1fb33d54edb7",
+      "dictionary": 176,
+      "placeholder": 177,
+      "layers": [
+        "Raw caller default",
+        "Raw caller explicit"
+      ],
+      "converterWarnings": [
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1",
+        "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1"
+      ]
+    }
+  ],
+  "limits": [
+    "This uses one independent software family and conversion to R2000, not AutoCAD native plotting or semantics.",
+    "Nonfatal unknown DIMLDRBLK warnings are retained per profile.",
+    "Scratch DWG and DXF outputs are not committed."
+  ]
+}

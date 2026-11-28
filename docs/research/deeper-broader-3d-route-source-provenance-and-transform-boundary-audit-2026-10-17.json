@@ -1,0 +1,131 @@
+{
+  "schema": "libdxfrw-deeper-broader-3d-route-source-provenance-and-transform-boundary-audit-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Refresh source-pinned DWG/DXF 3D carrier, peer release, transform, and downstream consumer boundaries against the current implementation plan.",
+  "method": {
+    "kind": "Primary-source web research plus local plan and receipt cross-check",
+    "peerSourceRevisionsPinned": false,
+    "peerExecutablesBuiltOrRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "testsRun": false,
+    "implementationChanged": false,
+    "sources": [
+      "https://gdal.org/en/stable/drivers/vector/dxf.html",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "https://github.com/DomCR/ACadSharp/releases",
+      "https://github.com/DomCR/ACadSharp/pull/1240",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/LibreDWG/libredwg/issues/1411",
+      "https://github.com/kernalix7/CADKernel#supported-file-formats",
+      "https://docs.rs/acis-core/latest/acis_core/",
+      "https://github.com/monozukuri-ai/cq-acis"
+    ],
+    "localInspection": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md and DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md already separate explicit geometry, raw modeler carriers, AcDs association, B-rep semantics, and native consumer evidence.",
+      "The current optional-comparator plan already records GDAL block expansion and its per-block feature cap; this pass verifies the current source and adds an explicit transform/attribute/profile binding.",
+      "Existing peer candidate records already classify acis-core, cq-acis, CADKernel, ACadSharp, and LibreDWG by route stage; no new implementation owner was justified."
+    ],
+    "evidenceRule": "Mutable source and issue pages describe only their current visible state. Source-code path presence, release notes, issue reproductions, and unmerged PRs are not interchangeable with a pinned runtime result; carrier transport, transforms, B-rep semantics, and selected-consumer acceptance remain separate evidence grades."
+  },
+  "evidence": [
+    {
+      "topic": "GDAL raw ASM route and transform/options contract",
+      "sources": [
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observed": "Current stable docs state binary DXF reading from GDAL 3.12; DXF_3D_EXTENSIBLE_MODE exposes raw ASM and a 12-value column-major transform only for AC1027+ and does not create OGR solids. Modeler entities are skipped by default. INSERT expansion defaults on, per-block feature limit defaults to 10000, ATTRIB maps to TEXT, ATTDEF handling varies with inline-block mode, and output is AC2004 DXF.",
+      "doesNotEstablish": [
+        "ACIS/B-rep interpretation",
+        "full block-owner or attribute graph closure under default options",
+        "source-version-preserving write behavior",
+        "that a returned transform has been correctly composed with INSERT or entity transforms"
+      ],
+      "planUse": "Use separate explicit-geometry and raw-ASM profiles. For graph checks disable inlining/merge, bind the feature limit and attribute behavior, and record source transform and returned matrix separately; do not apply a transform twice or treat a capped result as complete."
+    },
+    {
+      "topic": "FreeCAD DWG converter and selected DXF importer boundary",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Installing_additional_components.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md"
+      ],
+      "observed": "FreeCAD documentation describes its native C++ DXF importer/exporter as feature-incomplete and DWG conversion as an external converter followed by the ordinary DXF importer; the chosen importer/backend is a separate route dimension.",
+      "doesNotEstablish": [
+        "runtime feature acceptance for any untested release/platform/importer tuple",
+        "3D ACIS consumption by stock FreeCAD",
+        "native DWG decoding by FreeCAD"
+      ],
+      "planUse": "Retain exact converter, output DXF, importer, open/insert, OS and app build identity for each optional consumer row; keep converter handoff distinct from geometry acceptance."
+    },
+    {
+      "topic": "ACadSharp release versus unmerged writer branch",
+      "sources": [
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "observed": "The latest formal release shown is signed v3.8.0 at commit 3a1c66b, whose release note adds assembly visibility; the release page shows 150 commits on master since. PR #1240 remains open, describes DXF serialization for Region/CadBody/Solid3D, and depends on #1174.",
+      "doesNotEstablish": [
+        "released ACIS DXF writer support",
+        "that the PR implementation is complete or accepted by a CAD consumer",
+        "a libdxfrw defect from ACadSharp's issue #1195"
+      ],
+      "planUse": "Do not count the open branch as a comparator pass. A future released route requires a new exact tag and independent read/write, block-only-solid, diagnostic, and consumer checks."
+    },
+    {
+      "topic": "LibreDWG AcDs parser presence versus reliable owner/body resolution",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c",
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "observed": "Current master contains read_2007_section_acds and acds_private parsing for AcDb:AcDsPrototype_1b. Issue #1411 remains open and names a 0.14.8593 reproducer; LibreDWG NEWS describes AcDs/SAB extraction as not yet reliable in its documented history.",
+      "doesNotEstablish": [
+        "that current master is still affected by the exact old reproducer",
+        "that current master fixed the reported loss",
+        "complete per-entity data-storage key/schema/payload association",
+        "valid solid geometry or target-consumer acceptance"
+      ],
+      "planUse": "Do not infer fixed/unfixed behavior from issue age or reader-function presence. Any optional run binds an exact commit/build and compares the full per-owner link chain and payload digest, including empty-body negatives."
+    },
+    {
+      "topic": "No new independent end-to-end ACIS route found",
+      "sources": [
+        "https://github.com/kernalix7/CADKernel#supported-file-formats",
+        "https://docs.rs/acis-core/latest/acis_core/",
+        "https://github.com/monozukuri-ai/cq-acis"
+      ],
+      "observed": "CADKernel's detailed SAT/SAB matrix remains unsupported/planned despite its broad format headline. acis-core reads bare payloads without producing kernel solids; cq-acis converts supported payload geometry via CadQuery/OCCT, sharing the kernel family with FreeCAD. None adds DWG/DXF/AcDs ownership decoding plus an independent kernel/consumer chain.",
+      "doesNotEstablish": [
+        "absence of future implementations",
+        "semantic correctness of current payload decoders beyond their declared profiles",
+        "independence of parser lineage from kernel lineage"
+      ],
+      "planUse": "Retain existing optional payload-only gates and the research stop rule; add no new peer implementation dependency or discovery task absent a primary-source change that fills a named gap."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newSubplans": 0,
+    "implementationOrderChanged": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 126,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

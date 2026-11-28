@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw-mesh-dwg-property-overrides-fail-closed-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "baselineCommit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+  "scope": "Refuse DWG MESH serialization transactionally when DXF propertyOverrides are nonempty because the current encoder has no verified mapping for them.",
+  "localFinding": {
+    "status": "CLOSED_AS_FAIL_CLOSED_BEHAVIOR",
+    "evidence": "DRW_Mesh::encodeDwg encoded the base cage without consuming propertyOverrides. The low-level guard rejects the vector; the public dwgRW::writeMesh boundary now latches whole-save failure and records a specific validation diagnostic. A generated valid MESH with two override entries verifies refusal, the diagnostic and handle, and preservation of a pre-existing destination.",
+    "disposition": "Prevent silent data loss within the existing MESH fidelity owner; no DWG field mapping or support claim is inferred."
+  },
+  "implementation": {
+    "files": {
+      "src/drw_entities.cpp": "1a6599c15f0c99e03515e10ccad03f7b31974855cd89e889566f384e4fd297b6",
+      "src/libdwgr.cpp": "af647e5323ed037e0d06b23fc192cec48eea03738d9b82c2b3adb73d143c8fb3",
+      "tests/dwg_local_roundtrip_tests.cpp": "893a0eddbca43069490ba412c36f4a633fe1b62a4365b6e0d03f19b80d560a91"
+    },
+    "generatedControl": "A separate locally generated AC1024 DWG attempt registers a valid MESH class instance and supplies a valid base cage plus two property override records. The callback sees writeMesh refusal and an unchanged handle; the whole write fails with the specific diagnostic and a seeded destination is preserved. Existing successful local round-trip remains the base-cage positive control.",
+    "fixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "strictBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip lc3_compat_check -j 2",
+      "result": "passed"
+    },
+    "compatibilityBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip lc3_compat_check -j 2",
+      "result": "passed"
+    },
+    "focusedCTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "passed",
+      "passed": 1,
+      "failed": 0
+    },
+    "diffCheck": "passed for src/drw_entities.cpp, src/libdwgr.cpp, tests/dwg_local_roundtrip_tests.cpp, and both updated plan files",
+    "fullSuitesOrExternalQualificationRun": false
+  },
+  "limits": [
+    "No primary DWG MESH property-override layout was located or implemented.",
+    "No native CAD, independent DWG reader, or authored DWG output was used to qualify MESH semantics.",
+    "The refusal does not change DXF property-override support or the existing ASCII/binary DXF tests."
+  ],
+  "planImpact": {
+    "existingOwnersOnly": [
+      "PAR-38",
+      "existing MESH writer and local round-trip tests"
+    ],
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "planTotals": {
+      "findings": 125,
+      "topLevelSubplans": 71
+    },
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

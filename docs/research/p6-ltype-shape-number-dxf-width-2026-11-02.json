@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ltype-shape-number-dxf-width-2026-11-02",
+  "date": "2026-11-02",
+  "status": "GENERATED_LTYPE_SHAPE_NUMBER_WIDTH_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Keep LTYPE DXF group-75 shape numbers within the signed 16-bit value range represented by DXF; retain the DWG payload domain unchanged.",
+  "implementationReadiness": {
+    "baselineHead": "0713385c343a4086f744042ccd91d21666f921b0",
+    "sourceObservation": "The DXF parser and DRW_LType::validateDxf admitted group-75 values through 65535 even though group 75 is in the 60-79 range encoded as a 16-bit integer. The typed writer emits group 75 with writeInt16, which rejects values outside the signed 16-bit range. DWG validatePayloadFields uses a separate unsigned-16-bit carrier and remains unchanged.",
+    "normativeEvidence": [
+      {
+        "source": "Autodesk AutoCAD 2024 Group Code Value Types Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+        "relevantRule": "Group codes 60-79 are 16-bit integer values; group 75 belongs to this range."
+      },
+      {
+        "source": "Autodesk AutoCAD 2020 LTYPE DXF Reference",
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+        "relevantRule": "LTYPE group 75 is the shape number for a complex linetype element when group 74 specifies an embedded shape."
+      }
+    ],
+    "change": "The DXF parser reads group 75 into a temporary and accepts only 0..INT16_MAX before assignment. DXF typed validation enforces the same maximum before the writer can begin output. DWG payload validation retains its prior 0..UINT16_MAX range."
+  },
+  "binding": {
+    "sourceSha256": {
+      "src/drw_objects.cpp": "a478c39111a47c0d9baab67fe18468420a2b86c989d2325994708aea6095a800",
+      "tests/hardening_tests.cpp": "1f58ceec74d5ff05b26bfc281520c6da84e041bbb75fa15a5d769948a55909ef",
+      "CMakeLists.txt": "c4d760d8955dc1b4a95f7059837acab0ee20f6b1ed28b3e5c06d146c4ef83cd3"
+    },
+    "toolchain": {
+      "cmake": "4.4.4",
+      "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)",
+      "platform": "Darwin arm64"
+    },
+    "testExecutableSha256": "60891db2da1b67bb1310318d03943aa23d938a520c114fbc471629572b2dc1ed"
+  },
+  "controls": {
+    "selector": "--ltype-shape-number-dxf-width",
+    "ctest": "libdxfrw_ltype_shape_number_dxf_width",
+    "profiles": ["Generated AC1027 ASCII DXF", "Generated AC1027 Binary DXF"],
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "The parser accepts shape number 32767 in ASCII and Binary DXF and the typed LTYPE passes DXF validation.",
+      "The parser rejects negative shape-number values without changing the prior typed value; ASCII parsing also rejects 32768.",
+      "Typed ASCII and Binary writers emit shape number 32767 and refuse 32768 before emitting bytes.",
+      "DWG payload validation remains on its separate unsigned-16-bit domain."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_hardening_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_ltype_shape_number_dxf_width$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "regressionCtests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_ltype_shape_number_dxf_width|libdxfrw_ltype_alignment_dxf_domain|libdxfrw_dxf_ltype_retained_owner_budget)$' --output-on-failure",
+      "result": "PASS 3/3 in 0.36 seconds"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Generated DXF numeric-width controls only; no physical LTYPE producer or native CAD interpretation was tested.",
+    "DWG shape-number layout and values are outside this DXF-only change.",
+    "No support claim is promoted; broader LTYPE profiles and P6 semantics remain open."
+  ],
+  "nextReadyPacket": "Continue with another source-backed P6 local gap; retain strict separation between DXF signed group widths and DWG payload representations."
+}

@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "title": "Source-exact AC1024 default MATERIAL field constructor",
+  "status": "SOURCE_PROFILE_PREREQUISITE_ONLY",
+  "supportClaimEffect": "none",
+  "scope": "An internal, explicitly invoked constructor builds the body and detached string streams of the three default MATERIAL records observed in one independently produced AC1024 drawing. It is not connected to the production writer, does not create a class or graph, and does not change default output or public class layout.",
+  "source": {
+    "provenance": "ODA File Converter 27.1.0 resaved an ODA-produced AC1021 drawing made from a locally authored LINE DXF as AC1024. No drawing is committed.",
+    "sha256": "9b57612966203a9284d8a1b8ad722986e95d331669506282b4bf7f688a492aa3",
+    "parentAc1021Sha256": "e3b717509c386e07baceb9cc9073392999af9144c6c2aae4139120b755b59d91",
+    "sourceCommand": "ODAFileConverter <input-dir> <output-dir> ACAD2010 DWG 0 0 '*.dwg'",
+    "decoder": "LibreDWG 0.14 dwgread -v9 and JSON output; field order cross-checked against LibreDWG src/dwg2.spec MATERIAL. ODA DWG v5.4.1 does not publish a complete MATERIAL body schema.",
+    "class": "File-local class 503, MATERIAL / AcDbMaterial, ObjectDBX Classes, proxy flags 1153, 3 instances. The 503 ordinal is witness-specific and must not be hardcoded by the writer.",
+    "graph": "NOD ACAD_MATERIAL -> material dictionary 0xE -> ByBlock 0x1F, ByLayer 0x20, Global 0x21. Each material has owner and reactor soft-pointer references to 0xE. LAYER 0 hard-points to Global."
+  },
+  "physicalComparison": {
+    "objectPage": "LibreDWG -v9 identifies the first AcDb:AcDbObjects page at file offset 1664, with a 32-byte page header, compressed payload 6499 bytes at offset 1696, and max decompressed page buffer 29696 bytes. The probe decompresses this source page and checks all constructed object bits against it.",
+    "records": [
+      {"name": "ByBlock", "objectPayloadOffsetInDecompressedPage": 3476, "fullFrameBits": 776, "bodyBits": 550, "detachedStringBits": 136, "mismatchedBits": 0},
+      {"name": "ByLayer", "objectPayloadOffsetInDecompressedPage": 3578, "fullFrameBits": 776, "bodyBits": 550, "detachedStringBits": 136, "mismatchedBits": 0},
+      {"name": "Global", "objectPayloadOffsetInDecompressedPage": 3680, "fullFrameBits": 760, "bodyBits": 550, "detachedStringBits": 120, "mismatchedBits": 0}
+    ],
+    "coverage": "The 2312 compared bits include file-local object class, own handle, EED count, reactor count, xdictionary-missing flag, complete numeric body, name/description and six empty map filenames, string size and presence trailer, owner and reactor handle roles and values, and following alignment bits. Object length and CRC lie outside these compared payload bits; no full generated DWG is asserted valid.",
+    "observedStringRule": "These names use a length excluding a terminating zero. This finding is limited to the three named records; it does not define a global TU encoding policy."
+  },
+  "implementation": {
+    "file": "src/intern/dwg_default_material.h",
+    "bounds": "Only AC1024 and the ByBlock, ByLayer and Global enum values are accepted. Wrong version, invalid kind, or aliased destination buffers refuse before output replacement; the normal writer never calls this helper. Buffers are fully replaced on success. No class identity, object handles, graph edges, callers or ABI layouts are altered.",
+    "data": "Six identity maps with source 1 and empty filename; ambient/specular inherited color, diffuse explicit 0xC2FFFFFF, gloss 0.5, opacity and refraction index 1, remaining scalar defaults, channel flags 63, mode 0."
+  },
+  "validation": {
+    "fast": "cmake --build build-gcc --target libdxfrw_dwg_ac1024_default_material_tests -j4; ctest --test-dir build-gcc -R '^libdxfrw_dwg_ac1024_default_material$' --output-on-failure: PASS. The generated complete frames are parsed and checked for typed fields, all three names, owner/reactor, unsupported input refusal and same-buffer retry.",
+    "sourceProbe": "First verify the source SHA-256 above, then compile: c++ -std=c++17 -I src tools/dwg_ac1024_default_material_source_probe.cpp build-gcc/libdxfrw.a -o /tmp/material-probe; /tmp/material-probe <documented-source.dwg>. PASS: ByBlock 776, ByLayer 776, Global 760 frame bits; zero mismatches each.",
+    "independence": "LibreDWG supplied source fields and page/object boundaries; libdxfrw's decompressor extracted the physical source page for exact bit comparisons. Byte-for-byte matching of the source frames is not a separate ODA acceptance test of a newly generated complete file."
+  },
+  "remaining": [
+    "Expose this source profile to an explicit internal graph assembly only after admission, class registration/freeze and file-local ordinal remapping are proven. Reserve dictionary plus three material identities atomically; validate all required NOD, owner, reactor and selected layer references.",
+    "Preserve caller-defined ACAD_MATERIAL dictionaries, material records and layer references; reject identity, name and late ownership collisions without publication. Cover class counts, output rollback, exceptions and same-facade retry.",
+    "Build complete output frames and dictionary graph in a scratch file and require independent source/output readback and ODA DXF output without object warnings. Existing AC1024 scratch output has numerous earlier BLOCK, table and dictionary warnings and is still rejected; this constructor cannot establish the whole graph or drawing is correct.",
+    "Keep AC1021, AC1027 and AC1032 disabled for this profile until independently sourced and physically qualified; keep all broader semantic, native platform and support claims open."
+  ]
+}

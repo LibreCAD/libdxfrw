@@ -1,0 +1,82 @@
+{
+  "slice": "RPP-5z",
+  "title": "TABLECONTENT-to-TABLESTYLE/CELLSTYLEMAP base-style reference census",
+  "date": "2026-10-22",
+  "status": "implemented_uncommitted",
+  "spec_basis": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.97", "20.4.101.2", "20.4.101.4", "20.4.102"],
+    "domain": "0 means no base style; 1-3 are built-in styles; 4 is R24/AC1024+ built-in; custom IDs start at 101.",
+    "reference_roles": ["TABLECONTENT column", "TABLECONTENT row", "TABLECONTENT cell"],
+    "ownership": "A custom ID must resolve exactly once in the CELLSTYLEMAP rooted under the same TABLESTYLE referenced by the table."
+  },
+  "scope": [
+    "index CELLSTYLEMAP style IDs by the uniquely rooted TABLESTYLE that owns the map",
+    "resolve each complete semantic TABLECONTENT column/row/cell ID against its TABLESTYLE and custom map",
+    "reject missing or ambiguous custom IDs, invalid version domains, missing owners, and inconsistent TABLESTYLE handle copies",
+    "charge graph census work to existing extension-graph source-record and edge budgets",
+    "check both source and target version domains before TABLE fallback staging",
+    "preserve existing source-compatible aggregate initialization order by appending the new DRW_TableColumn and DRW_TableRow fields after prior members"
+  ],
+  "generated_controls": [
+    "AC1021 built-in IDs 1-3 resolve against a rooted TABLESTYLE",
+    "ID 0 remains valid without a TABLESTYLE reference",
+    "custom IDs resolve from column, row, and cell positions through the correct CELLSTYLEMAP",
+    "missing and duplicate map IDs refuse the graph; a missing-ID correction can retry successfully",
+    "custom IDs with a missing or wrong TABLESTYLE owner are refused",
+    "reserved ID 5 and pre-R24 ID 4 are refused; R24/AC1024 ID 4 is accepted",
+    "style ID references without a TABLESTYLE handle are refused"
+  ],
+  "validation": {
+    "build_adapter_and_compatibility": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check --parallel 2",
+      "result": "PASS",
+      "notes": "-Werror adapter build and LibreCAD source-compatibility target"
+    },
+    "build_object_vectors": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focused_ctests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_table_content_style_reference_census|libdxfrw_cellstylemap_dxf_writer|libdxfrw_table_content_style_id_domains)$' --output-on-failure",
+      "result": "PASS",
+      "passed": 3,
+      "failed": 0,
+      "elapsed_seconds": 0.63
+    },
+    "scoped_diff_check": {
+      "command": "git diff --check -- dwg2dxf/dx_iface.cpp src/drw_entities.h tests/dwg2dxf_adapter_tests.cpp tests/CMakeLists.txt CMakeLists.txt DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/rpp5z-tablecontent-style-reference-census-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    },
+    "receipt_json_parse": {
+      "command": "jq empty docs/research/rpp5z-tablecontent-style-reference-census-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    }
+  },
+  "fixtures": {
+    "persistent_external_fixtures_added": 0,
+    "input_origin": "generated in-memory objects"
+  },
+  "qualification_limits": {
+    "adapter_graph_resolution": "IMPLEMENTED; preflight only",
+    "dxf_table_style_id_wire_projection": "NOT_REPRESENTABLE_IN_PUBLISHED_TABLE_DXF_SCHEMA; FAIL_CLOSED_BY_RPP-5aa",
+    "production_dwg_graph_writer_handoff": "NOT_IMPLEMENTED",
+    "custom_cell_style_authoring": "INCOMPLETE",
+    "dwg_version_upconvert": "NOT_IMPLEMENTED",
+    "native_freecad_linux": "NOT_RUN",
+    "native_freecad_windows": "NOT_RUN",
+    "independent_acis_acds_semantic_evidence": "NOT_RUN",
+    "support_claim_promoted": false,
+    "deferred_external": ["J256", "J260", "J268", "J284", "J293", "J295"]
+  },
+  "changed_paths": [
+    "dwg2dxf/dx_iface.cpp",
+    "src/drw_entities.h",
+    "tests/dwg2dxf_adapter_tests.cpp",
+    "tests/CMakeLists.txt",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/rpp5z-tablecontent-style-reference-census-fast-slice-2026-10-22.json"
+  ],
+  "next": "Keep nonzero TABLECONTENT IDs refused on DXF output; inspect native DWG TABLE writing and production source-graph handoff, or continue another locally representable TABLESTYLE/CELLSTYLEMAP slice.",
+  "commit": "NONE"
+}

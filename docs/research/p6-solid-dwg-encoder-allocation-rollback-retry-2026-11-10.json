@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-solid-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "title": "SOLID DWG encoder allocation rollback and retry",
+  "scope": "Generated local transaction evidence for DRW_Solid::encodeDwg; no physical producer or output-support claim.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The encoder validates the existing shared-elevation profile, stages body/string/handle destinations with alias-aware publication, and restores the original oType on failure.",
+    "versions": ["AC1021", "AC1024"],
+    "profile": "Generated planar SOLID with nonzero OCS elevation, thickness, extrusion, common owner/reactor/extension handles and seeded caller buffers."
+  },
+  "allocationSweep": {
+    "mechanism": "One-shot global allocation failure countdown in the generated object-vector test",
+    "result": "Each version reached 16 allocation-failure offsets. Every failure returned false without throwing, preserved seeded body/string/handle bytes, bit counts, handle occurrences and original oType, and succeeded on same-object retry with output equal to clean encoding and oType=31.",
+    "aliasControl": "For each version, failure at the first reached allocation preserved the all-streams-aliased destination and original oType; same-object retry matched the clean aliased encoding.",
+    "invalidProfileGuard": "The existing shared-elevation validation runs before staged publication; nonrepresentable corner elevations remain refused."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --solid-dwg-encode-allocation-rollback",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_solid_dwg_encode_allocation_rollback$' --output-on-failure",
+    "result": "PASS: SOLID selector; nine-test core entity writer allocation cohort passed (9/9); git diff --check passed."
+  },
+  "limitations": [
+    "Generated vectors establish local failure/retry behavior only; they do not qualify SOLID wire semantics or physical producer interoperability.",
+    "No native consumer rendering, complete-document output, or broad DWG support claim follows."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added."
+}

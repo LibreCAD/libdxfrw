@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "7S.3 explicit-handle PLOTSETTINGS frame rollback",
+  "mode": "Generated local implementation slice and focused fast validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Use bounded frame/class-instance rollback for explicit-handle PLOTSETTINGS writes.",
+    "Preserve comprehensive rollback for handle-less PLOTSETTINGS writes that increment a class-wide instance count.",
+    "Exercise receipt failure, rollback, and retry for both handle modes."
+  ],
+  "implementation": {
+    "files": [
+      "src/libdwgr.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "behavior": "dwgRW::writePlotSettings uses the fixed-object frame transaction for explicit object handles. Existing DwgClassInstanceCheckpoint restores only that handle's registered custom-class state after a missing frame receipt. The handle-less path remains on writeObjectTransaction because its writer increments the class-wide emission count after frame emission.",
+    "generatedControls": [
+      "Explicit registered PLOTSETTINGS receipt failure restores frame/object-map and class-instance state with zero comprehensive checkpoints; retry succeeds and emits one class instance.",
+      "Handle-less PLOTSETTINGS receipt failure takes one comprehensive checkpoint and restores the declared class-instance count and emitted count; retry succeeds using the same full-boundary policy."
+    ],
+    "selector": "tests/dwg_local_roundtrip_tests.cpp --block-owner-membership-index"
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+    "fastSelector": "PASS: build-gcc/libdxfrw_dwg_local_roundtrip --block-owner-membership-index",
+    "ctest": "PASS (4/4): libdxfrw_dwg_block_owner_membership_index, libdxfrw_dwg_local_roundtrip, libdxfrw_dwg_block_record_xref_roundtrip, dwg_dxf_issue_1410_cross_codec",
+    "gitDiffCheck": "PASS: git diff --check -- src/libdwgr.cpp tests/dwg_local_roundtrip_tests.cpp",
+    "fullSuiteRun": false,
+    "wallClockBenchmarkRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionAndTestChanges": true,
+    "newCtestRegistrations": 0,
+    "persistentFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerExecutablesOrPackagesRun": 0,
+    "nativeCadApplicationsRun": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "The bounded route applies only to explicit object handles; the handle-less class-wide emission count intentionally retains the comprehensive transaction.",
+    "Deterministic checkpoint counts are not throughput measurements.",
+    "The shared worktree contains extensive unrelated dirty changes and Git metadata is read-only in this session; no commit was created."
+  ],
+  "commitCreated": false
+}

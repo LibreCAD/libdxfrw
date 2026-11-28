@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-arcalignedtext-dwg-encoder-allocation-rollback-retry-2026-11-12",
+  "date": "2026-11-12",
+  "status": "BOUNDED_ARCALIGNEDTEXT_DWG_ENCODER_TRANSACTIONAL_ROLLBACK_RETRY",
+  "supportClaimEffect": "none",
+  "scope": "Make DRW_ArcAlignedText DWG encoding transactional across body, string, and handle streams, and verify allocation-failure rollback with same-object retry.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "method": "DRW_ArcAlignedText::encodeDwg",
+    "changes": [
+      "Route the common entity header, ten D2T/text strings, geometry/scalar fields, followed-arc reference, and entity handle through encodeEntityDwgTransaction.",
+      "Preserve the existing version-dependent followed-arc handle placement and string fallback behavior."
+    ],
+    "test": "tests/dwg_hatch_encoder_allocation_tests.cpp",
+    "failureBehavior": "Injected allocation failure preserves all caller stream bytes and bit positions and restores oType; retrying the same entity with the same buffers must exactly match clean output."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_entity_encoder_allocation_tests libdxfrw_dwg_object_vectors_tests -j4",
+    "allocationSweep": "PASS: 2,486 allocation offsets across HATCH, MPOLYGON, MLEADER, and ARCALIGNEDTEXT; 6 common writer versions plus 3 MLEADER versions; 105 entity/version/stream-layout profiles",
+    "focusedTests": "ctest --test-dir build-gcc -R '^(dwg_entity_encoder_allocation_rollback_retry|libdxfrw_dwg_object_vectors)$' --output-on-failure",
+    "result": "PASS (2/2)",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "coverage": [
+    "The generated ARCALIGNEDTEXT includes distinct text, font, D2T values and a followed-arc handle.",
+    "Writer versions AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032 are exercised with five stream alias layouts per version.",
+    "Every observed allocation failure checks rollback and exact same-object/same-buffer retry output."
+  ],
+  "inputHashes": {
+    "src/drw_entities.cpp": "089106bb7b8c5997ecb37753389dd85fcc131bb98c5de610e1471fc9c150e539",
+    "tests/dwg_hatch_encoder_allocation_tests.cpp": "8d8d4cd45a596cd48b0e2281a6e4b55f96ac9679e216d75c3d3dba6feae90f39"
+  },
+  "fixtureFilesAdded": 0,
+  "supportClaimsPromoted": 0,
+  "limitations": [
+    "Generated transaction evidence does not qualify ARCALIGNEDTEXT field semantics, source-producer breadth, graph closure, or native rendering; the external support exclusions remain in force.",
+    "No DWG or DXF drawing fixture was added."
+  ]
+}

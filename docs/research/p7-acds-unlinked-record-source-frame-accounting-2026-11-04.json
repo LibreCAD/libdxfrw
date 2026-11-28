@@ -1,0 +1,40 @@
+{
+  "id": "p7-acds-unlinked-record-source-frame-accounting-2026-11-04",
+  "date": "2026-11-04",
+  "status": "GENERATED_SOURCE_FRAME_ACCOUNTING_CONTROL",
+  "supportClaimEffect": "none",
+  "problem": "DataStorage finalization counted every record not claimed by a parsed modeler/surface callback as an orphan, including a record whose object handle exists in the validated DWG HANDLE map.",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "section": "24.2.2.3 Data file segment",
+    "rule": "The data-record header's Handle field is the handle of the object present in the data segment (PDF page 255)."
+  },
+  "physical_motivation": {
+    "source_receipt": "docs/research/p7-ac1027-physical-modeler-acds-sab-oda-byte-join-2026-11-03.json",
+    "observation": "One public AC1027 drawing contains an additional schema-0 thumbnail record at handle 0x22. Its bytes match the independent ODA DXF output, but it is not a parsed modeler entity.",
+    "limit": "The source observation identifies a valid non-modeler record, but the external DWG was not rerun with this diagnostic change. This receipt's new regression uses generated in-memory records and source-frame entries."
+  },
+  "implementation": {
+    "orphanRecordCount": "Counts an unlinked record only when its handle has no matching validated source-frame ledger entry.",
+    "unboundRecordCount": "Counts an unlinked record whose 32-bit handle indexes a source-frame ledger entry with the same handle.",
+    "diagnostic": "datastorage-unbound-source-frame is informational and states that the source handle exists but no typed modeler/surface callback claimed the record.",
+    "staleIndex": "A missing, out-of-range, or handle-mismatched source-frame index cannot suppress orphan accounting.",
+    "thumbnailProjectionConsumer": "The strict ACDSDATA thumbnail projector now reconciles orphanRecordCount + unboundRecordCount against the exact recognized thumbnail count using a subtraction-based check that cannot overflow. It still requires every linked modeler and thumbnail payload to satisfy the existing exact profile checks.",
+    "output": "This fixes accounting compatibility in the bounded thumbnail projection only; it does not add writer routing for arbitrary unlinked records, record preservation, graph closure, or 3D semantic behavior."
+  },
+  "generatedControls": [
+    "One record is linked to a parsed modeler while a second unlinked record has an exact source-frame entry; the second increments unboundRecordCount, not orphanRecordCount.",
+    "A stale source-frame index leaves both generated unlinked records classified as orphans.",
+    "The generated multi-modeler ACDSDATA projection splits two recognized thumbnails across one orphan and one source-frame-present unbound record, then exercises strict ASCII/Binary projection, failure rollback, retry and readback.",
+    "Existing valid modeler link, duplicate-claim, missing-record, and orphan diagnostics remain covered by the owning graph-preservation executable."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_graph_preservation_tests -j2",
+    "focused_test": "ctest --test-dir build-gcc -R '^(dwg2dxf_modeler_acds_r2013plus_projection|libdxfrw_graph_preservation)$' --output-on-failure",
+    "result": "PASS: both build targets succeeded; dwg2dxf_modeler_acds_r2013plus_projection and libdxfrw_graph_preservation passed 2/2 in 1.28 seconds.",
+    "diff_check": "git diff --check passed.",
+    "fixtures": "No DWG/DXF fixture was added or committed."
+  },
+  "remaining": "The valid source object still lacks a typed modeler/surface association and qualified output route. Whole-drawing graph closure, exact ACDS output/readback, producer breadth, placement, topology and independent-kernel semantics remain open."
+}

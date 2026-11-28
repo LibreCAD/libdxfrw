@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-sat-carrier-fields-2026-11-12",
+  "purpose": "Verify selected AC1024 inline modeler text carrier and entity-family fields through generated ASCII/Binary DXF readback into a headless consumer.",
+  "changes": [
+    "Added runtime-generated 3DSOLID, REGION and BODY records with distinct layers and two group-1 text chunks per carrier.",
+    "Checked entity type, raw byte count, chunk codes/order/offsets/lengths, separation from DWG inline ACIS and DataStorage fields, and exact preserved carrier digest for each entity.",
+    "Repeated callback readback with ext=false and ext=true for both ASCII and Binary DXF.",
+    "Used AC1024 because its inline SAT text route matches this generated carrier. AC1027 is intentionally excluded because it uses the separate R2013+ ACDSDATA/SAB route and refuses this raw inline-text profile."
+  ],
+  "carriers": [
+    {
+      "entity": "3DSOLID",
+      "rawCarrier": "ACIS 7.0\\nsolid-body\\n",
+      "byteCount": 20
+    },
+    {
+      "entity": "REGION",
+      "rawCarrier": "ACIS 7.0\\nregion-body\\n",
+      "byteCount": 21
+    },
+    {
+      "entity": "BODY",
+      "rawCarrier": "ACIS 7.0\\nbody-body\\n",
+      "byteCount": 19
+    }
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "result": "PASS, 1/1 test in 0.36 seconds"
+  },
+  "scopeLimit": "Carrier and callback transport only. Synthetic strings are not valid ACIS geometry; this does not verify ACIS parsing, SAB/ACDSDATA association, B-rep semantics, independent interoperability, or native consumer behavior.",
+  "fixturePolicy": "Drawing files are generated under a temporary directory and removed. No drawing fixture was added.",
+  "claimEffect": "No support claim changes."
+}

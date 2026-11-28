@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-mesh-property-overrides-fast-test-v1",
+  "reviewedAt": "2026-10-15",
+  "baselineCommit": "ca28cf5",
+  "implementationCommit": "f8d802dd1ad2420b09062d4a5b5aaf18512880a2",
+  "scope": "Generated ASCII/binary DXF MESH writer/reader test only; no production parser/writer change or checked-in drawing fixture.",
+  "source": {
+    "path": "tests/dxf_fixture_tests.cpp",
+    "sha256": "d51eac1b2af1bf15e1150841251a4f683931f3dbfb5a6c1c8fb0b446cbf17c01"
+  },
+  "generatedCase": {
+    "formatVersions": ["AC1021 ASCII DXF", "AC1021 binary DXF"],
+    "overrideRecords": [
+      {"subEntityMarker": 4, "propertyTypes": [0, 2]},
+      {"subEntityMarker": 7, "propertyTypes": [1]}
+    ],
+    "literalTagSequence": [
+      [90, 2],
+      [91, 4],
+      [92, 2],
+      [90, 0],
+      [90, 2],
+      [91, 7],
+      [92, 1],
+      [90, 1]
+    ],
+    "typedReadback": "Both markers/property-type lists, base cage, face/edge topology and crease values are checked.",
+    "recordBoundary": "A following LINE is preserved, and the DXF reaches EOF."
+  },
+  "validation": {
+    "commands": [
+      "git diff --check",
+      "cmake --build build --target libdxfrw_dxf_fixture_tests -j2",
+      "build/libdxfrw_dxf_fixture_tests",
+      "cmake --build build --target lc3_compat_check -j2",
+      "ctest --test-dir build -R '^libdxfrw_dxf_fixtures$' --output-on-failure"
+    ],
+    "result": "PASS",
+    "executableSha256": "13f4d64a1423e89ae18dcff33a2e4c61b20289f03bbe7d9b1783bd2c70ba8054",
+    "ctest": {"name": "libdxfrw_dxf_fixtures", "tests": 1, "passed": 1, "seconds": 2.96},
+    "lc3Compat": "Target reported no work; the requested target command returned success.",
+    "fullSuite": "Not run; this was a focused fast slice."
+  },
+  "qualificationEligible": false,
+  "supportClaimsChanged": false,
+  "externalJStatusesChanged": false
+}

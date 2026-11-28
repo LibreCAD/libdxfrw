@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-proxy-entity-overloads-version-matrix-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_PROXY_ENTITY_OVERLOADS_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend full-operation PROXY_ENTITY direct-writer allocation rollback, same-codec retry and typed readback across all writer-admitted revisions for both public overloads.",
+  "source": {
+    "kind": "deterministic locally generated in-memory DRW_ProxyEntity",
+    "profiles": {
+      "resolverOverload": "ACDB proxy entity with bounded 19-bit entity data, eight group-330 object-ID references and a scoped resolver mapping each source handle to 0xE100+index.",
+      "twoArgumentOverload": "Same bounded proxy class/carrier profile with an empty object-ID list and no configured reference resolver."
+    },
+    "versions": ["AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/proxy_entity_object_id_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-proxy-entity-overloads-version-matrix-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "f84ae3cdf2d7456ec0ba55a6423e42a071e82ce6363631bc39efd8824f2d25aa",
+    "testExecutableSha256": "efd2de15ab867a09594426c2705cded8cdeb64de7b57dc709bb51d68dba1bdba",
+    "method": "For each overload profile, admitted revision and encoding, calibrate the complete document write and inject std::bad_alloc at every callback allocation. Require preserved caller proxy fields/references and destination sentinel, then retry on the same codec with byte-identical output and adapter fileImport readback that checks source version and typed proxy fields."
+  },
+  "allocationOffsets": {
+    "resolverOverloadPerRevision": {"ASCII": 11, "Binary": 10},
+    "twoArgumentOverloadPerRevision": {"ASCII": 9, "Binary": 9},
+    "totals": {"resolverOverload": 105, "twoArgumentOverload": 90, "all": 195}
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_proxy_entity_object_id_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_proxy_entity_object_id_allocation$' --output-on-failure: PASS 1/1 in 2.03 seconds",
+    "directRun": "build/tests/libdxfrw_proxy_entity_object_id_allocation_tests /Users/dli/dev/libdxfrw/build/tests/proxy-entity-object-id-allocation: PASS; all 195 measured offsets passed rollback, same-codec byte-identical retry and typed readback.",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction and same-library self-readback only; no physical producer prevalence, recursive proxy graph closure or native application semantics are established.",
+    "The resolver profile exercises pointer code 4/group 330 only; other handle roles and target kinds remain outside this receipt.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Both public PROXY_ENTITY overloads now have transaction coverage across all five writer-admitted revisions in ASCII and Binary.",
+    "remainingP6G": "Continue the exact public-writer inventory and uncovered version/profile variants; proxy graph closure and producer/native semantics remain separate gates.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "305 completed slices and 34 remaining packages: 305/(305+34)=90.0%; count-based activity proxy only."
+  }
+}

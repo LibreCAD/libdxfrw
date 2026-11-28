@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw-open-source-3d-route-kernel-lineage-peer-risk-v1",
+  "observedAt": "2026-10-21",
+  "title": "Open-source 3D route, kernel lineage, and peer-risk cross-check",
+  "evidenceKind": "primary-source review",
+  "plans": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "DWG_DXF_3D_SUPPORT_PLAN.md"
+  ],
+  "method": {
+    "peerRuntimeRun": false,
+    "nativeCadRuntimeRun": false,
+    "commercialComponentInstalledOrRun": false,
+    "externalDrawingDownloaded": 0,
+    "persistentFixtureAdded": 0,
+    "productionCodeChanged": false,
+    "sources": [
+      "https://github.com/Open-Cascade-SAS/OCCT/wiki",
+      "https://github.com/Open-Cascade-SAS/OCCT-Components/blob/main/ReadMe.md",
+      "https://www.occt3d.com/components/acis-exchange/",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "https://ezdxf.readthedocs.io/en/stable/dxfentities/index.html",
+      "https://ezdxf.readthedocs.io/en/stable/acis.html",
+      "https://ezdxf.readthedocs.io/en/stable/addons/drawing.html",
+      "https://github.com/LibreDWG/libredwg/blob/master/NEWS",
+      "https://github.com/DomCR/ACadSharp/issues/1195",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/modeler_sat_dxf_compare.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "evidenceRule": "Public API/entity presence, raw carrier preservation, graph parsing, B-rep semantics, kernel validity, and native application acceptance are distinct. Peer reports and changelog fixes are risk prompts, not local defect evidence."
+  },
+  "evidence": [
+    {
+      "route": "OCCT ACIS/DXF component availability and kernel lineage",
+      "observed": "Official OCCT materials distinguish the standard public exchange distribution from Advanced/Commercial Components and list ACIS SAT/SAB and DXF exchange among commercial components.",
+      "planUse": "Do not assume the open-source OCCT kernel installation supplies an ACIS reader. A licensed component may be used only as an optional named route, with component/build/license and settings recorded; OCCT-backed FreeCAD/CadQuery remains one kernel lineage, not independent-kernel corroboration."
+    },
+    {
+      "route": "FreeCAD DXF/DWG import chain",
+      "observed": "FreeCAD documents C++ and legacy DXF importer backends, identifies 3DFACE only in the legacy list, says embedded ACIS/SAT is unreadable, and imports DWG by converting to DXF before using the DXF importer.",
+      "planUse": "Bind exact converter, output DXF hash/version, importer backend/options, and per-source entity outcomes. Converter success or aggregate imported-object count is not 3D semantic acceptance."
+    },
+    {
+      "route": "ezdxf carrier and rendering boundary",
+      "observed": "The public entity inventory and ACIS inspection tooling expose modeler entity/raw payload handling; the documented drawing add-on has no 3D engine and does not render ACIS.",
+      "planUse": "Use ezdxf only for pinned DXF syntax/carrier questions, not as a B-rep validity or solid-consumer oracle."
+    },
+    {
+      "route": "LibreDWG peer regressions and ACadSharp writer-loss report",
+      "observed": "LibreDWG NEWS records a SubDMesh binary import fix, a DXF-export correction for the final 3DSOLID/REGION SAT block, and size-arithmetic hardening. ACadSharp issue #1195 reports silent 3DSOLID/REGION omission including solid-only blocks; it was not independently reproduced here.",
+      "planUse": "Retain these as test-design prompts. Existing generated modeler-carrier and MESH tests are the fast local owners; ensure per-source identity/block membership and exact payload disposition, and add no duplicate fixture/test unless source audit finds an uncovered local path."
+    }
+  ],
+  "implementationReadiness": [
+    "Keep PAR-07/S8's carrier, AcDs ownership, explicit geometry, ACIS semantics, and application outcomes separate.",
+    "Record kernel lineage and commercial component availability for any future external semantic route.",
+    "Map edits to existing focused generated test owners before adding tests or fixtures.",
+    "Continue local implementation without waiting for external qualification; record unavailable routes as NOT_RUN/DEFERRED_EXTERNAL and self-unblock."
+  ],
+  "planImpact": {
+    "newLibdxfrwFinding": false,
+    "newTopLevelSubplan": false,
+    "existingPAR07S8ReadinessImproved": true,
+    "newTestOrTestRegistration": false,
+    "persistentFixtureOrDependencyAdded": false,
+    "supportClaimsPromoted": 0,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "limitations": [
+    "No peer parser, FreeCAD, CADMPEG, or commercial OCCT component was run.",
+    "The ACadSharp issue is a report and not independent reproduction.",
+    "This review does not prove that no other independent open-source reader exists.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ]
+}

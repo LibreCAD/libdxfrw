@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw-acis-face-loop-order-fast-slice-v1",
+  "observedAt": "2026-10-21",
+  "scope": "Generated in-memory structural projection regression only",
+  "implementation": {
+    "tests": "tests/graph_preservation_tests.cpp",
+    "plan": [
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "change": "Reorder the generated two-loop graph so traversal order differs from record-index order; assert exact projected loop order and per-loop coedge-ring counts.",
+    "productionCodeChanged": false,
+    "fixtureFileAdded": false,
+    "innerOuterRoleInferred": false,
+    "containmentValidated": false,
+    "faceTopologyValidated": false
+  },
+  "expectedProjection": {
+    "faceLoopNodeOrder": [
+      "secondLoop: higher SAB record index",
+      "baseLoop: lower SAB record index"
+    ],
+    "coedgeRingCountsByOutputLoop": [1, 3],
+    "orderingRule": "Follow the graph's initial loop reference and next-loop links; do not sort by record index."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build --target libdxfrw_graph_preservation_tests -j4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build -R '^libdxfrw_graph_preservation$' --output-on-failure",
+      "result": "PASS",
+      "testsPassed": 1,
+      "testsFailed": 0
+    }
+  ],
+  "limits": [
+    "No production behavior changed; this is an assertion-strengthening test slice.",
+    "The face-loop representation does not label outer versus inner role or establish containment.",
+    "No B-rep validity, geometry-kernel result, named consumer acceptance, or support claim is established.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL.",
+    "The change remains uncommitted in the broadly dirty shared worktree."
+  ],
+  "next": "Continue the remaining local S3.7c implementation matrix; external/native qualification is not a prerequisite for local progress."
+}

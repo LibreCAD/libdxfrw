@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-01",
+  "id": "ac1015-mlinestyle-output-2026-11-01",
+  "profile": "AC1015 Standard MLINESTYLE 0x18 and root-owner DICTIONARY 0x17 to AC1024 DXF",
+  "classification": "BOUNDED_OUTPUT_PROFILE_COMPLETE_NO_CLAIM_PROMOTION",
+  "support_claim_effect": "none",
+  "source": {
+    "generation": "LibreDWG dwgadd 0.14 from the locally authored recipe",
+    "recipe": "tests/fixtures/dwg/ac1015_3d_polyline_freecad_control.dwgadd",
+    "recipe_sha256": "81df81c3b44b28236795c23f40d87f4230882bbd923aac69a0c5949d4ae6a235",
+    "path": "/private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg",
+    "sha256": "9d2222640e73f9ce9ef54a7f0c91712d2524894ef49c7c81cf3bfaba99e4b92d",
+    "version": "AC1015",
+    "committed_as_fixture": false
+  },
+  "independent_source_decode": {
+    "tool": "GNU LibreDWG dwgread 0.14",
+    "command": "dwgread -O JSON -o /private/tmp/libdxfrw-ac1015-mlinestyle-libredwg.json /private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg",
+    "json_sha256": "c6e6c42bb5806124e81d407cda4327ecc87ef02cb78d107dc8a2a63647a783f4",
+    "objects": [
+      {
+        "type": "DICTIONARY",
+        "handle": "0x0c",
+        "entries": {"ACAD_MLINESTYLE": "0x17"}
+      },
+      {
+        "type": "DICTIONARY",
+        "handle": "0x17",
+        "owner": "0x0c",
+        "reactors": ["0x0c"],
+        "entries": {"Standard": "0x18"}
+      },
+      {
+        "type": "MLINESTYLE",
+        "handle": "0x18",
+        "name": "Standard",
+        "owner": "0x17",
+        "reactors": ["0x17"],
+        "fill_color_aci": 256,
+        "elements": [
+          {"offset": 0.5, "color_aci": 256, "linetype_index": 32767},
+          {"offset": -0.5, "color_aci": 256, "linetype_index": 32767}
+        ]
+      }
+    ],
+    "reference": "LibreDWG independently decodes the NOD key, one-entry Standard owner dictionary, owner/reactor roles, and two BYLAYER MLINESTYLE elements."
+  },
+  "source_frame_boundary": {
+    "opaque_type": 73,
+    "handle": "0x18",
+    "version": "AC1015",
+    "common_link_projection": "empty and Unknown: parent=0, no captured reactors, reactor count=0, no extension dictionary, no DataStorage",
+    "typed_model_links": "parent=0x17 and reactor=[0x17]",
+    "admission_rule": "The source frame must match that exact empty projection. The complete typed NOD/dictionary/style graph and staged output checks supply the owner and reactor proof; unknown frame metadata is never treated as a wildcard."
+  },
+  "qualified_scope": {
+    "target": "AC1024 DXF",
+    "encodings": ["ASCII", "Binary"],
+    "graph": "NOD 0x0c ACAD_MLINESTYLE entry -> DICTIONARY 0x17 Standard entry -> MLINESTYLE 0x18, with dictionary/style owner and reactor references checked exactly.",
+    "staged_output_proof": "The OBJECTS inspector validates the emitted NOD root-key role, full owner dictionary body, MLINESTYLE identity/body, parent, reactors, and reactor app-data before the style and owner callback identities are qualified.",
+    "field_projection": "The source gate requires the AC1015 Standard profile, two ordered finite offsets, ACI BYLAYER color 256, source CMC BYLAYER method 0xC0, and linetype index 32767 with no explicit linetype handle/name. DXF readback preserves semantic ACI BYLAYER values and emits the sentinel linetype as BYLAYER; the DWG-only CMC method normalizes to DXF method 0."
+  },
+  "failure_and_retry": {
+    "negative_control": "Set the first linetype index to unsupported value 7; export refuses, preserves the pre-existing destination sentinel, and leaves callback qualifications unchanged.",
+    "retry": "Restore the source field and retry on the same adapter. Both ASCII and binary exports pass fresh readback of exact style fields and the NOD/owner/style reference graph.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS with target-local -Werror flags",
+      "adapter_test_sha256": "307f7025e7c5a15e3a52d6982586e81854dbb57f6433d5ff2c653348be840da7",
+      "dwg2dxf_sha256": "d3c4fd638f330eeef57a5a034594992074747fda80f195a837ec1c9be55f2951"
+    },
+    "physical_selectors": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-style-physical-output-readback '/private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg'",
+        "result": "PASS for AC1015 ASCII and binary output, exact source-frame profile, graph readback, refusal, rollback, and same-adapter retry"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-style-physical-output-readback '/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg'",
+        "result": "PASS for existing AC1018 ASCII and binary compatibility control"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-style-physical-output-readback '/Users/dli/doc/dwg/mechanical_example-imperial.dwg'",
+        "result": "PASS for existing AC1024 ASCII and binary compatibility control"
+      }
+    ],
+    "strict_conversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf '/private/tmp/libdxfrw-freecad-p8/3d polyline control.dwg' -y -v2010 '/private/tmp/libdxfrw-ac1015-mline-strict.dxf'",
+      "result": "EXPECTED_REFUSAL",
+      "qualification": "4/10 opaque callbacks; six remain unqualified",
+      "reason": "Whole-file conversion remains fail-closed until every opaque callback has its own complete output proof."
+    },
+    "fixture_admission": "PASS (0 index candidates checked; no DWG/DXF binary added)",
+    "plan_check": "PASS",
+    "diff_check": "PASS"
+  },
+  "limits": [
+    "This qualifies one exact AC1015 Standard MLINESTYLE and its root-owner dictionary profile only.",
+    "The NOD root-key is inspected to prove graph membership; this slice does not independently qualify the complete NOD callback body.",
+    "Six other AC1015 opaque callbacks remain unqualified and strict whole-file conversion is still refused.",
+    "No native CAD acceptance, 3D consumer qualification, ACIS/ACDS semantic result, or broad DWG/DXF support claim is established.",
+    "No testing DWG/DXF payload was added; the generated source and independent decode remain in /private/tmp."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-15",
+  "hostedRun": "https://github.com/dxli/libdxfrw/actions/runs/43723402282/job/132840034573",
+  "finding": "The hosted fast build passed compilation but Wave 1 had 130 assertions cascading from three test inputs that no longer met supported output profiles.",
+  "changes": [
+    "For pre-2007 VIEW, retain default camera and lighting fields rather than requesting fields the writer correctly cannot represent; modern controls still check the nondefault values.",
+    "Use the supported model-space BLOCK_RECORD owner for the SORTENTSTABLE metadata control; the writer's owner guard is unchanged.",
+    "Test DIMARCSYM group 90 with its supported 0..2 domain, explicitly verify rejection of out-of-domain values, and verify pre-2007 omission only for the default plus atomic rejection of a nondefault value. Signed I16 boundary tests remain intact."
+  ],
+  "validation": "The complete local libdxfrw_wave1_tests executable passes, where the preceding local run reproduced all 130 hosted assertion failures.",
+  "limits": "A complete hosted fast workflow rerun is still required. These are generated test-input corrections, not expanded feature or support claims."
+}

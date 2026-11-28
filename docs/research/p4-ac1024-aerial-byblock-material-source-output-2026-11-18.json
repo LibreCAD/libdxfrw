@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-byblock-material-source-output-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SELECTED_BYBLOCK_MATERIAL_FBXASSET_SOURCE_AND_STAGED_GRAPH_VERIFIED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "5102afcd86c6155799119fca3fd95269c4fbe4eb32ea558dace7a2a02bee5ed6",
+  "source": {
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "basis": "docs/research/p4-ac1024-aerial-byblock-material-wire-2026-11-18.json",
+    "frames": {
+      "72": {
+        "bytes": 272,
+        "sha256": "6a20e00498234966e6d6a44f9d7f5d83bf9b7f192e8e45b3bdd9c9ab5f029f54"
+      },
+      "97": {
+        "bytes": 96,
+        "sha256": "7d4a77a761e7e8066001455bafc6898ae9d719f29568102a9eea89b07120617d"
+      },
+      "295": {
+        "bytes": 33,
+        "sha256": "fcb201025a3e6a4666b3d4cf2017ee5503234092aa41a94a972a227fbde07d47"
+      },
+      "296": {
+        "bytes": 24611,
+        "sha256": "d62851ef231a1655fcf154870e7a63821e2b2762f920ef9b1a292934210ca292"
+      }
+    },
+    "scope": "Original nine-member AC1024 root C→72. ByBlock 97 owns dictionary 295, which owns FBXASSET XRECORD 296. The 24,611-byte source XRECORD contains 193 ordered entries, including 189 binary chunks totaling 23,938 bytes.",
+    "class": "Same-read declared MATERIAL / AcDbMaterial / ObjectDBX Classes row with proxy flags 1153. The selected writer has one class instance.",
+    "binaryConcatSha256": "1a3d2cc6e5906e8cf2be1822d0a0bf0a5259bd327eaa94111803468cc78e789c",
+    "expectedTerminalBits": "11, 111111, 11 and 1111 for 72, 97, 295 and 296 respectively."
+  },
+  "transaction": {
+    "sourceBinding": "Recognize the actual nine-member graph on import. Join the original generation, class/frame publication and original typed model with complete physical wire. Freeze byte vectors for all four frames. Before publication recheck all four against the source, including both exact ordered XRECORD model lists.",
+    "scope": "Selected validation emits a separate output dictionary copy containing only ByBlock. The original nine-member import remains intact. The ordinary production export remains governed by its full graph requirements.",
+    "staged": "Reuse the MATERIAL and extension-dictionary body/role inspector. The added inspection checks the remapped NOD and MATERIAL root membership, material/extension identities, FBXASSET common fields and both ordered XRECORD value lists. Finalization verifies each original-to-output ledger identity and owner.",
+    "observerSha256": "f9d0032410e6385d17b8e760ce56d392aa27c171c0bdbcf009f40e5c59308b0e"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j 3",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-byblock-material-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "wireControls": "All four original profiles pass. 3208 single-bit changes across the three smaller frames and 38 targeted XRECORD corruptions refuse. Truncation, extra bytes, edited typed lists, unused MATERIAL shelf nibble and signed-zero edits also refuse. Restoring originals permits retry.",
+    "faultRetry": "Nine cases per format refuse at their intended stages, keep the seeded destination and allow same-codec retry. Includes wrong root/extension roles, changed binary byte, truncated payload, missing XRECORD, and early/late changes to both retained material and XRECORD frames.",
+    "independentReadback": "ezdxf 1.4.5 verifies selected CLASS and the remapped C→A072→A097→A295→A296 graph, all 143 ordered MATERIAL body fields compared with the pinned source model, and all 193 XRECORD values against LibreDWG and ODA, preserving the 189 chunk boundaries. Independent negative controls alter a binary byte, FBXASSET ownership role and material ambient method and reject each before accepting originals.",
+    "focused": "12 of 15 neighboring MATERIAL/XRECORD controls passed. The same three selectors fail with the same first errors when built and run at the prior a69b3579 commit.",
+    "baseline": {
+      "head": "a69b35791a0a93f3bd18d0861b8cdf27c83a3d5e",
+      "scratchRoot": "/private/tmp/p4-a69b-xrecord-baseline",
+      "results": {
+        "dwg2dxf_native_xrecord_binary_transport": "The AC1015 B010 dictionary control fails to publish its expected standard XRECORD proof.",
+        "dwg2dxf_native_xrecord_binary_faults": "The restored AC1015 retry lacks its expected source qualification.",
+        "dwg2dxf_xrecord_owned_extension": "AC1015 to AC1018 export refuses the imported default-plot dictionary at the raw DXF cross-version guard before it reaches XRECORD output."
+      },
+      "sha256": {
+        "tests": "792102291dbab81403b247e8ea7e073d0dd3576347074bdd4248e3c86a840e24",
+        "native-xrecord-binary-transport.log": "785237a58b42a8732576d6f27a0533c85cd4967092db05002b09f74739015fdf",
+        "native-xrecord-binary-faults.log": "62235a3d5f15978cdd7a791066e5885d4dffa65a6d4435f59ed63a43aed6ac04",
+        "xrecord-owned-extension.log": "50fb7f5ca80e079a93f43c379c558d8ef186539ecd34f224287ab9e3ea077ff4"
+      }
+    },
+    "releaseInventory": "1320 released files. 743 selected inputs, zero advertised routes.",
+    "wholeSource": "The original full aerial drawing refuses at the SUN owner mismatch from VIEW 242 to SUN 24C and the actual common parent XRECORD 246. The destination survives.",
+    "scratchRoot": "/private/tmp/p4-aerial-material-census",
+    "sha256": {
+      "selected.cpp": "b7b96efb6bfea156a25f54fbffe06556bb53c7be3a9a8153a5b599ad871b28cb",
+      "selected.log": "6a829287d391b4d8a9ccfcb8133deb80af1886ef012e2558985516b7e2cda371",
+      "selected-ascii.dxf": "ccd6ae681aaf40c545795919acd5c255e130b0b9b4e24113707680f902cb6f11",
+      "selected-binary.dxf": "0c5073adfb3f0a0ba6f42b5d7c8881e3f25df4771c77e9eb0c57e2004e28f7a6",
+      "readback_selected.py": "569e9586adee0236c9d44f0dd1531a473b5dd4865760abbb9b2335f744f1d30a",
+      "readback.log": "b7cb36d7b3e03d4586614028430137fcf33393fad3fbf5ae49d0e289ce250204",
+      "official-selector.log": "6a829287d391b4d8a9ccfcb8133deb80af1886ef012e2558985516b7e2cda371",
+      "focused-ctest.log": "bc8ff308b73d9c99900c71f2e0a769a2f152db8bfd087cd92ac93bceb9f02f53",
+      "full-source.log": "c512d7582f552d47a7ddc4b9c6d9c20a48105097b6724300f287936eb8e634e9",
+      "outdomain_oda.py": "5e52512364e1870b053ec918621122f2c064364bdc17b1fcc4117d15689ae005",
+      "outdomain_oda.log": "e349ca73ddbbfa1e83d54a94c6592d435571cd3efc121fe5a472fcc8c40872c7",
+      "outdomain_oda.json": "e18024dd08246425c2f700b3a12fc078fc11fb48034b7b1affc1ff94fe7cf74f",
+      "tile_trace.py": "a91e6c98003c1a34f94966aadb513233c4a17810a140ea2ac11d3f6930ec533a",
+      "tile_trace.log": "a7a4fcba92ce6dce8aaefc634bde5788c12710815f4bae07ae59a9038bf7f6b9",
+      "tile-spans.json": "e051ed5545b439d0457efd556dfd683608af82bec628a5777eef2628bcab268b"
+    }
+  },
+  "remainingMaterialRoot": {
+    "tile": "Independently traced all 36 physical TILE frames. Each has 22 bytes, handle start bit 132, 8-byte payload of ordered Int16 (270,1),(271,1), cloning 1, no detached string, relative owner H(12,1,delta), absolute reactor H(4,2,extension) and final 1111. All agree with the pinned LibreDWG records. Controls refused all 6336 individual bit flips, all truncations and every extra-byte case, then accepted the restored frames. ODA 27.10 emits none of the TILE keys. Join their immutable same-read frames and owner graphs, then batch staged output.",
+    "fbxasset": "Eight remaining FBXASSETs share the chunked form. Actual frame sizes range from 24,609 to 53,578 bytes and binary chunks are no larger than 127 bytes. Reuse the bounded observer and staged binary values proof with independently verified per-record bounds.",
+    "advmaterial": "Six 10-entry ADVMATERIALs at 2C4, 2CE, 330, 2D8, 2E2 and 2EC carry groups 460–464. The DIFFUSE 2EE and BUMP 2F0 records have 172 values each including groups 420/469. ODA renumbers the records but all ordered values agree with LibreDWG at 1e-12 numeric tolerance. Use an explicit source-bound compatibility route for those eight records. The generic XRECORD writer limits standard application codes to 1–369.",
+    "eed": "Seven MATERIALs have EED and require independent original APPID and payload closure before whole-root admission."
+  },
+  "limits": [
+    "ODA writes only three ByBlock MATERIAL body groups while the selected writer emits 143 witnessed model fields. Native rendering and FBX interpretation are separate open qualifications.",
+    "The staged projection verifies selected OBJECTS identities and exact transport of its graph. It does not qualify the full MATERIAL dictionary, complete drawing or consumer semantics."
+  ]
+}

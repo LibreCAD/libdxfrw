@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "RPP-5mk selected append from a twelve-element consumed MLINESTYLE",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_QUALIFIED",
+  "codeCommit": "42cc60b594a1a03b849b030e264311a6c2b6decf",
+  "scope": "Adds runtime-generated AC1027 evidence for appending one tuple to a consumed twelve-element MLINESTYLE, producing thirteen elements. The generalized consumed-style append writer is unchanged; this receipt qualifies this exact source-count profile only and makes no claim for other counts, native semantics or whole-document support.",
+  "contract": {
+    "admission": "The runtime-authored source contains twelve MLINESTYLE elements with offsets [1.25,-0.75,-1.25,-2.0,-2.5,-3.0,-3.5,-4.0,-4.5,-5.0,-5.5,-6.0], ACI [1,3,4,5,6,7,8,9,10,11,12,13] and alternating ByLayer/Continuous linetypes. Two source-bound ordinary MLINEs consume it. The target appends exactly one tuple (-6.5, ACI 14, ByLayer), producing thirteen elements. Source and target flags are 2 with equal angles. Both consumers are open, uncut and unfilled.",
+    "geometry": "The source recipe recalculates all twelve source group-41 pairs for each of three vertices against the source minimum -6.0. The append transaction recalculates all thirteen output pairs against target minimum -6.5. Consumers have positive finite scale, center/bottom justification, unit extrusion, source-consistent positions/directions/miters, two segment parameters per element, zero second values, absent group 42 and zero area-fill counts.",
+    "identityAndOutput": "The MLINESTYLE retains its source name and emits group 71 = 13, all thirteen group-49 offsets, the style flag color plus thirteen element ACI values, and thirteen element linetype names. Unique ByLayer and Continuous LTYPE providers are checked. Both MLINE consumers retain source names and group 340 to the emitted style handle; each emits group 73 = 13 and exact group-74/group-41/group-75 arrays. Fresh import verifies the thirteen style tuples and both consumer parameter arrays, geometry vectors, scale and extrusion in model space and a named block.",
+    "failureAndRetry": "An unsupported style flag refuses before publication and preserves the destination and caller snapshot; restoring flag 2 allows same-adapter retry. A late mutation to a live consumer parameter refuses before publication; restoring captured caller state allows same-adapter retry. Both failure classes are exercised with ASCII and binary output.",
+    "compatibility": "No public API or DRW_Interface virtual changes. AC1027 sources and outputs are authored at runtime and removed after success; no DWG/DXF fixtures are committed.",
+    "limits": "This receipt covers source count 12 to target count 13 with the exact generated tuples, flags, angles and two open, uncut, unfilled consumers. It does not qualify other source counts or append cardinalities, removals, composed edits, other MLINE schemas/carriers/versions, native CAD rendering, document closure or independent 3D semantics. No support claim is promoted."
+  },
+  "controls": {
+    "sourceOutputMatrix": [
+      "ASCII source -> ASCII AC1027 output",
+      "ASCII source -> binary AC1027 output",
+      "binary source -> ASCII AC1027 output",
+      "binary source -> binary AC1027 output"
+    ],
+    "tupleAndProjection": "Output offsets are [1.25,-0.75,-1.25,-2.0,-2.5,-3.0,-3.5,-4.0,-4.5,-5.0,-5.5,-6.0,-6.5], ACI [1,3,4,5,6,7,8,9,10,11,12,13,14], and linetypes [ByLayer,Continuous,ByLayer,Continuous,ByLayer,Continuous,ByLayer,Continuous,ByLayer,Continuous,ByLayer,Continuous,ByLayer]. Both consumers' parameters are checked against the target minimum.",
+    "failureAndRetry": "Four successful source/output profiles and eight readbacks; two unsupported-flag refusals and two late-consumer-mutation refusals; corrected same-adapter retries succeed in both output encodings."
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j4"
+    },
+    "focusedSelector": {
+      "result": "PASS",
+      "summary": "The new source-count-twelve selector passed: four source/output encoding combinations, eight readbacks, two unsupported-flag refusals, two late-mutation refusals and four corrected same-adapter retries.",
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_consumed_twelve_source_append$' --output-on-failure"
+    },
+    "diffCheck": "git diff --check; PASS before commit",
+    "fullSuite": "NOT_RUN"
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "twelveElementRecipe in tests/dxf_fixture_tests.cpp uses consumedSourceCountRecipe to author the twelve-element AC1027 source style and source-MLINE parameter arrays; the shared consumed-source append control appends the thirteenth tuple. Runtime files are removed after the focused test.",
+    "implementationCommit": "42cc60b594a1a03b849b030e264311a6c2b6decf",
+    "tests/dxf_fixture_tests.cpp": "593ec47927706d748048ae2de1b6c89059350472d1a14a4ad5814adf1fcdd65f",
+    "tests/CMakeLists.txt": "97b1fe911b0466dfd33ee993829aa4b442ff8a86219901429e5d4066cff9a716",
+    "testExecutableSha256": "76ff66305b9fe777ab258db57d8d8ff19261ef3eb6027dc3448327897b620cb2"
+  },
+  "next": "Select another source-backed P2 witness. Source count 13 to target 14 is the next adjacent one-element append profile; other source counts, target counts, append batches and geometry remain separate."
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-selected-slice-receipt-v1",
+  "slice": "P2 AC1027 consumed-style MLINE 2-to-3 append with cap-suppression flags",
+  "date": "2026-10-29",
+  "status": "SELECTED_PROFILE_IMPLEMENTED",
+  "codeCommit": "1d53d12fdf9e324f40294ae02d330d3a5cdcffaa",
+  "scope": "Permit a selected AC1027 direct consumed-style append from two MLINESTYLE elements to three when source MLINE group-71 flags are 5, 9 or 13. Preserve the open/cap-suppression flags while adding the new per-vertex segment and recomputing group-41 parameters.",
+  "specEvidence": {
+    "authority": "Autodesk AutoCAD DXF Reference 2025, MLINE (DXF)",
+    "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+    "group71": {
+      "value1": "Has at least one vertex",
+      "value2": "Closed",
+      "value4": "Suppress start caps",
+      "value8": "Suppress end caps"
+    },
+    "group41": "Element parameters describe per-element segment intersections, starts and cuts. Cap suppression is carried separately in group 71.",
+    "interpretation": "The selected append adds per-element segment parameters while preserving the documented group-71 cap state. Native cap rendering is not independently verified."
+  },
+  "contract": {
+    "admission": "AC1027 only, direct edit of a source-bound consumed style with exactly two original elements and a three-element target. MLINE group-71 values 1, 5, 9 and 13 are admitted for this packet; 5/9/13 suppress start/end/both caps. Closed value 3 and unknown-bit value 17 refuse. The MLINESTYLE flags remain 2, and the existing source elements remain unchanged and ordered.",
+    "projection": "The target appends a third element at offset -1.25. Both source consumers (one ENTITIES, one BLOCKS) retain their positions, vertex directions, miters and group-71 flags. Each receives a third segment tuple with group 74 count 2, group 41 values recalculated from target offsets, and group 75 count 0; the target style has three elements and group 340 remains bound to the edited source style.",
+    "outputAndReadback": "Twelve positive combinations cover flags 5, 9 and 13 across ASCII/binary input and output. Physical output checks target style count/flags/offsets; both consumers' group 71, 340, 73, 74, 75 and exact group-41 parameter arrays; and unchanged vertex geometry. A fresh typed readback checks the three-element style, references, flags, vertices, miters and parameters.",
+    "failureAndRetry": "Closed and unknown group-71 profiles each refuse for both output encodings while preserving a destination sentinel and caller state; corrected flags-13 sources then succeed through the same writer. A late consumer-parameter mutation refuses atomically for both output encodings and succeeds on the same adapter after restoring caller state.",
+    "compatibility": "The new nondefault-cap admission is restricted to the AC1027 direct consumed-style 2-to-3 append. Other append counts, direct offset edits, removals, retarget appends, other versions and native cap appearance remain outside this receipt. No drawing fixture was committed; sources are generated in temporary directories."
+  },
+  "sourceBindings": {
+    "fixtureRecipe": "The extended recipe in tests/dxf_fixture_tests.cpp generates the selected MLINESTYLE and MLINE source records at runtime; output proof inspects physical records and freshly imports the serialized output.",
+    "implementationCommit": "1d53d12fdf9e324f40294ae02d330d3a5cdcffaa",
+    "dwg2dxf/dx_iface.cpp": "8a56db2ac676461b908a2e35ad1f3f9a37c930514505cf9952a867a0d2cd901f",
+    "tests/dxf_fixture_tests.cpp": "cf5254565ae2a5d34791e103d0f7214fd5d2d647475ce6ee8e3e86a6b8ca6d11",
+    "tests/CMakeLists.txt": "bbfc2597da43b0912146a219e2ae8f274f9356290a5c87d9c6a0f2bdb1dbd66f",
+    "fixtureTestExecutableSha256": "e1b17ad2211c00d5f7b58f38fd587c3938aa3e827d0fb10b818303c99aff3164",
+    "dwg2dxfExecutableSha256": "bbc76453bc5ff446ed7cdf124c962cf77946ef70eaab74427358504efac70493",
+    "cmakeCacheSha256": "07d50155e4a20fc76f606401ceac9fba529c2d5469b0f3945e8aed11e65b4746"
+  },
+  "validation": {
+    "focusedBuild": {
+      "result": "PASS",
+      "commands": [
+        "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests dwg2dxf -j2",
+        "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2"
+      ],
+      "summary": "The final converter and fixture-test sources are built; the second command rebuilt the fixture test after its final output assertion was added."
+    },
+    "focusedSelectors": [
+      {
+        "result": "PASS",
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_(consumed_style_append_cap_flags|consumed_style_append|consumed_offset_projection|retarget_offset_projection)$' --output-on-failure",
+        "summary": "4/4 passed in 1.46s; includes 12 positive cap profiles, 4 closed/unknown refusals with corrected-source retry, and 2 late-mutation refusals with same-adapter retry."
+      },
+      {
+        "result": "PASS",
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_(retarget_angle_projection|retarget_append_projection|retarget_removal_projection|consumed_style_removal)$' --output-on-failure",
+        "summary": "4/4 passed in 54.92s, including the shared projection helper's angle, retarget append/removal and consumed-style removal regressions."
+      }
+    ],
+    "diffCheck": "PASS",
+    "fullSuite": "NOT_RUN",
+    "asan": "NOT_RUN; this slice adds no new allocation, ownership, lifetime, bounds or handle path."
+  },
+  "limitations": [
+    "Only AC1027 direct consumed-style append from two elements to three is covered.",
+    "Group-71 flags are preserved and read back, but native cap appearance and rendered geometry are not qualified.",
+    "Other append counts, direct edits, removals, retarget routes, versions, document closure and support claims remain outside this receipt."
+  ],
+  "next": "Qualify the source-backed AC1027 consumed-style two-to-one MLINE removal with one cap-suppression flag profile, exact survivor/reference/parameter output and readback, closed/unknown refusal, and rollback/retry controls."
+}

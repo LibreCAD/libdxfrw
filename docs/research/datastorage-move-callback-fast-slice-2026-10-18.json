@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "AcDs DataStorage move callback for the in-tree converter",
+  "mode": "local implementation and focused validation",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Avoid the in-tree converter's deep copy when retaining a completed parsed DataStorage section",
+    "Preserve the existing const-reference callback behavior for other consumers",
+    "Validate move and legacy callback routes with a focused adapter control"
+  ],
+  "implementation": {
+    "files": [
+      "src/drw_interface.h",
+      "src/libdwgr.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": "After successful DWG entity/object processing, libdwgr offers completed DataStorage sections by rvalue callback. The non-pure default forwards to the existing const-reference virtual. The in-tree dx_iface moves into dx_data storage; the existing const-reference adapter path remains a copy.",
+    "copyAvoided": "One deep copy of the full DRW_DataStorageSection during in-tree adapter staging, including section-owned record payload vectors.",
+    "notBounded": [
+      "reader-owned retained section payloads",
+      "per-modeler entity payload copies",
+      "copies made by arbitrary consumer callbacks",
+      "allocator capacity or metadata",
+      "whole-process RSS"
+    ],
+    "lifetimeBasis": "The move callback runs after readDwgObjects completes, after section data has been used for entity linking and parsing."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j2",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --data-storage-move-callback",
+      "ctest --test-dir build-gcc -R '^dwg2dxf_datastorage_move_callback$' --output-on-failure",
+      "cmake --build build-gcc --target dwg2dxf -j2"
+    ],
+    "results": {
+      "adapterTargetBuild": "passed",
+      "legacyConsumerCompatibilityBuild": "passed",
+      "directSelector": "passed",
+      "owningCTest": "1/1 passed",
+      "converterTargetBuild": "passed",
+      "fullSuite": "not run"
+    }
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newTestsOrCtestRegistrations": 1,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerOrNativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "workingTree": {
+    "stagingAttempted": false,
+    "commitCreated": false,
+    "reasonNotCommitted": "The shared worktree is broadly dirty with user-owned changes; the slice was kept isolated and uncommitted."
+  }
+}

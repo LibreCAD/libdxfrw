@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-08",
+  "slice": "AC1018 TABLE text-cell physical edge override direct body codec",
+  "status": "implemented_generated_codec_self_consistency_only",
+  "authority": "Open Design Specification for .dwg files v5.4.1, section 20.4.96.1",
+  "scope": {
+    "version": "AC1018",
+    "cell_type": "text (1)",
+    "admitted_mask": "0x0003ffc0, optionally combined with text height bit 0x20",
+    "edge_mapping": [
+      {"edge": "top", "edge_flag": "0x01", "color": "0x00000040", "lineweight": "0x00000400", "visibility": "0x00004000"},
+      {"edge": "right", "edge_flag": "0x02", "color": "0x00000080", "lineweight": "0x00000800", "visibility": "0x00008000"},
+      {"edge": "bottom", "edge_flag": "0x04", "color": "0x00000100", "lineweight": "0x00001000", "visibility": "0x00010000"},
+      {"edge": "left", "edge_flag": "0x08", "color": "0x00000200", "lineweight": "0x00002000", "visibility": "0x00020000"}
+    ],
+    "field_order": "per edge: optional CMC, optional BS lineweight, optional BS visibility; edges top/right/bottom/left",
+    "color_domain": "indexed ByBlock 0, ACI 1-255, or ByLayer 256",
+    "lineweight_domain": "supported nonnegative TABLE lineweight enum values",
+    "visibility_domain": "explicit boolean encoded as BS 0 or 1",
+    "at_this_slice": "alignment bit 0x01 was added by the follow-up recorded in p5-ac1018-table-cell-alignment-override-dwg-codec-2026-11-08.json",
+    "unsupported": ["remaining cell override bits", "virtual edge overrides", "non-indexed color side channels"]
+  },
+  "generated_control": {
+    "authenticity": "locally generated codec vector; no DWG/DXF fixture",
+    "checks": [
+      "all four color, lineweight, and visibility fields encode and parse to exact typed values",
+      "edge mask agrees with the selected per-edge overrides",
+      "parser cursor matches body boundary and following sentinel remains readable",
+      "missing edge flag and invalid lineweight are atomic preflight refusals"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+    "result": "passed; 1/1 focused CTest",
+    "diff_check": "git diff --check passed"
+  },
+  "limitations": [
+    "No authentic producer source or native CAD readback was used.",
+    "This does not resolve physical source masks 0x40000/0x40020 or establish their field span.",
+    "No complete TABLE semantic graph or source-to-output equivalence is established.",
+    "Public dwgRW::writeTable remains fail-closed."
+  ]
+}

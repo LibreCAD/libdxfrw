@@ -1,0 +1,43 @@
+{
+  "title": "AC1018 selected TABLE source observation writer revalidation",
+  "date": "2026-11-11",
+  "scope": "Writer lifecycle freshness checks for opt-in verified XRECORD/TABLE candidate observations and selected STYLE/LTYPE resource observations.",
+  "implementation": {
+    "staging": "dx_iface::writeLTypes and writeTextstyles recheck the selected observation bundle before resource-table staging; writeObjects rechecks before OBJECTS staging.",
+    "finalization": "dx_iface::finalizeDxfWrite rechecks the same bundle before final output publication.",
+    "selection": "The check verifies the exact selected XRECORD handles and source generation, then revalidates any selected TABLE candidates and selected STYLE/LTYPE resource observations.",
+    "semantics": "This is stale-source refusal only. It does not authorize raw replay, typed TABLE output, graph closure, or support claims."
+  },
+  "control": {
+    "test": "libdxfrw_dwg_table_candidate_binding",
+    "source": "Locally authored AC1018 generated DWG created and removed by the focused test.",
+    "assertions": [
+      "A complete selected TABLE candidate bundle passes the shared revalidation predicate used by both writer boundaries.",
+      "Mutation of the selected TABLEGEOMETRY frame causes both the source query and shared revalidation predicate to refuse.",
+      "A real dxfRW::write callback sequence reaches LTYPE staging with a mutated selected TABLEGEOMETRY frame and the adapter refuses the resource record.",
+      "The failed write preserves a pre-existing destination byte-for-byte.",
+      "Restoring the source permits retry through the same adapter and dxfRW instance.",
+      "Restoring the frame permits the same adapter to pass again.",
+      "Transplanting the candidate snapshot into a different import generation is refused."
+    ],
+    "result": "PASS; generated control exercises dxfRW::write through the resource-table callback, verifies atomic destination preservation, and retries with the same adapter and writer. It bypasses dx_iface::fileExport qualification and does not perform DXF readback."
+  },
+  "validation": {
+    "builds": [
+      "cmake --build build-gcc --target libdxfrw_dwg_table_candidate_binding_tests -j4",
+      "cmake --build build-gcc --target libdxfrw_dwg_ltype_table_ticket_tests -j4"
+    ],
+    "focused_ctests": [
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_candidate_binding$' --output-on-failure",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_ltype_table_ticket$' --output-on-failure",
+      "ctest --test-dir build-asan-custom -R '^libdxfrw_dwg_table_candidate_binding$' --output-on-failure"
+    ],
+    "result": "PASS: candidate-binding CTest 1/1 in normal and AddressSanitizer builds. The existing LTYPE ticket test remains separately covered by the prior receipt state; this slice does not repeat its build or test."
+  },
+  "limitations": [
+    "No TABLE/DATATABLE/TABLEGEOMETRY output is enabled by this check.",
+    "The generated write is a serializer callback control, not a qualified dx_iface::fileExport operation; it has no fresh DXF readback or consumer semantic evidence.",
+    "No physical or generated DWG/DXF fixture is committed.",
+    "Recursive resource closure, native semantics, and whole-source output remain open."
+  ]
+}

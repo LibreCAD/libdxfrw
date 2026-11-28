@@ -1,0 +1,368 @@
+{
+  "schema": "p4a-embedded-equal-alignment-source-readiness-v1",
+  "date": "2026-10-28",
+  "supportClaimsPromoted": false,
+  "producer": {
+    "name": "ACadSharp",
+    "commit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "csUtilitiesCommit": "5831470485012c00a7ea8f42d6dca50c244b948c",
+    "librarySha256": "af70f56159e627879b9acc6a6c72ae28fc2fe8b636e5e5d08eb5f75e516c4da6",
+    "dotnetVersion": "10.0.401",
+    "priorSourceManifestSha256": "e44615c02f6fb02be24a654232b1a874f146781965c9cd38f5274fa240d67dd7",
+    "priorReceipt": {
+      "path": "docs/research/rpp5hj-acadsharp-attribute-profile-2026-10-28.json",
+      "sha256": "28aab7377e0f2355399fbeb3ad2039e94f40c90461d22ace5336526757bd044e"
+    }
+  },
+  "authoring": {
+    "recipe": "using System;\nusing ACadSharp;\nusing ACadSharp.Entities;\nusing ACadSharp.IO;\nusing ACadSharp.Tables;\nusing CSMath;\n\nclass Probe {\n static MText MakeMText(string value, XYZ insert) => new MText { Value=value, InsertPoint=insert, Height=1.0, RectangleWidth=4.0, LineSpacingStyle=LineSpacingStyleType.AtLeast };\n static void Main(string[] args) {\n  var doc=new CadDocument(ACadVersion.AC1032);\n  var block=new BlockRecord(\"ACadSharpPeer\");\n  var def=new AttributeDefinition { Tag=\"P4PEER\", Prompt=\"prompt\", Value=\"definition fallback\", Height=1.0,\n    InsertPoint=new XYZ(1,2,3), AlignmentPoint=new XYZ(11,12,13), HorizontalAlignment=TextHorizontalAlignment.Center, AttributeType=AttributeType.ConstantMultiLine,\n    MText=MakeMText(\"definition MTEXT\",new XYZ(21,22,23)) };\n  block.Entities.Add(def); doc.BlockRecords.Add(block);\n  var insert=new Insert(block) { InsertPoint=XYZ.Zero };\n  insert.Attributes.Clear(); // remove constructor-generated copies before first save\n  var child=new AttributeEntity { Tag=\"P4PEER\", Value=\"attribute fallback\", Height=1.0,\n    InsertPoint=new XYZ(4,5,6), AlignmentPoint=new XYZ(31,32,33), HorizontalAlignment=TextHorizontalAlignment.Center, AttributeType=AttributeType.MultiLine,\n    MText=MakeMText(\"attribute MTEXT\",new XYZ(41,42,43)) };\n  insert.Attributes.Add(child); doc.Entities.Add(insert);\n  Console.WriteLine(\"INTENT DEF alignment=11,12,13 embedded=21,22,23; ATTRIB alignment=31,32,33 embedded=41,42,43\");\n  DxfWriter.Write(args[0],doc,false);\n  Console.WriteLine(\"WRITTEN \" + args[0]);\n }\n}\n",
+    "recipeSha256": "04c4c43e6182ee5581f418696db3e1219afc82544b2893e9a9d61646d9ebd633",
+    "probeSha256": "614f7c207cdd2d4ef789a75185f252087ab9b9642f8598f25249273a2b398c2a",
+    "beforeFirstSave": "Set both host HorizontalAlignment=Center and both embedded LineSpacingStyle=AtLeast in memory before saving a newly authored original; do not edit a previously saved source.",
+    "intent": "ATTDEF Text/Attribute alignment (11,12,13), embedded insertion (21,22,23); ATTRIB Text/Attribute alignment (31,32,33), embedded insertion (41,42,43)."
+  },
+  "priorLineages": [
+    {
+      "kind": "default-spacing-0",
+      "sha256": "c9aceb5f0dd195df9d3a335a5c47b1fe68bb61f325f99e4cf089858ecb55714d",
+      "note": "Separate first-save source used embedded 73=0."
+    },
+    {
+      "kind": "default-horizontal-spacing-1",
+      "sha256": "407a79aaae5ad037129e163c51ebd06e70d727305e5c303444a653f3290e93f4",
+      "note": "Separate first-save source used horizontal 0 and embedded 73=1; compatible output omits AcDbText 11 in that selected profile."
+    }
+  ],
+  "bindings": {
+    "productionProbeSha256": "6a942ffda58b96f7abbad35eebfc9dffacaf772f53ad6c9b127775ccf18e7bee",
+    "productionProbeSourceSha256": "0ec76125833cb36c2a608213af8b2936574fb2f93796a5412367b9f15485e482",
+    "productionProbeSource": "#include \"intern/dxfparserlimits.h\"\n#include \"dwg2dxf/dx_iface.h\"\n#include \"dwg2dxf/dx_data.h\"\n#include <iostream>\n#include <string>\n\nstruct Selected {\n    const DRW_Attdef* definition=nullptr;\n    const DRW_Insert* parent=nullptr;\n    const DRW_Attrib* child=nullptr;\n};\nSelected select(const dx_data& data) {\n    Selected out;\n    for(const auto* block:data.blocks)if(block&&block->name==\"ACadSharpPeer\")\n        for(const auto* entity:block->ent)if(const auto* value=dynamic_cast<const DRW_Attdef*>(entity))\n            if(value->tag==\"P4PEER\") {if(out.definition)return {};out.definition=value;}\n    if(data.mBlock)for(const auto* entity:data.mBlock->ent)\n        if(const auto* parent=dynamic_cast<const DRW_Insert*>(entity))if(parent->name==\"ACadSharpPeer\") {\n            if(out.parent)return {};out.parent=parent;\n            for(const auto& value:parent->attlist)if(value&&value->tag==\"P4PEER\") {\n                if(out.child)return {};out.child=value.get();\n            }\n        }\n    return out;\n}\nclass DxIfaceTableSourceTestAccess {\npublic:\n    static void proof(const dx_data& data,const Selected& selected) {\n        bool pair=false,replay=false;int reason=-1;std::size_t rejected=0u;\n        const auto found=data.m_tableDxfSource.resources.find(selected.definition->handle);\n        if(found!=data.m_tableDxfSource.resources.end()) {\n            const auto& r=found->second;pair=r.attdefPairMatched;\n            replay=r.attdefFieldsMatched&&!r.attdefFieldMismatch;\n            reason=static_cast<int>(r.attdefProfile.reason);rejected=r.attdefProfile.rejectedGroup;\n        }\n        unsigned compounds=0u;bool modeled=false,profiles=false,space=false;int state=-1,childReason=-1;\n        std::size_t childRejected=0u;\n        for(const auto& owner:data.m_tableDxfSource.entitiesCompoundAudits)if(owner&&owner->physical)\n            for(const auto& p:owner->proofs)if(p.compound&&p.first<owner->members.size()\n                &&owner->members[p.first].self==selected.parent->handle) {\n                ++compounds;modeled=p.modeledMatched;profiles=p.profilesMatched;space=p.spaceMatched;\n                state=static_cast<int>(p.state);\n                for(std::size_t i=p.first;i<p.next&&i<owner->members.size();++i)\n                    if(owner->members[i].self==selected.child->handle&&i-p.first<p.profiles.size()) {\n                        childReason=static_cast<int>(p.profiles[i-p.first].reason);\n                        childRejected=p.profiles[i-p.first].rejectedGroup;\n                    }\n            }\n        std::cout<<\"{\\\"stage\\\":\\\"original-proof\\\",\\\"definitionPair\\\":\"<<pair\n            <<\",\\\"definitionReplay\\\":\"<<replay<<\",\\\"definitionProfileReason\\\":\"<<reason\n            <<\",\\\"definitionRejectedGroup\\\":\"<<rejected<<\",\\\"selectedCompounds\\\":\"<<compounds\n            <<\",\\\"compoundModeled\\\":\"<<modeled<<\",\\\"compoundProfiles\\\":\"<<profiles\n            <<\",\\\"compoundSpace\\\":\"<<space<<\",\\\"compoundState\\\":\"<<state\n            <<\",\\\"childProfileReason\\\":\"<<childReason<<\",\\\"childRejectedGroup\\\":\"<<childRejected<<\"}\\n\";\n    }\n};\nvoid point(const DRW_Coord& p) {std::cout<<'['<<p.x<<','<<p.y<<','<<p.z<<']';}\nvoid observe(const char* stage,const Selected& s) {\n    std::cout<<\"{\\\"stage\\\":\\\"\"<<stage<<\"\\\",\\\"definitionHandle\\\":\"<<s.definition->handle\n        <<\",\\\"definitionOwner\\\":\"<<s.definition->parentHandle<<\",\\\"definitionAlign\\\":\";\n    point(s.definition->secPoint);std::cout<<\",\\\"definitionEmbeddedInsertion\\\":\";point(s.definition->mtext->basePoint);\n    std::cout<<\",\\\"definitionType\\\":\"<<static_cast<unsigned>(s.definition->m_attributeType)\n        <<\",\\\"definitionVersion\\\":\"<<static_cast<unsigned>(s.definition->attVersion)\n        <<\",\\\"parentHandle\\\":\"<<s.parent->handle<<\",\\\"childHandle\\\":\"<<s.child->handle\n        <<\",\\\"childOwner\\\":\"<<s.child->parentHandle<<\",\\\"childAlign\\\":\";\n    point(s.child->secPoint);std::cout<<\",\\\"childEmbeddedInsertion\\\":\";point(s.child->mtext->basePoint);\n    std::cout<<\",\\\"childType\\\":\"<<static_cast<unsigned>(s.child->m_attributeType)\n        <<\",\\\"childVersion\\\":\"<<static_cast<unsigned>(s.child->attVersion)\n        <<\",\\\"footerHandle\\\":\"<<s.parent->seqEndEntity->handle\n        <<\",\\\"footerOwner\\\":\"<<s.parent->seqEndEntity->parentHandle<<\"}\\n\";\n}\nbool ready(const Selected& s) {\n    return s.definition&&s.parent&&s.child&&s.definition->mtext&&s.child->mtext\n        &&s.parent->attlist.size()==1u&&s.parent->seqEndEntity;\n}\nbool equal(const DRW_Coord& p,double x,double y,double z) {return p.x==x&&p.y==y&&p.z==z;}\nint main(int argc,char** argv) {\n    if(argc!=4)return 2;\n    if(std::string(argv[3])==\"read\") {\n        for(bool binary:{false,true}) {\n            const std::string path=std::string(argv[2])+(binary?\"-bin.dxf\":\"-asc.dxf\");\n            dx_iface reader;dx_data result;if(!reader.fileImport(path,&result,false))return 8;\n            const auto selected=select(result);if(!ready(selected))return 9;\n            observe(binary?\"binary-reimport\":\"ascii-reimport\",selected);\n            // This is a source/output discrepancy baseline, not correct behavior.\n            if(!equal(selected.definition->secPoint,21,22,23)||!equal(selected.child->secPoint,41,42,43)\n                ||!equal(selected.definition->mtext->basePoint,21,22,23)||!equal(selected.child->mtext->basePoint,41,42,43))return 10;\n        }\n        return 0;\n    }\n    if(std::string(argv[3])!=\"write\")return 2;\n    dx_iface input;dx_data source;if(!input.fileImport(argv[1],&source,false))return 3;\n    const auto original=select(source);if(!ready(original))return 4;\n    observe(\"original-import\",original);DxIfaceTableSourceTestAccess::proof(source,original);\n    if(!equal(original.definition->secPoint,11,12,13)||!equal(original.definition->mtext->basePoint,21,22,23)\n        ||!equal(original.child->secPoint,31,32,33)||!equal(original.child->mtext->basePoint,41,42,43))return 5;\n    for(bool binary:{false,true}) {\n        const std::string path=std::string(argv[2])+(binary?\"-bin.dxf\":\"-asc.dxf\");\n        dx_iface writer;if(!writer.fileExport(path,DRW::AC1032,binary,&source,true))return 6;\n        if(!equal(original.definition->secPoint,11,12,13)||!equal(original.child->secPoint,31,32,33))return 7;\n    }\n    observe(\"source-model-after-both-exports\",original);\n    return 0;\n}\n",
+    "normalLibrarySha256": "2d7248ebdcb958d4a2b918d27dded4c95fed3601b00b50195c815ee8b117b198",
+    "priorAdapterCommit": "4ae383bf",
+    "priorAdapterCppSha256": "a4be8f6697e9f12186ccd1c62b389aebd199a60e88b729e1b7786d23743821a7",
+    "priorAdapterHeaderSha256": "9e8f5399b2342066d4a1a8348638f185253cc9e7b578449b68ffa57ed7aca8ca",
+    "priorAdapterObjectLastObservedSha256": "45f1d45f950b23dddebd4ab284e734b40cf5a74733b8e63182d6e9655e63dd0c",
+    "bindingCaveat": "Prior object hash was observed earlier in the session, and this probe was linked before the subsequent adapter source edit/rebuild; it was not separately rehashed at the instant of linkage. Rebind on final integration.",
+    "profileHeaderSha256": "651d438f08f18b09289b15ac47441829ea92e05bdc95ed8029aaaf5459af4931",
+    "auditSourceSha256": "b56981cd064a2bf49c09fe8596bd5bc2bbedd32ff5e98d7c818de5736ace967a",
+    "auditExecutableSha256": "0526e6be6f50e95738e7a4755c088fff66a8539762aabc6b929f01c87abb4f0c",
+    "pythonSha256": "15c72833c1ffc09bc4e05d1e1866784d126721ad548d9c4d8f943641262535cb",
+    "projectionSourceSha256": "4299f68ce73d758afcd2ebed8bc1c064346f16d97006c658fece5955d0b9ec37"
+  },
+  "physicalAndAdvisoryReadback": [
+    {
+      "physical": {
+        "path": "build/rpp5hj-acadsharp/author-aligned-73-1-ac1032.dxf",
+        "sha256": "5d7afa2f5a852439e3cd446285e937e4bd95c8223f4576b4cebbab3565c3b231",
+        "bytes": 11551,
+        "binary": false,
+        "blockRecord": "48",
+        "insert": "4C",
+        "seqend": "4D",
+        "seqendOwner": "4C",
+        "selected": {
+          "ATTDEF": {
+            "handle": "4B",
+            "owner": "48",
+            "textAlignment": [
+              11.0,
+              12.0,
+              13.0
+            ],
+            "attributeAlignment": [
+              11.0,
+              12.0,
+              13.0
+            ],
+            "embeddedInsertion": [
+              21.0,
+              22.0,
+              23.0
+            ],
+            "textHorizontalAlignment": 1,
+            "embeddedSpacing": 1,
+            "attribute280": []
+          },
+          "ATTRIB": {
+            "handle": "4E",
+            "owner": "4C",
+            "textAlignment": [
+              31.0,
+              32.0,
+              33.0
+            ],
+            "attributeAlignment": [
+              31.0,
+              32.0,
+              33.0
+            ],
+            "embeddedInsertion": [
+              41.0,
+              42.0,
+              43.0
+            ],
+            "textHorizontalAlignment": 1,
+            "embeddedSpacing": 1,
+            "attribute280": []
+          }
+        }
+      },
+      "ordinaryRead": [
+        {
+          "kind": "ATTDEF",
+          "handle": "4B",
+          "owner": "48",
+          "horizontal": 1,
+          "alignment": [
+            11.0,
+            12.0,
+            13.0
+          ],
+          "embeddedInsertion": [
+            21.0,
+            22.0,
+            23.0
+          ],
+          "spacing": 1
+        },
+        {
+          "kind": "ATTRIB",
+          "handle": "4E",
+          "owner": "4C",
+          "horizontal": 1,
+          "alignment": [
+            31.0,
+            32.0,
+            33.0
+          ],
+          "embeddedInsertion": [
+            41.0,
+            42.0,
+            43.0
+          ],
+          "spacing": 1
+        }
+      ],
+      "shaUnchangedAfterOrdinaryRead": true
+    },
+    {
+      "physical": {
+        "path": "build/agent-attribute-profile/aligned-output-asc.dxf",
+        "sha256": "47bce8c2a0180ae43394b3a5906c66cb0b7cea1a079f6206cda00c1d333a83b7",
+        "bytes": 18225,
+        "binary": false,
+        "blockRecord": "45",
+        "insert": "4C",
+        "seqend": "4E",
+        "seqendOwner": "4C",
+        "selected": {
+          "ATTDEF": {
+            "handle": "4B",
+            "owner": "45",
+            "textAlignment": [
+              11.0,
+              12.0,
+              13.0
+            ],
+            "attributeAlignment": [
+              11.0,
+              12.0,
+              13.0
+            ],
+            "embeddedInsertion": [
+              21.0,
+              22.0,
+              23.0
+            ],
+            "textHorizontalAlignment": 1,
+            "embeddedSpacing": 1,
+            "attribute280": [
+              0
+            ]
+          },
+          "ATTRIB": {
+            "handle": "4D",
+            "owner": "4C",
+            "textAlignment": [
+              31.0,
+              32.0,
+              33.0
+            ],
+            "attributeAlignment": [
+              31.0,
+              32.0,
+              33.0
+            ],
+            "embeddedInsertion": [
+              41.0,
+              42.0,
+              43.0
+            ],
+            "textHorizontalAlignment": 1,
+            "embeddedSpacing": 1,
+            "attribute280": [
+              0
+            ]
+          }
+        }
+      },
+      "ordinaryRead": [
+        {
+          "kind": "ATTDEF",
+          "handle": "4B",
+          "owner": "45",
+          "horizontal": 1,
+          "alignment": [
+            11.0,
+            12.0,
+            13.0
+          ],
+          "embeddedInsertion": [
+            21.0,
+            22.0,
+            23.0
+          ],
+          "spacing": 1
+        },
+        {
+          "kind": "ATTRIB",
+          "handle": "4D",
+          "owner": "4C",
+          "horizontal": 1,
+          "alignment": [
+            31.0,
+            32.0,
+            33.0
+          ],
+          "embeddedInsertion": [
+            41.0,
+            42.0,
+            43.0
+          ],
+          "spacing": 1
+        }
+      ],
+      "shaUnchangedAfterOrdinaryRead": true
+    },
+    {
+      "physical": {
+        "path": "build/agent-attribute-profile/aligned-output-bin.dxf",
+        "sha256": "e8aafae47f321a59f82cd7b73bfe1fb017bf5601f532bd6f65fc2f582e9ed9f7",
+        "bytes": 15165,
+        "binary": true,
+        "blockRecord": "45",
+        "insert": "4C",
+        "seqend": "4E",
+        "seqendOwner": "4C",
+        "selected": {
+          "ATTDEF": {
+            "handle": "4B",
+            "owner": "45",
+            "textAlignment": [
+              11.0,
+              12.0,
+              13.0
+            ],
+            "attributeAlignment": [
+              11.0,
+              12.0,
+              13.0
+            ],
+            "embeddedInsertion": [
+              21.0,
+              22.0,
+              23.0
+            ],
+            "textHorizontalAlignment": 1,
+            "embeddedSpacing": 1,
+            "attribute280": [
+              0
+            ]
+          },
+          "ATTRIB": {
+            "handle": "4D",
+            "owner": "4C",
+            "textAlignment": [
+              31.0,
+              32.0,
+              33.0
+            ],
+            "attributeAlignment": [
+              31.0,
+              32.0,
+              33.0
+            ],
+            "embeddedInsertion": [
+              41.0,
+              42.0,
+              43.0
+            ],
+            "textHorizontalAlignment": 1,
+            "embeddedSpacing": 1,
+            "attribute280": [
+              0
+            ]
+          }
+        }
+      },
+      "ordinaryRead": [
+        {
+          "kind": "ATTDEF",
+          "handle": "4B",
+          "owner": "45",
+          "horizontal": 1,
+          "alignment": [
+            11.0,
+            12.0,
+            13.0
+          ],
+          "embeddedInsertion": [
+            21.0,
+            22.0,
+            23.0
+          ],
+          "spacing": 1
+        },
+        {
+          "kind": "ATTRIB",
+          "handle": "4D",
+          "owner": "4C",
+          "horizontal": 1,
+          "alignment": [
+            31.0,
+            32.0,
+            33.0
+          ],
+          "embeddedInsertion": [
+            41.0,
+            42.0,
+            43.0
+          ],
+          "spacing": 1
+        }
+      ],
+      "shaUnchangedAfterOrdinaryRead": true
+    }
+  ],
+  "peerModuleManifest": {
+    "count": 203,
+    "sha256": "9aa496ec63148fc60ae60b111d34839a0cdb28657f2441dd2a075dbc70a7a783",
+    "fullListInScratchReport": true
+  },
+  "independentReport": {
+    "path": "build/agent-attribute-profile/aligned-qualification.json",
+    "sha256": "3eb461b3138fe61dfb0f8b5768d52413e687840e87d14d9a417339e430dced28"
+  },
+  "currentAudit": {
+    "result": "ATTDEF handle=4b owner=48 groups=52 complete=0 reason=6 rejected=30 rejectedCode=11\nprojection=ATTDEF remove_attribute_triple=1 complete=1 reason=1 rejected=49\nATTRIB handle=4e owner=4c groups=51 complete=0 reason=6 rejected=29 rejectedCode=11\nprojection=ATTRIB remove_attribute_triple=1 complete=1 reason=1 rejected=48\n",
+    "meaning": "Reason 6 is DuplicateField at the second host group 11. An in-memory diagnostic projection drops only Attribute 11/21/31 and then audits complete; this is not the source and cannot establish admissibility by itself.",
+    "rawAndTypedCapture": "{\"stage\":\"original-import\",\"definitionHandle\":75,\"definitionOwner\":72,\"definitionAlign\":[11,12,13],\"definitionEmbeddedInsertion\":[21,22,23],\"definitionType\":4,\"definitionVersion\":1,\"parentHandle\":76,\"childHandle\":78,\"childOwner\":76,\"childAlign\":[31,32,33],\"childEmbeddedInsertion\":[41,42,43],\"childType\":2,\"childVersion\":1,\"footerHandle\":77,\"footerOwner\":76}\n{\"stage\":\"original-proof\",\"definitionPair\":1,\"definitionReplay\":1,\"definitionProfileReason\":6,\"definitionRejectedGroup\":30,\"selectedCompounds\":1,\"compoundModeled\":1,\"compoundProfiles\":0,\"compoundSpace\":0,\"compoundState\":13,\"childProfileReason\":6,\"childRejectedGroup\":29}\n{\"stage\":\"source-model-after-both-exports\",\"definitionHandle\":75,\"definitionOwner\":72,\"definitionAlign\":[11,12,13],\"definitionEmbeddedInsertion\":[21,22,23],\"definitionType\":4,\"definitionVersion\":1,\"parentHandle\":76,\"childHandle\":78,\"childOwner\":76,\"childAlign\":[31,32,33],\"childEmbeddedInsertion\":[41,42,43],\"childType\":2,\"childVersion\":1,\"footerHandle\":77,\"footerOwner\":76}\n"
+  },
+  "proposal": "For the selected AC1032 embedded grammar, retain both source spans; admit a duplicate host coordinate triple only after a later matching embedded marker/type and only when component presence and finite values match under an explicit signed-zero policy. Refuse unequal, partial, missing-vs-present and nonembedded duplicate forms. Test original roles/owners and actual output separately.",
+  "limitations": [
+    "ACadSharp source has zero group-280 fields; the two compatible outputs each add one 280=0. Embedded dual-280 ordering/version/lock roles remain separately unqualified.",
+    "Advisory ezdxf ordinary loading calls fast_load_dxfattribs(recover=True); no explicit audit or recovery was invoked. Original and output physical fields and owners were checked before ordinary setup.",
+    "Source and output agree only in selected geometry, alignment and ownership; full compound space/source closure and native CAD semantic/rendering qualification remain open.",
+    "Do not promote support claims from this experiment. No drawing fixture is committed."
+  ]
+}

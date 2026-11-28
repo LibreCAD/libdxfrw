@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-long-utf8-mtext-allocation-rollback-retry-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_LONG_UTF8_MTEXT_TRANSACTION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Sweep allocation failures through a whole AC1027 DXF write containing long UTF-8 MTEXT, including a multibyte code point across the writer's 250-byte chunk boundary; verify rollback, same-codec retry, and typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory entity",
+    "profile": "One MTEXT whose 552 UTF-8 bytes are 249 ASCII A bytes, a three-byte euro sign, and 300 ASCII B bytes; emitted as AC1027 ASCII and Binary. No external DWG/DXF fixture is used or added.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "dcd7e578",
+    "files": [
+      "tests/dxf_write_allocation_transaction_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-long-utf8-mtext-allocation-rollback-retry-2026-11-13.json"
+    ],
+    "method": "Add a dedicated fast mode to the whole-operation allocation harness. Calibrate the standalone generated MTEXT write in ASCII and Binary, inject one-shot allocation failures at every measured offset, verify destination sentinel and caller fields, then retry the same codec and require byte-identical output plus exact typed MTEXT readback."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests --parallel 4: PASS; ASan target build: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_long_mtext_allocation_transaction$' --output-on-failure: PASS 1/1 (0.76 sec)",
+    "asanCTest": "ctest --test-dir build-asan-custom -R '^libdxfrw_dxf_long_mtext_allocation_transaction$' --output-on-failure: PASS 1/1 (3.88 sec)",
+    "directRun": "PASS; long UTF-8 MTEXT: ASCII 101 and Binary 100 allocation offsets. Each failure preserved destination and caller entity; same-codec retry reproduced clean bytes and readback preserved exact UTF-8 text and modeled fields.",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction evidence for one long-text profile does not establish producer-authored prevalence, native line layout, font behavior, or rendering semantics.",
+    "No support claim is promoted and no drawing fixture is committed."
+  ],
+  "nextAction": "Continue the P6-G public-writer inventory, keeping generated writer transaction evidence separate from independent semantic and consumer qualification."
+}

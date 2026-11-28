@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 SORTENTSTABLE extension-dictionary alias refusal",
+  "mode": "Generated local test-coverage slice",
+  "repository": "LibreCAD/libdxfrw",
+  "finding": {
+    "source": "The SORTENTSTABLE validator requires a singleton ACAD_SORTENTS entry in its owner extension dictionary.",
+    "coverageGap": "The existing generated adapter route did not directly exercise a second differently named entry pointing to the same SORTENTSTABLE handle.",
+    "scope": "Negative-control coverage for one SORTENTSTABLE extension-dictionary graph only."
+  },
+  "implementation": [
+    "Extended the existing generated ASCII/Binary --sortents-adapter route with ACAD_SORTENTS_ALIAS targeting the same table handle.",
+    "The malformed graph must be refused before output publication and preserve the seeded destination.",
+    "After removing the alias, the same adapter exports successfully and the existing strict readback checks the SORTENTSTABLE identity and owner chain."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "focusedSelector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-adapter build-gcc/tests/sortents-adapter (ASCII/Binary)",
+    "ctest": "PASS: ctest --test-dir build-gcc -R '^libdxfrw_sortents_adapter$' --output-on-failure (1/1)",
+    "diffCheck": "PASS: git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "fullSuite": "NOT_RUN (fast generated slice)",
+    "externalPeerOrNativeConsumer": "NOT_RUN"
+  },
+  "scopeAccounting": {
+    "persistentFixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "productionCodeChanged": false,
+    "supportClaimsPromoted": 0,
+    "findings": 141,
+    "topLevelSubplans": 78,
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "filesChanged": [
+    "tests/dwg2dxf_adapter_tests.cpp",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/par20-7g3-sortents-extension-dictionary-alias-fast-slice-2026-10-20.json"
+  ],
+  "commitCreated": false,
+  "commitBlocker": "The shared worktree is broadly dirty and Git metadata is read-only in this session."
+}

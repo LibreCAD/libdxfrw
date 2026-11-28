@@ -1,0 +1,62 @@
+{
+  "id": "p8-pointcloud-classic-imported-graph-transport-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "IMPLEMENTED_GENERATED_TRANSPORT_ONLY",
+  "topic": "Imported classic POINTCLOUD definition/reactor graph output",
+  "scope": {
+    "admitted": "Same-revision AC1027-AC1032 DXF graph output with one modelspace POINTCLOUD, one classic POINTCLOUDDEFINITION, one POINTCLOUDDEFREACTOR, and one directly NOD-owned definition DICTIONARY.",
+    "source_gates": [
+      "Bind the POINTCLOUD typed callback and current model to its complete physical ENTITIES dispatch and exact ordered body fields, including one nonzero definition reference and one nonzero reactor reference.",
+      "Bind definition and reactor callbacks to complete raw OBJECTS carriers and physical spans; project record/subclass names, ACAD_REACTORS order, identities, owners, class version and modeled definition fields into the captured typed snapshots.",
+      "Bind the NOD and selected child DICTIONARY to same-generation raw/physical structural sources and origin audits; require their live typed fields and source-observed root key to remain unchanged.",
+      "Require exact source-revision output, closed dictionary membership, valid entity/object handles, and reciprocal definition/reactor ownership before output."
+    ],
+    "excluded": [
+      "DWG source CLASS/frame bindings",
+      "Named-BLOCK and paper-space POINTCLOUD entities",
+      "Mixed classic/DefinitionEx/NAVISWORKS/COLORMAP graphs",
+      "Cross-revision output",
+      "Physical producer interoperability, asset loading, native semantics, and support claims"
+    ]
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "details": [
+      "Extended the classic point-cloud raw-to-model projector and physical entity field gate for the classic definition/reactor record and subclass names and their exact nonzero group-330/group-360 references.",
+      "Added imported-DXF classic graph admission with source revision, raw span, typed snapshot, physical dictionary, identity audit, and reciprocal graph checks. Authored classic graphs retain their existing path; imported DWG graphs remain refused.",
+      "The source-observed NOD key and definition entry name are preserved without asserting a canonical producer key.",
+      "Generated controls use only temporary ASCII/Binary DXF files authored at runtime; no fixture files were added."
+    ]
+  },
+  "validation": {
+    "selector": "dwg2dxf_point_cloud_adapter_transport",
+    "normal": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "test": "ctest --test-dir build-gcc -R '^dwg2dxf_point_cloud_adapter_transport$' --output-on-failure",
+      "result": "PASS; selector exercises ASCII and Binary."
+    },
+    "asan": {
+      "build": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "test": "ctest --test-dir build-asan-custom -R '^dwg2dxf_point_cloud_adapter_transport$' --output-on-failure",
+      "result": "PASS; selector exercises ASCII and Binary."
+    },
+    "controls": [
+      "Generated same-revision AC1027 imported graph output and fresh typed readback.",
+      "Generated same-revision AC1032 imported graph output and fresh typed readback.",
+      "The AC1027 ASCII/Binary controls prove wrong-revision refusal and destination preservation for changed definition/reactor references and mutated source NOD/child-dictionary names.",
+      "Corrected AC1027 values succeed through the same adapter; AC1027 and AC1032 readback checks preserve the source-observed root key and reciprocal entity/definition/reactor handles."
+    ],
+    "fixture_policy": "All generated source/output DXF files are removed from the temporary directory; no DWG/DXF fixture was committed."
+  },
+  "claim_boundary": "Generated same-revision DXF transport evidence only. This does not qualify DWG source binding, physical producer breadth, canonical root naming, external assets, native semantic behavior, or any support claim.",
+  "remaining": [
+    "Native/platform qualification and independent producer evidence remain open under P7-P9.",
+    "Named-BLOCK/paper-space and mixed point-cloud graph profiles remain outside this source-binding gate."
+  ]
+}

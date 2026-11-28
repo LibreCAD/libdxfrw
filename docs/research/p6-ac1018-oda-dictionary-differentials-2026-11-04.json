@@ -1,0 +1,13 @@
+{
+  "date":"2026-11-04",
+  "reader":"ODA File Converter 27.1.0, ACAD2013 DXF export, recursion=0, audit=0",
+  "execution":"The sandboxed invocation aborted with pasteboard/XPC errors and produced no output; running the same local converter outside the sandbox completed. Exit code zero is not evidence of conversion: inspect both produced .err files and missing DXF files.",
+  "variants":[
+    {"name":"system-terminator-baseline", "sha256":"3a2b1440b0d6e64ecd0666efa92c4efe24c9501b41f7f8d6d72cdb88331c9cad", "result":"Object improperly read: <AcDbDictionary> (C); previous error: .dwg file needs recovery", "dxf_produced":false},
+    {"name":"only-default-root-and-group-xdictionary-missing-flags-set", "sha256":"7d54f94e8b7cb3d8183664f3dc1e514e015b36168b01d5fcc0204c660ef6b21f", "result":"Object improperly read: <AcDbDictionary> (C); previous error: .dwg file needs recovery", "dxf_produced":false},
+    {"name":"root-owner-typed-null", "sha256":"20eb7474a93b7c9e97ff24fbdaf52712c5be7644b18d461248b1fb706376642c", "result":"Object improperly read: <AcDbDictionary> (C); previous error: .dwg file needs recovery", "dxf_produced":false},
+    {"name":"root-owner-typed-null-plus-header-group-hard-pointer", "sha256":"67eb20b341500b5d01834f91a152205ef609998fd771c22b299d4ff3f01df5b1", "result":"Object improperly read: <AcDbDictionary> (C); previous error: .dwg file needs recovery", "dxf_produced":false}
+  ],
+  "conclusion":"Neither an isolated missing-flag change nor the two independently source-backed reference fixes resolved this AC1018 example. The error names a dictionary but does not establish that a particular dictionary field or handle causes the failure. Continue source-backed physical record and graph investigation; do not claim ODA acceptance.",
+  "artifacts":"All four generated DWGs and ODA output/error files are scratch files under /private/tmp; no fixture is committed."
+}

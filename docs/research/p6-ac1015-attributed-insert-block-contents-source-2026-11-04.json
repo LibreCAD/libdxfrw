@@ -1,0 +1,25 @@
+{
+  "scope": "Locally authored AC1015 named BLOCK containing LINE/CIRCLE/ARC and model-space attributed INSERT; one producer witness, not a general support claim.",
+  "provenance": {
+    "author": "tools/audit_ac1015_attributed_insert_block_contents.py author using ezdxf 1.4.5; all drawing files are scratch-only",
+    "input_dxf_sha256": "adbd471066443b35406942e859c945dff37d8a8add82e2009e3d04dfea8d682d",
+    "producer": "ODA File Converter ACAD2000 DWG conversion",
+    "source_dwg_sha256": "12fea955f8e208736ef8212b5a07fe4ac7ecdcf0ba7fdb84f74dc1dc1e70296c",
+    "oda_roundtrip_dxf_sha256": "f19972f5a5bcbe1c123677267d3b28b00112eaa5b892fb9b43e4e394ba54664f",
+    "independent_reader": "GNU LibreDWG 0.14 dwgread JSON; verifier asserts exact roles and resolved targets"
+  },
+  "physical_graph": {
+    "block_header": "0x8A, BLOCK 0x8B and ENDBLK 0x8C role 3, first LINE 0x8D and last ARC 0x91 role 4, INSERT 0x92 reverse reference role 4",
+    "block_contents": "LINE 0x8D -> CIRCLE 0x8F -> ARC 0x91; each owner is role 4 -> 0x8A, non-null previous uses relative role 12, non-null next relative role 10, and endpoints are role 4 null. Boundary entities have role 4 owner and role 4 null neighbors.",
+    "model": "LINE 0x8E -> CIRCLE 0x90 -> INSERT 0x92 -> LINE 0x96; role 12/10 relative non-null neighbors, role 4 null endpoints. Block and model identities are interleaved.",
+    "attributed_insert": "INSERT 0x92 has block role 5 -> 0x8A, first/last ATTRIB role 4 -> 0x94/0x95, SEQEND role 3 -> 0x93; both attributes and footer owner role 4 -> 0x92. Attribute links use relative roles 6 and 8; footer has role 4 null neighbors."
+  },
+  "roundtrip": "ODA ACAD2013 DXF retains LINE (1,2,3)->(4,5,6), CIRCLE (7,8,9) radius 2.5, ARC (21,22,23) radius 4.5 angles 20/110 degrees, rotated INSERT and FIRST/ONE and SECOND/TWO attributes; ezdxf checks these fields.",
+  "singleton_source": {
+    "input_dxf_sha256": "07fb71f6b28cc17b5051f6f84cc80f72cb8de7c5394f973fede2eb179c20497e",
+    "source_dwg_sha256": "17ce4d83b63709d9d167e429010443436c02c8e3e7ed5c2083bf8b73d576c2ff",
+    "oda_roundtrip_dxf_sha256": "069acb9999ca0c6d8c8a7eb993786da6ea9ab28f20ef830de25f4b7b66471952",
+    "observed": "BLOCK_HEADER first and last role 4 -> LINE 0x8D; LINE owner role 4 -> 0x8A and both neighbor roles are 4 null. ODA retains the LINE and two attributed INSERT fields."
+  },
+  "limitations": "One authored source and producer version; does not qualify arbitrary entities, nested blocks, metadata, other versions, or general DWG interoperability."
+}

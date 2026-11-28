@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "scope": "Bounded, nonvirtual source-frame correlation for empty fixed-type AC1024 XRECORD objects with cloning 0, no EED, reactors, extension dictionary, payload, trailing references or DataStorage, and source frame no larger than 4096 bytes.",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.104 describes the data-byte count, cloning field and common object references. The existing XRECORD parser body is unchanged.",
+  "implementation": "DRW_XRecord::matchesAc1024EmptyDwgFrame checks the caller-supplied raw frame, publication and typed empty profile, then reparses and compares the selected fields; the helper rejects exceptions and is advertised by LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY.",
+  "source": "Scratch, locally authored DXF converted by ODA 27.1 to AC1024 DWG, SHA-256 02c8a7dc65d6517e57211adb596ce546130fb3ad651eada8363c1f2a496545e8; XRECORD B200 is owned by dictionary B003. The small in-memory body control is generated from that locally authored file. No drawing fixture is committed.",
+  "independentEvidence": "LibreDWG 0.14 reports XRECORD B200 with owner B003, cloning 0 and an empty xdata list; an existing independently selected dwg2dxf verified-source import matches this XRECORD and rejects a cloning mutation. These observations do not certify output.",
+  "validation": [
+    "The generated body and full ODA-generated DWG both matched the typed frame and publication; each run exercised 43 calibrated allocation failures and immediate successful retries.",
+    "Controls reject typed cloning, data, reference and owner mutations; changed wire type and owner bytes; truncation; and altered publication location or carrier.",
+    "The existing adjacent empty SORTENTSTABLE and verified-XRECORD tests are run as focused regressions.",
+    "The source-release inventory passes with 1223 files and 18 generator refusal controls. The hosted-profile CTest inventory increases from 1376 to 1377 with exactly this test. The 724-input implementation digest is 64a2959853ace89b7d87ce130bdedda8c2a6f64aaec1cb203295dfe1b3220d83."
+  ],
+  "limits": "This helper correlates caller-provided data and the existing parser; it does not authenticate the source, validate an enclosing CRC, establish complete physical field spans, freeze a consumer import generation, close a graph, establish native semantics or authorize output/support claims."
+}

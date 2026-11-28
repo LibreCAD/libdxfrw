@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-16",
+  "consumerBase": "b007bff6e798425aa14ae507f7e884db68916e88",
+  "localCandidateCommit": "fc34c14420c624f7292a76a82cc6742ca0d5e3fa",
+  "localCandidateParent": "7192ad738f8716325fb2f1cfd1e57981962a5963",
+  "candidateStatus": "Local unmerged branch codex/libdxfrw-consumer-integration-20261116.",
+  "patch": "docs/patches/librecad-p8-binary-ltype-import-2026-11-16.patch",
+  "patchSha256": "177e520d64f4a2b0054671e4f0318c1f426063952c43d00376adce13ce7f85fc",
+  "matrix": {
+    "sourceVersions": [
+      "AC1009",
+      "AC1014",
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "sourceEncodings": [
+      "ASCII",
+      "Binary"
+    ],
+    "destination": "LibreCAD-selected ASCII DXF",
+    "case": "Generated explicit simple LTYPE and referencing LINE; actual LibreCAD import, edit, export and readback."
+  },
+  "validation": [
+    "The focused test passed 256 assertions in each of the fresh installed-current and bundled consumer builds.",
+    "The single test patch applies after all 39 prior patches and recreates the final candidate test file exactly.",
+    "An attempted AC1012 control was refused at source creation with both codecs. Both isSupportedDxfWriteVersion gates intentionally omit AC1012; this does not test or rule out R13 import.",
+    "No DWG/DXF fixture was committed."
+  ],
+  "logs": [
+    "/private/tmp/librecad-p8-binary-versions-system-final.log",
+    "/private/tmp/librecad-p8-binary-versions-bundled.log",
+    "/private/tmp/librecad-p8-binary-nine-system.log",
+    "/private/tmp/librecad-p8-binary-nine-bundled.log"
+  ],
+  "limits": "Same-codec generated source controls only; R13 input, independently produced files, complex LTYPE metadata, binary output, GUI and non-macOS platforms remain open. The local candidate is not integrated upstream. No support claim or phase gate is promoted.",
+  "followUp": "The later p8-librecad-r13-dxf-diagnostic-2026-11-16.json reports an independently ODA-converted AC1012 input pair and retains the installed-codec OBJECTS export refusal as open."
+}

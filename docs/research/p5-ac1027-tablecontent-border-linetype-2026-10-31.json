@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-dxf-implementation-receipt-v1",
+  "date": "2026-10-31",
+  "status": "SCOPED_IMPLEMENTATION_COMPLETE_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / AC1027 TABLECONTENT border LTYPE reference",
+  "basis": {
+    "authoritativeSpecification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.4.",
+    "localSpecification": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "specFields": {
+      "lineTypeOverride": "border property bit 0x04",
+      "lineTypeReference": "DXF group 340, hard pointer to an LTYPE record",
+      "wireOrder": "edge flags, property override flags, border type, color, lineweight, linetype handle, invisibility, double-line spacing"
+    },
+    "sourceEvidence": {
+      "localRuntimeSource": "tests/table_content_dxf_tests.cpp richMapSource/mapProfileTests encode and decode non-null C102 border LTYPE references across AC1021/24/27/32 and both DXF encodings.",
+      "sourceReceipt": "docs/research/rpp5dc-exact-cellstylemap-source-proof-and-reference-spans-2026-10-25.json records 18 typed LineType handle roles across generated rich map sources; it explicitly does not qualify output."
+    }
+  },
+  "profile": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixture": "Runtime-authored TABLECONTENT and BorderDash LTYPE records; no drawing fixture files were added.",
+    "coverage": [
+      "Non-null border LTYPE reference combined with Double type, explicit spacing, indexed color and visibility",
+      "Physical group-340 reference matches the emitted BorderDash record handle in the LTYPE table, owner 5",
+      "Fresh ASCII and binary imports preserve the remapped LTYPE handle and unique target record",
+      "Existing attempt-scoped source LTYPE registration is used for target closure"
+    ],
+    "admittedPropertyMask": "0x3D for the combined Double/color/visibility/LTYPE/spacing border",
+    "unsupportedCompanions": "Extended CMC/name/book colors and overlapping edge declarations remain refused or unqualified."
+  },
+  "implementation": {
+    "files": ["src/libdxfrw.cpp", "tests/table_content_dxf_tests.cpp"],
+    "behavior": "The TABLECONTENT writer admits a non-null border LTYPE only when the current write attempt has an exact source-to-emitted LTYPE registration. The emitted group 340 uses that registered output identity. A set LTYPE override with a null or unresolved target, and a nonzero target without the override bit, are refused.",
+    "physicalWire": "The independent tag walker verifies the custom LTYPE record identity, LTYPE table membership and owner 5; each border group 340 matches that exact emitted handle.",
+    "typedReadback": "Fresh ASCII/binary imports contain exactly one BorderDash LTYPE with the emitted handle, and the typed TABLECONTENT border points to it. Corrected same-adapter retry readback compares all border fields and the same LTYPE identity.",
+    "failureRetry": "Changing the selected border to unresolved source handle 0xC103 refuses output without replacing a destination sentinel or changing caller state. Restoring the original LTYPE target allows same-adapter export and full readback. Other existing lineweight, spacing and property-mask rollback/retry controls remain active.",
+    "fixturePolicy": "All inputs are generated at runtime; no external drawing fixtures were added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_table_content_dxf_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_content_cell_border_visibility_edges$' --output-on-failure",
+      "result": "PASS, 1/1, 0.55 seconds"
+    },
+    "diffCheck": "git diff --check passed",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "642db02b92c6f850a675fe7dd10e229f10edaa24901d9a9d23d6a48fc40b2a6e",
+      "tests/table_content_dxf_tests.cpp": "18fe090638444320efe3b06a267409b5807a6c4fb8bb22019126fc8cda550bd7",
+      "focusedExecutable": "e98cd8cd3821927930c1cb4210bc1ec34c9982401118f92e0c62d4aa06fc7706"
+    }
+  },
+  "limits": [
+    "Only the AC1027 TABLECONTENT serializer/readback profile is covered; this is not DWG output or other DXF version qualification.",
+    "This exact generated profile does not establish all native line-type rendering, producer completeness, or whole-document closure.",
+    "Wire and typed readback do not promote public support claims."
+  ],
+  "next": "Continue with source- or consumer-backed extended CMC/name colors and overlapping edge declarations; keep unqualified combinations refused."
+}

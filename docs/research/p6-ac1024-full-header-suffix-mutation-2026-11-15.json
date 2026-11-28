@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-15",
+  "scope": "Two locally authored drawings independently converted to AC1024 by the same ODA File Converter 27.1 producer: a POLYFACE and a closed polygon mesh. Each decoded HEADER has a CRC-valid 843-byte envelope followed by 739 unclaimed bytes.",
+  "method": "The research tool tools/research/mutate_ac1024_header_suffix_traced.py pins the public dwg-verifier decoder at commit 5a7dc5c6790cd8fece1494c710585019a253dbba and validates its source hashes. It traces each decoded byte to its original compressed literal, refuses any literal reused outside the suffix, checks the exact logical section and envelope CRC, changes each unique suffix literal to zero or XOR 0xA5, reseals page checksums, and independently decompresses and validates the modified page before exclusive output creation. Each 739-byte suffix has 735 distinct literal origins; four additional output positions are back-references within the suffix.",
+  "guards": "Local controls reproduce all four mutation hashes byte-for-byte. Wrong source hash, wrong decoded HEADER, mismatched source/section, altered verifier, damaged compressed page, literal shared outside suffix, existing destination and source overwrite are refused without publishing output. The tool is experimental and requires a separately obtained pinned verifier checkout.",
+  "polyface": {
+    "sourceDwg": "f18332b967e99776adac0e0cf1a6a66612275e270604f7591478586802573c13",
+    "zeroDwg": "f58f9fb24758798f1dc39366c315698eba8ea8aaa4a5db2aac55a334e9ee060a",
+    "xorDwg": "963e73cce5ca6c3c0d0def009cf1dacba853431b7565bfcd8311e4bf92820ff8",
+    "odaNormalizedDxf": "5a888615dfc211a480204566ff6d6054655df3058dbcfe15f8d80f03f6684f02",
+    "libreDwgJson": "911eba4900d3710b7d220b97201762cda23e03735004cf37dd0492c3df92598b",
+    "freecad": "All three ODA DXF outputs import into the same patched headless macOS ARM64 FreeCAD development build with one POLYLINE and one LINE, one four-vertex face and area 13; observations match after excluding import time."
+  },
+  "closedMesh": {
+    "sourceDwg": "df2ec8285245a09a0ba709672797df2d0fcc2d16906aac7d8462c2a7496d10b5",
+    "zeroDwg": "5fc79c3f4945af7b30d19699414de17f80224988ab4fe753e87021087c789d7f",
+    "xorDwg": "38edddb3a3e9d488b9903b3a151265dbc117b0d2f93df429c48271729de4bc7a",
+    "odaNormalizedDxf": "7e14f9e1b654b783f3172562b2a84dd3ca7338c55468c317b89eb9c5908bbc3d",
+    "libreDwgJson": "a8126e4e67f595aa5eb81a468d5b99bef22b1165851c7893b35447d8b9dcf2d1",
+    "freecad": "All three ODA DXF outputs produce the same one POLYLINE, one LINE, three faces and total area 16.12899020449196 in the same patched headless FreeCAD build."
+  },
+  "independentResults": "ODA converted all six original/modified DWGs to DXF without .err files. For each drawing, only $TDUPDATE and $TDUUPDATE values were normalized before exact DXF byte comparison. LibreDWG 0.14 JSON output was byte-identical across each three-way control. The pinned independent Python verifier decoded all original and modified pages and reported no container findings. FreeCAD consumed ODA-produced DXF, not the DWG directly; the six downstream FreeCAD patches remain unmerged.",
+  "toolSha256": "03a083f3760ffedd9c65a229506908deaca72eed672f888fa0489a39dace0d4f",
+  "verifierRepository": "https://github.com/realDragonium/dwg-verifier/tree/5a7dc5c6790cd8fece1494c710585019a253dbba",
+  "cleanSourceInventory": "1202 released files; generated DWG/DXF controls are not committed",
+  "limits": "Two source shapes share one ODA producer and the same AC1024 maintenance-55 profile. The observations do not define the suffix, establish arbitrary-producer semantics, prove all fields or applications unaffected, or justify suppressing strict-complete refusal. No phase gate or support claim is promoted."
+}

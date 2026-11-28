@@ -1,0 +1,15 @@
+{
+  "scope": "Repair the generated AC1032 TABLESTYLE malformed-count dispatch regression control. No production parser or DWG/DXF support claim changed.",
+  "authority": "Open Design Specification for .dwg files v5.4.1 section 20.1 specifies the common-object parent as a soft pointer; section 20.4.101.2 describes the R24 TABLESTYLE-specific unknown handle as a hard owner. Section 20.4.101.2 says the repeated cell-style count should be three. The count-zero sentinel is a narrow existing parser boundary control, not independent proof of a complete native TABLESTYLE profile.",
+  "diagnosis": {
+    "baseline": "Both generated records used a hard-owner common parent and a hard-pointer TABLESTYLE-specific owner. A debug-instrumented /private/tmp copy on the pre-fix implementation recorded read=false, objectParseFailures=2, no TABLESTYLE callbacks; both frames stopped at 'Common object parent role mismatch' before the malformed count.",
+    "corrected_trace": "Changing only those roles to soft pointer and hard owner respectively produced read=true, objectParseFailures=1, TABLESTYLE callback handle 0xA101. The first frame reached 'TABLESTYLE custom cell-style index incomplete', as expected for count 1 with no repeated style.",
+    "isolation": "The original failure also occurred in clean pre-binding commit 9d5d70dd, as documented by p5-ac1018-tablestyle-reader-source-binding-2026-11-11.json."
+  },
+  "changes": "Correct the two locally generated handle roles. Add a count-zero same-handle correction that publishes both callbacks, a wrong TABLESTYLE-specific hard-pointer role that causes one record failure and still publishes the following object, and a wrong common-parent hard-owner role that fails the section while still reaching the following callback. Parsing and record-level policy are unchanged.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+    "test": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_tablestyle_malformed_count_dispatch|libdxfrw_ac1027_object_common_handle_roles)$' --output-on-failure",
+    "result": "2/2 passed. All frames are generated from scratch in the test; no DWG/DXF fixture was committed."
+  }
+}

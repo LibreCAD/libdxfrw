@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 truetype LayerStates view XRECORD selected output",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Qualify the exact AC1021 LAYER_CONTROL/ACAD_LAYERSTATES/ACAD_VIEWS_default XRECORD graph through source-bound ASCII and Binary DXF output, typed readback, destination rollback, and same-adapter retry.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; author and producer are unauthenticated. No source or derivative fixture is committed."
+  },
+  "independentEvidence": {
+    "libredwg": {
+      "tool": "GNU LibreDWG dwgread 0.14",
+      "minJsonSha256": "444b833bce4cb0aa1d8617c2086e53757bfbbf0018a0f4260747328f28c27966",
+      "finding": "Independently reports extension dictionary 0x59B owned by LAYER_CONTROL 0x02, ACAD_LAYERSTATES dictionary 0x59C, ACAD_VIEWS_default XRECORD 0x5E3, 19 scalar payload values and eight handle values: four group-330 LAYER references and four group-331 LTYPE references. The referenced identities resolve to LAYER Viewports/Leader/Text/0 and LTYPE Hidden 2/Continuous."
+    },
+    "specification": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "section": "20.4.104 XRECORD",
+      "finding": "XRECORD body consists of RS group-code indicators followed by values encoded according to the indicated DXF group; its trailing handle stream carries object references. Groups 330 and 331 have soft-pointer roles under the common handle-role definitions. This supports the transport roles, not LayerStates evaluation semantics."
+    }
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "src/intern/dxfcode.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "Admits the source-bound AC1021 two-root LAYER_CONTROL extension profile with one ACAD_VIEWS_default XRECORD and one empty ACAD_LAYERFILTERS companion. Resolves the selected XRECORD's group-330/331 references through unique source LAYER/LTYPE table identities and their emitted writer bindings, including typed remapping where generic source-handle lookup is ambiguous. Group 370 remains excluded from the ordinary XRECORD writer and is allowed only through the source-bound LayerStates compatibility route. AC1021 same-version and AC1024 target output are supported by this bounded profile.",
+    "targetScope": "This source profile only; no general AC1021 LayerStates or native restore/evaluation claim.",
+    "sourceHashes": {
+      "dwg2dxf/dx_iface.cpp": "d5806c77d52fc4844714e09d44cb9bb4805d948405b8322f0c19ef46afc798a6",
+      "src/libdxfrw.cpp": "8244acea0a51bf916fa387beb0cb632c03acbea3f61e449112f976189a9b1224",
+      "src/intern/dxfcode.h": "e46a368e3bacfc910c431f249e60a38efaca1799e2aea182c6775b9615eafa6a",
+      "tests/dwg2dxf_adapter_tests.cpp": "9bb1ccebe67fc6bca5ac4d150756140f002a3b2e075355a0fc9e60482c7dc347"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with -Werror",
+      "artifacts": {
+        "build-gcc/dwg2dxf/dwg2dxf": "44dded777a66cfa6a691b3a58d04447f627d19584d962111adffe3483509d6bb",
+        "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "94560195d3850a9d2bd802757b3108ed652021bb1f9f83db257d95665b3e3574"
+      }
+    },
+    "focusedPhysicalSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1021-view-xrecord-output-readback /Users/dli/doc/dwg/truetype.dwg",
+      "result": "PASS for ASCII and Binary. The exact dictionary path, all 27 ordered XRECORD values and four LAYER/four LTYPE targets are checked after typed readback. Late source mutation is refused without replacing a destination sentinel; correcting the source and retrying the same adapter succeeds."
+    },
+    "compatibilityRegression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-xrecord-physical-source-admission tests/samples/AC1024/visualization_-_aerial.dwg",
+      "result": "PASS for the existing AC1024 group-370 route in ASCII and Binary, including readback and refusal/retry controls."
+    },
+    "wholeSourceStrictAttempt": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/truetype.dwg -y -d -v2007 /private/tmp/truetype-current-ac1021.dxf",
+      "result": "LayerStates staged output proof passed. Strict finalization then correctly refused the unrelated incomplete opaque callback set at 46/53 qualified; exit 1 and no DXF was published. Strict whole-source output remains unqualified."
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limits": [
+    "One unauthenticated AC1021 source and one exact physical LayerStates profile only.",
+    "No whole-source strict conversion, producer-wide, native LayerStates evaluation, LibreCAD/LibreCAD_3/FreeCAD, platform or support claim is established.",
+    "The separate AC1021 plot_screening_and_fill_patterns.dwg XRECORD with 240 handle payloads remains deferred pending owner and target-role inventory.",
+    "No DWG/DXF fixture or derivative was added to the repository."
+  ],
+  "nextAction": "Keep the strict-complete gate closed at 46/53. Inventory only the seven unqualified callbacks on this source to determine whether an independently source-bound graph is ready; otherwise move to the next existing P4 candidate without repeating the completed corpus census."
+}

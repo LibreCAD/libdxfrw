@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "RPP-4h MATERIAL opacity fields and map generated fast slice",
+  "mode": "Local implementation and generated ASCII/Binary validation",
+  "repository": "LibreCAD/libdxfrw",
+  "plan": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+  "planSha256": "c9cd8c689a9f88c85982733d9910eea4055d3200601039b1fa10e8ae4529dcc9",
+  "authoritativeReference": {
+    "title": "Autodesk MATERIAL DXF reference",
+    "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+    "accessed": "2026-10-22",
+    "fields": [
+      {
+        "group": 140,
+        "description": "Opacity percent",
+        "default": 1.0,
+        "validation": "finite real; reference states no numeric range"
+      },
+      {
+        "group": 141,
+        "description": "Opacity map blend factor",
+        "default": 1.0,
+        "validation": "finite real; reference states no numeric range"
+      },
+      {
+        "group": 175,
+        "description": "Opacity map source",
+        "default": 1,
+        "validValues": [0, 1]
+      },
+      {
+        "group": 7,
+        "description": "Opacity map file name",
+        "default": ""
+      },
+      {
+        "group": 176,
+        "description": "Opacity map projection",
+        "default": 1,
+        "validValues": [1, 2, 3, 4]
+      },
+      {
+        "group": 177,
+        "description": "Opacity map tiling",
+        "default": 1,
+        "validValues": [1, 2, 3]
+      },
+      {
+        "group": 178,
+        "description": "Opacity map auto-transform bitset",
+        "default": 1,
+        "validMask": 7
+      },
+      {
+        "group": 142,
+        "description": "Opacity map mapper transform",
+        "format": "16 real values, row-major",
+        "default": "identity"
+      }
+    ]
+  },
+  "implementation": {
+    "typedModel": [
+      "DRW_Material retains opacity percent/map controls and a separate 16-element row-major transform with documented defaults and presence flags.",
+      "The group-7 filename uses an independent retained-text lease; its matrix has cardinality state separate from all other maps.",
+      "Copy/reset behavior preserves the typed opacity fields and restores defaults/identity with presence false."
+    ],
+    "parser": [
+      "Type groups 140/141/175/7/176/177/178/142 before the post-map 464/465 Normal Map boundary.",
+      "Validate finite opacity reals and matrix values, source/projection/tiling domains, and the documented auto-transform flag mask without adding undocumented scalar ranges.",
+      "Require exactly 16 contiguous matrix reals; reject incomplete matrices at the next group and reject excess values immediately.",
+      "Preserve the exact ordered raw net, including post-boundary reused codes."
+    ],
+    "writer": [
+      "Emit groups 140/141/175/7/176/177/178 followed by all 16 group-142 row-major values when present.",
+      "Reject invalid authored domains and non-finite opacity values before output replacement."
+    ],
+    "boundedTextRegression": [
+      "The focused MATERIAL retained-owner CTest checks exact-cap group-7 filename replacement in ASCII and Binary DXF.",
+      "At one byte under the cap, the previous opacity filename remains intact while the earlier map filename replacements remain admitted; copy/reset accounting releases the shared lease correctly."
+    ],
+    "touchedFiles": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/deeper-broader-peer-crosswalk-rpp4h-material-opacity-map-fast-slice-2026-10-22.json",
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/hardening_tests.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ]
+  },
+  "generatedControls": [
+    "ASCII and Binary MATERIAL records carry distinct opacity fields and a non-identity 16-value opacity mapper, followed by a LINE sentinel.",
+    "Assert typed values, exact raw group order, same-encoding replay, cross-encoding replay, copy/reset/default behavior, and isolation from the later Normal Map block.",
+    "Reject invalid source/projection/tiling/auto-transform values, non-finite ASCII opacity percent/blend/matrix values, and 15-/17-value matrices before callback publication.",
+    "Typed writer round-trips every field and asserts schema order; invalid domains and non-finite fields preserve prior output and succeed after correction.",
+    "No persistent test drawing is added; malformed ASCII numeric values are applied only to locally generated temporary files."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_hardening_tests libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 2 (-Werror)",
+    "ctest": "PASS: libdxfrw_dxf_material_text_owner_budget, libdxfrw_dxf_fixtures, and libdxfrw_dxf_binary_group_width_guard (3/3)",
+    "diffCheck": "PASS: git diff --check on changed source, test, and plan files",
+    "receiptJsonValidation": "PASS: jq empty",
+    "fullSuite": false,
+    "sanitizers": false
+  },
+  "scopeAndLimitations": {
+    "persistentFixturesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "dependenciesAdded": 0,
+    "dwgMaterialBodyChanged": false,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "nextLocalSlice": "RPP-4i: bump map groups 143/179/8/270/271/272/144",
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "remainingExternalQualification": [
+      "Native FreeCAD Linux and Windows route qualification",
+      "Independent ACIS/ACDS semantic evidence"
+    ],
+    "commitCreated": false
+  }
+}

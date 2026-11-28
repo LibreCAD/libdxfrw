@@ -1,0 +1,129 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Deeper/broader peer-source recency and artifact-to-claim reconciliation",
+  "mode": "Primary-source documentation, issue, and mutable sample-path review cross-checked against local code and plan",
+  "scope": [
+    "Refresh current open-source DWG/DXF implementation disclosures and version/direction boundaries.",
+    "Reconcile recent peer loss and malformed-input reports with existing local plan owners without transferring peer-specific format assumptions.",
+    "Inspect the exact mutable ACadSharp DXF sample path cited in the HATCH group-47 discussion and qualify whether it supports the reported derived-path claim.",
+    "Refine implementation-ready next steps while preserving fast local validation, local-only generated fixture policy, and the six external qualification gates."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_saved_to_workspace": 0,
+    "peer_fixtures_committed": 0,
+    "full_suite_run": false,
+    "read_only_remote_sample_inspection": true,
+    "local_checks": [
+      "Reconciled ACadSharp issue #1277, #1264, and #1234 with existing MLEADER, TABLECONTENT, and text-boundary plan owners.",
+      "Reconciled ACadRust issue #123, #124, and #132 with existing bounds, unknown-record, named-color, and record-XDATA owners.",
+      "Read current LibreDWG README/manual and ezdxf 1.4.5 FAQ/ACIS documentation for read/write and carrier-evidence limits.",
+      "Inspected the current mutable ACadSharp sample_AC1032_ascii.dxf directly in the browser: HATCH records 36E/371/376 show group 92 value 1 and no HATCH group 47 before group 98; this does not match the issue comment's described 92=7 derived-path case.",
+      "Cross-checked local dxfrw HATCH writer group-47 predicate and the existing 7AH generated ASCII/Binary 24-case characterization already recorded in the plan.",
+      "Updated only the plan and this research receipt; no production code, tests, fixture, dependency, or support claim changed."
+    ],
+    "limitations": "GitHub master/sample paths are mutable and the inspected sample was not bound to the exact revision referenced by the issue comment. The observed mismatch cannot disprove the issue report or determine the universal HATCH group-47 predicate. Peer issues are build- and route-scoped reports, not DWG/DXF normative rules or libdxfrw reproducers. No executable, native consumer, external parser, or semantic geometry route was run."
+  },
+  "sources": [
+    {
+      "name": "LibreDWG README",
+      "url": "https://github.com/LibreDWG/libredwg",
+      "observed": "Current project disclosure distinguishes broad reader support from writer limitations: advanced R2010+ objects may be skipped, R2007 writing is unavailable, and modern writes may fail CRC/audit checks.",
+      "evidence_ceiling": "Mutable project disclosure; not per-entity behavioral qualification or libdxfrw normative authority."
+    },
+    {
+      "name": "LibreDWG manual",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/doc/LibreDWG.texi",
+      "observed": "The manual describes stable, unstable, debugging, and unhandled dynamic classes and separately qualifies writer behavior by release version.",
+      "evidence_ceiling": "Source/documentation status only; exact build and operation must be bound for any comparator result."
+    },
+    {
+      "name": "ACadSharp version matrix",
+      "url": "https://github.com/DomCR/ACadSharp",
+      "observed": "The public matrix separates DXF and DWG read/write capability for each AC version; a generic read/write headline is not a per-version/per-direction result.",
+      "evidence_ceiling": "Project declaration only; does not establish behavior for a specific class, graph, or output."
+    },
+    {
+      "name": "ACadSharp issue #1277: standalone MLEADER context objects",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1277",
+      "observed": "The open report describes AC1032 no-op DWG rewrite failures under AutoCAD LT audit affecting standalone annotative MLeader context objects. The reporter says two independent writer-layout changes were needed; the maintainer says MLeaders require a full refactor.",
+      "evidence_ceiling": "Peer-specific report without a shareable drawing; not a local bug or a standalone-object DWG format rule."
+    },
+    {
+      "name": "ACadSharp issue #1264: TABLECONTENT Block value",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1264",
+      "observed": "The issue reports that a DWG TABLECONTENT Block alternative retains its block-record handle but leaves a default/unknown CadValue, while an AutoCAD-saved DXF projection carries an empty-string Value alternative.",
+      "evidence_ceiling": "Peer semantic discrepancy; does not authorize synthesizing one tagged alternative from another."
+    },
+    {
+      "name": "ACadSharp issue #1234: SummaryInfo writer boundary",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1234",
+      "observed": "The report describes SummaryInfo property loss beginning at a 16,383-character value and larger corrupt outputs on named ACadSharp versions.",
+      "evidence_ceiling": "Peer writer/version result; its threshold is not a libdxfrw or DWG-spec length limit."
+    },
+    {
+      "name": "ACadRust issue #123: malformed counts and allocation",
+      "url": "https://github.com/hakanaktt/acadrust/issues/123",
+      "observed": "The report supplies a generated bit-flip reproducer for count inflation/zero-fill behavior and attacker-sized allocation in ACadRust 0.6.3.",
+      "evidence_ceiling": "Peer safety report and useful hostile-input shape only; no peer limit is transferred to libdxfrw."
+    },
+    {
+      "name": "ACadRust issue #124: malformed-header panic",
+      "url": "https://github.com/hakanaktt/acadrust/issues/124",
+      "observed": "The report describes a malformed header length reaching an out-of-range slice rather than a bounded error on the named peer build.",
+      "evidence_ceiling": "Peer safety report only; local parser status remains governed by local checked bounds and tests."
+    },
+    {
+      "name": "ACadRust issue #132: custom records, named colors, and XDATA loss",
+      "url": "https://github.com/hakanaktt/acadrust/issues/132",
+      "observed": "The report separates raw-DXF-only custom entity/object loss, color-book name group-430 loss, and table/BLOCK_RECORD XDATA retention gaps. A candidate commit asks for reporter retest; the issue remains open.",
+      "evidence_ceiling": "Peer route and version evidence; local routes require separate source-level verification."
+    },
+    {
+      "name": "ezdxf 1.4.5 ACIS FAQ and API",
+      "url": "https://ezdxf.readthedocs.io/en/stable/faq.html",
+      "observed": "Documentation states that SAT/SAB can be read but only SAT is written, ACIS support is limited, and unsupported records may be represented as NONE_ENTITY and lost on export; arbitrary ACIS data cannot generally be loaded and re-exported.",
+      "evidence_ceiling": "DXF structural/raw-carrier boundary only; not a general DWG codec or arbitrary ACIS/B-rep oracle."
+    },
+    {
+      "name": "ACadSharp current mutable AC1032 ASCII sample",
+      "url": "https://github.com/DomCR/ACadSharp/blob/master/samples/sample_AC1032_ascii.dxf",
+      "observed": "Direct read-only inspection of current master showed HATCH records 36E, 371, and 376 with group 92 value 1 and no HATCH group 47 before group 98; the file path is mutable and no immutable commit/hash was established.",
+      "evidence_ceiling": "Does not match the issue #1253 comment's described derived path (92=7), so it cannot verify or refute that claim. Not copied or used as a fixture."
+    },
+    {
+      "name": "ACadSharp issue #1253: HATCH group-47 presence",
+      "url": "https://github.com/DomCR/ACadSharp/issues/1253",
+      "observed": "The report's follow-up says an AutoCAD-saved DXF had group 47 on exactly three derived-path hatches and that removing group 47 everywhere caused TrueView rejection. The currently named mutable public sample does not show the same path flags.",
+      "evidence_ceiling": "Version/producer-specific reported behavior; Autodesk's published field meanings do not define a universal presence predicate."
+    },
+    {
+      "name": "Autodesk HATCH DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2026/JPN/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+      "observed": "The reference identifies group 47 as pixel size and group 92 as bit-coded boundary path flags, including derived bit 4; it does not state the complete group-47 presence/default rule for every producer/version.",
+      "evidence_ceiling": "Field/flag semantics only; not sufficient to select a universal writer predicate."
+    }
+  ],
+  "plan_effect": {
+    "local_findings_added": 0,
+    "top_level_subplans_added": 0,
+    "findings": 134,
+    "top_level_subplans": 76,
+    "implementation_order_changed": false,
+    "validation_cadence_changed": false,
+    "fixture_policy_changed": false,
+    "support_claims_promoted": false,
+    "external_items": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

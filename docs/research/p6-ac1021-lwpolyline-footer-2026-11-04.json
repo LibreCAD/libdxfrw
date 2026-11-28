@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_SOURCE_BACKED_OUTPUT",
+  "scope": "AC1021 fixed-type LWPOLYLINE without strings: add the absent-string bit before existing alignment. Other entities, versions, handle streams and public APIs unchanged.",
+  "authority": "ODA DWG v5.4.1 \u00a720.1 defines the final pre-handle string-present flag. The producer width sample has last width ending at bit 652 and RL boundary 653; no strings are present. The old generated sample ends its last width at bit 784 and sets RL=784; LibreDWG reports a -1-bit handle-stream overshoot. The corrected sample preserves the widths, adds the zero marker and existing alignment, and sets RL=792.",
+  "producer": "Scratch controls authored with ezdxf 1.4.5; ODA File Converter 27.1.0 converted them to AC1021 DWG and then AC1027 DXF. `closed` and `rich` were re-authored using explicit close=True after finding the first author invocation defaulted them to open; only corrected controls are used for those modes. All source/candidate field and graph checks use SHA-bound DWG/DXF pairs. ODA lineage is the separately observed conversion, not established by hashes alone.",
+  "fields": "Three OCS XY points (0,0),(5,0),(5,3); width-only has (.2,.4),(.4,.1),(0,0) widths. Other samples individually cover bulges .25/-.5, per-vertex widths, closed+plinegen, constant width .6, and elevation 2/thickness .5/extrusion (0,1,0), with a rich combination. The source width stream stores two width entries and the generated stream stores a third explicit zero pair; the external DXF shows the same three vertex values. WCS vertices are independently checked, with tilted normal projecting to (0,2,0),(-5,2,0),(-5,2,3).",
+  "outcomes": "Baseline width produces an ODA error file, no DXF and 19 preceding warnings; the fatal identifies AcDbPolyline handle 0x36. Marker-only candidate produces DXF with exact fields and no .err. The other five sampled generated DWGs are byte-identical before/after; source and corrected outputs for all six pass graph, field and DXF/WCS checks. ODA conversion logs are empty, but baseline .err is explicitly retained as the failure signal.",
+  "sample_hashes": {
+    "bulge": {
+      "authored_dxf": "56bdefd225359bc556809e21ecc420fb6c1885cf136933bb8591a31b34efa58a",
+      "producer_dwg": "a5edc2ca3edad53276db211390d69dec4de4af6987f3ac7bbab62f632edb75be",
+      "producer_dxf": "bdb875e484355c756e50061d2234d394ccd61bab39c4d4c78c7c00d61ba3e6f9",
+      "baseline_dwg": "32b3f0c56d03bebfb7cd17abdd47346fb8e541cbcc4de61ece4e58aefc70b40c",
+      "corrected_dwg": "32b3f0c56d03bebfb7cd17abdd47346fb8e541cbcc4de61ece4e58aefc70b40c",
+      "corrected_dxf": "4de0632476a8355f06067cdeb0d754aa8b0be0114500eac925da000aa891809f",
+      "snapshot_dwg": "32b3f0c56d03bebfb7cd17abdd47346fb8e541cbcc4de61ece4e58aefc70b40c",
+      "baseline_output": "03a3e23228df508b28faae4e4485b6bbc8ff67a67383704e57b3779202b4d731",
+      "baseline_output_kind": "DXF"
+    },
+    "width": {
+      "authored_dxf": "02d2139fdcff66d775c80bb453c588b68026ef95ac9565464809ca1bedf59a79",
+      "producer_dwg": "b31ae14a8b8fe1ddac056761257c015cfe669bd11aaf7ea82ddade75f9e19983",
+      "producer_dxf": "bebf7355359d020ca35a9708bc966dd263ee82ca50433678d322da7b48bbfda5",
+      "baseline_dwg": "81d855831ec9b985ef3f6784115995729eff1c4e1aca77992bdf5f9b29bde381",
+      "corrected_dwg": "7ce440dc43b51c07e6ef29c56dfa064e167ae9fbeeee88c03fa3fa17a5ca6b6a",
+      "corrected_dxf": "8a3892fface54bd4748abac68d970fb0bcbfd4524339b25a26c80d3cdfe7f78e",
+      "snapshot_dwg": "7ce440dc43b51c07e6ef29c56dfa064e167ae9fbeeee88c03fa3fa17a5ca6b6a",
+      "baseline_output": "babc0de1a4f69c25ef0decaa2ba862c7d2822c8e1e686284dadd7d400bad2deb",
+      "baseline_output_kind": "ERR"
+    },
+    "closed": {
+      "authored_dxf": "091919e2162c81a35e6449f96101b21db1a02f31ba4c211e4993f2f710f922bb",
+      "producer_dwg": "59d75bfb3a0a9411355c722e99521cb701fc6f787a2d4818c081d9b571cee681",
+      "producer_dxf": "2020e58102059a0a760968a295ced7c8ca1dd8fa93bc74816207e02c89562e8f",
+      "baseline_dwg": "fe85f286537d03fca6a28e69d6d19360a44af544a12a6c4cde3c089409be7add",
+      "corrected_dwg": "fe85f286537d03fca6a28e69d6d19360a44af544a12a6c4cde3c089409be7add",
+      "corrected_dxf": "42fef50bc68eb54f22a590e910798e7df838ea2128076ee9f5ae009729690352",
+      "snapshot_dwg": "fe85f286537d03fca6a28e69d6d19360a44af544a12a6c4cde3c089409be7add",
+      "baseline_output": "20928d085422d1e324b5cfc36d620d27f6be7bf92e4947d73c7f07b5b2f79a8f",
+      "baseline_output_kind": "DXF"
+    },
+    "tilt": {
+      "authored_dxf": "8c46f52e3bcfd76e4292792380949ee6b76a334174abfab0407bf68b85e2c391",
+      "producer_dwg": "7f5a1ada77532595ca5930b08972b7f73524cdf0b1ae69fdd11a5f75d450feb8",
+      "producer_dxf": "fd2fdcf79e3d1e64aa3915d5ac3836d56bac0720a78950dbae7be7b7231eac32",
+      "baseline_dwg": "7747616cfdfba373d35b82d61740afbf992819aef3aba102d54932db8e74c9ba",
+      "corrected_dwg": "7747616cfdfba373d35b82d61740afbf992819aef3aba102d54932db8e74c9ba",
+      "corrected_dxf": "0c655516ae168eff3fc48837e9c6d8f4b240f8130e3ae6ae6773b946aafd1001",
+      "snapshot_dwg": "7747616cfdfba373d35b82d61740afbf992819aef3aba102d54932db8e74c9ba",
+      "baseline_output": "afbaaaabe17ca367d1b7f8fe17e420006be4ba9b958bb78206c8f2baea37a233",
+      "baseline_output_kind": "DXF"
+    },
+    "rich": {
+      "authored_dxf": "beede01ba680d8b2ab65a74d4ee332487e6a2eb2a39c3cbb5ab5895eda2a8882",
+      "producer_dwg": "63a03f7cff2dbaeaa1c5f6187fd90070153ec77951fcf5f60002b2aeed0f629a",
+      "producer_dxf": "22f641fd37f7e8d0b24b9bddee64b473964af66e1afa6581eae0451ec127c776",
+      "baseline_dwg": "70275372fc2add777369e837c44d26cdfb5e5d02b45c52fecaeb7962d37375b0",
+      "corrected_dwg": "70275372fc2add777369e837c44d26cdfb5e5d02b45c52fecaeb7962d37375b0",
+      "corrected_dxf": "cb5ff4b4bdc943cd668f2bb33db6b1b44fdbd9802ea3cd51b7c7fefa26ad44af",
+      "snapshot_dwg": "70275372fc2add777369e837c44d26cdfb5e5d02b45c52fecaeb7962d37375b0",
+      "baseline_output": "d919f9a77da0793b032fb9bb28807fa5baafcd0fadfeeb83e252d1e29f4c1a20",
+      "baseline_output_kind": "DXF"
+    },
+    "constant": {
+      "authored_dxf": "1c623cd217598f7a1ee5dc30315ed0ce3a99d1dc29ef3070fb79291f66a633cf",
+      "producer_dwg": "444cb9ee468f792a56485a7559f31e576eaf3d80fa3ba0f4db94800dc810ffd8",
+      "producer_dxf": "b15c8a5a1b6f2bf0a41515d0e7820b6fa8f3a77c0e81d525f0d3b5fc1760ed7c",
+      "baseline_dwg": "5bcabf8d93e2ff8bd8e4e00361dd2de704aeaebe8a0e4dea66ab88eb60a5e14c",
+      "corrected_dwg": "5bcabf8d93e2ff8bd8e4e00361dd2de704aeaebe8a0e4dea66ab88eb60a5e14c",
+      "corrected_dxf": "2771082e53b5fb999276417b0bba350b733e567bd7f647d73270e53380abce0c",
+      "snapshot_dwg": "5bcabf8d93e2ff8bd8e4e00361dd2de704aeaebe8a0e4dea66ab88eb60a5e14c",
+      "baseline_output": "be8377165ff6f81484c128357f22aa32d2cca7cf228cd5d143ea29a9380b2ee4",
+      "baseline_output_kind": "DXF"
+    }
+  },
+  "baseline_width_err_sha256": "babc0de1a4f69c25ef0decaa2ba862c7d2822c8e1e686284dadd7d400bad2deb",
+  "patch_sha256": "d7780e1f997e396df7e5ac29228105d991d45d82fa8f1e9bb13e6eab9d8e327f",
+  "oda_executable_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+  "dwgread_sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+  "tools_sha256": {
+    "tools/probe_ac1021_lwpolyline_footer.cpp": "428d35bec61c05460ebd6e923f47505c667aec168e10b7b9b50ca11a01f04fef",
+    "tools/author_ac1021_lwpolyline_footer.py": "9749807dfdd7549cc94316aaa3fc6735fbeb56c7f353d6c91b10931bf8968eb9",
+    "tools/audit_ac1021_lwpolyline_footer.py": "f1bc394aaed0594966db4ccab9959568d219a50a4137e047b5cfb413d80979df",
+    "tests/ac1021_lwpolyline_footer_peer_audit_tests.py": "539dbd100404129bbc6b5aa8dafedcfa561eb67f4d97a0324b5250f1b023cc8b",
+    "tests/dwg_local_roundtrip_tests.cpp": "9dad48e84427e3432bf5afdb61e125bc4c49413b480a8e5f2e85bd7518ebedca"
+  },
+  "validation": "Clean isolated -Werror source build; focused frame and peer-negative CTests 2/2. Frame control inspects widths and aligned scalar end, absent bit, CRC/receipt, body-level reconstructed historical frame parse (not a resealed full-frame CRC), truncation/reset/retry, decoded following LINE, and failed-write retry. Red control against exact prior writer fails; restored candidate passes. Hash-bound LibreDWG 0.14 + ezdxf 1.4.5 audit passes 12/12 source/candidate pairs. Three fixture-free peer negatives pass Python and Python -O.",
+  "reproduction": [
+    "Compile tools/probe_ac1021_lwpolyline_footer.cpp against clean candidate libdxfrw, generate MODE into new DWG; modes bulge,width,closed,tilt,rich,constant.",
+    "Author controls with tools/author_ac1021_lwpolyline_footer.py EMPTY_DIR, then ODAFileConverter source-in source-dwg ACAD2007 DWG 0 1 '*.dxf'; ODAFileConverter DWG_DIR DXF_DIR ACAD2013 DXF 0 1 '*.dwg'.",
+    "Run tools/audit_ac1021_lwpolyline_footer.py --mode MODE --dwgread /opt/homebrew/bin/dwgread --dwg FILE --dwg-sha256 HASH --dxf FILE --dxf-sha256 HASH under the ezdxf 1.4.5 interpreter; use source or candidate hashes from this receipt.",
+    "ctest --test-dir BUILD -R '^libdxfrw_(dwg_r2007_lwpolyline_footer|ac1021_lwpolyline_footer_peer_audit)$' --output-on-failure"
+  ],
+  "limits": [
+    "A source producer can preserve a shorter widths array; no claim of matching raw width-array length or byte identity.",
+    "Only these sampled OCS profiles, graph opt-ins and target conversion are evidenced; no general DWG or native application interoperability claim.",
+    "No fixture committed; all binary artifacts and diagnostic traces are scratch-only."
+  ],
+  "integrated_validation": "Built libdxfrw_dwg_local_roundtrip on the integrated candidate and ran the LWPOLYLINE footer, peer-audit negative controls, primitive footer and POLYLINE_3D footer tests: 4/4 passed. The focused LWPOLYLINE footer also passed 1/1 under AddressSanitizer."
+}

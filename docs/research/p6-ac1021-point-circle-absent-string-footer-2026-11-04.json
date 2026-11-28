@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "status": "BOUNDED_POINT_CIRCLE_FOOTER_CORRECTED",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.20 and 20.4.31: R2007 object data ends with a string-stream presence bit before the handle stream; CIRCLE and POINT have no string payload in these modeled profiles.",
+  "physical_source": {
+    "provenance": "ODA File Converter 27.1.0 generated AC1021 DWG from a scratch ezdxf 1.4.5 source containing LINE, POINT, and CIRCLE/ARC with default and tilted normals. ODA converted it back without .err.",
+    "sha256": "8f37620c081c0b9a365e4712608ee70ecc6e3ddd3845b468aefe7fbc00ac4681",
+    "trace": "/private/tmp/ac1021-geometry-matrix/source-peer.log",
+    "observation": "LibreDWG 0.14 reports the POINT geometry ending at bit 296, its handles beginning at bit 297; the default CIRCLE geometry ends at bit 360, with handles at bit 361. Generated baseline frames instead declared 296/360 and LibreDWG noted one-bit overshoot. The producer's trailing absent-string bit accounts for the difference."
+  },
+  "change": "For AC1021 fixed POINT and CIRCLE frames with no strings, append a zero absent-string bit before the existing byte alignment. The existing aligned handle assembly and receipt coordinates remain in use. ARC, LINE, all other entity paths and other versions are unchanged. When preexisting zero alignment already supplies the bit, the resulting serialized bytes remain unchanged.",
+  "differential": {
+    "method": "Scratch writer variants share the material+plotstyle opt-ins and differ only in POINT/CIRCLE framing: mode 0 is baseline, mode 1 adds the zero absent bit before existing byte alignment, mode 2 adds it with exact unaligned handles. ODA File Converter 27.1.0 ACAD2007 DXF audit=1 processed 18 generated drawings and the producer control. Results are determined from emitted DXFs and .err files, not process status.",
+    "baseline": "POINT, default CIRCLE, CIRCLE with normals (0,1,0) and (0,0,-1), and mixed LINE/CIRCLE/ARC each fail at the affected primitive, with warnings and no DXF. LINE alone converts without .err.",
+    "mode1_and_mode2": "All five affected drawings and the LINE-only control produce DXF without .err. The LINE-only DWG is byte-identical across modes. Source-exact unaligned handles are not needed for this sample and are not adopted.",
+    "limits": "These are locally generated producer/consumer observations, not a claim about every entity or arbitrary drawings. The material and plotstyle opt-in graphs remain prerequisites for the successful sample; baseline default graph behavior is separately documented."
+  },
+  "final_production": {
+    "scratch": "/private/tmp/ac1021-entity-footer/final-in and final-out",
+    "unchanged_arc_controls": "Fresh post-fix default, tilted and negative-normal ARC DWGs are byte-identical to the pre-fix ODA-tested controls: 22eb7d13b724052bbfc00cae282efc61d746a4f4d138ac89bb25267e6a8f5b0a, 1c49b3f058e0d888cec2bf5a18b336f40ed25290713cb7c3c4d66465f4208ea2, and b553fab9dfeb80ad24f6ce81e7a2fe60eca25a29a988854fb7bafcb8c9fdfa23. LibreDWG and ezdxf checks pass against the prior ODA DXF outputs; ODA was not rerun on these identical ARC bytes.",
+    "oda": "Six fresh production drawings and the producer control yielded DXF, no .err, and zero-byte stdout/stderr. The fresh DWG hashes are identical to the aligned scratch mode 1. LibreDWG 0.14 and ezdxf 1.4.5 checks cover graph references, geometry, extrusion/thickness and represented coordinates, including OCS-to-WCS centers for sampled normals. DXF hashes are per-run bindings; converter metadata may vary.",
+    "outputs": [
+      {
+        "mode": "point",
+        "dwg": "20bcbaa44938bb9ef7cd551c0ec3217346ade8db3414243c17d74fb0fedf1739",
+        "dxf": "c3fdc4e04172dfa38809a6f6cc116293836882f44fc715882e2329dfe1ff1d8f"
+      },
+      {
+        "mode": "circle",
+        "dwg": "4456c49fd80eb3964661750f6ff390dea826122c4b2eab3a3bb0492dcb9bf58b",
+        "dxf": "5da06796eece452b0ba3445fbac243d552da7c9fb8c6bf618922c7228716c438"
+      },
+      {
+        "mode": "circle_tilt",
+        "dwg": "5197ecbf5552f419fc861997acb3f2c5ce51bbea1c5f705bb206c03ca571483c",
+        "dxf": "19a67743514dfa78ffd66c05e94e1eef573faf6136fa59735e8644aa0eb841fb"
+      },
+      {
+        "mode": "circle_negative",
+        "dwg": "f8d0df0aed76f2f18090bddcc87e0f53d9a47f1771690db994fa4d21ce9bb667",
+        "dxf": "f799f756765b78cb2d23ce13734e19dfa6fc8de74f888340aafdfc1f23bfe6cb"
+      },
+      {
+        "mode": "line",
+        "dwg": "aac8f6cae5f5abc3e932ff172be94b523e2a9a3bbe0739368eb716498a0af639",
+        "dxf": "7167cc6fd965555ecbb91d07f86b3e83f9e9572ad06f4ca28226820fe5b6480d"
+      },
+      {
+        "mode": "mixed",
+        "dwg": "f25931c58616407f66484f3b8388a8308d8a7a7d836459a6764411f1275f44dc",
+        "dxf": "623c4835acf1ae79cbc68c355d356c81b8c69da838546ec60abdfe369e98bcd8"
+      }
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j 4",
+    "selectors": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_r2007_primitive_footers|libdxfrw_dwg_r2007_layer_string_boundaries|libdxfrw_dwg_r2007_generic_control_boundaries|libdxfrw_dwg_block_control_handle_boundary|libdxfrw_dwg_default_material_optin|libdxfrw_dwg_header_writer_sealing)$' --output-on-failure",
+    "result": "6/6 passed",
+    "coverage": "CRC-validated POINT and CIRCLE frames across sampled normals, scalar end and absent footer, geometry/readback, historical aligned-frame reconstruction and native read, truncation/retry, failed-entity buffer rollback and retry, and a following LINE. Existing neighboring control, layer and transaction selectors also pass.",
+    "external_verifier": "tools/audit_ac1021_geometry_peer.py with SHA-bound DWG and DXF, LibreDWG 0.14 and ezdxf 1.4.5. It checks the represented material/plotstyle graph, named geometry, extrusion and sampled OCS/WCS projections; the DXF association is the recorded ODA scratch run.",
+    "isolated_address_sanitizer": "Clean archive of 1395ad5b plus only the staged CMake, writer and local-roundtrip test changes built with AddressSanitizer; libdxfrw_dwg_r2007_primitive_footers passed 1/1, excluding concurrent SUNSTUDY changes."
+  },
+  "limits": [
+    "Only the sampled AC1021 writer profiles, opt-in graphs, ODA version and host are qualified; no generic entity, arbitrary-normal, native editing or rendering claim follows.",
+    "The no-opt-in material graph remains a distinct unresolved LAYER failure.",
+    "No binary fixtures were added."
+  ]
+}

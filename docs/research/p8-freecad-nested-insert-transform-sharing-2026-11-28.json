@@ -1,0 +1,165 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-nested-insert-transform-sharing-2026-11-28",
+  "supportClaimEffect": "none",
+  "freecadBase": "477a7041803823a1fcae528133cb07ee5533b1b2",
+  "candidate": "31 ordered local patches; no FreeCAD commit or submission",
+  "change": "For flattened nested block INSERTs, apply scale, then rotation, then insertion translation; request shared topology for rigid transforms while leaving FreeCAD TopoShape to copy scale and reflection cases.",
+  "checks": [
+    "The original candidate incorrectly scaled the insertion translation: a nested instance at (20,0) with factor two produced endpoints near (42,2), not (22,2). A generated six-case control also exposed nonuniform scale, reflection and rotated nonuniform-scale placement errors.",
+    "The fixed flattened and parametric modes match independently generated ezdxf 1.4.5 virtual-entity endpoints for translation, rotation, uniform scale, nonuniform scale, reflection and rotated nonuniform scale. The independent locally authored source has no ezdxf audit errors or fixes.",
+    "The flattened control checks that the two rigid instances share topology with the separately inserted original, while transformed coordinates and the sibling original remain correct. The FreeCAD TopoShape implementation forces copies for scaling and reflection; the checked nonuniform path also copies geometry.",
+    "A single local before/after macOS ARM64 headless run of a depth-12 shared graph containing 4096 leaf lines reported 0.180832 s and 131350528 bytes peak RSS before, versus 0.011765 s and 93503488 bytes after. These measurements include earlier cases in the same process and are indicative, not a controlled benchmark or a total memory bound.",
+    "The 31-patch chain replays byte-for-byte against the verified FreeCAD archive and candidate checkout; the native macOS ARM64 headless probe passes 26 tests without skips. The source-release inventory self-test passes."
+  ],
+  "localScaleRun": {
+    "before": [
+      {
+        "mode": 2,
+        "depth": 5,
+        "length": 32.0,
+        "seconds": 0.074386,
+        "peakRssBytes": 79265792,
+        "unsupported": []
+      },
+      {
+        "mode": 2,
+        "depth": 8,
+        "length": 256.0,
+        "seconds": 0.011443,
+        "peakRssBytes": 80068608,
+        "unsupported": []
+      },
+      {
+        "mode": 2,
+        "depth": 11,
+        "length": 2048.0,
+        "seconds": 0.037745,
+        "peakRssBytes": 85852160,
+        "unsupported": []
+      },
+      {
+        "mode": 2,
+        "depth": 12,
+        "length": 4096.0,
+        "seconds": 0.069701,
+        "peakRssBytes": 93929472,
+        "unsupported": []
+      },
+      {
+        "mode": 3,
+        "depth": 5,
+        "length": 32.0,
+        "seconds": 0.005959,
+        "peakRssBytes": 94060544,
+        "unsupported": []
+      },
+      {
+        "mode": 3,
+        "depth": 8,
+        "length": 256.0,
+        "seconds": 0.013392,
+        "peakRssBytes": 94273536,
+        "unsupported": []
+      },
+      {
+        "mode": 3,
+        "depth": 11,
+        "length": 2048.0,
+        "seconds": 0.084589,
+        "peakRssBytes": 109723648,
+        "unsupported": []
+      },
+      {
+        "mode": 3,
+        "depth": 12,
+        "length": 4096.0,
+        "seconds": 0.180832,
+        "peakRssBytes": 131350528,
+        "unsupported": []
+      }
+    ],
+    "after": [
+      {
+        "mode": 2,
+        "depth": 5,
+        "length": 32.0,
+        "seconds": 0.078338,
+        "peakRssBytes": 79265792,
+        "unsupported": []
+      },
+      {
+        "mode": 2,
+        "depth": 8,
+        "length": 256.0,
+        "seconds": 0.010997,
+        "peakRssBytes": 80150528,
+        "unsupported": []
+      },
+      {
+        "mode": 2,
+        "depth": 11,
+        "length": 2048.0,
+        "seconds": 0.038635,
+        "peakRssBytes": 86327296,
+        "unsupported": []
+      },
+      {
+        "mode": 2,
+        "depth": 12,
+        "length": 4096.0,
+        "seconds": 0.076928,
+        "peakRssBytes": 93421568,
+        "unsupported": []
+      },
+      {
+        "mode": 3,
+        "depth": 5,
+        "length": 32.0,
+        "seconds": 0.005307,
+        "peakRssBytes": 93437952,
+        "unsupported": []
+      },
+      {
+        "mode": 3,
+        "depth": 8,
+        "length": 256.0,
+        "seconds": 0.007375,
+        "peakRssBytes": 93454336,
+        "unsupported": []
+      },
+      {
+        "mode": 3,
+        "depth": 11,
+        "length": 2048.0,
+        "seconds": 0.010412,
+        "peakRssBytes": 93503488,
+        "unsupported": []
+      },
+      {
+        "mode": 3,
+        "depth": 12,
+        "length": 4096.0,
+        "seconds": 0.011765,
+        "peakRssBytes": 93503488,
+        "unsupported": []
+      }
+    ]
+  },
+  "evidenceSha256": {
+    "patch": "bc13f9d0616f1e3bd0a588ba22dc8c9154e7113ba91ebbb9e9045631f272733e",
+    "red": "72734cd973624bc45ac74c9615c2e749cab702fffddd98b209416599d2beef41",
+    "beforeRun": "a516ebbabb5cc6d9f22388fb993d91be1db01377ddca159270f5ec6ff6241b08",
+    "afterRun": "f8ef797f253e30cbd603d4598a145fe2a358b30938b705bbe988267e9a7c628c",
+    "ezdxfPeer": "827c627a70d3562d188e3af5cd7c58aa41ee58c1caa545132d24e72994ff3a54",
+    "verifiedReceipt": "c7efc47d2d444e40cdd8e535b0621ab5922a16a3f5eb9d8ec8f92934cfd20f15",
+    "headlessProbe": "30ff29c5cade2a62dca7f360dc6e9ff74dcee754156d8d76f9beaf0b50c82601",
+    "importModule": "e0e9c79790f07eae4ab8e5807968fb4c4c555183e941156e4856f3af6d3e3943"
+  },
+  "verifiedReceipt": "/private/tmp/freecad-block-transform-verified2-20261128/freecad-candidate-probe-1rzvndgu/receipt.json",
+  "limits": [
+    "Only zero block base point, default extrusion, selected planar LINE instances and the tested transforms are checked. Qualify nonzero base points, arbitrary OCS, other entities, native GUI, other platforms and independently authored drawings separately.",
+    "Shared topology reduces copying but traversal or rendering of a very wide expanded graph can still take work proportional to the visible instance count; the local RSS measurement is not a memory cap.",
+    "This is a downstream local FreeCAD candidate, not an upstream FreeCAD commit or general DWG/DXF support claim. No drawing fixture is committed."
+  ]
+}

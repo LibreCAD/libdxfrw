@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 EVALUATION_GRAPH expression-target closure",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Close the ordinary DXF EVALUATION_GRAPH node-to-expression handle gap with a generated fail-closed control.",
+    "Retain the ASCII/Binary owner, NOD identity, cardinality, expression-target, and atomic-publication checks in the existing selector.",
+    "Keep ACDS history expression closure under its existing separate typed BOX validator; add no new test target or fixture."
+  ],
+  "sourceChange": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "testFile": "tests/dwg2dxf_adapter_tests.cpp",
+    "change": "prepareExtensionObjectGraph now indexes source BLOCK_RECORD and top-level entity handles when ordinary EvaluationGraph objects are present, then requires every node's expression handle to resolve to an inventoried source object/entity before publication. The generated ASCII and Binary controls mutate a valid LINE expression edge to a missing handle and require strict export refusal, the exact graph diagnostic, and preservation of an existing destination sentinel.",
+    "reason": "A test-first mutation showed that writeEvaluationGraph remapped an unknown group-360 expression handle by identity and emitted the dangling reference. The existing adapter route already asserts that a valid expression resolves to exactly one LINE, so the missing-target refusal closes that same source-backed graph edge without claiming expression semantics beyond handle identity.",
+    "productionBehaviorChanged": true
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --evaluation-graph-capture-limits",
+      "result": "PASS (ASCII and Binary DXF; expected over-budget refusal diagnostics remain in the negative controls)"
+    },
+    "owningAndAdjacentCTests": {
+      "command": "ctest --test-dir build-gcc -R '^(dwg2dxf_evaluation_graph_capture_limits|libdxfrw_named_resource_import_evidence|dwg2dxf_acds_history_dwg_frame_capture_limits)$' --output-on-failure",
+      "result": "PASS (3/3; 0.17 sec; ordinary object graph and separate ACDS history path)"
+    },
+    "scopedDiffCheck": "PASS",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": true,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

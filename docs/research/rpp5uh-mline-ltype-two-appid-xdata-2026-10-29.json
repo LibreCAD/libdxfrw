@@ -1,0 +1,68 @@
+{
+  "id": "RPP-5uh",
+  "title": "MLINE-referenced simple LTYPE with two APPID/XDATA pairs",
+  "date": "2026-10-29",
+  "status": "QUALIFIED_SELECTED_TRANSPORT_PROFILE",
+  "implementation_commit": "0241d00f",
+  "scope": {
+    "version": "AC1027",
+    "source": "Runtime-generated LTYPE and APPID records; no repository drawing fixture is used or added.",
+    "source_encoding": ["ASCII DXF", "binary DXF"],
+    "output_encoding": ["ASCII DXF", "binary DXF"],
+    "cross_product": "Both source encodings were exported to both output encodings.",
+    "linetype": "EditDash, two simple dash segments [1.0, -0.5], declared length 1.5, source flags 0, alignment 65.",
+    "appid_providers": [
+      {
+        "name": "MLINE_LTYPE_XDATA",
+        "source_handle": "0x1F1",
+        "source_owner": "0x1F0",
+        "flags": 0,
+        "optional_metadata": "absent"
+      },
+      {
+        "name": "MLINE_LTYPE_XDATA_2",
+        "source_handle": "0x1F2",
+        "source_owner": "0x1F0",
+        "flags": 0,
+        "optional_metadata": "absent"
+      }
+    ],
+    "xdata": [
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA" },
+      { "code": 1000, "value": "provider-owned-xdata" },
+      { "code": 1001, "value": "MLINE_LTYPE_XDATA_2" },
+      { "code": 1000, "value": "second-provider-owned-xdata" }
+    ]
+  },
+  "proof": {
+    "source": "Physical source fields and fresh import verify the exact ordered XDATA pairs and both APPID records. Import-time origin, raw/typed equality, ordered AppIdName references, and unique APPID-name joins bind both providers.",
+    "output": "The staged output proof checks the selected LTYPE's exact ordered 1001/1000 pairs, both APPID rows' common fields, flags and emitted table owner, then imports the output and checks typed XDATA values and unique APPID names.",
+    "failure_retry": "For each source/output encoding pair, removing the second APPID provider refuses export and preserves the destination sentinel; restoring it succeeds on the same adapter. A late mutation of the second APPID name also refuses atomically and succeeds after correction on the same adapter.",
+    "counts": {
+      "positive_profiles": 8,
+      "successful_readbacks": 18,
+      "refusals_with_destination_preservation": 10,
+      "same_adapter_retries": 10
+    }
+  },
+  "validation": {
+    "fixture_test_build": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j2",
+    "fixture_test_build_result": "PASS",
+    "production_build": "cmake --build build-gcc --target dwg2dxf -j2",
+    "production_build_result": "PASS",
+    "focused_command": "ctest --test-dir build-gcc -R '^libdxfrw_mline_ltype_(provider_profiles|appid_xdata|text_style_provider|shape_style_provider|mixed_segments|reverse_shape_text)$' --output-on-failure",
+    "focused_result": "PASS (6/6)",
+    "asan_build": "cmake --build build-asan-custom --target libdxfrw_dxf_fixture_tests -j2",
+    "asan_build_result": "PASS",
+    "asan_command": "ctest --test-dir build-asan-custom -R '^libdxfrw_mline_ltype_appid_xdata$' --output-on-failure",
+    "asan_result": "PASS (1/1)",
+    "runtime_counts_command": "build-gcc/libdxfrw_dxf_fixture_tests --mline-ltype-appid-xdata",
+    "runtime_counts_result": "profiles=8; readbacks=18; refusals=10; retries=10",
+    "test_source": "tests/dxf_fixture_tests.cpp::mlineLtypeAppIdXdataControls",
+    "no_repository_fixtures_added": true
+  },
+  "limits": [
+    "This qualifies one selected AC1027 simple-LTYPE profile with exactly two ordered 1001/1000 pairs and two distinct bare source-bound APPID providers. Zero, one, and two pairs are admitted by this selected path; other XDATA codes, three-or-more pairs, APPID metadata, other LTYPE schemas and versions remain unqualified.",
+    "The receipt establishes transport only. It does not qualify native XDATA application behavior, MLINE rendering, recursive document closure, or broader LTYPE provider support."
+  ]
+}

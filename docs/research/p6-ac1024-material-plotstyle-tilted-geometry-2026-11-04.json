@@ -1,0 +1,22 @@
+{
+  "scope": "One scratch AC1024 writer profile with explicit default MATERIAL and PLOTSTYLE opt-ins; LINE plus tilted CIRCLE and ARC. This does not claim support for other versions, colors, linetypes, authored 3D entity families, arbitrary normals, or already-applied extrusion state.",
+  "reproducibility": {
+    "generator": "tools/probe_ac1024_tilted_geometry.cpp: c++ -std=c++17 -Wall -Wextra -Werror -I src tools/probe_ac1024_tilted_geometry.cpp build-gcc/libdxfrw.a -lz -o /private/tmp/probe_ac1024_tilted_geometry; invoke with a scratch output DWG path",
+    "independent_author_and_inspector": "tools/audit_ac1024_tilted_geometry.py with ezdxf 1.4.5 and GNU LibreDWG 0.14",
+    "oda": "ODA File Converter 27.1.0: ACAD2013 DXF conversion, inspect actual output and .err; generated-file conversion produced DXF and no .err",
+    "files": "All drawings are locally generated scratch files; no fixture is committed."
+  },
+  "generated": {
+    "dwg_sha256": "7067ffb9cfe27630f80338aac9f3d6441a7834273d1f066ee444c6cb974fa882",
+    "oda_dxf_sha256": "fe3ca17007546fb8972cde5dd44f3961546ff3c9518c08446e9514b2011dbd0d",
+    "libredwg": "LINE (1,2,3)->(4,5,6); CIRCLE center (7,8,2), radius 2.5; ARC center (10,11,3), radius 4, angles 0.25/1.25 radians; both normal (0,1,0).",
+    "ezdxf": "LINE endpoints preserved; CIRCLE/ARC DXF OCS centers, radii and extrusion match the stated fields, with ARC angles converted to degrees. WCS centers obtained from ezdxf OCS are (-7,2,8) and (-10,3,11); the two WCS ARC endpoints match the independently evaluated basis X=(-1,0,0), Y=(0,0,1)."
+  },
+  "independent_source": {
+    "author": "ezdxf-authored R2010 DXF with the same OCS fields; ODA ACAD2010 DWG conversion; GNU LibreDWG independent physical decode",
+    "authored_dxf_sha256": "6e5dc8a1f06ec16296330faf460394b6ac0cf2f615204d65ba2840847881a033",
+    "oda_dwg_sha256": "05de1c87707740b9f5b7d569dc928f3aa43b5ceb876f90a282f04d8c9ed24cc0",
+    "observed": "LibreDWG decodes the same native center, radius, normal and angle values as the generated DWG for this specific normal and source profile. The authored DXF OCS geometry therefore provides a peer producer comparison for this test, not proof for arbitrary coordinate transforms."
+  },
+  "limitation": "The generator supplies authored, un-applied entity fields. It does not exercise the separate explicit conversion API for entities already transformed to WCS. No claim is made for default layer linetype fidelity or broader graph semantics."
+}

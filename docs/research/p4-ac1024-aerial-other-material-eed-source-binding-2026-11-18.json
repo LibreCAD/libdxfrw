@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-other-material-eed-source-binding-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SIX_NON_GLOBAL_MATERIAL_EED_PROFILES_SAME_IMPORT_SOURCE_BOUND",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "provenance": "Existing local aerial sample. Producer authentication is not established; this receipt extends the local-corpus evidence in p4-ac1024-aerial-material-eed-appid-source-2026-11-18.json.",
+    "appid": "Same-import ACAD APPID handle 0x12 source proof."
+  },
+  "profiles": [
+    {"handle":"0x2c2","frameSha256":"5a42df2b48ca8f66b7abc3703a43feae22a979b851d8ff11c24ff28b9153e06c","eedBits":[34,222],"signedValues":[-1,3,1,72,0]},
+    {"handle":"0x2cc","frameSha256":"334c593d0035b3cd91b2bc45170d590c1a41c3127fddba086ca309b583bc2923","eedBits":[34,222],"signedValues":[-1,3,1,72,0]},
+    {"handle":"0x2d6","frameSha256":"b3a3f716c041c9b4fdd4fe460e2e108f1a156d312ec1fd3427bc1cb31543f793","eedBits":[34,222],"signedValues":[-1,3,1,72,0]},
+    {"handle":"0x2e0","frameSha256":"1fd718f9646fec4490f4e78ac5119d3d7d52887ca7425f0c4bf375bcfb55c9c7","eedBits":[34,222],"signedValues":[-1,3,1,8,0]},
+    {"handle":"0x2ea","frameSha256":"0e90bf252f8c624522aa42ab41035be90e7c6bddc8eedcb190d1fea03da3d2b8","eedBits":[34,222],"signedValues":[-1,3,1,0,0]},
+    {"handle":"0x32e","frameSha256":"578cb79e97e18162f428ed8c417227905fc9cdfaff31d6dcd38ff47113535ec1","eedBits":[34,222],"signedValues":[-1,3,1,0,0]}
+  ],
+  "implementation": {
+    "observer": "dx_ac1024_material_eed_wire::observeProfile checks class type/self handle, exact physical-profile EED span, one 20-byte EED chunk, six typed items, exact codes and values, zero terminator, and same-import ACAD APPID provenance.",
+    "binding": "Each frame is captured from its class publication during the same read attempt, then bound to one unique typed MATERIAL record, raw frame bytes, adapter/data owner, import generation, completed class attempt, and APPID source proof. Qualification rechecks every binding and observer condition.",
+    "scope": "Source binding only. These six records are not admitted to output and the full MATERIAL root is not admitted."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-material-appid-source-capture tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS. The existing Global profile and all six non-Global profiles qualify only in the original same-import adapter/data context.",
+    "sourceMutations": "PASS 1,128 individual EED bit flips across the six records; every changed frame is rejected and restored source requalifies. Per-record typed-value, APPID-name, publication-offset and failed-capture mutations also reject and recover. A separate adapter cannot reuse the proof.",
+    "buildFirstAttempt": "The first focused build caught and then fixed a missing final brace in the profile array; the successful build above is clean."
+  },
+  "limitations": [
+    "The frame source is the existing local sample and does not authenticate the producer or establish native MATERIAL semantics.",
+    "Only EED fields are observed here; the remaining MATERIAL body fields, dependencies, graph closure, strict output, and independent readback remain open.",
+    "This evidence does not promote a support claim."
+  ],
+  "next": "Batch TILE and FBXASSET validation on their nondefault profiles. In parallel source-bind one ADVMATERIAL compatibility case, then apply the bounded compatibility check to the remaining out-of-range records. Close every MATERIAL class body and graph edge before full-root output admission."
+}

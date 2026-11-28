@@ -1,0 +1,29 @@
+{
+  "id": "p5-ac1018-table-source-replay-reference-boundary-2026-11-11",
+  "scope": "code-path audit for a future source-bound AC1018 TABLE raw-frame replay API",
+  "status": "replay-remains-refused",
+  "observed": {
+    "rawReplayPatches": [
+      "custom class number when remapped",
+      "entity handle",
+      "custom entity block owner when it changes"
+    ],
+    "rawReplayDoesNotPatch": "nested handle references inside the retained TABLE body",
+    "existingTypedClosure": "dwgWriter15::hasClosedAc1018TableBlockGraph validates the modeled *T block, TABLESTYLE, layer/linetype, extension dictionary, selected row text styles, and related typed graph edges; it does not enumerate arbitrary references encoded only in retained TABLE ranges."
+  },
+  "evidence": [
+    "src/intern/dwgwriter15.cpp: dwgWriter15::replayRawObject patches class, own handle and custom entity owner before framing the body.",
+    "src/intern/dwgwriter15.cpp: dwgWriter15::hasClosedAc1018TableBlockGraph checks the typed TABLE graph.",
+    "src/drw_objects.h: DRW_DwgSubrecordRange retains source range metadata and raw handle code, not decoded target identities."
+  ],
+  "required_before_replay": [
+    "Prove retained ranges contain no handle fields, or decode each reference role and bind it to the exact emitted target identity.",
+    "Bind source frame identity and immutable typed snapshot, including all range fields.",
+    "Preserve stale-mutation refusal, transaction rollback/retry, graph closure and fresh readback."
+  ],
+  "validation": "Read-only source inspection; no writer behavior was changed by this audit.",
+  "limits": [
+    "This audit does not prove that any particular retained TABLE range contains a handle field.",
+    "It does not authorize raw replay or broaden TABLE output support."
+  ]
+}

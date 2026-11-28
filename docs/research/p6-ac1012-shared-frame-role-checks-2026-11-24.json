@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-shared-frame-role-checks-2026-11-24",
+  "date": "2026-11-24",
+  "status": "LOCAL_AC1012_FRAME_AND_ROLE_CHECKS_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.13 HANDLE REFERENCES",
+      "20.1 Common non-entity object format",
+      "20.4.44 DICTIONARY",
+      "20.4.74 DICTIONARYVAR"
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_ac1014_dictionaryvar_tests.cpp"
+    ],
+    "changes": [
+      "DICTIONARY now uses the common version-aware object body/string bounds resolver also used by DICTIONARYVAR.",
+      "Dictionary mode fields are decoded through one version table for plain and default dictionaries.",
+      "Common-object, dictionary-entry, and default-entry handle roles share bounded role predicates while preserving relative soft-pointer rules and typed-null behavior.",
+      "AC1012 and AC1014 inline bodies must end exactly at their declared boundary; AC1012 DICTIONARYVAR now validates common handle roles and qualifies its tail only when byte alignment is the sole remainder.",
+      "AC1012 and AC1014 DICTIONARY and DICTIONARYVAR now require a nonzero declared inline object-data boundary before validating the decoded body.",
+      "Legacy DICTIONARYVAR common-link references now use the shared 32-bit representability guard before publication, preventing parent, reactor, or extension-dictionary aliases."
+    ],
+    "fixturePolicy": "Generated controls are in-memory test vectors. No DWG or DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j2 passed",
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+      "result": "passed 1/1; labels cover AC1012, AC1014, and AC1015",
+      "testBinarySha256": "5bfd86f4094fc290fff7865574baff8be04833dabab0b8d495859558a2abd975"
+    },
+    "newAc1012DictionaryVarControl": [
+      "valid frame and expected decoded values",
+      "wrong parent, reactor, and extension-dictionary role refusal",
+      "five-byte 0x100000001 parent, reactor, and extension-dictionary reference refusal",
+      "undeclared body-suffix refusal",
+      "all byte truncations refused",
+      "same-object corrected retry after each refusal",
+      "zero declared object-data boundary refused, parser reset, corrected same-object retry accepted"
+    ],
+    "generatedAc1012DictionaryControl": [
+      "zero declared object-data boundary refused, parser reset, corrected same-object retry accepted",
+      "existing parent/reactor/extension/item role refusal, truncation refusal, and corrected retry still pass"
+    ],
+    "followUpValidation": {
+      "platform": "macOS ARM64",
+      "compiler": "Apple clang version 21.0.0.21000334",
+      "build": "cmake --build build --target libdxfrw_dwg_ac1014_dictionaryvar_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_reader_matrix_tests -j2 passed",
+      "focusedCtest": {
+        "command": "ctest --test-dir build --output-on-failure -R '^(libdxfrw_dwg_ac1014_dictionaryvar|libdxfrw_legacy_dictionary_group_links|libdxfrw_dwg_table_cell_overrides|libdxfrw_ac1021_table_content_reference_roles|libdxfrw_ac1024_table_content_spec_vectors|libdxfrw_dwg_r2007_class_string_footer)$'",
+        "result": "PASS 6/6; 0.43 seconds"
+      },
+      "sourceSha256": "799c4ea0a104f6185dcc5cd08a4ed9dc3619c5df7f331b853a2ee99dfbf644e1",
+      "testSourceSha256": "059c6effd6ae899adbc9f1f09fca8b82ce42669e918fa7c64ba82ab01d37f2dc",
+      "testBinarySha256": "3dcd7dcce75b7c28a570a4263b4b6745692b29de06cd3e0880e2a00862d873db"
+    }
+  },
+  "limits": [
+    "The new AC1012 DICTIONARYVAR vector is generated locally from the documented field order, not an AutoCAD producer sample.",
+    "The new wide-reference controls prove fail-closed representability, parser reset, and retry only; they are not producer-authored DWG samples.",
+    "The focused parser tests do not establish native AutoCAD dictionary cloning or duplicate-key merge behavior.",
+    "Strict AC1012 output remains guarded; no support claim is promoted.",
+    "The zero-boundary regression vectors are in-memory controls built from ODA field order; they prove parser refusal and retry, not AutoCAD producer behavior."
+  ]
+}

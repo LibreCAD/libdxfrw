@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "R24 TABLESTYLE DWG writer for AC1024 and AC1027",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": {
+    "versions": [
+      "AC1024",
+      "AC1027"
+    ],
+    "specification": "Open Design Specification for .dwg files v5.4.1, \u00a720.4.101.2-.4",
+    "specificationPath": "/Users/dli/doc/dwg/Open Design Specification for .dwg files (1).pdf",
+    "fields": "R24 TABLESTYLE prefix, table cell style, three cell styles, and modeled text-style/linetype hard-pointer handles",
+    "exclusions": [
+      "AC1032 and other versions",
+      "physical source-output qualification",
+      "complete dependency closure",
+      "DXF schema or native consumer qualification",
+      "independent producer output"
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/intern/dwgwriter15.cpp",
+      "tests/dwg_local_roundtrip_tests.cpp"
+    ],
+    "behavior": "The writer admits the modeled three-style R24 profile for AC1024/AC1027, writes the body and handle streams, and refuses malformed style counts or unsupported CMC forms. The typed local reader verifies generated output and handle roles."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_local_roundtrip -j4",
+    "testCommand": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+    "result": "PASS 1/1, 7.03 seconds",
+    "testBinary": "build-gcc/libdxfrw_dwg_local_roundtrip",
+    "testBinarySha256": "0ed4c3db15cc099e93d73fbdae9ed00b7f607fcd3ef422cf88a59f59f049651d",
+    "coverage": "Generated AC1024 and AC1027 write/readback, expected body fields and hard-pointer text-style/linetype references, malformed profile refusal, unsupported CMC refusal, and follow-up successful writes are checked. Controls are generated locally; no drawing fixture is committed."
+  },
+  "evidenceLimit": "Encoder/parser consistency is not independent physical DWG interoperability or consumer semantic evidence."
+}

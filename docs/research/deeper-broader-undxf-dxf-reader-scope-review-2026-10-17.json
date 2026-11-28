@@ -1,0 +1,144 @@
+{
+  "schema": "libdxfrw-deeper-broader-undxf-dxf-reader-scope-review-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Deepen the existing uncad/undxf peer lead into a route-specific DXF reader assessment, distinguish parser independence from model/projection reuse, and make any future use bounded and implementation-speed neutral.",
+  "method": {
+    "kind": "Read-only primary-source and package-documentation review with local plan reconciliation",
+    "sources": [
+      "https://docs.rs/crate/undxf/0.2.0",
+      "https://docs.rs/crate/undxf/0.2.0/source/CAVEATS.md",
+      "https://docs.rs/crate/undxf/0.2.0/source/Cargo.toml.orig",
+      "https://github.com/iyulab/uncad",
+      "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm",
+      "https://github.com/xorgy/dxfscan",
+      "https://github.com/xorgy/dxfbin"
+    ],
+    "peerRepositoryCloned": false,
+    "peerSourceRevisionPinned": false,
+    "peerCrateVersionReviewed": "undxf 0.2.0",
+    "peerBuiltOrRun": false,
+    "nativeCadOrKernelRun": false,
+    "externalDrawingsDownloaded": 0,
+    "localTestsRun": false,
+    "localBuildsRun": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "evidenceBoundary": "Immutable package-version documentation and mutable project README declarations establish advertised routes and published caveats only. No local parser output, native acceptance, raw carrier retention, or geometric correctness was measured. The package-reported corpus statistics are not independently reproduced in this review."
+  },
+  "evidence": [
+    {
+      "topic": "undxf is an optional independent DXF reader, not a writer",
+      "sources": [
+        "https://docs.rs/crate/undxf/0.2.0",
+        "https://docs.rs/crate/undxf/0.2.0/source/Cargo.toml.orig"
+      ],
+      "observed": [
+        "The MIT-licensed undxf 0.2.0 package describes a read-only ASCII/Binary DXF reader into uncad-model and lists a broad typed entity subset.",
+        "The package reports a 66-of-67 file result on the LibreDWG DXF test corpus and a six-version same-drawing count comparison, while its caveats record unresolved type-count differences on an R14 DXF/DWG pair.",
+        "The package publishes code-page and entity-model caveats; its corpus figures are package-authored test results, not an independently run cross-reader qualification."
+      ],
+      "doesNotEstablish": [
+        "DXF writing or producer diversity",
+        "Universal version/consumer compatibility or native CAD acceptance",
+        "A peer pass from corpus count equality",
+        "Full object/reference graph closure or preservation of arbitrary raw groups"
+      ],
+      "planUse": "Admit exact undxf 0.2.0 only as an optional composed DXF typed-readback candidate. If unavailable, record NOT_RUN and continue. Compare exact overlapping fields against a separately authored expected manifest; do not introduce a required dependency or per-slice run."
+    },
+    {
+      "topic": "Binary DXF is a transport path into the same undxf semantic reader",
+      "sources": [
+        "https://docs.rs/crate/undxf/0.2.0/source/CAVEATS.md",
+        "https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm",
+        "https://github.com/xorgy/dxfbin"
+      ],
+      "observed": [
+        "undxf documents Binary DXF group decoding for R12 one-byte and R13+ two-byte group-code forms, then reads the resulting ASCII-equivalent group stream through the same entity semantics.",
+        "Autodesk documents Binary DXF typed value encodings; a bytewise comparison against ASCII DXF is not meaningful.",
+        "dxfbin documents text-to-binary transport conversion without entity/object interpretation."
+      ],
+      "doesNotEstablish": [
+        "Two independent semantic reader results from feeding ASCII and Binary DXF to undxf",
+        "dxfbin entity interpretation or expected-value truth",
+        "Binary-DXF graph, owner, XDATA, or native-consumer correctness"
+      ],
+      "planUse": "Treat ASCII and Binary as two encoding controls for one reader. Compare decoded values and source identities to one independent manifest. Do not use dxfbin as the semantic oracle or count the two encodings as separate peer votes."
+    },
+    {
+      "topic": "Unknown-entity and ACIS behavior is a bounded projection, not raw preservation or B-rep evidence",
+      "sources": [
+        "https://docs.rs/crate/undxf/0.2.0/source/CAVEATS.md"
+      ],
+      "observed": [
+        "The caveat report says UNKNOWN entities retain a reference ID, layer, color, and type name.",
+        "The documented REGION/3DSOLID path projects ACIS bodies to edge wireframes: SAT through R2010 and SAB/ACDSDATA from R2013; faces are not interpreted, unresolved edges may be skipped, and missing/unreadable bodies remain UNKNOWN.",
+        "The caveats also identify semantic boundaries in other typed fields, including viewport state and text alignment/default behavior."
+      ],
+      "doesNotEstablish": [
+        "Arbitrary unknown-record group sequence or XDATA preservation",
+        "Raw SAT/SAB byte preservation or ACDS owner/key closure",
+        "Closed/manifold B-rep validity, curved-face semantics, or kernel correctness",
+        "Full typed-field equivalence for the entire declared entity set"
+      ],
+      "planUse": "Use unknown-presence accounting only for loss visibility. Score exact API-exposed overlap, and label any analytic-wireframe comparison as projection only. Exclude raw carrier, ACIS semantics, ACDS linkage, graph closure, and native acceptance from undxf-based claims."
+    },
+    {
+      "topic": "uncad lineage and the previously screened binary tools remain non-additive",
+      "sources": [
+        "https://github.com/iyulab/uncad",
+        "https://github.com/xorgy/dxfscan",
+        "https://github.com/xorgy/dxfbin"
+      ],
+      "observed": [
+        "uncad documents DXF parsing through undxf and DWG parsing through LibreDWG FFI; its output is JSON/SVG/PNG and it does not write DWG/DXF.",
+        "dxfscan remains a one-commit, binary-only parser candidate with no release and a declared subset; the prior plan already flags its dxfbin development-dependency coupling for source inspection before any scored use.",
+        "dxfbin is a transport encoder and not an entity parser."
+      ],
+      "doesNotEstablish": [
+        "uncad as an independent DWG reader from LibreDWG",
+        "uncad rendering as a second parser or 3D-solid semantic witness",
+        "dxfscan correctness or independence without a pinned source/test audit"
+      ],
+      "planUse": "Use undxf as the single named DXF route if a composed test chooses it. Do not count uncad/undxf as separate DXF readers or its DWG route as independent from LibreDWG. Keep dxfscan discovery-only and retain its existing dependency/test-independence checks."
+    }
+  ],
+  "planImpact": {
+    "existingOwnersOnly": true,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "perSliceValidationChanged": false,
+    "optionalPeerRunAdded": false,
+    "testsOrRegistrationsAdded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "nextActions": [
+    "Continue implementation using local fast tests; do not build or install undxf during an ordinary implementation slice.",
+    "At the existing composed DXF checkpoint only, if undxf 0.2.0 is already available, compare a minimal source-authored version/mode profile against an independent manifest and record diagnostics, unknowns, references, and scope exclusions.",
+    "Keep ASCII and Binary tests as transport variants of one semantic reader; keep ACIS wireframe, raw carrier, graph, B-rep, and native results separate.",
+    "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonSyntaxChecked": true,
+    "planDiffCheckPassed": true,
+    "localTestsRun": false,
+    "peerRuntime": "NOT RUN",
+    "nativeQualification": "NOT RUN"
+  }
+}

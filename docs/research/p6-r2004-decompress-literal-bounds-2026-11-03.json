@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-03",
+  "authority": "Open Design Specification for .dwg files v5.4.1 section 4.7, R2004 literal run format",
+  "problem": "The input reader supplied zero on an attempted read beyond compressed input and advanced the output counter. An incomplete declared literal could therefore appear to decode successfully.",
+  "minimal_reproduction_before_fix": {
+    "input_hex": "01 41 42 43",
+    "output_window": 4,
+    "observed_success": true,
+    "observed_output_hex": "41 42 43 00",
+    "observed_count": 4,
+    "explanation": "Opcode 01 declares four literal bytes, but the compressed input contains only three."
+  },
+  "change": "Check input availability for the initial and subsequent literal copy, limited to bytes actually requested by the output window. Fail rather than synthesizing a zero. A complete literal ending at the physical input boundary remains an implicit end; explicit 0x11 and window-limited prefix decoding remain accepted.",
+  "validation": {
+    "automated": ["libdxfrw_dwg_decompressor_size_bounds", "libdxfrw_dwg_r2004_system_terminators", "libdxfrw_dwg_r2007_class_string_footer"],
+    "result": "PASS",
+    "cases": "Incomplete initial and post-backreference literals, valid retry on the same decoder, complete implicit and explicit end, output-window-limited prefix, missing reference offset, a complete reference ending at offset bytes with full and partial output windows, existing long literal/backreference and cursor-size guards.",
+    "physical_ac1024": ["architectural_example-imperial", "civil_example-imperial", "mechanical_example-imperial"],
+    "physical_result": "All three existing DWG read CTests passed."
+  },
+  "limits": "This bounded literal-copy correction is separate from the system-page writer terminator and does not establish complete validation of all malformed compressed token encodings or successful ODA output."
+}

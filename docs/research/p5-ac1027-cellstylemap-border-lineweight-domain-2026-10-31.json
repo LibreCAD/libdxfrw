@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-dxf-implementation-receipt-v1",
+  "date": "2026-10-31",
+  "status": "SCOPED_IMPLEMENTATION_COMPLETE_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / AC1027 CELLSTYLEMAP border lineweight domain",
+  "basis": {
+    "authoritativeDwgSpecification": {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "section": "20.4.101.4 Cell style",
+      "finding": "For each border with nonzero edge flags, the body contains a BL lineweight field at the corresponding DXF group 92 position."
+    },
+    "lineWeightDomainSource": {
+      "authority": "Autodesk AcDb::LineWeight reference",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDb__LineWeight.html",
+      "finding": "The exact supported enum is -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40, 50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200, and 211. -4 is internal use only."
+    },
+    "peerProfile": {
+      "receipt": "docs/research/p5-ac1027-tablecontent-single-type-lineweight-2026-10-31.json",
+      "finding": "The same ODA CellStyle field and DXF group 92 are already qualified for TABLECONTENT with the exact Autodesk lineweight domain."
+    }
+  },
+  "profile": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixture": "Runtime-authored CELLSTYLEMAP with one populated border; no drawing fixture files were added.",
+    "coverage": [
+      "Valid lineweight 25 appears in physical group 92 and fresh typed readback",
+      "Valid ByBlock sentinel -2 is accepted on corrected retry and survives fresh readback",
+      "Out-of-enum value 26 is refused",
+      "Internal-only value -4 is refused",
+      "Invalid attempts preserve the destination sentinel and caller value",
+      "Correcting to lineweight -2 allows retry through the same adapter"
+    ]
+  },
+  "implementation": {
+    "files": ["src/libdxfrw.cpp", "tests/dwg2dxf_adapter_tests.cpp"],
+    "behavior": "CELLSTYLEMAP writer preflight now validates every serialized border lineweight against the exact 27-value AcDb::LineWeight enum before staging output. The check applies to the always-present lineweight field for each nonempty border, independently of the override flag.",
+    "fixturePolicy": "All input values are authored in test code at runtime; no external DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS",
+      "compiler": "Apple clang 21.0.0 (configured through /usr/bin/g++)",
+      "cmake": "4.4.4"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_cellstylemap_dxf_writer$' --output-on-failure",
+      "result": "PASS, 1/1; 0.71 seconds"
+    },
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "src/libdxfrw.cpp": "f167650b1231efe6a70e9643bdc12f6c19919d7a490a225a3a3c2308ba3c82e0",
+      "tests/dwg2dxf_adapter_tests.cpp": "6b92e56bfe85411f494da5e352acad67fe5064d768fb7837666426f943144f8d",
+      "focusedExecutable": "150ba7e95ee532a0da23c4e7e19bfd31256369d23460895b03868f4c3b40f23f"
+    }
+  },
+  "limits": [
+    "This qualifies only the AC1027 CELLSTYLEMAP border lineweight value domain and serializer refusal behavior.",
+    "The local writer and reader are exercised together; no independent CAD application, native TABLE rendering, whole-document closure, or public support claim is established."
+  ],
+  "next": "Continue with remaining source-backed CONTENTFORMAT/CELLSTYLEMAP profiles and separately qualified TABLECONTENT edge-mask semantics."
+}

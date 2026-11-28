@@ -1,0 +1,63 @@
+{
+  "date": "2026-11-15",
+  "problem": "LibreCAD_3 interpreted MPOLYGON offset-space boundary coordinates as drawing coordinates and projected the subtype and polygon fields to HATCH. The pinned older libdxfrw also applies HATCH group 70/71 meanings to DXF MPOLYGON.",
+  "primaryEvidence": {
+    "title": "Autodesk ObjectARX AcDbMPolygon::getOffsetVector",
+    "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbMPolygon__getOffsetVector.html",
+    "interpretation": "The reference describes stored boundaries in offset space, with the offset subtracted from actual vertices. The adapter adds this offset back in the polygon OCS. Non-default outer elevation/extrusion remains warned because full OCS-to-editing-plane conversion is not implemented."
+  },
+  "change": [
+    "Map MPOLYGON offsets onto polyline vertices, line endpoints, arc and ellipse centers, and spline control/fit points, while leaving vectors and ordinary HATCH paths unchanged. Reject non-finite offset sums through the existing guarded import failure.",
+    "For DXF imported with the pinned old codec, interpret the forwarded group-71 value as the MPOLYGON solid flag. DWG retains that codec's normal solid flag.",
+    "Retain a source snapshot for a limited, nonassociative, solid, single closed-polyline profile in the default plane, without retained object references, proxy, XDATA or data storage. On a compatible codec, unchanged and exactly translated geometry is written as MPOLYGON; a planar translation updates its offset. Richer or differently edited polygons fall back to HATCH with an export loss note.",
+    "Never replay using the older codec: its MPOLYGON group-70/71 serialization is incompatible. If required target fields cannot be carried, retain the reported fallback."
+  ],
+  "downstream": {
+    "repository": "LibreCAD/LibreCAD_3",
+    "sourceCommit": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+    "status": "Both patches are local and unmerged; apply in listed order to the consumer source. No user checkout changed.",
+    "patches": [
+      {
+        "path": "docs/patches/librecad3-p8-mpolygon-projection-warning-2026-11-15.patch",
+        "sha256": "e8a2a6e53ec77581076d6a44e7972a6bcae4646780e471a0e42adda247028902"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-mpolygon-offset-preservation-2026-11-15.patch",
+        "sha256": "116e969e48a91562eed457df05e71558d99b86a37cbff15cae746577215c667f"
+      }
+    ]
+  },
+  "validation": {
+    "environment": "macOS ARM64, Apple clang 21; temporary consumer CMake integration selecting installed static archives",
+    "newLibraryArchiveSha256": "95e9f20acae0b6d745dd5b94a4a4b3cf53db74ba23f653a14f310fcb49719060",
+    "pinnedLibraryCommit": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "pinnedLibraryArchiveSha256": "bbda069c14828f47194ef47fee39ec160e6fd3a53691b18e847ef3d177da4694",
+    "consumerTests": "9/9 tests pass, consisting of eight existing tests plus one from-scratch DXF regression, for each library version. The regression exercises ASCII and binary, exact offset mapping, line/arc/ellipse/spline points, ordinary HATCH negative control, translation, rotation and Z edit fallbacks, retry after restoring geometry, multi-loop fallback, old-codec solid flag, non-default-plane warning, finite-overflow failure and clean subsequent import, and version/gradient target guards.",
+    "generatedDwgControls": "A separate three-test scratch probe using a locally generated AC1018 drawing passes with both libraries; with the new library it exercises MPOLYGON ASCII/Binary roundtrip, translation and readback. The older library uses the reported HATCH fallback.",
+    "independentPeer": {
+      "name": "ezdxf",
+      "version": "1.4.5",
+      "observations": "Reads MPOLYGON from generated-DWG-to-DXF ASCII and binary; each has one closed three-vertex path, fill ACI 3 and offset (2,5). After a planar (10,0) edit, reads offset (12,5) with original stored vertices. This checks tags and geometry representation, not native rendering.",
+      "outputs": [
+        {
+          "name": "mpolygon-closed-export.dxf",
+          "sha256": "19262362c04f02f3222f08e9d418efa0603127f790f9192fa236439f3f68b9b1"
+        },
+        {
+          "name": "mpolygon-closed-export-binary.dxf",
+          "sha256": "c7b420942a9c26c3cd7b5ebd73223950386da44386ba5480e8cc6bb2705a7ad2"
+        },
+        {
+          "name": "mpolygon-edited-export.dxf",
+          "sha256": "c2f70c638f430c0705000fae999e408e1ee0fc8a2e639509c5e9aafe732516de"
+        }
+      ]
+    },
+    "patchApplication": "Both patches pass sequential git apply --check on an archive of the exact consumer base."
+  },
+  "limits": [
+    "Patches are not merged or integrated into official LibreCAD_3; no native UI execution, Windows, Linux, or released-build qualification.",
+    "Only the selected simple default-plane profile replays as MPOLYGON. Rotation, nonplanar edits, multiple paths, legacy serializer, and other unsupported states use reported fallback; actual 3D plane transformation is not implemented.",
+    "The peer confirms emitted tags, not native CAD rendering, arbitrary producer data, graph closure, or full field fidelity. No broad support or phase gate is promoted."
+  ]
+}

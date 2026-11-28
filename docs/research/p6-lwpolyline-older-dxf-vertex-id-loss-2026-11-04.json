@@ -1,0 +1,8 @@
+{
+  "scope": "Prevent silent LWPOLYLINE vertex-identifier loss during older-version DXF export; no new format-version support claim.",
+  "reference": "Autodesk LWPOLYLINE DXF group-code reference identifies group 91 as a vertex identifier: https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-748FC305-F3F2-4F74-825A-61F04D757A50.htm. This reference does not itself prove the earliest revision that supports this group.",
+  "pre_fix": "The writer emitted nonzero group 91 only for AC1024 and later, but returned success for AC1014, AC1015, AC1018 and AC1021, silently dropping IDs. The locally generated test reproduced the failure in both ASCII and binary: all eight older-version controls exported instead of preserving the original destination and reporting refusal.",
+  "fix": "Before writing an LWPOLYLINE, refuse nonzero vertex identifiers for versions below AC1024. This matches the existing classic POLYLINE identifier policy and avoids inventing an earlier group-91 compatibility boundary. Zero identifiers and modern targets retain their existing behavior; public signatures and class layout are unchanged.",
+  "validation": "The focused per-vertex group-order selector exercises three modern versions and four earlier versions in ASCII and binary. Modern output retains exact geometry and identifiers with a following LINE. Each older nonzero-ID request refuses, preserves caller IDs and the prior destination, and accepts a same-adapter retry after the IDs are explicitly cleared; the retry retains geometry and the following LINE. Existing malformed input controls continue to run.",
+  "fixtures": "All test drawings are generated from scratch in temporary storage."
+}

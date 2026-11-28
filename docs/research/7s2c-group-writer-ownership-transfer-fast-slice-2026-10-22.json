@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.fast-slice-receipt.v1",
+  "date": "2026-10-22",
+  "title": "7S.2c GROUP writer ownership transfer",
+  "scope": "Avoid deep-copying adapter-owned DRW_Group values into the DXF codec's vector before synchronous output, then restore the original adapter list nodes.",
+  "files": {
+    "src/libdxfrw.h": "5e503c31d22ba1872d781cbb254f9644fce00f6196e086772b2cd2f3da5a894f",
+    "dwg2dxf/dx_iface.cpp": "b7dd0894f1c9b2d7988a8bea7dcbdd6751fcd2d813fced6b7864bbdd77cc1106",
+    "tests/dwg2dxf_adapter_tests.cpp": "7a6e51d7f2679476653cd77dca782a862934bc5a7bf001b1ee1d8be0063cf76a"
+  },
+  "change": {
+    "summary": "Added a synchronous adopt/restore API that reserves codec vector storage and move-constructs GROUP values from the adapter list; a scope guard restores the values into the original list nodes after writing.",
+    "existingCopySetterChanged": false,
+    "publicApiMethodsAdded": true,
+    "publicDataMembersAdded": false,
+    "virtualMethodsAdded": false,
+    "classLayoutChanged": false,
+    "wireGrammarChanged": false,
+    "outputPolicyChanged": false,
+    "fixtureAdded": false,
+    "supportClaimPromoted": false
+  },
+  "generatedControl": {
+    "formatVersion": "AC1032 ASCII and Binary DXF",
+    "input": "Existing generated typed GROUP graph with one member LINE, ACAD_GROUP dictionary closure, and roundtrip controls.",
+    "checks": [
+      "ASCII and Binary exports preserve GROUP output and re-imported membership edges",
+      "named-object and ACAD_GROUP dictionary keys, owner fields, handles, and record order remain valid",
+      "second write/read roundtrip preserves the GROUP graph",
+      "adapter description and member-handle nested storage addresses are unchanged after export"
+    ]
+  },
+  "evidenceCeiling": "The focused local controls establish transfer/restoration and existing generated graph roundtrips only. They do not establish external interoperability or promote DWG/DXF feature support.",
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests lc3_compat_check -j4",
+      "result": "PASS (-Werror; compatibility target succeeds)"
+    },
+    {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --group-adapter-roundtrip",
+      "result": "PASS (exit 0; expected negative-case diagnostics only)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_group_adapter_roundtrip$' --output-on-failure",
+      "result": "PASS (1/1; 0.05 s)"
+    },
+    {
+      "command": "git diff --check -- src/libdxfrw.h dwg2dxf/dx_iface.cpp tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/7s2c-group-writer-ownership-transfer-fast-slice-2026-10-22.json",
+      "result": "PASS"
+    }
+  ],
+  "fullSuiteRun": false,
+  "externalProducerOrNativeApplicationRun": false,
+  "deferredExternal": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "planTotals": {
+    "findings": 144,
+    "topLevelSubplans": 78
+  },
+  "selfUnblockingContinuation": "Continue the 7S.2c exact-source audit of remaining compound/class registries, parser staging owners, and writer-side ownership transfers. If no further local gap is found, advance to the next source-backed PAR-03/PAR-04, HATCH, or DWG semantic issue. Native FreeCAD Linux/Windows and independent ACIS/ACDS qualification remain separate and do not pause local work."
+}

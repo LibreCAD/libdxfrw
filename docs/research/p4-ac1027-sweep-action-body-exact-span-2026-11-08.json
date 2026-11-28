@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-action-body-exact-span-2026-11-08",
+  "date": "2026-11-08",
+  "status": "INCOMPLETE_SWEEP_BODY_NO_LONGER_REPORTED_COMPLETE",
+  "supportClaimEffect": "none",
+  "scope": "Require full physical bounded-body consumption before the ACSH_SWEEP_CLASS/ACSH_EXTRUSION_CLASS action-body prefix status can be Complete; retain partial fields for tolerant inspection.",
+  "authority": {
+    "oda": "Open Design Specification for .dwg files v5.4.1 \u00a720.4.41 documents the 3DSOLID/REGION History ID carrier but does not define the proprietary Sweep action-body fields.",
+    "peerReference": "The local LibreDWG 0.14 dwg2.spec and minJSON expose candidate fields but are not normative; the selected real sample leaves 2,568 bits unknown in LibreDWG and its tail numeric values are not treated as semantic evidence."
+  },
+  "source": {
+    "path": "/private/tmp/example_2013.dwg",
+    "kind": "existing local public-source AC1027 DWG used as a read-only diagnostic; not a repository fixture",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "version": "AC1027",
+    "object": {
+      "handle": "0x2e2",
+      "class": "ACSH_SWEEP_CLASS",
+      "sizeBytes": 326,
+      "sizeBits": 2571
+    }
+  },
+  "implementation": {
+    "production": "DRW_AssociativePrefixStatus::fromBoundedBody() returns Complete only when decode succeeded and cursorBit equals bodyEndBit; the Sweep/Extrusion prefix parser uses it after bounded reads.",
+    "generatedControl": "tests/hardening_tests.cpp --acsh-action-body-exact-span verifies exact-end completion, an unparsed suffix, overrun, and decode failure.",
+    "physicalProbe": "tests/ac1027_acds_source_probe.cpp reports class prefix status, source start bit and consumed bit span."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_hardening_tests libdxfrw_ac1027_acds_source_probe --parallel 4 \u2014 PASS",
+    "focusedCtest": "ctest --test-dir build -R ^libdxfrw_acsh_action_body_exact_span$ --output-on-failure \u2014 PASS 1/1; 0.30 seconds",
+    "physicalProbe": {
+      "command": "build/libdxfrw_ac1027_acds_source_probe /private/tmp/example_2013.dwg",
+      "result": "ACSH_PREFIX 2e2 kind=7 status=Complete startBit=40 size=82; kind=8 status=Complete startBit=122 size=106; kind=9 status=Partial startBit=228 size=174.",
+      "outputSha256": "cf35bd09f24f28789be15687ef4e462e89e37270572bf3e0cd80c8a74e0ca5fb",
+      "publishedFrames": "478/481; three unrelated object parse failures."
+    },
+    "repositoryDwgDxfFixturesAdded": 0,
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "The fix prevents a partial Sweep body from being labeled Complete; it does not decode the remaining 2,397 body bits or establish field semantics.",
+    "No ACSH_SWEEP_CLASS DWG-to-DXF writer route or role conversion is qualified; the selected profile remains output-refused.",
+    "No producer-wide or independent native semantic support claim is established."
+  ],
+  "nextAction": "Continue with source-backed Sweep field/span research only where an authoritative or independently captured boundary exists; do not infer the skipped action-body tail or promote output support."
+}

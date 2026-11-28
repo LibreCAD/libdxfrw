@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-visualstyle-c278-profile-restoration-2026-11-05",
+  "date": "2026-11-05",
+  "title": "Restore the physical AC1024 VISUALSTYLE C2787878 source profile",
+  "status": "AC1024_PROFILE_RESTORED_CURRENT_STRICT_CONVERSION_AND_BOUNDED_PEER_CHECK_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "version": "AC1024",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "fixturePolicy": "Existing local sample; no drawing fixture was modified or added."
+  },
+  "diagnosis": {
+    "priorGate": "VISUALSTYLE carrier coverage",
+    "sourceProfile": "19 AC1024 VISUALSTYLE records; style handle 0xA3 has CMC role 4 rawRgb 0xC2787878 and normalizedIndex 256.",
+    "cause": "The AC1021 VisualStyle admission change added an AC1024 C2 whitelist that omitted 0xC2787878, although the bounded AC1024 physical source/output route had previously admitted this value.",
+    "currentPredicate": "PASS: hasCompleteAc1024VisualStyleSourceProfile() and hasCompleteDwgVisualStyleSourceProfile() both return true for this source after the correction."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_data.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "Admit the one additional source-bound C2 value 0xC2787878 for the existing AC1024 typed profile. The generated ASCII/Binary writer test now uses this value in color role 4 and asserts emitted group 424 readback. No general C2 palette rule was added.",
+    "sourceHashesSha256": {
+      "dwg2dxf/dx_data.h": "7dc1cb9f4a87820443f41303d9df8205c6b263c48d06fa1a5763d8f8edec4a7a",
+      "tests/dwg2dxf_adapter_tests.cpp": "a3405c0bea338578d685d499e8a5f33df2c314bff20cd461284d5794795218f2"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j3",
+      "result": "PASS with configured -Werror flags.",
+      "dwg2dxfSha256": "18ba6045ad534027867ae5e73ce93c5f6a520864b1cf0e746c90a4cfe6001611",
+      "adapterTestSha256": "ab275bd07b32f041856ab42143594a4fee337f252605b71a59bfcb977317ad1c"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_visual_style_ac1024_typed_writer$' --output-on-failure",
+      "result": "PASS 1/1 (0.52 seconds); ASCII and Binary emitted group 424 preserves 0xC2787878; destination rollback and same-adapter retry controls remain active."
+    },
+    "physicalProfileAndSelectedProjection": {
+      "profileProbe": "PASS: ordinary import retained 19 typed styles; single import receipt and AC1024/DWG profile gates pass; 0xA3 role 4 is 0xC2787878.",
+      "layerStatesSelector": "PASS: --layerstates-empty-ac1024-output-readback on the byte-identical mechanical_example-imperial-alt.dwg source, including ASCII/Binary, wrong-owner destination preservation, same-writer retry, and fresh typed readback.",
+      "scaleSelector": "PASS: --scale-physical-output-readback against the newly generated strict DXF; 17 SCALE identities, rooted ACAD_SCALELIST membership, owner/reactors, exact typed/raw fields, rollback and retry. The expected injected-failure diagnostic precedes the pass result."
+    },
+    "strictConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/libdxfrw-mechanical-current-final.dxf",
+      "exitCode": 0,
+      "converterSha256": "18ba6045ad534027867ae5e73ce93c5f6a520864b1cf0e746c90a4cfe6001611",
+      "outputSha256": "2d1cdfd55773cadf1a8bec57eccd1947d250a31d827b40dca3c5ed3ca68764a0",
+      "outputBytes": 449708,
+      "read": "366/366 observed frames published; zero entity/object parse failures; source version AC1024.",
+      "instrumentationLimit": "The trace still reports 228 opaque callbacks, zero source frames retained for correlation, and zero opaque frames output-qualified. A zero exit does not independently qualify every callback or semantic field."
+    },
+    "freshDxfReadback": {
+      "operation": "Fresh dx_iface fileImport of the strict output and the original DWG.",
+      "result": "PASS: 19 typed VISUALSTYLE identities, owners/reactors, descriptions/types and raw carrier count matched. Decoded body comparison passed for pairs decoded on both sides; the AC1024 0xA3 output body is retained as a raw carrier and is not typed-decoded by the current DXF reader.",
+      "scratchProbe": "/private/tmp/visualstyle_physical_readback.cpp"
+    },
+    "independentPeerComparison": {
+      "tool": "LibreDWG 0.14",
+      "toolSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "command": "dwgread -v2 -O DXF -o /private/tmp/libredwg-mechanical-peer.dxf tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "exitCode": 0,
+      "peerDxfSha256": "918a9fe724f7ffcede3cf2cad2dc9546247444ef617e3b86dd7bd36b051a2f00",
+      "entityAndGeometryComparison": "Both DXFs contain 59 LINE, 7 ARC, 8 CIRCLE, 17 DIMENSION, and 2 VIEWPORT records across ENTITIES/BLOCKS. A multiset comparison of 74 LINE/ARC/CIRCLE geometry signatures (coordinates rounded to 6 decimal places; absent Z normalized to 0; handles ignored) is exactly equal.",
+      "cmcComparison": "For VISUALSTYLE handle 0xA3, source CMC role 4 is 0xC2787878. Both peer and libdxfrw DXFs emit group 424 decimal 3262675064 (0xC2787878), alongside matching group 421 value 3271557119.",
+      "knownDifferences": "LibreDWG emits six LAYER rows; libdxfrw emits seven, adding *ADSK_CONSTRAINTS, which is not present in the source LAYER_CONTROL. The two outputs also spell the one default-dictionary object class differently (ACDBDICTIONARYWDFLT versus DICTIONARYWDFLT). No conclusion about the layer difference is made here."
+    },
+    "fullSuites": "NOT RUN; validation used the owning VisualStyle CTest, source-bound adapter selectors, strict CLI conversion, fresh readback, and bounded independent peer comparison."
+  },
+  "limitations": [
+    "One AC1024 source profile only; broader producer/version and native semantic qualification remain open.",
+    "The DXF reader does not decode the AC1024 style 0xA3 body, so its raw carrier is preserved and the emitted group 424 is separately compared against LibreDWG.",
+    "The independent output comparison establishes only the listed record counts and geometric subset; output tables differ, and native consumer behavior was not rerun.",
+    "Opaque callback metrics remain incomplete as output-correlated evidence; this receipt does not promote format support claims."
+  ],
+  "fixtureCommitted": false
+}

@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1027-cover-oda-arm64-package-integrity-2026-11-02",
+  "date": "2026-11-02",
+  "status": "NATIVE_VERIFICATION_PASSED; SANDBOX_FAILURE_SUPERSEDED",
+  "supportClaimEffect": "none",
+  "scope": "Verify whether the current official ODA File Converter macOS ARM64 package can safely replace the locally installed app for the AC1027 Cover suffix experiment.",
+  "vendorSource": {
+    "page": "https://www.opendesign.com/guestfiles/oda_file_converter?language=en",
+    "platformClaim": "Mac OS X 13.0 arm64 or later (Apple Chip)",
+    "downloadRoute": "Official page ARM64 pkg link: /guestfiles/get?filename=ODAFileConverter_QT6_macOsX_arm64_15.0dll.pkg",
+    "linkedPackageVersion": "27.9.0.0"
+  },
+  "package": {
+    "path": "/private/tmp/ODAFileConverter_arm64_27.9.pkg",
+    "bytes": 69206016,
+    "sha256": "da4bc7ebbb6dcf6d906f5b58b374633ce34fe91c68a7e00da08167d052ae0026",
+    "packageSignatureCommand": "pkgutil --check-signature /private/tmp/ODAFileConverter_arm64_27.9.pkg",
+    "packageSignatureResult": "Package reports Status: invalid signature.",
+    "gatekeeperCommand": "spctl --assess --type install -vv /private/tmp/ODAFileConverter_arm64_27.9.pkg",
+    "gatekeeperResult": "Internal error in Code Signing subsystem.",
+    "installed": false
+  },
+  "extractedApplication": {
+    "path": "/private/tmp/ODAFileConverter_arm64_27.9.full/Payload/ODAFileConverter.app",
+    "version": "27.9.0.0",
+    "architecture": "arm64",
+    "executableSha256": "112ed550897a4afd5fab22f11fd4df217630306cdc1bfcb8a3f5c8377794fa06",
+    "signatureCommand": "codesign --verify --deep --strict --verbose=2 /private/tmp/ODAFileConverter_arm64_27.9.full/Payload/ODAFileConverter.app",
+    "signatureResult": "FAIL: invalid signature (code or signature have been modified), arm64",
+    "signatureMetadata": {
+      "teamIdentifier": "4SVB9F72E4",
+      "authority": "unavailable",
+      "infoPlistBound": false
+    },
+    "executed": false
+  },
+  "interpretation": {
+    "result": "The package was fetched from the vendor-linked official ARM64 download route and its extracted app identifies as ODA File Converter 27.9.0.0. Both package validation and strict app-code validation fail locally.",
+    "disposition": "Superseded by nativeRecheck20261103: integrity verification passed outside the sandbox. The suffix still needs independent field evidence.",
+    "unrelatedPriorEvidence": "The earlier GUI conversion was performed by the already installed 27.1.0.0 app. It rewrote the drawing to AC1032 but did not explain the source suffix."
+  },
+  "limitations": [
+    "No claim is made that ODA's server deliberately distributes altered files; this receipt records only the observed local validation failures.",
+    "No software was installed or executed and no drawing was converted.",
+    "No DWG/DXF fixture was added."
+  ],
+  "nativeRecheck20261103": {
+    "packageSignature": "PASS: Apple Developer ID Installer, Open Design Alliance, trusted Apple notarization",
+    "installed271Bundle": "PASS: deep strict codesign",
+    "extracted279Bundle": "PASS: deep strict codesign",
+    "method": "Verification outside the filesystem sandbox; prior sandboxed signature failures and spctl internal errors are not reliable integrity findings.",
+    "packageSha256": "da4bc7ebbb6dcf6d906f5b58b374633ce34fe91c68a7e00da08167d052ae0026",
+    "disposition": "The verified installed 27.1 converter may be used for the authorized scratch experiment; no installation is needed."
+  }
+}

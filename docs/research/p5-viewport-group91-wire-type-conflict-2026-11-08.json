@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-08",
+  "workstream": "P5 / VIEWPORT layer-property override group 91",
+  "status": "UNRESOLVED_WIRE_TYPE_KEEP_FAIL_CLOSED",
+  "finding": "Autodesk's VIEWPORT-specific DXF table describes group 91 as a soft pointer reference to a viewport object. Autodesk's generic DXF group-code type table classifies 90-99 as 32-bit integers, and its Binary DXF documentation says binary values use the same group-code typing rules as ASCII DXF. The specific semantic role is documented, but the physical carrier/encoding conflicts with the generic type rule.",
+  "authoritative_references": [
+    {"title": "VIEWPORT (DXF), AutoCAD 2021", "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm", "relevant_entry": "Group 91: Soft pointer reference to viewport object (for layer VP property override); groups 335, 343 and 344 receive the same description."},
+    {"title": "DXF Group Codes, ObjectARX 2027", "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-DXF_Group_Codes.html", "relevant_entry": "90-99 are 32-bit integer values; soft pointer IDs are in range 330-339."},
+    {"title": "About Binary DXF Files, AutoCAD 2020", "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-FC1C3C69-DBC2-49E4-893A-000D6538C0FE.htm", "relevant_entry": "The type of binary data following a group code is determined by the same rules used to decode ASCII DXF."}
+  ],
+  "current_implementation": {
+    "classification": "src/intern/dxfcode.h classifies 90-99 as I32 and gives group 91 no handle role; src/intern/dxfreader.cpp reads it as a 32-bit integer.",
+    "viewport_behavior": "DRW_Viewport::parseCode rejects group 91; the typed layerOverrideReferences model and writer currently admit only 335, 343 and 344.",
+    "guard_reason": "Changing the global classifier to a handle string would affect every group-91 use and contradict the generic integer rule; adding a viewport-only exception without producer evidence could make ASCII and Binary behavior inconsistent or encode a different physical value."
+  },
+  "evidence_needed_to_implement": [
+    "An authenticated native-producer ASCII and Binary DXF pair containing a VIEWPORT group-91 reference, with exact original file hashes and the referenced object handle identified independently.",
+    "A matching native read/save or independent parser observation that confirms whether group 91 is serialized as a decimal I32 or hexadecimal handle in each encoding and proves handle remapping/reference semantics.",
+    "Focused ASCII/Binary import, output, readback, wrong-target refusal, destination preservation and corrected retry controls; native paper-space layer-override behavior remains a separate qualification gate."
+  ],
+  "disposition": "No parser, classifier, or writer change. Continue to reject group 91 rather than silently accepting an unverified representation. Do not promote VIEWPORT layer-override support claims.",
+  "limits": "Documentation-only resolution of the semantic label is not physical wire proof, native activation evidence, or support qualification."
+}

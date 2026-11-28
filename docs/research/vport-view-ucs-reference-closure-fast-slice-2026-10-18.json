@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "VPORT and VIEW UCS-reference closure fast slice",
+  "mode": "local implementation and focused generated verification",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Close DXF VPORT groups 345/346 to typed UCS table-record targets",
+    "Close DXF VIEW groups 345/346 under its group-72 UCS-presence contract",
+    "Remap those nonzero references when source handles change during export",
+    "Verify failure-before-publication and handle-collision readback with temporary ASCII/Binary controls"
+  ],
+  "method": {
+    "kind": "Focused source change with generated in-memory/temp-file controls",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRunForResearch": true,
+    "localBuildRun": true,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "localFilesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dxf_fixture_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "This is a DXF-only reference-closure slice. It does not establish DWG-specific field behavior, full view-family graph closure, native CAD acceptance, external semantic support, or general version conformance beyond the tested serializer target matrix."
+  },
+  "formatEvidence": [
+    {
+      "source": "Autodesk VPORT DXF schema",
+      "url": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-8CE7CC87-27BD-4490-89DA-C21F516415A9.htm",
+      "observation": "Group 345 identifies a named AcDbUCSTableRecord. Group 346 identifies the base UCS when orthographic type 79 is nonzero; if absent in that case, the base is WORLD. Orthographic types are 0 through 6."
+    },
+    {
+      "source": "Autodesk VIEW DXF schema",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+      "observation": "Group 72 indicates an associated UCS; UCS fields including 79, 345, and 346 appear only when it is set. Group 345 identifies a named UCS; 346 identifies the base UCS for nonzero orthographic type, otherwise omitted base means WORLD."
+    }
+  ],
+  "implementation": {
+    "adapterValidation": [
+      "VPORT orthographic type is constrained to 0 through 6.",
+      "Nonzero VPORT base-UCS references require nonzero orthographic type and resolve uniquely to a retained UCS row.",
+      "VIEW references/orthographic data cannot be serialized when hasUCS/group-72 is false; active UCS type is constrained to 0 through 6.",
+      "Nonzero named/base targets resolve uniquely to typed UCS records; base references require nonzero orthographic type.",
+      "References are refused when the selected DXF target would not emit the fields."
+    ],
+    "writerBehavior": [
+      "VPORT and VIEW code-345/346 handles are remapped through remapObjectHandle().",
+      "Standalone table-entry writers fail closed for unrepresentable or internally inconsistent UCS references."
+    ],
+    "compatibility": "No public interface virtual, public class layout, or DWG parser/encoder was changed."
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build --target libdxfrw_dxf_fixture_tests lc3_compat_check -j2",
+      "build/libdxfrw_dxf_fixture_tests --layout-graph-read-contract",
+      "cmake --build build --target lc3_compat_check -j2",
+      "git diff --check -- DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/deeper-broader-freecad-dxf-transform-malformed-input-acceptance-2026-10-18.json dwg2dxf/dx_iface.cpp src/libdxfrw.cpp tests/dxf_fixture_tests.cpp"
+    ],
+    "results": {
+      "strictTargetBuild": "PASS",
+      "generatedAsciiBinaryLayoutGraphSelector": "PASS",
+      "lc3CompatCheck": "PASS (up to date)",
+      "scopedDiffCheck": "PASS",
+      "owningBroadCtest": "NOT_RUN; prior broad fixture-runner crash remains unattributed",
+      "fullSuite": "NOT_RUN",
+      "externalPeerOrNativeRun": "NOT_RUN"
+    }
+  },
+  "assessment": {
+    "newLocalFindings": 0,
+    "newTopLevelSubplans": 0,
+    "newCtestRegistrations": 0,
+    "persistentFixturesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Completes only VPORT/VIEW DXF code-345/346 typed reference closure and remapping within PAR-40/7G.2. Other view-family edges, DWG semantics, and external/native semantic acceptance remain open.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "commitStatus": "Uncommitted; shared worktree contains extensive unrelated/pre-existing changes, so no broad staging or commit was attempted."
+  },
+  "generatedControls": [
+    "ASCII and Binary inputs with one UCS_REF_VPORT and one UCS_REF_VIEW connected to named/base UCS records",
+    "Dangling and wrong-class named UCS handles rejected before replacing a sentinel output",
+    "Dangling base UCS and base-without-orthographic-type rejected",
+    "VIEW group-72 disabled while references are present rejected",
+    "Orthographic types outside 0 through 6 rejected",
+    "Named UCS forced to fixed handle 8; VPORT/VIEW references remap and resolve after export to AC1015, AC1018, AC1021, AC1024, and AC1027"
+  ]
+}

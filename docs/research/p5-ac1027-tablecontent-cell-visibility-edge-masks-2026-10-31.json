@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw-dxf-implementation-receipt-v1",
+  "date": "2026-10-31",
+  "status": "SCOPED_IMPLEMENTATION_COMPLETE_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / AC1027 TABLECONTENT cell border visibility edges",
+  "basis": {
+    "authoritativeSpecification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.4.",
+    "localSpecification": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "fields": {
+      "edgeFlags": {
+        "0x01": "top",
+        "0x02": "right",
+        "0x04": "bottom",
+        "0x08": "left",
+        "0x10": "inside vertical",
+        "0x20": "inside horizontal"
+      },
+      "borderPropertyOverrideFlags": {
+        "0x10": "invisibility"
+      },
+      "invisibilityValue": 1
+    },
+    "wireGrammar": "TABLEFORMAT border count followed by GRIDFORMAT records; each record carries edge flags, property override flags, border type, color, lineweight, linetype handle, invisibility, and double-line spacing."
+  },
+  "profile": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixture": "Runtime-authored 2x2 TABLECONTENT using the existing tableContentScalarGrid recipe; no drawing fixture files were added.",
+    "scope": "One cell-style TABLEFORMAT with six one-hot GRIDFORMAT records, one per ODA-defined edge flag.",
+    "borderCount": 6,
+    "edgeFlags": [1, 2, 4, 8, 16, 32],
+    "eachBorder": {
+      "propertyOverrideFlags": "0x10",
+      "borderType": 0,
+      "color": 0,
+      "lineWeight": 0,
+      "lineTypeHandle": "0",
+      "invisibility": 1,
+      "doubleLineSpacing": 0.0
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/table_content_dxf_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "behavior": "TABLECONTENT output admits one through six visibility-only border records when each record has a unique one-hot edge flag from 0x01 through 0x20. Duplicate edges, grouped edge masks, and other border properties remain refused.",
+    "physicalWire": "An independent scalar wire walk checks six GRIDFORMAT spans in order, the preceding group-95 edge flags, the TABLEFORMAT border count, all selected field values, and each closing marker in both encodings.",
+    "typedReadback": "Fresh ASCII and binary imports preserve all six edge flags and the complete selected border fields.",
+    "failureRetry": "Override bit 0x40 is refused while preserving the destination sentinel and caller model; restoring 0x10 permits a same-adapter retry and successful readback.",
+    "fixturePolicy": "The only input is authored at test runtime; no external DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_table_content_dxf_tests -j2",
+      "result": "PASS",
+      "compiler": "/usr/bin/g++",
+      "generator": "Unix Makefiles"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_content_cell_border_visibility_edges$' --output-on-failure",
+      "result": "PASS, 1/1, 0.07 seconds"
+    },
+    "diffCheck": "git diff --check passed",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "16d6be0c9de0363c0f09cf4523503e4060c159d62db177c2fa9ee787163e0277",
+      "tests/table_content_dxf_tests.cpp": "b65adc15a615d30ed47a8ebf3cb7115c82369da795e992b711084dadfb79518a",
+      "tests/CMakeLists.txt": "31002471dca7d12dc1a262cf97262bbe861860dd2e792d381f02723861df3948",
+      "focusedExecutable": "7a587dc84a1a6f585b668ef9565308dcf6602300d17b0c3e0ec32d21d3531e37"
+    }
+  },
+  "limits": [
+    "Only the AC1027 TABLECONTENT serializer profile is covered; this does not qualify DWG TABLECONTENT output or other DXF versions.",
+    "Grouped edge masks, duplicate-edge combinations, border-type/color/lineweight/linetype/double-line overrides remain refused or unqualified.",
+    "Serializer wire and typed readback do not establish native CAD rendering, producer coverage, whole-document closure, or public DWG/DXF support claims."
+  ],
+  "next": "Continue with a distinct source- or consumer-backed CONTENTFORMAT, CELLSTYLEMAP, border-property, or grouped-edge profile; retain strict refusal for all unrepresented fields."
+}

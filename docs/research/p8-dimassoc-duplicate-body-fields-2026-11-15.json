@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-dimassoc-duplicate-body-fields-2026-11-15",
+  "date": "2026-11-15",
+  "status": "bounded_typed_write_loss_guard",
+  "supportClaimEffect": "none",
+  "source": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C0B96256-A911-4B4D-85E6-EB4AF2C91E27.htm",
+  "finding": "Repeated DIMASSOC body singleton groups 330, 90, 70, or 71 previously overwrote the earlier typed value without marking the source unrepresentable. The reader already captures the raw object separately.",
+  "change": "Track body-field occurrences; duplicate values mark the typed object unrepresentable so the typed writer refuses it. Reset and copy operations clear parser-only occurrence state.",
+  "verification": [
+    "libdxfrw_hardening_tests --dimassoc-unsupported-detail: pass, including ASCII duplicate and distinct-field controls, unchanged output on refusal, and parser reset.",
+    "libdxfrw_hardening_tests --dimassoc-documented-scalar-fields: pass, including ASCII and Binary scalar write/readback.",
+    "ctest -R '^libdxfrw_dimassoc_dxf_allocation_rollback_retry$': pass.",
+    "libdxfrw_dimassoc_duplicate_dxf: generated full-file ASCII and Binary inputs each retain both distinct raw values for all four fields, publish one guarded typed object, and preserve a sentinel destination when typed output is refused."
+  ],
+  "limits": [
+    "Raw object replay and native interoperability remain unqualified; this test checks raw callback contents, not replay.",
+    "LibreCAD combined DIMASSOC/MPOLYGON compatibility differences remain open.",
+    "No DWG or DXF fixture files were added."
+  ]
+}

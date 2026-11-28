@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw-freecad-acis-carrier-repro-and-qualification-boundary-v1",
+  "reviewedAt": "2026-10-15",
+  "scope": "Broadened 3D carrier research around a source-generated AC1032 AcDs/SAB loss reproducer and FreeCAD's DWG-to-DXF-to-consumer qualification boundary.",
+  "method": {
+    "kind": "Primary Autodesk format reference plus current project source, documentation, and issue reports",
+    "runtimeTestsRun": false,
+    "peerLibrariesRun": false,
+    "nativeCadRun": false,
+    "fixturesDownloadedOrCommitted": 0,
+    "dependenciesAdded": 0,
+    "evidenceRule": "Separate published DXF contract, ODA DWG container layout, peer-reported output, native consumer limits, and independently verified geometry semantics. Do not treat issue reports or file existence as a completed runtime qualification."
+  },
+  "findings": [
+    {
+      "id": "GENERATED_AC1032_REGION_SAB_LOSS_REPRO",
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/issues/1411",
+        "https://ezdxf.readthedocs.io/en/stable/acis.html"
+      ],
+      "evidence": "LibreDWG issue #1411 reports a scratch-generated AC1032 DXF with one REGION and SAB created through ezdxf's public body_from_mesh(cube()) and export_dxf APIs. The issue author reports 5,489 bytes before conversion and no SAB/ACDSDATA after a LibreDWG 0.14.8593 DXF-to-DWG-to-DXF run, despite the REGION record surviving. The recipe and result were not independently executed in this research pass; the byte count is observational, not a fixed contract.",
+      "confidence": "Concrete public reproduction recipe with version-bound issue-author result; not independently reproduced and not a claim about all LibreDWG versions.",
+      "planUse": "Use as an optional ephemeral composed-gate input after pinning ezdxf. Assert source-carrier and ACDSDATA shape before conversion, then record exact output body/hash, section/record/owner association and reread disposition. Do not add a Python runtime dependency or commit generated files."
+    },
+    {
+      "id": "DXF_3DSOLID_HISTORY_REFERENCE_IS_NOT_ACDS",
+      "sources": [
+        "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+        "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-DXF_Group_Codes.html",
+        "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      ],
+      "evidence": "Autodesk's DXF table specifies inline proprietary groups 1/3, modeler version group 70, and group 350 history soft-owner reference. The general group-code table says 350-series soft ownership IDs are translated during INSERT/XREF. These entity fields do not define the separate modern DXF ACDSDATA or DWG AcDs DataStorage envelope. ODA v5.4.1 defines DWG section and owner/index structure separately from the incomplete/undocumented modeler stream.",
+      "confidence": "Published format reference for documented DXF fields and ODA-defined DWG structure; no claim about every producer variant.",
+      "planUse": "Keep four carrier routes distinct and make history handle/owner mapping a separate edit/remap closure gate from opaque body replay."
+    },
+    {
+      "id": "FREECAD_DWG_WRAPPER_AND_STOCK_ACIS_CONSUMER_LIMIT",
+      "sources": [
+        "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDWG.py",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Manual_Import_and_export_to_other_filetypes.md",
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Import_Export_Preferences.md",
+        "https://github.com/FreeCAD/FreeCAD/issues/18454"
+      ],
+      "evidence": "Current FreeCAD importDWG.py converts DWG to DXF and delegates to importDXF; its wrapper reports success when the expected output file exists. FreeCAD documentation states its stock DXF import/export has limitations for proprietary 3D ACIS carrier data; issue #18454's maintainer response distinguishes readable explicit entities from ACIS blobs that FreeCAD cannot read as solids. Importer backend/mode and converter selection are configurable.",
+      "confidence": "Current mutable source/documentation plus maintainer response; native runtime behavior was not executed and source must be pinned for qualification.",
+      "planUse": "Separate external converter transport qualification from native consumer acceptance. Pin exact app/converter/backend/preferences; verify process result and fresh output independently. Do not score stock FreeCAD's unsupported ACIS B-rep path as a positive semantic oracle; preserve 2D and explicitly supported geometry checks."
+    }
+  ],
+  "implementationReadinessChanges": [
+    "First close local raw-frame pairing/invalidation, owner-chain reachability, and AcDs page/index/handle closure with in-memory generated controls.",
+    "At one optional composed checkpoint, generate a scratch AC1032 REGION/SAB DXF from a pinned ezdxf API; bind observations by tool/version and hashes, not by an assumed 5,489-byte result.",
+    "Capture converter identity, command/options, exit status, fresh output, target DWG version, AcDs section, entity-record association, exact payload hash and reread disposition; entity counts and success banners are insufficient.",
+    "Keep B-rep acceptance separate: independently authored dimensions, an eligible reader/kernel, topology validity, and a known-answer operation are required; record parser and kernel lineage separately.",
+    "Qualify stock FreeCAD as a converter handoff plus scoped DXF consumer, not as an ACIS B-rep reader. If visible/editable ACIS solids in FreeCAD become a hard requirement, select a separately qualified extension or another consumer."
+  ],
+  "scopeBoundary": {
+    "findings": 122,
+    "topLevelImplementationSubplans": 70,
+    "supportClaimsPromoted": false,
+    "externalItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "validation": {
+    "planUpdated": true,
+    "codeChanged": false,
+    "testFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "runtimeValidation": "NOT RUN; research-only update"
+  }
+}

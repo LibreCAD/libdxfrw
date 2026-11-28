@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "ACIS-history fixed-capacity traversal scratch",
+  "mode": "Generated fast implementation slice",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Remove heap-backed worklist and owner-index storage from the bounded three-object ACIS-history proxy traversal.",
+    "Preserve LIFO ordering, cycle/conflicting-owner rejection, output order, and fail-closed capacity behavior."
+  ],
+  "sourceChange": {
+    "file": "dwg2dxf/dx_iface.cpp",
+    "function": "collectAcdsHistoryProxyGraph",
+    "before": "Use a std::vector pending stack and std::unordered_map expectedOwner for a graph whose accepted closure is exactly three objects.",
+    "after": "Use fixed std::array<HandleOwner, 3> storage and bounded linear owner lookup; keep the explicit closure limit and reject any capacity overflow.",
+    "effect": "Removes heap-backed per-graph pending/map storage while preserving traversal decisions, cycle detection, expected-owner checks, and emitted object order."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+      "result": "passed"
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+        "result": "passed",
+        "count": "1/1",
+        "elapsedSeconds": 3.49,
+        "coverageNote": "The generated local DWG round-trip owner covers positive three-object proxy closure and duplicate-handle, owner, self-cycle, class, and malformed-reference refusal cases."
+      }
+    ],
+    "diffCheck": "passed for dwg2dxf/dx_iface.cpp, DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md, and this receipt",
+    "receiptJson": "jq empty passed"
+  },
+  "assessment": {
+    "newFinding": 0,
+    "newTopLevelSubplan": 0,
+    "newTestOrCtest": 0,
+    "fixtureAdded": 0,
+    "dependencyAdded": 0,
+    "fullSuiteRun": false,
+    "peerOrNativeRun": false,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 139,
+      "topLevelSubplans": 77
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Advances the 7S.2c custom scratch/repeated-work audit for the exact bounded ACIS-history closure. The wider plan and external qualification gates remain active."
+  },
+  "method": {
+    "productionCodeChanged": true,
+    "testCodeChanged": false,
+    "fixtureFilesChanged": false,
+    "testsRun": [
+      "Strict local DWG round-trip target build",
+      "Owning generated local DWG round-trip CTest"
+    ],
+    "limitations": "This removes specific bounded scratch containers only; it is not an allocator/RSS measurement or a whole-process resource-bound claim."
+  }
+}

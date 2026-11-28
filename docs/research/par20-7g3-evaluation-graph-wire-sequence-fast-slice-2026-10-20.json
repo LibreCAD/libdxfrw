@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw.implementation-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G.3 EvaluationGraph wire-sequence control",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Assert the corroborated EvaluationGraph DXF header plus two repeated node and two repeated edge group-code sequences in generated ASCII and Binary output.",
+    "Assert distinct authored wire-sentinel integer values and both emitted expression references against strict-readback entities while keeping graph semantics unclaimed.",
+    "Retain existing owner/reference closure, strict readback, and atomic refusal checks."
+  ],
+  "sourceChange": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "change": "Extended the existing EvaluationGraph capture selector with a generated record-level wire-sequence reader and exact expected group/value comparison for groups 96/97 and two distinct node and edge records.",
+    "reason": "The parser/writer already preserved the corroborated sequence, but the existing selector only asserted record counts and handle closure; it did not lock emitted DXF ordering, repeated-record boundaries, or per-record values.",
+    "productionBehaviorChanged": false,
+    "ctestInventoryChanged": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+      "result": "PASS"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --evaluation-graph-capture-limits",
+      "result": "PASS (ASCII and Binary generated paths; two node and two edge record boundaries; expected negative-preflight diagnostic emitted)"
+    },
+    "owningCTest": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_evaluation_graph_capture_limits$' --output-on-failure",
+      "result": "PASS (1/1; 0.03 sec; repeated node/edge boundaries covered)"
+    },
+    "scopedDiffCheck": "PASS (git diff --check -- tests/dwg2dxf_adapter_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)",
+    "fullSuiteRun": false,
+    "persistentFixturesAdded": 0,
+    "externalFixtureUsed": false,
+    "peerExecutableRun": false,
+    "nativeCadApplicationRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "productionCodeChanged": false,
+    "ctestInventoryChanged": false,
+    "dependenciesAdded": 0,
+    "supportClaimsPromoted": 0,
+    "semanticGraphValidationAdded": false,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "committed": false,
+    "note": "The shared worktree is broadly dirty and Git metadata is read-only in this session; changes remain uncommitted and unstaged."
+  }
+}

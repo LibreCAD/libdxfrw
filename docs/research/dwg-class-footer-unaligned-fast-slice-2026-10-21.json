@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-21",
+  "title": "DWG class string-footer unaligned bit offsets fast slice",
+  "mode": "Generated in-memory regression plus bounded local corpus check",
+  "repository": "LibreCAD/libdxfrw",
+  "researchBasis": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      {
+        "section": "10.2 R18+ AcDb:Classes",
+        "page": 87,
+        "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      },
+      {
+        "section": "20.1 Common non-entity object format",
+        "page": 104,
+        "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+      }
+    ],
+    "formatRule": "R2007+ string-stream size words are located relative to an end bit; the low word high bit indicates an additional high-size word.",
+    "authority": "ODA v5.4.1 is normative for DWG byte layout."
+  },
+  "implementation": {
+    "filesChanged": [
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "test": "testR2007ClassStringFooter",
+    "cases": [
+      "Existing byte-aligned high-bit extension control retained.",
+      "Generated high-size/flagged-low-size/footer-bit cases at each bit offset 1 through 7.",
+      "Each case asserts decoded string size, start bit, and returned buffer cursor."
+    ],
+    "productionCodeChanged": false,
+    "persistentFixturesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "localCorpusAudit": {
+    "sourceDirectory": "/Users/dli/doc/dwg",
+    "ac1024FilesObserved": 9,
+    "repositoryFixturesAdded": 0,
+    "initialCorpusSmokeAttempts": 9,
+    "followUpDebugTraces": 2,
+    "cliConversionsSucceeded": 0,
+    "readObservations": "All nine detailed traces observed operationSucceeded=true and legacyError=0; one reported a classes CRC warning, and several reported incomplete frame coverage.",
+    "cliFailureBoundary": "Strict DXF export preflight required a successful complete DWG read disposition; this is separate from a classes-footer parse failure.",
+    "assessment": "The known AC1024 RTM error-8 report was not reproduced by these available files; they do not resolve it without the exact failing inputs and are not support/acceptance evidence."
+  },
+  "validation": {
+    "strictTargetBuild": {
+      "command": "cmake --build build --target libdxfrw_dwg_reader_matrix_tests -j4",
+      "result": "PASS"
+    },
+    "owningCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+      "result": "PASS (1/1)"
+    },
+    "diffCheck": {
+      "command": "git diff --check -- tests/dwg_reader_matrix_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md docs/research/dwg-class-footer-unaligned-fast-slice-2026-10-21.json",
+      "result": "PASS"
+    },
+    "receiptJson": {
+      "command": "jq empty docs/research/dwg-class-footer-unaligned-fast-slice-2026-10-21.json",
+      "result": "PASS"
+    },
+    "fullSuiteRun": false
+  },
+  "assessment": {
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 143,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "limitations": [
+    "The generated bit-offset vectors exercise the shared size-footer helper, not complete DWG class sections from an independent producer.",
+    "The local AC1024 corpus smoke did not include the exact reported failing RTM saves; the known class-parser issue remains unresolved.",
+    "Strict conversion failures and partial frame observations are not evidence of successful output or general DWG support.",
+    "The shared worktree is broadly dirty and repository Git metadata is read-only; this slice is uncommitted."
+  ],
+  "nextReadinessSlice": "Continue with the next local source/spec-backed PAR-07/PAR-14 implementation item; keep the known AC1024 RTM class failure open until an exact failing save is available."
+}

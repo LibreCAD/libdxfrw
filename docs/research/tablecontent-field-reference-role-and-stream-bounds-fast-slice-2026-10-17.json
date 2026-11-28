@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw-tablecontent-field-reference-role-and-stream-bounds-fast-slice-v1",
+  "completedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "status": "PASS_UNCOMMITTED",
+  "scope": "Validate TABLECONTENT field-reference owner role and minimum handle-stream capacity before reserving the reference vector.",
+  "primaryEvidence": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "20.4.97 TABLECONTENT: field-reference count and hard-owner H references to AcDbField",
+      "2.13 HANDLE REFERENCES: 4-bit CODE plus 4-bit COUNTER before optional handle/offset payload"
+    ],
+    "inferredMinimumBitsPerHandle": 8,
+    "inference": "The documented H framing requires its fixed 8-bit header even when the encoded payload length is zero."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "changes": [
+      "For nonzero field-reference counts, parser checks count*8 bits against the remaining bounded handle stream before reserving the vector.",
+      "Each field reference is parsed only when its reference code is DwgHardOwnership.",
+      "Zero field-reference count retains the existing optional handle-buffer behavior."
+    ],
+    "generatedProfiles": [
+      "AC1021 standalone TABLECONTENT valid hard-owner, wrong-role, and insufficient-stream controls",
+      "AC1024 inline TABLE valid hard-owner, wrong-role, and insufficient-stream controls"
+    ],
+    "fixturesAdded": 0,
+    "testRegistrationsAdded": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf -j2",
+      "ctest --test-dir build-gcc -R '^libdxfrw_dwg_object_vectors$' --output-on-failure",
+      "cmake --build build-gcc --target lc3_compat_check -j2",
+      "git diff --check -- src/drw_entities.cpp tests/dwg_object_vectors_tests.cpp DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "jq -e . docs/research/tablecontent-field-reference-role-and-stream-bounds-fast-slice-2026-10-17.json >/dev/null"
+    ],
+    "results": {
+      "strictTargetBuild": "passed",
+      "focusedCTest": "passed, 1/1",
+      "dwg2dxfBuild": "passed",
+      "libreCADCompatibilityCheck": "passed",
+      "scopedDiffCheck": "passed",
+      "receiptJson": "passed"
+    }
+  },
+  "limits": {
+    "producerOutputObserved": false,
+    "independentStrictReaderRun": false,
+    "nativeApplicationRun": false,
+    "semanticSupportClaimPromoted": false,
+    "supportClaimsPromoted": 0,
+    "externalJDispositionChanged": false,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ],
+    "worktree": "uncommitted; shared checkout contains broad pre-existing edits"
+  }
+}

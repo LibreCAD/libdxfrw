@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-block-endblk-dwg-encoder-allocation-rollback-retry-2026-11-10",
+  "date": "2026-11-10",
+  "title": "BLOCK and ENDBLK DWG encoder allocation rollback and retry",
+  "scope": "Generated local transaction evidence for DRW_Block::encodeDwg; no physical producer or output-support claim.",
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "behavior": "The encoder stages body, detached string and handle destinations with alias-aware publication, restores the original oType on failure, preserves BLOCK versus ENDBLK runtime selection, and publishes only after successful common, name, trailer and handle writes.",
+    "versions": ["AC1021", "AC1024"],
+    "profiles": [
+      "Generated BLOCK with a detached name string and common owner/reactor/extension handles.",
+      "Generated ENDBLK with no emitted name and common owner/reactor/extension handles."
+    ]
+  },
+  "allocationSweep": {
+    "mechanism": "One-shot global allocation failure countdown in the generated object-vector test",
+    "result": "AC1021/AC1024 BLOCK each reached 19 allocation-failure offsets; AC1021/AC1024 ENDBLK each reached 13. Every failure returned false without throwing, preserved seeded body/string/handle bytes, bit counts, handle occurrences and original oType, and succeeded on same-object retry with output equal to clean encoding and the expected object type.",
+    "aliasControl": "Each version/type profile injected failure at the first reached allocation, preserved the all-streams-aliased destination and original oType, and matched clean aliased output on same-object retry."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedSelector": "build-gcc/libdxfrw_dwg_object_vectors_tests --block-dwg-encode-allocation-rollback",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^libdxfrw_block_dwg_encode_allocation_rollback$' --output-on-failure",
+    "result": "PASS: BLOCK/ENDBLK selector; fifteen-test core entity writer allocation cohort passed (15/15); git diff --check passed."
+  },
+  "limitations": [
+    "Generated vectors establish local failure/retry behavior only; they do not qualify BLOCK graph semantics or physical producer interoperability.",
+    "No native consumer rendering, complete-document output, or broad DWG support claim follows."
+  ],
+  "fixturePolicy": "No DWG/DXF fixture was added."
+}

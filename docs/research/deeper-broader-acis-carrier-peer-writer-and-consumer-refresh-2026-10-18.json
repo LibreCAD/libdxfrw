@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader ACIS carrier, peer-writer, and native-consumer evidence refresh",
+  "mode": "primary-source web research and local plan update",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Refresh current ACadSharp released reader and open ACIS writer branch status",
+    "Reconcile LibreDWG's reported R2013+ AcDs silent-loss scenario",
+    "Assess ezdxf and stock FreeCAD as bounded carrier/control and consumer routes",
+    "Refine the existing ACIS/AcDs implementation-ready checks without changing local work cadence"
+  ],
+  "method": {
+    "kind": "Read current official project release, documentation, issue, and pull-request pages and reconcile evidence limits with the existing plan",
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "localTestsRun": false,
+    "localBuildRun": false,
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "planUpdated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md"
+    ],
+    "localFilesReviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "DWG_DXF_3D_SUPPORT_PLAN.md",
+      "AGENTS.md"
+    ],
+    "limitations": "Evidence is limited to mutable project documentation and release/issue/PR reports. ACadSharp and LibreDWG reports were not reproduced; no peer source, artifact, proprietary drawing, native CAD application, or geometry kernel was run. No DWG/DXF byte-layout changes are proposed; the ODA specification remains authoritative for implementation."
+  },
+  "sources": [
+    {
+      "project": "ACadSharp released Prototype1b/ACIS reader",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.6.51",
+        "https://github.com/DomCR/ACadSharp/pull/1154"
+      ],
+      "revision": "v3.6.51 release and merged PR #1154 reviewed 2026-10-18",
+      "observed": "Release notes list ACIS payload reading for 3DSOLID, REGION, and BODY plus full Prototype1b parsing. The PR describes the section reader as low level and says schema mutation/reconstruction remains insufficiently understood. Its discussion includes a 423-DWG comparison and identifies record-alignment, stale-index, and section-failure edge cases. This supports an exact-revision comparison and adversarial test design, not general reader qualification."
+    },
+    {
+      "project": "ACadSharp ACIS writer and schema work",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/pull/1150",
+        "https://github.com/DomCR/ACadSharp/pull/1240",
+        "https://github.com/DomCR/ACadSharp/pull/1174",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "revision": "PR/issue pages reviewed 2026-10-18",
+      "observed": "PRs #1150, #1240, and #1174 are open. PR #1150 includes contributor-reported TrueView/ODA checks, but its October discussion states the branch conflicts with the schema refactor and reports the DXF reader then retaining only the last group-310 payload chunk. The maintainer says the writer may be redesigned around the new schema. Issue #1195's reported silent omission is against 3.4.9 and does not establish behavior for later releases."
+    },
+    {
+      "project": "LibreDWG AcDs issue",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1411"
+      ],
+      "revision": "Issue #1411 opened 2026-09-02; reports LibreDWG 0.14.8593 at commit prefix 8a1ae764",
+      "observed": "The report describes an ezdxf-generated AC1032 DXF REGION with a 5,489-byte SAB payload and a real R2018 drawing where the entity survived but AcDs geometry did not. It is a version/build-specific, unreproduced report and is used only to reinforce the silent-loss detection case."
+    },
+    {
+      "project": "ezdxf ACIS API",
+      "urls": [
+        "https://ezdxf.readthedocs.io/en/stable/acis.html",
+        "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html"
+      ],
+      "revision": "Stable documentation for ezdxf 1.4.5 reviewed 2026-10-18",
+      "observed": "The API can author/read SAT/SAB carriers and create ACIS bodies from meshes. The documentation states that unsupported ACIS structures are represented as NONE_ENTITY and lost, and that mesh projection only extracts flat polygonal faces, so curved-face interpretation requires an ACIS kernel. This is a scratch-control authoring/inspection route, not a complete ACIS oracle."
+    },
+    {
+      "project": "FreeCAD stock DXF importer documentation",
+      "urls": [
+        "https://github.com/Reqrefusion/FreeCAD-Documentation-Project/blob/main/wiki/Draft_DXF.wikitext"
+      ],
+      "revision": "Current documentation page reviewed 2026-10-18",
+      "observed": "The documentation says embedded ACIS solids cannot currently be read by the stock DXF importer. This supports limiting stock-FreeCAD gates to 2D and explicit entities, with ACIS/B-rep qualification remaining a separate lane."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planImpact": "Refines existing S2.3.9.4.29/S8 evidence routing: use ACadSharp v3.6.51 only as a pinned optional read comparator; keep open writer branches out of released-peer claims until rebased and retested; assert full multi-group-310 and multi-record owner-key-payload closure; include silent external-AcDs loss detection; use ezdxf only to author scratch controls and FreeCAD only for its documented 2D/explicit-entity route. The local fast-slice gate, queue, and composed-only optional peer cadence are unchanged.",
+    "planTotals": {
+      "findings": 130,
+      "topLevelSubplans": 73
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "implementationReadyChecks": [
+    "Pin peer release, commit, build features, and input/output format/version before comparing; do not use an open writer PR as a released baseline.",
+    "For AcDs controls, include zero, one, four, and twelve records, multiple group-310 chunks, non-handle-sorted directory entries, stale index entries, and bounded malformed-section handling; derive expected layout from ODA and local literal vectors.",
+    "Assert source entity handle, physical owner, AcDs key/index, complete payload length/hash, and output disposition together; entity presence with empty modeler data is failure.",
+    "Use only scratch/in-memory generated controls, with independent analytic dimensions, units, topology count, volume, and centroid; do not commit external or newly generated drawings.",
+    "Keep DXF SAT, DXF SAB/ACDSDATA, DWG inline payload, DWG AcDs section writing, B-rep semantics, and native application acceptance as separate evidence cells.",
+    "Preserve the strict local fast target plus focused selector and owning CTest per slice; run one optional peer/native matrix at the existing composed gate only.",
+    "If an exact peer branch, native application, or payload profile is unavailable, record NOT_RUN/NOT_QUALIFIED and continue local implementation without promoting J items."
+  ],
+  "validation": {
+    "planUpdated": true,
+    "receiptJsonParsed": true,
+    "planDiffCheckPassed": true,
+    "testsRun": false,
+    "fullSuiteRun": false,
+    "peerRuntimeRun": false,
+    "nativeCadRun": false,
+    "externalFilesDownloaded": 0,
+    "fixturesAdded": 0,
+    "productionSemanticsChanged": false
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1018-table-multicolumn-plain-text-codec-2026-11-09",
+  "date": "2026-11-09",
+  "title": "AC1018 TABLE rectangular plain-text grid codec",
+  "status": "GENERATED_CODEC_PROFILE_PASS",
+  "supportClaimEffect": "none",
+  "extends": "docs/research/p5-ac1018-table-multirow-plain-text-codec-2026-11-09.json",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1",
+    "pages": "230-231",
+    "relevantRule": "The body stores bounded column and row counts, repeats column widths and row heights, then repeats cell data for all cells in the n by m table."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp"
+    ],
+    "summary": "The private AC1018 direct TABLE codec now emits rectangular one-or-more-row and one-or-more-column grids within existing row, column, cell and text bounds. Preflight requires count fields to match the model, each row to have exactly the declared number of cells, supported row/column defaults, and every cell to pass the existing plain-text/override loss guards. Encoding emits dimensions, widths, heights and cells in row-major order. Each cell contributes its value-handle slot and any selected text-style override handle. Public dwgRW::writeTable remains refused."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+      "result": "PASS with configured -Werror flags"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+      "result": "PASS 1/1",
+      "coverage": [
+        "Generated 2-row by 2-column AC1018 TABLE",
+        "Fresh typed readback of row/column counts, column widths, row heights, all four row-major text values, and the second-row/second-column hard-pointer text-style override",
+        "Exact body boundary and following-body sentinel alignment",
+        "Destination-preserving refusal for uncounted rows and rows with incomplete cell grids",
+        "Existing single-cell parser/writer override, malformed-span, handle-role and retry controls"
+      ]
+    },
+    "asan": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg_object_vectors_tests -j4 && ctest --test-dir build-asan-custom -R '^libdxfrw_dwg_table_cell_overrides$' --output-on-failure",
+      "result": "PASS 1/1"
+    },
+    "fixturesAdded": 0
+  },
+  "limitations": [
+    "Generated encoder/parser self-consistency only; no physical AC1018 producer witness or independent-reader result is established.",
+    "Only plain-text cells with already admitted override families are supported by this private codec; block, FIELD, attribute, merge, linked-data and unsupported override profiles remain refused.",
+    "The codec remains private experimental coverage and is not connected to public dwgRW::writeTable.",
+    "The anonymous *T block graph, compound transaction, physical source-to-output proof, native rendering and broad support claims remain open."
+  ],
+  "nextAction": "Find an eligible physical AC1018 TABLE whose complete cell body can be bounded and matched. Keep the public compound writer disabled until physical body agreement, the *T graph transaction and independent readback are established."
+}

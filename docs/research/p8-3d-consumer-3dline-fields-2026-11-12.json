@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-12",
+  "id": "p8-3d-consumer-3dline-fields-2026-11-12",
+  "purpose": "Verify the distinct DRW_3DLine callback retains its direct 3D coordinates and modeled fields through generated DXF readback.",
+  "source": {
+    "kind": "runtime-generated-from-scratch-DXF",
+    "version": "AC1027",
+    "encodings": ["ASCII", "Binary"],
+    "trackedFixture": false
+  },
+  "profile": {
+    "entity": "3DLINE",
+    "layer": "probe_3dline_wcs",
+    "start": [-3.0, 5.0, 11.0],
+    "end": [7.0, -13.0, 17.0],
+    "extrusion": [1.0, 0.0, 0.0],
+    "thickness": 0.625
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_3d_consumer_probe --parallel 2",
+    "result": "PASS",
+    "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_3d_consumer_probe$' --output-on-failure",
+    "ctestResult": "PASS, 1/1, 0.47 seconds",
+    "extrusionModes": ["ext=false", "ext=true"],
+    "diffCheck": "PASS"
+  },
+  "scopeLimit": "Generated same-library custom 3DLINE callback transport only. 3DLINE is not treated here as a standard DXF entity; this does not qualify independent interoperability, DWG producer semantics, or native application behavior.",
+  "claimEffect": "No format or consumer support claim changes."
+}

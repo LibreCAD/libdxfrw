@@ -1,0 +1,130 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-22",
+  "title": "Deeper/broader open-source implementation and ACIS semantic-route refresh",
+  "mode": "Primary-source web research and local plan refinement; plan-only",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Expand the optional DWG/DXF peer matrix with a newly surfaced current Rust implementation and exact release/source identities.",
+    "Identify bounded independent ACIS/SAB geometry-evaluation routes without treating carrier parsing or self-roundtrip as semantic evidence.",
+    "Refine fast-first, generated-control test selection and evidence attribution without expanding validation cadence."
+  ],
+  "sources": [
+    {
+      "project": "acadrust",
+      "urls": [
+        "https://github.com/hakanaktt/acadrust/releases",
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.5",
+        "https://github.com/hakanaktt/acadrust/releases/tag/v0.6.4",
+        "https://github.com/hakanaktt/acadrust/blob/main/tests/roundtrip.rs",
+        "https://github.com/hakanaktt/acadrust/issues/132",
+        "https://github.com/hakanaktt/acadrust/issues/134"
+      ],
+      "revision": "v0.6.5 release commit 289a616; v0.6.4 commit 8d5c46d; issue pages accessed 2026-10-22",
+      "observed": "The project advertises versioned DWG/DXF read/write, broad entities/objects, and ACIS support. v0.6.5 release notes describe R12 DXF writing, ACIS modeler-data work, audit/recovery, and bounded decode-failure recovery. v0.6.4 reports its own test and BricsCAD validation counts. Issue #132 described 0.6.3 data loss and was closed after v0.6.5 reported retention for named colors/table XDATA and explicit refusal for custom DWG records; issue #134 described a 0.6.4 AC1032 regression and was closed after a recovery change.",
+      "limits": "All are peer self-reports or issue reproductions scoped to named revisions. Same-codec roundtrip is not independent evidence. No peer package/repository was downloaded, built, or run."
+    },
+    {
+      "project": "OpenCADStudio and OpenCADKernel",
+      "urls": [
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/Cargo.toml",
+        "https://github.com/HakanSeven12/OpenCADStudio/blob/main/docs/automation/README.md",
+        "https://github.com/HakanSeven12/opencadkernel"
+      ],
+      "revision": "Mutable app manifest and docs accessed 2026-10-22; codec fork rev cc17ec1; kernel rev 95556b2",
+      "observed": "The app pins an acadrust package from the opencadcodec fork and a separately versioned geometry kernel. Its documented save_verified workflow writes a target version, reopens, compares a semantic entity manifest, audits DXF handles, and returns a hash; it also documents an optional Windows reference-CAD AUDIT path. OpenCADKernel describes an early analytic-first B-rep layer and an ACIS lift/lower feature.",
+      "limits": "The app self-readback shares its codec lineage and is not a second parser vote. The kernel depends on the same codec-produced SatDocument; geometry evaluation may be a separate stage but is not broad ACIS/DWG evidence. No app, kernel, or reference CAD executable was run."
+    },
+    {
+      "project": "cq-acis",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/main/docs/sab-support.md"
+      ],
+      "revision": "Mutable repository/docs accessed 2026-10-22",
+      "observed": "The project advertises its own SAT/SAB parser and conversion of supported B-rep geometry through CadQuery/OpenCascade. It labels itself experimental, documents version/producer-dependent geometry support and unsupported-record retention, and lists selected SAT/SAB/ASM profiles and analytic geometry with experimental NURBS/tolerant-boundary support.",
+      "limits": "Candidate only for bounded, independent shape semantics after exact-profile validation. No parser, kernel, or peer test corpus was run or imported. Corpus licensing is separate and must be reviewed before any use."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://github.com/DomCR/ACadSharp/releases/tag/v3.8.0",
+        "https://github.com/DomCR/ACadSharp/releases",
+        "https://github.com/DomCR/ACadSharp/issues/1195"
+      ],
+      "revision": "v3.8.0 signed commit 3a1c66b; mutable release/issue pages accessed 2026-10-22",
+      "observed": "The current latest formal release is v3.8.0. Release history includes ACIS carrier, AcDs payload-offset, and Prototype1b parser work. Issue #1195 reports modeler-entity omission against ACadSharp 3.4.9, not a reproduced result for v3.8.0.",
+      "limits": "No package was installed or run; the older issue cannot be projected onto the current release without route-matched reproduction."
+    },
+    {
+      "project": "QCAD dxflib",
+      "urls": [
+        "https://www.qcad.org/en/what-is-dxflib",
+        "https://www.qcad.org/doc/dxflib/2.5/reference/overview.html",
+        "https://qcad.org/doc/dxflib/2.5/reference/writing.html"
+      ],
+      "revision": "Public project description and 2.5 programmer-guide pages accessed 2026-10-22",
+      "observed": "dxflib is a callback-style DXF reader/writer without its own document store; writing requires caller-managed records and strict call ordering. The accessible programming guide describes legacy R12/R2000-era support.",
+      "limits": "The guide is old and must not be used to infer current release coverage. This is not a DWG, full-document, or 3D modeler oracle."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8 optional exact-version DWG/DXF peer selection and stage attribution",
+      "PAR-14 pin source/release/artifact identity and distinguish peer self-roundtrip from independent reopen",
+      "Add cq-acis as a candidate bounded geometry-semantic route, not as a completed gate",
+      "Keep OpenCADStudio app, opencadcodec fork, OpenCADKernel, and any reference CAD console as distinct evidence lineages",
+      "Keep dxflib in the narrow 2D DXF callback-consumer category",
+      "Add candidate generated-control dimensions for custom classes, XDATA/named colors, AC1032 frame recovery, malformed lengths, and solids-only blocks, conditional on local source audit"
+    ],
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "testsRun": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRepositoriesClonedOrBuilt": false,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "supportClaimsPromoted": 0,
+    "implementationOrderChanged": false,
+    "validationCadenceChanged": false,
+    "planTotals": {
+      "findings": 144,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added acadrust v0.6.5 as an optional pinned direct DWG/DXF comparator and captured its own release/validation evidence ceiling.",
+    "Recorded version-scoped acadrust issue #132/#134 histories as candidate regression dimensions, not local defects; required local reproduction before findings or tests.",
+    "Separated OpenCADStudio's app harness, opencadcodec fork, OpenCADKernel, and reference-CAD acceptance route; the same codec cannot count as an independent parser vote.",
+    "Added cq-acis as an experimental candidate for bounded ACIS/SAB shape semantics against independently known expected geometry, with exact profile and corpus-license checks.",
+    "Refreshed ACadSharp pin to v3.8.0 while keeping the 3.4.9 issue report version-scoped; classified dxflib as a narrow 2D-DXF callback route.",
+    "Refined the optional compact generated-control matrix without changing implementation order, validation cadence, fixtures, or the six external J gates."
+  ],
+  "limitations": [
+    "GitHub releases, mutable branches, issues, and project documentation are time-sensitive; recorded source revisions and observations are scoped to 2026-10-22.",
+    "No peer artifact, sample, package, or executable was downloaded, built, installed, or run.",
+    "Peer project claims and issue reports are route-selection evidence only, not local reproductions or proof of current peer-release behavior outside the pinned report.",
+    "No external sample corpus was used; any cq-acis corpus use requires separate licensing/admission review.",
+    "This pass does not resolve native FreeCAD Linux/Windows qualification, independent ACIS/ACDS semantic evidence, or J256/J260/J268/J284/J293/J295."
+  ],
+  "validation": {
+    "receiptJsonValidation": "PASS (jq empty)",
+    "planDiffCheck": "PASS (git diff --check scoped to plan and receipt)",
+    "fullSuiteRun": false,
+    "commitCreated": false
+  }
+}

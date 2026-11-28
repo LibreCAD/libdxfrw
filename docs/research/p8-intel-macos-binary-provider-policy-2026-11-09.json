@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-intel-macos-binary-provider-policy-2026-11-09",
+  "date": "2026-11-09",
+  "status": "HOME_BREW_PROVIDER_UNSUSTAINABLE_MACPORTS_UNQUALIFIED",
+  "scope": "Resolve the policy premise behind LibreCAD_3 PR #456's Intel macOS bottle-only CI failure.",
+  "sources": [
+    {
+      "url": "https://docs.brew.sh/Support-Tiers",
+      "authority": "Homebrew official support policy",
+      "finding": "Intel x86_64 macOS is Tier 3; Homebrew has stopped building new Intel bottles and expects to remove Intel support in or after September 2027. The page recommends MacPorts but says MacPorts does not provide a full binary set for Intel Tahoe."
+    },
+    {
+      "url": "https://ports.macports.org/port/python314/details/",
+      "authority": "MacPorts official port index",
+      "finding": "Python 3.14 port exists; the catalog reports Intel Tahoe/Sequoia build artifacts. This alone does not prove the application dependency closure."
+    },
+    {
+      "url": "https://ports.macports.org/port/qt6-qtbase/details/",
+      "authority": "MacPorts official port index",
+      "finding": "Qt 6 base port exists and the catalog lists Intel Tahoe and Sequoia artifacts. This alone does not prove the application dependency closure."
+    },
+    {
+      "url": "https://ports.macports.org/port/boost/details/",
+      "authority": "MacPorts official port index",
+      "finding": "The displayed Boost shim identifies Boost 1.76 via boost176, so equivalence with the current LibreCAD_3 Boost build requirement is not established."
+    }
+  ],
+  "conclusion": "The current Intel Homebrew --force-bottle job cannot be made durable by refreshing formula metadata. MacPorts is a possible binary provider but is unqualified and not shown to provide a complete compatible dependency closure.",
+  "policy": [
+    "Do not silently permit Homebrew source-build fallback.",
+    "Do not mark the current Intel job advisory or promote Intel package qualification from partial ports availability.",
+    "Determine whether Intel remains a required release target.",
+    "If retained, enumerate every direct/transitive dependency, version, binary archive, license notice, architecture and origin digest under a supported provider before implementing provider changes.",
+    "If retired, change the supported platform matrix and CI policy explicitly and validate the remaining supported targets."
+  ],
+  "limitations": [
+    "No complete MacPorts closure audit was performed.",
+    "No MacPorts archive signature, source revision, licensing inventory, or deployed Mach-O origin was validated.",
+    "This policy research does not qualify Intel or alter DWG/DXF support claims."
+  ],
+  "next": [
+    "Resolve Intel target status as a release-policy decision; if it remains required, audit the full MacPorts binary closure against the exact LibreCAD_3 dependency set and provenance gates before making code changes."
+  ],
+  "supportClaimEffect": "none"
+}

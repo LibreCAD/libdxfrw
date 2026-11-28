@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-04",
+  "status": "BOUNDED_INDEPENDENT_ARITHMETIC_SHARED_SOURCE_PARSER",
+  "supportClaimEffect": "none",
+  "scope": "Independently calculate planar area, signed volume, centroid and vertex bounds from the known AC1027 source-associated SAB records using only Python standard-library vector and polygon arithmetic. cq-acis 0.3.12 remains the shared SAB parser; this is a different geometry calculation from both cq-acis/CadQuery and CAD Assistant, not a separate source decoder, geometry kernel or native producer oracle.",
+  "provenance": {
+    "source_dwg_sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "oda_carrier_join": "Fresh source probe and independent ODA DXF exact-byte join for all three identities passed; see p7-ac1027-source-sab-cad-assistant-observation-2026-11-04.json.",
+    "cq_acis": "Official macOS ARM64 0.3.12 wheel SHA-256 94204f623d752e7dacf494bf631551277a985acbeb612ee3a24464ea0f0daab5. The parser reports SAB/21800/4-byte, units_mm=1 and a null body-transform reference; those are parser-level observations, not an independent DWG placement proof.",
+    "payloads": {"176":"596d37aaf81ebe9662bd22ba199bce876403dec8da71dd3287b0255adb354782","37D":"fabe3e9804c44472907987ea96409b30b7db35575a34688430b0157d1b6c5566","2E1":"5ca4756434d068b932ac6e0100e5ff07eae36c7eed29a43367eeff8113cca0ec"}
+  },
+  "method_and_preconditions": "Hash-check all inputs before invoking the optional parser. Require the exact supported entity types, one body/lump/shell, no body transform/wire/pattern, no unsupported pcurves, complete face/loop/coedge/edge/vertex/point/line/plane census, connected reciprocal coedge rings, planar vertices on their encoded planes and edge endpoints on straight curves, simple nondegenerate polygon loops, outer and hole winding plus strict hole containment, and positive oriented volume. The solid requires each edge to have exactly two oppositely directed coedges and reciprocal partners; each REGION requires singly used boundary edges. Tolerance is 1e-6 in source coordinates and the local 2D intersection test; this is a bounded input-specific check, not general robust CAD validation. Area uses oriented planar triangles and holes; volume and centroid sum signed tetrahedra translated by a source vertex for numerical stability. Vertex bounds are source-carrier coordinate bounds, not independently established world-space placed bounds.",
+  "observations": {
+    "176_REGION": {"face_loop_edge_vertex_counts":[1,1,4,4],"area":12910556.411860555,"bounds":[[-6836.331483613787,-45.80779034293664,0.0],[-3632.0418544487547,3983.339979056662,0.0]],"comparison":"CAD Assistant 1.6 displays area 1.29106e+7 mm² and matching topology; agreement only to displayed precision. cq-acis kernel conversion itself failed for this REGION."},
+    "37D_REGION": {"face_loop_edge_vertex_counts":[1,1,4,4],"area":2294313.9741117572,"bounds":[[-2199.2082707150694,10344.68927305872,0.0],[-54.05474532926735,12535.434744313578,0.0]],"comparison":"CAD Assistant displays area 2.29431e+6 mm² and matching topology; agreement only to displayed precision. cq-acis kernel conversion itself failed for this REGION."},
+    "2E1_3DSOLID": {"face_loop_edge_vertex_counts":[8,10,18,12],"closed_opposed_edges":true,"area":36067.01752598937,"oriented_volume":4243.178532519813,"centroid":[3220.261140483589,13922.518386864784,1.9999999999998581],"bounds":[[2229.632278886831,13562.283472337987,0.0],[4237.09785008781,14169.087206813578,4.000000000000003]],"comparison":"The numbers agree with cq-acis/OCCT's converted solid to floating-point precision and CAD Assistant's area 36067 mm², volume 4243.18 mm³ and centroid (3220.26,13922.5,2) mm to displayed precision. CAD Assistant did not display bounds. Its Validation properties say None, not valid."}
+  },
+  "validation": {
+    "tool": "tools/audit_ac1027_planar_sab_geometry.py",
+    "tool_sha256": "27b70dff3473318c57a9125086ae72b45fc79c77ca2f24187a817222c980374d",
+    "report_sha256": "3f324c3a3952bf6a0f41d756349744ea999945d6d6015a3c0a0d8c17fa4b42ec",
+    "self_test": "python3 -B tools/audit_ac1027_planar_sab_geometry.py --self-test passes unit cube and translated cube area, volume and centroid; polygon with hole area; and refusal of reversed hole, self-intersection, outside hole and nonplanar ring.",
+    "actual": "Pinned cq-acis Python runs --sab-dir <scratch-dir> on all three exact inputs; one-byte-mutated input and a FIFO are rejected before parser use. Report is explicitly qualification_eligible=false. The byte bound is not an external-parser CPU/memory sandbox or a filesystem deadline."
+  },
+  "limits": "The unknown persubent-acadSolidHistory-attrib records remain undecoded (five on 37D, eight on 2E1) and their effect on geometry/placement is not proven absent. Numeric agreement and a closed opposed-edge incidence do not prove a valid non-self-intersecting solid, independently decoded source semantics, original producer area/volume/units, DWG world placement, CAD rendering, native FreeCAD compatibility, or an independent geometry-kernel vote. No fixtures, extracted payloads, installed libraries or screenshots are committed."
+}

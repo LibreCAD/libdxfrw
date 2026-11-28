@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-04",
+  "authority": "Open Design Specification for .dwg files v5.4.1 sections 20.4.54 and 20.4.56 define LAYER and SHAPEFILE/STYLE common xdictionary hard-owner and xref hard-pointer handle roles; R2000 stores the xdictionary slot.",
+  "scope": "The internally synthesized AC1015 layer 0 and STANDARD STYLE write typed-null hard-owner xdictionary and hard-pointer xref slots. Caller-supplied layer/style wire state and AC1018+ are unchanged; no nonzero reference is fabricated.",
+  "source": "LibreDWG 0.14 independently decoded ODA-produced AC1015 LINE source with typed-null xref roles; the same source has a nonzero layer xdictionary and a typed-null STYLE xdictionary.",
+  "oda_factorials": {
+    "reader": "ODA File Converter 27.1.0 ACAD2013 DXF; all controls use the opt-in source-backed plotstyle graph and preceding synthetic dictionary null-role corrections. Inspect .err and missing DXF, not exit status.",
+    "layer": "Baseline, typed xdictionary only, and typed xref only fail at AcDbLayerTableRecord(12); both together advance to AcDbTextStyleTableRecord(13). Combined SHA-256 e80f07dd06e03fe6159c2753638b42f32e0eee986e782ffb4b15a7c05731a089.",
+    "style": "With layer roles fixed, baseline, typed xdictionary only, and typed xref only fail at AcDbTextStyleTableRecord(13); both together advance to AcDbLinetypeTableRecord(F). Combined SHA-256 76079c5698f56d4a7c2d615ca9f1d2acf0fdda20cad0331c511c167f7bfa2d47.",
+    "qualification": "None of the eight controls produced DXF. Later error messages are not proof of their cause."
+  },
+  "limits": "Scratch evidence does not establish the null roles for all arbitrary caller/source records or general AC1015 interoperability. No generated fixture is committed.",
+  "validation": "PASS libdxfrw_dwg_header_writer_sealing: six versions, exact synthetic/caller null bytes and following plotstyle/linetype handles, full-file caller-state readback, invalid-record no-output rollback and same-writer retry. LibreDWG independently decodes production AC1015 LAYER and STYLE xrefs as (5,0,0); its output hash exactly matches the ODA-tested style mask 3."
+}

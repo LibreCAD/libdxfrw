@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1027-tablecontent-native-string-dual-parse-2026-11-03",
+  "date": "2026-11-03",
+  "status": "UNSAFE_OVERLAP_PROVEN_ODA_PARSER_RETAINED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "oda": "Open Design Specification v5.4.1 sections 20.4.97 and 20.4.99 define TABLECONTENT structure and kString as TV. The speculation that flags 6 selects a byte-counted body carrier was not established and is not present in production.",
+    "odaSpecificationSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7"
+  },
+  "problem": "A physical AC1027 TABLECONTENT flags=6/type=4 field produces a 208-attribute count under the current documented detached-TV parser; the field and stream alignment are unresolved.",
+  "implementation": "No production parser change: ODA v5.4.1 remains authoritative and defines kString as TV. A scratch dual-parse experiment was discarded after a locally authored counterexample showed the two candidate grammars can both parse the same frame. Production neither decodes nor separately retains the proposed alternate carrier. For this AC1027 standalone TABLECONTENT failure the reader records a failed object frame and does not deliver a typed or raw callback; a separate embedded TABLE path retains an incomplete entity shell under its existing behavior.",
+  "source": {
+    "path": "/private/tmp/dwg-example-2013.dwg",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "version": "AC1027",
+    "object": "TABLECONTENT 0xC94",
+    "fixtureCommitted": false
+  },
+  "independentReference": {
+    "tool": "ODA File Converter 27.1.0, macOS ARM64, strict signature verified outside sandbox",
+    "operation": "ACAD2013 DXF, recursion 0, audit 0 on scratch copy",
+    "outputSha256": "72a3ba675db35c268ab7700cbef8551f74ccaab785b2ef611fe7cb3ecd3eeadb",
+    "observation": "ODA converted DXF TABLECONTENT has 20 rows and 9 columns. Its first seven first-column values are test, test, xx, xx, xx, xx, xx, each flags 6/type 4, unit 0, matching display text and zero attributes. Its first content-format text-style pointer is 0x11, supporting the earlier finding that 0x11 is not an ATTDEF. This is converted DXF evidence, not proof of original DWG byte layout."
+  },
+  "focusedValidation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "tests": "ctest --test-dir build-gcc -R ^(libdxfrw_cadvalue_payload_presence|libdxfrw_table_cadvalue_string)$ --output-on-failure",
+    "coverage": [
+      "AC1027 overlap follows ODA detached TV and unknown unit 6 remains retained",
+      "AC1027 non-spec carrier refuses and the same object retries with documented data",
+      "documented AC1027 detached strings with flags 0 and 6, including unknown units 6 and 10",
+      "existing AC1021 native-string controls"
+    ],
+    "result": "PASS 2/2 after restoring ODA-only production parser"
+  },
+  "limits": [
+    "Temporary experimental alternate parse is not shipped, is not a support claim, and does not independently establish original DWG body/string/handle spans.",
+    "The successful ODA DXF conversion does not establish exact field or role equivalence to the source DWG.",
+    "Producer, field-span and target-role evidence remain necessary for the physical source. The AC1027 standalone TABLECONTENT is marked failed with no typed/raw callback, while a separate embedded TABLE keeps an incomplete shell; strict whole-file output remains refused.",
+    "No DWG or DXF fixture was added."
+  ],
+  "experimentalPhysicalCapture": {
+    "probeSource": "/private/tmp/p5-tablecontent-capture.cpp",
+    "probeSourceSha256": "b66ce26fa6edf45aa8ebedbe2a178cba3b9c297e507342de0a74359b3dbb49a4",
+    "probeExecutableSha256": "5d7c698ec9e40546041f9486e49313efae3581260e171e83183a84d873412c78",
+    "captureSha256": "029c45ac0eb3cf824ab0dcba60d87e8cfc1ecc5157b05cb34e08db9978fcf066",
+    "result": "A discarded experimental native-layout alternative parses 20 rows and 9 columns and projects the seven selected values like ODA output; it cannot establish the DWG wire layout. The current production parser remains on the ODA route and does not publish this typed object.",
+    "cliLogSha256": "1d77af2af8ebca5aa40cbe8f5d45862833fac7c3eb01b1a086235bb019040d6f",
+    "cliOutcome": "This observation was collected using temporary non-authoritative experimental code. The production parser is restored and strict whole-file output remains refused."
+  },
+  "ambiguityProof": {
+    "method": "Generated AC1027 flags=6/type=4 frame contains a six-byte body carrier AA AA AA AA 00 00. The first four bytes form sixteen consecutive binary 10 zero codes for the detached interpretation; as UTF-16LE the bytes also yield two U+AAAA characters and a terminator. The detached display string matches the body text, and an extra detached string permits both parser routes to complete.",
+    "temporaryProbe": "A discarded experimental dual parser reported two successful candidates for the same frame; output log SHA-256 592c3d321118e8ede2e1bfc1468fbe962d1632ee9a3f399aaa2af3921b9d1629. This is a deliberately constructed parser ambiguity, not an independently authored CAD sample or semantic support proof.",
+    "committedRegression": "The current ODA-only parser must accept the same frame as detached TV, preserve its unit 6 and string fields, and reject the separate non-spec carrier without publishing a typed object; a same-object retry verifies reset."
+  },
+  "productionRecheck": {
+    "probe": "/private/tmp/p5-tablecontent-capture-oda-only",
+    "probeSha256": "585cdd550b2ad6f086ade1daeaebbbb0dbfb9399625d86d5576d15e1ff68b672",
+    "source": "same AC1027 0xC94 witness",
+    "output": "no TABLECONTENT callback",
+    "observedObjectParseFailures": 3,
+    "stderrSha256": "94be0f1639584c3d4f117ac1f61b60fb6a392d0e8b4af3d8cd815c01802be952",
+    "limits": "Object failure and other source disposition gaps remain; this probe alone does not establish whole-file conversion."
+  }
+}

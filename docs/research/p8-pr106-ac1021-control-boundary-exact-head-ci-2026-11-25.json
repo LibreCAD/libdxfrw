@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-ac1021-control-boundary-exact-head-ci-2026-11-25",
+  "date": "2026-11-25",
+  "status": "FAST_AND_FOCUSED_NATIVE_QUALIFICATION_PASS",
+  "supportClaimEffect": "none",
+  "candidate": {
+    "pullRequest": "LibreCAD/libdxfrw#106",
+    "currentPrHead": "ebf18e79ed44ffe7c7999f83f6d01babfb803ffc",
+    "currentPrHeadChange": "Plan-only; selected implementation inputs are unchanged.",
+    "workflowHead": "0b0e0843d5d94f24ccab8c822e0b3b6390b08e72",
+    "implementationHead": "da7c6ecd4df19611fe5d6d7926cfbe12999f2fc0",
+    "implementationDigestSha256": "9c149d23ffc98e9ff87ade8071d06253f58cc642778812dc8a459a5c2f03c78e",
+    "selectedInputs": 775,
+    "claimsDigestSha256": "7f72bd5c6033fb312c89d56fcc5b476063273a2b24faa863e58114a703956ab8"
+  },
+  "hostedChecks": {
+    "fast": {
+      "workflow": "libdxfrw fast parity regressions",
+      "runId": 45606987211,
+      "runNumber": 390,
+      "jobId": 139180302081,
+      "status": "completed",
+      "conclusion": "success",
+      "results": {
+        "inventoryAndProfile": "success",
+        "boundedBuildAndSourceCompatibility": "success",
+        "fastExecutables": 7,
+        "requiredCtests": 53,
+        "failedTests": 0,
+        "skippedTests": ["libdxfrw_numeric_process_locale"]
+      },
+      "sourceRelease": "skipped_by_workflow_design"
+    },
+    "nativeQualification": {
+      "workflow": "libdxfrw native qualification",
+      "runId": 45606987106,
+      "runNumber": 548,
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": {
+        "qualificationWorkflowContractAndDigest": "success",
+        "focusedLinuxGcc": "success",
+        "focusedMacosClang": "success",
+        "focusedWindowsMsvc": "success",
+        "extendedDeterministicFuzz": "skipped_by_workflow_design",
+        "finalBroad": "skipped_by_workflow_design"
+      },
+      "artifacts": [
+        {
+          "id": 15019570576,
+          "name": "native-qualification-45606987106-1-focused-linux-gcc",
+          "sha256": "4a97c6755c32b81abcc046b45dc280387f1493346a1c0d03624e515ffbc621c4"
+        },
+        {
+          "id": 15019116130,
+          "name": "native-qualification-45606987106-1-focused-macos-clang",
+          "sha256": "0d80af225c861f2b26c8c7ccdb13af7f4cb32b049beedd2d17450862a75391bb"
+        },
+        {
+          "id": 15018666870,
+          "name": "native-qualification-45606987106-1-focused-windows-msvc",
+          "sha256": "06133ca736e12a5fa597b1e3b5ec2062e25a85af5e179907cbf410e6629d9a45"
+        }
+      ]
+    }
+  },
+  "qualification": {
+    "P8F": "CLOSED_FOR_DIGEST_9C149D23",
+    "P8AE": "OPEN_FOR_INTEGRATION_FREEZE_PACKAGE_REFRESH",
+    "P8BCD": "OPEN",
+    "P8G": "OPEN",
+    "supportStatus": "Claim statuses are unchanged; all claims remain EXPERIMENTAL and zero routes are advertised."
+  },
+  "limits": [
+    "Fast and focused native jobs qualify only the selected input digest and bounded profiles.",
+    "Broad, extended fuzz, source-release, and package jobs remain deferred by workflow/integration-freeze policy.",
+    "These checks do not establish native AutoCAD dictionary merge semantics, full C++ ABI compatibility, Linux/Windows FreeCAD qualification, or broad DWG/DXF support."
+  ]
+}

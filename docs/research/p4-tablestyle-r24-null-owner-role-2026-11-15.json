@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "finding": "The R2010+ TABLESTYLE writer encoded a null table-cell-style owner with handle code zero, but its parser correctly requires the hard-owner role. Three generated styles therefore failed parsing in each of AC1024, AC1027 and AC1032.",
+  "specification": "ODA Open Design Specification v5.4.1 section 20.4.101.2 identifies the slot as a hard owner; section 20.1 places it after the common object handle prefix.",
+  "change": "Emit a typed hard-owner null for this specific field. Non-null values retain the same hard-owner encoding; the parser's role validation remains unchanged.",
+  "validation": [
+    "A direct handle-stream control verifies common owner/reactor/extension ordering and both null and non-null hard-owner slots in AC1024, AC1027 and AC1032.",
+    "The TABLESTYLE DWG encoder allocation failure, rollback and corrected retry test passes.",
+    "The generated whole-file local roundtrip reads all three TABLESTYLE records in each modern version and drops from 25 to 10 remaining assertions. A separate typed/raw callback probe confirms all three AC1024 records.",
+    "LibreDWG dwgread 0.14 identifies all three TABLESTYLE handles and their owner in the generated AC1024 file; its incomplete R24 TABLESTYLE implementation does not independently validate the cell-style body or hard-owner slot. Generated drawing SHA-256 6d844f183c9af93ca0579ac313d827fb42fd762fdfe25bb4bc4a651d73ca7f16; file remains outside the repository."
+  ],
+  "limits": "This is specification-backed generated evidence, not full native graph qualification. The roundtrip suite and Windows FreeCAD application checks remain failing; no support claim is promoted."
+}

@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-implementation-slice-receipt",
+  "date": "2026-10-16",
+  "plan": {
+    "path": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "sha256": "15721c1883f13aa83d6102429edc0b5774ad829d603871c66b6a348667a58c83"
+  },
+  "slice": "7F.1b observation provenance: pre-readback DWG writer failure",
+  "change": {
+    "adapterFile": "tests/semantic_differential_adapter.cpp",
+    "adapterSha256": "c5ab7869236f082a2b02253a0b88a28b2daf40b1e39aa9de5deb25153cb849fa",
+    "runnerFile": "tools/run_qualified_differential_v2.py",
+    "runnerSha256": "7ea0225d97a6ff82986e6551bc397ef161e32fc42ebbd10992f159e0db29fe31",
+    "behavior": "notRun outputReadback has null sourceVersion; fabricated source versions are rejected"
+  },
+  "validation": {
+    "runnerSelfTest": "pass",
+    "builderSelfTest": "pass",
+    "diffCheck": "pass",
+    "compiler": "AppleClang 21.0.0.21000334",
+    "configuration": "Release",
+    "target": {
+      "lockCommit": "2043e5254fbf71729e97bd54e48a184153161ff2",
+      "archiveSha256": "7892fd2f35ff9ccf0b60eed13dfcb2bec818d40785b77661ddea86aa0a7d2139",
+      "buildReceiptSha256": "d3633c8373158d84213fb59839fc2e429e89336b83f4d622b84bdba40c65fff0",
+      "adapterSha256": "480b2b2e2b85c02f8ea684088761cafeae525176e4c7e999cc888dbe4b0dbc5d",
+      "linkedSelfTest": "pass",
+      "preReadbackFailureControl": "pass",
+      "compileContractMode": "direct-options-only",
+      "compileContractEnforced": false
+    },
+    "standalone": {
+      "commit": "c19a7d70a3e8c3b9a4679ccd1336c0e5238d80aa",
+      "buildReceiptSha256": "f625e9144a988282a571584b183b0b573f71a47327cd46a176c7c3bb754e18bd",
+      "adapterSha256": "d9875d6c08101cd4ae3312990d43f15ff33e44e329dcb217c6726bcf48b9c227",
+      "linkedSelfTest": "pass",
+      "preReadbackFailureControl": "pass"
+    }
+  },
+  "qualification": {
+    "nextReadyAction": "continue 7AG.4 effective-driver/link-input closure; run independent generated 7F.1b readback controls",
+    "pairedDifferentialRun": "not-run",
+    "supportClaimsPromoted": false,
+    "fixturesAdded": false,
+    "externalJItemsChanged": false,
+    "externalJItems": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  }
+}

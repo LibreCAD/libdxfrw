@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "AC1032 renderer lineage and peer recovery evidence boundary",
+  "mode": "Primary-source project/issue review with local plan and selected source-owner cross-check",
+  "scope": [
+    "Screen a newly visible AC1032 DWG consumer and determine whether it adds an independent parser, writer, or 3D semantic route.",
+    "Refresh LibreDWG #1357/#1359 and #1410 state and separate master observations, unmerged proposals, strict completeness, and recovery behavior.",
+    "Reconcile candidate routes with FreeCAD/GDAL scope and the existing implementation-ready parity owners."
+  ],
+  "method": {
+    "peer_repositories_cloned": false,
+    "peer_sources_built": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "peer_drawings_downloaded": 0,
+    "peer_fixtures_copied": 0,
+    "local_tests_changed": false,
+    "full_suite_run": false,
+    "local_files_reviewed": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "src/intern/dwgreader.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/block_owner_tests.cpp",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "plan_updated": [
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "limitations": "GitHub default branches and project-authored README/issue reports are mutable. The dwg2png 11-file report has no visible input-hash/license manifest in the reviewed README. LibreDWG aggregate counts and issue comments are contributor-reported, not independently rerun. The search was targeted and does not prove that no other open-source project exists."
+  },
+  "sources": [
+    {
+      "project": "dwg2png",
+      "urls": [
+        "https://github.com/diskd-ai/dwg2png/blob/main/README.md",
+        "https://github.com/diskd-ai/dwg2png/blob/main/Cargo.toml"
+      ],
+      "observed": "The repository pins acadrust 0.4.0 and describes a downstream 2D model/paper-space rendering and metadata route. It reports 11 real AC1032 DWGs and 23 pages but does not publish a hash-bound input manifest in the reviewed README. Its documented v1 omissions include HATCH fills, dimensions, leaders/MLEADER, MLINE, raster images, and 3D solids; spline rendering is an approximation."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/issues/1357",
+        "https://github.com/LibreDWG/libredwg/pull/1359",
+        "https://github.com/LibreDWG/libredwg/issues/1410"
+      ],
+      "observed": "Issue #1357's reporter says three AC1021 aggregate counts matched ODA File Converter at master commit 56a05f98 after contemporaneous R2007 decoder changes, without a bisect; #1359 remains a distinct open skip-and-warn proposal. #1410's issue-body DXF-import patch explicitly calls embedded-MTEXT handling a stopgap and points to group-101 scoped parsing as the intended direction. These are peer observations, not local reproductions or normative contracts."
+    },
+    {
+      "project": "FreeCAD and GDAL",
+      "urls": [
+        "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+        "https://gdal.org/en/stable/drivers/vector/dxf.html"
+      ],
+      "observed": "FreeCAD documents a DWG-converter-to-DXF-to-selected-importer route and stock DXF importer limitations for ACIS solids. GDAL documents Binary DXF input from 3.12 and an optional AC1027+ raw ASM/transform projection, not B-rep construction. Neither route supplies the independent ACIS/AcDs semantic result required by the plan."
+    }
+  ],
+  "plan_impact": {
+    "existing_owner_refinement": "Add dwg2png as an optional, same-ACadRust-lineage 2D viewport/render projection only; retain strict source-identity accounting and embedded-MTEXT group-101 scope under existing PAR-49/7G.3, PAR-28, and PAR-19 owners.",
+    "implementation_order_changed": false,
+    "validation_frequency_changed": false,
+    "new_local_defects": 0,
+    "new_findings": 0,
+    "new_top_level_subplans": 0,
+    "fixtures_added": 0,
+    "dependencies_added": 0,
+    "peer_runs": 0,
+    "native_runs": 0,
+    "support_claims_promoted": 0,
+    "plan_totals": {
+      "findings": 139,
+      "top_level_subplans": 77
+    }
+  },
+  "external_findings": {
+    "J256": "DEFERRED_EXTERNAL",
+    "J260": "DEFERRED_EXTERNAL",
+    "J268": "DEFERRED_EXTERNAL",
+    "J284": "DEFERRED_EXTERNAL",
+    "J293": "DEFERRED_EXTERNAL",
+    "J295": "DEFERRED_EXTERNAL"
+  },
+  "repository_state": "Plan and research receipt updated in the existing broadly dirty shared worktree. No files were staged or committed."
+}

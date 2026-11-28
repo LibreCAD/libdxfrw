@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-xrecord-compatibility-version-matrix-allocation-2026-11-13",
+  "date": "2026-11-13",
+  "status": "GENERATED_XRECORD_COMPATIBILITY_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend allocation rollback, same-writer retry and typed readback for the explicit DWG-code and LayerStates XRECORD compatibility writers across their admitted modern target revisions.",
+  "source": {
+    "kind": "locally generated in-memory XRECORD records",
+    "profiles": {
+      "dwgCompatibility": "Groups 1070 Int16=12345 and 1071 Int32=12346 through writeXRecordDwgCompatibility().",
+      "layerStateCompatibility": "Group 370 Int16=12345 through writeXRecordLayerStateCompatibility(); this synthetic record does not qualify source-bound LayerStates admission."
+    },
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_xdata_int16_tests.cpp",
+      "docs/research/p6-dxf-xrecord-compatibility-version-matrix-allocation-2026-11-13.json",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "2d524eddde91dbc41456f40b0175a1688ac20cc25627017848ed4112ce83f1b7",
+    "testExecutableSha256": "c7a72ab8068ad3d249f4cc8e8731d5b192f203bdd26b629b83f6b0964037de0f",
+    "method": "For each route, revision and encoding, generate a clean baseline, inject std::bad_alloc at every measured whole-file write allocation, require the destination sentinel and caller identity/payload to remain unchanged, retry on the same codec and compare exact bytes, then freshly import and verify the typed payload and target revision."
+  },
+  "allocationOffsets": {
+    "AC1021": {"dwgASCII": 90, "dwgBinary": 88, "layerStateASCII": 90, "layerStateBinary": 87},
+    "AC1024": {"dwgASCII": 97, "dwgBinary": 95, "layerStateASCII": 97, "layerStateBinary": 94},
+    "AC1027": {"dwgASCII": 90, "dwgBinary": 88, "layerStateASCII": 90, "layerStateBinary": 87},
+    "AC1032": {"dwgASCII": 90, "dwgBinary": 88, "layerStateASCII": 90, "layerStateBinary": 87},
+    "totals": {"ASCII": 734, "Binary": 714, "all": 1448}
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_xdata_int16_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_xdata_int16_exact_numeric$' --output-on-failure: PASS 1/1 in 3.45 seconds",
+    "directRun": "build-gcc/tests/libdxfrw_xdata_int16_tests: PASS; all 1,448 measured compatibility-writer allocation offsets passed rollback, same-writer byte-identical retry and typed version/payload readback.",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated compatibility transport and transaction evidence only; it does not establish independent producer behavior, complete XRECORD schema support or native semantics.",
+    "The group-370 vector does not prove source-qualified LayerStates route selection, dictionary/owner closure or native LayerStates behavior.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "Both explicit XRECORD compatibility writers now have whole-operation rollback, same-codec byte-identical retry and typed readback across AC1021/AC1024/AC1027/AC1032 ASCII and Binary.",
+    "remainingP6G": "Continue the writer/profile inventory; source-bound compatibility admission and semantic gates remain separate.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "269 completed slices and 35 remaining packages: 269/(269+35)=88.5%; count-based activity proxy only."
+  },
+  "previousReceipts": [
+    "docs/research/p6-dxf-xrecord-dwg-compatibility-allocation-rollback-retry-2026-11-13.json",
+    "docs/research/p6-dxf-xrecord-layerstate-compatibility-allocation-rollback-retry-2026-11-13.json"
+  ]
+}

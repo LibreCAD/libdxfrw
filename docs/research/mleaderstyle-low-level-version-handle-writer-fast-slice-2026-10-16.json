@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-mleaderstyle-low-level-version-handle-writer-fast-slice-v1",
+  "reviewedAt": "2026-10-16",
+  "scope": "Implement and fast-test target-version gating and source-handle remapping for the low-level typed DXF MLEADERSTYLE writer.",
+  "sourceHashes": {
+    "src/libdxfrw.cpp": "fd287e24eeffa6580005a025e67478c4d01c5f33ebdb9c09bf372361850a48b7",
+    "tests/wave1_tests.cpp": "ec3222ec3cd9f329ef31b94365812a06a9eeee0ce7c4b61a4ca52219fec1e53c"
+  },
+  "implementation": {
+    "minimumTarget": "AC1021 / R2007; earlier target is rejected before output.",
+    "versionedFields": {
+      "group179": "Emitted only for AC1024 / R2010 and later.",
+      "group298": "Emitted only for AC1027 / R2013 and later."
+    },
+    "handlePolicy": "Remap the record's own handle, owner and nonzero group 340-343 references before output.",
+    "nullPolicy": "Zero is DRW::NoHandle and the absent/null reference value here; optional zero references are omitted. A nonzero reference mapped to zero is refused before record publication.",
+    "graphBoundary": "Target kind, uniqueness and dangling-reference validation remain the adapter's rooted graph responsibility and are not implemented by this slice."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_wave1_tests -j4",
+      "result": "passed"
+    },
+    "mleaderStyleFocusedTest": {
+      "command": "build-gcc/libdxfrw_wave1_tests --mleader-style-validation",
+      "result": "passed"
+    },
+    "mlineStyleRegression": {
+      "command": "build-gcc/libdxfrw_wave1_tests --mline-style-validation",
+      "result": "passed"
+    },
+    "diffCheck": "passed for src/libdxfrw.cpp and tests/wave1_tests.cpp",
+    "generatedControls": [
+      "ASCII/binary AC1021, AC1024 and AC1027 target-version checks",
+      "group 179 and 298 version floors",
+      "record and owner handle remapping",
+      "all group 340-343 reference remaps",
+      "zero optional arrowhead and block references omitted while 340/342 resolve",
+      "pre-AC1021 target refusal",
+      "each nonzero 340-343 source reference mapped to zero refused before publication"
+    ],
+    "fullSuiteRun": false
+  },
+  "evidenceLimits": {
+    "rootedAdapterGraph": "not implemented by this slice",
+    "customClassCountFromFinalOutput": "not implemented by this slice",
+    "referenceTargetKindAndUniqueness": "not validated by this low-level writer slice",
+    "mleaderEntityToStyleClosure": "not implemented by this slice",
+    "realDwgOriginMLeaderStyle": "not qualified",
+    "consumerSemantics": "not evaluated",
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "ctestRegistrationsAdded": 0,
+    "supportClaimsPromoted": 0,
+    "externalJStatusChanged": 0,
+    "gitCommitCreated": false
+  }
+}

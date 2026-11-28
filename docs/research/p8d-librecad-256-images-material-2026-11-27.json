@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-256-images-material-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "8334bd54f5c8d5062b886f7e75022d8efda3112d",
+  "validation": [
+    "The focused multi-image graph test passed 11,306 assertions across six DXF versions and existing smaller shapes plus 256 images with three definitions. Four modern versions cover an added sparse MATERIAL and LINE reference; AC1015 and AC1018 retain explicit material-profile refusal, destination preservation and retry.",
+    "The test checks selected IMAGE and IMAGEDEF physical fields including nonzero Z, source and typed graph closure, damaged reactor and plot-style refusal, live and late mutation refusal, destination preservation, corrected same-filter retry and fresh consumer readback.",
+    "ezdxf 1.4.5 independently checked four modern-version 256-image source/output pairs for geometry, image definition and reactor links, MATERIAL dictionary ownership and LINE material reference; all audits were clean. Largest shared-definition source frame has 267 groups.",
+    "The focused test took 16.95 seconds with observed maximum RSS 58,818,560 bytes on macOS ARM64; this is not a memory limit."
+  ],
+  "logsSha256": {
+    "test": "6510fc72a1c0acf0da8a4f941956079936435bb174b4964fb27c7ba885972322",
+    "peer": "8684796ff6ea34f414b53413e9a7ac5be669409725d7f65ac5b4271e8a7ab9cf"
+  },
+  "peer": [
+    {
+      "version": "default",
+      "sourceSha256": "f5a9a0b645a5f4373406a29a9983a8dda4da89f6052f226c6878990416b2db2d",
+      "outputSha256": "9b50c13b90a863067b91094aa062689fe85cbd6418cc056f0816853096944cdd",
+      "largestDefinitionSourceGroups": 267,
+      "audit": "clean"
+    },
+    {
+      "version": ".v19",
+      "sourceSha256": "7c749eccaa83394ff6f2d3a9e261694e13e4ac29cfa3d0638aa5a35a42a40fa1",
+      "outputSha256": "a5b0cb741e7e25583d189dc0976019fb543683b54df07af37ad49c3c5155648c",
+      "largestDefinitionSourceGroups": 267,
+      "audit": "clean"
+    },
+    {
+      "version": ".v20",
+      "sourceSha256": "12fdcb0f9d1a9e300b649b91440d872783690effc7a21b7f96b9f45aa12e5a35",
+      "outputSha256": "e2e1900f27100744035cff7af0f14f1830fe8725d575b5d96636481046594863",
+      "largestDefinitionSourceGroups": 267,
+      "audit": "clean"
+    },
+    {
+      "version": ".v2",
+      "sourceSha256": "c7966cd0cde02f610b94eb06c0cbaf914c67458c04e500b50b59814ea2050546",
+      "outputSha256": "1f3e5b8facfc640143ad8700cac8cbd4b3f932700bf4990c449b46f2645a925f",
+      "largestDefinitionSourceGroups": 267,
+      "audit": "clean"
+    }
+  ],
+  "limitations": [
+    "This covers a locally generated minimal material and selected model-space IMAGE graph, not arbitrary MATERIAL bodies, producer files, layouts, cross-version conversion, or native rendering.",
+    "The source-file capture, retained-source, per-record and graph guards remain applicable. No fixture is committed."
+  ]
+}

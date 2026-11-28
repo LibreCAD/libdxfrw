@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "scope": "controlled R14 TABLE compound and malformed-role retry; not native semantics",
+  "sourceSha256": "d1ec4519be14ac49ecab5ec024ad951271e00261a1851f623a784a97ba6ede73",
+  "generatedDwgSha256": "38c3bb1ff64c659f633157e4adda6328c1e9df1b98032a5b798b380e5c199f68",
+  "generatedTableFrameSha256": "736d50f4521dc7c0773efc0b1303be1e1b24b53c832947015a99a51f0c02f109",
+  "generatorSha256": "57b9ca412d15f2bf41b89da2006c63b527b3a30069e4ebd969fe17597e7df66a",
+  "reference": "ODA Open Design Specification for .dwg files v5.4.1 sections 2.13 and 20.4.96.1",
+  "observations": [
+    "A controlled R14 TABLE, ATTRIB and SEQEND are staged using the existing legacy INSERT ownership and frame checks. TABLE, optional grid and raw peer are journaled against the owning frame.",
+    "The checked derivative delivers ATTRIB 705 through the TABLE and 2D INSERT callbacks, and through the opt-in 3 by 7 grid.",
+    "Wrong TABLE endpoint role, wrong ATTRIB owner and wrong SEQEND owner are individually introduced with corrected frame CRCs; no TABLE, INSERT, grid or raw peer is published for the rejected owner. An unrelated TABLE remains visible and the same reader accepts the corrected input.",
+    "R13 and R14 no-attribute compatibility controls and the shared legacy INSERT chain test pass."
+  ],
+  "limits": [
+    "The source and derivative remain outside the repository.",
+    "Other unsupported source objects are not qualified by LibreDWG's rewrite.",
+    "This is not native TABLE attribute, cloning, display, or output evidence.",
+    "This controlled R14 profile does not establish native TABLE attribute behavior, AC1012 producer qualification, all child-order permutations, cell semantics or strict output.",
+    "The source and generated derivatives are not committed."
+  ]
+}

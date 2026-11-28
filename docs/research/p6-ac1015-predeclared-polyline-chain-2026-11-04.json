@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-04",
+  "authority": "Open Design Specification for .dwg files v5.4.1 sections 20.1\u201320.2, 20.4.8, 20.4.16 and 20.4.17; independent producer witness docs/research/p6-ac1015-compound-entity-chain-witness-2026-11-04.json.",
+  "scope": "Explicit AC1015 DRW_DwgLegacyPolylineChainProvider extends the separately opted-in predeclared model chain with concrete 2D/3D POLYLINE parents, at least two planned vertices and a separately planned SEQEND. Children form their own soft-pointer predecessor/successor list, SEQEND has null neighbors, and the parent alone belongs to the model-space list. All identities and links are fixed before frame receipts. INSERT, empty/singleton, mesh/polyface, spline/fit flags, nonrepresentable fields, retained SEQEND metadata, paper space, named blocks and raw replay remain refused. Existing non-opt-in paths remain unchanged.",
+  "source_witness": "ODA 27.1 producer plus independent LibreDWG decode, documented in p6-ac1015-compound-entity-chain-witness-2026-11-04.json.",
+  "oda_output": {
+    "reader": "ODA File Converter 27.1.0 ACAD2013 DXF; actual DXF and no .err confirmed, not merely exit status. Each profile uses the explicit model/compound chain and default plotstyle providers.",
+    "two_vertex_2d": {
+      "dwg_sha256": "7068fbc62500e981d20585e50b5bc49c7afc4ba18def450d00bd12262ffb03c7",
+      "dxf_sha256": "58bdced3e83ac8acc58e6e97251f1c433b383b4a1e6d0e11bfa46b7ae7db6aa9"
+    },
+    "two_vertex_3d": {
+      "dwg_sha256": "dfb4e051da1d6a33cc506547dbc114ddb6c21f21675d6243bdbcede64f489c21",
+      "dxf_sha256": "066c27a2cb7c8c22e524275839d3a056fe279d7d7cecd375a1c4da729e20ec20"
+    },
+    "three_vertex_2d": {
+      "dwg_sha256": "ab69f8176745c2854331679ef362747bb0d6ce8598100e26ef314b79f207ef6d",
+      "dxf_sha256": "ca9c38c858b5e2c0ddd6a92c9fa5a99cb953e4c6992731f753328f99ef6eef9a"
+    },
+    "three_vertex_3d": {
+      "dwg_sha256": "0720921724e13d91b629d585e135ca4772a85b4ded8a6d570ec5198b051f8d43",
+      "dxf_sha256": "493d92a85dfc696e1ace968397a88e6b497fb35817ce2c3c7e6c6d479e43d436"
+    },
+    "rich_2d": {
+      "dwg_sha256": "cbcc50eb3d3649b137afe06dcc4723036a452ac9532e74b272cbca6c385b6545",
+      "dxf_sha256": "4daa20c19b6ac8e34eacdeb2f00e4014b52ad0286511e379d0c1c833597cb666",
+      "observed": "Parent widths 0.5/0.75 and thickness 0.25; first vertex widths 0.2/0.4, bulge 0.25 and tangent 0.75 radians retained."
+    },
+    "two_parents": {
+      "dwg_sha256": "ebc31ffba32cd2d388be016e969bef8adfaff2ff8473233fd2ddcd161c1c0330",
+      "dxf_sha256": "3a4ad1de3a9b1de43c916fcc9d048e7d92c81618fdd16ce68d9a19f1189011f7",
+      "observed": "Separate 2D and 3D polylines each retain their own two vertices and SEQEND."
+    },
+    "elevated_tilted_2d_scratch": {
+      "dwg_sha256": "0fad5fd1c173f6ab2a8d1943bb5659423808a019d3494d169ccd3e0aeb48fb11",
+      "dxf_sha256": "8b39c4ec9773a7335b80405157b6bec40c5863286b68cb09d906b865a312e123",
+      "observed": "Parent elevation 5 and extrusion (0,0.6,0.8) and equal vertex z=5 retained; no rendering or OCS world-space claim."
+    },
+    "singleton_exclusion": "Earlier generated singleton DWG SHA f20a1a7cacf2e8a318187513cba43651bc368ef306cf002b4c7497e6f1cdbca8 converted to DXF with two identical vertices. Singleton is therefore refused rather than treated as exact parity."
+  },
+  "validation": "PASS libdxfrw_dwg_legacy_polyline_chain, legacy_model_chain_optin, header_writer_sealing and default_plotstyle_optin; LC3 compatibility target builds. Controls cover independent parent/child/SEQEND roles and immutable receipts, same-facade rollback/retry including late SEQEND false-return and early/late bad_alloc, full raw APPID/LAYER pending-reference restoration, identity and owner alias rejection, aggregate >1,000,000 identity refusal before index construction, unrepresentable field refusal and multiple parent isolation. GNU LibreDWG 0.14 independently verifies topology and geometry for retained generated profiles; its JSON omits 2D vertex widths, independently confirmed by -v4 trace.",
+  "limits": "No broad AC1015 interoperability, compound INSERT, CAD rendering/editing, cross-platform or DWG/DXF parity claim. Explicit 3D vertex flag 32 has local receipt/readback coverage and independent source witness; the cited ODA output samples use default vertex flags. No locally generated DWG/DXF fixture is committed."
+}

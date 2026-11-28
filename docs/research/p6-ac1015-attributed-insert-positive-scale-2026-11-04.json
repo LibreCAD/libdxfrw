@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "title": "Positive finite scaling for the bounded AC1015 attributed INSERT graph",
+  "status": "BOUNDED_EXPLICIT_WRITER_PROFILE",
+  "supportClaimEffect": "none",
+  "scope": "The explicitly opted-in AC1015 predeclared INSERT chain accepts positive finite X/Y/Z scale factors. All prior graph, named-block, default extrusion, 2D attribute, identity, ownership and frame-receipt restrictions remain. Zero, negative and nonfinite scales still fail atomically. No public object or virtual layout changes.",
+  "authority": "ODA Open Design Specification for .dwg files v5.4.1 section 20.4.9 specifies R2000 INSERT flags 3, 2, 1 and 0 for unit, uniform, X-unit and general scale encoding. The existing encoder selects those forms by exact stored-double equality and writes non-default values with RD/DD.",
+  "physicalSources": {
+    "method": "From-scratch ezdxf 1.4.5 DXF -> ODA File Converter 27.1.0 AC1015 DWG -> ODA DXF. tools/audit_ac1015_insert_scale.py authors and checks the source graph via LibreDWG 0.14 and ODA DXF via ezdxf. No DWG/DXF fixture was added.",
+    "uniform": {
+      "dwgSha256": "ab040bf734d286292c6e7bef9bde9864ace8142ff7f516434213b12f4fe01007",
+      "odaDxfSha256": "1c6a93bc7b42c0668d183abf442ef398ce0e7acf3ca68d5c380e1a3460d18f31",
+      "scale": [
+        2,
+        2,
+        2
+      ],
+      "peerFlag": 2
+    },
+    "xunit": {
+      "dwgSha256": "1563e5e7d56e4796407c70fdae8b465ad93293027cc2e91b2e61d59d3d42b499",
+      "odaDxfSha256": "71bd15a565cb99ccf48fff350b8b7f2a192be0dbee7d93c823b24156310eb816",
+      "scale": [
+        1,
+        2,
+        3
+      ],
+      "peerFlag": 1
+    },
+    "nonuniform": {
+      "dwgSha256": "fcbf0166084562fe87a89ee05f68b654c428de926c022cbdcbaf33a038b952e1",
+      "odaDxfSha256": "7a76fbcc53ed05028bc66cd0fdbf72d2d75c6b3e1a29918c18e2e9e8a204260c",
+      "scale": [
+        2,
+        3,
+        4
+      ],
+      "peerFlag": 0
+    },
+    "rotatedPopulated": {
+      "dwgSha256": "57908a164cecfcbd6187a54ae00170543ac3a969c78efaf2143dda877de2582e",
+      "odaDxfSha256": "0474b22bedff97f8eb1c6003672a989211909fd16d8e3b1a8ecd26bbb193a068",
+      "scale": [
+        2,
+        3,
+        4
+      ],
+      "rotationDegrees": 30,
+      "graph": "LibreDWG validates block record, BLOCK/ENDBLK, ordered named-block LINE/CIRCLE/ARC and model chains, INSERT, ATTRIB and SEQEND ownership and handle roles. ODA DXF preserves attribute tags, values, rotations and positions. ezdxf computes the transformed 3D block LINE from (1,2,3)-(4,5,6) as (1.7320508075688779,10.196152422706632,12)-(2.4282032302755105,20.99038105676658,24), matching before/after ODA output."
+    }
+  },
+  "generatedOutput": {
+    "method": "Focused generated AC1015 tests exercise unit, uniform, X-unit, nonuniform, fractional and near-unit scales; compare exact typed native DWG readback; validate immutable parent/child/SEQEND receipts; and verify same-writer rollback/retry for zero, negative, infinity and NaN. A separate test emits a rotated (2,3,4) INSERT with nonempty 3D named block content.",
+    "flags": "LibreDWG verbose output independently reports flags 3, 2, 1 and 0 for the generated unit, uniform, X-unit and general cases respectively.",
+    "peer": "LibreDWG peer checks four generated nonunit profiles and the rotated populated graph, including block references, chain roles and attribute positions/angles. ODA converted all six generated outputs to DXF without error files; tests/dwg_legacy_insert_scale_oda.py checks four profiles and the populated graph using ezdxf.",
+    "nearUnitLimit": "The native DWG typed reader preserves nextafter(1,2), 1, nextafter(1,0) exactly. ODA DXF text rounds the first value to 1.0 and LibreDWG JSON prints unit values, so external exact-bit equivalence is not claimed for this near-unit case."
+  },
+  "generatedHashes": {
+    "uniform": "6ab13c9adf36f26b0fef7703842c54d702f574996b887e37a22aa2b6e146398c",
+    "xunit": "a2748d12cfde9200d386094e7394ee8fdd9a150c3474b5ef1e6a4fbf66b68736",
+    "nonuniform": "34639e2b224ac333b31de47d3f752e4f9c5cf2c34fc1dd6342caea6159d85078",
+    "fractional": "141bf21c7dd14b8f45025ac2e65adaa696c1b00b2326e19e2df824848a904b92",
+    "nearunit": "de3ec5c6baf3b77ba34d24bb465b6b07fd2d7b61ce9d4cd50e8600e3449550c2",
+    "rotatedPopulated": "0b1baf0a806c491e3ca0a52e8d4d5853efb298ee88147631ad437f0b031f94c7"
+  },
+  "validation": [
+    "cmake --build build-gcc --target libdxfrw_dwg_legacy_insert_chain_tests libdxfrw_dwg_legacy_block_content_chain_tests -j4: PASS",
+    "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_legacy_insert_chain|libdxfrw_dwg_legacy_block_content_chain)$' --output-on-failure: 2/2 PASS",
+    "Run each binary with --keep, then tests/dwg_legacy_insert_chain_libredwg.py and tests/dwg_legacy_block_content_chain_libredwg.py against retained scratch DWGs: five peer profiles PASS",
+    "ODA converts retained generated DWGs to DXF; tests/dwg_legacy_insert_scale_oda.py verifies the four nonunit and one populated profile: PASS",
+    "tools/audit_ac1015_insert_scale.py verify MODE SOURCE.dwg OUTPUT.dxf /opt/homebrew/bin/dwgread: uniform, xunit, nonuniform and populated PASS",
+    "git diff --check: PASS"
+  ],
+  "limits": [
+    "Evidence does not establish arbitrary scale rendering in native CAD applications or near-unit exactness after third-party DXF conversion.",
+    "Negative, zero, nonfinite, MINSERT, nondefault extrusion, out-of-profile attribute metadata, unsupported graph roles and general DWG parity remain outside this bounded route.",
+    "All DWG/DXF source and output drawings are scratch-only and no fixture was added."
+  ]
+}

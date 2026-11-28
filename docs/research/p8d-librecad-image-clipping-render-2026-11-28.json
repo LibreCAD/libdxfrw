@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-image-clipping-render-2026-11-28",
+  "supportClaimEffect": "none",
+  "consumerCommit": "290ad0e5",
+  "codecTestInclusiveDigest": "af2d9e8a1f4866db44def162e69f1c974fc3b08dbd0f263a4100431460e473ea",
+  "change": "Retain bounded IMAGE clipping on the consumer entity, render it in the image pixel frame, use the same path for containment, and require retained source and live clipping state to agree for checked output.",
+  "checks": [
+    "Locally generated AC1024 18-vertex polygon rendered clipped in an isolated macOS ARM64 application; after Save As and reopen it remained visibly clipped. Independent ezdxf checked image, definition, reactor, geometry and all vertices in the saved file with a clean audit.",
+    "A locally generated AC1021 image in a named block with clipping enabled rendered as the expected triangle on macOS. The earlier named-block graph control had display group 70=3 and therefore did not demonstrate active clipping; it now uses group 70=7 for the polygon case.",
+    "A variant of the locally generated AC1024 image with group 290 set to 1 displayed the raster outside the 18-vertex polygon and the drawing background inside it in the native macOS application. This was an open/render check only.",
+    "The bundled-codec painter test passes 432 assertions across normal, rotated and mirrored bases, rectangular and polygon clips, inverse and disabled modes, and copied entities; this includes offscreen containment, not native GUI picking.",
+    "The system-codec 18/256-vertex 1/2/384-image test passes 3425 assertions including live metadata agreement, mutation refusal and destination preservation; the corrected active named-block case passes 22 assertions.",
+    "No scratch DWG/DXF or image fixture was committed. The native application was built with an isolated settings organization and signed as a scratch bundle; the seven changed consumer source and test files match the commit."
+  ],
+  "evidence": {
+    "nativeInputSha256": "110ece461e4ce3cae9f96e53c04ef0339a01c15180cf4130260d60252c89a001",
+    "nativeRasterSha256": "cc9ba2ba453ba7b9b081582448117dd74b29c80d56f0c64b733d65ec7736d28b",
+    "nativeOutputSha256": "e102bf537c5a0996bdb2c56e24fd945b58728008ed4e66db857e26de6024b12e",
+    "independentAuditSha256": "7d675a30bad5446aaf4ecba5ca109dbfd8fdde62ae100cb211dd23d9a8111dc6",
+    "activeBlockInputSha256": "93fa21aed838323edb8ba74cb51c54e58f6546d39f4b69338f01ea7bf1ae7604",
+    "isolatedAppBinarySha256": "e41be58a770c14c4b1ed2c77a9ed6e3bb7ed85476fff8b5242d704e5aaf975a5",
+    "sharedCodecSha256": "dc4c9d0c9f396fe49d11e898d44692272e0230f1099213a75e2e58a22c2ea681",
+    "testLogSha256": {
+      "painter": "93660c9b576b6e145e619601ca1235c110b9b20a5d15b32890551f3dd9e9a562",
+      "system": "554c4526f7eada3a4c1e5ffb952be2831eeaee03e577fb17ba4bed0a8f5d0dd3",
+      "activeBlock": "bf36d4cc202a86cf19c68483efb321ca04f0d08c5921a416ff5191eb6315d56e"
+    },
+    "inverseNativeInputSha256": "dbe3b0bb17890e6d54004facc82f0e3c34333d41d0ac43dde473220fd8b80cfe"
+  },
+  "limits": [
+    "Selected scratch-generated sources and macOS ARM64 GUI only; no independent producer, native picking, GUI editing, printing, or Linux/Windows GUI qualification.",
+    "Clipping with more than 256 vertices remains outside the renderer profile; draft/selection frames and bounding boxes stay rectangular.",
+    "Do not infer whole-drawing preservation or general image interoperability from these controls."
+  ]
+}

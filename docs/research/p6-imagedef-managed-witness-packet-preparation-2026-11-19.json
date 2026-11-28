@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "P6-A managed IMAGEDEF native-witness packet preparation",
+  "date": "2026-11-19",
+  "status": "PREPARED_NOT_BUILT_OR_RUN",
+  "supportClaimEffect": "none",
+  "scope": "Prepare a bounded, from-scratch AutoCAD managed-API witness packet for the open IMAGEDEF create/remove/erase/clone/WBLOCK operation gate.",
+  "primaryApiSources": [
+    {
+      "title": "Autodesk Attach and Scale a Raster Image (.NET)",
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-DevGuide-Managed/files/GUID-00A0BCD9-4519-4746-BC73-88544D75D789.htm",
+      "observation": "The documented managed workflow creates the image dictionary, sets a RasterImageDef entry, adds a RasterImage, enables raster reactors, and associates the definition."
+    },
+    {
+      "title": "Autodesk RasterImage class (.NET)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_RasterImage.html",
+      "observation": "RasterImage and RasterImageDef are separate objects; an image uses one definition, and a RasterImageDefReactor is linked to both graph endpoints."
+    },
+    {
+      "title": "Autodesk RasterImageDefReactor (ObjectARX)",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbRasterImageDefReactor.html",
+      "observation": "The reactor is attached to the definition's persistent reactor list and owned by the image entity; erasing a definition triggers dependent image erasure."
+    },
+    {
+      "title": "Autodesk DBObject.GetPersistentReactorIds (.NET)",
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DBObject_GetPersistentReactorIds.html",
+      "observation": "The API exposes the persistent reactor collection for readback."
+    },
+    {
+      "title": "Autodesk RasterImageDef properties (.NET)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_RasterImageDef.html",
+      "observation": "The managed properties expose both the source file path and the active file path used by the image definition."
+    },
+    {
+      "title": "Autodesk DBDictionary.Remove(ObjectId) (.NET)",
+      "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DBDictionary_Remove_ObjectId.html",
+      "observation": "The dictionary entry can be removed by the stored object ID; native effects are captured by the host operation and reopen reports."
+    },
+    {
+      "title": "Autodesk Database.SaveAs(string, DwgVersion) (.NET)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_SaveAs_string_DwgVersion.html",
+      "observation": "The database can be written to a new, explicit path and drawing version for isolated operation derivatives."
+    }
+  ],
+  "packet": {
+    "files": [
+      "tools/research/p6a_imagedef_witness.cs",
+      "tools/research/p6a_imagedef_witness.csproj",
+      "tools/research/P6A_IMAGEDEF_WITNESS_README.md"
+    ],
+    "baseline": "Creates a scratch-only 2x2 BMP from bytes authored in the managed command, registers one IMAGEDEF in ISM_RASTER_IMAGE_DICT, associates one RasterImage, and saves a new current-version DWG and receipt.",
+    "observer": "After close/reopen, reports DWG and resolved external BMP hashes, AutoCAD/assembly versions, DBMOD, NOD dictionary identity, IMAGEDEF owner/source/reactors, image owner/definition/reactor, and persistent-reactor membership. Requires DBMOD=0.",
+    "isolatedOperations": [
+      "DBDictionary.Remove(ObjectId) into a new derivative",
+      "RasterImageDef.Erase(true) into a separate new derivative, with dependent image/reactor erased-state capture both before and after transaction completion",
+      "AutoCAD COPY on a separate baseline copy",
+      "AutoCAD WBLOCK on a separate baseline copy"
+    ],
+    "outputHandling": "All created BMP, DWG, and report files are exclusive-create outputs intended to remain in a remote scratch directory outside the repository. The baseline is never overwritten."
+  },
+  "validation": {
+    "sdkBuild": "NOT_RUN: AutoCAD release, Windows host profile, and matching managed assemblies are not yet supplied.",
+    "nativeCapture": "NOT_RUN: the remote host product/build and artifact-return route remain unidentified.",
+    "repositoryFixturesAdded": false,
+    "supportPromotion": false
+  },
+  "limitations": [
+    "The checked project targets AutoCAD 2024 on Windows; another release requires a host-specific assembly review before build/run.",
+    "COPY and WBLOCK are operator-run in separate baseline copies; the returned reports are the evidence of their resulting native graph.",
+    "A passing native graph report does not prove DWG physical field spans, libdxfrw output, strict ASCII/Binary support, independent-consumer behavior, or broader profile support."
+  ],
+  "next": "Record the remote host profile and return route once. Build only against the matching AutoCAD SDK, create and reopen the baseline, capture each isolated remove/erase/copy/WBLOCK derivative, then join exact hashes and native graph observations to strict libdxfrw output, failure/retry, and fresh independent readback."
+}

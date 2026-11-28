@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1032 TABLECONTENT generated string-carrier controls",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "fixturePolicy": "All source records are built in memory for the focused test. No external or generated DWG/DXF fixture is committed.",
+  "implementation": {
+    "files": [
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "generatedProfiles": [
+      {
+        "carrier": "ODA-shaped detached TV",
+        "result": "The production parser accepts the minimal record, publishes the exact Detached value through the typed callback with parseComplete=true and semanticContentComplete=true, and publishes the following typed PERSUBENTMGR sentinel."
+      },
+      {
+        "carrier": "Body BL byte-counted UTF-16LE string",
+        "result": "The production detached-TV parser refuses the candidate and dispatches it through the existing raw-only shell recovery. No TABLECONTENT callback is made, a pre-existing callback destination sentinel is preserved, and the following typed PERSUBENTMGR sentinel publishes."
+      }
+    ],
+    "framingAssertions": "Generated objects check ordered body end, string data end, string footer end, handle start/end, and exact final object bit length. The bounded object wrappers provide the following-frame recovery check.",
+    "rollbackAndRetry": "A truncated detached-TV record and a truncated body-byte-count record each leave the parser reset. The same parser instance then successfully parses the valid detached-TV record with complete semantic state.",
+    "productionChange": "No parser interpretation changed. The body-byte-count route remains refused by production parsing; the generated vector is not evidence that the external AC1032 producer uses either carrier."
+  },
+  "validation": {
+    "buildCommand": "cmake --build build --target libdxfrw_dwg_reader_matrix_tests dwg2dxf -j4",
+    "buildResult": "passed",
+    "testCommand": "ctest --test-dir build -R '^libdxfrw_persistent_manager_prefix_dispatch$' --output-on-failure",
+    "testResult": "passed; 1/1 test, 0.48 seconds",
+    "testScope": "Focused generated regression only; no full CTest suite was run."
+  },
+  "remaining": [
+    "Decode the 17-bit source gap and remaining terminal handle bit for both external TABLECONTENT objects.",
+    "Reconcile ODA v5.4.1 with eligible independent producer/source evidence before adopting any source-derived typed profile.",
+    "Keep the external sample raw-only and strict output refused until that evidence is complete."
+  ]
+}

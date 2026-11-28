@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "p5-proxygraphic-linetype-sentinel-dual-profile-2026-11-02",
+  "date": "2026-11-02",
+  "status": "BOUNDED_PROXY_CACHE_SENTINEL_DECODING_ONLY",
+  "scope": "Decode the ODA-defined 32-bit proxy SUBENT_LINETYPE sentinel values while retaining the existing low-16-bit sentinel values in the same 4-byte RL field. This does not qualify whole-cache replay or native rendering semantics.",
+  "formatEvidence": {
+    "odaOpenDesignSpecification": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "section": "§29, p. 275",
+      "rule": "Proxy SUBENT_LINETYPE (type 18) is an RL. 0xFFFFFFFE means BYBLOCK and 0xFFFFFFFF means BYLAYER."
+    }
+  },
+  "physicalSourceObservation": {
+    "path": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "version": "AC1021",
+    "readResult": "success",
+    "entityAndBlock": "36 MLEADER proxy caches in block *U0 (corrected 2026-11-05; earlier MLINE classification was incorrect)",
+    "observation": "Every inspected cache contains proxy chunk opcode 18 with a 4-byte payload value 0x00007FFF.",
+    "inspection": {
+      "tool": "Temporary local C++ inspector using dwgRW, dx_iface, and DRW_ProxyGraphicDecoder::inspect",
+      "sourcePath": "/tmp/inspect_proxy_caches.cpp",
+      "sourceSha256": "1c7aae6fe8c8797e328d1c398ad9389fd1f4d009e50ffa429b85611c9ee8f7d4",
+      "compileCommand": "c++ -std=c++17 -Isrc -Idwg2dxf /tmp/inspect_proxy_caches.cpp build-gcc/dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o build-gcc/libdxfrw.a -o /tmp/inspect_proxy_caches",
+      "runCommand": "/tmp/inspect_proxy_caches /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "result": "36 records; all 36 contained opcode 18 value 32767; all belonged to *U0."
+    },
+    "limitation": "This is a parser-backed byte-stream census, not independent producer or consumer evidence. The DWG source layer and linetype order arrays differ from the dx_iface callback table order (first layer: DWG 0 vs adapter Dim; first linetype: DWG Continuous vs adapter ByLayer), so raw cache table indices cannot be assumed to address emitted DXF tables unchanged."
+  },
+  "generatedControl": {
+    "testTarget": "libdxfrw_graph_preservation_tests",
+    "profiles": [
+      "0xFFFFFFFE -> BYBLOCK",
+      "0xFFFFFFFF -> BYLAYER",
+      "0x00007FFE -> BYBLOCK (existing low-16-bit sentinel value in a 4-byte RL)",
+      "0x00007FFF -> BYLAYER (observed AC1021 low-16-bit value in a 4-byte RL)"
+    ],
+    "behavior": "Each generated little-endian proxy stream sets SUBENT_LINETYPE and emits a circle; the callback captures the expected lineType.",
+    "fixturePolicy": "Controls construct cache bytes locally in the test. No DWG/DXF fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "src/intern/proxygraphicdecoder.cpp",
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "change": "Map the ODA 32-bit BYBLOCK/BYLAYER sentinel values separately, preserving both existing low-16-bit values in the same 4-byte RL field.",
+    "outputEffect": "No cache replay admission or strict-output policy changed."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "build-gcc/libdxfrw_graph_preservation_tests",
+      "result": "PASS: Graph/preservation tests"
+    },
+    "diffCheck": "git diff --check passed"
+  },
+  "claimBoundary": [
+    "This proves bounded decoder sentinel mapping and generated callback behavior only.",
+    "It does not prove the complete MLEADER proxy-cache schema, source resource-index remapping, cache replay compatibility, or native rendering semantics. The 36 records were misclassified as MLINE in this receipt; the DWG dispatcher type is MLEADER (28), while MLINE is type 27.",
+    "This receipt is superseded for source classification and current strict-preflight status by p5-ac1021-mleader-proxy-resource-index-remap-2026-11-05.json. Keep native rendering and whole-document qualification open."
+  ],
+  "supportClaimEffect": "none"
+}

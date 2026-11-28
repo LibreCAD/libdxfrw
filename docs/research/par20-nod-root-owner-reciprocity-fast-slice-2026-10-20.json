@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "PAR-20/7G generic NOD-root owner reciprocity fast slice",
+  "mode": "Local generated ASCII/Binary implementation and focused validation",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Require admitted non-fixed NOD dictionary targets to be reciprocally owned by the decoded NOD.",
+    "Add positive and owner-0 negative controls to the existing root dictionary closure selector.",
+    "Preserve fail-closed publication and fast-only validation."
+  ],
+  "implementation": {
+    "productionCodeChanged": true,
+    "testCodeChanged": true,
+    "filesChanged": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "productionChanges": [
+      "The generic NOD-root traversal now counts each supported target family exactly once and reads its owner handle.",
+      "A missing/ambiguous target or any target whose parentHandle differs from the NOD fails graph preflight with a deterministic invalid-graph diagnostic.",
+      "The generic owner-0 case is rejected before output publication; the global parent==0 allowance remains for separately validated contexts."
+    ],
+    "generatedControls": [
+      "Positive empty CUSTOM_ROOT DICTIONARY owned by NOD, ASCII and Binary.",
+      "Negative CUSTOM_ROOT DICTIONARY with owner 0, asserting exact graph failure detail and preservation of a seeded destination, ASCII and Binary.",
+      "The same existing selector retains NOD-first and owner-DICTIONARY-before-DICTIONARYVAR output-order assertions."
+    ],
+    "persistentFixturesAdded": 0,
+    "newCtestRegistrations": 0,
+    "dependenciesAdded": 0
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests --parallel 2",
+    "focusedCtest": "PASS: ctest --test-dir build-gcc -R '^(libdxfrw_named_resource_import_evidence|dwg2dxf_named_object_callback_storage)$' --output-on-failure (2/2)",
+    "diffCheck": "PASS: scoped git diff --check for plan, adapter, and test files",
+    "fullSuiteRun": false,
+    "peerExecutablesRun": 0,
+    "externalDrawingsDownloaded": 0,
+    "nativeCadApplicationsOrKernelsRun": 0
+  },
+  "assessment": {
+    "closes": "Immediate owner reciprocity for admitted non-fixed NOD-root targets in the existing PAR-20/7G graph path.",
+    "doesNotClose": [
+      "Nested owner reciprocity across every admitted dictionary/object family.",
+      "Generic raw OBJECTS replay or arbitrary object graph support.",
+      "External/native consumer acceptance or broad DWG/DXF support."
+    ],
+    "newNumberedFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "worktree": {
+    "commitCreated": false,
+    "reason": "The shared worktree is broadly dirty and .git is read-only in this environment."
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-19",
+  "scope": "Restore source initialization forms of DRW_TableCellContent exposed by the LibreCAD bundled codec.",
+  "baseline": {
+    "libdxfrw_parent": "f6018f9ce502efb8f4d055e174cf3edde420a2f1",
+    "librecad_master": "deaedc327850349ceb9b4825b3efcc68ac2a52eb",
+    "librecad3_master": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+    "librecad3_candidate": "1ab08f5819f31053d5540b0c3e1259b865b8265d"
+  },
+  "implementation_digest_sha256": "37aaf7c7b2800e5f2233e5ea389b081cd7fde949d1d269af27d97a3868920d01",
+  "regression": {
+    "observation": "The bundled public aggregate accepts empty, one-, two-, three- and four-field list initialization and vector push_back; the upstream type rejected the nonempty forms after it acquired private reader bookkeeping.",
+    "source_sha256": "b6f6bcce26b21b97cd8e50f9a7e4b9d77438710705527e6323dc0c99587d597b",
+    "before": "Bundled header syntax passed; upstream header syntax failed.",
+    "after": "Upstream header syntax passed using the same scratch probe."
+  },
+  "validation": [
+    "GCC build of libdxfrw_graph_preservation_tests and lc3_compat_check passed; graph preservation CTest passed, including field, copy and move checks.",
+    "Current LibreCAD metadata source syntax passed with upstream headers; guarded patched filter target built against installed upstream headers.",
+    "Patched LibreCAD_3 candidate passed two generated headless ASCII and 3D line round trips and dynamically loaded the installed libdxfrw dylib.",
+    "Source-release inventory and support-overlay checks passed; the exact 750-input digest matches the status overlay."
+  ],
+  "shared_library_sha256": "7cb379e4b74db6b75aa394c68913007fa2a6fd37a05e59fd5caf9d63a023a270",
+  "limits": [
+    "The LibreCAD consumer patch and LibreCAD_3 candidate are unmerged.",
+    "These focused checks do not establish ABI, native GUI, broad DWG/DXF or full consumer qualification.",
+    "Fast and focused hosted native CI for the changed digest is pending.",
+    "No external fixture files were committed."
+  ]
+}

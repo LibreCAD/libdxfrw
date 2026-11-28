@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 annotation LayerStates selected projection: marker and STYLE dependency triage",
+  "date": "2026-11-18",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "provenance": "Pre-existing local sample; no DWG or derivative fixture is added. Producer attribution is not established."
+  },
+  "priorEvidence": {
+    "receipt": "docs/research/p4-ac1021-layerstates-empty-root-output-readback-2026-11-05.json",
+    "commit": "6ed0528092495f31f900dafd60eeeb3a9bb1b71d",
+    "scope": "Test-only selected projection of an AC1021 empty LayerStates graph, ASCII and Binary AC1024 output, sentinel preservation, retry and readback; not full-document qualification.",
+    "laterStyleGuard": "e5ee24458c88400357f9a0fbb82a2f8ed2f2dd8a introduced a fail-closed rule for unnamed STYLE rows where safe omission is not proven. The existing omission predicate accepts only Unknown source format, not DWG.",
+    "laterDictionaryMarker": "eb30479516b6e8d27c8525c271bac97d9447645b marks AC1021 DICTIONARY common-link tails validated; the old LayerStates root predicate still expects false for this source profile."
+  },
+  "currentObservation": {
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1021-output-readback tests/samples/AC1021/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "logSha256": "94ca9a8b0fb3c3349cec90e643ab8de36d19f17dd1cb214188ff419fbf79a6d9",
+    "result": "The deliberate source-mutation attempt is refused, preserving the destination; the restored retry skips LayerStates root preparation and then reports failure during STYLE table serialization. The STYLE-stage message alone does not identify which row failed first.",
+    "wholeSource": "Separate strict CLI read attempt refuses 36 unpreserved typed MLEADER proxy graphics at preflight; selected-projection evidence cannot qualify whole-source conversion."
+  },
+  "independentPeer": {
+    "tool": "GNU LibreDWG dwgread 0.14",
+    "command": "dwgread -O minJSON -o <scratch>/annotation.json <source.dwg>",
+    "result": "SUCCESS",
+    "minJsonSha256": "dd253499a7c54f72d60e4dd7896b1c20a2012e56dc248aa59d30374cca53fa01",
+    "chain": [
+      {"kind": "LAYER", "handle": "0x3A7", "name": "Arch_Section_Insul", "ltype": "0x363"},
+      {"kind": "LTYPE", "handle": "0x363", "name": "BATTING", "references": "Two shape-flag-4 segments each reference STYLE 0x3CD."},
+      {"kind": "STYLE", "handle": "0x3CD", "name": "", "shape": true, "font": "ltypeshp.shx"}
+    ],
+    "qualification": "Independent decoded identity and references; not physical bit-span proof, native CAD semantic evidence, or proof of every incoming reference."
+  },
+  "disposition": {
+    "sourcePolicy": "Keep whole-source fail-closed. Do not drop STYLE or STYLE plus LTYPE: this projection also retains the LAYER that references the LTYPE.",
+    "testPolicy": "Do not change the historical selected projection until complete incoming-reference closure is proven for the layer, linetype, style and all other retained staged records; any narrowed test must explicitly document omitted rows and cannot imply full-document support.",
+    "nextTrigger": "After independent AC1021 DICTIONARY body/string/handle-role proof and marker handling, instrument the exact first STYLE write refusal. If the selected source graph remains useful, prove all incoming references to candidate omitted rows over the actual projection, add atomic refusal/retry and both-encoding fresh readback, and retain the whole-source guard."
+  },
+  "validation": "Read-only independent peer export and source/history review; no production code or source fixture modified. Full suite not run.",
+  "addendum20261118": {
+    "question": "Can the original selected LayerStates source projection safely omit the complete LAYER-to-LTYPE-to-unnamed STYLE chain?",
+    "sourceControlGate": "No direct source-consistent omission is established. dx_data::getLayerTableControlExtensionDictionary requires the live DWG LAYER count to equal the same-import published LAYER_CONTROL handle count, with every source layer handle occurring uniquely and owned by that control. Erasing Arch_Section_Insul 0x3A7 therefore fails the existing original-control membership proof before LayerStates output. Removing only BATTING 0x363 or STYLE 0x3CD leaves a retained incoming reference. Mutating the source layer, fabricating membership or switching the source format to Unknown would create a different test projection and does not preserve the original source claim.",
+    "primaryReferences": [
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-EF68AF7C-13EF-45A1-8175-ED6CE66C8FC9.htm",
+        "finding": "STYLE flag 1 identifies a shape-file entry and group 3 carries its font filename. This documentation alone does not establish native acceptance of this exact empty-name source/target profile."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+        "finding": "LTYPE group 74 bit 4 denotes an embedded shape, and group 340 points to its STYLE object."
+      }
+    ],
+    "relatedPeerEvidence": "The different AC1015 sample in p4-ac1015-entities3d-style-empty-name-oda-gui-2026-11-07.json produced an empty-name shape STYLE in ODA output, but its SHAPE entity was absent; that observation does not establish the current AC1021 shape-linetype graph or native semantics.",
+    "nextWitness": "Obtain a hash-bound, independently produced native AC1021 DWG and matching AC1021/AC1024 DXF with a layer using a shape-bearing linetype whose 340 targets an empty-name shape STYLE; record producer/version and source provenance. Independently inspect exact STYLE flag/name/font and every LTYPE segment/340, layer-to-LTYPE relation and output identity; open/reopen in a native consumer with the needed shape font and verify behavior. For this local source, an independently qualified same-source peer conversion and fresh consumer readback can also establish the physical graph and any omission/remapping, but unauthenticated input remains a provenance limit. Preserve rollback and same-adapter retry and both output encodings when implementing a narrowly qualified profile.",
+    "disposition": "Keep the original DWG export guard and source-control membership unchanged. An independently qualified shape-style output route is the useful path for retaining this entire original graph; a separately designed projection may be tested but cannot be described as preserving the original complete source control. No native, platform, producer-wide or support claim is promoted, and no DWG/DXF fixture is committed."
+  }
+}

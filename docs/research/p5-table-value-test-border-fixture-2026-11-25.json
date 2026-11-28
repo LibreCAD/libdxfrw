@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-table-value-test-border-fixture-2026-11-25",
+  "date": "2026-11-25",
+  "status": "VALUE_PAYLOAD_FIXTURE_AND_INCOMPLETE_BORDER_CONTROL_PASS",
+  "supportClaimEffect": "none",
+  "cause": "The value test set nonzero table border-color override flags while expecting the table to be semantically complete. The parser intentionally marks those unmodeled border overrides incomplete. A separate rich marker fixture had the same conflicting assumption.",
+  "change": "Use zero table border flags for complete value fixtures; separately check nonzero border flags make the table incomplete while the CELL_VALUE units remain 8. Use a minimal unstructured value envelope for marker refusal and corrected retry.",
+  "validation": {
+    "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_value_payload$' --output-on-failure",
+    "result": "PASS 1/1; includes 216 value profiles, marker/refusal retries, budget and allocation controls, and producer-shaped forms."
+  },
+  "limits": [
+    "Test fixture correction only; no new TABLE value or border semantics admitted.",
+    "The separate imported TABLE reuse test still fails in dictionary-with-default output and remains under investigation.",
+    "Selected test inputs changed; P8 digest and qualification must be refreshed."
+  ]
+}

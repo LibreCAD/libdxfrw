@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-04",
+  "authority": "Open Design Specification for .dwg files v5.4.1 section 20.1 defines the non-entity common parent soft pointer, reactor soft pointers and xdictionary hard-owner; section 20.4 fixed type table lists ACDBPLACEHOLDER as 0x50.",
+  "scope": "Only the AC1015 placeholder emitted within the explicitly opted-in default plotstyle graph writes the typed-null hard-owner xdictionary. The public placeholder encoder, caller objects, nonzero handles and other versions retain their previous behavior.",
+  "independent_source": {
+    "producer": "ODA File Converter 27.1.0 ACAD2000 from local LINE input",
+    "sha256": "43e86b11010b68f7e46fe229a7bf3c373d4544492acda950ec0c106c14f4cec6",
+    "libredwg": "LibreDWG 0.14 decodes the graph placeholder xdictionary as (3.0.0) and its nonzero owner as soft pointer. The ODA producer uses a custom class ordinal in this source; this observation is limited to its shared non-entity handle roles."
+  },
+  "oda_differential": {
+    "reader": "ODA File Converter 27.1.0 ACAD2013 DXF on local generated opt-in graph; inspect output, not exit status.",
+    "baseline_sha256": "b562b80ce610c8c08c54fdaba6837f6ec3dc2b0e7371b0fb20f7be94bb127b2a",
+    "baseline_result": "Object improperly read: <AcDbPlaceHolder> (31); no DXF.",
+    "typed_sha256": "9a3fd1762738e7225f6cf5962a42ac9ce7468d9ffb633c67917cb5489f9f6bfd",
+    "typed_result": "Object of class AcDbDictionary can't be cast to AcDbEntity.; no DXF.",
+    "interpretation": "Only the placeholder null xdictionary role changed; production output has identical SHA to the typed candidate. No conclusion is drawn about the cause of the later error or general reader acceptance."
+  },
+  "validation": {
+    "result": "PASS libdxfrw_dwg_default_plotstyle_optin in isolated build across six writer versions: exact synthetic/caller null and nonzero xdictionary bytes, provider/caller graph readback, admission conflicts, exception/no-output rollback, same-writer retries, and LibreCAD 3 source compatibility guard. LibreDWG independently decodes the production placeholder xdictionary as (3.0.0).",
+    "isolation": "Archive cde47be4563a24d7dcb31a6243999a5ee2655b19 updated with committed APPID and DIMSTYLE slices plus this placeholder slice, while material graph work is in progress.",
+    "source_sha256": {
+      "src/drw_objects.cpp": "7e50a94d53491314367cd020a0e791b5fc99fa08859add4be026dbed92ae7b3c",
+      "src/drw_objects.h": "8a0be57101a881127080f2e1be26c8d2f99c60be3b2e43a75ef74080e2352be8",
+      "src/intern/dwgwriter15.cpp": "4f3e2031343be2488cd9c458f5f3e9d89052f562de6dfeb40c07266eb19195ce",
+      "tests/dwg_default_plotstyle_optin_tests.cpp": "6f2e233218559406e07c12cd26a4e568690f1a5035977aa91839ee8c71d8d120"
+    }
+  },
+  "limits": "No broad AC1015 interoperability claim; scratch files are not committed."
+}

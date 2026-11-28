@@ -1,0 +1,38 @@
+{
+  "receipt_version": 1,
+  "id": "p5-tablestyle-content-format-enum-combination-matrix-2026-11-12",
+  "date": "2026-11-12",
+  "title": "R2010+ TABLESTYLE Content Format enum combination matrix",
+  "status": "GENERATED_PARSER_DOMAIN_CONTROL",
+  "supportClaimEffect": "none",
+  "authority": {
+    "source": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["20.4.99", "20.4.101.3"],
+    "scope": "ODA-listed value data types 0,1,2,4,8,16,32,64,128,256,512; DWG unit types 0,1,2,4,8; and cell alignments 1 through 9"
+  },
+  "implementation": {
+    "file": "tests/dwg_object_vectors_tests.cpp",
+    "test": "testTableStyleContentFormatEnumDomains",
+    "profile": "R24 TABLESTYLE body layout at AC1024, AC1027, and AC1032",
+    "combinations": 1485,
+    "checks": [
+      "generated wire frame construction",
+      "successful typed parse",
+      "all three enum values retained together",
+      "each single-domain valid/invalid case at all three revisions",
+      "atomic refusal and prior typed-state clearing for invalid values"
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focusedTest": "ctest --test-dir build-gcc -R '^libdxfrw_tablestyle_content_format_enum_domains$' --output-on-failure",
+    "result": "PASS 1/1; 1,485 combined enum cases plus the per-domain valid/invalid cases passed"
+  },
+  "limits": [
+    "Generated parser-domain coverage only; no independent physical producer sample was used.",
+    "Does not cover arbitrary property-flag combinations, separate CELLSTYLEMAP combinations, field semantics, native rendering, graph closure, or whole-document output.",
+    "No DWG or DXF fixture was added."
+  ],
+  "next": "Qualify remaining CELLSTYLEMAP payload/flag combinations and obtain independent producer/native TABLE semantic evidence; do not promote support claims from this matrix."
+}

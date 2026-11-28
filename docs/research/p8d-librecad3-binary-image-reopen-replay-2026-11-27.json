@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-binary-image-reopen-replay-2026-11-27",
+  "supportClaimEffect": "none",
+  "consumerCommit": "fd4187a30451b2cd0c3b7096af982274ff4fd521",
+  "implementation": "Extend checked IMAGE dictionary replay to selected binary-source ASCII and binary resaves. Share the existing Normal plot-style pair and class checks, validate source ownership and handle roles, retain bounded unreferenced empty binary dictionaries, and continue filtering regenerated IMAGE entries. Restrict text, entity, block and source graph profiles as before.",
+  "validation": [
+    "Before the change, binary-to-ASCII resave dropped unmodeled records and the LC_REACTOR root. Thirteen focused image, dictionary and paper-space tests and eighteen layout tests pass afterward; the existing layout controls also cover the extracted plot-style helper.",
+    "Changed class metadata, a wrong default plot-style target and unsupported XRECORD text each use the reported-loss fallback. Restoring the source and retrying with the same writer preserves LC_REACTOR. The prior protected-destination paper-space refusal and retry remain covered.",
+    "Independent ezdxf 1.4.5 audits of R2000 binary-to-ASCII and binary-to-binary outputs confirm the Normal plot-style owner/default links and LC_REACTOR/KEEP owner and text; a two-IMAGE output retains distinct definition links, dimensions and pixel sizes. A separate R2010 binary-to-ASCII control retains a tilted IMAGE's base and pixel axes. All four audits report zero errors and zero fixes.",
+    "The adapter syntax-checks with older bundled codec headers; runtime behavior against those headers is not qualified."
+  ],
+  "redLogSha256": "c868772d0446f661b1b2ba72fe505cae60741d12db507072fdd165de511c6879",
+  "testLogSha256": "edeadb168a5148ad406a81bfb39fb43727200eeabc7f6d2d9094a2f1100028b4",
+  "layoutLogSha256": "f20e85609078e6d95b4f618bfab4d32ecf63c36687a299da3f0e4b0f9cda04ee",
+  "olderHeaderLogSha256": "9bd1866077a51ed750abefebd0c799dc2d019ea4929be5aa892b57c1d5935247",
+  "outputsSha256": {
+    "r2000Ascii": "1443cf6b42add2c15ba4c729b31c65c052de2530e323586fccbac54972340b19",
+    "r2000Binary": "b1e949eed5184d0155ee0a382cd21ff9c97566ae36fcce2c7812cf5b17ec6d23",
+    "r2000DistinctImages": "0eada20ce48e78e57d19f5b441d58f3425ccab0ccef027350663975b714bf563",
+    "r2010Spatial": "bc6b35233b0a3a0c0711cc48e58ea59cfd55b18fc5ac9da776ef10df944352e1"
+  },
+  "limits": [
+    "The tested drawings are locally authored and cover selected same-revision R2000 and R2010 graphs. Raw IMAGEDEF/reactor metadata and original image-dictionary identity are still omitted and reported; this is not whole-file lossless replay.",
+    "Other plot styles, classes, text/codepages, graph shapes, source producers, native rendering and platforms remain unqualified. Generated outputs are not committed."
+  ]
+}

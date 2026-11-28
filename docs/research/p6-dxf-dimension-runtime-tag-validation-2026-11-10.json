@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-10",
+  "scope": "DXF DIMENSION runtime type safety and public eType compatibility",
+  "finding": "writeDimension selected derived types using the public mutable eType field and then downcast without checking the dynamic object type. A plain DRW_Dimension tagged DIMARC, DIMLINEAR or another subtype could therefore reach an invalid downcast; a linear dimension tagged aligned could also lose subtype-specific data.",
+  "change": "Before writing or downcasting, require each modeled tag to match its dynamic dimension type; reject a linear dimension relabeled aligned and unknown tags. Preserve generic DRW_Dimension records and custom subclasses with their normal tags. DRW_DimLargeRadial retains the DIMRADIAL tag and continues through the existing large-radial writer.",
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_primitive_subtype_dispatch_tests libdxfrw_dxf_dimension_oblique_tests -j4",
+    "tests": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_primitive_subtype_dispatch|libdxfrw_dxf_dimension_oblique)$' --output-on-failure",
+    "result": "Both focused tests passed individually after their targets were rebuilt.",
+    "coverage": "In ASCII and binary AC1027, valid aligned, linear, radial, large-radial, diametric, two-line angular, three-point angular, ordinate and arc dimensions reach their typed callbacks. Large-radial jog angle survives readback. A plain generic dimension and custom generic/linear subclasses remain admitted. Each of eight forged subtype tags on a generic object and linear-as-aligned/large-radial-as-arc mismatches refuse atomically, preserve the destination, and permit a corrected same-facade retry. The oblique dimension regression also passes."
+  },
+  "compatibility": "Current LibreCAD and LibreCAD_3 DXF adapters construct the corresponding concrete dimension classes before writeDimension. Generic dimension records remain supported. Existing user-derived classes with matching modeled tags retain their previous typed route.",
+  "limits": "Generated local DXF transport, runtime guard and compatibility checks only; native dimension rendering and all producer/platform profiles remain open. No fixture added."
+}

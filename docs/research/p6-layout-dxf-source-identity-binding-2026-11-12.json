@@ -1,0 +1,40 @@
+{
+  "receipt_version": 1,
+  "date": "2026-11-12",
+  "scope": "Bind typed LAYOUT source identity to the emitted DXF OBJECTS record within the existing record transaction.",
+  "result": "PASS",
+  "supportClaimEffect": "none",
+  "change": "writeLayout now binds every nonzero source handle to the remapped emitted handle before record commit. A duplicate source identity refuses without changing prior output or identity state.",
+  "validation": {
+    "normal_identity_rollback_retry": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_layout_source_identity$' --output-on-failure",
+      "result": "PASS, 1/1; ASCII and Binary identity mapping, duplicate-binding rollback, and corrected retry"
+    },
+    "address_sanitizer_identity_rollback_retry": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_layout_source_identity$' --output-on-failure",
+      "result": "PASS, 1/1"
+    },
+    "normal_layout_allocation_readback": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_layout_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1; allocation rollback, corrected retry, and typed graph readback"
+    },
+    "address_sanitizer_layout_allocation_readback": {
+      "command": "ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build-asan-custom -R '^libdxfrw_layout_objects_allocation_retry$' --output-on-failure",
+      "result": "PASS, 1/1"
+    },
+    "broad_wave1_status": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_wave1$' --output-on-failure",
+      "result": "FAIL, 60 common-object assertions unrelated to LAYOUT; the new LAYOUT checks pass in the focused selector"
+    }
+  },
+  "limitations": [
+    "This verifies bounded DXF writer identity and failure behavior only; it does not qualify source-producer coverage, full graph closure, or native consumer semantics.",
+    "The existing wave1 suite remains red on 60 unrelated common-object assertions.",
+    "No support claim is promoted."
+  ],
+  "source_sha256": {
+    "src/libdxfrw.cpp": "032e0f64969077513be4eef0a53b1955c0e4b593a38a506832a887dc1c525189",
+    "tests/wave1_tests.cpp": "6c9e34196360875cba91e67670ed5283a29ef090555676336acce3644ab27171",
+    "tests/CMakeLists.txt": "166376c905edbd2ad0a86473e3537cb353430a91f12df6b8596cd8d62378f4e9"
+  }
+}

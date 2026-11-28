@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-04",
+  "title": "AC1027 GEODATA version-3 nonempty mesh selected graph",
+  "status": "PHYSICAL_SOURCE_SELECTED_GRAPH_ONLY",
+  "supportClaimEffect": "none",
+  "provenance": {
+    "author": "locally authored from scratch using ezdxf 1.4.5; tools/geodata_mesh_physical_probe.py reproduces the authored fields; writer-generated timestamps and identifiers may yield different hashes",
+    "sourceDxfSha256": "8c67198d05bc24377c15bcaef414b8d55241e1f495a54c5ed9e200d5abfe139b",
+    "odaAc1027DwgSha256": "6462adb8cd30e65c9902f66d9620fe3ef9871c9c7784024e5f6ed1e4f81278d2",
+    "odaAc1027DxfSha256": "7839665f78965235af60eaae344015cea07664cb7886af35140545275952b04e",
+    "tool": "ODA File Converter 27.1.0, LibreDWG 0.14 and ezdxf 1.4.5; no DWG or DXF fixture committed"
+  },
+  "source": {
+    "graph": "model BLOCK_RECORD 0x17 -> extension dictionary 0x2F -> ACAD_GEOGRAPHICDATA -> GEODATA 0x30; object owner and sole reactor 0x2F; host 0x17",
+    "mesh": "source points (1,2),(4,2),(1,5), destination points (1001,2002),(1004,2002),(1001,2005), face (0,1,2)",
+    "independent": "LibreDWG JSON confirmed object version 3, graph handles and exact mesh. The native capture probe observed one typed callback with three points and one face and zero object parse failures. ODA DXF and ezdxf confirm the same mesh."
+  },
+  "projection": {
+    "method": "The existing physical GEODATA selector imports the original DWG then test-only projects the witnessed graph and source receipts while omitting unrelated objects. This is not an export of the whole source.",
+    "asciiSha256": "de38eb37f7e518123d0aba057cf3cdfb86dd9b6003bf301a284651133972240d",
+    "binarySha256": "3b57aba703b1b65b128e8be0d4fda02ee3e1a3a6e9b442e8c05e71fbaa8c7c9e",
+    "result": "The selector passes existing source-graph mutation/refusal, sentinel preservation and corrected retry controls. ezdxf 1.4.5 independently opens both selected outputs; exact source/destination vertices and face match ODA DXF. Checked object version, coordinate type, design/reference points, units, scales, up/north directions, estimation parameters, sea-level fields, radius and full coordinate-system XML match ODA output."
+  },
+  "reproduce": [
+    "build/rpp5gh-evidence/peer/bin/python tools/geodata_mesh_physical_probe.py <scratch>/in/mesh.dxf",
+    "ODAFileConverter <scratch>/in <scratch>/dwg ACAD2013 DWG 0 0 '*.dxf'",
+    "ODAFileConverter <scratch>/dwg <scratch>/oda-dxf ACAD2013 DXF 0 0 '*.dwg'",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --physical-geodata-dictionary-graph <scratch>/dwg/mesh.dwg <existing-empty-output-directory>",
+    "Independently inspect the two selected files and ODA DXF with ezdxf; bind each observation to the generated source and output SHA-256 values."
+  ],
+  "limits": [
+    "The physical source contains 739 unclaimed HEADER suffix bytes; whole-document strict export is not qualified.",
+    "One model-space graph with one three-point triangle does not prove general GEODATA mesh coverage or native geospatial semantics.",
+    "No source, graph, native-consumer or support claim is promoted."
+  ]
+}

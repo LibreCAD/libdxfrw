@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-19",
+  "title": "Generated DXF LAYER group-70 flag-preservation fast slice",
+  "mode": "Local generated ASCII/Binary source, writer, and callback regression",
+  "scope": [
+    "Cover LAYER group-70 flags 1, 2, 4, and 7 paired with independent positive and negative group-62 values.",
+    "Check ordered input/output layer rows, exact emitted group-70/group-62 values, callback values, and following-entity framing.",
+    "Keep layer-wide flags distinct from group-290 plot state, entity group-60 visibility, and viewport group-331 references."
+  ],
+  "method": {
+    "source_generated_in_memory": true,
+    "source_encodings": ["ASCII DXF", "Binary DXF"],
+    "output_version": "AC1032",
+    "persistent_fixture_added": false,
+    "production_code_changed": false,
+    "new_ctest_registration": false,
+    "peer_executables_run": false,
+    "native_cad_applications_run": false,
+    "full_suite_run": false
+  },
+  "coverage": {
+    "layer_rows": 9,
+    "flag_values": [1, 2, 4, 7],
+    "each_flag_paired_with_group62": [3, -3],
+    "assertions": [
+      "source raw layer row order and exactly one group 70 and group 62 per row",
+      "source callbacks preserve flags and signed color",
+      "output raw layer row order and exact group 70/group 62 values",
+      "ordinary output readback preserves flags and signed color",
+      "following LINE sentinel survives source and output reads"
+    ]
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests -j 4 && ./build-gcc/libdxfrw_dxf_fixture_tests --layer-dxf-color-policy",
+    "result": "PASS",
+    "output": "Generated LAYER color and group-70 policies: PASS",
+    "diff_check": "PASS"
+  },
+  "plan_impact": {
+    "plan_section": "PAR-66 / 7AN",
+    "completed_slice": "generated group-70 1/2/4/7 flag preservation across ASCII/Binary DXF",
+    "native_display_qualification": "pending",
+    "independent_producer_qualification": "pending",
+    "support_claims_promoted": 0,
+    "finding_count": 139,
+    "top_level_subplan_count": 77,
+    "deferred_external": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  },
+  "repository_state": "Test source, plan, and receipt updated in a broadly dirty shared worktree. Nothing staged or committed."
+}

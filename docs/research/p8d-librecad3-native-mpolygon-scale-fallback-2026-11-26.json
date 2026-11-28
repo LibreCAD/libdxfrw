@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_head": "9b3f3ad80a4cea20a1a75a3ba40452dc34ac67a4",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "procedure": "In the same instrumented app, reopened the generated rotated MPOLYGON, selected its one model-space entity, scaled by 2 about (0,0), and saved a separate AC1018 ASCII file. The save displayed the MPOLYGON-to-HATCH and separate boundary-color loss notes; the app reopened the resulting HATCH.",
+  "independent_readback": "ezdxf 1.4.5 verified one MPOLYGON source and one HATCH output, HATCH color ACI 3, and all three world-space vertices scaled by 2 within 1e-12. Both files audited with zero errors and zero fixes.",
+  "artifacts": {
+    "source_sha256": "f8a5318557763dc81104acd2c58a7434f2cad9bc748f5d1a6ff6d67ccef0400f",
+    "output_sha256": "7597ff0202432c1ba4bc783385d2857de96e7daa8ddf4f6194429a99cea5a9b4",
+    "instrumented_app_sha256": "e1f9eb6a0d35e4244d2ce28f005b2b21e51fb5f89ef613dc163de77b83d983db",
+    "persistence_library_sha256": "bac412743c0879eccf660f336ccc258016120ac9a7122281ad73c48083623d4e",
+    "viewer_library_sha256": "6e42707fb0e3338649c9576524b727d07aee5f8fadc4494fe93873e6f16ebec0",
+    "kernel_library_sha256": "5741caaa8288451d130996ddf3fb7a1ddab974d5cc150d02257d791f556b037d"
+  },
+  "limits": [
+    "App uses scratch GL tracing, isolated title and identity, and project Lua action scripts attached to its scratch bundle; it is not a release binary. Loaded persistence, viewer and kernel libraries were verified via lsof.",
+    "The window screenshot remained black; no uninstrumented visible-display claim or post-reopen framebuffer capture is made.",
+    "One locally generated solid, explicit-ACI, default-normal AC1018 polygon and uniform scale are covered. The output is a HATCH and separate boundary color is not retained. Other profiles, independent producers, Linux and Windows remain open."
+  ],
+  "supportClaimEffect": "none"
+}

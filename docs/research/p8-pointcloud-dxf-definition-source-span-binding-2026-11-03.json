@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pointcloud-dxf-definition-source-span-binding-2026-11-03",
+  "date": "2026-11-03",
+  "phase": "P8",
+  "status": "BOUNDED_DXF_POINTCLOUD_DEFINITION_SOURCE_BINDING_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Bind imported DXF point-cloud definition/reactor typed callbacks to their complete raw OBJECTS carriers and actual physical scalar spans, without admitting imported graph output.",
+  "implementation": {
+    "sourceFiles": [
+      "src/drw_interface.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/wave1_tests.cpp",
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "behavior": [
+      "A separate optional source facet leaves the established DRW_Interface vtable unchanged and is selected only for the concrete adapter's tracked DXF source capture.",
+      "The parser publishes the typed point-cloud definition, raw carrier, physical capture status, and immutable physical-span owner only after accepting the next OBJECTS code-0 boundary.",
+      "The adapter retains bounded private typed/raw snapshots, container generation and identity, source version, encoding, and the physical-span owner; later graph preparation checks typed callback pairing, record identity, exact field-code order, span bounds, and unchanged typed state.",
+      "DXF ACAD_REACTORS appData is normalized into the typed reactor handle list only when one complete reactor group exactly matches that parsed list; the raw source carrier remains available as provenance.",
+      "Imported DXF graph output stays refused pending POINTCLOUDEX entity source-field binding and a complete source-to-writer field projection. DWG remains refused pending source CLASS/frame/output binding."
+    ]
+  },
+  "validationProfile": {
+    "source": "Locally generated in-memory low-level DXF records; no fixture files were added.",
+    "revisions": ["AC1032"],
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "records": [
+      "POINTCLOUDDEFINITION",
+      "POINTCLOUDDEFINITIONEX with an ACAD_REACTORS group",
+      "POINTCLOUDDEFREACTOR",
+      "POINTCLOUDDEFREACTOREX"
+    ],
+    "assertions": [
+      "The source facet reports a complete physical capture with the expected source revision and encoding.",
+      "Every non-comment raw group has the same ordered group code as its physical source span, and each span has a positive in-order boundary.",
+      "The raw carrier name and typed kind match the parsed point-cloud callback."
+    ]
+  },
+  "validation": {
+    "buildCommands": [
+      "cmake --build build-gcc --target libdxfrw_wave1_tests libdxfrw_dwg2dxf_adapter_tests -j4"
+    ],
+    "focusedTestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_pointcloud_definition_source_spans|dwg2dxf_point_cloud_adapter_transport)$' --output-on-failure",
+    "focusedTestResult": "PASS: 2/2; generated source-span controls cover ASCII/Binary and nested reactor group fields, and the existing authored graph adapter control remains passing.",
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "Source-span transport does not prove that every raw point-cloud field has a writer projection.",
+    "POINTCLOUDEX entity carriers, imported graph output, physical producer breadth, DWG source CLASS/frame binding, asset loading, and native consumer semantics remain open."
+  ]
+}

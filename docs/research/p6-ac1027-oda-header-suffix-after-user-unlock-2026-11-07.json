@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1027 HEADER suffix retry after user unlock",
+  "date": "2026-11-07",
+  "supportClaimEffect": "none",
+  "scope": "Retry the existing AC1027 Cover source with the installed ODA File Converter after the user reported unlocking the Mac; determine whether the invocation reaches document processing.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/Cover.dwg",
+    "sha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "copyPath": "/private/tmp/libdxfrw-oda-after-user-unlock-20261107/in/Cover.dwg",
+    "copySha256": "3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42",
+    "provenanceLimit": "Existing local source; no DWG/DXF fixture was created or added to the repository."
+  },
+  "converter": {
+    "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/libdxfrw-oda-after-user-unlock-20261107/in /private/tmp/libdxfrw-oda-after-user-unlock-20261107/out ACAD2013 DWG 0 0",
+    "boundedSeconds": 30,
+    "observedAtLocal": "2026-11-07 06:19 America/Toronto",
+    "result": "ABORT (SIGABRT, return code -6) after 0.399 seconds during pasteboard/XPC initialization; stdout empty; no document processing or output file.",
+    "stderrExcerpt": "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]; PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]; invalid com.apple.hiservices-xpcservice connection.",
+    "postAttemptOutputFiles": []
+  },
+  "decision": "The latest user-reported unlock did not change this direct CLI launch failure. Do not repeat the same invocation while its launch environment and method are unchanged. Suffix bytes remain unclaimed, suffix analysis remains unqualified, and strict output remains refused. Continue independent local implementation; retry only if a functioning GUI or another changed invocation environment becomes available.",
+  "validation": {
+    "sourceHashRechecked": true,
+    "copiedSourceHashMatches": true,
+    "converterHashRechecked": true,
+    "freshInputOutputDirectories": true,
+    "outputDirectoryChecked": true,
+    "fullSuites": "NOT RUN"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-10",
+  "phase": "P5",
+  "source": {
+    "path": "/Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "version": "AC1021"
+  },
+  "specification": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.99 Value",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "documentedFlags": "R2007+ BL flags; bit 0x01 selects kGeneral",
+    "unknown": "No meaning is assigned to the observed upper bits in this section."
+  },
+  "currentReader": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/blocks_and_tables_-_metric.dwg -o /private/tmp/blocks_and_tables_metric_after_table_proxy_fix.dxf -y -d",
+    "result": "4,408/4,408 frames published; zero entity/object parse failures; strict export stops at FIELD/FIELDLIST carriers have no qualified DXF serializer",
+    "unknownFlagDiagnostics": 14,
+    "sampleFlag": "0x10801FC",
+    "disposition": "raw FIELD shell; no typed publication or serializer admission"
+  },
+  "independentPeer": {
+    "implementation": "LibreDWG",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "command": "programs/dwgread -O JSON",
+    "fieldObjectCount": 162,
+    "nestedCadValueFlagDistribution": {
+      "0": 146,
+      "1": 14,
+      "2": 123,
+      "3": 81,
+      "4": 57,
+      "17302012": 14
+    },
+    "observedUnknownFlagRecords": 14,
+    "peerProjectionForEachUnknownRecord": {
+      "dataType": 0,
+      "dataLong": 256,
+      "unitType": 1660972800
+    },
+    "interpretation": "The peer output reproduces one repeated projection but supplies no semantic or physical field-boundary proof for the unknown flags."
+  },
+  "decision": "Do not decode the unknown upper bits or enable FIELD output from this peer observation. Keep affected values raw-only and output refused until authoritative schema or controlled producer evidence establishes the field meaning and boundaries.",
+  "limitations": [
+    "The peer's matching values are implementation agreement, not independent semantic validation.",
+    "No FIELDLIST root/consumer graph closure is established.",
+    "No DWG/DXF fixture was added and no support claim is promoted."
+  ]
+}

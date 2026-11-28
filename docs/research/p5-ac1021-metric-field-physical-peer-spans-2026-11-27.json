@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1021-metric-field-physical-peer-spans-2026-11-27",
+  "date": "2026-11-27",
+  "supportClaimEffect": "none",
+  "scope": "Physically check the existing AutoCAD 2007 metric FIELD roots against the exact-source ODA DXF and ACadSharp readback; do not modify DWG parsing.",
+  "source": {
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "version": "AC1021",
+    "producer": "AutoCAD 2007, AppInfo 17.0.48.0",
+    "localPath": "tests/samples/AC1021/blocks_and_tables_-_metric.dwg",
+    "fixtureCommitted": false
+  },
+  "peers": {
+    "oda": "File Converter 27.10 Linux ACAD2007 ASCII DXF, SHA-256 69ac93f16d7895e44e48448a25de60378be8af8d1fc7a36764da8feb33cbe989; original source/output binding in docs/research/p5-ac1021-general-value-oda-dxf-comparison-2026-11-25.json.",
+    "acadsharp": "ACadSharp revision 3a52a52047e84670759c1f9ad3916ec3ce85ff56, assembly SHA-256 99f24d71403ecdbda2272473ebd995d5d2e773b4a6e887bcdb404293cbf18b77. Existing FIELD probe adapted in scratch to include both AcObjProp evaluator IDs; built for net10 and run under .NET 11 with DOTNET_ROLL_FORWARD=Major."
+  },
+  "proof": {
+    "acadsharpSha256": "a8725f5fea629aa4c06cdff39ef24320531cfe13f82c2804c0f7f71effd624e0",
+    "bodySpan": {
+      "bodyEndBit": 567,
+      "childStartBit": 287,
+      "count": 42,
+      "payloadBytes": 32,
+      "payloadStartBit": 309
+    },
+    "evaluators": {
+      "AcObjProp": 19,
+      "AcObjProp.16.2": 23
+    },
+    "odaSha256": "69ac93f16d7895e44e48448a25de60378be8af8d1fc7a36764da8feb33cbe989",
+    "rawFrames": 162,
+    "scope": "decompressed object-local bits and peer output, not native behavior",
+    "sourceSha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "verifiedFields": 42
+  },
+  "observations": [
+    "The bounded raw-frame extractor returned 162 FIELD frames. ODA selection identifies 42 roots with the tested ObjectPropertyId and ObjectPropertyName profile: 19 AcObjProp and 23 AcObjProp.16.2.",
+    "For all 42, an independent bit walker finds the selected child flags/type at object-local bit 287, a 32-byte UTF-16LE UpdatedDistance plus NUL payload beginning at bit 309, and the following BL zero ending exactly at bit 567, the framed body boundary.",
+    "All 42 have the checked relative owner token and two code-4 soft-pointer targets; these match ODA group-330/group-331 links and ACadSharp reported property strings and FIELD object targets.",
+    "A prior source-distinct imperial drawing with the same AutoCAD 2007 producer has 42 corresponding physical spans and peer observations; see docs/research/p5-ac1021-acobjprop-inline-string-physical-source-spans-2026-11-03.json."
+  ],
+  "validation": [
+    "The reused generated frame self-test rejects count, payload, handle and truncation mutations. The metric checker also refuses a changed peer target, altered ACadSharp value and bad peer digest.",
+    "No drawing fixtures or derivative DXFs are committed."
+  ],
+  "hashesSha256": {
+    "proof": "7e0a60075d06ff5a8254b03572e19ca59c3ab685fa12f068fc6858beee1ea2af",
+    "negative": "231cfe3c41eb3dcb0f946fff6c877489a88c17bf8c9cce9d75afbe05a5f82699",
+    "raw": "29bd70d9cd3339dc3c6587f28716b90f58aeca85c143ed0acb0f0a3c906d3cdc",
+    "rawProbe": "1644474c96c15ed274b3ef147578a4a0bf3df66c30a8984d723a5df253d57ba2",
+    "acadsharp": "a8725f5fea629aa4c06cdff39ef24320531cfe13f82c2804c0f7f71effd624e0",
+    "acadsharpProbe": "b1e9cf48948a722eb9451c83947097a511cdb5cec80a0148df96a0b706114e0f",
+    "checker": "158ce8981bc9f477030e5d086d64097f8f56e33bbba062fcbf10046de1616fcc"
+  },
+  "authorityConflict": "ODA specification v5.4.1 sections 2, 20.1, 20.4.76 and 20.4.99 describe type-4 CadValue as TV and require R2007+ Unicode text in the object string stream. The observed byte-count/payload sequence occupies the body. Under repository instructions the specification remains authoritative: the experiment does not authorize treating this sequence as a general inline-TV exception or completing these FIELD records.",
+  "limitations": [
+    "Both drawings are from the same identified AutoCAD 2007 producer profile; cross-producer and native evaluator/round-trip validity remain unproved.",
+    "ACadSharp and ODA are readers/exporters of the same source; their agreement does not resolve the specification conflict or prove lossless preservation of the complete field.",
+    "This covers 42 of the 66 raw-only metric FIELD records, not the remaining 24, FIELDLIST whole-source output, or graph/native application semantics."
+  ]
+}

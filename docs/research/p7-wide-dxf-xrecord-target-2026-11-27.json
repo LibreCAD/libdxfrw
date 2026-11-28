@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-27",
+  "scope": "Locally generated AC1027 ASCII and binary DXF with two root-owned dictionaries and three XRECORDs; one record references a record in the other dictionary using group 340.",
+  "implementationDigestSha256": "0f1ebe93b2ef997efa20001aa2546eced88f7dbfbe4eeb0055ffe5f66ea7c758",
+  "converterSha256": "47b66f38c955461f82a05cfe19adca4702be206014814595f168c72b90a80f1a",
+  "change": "Reuse the selected identity set and staged graph validation to admit a 340 reference to another uniquely identified selected XRECORD, with source snapshot and remapped target binding.",
+  "hashes": {
+    "ascii": {
+      "source": "3f00beb66d76dae166c4cdc569dbb05d4ea3fabd2356de2967e327eefa4349d8",
+      "output": "7c8d7a355829b9455e1ac25e502ee2310ceecfe4df46b55a247ac3ffc249c291"
+    },
+    "binary": {
+      "source": "423c9760b09f2ab7aec71d6fd406b852a25958fdd5df99ea308a7ccdcf65c9a4",
+      "output": "fb8fb71c9fcf745fe2e25afcefaf3ac5ecc018c7d61c8c23060cbe3c61cec237"
+    }
+  },
+  "peerReadback": {
+    "ezdxf": "1.4.5: each encoding matched 28 mapped objects, 27 dictionary entries, 14 root entries, two layers, owner and reactor links, all XRECORD references, materials and dictionary values; source and output audit each zero errors and fixes.",
+    "libredwg": "0.14 dxf2dwg r2004 and dwgread JSON resolves both XRECORD owners and the group 340 cross-record target. MATERIAL warnings restrict this evidence to the selected graph."
+  },
+  "checks": [
+    "ASCII and binary with handle collision controls",
+    "Wrong owner, unselected root, unrelated MATERIAL target, dangling target, unknown group 341, cross-version and cross-encoding inputs refuse and preserve destination",
+    "Live and late source mutations refuse and allow corrected same-adapter retry",
+    "Focused whole-source, compact-material and AC1024 plot-style CTests pass",
+    "GCC 16 strict syntax checks pass"
+  ],
+  "limits": [
+    "Only uniquely identified selected dictionaries and XRECORDs are admitted as group 340 targets; other target types remain refused",
+    "At most eight selected XRECORD chains and the bounded same-version, same-encoding AC1027 plot/material graph",
+    "No native producer, native consumer or broad format support claim established",
+    "No external DWG/DXF fixtures committed"
+  ]
+}

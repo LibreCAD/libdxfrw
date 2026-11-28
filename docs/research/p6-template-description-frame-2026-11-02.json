@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-template-description-frame-2026-11-02",
+  "date": "2026-11-02",
+  "status": "IMPLEMENTED_FAST_VALIDATED",
+  "supportClaimEffect": "none",
+  "scope": "Honor ODA AcDb:Template byte-count framing, decode supported non-empty descriptions with the source codepage, publish them through an optional DWG consumer callback, and retain strict refusal when DXF cannot represent them.",
+  "authority": {
+    "title": "Open Design Specification for .dwg files, v5.4.1",
+    "path": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "22, Data section: AcDb:Template",
+    "layout": "Int16 description byte count; that many codepage-encoded bytes; UInt16 MEASUREMENT (0 or 1).",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+  },
+  "implementationReadiness": {
+    "baselineHead": "5e4fad18",
+    "compatibilityDecision": "Use ODA §22's signed byte-count framing across all six implemented reader revisions. For an exact, well-bounded non-empty byte-count profile, publish MEASUREMENT to tolerant consumers and warn so strict-complete DXF output refuses to discard the description. Retain the warning-only/no-measurement path for modern TU16-shaped data because LibreDWG 0.13.3 uses TU16 in its R2007+ T16 path, conflicting with ODA; do not guess the measurement offset without a producer-bound independent sample. Keep the narrow legacy modern one-unit UTF-16 NUL compatibility form.",
+    "implementationFiles": [
+      "src/intern/dwgtemplate.h",
+      "src/intern/dwgreader.cpp",
+      "src/drw_interface.h",
+      "src/libdwgr.h",
+      "tests/dwg_reader_matrix_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "implementation": "The decoder bounds the signed 16-bit byte count against the logical section, requires MEASUREMENT to occupy exactly the final two logical bytes, validates its 0/1 domain, and distinguishes empty descriptions from non-empty byte strings. It copies description bytes only when a DWG callback consumer exists, decodes the ODA byte-count profile through the recognized source codepage, and delivers it through a new optional trailing DRW_Interface callback. If the bounded optional copy cannot allocate, the reader warns and still publishes the already-validated MEASUREMENT. Modern TU16-shaped profiles remain warning-only without a guessed measurement. Both non-empty profiles retain the existing strict-output warning because DXF has no corresponding field.",
+    "limitations": [
+      "The modern TU16-shaped profile conflicts with ODA §22 and remains warning-only with no guessed MEASUREMENT until an eligible producer sample adjudicates it.",
+      "A local LibreDWG 0.13.3 writer/readback profile preserved a non-empty AC1024 description, but libdxfrw rejected that generated DWG at BAD_READ_FILE_HEADER before reaching AcDb:Template; this does not validate the libdxfrw parser against that profile.",
+      "DXF has no corresponding HEADER field, so Template descriptions cannot be preserved by strict DWG-to-DXF conversion.",
+      "No independently produced non-empty-description DWG or native template semantic evidence is available.",
+      "The optional-description allocation-failure branch is fail-tolerant in code but has no injected-allocation test; it preserves the separately validated MEASUREMENT and emits the same strict-output-blocking warning."
+    ],
+    "peerConflict": {
+      "peer": "LibreDWG 0.13.3.553_6d6a_dirty",
+      "sourceFiles": {
+        "/Users/dli/dev/libredwg/src/template.spec": "FIELD_T16 description",
+        "/Users/dli/dev/libredwg/src/dec_macros.h": "FIELD_T16 selects bit_read_TU16 for R2007 and later"
+      },
+      "sourceFileSha256": {
+        "template.spec": "c6e4f66d3f90062d1a61e724cf1d1bb25e9291e3b605219a5e0a42600197de90",
+        "dec_macros.h": "0e408e59813e273690093437923cfbeba235026e7082b79502253608b49e3679"
+      },
+      "localGeneratedRoundTrip": {
+        "inputBase": "tests/samples/AC1024/title_block-iso.dwg",
+        "inputBaseSha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+        "generatedOutput": "/private/tmp/libredwg-template-described-ac1024-20261102.dwg",
+        "generatedOutputSha256": "b41c6c1637387a1673bbb503b2dc22381325c8065a20d479c736f064424c8d59",
+        "writerReadback": "LibreDWG reports description=\"Template parity café\" and MEASUREMENT=1",
+        "libdxfrwResult": "Rejected at BAD_READ_FILE_HEADER (error 5 / PageRange) before AcDb:Template; not parser validation"
+      },
+      "qualification": "Peer source and self-round-trip establish a competing implementation profile only. They do not override ODA §22 or establish an AutoCAD-produced wire profile."
+    },
+    "apiDecision": "The callback is appended to DRW_Interface and defaults to no-op, preserving existing source subclasses; binary ABI compatibility remains part of the broader P8 gate."
+  },
+  "controls": {
+    "selector": "--template-fields",
+    "ctest": "libdxfrw_dwg_template_fields",
+    "generatedAtRuntime": true,
+    "fixtureFilesAdded": 0,
+    "coverage": [
+      "All six implemented versions use the ODA byte-count boundary and expose the following measurement value for the bounded ODA profile.",
+      "The largest signed byte count is bounded and does not consume decompressed page padding.",
+      "Empty canonical descriptions and the established legacy modern UTF-16 NUL form remain accepted.",
+      "Malformed, truncated, out-of-range, and trailing-byte forms remain failures without partial header publication.",
+      "A well-framed modern non-empty ODA byte-count description emits TemplateDescriptionUnsupported and publishes MEASUREMENT for tolerant reading.",
+      "A modern TU16-shaped description remains tolerant, warns, and does not publish a guessed MEASUREMENT.",
+      "An AC1018 CP1252 description with a trailing NUL decodes to UTF-8 and reaches the optional consumer callback.",
+      "Non-ASCII description bytes with an unrecognized source codepage remain readable but are not published as potentially corrupted UTF-8.",
+      "Strict-complete output preserves the existing destination and refuses the unsupported description warning."
+    ]
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests dwg2dxf libdxfrw_dwg2dxf_adapter_tests --parallel 4 (dwgreader.cpp rebuilt)",
+    "ctest": "PASS: ctest --test-dir build-gcc -R '^(libdxfrw_dwg_template_fields|dwg2dxf_opaque_source_capture_and_strict_output_gate)$' --output-on-failure (2/2, 0.91s)",
+    "diffCheck": "PASS: git diff --cached --check",
+    "receiptJson": "PASS: parsed with Python json",
+    "sha256": {
+      "src/intern/dwgtemplate.h": "d205496093c4fd94b32147d5e35604dfb4622d7c8e51585a14becbb9557e1e92",
+      "src/intern/dwgreader.cpp": "5c38cd4e61b6bbba0589a78accba1fa90cfa503d6e9517fade2474d4c0c8b9c8",
+      "src/drw_interface.h": "e8a2f4a6b5d50b295a39dd6a940bb74b9a54a8b881044fa1627b467a83560827",
+      "src/libdwgr.h": "acfaecee6be1d25b752f2097812c9954b9cf00dce5c024f93e367cc45fd950e0",
+      "dwg2dxf/dx_iface.cpp": "71c90add6e0d8d8a7ad08aed3c77389e184eae70a6fd9b38d6abae1ae38bd20f",
+      "tests/dwg_reader_matrix_tests.cpp": "d53655910533bdb527fdb6242f271daae0f67e087a14e2935911a96521afdb80",
+      "tests/dwg2dxf_adapter_tests.cpp": "480116a798c8a29a55bf6fce99bb126660dc32c7855fd6878bfd632505e50fd7",
+      "build-gcc/libdxfrw_dwg_reader_matrix_tests": "96d88f06e798c04d137d736e606284854eaeb15e89569ea8b1a5c3fc98064edd",
+      "build-gcc/dwg2dxf/dwg2dxf": "085d2550310a24f254bca8c78e9da3cd1a1b06f1d6ccb7851206a45f5eedc611",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "2a1b1a9515eb85b0f2b9ddf1b2d4cc61b4e64560b4bfbf154bc8e46d848a93e3"
+    },
+    "bindingNote": "Focused selectors ran after rebuilding the touched targets against the current integrated worktree. Unrelated pending worktree edits were present; only Template hunks/files are staged in this slice."
+  }
+}

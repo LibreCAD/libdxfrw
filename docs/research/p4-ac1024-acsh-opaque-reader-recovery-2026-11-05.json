@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-acsh-opaque-reader-recovery-2026-11-05",
+  "date": "2026-11-05",
+  "status": "RAW_FRAME_RECOVERY_COMPLETE_TYPED_FAILURES_RETAINED",
+  "supportClaimEffect": "none",
+  "question": "Can the exact AC1024 ACSH LOFT/REVOLVE records whose typed body parsers fail remain visible as parser failures while their validated raw frames receive complete HANDLE-map disposition for the existing ODA-qualified proxy route?",
+  "sources": [
+    {
+      "path": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+      "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+      "observedFailures": {
+        "ACSH_REVOLVE_CLASS": 3,
+        "ACSH_LOFT_CLASS": 0
+      }
+    },
+    {
+      "path": "tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg",
+      "sha256": "1a94d2412b7aac3c1c3ab6fdb2b62c4e8b031e5868ad45d2169f571bfc7cf8d4",
+      "observedFailures": {
+        "ACSH_REVOLVE_CLASS": 1,
+        "ACSH_LOFT_CLASS": 2
+      }
+    }
+  ],
+  "implementation": {
+    "scope": "For AC1024 only, a failed typed body parse for the exact ACSH_REVOLVE_CLASS/AcDbShRevolve or ACSH_LOFT_CLASS/AcDbShLoft class pair retains the bounded raw source object and keeps the parser-failure count. The raw carrier is published only after the common prologue and common handle stream validate. Strict read admission permits these visible failures only when every failure maps one-to-one to a unique validated untyped raw frame, the entity-failure count is zero, frame coverage is finalized complete, and the ACDS-history capture did not fail.",
+    "dataPreservationBoundary": "This is a raw/proxy data-preservation route. It does not decode or qualify LOFT/REVOLVE semantics, ACIS topology, placements, or native 3D behavior."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j4",
+    "buildResult": "passed",
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_acsh_failed_frame_retention$' --output-on-failure",
+        "result": "passed; three parser failures remain visible, three matching LOFT/REVOLVE frames are raw, and the HANDLE-map ledger is FinalizedComplete with zero Failed frames"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^dwg_acsh_revolve_opaque_frame_capture$' --output-on-failure",
+        "result": "passed"
+      }
+    ],
+    "physicalStrictOutputProbes": [
+      {
+        "source": "visualization_-_conference_room.dwg",
+        "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_conference_room.dwg -y -d -v2013 /private/tmp/conference-raw-recovered.dxf",
+        "readObservations": {
+          "sourceFrames": 607,
+          "published": 607,
+          "failed": 0,
+          "objectParseFailures": 3
+        },
+        "strictOutput": "not published; preflight advanced past complete-read admission and refused at the independent SUN source/target same-version gate"
+      },
+      {
+        "source": "visualization_-_condominium_with_skylight.dwg",
+        "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_condominium_with_skylight.dwg -y -d -v2013 /private/tmp/condo-raw-recovered.dxf",
+        "readObservations": {
+          "sourceFrames": 1023,
+          "published": 1023,
+          "failed": 0,
+          "objectParseFailures": 3
+        },
+        "strictOutput": "not published; preflight advanced past complete-read admission and refused at the independent SUN source/target same-version gate"
+      }
+    ],
+    "negativeTargetVersionControl": {
+      "source": "visualization_-_condominium_with_skylight.dwg",
+      "targetVersion": "AC1024",
+      "result": "strict conversion remains refused at the complete-read gate because this raw-recovery admission is restricted to the source-qualified AC1024-to-AC1027 proxy profile",
+      "outputPublished": false
+    },
+    "fixturePolicy": "Both DWGs were already present as local test inputs and were read in place. No DWG or DXF fixture was added or committed."
+  },
+  "limits": [
+    "The DXF writer still refuses both whole drawings at the SUN revision gate; no physical whole-document output or fresh readback is qualified by this receipt.",
+    "The objectParseFailures count remains nonzero and semantic coverage remains partial-observed.",
+    "The existing ODA proxy comparison establishes only its bounded AC1024 object proxy transport profile; it does not establish LOFT/REVOLVE semantics or native 3D behavior."
+  ],
+  "nextAction": "Qualify the narrow AC1024 DWG-to-AC1027 SUN graph output profile against the existing physical ODA ACAD2013 outputs, then rerun strict conversion to expose the next independent closure gate."
+}

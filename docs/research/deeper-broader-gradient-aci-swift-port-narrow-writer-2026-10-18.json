@@ -1,0 +1,167 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-18",
+  "title": "Deeper/broader gradient ACI wire context, Swift-port attribution, and narrow DXF writer review",
+  "mode": "primary-source peer review and local source/test crosswalk; plan-only refinement",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": [
+    "Reconcile Zephyr SwiftDXFrw group-63 HATCH feature wording against an independent DXF implementation and Autodesk's HATCH table",
+    "Cross-check the DWG HATCH-gradient color-stop byte order against ODA's authoritative section and ACadSharp's independent R2004+ reader",
+    "Audit whether method-tagged DWG CMC color longs fit the local DXF-facing gradient RGB field and writer preflight",
+    "Check whether current local HATCH and MPOLYGON parser/writer paths already distinguish gradient-stop ACI from top-level MPOLYGON fill ACI",
+    "Screen a newly surfaced narrow DXF writer for a transferable test-design method without treating it as a feature-parity peer",
+    "Refine existing generated HATCH-gradient test readiness without changing implementation order or support claims"
+  ],
+  "method": {
+    "kind": "Read the local ODA specification excerpt, primary project documentation/source pages, and inspect local implementation/test call sites",
+    "repositoriesCloned": false,
+    "peerPackagesInstalled": false,
+    "peerExecutablesRun": false,
+    "nativeCadApplicationsOrKernelsRun": false,
+    "drawingsDownloaded": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "ctestRegistrationsAdded": 0,
+    "localBuildRun": false,
+    "localTestsRun": false,
+    "limitations": "Peer GitHub pages are mutable branch-head sources; no immutable peer commit or released binary was captured. ACadSharp and LibreDWG evidence is source/history inspection only, not a peer runtime comparison. The acad-ts CMC writer is explicitly a port of ACadSharp and is not an independent parser lineage or native-produced sample. Zephyr's retrieved README snapshots disagree about its DWG backend, and its underlying Swift source was not successfully retrieved. The Go writer's README test descriptions are self-reported; its test source was not fetched or executed. ezdxf source was inspected but not run on local input. Autodesk's HATCH table does not itself enumerate the gradient-stop ACI sub-records; ezdxf is used only as a DXF implementation cross-check. The local ODA PDF plus Autodesk AcCmColor API reference define DWG packed-color layout/semantics; no generated end-to-end parser/writer vector was executed in this pass."
+  },
+  "sources": [
+    {
+      "project": "Zephyr / SwiftDXFrw",
+      "urls": [
+        "https://github.com/joseph-montanez/zephyr",
+        "https://github.com/joseph-montanez/zephyr/tree/main/Engine/EngineAsBuilt/Sources"
+      ],
+      "revision": "Mutable main README/directory pages retrieved 2026-10-18 local date; exact commit SHA not captured",
+      "observed": "The project describes a 2D CAD application and a Swift libdxfrw port, and advertises spline weights, HATCH gradients, ATTRIB/ATTDEF, and group-63 'background fill'. Retrieved README views disagreed about the DWG backend (ODA CLI/FileConverter versus LibreDWG). The port is derivative for DXF; README claims do not establish independent parsing or a qualified DWG route."
+    },
+    {
+      "project": "Autodesk AutoCAD DXF reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm"
+      ],
+      "revision": "Published 2024 HATCH DXF reference page retrieved 2026-10-18",
+      "observed": "The HATCH table describes group 63 as the MPOLYGON pattern-fill ACI. It documents HATCH gradient control groups 450-470 but does not list group 63 as an independent HATCH background field or enumerate per-stop ACI sub-records."
+    },
+    {
+      "project": "Open Design Alliance Open Design Specification for .dwg files v5.4.1",
+      "urls": [
+        "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf"
+      ],
+      "revision": "Local authoritative PDF, §2.11 page 14 and §20.4.75 pages 194-195; read 2026-10-18",
+      "observed": "The generic R2004+ CMC format is BS color index (always 0), BL RGB/color value, RC color byte. The HATCH gradient section repeats 463 BD, an unknown BS, BL color (DXF codes 63/421), and ignored RC per stop. This defines byte ordering and identifies the HATCH-specific unknown-short caution; it supports nested per-stop color data, not a separate DXF HATCH background property."
+    },
+    {
+      "project": "Autodesk AcCmColor API reference",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcCmColorBase.html",
+        "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcCmColor.html"
+      ],
+      "revision": "Official ObjectARX reference retrieved 2026-10-18",
+      "observed": "The packed color value's high byte is the color method; the remaining three bytes hold B/G/R components. A DWG CMC BL is therefore not equivalent to an untagged 24-bit DXF group-421 RGB value."
+    },
+    {
+      "project": "ezdxf",
+      "urls": [
+        "https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/gradient.py",
+        "https://raw.githubusercontent.com/mozman/ezdxf/master/src/ezdxf/entities/hatch.py",
+        "https://github.com/mozman/ezdxf/blob/master/docs/source/dxfentities/hatch.rst"
+      ],
+      "revision": "Mutable master source/docs retrieved 2026-10-18 local date; exact commit SHA not captured",
+      "observed": "GRADIENT_CODES includes 63 and 421. Gradient.load_tags assigns the first and second group-63 values to aci1/aci2 and group-421 values to color1/color2. Gradient.export_dxf emits each optional 63 next to its corresponding 421 stop record. This clarifies the peer feature wording's likely field conflation but is not a normative source or native runtime result."
+    },
+    {
+      "project": "ACadSharp",
+      "urls": [
+        "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/Entities/HatchGradientPattern.cs",
+        "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs"
+      ],
+      "revision": "Mutable master sources retrieved 2026-10-18 local date; exact commit SHA not captured",
+      "observed": "Its R2004+ HATCH reader parses gradient metadata, then repeats 463 BD plus a CMC color per stop, followed by 470 TV. This is structurally consistent with the ODA stop-oriented sequence and local bounded reader, but is source-level corroboration only, not a sample-backed peer runtime comparison. It does not resolve whether the local `aciColor`/raw `rgb` projection preserves all CMC methods."
+    },
+    {
+      "project": "node-projects/acad-ts (ACadSharp port)",
+      "urls": [
+        "https://github.com/node-projects/acad-ts",
+        "https://github.com/node-projects/acad-ts/blob/master/src/IO/DWG/DwgStreamWriters/DwgStreamWriterAC18.ts"
+      ],
+      "revision": "Mutable master README/source retrieved 2026-10-18 local date; project identifies itself as an ACadSharp port; exact commit SHA not captured",
+      "observed": "Its R2004+ CMC writer emits BS=0 and RC=0; the BL carries high-byte color-method markers (visible source emits 0xC2 for true color and 0xC3 for indexed ACI) plus the component/index bytes. This is a source-shaped vector lead only, not an independent lineage or native-produced sample."
+    },
+    {
+      "project": "LibreDWG",
+      "urls": [
+        "https://github.com/LibreDWG/libredwg/blob/master/NEWS"
+      ],
+      "revision": "Mutable master NEWS retrieved 2026-10-18 local date; exact commit SHA not captured",
+      "observed": "Published history records a past HATCH gradient-fill color fix and later HATCH corrections. The changelog entry does not provide enough detail to identify a matching local defect or produce an expected-value vector; use only as a risk/coverage signal."
+    },
+    {
+      "project": "gallowaysoftware/dxf",
+      "urls": [
+        "https://github.com/gallowaysoftware/dxf"
+      ],
+      "revision": "Mutable main repository page retrieved 2026-10-18 local date; GitHub page reported two commits, exact SHA not captured",
+      "observed": "README describes an AC1024/R2010 writer for LINE, CIRCLE, ARC, LWPOLYLINE, and TEXT only, with no read path, HATCH, SPLINE, blocks, or paper space. It advertises pre-write validation, structure-oriented output checks, owner/handle checks, a golden, and a fuzz invariant; none were independently run."
+    },
+    {
+      "project": "Local libdxfrw source and tests",
+      "urls": [
+        "src/drw_entities.h",
+        "src/drw_entities.cpp",
+        "src/libdxfrw.cpp",
+        "tests/wave1_tests.cpp"
+      ],
+      "revision": "Workspace HEAD de27a3391a624aba03ca71f3583c4b3a6e6396a9; dirty worktree preserved",
+      "observed": "DRW_Hatch::parseCode maps DXF group 63 to the latest GradientStop.aciColor when a stop exists; HATCH serialization emits optional stop group 63 before group 421. DRW_MPolygon::parseCode captures top-level group 63 as fillColorAci outside gradient-stop accumulation. The generated testHatchGradientDxfGrammar covers ASCII/Binary gradient grammar and 421 RGB stops but its standard two-color vector currently omits 63 ACI stop values. readBoundedHatchGradient in src/drw_entities.cpp follows ODA's DWG byte order (463 value, BS, BL, ignored RC) but copies the whole packed BL to rgb, assigns BS to aciColor, and leaves colorMethod at default. validateHatchPayload rejects rgb values outside [-1, 0xFFFFFF], so method-tagged CMC values cannot pass current HATCH writer preflight; this source-level representation mismatch is confirmed, while the exact generated input-to-DXF refusal vector has not been executed. A repository test search found no generated DWG HATCH gradient-stop regression vector."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 1,
+    "newFindings": 1,
+    "newFindingIds": [
+      "PAR-134"
+    ],
+    "newTopLevelSubplans": 0,
+    "existingPlanGatesRefined": [
+      "Keep group-63 context explicit: gradient-stop ACI in the HATCH gradient block, versus top-level MPOLYGON fill ACI; do not describe either as a generic HATCH background field",
+      "Add generated ASCII/Binary two-color gradient ACI-to-stop assertions to the existing 7Q/7AH test owner when next touched, including raw group order, parsed ACI/RGB association, re-emission, and following-record alignment",
+      "Add PAR-134 under existing 7Q: first reproduce method-tagged CMC long rejection by current 24-bit DXF preflight using an in-memory ODA-shaped HATCH; then decode supported CMC methods before group-63/421 output, keeping unsupported values transactional",
+      "When the DWG HATCH-gradient owner is next touched, independently assert raw 463/BS/BL/RC fields, gradient name, and next-record alignment; do not relabel the HATCH short as ACI based on layout alone or reuse DXF group-431 colorMethod for CMC methods",
+      "Separate normative DWG byte-layout validation (local ODA specification) from DXF entity grammar validation (Autodesk plus implementation cross-checks)",
+      "Do not count Zephyr's derivative libdxfrw DXF port as an independent parser; require immutable source/build and actual converter-route capture for any optional app check",
+      "Treat the narrow Go writer's README-described validation/structural/fuzz patterns as methodology leads only, not runtime evidence or a new comparator gate"
+    ],
+    "implementationOrderChanged": false,
+    "validationFrequencyChanged": false,
+    "newTestsOrCtestRegistrations": 0,
+    "externalFixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "peerRuns": 0,
+    "nativeRuns": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 134,
+      "topLevelSubplans": 76
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    },
+    "planImpact": "Research resolves the group-63 attribution ambiguity, confirms local DWG gradient-stop byte order against ODA, establishes a source-confirmed mismatch between packed CMC methods and the local 24-bit DXF gradient preflight, and adds PAR-134 under the existing 7Q subplan. It also adds a generated DXF group-63 test omission and an in-memory DWG CMC regression recipe. No production code/test was changed or executed; no top-level subplan, dependency, fixture, support claim, or external-J disposition changed. Full-suite cadence remains unchanged."
+  },
+  "workingTree": {
+    "planUpdated": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "receiptCreated": "docs/research/deeper-broader-gradient-aci-swift-port-narrow-writer-2026-10-18.json",
+    "commitCreated": false,
+    "stagingAttempted": false,
+    "reason": "The shared worktree contains extensive user/work-in-progress changes. This research pass edited only the requested plan and added its receipt."
+  }
+}

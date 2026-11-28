@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-associative-source-handle-reservation-2026-10-30",
+  "date": "2026-10-30",
+  "title": "Associative source identity reservation and planning",
+  "status": "SOURCE_IDENTITIES_RESERVED_AND_PLANNED_EMITTED_GRAPH_ROUTING_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "180ce0aa",
+  "scope": "Reserve source-format-selected associative object identities in the DXF writer before generated allocation. Carry identity or fixed-collision replacement mappings into the writer's source handle remap table. No associative record is newly routed through document output by this slice.",
+  "implementationEvidence": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
+    ],
+    "result": "fileExport selects dwgAssociativeObjects for DWG sources and associativeObjects for DXF sources, reserves each source handle before the fixed-collision planner or generated records can allocate, and adds an explicit source-to-planned mapping. Fixed DXF structural collisions receive an allocated replacement; noncolliding source handles retain their identity. Existing whole-graph strict refusal remains in place.",
+    "regression": "From-scratch in-memory DWG-origin data exports and reads back a generated LINE baseline. Repeating with an associative source handle equal to that generated LINE handle causes the LINE to receive a different handle. A fixed structural source handle also reserves its remapped output identity before LINE allocation.",
+    "fixturePolicy": "Generated in-memory records only. No DWG/DXF fixtures added to the repository.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "commands": [
+      "git diff --check",
+      "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "ctest --test-dir build -R '^dwg2dxf_associative_(source_handle_(inventory|reservation)|strict_loss_gate)$' --output-on-failure"
+    ],
+    "results": {
+      "diffCheck": "PASS",
+      "focusedBuild": "PASS with the configured -Werror build.",
+      "focusedCTest": "PASS 3/3: associative source-handle inventory, generated-identity reservation/remap, and existing strict DXF associative loss gate.",
+      "fullSuites": "NOT_RUN per the fast-validation plan.",
+      "documentOutput": "Associative records are not serialized by this slice; this proof establishes allocator isolation and planned identities only."
+    }
+  },
+  "planImpact": {
+    "completedScopeRemovedFromQueue": "Associative source handles are reserved before generated allocation and receive explicit identity or fixed-collision source-to-planned mappings.",
+    "remainingP4Scope": "Route admitted associative encoders through the graph planner; bind emitted record handles; remap all source references; close the required descendant graph; independently inspect and read back staged output; verify whole-operation publication and retry.",
+    "phaseStatusesChanged": false,
+    "externalDeferredItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "ef6982afb968aad442934e2aad6b6021a795a993a3c2d1adaa14183c4b45b53f",
+    "tests/dwg2dxf_adapter_tests.cpp": "c97ed2ccfdc39873d4413e5dd0af27accb70f82e14244d2059d4ee3418e1cc63",
+    "tests/CMakeLists.txt": "bf4b14aa0d2433059f83ca5a2f1990a06b662a92d9da52fd6d0c4e2f70abac79",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "f523f01ad974f4f8ef4fcd2853190ac79901a5799e6e2ecdcc63706bfc48f7ba"
+  },
+  "nonGoals": [
+    "Do not claim associative graph output from identity planning.",
+    "Do not permit partial required graphs or weaken strict output refusal.",
+    "Do not infer unsupported record fields, owner edges, or semantic behavior.",
+    "Do not claim LibreCAD, LibreCAD_3, FreeCAD, native platform, ABI, or release qualification."
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-same-import-admission-2026-11-20",
+  "date": "2026-11-20",
+  "status": "SOURCE_PREFLIGHT_QUALIFIED_STAGED_OUTPUT_REFUSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing untracked local reference; producer provenance remains unqualified."
+  },
+  "implementation": "For the source-bound AC1024 three-root common-link profile, require the importing adapter and complete graph/APPID/source-frame proof before taking a preflight snapshot. Recheck that proof when using the snapshot. A separate adapter cannot inherit it. Refuse staged output for this profile until nested graph, SCALE and APPID output dependencies are wired and verified. Existing non-common-link profiles retain their previous checks.",
+  "validation": {
+    "binary": "/private/tmp/libdxfrw-plotsettings-test-build/tests/libdxfrw_dwg2dxf_adapter_tests",
+    "binarySha256": "f01505802b280e62fc07611bd8e48adf04d8505f4898da1428d42678251beae6",
+    "logs": {
+      "build": {
+        "path": "/private/tmp/libdxfrw-layerstates-same-import-admission-build.log",
+        "sha256": "c4393dd881434f81c34311d87b25ad41134493d0f554550dc06db49a0d99c37f"
+      },
+      "admission": {
+        "path": "/private/tmp/libdxfrw-layerstates-same-import-admission.log",
+        "sha256": "5e1625955487a12c1004f328b72fc12ccdc76373c32ca4b58c92ba112cc72a71"
+      },
+      "fallback": {
+        "path": "/private/tmp/libdxfrw-layerstates-same-import-fallback.log",
+        "sha256": "d6edbc4f620305d5eb0df3324c3069f054f493b1c4222986ac9df60b1f95b5a4"
+      },
+      "graph": {
+        "path": "/private/tmp/libdxfrw-layerstates-same-import-graph.log",
+        "sha256": "f3a6e1298ff03d5be13e7169c397b17c67a3b371558a1b3d2d4caafbd049b0e9"
+      },
+      "finalBuild": {
+        "path": "/private/tmp/libdxfrw-layerstates-same-import-final-build.log",
+        "sha256": "0991af3a4912d0c08ca4bc0286663270c2802e070492af5a34929f94367975a0"
+      },
+      "ac1021Wire": {
+        "path": "/private/tmp/libdxfrw-layerstates-same-import-ac1021.log",
+        "sha256": "6fd26c67bc113af8797234d3e0dc8d7b9c3f7caef86feecb6dafa88b103e1d24"
+      },
+      "emptyAc1024": {
+        "path": "/private/tmp/libdxfrw-layerstates-same-import-empty-ac1024.log",
+        "sha256": "1cc2da64358b2c720efbb035d62dc06b38f7fd5b32d90d75524d6b8ba77df6f2"
+      },
+      "priorBaselineEmptyAc1024": {
+        "path": "/private/tmp/libdxfrw-layerstates-prior-baseline-empty.log",
+        "sha256": "1cc2da64358b2c720efbb035d62dc06b38f7fd5b32d90d75524d6b8ba77df6f2"
+      }
+    },
+    "controls": [
+      "Original importer admits the captured source; a separate adapter refuses it.",
+      "Changed root name or member, APPID name or owner, EED string, XRECORD reference, SCALE owner or root wire byte invalidates both the prepared snapshot and a new preflight; restoring each permits a same-adapter preflight retry.",
+      "The three-root common-link staged inspector rejects with the pending-dependency diagnostic.",
+      "Existing source-graph mutation and fallback/destination-preservation controls pass; the full output remains unqualified.",
+      "The existing AC1021 two-root wire and correction selector passes."
+    ],
+    "compatibilityFailure": {
+      "source": "tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+      "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "result": "The empty-root output/readback selector fails at the Global MATERIAL APPID table dependency on both this change and the prior committed dx_iface.cpp; no successful one-root output claim is made.",
+      "priorCodeCommit": "6df69fc0f"
+    }
+  },
+  "limits": [
+    "Preflight admission is not output admission or a support claim.",
+    "Frozen selection over the original adapter/data, staged APPID and nested graph proof, successful ASCII/Binary output with independent readback, native semantics and whole-source closure remain open.",
+    "The source has a known HEADER envelope discrepancy; no fixture was committed."
+  ]
+}

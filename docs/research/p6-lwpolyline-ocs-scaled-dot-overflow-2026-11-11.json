@@ -1,0 +1,18 @@
+{
+  "id": "p6-lwpolyline-ocs-scaled-dot-overflow-2026-11-11",
+  "scope": "Nonmutating LWPOLYLINE vertex-to-WCS extraction.",
+  "finding": "The helper used validated OCS axes but formed each WCS component with an ordinary three-term sum. A finite near-DBL_MAX vertex/elevation combination overflowed an intermediate sum even though cancellation produced three representable WCS components.",
+  "change": "The helper now passes each finite OCS point through the shared OCS transform. Ordinary-magnitude inputs keep the existing calculation; high-magnitude inputs use the validated scaled compensated path, and non-finite final points still fail before the output vector is published.",
+  "generated_control": {
+    "normal": [-0.5598695611870558, -0.5866966310980342, 0.585092417925947],
+    "ocsPointOverDBL_MAX": [-0.869681926769897, 0.9829157734821004, 0.14921939908714688],
+    "expectedWcsPointOverDBL_MAX": [-0.31568660864772236, 0.9289141273359566, 0.884419023840071],
+    "purpose": "Exercise every LWPOLYLINE vertex with a finite result after cancellation in the intermediate WCS Y sum."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dxf_lwpoly_wcs_vertices_tests -j4",
+    "test": "ctest --test-dir build -R '^libdxfrw_dxf_lwpoly_wcs_vertices$' --output-on-failure",
+    "result": "Build passed; focused CTest passed 1/1; git diff --check passed."
+  },
+  "limits": "This covers one generated finite intermediate-overflow case for the LWPOLYLINE WCS extraction API. It does not qualify every extreme input, producer behavior, CAD rendering, or whole-file support; no drawing fixture was added."
+}

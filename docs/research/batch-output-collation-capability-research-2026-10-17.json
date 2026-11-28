@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw-batch-output-collation-capability-research-v1",
+  "reviewedAt": "2026-10-17",
+  "baselineCommit": "de27a3391a624aba03ca71f3583c4b3a6e6396a9",
+  "scope": "Resolve implementation readiness for 7BH.3 future-output filename collisions across Windows, Linux/ext4, and Apple filesystems; document the observed local gap without retaining an ASCII-only workaround.",
+  "method": {
+    "kind": "Primary platform documentation review plus local bounded CLI reproduction",
+    "sourcesPinnedToRevisions": false,
+    "localExecutablesBuiltOrRun": true,
+    "localValidation": [
+      "cmake --build build-gcc --target dwg2dxf -j2",
+      "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --batch-only"
+    ],
+    "externalDrawingsDownloaded": 0,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "productionCodeChanged": false,
+    "passingTestsAdded": 0,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/ns-ntifs-_file_case_sensitive_information",
+      "https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getfileinformationbyname",
+      "https://learn.microsoft.com/en-us/windows/wsl/case-sensitivity",
+      "https://www.kernel.org/doc/html/latest/admin-guide/ext4.html",
+      "https://www.kernel.org/doc/html/latest/filesystems/ext4/inodes.html",
+      "https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/APFS_Guide/FAQ/FAQ.html",
+      "https://developer.apple.com/documentation/foundation/urlresourcevalues/volumesupportscasesensitivenames",
+      "https://developer.apple.com/documentation/technologyoverviews/files-and-directories"
+    ],
+    "localObservation": "The existing batch preflight admitted CaseCollision.dwg and casecollision.dxf on a Darwin case-insensitive output volume. The two normalized output names alias under that directory's filename behavior. The temporary ASCII-fold/case-probe prototype was removed because it did not meet the existing plan's native-equivalence requirement."
+  },
+  "evidence": [
+    {
+      "platform": "Windows",
+      "observed": "Microsoft documents a per-directory FILE_CASE_SENSITIVE_INFORMATION flag and a query API. Windows/WSL documentation describes per-directory behavior and an inheritance exception in WSL 1.",
+      "doesNotEstablish": [
+        "case behavior for every filesystem provider or remote share",
+        "short-name/trailing-dot-space alias closure from the case flag alone",
+        "that a temporary child directory always shares the output parent's collation"
+      ],
+      "planUse": "Query the actual directory with a supported native API; model path aliases separately; treat unsupported providers or unavailable state explicitly."
+    },
+    {
+      "platform": "Linux ext4",
+      "observed": "The kernel documents case-insensitive lookup as per-directory and dependent on a filesystem-wide casefold feature/encoding. Its documented comparison uses canonical decomposition and a Unicode-versioned encoding; invalid-name behavior can fall back when strict mode is absent. EXT4_CASEFOLD_FL is the relevant directory flag.",
+      "doesNotEstablish": [
+        "that all Linux filesystems are case-sensitive or use ext4 rules",
+        "that lexical UTF-8 comparison matches every mount/provider",
+        "that the current host's Darwin result qualifies Linux behavior"
+      ],
+      "planUse": "Query ext4 directory and encoding capabilities where supported; define invalid input handling; fail closed for unknown filesystem or mount semantics."
+    },
+    {
+      "platform": "Apple filesystems",
+      "observed": "Apple documents case-sensitive and case-insensitive APFS variants and exposes volumeSupportsCaseSensitiveNames. Its archived APFS FAQ describes normalization-insensitive names in both variants and Unicode 9.0 behavior for the documented APFS generation. Apple separately warns that systems may use filesystems other than APFS.",
+      "doesNotEstablish": [
+        "current name-comparison details for every macOS version and volume provider",
+        "that case sensitivity alone captures APFS normalization equivalence",
+        "HFS+, network filesystem, or other provider behavior"
+      ],
+      "planUse": "Query the actual volume/provider and verify the documented normalization profile applies before using it; do not infer from host OS or APFS-only facts."
+    }
+  ],
+  "implementationReadiness": {
+    "existingLexicalSetSufficient": false,
+    "asciiFoldOrFewProbesAcceptable": false,
+    "temporaryChildNamespaceAllowedWithoutParentChildCapabilityProof": false,
+    "targetComplexity": "O(n log n) or comparably bounded for up to 10000 planned outputs",
+    "fastValidation": [
+      "strict dwg2dxf target build",
+      "existing focused Python batch selector",
+      "generated case/normalization/provider alias controls with no added CTest registration",
+      "one bounded 10000-name comparator/index control after implementation"
+    ],
+    "requiredNativeQualification": ["macOS", "Linux", "Windows"]
+  },
+  "planImpact": {
+    "existingSubplanOnly": "7BH.3",
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "supportClaimsPromoted": 0,
+    "deferredExternalDispositionChanged": false,
+    "findingCount": 127,
+    "topLevelSubplanCount": 71,
+    "deferredExternal": [
+      "J256",
+      "J260",
+      "J268",
+      "J284",
+      "J293",
+      "J295"
+    ]
+  }
+}

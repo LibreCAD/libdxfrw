@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-01",
+  "status": "LOCAL_PLOTSETTINGS_RESAVE_PASSES_EXTERNAL_GATES_REMAIN_NO_SUPPORT_CLAIM",
+  "repositoryHead": "195426124e50cd9d2459a35ed2fb20256c5e0f93",
+  "plan": "LIBRECAD_DXFRW_UPGRADE_PLAN.md",
+  "fixturePolicy": "All DWG inputs are already tracked in the LibreCAD repository. Suffix extracts, conversion outputs, logs, and builds stayed under /private/tmp or the local build directory; no DWG/DXF fixture was added to this repository.",
+  "ac1032HeaderTail": {
+    "authority": {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "localPath": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "5.9",
+        "8",
+        "9",
+        "28"
+      ]
+    },
+    "inputs": [
+      {
+        "path": "LibreCAD/librecad/src/lib/filters/tests/testdata/large_radial.dwg",
+        "sha256": "d3f7c22db4b6c3953e2d716da719d7e7e5b285cf73bd4e317f0a171d3859f98a",
+        "suffixLength": 739,
+        "suffixSha256": "8846954a45a8d8e2b1b150ee1dde7c539dcbb1a3c7c61f5843484a5933f163e0",
+        "verifiedCrcAndEndSentinelEndOffset": 841
+      },
+      {
+        "path": "LibreCAD/librecad/src/lib/filters/tests/testdata/lc_multiline_attrib_ac1032.dwg",
+        "sha256": "f06218b4975c1ed2a9de0484a57744a4e5b5377ffe4520d6fb9098b8bd0dac11",
+        "suffixLength": 739,
+        "suffixSha256": "af0f1575b79ec72a3ffe0c91f0eabeecd7426950048112f11019f6cccfc2481d",
+        "verifiedCrcAndEndSentinelEndOffset": 844
+      },
+      {
+        "path": "LibreCAD/librecad/src/lib/filters/tests/testdata/mpolygon_solid.dwg",
+        "sha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+        "suffixLength": 739,
+        "suffixSha256": "028125b1c3baf7509bc2d10151a114fd931d037ac93ea42096a0472cdbb3df68",
+        "verifiedCrcAndEndSentinelEndOffset": 841
+      },
+      {
+        "path": "LibreCAD/librecad/src/lib/filters/tests/testdata/rtext_arctext.dwg",
+        "sha256": "db5663cdc5c1759fdc1f68f9122e596307de06317e766cd5e0aab55912e5d511",
+        "suffixLength": 739,
+        "suffixSha256": "77b71d3f1659674982e4b567374a6dc207d5d97392e70ab49196cafc4c5fd547",
+        "verifiedCrcAndEndSentinelEndOffset": 773
+      }
+    ],
+    "comparison": {
+      "allSuffixLengthsEqual": true,
+      "allSixPairwiseComparisonsDifferAtAll739Offsets": true,
+      "interpretation": "The equal-length tails are document-specific data, not a shared fixed trailer. The ODA v5.4.1 envelope and LibreDWG 0.14 trace agree on the parsed header fields/stream region but do not assign semantics to bytes after the verified end sentinel. The in-envelope string-stream offset at byte 739 must not be confused with the 739-byte post-sentinel suffix. No independent semantic source identifies the suffix contents. They are not classified as padding or claimed as parsed header data.",
+      "disposition": "DEFERRED_EXTERNAL. Current ODA and LibreDWG sources do not identify this document-specific tail. The C2.2 disposition is explicit: preserve the diagnostic and strict-export refusal, keep this sample/profile unsupported, and reopen only if independent semantics or provenance become available."
+    },
+    "specificationFinding": "ODA sections 5.9 and 9 place the R2018 header's declared bitstream, strings, and handles before the section CRC/end sentinel; section 8 retains the unknown 32-bit word after the declared size. The specification's random-bit padding allowance only reaches the next byte boundary and does not explain a 739-byte post-sentinel tail. Section 28 defines EED physical chunks, relevant to the separate readback issue below.",
+    "independentLibreDwgTrace": {
+      "tool": "dwgread 0.14",
+      "input": "LibreCAD/librecad/src/lib/filters/tests/testdata/lc_multiline_attrib_ac1032.dwg",
+      "inputSha256": "f06218b4975c1ed2a9de0484a57744a4e5b5377ffe4520d6fb9098b8bd0dac11",
+      "command": "dwgread -v5 -O JSON -o /private/tmp/libredwg-ac1032-v5.json <input.dwg>",
+      "exitCode": 0,
+      "tracePath": "/private/tmp/libredwg-ac1032-v5.log",
+      "traceFindings": {
+        "mappedHeaderSectionBytes": 1583,
+        "declaredHeaderSizeBytes": 802,
+        "headerVariableBitSize": 5723,
+        "inEnvelopeStringStream": "The trace computes an in-envelope string stream start at bit 5914 (byte 739, bit 2), with a 1308-bit stream ending at bit 4590 (byte 573, bit 6). This byte offset is distinct from the 739-byte suffix length after the end sentinel.",
+        "postSentinelSuffix": "The DWG reader independently verifies the envelope end at byte 844; 739 bytes remain in the 1,583-byte mapped section. The LibreDWG trace reads the file successfully but does not assign semantics to those post-sentinel bytes."
+      },
+      "sourceReview": {
+        "repository": "LibreDWG official repository",
+        "url": "https://github.com/LibreDWG/libredwg/blob/master/src/decode_r2007.c#L1538-L1586",
+        "scopeLimit": "The reviewed reader decodes the declared header size/bit stream and locates the string stream. It supplies no semantic label for this sample's post-sentinel suffix. Installed binary source revision is not attested to the live master source."
+      },
+      "disposition": "Research narrows the open question but does not resolve suffix provenance. Keep diagnostic and strict-export refusal; do not classify as padding or a handle stream without independent evidence."
+    },
+    "independentLibreDwgMasterSourceReview": {
+      "repository": "LibreDWG official repository",
+      "path": "src/decode_r2007.c",
+      "ref": "master",
+      "blobSha": "78b8881dab6827594142b126b8665bb951e1fb5d",
+      "url": "https://github.com/LibreDWG/libredwg/blob/78b8881dab6827594142b126b8665bb951e1fb5d/src/decode_r2007.c#L788-L875",
+      "findings": [
+        "read_data_section allocates from the section-map data_size and places each uncompressed section page at its declared section offset; the mapped section is not merely an on-disk page buffer.",
+        "read_2007_section_header reads the declared header size and bit size, locates the string stream, and calls dwg_decode_header_variables; it does not classify or consume the bytes after the verified sentinel."
+      ],
+      "conclusion": "The 739 bytes are within the mapped header section data_size, not just Reed-Solomon page padding. The current official LibreDWG reader still gives them no semantic label; this is not evidence that they are ignorable.",
+      "supportEffect": "DEFERRED_EXTERNAL; preserve strict-export refusal and make no support claim for this sample/profile."
+    },
+    "strictCliCheck": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf ../LibreCAD/librecad/src/lib/filters/tests/testdata/lc_multiline_attrib_ac1032.dwg -y -d -v2018 /private/tmp/libdxfrw-ac1032-boundary-20261101-recheck.dxf",
+      "exitCode": 1,
+      "trace": "Header envelope result error=0, payloadEnd=826, trailerEnd=844, unclaimedBytes=739. No ATTDEF/ATTRIB parse-failure diagnostics appeared; the CLI refused strict-complete publication because complete DWG read disposition remains unestablished.",
+      "result": "No DXF was published. The remaining refusal is the unclassified document-specific header suffix, not the multiline attribute record.",
+      "logPath": "/private/tmp/libdxfrw-ac1032-boundary-20261101-recheck.log",
+      "fixturePolicy": "Input is an existing Git-tracked LibreCAD DWG with SHA-256 f06218b4975c1ed2a9de0484a57744a4e5b5377ffe4520d6fb9098b8bd0dac11; output and log are outside the repository."
+    },
+    "odaConverterReproductionAttempt": {
+      "converter": "ODA File Converter 27.1.0.0 (installed bundle metadata)",
+      "input": "LibreCAD/librecad/src/lib/filters/tests/testdata/lc_multiline_attrib_ac1032.dwg",
+      "inputSha256": "f06218b4975c1ed2a9de0484a57744a4e5b5377ffe4520d6fb9098b8bd0dac11",
+      "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/libdxfrw-oda-repro.LZPBu7/in /private/tmp/libdxfrw-oda-repro.LZPBu7/out ACAD2018 DXF 0 1 '*.DWG'",
+      "exitCode": 134,
+      "stderrSummary": "PasteBoard could not create clipboard/find pasteboards; macOS pasteboard/XPC services reported connection invalid.",
+      "offscreenRetry": {
+        "command": "env QT_QPA_PLATFORM=offscreen /Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter /private/tmp/libdxfrw-oda-repro.LZPBu7/in /private/tmp/libdxfrw-oda-repro.LZPBu7/out ACAD2018 DXF 0 1 '*.DWG'",
+        "exitCode": 134,
+        "stderrSummary": "The application bundle contains only the Cocoa Qt platform plugin; no offscreen plugin was available."
+      },
+      "sessionObservation": "Native app access reports that the Mac is locked and automatic unlock failed.",
+      "result": "No DXF was produced. This attempt does not classify the 739-byte suffix or change the strict-export disposition; retry requires an unlocked interactive macOS session."
+    }
+  },
+  "plotSettingsDwgReadback": {
+    "sourceFixture": {
+      "path": "LibreCAD/librecad/src/lib/filters/tests/testdata/ordinary_enc_AC1015.dwg",
+      "sha256": "80690dc45b2e32b4d378df4be860c51c6b3c952400aa762eb73a654e93a728dd",
+      "provenance": "Already tracked in LibreCAD; converted through the isolated LibreCAD HEAD candidate."
+    },
+    "intermediateDwg": {
+      "path": "/private/tmp/librecad-plotsettings-consumer-20261101/roundtrip-fixed.dwg",
+      "sha256": "84559f9804d3456ad6cad11d7cb5efd926da4a8c9078f867ffd00964899ef66a",
+      "independentFirstSaveGraphEvidence": "LibreDWG 0.14 confirmed HEADER PlotSettings pointer 0x5E, NOD edge 0x5E, dictionary owner NOD 0x0C, and member LIBDXFRW_PLOTSETTINGS_90 -> PLOTSETTINGS 0x5A."
+    },
+    "changes": [
+      "The extension-graph admission now permits the typed DWG PlotSettings profile for AC1015-AC1027 when shade mode is 0-3 and no shade reference is present. Modes 4-5 remain on the separately qualified DXF dependency paths.",
+      "DWG EED physical chunks are coalesced by APPID into logical DRW XDATA groups in first-seen application order. Item order per APPID and layer-reference indexes are preserved. The raw readDwgEed physical-chunk API remains unchanged."
+    ],
+    "normativeDxfRule": {
+      "source": "Autodesk, About Extended Data (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-A2A628B0-3699-4740-A215-C560E7242F63.htm",
+      "rule": "An APPID name may have no more than one XDATA group attached to an entity."
+    },
+    "validation": {
+      "build": "PASS: cmake --build build-gcc --target dwg2dxf -j2",
+      "focusedFastCheck": "PASS: build-gcc/libdxfrw_dwg_reader_matrix_tests --bounded-eed-application-chunks; validates noncontiguous repeated-APPID coalescing, order, and layer-reference index adjustment.",
+      "localConsumerReadback": "The candidate dwg2dxf now passes strict-complete AC1015 PlotSettings export with source-correlated output field-span/reference proof and publishes DXF. The separate LibreCAD adapter consumer re-save of the generated AC1015 intermediate also passes with the RawCarrier-aware dictionary resolver; this does not constitute cross-platform or broad support evidence.",
+      "remainingLibreCADAdapterFailure": "Resolved in the current LibreCAD working checkout: dictionary entries now resolve and retain Object, RawCarrier, or FixedStructural target kind instead of forcing Object. The focused target builds; the permanent generated AC1015 raw PlotSettings/dictionary regression passes, and a one-off probe of the exact generated consumer intermediate passes import, source-edge check, AC1015 re-save, and readback (8 assertions). The temporary probe source was removed. The adapter fix and permanent test are uncommitted in the separate LibreCAD checkout; no support claim is promoted.",
+      "noClaimsPromoted": true,
+      "focusedAdapterMatrices": [
+        "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "PASS: libdxfrw_dwg2dxf_adapter_tests --multiple-selected-xrecords (18 sources, 216 exports, 216 readbacks)",
+        "PASS: libdxfrw_dwg2dxf_adapter_tests --xrecord-owned-extension (18 sources, 216 exports, 216 readbacks)",
+        "BASELINE FAILURE: --standard-dwg-profile-isolation fails AC1015->AC1015 at TABLES emission; a temporary build with pre-change dx_iface.cpp reproduces the same failure."
+      ],
+      "openWork": [
+        "Qualify LibreCAD_3 optional DWG-read to supported DXF Save-As/reopen behavior if the reader build profile is enabled; do not require DWG persistence because the consumer has no DWG writer.",
+        "Refresh current-digest Linux/Windows/macOS plus hosted fast receipts.",
+        "Keep J256, J260, J268, J284, J293, and J295 DEFERRED_EXTERNAL until independent external evidence exists; do not promote support claims."
+      ],
+      "consumerResaveEvidence": {
+        "workingCheckout": "/Users/dli/dev/LibreCAD",
+        "sourceFile": "librecad/src/lib/filters/rs_filterdxfrw.cpp",
+        "testFile": "librecad/src/lib/filters/tests/dwg_write_smoke_tests.cpp",
+        "buildCommand": "cmake --build ../LibreCAD/build-profile --target librecad_dwg_write_fast_tests -j2",
+        "focusedCommand": "librecad_dwg_write_fast_tests '[dwg-write][filter][plotsettings]'",
+        "focusedResult": "PASS: 83 assertions in 6 cases, including generated AC1015 raw-carrier/dictionary write-read-resave-readback",
+        "exactIntermediate": {
+          "path": "/private/tmp/librecad-plotsettings-consumer-20261101/roundtrip-fixed.dwg",
+          "sha256": "84559f9804d3456ad6cad11d7cb5efd926da4a8c9078f867ffd00964899ef66a",
+          "format": "AC1015",
+          "oneOffResult": "PASS: 8 assertions; imported, verified dictionary membership to raw PLOTSETTINGS, re-saved to AC1015, re-imported, and verified membership again",
+          "log": "/private/tmp/librecad-plotsettings-consumer-probe.log",
+          "temporaryProbeSourceRemoved": true
+        },
+        "fixtureDisposition": "No DWG/DXF fixture was added; permanent test generates the raw carrier and dictionary from scratch."
+      }
+    },
+    "openWork": [
+      "Qualify LibreCAD_3 optional DWG-read to supported DXF Save-As/reopen behavior if the DWG-reader build profile is enabled; preserve its default-off/read-only/no-DWG-write policy.",
+    "Refresh current-digest platform/hosted receipts.",
+    "Maintain the AC1032 suffix as DEFERRED_EXTERNAL; preserve strict refusal unless independent semantics or provenance become available."
+    ],
+    "opaqueCallbacks": [
+      {
+        "handle": "0x0C",
+        "dwgType": 42,
+        "typeName": "DICTIONARY",
+        "recordName": "",
+        "className": "",
+        "standardPayload": "1/0"
+      },
+      {
+        "handle": "0x0D",
+        "dwgType": 42,
+        "typeName": "DICTIONARY",
+        "recordName": "",
+        "className": "",
+        "standardPayload": "1/0"
+      },
+      {
+        "handle": "0x5A",
+        "dwgType": 504,
+        "typeName": "PLOTSETTINGS",
+        "recordName": "PLOTSETTINGS",
+        "className": "AcDbPlotSettings"
+      },
+      {
+        "handle": "0x5E",
+        "dwgType": 42,
+        "typeName": "DICTIONARY",
+        "recordName": "",
+        "className": "",
+        "standardPayload": "1/0"
+      }
+    ]
+  },
+  "libreCAD3PolicyRefresh": {
+    "source": "https://github.com/LibreCAD/LibreCAD_3/blob/master/docs/dwg-support.md",
+    "observed": "Current official project policy says DWG import is opt-in and off by default, read-only, and DWG-origin drawings are saved as DXF. DWG writing is not implemented, exposed, or planned absent explicit project gates.",
+    "planEffect": "Do not make LibreCAD_3 DWG write/persistence a required compatibility gate. If the optional reader profile is enabled, qualify DWG import plus supported DXF Save-As/reopen. Preserve the default-off/read-only contract.",
+    "localReceiptLimit": "The cited LibreCAD_3 snapshot has passing generated ASCII DXF save/open and three tracked export regressions only; these do not prove optional DWG-import-to-DXF persistence.",
+    "currentHostDisposition": {
+      "status": "NOT_RUN",
+      "reason": "No LibreCAD_3 executable was found in its build/bin or installed Applications; the available build directory contains configuration and support files only.",
+      "availableEvidence": "The source-contract check and DXF-only baseline do not exercise DWG import or DWG-origin DXF Save-As/reopen.",
+      "supportEffect": "No DWG support claim is promoted; leave the optional consumer route unqualified."
+    },
+    "reviewDate": "2026-11-01"
+  },
+  "ac1032EmbeddedMTextTail": {
+    "authority": {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "localPath": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "20.4.4",
+        "20.4.5",
+        "20.4.46"
+      ]
+    },
+    "sourceFixture": {
+      "path": "LibreCAD/librecad/src/lib/filters/tests/testdata/lc_multiline_attrib_ac1032.dwg",
+      "sha256": "f06218b4975c1ed2a9de0484a57744a4e5b5377ffe4520d6fb9098b8bd0dac11",
+      "repositoryCommit": "17cc6a5ae35354eb3e8ec38545a2d5dc298ea146",
+      "provenance": "LibreCAD testdata/PROVENANCE.md identifies this as ODA File Converter 27.1.0 output of a repository-authored DXF; the fixture is already tracked in LibreCAD."
+    },
+    "priorMisalignment": "The previous embedded-MTEXT codec consumed a second unconditional bit and an additional nested annotative-size field before the parent ATTRIB/ATTDEF fields. ODA \u00a7\u00a720.4.4 and 20.4.46 instead place the conditional not-annotative context inside MTEXT, followed by the single parent annotative-size field. The apparent 293/104 values were misaligned parent fields and are not semantic evidence.",
+    "implementation": "Embedded MTEXT read/write now handles the R2018 not-annotative context: version/default flag, registered-application handle, redundant attachment/coordinate/extent fields, and optional columns. The parent ATTRIB/ATTDEF parser then reads its one bounded annotative-data size/bytes/application handle/unknown field sequence. Non-fitting parent sizes fail atomically rather than falling through as arbitrary attribute field values.",
+    "validation": {
+      "build": "PASS: cmake --build build-gcc --parallel 2 --target libdxfrw_dwg_object_vectors_tests dwg2dxf",
+      "generatedVectors": "PASS: build-gcc/libdxfrw_dwg_object_vectors_tests; covers ATTRIB and ATTDEF, both context branches, dynamic columns, outer annotative payload, handle order, and hostile-size rollback/reset.",
+      "fixtureRead": "PASS: dwg2dxf debug trace contains no ATTDEF/ATTRIB parse-failure diagnostics for the tracked fixture.",
+      "strictCliDisposition": "Expected exit 1; strict-complete export refused due to the separately unresolved 739-byte header suffix; no DXF published.",
+      "logs": [
+        "/private/tmp/libdxfrw-ac1032-boundary-20261101-recheck.log"
+      ],
+      "fixturePolicy": "No DWG/DXF fixture was added. Build artifacts remain in ignored build-gcc; conversion output and log are under /private/tmp."
+    },
+    "supportEffect": "The AC1032 suffix is DEFERRED_EXTERNAL. No support claim is promoted; preserve the header diagnostic and strict-export refusal unless independent semantics or provenance become available."
+  }
+}

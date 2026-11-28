@@ -1,0 +1,98 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-10-20",
+  "title": "cadmpeg ACIS/B-rep candidate and low-cost semantic checkpoint",
+  "mode": "Primary-source project, release, and crate-documentation research",
+  "repository": "LibreCAD/libdxfrw",
+  "scope": [
+    "Broaden the independent open-source ACIS semantic route review beyond cq-acis.",
+    "Determine whether cadmpeg provides a version-bounded bare-SAB B-rep comparator and what upstream DWG/DXF responsibilities it cannot qualify.",
+    "Refine the existing optional composed semantic checkpoint for lower-cost execution without adding runtime dependencies, fixtures, tests, or support claims."
+  ],
+  "sources": [
+    {
+      "project": "cadmpeg v0.6.1 release",
+      "urls": [
+        "https://github.com/cadmpeg/cadmpeg/releases/tag/v0.6.1",
+        "https://github.com/cadmpeg/cadmpeg/blob/v0.6.1/docs/format-support.md",
+        "https://github.com/cadmpeg/cadmpeg/blob/v0.6.1/docs/architecture.md"
+      ],
+      "revision": "Tag v0.6.1, release page identifies commit 9e8f6d6 (2026-10-10); retrieved 2026-10-20.",
+      "observed": "The release provides pinned platform binaries with published checksums. The format-support profile keeps bare ASM/ACIS at headline L1 but documents a bounded ACIS 217/218 binary B-rep transfer extra. Its proof criteria require real files for a scored level, named data/loss accounting, deterministic generated round trips, geometry/topology checks, and parser/writer fuzz coverage.",
+      "limits": "A release asset or project-authored capability profile is not an execution result, independent interoperability outcome, general ACIS claim, or proof that CLI output exposes all metrics needed by this plan. Parser source provenance relative to libdxfrw or other peer implementations was not audited."
+    },
+    {
+      "project": "cadmpeg-asm 0.6.1 and cadmpeg-codec-sat 0.6.1",
+      "urls": [
+        "https://docs.rs/crate/cadmpeg-asm/0.6.1",
+        "https://docs.rs/cadmpeg-asm/0.6.1/cadmpeg_asm/",
+        "https://docs.rs/cadmpeg-codec-sat/0.6.1/cadmpeg_codec_sat/"
+      ],
+      "revision": "Exact crate versions 0.6.1; docs.rs release pages accessed 2026-10-20.",
+      "observed": "Documentation identifies ACIS 217/218 as verified binary record-decoder bands, with other save-format majors marked unverified by the host. The parser frames bare ASM/ACIS records and transfers supported graphs into a neutral B-rep representation; dependencies are the project's own IR/core and serialization crates, with no CadQuery or OCCT dependency listed.",
+      "limits": "It parses bare streams and does not parse DWG containers, extract AcDs sections, resolve DWG entity-to-key ownership, write DXF, or demonstrate native CAD acceptance. Neutral-B-rep validation is not a general-purpose geometry kernel result."
+    },
+    {
+      "project": "cq-acis 0.3.12 comparison route",
+      "urls": [
+        "https://github.com/monozukuri-ai/cq-acis/tree/e05a8f470d2f6799277f7b7df467d2fc35625889",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/geometry-support.md",
+        "https://github.com/monozukuri-ai/cq-acis/blob/e05a8f470d2f6799277f7b7df467d2fc35625889/docs/sab-support.md"
+      ],
+      "revision": "Previously reviewed immutable 0.3.12 source commit e05a8f470d2f6799277f7b7df467d2fc35625889; rechecked for route comparison on 2026-10-20.",
+      "observed": "cq-acis remains a bounded SAT/SAB parser and converts supported shapes through CadQuery/OCCT. Its parser/shape-construction route is distinct from cadmpeg's neutral B-rep route, but the OCCT kernel family is shared with FreeCAD.",
+      "limits": "Agreement across two peer routes cannot qualify the DWG-side entity/DataStorage association, construction history, unsupported save profiles, or native application acceptance."
+    }
+  ],
+  "assessment": {
+    "newConfirmedLocalDefects": 0,
+    "newFindings": 0,
+    "newTopLevelSubplans": 0,
+    "existingSubplansRefined": [
+      "PAR-07/S8: add cadmpeg as an optional profile-limited, separately maintained neutral-B-rep comparator for bare ACIS 217/218 SAB only; a source/dependency lineage audit is required before counting an independence vote.",
+      "PAR-07/S8: preserve the end-to-end evidence chain from DWG object and AcDs key through payload hash and output DXF entity before the bare-SAB semantic check.",
+      "External validation cadence: prefer a checksum-verified v0.6.1 platform release binary at the composed gate; only use a crate-level probe if the CLI cannot expose body-level assertions, and do not add routine dependencies."
+    ],
+    "planFileChanged": true,
+    "productionCodeChanged": false,
+    "testCodeChanged": false,
+    "fixturesAdded": 0,
+    "dependenciesAdded": 0,
+    "externalDrawingsDownloaded": 0,
+    "peerExecutablesRun": 0,
+    "nativeCadApplicationsOrKernelsRun": 0,
+    "supportClaimsPromoted": 0,
+    "planTotals": {
+      "findings": 141,
+      "topLevelSubplans": 78
+    },
+    "deferredExternal": {
+      "J256": "DEFERRED_EXTERNAL",
+      "J260": "DEFERRED_EXTERNAL",
+      "J268": "DEFERRED_EXTERNAL",
+      "J284": "DEFERRED_EXTERNAL",
+      "J293": "DEFERRED_EXTERNAL",
+      "J295": "DEFERRED_EXTERNAL"
+    }
+  },
+  "planChanges": [
+    "Added a source-backed route comparison for cadmpeg-asm 0.6.1 and its bare-stream codec, bounded to verified ACIS 217/218 profiles.",
+    "Added a lower-cost composed-checkpoint procedure using the pinned platform release binary and published checksum when the binary exposes body-level evidence.",
+    "Explicitly limited the candidate: it cannot validate DWG section parsing, AcDs entity/key ownership, DXF writer behavior, construction-history completeness, or native CAD acceptance.",
+    "Kept all implementation order, fast local-test cadence, fixture policy, and support-claim gates unchanged."
+  ],
+  "limitations": [
+    "Peer documentation and release assets are not runtime evidence; no package was downloaded, installed, built, or executed.",
+    "The release page identifies commit 9e8f6d6; future use must verify the selected asset checksum and exact build identity.",
+    "A bare-SAB generated control can qualify only that control/profile and cannot establish mainstream format coverage on its own.",
+    "No external drawing, peer corpus, native CAD application, or geometry kernel was used.",
+    "J256, J260, J268, J284, J293, and J295 remain DEFERRED_EXTERNAL and non-promoting."
+  ],
+  "validation": {
+    "jsonValidation": "PASS (jq -e receipt invariants)",
+    "scopedDiffCheck": "PASS (git diff --check on the plan; new receipt has no trailing whitespace)",
+    "fullSuiteRun": false,
+    "commitCreated": false,
+    "commitBlocker": "Shared worktree is broadly dirty and Git metadata is read-only in this session."
+  }
+}

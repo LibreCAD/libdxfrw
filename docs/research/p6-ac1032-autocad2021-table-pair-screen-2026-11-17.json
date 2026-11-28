@@ -1,0 +1,102 @@
+{
+  "title": "AC1032 TABLE pair screen from GeometryHelper AutoCAD 2021 probe corpus",
+  "date": "2026-11-17",
+  "gate": "P6-C",
+  "source_repository": "https://github.com/nguyenthanguth/GeometryHelper",
+  "source_commit": "f1cffa7be89cee79b06426a660c89fec469236b0",
+  "provenance": {
+    "repository_documentation": "src/GeometryHelper.Drawing/plan/78-dwg.md and tests/GeometryHelper.UnitTest/Dwg/DwgAnswerKey.cs describe GhDwg4 running inside AutoCAD 2021, saving DWG, reopening it in AutoCAD, and writing paired DXF answer keys.",
+    "limitations": "The probe plugin/API-call source is not present in the pinned repository. This is a documented AutoCAD-produced candidate, but exact original TABLE API state and authored values are not independently preserved. Do not treat the pair alone as complete producer-bound semantic proof."
+  },
+  "fixture": {
+    "dwg_repository_path": "tests/GeometryHelper.UnitTest/Dwg/Data/table_AC1032.dwg.gz",
+    "dxf_repository_path": "tests/GeometryHelper.UnitTest/Dwg/Data/table_AC1032.dxf.gz",
+    "dwg_sha256_uncompressed": "348b4f0a33c4d97d1a78a695b189a0a6223a43fd64c0615f3b7a5e967c9224c8",
+    "dxf_sha256_uncompressed": "9f35b9edeeba207db905e59fb2642effdc72ae2438519e4f821f85473564b7e2",
+    "dwg_version": "AC1032",
+    "repository_fixture_policy": "Downloaded/decompressed only under /private/tmp; do not add third-party fixture files or derivatives to this repository."
+  },
+  "source_pair_observations": {
+    "dxf_acad_table_count": 2,
+    "dxf_tablecontent_handles": [
+      "9B"
+    ],
+    "dxf_tablegeometry_handles": [
+      "9C"
+    ],
+    "dxf_contains_explicit_datalink_entity": false,
+    "dxf_linked_cell_flags": "All group 92 positions classified as the linked-data flag by ODA v5.4.1 \u00a720.4.97 are zero. Two other group 92 values of 4 occur inside CONTENTFORMAT records and are not linked-data flags.",
+    "tablecontent_subclasses": [
+      "AcDbLinkedData",
+      "AcDbLinkedTableData"
+    ],
+    "sample_values": [
+      "Title",
+      "a",
+      "b",
+      "12.5",
+      "Head",
+      "x"
+    ],
+    "notes": "The AcDbLinkedData/AcDbLinkedTableData subclass names describe the TABLECONTENT inheritance chain; they do not establish linked cells. The paired DXF has no explicit DATALINK record, and its linked-cell flags are zero. Two ACAD_TABLE records include handles 7A and 7C; TABLECONTENT is 9B and TABLEGEOMETRY is 9C."
+  },
+  "libdxfrw_observation": {
+    "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/gh-table_AC1032.dwg -y -v2018 /private/tmp/gh-table_AC1032-libdxfrw.dxf",
+    "dwg_read": "Success; source AC1032; zero entity and object parse failures.",
+    "strict_output": "Refused before output publication.",
+    "diagnostic": "DXF export preflight failed: TABLECONTENT linked cell lacks one emitted DATALINK target or complete DWG semantics",
+    "preflight_interpretation": "The debug trace confirms the ODA-specified TV candidate stops at the first cell, then the bounded AC1032 body-byte-count fallback is accepted and explicitly sets semanticComplete=false. Preflight rejects this incomplete DWG semantic projection; the generic diagnostic combines that condition with a missing DATALINK target. No linked-cell read was logged, and the paired DXF marks linked-cell flags zero. The observed refusal is therefore not evidence of a missing DATALINK in this profile.",
+    "integrity": {
+      "source_frame_count": 161,
+      "source_integrity_row": {
+        "version": 18,
+        "phase": 7,
+        "kind": 24,
+        "offset": 16,
+        "expected": 842,
+        "observed": 846
+      }
+    }
+  },
+  "disposition": {
+    "status": "candidate_for_bounded_triage",
+    "support_claim": "none",
+    "next_steps": [
+      "Keep the AC1032 body-byte-count TABLECONTENT fallback bounded, raw-retaining and semantic-incomplete; strict output refusal remains required.",
+      "The exact 4-byte HEADER warning is a validated high-size-word compatibility observation with matching CRC and zero unclaimed bytes; do not treat it as a source failure.",
+      "Resume only with the missing AutoCAD 2021 probe/API source state or a source-distinct producer-bound table witness that binds row/cell values, format roles and any references. Do not infer native meaning from the paired DXF alone.",
+      "After that source gate closes, prove physical spans/next-frame alignment, graph closure, independent output/readback and native table meaning. Keep downloaded fixtures and derivatives outside the repository."
+    ]
+  },
+  "current_reader_header_reconciliation": {
+    "source_sha256": "348b4f0a33c4d97d1a78a695b189a0a6223a43fd64c0615f3b7a5e967c9224c8",
+    "trace": {
+      "source_version": "AC1032",
+      "header_logical_size": 864,
+      "envelope_start": 16,
+      "declared_size": 822,
+      "high_size_word": 0,
+      "payload_end": 846,
+      "trailer_end": 864,
+      "unclaimed_bytes": 0,
+      "stored_crc": "0xaa8c",
+      "calculated_crc": "0xaa8c",
+      "integrity_row": {
+        "kind": 24,
+        "severity": 1,
+        "offset": 16,
+        "expected": 842,
+        "observed": 846
+      },
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/gh-table_AC1032.dwg -y -d -v2018 /private/tmp/gh-table_AC1032-libdxfrw.dxf",
+      "executable_sha256": "14687787e82c935563f7ab506c7ba13d8a96780b51d91931a57c0705b9e0c16c",
+      "trace_log": "/private/tmp/gh-table_AC1032-debug.log",
+      "trace_log_sha256": "9cae5c1423644661c3e294778736457ad3d3eed377948000405c9cb9e13cbab7"
+    },
+    "code_disposition": {
+      "reference": "src/intern/dwgheadersection.h::dwgHeaderHasHighSizeWord/inspectDwgHeaderEnvelopeCandidate; src/intern/dwgreader.cpp::readDwgHeader HEADER compatibility report",
+      "finding": "The parser selected its AC1032 high-size-word-excluded compatibility candidate, validated the zero high-size word, both sentinels and the envelope CRC, and consumed the full section with zero unclaimed bytes. The 842-to-846 row is the explicit HeaderSectionCompatibility warning emitted for this candidate, not a HEADER bounds/CRC/suffix failure.",
+      "plan_effect": "Remove the 4-byte warning from open P6-C work; do not change the parser or repeat HEADER/suffix scans for this unchanged source."
+    }
+  }
+}

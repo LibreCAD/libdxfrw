@@ -1,0 +1,43 @@
+{
+  "title": "MLINE DWG encoder allocation rollback and retry",
+  "date": "2026-11-10",
+  "scope": "Generated in-memory MLINE transaction controls only; no producer or support claim.",
+  "implementation": {
+    "writer": "DRW_MLine::encodeDwg",
+    "behavior": [
+      "Use the shared private entity transaction helper to stage body and handle streams.",
+      "Preserve caller alias routing, the MLINE object type, and the trailing style handle.",
+      "Keep the existing validated vertex, segment-parameter, and area-fill field sequence."
+    ]
+  },
+  "generated_profiles": [
+    {"version": "AC1015", "profile": "two-vertex, one-line MLINE", "reached_allocation_failures": 15},
+    {"version": "AC1018", "profile": "two-vertex, one-line MLINE", "reached_allocation_failures": 15},
+    {"version": "AC1021", "profile": "two-vertex, one-line MLINE", "reached_allocation_failures": 15},
+    {"version": "AC1024", "profile": "two-vertex, one-line MLINE", "reached_allocation_failures": 15}
+  ],
+  "assertions": [
+    "Injected allocation failures return false without throwing.",
+    "Seeded body and handle bytes, bit counts, handle occurrences, and prior class ID remain unchanged on failure.",
+    "Retrying the same object into the same buffers matches clean output.",
+    "All-stream alias controls preserve state and succeed on retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j4",
+    "focused_selector": "build-gcc/libdxfrw_dwg_object_vectors_tests --mline-dwg-encode-allocation-rollback",
+    "focused_selector_result": "PASS",
+    "focused_selector_counts": {
+      "AC1015 MLINE": 15,
+      "AC1018 MLINE": 15,
+      "AC1021 MLINE": 15,
+      "AC1024 MLINE": 15
+    },
+    "entity_writer_transaction_cohort": "20/20 passed",
+    "git_diff_check": "PASS"
+  },
+  "limitations": [
+    "Generated controls prove local transaction behavior only.",
+    "MLINESTYLE graph closure, physical producer coverage, native rendering, and broader support remain unqualified.",
+    "No DWG or DXF fixture was added."
+  ]
+}
